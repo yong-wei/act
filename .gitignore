@@ -1,0 +1,34 @@
+.claude/
+.serena/
+image/
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+.codex/
+.DS_Store
+
+# Node/JS
+**/node_modules/
+**/.next/
+**/.turbo/
+**/.cache/
+**/.vite/
+**/dist/
+**/build/
+**/out/
+coverage/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env files
+.env
+.env.*
+
+# Prisma local db
+my-next-app/prisma/dev.db

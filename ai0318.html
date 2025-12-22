@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI助教工坊 - 智能问答与虚实联动的认知中枢</title>
+    <style>
+        :root {
+            --primary-blue: #4169E1;
+            --amber-alert: #FFBF00;
+            --dark-blue: #1c3166;
+            --light-blue: #e6eeff;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+            --gray-800: #343a40;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "Source Han Sans", sans-serif;
+        }
+
+        body {
+            background-color: #121e35;
+            color: var(--white);
+            height: 100vh;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: 20% 70% 10%;
+            grid-template-columns: 40% 40% 20%;
+            grid-template-areas:
+                "header header header"
+                "qa-section matrix sidebar"
+                "footer footer footer";
+        }
+
+        /* 顶部舰桥视图 */
+        .bridge-view {
+            grid-area: header;
+            background: linear-gradient(to bottom, var(--dark-blue), var(--primary-blue));
+            border-bottom: 2px solid var(--amber-alert);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ship-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/api/placeholder/1920/300');
+            background-size: cover;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .bridge-top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            z-index: 1;
+        }
+
+        .ship-title {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .ship-title::before {
+            content: "✧";
+            margin-right: 10px;
+            color: var(--amber-alert);
+        }
+
+        .ship-title::after {
+            content: "✧";
+            margin-left: 10px;
+            color: var(--amber-alert);
+        }
+
+        .bridge-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .ai-roles {
+            display: flex;
+            gap: 15px;
+        }
+
+        .role-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: var(--white);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .role-btn:hover,
+        .role-btn.active {
+            background-color: var(--amber-alert);
+            color: var(--dark-blue);
+        }
+
+        .role-btn svg {
+            margin-right: 8px;
+        }
+
+        .connection-status {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            background-color: var(--success-green);
+            border-radius: 50%;
+            margin-right: 10px;
+            position: relative;
+        }
+
+        .status-indicator::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: var(--success-green);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .word-cloud {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            z-index: 1;
+        }
+
+        .word-cloud-tag {
+            padding: 5px 10px;
+            background-color: rgba(65, 105, 225, 0.3);
+            border-radius: 15px;
+            font-size: 14px;
+        }
+
+        .word-cloud-tag.highlighted {
+            background-color: var(--amber-alert);
+            color: var(--dark-blue);
+        }
+
+        /* 左侧问答区 */
+        .qa-section {
+            grid-area: qa-section;
+            background-color: rgba(28, 49, 102, 0.8);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .qa-tabs {
+            display: flex;
+            background-color: var(--dark-blue);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .qa-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            display: flex;
+            align-items: center;
+        }
+
+        .qa-tab.active {
+            opacity: 1;
+            border-bottom-color: var(--amber-alert);
+        }
+
+        .qa-tab svg {
+            margin-right: 8px;
+        }
+
+        .qa-content {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .qa-chat {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message.user {
+            align-items: flex-end;
+        }
+
+        .message-content {
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 80%;
+        }
+
+        .user .message-content {
+            background-color: var(--primary-blue);
+        }
+
+        .ai .message-content {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 5px;
+        }
+
+        .qa-input {
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .qa-textarea {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--white);
+            resize: none;
+            font-size: 16px;
+            min-height: 60px;
+            font-family: Consolas, monospace;
+        }
+
+        .qa-actions {
+            display: flex;
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+        }
+
+        .qa-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 20px;
+            cursor: pointer;
+            margin-left: 15px;
+            transition: all 0.3s;
+        }
+
+        .qa-btn:hover {
+            color: var(--white);
+        }
+
+        .qa-voice {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin: 20px auto;
+            transition: all 0.3s;
+        }
+
+        .qa-voice:hover {
+            background-color: var(--amber-alert);
+            color: var(--dark-blue);
+        }
+
+        .qa-voice svg {
+            font-size: 24px;
+        }
+
+        .qa-voice.recording {
+            animation: pulse-record 1.5s infinite;
+            background-color: var(--danger-red);
+        }
+
+        @keyframes pulse-record {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .voice-waves {
+            display: none;
+            justify-content: center;
+            gap: 6px;
+            margin: 15px 0;
+        }
+
+        .voice-waves.active {
+            display: flex;
+        }
+
+        .wave {
+            width: 3px;
+            height: 20px;
+            background-color: var(--amber-alert);
+            border-radius: 3px;
+        }
+
+        .wave:nth-child(1) {
+            animation: wave 1s ease-in-out infinite;
+        }
+
+        .wave:nth-child(2) {
+            animation: wave 1s ease-in-out 0.1s infinite;
+        }
+
+        .wave:nth-child(3) {
+            animation: wave 1s ease-in-out 0.2s infinite;
+        }
+
+        .wave:nth-child(4) {
+            animation: wave 1s ease-in-out 0.3s infinite;
+        }
+
+        .wave:nth-child(5) {
+            animation: wave 1s ease-in-out 0.4s infinite;
+        }
+
+        @keyframes wave {
+
+            0%,
+            100% {
+                height: 10px;
+            }
+
+            50% {
+                height: 30px;
+            }
+        }
+
+        .dynamic-feedback {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .feedback-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 15px;
+            padding: 8px 12px;
+            color: var(--white);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .feedback-btn:hover {
+            background-color: var(--amber-alert);
+            color: var(--dark-blue);
+        }
+
+        /* 中央资源矩阵 */
+        .cognitive-matrix {
+            grid-area: matrix;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+            overflow: hidden;
+            background-color: rgba(18, 30, 53, 0.9);
+        }
+
+        .matrix-sphere {
+            width: 500px;
+            height: 500px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotate-slowly 120s infinite linear;
+        }
+
+        @keyframes rotate-slowly {
+            0% {
+                transform: rotateY(0) rotateX(10deg);
+            }
+
+            100% {
+                transform: rotateY(360deg) rotateX(10deg);
+            }
+        }
+
+        .beacon {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            backface-visibility: visible;
+            cursor: pointer;
+            transition: all 0.3s;
+            transform-style: preserve-3d;
+        }
+
+        .beacon:hover {
+            background-color: rgba(255, 191, 0, 0.3);
+            transform: scale(1.1);
+        }
+
+        .beacon.highlight {
+            background-color: var(--amber-alert);
+            color: var(--dark-blue);
+            box-shadow: 0 0 20px var(--amber-alert);
+        }
+
+        .beacon-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .beacon-title {
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .learning-path {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .path-line {
+            position: absolute;
+            background-color: rgba(65, 105, 225, 0.5);
+            height: 2px;
+            transform-origin: left center;
+        }
+
+        .path-line.error {
+            background-color: rgba(220, 53, 69, 0.7);
+        }
+
+        .path-line.active {
+            background-color: var(--amber-alert);
+            box-shadow: 0 0 10px var(--amber-alert);
+            height: 3px;
+        }
+
+        .buoy {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: move;
+            z-index: 10;
+            animation: float 3s infinite ease-in-out;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .buoy svg {
+            font-size: 24px;
+        }
+
+        .buoy-label {
+            position: absolute;
+            bottom: -25px;
+            white-space: nowrap;
+            font-size: 12px;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+
+        .ethics-fog {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center,
+                    rgba(18, 30, 53, 0) 0%,
+                    rgba(18, 30, 53, 0.8) 70%,
+                    rgba(18, 30, 53, 0.95) 100%);
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .ethics-prompt {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            max-width: 300px;
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            animation: fade-in 0.5s;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ethics-prompt-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--amber-alert);
+        }
+
+        .ethics-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .ethics-option {
+            padding: 8px 12px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .ethics-option:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .ethics-distribution {
+            height: 5px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .ethics-distribution-fill {
+            height: 100%;
+            background-color: var(--primary-blue);
+            width: 65%;
+        }
+
+        /* 右侧资源库 */
+        .knowledge-sidebar {
+            grid-area: sidebar;
+            background-color: rgba(18, 30, 53, 0.9);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--amber-alert);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: var(--white);
+            cursor: pointer;
+        }
+
+        .resource-section {
+            margin-bottom: 20px;
+        }
+
+        .resource-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .resource-header svg {
+            margin-right: 8px;
+        }
+
+        .resource-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .resource-item {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .resource-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .resource-item.encrypted::before {
+            content: "🔒";
+            margin-right: 8px;
+        }
+
+        .resource-tags {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .resource-tag {
+            background-color: rgba(65, 105, 225, 0.2);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        .ai-prediction {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .prediction-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--amber-alert);
+        }
+
+        .prediction-header svg {
+            margin-right: 8px;
+        }
+
+        .prediction-content {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* 底部控制条 */
+        .control-deck {
+            grid-area: footer;
+            background-color: var(--dark-blue);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .sync-btn {
+            background-color: var(--primary-blue);
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            color: var(--white);
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .sync-btn:hover {
+            background-color: var(--amber-alert);
+            color: var(--dark-blue);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider {
+            width: 150px;
+            -webkit-appearance: none;
+            height: 5px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #28a745, #ffc107, #dc3545);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--white);
+            cursor: pointer;
+        }
+
+        .emergency-btn {
+            background-color: var(--danger-red);
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            color: var(--white);
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .emergency-btn:hover {
+            background-color: #bd2130;
+        }
+
+        /* 能力星图 */
+        .ability-chart {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 500px;
+            background-color: rgba(18, 30, 53, 0.95);
+            border: 1px solid var(--amber-alert);
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            animation: zoom-in 0.5s;
+        }
+
+        @keyframes zoom-in {
+            from {
+                transform: translate(-50%, -50%) scale(0.7);
+                opacity: 0;
+            }
+
+            to {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .ability-chart.visible {
+            display: flex;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .chart-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--amber-alert);
+        }
+
+        .chart-close {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .chart-content {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+
+        .star-map {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background-image: radial-gradient(circle at center, rgba(65, 105, 225, 0.1), transparent 80%);
+        }
+
+        .star-constellation {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .constellation-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: var(--amber-alert);
+        }
+
+        .constellation-name {
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .constellation-value {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .ethics-path {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .ethics-line {
+            position: absolute;
+            height: 2px;
+            background-color: rgba(65, 105, 225, 0.5);
+            transform-origin: left center;
+        }
+
+        .warning-zone {
+            position: absolute;
+            background-color: rgba(220, 53, 69, 0.1);
+            border: 2px solid rgba(220, 53, 69, 0.3);
+            border-radius: 50%;
+        }
+
+        .ship-evolution {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .ship-level {
+            font-size: 36px;
+            color: var(--amber-alert);
+            margin-bottom: 5px;
+        }
+
+        .ship-name {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .progress-bar {
+            width: 200px;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--amber-alert);
+            width: 65%;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 1. 全舰智能体总控面板（顶部舰桥视图） -->
+    <header class="bridge-view">
+        <div class="ship-overlay"></div>
+        <div class="bridge-top">
+            <h1 class="ship-title">AI助教工坊 - 智能问答与虚实联动的认知中枢</h1>
+        </div>
+        <div class="bridge-controls">
+            <div class="ai-roles">
+                <button class="role-btn active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        viewBox="0 0 16 16">
+                        <path
+                            d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z" />
+                        <path
+                            d="M0 10a8 8 0 1 1 15.547 2.661c-.442 1.253-1.845 1.602-2.932 1.25C11.309 13.488 9.475 13 8 13c-1.474 0-3.31.488-4.615.911-1.087.352-2.49.003-2.49 13.661-2.932 12.966a.5.5 0 0 0-.64.308l-1.5 4a.5.5 0 0 0 .6.64l4-1.5a.5.5 0 0 0 .308-.64A7.99 7.99 0 0 1 8 15a7.99 7.99 0 0 1-5.9-2.602z" />
+                    </svg>
+                    算法引航员
+                </button>
+                <button class="role-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        viewBox="0 0 16 16">
+                        <path
+                            d="M2 13.5V7h1v6.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V7h1v6.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5zm11-11V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z" />
+                        <path
+                            d="M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z" />
+                    </svg>
+                    伦理大副
+                </button>
+                <button class="role-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        viewBox="0 0 16 16">
+                        <path
+                            d="M13.5 3a.5.5 0 0 1 .5.5V11H2V3.5a.5.5 0 0 1 .5-.5h11zm-11-1A1.5 1.5 0 0 0 1 3.5V12h14V3.5A1.5 1.5 0 0 0 13.5 2h-11zM0 12.5h16a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 12.5z" />
+                    </svg>
+                    导航长
+                </button>
+            </div>
+            <div class="connection-status">
+                <div class="status-indicator"></div>
+                <span>已连接：数字孪生平台：雪龙号动力舱</span>
+            </div>
+        </div>
+        <div class="word-cloud">
+            <div class="word-cloud-tag">PID参数</div>
+            <div class="word-cloud-tag highlighted">超调量</div>
+            <div class="word-cloud-tag">稳态误差</div>
+            <div class="word-cloud-tag">生态评估</div>
+            <div class="word-cloud-tag highlighted">Nyquist判据</div>
+            <div class="word-cloud-tag">鲁棒性</div>
+            <div class="word-cloud-tag">频率响应</div>
+            <div class="word-cloud-tag">相位裕度</div>
+        </div>
+    </header>
+
+    <!-- 2. 多模态问答舱（左侧主交互区） -->
+    <section class="qa-section">
+        <div class="qa-tabs">
+            <div class="qa-tab active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M3.5 11.5a3.5 3.5 0 1 1 3.163-5H14L15.5 8 14 9.5l-1-1-1 1-1-1-1 1-1-1-1 1H6.663a3.5 3.5 0 0 1-3.163 2zM2.5 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+                </svg>
+                语音舵轮
+            </div>
+            <div class="qa-tab">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z" />
+                    <path
+                        d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z" />
+                    <path
+                        d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z" />
+                </svg>
+                文本航海日志
+            </div>
+            <div class="qa-tab">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+                    <path
+                        d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z" />
+                </svg>
+                视觉扫描仪
+            </div>
+        </div>
+        <div class="qa-content">
+            <div class="qa-voice">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5z" />
+                    <path
+                        d="M10 8a2 2 0 1 1-4 0V3a2 2 0 1 1 4 0v5zM8 0a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V3a3 3 0 0 0-3-3z" />
+                </svg>
+            </div>
+            <div class="voice-waves">
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+            </div>
+            <div class="qa-chat">
+                <div class="message ai">
+                    <div class="message-content">
+                        我是您的AI助教工坊，请问有什么可以帮助您？您可以询问我关于船舶控制、PID参数调优或其他相关问题。
+                    </div>
+                    <div class="message-time">10:30</div>
+                </div>
+                <div class="message user">
+                    <div class="message-content">
+                        如何优化AGV避撞参数？
+                    </div>
+                    <div class="message-time">10:31</div>
+                </div>
+                <div class="message ai">
+                    <div class="message-content">
+                        优化AGV避撞参数需考虑以下关键因素：<br><br>
+                        1. <strong>传感器融合策略</strong>：结合激光雷达和视觉传感器数据，提高环境感知精度<br>
+                        2. <strong>PID控制参数调整</strong>：<br>
+                        - 减小比例系数(Kp)可降低避障响应的急剧性<br>
+                        - 适当增加微分系数(Kd)可提前预测障碍物运动趋势<br>
+                        3. <strong>动态安全距离计算</strong>：根据AGV当前速度和障碍物相对速度动态调整<br><br>
+
+                        您希望我详细解释其中的哪个方面，或者需要具体的参数推荐范围吗？
+                    </div>
+                    <div class="message-time">10:32</div>
+                </div>
+            </div>
+            <div class="dynamic-feedback">
+                <button class="feedback-btn">详解PID避障参数调优方法</button>
+                <button class="feedback-btn">查看典型场景的参数配置</button>
+            </div>
+            <div class="qa-input">
+                <textarea class="qa-textarea" placeholder="在此输入问题或使用语音舵轮..."></textarea>
+                <div class="qa-actions">
+                    <button class="qa-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" />
+                            <path
+                                d="M4.603 12.087a.81.81 0 0 1-.438-.42c-.195-.388-.13-.776.08-1.102.198-.307.526-.568.897-.787a7.68 7.68 0 0 1 1.482-.645 19.701 19.701 0 0 0 1.062-2.227 7.269 7.269 0 0 1-.43-1.295c-.086-.4-.119-.796-.046-1.136.075-.354.274-.672.65-.823.192-.077.4-.12.602-.077a.7.7 0 0 1 .477.365c.088.164.12.356.127.538.007.187-.012.395-.047.614-.084.51-.27 1.134-.52 1.794a10.954 10.954 0 0 0 .98 1.686 5.753 5.753 0 0 1 1.334.05c.364.065.734.195.96.465.12.144.193.32.2.518.007.192-.047.382-.138.563a1.04 1.04 0 0 1-.354.416.856.856 0 0 1-.51.138c-.331-.014-.654-.196-.933-.417a5.716 5.716 0 0 1-.911-.95 11.642 11.642 0 0 0-1.997.406 11.311 11.311 0 0 1-1.021 1.51c-.29.35-.608.655-.926.787a.793.793 0 0 1-.58.029zm1.379-1.901c-.166.076-.32.156-.459.238-.328.194-.541.383-.647.547-.094.145-.096.25-.04.361.01.022.02.036.026.044a.27.27 0 0 0 .035-.012c.137-.056.355-.235.635-.572a8.18 8.18 0 0 0 .45-.606zm1.64-1.33a12.647 12.647 0 0 1 1.01-.193 11.666 11.666 0 0 1-.51-.858 20.741 20.741 0 0 1-.5 1.05zm2.446.45c.15.162.301.3.435.41.135.113.277.214.423.286.114.071.207.1.256.084a.107.107 0 0 0 .07-.052.2.2 0 0 0 .033-.096c.01-.119-.074-.27-.45-.462a5.84 5.84 0 0 0-.769-.392c.003.003.001.007.002.11z" />
+                        </svg>
+                    </button>
+                    <button class="qa-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. 认知灯塔导航区（中央资源矩阵） -->
+    <section class="cognitive-matrix">
+        <div class="matrix-sphere">
+            <!-- 动态生成的浮标和光束将通过JavaScript添加 -->
+            <div class="beacon" style="transform: translateX(120px) translateY(-80px) translateZ(50px);">
+                <div class="beacon-icon">🧭</div>
+                <div class="beacon-title">挖泥船动力分配调优</div>
+            </div>
+            <div class="beacon highlight" style="transform: translateX(-100px) translateY(50px) translateZ(150px);">
+                <div class="beacon-icon">⚙️</div>
+                <div class="beacon-title">PID参数优化</div>
+            </div>
+            <div class="beacon" style="transform: translateX(50px) translateY(120px) translateZ(-80px);">
+                <div class="beacon-icon">📊</div>
+                <div class="beacon-title">Nyquist稳定性分析</div>
+            </div>
+            <div class="beacon" style="transform: translateX(-150px) translateY(-120px) translateZ(-30px);">
+                <div class="beacon-icon">🔍</div>
+                <div class="beacon-title">传感器数据融合</div>
+            </div>
+            <div class="beacon" style="transform: translateX(180px) translateY(20px) translateZ(-100px);">
+                <div class="beacon-icon">🛡️</div>
+                <div class="beacon-title">碰撞风险评估</div>
+            </div>
+        </div>
+
+        <div class="learning-path">
+            <div class="path-line" style="width: 200px; transform: rotate(30deg) translateX(100px) translateY(50px);">
+            </div>
+            <div class="path-line active"
+                style="width: 150px; transform: rotate(-15deg) translateX(50px) translateY(120px);"></div>
+            <div class="path-line error"
+                style="width: 180px; transform: rotate(45deg) translateX(-50px) translateY(80px);"></div>
+        </div>
+
+        <div class="buoy" style="top: 40%; left: 30%;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                <path
+                    d="M4 1c2.21 0 4 1.755 4 3.92C8 2.755 9.79 1 12 1s4 1.755 4 3.92c0 3.263-3.234 4.414-7.608 9.608a.513.513 0 0 1-.784 0C3.234 9.334 0 8.183 0 4.92 0 2.755 1.79 1 4 1z" />
+            </svg>
+            <div class="buoy-label">频域分析法</div>
+        </div>
+
+        <div class="ethics-fog"></div>
+
+        <div class="ethics-prompt" style="top: 30%; right: 20%;">
+            <div class="ethics-prompt-title">伦理决策点</div>
+            <p>在AGV路径规划中，当节能优化与船员安全出现冲突时，您会如何权衡？</p>
+            <div class="ethics-options">
+                <div class="ethics-option">
+                    优先确保人员安全，即使能耗增加10%
+                    <div class="ethics-distribution">
+                        <div class="ethics-distribution-fill" style="width: 65%;"></div>
+                    </div>
+                </div>
+                <div class="ethics-option">
+                    在保证基本安全的前提下，寻找最优能耗方案
+                    <div class="ethics-distribution">
+                        <div class="ethics-distribution-fill" style="width: 30%;"></div>
+                    </div>
+                </div>
+                <div class="ethics-option">
+                    根据任务紧急程度动态调整安全与能耗权重
+                    <div class="ethics-distribution">
+                        <div class="ethics-distribution-fill" style="width: 5%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. 船载智库侧翼（右侧资源库） -->
+    <aside class="knowledge-sidebar">
+        <div class="sidebar-title">
+            船载智库
+            <button class="sidebar-toggle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="resource-section">
+            <div class="resource-header">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8zm0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5z" />
+                    <path
+                        d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z" />
+                    <path
+                        d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z" />
+                </svg>
+                工艺文档保险箱
+            </div>
+            <div class="resource-list">
+                <div class="resource-item encrypted">
+                    天鲸号动力分配规程.encrypted
+                    <div class="resource-tags">
+                        <span class="resource-tag">参数表</span>
+                        <span class="resource-tag">校企联合</span>
+                    </div>
+                </div>
+                <div class="resource-item encrypted">
+                    AGV避障系统技术手册.encrypted
+                    <div class="resource-tags">
+                        <span class="resource-tag">算法</span>
+                        <span class="resource-tag">安全规范</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="resource-section">
+            <div class="resource-header">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M0 1a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V1zm4 0v6h8V1H4zm8 8H4v6h8V9zM1 1v2h2V1H1zm2 3H1v2h2V4zM1 7v2h2V7H1zm2 3H1v2h2v-2zm-2 3v2h2v-2H1zM15 1h-2v2h2V1zm-2 3v2h2V4h-2zm2 3h-2v2h2V7zm-2 3v2h2v-2h-2zm2 3h-2v2h2v-2z" />
+                </svg>
+                实验录像黑匣子
+            </div>
+            <div class="resource-list">
+                <div class="resource-item">
+                    超调临界值调整演示
+                    <div class="resource-tags">
+                        <span class="resource-tag">优秀案例</span>
+                        <span class="resource-tag">A+评级</span>
+                    </div>
+                </div>
+                <div class="resource-item">
+                    避障算法性能对比测试
+                    <div class="resource-tags">
+                        <span class="resource-tag">算法评测</span>
+                        <span class="resource-tag">15分钟</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="resource-section">
+            <div class="resource-header">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                    <path
+                        d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z" />
+                </svg>
+                伦理罗盘
+            </div>
+            <div class="resource-list">
+                <div class="resource-item">
+                    北极科考与濒危物种迁徙的伦理决策
+                    <div class="resource-tags">
+                        <span class="resource-tag">思辨题</span>
+                        <span class="resource-tag">生态保护</span>
+                    </div>
+                </div>
+                <div class="resource-item">
+                    自动化控制与人为干预平衡点
+                    <div class="resource-tags">
+                        <span class="resource-tag">决策案例</span>
+                        <span class="resource-tag">辅助观点</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ai-prediction">
+            <div class="prediction-header">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.687h.984c.085 0 .157-.03.157-.117l.086-.344c.023-.085-.053-.142-.138-.142h-.925L7.58 8.465c.134-.505.784-.505.918 0l.051.211.166.016h.517c.085 0 .157-.03.157-.117l.087-.345c.023-.085-.053-.142-.138-.142h-1.78c-.085 0-.157.03-.157.117l-1.03 4.881c-.023.086.053.143.138.143h.56c.085 0 .157-.03.157-.117l.662-3.123h.917Z" />
+                </svg>
+                AI预言家日报
+            </div>
+            <div class="prediction-content">
+                您今日需强化频域稳定性分析，相关资源已就绪。建议关注Nyquist判据在减摇鳍控制系统中的应用，这对您完成挖泥船动力分配调优工卡至关重要。
+            </div>
+        </div>
+    </aside>
+
+    <!-- 5. 虚实联调指挥台（底部控制条） -->
+    <footer class="control-deck">
+        <div class="control-group">
+            <button class="sync-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z" />
+                    <path fill-rule="evenodd"
+                        d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z" />
+                </svg>
+                参数同步
+            </button>
+            <div class="control-item">
+                <span class="control-label">历史版本：</span>
+                <select>
+                    <option>v2.3.1 - 当前版本</option>
+                    <option>v2.3.0 - 2023-07-15</option>
+                    <option>v2.2.8 - 2023-06-30</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div class="slider-container">
+                <span class="control-label">生态保护权重：</span>
+                <input type="range" min="0" max="100" value="65" class="slider">
+                <span>65%</span>
+            </div>
+        </div>
+
+        <button class="emergency-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path
+                    d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+            </svg>
+            紧急制动
+        </button>
+    </footer>
+
+    <!-- 6. 能力星图（动态悬浮视窗） -->
+    <div class="ability-chart">
+        <div class="chart-header">
+            <div class="chart-title">能力星图 - 技术与伦理导航</div>
+            <button class="chart-close">×</button>
+        </div>
+        <div class="chart-content">
+            <div class="star-map">
+                <div class="star-constellation" style="top: 20%; left: 30%;">
+                    <div class="constellation-icon">🛠️</div>
+                    <div class="constellation-name">PID控制设计</div>
+                    <div class="constellation-value">85%</div>
+                </div>
+                <div class="star-constellation" style="top: 60%; left: 20%;">
+                    <div class="constellation-icon">📊</div>
+                    <div class="constellation-name">根轨迹设计</div>
+                    <div class="constellation-value">72%</div>
+                </div>
+                <div class="star-constellation" style="top: 40%; left: 65%;">
+                    <div class="constellation-icon">📈</div>
+                    <div class="constellation-name">Nyquist分析</div>
+                    <div class="constellation-value">68%</div>
+                </div>
+                <div class="star-constellation" style="top: 15%; left: 70%;">
+                    <div class="constellation-icon">🔍</div>
+                    <div class="constellation-name">故障诊断</div>
+                    <div class="constellation-value">79%</div>
+                </div>
+                <div class="ethics-path">
+                    <div class="ethics-line" style="width: 150px; transform: translate(120px, 100px) rotate(30deg);">
+                    </div>
+                    <div class="ethics-line" style="width: 200px; transform: translate(200px, 150px) rotate(135deg);">
+                    </div>
+                    <div class="ethics-line" style="width: 180px; transform: translate(250px, 200px) rotate(-45deg);">
+                    </div>
+                </div>
+                <div class="warning-zone" style="width: 150px; height: 150px; top: 65%; left: 70%;"></div>
+            </div>
+            <div class="ship-evolution">
+                <div class="ship-level">🚢</div>
+                <div class="ship-name">科考船 - L2级别</div>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="ship-name">距离智能母舰：35%</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 这里放置交互功能的JavaScript代码
+        document.addEventListener('DOMContentLoaded', function () {
+            // 语音麦克风点击效果
+            const voiceBtn = document.querySelector('.qa-voice');
+            const voiceWaves = document.querySelector('.voice-waves');
+
+            voiceBtn.addEventListener('click', function () {
+                this.classList.toggle('recording');
+                voiceWaves.classList.toggle('active');
+
+                // 模拟语音识别过程
+                if (this.classList.contains('recording')) {
+                    setTimeout(() => {
+                        voiceBtn.classList.remove('recording');
+                        voiceWaves.classList.remove('active');
+
+                        // 添加新消息到聊天区域
+                        const qaChat = document.querySelector('.qa-chat');
+                        const now = new Date();
+                        const timeStr = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+
+                        const userMsg = document.createElement('div');
+                        userMsg.className = 'message user';
+                        userMsg.innerHTML = `
+                            <div class="message-content">请解释Nyquist稳定性判据的实际应用</div>
+                            <div class="message-time">${timeStr}</div>
+                        `;
+                        qaChat.appendChild(userMsg);
+
+                        // 滚动到底部
+                        qaChat.scrollTop = qaChat.scrollHeight;
+
+                        // 模拟AI思考
+                        setTimeout(() => {
+                            const aiMsg = document.createElement('div');
+                            aiMsg.className = 'message ai';
+                            aiMsg.innerHTML = `
+                                <div class="message-content">
+                                    <p>Nyquist稳定性判据在船舶控制中有广泛应用：</p>
+                                    <ol>
+                                        <li><strong>减摇鳍控制系统</strong>：通过分析开环传递函数在频域中的特性，可以评估系统稳定裕度。</li>
+                                        <li><strong>动力定位系统</strong>：确保在海流干扰下控制器不会产生振荡或不稳定响应。</li>
+                                        <li><strong>实际应用步骤</strong>：
+                                            <ul>
+                                                <li>绘制系统Bode图或Nyquist图</li>
+                                                <li>检查-1点包络情况</li>
+                                                <li>计算相位裕度和幅值裕度</li>
+                                                <li>根据裕度调整控制参数</li>
+                                            </ul>
+                                        </li>
+                                    </ol>
+                                    <p>这对您完成当前的挖泥船动力分配调优工卡非常关键。</p>
+                                </div>
+                                <div class="message-time">${timeStr}</div>
+                            `;
+                            qaChat.appendChild(aiMsg);
+                            qaChat.scrollTop = qaChat.scrollHeight;
+
+                            // 更新灯塔区域，高亮相关浮标
+                            document.querySelectorAll('.beacon').forEach(b => b.classList.remove('highlight'));
+                            document.querySelector('.beacon:nth-child(3)').classList.add('highlight');
+
+                            // 更新相关推荐按钮
+                            const feedbackBtns = document.querySelector('.dynamic-feedback');
+                            feedbackBtns.innerHTML = `
+                                <button class="feedback-btn">查看Nyquist图实际绘制方法</button>
+                                <button class="feedback-btn">如何应用于避障系统的稳定性分析</button>
+                            `;
+                        }, 1500);
+                    }, 3000);
+                }
+            });
+
+            // 标签页切换
+            const tabs = document.querySelectorAll('.qa-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function () {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // 浮标拖动功能
+            const buoys = document.querySelectorAll('.buoy');
+            buoys.forEach(buoy => {
+                buoy.addEventListener('mousedown', function (e) {
+                    const shiftX = e.clientX - buoy.getBoundingClientRect().left;
+                    const shiftY = e.clientY - buoy.getBoundingClientRect().top;
+
+                    function moveAt(pageX, pageY) {
+                        buoy.style.left = pageX - shiftX + 'px';
+                        buoy.style.top = pageY - shiftY + 'px';
+                    }
+
+                    function onMouseMove(e) {
+                        moveAt(e.pageX, e.pageY);
+                    }
+
+                    document.addEventListener('mousemove', onMouseMove);
+
+                    buoy.onmouseup = function () {
+                        document.removeEventListener('mousemove', onMouseMove);
+                        buoy.onmouseup = null;
+                    };
+                });
+
+                buoy.ondragstart = function () {
+                    return false;
+                };
+            });
+
+            // 能力星图显示/隐藏
+            const abilityChart = document.querySelector('.ability-chart');
+            const chartClose = document.querySelector('.chart-close');
+
+            // 模拟完成某个学习任务后显示
+            setTimeout(() => {
+                abilityChart.classList.add('visible');
+            }, 10000);
+
+            chartClose.addEventListener('click', function () {
+                abilityChart.classList.remove('visible');
+            });
+
+            // 生态保护滑块交互
+            const slider = document.querySelector('.slider');
+            const sliderValue = slider.nextElementSibling;
+
+            slider.addEventListener('input', function () {
+                sliderValue.textContent = this.value + '%';
+            });
+
+            // 紧急制动按钮
+            const emergencyBtn = document.querySelector('.emergency-btn');
+
+            emergencyBtn.addEventListener('click', function () {
+                alert('紧急制动已激活！系统已停止所有操作，即将跳转到安全微课。');
+            });
+
+            // 参数同步按钮
+            const syncBtn = document.querySelector('.sync-btn');
+
+            syncBtn.addEventListener('click', function () {
+                this.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                    </svg>
+                    同步成功
+                `;
+
+                this.style.backgroundColor = '#28a745';
+
+                setTimeout(() => {
+                    this.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+                            <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
+                        </svg>
+                        参数同步
+                    `;
+                    this.style.backgroundColor = '';
+                }, 2000);
+            });
+
+            // 动态旋转矩阵球体
+            const matrixSphere = document.querySelector('.matrix-sphere');
+            let rotationX = 0, rotationY = 0;
+
+            function rotateSphere() {
+                rotationY += 0.1;
+                matrixSphere.style.transform = `rotateY(${rotationY}deg) rotateX(10deg)`;
+                requestAnimationFrame(rotateSphere);
+            }
+
+            rotateSphere();
+        });
+    </script>
+</body>
+
+</html>

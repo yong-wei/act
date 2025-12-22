@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>PID 调参模拟器</title>
+    <link rel="stylesheet" href="css/pid-simulator.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 模型选择区 -->
+        <div class="model-selector">
+            <button class="model-btn" data-model="motor">电动机速度调节</button>
+            <button class="model-btn" data-model="ship">船舶航向调节</button>
+            <button class="model-btn" data-model="usv">水下无人艇</button>
+            <button class="model-btn" data-model="dps">船舶动力定位</button>
+            <button class="model-btn" data-model="dredger">挖泥船动力分配</button>
+            <button class="model-btn" data-model="fin">减摇鳍调节</button>
+        </div>
+
+        <!-- 主显示区 -->
+        <div class="main-display">
+            <div class="model-view" id="model3d">
+                <!-- 三维模型占位区 -->
+                <div class="model-placeholder">三维模型待加载</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="responseChart"></canvas>
+                <div id="modelDesc"></div>
+            </div>
+        </div>
+
+        <!-- 参数控制区 -->
+        <div class="parameter-control">
+            <div class="sim-params">
+                <label>仿真步长 (ms):
+                    <input type="number" id="stepSize" value="50">
+                </label>
+                <label>时间加速比:
+                    <input type="number" id="timeScale" value="1" step="0.1">
+                </label>
+            </div>
+            
+<!--             <div class="pid-params">
+                <label>比例系数 Kp:
+                    <input type="number" id="Kp" value="1.0" step="0.1">
+                </label>
+                <label>积分时间 Ti:
+                    <input type="number" id="Ti" value="0.5" step="0.1">
+                </label>
+                <label>微分时间 Td:
+                    <input type="number" id="Td" value="0.1" step="0.1">
+                </label>
+            </div>
+            
+            <button id="runSimulation">启动仿真</button> -->
+            <div class="param-control">
+                <input type="number" id="Kp" step="0.1" placeholder="Kp">
+                <input type="number" id="Ki" step="0.01" placeholder="Ki">
+                <input type="number" id="Kd" step="0.01" placeholder="Kd">
+                <input type="number" id="reference" value="1.0" step="0.1">
+                <button id="controlBtn">启动仿真</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/pid-simulator.js"></script>
+</body>
+</html>

@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>船舶虚拟仿真实验平台</title>
+    <style>
+        :root {
+            --deep-blue: #2A3F5D;
+            --light-blue: #3A5275;
+            --danger-red: #FF4653;
+            --tech-purple: #8A2BE2;
+            --success-green: #28a745;
+            --white: #ffffff;
+            --light-gray: #f8f9fa;
+            --dark-gray: #343a40;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--dark-gray);
+            color: var(--white);
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* 1. 左侧导航区 */
+        .left-nav {
+            width: 20%;
+            background-color: var(--deep-blue);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .left-nav h1 {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        .experiment-category {
+            margin-bottom: 2rem;
+        }
+
+        .category-title {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--light-gray);
+            display: flex;
+            align-items: center;
+        }
+
+        .category-title i {
+            margin-right: 0.5rem;
+        }
+
+        .experiment-list {
+            list-style: none;
+            padding-left: 1.5rem;
+        }
+
+        .experiment-item {
+            margin-bottom: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .experiment-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .experiment-item.active {
+            background-color: rgba(138, 43, 226, 0.3);
+            border-left: 3px solid var(--tech-purple);
+        }
+
+        .difficulty {
+            display: flex;
+        }
+
+        .anchor-icon {
+            color: gold;
+            opacity: 0.6;
+            margin-left: 2px;
+        }
+
+        .active-anchor {
+            opacity: 1;
+        }
+
+        .partner-section {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .partner-badge {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .partner-badge i {
+            margin-right: 0.5rem;
+        }
+
+        /* 2. 主视窗区 */
+        .main-viewport {
+            width: 60%;
+            background-color: #1a1a1a;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .simulation-container {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #1e3c72, #2a5298);
+        }
+
+        .hud-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem;
+        }
+
+        .experiment-goal {
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--tech-purple);
+        }
+
+        .instruments-panel {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1rem;
+        }
+
+        .instrument {
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .instrument-title {
+            position: absolute;
+            top: -20px;
+            font-size: 0.8rem;
+            color: var(--light-gray);
+        }
+
+        .instrument-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .instrument-unit {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .view-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .view-btn {
+            background: none;
+            border: none;
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+
+        .view-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .view-btn.active {
+            background-color: var(--tech-purple);
+        }
+
+        .view-btn i {
+            margin-right: 0.5rem;
+        }
+
+        .particle-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* 3. 右侧交互区 */
+        .right-panel {
+            width: 20%;
+            background-color: var(--light-blue);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tab {
+            padding: 1rem;
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-bottom: 3px solid var(--tech-purple);
+        }
+
+        .tab i {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 1rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background-color: var(--tech-purple);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            width: 50px;
+            text-align: center;
+            margin-left: 1rem;
+        }
+
+        .ai-suggestion {
+            background-color: rgba(138, 43, 226, 0.2);
+            border-left: 3px solid var(--tech-purple);
+            padding: 0.75rem;
+            margin: 1rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .ai-suggestion-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .ai-suggestion-header i {
+            margin-right: 0.5rem;
+            color: var(--tech-purple);
+        }
+
+        .chart-container {
+            height: 200px;
+            background-color: rgba(0, 0, 0, 0.2);
+            margin: 1rem 0;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .decision-tree {
+            margin: 1rem 0;
+        }
+
+        .decision-node {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            border-left: 3px solid var(--light-gray);
+        }
+
+        .decision-options {
+            margin-top: 1rem;
+        }
+
+        .decision-option {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .decision-option:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .decision-option i {
+            margin-right: 0.5rem;
+            opacity: 0.7;
+        }
+
+        .decision-option.selected {
+            background-color: rgba(40, 167, 69, 0.3);
+            border-left: 3px solid var(--success-green);
+        }
+
+        .ai-assistant {
+            position: relative;
+            margin-top: auto;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ai-message {
+            margin-top: 0.5rem;
+        }
+
+        .ai-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .mic-btn {
+            background-color: var(--tech-purple);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .mic-btn:hover {
+            background-color: #7B27D9;
+        }
+
+        /* 4. 底部进程管理栏 */
+        .bottom-bar {
+            height: 80px;
+            background-color: var(--deep-blue);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+        }
+
+        .progress-step {
+            padding: 0.5rem 1rem;
+            margin-right: 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        .progress-step:not(:last-child):after {
+            content: '';
+            position: absolute;
+            right: -14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 2px;
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .progress-step.active {
+            background-color: var(--tech-purple);
+        }
+
+        .progress-step.completed {
+            background-color: var(--success-green);
+        }
+
+        .progress-step i {
+            margin-right: 0.5rem;
+        }
+
+        .history-controls {
+            display: flex;
+        }
+
+        .history-btn {
+            background: none;
+            border: none;
+            color: var(--white);
+            padding: 0.5rem;
+            margin: 0 0.25rem;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+
+        .history-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .history-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .submit-controls {
+            display: flex;
+        }
+
+        .submit-btn {
+            background-color: var(--deep-blue);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.5rem 1rem;
+            margin-left: 0.5rem;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .submit-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .submit-btn i {
+            margin-right: 0.5rem;
+        }
+
+        /* 5. 弹出浮窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal-container {
+            width: 70%;
+            max-height: 80%;
+            background-color: var(--deep-blue);
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .close-modal:hover {
+            opacity: 1;
+        }
+
+        .modal-body {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .performance-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .performance-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .star-rating {
+            display: flex;
+        }
+
+        .star {
+            color: gold;
+            margin: 0 2px;
+        }
+
+        .radar-chart {
+            height: 300px;
+            background-color: rgba(0, 0, 0, 0.2);
+            margin: 2rem 0;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .badges-section {
+            margin-top: 2rem;
+        }
+
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .badge-item {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .badge-item:hover {
+            transform: scale(1.05);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .badge-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: gold;
+        }
+
+        .locked-badge {
+            filter: grayscale(1);
+            opacity: 0.5;
+        }
+
+        .badge-name {
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .badge-description {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 0.5rem;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 1200px) {
+            .instrument {
+                width: 100px;
+                height: 100px;
+            }
+
+            .instrument-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* 添加旋转特效 */
+        @keyframes rotateInstrument {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .instrument-ring {
+            position: absolute;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: var(--tech-purple);
+            animation: rotateInstrument 2s linear infinite;
+        }
+
+        /* 添加指向指针 */
+        .instrument-needle {
+            position: absolute;
+            width: 2px;
+            height: 40px;
+            background-color: var(--danger-red);
+            top: 20px;
+            transform-origin: bottom center;
+            transition: transform 0.5s ease-out;
+        }
+
+        /* 波浪动画 */
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%232A3F5D" fill-opacity="0.5" d="M0,192L48,208C96,224,192,256,288,250.7C384,245,480,203,576,192C672,181,768,203,864,224C960,245,1056,267,1152,266.7C1248,267,1344,245,1392,234.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            background-size: 100% 100px;
+            animation: waveAnimation 5s linear infinite;
+        }
+
+        @keyframes waveAnimation {
+            0% {
+                background-position-x: 0;
+            }
+
+            100% {
+                background-position-x: 1000px;
+            }
+        }
+
+        /* 添加船舶模型设计 */
+        .ship-model {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 80px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px 60px 5px 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .ship-cabin {
+            position: absolute;
+            bottom: 80px;
+            width: 80px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+            left: 40px;
+        }
+
+        .ship-propeller {
+            position: absolute;
+            bottom: 30px;
+            width: 20px;
+            height: 20px;
+            background-color: #888;
+            border-radius: 50%;
+            right: -10px;
+            animation: rotateInstrument 1s linear infinite;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- 主容器 -->
+    <div class="main-container">
+        <!-- 1. 左侧导航区 -->
+        <aside class="left-nav">
+            <h1><i class="fas fa-ship"></i> 船舶虚拟仿真实验平台</h1>
+
+            <div class="experiment-category">
+                <div class="category-title">
+                    <i class="fas fa-compass"></i>
+                    船舶运动控制
+                </div>
+                <ul class="experiment-list">
+                    <li class="experiment-item active">
+                        <span>航向保持</span>
+                        <div class="difficulty">
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor anchor-icon"></i>
+                            <i class="fas fa-anchor anchor-icon"></i>
+                        </div>
+                    </li>
+                    <li class="experiment-item">
+                        <span>动力定位</span>
+                        <div class="difficulty">
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor anchor-icon"></i>
+                        </div>
+                    </li>
+                    <li class="experiment-item">
+                        <span>减摇鳍调节</span>
+                        <div class="difficulty">
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor anchor-icon"></i>
+                            <i class="fas fa-anchor anchor-icon"></i>
+                            <i class="fas fa-anchor anchor-icon"></i>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="experiment-category">
+                <div class="category-title">
+                    <i class="fas fa-bolt"></i>
+                    能源优化实验
+                </div>
+                <ul class="experiment-list">
+                    <li class="experiment-item">
+                        <span>推进器能效优化</span>
+                        <div class="difficulty">
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor anchor-icon"></i>
+                        </div>
+                    </li>
+                    <li class="experiment-item">
+                        <span>混合动力分配</span>
+                        <div class="difficulty">
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="experiment-category">
+                <div class="category-title">
+                    <i class="fas fa-robot"></i>
+                    多智能体协同
+                </div>
+                <ul class="experiment-list">
+                    <li class="experiment-item">
+                        <span>船舶编队控制</span>
+                        <div class="difficulty">
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor anchor-icon"></i>
+                        </div>
+                    </li>
+                    <li class="experiment-item">
+                        <span>AGV避障联动</span>
+                        <div class="difficulty">
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor active-anchor"></i>
+                            <i class="fas fa-anchor anchor-icon"></i>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="partner-section">
+                <div class="partner-badge">
+                    <i class="fas fa-university"></i>
+                    中船709所联合开发
+                </div>
+                <div class="partner-badge">
+                    <i class="fas fa-snowflake"></i>
+                    雪龙号实操参数库
+                </div>
+            </div>
+        </aside>
+
+        <!-- 2. 主视窗区 -->
+        <main class="main-viewport">
+            <div class="simulation-container">
+                <!-- 简易海洋和船舶模型效果 -->
+                <div class="wave"></div>
+                <div class="ship-model">
+                    <div class="ship-cabin"></div>
+                    <div class="ship-propeller"></div>
+                </div>
+                <canvas class="particle-overlay" id="particleCanvas"></canvas>
+            </div>
+
+            <div class="hud-overlay">
+                <div class="experiment-goal">
+                    <i class="fas fa-bullseye"></i> 当前实验目标：航向偏差<2°且能耗<85kW </div>
+
+                        <div class="instruments-panel">
+                            <div class="instrument" id="heading-instrument">
+                                <div class="instrument-title">航向角</div>
+                                <div class="instrument-ring"></div>
+                                <div class="instrument-needle" style="transform: rotate(45deg);"></div>
+                                <div class="instrument-value">45.2°</div>
+                                <div class="instrument-unit">正北向东</div>
+                            </div>
+
+                            <div class="instrument" id="roll-instrument">
+                                <div class="instrument-title">横摇角</div>
+                                <div class="instrument-ring"></div>
+                                <div class="instrument-needle" style="transform: rotate(5deg);"></div>
+                                <div class="instrument-value">3.5°</div>
+                                <div class="instrument-unit">左舷</div>
+                            </div>
+
+                            <div class="instrument" id="propeller-instrument">
+                                <div class="instrument-title">推进器转速</div>
+                                <div class="instrument-ring"></div>
+                                <div class="instrument-needle" style="transform: rotate(120deg);"></div>
+                                <div class="instrument-value">1430</div>
+                                <div class="instrument-unit">RPM</div>
+                            </div>
+                        </div>
+                </div>
+
+                <div class="view-controls">
+                    <button class="view-btn"><i class="fas fa-eye"></i> 驾驶舱视角</button>
+                    <button class="view-btn active"><i class="fas fa-arrows-alt"></i> 天空俯视视角</button>
+                    <button class="view-btn"><i class="fas fa-cogs"></i> 动力系统透视</button>
+                </div>
+        </main>
+
+        <!-- 3. 右侧交互区 -->
+        <aside class="right-panel">
+            <div class="tabs-header">
+                <div class="tab active" data-target="pid-tab">
+                    <i class="fas fa-sliders-h"></i>
+                    控制器整定
+                </div>
+                <div class="tab" data-target="diagnostics-tab">
+                    <i class="fas fa-chart-line"></i>
+                    数据诊断台
+                </div>
+                <div class="tab" data-target="ethics-tab">
+                    <i class="fas fa-balance-scale"></i>
+                    伦理决策沙盘
+                </div>
+                <div class="tab" data-target="ai-tab">
+                    <i class="fas fa-robot"></i>
+                    AI引航员
+                </div>
+            </div>
+
+            <!-- 控制器整定标签页 -->
+            <div class="tab-content active" id="pid-tab">
+                <div class="control-group">
+                    <label class="control-label">比例系数 (Kp)</label>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="5" step="0.1" value="1.2" class="slider" id="kp-slider">
+                        <div class="slider-value">1.2</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">积分系数 (Ki)</label>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="2" step="0.05" value="0.5" class="slider" id="ki-slider">
+                        <div class="slider-value">0.5</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">微分系数 (Kd)</label>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="10" step="0.1" value="2.3" class="slider" id="kd-slider">
+                        <div class="slider-value">2.3</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">海况强度</label>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="12" step="1" value="6" class="slider" id="sea-slider">
+                        <div class="slider-value">6级</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">风速</label>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="100" step="5" value="35" class="slider" id="wind-slider">
+                        <div class="slider-value">35kn</div>
+                    </div>
+                </div>
+
+                <div class="ai-suggestion">
+                    <div class="ai-suggestion-header">
+                        <i class="fas fa-lightbulb"></i>
+                        <strong>AI参数建议</strong>
+                    </div>
+                    <p>当前Kp=1.2导致超调23%，建议参照挖泥船案例降幅30%。</p>
+                    <p>在6级海况下，可尝试：Kp=0.85, Ki=0.4, Kd=3.2</p>
+                </div>
+            </div>
+
+            <!-- 数据诊断台标签页 -->
+            <div class="tab-content" id="diagnostics-tab">
+                <div class="chart-container">
+                    <!-- 此处将通过JS添加图表 -->
+                    <canvas id="error-chart"></canvas>
+                </div>
+                <div style="font-size:0.8rem; text-align:center; margin-bottom:1rem;">航迹误差曲线（点击放大）</div>
+
+                <div class="chart-container">
+                    <!-- 此处将通过JS添加热力图 -->
+                    <canvas id="heatmap-chart"></canvas>
+                </div>
+                <div style="font-size:0.8rem; text-align:center; margin-bottom:1rem;">能效热力图</div>
+
+                <div
+                    style="background-color:rgba(255,70,83,0.2); padding:0.75rem; border-radius:4px; border-left:3px solid var(--danger-red);">
+                    <div style="display:flex; align-items:center; margin-bottom:0.5rem;">
+                        <i class="fas fa-exclamation-triangle"
+                            style="color:var(--danger-red); margin-right:0.5rem;"></i>
+                        <strong>警报：超调量超过阈值</strong>
+                    </div>
+                    <p>当前超调量：23.5%（阈值：15%）</p>
+                    <p>稳态误差：1.7°</p>
+                </div>
+            </div>
+
+            <!-- 伦理决策沙盘标签页 -->
+            <div class="tab-content" id="ethics-tab">
+                <div class="decision-tree">
+                    <div class="decision-node">
+                        <strong>航线修正决策点</strong>
+                        <p>检测到前方10海里处漂浮物，需要调整航向。以下哪个因素对您最为重要？</p>
+
+                        <div class="decision-options">
+                            <div class="decision-option">
+                                <i class="fas fa-leaf"></i>
+                                生态影响（避免干扰海洋生物）
+                            </div>
+                            <div class="decision-option selected">
+                                <i class="fas fa-shield-alt"></i>
+                                航行安全（确保船舶稳定性）
+                            </div>
+                            <div class="decision-option">
+                                <i class="fas fa-battery-full"></i>
+                                能源效率（最小化燃料消耗）
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="decision-node">
+                        <strong>应对突发浪涌策略</strong>
+                        <p>检测到风力突增至8级，建议采取何种应对策略？</p>
+
+                        <div class="decision-options">
+                            <div class="decision-option">
+                                <i class="fas fa-tachometer-alt"></i>
+                                增加推进器功率（保持航向）
+                            </div>
+                            <div class="decision-option">
+                                <i class="fas fa-route"></i>
+                                临时改变航向（顺应风向）
+                            </div>
+                            <div class="decision-option">
+                                <i class="fas fa-anchor"></i>
+                                减速等待（保守策略）
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI引航员标签页 -->
+            <div class="tab-content" id="ai-tab">
+                <div style="text-align:center; margin-bottom:1rem;">
+                    <i class="fas fa-robot" style="font-size:2rem; color:var(--tech-purple);"></i>
+                    <h3>智能引航员助手</h3>
+                </div>
+
+                <div
+                    style="height:300px; overflow-y:auto; background-color:rgba(0,0,0,0.2); padding:1rem; border-radius:4px; margin-bottom:1rem;">
+                    <div class="ai-message" style="margin-bottom:0.75rem;">
+                        <strong>AI引航员</strong>: 检测到您正在进行航向保持实验，目前Kp值过高导致系统过于敏感，建议将Kp从1.2降低至0.85，再观察系统响应。
+                    </div>
+                    <div class="ai-message" style="margin-bottom:0.75rem;">
+                        <strong>AI引航员</strong>: 雪龙号在南极海域航行时，也面临类似的横摇问题。他们的解决方案是增加Kd值以提高阻尼比。是否查看相关案例?
+                    </div>
+                    <div class="ai-message" style="margin-bottom:0.75rem;">
+                        <strong>AI引航员</strong>: 根据当前海况分析，航向偏差还可能受到洋流影响，建议同时调整积分时间常数。
+                    </div>
+                </div>
+
+                <div class="ai-controls">
+                    <button class="mic-btn">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <div style="flex:1; margin:0 1rem;">
+                        <input type="text" placeholder="向AI引航员提问..."
+                            style="width:100%; padding:0.5rem; border-radius:20px; border:none; background-color:rgba(255,255,255,0.1); color:white;">
+                    </div>
+                    <button class="submit-btn" style="margin:0;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+        </aside>
+    </div>
+
+    <!-- 4. 底部进程管理栏 -->
+    <div class="bottom-bar">
+        <div class="progress-indicator">
+            <div class="progress-step completed">
+                <i class="fas fa-check"></i>
+                参数初始化
+            </div>
+            <div class="progress-step active">
+                <i class="fas fa-wind"></i>
+                抗干扰测试
+            </div>
+            <div class="progress-step">
+                <i class="fas fa-balance-scale"></i>
+                伦理评估
+            </div>
+            <div class="progress-step">
+                <i class="fas fa-flag-checkered"></i>
+                实验总结
+            </div>
+        </div>
+
+        <div class="history-controls">
+            <button class="history-btn" disabled>
+                <i class="fas fa-undo"></i>
+            </button>
+            <button class="history-btn">
+                <i class="fas fa-redo"></i>
+            </button>
+            <button class="history-btn">
+                <i class="fas fa-save"></i>
+            </button>
+        </div>
+
+        <div class="submit-controls">
+            <button class="submit-btn">
+                <i class="fas fa-file-alt"></i>
+                技术报告
+            </button>
+            <button class="submit-btn">
+                <i class="fas fa-clipboard-check"></i>
+                伦理自检表
+            </button>
+        </div>
+    </div>
+
+    <!-- 5. 弹出浮窗 -->
+    <div class="modal-overlay" id="performanceModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>船舶性能诊断书</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="performance-card">
+                    <div class="performance-header">
+                        <h3>实验：浪涌干扰下的智能船舶航向保持</h3>
+                        <div class="star-rating">
+                            <i class="fas fa-star star"></i>
+                            <i class="fas fa-star star"></i>
+                            <i class="fas fa-star star"></i>
+                            <i class="fas fa-star-half-alt star"></i>
+                            <i class="far fa-star star"></i>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-around; text-align:center;">
+                        <div>
+                            <div style="font-size:0.9rem; opacity:0.7;">稳定性</div>
+                            <div style="font-size:1.8rem; color:#28a745;">A-</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.9rem; opacity:0.7;">经济性</div>
+                            <div style="font-size:1.8rem; color:#ffc107;">B+</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.9rem; opacity:0.7;">响应速度</div>
+                            <div style="font-size:1.8rem; color:#17a2b8;">A</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>成长雷达图</h3>
+                <div class="radar-chart">
+                    <!-- 此处将通过JS添加雷达图 -->
+                </div>
+
+                <div class="badges-section">
+                    <h3>舰船勋章</h3>
+                    <div class="badge-grid">
+                        <div class="badge-item">
+                            <div class="badge-icon"><i class="fas fa-medal"></i></div>
+                            <div class="badge-name">极地领航员</div>
+                            <div class="badge-description">在6级以上海况保持S级航向精度</div>
+                        </div>
+                        <div class="badge-item">
+                            <div class="badge-icon"><i class="fas fa-leaf"></i></div>
+                            <div class="badge-name">生态守护者</div>
+                            <div class="badge-description">连续3次选择生态优先策略</div>
+                        </div>
+                        <div class="badge-item locked-badge">
+                            <div class="badge-icon"><i class="fas fa-bolt"></i></div>
+                            <div class="badge-name">能源大师</div>
+                            <div class="badge-description">能耗低于60kW完成实验</div>
+                        </div>
+                        <div class="badge-item locked-badge">
+                            <div class="badge-icon"><i class="fas fa-brain"></i></div>
+                            <div class="badge-name">AI协作者</div>
+                            <div class="badge-description">成功应用3次AI建议</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 标签页切换
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function () {
+                    // 移除所有标签页的active类
+                    tabs.forEach(t => t.classList.remove('active'));
+
+                    // 移除所有内容区的active类
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+
+                    // 为当前点击的标签页添加active类
+                    this.classList.add('active');
+
+                    // 显示对应的内容区
+                    const targetId = this.getAttribute('data-target');
+                    document.getElementById(targetId).classList.add('active');
+                });
+            });
+
+            // 视图切换按钮已有事件处理器，但这里添加默认初始化代码
+/*             const activeViewText = document.querySelectoallinarowr('.view-btn.active').textContent;
+            const shipModel = document.querySelector('.ship-model');
+            if (activeViewText.includes('天空俯视')) {
+                // 设置上帝俯视视角：例如绕X轴旋转90度，并根据需要调整位置
+                shipModel.style.transform = 'translateX(-50%) rotateX(90deg)';
+                // 如果需要，可以调整 top/bottom 值（例如居中显示）
+                shipModel.style.top = '50%';
+                shipModel.style.bottom = 'auto';
+            } */
+
+            // 视图切换按钮
+            const viewBtns = document.querySelectorAll('.view-btn');
+            viewBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    viewBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // 弹窗控制
+            document.querySelector('.history-btn:nth-child(3)').addEventListener('click', function () {
+                document.getElementById('performanceModal').style.display = 'flex';
+            });
+
+            document.querySelector('.close-modal').addEventListener('click', function () {
+                document.getElementById('performanceModal').style.display = 'none';
+            });
+
+            // 伦理决策选项
+            const decisionOptions = document.querySelectorAll('.decision-option');
+            decisionOptions.forEach(option => {
+                option.addEventListener('click', function () {
+                    // 移除同组中所有选项的selected类
+                    const parent = this.parentElement;
+                    parent.querySelectorAll('.decision-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+
+                    // 为当前选项添加selected类
+                    this.classList.add('selected');
+                });
+            });
+
+            // 滑块值实时更新
+            const sliders = document.querySelectorAll('.slider');
+            sliders.forEach(slider => {
+                const valueDisplay = slider.nextElementSibling;
+                slider.addEventListener('input', function () {
+                    let value = this.value;
+
+                    // 为海况和风速添加单位
+                    if (this.id === 'sea-slider') {
+                        value += '级';
+                    } else if (this.id === 'wind-slider') {
+                        value += 'kn';
+                    }
+
+                    valueDisplay.textContent = value;
+
+                    // 更新仪表盘
+                    updateInstruments();
+                });
+            });
+
+            // 每隔一段时间更新仪表盘以模拟变化
+            function updateInstruments() {
+                // 随机化一些仪表盘值以模拟实时变化
+                const headingValue = parseFloat(document.getElementById('kp-slider').value) * 30 + Math.random() * 5;
+                const rollValue = Math.sin(Date.now() / 1000) * parseFloat(document.getElementById('sea-slider').value) / 2;
+                const propellerValue = 1000 + parseFloat(document.getElementById('wind-slider').value) * 10;
+
+                document.querySelector('#heading-instrument .instrument-value').textContent = headingValue.toFixed(1) + '°';
+                document.querySelector('#roll-instrument .instrument-value').textContent = Math.abs(rollValue).toFixed(1) + '°';
+                document.querySelector('#propeller-instrument .instrument-value').textContent = Math.floor(propellerValue);
+
+                // 更新指针旋转
+                document.querySelector('#heading-instrument .instrument-needle').style.transform = `rotate(${headingValue}deg)`;
+                document.querySelector('#roll-instrument .instrument-needle').style.transform = `rotate(${rollValue * 5}deg)`;
+                document.querySelector('#propeller-instrument .instrument-needle').style.transform = `rotate(${propellerValue / 20}deg)`;
+
+                // 如果值超过阈值，添加警告效果
+                if (Math.abs(rollValue) > 5) {
+                    document.querySelector('#roll-instrument .instrument-ring').style.borderTopColor = 'var(--danger-red)';
+                } else {
+                    document.querySelector('#roll-instrument .instrument-ring').style.borderTopColor = 'var(--tech-purple)';
+                }
+            }
+
+            setInterval(updateInstruments, 500);
+
+            // 粒子效果模拟洋流
+            const canvas = document.getElementById('particleCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // 粒子系统
+            let particles = [];
+
+            function createParticles() {
+                particles = [];
+                for (let i = 0; i < 100; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        size: Math.random() * 3 + 1,
+                        speedX: Math.random() * 2 - 1,
+                        speedY: Math.random() * 2 - 1,
+                        color: `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`
+                    });
+                }
+            }
+
+            // 设置canvas大小为容器大小
+            function resizeCanvas() {
+                canvas.width = canvas.parentElement.offsetWidth;
+                canvas.height = canvas.parentElement.offsetHeight;
+                createParticles();
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            function animateParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // 绘制并更新粒子
+                for (let i = 0; i < particles.length; i++) {
+                    const p = particles[i];
+
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // 移动粒子
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+
+                    // 如果粒子移出屏幕，将其重置到另一侧
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.x > canvas.width) p.x = 0;
+                    if (p.y < 0) p.y = canvas.height;
+                    if (p.y > canvas.height) p.y = 0;
+                }
+
+                requestAnimationFrame(animateParticles);
+            }
+
+            animateParticles();
+
+            // 船体振动效果
+            function simulateShipVibration() {
+                const ship = document.querySelector('.ship-model');
+                if (Math.random() > 0.7) { // 30% 的几率触发振动
+                    ship.style.animation = 'vibrate 0.3s ease-in-out';
+                    setTimeout(() => {
+                        ship.style.animation = '';
+                    }, 300);
+                }
+            }
+
+            // 添加船体振动动画
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes vibrate {
+                    0% { transform: translateX(-50%) translateY(0); }
+                    25% { transform: translateX(-51%) translateY(1px); }
+                    50% { transform: translateX(-49%) translateY(-1px); }
+                    75% { transform: translateX(-51%) translateY(1px); }
+                    100% { transform: translateX(-50%) translateY(0); }
+                }
+            `;
+            document.head.appendChild(style);
+
+            setInterval(simulateShipVibration, 2000);
+        });
+    </script>
+</body>
+
+</html>

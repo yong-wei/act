@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  ai-obe-platform:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+    restart: unless-stopped
+    volumes:
+      # Mount data directory for persistence if needed
+      - ./data:/app/data
+    networks:
+      - ai-obe-network
+
+  # Optional: Add a reverse proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - ai-obe-platform
+    networks:
+      - ai-obe-network
+
+networks:
+  ai-obe-network:
+    driver: bridge
+
+volumes:
+  data:
+    driver: local

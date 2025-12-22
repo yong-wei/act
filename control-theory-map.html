@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Theory Atlas | Interactive Map</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        space: '#0f172a',
+                        panel: 'rgba(30, 41, 59, 0.7)',
+                        cyan: { DEFAULT: '#06b6d4', glow: '#67e8f9' },
+                        magenta: { DEFAULT: '#d946ef', glow: '#f0abfc' },
+                        green: { DEFAULT: '#22c55e', glow: '#86efac' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    boxShadow: {
+                        'glow-cyan': '0 0 15px rgba(6, 182, 212, 0.5)',
+                        'glow-magenta': '0 0 15px rgba(217, 70, 239, 0.5)',
+                        'glow-green': '0 0 15px rgba(34, 197, 94, 0.5)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(217, 70, 239, 0.08) 0%, transparent 25%);
+        }
+
+        /* Glassmorphism Sidebar */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Node Animations */
+        .node-circle {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+        }
+        .node-group:hover .node-circle {
+            r: 28;
+            stroke-width: 3px;
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+        .node-group:hover text {
+            fill: #fff;
+            font-weight: 600;
+        }
+        .node-active .node-circle {
+            stroke: white;
+            stroke-width: 4px;
+            filter: drop-shadow(0 0 15px currentColor);
+        }
+
+        /* Link Animation */
+        .link {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 3s ease-out forwards;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Custom Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #06b6d4;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(6,182,212,0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #334155;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex">
+
+    <!-- Main Canvas Area -->
+    <div class="relative flex-1 h-full cursor-grab active:cursor-grabbing" id="canvas-container">
+        
+        <!-- Background Grid -->
+        <div class="absolute inset-0 pointer-events-none opacity-20" 
+             style="background-image: linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg, #334155 1px, transparent 1px); background-size: 50px 50px;">
+        </div>
+
+        <!-- Top HUD -->
+        <div class="absolute top-6 left-8 pointer-events-none select-none z-10">
+            <h1 class="text-4xl font-bold font-mono tracking-tighter text-white mb-2">CONTROL<span class="text-cyan-400">.ATLAS</span></h1>
+            <div class="flex items-center space-x-2 text-sm text-cyan-200/70 font-mono">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span>SYSTEM STATUS: ONLINE</span>
+                <span class="px-2">|</span>
+                <span>V5.0.1</span>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="absolute bottom-8 left-8 text-slate-500 font-mono text-xs z-10 pointer-events-none">
+            DRAG TO PAN • SCROLL TO ZOOM • CLICK NODES TO INSPECT
+        </div>
+
+        <!-- SVG Map Layer -->
+        <svg id="main-svg" class="w-full h-full absolute inset-0 z-0">
+            <defs>
+                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+            </defs>
+            <g id="zoom-group">
+                <g id="links-layer"></g>
+                <g id="nodes-layer"></g>
+            </g>
+        </svg>
+    </div>
+
+    <!-- Sidebar (Hidden by default) -->
+    <div id="sidebar" class="glass-panel fixed top-0 right-0 h-full w-[450px] transform translate-x-full transition-transform duration-500 ease-out z-50 flex flex-col shadow-2xl">
+        <!-- Header -->
+        <div class="p-6 border-b border-slate-700/50 flex justify-between items-start bg-slate-900/40">
+            <div>
+                <span id="node-category" class="inline-block px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-cyan-900/50 text-cyan-300 border border-cyan-800 mb-2">Category</span>
+                <h2 id="node-title" class="text-3xl font-bold text-white tracking-tight">Node Title</h2>
+            </div>
+            <button onclick="closeSidebar()" class="text-slate-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- Content Scroll Area -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-8">
+            
+            <!-- Description -->
+            <section>
+                <h3 class="text-sm font-mono text-slate-400 uppercase mb-3 flex items-center">
+                    <span class="w-1 h-4 bg-cyan-500 mr-2"></span>Concept Definition
+                </h3>
+                <p id="node-desc" class="text-slate-300 leading-relaxed text-sm">
+                    Description goes here...
+                </p>
+                <div id="node-formula-container" class="mt-4 p-4 bg-slate-800/50 rounded border border-slate-700 font-mono text-center text-cyan-200 text-sm overflow-x-auto">
+                    <!-- Formula rendered here -->
+                </div>
+            </section>
+
+            <!-- Simulation Playground (Injected) -->
+            <section id="simulation-section" class="hidden">
+                <h3 class="text-sm font-mono text-slate-400 uppercase mb-3 flex items-center">
+                    <span class="w-1 h-4 bg-magenta-500 mr-2"></span>Live Simulation
+                </h3>
+                
+                <!-- Sim Container -->
+                <div class="bg-slate-900/80 rounded-lg border border-slate-700 overflow-hidden relative">
+                    <!-- Canvas -->
+                    <canvas id="sim-canvas" class="w-full h-[220px] bg-[#0b1120]"></canvas>
+                    
+                    <!-- Overlay Status -->
+                    <div class="absolute top-3 right-3 flex items-center space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        <span class="text-[10px] font-mono text-green-500">REALTIME</span>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="mt-4 grid grid-cols-1 gap-4 bg-slate-800/30 p-4 rounded border border-slate-700/50">
+                    <!-- Sliders -->
+                    <div class="space-y-4" id="sim-controls">
+                        <!-- Dynamic controls injected here -->
+                    </div>
+                </div>
+                
+                <p class="mt-3 text-xs text-slate-500 text-center italic">
+                    Adjust parameters to observe system response
+                </p>
+            </section>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 border-t border-slate-700/50 bg-slate-900/40 text-center">
+            <button class="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded font-mono text-xs transition-all shadow-glow-cyan w-full">
+                LOAD FULL MODULE >
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /* -------------------------------------------------------------------------- */
+        /*                                DATA STRUCTURE                              */
+        /* -------------------------------------------------------------------------- */
+        const nodes = [
+            // Roots
+            { id: 'math', label: 'Math Foundation', x: 400, y: 300, group: 'core', 
+              desc: 'The mathematical language used to describe dynamic systems.', formula: '\dot{x} = f(x,u)' },
+            
+            // Classical Branch (Cyan)
+            { id: 'tf', label: 'Transfer Function', x: 250, y: 300, group: 'classical',
+              desc: 'A mathematical function modeling the system\'s output for each possible input.', formula: 'G(s) = Y(s)/U(s)' },
+            { id: 'pid', label: 'PID Control', x: 100, y: 300, group: 'classical', hasSim: true,
+              desc: 'A control loop mechanism employing feedback that is widely used in industrial control systems.', 
+              formula: 'u(t) = K_p e(t) + K_i \int e(\tau)d\tau + K_d \dot{e}(t)' },
+            { id: 'freq', label: 'Frequency Resp.', x: 250, y: 450, group: 'classical',
+              desc: 'Analysis of system properties in the frequency domain (Bode, Nyquist).', formula: 'G(j\omega)' },
+            
+            // Modern Branch (Magenta)
+            { id: 'ss', label: 'State Space', x: 550, y: 300, group: 'modern',
+              desc: 'A mathematical model of a physical system as a set of input, output and state variables.', formula: '\dot{x} = Ax + Bu' },
+            { id: 'lqr', label: 'LQR', x: 700, y: 250, group: 'modern',
+              desc: 'Linear-Quadratic Regulator: optimal control with quadratic cost function.', formula: 'J = \int (x^TQx + u^TRu)dt' },
+            { id: 'kalman', label: 'Kalman Filter', x: 700, y: 350, group: 'modern',
+              desc: 'An algorithm that uses a series of measurements observed over time to estimate unknown variables.', formula: 'P_k = (I - K_k H)P_{k-1}' },
+            
+            // Advanced (Green)
+            { id: 'mpc', label: 'MPC', x: 650, y: 150, group: 'advanced',
+              desc: 'Model Predictive Control: optimizing a forecast of system behavior.', formula: '\min \sum ||z_{k+i}||' },
+        ];
+
+        const links = [
+            { source: 'math', target: 'tf' },
+            { source: 'tf', target: 'pid' },
+            { source: 'tf', target: 'freq' },
+            { source: 'math', target: 'ss' },
+            { source: 'ss', target: 'lqr' },
+            { source: 'ss', target: 'kalman' },
+            { source: 'ss', target: 'mpc' },
+            { source: 'lqr', target: 'mpc' }
+        ];
+
+        const groups = {
+            core: { color: '#94a3b8', glow: '#cbd5e1' },    // Slate
+            classical: { color: '#06b6d4', glow: '#67e8f9' }, // Cyan
+            modern: { color: '#d946ef', glow: '#f0abfc' },    // Magenta
+            advanced: { color: '#22c55e', glow: '#86efac' }   // Green
+        };
+
+        /* -------------------------------------------------------------------------- */
+        /*                                RENDER LOGIC                                */
+        /* -------------------------------------------------------------------------- */
+        const svg = document.getElementById('main-svg');
+        const nodesLayer = document.getElementById('nodes-layer');
+        const linksLayer = document.getElementById('links-layer');
+        const canvasContainer = document.getElementById('canvas-container');
+
+        // Draw Links
+        links.forEach(link => {
+            const s = nodes.find(n => n.id === link.source);
+            const t = nodes.find(n => n.id === link.target);
+            if (!s || !t) return;
+
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', s.x);
+            line.setAttribute('y1', s.y);
+            line.setAttribute('x2', t.x);
+            line.setAttribute('y2', t.y);
+            line.setAttribute('stroke', '#334155');
+            line.setAttribute('stroke-width', '2');
+            line.setAttribute('class', 'link');
+            linksLayer.appendChild(line);
+        });
+
+        // Draw Nodes
+        nodes.forEach(node => {
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+            g.setAttribute('class', 'node-group cursor-pointer');
+            g.onclick = (e) => { e.stopPropagation(); openSidebar(node); };
+
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            const style = groups[node.group];
+            circle.setAttribute('r', '20');
+            circle.setAttribute('fill', '#0f172a'); // hollow look
+            circle.setAttribute('stroke', style.color);
+            circle.setAttribute('stroke-width', '2');
+            circle.setAttribute('class', 'node-circle');
+            
+            // Label
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('dy', '40');
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('fill', '#94a3b8'); // text-slate-400
+            text.setAttribute('font-size', '12');
+            text.setAttribute('font-family', 'Inter, sans-serif');
+            text.textContent = node.label;
+
+            g.appendChild(circle);
+            g.appendChild(text);
+            nodesLayer.appendChild(g);
+            node.element = g; // store ref
+        });
+
+        /* -------------------------------------------------------------------------- */
+        /*                                INTERACTION                                 */
+        /* -------------------------------------------------------------------------- */
+        const sidebar = document.getElementById('sidebar');
+        let activeSim = null;
+
+        function openSidebar(node) {
+            // Highlight node
+            document.querySelectorAll('.node-group').forEach(g => g.classList.remove('node-active'));
+            node.element.classList.add('node-active');
+
+            // Populate text
+            document.getElementById('node-title').textContent = node.label;
+            document.getElementById('node-title').style.color = groups[node.group].color;
+            
+            const catEl = document.getElementById('node-category');
+            catEl.textContent = node.group.toUpperCase();
+            catEl.style.color = groups[node.group].glow;
+            catEl.style.borderColor = groups[node.group].color;
+            catEl.style.backgroundColor = groups[node.group].color + '20'; // 20% opacity hex
+
+            document.getElementById('node-desc').textContent = node.desc;
+            document.getElementById('node-formula-container').textContent = node.formula;
+
+            // Handle Simulation
+            const simSection = document.getElementById('simulation-section');
+            if (node.hasSim && node.id === 'pid') {
+                simSection.classList.remove('hidden');
+                setupPIDSim();
+            } else {
+                simSection.classList.add('hidden');
+                stopSim();
+            }
+
+            // Open
+            sidebar.classList.remove('translate-x-full');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.add('translate-x-full');
+            document.querySelectorAll('.node-group').forEach(g => g.classList.remove('node-active'));
+            stopSim();
+        }
+
+        canvasContainer.onclick = (e) => {
+            if (e.target.id === 'main-svg' || e.target.id === 'canvas-container') {
+                closeSidebar();
+            }
+        };
+
+        /* -------------------------------------------------------------------------- */
+        /*                                SIMULATION ENGINE                           */
+        /* -------------------------------------------------------------------------- */
+        let simLoopId;
+
+        function stopSim() {
+            if (simLoopId) cancelAnimationFrame(simLoopId);
+            simLoopId = null;
+        }
+
+        function setupPIDSim() {
+            stopSim();
+            const controlsDiv = document.getElementById('sim-controls');
+            controlsDiv.innerHTML = ''; // clear
+
+            // Helpers to create sliders
+            const createSlider = (id, label, min, max, val, step) => {
+                const wrap = document.createElement('div');
+                wrap.innerHTML = `
+                    <div class="flex justify-between text-xs font-mono text-slate-400 mb-1">
+                        <label>${label}</label>
+                        <span id="val-${id}" class="text-cyan-400">${val}</span>
+                    </div>
+                    <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}">
+                `;
+                controlsDiv.appendChild(wrap);
+                return wrap.querySelector('input');
+            };
+
+            const kpInput = createSlider('kp', 'Proportional (Kp)', 0, 5, 1.0, 0.1);
+            const kiInput = createSlider('ki', 'Integral (Ki)', 0, 1, 0.05, 0.01);
+            const kdInput = createSlider('kd', 'Derivative (Kd)', 0, 5, 2.0, 0.1);
+
+            [kpInput, kiInput, kdInput].forEach(inp => {
+                inp.addEventListener('input', (e) => {
+                    document.getElementById(`val-${e.target.id}`).textContent = e.target.value;
+                });
+            });
+
+            // Physics Variables
+            let setpoint = 100; // Target height (pixels from bottom)
+            let y = 0;          // Current height
+            let velocity = 0;
+            let integral = 0;
+            let lastError = 0;
+            const history = [];
+            const maxHistory = 300; // Canvas width approx
+
+            const canvas = document.getElementById('sim-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function loop() {
+                // Read inputs
+                const Kp = parseFloat(kpInput.value);
+                const Ki = parseFloat(kiInput.value);
+                const Kd = parseFloat(kdInput.value);
+
+                // Resize if needed
+                if (canvas.width !== canvas.offsetWidth) {
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = canvas.offsetHeight;
+                }
+                const W = canvas.width;
+                const H = canvas.height;
+
+                // Physics Step
+                const error = setpoint - y;
+                integral += error * 0.1; // dt approx
+                // Anti-windup
+                if (integral > 100) integral = 100;
+                if (integral < -100) integral = -100;
+
+                const derivative = (error - lastError) / 0.1;
+                const force = (Kp * error) + (Ki * integral) + (Kd * derivative);
+
+                // Simple Mass-Spring-Damper dynamics
+                // F = ma -> a = F/m
+                // Let m = 5, damping = 0.95
+                const acceleration = force / 5.0; 
+                velocity += acceleration;
+                velocity *= 0.95; // friction
+                y += velocity;
+
+                lastError = error;
+
+                // Store history
+                history.push(y);
+                if (history.length > W) history.shift();
+
+                // ---------------- DRAWING ----------------
+                ctx.clearRect(0, 0, W, H);
+
+                // Grid lines
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let i = 0; i < H; i+=40) { ctx.moveTo(0, i); ctx.lineTo(W, i); }
+                for (let i = 0; i < W; i+=40) { ctx.moveTo(i, 0); ctx.lineTo(i, H); }
+                ctx.stroke();
+
+                // Target Line (Green Dashed)
+                const targetY = H - setpoint - 50; // Offset from bottom
+                ctx.strokeStyle = '#22c55e';
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(0, targetY);
+                ctx.lineTo(W, targetY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Response Curve (Cyan)
+                ctx.strokeStyle = '#06b6d4';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let i = 0; i < history.length; i++) {
+                    const hY = H - history[i] - 50;
+                    if (i === 0) ctx.moveTo(i, hY);
+                    else ctx.lineTo(i, hY);
+                }
+                ctx.stroke();
+
+                // Draw "Ball" at the end
+                const curY = H - y - 50;
+                ctx.fillStyle = '#f0abfc'; // Magenta
+                ctx.shadowColor = '#f0abfc';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(history.length - 1, curY, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                simLoopId = requestAnimationFrame(loop);
+            }
+
+            loop();
+        }
+
+    </script>
+</body>
+</html>
