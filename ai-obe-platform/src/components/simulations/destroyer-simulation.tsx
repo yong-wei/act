@@ -216,6 +216,7 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: false,
         interaction: {
           mode: 'index',
           intersect: false,
@@ -368,6 +369,8 @@ export function DestroyerSimulation() {
   }, []);
 
   const lastChartSampleRef = useRef(0);
+  const simulationStartTimeRef = useRef(0);
+  const lastRudderStepTimeRef = useRef(0);
 
   const handleChartDataUpdate = useCallback((time: number, desiredHeading: number, actualHeading: number, speed: number) => {
     setChartData(prev => {
@@ -396,6 +399,24 @@ export function DestroyerSimulation() {
   const circleStateRef = useRef({ totalAngle: 0, lastAngle: 0 });
   const trailStampRef = useRef(0);
 
+  // 用于任务判定的 refs，避免 setInterval 闭包问题
+  const hudRef = useRef(hud);
+  const targetHeadingRef = useRef(targetHeading);
+  const obstacleHitRef = useRef(obstacleHit);
+
+  // 同步最新值到 refs
+  useEffect(() => {
+    hudRef.current = hud;
+  }, [hud]);
+
+  useEffect(() => {
+    targetHeadingRef.current = targetHeading;
+  }, [targetHeading]);
+
+  useEffect(() => {
+    obstacleHitRef.current = obstacleHit;
+  }, [obstacleHit]);
+
   const activeTask = tasks[taskIndex];
   const angleError = angleDelta(targetHeading, hud.heading);
   const scenarioConfig = scenarioConfigs[activeTask.scenario];
@@ -406,6 +427,9 @@ export function DestroyerSimulation() {
     setObstacleHit(false);
     setMiniTrail([]);
     trailStampRef.current = 0;
+    lastChartSampleRef.current = 0;
+    simulationStartTimeRef.current = -1; // 标记需要重置，在 SimulationLoop 中会设置为当前时间
+    lastRudderStepTimeRef.current = 0;
     if (scenarioConfig.circle) {
       const startAngle = Math.atan2(
         scenarioConfig.start.z - scenarioConfig.circle.z,
@@ -482,8 +506,13 @@ export function DestroyerSimulation() {
       let isComplete = false;
       let progress = 0;
 
+      // 使用 refs 获取最新值，避免闭包捕获旧值
+      const currentHud = hudRef.current;
+      const currentTargetHeading = targetHeadingRef.current;
+      const currentObstacleHit = obstacleHitRef.current;
+
       if (activeTask.scenario === 'turn90') {
-        const error = angleDelta(targetHeading, hud.heading);
+        const error = angleDelta(currentTargetHeading, currentHud.heading);
         if (Math.abs(error) <= activeTask.tolerance) {
           holdRef.current += 0.2;
         } else {
@@ -501,8 +530,8 @@ export function DestroyerSimulation() {
         const finishX = scenarioConfig.finishX ?? 0;
         if (island) {
           const distance = Math.hypot(
-            hud.position.x - island.x,
-            hud.position.z - island.z,
+            currentHud.position.x - island.x,
+            currentHud.position.z - island.z,
           );
           if (distance < island.radius + 10) {
             setObstacleHit(true);
@@ -512,18 +541,18 @@ export function DestroyerSimulation() {
           }
         }
         progress = clamp(
-          (hud.position.x - scenarioConfig.start.x) / (finishX - scenarioConfig.start.x),
+          (currentHud.position.x - scenarioConfig.start.x) / (finishX - scenarioConfig.start.x),
           0,
           1,
         );
-        isComplete = !obstacleHit && hud.position.x >= finishX;
+        isComplete = !currentObstacleHit && currentHud.position.x >= finishX;
       }
 
       if (activeTask.scenario === 'circle') {
         const circle = scenarioConfig.circle;
         if (circle) {
-          const dx = hud.position.x - circle.x;
-          const dz = hud.position.z - circle.z;
+          const dx = currentHud.position.x - circle.x;
+          const dz = currentHud.position.z - circle.z;
           const angle = Math.atan2(dz, dx);
           const radiusError = Math.abs(Math.hypot(dx, dz) - circle.radius);
           let delta = angle - circleStateRef.current.lastAngle;
@@ -555,16 +584,7 @@ export function DestroyerSimulation() {
     }, 200);
 
     return () => clearInterval(interval);
-  }, [
-    activeTask,
-    hud.heading,
-    hud.position.x,
-    hud.position.z,
-    obstacleHit,
-    scenarioConfig,
-    targetHeading,
-    taskIndex,
-  ]);
+  }, [activeTask, scenarioConfig, taskIndex]);
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">
@@ -677,6 +697,8 @@ export function DestroyerSimulation() {
                 onCameraOffsetChange={setCameraOffset}
                 onChartDataUpdate={handleChartDataUpdate}
                 lastChartSampleRef={lastChartSampleRef}
+                simulationStartTimeRef={simulationStartTimeRef}
+                lastRudderStepTimeRef={lastRudderStepTimeRef}
               />
             </Suspense>
           </div>
@@ -906,6 +928,8 @@ type SimulationCanvasProps = {
   onCameraOffsetChange: (offset: { azimuth: number; elevation: number; panX: number; panZ: number }) => void;
   onChartDataUpdate: (time: number, desiredHeading: number, actualHeading: number, speed: number) => void;
   lastChartSampleRef: React.MutableRefObject<number>;
+  simulationStartTimeRef: React.MutableRefObject<number>;
+  lastRudderStepTimeRef: React.MutableRefObject<number>;
 };
 
 function SimulationCanvas({
@@ -923,6 +947,8 @@ function SimulationCanvas({
   onCameraOffsetChange,
   onChartDataUpdate,
   lastChartSampleRef,
+  simulationStartTimeRef,
+  lastRudderStepTimeRef,
 }: SimulationCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
@@ -1052,6 +1078,8 @@ function SimulationCanvas({
           simSpeed={simSpeed}
           onChartDataUpdate={onChartDataUpdate}
           lastChartSampleRef={lastChartSampleRef}
+          simulationStartTimeRef={simulationStartTimeRef}
+          lastRudderStepTimeRef={lastRudderStepTimeRef}
         />
         <CameraRig cameraView={cameraView} simRef={simRef} cameraOffset={cameraOffset} />
       </Canvas>
@@ -1072,6 +1100,8 @@ type SimulationLoopProps = {
   simSpeed: number;
   onChartDataUpdate: (time: number, desiredHeading: number, actualHeading: number, speed: number) => void;
   lastChartSampleRef: React.MutableRefObject<number>;
+  simulationStartTimeRef: React.MutableRefObject<number>;
+  lastRudderStepTimeRef: React.MutableRefObject<number>;
 };
 
 function SimulationLoop({
@@ -1087,11 +1117,20 @@ function SimulationLoop({
   simSpeed,
   onChartDataUpdate,
   lastChartSampleRef,
+  simulationStartTimeRef,
+  lastRudderStepTimeRef,
 }: SimulationLoopProps) {
   useFrame((state, delta) => {
     const dt = Math.min(delta * simSpeed, 0.1);
     const sim = simRef.current;
     const headingDeg = normalizeHeading(toDegrees(sim.headingRad));
+    const elapsedTime = state.clock.getElapsedTime();
+
+    // 处理仿真时间重置（当 simulationStartTimeRef 为 -1 时，记录当前时钟时间作为起始点）
+    if (simulationStartTimeRef.current < 0) {
+      simulationStartTimeRef.current = elapsedTime;
+    }
+    const simTime = elapsedTime - simulationStartTimeRef.current;
 
     if (controlMode === 'manual') {
       sim.speedMps = clamp(
@@ -1103,13 +1142,20 @@ function SimulationLoop({
       sim.speedMps = nomotoModel.speedMps;
     }
 
+    // 舵角控制：手动模式下，每 100ms 步进 1 度
     if (controlMode === 'manual') {
-      const manualRate = 25;
-      sim.manualRudderDeg = clamp(
-        sim.manualRudderDeg + rudderDirectionRef.current * manualRate * dt,
-        -nomotoModel.maxRudderDeg,
-        nomotoModel.maxRudderDeg,
-      );
+      const rudderStepInterval = 0.1; // 100ms
+      const rudderStepSize = 1; // 每步 1 度
+      if (rudderDirectionRef.current !== 0) {
+        if (simTime - lastRudderStepTimeRef.current >= rudderStepInterval) {
+          lastRudderStepTimeRef.current = simTime;
+          sim.manualRudderDeg = clamp(
+            sim.manualRudderDeg + rudderDirectionRef.current * rudderStepSize,
+            -nomotoModel.maxRudderDeg,
+            nomotoModel.maxRudderDeg,
+          );
+        }
+      }
       sim.rudderDeg = sim.manualRudderDeg;
     } else {
       const errorDeg = angleDelta(targetHeading, headingDeg);
@@ -1148,8 +1194,8 @@ function SimulationLoop({
       shipRef.current.rotation.y = -sim.headingRad + Math.PI / 2;
     }
 
-    if (state.clock.getElapsedTime() - lastHudUpdateRef.current > 0.1) {
-      lastHudUpdateRef.current = state.clock.getElapsedTime();
+    if (elapsedTime - lastHudUpdateRef.current > 0.1) {
+      lastHudUpdateRef.current = elapsedTime;
       onHudUpdate({
         heading: normalizeHeading(toDegrees(sim.headingRad)),
         yawRate: toDegrees(sim.yawRateRad),
@@ -1159,11 +1205,10 @@ function SimulationLoop({
       });
     }
 
-    // 图表数据采集（每0.5秒）
-    const time = state.clock.getElapsedTime();
-    if (time - lastChartSampleRef.current > 0.5) {
-      lastChartSampleRef.current = time;
-      onChartDataUpdate(time, targetHeading, headingDeg, sim.speedMps);
+    // 图表数据采集（每0.5秒，使用相对于仿真开始的时间）
+    if (simTime - lastChartSampleRef.current > 0.5) {
+      lastChartSampleRef.current = simTime;
+      onChartDataUpdate(simTime, targetHeading, headingDeg, sim.speedMps);
     }
   });
 
@@ -1315,9 +1360,10 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
   return (
     <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
       <meshPhongMaterial
-        color="#004b6b"
-        specular="#4fa3c7"
-        shininess={120}
+        color="#0a4a6e"
+        emissive="#051a28"
+        specular="#2a7fa8"
+        shininess={60}
         side={THREE.DoubleSide}
       />
     </mesh>
@@ -1366,7 +1412,7 @@ function GridHelper({ simRef }: { simRef: React.MutableRefObject<SimulationState
   return (
     <group ref={gridRef}>
       {lines.map((points, i) => (
-        <Line key={i} points={points} color="#ffffff" lineWidth={0.5} transparent opacity={0.15} />
+        <Line key={i} points={points} color="#88ccff" lineWidth={1.0} transparent opacity={0.35} />
       ))}
     </group>
   );
