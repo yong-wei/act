@@ -415,6 +415,7 @@ export function DestroyerSimulation() {
     } else {
       circleStateRef.current = { totalAngle: 0, lastAngle: 0 };
     }
+    setChartData({ time: [], desiredHeading: [], actualHeading: [], speed: [] });
     setResetToken((prev) => prev + 1);
   }, [scenarioConfig]);
 
@@ -565,13 +566,18 @@ export function DestroyerSimulation() {
     taskIndex,
   ]);
 
-  if (viewMode === 'chart') {
-    return <SimulationChart data={chartData} onBack={() => setViewMode('simulation')} />;
-  }
-
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">
-      <div className={`grid gap-8 ${panelOpen ? 'lg:grid-cols-[2fr_1fr]' : 'lg:grid-cols-1'}`}>
+      {viewMode === 'chart' ? (
+        <div className="h-[600px] w-full">
+          <SimulationChart data={chartData} onBack={() => setViewMode('simulation')} />
+        </div>
+      ) : null}
+      <div
+        className={`${viewMode === 'chart' ? 'hidden' : 'grid'} gap-8 ${
+          panelOpen ? 'lg:grid-cols-[2fr_1fr]' : 'lg:grid-cols-1'
+        }`}
+      >
         <div className="space-y-6 min-w-0">
           <div className="relative h-[560px] w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
             <div className="absolute left-4 top-4 z-10 flex gap-2">
@@ -1309,8 +1315,8 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
   return (
     <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
       <meshPhongMaterial
-        color="#2c7fb8"
-        specular="#b3d9ff"
+        color="#004b6b"
+        specular="#4fa3c7"
         shininess={120}
         side={THREE.DoubleSide}
       />
@@ -1540,7 +1546,7 @@ function MiniMap({
   });
 
   const ship = toMap(position);
-  const shipRotation = heading - 90;  // 修正方向，向上为0°
+  const shipRotation = heading;
 
   return (
     <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-2 text-[10px] text-slate-200 backdrop-blur">
@@ -1548,7 +1554,7 @@ function MiniMap({
         <span>战术俯瞰</span>
         <span className="text-emerald-300">实时</span>
       </div>
-      <svg width={size} height={size} className="rounded-lg bg-transparent" style={{ transform: 'scaleY(-1)' }}>
+      <svg width={size} height={size} className="rounded-lg bg-transparent">
         <rect width={size} height={size} fill="#0b1324" fillOpacity="0.65" />
         {guidePath.length > 1 ? (
           <polyline
