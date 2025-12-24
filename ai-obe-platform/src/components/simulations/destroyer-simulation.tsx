@@ -810,9 +810,9 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
   );
   const waves = useMemo(
     () => [
-      { amplitude: 1.8, frequency: 0.015, speed: 0.7, direction: new THREE.Vector2(1, 0) },
-      { amplitude: 1.1, frequency: 0.02, speed: 0.5, direction: new THREE.Vector2(0.2, 0.9) },
-      { amplitude: 0.8, frequency: 0.03, speed: 0.9, direction: new THREE.Vector2(-0.6, 0.4) },
+      { amplitude: 2.4, frequency: 0.013, speed: 0.7, direction: new THREE.Vector2(1, 0) },
+      { amplitude: 1.6, frequency: 0.02, speed: 0.5, direction: new THREE.Vector2(0.2, 0.9) },
+      { amplitude: 1.2, frequency: 0.03, speed: 0.9, direction: new THREE.Vector2(-0.6, 0.4) },
     ],
     [],
   );
@@ -851,12 +851,11 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
 
   return (
     <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
-      <meshStandardMaterial
-        color="#082038"
-        roughness={0.9}
-        metalness={0.06}
-        emissive="#02070e"
-        emissiveIntensity={0.1}
+      <meshPhongMaterial
+        color="#0b2a4a"
+        specular="#6fa6d6"
+        shininess={24}
+        side={THREE.DoubleSide}
       />
     </mesh>
   );
@@ -966,8 +965,20 @@ function MiniMap({
   }, [scenarioConfig]);
 
   const bounds = useMemo(() => {
-    const xs = [scenarioConfig.start.x, position.x, ...guidePoints.map((p) => p.x)];
-    const zs = [scenarioConfig.start.z, position.z, ...guidePoints.map((p) => p.z)];
+    const xs = [scenarioConfig.start.x, ...guidePoints.map((p) => p.x)];
+    const zs = [scenarioConfig.start.z, ...guidePoints.map((p) => p.z)];
+
+    if (scenarioConfig.finishX !== undefined) {
+      xs.push(scenarioConfig.finishX);
+      zs.push(scenarioConfig.start.z);
+    }
+
+    if (scenarioConfig.circle) {
+      xs.push(scenarioConfig.circle.x - scenarioConfig.circle.radius);
+      xs.push(scenarioConfig.circle.x + scenarioConfig.circle.radius);
+      zs.push(scenarioConfig.circle.z - scenarioConfig.circle.radius);
+      zs.push(scenarioConfig.circle.z + scenarioConfig.circle.radius);
+    }
 
     if (scenarioConfig.island) {
       xs.push(scenarioConfig.island.x - scenarioConfig.island.radius);
@@ -976,13 +987,24 @@ function MiniMap({
       zs.push(scenarioConfig.island.z + scenarioConfig.island.radius);
     }
 
-    const minX = Math.min(...xs) - padding;
-    const maxX = Math.max(...xs) + padding;
-    const minZ = Math.min(...zs) - padding;
-    const maxZ = Math.max(...zs) + padding;
+    if (xs.length === 0 || zs.length === 0) {
+      return { minX: -100, maxX: 100, minZ: -100, maxZ: 100 };
+    }
 
-    return { minX, maxX, minZ, maxZ };
-  }, [guidePoints, position.x, position.z, scenarioConfig]);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minZ = Math.min(...zs);
+    const maxZ = Math.max(...zs);
+    const span = Math.max(maxX - minX, maxZ - minZ) || 1;
+    const margin = span * 0.35 + padding;
+
+    return {
+      minX: minX - margin,
+      maxX: maxX + margin,
+      minZ: minZ - margin,
+      maxZ: maxZ + margin,
+    };
+  }, [guidePoints, scenarioConfig]);
 
   const scale = Math.max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ) || 1;
   const toMap = (point: { x: number; z: number }) => {
