@@ -1,13 +1,16 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Line, Sky, useGLTF } from '@react-three/drei';
+import { Line, useGLTF } from '@react-three/drei';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 type ControlMode = 'manual' | 'p' | 'pd' | 'pid';
 type CameraView = 'chase' | 'overhead' | 'tactical';
@@ -108,7 +111,7 @@ const scenarioConfigs: Record<TaskScenario, ScenarioConfig> = {
     guidePath: [
       new THREE.Vector3(-2700, 0.5, 0),
       new THREE.Vector3(2700, 0.5, 0),
-      new THREE.Vector3(2700, 0.5, 3600),
+      new THREE.Vector3(2700, 0.5, 20000),  // 延伸至远处
     ],
   },
   obstacle: {
@@ -153,6 +156,164 @@ const angleDelta = (target: number, current: number) => {
   return diff;
 };
 
+type ChartData = {
+  time: number[];
+  desiredHeading: number[];
+  actualHeading: number[];
+  speed: number[];
+};
+
+function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void }) {
+  const chartRef = useRef<HTMLCanvasElement>(null);
+  const chartInstanceRef = useRef<Chart | null>(null);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    // 销毁旧图表
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.destroy();
+    }
+
+    // 创建新图表
+    chartInstanceRef.current = new Chart(chartRef.current, {
+      type: 'line',
+      data: {
+        labels: data.time.map(t => t.toFixed(1)),
+        datasets: [
+          {
+            label: '期望航向',
+            data: data.desiredHeading,
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            yAxisID: 'y-heading',
+            fill: false,
+            borderWidth: 2,
+            pointRadius: 0,
+          },
+          {
+            label: '实际航向',
+            data: data.actualHeading,
+            borderColor: '#22c55e',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            yAxisID: 'y-heading',
+            fill: false,
+            borderWidth: 2,
+            pointRadius: 0,
+          },
+          {
+            label: '航速',
+            data: data.speed,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            yAxisID: 'y-speed',
+            fill: false,
+            borderWidth: 2,
+            pointRadius: 0,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              color: '#e2e8f0',
+              font: { size: 12 },
+            },
+          },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            titleColor: '#e2e8f0',
+            bodyColor: '#cbd5e1',
+            borderColor: '#475569',
+            borderWidth: 1,
+          },
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: '时间 (秒)',
+              color: '#cbd5e1',
+              font: { size: 13 },
+            },
+            ticks: {
+              color: '#94a3b8',
+              maxTicksLimit: 15,
+            },
+            grid: {
+              color: 'rgba(148, 163, 184, 0.1)',
+            },
+          },
+          'y-heading': {
+            type: 'linear',
+            position: 'left',
+            title: {
+              display: true,
+              text: '航向角 (°)',
+              color: '#cbd5e1',
+              font: { size: 13 },
+            },
+            min: 0,
+            max: 360,
+            ticks: {
+              color: '#94a3b8',
+              stepSize: 45,
+            },
+            grid: {
+              color: 'rgba(148, 163, 184, 0.2)',
+            },
+          },
+          'y-speed': {
+            type: 'linear',
+            position: 'right',
+            title: {
+              display: true,
+              text: '航速 (m/s)',
+              color: '#cbd5e1',
+              font: { size: 13 },
+            },
+            ticks: {
+              color: '#94a3b8',
+            },
+            grid: {
+              drawOnChartArea: false,
+            },
+          },
+        },
+      },
+    });
+
+    return () => {
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+        chartInstanceRef.current = null;
+      }
+    };
+  }, [data]);
+
+  return (
+    <div className="flex h-full w-full flex-col bg-slate-950 p-6">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-2xl font-semibold text-slate-100">仿真曲线</h2>
+        <Button onClick={onBack} variant="default" size="lg">
+          返回仿真
+        </Button>
+      </div>
+      <div className="flex-1 rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+        <canvas ref={chartRef} />
+      </div>
+    </div>
+  );
+}
+
 export function DestroyerSimulation() {
   const [cameraView, setCameraView] = useState<CameraView>('chase');
   const [controlMode, setControlMode] = useState<ControlMode>('manual');
@@ -172,6 +333,62 @@ export function DestroyerSimulation() {
   const [taskProgress, setTaskProgress] = useState(0);
   const [obstacleHit, setObstacleHit] = useState(false);
   const [resetToken, setResetToken] = useState(0);
+  const [simSpeed, setSimSpeed] = useState(1);
+  const [cameraOffset, setCameraOffset] = useState({
+    azimuth: 0,
+    elevation: 0,
+    panX: 0,
+    panZ: 0,
+  });
+  const [viewMode, setViewMode] = useState<'simulation' | 'chart'>('simulation');
+  const [chartData, setChartData] = useState<{
+    time: number[];
+    desiredHeading: number[];
+    actualHeading: number[];
+    speed: number[];
+  }>({
+    time: [],
+    desiredHeading: [],
+    actualHeading: [],
+    speed: [],
+  });
+
+  const speedOptions = useMemo(() => [0.5, 1, 2, 4], []);
+
+  const adjustSpeed = useCallback((direction: number) => {
+    setSimSpeed((prev) => {
+      const currentIndex = speedOptions.indexOf(prev);
+      const newIndex = clamp(currentIndex + direction, 0, speedOptions.length - 1);
+      return speedOptions[newIndex];
+    });
+  }, [speedOptions]);
+
+  const resetCameraOffset = useCallback(() => {
+    setCameraOffset({ azimuth: 0, elevation: 0, panX: 0, panZ: 0 });
+  }, []);
+
+  const lastChartSampleRef = useRef(0);
+
+  const handleChartDataUpdate = useCallback((time: number, desiredHeading: number, actualHeading: number, speed: number) => {
+    setChartData(prev => {
+      const newData = {
+        time: [...prev.time, time],
+        desiredHeading: [...prev.desiredHeading, desiredHeading],
+        actualHeading: [...prev.actualHeading, actualHeading],
+        speed: [...prev.speed, speed],
+      };
+      const maxPoints = 2000;
+      if (newData.time.length > maxPoints) {
+        return {
+          time: newData.time.slice(-maxPoints),
+          desiredHeading: newData.desiredHeading.slice(-maxPoints),
+          actualHeading: newData.actualHeading.slice(-maxPoints),
+          speed: newData.speed.slice(-maxPoints),
+        };
+      }
+      return newData;
+    });
+  }, []);
 
   const rudderDirectionRef = useRef(0);
   const speedDirectionRef = useRef(0);
@@ -348,6 +565,10 @@ export function DestroyerSimulation() {
     taskIndex,
   ]);
 
+  if (viewMode === 'chart') {
+    return <SimulationChart data={chartData} onBack={() => setViewMode('simulation')} />;
+  }
+
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">
       <div className={`grid gap-8 ${panelOpen ? 'lg:grid-cols-[2fr_1fr]' : 'lg:grid-cols-1'}`}>
@@ -359,11 +580,48 @@ export function DestroyerSimulation() {
                   key={view.id}
                   variant={cameraView === view.id ? 'default' : 'secondary'}
                   size="sm"
-                  onClick={() => setCameraView(view.id)}
+                  onClick={() => {
+                    setCameraView(view.id);
+                    resetCameraOffset();
+                  }}
                 >
                   {view.label}
                 </Button>
               ))}
+            </div>
+            <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2 flex items-center gap-3 rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5">
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0 text-slate-300 hover:text-white"
+                  onClick={() => adjustSpeed(-1)}
+                  disabled={simSpeed === speedOptions[0]}
+                >
+                  −
+                </Button>
+                <span className="min-w-[50px] text-center text-sm text-white">
+                  {simSpeed}x
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0 text-slate-300 hover:text-white"
+                  onClick={() => adjustSpeed(1)}
+                  disabled={simSpeed === speedOptions[speedOptions.length - 1]}
+                >
+                  +
+                </Button>
+              </div>
+              <div className="h-5 w-px bg-slate-700" />
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 px-3 text-xs text-slate-300 hover:text-white"
+                onClick={() => setViewMode(viewMode === 'simulation' ? 'chart' : 'simulation')}
+              >
+                {viewMode === 'simulation' ? '查看曲线' : '返回仿真'}
+              </Button>
             </div>
             <div className="absolute right-4 top-4 z-10 flex flex-col items-end gap-3">
               <div className="flex gap-2">
@@ -408,6 +666,11 @@ export function DestroyerSimulation() {
                 onHudUpdate={setHud}
                 resetToken={resetToken}
                 scenarioConfig={scenarioConfig}
+                simSpeed={simSpeed}
+                cameraOffset={cameraOffset}
+                onCameraOffsetChange={setCameraOffset}
+                onChartDataUpdate={handleChartDataUpdate}
+                lastChartSampleRef={lastChartSampleRef}
               />
             </Suspense>
           </div>
@@ -632,6 +895,11 @@ type SimulationCanvasProps = {
   onHudUpdate: (state: HudState) => void;
   resetToken: number;
   scenarioConfig: (typeof scenarioConfigs)[TaskScenario];
+  simSpeed: number;
+  cameraOffset: { azimuth: number; elevation: number; panX: number; panZ: number };
+  onCameraOffsetChange: (offset: { azimuth: number; elevation: number; panX: number; panZ: number }) => void;
+  onChartDataUpdate: (time: number, desiredHeading: number, actualHeading: number, speed: number) => void;
+  lastChartSampleRef: React.MutableRefObject<number>;
 };
 
 function SimulationCanvas({
@@ -644,7 +912,83 @@ function SimulationCanvas({
   onHudUpdate,
   resetToken,
   scenarioConfig,
+  simSpeed,
+  cameraOffset,
+  onCameraOffsetChange,
+  onChartDataUpdate,
+  lastChartSampleRef,
 }: SimulationCanvasProps) {
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const dragButtonRef = useRef<number | null>(null);
+  const lastMouseRef = useRef({ x: 0, y: 0 });
+
+  // 鼠标视角控制
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (e.button === 0 || e.button === 2) {
+        isDraggingRef.current = true;
+        dragButtonRef.current = e.button;
+        lastMouseRef.current = { x: e.clientX, y: e.clientY };
+        e.preventDefault();
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+
+      const deltaX = e.clientX - lastMouseRef.current.x;
+      const deltaY = e.clientY - lastMouseRef.current.y;
+      lastMouseRef.current = { x: e.clientX, y: e.clientY };
+
+      if (dragButtonRef.current === 2) {
+        // 右键：围绕船舶旋转视角（轨道控制）
+        onCameraOffsetChange({
+          ...cameraOffset,
+          azimuth: cameraOffset.azimuth + deltaX * 0.005,
+          elevation: clamp(cameraOffset.elevation - deltaY * 0.003, -0.3, 0.8),
+        });
+      } else if (dragButtonRef.current === 0) {
+        // 左键：平移（在相机视平面上移动lookAt目标）
+        // 根据当前视角方向计算平移向量
+        const viewAzimuth = cameraOffset.azimuth;
+        const rightX = Math.cos(viewAzimuth + Math.PI / 2);
+        const rightZ = Math.sin(viewAzimuth + Math.PI / 2);
+        const forwardX = Math.cos(viewAzimuth);
+        const forwardZ = Math.sin(viewAzimuth);
+
+        onCameraOffsetChange({
+          ...cameraOffset,
+          panX: cameraOffset.panX - deltaX * rightX * 0.8 + deltaY * forwardX * 0.8,
+          panZ: cameraOffset.panZ - deltaX * rightZ * 0.8 + deltaY * forwardZ * 0.8,
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+      dragButtonRef.current = null;
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    canvas.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    canvas.addEventListener('contextmenu', handleContextMenu);
+
+    return () => {
+      canvas.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      canvas.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, [cameraOffset, onCameraOffsetChange]);
   const shipRef = useRef<THREE.Group>(null);
   const simRef = useRef<SimulationState>({
     position: new THREE.Vector3(0, 0, 0),
@@ -672,34 +1016,40 @@ function SimulationCanvas({
   }, [resetToken, controlMode, scenarioConfig]);
 
   return (
-    <Canvas
-      className="h-full w-full"
-      camera={{ position: [0, 30, 140], fov: 50, near: 0.1, far: 20000 }}
-    >
-      <color attach="background" args={['#0b1c31']} />
-      <fog attach="fog" args={['#0b1c31', 1400, 20000]} />
-      <ambientLight intensity={0.3} />
-      <hemisphereLight intensity={0.4} groundColor="#0a1426" color="#8eb8e8" />
-      <directionalLight position={[120, 420, 80]} intensity={0.7} color="#cfe3ff" />
-      <Sky sunPosition={[120, 420, 80]} turbidity={9} rayleigh={2.8} />
-      <WaveWater simRef={simRef} />
-      <GuideRoute scenarioConfig={scenarioConfig} />
-      {scenarioConfig.island ? <Island {...scenarioConfig.island} /> : null}
-      <ShipTrail simRef={simRef} resetToken={resetToken} />
-      <ShipModel shipRef={shipRef} />
-      <SimulationLoop
-        shipRef={shipRef}
-        simRef={simRef}
-        controlMode={controlMode}
-        pidGains={pidGains}
-        targetHeading={targetHeading}
-        rudderDirectionRef={rudderDirectionRef}
-        speedDirectionRef={speedDirectionRef}
-        onHudUpdate={onHudUpdate}
-        lastHudUpdateRef={lastHudUpdateRef}
-      />
-      <CameraRig cameraView={cameraView} simRef={simRef} />
-    </Canvas>
+    <div ref={canvasRef} className="h-full w-full">
+      <Canvas
+        className="h-full w-full"
+        camera={{ position: [0, 30, 140], fov: 50, near: 0.1, far: 15000 }}
+      >
+        <color attach="background" args={['#d4e8f7']} />
+        <ambientLight intensity={0.5} />
+        <hemisphereLight intensity={0.6} groundColor="#2a5a7a" color="#ffffff" />
+        <directionalLight position={[200, 150, 200]} intensity={1.0} color="#fff8e7" />
+        <SkyDome />
+        <ProceduralClouds />
+        <WaveWater simRef={simRef} />
+        <GridHelper simRef={simRef} />
+        <GuideRoute scenarioConfig={scenarioConfig} />
+        {scenarioConfig.island ? <Island {...scenarioConfig.island} /> : null}
+        <ShipTrail simRef={simRef} resetToken={resetToken} />
+        <ShipModel shipRef={shipRef} />
+        <SimulationLoop
+          shipRef={shipRef}
+          simRef={simRef}
+          controlMode={controlMode}
+          pidGains={pidGains}
+          targetHeading={targetHeading}
+          rudderDirectionRef={rudderDirectionRef}
+          speedDirectionRef={speedDirectionRef}
+          onHudUpdate={onHudUpdate}
+          lastHudUpdateRef={lastHudUpdateRef}
+          simSpeed={simSpeed}
+          onChartDataUpdate={onChartDataUpdate}
+          lastChartSampleRef={lastChartSampleRef}
+        />
+        <CameraRig cameraView={cameraView} simRef={simRef} cameraOffset={cameraOffset} />
+      </Canvas>
+    </div>
   );
 }
 
@@ -713,6 +1063,9 @@ type SimulationLoopProps = {
   speedDirectionRef: React.MutableRefObject<number>;
   onHudUpdate: (state: HudState) => void;
   lastHudUpdateRef: React.MutableRefObject<number>;
+  simSpeed: number;
+  onChartDataUpdate: (time: number, desiredHeading: number, actualHeading: number, speed: number) => void;
+  lastChartSampleRef: React.MutableRefObject<number>;
 };
 
 function SimulationLoop({
@@ -725,9 +1078,12 @@ function SimulationLoop({
   speedDirectionRef,
   onHudUpdate,
   lastHudUpdateRef,
+  simSpeed,
+  onChartDataUpdate,
+  lastChartSampleRef,
 }: SimulationLoopProps) {
   useFrame((state, delta) => {
-    const dt = Math.min(delta, 0.1);
+    const dt = Math.min(delta * simSpeed, 0.1);
     const sim = simRef.current;
     const headingDeg = normalizeHeading(toDegrees(sim.headingRad));
 
@@ -796,9 +1152,108 @@ function SimulationLoop({
         position: { x: sim.position.x, z: sim.position.z },
       });
     }
+
+    // 图表数据采集（每0.5秒）
+    const time = state.clock.getElapsedTime();
+    if (time - lastChartSampleRef.current > 0.5) {
+      lastChartSampleRef.current = time;
+      onChartDataUpdate(time, targetHeading, headingDeg, sim.speedMps);
+    }
   });
 
   return null;
+}
+
+// 固定种子的随机数生成器
+function seededRandom(seed: number) {
+  let value = seed;
+  return () => {
+    value = (value * 9301 + 49297) % 233280;
+    return value / 233280;
+  };
+}
+
+function ProceduralClouds() {
+  const cloudsRef = useRef<THREE.InstancedMesh>(null);
+
+  const cloudInstances = useMemo(() => {
+    const random = seededRandom(42); // 固定种子保证静态
+    const instances: Array<{
+      position: THREE.Vector3;
+      scale: THREE.Vector3;
+      rotation: number;
+    }> = [];
+
+    for (let i = 0; i < 50; i++) {
+      const angle = random() * Math.PI * 2;
+      const distance = 3000 + random() * 4000;
+      const height = 800 + random() * 600;
+      const size = 80 + random() * 150;
+
+      instances.push({
+        position: new THREE.Vector3(
+          Math.cos(angle) * distance,
+          height,
+          Math.sin(angle) * distance,
+        ),
+        scale: new THREE.Vector3(size, size * 0.4, size * 0.7),
+        rotation: random() * Math.PI * 2,
+      });
+    }
+
+    return instances;
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!cloudsRef.current) return;
+
+    const tempMatrix = new THREE.Matrix4();
+    cloudInstances.forEach((cloud, i) => {
+      tempMatrix.makeRotationY(cloud.rotation);
+      tempMatrix.setPosition(cloud.position);
+      tempMatrix.scale(cloud.scale);
+      cloudsRef.current!.setMatrixAt(i, tempMatrix);
+    });
+
+    cloudsRef.current.instanceMatrix.needsUpdate = true;
+  }, [cloudInstances]);
+
+  return (
+    <instancedMesh ref={cloudsRef} args={[undefined, undefined, 50]}>
+      <sphereGeometry args={[1, 8, 8]} />
+      <meshBasicMaterial color="#ffffff" transparent opacity={0.8} side={THREE.DoubleSide} />
+    </instancedMesh>
+  );
+}
+
+function SkyDome() {
+  const geometry = useMemo(() => {
+    const geo = new THREE.SphereGeometry(10000, 64, 64);
+    const colors: number[] = [];
+    const positions = geo.attributes.position;
+
+    for (let i = 0; i < positions.count; i++) {
+      const y = positions.getY(i);
+      const normalizedY = (y / 10000 + 1) / 2; // 0 at bottom, 1 at top
+
+      // 从地平线到天顶的渐变
+      const horizonColor = new THREE.Color('#d4e8f7'); // 地平线：更亮的蓝色
+      const zenithColor = new THREE.Color('#4a7ba7');  // 天顶：真实天空蓝
+      const blendFactor = Math.pow(Math.max(0, normalizedY - 0.5) * 2, 0.6);
+      const color = horizonColor.clone().lerp(zenithColor, blendFactor);
+
+      colors.push(color.r, color.g, color.b);
+    }
+
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    return geo;
+  }, []);
+
+  return (
+    <mesh geometry={geometry}>
+      <meshBasicMaterial vertexColors side={THREE.BackSide} />
+    </mesh>
+  );
 }
 
 function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
@@ -810,9 +1265,11 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
   );
   const waves = useMemo(
     () => [
-      { amplitude: 2.4, frequency: 0.013, speed: 0.7, direction: new THREE.Vector2(1, 0) },
-      { amplitude: 1.6, frequency: 0.02, speed: 0.5, direction: new THREE.Vector2(0.2, 0.9) },
-      { amplitude: 1.2, frequency: 0.03, speed: 0.9, direction: new THREE.Vector2(-0.6, 0.4) },
+      { amplitude: 2.8, frequency: 0.012, speed: 0.7, direction: new THREE.Vector2(1, 0) },
+      { amplitude: 1.8, frequency: 0.019, speed: 0.5, direction: new THREE.Vector2(0.2, 0.9) },
+      { amplitude: 1.4, frequency: 0.028, speed: 0.85, direction: new THREE.Vector2(-0.6, 0.4) },
+      { amplitude: 0.9, frequency: 0.045, speed: 1.2, direction: new THREE.Vector2(0.7, -0.3) },
+      { amplitude: 0.6, frequency: 0.072, speed: 1.5, direction: new THREE.Vector2(-0.4, 0.8) },
     ],
     [],
   );
@@ -852,12 +1309,60 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
   return (
     <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
       <meshPhongMaterial
-        color="#104064"
-        specular="#122638"
-        shininess={6}
+        color="#2c7fb8"
+        specular="#b3d9ff"
+        shininess={120}
         side={THREE.DoubleSide}
       />
     </mesh>
+  );
+}
+
+function GridHelper({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
+  const gridRef = useRef<THREE.Group>(null);
+  const gridSize = 100; // 100米
+  const gridExtent = 50; // 显示50x50格（5000米范围）
+
+  const lines = useMemo(() => {
+    const linePoints: THREE.Vector3[][] = [];
+    const halfExtent = gridExtent / 2;
+
+    // 横向线（Z方向）
+    for (let x = -halfExtent; x <= halfExtent; x++) {
+      linePoints.push([
+        new THREE.Vector3(x * gridSize, 0.2, -halfExtent * gridSize),
+        new THREE.Vector3(x * gridSize, 0.2, halfExtent * gridSize),
+      ]);
+    }
+
+    // 纵向线（X方向）
+    for (let z = -halfExtent; z <= halfExtent; z++) {
+      linePoints.push([
+        new THREE.Vector3(-halfExtent * gridSize, 0.2, z * gridSize),
+        new THREE.Vector3(halfExtent * gridSize, 0.2, z * gridSize),
+      ]);
+    }
+
+    return linePoints;
+  }, []);
+
+  useFrame(() => {
+    if (!gridRef.current) return;
+    const sim = simRef.current;
+
+    // 网格跟随船舶，但对齐到100米网格
+    const snappedX = Math.round(sim.position.x / gridSize) * gridSize;
+    const snappedZ = Math.round(sim.position.z / gridSize) * gridSize;
+
+    gridRef.current.position.set(snappedX, 0, snappedZ);
+  });
+
+  return (
+    <group ref={gridRef}>
+      {lines.map((points, i) => (
+        <Line key={i} points={points} color="#ffffff" lineWidth={0.5} transparent opacity={0.15} />
+      ))}
+    </group>
   );
 }
 
@@ -868,7 +1373,7 @@ function GuideRoute({
 }) {
   if (scenarioConfig.guidePath) {
     return (
-      <Line points={scenarioConfig.guidePath} color="#ef4444" lineWidth={2} dashed={false} />
+      <Line points={scenarioConfig.guidePath} color="#ef4444" lineWidth={3} dashed={false} />
     );
   }
 
@@ -1020,7 +1525,7 @@ function MiniMap({
   const scale = Math.max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ) || 1;
   const toMap = (point: { x: number; z: number }) => {
     const x = ((point.x - bounds.minX) / scale) * size;
-    const y = size - ((point.z - bounds.minZ) / scale) * size;
+    const y = ((point.z - bounds.minZ) / scale) * size;  // 移除倒置，直接映射
     return { x, y };
   };
 
@@ -1035,7 +1540,7 @@ function MiniMap({
   });
 
   const ship = toMap(position);
-  const shipRotation = -heading;
+  const shipRotation = heading - 90;  // 修正方向，向上为0°
 
   return (
     <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-2 text-[10px] text-slate-200 backdrop-blur">
@@ -1043,7 +1548,7 @@ function MiniMap({
         <span>战术俯瞰</span>
         <span className="text-emerald-300">实时</span>
       </div>
-      <svg width={size} height={size} className="rounded-lg bg-transparent">
+      <svg width={size} height={size} className="rounded-lg bg-transparent" style={{ transform: 'scaleY(-1)' }}>
         <rect width={size} height={size} fill="#0b1324" fillOpacity="0.65" />
         {guidePath.length > 1 ? (
           <polyline
@@ -1115,48 +1620,93 @@ function ShipModel({ shipRef }: { shipRef: React.RefObject<THREE.Group> }) {
   );
 }
 
+type CameraOffset = {
+  azimuth: number;
+  elevation: number;
+  panX: number;
+  panZ: number;
+};
+
 function CameraRig({
   cameraView,
   simRef,
+  cameraOffset,
 }: {
   cameraView: CameraView;
   simRef: React.MutableRefObject<SimulationState>;
+  cameraOffset: CameraOffset;
 }) {
   const { camera } = useThree();
 
-  const viewOffsets = useMemo(
+  const baseDistances = useMemo(
     () => ({
-      chase: new THREE.Vector3(-180, 50, 0),
-      overhead: new THREE.Vector3(0, 220, 0),
-      tactical: new THREE.Vector3(-120, 90, 120),
+      chase: { distance: 180, height: 50 },
+      overhead: { distance: 0, height: 220 },
+      tactical: { distance: 170, height: 90 },
     }),
     [],
   );
 
   useFrame(() => {
     const sim = simRef.current;
-    const baseOffset = viewOffsets[cameraView].clone();
+    const config = baseDistances[cameraView];
+    let desiredPosition: THREE.Vector3;
+    let lookTarget: THREE.Vector3;
 
-    if (cameraView !== 'overhead') {
-      baseOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), sim.headingRad);
-    }
+    // 计算 lookAt 目标点（船舶位置 + 平移偏移）
+    const targetX = sim.position.x + cameraOffset.panX;
+    const targetZ = sim.position.z + cameraOffset.panZ;
 
-    const desiredPosition = sim.position.clone().add(baseOffset);
-    camera.position.lerp(desiredPosition, 0.08);
     if (cameraView === 'chase') {
+      // 主视角：始终在船舶正后方，跟随航向旋转
+      const totalAzimuth = sim.headingRad + Math.PI + cameraOffset.azimuth;
+      const elevationAngle = cameraOffset.elevation + 0.25;
+
+      // 固定距离的轨道相机
+      const horizontalDist = config.distance * Math.cos(elevationAngle);
+      const verticalDist = config.height + config.distance * Math.sin(elevationAngle);
+
+      desiredPosition = new THREE.Vector3(
+        targetX + horizontalDist * Math.cos(totalAzimuth),
+        verticalDist,
+        targetZ + horizontalDist * Math.sin(totalAzimuth),
+      );
+
+      // 看向目标点前方（沿船舶航向）
       const forward = new THREE.Vector3(
         Math.cos(sim.headingRad),
         0,
         Math.sin(sim.headingRad),
       );
-      const lookTarget = sim.position
-        .clone()
-        .add(forward.multiplyScalar(120))
-        .add(new THREE.Vector3(0, 6, 0));
-      camera.lookAt(lookTarget);
+      lookTarget = new THREE.Vector3(targetX, 8, targetZ).add(forward.multiplyScalar(50));
+
+      camera.position.lerp(desiredPosition, 0.12);
+    } else if (cameraView === 'overhead') {
+      // 俯瞰视角：正上方
+      desiredPosition = new THREE.Vector3(
+        targetX,
+        config.height,
+        targetZ,
+      );
+      lookTarget = new THREE.Vector3(targetX, 0, targetZ);
+      camera.position.lerp(desiredPosition, 0.1);
     } else {
-      camera.lookAt(sim.position.x, sim.position.y + 6, sim.position.z);
+      // 战术斜角：固定角度偏移
+      const tacticalAngle = sim.headingRad + Math.PI * 0.75 + cameraOffset.azimuth;
+      const elevationAngle = cameraOffset.elevation + 0.4;
+      const horizontalDist = config.distance * Math.cos(elevationAngle);
+      const verticalDist = config.height + config.distance * Math.sin(elevationAngle);
+
+      desiredPosition = new THREE.Vector3(
+        targetX + horizontalDist * Math.cos(tacticalAngle),
+        verticalDist,
+        targetZ + horizontalDist * Math.sin(tacticalAngle),
+      );
+      lookTarget = new THREE.Vector3(targetX, 6, targetZ);
+      camera.position.lerp(desiredPosition, 0.1);
     }
+
+    camera.lookAt(lookTarget);
   });
 
   return null;
