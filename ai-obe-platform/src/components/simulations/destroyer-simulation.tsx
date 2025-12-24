@@ -676,16 +676,16 @@ function SimulationCanvas({
       className="h-full w-full"
       camera={{ position: [0, 30, 140], fov: 50, near: 0.1, far: 20000 }}
     >
-      <color attach="background" args={['#1a3454']} />
-      <fog attach="fog" args={['#1a3454', 1200, 18000]} />
-      <ambientLight intensity={0.35} />
-      <hemisphereLight intensity={0.45} groundColor="#0a1426" color="#9fc5f3" />
-      <directionalLight position={[120, 500, 60]} intensity={0.85} color="#dbe9ff" />
-      <Sky sunPosition={[120, 500, 60]} turbidity={8} rayleigh={2.6} />
+      <color attach="background" args={['#0b1c31']} />
+      <fog attach="fog" args={['#0b1c31', 1400, 20000]} />
+      <ambientLight intensity={0.3} />
+      <hemisphereLight intensity={0.4} groundColor="#0a1426" color="#8eb8e8" />
+      <directionalLight position={[120, 420, 80]} intensity={0.7} color="#cfe3ff" />
+      <Sky sunPosition={[120, 420, 80]} turbidity={9} rayleigh={2.8} />
       <WaveWater simRef={simRef} />
       <GuideRoute scenarioConfig={scenarioConfig} />
       {scenarioConfig.island ? <Island {...scenarioConfig.island} /> : null}
-      <ShipTrail simRef={simRef} />
+      <ShipTrail simRef={simRef} resetToken={resetToken} />
       <ShipModel shipRef={shipRef} />
       <SimulationLoop
         shipRef={shipRef}
@@ -852,9 +852,9 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
   return (
     <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
       <meshPhongMaterial
-        color="#0b2a4a"
-        specular="#6fa6d6"
-        shininess={24}
+        color="#104064"
+        specular="#122638"
+        shininess={6}
         side={THREE.DoubleSide}
       />
     </mesh>
@@ -912,9 +912,20 @@ function Island({
   );
 }
 
-function ShipTrail({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
+function ShipTrail({
+  simRef,
+  resetToken,
+}: {
+  simRef: React.MutableRefObject<SimulationState>;
+  resetToken: number;
+}) {
   const [points, setPoints] = useState<THREE.Vector3[]>([]);
   const lastRecordRef = useRef(0);
+
+  useEffect(() => {
+    setPoints([]);
+    lastRecordRef.current = 0;
+  }, [resetToken]);
 
   useFrame((state) => {
     const time = state.clock.getElapsedTime();
@@ -1132,7 +1143,20 @@ function CameraRig({
 
     const desiredPosition = sim.position.clone().add(baseOffset);
     camera.position.lerp(desiredPosition, 0.08);
-    camera.lookAt(sim.position.x, sim.position.y + 6, sim.position.z);
+    if (cameraView === 'chase') {
+      const forward = new THREE.Vector3(
+        Math.cos(sim.headingRad),
+        0,
+        Math.sin(sim.headingRad),
+      );
+      const lookTarget = sim.position
+        .clone()
+        .add(forward.multiplyScalar(120))
+        .add(new THREE.Vector3(0, 6, 0));
+      camera.lookAt(lookTarget);
+    } else {
+      camera.lookAt(sim.position.x, sim.position.y + 6, sim.position.z);
+    }
   });
 
   return null;
