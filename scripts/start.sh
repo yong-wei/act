@@ -12,10 +12,45 @@ BACKEND_LOG="$LOG_DIR/backend.log"
 DB_LOG="$LOG_DIR/database.log"
 
 mkdir -p "$LOG_DIR" "$PID_DIR"
+rm -f "$LOG_DIR"/*.log
+rm -f "$PID_DIR"/*.pid
 touch "$CONSOLE_LOG" "$FRONTEND_LOG" "$BACKEND_LOG" "$DB_LOG"
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$CONSOLE_LOG"
+}
+
+ensure_port_free() {
+  local port="$1"
+  local pid=""
+
+  if command -v lsof >/dev/null 2>&1; then
+    pid="$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -n 1 || true)"
+  fi
+
+  if [ -n "$pid" ]; then
+    local known_pid=""
+    if [ -f "$PID_DIR/frontend.pid" ]; then
+      known_pid="$(cat "$PID_DIR/frontend.pid")"
+    fi
+
+    if [ -n "$known_pid" ] && [ "$pid" = "$known_pid" ]; then
+      log "Port ${port} is in use by previous frontend (pid ${pid}). Stopping it."
+      kill -TERM "-$pid" >/dev/null 2>&1 || true
+      for _ in {1..10}; do
+        if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+          sleep 1
+        else
+          return 0
+        fi
+      done
+      log "Port ${port} is still in use after stopping pid ${pid}."
+      exit 1
+    fi
+
+    log "Port ${port} is already in use by pid ${pid}. Stop it before starting."
+    exit 1
+  fi
 }
 
 run_detached() {
@@ -23,9 +58,9 @@ run_detached() {
   local log_file="$2"
 
   if command -v setsid >/dev/null 2>&1; then
-    setsid bash -c "$cmd" >>"$log_file" 2>&1 &
+    setsid bash -c "exec $cmd" >>"$log_file" 2>&1 &
   else
-    nohup bash -c "$cmd" >>"$log_file" 2>&1 &
+    nohup bash -c "exec $cmd" >>"$log_file" 2>&1 &
   fi
 
   echo $!
@@ -89,7 +124,7 @@ start_service() {
 
 start_frontend() {
   local pid_file="$PID_DIR/frontend.pid"
-  local frontend_port="${NEXT_PORT:-3000}"
+  local frontend_port="3000"
 
   if [ -f "$pid_file" ] && kill -0 "$(cat "$pid_file")" >/dev/null 2>&1; then
     log "Frontend already running (pid $(cat "$pid_file"))."
@@ -101,13 +136,14 @@ start_frontend() {
     log "Missing $APP_DIR/.env.local. Copy from $APP_DIR/.env.example before login flows."
   fi
 
+  ensure_port_free "$frontend_port"
   log "Starting frontend (Next.js dev server)."
   (
     cd "$APP_DIR"
-    run_detached "npm run dev" "$FRONTEND_LOG" >"$pid_file"
+    run_detached "npm run dev -- --hostname 127.0.0.1 --port ${frontend_port}" "$FRONTEND_LOG" >"$pid_file"
   )
 
-  log "Frontend dev URL: http://localhost:${frontend_port}"
+  log "Frontend dev URL: http://127.0.0.1:${frontend_port}"
 }
 
 log "Startup initiated."

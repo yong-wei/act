@@ -8,15 +8,18 @@
     "start": "next start",
     "lint": "next lint",
     "test": "node ./scripts/smoke-test.mjs",
-    "test:integration": "node ./scripts/integration-test.mjs"
+    "test:integration": "PLAYWRIGHT_PORT=3100 node ./scripts/integration-test.mjs && playwright test"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^1.5.0",
     "@prisma/client": "^5.18.0",
+    "@react-three/drei": "^9.115.0",
+    "@react-three/fiber": "^8.17.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "next": "14.0.4",
     "next-auth": "^4.24.7",
+    "three": "^0.165.0",
     "zod": "^3.23.8",
     "typescript": "^5.0.0",
     "@types/node": "^20.0.0",
@@ -36,6 +39,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@playwright/test": "^1.48.2",
     "eslint": "^8.48.0",
     "eslint-config-next": "14.0.4",
     "prisma": "^5.18.0",

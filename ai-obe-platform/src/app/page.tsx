@@ -79,7 +79,9 @@ const shipScenarios = [
     image: "/api/placeholder/600/400",
     difficulty: "专家",
     participants: "654",
-    bgGradient: "from-gray-900 to-slate-700"
+    bgGradient: "from-gray-900 to-slate-700",
+    ctaHref: "/simulations/destroyer",
+    ctaLabel: "进入仿真"
   }
 ]
 
@@ -139,10 +141,23 @@ export default function HomePage() {
                 {currentScenario.description}
               </p>
               <div className="flex space-x-4">
-                <Button size="lg" className="bg-amber-alert text-dark-blue hover:bg-yellow-500">
-                  <Play className="mr-2 h-5 w-5" />
-                  开启任务链
-                </Button>
+                {currentScenario.ctaHref ? (
+                  <Button
+                    size="lg"
+                    asChild
+                    className="bg-amber-alert text-dark-blue hover:bg-yellow-500"
+                  >
+                    <Link href={currentScenario.ctaHref}>
+                      <Play className="mr-2 h-5 w-5" />
+                      {currentScenario.ctaLabel ?? "开启任务链"}
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button size="lg" className="bg-amber-alert text-dark-blue hover:bg-yellow-500">
+                    <Play className="mr-2 h-5 w-5" />
+                    {currentScenario.ctaLabel ?? "开启任务链"}
+                  </Button>
+                )}
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-dark-blue">
                   了解更多
                 </Button>

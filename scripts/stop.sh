@@ -30,6 +30,11 @@ stop_pid() {
   if kill -0 "$pid" >/dev/null 2>&1; then
     log "Stopping ${name} (pid ${pid})."
     kill -TERM "-$pid" >/dev/null 2>&1 || true
+
+    if command -v pkill >/dev/null 2>&1; then
+      pkill -TERM -P "$pid" >/dev/null 2>&1 || true
+    fi
+
     for _ in {1..10}; do
       if kill -0 "$pid" >/dev/null 2>&1; then
         sleep 1
@@ -37,9 +42,14 @@ stop_pid() {
         break
       fi
     done
+
     if kill -0 "$pid" >/dev/null 2>&1; then
       log "Force killing ${name} (pid ${pid})."
       kill -KILL "-$pid" >/dev/null 2>&1 || true
+      if command -v pkill >/dev/null 2>&1; then
+        pkill -KILL -P "$pid" >/dev/null 2>&1 || true
+      fi
+      kill -KILL "$pid" >/dev/null 2>&1 || true
     fi
   else
     log "${name} is not running (stale pid ${pid})."
