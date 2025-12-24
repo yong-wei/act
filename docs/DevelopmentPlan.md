@@ -1,65 +1,110 @@
-# Role
-You are a Senior Frontend Architect and Creative Technologist.
+# Development Plan (Unified Platform)
 
-# Task
-Build an "Interactive Control Theory Atlas" (SPA) based on the provided concept.
-The goal is to visualize the landscape of Control Systems Engineering (from Classical to AI-based) as an interactive graph, where each node contains playable simulations.
+## Goals
+- Use `ai-obe-platform/` as the single product base for the web experience.
+- Merge authentication and database layers from `my-next-app/` into `ai-obe-platform/`.
+- Standardize on Postgres for multi-user, concurrent access.
+- Focus exclusively on 自动控制原理 learning; no multi-course or cross-discipline scope.
+- Develop simulation and LLM capabilities as separate services, with initial local dev and later server deployment.
+- Keep boundaries flexible until early prototype testing clarifies performance and data needs.
 
-# Tech Stack Requirements
-- **Framework**: React 18+ (Vite)
-- **Language**: TypeScript
-- **State Management**: Zustand (for managing simulation states and user preferences)
-- **Visualization**: 
-  - `react-flow` (for the main topology map)
-  - `p5.js` or `react-p5` (for the physics simulations inside the sidebar)
-  - `recharts` (for plotting time-domain response charts)
-  - `katex` (for rendering mathematical formulas)
-- **Styling**: Tailwind CSS (Dark mode, Sci-fi dashboard aesthetic)
+## Key Decisions
+- Frontend and API: Next.js 14 (App Router) in `ai-obe-platform/`.
+- Auth: NextAuth (with Prisma adapter).
+- Database: Postgres via Prisma.
+- External services: Simulation service and LLM service exposed via HTTP APIs, called from Next.js server routes.
+- Course model: single course only; track learning modules/chapters instead of multiple courses.
 
-# Architecture & Features
+## Target Architecture
+```
+ai-obe-platform/ (Next.js 14)
+  src/app/        - UI routes, server components, route handlers
+  src/components/ - Shared UI
+  src/lib/        - API clients, auth helpers, data access
+  prisma/         - schema.prisma, migrations
 
-## 1. Data Structure (`/src/data/nodes.ts`)
-Create a robust JSON-like structure defining the map.
-Interface Node:
-  - id: string
-  - label: string
-  - category: 'analysis' | 'modeling' | 'linear' | 'nonlinear' | 'intelligent'
-  - position: { x, y }
-  - data:
-    - description: string (Markdown support)
-    - formula: string (LaTeX)
-    - simulationType: 'PID' | 'ROOT_LOCUS' | 'PENDULUM' | 'KALMAN_1D' | null
-    - prerequisites: string[] (Node IDs)
+simulation-service/ (separate repo or folder later)
+  HTTP API for simulation jobs and results
 
-## 2. Layouts
-- **MainCanvas**: Full-screen interactive graph. Use smooth transitions.
-- **Sidebar**: A sliding panel on the right (Glassmorphism UI).
-  - Header: Title + Category Badge.
-  - Section 1: Concept (Text + Formula).
-  - Section 2: " The Playground" (The specific simulation component based on `simulationType`).
-  - Section 3: "Next Steps" (Links to connected nodes).
+llm-service/ (separate repo or folder later)
+  HTTP API for chat, tutoring, content generation
+```
 
-## 3. Simulation Components (`/src/components/simulations/`)
-Implement at least two distinct simulations for the prototype:
-- **PIDController**:
-  - Visuals: A block chasing a setpoint or a Water Tank Level control.
-  - Controls: Sliders for Kp, Ki, Kd.
-  - Charts: Live line chart of Setpoint vs. Measured Value.
-- **InvertedPendulum** (Advanced):
-  - Visuals: Cart and Pole physics.
-  - Controls: Disturbance buttons (push the cart).
+## Data Model Draft (Prisma)
+- User
+  - id, email, name, role (student, teacher, admin)
+- StudentProfile
+  - userId, major, year, class
+- SimulationSession
+  - id, userId, module, simType, inputParams, outputSummary, createdAt
+- LlmSession
+  - id, userId, module, threadId, summary, createdAt
+- Artifact
+  - id, userId, module, type, storageRef, createdAt
 
-## 4. Visual Style Guide
-- Background: Deep space blue/black (#0f172a).
-- Accents: Neon Cyan (Linear), Magenta (Non-linear), Green (Analysis).
-- Typography: Inter (UI), KaTeX (Math), JetBrains Mono (Code).
+## Service Boundaries (Initial Contract)
+Simulation service
+- POST /simulate
+  - Request: { simType, inputParams, contextId? }
+  - Response: { status, outputData, artifacts? }
+- POST /simulate/async
+  - Response: { jobId }
+- GET /simulate/jobs/:jobId
+  - Response: { status, outputData, artifacts? }
 
-# Implementation Steps
-1. Initialize Vite project with Tailwind.
-2. Setup the `react-flow` component with a predefined set of nodes (start with the Brian Douglas map structure).
-3. Create the `Sidebar` component with a dynamic render slot for simulations.
-4. Implement the `PIDSimulation` using a simple discrete-time physics loop (`requestAnimationFrame`).
-5. Ensure responsive design (sidebar collapses on mobile).
+LLM service
+- POST /llm/chat
+  - Request: { threadId?, messages, contextId?, policy? }
+  - Response: { threadId, assistantMessage, tokensUsed? }
+- POST /llm/summary
+  - Request: { source, goals }
+  - Response: { summary }
 
-# Immediate Deliverable
-Please generate the project structure and the code for the `App.tsx`, the `NodeData.ts`, and the `PIDSimulation.tsx` component.
+Notes
+- Exact boundaries may shift after performance profiling and data flow testing.
+- Use API keys or signed JWT for service-to-service auth.
+
+## Integration Plan (ai-obe-platform/)
+1. Add Prisma and NextAuth
+   - Install Prisma, @auth/prisma-adapter, next-auth.
+   - Create `prisma/schema.prisma` and migrate from `my-next-app/prisma/schema.prisma`.
+   - Convert datasource to Postgres.
+2. Configure environment
+   - `DATABASE_URL=postgresql://...`
+   - `NEXTAUTH_URL=...`
+   - `NEXTAUTH_SECRET=...`
+   - `SIM_SERVICE_URL=...`
+   - `LLM_SERVICE_URL=...`
+3. Implement auth routes and session helpers
+   - `/api/auth/[...nextauth]` route handler
+   - `src/lib/auth.ts` for server session utilities
+4. Add protected routes and role checks
+   - Middleware for student/teacher areas
+5. Add API clients for services
+   - `src/lib/simulation-client.ts`
+   - `src/lib/llm-client.ts`
+
+## Local Operations
+- One-click scripts live in `scripts/`:
+  - `scripts/start.sh` starts Postgres (Docker), optional service commands, and Next.js.
+  - `scripts/stop.sh` stops processes and removes the Postgres container.
+- Logs are written to `.logs/` for frontend, backend, console, and database.
+- Optional backend commands can be provided via `SIM_SERVICE_CMD`/`LLM_SERVICE_CMD` and their working dirs via `SIM_SERVICE_DIR`/`LLM_SERVICE_DIR`.
+
+## Migration Notes
+- Move or re-create any auth-related pages from `my-next-app/` in `ai-obe-platform/`.
+- Preserve UI and pages already in `ai-obe-platform/` and extend with login flow and user dashboard.
+- Keep `my-next-app/` and `my-react-app/` as references until the unified app stabilizes.
+
+## Milestones
+1. Auth + Postgres baseline
+   - Sign in/out, session, user stored in Postgres
+2. Service integration skeleton
+   - Basic calls to local simulation/LLM services
+3. First end-to-end flow
+   - Student login -> run simulation -> summarize with LLM -> store session
+
+## Open Questions
+- Simulation payload size and storage strategy (DB vs object storage).
+- LLM request policy (prompt templates, caching, cost controls).
+- Async job orchestration (queue vs simple polling).
