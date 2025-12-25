@@ -232,6 +232,11 @@ const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
 const normalizeHeading = (heading: number) =>
   ((heading % 360) + 360) % 360;
 
+const normalizeSignedHeading = (heading: number) => {
+  const normalized = normalizeHeading(heading);
+  return normalized > 180 ? normalized - 360 : normalized;
+};
+
 const angleDelta = (target: number, current: number) => {
   const normalizedTarget = normalizeHeading(target);
   const normalizedCurrent = normalizeHeading(current);
@@ -241,7 +246,7 @@ const angleDelta = (target: number, current: number) => {
   return diff;
 };
 
-const HEADING_RANGE = { min: -180, max: 360 };
+const HEADING_RANGE = { min: -180, max: 180 };
 const HEADING_TIME_GAP = 0.5;
 
 const clampHeading = (value: number) =>
@@ -295,7 +300,7 @@ const createHeadingPointsFromLogic = (
   const points: HeadingPoint[] = [];
   for (let i = 0; i < count; i += 1) {
     const time = (duration * i) / (count - 1);
-    points.push({ time, heading: logic.getDesiredHeading(time) });
+    points.push({ time, heading: normalizeSignedHeading(logic.getDesiredHeading(time)) });
   }
   return normalizeHeadingPoints(points);
 };
@@ -381,8 +386,8 @@ const runQuickSimulation = (
     sim.position.z += sim.speedMps * Math.sin(sim.headingRad) * dt;
 
     chart.time.push(t);
-    chart.desiredHeading.push(targetHeading);
-    chart.actualHeading.push(currentHeading);
+    chart.desiredHeading.push(normalizeSignedHeading(targetHeading));
+    chart.actualHeading.push(normalizeSignedHeading(currentHeading));
     chart.speed.push(sim.speedMps);
     chart.rudder.push(sim.rudderDeg);
     actualPath.push({ x: sim.position.x, z: sim.position.z });
@@ -634,7 +639,7 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
             position: 'left',
             title: { display: true, text: '航向角 (°)', color: '#cbd5e1' },
             min: -180,
-            max: 360,
+            max: 180,
             ticks: { color: '#94a3b8', stepSize: 45 },
             grid: { color: 'rgba(148, 163, 184, 0.2)' },
           },
@@ -891,7 +896,7 @@ function HeadingChartEditor({
   const timeTicks = Array.from({ length: ticks }, (_, i) =>
     Math.round((duration * i) / (ticks - 1)),
   );
-  const headingTicks = [-180, -90, 0, 90, 180, 270, 360];
+  const headingTicks = [-180, -120, -60, 0, 60, 120, 180];
 
   return (
     <svg
@@ -1129,6 +1134,9 @@ export function DestroyerSimulation() {
   const [quickMode, setQuickMode] = useState(false);
   const [quickHeadingPoints, setQuickHeadingPoints] = useState<HeadingPoint[]>([]);
   const [quickResult, setQuickResult] = useState<QuickSimResult | null>(null);
+  const [modelPanelOpen, setModelPanelOpen] = useState(true);
+  const [controlPanelOpen, setControlPanelOpen] = useState(true);
+  const [pidPanelOpen, setPidPanelOpen] = useState(true);
   const [useCustomScenario, setUseCustomScenario] = useState(false);
   const [customScenario, setCustomScenario] = useState<CustomScenario | null>(null);
   const [chartData, setChartData] = useState<ChartData>({
@@ -1274,10 +1282,16 @@ export function DestroyerSimulation() {
     if (!quickScenario) return;
     setCustomScenario(quickScenario);
     setUseCustomScenario(true);
+    resetScenarioState();
     setViewMode('simulation');
     setQuickMode(false);
-    resetScenarioState();
   }, [quickScenario, resetScenarioState]);
+
+  const handleReturnToSimulation = useCallback(() => {
+    resetScenarioState();
+    setViewMode('simulation');
+    setQuickMode(false);
+  }, [resetScenarioState]);
 
   const handleAddHeadingPoint = useCallback(() => {
     setQuickHeadingPoints((prev) => {
@@ -1420,14 +1434,7 @@ export function DestroyerSimulation() {
                 <div className="flex h-full w-full flex-col bg-slate-950 p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-2xl font-semibold text-slate-100">仿真曲线</h2>
-                    <Button
-                      onClick={() => {
-                        setViewMode('simulation');
-                        setQuickMode(false);
-                      }}
-                      variant="default"
-                      size="lg"
-                    >
+                    <Button onClick={handleReturnToSimulation} variant="default" size="lg">
                       返回场景
                     </Button>
                   </div>
@@ -1441,13 +1448,7 @@ export function DestroyerSimulation() {
                   </div>
                 </div>
               ) : (
-                <SimulationChart
-                  data={chartDisplayData}
-                  onBack={() => {
-                    setViewMode('simulation');
-                    setQuickMode(false);
-                  }}
-                />
+                <SimulationChart data={chartDisplayData} onBack={handleReturnToSimulation} />
               )}
             </div>
           </div>
@@ -1512,105 +1513,135 @@ export function DestroyerSimulation() {
               </CardContent>
             </Card>
             <Card className="border-slate-800 bg-slate-900/60">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-lg text-white">055 型驱逐舰模型</CardTitle>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-xs text-slate-300"
+                  onClick={() => setModelPanelOpen((prev) => !prev)}
+                >
+                  {modelPanelOpen ? '收起' : '展开'}
+                </Button>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm text-slate-300">
-                <p>排水量: {destroyerSpecs.displacement}</p>
-                <p>舰长: {destroyerSpecs.length}</p>
-                <p>舰宽: {destroyerSpecs.beam}</p>
-                <p>吃水: {destroyerSpecs.draft}</p>
-                <p>动力: {destroyerSpecs.propulsion}</p>
-                <p>动力功率: {destroyerSpecs.power}</p>
-                <p>最大航速: {destroyerSpecs.maxSpeed}</p>
-                <p className="text-xs text-slate-400">
-                  野本模型参数: K={nomotoModel.K}, T={nomotoModel.T}s
-                </p>
-              </CardContent>
+              {modelPanelOpen ? (
+                <CardContent className="space-y-2 text-sm text-slate-300">
+                  <p>排水量: {destroyerSpecs.displacement}</p>
+                  <p>舰长: {destroyerSpecs.length}</p>
+                  <p>舰宽: {destroyerSpecs.beam}</p>
+                  <p>吃水: {destroyerSpecs.draft}</p>
+                  <p>动力: {destroyerSpecs.propulsion}</p>
+                  <p>动力功率: {destroyerSpecs.power}</p>
+                  <p>最大航速: {destroyerSpecs.maxSpeed}</p>
+                  <p className="text-xs text-slate-400">
+                    野本模型参数: K={nomotoModel.K}, T={nomotoModel.T}s
+                  </p>
+                </CardContent>
+              ) : null}
             </Card>
 
             <Card className="border-slate-800 bg-slate-900/60">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-lg text-white">控制模式</CardTitle>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-xs text-slate-300"
+                  onClick={() => setControlPanelOpen((prev) => !prev)}
+                >
+                  {controlPanelOpen ? '收起' : '展开'}
+                </Button>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm text-slate-300">
-                <div className="flex flex-wrap gap-2">
-                  {(['manual', 'p', 'pd', 'pid'] as ControlMode[]).map((mode) => (
-                    <Button
-                      key={mode}
-                      variant={controlMode === mode ? 'default' : 'secondary'}
-                      size="sm"
-                      onClick={() => {
-                        setControlMode(mode);
-                        setResetToken((prev) => prev + 1);
-                      }}
-                    >
-                      {mode.toUpperCase()}
-                    </Button>
-                  ))}
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400">目标航向 (实时)</p>
-                  <p className="text-lg text-white">{targetHeading.toFixed(1)}°</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400">航速</p>
-                  <p className="text-lg text-white">{hud.speed.toFixed(1)} m/s</p>
-                </div>
-              </CardContent>
+              {controlPanelOpen ? (
+                <CardContent className="space-y-4 text-sm text-slate-300">
+                  <div className="flex flex-wrap gap-2">
+                    {(['manual', 'p', 'pd', 'pid'] as ControlMode[]).map((mode) => (
+                      <Button
+                        key={mode}
+                        variant={controlMode === mode ? 'default' : 'secondary'}
+                        size="sm"
+                        onClick={() => {
+                          setControlMode(mode);
+                          setResetToken((prev) => prev + 1);
+                        }}
+                      >
+                        {mode.toUpperCase()}
+                      </Button>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">目标航向 (实时)</p>
+                    <p className="text-lg text-white">{targetHeading.toFixed(1)}°</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">航速</p>
+                    <p className="text-lg text-white">{hud.speed.toFixed(1)} m/s</p>
+                  </div>
+                </CardContent>
+              ) : null}
             </Card>
 
             <Card className="border-slate-800 bg-slate-900/60">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-lg text-white">PID 调参</CardTitle>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-xs text-slate-300"
+                  onClick={() => setPidPanelOpen((prev) => !prev)}
+                >
+                  {pidPanelOpen ? '收起' : '展开'}
+                </Button>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm text-slate-300">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span>Kp</span>
-                    <span className="text-white">{pidGains.kp.toFixed(2)}</span>
+              {pidPanelOpen ? (
+                <CardContent className="space-y-4 text-sm text-slate-300">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span>Kp</span>
+                      <span className="text-white">{pidGains.kp.toFixed(2)}</span>
+                    </div>
+                    <Slider
+                      value={[pidGains.kp]}
+                      min={0}
+                      max={4}
+                      step={0.05}
+                      onValueChange={([value]) =>
+                        setPidGains((prev) => ({ ...prev, kp: value }))
+                      }
+                    />
                   </div>
-                  <Slider
-                    value={[pidGains.kp]}
-                    min={0}
-                    max={4}
-                    step={0.05}
-                    onValueChange={([value]) =>
-                      setPidGains((prev) => ({ ...prev, kp: value }))
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span>Ki</span>
-                    <span className="text-white">{pidGains.ki.toFixed(2)}</span>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span>Ki</span>
+                      <span className="text-white">{pidGains.ki.toFixed(2)}</span>
+                    </div>
+                    <Slider
+                      value={[pidGains.ki]}
+                      min={0}
+                      max={0.4}
+                      step={0.01}
+                      onValueChange={([value]) =>
+                        setPidGains((prev) => ({ ...prev, ki: value }))
+                      }
+                    />
                   </div>
-                  <Slider
-                    value={[pidGains.ki]}
-                    min={0}
-                    max={0.4}
-                    step={0.01}
-                    onValueChange={([value]) =>
-                      setPidGains((prev) => ({ ...prev, ki: value }))
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span>Kd</span>
-                    <span className="text-white">{pidGains.kd.toFixed(2)}</span>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span>Kd</span>
+                      <span className="text-white">{pidGains.kd.toFixed(2)}</span>
+                    </div>
+                    <Slider
+                      value={[pidGains.kd]}
+                      min={0}
+                      max={2}
+                      step={0.05}
+                      onValueChange={([value]) =>
+                        setPidGains((prev) => ({ ...prev, kd: value }))
+                      }
+                    />
                   </div>
-                  <Slider
-                    value={[pidGains.kd]}
-                    min={0}
-                    max={2}
-                    step={0.05}
-                    onValueChange={([value]) =>
-                      setPidGains((prev) => ({ ...prev, kd: value }))
-                    }
-                  />
-                </div>
-              </CardContent>
+                </CardContent>
+              ) : null}
             </Card>
 
             <Card className="border-slate-800 bg-slate-900/60">
@@ -2242,9 +2273,10 @@ function SimulationLoop({
     // 7. 图表更新
     if (simTime - lastChartSampleRef.current > 0.5) {
       lastChartSampleRef.current = simTime;
-      const headingDeg = normalizeHeading(toDegrees(sim.headingRad));
+      const headingDeg = normalizeSignedHeading(toDegrees(sim.headingRad));
+      const targetHeadingSigned = normalizeSignedHeading(targetHeading);
       // targetHeading is computed at top of frame
-      onChartDataUpdate(simTime, targetHeading, headingDeg, sim.speedMps, sim.rudderDeg);
+      onChartDataUpdate(simTime, targetHeadingSigned, headingDeg, sim.speedMps, sim.rudderDeg);
     }
   });
 
