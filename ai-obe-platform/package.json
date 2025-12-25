@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node ./scripts/clear-logs.mjs && next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node ./scripts/clear-logs.mjs && next start",
     "lint": "next lint",
     "test": "node ./scripts/smoke-test.mjs",
     "test:integration": "PLAYWRIGHT_PORT=3100 node ./scripts/integration-test.mjs && playwright test",

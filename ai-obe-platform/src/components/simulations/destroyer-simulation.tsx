@@ -977,13 +977,24 @@ export function DestroyerSimulation() {
     rudder: [],
   });
 
-  const activeTask = tasks[taskIndex];
+  const safeTaskIndex = clamp(taskIndex, 0, tasks.length - 1);
+  const activeTask = tasks[safeTaskIndex];
   const isCustomScenario = useCustomScenario && !!customScenario;
   
   // 动态生成场景配置
   const scenarioConfig = useMemo<CustomScenario>(() => {
     if (useCustomScenario && customScenario) {
       return customScenario;
+    }
+    if (!activeTask) {
+      const logic = getScenarioLogic('turn90');
+      const path = generateGuidePath(logic, 0);
+      return {
+        logic,
+        guidePath: path,
+        start: logic.startPos,
+        duration: 0,
+      };
     }
     const logic = getScenarioLogic(activeTask.scenario);
     const path = generateGuidePath(logic, activeTask.duration);
@@ -1087,6 +1098,12 @@ export function DestroyerSimulation() {
   useEffect(() => {
     setQuickWaypoints(baseWaypoints);
   }, [baseWaypoints]);
+
+  useEffect(() => {
+    if (taskIndex !== safeTaskIndex) {
+      setTaskIndex(safeTaskIndex);
+    }
+  }, [safeTaskIndex, taskIndex]);
 
   useEffect(() => {
     setQuickResult(null);
