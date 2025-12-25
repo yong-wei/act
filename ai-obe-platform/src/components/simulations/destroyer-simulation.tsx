@@ -1442,9 +1442,9 @@ function SimulationLoop({
     // 应用到船舶模型
     if (shipRef.current) {
       // 动态调整基准高度：
-      // 增加偏移量到 +4.5，整体抬高船体，防止水面超过船舷。
+      // 增加偏移量到 +9.5，进一步抬高船体5米。
       
-      shipRef.current.position.set(sim.position.x, sim.waveY + 4.5, sim.position.z); 
+      shipRef.current.position.set(sim.position.x, sim.waveY + 9.5, sim.position.z); 
       shipRef.current.rotation.set(
         sim.wavePitch,                          // X轴：俯仰
         -sim.headingRad + Math.PI / 2,          // Y轴：航向
@@ -1994,9 +1994,9 @@ function CameraRig({
 
   const baseDistances = useMemo(
     () => ({
-      chase: { distance: 180, height: 50 },
-      overhead: { distance: 0, height: 220 },
-      tactical: { distance: 170, height: 90 },
+      chase: { distance: 405, height: 112 },
+      overhead: { distance: 0, height: 500 },
+      tactical: { distance: 380, height: 200 },
     }),
     [],
   );
