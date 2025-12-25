@@ -17,8 +17,9 @@ const CAMERA_DISTANCE = 2.6
 const CAMERA_POSITION: [number, number, number] = [
   -CAMERA_DISTANCE * 0.5,
   CAMERA_DISTANCE * 0.7071,
-  CAMERA_DISTANCE * 0.5,
+  -CAMERA_DISTANCE * 0.5,
 ]
+const Z_AXIS = new THREE.Vector3(0, 0, 1)
 const MODEL_FORWARD: Record<string, THREE.Vector3> = {
   '/assets/destroyer.glb': new THREE.Vector3(0, 0, -1),
   '/assets/icebreaker.glb': new THREE.Vector3(0, 0, -1),
@@ -27,6 +28,11 @@ const MODEL_FORWARD: Record<string, THREE.Vector3> = {
   '/assets/dredger.glb': new THREE.Vector3(1, 0, 0),
   '/assets/luxury-liner.glb': new THREE.Vector3(0, 0, -1),
   '/assets/drilling-rig.glb': new THREE.Vector3(0, 0, -1),
+}
+const MODEL_Z_ROTATION: Record<string, number> = {
+  '/assets/dredger.glb': Math.PI,
+  '/assets/Lng-carrier.glb': Math.PI,
+  '/assets/container.glb': Math.PI,
 }
 
 function CenteredModel({ modelPath }: { modelPath: string }) {
@@ -53,6 +59,10 @@ function CenteredModel({ modelPath }: { modelPath: string }) {
     const scale = targetSize / maxDim
     const forward = (MODEL_FORWARD[modelPath] ?? DEFAULT_FORWARD).clone().normalize()
     const rotation = new THREE.Quaternion().setFromUnitVectors(forward, STANDARD_FORWARD)
+    const extraRotationZ = MODEL_Z_ROTATION[modelPath] ?? 0
+    if (extraRotationZ !== 0) {
+      rotation.multiply(new THREE.Quaternion().setFromAxisAngle(Z_AXIS, extraRotationZ))
+    }
 
     return { model: cloned, scale, rotation }
   }, [modelPath, scene])
