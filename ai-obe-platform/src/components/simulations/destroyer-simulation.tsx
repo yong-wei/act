@@ -1820,7 +1820,7 @@ function MiniMap({
 }
 
 function ShipModel({ shipRef }: { shipRef: React.RefObject<THREE.Group> }) {
-  const { scene } = useGLTF('/assets/container.glb');
+  const { scene } = useGLTF('/assets/destroyer.glb');
   const { model, scale, size } = useMemo(() => {
     const cloned = scene.clone(true);
     const box = new THREE.Box3().setFromObject(cloned);
@@ -1937,6 +1937,6 @@ function CameraRig({
   return null;
 }
 
-useGLTF.preload('/assets/container.glb');
+useGLTF.preload('/assets/destroyer.glb');
 
 export default DestroyerSimulation;

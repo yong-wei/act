@@ -7,6 +7,8 @@
     <title>AI-OBE船舶智控平台</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
     <style>
         /* 全局样式 */
@@ -1615,75 +1617,125 @@
             function initializeShipModel(container, index) {
                 // 创建简单的场景
                 const scene = new THREE.Scene();
-                const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+                const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 2000);
 
                 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 renderer.setSize(container.clientWidth, container.clientHeight);
                 container.appendChild(renderer.domElement);
 
                 // 更好的相机位置和光照设置
-                camera.position.set(0, 7, 15);
+                camera.position.set(50, 30, 80); // 调整相机距离以适应大模型
                 camera.lookAt(0, 0, 0);
 
                 // 增加光照强度
-                const ambientLight = new THREE.AmbientLight(0x606060, 3);
+                const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
                 scene.add(ambientLight);
 
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-                directionalLight.position.set(2, 4, 2);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0);
+                directionalLight.position.set(50, 100, 50);
+                directionalLight.castShadow = true;
                 scene.add(directionalLight);
 
-                // 添加背光，使模型细节更清晰
-                const backLight = new THREE.DirectionalLight(0xffffff, 0.8);
-                backLight.position.set(-2, 3, -2);
+                // 添加背光
+                const backLight = new THREE.DirectionalLight(0xaaccff, 1.0);
+                backLight.position.set(-50, 50, -50);
                 scene.add(backLight);
 
+                // 添加控制器
+                const controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 2.0;
+                
+                // 交互时暂停轮播
+                controls.addEventListener('start', function() {
+                    clearInterval(window.slideInterval);
+                });
+                
+                controls.addEventListener('end', function() {
+                    window.slideInterval = setInterval(window.nextSlide, 8000);
+                });
 
-                // 根据索引创建不同的船舶模型
-                let shipModel;
+                // 模型映射
+                // 0: 动力定位船 -> destroyer.glb (暂代)
+                // 1: 破冰船 -> icebreaker.glb
+                // 2: 深海探测器 -> (无模型，使用程序化生成)
+                // 3: 挖泥船 -> dredger.glb
+                // 4: 豪华游轮 -> lng-carrier.glb (大型船只暂代)
+                // 5: 智能渡船 -> (无模型)
+                // 6: 风电安装船 -> container.glb (工程船暂代)
+                const modelMap = {
+                    0: 'assets/destroyer.glb',
+                    1: 'assets/icebreaker.glb',
+                    3: 'assets/dredger.glb',
+                    4: 'assets/lng-carrier.glb',
+                    6: 'assets/container.glb'
+                };
 
-                switch (index) {
-                    case 0: // 动力定位船
-                        shipModel = createDPShip();
-                        break;
-                    case 1: // 破冰船
-                        shipModel = createIcebreaker();
-                        break;
-                    case 2: // 深海探测器
-                        shipModel = createDeepSeaVehicle();
-                        break;
-                    case 3: // 挖泥船
-                        shipModel = createDredger();
-                        break;
-                    case 4: // 豪华游轮
-                        shipModel = createCruiseShip();
-                        break;
-                    case 5: // 智能渡船
-                        shipModel = createFerry();
-                        break;
-                    case 6: // 风电安装船
-                        shipModel = createWindFarmVessel();
-                        break;
-                    default:
-                        shipModel = createBasicShip();
+                const modelPath = modelMap[index];
+
+                if (modelPath) {
+                    const loader = new THREE.GLTFLoader();
+                    loader.load(modelPath, function (gltf) {
+                        const model = gltf.scene;
+                        
+                        // 自动缩放模型以适应视图
+                        const box = new THREE.Box3().setFromObject(model);
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        
+                        // 目标大小约 60 单位
+                        const scale = 60 / maxDim;
+                        model.scale.set(scale, scale, scale);
+                        
+                        // 居中
+                        box.setFromObject(model); // 重新计算缩放后的包围盒
+                        const center = box.getCenter(new THREE.Vector3());
+                        model.position.sub(center); // 移动到原点
+                        
+                        scene.add(model);
+                        
+                        // 浮动动画
+                        function animateModel() {
+                            if (model) {
+                                model.position.y = Math.sin(Date.now() * 0.001) * 1.5;
+                            }
+                        }
+                        // 注入到渲染循环
+                        renderer.setAnimationLoop(() => {
+                            controls.update();
+                            animateModel();
+                            renderer.render(scene, camera);
+                        });
+
+                    }, undefined, function (error) {
+                        console.error('模型加载失败:', error);
+                        // 降级到程序化模型
+                        createFallbackModel(index, scene);
+                        startRenderLoop();
+                    });
+                } else {
+                    createFallbackModel(index, scene);
+                    startRenderLoop();
                 }
 
-                scene.add(shipModel);
-
-                // 动画效果 - 模型旋转和波浪效果
-                function animate() {
-                    requestAnimationFrame(animate);
-
-                    // 船体轻微摇摆，模拟波浪效果
-                    shipModel.rotation.z = Math.sin(Date.now() * 0.001) * 0.05;
-
-                    // 缓慢旋转展示模型
-                    shipModel.rotation.y += 0.003;
-
-                    renderer.render(scene, camera);
+                function createFallbackModel(idx, scn) {
+                    let mesh;
+                    switch(idx) {
+                        case 2: mesh = createDeepSeaVehicle(); break; // 深海探测器
+                        case 5: mesh = createFerry(); break; // 智能渡船
+                        default: mesh = createBasicShip(); break;
+                    }
+                    scn.add(mesh);
                 }
 
-                animate();
+                function startRenderLoop() {
+                    renderer.setAnimationLoop(() => {
+                        controls.update();
+                        renderer.render(scene, camera);
+                    });
+                }
             }
 
             function sendMessage() {
