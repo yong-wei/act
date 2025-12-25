@@ -1666,18 +1666,23 @@
                 // 5: 智能渡船 -> (无模型)
                 // 6: 风电安装船 -> container.glb (工程船暂代)
                 const modelMap = {
-                    0: 'assets/destroyer.glb',
-                    1: 'assets/icebreaker.glb',
-                    3: 'assets/dredger.glb',
-                    4: 'assets/lng-carrier.glb',
-                    6: 'assets/container.glb'
+                    0: 'ai-obe-platform/public/assets/destroyer.glb',
+                    1: 'ai-obe-platform/public/assets/icebreaker.glb',
+                    3: 'ai-obe-platform/public/assets/dredger.glb',
+                    4: 'ai-obe-platform/public/assets/lng-carrier.glb',
+                    6: 'ai-obe-platform/public/assets/container.glb'
                 };
 
                 const modelPath = modelMap[index];
 
                 if (modelPath) {
                     const loader = new THREE.GLTFLoader();
+                    
+                    // 可选：设置资源根路径，解决纹理加载问题（如果是GLTF而非GLB）
+                    // loader.setPath('ai-obe-platform/public/assets/');
+
                     loader.load(modelPath, function (gltf) {
+                        console.log('模型加载成功:', modelPath);
                         const model = gltf.scene;
                         
                         // 自动缩放模型以适应视图
@@ -1686,7 +1691,7 @@
                         const maxDim = Math.max(size.x, size.y, size.z);
                         
                         // 目标大小约 60 单位
-                        const scale = 60 / maxDim;
+                        const scale = 60 / (maxDim || 1);
                         model.scale.set(scale, scale, scale);
                         
                         // 居中
@@ -1709,8 +1714,11 @@
                             renderer.render(scene, camera);
                         });
 
-                    }, undefined, function (error) {
-                        console.error('模型加载失败:', error);
+                    }, function (xhr) {
+                        // 加载进度
+                        // console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                    }, function (error) {
+                        console.error('模型加载失败:', modelPath, error);
                         // 降级到程序化模型
                         createFallbackModel(index, scene);
                         startRenderLoop();
