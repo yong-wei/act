@@ -1376,12 +1376,11 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
 
   return (
     <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
-      <meshPhongMaterial
-        color="#004488"
-        emissive="#001133"
-        specular="#66aacc"
-        shininess={80}
+      <meshBasicMaterial
+        color="#1a5a8a"
         side={THREE.DoubleSide}
+        transparent
+        opacity={0.95}
       />
     </mesh>
   );
@@ -1534,8 +1533,8 @@ function ShipWake({
 
     // 尾迹跟随船舶位置
     wakeRef.current.position.set(sim.position.x, 0.3, sim.position.z);
-    // 尾迹朝向与船舶相反（指向船尾）
-    wakeRef.current.rotation.y = -sim.headingRad + Math.PI / 2;
+    // 尾迹朝向船尾（与船舶方向相反）
+    wakeRef.current.rotation.y = -sim.headingRad - Math.PI / 2;
 
     // 根据速度调整尾迹长度（速度越快尾迹越长）
     const speedFactor = Math.max(0.3, sim.speedMps / 15);

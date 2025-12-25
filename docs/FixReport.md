@@ -2,6 +2,64 @@
 
 ---
 
+## 第五轮修复 (2025年12月25日)
+
+### 1. 修复问题概述
+
+本轮修复了以下两个问题：
+1. **海面看不到**：`meshPhongMaterial` 受光照影响，海面颜色被严重冲淡。
+2. **尾迹方向错误**：尾迹垂直于船身，而非在船尾后方。
+
+---
+
+### 2. 问题根因分析
+
+#### 2.1 海面看不到
+- `meshPhongMaterial` 受场景光照影响
+- 即使降低光照强度，高亮的天空背景仍导致海面颜色被冲淡
+- 需要使用不受光照影响的材质
+
+#### 2.2 尾迹方向错误
+- 船舶旋转公式：`-sim.headingRad + Math.PI / 2`
+- 尾迹使用相同公式，导致与船舶方向相同
+- 尾迹应指向船尾（加 `Math.PI`），即 `-sim.headingRad - Math.PI / 2`
+
+---
+
+### 3. 具体修复方法
+
+#### 3.1 海面材质改为 meshBasicMaterial
+- **定位代码**：`WaveWater` 组件的材质配置。
+- **修改内容**：
+    - 从 `meshPhongMaterial` 改为 `meshBasicMaterial`
+    - 颜色设为 `#1a5a8a`（深海蓝）
+    - 添加 `transparent` 和 `opacity={0.95}`
+- **预期结果**：海面颜色不受光照影响，直接显示深蓝色。
+
+#### 3.2 修复尾迹旋转方向
+- **定位代码**：`ShipWake` 组件的旋转计算。
+- **修改内容**：
+    - 从 `-sim.headingRad + Math.PI / 2` 改为 `-sim.headingRad - Math.PI / 2`
+- **预期结果**：尾迹正确显示在船尾后方。
+
+---
+
+### 4. 修改文件
+
+- `ai-obe-platform/src/components/simulations/destroyer-simulation.tsx`
+
+---
+
+### 5. 验证情况
+
+修复完成后，需通过以下测试流程：
+1. **代码规范检测**：`npm run lint`
+2. **冒烟测试**：`npm run test`
+3. **生产构建**：`npm run build`
+4. **集成测试**：`npm run test:integration`（如有）
+
+---
+
 ## 第四轮修复 (2025年12月25日)
 
 ### 1. 修复问题概述
