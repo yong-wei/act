@@ -1442,13 +1442,9 @@ function SimulationLoop({
     // 应用到船舶模型
     if (shipRef.current) {
       // 动态调整基准高度：
-      // 之前是 smoothY - 1.5，导致船太低。
-      // 现在改为 smoothY + 0.5，提升船体约 2 米，减少甲板上浪。
+      // 增加偏移量到 +4.5，整体抬高船体，防止水面超过船舷。
       
-      const avgY = (bowY + sternY + portY + starboardY) / 4;
-      // 使用更平滑的 waveY (sim.waveY) 作为基础，而不是瞬时的 avgY，以过滤高频噪声
-      
-      shipRef.current.position.set(sim.position.x, sim.waveY + 0.5, sim.position.z); 
+      shipRef.current.position.set(sim.position.x, sim.waveY + 4.5, sim.position.z); 
       shipRef.current.rotation.set(
         sim.wavePitch,                          // X轴：俯仰
         -sim.headingRad + Math.PI / 2,          // Y轴：航向
@@ -1801,7 +1797,7 @@ function ShipWake({
     const time = state.clock.getElapsedTime();
 
     // 尾迹跟随船舶位置（使用波浪高度）
-    meshRef.current.position.set(sim.position.x, sim.waveY + 1.5, sim.position.z);
+    meshRef.current.position.set(sim.position.x, sim.waveY + 0.8, sim.position.z);
     meshRef.current.rotation.y = -sim.headingRad;
 
     // 根据速度调整尾迹长度
