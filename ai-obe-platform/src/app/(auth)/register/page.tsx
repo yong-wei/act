@@ -54,22 +54,23 @@ export default function RegisterPage() {
   return (
     <Card className="w-full border-slate-800 bg-slate-900/70">
       <CardHeader>
-        <CardTitle className="text-xl text-white">Create Account</CardTitle>
+        <CardTitle className="text-xl text-white">创建账号</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <Input
             type="text"
             name="name"
-            placeholder="Name"
-            autoComplete="name"
+            placeholder="账号（登录名）"
+            autoComplete="username"
             value={name}
             onChange={(event) => setName(event.target.value)}
+            required
           />
           <Input
             type="email"
             name="email"
-            placeholder="Email"
+            placeholder="邮箱"
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -78,7 +79,7 @@ export default function RegisterPage() {
           <Input
             type="password"
             name="password"
-            placeholder="Password (min 8 chars)"
+            placeholder="密码（至少8位）"
             autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -88,10 +89,10 @@ export default function RegisterPage() {
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
           <Button className="w-full" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating account...' : 'Create Account'}
+            {isSubmitting ? '正在创建...' : '创建账号'}
           </Button>
           <Link className="text-sm text-slate-300 hover:text-white" href="/login">
-            Already have an account? Sign in
+            已有账号？去登录
           </Link>
         </CardFooter>
       </form>

@@ -1,7 +1,9 @@
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 
-const DestroyerSimulation = dynamic(
+export const dynamic = 'force-dynamic';
+
+const DestroyerSimulation = dynamicImport(
   () => import('@/components/simulations/destroyer-simulation'),
   {
     ssr: false,

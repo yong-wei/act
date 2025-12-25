@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "node ./scripts/smoke-test.mjs",
-    "test:integration": "PLAYWRIGHT_PORT=3100 node ./scripts/integration-test.mjs && playwright test"
+    "test:integration": "PLAYWRIGHT_PORT=3100 node ./scripts/integration-test.mjs && playwright test",
+    "seed:demo": "node ./scripts/seed-demo-user.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^1.5.0",

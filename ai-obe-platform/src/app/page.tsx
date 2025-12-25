@@ -1,96 +1,124 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ShipModelPreview } from '@/components/ship-model-preview'
-import { 
-  Ship, 
-  Compass, 
-  Gauge, 
-  Bot, 
-  ChevronLeft, 
+import { useEffect, useState } from 'react'
+import {
+  ArrowUpRight,
+  ChevronLeft,
   ChevronRight,
+  Compass,
+  Cpu,
+  Globe,
+  GraduationCap,
+  Layers,
   Play,
-  BarChart3,
-  Brain,
-  Globe
+  Ship,
+  Sparkles,
 } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { ShipModelPreview } from '@/components/ship-model-preview'
 
 const shipScenarios = [
   {
     id: 1,
-    title: "海上半潜平台动力定位",
-    description: "模拟半潜式钻井平台在复杂海况下的动力定位，学习多推进器协同与定点保持策略。",
-    image: "/api/placeholder/600/400",
-    modelPath: "/assets/drilling-rig.glb",
-    difficulty: "高级",
-    participants: "2,847",
-    bgGradient: "from-blue-900 to-blue-700"
+    title: '海上半潜平台动力定位',
+    description: '模拟半潜式钻井平台在复杂海况下的动力定位，学习多推进器协同与定点保持策略。',
+    modelPath: '/assets/drilling-rig.glb',
+    difficulty: '高级',
+    participants: '2,847',
+    tag: '定位控制',
+    bgGradient: 'from-[#0b1f3a] via-[#112b55] to-[#0c1836]',
   },
   {
     id: 2,
-    title: "雪龙号破冰船航行控制",
-    description: "在极地环境中学习破冰船的特殊操控技术，掌握冰区航行的PID控制参数调优。",
-    image: "/api/placeholder/600/400", 
-    modelPath: "/assets/icebreaker.glb",
-    difficulty: "专家",
-    participants: "1,234",
-    bgGradient: "from-cyan-900 to-blue-800"
+    title: '雪龙号破冰船航行控制',
+    description: '在极地环境中学习破冰船的特殊操控技术，掌握冰区航行的PID控制参数调优。',
+    modelPath: '/assets/icebreaker.glb',
+    difficulty: '专家',
+    participants: '1,234',
+    tag: '极地任务',
+    bgGradient: 'from-[#0b2832] via-[#0f3a4b] to-[#0c1d2b]',
   },
   {
     id: 3,
-    title: "挖泥船精确定位作业",
-    description: "学习挖泥船在施工中的精确定位技术，掌握多点锚泊系统的协调控制。",
-    image: "/api/placeholder/600/400",
-    modelPath: "/assets/dredger.glb",
-    difficulty: "中级", 
-    participants: "3,456",
-    bgGradient: "from-emerald-900 to-teal-700"
+    title: '挖泥船精确定位作业',
+    description: '学习挖泥船在施工中的精确定位技术，掌握多点锚泊系统的协调控制。',
+    modelPath: '/assets/dredger.glb',
+    difficulty: '中级',
+    participants: '3,456',
+    tag: '作业协同',
+    bgGradient: 'from-[#102a2b] via-[#124237] to-[#0d231f]',
   },
   {
     id: 4,
-    title: "LNG船舶低温货物控制",
-    description: "体验液化天然气船舶的货物控制系统，学习低温环境下的精密控制技术。",
-    image: "/api/placeholder/600/400",
-    modelPath: "/assets/Lng-carrier.glb",
-    difficulty: "高级",
-    participants: "1,876",
-    bgGradient: "from-purple-900 to-indigo-700"
+    title: 'LNG船舶低温货物控制',
+    description: '体验液化天然气船舶的货物控制系统，学习低温环境下的精密控制技术。',
+    modelPath: '/assets/Lng-carrier.glb',
+    difficulty: '高级',
+    participants: '1,876',
+    tag: '低温控制',
+    bgGradient: 'from-[#1b1c3b] via-[#2c2753] to-[#1a1432]',
   },
   {
     id: 5,
-    title: "集装箱船智能装卸",
-    description: "掌握现代集装箱船的智能装卸系统，学习港口作业中的自动化控制。",
-    image: "/api/placeholder/600/400",
-    modelPath: "/assets/container.glb",
-    difficulty: "中级",
-    participants: "4,123", 
-    bgGradient: "from-orange-900 to-red-700"
+    title: '集装箱船智能装卸',
+    description: '掌握现代集装箱船的智能装卸系统，学习港口作业中的自动化控制。',
+    modelPath: '/assets/container.glb',
+    difficulty: '中级',
+    participants: '4,123',
+    tag: '港口协同',
+    bgGradient: 'from-[#2b1b12] via-[#3a2316] to-[#26140a]',
   },
   {
     id: 6,
-    title: "豪华游轮平稳行驶控制",
-    description: "体验豪华游轮在客运航线中的平稳航行控制，学习舒适性与能耗优化的操纵策略。",
-    image: "/api/placeholder/600/400",
-    modelPath: "/assets/luxury-liner.glb",
-    difficulty: "专家",
-    participants: "987",
-    bgGradient: "from-teal-900 to-cyan-700"
+    title: '豪华游轮平稳行驶控制',
+    description: '体验豪华游轮在客运航线中的平稳航行控制，学习舒适性与能耗优化的操纵策略。',
+    modelPath: '/assets/luxury-liner.glb',
+    difficulty: '专家',
+    participants: '987',
+    tag: '舒适性优化',
+    bgGradient: 'from-[#0d2b2c] via-[#0f4045] to-[#0a1f23]',
   },
   {
     id: 7,
-    title: "军用驱逐舰战术机动",
-    description: "体验军用舰艇的高机动性控制，学习战术环境下的快速响应控制策略。",
-    image: "/api/placeholder/600/400",
-    modelPath: "/assets/destroyer.glb",
-    difficulty: "专家",
-    participants: "654",
-    bgGradient: "from-gray-900 to-slate-700",
-    ctaHref: "/simulations/destroyer",
-    ctaLabel: "开启任务链"
-  }
+    title: '军用驱逐舰战术机动',
+    description: '体验军用舰艇的高机动性控制，学习战术环境下的快速响应控制策略。',
+    modelPath: '/assets/destroyer.glb',
+    difficulty: '专家',
+    participants: '654',
+    tag: '战术机动',
+    bgGradient: 'from-[#1a1c20] via-[#2a2f3a] to-[#101419]',
+    ctaHref: '/simulations/destroyer',
+    ctaLabel: '开启任务链',
+  },
+]
+
+const moduleLinks = [
+  {
+    title: '知识图谱',
+    description: '三维关系网 · 学习路径 · 资源地图',
+    href: '/knowledge',
+    icon: Globe,
+  },
+  {
+    title: '思政沙盘',
+    description: '伦理决策 · 风险权衡 · 多维代价',
+    href: '/ethics',
+    icon: Compass,
+  },
+  {
+    title: 'AI工坊',
+    description: '多模态助教 · 学情分析 · 问答中枢',
+    href: '/ai',
+    icon: Cpu,
+  },
+  {
+    title: '虚实实验室',
+    description: '模型清单 · 仿真入口 · 任务链状态',
+    href: '/virtual-lab',
+    icon: Layers,
+  },
 ]
 
 export default function HomePage() {
@@ -104,237 +132,201 @@ export default function HomePage() {
     }
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % totalSlides)
-    }, 5000)
+    }, 6000)
     return () => clearInterval(timer)
   }, [isDragging, totalSlides])
 
   const nextSlide = () => {
     setIsDragging(false)
-    setCurrentSlide((prev) => (prev + 1) % shipScenarios.length)
+    setCurrentSlide((prev) => (prev + 1) % totalSlides)
   }
 
   const prevSlide = () => {
     setIsDragging(false)
-    setCurrentSlide((prev) => (prev - 1 + shipScenarios.length) % shipScenarios.length)
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides)
   }
 
   const currentScenario = shipScenarios[currentSlide]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-dark-blue text-white p-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Ship className="h-8 w-8 text-amber-alert" />
-            <span className="text-xl font-bold">AI-OBE船舶控制平台</span>
-          </div>
-          <div className="flex space-x-6">
-            <Link href="/ai" className="hover:text-amber-alert transition-colors">AI助教工坊</Link>
-            <Link href="/ethics" className="hover:text-amber-alert transition-colors">伦理决策沙盒</Link>
-            <Link href="/knowledge" className="hover:text-amber-alert transition-colors">知识图谱</Link>
-          </div>
-        </div>
-      </nav>
+    <div
+      className="min-h-screen bg-[#0b1024] text-white"
+      style={{ fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif' }}
+    >
+      <div className="relative overflow-hidden">
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${currentScenario.bgGradient} transition-all duration-1000`}
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_55%)]" />
+        <div className="absolute -right-24 top-10 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
+        <div className="absolute -left-32 bottom-0 h-96 w-96 rounded-full bg-indigo-500/10 blur-3xl" />
 
-      {/* Hero Carousel Section */}
-      <section className="relative h-[70vh] overflow-hidden">
-        <div className={`absolute inset-0 bg-gradient-to-br ${currentScenario.bgGradient} transition-all duration-1000`}>
-          <div className="absolute inset-0 bg-black/30"></div>
-        </div>
-        
-        <div className="relative z-10 h-full flex items-center">
-          <div className="container mx-auto grid grid-cols-2 gap-8 items-center">
-            <div className="text-white space-y-6">
-              <div className="inline-block bg-amber-alert text-dark-blue px-3 py-1 rounded-full text-sm font-semibold">
-                {currentScenario.difficulty} · {currentScenario.participants}人参与
+        <nav className="relative z-10 border-b border-white/10">
+          <div className="container mx-auto flex items-center justify-between px-6 py-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-alert/15 text-amber-alert">
+                <Ship className="h-6 w-6" />
               </div>
-              <h1 className="text-5xl font-bold leading-tight">
+              <div>
+                <div className="text-lg font-semibold tracking-wide">AI-OBE船舶智控平台</div>
+                <div className="text-xs text-white/60">Mission Control for Maritime Education</div>
+              </div>
+            </div>
+            <div className="hidden items-center gap-6 text-sm text-white/80 md:flex">
+              <Link href="/knowledge" className="hover:text-amber-alert">知识图谱</Link>
+              <Link href="/ethics" className="hover:text-amber-alert">思政沙盘</Link>
+              <Link href="/ai" className="hover:text-amber-alert">AI工坊</Link>
+              <Link href="/virtual-lab" className="hover:text-amber-alert">虚实实验室</Link>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                asChild
+                variant="outline"
+                className="border-white/30 text-white/80 hover:bg-white/10"
+              >
+                <Link href="/login">登录</Link>
+              </Button>
+              <Button asChild className="bg-amber-alert text-dark-blue hover:bg-yellow-500">
+                <Link href="/dashboard">进入驾驶舱</Link>
+              </Button>
+            </div>
+          </div>
+        </nav>
+
+        <section className="relative z-10">
+          <div className="container mx-auto grid gap-10 px-6 py-12 lg:grid-cols-[1.1fr_1fr]">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-white/80">
+                <Sparkles className="h-4 w-4 text-amber-alert" />
+                {currentScenario.tag} · {currentScenario.difficulty} · {currentScenario.participants}人参与
+              </div>
+              <h1 className="text-4xl font-semibold leading-tight md:text-5xl">
                 {currentScenario.title}
               </h1>
-              <p className="text-xl text-white/90 leading-relaxed">
-                {currentScenario.description}
-              </p>
-              <div className="flex space-x-4">
+              <p className="text-lg text-white/80">{currentScenario.description}</p>
+              <div className="flex flex-wrap gap-3">
                 {currentScenario.ctaHref ? (
-                  <Button
-                    size="lg"
-                    asChild
-                    className="bg-amber-alert text-dark-blue hover:bg-yellow-500"
-                  >
+                  <Button asChild className="bg-amber-alert text-dark-blue hover:bg-yellow-500">
                     <Link href={currentScenario.ctaHref}>
-                      <Play className="mr-2 h-5 w-5" />
-                      {currentScenario.ctaLabel ?? "开启任务链"}
+                      <Play className="mr-2 h-4 w-4" />
+                      {currentScenario.ctaLabel ?? '开启任务链'}
                     </Link>
                   </Button>
                 ) : (
-                  <Button size="lg" className="bg-amber-alert text-dark-blue hover:bg-yellow-500">
-                    <Play className="mr-2 h-5 w-5" />
-                    {currentScenario.ctaLabel ?? "开启任务链"}
+                  <Button className="bg-amber-alert text-dark-blue hover:bg-yellow-500">
+                    <Play className="mr-2 h-4 w-4" />
+                    {currentScenario.ctaLabel ?? '开启任务链'}
                   </Button>
                 )}
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-dark-blue">
-                  了解更多
+                <Button variant="outline" className="border-white/30 text-white/80 hover:bg-white/10">
+                  了解课程设计
                 </Button>
               </div>
+              <div className="grid gap-4 sm:grid-cols-3">
+                {[
+                  { label: '任务链覆盖', value: '18类海事任务' },
+                  { label: '仿真模型库', value: '7种主力船型' },
+                  { label: 'AI分析维度', value: '24项指标' },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                    <div className="text-xs text-white/60">{item.label}</div>
+                    <div className="mt-2 text-sm font-semibold text-white">{item.value}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-            
-            <div className="relative">
-              {currentScenario.modelPath ? (
-                <ShipModelPreview
-                  modelPath={currentScenario.modelPath}
-                  onInteractionStart={() => setIsDragging(true)}
-                  onInteractionEnd={() => setIsDragging(false)}
-                />
-              ) : (
-                <div className="w-full h-80 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                  <Ship className="h-32 w-32 text-white/70" />
-                </div>
-              )}
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-xs text-white/70">
+                <span>可拖拽旋转模型</span>
+                <span>虚拟视角：战术俯视</span>
+              </div>
+              <ShipModelPreview
+                modelPath={currentScenario.modelPath}
+                onInteractionStart={() => setIsDragging(true)}
+                onInteractionEnd={() => setIsDragging(false)}
+              />
+              <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/70">
+                <span>当前任务：{currentScenario.tag}</span>
+                <span>响应窗口：6秒轮播</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Carousel Controls */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 rounded-full p-3 transition-all"
-        >
-          <ChevronLeft className="h-6 w-6 text-white" />
-        </button>
-        <button
-          onClick={nextSlide}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 rounded-full p-3 transition-all"
-        >
-          <ChevronRight className="h-6 w-6 text-white" />
-        </button>
-
-        {/* Carousel Indicators */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex space-x-2">
-          {shipScenarios.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all ${
-                index === currentSlide ? 'bg-amber-alert' : 'bg-white/50'
-              }`}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Core Features Section */}
-      <section className="py-16 bg-gray-100">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-            智能海事教育核心功能
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center text-primary-blue">
-                  <Gauge className="mr-3 h-6 w-6" />
-                  学习驾驶舱
-                </CardTitle>
-                <CardDescription>个性化学习路径与能力评估</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="h-16 w-16 text-primary-blue" />
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    基于AI的个性化学习建议，实时跟踪学习进度和技能掌握情况
-                  </p>
-                  <Button className="w-full">进入驾驶舱</Button>
+          <div className="container mx-auto px-6 pb-12">
+            <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-semibold">任务序列</div>
+                  <div className="text-xs text-white/50">{currentSlide + 1}/{totalSlides}</div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center text-success-green">
-                  <Compass className="mr-3 h-6 w-6" />
-                  今日推荐工卡
-                </CardTitle>
-                <CardDescription>智能推荐的学习任务</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="p-3 bg-green-50 rounded-lg border-l-4 border-success-green">
-                      <div className="font-medium">PID参数调优实验</div>
-                      <div className="text-sm text-gray-600">难度: 中级 | 预计30分钟</div>
-                    </div>
-                    <div className="p-3 bg-blue-50 rounded-lg border-l-4 border-primary-blue">
-                      <div className="font-medium">船舶避碰决策分析</div>
-                      <div className="text-sm text-gray-600">难度: 高级 | 预计45分钟</div>
-                    </div>
-                  </div>
-                  <Button className="w-full" variant="outline">查看全部任务</Button>
+                <div className="mt-4 space-y-3">
+                  {shipScenarios.map((scenario, index) => (
+                    <button
+                      key={scenario.id}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition ${
+                        currentSlide === index
+                          ? 'bg-amber-alert/20 text-amber-alert'
+                          : 'bg-white/0 text-white/70 hover:bg-white/5'
+                      }`}
+                    >
+                      <span className="truncate">{scenario.title}</span>
+                      <ArrowUpRight className="h-4 w-4" />
+                    </button>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center text-amber-alert">
-                  <Bot className="mr-3 h-6 w-6" />
-                  AI助教即时问答
-                </CardTitle>
-                <CardDescription>24/7智能问答支持</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="h-32 bg-gradient-to-br from-amber-50 to-orange-100 rounded-lg p-4 flex flex-col justify-between">
-                    <div className="space-y-2">
-                      <div className="bg-white p-2 rounded-lg text-sm">
-                        💬 如何优化动力定位系统的PID参数？
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-semibold">平台入口矩阵</div>
+                  <div className="text-xs text-white/50">四大核心模块</div>
+                </div>
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  {moduleLinks.map((module) => (
+                    <Link
+                      key={module.title}
+                      href={module.href}
+                      className="group rounded-xl border border-white/10 bg-[#0f1b3d] p-4 transition hover:-translate-y-1 hover:border-amber-alert/50"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-amber-alert">
+                          <module.icon className="h-5 w-5" />
+                        </div>
+                        <ArrowUpRight className="h-4 w-4 text-white/60 group-hover:text-amber-alert" />
                       </div>
-                      <div className="bg-primary-blue text-white p-2 rounded-lg text-sm">
-                        🤖 建议从Kp=0.8开始调试...
-                      </div>
-                    </div>
-                  </div>
-                  <Link href="/ai">
-                    <Button className="w-full bg-amber-alert text-dark-blue hover:bg-yellow-500">
-                      <Brain className="mr-2 h-4 w-4" />
-                      开启AI对话
-                    </Button>
-                  </Link>
+                      <div className="mt-4 text-sm font-semibold">{module.title}</div>
+                      <div className="mt-2 text-xs text-white/60">{module.description}</div>
+                    </Link>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* Quick Access Section */}
-      <section className="py-12 bg-dark-blue text-white">
-        <div className="container mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-8">快速访问专业工具</h2>
-          <div className="flex justify-center space-x-6">
-            <Link href="/ethics">
-              <Button variant="outline" className="border-amber-alert text-amber-alert hover:bg-amber-alert hover:text-dark-blue">
-                伦理决策沙盒
-              </Button>
-            </Link>
-            <Link href="/knowledge">
-              <Button variant="outline" className="border-amber-alert text-amber-alert hover:bg-amber-alert hover:text-dark-blue">
-                <Globe className="mr-2 h-4 w-4" />
-                知识图谱导航
-              </Button>
-            </Link>
+          <div className="container mx-auto flex items-center justify-between px-6 pb-12">
+            <div className="flex items-center gap-3 text-xs text-white/70">
+              <GraduationCap className="h-4 w-4 text-amber-alert" />
+              今日推荐任务：半潜平台动力定位挑战 · 预计时长 90 分钟
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={prevSlide}
+                className="rounded-full border border-white/20 bg-white/10 p-2 text-white/80 transition hover:bg-white/20"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={nextSlide}
+                className="rounded-full border border-white/20 bg-white/10 p-2 text-white/80 transition hover:bg-white/20"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="container mx-auto text-center">
-          <p>&copy; 2024 AI-OBE船舶控制平台. 智能海事教育创新实验室</p>
-        </div>
-      </footer>
+        </section>
+      </div>
     </div>
   )
 }
