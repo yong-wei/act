@@ -141,28 +141,28 @@ type ScenarioConfig = {
 
 const scenarioConfigs: Record<TaskScenario, ScenarioConfig> = {
   turn90: {
-    start: { x: -2700, z: 0, headingDeg: 0 },
+    start: { x: -6075, z: 0, headingDeg: 0 },
     guidePath: [
-      new THREE.Vector3(-2700, 0.5, 0),
-      new THREE.Vector3(2700, 0.5, 0),
-      new THREE.Vector3(2700, 0.5, 20000),  // 延伸至远处
+      new THREE.Vector3(-6075, 0.5, 0),
+      new THREE.Vector3(6075, 0.5, 0),
+      new THREE.Vector3(6075, 0.5, 45000),  // 延伸至远处
     ],
   },
   obstacle: {
-    start: { x: -960, z: 0, headingDeg: 0 },
+    start: { x: -2160, z: 0, headingDeg: 0 },
     guidePath: [
-      new THREE.Vector3(-960, 0.5, 0),
-      new THREE.Vector3(240, 0.5, 0),
-      new THREE.Vector3(600, 0.5, 420),
-      new THREE.Vector3(1260, 0.5, 420),
-      new THREE.Vector3(1860, 0.5, 0),
+      new THREE.Vector3(-2160, 0.5, 0),
+      new THREE.Vector3(540, 0.5, 0),
+      new THREE.Vector3(1350, 0.5, 945),
+      new THREE.Vector3(2835, 0.5, 945),
+      new THREE.Vector3(4185, 0.5, 0),
     ],
-    island: { x: 660, z: 0, radius: 240, height: 120 },
-    finishX: 1860,
+    island: { x: 1485, z: 0, radius: 540, height: 270 },
+    finishX: 4185,
   },
   circle: {
-    start: { x: 0, z: -660, headingDeg: 90 },
-    circle: { x: 0, z: 0, radius: 600 },
+    start: { x: 0, z: -1485, headingDeg: 90 },
+    circle: { x: 0, z: 0, radius: 1350 },
   },
 };
 
@@ -726,7 +726,7 @@ export function DestroyerSimulation() {
             currentHud.position.x - island.x,
             currentHud.position.z - island.z,
           );
-          if (distance < island.radius + 10) {
+          if (distance < island.radius + 100) {
             setObstacleHit(true);
             setTimeout(() => setObstacleHit(false), 1200);
             setResetToken((prev) => prev + 1);
