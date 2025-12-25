@@ -2,6 +2,114 @@
 
 ---
 
+## 第六轮修复 (2025年12月25日)
+
+### 1. 修复问题概述
+
+本轮修复了以下三个问题：
+1. **海面依然不可见**：波浪高度计算作用在错误的坐标轴上。
+2. **尾迹方向错误**：尾迹仍然垂直于船身（从右舷变到左舷）。
+3. **小地图航迹初始化异常**：初次进入仿真时，航迹显示在船前方而非船尾。
+
+---
+
+### 2. 问题根因分析
+
+#### 2.1 海面不可见（根本原因）
+- `PlaneGeometry` 默认在 XY 平面创建（Z=0）
+- 使用 `rotation={[-Math.PI / 2, 0, 0]}` 旋转到 XZ 平面后：
+  - 原始 Y 坐标变成 -Z 坐标
+  - 原始 Z 坐标变成 Y 坐标
+- 波浪代码修改 `positions[i + 1]`（原始 Y）实际上是在修改 **-Z 方向**，而不是高度！
+- 因此整个海面平躺在 Y=-3 的位置，没有任何高度变化，被天空遮挡。
+
+#### 2.2 尾迹方向错误
+- 船舶运动公式：`x += speed * cos(heading)`, `z += speed * sin(heading)`
+- heading=0 时船向 +X 方向移动
+- 尾迹原始方向是 -X（`x = -t * wakeLength`）
+- 旋转公式 `-headingRad - π/2` 在 heading=0 时让尾迹指向 -Z 方向（垂直于航向）
+- 正确公式应该是 `-headingRad`，不需要额外的 π/2 偏移
+
+#### 2.3 小地图航迹初始化异常
+- `hud.position` 初始值是 `{x: 0, z: 0}`
+- 实际场景起始位置是 `{x: -2700, z: 0}`
+- 首次渲染时 useEffect 触发，在 (0,0) 位置记录了一个错误的航迹点
+- 导致航迹从 (0,0) 延伸到实际位置，看起来像是"船前方"有航迹
+
+---
+
+### 3. 具体修复方法
+
+#### 3.1 重构海面几何体创建
+- **修改内容**：
+    - 不再使用 `rotation` 属性旋转平面
+    - 在 `useMemo` 中直接将 XY 平面转换为 XZ 平面
+    - 将原始 Y 坐标移到 Z 坐标，新 Y 坐标初始化为 0
+    - 波浪计算直接修改 Y 坐标，正确作用于高度
+- **代码变更**：
+    ```typescript
+    const geometry = useMemo(() => {
+      const geo = new THREE.PlaneGeometry(60000, 60000, 220, 220);
+      const positions = geo.attributes.position.array as Float32Array;
+      // 将XY平面转换为XZ平面
+      for (let i = 0; i < positions.length; i += 3) {
+        const originalY = positions[i + 1];
+        positions[i + 1] = 0;           // Y坐标设为0
+        positions[i + 2] = originalY;   // 原Y值移到Z坐标
+      }
+      geo.computeVertexNormals();
+      return geo;
+    }, []);
+    ```
+- **预期结果**：海面正确显示在水平面上，波浪在 Y 方向上下起伏。
+
+#### 3.2 修复尾迹旋转公式
+- **修改内容**：移除多余的 π/2 偏移
+- **代码变更**：
+    ```typescript
+    // 原
+    wakeRef.current.rotation.y = -sim.headingRad - Math.PI / 2;
+    // 改为
+    wakeRef.current.rotation.y = -sim.headingRad;
+    ```
+- **预期结果**：尾迹正确显示在船尾后方，沿航向反方向延伸。
+
+#### 3.3 修复航迹初始化
+- **修改内容**：添加 `skipFirstTrailUpdateRef` 标记，跳过首次航迹更新
+- **代码变更**：
+    ```typescript
+    const skipFirstTrailUpdateRef = useRef(true);
+
+    // resetScenarioState 中
+    skipFirstTrailUpdateRef.current = true;
+
+    // useEffect 中
+    if (skipFirstTrailUpdateRef.current) {
+      skipFirstTrailUpdateRef.current = false;
+      trailStampRef.current = Date.now();
+      return;
+    }
+    ```
+- **预期结果**：初次进入或重置仿真后，航迹从实际起始位置开始记录，无错误点。
+
+---
+
+### 4. 修改文件
+
+- `ai-obe-platform/src/components/simulations/destroyer-simulation.tsx`
+
+---
+
+### 5. 验证情况
+
+修复完成后，需通过以下测试流程：
+1. **代码规范检测**：`npm run lint`
+2. **冒烟测试**：`npm run test`
+3. **生产构建**：`npm run build`
+4. **集成测试**：`npm run test:integration`（如有）
+
+---
+
 ## 第五轮修复 (2025年12月25日)
 
 ### 1. 修复问题概述

@@ -399,6 +399,7 @@ export function DestroyerSimulation() {
   const holdRef = useRef(0);
   const circleStateRef = useRef({ totalAngle: 0, lastAngle: 0 });
   const trailStampRef = useRef(0);
+  const skipFirstTrailUpdateRef = useRef(true); // 跳过首次航迹更新，避免hud.position初始值(0,0)的错误点
 
   // 用于任务判定的 refs，避免 setInterval 闭包问题
   const hudRef = useRef(hud);
@@ -428,6 +429,7 @@ export function DestroyerSimulation() {
     setObstacleHit(false);
     setMiniTrail([]);
     trailStampRef.current = 0;
+    skipFirstTrailUpdateRef.current = true; // 重置后跳过首次航迹更新
     lastChartSampleRef.current = 0;
     simulationStartTimeRef.current = -1; // 标记需要重置，在 SimulationLoop 中会设置为当前时间
     lastRudderStepTimeRef.current = 0;
@@ -492,6 +494,13 @@ export function DestroyerSimulation() {
   }, [activeTask, resetScenarioState]);
 
   useEffect(() => {
+    // 跳过首次更新，避免hud.position初始值(0,0)导致的错误航迹点
+    if (skipFirstTrailUpdateRef.current) {
+      skipFirstTrailUpdateRef.current = false;
+      trailStampRef.current = Date.now();
+      return;
+    }
+
     const now = Date.now();
     if (now - trailStampRef.current < 250) return;
     trailStampRef.current = now;
@@ -1326,11 +1335,28 @@ function SkyDome() {
 
 function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const geometry = useMemo(() => new THREE.PlaneGeometry(60000, 60000, 220, 220), []);
+
+  // 直接创建XZ平面（而非XY平面再旋转），这样修改Y坐标就是修改高度
+  const geometry = useMemo(() => {
+    const geo = new THREE.PlaneGeometry(60000, 60000, 220, 220);
+    const positions = geo.attributes.position.array as Float32Array;
+
+    // 将XY平面转换为XZ平面：原Y变Z，新Y=0
+    for (let i = 0; i < positions.length; i += 3) {
+      const originalY = positions[i + 1];
+      positions[i + 1] = 0;           // Y坐标设为0（海面基础高度）
+      positions[i + 2] = originalY;   // 原Y值移到Z坐标
+    }
+
+    geo.computeVertexNormals();
+    return geo;
+  }, []);
+
   const basePositions = useMemo(
     () => Float32Array.from(geometry.attributes.position.array),
     [geometry],
   );
+
   const waves = useMemo(
     () => [
       { amplitude: 2.8, frequency: 0.012, speed: 0.7, direction: new THREE.Vector2(1, 0) },
@@ -1348,6 +1374,7 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
     const positionAttr = geometry.attributes.position as THREE.BufferAttribute;
     const positions = positionAttr.array as Float32Array;
 
+    // 现在positions[i+1]就是Y坐标（高度），直接修改即可
     for (let i = 0; i < positions.length; i += 3) {
       const baseX = basePositions[i];
       const baseZ = basePositions[i + 2];
@@ -1375,7 +1402,7 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
   });
 
   return (
-    <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
+    <mesh ref={meshRef} geometry={geometry} position={[0, -1, 0]}>
       <meshBasicMaterial
         color="#1a5a8a"
         side={THREE.DoubleSide}
@@ -1533,8 +1560,8 @@ function ShipWake({
 
     // 尾迹跟随船舶位置
     wakeRef.current.position.set(sim.position.x, 0.3, sim.position.z);
-    // 尾迹朝向船尾（与船舶方向相反）
-    wakeRef.current.rotation.y = -sim.headingRad - Math.PI / 2;
+    // 尾迹朝向船尾：尾迹原始方向是-X，旋转-headingRad后指向船尾后方
+    wakeRef.current.rotation.y = -sim.headingRad;
 
     // 根据速度调整尾迹长度（速度越快尾迹越长）
     const speedFactor = Math.max(0.3, sim.speedMps / 15);
