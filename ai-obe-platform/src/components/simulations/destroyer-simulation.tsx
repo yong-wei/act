@@ -371,6 +371,7 @@ export function DestroyerSimulation() {
   const lastChartSampleRef = useRef(0);
   const simulationStartTimeRef = useRef(0);
   const lastRudderStepTimeRef = useRef(0);
+  const lastSpeedStepTimeRef = useRef(0);
 
   const handleChartDataUpdate = useCallback((time: number, desiredHeading: number, actualHeading: number, speed: number) => {
     setChartData(prev => {
@@ -430,6 +431,7 @@ export function DestroyerSimulation() {
     lastChartSampleRef.current = 0;
     simulationStartTimeRef.current = -1; // 标记需要重置，在 SimulationLoop 中会设置为当前时间
     lastRudderStepTimeRef.current = 0;
+    lastSpeedStepTimeRef.current = 0;
     if (scenarioConfig.circle) {
       const startAngle = Math.atan2(
         scenarioConfig.start.z - scenarioConfig.circle.z,
@@ -699,6 +701,7 @@ export function DestroyerSimulation() {
                 lastChartSampleRef={lastChartSampleRef}
                 simulationStartTimeRef={simulationStartTimeRef}
                 lastRudderStepTimeRef={lastRudderStepTimeRef}
+                lastSpeedStepTimeRef={lastSpeedStepTimeRef}
               />
             </Suspense>
           </div>
@@ -930,6 +933,7 @@ type SimulationCanvasProps = {
   lastChartSampleRef: React.MutableRefObject<number>;
   simulationStartTimeRef: React.MutableRefObject<number>;
   lastRudderStepTimeRef: React.MutableRefObject<number>;
+  lastSpeedStepTimeRef: React.MutableRefObject<number>;
 };
 
 function SimulationCanvas({
@@ -949,6 +953,7 @@ function SimulationCanvas({
   lastChartSampleRef,
   simulationStartTimeRef,
   lastRudderStepTimeRef,
+  lastSpeedStepTimeRef,
 }: SimulationCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
@@ -1080,6 +1085,7 @@ function SimulationCanvas({
           lastChartSampleRef={lastChartSampleRef}
           simulationStartTimeRef={simulationStartTimeRef}
           lastRudderStepTimeRef={lastRudderStepTimeRef}
+          lastSpeedStepTimeRef={lastSpeedStepTimeRef}
         />
         <CameraRig cameraView={cameraView} simRef={simRef} cameraOffset={cameraOffset} />
       </Canvas>
@@ -1102,6 +1108,7 @@ type SimulationLoopProps = {
   lastChartSampleRef: React.MutableRefObject<number>;
   simulationStartTimeRef: React.MutableRefObject<number>;
   lastRudderStepTimeRef: React.MutableRefObject<number>;
+  lastSpeedStepTimeRef: React.MutableRefObject<number>;
 };
 
 function SimulationLoop({
@@ -1119,6 +1126,7 @@ function SimulationLoop({
   lastChartSampleRef,
   simulationStartTimeRef,
   lastRudderStepTimeRef,
+  lastSpeedStepTimeRef,
 }: SimulationLoopProps) {
   useFrame((state, delta) => {
     const dt = Math.min(delta * simSpeed, 0.1);
@@ -1132,12 +1140,20 @@ function SimulationLoop({
     }
     const simTime = elapsedTime - simulationStartTimeRef.current;
 
+    // 航速控制：手动模式下，每 100ms 步进 1 m/s
     if (controlMode === 'manual') {
-      sim.speedMps = clamp(
-        sim.speedMps + speedDirectionRef.current * speedLimits.accel * dt,
-        speedLimits.min,
-        speedLimits.max,
-      );
+      const speedStepInterval = 0.1; // 100ms
+      const speedStepSize = 1; // 每步 1 m/s
+      if (speedDirectionRef.current !== 0) {
+        if (simTime - lastSpeedStepTimeRef.current >= speedStepInterval) {
+          lastSpeedStepTimeRef.current = simTime;
+          sim.speedMps = clamp(
+            sim.speedMps + speedDirectionRef.current * speedStepSize,
+            speedLimits.min,
+            speedLimits.max,
+          );
+        }
+      }
     } else {
       sim.speedMps = nomotoModel.speedMps;
     }
@@ -1360,10 +1376,10 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
   return (
     <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
       <meshPhongMaterial
-        color="#0a4a6e"
-        emissive="#051a28"
-        specular="#2a7fa8"
-        shininess={60}
+        color="#0066aa"
+        emissive="#003366"
+        specular="#4da6cc"
+        shininess={50}
         side={THREE.DoubleSide}
       />
     </mesh>
@@ -1532,47 +1548,16 @@ function MiniMap({
     return [];
   }, [scenarioConfig]);
 
+  // 以船舶位置为中心的动态视图
+  const viewRadius = 400; // 视野半径400米
   const bounds = useMemo(() => {
-    const xs = [scenarioConfig.start.x, ...guidePoints.map((p) => p.x)];
-    const zs = [scenarioConfig.start.z, ...guidePoints.map((p) => p.z)];
-
-    if (scenarioConfig.finishX !== undefined) {
-      xs.push(scenarioConfig.finishX);
-      zs.push(scenarioConfig.start.z);
-    }
-
-    if (scenarioConfig.circle) {
-      xs.push(scenarioConfig.circle.x - scenarioConfig.circle.radius);
-      xs.push(scenarioConfig.circle.x + scenarioConfig.circle.radius);
-      zs.push(scenarioConfig.circle.z - scenarioConfig.circle.radius);
-      zs.push(scenarioConfig.circle.z + scenarioConfig.circle.radius);
-    }
-
-    if (scenarioConfig.island) {
-      xs.push(scenarioConfig.island.x - scenarioConfig.island.radius);
-      xs.push(scenarioConfig.island.x + scenarioConfig.island.radius);
-      zs.push(scenarioConfig.island.z - scenarioConfig.island.radius);
-      zs.push(scenarioConfig.island.z + scenarioConfig.island.radius);
-    }
-
-    if (xs.length === 0 || zs.length === 0) {
-      return { minX: -100, maxX: 100, minZ: -100, maxZ: 100 };
-    }
-
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const minZ = Math.min(...zs);
-    const maxZ = Math.max(...zs);
-    const span = Math.max(maxX - minX, maxZ - minZ) || 1;
-    const margin = span * 0.35 + padding;
-
     return {
-      minX: minX - margin,
-      maxX: maxX + margin,
-      minZ: minZ - margin,
-      maxZ: maxZ + margin,
+      minX: position.x - viewRadius,
+      maxX: position.x + viewRadius,
+      minZ: position.z - viewRadius,
+      maxZ: position.z + viewRadius,
     };
-  }, [guidePoints, scenarioConfig]);
+  }, [position.x, position.z]);
 
   const scale = Math.max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ) || 1;
   const toMap = (point: { x: number; z: number }) => {
@@ -1629,7 +1614,7 @@ function MiniMap({
           />
         ) : null}
         <g transform={`translate(${ship.x} ${ship.y}) rotate(${shipRotation})`}>
-          <polygon points="8,0 -6,-5 -6,5" fill="#22c55e" />
+          <polygon points="8,0 -6,-5 -6,5" fill="#3b82f6" />
         </g>
       </svg>
       <div className="mt-2 flex items-center justify-between px-1 text-[10px] text-slate-400">
