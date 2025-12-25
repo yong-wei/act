@@ -30,7 +30,7 @@
 *   **Visuals:** The sea now has proper lighting, waves are clearly visible with foam at the peaks, and the surface reacts to the sun direction.
 *   **Physics:** The ship bobs and tilts effectively with the waves without clipping excessively or floating in mid-air.
 *   **Scale Correction:** The destroyer model has been scaled up to its realistic length of 180m (previously 80m), ensuring it matches the 100m grid scale of the environment.
-*   **Buoyancy Height Adjustment:** Raised the ship's vertical offset from `+0.5` to `+12.5` (through iterative adjustments). This correction ensures the ship's gunwale remains above the water surface even during wave peaks, achieving a more realistic draft of approximately 6 meters for the scaled-up 180m model.
+*   **Buoyancy Height Adjustment:** Raised the ship's vertical offset from `+0.5` to `+15.5` (through iterative adjustments). This correction ensures the ship's gunwale remains above the water surface even during wave peaks, achieving a more realistic draft of approximately 6 meters for the scaled-up 180m model.
 *   **Camera Distance Scaling:** Adjusted camera distances in `CameraRig` (increased by approx. 2.25x) to maintain the same visual proportion of the ship in the frame after scaling the model up from 80m to 180m.
 
 ---
