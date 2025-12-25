@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ShipModelPreview } from '@/components/ship-model-preview'
 import { 
   Ship, 
   Compass, 
@@ -32,6 +33,7 @@ const shipScenarios = [
     title: "雪龙号破冰船航行控制",
     description: "在极地环境中学习破冰船的特殊操控技术，掌握冰区航行的PID控制参数调优。",
     image: "/api/placeholder/600/400", 
+    modelPath: "/assets/icebreaker.glb",
     difficulty: "专家",
     participants: "1,234",
     bgGradient: "from-cyan-900 to-blue-800"
@@ -41,6 +43,7 @@ const shipScenarios = [
     title: "挖泥船精确定位作业",
     description: "学习挖泥船在施工中的精确定位技术，掌握多点锚泊系统的协调控制。",
     image: "/api/placeholder/600/400",
+    modelPath: "/assets/dredger.glb",
     difficulty: "中级", 
     participants: "3,456",
     bgGradient: "from-emerald-900 to-teal-700"
@@ -50,6 +53,7 @@ const shipScenarios = [
     title: "LNG船舶低温货物控制",
     description: "体验液化天然气船舶的货物控制系统，学习低温环境下的精密控制技术。",
     image: "/api/placeholder/600/400",
+    modelPath: "/assets/lng-carrier.glb",
     difficulty: "高级",
     participants: "1,876",
     bgGradient: "from-purple-900 to-indigo-700"
@@ -59,6 +63,7 @@ const shipScenarios = [
     title: "集装箱船智能装卸",
     description: "掌握现代集装箱船的智能装卸系统，学习港口作业中的自动化控制。",
     image: "/api/placeholder/600/400",
+    modelPath: "/assets/container.glb",
     difficulty: "中级",
     participants: "4,123", 
     bgGradient: "from-orange-900 to-red-700"
@@ -77,29 +82,37 @@ const shipScenarios = [
     title: "军用驱逐舰战术机动",
     description: "体验军用舰艇的高机动性控制，学习战术环境下的快速响应控制策略。",
     image: "/api/placeholder/600/400",
+    modelPath: "/assets/destroyer.glb",
     difficulty: "专家",
     participants: "654",
     bgGradient: "from-gray-900 to-slate-700",
     ctaHref: "/simulations/destroyer",
-    ctaLabel: "进入仿真"
+    ctaLabel: "开启任务链"
   }
 ]
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const totalSlides = shipScenarios.length
 
   useEffect(() => {
+    if (isDragging) {
+      return
+    }
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % shipScenarios.length)
+      setCurrentSlide((prev) => (prev + 1) % totalSlides)
     }, 5000)
     return () => clearInterval(timer)
-  }, [])
+  }, [isDragging, totalSlides])
 
   const nextSlide = () => {
+    setIsDragging(false)
     setCurrentSlide((prev) => (prev + 1) % shipScenarios.length)
   }
 
   const prevSlide = () => {
+    setIsDragging(false)
     setCurrentSlide((prev) => (prev - 1 + shipScenarios.length) % shipScenarios.length)
   }
 
@@ -165,9 +178,17 @@ export default function HomePage() {
             </div>
             
             <div className="relative">
-              <div className="w-full h-80 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                <Ship className="h-32 w-32 text-white/70" />
-              </div>
+              {currentScenario.modelPath ? (
+                <ShipModelPreview
+                  modelPath={currentScenario.modelPath}
+                  onInteractionStart={() => setIsDragging(true)}
+                  onInteractionEnd={() => setIsDragging(false)}
+                />
+              ) : (
+                <div className="w-full h-80 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                  <Ship className="h-32 w-32 text-white/70" />
+                </div>
+              )}
             </div>
           </div>
         </div>
