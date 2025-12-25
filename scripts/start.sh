@@ -12,9 +12,13 @@ BACKEND_LOG="$LOG_DIR/backend.log"
 DB_LOG="$LOG_DIR/database.log"
 
 mkdir -p "$LOG_DIR" "$PID_DIR"
-rm -f "$LOG_DIR"/*.log
-rm -f "$PID_DIR"/*.pid
 touch "$CONSOLE_LOG" "$FRONTEND_LOG" "$BACKEND_LOG" "$DB_LOG"
+
+for log_file in "$LOG_DIR"/*.log; do
+  if [ -f "$log_file" ]; then
+    : > "$log_file"
+  fi
+done
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$CONSOLE_LOG"

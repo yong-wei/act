@@ -27,6 +27,11 @@ stop_pid() {
   local pid
   pid="$(cat "$pid_file")"
 
+  if [ -z "$pid" ]; then
+    log "Empty pid file for ${name}, skipping."
+    return 0
+  fi
+
   if kill -0 "$pid" >/dev/null 2>&1; then
     log "Stopping ${name} (pid ${pid})."
     kill -TERM "-$pid" >/dev/null 2>&1 || true
@@ -58,6 +63,33 @@ stop_pid() {
   rm -f "$pid_file"
 }
 
+stop_port() {
+  local port="$1"
+  local pid=""
+
+  if command -v lsof >/dev/null 2>&1; then
+    pid="$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -n 1 || true)"
+  fi
+
+  if [ -z "$pid" ]; then
+    return 0
+  fi
+
+  log "Stopping process on port ${port} (pid ${pid})."
+  kill -TERM "-$pid" >/dev/null 2>&1 || kill -TERM "$pid" >/dev/null 2>&1 || true
+
+  for _ in {1..10}; do
+    if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+      sleep 1
+    else
+      return 0
+    fi
+  done
+
+  log "Force killing process on port ${port} (pid ${pid})."
+  kill -KILL "-$pid" >/dev/null 2>&1 || kill -KILL "$pid" >/dev/null 2>&1 || true
+}
+
 stop_postgres() {
   local container_name="act-just-postgres"
   local pid_file="$PID_DIR/database.pid"
@@ -87,5 +119,6 @@ log "Shutdown initiated."
 stop_pid "frontend"
 stop_pid "simulation"
 stop_pid "llm"
+stop_port "3000"
 stop_postgres
 log "Shutdown completed."
