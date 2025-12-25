@@ -17,13 +17,11 @@ type CameraView = 'chase' | 'overhead' | 'tactical';
 
 type TaskScenario = 'turn90' | 'obstacle' | 'circle';
 
-type Task = {
+type TaskDef = {
   id: string;
   title: string;
   scenario: TaskScenario;
-  targetHeading?: number;
-  tolerance: number;
-  holdSeconds: number;
+  duration: number; // 任务持续时间(秒)
   description: string;
 };
 
@@ -33,6 +31,9 @@ type HudState = {
   rudder: number;
   speed: number;
   position: { x: number; z: number };
+  avgError: number; // 平均航迹误差
+  currentError: number; // 当前航迹误差
+  time: number;
 };
 
 type SimulationState = {
@@ -64,7 +65,7 @@ const nomotoModel = {
   K: 0.08,
   T: 55,
   maxRudderDeg: 35,
-  speedMps: 15.4,
+  speedMps: 15.0, // 默认航速调整为 15 m/s
 };
 
 const speedLimits = {
@@ -74,8 +75,6 @@ const speedLimits = {
 };
 
 // 波浪参数：调整为更真实的海洋参数
-// 振幅(A), 频率(w = 2*PI/L), 速度(phi), 方向X, 方向Z
-// 优化方向：增加方向的随机性，避免平行波纹；略微降低主波高以减少淹没
 const waveParams = [
   { amplitude: 1.2, frequency: 0.018, speed: 0.9, direction: { x: 1.0, z: 0.1 } }, // 主涌浪
   { amplitude: 0.9, frequency: 0.035, speed: 1.1, direction: { x: 0.4, z: 0.9 } }, // 交叉浪
@@ -84,86 +83,120 @@ const waveParams = [
   { amplitude: 0.15, frequency: 0.25, speed: 2.0, direction: { x: -0.5, z: -0.6 } }, // 微波
 ];
 
-// 计算指定位置的水面高度 (CPU版，用于物理计算)
-// 保持与 Shader 逻辑一致
 function getWaveHeight(x: number, z: number, time: number): number {
   let y = 0;
   waveParams.forEach((wave) => {
-    // direction 已经在定义时归一化或近似归一化，这里直接点乘
-    // Shader: dot(position.xz, direction) * frequency + time * speed
     const phase = (x * wave.direction.x + z * wave.direction.z) * wave.frequency + time * wave.speed;
     y += wave.amplitude * Math.sin(phase);
   });
   return y;
 }
 
-// 船舶尺寸（用于计算俯仰和横摇）
 const shipDimensions = {
-  length: 180, // 米 (增加至实际尺寸)
-  width: 20,   // 米
+  length: 180,
+  width: 20,
 };
 
-const tasks: Task[] = [
+// 任务定义
+const tasks: TaskDef[] = [
   {
     id: 'turn-90',
-    title: '90° 转向任务',
+    title: '直角转向任务',
     scenario: 'turn90',
-    targetHeading: 90,
-    tolerance: 5,
-    holdSeconds: 5,
-    description: '沿红色航线转向至 90°，稳定在 ±5° 持续 5 秒。',
+    duration: 180,
+    description: '30秒时执行90度右转阶跃信号。平均航迹误差需小于200米。',
   },
   {
-    id: 'avoid-obstacle',
-    title: '避障航线任务',
+    id: 'obstacle',
+    title: '复杂避障任务',
     scenario: 'obstacle',
-    tolerance: 0,
-    holdSeconds: 0,
-    description: '按红色指引航线绕开海岛障碍，避免进入危险半径。',
+    duration: 180,
+    description: '按指定时间序列执行 0° -> 45° -> 0° -> -45° -> 0° 变向。',
   },
   {
-    id: 'circle-route',
-    title: '圆形航线任务',
+    id: 'circle',
+    title: '定常回转任务',
     scenario: 'circle',
-    tolerance: 40,
-    holdSeconds: 0,
-    description: '沿红色圆形航线完成一圈，保持尽量贴近轨迹。',
+    duration: 360, // 增加时间以完成回转
+    description: '30秒时切入 -90° 并开始定常回转（圆形航线）。',
   },
 ];
 
-type ScenarioConfig = {
-  start: { x: number; z: number; headingDeg: number };
-  guidePath?: THREE.Vector3[];
-  island?: { x: number; z: number; radius: number; height: number };
-  finishX?: number;
-  circle?: { x: number; z: number; radius: number };
+// 场景生成器逻辑
+type ScenarioLogic = {
+  getDesiredHeading: (t: number) => number; // 返回角度
+  startPos: { x: number; z: number; headingDeg: number };
 };
 
-const scenarioConfigs: Record<TaskScenario, ScenarioConfig> = {
-  turn90: {
-    start: { x: -6075, z: 0, headingDeg: 0 },
-    guidePath: [
-      new THREE.Vector3(-6075, 0.5, 0),
-      new THREE.Vector3(6075, 0.5, 0),
-      new THREE.Vector3(6075, 0.5, 45000),  // 延伸至远处
-    ],
-  },
-  obstacle: {
-    start: { x: -2160, z: 0, headingDeg: 0 },
-    guidePath: [
-      new THREE.Vector3(-2160, 0.5, 0),
-      new THREE.Vector3(540, 0.5, 0),
-      new THREE.Vector3(1350, 0.5, 945),
-      new THREE.Vector3(2835, 0.5, 945),
-      new THREE.Vector3(4185, 0.5, 0),
-    ],
-    island: { x: 1485, z: 0, radius: 540, height: 270 },
-    finishX: 4185,
-  },
-  circle: {
-    start: { x: 0, z: -1485, headingDeg: 90 },
-    circle: { x: 0, z: 0, radius: 1350 },
-  },
+const REF_SPEED = 15.0; // 参考航速 15m/s
+
+const getScenarioLogic = (scenario: TaskScenario): ScenarioLogic => {
+  switch (scenario) {
+    case 'turn90':
+      return {
+        startPos: { x: -6000, z: 0, headingDeg: 0 },
+        getDesiredHeading: (t: number) => {
+          if (t < 30) return 0;
+          return 90; // 阶跃
+        },
+      };
+    case 'obstacle':
+      return {
+        startPos: { x: -2000, z: 0, headingDeg: 0 },
+        getDesiredHeading: (t: number) => {
+          if (t < 30) return 0;
+          if (t < 60) return 45;
+          if (t < 90) return 0;
+          if (t < 120) return -45;
+          return 0;
+        },
+      };
+    case 'circle':
+      const radius = 1350;
+      const circumference = 2 * Math.PI * radius;
+      const turnTime = circumference / REF_SPEED;
+      const degPerSec = 360 / turnTime;
+      return {
+        startPos: { x: 0, z: -2000, headingDeg: 0 },
+        getDesiredHeading: (t: number) => {
+          if (t < 30) return 0;
+          // 30秒时，阶跃到 -90 (切入圆周)，然后斜坡增加
+          // 实际上是一个持续的 YawRate
+          // 初始角度 -90，每秒增加 degPerSec
+          return -90 + degPerSec * (t - 30);
+        },
+      };
+  }
+};
+
+// 预计算参考航迹点
+const generateGuidePath = (logic: ScenarioLogic, duration: number) => {
+  const points: THREE.Vector3[] = [];
+  let x = logic.startPos.x;
+  let z = logic.startPos.z;
+  const dt = 0.5; // 采样间隔
+
+  // 初始点
+  points.push(new THREE.Vector3(x, 0.5, z));
+
+  for (let t = 0; t <= duration; t += dt) {
+    const headingDeg = logic.getDesiredHeading(t);
+    const headingRad = toRadians(headingDeg);
+    // 航向 0 度对应 X 轴正向?
+    // 在 ThreeJS 中，通常 -Z 是前方。
+    // 但在之前的代码中： x += speed * cos(heading), z += speed * sin(heading)
+    // 这意味着 0 度是 +X 方向，90 度是 +Z 方向 (右转是增加 Z? 左手系?)
+    // 让我们保持原有的运动学公式一致：
+    // x += speed * cos(heading)
+    // z += speed * sin(heading)
+    
+    // 注意：如果是 Step 信号，t 时刻瞬间改变航向，下一刻位置基于新航向
+    x += REF_SPEED * Math.cos(headingRad) * dt;
+    z += REF_SPEED * Math.sin(headingRad) * dt;
+    
+    points.push(new THREE.Vector3(x, 0.5, z));
+  }
+  return points;
 };
 
 const cameraViews: Array<{ id: CameraView; label: string }> = [
@@ -210,7 +243,6 @@ const WaterShaderMaterial = shaderMaterial(
     const int WAVE_COUNT = 5;
     
     // Arrays must be constant size
-    // A, Freq, Speed, DirX, DirZ
     const float waves[25] = float[](
       1.2, 0.018, 0.9, 1.0, 0.1,
       0.9, 0.035, 1.1, 0.4, 0.9,
@@ -222,9 +254,7 @@ const WaterShaderMaterial = shaderMaterial(
     void main() {
       vUv = uv;
       vec3 pos = position;
-      
       float elevation = 0.0;
-      
       float dHdx = 0.0;
       float dHdz = 0.0;
       
@@ -237,7 +267,6 @@ const WaterShaderMaterial = shaderMaterial(
         float dz = waves[idx + 4];
         
         float phase = (pos.x * dx + pos.z * dz) * freq + uTime * speed;
-        
         elevation += amp * sin(phase);
         
         float derivative = amp * cos(phase) * freq;
@@ -267,14 +296,12 @@ const WaterShaderMaterial = shaderMaterial(
     varying float vElevation;
     varying vec3 vNormal;
     varying vec3 vViewPosition;
-    varying vec2 vUv; // Recieve UVs
+    varying vec2 vUv;
 
-    // Simple pseudo-random noise function
     float random(vec2 st) {
         return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
     }
     
-    // Value noise
     float noise(vec2 st) {
         vec2 i = floor(st);
         vec2 f = fract(st);
@@ -291,25 +318,14 @@ const WaterShaderMaterial = shaderMaterial(
       vec3 normal = normalize(vNormal);
       vec3 sunDir = normalize(uSunPosition);
 
-      // Simple Lambert + Specular
       float light = max(dot(normal, sunDir), 0.0);
-      float specular = pow(max(dot(reflect(-sunDir, normal), viewDirection), 0.0), 64.0); // Sharper specular
-      
-      // Fresnel Effect
+      float specular = pow(max(dot(reflect(-sunDir, normal), viewDirection), 0.0), 64.0);
       float fresnel = pow(1.0 - max(dot(viewDirection, normal), 0.0), 3.0);
       
-      // Foam Logic:
-      // 1. Base threshold on elevation
-      // 2. Add noise to break up lines
-      // 3. Sharp transition (step instead of smoothstep) for bubbly look
-      float noiseVal = noise(vUv * 300.0); // High frequency noise
-      float foamThreshold = 0.9; // Lower threshold to make foam appear earlier
-      
-      // Modulate elevation with noise to create "patchy" foam
-      // Peaks are high elevation. We want foam where Elevation + Noise > Threshold
+      float noiseVal = noise(vUv * 300.0);
+      float foamThreshold = 0.9;
       float foamFactor = smoothstep(foamThreshold, foamThreshold + 0.3, vElevation + noiseVal * 0.4);
       
-      // Mix colors
       vec3 waterColor = mix(uColor * 0.5, uColor * 1.3, light * 0.7 + 0.3);
       vec3 finalColor = mix(waterColor, vec3(0.7, 0.85, 0.95), fresnel * 0.4);
       finalColor += vec3(specular * 0.4);
@@ -325,7 +341,7 @@ const WaterShaderMaterial = shaderMaterial(
 
 extend({ WaterShaderMaterial });
 
-// Add type definition for the custom shader material
+// Add type definition
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -351,13 +367,10 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
 
   useEffect(() => {
     if (!chartRef.current) return;
-
-    // 销毁旧图表
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }
 
-    // 创建新图表
     chartInstanceRef.current = new Chart(chartRef.current, {
       type: 'line',
       data: {
@@ -406,10 +419,7 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
         plugins: {
           legend: {
             position: 'top',
-            labels: {
-              color: '#e2e8f0',
-              font: { size: 12 },
-            },
+            labels: { color: '#e2e8f0' },
           },
           tooltip: {
             backgroundColor: 'rgba(15, 23, 42, 0.9)',
@@ -421,54 +431,25 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
         },
         scales: {
           x: {
-            title: {
-              display: true,
-              text: '时间 (秒)',
-              color: '#cbd5e1',
-              font: { size: 13 },
-            },
-            ticks: {
-              color: '#94a3b8',
-              maxTicksLimit: 15,
-            },
-            grid: {
-              color: 'rgba(148, 163, 184, 0.1)',
-            },
+            title: { display: true, text: '时间 (秒)', color: '#cbd5e1' },
+            ticks: { color: '#94a3b8', maxTicksLimit: 15 },
+            grid: { color: 'rgba(148, 163, 184, 0.1)' },
           },
           'y-heading': {
             type: 'linear',
             position: 'left',
-            title: {
-              display: true,
-              text: '航向角 (°)',
-              color: '#cbd5e1',
-              font: { size: 13 },
-            },
-            min: 0,
+            title: { display: true, text: '航向角 (°)', color: '#cbd5e1' },
+            min: -180,
             max: 360,
-            ticks: {
-              color: '#94a3b8',
-              stepSize: 45,
-            },
-            grid: {
-              color: 'rgba(148, 163, 184, 0.2)',
-            },
+            ticks: { color: '#94a3b8', stepSize: 45 },
+            grid: { color: 'rgba(148, 163, 184, 0.2)' },
           },
           'y-speed': {
             type: 'linear',
             position: 'right',
-            title: {
-              display: true,
-              text: '航速 (m/s)',
-              color: '#cbd5e1',
-              font: { size: 13 },
-            },
-            ticks: {
-              color: '#94a3b8',
-            },
-            grid: {
-              drawOnChartArea: false,
-            },
+            title: { display: true, text: '航速 (m/s)', color: '#cbd5e1' },
+            ticks: { color: '#94a3b8' },
+            grid: { drawOnChartArea: false },
           },
         },
       },
@@ -500,21 +481,25 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
 export function DestroyerSimulation() {
   const [cameraView, setCameraView] = useState<CameraView>('chase');
   const [controlMode, setControlMode] = useState<ControlMode>('manual');
-  const [targetHeading, setTargetHeading] = useState(tasks[0].targetHeading ?? 90);
+  const [targetHeading, setTargetHeading] = useState(0); // 实时更新
   const [pidGains, setPidGains] = useState({ kp: 1.4, ki: 0.02, kd: 0.7 });
+  
   const [hud, setHud] = useState<HudState>({
     heading: 0,
     yawRate: 0,
     rudder: 0,
     speed: nomotoModel.speedMps,
     position: { x: 0, z: 0 },
+    avgError: 0,
+    currentError: 0,
+    time: 0,
   });
+
   const [panelOpen, setPanelOpen] = useState(true);
   const [miniTrail, setMiniTrail] = useState<Array<{ x: number; z: number }>>([]);
   const [taskIndex, setTaskIndex] = useState(0);
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
-  const [taskProgress, setTaskProgress] = useState(0);
-  const [obstacleHit, setObstacleHit] = useState(false);
+  const [taskProgress, setTaskProgress] = useState(0); // 进度现在基于时间
   const [resetToken, setResetToken] = useState(0);
   const [simSpeed, setSimSpeed] = useState(1);
   const [cameraOffset, setCameraOffset] = useState({
@@ -524,17 +509,25 @@ export function DestroyerSimulation() {
     panZ: 0,
   });
   const [viewMode, setViewMode] = useState<'simulation' | 'chart'>('simulation');
-  const [chartData, setChartData] = useState<{
-    time: number[];
-    desiredHeading: number[];
-    actualHeading: number[];
-    speed: number[];
-  }>({
+  const [chartData, setChartData] = useState<ChartData>({
     time: [],
     desiredHeading: [],
     actualHeading: [],
     speed: [],
   });
+
+  const activeTask = tasks[taskIndex];
+  
+  // 动态生成场景配置
+  const scenarioConfig = useMemo(() => {
+    const logic = getScenarioLogic(activeTask.scenario);
+    const path = generateGuidePath(logic, activeTask.duration);
+    return {
+      logic,
+      guidePath: path,
+      start: logic.startPos,
+    };
+  }, [activeTask]);
 
   const speedOptions = useMemo(() => [0.5, 1, 2, 4], []);
 
@@ -554,6 +547,8 @@ export function DestroyerSimulation() {
   const simulationStartTimeRef = useRef(0);
   const lastRudderStepTimeRef = useRef(0);
   const lastSpeedStepTimeRef = useRef(0);
+  const totalErrorRef = useRef(0);
+  const errorSampleCountRef = useRef(0);
 
   const handleChartDataUpdate = useCallback((time: number, desiredHeading: number, actualHeading: number, speed: number) => {
     setChartData(prev => {
@@ -578,56 +573,23 @@ export function DestroyerSimulation() {
 
   const rudderDirectionRef = useRef(0);
   const speedDirectionRef = useRef(0);
-  const holdRef = useRef(0);
-  const circleStateRef = useRef({ totalAngle: 0, lastAngle: 0 });
   const trailStampRef = useRef(0);
-  const skipFirstTrailUpdateRef = useRef(true); // 跳过首次航迹更新，避免hud.position初始值(0,0)的错误点
-
-  // 用于任务判定的 refs，避免 setInterval 闭包问题
-  const hudRef = useRef(hud);
-  const targetHeadingRef = useRef(targetHeading);
-  const obstacleHitRef = useRef(obstacleHit);
-
-  // 同步最新值到 refs
-  useEffect(() => {
-    hudRef.current = hud;
-  }, [hud]);
-
-  useEffect(() => {
-    targetHeadingRef.current = targetHeading;
-  }, [targetHeading]);
-
-  useEffect(() => {
-    obstacleHitRef.current = obstacleHit;
-  }, [obstacleHit]);
-
-  const activeTask = tasks[taskIndex];
-  const angleError = angleDelta(targetHeading, hud.heading);
-  const scenarioConfig = scenarioConfigs[activeTask.scenario];
+  const skipFirstTrailUpdateRef = useRef(true);
 
   const resetScenarioState = useCallback(() => {
-    holdRef.current = 0;
     setTaskProgress(0);
-    setObstacleHit(false);
     setMiniTrail([]);
     trailStampRef.current = 0;
-    skipFirstTrailUpdateRef.current = true; // 重置后跳过首次航迹更新
+    skipFirstTrailUpdateRef.current = true;
     lastChartSampleRef.current = 0;
-    simulationStartTimeRef.current = -1; // 标记需要重置，在 SimulationLoop 中会设置为当前时间
+    simulationStartTimeRef.current = -1;
     lastRudderStepTimeRef.current = 0;
     lastSpeedStepTimeRef.current = 0;
-    if (scenarioConfig.circle) {
-      const startAngle = Math.atan2(
-        scenarioConfig.start.z - scenarioConfig.circle.z,
-        scenarioConfig.start.x - scenarioConfig.circle.x,
-      );
-      circleStateRef.current = { totalAngle: 0, lastAngle: startAngle };
-    } else {
-      circleStateRef.current = { totalAngle: 0, lastAngle: 0 };
-    }
+    totalErrorRef.current = 0;
+    errorSampleCountRef.current = 0;
     setChartData({ time: [], desiredHeading: [], actualHeading: [], speed: [] });
     setResetToken((prev) => prev + 1);
-  }, [scenarioConfig]);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -667,22 +629,18 @@ export function DestroyerSimulation() {
     };
   }, []);
 
+  // 任务切换时重置
   useEffect(() => {
-    if (!activeTask) return;
-    if (activeTask.targetHeading !== undefined) {
-      setTargetHeading(activeTask.targetHeading);
-    }
     resetScenarioState();
-  }, [activeTask, resetScenarioState]);
+  }, [taskIndex, resetScenarioState]);
 
+  // 小地图航迹更新
   useEffect(() => {
-    // 跳过首次更新，避免hud.position初始值(0,0)导致的错误航迹点
     if (skipFirstTrailUpdateRef.current) {
       skipFirstTrailUpdateRef.current = false;
       trailStampRef.current = Date.now();
       return;
     }
-
     const now = Date.now();
     if (now - trailStampRef.current < 250) return;
     trailStampRef.current = now;
@@ -693,91 +651,27 @@ export function DestroyerSimulation() {
     });
   }, [hud.position.x, hud.position.z]);
 
+  // 任务进度与完成检测
   useEffect(() => {
     if (!activeTask) return;
-    const interval = setInterval(() => {
-      let isComplete = false;
-      let progress = 0;
+    
+    // 进度基于时间
+    const progress = Math.min(1, hud.time / activeTask.duration);
+    setTaskProgress(progress);
 
-      // 使用 refs 获取最新值，避免闭包捕获旧值
-      const currentHud = hudRef.current;
-      const currentTargetHeading = targetHeadingRef.current;
-      const currentObstacleHit = obstacleHitRef.current;
-
-      if (activeTask.scenario === 'turn90') {
-        const error = angleDelta(currentTargetHeading, currentHud.heading);
-        if (Math.abs(error) <= activeTask.tolerance) {
-          holdRef.current += 0.2;
-        } else {
-          holdRef.current = 0;
+    // 完成判定
+    if (hud.time >= activeTask.duration) {
+        if (hud.avgError < 200) {
+            setCompletedTaskIds((prev) => 
+                prev.includes(activeTask.id) ? prev : [...prev, activeTask.id]
+            );
+            // 自动进入下一任务
+            if (taskIndex < tasks.length - 1) {
+                setTimeout(() => setTaskIndex(prev => prev + 1), 1000);
+            }
         }
-
-        progress = activeTask.holdSeconds
-          ? Math.min(1, holdRef.current / activeTask.holdSeconds)
-          : 0;
-        isComplete = holdRef.current >= activeTask.holdSeconds;
-      }
-
-      if (activeTask.scenario === 'obstacle') {
-        const island = scenarioConfig.island;
-        const finishX = scenarioConfig.finishX ?? 0;
-        if (island) {
-          const distance = Math.hypot(
-            currentHud.position.x - island.x,
-            currentHud.position.z - island.z,
-          );
-          if (distance < island.radius + 100) {
-            setObstacleHit(true);
-            setTimeout(() => setObstacleHit(false), 1200);
-            setResetToken((prev) => prev + 1);
-            holdRef.current = 0;
-          }
-        }
-        progress = clamp(
-          (currentHud.position.x - scenarioConfig.start.x) / (finishX - scenarioConfig.start.x),
-          0,
-          1,
-        );
-        isComplete = !currentObstacleHit && currentHud.position.x >= finishX;
-      }
-
-      if (activeTask.scenario === 'circle') {
-        const circle = scenarioConfig.circle;
-        if (circle) {
-          const dx = currentHud.position.x - circle.x;
-          const dz = currentHud.position.z - circle.z;
-          const angle = Math.atan2(dz, dx);
-          const radiusError = Math.abs(Math.hypot(dx, dz) - circle.radius);
-          let delta = angle - circleStateRef.current.lastAngle;
-          if (delta > Math.PI) delta -= Math.PI * 2;
-          if (delta < -Math.PI) delta += Math.PI * 2;
-
-          if (radiusError <= activeTask.tolerance) {
-            circleStateRef.current.totalAngle += delta;
-          }
-
-          circleStateRef.current.lastAngle = angle;
-          progress = Math.min(1, Math.abs(circleStateRef.current.totalAngle) / (Math.PI * 2));
-          isComplete = progress >= 1;
-        }
-      }
-
-      setTaskProgress(progress);
-
-      if (isComplete) {
-        setCompletedTaskIds((prev) =>
-          prev.includes(activeTask.id) ? prev : [...prev, activeTask.id],
-        );
-        if (taskIndex < tasks.length - 1) {
-          setTaskIndex((prev) => prev + 1);
-        }
-        holdRef.current = 0;
-        setTaskProgress(0);
-      }
-    }, 200);
-
-    return () => clearInterval(interval);
-  }, [activeTask, scenarioConfig, taskIndex]);
+    }
+  }, [hud.time, hud.avgError, activeTask, taskIndex]);
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">
@@ -856,7 +750,7 @@ export function DestroyerSimulation() {
                 </Button>
               </div>
               <MiniMap
-                scenarioConfig={scenarioConfig}
+                guidePath={scenarioConfig.guidePath}
                 trail={miniTrail}
                 position={hud.position}
                 heading={hud.heading}
@@ -864,7 +758,7 @@ export function DestroyerSimulation() {
             </div>
             <div className="absolute bottom-4 left-4 z-10 rounded-lg border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm text-slate-200">
               <p>航向: {hud.heading.toFixed(1)}°</p>
-              <p>偏差: {angleError.toFixed(1)}°</p>
+              <p>期望: {targetHeading.toFixed(1)}°</p>
               <p>舵角: {hud.rudder.toFixed(1)}°</p>
               <p>航速: {hud.speed.toFixed(1)} m/s</p>
             </div>
@@ -879,7 +773,7 @@ export function DestroyerSimulation() {
                 cameraView={cameraView}
                 controlMode={controlMode}
                 pidGains={pidGains}
-                targetHeading={targetHeading}
+                targetHeading={targetHeading} // Now fed from SimulationLoop update
                 rudderDirectionRef={rudderDirectionRef}
                 speedDirectionRef={speedDirectionRef}
                 onHudUpdate={setHud}
@@ -893,6 +787,10 @@ export function DestroyerSimulation() {
                 simulationStartTimeRef={simulationStartTimeRef}
                 lastRudderStepTimeRef={lastRudderStepTimeRef}
                 lastSpeedStepTimeRef={lastSpeedStepTimeRef}
+                setTargetHeading={setTargetHeading}
+                totalErrorRef={totalErrorRef}
+                errorSampleCountRef={errorSampleCountRef}
+                taskDuration={activeTask.duration}
               />
             </Suspense>
           </div>
@@ -928,22 +826,18 @@ export function DestroyerSimulation() {
                     <p className="mt-2 text-slate-300">{task.description}</p>
                     {isActive ? (
                       <div className="mt-3 space-y-2">
-                        <p className="text-xs text-slate-400">
-                          {task.scenario === 'turn90'
-                            ? `目标航向 ${task.targetHeading}° · 允许误差 ±${task.tolerance}°`
-                            : task.scenario === 'obstacle'
-                            ? '红色航线为推荐避障路线'
-                            : '贴近红色圆环完成一圈'}
-                        </p>
+                        <div className="flex justify-between text-xs text-slate-400">
+                            <span>时间: {hud.time.toFixed(1)} / {task.duration}s</span>
+                            <span className={hud.avgError < 200 ? "text-emerald-400" : "text-red-400"}>
+                                平均误差: {hud.avgError.toFixed(1)}m (目标 &lt; 200m)
+                            </span>
+                        </div>
                         <progress
                           className="h-2 w-full accent-emerald-400"
                           value={taskProgress}
                           max={1}
                         />
                       </div>
-                    ) : null}
-                    {isActive && obstacleHit && task.scenario === 'obstacle' ? (
-                      <p className="mt-2 text-xs text-red-300">发生碰撞，已重置任务。</p>
                     ) : null}
                   </div>
                 );
@@ -960,7 +854,6 @@ export function DestroyerSimulation() {
                 onClick={() => {
                   setTaskIndex(0);
                   setCompletedTaskIds([]);
-                  holdRef.current = 0;
                   setResetToken((prev) => prev + 1);
                 }}
               >
@@ -1010,8 +903,8 @@ export function DestroyerSimulation() {
                   ))}
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400">目标航向</p>
-                  <p className="text-lg text-white">{targetHeading.toFixed(0)}°</p>
+                  <p className="text-xs text-slate-400">目标航向 (实时)</p>
+                  <p className="text-lg text-white">{targetHeading.toFixed(1)}°</p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-400">航速</p>
@@ -1083,20 +976,16 @@ export function DestroyerSimulation() {
                   <span className="text-white">{hud.heading.toFixed(1)}°</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>偏航角速度</span>
-                  <span className="text-white">{hud.yawRate.toFixed(2)}°/s</span>
-                </div>
-                <div className="flex items-center justify-between">
                   <span>舵角</span>
                   <span className="text-white">{hud.rudder.toFixed(1)}°</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>控制模式</span>
-                  <span className="text-white">{controlMode.toUpperCase()}</span>
+                  <span>当前误差</span>
+                  <span className="text-white">{hud.currentError.toFixed(1)} m</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>偏差</span>
-                  <span className="text-white">{angleError.toFixed(1)}°</span>
+                  <span>平均误差</span>
+                  <span className="text-white">{hud.avgError.toFixed(1)} m</span>
                 </div>
               </CardContent>
             </Card>
@@ -1116,7 +1005,7 @@ type SimulationCanvasProps = {
   speedDirectionRef: React.MutableRefObject<number>;
   onHudUpdate: (state: HudState) => void;
   resetToken: number;
-  scenarioConfig: (typeof scenarioConfigs)[TaskScenario];
+  scenarioConfig: { logic: ScenarioLogic; guidePath: THREE.Vector3[]; start: any };
   simSpeed: number;
   cameraOffset: { azimuth: number; elevation: number; panX: number; panZ: number };
   onCameraOffsetChange: (offset: { azimuth: number; elevation: number; panX: number; panZ: number }) => void;
@@ -1125,6 +1014,10 @@ type SimulationCanvasProps = {
   simulationStartTimeRef: React.MutableRefObject<number>;
   lastRudderStepTimeRef: React.MutableRefObject<number>;
   lastSpeedStepTimeRef: React.MutableRefObject<number>;
+  setTargetHeading: (val: number) => void;
+  totalErrorRef: React.MutableRefObject<number>;
+  errorSampleCountRef: React.MutableRefObject<number>;
+  taskDuration: number;
 };
 
 function SimulationCanvas({
@@ -1145,6 +1038,10 @@ function SimulationCanvas({
   simulationStartTimeRef,
   lastRudderStepTimeRef,
   lastSpeedStepTimeRef,
+  setTargetHeading,
+  totalErrorRef,
+  errorSampleCountRef,
+  taskDuration,
 }: SimulationCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
@@ -1173,15 +1070,12 @@ function SimulationCanvas({
       lastMouseRef.current = { x: e.clientX, y: e.clientY };
 
       if (dragButtonRef.current === 2) {
-        // 右键：围绕船舶旋转视角（轨道控制）
         onCameraOffsetChange({
           ...cameraOffset,
           azimuth: cameraOffset.azimuth + deltaX * 0.005,
           elevation: clamp(cameraOffset.elevation - deltaY * 0.003, -0.3, 0.8),
         });
       } else if (dragButtonRef.current === 0) {
-        // 左键：平移（在相机视平面上移动lookAt目标）
-        // 根据当前视角方向计算平移向量
         const viewAzimuth = cameraOffset.azimuth;
         const rightX = Math.cos(viewAzimuth + Math.PI / 2);
         const rightZ = Math.sin(viewAzimuth + Math.PI / 2);
@@ -1217,6 +1111,7 @@ function SimulationCanvas({
       canvas.removeEventListener('contextmenu', handleContextMenu);
     };
   }, [cameraOffset, onCameraOffsetChange]);
+  
   const shipRef = useRef<THREE.Group>(null);
   const simRef = useRef<SimulationState>({
     position: new THREE.Vector3(0, 0, 0),
@@ -1263,8 +1158,8 @@ function SimulationCanvas({
         <ProceduralClouds />
         <WaveWater simRef={simRef} />
         <GridHelper simRef={simRef} />
-        <GuideRoute scenarioConfig={scenarioConfig} />
-        {scenarioConfig.island ? <Island {...scenarioConfig.island} /> : null}
+        <GuideRoute points={scenarioConfig.guidePath} />
+        {/* Removed Island for now as Scenario logic is pure path based */}
         <ShipTrail simRef={simRef} resetToken={resetToken} />
         <ShipWake simRef={simRef} />
         <ShipModel shipRef={shipRef} />
@@ -1273,7 +1168,6 @@ function SimulationCanvas({
           simRef={simRef}
           controlMode={controlMode}
           pidGains={pidGains}
-          targetHeading={targetHeading}
           rudderDirectionRef={rudderDirectionRef}
           speedDirectionRef={speedDirectionRef}
           onHudUpdate={onHudUpdate}
@@ -1284,6 +1178,12 @@ function SimulationCanvas({
           simulationStartTimeRef={simulationStartTimeRef}
           lastRudderStepTimeRef={lastRudderStepTimeRef}
           lastSpeedStepTimeRef={lastSpeedStepTimeRef}
+          scenarioLogic={scenarioConfig.logic}
+          guidePath={scenarioConfig.guidePath}
+          setTargetHeading={setTargetHeading}
+          totalErrorRef={totalErrorRef}
+          errorSampleCountRef={errorSampleCountRef}
+          taskDuration={taskDuration}
         />
         <CameraRig cameraView={cameraView} simRef={simRef} cameraOffset={cameraOffset} />
       </Canvas>
@@ -1291,12 +1191,46 @@ function SimulationCanvas({
   );
 }
 
+// 寻找最近点计算 Cross Track Error
+function getCrossTrackError(position: THREE.Vector3, path: THREE.Vector3[]): number {
+  if (path.length < 2) return 0;
+  
+  let minDistSq = Infinity;
+  // 简单遍历寻找最近点 (可以优化，但几百个点也没问题)
+  for (let i = 0; i < path.length - 1; i++) {
+    const p1 = path[i];
+    const p2 = path[i+1];
+    
+    // 线段 p1-p2
+    // 投影点
+    const v = p2.clone().sub(p1);
+    const w = position.clone().sub(p1);
+    
+    const c1 = w.dot(v);
+    const c2 = v.dot(v);
+    
+    let distSq = 0;
+    
+    if (c1 <= 0) {
+      distSq = position.distanceToSquared(p1);
+    } else if (c2 <= c1) {
+      distSq = position.distanceToSquared(p2);
+    } else {
+      const b = c1 / c2;
+      const pb = p1.clone().add(v.multiplyScalar(b));
+      distSq = position.distanceToSquared(pb);
+    }
+    
+    if (distSq < minDistSq) minDistSq = distSq;
+  }
+  return Math.sqrt(minDistSq);
+}
+
 type SimulationLoopProps = {
   shipRef: React.RefObject<THREE.Group>;
   simRef: React.MutableRefObject<SimulationState>;
   controlMode: ControlMode;
   pidGains: { kp: number; ki: number; kd: number };
-  targetHeading: number;
   rudderDirectionRef: React.MutableRefObject<number>;
   speedDirectionRef: React.MutableRefObject<number>;
   onHudUpdate: (state: HudState) => void;
@@ -1307,6 +1241,12 @@ type SimulationLoopProps = {
   simulationStartTimeRef: React.MutableRefObject<number>;
   lastRudderStepTimeRef: React.MutableRefObject<number>;
   lastSpeedStepTimeRef: React.MutableRefObject<number>;
+  scenarioLogic: ScenarioLogic;
+  guidePath: THREE.Vector3[];
+  setTargetHeading: (val: number) => void;
+  totalErrorRef: React.MutableRefObject<number>;
+  errorSampleCountRef: React.MutableRefObject<number>;
+  taskDuration: number;
 };
 
 function SimulationLoop({
@@ -1314,7 +1254,6 @@ function SimulationLoop({
   simRef,
   controlMode,
   pidGains,
-  targetHeading,
   rudderDirectionRef,
   speedDirectionRef,
   onHudUpdate,
@@ -1325,23 +1264,38 @@ function SimulationLoop({
   simulationStartTimeRef,
   lastRudderStepTimeRef,
   lastSpeedStepTimeRef,
+  scenarioLogic,
+  guidePath,
+  setTargetHeading,
+  totalErrorRef,
+  errorSampleCountRef,
+  taskDuration,
 }: SimulationLoopProps) {
   useFrame((state, delta) => {
     const dt = Math.min(delta * simSpeed, 0.1);
     const sim = simRef.current;
-    const headingDeg = normalizeHeading(toDegrees(sim.headingRad));
     const elapsedTime = state.clock.getElapsedTime();
 
-    // 处理仿真时间重置（当 simulationStartTimeRef 为 -1 时，记录当前时钟时间作为起始点）
     if (simulationStartTimeRef.current < 0) {
       simulationStartTimeRef.current = elapsedTime;
     }
     const simTime = elapsedTime - simulationStartTimeRef.current;
 
-    // 航速控制：手动模式下，每 100ms 步进 1 m/s
+    // 1. 获取当前时刻的期望航向
+    // 如果超过任务时间，保持最后一个时刻的航向
+    const timeForHeading = Math.min(simTime, taskDuration);
+    const targetHeading = scenarioLogic.getDesiredHeading(timeForHeading);
+    
+    // 更新 React State (用于 UI 显示，不频繁更新)
+    // 限制更新频率
+    if (Math.floor(simTime * 5) > Math.floor((simTime - dt) * 5)) {
+        setTargetHeading(targetHeading);
+    }
+
+    // 2. 航速控制
     if (controlMode === 'manual') {
-      const speedStepInterval = 0.1; // 100ms
-      const speedStepSize = 1; // 每步 1 m/s
+      const speedStepInterval = 0.1;
+      const speedStepSize = 1;
       if (speedDirectionRef.current !== 0) {
         if (simTime - lastSpeedStepTimeRef.current >= speedStepInterval) {
           lastSpeedStepTimeRef.current = simTime;
@@ -1356,10 +1310,10 @@ function SimulationLoop({
       sim.speedMps = nomotoModel.speedMps;
     }
 
-    // 舵角控制：手动模式下，每 100ms 步进 1 度
+    // 3. 舵角控制 (自动时使用 targetHeading)
     if (controlMode === 'manual') {
-      const rudderStepInterval = 0.1; // 100ms
-      const rudderStepSize = 1; // 每步 1 度
+      const rudderStepInterval = 0.1;
+      const rudderStepSize = 1;
       if (rudderDirectionRef.current !== 0) {
         if (simTime - lastRudderStepTimeRef.current >= rudderStepInterval) {
           lastRudderStepTimeRef.current = simTime;
@@ -1372,7 +1326,9 @@ function SimulationLoop({
       }
       sim.rudderDeg = sim.manualRudderDeg;
     } else {
-      const errorDeg = angleDelta(targetHeading, headingDeg);
+      // PID 控制
+      const currentHeading = normalizeHeading(toDegrees(sim.headingRad));
+      const errorDeg = angleDelta(targetHeading, currentHeading);
       const errorRad = toRadians(errorDeg);
       const derivative = (errorRad - sim.prevErrorRad) / dt;
       sim.integral += errorRad * dt;
@@ -1380,12 +1336,8 @@ function SimulationLoop({
       let kp = pidGains.kp;
       let ki = pidGains.ki;
       let kd = pidGains.kd;
-      if (controlMode === 'p') {
-        ki = 0;
-        kd = 0;
-      } else if (controlMode === 'pd') {
-        ki = 0;
-      }
+      if (controlMode === 'p') { ki = 0; kd = 0; } 
+      else if (controlMode === 'pd') { ki = 0; }
 
       const deltaRad = kp * errorRad + ki * sim.integral + kd * derivative;
       sim.rudderDeg = clamp(
@@ -1396,6 +1348,7 @@ function SimulationLoop({
       sim.prevErrorRad = errorRad;
     }
 
+    // 4. 船舶运动学更新 (Nomoto)
     const rudderRad = toRadians(sim.rudderDeg);
     sim.yawRateRad += ((nomotoModel.K * rudderRad - sim.yawRateRad) / nomotoModel.T) * dt;
     sim.headingRad += sim.yawRateRad * dt;
@@ -1403,54 +1356,51 @@ function SimulationLoop({
     sim.position.x += sim.speedMps * Math.cos(sim.headingRad) * dt;
     sim.position.z += sim.speedMps * Math.sin(sim.headingRad) * dt;
 
-    // 计算船舶波浪起伏（高度、俯仰、横摇）
+    // 5. 波浪运动学
     const posX = sim.position.x;
     const posZ = sim.position.z;
     const heading = sim.headingRad;
-
-    // 船首、船尾、左舷、右舷的位置偏移
     const halfLength = shipDimensions.length / 2;
     const halfWidth = shipDimensions.width / 2;
     const cosH = Math.cos(heading);
     const sinH = Math.sin(heading);
 
-    // 计算四个关键点的水面高度 (使用真实时间 elapsedTime 以匹配 shader)
     const centerY = getWaveHeight(posX, posZ, elapsedTime);
     const bowY = getWaveHeight(posX + cosH * halfLength, posZ + sinH * halfLength, elapsedTime);
     const sternY = getWaveHeight(posX - cosH * halfLength, posZ - sinH * halfLength, elapsedTime);
-    const portY = getWaveHeight(posX - sinH * halfWidth, posZ + cosH * halfWidth, elapsedTime); // 左舷
-    const starboardY = getWaveHeight(posX + sinH * halfWidth, posZ - cosH * halfWidth, elapsedTime); // 右舷
+    const portY = getWaveHeight(posX - sinH * halfWidth, posZ + cosH * halfWidth, elapsedTime);
+    const starboardY = getWaveHeight(posX + sinH * halfWidth, posZ - cosH * halfWidth, elapsedTime);
 
-    // 计算目标俯仰角和横摇角
     const targetPitch = Math.atan2(bowY - sternY, shipDimensions.length);
     const targetRoll = Math.atan2(portY - starboardY, shipDimensions.width);
 
-    // 平滑过渡（模拟大船惯性）
-    // 大幅降低 lerpFactor 以增加"重感"，减少对高频波浪的响应
-    const heaveLerp = 0.02; // 垂荡阻尼
-    const rotLerp = 0.02;   // 摇摆阻尼
-    
-    // 吃水深度调整：确保船体大部分时间在水面以上，但又不会浮空
-    // 船底位置 = 波浪高度 - 吃水 + 浮力修正
+    const heaveLerp = 0.02;
+    const rotLerp = 0.02;
     
     sim.waveY = THREE.MathUtils.lerp(sim.waveY, centerY, heaveLerp);
-
-    // 限制俯仰角和横摇角
     sim.wavePitch = THREE.MathUtils.lerp(sim.wavePitch, targetPitch, rotLerp);
     sim.waveRoll = THREE.MathUtils.lerp(sim.waveRoll, targetRoll, rotLerp);
 
-    // 应用到船舶模型
     if (shipRef.current) {
-      // 动态调整基准高度：
-      // 进一步抬高 3 米（从 +12.5 到 +15.5），优化吃水表现。
-      
       shipRef.current.position.set(sim.position.x, sim.waveY + 15.5, sim.position.z); 
       shipRef.current.rotation.set(
-        sim.wavePitch,                          // X轴：俯仰
-        -sim.headingRad + Math.PI / 2,          // Y轴：航向
-        sim.waveRoll                            // Z轴：横摇
+        sim.wavePitch,
+        -sim.headingRad + Math.PI / 2,
+        sim.waveRoll
       );
     }
+
+    // 6. 误差计算与HUD更新
+    const currentError = getCrossTrackError(sim.position, guidePath);
+    
+    // 只在仿真开始后统计
+    if (simTime > 0) {
+        totalErrorRef.current += currentError;
+        errorSampleCountRef.current += 1;
+    }
+    const avgError = errorSampleCountRef.current > 0 
+        ? totalErrorRef.current / errorSampleCountRef.current 
+        : 0;
 
     if (elapsedTime - lastHudUpdateRef.current > 0.1) {
       lastHudUpdateRef.current = elapsedTime;
@@ -1460,12 +1410,17 @@ function SimulationLoop({
         rudder: sim.rudderDeg,
         speed: sim.speedMps,
         position: { x: sim.position.x, z: sim.position.z },
+        avgError,
+        currentError,
+        time: simTime,
       });
     }
 
-    // 图表数据采集（每0.5秒，使用相对于仿真开始的时间）
+    // 7. 图表更新
     if (simTime - lastChartSampleRef.current > 0.5) {
       lastChartSampleRef.current = simTime;
+      const headingDeg = normalizeHeading(toDegrees(sim.headingRad));
+      // targetHeading is computed at top of frame
       onChartDataUpdate(simTime, targetHeading, headingDeg, sim.speedMps);
     }
   });
@@ -1646,54 +1601,19 @@ function GridHelper({ simRef }: { simRef: React.MutableRefObject<SimulationState
 }
 
 function GuideRoute({
-  scenarioConfig,
+  points,
 }: {
-  scenarioConfig: (typeof scenarioConfigs)[TaskScenario];
+  points: THREE.Vector3[];
 }) {
-  if (scenarioConfig.guidePath) {
-    return (
-      <Line points={scenarioConfig.guidePath} color="#ef4444" lineWidth={3} dashed={false} />
-    );
-  }
-
-  if (scenarioConfig.circle) {
-    const points = Array.from({ length: 160 }).map((_, index) => {
-      const angle = (index / 160) * Math.PI * 2;
-      return new THREE.Vector3(
-        scenarioConfig.circle!.x + Math.cos(angle) * scenarioConfig.circle!.radius,
-        0.6,
-        scenarioConfig.circle!.z + Math.sin(angle) * scenarioConfig.circle!.radius,
-      );
-    });
-    return <Line points={points} color="#ef4444" lineWidth={2} dashed={false} />;
-  }
-
-  return null;
+  if (!points || points.length < 2) return null;
+  return (
+    <Line points={points} color="#ef4444" lineWidth={3} dashed={false} />
+  );
 }
 
-function Island({
-  x,
-  z,
-  radius,
-  height,
-}: {
-  x: number;
-  z: number;
-  radius: number;
-  height: number;
-}) {
-  return (
-    <group position={[x, -2 + height / 2, z]}>
-      <mesh>
-        <cylinderGeometry args={[radius * 0.9, radius * 1.1, height, 32]} />
-        <meshStandardMaterial color="#5a7c4f" roughness={0.8} />
-      </mesh>
-      <mesh position={[0, height / 2, 0]}>
-        <cylinderGeometry args={[radius * 0.5, radius * 0.9, height * 0.4, 24]} />
-        <meshStandardMaterial color="#3c5a3a" roughness={0.9} />
-      </mesh>
-    </group>
-  );
+// 简化 Island，暂时不显示，因为场景逻辑已变
+function Island(props: any) {
+  return null;
 }
 
 function ShipTrail({
@@ -1735,50 +1655,40 @@ function ShipWake({
   simRef: React.MutableRefObject<SimulationState>;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const wakeLength = 150; // 尾迹基础长度
-  const wakeWidth = 35; // 尾迹最大宽度
-  const segments = 12; // 尾迹分段数
+  const wakeLength = 150;
+  const wakeWidth = 35; 
+  const segments = 12; 
 
-  // 创建V形扇面几何体，带顶点颜色渐变
   const { geometry, colorAttr } = useMemo(() => {
     const positions: number[] = [];
     const colors: number[] = [];
     const indices: number[] = [];
 
-    // 顶点0：船尾中心点（起点）
     positions.push(0, 0.5, 0);
-    colors.push(1, 1, 1, 0.85); // 白色，较高透明度
+    colors.push(1, 1, 1, 0.85);
 
-    // 生成V形扇面顶点（左右两侧交替）
     for (let i = 1; i <= segments; i++) {
       const t = i / segments;
       const x = -t * wakeLength;
       const spreadHalf = t * wakeWidth * 0.5;
-      const alpha = (1 - t) * 0.7; // 渐变到透明
+      const alpha = (1 - t) * 0.7; 
 
-      // 左侧点
       positions.push(x, 0.3, spreadHalf);
       colors.push(1, 1, 1, alpha);
 
-      // 右侧点
       positions.push(x, 0.3, -spreadHalf);
       colors.push(1, 1, 1, alpha);
     }
 
-    // 创建三角形索引
-    // 第一层：中心点连接到第一对左右点
     indices.push(0, 1, 2);
 
-    // 后续层：每层连接到下一层
     for (let i = 1; i < segments; i++) {
       const leftCurr = i * 2 - 1;
       const rightCurr = i * 2;
       const leftNext = (i + 1) * 2 - 1;
       const rightNext = (i + 1) * 2;
 
-      // 左侧三角形
       indices.push(leftCurr, leftNext, rightNext);
-      // 右侧三角形
       indices.push(leftCurr, rightNext, rightCurr);
     }
 
@@ -1796,26 +1706,21 @@ function ShipWake({
     const sim = simRef.current;
     const time = state.clock.getElapsedTime();
 
-    // 尾迹跟随船舶位置（使用波浪高度）
     meshRef.current.position.set(sim.position.x, sim.waveY + 0.8, sim.position.z);
     meshRef.current.rotation.y = -sim.headingRad;
 
-    // 根据速度调整尾迹长度
     const speedFactor = Math.max(0.4, sim.speedMps / 15);
     meshRef.current.scale.set(speedFactor, 1, speedFactor);
 
-    // 轻微的顶点动画（波动效果）
     const positions = geometry.attributes.position.array as Float32Array;
     for (let i = 1; i <= segments; i++) {
       const t = i / segments;
       const baseY = 0.3;
       const waveOffset = Math.sin(time * 2 + t * 5) * 0.15 * t;
 
-      // 左侧点
       const leftIdx = (i * 2 - 1) * 3 + 1;
       positions[leftIdx] = baseY + waveOffset;
 
-      // 右侧点
       const rightIdx = (i * 2) * 3 + 1;
       positions[rightIdx] = baseY + waveOffset;
     }
@@ -1836,37 +1741,19 @@ function ShipWake({
 }
 
 function MiniMap({
-  scenarioConfig,
+  guidePath,
   trail,
   position,
   heading,
 }: {
-  scenarioConfig: ScenarioConfig;
+  guidePath: THREE.Vector3[];
   trail: Array<{ x: number; z: number }>;
   position: { x: number; z: number };
   heading: number;
 }) {
   const size = 180;
-  const padding = 16;
-
-  const guidePoints = useMemo(() => {
-    if (scenarioConfig.guidePath) {
-      return scenarioConfig.guidePath.map((point) => ({ x: point.x, z: point.z }));
-    }
-    if (scenarioConfig.circle) {
-      return Array.from({ length: 120 }).map((_, index) => {
-        const angle = (index / 120) * Math.PI * 2;
-        return {
-          x: scenarioConfig.circle!.x + Math.cos(angle) * scenarioConfig.circle!.radius,
-          z: scenarioConfig.circle!.z + Math.sin(angle) * scenarioConfig.circle!.radius,
-        };
-      });
-    }
-    return [];
-  }, [scenarioConfig]);
-
-  // 以船舶位置为中心的动态视图
-  const viewRadius = 400; // 视野半径400米
+  
+  const viewRadius = 800; // 扩大视野以适应新比例
   const bounds = useMemo(() => {
     return {
       minX: position.x - viewRadius,
@@ -1879,19 +1766,19 @@ function MiniMap({
   const scale = Math.max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ) || 1;
   const toMap = (point: { x: number; z: number }) => {
     const x = ((point.x - bounds.minX) / scale) * size;
-    const y = ((point.z - bounds.minZ) / scale) * size;  // 移除倒置，直接映射
+    const y = ((point.z - bounds.minZ) / scale) * size;
     return { x, y };
   };
 
-  const guidePath = guidePoints.map((point) => {
-    const mapped = toMap(point);
+  const guidePathStr = guidePath.map((point) => {
+    const mapped = toMap({ x: point.x, z: point.z });
     return `${mapped.x.toFixed(1)},${mapped.y.toFixed(1)}`;
-  });
+  }).join(' ');
 
   const trailPath = trail.map((point) => {
     const mapped = toMap(point);
     return `${mapped.x.toFixed(1)},${mapped.y.toFixed(1)}`;
-  });
+  }).join(' ');
 
   const ship = toMap(position);
   const shipRotation = heading;
@@ -1906,27 +1793,17 @@ function MiniMap({
         <rect width={size} height={size} fill="#0b1324" fillOpacity="0.65" />
         {guidePath.length > 1 ? (
           <polyline
-            points={guidePath.join(' ')}
+            points={guidePathStr}
             fill="none"
             stroke="#ef4444"
             strokeWidth="2"
           />
         ) : null}
-        {trailPath.length > 1 ? (
+        {trail.length > 1 ? (
           <polyline
-            points={trailPath.join(' ')}
+            points={trailPath}
             fill="none"
             stroke="#22c55e"
-            strokeWidth="2"
-          />
-        ) : null}
-        {scenarioConfig.island ? (
-          <circle
-            cx={toMap({ x: scenarioConfig.island.x, z: scenarioConfig.island.z }).x}
-            cy={toMap({ x: scenarioConfig.island.x, z: scenarioConfig.island.z }).y}
-            r={(scenarioConfig.island.radius / scale) * size}
-            fill="#36543a"
-            stroke="#1f2f24"
             strokeWidth="2"
           />
         ) : null}
@@ -2007,16 +1884,13 @@ function CameraRig({
     let desiredPosition: THREE.Vector3;
     let lookTarget: THREE.Vector3;
 
-    // 计算 lookAt 目标点（船舶位置 + 平移偏移）
     const targetX = sim.position.x + cameraOffset.panX;
     const targetZ = sim.position.z + cameraOffset.panZ;
 
     if (cameraView === 'chase') {
-      // 主视角：始终在船舶正后方，跟随航向旋转
       const totalAzimuth = sim.headingRad + Math.PI + cameraOffset.azimuth;
       const elevationAngle = cameraOffset.elevation + 0.25;
 
-      // 固定距离的轨道相机
       const horizontalDist = config.distance * Math.cos(elevationAngle);
       const verticalDist = config.height + config.distance * Math.sin(elevationAngle);
 
@@ -2026,7 +1900,6 @@ function CameraRig({
         targetZ + horizontalDist * Math.sin(totalAzimuth),
       );
 
-      // 看向目标点前方（沿船舶航向）
       const forward = new THREE.Vector3(
         Math.cos(sim.headingRad),
         0,
@@ -2036,7 +1909,6 @@ function CameraRig({
 
       camera.position.lerp(desiredPosition, 0.12);
     } else if (cameraView === 'overhead') {
-      // 俯瞰视角：正上方
       desiredPosition = new THREE.Vector3(
         targetX,
         config.height,
@@ -2045,7 +1917,6 @@ function CameraRig({
       lookTarget = new THREE.Vector3(targetX, 0, targetZ);
       camera.position.lerp(desiredPosition, 0.1);
     } else {
-      // 战术斜角：固定角度偏移
       const tacticalAngle = sim.headingRad + Math.PI * 0.75 + cameraOffset.azimuth;
       const elevationAngle = cameraOffset.elevation + 0.4;
       const horizontalDist = config.distance * Math.cos(elevationAngle);
