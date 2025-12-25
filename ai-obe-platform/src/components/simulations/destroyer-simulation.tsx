@@ -270,6 +270,28 @@ const normalizeHeadingPoints = (points: HeadingPoint[]) => {
   return result;
 };
 
+const sanitizeHeadingPoints = (points: HeadingPoint[], duration: number) => {
+  const safeDuration = Number.isFinite(duration) ? Math.max(0, duration) : 0;
+  const sanitized = normalizeHeadingPoints(points)
+    .map((point) => {
+      const time = Number.isFinite(point.time) ? point.time : 0;
+      const heading = Number.isFinite(point.heading) ? point.heading : 0;
+      return {
+        time: clamp(time, 0, safeDuration),
+        heading: clampHeading(heading),
+      };
+    })
+    .filter((point) => Number.isFinite(point.time) && Number.isFinite(point.heading));
+
+  if (sanitized.length < 2 && safeDuration > 0) {
+    return [
+      { time: 0, heading: 0 },
+      { time: safeDuration, heading: 0 },
+    ];
+  }
+  return sanitized;
+};
+
 const interpolateHeading = (points: HeadingPoint[], t: number) => {
   if (points.length === 0) return 0;
   const sorted = normalizeHeadingPoints(points);
@@ -1191,15 +1213,19 @@ export function DestroyerSimulation() {
     () => createHeadingPointsFromLogic(baseScenario.logic, baseScenario.duration, 5),
     [baseScenario.duration, baseScenario.logic],
   );
+  const quickHeadingPointsSafe = useMemo(
+    () => sanitizeHeadingPoints(quickHeadingPoints, baseScenario.duration),
+    [baseScenario.duration, quickHeadingPoints],
+  );
   const quickScenario = useMemo(
     () =>
       buildScenarioFromHeadingPoints(
-        quickHeadingPoints,
+        quickHeadingPointsSafe,
         baseScenario.start,
         baseScenario.duration,
         baseScenario.guidePath,
       ),
-    [baseScenario.duration, baseScenario.guidePath, baseScenario.start, quickHeadingPoints],
+    [baseScenario.duration, baseScenario.guidePath, baseScenario.start, quickHeadingPointsSafe],
   );
 
   const adjustSpeed = useCallback((direction: number) => {
@@ -1266,7 +1292,7 @@ export function DestroyerSimulation() {
 
   const handleRunQuickSimulation = useCallback(() => {
     const result = runQuickSimulation(
-      quickHeadingPoints,
+      quickHeadingPointsSafe,
       pidGains,
       controlMode,
       baseScenario.start,
@@ -1276,7 +1302,7 @@ export function DestroyerSimulation() {
     if (result) {
       setQuickResult(result);
     }
-  }, [baseScenario.duration, baseScenario.guidePath, baseScenario.start, controlMode, pidGains, quickHeadingPoints]);
+  }, [baseScenario.duration, baseScenario.guidePath, baseScenario.start, controlMode, pidGains, quickHeadingPointsSafe]);
 
   const handleApplyQuickScenario = useCallback(() => {
     if (!quickScenario) return;
@@ -1421,7 +1447,7 @@ export function DestroyerSimulation() {
     if (quickMode && quickResult) return quickResult.actualPath;
     return miniTrail;
   }, [miniTrail, quickMode, quickResult]);
-  const canRunQuick = quickHeadingPoints.length >= 2;
+  const canRunQuick = quickHeadingPointsSafe.length >= 2;
   const canApplyQuick = !!quickScenario;
 
   return (
@@ -2138,7 +2164,18 @@ function SimulationLoop({
     // 1. 获取当前时刻的期望航向
     // 如果超过任务时间，保持最后一个时刻的航向
     const timeForHeading = Math.min(simTime, taskDuration);
-    const targetHeading = scenarioLogic.getDesiredHeading(timeForHeading);
+    const targetHeadingRaw = scenarioLogic.getDesiredHeading(timeForHeading);
+    const targetHeading = Number.isFinite(targetHeadingRaw) ? targetHeadingRaw : 0;
+
+    if (!Number.isFinite(sim.headingRad)) {
+      sim.headingRad = 0;
+      sim.yawRateRad = 0;
+      sim.rudderDeg = 0;
+      sim.manualRudderDeg = 0;
+      sim.integral = 0;
+      sim.prevErrorRad = 0;
+      sim.position.set(scenarioLogic.startPos.x, 0, scenarioLogic.startPos.z);
+    }
     
     // 更新 React State (用于 UI 显示，不频繁更新)
     // 限制更新频率
