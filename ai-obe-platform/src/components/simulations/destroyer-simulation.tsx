@@ -2,8 +2,8 @@
 
 import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Line, useGLTF } from '@react-three/drei';
+import { Canvas, useFrame, useThree, extend, ReactThreeFiber } from '@react-three/fiber';
+import { Line, useGLTF, shaderMaterial } from '@react-three/drei';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,21 +73,26 @@ const speedLimits = {
   accel: 3.2,
 };
 
-// 波浪参数（模块级常量，供多处复用）
+// 波浪参数：调整为更真实的海洋参数
+// 振幅(A), 频率(w = 2*PI/L), 速度(phi), 方向X, 方向Z
+// 优化方向：增加方向的随机性，避免平行波纹；略微降低主波高以减少淹没
 const waveParams = [
-  { amplitude: 2.8, frequency: 0.012, speed: 0.7, direction: { x: 1, y: 0 } },
-  { amplitude: 1.8, frequency: 0.019, speed: 0.5, direction: { x: 0.2, y: 0.9 } },
-  { amplitude: 1.4, frequency: 0.028, speed: 0.85, direction: { x: -0.6, y: 0.4 } },
-  { amplitude: 0.9, frequency: 0.045, speed: 1.2, direction: { x: 0.7, y: -0.3 } },
-  { amplitude: 0.6, frequency: 0.072, speed: 1.5, direction: { x: -0.4, y: 0.8 } },
+  { amplitude: 1.2, frequency: 0.018, speed: 0.9, direction: { x: 1.0, z: 0.1 } }, // 主涌浪
+  { amplitude: 0.9, frequency: 0.035, speed: 1.1, direction: { x: 0.4, z: 0.9 } }, // 交叉浪
+  { amplitude: 0.6, frequency: 0.06, speed: 1.3, direction: { x: -0.6, z: 0.5 } }, // 干扰浪
+  { amplitude: 0.35, frequency: 0.12, speed: 1.6, direction: { x: 0.3, z: -0.7 } }, // 细节浪
+  { amplitude: 0.15, frequency: 0.25, speed: 2.0, direction: { x: -0.5, z: -0.6 } }, // 微波
 ];
 
-// 计算指定位置的水面高度
+// 计算指定位置的水面高度 (CPU版，用于物理计算)
+// 保持与 Shader 逻辑一致
 function getWaveHeight(x: number, z: number, time: number): number {
   let y = 0;
   waveParams.forEach((wave) => {
-    const dot = x * wave.direction.x + z * wave.direction.y;
-    y += wave.amplitude * Math.sin(dot * wave.frequency + time * wave.speed);
+    // direction 已经在定义时归一化或近似归一化，这里直接点乘
+    // Shader: dot(position.xz, direction) * frequency + time * speed
+    const phase = (x * wave.direction.x + z * wave.direction.z) * wave.frequency + time * wave.speed;
+    y += wave.amplitude * Math.sin(phase);
   });
   return y;
 }
@@ -184,6 +189,154 @@ const angleDelta = (target: number, current: number) => {
   if (diff < -180) diff += 360;
   return diff;
 };
+
+// --- Custom Shader Material for Water ---
+
+const WaterShaderMaterial = shaderMaterial(
+  {
+    uTime: 0,
+    uColor: new THREE.Color('#124060'), // Darker, richer blue
+    uFoamColor: new THREE.Color('#ffffff'),
+    uSunPosition: new THREE.Vector3(200, 150, 200),
+  },
+  // Vertex Shader
+  `
+    uniform float uTime;
+    varying vec2 vUv;
+    varying float vElevation;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+
+    const int WAVE_COUNT = 5;
+    
+    // Arrays must be constant size
+    // A, Freq, Speed, DirX, DirZ
+    const float waves[25] = float[](
+      1.2, 0.018, 0.9, 1.0, 0.1,
+      0.9, 0.035, 1.1, 0.4, 0.9,
+      0.6, 0.06,  1.3, -0.6, 0.5,
+      0.35, 0.12, 1.6, 0.3, -0.7,
+      0.15, 0.25, 2.0, -0.5, -0.6
+    );
+
+    void main() {
+      vUv = uv;
+      vec3 pos = position;
+      
+      float elevation = 0.0;
+      
+      float dHdx = 0.0;
+      float dHdz = 0.0;
+      
+      for(int i = 0; i < WAVE_COUNT; i++) {
+        int idx = i * 5;
+        float amp = waves[idx];
+        float freq = waves[idx + 1];
+        float speed = waves[idx + 2];
+        float dx = waves[idx + 3];
+        float dz = waves[idx + 4];
+        
+        float phase = (pos.x * dx + pos.z * dz) * freq + uTime * speed;
+        
+        elevation += amp * sin(phase);
+        
+        float derivative = amp * cos(phase) * freq;
+        dHdx += derivative * dx;
+        dHdz += derivative * dz;
+      }
+      
+      pos.y += elevation;
+      vElevation = elevation;
+      
+      vec3 normal = normalize(vec3(-dHdx, 1.0, -dHdz));
+      vNormal = normalMatrix * normal;
+
+      vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+      vec4 viewPosition = viewMatrix * modelPosition;
+      vViewPosition = viewPosition.xyz;
+      
+      gl_Position = projectionMatrix * viewPosition;
+    }
+  `,
+  // Fragment Shader
+  `
+    uniform vec3 uColor;
+    uniform vec3 uFoamColor;
+    uniform vec3 uSunPosition;
+    
+    varying float vElevation;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+    varying vec2 vUv; // Recieve UVs
+
+    // Simple pseudo-random noise function
+    float random(vec2 st) {
+        return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+    }
+    
+    // Value noise
+    float noise(vec2 st) {
+        vec2 i = floor(st);
+        vec2 f = fract(st);
+        float a = random(i);
+        float b = random(i + vec2(1.0, 0.0));
+        float c = random(i + vec2(0.0, 1.0));
+        float d = random(i + vec2(1.0, 1.0));
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+    }
+
+    void main() {
+      vec3 viewDirection = normalize(-vViewPosition);
+      vec3 normal = normalize(vNormal);
+      vec3 sunDir = normalize(uSunPosition);
+
+      // Simple Lambert + Specular
+      float light = max(dot(normal, sunDir), 0.0);
+      float specular = pow(max(dot(reflect(-sunDir, normal), viewDirection), 0.0), 64.0); // Sharper specular
+      
+      // Fresnel Effect
+      float fresnel = pow(1.0 - max(dot(viewDirection, normal), 0.0), 3.0);
+      
+      // Foam Logic:
+      // 1. Base threshold on elevation
+      // 2. Add noise to break up lines
+      // 3. Sharp transition (step instead of smoothstep) for bubbly look
+      float noiseVal = noise(vUv * 300.0); // High frequency noise
+      float foamThreshold = 0.9; // Lower threshold to make foam appear earlier
+      
+      // Modulate elevation with noise to create "patchy" foam
+      // Peaks are high elevation. We want foam where Elevation + Noise > Threshold
+      float foamFactor = smoothstep(foamThreshold, foamThreshold + 0.3, vElevation + noiseVal * 0.4);
+      
+      // Mix colors
+      vec3 waterColor = mix(uColor * 0.5, uColor * 1.3, light * 0.7 + 0.3);
+      vec3 finalColor = mix(waterColor, vec3(0.7, 0.85, 0.95), fresnel * 0.4);
+      finalColor += vec3(specular * 0.4);
+      finalColor = mix(finalColor, uFoamColor, foamFactor * 0.85);
+
+      gl_FragColor = vec4(finalColor, 0.92);
+      
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+    }
+  `
+);
+
+extend({ WaterShaderMaterial });
+
+// Add type definition for the custom shader material
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      waterShaderMaterial: ReactThreeFiber.Object3DNode<THREE.ShaderMaterial, typeof THREE.ShaderMaterial> & {
+        uTime?: number;
+        uColor?: THREE.Color;
+        uFoamColor?: THREE.Color;
+      };
+    }
+  }
+}
 
 type ChartData = {
   time: number[];
@@ -1103,9 +1256,9 @@ function SimulationCanvas({
         camera={{ position: [0, 30, 140], fov: 50, near: 0.1, far: 15000 }}
       >
         <color attach="background" args={['#d4e8f7']} />
-        <ambientLight intensity={0.3} />
-        <hemisphereLight intensity={0.4} groundColor="#1a3a5a" color="#87ceeb" />
-        <directionalLight position={[200, 150, 200]} intensity={0.8} color="#fff8e7" />
+        <ambientLight intensity={0.6} />
+        <hemisphereLight intensity={0.6} groundColor="#1a3a5a" color="#87ceeb" />
+        <directionalLight position={[200, 150, 200]} intensity={1.2} color="#fff8e7" />
         <SkyDome />
         <ProceduralClouds />
         <WaveWater simRef={simRef} />
@@ -1261,27 +1414,41 @@ function SimulationLoop({
     const cosH = Math.cos(heading);
     const sinH = Math.sin(heading);
 
-    // 计算四个关键点的水面高度
+    // 计算四个关键点的水面高度 (使用真实时间 elapsedTime 以匹配 shader)
     const centerY = getWaveHeight(posX, posZ, elapsedTime);
     const bowY = getWaveHeight(posX + cosH * halfLength, posZ + sinH * halfLength, elapsedTime);
     const sternY = getWaveHeight(posX - cosH * halfLength, posZ - sinH * halfLength, elapsedTime);
     const portY = getWaveHeight(posX - sinH * halfWidth, posZ + cosH * halfWidth, elapsedTime); // 左舷
     const starboardY = getWaveHeight(posX + sinH * halfWidth, posZ - cosH * halfWidth, elapsedTime); // 右舷
 
-    // 计算目标俯仰角和横摇角（带衰减系数，防止晃动过大）
-    const dampingFactor = 0.35;
-    const targetPitch = Math.atan2(bowY - sternY, shipDimensions.length) * dampingFactor;
-    const targetRoll = Math.atan2(portY - starboardY, shipDimensions.width) * dampingFactor;
+    // 计算目标俯仰角和横摇角
+    const targetPitch = Math.atan2(bowY - sternY, shipDimensions.length);
+    const targetRoll = Math.atan2(portY - starboardY, shipDimensions.width);
 
     // 平滑过渡（模拟大船惯性）
-    const lerpFactor = 0.05;
-    sim.waveY = THREE.MathUtils.lerp(sim.waveY, centerY, lerpFactor);
-    sim.wavePitch = THREE.MathUtils.lerp(sim.wavePitch, targetPitch, lerpFactor);
-    sim.waveRoll = THREE.MathUtils.lerp(sim.waveRoll, targetRoll, lerpFactor);
+    // 大幅降低 lerpFactor 以增加"重感"，减少对高频波浪的响应
+    const heaveLerp = 0.02; // 垂荡阻尼
+    const rotLerp = 0.02;   // 摇摆阻尼
+    
+    // 吃水深度调整：确保船体大部分时间在水面以上，但又不会浮空
+    // 船底位置 = 波浪高度 - 吃水 + 浮力修正
+    
+    sim.waveY = THREE.MathUtils.lerp(sim.waveY, centerY, heaveLerp);
+
+    // 限制俯仰角和横摇角
+    sim.wavePitch = THREE.MathUtils.lerp(sim.wavePitch, targetPitch, rotLerp);
+    sim.waveRoll = THREE.MathUtils.lerp(sim.waveRoll, targetRoll, rotLerp);
 
     // 应用到船舶模型
     if (shipRef.current) {
-      shipRef.current.position.set(sim.position.x, sim.waveY + 2, sim.position.z); // +2 为基础高度偏移
+      // 动态调整基准高度：
+      // 之前是 smoothY - 1.5，导致船太低。
+      // 现在改为 smoothY + 0.5，提升船体约 2 米，减少甲板上浪。
+      
+      const avgY = (bowY + sternY + portY + starboardY) / 4;
+      // 使用更平滑的 waveY (sim.waveY) 作为基础，而不是瞬时的 avgY，以过滤高频噪声
+      
+      shipRef.current.position.set(sim.position.x, sim.waveY + 0.5, sim.position.z); 
       shipRef.current.rotation.set(
         sim.wavePitch,                          // X轴：俯仰
         -sim.headingRad + Math.PI / 2,          // Y轴：航向
@@ -1404,63 +1571,31 @@ function SkyDome() {
 
 function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-  // 直接创建XZ平面（而非XY平面再旋转），这样修改Y坐标就是修改高度
+  // High resolution plane for waves
   const geometry = useMemo(() => {
-    const geo = new THREE.PlaneGeometry(60000, 60000, 220, 220);
-    const positions = geo.attributes.position.array as Float32Array;
-
-    // 将XY平面转换为XZ平面：原Y变Z，新Y=0
-    for (let i = 0; i < positions.length; i += 3) {
-      const originalY = positions[i + 1];
-      positions[i + 1] = 0;           // Y坐标设为0（海面基础高度）
-      positions[i + 2] = originalY;   // 原Y值移到Z坐标
-    }
-
-    geo.computeVertexNormals();
-    return geo;
+    return new THREE.PlaneGeometry(60000, 60000, 512, 512);
   }, []);
-
-  const basePositions = useMemo(
-    () => Float32Array.from(geometry.attributes.position.array),
-    [geometry],
-  );
-
-  const normalUpdateRef = useRef(0);
 
   useFrame((state) => {
     const time = state.clock.getElapsedTime();
-    const positionAttr = geometry.attributes.position as THREE.BufferAttribute;
-    const positions = positionAttr.array as Float32Array;
-
-    // 使用模块级 waveParams 计算波浪高度
-    for (let i = 0; i < positions.length; i += 3) {
-      const baseX = basePositions[i];
-      const baseZ = basePositions[i + 2];
-      positions[i + 1] = getWaveHeight(baseX, baseZ, time);
-    }
-
-    positionAttr.needsUpdate = true;
-
-    if (time - normalUpdateRef.current > 0.5) {
-      geometry.computeVertexNormals();
-      normalUpdateRef.current = time;
-    }
 
     if (meshRef.current) {
+      // Follow the ship (infinite ocean illusion)
       meshRef.current.position.x = simRef.current.position.x;
       meshRef.current.position.z = simRef.current.position.z;
+    }
+    
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value = time;
     }
   });
 
   return (
-    <mesh ref={meshRef} geometry={geometry} position={[0, -1, 0]}>
-      <meshBasicMaterial
-        color="#1a5a8a"
-        side={THREE.DoubleSide}
-        transparent
-        opacity={0.95}
-      />
+    <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]}>
+      {/* @ts-ignore */}
+      <waterShaderMaterial ref={materialRef} side={THREE.DoubleSide} transparent />
     </mesh>
   );
 }
