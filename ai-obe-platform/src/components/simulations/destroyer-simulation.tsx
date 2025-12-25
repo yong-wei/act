@@ -1059,9 +1059,9 @@ function SimulationCanvas({
         camera={{ position: [0, 30, 140], fov: 50, near: 0.1, far: 15000 }}
       >
         <color attach="background" args={['#d4e8f7']} />
-        <ambientLight intensity={0.5} />
-        <hemisphereLight intensity={0.6} groundColor="#2a5a7a" color="#ffffff" />
-        <directionalLight position={[200, 150, 200]} intensity={1.0} color="#fff8e7" />
+        <ambientLight intensity={0.3} />
+        <hemisphereLight intensity={0.4} groundColor="#1a3a5a" color="#87ceeb" />
+        <directionalLight position={[200, 150, 200]} intensity={0.8} color="#fff8e7" />
         <SkyDome />
         <ProceduralClouds />
         <WaveWater simRef={simRef} />
@@ -1069,6 +1069,7 @@ function SimulationCanvas({
         <GuideRoute scenarioConfig={scenarioConfig} />
         {scenarioConfig.island ? <Island {...scenarioConfig.island} /> : null}
         <ShipTrail simRef={simRef} resetToken={resetToken} />
+        <ShipWake simRef={simRef} />
         <ShipModel shipRef={shipRef} />
         <SimulationLoop
           shipRef={shipRef}
@@ -1376,10 +1377,10 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
   return (
     <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
       <meshPhongMaterial
-        color="#0066aa"
-        emissive="#003366"
-        specular="#4da6cc"
-        shininess={50}
+        color="#004488"
+        emissive="#001133"
+        specular="#66aacc"
+        shininess={80}
         side={THREE.DoubleSide}
       />
     </mesh>
@@ -1516,6 +1517,75 @@ function ShipTrail({
   }
 
   return <Line points={points} color="#22c55e" lineWidth={2} />;
+}
+
+function ShipWake({
+  simRef,
+}: {
+  simRef: React.MutableRefObject<SimulationState>;
+}) {
+  const wakeRef = useRef<THREE.Group>(null);
+  const wakeLength = 120; // 尾迹基础长度
+  const wakeWidth = 25; // 尾迹最大宽度
+
+  useFrame(() => {
+    if (!wakeRef.current) return;
+    const sim = simRef.current;
+
+    // 尾迹跟随船舶位置
+    wakeRef.current.position.set(sim.position.x, 0.3, sim.position.z);
+    // 尾迹朝向与船舶相反（指向船尾）
+    wakeRef.current.rotation.y = -sim.headingRad + Math.PI / 2;
+
+    // 根据速度调整尾迹长度（速度越快尾迹越长）
+    const speedFactor = Math.max(0.3, sim.speedMps / 15);
+    wakeRef.current.scale.set(speedFactor, 1, speedFactor);
+  });
+
+  // V形尾迹的点（从船尾向后扩散）
+  const leftWake = useMemo(() => {
+    const points: THREE.Vector3[] = [];
+    for (let i = 0; i <= 20; i++) {
+      const t = i / 20;
+      const x = -t * wakeLength;
+      const z = t * wakeWidth * 0.5;
+      points.push(new THREE.Vector3(x, 0, z));
+    }
+    return points;
+  }, []);
+
+  const rightWake = useMemo(() => {
+    const points: THREE.Vector3[] = [];
+    for (let i = 0; i <= 20; i++) {
+      const t = i / 20;
+      const x = -t * wakeLength;
+      const z = -t * wakeWidth * 0.5;
+      points.push(new THREE.Vector3(x, 0, z));
+    }
+    return points;
+  }, []);
+
+  // 中心尾迹（泡沫带）
+  const centerWake = useMemo(() => {
+    const points: THREE.Vector3[] = [];
+    for (let i = 0; i <= 15; i++) {
+      const t = i / 15;
+      const x = -t * wakeLength * 0.7;
+      points.push(new THREE.Vector3(x, 0.1, 0));
+    }
+    return points;
+  }, []);
+
+  return (
+    <group ref={wakeRef}>
+      {/* 左侧V形尾迹 */}
+      <Line points={leftWake} color="#ffffff" lineWidth={3} transparent opacity={0.6} />
+      {/* 右侧V形尾迹 */}
+      <Line points={rightWake} color="#ffffff" lineWidth={3} transparent opacity={0.6} />
+      {/* 中心泡沫带 */}
+      <Line points={centerWake} color="#e0f0ff" lineWidth={5} transparent opacity={0.5} />
+    </group>
+  );
 }
 
 function MiniMap({
