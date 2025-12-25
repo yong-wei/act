@@ -44,6 +44,10 @@ type SimulationState = {
   speedMps: number;
   integral: number;
   prevErrorRad: number;
+  // 波浪相关（平滑后的值）
+  waveY: number;
+  wavePitch: number;
+  waveRoll: number;
 };
 
 const destroyerSpecs = {
@@ -67,6 +71,31 @@ const speedLimits = {
   min: 4,
   max: 22,
   accel: 3.2,
+};
+
+// 波浪参数（模块级常量，供多处复用）
+const waveParams = [
+  { amplitude: 2.8, frequency: 0.012, speed: 0.7, direction: { x: 1, y: 0 } },
+  { amplitude: 1.8, frequency: 0.019, speed: 0.5, direction: { x: 0.2, y: 0.9 } },
+  { amplitude: 1.4, frequency: 0.028, speed: 0.85, direction: { x: -0.6, y: 0.4 } },
+  { amplitude: 0.9, frequency: 0.045, speed: 1.2, direction: { x: 0.7, y: -0.3 } },
+  { amplitude: 0.6, frequency: 0.072, speed: 1.5, direction: { x: -0.4, y: 0.8 } },
+];
+
+// 计算指定位置的水面高度
+function getWaveHeight(x: number, z: number, time: number): number {
+  let y = 0;
+  waveParams.forEach((wave) => {
+    const dot = x * wave.direction.x + z * wave.direction.y;
+    y += wave.amplitude * Math.sin(dot * wave.frequency + time * wave.speed);
+  });
+  return y;
+}
+
+// 船舶尺寸（用于计算俯仰和横摇）
+const shipDimensions = {
+  length: 80, // 米
+  width: 20,  // 米
 };
 
 const tasks: Task[] = [
@@ -1045,6 +1074,9 @@ function SimulationCanvas({
     speedMps: nomotoModel.speedMps,
     integral: 0,
     prevErrorRad: 0,
+    waveY: 0,
+    wavePitch: 0,
+    waveRoll: 0,
   });
   const lastHudUpdateRef = useRef(0);
 
@@ -1056,6 +1088,9 @@ function SimulationCanvas({
     simRef.current.manualRudderDeg = 0;
     simRef.current.integral = 0;
     simRef.current.prevErrorRad = 0;
+    simRef.current.waveY = 0;
+    simRef.current.wavePitch = 0;
+    simRef.current.waveRoll = 0;
     if (controlMode !== 'manual') {
       simRef.current.manualRudderDeg = 0;
     }
@@ -1215,9 +1250,43 @@ function SimulationLoop({
     sim.position.x += sim.speedMps * Math.cos(sim.headingRad) * dt;
     sim.position.z += sim.speedMps * Math.sin(sim.headingRad) * dt;
 
+    // 计算船舶波浪起伏（高度、俯仰、横摇）
+    const posX = sim.position.x;
+    const posZ = sim.position.z;
+    const heading = sim.headingRad;
+
+    // 船首、船尾、左舷、右舷的位置偏移
+    const halfLength = shipDimensions.length / 2;
+    const halfWidth = shipDimensions.width / 2;
+    const cosH = Math.cos(heading);
+    const sinH = Math.sin(heading);
+
+    // 计算四个关键点的水面高度
+    const centerY = getWaveHeight(posX, posZ, elapsedTime);
+    const bowY = getWaveHeight(posX + cosH * halfLength, posZ + sinH * halfLength, elapsedTime);
+    const sternY = getWaveHeight(posX - cosH * halfLength, posZ - sinH * halfLength, elapsedTime);
+    const portY = getWaveHeight(posX - sinH * halfWidth, posZ + cosH * halfWidth, elapsedTime); // 左舷
+    const starboardY = getWaveHeight(posX + sinH * halfWidth, posZ - cosH * halfWidth, elapsedTime); // 右舷
+
+    // 计算目标俯仰角和横摇角（带衰减系数，防止晃动过大）
+    const dampingFactor = 0.35;
+    const targetPitch = Math.atan2(bowY - sternY, shipDimensions.length) * dampingFactor;
+    const targetRoll = Math.atan2(portY - starboardY, shipDimensions.width) * dampingFactor;
+
+    // 平滑过渡（模拟大船惯性）
+    const lerpFactor = 0.05;
+    sim.waveY = THREE.MathUtils.lerp(sim.waveY, centerY, lerpFactor);
+    sim.wavePitch = THREE.MathUtils.lerp(sim.wavePitch, targetPitch, lerpFactor);
+    sim.waveRoll = THREE.MathUtils.lerp(sim.waveRoll, targetRoll, lerpFactor);
+
+    // 应用到船舶模型
     if (shipRef.current) {
-      shipRef.current.position.copy(sim.position);
-      shipRef.current.rotation.y = -sim.headingRad + Math.PI / 2;
+      shipRef.current.position.set(sim.position.x, sim.waveY + 2, sim.position.z); // +2 为基础高度偏移
+      shipRef.current.rotation.set(
+        sim.wavePitch,                          // X轴：俯仰
+        -sim.headingRad + Math.PI / 2,          // Y轴：航向
+        sim.waveRoll                            // Z轴：横摇
+      );
     }
 
     if (elapsedTime - lastHudUpdateRef.current > 0.1) {
@@ -1357,16 +1426,6 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
     [geometry],
   );
 
-  const waves = useMemo(
-    () => [
-      { amplitude: 2.8, frequency: 0.012, speed: 0.7, direction: new THREE.Vector2(1, 0) },
-      { amplitude: 1.8, frequency: 0.019, speed: 0.5, direction: new THREE.Vector2(0.2, 0.9) },
-      { amplitude: 1.4, frequency: 0.028, speed: 0.85, direction: new THREE.Vector2(-0.6, 0.4) },
-      { amplitude: 0.9, frequency: 0.045, speed: 1.2, direction: new THREE.Vector2(0.7, -0.3) },
-      { amplitude: 0.6, frequency: 0.072, speed: 1.5, direction: new THREE.Vector2(-0.4, 0.8) },
-    ],
-    [],
-  );
   const normalUpdateRef = useRef(0);
 
   useFrame((state) => {
@@ -1374,18 +1433,11 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
     const positionAttr = geometry.attributes.position as THREE.BufferAttribute;
     const positions = positionAttr.array as Float32Array;
 
-    // 现在positions[i+1]就是Y坐标（高度），直接修改即可
+    // 使用模块级 waveParams 计算波浪高度
     for (let i = 0; i < positions.length; i += 3) {
       const baseX = basePositions[i];
       const baseZ = basePositions[i + 2];
-      let y = 0;
-
-      waves.forEach((wave) => {
-        const dot = baseX * wave.direction.x + baseZ * wave.direction.y;
-        y += wave.amplitude * Math.sin(dot * wave.frequency + time * wave.speed);
-      });
-
-      positions[i + 1] = y;
+      positions[i + 1] = getWaveHeight(baseX, baseZ, time);
     }
 
     positionAttr.needsUpdate = true;
@@ -1421,20 +1473,21 @@ function GridHelper({ simRef }: { simRef: React.MutableRefObject<SimulationState
   const lines = useMemo(() => {
     const linePoints: THREE.Vector3[][] = [];
     const halfExtent = gridExtent / 2;
+    const gridHeight = 4; // 固定在水面上方（高于最大波浪振幅2.8）
 
     // 横向线（Z方向）
     for (let x = -halfExtent; x <= halfExtent; x++) {
       linePoints.push([
-        new THREE.Vector3(x * gridSize, 0.2, -halfExtent * gridSize),
-        new THREE.Vector3(x * gridSize, 0.2, halfExtent * gridSize),
+        new THREE.Vector3(x * gridSize, gridHeight, -halfExtent * gridSize),
+        new THREE.Vector3(x * gridSize, gridHeight, halfExtent * gridSize),
       ]);
     }
 
     // 纵向线（X方向）
     for (let z = -halfExtent; z <= halfExtent; z++) {
       linePoints.push([
-        new THREE.Vector3(-halfExtent * gridSize, 0.2, z * gridSize),
-        new THREE.Vector3(halfExtent * gridSize, 0.2, z * gridSize),
+        new THREE.Vector3(-halfExtent * gridSize, gridHeight, z * gridSize),
+        new THREE.Vector3(halfExtent * gridSize, gridHeight, z * gridSize),
       ]);
     }
 
@@ -1550,67 +1603,104 @@ function ShipWake({
 }: {
   simRef: React.MutableRefObject<SimulationState>;
 }) {
-  const wakeRef = useRef<THREE.Group>(null);
-  const wakeLength = 120; // 尾迹基础长度
-  const wakeWidth = 25; // 尾迹最大宽度
+  const meshRef = useRef<THREE.Mesh>(null);
+  const wakeLength = 150; // 尾迹基础长度
+  const wakeWidth = 35; // 尾迹最大宽度
+  const segments = 12; // 尾迹分段数
 
-  useFrame(() => {
-    if (!wakeRef.current) return;
+  // 创建V形扇面几何体，带顶点颜色渐变
+  const { geometry, colorAttr } = useMemo(() => {
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const indices: number[] = [];
+
+    // 顶点0：船尾中心点（起点）
+    positions.push(0, 0.5, 0);
+    colors.push(1, 1, 1, 0.85); // 白色，较高透明度
+
+    // 生成V形扇面顶点（左右两侧交替）
+    for (let i = 1; i <= segments; i++) {
+      const t = i / segments;
+      const x = -t * wakeLength;
+      const spreadHalf = t * wakeWidth * 0.5;
+      const alpha = (1 - t) * 0.7; // 渐变到透明
+
+      // 左侧点
+      positions.push(x, 0.3, spreadHalf);
+      colors.push(1, 1, 1, alpha);
+
+      // 右侧点
+      positions.push(x, 0.3, -spreadHalf);
+      colors.push(1, 1, 1, alpha);
+    }
+
+    // 创建三角形索引
+    // 第一层：中心点连接到第一对左右点
+    indices.push(0, 1, 2);
+
+    // 后续层：每层连接到下一层
+    for (let i = 1; i < segments; i++) {
+      const leftCurr = i * 2 - 1;
+      const rightCurr = i * 2;
+      const leftNext = (i + 1) * 2 - 1;
+      const rightNext = (i + 1) * 2;
+
+      // 左侧三角形
+      indices.push(leftCurr, leftNext, rightNext);
+      // 右侧三角形
+      indices.push(leftCurr, rightNext, rightCurr);
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 4));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+
+    return { geometry: geo, colorAttr: geo.attributes.color as THREE.BufferAttribute };
+  }, []);
+
+  useFrame((state) => {
+    if (!meshRef.current) return;
     const sim = simRef.current;
+    const time = state.clock.getElapsedTime();
 
-    // 尾迹跟随船舶位置
-    wakeRef.current.position.set(sim.position.x, 0.3, sim.position.z);
-    // 尾迹朝向船尾：尾迹原始方向是-X，旋转-headingRad后指向船尾后方
-    wakeRef.current.rotation.y = -sim.headingRad;
+    // 尾迹跟随船舶位置（使用波浪高度）
+    meshRef.current.position.set(sim.position.x, sim.waveY + 1.5, sim.position.z);
+    meshRef.current.rotation.y = -sim.headingRad;
 
-    // 根据速度调整尾迹长度（速度越快尾迹越长）
-    const speedFactor = Math.max(0.3, sim.speedMps / 15);
-    wakeRef.current.scale.set(speedFactor, 1, speedFactor);
+    // 根据速度调整尾迹长度
+    const speedFactor = Math.max(0.4, sim.speedMps / 15);
+    meshRef.current.scale.set(speedFactor, 1, speedFactor);
+
+    // 轻微的顶点动画（波动效果）
+    const positions = geometry.attributes.position.array as Float32Array;
+    for (let i = 1; i <= segments; i++) {
+      const t = i / segments;
+      const baseY = 0.3;
+      const waveOffset = Math.sin(time * 2 + t * 5) * 0.15 * t;
+
+      // 左侧点
+      const leftIdx = (i * 2 - 1) * 3 + 1;
+      positions[leftIdx] = baseY + waveOffset;
+
+      // 右侧点
+      const rightIdx = (i * 2) * 3 + 1;
+      positions[rightIdx] = baseY + waveOffset;
+    }
+    geometry.attributes.position.needsUpdate = true;
   });
 
-  // V形尾迹的点（从船尾向后扩散）
-  const leftWake = useMemo(() => {
-    const points: THREE.Vector3[] = [];
-    for (let i = 0; i <= 20; i++) {
-      const t = i / 20;
-      const x = -t * wakeLength;
-      const z = t * wakeWidth * 0.5;
-      points.push(new THREE.Vector3(x, 0, z));
-    }
-    return points;
-  }, []);
-
-  const rightWake = useMemo(() => {
-    const points: THREE.Vector3[] = [];
-    for (let i = 0; i <= 20; i++) {
-      const t = i / 20;
-      const x = -t * wakeLength;
-      const z = -t * wakeWidth * 0.5;
-      points.push(new THREE.Vector3(x, 0, z));
-    }
-    return points;
-  }, []);
-
-  // 中心尾迹（泡沫带）
-  const centerWake = useMemo(() => {
-    const points: THREE.Vector3[] = [];
-    for (let i = 0; i <= 15; i++) {
-      const t = i / 15;
-      const x = -t * wakeLength * 0.7;
-      points.push(new THREE.Vector3(x, 0.1, 0));
-    }
-    return points;
-  }, []);
-
   return (
-    <group ref={wakeRef}>
-      {/* 左侧V形尾迹 */}
-      <Line points={leftWake} color="#ffffff" lineWidth={3} transparent opacity={0.6} />
-      {/* 右侧V形尾迹 */}
-      <Line points={rightWake} color="#ffffff" lineWidth={3} transparent opacity={0.6} />
-      {/* 中心泡沫带 */}
-      <Line points={centerWake} color="#e0f0ff" lineWidth={5} transparent opacity={0.5} />
-    </group>
+    <mesh ref={meshRef} geometry={geometry}>
+      <meshBasicMaterial
+        vertexColors
+        transparent
+        side={THREE.DoubleSide}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </mesh>
   );
 }
 

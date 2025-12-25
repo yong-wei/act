@@ -2,6 +2,115 @@
 
 ---
 
+## 第七轮改进 (2025年12月25日)
+
+### 1. 改进概述
+
+本轮实现了以下三项改进：
+1. **船舶跟随水面起伏**：高度 + 俯仰(pitch) + 横摇(roll)
+2. **网格线固定在水面上方**：避免被海浪遮挡
+3. **尾迹效果改进**：动态Mesh + 渐变透明度 + 波动动画
+
+---
+
+### 2. 实现细节
+
+#### 2.1 船舶跟随水面起伏
+
+**问题**：船舶固定在Y=0高度，海浪起伏时船舶被部分淹没。
+
+**解决方案**：
+1. 提取波浪参数为模块级常量 `waveParams`
+2. 创建 `getWaveHeight(x, z, time)` 函数计算任意位置的水面高度
+3. 在 `SimulationLoop` 中计算：
+   - 船舶中心的水面高度 → 船舶Y坐标
+   - 船首-船尾高度差 → 俯仰角(pitch)
+   - 左舷-右舷高度差 → 横摇角(roll)
+4. 使用 `lerp` 平滑过渡（惯性系数0.05），添加角度衰减系数（0.35）防止晃动过大
+
+**代码关键点**：
+```typescript
+const shipDimensions = { length: 80, width: 20 };
+
+// 计算四个关键点的水面高度
+const centerY = getWaveHeight(posX, posZ, time);
+const bowY = getWaveHeight(船首位置);
+const sternY = getWaveHeight(船尾位置);
+const portY = getWaveHeight(左舷位置);
+const starboardY = getWaveHeight(右舷位置);
+
+// 计算角度（带衰减）
+const targetPitch = Math.atan2(bowY - sternY, length) * 0.35;
+const targetRoll = Math.atan2(portY - starboardY, width) * 0.35;
+
+// 平滑过渡
+sim.waveY = lerp(sim.waveY, centerY, 0.05);
+sim.wavePitch = lerp(sim.wavePitch, targetPitch, 0.05);
+sim.waveRoll = lerp(sim.waveRoll, targetRoll, 0.05);
+```
+
+---
+
+#### 2.2 网格线固定在水面上方
+
+**问题**：网格线在Y=0.2位置，被海浪（最大振幅2.8）遮挡。
+
+**解决方案**：将网格线高度从 `0.2` 提高到 `4`（高于最大波浪振幅）。
+
+---
+
+#### 2.3 尾迹效果改进
+
+**问题**：原尾迹使用3条简单Line，视觉效果不自然。
+
+**新实现**：V形扇面Mesh + 顶点颜色渐变 + 波动动画
+
+**特点**：
+- 使用 `BufferGeometry` 创建V形扇面
+- 顶点颜色从白色(alpha=0.85)渐变到透明(alpha=0)
+- 使用 `AdditiveBlending` 混合模式增强亮度
+- 添加轻微的顶点Y坐标波动动画
+- 尾迹跟随船舶波浪高度
+
+**代码结构**：
+```typescript
+// 几何体：中心点 + 12层左右顶点对
+positions: [中心(0,0.5,0), 左1,右1, 左2,右2, ...]
+colors: [白色高透明, 渐变到透明...]
+indices: 三角形扇面
+
+// 材质
+<meshBasicMaterial
+  vertexColors
+  transparent
+  blending={AdditiveBlending}
+  depthWrite={false}
+/>
+```
+
+---
+
+### 3. 修改文件
+
+- `ai-obe-platform/src/components/simulations/destroyer-simulation.tsx`
+  - 添加 `waveParams` 模块级常量
+  - 添加 `getWaveHeight()` 函数
+  - 添加 `shipDimensions` 常量
+  - 扩展 `SimulationState` 类型（waveY, wavePitch, waveRoll）
+  - 修改 `SimulationLoop` 计算波浪起伏
+  - 修改 `GridHelper` 网格高度
+  - 重写 `ShipWake` 组件
+
+---
+
+### 4. 验证情况
+
+- ✅ `npm run lint` 通过
+- ✅ `npm run test` 通过
+- ✅ `npm run build` 成功
+
+---
+
 ## 第六轮修复 (2025年12月25日)
 
 ### 1. 修复问题概述
