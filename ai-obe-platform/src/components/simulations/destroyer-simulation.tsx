@@ -1313,11 +1313,10 @@ export function DestroyerSimulation() {
     setQuickMode(false);
   }, [quickScenario, resetScenarioState]);
 
-  const handleReturnToSimulation = useCallback(() => {
-    resetScenarioState();
+  const exitChartView = useCallback(() => {
     setViewMode('simulation');
     setQuickMode(false);
-  }, [resetScenarioState]);
+  }, []);
 
   const handleAddHeadingPoint = useCallback(() => {
     setQuickHeadingPoints((prev) => {
@@ -1451,16 +1450,17 @@ export function DestroyerSimulation() {
   const canApplyQuick = !!quickScenario;
 
   return (
-    <div className="w-full px-6 py-10">
+    <div className="relative w-full px-6 py-10">
       {viewMode === 'chart' ? (
-        <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <div className="absolute inset-0 z-20 overflow-y-auto bg-slate-950 px-6 py-10">
+          <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
           <div className="space-y-6 min-w-0">
             <div className="h-[520px] w-full">
               {quickMode ? (
                 <div className="flex h-full w-full flex-col bg-slate-950 p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-2xl font-semibold text-slate-100">仿真曲线</h2>
-                    <Button onClick={handleReturnToSimulation} variant="default" size="lg">
+                    <Button onClick={exitChartView} variant="default" size="lg">
                       返回场景
                     </Button>
                   </div>
@@ -1474,7 +1474,7 @@ export function DestroyerSimulation() {
                   </div>
                 </div>
               ) : (
-                <SimulationChart data={chartDisplayData} onBack={handleReturnToSimulation} />
+                <SimulationChart data={chartDisplayData} onBack={exitChartView} />
               )}
             </div>
           </div>
@@ -1695,7 +1695,9 @@ export function DestroyerSimulation() {
             </Card>
           </div>
         </div>
-      ) : (
+        </div>
+      ) : null}
+      <div className="block">
         <div className="space-y-6 min-w-0">
           <div className="relative h-[600px] w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
             <div className="absolute left-4 top-4 z-10 flex gap-2">
@@ -1871,7 +1873,7 @@ export function DestroyerSimulation() {
             </CardContent>
           </Card>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -2760,6 +2762,8 @@ function CameraRig({
   cameraOffset: CameraOffset;
 }) {
   const { camera } = useThree();
+  const fallbackPosition = useMemo(() => new THREE.Vector3(0, 200, 400), []);
+  const fallbackTarget = useMemo(() => new THREE.Vector3(0, 0, 0), []);
 
   const baseDistances = useMemo(
     () => ({
@@ -2821,6 +2825,25 @@ function CameraRig({
       );
       lookTarget = new THREE.Vector3(targetX, 6, targetZ);
       camera.position.lerp(desiredPosition, 0.1);
+    }
+
+    if (
+      !Number.isFinite(desiredPosition.x) ||
+      !Number.isFinite(desiredPosition.y) ||
+      !Number.isFinite(desiredPosition.z)
+    ) {
+      camera.position.copy(fallbackPosition);
+      camera.lookAt(fallbackTarget);
+      return;
+    }
+    if (
+      !Number.isFinite(lookTarget.x) ||
+      !Number.isFinite(lookTarget.y) ||
+      !Number.isFinite(lookTarget.z)
+    ) {
+      camera.position.copy(desiredPosition);
+      camera.lookAt(fallbackTarget);
+      return;
     }
 
     camera.lookAt(lookTarget);
