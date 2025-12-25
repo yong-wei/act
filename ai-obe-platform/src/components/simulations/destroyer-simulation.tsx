@@ -99,8 +99,8 @@ function getWaveHeight(x: number, z: number, time: number): number {
 
 // 船舶尺寸（用于计算俯仰和横摇）
 const shipDimensions = {
-  length: 80, // 米
-  width: 20,  // 米
+  length: 180, // 米 (增加至实际尺寸)
+  width: 20,   // 米
 };
 
 const tasks: Task[] = [
@@ -1965,7 +1965,7 @@ function ShipModel({ shipRef }: { shipRef: React.RefObject<THREE.Group> }) {
     });
 
     const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    const targetLength = 80;
+    const targetLength = 180;
     const scale = targetLength / maxDim;
 
     return { model: cloned, scale, size };
