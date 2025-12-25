@@ -11,9 +11,21 @@ type ShipModelPreviewProps = {
   onInteractionEnd?: () => void
 }
 
+const TARGET_DIRECTION = new THREE.Vector3(-0.85, -0.4, 0.35).normalize()
+const DEFAULT_FORWARD = new THREE.Vector3(0, 0, -1)
+const MODEL_FORWARD: Record<string, THREE.Vector3> = {
+  '/assets/destroyer.glb': new THREE.Vector3(0, 0, -1),
+  '/assets/icebreaker.glb': new THREE.Vector3(0, 0, -1),
+  '/assets/Lng-carrier.glb': new THREE.Vector3(0, 0, -1),
+  '/assets/container.glb': new THREE.Vector3(1, 0, 0),
+  '/assets/dredger.glb': new THREE.Vector3(1, 0, 0),
+  '/assets/luxury-liner.glb': new THREE.Vector3(-0.85, -0.4, 0.35),
+  '/assets/drilling-rig.glb': new THREE.Vector3(-0.85, -0.4, 0.35),
+}
+
 function CenteredModel({ modelPath }: { modelPath: string }) {
   const { scene } = useGLTF(modelPath)
-  const { model, scale } = useMemo(() => {
+  const { model, scale, rotation } = useMemo(() => {
     const cloned = scene.clone(true)
     const box = new THREE.Box3().setFromObject(cloned)
     const size = new THREE.Vector3()
@@ -33,12 +45,14 @@ function CenteredModel({ modelPath }: { modelPath: string }) {
     const maxDim = Math.max(size.x, size.y, size.z) || 1
     const targetSize = 1.6
     const scale = targetSize / maxDim
+    const forward = (MODEL_FORWARD[modelPath] ?? DEFAULT_FORWARD).clone().normalize()
+    const rotation = new THREE.Quaternion().setFromUnitVectors(forward, TARGET_DIRECTION)
 
-    return { model: cloned, scale }
-  }, [scene])
+    return { model: cloned, scale, rotation }
+  }, [modelPath, scene])
 
   return (
-    <group scale={scale}>
+    <group scale={scale} quaternion={rotation}>
       <primitive object={model} />
     </group>
   )
@@ -86,7 +100,9 @@ const PRELOAD_MODELS = [
   '/assets/destroyer.glb',
   '/assets/dredger.glb',
   '/assets/icebreaker.glb',
-  '/assets/lng-carrier.glb',
+  '/assets/Lng-carrier.glb',
+  '/assets/luxury-liner.glb',
+  '/assets/drilling-rig.glb',
 ]
 
 PRELOAD_MODELS.forEach((modelPath) => useGLTF.preload(modelPath))

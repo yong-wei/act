@@ -21,9 +21,10 @@ import {
 const shipScenarios = [
   {
     id: 1,
-    title: "动力定位船抗风浪控制",
-    description: "体验先进的船舶动力定位系统，学习多推进器协调控制策略，在复杂海况下保持船舶稳定。",
+    title: "海上半潜平台动力定位",
+    description: "模拟半潜式钻井平台在复杂海况下的动力定位，学习多推进器协同与定点保持策略。",
     image: "/api/placeholder/600/400",
+    modelPath: "/assets/drilling-rig.glb",
     difficulty: "高级",
     participants: "2,847",
     bgGradient: "from-blue-900 to-blue-700"
@@ -53,7 +54,7 @@ const shipScenarios = [
     title: "LNG船舶低温货物控制",
     description: "体验液化天然气船舶的货物控制系统，学习低温环境下的精密控制技术。",
     image: "/api/placeholder/600/400",
-    modelPath: "/assets/lng-carrier.glb",
+    modelPath: "/assets/Lng-carrier.glb",
     difficulty: "高级",
     participants: "1,876",
     bgGradient: "from-purple-900 to-indigo-700"
@@ -70,9 +71,10 @@ const shipScenarios = [
   },
   {
     id: 6,
-    title: "海洋科考船设备控制",
-    description: "学习科考船特种设备的控制技术，掌握深海作业中的精密仪器操控。",
+    title: "豪华游轮平稳行驶控制",
+    description: "体验豪华游轮在客运航线中的平稳航行控制，学习舒适性与能耗优化的操纵策略。",
     image: "/api/placeholder/600/400",
+    modelPath: "/assets/luxury-liner.glb",
     difficulty: "专家",
     participants: "987",
     bgGradient: "from-teal-900 to-cyan-700"
