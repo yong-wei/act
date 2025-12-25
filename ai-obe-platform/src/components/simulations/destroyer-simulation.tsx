@@ -1,6 +1,16 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import * as THREE from 'three';
 import { Canvas, useFrame, useThree, extend, ReactThreeFiber } from '@react-three/fiber';
 import { Line, useGLTF, shaderMaterial } from '@react-three/drei';
@@ -104,21 +114,21 @@ const tasks: TaskDef[] = [
     title: '直角转向任务',
     scenario: 'turn90',
     duration: 180,
-    description: '30秒时执行90度右转阶跃信号。平均航迹误差需小于200米。',
+    description: '60秒（约900米）时执行90度右转阶跃信号，预留反应时间。',
   },
   {
     id: 'obstacle',
     title: '复杂避障任务',
     scenario: 'obstacle',
     duration: 180,
-    description: '按指定时间序列执行 0° -> 45° -> 0° -> -45° -> 0° 变向。',
+    description: '60秒后依次执行 0° -> 45° -> 0° -> -45° -> 0° 变向。',
   },
   {
     id: 'circle',
     title: '定常回转任务',
     scenario: 'circle',
     duration: 360, // 增加时间以完成回转
-    description: '30秒时切入 -90° 并开始定常回转（圆形航线）。',
+    description: '起点距圆周 900 米，60 秒切入 -90° 并开始定常回转。',
   },
 ];
 
@@ -126,6 +136,13 @@ const tasks: TaskDef[] = [
 type ScenarioLogic = {
   getDesiredHeading: (t: number) => number; // 返回角度
   startPos: { x: number; z: number; headingDeg: number };
+};
+
+type CustomScenario = {
+  logic: ScenarioLogic;
+  guidePath: THREE.Vector3[];
+  start: { x: number; z: number; headingDeg: number };
+  duration: number;
 };
 
 const REF_SPEED = 15.0; // 参考航速 15m/s
@@ -136,7 +153,7 @@ const getScenarioLogic = (scenario: TaskScenario): ScenarioLogic => {
       return {
         startPos: { x: -6000, z: 0, headingDeg: 0 },
         getDesiredHeading: (t: number) => {
-          if (t < 30) return 0;
+          if (t < 60) return 0;
           return 90; // 阶跃
         },
       };
@@ -144,10 +161,10 @@ const getScenarioLogic = (scenario: TaskScenario): ScenarioLogic => {
       return {
         startPos: { x: -2000, z: 0, headingDeg: 0 },
         getDesiredHeading: (t: number) => {
-          if (t < 30) return 0;
-          if (t < 60) return 45;
-          if (t < 90) return 0;
-          if (t < 120) return -45;
+          if (t < 60) return 0;
+          if (t < 90) return 45;
+          if (t < 120) return 0;
+          if (t < 150) return -45;
           return 0;
         },
       };
@@ -157,13 +174,13 @@ const getScenarioLogic = (scenario: TaskScenario): ScenarioLogic => {
       const turnTime = circumference / REF_SPEED;
       const degPerSec = 360 / turnTime;
       return {
-        startPos: { x: 0, z: -2000, headingDeg: 0 },
+        startPos: { x: 0, z: -(radius + 900), headingDeg: 0 },
         getDesiredHeading: (t: number) => {
-          if (t < 30) return 0;
-          // 30秒时，阶跃到 -90 (切入圆周)，然后斜坡增加
+          if (t < 60) return 0;
+          // 60秒时，阶跃到 -90 (切入圆周)，然后斜坡增加
           // 实际上是一个持续的 YawRate
           // 初始角度 -90，每秒增加 degPerSec
-          return -90 + degPerSec * (t - 30);
+          return -90 + degPerSec * (t - 60);
         },
       };
   }
@@ -221,6 +238,147 @@ const angleDelta = (target: number, current: number) => {
   if (diff > 180) diff -= 360;
   if (diff < -180) diff += 360;
   return diff;
+};
+
+const buildScenarioFromWaypoints = (waypoints: TrajectoryPoint[]): CustomScenario | null => {
+  if (waypoints.length < 2) return null;
+
+  const segments: Array<{ endTime: number; headingDeg: number }> = [];
+  let cumulativeTime = 0;
+
+  for (let i = 0; i < waypoints.length - 1; i += 1) {
+    const start = waypoints[i];
+    const end = waypoints[i + 1];
+    const dx = end.x - start.x;
+    const dz = end.z - start.z;
+    const distance = Math.hypot(dx, dz);
+    if (distance < 1) continue;
+
+    const headingDeg = normalizeHeading(toDegrees(Math.atan2(dz, dx)));
+    cumulativeTime += distance / REF_SPEED;
+    segments.push({ endTime: cumulativeTime, headingDeg });
+  }
+
+  if (segments.length === 0) return null;
+
+  const logic: ScenarioLogic = {
+    startPos: {
+      x: waypoints[0].x,
+      z: waypoints[0].z,
+      headingDeg: segments[0].headingDeg,
+    },
+    getDesiredHeading: (t: number) => {
+      const time = Math.max(0, t);
+      for (const segment of segments) {
+        if (time <= segment.endTime) {
+          return segment.headingDeg;
+        }
+      }
+      return segments[segments.length - 1].headingDeg;
+    },
+  };
+
+  const guidePath = generateGuidePath(logic, segments[segments.length - 1].endTime);
+  return {
+    logic,
+    guidePath,
+    start: logic.startPos,
+    duration: segments[segments.length - 1].endTime,
+  };
+};
+
+const createWaypointsFromGuidePath = (guidePath: THREE.Vector3[], count = 4): TrajectoryPoint[] => {
+  if (guidePath.length === 0) return [];
+  if (guidePath.length <= count) {
+    return guidePath.map((point) => ({ x: point.x, z: point.z }));
+  }
+
+  const indices = new Set<number>([0, guidePath.length - 1]);
+  for (let i = 1; i < count - 1; i += 1) {
+    indices.add(Math.floor((guidePath.length - 1) * (i / (count - 1))));
+  }
+
+  return Array.from(indices)
+    .sort((a, b) => a - b)
+    .map((index) => {
+      const point = guidePath[index];
+      return { x: point.x, z: point.z };
+    });
+};
+
+const runQuickSimulation = (
+  waypoints: TrajectoryPoint[],
+  pidGains: { kp: number; ki: number; kd: number },
+  controlMode: ControlMode,
+): QuickSimResult | null => {
+  const scenario = buildScenarioFromWaypoints(waypoints);
+  if (!scenario) return null;
+
+  const chart: ChartData = {
+    time: [],
+    desiredHeading: [],
+    actualHeading: [],
+    speed: [],
+    rudder: [],
+  };
+
+  const actualPath: TrajectoryPoint[] = [];
+  const sim = {
+    position: new THREE.Vector3(scenario.start.x, 0, scenario.start.z),
+    headingRad: toRadians(scenario.start.headingDeg),
+    yawRateRad: 0,
+    rudderDeg: 0,
+    speedMps: nomotoModel.speedMps,
+    integral: 0,
+    prevErrorRad: 0,
+  };
+
+  const dt = 0.5;
+  const mode = controlMode === 'manual' ? 'pid' : controlMode;
+
+  for (let t = 0; t <= scenario.duration; t += dt) {
+    const targetHeading = scenario.logic.getDesiredHeading(t);
+    const currentHeading = normalizeHeading(toDegrees(sim.headingRad));
+    const errorDeg = angleDelta(targetHeading, currentHeading);
+    const errorRad = toRadians(errorDeg);
+    const derivative = (errorRad - sim.prevErrorRad) / dt;
+    sim.integral += errorRad * dt;
+
+    let kp = pidGains.kp;
+    let ki = pidGains.ki;
+    let kd = pidGains.kd;
+    if (mode === 'p') { ki = 0; kd = 0; }
+    else if (mode === 'pd') { ki = 0; }
+
+    const deltaRad = kp * errorRad + ki * sim.integral + kd * derivative;
+    sim.rudderDeg = clamp(
+      toDegrees(deltaRad),
+      -nomotoModel.maxRudderDeg,
+      nomotoModel.maxRudderDeg,
+    );
+    sim.prevErrorRad = errorRad;
+
+    const rudderRad = toRadians(sim.rudderDeg);
+    sim.yawRateRad += ((nomotoModel.K * rudderRad - sim.yawRateRad) / nomotoModel.T) * dt;
+    sim.headingRad += sim.yawRateRad * dt;
+
+    sim.position.x += sim.speedMps * Math.cos(sim.headingRad) * dt;
+    sim.position.z += sim.speedMps * Math.sin(sim.headingRad) * dt;
+
+    chart.time.push(t);
+    chart.desiredHeading.push(targetHeading);
+    chart.actualHeading.push(currentHeading);
+    chart.speed.push(sim.speedMps);
+    chart.rudder.push(sim.rudderDeg);
+    actualPath.push({ x: sim.position.x, z: sim.position.z });
+  }
+
+  return {
+    data: chart,
+    desiredPath: scenario.guidePath.map((point) => ({ x: point.x, z: point.z })),
+    actualPath,
+    duration: scenario.duration,
+  };
 };
 
 // --- Custom Shader Material for Water ---
@@ -359,6 +517,16 @@ type ChartData = {
   desiredHeading: number[];
   actualHeading: number[];
   speed: number[];
+  rudder: number[];
+};
+
+type TrajectoryPoint = { x: number; z: number };
+
+type QuickSimResult = {
+  data: ChartData;
+  desiredPath: TrajectoryPoint[];
+  actualPath: TrajectoryPoint[];
+  duration: number;
 };
 
 function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void }) {
@@ -402,6 +570,16 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
             borderColor: '#3b82f6',
             backgroundColor: 'rgba(59, 130, 246, 0.1)',
             yAxisID: 'y-speed',
+            fill: false,
+            borderWidth: 2,
+            pointRadius: 0,
+          },
+          {
+            label: '舵角',
+            data: data.rudder,
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            yAxisID: 'y-rudder',
             fill: false,
             borderWidth: 2,
             pointRadius: 0,
@@ -451,6 +629,16 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
             ticks: { color: '#94a3b8' },
             grid: { drawOnChartArea: false },
           },
+          'y-rudder': {
+            type: 'linear',
+            position: 'right',
+            offset: true,
+            title: { display: true, text: '舵角 (°)', color: '#cbd5e1' },
+            min: -nomotoModel.maxRudderDeg,
+            max: nomotoModel.maxRudderDeg,
+            ticks: { color: '#94a3b8', stepSize: 10 },
+            grid: { drawOnChartArea: false },
+          },
         },
       },
     });
@@ -468,13 +656,281 @@ function SimulationChart({ data, onBack }: { data: ChartData; onBack: () => void
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-2xl font-semibold text-slate-100">仿真曲线</h2>
         <Button onClick={onBack} variant="default" size="lg">
-          返回仿真
+          返回场景
         </Button>
       </div>
       <div className="flex-1 rounded-lg border border-slate-800 bg-slate-900/50 p-4">
         <canvas ref={chartRef} />
       </div>
     </div>
+  );
+}
+
+function TrajectoryPreview({
+  desiredPath,
+  actualPath,
+}: {
+  desiredPath: TrajectoryPoint[];
+  actualPath: TrajectoryPoint[];
+}) {
+  const size = 200;
+  const padding = 14;
+  const bounds = useMemo(() => {
+    const points = [...desiredPath, ...actualPath];
+    if (points.length === 0) {
+      return { minX: -600, maxX: 600, minZ: -600, maxZ: 600 };
+    }
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minZ = Infinity;
+    let maxZ = -Infinity;
+    points.forEach((point) => {
+      minX = Math.min(minX, point.x);
+      maxX = Math.max(maxX, point.x);
+      minZ = Math.min(minZ, point.z);
+      maxZ = Math.max(maxZ, point.z);
+    });
+    const spanX = Math.max(1, maxX - minX);
+    const spanZ = Math.max(1, maxZ - minZ);
+    const span = Math.max(spanX, spanZ);
+    const margin = span * 0.2 + 80;
+    return {
+      minX: minX - margin,
+      maxX: maxX + margin,
+      minZ: minZ - margin,
+      maxZ: maxZ + margin,
+    };
+  }, [actualPath, desiredPath]);
+
+  const spanX = Math.max(1, bounds.maxX - bounds.minX);
+  const spanZ = Math.max(1, bounds.maxZ - bounds.minZ);
+  const mapWidth = size - padding * 2;
+  const mapHeight = size - padding * 2;
+
+  const toMap = (point: TrajectoryPoint) => {
+    const x = padding + ((point.x - bounds.minX) / spanX) * mapWidth;
+    const y = padding + ((point.z - bounds.minZ) / spanZ) * mapHeight;
+    return { x, y };
+  };
+
+  const desiredPathStr = desiredPath
+    .map((point) => {
+      const mapped = toMap(point);
+      return `${mapped.x.toFixed(1)},${mapped.y.toFixed(1)}`;
+    })
+    .join(' ');
+
+  const actualPathStr = actualPath
+    .map((point) => {
+      const mapped = toMap(point);
+      return `${mapped.x.toFixed(1)},${mapped.y.toFixed(1)}`;
+    })
+    .join(' ');
+
+  const hasDesired = desiredPath.length > 1;
+  const hasActual = actualPath.length > 1;
+
+  return (
+    <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-2 text-[10px] text-slate-200">
+      <svg width={size} height={size} className="rounded-lg bg-transparent">
+        <rect width={size} height={size} fill="#0b1324" fillOpacity="0.65" />
+        {hasDesired ? (
+          <polyline
+            points={desiredPathStr}
+            fill="none"
+            stroke="#ef4444"
+            strokeWidth="2"
+          />
+        ) : null}
+        {hasActual ? (
+          <polyline
+            points={actualPathStr}
+            fill="none"
+            stroke="#22c55e"
+            strokeWidth="2"
+          />
+        ) : null}
+        {!hasDesired && !hasActual ? (
+          <text
+            x="50%"
+            y="50%"
+            fill="#94a3b8"
+            textAnchor="middle"
+            alignmentBaseline="middle"
+            fontSize="11"
+          >
+            运行仿真后生成航迹
+          </text>
+        ) : null}
+      </svg>
+      <div className="mt-2 flex items-center justify-between px-1 text-[10px] text-slate-400">
+        <span>红色: 期望航迹</span>
+        <span>绿色: 实际航迹</span>
+      </div>
+    </div>
+  );
+}
+
+function QuickSimEditor({
+  waypoints,
+  setWaypoints,
+  onReset,
+  onRemoveLast,
+}: {
+  waypoints: TrajectoryPoint[];
+  setWaypoints: Dispatch<SetStateAction<TrajectoryPoint[]>>;
+  onReset: () => void;
+  onRemoveLast: () => void;
+}) {
+  const width = 560;
+  const height = 320;
+  const padding = 24;
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  const bounds = useMemo(() => {
+    if (waypoints.length === 0) {
+      return { minX: -600, maxX: 600, minZ: -600, maxZ: 600 };
+    }
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minZ = Infinity;
+    let maxZ = -Infinity;
+    waypoints.forEach((point) => {
+      minX = Math.min(minX, point.x);
+      maxX = Math.max(maxX, point.x);
+      minZ = Math.min(minZ, point.z);
+      maxZ = Math.max(maxZ, point.z);
+    });
+    const spanX = Math.max(1, maxX - minX);
+    const spanZ = Math.max(1, maxZ - minZ);
+    const span = Math.max(spanX, spanZ);
+    const margin = span * 0.2 + 100;
+    return {
+      minX: minX - margin,
+      maxX: maxX + margin,
+      minZ: minZ - margin,
+      maxZ: maxZ + margin,
+    };
+  }, [waypoints]);
+
+  const spanX = Math.max(1, bounds.maxX - bounds.minX);
+  const spanZ = Math.max(1, bounds.maxZ - bounds.minZ);
+  const mapWidth = width - padding * 2;
+  const mapHeight = height - padding * 2;
+
+  const toMap = (point: TrajectoryPoint) => {
+    const x = padding + ((point.x - bounds.minX) / spanX) * mapWidth;
+    const y = padding + ((point.z - bounds.minZ) / spanZ) * mapHeight;
+    return { x, y };
+  };
+
+  const toWorld = (event: React.PointerEvent<SVGSVGElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const px = clamp(event.clientX - rect.left, padding, width - padding);
+    const py = clamp(event.clientY - rect.top, padding, height - padding);
+    const x = bounds.minX + ((px - padding) / mapWidth) * spanX;
+    const z = bounds.minZ + ((py - padding) / mapHeight) * spanZ;
+    return { x, z };
+  };
+
+  const pathStr = waypoints
+    .map((point) => {
+      const mapped = toMap(point);
+      return `${mapped.x.toFixed(1)},${mapped.y.toFixed(1)}`;
+    })
+    .join(' ');
+
+  return (
+    <Card className="border-slate-800 bg-slate-900/60">
+      <CardHeader>
+        <CardTitle className="text-lg text-white">快速仿真 - 关键点航迹</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 text-sm text-slate-300">
+        <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+          <svg
+            width={width}
+            height={height}
+            className="touch-none"
+            onPointerDown={(event) => {
+              if (event.target !== event.currentTarget) return;
+              const point = toWorld(event);
+              setWaypoints((prev) => [...prev, point]);
+            }}
+            onPointerMove={(event) => {
+              if (dragIndex === null) return;
+              const point = toWorld(event);
+              setWaypoints((prev) =>
+                prev.map((item, index) => (index === dragIndex ? point : item)),
+              );
+            }}
+            onPointerUp={() => setDragIndex(null)}
+            onPointerLeave={() => setDragIndex(null)}
+          >
+            <rect width={width} height={height} fill="#0b1324" fillOpacity="0.7" />
+            {waypoints.length > 1 ? (
+              <polyline
+                points={pathStr}
+                fill="none"
+                stroke="#f97316"
+                strokeWidth="2"
+              />
+            ) : null}
+            {waypoints.map((point, index) => {
+              const mapped = toMap(point);
+              return (
+                <g key={`${index}-${point.x}-${point.z}`} transform={`translate(${mapped.x} ${mapped.y})`}>
+                  <circle
+                    r="7"
+                    fill="#38bdf8"
+                    stroke="#0f172a"
+                    strokeWidth="2"
+                    onPointerDown={(event) => {
+                      event.stopPropagation();
+                      setDragIndex(index);
+                    }}
+                  />
+                  <text
+                    x="0"
+                    y="0"
+                    textAnchor="middle"
+                    alignmentBaseline="middle"
+                    fontSize="9"
+                    fill="#0f172a"
+                    pointerEvents="none"
+                  >
+                    {index + 1}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+          <span>点击空白处添加航迹点</span>
+          <span>拖拽点调整路径</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={onRemoveLast}
+            disabled={waypoints.length <= 2}
+          >
+            删除末点
+          </Button>
+          <Button size="sm" variant="outline" onClick={onReset}>
+            重置参考航迹
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
+          {waypoints.map((point, index) => (
+            <div key={`point-${index}`}>
+              P{index + 1}: {point.x.toFixed(0)}, {point.z.toFixed(0)}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -495,7 +951,6 @@ export function DestroyerSimulation() {
     time: 0,
   });
 
-  const [panelOpen, setPanelOpen] = useState(true);
   const [miniTrail, setMiniTrail] = useState<Array<{ x: number; z: number }>>([]);
   const [taskIndex, setTaskIndex] = useState(0);
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
@@ -509,27 +964,47 @@ export function DestroyerSimulation() {
     panZ: 0,
   });
   const [viewMode, setViewMode] = useState<'simulation' | 'chart'>('simulation');
+  const [quickMode, setQuickMode] = useState(false);
+  const [quickWaypoints, setQuickWaypoints] = useState<TrajectoryPoint[]>([]);
+  const [quickResult, setQuickResult] = useState<QuickSimResult | null>(null);
+  const [useCustomScenario, setUseCustomScenario] = useState(false);
+  const [customScenario, setCustomScenario] = useState<CustomScenario | null>(null);
   const [chartData, setChartData] = useState<ChartData>({
     time: [],
     desiredHeading: [],
     actualHeading: [],
     speed: [],
+    rudder: [],
   });
 
   const activeTask = tasks[taskIndex];
+  const isCustomScenario = useCustomScenario && !!customScenario;
   
   // 动态生成场景配置
-  const scenarioConfig = useMemo(() => {
+  const scenarioConfig = useMemo<CustomScenario>(() => {
+    if (useCustomScenario && customScenario) {
+      return customScenario;
+    }
     const logic = getScenarioLogic(activeTask.scenario);
     const path = generateGuidePath(logic, activeTask.duration);
     return {
       logic,
       guidePath: path,
       start: logic.startPos,
+      duration: activeTask.duration,
     };
-  }, [activeTask]);
+  }, [activeTask, customScenario, useCustomScenario]);
+  const scenarioDuration = scenarioConfig.duration;
 
   const speedOptions = useMemo(() => [0.5, 1, 2, 4], []);
+  const baseWaypoints = useMemo(
+    () => createWaypointsFromGuidePath(scenarioConfig.guidePath, 4),
+    [scenarioConfig.guidePath],
+  );
+  const quickScenario = useMemo(
+    () => buildScenarioFromWaypoints(quickWaypoints),
+    [quickWaypoints],
+  );
 
   const adjustSpeed = useCallback((direction: number) => {
     setSimSpeed((prev) => {
@@ -550,13 +1025,14 @@ export function DestroyerSimulation() {
   const totalErrorRef = useRef(0);
   const errorSampleCountRef = useRef(0);
 
-  const handleChartDataUpdate = useCallback((time: number, desiredHeading: number, actualHeading: number, speed: number) => {
+  const handleChartDataUpdate = useCallback((time: number, desiredHeading: number, actualHeading: number, speed: number, rudder: number) => {
     setChartData(prev => {
       const newData = {
         time: [...prev.time, time],
         desiredHeading: [...prev.desiredHeading, desiredHeading],
         actualHeading: [...prev.actualHeading, actualHeading],
         speed: [...prev.speed, speed],
+        rudder: [...prev.rudder, rudder],
       };
       const maxPoints = 2000;
       if (newData.time.length > maxPoints) {
@@ -565,6 +1041,7 @@ export function DestroyerSimulation() {
           desiredHeading: newData.desiredHeading.slice(-maxPoints),
           actualHeading: newData.actualHeading.slice(-maxPoints),
           speed: newData.speed.slice(-maxPoints),
+          rudder: newData.rudder.slice(-maxPoints),
         };
       }
       return newData;
@@ -587,9 +1064,33 @@ export function DestroyerSimulation() {
     lastSpeedStepTimeRef.current = 0;
     totalErrorRef.current = 0;
     errorSampleCountRef.current = 0;
-    setChartData({ time: [], desiredHeading: [], actualHeading: [], speed: [] });
+    setChartData({ time: [], desiredHeading: [], actualHeading: [], speed: [], rudder: [] });
     setResetToken((prev) => prev + 1);
   }, []);
+
+  const handleRunQuickSimulation = useCallback(() => {
+    const result = runQuickSimulation(quickWaypoints, pidGains, controlMode);
+    if (result) {
+      setQuickResult(result);
+    }
+  }, [controlMode, pidGains, quickWaypoints]);
+
+  const handleApplyQuickScenario = useCallback(() => {
+    if (!quickScenario) return;
+    setCustomScenario(quickScenario);
+    setUseCustomScenario(true);
+    setViewMode('simulation');
+    setQuickMode(false);
+    resetScenarioState();
+  }, [quickScenario, resetScenarioState]);
+
+  useEffect(() => {
+    setQuickWaypoints(baseWaypoints);
+  }, [baseWaypoints]);
+
+  useEffect(() => {
+    setQuickResult(null);
+  }, [quickWaypoints, pidGains, controlMode]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -656,11 +1157,11 @@ export function DestroyerSimulation() {
     if (!activeTask) return;
     
     // 进度基于时间
-    const progress = Math.min(1, hud.time / activeTask.duration);
+    const progress = Math.min(1, hud.time / scenarioDuration);
     setTaskProgress(progress);
 
     // 完成判定
-    if (hud.time >= activeTask.duration) {
+    if (!isCustomScenario && hud.time >= activeTask.duration) {
         if (hud.avgError < 200) {
             setCompletedTaskIds((prev) => 
                 prev.includes(activeTask.id) ? prev : [...prev, activeTask.id]
@@ -671,199 +1172,89 @@ export function DestroyerSimulation() {
             }
         }
     }
-  }, [hud.time, hud.avgError, activeTask, taskIndex]);
+  }, [hud.time, hud.avgError, activeTask, isCustomScenario, scenarioDuration, taskIndex]);
+
+  const chartDisplayData = quickMode && quickResult ? quickResult.data : chartData;
+  const previewDesiredPath = useMemo(() => {
+    if (quickMode && quickResult) return quickResult.desiredPath;
+    return scenarioConfig.guidePath.map((point) => ({ x: point.x, z: point.z }));
+  }, [quickMode, quickResult, scenarioConfig.guidePath]);
+  const previewActualPath = useMemo(() => {
+    if (quickMode && quickResult) return quickResult.actualPath;
+    return miniTrail;
+  }, [miniTrail, quickMode, quickResult]);
+  const canRunQuick = quickWaypoints.length >= 2;
+  const canApplyQuick = !!quickScenario;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-6 py-10">
+    <div className="w-full px-6 py-10">
       {viewMode === 'chart' ? (
-        <div className="h-[600px] w-full">
-          <SimulationChart data={chartData} onBack={() => setViewMode('simulation')} />
-        </div>
-      ) : null}
-      <div
-        className={`${viewMode === 'chart' ? 'hidden' : 'grid'} gap-8 ${
-          panelOpen ? 'lg:grid-cols-[2fr_1fr]' : 'lg:grid-cols-1'
-        }`}
-      >
-        <div className="space-y-6 min-w-0">
-          <div className="relative h-[560px] w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
-            <div className="absolute left-4 top-4 z-10 flex gap-2">
-              {cameraViews.map((view) => (
-                <Button
-                  key={view.id}
-                  variant={cameraView === view.id ? 'default' : 'secondary'}
-                  size="sm"
-                  onClick={() => {
-                    setCameraView(view.id);
-                    resetCameraOffset();
-                  }}
-                >
-                  {view.label}
-                </Button>
-              ))}
+        <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+          <div className="space-y-6 min-w-0">
+            <div className="h-[520px] w-full">
+              <SimulationChart
+                data={chartDisplayData}
+                onBack={() => {
+                  setViewMode('simulation');
+                  setQuickMode(false);
+                }}
+              />
             </div>
-            <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2 flex items-center gap-3 rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5">
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 w-7 p-0 text-slate-300 hover:text-white"
-                  onClick={() => adjustSpeed(-1)}
-                  disabled={simSpeed === speedOptions[0]}
-                >
-                  −
-                </Button>
-                <span className="min-w-[50px] text-center text-sm text-white">
-                  {simSpeed}x
-                </span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 w-7 p-0 text-slate-300 hover:text-white"
-                  onClick={() => adjustSpeed(1)}
-                  disabled={simSpeed === speedOptions[speedOptions.length - 1]}
-                >
-                  +
-                </Button>
-              </div>
-              <div className="h-5 w-px bg-slate-700" />
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 px-3 text-xs text-slate-300 hover:text-white"
-                onClick={() => setViewMode(viewMode === 'simulation' ? 'chart' : 'simulation')}
-              >
-                {viewMode === 'simulation' ? '查看曲线' : '返回仿真'}
-              </Button>
-            </div>
-            <div className="absolute right-4 top-4 z-10 flex flex-col items-end gap-3">
-              <div className="flex gap-2">
+            {quickMode ? (
+              <QuickSimEditor
+                waypoints={quickWaypoints}
+                setWaypoints={setQuickWaypoints}
+                onReset={() => setQuickWaypoints(baseWaypoints)}
+                onRemoveLast={() =>
+                  setQuickWaypoints((prev) => (prev.length > 2 ? prev.slice(0, -1) : prev))
+                }
+              />
+            ) : null}
+          </div>
+          <div className="space-y-6 min-w-0">
+            <Card className="border-slate-800 bg-slate-900/60">
+              <CardHeader>
+                <CardTitle className="text-lg text-white">航迹对比</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TrajectoryPreview desiredPath={previewDesiredPath} actualPath={previewActualPath} />
+              </CardContent>
+            </Card>
+            <Card className="border-slate-800 bg-slate-900/60">
+              <CardHeader>
+                <CardTitle className="text-lg text-white">快速仿真</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-slate-300">
+                <p className="text-xs text-slate-400">
+                  进入快速仿真后，可编辑关键点航迹并一键计算航向与航迹曲线。
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant={quickMode ? 'secondary' : 'default'}
+                    onClick={() => setQuickMode((prev) => !prev)}
+                  >
+                    {quickMode ? '退出快速仿真' : '进入快速仿真'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRunQuickSimulation}
+                    disabled={!canRunQuick}
+                  >
+                    运行仿真
+                  </Button>
+                </div>
                 <Button
                   size="sm"
                   variant="secondary"
-                  onClick={() => setPanelOpen((prev) => !prev)}
+                  onClick={handleApplyQuickScenario}
+                  disabled={!canApplyQuick}
                 >
-                  {panelOpen ? '折叠参数栏' : '展开参数栏'}
+                  使用该组参数
                 </Button>
-                <Button size="sm" variant="outline" onClick={resetScenarioState}>
-                  重置仿真
-                </Button>
-              </div>
-              <MiniMap
-                guidePath={scenarioConfig.guidePath}
-                trail={miniTrail}
-                position={hud.position}
-                heading={hud.heading}
-              />
-            </div>
-            <div className="absolute bottom-4 left-4 z-10 rounded-lg border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm text-slate-200">
-              <p>航向: {hud.heading.toFixed(1)}°</p>
-              <p>期望: {targetHeading.toFixed(1)}°</p>
-              <p>舵角: {hud.rudder.toFixed(1)}°</p>
-              <p>航速: {hud.speed.toFixed(1)} m/s</p>
-            </div>
-            <Suspense
-              fallback={
-                <div className="absolute inset-0 flex items-center justify-center text-slate-200">
-                  正在加载三维模型...
-                </div>
-              }
-            >
-              <SimulationCanvas
-                cameraView={cameraView}
-                controlMode={controlMode}
-                pidGains={pidGains}
-                targetHeading={targetHeading} // Now fed from SimulationLoop update
-                rudderDirectionRef={rudderDirectionRef}
-                speedDirectionRef={speedDirectionRef}
-                onHudUpdate={setHud}
-                resetToken={resetToken}
-                scenarioConfig={scenarioConfig}
-                simSpeed={simSpeed}
-                cameraOffset={cameraOffset}
-                onCameraOffsetChange={setCameraOffset}
-                onChartDataUpdate={handleChartDataUpdate}
-                lastChartSampleRef={lastChartSampleRef}
-                simulationStartTimeRef={simulationStartTimeRef}
-                lastRudderStepTimeRef={lastRudderStepTimeRef}
-                lastSpeedStepTimeRef={lastSpeedStepTimeRef}
-                setTargetHeading={setTargetHeading}
-                totalErrorRef={totalErrorRef}
-                errorSampleCountRef={errorSampleCountRef}
-                taskDuration={activeTask.duration}
-              />
-            </Suspense>
-          </div>
-          <Card className="border-slate-800 bg-slate-900/60">
-            <CardHeader>
-              <CardTitle className="text-lg text-white">任务链指引</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm text-slate-300">
-              {tasks.map((task, index) => {
-                const isCompleted = completedTaskIds.includes(task.id);
-                const isActive = taskIndex === index;
-                const statusLabel = isCompleted
-                  ? '已完成'
-                  : isActive
-                  ? '进行中'
-                  : '未解锁';
-                const badgeStyle = isCompleted
-                  ? 'bg-emerald-500/20 text-emerald-200'
-                  : isActive
-                  ? 'bg-sky-500/20 text-sky-200'
-                  : 'bg-slate-700/40 text-slate-300';
-
-                return (
-                  <div key={task.id} className="rounded-lg border border-slate-800 p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-white">
-                        {index + 1}. {task.title}
-                      </p>
-                      <span className={`rounded-full px-2 py-1 text-xs ${badgeStyle}`}>
-                        {statusLabel}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-slate-300">{task.description}</p>
-                    {isActive ? (
-                      <div className="mt-3 space-y-2">
-                        <div className="flex justify-between text-xs text-slate-400">
-                            <span>时间: {hud.time.toFixed(1)} / {task.duration}s</span>
-                            <span className={hud.avgError < 200 ? "text-emerald-400" : "text-red-400"}>
-                                平均误差: {hud.avgError.toFixed(1)}m (目标 &lt; 200m)
-                            </span>
-                        </div>
-                        <progress
-                          className="h-2 w-full accent-emerald-400"
-                          value={taskProgress}
-                          max={1}
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                <span>操作提示:</span>
-                <span className="rounded bg-slate-800 px-2 py-1">← / → 控制舵角</span>
-                <span className="rounded bg-slate-800 px-2 py-1">↑ / ↓ 调整航速</span>
-                <span className="rounded bg-slate-800 px-2 py-1">红色为指引航线</span>
-                <span className="rounded bg-slate-800 px-2 py-1">绿色为实际航迹</span>
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setTaskIndex(0);
-                  setCompletedTaskIds([]);
-                  setResetToken((prev) => prev + 1);
-                }}
-              >
-                重新开始任务链
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-        {panelOpen ? (
-          <div className="space-y-6 min-w-0">
+              </CardContent>
+            </Card>
             <Card className="border-slate-800 bg-slate-900/60">
               <CardHeader>
                 <CardTitle className="text-lg text-white">055 型驱逐舰模型</CardTitle>
@@ -990,8 +1381,184 @@ export function DestroyerSimulation() {
               </CardContent>
             </Card>
           </div>
-        ) : null}
-      </div>
+        </div>
+      ) : (
+        <div className="space-y-6 min-w-0">
+          <div className="relative h-[600px] w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
+            <div className="absolute left-4 top-4 z-10 flex gap-2">
+              {cameraViews.map((view) => (
+                <Button
+                  key={view.id}
+                  variant={cameraView === view.id ? 'default' : 'secondary'}
+                  size="sm"
+                  onClick={() => {
+                    setCameraView(view.id);
+                    resetCameraOffset();
+                  }}
+                >
+                  {view.label}
+                </Button>
+              ))}
+            </div>
+            <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2 flex items-center gap-3 rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-1.5">
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0 text-slate-300 hover:text-white"
+                  onClick={() => adjustSpeed(-1)}
+                  disabled={simSpeed === speedOptions[0]}
+                >
+                  −
+                </Button>
+                <span className="min-w-[50px] text-center text-sm text-white">
+                  {simSpeed}x
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0 text-slate-300 hover:text-white"
+                  onClick={() => adjustSpeed(1)}
+                  disabled={simSpeed === speedOptions[speedOptions.length - 1]}
+                >
+                  +
+                </Button>
+              </div>
+            </div>
+            <div className="absolute right-4 top-4 z-10 flex flex-col items-end gap-3">
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setViewMode('chart');
+                    setQuickMode(false);
+                  }}
+                >
+                  查看曲线
+                </Button>
+                <Button size="sm" variant="outline" onClick={resetScenarioState}>
+                  重置仿真
+                </Button>
+              </div>
+              <MiniMap
+                guidePath={scenarioConfig.guidePath}
+                trail={miniTrail}
+                position={hud.position}
+                heading={hud.heading}
+              />
+            </div>
+            <div className="absolute bottom-4 left-4 z-10 rounded-lg border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm text-slate-200">
+              <p>航向: {hud.heading.toFixed(1)}°</p>
+              <p>期望: {targetHeading.toFixed(1)}°</p>
+              <p>舵角: {hud.rudder.toFixed(1)}°</p>
+              <p>航速: {hud.speed.toFixed(1)} m/s</p>
+            </div>
+            <Suspense
+              fallback={
+                <div className="absolute inset-0 flex items-center justify-center text-slate-200">
+                  正在加载三维模型...
+                </div>
+              }
+            >
+              <SimulationCanvas
+                cameraView={cameraView}
+                controlMode={controlMode}
+                pidGains={pidGains}
+                targetHeading={targetHeading} // Now fed from SimulationLoop update
+                rudderDirectionRef={rudderDirectionRef}
+                speedDirectionRef={speedDirectionRef}
+                onHudUpdate={setHud}
+                resetToken={resetToken}
+                scenarioConfig={scenarioConfig}
+                simSpeed={simSpeed}
+                cameraOffset={cameraOffset}
+                onCameraOffsetChange={setCameraOffset}
+                onChartDataUpdate={handleChartDataUpdate}
+                lastChartSampleRef={lastChartSampleRef}
+                simulationStartTimeRef={simulationStartTimeRef}
+                lastRudderStepTimeRef={lastRudderStepTimeRef}
+                lastSpeedStepTimeRef={lastSpeedStepTimeRef}
+                setTargetHeading={setTargetHeading}
+                totalErrorRef={totalErrorRef}
+                errorSampleCountRef={errorSampleCountRef}
+                taskDuration={scenarioDuration}
+              />
+            </Suspense>
+          </div>
+          <Card className="border-slate-800 bg-slate-900/60">
+            <CardHeader>
+              <CardTitle className="text-lg text-white">任务链指引</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-slate-300">
+              {tasks.map((task, index) => {
+                const isCompleted = completedTaskIds.includes(task.id);
+                const isActive = taskIndex === index;
+                const statusLabel = isCompleted
+                  ? '已完成'
+                  : isActive
+                  ? '进行中'
+                  : '未解锁';
+                const badgeStyle = isCompleted
+                  ? 'bg-emerald-500/20 text-emerald-200'
+                  : isActive
+                  ? 'bg-sky-500/20 text-sky-200'
+                  : 'bg-slate-700/40 text-slate-300';
+                const durationLabel =
+                  isCustomScenario && isActive ? scenarioDuration : task.duration;
+
+                return (
+                  <div key={task.id} className="rounded-lg border border-slate-800 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-white">
+                        {index + 1}. {task.title}
+                      </p>
+                      <span className={`rounded-full px-2 py-1 text-xs ${badgeStyle}`}>
+                        {statusLabel}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-slate-300">{task.description}</p>
+                    {isActive ? (
+                      <div className="mt-3 space-y-2">
+                        <div className="flex justify-between text-xs text-slate-400">
+                            <span>时间: {hud.time.toFixed(1)} / {durationLabel}s</span>
+                            <span className={hud.avgError < 200 ? "text-emerald-400" : "text-red-400"}>
+                                平均误差: {hud.avgError.toFixed(1)}m (目标 &lt; 200m)
+                            </span>
+                        </div>
+                        <progress
+                          className="h-2 w-full accent-emerald-400"
+                          value={taskProgress}
+                          max={1}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                <span>操作提示:</span>
+                <span className="rounded bg-slate-800 px-2 py-1">← / → 控制舵角</span>
+                <span className="rounded bg-slate-800 px-2 py-1">↑ / ↓ 调整航速</span>
+                <span className="rounded bg-slate-800 px-2 py-1">红色为指引航线</span>
+                <span className="rounded bg-slate-800 px-2 py-1">绿色为实际航迹</span>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setTaskIndex(0);
+                  setCompletedTaskIds([]);
+                  setUseCustomScenario(false);
+                  setCustomScenario(null);
+                  setResetToken((prev) => prev + 1);
+                }}
+              >
+                重新开始任务链
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
@@ -1005,11 +1572,11 @@ type SimulationCanvasProps = {
   speedDirectionRef: React.MutableRefObject<number>;
   onHudUpdate: (state: HudState) => void;
   resetToken: number;
-  scenarioConfig: { logic: ScenarioLogic; guidePath: THREE.Vector3[]; start: any };
+  scenarioConfig: CustomScenario;
   simSpeed: number;
   cameraOffset: { azimuth: number; elevation: number; panX: number; panZ: number };
   onCameraOffsetChange: (offset: { azimuth: number; elevation: number; panX: number; panZ: number }) => void;
-  onChartDataUpdate: (time: number, desiredHeading: number, actualHeading: number, speed: number) => void;
+  onChartDataUpdate: (time: number, desiredHeading: number, actualHeading: number, speed: number, rudder: number) => void;
   lastChartSampleRef: React.MutableRefObject<number>;
   simulationStartTimeRef: React.MutableRefObject<number>;
   lastRudderStepTimeRef: React.MutableRefObject<number>;
@@ -1236,7 +1803,7 @@ type SimulationLoopProps = {
   onHudUpdate: (state: HudState) => void;
   lastHudUpdateRef: React.MutableRefObject<number>;
   simSpeed: number;
-  onChartDataUpdate: (time: number, desiredHeading: number, actualHeading: number, speed: number) => void;
+  onChartDataUpdate: (time: number, desiredHeading: number, actualHeading: number, speed: number, rudder: number) => void;
   lastChartSampleRef: React.MutableRefObject<number>;
   simulationStartTimeRef: React.MutableRefObject<number>;
   lastRudderStepTimeRef: React.MutableRefObject<number>;
@@ -1421,7 +1988,7 @@ function SimulationLoop({
       lastChartSampleRef.current = simTime;
       const headingDeg = normalizeHeading(toDegrees(sim.headingRad));
       // targetHeading is computed at top of frame
-      onChartDataUpdate(simTime, targetHeading, headingDeg, sim.speedMps);
+      onChartDataUpdate(simTime, targetHeading, headingDeg, sim.speedMps, sim.rudderDeg);
     }
   });
 
