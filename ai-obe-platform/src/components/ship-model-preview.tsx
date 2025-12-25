@@ -1,9 +1,10 @@
 'use client'
 
-import { Suspense, useMemo } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Suspense, useMemo, useRef, type MutableRefObject, type RefObject } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 
 type ShipModelPreviewProps = {
   modelPath: string
@@ -19,6 +20,8 @@ const CAMERA_POSITION: [number, number, number] = [
   CAMERA_DISTANCE * 0.7071,
   -CAMERA_DISTANCE * 0.5,
 ]
+const ORBIT_POLAR_ANGLE = Math.PI / 4
+const AUTO_ORBIT_SPEED = 0.35
 const Y_AXIS = new THREE.Vector3(0, 1, 0)
 const MODEL_FORWARD: Record<string, THREE.Vector3> = {
   '/assets/destroyer.glb': new THREE.Vector3(0, 0, -1),
@@ -79,36 +82,70 @@ export function ShipModelPreview({
   onInteractionStart,
   onInteractionEnd,
 }: ShipModelPreviewProps) {
+  const controlsRef = useRef<OrbitControlsImpl | null>(null)
+  const isInteractingRef = useRef(false)
+
+  const handleInteractionStart = () => {
+    isInteractingRef.current = true
+    onInteractionStart?.()
+  }
+
+  const handleInteractionEnd = () => {
+    isInteractingRef.current = false
+    onInteractionEnd?.()
+  }
+
   return (
     <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm">
       <Canvas
         className="h-full w-full"
         camera={{ position: CAMERA_POSITION, fov: 35 }}
-        onPointerDown={onInteractionStart}
-        onPointerUp={onInteractionEnd}
-        onPointerLeave={onInteractionEnd}
+        onPointerDown={handleInteractionStart}
+        onPointerUp={handleInteractionEnd}
+        onPointerLeave={handleInteractionEnd}
         dpr={[1, 1.5]}
       >
         <ambientLight intensity={0.7} />
         <directionalLight position={[2.5, 4, 4]} intensity={1.1} />
         <directionalLight position={[-3, 1, -2]} intensity={0.4} />
+        <AutoOrbit controlsRef={controlsRef} isInteractingRef={isInteractingRef} />
         <Suspense fallback={null}>
           <CenteredModel modelPath={modelPath} />
         </Suspense>
         <OrbitControls
+          ref={controlsRef}
           enableZoom={false}
           enablePan={false}
           enableDamping
           dampingFactor={0.12}
           rotateSpeed={0.8}
-          minPolarAngle={Math.PI / 6}
-          maxPolarAngle={(Math.PI * 5) / 6}
-          onStart={onInteractionStart}
-          onEnd={onInteractionEnd}
+          minPolarAngle={ORBIT_POLAR_ANGLE}
+          maxPolarAngle={ORBIT_POLAR_ANGLE}
+          onStart={handleInteractionStart}
+          onEnd={handleInteractionEnd}
         />
       </Canvas>
     </div>
   )
+}
+
+function AutoOrbit({
+  controlsRef,
+  isInteractingRef,
+}: {
+  controlsRef: RefObject<OrbitControlsImpl>
+  isInteractingRef: MutableRefObject<boolean>
+}) {
+  useFrame((_, delta) => {
+    const controls = controlsRef.current
+    if (!controls || isInteractingRef.current) {
+      return
+    }
+    controls.setAzimuthalAngle(controls.getAzimuthalAngle() + delta * AUTO_ORBIT_SPEED)
+    controls.update()
+  })
+
+  return null
 }
 
 const PRELOAD_MODELS = [
