@@ -11,16 +11,22 @@ type ShipModelPreviewProps = {
   onInteractionEnd?: () => void
 }
 
-const TARGET_DIRECTION = new THREE.Vector3(-0.85, -0.4, 0.35).normalize()
+const STANDARD_FORWARD = new THREE.Vector3(0, 0, 1)
 const DEFAULT_FORWARD = new THREE.Vector3(0, 0, -1)
+const CAMERA_DISTANCE = 2.6
+const CAMERA_POSITION: [number, number, number] = [
+  -CAMERA_DISTANCE * 0.5,
+  CAMERA_DISTANCE * 0.7071,
+  CAMERA_DISTANCE * 0.5,
+]
 const MODEL_FORWARD: Record<string, THREE.Vector3> = {
   '/assets/destroyer.glb': new THREE.Vector3(0, 0, -1),
   '/assets/icebreaker.glb': new THREE.Vector3(0, 0, -1),
   '/assets/Lng-carrier.glb': new THREE.Vector3(0, 0, -1),
   '/assets/container.glb': new THREE.Vector3(1, 0, 0),
   '/assets/dredger.glb': new THREE.Vector3(1, 0, 0),
-  '/assets/luxury-liner.glb': new THREE.Vector3(-0.85, -0.4, 0.35),
-  '/assets/drilling-rig.glb': new THREE.Vector3(-0.85, -0.4, 0.35),
+  '/assets/luxury-liner.glb': new THREE.Vector3(0, 0, -1),
+  '/assets/drilling-rig.glb': new THREE.Vector3(0, 0, -1),
 }
 
 function CenteredModel({ modelPath }: { modelPath: string }) {
@@ -46,7 +52,7 @@ function CenteredModel({ modelPath }: { modelPath: string }) {
     const targetSize = 1.6
     const scale = targetSize / maxDim
     const forward = (MODEL_FORWARD[modelPath] ?? DEFAULT_FORWARD).clone().normalize()
-    const rotation = new THREE.Quaternion().setFromUnitVectors(forward, TARGET_DIRECTION)
+    const rotation = new THREE.Quaternion().setFromUnitVectors(forward, STANDARD_FORWARD)
 
     return { model: cloned, scale, rotation }
   }, [modelPath, scene])
@@ -67,7 +73,7 @@ export function ShipModelPreview({
     <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm">
       <Canvas
         className="h-full w-full"
-        camera={{ position: [0, 0.6, 2.6], fov: 35 }}
+        camera={{ position: CAMERA_POSITION, fov: 35 }}
         onPointerDown={onInteractionStart}
         onPointerUp={onInteractionEnd}
         onPointerLeave={onInteractionEnd}
