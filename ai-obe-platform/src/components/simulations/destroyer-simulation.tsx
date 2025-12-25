@@ -17,6 +17,7 @@ import { Line, useGLTF, shaderMaterial } from '@react-three/drei';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Chart, registerables } from 'chart.js';
 
@@ -240,79 +241,93 @@ const angleDelta = (target: number, current: number) => {
   return diff;
 };
 
-const buildScenarioFromWaypoints = (waypoints: TrajectoryPoint[]): CustomScenario | null => {
-  if (waypoints.length < 2) return null;
+const HEADING_RANGE = { min: -180, max: 360 };
+const HEADING_TIME_GAP = 0.5;
 
-  const segments: Array<{ endTime: number; headingDeg: number }> = [];
-  let cumulativeTime = 0;
+const clampHeading = (value: number) =>
+  clamp(value, HEADING_RANGE.min, HEADING_RANGE.max);
 
-  for (let i = 0; i < waypoints.length - 1; i += 1) {
-    const start = waypoints[i];
-    const end = waypoints[i + 1];
-    const dx = end.x - start.x;
-    const dz = end.z - start.z;
-    const distance = Math.hypot(dx, dz);
-    if (distance < 1) continue;
+const normalizeHeadingPoints = (points: HeadingPoint[]) => {
+  const sorted = [...points].sort((a, b) => a.time - b.time);
+  const result: HeadingPoint[] = [];
+  sorted.forEach((point) => {
+    if (result.length === 0) {
+      result.push(point);
+      return;
+    }
+    const prev = result[result.length - 1];
+    if (Math.abs(point.time - prev.time) < 0.001) {
+      result[result.length - 1] = point;
+      return;
+    }
+    result.push(point);
+  });
+  return result;
+};
 
-    const headingDeg = normalizeHeading(toDegrees(Math.atan2(dz, dx)));
-    cumulativeTime += distance / REF_SPEED;
-    segments.push({ endTime: cumulativeTime, headingDeg });
+const interpolateHeading = (points: HeadingPoint[], t: number) => {
+  if (points.length === 0) return 0;
+  const sorted = normalizeHeadingPoints(points);
+  if (t <= sorted[0].time) return sorted[0].heading;
+  const lastPoint = sorted[sorted.length - 1];
+  if (t >= lastPoint.time) return lastPoint.heading;
+  for (let i = 0; i < sorted.length - 1; i += 1) {
+    const start = sorted[i];
+    const end = sorted[i + 1];
+    if (t <= end.time) {
+      const span = end.time - start.time;
+      if (span <= 0.0001) return end.heading;
+      const ratio = (t - start.time) / span;
+      return start.heading + ratio * (end.heading - start.heading);
+    }
   }
+  return lastPoint.heading;
+};
 
-  if (segments.length === 0) return null;
+const createHeadingPointsFromLogic = (
+  logic: ScenarioLogic,
+  duration: number,
+  count = 5,
+): HeadingPoint[] => {
+  if (duration <= 0) {
+    return [{ time: 0, heading: logic.getDesiredHeading(0) }];
+  }
+  const points: HeadingPoint[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const time = (duration * i) / (count - 1);
+    points.push({ time, heading: logic.getDesiredHeading(time) });
+  }
+  return normalizeHeadingPoints(points);
+};
 
+const buildScenarioFromHeadingPoints = (
+  points: HeadingPoint[],
+  start: { x: number; z: number; headingDeg: number },
+  duration: number,
+  guidePath: THREE.Vector3[],
+): CustomScenario | null => {
+  if (points.length < 2) return null;
   const logic: ScenarioLogic = {
-    startPos: {
-      x: waypoints[0].x,
-      z: waypoints[0].z,
-      headingDeg: segments[0].headingDeg,
-    },
-    getDesiredHeading: (t: number) => {
-      const time = Math.max(0, t);
-      for (const segment of segments) {
-        if (time <= segment.endTime) {
-          return segment.headingDeg;
-        }
-      }
-      return segments[segments.length - 1].headingDeg;
-    },
+    startPos: { ...start },
+    getDesiredHeading: (t: number) => interpolateHeading(points, t),
   };
-
-  const guidePath = generateGuidePath(logic, segments[segments.length - 1].endTime);
   return {
     logic,
     guidePath,
-    start: logic.startPos,
-    duration: segments[segments.length - 1].endTime,
+    start,
+    duration,
   };
 };
 
-const createWaypointsFromGuidePath = (guidePath: THREE.Vector3[], count = 4): TrajectoryPoint[] => {
-  if (guidePath.length === 0) return [];
-  if (guidePath.length <= count) {
-    return guidePath.map((point) => ({ x: point.x, z: point.z }));
-  }
-
-  const indices = new Set<number>([0, guidePath.length - 1]);
-  for (let i = 1; i < count - 1; i += 1) {
-    indices.add(Math.floor((guidePath.length - 1) * (i / (count - 1))));
-  }
-
-  return Array.from(indices)
-    .sort((a, b) => a - b)
-    .map((index) => {
-      const point = guidePath[index];
-      return { x: point.x, z: point.z };
-    });
-};
-
 const runQuickSimulation = (
-  waypoints: TrajectoryPoint[],
+  points: HeadingPoint[],
   pidGains: { kp: number; ki: number; kd: number },
   controlMode: ControlMode,
+  start: { x: number; z: number; headingDeg: number },
+  duration: number,
+  desiredPath: THREE.Vector3[],
 ): QuickSimResult | null => {
-  const scenario = buildScenarioFromWaypoints(waypoints);
-  if (!scenario) return null;
+  if (points.length < 2) return null;
 
   const chart: ChartData = {
     time: [],
@@ -324,8 +339,8 @@ const runQuickSimulation = (
 
   const actualPath: TrajectoryPoint[] = [];
   const sim = {
-    position: new THREE.Vector3(scenario.start.x, 0, scenario.start.z),
-    headingRad: toRadians(scenario.start.headingDeg),
+    position: new THREE.Vector3(start.x, 0, start.z),
+    headingRad: toRadians(start.headingDeg),
     yawRateRad: 0,
     rudderDeg: 0,
     speedMps: nomotoModel.speedMps,
@@ -336,8 +351,8 @@ const runQuickSimulation = (
   const dt = 0.5;
   const mode = controlMode === 'manual' ? 'pid' : controlMode;
 
-  for (let t = 0; t <= scenario.duration; t += dt) {
-    const targetHeading = scenario.logic.getDesiredHeading(t);
+  for (let t = 0; t <= duration; t += dt) {
+    const targetHeading = interpolateHeading(points, t);
     const currentHeading = normalizeHeading(toDegrees(sim.headingRad));
     const errorDeg = angleDelta(targetHeading, currentHeading);
     const errorRad = toRadians(errorDeg);
@@ -375,9 +390,9 @@ const runQuickSimulation = (
 
   return {
     data: chart,
-    desiredPath: scenario.guidePath.map((point) => ({ x: point.x, z: point.z })),
+    desiredPath: desiredPath.map((point) => ({ x: point.x, z: point.z })),
     actualPath,
-    duration: scenario.duration,
+    duration,
   };
 };
 
@@ -521,6 +536,7 @@ type ChartData = {
 };
 
 type TrajectoryPoint = { x: number; z: number };
+type HeadingPoint = { time: number; heading: number };
 
 type QuickSimResult = {
   data: ChartData;
@@ -771,166 +787,312 @@ function TrajectoryPreview({
   );
 }
 
-function QuickSimEditor({
-  waypoints,
-  setWaypoints,
-  onReset,
-  onRemoveLast,
+const insertHeadingPoint = (
+  points: HeadingPoint[],
+  point: HeadingPoint,
+  duration: number,
+) => {
+  const next = [...points];
+  let insertIndex = next.findIndex((item) => point.time < item.time);
+  if (insertIndex < 0) insertIndex = next.length;
+  const prev = next[insertIndex - 1];
+  const nextPoint = next[insertIndex];
+  const min = prev ? prev.time + HEADING_TIME_GAP : 0;
+  const max = nextPoint ? nextPoint.time - HEADING_TIME_GAP : duration;
+  if (min > max) return next;
+  const time = clamp(point.time, min, max);
+  const heading = clampHeading(point.heading);
+  next.splice(insertIndex, 0, { time, heading });
+  return next;
+};
+
+const updateHeadingPoint = (
+  points: HeadingPoint[],
+  index: number,
+  nextPoint: HeadingPoint,
+  duration: number,
+) => {
+  const next = [...points];
+  const min = index === 0 ? 0 : next[index - 1].time + HEADING_TIME_GAP;
+  const max =
+    index === next.length - 1 ? duration : next[index + 1].time - HEADING_TIME_GAP;
+  const time = clamp(nextPoint.time, min, max);
+  const heading = clampHeading(nextPoint.heading);
+  next[index] = { time, heading };
+  return next;
+};
+
+function HeadingChartEditor({
+  points,
+  setPoints,
+  duration,
+  actualData,
 }: {
-  waypoints: TrajectoryPoint[];
-  setWaypoints: Dispatch<SetStateAction<TrajectoryPoint[]>>;
-  onReset: () => void;
-  onRemoveLast: () => void;
+  points: HeadingPoint[];
+  setPoints: Dispatch<SetStateAction<HeadingPoint[]>>;
+  duration: number;
+  actualData: ChartData | null;
 }) {
-  const width = 560;
-  const height = 320;
-  const padding = 24;
+  const viewWidth = 800;
+  const viewHeight = 360;
+  const padding = { top: 24, right: 24, bottom: 40, left: 48 };
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
-  const bounds = useMemo(() => {
-    if (waypoints.length === 0) {
-      return { minX: -600, maxX: 600, minZ: -600, maxZ: 600 };
-    }
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minZ = Infinity;
-    let maxZ = -Infinity;
-    waypoints.forEach((point) => {
-      minX = Math.min(minX, point.x);
-      maxX = Math.max(maxX, point.x);
-      minZ = Math.min(minZ, point.z);
-      maxZ = Math.max(maxZ, point.z);
-    });
-    const spanX = Math.max(1, maxX - minX);
-    const spanZ = Math.max(1, maxZ - minZ);
-    const span = Math.max(spanX, spanZ);
-    const margin = span * 0.2 + 100;
-    return {
-      minX: minX - margin,
-      maxX: maxX + margin,
-      minZ: minZ - margin,
-      maxZ: maxZ + margin,
-    };
-  }, [waypoints]);
+  const plotWidth = viewWidth - padding.left - padding.right;
+  const plotHeight = viewHeight - padding.top - padding.bottom;
 
-  const spanX = Math.max(1, bounds.maxX - bounds.minX);
-  const spanZ = Math.max(1, bounds.maxZ - bounds.minZ);
-  const mapWidth = width - padding * 2;
-  const mapHeight = height - padding * 2;
-
-  const toMap = (point: TrajectoryPoint) => {
-    const x = padding + ((point.x - bounds.minX) / spanX) * mapWidth;
-    const y = padding + ((point.z - bounds.minZ) / spanZ) * mapHeight;
+  const toChart = (time: number, heading: number) => {
+    const x = padding.left + (time / Math.max(1, duration)) * plotWidth;
+    const y =
+      padding.top +
+      (1 - (heading - HEADING_RANGE.min) / (HEADING_RANGE.max - HEADING_RANGE.min)) *
+        plotHeight;
     return { x, y };
   };
 
-  const toWorld = (event: React.PointerEvent<SVGSVGElement>) => {
+  const toData = (event: React.PointerEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const px = clamp(event.clientX - rect.left, padding, width - padding);
-    const py = clamp(event.clientY - rect.top, padding, height - padding);
-    const x = bounds.minX + ((px - padding) / mapWidth) * spanX;
-    const z = bounds.minZ + ((py - padding) / mapHeight) * spanZ;
-    return { x, z };
+    const px = clamp(((event.clientX - rect.left) / rect.width) * viewWidth, 0, viewWidth);
+    const py = clamp(((event.clientY - rect.top) / rect.height) * viewHeight, 0, viewHeight);
+    const time = (clamp(px - padding.left, 0, plotWidth) / plotWidth) * duration;
+    const heading =
+      HEADING_RANGE.min +
+      (1 - clamp(py - padding.top, 0, plotHeight) / plotHeight) *
+        (HEADING_RANGE.max - HEADING_RANGE.min);
+    return { time, heading };
   };
 
-  const pathStr = waypoints
-    .map((point) => {
-      const mapped = toMap(point);
+  const desiredSamples = useMemo(() => {
+    const step = Math.max(1, duration / 80);
+    const samples: Array<{ time: number; heading: number }> = [];
+    for (let t = 0; t <= duration; t += step) {
+      samples.push({ time: t, heading: interpolateHeading(points, t) });
+    }
+    return samples;
+  }, [duration, points]);
+
+  const desiredPathStr = desiredSamples
+    .map((sample) => {
+      const mapped = toChart(sample.time, sample.heading);
       return `${mapped.x.toFixed(1)},${mapped.y.toFixed(1)}`;
     })
     .join(' ');
 
+  const actualPathStr = actualData
+    ? actualData.time
+        .map((t, index) => {
+          const mapped = toChart(t, actualData.actualHeading[index] ?? 0);
+          return `${mapped.x.toFixed(1)},${mapped.y.toFixed(1)}`;
+        })
+        .join(' ')
+    : '';
+
+  const ticks = 6;
+  const timeTicks = Array.from({ length: ticks }, (_, i) =>
+    Math.round((duration * i) / (ticks - 1)),
+  );
+  const headingTicks = [-180, -90, 0, 90, 180, 270, 360];
+
   return (
-    <Card className="border-slate-800 bg-slate-900/60">
-      <CardHeader>
-        <CardTitle className="text-lg text-white">快速仿真 - 关键点航迹</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 text-sm text-slate-300">
-        <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
-          <svg
-            width={width}
-            height={height}
-            className="touch-none"
-            onPointerDown={(event) => {
-              if (event.target !== event.currentTarget) return;
-              const point = toWorld(event);
-              setWaypoints((prev) => [...prev, point]);
-            }}
-            onPointerMove={(event) => {
-              if (dragIndex === null) return;
-              const point = toWorld(event);
-              setWaypoints((prev) =>
-                prev.map((item, index) => (index === dragIndex ? point : item)),
-              );
-            }}
-            onPointerUp={() => setDragIndex(null)}
-            onPointerLeave={() => setDragIndex(null)}
-          >
-            <rect width={width} height={height} fill="#0b1324" fillOpacity="0.7" />
-            {waypoints.length > 1 ? (
-              <polyline
-                points={pathStr}
-                fill="none"
-                stroke="#f97316"
-                strokeWidth="2"
+    <svg
+      viewBox={`0 0 ${viewWidth} ${viewHeight}`}
+      preserveAspectRatio="none"
+      className="h-full w-full touch-none"
+      onPointerDown={(event) => {
+        if (event.target instanceof SVGCircleElement) return;
+        const point = toData(event);
+        setPoints((prev) => insertHeadingPoint(prev, point, duration));
+      }}
+      onPointerMove={(event) => {
+        if (dragIndex === null) return;
+        const point = toData(event);
+        setPoints((prev) => updateHeadingPoint(prev, dragIndex, point, duration));
+      }}
+      onPointerUp={() => setDragIndex(null)}
+      onPointerLeave={() => setDragIndex(null)}
+    >
+      <rect width={viewWidth} height={viewHeight} fill="#0b1324" fillOpacity="0.7" />
+      {headingTicks.map((heading) => {
+        const line = toChart(0, heading);
+        return (
+          <g key={`h-${heading}`}>
+            <line
+              x1={padding.left}
+              x2={viewWidth - padding.right}
+              y1={line.y}
+              y2={line.y}
+              stroke="rgba(148,163,184,0.15)"
+              strokeWidth="1"
+            />
+            <text
+              x={padding.left - 6}
+              y={line.y + 4}
+              fontSize="10"
+              fill="#94a3b8"
+              textAnchor="end"
+            >
+              {heading}
+            </text>
+          </g>
+        );
+      })}
+      {timeTicks.map((time) => {
+        const line = toChart(time, HEADING_RANGE.min);
+        return (
+          <g key={`t-${time}`}>
+            <line
+              x1={line.x}
+              x2={line.x}
+              y1={padding.top}
+              y2={viewHeight - padding.bottom}
+              stroke="rgba(148,163,184,0.1)"
+              strokeWidth="1"
+            />
+            <text
+              x={line.x}
+              y={viewHeight - padding.bottom + 18}
+              fontSize="10"
+              fill="#94a3b8"
+              textAnchor="middle"
+            >
+              {time}s
+            </text>
+          </g>
+        );
+      })}
+      {desiredSamples.length > 1 ? (
+        <polyline
+          points={desiredPathStr}
+          fill="none"
+          stroke="#f97316"
+          strokeWidth="2"
+        />
+      ) : null}
+      {actualData && actualData.time.length > 1 ? (
+        <polyline
+          points={actualPathStr}
+          fill="none"
+          stroke="#22c55e"
+          strokeWidth="2"
+          opacity="0.85"
+        />
+      ) : null}
+      {points.map((point, index) => {
+        const mapped = toChart(point.time, point.heading);
+        return (
+          <g key={`pt-${index}`} transform={`translate(${mapped.x} ${mapped.y})`}>
+            <circle
+              r="7"
+              fill="#38bdf8"
+              stroke="#0f172a"
+              strokeWidth="2"
+              onPointerDown={(event) => {
+                event.stopPropagation();
+                setDragIndex(index);
+              }}
+            />
+            <text
+              x="0"
+              y="0"
+              textAnchor="middle"
+              alignmentBaseline="middle"
+              fontSize="9"
+              fill="#0f172a"
+              pointerEvents="none"
+            >
+              {index + 1}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function HeadingPointTable({
+  points,
+  setPoints,
+  duration,
+  onAdd,
+}: {
+  points: HeadingPoint[];
+  setPoints: Dispatch<SetStateAction<HeadingPoint[]>>;
+  duration: number;
+  onAdd: () => void;
+}) {
+  return (
+    <div className="space-y-2 text-sm text-slate-300">
+      <div className="flex items-center justify-between text-xs text-slate-400">
+        <span>时间范围 0 - {duration}s</span>
+        <Button size="sm" variant="secondary" onClick={onAdd}>
+          新增节点
+        </Button>
+      </div>
+      <div className="grid grid-cols-[1fr_1fr_auto] gap-2 text-xs text-slate-400">
+        <span>时间 (s)</span>
+        <span>航向 (°)</span>
+        <span />
+      </div>
+      <div className="max-h-48 overflow-auto pr-1">
+        <div className="grid gap-2">
+          {points.map((point, index) => (
+            <div
+              key={`row-${index}`}
+              className="grid grid-cols-[1fr_1fr_auto] items-center gap-2"
+            >
+              <Input
+                type="number"
+                value={point.time}
+                min={0}
+                max={duration}
+                step={0.5}
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+                  setPoints((prev) =>
+                    updateHeadingPoint(
+                      prev,
+                      index,
+                      { ...prev[index], time: Number.isNaN(value) ? 0 : value },
+                      duration,
+                    ),
+                  );
+                }}
               />
-            ) : null}
-            {waypoints.map((point, index) => {
-              const mapped = toMap(point);
-              return (
-                <g key={`${index}-${point.x}-${point.z}`} transform={`translate(${mapped.x} ${mapped.y})`}>
-                  <circle
-                    r="7"
-                    fill="#38bdf8"
-                    stroke="#0f172a"
-                    strokeWidth="2"
-                    onPointerDown={(event) => {
-                      event.stopPropagation();
-                      setDragIndex(index);
-                    }}
-                  />
-                  <text
-                    x="0"
-                    y="0"
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    fontSize="9"
-                    fill="#0f172a"
-                    pointerEvents="none"
-                  >
-                    {index + 1}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-          <span>点击空白处添加航迹点</span>
-          <span>拖拽点调整路径</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onRemoveLast}
-            disabled={waypoints.length <= 2}
-          >
-            删除末点
-          </Button>
-          <Button size="sm" variant="outline" onClick={onReset}>
-            重置参考航迹
-          </Button>
-        </div>
-        <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
-          {waypoints.map((point, index) => (
-            <div key={`point-${index}`}>
-              P{index + 1}: {point.x.toFixed(0)}, {point.z.toFixed(0)}
+              <Input
+                type="number"
+                value={point.heading}
+                min={HEADING_RANGE.min}
+                max={HEADING_RANGE.max}
+                step={1}
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+                  setPoints((prev) =>
+                    updateHeadingPoint(
+                      prev,
+                      index,
+                      { ...prev[index], heading: Number.isNaN(value) ? 0 : value },
+                      duration,
+                    ),
+                  );
+                }}
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() =>
+                  setPoints((prev) =>
+                    prev.length > 2 ? prev.filter((_, i) => i !== index) : prev,
+                  )
+                }
+                disabled={points.length <= 2}
+              >
+                ×
+              </Button>
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -965,7 +1127,7 @@ export function DestroyerSimulation() {
   });
   const [viewMode, setViewMode] = useState<'simulation' | 'chart'>('simulation');
   const [quickMode, setQuickMode] = useState(false);
-  const [quickWaypoints, setQuickWaypoints] = useState<TrajectoryPoint[]>([]);
+  const [quickHeadingPoints, setQuickHeadingPoints] = useState<HeadingPoint[]>([]);
   const [quickResult, setQuickResult] = useState<QuickSimResult | null>(null);
   const [useCustomScenario, setUseCustomScenario] = useState(false);
   const [customScenario, setCustomScenario] = useState<CustomScenario | null>(null);
@@ -981,11 +1143,7 @@ export function DestroyerSimulation() {
   const activeTask = tasks[safeTaskIndex];
   const isCustomScenario = useCustomScenario && !!customScenario;
   
-  // 动态生成场景配置
-  const scenarioConfig = useMemo<CustomScenario>(() => {
-    if (useCustomScenario && customScenario) {
-      return customScenario;
-    }
+  const baseScenario = useMemo<CustomScenario>(() => {
     if (!activeTask) {
       const logic = getScenarioLogic('turn90');
       const path = generateGuidePath(logic, 0);
@@ -1004,17 +1162,36 @@ export function DestroyerSimulation() {
       start: logic.startPos,
       duration: activeTask.duration,
     };
-  }, [activeTask, customScenario, useCustomScenario]);
-  const scenarioDuration = scenarioConfig.duration;
+  }, [activeTask]);
+
+  // 动态生成场景配置
+  const scenarioConfig = useMemo<CustomScenario>(() => {
+    if (useCustomScenario && customScenario) {
+      return {
+        ...customScenario,
+        guidePath: baseScenario.guidePath,
+        start: baseScenario.start,
+        duration: baseScenario.duration,
+      };
+    }
+    return baseScenario;
+  }, [baseScenario, customScenario, useCustomScenario]);
+  const scenarioDuration = baseScenario.duration;
 
   const speedOptions = useMemo(() => [0.5, 1, 2, 4], []);
-  const baseWaypoints = useMemo(
-    () => createWaypointsFromGuidePath(scenarioConfig.guidePath, 4),
-    [scenarioConfig.guidePath],
+  const baseHeadingPoints = useMemo(
+    () => createHeadingPointsFromLogic(baseScenario.logic, baseScenario.duration, 5),
+    [baseScenario.duration, baseScenario.logic],
   );
   const quickScenario = useMemo(
-    () => buildScenarioFromWaypoints(quickWaypoints),
-    [quickWaypoints],
+    () =>
+      buildScenarioFromHeadingPoints(
+        quickHeadingPoints,
+        baseScenario.start,
+        baseScenario.duration,
+        baseScenario.guidePath,
+      ),
+    [baseScenario.duration, baseScenario.guidePath, baseScenario.start, quickHeadingPoints],
   );
 
   const adjustSpeed = useCallback((direction: number) => {
@@ -1080,11 +1257,18 @@ export function DestroyerSimulation() {
   }, []);
 
   const handleRunQuickSimulation = useCallback(() => {
-    const result = runQuickSimulation(quickWaypoints, pidGains, controlMode);
+    const result = runQuickSimulation(
+      quickHeadingPoints,
+      pidGains,
+      controlMode,
+      baseScenario.start,
+      baseScenario.duration,
+      baseScenario.guidePath,
+    );
     if (result) {
       setQuickResult(result);
     }
-  }, [controlMode, pidGains, quickWaypoints]);
+  }, [baseScenario.duration, baseScenario.guidePath, baseScenario.start, controlMode, pidGains, quickHeadingPoints]);
 
   const handleApplyQuickScenario = useCallback(() => {
     if (!quickScenario) return;
@@ -1095,9 +1279,32 @@ export function DestroyerSimulation() {
     resetScenarioState();
   }, [quickScenario, resetScenarioState]);
 
+  const handleAddHeadingPoint = useCallback(() => {
+    setQuickHeadingPoints((prev) => {
+      if (prev.length === 0) {
+        return [
+          { time: 0, heading: 0 },
+          { time: Math.max(1, scenarioDuration), heading: 0 },
+        ];
+      }
+      if (prev.length === 1) {
+        return insertHeadingPoint(
+          prev,
+          { time: clamp(prev[0].time + 10, 0, scenarioDuration), heading: prev[0].heading },
+          scenarioDuration,
+        );
+      }
+      const last = prev[prev.length - 1];
+      const beforeLast = prev[prev.length - 2];
+      const time = (beforeLast.time + last.time) / 2;
+      const heading = (beforeLast.heading + last.heading) / 2;
+      return insertHeadingPoint(prev, { time, heading }, scenarioDuration);
+    });
+  }, [scenarioDuration]);
+
   useEffect(() => {
-    setQuickWaypoints(baseWaypoints);
-  }, [baseWaypoints]);
+    setQuickHeadingPoints(baseHeadingPoints);
+  }, [baseHeadingPoints]);
 
   useEffect(() => {
     if (taskIndex !== safeTaskIndex) {
@@ -1107,7 +1314,7 @@ export function DestroyerSimulation() {
 
   useEffect(() => {
     setQuickResult(null);
-  }, [quickWaypoints, pidGains, controlMode]);
+  }, [quickHeadingPoints, pidGains, controlMode]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -1192,15 +1399,15 @@ export function DestroyerSimulation() {
   }, [hud.time, hud.avgError, activeTask, isCustomScenario, scenarioDuration, taskIndex]);
 
   const chartDisplayData = quickMode && quickResult ? quickResult.data : chartData;
-  const previewDesiredPath = useMemo(() => {
-    if (quickMode && quickResult) return quickResult.desiredPath;
-    return scenarioConfig.guidePath.map((point) => ({ x: point.x, z: point.z }));
-  }, [quickMode, quickResult, scenarioConfig.guidePath]);
+  const previewDesiredPath = useMemo(
+    () => baseScenario.guidePath.map((point) => ({ x: point.x, z: point.z })),
+    [baseScenario.guidePath],
+  );
   const previewActualPath = useMemo(() => {
     if (quickMode && quickResult) return quickResult.actualPath;
     return miniTrail;
   }, [miniTrail, quickMode, quickResult]);
-  const canRunQuick = quickWaypoints.length >= 2;
+  const canRunQuick = quickHeadingPoints.length >= 2;
   const canApplyQuick = !!quickScenario;
 
   return (
@@ -1209,24 +1416,40 @@ export function DestroyerSimulation() {
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
           <div className="space-y-6 min-w-0">
             <div className="h-[520px] w-full">
-              <SimulationChart
-                data={chartDisplayData}
-                onBack={() => {
-                  setViewMode('simulation');
-                  setQuickMode(false);
-                }}
-              />
+              {quickMode ? (
+                <div className="flex h-full w-full flex-col bg-slate-950 p-6">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-2xl font-semibold text-slate-100">仿真曲线</h2>
+                    <Button
+                      onClick={() => {
+                        setViewMode('simulation');
+                        setQuickMode(false);
+                      }}
+                      variant="default"
+                      size="lg"
+                    >
+                      返回场景
+                    </Button>
+                  </div>
+                  <div className="flex-1 rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+                    <HeadingChartEditor
+                      points={quickHeadingPoints}
+                      setPoints={setQuickHeadingPoints}
+                      duration={scenarioDuration}
+                      actualData={quickResult ? quickResult.data : null}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <SimulationChart
+                  data={chartDisplayData}
+                  onBack={() => {
+                    setViewMode('simulation');
+                    setQuickMode(false);
+                  }}
+                />
+              )}
             </div>
-            {quickMode ? (
-              <QuickSimEditor
-                waypoints={quickWaypoints}
-                setWaypoints={setQuickWaypoints}
-                onReset={() => setQuickWaypoints(baseWaypoints)}
-                onRemoveLast={() =>
-                  setQuickWaypoints((prev) => (prev.length > 2 ? prev.slice(0, -1) : prev))
-                }
-              />
-            ) : null}
           </div>
           <div className="space-y-6 min-w-0">
             <Card className="border-slate-800 bg-slate-900/60">
@@ -1243,7 +1466,7 @@ export function DestroyerSimulation() {
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-slate-300">
                 <p className="text-xs text-slate-400">
-                  进入快速仿真后，可编辑关键点航迹并一键计算航向与航迹曲线。
+                  进入快速仿真后，可在曲线图拖拽关键点或输入航向角-时间对，生成期望航向曲线。
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -1261,6 +1484,14 @@ export function DestroyerSimulation() {
                   >
                     运行仿真
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setQuickHeadingPoints(baseHeadingPoints)}
+                    disabled={!quickMode}
+                  >
+                    重置曲线
+                  </Button>
                 </div>
                 <Button
                   size="sm"
@@ -1270,6 +1501,14 @@ export function DestroyerSimulation() {
                 >
                   使用该组参数
                 </Button>
+                {quickMode ? (
+                  <HeadingPointTable
+                    points={quickHeadingPoints}
+                    setPoints={setQuickHeadingPoints}
+                    duration={scenarioDuration}
+                    onAdd={handleAddHeadingPoint}
+                  />
+                ) : null}
               </CardContent>
             </Card>
             <Card className="border-slate-800 bg-slate-900/60">
