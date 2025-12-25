@@ -1442,9 +1442,9 @@ function SimulationLoop({
     // 应用到船舶模型
     if (shipRef.current) {
       // 动态调整基准高度：
-      // 增加偏移量到 +9.5，进一步抬高船体5米。
+      // 进一步抬高 3 米（从 +9.5 到 +12.5），优化吃水表现。
       
-      shipRef.current.position.set(sim.position.x, sim.waveY + 9.5, sim.position.z); 
+      shipRef.current.position.set(sim.position.x, sim.waveY + 12.5, sim.position.z); 
       shipRef.current.rotation.set(
         sim.wavePitch,                          // X轴：俯仰
         -sim.headingRad + Math.PI / 2,          // Y轴：航向
