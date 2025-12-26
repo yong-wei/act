@@ -43,5 +43,5 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 3.  **价值引领**：将思政教育无缝融入专业技能训练，实现立德树人。
 
 ## 5. 演示账号
-*   账号：demo
+*   账号：demo/demo@example.com
 *   密码：123456
