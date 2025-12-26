@@ -61,6 +61,23 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = user.id;
         session.user.role = user.role ?? UserRole.STUDENT;
+
+        // 获取学生档案数据
+        const profile = await prisma.studentProfile.findUnique({
+          where: { userId: user.id },
+          select: {
+            studentNumber: true,
+            classId: true,
+            techScore: true,
+            ethicsScore: true,
+            major: true,
+            className: true,
+          },
+        });
+
+        if (profile) {
+          session.user.profile = profile;
+        }
       }
       return session;
     },

@@ -13,28 +13,59 @@ enum UserRole {
   ADMIN
 }
 
+// 任务难度等级
+enum MissionDifficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+// 用户进度状态
+enum ProgressStatus {
+  LOCKED
+  UNLOCKED
+  IN_PROGRESS
+  COMPLETED
+}
+
+// 伦理违规类型
+enum ViolationType {
+  EXCESSIVE_RUDDER_RATE // 舵角速度过快
+  EXCESSIVE_ROLL_ANGLE // 横摇角过大
+  COLLISION_RISK // 碰撞风险
+  ENVIRONMENTAL_HAZARD // 环境危害
+  SAFETY_VIOLATION // 安全违规
+}
+
 model User {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String?  @unique
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
-  role          UserRole @default(STUDENT)
+  role          UserRole  @default(STUDENT)
   passwordHash  String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   accounts           Account[]
   sessions           Session[]
   profile            StudentProfile?
   simulationSessions SimulationSession[]
   llmSessions        LlmSession[]
+  progress           UserProgress[]
+  simulationLogs     SimulationLog[]
+  ethicalLogs        EthicalLog[]
 }
 
 model StudentProfile {
   id            String   @id @default(cuid())
   userId        String   @unique
   studentNumber String?
+  classId       String? // 班级ID
+  techScore     Float    @default(0) // 技术能力分
+  ethicsScore   Float    @default(100) // 伦理分（初始满分，违规扣减）
   major         String?
   year          String?
   className     String?
@@ -109,4 +140,90 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// ========== 新增模型 ==========
+
+// 任务/关卡定义
+model Mission {
+  id             String            @id @default(cuid())
+  title          String // 任务名称
+  description    String? // 任务描述
+  difficulty     MissionDifficulty @default(EASY) // 难度等级
+  order          Int               @default(0) // 排序索引
+  objectives     Json? // 任务目标列表 string[]
+  unlockCriteria Json? // 解锁条件 { requiredMissionId: string, requiredScore: number }
+  seaStateConfig Json? // 海况配置 { level, waveHeight, windSpeed }
+  shipType       String            @default("destroyer") // 船舶类型
+  taskType       String            @default("turn90") // 任务类型: turn90, obstacle, circle
+  duration       Int               @default(180) // 任务时长（秒）
+  isActive       Boolean           @default(true) // 是否启用
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  progress       UserProgress[]
+  simulationLogs SimulationLog[]
+}
+
+// 用户任务进度
+model UserProgress {
+  id          String         @id @default(cuid())
+  userId      String
+  missionId   String
+  status      ProgressStatus @default(LOCKED)
+  bestScore   Float? // 最高分
+  attempts    Int            @default(0) // 尝试次数
+  completedAt DateTime? // 完成时间
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, missionId])
+  @@index([userId])
+  @@index([missionId])
+}
+
+// 仿真详细日志
+model SimulationLog {
+  id                 String   @id @default(cuid())
+  userId             String
+  missionId          String?
+  sessionId          String? // 关联 SimulationSession
+  controlMode        String   @default("PID") // 控制模式: Manual, P, PD, PID
+  inputParams        Json // { kp, ki, kd, targetHeading, seaState }
+  metrics            Json // { avgError, maxRudderRate, energyConsumption, settlingTime }
+  trajectoryData     Json? // 轨迹数据数组 [{ time, x, z, heading, rudder }]
+  isEthicalViolation Boolean  @default(false) // 是否触发伦理违规
+  score              Float? // 得分
+  duration           Float? // 实际仿真时长（秒）
+  createdAt          DateTime @default(now())
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission    Mission?    @relation(fields: [missionId], references: [id])
+  ethicalLog EthicalLog?
+
+  @@index([userId])
+  @@index([missionId])
+}
+
+// 伦理违规记录
+model EthicalLog {
+  id                   String        @id @default(cuid())
+  simulationLogId      String        @unique
+  userId               String
+  violationType        ViolationType // 违规类型
+  thresholdValue       Float? // 阈值
+  actualValue          Float? // 实际值
+  aiCritique           String?       @db.Text // AI生成的风险描述
+  studentJustification String?       @db.Text // 学生整改方案
+  isResolved           Boolean       @default(false) // 是否已整改
+  resolvedAt           DateTime? // 整改时间
+  createdAt            DateTime      @default(now())
+
+  simulationLog SimulationLog @relation(fields: [simulationLogId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
