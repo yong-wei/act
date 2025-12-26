@@ -1,4 +1,3 @@
-import { PrismaAdapter } from '@auth/prisma-adapter';
 import { UserRole } from '@prisma/client';
 import { compare } from 'bcryptjs';
 import { getServerSession, type NextAuthOptions } from 'next-auth';
@@ -7,9 +6,8 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   session: {
-    strategy: 'database',
+    strategy: 'jwt',
   },
   pages: {
     signIn: '/login',
@@ -57,14 +55,22 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async session({ session, user }) {
+    async jwt({ token, user }) {
+      // 首次登录时，user 对象存在
+      if (user) {
+        token.id = user.id;
+        token.role = user.role ?? UserRole.STUDENT;
+      }
+      return token;
+    },
+    async session({ session, token }) {
       if (session.user) {
-        session.user.id = user.id;
-        session.user.role = user.role ?? UserRole.STUDENT;
+        session.user.id = token.id as string;
+        session.user.role = (token.role as UserRole) ?? UserRole.STUDENT;
 
         // 获取学生档案数据
         const profile = await prisma.studentProfile.findUnique({
-          where: { userId: user.id },
+          where: { userId: token.id as string },
           select: {
             studentNumber: true,
             classId: true,
