@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 
 const DEMO_ACCOUNT = {
   name: 'demo',
-  email: 'demo@student.local',
+  email: 'demo@example.com',
   password: '123456',
 }
 
@@ -25,12 +25,12 @@ async function main() {
       where: { id: existing.id },
       data: {
         name: DEMO_ACCOUNT.name,
-        email: existing.email ?? DEMO_ACCOUNT.email,
+        email: DEMO_ACCOUNT.email,
         passwordHash,
         role: UserRole.STUDENT,
       },
     })
-    console.log('Demo user updated.')
+    console.log(`Demo user updated: ${DEMO_ACCOUNT.email}`)
     return
   }
 
