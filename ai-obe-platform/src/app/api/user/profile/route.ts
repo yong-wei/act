@@ -7,7 +7,7 @@
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { computeCompetencyFromSimulations, type CompetencyData } from '@/components/dashboard/competency-radar';
+import { computeCompetencyFromSimulations, type CompetencyData } from '@/lib/competency';
 
 export interface UserProfileResponse {
   user: {
