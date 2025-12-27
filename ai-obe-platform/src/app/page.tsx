@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import {
   ArrowUpRight,
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   Compass,
@@ -114,10 +115,10 @@ const moduleLinks = [
     icon: Cpu,
   },
   {
-    title: '虚实实验室',
-    description: '模型清单 · 仿真入口 · 任务链状态',
-    href: '/virtual-lab',
-    icon: Layers,
+    title: '互动学习',
+    description: '幅角原理 · 控制地图 · 交互探索',
+    href: '/interactive-learning',
+    icon: BookOpen,
   },
 ]
 
@@ -176,7 +177,7 @@ export default function HomePage() {
               <Link href="/knowledge" className="hover:text-amber-alert">知识图谱</Link>
               <Link href="/ethics" className="hover:text-amber-alert">思政沙盘</Link>
               <Link href="/ai" className="hover:text-amber-alert">AI工坊</Link>
-              <Link href="/virtual-lab" className="hover:text-amber-alert">虚实实验室</Link>
+              <Link href="/interactive-learning" className="hover:text-amber-alert">互动学习</Link>
             </div>
             <div className="flex items-center gap-3">
               <Button

@@ -7,7 +7,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2025-12-26
+📅 **最后更新**：2025-12-27
 🚀 **部署方式**：本地开发 + Docker 容器化部署
 
 ## 3. 核心功能模块
@@ -125,6 +125,23 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **伦理评估**：量化决策能力
 - **状态**：框架已搭建，案例待补充
 
+### 3.12 互动学习 (Interactive Learning) ✅
+- **模块入口**：`/interactive-learning`
+- **幅角原理可视化**：
+  - 双平面同步显示（F(s)源平面 + 映射平面）
+  - 三种输入格式：传递函数、零极点增益、自然表达式
+  - 四种包围线类型：圆形、半圆延直线、矩形、手动绘制
+  - 实时绕原点圈数计算
+  - 缩放、平移、交互式绘制
+- **控制理论地图**：
+  - React Flow 交互式拓扑图
+  - 5大知识区域：建模与仿真、系统分析、经典控制、现代控制、非线性与智能
+  - 18个控制理论核心概念节点
+  - 点击节点展开详情侧边栏（KaTeX 公式渲染）
+  - 全局搜索和视图切换（时域/频域、连续/离散）
+  - 节点悬停高亮关联节点
+- **导航入口**：首页顶部导航栏、登录页顶部导航栏
+
 ## 4. 技术架构
 
 ### 4.1 前端技术栈
@@ -134,6 +151,9 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **UI 组件**：shadcn/ui + Radix UI
 - **3D 渲染**：React Three Fiber + Three.js
 - **图表**：Recharts
+- **图谱可视化**：React Flow
+- **公式渲染**：KaTeX
+- **数学计算**：mathjs
 - **状态管理**：React Hooks
 
 ### 4.2 后端技术栈
@@ -179,6 +199,9 @@ ai-obe-platform/
 │   │   │   ├── missions/        # 任务大厅
 │   │   │   └── profile/         # 个人中心
 │   │   ├── ai/copilot/          # AI 虚拟总工
+│   │   ├── interactive-learning/ # 互动学习模块
+│   │   │   ├── argument-principle/  # 幅角原理
+│   │   │   └── control-map/         # 控制地图
 │   │   ├── simulations/destroyer/  # 驱逐舰仿真
 │   │   ├── api/                 # API 路由
 │   │   │   ├── auth/            # 认证 API
