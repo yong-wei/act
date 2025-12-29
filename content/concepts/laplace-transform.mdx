@@ -1,0 +1,55 @@
+# 拉普拉斯变换
+
+拉普拉斯变换是将时域信号转换到复频域的数学工具，是控制系统分析的核心。
+
+## 定义
+
+$$\mathcal{L}\{f(t)\} = F(s) = \int_0^{\infty} f(t) e^{-st} dt$$
+
+其中 $s = \sigma + j\omega$ 是复频率变量。
+
+## 常用变换对
+
+| 时域 $f(t)$ | 复频域 $F(s)$ |
+|------------|--------------|
+| $1$ (单位阶跃) | $\frac{1}{s}$ |
+| $t$ | $\frac{1}{s^2}$ |
+| $e^{-at}$ | $\frac{1}{s+a}$ |
+| $\sin(\omega t)$ | $\frac{\omega}{s^2+\omega^2}$ |
+| $\cos(\omega t)$ | $\frac{s}{s^2+\omega^2}$ |
+
+## 重要性质
+
+### 1. 线性性
+
+$$\mathcal{L}\{af(t) + bg(t)\} = aF(s) + bG(s)$$
+
+### 2. 微分性质（最重要！）
+
+$$\mathcal{L}\{\dot{f}(t)\} = sF(s) - f(0)$$
+
+$$\mathcal{L}\{\ddot{f}(t)\} = s^2F(s) - sf(0) - \dot{f}(0)$$
+
+**零初始条件下**，微分对应乘以 $s$：
+
+$$\dot{f}(t) \rightarrow sF(s)$$
+
+### 3. 积分性质
+
+$$\mathcal{L}\left\{\int_0^t f(\tau)d\tau\right\} = \frac{F(s)}{s}$$
+
+## 在控制工程中的应用
+
+将微分方程：
+
+$$J\ddot{\theta} + f\dot{\theta} + k\theta = T$$
+
+进行拉普拉斯变换（零初始条件）：
+
+$$Js^2\Theta(s) + fs\Theta(s) + k\Theta(s) = T(s)$$
+
+得到**传递函数**：
+
+$$G(s) = \frac{\Theta(s)}{T(s)} = \frac{1}{Js^2 + fs + k}$$
+
+这就是从时域方程到传递函数的标准流程。
