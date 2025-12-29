@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Compass, Gauge, Map, Ship } from 'lucide-react';
+import { ArrowRight, Compass, Gauge, Map, Ship, Wrench } from 'lucide-react';
 
 const modules = [
   {
@@ -34,6 +34,16 @@ const modules = [
     color: 'emerald',
     features: ['多对象控制模型', '响应曲线可视化', 'Kp/Ki/Kd 调参'],
   },
+  {
+    id: 'physics-modeling',
+    title: '物理建模工坊',
+    titleEn: 'Physics Modeling Workshop',
+    description: '从零搭建弹簧-质量-阻尼模型和RLC电路，通过拖拽元件理解微分方程的物理意义。含机电相似映射和AI批改。',
+    href: '/interactive-learning/physics-modeling',
+    icon: Wrench,
+    color: 'violet',
+    features: ['拖拽式建模', '实时方程生成', '机电相似映射', 'AI 方程批改'],
+  },
 ];
 
 const colorClasses = {
@@ -54,6 +64,12 @@ const colorClasses = {
     iconText: 'text-emerald-400',
     border: 'border-emerald-500/30 hover:border-emerald-500/60',
     badge: 'bg-emerald-500/20 text-emerald-400',
+  },
+  violet: {
+    iconBg: 'bg-violet-500/20',
+    iconText: 'text-violet-400',
+    border: 'border-violet-500/30 hover:border-violet-500/60',
+    badge: 'bg-violet-500/20 text-violet-400',
   },
 };
 
