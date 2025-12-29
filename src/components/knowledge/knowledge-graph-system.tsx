@@ -6,10 +6,11 @@
  * 重构自 knowledge0316.html，使用 React Three Fiber
  */
 
-import { Suspense, useState, useCallback } from 'react';
+import { Suspense, useState, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { KnowledgeSidebar } from './sidebar/knowledge-sidebar';
 import { ResourcePanel } from './resource-panel/resource-panel';
+import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards';
 
 // 动态导入 3D 图谱组件（客户端专用）
 const KnowledgeGraphCanvas = dynamic(
@@ -119,6 +120,18 @@ export function KnowledgeGraphSystem({
   const [activeTab, setActiveTab] = useState<'cognitive' | 'style' | 'ethics'>('cognitive');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // 合并课程知识卡片到节点列表
+  const allNodes = useMemo(() => {
+    const lessonCards = getAllLessonCards();
+    return [...nodes, ...lessonCards];
+  }, [nodes]);
+
+  // 合并课程知识卡片连接到连接列表
+  const allLinks = useMemo(() => {
+    const lessonLinks = getAllLessonCardLinks();
+    return [...links, ...lessonLinks];
+  }, [links]);
+
   // 节点点击处理
   const handleNodeClick = useCallback((node: KnowledgeNodeData) => {
     setSelectedNode(node);
@@ -135,14 +148,14 @@ export function KnowledgeGraphSystem({
     setIsPanelOpen(false);
   }, []);
 
-  // 搜索节点
+  // 搜索节点（使用合并后的节点列表）
   const filteredNodes = searchQuery
-    ? nodes.filter(
+    ? allNodes.filter(
         (node) =>
           node.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           node.description.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : nodes;
+    : allNodes;
 
   return (
     <div className="flex h-screen w-full bg-[#020721] text-slate-200">
@@ -154,7 +167,7 @@ export function KnowledgeGraphSystem({
         onSearchChange={setSearchQuery}
         learningPath={learningPath}
         onNodeSelect={handleNodeClick}
-        nodes={nodes}
+        nodes={allNodes}
       />
 
       {/* 中央图谱区域 */}
@@ -172,7 +185,7 @@ export function KnowledgeGraphSystem({
         >
           <KnowledgeGraphCanvas
             nodes={filteredNodes}
-            links={links}
+            links={allLinks}
             selectedNode={selectedNode}
             hoveredNode={hoveredNode}
             onNodeClick={handleNodeClick}

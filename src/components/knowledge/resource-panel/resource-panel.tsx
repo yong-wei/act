@@ -5,8 +5,9 @@
  */
 
 import { useState } from 'react';
-import { X, FileText, Beaker, Scale } from 'lucide-react';
+import { X, FileText, Beaker, Scale, BookOpen, GraduationCap } from 'lucide-react';
 import type { KnowledgeNodeData } from '../knowledge-graph-system';
+import { getLessonKnowledgeCard } from '../data/lesson-knowledge-cards';
 
 interface ResourcePanelProps {
   isOpen: boolean;
@@ -98,15 +99,46 @@ export function ResourcePanel({ isOpen, selectedNode, onClose }: ResourcePanelPr
 
 // 知识维度内容
 function KnowledgeContent({ node }: { node: KnowledgeNodeData }) {
+  // 检查是否为课程知识卡片
+  const lessonCard = getLessonKnowledgeCard(node.id);
+  const isLessonCard = !!lessonCard;
+
   return (
     <div className="space-y-4">
+      {/* 课程知识卡片标签 */}
+      {isLessonCard && (
+        <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2">
+          <GraduationCap className="h-4 w-4 text-amber-500" />
+          <span className="text-sm text-amber-400">
+            课程知识卡片 · {lessonCard.lessonId === 'lesson-02' ? '第2课：微分方程建模' : lessonCard.lessonId}
+          </span>
+        </div>
+      )}
+
       {/* 基本原理 */}
       <div className="rounded-lg border border-blue-500/20 bg-[#0c1d4f]/50 p-4">
-        <h3 className="mb-3 font-medium text-blue-400">{node.name}基本原理</h3>
+        <h3 className="mb-3 font-medium text-blue-400">
+          {isLessonCard ? '核心概念' : `${node.name}基本原理`}
+        </h3>
         <p className="text-sm leading-relaxed text-slate-300">{node.description}</p>
 
-        {/* 示例公式 */}
-        {node.nodeType === 'THEORY' && (
+        {/* 详细解释（课程知识卡片） */}
+        {isLessonCard && lessonCard.explanation && (
+          <p className="mt-3 text-sm leading-relaxed text-slate-400">{lessonCard.explanation}</p>
+        )}
+
+        {/* 公式显示 */}
+        {isLessonCard && lessonCard.formulaContinuous && (
+          <div className="mt-4 rounded-lg bg-[#020721] p-4">
+            <div className="mb-2 text-xs text-slate-500">核心公式</div>
+            <code className="block text-center font-mono text-lg text-emerald-400">
+              {formatLatexForDisplay(lessonCard.formulaContinuous)}
+            </code>
+          </div>
+        )}
+
+        {/* 示例公式（非课程卡片） */}
+        {!isLessonCard && node.nodeType === 'THEORY' && (
           <div className="mt-4 rounded-lg bg-[#020721] p-4 text-center">
             <span className="font-serif text-lg text-slate-200">
               {node.name === 'Nyquist判据' && 'Z = N + P'}
@@ -119,6 +151,23 @@ function KnowledgeContent({ node }: { node: KnowledgeNodeData }) {
           </div>
         )}
       </div>
+
+      {/* 应用领域（课程知识卡片） */}
+      {isLessonCard && lessonCard.applications && lessonCard.applications.length > 0 && (
+        <div className="rounded-lg border border-blue-500/20 bg-[#0c1d4f]/50 p-4">
+          <h3 className="mb-3 font-medium text-blue-400">应用领域</h3>
+          <div className="flex flex-wrap gap-2">
+            {lessonCard.applications.map((app, index) => (
+              <span
+                key={index}
+                className="rounded-full bg-blue-500/20 px-3 py-1 text-xs text-blue-300"
+              >
+                {app}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 船舶应用 */}
       <div className="rounded-lg border border-blue-500/20 bg-[#0c1d4f]/50 p-4">
@@ -303,4 +352,40 @@ function EthicsContent({ node }: { node: KnowledgeNodeData }) {
       </button>
     </div>
   );
+}
+
+/**
+ * 将 LaTeX 公式转换为可读显示格式
+ * 简单替换常见的 LaTeX 符号为 Unicode/HTML 等价物
+ */
+function formatLatexForDisplay(latex: string): string {
+  return latex
+    // 希腊字母
+    .replace(/\\alpha/g, 'α')
+    .replace(/\\beta/g, 'β')
+    .replace(/\\gamma/g, 'γ')
+    .replace(/\\delta/g, 'δ')
+    .replace(/\\theta/g, 'θ')
+    .replace(/\\omega/g, 'ω')
+    .replace(/\\pi/g, 'π')
+    // 导数符号
+    .replace(/\\ddot\{([^}]+)\}/g, '$1̈')
+    .replace(/\\dot\{([^}]+)\}/g, '$1̇')
+    // 分数
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)')
+    // 积分
+    .replace(/\\int/g, '∫')
+    // 三角函数
+    .replace(/\\sin/g, 'sin')
+    .replace(/\\cos/g, 'cos')
+    .replace(/\\tan/g, 'tan')
+    // 约等于
+    .replace(/\\approx/g, '≈')
+    // 小于小于
+    .replace(/\\ll/g, '≪')
+    // 移除剩余的反斜杠命令
+    .replace(/\\quad/g, '  ')
+    .replace(/\\,/g, ' ')
+    .replace(/\{/g, '')
+    .replace(/\}/g, '');
 }

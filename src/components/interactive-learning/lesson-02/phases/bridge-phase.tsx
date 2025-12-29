@@ -6,7 +6,9 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Eye, Ship, ChevronRight, AlertTriangle, Waves } from 'lucide-react';
+import { Eye, Ship, ChevronRight, AlertTriangle, Waves, BookOpen } from 'lucide-react';
+import { KnowledgeSidebar } from '../../shared/knowledge-card';
+import { getKnowledgeCard } from '../../shared/knowledge-cards-data';
 
 interface BridgePhaseProps {
   onComplete: () => void;
@@ -16,6 +18,10 @@ export function BridgePhase({ onComplete }: BridgePhaseProps) {
   const [isTransparent, setIsTransparent] = useState(false);
   const [seaState, setSeaState] = useState(5);
   const [showAIMessage, setShowAIMessage] = useState(false);
+  const [showKnowledgeCard, setShowKnowledgeCard] = useState(false);
+
+  // 获取知识卡片数据
+  const knowledgeCard = getKnowledgeCard('concept-modeling-intro');
 
   // 延迟显示 AI 消息
   useEffect(() => {
@@ -105,6 +111,25 @@ export function BridgePhase({ onComplete }: BridgePhaseProps) {
             {isTransparent ? '已透视' : '透视船体'}
           </button>
         </div>
+
+        {/* 知识卡片按钮 */}
+        <button
+          onClick={() => setShowKnowledgeCard(!showKnowledgeCard)}
+          className="absolute right-4 bottom-4 flex items-center gap-2 rounded-lg bg-red-500/20 px-3 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/30"
+        >
+          <BookOpen className="h-4 w-4" />
+          为什么需要建模？
+        </button>
+
+        {/* 知识卡片侧边栏 */}
+        {knowledgeCard && (
+          <KnowledgeSidebar
+            node={knowledgeCard}
+            isOpen={showKnowledgeCard}
+            onClose={() => setShowKnowledgeCard(false)}
+            position="left"
+          />
+        )}
       </div>
 
       {/* AI 消息区 */}

@@ -2,6 +2,7 @@ import type { ControlTheoryNode, ControlTheoryEdge } from '../types';
 
 export const controlTheoryNodes: ControlTheoryNode[] = [
   // 区域 A: 建模与仿真 (红/粉色系)
+  // 注：课程知识卡片已移至 /knowledge 模块 (src/components/knowledge/data/lesson-knowledge-cards.ts)
   {
     id: 'physical-modeling',
     name: 'Physical Modeling',
@@ -320,6 +321,14 @@ export const controlTheoryNodes: ControlTheoryNode[] = [
 ];
 
 export const controlTheoryEdges: ControlTheoryEdge[] = [
+  // 知识卡片连接
+  { id: 'kc1', source: 'concept-modeling-intro', target: 'physical-modeling', relation: 'introduces', relationCn: '引入' },
+  { id: 'kc2', source: 'concept-modeling-intro', target: 'concept-newton-law-application', relation: 'leads', relationCn: '引出' },
+  { id: 'kc3', source: 'concept-modeling-intro', target: 'concept-kirchhoff-law', relation: 'leads', relationCn: '引出' },
+  { id: 'kc4', source: 'concept-newton-law-application', target: 'concept-linearization', relation: 'extends', relationCn: '扩展' },
+  { id: 'kc5', source: 'concept-kirchhoff-law', target: 'concept-newton-law-application', relation: 'analogous', relationCn: '类比' },
+  { id: 'kc6', source: 'concept-linearization', target: 'linearization', relation: 'details', relationCn: '详解' },
+
   // 建模区域内部连接
   { id: 'e1', source: 'physical-modeling', target: 'transfer-function', relation: 'derives', relationCn: '导出' },
   { id: 'e2', source: 'physical-modeling', target: 'state-space', relation: 'derives', relationCn: '导出' },

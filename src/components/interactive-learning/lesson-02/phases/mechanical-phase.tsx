@@ -6,9 +6,11 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Wrench, CheckCircle2, ChevronRight, Lightbulb, AlertCircle } from 'lucide-react';
+import { Wrench, CheckCircle2, ChevronRight, Lightbulb, AlertCircle, BookOpen } from 'lucide-react';
 import { PhysicsBuilder } from '../../physics-modeling/physics-builder/physics-builder-canvas';
 import type { PhysicsNode, PhysicsEdge } from '../../physics-modeling/types';
+import { KnowledgeSidebar } from '../../shared/knowledge-card';
+import { getKnowledgeCard } from '../../shared/knowledge-cards-data';
 
 interface MechanicalPhaseProps {
   weakAreas: string[];
@@ -26,6 +28,10 @@ export function MechanicalPhase({
   const [generatedEquation, setGeneratedEquation] = useState('');
   const [showHint, setShowHint] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [showKnowledgeCard, setShowKnowledgeCard] = useState(false);
+
+  // 获取知识卡片数据
+  const knowledgeCard = getKnowledgeCard('concept-newton-law-application');
 
   // 需要辅助提示（前测弱项）
   const needsHelp = weakAreas.length > 0;
@@ -145,6 +151,17 @@ export function MechanicalPhase({
             </div>
           </div>
         )}
+
+        {/* 知识卡片入口 */}
+        <div className="mt-2 flex justify-end">
+          <button
+            onClick={() => setShowKnowledgeCard(!showKnowledgeCard)}
+            className="flex items-center gap-2 rounded-lg bg-red-500/15 px-3 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/25"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            牛顿定律与旋转体
+          </button>
+        </div>
       </div>
 
       {/* 主内容区：PhysicsBuilder */}
@@ -184,6 +201,16 @@ export function MechanicalPhase({
         <Lightbulb className="h-4 w-4" />
         {showHint ? '隐藏提示' : '需要提示？'}
       </button>
+
+      {/* 知识卡片侧边栏 */}
+      {knowledgeCard && (
+        <KnowledgeSidebar
+          node={knowledgeCard}
+          isOpen={showKnowledgeCard}
+          onClose={() => setShowKnowledgeCard(false)}
+          position="right"
+        />
+      )}
     </div>
   );
 }
