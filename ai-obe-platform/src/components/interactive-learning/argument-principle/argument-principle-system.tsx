@@ -56,15 +56,39 @@ export function ArgumentPrincipleSystem() {
   } = useComplexFunction();
 
   // 源平面变换
-  const sourceTransform = useCanvasTransform({ initialScale: 50 });
+  const {
+    transform: sourceTransform,
+    initializeCenter: initializeSourceCenter,
+    handleWheel: handleSourceWheel,
+    handlePan: handleSourcePan,
+    resetTransform: resetSourceTransform,
+    screenToWorld: sourceScreenToWorld,
+  } = useCanvasTransform({ initialScale: 50 });
 
   // 映射平面变换
-  const mappedTransform = useCanvasTransform({ initialScale: 50 });
+  const {
+    transform: mappedTransform,
+    initializeCenter: initializeMappedCenter,
+    handleWheel: handleMappedWheel,
+    handlePan: handleMappedPan,
+    resetTransform: resetMappedTransform,
+  } = useCanvasTransform({ initialScale: 50 });
 
   // 轮廓绘制
   const contourDrawing = useContourDrawing({
-    screenToWorld: sourceTransform.screenToWorld,
+    screenToWorld: sourceScreenToWorld,
   });
+  const {
+    contourParams,
+    generateContour,
+    worldPoints,
+    isDrawing,
+    startDrawing,
+    continueDrawing,
+    endDrawing,
+    clearManualPoints,
+    updateContourParams,
+  } = contourDrawing;
 
   // 轮廓点和映射点
   const [contourPoints, setContourPoints] = useState<Point2D[]>([]);
@@ -75,15 +99,15 @@ export function ArgumentPrincipleSystem() {
   useEffect(() => {
     // 延迟初始化以确保DOM已渲染
     const timer = setTimeout(() => {
-      sourceTransform.initializeCenter(400, 400);
-      mappedTransform.initializeCenter(400, 400);
+      initializeSourceCenter(400, 400);
+      initializeMappedCenter(400, 400);
     }, 100);
     return () => clearTimeout(timer);
-  }, [sourceTransform, mappedTransform]);
+  }, [initializeSourceCenter, initializeMappedCenter]);
 
   // 生成轮廓并映射
   const handleDraw = useCallback(() => {
-    const points = contourDrawing.generateContour(contourDrawing.contourParams);
+    const points = generateContour(contourParams);
     setContourPoints(points);
 
     // 映射轮廓点
@@ -102,21 +126,21 @@ export function ArgumentPrincipleSystem() {
       const winding = calculateWindingNumber(mapped);
       setWindingNumber(winding);
     }
-  }, [contourDrawing, parsedFunction, evaluate]);
+  }, [generateContour, contourParams, parsedFunction, evaluate]);
 
   // 清除轮廓
   const handleClear = useCallback(() => {
-    contourDrawing.clearManualPoints();
+    clearManualPoints();
     setContourPoints([]);
     setMappedPoints([]);
     setWindingNumber(null);
-  }, [contourDrawing]);
+  }, [clearManualPoints]);
 
   // 重置视图
   const handleReset = useCallback(() => {
-    sourceTransform.resetTransform(400, 400);
-    mappedTransform.resetTransform(400, 400);
-  }, [sourceTransform, mappedTransform]);
+    resetSourceTransform(400, 400);
+    resetMappedTransform(400, 400);
+  }, [resetSourceTransform, resetMappedTransform]);
 
   // 预设示例选择
   const handleSelectExample = useCallback(
@@ -132,23 +156,23 @@ export function ArgumentPrincipleSystem() {
 
   // 当轮廓参数变化时自动重绘
   useEffect(() => {
-    if (contourDrawing.contourParams.type !== 'manual') {
+    if (contourParams.type !== 'manual') {
       handleDraw();
     }
-  }, [contourDrawing.contourParams, handleDraw]);
+  }, [contourParams, handleDraw]);
 
   // 手动绘制结束时映射
   useEffect(() => {
     if (
-      contourDrawing.contourParams.type === 'manual' &&
-      contourDrawing.worldPoints.length > 2 &&
-      !contourDrawing.isDrawing
+      contourParams.type === 'manual' &&
+      worldPoints.length > 2 &&
+      !isDrawing
     ) {
-      setContourPoints(contourDrawing.worldPoints);
+      setContourPoints(worldPoints);
 
       if (parsedFunction) {
         const mapped: Point2D[] = [];
-        for (const point of contourDrawing.worldPoints) {
+        for (const point of worldPoints) {
           const s: ComplexNumber = { re: point.x, im: point.y };
           const result = evaluate(s);
           if (result && isFinite(result.re) && isFinite(result.im)) {
@@ -161,7 +185,7 @@ export function ArgumentPrincipleSystem() {
         setWindingNumber(winding);
       }
     }
-  }, [contourDrawing.worldPoints, contourDrawing.isDrawing, contourDrawing.contourParams.type, parsedFunction, evaluate]);
+  }, [worldPoints, isDrawing, contourParams.type, parsedFunction, evaluate]);
 
   // 零点和极点
   const zeros = useMemo(() => parsedFunction?.zeros ?? [], [parsedFunction]);
@@ -202,9 +226,9 @@ export function ArgumentPrincipleSystem() {
       </header>
 
       {/* 主内容 */}
-      <main className="flex flex-1 gap-6 p-6">
-        {/* 左侧控制面板 */}
-        <aside className="w-72 shrink-0 space-y-4 overflow-y-auto">
+      <main className="flex flex-1 flex-col gap-6 p-6">
+        {/* 顶部控制面板 */}
+        <section className="grid gap-4 lg:grid-cols-3">
           <FunctionInputPanel
             inputFormat={inputFormat}
             onFormatChange={setInputFormat}
@@ -212,41 +236,41 @@ export function ArgumentPrincipleSystem() {
             parseError={parseError}
           />
           <ContourSettingsPanel
-            contourParams={contourDrawing.contourParams}
-            onParamsChange={contourDrawing.updateContourParams}
+            contourParams={contourParams}
+            onParamsChange={updateContourParams}
             onDraw={handleDraw}
             onClear={handleClear}
           />
           <PresetExamples onSelectExample={handleSelectExample} />
-        </aside>
+        </section>
 
-        {/* 中间画布区域 */}
+        {/* 画布区域 */}
         <div className="flex flex-1 flex-col gap-4">
           <div className="grid flex-1 gap-4 lg:grid-cols-2">
             {/* 源平面 */}
             <div className="min-h-[400px]">
               <ComplexPlaneCanvas
-                transform={sourceTransform.transform}
+                transform={sourceTransform}
                 zeros={zeros}
                 poles={poles}
                 contourPoints={contourPoints}
-                isManualMode={contourDrawing.contourParams.type === 'manual'}
-                onWheel={sourceTransform.handleWheel}
-                onPan={sourceTransform.handlePan}
-                onDrawStart={contourDrawing.startDrawing}
-                onDrawContinue={contourDrawing.continueDrawing}
-                onDrawEnd={contourDrawing.endDrawing}
+                isManualMode={contourParams.type === 'manual'}
+                onWheel={handleSourceWheel}
+                onPan={handleSourcePan}
+                onDrawStart={startDrawing}
+                onDrawContinue={continueDrawing}
+                onDrawEnd={endDrawing}
               />
             </div>
 
             {/* 映射平面 */}
             <div className="min-h-[400px]">
               <MappedPlaneCanvas
-                transform={mappedTransform.transform}
+                transform={mappedTransform}
                 mappedPoints={mappedPoints}
                 windingNumber={windingNumber}
-                onWheel={mappedTransform.handleWheel}
-                onPan={mappedTransform.handlePan}
+                onWheel={handleMappedWheel}
+                onPan={handleMappedPan}
               />
             </div>
           </div>

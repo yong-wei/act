@@ -253,13 +253,13 @@ export function ComplexPlaneCanvas({
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
+      const isPrimaryButton = e.button === 0;
+      const isSecondaryButton = e.button === 2;
 
-      if (e.button === 2) {
-        // 右键拖动
+      if (isSecondaryButton || (!isManualMode && isPrimaryButton)) {
         isPanningRef.current = true;
         lastPosRef.current = { x: e.clientX, y: e.clientY };
-      } else if (e.button === 0 && isManualMode) {
-        // 左键绘制
+      } else if (isPrimaryButton && isManualMode) {
         onDrawStart(x, y);
       }
     };
@@ -312,9 +312,9 @@ export function ComplexPlaneCanvas({
         F(s) 平面 (源平面)
       </div>
       <div className="absolute bottom-3 left-3 z-10 rounded-lg bg-slate-900/90 px-3 py-1.5 text-xs text-slate-400 backdrop-blur-sm">
-        {isManualMode ? '左键绘制' : '滚轮缩放'} / 右键拖动
+        {isManualMode ? '左键绘制 / 右键拖动' : '滚轮缩放 / 拖动平移'}
       </div>
-      <canvas ref={canvasRef} className="h-full w-full" />
+      <canvas ref={canvasRef} className="h-full w-full cursor-grab active:cursor-grabbing" />
     </div>
   );
 }

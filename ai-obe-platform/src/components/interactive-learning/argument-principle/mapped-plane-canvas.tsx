@@ -222,7 +222,7 @@ export function MappedPlaneCanvas({
     };
 
     const handleMouseDown = (e: MouseEvent) => {
-      if (e.button === 2) {
+      if (e.button === 0 || e.button === 2) {
         isPanningRef.current = true;
         lastPosRef.current = { x: e.clientX, y: e.clientY };
       }
@@ -268,14 +268,14 @@ export function MappedPlaneCanvas({
         F(F(s)) 平面 (映射平面)
       </div>
       <div className="absolute bottom-3 left-3 z-10 rounded-lg bg-slate-900/90 px-3 py-1.5 text-xs text-slate-400 backdrop-blur-sm">
-        滚轮缩放 / 右键拖动
+        滚轮缩放 / 拖动平移
       </div>
       {windingNumber !== null && (
         <div className="absolute right-3 top-3 z-10 rounded-lg bg-amber-500/20 px-3 py-1.5 text-xs font-medium text-amber-400 backdrop-blur-sm">
           绕原点圈数: {windingNumber}
         </div>
       )}
-      <canvas ref={canvasRef} className="h-full w-full" />
+      <canvas ref={canvasRef} className="h-full w-full cursor-grab active:cursor-grabbing" />
     </div>
   );
 }

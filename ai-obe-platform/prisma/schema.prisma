@@ -57,6 +57,20 @@ model User {
   progress           UserProgress[]
   simulationLogs     SimulationLog[]
   ethicalLogs        EthicalLog[]
+
+  // 新增关系：学习模块
+  learningProfile LearningProfile?
+  milestones      LearningMilestone[]
+  achievements    Achievement[]
+
+  // 新增关系：伦理模块
+  ethicsDecisions    EthicsDecision[]
+  ethicsDecisionLogs EthicsDecisionLog[]
+
+  // 新增关系：知识图谱模块
+  knowledgeProgress KnowledgeProgress[]
+  learningPaths     LearningPath[]
+  learningNotes     LearningNote[]
 }
 
 model StudentProfile {
@@ -224,6 +238,274 @@ model EthicalLog {
 
   simulationLog SimulationLog @relation(fields: [simulationLogId], references: [id], onDelete: Cascade)
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ========== 学习模块 ==========
+
+// 学习风格枚举
+enum LearningStyle {
+  VISUAL // 视觉型
+  TEXTUAL // 文本型
+  INTERACTIVE // 互动型
+  AUDITORY // 听觉型
+  LOGICAL // 逻辑型
+}
+
+// 里程碑状态枚举
+enum MilestoneStatus {
+  PENDING // 待完成
+  CURRENT // 当前进行
+  COMPLETED // 已完成
+}
+
+// 学习画像
+model LearningProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  learningStyle  LearningStyle @default(VISUAL) // 学习风格
+  cognitiveLevel Int           @default(1) // 认知水平 L1-L5
+  fleetGroup     String? // 舰队/班组
+
+  // 每日学习统计
+  dailyStudyMinutes Int   @default(0)
+  experimentMinutes Int   @default(0)
+  ethicsMinutes     Int   @default(0)
+  aiRecommendIndex  Float @default(0.75) // AI 推荐指数 0-1
+
+  // 成就统计
+  unlockedShips Int @default(0)
+  totalShips    Int @default(36)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 学习里程碑
+model LearningMilestone {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  order       Int
+  status      MilestoneStatus @default(PENDING)
+
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// 成就徽章
+model Achievement {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  badgeType   String // fast_response, wave_conqueror, defense_expert, precision, eco_guardian
+  title       String
+  description String
+  icon        String // emoji 或图标名
+  earnedAt    DateTime @default(now())
+
+  @@unique([userId, badgeType])
+  @@index([userId])
+}
+
+// ========== 伦理决策模块 ==========
+
+// 伦理场景定义
+model EthicsScenario {
+  id           String @id @default(cuid())
+  title        String
+  description  String @db.Text
+  scenarioType String // polar_navigation, collision_avoidance, environmental
+
+  // 默认价值权重 (0-100)
+  defaultSafety  Int @default(33)
+  defaultEcology Int @default(33)
+  defaultEconomy Int @default(34)
+
+  // 压力设置
+  defaultTimeLimit Int @default(120) // 秒
+  defaultInfoFog   Int @default(30) // 0-100
+
+  // 相关法规 JSON 数组
+  regulations Json     @default("[]")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  decisions EthicsDecision[]
+  logs      EthicsDecisionLog[]
+}
+
+// 用户伦理决策记录
+model EthicsDecision {
+  id         String         @id @default(cuid())
+  scenarioId String
+  scenario   EthicsScenario @relation(fields: [scenarioId], references: [id])
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 价值权重选择
+  safetyWeight  Int
+  ecologyWeight Int
+  economyWeight Int
+
+  // 选择的法规
+  selectedRules Json @default("[]")
+
+  // 决策结果
+  chosenOption  String
+  optionDetails String @db.Text
+
+  // 代价评估
+  humanCost      Float @default(0)
+  ecologicalCost Float @default(0)
+  economicCost   Float @default(0)
+  culturalImpact Float @default(0)
+
+  // 时间指标
+  decisionTime  Int // 用时（秒）
+  timeRemaining Int // 剩余时间
+
+  // AI 评价
+  aiScore    Float?
+  aiFeedback String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([scenarioId])
+}
+
+// 决策过程日志
+model EthicsDecisionLog {
+  id         String         @id @default(cuid())
+  scenarioId String
+  scenario   EthicsScenario @relation(fields: [scenarioId], references: [id])
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  timestamp DateTime @default(now())
+  eventType String // view_case, consult_expert, adjust_slider, select_rule, make_decision
+  eventData Json     @default("{}")
+
+  @@index([userId, scenarioId])
+}
+
+// ========== 知识图谱模块 ==========
+
+// 知识节点类型枚举
+enum KnowledgeNodeType {
+  THEORY // 理论节点（蓝色）
+  SCENARIO // 场景节点（红色）
+  ETHICS // 伦理节点（绿色）
+}
+
+// 学习状态枚举
+enum LearningStatus {
+  NOT_STARTED // 未开始
+  IN_PROGRESS // 进行中
+  COMPLETED // 已完成
+}
+
+// 知识节点
+model KnowledgeNode {
+  id          String            @id @default(cuid())
+  name        String
+  nodeType    KnowledgeNodeType
+  description String            @db.Text
+
+  // 3D 位置
+  positionX Float @default(0)
+  positionY Float @default(0)
+  positionZ Float @default(0)
+
+  // 学习资源
+  content       Json  @default("{}") // 公式、表格、交互控件
+  resources     Json  @default("[]") // 相关文档、视频等
+  ethicsContent Json? // 伦理考量
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  sourceLinks KnowledgeLink[]     @relation("SourceNode")
+  targetLinks KnowledgeLink[]     @relation("TargetNode")
+  progress    KnowledgeProgress[]
+}
+
+// 知识连接
+model KnowledgeLink {
+  id String @id @default(cuid())
+
+  sourceId   String
+  sourceNode KnowledgeNode @relation("SourceNode", fields: [sourceId], references: [id])
+
+  targetId   String
+  targetNode KnowledgeNode @relation("TargetNode", fields: [targetId], references: [id])
+
+  relation String // provides_foundation, stability_analysis 等
+
+  @@unique([sourceId, targetId])
+}
+
+// 知识学习进度
+model KnowledgeProgress {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  nodeId String
+  node   KnowledgeNode @relation(fields: [nodeId], references: [id])
+
+  status    LearningStatus @default(NOT_STARTED)
+  progress  Float          @default(0) // 0-100
+  timeSpent Int            @default(0) // 秒
+
+  lastVisited DateTime  @default(now())
+  completedAt DateTime?
+
+  @@unique([userId, nodeId])
+  @@index([userId])
+}
+
+// 学习路径
+model LearningPath {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title         String
+  description   String?
+  estimatedTime Int // 预计时长（分钟）
+
+  nodeIds       Json    @default("[]") // 节点 ID 有序数组
+  isAiGenerated Boolean @default(false)
+  isBookmarked  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// 学习笔记
+model LearningNote {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  nodeId  String? // 可选关联知识节点
+  content String  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
 }
