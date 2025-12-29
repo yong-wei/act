@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Compass, Map, Ship } from 'lucide-react';
+import { ArrowRight, Compass, Gauge, Map, Ship } from 'lucide-react';
 
 const modules = [
   {
@@ -24,6 +24,16 @@ const modules = [
     color: 'amber',
     features: ['交互式拓扑图', '五大知识区域', '公式与应用详解'],
   },
+  {
+    id: 'pid-simulator',
+    title: 'PID 仿真器',
+    titleEn: 'PID Simulator',
+    description: '针对多类船舶控制对象进行 PID 参数试验，实时观察系统响应与设定值变化。',
+    href: '/interactive-learning/pid-simulator',
+    icon: Gauge,
+    color: 'emerald',
+    features: ['多对象控制模型', '响应曲线可视化', 'Kp/Ki/Kd 调参'],
+  },
 ];
 
 const colorClasses = {
@@ -38,6 +48,12 @@ const colorClasses = {
     iconText: 'text-amber-400',
     border: 'border-amber-500/30 hover:border-amber-500/60',
     badge: 'bg-amber-500/20 text-amber-400',
+  },
+  emerald: {
+    iconBg: 'bg-emerald-500/20',
+    iconText: 'text-emerald-400',
+    border: 'border-emerald-500/30 hover:border-emerald-500/60',
+    badge: 'bg-emerald-500/20 text-emerald-400',
   },
 };
 
