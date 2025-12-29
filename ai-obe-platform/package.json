@@ -10,6 +10,7 @@
     "test": "node ./scripts/smoke-test.mjs",
     "test:integration": "PLAYWRIGHT_PORT=3100 node ./scripts/integration-test.mjs && playwright test",
     "seed:demo": "node ./scripts/seed-demo-user.mjs",
+    "seed:admin": "node ./scripts/seed-admin.mjs",
     "seed:missions": "node ./scripts/seed-missions.mjs",
     "startup": "./scripts/start.sh",
     "shutdown": "./scripts/stop.sh",
@@ -51,6 +52,7 @@
     "tailwindcss": "^3.3.0",
     "three": "^0.165.0",
     "typescript": "^5.0.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {

@@ -32,6 +32,7 @@ export const authOptions: NextAuthOptions = {
             OR: [
               { email: { equals: identifier, mode: 'insensitive' } },
               { name: { equals: identifier, mode: 'insensitive' } },
+              { profile: { is: { studentNumber: identifier } } },
             ],
           },
         });
