@@ -5,7 +5,7 @@
  * Physics Builder Canvas with React Flow
  */
 
-import { useCallback, useRef, useMemo, useState } from 'react';
+import { useCallback, useRef, useMemo, useState, useEffect } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -22,7 +22,7 @@ import 'reactflow/dist/style.css';
 
 import { ComponentSidebar } from './component-sidebar';
 import { EquationDisplay } from './equation-display';
-import { nodeTypes } from './physics-node';
+import { nodeTypes as importedNodeTypes } from './physics-node';
 import {
   generateMechanicalEquation,
   generateCircuitEquation,
@@ -68,6 +68,9 @@ export function PhysicsBuilderCanvas({
   const [nodes, setNodes, onNodesChange] = useNodesState<PhysicsNodeData>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
+  // 确保 nodeTypes 引用稳定（避免 React Flow 警告）
+  const nodeTypes = useMemo(() => importedNodeTypes, []);
+
   // 计算当前方程
   const { equation, isComplete, missing } = useMemo(() => {
     const eq =
@@ -88,7 +91,7 @@ export function PhysicsBuilderCanvas({
   }, [nodes, edges, mode, targetEquation]);
 
   // 通知父组件方程变化
-  useMemo(() => {
+  useEffect(() => {
     onEquationChange?.(equation, isComplete);
   }, [equation, isComplete, onEquationChange]);
 
@@ -120,7 +123,7 @@ export function PhysicsBuilderCanvas({
       event.preventDefault();
 
       const type = event.dataTransfer.getData('application/reactflow') as ComponentType;
-      if (!type || !reactFlowInstance || !reactFlowWrapper.current) return;
+      if (!type || !reactFlowInstance) return;
 
       // 获取元件定义
       const components =
@@ -128,11 +131,10 @@ export function PhysicsBuilderCanvas({
       const componentDef = components.find((c) => c.type === type);
       if (!componentDef) return;
 
-      // 计算放置位置
-      const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
-      const position = reactFlowInstance.project({
-        x: event.clientX - reactFlowBounds.left,
-        y: event.clientY - reactFlowBounds.top,
+      // 计算放置位置（使用新 API，无需手动减去边界）
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
       });
 
       // 对齐到网格
