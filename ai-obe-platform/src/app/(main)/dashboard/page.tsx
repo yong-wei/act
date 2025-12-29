@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
-import { SignOutButton } from '@/components/shared/sign-out-button';
+import { UserMenu } from '@/components/shared/user-menu';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { ensureUserProfile, initializeUserProgress } from '@/lib/user-sync';
@@ -11,6 +11,10 @@ export default async function DashboardPage() {
 
   if (!session?.user) {
     redirect('/login');
+  }
+
+  if (session.user.role === 'ADMIN') {
+    redirect('/admin');
   }
 
   // 确保用户有档案和初始任务
@@ -54,19 +58,7 @@ export default async function DashboardPage() {
             <p className="text-sm text-slate-400">成果导向教育 · 智能控制实训</p>
           </div>
           <div className="flex items-center gap-4">
-            <Link
-              href="/profile"
-              className="flex items-center gap-3 rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2 transition-colors hover:bg-slate-700"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-lg font-bold text-white">
-                {session.user.name?.charAt(0)?.toUpperCase() || 'U'}
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-medium text-white">{session.user.name}</p>
-                <p className="text-xs text-slate-400">{session.user.email}</p>
-              </div>
-            </Link>
-            <SignOutButton />
+            <UserMenu user={session.user} />
           </div>
         </div>
       </header>

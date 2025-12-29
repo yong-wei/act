@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { getSession, signIn } from 'next-auth/react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +34,12 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/dashboard');
+    const session = await getSession();
+    if (session?.user?.role === 'ADMIN') {
+      router.push('/admin');
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   return (

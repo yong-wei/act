@@ -16,6 +16,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **NextAuth.js 认证系统**：支持邮箱/用户名登录，JWT 会话管理
 - **角色权限管理**：学生、教师、管理员三级权限体系
 - **自动档案创建**：新用户自动创建学生档案和解锁第一关
+- **账号安全**：个人中心支持修改密码与退出登录
 - **演示账号**：
   - 用户名：`demo` 或邮箱：`demo@example.com`
   - 密码：`123456`

@@ -16,6 +16,7 @@ import {
   getCompetencyLevel,
   type CompetencyData,
 } from '@/components/dashboard/competency-radar';
+import { UserMenu } from '@/components/shared/user-menu';
 
 interface UserProfile {
   user: {
@@ -142,7 +143,7 @@ export default function ProfilePage() {
             <h1 className="text-xl font-bold text-white">个人中心</h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-400">{profile.user.email}</span>
+            <UserMenu user={profile.user} />
           </div>
         </div>
       </header>

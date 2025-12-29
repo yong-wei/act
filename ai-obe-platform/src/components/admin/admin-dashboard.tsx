@@ -4,7 +4,6 @@ import {
   Activity,
   AlertTriangle,
   Download,
-  KeyRound,
   Plus,
   RefreshCcw,
   Search,
@@ -12,6 +11,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { UserMenu } from '@/components/shared/user-menu';
 
 type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN';
 
@@ -356,14 +356,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 当前登录：{currentUser.name || currentUser.email || '管理员'} · {formattedNow}
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => openReset({ id: currentUser.id, name: currentUser.name ?? null, email: currentUser.email ?? null, role: currentUser.role, createdAt: new Date().toISOString() })}
-                className="flex items-center gap-2 rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100 transition hover:border-cyan-400"
-              >
-                <KeyRound className="h-4 w-4" />
-                修改密码
-              </button>
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={handleRefresh}
                 className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-slate-500"
@@ -371,6 +364,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 <RefreshCcw className="h-4 w-4" />
                 刷新数据
               </button>
+              <UserMenu user={currentUser} />
             </div>
           </div>
 
