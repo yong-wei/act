@@ -1,124 +1,167 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+###############################################################################
+# AI-OBE 平台停止脚本
+# 功能：
+#   - 停止所有运行中的服务
+#   - 清理 PID 文件
+#   - 确保没有遗留进程
+###############################################################################
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-LOG_DIR="$ROOT_DIR/.logs"
-PID_DIR="$LOG_DIR/pids"
+set -e  # 遇到错误立即退出
 
-CONSOLE_LOG="$LOG_DIR/console.log"
-DB_LOG="$LOG_DIR/database.log"
+# 颜色定义
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-mkdir -p "$LOG_DIR" "$PID_DIR"
-touch "$CONSOLE_LOG" "$DB_LOG"
+# 目录定义
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+LOGS_DIR="$PROJECT_DIR/.logs"
+PIDS_DIR="$LOGS_DIR/pids"
 
-log() {
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$CONSOLE_LOG"
-}
+echo -e "${BLUE}========================================${NC}"
+echo -e "${BLUE}  AI-OBE 船舶智控平台 - 停止脚本${NC}"
+echo -e "${BLUE}========================================${NC}\n"
 
-stop_pid() {
-  local name="$1"
-  local pid_file="$PID_DIR/${name}.pid"
+# 计数器
+STOPPED_COUNT=0
+FAILED_COUNT=0
+
+###############################################################################
+# 函数: 停止进程
+###############################################################################
+stop_process() {
+  local service_name=$1
+  local pid_file=$2
+
+  echo -e "${YELLOW}停止 $service_name...${NC}"
 
   if [ ! -f "$pid_file" ]; then
-    log "No pid file found for ${name}."
+    echo -e "  ${YELLOW}!${NC} PID 文件不存在，跳过"
     return 0
   fi
 
-  local pid
-  pid="$(cat "$pid_file")"
+  PID=$(cat "$pid_file")
 
-  if [ -z "$pid" ]; then
-    log "Empty pid file for ${name}, skipping."
+  # 检查进程是否存在
+  if ! ps -p "$PID" > /dev/null 2>&1; then
+    echo -e "  ${YELLOW}!${NC} 进程不存在 (PID: $PID)"
+    rm -f "$pid_file"
     return 0
   fi
 
-  if kill -0 "$pid" >/dev/null 2>&1; then
-    log "Stopping ${name} (pid ${pid})."
-    kill -TERM "-$pid" >/dev/null 2>&1 || true
+  # 尝试优雅停止（SIGTERM）
+  echo -e "  ${BLUE}发送 SIGTERM 信号到进程 $PID...${NC}"
+  kill "$PID" 2>/dev/null || true
 
-    if command -v pkill >/dev/null 2>&1; then
-      pkill -TERM -P "$pid" >/dev/null 2>&1 || true
-    fi
-
-    for _ in {1..10}; do
-      if kill -0 "$pid" >/dev/null 2>&1; then
-        sleep 1
-      else
-        break
-      fi
-    done
-
-    if kill -0 "$pid" >/dev/null 2>&1; then
-      log "Force killing ${name} (pid ${pid})."
-      kill -KILL "-$pid" >/dev/null 2>&1 || true
-      if command -v pkill >/dev/null 2>&1; then
-        pkill -KILL -P "$pid" >/dev/null 2>&1 || true
-      fi
-      kill -KILL "$pid" >/dev/null 2>&1 || true
-    fi
-  else
-    log "${name} is not running (stale pid ${pid})."
-  fi
-
-  rm -f "$pid_file"
-}
-
-stop_port() {
-  local port="$1"
-  local pid=""
-
-  if command -v lsof >/dev/null 2>&1; then
-    pid="$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -n 1 || true)"
-  fi
-
-  if [ -z "$pid" ]; then
-    return 0
-  fi
-
-  log "Stopping process on port ${port} (pid ${pid})."
-  kill -TERM "-$pid" >/dev/null 2>&1 || kill -TERM "$pid" >/dev/null 2>&1 || true
-
-  for _ in {1..10}; do
-    if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+  # 等待进程结束（最多 5 秒）
+  local count=0
+  while ps -p "$PID" > /dev/null 2>&1; do
+    if [ $count -ge 5 ]; then
+      echo -e "  ${YELLOW}!${NC} 进程未响应，强制终止..."
+      kill -9 "$PID" 2>/dev/null || true
       sleep 1
-    else
-      return 0
+      break
     fi
+    sleep 1
+    count=$((count + 1))
   done
 
-  log "Force killing process on port ${port} (pid ${pid})."
-  kill -KILL "-$pid" >/dev/null 2>&1 || kill -KILL "$pid" >/dev/null 2>&1 || true
-}
-
-stop_postgres() {
-  local container_name="act-just-postgres"
-  local pid_file="$PID_DIR/database.pid"
-
-  if ! command -v docker >/dev/null 2>&1; then
-    log "Docker is not installed or not on PATH; cannot stop Postgres."
+  # 验证进程已停止
+  if ps -p "$PID" > /dev/null 2>&1; then
+    echo -e "  ${RED}✗${NC} 停止失败 (PID: $PID)"
+    FAILED_COUNT=$((FAILED_COUNT + 1))
+    return 1
+  else
+    echo -e "  ${GREEN}✓${NC} 已停止 (PID: $PID)"
+    rm -f "$pid_file"
+    STOPPED_COUNT=$((STOPPED_COUNT + 1))
     return 0
   fi
-
-  if [ -f "$pid_file" ]; then
-    container_name="$(cat "$pid_file")"
-  fi
-
-  if docker ps --format '{{.Names}}' | grep -q "^${container_name}$"; then
-    log "Stopping Postgres container (${container_name})."
-    docker stop "$container_name" >>"$DB_LOG" 2>&1 || true
-  fi
-
-  if docker ps -a --format '{{.Names}}' | grep -q "^${container_name}$"; then
-    docker rm "$container_name" >>"$DB_LOG" 2>&1 || true
-  fi
-
-  rm -f "$pid_file"
 }
 
-log "Shutdown initiated."
-stop_pid "frontend"
-stop_pid "simulation"
-stop_pid "llm"
-stop_port "3000"
-stop_postgres
-log "Shutdown completed."
+###############################################################################
+# 停止 Next.js 开发服务器
+###############################################################################
+stop_process "Next.js 开发服务器" "$PIDS_DIR/frontend.pid"
+
+###############################################################################
+# 停止可能存在的其他相关进程
+###############################################################################
+echo -e "\n${YELLOW}检查其他相关进程...${NC}"
+
+# 查找占用 3000 端口的进程
+PORT_3000_PID=$(lsof -ti:3000 2>/dev/null || true)
+if [ -n "$PORT_3000_PID" ]; then
+  echo -e "  ${YELLOW}!${NC} 发现占用 3000 端口的进程 (PID: $PORT_3000_PID)"
+  kill "$PORT_3000_PID" 2>/dev/null || true
+  sleep 1
+  if lsof -ti:3000 > /dev/null 2>&1; then
+    kill -9 "$PORT_3000_PID" 2>/dev/null || true
+    echo -e "  ${GREEN}✓${NC} 已强制终止"
+  else
+    echo -e "  ${GREEN}✓${NC} 已停止"
+  fi
+  STOPPED_COUNT=$((STOPPED_COUNT + 1))
+fi
+
+# 查找 node 进程中包含 "next dev" 的进程
+NEXT_PIDS=$(pgrep -f "next dev" 2>/dev/null || true)
+if [ -n "$NEXT_PIDS" ]; then
+  echo -e "  ${YELLOW}!${NC} 发现 Next.js 相关进程:"
+  echo "$NEXT_PIDS" | while read -r pid; do
+    if ps -p "$pid" > /dev/null 2>&1; then
+      echo -e "    ${YELLOW}停止 PID: $pid${NC}"
+      kill "$pid" 2>/dev/null || true
+      sleep 0.5
+      if ps -p "$pid" > /dev/null 2>&1; then
+        kill -9 "$pid" 2>/dev/null || true
+      fi
+      STOPPED_COUNT=$((STOPPED_COUNT + 1))
+    fi
+  done
+  echo -e "  ${GREEN}✓${NC} 已清理所有 Next.js 进程"
+fi
+
+###############################################################################
+# 清理 PID 目录中的所有文件
+###############################################################################
+echo -e "\n${YELLOW}清理 PID 文件...${NC}"
+
+if [ -d "$PIDS_DIR" ]; then
+  PID_FILES=$(find "$PIDS_DIR" -name "*.pid" 2>/dev/null || true)
+  if [ -n "$PID_FILES" ]; then
+    echo "$PID_FILES" | while read -r pid_file; do
+      rm -f "$pid_file"
+      echo -e "  ${GREEN}✓${NC} 删除: $(basename "$pid_file")"
+    done
+  else
+    echo -e "  ${YELLOW}!${NC} 没有 PID 文件需要清理"
+  fi
+else
+  echo -e "  ${YELLOW}!${NC} PID 目录不存在"
+fi
+
+###############################################################################
+# 停止完成
+###############################################################################
+echo ""
+echo -e "${GREEN}========================================${NC}"
+echo -e "${GREEN}  停止完成！${NC}"
+echo -e "${GREEN}========================================${NC}"
+echo ""
+echo -e "  ${BLUE}统计信息:${NC}"
+echo -e "    • 停止进程数: ${GREEN}$STOPPED_COUNT${NC}"
+if [ $FAILED_COUNT -gt 0 ]; then
+  echo -e "    • 停止失败数: ${RED}$FAILED_COUNT${NC}"
+fi
+echo ""
+
+if [ $FAILED_COUNT -gt 0 ]; then
+  echo -e "  ${YELLOW}!${NC} 部分进程可能仍在运行，请手动检查"
+  echo -e "    ${YELLOW}查看进程: ps aux | grep -E 'next|node'${NC}"
+  exit 1
+fi

@@ -1,15 +1,15 @@
 # Development Plan (Unified Platform)
 
 ## Goals
-- Use `ai-obe-platform/` as the single product base for the web experience.
-- Merge authentication and database layers from `my-next-app/` into `ai-obe-platform/`.
+- Use `act.just.edu.cn/` as the single product base for the web experience.
+- Merge authentication and database layers from `my-next-app/` into `act.just.edu.cn/`.
 - Standardize on Postgres for multi-user, concurrent access.
 - Focus exclusively on 自动控制原理 learning; no multi-course or cross-discipline scope.
 - Develop simulation and LLM capabilities as separate services, with initial local dev and later server deployment.
 - Keep boundaries flexible until early prototype testing clarifies performance and data needs.
 
 ## Key Decisions
-- Frontend and API: Next.js 14 (App Router) in `ai-obe-platform/`.
+- Frontend and API: Next.js 14 (App Router) in `act.just.edu.cn/`.
 - Auth: NextAuth (with Prisma adapter).
 - Database: Postgres via Prisma.
 - External services: Simulation service and LLM service exposed via HTTP APIs, called from Next.js server routes.
@@ -17,7 +17,7 @@
 
 ## Target Architecture
 ```
-ai-obe-platform/ (Next.js 14)
+act.just.edu.cn/ (Next.js 14)
   src/app/        - UI routes, server components, route handlers
   src/components/ - Shared UI
   src/lib/        - API clients, auth helpers, data access
@@ -64,7 +64,7 @@ Notes
 - Exact boundaries may shift after performance profiling and data flow testing.
 - Use API keys or signed JWT for service-to-service auth.
 
-## Integration Plan (ai-obe-platform/)
+## Integration Plan (act.just.edu.cn/)
 1. Add Prisma and NextAuth
    - Install Prisma, @auth/prisma-adapter, next-auth.
    - Create `prisma/schema.prisma` and migrate from `my-next-app/prisma/schema.prisma`.
@@ -92,8 +92,8 @@ Notes
 - Optional backend commands can be provided via `SIM_SERVICE_CMD`/`LLM_SERVICE_CMD` and their working dirs via `SIM_SERVICE_DIR`/`LLM_SERVICE_DIR`.
 
 ## Migration Notes
-- Move or re-create any auth-related pages from `my-next-app/` in `ai-obe-platform/`.
-- Preserve UI and pages already in `ai-obe-platform/` and extend with login flow and user dashboard.
+- Move or re-create any auth-related pages from `my-next-app/` in `act.just.edu.cn/`.
+- Preserve UI and pages already in `act.just.edu.cn/` and extend with login flow and user dashboard.
 - Keep `my-next-app/` and `my-react-app/` as references until the unified app stabilizes.
 
 ## Milestones

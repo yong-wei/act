@@ -195,13 +195,13 @@ Session, Account  # NextAuth 会话
 - **开发环境**：Node.js 20+ + PostgreSQL 14+
 - **启动脚本**：`npm run startup` (自动化启动)
 - **停止脚本**：`npm run shutdown` (清理进程)
-- **日志管理**：集中式日志 (`../.logs/`)
+- **日志管理**：集中式日志 (`.logs/`)
 - **容器化**：Docker + Docker Compose (生产环境)
 
 ## 5. 项目结构
 
 ```
-ai-obe-platform/
+act.just.edu.cn/
 ├── src/
 │   ├── app/                      # Next.js 应用目录
 │   │   ├── (auth)/              # 认证页面（登录、注册）
@@ -274,7 +274,7 @@ ai-obe-platform/
 ```bash
 # 1. 克隆仓库
 git clone <repository-url>
-cd ai-obe-platform
+cd act.just.edu.cn
 
 # 2. 安装依赖
 npm install
@@ -366,8 +366,8 @@ npm test               # 运行测试
 - **开发框架**：Next.js + React + TypeScript
 
 ### 9.2 技术支持
-- **文档**：[QUICKSTART.md](../ai-obe-platform/QUICKSTART.md)
-- **脚本文档**：[scripts/README.md](../ai-obe-platform/scripts/README.md)
+- **文档**：[QUICKSTART.md](./QUICKSTART.md)
+- **脚本文档**：[scripts/README.md](../scripts/README.md)
 - **开发计划**：[Developmant.md](./Developmant.md)
 - **问题反馈**：GitHub Issues
 

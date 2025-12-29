@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人学习中心 - 基于学情画像的闭环成长体系</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.159.0/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --deep-blue: #0a3d62;
+            --mid-blue: #1e5f8c;
+            --light-blue: #3498db;
+            --gold: #FFD700;
+            --dark-gray: #2c3e50;
+            --progress-green: #27ae60;
+            --ethics-blue: #2980b9;
+            --warning-red: #e74c3c;
+            --bg-gradient: linear-gradient(135deg, #0a2a43 0%, #1e3c52 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 20% 60% 20%;
+            grid-template-rows: auto 1fr auto;
+            grid-template-areas:
+                "dashboard dashboard dashboard"
+                "compass main tools"
+                "journal journal journal";
+            gap: 20px;
+            padding: 20px;
+            height: 100vh;
+            max-height: 100vh;
+        }
+
+        /* 1. 学情驾驶舱 */
+        .dashboard {
+            grid-area: dashboard;
+            background-color: rgba(10, 61, 98, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .identity-badge {
+            display: flex;
+            flex-direction: column;
+            background: rgba(30, 95, 140, 0.7);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid var(--gold);
+        }
+
+        .learning-style {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--gold);
+            margin-bottom: 5px;
+        }
+
+        .cognitive-level,
+        .fleet-info {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .data-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .data-card {
+            background: rgba(30, 95, 140, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .data-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .data-title {
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .data-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .data-subvalue {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 3px;
+        }
+
+        /* 2. 学海罗盘 */
+        .compass {
+            grid-area: compass;
+            background-color: rgba(10, 61, 98, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        .compass-section {
+            background: rgba(30, 95, 140, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .compass-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--light-blue);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .compass-title::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--light-blue);
+            border-radius: 50%;
+        }
+
+        .growth-path {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+        }
+
+        .growth-path::before {
+            content: "";
+            position: absolute;
+            left: 7px;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .milestone {
+            position: relative;
+            padding-left: 25px;
+            font-size: 0.85rem;
+        }
+
+        .milestone::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 5px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: var(--mid-blue);
+            z-index: 1;
+        }
+
+        .milestone.completed::before {
+            background-color: var(--gold);
+        }
+
+        .milestone.current::before {
+            background-color: var(--light-blue);
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.3);
+        }
+
+        .ai-route {
+            margin-top: 10px;
+        }
+
+        select.route-select {
+            width: 100%;
+            background-color: rgba(44, 62, 80, 0.7);
+            color: white;
+            padding: 8px;
+            border: 1px solid rgba(52, 152, 219, 0.5);
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+
+        .warning-panel {
+            background-color: rgba(231, 76, 60, 0.2);
+            border-left: 3px solid var(--warning-red);
+            padding: 10px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+
+        /* 3. 能力进化图谱 */
+        .main-content {
+            grid-area: main;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .evolution-chart {
+            background-color: rgba(10, 61, 98, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            height: 50%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .chart-tab.active {
+            color: white;
+            border-bottom: 2px solid var(--light-blue);
+            margin-bottom: -2px;
+        }
+
+        .chart-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .radar-chart {
+            width: 100%;
+            height: 100%;
+        }
+
+        .chart-legend {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(10, 61, 98, 0.8);
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .tech-color {
+            background-color: var(--progress-green);
+        }
+
+        .ethics-color {
+            background-color: var(--ethics-blue);
+        }
+
+        .average-color {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 6. 任务工卡矩阵 */
+        .task-matrix {
+            background-color: rgba(10, 61, 98, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            height: 50%;
+            overflow-y: auto;
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .task-card {
+            background-color: rgba(30, 95, 140, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            height: 140px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .task-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-card.current {
+            border: 2px solid var(--gold);
+            background-color: rgba(30, 95, 140, 0.7);
+        }
+
+        .task-card.locked {
+            background-color: rgba(44, 62, 80, 0.5);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .task-level {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(10, 61, 98, 0.8);
+            border-radius: 4px;
+            padding: 3px 6px;
+            font-size: 0.7rem;
+        }
+
+        .task-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .task-description {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 10px;
+        }
+
+        .task-timer {
+            margin-top: auto;
+            font-size: 0.75rem;
+            color: var(--gold);
+        }
+
+        .task-condition {
+            margin-top: auto;
+            font-size: 0.75rem;
+        }
+
+        .achievements {
+            margin-top: 30px;
+        }
+
+        .achievement-title {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .achievement-title::before {
+            content: "🏆";
+        }
+
+        .badge-wall {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .badge {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, var(--gold), var(--dark-gray));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .badge-icon {
+            font-size: 1.8rem;
+        }
+
+        .badge-tooltip {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 61, 98, 0.9);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .badge:hover .badge-tooltip {
+            opacity: 1;
+        }
+
+        .comparison {
+            margin-top: 15px;
+            background: rgba(30, 95, 140, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.85rem;
+        }
+
+        /* 4. 虚实实验档案库 */
+        .tools {
+            grid-area: tools;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .experiment-archive {
+            background-color: rgba(10, 61, 98, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .archive-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--light-blue);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .archive-title::before {
+            content: "📁";
+        }
+
+        .archive-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .archive-tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+        }
+
+        .archive-tab.active {
+            color: white;
+            border-bottom: 2px solid var(--light-blue);
+            margin-bottom: -2px;
+        }
+
+        .archive-content {
+            height: calc(100% - 60px);
+            overflow-y: auto;
+        }
+
+        .archive-item {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            background-color: rgba(30, 95, 140, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .archive-item:hover {
+            background-color: rgba(30, 95, 140, 0.7);
+            transform: translateX(3px);
+        }
+
+        .archive-item-title {
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .archive-item-date {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .archive-item-preview {
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* 7. 船长工作室 */
+        .captain-studio {
+            background-color: rgba(10, 61, 98, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            height: 40%;
+        }
+
+        .studio-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--light-blue);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .studio-title::before {
+            content: "🧭";
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .tool-btn {
+            background: rgba(30, 95, 140, 0.5);
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tool-btn:hover {
+            background: rgba(30, 95, 140, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .tool-icon {
+            font-size: 1.5rem;
+        }
+
+        /* 5. 思政航海日志 */
+        .journal {
+            grid-area: journal;
+            background-color: rgba(10, 61, 98, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .journal-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--light-blue);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .journal-title::before {
+            content: "📔";
+        }
+
+        .journal-carousel {
+            display: flex;
+            overflow-x: auto;
+            gap: 20px;
+            padding-bottom: 10px;
+            scroll-behavior: smooth;
+        }
+
+        .journal-item {
+            flex: 0 0 250px;
+            background-color: rgba(30, 95, 140, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .journal-item:hover {
+            background-color: rgba(30, 95, 140, 0.7);
+            transform: translateY(-3px);
+        }
+
+        .journal-item-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--gold);
+        }
+
+        .journal-item-content {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 10px;
+        }
+
+        .journal-item-footer {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .certificate {
+            border: 1px solid var(--gold);
+        }
+
+        @media (max-width: 992px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr auto auto;
+                grid-template-areas:
+                    "dashboard"
+                    "compass"
+                    "main"
+                    "tools"
+                    "journal";
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 1. 学情驾驶舱（顶部概览区） -->
+        <div class="dashboard">
+            <div class="identity-badge">
+                <div class="learning-style">视觉型领航员</div>
+                <div class="cognitive-level">L3级：多系统集成能力</div>
+                <div class="fleet-info">极地探险队No.2</div>
+            </div>
+            <div class="data-panel">
+                <div class="data-card">
+                    <div class="data-title">昨日学习时长</div>
+                    <div class="data-value">3.15h</div>
+                    <div class="data-subvalue">实验操作2.3h / 伦理决策45min</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-title">累计解锁船舶数</div>
+                    <div class="data-value">12/36艘</div>
+                    <div class="data-subvalue">雪龙号需双S评级</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-title">今日AI推荐指数</div>
+                    <div class="data-value">92%</div>
+                    <div class="data-subvalue">学习效能预测</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 学海罗盘（动态学习路径导航） -->
+        <div class="compass">
+            <div class="compass-section">
+                <div class="compass-title">成长航线图</div>
+                <div class="growth-path">
+                    <div class="milestone completed">掌握动力定位</div>
+                    <div class="milestone current">解锁AGV协同</div>
+                    <div class="milestone">获企业认证</div>
+                    <div class="milestone">完成深水作业模拟</div>
+                </div>
+            </div>
+            <div class="compass-section">
+                <div class="compass-title">AI航线规划</div>
+                <div class="ai-route">
+                    <select class="route-select">
+                        <option selected>选择学习目标</option>
+                        <option>速通模式</option>
+                        <option>深度研究</option>
+                        <option>多领域交叉</option>
+                    </select>
+                </div>
+            </div>
+            <div class="compass-section">
+                <div class="compass-title">紧急避障预警</div>
+                <div class="warning-panel">
+                    您的根轨迹设计失败率高于均值37%，建议复习L2工卡
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 3. 能力进化图谱（中央雷达矩阵） -->
+            <div class="evolution-chart">
+                <div class="chart-tabs">
+                    <div class="chart-tab active">能力雷达图</div>
+                    <div class="chart-tab">舰船成长阶梯</div>
+                </div>
+                <div class="chart-container">
+                    <canvas class="radar-chart" id="skillRadar"></canvas>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color tech-color"></div>
+                            <span>技术能力</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color ethics-color"></div>
+                            <span>伦理决策</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color average-color"></div>
+                            <span>班级均值</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. 任务工卡矩阵（中央任务管理区） -->
+            <div class="task-matrix">
+                <h3>任务工卡矩阵</h3>
+                <div class="task-grid">
+                    <div class="task-card current">
+                        <div class="task-level">L3</div>
+                        <div class="task-title">天鲸号动力分配调优</div>
+                        <div class="task-description">优化推进器能量分配，降低波浪干扰影响</div>
+                        <div class="task-timer">⏱️ 剩余时间: 72小时</div>
+                    </div>
+                    <div class="task-card">
+                        <div class="task-level">L3</div>
+                        <div class="task-title">海上环境感知训练</div>
+                        <div class="task-description">多传感器融合优化，提高10%精度</div>
+                        <div class="task-timer">⏱️ 剩余时间: 5天</div>
+                    </div>
+                    <div class="task-card locked">
+                        <div class="task-level">L4</div>
+                        <div class="task-title">深潜器控制模块</div>
+                        <div class="task-description">1000米级深潜设备独立操作训练</div>
+                        <div class="task-condition">🔒 需完成3项L4伦理决策解锁</div>
+                    </div>
+                    <div class="task-card">
+                        <div class="task-level">L3</div>
+                        <div class="task-title">航道规划挑战</div>
+                        <div class="task-description">多目标优化：燃油效率与生态保护</div>
+                        <div class="task-timer">⏱️ 剩余时间: 4天</div>
+                    </div>
+                </div>
+
+                <div class="achievements">
+                    <h4 class="achievement-title">历史成就</h4>
+                    <div class="badge-wall">
+                        <div class="badge">
+                            <div class="badge-icon">⚡</div>
+                            <div class="badge-tooltip">快速响应勋章: PID调试时间缩短40%</div>
+                        </div>
+                        <div class="badge">
+                            <div class="badge-icon">🌊</div>
+                            <div class="badge-tooltip">海浪克服者: 完成8级海况模拟</div>
+                        </div>
+                        <div class="badge">
+                            <div class="badge-icon">🛡️</div>
+                            <div class="badge-tooltip">防护专家: 系统容错设计满分</div>
+                        </div>
+                        <div class="badge">
+                            <div class="badge-icon">🔍</div>
+                            <div class="badge-tooltip">精确定位: 动态定位精度<0.5米< /div>
+                            </div>
+                            <div class="badge">
+                                <div class="badge-icon">🌱</div>
+                                <div class="badge-tooltip">生态卫士: 环保决策优先完成10次</div>
+                            </div>
+                        </div>
+                        <div class="comparison">
+                            <p>🏆 我的鲁棒性设计超越86%同层学员</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧工具区 -->
+            <div class="tools">
+                <!-- 4. 虚实实验档案库（右下方实验回放区） -->
+                <div class="experiment-archive">
+                    <div class="archive-title">虚实实验档案库</div>
+                    <div class="archive-tabs">
+                        <div class="archive-tab active">参数调试历史</div>
+                        <div class="archive-tab">伦理沙盘回放</div>
+                        <div class="archive-tab">异常事件簿</div>
+                    </div>
+                    <div class="archive-content">
+                        <div class="archive-item">
+                            <div class="archive-item-title">波浪补偿PID参数优化</div>
+                            <div class="archive-item-date">2023-06-12 14:30</div>
+                            <div class="archive-item-preview">超调量降低27%，AI评分：92分</div>
+                        </div>
+                        <div class="archive-item">
+                            <div class="archive-item-title">动态定位误差补偿实验</div>
+                            <div class="archive-item-date">2023-06-10 09:15</div>
+                            <div class="archive-item-preview">位置偏差降至0.3m以内，满足L4要求</div>
+                        </div>
+                        <div class="archive-item">
+                            <div class="archive-item-title">低速大力矩控制实验</div>
+                            <div class="archive-item-date">2023-06-08 16:45</div>
+                            <div class="archive-item-preview">转向响应时间优化23%，稳定性提升</div>
+                        </div>
+                        <div class="archive-item">
+                            <div class="archive-item-title">极端天气应对策略测试</div>
+                            <div class="archive-item-date">2023-06-05 11:20</div>
+                            <div class="archive-item-preview">高风浪稳定性85%，建议重新调试</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. 船长工作室（右下角悬浮工具栏） -->
+                <div class="captain-studio">
+                    <div class="studio-title">船长工作室</div>
+                    <div class="tool-grid">
+                        <button class="tool-btn">
+                            <div class="tool-icon">🔍</div>
+                            舰船自检仪
+                        </button>
+                        <button class="tool-btn">
+                            <div class="tool-icon">⚙️</div>
+                            实验速建
+                        </button>
+                        <button class="tool-btn">
+                            <div class="tool-icon">👥</div>
+                            跨海协作
+                        </button>
+                        <button class="tool-btn">
+                            <div class="tool-icon">📊</div>
+                            数据分析
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. 思政航海日志（底部荣誉陈列） -->
+            <div class="journal">
+                <div class="journal-title">思政航海日志</div>
+                <div class="journal-carousel">
+                    <div class="journal-item">
+                        <div class="journal-item-title">北极航道生物保护决策</div>
+                        <div class="journal-item-content">
+                            在极地航道选择中，综合考虑燃油效率与海洋生物迁徙路线保护，成功实现双赢方案设计。
+                        </div>
+                        <div class="journal-item-footer">
+                            <span>完成时间: 2023-06-01</span>
+                            <span>评分: A+</span>
+                        </div>
+                    </div>
+                    <div class="journal-item certificate">
+                        <div class="journal-item-title">中船集团实习证书</div>
+                        <div class="journal-item-content">
+                            完成"智能船舶动力系统优化"项目，获得行业专家一致好评，颁发企业实习证明。
+                        </div>
+                        <div class="journal-item-footer">
+                            <span>颁发日期: 2023-05-15</span>
+                            <span>证书编号: CSSC-2023-0426</span>
+                        </div>
+                    </div>
+                    <div class="journal-item">
+                        <div class="journal-item-title">全国智能船舶设计大赛</div>
+                        <div class="journal-item-content">
+                            团队合作开发的"海燕"智能巡航系统在全国比赛中获得金奖，负责核心控制算法。
+                        </div>
+                        <div class="journal-item-footer">
+                            <span>获奖时间: 2023-04-20</span>
+                            <span>排名: 全国第3</span>
+                        </div>
+                    </div>
+                    <div class="journal-item">
+                        <div class="journal-item-title">伦理决策专题训练</div>
+                        <div class="journal-item-content">
+                            在"渔业资源保护与经济发展平衡"案例中，提出创新性解决方案，获评最佳思考奖。
+                        </div>
+                        <div class="journal-item-footer">
+                            <span>完成时间: 2023-03-10</span>
+                            <span>评分: A</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // 初始化雷达图
+            document.addEventListener('DOMContentLoaded', function () {
+                const ctx = document.getElementById('skillRadar').getContext('2d');
+
+                // 使用Chart.js创建雷达图
+                const radarChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['建模精度', '算法优化', '鲁棒性设计', '安全优先级', '生态评估', '责任追溯'],
+                        datasets: [
+                            {
+                                label: '技术能力',
+                                data: [85, 90, 78, 65, 70, 75],
+                                fill: true,
+                                backgroundColor: 'rgba(39, 174, 96, 0.2)',
+                                borderColor: 'rgba(39, 174, 96, 1)',
+                                pointBackgroundColor: 'rgba(39, 174, 96, 1)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgba(39, 174, 96, 1)'
+                            },
+                            {
+                                label: '伦理决策',
+                                data: [70, 75, 80, 90, 85, 80],
+                                fill: true,
+                                backgroundColor: 'rgba(41, 128, 185, 0.2)',
+                                borderColor: 'rgba(41, 128, 185, 1)',
+                                pointBackgroundColor: 'rgba(41, 128, 185, 1)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgba(41, 128, 185, 1)'
+                            },
+                            {
+                                label: '班级均值',
+                                data: [75, 72, 68, 70, 65, 60],
+                                fill: false,
+                                backgroundColor: 'rgba(255, 255, 255, 0)',
+                                borderColor: 'rgba(255, 255, 255, 0.5)',
+                                pointBackgroundColor: 'rgba(255, 255, 255, 0.5)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgba(255, 255, 255, 0.5)',
+                                borderDash: [5, 5]
+                            }
+                        ]
+                    },
+                    options: {
+                        elements: {
+                            line: {
+                                borderWidth: 3
+                            }
+                        },
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                pointLabels: {
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    font: {
+                                        size: 12
+                                    }
+                                },
+                                ticks: {
+                                    backdropColor: 'transparent',
+                                    color: 'rgba(255, 255, 255, 0.5)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+
+                // 标签切换功能
+                const chartTabs = document.querySelectorAll('.chart-tab');
+                chartTabs.forEach(tab => {
+                    tab.addEventListener('click', function () {
+                        chartTabs.forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+                    });
+                });
+
+                // 档案库标签切换
+                const archiveTabs = document.querySelectorAll('.archive-tab');
+                archiveTabs.forEach(tab => {
+                    tab.addEventListener('click', function () {
+                        archiveTabs.forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+                    });
+                });
+
+                // 为徽章添加悬停效果
+                const badges = document.querySelectorAll('.badge');
+                badges.forEach(badge => {
+                    badge.addEventListener('mouseenter', function () {
+                        const tooltip = this.querySelector('.badge-tooltip');
+                        tooltip.style.opacity = '1';
+                    });
+                    badge.addEventListener('mouseleave', function () {
+                        const tooltip = this.querySelector('.badge-tooltip');
+                        tooltip.style.opacity = '0';
+                    });
+                });
+
+                // 任务卡片点击效果
+                const taskCards = document.querySelectorAll('.task-card:not(.locked)');
+                taskCards.forEach(card => {
+                    card.addEventListener('click', function () {
+                        taskCards.forEach(c => c.classList.remove('current'));
+                        this.classList.add('current');
+                    });
+                });
+            });
+        </script>
+</body>
+
+</html>

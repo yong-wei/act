@@ -1,158 +1,201 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+###############################################################################
+# AI-OBE 平台启动脚本
+# 功能：
+#   - 清理日志文件内容（保留文件）
+#   - 检查并启动必要的服务（PostgreSQL）
+#   - 启动 Next.js 开发服务器
+#   - 记录进程 PID
+###############################################################################
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_DIR="$ROOT_DIR/ai-obe-platform"
-LOG_DIR="$ROOT_DIR/.logs"
-PID_DIR="$LOG_DIR/pids"
+set -e  # 遇到错误立即退出
 
-CONSOLE_LOG="$LOG_DIR/console.log"
-FRONTEND_LOG="$LOG_DIR/frontend.log"
-BACKEND_LOG="$LOG_DIR/backend.log"
-DB_LOG="$LOG_DIR/database.log"
+# 颜色定义
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-mkdir -p "$LOG_DIR" "$PID_DIR"
-touch "$CONSOLE_LOG" "$FRONTEND_LOG" "$BACKEND_LOG" "$DB_LOG"
+# 目录定义
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+LOGS_DIR="$PROJECT_DIR/.logs"
+PIDS_DIR="$LOGS_DIR/pids"
 
-for log_file in "$LOG_DIR"/*.log; do
+echo -e "${BLUE}========================================${NC}"
+echo -e "${BLUE}  AI-OBE 船舶智控平台 - 启动脚本${NC}"
+echo -e "${BLUE}========================================${NC}\n"
+
+###############################################################################
+# 步骤 1: 清理日志文件内容
+###############################################################################
+echo -e "${YELLOW}[1/5] 清理日志文件...${NC}"
+
+# 确保目录存在
+mkdir -p "$LOGS_DIR"
+mkdir -p "$PIDS_DIR"
+
+# 清空日志文件内容（不删除文件）
+LOG_FILES=(
+  "$LOGS_DIR/frontend.log"
+  "$LOGS_DIR/backend.log"
+  "$LOGS_DIR/database.log"
+  "$LOGS_DIR/console.log"
+  "$LOGS_DIR/error.log"
+)
+
+for log_file in "${LOG_FILES[@]}"; do
   if [ -f "$log_file" ]; then
-    : > "$log_file"
+    > "$log_file"
+    echo -e "  ${GREEN}✓${NC} 清空: $(basename "$log_file")"
+  else
+    touch "$log_file"
+    echo -e "  ${GREEN}✓${NC} 创建: $(basename "$log_file")"
   fi
 done
 
-log() {
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$CONSOLE_LOG"
-}
+echo ""
 
-ensure_port_free() {
-  local port="$1"
-  local pid=""
+###############################################################################
+# 步骤 2: 检查 PostgreSQL 数据库
+###############################################################################
+echo -e "${YELLOW}[2/5] 检查 PostgreSQL 数据库...${NC}"
 
-  if command -v lsof >/dev/null 2>&1; then
-    pid="$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -n 1 || true)"
-  fi
+if command -v pg_isready &> /dev/null; then
+  if pg_isready -h localhost -p 5432 &> /dev/null; then
+    echo -e "  ${GREEN}✓${NC} PostgreSQL 已运行"
+  else
+    echo -e "  ${RED}✗${NC} PostgreSQL 未运行"
+    echo -e "  ${YELLOW}尝试启动 PostgreSQL...${NC}"
 
-  if [ -n "$pid" ]; then
-    local known_pid=""
-    if [ -f "$PID_DIR/frontend.pid" ]; then
-      known_pid="$(cat "$PID_DIR/frontend.pid")"
-    fi
-
-    if [ -n "$known_pid" ] && [ "$pid" = "$known_pid" ]; then
-      log "Port ${port} is in use by previous frontend (pid ${pid}). Stopping it."
-      kill -TERM "-$pid" >/dev/null 2>&1 || true
-      for _ in {1..10}; do
-        if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
-          sleep 1
-        else
-          return 0
-        fi
-      done
-      log "Port ${port} is still in use after stopping pid ${pid}."
+    # 尝试使用 brew services 启动（macOS）
+    if command -v brew &> /dev/null; then
+      brew services start postgresql@14 2>&1 | tee -a "$LOGS_DIR/database.log" || true
+      sleep 2
+      if pg_isready -h localhost -p 5432 &> /dev/null; then
+        echo -e "  ${GREEN}✓${NC} PostgreSQL 启动成功"
+      else
+        echo -e "  ${RED}✗${NC} PostgreSQL 启动失败，请手动启动"
+        exit 1
+      fi
+    else
+      echo -e "  ${RED}✗${NC} 请手动启动 PostgreSQL"
       exit 1
     fi
+  fi
+else
+  echo -e "  ${YELLOW}!${NC} 未找到 pg_isready，跳过 PostgreSQL 检查"
+fi
 
-    log "Port ${port} is already in use by pid ${pid}. Stop it before starting."
+echo ""
+
+###############################################################################
+# 步骤 3: 检查环境配置
+###############################################################################
+echo -e "${YELLOW}[3/5] 检查环境配置...${NC}"
+
+cd "$PROJECT_DIR"
+
+if [ ! -f ".env" ]; then
+  echo -e "  ${RED}✗${NC} .env 文件不存在"
+  if [ -f ".env.example" ]; then
+    echo -e "  ${YELLOW}复制 .env.example 到 .env...${NC}"
+    cp .env.example .env
+    echo -e "  ${YELLOW}!${NC} 请配置 .env 文件后重新运行"
+    exit 1
+  else
+    echo -e "  ${RED}✗${NC} 请创建 .env 文件"
     exit 1
   fi
-}
+fi
 
-run_detached() {
-  local cmd="$1"
-  local log_file="$2"
+echo -e "  ${GREEN}✓${NC} .env 文件存在"
 
-  if command -v setsid >/dev/null 2>&1; then
-    setsid bash -c "exec $cmd" >>"$log_file" 2>&1 &
-  else
-    nohup bash -c "exec $cmd" >>"$log_file" 2>&1 &
+# 检查必要的环境变量
+if grep -q "DATABASE_URL" .env && grep -q "NEXTAUTH_SECRET" .env; then
+  echo -e "  ${GREEN}✓${NC} 必要的环境变量已配置"
+else
+  echo -e "  ${RED}✗${NC} 缺少必要的环境变量"
+  exit 1
+fi
+
+echo ""
+
+###############################################################################
+# 步骤 4: 检查依赖
+###############################################################################
+echo -e "${YELLOW}[4/5] 检查依赖...${NC}"
+
+if [ ! -d "node_modules" ]; then
+  echo -e "  ${YELLOW}node_modules 不存在，安装依赖...${NC}"
+  npm install
+else
+  echo -e "  ${GREEN}✓${NC} node_modules 已存在"
+fi
+
+echo ""
+
+###############################################################################
+# 步骤 5: 启动 Next.js 开发服务器
+###############################################################################
+echo -e "${YELLOW}[5/5] 启动 Next.js 开发服务器...${NC}"
+
+# 检查是否已有进程在运行
+if [ -f "$PIDS_DIR/frontend.pid" ]; then
+  OLD_PID=$(cat "$PIDS_DIR/frontend.pid")
+  if ps -p "$OLD_PID" > /dev/null 2>&1; then
+    echo -e "  ${YELLOW}!${NC} 发现已运行的进程 (PID: $OLD_PID)"
+    echo -e "  ${YELLOW}正在停止旧进程...${NC}"
+    kill "$OLD_PID" 2>/dev/null || true
+    sleep 1
+    if ps -p "$OLD_PID" > /dev/null 2>&1; then
+      kill -9 "$OLD_PID" 2>/dev/null || true
+    fi
   fi
+  rm -f "$PIDS_DIR/frontend.pid"
+fi
 
-  echo $!
-}
+# 启动开发服务器（后台运行）
+echo -e "  ${BLUE}启动命令: npm run dev${NC}"
+nohup npm run dev > "$LOGS_DIR/frontend.log" 2> "$LOGS_DIR/error.log" &
+FRONTEND_PID=$!
+echo "$FRONTEND_PID" > "$PIDS_DIR/frontend.pid"
 
-start_postgres() {
-  local container_name="act-just-postgres"
-  local db_user="${POSTGRES_USER:-act_user}"
-  local db_password="${POSTGRES_PASSWORD:-act_pass}"
-  local db_name="${POSTGRES_DB:-act_obe}"
-  local db_port="${POSTGRES_PORT:-5432}"
-  local volume_name="${POSTGRES_VOLUME:-act-just-postgres-data}"
+echo -e "  ${GREEN}✓${NC} Next.js 开发服务器已启动 (PID: $FRONTEND_PID)"
+echo -e "  ${BLUE}日志位置: $LOGS_DIR/frontend.log${NC}"
 
-  if ! command -v docker >/dev/null 2>&1; then
-    log "Docker is not installed or not on PATH; cannot start Postgres."
-    return 1
-  fi
+# 等待服务器启动
+echo -e "\n  ${YELLOW}等待服务器启动...${NC}"
+sleep 3
 
-  if docker ps --format '{{.Names}}' | grep -q "^${container_name}$"; then
-    log "Postgres container already running (${container_name})."
-  elif docker ps -a --format '{{.Names}}' | grep -q "^${container_name}$"; then
-    log "Starting existing Postgres container (${container_name})."
-    docker start "$container_name" >>"$DB_LOG" 2>&1
-  else
-    log "Starting new Postgres container (${container_name})."
-    docker run -d \
-      --name "$container_name" \
-      -e POSTGRES_USER="$db_user" \
-      -e POSTGRES_PASSWORD="$db_password" \
-      -e POSTGRES_DB="$db_name" \
-      -p "${db_port}:5432" \
-      -v "${volume_name}:/var/lib/postgresql/data" \
-      postgres:15 >>"$DB_LOG" 2>&1
-  fi
+# 检查进程是否还在运行
+if ps -p "$FRONTEND_PID" > /dev/null 2>&1; then
+  echo -e "  ${GREEN}✓${NC} 服务器正在运行"
+else
+  echo -e "  ${RED}✗${NC} 服务器启动失败"
+  echo -e "  ${YELLOW}查看错误日志: tail -f $LOGS_DIR/error.log${NC}"
+  exit 1
+fi
 
-  echo "$container_name" >"$PID_DIR/database.pid"
-}
-
-start_service() {
-  local name="$1"
-  local cmd="$2"
-  local workdir="$3"
-  local pid_file="${4:-$PID_DIR/${name}.pid}"
-
-  if [ -z "$cmd" ]; then
-    log "Skipping ${name}: no command configured."
-    return 0
-  fi
-
-  if [ -f "$pid_file" ] && kill -0 "$(cat "$pid_file")" >/dev/null 2>&1; then
-    log "${name} already running (pid $(cat "$pid_file"))."
-    return 0
-  fi
-
-  log "Starting ${name}: ${cmd}"
-  (
-    cd "$workdir"
-    run_detached "$cmd" "$BACKEND_LOG" >"$pid_file"
-  )
-}
-
-start_frontend() {
-  local pid_file="$PID_DIR/frontend.pid"
-  local frontend_port="3000"
-
-  if [ -f "$pid_file" ] && kill -0 "$(cat "$pid_file")" >/dev/null 2>&1; then
-    log "Frontend already running (pid $(cat "$pid_file"))."
-    log "Frontend dev URL: http://localhost:${frontend_port}"
-    return 0
-  fi
-
-  if [ ! -f "$APP_DIR/.env.local" ]; then
-    log "Missing $APP_DIR/.env.local. Copy from $APP_DIR/.env.example before login flows."
-  fi
-
-  ensure_port_free "$frontend_port"
-  log "Starting frontend (Next.js dev server)."
-  (
-    cd "$APP_DIR"
-    run_detached "npm run dev -- --hostname 127.0.0.1 --port ${frontend_port}" "$FRONTEND_LOG" >"$pid_file"
-  )
-
-  log "Frontend dev URL: http://127.0.0.1:${frontend_port}"
-}
-
-log "Startup initiated."
-start_postgres
-start_service "simulation" "${SIM_SERVICE_CMD:-}" "${SIM_SERVICE_DIR:-$ROOT_DIR}" "$PID_DIR/simulation.pid"
-start_service "llm" "${LLM_SERVICE_CMD:-}" "${LLM_SERVICE_DIR:-$ROOT_DIR}" "$PID_DIR/llm.pid"
-start_frontend
-log "Startup completed."
+###############################################################################
+# 启动完成
+###############################################################################
+echo ""
+echo -e "${GREEN}========================================${NC}"
+echo -e "${GREEN}  启动完成！${NC}"
+echo -e "${GREEN}========================================${NC}"
+echo ""
+echo -e "  ${BLUE}访问地址:${NC}"
+echo -e "    • 前端: ${GREEN}http://localhost:3000${NC}"
+echo ""
+echo -e "  ${BLUE}日志位置:${NC}"
+echo -e "    • 前端日志: ${YELLOW}$LOGS_DIR/frontend.log${NC}"
+echo -e "    • 错误日志: ${YELLOW}$LOGS_DIR/error.log${NC}"
+echo ""
+echo -e "  ${BLUE}查看日志:${NC}"
+echo -e "    ${YELLOW}tail -f $LOGS_DIR/frontend.log${NC}"
+echo ""
+echo -e "  ${BLUE}停止服务:${NC}"
+echo -e "    ${YELLOW}./scripts/stop.sh${NC}"
+echo ""
