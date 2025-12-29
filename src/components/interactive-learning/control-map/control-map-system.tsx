@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Info } from 'lucide-react';
-import { ReactFlowProvider } from 'reactflow';
+import { ReactFlowProvider } from '@xyflow/react';
 
 import { ControlGraphCanvas } from './topology-graph/control-graph-canvas';
 import { DetailSidebar } from './sidebar/detail-sidebar';

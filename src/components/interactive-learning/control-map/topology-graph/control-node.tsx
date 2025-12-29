@@ -1,10 +1,10 @@
 'use client';
 
 import { memo } from 'react';
-import { Handle, Position, type NodeProps } from 'reactflow';
+import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 import { zoneConfigs, type ZoneType } from '../types';
 
-export interface ControlNodeData {
+export interface ControlNodeData extends Record<string, unknown> {
   nameCn: string;
   name: string;
   zone: ZoneType;
@@ -15,7 +15,10 @@ export interface ControlNodeData {
   isDimmed: boolean;
 }
 
-function ControlNodeComponent({ data }: NodeProps<ControlNodeData>) {
+/** v12 类型：完整的节点类型定义 */
+export type ControlNodeType = Node<ControlNodeData, 'controlNode'>;
+
+function ControlNodeComponent({ data }: NodeProps<ControlNodeType>) {
   const { nameCn, name, zone, importance, isSelected, isHovered, isRelated, isDimmed } = data;
   const zoneConfig = zoneConfigs[zone];
 

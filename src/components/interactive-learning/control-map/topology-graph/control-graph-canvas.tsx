@@ -1,21 +1,23 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
-import ReactFlow, {
+import { useCallback, useMemo, useEffect } from 'react';
+import {
+  ReactFlow,
   Background,
   Controls,
   MiniMap,
   useNodesState,
   useEdgesState,
+  ConnectionLineType,
   type Node,
   type Edge,
   type OnNodesChange,
   type OnEdgesChange,
-  ConnectionLineType,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+  type NodeTypes,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
-import { ControlNode, type ControlNodeData } from './control-node';
+import { ControlNode, type ControlNodeData, type ControlNodeType } from './control-node';
 import { controlTheoryNodes, controlTheoryEdges, getRelatedNodes } from '../data/control-theory-nodes';
 import { zoneConfigs, type ViewState } from '../types';
 
@@ -25,7 +27,8 @@ interface ControlGraphCanvasProps {
   onNodeHover: (nodeId: string | null) => void;
 }
 
-const nodeTypes = {
+// v12: nodeTypes 需要在组件外定义以保持引用稳定
+const nodeTypes: NodeTypes = {
   controlNode: ControlNode,
 };
 
@@ -44,7 +47,7 @@ export function ControlGraphCanvas({
   }, [hoveredNode, selectedNode]);
 
   // 构建节点
-  const initialNodes: Node<ControlNodeData>[] = useMemo(() => {
+  const initialNodes: ControlNodeType[] = useMemo(() => {
     return controlTheoryNodes.map((node) => {
       // 检查是否应该显示
       const matchesDomain =
@@ -119,7 +122,7 @@ export function ControlGraphCanvas({
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   // 更新节点
-  useMemo(() => {
+  useEffect(() => {
     setNodes(initialNodes);
     setEdges(initialEdges);
   }, [initialNodes, initialEdges, setNodes, setEdges]);
@@ -147,7 +150,7 @@ export function ControlGraphCanvas({
   }, [onNodeClick]);
 
   // MiniMap节点颜色
-  const nodeColor = useCallback((node: Node<ControlNodeData>) => {
+  const nodeColor = useCallback((node: ControlNodeType) => {
     return zoneConfigs[node.data.zone].color;
   }, []);
 

@@ -3,7 +3,7 @@
  * Physics Modeling Workshop Type Definitions
  */
 
-import type { Node, Edge } from 'reactflow';
+import type { Node, Edge } from '@xyflow/react';
 
 // ===== 元件类型 =====
 
@@ -52,7 +52,7 @@ export interface ComponentParams {
 }
 
 /** 物理节点数据 */
-export interface PhysicsNodeData {
+export interface PhysicsNodeData extends Record<string, unknown> {
   type: ComponentType;
   params: ComponentParams;
   label: string;

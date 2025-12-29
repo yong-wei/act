@@ -5,7 +5,7 @@
  * 根据节点图自动生成 LaTeX 格式的微分方程
  */
 
-import type { Node, Edge } from 'reactflow';
+import type { Node, Edge } from '@xyflow/react';
 import type { PhysicsNodeData, ComponentType } from '../types';
 
 /**

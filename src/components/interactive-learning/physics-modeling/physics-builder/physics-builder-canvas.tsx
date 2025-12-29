@@ -6,19 +6,22 @@
  */
 
 import { useCallback, useRef, useMemo, useState, useEffect } from 'react';
-import ReactFlow, {
+import {
+  ReactFlow,
   Background,
   Controls,
   MiniMap,
   addEdge,
   useNodesState,
   useEdgesState,
-  Connection,
-  Edge,
   ReactFlowProvider,
-  ReactFlowInstance,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+  type Connection,
+  type Edge,
+  type ReactFlowInstance,
+  type OnNodesChange,
+  type OnEdgesChange,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
 import { ComponentSidebar } from './component-sidebar';
 import { EquationDisplay } from './equation-display';
@@ -65,8 +68,8 @@ export function PhysicsBuilderCanvas({
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(
     null
   );
-  const [nodes, setNodes, onNodesChange] = useNodesState<PhysicsNodeData>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState<PhysicsNode>(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<PhysicsEdge>(initialEdges);
 
   // 确保 nodeTypes 引用稳定（避免 React Flow 警告）
   const nodeTypes = useMemo(() => importedNodeTypes, []);
@@ -189,8 +192,8 @@ export function PhysicsBuilderCanvas({
           <ReactFlow
             nodes={nodes}
             edges={edges}
-            onNodesChange={handleNodesChange}
-            onEdgesChange={onEdgesChange}
+            onNodesChange={handleNodesChange as OnNodesChange}
+            onEdgesChange={onEdgesChange as OnEdgesChange}
             onConnect={onConnect}
             onInit={setReactFlowInstance}
             nodeTypes={nodeTypes}

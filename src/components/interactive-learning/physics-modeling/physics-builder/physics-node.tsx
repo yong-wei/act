@@ -6,8 +6,11 @@
  */
 
 import { memo } from 'react';
-import { Handle, Position, NodeProps } from 'reactflow';
+import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 import type { PhysicsNodeData, ComponentType } from '../types';
+
+/** v12 类型：物理节点完整类型 */
+type PhysicsNodeType = Node<PhysicsNodeData>;
 
 /** 元件图标 SVG */
 const ComponentIcons: Record<ComponentType, React.ReactNode> = {
@@ -157,7 +160,7 @@ const ComponentColors: Record<ComponentType, string> = {
 };
 
 /** 物理节点组件 */
-function PhysicsNodeComponent({ data, selected }: NodeProps<PhysicsNodeData>) {
+function PhysicsNodeComponent({ data, selected }: NodeProps<PhysicsNodeType>) {
   const { type, params, label } = data;
   const colorClass = ComponentColors[type] || 'text-slate-400 border-slate-400/50';
   const icon = ComponentIcons[type];
