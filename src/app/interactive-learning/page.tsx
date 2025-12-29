@@ -1,9 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Compass, Gauge, Map, Ship, Wrench } from 'lucide-react';
+import { ArrowRight, BookOpen, Compass, Gauge, Map, Ship, Wrench } from 'lucide-react';
 
 const modules = [
+  {
+    id: 'lesson-02',
+    title: '机理建模：微分方程',
+    titleEn: 'Lesson 02: Differential Equations',
+    description: '基于 BOPPPS 教学模式的完整课程。从052D舵机系统出发，学习机械与电路系统的微分方程建模方法。',
+    href: '/interactive-learning/lesson-02',
+    icon: BookOpen,
+    color: 'amber',
+    features: ['BOPPPS 教学流程', '机电相似映射', 'AI 批改', '90分钟完整课程'],
+    isLesson: true,
+  },
   {
     id: 'argument-principle',
     title: '幅角原理',
@@ -21,7 +32,7 @@ const modules = [
     description: '探索控制理论的全景知识图谱。从经典PID到现代最优控制，通过交互式拓扑图建立完整的知识架构。',
     href: '/interactive-learning/control-map',
     icon: Map,
-    color: 'amber',
+    color: 'cyan',
     features: ['交互式拓扑图', '五大知识区域', '公式与应用详解'],
   },
   {
@@ -58,6 +69,12 @@ const colorClasses = {
     iconText: 'text-amber-400',
     border: 'border-amber-500/30 hover:border-amber-500/60',
     badge: 'bg-amber-500/20 text-amber-400',
+  },
+  cyan: {
+    iconBg: 'bg-cyan-500/20',
+    iconText: 'text-cyan-400',
+    border: 'border-cyan-500/30 hover:border-cyan-500/60',
+    badge: 'bg-cyan-500/20 text-cyan-400',
   },
   emerald: {
     iconBg: 'bg-emerald-500/20',
