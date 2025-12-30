@@ -6,7 +6,7 @@
  */
 
 import { streamText, convertToCoreMessages, type Message } from 'ai';
-import { getAIModel, SYSTEM_PROMPT } from '@/lib/ai-client';
+import { getAIModel, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 
@@ -25,15 +25,19 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { messages, simulationState } = body as {
+    const { messages, simulationState, lessonContext } = body as {
       messages: Message[];
       simulationState?: Record<string, unknown>;
+      lessonContext?: LessonContext;
     };
 
     // 如果提供了仿真状态，更新到工具存储
     if (simulationState) {
       updateSimulationState(simulationState as Parameters<typeof updateSimulationState>[0]);
     }
+
+    // 构建上下文感知的系统提示
+    const systemPrompt = buildContextAwarePrompt(SYSTEM_PROMPT, lessonContext);
 
     // 检查 API Key 配置
     if (!process.env.SILICONFLOW_API_KEY) {
@@ -52,7 +56,7 @@ export async function POST(request: Request) {
     // 使用 Vercel AI SDK 生成流式响应
     const result = await streamText({
       model: getAIModel(),
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: convertToCoreMessages(messages),
       tools: aiTools,
       maxSteps: 5, // 允许最多5轮工具调用

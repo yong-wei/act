@@ -47,6 +47,64 @@ export const SYSTEM_PROMPT = `你是由中船重工指派的虚拟总工程师�
 - 涉及数值时给出具体数据
 - 必要时使用Markdown格式组织内容`;
 
+// BOPPPS 阶段教学上下文提示
+const BOPPPS_STAGE_HINTS: Record<string, string> = {
+  BRIDGE_IN: '【导入阶段】学生正在观看引导内容。你的角色是激发兴趣，帮助学生建立与先验知识的联系。',
+  OBJECTIVE: '【目标阶段】学生正在了解学习目标。帮助学生明确本节课要掌握的核心概念和能力。',
+  PRE_ASSESSMENT: '【前测阶段】学生正在完成前测。这是诊断性评估，帮助学生了解自己的起点水平。',
+  PARTICIPATORY: '【参与式学习阶段】学生正在进行交互式学习或仿真操作。积极引导学生思考，鼓励尝试，及时纠正错误。',
+  POST_ASSESSMENT: '【后测阶段】学生正在完成后测。帮助学生检验学习成果，总结收获。',
+  SUMMARY: '【总结阶段】课程即将结束。帮助学生回顾要点，建立知识体系。'
+};
+
+// AI 角色配置
+const AI_PERSONA_PROMPTS: Record<string, string> = {
+  tutor: '你是一位耐心的导师，专注于帮助学生理解概念，使用引导式提问促进思考。',
+  critic: '你是一位严格的审核员，专注于发现问题和安全隐患，给出专业的改进建议。',
+  analyst: '你是一位数据分析师，专注于分析仿真数据，提供量化的评估报告。'
+};
+
+// 课程上下文接口
+export interface LessonContext {
+  stage?: string;
+  resourceTitle?: string;
+  aiPersona?: 'tutor' | 'critic' | 'analyst';
+  customPrompt?: string;
+}
+
+// 构建上下文感知的系统提示
+export function buildContextAwarePrompt(
+  basePrompt: string,
+  lessonContext?: LessonContext
+): string {
+  if (!lessonContext) return basePrompt;
+
+  const parts: string[] = [basePrompt];
+
+  // 添加 BOPPPS 阶段上下文
+  if (lessonContext.stage && BOPPPS_STAGE_HINTS[lessonContext.stage]) {
+    parts.push('\n## 当前教学上下文');
+    parts.push(BOPPPS_STAGE_HINTS[lessonContext.stage]);
+  }
+
+  // 添加当前资源信息
+  if (lessonContext.resourceTitle) {
+    parts.push(`\n当前学习资源: "${lessonContext.resourceTitle}"`);
+  }
+
+  // 添加 AI 角色提示
+  if (lessonContext.aiPersona && AI_PERSONA_PROMPTS[lessonContext.aiPersona]) {
+    parts.push(`\n## 角色定位\n${AI_PERSONA_PROMPTS[lessonContext.aiPersona]}`);
+  }
+
+  // 添加自定义提示
+  if (lessonContext.customPrompt) {
+    parts.push(`\n## 特别指导\n${lessonContext.customPrompt}`);
+  }
+
+  return parts.join('\n');
+}
+
 // 用于分析仿真结果的提示词模板
 export const ANALYSIS_PROMPT_TEMPLATE = `请分析以下船舶航向控制仿真结果：
 

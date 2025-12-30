@@ -71,6 +71,12 @@ model User {
   knowledgeProgress KnowledgeProgress[]
   learningPaths     LearningPath[]
   learningNotes     LearningNote[]
+
+  // 教学资源与教案
+  createdResources  TeachingResource[]
+  createdPlans      LessonPlan[]
+  teachingSessions  ClassSession[]
+  studentStates     StudentState[]
 }
 
 model StudentProfile {
@@ -408,6 +414,24 @@ enum KnowledgeNodeType {
   ETHICS // 伦理节点（绿色）
 }
 
+// 布鲁姆认知维度
+enum BloomLevel {
+  REMEMBER // 记忆
+  UNDERSTAND // 理解
+  APPLY // 应用
+  ANALYZE // 分析
+  EVALUATE // 评价
+  CREATE // 创造
+}
+
+// 知识维度
+enum KnowledgeDimension {
+  FACTUAL // 事实性
+  CONCEPTUAL // 概念性
+  PROCEDURAL // 程序性
+  METACOGNITIVE // 元认知
+}
+
 // 学习状态枚举
 enum LearningStatus {
   NOT_STARTED // 未开始
@@ -422,15 +446,24 @@ model KnowledgeNode {
   nodeType    KnowledgeNodeType
   description String            @db.Text
 
+  // 新增分类标签
+  bloomLevel   BloomLevel         @default(UNDERSTAND)
+  knowledgeDim KnowledgeDimension @default(CONCEPTUAL)
+
   // 3D 位置
   positionX Float @default(0)
   positionY Float @default(0)
   positionZ Float @default(0)
 
-  // 学习资源
-  content       Json  @default("{}") // 公式、表格、交互控件
+  // 学习资源 & 核心内容
+  // 包含：mediaType (text, video, image, model3d), contentUrl, transcript, etc.
+  content       Json  @default("{}") // 旧字段保留，作为向后兼容或特定结构
+  metadata      Json  @default("{}") // 新字段：标准化的原子化元数据
   resources     Json  @default("[]") // 相关文档、视频等
   ethicsContent Json? // 伦理考量
+
+  // 标签系统
+  tags String[]
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -438,6 +471,9 @@ model KnowledgeNode {
   sourceLinks KnowledgeLink[]     @relation("SourceNode")
   targetLinks KnowledgeLink[]     @relation("TargetNode")
   progress    KnowledgeProgress[]
+  
+  // 关联的教学资源
+  teachingResources TeachingResource[]
 }
 
 // 知识连接
@@ -453,6 +489,141 @@ model KnowledgeLink {
   relation String // provides_foundation, stability_analysis 等
 
   @@unique([sourceId, targetId])
+}
+
+// ========== 新增：资源分层与 BOPPPS 引擎 ==========
+
+// 资源类型
+enum ResourceType {
+  STATIC_TEXT      // 静态文本/Markdown
+  STATIC_MEDIA     // 图片/视频链接
+  INTERACTIVE_COMP // 注册的交互组件 (Code)
+  SIMULATION_APP   // 注册的仿真应用 (Code)
+  ETHICS_SCENARIO  // 伦理场景
+}
+
+// 教学资源 (Type A & Type B)
+model TeachingResource {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  type        ResourceType
+  
+  // 内容载体
+  content     String?      @db.Text // Markdown 内容 或 URL
+  registryId  String?      // 组件注册ID (如 'sim-pid-v1')
+  
+  // 配置与元数据
+  config      Json         @default("{}") // 组件默认 Props 或 参数
+  aiHints     String?      @db.Text // 给 AI 的上下文提示
+  
+  authorId    String
+  author      User         @relation(fields: [authorId], references: [id])
+  
+  // 关联知识点 (多对多)
+  knowledgeNodes KnowledgeNode[] 
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  lessonItems LessonItem[]
+}
+
+enum BopppsStage {
+  BRIDGE_IN       // 导入
+  OBJECTIVE       // 目标
+  PRE_ASSESSMENT  // 前测
+  PARTICIPATORY   // 参与式学习
+  POST_ASSESSMENT // 后测
+  SUMMARY         // 总结
+}
+
+// 课程教案 (LessonPlan - 替代原 CoursePlaylist)
+model LessonPlan {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  isPublic    Boolean  @default(false)
+  
+  // BOPPPS 结构化环节
+  items       LessonItem[]
+  
+  sessions    ClassSession[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// 教案环节 (PlaylistItem 升级版)
+model LessonItem {
+  id            String       @id @default(cuid())
+  planId        String
+  plan          LessonPlan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  
+  resourceId    String
+  resource      TeachingResource @relation(fields: [resourceId], references: [id])
+  
+  stage         BopppsStage  // 属于 BOPPPS 哪个阶段
+  order         Int          // 阶段内的排序
+  
+  duration      Int?         // 预计时长 (分钟)
+  
+  createdAt     DateTime     @default(now())
+  
+  @@index([planId])
+  @@index([resourceId])
+}
+
+// 课堂会话 (实时状态管理)
+model ClassSession {
+  id            String       @id @default(cuid())
+  joinCode      String       @unique // 6位入会码
+  
+  planId        String
+  plan          LessonPlan   @relation(fields: [planId], references: [id])
+  
+  teacherId     String
+  teacher       User         @relation(fields: [teacherId], references: [id])
+  
+  status        SessionStatus @default(ACTIVE)
+  
+  // 当前进度控制
+  currentStage  BopppsStage?
+  currentItemId String?      // 当前激活的 LessonItem ID
+  
+  startTime     DateTime     @default(now())
+  endTime       DateTime?
+  
+  studentStates StudentState[]
+}
+
+enum SessionStatus {
+  ACTIVE
+  PAUSED
+  FINISHED
+}
+
+// 学生实时交互状态
+model StudentState {
+  id            String       @id @default(cuid())
+  sessionId     String
+  session       ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  
+  itemId        String?      // 关联的 LessonItem
+  
+  // 实时数据 (答案、仿真参数、操作日志等)
+  data          Json         
+  
+  submittedAt   DateTime     @default(now())
+
+  @@unique([sessionId, userId])
+  @@index([sessionId])
+  @@index([userId])
 }
 
 // 知识学习进度
