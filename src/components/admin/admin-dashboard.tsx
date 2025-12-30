@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {
   Activity,
   AlertTriangle,
@@ -9,6 +10,7 @@ import {
   Search,
   UploadCloud,
   Users,
+  BookOpen,
 } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { UserMenu } from '@/components/shared/user-menu';
@@ -405,6 +407,12 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               <div className="rounded-lg bg-cyan-500/10 px-3 py-2 text-cyan-100">
                 总览面板
               </div>
+              <Link href="/admin/lesson-plans">
+                <div className="flex items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-slate-800/70 cursor-pointer">
+                   <BookOpen className="h-4 w-4" />
+                   课程编排
+                </div>
+              </Link>
               <div className="rounded-lg px-3 py-2 transition hover:bg-slate-800/70">
                 账号管理
               </div>
