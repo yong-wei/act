@@ -1,5 +1,5 @@
 
-import { PlaylistBuilder } from '@/components/knowledge/playlist-builder';
+import { PlaylistBuilder } from '@/features/knowledge/playlist-builder';
 
 export default function NewPlaylistPage() {
   return (

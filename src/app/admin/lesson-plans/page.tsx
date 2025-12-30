@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { Plus, BookOpen } from 'lucide-react';
 import { getServerAuthSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { LessonPlanList } from '@/components/lesson-engine/lesson-plan-list';
+import { LessonPlanList } from '@/features/lesson-engine/lesson-plan-list';
 
 export default async function LessonPlansIndexPage() {
   const session = await getServerAuthSession();

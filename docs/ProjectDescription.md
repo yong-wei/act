@@ -222,31 +222,35 @@ act.just.edu.cn/
 │   │   │   ├── simulation/optimize/  # 参数优化 API
 │   │   │   └── ethics/violation/     # 违规记录 API
 │   │   └── actions/             # Server Actions
-│   ├── components/              # React 组件
-│   │   ├── ai/                  # AI 相关组件
-│   │   ├── dashboard/           # Dashboard 组件
-│   │   ├── ethics/              # 伦理相关组件
-│   │   ├── mission/             # 任务相关组件
-│   │   ├── simulation/          # 仿真相关组件
+│   ├── features/                # 平台功能域组件
+│   │   ├── ai/                  # AI 虚拟总工
+│   │   ├── ethics/              # 伦理模块
+│   │   ├── knowledge/           # 知识库
+│   │   ├── lesson-engine/       # 课程引擎
+│   │   ├── admin/               # 管理后台
+│   │   ├── dashboard/           # 主控制台
+│   │   └── mission/             # 任务模块
+│   ├── resources/               # 教学资源
+│   │   ├── interactive-learning/ # 互动学习组件
+│   │   ├── simulations/         # 虚拟仿真与仿真工具
+│   │   └── widgets/             # 教学小工具
+│   ├── components/              # 平台基础组件
 │   │   ├── providers/           # 全局 Provider
 │   │   ├── shared/              # 共享组件
 │   │   └── ui/                  # UI 基础组件
-│   ├── hooks/                   # 自定义 Hooks
-│   │   ├── useShipSimulation.ts # 仿真引擎 Hook
+│   ├── hooks/                   # 平台通用 Hooks
 │   │   └── useEthicalMonitor.ts # 伦理监控 Hook
-│   ├── lib/                     # 工具库
+│   ├── lib/                     # 平台工具库
 │   │   ├── auth.ts              # 认证配置
 │   │   ├── prisma.ts            # Prisma 客户端
 │   │   ├── ai-client.ts         # AI 客户端
 │   │   ├── ai-tools.ts          # AI Function 定义
-│   │   ├── simulation-engine.ts # 仿真引擎
-│   │   ├── monte-carlo-optimizer.ts  # 参数优化器
 │   │   ├── user-sync.ts         # 用户同步
 │   │   ├── competency.ts        # 能力计算
 │   │   └── constants/ethics.ts  # 伦理常量
-│   └── types/                   # TypeScript 类型
+│   └── types/                   # 平台 TypeScript 类型
 │       ├── next-auth.d.ts       # NextAuth 类型扩展
-│       └── simulation.ts        # 仿真类型
+│       └── curriculum.ts        # 课程结构
 ├── prisma/
 │   └── schema.prisma            # 数据库架构
 ├── scripts/
@@ -385,6 +389,6 @@ npm test               # 运行测试
 
 ---
 
-**最后更新日期**：2025-12-26
+**最后更新日期**：2025-12-30
 **版本**：v1.0.0
 **状态**：开发完成，可用于教学实践

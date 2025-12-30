@@ -50,6 +50,17 @@ interface PidSimulatorComponentProps {
   kd?: number;
   model?: string; // string type to allow dynamic input
   showBackLink?: boolean;
+  /** Embedded mode - hide navigation */
+  embedded?: boolean;
+  /** Callback when state changes (for AI context) */
+  onStateChange?: (state: {
+    phase: string;
+    progress: number;
+    data: Record<string, unknown>;
+    timestamp: number;
+  }) => void;
+  /** Callback when simulation completes */
+  onComplete?: (result?: { success: boolean; score?: number; data?: Record<string, unknown> }) => void;
 }
 
 export function PidSimulatorComponent({
@@ -58,6 +69,9 @@ export function PidSimulatorComponent({
   kd: initialKd = 0.25,
   model: initialModel = 'ship',
   showBackLink = false,
+  embedded = false,
+  onStateChange,
+  onComplete,
 }: PidSimulatorComponentProps) {
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstance = useRef<Chart | null>(null);
@@ -218,7 +232,37 @@ export function PidSimulatorComponent({
     chartInstance.current.data.datasets[0].data = responseData;
     chartInstance.current.data.datasets[1].data = setpointData;
     chartInstance.current.update();
-  }, [kd, ki, kp, modelKey, reference, stepSize, timeScale]);
+
+    // Calculate performance metrics
+    const finalValue = responseData[responseData.length - 1] || 0;
+    const steadyStateError = Math.abs(reference - finalValue);
+    const maxOvershoot = Math.max(...responseData) - reference;
+    const overshootPercent = reference !== 0 ? (maxOvershoot / reference) * 100 : 0;
+
+    // Emit state change
+    onStateChange?.({
+      phase: 'simulation-complete',
+      progress: 100,
+      data: {
+        kp,
+        ki,
+        kd,
+        model: modelKey,
+        reference,
+        finalValue,
+        steadyStateError,
+        overshootPercent: Math.max(0, overshootPercent),
+      },
+      timestamp: Date.now(),
+    });
+
+    // Call onComplete if simulation ran successfully
+    onComplete?.({
+      success: true,
+      score: steadyStateError < 0.05 && overshootPercent < 20 ? 100 : 70,
+      data: { steadyStateError, overshootPercent },
+    });
+  }, [kd, ki, kp, modelKey, reference, stepSize, timeScale, onStateChange, onComplete]);
 
   const handleReset = () => {
     setModelKey((initialModel as ModelKey) || 'ship');
@@ -238,42 +282,67 @@ export function PidSimulatorComponent({
 
   return (
     <div className="h-full w-full bg-slate-950 text-slate-100 flex flex-col">
-      <header className="border-b border-slate-800 flex-none">
-        <div className="container mx-auto flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-4">
-            {showBackLink && (
-                <Link
-                href="/interactive-learning"
-                className="flex items-center gap-2 text-slate-400 transition-colors hover:text-white"
-                >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="text-sm">返回</span>
-                </Link>
-            )}
-            {showBackLink && <div className="h-4 w-px bg-slate-700" />}
-            <div>
-              <h1 className="text-lg font-semibold text-white">PID 控制仿真器</h1>
-              <p className="text-xs text-slate-400">多对象动态响应与参数调参</p>
+      {/* Header - hidden in embedded mode */}
+      {!embedded && (
+        <header className="border-b border-slate-800 flex-none">
+          <div className="container mx-auto flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-4">
+              {showBackLink && (
+                  <Link
+                  href="/interactive-learning"
+                  className="flex items-center gap-2 text-slate-400 transition-colors hover:text-white"
+                  >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="text-sm">返回</span>
+                  </Link>
+              )}
+              {showBackLink && <div className="h-4 w-px bg-slate-700" />}
+              <div>
+                <h1 className="text-lg font-semibold text-white">PID 控制仿真器</h1>
+                <p className="text-xs text-slate-400">多对象动态响应与参数调参</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 transition hover:bg-slate-800"
+              >
+                <RefreshCcw className="h-4 w-4" />
+                重置
+              </button>
+              <button
+                onClick={runSimulation}
+                className="flex items-center gap-2 rounded-lg border border-cyan-500/60 bg-cyan-500/10 px-3 py-1.5 text-sm text-cyan-100 transition hover:border-cyan-400"
+              >
+                <Play className="h-4 w-4" />
+                运行仿真
+              </button>
             </div>
           </div>
+        </header>
+      )}
+
+      {/* Embedded mode toolbar */}
+      {embedded && (
+        <div className="border-b border-slate-800 bg-slate-900/50 px-4 py-2 flex items-center justify-between">
+          <span className="text-sm text-slate-400">PID 控制仿真器</span>
           <div className="flex items-center gap-2">
             <button
               onClick={handleReset}
-              className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 transition hover:bg-slate-800"
+              className="rounded px-2 py-1 text-xs text-slate-400 hover:bg-slate-800"
             >
-              <RefreshCcw className="h-4 w-4" />
-              重置
+              <RefreshCcw className="h-3 w-3" />
             </button>
             <button
               onClick={runSimulation}
-              className="flex items-center gap-2 rounded-lg border border-cyan-500/60 bg-cyan-500/10 px-3 py-1.5 text-sm text-cyan-100 transition hover:border-cyan-400"
+              className="flex items-center gap-1 rounded bg-cyan-500/20 px-2 py-1 text-xs text-cyan-300 hover:bg-cyan-500/30"
             >
-              <Play className="h-4 w-4" />
-              运行仿真
+              <Play className="h-3 w-3" />
+              运行
             </button>
           </div>
         </div>
-      </header>
+      )}
 
       <main className="container mx-auto grid gap-6 px-6 py-6 lg:grid-cols-[320px_1fr] flex-1 min-h-0 overflow-y-auto">
         <aside className="space-y-4">

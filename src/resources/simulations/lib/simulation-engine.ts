@@ -11,7 +11,7 @@ import {
   type ControlMode,
   DEFAULT_NOMOTO_PARAMS,
   ETHICAL_THRESHOLDS,
-} from '@/types/simulation';
+} from '@/resources/simulations/types';
 
 // ============ 数学工具函数 ============
 

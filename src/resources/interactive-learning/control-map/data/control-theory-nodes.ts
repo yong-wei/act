@@ -2,7 +2,7 @@ import type { ControlTheoryNode, ControlTheoryEdge } from '../types';
 
 export const controlTheoryNodes: ControlTheoryNode[] = [
   // 区域 A: 建模与仿真 (红/粉色系)
-  // 注：课程知识卡片已移至 /knowledge 模块 (src/components/knowledge/data/lesson-knowledge-cards.ts)
+  // 注：课程知识卡片已移至 /knowledge 模块 (src/features/knowledge/data/lesson-knowledge-cards.ts)
   {
     id: 'physical-modeling',
     name: 'Physical Modeling',

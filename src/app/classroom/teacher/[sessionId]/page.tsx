@@ -1,7 +1,7 @@
 
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { TeacherPlayer } from '@/components/lesson-engine/teacher-player';
+import { TeacherPlayer } from '@/features/lesson-engine/teacher-player';
 
 interface PageProps {
   params: { sessionId: string };

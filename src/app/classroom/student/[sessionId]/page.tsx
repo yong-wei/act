@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { StudentPlayer } from '@/components/lesson-engine/student-player';
+import { StudentPlayer } from '@/features/lesson-engine/student-player';
 
 interface PageProps {
   params: { sessionId: string };

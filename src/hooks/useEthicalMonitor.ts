@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
-import { type SimulationState, type SimulationMetrics, type EthicalViolation, type ViolationType } from '@/types/simulation';
+import { type SimulationState, type SimulationMetrics, type EthicalViolation, type ViolationType } from '@/resources/simulations/types';
 import { ETHICAL_THRESHOLDS, VIOLATION_DESCRIPTIONS, VIOLATION_SEVERITY, ETHICS_SCORE_DEDUCTION } from '@/lib/constants/ethics';
 
 interface UseEthicalMonitorOptions {

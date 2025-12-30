@@ -24,7 +24,7 @@ import type {
   SimulationCallbacks,
   TimedomainMetrics,
   EnergyMetrics,
-} from '@/types/control-system';
+} from '@/resources/interactive-learning/types/control-system';
 
 // ===== 默认配置 =====
 

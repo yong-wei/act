@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { MissionCard, MissionCardSkeleton, type MissionData } from '@/components/mission/mission-card';
+import { MissionCard, MissionCardSkeleton, type MissionData } from '@/features/mission/mission-card';
 
 interface MissionsResponse {
   missions: MissionData[];

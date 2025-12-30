@@ -127,7 +127,7 @@ const ComponentRegistry: Record<
   React.LazyExoticComponent<React.ComponentType<Record<string, unknown>>>
 > = {
   // 示例：PhysicsBuilder 组件
-  // PhysicsBuilder: lazy(() => import('@/components/interactive-learning/physics-modeling/physics-builder/physics-builder-canvas').then(m => ({ default: m.PhysicsBuilder }))),
+  // PhysicsBuilder: lazy(() => import('@/resources/interactive-learning/physics-modeling/physics-builder/physics-builder-canvas').then(m => ({ default: m.PhysicsBuilder }))),
 
   // 占位符组件（用于演示）
   PlaceholderWidget: lazy(

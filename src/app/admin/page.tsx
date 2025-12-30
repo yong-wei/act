@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { UserRole } from '@prisma/client';
 import { getServerAuthSession } from '@/lib/auth';
-import { AdminDashboard } from '@/components/admin/admin-dashboard';
+import { AdminDashboard } from '@/features/admin/admin-dashboard';
 
 export default async function AdminPage() {
   const session = await getServerAuthSession();

@@ -11,7 +11,7 @@ import { Loader2 } from 'lucide-react';
 // 动态导入主系统组件以优化首屏加载
 const Lesson02System = dynamic(
   () =>
-    import('@/components/interactive-learning/lesson-02/lesson-02-system').then(
+    import('@/resources/interactive-learning/lesson-02/lesson-02-system').then(
       (mod) => mod.Lesson02System
     ),
   {

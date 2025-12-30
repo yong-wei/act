@@ -8,7 +8,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import { useLessonContext } from '@/components/lesson-engine/ContextInjector';
+import { useLessonContext } from '@/features/lesson-engine/ContextInjector';
 import type { LessonContext } from '@/lib/ai-client';
 
 interface Message {

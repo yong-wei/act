@@ -7,7 +7,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { type EthicalViolation, type ViolationType } from '@/types/simulation';
+import { type EthicalViolation, type ViolationType } from '@/resources/simulations/types';
 import { VIOLATION_DESCRIPTIONS, VIOLATION_SEVERITY, ETHICS_SCORE_DEDUCTION } from '@/lib/constants/ethics';
 import { Button } from '@/components/ui/button';
 

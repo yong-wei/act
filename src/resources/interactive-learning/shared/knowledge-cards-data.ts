@@ -10,7 +10,7 @@ import {
   getCardsByLesson,
   getCardByPhase,
   type LessonKnowledgeCard,
-} from '@/components/knowledge/data/lesson-knowledge-cards';
+} from '@/features/knowledge/data/lesson-knowledge-cards';
 
 /** 知识卡片 ID 列表 (Lesson 02) */
 export const LESSON_02_CARD_IDS = [

@@ -12,20 +12,24 @@ export interface ResourceComponentConfig {
 }
 
 // 动态导入组件
-const PidSimulator = dynamic(() => import('@/components/interactive-learning/pid-simulator/pid-simulator-component').then(mod => mod.PidSimulatorComponent), {
+const PidSimulator = dynamic(() => import('@/resources/interactive-learning/pid-simulator/pid-simulator-component').then(mod => mod.PidSimulatorComponent), {
     loading: () => <div className="p-4 text-center text-slate-400">Loading Simulator...</div>
 });
 
-const EthicsSandbox = dynamic(() => import('@/components/ethics/ethics-sandbox'), {
+const EthicsSandbox = dynamic(() => import('@/features/ethics/ethics-sandbox'), {
      loading: () => <div className="p-4 text-center text-slate-400">Loading Ethics Sandbox...</div>
 });
 
-const PhysicsBuilder = dynamic(() => import('@/components/widgets/physics-builder'), {
+const PhysicsBuilder = dynamic(() => import('@/resources/widgets/physics-builder'), {
     loading: () => <div className="p-4 text-center text-slate-400">Loading Physics Builder...</div>
 });
 
-const AnalogyMapper = dynamic(() => import('@/components/widgets/analogy-mapper'), {
+const AnalogyMapper = dynamic(() => import('@/resources/widgets/analogy-mapper'), {
     loading: () => <div className="p-4 text-center text-slate-400">Loading Analogy Mapper...</div>
+});
+
+const ArgumentPrinciple = dynamic(() => import('@/resources/widgets/argument-principle'), {
+    loading: () => <div className="p-4 text-center text-slate-400">Loading Argument Principle...</div>
 });
 
 // 注册表
@@ -64,6 +68,13 @@ const registry: Record<string, ResourceComponentConfig> = {
         type: 'INTERACTIVE_COMP',
         defaultConfig: { leftEq: "m*x''+f*x'+k*x=F", rightEq: "L*q''+R*q'+(1/C)*q=E" },
         component: AnalogyMapper
+    },
+    'widget-argument-principle': {
+        id: 'widget-argument-principle',
+        label: 'Argument Principle (Nyquist)',
+        type: 'INTERACTIVE_COMP',
+        defaultConfig: { showControls: true },
+        component: ArgumentPrinciple
     }
 };
 

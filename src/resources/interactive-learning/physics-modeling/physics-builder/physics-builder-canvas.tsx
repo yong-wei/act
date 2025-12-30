@@ -51,6 +51,10 @@ interface PhysicsBuilderCanvasProps {
   onEquationChange?: (equation: string, isComplete: boolean) => void;
   initialNodes?: PhysicsNode[];
   initialEdges?: PhysicsEdge[];
+  /** Hide sidebar for embedded mode */
+  embedded?: boolean;
+  /** Show equation panel */
+  showEquation?: boolean;
 }
 
 let nodeId = 0;
@@ -63,6 +67,8 @@ export function PhysicsBuilderCanvas({
   onEquationChange,
   initialNodes = [],
   initialEdges = [],
+  embedded = false,
+  showEquation = true,
 }: PhysicsBuilderCanvasProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(
@@ -177,11 +183,31 @@ export function PhysicsBuilderCanvas({
 
   return (
     <div className="flex h-full w-full">
-      {/* 元件侧边栏 */}
-      <ComponentSidebar mode={mode} onDragStart={onDragStart} />
+      {/* 元件侧边栏 - 嵌入模式下隐藏 */}
+      {!embedded && <ComponentSidebar mode={mode} onDragStart={onDragStart} />}
+
+      {/* 嵌入模式下的浮动工具栏 */}
+      {embedded && (
+        <div className="absolute left-2 top-2 z-10 flex flex-col gap-1 rounded-lg border border-slate-700 bg-slate-900/95 p-2 shadow-lg">
+          {(mode === 'mechanical' ? MECHANICAL_COMPONENTS : ELECTRICAL_COMPONENTS).map(
+            (comp) => (
+              <div
+                key={comp.type}
+                draggable
+                onDragStart={(e) => onDragStart(e, comp.type)}
+                className="cursor-grab rounded px-2 py-1 text-xs text-slate-300 transition hover:bg-slate-700 active:cursor-grabbing"
+                title={comp.name}
+              >
+                <span className="mr-1">{comp.symbol}</span>
+                {comp.name}
+              </div>
+            )
+          )}
+        </div>
+      )}
 
       {/* 主画布区域 */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col relative">
         {/* React Flow 画布 */}
         <div
           ref={reactFlowWrapper}
@@ -205,29 +231,33 @@ export function PhysicsBuilderCanvas({
           >
             <Background color="#334155" gap={20} size={1} />
             <Controls className="!bg-slate-800 !border-slate-700 [&>button]:!bg-slate-800 [&>button]:!border-slate-700 [&>button]:!text-slate-300 [&>button:hover]:!bg-slate-700" />
-            <MiniMap
-              nodeColor={(node) => {
-                const type = node.data?.type;
-                if (type === 'mass' || type === 'inductor') return '#f59e0b';
-                if (type === 'spring' || type === 'capacitor') return '#22c55e';
-                if (type === 'damper' || type === 'resistor') return '#ef4444';
-                return '#64748b';
-              }}
-              className="!bg-slate-900 !border-slate-700"
-              maskColor="rgba(15, 23, 42, 0.8)"
-            />
+            {!embedded && (
+              <MiniMap
+                nodeColor={(node) => {
+                  const type = node.data?.type;
+                  if (type === 'mass' || type === 'inductor') return '#f59e0b';
+                  if (type === 'spring' || type === 'capacitor') return '#22c55e';
+                  if (type === 'damper' || type === 'resistor') return '#ef4444';
+                  return '#64748b';
+                }}
+                className="!bg-slate-900 !border-slate-700"
+                maskColor="rgba(15, 23, 42, 0.8)"
+              />
+            )}
           </ReactFlow>
         </div>
 
         {/* 方程显示区域 */}
-        <div className="border-t border-slate-800 bg-slate-900/50 p-4">
-          <EquationDisplay
-            equation={equation}
-            isComplete={isComplete}
-            missing={missing}
-            targetEquation={targetEquation}
-          />
-        </div>
+        {showEquation && (
+          <div className="border-t border-slate-800 bg-slate-900/50 p-4">
+            <EquationDisplay
+              equation={equation}
+              isComplete={isComplete}
+              missing={missing}
+              targetEquation={targetEquation}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

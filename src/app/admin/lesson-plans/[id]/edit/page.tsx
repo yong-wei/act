@@ -1,7 +1,7 @@
 
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { OrchestratorBuilder } from '@/components/lesson-engine/orchestrator-builder';
+import { OrchestratorBuilder } from '@/features/lesson-engine/orchestrator-builder';
 
 interface PageProps {
   params: { id: string };

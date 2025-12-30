@@ -4,7 +4,7 @@ import dynamicImport from 'next/dynamic';
 export const dynamic = 'force-dynamic';
 
 const DestroyerSimulation = dynamicImport(
-  () => import('@/components/simulations/destroyer-simulation'),
+  () => import('@/resources/simulations/destroyer-simulation'),
   {
     ssr: false,
     loading: () => (

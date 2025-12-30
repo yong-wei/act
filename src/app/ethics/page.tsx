@@ -1,4 +1,4 @@
-import { EthicsSandbox } from '@/components/ethics/ethics-sandbox';
+import { EthicsSandbox } from '@/features/ethics/ethics-sandbox';
 
 export const dynamic = 'force-dynamic';
 

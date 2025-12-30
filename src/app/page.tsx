@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { ShipModelPreview } from '@/components/ship-model-preview'
+import { ShipModelPreview } from '@/resources/simulations/ship-model-preview'
 
 const shipScenarios = [
   {

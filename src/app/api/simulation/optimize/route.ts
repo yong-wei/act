@@ -13,7 +13,7 @@ import {
   type SimpleSimConfig,
   DEFAULT_CONSTRAINTS,
   DEFAULT_TARGET,
-} from '@/lib/monte-carlo-optimizer';
+} from '@/resources/simulations/lib/monte-carlo-optimizer';
 
 export interface OptimizeRequest {
   config: Partial<SimpleSimConfig>;

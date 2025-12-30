@@ -9,7 +9,7 @@
 import { useChat, type Message } from 'ai/react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { type SimulationState, type SimulationMetrics } from '@/types/simulation';
+import { type SimulationState, type SimulationMetrics } from '@/resources/simulations/types';
 
 interface CopilotPanelProps {
   simulationState?: SimulationState;

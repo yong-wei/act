@@ -15,7 +15,7 @@ import {
   calculateOverallScore,
   getCompetencyLevel,
   type CompetencyData,
-} from '@/components/dashboard/competency-radar';
+} from '@/features/dashboard/competency-radar';
 import { UserMenu } from '@/components/shared/user-menu';
 
 interface UserProfile {

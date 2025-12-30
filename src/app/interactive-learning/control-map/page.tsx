@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 
 const ControlMapSystem = dynamic(
   () =>
-    import('@/components/interactive-learning/control-map/control-map-system').then(
+    import('@/resources/interactive-learning/control-map/control-map-system').then(
       (mod) => ({ default: mod.ControlMapSystem })
     ),
   {

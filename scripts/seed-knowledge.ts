@@ -1,6 +1,6 @@
 
 import { PrismaClient, KnowledgeNodeType, BloomLevel, KnowledgeDimension } from '@prisma/client';
-import { LESSON_02_CARDS, LESSON_02_CARD_LINKS } from '../src/components/knowledge/data/lesson-knowledge-cards';
+import { LESSON_02_CARDS, LESSON_02_CARD_LINKS } from '../src/features/knowledge/data/lesson-knowledge-cards';
 
 const prisma = new PrismaClient();
 

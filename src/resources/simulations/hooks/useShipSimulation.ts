@@ -23,7 +23,7 @@ import {
   DEFAULT_NOMOTO_PARAMS,
   DEFAULT_PID_GAINS,
   ETHICAL_THRESHOLDS,
-} from '@/types/simulation';
+} from '@/resources/simulations/types';
 import {
   nomotoStep,
   pidControl,
@@ -36,7 +36,7 @@ import {
   clamp,
   type NomotoState,
   type PIDState,
-} from '@/lib/simulation-engine';
+} from '@/resources/simulations/lib/simulation-engine';
 
 interface UseShipSimulationOptions {
   config: SimulationConfig;

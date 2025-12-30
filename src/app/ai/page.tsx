@@ -1,4 +1,4 @@
-import { PersonalLearningCenter } from '@/components/ai/personal-learning-center';
+import { PersonalLearningCenter } from '@/features/ai/personal-learning-center';
 
 export const dynamic = 'force-dynamic';
 

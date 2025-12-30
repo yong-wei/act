@@ -1,4 +1,4 @@
-import { KnowledgeGraphSystem } from '@/components/knowledge/knowledge-graph-system';
+import { KnowledgeGraphSystem } from '@/features/knowledge/knowledge-graph-system';
 
 export const dynamic = 'force-dynamic';
 

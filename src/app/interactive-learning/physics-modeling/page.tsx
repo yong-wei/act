@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 
 const PhysicsModelingSystem = dynamic(
   () =>
-    import('@/components/interactive-learning/physics-modeling/physics-modeling-system').then(
+    import('@/resources/interactive-learning/physics-modeling/physics-modeling-system').then(
       (mod) => mod.PhysicsModelingSystem
     ),
   {
