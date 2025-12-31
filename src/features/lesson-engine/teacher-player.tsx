@@ -75,7 +75,11 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
 
   const handleEndClass = () => {
       if (confirm('确定要结束课堂吗？')) {
-          router.push('/admin/lesson-plans');
+          // 教师返回教师教案页，管理员返回管理员教案页
+          const returnPath = window.location.pathname.includes('/classroom/teacher')
+            ? '/teacher/lesson-plans'
+            : '/admin/lesson-plans';
+          router.push(returnPath);
       }
   };
 

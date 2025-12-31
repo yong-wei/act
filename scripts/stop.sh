@@ -93,14 +93,14 @@ stop_process "Next.js 开发服务器" "$PIDS_DIR/frontend.pid"
 ###############################################################################
 echo -e "\n${YELLOW}检查其他相关进程...${NC}"
 
-# 查找占用 3000 端口的进程
-PORT_3000_PID=$(lsof -ti:3000 2>/dev/null || true)
-if [ -n "$PORT_3000_PID" ]; then
-  echo -e "  ${YELLOW}!${NC} 发现占用 3000 端口的进程 (PID: $PORT_3000_PID)"
-  kill "$PORT_3000_PID" 2>/dev/null || true
+# 查找占用 3001 端口的进程
+PORT_3001_PID=$(lsof -ti:3001 2>/dev/null || true)
+if [ -n "$PORT_3001_PID" ]; then
+  echo -e "  ${YELLOW}!${NC} 发现占用 3001 端口的进程 (PID: $PORT_3001_PID)"
+  kill "$PORT_3001_PID" 2>/dev/null || true
   sleep 1
-  if lsof -ti:3000 > /dev/null 2>&1; then
-    kill -9 "$PORT_3000_PID" 2>/dev/null || true
+  if lsof -ti:3001 > /dev/null 2>&1; then
+    kill -9 "$PORT_3001_PID" 2>/dev/null || true
     echo -e "  ${GREEN}✓${NC} 已强制终止"
   else
     echo -e "  ${GREEN}✓${NC} 已停止"

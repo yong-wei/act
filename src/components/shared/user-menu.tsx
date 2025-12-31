@@ -109,14 +109,16 @@ export function UserMenu({ user }: UserMenuProps) {
 
       {open && (
         <div className="absolute right-0 z-30 mt-2 w-48 rounded-xl border border-slate-800 bg-slate-950/95 p-2 text-sm text-slate-200 shadow-xl">
-          <Link
-            href="/profile"
-            onClick={closeMenu}
-            className="flex items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-slate-800/80"
-          >
-            <User className="h-4 w-4" />
-            个人中心
-          </Link>
+          {user.role === 'STUDENT' && (
+            <Link
+              href="/profile"
+              onClick={closeMenu}
+              className="flex items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-slate-800/80"
+            >
+              <User className="h-4 w-4" />
+              个人中心
+            </Link>
+          )}
           <button
             onClick={() => {
               closeMenu();

@@ -6,14 +6,46 @@ import { prisma } from '@/lib/prisma';
 import { requireAdminSession } from '@/lib/admin';
 import { initializeUserProgress } from '@/lib/user-sync';
 
-const createUserSchema = z.object({
+// 基础验证 schema
+const baseUserSchema = z.object({
   name: z.string().min(1, '姓名不能为空'),
-  email: z.string().email('邮箱格式不正确').optional().or(z.literal('')),
+  email: z.preprocess(
+    (val) => (val === '' || val === null ? undefined : val),
+    z.string().email('邮箱格式不正确').optional()
+  ),
   role: z.nativeEnum(UserRole).optional(),
-  studentNumber: z.string().trim().optional().or(z.literal('')),
-  className: z.string().trim().optional().or(z.literal('')),
-  password: z.string().min(6, '密码至少 6 位').optional().or(z.literal('')),
+  studentNumber: z.preprocess(
+    (val) => (val === '' || val === null ? undefined : val),
+    z.string().trim().optional()
+  ),
+  employeeNumber: z.preprocess(
+    (val) => (val === '' || val === null ? undefined : val),
+    z.string().trim().optional()
+  ),
+  className: z.preprocess(
+    (val) => (val === '' || val === null ? undefined : val),
+    z.string().trim().optional()
+  ),
+  password: z.preprocess(
+    (val) => (val === '' || val === null ? undefined : val),
+    z.string().min(6, '密码至少 6 位').optional()
+  ),
 });
+
+// 根据角色验证必填字段
+function validateByRole(data: z.infer<typeof baseUserSchema>) {
+  const role = data.role || UserRole.STUDENT;
+
+  if (role === UserRole.STUDENT && !data.studentNumber) {
+    return { success: false, error: '学号不能为空' };
+  }
+
+  if (role === UserRole.TEACHER && !data.employeeNumber) {
+    return { success: false, error: '工号不能为空' };
+  }
+
+  return { success: true };
+}
 
 export async function GET(request: NextRequest) {
   const session = await requireAdminSession();
@@ -83,7 +115,7 @@ export async function POST(request: Request) {
   }
 
   const json = await request.json();
-  const validation = createUserSchema.safeParse(json);
+  const validation = baseUserSchema.safeParse(json);
 
   if (!validation.success) {
     return NextResponse.json(
@@ -92,15 +124,23 @@ export async function POST(request: Request) {
     );
   }
 
+  // 根据角色验证必填字段
+  const roleValidation = validateByRole(validation.data);
+  if (!roleValidation.success) {
+    return NextResponse.json({ error: roleValidation.error }, { status: 400 });
+  }
+
   const {
     name,
     email,
     role = UserRole.STUDENT,
     studentNumber,
+    employeeNumber,
     className,
     password,
   } = validation.data;
 
+  // 检查邮箱是否已存在
   if (email) {
     const existingEmail = await prisma.user.findUnique({
       where: { email },
@@ -110,12 +150,23 @@ export async function POST(request: Request) {
     }
   }
 
+  // 检查学号是否已存在（学生）
   if (studentNumber) {
     const existingStudent = await prisma.studentProfile.findFirst({
       where: { studentNumber },
     });
     if (existingStudent) {
       return NextResponse.json({ error: '学号已存在' }, { status: 409 });
+    }
+  }
+
+  // 检查工号是否已存在（教师/管理员）
+  if (employeeNumber) {
+    const existingEmployee = await prisma.user.findFirst({
+      where: { employeeNumber },
+    });
+    if (existingEmployee) {
+      return NextResponse.json({ error: '工号已存在' }, { status: 409 });
     }
   }
 
@@ -127,6 +178,7 @@ export async function POST(request: Request) {
       email: email || null,
       passwordHash,
       role,
+      employeeNumber: role !== UserRole.STUDENT ? employeeNumber || null : null,
       profile:
         role === UserRole.STUDENT
           ? {

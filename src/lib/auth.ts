@@ -33,6 +33,7 @@ export const authOptions: NextAuthOptions = {
               { email: { equals: identifier, mode: 'insensitive' } },
               { name: { equals: identifier, mode: 'insensitive' } },
               { profile: { is: { studentNumber: identifier } } },
+              { employeeNumber: identifier },
             ],
           },
         });
@@ -60,6 +61,7 @@ export const authOptions: NextAuthOptions = {
       // 首次登录时，user 对象存在
       if (user) {
         token.id = user.id;
+        token.email = user.email ?? '';
         token.role = user.role ?? UserRole.STUDENT;
       }
       return token;

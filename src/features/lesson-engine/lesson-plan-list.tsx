@@ -7,9 +7,10 @@ import { BookOpen, Clock, MoreVertical, Play, Edit, Trash2, Loader2 } from 'luci
 
 interface LessonPlanListProps {
   plans: any[];
+  basePath?: string; // 默认 /admin/lesson-plans
 }
 
-export function LessonPlanList({ plans }: LessonPlanListProps) {
+export function LessonPlanList({ plans, basePath = '/admin/lesson-plans' }: LessonPlanListProps) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
@@ -71,8 +72,8 @@ export function LessonPlanList({ plans }: LessonPlanListProps) {
              </div>
              
              <div className="flex gap-2">
-                <button 
-                    onClick={() => router.push(`/admin/lesson-plans/${plan.id}/edit`)} 
+                <button
+                    onClick={() => router.push(`${basePath}/${plan.id}/edit`)}
                     className="flex items-center gap-1 text-xs text-slate-400 hover:text-white px-2 py-1 transition-colors"
                 >
                     <Edit className="h-3 w-3" />

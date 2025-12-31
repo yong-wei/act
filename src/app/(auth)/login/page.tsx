@@ -37,6 +37,8 @@ export default function LoginPage() {
     const session = await getSession();
     if (session?.user?.role === 'ADMIN') {
       router.push('/admin');
+    } else if (session?.user?.role === 'TEACHER') {
+      router.push('/teacher');
     } else {
       router.push('/dashboard');
     }
@@ -68,19 +70,11 @@ export default function LoginPage() {
             required
           />
           {error ? <p className="text-sm text-red-400">{error}</p> : null}
-          <div className="rounded-md border border-slate-700 bg-slate-800/60 p-3 text-xs text-slate-200">
-            <div className="font-semibold text-slate-100">演示账号</div>
-            <div className="mt-1">账号：demo</div>
-            <div>密码：123456</div>
-          </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-3">
+        <CardFooter>
           <Button className="w-full" type="submit" disabled={isSubmitting}>
             {isSubmitting ? '正在登录...' : '登录'}
           </Button>
-          <Link className="text-sm text-slate-300 hover:text-white" href="/register">
-            创建新账号
-          </Link>
         </CardFooter>
       </form>
     </Card>

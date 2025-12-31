@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   CompetencyRadar,
@@ -54,6 +55,7 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
   const sessionData = useSession();
   const session = sessionData?.data;
   const status = sessionData?.status ?? 'loading';
@@ -61,11 +63,17 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 非学生角色重定向
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && session?.user?.role) {
+      if (session.user.role !== 'STUDENT') {
+        const redirectPath = session.user.role === 'ADMIN' ? '/admin' : '/teacher';
+        router.replace(redirectPath);
+        return;
+      }
       fetchProfile();
     }
-  }, [status]);
+  }, [status, session, router]);
 
   const fetchProfile = async () => {
     try {
@@ -133,7 +141,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
       {/* 头部导航 */}
       <header className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="text-slate-400 hover:text-white">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,7 +156,7 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto max-w-[1600px] px-6 py-8">
         {/* 用户卡片 */}
         <div className="mb-8 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 p-6">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">

@@ -7,7 +7,7 @@ import { authOptions } from '@/lib/auth';
 export async function PATCH(request: Request, { params }: { params: { sessionId: string } }) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -93,7 +93,7 @@ export default function InteractiveLearningPage() {
     <div className="min-h-screen bg-slate-950">
       {/* 顶部导航 */}
       <nav className="border-b border-white/10">
-        <div className="container mx-auto flex items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/15 text-amber-500">
               <Ship className="h-5 w-5" />
@@ -113,7 +113,7 @@ export default function InteractiveLearningPage() {
       </nav>
 
       {/* 主内容 */}
-      <main className="container mx-auto px-6 py-12">
+      <main className="mx-auto max-w-[1600px] px-6 py-12">
         {/* 页面标题 */}
         <div className="mb-12 text-center">
           <h1 className="mb-3 text-3xl font-bold text-white md:text-4xl">互动学习</h1>
@@ -131,7 +131,7 @@ export default function InteractiveLearningPage() {
             暂无可用的互动资源
           </div>
         ) : (
-          <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-2">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {sortedResources.map((resource) => {
               const colorKey = getResourceColor(resource.registryId) as keyof typeof colorClasses;
               const colors = colorClasses[colorKey];

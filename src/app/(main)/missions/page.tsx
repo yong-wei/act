@@ -60,12 +60,12 @@ export default function MissionsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
         <header className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
-          <div className="mx-auto flex max-w-7xl items-center gap-4">
+          <div className="mx-auto flex max-w-[1600px] items-center gap-4">
             <div className="h-6 w-6 rounded bg-slate-700" />
             <div className="h-6 w-32 rounded bg-slate-700" />
           </div>
         </header>
-        <main className="mx-auto max-w-7xl px-6 py-8">
+        <main className="mx-auto max-w-[1600px] px-6 py-8">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <MissionCardSkeleton key={i} />
@@ -119,7 +119,7 @@ export default function MissionsPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
       {/* 头部导航 */}
       <header className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="text-slate-400 hover:text-white">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,7 +142,7 @@ export default function MissionsPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto max-w-[1600px] px-6 py-8">
         {/* 统计卡片 */}
         <div className="mb-8 grid gap-4 md:grid-cols-4">
           <StatCard

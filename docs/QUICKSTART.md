@@ -8,7 +8,7 @@
 npm run startup
 ```
 
-访问 http://localhost:3000
+访问 http://localhost:3001
 
 ### 一键停止
 
@@ -33,7 +33,7 @@ npm install
 DATABASE_URL="postgresql://act_user:act_pass@localhost:5432/act_obe?schema=public"
 
 # NextAuth 配置
-NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_URL="http://localhost:3001"
 NEXTAUTH_SECRET="your-secret-key-here"
 
 # 硅基流动 AI 配置

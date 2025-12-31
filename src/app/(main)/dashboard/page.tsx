@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { Home } from 'lucide-react';
 
 import { UserMenu } from '@/components/shared/user-menu';
 import { getServerAuthSession } from '@/lib/auth';
@@ -52,10 +53,19 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
       {/* 顶部导航栏 */}
       <header className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white">AI-OBE 船舶智控平台</h1>
-            <p className="text-sm text-slate-400">成果导向教育 · 智能控制实训</p>
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-slate-400 transition hover:text-white"
+            >
+              <Home className="h-5 w-5" />
+              <span className="text-sm">返回首页</span>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-white">AI-OBE 船舶智控平台</h1>
+              <p className="text-sm text-slate-400">成果导向教育 · 智能控制实训</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <UserMenu user={session.user} />
@@ -63,7 +73,7 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto max-w-[1600px] px-6 py-8">
         {/* 欢迎区域 */}
         <div className="mb-8 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 p-8">
           <div className="mb-6">

@@ -8,9 +8,9 @@ import {
   Plus,
   RefreshCcw,
   Search,
+  Settings,
   UploadCloud,
   Users,
-  BookOpen,
 } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { UserMenu } from '@/components/shared/user-menu';
@@ -107,6 +107,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
     email: '',
     role: 'STUDENT' as UserRole,
     studentNumber: '',
+    employeeNumber: '',
     className: '',
     password: '',
   });
@@ -209,6 +210,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
         email: '',
         role: 'STUDENT',
         studentNumber: '',
+        employeeNumber: '',
         className: '',
         password: '',
       });
@@ -347,7 +349,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="border-b border-cyan-500/30 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-6">
+        <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-6 py-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-cyan-300/60">
@@ -397,7 +399,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[220px_1fr] xl:grid-cols-[220px_1fr_320px]">
+      <main className="mx-auto grid w-full max-w-[1600px] gap-6 px-6 py-6 lg:grid-cols-[220px_1fr] xl:grid-cols-[220px_1fr_320px]">
         <aside className="space-y-4">
           <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/70">
@@ -407,15 +409,15 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               <div className="rounded-lg bg-cyan-500/10 px-3 py-2 text-cyan-100">
                 总览面板
               </div>
-              <Link href="/admin/lesson-plans">
-                <div className="flex items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-slate-800/70 cursor-pointer">
-                   <BookOpen className="h-4 w-4" />
-                   课程编排
-                </div>
-              </Link>
               <div className="rounded-lg px-3 py-2 transition hover:bg-slate-800/70">
                 账号管理
               </div>
+              <Link href="/admin/config">
+                <div className="flex items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-slate-800/70 cursor-pointer">
+                   <Settings className="h-4 w-4" />
+                   系统配置
+                </div>
+              </Link>
               <div className="rounded-lg px-3 py-2 transition hover:bg-slate-800/70">
                 批量导入
               </div>
@@ -731,7 +733,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 onChange={(event) =>
                   setCreateForm((prev) => ({ ...prev, name: event.target.value }))
                 }
-                placeholder="姓名"
+                placeholder="姓名 *"
                 className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-400"
               />
               <div className="grid gap-3 md:grid-cols-2">
@@ -768,7 +770,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                         studentNumber: event.target.value,
                       }))
                     }
-                    placeholder="学号"
+                    placeholder="学号 *"
                     className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-400"
                   />
                   <input
@@ -783,6 +785,19 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                     className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-400"
                   />
                 </div>
+              )}
+              {createForm.role === 'TEACHER' && (
+                <input
+                  value={createForm.employeeNumber}
+                  onChange={(event) =>
+                    setCreateForm((prev) => ({
+                      ...prev,
+                      employeeNumber: event.target.value,
+                    }))
+                  }
+                  placeholder="工号 *"
+                  className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-400"
+                />
               )}
               <input
                 value={createForm.password}

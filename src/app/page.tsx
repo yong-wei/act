@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import {
   ArrowUpRight,
   BookOpen,
@@ -19,6 +21,9 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { ShipModelPreview } from '@/resources/simulations/ship-model-preview'
+import { LoginModal } from '@/components/shared/login-modal'
+
+type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN'
 
 const shipScenarios = [
   {
@@ -123,9 +128,38 @@ const moduleLinks = [
 ]
 
 export default function HomePage() {
+  const router = useRouter()
+  const { data: session } = useSession()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
+  const [showLoginModal, setShowLoginModal] = useState(false)
   const totalSlides = shipScenarios.length
+
+  const routeByRole = (role: UserRole) => {
+    switch (role) {
+      case 'ADMIN':
+        router.push('/admin')
+        break
+      case 'TEACHER':
+        router.push('/teacher')
+        break
+      default:
+        router.push('/dashboard')
+    }
+  }
+
+  const handleEnterCockpit = () => {
+    if (!session) {
+      setShowLoginModal(true)
+      return
+    }
+    routeByRole(session.user?.role as UserRole)
+  }
+
+  const handleLoginSuccess = (role: UserRole) => {
+    setShowLoginModal(false)
+    routeByRole(role)
+  }
 
   useEffect(() => {
     if (isDragging) {
@@ -163,7 +197,7 @@ export default function HomePage() {
         <div className="absolute -left-32 bottom-0 h-96 w-96 rounded-full bg-indigo-500/10 blur-3xl" />
 
         <nav className="relative z-10 border-b border-white/10">
-          <div className="container mx-auto flex items-center justify-between px-6 py-5">
+          <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-5">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-alert/15 text-amber-alert">
                 <Ship className="h-6 w-6" />
@@ -180,22 +214,27 @@ export default function HomePage() {
               <Link href="/interactive-learning" className="hover:text-amber-alert">互动学习</Link>
             </div>
             <div className="flex items-center gap-3">
-              <Button
-                asChild
-                variant="outline"
-                className="border-white/30 text-white/80 hover:bg-white/10"
-              >
-                <Link href="/login">登录</Link>
-              </Button>
-              <Button asChild className="bg-amber-alert text-dark-blue hover:bg-yellow-500">
-                <Link href="/dashboard">进入驾驶舱</Link>
-              </Button>
+              {session ? (
+                <Button
+                  onClick={handleEnterCockpit}
+                  className="bg-amber-alert text-dark-blue hover:bg-yellow-500"
+                >
+                  进入驾驶舱
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setShowLoginModal(true)}
+                  className="bg-amber-alert text-dark-blue hover:bg-yellow-500"
+                >
+                  进入驾驶舱
+                </Button>
+              )}
             </div>
           </div>
         </nav>
 
         <section className="relative z-10">
-          <div className="container mx-auto grid gap-10 px-6 py-12 lg:grid-cols-[1.1fr_1fr]">
+          <div className="mx-auto grid max-w-[1600px] gap-10 px-6 py-12 lg:grid-cols-[1.1fr_1fr]">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-white/80">
                 <Sparkles className="h-4 w-4 text-amber-alert" />
@@ -254,7 +293,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="container mx-auto px-6 pb-12">
+          <div className="mx-auto max-w-[1600px] px-6 pb-12">
             <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <div className="flex items-center justify-between">
@@ -306,7 +345,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="container mx-auto flex items-center justify-between px-6 pb-12">
+          <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 pb-12">
             <div className="flex items-center gap-3 text-xs text-white/70">
               <GraduationCap className="h-4 w-4 text-amber-alert" />
               今日推荐任务：半潜平台动力定位挑战 · 预计时长 90 分钟
@@ -328,6 +367,13 @@ export default function HomePage() {
           </div>
         </section>
       </div>
+
+      {/* 登录弹窗 */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={handleLoginSuccess}
+      />
     </div>
   )
 }

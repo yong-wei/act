@@ -16,8 +16,8 @@ export async function GET(request: Request) {
 
     const where: any = {};
     
-    if (mode === 'my' && session?.user?.email) {
-       where.author = { email: session.user.email };
+    if (mode === 'my' && session?.user?.id) {
+       where.authorId = session.user.id;
     } else {
        // Default: fetch public playlists
        where.isPublic = true;
@@ -52,12 +52,12 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-        where: { email: session.user.email }
+        where: { id: session.user.id }
     });
 
     if (!user) {
