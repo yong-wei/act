@@ -1,15 +1,17 @@
 
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import 'katex/dist/katex.min.css';
 import { BlockMath } from 'react-katex';
 import Image from 'next/image';
-import { BookOpen, Link as LinkIcon } from 'lucide-react';
 import { TeachingResource, KnowledgeNode } from '@prisma/client';
 import { getRegisteredResource } from '@/lib/resource-registry';
 import { useLessonContext } from './ContextInjector';
+import { InteractiveProvider } from '@/features/interactive';
+import type { InteractiveConfig, InteractiveResourceConfig } from '@/features/interactive';
 import type { WidgetState, WidgetResult } from '@/resources/widgets/widget-props';
+import { KnowledgeCard } from '@/features/knowledge/knowledge-card';
 
 interface ResourceRendererProps {
   resource?: TeachingResource | null;
@@ -18,6 +20,10 @@ interface ResourceRendererProps {
   onComplete?: (result?: WidgetResult) => void;
   /** Callback when widget state changes (for AI context) */
   onStateChange?: (state: WidgetState) => void;
+  /** 课堂会话 ID（用于埋点追踪） */
+  sessionId?: string;
+  /** 是否启用 AI 面板 */
+  enableAIPanel?: boolean;
 }
 
 // Simple Markdown + LaTeX Renderer
@@ -54,7 +60,14 @@ const SimpleMarkdown = ({ content }: { content: string }) => {
     );
 };
 
-export function ResourceRenderer({ resource, knowledgeNode, onComplete, onStateChange }: ResourceRendererProps) {
+export function ResourceRenderer({
+  resource,
+  knowledgeNode,
+  onComplete,
+  onStateChange,
+  sessionId,
+  enableAIPanel = true,
+}: ResourceRendererProps) {
   // Get lesson context for AI integration
   const lessonContext = useLessonContext();
 
@@ -74,50 +87,39 @@ export function ResourceRenderer({ resource, knowledgeNode, onComplete, onStateC
   if (knowledgeNode) {
     const rawResources = knowledgeNode.resources ?? [];
     const attachments = Array.isArray(rawResources) ? rawResources : [];
+    const metadata = (knowledgeNode.metadata ?? {}) as Record<string, unknown>;
+    const legacyContent = (knowledgeNode.content ?? {}) as Record<string, unknown>;
+    const normalizedMetadata = {
+      type: 'rich-text',
+      content: (metadata.content as string)
+        || (metadata.explanation as string)
+        || (legacyContent.explanation as string)
+        || knowledgeNode.description,
+      formulas: {
+        continuous: (metadata.formulas as { continuous?: string } | undefined)?.continuous
+          || (metadata.formulaContinuous as string)
+          || (legacyContent.formulaContinuous as string),
+        discrete: (metadata.formulas as { discrete?: string } | undefined)?.discrete
+          || (metadata.formulaDiscrete as string)
+          || (legacyContent.formulaDiscrete as string),
+      },
+      applications: (metadata.applications as string[])
+        || (legacyContent.applications as string[])
+        || [],
+    };
 
     return (
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-6 space-y-4">
-          <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400">
-              <BookOpen className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-white">{knowledgeNode.name}</h2>
-              <p className="text-xs text-slate-400">{knowledgeNode.nodeType}</p>
-            </div>
-          </div>
-          <p className="text-sm text-slate-300 leading-relaxed">{knowledgeNode.description}</p>
-          {attachments.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-xs uppercase tracking-wider text-slate-500">附件与扩展</h3>
-              <div className="space-y-2">
-                {attachments.map((item, idx) => {
-                  if (typeof item === 'string') {
-                    return (
-                      <div key={idx} className="flex items-center gap-2 text-sm text-slate-300">
-                        <LinkIcon className="h-3.5 w-3.5 text-slate-500" />
-                        <span className="truncate">{item}</span>
-                      </div>
-                    );
-                  }
-                  if (item && typeof item === 'object') {
-                    const label = (item as { title?: string; name?: string }).title
-                      || (item as { title?: string; name?: string }).name
-                      || '附件';
-                    return (
-                      <div key={idx} className="flex items-center gap-2 text-sm text-slate-300">
-                        <LinkIcon className="h-3.5 w-3.5 text-slate-500" />
-                        <span className="truncate">{label}</span>
-                      </div>
-                    );
-                  }
-                  return null;
-                })}
-              </div>
-            </div>
-          )}
-        </div>
+      <div className="max-w-6xl mx-auto p-8">
+        <KnowledgeCard
+          name={knowledgeNode.name}
+          description={knowledgeNode.description}
+          nodeType={knowledgeNode.nodeType}
+          bloomLevel={knowledgeNode.bloomLevel ?? undefined}
+          knowledgeDim={knowledgeNode.knowledgeDim ?? undefined}
+          metadata={normalizedMetadata}
+          resources={attachments}
+          className="border-slate-700/50 shadow-2xl bg-[#0F172A]"
+        />
       </div>
     );
   }
@@ -166,29 +168,73 @@ export function ResourceRenderer({ resource, knowledgeNode, onComplete, onStateC
   if (['INTERACTIVE_COMP', 'SIMULATION_APP', 'ETHICS_SCENARIO'].includes(resource.type)) {
       if (!resource.registryId) return <div>Missing Registry ID</div>;
 
-      const config = getRegisteredResource(resource.registryId);
-      if (!config) return <div>Component Not Found: {resource.registryId}</div>;
+      const registryConfig = getRegisteredResource(resource.registryId);
+      if (!registryConfig) return <div>Component Not Found: {resource.registryId}</div>;
 
-      const Component = config.component;
-      // Merge default config with resource config + lesson context
-      const props = {
-        ...(config.defaultConfig || {}),
+      const Component = registryConfig.component;
+
+      // 构建 InteractiveConfig
+      const resourceConfig = (resource.config || {}) as InteractiveResourceConfig;
+      const interactiveConfig: InteractiveConfig = {
+        resourceId: resource.id,
+        registryId: resource.registryId,
+        title: resource.title,
+        description: resource.description || undefined,
+        aiHints: resource.aiHints || undefined,
+        config: {
+          props: {
+            ...(registryConfig.defaultConfig || {}),
+            ...resourceConfig.props,
+          },
+          ai: {
+            enabled: enableAIPanel,
+            persona: lessonContext.aiConfig?.persona || resourceConfig.ai?.persona,
+            hints: resource.aiHints || resourceConfig.ai?.hints,
+            proactive: resourceConfig.ai?.proactive,
+          },
+          tracking: resourceConfig.tracking,
+          completion: resourceConfig.completion,
+          layout: {
+            showHeader: false, // 嵌入模式下不显示头部
+            showAIPanel: enableAIPanel,
+            aiPanelPosition: resourceConfig.layout?.aiPanelPosition || 'right',
+          },
+        },
+      };
+
+      // 组件 props（不包含 InteractiveProvider 管理的内容）
+      const componentProps = {
+        ...(registryConfig.defaultConfig || {}),
+        ...(resourceConfig.props || {}),
         ...(resource.config as Record<string, unknown> || {}),
-        // Inject lesson context and callbacks for AI integration
         embedded: true,
         lessonContext: {
           resourceTitle: lessonContext.title || resource.title,
           aiPersona: lessonContext.aiConfig?.persona,
           customPrompt: lessonContext.aiConfig?.systemPromptExtension,
         },
-        onStateChange: handleStateChange,
-        onComplete: handleComplete,
       };
 
       return (
-          <div className="h-full w-full flex flex-col bg-slate-950">
-              <Component {...props} />
+        <InteractiveProvider
+          config={interactiveConfig}
+          embedded={true}
+          sessionId={sessionId}
+          showHeader={false}
+          showAIPanel={enableAIPanel}
+          onComplete={handleComplete}
+          onStateChange={(snapshot) => {
+            handleStateChange({
+              progress: snapshot.progress,
+              data: { events: snapshot.events },
+              timestamp: snapshot.timestamp,
+            });
+          }}
+        >
+          <div className="h-full w-full flex flex-col">
+            <Component {...componentProps} />
           </div>
+        </InteractiveProvider>
       );
   }
 

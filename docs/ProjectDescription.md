@@ -119,7 +119,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **船舶动力学**：Nomoto 模型、操纵性
 - **海洋环境**：风浪流影响
 - **安全规范**：CCS 船舶操纵规范
-- **状态**：框架已搭建，内容待完善
+- **状态**：知识卡片补齐布鲁姆分类标签，MDX 附件支持 PPT 尺寸渲染
 
 ### 3.11 伦理案例库 (Ethics) 🚧
 - **工程伦理场景**：两难决策模拟

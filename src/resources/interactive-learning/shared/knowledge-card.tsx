@@ -9,6 +9,8 @@
 import { useState } from 'react';
 import { BookOpen, ChevronDown, ChevronUp, Lightbulb, X } from 'lucide-react';
 import type { LessonKnowledgeCard } from './knowledge-cards-data';
+import { MdxSlide } from '@/components/shared/mdx-slide';
+import { getBloomLabel, getKnowledgeDimLabel } from '@/lib/knowledge-labels';
 
 /** 知识卡片颜色配置 */
 const cardColors = {
@@ -64,6 +66,21 @@ export function KnowledgeCard({
 }: KnowledgeCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const colorConfig = cardColors.default;
+  const bloomLabel = getBloomLabel(node.bloomLevel);
+  const knowledgeLabel = getKnowledgeDimLabel(node.knowledgeDim);
+  const mdxPaths = Array.isArray(node.resources)
+    ? node.resources
+        .map((item) => {
+          if (typeof item === 'string') return item;
+          if (item && typeof item === 'object') {
+            const candidate = (item as { path?: string; url?: string }).path
+              || (item as { path?: string; url?: string }).url;
+            return typeof candidate === 'string' ? candidate : null;
+          }
+          return null;
+        })
+        .filter((path): path is string => !!path && path.endsWith('.mdx'))
+    : [];
 
   // 根据变体确定基础样式
   const variantStyles = {
@@ -89,14 +106,14 @@ export function KnowledgeCard({
         className="flex cursor-pointer items-center justify-between p-4"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           <div
             className="flex h-8 w-8 items-center justify-center rounded-lg"
             style={{ backgroundColor: `${colorConfig.color}20` }}
           >
             <BookOpen className="h-4 w-4" style={{ color: colorConfig.color }} />
           </div>
-          <div>
+          <div className="space-y-1">
             <h4
               className="text-sm font-semibold"
               style={{ color: colorConfig.color }}
@@ -107,24 +124,40 @@ export function KnowledgeCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {dismissible && onDismiss && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDismiss();
-              }}
-              className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-slate-300"
-            >
-              <X className="h-4 w-4" />
-            </button>
+        <div className="flex flex-col items-end gap-2">
+          {(bloomLabel || knowledgeLabel) && (
+            <div className="flex flex-wrap justify-end gap-2">
+              {bloomLabel && (
+                <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-200">
+                  认知：{bloomLabel}
+                </span>
+              )}
+              {knowledgeLabel && (
+                <span className="rounded-full border border-blue-500/40 bg-blue-500/15 px-2 py-0.5 text-[10px] text-blue-200">
+                  知识：{knowledgeLabel}
+                </span>
+              )}
+            </div>
           )}
-          <div className="text-slate-500">
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
+          <div className="flex items-center gap-2">
+            {dismissible && onDismiss && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDismiss();
+                }}
+                className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-slate-300"
+              >
+                <X className="h-4 w-4" />
+              </button>
             )}
+            <div className="text-slate-500">
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -169,6 +202,17 @@ export function KnowledgeCard({
                   >
                     {app}
                   </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mdxPaths.length > 0 && (
+            <div className="pt-4">
+              <div className="mb-2 text-xs text-slate-500">扩展内容</div>
+              <div className="space-y-4">
+                {mdxPaths.map((path) => (
+                  <MdxSlide key={path} path={path} />
                 ))}
               </div>
             </div>

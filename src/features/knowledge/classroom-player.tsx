@@ -107,6 +107,7 @@ export function ClassroomPlayer({ playlist }: PlayerProps) {
                         bloomLevel={currentNode.bloomLevel}
                         knowledgeDim={currentNode.knowledgeDim}
                         metadata={currentNode.metadata || {}}
+                        resources={currentNode.resources}
                         className="border-slate-700/50 shadow-2xl bg-[#0F172A]"
                     />
                 </div>

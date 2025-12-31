@@ -1,14 +1,36 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  BookOpen, Code, FileText, Video, Save, Trash2, Layout, Search, GripVertical
+import {
+  BookOpen, Code, FileText, Video, Save, Trash2, Layout, Search, GripVertical, Eye
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TeachingResource, LessonItemType } from '@prisma/client';
 import type { KnowledgeNodeData } from '@/features/knowledge/knowledge-graph-system';
+import { ResourceRenderer } from './resource-renderer';
+import { getBloomLabel, getKnowledgeDimLabel } from '@/lib/knowledge-labels';
+
+// @dnd-kit imports
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // BOPPPS Stages Definition
 const BOPPPS_STAGES = [
@@ -45,9 +67,88 @@ interface OrchestratorBuilderProps {
     title: string;
     items: any[];
   };
+  returnPath?: string; // 保存后跳转路径，默认根据当前路径判断
 }
 
-export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
+// SortableItem component for drag-and-drop reordering
+interface SortableItemProps {
+  item: LessonItemDraft;
+  idx: number;
+  onRemove: () => void;
+  onDurationChange: (d: number) => void;
+}
+
+function SortableItem({ item, idx, onRemove, onDurationChange }: SortableItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.tempId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="bg-slate-800 rounded-lg p-4 border border-slate-700 shadow-lg flex gap-4 animate-in slide-in-from-top-2 duration-300"
+    >
+      <div className="flex flex-col items-center gap-2 pt-1">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-1 hover:bg-slate-700 rounded"
+        >
+          <GripVertical className="h-4 w-4 text-slate-500" />
+        </div>
+        <div className="h-6 w-6 rounded-full bg-slate-900 flex items-center justify-center text-xs font-mono text-slate-500 border border-slate-700">
+          {idx + 1}
+        </div>
+      </div>
+      <div className="flex-1">
+        <div className="flex items-start justify-between">
+          <h4 className="font-medium text-slate-200">{item.resourceTitle}</h4>
+          <button onClick={onRemove} className="text-slate-500 hover:text-red-400">
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
+          <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700">
+            {item.itemType === LessonItemType.KNOWLEDGE_NODE
+              ? item.knowledgeNodeType || 'KNOWLEDGE'
+              : item.resourceType || 'RESOURCE'}
+          </span>
+          <div className="flex items-center gap-1">
+            <span>时长:</span>
+            <input
+              type="number"
+              className="w-12 bg-slate-900 border border-slate-700 rounded px-1 text-center focus:border-cyan-500 outline-none"
+              value={item.duration}
+              min={1}
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10);
+                if (!isNaN(value) && value > 0) {
+                  onDurationChange(value);
+                }
+              }}
+            />
+            <span>min</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBuilderProps) {
   const router = useRouter();
   const [resources, setResources] = useState<TeachingResource[]>([]);
   const [knowledgeNodes, setKnowledgeNodes] = useState<KnowledgeNodeData[]>([]);
@@ -64,6 +165,35 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
   
   const [title, setTitle] = useState(initialData?.title || '');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Preview state
+  const [previewResource, setPreviewResource] = useState<TeachingResource | null>(null);
+  const [previewKnowledge, setPreviewKnowledge] = useState<KnowledgeNodeData | null>(null);
+
+  // DnD Kit sensors for sortable
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px movement before drag starts
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end for reordering items within a stage
+  const handleSortEnd = useCallback((event: DragEndEvent, stage: StageId) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setPlanState(prev => {
+        const items = prev[stage];
+        const oldIndex = items.findIndex(i => i.tempId === active.id);
+        const newIndex = items.findIndex(i => i.tempId === over.id);
+        return { ...prev, [stage]: arrayMove(items, oldIndex, newIndex) };
+      });
+    }
+  }, []);
 
   // Initialize state from initialData
   useEffect(() => {
@@ -233,6 +363,7 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
         const res = await fetch(url, {
             method,
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({
                 title,
                 items: itemsToSave
@@ -240,13 +371,23 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
         });
 
         if (res.ok) {
-            router.push('/admin/lesson-plans');
+            // 根据 returnPath 或当前路径判断跳转目标
+            const redirectPath = returnPath ||
+              (window.location.pathname.startsWith('/teacher') ? '/teacher/lesson-plans' : '/admin/lesson-plans');
+            router.push(redirectPath);
             router.refresh();
         } else {
-            alert('保存失败');
+            const errorData = await res.json().catch(() => ({}));
+            if (res.status === 401) {
+                alert('登录已过期，请重新登录');
+                window.location.href = '/login';
+            } else {
+                alert(`保存失败: ${errorData.error || res.statusText}`);
+            }
         }
       } catch (e) {
         console.error(e);
+        alert('保存失败，请检查网络连接');
       } finally {
         setIsSaving(false);
       }
@@ -299,8 +440,8 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
                         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{groupName}</h3>
                         <div className="space-y-2">
                             {groupItems.map(res => (
-                                <div 
-                                    key={res.id} 
+                                <div
+                                    key={res.id}
                                     draggable
                                     onDragStart={(e) => handleResourceDragStart(e, res)}
                                     className="p-3 rounded border border-slate-700 bg-slate-800 hover:border-cyan-500 cursor-grab active:cursor-grabbing transition-colors group flex items-center gap-3 shadow-sm"
@@ -310,6 +451,16 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
                                         <div className="text-sm font-medium truncate">{res.title}</div>
                                         <div className="text-[10px] text-slate-500 truncate">{res.type}</div>
                                     </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setPreviewResource(res);
+                                        }}
+                                        className="p-1 hover:bg-slate-700 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                        title="预览资源"
+                                    >
+                                        <Eye className="h-4 w-4 text-slate-400 hover:text-cyan-400" />
+                                    </button>
                                     <GripVertical className="h-4 w-4 text-slate-600 opacity-0 group-hover:opacity-100" />
                                 </div>
                             ))}
@@ -332,6 +483,16 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
                                         <div className="text-sm font-medium truncate">{node.name}</div>
                                         <div className="text-[10px] text-slate-500 truncate">{node.nodeType}</div>
                                     </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setPreviewKnowledge(node);
+                                        }}
+                                        className="p-1 hover:bg-slate-700 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                        title="预览知识卡片"
+                                    >
+                                        <Eye className="h-4 w-4 text-slate-400 hover:text-emerald-400" />
+                                    </button>
                                     <GripVertical className="h-4 w-4 text-slate-600 opacity-0 group-hover:opacity-100" />
                                 </div>
                             ))}
@@ -344,20 +505,20 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
         {/* Center: Canvas */}
         <div className="flex-1 flex flex-col min-w-0">
              <div className="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900 z-10">
-                <div className="flex items-center gap-4 flex-1">
-                    <Layout className="h-5 w-5 text-cyan-400" />
-                    <input 
-                        type="text" 
-                        placeholder="输入教案标题..." 
-                        className="bg-transparent border-none focus:outline-none text-lg font-bold w-full text-white placeholder:text-slate-600"
+                <div className="flex items-center gap-4 flex-1 max-w-xl">
+                    <Layout className="h-5 w-5 text-cyan-400 flex-shrink-0" />
+                    <input
+                        type="text"
+                        placeholder="输入教案标题..."
+                        className="bg-slate-800 border border-slate-700 focus:border-cyan-500 focus:outline-none text-lg font-bold w-full text-white placeholder:text-slate-500 px-3 py-1.5 rounded"
                         value={title}
                         onChange={e => setTitle(e.target.value)}
                     />
                 </div>
-                <button 
+                <button
                     onClick={savePlan}
                     disabled={isSaving}
-                    className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-md font-medium transition-colors disabled:opacity-50"
+                    className="ml-4 flex-shrink-0 flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-md font-medium transition-colors disabled:opacity-50"
                 >
                     <Save className="h-4 w-4" />
                     {isSaving ? '保存中...' : '保存教案'}
@@ -387,46 +548,26 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
                             </div>
                             
                             <div className="p-4 space-y-3 min-h-[100px]">
-                                {planState[stage.id].map((item, idx) => (
-                                    <div key={item.tempId} className="bg-slate-800 rounded-lg p-4 border border-slate-700 shadow-lg flex gap-4 animate-in slide-in-from-top-2 duration-300">
-                                        <div className="flex flex-col items-center gap-2 pt-1">
-                                            <div className="h-6 w-6 rounded-full bg-slate-900 flex items-center justify-center text-xs font-mono text-slate-500 border border-slate-700">
-                                                {idx + 1}
-                                            </div>
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-start justify-between">
-                                                <h4 className="font-medium text-slate-200">{item.resourceTitle}</h4>
-                                                <button onClick={() => removeFromStage(stage.id, idx)} className="text-slate-500 hover:text-red-400">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                            <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
-                                                <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700">
-                                                    {item.itemType === LessonItemType.KNOWLEDGE_NODE
-                                                        ? item.knowledgeNodeType || 'KNOWLEDGE'
-                                                        : item.resourceType || 'RESOURCE'}
-                                                </span>
-                                                <div className="flex items-center gap-1">
-                                                    <span>时长:</span>
-                                                    <input
-                                                        type="number"
-                                                        className="w-12 bg-slate-900 border border-slate-700 rounded px-1 text-center focus:border-cyan-500 outline-none"
-                                                        value={item.duration}
-                                                        min={1}
-                                                        onChange={(e) => {
-                                                            const value = parseInt(e.target.value, 10);
-                                                            if (!isNaN(value) && value > 0) {
-                                                                updateItemDuration(stage.id, idx, value);
-                                                            }
-                                                        }}
-                                                    />
-                                                    <span>min</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={(e) => handleSortEnd(e, stage.id)}
+                                >
+                                    <SortableContext
+                                        items={planState[stage.id].map(i => i.tempId)}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        {planState[stage.id].map((item, idx) => (
+                                            <SortableItem
+                                                key={item.tempId}
+                                                item={item}
+                                                idx={idx}
+                                                onRemove={() => removeFromStage(stage.id, idx)}
+                                                onDurationChange={(d) => updateItemDuration(stage.id, idx, d)}
+                                            />
+                                        ))}
+                                    </SortableContext>
+                                </DndContext>
                                 {planState[stage.id].length === 0 && (
                                     <div className="h-20 flex flex-col items-center justify-center text-slate-600 text-sm">
                                         <p>拖拽资源到此处</p>
@@ -438,6 +579,45 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
                 </div>
              </div>
         </div>
+
+        {/* Resource Preview Modal */}
+        <Dialog open={!!previewResource} onOpenChange={() => setPreviewResource(null)}>
+            <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col bg-slate-900">
+                <DialogHeader>
+                    <DialogTitle>{previewResource?.title}</DialogTitle>
+                </DialogHeader>
+                <div className="flex-1 overflow-auto min-h-0">
+                    {previewResource && (
+                        <ResourceRenderer resource={previewResource} enableAIPanel={false} />
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
+
+        {/* Knowledge Node Preview Modal */}
+        <Dialog open={!!previewKnowledge} onOpenChange={() => setPreviewKnowledge(null)}>
+            <DialogContent className="max-w-2xl bg-slate-900">
+                <DialogHeader>
+                    <DialogTitle>{previewKnowledge?.name}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-500 uppercase">{previewKnowledge?.nodeType}</span>
+                        {previewKnowledge?.bloomLevel && (
+                            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-xs">
+                                认知：{getBloomLabel(previewKnowledge.bloomLevel)}
+                            </span>
+                        )}
+                        {previewKnowledge?.knowledgeDim && (
+                            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs">
+                                知识：{getKnowledgeDimLabel(previewKnowledge.knowledgeDim)}
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-sm text-slate-300 leading-relaxed">{previewKnowledge?.description}</p>
+                </div>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }

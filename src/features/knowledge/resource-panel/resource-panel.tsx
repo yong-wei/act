@@ -4,7 +4,7 @@
  * ResourcePanel - 知识图谱右侧资源面板
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, FileText, Beaker, Scale, BookOpen, GraduationCap } from 'lucide-react';
 import type { KnowledgeNodeData } from '../knowledge-graph-system';
 import { KnowledgeCard } from '../knowledge-card';
@@ -19,8 +19,28 @@ type TabType = 'knowledge' | 'engineering' | 'ethics';
 
 export function ResourcePanel({ isOpen, selectedNode, onClose }: ResourcePanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('knowledge');
+  const [nodeDetail, setNodeDetail] = useState<KnowledgeNodeData | null>(null);
+
+  useEffect(() => {
+    if (!selectedNode) return;
+
+    const fetchDetail = async () => {
+      try {
+        const res = await fetch(`/api/knowledge/nodes/${selectedNode.id}`);
+        if (!res.ok) return;
+        const data = (await res.json()) as KnowledgeNodeData;
+        setNodeDetail(data);
+      } catch (error) {
+        console.error('Failed to fetch knowledge node detail:', error);
+      }
+    };
+
+    setNodeDetail(null);
+    fetchDetail();
+  }, [selectedNode]);
 
   if (!isOpen || !selectedNode) return null;
+  const displayNode = nodeDetail || selectedNode;
 
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
     { id: 'knowledge', label: '知识维度', icon: <FileText className="h-4 w-4" /> },
@@ -69,13 +89,13 @@ export function ResourcePanel({ isOpen, selectedNode, onClose }: ResourcePanelPr
       {/* 内容区域 */}
       <div className="p-4">
         {activeTab === 'knowledge' && (
-          <KnowledgeContent node={selectedNode} />
+          <KnowledgeContent node={displayNode} />
         )}
         {activeTab === 'engineering' && (
-          <EngineeringContent node={selectedNode} />
+          <EngineeringContent node={displayNode} />
         )}
         {activeTab === 'ethics' && (
-          <EthicsContent node={selectedNode} />
+          <EthicsContent node={displayNode} />
         )}
       </div>
     </aside>
@@ -110,6 +130,7 @@ function KnowledgeContent({ node }: { node: KnowledgeNodeData }) {
          bloomLevel={node.bloomLevel}
          knowledgeDim={node.knowledgeDim}
          metadata={metadata}
+         resources={node.resources}
          className="border-none bg-transparent p-0"
        />
 

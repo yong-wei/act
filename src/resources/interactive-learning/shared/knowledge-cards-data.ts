@@ -24,6 +24,8 @@ export interface LessonKnowledgeCard {
   name: string;
   nodeType: string;
   description: string;
+  bloomLevel?: string;
+  knowledgeDim?: string;
   lessonId: string;
   phase?: string;
   explanation?: string;
@@ -32,6 +34,7 @@ export interface LessonKnowledgeCard {
   applications?: string[];
   prerequisites?: string[];
   relatedTopics?: string[];
+  resources?: unknown[];
 }
 
 interface KnowledgeNodeResponse {
@@ -39,8 +42,11 @@ interface KnowledgeNodeResponse {
   name: string;
   nodeType: string;
   description: string;
+  bloomLevel?: string | null;
+  knowledgeDim?: string | null;
   content?: Record<string, unknown> | null;
   metadata?: Record<string, unknown> | null;
+  resources?: unknown[] | null;
 }
 
 function normalizeCard(node: KnowledgeNodeResponse): LessonKnowledgeCard {
@@ -58,6 +64,8 @@ function normalizeCard(node: KnowledgeNodeResponse): LessonKnowledgeCard {
     name: node.name,
     nodeType: node.nodeType,
     description: node.description,
+    bloomLevel: node.bloomLevel ?? undefined,
+    knowledgeDim: node.knowledgeDim ?? undefined,
     lessonId: getString('lessonId', ''),
     phase: getString('phase', ''),
     explanation: getString('explanation', ''),
@@ -66,6 +74,7 @@ function normalizeCard(node: KnowledgeNodeResponse): LessonKnowledgeCard {
     applications: getArray('applications'),
     prerequisites: getArray('prerequisites'),
     relatedTopics: getArray('relatedTopics'),
+    resources: Array.isArray(node.resources) ? node.resources : undefined,
   };
 }
 

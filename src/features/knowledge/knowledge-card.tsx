@@ -3,8 +3,10 @@
 
 import React from 'react';
 import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
+import { BlockMath } from 'react-katex';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { MdxSlide } from '@/components/shared/mdx-slide';
+import { getBloomLabel, getKnowledgeDimLabel } from '@/lib/knowledge-labels';
 
 // Define standardized metadata structure (matches what we seeded)
 interface KnowledgeMetadata {
@@ -27,6 +29,7 @@ interface KnowledgeCardProps {
   bloomLevel?: string;
   knowledgeDim?: string;
   metadata: KnowledgeMetadata;
+  resources?: unknown[];
   className?: string;
 }
 
@@ -37,8 +40,25 @@ export function KnowledgeCard({
   bloomLevel,
   knowledgeDim,
   metadata,
+  resources,
   className,
 }: KnowledgeCardProps) {
+  const bloomLabel = getBloomLabel(bloomLevel);
+  const knowledgeLabel = getKnowledgeDimLabel(knowledgeDim);
+
+  const mdxPaths = Array.isArray(resources)
+    ? resources
+        .map((item) => {
+          if (typeof item === 'string') return item;
+          if (item && typeof item === 'object') {
+            const candidate = (item as { path?: string; url?: string }).path
+              || (item as { path?: string; url?: string }).url;
+            return typeof candidate === 'string' ? candidate : null;
+          }
+          return null;
+        })
+        .filter((path): path is string => !!path && path.endsWith('.mdx'))
+    : [];
   
   // Helper to render type badge
   const renderTypeBadge = () => {
@@ -67,10 +87,20 @@ export function KnowledgeCard({
                     {description}
                 </CardDescription>
             </div>
-            {bloomLevel && (
-                <div className="text-xs text-slate-500 text-right">
-                    <div>{bloomLevel}</div>
-                    <div>{knowledgeDim}</div>
+            {(bloomLabel || knowledgeLabel) && (
+                <div className="flex flex-col items-end gap-2 text-right">
+                    <div className="flex flex-wrap justify-end gap-2">
+                        {bloomLabel && (
+                            <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 text-xs text-emerald-300">
+                                认知：{bloomLabel}
+                            </span>
+                        )}
+                        {knowledgeLabel && (
+                            <span className="rounded-full border border-blue-500/40 bg-blue-500/15 px-2.5 py-0.5 text-xs text-blue-300">
+                                知识：{knowledgeLabel}
+                            </span>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
@@ -113,6 +143,15 @@ export function KnowledgeCard({
                         </span>
                     ))}
                 </div>
+            </div>
+        )}
+
+        {mdxPaths.length > 0 && (
+            <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-slate-400">扩展内容</h4>
+                {mdxPaths.map((path) => (
+                    <MdxSlide key={path} path={path} />
+                ))}
             </div>
         )}
       </CardContent>
