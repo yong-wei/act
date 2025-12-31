@@ -35,6 +35,19 @@ export function useEthicalMonitor(options: UseEthicalMonitorOptions = {}): UseEt
   const prevTimeRef = useRef<number>(0);
 
   /**
+   * 触发违规
+   */
+  const triggerViolation = useCallback(
+    (violation: EthicalViolation) => {
+      setIsViolating(true);
+      setCurrentViolation(violation);
+      setViolations((prev) => [...prev, violation]);
+      onViolation?.(violation);
+    },
+    [onViolation]
+  );
+
+  /**
    * 检查仿真状态是否违规
    */
   const checkViolation = useCallback(
@@ -91,20 +104,7 @@ export function useEthicalMonitor(options: UseEthicalMonitorOptions = {}): UseEt
 
       return null;
     },
-    [isViolating]
-  );
-
-  /**
-   * 触发违规
-   */
-  const triggerViolation = useCallback(
-    (violation: EthicalViolation) => {
-      setIsViolating(true);
-      setCurrentViolation(violation);
-      setViolations((prev) => [...prev, violation]);
-      onViolation?.(violation);
-    },
-    [onViolation]
+    [isViolating, triggerViolation]
   );
 
   /**

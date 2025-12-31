@@ -4,6 +4,7 @@
 import React, { useCallback } from 'react';
 import 'katex/dist/katex.min.css';
 import { BlockMath } from 'react-katex';
+import Image from 'next/image';
 import { BookOpen, Link as LinkIcon } from 'lucide-react';
 import { TeachingResource, KnowledgeNode } from '@prisma/client';
 import { getRegisteredResource } from '@/lib/resource-registry';
@@ -140,7 +141,22 @@ export function ResourceRenderer({ resource, knowledgeNode, onComplete, onStateC
               {resource.content?.endsWith('.mp4') ? (
                   <video src={resource.content} controls className="max-h-full max-w-full" />
               ) : (
-                  <img src={resource.content || ''} alt={resource.title} className="max-h-full max-w-full object-contain" />
+                  <div className="relative h-full w-full">
+                      {resource.content ? (
+                          <Image
+                              src={resource.content}
+                              alt={resource.title}
+                              fill
+                              sizes="100vw"
+                              className="object-contain"
+                              unoptimized
+                          />
+                      ) : (
+                          <div className="flex h-full w-full items-center justify-center text-slate-500">
+                              Missing media source
+                          </div>
+                      )}
+                  </div>
               )}
           </div>
       );

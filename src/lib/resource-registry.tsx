@@ -11,6 +11,14 @@ export interface ResourceComponentConfig {
     component: ComponentType<any>;
 }
 
+function loadingFallback(label: string) {
+    const LoadingFallbackComponent = () => (
+        <div className="p-4 text-center text-slate-400">Loading {label}...</div>
+    );
+    LoadingFallbackComponent.displayName = `LoadingFallback(${label})`;
+    return LoadingFallbackComponent;
+}
+
 // 动态导入组件
 const PidSimulator = dynamic(() => import('@/resources/interactive-learning/pid-simulator/pid-simulator-component').then(mod => mod.PidSimulatorComponent), {
     loading: () => <div className="p-4 text-center text-slate-400">Loading Simulator...</div>
@@ -31,6 +39,71 @@ const AnalogyMapper = dynamic(() => import('@/resources/widgets/analogy-mapper')
 const ArgumentPrinciple = dynamic(() => import('@/resources/widgets/argument-principle'), {
     loading: () => <div className="p-4 text-center text-slate-400">Loading Argument Principle...</div>
 });
+
+const Lesson02Bridge = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02BridgeResource),
+    { loading: loadingFallback('Lesson 02 Bridge') }
+);
+
+const Lesson02Objective = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02ObjectiveResource),
+    { loading: loadingFallback('Lesson 02 Objectives') }
+);
+
+const Lesson02Pretest = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02PretestResource),
+    { loading: loadingFallback('Lesson 02 Pretest') }
+);
+
+const Lesson02Mechanical = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02MechanicalResource),
+    { loading: loadingFallback('Lesson 02 Mechanical') }
+);
+
+const Lesson02Electrical = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02ElectricalResource),
+    { loading: loadingFallback('Lesson 02 Electrical') }
+);
+
+const Lesson02Analogy = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02AnalogyResource),
+    { loading: loadingFallback('Lesson 02 Analogy') }
+);
+
+const Lesson02Posttest = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02PosttestResource),
+    { loading: loadingFallback('Lesson 02 Posttest') }
+);
+
+const Lesson02Summary = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02SummaryResource),
+    { loading: loadingFallback('Lesson 02 Summary') }
+);
+
+const PhysicsModelingIntro = dynamic(
+    () => import('@/resources/interactive-learning/physics-modeling/standalone-resources').then(mod => mod.PhysicsModelingIntroResource),
+    { loading: loadingFallback('Physics Modeling Intro') }
+);
+
+const PhysicsModelingMechanical = dynamic(
+    () => import('@/resources/interactive-learning/physics-modeling/standalone-resources').then(mod => mod.PhysicsModelingMechanicalResource),
+    { loading: loadingFallback('Physics Modeling Mechanical') }
+);
+
+const PhysicsModelingElectrical = dynamic(
+    () => import('@/resources/interactive-learning/physics-modeling/standalone-resources').then(mod => mod.PhysicsModelingElectricalResource),
+    { loading: loadingFallback('Physics Modeling Electrical') }
+);
+
+const PhysicsModelingAnalogy = dynamic(
+    () => import('@/resources/interactive-learning/physics-modeling/standalone-resources').then(mod => mod.PhysicsModelingAnalogyResource),
+    { loading: loadingFallback('Physics Modeling Analogy') }
+);
+
+const PhysicsModelingPractice = dynamic(
+    () => import('@/resources/interactive-learning/physics-modeling/standalone-resources').then(mod => mod.PhysicsModelingPracticeResource),
+    { loading: loadingFallback('Physics Modeling Practice') }
+);
 
 // 注册表
 const registry: Record<string, ResourceComponentConfig> = {
@@ -75,6 +148,84 @@ const registry: Record<string, ResourceComponentConfig> = {
         type: 'INTERACTIVE_COMP',
         defaultConfig: { showControls: true },
         component: ArgumentPrinciple
+    },
+    'lesson02-bridge-v1': {
+        id: 'lesson02-bridge-v1',
+        label: 'Lesson 02 - Bridge In',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02Bridge
+    },
+    'lesson02-objective-v1': {
+        id: 'lesson02-objective-v1',
+        label: 'Lesson 02 - Objectives',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02Objective
+    },
+    'lesson02-pretest-v1': {
+        id: 'lesson02-pretest-v1',
+        label: 'Lesson 02 - Pretest',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02Pretest
+    },
+    'lesson02-mechanical-v1': {
+        id: 'lesson02-mechanical-v1',
+        label: 'Lesson 02 - Mechanical Modeling',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02Mechanical
+    },
+    'lesson02-electrical-v1': {
+        id: 'lesson02-electrical-v1',
+        label: 'Lesson 02 - Electrical Modeling',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02Electrical
+    },
+    'lesson02-analogy-v1': {
+        id: 'lesson02-analogy-v1',
+        label: 'Lesson 02 - Analogy Mapping',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02Analogy
+    },
+    'lesson02-posttest-v1': {
+        id: 'lesson02-posttest-v1',
+        label: 'Lesson 02 - Posttest',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02Posttest
+    },
+    'lesson02-summary-v1': {
+        id: 'lesson02-summary-v1',
+        label: 'Lesson 02 - Summary',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02Summary
+    },
+    'physics-modeling-intro-v1': {
+        id: 'physics-modeling-intro-v1',
+        label: 'Physics Modeling - Intro',
+        type: 'INTERACTIVE_COMP',
+        component: PhysicsModelingIntro
+    },
+    'physics-modeling-mechanical-v1': {
+        id: 'physics-modeling-mechanical-v1',
+        label: 'Physics Modeling - Mechanical',
+        type: 'INTERACTIVE_COMP',
+        component: PhysicsModelingMechanical
+    },
+    'physics-modeling-electrical-v1': {
+        id: 'physics-modeling-electrical-v1',
+        label: 'Physics Modeling - Electrical',
+        type: 'INTERACTIVE_COMP',
+        component: PhysicsModelingElectrical
+    },
+    'physics-modeling-analogy-v1': {
+        id: 'physics-modeling-analogy-v1',
+        label: 'Physics Modeling - Analogy',
+        type: 'INTERACTIVE_COMP',
+        component: PhysicsModelingAnalogy
+    },
+    'physics-modeling-practice-v1': {
+        id: 'physics-modeling-practice-v1',
+        label: 'Physics Modeling - Practice',
+        type: 'INTERACTIVE_COMP',
+        component: PhysicsModelingPractice
     }
 };
 
