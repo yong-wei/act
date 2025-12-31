@@ -155,8 +155,8 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
 
       {/* 主内容区 */}
       <main className="flex-1 overflow-hidden relative">
-        {currentItem && currentItem.resource ? (
-          <ResourceRenderer resource={currentItem.resource} />
+        {currentItem && (currentItem.resource || currentItem.knowledgeNode) ? (
+          <ResourceRenderer resource={currentItem.resource} knowledgeNode={currentItem.knowledgeNode} />
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">
             <Loader2 className="h-8 w-8 animate-spin mb-4" />

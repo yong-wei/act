@@ -7,7 +7,8 @@ import {
   BookOpen, Code, FileText, Video, Save, Trash2, Layout, Search, GripVertical
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TeachingResource, ResourceType } from '@prisma/client';
+import { TeachingResource, LessonItemType } from '@prisma/client';
+import type { KnowledgeNodeData } from '@/features/knowledge/knowledge-graph-system';
 
 // BOPPPS Stages Definition
 const BOPPPS_STAGES = [
@@ -23,10 +24,19 @@ type StageId = typeof BOPPPS_STAGES[number]['id'];
 
 interface LessonItemDraft {
   tempId: string;
-  resourceId: string;
   resourceTitle: string;
-  resourceType: string;
+  itemType: LessonItemType;
+  resourceId?: string | null;
+  resourceType?: string | null;
+  knowledgeNodeId?: string | null;
+  knowledgeNodeType?: string | null;
   duration: number;
+}
+
+interface DragPayload {
+  itemType: LessonItemType;
+  resource?: TeachingResource;
+  knowledgeNode?: KnowledgeNodeData;
 }
 
 interface OrchestratorBuilderProps {
@@ -40,6 +50,7 @@ interface OrchestratorBuilderProps {
 export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
   const router = useRouter();
   const [resources, setResources] = useState<TeachingResource[]>([]);
+  const [knowledgeNodes, setKnowledgeNodes] = useState<KnowledgeNodeData[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   
   const [planState, setPlanState] = useState<Record<StageId, LessonItemDraft[]>>({
@@ -70,11 +81,22 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
           initialData.items.forEach(item => {
               if (item.stage) {
                   if (!newState[item.stage]) newState[item.stage] = [];
+                  const inferredType = item.knowledgeNodeId ? LessonItemType.KNOWLEDGE_NODE : LessonItemType.RESOURCE;
+                  const itemType = (item.itemType as LessonItemType | undefined) ?? inferredType;
+                  const resourceTitle = itemType === LessonItemType.KNOWLEDGE_NODE
+                    ? item.knowledgeNode?.name || 'Unknown Knowledge'
+                    : item.resource?.title || 'Unknown Resource';
+
                   newState[item.stage].push({
                       tempId: item.id, // Use real ID
-                      resourceId: item.resourceId,
-                      resourceTitle: item.resource?.title || 'Unknown Resource',
-                      resourceType: item.resource?.type || 'UNKNOWN',
+                      itemType,
+                      resourceId: itemType === LessonItemType.RESOURCE ? item.resourceId : null,
+                      resourceTitle,
+                      resourceType: itemType === LessonItemType.RESOURCE ? item.resource?.type || 'UNKNOWN' : null,
+                      knowledgeNodeId: itemType === LessonItemType.KNOWLEDGE_NODE ? item.knowledgeNodeId : null,
+                      knowledgeNodeType: itemType === LessonItemType.KNOWLEDGE_NODE
+                        ? item.knowledgeNode?.nodeType || 'UNKNOWN'
+                        : null,
                       duration: item.duration || 10
                   });
               }
@@ -94,8 +116,26 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
     fetchResources();
   }, []);
 
-  const handleDragStart = (e: React.DragEvent, resource: TeachingResource) => {
-      e.dataTransfer.setData('application/json', JSON.stringify(resource));
+  // Fetch Knowledge Nodes
+  useEffect(() => {
+    const fetchKnowledgeNodes = async () => {
+      const res = await fetch('/api/knowledge/nodes');
+      if (res.ok) {
+        setKnowledgeNodes(await res.json());
+      }
+    };
+    fetchKnowledgeNodes();
+  }, []);
+
+  const handleResourceDragStart = (e: React.DragEvent, resource: TeachingResource) => {
+      const payload: DragPayload = { itemType: LessonItemType.RESOURCE, resource };
+      e.dataTransfer.setData('application/json', JSON.stringify(payload));
+      e.dataTransfer.effectAllowed = 'copy';
+  };
+
+  const handleKnowledgeDragStart = (e: React.DragEvent, knowledgeNode: KnowledgeNodeData) => {
+      const payload: DragPayload = { itemType: LessonItemType.KNOWLEDGE_NODE, knowledgeNode };
+      e.dataTransfer.setData('application/json', JSON.stringify(payload));
       e.dataTransfer.effectAllowed = 'copy';
   };
 
@@ -109,19 +149,39 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
       const data = e.dataTransfer.getData('application/json');
       if (!data) return;
 
-      const resource = JSON.parse(data) as TeachingResource;
-      const newItem: LessonItemDraft = {
-          tempId: Math.random().toString(36),
-          resourceId: resource.id,
-          resourceTitle: resource.title,
-          resourceType: resource.type,
-          duration: 10 // default
-      };
+      const payload = JSON.parse(data) as DragPayload;
+      if (payload.itemType === LessonItemType.KNOWLEDGE_NODE && payload.knowledgeNode) {
+          const newItem: LessonItemDraft = {
+              tempId: Math.random().toString(36),
+              itemType: LessonItemType.KNOWLEDGE_NODE,
+              knowledgeNodeId: payload.knowledgeNode.id,
+              knowledgeNodeType: payload.knowledgeNode.nodeType,
+              resourceTitle: payload.knowledgeNode.name,
+              duration: 10 // default
+          };
 
-      setPlanState(prev => ({
-          ...prev,
-          [stage]: [...prev[stage], newItem]
-      }));
+          setPlanState(prev => ({
+              ...prev,
+              [stage]: [...prev[stage], newItem]
+          }));
+          return;
+      }
+
+      if (payload.itemType === LessonItemType.RESOURCE && payload.resource) {
+          const newItem: LessonItemDraft = {
+              tempId: Math.random().toString(36),
+              itemType: LessonItemType.RESOURCE,
+              resourceId: payload.resource.id,
+              resourceTitle: payload.resource.title,
+              resourceType: payload.resource.type,
+              duration: 10 // default
+          };
+
+          setPlanState(prev => ({
+              ...prev,
+              [stage]: [...prev[stage], newItem]
+          }));
+      }
   };
 
   const removeFromStage = (stage: StageId, index: number) => {
@@ -144,12 +204,21 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
       if (!title) return alert('请输入教案标题');
       setIsSaving(true);
       
-      const itemsToSave: { resourceId: string; stage: string; order: number; duration: number }[] = [];
+      const itemsToSave: {
+        itemType: LessonItemType;
+        resourceId?: string | null;
+        knowledgeNodeId?: string | null;
+        stage: string;
+        order: number;
+        duration: number;
+      }[] = [];
       for (const stage of Object.keys(planState)) {
           const items = planState[stage as StageId];
           items.forEach((item, idx) => {
               itemsToSave.push({
-                  resourceId: item.resourceId,
+                  itemType: item.itemType,
+                  resourceId: item.itemType === LessonItemType.RESOURCE ? item.resourceId || null : null,
+                  knowledgeNodeId: item.itemType === LessonItemType.KNOWLEDGE_NODE ? item.knowledgeNodeId || null : null,
                   stage: stage,
                   order: idx + 1,
                   duration: item.duration
@@ -188,6 +257,11 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
     r.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredKnowledgeNodes = knowledgeNodes.filter((node) =>
+    node.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    node.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const resourceGroups = {
       'Static': filteredResources.filter(r => ['STATIC_TEXT', 'STATIC_MEDIA'].includes(r.type)),
       'Interactive': filteredResources.filter(r => ['INTERACTIVE_COMP', 'SIMULATION_APP', 'ETHICS_SCENARIO'].includes(r.type))
@@ -212,7 +286,7 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500" />
                     <input 
                         type="text" 
-                        placeholder="搜索资源..."
+                        placeholder="搜索资源或知识卡片..."
                         className="w-full bg-slate-950 border border-slate-700 rounded pl-8 pr-2 py-2 text-sm focus:border-cyan-500 outline-none"
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
@@ -228,7 +302,7 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
                                 <div 
                                     key={res.id} 
                                     draggable
-                                    onDragStart={(e) => handleDragStart(e, res)}
+                                    onDragStart={(e) => handleResourceDragStart(e, res)}
                                     className="p-3 rounded border border-slate-700 bg-slate-800 hover:border-cyan-500 cursor-grab active:cursor-grabbing transition-colors group flex items-center gap-3 shadow-sm"
                                 >
                                     {renderResourceIcon(res.type)}
@@ -242,6 +316,28 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
                         </div>
                     </div>
                 ))}
+                {filteredKnowledgeNodes.length > 0 && (
+                    <div>
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Knowledge</h3>
+                        <div className="space-y-2">
+                            {filteredKnowledgeNodes.map(node => (
+                                <div
+                                    key={node.id}
+                                    draggable
+                                    onDragStart={(e) => handleKnowledgeDragStart(e, node)}
+                                    className="p-3 rounded border border-slate-700 bg-slate-800 hover:border-emerald-500 cursor-grab active:cursor-grabbing transition-colors group flex items-center gap-3 shadow-sm"
+                                >
+                                    <BookOpen className="h-4 w-4 text-emerald-400" />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-sm font-medium truncate">{node.name}</div>
+                                        <div className="text-[10px] text-slate-500 truncate">{node.nodeType}</div>
+                                    </div>
+                                    <GripVertical className="h-4 w-4 text-slate-600 opacity-0 group-hover:opacity-100" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
 
@@ -306,7 +402,11 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
                                                 </button>
                                             </div>
                                             <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
-                                                <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700">{item.resourceType}</span>
+                                                <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700">
+                                                    {item.itemType === LessonItemType.KNOWLEDGE_NODE
+                                                        ? item.knowledgeNodeType || 'KNOWLEDGE'
+                                                        : item.resourceType || 'RESOURCE'}
+                                                </span>
                                                 <div className="flex items-center gap-1">
                                                     <span>时长:</span>
                                                     <input
@@ -341,4 +441,3 @@ export function OrchestratorBuilder({ initialData }: OrchestratorBuilderProps) {
     </div>
   );
 }
-

@@ -14,7 +14,7 @@ export default async function TeacherSessionPage({ params }: PageProps) {
       plan: {
         include: {
           items: {
-            include: { resource: true },
+            include: { resource: true, knowledgeNode: true },
             orderBy: [{ stage: 'asc' }, { order: 'asc' }] // Need to confirm Enum order logic or mapping
           }
         }

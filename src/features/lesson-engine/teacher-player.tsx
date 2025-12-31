@@ -107,8 +107,8 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
 
         {/* Main Content */}
         <div className="flex-1 relative overflow-hidden bg-black">
-            {currentItem && currentItem.resource ? (
-                <ResourceRenderer resource={currentItem.resource} />
+            {currentItem && (currentItem.resource || currentItem.knowledgeNode) ? (
+                <ResourceRenderer resource={currentItem.resource} knowledgeNode={currentItem.knowledgeNode} />
             ) : (
                 <div className="flex items-center justify-center h-full text-slate-500">
                     Waiting for content...

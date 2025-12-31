@@ -12,7 +12,7 @@ export default async function EditLessonPlanPage({ params }: PageProps) {
     where: { id: params.id },
     include: {
       items: {
-        include: { resource: true },
+        include: { resource: true, knowledgeNode: true },
         orderBy: [{ stage: 'asc' }, { order: 'asc' }]
       }
     }
