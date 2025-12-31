@@ -2,15 +2,12 @@
  * 知识卡片数据访问
  * Knowledge Cards Data Access
  *
- * 从首页知识图谱模块获取课程知识卡片
+ * 从知识库 API 获取课程知识卡片（数据库唯一源头）
  */
 
-import {
-  getLessonKnowledgeCard,
-  getCardsByLesson,
-  getCardByPhase,
-  type LessonKnowledgeCard,
-} from '@/features/knowledge/data/lesson-knowledge-cards';
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
 
 /** 知识卡片 ID 列表 (Lesson 02) */
 export const LESSON_02_CARD_IDS = [
@@ -22,36 +19,126 @@ export const LESSON_02_CARD_IDS = [
 
 export type Lesson02CardId = (typeof LESSON_02_CARD_IDS)[number];
 
-/**
- * 根据 ID 获取知识卡片
- */
-export function getKnowledgeCard(id: string): LessonKnowledgeCard | undefined {
-  return getLessonKnowledgeCard(id);
+export interface LessonKnowledgeCard {
+  id: string;
+  name: string;
+  nodeType: string;
+  description: string;
+  lessonId: string;
+  phase?: string;
+  explanation?: string;
+  formulaContinuous?: string;
+  formulaDiscrete?: string;
+  applications?: string[];
+  prerequisites?: string[];
+  relatedTopics?: string[];
+}
+
+interface KnowledgeNodeResponse {
+  id: string;
+  name: string;
+  nodeType: string;
+  description: string;
+  content?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+function normalizeCard(node: KnowledgeNodeResponse): LessonKnowledgeCard {
+  const metadata = (node.metadata || {}) as Record<string, unknown>;
+  const content = (node.content || {}) as Record<string, unknown>;
+  const getString = (key: string, fallback = '') =>
+    (metadata[key] as string | undefined) ?? (content[key] as string | undefined) ?? fallback;
+  const getArray = (key: string) => {
+    const value = (metadata[key] ?? content[key]) as unknown;
+    return Array.isArray(value) ? value : undefined;
+  };
+
+  return {
+    id: node.id,
+    name: node.name,
+    nodeType: node.nodeType,
+    description: node.description,
+    lessonId: getString('lessonId', ''),
+    phase: getString('phase', ''),
+    explanation: getString('explanation', ''),
+    formulaContinuous: getString('formulaContinuous', ''),
+    formulaDiscrete: getString('formulaDiscrete', ''),
+    applications: getArray('applications'),
+    prerequisites: getArray('prerequisites'),
+    relatedTopics: getArray('relatedTopics'),
+  };
+}
+
+export function useKnowledgeCard(id: string) {
+  const [card, setCard] = useState<LessonKnowledgeCard | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchCard = async () => {
+      try {
+        const res = await fetch(`/api/knowledge/nodes/${id}`);
+        if (!res.ok) {
+          setError('知识卡片未找到');
+          setIsLoading(false);
+          return;
+        }
+        const data = (await res.json()) as KnowledgeNodeResponse;
+        setCard(normalizeCard(data));
+      } catch (err) {
+        console.error('Failed to load knowledge card', err);
+        setError('知识卡片加载失败');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCard();
+  }, [id]);
+
+  return { card, isLoading, error };
 }
 
 /**
  * 获取 Lesson 02 的所有知识卡片
  */
-export function getLesson02Cards(): LessonKnowledgeCard[] {
-  return getCardsByLesson('lesson-02');
-}
-
-/**
- * 知识卡片与课程阶段的映射关系
- */
 export const CARD_PHASE_MAPPING: Record<Lesson02CardId, string> = {
-  'concept-modeling-intro': 'bridge',        // 导入阶段
-  'concept-newton-law-application': 'mechanical',  // 机械建模阶段
-  'concept-kirchhoff-law': 'electrical',     // 电路建模阶段
-  'concept-linearization': 'posttest',       // 后测阶段
+  'concept-modeling-intro': 'bridge',
+  'concept-newton-law-application': 'mechanical',
+  'concept-kirchhoff-law': 'electrical',
+  'concept-linearization': 'posttest',
 };
 
-/**
- * 根据阶段获取对应的知识卡片
- */
-export function getCardForPhase(phase: string): LessonKnowledgeCard | undefined {
-  return getCardByPhase('lesson-02', phase);
-}
+export function useLesson02Cards() {
+  const [cards, setCards] = useState<LessonKnowledgeCard[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-// 重新导出类型
-export type { LessonKnowledgeCard };
+  useEffect(() => {
+    const fetchCards = async () => {
+      try {
+        const res = await fetch('/api/knowledge/nodes?search=lesson-02');
+        if (!res.ok) return;
+        const data = (await res.json()) as KnowledgeNodeResponse[];
+        setCards(data.map(normalizeCard));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCards();
+  }, []);
+
+  const cardsByPhase = useMemo(() => {
+    const mapping: Record<string, LessonKnowledgeCard[]> = {};
+    cards.forEach((card) => {
+      const phase = card.phase || 'default';
+      if (!mapping[phase]) mapping[phase] = [];
+      mapping[phase].push(card);
+    });
+    return mapping;
+  }, [cards]);
+
+  return { cards, cardsByPhase, isLoading };
+}

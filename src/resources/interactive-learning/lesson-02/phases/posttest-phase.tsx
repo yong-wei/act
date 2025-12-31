@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { Target, Send, Loader2, CheckCircle2, Lightbulb, ChevronRight, BookOpen } from 'lucide-react';
 import { KnowledgeSidebar } from '../../shared/knowledge-card';
-import { getKnowledgeCard } from '../../shared/knowledge-cards-data';
+import { useKnowledgeCard } from '../../shared/knowledge-cards-data';
 
 interface PosttestPhaseProps {
   answer: string;
@@ -33,7 +33,11 @@ export function PosttestPhase({
   const [showKnowledgeCard, setShowKnowledgeCard] = useState(false);
 
   // 获取知识卡片数据
-  const knowledgeCard = getKnowledgeCard('concept-linearization');
+  const {
+    card: knowledgeCard,
+    isLoading: isKnowledgeCardLoading,
+    error: knowledgeCardError,
+  } = useKnowledgeCard('concept-linearization');
 
   const hints = [
     '转动惯量 J 对应惯性项 J·θ̈',
@@ -127,10 +131,19 @@ export function PosttestPhase({
             <div className="mt-3 flex justify-end">
               <button
                 onClick={() => setShowKnowledgeCard(!showKnowledgeCard)}
-                className="flex items-center gap-2 rounded-lg bg-red-500/15 px-3 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/25"
+                disabled={!knowledgeCard}
+                className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs transition-colors ${
+                  knowledgeCard
+                    ? 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
+                    : 'cursor-not-allowed bg-slate-800 text-slate-500'
+                }`}
               >
                 <BookOpen className="h-3.5 w-3.5" />
-                非线性线性化
+                {knowledgeCard
+                  ? '非线性线性化'
+                  : isKnowledgeCardLoading
+                    ? '知识卡片加载中...'
+                    : knowledgeCardError || '知识卡片暂不可用'}
               </button>
             </div>
 

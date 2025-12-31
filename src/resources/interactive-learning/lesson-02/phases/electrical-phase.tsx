@@ -10,7 +10,7 @@ import { Zap, CheckCircle2, ChevronRight, Lightbulb, AlertCircle, RefreshCw, Boo
 import { PhysicsBuilder } from '../../physics-modeling/physics-builder/physics-builder-canvas';
 import type { PhysicsNode, PhysicsEdge } from '../../physics-modeling/types';
 import { KnowledgeSidebar } from '../../shared/knowledge-card';
-import { getKnowledgeCard } from '../../shared/knowledge-cards-data';
+import { useKnowledgeCard } from '../../shared/knowledge-cards-data';
 
 interface ElectricalPhaseProps {
   weakAreas: string[];
@@ -32,7 +32,11 @@ export function ElectricalPhase({
   const [showKnowledgeCard, setShowKnowledgeCard] = useState(false);
 
   // 获取知识卡片数据
-  const knowledgeCard = getKnowledgeCard('concept-kirchhoff-law');
+  const {
+    card: knowledgeCard,
+    isLoading: isKnowledgeCardLoading,
+    error: knowledgeCardError,
+  } = useKnowledgeCard('concept-kirchhoff-law');
 
   // 需要辅助提示（前测在电感/电容上出错）
   const needsHelp = weakAreas.includes('inductor') || weakAreas.includes('capacitor');
@@ -184,10 +188,19 @@ export function ElectricalPhase({
         <div className="mt-2 flex justify-end">
           <button
             onClick={() => setShowKnowledgeCard(!showKnowledgeCard)}
-            className="flex items-center gap-2 rounded-lg bg-red-500/15 px-3 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/25"
+            disabled={!knowledgeCard}
+            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs transition-colors ${
+              knowledgeCard
+                ? 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
+                : 'cursor-not-allowed bg-slate-800 text-slate-500'
+            }`}
           >
             <BookOpen className="h-3.5 w-3.5" />
-            KVL与动态电路
+            {knowledgeCard
+              ? 'KVL与动态电路'
+              : isKnowledgeCardLoading
+                ? '知识卡片加载中...'
+                : knowledgeCardError || '知识卡片暂不可用'}
           </button>
         </div>
       </div>

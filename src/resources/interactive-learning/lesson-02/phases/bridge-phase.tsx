@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { Eye, Ship, ChevronRight, AlertTriangle, Waves, BookOpen } from 'lucide-react';
 import { KnowledgeSidebar } from '../../shared/knowledge-card';
-import { getKnowledgeCard } from '../../shared/knowledge-cards-data';
+import { useKnowledgeCard } from '../../shared/knowledge-cards-data';
 
 interface BridgePhaseProps {
   onComplete: () => void;
@@ -21,7 +21,11 @@ export function BridgePhase({ onComplete }: BridgePhaseProps) {
   const [showKnowledgeCard, setShowKnowledgeCard] = useState(false);
 
   // 获取知识卡片数据
-  const knowledgeCard = getKnowledgeCard('concept-modeling-intro');
+  const {
+    card: knowledgeCard,
+    isLoading: isKnowledgeCardLoading,
+    error: knowledgeCardError,
+  } = useKnowledgeCard('concept-modeling-intro');
 
   // 延迟显示 AI 消息
   useEffect(() => {
@@ -115,10 +119,19 @@ export function BridgePhase({ onComplete }: BridgePhaseProps) {
         {/* 知识卡片按钮 */}
         <button
           onClick={() => setShowKnowledgeCard(!showKnowledgeCard)}
-          className="absolute right-4 bottom-4 flex items-center gap-2 rounded-lg bg-red-500/20 px-3 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/30"
+          disabled={!knowledgeCard}
+          className={`absolute right-4 bottom-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+            knowledgeCard
+              ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+              : 'cursor-not-allowed bg-slate-800 text-slate-500'
+          }`}
         >
           <BookOpen className="h-4 w-4" />
-          为什么需要建模？
+          {knowledgeCard
+            ? '为什么需要建模？'
+            : isKnowledgeCardLoading
+              ? '知识卡片加载中...'
+              : knowledgeCardError || '知识卡片暂不可用'}
         </button>
 
         {/* 知识卡片侧边栏 */}

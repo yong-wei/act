@@ -10,7 +10,7 @@ import { Wrench, CheckCircle2, ChevronRight, Lightbulb, AlertCircle, BookOpen } 
 import { PhysicsBuilder } from '../../physics-modeling/physics-builder/physics-builder-canvas';
 import type { PhysicsNode, PhysicsEdge } from '../../physics-modeling/types';
 import { KnowledgeSidebar } from '../../shared/knowledge-card';
-import { getKnowledgeCard } from '../../shared/knowledge-cards-data';
+import { useKnowledgeCard } from '../../shared/knowledge-cards-data';
 
 interface MechanicalPhaseProps {
   weakAreas: string[];
@@ -31,7 +31,11 @@ export function MechanicalPhase({
   const [showKnowledgeCard, setShowKnowledgeCard] = useState(false);
 
   // 获取知识卡片数据
-  const knowledgeCard = getKnowledgeCard('concept-newton-law-application');
+  const {
+    card: knowledgeCard,
+    isLoading: isKnowledgeCardLoading,
+    error: knowledgeCardError,
+  } = useKnowledgeCard('concept-newton-law-application');
 
   // 需要辅助提示（前测弱项）
   const needsHelp = weakAreas.length > 0;
@@ -156,10 +160,19 @@ export function MechanicalPhase({
         <div className="mt-2 flex justify-end">
           <button
             onClick={() => setShowKnowledgeCard(!showKnowledgeCard)}
-            className="flex items-center gap-2 rounded-lg bg-red-500/15 px-3 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/25"
+            disabled={!knowledgeCard}
+            className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs transition-colors ${
+              knowledgeCard
+                ? 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
+                : 'cursor-not-allowed bg-slate-800 text-slate-500'
+            }`}
           >
             <BookOpen className="h-3.5 w-3.5" />
-            牛顿定律与旋转体
+            {knowledgeCard
+              ? '牛顿定律与旋转体'
+              : isKnowledgeCardLoading
+                ? '知识卡片加载中...'
+                : knowledgeCardError || '知识卡片暂不可用'}
           </button>
         </div>
       </div>
