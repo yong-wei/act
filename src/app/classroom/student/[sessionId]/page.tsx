@@ -13,7 +13,7 @@ export default async function StudentSessionPage({ params }: PageProps) {
       plan: {
         include: {
           items: {
-            include: { resource: true },
+            include: { resource: true, knowledgeNode: true },
             orderBy: [{ stage: 'asc' }, { order: 'asc' }]
           }
         }

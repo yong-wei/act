@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { BopppsStage } from '@prisma/client';
+import { BopppsStage, LessonItemType } from '@prisma/client';
 
 export async function GET(
   request: Request,
@@ -13,7 +13,7 @@ export async function GET(
       where: { id: params.id },
       include: {
         items: {
-          include: { resource: true },
+          include: { resource: true, knowledgeNode: true },
           orderBy: [{ stage: 'asc' }, { order: 'asc' }]
         },
         author: { select: { name: true, email: true } }
@@ -62,6 +62,21 @@ export async function PATCH(
 
     const body = await request.json();
     const { title, items } = body;
+    const rawItems = Array.isArray(items) ? items : [];
+
+    for (const item of rawItems) {
+      const inferredType = item.knowledgeNodeId
+        ? LessonItemType.KNOWLEDGE_NODE
+        : LessonItemType.RESOURCE;
+      const itemType = (item.itemType as LessonItemType | undefined) ?? inferredType;
+
+      if (itemType === LessonItemType.RESOURCE && !item.resourceId) {
+        return NextResponse.json({ error: 'Missing resourceId for RESOURCE item' }, { status: 400 });
+      }
+      if (itemType === LessonItemType.KNOWLEDGE_NODE && !item.knowledgeNodeId) {
+        return NextResponse.json({ error: 'Missing knowledgeNodeId for KNOWLEDGE_NODE item' }, { status: 400 });
+      }
+    }
 
     // Use transaction to update plan and items atomically
     const updatedPlan = await prisma.$transaction(async (tx) => {
@@ -76,22 +91,26 @@ export async function PATCH(
         data: {
           title: title || undefined,
           items: {
-            create: items?.map((item: {
-              resourceId: string;
-              stage: string;
-              order: number;
-              duration?: number;
-            }) => ({
-              resourceId: item.resourceId,
-              stage: item.stage as BopppsStage,
-              order: item.order,
-              duration: item.duration
-            })) || []
+            create: rawItems.map((item: any) => {
+              const inferredType = item.knowledgeNodeId
+                ? LessonItemType.KNOWLEDGE_NODE
+                : LessonItemType.RESOURCE;
+              const itemType = (item.itemType as LessonItemType | undefined) ?? inferredType;
+
+              return {
+                itemType,
+                resourceId: itemType === LessonItemType.RESOURCE ? item.resourceId : null,
+                knowledgeNodeId: itemType === LessonItemType.KNOWLEDGE_NODE ? item.knowledgeNodeId : null,
+                stage: item.stage as BopppsStage,
+                order: item.order,
+                duration: item.duration
+              };
+            })
           }
         },
         include: {
           items: {
-            include: { resource: true },
+            include: { resource: true, knowledgeNode: true },
             orderBy: [{ stage: 'asc' }, { order: 'asc' }]
           }
         }

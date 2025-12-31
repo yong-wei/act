@@ -474,6 +474,7 @@ model KnowledgeNode {
   
   // 关联的教学资源
   teachingResources TeachingResource[]
+  lessonItems        LessonItem[]
 }
 
 // 知识连接
@@ -538,6 +539,11 @@ enum BopppsStage {
   SUMMARY         // 总结
 }
 
+enum LessonItemType {
+  RESOURCE       // 教学资源（TeachingResource）
+  KNOWLEDGE_NODE // 知识卡片（KnowledgeNode）
+}
+
 // 课程教案 (LessonPlan - 替代原 CoursePlaylist)
 model LessonPlan {
   id          String   @id @default(cuid())
@@ -562,8 +568,13 @@ model LessonItem {
   planId        String
   plan          LessonPlan   @relation(fields: [planId], references: [id], onDelete: Cascade)
   
-  resourceId    String
-  resource      TeachingResource @relation(fields: [resourceId], references: [id])
+  itemType      LessonItemType @default(RESOURCE)
+  
+  resourceId    String?
+  resource      TeachingResource? @relation(fields: [resourceId], references: [id])
+  
+  knowledgeNodeId String?
+  knowledgeNode   KnowledgeNode? @relation(fields: [knowledgeNodeId], references: [id])
   
   stage         BopppsStage  // 属于 BOPPPS 哪个阶段
   order         Int          // 阶段内的排序
@@ -574,6 +585,8 @@ model LessonItem {
   
   @@index([planId])
   @@index([resourceId])
+  @@index([knowledgeNodeId])
+  @@index([itemType])
 }
 
 // 课堂会话 (实时状态管理)
