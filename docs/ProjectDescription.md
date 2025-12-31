@@ -8,7 +8,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
 📅 **最后更新**：2025-12-31
-🧩 **整改进展**：课程编排资源模型统一进行中（编排器支持 TeachingResource / KnowledgeNode，互动资源已拆分为单页组件）
+🧩 **整改进展**：课程编排资源模型统一进行中（编排器支持 TeachingResource / KnowledgeNode，互动资源已拆分为单页组件，旧内容迁移脚本已补齐）
 🚀 **部署方式**：本地开发 + Docker 容器化部署
 
 ## 3. 核心功能模块
