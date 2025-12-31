@@ -1,61 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, BookOpen, Compass, Gauge, Map, Ship, Wrench } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, BookOpen, Compass, Link2, Puzzle, Ship, Wrench } from 'lucide-react';
+import type { TeachingResource } from '@prisma/client';
 
-const modules = [
-  {
-    id: 'lesson-02',
-    title: '机理建模：微分方程',
-    titleEn: 'Lesson 02: Differential Equations',
-    description: '基于 BOPPPS 教学模式的完整课程。从052D舵机系统出发，学习机械与电路系统的微分方程建模方法。',
-    href: '/interactive-learning/lesson-02',
-    icon: BookOpen,
-    color: 'amber',
-    features: ['BOPPPS 教学流程', '机电相似映射', 'AI 批改', '90分钟完整课程'],
-    isLesson: true,
-  },
-  {
-    id: 'argument-principle',
-    title: '幅角原理',
-    titleEn: 'Argument Principle',
-    description: '通过双平面可视化工具，直观理解复变函数的幅角原理。支持多种包围线类型，实时计算绕原点圈数。',
-    href: '/interactive-learning/argument-principle',
-    icon: Compass,
-    color: 'blue',
-    features: ['双平面同步映射', '多种包围线类型', '实时绕数计算'],
-  },
-  {
-    id: 'control-map',
-    title: '控制地图',
-    titleEn: 'Control Theory Map',
-    description: '探索控制理论的全景知识图谱。从经典PID到现代最优控制，通过交互式拓扑图建立完整的知识架构。',
-    href: '/interactive-learning/control-map',
-    icon: Map,
-    color: 'cyan',
-    features: ['交互式拓扑图', '五大知识区域', '公式与应用详解'],
-  },
-  {
-    id: 'pid-simulator',
-    title: 'PID 仿真器',
-    titleEn: 'PID Simulator',
-    description: '针对多类船舶控制对象进行 PID 参数试验，实时观察系统响应与设定值变化。',
-    href: '/interactive-learning/pid-simulator',
-    icon: Gauge,
-    color: 'emerald',
-    features: ['多对象控制模型', '响应曲线可视化', 'Kp/Ki/Kd 调参'],
-  },
-  {
-    id: 'physics-modeling',
-    title: '物理建模工坊',
-    titleEn: 'Physics Modeling Workshop',
-    description: '从零搭建弹簧-质量-阻尼模型和RLC电路，通过拖拽元件理解微分方程的物理意义。含机电相似映射和AI批改。',
-    href: '/interactive-learning/physics-modeling',
-    icon: Wrench,
-    color: 'violet',
-    features: ['拖拽式建模', '实时方程生成', '机电相似映射', 'AI 方程批改'],
-  },
-];
+type InteractiveResource = Pick<
+  TeachingResource,
+  'id' | 'title' | 'description' | 'registryId' | 'type'
+>;
 
 const colorClasses = {
   blue: {
@@ -90,7 +43,52 @@ const colorClasses = {
   },
 };
 
+function getResourceColor(registryId?: string | null) {
+  if (!registryId) return 'cyan';
+  if (registryId.startsWith('lesson02')) return 'amber';
+  if (registryId.startsWith('physics-modeling')) return 'violet';
+  if (registryId.startsWith('widget-')) return 'cyan';
+  if (registryId.includes('argument')) return 'blue';
+  if (registryId.includes('ethics')) return 'emerald';
+  return 'blue';
+}
+
+function getResourceIcon(registryId?: string | null) {
+  if (!registryId) return Puzzle;
+  if (registryId.startsWith('lesson02')) return BookOpen;
+  if (registryId.startsWith('physics-modeling')) return Wrench;
+  if (registryId.includes('analogy')) return Link2;
+  if (registryId.includes('argument')) return Compass;
+  return Puzzle;
+}
+
 export default function InteractiveLearningPage() {
+  const [resources, setResources] = useState<InteractiveResource[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const res = await fetch('/api/resources?type=INTERACTIVE_COMP');
+        if (res.ok) {
+          const data = (await res.json()) as InteractiveResource[];
+          setResources(data);
+        }
+      } catch (error) {
+        console.error('Failed to load interactive resources', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchResources();
+  }, []);
+
+  const sortedResources = useMemo(
+    () => [...resources].sort((a, b) => a.title.localeCompare(b.title)),
+    [resources]
+  );
+
   return (
     <div className="min-h-screen bg-slate-950">
       {/* 顶部导航 */}
@@ -120,65 +118,56 @@ export default function InteractiveLearningPage() {
         <div className="mb-12 text-center">
           <h1 className="mb-3 text-3xl font-bold text-white md:text-4xl">互动学习</h1>
           <p className="text-lg text-slate-400">
-            通过可视化交互工具，深入理解控制理论核心概念
+            汇聚系统内所有单页互动资源（不含虚拟仿真），供快速体验与引用
           </p>
         </div>
 
-        {/* 模块卡片网格 */}
-        <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
-          {modules.map((module) => {
-            const colors = colorClasses[module.color as keyof typeof colorClasses];
-            const Icon = module.icon;
+        {isLoading ? (
+          <div className="flex h-64 items-center justify-center text-slate-500">
+            正在加载互动资源...
+          </div>
+        ) : sortedResources.length === 0 ? (
+          <div className="flex h-64 items-center justify-center text-slate-500">
+            暂无可用的互动资源
+          </div>
+        ) : (
+          <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-2">
+            {sortedResources.map((resource) => {
+              const colorKey = getResourceColor(resource.registryId) as keyof typeof colorClasses;
+              const colors = colorClasses[colorKey];
+              const Icon = getResourceIcon(resource.registryId);
+              const description = resource.description || '暂无描述，点击查看资源详情';
 
-            return (
-              <Link
-                key={module.id}
-                href={module.href}
-                className={`group relative overflow-hidden rounded-2xl border bg-slate-900/60 p-8 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${colors.border}`}
-              >
-                {/* 背景装饰 */}
-                <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gradient-to-br from-white/5 to-transparent" />
+              return (
+                <Link
+                  key={resource.id}
+                  href={`/interactive-learning/resources/${resource.id}`}
+                  className={`group relative overflow-hidden rounded-2xl border bg-slate-900/60 p-8 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${colors.border}`}
+                >
+                  <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gradient-to-br from-white/5 to-transparent" />
 
-                {/* 图标 */}
-                <div className={`mb-6 inline-flex rounded-xl p-4 ${colors.iconBg}`}>
-                  <Icon className={`h-8 w-8 ${colors.iconText}`} />
-                </div>
+                  <div className={`mb-6 inline-flex rounded-xl p-4 ${colors.iconBg}`}>
+                    <Icon className={`h-8 w-8 ${colors.iconText}`} />
+                  </div>
 
-                {/* 标题 */}
-                <h2 className="mb-2 text-2xl font-semibold text-white">{module.title}</h2>
-                <p className="mb-1 text-sm text-slate-500">{module.titleEn}</p>
+                  <h2 className="mb-2 text-2xl font-semibold text-white">{resource.title}</h2>
+                  <p className="mb-6 text-slate-400">{description}</p>
 
-                {/* 描述 */}
-                <p className="mb-6 text-slate-400">{module.description}</p>
-
-                {/* 特性标签 */}
-                <div className="mb-6 flex flex-wrap gap-2">
-                  {module.features.map((feature) => (
-                    <span
-                      key={feature}
-                      className={`rounded-full px-3 py-1 text-xs ${colors.badge}`}
-                    >
-                      {feature}
+                  <div className="mb-6 flex flex-wrap gap-2">
+                    <span className={`rounded-full px-3 py-1 text-xs ${colors.badge}`}>
+                      {resource.registryId || 'interactive-resource'}
                     </span>
-                  ))}
-                </div>
+                  </div>
 
-                {/* 进入按钮 */}
-                <div className="flex items-center gap-2 text-sm font-medium text-white/80 transition-colors group-hover:text-white">
-                  <span>开始探索</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* 底部说明 */}
-        <div className="mt-16 text-center">
-          <p className="text-sm text-slate-500">
-            更多互动模块正在开发中，敬请期待...
-          </p>
-        </div>
+                  <div className="flex items-center text-sm font-medium text-slate-300 transition-colors group-hover:text-white">
+                    打开资源
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </main>
     </div>
   );
