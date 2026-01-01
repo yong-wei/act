@@ -1,0 +1,825 @@
+'use client';
+
+/**
+ * 天鲸号挖泥船动力定位仿真
+ * 使用 MMG 3-DOF 高保真模型和 DP 控制器
+ */
+
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import {
+  OrbitControls,
+  useGLTF,
+  Environment,
+  Grid,
+  Html,
+  PerspectiveCamera,
+  Line,
+} from '@react-three/drei';
+import * as THREE from 'three';
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Settings,
+  AlertTriangle,
+  Anchor,
+  Navigation,
+  Crosshair,
+  Wind,
+  Waves,
+} from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+import { dredgerTianjingProfile, getDredgerDefaultConfig } from '../profiles/dredger-tianjing';
+import {
+  createMMG3DOFState,
+  mmg3dofStep,
+  mmgToSimulationState,
+  type MMG3DOFState,
+} from '../physics/models/mmg-3dof';
+import {
+  dpControl,
+  dpControlWithFeedforward,
+  createDPState,
+  HIGH_PRECISION_DP_GAINS,
+  type DPState,
+  type DPTarget,
+  type DPCurrentState,
+  type DPErrorMetrics,
+} from '../physics/controllers/dp-controller';
+import { DredgingImpactModel } from '../physics/disturbances/dredging-impact';
+import type { ControlMode, EthicalViolation, Vector2, DisturbanceVector } from '../core/types';
+import { toRadians, toDegrees, clamp } from '../core/constants';
+
+// ============ 类型定义 ============
+
+interface SimulationConfig {
+  controlMode: ControlMode;
+  targetPosition: Vector2;
+  targetHeading: number;
+  dredgingEnabled: boolean;
+  currentSpeed: number;
+  currentDirection: number;
+  windSpeed: number;
+  windDirection: number;
+}
+
+interface SimulationMetrics {
+  positionError: number;
+  headingError: number;
+  surgeError: number;
+  swayError: number;
+  speed: number;
+  rudderAngle: number;
+  time: number;
+}
+
+// ============ 着色器材质 ============
+
+const waterVertexShader = `
+  uniform float time;
+  varying vec2 vUv;
+  varying float vHeight;
+
+  void main() {
+    vUv = uv;
+    vec3 pos = position;
+
+    float wave1 = sin(pos.x * 0.02 + time * 0.5) * 0.5;
+    float wave2 = sin(pos.y * 0.015 + time * 0.3) * 0.3;
+    float wave3 = sin((pos.x + pos.y) * 0.01 + time * 0.4) * 0.2;
+
+    pos.z = wave1 + wave2 + wave3;
+    vHeight = pos.z;
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  }
+`;
+
+const waterFragmentShader = `
+  uniform float time;
+  varying vec2 vUv;
+  varying float vHeight;
+
+  void main() {
+    vec3 deepColor = vec3(0.0, 0.2, 0.4);
+    vec3 shallowColor = vec3(0.0, 0.5, 0.7);
+    vec3 foamColor = vec3(0.9, 0.95, 1.0);
+
+    float depth = smoothstep(-1.0, 1.0, vHeight);
+    vec3 waterColor = mix(deepColor, shallowColor, depth);
+
+    float foam = smoothstep(0.3, 0.5, vHeight);
+    waterColor = mix(waterColor, foamColor, foam * 0.3);
+
+    gl_FragColor = vec4(waterColor, 0.9);
+  }
+`;
+
+// ============ 3D 组件 ============
+
+/** 海面组件 */
+function Ocean() {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+
+  useFrame(({ clock }) => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.time.value = clock.getElapsedTime();
+    }
+  });
+
+  return (
+    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]}>
+      <planeGeometry args={[5000, 5000, 128, 128]} />
+      <shaderMaterial
+        ref={materialRef}
+        vertexShader={waterVertexShader}
+        fragmentShader={waterFragmentShader}
+        uniforms={{
+          time: { value: 0 },
+        }}
+        transparent
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
+}
+
+/** 挖泥船模型 */
+function DredgerModel({
+  position,
+  heading,
+  rudderAngle,
+}: {
+  position: Vector2;
+  heading: number;
+  rudderAngle: number;
+}) {
+  const { scene } = useGLTF('/assets/dredger.glb');
+  const groupRef = useRef<THREE.Group>(null);
+
+  const { model, scale, modelHeight } = useMemo(() => {
+    const cloned = scene.clone(true);
+    const box = new THREE.Box3().setFromObject(cloned);
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+
+    // 居中模型
+    cloned.position.sub(center);
+
+    // 启用阴影
+    cloned.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+
+    // 计算缩放 - 目标长度约 127m (天鲸号实际长度)
+    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+    const targetLength = 127.5;
+    const scale = targetLength / maxDim;
+
+    return { model: cloned, scale, modelHeight: size.y * scale };
+  }, [scene]);
+
+  useFrame(() => {
+    if (groupRef.current) {
+      groupRef.current.position.x = position.x;
+      groupRef.current.position.z = position.z;
+      groupRef.current.rotation.y = -heading + Math.PI / 2;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={[0, modelHeight * 0.5, 0]}>
+      <primitive object={model} scale={scale} />
+      {/* 船首指示器 */}
+      <mesh position={[0, modelHeight * 0.6, 0]}>
+        <sphereGeometry args={[3, 16, 16]} />
+        <meshBasicMaterial color="#f59e0b" />
+      </mesh>
+    </group>
+  );
+}
+
+// 预加载模型
+useGLTF.preload('/assets/dredger.glb');
+
+/** 目标位置标记 */
+function TargetMarker({ position, heading }: { position: Vector2; heading: number }) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (groupRef.current) {
+      groupRef.current.position.y = Math.sin(clock.getElapsedTime() * 2) * 2 + 5;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={[position.x, 5, position.z]}>
+      {/* 目标圆圈 */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[8, 10, 32]} />
+        <meshBasicMaterial color="#22c55e" side={THREE.DoubleSide} transparent opacity={0.6} />
+      </mesh>
+      {/* 航向箭头 */}
+      <mesh rotation={[0, -toRadians(heading), 0]} position={[0, 0, 0]}>
+        <coneGeometry args={[3, 10, 8]} />
+        <meshBasicMaterial color="#22c55e" transparent opacity={0.8} />
+      </mesh>
+      {/* 标签 */}
+      <Html position={[0, 15, 0]} center>
+        <div className="rounded bg-green-500/80 px-2 py-1 text-xs text-white">
+          目标位置
+        </div>
+      </Html>
+    </group>
+  );
+}
+
+/** 航迹线 */
+function TrajectoryLine({ points }: { points: Vector2[] }) {
+  const linePoints = useMemo(() => {
+    return points.map((p) => [p.x, 0.5, p.z] as [number, number, number]);
+  }, [points]);
+
+  if (linePoints.length < 2) return null;
+
+  return (
+    <Line
+      points={linePoints}
+      color="#f59e0b"
+      lineWidth={2}
+      dashed={false}
+    />
+  );
+}
+
+/** 相机控制器 */
+function CameraController({
+  target,
+  followShip,
+}: {
+  target: Vector2;
+  followShip: boolean;
+}) {
+  const { camera } = useThree();
+
+  useFrame(() => {
+    if (followShip) {
+      camera.position.x = target.x + 200;
+      camera.position.y = 150;
+      camera.position.z = target.z + 200;
+      camera.lookAt(target.x, 0, target.z);
+    }
+  });
+
+  return null;
+}
+
+// ============ UI 组件 ============
+
+/** HUD 显示 */
+function HUD({
+  metrics,
+  violations,
+  isRunning,
+}: {
+  metrics: SimulationMetrics;
+  violations: EthicalViolation[];
+  isRunning: boolean;
+}) {
+  return (
+    <div className="pointer-events-none absolute left-4 top-4 space-y-2">
+      {/* 状态指示 */}
+      <div className="flex items-center gap-2">
+        <Badge variant={isRunning ? 'default' : 'secondary'}>
+          {isRunning ? '运行中' : '已暂停'}
+        </Badge>
+        <Badge variant="outline">
+          时间: {metrics.time.toFixed(1)}s
+        </Badge>
+      </div>
+
+      {/* 定位精度 */}
+      <Card className="w-64 bg-slate-900/90 text-white">
+        <CardHeader className="py-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Crosshair className="h-4 w-4" />
+            定位状态
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1 py-2 text-xs">
+          <div className="flex justify-between">
+            <span>位置误差:</span>
+            <span className={metrics.positionError > 0.1 ? 'text-red-400' : 'text-green-400'}>
+              {metrics.positionError.toFixed(3)} m
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>航向误差:</span>
+            <span className={metrics.headingError > 1 ? 'text-yellow-400' : 'text-green-400'}>
+              {metrics.headingError.toFixed(2)}°
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>航速:</span>
+            <span>{metrics.speed.toFixed(2)} m/s</span>
+          </div>
+          <div className="flex justify-between">
+            <span>舵角:</span>
+            <span>{metrics.rudderAngle.toFixed(1)}°</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 违规警告 */}
+      {violations.length > 0 && (
+        <Card className="w-64 border-red-500 bg-red-900/90 text-white">
+          <CardHeader className="py-2">
+            <CardTitle className="flex items-center gap-2 text-sm text-red-400">
+              <AlertTriangle className="h-4 w-4" />
+              伦理违规
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="py-2">
+            {violations.slice(-3).map((v, i) => (
+              <div key={i} className="text-xs text-red-300">
+                {v.description}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+/** 控制面板 */
+function ControlPanel({
+  config,
+  onConfigChange,
+  onStart,
+  onPause,
+  onReset,
+  isRunning,
+}: {
+  config: SimulationConfig;
+  onConfigChange: (config: Partial<SimulationConfig>) => void;
+  onStart: () => void;
+  onPause: () => void;
+  onReset: () => void;
+  isRunning: boolean;
+}) {
+  return (
+    <Card className="absolute bottom-4 right-4 w-80 bg-slate-900/95 text-white">
+      <CardHeader className="py-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Settings className="h-4 w-4" />
+          控制面板
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* 播放控制 */}
+        <div className="flex gap-2">
+          <Button
+            variant={isRunning ? 'secondary' : 'default'}
+            size="sm"
+            onClick={isRunning ? onPause : onStart}
+            className="flex-1"
+          >
+            {isRunning ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+            {isRunning ? '暂停' : '开始'}
+          </Button>
+          <Button variant="outline" size="sm" onClick={onReset}>
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <Tabs defaultValue="target">
+          <TabsList className="grid w-full grid-cols-3 bg-slate-800">
+            <TabsTrigger value="target">目标</TabsTrigger>
+            <TabsTrigger value="disturbance">扰动</TabsTrigger>
+            <TabsTrigger value="control">控制</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="target" className="space-y-3">
+            {/* 目标位置 */}
+            <div className="space-y-2">
+              <Label className="text-xs">目标 X (m)</Label>
+              <Slider
+                value={[config.targetPosition.x]}
+                min={-500}
+                max={500}
+                step={10}
+                onValueChange={([v]) =>
+                  onConfigChange({ targetPosition: { ...config.targetPosition, x: v } })
+                }
+              />
+              <div className="text-right text-xs text-slate-400">
+                {config.targetPosition.x} m
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs">目标 Z (m)</Label>
+              <Slider
+                value={[config.targetPosition.z]}
+                min={-500}
+                max={500}
+                step={10}
+                onValueChange={([v]) =>
+                  onConfigChange({ targetPosition: { ...config.targetPosition, z: v } })
+                }
+              />
+              <div className="text-right text-xs text-slate-400">
+                {config.targetPosition.z} m
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs">目标航向 (°)</Label>
+              <Slider
+                value={[config.targetHeading]}
+                min={-180}
+                max={180}
+                step={5}
+                onValueChange={([v]) => onConfigChange({ targetHeading: v })}
+              />
+              <div className="text-right text-xs text-slate-400">
+                {config.targetHeading}°
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="disturbance" className="space-y-3">
+            {/* 挖掘扰动 */}
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">挖掘扰动</Label>
+              <Button
+                variant={config.dredgingEnabled ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onConfigChange({ dredgingEnabled: !config.dredgingEnabled })}
+              >
+                {config.dredgingEnabled ? '已启用' : '已禁用'}
+              </Button>
+            </div>
+
+            {/* 海流 */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1 text-xs">
+                <Waves className="h-3 w-3" />
+                海流速度 (m/s)
+              </Label>
+              <Slider
+                value={[config.currentSpeed]}
+                min={0}
+                max={2}
+                step={0.1}
+                onValueChange={([v]) => onConfigChange({ currentSpeed: v })}
+              />
+              <div className="text-right text-xs text-slate-400">
+                {config.currentSpeed.toFixed(1)} m/s
+              </div>
+            </div>
+
+            {/* 风 */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1 text-xs">
+                <Wind className="h-3 w-3" />
+                风速 (m/s)
+              </Label>
+              <Slider
+                value={[config.windSpeed]}
+                min={0}
+                max={20}
+                step={1}
+                onValueChange={([v]) => onConfigChange({ windSpeed: v })}
+              />
+              <div className="text-right text-xs text-slate-400">
+                {config.windSpeed} m/s
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="control" className="space-y-3">
+            {/* 控制模式 */}
+            <div className="space-y-2">
+              <Label className="text-xs">控制模式</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {(['dp', 'pid', 'manual'] as ControlMode[]).map((mode) => (
+                  <Button
+                    key={mode}
+                    variant={config.controlMode === mode ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => onConfigChange({ controlMode: mode })}
+                  >
+                    {mode === 'dp' && <Anchor className="mr-1 h-3 w-3" />}
+                    {mode === 'pid' && <Navigation className="mr-1 h-3 w-3" />}
+                    {mode.toUpperCase()}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============ 主组件 ============
+
+export function DredgerSimulation() {
+  // 配置状态
+  const defaultConfig = getDredgerDefaultConfig();
+  const [config, setConfig] = useState<SimulationConfig>({
+    controlMode: defaultConfig.controlMode,
+    targetPosition: defaultConfig.targetPosition,
+    targetHeading: defaultConfig.targetHeading,
+    dredgingEnabled: defaultConfig.dredgingEnabled,
+    currentSpeed: defaultConfig.seaState.currentSpeed,
+    currentDirection: defaultConfig.seaState.currentDirection,
+    windSpeed: defaultConfig.seaState.windSpeed,
+    windDirection: defaultConfig.seaState.windDirection,
+  });
+
+  // 仿真状态
+  const [isRunning, setIsRunning] = useState(false);
+  const [metrics, setMetrics] = useState<SimulationMetrics>({
+    positionError: 0,
+    headingError: 0,
+    surgeError: 0,
+    swayError: 0,
+    speed: 0,
+    rudderAngle: 0,
+    time: 0,
+  });
+  const [trajectory, setTrajectory] = useState<Vector2[]>([]);
+  const [violations, setViolations] = useState<EthicalViolation[]>([]);
+
+  // 引用
+  const mmgStateRef = useRef<MMG3DOFState>(createMMG3DOFState(0, 0, 0, 2));
+  const dpStateRef = useRef<DPState>(createDPState());
+  const dredgingModelRef = useRef<DredgingImpactModel>(new DredgingImpactModel());
+  const timeRef = useRef(0);
+  const animationFrameRef = useRef<number>();
+  const lastUpdateRef = useRef(Date.now());
+
+  // 船舶配置
+  const profile = dredgerTianjingProfile;
+
+  // 仿真主循环
+  const simulate = useCallback(() => {
+    if (!isRunning) return;
+
+    const now = Date.now();
+    const realDt = (now - lastUpdateRef.current) / 1000;
+    lastUpdateRef.current = now;
+
+    // 仿真步长限制
+    const dt = Math.min(realDt, 0.1);
+    timeRef.current += dt;
+
+    // 计算扰动
+    let disturbance: DisturbanceVector = { forceX: 0, forceY: 0, momentN: 0 };
+    if (config.dredgingEnabled) {
+      disturbance = dredgingModelRef.current.compute(timeRef.current);
+    }
+
+    // 控制计算
+    const target: DPTarget = {
+      x: config.targetPosition.x,
+      y: config.targetPosition.z,
+      psi: toRadians(config.targetHeading),
+    };
+
+    const current: DPCurrentState = {
+      x: mmgStateRef.current.x,
+      y: mmgStateRef.current.y,
+      psi: mmgStateRef.current.psi,
+      u: mmgStateRef.current.u,
+      v: mmgStateRef.current.v,
+      r: mmgStateRef.current.r,
+    };
+
+    let rudderCommand = 0;
+    let dpMetrics: DPErrorMetrics = {
+      positionError: 0,
+      headingError: 0,
+      surgeError: 0,
+      swayError: 0,
+    };
+
+    if (config.controlMode === 'dp') {
+      const dpResult = dpControlWithFeedforward(
+        current,
+        target,
+        dpStateRef.current,
+        disturbance,
+        HIGH_PRECISION_DP_GAINS,
+        dt
+      );
+      dpStateRef.current = dpResult.newState;
+      rudderCommand = dpResult.output.rudderCommand;
+      dpMetrics = dpResult.metrics;
+
+      // 检测定位精度违规
+      if (dpResult.metrics.positionError > 0.1) {
+        setViolations((prev) => [
+          ...prev.slice(-9),
+          {
+            type: 'SAFETY_VIOLATION',
+            thresholdValue: 0.1,
+            actualValue: dpResult.metrics.positionError,
+            timestamp: timeRef.current,
+            description: `定位误差: ${dpResult.metrics.positionError.toFixed(3)}m`,
+            severity: 'warning',
+          },
+        ]);
+      }
+    }
+
+    // MMG 步进
+    const mmgParams = profile.dynamics.mmg!;
+    mmgStateRef.current = mmg3dofStep(
+      mmgStateRef.current,
+      rudderCommand,
+      80,
+      dt,
+      mmgParams,
+      profile.dimensions.length,
+      profile.dimensions.draft,
+      disturbance
+    );
+
+    // 更新指标
+    const speed = Math.sqrt(
+      mmgStateRef.current.u ** 2 + mmgStateRef.current.v ** 2
+    );
+
+    setMetrics({
+      positionError: dpMetrics.positionError,
+      headingError: dpMetrics.headingError,
+      surgeError: dpMetrics.surgeError,
+      swayError: dpMetrics.swayError,
+      speed,
+      rudderAngle: toDegrees(mmgStateRef.current.rudderAngle),
+      time: timeRef.current,
+    });
+
+    // 记录轨迹
+    setTrajectory((prev) => {
+      const newPoint = { x: mmgStateRef.current.x, z: mmgStateRef.current.y };
+      if (prev.length === 0) return [newPoint];
+      const last = prev[prev.length - 1];
+      const dist = Math.sqrt((newPoint.x - last.x) ** 2 + (newPoint.z - last.z) ** 2);
+      if (dist > 2) {
+        return [...prev.slice(-200), newPoint];
+      }
+      return prev;
+    });
+
+    animationFrameRef.current = requestAnimationFrame(simulate);
+  }, [isRunning, config, profile]);
+
+  // 启动/停止仿真
+  useEffect(() => {
+    if (isRunning) {
+      lastUpdateRef.current = Date.now();
+      animationFrameRef.current = requestAnimationFrame(simulate);
+    }
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isRunning, simulate]);
+
+  // 控制函数
+  const handleStart = () => setIsRunning(true);
+  const handlePause = () => setIsRunning(false);
+  const handleReset = () => {
+    setIsRunning(false);
+    mmgStateRef.current = createMMG3DOFState(0, 0, 0, 2);
+    dpStateRef.current = createDPState();
+    dredgingModelRef.current.reset();
+    timeRef.current = 0;
+    setTrajectory([]);
+    setViolations([]);
+    setMetrics({
+      positionError: 0,
+      headingError: 0,
+      surgeError: 0,
+      swayError: 0,
+      speed: 0,
+      rudderAngle: 0,
+      time: 0,
+    });
+  };
+
+  const handleConfigChange = (updates: Partial<SimulationConfig>) => {
+    setConfig((prev) => ({ ...prev, ...updates }));
+    if ('dredgingEnabled' in updates) {
+      dredgingModelRef.current.setEnabled(updates.dredgingEnabled ?? true);
+    }
+  };
+
+  // 当前船舶位置
+  const shipPosition = {
+    x: mmgStateRef.current.x,
+    z: mmgStateRef.current.y,
+  };
+  const shipHeading = mmgStateRef.current.psi;
+
+  return (
+    <div className="relative h-screen w-full bg-slate-950">
+      {/* 3D 场景 */}
+      <Canvas shadows>
+        <PerspectiveCamera makeDefault position={[300, 200, 300]} fov={60} />
+        <OrbitControls
+          enablePan
+          enableZoom
+          enableRotate
+          minDistance={50}
+          maxDistance={2000}
+          maxPolarAngle={Math.PI / 2.1}
+        />
+
+        {/* 环境 */}
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[100, 100, 50]} intensity={1} castShadow />
+        <Environment preset="sunset" />
+
+        {/* 海面 */}
+        <Ocean />
+
+        {/* 网格 */}
+        <Grid
+          position={[0, 0.1, 0]}
+          args={[2000, 2000]}
+          cellSize={50}
+          cellThickness={0.5}
+          cellColor="#1e3a5f"
+          sectionSize={200}
+          sectionThickness={1}
+          sectionColor="#2563eb"
+          fadeDistance={1500}
+          fadeStrength={1}
+        />
+
+        {/* 目标标记 */}
+        <TargetMarker position={config.targetPosition} heading={config.targetHeading} />
+
+        {/* 挖泥船 */}
+        <DredgerModel
+          position={shipPosition}
+          heading={shipHeading}
+          rudderAngle={mmgStateRef.current.rudderAngle}
+        />
+
+        {/* 航迹 */}
+        {trajectory.length > 1 && <TrajectoryLine points={trajectory} />}
+
+        {/* 相机跟随 */}
+        <CameraController target={shipPosition} followShip={false} />
+      </Canvas>
+
+      {/* HUD */}
+      <HUD metrics={metrics} violations={violations} isRunning={isRunning} />
+
+      {/* 控制面板 */}
+      <ControlPanel
+        config={config}
+        onConfigChange={handleConfigChange}
+        onStart={handleStart}
+        onPause={handlePause}
+        onReset={handleReset}
+        isRunning={isRunning}
+      />
+
+      {/* 标题 */}
+      <div className="absolute left-1/2 top-4 -translate-x-1/2">
+        <h1 className="text-xl font-bold text-white">
+          天鲸号挖泥船动力定位仿真
+        </h1>
+        <p className="text-center text-sm text-slate-400">
+          MMG 3-DOF 高保真模型 · 定位精度 &lt; 0.1m
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default DredgerSimulation;
