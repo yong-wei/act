@@ -24,6 +24,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 
 ### 3.2 驱逐舰航向控制仿真 ✅
 - **3D 可视化**：基于 Three.js / React Three Fiber 的沉浸式体验
+- **仿真模块化**：各虚拟仿真模块已完成组件化与资源注册，支持按模块独立加载与复用
 - **Nomoto 船舶模型**：高保真物理模拟，支持自定义 K、T 参数
 - **多种控制模式**：
   - 手动控制
