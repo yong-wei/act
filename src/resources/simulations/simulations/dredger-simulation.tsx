@@ -10,13 +10,19 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
   useGLTF,
-  Environment,
   Grid,
   Html,
   PerspectiveCamera,
   Line,
 } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
+import { MaritimeEnvironment } from '../environment';
+import {
+  UnifiedCameraController,
+  CameraViewSwitcher,
+  type CameraMode,
+} from '../components';
 import {
   Play,
   Pause,
@@ -267,26 +273,6 @@ function TrajectoryLine({ points }: { points: Vector2[] }) {
 }
 
 /** 相机控制器 */
-function CameraController({
-  target,
-  followShip,
-}: {
-  target: Vector2;
-  followShip: boolean;
-}) {
-  const { camera } = useThree();
-
-  useFrame(() => {
-    if (followShip) {
-      camera.position.x = target.x + 200;
-      camera.position.y = 150;
-      camera.position.z = target.z + 200;
-      camera.lookAt(target.x, 0, target.z);
-    }
-  });
-
-  return null;
-}
 
 // ============ UI 组件 ============
 
@@ -576,6 +562,8 @@ export function DredgerSimulation() {
   const timeRef = useRef(0);
   const animationFrameRef = useRef<number>();
   const lastUpdateRef = useRef(Date.now());
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+  const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
 
   // 船舶配置
   const profile = dredgerTianjingProfile;
@@ -747,23 +735,24 @@ export function DredgerSimulation() {
     <div className="relative h-screen w-full bg-slate-950">
       {/* 3D 场景 */}
       <Canvas shadows>
-        <PerspectiveCamera makeDefault position={[300, 200, 300]} fov={60} />
+        <PerspectiveCamera makeDefault position={[300, 200, 300]} fov={60} near={1} far={50000} />
         <OrbitControls
+          ref={controlsRef}
           enablePan
           enableZoom
           enableRotate
           minDistance={50}
           maxDistance={2000}
           maxPolarAngle={Math.PI / 2.1}
+          onStart={() => setCameraMode('free')}
         />
 
         {/* 环境 */}
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[100, 100, 50]} intensity={1} castShadow />
-        <Environment preset="sunset" />
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
 
-        {/* 海面 */}
-        <Ocean />
+        {/* 天空+云层+海面 */}
+        <MaritimeEnvironment shipPosition={shipPosition} seaState={3} />
 
         {/* 网格 */}
         <Grid
@@ -792,9 +781,20 @@ export function DredgerSimulation() {
         {/* 航迹 */}
         {trajectory.length > 1 && <TrajectoryLine points={trajectory} />}
 
-        {/* 相机跟随 */}
-        <CameraController target={shipPosition} followShip={false} />
+        {/* 统一相机控制器 */}
+        <UnifiedCameraController
+          position={shipPosition}
+          headingRad={shipHeading}
+          cameraMode={cameraMode}
+          controlsRef={controlsRef}
+        />
       </Canvas>
+
+      <CameraViewSwitcher
+        currentMode={cameraMode}
+        onModeChange={setCameraMode}
+        className="absolute top-4 right-4"
+      />
 
       {/* HUD */}
       <HUD metrics={metrics} violations={violations} isRunning={isRunning} />

@@ -10,13 +10,19 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
   useGLTF,
-  Environment,
   Grid,
   Html,
   PerspectiveCamera,
   Line,
 } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
+import { MaritimeEnvironment } from '../environment';
+import {
+  UnifiedCameraController,
+  CameraViewSwitcher,
+  type CameraMode,
+} from '../components';
 import {
   Play,
   Pause,
@@ -304,27 +310,6 @@ function TrajectoryLine({ points }: { points: Vector2[] }) {
   );
 }
 
-/** 相机控制器 */
-function CameraController({
-  target,
-  followShip,
-}: {
-  target: Vector2;
-  followShip: boolean;
-}) {
-  const { camera } = useThree();
-
-  useFrame(() => {
-    if (followShip) {
-      camera.position.x = target.x + 250;
-      camera.position.y = 200;
-      camera.position.z = target.z + 250;
-      camera.lookAt(target.x, 0, target.z);
-    }
-  });
-
-  return null;
-}
 
 // ============ UI 组件 ============
 
@@ -420,7 +405,7 @@ function HUD({
     : 'green';
 
   return (
-    <div className="pointer-events-none absolute left-4 top-4 space-y-2">
+    <div className="pointer-events-none absolute left-4 top-4 space-y-2 z-10">
       {/* 状态指示 */}
       <div className="flex items-center gap-2">
         <Badge variant={isRunning ? 'default' : 'secondary'}>
@@ -551,7 +536,7 @@ function ControlPanel({
   isRunning: boolean;
 }) {
   return (
-    <Card className="absolute bottom-4 right-4 w-80 bg-slate-900/95 text-white">
+    <Card className="absolute top-4 right-4 w-80 bg-slate-900/95 text-white z-10">
       <CardHeader className="py-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Settings className="h-4 w-4" />
@@ -747,6 +732,8 @@ export function DrillingSimulation() {
   const timeRef = useRef(0);
   const animationFrameRef = useRef<number>();
   const lastUpdateRef = useRef(Date.now());
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+  const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
 
   // 船舶配置
   const profile = drillingHYSY981Profile;
@@ -963,26 +950,27 @@ export function DrillingSimulation() {
   const platformHeading = platformStateRef.current.psi;
 
   return (
-    <div className="relative h-screen w-full bg-slate-950">
+    <div className="relative h-[calc(100vh-73px)] w-full bg-slate-950">
       {/* 3D 场景 */}
       <Canvas shadows>
-        <PerspectiveCamera makeDefault position={[400, 300, 400]} fov={60} />
+        <PerspectiveCamera makeDefault position={[400, 300, 400]} fov={60} near={1} far={50000} />
         <OrbitControls
+          ref={controlsRef}
           enablePan
           enableZoom
           enableRotate
           minDistance={100}
           maxDistance={2500}
           maxPolarAngle={Math.PI / 2.1}
+          onStart={() => setCameraMode('free')}
         />
 
         {/* 环境 */}
         <ambientLight intensity={0.4} />
-        <directionalLight position={[150, 150, 75]} intensity={1.2} castShadow />
-        <Environment preset="sunset" />
+        <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
 
-        {/* 海面 */}
-        <Ocean />
+        {/* 天空+云层+海面 */}
+        <MaritimeEnvironment shipPosition={platformPosition} seaState={3} />
 
         {/* 网格 */}
         <Grid
@@ -1010,9 +998,20 @@ export function DrillingSimulation() {
         {/* 航迹 */}
         {trajectory.length > 1 && <TrajectoryLine points={trajectory} />}
 
-        {/* 相机跟随 */}
-        <CameraController target={platformPosition} followShip={false} />
+        {/* 统一相机控制器 */}
+        <UnifiedCameraController
+          position={platformPosition}
+          headingRad={platformHeading}
+          cameraMode={cameraMode}
+          controlsRef={controlsRef}
+        />
       </Canvas>
+
+      <CameraViewSwitcher
+        currentMode={cameraMode}
+        onModeChange={setCameraMode}
+        className="absolute top-4 right-4"
+      />
 
       {/* HUD */}
       <HUD
@@ -1033,15 +1032,6 @@ export function DrillingSimulation() {
         isRunning={isRunning}
       />
 
-      {/* 标题 */}
-      <div className="absolute left-1/2 top-4 -translate-x-1/2">
-        <h1 className="text-xl font-bold text-white">
-          海洋石油981 深水钻井平台 DP 仿真
-        </h1>
-        <p className="text-center text-sm text-slate-400">
-          3DOF 耦合模型 · 8台推进器 · 解耦控制对比
-        </p>
-      </div>
     </div>
   );
 }

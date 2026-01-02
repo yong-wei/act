@@ -7,7 +7,8 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo, useLayoutEffect } from 'react';
 import { Canvas, useFrame, useThree, extend, type ReactThreeFiber } from '@react-three/fiber';
-import { Line, useGLTF, PerspectiveCamera, shaderMaterial } from '@react-three/drei';
+import { Line, useGLTF, PerspectiveCamera, shaderMaterial, OrbitControls } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import {
   Play,
@@ -49,12 +50,15 @@ import {
   DEFAULT_NOMOTO_PARAMS,
   DEFAULT_PID_GAINS,
 } from '../core/constants';
+import {
+  UnifiedCameraController,
+  CameraViewSwitcher,
+  type CameraMode,
+} from '../components';
 
 Chart.register(...registerables);
 
 // ============ 类型定义 ============
-
-type CameraView = 'chase' | 'overhead' | 'tactical';
 
 type TaskScenario = 'turn90' | 'obstacle' | 'circle';
 
@@ -147,11 +151,6 @@ const tasks: TaskDef[] = [
   },
 ];
 
-const cameraViews: Array<{ id: CameraView; label: string }> = [
-  { id: 'chase', label: '主视角' },
-  { id: 'overhead', label: '俯瞰视角' },
-  { id: 'tactical', label: '战术斜角' },
-];
 
 // ============ 工具函数 ============
 
@@ -359,17 +358,7 @@ const WaterShaderMaterial = shaderMaterial(
 
 extend({ WaterShaderMaterial });
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      waterShaderMaterial: ReactThreeFiber.Object3DNode<THREE.ShaderMaterial, typeof THREE.ShaderMaterial> & {
-        uTime?: number;
-        uColor?: THREE.Color;
-        uFoamColor?: THREE.Color;
-      };
-    }
-  }
-}
+// 类型声明在 environment/wave-water.tsx 中定义
 
 // ============ 3D 组件 ============
 
@@ -484,7 +473,6 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
 
   return (
     <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]}>
-      {/* @ts-ignore */}
       <waterShaderMaterial ref={materialRef} side={THREE.DoubleSide} transparent />
     </mesh>
   );
@@ -685,57 +673,6 @@ function DestroyerModel({
 
 useGLTF.preload('/assets/destroyer.glb');
 
-/** 相机控制器 */
-function CameraController({
-  simRef,
-  cameraView,
-}: {
-  simRef: React.MutableRefObject<SimulationState>;
-  cameraView: CameraView;
-}) {
-  const { camera } = useThree();
-
-  useFrame(() => {
-    const sim = simRef.current;
-    const shipPos = sim.position;
-    const heading = sim.headingRad;
-
-    let offset: THREE.Vector3;
-    let lookAt: THREE.Vector3;
-
-    switch (cameraView) {
-      case 'chase':
-        offset = new THREE.Vector3(
-          shipPos.x - Math.cos(heading) * 450 + Math.sin(heading) * 100,
-          180,
-          shipPos.z - Math.sin(heading) * 450 - Math.cos(heading) * 100
-        );
-        lookAt = new THREE.Vector3(
-          shipPos.x + Math.cos(heading) * 200,
-          30,
-          shipPos.z + Math.sin(heading) * 200
-        );
-        break;
-      case 'overhead':
-        offset = new THREE.Vector3(shipPos.x, 1200, shipPos.z + 200);
-        lookAt = new THREE.Vector3(shipPos.x, 0, shipPos.z);
-        break;
-      case 'tactical':
-        offset = new THREE.Vector3(shipPos.x - 600, 450, shipPos.z - 600);
-        lookAt = new THREE.Vector3(shipPos.x, 0, shipPos.z);
-        break;
-    }
-
-    camera.position.lerp(offset, 0.03);
-    const target = new THREE.Vector3();
-    camera.getWorldDirection(target);
-    const currentLookAt = camera.position.clone().add(target);
-    currentLookAt.lerp(lookAt, 0.04);
-    camera.lookAt(currentLookAt);
-  });
-
-  return null;
-}
 
 /** 仿真物理引擎 */
 function SimulationEngine({
@@ -983,28 +920,28 @@ function ControlPanel({
   isRunning,
   controlMode,
   pidGains,
-  cameraView,
+  cameraMode,
   selectedTask,
   onStart,
   onPause,
   onReset,
   onControlModeChange,
   onPidGainsChange,
-  onCameraViewChange,
+  onCameraModeChange,
   onTaskChange,
   onShowChart,
 }: {
   isRunning: boolean;
   controlMode: ControlMode;
   pidGains: PIDGains;
-  cameraView: CameraView;
+  cameraMode: CameraMode;
   selectedTask: number;
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
   onControlModeChange: (mode: ControlMode) => void;
   onPidGainsChange: (gains: PIDGains) => void;
-  onCameraViewChange: (view: CameraView) => void;
+  onCameraModeChange: (mode: CameraMode) => void;
   onTaskChange: (index: number) => void;
   onShowChart: () => void;
 }) {
@@ -1116,18 +1053,21 @@ function ControlPanel({
           <div className="space-y-2">
             <Label className="text-xs text-slate-400">视角</Label>
             <div className="grid grid-cols-3 gap-1">
-              {cameraViews.map((view) => (
+              {(['chase', 'overhead', 'tactical'] as const).map((view) => (
                 <Button
-                  key={view.id}
-                  variant={cameraView === view.id ? 'default' : 'outline'}
+                  key={view}
+                  variant={cameraMode === view ? 'default' : 'outline'}
                   size="sm"
                   className="h-7 text-xs"
-                  onClick={() => onCameraViewChange(view.id)}
+                  onClick={() => onCameraModeChange(view)}
                 >
-                  {view.label}
+                  {view === 'chase' ? '主视角' : view === 'overhead' ? '俯瞰' : '战术'}
                 </Button>
               ))}
             </div>
+            {cameraMode === 'free' && (
+              <p className="text-xs text-blue-400">当前: 自由视角 (拖动/滚轮)</p>
+            )}
           </div>
 
           {/* 控制按钮 */}
@@ -1301,7 +1241,8 @@ export default function DestroyerSimulation() {
   const [isRunning, setIsRunning] = useState(false);
   const [controlMode, setControlMode] = useState<ControlMode>('pid');
   const [pidGains, setPidGains] = useState<PIDGains>(DEFAULT_PID_GAINS);
-  const [cameraView, setCameraView] = useState<CameraView>('chase');
+  const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+  const controlsRef = useRef<OrbitControlsImpl>(null);
   const [selectedTask, setSelectedTask] = useState(0);
   const [resetToken, setResetToken] = useState(0);
   const [showChart, setShowChart] = useState(false);
@@ -1409,7 +1350,7 @@ export default function DestroyerSimulation() {
   }
 
   return (
-    <div className="relative h-[calc(100vh-80px)] w-full">
+    <div className="relative h-screen w-full">
       <Canvas shadows>
         <PerspectiveCamera makeDefault position={[0, 200, 500]} fov={60} near={1} far={50000} />
 
@@ -1425,7 +1366,22 @@ export default function DestroyerSimulation() {
         <ShipWake simRef={simRef} />
         <DestroyerModel simRef={simRef} />
 
-        <CameraController simRef={simRef} cameraView={cameraView} />
+        <OrbitControls
+          ref={controlsRef}
+          enablePan
+          enableZoom
+          enableRotate
+          minDistance={100}
+          maxDistance={5000}
+          maxPolarAngle={Math.PI / 2.1}
+          onStart={() => setCameraMode('free')}
+        />
+        <UnifiedCameraController
+          position={{ x: simRef.current.position.x, z: simRef.current.position.z }}
+          headingRad={simRef.current.headingRad}
+          cameraMode={cameraMode}
+          controlsRef={controlsRef}
+        />
         <SimulationEngine
           simRef={simRef}
           shipRef={shipRef}
@@ -1446,16 +1402,23 @@ export default function DestroyerSimulation() {
         isRunning={isRunning}
         controlMode={controlMode}
         pidGains={pidGains}
-        cameraView={cameraView}
+        cameraMode={cameraMode}
         selectedTask={selectedTask}
         onStart={() => setIsRunning(true)}
         onPause={() => setIsRunning(false)}
         onReset={handleReset}
         onControlModeChange={setControlMode}
         onPidGainsChange={setPidGains}
-        onCameraViewChange={setCameraView}
+        onCameraModeChange={setCameraMode}
         onTaskChange={setSelectedTask}
         onShowChart={() => setShowChart(true)}
+      />
+
+      {/* 视角切换器 */}
+      <CameraViewSwitcher
+        currentMode={cameraMode}
+        onModeChange={setCameraMode}
+        className="absolute bottom-4 left-1/2 -translate-x-1/2"
       />
     </div>
   );

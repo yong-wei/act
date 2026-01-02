@@ -541,18 +541,7 @@ const WaterShaderMaterial = shaderMaterial(
 
 extend({ WaterShaderMaterial });
 
-// Add type definition
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      waterShaderMaterial: ReactThreeFiber.Object3DNode<THREE.ShaderMaterial, typeof THREE.ShaderMaterial> & {
-        uTime?: number;
-        uColor?: THREE.Color;
-        uFoamColor?: THREE.Color;
-      };
-    }
-  }
-}
+// 类型声明在 environment/wave-water.tsx 中定义
 
 type ChartData = {
   time: number[];
@@ -2439,7 +2428,6 @@ function WaveWater({ simRef }: { simRef: React.MutableRefObject<SimulationState>
 
   return (
     <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]}>
-      {/* @ts-ignore */}
       <waterShaderMaterial ref={materialRef} side={THREE.DoubleSide} transparent />
     </mesh>
   );

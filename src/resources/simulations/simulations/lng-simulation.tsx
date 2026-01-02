@@ -10,13 +10,19 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
   useGLTF,
-  Environment,
   Grid,
   Html,
   PerspectiveCamera,
   Line,
 } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
+import { MaritimeEnvironment } from '../environment';
+import {
+  UnifiedCameraController,
+  CameraViewSwitcher,
+  type CameraMode,
+} from '../components';
 
 import type {
   ControlMode,
@@ -245,22 +251,6 @@ function HeadingIndicator({
   );
 }
 
-// ============ 相机控制 ============
-
-function CameraController({ target }: { target: Vector2 }) {
-  const { camera } = useThree();
-
-  useFrame(() => {
-    const targetPos = new THREE.Vector3(target.x, 0, target.z);
-    const cameraOffset = new THREE.Vector3(-400, 300, 400);
-    const desiredPos = targetPos.clone().add(cameraOffset);
-
-    camera.position.lerp(desiredPos, 0.02);
-    camera.lookAt(targetPos);
-  });
-
-  return null;
-}
 
 // ============ HUD 组件 ============
 
@@ -411,16 +401,27 @@ function HUD({
 
 // ============ 3D 场景 ============
 
-function Scene({ state, trajectory }: { state: LNGSimulationState; trajectory: Vector2[] }) {
+function Scene({
+  state,
+  trajectory,
+  cameraMode,
+  onCameraModeChange,
+  controlsRef,
+}: {
+  state: LNGSimulationState;
+  trajectory: Vector2[];
+  cameraMode: CameraMode;
+  onCameraModeChange: (mode: CameraMode) => void;
+  controlsRef: React.RefObject<OrbitControlsImpl>;
+}) {
   return (
     <>
-      <PerspectiveCamera makeDefault position={[-400, 300, 400]} fov={60} />
-      <CameraController target={state.position} />
+      <PerspectiveCamera makeDefault position={[-400, 300, 400]} fov={60} near={1} far={50000} />
 
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[100, 200, 100]} intensity={1} castShadow />
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
 
-      <Ocean />
+      <MaritimeEnvironment shipPosition={state.position} seaState={3} />
 
       <Grid
         args={[10000, 10000]}
@@ -448,8 +449,27 @@ function Scene({ state, trajectory }: { state: LNGSimulationState; trajectory: V
         currentHeading={state.heading}
       />
 
-      <Environment preset="sunset" />
-      <OrbitControls enablePan enableZoom enableRotate />
+      <OrbitControls
+        ref={controlsRef}
+        enablePan
+        enableZoom
+        enableRotate
+        minDistance={100}
+        maxDistance={5000}
+        maxPolarAngle={Math.PI / 2.1}
+        onStart={() => onCameraModeChange('free')}
+      />
+      <UnifiedCameraController
+        position={state.position}
+        headingRad={toRadians(state.heading)}
+        cameraMode={cameraMode}
+        controlsRef={controlsRef}
+        config={{
+          chaseDistance: 500,
+          chaseHeight: 200,
+          overheadHeight: 1500,
+        }}
+      />
     </>
   );
 }
@@ -460,7 +480,9 @@ export function LNGSimulation() {
   const engineRef = useRef<LNGCarrierEngine | null>(null);
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
+  const controlsRef = useRef<OrbitControlsImpl>(null);
 
+  const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [state, setState] = useState<LNGSimulationState>({
     isRunning: false,
     isPaused: false,
@@ -608,7 +630,13 @@ export function LNGSimulation() {
     <div className="w-full h-screen relative bg-slate-900">
       <Canvas shadows>
         <Suspense fallback={null}>
-          <Scene state={state} trajectory={trajectory} />
+          <Scene
+            state={state}
+            trajectory={trajectory}
+            cameraMode={cameraMode}
+            onCameraModeChange={setCameraMode}
+            controlsRef={controlsRef}
+          />
         </Suspense>
       </Canvas>
 
@@ -619,6 +647,13 @@ export function LNGSimulation() {
         onSmithToggle={handleSmithToggle}
         onStartPause={handleStartPause}
         onReset={handleReset}
+      />
+
+      {/* 视角切换器 */}
+      <CameraViewSwitcher
+        currentMode={cameraMode}
+        onModeChange={setCameraMode}
+        className="absolute bottom-4 left-1/2 -translate-x-1/2"
       />
     </div>
   );

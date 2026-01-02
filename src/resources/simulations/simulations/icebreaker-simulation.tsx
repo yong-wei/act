@@ -10,13 +10,19 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
   useGLTF,
-  Environment,
   Grid,
   Html,
   PerspectiveCamera,
   Line,
 } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
+import { SkyDome, ProceduralClouds } from '../environment';
+import {
+  UnifiedCameraController,
+  CameraViewSwitcher,
+  type CameraMode,
+} from '../components';
 import {
   Play,
   Pause,
@@ -338,6 +344,9 @@ function Scene({
   azimuth2,
   trail,
   iceMode,
+  controlsRef,
+  cameraMode,
+  onCameraModeChange,
 }: {
   position: Vector2;
   heading: number;
@@ -346,15 +355,28 @@ function Scene({
   azimuth2: number;
   trail: Vector2[];
   iceMode: boolean;
+  controlsRef: React.RefObject<OrbitControlsImpl>;
+  cameraMode: CameraMode;
+  onCameraModeChange: (mode: CameraMode) => void;
 }) {
   return (
     <>
-      <PerspectiveCamera makeDefault position={[200, 150, 200]} fov={60} />
+      <PerspectiveCamera makeDefault position={[200, 150, 200]} fov={60} near={1} far={50000} />
       <OrbitControls
-        target={[position.x, 0, position.z]}
+        ref={controlsRef}
         maxPolarAngle={Math.PI / 2.1}
         minDistance={50}
         maxDistance={500}
+        enablePan
+        enableZoom
+        enableRotate
+        onStart={() => onCameraModeChange('free')}
+      />
+      <UnifiedCameraController
+        position={position}
+        headingRad={heading}
+        cameraMode={cameraMode}
+        controlsRef={controlsRef}
       />
 
       <ambientLight intensity={0.4} />
@@ -364,6 +386,10 @@ function Scene({
         castShadow
         shadow-mapSize={[2048, 2048]}
       />
+
+      {/* 极地天空 - 必须先渲染 */}
+      <SkyDome horizonColor="#e0e8f0" zenithColor="#6b8aa8" />
+      <ProceduralClouds />
 
       <IceOcean iceMode={iceMode} />
 
@@ -389,8 +415,6 @@ function Scene({
         fadeDistance={1500}
         infiniteGrid
       />
-
-      <Environment preset="sunset" />
     </>
   );
 }
@@ -775,6 +799,10 @@ export default function IcebreakerSimulation() {
     time: 0,
   });
 
+  // 相机控制
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+  const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+
   // Azipod 参数 (使用预定义的默认参数)
   const azipodParams: Azipod3DOFParams = DEFAULT_AZIPOD_3DOF_PARAMS;
 
@@ -978,8 +1006,17 @@ export default function IcebreakerSimulation() {
               azimuth2={physicsStateRef.current.azipod2.azimuth}
               trail={trail}
               iceMode={config.iceModeEnabled}
+              controlsRef={controlsRef as React.RefObject<OrbitControlsImpl>}
+              cameraMode={cameraMode}
+              onCameraModeChange={setCameraMode}
             />
           </Canvas>
+
+          <CameraViewSwitcher
+            currentMode={cameraMode}
+            onModeChange={setCameraMode}
+            className="absolute top-4 right-4"
+          />
 
           {/* 叠加信息 */}
           <div className="absolute top-4 left-4 bg-card/80 backdrop-blur rounded-lg p-3 text-sm">

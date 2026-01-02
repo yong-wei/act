@@ -9,11 +9,18 @@ import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } fr
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
-  Environment,
   Line,
   useGLTF,
+  PerspectiveCamera,
 } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
+import { MaritimeEnvironment } from '../environment';
+import {
+  UnifiedCameraController,
+  CameraViewSwitcher,
+  type CameraMode,
+} from '../components';
 
 import type {
   ControlMode,
@@ -261,19 +268,6 @@ function HeadingIndicator({
 
 // ============ 相机控制器 ============
 
-function CameraController({ position }: { position: Vector2 }) {
-  const { camera } = useThree();
-
-  useFrame(() => {
-    const targetX = position.x - 400;
-    const targetZ = position.z + 600;
-    camera.position.x += (targetX - camera.position.x) * 0.02;
-    camera.position.z += (targetZ - camera.position.z) * 0.02;
-    camera.lookAt(position.x, 0, position.z);
-  });
-
-  return null;
-}
 
 // ============ 舒适度仪表盘 ============
 
@@ -690,7 +684,9 @@ export default function CruiseSimulation() {
   const lastTrajectoryTime = useRef(0);
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef(0);
+  const controlsRef = useRef<OrbitControlsImpl>(null);
 
+  const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const defaultConfig = getCruiseDefaultConfig();
 
   const [state, setState] = useState<CruiseSimulationState>({
@@ -877,11 +873,11 @@ export default function CruiseSimulation() {
 
   return (
     <div className="relative h-screen w-full bg-slate-950">
-      <Canvas shadows camera={{ position: [-500, 300, 800], fov: 50 }}>
+      <Canvas shadows camera={{ position: [-500, 300, 800], fov: 50, near: 1, far: 50000 }}>
         <Suspense fallback={null}>
           <ambientLight intensity={0.4} />
-          <directionalLight position={[100, 200, 50]} intensity={1} castShadow />
-          <Ocean seaState={state.seaState} />
+          <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
+          <MaritimeEnvironment shipPosition={state.position} seaState={state.seaState} />
           <CruiseShipModel
             position={state.position}
             heading={toRadians(state.heading)}
@@ -893,18 +889,30 @@ export default function CruiseSimulation() {
             targetHeading={state.targetHeading}
             currentHeading={state.heading}
           />
-          <CameraController position={state.position} />
-          <Environment preset="sunset" />
           <OrbitControls
+            ref={controlsRef}
             enablePan
             enableZoom
             enableRotate
             maxPolarAngle={Math.PI / 2.2}
             minDistance={200}
             maxDistance={3000}
+            onStart={() => setCameraMode('free')}
+          />
+          <UnifiedCameraController
+            position={state.position}
+            headingRad={toRadians(state.heading)}
+            cameraMode={cameraMode}
+            controlsRef={controlsRef}
           />
         </Suspense>
       </Canvas>
+
+      <CameraViewSwitcher
+        currentMode={cameraMode}
+        onModeChange={setCameraMode}
+        className="absolute top-4 right-4"
+      />
 
       <ControlPanel
         state={state}

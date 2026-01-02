@@ -9,14 +9,20 @@ import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } fr
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
-  Environment,
   Grid,
   Html,
   PerspectiveCamera,
   Line,
   useGLTF,
 } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
+import { MaritimeEnvironment } from '../environment';
+import {
+  UnifiedCameraController,
+  CameraViewSwitcher,
+  type CameraMode,
+} from '../components';
 
 import type {
   ControlMode,
@@ -279,19 +285,6 @@ function HeadingIndicator({
 
 // ============ 相机控制器 ============
 
-function CameraController({ position }: { position: Vector2 }) {
-  const { camera } = useThree();
-
-  useFrame(() => {
-    const targetX = position.x - 300;
-    const targetZ = position.z + 500;
-    camera.position.x += (targetX - camera.position.x) * 0.02;
-    camera.position.z += (targetZ - camera.position.z) * 0.02;
-    camera.lookAt(position.x, 0, position.z);
-  });
-
-  return null;
-}
 
 // ============ 控制面板组件 ============
 
@@ -523,23 +516,26 @@ function HUD({ state }: { state: ContainerSimulationState }) {
 function Scene({
   state,
   trajectory,
+  cameraMode,
+  onCameraModeChange,
+  controlsRef,
 }: {
   state: ContainerSimulationState;
   trajectory: Vector2[];
+  cameraMode: CameraMode;
+  onCameraModeChange: (mode: CameraMode) => void;
+  controlsRef: React.RefObject<OrbitControlsImpl>;
 }) {
   return (
     <>
-      <PerspectiveCamera makeDefault position={[-500, 200, 500]} fov={60} />
-      <CameraController position={state.position} />
+      <PerspectiveCamera makeDefault position={[-500, 200, 500]} fov={60} near={1} far={50000} />
 
       {/* 环境 */}
       <ambientLight intensity={0.4} />
-      <directionalLight position={[500, 500, 200]} intensity={1} castShadow />
-      <Environment preset="sunset" />
-      <fog attach="fog" args={['#0f172a', 1000, 15000]} />
+      <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
 
-      {/* 海面 */}
-      <Ocean />
+      {/* 天空+云层+海面 */}
+      <MaritimeEnvironment shipPosition={state.position} seaState={3} />
 
       {/* 参考网格 */}
       <Grid
@@ -580,14 +576,27 @@ function Scene({
         loadRatio={state.loadRatio}
       />
 
-      {/* 控制器 */}
+      {/* 相机控制 */}
       <OrbitControls
+        ref={controlsRef}
         enablePan
         enableZoom
         enableRotate
         minDistance={200}
-        maxDistance={3000}
+        maxDistance={5000}
         maxPolarAngle={Math.PI / 2.1}
+        onStart={() => onCameraModeChange('free')}
+      />
+      <UnifiedCameraController
+        position={state.position}
+        headingRad={toRadians(state.heading)}
+        cameraMode={cameraMode}
+        controlsRef={controlsRef}
+        config={{
+          chaseDistance: 600,
+          chaseHeight: 250,
+          overheadHeight: 2000,
+        }}
       />
     </>
   );
@@ -600,6 +609,10 @@ export default function ContainerSimulation() {
   const engineRef = useRef<ContainerShipEngine | null>(null);
   const frameRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+
+  // 相机状态
+  const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
 
   // 轨迹记录
   const [trajectory, setTrajectory] = useState<Vector2[]>([]);
@@ -788,10 +801,16 @@ export default function ContainerSimulation() {
   };
 
   return (
-    <div className="relative h-[560px] w-full">
+    <div className="relative h-screen w-full">
       <Canvas shadows gl={{ antialias: true }}>
         <Suspense fallback={null}>
-          <Scene state={simState} trajectory={trajectory} />
+          <Scene
+            state={simState}
+            trajectory={trajectory}
+            cameraMode={cameraMode}
+            onCameraModeChange={setCameraMode}
+            controlsRef={controlsRef}
+          />
         </Suspense>
       </Canvas>
 
@@ -811,6 +830,13 @@ export default function ContainerSimulation() {
 
       {/* HUD */}
       <HUD state={simState} />
+
+      {/* 视角切换器 */}
+      <CameraViewSwitcher
+        currentMode={cameraMode}
+        onModeChange={setCameraMode}
+        className="absolute bottom-4 left-1/2 -translate-x-1/2"
+      />
     </div>
   );
 }
