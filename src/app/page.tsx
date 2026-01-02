@@ -220,6 +220,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="hidden items-center gap-6 text-sm text-white/80 md:flex">
+              <Link href="/simulations" className="hover:text-amber-alert">虚拟仿真</Link>
               <Link href="/knowledge" className="hover:text-amber-alert">知识图谱</Link>
               <Link href="/ethics" className="hover:text-amber-alert">思政沙盘</Link>
               <Link href="/ai" className="hover:text-amber-alert">AI工坊</Link>
