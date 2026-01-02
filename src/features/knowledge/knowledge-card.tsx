@@ -5,11 +5,20 @@ import React from 'react';
 import 'katex/dist/katex.min.css';
 import { BlockMath } from 'react-katex';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { MdxSlide } from '@/components/shared/mdx-slide';
 import { getBloomLabel, getKnowledgeDimLabel } from '@/lib/knowledge-labels';
 
 // Define standardized metadata structure (matches what we seeded)
-interface KnowledgeMetadata {
+export interface KnowledgeMetadata {
   type: string;
   content?: string;
   formulas?: {
@@ -20,6 +29,72 @@ interface KnowledgeMetadata {
   applications?: string[];
   lessonId?: string;
   phase?: string;
+}
+
+export interface KnowledgeCardSource {
+  name: string;
+  description: string;
+  nodeType: string;
+  bloomLevel?: string;
+  knowledgeDim?: string;
+  metadata?: Record<string, unknown> | null;
+  content?: Record<string, unknown> | null;
+  resources?: unknown[];
+}
+
+export function extractMdxPaths(resources?: unknown[]): string[] {
+  if (!Array.isArray(resources)) return [];
+  return resources
+    .map((item) => {
+      if (typeof item === 'string') return item;
+      if (item && typeof item === 'object') {
+        const candidate = (item as { path?: string; url?: string }).path
+          || (item as { path?: string; url?: string }).url;
+        return typeof candidate === 'string' ? candidate : null;
+      }
+      return null;
+    })
+    .filter((path): path is string => !!path && path.endsWith('.mdx'));
+}
+
+export function normalizeKnowledgeMetadata({
+  metadata,
+  content,
+  description,
+}: {
+  metadata?: Record<string, unknown> | null;
+  content?: Record<string, unknown> | null;
+  description?: string;
+}): KnowledgeMetadata {
+  const safeMetadata = (metadata ?? {}) as Record<string, unknown>;
+  const legacyContent = (content ?? {}) as Record<string, unknown>;
+  const formulas = (safeMetadata.formulas ?? {}) as Record<string, unknown>;
+
+  return {
+    type: 'rich-text',
+    content: (safeMetadata.content as string)
+      || (safeMetadata.explanation as string)
+      || (legacyContent.explanation as string)
+      || description
+      || '',
+    formulas: {
+      continuous: (formulas.continuous as string)
+        || (safeMetadata.formulaContinuous as string)
+        || (legacyContent.formulaContinuous as string),
+      discrete: (formulas.discrete as string)
+        || (safeMetadata.formulaDiscrete as string)
+        || (legacyContent.formulaDiscrete as string),
+    },
+    learningObjectives: (safeMetadata.learningObjectives as string[])
+      || (legacyContent.learningObjectives as string[]),
+    applications: (safeMetadata.applications as string[])
+      || (legacyContent.applications as string[])
+      || [],
+    lessonId: (safeMetadata.lessonId as string)
+      || (legacyContent.lessonId as string),
+    phase: (safeMetadata.phase as string)
+      || (legacyContent.phase as string),
+  };
 }
 
 interface KnowledgeCardProps {
@@ -46,19 +121,7 @@ export function KnowledgeCard({
   const bloomLabel = getBloomLabel(bloomLevel);
   const knowledgeLabel = getKnowledgeDimLabel(knowledgeDim);
 
-  const mdxPaths = Array.isArray(resources)
-    ? resources
-        .map((item) => {
-          if (typeof item === 'string') return item;
-          if (item && typeof item === 'object') {
-            const candidate = (item as { path?: string; url?: string }).path
-              || (item as { path?: string; url?: string }).url;
-            return typeof candidate === 'string' ? candidate : null;
-          }
-          return null;
-        })
-        .filter((path): path is string => !!path && path.endsWith('.mdx'))
-    : [];
+  const mdxPaths = extractMdxPaths(resources);
   
   // Helper to render type badge
   const renderTypeBadge = () => {
@@ -156,5 +219,52 @@ export function KnowledgeCard({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+interface KnowledgeCardDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  node: KnowledgeCardSource;
+}
+
+export function KnowledgeCardDialog({
+  open,
+  onOpenChange,
+  node,
+}: KnowledgeCardDialogProps) {
+  const metadata = normalizeKnowledgeMetadata({
+    metadata: node.metadata,
+    content: node.content,
+    description: node.description,
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden bg-slate-900 p-0">
+        <DialogHeader className="border-b border-slate-800 px-6 py-4">
+          <DialogTitle className="text-white">{node.name}</DialogTitle>
+        </DialogHeader>
+        <div className="max-h-[calc(85vh-136px)] overflow-auto p-6">
+          <KnowledgeCard
+            name={node.name}
+            description={node.description}
+            nodeType={node.nodeType}
+            bloomLevel={node.bloomLevel}
+            knowledgeDim={node.knowledgeDim}
+            metadata={metadata}
+            resources={node.resources}
+            className="border-slate-700/50 shadow-2xl bg-[#0F172A]"
+          />
+        </div>
+        <DialogFooter className="border-t border-slate-800 px-6 py-4">
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">
+              关闭
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -9,9 +9,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TeachingResource, LessonItemType } from '@prisma/client';
+import { KnowledgeCardDialog } from '@/features/knowledge/knowledge-card';
 import type { KnowledgeNodeData } from '@/features/knowledge/knowledge-graph-system';
 import { ResourceRenderer } from './resource-renderer';
-import { getBloomLabel, getKnowledgeDimLabel } from '@/lib/knowledge-labels';
 
 // @dnd-kit imports
 import {
@@ -595,29 +595,17 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
         </Dialog>
 
         {/* Knowledge Node Preview Modal */}
-        <Dialog open={!!previewKnowledge} onOpenChange={() => setPreviewKnowledge(null)}>
-            <DialogContent className="max-w-2xl bg-slate-900">
-                <DialogHeader>
-                    <DialogTitle>{previewKnowledge?.name}</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-500 uppercase">{previewKnowledge?.nodeType}</span>
-                        {previewKnowledge?.bloomLevel && (
-                            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-xs">
-                                认知：{getBloomLabel(previewKnowledge.bloomLevel)}
-                            </span>
-                        )}
-                        {previewKnowledge?.knowledgeDim && (
-                            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs">
-                                知识：{getKnowledgeDimLabel(previewKnowledge.knowledgeDim)}
-                            </span>
-                        )}
-                    </div>
-                    <p className="text-sm text-slate-300 leading-relaxed">{previewKnowledge?.description}</p>
-                </div>
-            </DialogContent>
-        </Dialog>
+        {previewKnowledge && (
+            <KnowledgeCardDialog
+                open
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setPreviewKnowledge(null);
+                    }
+                }}
+                node={previewKnowledge}
+            />
+        )}
     </div>
   );
 }
