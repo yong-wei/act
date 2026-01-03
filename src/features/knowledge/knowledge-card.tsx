@@ -4,18 +4,16 @@
 import React from 'react';
 import 'katex/dist/katex.min.css';
 import { BlockMath } from 'react-katex';
+import { X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { MdxSlide } from '@/components/shared/mdx-slide';
-import { getBloomLabel, getKnowledgeDimLabel } from '@/lib/knowledge-labels';
+import { getBloomLabel, getKnowledgeDimLabel, getNodeTypeLabel } from '@/lib/knowledge-labels';
 
 // Define standardized metadata structure (matches what we seeded)
 export interface KnowledgeMetadata {
@@ -105,7 +103,11 @@ interface KnowledgeCardProps {
   knowledgeDim?: string;
   metadata: KnowledgeMetadata;
   resources?: unknown[];
+  /** 显示模式：full（完整）或 compact（紧凑） */
+  variant?: 'full' | 'compact';
   className?: string;
+  /** 关闭按钮回调（传入时显示关闭按钮） */
+  onClose?: () => void;
 }
 
 export function KnowledgeCard({
@@ -116,14 +118,18 @@ export function KnowledgeCard({
   knowledgeDim,
   metadata,
   resources,
+  variant = 'compact',
   className,
+  onClose,
 }: KnowledgeCardProps) {
   const bloomLabel = getBloomLabel(bloomLevel);
   const knowledgeLabel = getKnowledgeDimLabel(knowledgeDim);
+  const typeLabel = getNodeTypeLabel(nodeType);
 
   const mdxPaths = extractMdxPaths(resources);
-  
-  // Helper to render type badge
+  const isCompact = variant === 'compact';
+
+  // Helper to render type badge with Chinese label
   const renderTypeBadge = () => {
     let colorClass = 'bg-slate-500';
     if (nodeType === 'THEORY') colorClass = 'bg-blue-600';
@@ -131,91 +137,108 @@ export function KnowledgeCard({
     if (nodeType === 'ETHICS') colorClass = 'bg-green-600';
 
     return (
-      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold text-white ${colorClass}`}>
-        {nodeType}
+      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white ${colorClass}`}>
+        {typeLabel || nodeType}
       </span>
     );
   };
 
+  // 判断是否有 MDX 内容（如果有则不显示 metadata.content）
+  const hasMdxContent = mdxPaths.length > 0;
+  // 检查 metadata.content 是否为 MDX 格式（包含 Markdown 标记）
+  const isMdxFormat = metadata.type === 'mdx' || (metadata.content && (
+    metadata.content.includes('#') ||
+    metadata.content.includes('$$') ||
+    metadata.content.includes('**')
+  ));
+
   return (
-    <Card className={`w-full max-w-2xl bg-[#0F172A] text-slate-200 border-slate-700 ${className}`}>
-      <CardHeader>
-        <div className="flex justify-between items-start">
-            <div className="space-y-1">
-                <CardTitle className="text-2xl font-bold text-white flex items-center gap-2">
-                    {name}
-                    {renderTypeBadge()}
-                </CardTitle>
-                <CardDescription className="text-slate-400">
-                    {description}
-                </CardDescription>
+    <Card className={`w-full bg-[#0F172A] text-slate-200 border-slate-700 relative ${className || ''}`}>
+      {/* 关闭按钮 - 仅在传入 onClose 时显示 */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+          aria-label="关闭"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+      <CardHeader className={`${isCompact ? 'pb-3' : 'pb-4'} ${onClose ? 'pr-12' : ''}`}>
+        <div className="flex justify-between items-start gap-3">
+          <div className="space-y-1 min-w-0 flex-1">
+            <CardTitle className={`${isCompact ? 'text-xl' : 'text-2xl'} font-bold text-white flex items-center gap-2 flex-wrap`}>
+              <span className="truncate">{name}</span>
+              {renderTypeBadge()}
+            </CardTitle>
+            <CardDescription className={`text-slate-400 ${isCompact ? 'line-clamp-2' : ''}`}>
+              {description}
+            </CardDescription>
+          </div>
+          {(bloomLabel || knowledgeLabel) && (
+            <div className="flex flex-col items-end gap-1.5 shrink-0">
+              {bloomLabel && (
+                <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300 whitespace-nowrap">
+                  认知：{bloomLabel}
+                </span>
+              )}
+              {knowledgeLabel && (
+                <span className="rounded-full border border-blue-500/40 bg-blue-500/15 px-2 py-0.5 text-xs text-blue-300 whitespace-nowrap">
+                  知识：{knowledgeLabel}
+                </span>
+              )}
             </div>
-            {(bloomLabel || knowledgeLabel) && (
-                <div className="flex flex-col items-end gap-2 text-right">
-                    <div className="flex flex-wrap justify-end gap-2">
-                        {bloomLabel && (
-                            <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 text-xs text-emerald-300">
-                                认知：{bloomLabel}
-                            </span>
-                        )}
-                        {knowledgeLabel && (
-                            <span className="rounded-full border border-blue-500/40 bg-blue-500/15 px-2.5 py-0.5 text-xs text-blue-300">
-                                知识：{knowledgeLabel}
-                            </span>
-                        )}
-                    </div>
-                </div>
-            )}
+          )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Main Content (Rich Text) */}
-        {metadata.content && (
-            <div className="prose prose-invert max-w-none text-slate-300">
-                <p>{metadata.content}</p>
-            </div>
+      <CardContent className={isCompact ? 'space-y-3 pt-0' : 'space-y-5'}>
+        {/* Main Content - 仅在没有 MDX 文件且不是 MDX 格式时显示纯文本 */}
+        {metadata.content && !hasMdxContent && !isMdxFormat && (
+          <div className="prose prose-invert max-w-none text-slate-300">
+            <p className={isCompact ? 'text-sm' : 'text-base'}>{metadata.content}</p>
+          </div>
         )}
 
-        {/* Formulas */}
-        {metadata.formulas && (
-            <div className="space-y-4 p-4 bg-slate-900 rounded-lg border border-slate-800">
-                <h4 className="text-sm font-semibold text-blue-400">数学表达</h4>
-                {metadata.formulas.continuous && (
-                    <div>
-                        <div className="text-xs text-slate-500 mb-1">连续时间</div>
-                        <BlockMath math={metadata.formulas.continuous} />
-                    </div>
-                )}
-                {metadata.formulas.discrete && (
-                    <div>
-                        <div className="text-xs text-slate-500 mb-1">离散时间</div>
-                        <BlockMath math={metadata.formulas.discrete} />
-                    </div>
-                )}
-            </div>
+        {/* Formulas - 仅在没有 MDX 内容时显示 */}
+        {!hasMdxContent && metadata.formulas && (metadata.formulas.continuous || metadata.formulas.discrete) && (
+          <div className={`space-y-3 ${isCompact ? 'p-3' : 'p-4'} bg-slate-900 rounded-lg border border-slate-800`}>
+            <h4 className="text-sm font-semibold text-blue-400">数学表达</h4>
+            {metadata.formulas.continuous && (
+              <div>
+                <div className="text-xs text-slate-500 mb-1">连续时间</div>
+                <BlockMath math={metadata.formulas.continuous} />
+              </div>
+            )}
+            {metadata.formulas.discrete && (
+              <div>
+                <div className="text-xs text-slate-500 mb-1">离散时间</div>
+                <BlockMath math={metadata.formulas.discrete} />
+              </div>
+            )}
+          </div>
         )}
 
-        {/* Applications */}
-        {metadata.applications && metadata.applications.length > 0 && (
-            <div>
-                <h4 className="text-sm font-semibold text-slate-400 mb-2">应用领域</h4>
-                <div className="flex flex-wrap gap-2">
-                    {metadata.applications.map((app, idx) => (
-                        <span key={idx} className="px-2 py-1 rounded-md bg-slate-800 text-xs text-slate-300 border border-slate-700">
-                            {app}
-                        </span>
-                    ))}
-                </div>
+        {/* Applications - 仅在没有 MDX 内容时显示 */}
+        {!hasMdxContent && metadata.applications && metadata.applications.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-slate-400 mb-2">应用领域</h4>
+            <div className="flex flex-wrap gap-1.5">
+              {metadata.applications.map((app, idx) => (
+                <span key={idx} className="px-2 py-0.5 rounded-md bg-slate-800 text-xs text-slate-300 border border-slate-700">
+                  {app}
+                </span>
+              ))}
             </div>
+          </div>
         )}
 
+        {/* MDX Content - 使用暗色主题和自适应尺寸 */}
         {mdxPaths.length > 0 && (
-            <div className="space-y-4">
-                <h4 className="text-sm font-semibold text-slate-400">扩展内容</h4>
-                {mdxPaths.map((path) => (
-                    <MdxSlide key={path} path={path} />
-                ))}
-            </div>
+          <div className="space-y-3">
+            {mdxPaths.map((path) => (
+              <MdxSlide key={path} path={path} theme="dark" size="adaptive" />
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>
@@ -241,11 +264,11 @@ export function KnowledgeCardDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden bg-slate-900 p-0">
-        <DialogHeader className="border-b border-slate-800 px-6 py-4">
-          <DialogTitle className="text-white">{node.name}</DialogTitle>
+      <DialogContent className="max-w-2xl max-h-[75vh] overflow-hidden bg-slate-900 border-slate-700 p-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>{node.name}</DialogTitle>
         </DialogHeader>
-        <div className="max-h-[calc(85vh-136px)] overflow-auto p-6">
+        <div className="max-h-[75vh] overflow-y-auto">
           <KnowledgeCard
             name={node.name}
             description={node.description}
@@ -254,16 +277,11 @@ export function KnowledgeCardDialog({
             knowledgeDim={node.knowledgeDim}
             metadata={metadata}
             resources={node.resources}
-            className="border-slate-700/50 shadow-2xl bg-[#0F172A]"
+            variant="compact"
+            className="border-0 bg-transparent shadow-none"
+            onClose={() => onOpenChange(false)}
           />
         </div>
-        <DialogFooter className="border-t border-slate-800 px-6 py-4">
-          <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              关闭
-            </Button>
-          </DialogClose>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

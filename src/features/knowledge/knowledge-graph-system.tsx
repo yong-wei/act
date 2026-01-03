@@ -6,7 +6,7 @@
  * 重构自 knowledge0316.html，使用 React Three Fiber
  */
 
-import { Suspense, useState, useCallback, useMemo, useEffect } from 'react';
+import { Suspense, useState, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { KnowledgeSidebar } from './sidebar/knowledge-sidebar';
 import { ResourcePanel } from './resource-panel/resource-panel';
@@ -15,6 +15,12 @@ import { ResourcePanel } from './resource-panel/resource-panel';
 // 动态导入 3D 图谱组件（客户端专用）
 const KnowledgeGraphCanvas = dynamic(
   () => import('./graph/knowledge-graph-canvas').then((mod) => mod.KnowledgeGraphCanvas),
+  { ssr: false }
+);
+
+// 动态导入 2D 图谱组件（客户端专用）
+const KnowledgeGraph2D = dynamic(
+  () => import('./graph/knowledge-graph-2d').then((mod) => mod.KnowledgeGraph2D),
   { ssr: false }
 );
 
@@ -46,15 +52,6 @@ export interface KnowledgeLinkData {
   relation: string;
 }
 
-// 学习路径接口
-export interface LearningPathItem {
-  order: number;
-  title: string;
-  description: string;
-  estimatedTime: number;
-  priority: 'high' | 'medium' | 'low';
-}
-
 interface KnowledgeGraphSystemProps {
   // Props can still be passed for initial state or override, but we default to fetching
   initialNodes?: KnowledgeNodeData[];
@@ -72,8 +69,33 @@ export function KnowledgeGraphSystem({
   const [selectedNode, setSelectedNode] = useState<KnowledgeNodeData | null>(null);
   const [hoveredNode, setHoveredNode] = useState<KnowledgeNodeData | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'cognitive' | 'style' | 'ethics'>('cognitive');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // 视图模式：默认 2D
+  const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
+  
+  // 容器尺寸测量
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+
+  // 监听容器大小变化
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        setDimensions({
+          width: containerRef.current.offsetWidth,
+          height: containerRef.current.offsetHeight
+        });
+      }
+    };
+    
+    // 初始化
+    updateSize();
+    
+    // 监听窗口缩放
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
 
   // Fetch data from API on mount
   useEffect(() => {
@@ -103,6 +125,15 @@ export function KnowledgeGraphSystem({
     setIsPanelOpen(true);
   }, []);
 
+  // 通过 ID 选择节点（用于关联知识点跳转）
+  const handleNodeSelectById = useCallback((nodeId: string) => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) {
+      setSelectedNode(node);
+      setIsPanelOpen(true);
+    }
+  }, [nodes]);
+
   // 节点悬停处理
   const handleNodeHover = useCallback((node: KnowledgeNodeData | null) => {
     setHoveredNode(node);
@@ -126,17 +157,39 @@ export function KnowledgeGraphSystem({
     <div className="flex h-screen w-full bg-[#020721] text-slate-200">
       {/* 左侧导航侧边栏 */}
       <KnowledgeSidebar
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
+        nodes={nodes}
+        selectedNodeId={selectedNode?.id}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        learningPath={[]} // TODO: Fetch from Playlist API
         onNodeSelect={handleNodeClick}
-        nodes={nodes}
       />
 
       {/* 中央图谱区域 */}
-      <div className="relative flex-1">
+      <div ref={containerRef} className="relative flex-1 h-full overflow-hidden">
+        {/* 视图切换按钮 */}
+        <div className="absolute top-4 right-4 z-10 flex bg-[#091540]/90 rounded-lg border border-blue-500/30 p-1 backdrop-blur-sm shadow-lg">
+          <button 
+            onClick={() => setViewMode('2D')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+              viewMode === '2D' 
+                ? 'bg-blue-600 text-white shadow-sm' 
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            2D 视图
+          </button>
+          <button 
+            onClick={() => setViewMode('3D')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+              viewMode === '3D' 
+                ? 'bg-blue-600 text-white shadow-sm' 
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            3D 视图
+          </button>
+        </div>
+
         {isLoading ? (
             <div className="flex h-full w-full items-center justify-center">
               <div className="text-center">
@@ -150,44 +203,38 @@ export function KnowledgeGraphSystem({
             fallback={
                 <div className="flex h-full w-full items-center justify-center">
                 <div className="text-center">
-                    <div className="text-blue-400">渲染 3D 视图...</div>
+                    <div className="text-blue-400">渲染视图...</div>
                 </div>
                 </div>
             }
             >
-            <KnowledgeGraphCanvas
+            {viewMode === '2D' ? (
+              <KnowledgeGraph2D
                 nodes={filteredNodes}
                 links={links}
                 selectedNode={selectedNode}
                 hoveredNode={hoveredNode}
                 onNodeClick={handleNodeClick}
                 onNodeHover={handleNodeHover}
-            />
+                width={dimensions.width}
+                height={dimensions.height}
+              />
+            ) : (
+              <KnowledgeGraphCanvas
+                nodes={filteredNodes}
+                links={links}
+                selectedNode={selectedNode}
+                hoveredNode={hoveredNode}
+                onNodeClick={handleNodeClick}
+                onNodeHover={handleNodeHover}
+              />
+            )}
             </Suspense>
         )}
 
-        {/* 节点图例 */}
-        <div className="absolute bottom-20 left-4 rounded-lg border border-blue-500/30 bg-[#091540]/80 p-4">
-          <div className="mb-2 text-sm text-slate-400">节点类型</div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-sm bg-[#f5544f]" />
-              <span className="text-xs">船舶场景节点</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-sm bg-[#4f86c6]" />
-              <span className="text-xs">控制理论节点</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-sm bg-[#50c38a]" />
-              <span className="text-xs">伦理决策节点</span>
-            </div>
-          </div>
-        </div>
-
         {/* 悬停提示 */}
         {hoveredNode && (
-          <div className="pointer-events-none absolute left-1/2 top-4 z-50 -translate-x-1/2 transform rounded-lg border border-blue-500/50 bg-[#091540]/95 p-4 shadow-lg">
+          <div className="pointer-events-none absolute left-1/2 top-4 z-50 -translate-x-1/2 transform rounded-lg border border-blue-500/50 bg-[#091540]/95 p-4 shadow-lg backdrop-blur-md">
             <div className="flex items-center gap-2">
               <span className="font-medium text-slate-100">{hoveredNode.name}</span>
               <span
@@ -216,6 +263,7 @@ export function KnowledgeGraphSystem({
         isOpen={isPanelOpen}
         selectedNode={selectedNode}
         onClose={handleClosePanel}
+        onNodeClick={handleNodeSelectById}
       />
     </div>
   );

@@ -99,8 +99,8 @@ export function ClassroomPlayer({ playlist }: PlayerProps) {
          {/* Stage */}
          <div className="flex-1 relative flex items-center justify-center bg-slate-900/50 p-8 overflow-y-auto">
             {currentNode && (
-                <div className="w-full max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <KnowledgeCard 
+                <div className="w-full max-w-[90%] animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <KnowledgeCard
                         name={currentNode.name}
                         description={currentNode.description}
                         nodeType={currentNode.nodeType}
