@@ -532,6 +532,17 @@ enum ResourceType {
   ETHICS_SCENARIO // 伦理场景
 }
 
+// 互动组件分类（按控制论主题）
+enum InteractiveCategory {
+  SYSTEM_MODELING // 系统建模
+  TIME_DOMAIN // 时域分析
+  ROOT_LOCUS // 根轨迹分析
+  FREQUENCY_DOMAIN // 频域分析
+  SYSTEM_CORRECTION // 系统校正
+  NONLINEAR // 非线性
+  CLASSROOM // 课堂组件（教师专用）
+}
+
 // 教学资源 (Type A & Type B)
 model TeachingResource {
   id          String       @id @default(cuid())
@@ -542,6 +553,12 @@ model TeachingResource {
   // 内容载体
   content    String? @db.Text // Markdown 内容 或 URL
   registryId String? // 组件注册ID (如 'sim-pid-v1')
+
+  // 分类与展示
+  category     InteractiveCategory? // 组件分类
+  displayName  String? // 中文显示名称
+  displayOrder Int      @default(0) // 显示排序
+  teacherOnly  Boolean  @default(false) // 是否仅教师可见
 
   // 配置与元数据
   config  Json    @default("{}") // 组件默认 Props 或 参数

@@ -4,11 +4,31 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  BookOpen, Code, FileText, Video, Save, Trash2, Layout, Search, GripVertical, Eye
+  BookOpen, Code, FileText, Video, Save, Trash2, Layout, Search, GripVertical, Eye,
+  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Presentation, Filter
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { TeachingResource, LessonItemType } from '@prisma/client';
+import { TeachingResource, LessonItemType, InteractiveCategory } from '@prisma/client';
+
+// 组件分类配置
+const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  SYSTEM_MODELING: { label: '系统建模', icon: Boxes, color: 'text-blue-400' },
+  TIME_DOMAIN: { label: '时域分析', icon: Activity, color: 'text-emerald-400' },
+  ROOT_LOCUS: { label: '根轨迹分析', icon: GitBranch, color: 'text-violet-400' },
+  FREQUENCY_DOMAIN: { label: '频域分析', icon: Radio, color: 'text-cyan-400' },
+  SYSTEM_CORRECTION: { label: '系统校正', icon: Sliders, color: 'text-amber-400' },
+  NONLINEAR: { label: '非线性', icon: Shuffle, color: 'text-rose-400' },
+  CLASSROOM: { label: '课堂组件', icon: Presentation, color: 'text-purple-400' },
+};
+
+// 扩展 TeachingResource 类型以包含新字段
+type ExtendedTeachingResource = TeachingResource & {
+  displayName: string | null;
+  category: InteractiveCategory | null;
+  displayOrder: number;
+  teacherOnly: boolean;
+};
 import { KnowledgeCardDialog } from '@/features/knowledge/knowledge-card';
 import type { KnowledgeNodeData } from '@/features/knowledge/knowledge-graph-system';
 import { ResourceRenderer } from './resource-renderer';
@@ -150,9 +170,10 @@ function SortableItem({ item, idx, onRemove, onDurationChange }: SortableItemPro
 
 export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBuilderProps) {
   const router = useRouter();
-  const [resources, setResources] = useState<TeachingResource[]>([]);
+  const [resources, setResources] = useState<ExtendedTeachingResource[]>([]);
   const [knowledgeNodes, setKnowledgeNodes] = useState<KnowledgeNodeData[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   const [planState, setPlanState] = useState<Record<StageId, LessonItemDraft[]>>({
     BRIDGE_IN: [],
@@ -235,10 +256,10 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
       }
   }, [initialData]);
 
-  // Fetch Resources
+  // Fetch Resources (include teacher-only for orchestrator)
   useEffect(() => {
     const fetchResources = async () => {
-       const res = await fetch('/api/resources');
+       const res = await fetch('/api/resources?includeTeacherOnly=true');
        if (res.ok) {
            setResources(await res.json());
        }
@@ -393,20 +414,42 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
       }
   };
 
-  // Group resources by category
-  const filteredResources = resources.filter(r => 
-    r.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter resources by search query and category
+  const filteredResources = resources.filter(r => {
+    const displayText = r.displayName || r.title;
+    const matchesSearch = displayText.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !selectedCategory || r.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const filteredKnowledgeNodes = knowledgeNodes.filter((node) =>
     node.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     node.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const resourceGroups = {
-      'Static': filteredResources.filter(r => ['STATIC_TEXT', 'STATIC_MEDIA'].includes(r.type)),
-      'Interactive': filteredResources.filter(r => ['INTERACTIVE_COMP', 'SIMULATION_APP', 'ETHICS_SCENARIO'].includes(r.type))
-  };
+  // Group resources by category
+  const resourcesByCategory: Record<string, ExtendedTeachingResource[]> = {};
+  for (const resource of filteredResources) {
+    const category = resource.category || 'OTHER';
+    if (!resourcesByCategory[category]) {
+      resourcesByCategory[category] = [];
+    }
+    resourcesByCategory[category].push(resource);
+  }
+
+  // Sort each category by displayOrder
+  for (const category of Object.keys(resourcesByCategory)) {
+    resourcesByCategory[category].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+  }
+
+  // Category order for display
+  const categoryOrder = [
+    'SYSTEM_MODELING', 'TIME_DOMAIN', 'ROOT_LOCUS',
+    'FREQUENCY_DOMAIN', 'SYSTEM_CORRECTION', 'NONLINEAR', 'CLASSROOM'
+  ];
+
+  // Legacy groups for static resources (backward compatibility)
+  const staticResources = filteredResources.filter(r => ['STATIC_TEXT', 'STATIC_MEDIA'].includes(r.type));
 
   const renderResourceIcon = (type: string) => {
       if (['STATIC_TEXT', 'STATIC_MEDIA'].includes(type)) return <FileText className="h-4 w-4 text-blue-400"/>;
@@ -425,21 +468,52 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
                 </h2>
                 <div className="relative">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500" />
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         placeholder="搜索资源或知识卡片..."
                         className="w-full bg-slate-950 border border-slate-700 rounded pl-8 pr-2 py-2 text-sm focus:border-cyan-500 outline-none"
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                     />
                 </div>
+                {/* Category Filter */}
+                <div className="flex flex-wrap gap-1">
+                    <button
+                        onClick={() => setSelectedCategory(null)}
+                        className={`px-2 py-1 text-xs rounded transition-colors ${
+                            !selectedCategory
+                                ? 'bg-cyan-600 text-white'
+                                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        }`}
+                    >
+                        全部
+                    </button>
+                    {categoryOrder.map(cat => {
+                        const config = CATEGORY_CONFIG[cat];
+                        if (!config) return null;
+                        return (
+                            <button
+                                key={cat}
+                                onClick={() => setSelectedCategory(cat)}
+                                className={`px-2 py-1 text-xs rounded transition-colors ${
+                                    selectedCategory === cat
+                                        ? 'bg-cyan-600 text-white'
+                                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                }`}
+                            >
+                                {config.label}
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                {Object.entries(resourceGroups).map(([groupName, groupItems]) => (
-                    <div key={groupName}>
-                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{groupName}</h3>
+                {/* Static Resources */}
+                {staticResources.length > 0 && !selectedCategory && (
+                    <div>
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">静态资源</h3>
                         <div className="space-y-2">
-                            {groupItems.map(res => (
+                            {staticResources.map(res => (
                                 <div
                                     key={res.id}
                                     draggable
@@ -448,7 +522,7 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
                                 >
                                     {renderResourceIcon(res.type)}
                                     <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-medium truncate">{res.title}</div>
+                                        <div className="text-sm font-medium truncate">{res.displayName || res.title}</div>
                                         <div className="text-[10px] text-slate-500 truncate">{res.type}</div>
                                     </div>
                                     <button
@@ -466,10 +540,67 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
                             ))}
                         </div>
                     </div>
-                ))}
+                )}
+
+                {/* Interactive Resources by Category */}
+                {categoryOrder.map(category => {
+                    const categoryItems = resourcesByCategory[category];
+                    if (!categoryItems || categoryItems.length === 0) return null;
+                    // Skip static resources (already shown above)
+                    const interactiveItems = categoryItems.filter(r =>
+                        !['STATIC_TEXT', 'STATIC_MEDIA'].includes(r.type)
+                    );
+                    if (interactiveItems.length === 0) return null;
+
+                    const config = CATEGORY_CONFIG[category];
+                    const Icon = config?.icon || Boxes;
+
+                    return (
+                        <div key={category}>
+                            <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${config?.color || 'text-slate-500'}`}>
+                                <Icon className="h-3.5 w-3.5" />
+                                {config?.label || category}
+                            </h3>
+                            <div className="space-y-2">
+                                {interactiveItems.map(res => (
+                                    <div
+                                        key={res.id}
+                                        draggable
+                                        onDragStart={(e) => handleResourceDragStart(e, res)}
+                                        className="p-3 rounded border border-slate-700 bg-slate-800 hover:border-cyan-500 cursor-grab active:cursor-grabbing transition-colors group flex items-center gap-3 shadow-sm"
+                                    >
+                                        {renderResourceIcon(res.type)}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-medium truncate">{res.displayName || res.title}</div>
+                                            {res.teacherOnly && (
+                                                <span className="text-[10px] text-purple-400">教师专用</span>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setPreviewResource(res);
+                                            }}
+                                            className="p-1 hover:bg-slate-700 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                            title="预览资源"
+                                        >
+                                            <Eye className="h-4 w-4 text-slate-400 hover:text-cyan-400" />
+                                        </button>
+                                        <GripVertical className="h-4 w-4 text-slate-600 opacity-0 group-hover:opacity-100" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })}
+
+                {/* Knowledge Nodes */}
                 {filteredKnowledgeNodes.length > 0 && (
                     <div>
-                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Knowledge</h3>
+                        <h3 className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <BookOpen className="h-3.5 w-3.5" />
+                            知识卡片
+                        </h3>
                         <div className="space-y-2">
                             {filteredKnowledgeNodes.map(node => (
                                 <div

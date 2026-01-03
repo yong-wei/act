@@ -3,21 +3,58 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { ResourceType } from '@prisma/client';
+import { ResourceType, InteractiveCategory, Prisma } from '@prisma/client';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type');
-  
-  const where: any = {};
+  const category = searchParams.get('category');
+  const includeTeacherOnly = searchParams.get('includeTeacherOnly');
+
+  const where: Prisma.TeachingResourceWhereInput = {};
+
+  // 类型筛选
   if (type) {
-      where.type = type as ResourceType;
+    where.type = type as ResourceType;
+  }
+
+  // 分类筛选
+  if (category) {
+    where.category = category as InteractiveCategory;
+  }
+
+  // 权限筛选：默认不包含教师专用组件
+  if (includeTeacherOnly !== 'true') {
+    // 检查用户是否是教师
+    const session = await getServerSession(authOptions);
+    const isTeacher = session?.user?.role === 'TEACHER' || session?.user?.role === 'ADMIN';
+
+    if (!isTeacher) {
+      where.teacherOnly = false;
+    }
   }
 
   try {
     const resources = await prisma.teachingResource.findMany({
-        where,
-        orderBy: { updatedAt: 'desc' }
+      where,
+      orderBy: [
+        { category: 'asc' },
+        { displayOrder: 'asc' },
+        { updatedAt: 'desc' },
+      ],
+      select: {
+        id: true,
+        title: true,
+        displayName: true,
+        description: true,
+        type: true,
+        category: true,
+        registryId: true,
+        teacherOnly: true,
+        displayOrder: true,
+        config: true,
+        updatedAt: true,
+      },
     });
     return NextResponse.json(resources);
   } catch (error) {

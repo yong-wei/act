@@ -105,6 +105,53 @@ const PhysicsModelingPractice = dynamic(
     { loading: loadingFallback('Physics Modeling Practice') }
 );
 
+// Lesson-13 组件
+const Lesson13PhysicsBuilderSimple = dynamic(
+    () => import('@/resources/interactive-learning/lesson-13/physics-builder-simple'),
+    { ssr: false, loading: loadingFallback('阻尼调节实验') }
+);
+
+const Lesson13ISO2631Mapping = dynamic(
+    () => import('@/resources/interactive-learning/lesson-13/iso2631-mapping'),
+    { ssr: false, loading: loadingFallback('ISO 2631 舒适度映射') }
+);
+
+const Lesson13CruiseTyphoonSim = dynamic(
+    () => import('@/resources/interactive-learning/lesson-13/cruise-typhoon-sim'),
+    { ssr: false, loading: loadingFallback('香槟塔保卫战') }
+);
+
+// 课堂组件
+const ClassroomVideoComponent = dynamic(
+    () => import('@/components/classroom').then(mod => mod.VideoComponent),
+    { ssr: false, loading: loadingFallback('视频播放组件') }
+);
+
+const ClassroomPollComponent = dynamic(
+    () => import('@/components/classroom').then(mod => mod.PollComponent),
+    { ssr: false, loading: loadingFallback('课堂投票组件') }
+);
+
+const ClassroomObjectiveCard = dynamic(
+    () => import('@/components/classroom').then(mod => mod.ObjectiveCard),
+    { ssr: false, loading: loadingFallback('学习目标展示') }
+);
+
+const ClassroomAssessmentProbe = dynamic(
+    () => import('@/components/classroom').then(mod => mod.AssessmentProbe),
+    { ssr: false, loading: loadingFallback('后测评估探针') }
+);
+
+const ClassroomEthicalTrigger = dynamic(
+    () => import('@/components/classroom').then(mod => mod.EthicalTrigger),
+    { ssr: false, loading: loadingFallback('伦理熔断触发器') }
+);
+
+const ClassroomAIDynamicReport = dynamic(
+    () => import('@/components/classroom').then(mod => mod.AIDynamicReport),
+    { ssr: false, loading: loadingFallback('AI动态报告') }
+);
+
 // 注册表
 const registry: Record<string, ResourceComponentConfig> = {
     'sim-pid-v1': {
@@ -226,6 +273,62 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: 'Physics Modeling - Practice',
         type: 'INTERACTIVE_COMP',
         component: PhysicsModelingPractice
+    },
+    // Lesson-13 组件
+    'lesson13-physics-builder-simple': {
+        id: 'lesson13-physics-builder-simple',
+        label: '阻尼调节实验',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson13PhysicsBuilderSimple
+    },
+    'lesson13-iso2631-mapping': {
+        id: 'lesson13-iso2631-mapping',
+        label: 'ISO 2631 舒适度映射',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson13ISO2631Mapping
+    },
+    'lesson13-cruise-typhoon-sim': {
+        id: 'lesson13-cruise-typhoon-sim',
+        label: '香槟塔保卫战',
+        type: 'SIMULATION_APP',
+        component: Lesson13CruiseTyphoonSim
+    },
+    // 课堂组件（教师专用）
+    'classroom-video': {
+        id: 'classroom-video',
+        label: '视频播放组件',
+        type: 'INTERACTIVE_COMP',
+        component: ClassroomVideoComponent
+    },
+    'classroom-poll': {
+        id: 'classroom-poll',
+        label: '课堂投票组件',
+        type: 'INTERACTIVE_COMP',
+        component: ClassroomPollComponent
+    },
+    'classroom-objective': {
+        id: 'classroom-objective',
+        label: '学习目标展示',
+        type: 'INTERACTIVE_COMP',
+        component: ClassroomObjectiveCard
+    },
+    'classroom-assessment': {
+        id: 'classroom-assessment',
+        label: '后测评估探针',
+        type: 'INTERACTIVE_COMP',
+        component: ClassroomAssessmentProbe
+    },
+    'classroom-ethical-trigger': {
+        id: 'classroom-ethical-trigger',
+        label: '伦理熔断触发器',
+        type: 'INTERACTIVE_COMP',
+        component: ClassroomEthicalTrigger
+    },
+    'classroom-ai-report': {
+        id: 'classroom-ai-report',
+        label: 'AI动态报告',
+        type: 'INTERACTIVE_COMP',
+        component: ClassroomAIDynamicReport
     }
 };
 
