@@ -630,6 +630,9 @@ model LessonItem {
 
   duration Int? // 预计时长 (分钟)
 
+  // 环节级配置覆盖（仅在本教案中生效）
+  overrideConfig Json? @default("{}") // { titleOverride?: string, descriptionOverride?: string }
+
   createdAt DateTime @default(now())
 
   @@index([planId])

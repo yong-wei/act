@@ -103,7 +103,8 @@ export async function PATCH(
                 knowledgeNodeId: itemType === LessonItemType.KNOWLEDGE_NODE ? item.knowledgeNodeId : null,
                 stage: item.stage as BopppsStage,
                 order: item.order,
-                duration: item.duration
+                duration: item.duration,
+                overrideConfig: item.overrideConfig || {},
               };
             })
           }

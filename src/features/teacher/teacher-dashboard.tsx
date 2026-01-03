@@ -10,6 +10,7 @@ import {
   Radio,
   ChevronRight,
   Clock,
+  Library,
 } from 'lucide-react';
 
 interface TeacherDashboardProps {
@@ -98,7 +99,7 @@ export function TeacherDashboard({
       </div>
 
       {/* 快捷操作 */}
-      <div className="mb-8 grid gap-4 md:grid-cols-3">
+      <div className="mb-8 grid gap-4 md:grid-cols-4">
         <QuickAction
           href="/teacher/classes/new"
           icon={<Plus className="h-5 w-5" />}
@@ -119,6 +120,13 @@ export function TeacherDashboard({
           title="开始上课"
           description="选择教案开始课堂"
           color="bg-emerald-500/20 text-emerald-400"
+        />
+        <QuickAction
+          href="/teacher/resources"
+          icon={<Library className="h-5 w-5" />}
+          title="教学资源管理"
+          description="管理互动组件与知识卡片"
+          color="bg-purple-500/20 text-purple-400"
         />
       </div>
 

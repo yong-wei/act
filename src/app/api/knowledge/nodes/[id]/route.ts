@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function GET(
   _request: Request,
@@ -94,6 +96,40 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching knowledge node:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 检查权限：仅 TEACHER 或 ADMIN 可编辑
+    if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { name, description, metadata } = body;
+
+    const node = await prisma.knowledgeNode.update({
+      where: { id: params.id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+        ...(metadata !== undefined && { metadata }),
+      },
+    });
+
+    return NextResponse.json(node);
+  } catch (error) {
+    console.error('Error updating knowledge node:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

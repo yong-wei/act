@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BookOpen, Code, FileText, Video, Save, Trash2, Layout, Search, GripVertical, Eye,
-  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Presentation, Filter
+  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Presentation, Filter, Pencil
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -32,6 +32,7 @@ type ExtendedTeachingResource = TeachingResource & {
 import { KnowledgeCardDialog } from '@/features/knowledge/knowledge-card';
 import type { KnowledgeNodeData } from '@/features/knowledge/knowledge-graph-system';
 import { ResourceRenderer } from './resource-renderer';
+import { LessonItemEditDialog, LessonItemOverrideConfig } from './lesson-item-edit-dialog';
 
 // @dnd-kit imports
 import {
@@ -73,6 +74,7 @@ interface LessonItemDraft {
   knowledgeNodeId?: string | null;
   knowledgeNodeType?: string | null;
   duration: number;
+  overrideConfig?: LessonItemOverrideConfig;
 }
 
 interface DragPayload {
@@ -96,9 +98,10 @@ interface SortableItemProps {
   idx: number;
   onRemove: () => void;
   onDurationChange: (d: number) => void;
+  onEdit: () => void;
 }
 
-function SortableItem({ item, idx, onRemove, onDurationChange }: SortableItemProps) {
+function SortableItem({ item, idx, onRemove, onDurationChange, onEdit }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -135,10 +138,22 @@ function SortableItem({ item, idx, onRemove, onDurationChange }: SortableItemPro
       </div>
       <div className="flex-1">
         <div className="flex items-start justify-between">
-          <h4 className="font-medium text-slate-200">{item.resourceTitle}</h4>
-          <button onClick={onRemove} className="text-slate-500 hover:text-red-400">
-            <Trash2 className="h-4 w-4" />
-          </button>
+          <div>
+            <h4 className="font-medium text-slate-200">
+              {item.overrideConfig?.titleOverride || item.resourceTitle}
+            </h4>
+            {item.overrideConfig?.titleOverride && (
+              <span className="text-[10px] text-cyan-400">已自定义标题</span>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={onEdit} className="text-slate-500 hover:text-cyan-400" title="编辑">
+              <Pencil className="h-4 w-4" />
+            </button>
+            <button onClick={onRemove} className="text-slate-500 hover:text-red-400" title="删除">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
           <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700">
@@ -190,6 +205,9 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
   // Preview state
   const [previewResource, setPreviewResource] = useState<TeachingResource | null>(null);
   const [previewKnowledge, setPreviewKnowledge] = useState<KnowledgeNodeData | null>(null);
+
+  // Edit dialog state
+  const [editingItem, setEditingItem] = useState<{ stage: StageId; index: number; item: LessonItemDraft } | null>(null);
 
   // DnD Kit sensors for sortable
   const sensors = useSensors(
@@ -248,7 +266,8 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
                       knowledgeNodeType: itemType === LessonItemType.KNOWLEDGE_NODE
                         ? item.knowledgeNode?.nodeType || 'UNKNOWN'
                         : null,
-                      duration: item.duration || 10
+                      duration: item.duration || 10,
+                      overrideConfig: item.overrideConfig || {}
                   });
               }
           });
@@ -351,6 +370,14 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
       });
   };
 
+  const updateItemOverride = (stage: StageId, index: number, overrideConfig: LessonItemOverrideConfig) => {
+      setPlanState(prev => {
+          const newItems = [...prev[stage]];
+          newItems[index] = { ...newItems[index], overrideConfig };
+          return { ...prev, [stage]: newItems };
+      });
+  };
+
   const savePlan = async () => {
       if (!title) return alert('请输入教案标题');
       setIsSaving(true);
@@ -362,6 +389,7 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
         stage: string;
         order: number;
         duration: number;
+        overrideConfig?: LessonItemOverrideConfig;
       }[] = [];
       for (const stage of Object.keys(planState)) {
           const items = planState[stage as StageId];
@@ -372,7 +400,8 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
                   knowledgeNodeId: item.itemType === LessonItemType.KNOWLEDGE_NODE ? item.knowledgeNodeId || null : null,
                   stage: stage,
                   order: idx + 1,
-                  duration: item.duration
+                  duration: item.duration,
+                  overrideConfig: item.overrideConfig || {}
               });
           });
       }
@@ -695,6 +724,7 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
                                                 idx={idx}
                                                 onRemove={() => removeFromStage(stage.id, idx)}
                                                 onDurationChange={(d) => updateItemDuration(stage.id, idx, d)}
+                                                onEdit={() => setEditingItem({ stage: stage.id, index: idx, item })}
                                             />
                                         ))}
                                     </SortableContext>
@@ -735,6 +765,23 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
                     }
                 }}
                 node={previewKnowledge}
+            />
+        )}
+
+        {/* Lesson Item Edit Dialog */}
+        {editingItem && (
+            <LessonItemEditDialog
+                open={!!editingItem}
+                onOpenChange={(open) => {
+                    if (!open) setEditingItem(null);
+                }}
+                originalTitle={editingItem.item.resourceTitle}
+                originalDescription={undefined}
+                currentOverride={editingItem.item.overrideConfig}
+                onSave={(config) => {
+                    updateItemOverride(editingItem.stage, editingItem.index, config);
+                    setEditingItem(null);
+                }}
             />
         )}
     </div>
