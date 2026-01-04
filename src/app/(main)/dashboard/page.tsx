@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Home } from 'lucide-react';
+import { Home, Users } from 'lucide-react';
 
 import { UserMenu } from '@/components/shared/user-menu';
 import { getServerAuthSession } from '@/lib/auth';
@@ -112,6 +112,21 @@ export default async function DashboardPage() {
               color="text-purple-400"
             />
           </div>
+        </div>
+
+        {/* 加入课堂 - 醒目入口 */}
+        <div className="mb-8">
+          <Link
+            href="/classroom/join"
+            className="flex items-center justify-center gap-3 w-full py-5 rounded-2xl
+              bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500
+              text-white font-medium text-lg transition-all shadow-lg shadow-cyan-900/30
+              border border-cyan-500/30"
+          >
+            <Users className="h-6 w-6" />
+            加入课堂
+            <span className="ml-2 text-sm opacity-80">输入6位课堂码</span>
+          </Link>
         </div>
 
         {/* 功能模块网格 */}

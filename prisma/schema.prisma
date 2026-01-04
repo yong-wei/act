@@ -117,6 +117,7 @@ model Class {
   isActive    Boolean @default(true)
 
   students StudentProfile[]
+  sessions ClassSession[] // 班级的课堂会话
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -602,6 +603,10 @@ model LessonPlan {
   author      User    @relation(fields: [authorId], references: [id])
   isPublic    Boolean @default(false)
 
+  // 预置教案标识
+  isPreset    Boolean @default(false)  // 系统预置教案
+  presetKey   String? @unique          // 预置教案唯一标识 (如 "cruise-comfort-v1")
+
   // BOPPPS 结构化环节
   items LessonItem[]
 
@@ -652,6 +657,10 @@ model ClassSession {
   teacherId String
   teacher   User   @relation(fields: [teacherId], references: [id])
 
+  // 关联班级 - 仅限该班级学生加入（可选，向后兼容旧数据）
+  classId String?
+  class   Class?  @relation(fields: [classId], references: [id])
+
   status SessionStatus @default(ACTIVE)
 
   // 当前进度控制
@@ -662,6 +671,8 @@ model ClassSession {
   endTime   DateTime?
 
   studentStates StudentState[]
+
+  @@index([classId])
 }
 
 enum SessionStatus {

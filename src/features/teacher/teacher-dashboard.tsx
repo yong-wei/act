@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Clock,
   Library,
+  FileText,
 } from 'lucide-react';
 
 interface TeacherDashboardProps {
@@ -42,6 +43,8 @@ interface TeacherDashboardProps {
     planTitle: string;
     joinCode: string;
     studentCount: number;
+    className?: string;
+    classId?: string;
   }>;
 }
 
@@ -99,7 +102,7 @@ export function TeacherDashboard({
       </div>
 
       {/* 快捷操作 */}
-      <div className="mb-8 grid gap-4 md:grid-cols-4">
+      <div className="mb-8 grid gap-4 md:grid-cols-5">
         <QuickAction
           href="/teacher/classes/new"
           icon={<Plus className="h-5 w-5" />}
@@ -115,10 +118,17 @@ export function TeacherDashboard({
           color="bg-amber-500/20 text-amber-400"
         />
         <QuickAction
-          href="/teacher/lesson-plans"
+          href="/teacher/preset-lessons"
+          icon={<FileText className="h-5 w-5" />}
+          title="预置教案"
+          description="浏览系统预置的教学模板"
+          color="bg-cyan-500/20 text-cyan-400"
+        />
+        <QuickAction
+          href="/teacher/classes"
           icon={<Play className="h-5 w-5" />}
           title="开始上课"
-          description="选择教案开始课堂"
+          description="进入班级开始课堂"
           color="bg-emerald-500/20 text-emerald-400"
         />
         <QuickAction
@@ -151,9 +161,12 @@ export function TeacherDashboard({
                     <div>
                       <p className="font-medium text-white">{session.planTitle}</p>
                       <p className="mt-1 text-sm text-slate-400">
+                        {session.className && (
+                          <span className="text-sky-400">{session.className} · </span>
+                        )}
                         加入码: <span className="font-mono text-rose-400">{session.joinCode}</span>
                         {' · '}
-                        {session.studentCount} 名学生在线
+                        {session.studentCount} 人在线
                       </p>
                     </div>
                     <ChevronRight className="h-5 w-5 text-slate-400" />

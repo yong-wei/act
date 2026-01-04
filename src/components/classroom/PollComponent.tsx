@@ -10,7 +10,7 @@
  * - 多选/单选模式
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Vote,
   Settings,
@@ -265,8 +265,12 @@ function PollPlayer({
   classroomSession?: string;
   userId?: string;
 }) {
+  // 防御性检查：确保 options 存在 - 使用 useMemo 避免每次渲染重建
+  const options = useMemo(() => config?.options ?? [], [config?.options]);
+  const isValidConfig = options.length > 0;
+
   const [pollState, setPollState] = useState<PollState>({
-    results: config.options.map((opt) => ({
+    results: options.map((opt) => ({
       optionKey: opt.key,
       count: 0,
       percentage: 0,
@@ -276,15 +280,15 @@ function PollPlayer({
     isClosed: false,
   });
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-  const [timeRemaining, setTimeRemaining] = useState(config.timeLimit || 0);
+  const [timeRemaining, setTimeRemaining] = useState(config?.timeLimit || 0);
 
   // 模拟获取投票数据
   useEffect(() => {
     // TODO: 实际实现应从API获取
     // 这里使用模拟数据
-    if (config.showLiveResults) {
+    if (isValidConfig && config?.showLiveResults) {
       // 模拟一些初始投票
-      const mockResults: PollResult[] = config.options.map((opt, i) => ({
+      const mockResults: PollResult[] = options.map((opt) => ({
         optionKey: opt.key,
         count: Math.floor(Math.random() * 10),
         percentage: 0,
@@ -299,11 +303,11 @@ function PollPlayer({
         totalVotes: total,
       }));
     }
-  }, [config.options, config.showLiveResults]);
+  }, [options, config?.showLiveResults, isValidConfig]);
 
   // 倒计时
   useEffect(() => {
-    if (config.timeLimit && config.timeLimit > 0 && !pollState.isClosed) {
+    if (isValidConfig && config?.timeLimit && config.timeLimit > 0 && !pollState.isClosed) {
       const timer = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
@@ -315,20 +319,9 @@ function PollPlayer({
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [config.timeLimit, pollState.isClosed]);
+  }, [config?.timeLimit, pollState.isClosed, isValidConfig]);
 
-  const handleOptionClick = (key: string) => {
-    if (pollState.hasVoted || pollState.isClosed) return;
-
-    if (config.multiSelect) {
-      setSelectedOptions((prev) =>
-        prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-      );
-    } else {
-      setSelectedOptions([key]);
-    }
-  };
-
+  // 提交投票 - 必须在条件返回之前定义所有 hooks
   const handleSubmit = useCallback(() => {
     if (selectedOptions.length === 0 || pollState.hasVoted) return;
 
@@ -355,6 +348,31 @@ function PollPlayer({
 
     // TODO: 实际实现应提交到API
   }, [selectedOptions, pollState]);
+
+  // 如果配置无效，显示错误提示 - 必须在所有 hooks 之后
+  if (!isValidConfig) {
+    return (
+      <div className="h-full flex items-center justify-center bg-slate-900 rounded-xl">
+        <div className="text-center text-slate-400">
+          <Vote className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          <p>投票组件配置不完整</p>
+          <p className="text-sm text-slate-500 mt-1">请在编辑模式下配置投票选项</p>
+        </div>
+      </div>
+    );
+  }
+
+  const handleOptionClick = (key: string) => {
+    if (pollState.hasVoted || pollState.isClosed) return;
+
+    if (config.multiSelect) {
+      setSelectedOptions((prev) =>
+        prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+      );
+    } else {
+      setSelectedOptions([key]);
+    }
+  };
 
   const showResults = pollState.hasVoted || pollState.isClosed || config.showLiveResults;
 

@@ -27,6 +27,7 @@ export default async function TeacherPage() {
       },
       include: {
         plan: { select: { title: true } },
+        class: { select: { id: true, name: true } },
         _count: { select: { studentStates: true } },
       },
     }),
@@ -73,6 +74,8 @@ export default async function TeacherPage() {
         planTitle: s.plan.title,
         joinCode: s.joinCode,
         studentCount: s._count.studentStates,
+        className: s.class?.name,
+        classId: s.class?.id,
       }))}
     />
   );

@@ -53,22 +53,24 @@ export function AssessmentProbe({
   onSubmit,
   isCompleted = false,
 }: AssessmentProbeProps) {
+  // 防御性检查：确保 parameters 存在
+  const parameters = config?.parameters ?? [];
+  const isValidConfig = parameters.length > 0 && config?.scoring;
+
   const [isEditing, setIsEditing] = useState(mode === 'edit');
   const [editConfig, setEditConfig] = useState(config);
-  const [params, setParams] = useState<Record<string, number>>({});
+  const [params, setParams] = useState<Record<string, number>>(() => {
+    // 初始化参数值
+    const initialParams: Record<string, number> = {};
+    parameters.forEach((param) => {
+      initialParams[param.id] = param.defaultValue ?? (param.min + param.max) / 2;
+    });
+    return initialParams;
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<SubmissionResult | null>(null);
 
-  // 初始化参数值
-  useMemo(() => {
-    const initialParams: Record<string, number> = {};
-    config.parameters.forEach((param) => {
-      initialParams[param.id] = param.defaultValue ?? (param.min + param.max) / 2;
-    });
-    setParams(initialParams);
-  }, [config.parameters]);
-
-  // 处理参数变化
+  // 处理参数变化 - 必须在条件返回之前定义所有 hooks
   const handleParamChange = useCallback((paramId: string, value: number) => {
     setParams((prev) => ({
       ...prev,
@@ -87,7 +89,6 @@ export function AssessmentProbe({
       const Kp = submittedParams['kp'] ?? 1;
       const Ki = submittedParams['ki'] ?? 0;
       const Kd = submittedParams['kd'] ?? 0;
-      const zeta = submittedParams['zeta'] ?? 0.7;
 
       // 简化的评估模型
       const overshoot = Math.max(0, 20 - Kd * 30 + Kp * 10);
@@ -101,7 +102,8 @@ export function AssessmentProbe({
       const violations = maxAccel > 0.2 ? 1 : 0;
 
       // 评分公式: Score = 100 / (1 + MSI/100) - Penalty × N_fail
-      const { baseScore, msiWeight, penaltyPerViolation } = config.scoring;
+      const scoring = config?.scoring ?? { baseScore: 100, msiWeight: 1, penaltyPerViolation: 10 };
+      const { baseScore, msiWeight, penaltyPerViolation } = scoring;
       const score = Math.max(
         0,
         Math.round(baseScore / (1 + (msi / 100) * msiWeight) - penaltyPerViolation * violations)
@@ -137,7 +139,7 @@ export function AssessmentProbe({
         feedback,
       };
     },
-    [config.scoring]
+    [config?.scoring]
   );
 
   // 提交评估
@@ -157,18 +159,31 @@ export function AssessmentProbe({
   // 重置
   const handleReset = useCallback(() => {
     const initialParams: Record<string, number> = {};
-    config.parameters.forEach((param) => {
+    (config?.parameters ?? []).forEach((param) => {
       initialParams[param.id] = param.defaultValue ?? (param.min + param.max) / 2;
     });
     setParams(initialParams);
     setResult(null);
-  }, [config.parameters]);
+  }, [config?.parameters]);
 
   // 保存编辑
   const handleSaveEdit = useCallback(() => {
     onConfigChange?.(editConfig);
     setIsEditing(false);
   }, [editConfig, onConfigChange]);
+
+  // 如果配置无效，显示错误提示 - 必须在所有 hooks 之后
+  if (!isValidConfig) {
+    return (
+      <div className="h-full flex items-center justify-center bg-slate-900 rounded-xl">
+        <div className="text-center text-slate-400">
+          <Calculator className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          <p>评估探针配置不完整</p>
+          <p className="text-sm text-slate-500 mt-1">请在编辑模式下配置评估参数</p>
+        </div>
+      </div>
+    );
+  }
 
   // 评级颜色
   const gradeColors = {

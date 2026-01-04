@@ -13,6 +13,7 @@ export default function JoinClassroomPage() {
     id: string;
     plan: { title: string };
     teacher: { name: string };
+    class?: { name: string };
   } | null>(null);
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,8 +100,11 @@ export default function JoinClassroomPage() {
             <div className="mb-4 p-4 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
               <div className="text-cyan-400 text-sm font-medium mb-1">找到课堂</div>
               <div className="text-white font-bold">{sessionInfo.plan.title}</div>
-              <div className="text-slate-400 text-sm mt-1">
-                教师: {sessionInfo.teacher.name}
+              <div className="text-slate-400 text-sm mt-1 space-y-0.5">
+                <div>教师: {sessionInfo.teacher.name}</div>
+                {sessionInfo.class && (
+                  <div>班级: {sessionInfo.class.name}</div>
+                )}
               </div>
             </div>
           )}

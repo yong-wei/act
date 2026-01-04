@@ -15,9 +15,44 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
     const body = await request.json();
-    const { planId } = body;
+    const { planId, classId } = body;
 
-    if (!planId) return NextResponse.json({ error: 'Plan ID required' }, { status: 400 });
+    if (!planId) {
+      return NextResponse.json({ error: '请选择教案' }, { status: 400 });
+    }
+
+    if (!classId) {
+      return NextResponse.json({ error: '请选择班级' }, { status: 400 });
+    }
+
+    // 验证班级存在且属于当前教师
+    const classData = await prisma.class.findUnique({
+      where: { id: classId },
+      select: { id: true, teacherId: true, name: true }
+    });
+
+    if (!classData) {
+      return NextResponse.json({ error: '班级不存在' }, { status: 404 });
+    }
+
+    if (classData.teacherId !== user.id && user.role !== 'ADMIN') {
+      return NextResponse.json({ error: '无权在此班级开始课堂' }, { status: 403 });
+    }
+
+    // 检查该班级是否有进行中的课堂
+    const activeSession = await prisma.classSession.findFirst({
+      where: {
+        classId,
+        status: 'ACTIVE'
+      }
+    });
+
+    if (activeSession) {
+      return NextResponse.json({
+        error: '该班级已有进行中的课堂，请先结束后再开始新课堂',
+        existingSessionId: activeSession.id
+      }, { status: 409 });
+    }
 
     // Generate Join Code (simple 6 digits)
     const joinCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -27,10 +62,14 @@ export async function POST(request: Request) {
         joinCode,
         planId,
         teacherId: user.id,
+        classId,
         status: 'ACTIVE',
-        // Initialize to first item
         currentStage: 'BRIDGE_IN',
-        currentItemId: undefined // Will be set when first item is activated
+        currentItemId: undefined
+      },
+      include: {
+        plan: { select: { title: true } },
+        class: { select: { name: true } }
       }
     });
 

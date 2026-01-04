@@ -73,13 +73,32 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
       }
   };
 
-  const handleEndClass = () => {
-      if (confirm('确定要结束课堂吗？')) {
-          // 教师返回教师教案页，管理员返回管理员教案页
-          const returnPath = window.location.pathname.includes('/classroom/teacher')
-            ? '/teacher/lesson-plans'
-            : '/admin/lesson-plans';
-          router.push(returnPath);
+  const handleEndClass = async () => {
+      if (confirm('确定要结束课堂吗？结束后学生将无法继续参与互动。')) {
+          try {
+              // 调用 API 更新课堂状态为已结束
+              const res = await fetch(`/api/session/${session.id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ status: 'FINISHED' })
+              });
+
+              if (!res.ok) {
+                  const error = await res.json();
+                  throw new Error(error.error || '结束课堂失败');
+              }
+
+              // 教师返回班级详情页（如果有classId），否则返回教案列表
+              const returnPath = session.classId
+                  ? `/teacher/classes/${session.classId}`
+                  : (window.location.pathname.includes('/classroom/teacher')
+                      ? '/teacher/lesson-plans'
+                      : '/admin/lesson-plans');
+              router.push(returnPath);
+          } catch (error) {
+              console.error('结束课堂失败:', error);
+              alert(error instanceof Error ? error.message : '结束课堂失败，请重试');
+          }
       }
   };
 

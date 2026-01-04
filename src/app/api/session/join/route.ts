@@ -1,12 +1,21 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 /**
  * 根据入会码查找课堂会话
  * GET /api/session/join?code=123456
+ *
+ * 仅限该课堂所属班级的学生加入
  */
 export async function GET(request: Request) {
   try {
+    const userSession = await getServerSession(authOptions);
+    if (!userSession?.user?.id) {
+      return NextResponse.json({ error: '请先登录' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const joinCode = searchParams.get('code');
 
@@ -17,7 +26,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const session = await prisma.classSession.findUnique({
+    const classSession = await prisma.classSession.findUnique({
       where: { joinCode },
       select: {
         id: true,
@@ -25,6 +34,7 @@ export async function GET(request: Request) {
         status: true,
         currentStage: true,
         currentItemId: true,
+        classId: true,
         plan: {
           select: {
             id: true,
@@ -36,24 +46,53 @@ export async function GET(request: Request) {
             name: true,
           },
         },
+        class: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
-    if (!session) {
+    if (!classSession) {
       return NextResponse.json(
         { error: '未找到该入会码对应的课堂' },
         { status: 404 }
       );
     }
 
-    if (session.status === 'FINISHED') {
+    if (classSession.status === 'FINISHED') {
       return NextResponse.json(
         { error: '该课堂已结束' },
         { status: 410 }
       );
     }
 
-    return NextResponse.json(session);
+    // 如果课堂关联了班级，验证学生是否属于该班级
+    if (classSession.classId) {
+      // 教师和管理员可以直接进入
+      if (userSession.user.role === 'TEACHER' || userSession.user.role === 'ADMIN') {
+        return NextResponse.json(classSession);
+      }
+
+      // 学生必须属于该班级
+      const studentProfile = await prisma.studentProfile.findUnique({
+        where: { userId: userSession.user.id },
+        select: { classId: true }
+      });
+
+      if (!studentProfile || studentProfile.classId !== classSession.classId) {
+        return NextResponse.json(
+          {
+            error: '您不是该班级的学生，无法加入此课堂',
+            className: classSession.class?.name
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    return NextResponse.json(classSession);
   } catch (error) {
     console.error('Error finding session by join code:', error);
     return NextResponse.json(
