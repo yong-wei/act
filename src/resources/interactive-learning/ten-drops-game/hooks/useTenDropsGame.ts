@@ -40,9 +40,14 @@ interface GameActions {
   setCellReceiving: (position: Position, isReceiving: boolean) => void;
 }
 
+interface HistorySnapshot {
+  board: GameBoard;
+  dropsAvailable: number;
+}
+
 interface GameStore extends GameState, GameActions {
   // 历史记录（用于撤销）
-  history: GameBoard[];
+  history: HistorySnapshot[];
   // 当前关卡配置
   currentLevelConfig: LevelConfig | null;
   // 飞行中的水滴（用于动画）
@@ -51,8 +56,8 @@ interface GameStore extends GameState, GameActions {
 
 const initialState: Omit<GameStore, keyof GameActions> = {
   board: [],
-  moves: 0,
-  maxMoves: 10,
+  dropsAvailable: 0,
+  initialDrops: 0,
   score: 0,
   gameStatus: 'idle',
   chainCount: 0,
@@ -262,4 +267,3 @@ export const selectCanUndo = (state: GameStore) =>
   state.history.length > 0 && state.gameStatus === 'playing';
 export const selectCurrentLevel = (state: GameStore) => state.currentLevelConfig;
 export const selectActiveFlyingDrops = (state: GameStore) => state.activeFlyingDrops;
-

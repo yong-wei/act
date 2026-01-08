@@ -135,7 +135,7 @@ export const LevelSelector = memo(function LevelSelector({
                         <span>
                           {level.gridSize.rows}×{level.gridSize.cols} 棋盘
                         </span>
-                        <span>{level.maxMoves} 步限制</span>
+                        <span>{level.initialDrops} 初始水滴</span>
                       </div>
                     </div>
 

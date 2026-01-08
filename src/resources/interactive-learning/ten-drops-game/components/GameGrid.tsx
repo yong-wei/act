@@ -32,6 +32,7 @@ const ROTATION_MAP: Record<string, number> = {
   down: 180,
   left: 270,
 };
+const ROTATION_OFFSET = 180;
 
 /**
  * 飞行水滴组件
@@ -97,7 +98,7 @@ const Projectile = memo(function Projectile({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        transform: `rotate(${ROTATION_MAP[drop.direction]}deg)`,
+        transform: `rotate(${(ROTATION_MAP[drop.direction] + ROTATION_OFFSET) % 360}deg)`,
       }}
     >
       <FlyingDropIcon size={cellSize * 0.5} />

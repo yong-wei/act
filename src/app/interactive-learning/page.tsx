@@ -10,6 +10,7 @@ import {
   Radio,
   Sliders,
   Shuffle,
+  Sparkles,
   Ship,
   Clock,
 } from 'lucide-react';
@@ -73,6 +74,12 @@ const CATEGORY_CONFIG: Record<
     color: 'rose',
     description: '处理非线性系统和伦理决策',
   },
+  FUN_EXPLORATION: {
+    label: '趣味探索',
+    icon: Sparkles,
+    color: 'fuchsia',
+    description: '以轻量游戏体验控制思维与系统直觉',
+  },
 };
 
 // 分类顺序
@@ -83,6 +90,7 @@ const CATEGORY_ORDER = [
   'FREQUENCY_DOMAIN',
   'SYSTEM_CORRECTION',
   'NONLINEAR',
+  'FUN_EXPLORATION',
 ];
 
 // 颜色类
@@ -134,6 +142,13 @@ const colorClasses: Record<string, {
     border: 'border-rose-500/30 hover:border-rose-500/60',
     badge: 'bg-rose-500/20 text-rose-400',
     sectionBorder: 'border-l-rose-500',
+  },
+  fuchsia: {
+    iconBg: 'bg-fuchsia-500/20',
+    iconText: 'text-fuchsia-400',
+    border: 'border-fuchsia-500/30 hover:border-fuchsia-500/60',
+    badge: 'bg-fuchsia-500/20 text-fuchsia-400',
+    sectionBorder: 'border-l-fuchsia-500',
   },
 };
 

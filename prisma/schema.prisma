@@ -541,6 +541,7 @@ enum InteractiveCategory {
   FREQUENCY_DOMAIN // 频域分析
   SYSTEM_CORRECTION // 系统校正
   NONLINEAR // 非线性
+  FUN_EXPLORATION // 趣味探索
   CLASSROOM // 课堂组件（教师专用）
 }
 

@@ -323,35 +323,37 @@ export function processAddDrop(
       chainDepth++;
       allExplodedCells.push(...explosionsThisRound);
 
-      // 收集所有飞行中的水滴
-      const flyingDrops: FlyingDrop[] = [];
-
       // 处理所有爆炸，清空格子并发射水滴
       for (const pos of explosionsThisRound) {
-        // 清空爆炸格子
         currentBoard[pos.row][pos.col].drops = 0;
+      }
 
-        // 向四个方向发射水滴
+      // 收集所有飞行中的水滴
+      const flyingDrops: FlyingDrop[] = [];
+      for (const pos of explosionsThisRound) {
         for (const direction of ALL_DIRECTIONS) {
-          flyingDrops.push({ position: pos, direction });
+          const landingPos = findDropLandingPosition(
+            currentBoard,
+            pos,
+            direction,
+            gridRows,
+            gridCols
+          );
+
+          flyingDrops.push({
+            id: `${chainDepth}-${pos.row}-${pos.col}-${direction}`,
+            from: pos,
+            to: landingPos,
+            direction,
+          });
         }
       }
 
       // 处理所有飞行的水滴，找到落点
       for (const drop of flyingDrops) {
-        const landingPos = findDropLandingPosition(
-          currentBoard,
-          drop.position,
-          drop.direction,
-          gridRows,
-          gridCols
-        );
-
-        // 如果有落点，增加水滴
-        if (landingPos) {
-          currentBoard[landingPos.row][landingPos.col].drops += 1;
+        if (drop.to) {
+          currentBoard[drop.to.row][drop.to.col].drops += 1;
         }
-        // 否则水滴飞出边界，消失
       }
     }
   }
@@ -383,7 +385,7 @@ export function getTotalDrops(board: GameBoard): number {
 /**
  * 计算得分
  *
- * 得分 = 基础分 + 剩余步数奖励 + 连锁奖励
+ * 得分 = 基础分 + 剩余水滴奖励 + 连锁奖励
  */
 export function calculateScore(
   cleared: boolean,
@@ -394,7 +396,7 @@ export function calculateScore(
   if (!cleared) return 0;
 
   const baseScore = GAME_CONFIG.BASE_SCORE;
-  const moveBonus = Math.max(0, maxMoves - movesUsed) * GAME_CONFIG.MOVE_BONUS;
+  const moveBonus = Math.max(0, maxMoves - movesUsed) * GAME_CONFIG.DROP_BONUS;
   const chainBonus = maxChain * GAME_CONFIG.CHAIN_BONUS;
 
   return baseScore + moveBonus + chainBonus;

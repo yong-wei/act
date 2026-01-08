@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import {
-  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Pencil,
+  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Sparkles, Pencil,
 } from 'lucide-react';
 import { ResourceEditDialog } from './resource-edit-dialog';
 import { useRouter } from 'next/navigation';
@@ -31,6 +31,7 @@ const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ElementType; 
   FREQUENCY_DOMAIN: { label: '频域分析', icon: Radio, color: 'text-cyan-400', bgColor: 'bg-cyan-500/10' },
   SYSTEM_CORRECTION: { label: '系统校正', icon: Sliders, color: 'text-amber-400', bgColor: 'bg-amber-500/10' },
   NONLINEAR: { label: '非线性', icon: Shuffle, color: 'text-rose-400', bgColor: 'bg-rose-500/10' },
+  FUN_EXPLORATION: { label: '趣味探索', icon: Sparkles, color: 'text-fuchsia-400', bgColor: 'bg-fuchsia-500/10' },
 };
 
 export function InteractiveResourceList({

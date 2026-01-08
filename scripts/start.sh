@@ -157,8 +157,8 @@ if [ -f "$PIDS_DIR/frontend.pid" ]; then
 fi
 
 # 启动开发服务器（后台运行）
-echo -e "  ${BLUE}启动命令: npm run dev${NC}"
-nohup npm run dev > "$LOGS_DIR/frontend.log" 2> "$LOGS_DIR/error.log" &
+echo -e "  ${BLUE}启动命令: npm run dev -- --hostname 127.0.0.1 --port 3001${NC}"
+nohup npm run dev -- --hostname 127.0.0.1 --port 3001 > "$LOGS_DIR/frontend.log" 2> "$LOGS_DIR/error.log" &
 FRONTEND_PID=$!
 echo "$FRONTEND_PID" > "$PIDS_DIR/frontend.pid"
 

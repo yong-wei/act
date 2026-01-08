@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BookOpen, Code, FileText, Video, Save, Trash2, Layout, Search, GripVertical, Eye,
-  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Presentation, Filter, Pencil
+  Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Sparkles, Presentation, Filter, Pencil
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -19,6 +19,7 @@ const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ElementType; 
   FREQUENCY_DOMAIN: { label: '频域分析', icon: Radio, color: 'text-cyan-400' },
   SYSTEM_CORRECTION: { label: '系统校正', icon: Sliders, color: 'text-amber-400' },
   NONLINEAR: { label: '非线性', icon: Shuffle, color: 'text-rose-400' },
+  FUN_EXPLORATION: { label: '趣味探索', icon: Sparkles, color: 'text-fuchsia-400' },
   CLASSROOM: { label: '课堂组件', icon: Presentation, color: 'text-purple-400' },
 };
 

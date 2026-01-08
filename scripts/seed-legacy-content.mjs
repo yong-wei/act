@@ -4,7 +4,7 @@
  * 运行: node scripts/seed-legacy-content.mjs
  */
 
-import { PrismaClient, ResourceType, KnowledgeNodeType } from '@prisma/client';
+import { PrismaClient, ResourceType, KnowledgeNodeType, InteractiveCategory } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -213,6 +213,16 @@ const teachingResources = [
   { registryId: 'physics-modeling-electrical-v1', title: 'Physics Modeling - Electrical', type: ResourceType.INTERACTIVE_COMP, description: '物理建模电路环节', config: {} },
   { registryId: 'physics-modeling-analogy-v1', title: 'Physics Modeling - Analogy', type: ResourceType.INTERACTIVE_COMP, description: '物理建模相似映射', config: {} },
   { registryId: 'physics-modeling-practice-v1', title: 'Physics Modeling - Practice', type: ResourceType.INTERACTIVE_COMP, description: '物理建模实战', config: {} },
+  {
+    registryId: 'ten-drops-game-v1',
+    title: 'Ten Drops Game',
+    type: ResourceType.INTERACTIVE_COMP,
+    description: '十滴水益智游戏',
+    displayName: '十滴水益智游戏',
+    category: InteractiveCategory.FUN_EXPLORATION,
+    displayOrder: 10,
+    config: { initialLevelId: 'tutorial-1', showEducation: true },
+  },
 ];
 
 async function upsertKnowledgeNodes() {
@@ -343,6 +353,10 @@ async function upsertTeachingResources(authorId) {
           registryId: resource.registryId,
           config: resource.config || {},
           authorId,
+          ...(resource.displayName ? { displayName: resource.displayName } : {}),
+          ...(resource.category ? { category: resource.category } : {}),
+          ...(typeof resource.displayOrder === 'number' ? { displayOrder: resource.displayOrder } : {}),
+          ...(typeof resource.teacherOnly === 'boolean' ? { teacherOnly: resource.teacherOnly } : {}),
         },
       });
     } else {
@@ -354,6 +368,10 @@ async function upsertTeachingResources(authorId) {
           registryId: resource.registryId,
           config: resource.config || {},
           authorId,
+          ...(resource.displayName ? { displayName: resource.displayName } : {}),
+          ...(resource.category ? { category: resource.category } : {}),
+          ...(typeof resource.displayOrder === 'number' ? { displayOrder: resource.displayOrder } : {}),
+          ...(typeof resource.teacherOnly === 'boolean' ? { teacherOnly: resource.teacherOnly } : {}),
         },
       });
     }
