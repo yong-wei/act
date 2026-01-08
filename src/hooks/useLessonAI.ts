@@ -7,7 +7,7 @@
  * 自动将课程上下文注入到 AI 对话中
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useLessonContext } from '@/features/lesson-engine/ContextInjector';
 import type { LessonContext } from '@/lib/ai-client';
 
@@ -50,18 +50,26 @@ export function useLessonAI(options: UseLessonAIOptions = {}): UseLessonAIReturn
 
   // 构建课程上下文
   // Note: LessonStep may not have stage property in legacy schema
-  const stepWithStage = lessonCtx.step as { stage?: string } | null;
-  const lessonContext: LessonContext | null = lessonCtx.step
-    ? {
-        stage: stepWithStage?.stage || undefined,
-        resourceTitle: lessonCtx.title || undefined,
-        aiPersona:
-          persona ||
-          (lessonCtx.aiConfig?.persona as 'tutor' | 'critic' | 'analyst') ||
-          undefined,
-        customPrompt: lessonCtx.aiConfig?.systemPromptExtension || undefined,
-      }
-    : null;
+  const lessonContext: LessonContext | null = useMemo(() => {
+    if (!lessonCtx.step) return null;
+
+    const stepWithStage = lessonCtx.step as { stage?: string } | null;
+    return {
+      stage: stepWithStage?.stage || undefined,
+      resourceTitle: lessonCtx.title || undefined,
+      aiPersona:
+        persona ||
+        (lessonCtx.aiConfig?.persona as 'tutor' | 'critic' | 'analyst') ||
+        undefined,
+      customPrompt: lessonCtx.aiConfig?.systemPromptExtension || undefined,
+    };
+  }, [
+    lessonCtx.step,
+    lessonCtx.title,
+    lessonCtx.aiConfig?.persona,
+    lessonCtx.aiConfig?.systemPromptExtension,
+    persona,
+  ]);
 
   const sendMessage = useCallback(
     async (content: string, messages: Message[] = []): Promise<string> => {

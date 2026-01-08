@@ -46,25 +46,25 @@ export function TargetEnvelopeEditor({
     (time: number) => {
       return padding.left + (time / duration) * (width - padding.left - padding.right);
     },
-    [duration]
+    [duration, padding.left, padding.right, width]
   );
 
   const headingToY = useCallback((heading: number) => {
     // 航向范围 -180 到 180
     const normalizedHeading = ((heading + 180) % 360) - 180;
     return padding.top + ((180 - normalizedHeading) / 360) * (height - padding.top - padding.bottom);
-  }, []);
+  }, [height, padding.bottom, padding.top]);
 
   const xToTime = useCallback(
     (x: number) => {
       return Math.max(0, Math.min(duration, ((x - padding.left) / (width - padding.left - padding.right)) * duration));
     },
-    [duration]
+    [duration, padding.left, padding.right, width]
   );
 
   const yToHeading = useCallback((y: number) => {
     return 180 - ((y - padding.top) / (height - padding.top - padding.bottom)) * 360;
-  }, []);
+  }, [height, padding.bottom, padding.top]);
 
   // 绘制画布
   const draw = useCallback(() => {
@@ -189,7 +189,19 @@ export function TargetEnvelopeEditor({
     ctx.rotate(-Math.PI / 2);
     ctx.fillText('航向 (度)', 0, 0);
     ctx.restore();
-  }, [points, selectedPointIndex, duration, timeToX, headingToY]);
+  }, [
+    points,
+    selectedPointIndex,
+    duration,
+    timeToX,
+    headingToY,
+    height,
+    width,
+    padding.bottom,
+    padding.left,
+    padding.right,
+    padding.top,
+  ]);
 
   useEffect(() => {
     draw();

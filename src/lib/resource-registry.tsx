@@ -163,6 +163,12 @@ const TenDropsGame = dynamic(
     { ssr: false, loading: loadingFallback('十滴水游戏') }
 );
 
+// Control Odyssey 游戏
+const ControlOdysseyGame = dynamic(
+    () => import('@/resources/interactive-learning/control-odyssey').then(mod => mod.ControlOdysseyGame),
+    { ssr: false, loading: loadingFallback('Control Odyssey') }
+);
+
 // 注册表
 const registry: Record<string, ResourceComponentConfig> = {
     'sim-pid-v1': {
@@ -357,6 +363,16 @@ const registry: Record<string, ResourceComponentConfig> = {
             showEducation: true
         },
         component: TenDropsGame
+    },
+    'control-odyssey-v1': {
+        id: 'control-odyssey-v1',
+        label: 'Control Odyssey: 穿越误差带',
+        type: 'INTERACTIVE_COMP',
+        defaultConfig: {
+            initialLevelId: 'level-1',
+            showEducation: true
+        },
+        component: ControlOdysseyGame
     }
 };
 

@@ -11,6 +11,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import {
   Play,
   Pause,
@@ -212,10 +213,12 @@ function VideoPanel({
       <div className="relative h-full bg-slate-900 rounded-lg overflow-hidden">
         {/* 占位符背景 */}
         {source ? (
-          <img
+          <Image
             src={source}
             alt="Video placeholder"
-            className="absolute inset-0 w-full h-full object-cover opacity-60"
+            fill
+            sizes="100vw"
+            className="object-cover opacity-60"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900" />

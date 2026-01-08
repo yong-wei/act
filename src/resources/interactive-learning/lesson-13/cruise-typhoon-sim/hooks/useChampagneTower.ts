@@ -165,16 +165,6 @@ export function useChampagneTower(
     };
   }, [step]);
 
-  // 自动重置
-  useEffect(() => {
-    if (autoReset && isFallingRef.current) {
-      const timer = setTimeout(() => {
-        reset();
-      }, resetDelay);
-      return () => clearTimeout(timer);
-    }
-  }, [autoReset, resetDelay, state.isFalling]);
-
   // 更新输入
   const updateInput = useCallback((lateralAccel: number, shipRoll: number = 0) => {
     stateRef.current.lateralAccel = lateralAccel;
@@ -198,6 +188,16 @@ export function useChampagneTower(
       lateralAccel: 0,
     });
   }, []);
+
+  // 自动重置
+  useEffect(() => {
+    if (autoReset && isFallingRef.current) {
+      const timer = setTimeout(() => {
+        reset();
+      }, resetDelay);
+      return () => clearTimeout(timer);
+    }
+  }, [autoReset, resetDelay, reset, state.isFalling]);
 
   return {
     state,

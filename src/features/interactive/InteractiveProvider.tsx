@@ -68,13 +68,15 @@ export function InteractiveProvider({
     },
   });
 
+  const { current: progressValue, isComplete: isProgressComplete } = progress;
+
   // 初始化 AI 钩子
   const ai = useInteractiveAI({
     config,
     persona: config.config.ai?.persona,
     contextData: {
-      progress: progress.current,
-      isComplete: progress.isComplete,
+      progress: progressValue,
+      isComplete: isProgressComplete,
     },
     onMessage: (message) => {
       if (message.role === 'user') {
@@ -105,18 +107,18 @@ export function InteractiveProvider({
     if (!onStateChange) return;
 
     const snapshot: InteractiveStateSnapshot = {
-      progress: progress.current,
-      isComplete: progress.isComplete,
+      progress: progressValue,
+      isComplete: isProgressComplete,
       events: tracking.getHistory(),
       timestamp: Date.now(),
     };
     onStateChange(snapshot);
-  }, [onStateChange, progress, tracking]);
+  }, [onStateChange, progressValue, isProgressComplete, tracking]);
 
   // 监听状态变化
   useEffect(() => {
     emitStateChange();
-  }, [progress.current, progress.isComplete, emitStateChange]);
+  }, [progressValue, isProgressComplete, emitStateChange]);
 
   // 组件挂载时发送 view 事件
   useEffect(() => {
@@ -136,7 +138,7 @@ export function InteractiveProvider({
         {showHeader && (
           <InteractiveHeader
             title={config.title}
-            progress={progress.current}
+            progress={progressValue}
             showAIToggle={showAIPanel && ai.isEnabled}
             isAIPanelOpen={ai.isPanelOpen}
             onToggleAIPanel={ai.togglePanel}

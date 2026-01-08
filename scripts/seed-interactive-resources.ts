@@ -222,6 +222,26 @@ const INTERACTIVE_RESOURCES = [
     category: InteractiveCategory.NONLINEAR,
     displayOrder: 1,
   },
+
+  // ===== 趣味探索 =====
+  {
+    registryId: 'control-odyssey-v1',
+    title: 'Control Odyssey: 穿越误差带',
+    displayName: 'Control Odyssey: 穿越误差带',
+    description: '通过游戏化方式体验比例控制、系统惯性与误差带限制，穿越控制系统的"奥德赛"之旅。',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.FUN_EXPLORATION,
+    displayOrder: 1,
+  },
+  {
+    registryId: 'ten-drops-game-v1',
+    title: '十滴水益智游戏',
+    displayName: '十滴水益智游戏',
+    description: '经典的逻辑消除游戏，培养多步预测与连锁反应思维。',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.FUN_EXPLORATION,
+    displayOrder: 2,
+  },
 ];
 
 // 课堂组件数据（教师专用）

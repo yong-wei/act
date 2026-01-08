@@ -6,7 +6,7 @@
  * 支持自由视角模式，用户拖动/缩放后不会自动回弹
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -156,7 +156,10 @@ export function UnifiedCameraController({
   const { camera } = useThree();
 
   // 合并配置
-  const cfg: Required<CameraConfig> = { ...defaultConfig, ...config };
+  const cfg: Required<CameraConfig> = useMemo(
+    () => ({ ...defaultConfig, ...config }),
+    [config]
+  );
 
   // 过渡状态
   const transitionRef = useRef<TransitionState>({
