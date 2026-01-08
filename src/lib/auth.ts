@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: 'Account', type: 'text' },
+        email: { label: '学号/工号', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
@@ -30,10 +30,14 @@ export const authOptions: NextAuthOptions = {
         const user = await prisma.user.findFirst({
           where: {
             OR: [
-              { email: { equals: identifier, mode: 'insensitive' } },
-              { name: { equals: identifier, mode: 'insensitive' } },
-              { profile: { is: { studentNumber: identifier } } },
-              { employeeNumber: identifier },
+              {
+                profile: {
+                  is: {
+                    studentNumber: { equals: identifier, mode: 'insensitive' },
+                  },
+                },
+              },
+              { employeeNumber: { equals: identifier, mode: 'insensitive' } },
             ],
           },
         });

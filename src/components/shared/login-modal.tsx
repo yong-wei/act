@@ -70,8 +70,8 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
 
         {/* 标题 */}
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-white">登录</h2>
-          <p className="mt-1 text-sm text-slate-400">请输入您的账号信息</p>
+          <h2 className="text-xl font-semibold text-white">账号登录</h2>
+          <p className="mt-1 text-sm text-slate-400">请输入学号或工号</p>
         </div>
 
         {/* 表单 */}
@@ -81,7 +81,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
               <input
                 type="text"
                 name="account"
-                placeholder="账号 / 邮箱 / 学号"
+                placeholder="学号/工号"
                 autoComplete="username"
                 value={account}
                 onChange={(e) => setAccount(e.target.value)}

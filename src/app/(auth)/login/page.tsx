@@ -30,7 +30,7 @@ export default function LoginPage() {
     setIsSubmitting(false);
 
     if (!result || result.error) {
-      setError('Invalid email or password.');
+      setError('账号或密码错误');
       return;
     }
 
@@ -47,14 +47,14 @@ export default function LoginPage() {
   return (
     <Card className="w-full border-slate-800 bg-slate-900/70">
       <CardHeader>
-        <CardTitle className="text-xl text-white">学生登录</CardTitle>
+        <CardTitle className="text-xl text-white">账号登录</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <Input
             type="text"
             name="account"
-            placeholder="账号/邮箱"
+            placeholder="学号/工号"
             autoComplete="username"
             value={account}
             onChange={(event) => setAccount(event.target.value)}

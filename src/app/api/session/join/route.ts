@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const joinCode = searchParams.get('code');
 
-    if (!joinCode || joinCode.length !== 6) {
+    if (!joinCode || !/^\d{6}$/.test(joinCode)) {
       return NextResponse.json(
         { error: '请输入有效的6位入会码' },
         { status: 400 }

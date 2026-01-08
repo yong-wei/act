@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { generateUniqueJoinCode } from '@/lib/join-code';
 
 export async function POST(request: Request) {
   try {
@@ -54,8 +55,7 @@ export async function POST(request: Request) {
       }, { status: 409 });
     }
 
-    // Generate Join Code (simple 6 digits)
-    const joinCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const joinCode = await generateUniqueJoinCode(prisma);
 
     const newSession = await prisma.classSession.create({
       data: {

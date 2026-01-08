@@ -19,8 +19,8 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **自动档案创建**：新用户自动创建学生档案和解锁第一关
 - **账号安全**：个人中心支持修改密码与退出登录
 - **演示账号**：
-  - 用户名：`demo` 或邮箱：`demo@example.com`
-  - 密码：`123456`
+  - 演示教师账号：`test_teacher`，密码：`test@Just`
+  - 演示学生账号：`demo`，密码：`demo@Just`
 
 ### 3.2 驱逐舰航向控制仿真 ✅
 - **3D 可视化**：基于 Three.js / React Three Fiber 的沉浸式体验

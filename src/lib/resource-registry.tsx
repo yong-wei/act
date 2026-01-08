@@ -121,6 +121,11 @@ const Lesson13CruiseTyphoonSim = dynamic(
     { ssr: false, loading: loadingFallback('香槟塔保卫战') }
 );
 
+const Lesson13CruiseBridgeVideo = dynamic(
+    () => import('@/resources/interactive-learning/lesson-13/cruise-bridge-video'),
+    { ssr: false, loading: loadingFallback('邮轮导入视频') }
+);
+
 // 课堂组件
 const ClassroomVideoComponent = dynamic(
     () => import('@/components/classroom').then(mod => mod.VideoComponent),
@@ -150,6 +155,12 @@ const ClassroomEthicalTrigger = dynamic(
 const ClassroomAIDynamicReport = dynamic(
     () => import('@/components/classroom').then(mod => mod.AIDynamicReport),
     { ssr: false, loading: loadingFallback('AI动态报告') }
+);
+
+// 十滴水游戏
+const TenDropsGame = dynamic(
+    () => import('@/resources/interactive-learning/ten-drops-game'),
+    { ssr: false, loading: loadingFallback('十滴水游戏') }
 );
 
 // 注册表
@@ -293,6 +304,12 @@ const registry: Record<string, ResourceComponentConfig> = {
         type: 'SIMULATION_APP',
         component: Lesson13CruiseTyphoonSim
     },
+    'lesson13-cruise-bridge': {
+        id: 'lesson13-cruise-bridge',
+        label: '邮轮舒适度导入视频',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson13CruiseBridgeVideo
+    },
     // 课堂组件（教师专用）
     'classroom-video': {
         id: 'classroom-video',
@@ -329,6 +346,17 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: 'AI动态报告',
         type: 'INTERACTIVE_COMP',
         component: ClassroomAIDynamicReport
+    },
+    // 十滴水益智游戏
+    'ten-drops-game-v1': {
+        id: 'ten-drops-game-v1',
+        label: '十滴水益智游戏',
+        type: 'INTERACTIVE_COMP',
+        defaultConfig: {
+            initialLevelId: 'tutorial-1',
+            showEducation: true
+        },
+        component: TenDropsGame
     }
 };
 

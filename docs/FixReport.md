@@ -1,24 +1,27 @@
-# chrome-devtools MCP 启动失败排查与修复记录
+# Fix Report
 
-## 现象
-- 启动 Codex 时提示：MCP client for `chrome-devtools` failed to start
-- 伴随报错：handshaking with MCP server failed / connection closed / initialize response
+## 2026-01-07: Ten Drops Game - Level Selector Scroll & Game Mechanics
 
-## 结论（根因）
-在 `~/.codex/log/codex-tui.log` 中发现，`chrome-devtools-mcp` 由 npx 自动安装时反复出现：
-- `npm error ENOTEMPTY: directory not empty, rename .../node_modules/chrome-devtools-mcp -> .../.chrome-devtools-mcp-XXXX`
-说明 npx 缓存目录 `_npx` 中的残留导致重命名失败，MCP 服务未能完成启动，最终在握手阶段断开连接。
+### 1. Level Selector Scroll Issue
+**Problem:** The level selection modal in the Ten Drops game was not scrolling correctly. On some devices/browsers, attempting to scroll the list would scroll the background page instead, or the list height was not calculated correctly, preventing access to bottom items.
 
-## 已执行修复
-- 将残留目录改名备份（保守处理，避免误删）：
-  - 目标：`~/.npm-cache/_npx/15c61037b1978c83/node_modules/chrome-devtools-mcp`
-  - 改名为：`chrome-devtools-mcp.bak-<timestamp>`
+**Attempts & Final Solution:**
+1.  **Initial Attempt (Body Lock):** Tried simple `document.body.style.overflow = 'hidden'`.
+    *   *Result:* Inconsistent. Some mobile browsers continue to scroll the "html" element or ignore the lock if the modal doesn't capture touch events properly.
+2.  **Intermediate Attempt (CSS Classes):** Switched to Tailwind's `overflow-hidden` class.
+    *   *Result:* Failed if Tailwind's base styles didn't prioritize correctly or if the dynamic class addition had timing issues. Reverted to inline styles for reliability.
+3.  **Final Solution (Flexbox + Dual Lock):**
+    *   **Layout Architecture:** Completely refactored the modal structure from a Block layout with `calc(80vh - 120px)` height to a **Flexbox Column** layout.
+        *   Container: `flex flex-col max-h-[85vh]`
+        *   Header: `flex-none`
+        *   Scroll Area: `flex-1 min-h-0 overflow-y-auto`
+        *   *Why:* This ensures the scrollable area automatically fills the available space without fragile magic number calculations. `min-h-0` is crucial in Flex items to allow scrolling.
+    *   **Dual Scroll Locking:** Now locks both `document.body` and `document.documentElement` (html tag).
+        *   *Why:* Covers differences in browser rendering engines (some scroll on body, some on html).
+    *   **Overscroll Containment:** Added `overscroll-behavior: contain`.
+        *   *Why:* Prevents "scroll chaining" where scrolling past the end of the modal triggers the background page scroll.
 
-## 建议的后续验证
-1. 重新启动 Codex，确认 `chrome-devtools` MCP 正常上线。
-2. 若仍失败，可进一步清理 npx 缓存：
-   - `npm cache clean --force`
-
-## 参考日志位置
-- `~/.codex/log/codex-tui.log`
-
+### 2. Game Mechanics & Visuals
+*   **Visuals:** Replaced static droplet icons with a dynamic "Puddle" visualization (SVG + CSS border-radius morphing) for static states, and a directional "Teardrop" icon for flying projectiles.
+*   **Animation:** Implemented a new `calculateChainSteps` logic to decouple calculation from rendering, allowing for a precise "Explode -> Fly -> Land" animation sequence.
+*   **Resource System:** Shifted from a "Move Limit" system to a "Water Drop Resource" system (spend drops to play, earn drops from chain reactions), adding strategic depth.

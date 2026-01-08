@@ -86,6 +86,10 @@ export function AIDynamicReport({
   isGenerating = false,
   onGenerated,
 }: AIDynamicReportProps) {
+  // 防御性检查：确保 reportTemplate 存在
+  const reportTemplate = config?.reportTemplate ?? '';
+  const isValidConfig = !!reportTemplate;
+
   const [isEditing, setIsEditing] = useState(mode === 'edit');
   const [editConfig, setEditConfig] = useState(config);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -95,11 +99,13 @@ export function AIDynamicReport({
 
   // 生成报告文本
   const generateReport = useCallback(() => {
+    if (!isValidConfig) return '';
+
     const { totalStudents, completedStudents, averageScore, violationRate } = classData;
     const completionRate = ((completedStudents / totalStudents) * 100).toFixed(1);
 
     // 基于模板生成报告
-    let report = config.reportTemplate
+    let report = reportTemplate
       .replace('{totalStudents}', String(totalStudents))
       .replace('{completedStudents}', String(completedStudents))
       .replace('{completionRate}', completionRate)
@@ -116,7 +122,7 @@ export function AIDynamicReport({
     }
 
     return report;
-  }, [config.reportTemplate, classData]);
+  }, [reportTemplate, classData, isValidConfig]);
 
   // 模拟报告生成过程
   useEffect(() => {
@@ -177,6 +183,19 @@ export function AIDynamicReport({
       </div>
     );
   }, [classData.scoreDistribution]);
+
+  // 如果配置无效，显示错误提示
+  if (!isValidConfig) {
+    return (
+      <div className="h-full flex items-center justify-center bg-white rounded-xl border border-slate-200">
+        <div className="text-center text-slate-400">
+          <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          <p className="text-slate-600">AI动态报告配置不完整</p>
+          <p className="text-sm text-slate-500 mt-1">请在编辑模式下配置报告模板</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isEditing) {
     return (

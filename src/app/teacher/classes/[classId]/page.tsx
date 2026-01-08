@@ -14,6 +14,7 @@ import {
   Clock,
   History,
   QrCode,
+  RefreshCcw,
   Calendar,
   Search,
   X,
@@ -84,6 +85,7 @@ export default function ClassDetailPage() {
   const [showStartModal, setShowStartModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const [starting, setStarting] = useState(false);
+  const [regeneratingJoinCode, setRegeneratingJoinCode] = useState(false);
 
   // 历史筛选
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -229,6 +231,46 @@ export default function ClassDetailPage() {
   const activeSession = sessions.find(s => s.status === 'ACTIVE');
   const historySessions = sessions.filter(s => s.status === 'FINISHED');
 
+  const handleRegenerateJoinCode = async () => {
+    if (!activeSession) return;
+    if (!confirm('确定重新生成课堂码？旧码将立即失效。')) return;
+
+    setRegeneratingJoinCode(true);
+    try {
+      const res = await fetch(`/api/session/${activeSession.id}/join-code`, {
+        method: 'PATCH',
+      });
+
+      if (!res.ok) {
+        const payloadText = await res.text();
+        let message = '重置课堂码失败';
+        if (payloadText) {
+          try {
+            const payload = JSON.parse(payloadText);
+            message = payload?.error || message;
+          } catch {
+            message = payloadText;
+          }
+        }
+        throw new Error(message);
+      }
+
+      const data = await res.json();
+      setSessions((prev) =>
+        prev.map((session) =>
+          session.id === activeSession.id
+            ? { ...session, joinCode: data.joinCode }
+            : session
+        )
+      );
+    } catch (error) {
+      console.error('Regenerate join code error:', error);
+      alert(error instanceof Error ? error.message : '重置课堂码失败');
+    } finally {
+      setRegeneratingJoinCode(false);
+    }
+  };
+
   if (loading) {
     return (
       <main className="mx-auto max-w-[1600px] px-6 py-8">
@@ -347,6 +389,14 @@ export default function ClassDetailPage() {
                 <QrCode className="h-5 w-5 text-emerald-400" />
                 <span className="font-mono text-lg font-bold text-white">{activeSession.joinCode}</span>
               </div>
+              <button
+                onClick={handleRegenerateJoinCode}
+                disabled={regeneratingJoinCode}
+                className="flex items-center gap-2 rounded-lg border border-emerald-500/40 px-3 py-2 text-sm text-emerald-200 transition hover:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <RefreshCcw className={regeneratingJoinCode ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
+                重新生成
+              </button>
               <Link
                 href={`/classroom/teacher/${activeSession.id}`}
                 className="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white transition hover:bg-emerald-500"

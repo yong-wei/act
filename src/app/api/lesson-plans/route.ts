@@ -5,6 +5,30 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { BopppsStage, LessonItemType } from '@prisma/client';
 
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const plans = await prisma.lessonPlan.findMany({
+      where: { authorId: session.user.id },
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+      },
+    });
+
+    return NextResponse.json(plans);
+  } catch (error) {
+    console.error('Error fetching lesson plans:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);

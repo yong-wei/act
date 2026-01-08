@@ -52,6 +52,7 @@ type UserItem = {
   id: string;
   name: string | null;
   email: string | null;
+  employeeNumber?: string | null;
   role: UserRole;
   createdAt: string;
   profile?: {
@@ -234,8 +235,17 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
         method: 'DELETE',
       });
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error?.error || '删除失败');
+        const payloadText = await res.text();
+        let message = '删除失败';
+        if (payloadText) {
+          try {
+            const payload = JSON.parse(payloadText);
+            message = payload?.error || message;
+          } catch {
+            message = payloadText;
+          }
+        }
+        throw new Error(message);
       }
       showNotice('success', '账号已删除');
       fetchUsers();
@@ -535,7 +545,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 <thead className="bg-slate-900/80 text-xs text-slate-400">
                   <tr>
                     <th className="px-4 py-3">账号信息</th>
-                    <th className="px-4 py-3">学号</th>
+                    <th className="px-4 py-3">学号/工号</th>
                     <th className="px-4 py-3">角色</th>
                     <th className="px-4 py-3">创建时间</th>
                     <th className="px-4 py-3 text-right">操作</th>
@@ -562,11 +572,14 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                             {user.name || '未命名'}
                           </div>
                           <div className="text-xs text-slate-500">
-                            {user.email || user.profile?.studentNumber || '未绑定账号'}
+                            {user.email ||
+                              user.employeeNumber ||
+                              user.profile?.studentNumber ||
+                              '未绑定账号'}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-slate-400">
-                          {user.profile?.studentNumber || '-'}
+                          {user.profile?.studentNumber || user.employeeNumber || '-'}
                         </td>
                         <td className="px-4 py-3">
                           <span
@@ -671,11 +684,15 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   {selectedUser.name || '未命名'}
                 </div>
                 <div className="text-xs text-slate-500">
-                  {selectedUser.email || selectedUser.profile?.studentNumber || '未绑定账号'}
+                  {selectedUser.email ||
+                    selectedUser.employeeNumber ||
+                    selectedUser.profile?.studentNumber ||
+                    '未绑定账号'}
                 </div>
                 <div className="mt-4 grid gap-2 rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400">
                   <div>角色：{ROLE_LABELS[selectedUser.role]}</div>
                   <div>学号：{selectedUser.profile?.studentNumber || '-'}</div>
+                  <div>工号：{selectedUser.employeeNumber || '-'}</div>
                   <div>班级：{selectedUser.profile?.className || '-'}</div>
                   <div>
                     创建时间：

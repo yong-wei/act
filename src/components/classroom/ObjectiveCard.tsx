@@ -328,15 +328,32 @@ function ObjectiveItemCard({
 // ========== 播放模式组件 ==========
 
 function ObjectivePlayer({ config }: { config: ObjectiveCardConfig }) {
+  // 防御性检查：确保 objectives 存在
+  const objectives = config?.objectives ?? [];
+  const isValidConfig = objectives.length > 0;
+
   // 按类型分组
   const grouped = {
-    knowledge: config.objectives.filter((o) => o.type === 'knowledge'),
-    ability: config.objectives.filter((o) => o.type === 'ability'),
-    value: config.objectives.filter((o) => o.type === 'value'),
+    knowledge: objectives.filter((o) => o.type === 'knowledge'),
+    ability: objectives.filter((o) => o.type === 'ability'),
+    value: objectives.filter((o) => o.type === 'value'),
   };
 
-  const unlockedCount = config.objectives.filter((o) => o.unlocked).length;
-  const totalCount = config.objectives.length;
+  const unlockedCount = objectives.filter((o) => o.unlocked).length;
+  const totalCount = objectives.length;
+
+  // 如果配置无效，显示错误提示
+  if (!isValidConfig) {
+    return (
+      <div className="h-full flex items-center justify-center bg-slate-900 rounded-xl">
+        <div className="text-center text-slate-400">
+          <Target className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          <p>学习目标配置不完整</p>
+          <p className="text-sm text-slate-500 mt-1">请在编辑模式下配置学习目标</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-slate-900 rounded-xl overflow-hidden">

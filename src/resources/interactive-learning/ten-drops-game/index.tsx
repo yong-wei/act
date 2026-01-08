@@ -1,0 +1,286 @@
+'use client';
+
+/**
+ * TenDropsGame - 十滴水益智游戏
+ *
+ * 通过水滴爆炸的连锁反应，演示控制理论中的系统动态概念：
+ * - 连锁反应 → 级联效应、正反馈
+ * - 格子容量 → 边界条件
+ * - 临界状态 → 分岔点
+ * - 预测规划 → 模型预测控制
+ */
+
+import { useState, useCallback, useEffect } from 'react';
+import { Droplets, RotateCcw, Undo2, Info, List } from 'lucide-react';
+import { useTenDropsGame } from './hooks/useTenDropsGame';
+import { GameGrid } from './components/GameGrid';
+import { ScoreBoard } from './components/ScoreBoard';
+import { GameResultModal } from './components/GameResultModal';
+import { LevelSelector } from './components/LevelSelector';
+import { EducationalPanel } from './components/EducationalPanel';
+import { LEVELS, getLevelById, getNextLevel } from './levels/level-data';
+import type { LevelConfig } from './types';
+
+export interface TenDropsGameProps {
+  /** 初始关卡ID */
+  initialLevelId?: string;
+  /** 嵌入模式（隐藏全屏装饰） */
+  embedded?: boolean;
+  /** 完成回调 */
+  onComplete?: (score: number, levelId: string) => void;
+  /** 是否显示教育提示 */
+  showEducation?: boolean;
+}
+
+export function TenDropsGame({
+  initialLevelId = 'tutorial-1',
+  embedded = false,
+  onComplete,
+  showEducation = true,
+}: TenDropsGameProps) {
+  // 本地状态
+  const [currentLevel, setCurrentLevel] = useState<LevelConfig | null>(null);
+  const [showLevelSelect, setShowLevelSelect] = useState(false);
+  const [showEducationalPanel, setShowEducationalPanel] = useState(false);
+  const [completedLevels, setCompletedLevels] = useState<string[]>([]);
+
+  // 游戏状态
+  const {
+    board,
+    dropsAvailable,
+    initialDrops,
+    score,
+    gameStatus,
+    chainCount,
+    maxChainReached,
+    history,
+    loadLevel,
+    resetLevel,
+    addDrop,
+    undo,
+    activeFlyingDrops,
+  } = useTenDropsGame();
+
+  // 加载初始关卡
+  useEffect(() => {
+    const level = getLevelById(initialLevelId) || LEVELS[0];
+    setCurrentLevel(level);
+    loadLevel(level);
+  }, [initialLevelId, loadLevel]);
+
+  // 处理胜利
+  useEffect(() => {
+    if (gameStatus === 'won' && currentLevel) {
+      // 记录完成的关卡
+      setCompletedLevels((prev) => {
+        if (!prev.includes(currentLevel.id)) {
+          return [...prev, currentLevel.id];
+        }
+        return prev;
+      });
+
+      // 触发完成回调
+      onComplete?.(score, currentLevel.id);
+    }
+  }, [gameStatus, score, currentLevel, onComplete]);
+
+  // 点击格子处理
+  const handleCellClick = useCallback(
+    (row: number, col: number) => {
+      if (gameStatus === 'playing') {
+        addDrop({ row, col });
+      }
+    },
+    [addDrop, gameStatus]
+  );
+
+  // 选择关卡
+  const handleLevelSelect = useCallback(
+    (level: LevelConfig) => {
+      setCurrentLevel(level);
+      loadLevel(level);
+      setShowLevelSelect(false);
+    },
+    [loadLevel]
+  );
+
+  // 重新开始
+  const handleRestart = useCallback(() => {
+    resetLevel();
+  }, [resetLevel]);
+
+  // 下一关
+  const handleNextLevel = useCallback(() => {
+    if (currentLevel) {
+      const next = getNextLevel(currentLevel.id);
+      if (next) {
+        setCurrentLevel(next);
+        loadLevel(next);
+      }
+    }
+  }, [currentLevel, loadLevel]);
+
+  // 撤销
+  const handleUndo = useCallback(() => {
+    if (history.length > 0 && gameStatus === 'playing') {
+      undo();
+    }
+  }, [history.length, gameStatus, undo]);
+
+  if (!currentLevel) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] text-slate-400">
+        加载中...
+      </div>
+    );
+  }
+
+  const isProcessing = gameStatus === 'processing';
+  const canUndo = history.length > 0 && gameStatus === 'playing';
+  const hasNextLevel = !!getNextLevel(currentLevel.id);
+
+  return (
+    <div
+      className={`${
+        embedded ? '' : 'min-h-screen'
+      } bg-slate-950 text-white select-none`}
+    >
+      <div className="max-w-2xl mx-auto p-4 md:p-6">
+        {/* 头部 */}
+        <header className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/20 rounded-lg">
+              <Droplets className="h-6 w-6 text-blue-400" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">十滴水</h1>
+              <p className="text-sm text-slate-400">{currentLevel.name}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {showEducation && currentLevel.educationalHint && (
+              <button
+                onClick={() => setShowEducationalPanel(true)}
+                className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                title="学习提示"
+              >
+                <Info className="h-5 w-5 text-blue-400" />
+              </button>
+            )}
+            <button
+              onClick={() => setShowLevelSelect(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition-colors"
+            >
+              <List className="h-4 w-4" />
+              选关
+            </button>
+          </div>
+        </header>
+
+        {/* 关卡描述 */}
+        <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+          <p className="text-sm text-slate-300">{currentLevel.description}</p>
+        </div>
+
+        {/* 得分面板 */}
+        <ScoreBoard
+          dropsAvailable={dropsAvailable}
+          initialDrops={initialDrops}
+          chainCount={chainCount}
+          maxChainReached={maxChainReached}
+          gameStatus={gameStatus}
+          score={score}
+        />
+
+        {/* 游戏网格 */}
+        <div className="my-6 flex justify-center">
+          <GameGrid
+            board={board}
+            onCellClick={handleCellClick}
+            disabled={isProcessing || gameStatus === 'won' || gameStatus === 'lost'}
+            gridSize={currentLevel.gridSize}
+            activeFlyingDrops={activeFlyingDrops}
+          />
+        </div>
+
+        {/* 控制按钮 */}
+        <div className="flex justify-center gap-3">
+          <button
+            onClick={handleUndo}
+            disabled={!canUndo || isProcessing}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+          >
+            <Undo2 className="h-4 w-4" />
+            撤销
+          </button>
+          <button
+            onClick={handleRestart}
+            disabled={isProcessing}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg transition-colors"
+          >
+            <RotateCcw className="h-4 w-4" />
+            重新开始
+          </button>
+        </div>
+
+        {/* 教育提示（底部） */}
+        {showEducation && currentLevel.educationalHint && gameStatus === 'playing' && (
+          <div className="mt-6 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <p className="text-xs text-blue-300/80">
+              <span className="font-medium">💡 提示：</span>{' '}
+              {currentLevel.educationalHint.slice(0, 80)}
+              {currentLevel.educationalHint.length > 80 && '...'}
+              {currentLevel.educationalHint.length > 80 && (
+                <button
+                  onClick={() => setShowEducationalPanel(true)}
+                  className="ml-1 text-blue-400 hover:underline"
+                >
+                  查看更多
+                </button>
+              )}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 游戏结果弹窗 */}
+      {(gameStatus === 'won' || gameStatus === 'lost') && (
+        <GameResultModal
+          status={gameStatus}
+          score={score}
+          dropsRemaining={dropsAvailable}
+          maxChain={maxChainReached}
+          onRestart={handleRestart}
+          onNextLevel={handleNextLevel}
+          hasNextLevel={hasNextLevel}
+          educationalHint={
+            gameStatus === 'won' ? currentLevel.educationalHint : undefined
+          }
+        />
+      )}
+
+      {/* 关卡选择弹窗 */}
+      {showLevelSelect && (
+        <LevelSelector
+          levels={LEVELS}
+          currentLevelId={currentLevel.id}
+          completedLevels={completedLevels}
+          onSelect={handleLevelSelect}
+          onClose={() => setShowLevelSelect(false)}
+        />
+      )}
+
+      {/* 教育面板弹窗 */}
+      {showEducationalPanel && currentLevel.educationalHint && (
+        <EducationalPanel
+          hint={currentLevel.educationalHint}
+          levelName={currentLevel.name}
+          onClose={() => setShowEducationalPanel(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+export default TenDropsGame;
