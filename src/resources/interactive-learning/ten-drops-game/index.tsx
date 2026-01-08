@@ -11,8 +11,9 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { Droplets, RotateCcw, Undo2, Info, List } from 'lucide-react';
+import { Droplets, RotateCcw, Undo2, Info, List, ArrowLeft } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import { useTenDropsGame } from './hooks/useTenDropsGame';
 import { GameGrid } from './components/GameGrid';
@@ -328,6 +329,15 @@ export function TenDropsGame({
               </div>
 
               <div className="flex items-center gap-2">
+                {!embedded && (
+                  <Link
+                    href="/interactive-learning"
+                    className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition-colors"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    返回互动学习
+                  </Link>
+                )}
                 {showEducation && currentLevel.educationalHint && (
                   <button
                     onClick={() => setShowEducationalPanel(true)}
