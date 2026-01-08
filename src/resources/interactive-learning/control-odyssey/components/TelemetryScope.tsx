@@ -152,8 +152,22 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
   return (
     <div className="w-full relative border-t border-slate-800 bg-slate-950/80">
       <canvas ref={canvasRef} className="block w-full" style={{ height }} />
-      <div className="absolute top-1 left-2 text-[10px] text-slate-500 font-mono pointer-events-none">
-        TELEMETRY: R(t) [Bright] vs Y(t) [Blue] | Control U(t) [Bar]
+      <div className="absolute top-1 left-2 text-[10px] text-slate-400 font-mono pointer-events-none flex items-center gap-2">
+        <span>图例：给定航线 R(t)</span>
+        <span className="inline-flex items-center gap-1">
+          <span className="w-2 h-2 border border-slate-200/60" />
+          <span>亮白虚线</span>
+        </span>
+        <span>系统响应 Y(t)</span>
+        <span className="inline-flex items-center gap-1">
+          <span className="w-2 h-2 bg-blue-500/70" />
+          <span>蓝色实线</span>
+        </span>
+        <span>控制信号 U(t)</span>
+        <span className="inline-flex items-center gap-1">
+          <span className="w-2 h-2 bg-rose-500/70" />
+          <span>红色</span>
+        </span>
       </div>
     </div>
   );

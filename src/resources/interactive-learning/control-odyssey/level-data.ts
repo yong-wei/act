@@ -1,6 +1,8 @@
 export type PlantModelType = 'PROPORTIONAL' | 'INERTIAL' | 'INTEGRAL';
 export type LevelTier = 'bronze' | 'silver' | 'gold';
-export type ControllerId = 'P' | 'PI' | 'PD' | 'PID';
+export type ControllerId = 'P' | 'PI' | 'PD' | 'PID' | 'VFB' | 'FF';
+export type BaseControllerId = 'P' | 'PI' | 'PD' | 'PID';
+export type ModuleControllerId = 'VFB' | 'FF';
 export type SignalType = 'step' | 'sequence' | 'ramp' | 'accel' | 'custom';
 export type DisturbanceType = 'none' | 'output-step';
 
@@ -98,6 +100,13 @@ export interface ShopItem {
   unlocks: { controller: ControllerId };
   requires?: ControllerId[];
   description?: string;
+}
+
+export interface ControllerUpgradeRule {
+  controller: ControllerId;
+  basePrice: number;
+  maxLevel: number;
+  paramLabel: string;
 }
 
 export interface ShopConfig {
@@ -245,8 +254,35 @@ export const CONTROL_SHOP_CONFIG: ShopConfig = {
       requires: ['PI', 'PD'],
       description: '完整 PID 控制能力。',
     },
+    {
+      id: 'controller-vfb',
+      label: '测速反馈模块',
+      price: 1600,
+      unlocks: { controller: 'VFB' },
+      requires: ['P'],
+      description: '引入速度反馈增强阻尼。',
+    },
+    {
+      id: 'controller-ff',
+      label: '前馈模块',
+      price: 1800,
+      unlocks: { controller: 'FF' },
+      requires: ['P'],
+      description: '基于给定值的前馈补偿。',
+    },
   ],
 };
+
+export const CONTROL_BASE_CONTROLLERS: BaseControllerId[] = ['P', 'PI', 'PD', 'PID'];
+export const CONTROL_MODULES: ModuleControllerId[] = ['VFB', 'FF'];
+export const CONTROLLER_UPGRADE_RULES: ControllerUpgradeRule[] = [
+  { controller: 'P', basePrice: 200, maxLevel: 10, paramLabel: 'Kp' },
+  { controller: 'PI', basePrice: 600, maxLevel: 10, paramLabel: 'Ki' },
+  { controller: 'PD', basePrice: 600, maxLevel: 10, paramLabel: 'Kd' },
+  { controller: 'PID', basePrice: 1200, maxLevel: 10, paramLabel: '综合等级' },
+  { controller: 'VFB', basePrice: 800, maxLevel: 10, paramLabel: 'τ' },
+  { controller: 'FF', basePrice: 800, maxLevel: 10, paramLabel: 'Kff' },
+];
 
 export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
   {

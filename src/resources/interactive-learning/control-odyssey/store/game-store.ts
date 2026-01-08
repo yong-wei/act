@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ControllerId, LevelTier } from '../level-data';
+import type { BaseControllerId, ControllerId, LevelTier } from '../level-data';
 import { clearTelemetry } from '../engine/telemetry-history';
 
 export type GameState = 'IDLE' | 'RUNNING' | 'PAUSED' | 'GAME_OVER' | 'VICTORY';
@@ -17,6 +17,11 @@ interface ControlOdysseyPidParams {
   kd: number;
 }
 
+interface ControlOdysseyExtraParams {
+  speedFeedbackTau: number;
+  feedforwardGain: number;
+}
+
 interface ControlOdysseyState {
   gameState: GameState;
   currentLevelId: string; // 当前关卡 ID
@@ -30,9 +35,15 @@ interface ControlOdysseyState {
   resetToken: number;
   controlMode: ControlMode;
   pidParams: ControlOdysseyPidParams;
+  extraParams: ControlOdysseyExtraParams;
   currentTier: LevelTier;
-  controllerId: ControllerId;
+  controllerId: BaseControllerId;
   unlockedControllers: ControllerId[];
+  controllerLevels: Record<ControllerId, number>;
+  enableSpeedFeedback: boolean;
+  enableFeedforward: boolean;
+  difficultyScale: number;
+  autoOffset: number;
   controlCredits: number;
   runId: string;
 
@@ -41,10 +52,16 @@ interface ControlOdysseyState {
   setCurrentLevelId: (id: string) => void;
   setControlMode: (mode: ControlMode) => void;
   setCurrentTier: (tier: LevelTier) => void;
-  setControllerId: (controllerId: ControllerId) => void;
+  setControllerId: (controllerId: BaseControllerId) => void;
   setUnlockedControllers: (controllers: ControllerId[]) => void;
+  setControllerLevels: (levels: Record<ControllerId, number>) => void;
+  setSpeedFeedbackEnabled: (enabled: boolean) => void;
+  setFeedforwardEnabled: (enabled: boolean) => void;
+  setDifficultyScale: (scale: number) => void;
+  setAutoOffset: (offset: number) => void;
   setControlCredits: (credits: number) => void;
   setPidParams: (params: Partial<ControlOdysseyPidParams>) => void;
+  setExtraParams: (params: Partial<ControlOdysseyExtraParams>) => void;
   updateMetrics: (
     shipY: number,
     shipU: number,
@@ -74,10 +91,16 @@ export const useGameStore = create<ControlOdysseyState>((set) => ({
   shipR: 200,
   resetToken: 0,
   controlMode: 'MANUAL',
-  pidParams: { kp: 1, ki: 0, kd: 0 },
+  pidParams: { kp: 1, ki: 0.1, kd: 0.1 },
+  extraParams: { speedFeedbackTau: 0.6, feedforwardGain: 0.6 },
   currentTier: 'bronze',
   controllerId: 'P',
   unlockedControllers: ['P'],
+  controllerLevels: { P: 1, PI: 0, PD: 0, PID: 0, VFB: 0, FF: 0 },
+  enableSpeedFeedback: false,
+  enableFeedforward: false,
+  difficultyScale: 1,
+  autoOffset: 0,
   controlCredits: 0,
   runId: createRunId(),
 
@@ -92,10 +115,19 @@ export const useGameStore = create<ControlOdysseyState>((set) => ({
   setCurrentTier: (tier) => set({ currentTier: tier }),
   setControllerId: (controllerId) => set({ controllerId }),
   setUnlockedControllers: (controllers) => set({ unlockedControllers: controllers }),
+  setControllerLevels: (levels) => set({ controllerLevels: levels }),
+  setSpeedFeedbackEnabled: (enabled) => set({ enableSpeedFeedback: enabled }),
+  setFeedforwardEnabled: (enabled) => set({ enableFeedforward: enabled }),
+  setDifficultyScale: (scale) => set({ difficultyScale: scale }),
+  setAutoOffset: (offset) => set({ autoOffset: offset }),
   setControlCredits: (credits) => set({ controlCredits: credits }),
   setPidParams: (params) =>
     set((state) => ({
       pidParams: { ...state.pidParams, ...params }
+    })),
+  setExtraParams: (params) =>
+    set((state) => ({
+      extraParams: { ...state.extraParams, ...params }
     })),
   updateMetrics: (shipY, shipU, shipR, distance, metrics) =>
     set((state) => ({
@@ -121,6 +153,7 @@ export const useGameStore = create<ControlOdysseyState>((set) => ({
       shipY: 200,
       shipU: 0,
       shipR: 200,
+      autoOffset: 0,
       runId: createRunId(),
       resetToken: state.resetToken + 1
     }));

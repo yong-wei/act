@@ -47,10 +47,15 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     maxDistance,
     controlMode,
     pidParams,
+    extraParams,
+    enableSpeedFeedback,
+    enableFeedforward,
     currentLevelId,
     currentTier,
     controllerId,
-    resetToken
+    resetToken,
+    difficultyScale,
+    setAutoOffset
   } = useGameStore();
   const levelConfig = getLevelConfigById(currentLevelId);
 
@@ -94,22 +99,27 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     // 重置统计
     metricsRef.current = { maxError: 0, iae: 0, startTime: 0, lastTimeWithinThreshold: 0 };
     // 初始生成一段
+    const scaledEnvelope = {
+      ...runtimeTier.envelope,
+      margin: Math.max(20, runtimeTier.envelope.margin * difficultyScale)
+    };
     segmentsRef.current = levelGenRef.current.generateSegments(
       VIEWPORT_WIDTH + 200,
       runtimeTier.distance,
       runtimeTier.reference,
-      runtimeTier.envelope,
+      scaledEnvelope,
       runtimeTier.disturbance
     );
     inputRef.current = { up: false, down: false };
     // 不重置 Store 的 maxDistance
     // resetGame() 已经在外部或 Store 内部处理了
-  }, [currentLevelId, currentTier]); // 依赖关卡与等级
+  }, [currentLevelId, currentTier, difficultyScale]); // 依赖关卡与等级
 
   useEffect(() => {
     autoOffsetRef.current = 0;
     disturbanceRef.current = 0;
-  }, [controlMode, currentLevelId, currentTier, resetToken]);
+    setAutoOffset(0);
+  }, [controlMode, currentLevelId, currentTier, resetToken, setAutoOffset]);
 
   // 监听重置指令
   useEffect(() => {
@@ -180,6 +190,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
             -160,
             160
           );
+          setAutoOffset(autoOffsetRef.current);
           const referenceY = computeReferenceY(activeTier.reference, shipWorldX);
           physicsRef.current.setAutoSetpoint(clampValue(referenceY + autoOffsetRef.current, 0, VIEWPORT_HEIGHT));
         }
@@ -193,7 +204,16 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
           timeConstant,
           inputDelay,
           mode: controlMode,
-          pid: filteredPid
+          pid: filteredPid,
+          speedFeedback: {
+            enabled: enableSpeedFeedback,
+            tau: extraParams.speedFeedbackTau
+          },
+          feedforward: {
+            enabled: enableFeedforward,
+            gain: extraParams.feedforwardGain,
+            base: VIEWPORT_HEIGHT / 2
+          }
         }, disturbance);
 
         // 限制飞船不跑出屏幕垂直范围 (可选，或者作为碰撞)
@@ -217,11 +237,15 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
 
         // 生成新地形 / 清理旧地形
         const rightEdge = scrollX + VIEWPORT_WIDTH;
+        const scaledEnvelope = {
+          ...activeTier.envelope,
+          margin: Math.max(20, activeTier.envelope.margin * difficultyScale)
+        };
         const newSegments = levelGenRef.current.generateSegments(
           rightEdge,
           maxDistanceLocal,
           activeTier.reference,
-          activeTier.envelope,
+          scaledEnvelope,
           activeTier.disturbance
         );
         segmentsRef.current = [...segmentsRef.current, ...newSegments];
@@ -412,7 +436,23 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     animationFrameId = requestAnimationFrame(render);
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [gameState, setGameState, updateMetrics, maxDistance, currentLevelId, currentTier, controlMode, pidParams, controllerId, levelConfig]); // 更新依赖
+  }, [
+    gameState,
+    setGameState,
+    updateMetrics,
+    maxDistance,
+    currentLevelId,
+    currentTier,
+    controlMode,
+    pidParams,
+    controllerId,
+    levelConfig,
+    extraParams,
+    enableSpeedFeedback,
+    enableFeedforward,
+    difficultyScale,
+    setAutoOffset
+  ]); // 更新依赖
 
   return (
     <div className="w-full h-full min-h-[400px] relative rounded-xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950">

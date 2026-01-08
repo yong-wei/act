@@ -19,6 +19,15 @@ export interface ControlParams {
     ki: number;
     kd: number;
   };
+  speedFeedback?: {
+    enabled: boolean;
+    tau: number;
+  };
+  feedforward?: {
+    enabled: boolean;
+    gain: number;
+    base?: number;
+  };
 }
 
 /**
@@ -32,6 +41,7 @@ export class PhysicsEngine {
   // PID 内部状态
   private integral: number = 0;
   private prevError: number = 0;
+  private speedFeedbackState: number = 0;
   private lastMode: 'MANUAL' | 'AUTO' = 'MANUAL';
   private elapsedTime: number = 0;
   private inputDelayQueue: { time: number; value: number }[] = [];
@@ -45,6 +55,7 @@ export class PhysicsEngine {
     this.state = { y: initialY, v: 0, u: 0, r: initialY };
     this.integral = 0;
     this.prevError = 0;
+    this.speedFeedbackState = 0;
     this.elapsedTime = 0;
     this.inputDelayQueue = [];
   }
@@ -80,6 +91,15 @@ export class PhysicsEngine {
       this.lastMode = mode;
     }
 
+    const feedbackTau = params.speedFeedback?.tau ?? 0.6;
+    const feedbackAlpha = feedbackTau > 0 ? Math.min(dt / (feedbackTau + dt), 1) : 1;
+    this.speedFeedbackState += (this.state.v - this.speedFeedbackState) * feedbackAlpha;
+    const speedFeedbackTerm = params.speedFeedback?.enabled ? -this.speedFeedbackState / 200 : 0;
+    const feedforwardBase = params.feedforward?.base ?? 200;
+    const feedforwardTerm = params.feedforward?.enabled
+      ? (params.feedforward.gain * (this.state.r - feedforwardBase)) / 200
+      : 0;
+
     if (mode === 'MANUAL') {
       const rate = controlRate ?? 1.5;
       this.state.u = clamp(this.state.u + inputCommand * rate * dt, -1, 1);
@@ -92,11 +112,12 @@ export class PhysicsEngine {
       const derivative = dt > 0 ? (normalizedError - this.prevError) / dt : 0;
       this.prevError = normalizedError;
 
-      this.state.u = clamp(
+      const pidOutput = clamp(
         pid.kp * normalizedError + pid.ki * this.integral + pid.kd * derivative,
         -1,
         1
       );
+      this.state.u = clamp(pidOutput + speedFeedbackTerm + feedforwardTerm, -1, 1);
     }
 
     // ============ 对象层 (Plant) ============

@@ -3,7 +3,12 @@
 import { prisma } from '@/lib/prisma';
 import { getServerAuthSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
-import { CONTROL_SHOP_CONFIG, type ControllerId, type LevelTier } from '@/resources/interactive-learning/control-odyssey/level-data';
+import {
+  CONTROL_SHOP_CONFIG,
+  CONTROLLER_UPGRADE_RULES,
+  type ControllerId,
+  type LevelTier
+} from '@/resources/interactive-learning/control-odyssey/level-data';
 
 export interface LeaderboardEntry {
   rank: number;
@@ -18,12 +23,14 @@ export interface ControlProfileSnapshot {
   credits: number;
   unlocks: ControllerId[];
   tierProgress: ControlTierProgress;
+  controllerLevels: ControlControllerLevels;
 }
 
 const DEFAULT_UNLOCKS: ControllerId[] = ['P'];
 const TIER_ORDER: LevelTier[] = ['bronze', 'silver', 'gold'];
 
 type ControlTierProgress = Record<string, LevelTier>;
+type ControlControllerLevels = Record<ControllerId, number>;
 
 const normalizeUnlocks = (value: unknown): ControllerId[] => {
   if (!Array.isArray(value)) {
@@ -31,6 +38,40 @@ const normalizeUnlocks = (value: unknown): ControllerId[] => {
   }
   const filtered = value.filter((item) => typeof item === 'string') as ControllerId[];
   return filtered.length ? filtered : [...DEFAULT_UNLOCKS];
+};
+
+const DEFAULT_CONTROLLER_LEVELS: ControlControllerLevels = {
+  P: 1,
+  PI: 0,
+  PD: 0,
+  PID: 0,
+  VFB: 0,
+  FF: 0
+};
+
+const getUpgradeRule = (controllerId: ControllerId) =>
+  CONTROLLER_UPGRADE_RULES.find((rule) => rule.controller === controllerId);
+
+const normalizeControllerLevels = (
+  value: unknown,
+  unlocks: ControllerId[]
+): ControlControllerLevels => {
+  const levels: ControlControllerLevels = { ...DEFAULT_CONTROLLER_LEVELS };
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    Object.entries(value as Record<string, unknown>).forEach(([key, rawLevel]) => {
+      if (!(key in levels)) return;
+      if (typeof rawLevel !== 'number' || Number.isNaN(rawLevel)) return;
+      const controllerId = key as ControllerId;
+      const maxLevel = getUpgradeRule(controllerId)?.maxLevel ?? 10;
+      levels[controllerId] = Math.max(0, Math.min(Math.floor(rawLevel), maxLevel));
+    });
+  }
+  unlocks.forEach((controllerId) => {
+    if (levels[controllerId] < 1) {
+      levels[controllerId] = 1;
+    }
+  });
+  return levels;
 };
 
 const normalizeTierProgress = (value: unknown): ControlTierProgress => {
@@ -62,12 +103,18 @@ export async function getControlProfile(): Promise<ControlProfileSnapshot | null
 
   const profile = await prisma.studentProfile.findUnique({
     where: { userId: session.user.id },
-    select: { controlCredits: true, controlUnlocks: true, controlOdysseyProgress: true }
+    select: {
+      controlCredits: true,
+      controlUnlocks: true,
+      controlOdysseyProgress: true,
+      controlControllerLevels: true
+    }
   });
 
   const unlocks = normalizeUnlocks(profile?.controlUnlocks);
   const credits = profile?.controlCredits ?? 0;
   const tierProgress = normalizeTierProgress(profile?.controlOdysseyProgress);
+  const controllerLevels = normalizeControllerLevels(profile?.controlControllerLevels, unlocks);
 
   if (!profile) {
     await prisma.studentProfile.create({
@@ -75,7 +122,8 @@ export async function getControlProfile(): Promise<ControlProfileSnapshot | null
         userId: session.user.id,
         controlCredits: credits,
         controlUnlocks: unlocks,
-        controlOdysseyProgress: tierProgress
+        controlOdysseyProgress: tierProgress,
+        controlControllerLevels: controllerLevels
       }
     });
   } else if (!unlocks.includes('P')) {
@@ -85,7 +133,7 @@ export async function getControlProfile(): Promise<ControlProfileSnapshot | null
     });
   }
 
-  return { credits, unlocks, tierProgress };
+  return { credits, unlocks, tierProgress, controllerLevels };
 }
 
 export async function purchaseController(controllerId: ControllerId): Promise<ControlProfileSnapshot | null> {
@@ -102,15 +150,21 @@ export async function purchaseController(controllerId: ControllerId): Promise<Co
   const result = await prisma.$transaction(async (tx) => {
     const profile = await tx.studentProfile.findUnique({
       where: { userId: session.user.id },
-      select: { controlCredits: true, controlUnlocks: true, controlOdysseyProgress: true }
+      select: {
+        controlCredits: true,
+        controlUnlocks: true,
+        controlOdysseyProgress: true,
+        controlControllerLevels: true
+      }
     });
 
     const unlocks = normalizeUnlocks(profile?.controlUnlocks);
     const credits = profile?.controlCredits ?? 0;
     const tierProgress = normalizeTierProgress(profile?.controlOdysseyProgress);
+    const controllerLevels = normalizeControllerLevels(profile?.controlControllerLevels, unlocks);
 
     if (unlocks.includes(controllerId)) {
-      return { credits, unlocks, tierProgress };
+      return { credits, unlocks, tierProgress, controllerLevels };
     }
 
     const requires = item.requires ?? [];
@@ -119,28 +173,113 @@ export async function purchaseController(controllerId: ControllerId): Promise<Co
       throw new Error('未满足解锁条件');
     }
 
+    if (
+      controllerId === 'PID' &&
+      ((controllerLevels.PI ?? 0) < 5 || (controllerLevels.PD ?? 0) < 5)
+    ) {
+      throw new Error('需先将 PI 与 PD 升至 5 级');
+    }
+
     if (credits < item.price) {
       throw new Error('积分不足');
     }
 
     const nextUnlocks = [...unlocks, controllerId];
+    const nextControllerLevels = {
+      ...controllerLevels,
+      [controllerId]: Math.max(controllerLevels[controllerId] ?? 0, 1)
+    };
     const updated = await tx.studentProfile.upsert({
       where: { userId: session.user.id },
       update: {
         controlCredits: { decrement: item.price },
-        controlUnlocks: nextUnlocks
+        controlUnlocks: nextUnlocks,
+        controlControllerLevels: nextControllerLevels
       },
       create: {
         userId: session.user.id,
         controlCredits: credits - item.price,
-        controlUnlocks: nextUnlocks
+        controlUnlocks: nextUnlocks,
+        controlControllerLevels: nextControllerLevels
       }
     });
 
     return {
       credits: updated.controlCredits,
       unlocks: normalizeUnlocks(updated.controlUnlocks),
-      tierProgress
+      tierProgress,
+      controllerLevels: normalizeControllerLevels(updated.controlControllerLevels, nextUnlocks)
+    };
+  });
+
+  return result;
+}
+
+export async function upgradeController(controllerId: ControllerId): Promise<ControlProfileSnapshot | null> {
+  const session = await getServerAuthSession();
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  const rule = getUpgradeRule(controllerId);
+  if (!rule) {
+    throw new Error('无效的升级类型');
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    const profile = await tx.studentProfile.findUnique({
+      where: { userId: session.user.id },
+      select: {
+        controlCredits: true,
+        controlUnlocks: true,
+        controlOdysseyProgress: true,
+        controlControllerLevels: true
+      }
+    });
+
+    const unlocks = normalizeUnlocks(profile?.controlUnlocks);
+    const credits = profile?.controlCredits ?? 0;
+    const tierProgress = normalizeTierProgress(profile?.controlOdysseyProgress);
+    const controllerLevels = normalizeControllerLevels(profile?.controlControllerLevels, unlocks);
+
+    if (!unlocks.includes(controllerId)) {
+      throw new Error('控制器尚未解锁');
+    }
+
+    const currentLevel = controllerLevels[controllerId] ?? 0;
+    if (currentLevel >= rule.maxLevel) {
+      throw new Error('已达到最高等级');
+    }
+
+    const upgradePrice = Math.round(rule.basePrice * Math.pow(2, Math.max(0, currentLevel - 1)));
+    if (credits < upgradePrice) {
+      throw new Error('积分不足');
+    }
+
+    const nextLevels = {
+      ...controllerLevels,
+      [controllerId]: currentLevel + 1
+    };
+
+    const updated = await tx.studentProfile.upsert({
+      where: { userId: session.user.id },
+      update: {
+        controlCredits: { decrement: upgradePrice },
+        controlControllerLevels: nextLevels
+      },
+      create: {
+        userId: session.user.id,
+        controlCredits: credits - upgradePrice,
+        controlUnlocks: unlocks,
+        controlControllerLevels: nextLevels
+      }
+    });
+
+    return {
+      credits: updated.controlCredits,
+      unlocks: normalizeUnlocks(updated.controlUnlocks),
+      tierProgress,
+      controllerLevels: normalizeControllerLevels(updated.controlControllerLevels, unlocks)
     };
   });
 
@@ -262,11 +401,17 @@ export async function submitGameScore(
 
     const profile = await prisma.studentProfile.findUnique({
       where: { userId: session.user.id },
-      select: { controlCredits: true, controlUnlocks: true, controlOdysseyProgress: true }
+      select: {
+        controlCredits: true,
+        controlUnlocks: true,
+        controlOdysseyProgress: true,
+        controlControllerLevels: true
+      }
     });
     const unlocks = normalizeUnlocks(profile?.controlUnlocks);
     const credits = profile?.controlCredits ?? 0;
     const tierProgress = normalizeTierProgress(profile?.controlOdysseyProgress);
+    const controllerLevels = normalizeControllerLevels(profile?.controlControllerLevels, unlocks);
     const completedTier = context?.tier && TIER_ORDER.includes(context.tier as LevelTier)
       ? (context.tier as LevelTier)
       : undefined;
@@ -281,13 +426,15 @@ export async function submitGameScore(
       update: {
         controlCredits: { increment: creditsEarned },
         controlUnlocks: nextUnlocks,
-        controlOdysseyProgress: nextProgress
+        controlOdysseyProgress: nextProgress,
+        controlControllerLevels: controllerLevels
       },
       create: {
         userId: session.user.id,
         controlCredits: credits + creditsEarned,
         controlUnlocks: nextUnlocks,
-        controlOdysseyProgress: nextProgress
+        controlOdysseyProgress: nextProgress,
+        controlControllerLevels: controllerLevels
       }
     });
 

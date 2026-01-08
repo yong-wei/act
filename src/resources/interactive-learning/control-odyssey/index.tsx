@@ -4,12 +4,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import { GameCanvas } from './components/GameCanvas';
 import { TelemetryScope } from './components/TelemetryScope';
 import { LevelSelector } from './components/LevelSelector';
-import { CONTROL_ODYSSEY_LEVELS, CONTROL_SHOP_CONFIG, getTierConfig, type ControllerId, type LevelTier } from './level-data';
+import {
+  CONTROL_BASE_CONTROLLERS,
+  CONTROL_ODYSSEY_LEVELS,
+  CONTROL_SHOP_CONFIG,
+  CONTROLLER_UPGRADE_RULES,
+  getTierConfig,
+  type ControllerId,
+  type LevelTier
+} from './level-data';
 import { TuningPanel } from './components/TuningPanel';
 import { useGameStore } from './store/game-store';
 import { Play, RotateCcw, Settings2, Trophy, Info, ArrowLeft, Rocket, Gamepad2, Layers, ShoppingBag, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { submitGameScore, getLevelLeaderboard, LeaderboardEntry, getControlProfile, purchaseController } from '@/app/actions/control-odyssey';
+import {
+  submitGameScore,
+  getLevelLeaderboard,
+  LeaderboardEntry,
+  getControlProfile,
+  purchaseController,
+  upgradeController
+} from '@/app/actions/control-odyssey';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -20,10 +35,46 @@ interface ControlOdysseyProps {
 
 type ViewState = 'INTRO' | 'LEVEL_SELECT' | 'MODE_SELECT' | 'GAME';
 
-const TIER_OPTIONS: { id: LevelTier; label: string; description: string; accent: string }[] = [
-  { id: 'bronze', label: '青铜', description: '单一阶跃信号', accent: 'text-amber-400' },
-  { id: 'silver', label: '白银', description: '随机阶跃组合', accent: 'text-slate-300' },
-  { id: 'gold', label: '黄金', description: '叠加暗流扰动', accent: 'text-yellow-400' }
+const TIER_OPTIONS: {
+  id: LevelTier;
+  label: string;
+  description: string;
+  accent: string;
+  ring: string;
+  border: string;
+  bg: string;
+  hover: string;
+}[] = [
+  {
+    id: 'bronze',
+    label: '青铜',
+    description: '单一阶跃信号',
+    accent: 'text-orange-300',
+    ring: 'ring-orange-400/30',
+    border: 'border-orange-400/40',
+    bg: 'bg-orange-500/10',
+    hover: 'hover:border-orange-400/60'
+  },
+  {
+    id: 'silver',
+    label: '白银',
+    description: '随机阶跃组合',
+    accent: 'text-slate-200',
+    ring: 'ring-slate-300/30',
+    border: 'border-slate-300/40',
+    bg: 'bg-slate-500/10',
+    hover: 'hover:border-slate-300/60'
+  },
+  {
+    id: 'gold',
+    label: '黄金',
+    description: '叠加暗流扰动',
+    accent: 'text-yellow-200',
+    ring: 'ring-yellow-300/30',
+    border: 'border-yellow-300/40',
+    bg: 'bg-yellow-500/10',
+    hover: 'hover:border-yellow-300/60'
+  }
 ];
 
 const TIER_ORDER: LevelTier[] = ['bronze', 'silver', 'gold'];
@@ -48,6 +99,11 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     setControllerId,
     unlockedControllers,
     setUnlockedControllers,
+    controllerLevels,
+    setControllerLevels,
+    difficultyScale,
+    setDifficultyScale,
+    autoOffset,
     controlCredits,
     setControlCredits,
     runId
@@ -82,13 +138,16 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
       setIsSubmitting(true);
       try {
         // 评分公式：基础分 10000 - 误差惩罚 - 超调惩罚
-        const finalScore = Math.max(0, Math.floor(10000 - (metrics.iae / 10) - metrics.maxOvershoot * 20));
+        const baseScore = Math.max(0, Math.floor(10000 - (metrics.iae / 10) - metrics.maxOvershoot * 20));
+        const scoreMultiplier = Math.max(0.7, Math.min(1.4, 1 / difficultyScale));
+        const finalScore = Math.max(0, Math.floor(baseScore * scoreMultiplier));
         await submitGameScore(
           selectedLevelId,
           finalScore,
           {
           iae: metrics.iae,
-          maxOvershoot: metrics.maxOvershoot
+          maxOvershoot: metrics.maxOvershoot,
+          scoreMultiplier
           },
           {
             runId,
@@ -102,6 +161,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
           setControlCredits(profile.credits);
           setUnlockedControllers(profile.unlocks);
           setTierProgress(profile.tierProgress ?? {});
+          setControllerLevels(profile.controllerLevels);
         }
       } catch (e) {
         console.error('Failed to submit score', e);
@@ -111,7 +171,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     };
 
     saveScore();
-  }, [gameState, metrics, selectedLevelId, runId, currentTier, controllerId, setControlCredits, setUnlockedControllers]);
+  }, [gameState, metrics, selectedLevelId, runId, currentTier, controllerId, difficultyScale, setControlCredits, setUnlockedControllers, setControllerLevels]);
 
   useEffect(() => {
     if (gameState !== 'VICTORY') return;
@@ -135,6 +195,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
           setControlCredits(profile.credits);
           setUnlockedControllers(profile.unlocks);
           setTierProgress(profile.tierProgress ?? {});
+          setControllerLevels(profile.controllerLevels);
         }
       } catch (error) {
         console.error('Failed to load control profile', error);
@@ -142,11 +203,12 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     };
 
     loadProfile();
-  }, [setControlCredits, setUnlockedControllers]);
+  }, [setControlCredits, setUnlockedControllers, setControllerLevels]);
 
   useEffect(() => {
-    if (!unlockedControllers.includes(controllerId)) {
-      setControllerId(unlockedControllers[0] ?? 'P');
+    const fallback = CONTROL_BASE_CONTROLLERS.find((id) => unlockedControllers.includes(id)) ?? 'P';
+    if (!CONTROL_BASE_CONTROLLERS.includes(controllerId) || !unlockedControllers.includes(controllerId)) {
+      setControllerId(fallback);
     }
   }, [unlockedControllers, controllerId, setControllerId]);
 
@@ -181,11 +243,32 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         setControlCredits(profile.credits);
         setUnlockedControllers(profile.unlocks);
         setTierProgress(profile.tierProgress ?? {});
+        setControllerLevels(profile.controllerLevels);
       } else {
         setShopError('请先登录后兑换控制器。');
       }
     } catch (error) {
       setShopError(error instanceof Error ? error.message : '兑换失败，请稍后再试。');
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
+
+  const handleUpgradeController = async (target: ControllerId) => {
+    setIsPurchasing(true);
+    setShopError(null);
+    try {
+      const profile = await upgradeController(target);
+      if (profile) {
+        setControlCredits(profile.credits);
+        setUnlockedControllers(profile.unlocks);
+        setTierProgress(profile.tierProgress ?? {});
+        setControllerLevels(profile.controllerLevels);
+      } else {
+        setShopError('请先登录后升级控制器。');
+      }
+    } catch (error) {
+      setShopError(error instanceof Error ? error.message : '升级失败，请稍后再试。');
     } finally {
       setIsPurchasing(false);
     }
@@ -223,6 +306,29 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     fetchLeaderboard(selectedLevelId);
   };
 
+  const getUpgradeRule = (controller: ControllerId) =>
+    CONTROLLER_UPGRADE_RULES.find((rule) => rule.controller === controller);
+  const getControllerLevel = (controller: ControllerId) => controllerLevels[controller] ?? 0;
+  const getUpgradePrice = (controller: ControllerId) => {
+    const rule = getUpgradeRule(controller);
+    if (!rule) return 0;
+    const level = Math.max(1, getControllerLevel(controller));
+    return Math.round(rule.basePrice * Math.pow(2, Math.max(0, level - 1)));
+  };
+  const renderLevelMarks = (level: number, maxLevel = 10) => (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: maxLevel }).map((_, index) => (
+        <span
+          key={`lvl-${index}`}
+          className={cn(
+            'h-2 w-2 rounded-full border border-slate-700',
+            index < level ? 'bg-emerald-400 border-emerald-500' : 'bg-slate-800'
+          )}
+        />
+      ))}
+    </div>
+  );
+
   const currentLevelIndex = levels.findIndex((level) => level.id === selectedLevelId);
   const nextLevel = currentLevelIndex >= 0 ? levels[currentLevelIndex + 1] : null;
   const canAdvance = !!nextLevel;
@@ -241,7 +347,9 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     setCurrentView('MODE_SELECT');
   };
 
-  const finalScoreValue = Math.max(0, Math.floor(10000 - (metrics.iae / 10) - metrics.maxOvershoot * 20));
+  const baseScoreValue = Math.max(0, Math.floor(10000 - (metrics.iae / 10) - metrics.maxOvershoot * 20));
+  const scoreMultiplier = Math.max(0.7, Math.min(1.4, 1 / difficultyScale));
+  const finalScoreValue = Math.max(0, Math.floor(baseScoreValue * scoreMultiplier));
   const selectedLevel = levels.find((level) => level.id === selectedLevelId);
   const highestTier = tierProgress[selectedLevelId] ?? 'bronze';
   const isTierUnlocked = (tier: LevelTier) => TIER_ORDER.indexOf(tier) <= TIER_ORDER.indexOf(highestTier);
@@ -340,14 +448,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex items-center justify-between mt-2 bg-slate-950/60 border border-slate-800 rounded-xl p-4">
-            <div>
-              <div className="text-xs text-slate-500 uppercase tracking-wider">Control Credits</div>
-              <div className="text-2xl font-mono text-emerald-400 font-bold">{controlCredits.toLocaleString()}</div>
-            </div>
-            <div className="text-xs text-slate-500">
-              结算得分将直接累加为积分。
-            </div>
+          <div className="mt-2 text-xs text-slate-500">
+            结算得分会按难度倍率换算积分，升级可扩大参数上限（最高 10 级）。
           </div>
 
           {shopError && (
@@ -356,35 +458,71 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
             </div>
           )}
 
-          <div className="mt-4 grid gap-3">
+          <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar space-y-3">
             {CONTROL_SHOP_CONFIG.items.map((item) => {
               const unlocked = unlockedControllers.includes(item.unlocks.controller);
               const missing = (item.requires ?? []).filter((req) => !unlockedControllers.includes(req));
-              const canPurchase = !unlocked && missing.length === 0 && controlCredits >= item.price;
+              const pidLockedByLevel = item.unlocks.controller === 'PID'
+                && ((controllerLevels.PI ?? 0) < 5 || (controllerLevels.PD ?? 0) < 5);
+              const canPurchase = !unlocked && missing.length === 0 && !pidLockedByLevel && controlCredits >= item.price;
+              const rule = getUpgradeRule(item.unlocks.controller);
+              const level = getControllerLevel(item.unlocks.controller);
+              const maxLevel = rule?.maxLevel ?? 10;
+              const upgradePrice = rule ? getUpgradePrice(item.unlocks.controller) : 0;
+              const canUpgrade = unlocked && rule && level < maxLevel && controlCredits >= upgradePrice;
               return (
-                <div key={item.id} className="flex items-center justify-between gap-4 p-4 bg-slate-950/40 border border-slate-800 rounded-xl">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <div className="font-semibold">{item.label}</div>
-                      {unlocked && <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">已解锁</span>}
+                <div key={item.id} className="flex flex-col gap-3 p-4 bg-slate-950/40 border border-slate-800 rounded-xl">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-semibold">{item.label}</div>
+                        {unlocked && <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">已解锁</span>}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1">{item.description}</div>
+                      {missing.length > 0 && (
+                        <div className="text-xs text-amber-400 mt-1">需先解锁：{missing.join(' + ')}</div>
+                      )}
+                      {pidLockedByLevel && (
+                        <div className="text-xs text-amber-400 mt-1">需先将 PI 与 PD 升至 5 级</div>
+                      )}
                     </div>
-                    <div className="text-xs text-slate-500 mt-1">{item.description}</div>
-                    {missing.length > 0 && (
-                      <div className="text-xs text-amber-400 mt-1">需先解锁：{missing.join(' + ')}</div>
-                    )}
+                    <div className="text-right">
+                      <div className="text-sm text-slate-400">解锁价格</div>
+                      <div className="text-lg font-mono text-white">{item.price}</div>
+                      <Button
+                        size="sm"
+                        className="mt-2"
+                        disabled={!canPurchase || isPurchasing}
+                        onClick={() => handlePurchaseController(item.unlocks.controller)}
+                      >
+                        {unlocked ? '已拥有' : controlCredits < item.price ? '积分不足' : '兑换'}
+                      </Button>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-slate-400">价格</div>
-                    <div className="text-lg font-mono text-white">{item.price}</div>
-                    <Button
-                      size="sm"
-                      className="mt-2"
-                      disabled={!canPurchase || isPurchasing}
-                      onClick={() => handlePurchaseController(item.unlocks.controller)}
-                    >
-                      {unlocked ? '已拥有' : controlCredits < item.price ? '积分不足' : '兑换'}
-                    </Button>
-                  </div>
+
+                  {unlocked && (
+                    <div className="flex items-center justify-between gap-4 border-t border-slate-800 pt-3">
+                      <div>
+                        <div className="text-xs text-slate-500">等级 {level}/{maxLevel}</div>
+                        {renderLevelMarks(level, maxLevel)}
+                      </div>
+                      {rule && (
+                        <div className="text-right">
+                          <div className="text-xs text-slate-500">升级价格</div>
+                          <div className="text-sm font-mono text-white">{upgradePrice}</div>
+                          <Button
+                            size="sm"
+                            className="mt-2"
+                            variant="outline"
+                            disabled={!canUpgrade || isPurchasing}
+                            onClick={() => handleUpgradeController(item.unlocks.controller)}
+                          >
+                            {level >= maxLevel ? '已满级' : controlCredits < upgradePrice ? '积分不足' : `升级 Lv${level + 1}`}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -454,7 +592,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                   <h3 className="font-semibold text-amber-400 flex items-center gap-2">
                     <Layers className="w-4 h-4" /> 选择关卡等级
                   </h3>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-3">
                     {TIER_OPTIONS.map((tier) => {
                       const unlocked = isTierUnlocked(tier.id);
                       return (
@@ -466,8 +604,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                         className={cn(
                           'rounded-xl border px-3 py-3 text-left transition-all',
                           currentTier === tier.id
-                            ? 'border-amber-400 bg-amber-500/10 ring-2 ring-amber-400/20'
-                            : 'border-slate-800 bg-slate-900/40 hover:border-slate-600',
+                            ? `${tier.border} ${tier.bg} ring-2 ${tier.ring}`
+                            : `border-slate-800 bg-slate-900/40 ${tier.hover}`,
                           !unlocked && 'opacity-50 cursor-not-allowed'
                         )}
                       >
@@ -479,6 +617,25 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                       </button>
                     );
                     })}
+                  </div>
+                  <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                    <div className="flex items-center justify-between text-xs text-slate-400">
+                      <span>难度调节（包络宽度系数）</span>
+                      <span className="font-mono text-white">{difficultyScale.toFixed(2)}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.7"
+                      max="1.3"
+                      step="0.05"
+                      value={difficultyScale}
+                      onChange={(e) => setDifficultyScale(parseFloat(e.target.value))}
+                      className="mt-3 w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-400"
+                    />
+                    <div className="mt-2 text-[11px] text-slate-500">
+                      当前积分倍率：<span className="text-emerald-400 font-semibold">x{scoreMultiplier.toFixed(2)}</span>
+                      <span className="text-slate-600">（难度越大倍数越高）</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -570,7 +727,12 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
                      {showDetails && (
                        <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
-                         <div className="text-xs text-slate-500 mb-2">响应曲线与控制量 (全航程)</div>
+                         <div className="text-xs text-slate-500 mb-1">
+                           给定航线 R(t)、系统响应 Y(t)、控制信号 U(t)（全航程）
+                         </div>
+                         <div className="text-[10px] text-slate-600 mb-2">
+                           图例：R(t) 亮白虚线 / Y(t) 蓝色实线 / U(t) 红色
+                         </div>
                          <TelemetryScope height={220} />
                        </div>
                      )}
@@ -619,6 +781,14 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
              </div>
 
              <div className="flex items-center gap-8">
+                {controlMode === 'AUTO' && (
+                  <div className="flex flex-col items-end">
+                    <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">偏置 ΔR</div>
+                    <div className="text-xl font-mono font-bold text-blue-300">
+                      {autoOffset.toFixed(0)}
+                    </div>
+                  </div>
+                )}
                 <div className="flex flex-col items-end">
                   <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Progress</div>
                   <div className="text-xl font-mono font-bold text-emerald-400">

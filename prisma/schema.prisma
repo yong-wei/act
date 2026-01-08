@@ -99,6 +99,7 @@ model StudentProfile {
   controlCredits Int @default(0)
   controlUnlocks Json @default("[]")
   controlOdysseyProgress Json @default("{}")
+  controlControllerLevels Json @default("{}")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
