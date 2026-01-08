@@ -87,6 +87,8 @@ export class LevelGenerator {
     const FINISH_BUFFER = 800;
     const envelopeMargin = Math.max(20, envelopeConfig.margin);
     const boostMargin = Math.max(20, Math.round(envelopeMargin * 0.6));
+    const stepBuffer = 100;
+    const stepSignalTypes: ReferenceSignalConfig['type'][] = ['step', 'sequence', 'custom'];
 
     while (this.lastX < targetX + WALL_BUFFER) {
       let nextGapCenter = this.lastGapCenter;
@@ -98,7 +100,23 @@ export class LevelGenerator {
           return this.lastX >= event.at - buffer && this.lastX <= event.at + duration + buffer;
         })
         : false;
-      const margin = isDisturbanceZone ? envelopeMargin + boostMargin : envelopeMargin;
+      let stepMargin = 0;
+      if (!isFinishZone && stepSignalTypes.includes(referenceConfig.type)) {
+        const isStepZone = referenceConfig.events.some(
+          (event) => Math.abs(this.lastX - event.at) <= stepBuffer
+        );
+        if (isStepZone) {
+          const referenceY = computeReferenceY(referenceConfig, this.lastX);
+          const delta = Math.abs(referenceY - this.lastGapCenter);
+          const baseBoost = Math.max(20, Math.round(envelopeMargin * 0.35));
+          const deltaBoost = Math.min(Math.round(delta * 0.6), envelopeMargin);
+          stepMargin = baseBoost + deltaBoost;
+        }
+      }
+
+      const margin = isDisturbanceZone
+        ? envelopeMargin + boostMargin + stepMargin
+        : envelopeMargin + stepMargin;
       const gapHeight = isFinishZone ? VIEWPORT_HEIGHT : Math.min(VIEWPORT_HEIGHT, margin * 2);
 
       if (isFinishZone) {
