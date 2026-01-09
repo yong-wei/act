@@ -89,11 +89,14 @@ const normalizeTierProgress = (value: unknown): ControlTierProgress => {
 };
 
 const resolveTierUnlock = (currentTier: LevelTier | undefined, completedTier?: LevelTier) => {
-  if (!completedTier) return currentTier ?? 'bronze';
-  const unlockTier = completedTier === 'bronze' ? 'silver' : 'gold';
-  const currentIndex = TIER_ORDER.indexOf(currentTier ?? 'bronze');
-  const unlockIndex = TIER_ORDER.indexOf(unlockTier);
-  return TIER_ORDER[Math.max(currentIndex, unlockIndex)] ?? 'bronze';
+  const current = currentTier ?? 'bronze';
+  if (!completedTier) return current;
+  const currentIndex = TIER_ORDER.indexOf(current);
+  const completedIndex = TIER_ORDER.indexOf(completedTier);
+  if (currentIndex < 0 || completedIndex < 0) return current;
+  if (completedIndex < currentIndex) return current;
+  const nextIndex = Math.min(currentIndex + 1, TIER_ORDER.length - 1);
+  return TIER_ORDER[nextIndex] ?? current;
 };
 
 export async function getControlProfile(): Promise<ControlProfileSnapshot | null> {

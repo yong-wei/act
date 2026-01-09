@@ -345,6 +345,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const handleAdvanceToNextLevel = () => {
     if (!nextLevel) return;
     setSelectedLevelId(nextLevel.id);
+    setCurrentTier('bronze');
     setLevels((prev) => {
       const index = prev.findIndex((level) => level.id === nextLevel.id);
       if (index < 0) return prev;
@@ -794,7 +795,10 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
                      <div className="flex flex-col gap-3">
                        <Button onClick={handleStartGame} className="h-14 text-lg bg-blue-600 hover:bg-blue-500 rounded-xl font-bold">立即重启任务</Button>
-                       <Button onClick={handleBackToMenu} variant="outline" className="h-12 border-slate-700 rounded-xl">重新规划</Button>
+                       <div className="grid grid-cols-2 gap-3">
+                         <Button onClick={handleBackToMenu} variant="outline" className="h-12 border-slate-700 rounded-xl">返回总部</Button>
+                         <Button onClick={handleEnterConfig} variant="outline" className="h-12 border-slate-700 rounded-xl">返回配置</Button>
+                       </div>
                      </div>
                    </>
                  )}
