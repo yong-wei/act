@@ -11,6 +11,22 @@ interface GameCanvasProps {
   height?: number;
 }
 
+type StepInfo = { at: number; amplitude: number; target: number };
+
+const buildStepTimeline = (reference: { type: string; base?: number; events: { at: number; amplitude: number }[] }) => {
+  const base = reference.base ?? VIEWPORT_HEIGHT / 2;
+  if (!['step', 'sequence', 'custom'].includes(reference.type)) {
+    return { base, steps: [] as StepInfo[] };
+  }
+  const sorted = [...reference.events].sort((a, b) => a.at - b.at);
+  let cumulative = 0;
+  const steps = sorted.map((event) => {
+    cumulative += event.amplitude;
+    return { at: event.at, amplitude: event.amplitude, target: base + cumulative };
+  });
+  return { base, steps };
+};
+
 export const GameCanvas: React.FC<GameCanvasProps> = ({ 
   width = 800, 
   height = 400 
@@ -33,10 +49,30 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
   
   // 内部性能统计变量
   const metricsRef = useRef({
-    maxError: 0,
-    iae: 0,
-    startTime: 0,
-    lastTimeWithinThreshold: 0
+    maxOvershoot: 0,
+    avgRelativeErrorSum: 0,
+    avgRelativeErrorTime: 0,
+    steadySumY: 0,
+    steadySumR: 0,
+    steadyTime: 0
+  });
+
+  const stepRef = useRef<{
+    base: number;
+    steps: StepInfo[];
+    currentIndex: number;
+    currentAmplitude: number;
+    currentTarget: number;
+    direction: number;
+    peak: number | null;
+  }>({
+    base: VIEWPORT_HEIGHT / 2,
+    steps: [],
+    currentIndex: -1,
+    currentAmplitude: 0,
+    currentTarget: VIEWPORT_HEIGHT / 2,
+    direction: 0,
+    peak: null
   });
   
   // 从 Store 获取状态
@@ -81,6 +117,45 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     };
   }, [gameState, setGameState]);
 
+  const finalizeStepOvershoot = () => {
+    const step = stepRef.current;
+    const amplitude = Math.abs(step.currentAmplitude);
+    if (!amplitude || step.peak === null) return;
+    let overshootRatio = 0;
+    if (step.direction > 0) {
+      overshootRatio = (step.peak - step.currentTarget) / amplitude;
+    } else if (step.direction < 0) {
+      overshootRatio = (step.currentTarget - step.peak) / amplitude;
+    }
+    if (overshootRatio > 0) {
+      metricsRef.current.maxOvershoot = Math.max(metricsRef.current.maxOvershoot, overshootRatio * 100);
+    }
+  };
+
+  const getMetricsSnapshot = () => {
+    const {
+      maxOvershoot,
+      avgRelativeErrorSum,
+      avgRelativeErrorTime,
+      steadySumY,
+      steadySumR,
+      steadyTime
+    } = metricsRef.current;
+    const avgRelativeError = avgRelativeErrorTime > 0
+      ? (avgRelativeErrorSum / avgRelativeErrorTime) * 100
+      : 0;
+    const steadyAvgR = steadyTime > 0 ? steadySumR / steadyTime : 0;
+    const steadyAvgY = steadyTime > 0 ? steadySumY / steadyTime : 0;
+    const steadyError = steadyTime > 0 && Math.abs(steadyAvgR) > 0.001
+      ? ((steadyAvgY - steadyAvgR) / steadyAvgR) * 100
+      : 0;
+    return {
+      maxOvershoot,
+      avgRelativeError,
+      steadyError
+    };
+  };
+
   // 重置游戏逻辑
   const handleReset = useCallback(() => {
     physicsRef.current.reset(VIEWPORT_HEIGHT / 2);
@@ -97,7 +172,24 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       tierKeyRef.current = tierKey;
     }
     // 重置统计
-    metricsRef.current = { maxError: 0, iae: 0, startTime: 0, lastTimeWithinThreshold: 0 };
+    metricsRef.current = {
+      maxOvershoot: 0,
+      avgRelativeErrorSum: 0,
+      avgRelativeErrorTime: 0,
+      steadySumY: 0,
+      steadySumR: 0,
+      steadyTime: 0
+    };
+    const { base, steps } = buildStepTimeline(runtimeTier.reference);
+    stepRef.current = {
+      base,
+      steps,
+      currentIndex: -1,
+      currentAmplitude: 0,
+      currentTarget: base,
+      direction: 0,
+      peak: null
+    };
     // 初始生成一段
     const scaledEnvelope = {
       ...runtimeTier.envelope,
@@ -221,14 +313,55 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         if (shipState.y > VIEWPORT_HEIGHT) shipState.y = VIEWPORT_HEIGHT;
 
         const scrollX = scrollXRef.current;
+        const referenceY = computeReferenceY(activeTier.reference, shipWorldX);
+
+        const stepMeta = stepRef.current;
+        if (stepMeta.steps.length) {
+          while (
+            stepMeta.currentIndex + 1 < stepMeta.steps.length
+            && shipWorldX >= stepMeta.steps[stepMeta.currentIndex + 1].at
+          ) {
+            finalizeStepOvershoot();
+            stepMeta.currentIndex += 1;
+            const currentStep = stepMeta.steps[stepMeta.currentIndex];
+            stepMeta.currentAmplitude = currentStep.amplitude;
+            stepMeta.currentTarget = currentStep.target;
+            stepMeta.direction = Math.sign(currentStep.amplitude);
+            stepMeta.peak = shipState.y;
+          }
+
+          if (stepMeta.currentAmplitude !== 0 && stepMeta.peak !== null) {
+            if (stepMeta.direction > 0) {
+              stepMeta.peak = Math.max(stepMeta.peak, shipState.y);
+            } else if (stepMeta.direction < 0) {
+              stepMeta.peak = Math.min(stepMeta.peak, shipState.y);
+            }
+          }
+        }
+
+        const error = Math.abs(shipState.y - referenceY);
+        const stepAmplitude = Math.abs(stepMeta.currentAmplitude);
+        const referenceDelta = stepAmplitude > 0 ? stepAmplitude : Math.abs(referenceY - stepMeta.base);
+        if (referenceDelta > 0.001) {
+          metricsRef.current.avgRelativeErrorSum += (error / referenceDelta) * dt;
+          metricsRef.current.avgRelativeErrorTime += dt;
+        }
+        if (shipWorldX >= maxDistanceLocal - 500) {
+          metricsRef.current.steadySumY += shipState.y * dt;
+          metricsRef.current.steadySumR += referenceY * dt;
+          metricsRef.current.steadyTime += dt;
+        }
 
         // 胜利检测
         if (shipWorldX >= maxDistanceLocal) {
           scrollXRef.current = Math.max(maxDistanceLocal - SHIP_X_OFFSET, 0);
           const displayR = controlMode === 'AUTO' ? shipState.r : VIEWPORT_HEIGHT / 2;
+          finalizeStepOvershoot();
+          const snapshot = getMetricsSnapshot();
           updateMetrics(shipState.y, shipState.u, displayR, maxDistanceLocal, {
-            iae: metricsRef.current.iae,
-            maxOvershoot: (metricsRef.current.maxError / 60) * 100
+            maxOvershoot: snapshot.maxOvershoot,
+            avgRelativeError: snapshot.avgRelativeError,
+            steadyError: snapshot.steadyError
           });
           setGameState('VICTORY');
           // 立即停止循环，不进行后续更新
@@ -263,13 +396,6 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         if (currentSeg) {
           currentR = currentSeg.gapCenter;
           
-          // 计算指标
-          const error = Math.abs(shipState.y - currentR);
-          metricsRef.current.iae += error * dt;
-          if (error > metricsRef.current.maxError) {
-             metricsRef.current.maxError = error;
-          }
-          
           // 简单的矩形/点碰撞
           const shipTop = shipState.y - 8; // 飞船半径 8
           const shipBottom = shipState.y + 8;
@@ -283,9 +409,11 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         const displayR = controlMode === 'AUTO' ? shipState.r : currentR;
 
         // 同步低频状态到 UI Store
+        const snapshot = getMetricsSnapshot();
         updateMetrics(shipState.y, shipState.u, displayR, scrollX, {
-            iae: metricsRef.current.iae,
-            maxOvershoot: (metricsRef.current.maxError / 60) * 100 // 假设 60px 是基准误差
+          maxOvershoot: snapshot.maxOvershoot,
+          avgRelativeError: snapshot.avgRelativeError,
+          steadyError: snapshot.steadyError
         });
       }
 

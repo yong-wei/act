@@ -117,6 +117,7 @@ export interface ShopConfig {
 const DEFAULT_DISTANCE = 3000;
 const DEFAULT_ENVELOPE: EnvelopeConfig = { margin: 60 };
 const DEFAULT_SAFE_DISTANCE = 500;
+const DEFAULT_STEADY_DISTANCE = 500;
 
 const createStepSequence = (
   count: number,
@@ -164,7 +165,7 @@ const buildTierConfigs = (): LevelTierConfig[] => {
     random: {
       count: 4,
       minAt: 600,
-      maxAt: DEFAULT_DISTANCE - 400,
+      maxAt: DEFAULT_DISTANCE - DEFAULT_STEADY_DISTANCE,
       minGap: 250,
       minAmplitude: -90,
       maxAmplitude: 90,
@@ -178,7 +179,7 @@ const buildTierConfigs = (): LevelTierConfig[] => {
     random: {
       count: 4,
       minAt: 600,
-      maxAt: DEFAULT_DISTANCE - 400,
+      maxAt: DEFAULT_DISTANCE - DEFAULT_STEADY_DISTANCE,
       minGap: 250,
       minAmplitude: -90,
       maxAmplitude: 90,

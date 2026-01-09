@@ -16,6 +16,7 @@ export interface LeaderboardEntry {
   userImage?: string | null;
   score: number;
   metrics: any;
+  tier?: LevelTier;
   createdAt: Date;
 }
 
@@ -328,14 +329,18 @@ export async function getLevelLeaderboard(levelId: string): Promise<LeaderboardE
       return true;
     }).slice(0, 50);
 
-    return uniqueLogs.map((log, index) => ({
+    return uniqueLogs.map((log, index) => {
+      const tier = (log.inputParams as { tier?: LevelTier } | null)?.tier;
+      return ({
       rank: index + 1,
       userName: log.user.name || log.user.email?.split('@')[0] || 'Unknown Captain',
       userImage: log.user.image,
       score: log.score || 0,
       metrics: log.metrics,
+      tier,
       createdAt: log.createdAt
-    }));
+      });
+    });
   } catch (error) {
     console.error('Failed to fetch leaderboard:', error);
     return [];
@@ -418,8 +423,7 @@ export async function submitGameScore(
     const nextTier = resolveTierUnlock(tierProgress[levelId], completedTier);
     const nextProgress = { ...tierProgress, [levelId]: nextTier };
     const nextUnlocks = unlocks.includes('P') ? unlocks : [...unlocks, 'P'];
-    const tierBonus = completedTier === 'gold' ? 40 : completedTier === 'silver' ? 20 : 0;
-    const creditsEarned = Math.floor(score / 150) + tierBonus;
+    const creditsEarned = Math.floor(score / 100);
 
     await prisma.studentProfile.upsert({
       where: { userId: session.user.id },

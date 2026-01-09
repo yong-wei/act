@@ -26,6 +26,11 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
   controlCredits = 0,
   onOpenShop
 }) => {
+  const tierColorMap: Record<string, string> = {
+    bronze: 'text-amber-400',
+    silver: 'text-slate-200',
+    gold: 'text-yellow-400'
+  };
   return (
     <div className="flex w-full min-h-full max-w-[1400px] mx-auto gap-6 p-8 text-white">
       {/* 左侧：动态排行榜 */}
@@ -79,9 +84,18 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                    </div>
                  </div>
                  <div className="text-right flex-none">
-                   <div className="text-emerald-400 font-mono font-bold text-sm">{player.score.toLocaleString()}</div>
+                   <div className="flex items-center justify-end gap-1 text-emerald-400 font-mono font-bold text-sm">
+                     {player.tier && (
+                       <Star className={cn('w-3 h-3 fill-current', tierColorMap[player.tier] ?? 'text-slate-500')} />
+                     )}
+                     <span>{player.score.toLocaleString()}</span>
+                   </div>
                    {player.metrics?.maxOvershoot !== undefined && (
-                      <div className="text-[10px] text-slate-600">σ: {player.metrics.maxOvershoot}%</div>
+                      <div className="text-[10px] text-slate-600">
+                        超调 {Number(player.metrics.maxOvershoot).toFixed(1)}%
+                        {' '}| 稳态 {Number(player.metrics.steadyError ?? 0).toFixed(1)}%
+                        {' '}| 平均 {Number(player.metrics.avgRelativeError ?? 0).toFixed(1)}%
+                      </div>
                    )}
                  </div>
                </div>

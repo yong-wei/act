@@ -137,16 +137,25 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     const saveScore = async () => {
       setIsSubmitting(true);
       try {
-        // 评分公式：基础分 10000 - 误差惩罚 - 超调惩罚
-        const baseScore = Math.max(0, Math.floor(10000 - (metrics.iae / 10) - metrics.maxOvershoot * 20));
+        const tierBase = currentTier === 'gold' ? 15000 : currentTier === 'silver' ? 12000 : 10000;
+        const baseScore = Math.max(
+          0,
+          Math.floor(
+            tierBase
+            - metrics.maxOvershoot * 20
+            - metrics.steadyError * 50
+            - metrics.avgRelativeError * 30
+          )
+        );
         const scoreMultiplier = Math.max(0.7, Math.min(1.4, 1 / difficultyScale));
         const finalScore = Math.max(0, Math.floor(baseScore * scoreMultiplier));
         await submitGameScore(
           selectedLevelId,
           finalScore,
           {
-          iae: metrics.iae,
           maxOvershoot: metrics.maxOvershoot,
+          steadyError: metrics.steadyError,
+          avgRelativeError: metrics.avgRelativeError,
           scoreMultiplier
           },
           {
@@ -347,9 +356,19 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     setCurrentView('MODE_SELECT');
   };
 
-  const baseScoreValue = Math.max(0, Math.floor(10000 - (metrics.iae / 10) - metrics.maxOvershoot * 20));
+  const tierBaseValue = currentTier === 'gold' ? 15000 : currentTier === 'silver' ? 12000 : 10000;
+  const baseScoreValue = Math.max(
+    0,
+    Math.floor(
+      tierBaseValue
+      - metrics.maxOvershoot * 20
+      - metrics.steadyError * 50
+      - metrics.avgRelativeError * 30
+    )
+  );
   const scoreMultiplier = Math.max(0.7, Math.min(1.4, 1 / difficultyScale));
   const finalScoreValue = Math.max(0, Math.floor(baseScoreValue * scoreMultiplier));
+  const tierLabel = TIER_OPTIONS.find((option) => option.id === currentTier)?.label ?? currentTier;
   const selectedLevel = levels.find((level) => level.id === selectedLevelId);
   const highestTier = tierProgress[selectedLevelId] ?? 'bronze';
   const isTierUnlocked = (tier: LevelTier) => TIER_ORDER.indexOf(tier) <= TIER_ORDER.indexOf(highestTier);
@@ -704,23 +723,30 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                      <h2 className="text-4xl font-black text-white mb-2">航行成功!</h2>
                      <p className="text-slate-400 mb-8">表现优异，数据已同步。{isSubmitting && '上传中...'}</p>
                      
-                     <div className="bg-slate-950/50 rounded-2xl p-6 mb-8 grid grid-cols-2 gap-y-6 text-left border border-slate-800">
-                        <div>
-                          <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">最终得分</div>
-                          <div className="text-3xl font-mono text-emerald-400 font-bold">{finalScoreValue.toLocaleString()}</div>
+                     <div className="bg-slate-950/50 rounded-2xl p-6 mb-8 border border-slate-800 text-left space-y-4">
+                        <div className="flex items-center justify-between gap-6">
+                          <div>
+                            <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">挑战分支</div>
+                            <div className="text-lg font-semibold text-white">{tierLabel}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">最终得分</div>
+                            <div className="text-3xl font-mono text-emerald-400 font-bold">{finalScoreValue.toLocaleString()}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">误差积分 (IAE)</div>
-                          <div className="text-2xl font-mono text-white">{(metrics.iae / 10).toFixed(1)}</div>
-                        </div>
-                        <div className="col-span-2 h-px bg-slate-800" />
-                        <div>
-                           <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">最大超调</div>
-                           <div className="text-xl font-mono text-white">{metrics.maxOvershoot.toFixed(1)}%</div>
-                        </div>
-                        <div>
-                           <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">任务航程</div>
-                           <div className="text-xl font-mono text-white">{distance.toFixed(0)}m</div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div title="阶跃出现后，响应超过目标的最大比例。">
+                            <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">最大超调</div>
+                            <div className="text-xl font-mono text-white">{metrics.maxOvershoot.toFixed(1)}%</div>
+                          </div>
+                          <div title="最后500M内，响应均值相对给定的偏差。">
+                            <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">稳态误差</div>
+                            <div className="text-xl font-mono text-white">{metrics.steadyError.toFixed(1)}%</div>
+                          </div>
+                          <div title="误差绝对值相对于当前阶跃幅值的平均比例。">
+                            <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">平均相对误差</div>
+                            <div className="text-xl font-mono text-white">{metrics.avgRelativeError.toFixed(1)}%</div>
+                          </div>
                         </div>
                      </div>
 
