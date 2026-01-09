@@ -5,6 +5,7 @@ import { useGameStore } from '../store/game-store';
 import { PhysicsEngine } from '../engine/physics';
 import { LevelGenerator, LevelSegment, SEGMENT_WIDTH, SHIP_X_OFFSET, VIEWPORT_HEIGHT, VIEWPORT_WIDTH, computeReferenceY } from '../engine/level-generator';
 import { buildRuntimeTierConfig, getLevelConfigById, getTierConfig } from '../level-data';
+import { ShipAvatar } from './ShipAvatar';
 
 interface GameCanvasProps {
   width?: number;
@@ -43,6 +44,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
   const disturbanceRef = useRef(0);
   const scrollXRef = useRef(0);
   const lastTimeRef = useRef(0);
+  const shipLayerRef = useRef<HTMLDivElement>(null);
   
   // 输入状态 Ref
   const inputRef = useRef({ up: false, down: false });
@@ -226,6 +228,18 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     if (!ctx) return;
 
     let animationFrameId: number;
+    const updateShipLayer = (shipY: number) => {
+      const shipEl = shipLayerRef.current;
+      if (!shipEl) return;
+      const scaleX = canvas.clientWidth > 0 ? canvas.clientWidth / canvas.width : 1;
+      const scaleY = canvas.clientHeight > 0 ? canvas.clientHeight / canvas.height : 1;
+      const scale = Math.min(scaleX, scaleY);
+      const safeScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
+      shipEl.style.left = `${SHIP_X_OFFSET * scaleX}px`;
+      shipEl.style.top = `${shipY * scaleY}px`;
+      shipEl.style.transform = `translate(-50%, -50%) scale(${safeScale})`;
+    };
+
     const render = (time: number) => {
       if (lastTimeRef.current === 0) {
         lastTimeRef.current = time;
@@ -504,23 +518,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
 
       // 绘制飞船
       const { y } = physicsRef.current.getState();
-      
-      // 飞船本体
-      ctx.fillStyle = gameState === 'GAME_OVER' ? '#ef4444' : gameState === 'VICTORY' ? '#10b981' : '#3b82f6';
-      ctx.beginPath();
-      // 简单的三角形飞船
-      ctx.moveTo(SHIP_X_OFFSET + 10, y);
-      ctx.lineTo(SHIP_X_OFFSET - 8, y - 6);
-      ctx.lineTo(SHIP_X_OFFSET - 8, y + 6);
-      ctx.fill();
-      
-      // 尾迹效果
-      if (gameState === 'RUNNING') {
-        ctx.fillStyle = 'rgba(59, 130, 246, 0.5)';
-        ctx.beginPath();
-        ctx.arc(SHIP_X_OFFSET - 12, y, 4 + Math.random() * 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      updateShipLayer(y);
 
       // HUD 信息
       if (gameState === 'GAME_OVER') {
@@ -593,6 +591,17 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         height={height}
         className="block w-full h-full"
       />
+      <div
+        ref={shipLayerRef}
+        className="absolute left-0 top-0 z-10 pointer-events-none"
+      >
+        <ShipAvatar
+          controlMode={controlMode}
+          controllerId={controllerId}
+          enableFeedforward={enableFeedforward}
+          enableSpeedFeedback={enableSpeedFeedback}
+        />
+      </div>
     </div>
   );
 };
