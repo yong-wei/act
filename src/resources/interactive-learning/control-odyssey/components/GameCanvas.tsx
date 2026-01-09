@@ -358,18 +358,21 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       }
 
       // 绘制中心期望线 (虚线)
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(248, 250, 252, 0.55)';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
-      segmentsRef.current.forEach((seg, i) => {
-        const drawX = seg.x - scrollX;
-        if (i === 0) ctx.moveTo(drawX, seg.gapCenter);
-        ctx.lineTo(drawX + SEGMENT_WIDTH, seg.gapCenter);
-      });
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.lineWidth = 1;
+      if (activeTier) {
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(248, 250, 252, 0.55)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        segmentsRef.current.forEach((seg, i) => {
+          const drawX = seg.x - scrollX;
+          const refY = Math.min(VIEWPORT_HEIGHT, Math.max(0, computeReferenceY(activeTier.reference, seg.x)));
+          if (i === 0) ctx.moveTo(drawX, refY);
+          ctx.lineTo(drawX + SEGMENT_WIDTH, refY);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.lineWidth = 1;
+      }
 
       // 绘制飞船
       const { y } = physicsRef.current.getState();

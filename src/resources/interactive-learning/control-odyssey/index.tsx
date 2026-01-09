@@ -750,7 +750,10 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                            下一关挑战
                          </Button>
                        )}
-                       <Button onClick={handleBackToMenu} variant="outline" className="h-12 border-slate-700 rounded-xl">返回总部</Button>
+                       <div className="grid grid-cols-2 gap-3">
+                         <Button onClick={handleBackToMenu} variant="outline" className="h-12 border-slate-700 rounded-xl">返回总部</Button>
+                         <Button onClick={handleEnterConfig} variant="outline" className="h-12 border-slate-700 rounded-xl">返回配置</Button>
+                       </div>
                      </div>
                    </>
                  ) : (
