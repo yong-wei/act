@@ -307,7 +307,7 @@ export const TuningPanel: React.FC = () => {
             {/* Feedforward */}
             <rect
               x="150"
-              y="-12"
+              y="-17"
               width="140"
               height="26"
               rx="8"
@@ -315,7 +315,7 @@ export const TuningPanel: React.FC = () => {
             />
             <text
               x="220"
-              y="6"
+              y="1"
               textAnchor="middle"
               className={cn('text-[13px] fill-current', isAuto && feedforwardEnabled ? moduleTextActiveClass : moduleTextMutedClass)}
             >
@@ -329,7 +329,7 @@ export const TuningPanel: React.FC = () => {
             {/* Speed feedback */}
             <rect
               x="390"
-              y="189"
+              y="176"
               width="150"
               height="26"
               rx="8"
@@ -337,7 +337,7 @@ export const TuningPanel: React.FC = () => {
             />
             <text
               x="465"
-              y="207"
+              y="194"
               textAnchor="middle"
               className={cn('text-[13px] fill-current', isAuto && speedFeedbackEnabled ? moduleTextActiveClass : moduleTextMutedClass)}
             >
@@ -347,7 +347,7 @@ export const TuningPanel: React.FC = () => {
             {/* Disturbance filter */}
             <rect
               x="540"
-              y="54"
+              y="28"
               width="140"
               height="26"
               rx="8"
@@ -355,7 +355,7 @@ export const TuningPanel: React.FC = () => {
             />
             <text
               x="610"
-              y="72"
+              y="46"
               textAnchor="middle"
               className={cn('text-[13px] fill-current', hasDisturbance ? moduleTextActiveClass : moduleTextMutedClass)}
             >
@@ -371,20 +371,20 @@ export const TuningPanel: React.FC = () => {
             <line x1="624" y1="100" x2="690" y2="100" className={lineActiveClass} markerEnd={markerActive} />
 
             {/* Feedforward path */}
-            <path d="M 56 100 L 56 1 L 150 1" className={feedforwardLineClass} fill="none" markerEnd={isAuto && feedforwardEnabled ? markerActive : markerMuted} />
-            <path d="M 290 1 L 350 1 L 350 86" className={feedforwardLineClass} fill="none" markerEnd={isAuto && feedforwardEnabled ? markerActive : markerMuted} />
+            <path d="M 56 100 L 56 -4 L 150 -4" className={feedforwardLineClass} fill="none" markerEnd={isAuto && feedforwardEnabled ? markerActive : markerMuted} />
+            <path d="M 290 -4 L 350 -4 L 350 86" className={feedforwardLineClass} fill="none" markerEnd={isAuto && feedforwardEnabled ? markerActive : markerMuted} />
 
             {/* Manual path */}
             <path d="M 112 100 L 112 159 L 155 159" className={manualLineClass} fill="none" markerEnd={manualActive ? markerActive : markerMuted} />
             <path d="M 285 159 L 350 159 L 350 114" className={manualLineClass} fill="none" markerEnd={manualActive ? markerActive : markerMuted} />
 
             {/* Disturbance path */}
-            <path d="M 610 18 L 610 54" className={disturbanceLineClass} fill="none" markerEnd={hasDisturbance ? markerActive : markerMuted} />
-            <path d="M 610 80 L 610 86" className={disturbanceLineClass} fill="none" markerEnd={hasDisturbance ? markerActive : markerMuted} />
+            <path d="M 610 18 L 610 28" className={disturbanceLineClass} fill="none" markerEnd={hasDisturbance ? markerActive : markerMuted} />
+            <path d="M 610 54 L 610 86" className={disturbanceLineClass} fill="none" markerEnd={hasDisturbance ? markerActive : markerMuted} />
 
             {/* Feedback path (after disturbance) */}
-            <path d="M 640 100 L 640 202 L 540 202" className={speedFeedbackLineClass} fill="none" markerEnd={isAuto && speedFeedbackEnabled ? markerActive : markerMuted} />
-            <path d="M 390 202 L 90 202 L 90 116" className={speedFeedbackLineClass} fill="none" markerEnd={isAuto && speedFeedbackEnabled ? markerActive : markerMuted} />
+            <path d="M 640 100 L 640 189 L 540 189" className={speedFeedbackLineClass} fill="none" markerEnd={isAuto && speedFeedbackEnabled ? markerActive : markerMuted} />
+            <path d="M 390 189 L 90 189 L 90 116" className={speedFeedbackLineClass} fill="none" markerEnd={isAuto && speedFeedbackEnabled ? markerActive : markerMuted} />
 
             {/* Unity feedback */}
             <path d="M 660 100 L 660 217 L 90 217 L 90 116" className={unityFeedbackLineClass} fill="none" markerEnd={isAuto ? markerActive : markerMuted} />
