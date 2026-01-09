@@ -77,13 +77,26 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
       }
 
       const distanceSpan = Math.max(maxDistance, 1);
-
-      // 1. 绘制期望值 R (白色虚线)
-      // 需要将 VIEWPORT_HEIGHT (0-400) 映射到 Canvas 高度 (0-100)
-      // 注意：游戏坐标 Y=0 在上，Canvas 坐标 Y=0 也在上。
-      // 但通常波形图 Y 轴向上为正？这里保持屏幕坐标系直观对应：
-      // 游戏中船在上面，波形图也在上面。
-      const scaleY = (val: number) => (val / VIEWPORT_HEIGHT) * h;
+      const topPadding = 18;
+      const bottomPadding = 26;
+      const plotHeight = Math.max(10, h - topPadding - bottomPadding);
+      const signalValues = historyRef.current.flatMap((pt) => [pt.r, pt.y]);
+      let minSignal = Math.min(...signalValues);
+      let maxSignal = Math.max(...signalValues);
+      if (!Number.isFinite(minSignal) || !Number.isFinite(maxSignal)) {
+        minSignal = 0;
+        maxSignal = VIEWPORT_HEIGHT;
+      }
+      if (maxSignal === minSignal) {
+        maxSignal += 1;
+        minSignal -= 1;
+      }
+      const range = maxSignal - minSignal;
+      const padding = Math.max(10, range * 0.12);
+      minSignal -= padding;
+      maxSignal += padding;
+      const scaleY = (val: number) =>
+        topPadding + ((val - minSignal) / (maxSignal - minSignal)) * plotHeight;
 
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(248, 250, 252, 0.9)';
@@ -111,15 +124,17 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
       });
       ctx.stroke();
 
-      // 3. 绘制控制量 U (底部红色/绿色实线)
+      // 3. 绘制控制量 U (底部红色实线)
       // U 是 -1 到 1
       ctx.beginPath();
       ctx.strokeStyle = '#f43f5e'; // rose-500
       ctx.lineWidth = 1.5;
       historyRef.current.forEach((pt, i) => {
         const x = (pt.distance / distanceSpan) * w;
-        // 将 U (-1 到 1) 映射到绘图区域 (底部 30px 范围)
-        const uY = h - 20 - (pt.u * 15);
+        // 将 U (-1 到 1) 映射到底部保留区域
+        const uBase = h - 10;
+        const uBand = 16;
+        const uY = uBase - (pt.u * uBand);
         if (i === 0) ctx.moveTo(x, uY);
         else ctx.lineTo(x, uY);
       });
@@ -128,8 +143,8 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
       // 绘制 U 的零位基准线
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(244, 63, 94, 0.2)';
-      ctx.moveTo(0, h - 20);
-      ctx.lineTo(w, h - 20);
+      ctx.moveTo(0, h - 10);
+      ctx.lineTo(w, h - 10);
       ctx.stroke();
 
       animationId = requestAnimationFrame(render);
@@ -153,20 +168,20 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
     <div className="w-full relative border-t border-slate-800 bg-slate-950/80">
       <canvas ref={canvasRef} className="block w-full" style={{ height }} />
       <div className="absolute top-1 left-2 text-[10px] text-slate-400 font-mono pointer-events-none flex items-center gap-2">
-        <span>实测遥感图例：给定航线 R(t)</span>
+        <span>给定航线R(t)</span>
         <span className="inline-flex items-center gap-1">
           <span className="w-2 h-2 border border-slate-200/60" />
-          <span>亮白虚线</span>
+          <span>色块</span>
         </span>
-        <span>系统响应 Y(t)</span>
+        <span>实际航线Y(t)</span>
         <span className="inline-flex items-center gap-1">
           <span className="w-2 h-2 bg-blue-500/70" />
-          <span>蓝色实线</span>
+          <span>色块</span>
         </span>
-        <span>控制信号 U(t)</span>
+        <span>控制信号U(t)</span>
         <span className="inline-flex items-center gap-1">
           <span className="w-2 h-2 bg-rose-500/70" />
-          <span>红色</span>
+          <span>色块</span>
         </span>
       </div>
     </div>

@@ -737,9 +737,6 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                          <div className="text-xs text-slate-500 mb-1">
                            给定航线 R(t)、系统响应 Y(t)、控制信号 U(t)（全航程）
                          </div>
-                         <div className="text-[10px] text-slate-600 mb-2">
-                           图例：R(t) 亮白虚线 / Y(t) 蓝色实线 / U(t) 红色
-                         </div>
                          <TelemetryScope height={220} />
                        </div>
                      )}
