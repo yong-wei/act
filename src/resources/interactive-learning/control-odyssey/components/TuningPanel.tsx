@@ -75,8 +75,8 @@ export const TuningPanel: React.FC = () => {
   const markerActive = 'url(#arrow-active)';
   const markerMuted = 'url(#arrow-muted)';
   const pidLineClass = pidEnabled ? lineActiveClass : lineMutedClass;
-  const feedforwardLineClass = feedforwardEnabled ? lineActiveClass : lineMutedClass;
-  const speedFeedbackLineClass = speedFeedbackEnabled ? lineActiveClass : lineMutedClass;
+  const feedforwardLineClass = isAuto && feedforwardEnabled ? lineActiveClass : lineMutedClass;
+  const speedFeedbackLineClass = isAuto && speedFeedbackEnabled ? lineActiveClass : lineMutedClass;
   const disturbanceLineClass = hasDisturbance ? lineActiveClass : lineMutedClass;
   const manualLineClass = manualActive ? lineActiveClass : lineMutedClass;
   const unityFeedbackLineClass = isAuto ? lineActiveClass : lineMutedClass;
@@ -114,27 +114,29 @@ export const TuningPanel: React.FC = () => {
             const unlocked = unlockedControllers.includes(id);
             const label = controllerLabelMap[id] ?? id;
             const level = getLevel(id);
+            const selectable = isAuto && unlocked;
+            const active = isAuto && baseController === id;
             return (
               <button
                 key={id}
                 type="button"
-                disabled={!unlocked}
+                disabled={!selectable}
                 onClick={() => setControllerId(id)}
                 className={`rounded-lg border px-2 py-2 text-sm font-semibold transition-all ${
-                  baseController === id
+                  active
                     ? 'border-emerald-400 bg-emerald-500/10 text-emerald-200'
                     : 'border-slate-800 bg-slate-950/60 text-slate-300'
-                } ${!unlocked ? 'opacity-40 cursor-not-allowed' : 'hover:border-slate-600'}`}
+                } ${!selectable ? 'opacity-40 cursor-not-allowed' : 'hover:border-slate-600'}`}
               >
                 <div className="flex flex-col items-center gap-1">
                   <span>{label}</span>
-                  <span className="text-xs font-mono text-slate-300">Lv {level || 0}</span>
+                  <span className="text-sm font-mono text-slate-300">Lv {level || 0}</span>
                 </div>
               </button>
             );
           })}
         </div>
-        <div className="text-xs text-slate-300">
+        <div className="text-sm text-slate-300">
           未解锁控制器需在控制商店兑换。
         </div>
       </div>
@@ -148,25 +150,27 @@ export const TuningPanel: React.FC = () => {
             const level = getLevel(moduleId);
             const enabled = moduleId === 'VFB' ? speedFeedbackEnabled : feedforwardEnabled;
             const toggle = moduleId === 'VFB' ? setSpeedFeedbackEnabled : setFeedforwardEnabled;
+            const active = isAuto && enabled;
+            const selectable = isAuto && unlocked;
             return (
               <button
                 key={moduleId}
                 type="button"
-                disabled={!unlocked}
+                disabled={!selectable}
                 onClick={() => toggle(!enabled)}
                 className={cn(
                   'rounded-lg border px-3 py-2 text-sm font-semibold transition-all flex items-center justify-between',
-                  enabled
+                  active
                     ? 'border-blue-400 bg-blue-500/10 text-blue-200'
                     : 'border-slate-800 bg-slate-950/60 text-slate-300',
-                  !unlocked && 'opacity-40 cursor-not-allowed'
+                  !selectable && 'opacity-40 cursor-not-allowed'
                 )}
               >
                 <div className="flex flex-col items-start">
                   <span>{label}</span>
-                  <span className="text-xs font-mono text-slate-300">Lv {level || 0}</span>
+                  <span className="text-sm font-mono text-slate-300">Lv {level || 0}</span>
                 </div>
-                {!unlocked && <Lock className="w-3 h-3 text-slate-500" />}
+                {!selectable && <Lock className="w-3 h-3 text-slate-500" />}
               </button>
             );
           })}
@@ -175,7 +179,7 @@ export const TuningPanel: React.FC = () => {
 
       <div className="space-y-2">
         <div className="text-sm text-slate-300 uppercase tracking-wider">控制结构方框图</div>
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-2">
+        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-1">
           <svg viewBox="0 0 760 210" className="w-full h-[210px]">
             <defs>
               <marker
@@ -201,83 +205,83 @@ export const TuningPanel: React.FC = () => {
                 <path d="M 0 0 L 10 5 L 0 10 z" className="fill-slate-600" />
               </marker>
             </defs>
-            <rect x="10" y="6" width="740" height="198" rx="12" className="fill-slate-950/60 stroke-slate-800" />
+            <rect x="10" y="2" width="740" height="206" rx="12" className="fill-slate-950/60 stroke-slate-800" />
 
             {/* Signals */}
-            <text x="20" y="104" className={cn(baseTextClass, 'text-[13px]')}>R(t)</text>
-            <text x="690" y="104" className={cn(baseTextClass, 'text-[13px]')}>Y(t)</text>
+            <text x="20" y="106" className={cn(baseTextClass, 'text-[15px]')}>R(t)</text>
+            <text x="700" y="106" className={cn(baseTextClass, 'text-[15px]')}>Y(t)</text>
             <text
-              x="590"
-              y="12"
+              x="610"
+              y="14"
               textAnchor="middle"
-              className={cn('text-[12px] fill-current', hasDisturbance ? moduleTextActiveClass : moduleTextMutedClass)}
+              className={cn('text-[14px] fill-current', hasDisturbance ? moduleTextActiveClass : moduleTextMutedClass)}
             >
               D(t)
             </text>
 
             {/* Summing junctions */}
-            <circle cx="90" cy="100" r="16" className="fill-slate-950 stroke-slate-500" />
-            <text x="90" y="104" textAnchor="middle" className="fill-slate-300 text-[13px]">Σ</text>
-            <circle cx="350" cy="100" r="14" className="fill-slate-950 stroke-slate-500" />
-            <text x="350" y="104" textAnchor="middle" className="fill-slate-300 text-[13px]">Σ</text>
-            <circle cx="590" cy="100" r="14" className="fill-slate-950 stroke-slate-500" />
-            <text x="590" y="104" textAnchor="middle" className="fill-slate-300 text-[13px]">Σ</text>
+            <circle cx="90" cy="100" r="16" className={moduleActiveClass} />
+            <text x="90" y="105" textAnchor="middle" className="fill-slate-300 text-[15px]">Σ</text>
+            <circle cx="350" cy="100" r="14" className={moduleActiveClass} />
+            <text x="350" y="105" textAnchor="middle" className="fill-slate-300 text-[15px]">Σ</text>
+            <circle cx="610" cy="100" r="14" className={moduleActiveClass} />
+            <text x="610" y="105" textAnchor="middle" className="fill-slate-300 text-[15px]">Σ</text>
 
             {/* PID block */}
             <rect
               x="130"
-              y="34"
+              y="32"
               width="180"
-              height="120"
+              height="108"
               rx="12"
               className={cn('stroke-2', pidEnabled ? moduleActiveClass : moduleMutedClass)}
             />
-            <text x="220" y="28" textAnchor="middle" className="fill-slate-400 text-[12px]">PID 并联</text>
+            <text x="220" y="26" textAnchor="middle" className="fill-slate-300 text-[14px]">PID 并联</text>
             <rect
               x="155"
-              y="48"
+              y="44"
               width="130"
-              height="28"
+              height="26"
               rx="8"
               className={cn('stroke-2', isAuto && controllerCaps.kp ? moduleActiveClass : moduleMutedClass)}
             />
             <text
               x="220"
-              y="67"
+              y="62"
               textAnchor="middle"
-              className={cn('text-[13px] fill-current', isAuto && controllerCaps.kp ? moduleTextActiveClass : moduleTextMutedClass)}
+              className={cn('text-[14px] fill-current', isAuto && controllerCaps.kp ? moduleTextActiveClass : moduleTextMutedClass)}
             >
               P
             </text>
             <rect
               x="155"
-              y="82"
+              y="72"
               width="130"
-              height="28"
+              height="26"
               rx="8"
               className={cn('stroke-2', isAuto && controllerCaps.ki ? moduleActiveClass : moduleMutedClass)}
             />
             <text
               x="220"
-              y="101"
+              y="90"
               textAnchor="middle"
-              className={cn('text-[13px] fill-current', isAuto && controllerCaps.ki ? moduleTextActiveClass : moduleTextMutedClass)}
+              className={cn('text-[14px] fill-current', isAuto && controllerCaps.ki ? moduleTextActiveClass : moduleTextMutedClass)}
             >
               I
             </text>
             <rect
               x="155"
-              y="116"
+              y="100"
               width="130"
-              height="28"
+              height="26"
               rx="8"
               className={cn('stroke-2', isAuto && controllerCaps.kd ? moduleActiveClass : moduleMutedClass)}
             />
             <text
               x="220"
-              y="135"
+              y="118"
               textAnchor="middle"
-              className={cn('text-[13px] fill-current', isAuto && controllerCaps.kd ? moduleTextActiveClass : moduleTextMutedClass)}
+              className={cn('text-[14px] fill-current', isAuto && controllerCaps.kd ? moduleTextActiveClass : moduleTextMutedClass)}
             >
               D
             </text>
@@ -285,17 +289,17 @@ export const TuningPanel: React.FC = () => {
             {/* Manual control */}
             <rect
               x="155"
-              y="160"
+              y="146"
               width="130"
-              height="28"
+              height="26"
               rx="8"
               className={cn('stroke-2', manualActive ? moduleActiveClass : moduleMutedClass)}
             />
             <text
               x="220"
-              y="179"
+              y="164"
               textAnchor="middle"
-              className={cn('text-[12px] fill-current', manualActive ? moduleTextActiveClass : moduleTextMutedClass)}
+              className={cn('text-[13px] fill-current', manualActive ? moduleTextActiveClass : moduleTextMutedClass)}
             >
               手动控制
             </text>
@@ -303,57 +307,57 @@ export const TuningPanel: React.FC = () => {
             {/* Feedforward */}
             <rect
               x="150"
-              y="12"
+              y="6"
               width="140"
-              height="28"
+              height="26"
               rx="8"
-              className={cn('stroke-2', feedforwardEnabled ? moduleActiveClass : moduleMutedClass)}
+              className={cn('stroke-2', isAuto && feedforwardEnabled ? moduleActiveClass : moduleMutedClass)}
             />
             <text
               x="220"
-              y="31"
+              y="24"
               textAnchor="middle"
-              className={cn('text-[12px] fill-current', feedforwardEnabled ? moduleTextActiveClass : moduleTextMutedClass)}
+              className={cn('text-[13px] fill-current', isAuto && feedforwardEnabled ? moduleTextActiveClass : moduleTextMutedClass)}
             >
               前馈 F(s)
             </text>
 
             {/* Plant */}
             <rect x="390" y="70" width="150" height="60" rx="10" className={cn('stroke-2', moduleActiveClass)} />
-            <text x="465" y="104" textAnchor="middle" className={cn(baseTextClass, 'text-[13px]')}>对象 G(s)</text>
+            <text x="465" y="106" textAnchor="middle" className={cn(baseTextClass, 'text-[15px]')}>对象 G(s)</text>
 
             {/* Speed feedback */}
             <rect
               x="390"
-              y="150"
+              y="176"
               width="150"
-              height="36"
+              height="26"
               rx="8"
-              className={cn('stroke-2', speedFeedbackEnabled ? moduleActiveClass : moduleMutedClass)}
+              className={cn('stroke-2', isAuto && speedFeedbackEnabled ? moduleActiveClass : moduleMutedClass)}
             />
             <text
               x="465"
-              y="173"
+              y="194"
               textAnchor="middle"
-              className={cn('text-[12px] fill-current', speedFeedbackEnabled ? moduleTextActiveClass : moduleTextMutedClass)}
+              className={cn('text-[13px] fill-current', isAuto && speedFeedbackEnabled ? moduleTextActiveClass : moduleTextMutedClass)}
             >
               测速反馈
             </text>
 
             {/* Disturbance filter */}
             <rect
-              x="520"
-              y="12"
+              x="540"
+              y="40"
               width="140"
-              height="28"
+              height="26"
               rx="8"
               className={cn('stroke-2', hasDisturbance ? moduleActiveClass : moduleMutedClass)}
             />
             <text
-              x="590"
-              y="31"
+              x="610"
+              y="58"
               textAnchor="middle"
-              className={cn('text-[12px] fill-current', hasDisturbance ? moduleTextActiveClass : moduleTextMutedClass)}
+              className={cn('text-[13px] fill-current', hasDisturbance ? moduleTextActiveClass : moduleTextMutedClass)}
             >
               滤波器 1/(Ts+1)
             </text>
@@ -363,31 +367,31 @@ export const TuningPanel: React.FC = () => {
             <line x1="106" y1="100" x2="130" y2="100" className={pidLineClass} markerEnd={pidEnabled ? markerActive : markerMuted} />
             <line x1="310" y1="100" x2="336" y2="100" className={pidLineClass} markerEnd={pidEnabled ? markerActive : markerMuted} />
             <line x1="364" y1="100" x2="390" y2="100" className={lineActiveClass} markerEnd={markerActive} />
-            <line x1="540" y1="100" x2="576" y2="100" className={lineActiveClass} markerEnd={markerActive} />
-            <line x1="604" y1="100" x2="680" y2="100" className={lineActiveClass} markerEnd={markerActive} />
+            <line x1="540" y1="100" x2="596" y2="100" className={lineActiveClass} markerEnd={markerActive} />
+            <line x1="624" y1="100" x2="690" y2="100" className={lineActiveClass} markerEnd={markerActive} />
 
             {/* Feedforward path */}
-            <path d="M 60 100 L 60 26 L 150 26" className={feedforwardLineClass} fill="none" markerEnd={feedforwardEnabled ? markerActive : markerMuted} />
-            <path d="M 290 26 L 350 26 L 350 86" className={feedforwardLineClass} fill="none" markerEnd={feedforwardEnabled ? markerActive : markerMuted} />
+            <path d="M 56 100 L 56 19 L 150 19" className={feedforwardLineClass} fill="none" markerEnd={isAuto && feedforwardEnabled ? markerActive : markerMuted} />
+            <path d="M 290 19 L 350 19 L 350 86" className={feedforwardLineClass} fill="none" markerEnd={isAuto && feedforwardEnabled ? markerActive : markerMuted} />
 
             {/* Manual path */}
-            <path d="M 90 100 L 90 174 L 155 174" className={manualLineClass} fill="none" markerEnd={manualActive ? markerActive : markerMuted} />
-            <path d="M 285 174 L 350 174 L 350 86" className={manualLineClass} fill="none" markerEnd={manualActive ? markerActive : markerMuted} />
+            <path d="M 106 100 L 106 159 L 155 159" className={manualLineClass} fill="none" markerEnd={manualActive ? markerActive : markerMuted} />
+            <path d="M 285 159 L 350 159 L 350 114" className={manualLineClass} fill="none" markerEnd={manualActive ? markerActive : markerMuted} />
 
             {/* Disturbance path */}
-            <path d="M 590 6 L 590 12" className={disturbanceLineClass} fill="none" markerEnd={hasDisturbance ? markerActive : markerMuted} />
-            <path d="M 590 40 L 590 86" className={disturbanceLineClass} fill="none" markerEnd={hasDisturbance ? markerActive : markerMuted} />
+            <path d="M 610 18 L 610 40" className={disturbanceLineClass} fill="none" markerEnd={hasDisturbance ? markerActive : markerMuted} />
+            <path d="M 610 66 L 610 100" className={disturbanceLineClass} fill="none" markerEnd={hasDisturbance ? markerActive : markerMuted} />
 
             {/* Feedback path (after disturbance) */}
-            <path d="M 620 100 L 620 168 L 540 168" className={speedFeedbackLineClass} fill="none" markerEnd={speedFeedbackEnabled ? markerActive : markerMuted} />
-            <path d="M 390 168 L 90 168 L 90 116" className={speedFeedbackLineClass} fill="none" markerEnd={speedFeedbackEnabled ? markerActive : markerMuted} />
+            <path d="M 640 100 L 640 189 L 540 189" className={speedFeedbackLineClass} fill="none" markerEnd={isAuto && speedFeedbackEnabled ? markerActive : markerMuted} />
+            <path d="M 390 189 L 90 189 L 90 116" className={speedFeedbackLineClass} fill="none" markerEnd={isAuto && speedFeedbackEnabled ? markerActive : markerMuted} />
 
             {/* Unity feedback */}
-            <path d="M 650 100 L 650 200 L 90 200 L 90 116" className={unityFeedbackLineClass} fill="none" markerEnd={isAuto ? markerActive : markerMuted} />
-            <text x="360" y="194" textAnchor="middle" className="fill-slate-400 text-[12px]">1</text>
+            <path d="M 660 100 L 660 204 L 90 204 L 90 116" className={unityFeedbackLineClass} fill="none" markerEnd={isAuto ? markerActive : markerMuted} />
+            <text x="74" y="124" textAnchor="middle" className="fill-slate-300 text-[14px]">-</text>
           </svg>
         </div>
-        <div className="text-xs text-slate-400">高亮模块表示当前控制结构启用。</div>
+        <div className="text-sm text-slate-300">高亮模块表示当前控制结构启用。</div>
       </div>
       
       {/* 参数滑块 */}
