@@ -51,11 +51,12 @@ export const TuningPanel: React.FC = () => {
   const speedFeedbackEnabled = enableSpeedFeedback && isSpeedFeedbackUnlocked;
   const feedforwardEnabled = enableFeedforward && isFeedforwardUnlocked;
   const getLevel = (id: ControllerId) => controllerLevels[id] ?? 0;
-  const kpMax = Math.max(1, Math.pow(2, Math.max(0, getLevel('P') - 1)));
-  const kiMax = Math.max(1, Math.pow(2, Math.max(0, getLevel('PI') - 1)));
-  const kdMax = Math.max(1, Math.pow(2, Math.max(0, getLevel('PD') - 1)));
-  const tauMax = Math.max(1, Math.pow(2, Math.max(0, getLevel('VFB') - 1)));
-  const ffMax = Math.max(1, Math.pow(2, Math.max(0, getLevel('FF') - 1)));
+  const baseMax = 0.1;
+  const kpMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('P') - 1)));
+  const kiMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('PI') - 1)));
+  const kdMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('PD') - 1)));
+  const tauMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('VFB') - 1)));
+  const ffMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('FF') - 1)));
   const controllerLabelMap = CONTROL_SHOP_CONFIG.items.reduce<Record<ControllerId, string>>((acc, item) => {
     acc[item.unlocks.controller] = item.label;
     return acc;
@@ -160,29 +161,69 @@ export const TuningPanel: React.FC = () => {
 
       <div className="space-y-2">
         <div className="text-xs text-slate-500 uppercase tracking-wider">控制结构方框图</div>
-        <div className="grid grid-cols-5 gap-2">
-          {[
-            { id: 'FF', label: '前馈', active: feedforwardEnabled, level: getLevel('FF') },
-            { id: 'P', label: 'P', active: controllerCaps.kp, level: getLevel('P') },
-            { id: 'I', label: 'I', active: controllerCaps.ki, level: getLevel('PI') },
-            { id: 'D', label: 'D', active: controllerCaps.kd, level: getLevel('PD') },
-            { id: 'VFB', label: '测速', active: speedFeedbackEnabled, level: getLevel('VFB') }
-          ].map((block) => (
-            <div
-              key={block.id}
-              className={cn(
-                'rounded-lg border px-2 py-2 text-center text-xs transition-all',
-                block.active
-                  ? 'border-emerald-400 bg-emerald-500/10 text-emerald-200'
-                  : 'border-slate-800 bg-slate-950/40 text-slate-500'
-              )}
-            >
-              <div className="font-semibold">{block.label}</div>
-              <div className="text-[10px] font-mono text-slate-500">Lv {block.level || 0}</div>
-            </div>
-          ))}
+        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+          <svg viewBox="0 0 760 220" className="w-full h-[220px]">
+            <defs>
+              <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.8" />
+              </linearGradient>
+            </defs>
+            <rect x="10" y="10" width="740" height="200" rx="12" className="fill-slate-950/60 stroke-slate-800" />
+
+            {/* Reference */}
+            <circle cx="40" cy="110" r="14" className="fill-slate-950 stroke-slate-600" />
+            <text x="40" y="114" textAnchor="middle" className="fill-slate-400 text-[12px]">R</text>
+            <line x1="54" y1="110" x2="80" y2="110" className="stroke-slate-600" />
+
+            {/* Summing junction */}
+            <circle cx="95" cy="110" r="16" className="fill-slate-950 stroke-slate-600" />
+            <text x="95" y="114" textAnchor="middle" className="fill-slate-400 text-[12px]">Σ</text>
+
+            {/* PID block */}
+            <rect x="125" y="65" width="180" height="90" rx="10" className="fill-slate-950/40 stroke-slate-700" />
+            <text x="215" y="58" textAnchor="middle" className="fill-slate-500 text-[11px]">PID 控制器</text>
+            <rect x="140" y="80" width="45" height="50" rx="6" className={cn('stroke-2', controllerCaps.kp ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="162" y="110" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.kp ? 'text-cyan-200' : 'text-slate-500')}>P</text>
+            <rect x="202" y="80" width="45" height="50" rx="6" className={cn('stroke-2', controllerCaps.ki ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="225" y="110" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.ki ? 'text-cyan-200' : 'text-slate-500')}>I</text>
+            <rect x="264" y="80" width="45" height="50" rx="6" className={cn('stroke-2', controllerCaps.kd ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="286" y="110" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.kd ? 'text-cyan-200' : 'text-slate-500')}>D</text>
+
+            {/* Feedforward */}
+            <rect x="125" y="20" width="120" height="34" rx="8" className={cn('stroke-2', feedforwardEnabled ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="185" y="42" textAnchor="middle" className={cn('text-[11px] fill-current', feedforwardEnabled ? 'text-cyan-200' : 'text-slate-500')}>前馈 F(s)</text>
+
+            {/* Lines to summing junction */}
+            <line x1="110" y1="110" x2="125" y2="110" className="stroke-slate-600" />
+            <line x1="185" y1="54" x2="185" y2="90" className="stroke-slate-600" />
+
+            {/* Control object */}
+            <line x1="305" y1="110" x2="340" y2="110" className="stroke-slate-600" />
+            <rect x="340" y="80" width="130" height="60" rx="10" className="fill-slate-950/40 stroke-slate-700" />
+            <text x="405" y="110" textAnchor="middle" className="fill-slate-300 text-[12px]">对象 G(s)</text>
+
+            {/* Output */}
+            <line x1="470" y1="110" x2="520" y2="110" className="stroke-slate-600" />
+            <circle cx="540" cy="110" r="14" className="fill-slate-950 stroke-slate-600" />
+            <text x="540" y="114" textAnchor="middle" className="fill-slate-400 text-[12px]">Y</text>
+
+            {/* Speed feedback */}
+            <rect x="340" y="150" width="150" height="40" rx="8" className={cn('stroke-2', speedFeedbackEnabled ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="415" y="175" textAnchor="middle" className={cn('text-[11px] fill-current', speedFeedbackEnabled ? 'text-cyan-200' : 'text-slate-500')}>测速反馈</text>
+            <line x1="540" y1="124" x2="540" y2="170" className="stroke-slate-600" />
+            <line x1="540" y1="170" x2="490" y2="170" className="stroke-slate-600" />
+            <line x1="340" y1="170" x2="95" y2="170" className="stroke-slate-600" />
+            <line x1="95" y1="170" x2="95" y2="126" className="stroke-slate-600" />
+
+            {/* Disturbance */}
+            <rect x="520" y="20" width="120" height="34" rx="8" className="fill-slate-900/40 stroke-slate-700" />
+            <text x="580" y="42" textAnchor="middle" className="fill-slate-500 text-[11px]">扰动 D(s)</text>
+            <line x1="580" y1="54" x2="580" y2="100" className="stroke-slate-600" />
+            <line x1="580" y1="100" x2="520" y2="110" className="stroke-slate-600" />
+          </svg>
         </div>
-        <div className="text-[10px] text-slate-600">高亮表示当前控制结构启用。</div>
+        <div className="text-[10px] text-slate-600">高亮模块表示当前控制结构启用。</div>
       </div>
       
       {/* 参数滑块 */}
@@ -197,7 +238,7 @@ export const TuningPanel: React.FC = () => {
               <input 
                 type="range" 
                 className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                min="0.1" max={kpMax} step="0.05"
+                min="0" max={kpMax} step="0.005"
                 value={pidParams.kp}
                 onChange={(e) => setPidParams({ kp: parseFloat(e.target.value) })}
               />
@@ -213,7 +254,7 @@ export const TuningPanel: React.FC = () => {
               <input 
                 type="range" 
                 className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                min="0.1" max={kiMax} step="0.01"
+                min="0" max={kiMax} step="0.002"
                 value={pidParams.ki}
                 onChange={(e) => setPidParams({ ki: parseFloat(e.target.value) })}
               />
@@ -229,7 +270,7 @@ export const TuningPanel: React.FC = () => {
               <input 
                 type="range" 
                 className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                min="0.1" max={kdMax} step="0.05"
+                min="0" max={kdMax} step="0.005"
                 value={pidParams.kd}
                 onChange={(e) => setPidParams({ kd: parseFloat(e.target.value) })}
               />
@@ -245,7 +286,7 @@ export const TuningPanel: React.FC = () => {
               <input 
                 type="range" 
                 className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-400"
-                min="0.1" max={tauMax} step="0.05"
+                min="0" max={tauMax} step="0.005"
                 value={extraParams.speedFeedbackTau}
                 onChange={(e) => setExtraParams({ speedFeedbackTau: parseFloat(e.target.value) })}
               />
@@ -261,7 +302,7 @@ export const TuningPanel: React.FC = () => {
               <input 
                 type="range" 
                 className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-400"
-                min="0.1" max={ffMax} step="0.05"
+                min="0" max={ffMax} step="0.005"
                 value={extraParams.feedforwardGain}
                 onChange={(e) => setExtraParams({ feedforwardGain: parseFloat(e.target.value) })}
               />
@@ -276,7 +317,7 @@ export const TuningPanel: React.FC = () => {
       
       {/* 实时遥测数据 */}
       <div className="mt-auto p-3 bg-slate-950/50 rounded-lg border border-slate-800/50">
-        <div className="text-xs text-slate-500 mb-2 font-semibold">实时遥测</div>
+        <div className="text-xs text-slate-500 mb-2 font-semibold">实测遥感</div>
         <div className="space-y-1.5 text-xs font-mono">
           <div className="flex justify-between">
              <span className="text-slate-400">给定航线 R:</span>

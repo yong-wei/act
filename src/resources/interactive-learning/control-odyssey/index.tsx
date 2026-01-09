@@ -360,6 +360,17 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     : selectedLevel?.simulation.engineType === 'INTEGRAL'
       ? '积分环节'
       : '惯性环节';
+  const disturbanceLabel = tierConfig.disturbance.type === 'output-step'
+    ? '输出阶跃扰动'
+    : '无扰动';
+  const specItems = [
+    { label: '系统特性', value: modelLabel },
+    { label: '增益 K', value: selectedLevel?.simulation.gain !== undefined ? selectedLevel.simulation.gain.toFixed(2) : null },
+    { label: '时间常数 T', value: selectedLevel?.simulation.timeConstant !== undefined ? selectedLevel.simulation.timeConstant.toFixed(2) : null },
+    { label: '输入延时 L', value: selectedLevel?.simulation.inputDelay !== undefined ? selectedLevel.simulation.inputDelay.toFixed(2) : null },
+    { label: '额定航程', value: `${tierConfig.distance}m` },
+    { label: '扰动类型', value: disturbanceLabel }
+  ].filter((item) => item.value !== null) as { label: string; value: string }[];
 
   return (
     <div
@@ -556,71 +567,59 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-8 py-4">
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-emerald-400 flex items-center gap-2">
-                    <Gamepad2 className="w-4 h-4" /> 选择控制模式
+              <div className="space-y-6 py-4">
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-5">
+                  <h3 className="font-semibold text-blue-400 flex items-center gap-2 mb-4">
+                    <Info className="w-4 h-4" /> 控制对象规格
                   </h3>
-                  
-                  <div 
-                    onClick={() => setControlMode('MANUAL')}
-                    className={cn(
-                      "p-4 rounded-xl border transition-all cursor-pointer hover:bg-slate-800",
-                      controlMode === 'MANUAL' ? "bg-slate-800 border-emerald-500 ring-4 ring-emerald-500/10" : "bg-slate-900/50 border-slate-800"
-                    )}
-                  >
-                    <div className="font-bold text-white mb-1">手动直控 (Manual)</div>
-                    <div className="text-xs text-slate-500">
-                      键盘上下键决定控制增量。松开按键后控制量将保持。
-                    </div>
-                  </div>
-
-                  <div 
-                    onClick={() => setControlMode('AUTO')}
-                    className={cn(
-                      "p-4 rounded-xl border transition-all cursor-pointer hover:bg-slate-800",
-                      controlMode === 'AUTO' ? "bg-slate-800 border-blue-500 ring-4 ring-blue-500/10" : "bg-slate-900/50 border-slate-800"
-                    )}
-                  >
-                    <div className="font-bold text-white mb-1">PID 辅助 (PID Assist)</div>
-                    <div className="text-xs text-slate-500">
-                      通过上下键调整设定值(R)，控制器自动生成 $U(t)$ 响应。
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm text-slate-300">
+                    {specItems.map((item) => (
+                      <div key={item.label} className="flex items-center justify-between">
+                        <span className="text-slate-500">{item.label}</span>
+                        <span className="font-mono text-white">{item.value}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                <div className="space-y-3 pt-2">
-                  <h3 className="font-semibold text-amber-400 flex items-center gap-2">
-                    <Layers className="w-4 h-4" /> 选择关卡等级
-                  </h3>
-                  <div className="grid grid-cols-3 gap-3">
-                    {TIER_OPTIONS.map((tier) => {
-                      const unlocked = isTierUnlocked(tier.id);
-                      return (
-                      <button
-                        key={tier.id}
-                        type="button"
-                        disabled={!unlocked}
-                        onClick={() => unlocked && setCurrentTier(tier.id)}
-                        className={cn(
-                          'rounded-xl border px-3 py-3 text-left transition-all',
-                          currentTier === tier.id
-                            ? `${tier.border} ${tier.bg} ring-2 ${tier.ring}`
-                            : `border-slate-800 bg-slate-900/40 ${tier.hover}`,
-                          !unlocked && 'opacity-50 cursor-not-allowed'
-                        )}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className={cn('text-sm font-semibold', tier.accent)}>{tier.label}</div>
-                          {!unlocked && <Lock className="w-3 h-3 text-slate-500" />}
-                        </div>
-                        <div className="text-[10px] text-slate-500 mt-1">{tier.description}</div>
-                      </button>
-                    );
-                    })}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-amber-400 flex items-center gap-2">
+                      <Layers className="w-4 h-4" /> 选择关卡等级
+                    </h3>
+                    <div className="grid grid-cols-3 gap-3">
+                      {TIER_OPTIONS.map((tier) => {
+                        const unlocked = isTierUnlocked(tier.id);
+                        return (
+                        <button
+                          key={tier.id}
+                          type="button"
+                          disabled={!unlocked}
+                          onClick={() => unlocked && setCurrentTier(tier.id)}
+                          className={cn(
+                            'rounded-xl border px-3 py-3 text-left transition-all',
+                            currentTier === tier.id
+                              ? `${tier.border} ${tier.bg} ring-2 ${tier.ring}`
+                              : `border-slate-800 bg-slate-900/40 ${tier.hover}`,
+                            !unlocked && 'opacity-50 cursor-not-allowed'
+                          )}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className={cn('text-sm font-semibold', tier.accent)}>{tier.label}</div>
+                            {!unlocked && <Lock className="w-3 h-3 text-slate-500" />}
+                          </div>
+                          <div className="text-[10px] text-slate-500 mt-1">{tier.description}</div>
+                        </button>
+                      );
+                      })}
+                    </div>
                   </div>
-                  <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                  <div className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
+                    <h3 className="font-semibold text-emerald-400 flex items-center gap-2 mb-3">
+                      <Settings2 className="w-4 h-4" /> 难度调节
+                    </h3>
                     <div className="flex items-center justify-between text-xs text-slate-400">
-                      <span>难度调节（包络宽度系数）</span>
+                      <span>包络宽度系数</span>
                       <span className="font-mono text-white">{difficultyScale.toFixed(2)}</span>
                     </div>
                     <input
@@ -638,34 +637,42 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                     </div>
                   </div>
                 </div>
-              </div>
 
-                <div className="space-y-4">
-                   <h3 className="font-semibold text-blue-400 flex items-center gap-2">
-                     <Info className="w-4 h-4" /> 被控对象规格
-                   </h3>
-                   <div className="space-y-3 text-sm text-slate-300 bg-slate-950/50 p-5 rounded-xl border border-slate-800">
-                     <div className="flex justify-between">
-                       <span className="text-slate-500">系统特性</span>
-                       <span className="font-mono text-white">{modelLabel}</span>
-                     </div>
-                     <div className="flex justify-between">
-                       <span className="text-slate-500">增益 K</span>
-                       <span className="font-mono text-white">{(selectedLevel?.simulation.gain ?? 1).toFixed(2)}</span>
-                     </div>
-                     <div className="flex justify-between">
-                       <span className="text-slate-500">时间常数 T</span>
-                       <span className="font-mono text-white">{selectedLevel?.simulation.timeConstant !== undefined ? selectedLevel.simulation.timeConstant.toFixed(2) : '--'}</span>
-                     </div>
-                     <div className="flex justify-between">
-                       <span className="text-slate-500">输入延时 L</span>
-                       <span className="font-mono text-white">{selectedLevel?.simulation.inputDelay !== undefined ? selectedLevel.simulation.inputDelay.toFixed(2) : '--'}</span>
-                     </div>
-                     <div className="flex justify-between border-t border-slate-800 pt-3 mt-3">
-                       <span className="text-slate-500">额定航程</span>
-                       <span className="font-mono text-emerald-400 font-bold">{tierConfig.distance}m</span>
-                     </div>
-                   </div>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-emerald-400 flex items-center gap-2">
+                      <Gamepad2 className="w-4 h-4" /> 控制模式：手动
+                    </h3>
+                    <div 
+                      onClick={() => setControlMode('MANUAL')}
+                      className={cn(
+                        "p-4 rounded-xl border transition-all cursor-pointer hover:bg-slate-800",
+                        controlMode === 'MANUAL' ? "bg-slate-800 border-emerald-500 ring-4 ring-emerald-500/10" : "bg-slate-900/50 border-slate-800"
+                      )}
+                    >
+                      <div className="font-bold text-white mb-1">手动直控 (Manual)</div>
+                      <div className="text-xs text-slate-500">
+                        键盘上下键决定控制增量。松开按键后控制量将保持。
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-blue-400 flex items-center gap-2">
+                      <Settings2 className="w-4 h-4" /> 控制模式：PID
+                    </h3>
+                    <div 
+                      onClick={() => setControlMode('AUTO')}
+                      className={cn(
+                        "p-4 rounded-xl border transition-all cursor-pointer hover:bg-slate-800",
+                        controlMode === 'AUTO' ? "bg-slate-800 border-blue-500 ring-4 ring-blue-500/10" : "bg-slate-900/50 border-slate-800"
+                      )}
+                    >
+                      <div className="font-bold text-white mb-1">PID 辅助 (PID Assist)</div>
+                      <div className="text-xs text-slate-500">
+                        通过上下键调整设定值(R)，控制器自动生成 U(t) 响应。
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
