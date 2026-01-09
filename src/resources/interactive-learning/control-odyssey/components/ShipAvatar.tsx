@@ -13,10 +13,15 @@ interface ShipAvatarProps {
   className?: string;
 }
 
-const baseHullPath = 'M32 60 L72 26 L142 26 L192 60 L142 94 L72 94 Z';
-const leftWingPath = 'M72 26 L52 12 L110 26 Z';
-const rightWingPath = 'M72 94 L52 108 L110 94 Z';
-const nosePanelPath = 'M142 42 L170 60 L142 78 Z';
+const baseHullPath = 'M36 60 L48 42 L72 30 L108 24 L152 28 L186 44 L206 60 L186 76 L152 92 L108 96 L72 90 L48 78 Z';
+const leftWingPath = 'M72 30 L36 8 L108 32 Z';
+const rightWingPath = 'M72 90 L36 112 L108 88 Z';
+const tailFinPath = 'M48 56 L28 40 L34 60 L28 80 L48 64 Z';
+const nosePanelPath = 'M150 44 L182 60 L150 76 Z';
+const cockpitPath = 'M118 48 L146 60 L118 72 Z';
+const enginePort = { x: 34, y: 46 };
+const engineMid = { x: 30, y: 60 };
+const engineStar = { x: 34, y: 74 };
 
 export const ShipAvatar: React.FC<ShipAvatarProps> = ({
   controlMode,
@@ -79,47 +84,54 @@ export const ShipAvatar: React.FC<ShipAvatarProps> = ({
         </defs>
 
         <g className={styles.tailBase}>
-          <path d="M40 50 C18 54 10 56 0 60 C10 64 18 66 40 70 Z" />
+          <path d="M44 50 C20 54 10 56 0 60 C10 64 20 66 44 70 Z" />
         </g>
         <g className={cn(styles.tailCore, !hasCore && styles.tailHidden)}>
-          <path d="M46 52 C24 56 14 58 4 60 C14 62 24 64 46 68 Z" />
+          <path d="M50 52 C26 56 14 58 6 60 C14 62 26 64 50 68 Z" />
         </g>
         <g className={cn(styles.tailI, !hasI && styles.tailHidden)}>
-          <path d="M54 44 C24 50 12 54 0 60 C12 66 24 70 54 76 Z" />
+          <path d="M58 44 C26 50 12 54 0 60 C12 66 26 70 58 76 Z" />
         </g>
 
         <g>
           <path className={styles.baseHull} d={baseHullPath} />
           <path className={styles.baseWing} d={leftWingPath} />
           <path className={styles.baseWing} d={rightWingPath} />
+          <path className={styles.baseWing} d={tailFinPath} />
           <path className={styles.basePanel} d={nosePanelPath} />
-          <circle cx="52" cy="48" r="6" className={styles.basePanel} />
-          <circle cx="52" cy="72" r="6" className={styles.basePanel} />
+          <path className={styles.basePanel} d={cockpitPath} />
+          <circle cx={enginePort.x} cy={enginePort.y} r="6" className={styles.basePanel} />
+          <circle cx={engineMid.x} cy={engineMid.y} r="7" className={styles.basePanel} />
+          <circle cx={engineStar.x} cy={engineStar.y} r="6" className={styles.basePanel} />
         </g>
 
         <g className={cn(styles.layer, hasCore && styles.layerActive)}>
           <path className={styles.pGlow} d={baseHullPath} />
+          <path className={styles.pGlow} d={leftWingPath} />
+          <path className={styles.pGlow} d={rightWingPath} />
         </g>
 
         <g className={cn(styles.layer, hasI && styles.layerActive)}>
-          <path className={styles.iFlow} d="M60 36 C44 38 22 50 12 60 C22 70 44 82 60 84 L94 84 C80 72 76 48 94 36 Z" />
+          <path className={styles.iFlow} d="M70 34 C42 40 22 50 14 60 C22 70 42 80 70 86 L104 84 C90 72 88 48 104 36 Z" />
         </g>
 
         <g className={cn(styles.layer, hasD && styles.layerActive)}>
-          <path className={styles.dSparks} d="M70 24 L110 14 L150 24" />
-          <path className={styles.dSparks} d="M70 96 L110 106 L150 96" />
-          <path className={styles.dSparks} d="M150 34 L190 60 L150 86" />
+          <path className={styles.dSparks} d="M78 26 L122 14 L166 26" />
+          <path className={styles.dSparks} d="M78 94 L122 106 L166 94" />
+          <path className={styles.dSparks} d="M162 34 L206 60 L162 86" />
         </g>
 
         <g className={cn(styles.layer, hasFF && styles.layerActive)}>
-          <path className={styles.ffCowl} d="M130 40 L210 60 L130 80 Z" />
+          <path className={styles.ffCowl} d="M138 38 L214 60 L138 82 Z" />
+          <path className={styles.ffCowl} d="M146 46 L202 60 L146 74 Z" />
         </g>
 
         <g className={cn(styles.layer, hasVF && styles.layerActive)}>
-          <path className={styles.vfArmor} d="M40 30 L72 22 L72 42 L44 50 Z" />
-          <path className={styles.vfArmor} d="M40 90 L72 78 L72 98 L44 104 Z" />
-          <path className={styles.vfArmor} d="M120 24 L148 24 L158 36 L128 38 Z" />
-          <path className={styles.vfArmor} d="M120 96 L148 96 L158 84 L128 82 Z" />
+          <path className={styles.vfArmor} d="M46 28 L82 20 L82 40 L50 46 Z" />
+          <path className={styles.vfArmor} d="M46 92 L82 80 L82 100 L50 104 Z" />
+          <path className={styles.vfArmor} d="M114 24 L150 26 L162 38 L122 40 Z" />
+          <path className={styles.vfArmor} d="M114 96 L150 94 L162 82 L122 80 Z" />
+          <path className={styles.vfArmor} d="M78 52 L110 50 L116 60 L110 70 L78 68 Z" />
         </g>
       </svg>
     </div>
