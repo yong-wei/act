@@ -7,6 +7,7 @@ import {
   CONTROL_BASE_CONTROLLERS,
   CONTROL_MODULES,
   CONTROL_SHOP_CONFIG,
+  getTierConfig,
   type BaseControllerId,
   type ControllerId
 } from '../level-data';
@@ -23,6 +24,8 @@ export const TuningPanel: React.FC = () => {
     setControllerId,
     unlockedControllers,
     controllerLevels,
+    currentLevelId,
+    currentTier,
     enableSpeedFeedback,
     enableFeedforward,
     setSpeedFeedbackEnabled,
@@ -58,6 +61,15 @@ export const TuningPanel: React.FC = () => {
     acc[item.unlocks.controller] = item.label;
     return acc;
   }, {} as Record<ControllerId, string>);
+  const tierConfig = getTierConfig(currentLevelId, currentTier);
+  const hasDisturbance = tierConfig.disturbance.type !== 'none';
+  const pidActive = isAuto;
+  const baseLineClass = 'stroke-slate-300';
+  const baseTextClass = 'fill-slate-200';
+  const pidLineClass = pidActive ? 'stroke-cyan-300' : 'stroke-slate-600';
+  const feedforwardLineClass = feedforwardEnabled ? 'stroke-cyan-300' : 'stroke-slate-700';
+  const speedFeedbackLineClass = speedFeedbackEnabled ? 'stroke-cyan-300' : 'stroke-slate-700';
+  const disturbanceLineClass = hasDisturbance ? 'stroke-amber-300' : 'stroke-slate-700';
 
   useEffect(() => {
     const fallback = CONTROL_BASE_CONTROLLERS.find((id) => unlockedControllers.includes(id)) ?? 'P';
@@ -171,68 +183,87 @@ export const TuningPanel: React.FC = () => {
             <rect x="10" y="10" width="740" height="220" rx="12" className="fill-slate-950/60 stroke-slate-800" />
 
             {/* Signals */}
-            <text x="20" y="125" className="fill-slate-400 text-[12px]">R(t)</text>
-            <text x="682" y="125" className="fill-slate-400 text-[12px]">Y(t)</text>
-            <text x="610" y="36" className="fill-slate-500 text-[11px]">D(t)</text>
+            <text x="20" y="125" className={cn(baseTextClass, 'text-[12px]')}>R(t)</text>
+            <text x="682" y="125" className={cn(baseTextClass, 'text-[12px]')}>Y(t)</text>
+            <text
+              x="640"
+              y="36"
+              className={cn('text-[11px] fill-current', hasDisturbance ? 'text-amber-200' : 'text-slate-600')}
+            >
+              D(t)
+            </text>
 
             {/* Summing junctions */}
-            <circle cx="90" cy="120" r="16" className="fill-slate-950 stroke-slate-600" />
-            <text x="90" y="124" textAnchor="middle" className="fill-slate-400 text-[12px]">Σ</text>
-            <circle cx="360" cy="120" r="14" className="fill-slate-950 stroke-slate-600" />
-            <text x="360" y="124" textAnchor="middle" className="fill-slate-400 text-[12px]">Σ</text>
-            <circle cx="560" cy="120" r="14" className="fill-slate-950 stroke-slate-600" />
-            <text x="560" y="124" textAnchor="middle" className="fill-slate-400 text-[12px]">Σ</text>
+            <circle cx="90" cy="120" r="16" className="fill-slate-950 stroke-slate-500" />
+            <text x="90" y="124" textAnchor="middle" className="fill-slate-300 text-[12px]">Σ</text>
+            <circle cx="360" cy="120" r="14" className="fill-slate-950 stroke-slate-500" />
+            <text x="360" y="124" textAnchor="middle" className="fill-slate-300 text-[12px]">Σ</text>
+            <circle cx="560" cy="120" r="14" className="fill-slate-950 stroke-slate-500" />
+            <text x="560" y="124" textAnchor="middle" className="fill-slate-300 text-[12px]">Σ</text>
 
             {/* PID block */}
-            <rect x="130" y="70" width="200" height="100" rx="10" className="fill-slate-950/40 stroke-slate-700" />
-            <text x="230" y="64" textAnchor="middle" className="fill-slate-500 text-[11px]">PID 并联</text>
-            <rect x="145" y="88" width="52" height="60" rx="8" className={cn('stroke-2', controllerCaps.kp ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
-            <text x="171" y="122" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.kp ? 'text-cyan-200' : 'text-slate-500')}>P</text>
-            <rect x="215" y="88" width="52" height="60" rx="8" className={cn('stroke-2', controllerCaps.ki ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
-            <text x="241" y="122" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.ki ? 'text-cyan-200' : 'text-slate-500')}>I</text>
-            <rect x="285" y="88" width="52" height="60" rx="8" className={cn('stroke-2', controllerCaps.kd ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
-            <text x="311" y="122" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.kd ? 'text-cyan-200' : 'text-slate-500')}>D</text>
+            <rect x="130" y="60" width="180" height="130" rx="12" className="fill-slate-950/40 stroke-slate-700" />
+            <text x="220" y="52" textAnchor="middle" className="fill-slate-500 text-[11px]">PID 并联</text>
+            <rect x="155" y="74" width="130" height="30" rx="8" className={cn('stroke-2', controllerCaps.kp ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="220" y="94" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.kp ? 'text-cyan-200' : 'text-slate-500')}>P</text>
+            <rect x="155" y="108" width="130" height="30" rx="8" className={cn('stroke-2', controllerCaps.ki ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="220" y="128" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.ki ? 'text-cyan-200' : 'text-slate-500')}>I</text>
+            <rect x="155" y="142" width="130" height="30" rx="8" className={cn('stroke-2', controllerCaps.kd ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="220" y="162" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.kd ? 'text-cyan-200' : 'text-slate-500')}>D</text>
 
             {/* Feedforward */}
             <rect x="150" y="24" width="140" height="34" rx="8" className={cn('stroke-2', feedforwardEnabled ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
             <text x="220" y="46" textAnchor="middle" className={cn('text-[11px] fill-current', feedforwardEnabled ? 'text-cyan-200' : 'text-slate-500')}>前馈 F(s)</text>
 
             {/* Plant */}
-            <rect x="390" y="90" width="150" height="60" rx="10" className="fill-slate-950/40 stroke-slate-700" />
-            <text x="465" y="120" textAnchor="middle" className="fill-slate-300 text-[12px]">对象 G(s)</text>
+            <rect x="390" y="90" width="150" height="60" rx="10" className="fill-slate-950/40 stroke-slate-400" />
+            <text x="465" y="120" textAnchor="middle" className="fill-slate-200 text-[12px]">对象 G(s)</text>
 
             {/* Speed feedback */}
             <rect x="390" y="170" width="150" height="40" rx="8" className={cn('stroke-2', speedFeedbackEnabled ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
             <text x="465" y="195" textAnchor="middle" className={cn('text-[11px] fill-current', speedFeedbackEnabled ? 'text-cyan-200' : 'text-slate-500')}>测速反馈</text>
 
             {/* Disturbance filter */}
-            <rect x="520" y="20" width="140" height="34" rx="8" className="fill-slate-900/40 stroke-slate-700" />
-            <text x="590" y="42" textAnchor="middle" className="fill-slate-500 text-[11px]">滤波器 1/(Ts+1)</text>
+            <rect
+              x="520"
+              y="20"
+              width="140"
+              height="34"
+              rx="8"
+              className={cn('fill-slate-900/40 stroke-2', hasDisturbance ? 'stroke-amber-300' : 'stroke-slate-700')}
+            />
+            <text
+              x="590"
+              y="42"
+              textAnchor="middle"
+              className={cn('text-[11px] fill-current', hasDisturbance ? 'text-amber-200' : 'text-slate-500')}
+            >
+              滤波器 1/(Ts+1)
+            </text>
 
             {/* Signal lines with arrows */}
-            <line x1="50" y1="120" x2="74" y2="120" className="stroke-slate-500" markerEnd="url(#arrow)" />
-            <line x1="106" y1="120" x2="130" y2="120" className="stroke-slate-500" markerEnd="url(#arrow)" />
-            <line x1="330" y1="120" x2="346" y2="120" className="stroke-slate-500" markerEnd="url(#arrow)" />
-            <line x1="374" y1="120" x2="390" y2="120" className="stroke-slate-500" markerEnd="url(#arrow)" />
-            <line x1="540" y1="120" x2="546" y2="120" className="stroke-slate-500" markerEnd="url(#arrow)" />
-            <line x1="574" y1="120" x2="668" y2="120" className="stroke-slate-500" markerEnd="url(#arrow)" />
+            <line x1="50" y1="120" x2="74" y2="120" className={baseLineClass} markerEnd="url(#arrow)" />
+            <line x1="106" y1="120" x2="130" y2="120" className={pidLineClass} markerEnd="url(#arrow)" />
+            <line x1="310" y1="120" x2="346" y2="120" className={pidLineClass} markerEnd="url(#arrow)" />
+            <line x1="374" y1="120" x2="390" y2="120" className={baseLineClass} markerEnd="url(#arrow)" />
+            <line x1="540" y1="120" x2="546" y2="120" className={baseLineClass} markerEnd="url(#arrow)" />
+            <line x1="574" y1="120" x2="668" y2="120" className={baseLineClass} markerEnd="url(#arrow)" />
 
             {/* Feedforward path */}
-            <line x1="70" y1="120" x2="70" y2="40" className="stroke-slate-600" markerEnd="url(#arrow)" />
-            <line x1="70" y1="40" x2="150" y2="40" className="stroke-slate-600" markerEnd="url(#arrow)" />
-            <line x1="290" y1="40" x2="360" y2="40" className="stroke-slate-600" markerEnd="url(#arrow)" />
-            <line x1="360" y1="40" x2="360" y2="106" className="stroke-slate-600" markerEnd="url(#arrow)" />
+            <path d="M 70 120 L 70 40 L 150 40" className={feedforwardLineClass} fill="none" markerEnd="url(#arrow)" />
+            <path d="M 290 40 L 360 40 L 360 106" className={feedforwardLineClass} fill="none" markerEnd="url(#arrow)" />
 
             {/* Disturbance path */}
-            <line x1="610" y1="40" x2="590" y2="40" className="stroke-slate-600" markerEnd="url(#arrow)" />
-            <line x1="590" y1="54" x2="590" y2="106" className="stroke-slate-600" markerEnd="url(#arrow)" />
-            <line x1="590" y1="106" x2="560" y2="106" className="stroke-slate-600" markerEnd="url(#arrow)" />
+            <path d="M 660 40 L 520 40" className={disturbanceLineClass} fill="none" markerEnd="url(#arrow)" />
+            <path d="M 660 40 L 660 106 L 560 106" className={disturbanceLineClass} fill="none" markerEnd="url(#arrow)" />
 
             {/* Feedback path (after disturbance) */}
-            <line x1="560" y1="134" x2="560" y2="190" className="stroke-slate-600" markerEnd="url(#arrow)" />
-            <line x1="560" y1="190" x2="540" y2="190" className="stroke-slate-600" markerEnd="url(#arrow)" />
-            <line x1="390" y1="190" x2="90" y2="190" className="stroke-slate-600" markerEnd="url(#arrow)" />
-            <line x1="90" y1="190" x2="90" y2="136" className="stroke-slate-600" markerEnd="url(#arrow)" />
+            <path d="M 610 120 L 610 190 L 540 190" className={speedFeedbackLineClass} fill="none" markerEnd="url(#arrow)" />
+            <path d="M 390 190 L 90 190 L 90 136" className={speedFeedbackLineClass} fill="none" markerEnd="url(#arrow)" />
+
+            {/* Unity feedback */}
+            <path d="M 640 120 L 640 210 L 90 210 L 90 136" className={baseLineClass} fill="none" markerEnd="url(#arrow)" />
+            <text x="360" y="204" textAnchor="middle" className="fill-slate-400 text-[11px]">1</text>
           </svg>
         </div>
         <div className="text-[10px] text-slate-600">高亮模块表示当前控制结构启用。</div>
