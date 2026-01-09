@@ -180,7 +180,7 @@ export const TuningPanel: React.FC = () => {
       <div className="space-y-2">
         <div className="text-sm text-slate-300 uppercase tracking-wider">控制结构方框图</div>
         <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-1">
-          <svg viewBox="0 0 760 210" className="w-full h-[210px]">
+          <svg viewBox="0 -20 760 240" className="w-full h-[240px]">
             <defs>
               <marker
                 id="arrow-active"
@@ -205,7 +205,7 @@ export const TuningPanel: React.FC = () => {
                 <path d="M 0 0 L 10 5 L 0 10 z" className="fill-slate-600" />
               </marker>
             </defs>
-            <rect x="10" y="2" width="740" height="206" rx="12" className="fill-slate-950/60 stroke-slate-800" />
+            <rect x="10" y="-18" width="740" height="236" rx="12" className="fill-slate-950/60 stroke-slate-800" />
 
             {/* Signals */}
             <text x="20" y="106" className={cn(baseTextClass, 'text-[15px]')}>R(t)</text>
@@ -307,7 +307,7 @@ export const TuningPanel: React.FC = () => {
             {/* Feedforward */}
             <rect
               x="150"
-              y="6"
+              y="-12"
               width="140"
               height="26"
               rx="8"
@@ -315,7 +315,7 @@ export const TuningPanel: React.FC = () => {
             />
             <text
               x="220"
-              y="24"
+              y="6"
               textAnchor="middle"
               className={cn('text-[13px] fill-current', isAuto && feedforwardEnabled ? moduleTextActiveClass : moduleTextMutedClass)}
             >
@@ -329,7 +329,7 @@ export const TuningPanel: React.FC = () => {
             {/* Speed feedback */}
             <rect
               x="390"
-              y="176"
+              y="189"
               width="150"
               height="26"
               rx="8"
@@ -337,7 +337,7 @@ export const TuningPanel: React.FC = () => {
             />
             <text
               x="465"
-              y="194"
+              y="207"
               textAnchor="middle"
               className={cn('text-[13px] fill-current', isAuto && speedFeedbackEnabled ? moduleTextActiveClass : moduleTextMutedClass)}
             >
@@ -347,7 +347,7 @@ export const TuningPanel: React.FC = () => {
             {/* Disturbance filter */}
             <rect
               x="540"
-              y="40"
+              y="54"
               width="140"
               height="26"
               rx="8"
@@ -355,7 +355,7 @@ export const TuningPanel: React.FC = () => {
             />
             <text
               x="610"
-              y="58"
+              y="72"
               textAnchor="middle"
               className={cn('text-[13px] fill-current', hasDisturbance ? moduleTextActiveClass : moduleTextMutedClass)}
             >
@@ -371,23 +371,23 @@ export const TuningPanel: React.FC = () => {
             <line x1="624" y1="100" x2="690" y2="100" className={lineActiveClass} markerEnd={markerActive} />
 
             {/* Feedforward path */}
-            <path d="M 56 100 L 56 19 L 150 19" className={feedforwardLineClass} fill="none" markerEnd={isAuto && feedforwardEnabled ? markerActive : markerMuted} />
-            <path d="M 290 19 L 350 19 L 350 86" className={feedforwardLineClass} fill="none" markerEnd={isAuto && feedforwardEnabled ? markerActive : markerMuted} />
+            <path d="M 56 100 L 56 1 L 150 1" className={feedforwardLineClass} fill="none" markerEnd={isAuto && feedforwardEnabled ? markerActive : markerMuted} />
+            <path d="M 290 1 L 350 1 L 350 86" className={feedforwardLineClass} fill="none" markerEnd={isAuto && feedforwardEnabled ? markerActive : markerMuted} />
 
             {/* Manual path */}
-            <path d="M 106 100 L 106 159 L 155 159" className={manualLineClass} fill="none" markerEnd={manualActive ? markerActive : markerMuted} />
+            <path d="M 112 100 L 112 159 L 155 159" className={manualLineClass} fill="none" markerEnd={manualActive ? markerActive : markerMuted} />
             <path d="M 285 159 L 350 159 L 350 114" className={manualLineClass} fill="none" markerEnd={manualActive ? markerActive : markerMuted} />
 
             {/* Disturbance path */}
-            <path d="M 610 18 L 610 40" className={disturbanceLineClass} fill="none" markerEnd={hasDisturbance ? markerActive : markerMuted} />
-            <path d="M 610 66 L 610 100" className={disturbanceLineClass} fill="none" markerEnd={hasDisturbance ? markerActive : markerMuted} />
+            <path d="M 610 18 L 610 54" className={disturbanceLineClass} fill="none" markerEnd={hasDisturbance ? markerActive : markerMuted} />
+            <path d="M 610 80 L 610 86" className={disturbanceLineClass} fill="none" markerEnd={hasDisturbance ? markerActive : markerMuted} />
 
             {/* Feedback path (after disturbance) */}
-            <path d="M 640 100 L 640 189 L 540 189" className={speedFeedbackLineClass} fill="none" markerEnd={isAuto && speedFeedbackEnabled ? markerActive : markerMuted} />
-            <path d="M 390 189 L 90 189 L 90 116" className={speedFeedbackLineClass} fill="none" markerEnd={isAuto && speedFeedbackEnabled ? markerActive : markerMuted} />
+            <path d="M 640 100 L 640 202 L 540 202" className={speedFeedbackLineClass} fill="none" markerEnd={isAuto && speedFeedbackEnabled ? markerActive : markerMuted} />
+            <path d="M 390 202 L 90 202 L 90 116" className={speedFeedbackLineClass} fill="none" markerEnd={isAuto && speedFeedbackEnabled ? markerActive : markerMuted} />
 
             {/* Unity feedback */}
-            <path d="M 660 100 L 660 204 L 90 204 L 90 116" className={unityFeedbackLineClass} fill="none" markerEnd={isAuto ? markerActive : markerMuted} />
+            <path d="M 660 100 L 660 217 L 90 217 L 90 116" className={unityFeedbackLineClass} fill="none" markerEnd={isAuto ? markerActive : markerMuted} />
             <text x="74" y="124" textAnchor="middle" className="fill-slate-300 text-[14px]">-</text>
           </svg>
         </div>
