@@ -19,9 +19,6 @@ export const TuningPanel: React.FC = () => {
     setPidParams,
     extraParams,
     setExtraParams,
-    shipY,
-    shipU,
-    shipR,
     controllerId,
     setControllerId,
     unlockedControllers,
@@ -78,11 +75,6 @@ export const TuningPanel: React.FC = () => {
     }
   }, [enableSpeedFeedback, enableFeedforward, isSpeedFeedbackUnlocked, isFeedforwardUnlocked, setSpeedFeedbackEnabled, setFeedforwardEnabled]);
   
-  // 格式化数值
-  const formattedU = (shipU * 100).toFixed(0); 
-  const formattedY = shipY.toFixed(0);
-  const formattedR = shipR.toFixed(0);
-
   return (
     <div className="w-full h-full bg-slate-900/50 rounded-xl border border-slate-800 p-4 flex flex-col gap-4">
       <div className="flex items-center gap-2 text-slate-300 pb-2 border-b border-slate-800">
@@ -162,65 +154,85 @@ export const TuningPanel: React.FC = () => {
       <div className="space-y-2">
         <div className="text-xs text-slate-500 uppercase tracking-wider">控制结构方框图</div>
         <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-          <svg viewBox="0 0 760 220" className="w-full h-[220px]">
+          <svg viewBox="0 0 760 240" className="w-full h-[240px]">
             <defs>
-              <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.6" />
-                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.8" />
-              </linearGradient>
+              <marker
+                id="arrow"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" className="fill-slate-500" />
+              </marker>
             </defs>
-            <rect x="10" y="10" width="740" height="200" rx="12" className="fill-slate-950/60 stroke-slate-800" />
+            <rect x="10" y="10" width="740" height="220" rx="12" className="fill-slate-950/60 stroke-slate-800" />
 
-            {/* Reference */}
-            <circle cx="40" cy="110" r="14" className="fill-slate-950 stroke-slate-600" />
-            <text x="40" y="114" textAnchor="middle" className="fill-slate-400 text-[12px]">R</text>
-            <line x1="54" y1="110" x2="80" y2="110" className="stroke-slate-600" />
+            {/* Signals */}
+            <text x="20" y="125" className="fill-slate-400 text-[12px]">R(t)</text>
+            <text x="682" y="125" className="fill-slate-400 text-[12px]">Y(t)</text>
+            <text x="610" y="36" className="fill-slate-500 text-[11px]">D(t)</text>
 
-            {/* Summing junction */}
-            <circle cx="95" cy="110" r="16" className="fill-slate-950 stroke-slate-600" />
-            <text x="95" y="114" textAnchor="middle" className="fill-slate-400 text-[12px]">Σ</text>
+            {/* Summing junctions */}
+            <circle cx="90" cy="120" r="16" className="fill-slate-950 stroke-slate-600" />
+            <text x="90" y="124" textAnchor="middle" className="fill-slate-400 text-[12px]">Σ</text>
+            <circle cx="360" cy="120" r="14" className="fill-slate-950 stroke-slate-600" />
+            <text x="360" y="124" textAnchor="middle" className="fill-slate-400 text-[12px]">Σ</text>
+            <circle cx="560" cy="120" r="14" className="fill-slate-950 stroke-slate-600" />
+            <text x="560" y="124" textAnchor="middle" className="fill-slate-400 text-[12px]">Σ</text>
 
             {/* PID block */}
-            <rect x="125" y="65" width="180" height="90" rx="10" className="fill-slate-950/40 stroke-slate-700" />
-            <text x="215" y="58" textAnchor="middle" className="fill-slate-500 text-[11px]">PID 控制器</text>
-            <rect x="140" y="80" width="45" height="50" rx="6" className={cn('stroke-2', controllerCaps.kp ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
-            <text x="162" y="110" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.kp ? 'text-cyan-200' : 'text-slate-500')}>P</text>
-            <rect x="202" y="80" width="45" height="50" rx="6" className={cn('stroke-2', controllerCaps.ki ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
-            <text x="225" y="110" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.ki ? 'text-cyan-200' : 'text-slate-500')}>I</text>
-            <rect x="264" y="80" width="45" height="50" rx="6" className={cn('stroke-2', controllerCaps.kd ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
-            <text x="286" y="110" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.kd ? 'text-cyan-200' : 'text-slate-500')}>D</text>
+            <rect x="130" y="70" width="200" height="100" rx="10" className="fill-slate-950/40 stroke-slate-700" />
+            <text x="230" y="64" textAnchor="middle" className="fill-slate-500 text-[11px]">PID 并联</text>
+            <rect x="145" y="88" width="52" height="60" rx="8" className={cn('stroke-2', controllerCaps.kp ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="171" y="122" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.kp ? 'text-cyan-200' : 'text-slate-500')}>P</text>
+            <rect x="215" y="88" width="52" height="60" rx="8" className={cn('stroke-2', controllerCaps.ki ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="241" y="122" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.ki ? 'text-cyan-200' : 'text-slate-500')}>I</text>
+            <rect x="285" y="88" width="52" height="60" rx="8" className={cn('stroke-2', controllerCaps.kd ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="311" y="122" textAnchor="middle" className={cn('text-[12px] fill-current', controllerCaps.kd ? 'text-cyan-200' : 'text-slate-500')}>D</text>
 
             {/* Feedforward */}
-            <rect x="125" y="20" width="120" height="34" rx="8" className={cn('stroke-2', feedforwardEnabled ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
-            <text x="185" y="42" textAnchor="middle" className={cn('text-[11px] fill-current', feedforwardEnabled ? 'text-cyan-200' : 'text-slate-500')}>前馈 F(s)</text>
+            <rect x="150" y="24" width="140" height="34" rx="8" className={cn('stroke-2', feedforwardEnabled ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="220" y="46" textAnchor="middle" className={cn('text-[11px] fill-current', feedforwardEnabled ? 'text-cyan-200' : 'text-slate-500')}>前馈 F(s)</text>
 
-            {/* Lines to summing junction */}
-            <line x1="110" y1="110" x2="125" y2="110" className="stroke-slate-600" />
-            <line x1="185" y1="54" x2="185" y2="90" className="stroke-slate-600" />
-
-            {/* Control object */}
-            <line x1="305" y1="110" x2="340" y2="110" className="stroke-slate-600" />
-            <rect x="340" y="80" width="130" height="60" rx="10" className="fill-slate-950/40 stroke-slate-700" />
-            <text x="405" y="110" textAnchor="middle" className="fill-slate-300 text-[12px]">对象 G(s)</text>
-
-            {/* Output */}
-            <line x1="470" y1="110" x2="520" y2="110" className="stroke-slate-600" />
-            <circle cx="540" cy="110" r="14" className="fill-slate-950 stroke-slate-600" />
-            <text x="540" y="114" textAnchor="middle" className="fill-slate-400 text-[12px]">Y</text>
+            {/* Plant */}
+            <rect x="390" y="90" width="150" height="60" rx="10" className="fill-slate-950/40 stroke-slate-700" />
+            <text x="465" y="120" textAnchor="middle" className="fill-slate-300 text-[12px]">对象 G(s)</text>
 
             {/* Speed feedback */}
-            <rect x="340" y="150" width="150" height="40" rx="8" className={cn('stroke-2', speedFeedbackEnabled ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
-            <text x="415" y="175" textAnchor="middle" className={cn('text-[11px] fill-current', speedFeedbackEnabled ? 'text-cyan-200' : 'text-slate-500')}>测速反馈</text>
-            <line x1="540" y1="124" x2="540" y2="170" className="stroke-slate-600" />
-            <line x1="540" y1="170" x2="490" y2="170" className="stroke-slate-600" />
-            <line x1="340" y1="170" x2="95" y2="170" className="stroke-slate-600" />
-            <line x1="95" y1="170" x2="95" y2="126" className="stroke-slate-600" />
+            <rect x="390" y="170" width="150" height="40" rx="8" className={cn('stroke-2', speedFeedbackEnabled ? 'fill-cyan-500/10 stroke-cyan-300' : 'fill-slate-900/40 stroke-slate-700')} />
+            <text x="465" y="195" textAnchor="middle" className={cn('text-[11px] fill-current', speedFeedbackEnabled ? 'text-cyan-200' : 'text-slate-500')}>测速反馈</text>
 
-            {/* Disturbance */}
-            <rect x="520" y="20" width="120" height="34" rx="8" className="fill-slate-900/40 stroke-slate-700" />
-            <text x="580" y="42" textAnchor="middle" className="fill-slate-500 text-[11px]">扰动 D(s)</text>
-            <line x1="580" y1="54" x2="580" y2="100" className="stroke-slate-600" />
-            <line x1="580" y1="100" x2="520" y2="110" className="stroke-slate-600" />
+            {/* Disturbance filter */}
+            <rect x="520" y="20" width="140" height="34" rx="8" className="fill-slate-900/40 stroke-slate-700" />
+            <text x="590" y="42" textAnchor="middle" className="fill-slate-500 text-[11px]">滤波器 1/(Ts+1)</text>
+
+            {/* Signal lines with arrows */}
+            <line x1="50" y1="120" x2="74" y2="120" className="stroke-slate-500" markerEnd="url(#arrow)" />
+            <line x1="106" y1="120" x2="130" y2="120" className="stroke-slate-500" markerEnd="url(#arrow)" />
+            <line x1="330" y1="120" x2="346" y2="120" className="stroke-slate-500" markerEnd="url(#arrow)" />
+            <line x1="374" y1="120" x2="390" y2="120" className="stroke-slate-500" markerEnd="url(#arrow)" />
+            <line x1="540" y1="120" x2="546" y2="120" className="stroke-slate-500" markerEnd="url(#arrow)" />
+            <line x1="574" y1="120" x2="668" y2="120" className="stroke-slate-500" markerEnd="url(#arrow)" />
+
+            {/* Feedforward path */}
+            <line x1="70" y1="120" x2="70" y2="40" className="stroke-slate-600" markerEnd="url(#arrow)" />
+            <line x1="70" y1="40" x2="150" y2="40" className="stroke-slate-600" markerEnd="url(#arrow)" />
+            <line x1="290" y1="40" x2="360" y2="40" className="stroke-slate-600" markerEnd="url(#arrow)" />
+            <line x1="360" y1="40" x2="360" y2="106" className="stroke-slate-600" markerEnd="url(#arrow)" />
+
+            {/* Disturbance path */}
+            <line x1="610" y1="40" x2="590" y2="40" className="stroke-slate-600" markerEnd="url(#arrow)" />
+            <line x1="590" y1="54" x2="590" y2="106" className="stroke-slate-600" markerEnd="url(#arrow)" />
+            <line x1="590" y1="106" x2="560" y2="106" className="stroke-slate-600" markerEnd="url(#arrow)" />
+
+            {/* Feedback path (after disturbance) */}
+            <line x1="560" y1="134" x2="560" y2="190" className="stroke-slate-600" markerEnd="url(#arrow)" />
+            <line x1="560" y1="190" x2="540" y2="190" className="stroke-slate-600" markerEnd="url(#arrow)" />
+            <line x1="390" y1="190" x2="90" y2="190" className="stroke-slate-600" markerEnd="url(#arrow)" />
+            <line x1="90" y1="190" x2="90" y2="136" className="stroke-slate-600" markerEnd="url(#arrow)" />
           </svg>
         </div>
         <div className="text-[10px] text-slate-600">高亮模块表示当前控制结构启用。</div>
@@ -315,32 +327,6 @@ export const TuningPanel: React.FC = () => {
         </div>
       )}
       
-      {/* 实时遥测数据 */}
-      <div className="mt-auto p-3 bg-slate-950/50 rounded-lg border border-slate-800/50">
-        <div className="text-xs text-slate-500 mb-2 font-semibold">实测遥感</div>
-        <div className="space-y-1.5 text-xs font-mono">
-          <div className="flex justify-between">
-             <span className="text-slate-400">给定航线 R:</span>
-             <span className="text-white">{isAuto ? formattedR : '--'}</span>
-          </div>
-          <div className="flex justify-between">
-             <span className="text-slate-400">系统响应 Y:</span>
-             <span className="text-blue-400">{formattedY}</span>
-          </div>
-          <div className="flex justify-between">
-             <span className="text-slate-400">误差 E:</span>
-             <span className={`${Math.abs(shipR - shipY) > 50 ? 'text-red-400' : 'text-emerald-400'}`}>
-               {isAuto ? (shipR - shipY).toFixed(0) : '--'}
-             </span>
-          </div>
-          <div className="flex justify-between border-t border-slate-800 pt-1 mt-1">
-             <span className="text-slate-400">控制信号 U:</span>
-             <span className={`${shipU > 0 ? 'text-green-400' : shipU < 0 ? 'text-red-400' : 'text-slate-500'}`}>
-               {formattedU}%
-             </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
