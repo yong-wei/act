@@ -1380,7 +1380,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         <div className="flex flex-col w-full h-full relative">
            {(gameState === 'VICTORY' || gameState === 'GAME_OVER') && (
             <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-               <div className="bg-slate-900 border border-slate-800 p-10 rounded-3xl max-w-lg w-full text-center shadow-2xl animate-in fade-in zoom-in duration-300">
+               <div className="bg-slate-900 border border-slate-800 p-8 md:p-10 rounded-3xl max-w-4xl w-full text-center shadow-2xl animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto pr-3 custom-scrollbar">
                  {gameState === 'VICTORY' ? (
                    <>
                      <div className="w-24 h-24 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
