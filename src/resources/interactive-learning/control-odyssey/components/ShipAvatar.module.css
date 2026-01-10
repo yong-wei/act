@@ -39,23 +39,11 @@
 .pGlow {
     fill: url(#pGlowGradient);
     filter: url(#glowSoft);
-    animation: pulseGlow 2.2s ease-in-out infinite;
-    opacity: 0.55;
 }
 
-.pGlowEdge {
-    fill: none;
-    stroke: #fb7185;
-    stroke-width: 1.4;
-    opacity: 0.65;
-    filter: url(#glowSoft);
-}
-
-.iFlow {
+.iFlowShape {
     fill: url(#iFlowGradient);
     filter: url(#glowSoft);
-    animation: tailFlow 2.4s linear infinite;
-    transform-origin: 30px 60px;
 }
 
 .dSparks {
@@ -82,10 +70,21 @@
     animation: sparkFlicker 0.8s ease-in-out infinite, sparkDrift 1.8s ease-in-out infinite;
 }
 
+.dAura {
+    fill: none;
+    stroke: rgba(190, 242, 100, 0.75);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: url(#sparkJitter);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: sparkFlicker 0.8s ease-in-out infinite, sparkDrift 1.6s ease-in-out infinite;
+}
+
 .ffCowl {
     fill: url(#ffCowlGradient);
     filter: url(#glowSoft);
-    animation: cowlPulse 2.6s ease-in-out infinite;
 }
 
 .vfArmor {
@@ -93,7 +92,6 @@
     stroke: rgba(94, 234, 212, 0.6);
     stroke-width: 1.2;
     filter: url(#glowSoft);
-    animation: armorFlicker 3s ease-in-out infinite;
 }
 
 .tailBase {
@@ -121,11 +119,6 @@
     opacity: 0;
 }
 
-@keyframes pulseGlow {
-    0% { opacity: 0.65; }
-    50% { opacity: 1; }
-    100% { opacity: 0.65; }
-}
 
 @keyframes tailPulse {
     0% { opacity: 0.45; }
@@ -139,6 +132,7 @@
     100% { transform: translateX(0); opacity: 0.7; }
 }
 
+
 @keyframes sparkFlicker {
     0% { opacity: 0.3; }
     50% { opacity: 1; }
@@ -149,16 +143,4 @@
     0% { transform: translate(0, 0); }
     50% { transform: translate(-2px, 1px); }
     100% { transform: translate(1px, -1px); }
-}
-
-@keyframes cowlPulse {
-    0% { opacity: 0.4; transform: translateX(0); }
-    50% { opacity: 0.8; transform: translateX(3px); }
-    100% { opacity: 0.4; transform: translateX(0); }
-}
-
-@keyframes armorFlicker {
-    0% { opacity: 0.25; }
-    50% { opacity: 0.6; }
-    100% { opacity: 0.25; }
 }

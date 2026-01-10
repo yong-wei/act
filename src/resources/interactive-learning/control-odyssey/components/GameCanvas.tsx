@@ -91,6 +91,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     currentLevelId,
     currentTier,
     controllerId,
+    controllerLevels,
     resetToken,
     difficultyScale,
     setAutoOffset
@@ -600,6 +601,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
           controllerId={controllerId}
           enableFeedforward={enableFeedforward}
           enableSpeedFeedback={enableSpeedFeedback}
+          controllerLevels={controllerLevels}
         />
       </div>
     </div>
