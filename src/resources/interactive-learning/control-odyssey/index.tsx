@@ -27,7 +27,9 @@ import {
   getControlProfile,
   purchaseController,
   upgradeController,
-  redeemControlAICredits
+  redeemControlAICredits,
+  getTopControlConfigs,
+  type ControlConfigSnapshot
 } from '@/app/actions/control-odyssey';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -83,6 +85,7 @@ const TIER_OPTIONS: {
 
 const TIER_ORDER: LevelTier[] = ['bronze', 'silver', 'gold'];
 const AI_ASSIST_COST = 20;
+const AI_HISTORY_STORAGE_KEY = 'control-odyssey-ai-history-v1';
 
 export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   initialLevelId = 'level-1',
@@ -130,11 +133,12 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const [tierProgress, setTierProgress] = useState<Record<string, LevelTier>>({});
   const [personalBestScores, setPersonalBestScores] = useState<Record<string, { overall: number; tiers: Partial<Record<LevelTier, number>> }>>({});
   const [showDetails, setShowDetails] = useState(false);
-  const [aiConfigResponse, setAiConfigResponse] = useState<string | null>(null);
   const [aiConfigError, setAiConfigError] = useState<string | null>(null);
-  const [aiResultResponse, setAiResultResponse] = useState<string | null>(null);
   const [aiResultError, setAiResultError] = useState<string | null>(null);
   const [aiLoadingContext, setAiLoadingContext] = useState<'config' | 'result' | null>(null);
+  const [aiHistoryByLevel, setAiHistoryByLevel] = useState<Record<string, { content: string; createdAt: string }>>({});
+  const [topConfigs, setTopConfigs] = useState<ControlConfigSnapshot[]>([]);
+  const [manualTierSelections, setManualTierSelections] = useState<Record<string, boolean>>({});
   
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
@@ -188,7 +192,13 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
           {
             runId,
             tier: currentTier,
-            controllerId
+            controllerId,
+            controlMode,
+            pidParams,
+            extraParams,
+            enableSpeedFeedback,
+            enableFeedforward,
+            difficultyScale
           }
         );
 
@@ -202,6 +212,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
             setPersonalBestScores(profile.bestScores);
           }
         }
+        const configs = await getTopControlConfigs(selectedLevelId);
+        setTopConfigs(configs);
       } catch (e) {
         console.error('Failed to submit score', e);
       } finally {
@@ -217,12 +229,52 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     runId,
     currentTier,
     controllerId,
+    controlMode,
+    pidParams,
+    extraParams,
+    enableSpeedFeedback,
+    enableFeedforward,
     difficultyScale,
     personalBestScores,
     setControlCredits,
     setUnlockedControllers,
-    setControllerLevels
+    setControllerLevels,
+    setTopConfigs
   ]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem(AI_HISTORY_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        setAiHistoryByLevel(parsed as Record<string, { content: string; createdAt: string }>);
+      }
+    } catch {
+      // 忽略本地缓存解析错误
+    }
+  }, []);
+
+  useEffect(() => {
+    const loadTopConfigs = async () => {
+      try {
+        const configs = await getTopControlConfigs(selectedLevelId);
+        setTopConfigs(configs);
+      } catch (error) {
+        console.error('Failed to load top configs', error);
+        setTopConfigs([]);
+      }
+    };
+    if (!selectedLevelId) return;
+    loadTopConfigs();
+  }, [selectedLevelId]);
+
+  useEffect(() => {
+    setAiConfigError(null);
+    setAiResultError(null);
+    setAiLoadingContext(null);
+  }, [selectedLevelId]);
 
   useEffect(() => {
     if (gameState !== 'VICTORY') return;
@@ -526,6 +578,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const isTierUnlocked = (tier: LevelTier) => TIER_ORDER.indexOf(tier) <= TIER_ORDER.indexOf(highestTier);
   const effectiveTier = isTierUnlocked(currentTier) ? currentTier : highestTier;
   const tierConfig = getTierConfig(selectedLevelId, effectiveTier);
+  const hasManualTierSelection = manualTierSelections[selectedLevelId] ?? false;
   const modelLabel = selectedLevel?.simulation.engineType === 'PROPORTIONAL'
     ? '比例环节'
     : selectedLevel?.simulation.engineType === 'INTEGRAL'
@@ -542,6 +595,11 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     { label: '额定航程', value: `${tierConfig.distance}m` },
     { label: '扰动类型', value: disturbanceLabel }
   ].filter((item) => item.value !== null) as { label: string; value: string }[];
+  const currentAiHistory = aiHistoryByLevel[selectedLevelId];
+  const aiResponseContent = currentAiHistory?.content ?? null;
+  const aiResponseTime = currentAiHistory?.createdAt
+    ? new Date(currentAiHistory.createdAt).toLocaleString('zh-CN')
+    : null;
 
   const controllerLabelMap = useMemo(() => {
     return CONTROL_SHOP_CONFIG.items.reduce<Record<ControllerId, string>>((acc, item) => {
@@ -632,14 +690,41 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     ].join('\n');
   };
 
-  const buildControllerSnapshot = () => {
-    return [
-      `控制模式：${controlMode === 'AUTO' ? 'PID 辅助' : '手动直控'}`,
-      `控制器选择：${formatControllerName(controllerId)}`,
-      `模块状态：测速反馈 ${enableSpeedFeedback ? '开启' : '关闭'}，前馈 ${enableFeedforward ? '开启' : '关闭'}`,
-      `控制参数：Kp=${pidParams.kp.toFixed(3)}, Ki=${pidParams.ki.toFixed(3)}, Kd=${pidParams.kd.toFixed(3)}`,
-      `扩展参数：τ=${extraParams.speedFeedbackTau.toFixed(3)}, Kff=${extraParams.feedforwardGain.toFixed(3)}`
-    ].join('\n');
+  const formatTopConfigsSummary = () => {
+    if (!topConfigs.length) return '暂无历史高分配置记录。';
+    const labelForTier = (tier?: LevelTier) =>
+      TIER_OPTIONS.find((option) => option.id === tier)?.label ?? tier ?? '未知';
+
+    return topConfigs.map((item, index) => {
+      const config = item.config ?? {};
+      const parts = [
+        `Top ${index + 1}｜得分 ${item.score}｜时间 ${new Date(item.createdAt).toLocaleString('zh-CN')}`,
+        `难度等级：${labelForTier(config.tier as LevelTier | undefined)}`,
+        `控制模式：${config.controlMode ?? '未知'}`,
+        `控制器：${config.controllerId ? formatControllerName(config.controllerId) : '未知'}`,
+      ];
+
+      if (config.pidParams) {
+        parts.push(
+          `PID 参数：Kp=${config.pidParams.kp?.toFixed?.(3) ?? config.pidParams.kp}, Ki=${config.pidParams.ki?.toFixed?.(3) ?? config.pidParams.ki}, Kd=${config.pidParams.kd?.toFixed?.(3) ?? config.pidParams.kd}`
+        );
+      }
+      if (config.extraParams) {
+        parts.push(
+          `扩展参数：τ=${config.extraParams.speedFeedbackTau?.toFixed?.(3) ?? config.extraParams.speedFeedbackTau}, Kff=${config.extraParams.feedforwardGain?.toFixed?.(3) ?? config.extraParams.feedforwardGain}`
+        );
+      }
+      if (config.enableSpeedFeedback !== undefined || config.enableFeedforward !== undefined) {
+        parts.push(
+          `模块：测速反馈 ${config.enableSpeedFeedback ? '开启' : '关闭'}，前馈 ${config.enableFeedforward ? '开启' : '关闭'}`
+        );
+      }
+      if (config.difficultyScale !== undefined) {
+        parts.push(`难度系数：${Number(config.difficultyScale).toFixed(2)}`);
+      }
+
+      return parts.join('\n');
+    }).join('\n\n');
   };
 
   const tierNarrative: Record<LevelTier, string> = {
@@ -712,21 +797,27 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
   const buildAiPrompt = (contextType: 'config' | 'result') => {
     if (!selectedLevel) return '';
+    const tierMeaningNote = hasManualTierSelection
+      ? ''
+      : [
+          `未手动选择难度，当前采用可用等级：${tierLabel}。`,
+          `难度等级含义：${tierNarrative.bronze} ${tierNarrative.silver} ${tierNarrative.gold}`
+        ].join(' ');
+    const tierDetail = hasManualTierSelection ? (tierNarrative[effectiveTier] ?? '') : '';
     const tierSummary = [
       `等级：${tierLabel} (${effectiveTier})`,
       `参考信号：${buildReferenceSummary()}`,
       `扰动：${buildDisturbanceSummary()}`,
       `误差包络：±${tierConfig.envelope.margin}，航程 ${tierConfig.distance}m`,
       `难度系数：${difficultyScale.toFixed(2)}`,
-      tierNarrative[effectiveTier] ?? ''
+      tierDetail,
+      tierMeaningNote
     ].filter(Boolean).join('\n');
 
     const performanceSummary = contextType === 'result'
       ? `结果：${gameState === 'VICTORY' ? '成功' : '失败'}；最大超调 ${metrics.maxOvershoot.toFixed(1)}%，稳态误差 ${metrics.steadyError.toFixed(1)}%，平均相对误差 ${metrics.avgRelativeError.toFixed(1)}%，调节时间 ${metrics.settlingTime.toFixed(1)}s`
       : '';
-    const controllerSnapshot = contextType === 'result'
-      ? `控制器快照：\n${buildControllerSnapshot()}`
-      : '';
+    const topConfigSummary = `历史最佳配置（Top 3）：\n${formatTopConfigsSummary()}`;
 
     return [
       '你是控制奥德赛的控制器调参顾问，请基于以下上下文给出控制器配置建议。',
@@ -739,8 +830,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
       `关卡：${selectedLevel.name}（${selectedLevel.id}）`,
       `关卡模型：\n${buildModelSummary()}`,
       `等级信息：\n${tierSummary}`,
+      topConfigSummary,
       `当前控制配置：\n${buildControllerSummary()}`,
-      controllerSnapshot ? controllerSnapshot : '',
       performanceSummary ? `仿真结果：\n${performanceSummary}` : ''
     ].filter(Boolean).join('\n\n');
   };
@@ -807,8 +898,23 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     }
   };
 
+  const persistAiHistory = (levelId: string, content: string) => {
+    const createdAt = new Date().toISOString();
+    setAiHistoryByLevel((prev) => {
+      const next = { ...prev, [levelId]: { content, createdAt } };
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(AI_HISTORY_STORAGE_KEY, JSON.stringify(next));
+        } catch {
+          // 忽略本地存储错误
+        }
+      }
+      return next;
+    });
+    return createdAt;
+  };
+
   const requestAiAdvice = async (contextType: 'config' | 'result') => {
-    const setResponse = contextType === 'config' ? setAiConfigResponse : setAiResultResponse;
     const setError = contextType === 'config' ? setAiConfigError : setAiResultError;
 
     if (controlCredits < AI_ASSIST_COST) {
@@ -818,7 +924,6 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
     setAiLoadingContext(contextType);
     setError(null);
-    setResponse(null);
 
     try {
       const prompt = buildAiPrompt(contextType);
@@ -855,11 +960,11 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
       if (!content) {
         throw new Error('AI 未返回建议');
       }
-      setResponse(content);
+      const createdAt = persistAiHistory(selectedLevelId, content);
       await logFrontendEvent({
         type: 'control-odyssey-ai-response',
         content,
-        context: logContext
+        context: { ...logContext, createdAt }
       });
 
       try {
@@ -903,6 +1008,9 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         </Button>
       </div>
       <div className="text-xs text-slate-500">当前积分：{controlCredits.toLocaleString()}</div>
+      {aiResponseTime && (
+        <div className="text-xs text-slate-500">最新建议时间：{aiResponseTime}</div>
+      )}
       {controlCredits < AI_ASSIST_COST && (
         <div className="text-xs text-amber-400">积分不足，需 20 积分后可使用。</div>
       )}
@@ -911,10 +1019,10 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
           {aiConfigError}
         </div>
       )}
-      {aiConfigResponse && (
+      {aiResponseContent && (
         <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2">
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-            {aiConfigResponse}
+            {aiResponseContent}
           </ReactMarkdown>
         </div>
       )}
@@ -940,6 +1048,9 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         </Button>
       </div>
       <div className="mt-2 text-xs text-slate-500">当前积分：{controlCredits.toLocaleString()}</div>
+      {aiResponseTime && (
+        <div className="mt-1 text-xs text-slate-500">最新建议时间：{aiResponseTime}</div>
+      )}
       {controlCredits < AI_ASSIST_COST && (
         <div className="mt-2 text-xs text-amber-400">积分不足，需 20 积分后可使用。</div>
       )}
@@ -948,10 +1059,10 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
           {aiResultError}
         </div>
       )}
-      {aiResultResponse && (
+      {aiResponseContent && (
         <div className="mt-3 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2">
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-            {aiResultResponse}
+            {aiResponseContent}
           </ReactMarkdown>
         </div>
       )}
@@ -1280,7 +1391,11 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                           key={tier.id}
                           type="button"
                           disabled={!unlocked}
-                          onClick={() => unlocked && setCurrentTier(tier.id)}
+                          onClick={() => {
+                            if (!unlocked) return;
+                            setCurrentTier(tier.id);
+                            setManualTierSelections((prev) => ({ ...prev, [selectedLevelId]: true }));
+                          }}
                           className={cn(
                             'rounded-xl border px-3 py-3 text-left transition-all',
                             currentTier === tier.id

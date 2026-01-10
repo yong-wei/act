@@ -28,6 +28,22 @@ export interface ControlProfileSnapshot {
   bestScores?: ControlBestScores;
 }
 
+export interface ControlConfigSnapshot {
+  score: number;
+  createdAt: string;
+  config: {
+    tier?: LevelTier;
+    controlMode?: string;
+    controllerId?: ControllerId;
+    pidParams?: { kp: number; ki: number; kd: number };
+    extraParams?: { speedFeedbackTau: number; feedforwardGain: number };
+    enableSpeedFeedback?: boolean;
+    enableFeedforward?: boolean;
+    difficultyScale?: number;
+  };
+  metrics?: Record<string, unknown> | null;
+}
+
 const DEFAULT_UNLOCKS: ControllerId[] = ['P'];
 const TIER_ORDER: LevelTier[] = ['bronze', 'silver', 'gold'];
 const AI_ASSIST_COST = 20;
@@ -441,7 +457,17 @@ export async function submitGameScore(
   levelId: string,
   score: number,
   metrics: any,
-  context?: { runId?: string; tier?: string; controllerId?: ControllerId }
+  context?: {
+    runId?: string;
+    tier?: string;
+    controllerId?: ControllerId;
+    controlMode?: string;
+    pidParams?: { kp: number; ki: number; kd: number };
+    extraParams?: { speedFeedbackTau: number; feedforwardGain: number };
+    enableSpeedFeedback?: boolean;
+    enableFeedforward?: boolean;
+    difficultyScale?: number;
+  }
 ) {
   const session = await getServerAuthSession();
   
@@ -483,7 +509,13 @@ export async function submitGameScore(
           levelId,
           runId,
           tier: context?.tier,
-          controllerId: context?.controllerId
+          controllerId: context?.controllerId,
+          controlMode: context?.controlMode,
+          pidParams: context?.pidParams,
+          extraParams: context?.extraParams,
+          enableSpeedFeedback: context?.enableSpeedFeedback,
+          enableFeedforward: context?.enableFeedforward,
+          difficultyScale: context?.difficultyScale
         }, // 记录关卡与运行信息，避免重复提交
         metrics: metrics,
         score: score,
@@ -535,4 +567,62 @@ export async function submitGameScore(
     console.error('Failed to submit score:', error);
     return null;
   }
+}
+
+export async function getTopControlConfigs(levelId: string): Promise<ControlConfigSnapshot[]> {
+  const session = await getServerAuthSession();
+  if (!session?.user?.id) {
+    return [];
+  }
+
+  if (!levelId) {
+    return [];
+  }
+
+  const logs = await prisma.simulationLog.findMany({
+    where: {
+      userId: session.user.id,
+      score: {
+        not: null
+      },
+      OR: [
+        { missionId: levelId },
+        {
+          inputParams: {
+            path: ['levelId'],
+            equals: levelId
+          }
+        }
+      ]
+    },
+    orderBy: {
+      score: 'desc'
+    },
+    take: 3,
+    select: {
+      score: true,
+      createdAt: true,
+      inputParams: true,
+      metrics: true
+    }
+  });
+
+  return logs.map((log) => {
+    const params = (log.inputParams ?? {}) as Record<string, any>;
+    return {
+      score: log.score ?? 0,
+      createdAt: log.createdAt.toISOString(),
+      metrics: (log.metrics as Record<string, unknown> | null) ?? null,
+      config: {
+        tier: params.tier as LevelTier | undefined,
+        controlMode: params.controlMode,
+        controllerId: params.controllerId as ControllerId | undefined,
+        pidParams: params.pidParams,
+        extraParams: params.extraParams,
+        enableSpeedFeedback: params.enableSpeedFeedback,
+        enableFeedforward: params.enableFeedforward,
+        difficultyScale: params.difficultyScale
+      }
+    };
+  });
 }
