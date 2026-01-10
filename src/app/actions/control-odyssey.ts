@@ -30,6 +30,7 @@ export interface ControlProfileSnapshot {
 
 const DEFAULT_UNLOCKS: ControllerId[] = ['P'];
 const TIER_ORDER: LevelTier[] = ['bronze', 'silver', 'gold'];
+const AI_ASSIST_COST = 20;
 
 type ControlTierProgress = Record<string, LevelTier>;
 type ControlControllerLevels = Record<ControllerId, number>;
@@ -335,6 +336,42 @@ export async function upgradeController(controllerId: ControllerId): Promise<Con
   });
 
   return result;
+}
+
+export async function redeemControlAICredits(): Promise<number | null> {
+  const session = await getServerAuthSession();
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  const updatedCredits = await prisma.$transaction(async (tx) => {
+    const profile = await tx.studentProfile.findUnique({
+      where: { userId: session.user.id },
+      select: {
+        controlCredits: true
+      }
+    });
+
+    const credits = profile?.controlCredits ?? 0;
+    if (credits < AI_ASSIST_COST) {
+      throw new Error('积分不足');
+    }
+
+    const updated = await tx.studentProfile.upsert({
+      where: { userId: session.user.id },
+      update: {
+        controlCredits: { decrement: AI_ASSIST_COST }
+      },
+      create: {
+        userId: session.user.id,
+        controlCredits: credits - AI_ASSIST_COST
+      }
+    });
+
+    return updated.controlCredits;
+  });
+
+  return updatedCredits;
 }
 
 /**

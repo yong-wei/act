@@ -13,7 +13,11 @@ import {
 } from '../level-data';
 import { cn } from '@/lib/utils';
 
-export const TuningPanel: React.FC = () => {
+interface TuningPanelProps {
+  aiSection?: React.ReactNode;
+}
+
+export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
   const {
     controlMode,
     pidParams,
@@ -393,6 +397,12 @@ export const TuningPanel: React.FC = () => {
         </div>
         <div className="text-sm text-slate-300">高亮模块表示当前控制结构启用。</div>
       </div>
+
+      {aiSection && (
+        <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+          {aiSection}
+        </div>
+      )}
       
       {/* 参数滑块 */}
       {isAuto ? (

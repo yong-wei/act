@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { GameCanvas } from './components/GameCanvas';
 import { TelemetryScope } from './components/TelemetryScope';
 import { LevelSelector } from './components/LevelSelector';
@@ -16,7 +16,7 @@ import {
 } from './level-data';
 import { TuningPanel } from './components/TuningPanel';
 import { useGameStore } from './store/game-store';
-import { Play, RotateCcw, Settings2, Trophy, Info, ArrowLeft, Rocket, Gamepad2, Layers, ShoppingBag, Lock } from 'lucide-react';
+import { Bot, Play, RotateCcw, Settings2, Trophy, Info, ArrowLeft, Rocket, Gamepad2, Layers, ShoppingBag, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   submitGameScore,
@@ -24,7 +24,8 @@ import {
   LeaderboardEntry,
   getControlProfile,
   purchaseController,
-  upgradeController
+  upgradeController,
+  redeemControlAICredits
 } from '@/app/actions/control-odyssey';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -79,6 +80,7 @@ const TIER_OPTIONS: {
 ];
 
 const TIER_ORDER: LevelTier[] = ['bronze', 'silver', 'gold'];
+const AI_ASSIST_COST = 20;
 
 export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   initialLevelId = 'level-1',
@@ -102,6 +104,10 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     setUnlockedControllers,
     controllerLevels,
     setControllerLevels,
+    pidParams,
+    extraParams,
+    enableSpeedFeedback,
+    enableFeedforward,
     difficultyScale,
     setDifficultyScale,
     autoOffset,
@@ -116,10 +122,17 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const [shopOpen, setShopOpen] = useState(false);
   const [shopError, setShopError] = useState<string | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
-  const [shopPreviewLevels, setShopPreviewLevels] = useState<Record<ControllerId, number | null>>({});
+  const [shopPreviewLevels, setShopPreviewLevels] = useState<Record<ControllerId, number | null>>(
+    {} as Record<ControllerId, number | null>
+  );
   const [tierProgress, setTierProgress] = useState<Record<string, LevelTier>>({});
   const [personalBestScores, setPersonalBestScores] = useState<Record<string, { overall: number; tiers: Partial<Record<LevelTier, number>> }>>({});
   const [showDetails, setShowDetails] = useState(false);
+  const [aiConfigResponse, setAiConfigResponse] = useState<string | null>(null);
+  const [aiConfigError, setAiConfigError] = useState<string | null>(null);
+  const [aiResultResponse, setAiResultResponse] = useState<string | null>(null);
+  const [aiResultError, setAiResultError] = useState<string | null>(null);
+  const [aiLoadingContext, setAiLoadingContext] = useState<'config' | 'result' | null>(null);
   
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
@@ -528,6 +541,308 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     { label: '扰动类型', value: disturbanceLabel }
   ].filter((item) => item.value !== null) as { label: string; value: string }[];
 
+  const controllerLabelMap = useMemo(() => {
+    return CONTROL_SHOP_CONFIG.items.reduce<Record<ControllerId, string>>((acc, item) => {
+      acc[item.unlocks.controller] = item.label;
+      return acc;
+    }, {} as Record<ControllerId, string>);
+  }, []);
+
+  const formatControllerName = (id: ControllerId) => controllerLabelMap[id] ?? id;
+  const formatEvents = (events: { at: number; amplitude: number; duration?: number }[]) => {
+    if (!events.length) return '无';
+    return events
+      .map((event) => {
+        const durationText = event.duration ? `, 持续 ${event.duration}` : '';
+        return `位置 ${event.at}, 幅值 ${event.amplitude}${durationText}`;
+      })
+      .join('；');
+  };
+
+  const buildReferenceSummary = () => {
+    const reference = tierConfig.reference;
+    const baseText = reference.base !== undefined ? `基准 ${reference.base}` : '';
+    const startSafe = reference.startSafeDistance ? `起始安全距离 ${reference.startSafeDistance}` : '';
+    if (reference.type === 'step') {
+      return `阶跃信号。${baseText} ${startSafe} 事件：${formatEvents(reference.events)}`.trim();
+    }
+    if (reference.type === 'sequence') {
+      const random = reference.random;
+      const randomText = random
+        ? `随机阶跃 ${random.count} 次，区间 ${random.minAt}-${random.maxAt}，幅值 ${random.minAmplitude}-${random.maxAmplitude}，最小间隔 ${random.minGap ?? 200}`
+        : '';
+      const eventsText = reference.events.length ? `预设事件：${formatEvents(reference.events)}` : '';
+      return `阶跃序列。${startSafe} ${randomText} ${eventsText}`.trim();
+    }
+    if (reference.type === 'ramp') {
+      return `斜坡信号。${baseText} 速率 ${reference.rampRate ?? 0} ${startSafe}`.trim();
+    }
+    if (reference.type === 'accel') {
+      return `加速度信号。${baseText} 速率 ${reference.accelRate ?? 0} ${startSafe}`.trim();
+    }
+    return `自定义信号。${startSafe}`.trim();
+  };
+
+  const buildDisturbanceSummary = () => {
+    if (tierConfig.disturbance.type === 'none') return '无扰动';
+    const visual = tierConfig.disturbance.visual;
+    const visualText = visual
+      ? `视觉风格 ${visual.style}${visual.intensity ? `，强度 ${visual.intensity}` : ''}`
+      : '';
+    return `输出扰动，事件：${formatEvents(tierConfig.disturbance.events)}。${visualText}`.trim();
+  };
+
+  const buildModelSummary = () => {
+    if (!selectedLevel) return '';
+    const model = selectedLevel.model;
+    const modelText = model.form === 'tf'
+      ? `传递函数分子 [${model.numerator.join(', ')}]，分母 [${model.denominator.join(', ')}]${model.delay ? `，延时 ${model.delay}` : ''}`
+      : `零极点模型：零点 [${model.zeros.join(', ')}]，极点 [${model.poles.join(', ')}]，增益 ${model.gain}${model.delay ? `，延时 ${model.delay}` : ''}`;
+    const sim = selectedLevel.simulation;
+    const simText = `模型类型 ${modelLabel}，增益 K=${sim.gain}${sim.timeConstant !== undefined ? `，时间常数 T=${sim.timeConstant}` : ''}${sim.inputDelay !== undefined ? `，输入延时 L=${sim.inputDelay}` : ''}`;
+    return `${modelText}\n${simText}`;
+  };
+
+  const buildControllerSummary = () => {
+    const getLevel = (id: ControllerId) => controllerLevels[id] ?? 0;
+    const baseMax = 0.1;
+    const kpMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('P') - 1)));
+    const kiMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('PI') - 1)));
+    const kdMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('PD') - 1)));
+    const tauMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('VFB') - 1)));
+    const ffMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('FF') - 1)));
+    const unlocked = unlockedControllers.map((id) => `${formatControllerName(id)}(Lv ${getLevel(id)})`).join('、') || '无';
+    const locked = CONTROL_SHOP_CONFIG.items
+      .map((item) => item.unlocks.controller)
+      .filter((id) => !unlockedControllers.includes(id))
+      .map((id) => formatControllerName(id))
+      .join('、') || '无';
+
+    return [
+      `控制模式：${controlMode === 'AUTO' ? 'PID 辅助' : '手动直控'}`,
+      `当前控制器：${formatControllerName(controllerId)}`,
+      `测速反馈：${enableSpeedFeedback ? '开启' : '关闭'}，前馈：${enableFeedforward ? '开启' : '关闭'}`,
+      `PID 参数：Kp=${pidParams.kp.toFixed(3)}, Ki=${pidParams.ki.toFixed(3)}, Kd=${pidParams.kd.toFixed(3)}`,
+      `扩展参数：τ=${extraParams.speedFeedbackTau.toFixed(3)}, Kff=${extraParams.feedforwardGain.toFixed(3)}`,
+      `参数上限：Kp<=${kpMax.toFixed(3)}, Ki<=${kiMax.toFixed(3)}, Kd<=${kdMax.toFixed(3)}, τ<=${tauMax.toFixed(3)}, Kff<=${ffMax.toFixed(3)}`,
+      `已解锁控制器：${unlocked}`,
+      `未解锁控制器：${locked}`
+    ].join('\n');
+  };
+
+  const tierNarrative: Record<LevelTier, string> = {
+    bronze: '青铜：单一阶跃信号，重点控制稳态误差与超调。',
+    silver: '白银：多阶跃随机变化，关注对多次变化的跟踪与鲁棒性。',
+    gold: '黄金：多阶跃叠加暗流扰动，强调抗扰动与稳定性。'
+  };
+
+  const buildAiPrompt = (contextType: 'config' | 'result') => {
+    if (!selectedLevel) return '';
+    const tierSummary = [
+      `等级：${tierLabel} (${effectiveTier})`,
+      `参考信号：${buildReferenceSummary()}`,
+      `扰动：${buildDisturbanceSummary()}`,
+      `误差包络：±${tierConfig.envelope.margin}，航程 ${tierConfig.distance}m`,
+      `难度系数：${difficultyScale.toFixed(2)}`,
+      tierNarrative[effectiveTier] ?? ''
+    ].filter(Boolean).join('\n');
+
+    const performanceSummary = contextType === 'result'
+      ? `结果：${gameState === 'VICTORY' ? '成功' : '失败'}；最大超调 ${metrics.maxOvershoot.toFixed(1)}%，稳态误差 ${metrics.steadyError.toFixed(1)}%，平均相对误差 ${metrics.avgRelativeError.toFixed(1)}%，调节时间 ${metrics.settlingTime.toFixed(1)}s`
+      : '';
+
+    return [
+      '你是控制奥德赛的控制器调参顾问，请基于以下上下文给出控制器配置建议。',
+      '要求：优先使用已解锁控制器/模块，参数不超过上限；输出格式包含“推荐控制器/模块、参数建议、调参思路、注意事项”。',
+      `关卡：${selectedLevel.name}（${selectedLevel.id}）`,
+      `关卡模型：\n${buildModelSummary()}`,
+      `等级信息：\n${tierSummary}`,
+      `当前控制配置：\n${buildControllerSummary()}`,
+      performanceSummary ? `仿真结果：\n${performanceSummary}` : ''
+    ].filter(Boolean).join('\n\n');
+  };
+
+  const readAiStream = async (response: Response) => {
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('无法读取 AI 响应');
+    }
+
+    const decoder = new TextDecoder();
+    let content = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n');
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line) continue;
+        if (line.startsWith('0:')) {
+          try {
+            const text = JSON.parse(line.slice(2));
+            if (typeof text === 'string') {
+              content += text;
+            }
+          } catch {
+            // 忽略解析错误
+          }
+          continue;
+        }
+        if (line.startsWith('data:')) {
+          const data = line.replace(/^data:\s*/, '');
+          if (data === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(data);
+            if (typeof parsed === 'string') {
+              content += parsed;
+            } else if (parsed?.content) {
+              content += parsed.content;
+            } else if (parsed?.text) {
+              content += parsed.text;
+            }
+          } catch {
+            content += data;
+          }
+        }
+      }
+    }
+
+    return content.trim();
+  };
+
+  const requestAiAdvice = async (contextType: 'config' | 'result') => {
+    const setResponse = contextType === 'config' ? setAiConfigResponse : setAiResultResponse;
+    const setError = contextType === 'config' ? setAiConfigError : setAiResultError;
+
+    if (controlCredits < AI_ASSIST_COST) {
+      setError('积分不足，请先获取控制积分。');
+      return;
+    }
+
+    setAiLoadingContext(contextType);
+    setError(null);
+    setResponse(null);
+
+    try {
+      const prompt = buildAiPrompt(contextType);
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: prompt }],
+          lessonContext: {
+            stage: 'interactive',
+            resourceTitle: 'Control Odyssey',
+            aiPersona: 'analyst'
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || errData.error || 'AI 请求失败');
+      }
+
+      const content = await readAiStream(response);
+      if (!content) {
+        throw new Error('AI 未返回建议');
+      }
+      setResponse(content);
+
+      try {
+        const updatedCredits = await redeemControlAICredits();
+        if (updatedCredits === null) {
+          setError('请先登录后使用 AI 建议。');
+        } else {
+          setControlCredits(updatedCredits);
+        }
+      } catch (error) {
+        setError(error instanceof Error ? error.message : '积分扣减失败，请稍后再试。');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'AI 请求失败，请稍后再试。');
+    } finally {
+      setAiLoadingContext(null);
+    }
+  };
+
+  const isConfigAiLoading = aiLoadingContext === 'config';
+  const isResultAiLoading = aiLoadingContext === 'result';
+  const aiConfigDisabled = isConfigAiLoading || controlCredits < AI_ASSIST_COST || !selectedLevel;
+  const aiResultDisabled = isResultAiLoading || controlCredits < AI_ASSIST_COST || !selectedLevel;
+
+  const aiConfigPanel = (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <div className="text-sm font-semibold text-slate-100">AI 控制建议</div>
+          <div className="text-xs text-slate-500">基于当前关卡与控制器配置生成</div>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-slate-700"
+          disabled={aiConfigDisabled}
+          onClick={() => requestAiAdvice('config')}
+        >
+          <Bot className="w-4 h-4 mr-2" />
+          {isConfigAiLoading ? '分析中...' : `AI 建议 (${AI_ASSIST_COST}积分)`}
+        </Button>
+      </div>
+      <div className="text-xs text-slate-500">当前积分：{controlCredits.toLocaleString()}</div>
+      {controlCredits < AI_ASSIST_COST && (
+        <div className="text-xs text-amber-400">积分不足，需 20 积分后可使用。</div>
+      )}
+      {aiConfigError && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          {aiConfigError}
+        </div>
+      )}
+      {aiConfigResponse && (
+        <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 whitespace-pre-line">
+          {aiConfigResponse}
+        </div>
+      )}
+    </div>
+  );
+
+  const aiResultPanel = (
+    <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-left">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <div className="text-sm font-semibold text-slate-100">AI 复盘建议</div>
+          <div className="text-xs text-slate-500">结合关卡配置与仿真指标分析</div>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-slate-700"
+          disabled={aiResultDisabled}
+          onClick={() => requestAiAdvice('result')}
+        >
+          <Bot className="w-4 h-4 mr-2" />
+          {isResultAiLoading ? '分析中...' : `AI 建议 (${AI_ASSIST_COST}积分)`}
+        </Button>
+      </div>
+      <div className="mt-2 text-xs text-slate-500">当前积分：{controlCredits.toLocaleString()}</div>
+      {controlCredits < AI_ASSIST_COST && (
+        <div className="mt-2 text-xs text-amber-400">积分不足，需 20 积分后可使用。</div>
+      )}
+      {aiResultError && (
+        <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          {aiResultError}
+        </div>
+      )}
+      {aiResultResponse && (
+        <div className="mt-3 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 whitespace-pre-line">
+          {aiResultResponse}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div
       className={cn(
@@ -932,7 +1247,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
               </div>
 
               <div className="mt-6 bg-slate-950/60 border border-slate-800 rounded-2xl overflow-hidden">
-                <TuningPanel />
+                <TuningPanel aiSection={aiConfigPanel} />
               </div>
 
               <div className="flex justify-end gap-4 mt-10">
@@ -1010,6 +1325,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                        </div>
                      )}
 
+                     {aiResultPanel}
+
                      <div className="flex flex-col gap-3">
                        {canAdvance && (
                          <Button onClick={handleAdvanceToNextLevel} className="h-14 text-lg bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold">
@@ -1034,6 +1351,25 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                         <div className="text-[10px] text-red-400/60 uppercase font-bold tracking-widest mb-1">遥测报告</div>
                         <div className="text-red-200 text-lg">飞船触碰了物理边界。请在操作时注意观察底部误差曲线。</div>
                      </div>
+
+                     <Button
+                       variant="outline"
+                       onClick={() => setShowDetails((prev) => !prev)}
+                       className="mb-6 border-slate-700 text-slate-300"
+                     >
+                       {showDetails ? '收起详细信息' : '详细信息'}
+                     </Button>
+
+                     {showDetails && (
+                       <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+                         <div className="text-xs text-slate-500 mb-1">
+                           给定航线 R(t)、系统响应 Y(t)、控制信号 U(t)（全航程）
+                         </div>
+                         <TelemetryScope height={220} />
+                       </div>
+                     )}
+
+                     {aiResultPanel}
 
                      <div className="flex flex-col gap-3">
                        <Button onClick={handleStartGame} className="h-14 text-lg bg-blue-600 hover:bg-blue-500 rounded-xl font-bold">立即重启任务</Button>
