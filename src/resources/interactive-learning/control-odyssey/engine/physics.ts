@@ -1,7 +1,7 @@
 export interface ShipState {
   y: number;      // 垂直位置 (0-400)
   v: number;      // 垂直速度
-  u: number;      // 当前控制输入 (控制量) -1.0 到 1.0
+  u: number;      // 当前控制输入 (控制量) 动态限幅
   r: number;      // 当前设定值 (仅自动模式有效)
 }
 
@@ -27,6 +27,14 @@ export interface ControlParams {
     enabled: boolean;
     gain: number;
     base?: number;
+  };
+  outputLimits?: {
+    manual?: number;
+    p?: number;
+    i?: number;
+    d?: number;
+    vfb?: number;
+    ff?: number;
   };
 }
 
@@ -99,25 +107,38 @@ export class PhysicsEngine {
     const feedforwardTerm = params.feedforward?.enabled
       ? (params.feedforward.gain * (this.state.r - feedforwardBase)) / 200
       : 0;
+    const limits = params.outputLimits ?? {};
+    const limitValue = (value: number, limit?: number) => {
+      if (!limit || limit <= 0) return 0;
+      return clamp(value, -limit, limit);
+    };
 
     if (mode === 'MANUAL') {
       const rate = controlRate ?? 1.5;
-      this.state.u = clamp(this.state.u + inputCommand * rate * dt, -1, 1);
+      const manualLimit = limits.manual ?? 1;
+      this.state.u = clamp(this.state.u + inputCommand * rate * dt, -manualLimit, manualLimit);
     } else {
       const setpointRate = 120;
       this.state.r = clamp(this.state.r + inputCommand * setpointRate * dt, 0, 400);
 
       const normalizedError = (this.state.r - this.state.y) / 200;
-      this.integral = clamp(this.integral + normalizedError * dt, -2, 2);
+      const iLimit = limits.i ?? 0;
+      const iStateLimit =
+        iLimit > 0 && Math.abs(pid.ki) > 0
+          ? iLimit / Math.max(Math.abs(pid.ki), 0.0001)
+          : 0;
+      this.integral = iStateLimit > 0
+        ? clamp(this.integral + normalizedError * dt, -iStateLimit, iStateLimit)
+        : 0;
       const derivative = dt > 0 ? (normalizedError - this.prevError) / dt : 0;
       this.prevError = normalizedError;
 
-      const pidOutput = clamp(
-        pid.kp * normalizedError + pid.ki * this.integral + pid.kd * derivative,
-        -1,
-        1
-      );
-      this.state.u = clamp(pidOutput + speedFeedbackTerm + feedforwardTerm, -1, 1);
+      const pTerm = limitValue(pid.kp * normalizedError, limits.p);
+      const iTerm = limitValue(pid.ki * this.integral, limits.i);
+      const dTerm = limitValue(pid.kd * derivative, limits.d);
+      const vfbTerm = limitValue(speedFeedbackTerm, limits.vfb);
+      const ffTerm = limitValue(feedforwardTerm, limits.ff);
+      this.state.u = pTerm + iTerm + dTerm + vfbTerm + ffTerm;
     }
 
     // ============ 对象层 (Plant) ============

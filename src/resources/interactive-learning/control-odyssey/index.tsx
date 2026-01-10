@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { GameCanvas } from './components/GameCanvas';
 import { TelemetryScope } from './components/TelemetryScope';
 import { LevelSelector } from './components/LevelSelector';
+import { ShipAvatar } from './components/ShipAvatar';
 import {
   CONTROL_BASE_CONTROLLERS,
   CONTROL_ODYSSEY_LEVELS,
@@ -115,19 +116,27 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const [shopOpen, setShopOpen] = useState(false);
   const [shopError, setShopError] = useState<string | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [shopPreviewLevels, setShopPreviewLevels] = useState<Record<ControllerId, number | null>>({});
   const [tierProgress, setTierProgress] = useState<Record<string, LevelTier>>({});
+  const [personalBestScores, setPersonalBestScores] = useState<Record<string, { overall: number; tiers: Partial<Record<LevelTier, number>> }>>({});
   const [showDetails, setShowDetails] = useState(false);
   
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const hasSubmittedRef = useRef(false);
+  const bestScoreSnapshotRef = useRef<number | null>(null);
+
+  const hasLevelProgress = (levelId: string) =>
+    Boolean(tierProgress[levelId])
+    || (personalBestScores[levelId]?.overall ?? 0) > 0;
 
   // 1. 提交成绩
   useEffect(() => {
     if (gameState !== 'VICTORY') {
       hasSubmittedRef.current = false;
       setShowDetails(false);
+      bestScoreSnapshotRef.current = null;
       return;
     }
 
@@ -149,6 +158,9 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         );
         const scoreMultiplier = Math.max(0.7, Math.min(1.4, 1 / difficultyScale));
         const finalScore = Math.max(0, Math.floor(baseScore * scoreMultiplier));
+        if (bestScoreSnapshotRef.current === null) {
+          bestScoreSnapshotRef.current = personalBestScores[selectedLevelId]?.tiers?.[currentTier] ?? 0;
+        }
         await submitGameScore(
           selectedLevelId,
           finalScore,
@@ -171,6 +183,9 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
           setUnlockedControllers(profile.unlocks);
           setTierProgress(profile.tierProgress ?? {});
           setControllerLevels(profile.controllerLevels);
+          if (profile.bestScores) {
+            setPersonalBestScores(profile.bestScores);
+          }
         }
       } catch (e) {
         console.error('Failed to submit score', e);
@@ -180,7 +195,19 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     };
 
     saveScore();
-  }, [gameState, metrics, selectedLevelId, runId, currentTier, controllerId, difficultyScale, setControlCredits, setUnlockedControllers, setControllerLevels]);
+  }, [
+    gameState,
+    metrics,
+    selectedLevelId,
+    runId,
+    currentTier,
+    controllerId,
+    difficultyScale,
+    personalBestScores,
+    setControlCredits,
+    setUnlockedControllers,
+    setControllerLevels
+  ]);
 
   useEffect(() => {
     if (gameState !== 'VICTORY') return;
@@ -205,6 +232,9 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
           setUnlockedControllers(profile.unlocks);
           setTierProgress(profile.tierProgress ?? {});
           setControllerLevels(profile.controllerLevels);
+          if (profile.bestScores) {
+            setPersonalBestScores(profile.bestScores);
+          }
         }
       } catch (error) {
         console.error('Failed to load control profile', error);
@@ -212,7 +242,17 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     };
 
     loadProfile();
-  }, [setControlCredits, setUnlockedControllers, setControllerLevels]);
+  }, [setControlCredits, setUnlockedControllers, setControllerLevels, setPersonalBestScores]);
+
+  useEffect(() => {
+    setLevels((prev) => prev.map((level, index, list) => {
+      if (index === 0) return { ...level, unlocked: true };
+      const prevLevelId = list[index - 1]?.id;
+      const prevUnlocked = prevLevelId ? hasLevelProgress(prevLevelId) : false;
+      const selfUnlocked = hasLevelProgress(level.id);
+      return { ...level, unlocked: prevUnlocked || selfUnlocked };
+    }));
+  }, [tierProgress, personalBestScores]);
 
   useEffect(() => {
     const fallback = CONTROL_BASE_CONTROLLERS.find((id) => unlockedControllers.includes(id)) ?? 'P';
@@ -253,6 +293,9 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         setUnlockedControllers(profile.unlocks);
         setTierProgress(profile.tierProgress ?? {});
         setControllerLevels(profile.controllerLevels);
+        if (profile.bestScores) {
+          setPersonalBestScores(profile.bestScores);
+        }
       } else {
         setShopError('请先登录后兑换控制器。');
       }
@@ -273,6 +316,9 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         setUnlockedControllers(profile.unlocks);
         setTierProgress(profile.tierProgress ?? {});
         setControllerLevels(profile.controllerLevels);
+        if (profile.bestScores) {
+          setPersonalBestScores(profile.bestScores);
+        }
       } else {
         setShopError('请先登录后升级控制器。');
       }
@@ -337,6 +383,86 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
       ))}
     </div>
   );
+  const emptyPreviewLevels: Record<ControllerId, number> = {
+    P: 0,
+    PI: 0,
+    PD: 0,
+    PID: 0,
+    VFB: 0,
+    FF: 0
+  };
+  const buildSoloLevels = (controller: ControllerId, level: number) => {
+    const levels = { ...emptyPreviewLevels };
+    if (controller === 'P') levels.P = level;
+    if (controller === 'PI') levels.PI = level;
+    if (controller === 'PD') levels.PD = level;
+    if (controller === 'VFB') levels.VFB = level;
+    if (controller === 'FF') levels.FF = level;
+    return levels;
+  };
+  const buildPidLevels = (overrideLevel?: number | null) => {
+    const levels = { ...emptyPreviewLevels };
+    if (overrideLevel && overrideLevel > 0) {
+      levels.P = overrideLevel;
+      levels.PI = overrideLevel;
+      levels.PD = overrideLevel;
+    } else {
+      levels.P = controllerLevels.P ?? 0;
+      levels.PI = controllerLevels.PI ?? 0;
+      levels.PD = controllerLevels.PD ?? 0;
+    }
+    levels.VFB = unlockedControllers.includes('VFB') ? controllerLevels.VFB ?? 0 : 0;
+    levels.FF = unlockedControllers.includes('FF') ? controllerLevels.FF ?? 0 : 0;
+    return levels;
+  };
+  const buildShopPreviewConfig = (controller: ControllerId, previewLevel: number | null) => {
+    if (controller === 'PID') {
+      return {
+        controllerId: 'PID' as const,
+        enableFeedforward: (controllerLevels.FF ?? 0) > 0 && unlockedControllers.includes('FF'),
+        enableSpeedFeedback: (controllerLevels.VFB ?? 0) > 0 && unlockedControllers.includes('VFB'),
+        controllerLevels: buildPidLevels(previewLevel)
+      };
+    }
+    if (controller === 'PI') {
+      return {
+        controllerId: 'PI' as const,
+        enableFeedforward: false,
+        enableSpeedFeedback: false,
+        controllerLevels: buildSoloLevels('PI', previewLevel ?? 0)
+      };
+    }
+    if (controller === 'PD') {
+      return {
+        controllerId: 'PD' as const,
+        enableFeedforward: false,
+        enableSpeedFeedback: false,
+        controllerLevels: buildSoloLevels('PD', previewLevel ?? 0)
+      };
+    }
+    if (controller === 'VFB') {
+      return {
+        controllerId: 'P' as const,
+        enableFeedforward: false,
+        enableSpeedFeedback: true,
+        controllerLevels: buildSoloLevels('VFB', previewLevel ?? 0)
+      };
+    }
+    if (controller === 'FF') {
+      return {
+        controllerId: 'P' as const,
+        enableFeedforward: true,
+        enableSpeedFeedback: false,
+        controllerLevels: buildSoloLevels('FF', previewLevel ?? 0)
+      };
+    }
+    return {
+      controllerId: 'P' as const,
+      enableFeedforward: false,
+      enableSpeedFeedback: false,
+      controllerLevels: buildSoloLevels('P', previewLevel ?? 0)
+    };
+  };
 
   const currentLevelIndex = levels.findIndex((level) => level.id === selectedLevelId);
   const nextLevel = currentLevelIndex >= 0 ? levels[currentLevelIndex + 1] : null;
@@ -369,6 +495,16 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   );
   const scoreMultiplier = Math.max(0.7, Math.min(1.4, 1 / difficultyScale));
   const finalScoreValue = Math.max(0, Math.floor(baseScoreValue * scoreMultiplier));
+  const tierBestScore = personalBestScores[selectedLevelId]?.tiers?.[currentTier] ?? 0;
+  const previousTierBest = bestScoreSnapshotRef.current ?? tierBestScore;
+  const encouragementText = (() => {
+    if (previousTierBest <= 0) return '首次记录已生成，继续保持！';
+    if (finalScoreValue > previousTierBest) {
+      return `刷新纪录！提升了 ${(finalScoreValue - previousTierBest).toLocaleString()} 分`;
+    }
+    if (finalScoreValue === previousTierBest) return '追平历史最佳，表现稳定！';
+    return `距离历史最佳还差 ${(previousTierBest - finalScoreValue).toLocaleString()} 分`;
+  })();
   const tierLabel = TIER_OPTIONS.find((option) => option.id === currentTier)?.label ?? currentTier;
   const selectedLevel = levels.find((level) => level.id === selectedLevelId);
   const highestTier = tierProgress[selectedLevelId] ?? 'bronze';
@@ -395,7 +531,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   return (
     <div
       className={cn(
-        'flex flex-col w-full max-w-[1600px] mx-auto bg-slate-950 relative',
+        'flex flex-col w-full bg-slate-950 relative',
         currentView === 'LEVEL_SELECT' ? 'min-h-[100dvh] overflow-y-auto' : 'h-full overflow-hidden'
       )}
     >
@@ -442,17 +578,19 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
       {/* 视图 1: 关卡选择器 */}
       {currentView === 'LEVEL_SELECT' && (
         <div className="relative w-full">
-           <Button variant="ghost" onClick={() => setCurrentView('INTRO')} className="absolute top-8 left-8 text-slate-500 hover:text-white z-20">
+           <Button variant="ghost" onClick={() => setCurrentView('INTRO')} className="absolute top-3 left-4 text-slate-500 hover:text-white z-20">
               <ArrowLeft className="w-4 h-4 mr-2" /> 返回介绍
            </Button>
-           <LevelSelector 
-             levels={levels} 
-             selectedLevelId={selectedLevelId}
-             leaderboardData={leaderboardData}
-             onSelectLevel={handleLevelSelect} 
-             onConfirmLevel={handleEnterConfig}
-             isLoadingLeaderboard={isLoadingLeaderboard}
-             controlCredits={controlCredits}
+             <LevelSelector 
+               levels={levels} 
+               selectedLevelId={selectedLevelId}
+               leaderboardData={leaderboardData}
+               tierProgress={tierProgress}
+               personalBestScores={personalBestScores}
+               onSelectLevel={handleLevelSelect} 
+               onConfirmLevel={handleEnterConfig}
+               isLoadingLeaderboard={isLoadingLeaderboard}
+               controlCredits={controlCredits}
              onOpenShop={() => {
                setShopError(null);
                setShopOpen(true);
@@ -501,6 +639,13 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
               const maxLevel = rule?.maxLevel ?? 10;
               const upgradePrice = rule ? getUpgradePrice(item.unlocks.controller) : 0;
               const canUpgrade = unlocked && rule && level < maxLevel && controlCredits >= upgradePrice;
+              const upgradeTargetLevel = Math.min(level + 1, maxLevel);
+              const previewOverride = shopPreviewLevels[item.unlocks.controller] ?? null;
+              const defaultPreviewLevel = item.unlocks.controller === 'PID' ? null : upgradeTargetLevel;
+              const previewLevel = previewOverride ?? defaultPreviewLevel;
+              const currentPreviewLevel = item.unlocks.controller === 'PID' ? null : level;
+              const currentPreviewConfig = buildShopPreviewConfig(item.unlocks.controller, currentPreviewLevel);
+              const upgradePreviewConfig = buildShopPreviewConfig(item.unlocks.controller, previewLevel);
               return (
                 <div key={item.id} className="flex flex-col gap-3 p-4 bg-slate-950/40 border border-slate-800 rounded-xl">
                   <div className="flex items-start justify-between gap-4">
@@ -532,24 +677,114 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                   </div>
 
                   {unlocked && (
-                    <div className="flex items-center justify-between gap-4 border-t border-slate-800 pt-3">
-                      <div>
-                        <div className="text-xs text-slate-500">等级 {level}/{maxLevel}</div>
-                        {renderLevelMarks(level, maxLevel)}
+                    <div className="flex flex-col gap-3 border-t border-slate-800 pt-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-3">
+                          <div className="text-xs text-slate-400">当前状态</div>
+                          <div className="mt-2 flex items-center gap-3">
+                            <ShipAvatar
+                              controlMode="AUTO"
+                              controllerId={currentPreviewConfig.controllerId}
+                              enableFeedforward={currentPreviewConfig.enableFeedforward}
+                              enableSpeedFeedback={currentPreviewConfig.enableSpeedFeedback}
+                              controllerLevels={currentPreviewConfig.controllerLevels}
+                              showThrusters={false}
+                              className="!w-[120px] !h-[72px]"
+                            />
+                            <div className="space-y-1">
+                              <div className="text-xs text-slate-500">等级 {level}/{maxLevel}</div>
+                              {renderLevelMarks(level, maxLevel)}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-3">
+                          <div className="flex items-center justify-between text-xs text-slate-400">
+                            <span>升级预览</span>
+                            {previewOverride !== null && (
+                              <button
+                                type="button"
+                                className="text-[11px] text-cyan-300 hover:text-cyan-200"
+                                onClick={() =>
+                                  setShopPreviewLevels((prev) => ({
+                                    ...prev,
+                                    [item.unlocks.controller]: null
+                                  }))
+                                }
+                              >
+                                恢复默认
+                              </button>
+                            )}
+                          </div>
+                          <div className="mt-2 flex items-center gap-3">
+                            <ShipAvatar
+                              controlMode="AUTO"
+                              controllerId={upgradePreviewConfig.controllerId}
+                              enableFeedforward={upgradePreviewConfig.enableFeedforward}
+                              enableSpeedFeedback={upgradePreviewConfig.enableSpeedFeedback}
+                              controllerLevels={upgradePreviewConfig.controllerLevels}
+                              showThrusters={false}
+                              className="!w-[120px] !h-[72px]"
+                            />
+                            {rule && (
+                              <div className="space-y-2">
+                                <div className="text-xs text-slate-500">
+                                  预览等级 {typeof previewLevel === 'number' ? previewLevel : '当前最高'}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  {Array.from({ length: maxLevel }).map((_, index) => {
+                                    const dotLevel = index + 1;
+                                    const isOwned = dotLevel <= level;
+                                    const isUpgrade = dotLevel === upgradeTargetLevel;
+                                    const isSelected = previewLevel === dotLevel;
+                                    return (
+                                      <button
+                                        key={`${item.id}-preview-${dotLevel}`}
+                                        type="button"
+                                        disabled={!isOwned && !isUpgrade}
+                                        onClick={() =>
+                                          setShopPreviewLevels((prev) => ({
+                                            ...prev,
+                                            [item.unlocks.controller]:
+                                              prev[item.unlocks.controller] === dotLevel ? null : dotLevel
+                                          }))
+                                        }
+                                        className={cn(
+                                          'h-2 w-2 rounded-full border transition',
+                                          isOwned && 'bg-emerald-400 border-emerald-500',
+                                          !isOwned && isUpgrade && 'bg-cyan-400/60 border-cyan-300',
+                                          !isOwned && !isUpgrade && 'bg-slate-800 border-slate-700 cursor-not-allowed',
+                                          isSelected && 'ring-2 ring-emerald-200/70'
+                                        )}
+                                        aria-label={`预览等级 ${dotLevel}`}
+                                      />
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
+
                       {rule && (
-                        <div className="text-right">
-                          <div className="text-xs text-slate-500">升级价格</div>
-                          <div className="text-sm font-mono text-white">{upgradePrice}</div>
-                          <Button
-                            size="sm"
-                            className="mt-2"
-                            variant="outline"
-                            disabled={!canUpgrade || isPurchasing}
-                            onClick={() => handleUpgradeController(item.unlocks.controller)}
-                          >
-                            {level >= maxLevel ? '已满级' : controlCredits < upgradePrice ? '积分不足' : `升级 Lv${level + 1}`}
-                          </Button>
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="text-xs text-slate-500">
+                            {level >= maxLevel ? '已满级' : `升级后将至 Lv${upgradeTargetLevel}`}
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs text-slate-500">升级价格</div>
+                            <div className="text-sm font-mono text-white">{upgradePrice}</div>
+                            <Button
+                              size="sm"
+                              className="mt-2"
+                              variant="outline"
+                              disabled={!canUpgrade || isPurchasing}
+                              onClick={() => handleUpgradeController(item.unlocks.controller)}
+                            >
+                              {level >= maxLevel ? '已满级' : controlCredits < upgradePrice ? '积分不足' : `升级 Lv${level + 1}`}
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -735,6 +970,13 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                             <div className="text-3xl font-mono text-emerald-400 font-bold">{finalScoreValue.toLocaleString()}</div>
                           </div>
                         </div>
+                        <div className="flex items-center justify-between text-xs text-slate-400">
+                          <span>当前分支最高得分</span>
+                          <span className="font-mono text-emerald-300">
+                            {tierBestScore > 0 ? tierBestScore.toLocaleString() : '暂无记录'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-400">{encouragementText}</div>
                         <div className="grid grid-cols-3 gap-4">
                           <div title="阶跃出现后，响应超过目标的最大比例。">
                             <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">最大超调</div>
@@ -807,7 +1049,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
           )}
 
           {/* 顶部 HUD */}
-          <div className="flex-none h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 z-10">
+          <div className="flex-none h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 z-10">
              <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" onClick={handleBackToMenu} className="text-slate-400 hover:text-white mr-2">
                    <ArrowLeft className="w-5 h-5" />

@@ -265,10 +265,25 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         const plantType = levelConfig.simulation.engineType;
         const timeConstant = levelConfig.simulation.timeConstant;
         const inputDelay = levelConfig.simulation.inputDelay;
+        const hasI = controllerId === 'PI' || controllerId === 'PID';
+        const hasD = controllerId === 'PD' || controllerId === 'PID';
         const filteredPid = {
           kp: pidParams.kp,
-          ki: controllerId === 'PI' || controllerId === 'PID' ? pidParams.ki : 0,
-          kd: controllerId === 'PD' || controllerId === 'PID' ? pidParams.kd : 0
+          ki: hasI ? pidParams.ki : 0,
+          kd: hasD ? pidParams.kd : 0
+        };
+        const pLevelLimit = Math.max(1, controllerLevels.P ?? 1);
+        const iLevelLimit = Math.max(0, controllerLevels.PI ?? 0);
+        const dLevelLimit = Math.max(0, controllerLevels.PD ?? 0);
+        const vfbLevelLimit = Math.max(0, controllerLevels.VFB ?? 0);
+        const ffLevelLimit = Math.max(0, controllerLevels.FF ?? 0);
+        const outputLimits = {
+          manual: pLevelLimit,
+          p: controlMode === 'AUTO' ? pLevelLimit : 0,
+          i: controlMode === 'AUTO' && hasI ? iLevelLimit : 0,
+          d: controlMode === 'AUTO' && hasD ? dLevelLimit : 0,
+          vfb: controlMode === 'AUTO' && enableSpeedFeedback ? vfbLevelLimit : 0,
+          ff: controlMode === 'AUTO' && enableFeedforward ? ffLevelLimit : 0
         };
 
         const currentScrollX = scrollXRef.current;
@@ -320,7 +335,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
             enabled: enableFeedforward,
             gain: extraParams.feedforwardGain,
             base: VIEWPORT_HEIGHT / 2
-          }
+          },
+          outputLimits
         }, disturbance);
 
         // 限制飞船不跑出屏幕垂直范围 (可选，或者作为碰撞)
@@ -511,6 +527,27 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
           const refY = Math.min(VIEWPORT_HEIGHT, Math.max(0, computeReferenceY(activeTier.reference, seg.x)));
           if (i === 0) ctx.moveTo(drawX, refY);
           ctx.lineTo(drawX + SEGMENT_WIDTH, refY);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.lineWidth = 1;
+      }
+
+      // 自动模式下的用户调整给定值 (虚线)
+      if (activeTier && controlMode === 'AUTO') {
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(34, 211, 238, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([7, 5]);
+        segmentsRef.current.forEach((seg, i) => {
+          const drawX = seg.x - scrollX;
+          const baseRef = computeReferenceY(activeTier.reference, seg.x);
+          const adjustedRef = Math.min(
+            VIEWPORT_HEIGHT,
+            Math.max(0, baseRef + autoOffsetRef.current)
+          );
+          if (i === 0) ctx.moveTo(drawX, adjustedRef);
+          ctx.lineTo(drawX + SEGMENT_WIDTH, adjustedRef);
         });
         ctx.stroke();
         ctx.setLineDash([]);

@@ -2,13 +2,15 @@ import React from 'react';
 import { Trophy, Lock, Star, User, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LeaderboardEntry } from '@/app/actions/control-odyssey';
-import type { ControlOdysseyLevel } from '../level-data';
+import type { ControlOdysseyLevel, LevelTier } from '../level-data';
 import { Button } from '@/components/ui/button';
 
 interface LevelSelectorProps {
   levels: ControlOdysseyLevel[];
   selectedLevelId: string;
   leaderboardData: LeaderboardEntry[];
+  tierProgress: Record<string, LevelTier>;
+  personalBestScores: Record<string, { overall: number; tiers: Partial<Record<LevelTier, number>> }>;
   onSelectLevel: (levelId: string) => void;
   onConfirmLevel?: () => void;
   isLoadingLeaderboard?: boolean;
@@ -16,10 +18,12 @@ interface LevelSelectorProps {
   onOpenShop?: () => void;
 }
 
-export const LevelSelector: React.FC<LevelSelectorProps> = ({ 
-  levels, 
+export const LevelSelector: React.FC<LevelSelectorProps> = ({
+  levels,
   selectedLevelId,
   leaderboardData,
+  tierProgress,
+  personalBestScores,
   onSelectLevel,
   onConfirmLevel,
   isLoadingLeaderboard = false,
@@ -31,6 +35,8 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
     silver: 'text-slate-200',
     gold: 'text-yellow-400'
   };
+  const tierStarCount = (tier?: LevelTier) =>
+    tier === 'gold' ? 3 : tier === 'silver' ? 2 : tier === 'bronze' ? 1 : 0;
   return (
     <div className="flex w-full min-h-full max-w-[1400px] mx-auto gap-6 p-8 text-white">
       {/* 左侧：动态排行榜 */}
@@ -60,7 +66,9 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                成为第一个传奇吧！
              </div>
            ) : (
-             leaderboardData.map((player) => (
+             leaderboardData.map((player) => {
+               const stars = tierStarCount(player.tier);
+               return (
                <div key={player.rank} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-800/60 transition-colors rounded-lg border border-slate-700/30 group">
                  <div className="flex items-center gap-3 overflow-hidden">
                    <div className={cn(
@@ -85,8 +93,15 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                  </div>
                  <div className="text-right flex-none">
                    <div className="flex items-center justify-end gap-1 text-emerald-400 font-mono font-bold text-sm">
-                     {player.tier && (
-                       <Star className={cn('w-3 h-3 fill-current', tierColorMap[player.tier] ?? 'text-slate-500')} />
+                     {stars > 0 && (
+                       <span className="flex items-center gap-0.5">
+                         {Array.from({ length: stars }).map((_, index) => (
+                           <Star
+                             key={`star-${player.rank}-${index}`}
+                             className={cn('w-3 h-3 fill-current', tierColorMap[player.tier ?? ''] ?? 'text-slate-500')}
+                           />
+                         ))}
+                       </span>
                      )}
                      <span>{player.score.toLocaleString()}</span>
                    </div>
@@ -99,7 +114,8 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                    )}
                  </div>
                </div>
-             ))
+             );
+             })
            )}
         </div>
         
@@ -131,6 +147,16 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {levels.map((level) => {
             const isSelected = level.id === selectedLevelId;
+            const scoreTier = personalBestScores[level.id]?.tiers ?? {};
+            const derivedTier = scoreTier.gold
+              ? 'gold'
+              : scoreTier.silver
+                ? 'silver'
+                : scoreTier.bronze
+                  ? 'bronze'
+                  : undefined;
+            const starCount = tierStarCount(derivedTier);
+            const bestScore = personalBestScores[level.id]?.overall ?? 0;
             return (
             <div 
               key={level.id}
@@ -174,10 +200,20 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                       已锁定
                     </div>
                   )}
-                  {typeof level.highScore === 'number' && level.highScore > 0 && (
-                    <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded text-xs font-mono">
-                      <Star className="w-3 h-3 fill-current" />
-                      {level.highScore}
+                  {(starCount > 0 || bestScore > 0) && (
+                    <div className="flex items-center gap-2 text-xs font-mono">
+                      {starCount > 0 && (
+                        <div className="flex items-center gap-0.5 text-yellow-400">
+                          {Array.from({ length: starCount }).map((_, index) => (
+                            <Star key={`${level.id}-star-${index}`} className="w-3 h-3 fill-current" />
+                          ))}
+                        </div>
+                      )}
+                      {bestScore > 0 && (
+                        <div className="text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">
+                          最高 {bestScore.toLocaleString()}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

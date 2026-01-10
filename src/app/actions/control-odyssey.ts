@@ -25,6 +25,7 @@ export interface ControlProfileSnapshot {
   unlocks: ControllerId[];
   tierProgress: ControlTierProgress;
   controllerLevels: ControlControllerLevels;
+  bestScores?: ControlBestScores;
 }
 
 const DEFAULT_UNLOCKS: ControllerId[] = ['P'];
@@ -32,6 +33,13 @@ const TIER_ORDER: LevelTier[] = ['bronze', 'silver', 'gold'];
 
 type ControlTierProgress = Record<string, LevelTier>;
 type ControlControllerLevels = Record<ControllerId, number>;
+type ControlBestScores = Record<
+  string,
+  {
+    overall: number;
+    tiers: Partial<Record<LevelTier, number>>;
+  }
+>;
 
 const normalizeUnlocks = (value: unknown): ControllerId[] => {
   if (!Array.isArray(value)) {
@@ -99,6 +107,44 @@ const resolveTierUnlock = (currentTier: LevelTier | undefined, completedTier?: L
   return TIER_ORDER[nextIndex] ?? current;
 };
 
+const buildBestScores = async (userId: string): Promise<ControlBestScores> => {
+  const logs = await prisma.simulationLog.findMany({
+    where: {
+      userId,
+      controlMode: 'GAME',
+      score: {
+        not: null
+      }
+    },
+    select: {
+      score: true,
+      missionId: true,
+      inputParams: true
+    }
+  });
+  const bestScores: ControlBestScores = {};
+
+  logs.forEach((log) => {
+    const params = log.inputParams as { levelId?: string; tier?: LevelTier } | null;
+    const levelId = params?.levelId ?? log.missionId ?? undefined;
+    if (!levelId) return;
+    const score = log.score ?? 0;
+    if (!bestScores[levelId]) {
+      bestScores[levelId] = { overall: score, tiers: {} };
+    } else {
+      bestScores[levelId].overall = Math.max(bestScores[levelId].overall, score);
+    }
+    if (params?.tier && TIER_ORDER.includes(params.tier)) {
+      const current = bestScores[levelId].tiers[params.tier];
+      if (current === undefined || score > current) {
+        bestScores[levelId].tiers[params.tier] = score;
+      }
+    }
+  });
+
+  return bestScores;
+};
+
 export async function getControlProfile(): Promise<ControlProfileSnapshot | null> {
   const session = await getServerAuthSession();
   if (!session?.user?.id) {
@@ -119,6 +165,7 @@ export async function getControlProfile(): Promise<ControlProfileSnapshot | null
   const credits = profile?.controlCredits ?? 0;
   const tierProgress = normalizeTierProgress(profile?.controlOdysseyProgress);
   const controllerLevels = normalizeControllerLevels(profile?.controlControllerLevels, unlocks);
+  const bestScores = await buildBestScores(session.user.id);
 
   if (!profile) {
     await prisma.studentProfile.create({
@@ -137,7 +184,7 @@ export async function getControlProfile(): Promise<ControlProfileSnapshot | null
     });
   }
 
-  return { credits, unlocks, tierProgress, controllerLevels };
+  return { credits, unlocks, tierProgress, controllerLevels, bestScores };
 }
 
 export async function purchaseController(controllerId: ControllerId): Promise<ControlProfileSnapshot | null> {

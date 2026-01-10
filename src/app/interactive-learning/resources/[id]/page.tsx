@@ -40,7 +40,7 @@ export default function InteractiveResourcePage() {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <header className="border-b border-slate-800 bg-slate-900/80">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-4">
+        <div className="flex w-full items-center gap-4 px-4 py-4">
           <Link
             href="/interactive-learning"
             className="flex items-center gap-2 text-sm text-slate-400 hover:text-white"

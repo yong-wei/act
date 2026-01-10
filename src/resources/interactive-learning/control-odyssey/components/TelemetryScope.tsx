@@ -19,6 +19,7 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
   const shipU = useGameStore(state => state.shipU);
   const shipR = useGameStore(state => state.shipR); // 期望值 (暂时没在 store 里充分利用，先预留)
   const gameState = useGameStore(state => state.gameState);
+  const controlMode = useGameStore(state => state.controlMode);
   const distance = useGameStore(state => state.distance);
   const maxDistance = useGameStore(state => state.maxDistance);
 
@@ -26,8 +27,9 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
     if (gameState !== 'RUNNING') return;
 
     // 推入新数据
-    appendTelemetry({ r: shipR, y: shipY, u: shipU, distance });
-  }, [shipY, shipU, shipR, distance, gameState]);
+    const displayU = controlMode === 'MANUAL' ? -shipU : shipU;
+    appendTelemetry({ r: shipR, y: shipY, u: displayU, distance });
+  }, [shipY, shipU, shipR, distance, gameState, controlMode]);
 
   // 监听重置，清空曲线
   useEffect(() => {
