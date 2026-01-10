@@ -712,6 +712,18 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     return content.trim();
   };
 
+  const logFrontendEvent = async (payload: { type: string; content: string; context?: Record<string, unknown> }) => {
+    try {
+      await fetch('/api/log/frontend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch {
+      // 日志失败不影响主流程
+    }
+  };
+
   const requestAiAdvice = async (contextType: 'config' | 'result') => {
     const setResponse = contextType === 'config' ? setAiConfigResponse : setAiResultResponse;
     const setError = contextType === 'config' ? setAiConfigError : setAiResultError;
@@ -727,6 +739,17 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
     try {
       const prompt = buildAiPrompt(contextType);
+      const logContext = {
+        contextType,
+        levelId: selectedLevelId,
+        tier: effectiveTier,
+        view: currentView
+      };
+      await logFrontendEvent({
+        type: 'control-odyssey-ai-request',
+        content: prompt,
+        context: logContext
+      });
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -750,6 +773,11 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         throw new Error('AI 未返回建议');
       }
       setResponse(content);
+      await logFrontendEvent({
+        type: 'control-odyssey-ai-response',
+        content,
+        context: logContext
+      });
 
       try {
         const updatedCredits = await redeemControlAICredits();
