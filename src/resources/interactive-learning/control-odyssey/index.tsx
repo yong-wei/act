@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import ReactMarkdown, { type Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { GameCanvas } from './components/GameCanvas';
 import { TelemetryScope } from './components/TelemetryScope';
 import { LevelSelector } from './components/LevelSelector';
@@ -646,6 +648,68 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     gold: '黄金：多阶跃叠加暗流扰动，强调抗扰动与稳定性。'
   };
 
+  const markdownComponents = useMemo<Components>(() => ({
+    h2: ({ node, children, ...props }) => (
+      <h3 className="text-sm font-semibold text-slate-100 mt-3 mb-2" {...props}>
+        {children}
+      </h3>
+    ),
+    h3: ({ node, children, ...props }) => (
+      <h4 className="text-xs font-semibold text-slate-200 mt-3 mb-1" {...props}>
+        {children}
+      </h4>
+    ),
+    p: ({ node, children, ...props }) => (
+      <p className="text-sm leading-relaxed text-slate-200 mb-2 last:mb-0" {...props}>
+        {children}
+      </p>
+    ),
+    ul: ({ node, children, ...props }) => (
+      <ul className="list-disc ml-5 space-y-1 text-sm text-slate-200" {...props}>
+        {children}
+      </ul>
+    ),
+    ol: ({ node, children, ...props }) => (
+      <ol className="list-decimal ml-5 space-y-1 text-sm text-slate-200" {...props}>
+        {children}
+      </ol>
+    ),
+    li: ({ node, children, ...props }) => (
+      <li className="text-sm leading-relaxed text-slate-200" {...props}>
+        {children}
+      </li>
+    ),
+    strong: ({ node, children, ...props }) => (
+      <strong className="font-semibold text-white" {...props}>
+        {children}
+      </strong>
+    ),
+    blockquote: ({ node, children, ...props }) => (
+      <blockquote className="border-l-2 border-slate-600 pl-3 text-sm text-slate-300 italic" {...props}>
+        {children}
+      </blockquote>
+    ),
+    code: ({ node, className: codeClassName, children, ...props }) => {
+      if (!codeClassName) {
+        return (
+          <code className="rounded bg-slate-900/70 px-1 py-0.5 text-xs text-emerald-200" {...props}>
+            {children}
+          </code>
+        );
+      }
+      return (
+        <code className="text-xs text-emerald-200" {...props}>
+          {children}
+        </code>
+      );
+    },
+    pre: ({ node, children, ...props }) => (
+      <pre className="rounded-lg bg-slate-900/70 p-3 text-xs text-slate-200 overflow-x-auto" {...props}>
+        {children}
+      </pre>
+    ),
+  }), []);
+
   const buildAiPrompt = (contextType: 'config' | 'result') => {
     if (!selectedLevel) return '';
     const tierSummary = [
@@ -666,7 +730,12 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
     return [
       '你是控制奥德赛的控制器调参顾问，请基于以下上下文给出控制器配置建议。',
-      '要求：优先使用已解锁控制器/模块，参数不超过上限；输出格式包含“推荐控制器/模块、参数建议、调参思路、注意事项”。',
+      '要求：优先使用已解锁控制器/模块，参数不超过上限。',
+      '输出格式：使用 Markdown，并包含以下二级标题小节：',
+      '## 推荐控制器/模块',
+      '## 参数建议',
+      '## 调参思路',
+      '## 注意事项',
       `关卡：${selectedLevel.name}（${selectedLevel.id}）`,
       `关卡模型：\n${buildModelSummary()}`,
       `等级信息：\n${tierSummary}`,
@@ -843,8 +912,10 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         </div>
       )}
       {aiConfigResponse && (
-        <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 whitespace-pre-line">
-          {aiConfigResponse}
+        <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2">
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+            {aiConfigResponse}
+          </ReactMarkdown>
         </div>
       )}
     </div>
@@ -878,8 +949,10 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         </div>
       )}
       {aiResultResponse && (
-        <div className="mt-3 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm text-slate-200 whitespace-pre-line">
-          {aiResultResponse}
+        <div className="mt-3 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2">
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+            {aiResultResponse}
+          </ReactMarkdown>
         </div>
       )}
     </div>
