@@ -630,6 +630,16 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     ].join('\n');
   };
 
+  const buildControllerSnapshot = () => {
+    return [
+      `控制模式：${controlMode === 'AUTO' ? 'PID 辅助' : '手动直控'}`,
+      `控制器选择：${formatControllerName(controllerId)}`,
+      `模块状态：测速反馈 ${enableSpeedFeedback ? '开启' : '关闭'}，前馈 ${enableFeedforward ? '开启' : '关闭'}`,
+      `控制参数：Kp=${pidParams.kp.toFixed(3)}, Ki=${pidParams.ki.toFixed(3)}, Kd=${pidParams.kd.toFixed(3)}`,
+      `扩展参数：τ=${extraParams.speedFeedbackTau.toFixed(3)}, Kff=${extraParams.feedforwardGain.toFixed(3)}`
+    ].join('\n');
+  };
+
   const tierNarrative: Record<LevelTier, string> = {
     bronze: '青铜：单一阶跃信号，重点控制稳态误差与超调。',
     silver: '白银：多阶跃随机变化，关注对多次变化的跟踪与鲁棒性。',
@@ -650,6 +660,9 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     const performanceSummary = contextType === 'result'
       ? `结果：${gameState === 'VICTORY' ? '成功' : '失败'}；最大超调 ${metrics.maxOvershoot.toFixed(1)}%，稳态误差 ${metrics.steadyError.toFixed(1)}%，平均相对误差 ${metrics.avgRelativeError.toFixed(1)}%，调节时间 ${metrics.settlingTime.toFixed(1)}s`
       : '';
+    const controllerSnapshot = contextType === 'result'
+      ? `控制器快照：\n${buildControllerSnapshot()}`
+      : '';
 
     return [
       '你是控制奥德赛的控制器调参顾问，请基于以下上下文给出控制器配置建议。',
@@ -658,6 +671,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
       `关卡模型：\n${buildModelSummary()}`,
       `等级信息：\n${tierSummary}`,
       `当前控制配置：\n${buildControllerSummary()}`,
+      controllerSnapshot ? controllerSnapshot : '',
       performanceSummary ? `仿真结果：\n${performanceSummary}` : ''
     ].filter(Boolean).join('\n\n');
   };
