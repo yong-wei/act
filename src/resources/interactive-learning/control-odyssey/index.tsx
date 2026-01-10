@@ -29,6 +29,8 @@ import {
   upgradeController,
   redeemControlAICredits,
   getTopControlConfigs,
+  getControlAiHistory,
+  saveControlAiHistory,
   type ControlConfigSnapshot
 } from '@/app/actions/control-odyssey';
 import { cn } from '@/lib/utils';
@@ -85,7 +87,6 @@ const TIER_OPTIONS: {
 
 const TIER_ORDER: LevelTier[] = ['bronze', 'silver', 'gold'];
 const AI_ASSIST_COST = 20;
-const AI_HISTORY_STORAGE_KEY = 'control-odyssey-ai-history-v1';
 
 export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   initialLevelId = 'level-1',
@@ -136,7 +137,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const [aiConfigError, setAiConfigError] = useState<string | null>(null);
   const [aiResultError, setAiResultError] = useState<string | null>(null);
   const [aiLoadingContext, setAiLoadingContext] = useState<'config' | 'result' | null>(null);
-  const [aiHistoryByLevel, setAiHistoryByLevel] = useState<Record<string, { content: string; createdAt: string }>>({});
+  const [aiHistoryByLevel, setAiHistoryByLevel] = useState<Record<string, { content: string; updatedAt: string }>>({});
   const [topConfigs, setTopConfigs] = useState<ControlConfigSnapshot[]>([]);
   const [manualTierSelections, setManualTierSelections] = useState<Record<string, boolean>>({});
   
@@ -243,20 +244,6 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   ]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const raw = localStorage.getItem(AI_HISTORY_STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object') {
-        setAiHistoryByLevel(parsed as Record<string, { content: string; createdAt: string }>);
-      }
-    } catch {
-      // 忽略本地缓存解析错误
-    }
-  }, []);
-
-  useEffect(() => {
     const loadTopConfigs = async () => {
       try {
         const configs = await getTopControlConfigs(selectedLevelId);
@@ -268,6 +255,30 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     };
     if (!selectedLevelId) return;
     loadTopConfigs();
+  }, [selectedLevelId]);
+
+  useEffect(() => {
+    const loadAiHistory = async () => {
+      try {
+        const history = await getControlAiHistory(selectedLevelId);
+        if (!history) {
+          setAiHistoryByLevel((prev) => {
+            const next = { ...prev };
+            delete next[selectedLevelId];
+            return next;
+          });
+          return;
+        }
+        setAiHistoryByLevel((prev) => ({
+          ...prev,
+          [selectedLevelId]: history
+        }));
+      } catch (error) {
+        console.error('Failed to load AI history', error);
+      }
+    };
+    if (!selectedLevelId) return;
+    loadAiHistory();
   }, [selectedLevelId]);
 
   useEffect(() => {
@@ -597,8 +608,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   ].filter((item) => item.value !== null) as { label: string; value: string }[];
   const currentAiHistory = aiHistoryByLevel[selectedLevelId];
   const aiResponseContent = currentAiHistory?.content ?? null;
-  const aiResponseTime = currentAiHistory?.createdAt
-    ? new Date(currentAiHistory.createdAt).toLocaleString('zh-CN')
+  const aiResponseTime = currentAiHistory?.updatedAt
+    ? new Date(currentAiHistory.updatedAt).toLocaleString('zh-CN')
     : null;
 
   const controllerLabelMap = useMemo(() => {
@@ -898,20 +909,16 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     }
   };
 
-  const persistAiHistory = (levelId: string, content: string) => {
-    const createdAt = new Date().toISOString();
-    setAiHistoryByLevel((prev) => {
-      const next = { ...prev, [levelId]: { content, createdAt } };
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem(AI_HISTORY_STORAGE_KEY, JSON.stringify(next));
-        } catch {
-          // 忽略本地存储错误
-        }
-      }
-      return next;
-    });
-    return createdAt;
+  const persistAiHistory = async (levelId: string, content: string) => {
+    const history = await saveControlAiHistory(levelId, content);
+    if (!history) {
+      throw new Error('请先登录后保存 AI 建议。');
+    }
+    setAiHistoryByLevel((prev) => ({
+      ...prev,
+      [levelId]: history
+    }));
+    return history.updatedAt;
   };
 
   const requestAiAdvice = async (contextType: 'config' | 'result') => {
@@ -960,11 +967,11 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
       if (!content) {
         throw new Error('AI 未返回建议');
       }
-      const createdAt = persistAiHistory(selectedLevelId, content);
+      const updatedAt = await persistAiHistory(selectedLevelId, content);
       await logFrontendEvent({
         type: 'control-odyssey-ai-response',
         content,
-        context: { ...logContext, createdAt }
+        context: { ...logContext, updatedAt }
       });
 
       try {
@@ -1073,7 +1080,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     <div
       className={cn(
         'flex flex-col w-full bg-slate-950 relative',
-        currentView === 'LEVEL_SELECT' ? 'min-h-[100dvh] overflow-y-auto' : 'h-full overflow-hidden'
+        currentView === 'LEVEL_SELECT' ? 'min-h-[100dvh]' : 'h-full overflow-hidden'
       )}
     >
       

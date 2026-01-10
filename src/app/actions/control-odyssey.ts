@@ -44,6 +44,11 @@ export interface ControlConfigSnapshot {
   metrics?: Record<string, unknown> | null;
 }
 
+export interface ControlAiHistory {
+  content: string;
+  updatedAt: string;
+}
+
 const DEFAULT_UNLOCKS: ControllerId[] = ['P'];
 const TIER_ORDER: LevelTier[] = ['bronze', 'silver', 'gold'];
 const AI_ASSIST_COST = 20;
@@ -625,4 +630,75 @@ export async function getTopControlConfigs(levelId: string): Promise<ControlConf
       }
     };
   });
+}
+
+export async function getControlAiHistory(levelId: string): Promise<ControlAiHistory | null> {
+  const session = await getServerAuthSession();
+  if (!session?.user?.id) {
+    return null;
+  }
+  if (!levelId) {
+    return null;
+  }
+
+  const history = await prisma.controlOdysseyAiHistory.findUnique({
+    where: {
+      userId_levelId: {
+        userId: session.user.id,
+        levelId,
+      },
+    },
+    select: {
+      content: true,
+      updatedAt: true,
+    },
+  });
+
+  if (!history) {
+    return null;
+  }
+
+  return {
+    content: history.content,
+    updatedAt: history.updatedAt.toISOString(),
+  };
+}
+
+export async function saveControlAiHistory(
+  levelId: string,
+  content: string
+): Promise<ControlAiHistory | null> {
+  const session = await getServerAuthSession();
+  if (!session?.user?.id) {
+    return null;
+  }
+  if (!levelId || !content) {
+    throw new Error('无效的 AI 建议内容');
+  }
+
+  const history = await prisma.controlOdysseyAiHistory.upsert({
+    where: {
+      userId_levelId: {
+        userId: session.user.id,
+        levelId,
+      },
+    },
+    update: {
+      content,
+    },
+    create: {
+      userId: session.user.id,
+      levelId,
+      content,
+    },
+    select: {
+      content: true,
+      updatedAt: true,
+    },
+  });
+
+  return {
+    content: history.content,
+    updatedAt: history.updatedAt.toISOString(),
+  };
 }
