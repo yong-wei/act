@@ -36,9 +36,10 @@ export interface ControlConfigSnapshot {
     controlMode?: string;
     controllerId?: ControllerId;
     pidParams?: { kp: number; ki: number; kd: number };
-    extraParams?: { speedFeedbackTau: number; feedforwardGain: number };
+    extraParams?: { speedFeedbackTau: number; feedforwardGain: number; smithDelay?: number };
     enableSpeedFeedback?: boolean;
     enableFeedforward?: boolean;
+    enableSmithPredictor?: boolean;
     difficultyScale?: number;
   };
   metrics?: Record<string, unknown> | null;
@@ -77,7 +78,8 @@ const DEFAULT_CONTROLLER_LEVELS: ControlControllerLevels = {
   PD: 0,
   PID: 0,
   VFB: 0,
-  FF: 0
+  FF: 0,
+  SMITH: 0
 };
 
 const getUpgradeRule = (controllerId: ControllerId) =>
@@ -468,9 +470,10 @@ export async function submitGameScore(
     controllerId?: ControllerId;
     controlMode?: string;
     pidParams?: { kp: number; ki: number; kd: number };
-    extraParams?: { speedFeedbackTau: number; feedforwardGain: number };
+    extraParams?: { speedFeedbackTau: number; feedforwardGain: number; smithDelay?: number };
     enableSpeedFeedback?: boolean;
     enableFeedforward?: boolean;
+    enableSmithPredictor?: boolean;
     difficultyScale?: number;
   }
 ) {
@@ -520,6 +523,7 @@ export async function submitGameScore(
           extraParams: context?.extraParams,
           enableSpeedFeedback: context?.enableSpeedFeedback,
           enableFeedforward: context?.enableFeedforward,
+          enableSmithPredictor: context?.enableSmithPredictor,
           difficultyScale: context?.difficultyScale
         }, // 记录关卡与运行信息，避免重复提交
         metrics: metrics,
@@ -626,6 +630,7 @@ export async function getTopControlConfigs(levelId: string): Promise<ControlConf
         extraParams: params.extraParams,
         enableSpeedFeedback: params.enableSpeedFeedback,
         enableFeedforward: params.enableFeedforward,
+        enableSmithPredictor: params.enableSmithPredictor,
         difficultyScale: params.difficultyScale
       }
     };

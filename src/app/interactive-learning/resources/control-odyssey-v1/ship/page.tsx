@@ -6,7 +6,7 @@ import type { BaseControllerId, ControllerId } from '@/resources/interactive-lea
 import styles from './ShipSandbox.module.css';
 
 const controllerOptions: BaseControllerId[] = ['P', 'PI', 'PD', 'PID'];
-const controllerLevelIds: ControllerId[] = ['P', 'PI', 'PD', 'VFB', 'FF'];
+const controllerLevelIds: ControllerId[] = ['P', 'PI', 'PD', 'VFB', 'FF', 'SMITH'];
 const levelOptions = Array.from({ length: 11 }, (_, index) => index);
 
 export default function ControlOdysseyShipSandboxPage() {
@@ -25,7 +25,8 @@ export default function ControlOdysseyShipSandboxPage() {
     PD: 1,
     PID: 1,
     VFB: 1,
-    FF: 1
+    FF: 1,
+    SMITH: 1
   });
 
   const statusText = useMemo(() => {

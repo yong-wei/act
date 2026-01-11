@@ -28,6 +28,10 @@ export interface ControlParams {
     gain: number;
     base?: number;
   };
+  smithPredictor?: {
+    enabled: boolean;
+    delay: number;
+  };
   outputLimits?: {
     manual?: number;
     p?: number;
@@ -53,6 +57,10 @@ export class PhysicsEngine {
   private lastMode: 'MANUAL' | 'AUTO' = 'MANUAL';
   private elapsedTime: number = 0;
   private inputDelayQueue: { time: number; value: number }[] = [];
+  private predictorNoDelay: { baseY: number; v: number } = { baseY: 200, v: 0 };
+  private predictorDelay: { baseY: number; v: number } = { baseY: 200, v: 0 };
+  private predictorDelayQueue: { time: number; value: number }[] = [];
+  private smithEnabled: boolean = false;
   
   constructor() {
     this.state = { y: 200, v: 0, u: 0, r: 200 };
@@ -66,6 +74,10 @@ export class PhysicsEngine {
     this.speedFeedbackState = 0;
     this.elapsedTime = 0;
     this.inputDelayQueue = [];
+    this.predictorNoDelay = { baseY: initialY, v: 0 };
+    this.predictorDelay = { baseY: initialY, v: 0 };
+    this.predictorDelayQueue = [];
+    this.smithEnabled = false;
   }
 
   getState() {
@@ -99,6 +111,14 @@ export class PhysicsEngine {
       this.lastMode = mode;
     }
 
+    const smithEnabled = mode === 'AUTO' && (params.smithPredictor?.enabled ?? false);
+    if (smithEnabled && !this.smithEnabled) {
+      this.predictorNoDelay = { baseY: this.baseY, v: this.state.v };
+      this.predictorDelay = { baseY: this.baseY, v: this.state.v };
+      this.predictorDelayQueue = [];
+    }
+    this.smithEnabled = smithEnabled;
+
     const feedbackTau = params.speedFeedback?.tau ?? 0.6;
     const feedbackAlpha = feedbackTau > 0 ? Math.min(dt / (feedbackTau + dt), 1) : 1;
     this.speedFeedbackState += (this.state.v - this.speedFeedbackState) * feedbackAlpha;
@@ -121,7 +141,12 @@ export class PhysicsEngine {
       const setpointRate = 120;
       this.state.r = clamp(this.state.r + inputCommand * setpointRate * dt, 0, 400);
 
-      const normalizedError = (this.state.r - this.state.y) / 200;
+      const predictorDelayY = this.predictorDelay.baseY;
+      const predictorNoDelayY = this.predictorNoDelay.baseY;
+      const feedbackY = smithEnabled
+        ? predictorNoDelayY + (this.state.y - predictorDelayY)
+        : this.state.y;
+      const normalizedError = (this.state.r - feedbackY) / 200;
       const iLimit = limits.i ?? 0;
       const iStateLimit =
         iLimit > 0 && Math.abs(pid.ki) > 0
@@ -141,6 +166,40 @@ export class PhysicsEngine {
       this.state.u = pTerm + iTerm + dTerm + vfbTerm + ffTerm;
     }
 
+    const stepPlant = (
+      current: { baseY: number; v: number },
+      appliedInput: number
+    ) => {
+      switch (type) {
+        case 'PROPORTIONAL': {
+          const nextV = appliedInput * gain * 200;
+          return {
+            baseY: current.baseY + nextV * dt,
+            v: nextV
+          };
+        }
+        case 'INERTIAL': {
+          const targetV = appliedInput * gain * 200;
+          const dv = (targetV - current.v) / (timeConstant || 0.1) * dt;
+          const nextV = current.v + dv;
+          return {
+            baseY: current.baseY + nextV * dt,
+            v: nextV
+          };
+        }
+        case 'INTEGRAL': {
+          const a = appliedInput * gain * 500;
+          const nextV = (current.v + a * dt) * 0.98;
+          return {
+            baseY: current.baseY + nextV * dt,
+            v: nextV
+          };
+        }
+        default:
+          return current;
+      }
+    };
+
     // ============ 对象层 (Plant) ============
     this.elapsedTime += dt;
     const u = this.state.u;
@@ -158,33 +217,30 @@ export class PhysicsEngine {
       this.inputDelayQueue = [];
     }
 
-    switch (type) {
-      case 'PROPORTIONAL':
-        // 纯速度控制: v = K * u + d
-        this.state.v = appliedU * gain * 200; 
-        this.baseY += this.state.v * dt;
-        break;
-
-      case 'INERTIAL':
-        // 一阶惯性 (速度模式): T * v' + v = K * u + d
-        // v' = (K*u - v) / T
-        const targetV = appliedU * gain * 200;
-        const dv = (targetV - this.state.v) / (timeConstant || 0.1) * dt; 
-        this.state.v += dv;
-        this.baseY += this.state.v * dt;
-        break;
-
-      case 'INTEGRAL':
-        // 二阶积分 (加速度模式): a = K * u + d
-        const a = appliedU * gain * 500;
-        this.state.v += a * dt;
-        this.state.v *= 0.98; // 阻尼
-        this.baseY += this.state.v * dt;
-        break;
-    }
+    const plantState = stepPlant({ baseY: this.baseY, v: this.state.v }, appliedU);
+    this.baseY = plantState.baseY;
+    this.state.v = plantState.v;
 
     // 输出端扰动（暗流/乱流）叠加到输出，不参与状态积分
     this.state.y = this.baseY + disturbance;
+
+    if (smithEnabled) {
+      const predictorDelay = Math.max(0, params.smithPredictor?.delay ?? 0);
+      this.predictorNoDelay = stepPlant(this.predictorNoDelay, u);
+
+      let predictorAppliedU = u;
+      if (predictorDelay > 0) {
+        this.predictorDelayQueue.push({ time: this.elapsedTime, value: u });
+        const targetTime = this.elapsedTime - predictorDelay;
+        while (this.predictorDelayQueue.length > 1 && this.predictorDelayQueue[1].time <= targetTime) {
+          this.predictorDelayQueue.shift();
+        }
+        predictorAppliedU = this.predictorDelayQueue[0]?.value ?? u;
+      } else {
+        this.predictorDelayQueue = [];
+      }
+      this.predictorDelay = stepPlant(this.predictorDelay, predictorAppliedU);
+    }
 
     return this.state;
   }

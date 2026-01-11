@@ -21,6 +21,7 @@ interface ControlOdysseyPidParams {
 interface ControlOdysseyExtraParams {
   speedFeedbackTau: number;
   feedforwardGain: number;
+  smithDelay: number;
 }
 
 interface ControlOdysseyState {
@@ -43,6 +44,7 @@ interface ControlOdysseyState {
   controllerLevels: Record<ControllerId, number>;
   enableSpeedFeedback: boolean;
   enableFeedforward: boolean;
+  enableSmithPredictor: boolean;
   difficultyScale: number;
   autoOffset: number;
   controlCredits: number;
@@ -58,6 +60,7 @@ interface ControlOdysseyState {
   setControllerLevels: (levels: Record<ControllerId, number>) => void;
   setSpeedFeedbackEnabled: (enabled: boolean) => void;
   setFeedforwardEnabled: (enabled: boolean) => void;
+  setSmithPredictorEnabled: (enabled: boolean) => void;
   setDifficultyScale: (scale: number) => void;
   setAutoOffset: (offset: number) => void;
   setControlCredits: (credits: number) => void;
@@ -93,13 +96,14 @@ export const useGameStore = create<ControlOdysseyState>((set) => ({
   resetToken: 0,
   controlMode: 'MANUAL',
   pidParams: { kp: 0.05, ki: 0.02, kd: 0.02 },
-  extraParams: { speedFeedbackTau: 0.05, feedforwardGain: 0.05 },
+  extraParams: { speedFeedbackTau: 0.05, feedforwardGain: 0.05, smithDelay: 0.1 },
   currentTier: 'bronze',
   controllerId: 'P',
   unlockedControllers: ['P'],
-  controllerLevels: { P: 1, PI: 0, PD: 0, PID: 0, VFB: 0, FF: 0 },
+  controllerLevels: { P: 1, PI: 0, PD: 0, PID: 0, VFB: 0, FF: 0, SMITH: 0 },
   enableSpeedFeedback: false,
   enableFeedforward: false,
+  enableSmithPredictor: false,
   difficultyScale: 1,
   autoOffset: 0,
   controlCredits: 0,
@@ -119,6 +123,7 @@ export const useGameStore = create<ControlOdysseyState>((set) => ({
   setControllerLevels: (levels) => set({ controllerLevels: levels }),
   setSpeedFeedbackEnabled: (enabled) => set({ enableSpeedFeedback: enabled }),
   setFeedforwardEnabled: (enabled) => set({ enableFeedforward: enabled }),
+  setSmithPredictorEnabled: (enabled) => set({ enableSmithPredictor: enabled }),
   setDifficultyScale: (scale) => set({ difficultyScale: scale }),
   setAutoOffset: (offset) => set({ autoOffset: offset }),
   setControlCredits: (credits) => set({ controlCredits: credits }),

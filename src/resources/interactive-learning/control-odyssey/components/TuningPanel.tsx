@@ -32,8 +32,10 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
     currentTier,
     enableSpeedFeedback,
     enableFeedforward,
+    enableSmithPredictor,
     setSpeedFeedbackEnabled,
-    setFeedforwardEnabled
+    setFeedforwardEnabled,
+    setSmithPredictorEnabled
   } = useGameStore();
   
   const isAuto = controlMode === 'AUTO';
@@ -52,8 +54,10 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
   const canTuneKd = isAuto && controllerCaps.kd;
   const isSpeedFeedbackUnlocked = unlockedControllers.includes('VFB');
   const isFeedforwardUnlocked = unlockedControllers.includes('FF');
+  const isSmithUnlocked = unlockedControllers.includes('SMITH');
   const speedFeedbackEnabled = enableSpeedFeedback && isSpeedFeedbackUnlocked;
   const feedforwardEnabled = enableFeedforward && isFeedforwardUnlocked;
+  const smithPredictorEnabled = enableSmithPredictor && isSmithUnlocked;
   const getLevel = (id: ControllerId) => controllerLevels[id] ?? 0;
   const baseMax = 0.1;
   const kpMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('P') - 1)));
@@ -61,6 +65,7 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
   const kdMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('PD') - 1)));
   const tauMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('VFB') - 1)));
   const ffMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('FF') - 1)));
+  const smithMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('SMITH') - 1)));
   const controllerLabelMap = CONTROL_SHOP_CONFIG.items.reduce<Record<ControllerId, string>>((acc, item) => {
     acc[item.unlocks.controller] = item.label;
     return acc;
@@ -99,7 +104,20 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
     if (!isFeedforwardUnlocked && enableFeedforward) {
       setFeedforwardEnabled(false);
     }
-  }, [enableSpeedFeedback, enableFeedforward, isSpeedFeedbackUnlocked, isFeedforwardUnlocked, setSpeedFeedbackEnabled, setFeedforwardEnabled]);
+    if (!isSmithUnlocked && enableSmithPredictor) {
+      setSmithPredictorEnabled(false);
+    }
+  }, [
+    enableSpeedFeedback,
+    enableFeedforward,
+    enableSmithPredictor,
+    isSpeedFeedbackUnlocked,
+    isFeedforwardUnlocked,
+    isSmithUnlocked,
+    setSpeedFeedbackEnabled,
+    setFeedforwardEnabled,
+    setSmithPredictorEnabled
+  ]);
   
   return (
     <div className="w-full h-full bg-slate-900/50 rounded-xl border border-slate-800 p-4 flex flex-col gap-4">
@@ -147,13 +165,21 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
 
       <div className="space-y-2">
         <div className="text-sm text-slate-300 uppercase tracking-wider">复合控制模块</div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {CONTROL_MODULES.map((moduleId) => {
             const unlocked = unlockedControllers.includes(moduleId);
             const label = controllerLabelMap[moduleId] ?? moduleId;
             const level = getLevel(moduleId);
-            const enabled = moduleId === 'VFB' ? speedFeedbackEnabled : feedforwardEnabled;
-            const toggle = moduleId === 'VFB' ? setSpeedFeedbackEnabled : setFeedforwardEnabled;
+            const enabled = moduleId === 'VFB'
+              ? speedFeedbackEnabled
+              : moduleId === 'FF'
+                ? feedforwardEnabled
+                : smithPredictorEnabled;
+            const toggle = moduleId === 'VFB'
+              ? setSpeedFeedbackEnabled
+              : moduleId === 'FF'
+                ? setFeedforwardEnabled
+                : setSmithPredictorEnabled;
             const active = isAuto && enabled;
             const selectable = isAuto && unlocked;
             return (
@@ -483,6 +509,22 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
                 min="0" max={ffMax} step="0.005"
                 value={extraParams.feedforwardGain}
                 onChange={(e) => setExtraParams({ feedforwardGain: parseFloat(e.target.value) })}
+              />
+            </div>
+          )}
+
+          {smithPredictorEnabled && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-slate-200">
+                <span>史密斯预估延时 L_est（Lv {getLevel('SMITH')}）</span>
+                <span className="font-mono text-white">{extraParams.smithDelay.toFixed(2)} / {smithMax.toFixed(2)}</span>
+              </div>
+              <input
+                type="range"
+                className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                min="0" max={smithMax} step="0.01"
+                value={extraParams.smithDelay}
+                onChange={(e) => setExtraParams({ smithDelay: parseFloat(e.target.value) })}
               />
             </div>
           )}

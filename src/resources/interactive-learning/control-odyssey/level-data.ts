@@ -1,8 +1,8 @@
 export type PlantModelType = 'PROPORTIONAL' | 'INERTIAL' | 'INTEGRAL';
 export type LevelTier = 'bronze' | 'silver' | 'gold';
-export type ControllerId = 'P' | 'PI' | 'PD' | 'PID' | 'VFB' | 'FF';
+export type ControllerId = 'P' | 'PI' | 'PD' | 'PID' | 'VFB' | 'FF' | 'SMITH';
 export type BaseControllerId = 'P' | 'PI' | 'PD' | 'PID';
-export type ModuleControllerId = 'VFB' | 'FF';
+export type ModuleControllerId = 'VFB' | 'FF' | 'SMITH';
 export type SignalType = 'step' | 'sequence' | 'ramp' | 'accel' | 'custom';
 export type DisturbanceType = 'none' | 'output-step';
 
@@ -271,11 +271,19 @@ export const CONTROL_SHOP_CONFIG: ShopConfig = {
       requires: ['P'],
       description: '基于给定值的前馈补偿。',
     },
+    {
+      id: 'controller-smith',
+      label: '史密斯预估器',
+      price: 2000,
+      unlocks: { controller: 'SMITH' },
+      requires: ['P'],
+      description: '基于模型的延时补偿模块。',
+    },
   ],
 };
 
 export const CONTROL_BASE_CONTROLLERS: BaseControllerId[] = ['P', 'PI', 'PD', 'PID'];
-export const CONTROL_MODULES: ModuleControllerId[] = ['VFB', 'FF'];
+export const CONTROL_MODULES: ModuleControllerId[] = ['VFB', 'FF', 'SMITH'];
 export const CONTROLLER_UPGRADE_RULES: ControllerUpgradeRule[] = [
   { controller: 'P', basePrice: 200, maxLevel: 10, paramLabel: 'Kp' },
   { controller: 'PI', basePrice: 600, maxLevel: 10, paramLabel: 'Ki' },
@@ -283,6 +291,7 @@ export const CONTROLLER_UPGRADE_RULES: ControllerUpgradeRule[] = [
   { controller: 'PID', basePrice: 1200, maxLevel: 10, paramLabel: '综合等级' },
   { controller: 'VFB', basePrice: 800, maxLevel: 10, paramLabel: 'τ' },
   { controller: 'FF', basePrice: 800, maxLevel: 10, paramLabel: 'Kff' },
+  { controller: 'SMITH', basePrice: 900, maxLevel: 10, paramLabel: 'L_est' },
 ];
 
 export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [

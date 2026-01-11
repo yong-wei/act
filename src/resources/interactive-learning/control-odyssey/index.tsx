@@ -114,6 +114,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     extraParams,
     enableSpeedFeedback,
     enableFeedforward,
+    enableSmithPredictor,
     difficultyScale,
     setDifficultyScale,
     autoOffset,
@@ -202,6 +203,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
             extraParams,
             enableSpeedFeedback,
             enableFeedforward,
+            enableSmithPredictor,
             difficultyScale
           }
         );
@@ -238,6 +240,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     extraParams,
     enableSpeedFeedback,
     enableFeedforward,
+    enableSmithPredictor,
     difficultyScale,
     personalBestScores,
     setControlCredits,
@@ -470,7 +473,8 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     PD: 0,
     PID: 0,
     VFB: 0,
-    FF: 0
+    FF: 0,
+    SMITH: 0
   };
   const buildSoloLevels = (controller: ControllerId, level: number) => {
     const levels = { ...emptyPreviewLevels };
@@ -479,6 +483,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     if (controller === 'PD') levels.PD = level;
     if (controller === 'VFB') levels.VFB = level;
     if (controller === 'FF') levels.FF = level;
+    if (controller === 'SMITH') levels.SMITH = level;
     return levels;
   };
   const buildPidLevels = (overrideLevel?: number | null) => {
@@ -494,6 +499,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     }
     levels.VFB = unlockedControllers.includes('VFB') ? controllerLevels.VFB ?? 0 : 0;
     levels.FF = unlockedControllers.includes('FF') ? controllerLevels.FF ?? 0 : 0;
+    levels.SMITH = unlockedControllers.includes('SMITH') ? controllerLevels.SMITH ?? 0 : 0;
     return levels;
   };
   const buildShopPreviewConfig = (controller: ControllerId, previewLevel: number | null) => {
@@ -535,6 +541,14 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         enableFeedforward: true,
         enableSpeedFeedback: false,
         controllerLevels: buildSoloLevels('FF', previewLevel ?? 0)
+      };
+    }
+    if (controller === 'SMITH') {
+      return {
+        controllerId: 'P' as const,
+        enableFeedforward: false,
+        enableSpeedFeedback: false,
+        controllerLevels: buildSoloLevels('SMITH', previewLevel ?? 0)
       };
     }
     return {
@@ -601,11 +615,12 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const disturbanceLabel = tierConfig.disturbance.type === 'output-step'
     ? '输出阶跃扰动'
     : '无扰动';
+  const delayLabel = selectedLevel?.simulation.inputDelay !== undefined ? '?' : null;
   const specItems = [
     { label: '系统特性', value: modelLabel },
     { label: '增益 K', value: selectedLevel?.simulation.gain !== undefined ? selectedLevel.simulation.gain.toFixed(2) : null },
     { label: '时间常数 T', value: selectedLevel?.simulation.timeConstant !== undefined ? selectedLevel.simulation.timeConstant.toFixed(2) : null },
-    { label: '输入延时 L', value: selectedLevel?.simulation.inputDelay !== undefined ? selectedLevel.simulation.inputDelay.toFixed(2) : null },
+    { label: '输入延时 L', value: delayLabel },
     { label: '额定航程', value: `${tierConfig.distance}m` },
     { label: '扰动类型', value: disturbanceLabel }
   ].filter((item) => item.value !== null) as { label: string; value: string }[];
@@ -669,11 +684,13 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const buildModelSummary = () => {
     if (!selectedLevel) return '';
     const model = selectedLevel.model;
+    const modelDelayText = model.delay !== undefined ? '，延时 ?' : '';
     const modelText = model.form === 'tf'
-      ? `传递函数分子 [${model.numerator.join(', ')}]，分母 [${model.denominator.join(', ')}]${model.delay ? `，延时 ${model.delay}` : ''}`
-      : `零极点模型：零点 [${model.zeros.join(', ')}]，极点 [${model.poles.join(', ')}]，增益 ${model.gain}${model.delay ? `，延时 ${model.delay}` : ''}`;
+      ? `传递函数分子 [${model.numerator.join(', ')}]，分母 [${model.denominator.join(', ')}]${modelDelayText}`
+      : `零极点模型：零点 [${model.zeros.join(', ')}]，极点 [${model.poles.join(', ')}]，增益 ${model.gain}${modelDelayText}`;
     const sim = selectedLevel.simulation;
-    const simText = `模型类型 ${modelLabel}，增益 K=${sim.gain}${sim.timeConstant !== undefined ? `，时间常数 T=${sim.timeConstant}` : ''}${sim.inputDelay !== undefined ? `，输入延时 L=${sim.inputDelay}` : ''}`;
+    const simDelayText = sim.inputDelay !== undefined ? '，输入延时 L=?' : '';
+    const simText = `模型类型 ${modelLabel}，增益 K=${sim.gain}${sim.timeConstant !== undefined ? `，时间常数 T=${sim.timeConstant}` : ''}${simDelayText}`;
     return `${modelText}\n${simText}`;
   };
 
@@ -685,6 +702,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     const kdMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('PD') - 1)));
     const tauMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('VFB') - 1)));
     const ffMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('FF') - 1)));
+    const smithMax = Math.max(baseMax, baseMax * Math.pow(2, Math.max(0, getLevel('SMITH') - 1)));
     const unlocked = unlockedControllers.map((id) => `${formatControllerName(id)}(Lv ${getLevel(id)})`).join('、') || '无';
     const locked = CONTROL_SHOP_CONFIG.items
       .map((item) => item.unlocks.controller)
@@ -695,10 +713,10 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     return [
       `控制模式：${controlMode === 'AUTO' ? 'PID 辅助' : '手动直控'}`,
       `当前控制器：${formatControllerName(controllerId)}`,
-      `测速反馈：${enableSpeedFeedback ? '开启' : '关闭'}，前馈：${enableFeedforward ? '开启' : '关闭'}`,
+      `模块：测速反馈 ${enableSpeedFeedback ? '开启' : '关闭'}，前馈 ${enableFeedforward ? '开启' : '关闭'}，史密斯预估器 ${enableSmithPredictor ? '开启' : '关闭'}`,
       `PID 参数：Kp=${pidParams.kp.toFixed(3)}, Ki=${pidParams.ki.toFixed(3)}, Kd=${pidParams.kd.toFixed(3)}`,
-      `扩展参数：τ=${extraParams.speedFeedbackTau.toFixed(3)}, Kff=${extraParams.feedforwardGain.toFixed(3)}`,
-      `参数上限：Kp<=${kpMax.toFixed(3)}, Ki<=${kiMax.toFixed(3)}, Kd<=${kdMax.toFixed(3)}, τ<=${tauMax.toFixed(3)}, Kff<=${ffMax.toFixed(3)}`,
+      `扩展参数：τ=${extraParams.speedFeedbackTau.toFixed(3)}, Kff=${extraParams.feedforwardGain.toFixed(3)}, L_est=${extraParams.smithDelay.toFixed(3)}`,
+      `参数上限：Kp<=${kpMax.toFixed(3)}, Ki<=${kiMax.toFixed(3)}, Kd<=${kdMax.toFixed(3)}, τ<=${tauMax.toFixed(3)}, Kff<=${ffMax.toFixed(3)}, L_est<=${smithMax.toFixed(3)}`,
       `已解锁控制器：${unlocked}`,
       `未解锁控制器：${locked}`
     ].join('\n');
@@ -724,13 +742,14 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         );
       }
       if (config.extraParams) {
+        const smithDelayValue = config.extraParams.smithDelay;
         parts.push(
-          `扩展参数：τ=${config.extraParams.speedFeedbackTau?.toFixed?.(3) ?? config.extraParams.speedFeedbackTau}, Kff=${config.extraParams.feedforwardGain?.toFixed?.(3) ?? config.extraParams.feedforwardGain}`
+          `扩展参数：τ=${config.extraParams.speedFeedbackTau?.toFixed?.(3) ?? config.extraParams.speedFeedbackTau}, Kff=${config.extraParams.feedforwardGain?.toFixed?.(3) ?? config.extraParams.feedforwardGain}, L_est=${smithDelayValue?.toFixed?.(3) ?? smithDelayValue ?? '未知'}`
         );
       }
-      if (config.enableSpeedFeedback !== undefined || config.enableFeedforward !== undefined) {
+      if (config.enableSpeedFeedback !== undefined || config.enableFeedforward !== undefined || config.enableSmithPredictor !== undefined) {
         parts.push(
-          `模块：测速反馈 ${config.enableSpeedFeedback ? '开启' : '关闭'}，前馈 ${config.enableFeedforward ? '开启' : '关闭'}`
+          `模块：测速反馈 ${config.enableSpeedFeedback ? '开启' : '关闭'}，前馈 ${config.enableFeedforward ? '开启' : '关闭'}，史密斯预估器 ${config.enableSmithPredictor ? '开启' : '关闭'}`
         );
       }
       if (config.difficultyScale !== undefined) {

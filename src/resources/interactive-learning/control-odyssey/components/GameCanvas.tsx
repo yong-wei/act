@@ -88,6 +88,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     extraParams,
     enableSpeedFeedback,
     enableFeedforward,
+    enableSmithPredictor,
     currentLevelId,
     currentTier,
     controllerId,
@@ -335,6 +336,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
             enabled: enableFeedforward,
             gain: extraParams.feedforwardGain,
             base: VIEWPORT_HEIGHT / 2
+          },
+          smithPredictor: {
+            enabled: enableSmithPredictor,
+            delay: extraParams.smithDelay
           },
           outputLimits
         }, disturbance);
@@ -617,6 +622,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     extraParams,
     enableSpeedFeedback,
     enableFeedforward,
+    enableSmithPredictor,
     difficultyScale,
     controllerLevels.P,
     controllerLevels.PI,
