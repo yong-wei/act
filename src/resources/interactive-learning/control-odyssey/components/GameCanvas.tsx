@@ -618,6 +618,11 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     enableSpeedFeedback,
     enableFeedforward,
     difficultyScale,
+    controllerLevels.P,
+    controllerLevels.PI,
+    controllerLevels.PD,
+    controllerLevels.VFB,
+    controllerLevels.FF,
     setAutoOffset
   ]); // 更新依赖
 

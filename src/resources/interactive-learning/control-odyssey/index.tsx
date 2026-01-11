@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { GameCanvas } from './components/GameCanvas';
@@ -147,9 +147,12 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const hasSubmittedRef = useRef(false);
   const bestScoreSnapshotRef = useRef<number | null>(null);
 
-  const hasLevelProgress = (levelId: string) =>
-    Boolean(tierProgress[levelId])
-    || (personalBestScores[levelId]?.overall ?? 0) > 0;
+  const hasLevelProgress = useCallback(
+    (levelId: string) =>
+      Boolean(tierProgress[levelId])
+      || (personalBestScores[levelId]?.overall ?? 0) > 0,
+    [tierProgress, personalBestScores]
+  );
 
   // 1. 提交成绩
   useEffect(() => {
@@ -330,7 +333,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
       const selfUnlocked = hasLevelProgress(level.id);
       return { ...level, unlocked: prevUnlocked || selfUnlocked };
     }));
-  }, [tierProgress, personalBestScores]);
+  }, [hasLevelProgress]);
 
   useEffect(() => {
     const fallback = CONTROL_BASE_CONTROLLERS.find((id) => unlockedControllers.includes(id)) ?? 'P';
