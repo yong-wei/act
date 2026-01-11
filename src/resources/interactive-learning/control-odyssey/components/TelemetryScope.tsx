@@ -19,7 +19,6 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
   const shipU = useGameStore(state => state.shipU);
   const shipR = useGameStore(state => state.shipR); // 期望值 (暂时没在 store 里充分利用，先预留)
   const gameState = useGameStore(state => state.gameState);
-  const controlMode = useGameStore(state => state.controlMode);
   const distance = useGameStore(state => state.distance);
   const maxDistance = useGameStore(state => state.maxDistance);
 
@@ -29,7 +28,7 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
     // 推入新数据
     const displayU = -shipU;
     appendTelemetry({ r: shipR, y: shipY, u: displayU, distance });
-  }, [shipY, shipU, shipR, distance, gameState, controlMode]);
+  }, [shipY, shipU, shipR, distance, gameState]);
 
   // 监听重置，清空曲线
   useEffect(() => {
@@ -67,10 +66,18 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
       ctx.strokeStyle = '#1e293b'; // slate-800
       ctx.lineWidth = 1;
       
-      // 水平中线
+      const topPadding = 18;
+      const bottomPadding = 12;
+      const uAreaHeight = Math.max(22, Math.round(h * 0.22));
+      const mainPlotBottom = Math.max(topPadding + 10, h - uAreaHeight - bottomPadding);
+      const mainPlotHeight = Math.max(10, mainPlotBottom - topPadding);
+      const uPlotTop = mainPlotBottom;
+      const uPlotHeight = Math.max(12, h - bottomPadding - uPlotTop);
+
+      // 水平中线（主图）
       ctx.beginPath();
-      ctx.moveTo(0, h/2);
-      ctx.lineTo(w, h/2);
+      ctx.moveTo(0, topPadding + mainPlotHeight / 2);
+      ctx.lineTo(w, topPadding + mainPlotHeight / 2);
       ctx.stroke();
 
       if (historyRef.current.length < 2) {
@@ -79,9 +86,6 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
       }
 
       const distanceSpan = Math.max(maxDistance, 1);
-      const topPadding = 18;
-      const bottomPadding = 26;
-      const plotHeight = Math.max(10, h - topPadding - bottomPadding);
       const signalValues = historyRef.current.flatMap((pt) => [pt.r, pt.y]);
       let minSignal = Math.min(...signalValues);
       let maxSignal = Math.max(...signalValues);
@@ -98,7 +102,7 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
       minSignal -= padding;
       maxSignal += padding;
       const scaleY = (val: number) =>
-        topPadding + ((val - minSignal) / (maxSignal - minSignal)) * plotHeight;
+        topPadding + ((val - minSignal) / (maxSignal - minSignal)) * mainPlotHeight;
 
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(248, 250, 252, 0.9)';
@@ -127,16 +131,30 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
       ctx.stroke();
 
       // 3. 绘制控制量 U (底部红色实线)
-      // U 是 -1 到 1
+      const uValues = historyRef.current.map((pt) => pt.u);
+      let minU = Math.min(...uValues);
+      let maxU = Math.max(...uValues);
+      if (!Number.isFinite(minU) || !Number.isFinite(maxU)) {
+        minU = -1;
+        maxU = 1;
+      }
+      if (maxU === minU) {
+        maxU += 1;
+        minU -= 1;
+      }
+      const uRange = maxU - minU;
+      const uPadding = Math.max(0.1, uRange * 0.18);
+      minU -= uPadding;
+      maxU += uPadding;
+      const scaleU = (val: number) =>
+        uPlotTop + ((maxU - val) / (maxU - minU)) * uPlotHeight;
+
       ctx.beginPath();
       ctx.strokeStyle = '#f43f5e'; // rose-500
       ctx.lineWidth = 1.5;
       historyRef.current.forEach((pt, i) => {
         const x = (pt.distance / distanceSpan) * w;
-        // 将 U (-1 到 1) 映射到底部保留区域
-        const uBase = h - 10;
-        const uBand = 16;
-        const uY = uBase - (pt.u * uBand);
+        const uY = scaleU(pt.u);
         if (i === 0) ctx.moveTo(x, uY);
         else ctx.lineTo(x, uY);
       });
@@ -145,8 +163,9 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
       // 绘制 U 的零位基准线
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(244, 63, 94, 0.2)';
-      ctx.moveTo(0, h - 10);
-      ctx.lineTo(w, h - 10);
+      const uZero = Math.min(Math.max(scaleU(0), uPlotTop), h - bottomPadding);
+      ctx.moveTo(0, uZero);
+      ctx.lineTo(w, uZero);
       ctx.stroke();
 
       animationId = requestAnimationFrame(render);
