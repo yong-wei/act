@@ -27,7 +27,7 @@ export const TelemetryScope: React.FC<TelemetryScopeProps> = ({ height = 100 }) 
     if (gameState !== 'RUNNING') return;
 
     // 推入新数据
-    const displayU = controlMode === 'MANUAL' ? -shipU : shipU;
+    const displayU = -shipU;
     appendTelemetry({ r: shipR, y: shipY, u: displayU, distance });
   }, [shipY, shipU, shipR, distance, gameState, controlMode]);
 

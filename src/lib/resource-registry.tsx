@@ -105,6 +105,22 @@ const PhysicsModelingPractice = dynamic(
     { loading: loadingFallback('Physics Modeling Practice') }
 );
 
+// Lesson-06 组件
+const Lesson06MetricQuickCheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-06/metric-quick-check'),
+    { ssr: false, loading: loadingFallback('指标速判') }
+);
+
+const Lesson06MetricHandbook = dynamic(
+    () => import('@/resources/interactive-learning/lesson-06/metric-handbook'),
+    { ssr: false, loading: loadingFallback('指标裁判手册') }
+);
+
+const Lesson06JudgeBench = dynamic(
+    () => import('@/resources/interactive-learning/lesson-06/judge-bench-sim'),
+    { ssr: false, loading: loadingFallback('裁判席计分器') }
+);
+
 // Lesson-13 组件
 const Lesson13PhysicsBuilderSimple = dynamic(
     () => import('@/resources/interactive-learning/lesson-13/physics-builder-simple'),
@@ -290,6 +306,25 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: 'Physics Modeling - Practice',
         type: 'INTERACTIVE_COMP',
         component: PhysicsModelingPractice
+    },
+    // Lesson-06 组件
+    'lesson06-metric-quick-check': {
+        id: 'lesson06-metric-quick-check',
+        label: '指标速判',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson06MetricQuickCheck
+    },
+    'lesson06-metric-handbook': {
+        id: 'lesson06-metric-handbook',
+        label: '指标裁判手册',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson06MetricHandbook
+    },
+    'lesson06-judge-bench': {
+        id: 'lesson06-judge-bench',
+        label: '裁判席计分器',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson06JudgeBench
     },
     // Lesson-13 组件
     'lesson13-physics-builder-simple': {

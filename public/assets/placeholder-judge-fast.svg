@@ -1,0 +1,10 @@
+<svg width="800" height="450" viewBox="0 0 800 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="450" rx="24" fill="#0f172a"/>
+  <rect x="48" y="48" width="704" height="354" rx="18" fill="#111827" stroke="#1f2937" stroke-width="2"/>
+  <path d="M120 320 L220 240 L300 150 L360 200 L440 230 L600 240" stroke="#f97316" stroke-width="6" fill="none"/>
+  <path d="M120 320 L220 280 L320 260 L440 250 L600 245" stroke="#94a3b8" stroke-width="2" fill="none" stroke-dasharray="8 10"/>
+  <line x1="120" y1="240" x2="600" y2="240" stroke="#334155" stroke-dasharray="6 8"/>
+  <circle cx="300" cy="150" r="8" fill="#f97316"/>
+  <text x="120" y="110" fill="#e2e8f0" font-size="22" font-family="Arial">快但超调</text>
+  <text x="120" y="140" fill="#94a3b8" font-size="14" font-family="Arial">上升快 · 峰值高 · 需要判罚</text>
+</svg>
