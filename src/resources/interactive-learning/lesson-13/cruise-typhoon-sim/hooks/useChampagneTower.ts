@@ -22,6 +22,7 @@ import type {
   ChampagneTowerParams,
 } from '../../types';
 import { DEFAULT_CHAMPAGNE_TOWER_PARAMS } from '../../types';
+import { SimulationClock } from '@/lib/simulation';
 
 const DEG_TO_RAD = Math.PI / 180;
 const RAD_TO_DEG = 180 / Math.PI;
@@ -93,6 +94,7 @@ export function useChampagneTower(
 
   const animationRef = useRef<number>();
   const lastTimeRef = useRef<number>(0);
+  const clockRef = useRef(new SimulationClock({ dt: 1 / updateRate, maxSubSteps: 6 }));
   const isFallingRef = useRef(false);
 
   // 物理模拟步进
@@ -143,19 +145,25 @@ export function useChampagneTower(
 
   // 动画循环
   useEffect(() => {
+    clockRef.current = new SimulationClock({ dt: 1 / updateRate, maxSubSteps: 6 });
+  }, [updateRate]);
+
+  useEffect(() => {
     const animate = (time: number) => {
       if (lastTimeRef.current === 0) {
         lastTimeRef.current = time;
       }
 
-      const dt = Math.min((time - lastTimeRef.current) / 1000, 0.1); // 限制最大步长
+      const frameDelta = Math.min((time - lastTimeRef.current) / 1000, 0.1); // 限制最大步长
       lastTimeRef.current = time;
 
-      step(dt);
+      clockRef.current.advance(frameDelta, step);
 
       animationRef.current = requestAnimationFrame(animate);
     };
 
+    clockRef.current.reset();
+    lastTimeRef.current = 0;
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
@@ -180,6 +188,8 @@ export function useChampagneTower(
       shipRoll: 0,
     };
     isFallingRef.current = false;
+    clockRef.current.reset();
+    lastTimeRef.current = 0;
     setState({
       angle: 0,
       angularVelocity: 0,

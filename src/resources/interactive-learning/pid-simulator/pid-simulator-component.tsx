@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Chart from 'chart.js/auto';
 import { ArrowLeft, Play, RefreshCcw } from 'lucide-react';
+import { createLinearPlant, type TransferFunctionModel } from '@/lib/simulation';
 
 type ModelKey = 'motor' | 'ship' | 'usv' | 'dps' | 'dredger' | 'fin';
 
@@ -42,6 +43,25 @@ const MODEL_CONFIG: Record<
     description: '弱阻尼系统，适合观察微分项抑制振荡的效果。',
     tag: '减摇控制',
   },
+};
+
+const getPlantModel = (key: ModelKey): TransferFunctionModel => {
+  switch (key) {
+    case 'motor':
+      return { type: 'transfer_function', numerator: [1], denominator: [1, 0.5] };
+    case 'ship':
+      return { type: 'transfer_function', numerator: [0.5], denominator: [0, 0.12, 1] };
+    case 'usv':
+      return { type: 'transfer_function', numerator: [0.12], denominator: [0, 1] };
+    case 'dps':
+      return { type: 'transfer_function', numerator: [1], denominator: [1, 3.2, 1] };
+    case 'dredger':
+      return { type: 'transfer_function', numerator: [0.8], denominator: [1, 1.96, 1] };
+    case 'fin':
+      return { type: 'transfer_function', numerator: [0.35], denominator: [1, 0.126, 1] };
+    default:
+      return { type: 'transfer_function', numerator: [1], denominator: [1, 0.8, 1] };
+  }
 };
 
 interface PidSimulatorComponentProps {
@@ -150,10 +170,10 @@ export function PidSimulatorComponent({
     const duration = 20 * timeScale;
     const steps = Math.floor(duration / dt);
 
+    const plant = createLinearPlant(getPlantModel(modelKey), dt);
     let y = 0;
     let prevError = 0;
     let integral = 0;
-    let prevY = 0;
 
     const responseData: number[] = [];
     const setpointData: number[] = [];
@@ -166,62 +186,10 @@ export function PidSimulatorComponent({
       const derivative = (error - prevError) / dt;
 
       const control = kp * error + ki * integral + kd * derivative;
-
-      switch (modelKey) {
-        case 'motor': {
-          const tau = 0.5;
-          y = y + (dt * (control - y)) / tau;
-          break;
-        }
-        case 'ship': {
-          const mass = 1;
-          const damping = 0.12;
-          const gain = 0.5;
-          const acceleration = (gain * control - damping * (y - prevY) / dt) / mass;
-          y = y + (y - prevY) + acceleration * dt * dt;
-          break;
-        }
-        case 'usv': {
-          const gain = 0.12;
-          y = y + gain * control * dt;
-          break;
-        }
-        case 'dps': {
-          const tau = 2;
-          const damping = 0.8;
-          const gain = 1;
-          const acceleration =
-            (gain * control - 2 * damping * tau * (y - prevY) / dt - y) /
-            (tau * tau);
-          y = y + (y - prevY) + acceleration * dt * dt;
-          break;
-        }
-        case 'dredger': {
-          const tau = 1.4;
-          const damping = 0.7;
-          const gain = 0.8;
-          const acceleration =
-            (gain * control - 2 * damping * tau * (y - prevY) / dt - y) /
-            (tau * tau);
-          y = y + (y - prevY) + acceleration * dt * dt;
-          break;
-        }
-        case 'fin': {
-          const tau = 0.35;
-          const damping = 0.18;
-          const gain = 0.35;
-          const acceleration =
-            (gain * control - 2 * damping * tau * (y - prevY) / dt - y) /
-            (tau * tau);
-          y = y + (y - prevY) + acceleration * dt * dt;
-          break;
-        }
-        default:
-          break;
-      }
+      const plantStep = plant.step([control]);
+      y = plantStep.output[0] ?? 0;
 
       prevError = error;
-      prevY = y;
 
       responseData.push(y);
       setpointData.push(reference);

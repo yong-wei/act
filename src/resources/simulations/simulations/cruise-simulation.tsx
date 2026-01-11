@@ -16,6 +16,7 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { MaritimeEnvironment } from '../environment';
+import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
@@ -684,6 +685,7 @@ export default function CruiseSimulation() {
   const lastTrajectoryTime = useRef(0);
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef(0);
+  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
@@ -738,19 +740,30 @@ export default function CruiseSimulation() {
       return;
     }
 
-    const dt = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
+    const frameDt = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
     lastTimeRef.current = timestamp;
 
-    if (dt > 0) {
-      const time = state.time + dt;
+    const engine = engineRef.current;
+    if (!engine) {
+      animationRef.current = requestAnimationFrame(simulate);
+      return;
+    }
 
-      // 更新引擎配置
-      engineRef.current.setSeaState(state.seaState, state.waveDirection);
-      engineRef.current.setFinStabilizerEnabled(state.finStabilizerEnabled);
-      engineRef.current.setNotchFilterEnabled(state.notchFilterEnabled);
+    let nextTime = state.time;
+    let simState = engine.getState(nextTime);
+    let comfort = engine.getComfortMetrics();
+    let finMetrics = engine.getFinStabilizerMetrics();
+    let internalState = engine.getInternalState();
 
-      // 执行仿真步进
-      engineRef.current.step(
+    clockRef.current.advance(frameDt, (dt) => {
+      const time = nextTime + dt;
+      nextTime = time;
+
+      engine.setSeaState(state.seaState, state.waveDirection);
+      engine.setFinStabilizerEnabled(state.finStabilizerEnabled);
+      engine.setNotchFilterEnabled(state.notchFilterEnabled);
+
+      engine.step(
         state.targetHeading,
         null,
         state.controlMode,
@@ -760,24 +773,24 @@ export default function CruiseSimulation() {
         time
       );
 
-      // 获取状态
-      const simState = engineRef.current.getState(time);
-      const comfort = engineRef.current.getComfortMetrics();
-      const finMetrics = engineRef.current.getFinStabilizerMetrics();
-      const internalState = engineRef.current.getInternalState();
+      simState = engine.getState(time);
+      comfort = engine.getComfortMetrics();
+      finMetrics = engine.getFinStabilizerMetrics();
+      internalState = engine.getInternalState();
+    });
 
-      // 记录航迹
-      if (time - lastTrajectoryTime.current > 0.5) {
+    if (simState && comfort && finMetrics && internalState) {
+      if (nextTime - lastTrajectoryTime.current > 0.5) {
         trajectoryRef.current.push({ ...simState.position });
         if (trajectoryRef.current.length > 2000) {
           trajectoryRef.current.shift();
         }
-        lastTrajectoryTime.current = time;
+        lastTrajectoryTime.current = nextTime;
       }
 
       setState((prev) => ({
         ...prev,
-        time,
+        time: nextTime,
         position: simState.position,
         heading: simState.heading,
         yawRate: simState.yawRate,
@@ -797,6 +810,7 @@ export default function CruiseSimulation() {
   // 启动仿真
   const handleStart = useCallback(() => {
     if (!state.isRunning) {
+      clockRef.current.reset();
       lastTimeRef.current = performance.now();
       setState((prev) => ({ ...prev, isRunning: true, isPaused: false }));
       animationRef.current = requestAnimationFrame(simulate);
@@ -816,6 +830,8 @@ export default function CruiseSimulation() {
     engineRef.current?.initialize(-3000, 0, 0);
     trajectoryRef.current = [];
     lastTrajectoryTime.current = 0;
+    lastTimeRef.current = 0;
+    clockRef.current.reset();
     setState({
       isRunning: false,
       isPaused: false,

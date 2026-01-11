@@ -4,8 +4,9 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/game-store';
 import { PhysicsEngine } from '../engine/physics';
 import { LevelGenerator, LevelSegment, SEGMENT_WIDTH, SHIP_X_OFFSET, VIEWPORT_HEIGHT, VIEWPORT_WIDTH, computeReferenceY } from '../engine/level-generator';
-import { buildRuntimeTierConfig, getLevelConfigById, getTierConfig } from '../level-data';
+import { buildRuntimeTierConfig, getLevelConfigById, getTierConfig, getTransferFunctionModel } from '../level-data';
 import { ShipAvatar } from './ShipAvatar';
+import { SimulationClock } from '@/lib/simulation';
 
 interface GameCanvasProps {
   width?: number;
@@ -40,6 +41,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
   const segmentsRef = useRef<LevelSegment[]>([]);
   const tierConfigRef = useRef<ReturnType<typeof getTierConfig> | null>(null);
   const tierKeyRef = useRef<string>('');
+  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
   const autoOffsetRef = useRef(0);
   const disturbanceRef = useRef(0);
   const scrollXRef = useRef(0);
@@ -166,6 +168,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     levelGenRef.current.reset();
     scrollXRef.current = 0;
     lastTimeRef.current = 0;
+    clockRef.current.reset();
     autoOffsetRef.current = 0;
     disturbanceRef.current = 0;
     const tierKey = `${currentLevelId}-${currentTier}`;
@@ -246,11 +249,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       if (lastTimeRef.current === 0) {
         lastTimeRef.current = time;
       }
-      const dt = Math.min((time - lastTimeRef.current) / 1000, 0.1); // 限制最大步长防止跳帧
+      const frameDt = Math.min((time - lastTimeRef.current) / 1000, 0.1); // 限制最大步长防止跳帧
       lastTimeRef.current = time;
 
-      // 1. 更新逻辑 (仅在 RUNNING 状态)
-      if (gameState === 'RUNNING') {
+      const simulateStep = (dt: number) => {
         // 计算输入
         let controlInput = 0;
         if (inputRef.current.up) controlInput -= 1;   // 向上是负 Y (在 MANUAL 是 dU, AUTO 是 dR)
@@ -263,9 +265,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         }
         const activeTier = tierConfigRef.current;
         const maxDistanceLocal = activeTier.distance;
-        const plantType = levelConfig.simulation.engineType;
-        const timeConstant = levelConfig.simulation.timeConstant;
-        const inputDelay = levelConfig.simulation.inputDelay;
+        const plantModel = getTransferFunctionModel(levelConfig.model);
         const hasI = controllerId === 'PI' || controllerId === 'PID';
         const hasD = controllerId === 'PD' || controllerId === 'PID';
         const filteredPid = {
@@ -299,7 +299,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
             return shipWorldX >= event.at && shipWorldX <= event.at + duration ? sum + event.amplitude : sum;
           }, 0)
           : 0;
-        const disturbanceTau = Math.max(levelConfig.simulation.timeConstant ?? 0.6, 0.2);
+        const disturbanceTau = Math.max(levelConfig.disturbanceTau ?? 0.6, 0.2);
         const alpha = disturbanceTau > 0 ? Math.min(dt / (disturbanceTau + dt), 1) : 1;
         disturbanceRef.current += (rawDisturbance - disturbanceRef.current) * alpha;
         const disturbance = disturbanceRef.current;
@@ -322,10 +322,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
 
         // 物理步进
         const shipState = physicsRef.current.update(dt, appliedInput, {
-          type: plantType, 
-          gain: levelConfig.simulation.gain,
-          timeConstant,
-          inputDelay,
+          plantModel,
           mode: controlMode,
           pid: filteredPid,
           speedFeedback: {
@@ -451,6 +448,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
           avgRelativeError: snapshot.avgRelativeError,
           steadyError: snapshot.steadyError
         });
+      };
+
+      if (gameState === 'RUNNING') {
+        clockRef.current.advance(frameDt, simulateStep);
       }
 
       // 2. 渲染绘制

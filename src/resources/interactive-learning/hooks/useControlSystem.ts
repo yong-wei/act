@@ -25,6 +25,13 @@ import type {
   TimedomainMetrics,
   EnergyMetrics,
 } from '@/resources/interactive-learning/types/control-system';
+import {
+  discretizeStateSpaceTustin,
+  discretizeTransferFunctionTustin,
+  stepDiscreteStateSpace,
+  SimulationClock,
+  type DiscreteStateSpaceModel,
+} from '@/lib/simulation';
 
 // ===== 默认配置 =====
 
@@ -176,6 +183,16 @@ function getStateSpaceOutput(
   return vectorAdd(Cx, Du);
 }
 
+function getDiscreteOutput(
+  ss: DiscreteStateSpaceModel,
+  x: number[],
+  u: number[]
+): number[] {
+  const Cx = matVecMul(ss.C, x);
+  const Du = matVecMul(ss.D, u);
+  return vectorAdd(Cx, Du);
+}
+
 /**
  * 获取任意模型的导数
  */
@@ -208,14 +225,21 @@ function getOutput(
   x: number[],
   u: number[],
   t: number,
-  ssCache: StateSpaceModel | null
+  ssCache: StateSpaceModel | null,
+  discreteCache: DiscreteStateSpaceModel | null
 ): number[] {
   switch (model.type) {
     case 'transfer_function': {
+      if (discreteCache) {
+        return getDiscreteOutput(discreteCache, x, u);
+      }
       const ss = ssCache ?? transferFunctionToStateSpace(model);
       return getStateSpaceOutput(ss, x, u);
     }
     case 'state_space': {
+      if (discreteCache) {
+        return getDiscreteOutput(discreteCache, x, u);
+      }
       return getStateSpaceOutput(model, x, u);
     }
     case 'nonlinear': {
@@ -298,8 +322,12 @@ function solverStep(
   u: number[],
   t: number,
   dt: number,
-  ssCache: StateSpaceModel | null
+  ssCache: StateSpaceModel | null,
+  discreteCache: DiscreteStateSpaceModel | null
 ): number[] {
+  if ((model.type === 'transfer_function' || model.type === 'state_space') && discreteCache) {
+    return stepDiscreteStateSpace(discreteCache, x, u).state;
+  }
   switch (solverType) {
     case 'euler':
       return eulerStep(model, x, u, t, dt, ssCache);
@@ -492,19 +520,41 @@ export function useControlSystem(
   const animationFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
   const lastRecordTimeRef = useRef<number>(0);
+  const clockRef = useRef(
+    new SimulationClock({ dt: config.solver.stepSize, maxSubSteps: 6 })
+  );
 
   // 状态空间缓存（用于传递函数转换）
   const ssCache = useRef<StateSpaceModel | null>(null);
+  const discreteCache = useRef<DiscreteStateSpaceModel | null>(null);
 
   // 更新配置时重新计算缓存
   useEffect(() => {
     configRef.current = config;
     if (config.model.type === 'transfer_function') {
       ssCache.current = transferFunctionToStateSpace(config.model);
+      discreteCache.current = discretizeTransferFunctionTustin(
+        config.model,
+        config.solver.stepSize
+      );
+    } else if (config.model.type === 'state_space') {
+      ssCache.current = config.model;
+      discreteCache.current = discretizeStateSpaceTustin(
+        config.model,
+        config.solver.stepSize
+      );
     } else {
       ssCache.current = null;
+      discreteCache.current = null;
     }
   }, [config]);
+
+  useEffect(() => {
+    clockRef.current = new SimulationClock({
+      dt: config.solver.stepSize,
+      maxSubSteps: 6,
+    });
+  }, [config.solver.stepSize]);
 
   // 同步状态到 ref
   useEffect(() => {
@@ -519,7 +569,6 @@ export function useControlSystem(
       }
 
       const cfg = configRef.current;
-      const dt = cfg.solver.stepSize;
       const timeScale = cfg.timeScale ?? 1.0;
 
       // 计算实际经过时间
@@ -527,12 +576,10 @@ export function useControlSystem(
       lastTimeRef.current = timestamp;
 
       // 仿真时间步进
-      const simDelta = (deltaMs / 1000) * timeScale;
-      const steps = Math.max(1, Math.floor(simDelta / dt));
-
+      const frameDelta = Math.min(deltaMs / 1000, 0.1);
       let currentState = stateRef.current;
 
-      for (let i = 0; i < steps; i++) {
+      const stepSimulation = (dt: number) => {
         const { t, states, inputs } = currentState;
 
         // 执行一步求解
@@ -543,7 +590,8 @@ export function useControlSystem(
           inputs,
           t,
           dt,
-          ssCache.current
+          ssCache.current,
+          discreteCache.current
         );
 
         // 应用状态边界限制
@@ -563,7 +611,8 @@ export function useControlSystem(
           boundedStates,
           inputs,
           t + dt,
-          ssCache.current
+          ssCache.current,
+          discreteCache.current
         );
 
         // 安全检测
@@ -584,7 +633,7 @@ export function useControlSystem(
               isPaused: true,
               stepCount: currentState.stepCount + 1,
             };
-            break;
+            return false;
           }
         }
 
@@ -663,13 +712,15 @@ export function useControlSystem(
 
           setMetrics(finalMetrics);
           onComplete?.(currentState, historyRef.current, finalMetrics);
-          break;
+          return false;
         }
-      }
+      };
 
-      // 批量更新 React 状态
-      setState(currentState);
-      stateRef.current = currentState;
+      const steps = clockRef.current.advance(frameDelta, stepSimulation, timeScale);
+      if (steps > 0) {
+        setState(currentState);
+        stateRef.current = currentState;
+      }
 
       // 继续循环
       if (currentState.isRunning && !currentState.isPaused) {
@@ -693,6 +744,7 @@ export function useControlSystem(
 
     lastTimeRef.current = performance.now();
     lastRecordTimeRef.current = 0;
+    clockRef.current.reset();
     animationFrameRef.current = requestAnimationFrame(simulationLoop);
   }, [simulationLoop]);
 
@@ -702,6 +754,7 @@ export function useControlSystem(
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
+    clockRef.current.reset();
   }, []);
 
   const resume = useCallback(() => {
@@ -709,6 +762,7 @@ export function useControlSystem(
 
     setState((prev) => ({ ...prev, isPaused: false, safetyViolation: null }));
     lastTimeRef.current = performance.now();
+    clockRef.current.reset();
     animationFrameRef.current = requestAnimationFrame(simulationLoop);
   }, [simulationLoop]);
 
@@ -747,6 +801,7 @@ export function useControlSystem(
     };
 
     lastRecordTimeRef.current = 0;
+    clockRef.current.reset();
   }, []);
 
   const step = useCallback(() => {
@@ -761,10 +816,18 @@ export function useControlSystem(
       inputs,
       t,
       dt,
-      ssCache.current
+      ssCache.current,
+      discreteCache.current
     );
 
-    const newOutputs = getOutput(cfg.model, newStates, inputs, t + dt, ssCache.current);
+    const newOutputs = getOutput(
+      cfg.model,
+      newStates,
+      inputs,
+      t + dt,
+      ssCache.current,
+      discreteCache.current
+    );
     const violation = checkSafety(cfg, newStates, newOutputs, t + dt);
 
     const newState: ControlSystemState = {
@@ -831,11 +894,24 @@ export function useControlSystem(
   }, []);
 
   const updateConfig = useCallback((newConfig: Partial<ControlSystemConfig>) => {
-    configRef.current = { ...configRef.current, ...newConfig };
-    if (newConfig.model?.type === 'transfer_function') {
-      ssCache.current = transferFunctionToStateSpace(
-        newConfig.model as TransferFunctionModel
+    const mergedConfig = { ...configRef.current, ...newConfig };
+    configRef.current = mergedConfig;
+    const model = mergedConfig.model;
+    if (model.type === 'transfer_function') {
+      ssCache.current = transferFunctionToStateSpace(model);
+      discreteCache.current = discretizeTransferFunctionTustin(
+        model,
+        mergedConfig.solver.stepSize
       );
+    } else if (model.type === 'state_space') {
+      ssCache.current = model;
+      discreteCache.current = discretizeStateSpaceTustin(
+        model,
+        mergedConfig.solver.stepSize
+      );
+    } else if (newConfig.model) {
+      ssCache.current = null;
+      discreteCache.current = null;
     }
   }, []);
 

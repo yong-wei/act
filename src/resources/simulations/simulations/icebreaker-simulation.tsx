@@ -18,6 +18,7 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SkyDome, ProceduralClouds } from '../environment';
+import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
@@ -769,6 +770,9 @@ export default function IcebreakerSimulation() {
   const [heading, setHeading] = useState(0);
   const [trail, setTrail] = useState<Vector2[]>([]);
   const [violations, setViolations] = useState<EthicalViolation[]>([]);
+  const simTimeRef = useRef(0);
+  const lastTimeRef = useRef(0);
+  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
 
   // 配置
   const [config, setConfig] = useState<SimulationConfig>(
@@ -809,6 +813,7 @@ export default function IcebreakerSimulation() {
   // 仿真步进
   const simulationStep = useCallback(
     (dt: number) => {
+      const currentTime = simTimeRef.current;
       const state = physicsStateRef.current;
       const iceState = iceStateRef.current;
       const controllerState = controllerStateRef.current;
@@ -845,7 +850,7 @@ export default function IcebreakerSimulation() {
             config.controlMode as 'manual' | 'p' | 'pd' | 'pid',
             perturbedK,
             dt,
-            simTime
+            currentTime
           );
         } else {
           // 开阔水域控制器
@@ -859,7 +864,7 @@ export default function IcebreakerSimulation() {
             DEFAULT_AZIPOD_COURSE_KEEPER_CONFIG,
             1.0,
             dt,
-            simTime
+            currentTime
           );
         }
 
@@ -881,7 +886,8 @@ export default function IcebreakerSimulation() {
       // 更新显示状态
       const newState = physicsStateRef.current;
       const newIceState = iceStateRef.current;
-      const newTime = simTime + dt;
+      const newTime = currentTime + dt;
+      simTimeRef.current = newTime;
 
       setSimTime(newTime);
       setPosition({ x: newState.x, z: newState.y });
@@ -928,25 +934,34 @@ export default function IcebreakerSimulation() {
         });
       }
     },
-    [config, simTime, azipodParams]
+    [config, azipodParams]
   );
 
   // 仿真循环
   useEffect(() => {
     if (!isRunning) return;
 
-    const dt = 0.1; // 100ms 步长
-    const interval = setInterval(() => {
-      simulationStep(dt);
-    }, dt * 1000);
+    clockRef.current.reset();
+    lastTimeRef.current = performance.now();
+    let frameId = 0;
+    const loop = (timestamp: number) => {
+      const frameDt = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
+      lastTimeRef.current = timestamp;
+      clockRef.current.advance(frameDt, simulationStep);
+      frameId = requestAnimationFrame(loop);
+    };
+    frameId = requestAnimationFrame(loop);
 
-    return () => clearInterval(interval);
+    return () => cancelAnimationFrame(frameId);
   }, [isRunning, simulationStep]);
 
   // 重置
   const handleReset = useCallback(() => {
     setIsRunning(false);
     setSimTime(0);
+    simTimeRef.current = 0;
+    lastTimeRef.current = 0;
+    clockRef.current.reset();
     setPosition({ x: 0, z: 0 });
     setHeading(0);
     setTrail([]);

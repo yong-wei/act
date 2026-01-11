@@ -607,19 +607,13 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const effectiveTier = isTierUnlocked(currentTier) ? currentTier : highestTier;
   const tierConfig = getTierConfig(selectedLevelId, effectiveTier);
   const hasManualTierSelection = manualTierSelections[selectedLevelId] ?? false;
-  const modelLabel = selectedLevel?.simulation.engineType === 'PROPORTIONAL'
-    ? '比例环节'
-    : selectedLevel?.simulation.engineType === 'INTEGRAL'
-      ? '积分环节'
-      : '惯性环节';
+  const modelLabel = selectedLevel?.plantLabel ?? '未知模型';
   const disturbanceLabel = tierConfig.disturbance.type === 'output-step'
     ? '输出阶跃扰动'
     : '无扰动';
-  const delayLabel = selectedLevel?.simulation.inputDelay !== undefined ? '?' : null;
+  const delayLabel = selectedLevel?.model.delay !== undefined ? '?' : null;
   const specItems = [
     { label: '系统特性', value: modelLabel },
-    { label: '增益 K', value: selectedLevel?.simulation.gain !== undefined ? selectedLevel.simulation.gain.toFixed(2) : null },
-    { label: '时间常数 T', value: selectedLevel?.simulation.timeConstant !== undefined ? selectedLevel.simulation.timeConstant.toFixed(2) : null },
     { label: '输入延时 L', value: delayLabel },
     { label: '额定航程', value: `${tierConfig.distance}m` },
     { label: '扰动类型', value: disturbanceLabel }
@@ -688,9 +682,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     const modelText = model.form === 'tf'
       ? `传递函数分子 [${model.numerator.join(', ')}]，分母 [${model.denominator.join(', ')}]${modelDelayText}`
       : `零极点模型：零点 [${model.zeros.join(', ')}]，极点 [${model.poles.join(', ')}]，增益 ${model.gain}${modelDelayText}`;
-    const sim = selectedLevel.simulation;
-    const simDelayText = sim.inputDelay !== undefined ? '，输入延时 L=?' : '';
-    const simText = `模型类型 ${modelLabel}，增益 K=${sim.gain}${sim.timeConstant !== undefined ? `，时间常数 T=${sim.timeConstant}` : ''}${simDelayText}`;
+    const simText = `模型类型 ${modelLabel}`;
     return `${modelText}\n${simText}`;
   };
 

@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Award, Clock, Gauge, Sparkles, TrendingUp } from 'lucide-react';
 import { JUDGE_THRESHOLDS } from '../types';
+import { createLinearPlant } from '@/lib/simulation';
 
 interface SimulationMetrics {
   riseTime: number | null;
@@ -31,14 +32,20 @@ function simulateStepResponse(zeta: number, omega: number, duration: number, dt:
   const times: number[] = [];
   const values: number[] = [];
 
+  const plant = createLinearPlant(
+    {
+      type: 'transfer_function',
+      numerator: [omega * omega],
+      denominator: [omega * omega, 2 * zeta * omega, 1],
+    },
+    dt
+  );
   let y = 0;
-  let yDot = 0;
 
   for (let i = 0; i <= steps; i += 1) {
     const t = i * dt;
-    const yDDot = omega * omega * (TARGET - y) - 2 * zeta * omega * yDot;
-    yDot += yDDot * dt;
-    y += yDot * dt;
+    const stepResult = plant.step([TARGET]);
+    y = stepResult.output[0] ?? 0;
     times.push(t);
     values.push(y);
   }

@@ -18,6 +18,7 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { MaritimeEnvironment } from '../environment';
+import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
@@ -561,7 +562,8 @@ export function DredgerSimulation() {
   const dredgingModelRef = useRef<DredgingImpactModel>(new DredgingImpactModel());
   const timeRef = useRef(0);
   const animationFrameRef = useRef<number>();
-  const lastUpdateRef = useRef(Date.now());
+  const lastUpdateRef = useRef(performance.now());
+  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
 
@@ -572,112 +574,116 @@ export function DredgerSimulation() {
   const simulate = useCallback(() => {
     if (!isRunning) return;
 
-    const now = Date.now();
-    const realDt = (now - lastUpdateRef.current) / 1000;
+    const now = performance.now();
+    const frameDt = Math.min((now - lastUpdateRef.current) / 1000, 0.1);
     lastUpdateRef.current = now;
 
-    // 仿真步长限制
-    const dt = Math.min(realDt, 0.1);
-    timeRef.current += dt;
+    const stepSimulation = (dt: number) => {
+      timeRef.current += dt;
 
-    // 计算扰动
-    let disturbance: DisturbanceVector = { forceX: 0, forceY: 0, momentN: 0 };
-    if (config.dredgingEnabled) {
-      disturbance = dredgingModelRef.current.compute(timeRef.current);
-    }
+      // 计算扰动
+      let disturbance: DisturbanceVector = { forceX: 0, forceY: 0, momentN: 0 };
+      if (config.dredgingEnabled) {
+        disturbance = dredgingModelRef.current.compute(timeRef.current);
+      }
 
-    // 控制计算
-    const target: DPTarget = {
-      x: config.targetPosition.x,
-      y: config.targetPosition.z,
-      psi: toRadians(config.targetHeading),
-    };
+      // 控制计算
+      const target: DPTarget = {
+        x: config.targetPosition.x,
+        y: config.targetPosition.z,
+        psi: toRadians(config.targetHeading),
+      };
 
-    const current: DPCurrentState = {
-      x: mmgStateRef.current.x,
-      y: mmgStateRef.current.y,
-      psi: mmgStateRef.current.psi,
-      u: mmgStateRef.current.u,
-      v: mmgStateRef.current.v,
-      r: mmgStateRef.current.r,
-    };
+      const current: DPCurrentState = {
+        x: mmgStateRef.current.x,
+        y: mmgStateRef.current.y,
+        psi: mmgStateRef.current.psi,
+        u: mmgStateRef.current.u,
+        v: mmgStateRef.current.v,
+        r: mmgStateRef.current.r,
+      };
 
-    let rudderCommand = 0;
-    let dpMetrics: DPErrorMetrics = {
-      positionError: 0,
-      headingError: 0,
-      surgeError: 0,
-      swayError: 0,
-    };
+      let rudderCommand = 0;
+      let dpMetrics: DPErrorMetrics = {
+        positionError: 0,
+        headingError: 0,
+        surgeError: 0,
+        swayError: 0,
+      };
 
-    if (config.controlMode === 'dp') {
-      const dpResult = dpControlWithFeedforward(
-        current,
-        target,
-        dpStateRef.current,
-        disturbance,
-        HIGH_PRECISION_DP_GAINS,
-        dt
+      if (config.controlMode === 'dp') {
+        const dpResult = dpControlWithFeedforward(
+          current,
+          target,
+          dpStateRef.current,
+          disturbance,
+          HIGH_PRECISION_DP_GAINS,
+          dt
+        );
+        dpStateRef.current = dpResult.newState;
+        rudderCommand = dpResult.output.rudderCommand;
+        dpMetrics = dpResult.metrics;
+
+        // 检测定位精度违规
+        if (dpResult.metrics.positionError > 0.1) {
+          setViolations((prev) => [
+            ...prev.slice(-9),
+            {
+              type: 'SAFETY_VIOLATION',
+              thresholdValue: 0.1,
+              actualValue: dpResult.metrics.positionError,
+              timestamp: timeRef.current,
+              description: `定位误差: ${dpResult.metrics.positionError.toFixed(3)}m`,
+              severity: 'warning',
+            },
+          ]);
+        }
+      }
+
+      // MMG 步进
+      const mmgParams = profile.dynamics.mmg!;
+      mmgStateRef.current = mmg3dofStep(
+        mmgStateRef.current,
+        rudderCommand,
+        80,
+        dt,
+        mmgParams,
+        profile.dimensions.length,
+        profile.dimensions.draft,
+        disturbance
       );
-      dpStateRef.current = dpResult.newState;
-      rudderCommand = dpResult.output.rudderCommand;
-      dpMetrics = dpResult.metrics;
 
-      // 检测定位精度违规
-      if (dpResult.metrics.positionError > 0.1) {
-        setViolations((prev) => [
-          ...prev.slice(-9),
-          {
-            type: 'SAFETY_VIOLATION',
-            thresholdValue: 0.1,
-            actualValue: dpResult.metrics.positionError,
-            timestamp: timeRef.current,
-            description: `定位误差: ${dpResult.metrics.positionError.toFixed(3)}m`,
-            severity: 'warning',
-          },
-        ]);
-      }
-    }
+      // 更新指标
+      const speed = Math.sqrt(
+        mmgStateRef.current.u ** 2 + mmgStateRef.current.v ** 2
+      );
 
-    // MMG 步进
-    const mmgParams = profile.dynamics.mmg!;
-    mmgStateRef.current = mmg3dofStep(
-      mmgStateRef.current,
-      rudderCommand,
-      80,
-      dt,
-      mmgParams,
-      profile.dimensions.length,
-      profile.dimensions.draft,
-      disturbance
-    );
+      setMetrics({
+        positionError: dpMetrics.positionError,
+        headingError: dpMetrics.headingError,
+        surgeError: dpMetrics.surgeError,
+        swayError: dpMetrics.swayError,
+        speed,
+        rudderAngle: toDegrees(mmgStateRef.current.rudderAngle),
+        time: timeRef.current,
+      });
 
-    // 更新指标
-    const speed = Math.sqrt(
-      mmgStateRef.current.u ** 2 + mmgStateRef.current.v ** 2
-    );
+      // 记录轨迹
+      setTrajectory((prev) => {
+        const newPoint = { x: mmgStateRef.current.x, z: mmgStateRef.current.y };
+        if (prev.length === 0) return [newPoint];
+        const last = prev[prev.length - 1];
+        const dist = Math.sqrt(
+          (newPoint.x - last.x) ** 2 + (newPoint.z - last.z) ** 2
+        );
+        if (dist > 2) {
+          return [...prev.slice(-200), newPoint];
+        }
+        return prev;
+      });
+    };
 
-    setMetrics({
-      positionError: dpMetrics.positionError,
-      headingError: dpMetrics.headingError,
-      surgeError: dpMetrics.surgeError,
-      swayError: dpMetrics.swayError,
-      speed,
-      rudderAngle: toDegrees(mmgStateRef.current.rudderAngle),
-      time: timeRef.current,
-    });
-
-    // 记录轨迹
-    setTrajectory((prev) => {
-      const newPoint = { x: mmgStateRef.current.x, z: mmgStateRef.current.y };
-      if (prev.length === 0) return [newPoint];
-      const last = prev[prev.length - 1];
-      const dist = Math.sqrt((newPoint.x - last.x) ** 2 + (newPoint.z - last.z) ** 2);
-      if (dist > 2) {
-        return [...prev.slice(-200), newPoint];
-      }
-      return prev;
-    });
+    clockRef.current.advance(frameDt, stepSimulation);
 
     animationFrameRef.current = requestAnimationFrame(simulate);
   }, [isRunning, config, profile]);
@@ -685,7 +691,8 @@ export function DredgerSimulation() {
   // 启动/停止仿真
   useEffect(() => {
     if (isRunning) {
-      lastUpdateRef.current = Date.now();
+      clockRef.current.reset();
+      lastUpdateRef.current = performance.now();
       animationFrameRef.current = requestAnimationFrame(simulate);
     }
     return () => {
@@ -704,6 +711,8 @@ export function DredgerSimulation() {
     dpStateRef.current = createDPState();
     dredgingModelRef.current.reset();
     timeRef.current = 0;
+    lastUpdateRef.current = performance.now();
+    clockRef.current.reset();
     setTrajectory([]);
     setViolations([]);
     setMetrics({

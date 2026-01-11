@@ -1,4 +1,5 @@
-export type PlantModelType = 'PROPORTIONAL' | 'INERTIAL' | 'INTEGRAL';
+import type { TransferFunctionModel } from '@/lib/simulation';
+
 export type LevelTier = 'bronze' | 'silver' | 'gold';
 export type ControllerId = 'P' | 'PI' | 'PD' | 'PID' | 'VFB' | 'FF' | 'SMITH';
 export type BaseControllerId = 'P' | 'PI' | 'PD' | 'PID';
@@ -66,13 +67,6 @@ export interface ModelConfigZPK {
   delay?: number;
 }
 
-export interface SimulationModelConfig {
-  engineType: PlantModelType;
-  gain: number;
-  timeConstant?: number;
-  inputDelay?: number;
-}
-
 export interface LevelTierConfig {
   tier: LevelTier;
   distance: number;
@@ -85,11 +79,12 @@ export interface ControlOdysseyLevel {
   id: string;
   name: string;
   description: string;
+  plantLabel: string;
   difficulty: number;
   unlocked: boolean;
   highScore?: number;
   model: ModelConfigTF | ModelConfigZPK;
-  simulation: SimulationModelConfig;
+  disturbanceTau?: number;
   tiers: LevelTierConfig[];
 }
 
@@ -118,6 +113,42 @@ const DEFAULT_DISTANCE = 3000;
 const DEFAULT_ENVELOPE: EnvelopeConfig = { margin: 60 };
 const DEFAULT_SAFE_DISTANCE = 500;
 const DEFAULT_STEADY_DISTANCE = 500;
+
+const convolvePolynomials = (a: number[], b: number[]) => {
+  const result = Array(a.length + b.length - 1).fill(0);
+  a.forEach((av, i) => {
+    b.forEach((bv, j) => {
+      result[i + j] += av * bv;
+    });
+  });
+  return result;
+};
+
+const scalePolynomial = (poly: number[], gain: number) => poly.map((value) => value * gain);
+
+const polynomialFromRoots = (roots: number[]) =>
+  roots.reduce((poly, root) => convolvePolynomials(poly, [-root, 1]), [1]);
+
+export const getTransferFunctionModel = (
+  model: ModelConfigTF | ModelConfigZPK
+): TransferFunctionModel => {
+  if (model.form === 'tf') {
+    return {
+      type: 'transfer_function',
+      numerator: model.numerator,
+      denominator: model.denominator,
+      delay: model.delay,
+    };
+  }
+  const numerator = scalePolynomial(polynomialFromRoots(model.zeros), model.gain);
+  const denominator = polynomialFromRoots(model.poles);
+  return {
+    type: 'transfer_function',
+    numerator,
+    denominator,
+    delay: model.delay,
+  };
+};
 
 const createStepSequence = (
   count: number,
@@ -221,6 +252,70 @@ const buildTierConfigs = (): LevelTierConfig[] => {
   ];
 };
 
+const tf = (numerator: number[], denominator: number[], delay?: number): ModelConfigTF => ({
+  form: 'tf',
+  numerator,
+  denominator,
+  delay,
+});
+
+const integratorModel = (gain: number, delay?: number) =>
+  tf([gain], [0, 1], delay);
+
+const inertialModel = (gain: number, timeConstant: number, delay?: number) =>
+  tf([gain], [1, timeConstant], delay);
+
+const integratorInertiaModel = (gain: number, timeConstant: number, delay?: number) =>
+  tf([gain], convolvePolynomials([0, 1], [1, timeConstant]), delay);
+
+const doubleIntegratorModel = (gain: number, delay?: number) =>
+  tf([gain], [0, 0, 1], delay);
+
+const secondOrderModel = (gain: number, zeta: number, omega: number, delay?: number) =>
+  tf([gain * omega * omega], [omega * omega, 2 * zeta * omega, 1], delay);
+
+const nonMinimumPhaseModel = (gain: number, zeroTime: number, timeConstant: number, delay?: number) =>
+  tf(scalePolynomial([1, -zeroTime], gain), [1, timeConstant], delay);
+
+const nonMinimumPhaseIntegratorModel = (
+  gain: number,
+  zeroTime: number,
+  timeConstant: number,
+  delay?: number
+) =>
+  tf(
+    scalePolynomial([1, -zeroTime], gain),
+    convolvePolynomials([0, 1], [1, timeConstant]),
+    delay
+  );
+
+const unstablePoleModel = (gain: number, timeConstant: number, delay?: number) =>
+  tf([gain], [-1, timeConstant], delay);
+
+const unstablePoleWithInertiaModel = (gain: number, timeConstant: number, inertia: number, delay?: number) =>
+  tf([gain], convolvePolynomials([-1, timeConstant], [1, inertia]), delay);
+
+const nonMinimumPhaseUnstableModel = (
+  gain: number,
+  zeroTime: number,
+  timeConstant: number,
+  inertia: number,
+  delay?: number
+) =>
+  tf(
+    scalePolynomial([1, -zeroTime], gain),
+    convolvePolynomials([-1, timeConstant], [1, inertia]),
+    delay
+  );
+
+const highOrderInertiaModel = (gain: number, t1: number, t2: number, t3: number, delay?: number) => {
+  const denominator = convolvePolynomials(
+    convolvePolynomials([1, t1], [1, t2]),
+    [1, t3]
+  );
+  return tf([gain], denominator, delay);
+};
+
 export const CONTROL_SHOP_CONFIG: ShopConfig = {
   currency: 'credits',
   items: [
@@ -297,187 +392,168 @@ export const CONTROLLER_UPGRADE_RULES: ControllerUpgradeRule[] = [
 export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
   {
     id: 'level-1',
-    name: 'Level 01: 纯比例环节',
-    description: '比例环节，理解比例增益与静态误差。',
+    name: 'Level 01: 积分环节',
+    description: '积分对象，理解累积响应与稳态误差。',
+    plantLabel: '积分环节',
     difficulty: 1,
     unlocked: true,
     highScore: 0,
-    model: {
-      form: 'tf',
-      numerator: [1],
-      denominator: [1],
-    },
-    simulation: {
-      engineType: 'PROPORTIONAL',
-      gain: 1.0,
-    },
+    model: integratorModel(120),
+    disturbanceTau: 0.6,
     tiers: buildTierConfigs(),
   },
   {
     id: 'level-2',
-    name: 'Level 02: 纯积分环节',
-    description: '积分环节，观察缓慢积累与过冲。',
+    name: 'Level 02: 一阶惯性',
+    description: '一阶惯性对象，响应滞后。',
+    plantLabel: '一阶惯性',
     difficulty: 2,
     unlocked: true,
-    model: {
-      form: 'tf',
-      numerator: [1],
-      denominator: [1, 0],
-    },
-    simulation: {
-      engineType: 'INTEGRAL',
-      gain: 1.0,
-    },
+    model: inertialModel(120, 0.6),
+    disturbanceTau: 0.6,
     tiers: buildTierConfigs(),
   },
   {
     id: 'level-3',
-    name: 'Level 03: 小惯性环节',
-    description: '小惯性对象，响应相对快速。',
+    name: 'Level 03: 积分 + 小惯性',
+    description: '积分与惯性耦合，容易超调。',
+    plantLabel: '积分 + 小惯性',
     difficulty: 3,
     unlocked: true,
-    model: {
-      form: 'tf',
-      numerator: [1],
-      denominator: [0.6, 1],
-    },
-    simulation: {
-      engineType: 'INERTIAL',
-      gain: 1.0,
-      timeConstant: 0.6,
-    },
+    model: integratorInertiaModel(120, 0.6),
+    disturbanceTau: 0.8,
     tiers: buildTierConfigs(),
   },
   {
     id: 'level-4',
-    name: 'Level 04: 大惯性环节',
+    name: 'Level 04: 积分 + 大惯性',
     description: '大惯性对象，需要提前预判。',
+    plantLabel: '积分 + 大惯性',
     difficulty: 4,
     unlocked: false,
-    model: {
-      form: 'tf',
-      numerator: [1],
-      denominator: [1.6, 1],
-    },
-    simulation: {
-      engineType: 'INERTIAL',
-      gain: 1.0,
-      timeConstant: 1.6,
-    },
+    model: integratorInertiaModel(120, 1.8),
+    disturbanceTau: 1.2,
     tiers: buildTierConfigs(),
   },
   {
     id: 'level-5',
-    name: 'Level 05: 小惯性 + 纯延时',
-    description: '小惯性与延迟耦合。',
+    name: 'Level 05: 积分 + 纯延时',
+    description: '控制延时带来的相位滞后。',
+    plantLabel: '积分 + 延时',
     difficulty: 5,
     unlocked: false,
-    model: {
-      form: 'tf',
-      numerator: [1],
-      denominator: [0.8, 1],
-      delay: 0.4,
-    },
-    simulation: {
-      engineType: 'INERTIAL',
-      gain: 1.0,
-      timeConstant: 0.8,
-      inputDelay: 0.4,
-    },
+    model: integratorModel(120, 0.5),
+    disturbanceTau: 0.6,
     tiers: buildTierConfigs(),
   },
   {
     id: 'level-6',
-    name: 'Level 06: 大惯性 + 纯延时',
-    description: '大惯性加延迟。',
+    name: 'Level 06: 惯性 + 延时',
+    description: '惯性与延时叠加，响应更慢。',
+    plantLabel: '惯性 + 延时',
     difficulty: 6,
     unlocked: false,
-    model: {
-      form: 'tf',
-      numerator: [1],
-      denominator: [1.8, 1],
-      delay: 0.5,
-    },
-    simulation: {
-      engineType: 'INERTIAL',
-      gain: 1.0,
-      timeConstant: 1.8,
-      inputDelay: 0.5,
-    },
+    model: integratorInertiaModel(120, 1.2, 0.6),
+    disturbanceTau: 1.0,
     tiers: buildTierConfigs(),
   },
   {
     id: 'level-7',
-    name: 'Level 07: 大惯性 + 大延时',
-    description: '强延迟导致的滞后系统。',
+    name: 'Level 07: 双重积分',
+    description: '加速度控制，必须引入阻尼。',
+    plantLabel: '双重积分',
     difficulty: 7,
     unlocked: false,
-    model: {
-      form: 'tf',
-      numerator: [1],
-      denominator: [2.2, 1],
-      delay: 0.8,
-    },
-    simulation: {
-      engineType: 'INERTIAL',
-      gain: 1.0,
-      timeConstant: 2.2,
-      inputDelay: 0.8,
-    },
+    model: doubleIntegratorModel(80),
+    disturbanceTau: 0.8,
     tiers: buildTierConfigs(),
   },
   {
     id: 'level-8',
-    name: 'Level 08: 欠阻尼二阶系统',
-    description: '不同阻尼比的二阶系统挑战。',
+    name: 'Level 08: 欠阻尼二阶',
+    description: '低阻尼振荡特性。',
+    plantLabel: '欠阻尼二阶',
     difficulty: 8,
     unlocked: false,
-    model: {
-      form: 'tf',
-      numerator: [1],
-      denominator: [1, 1.4, 1],
-    },
-    simulation: {
-      engineType: 'INERTIAL',
-      gain: 1.0,
-      timeConstant: 1.4,
-    },
+    model: secondOrderModel(100, 0.35, 2.2),
+    disturbanceTau: 0.7,
     tiers: buildTierConfigs(),
   },
   {
     id: 'level-9',
-    name: 'Level 09: 无阻尼二阶系统',
-    description: 'ζ=0，响应持续震荡。',
+    name: 'Level 09: 欠阻尼 + 延时',
+    description: '振荡系统叠加延时。',
+    plantLabel: '欠阻尼 + 延时',
     difficulty: 9,
     unlocked: false,
-    model: {
-      form: 'tf',
-      numerator: [1],
-      denominator: [1, 0, 1],
-    },
-    simulation: {
-      engineType: 'INERTIAL',
-      gain: 1.0,
-      timeConstant: 1.2,
-    },
+    model: secondOrderModel(100, 0.25, 2.0, 0.4),
+    disturbanceTau: 0.7,
     tiers: buildTierConfigs(),
   },
   {
     id: 'level-10',
-    name: 'Level 10: 高阶系统',
-    description: '多极点系统，复杂动态。',
+    name: 'Level 10: 非最小相位零点',
+    description: '反向响应的非最小相位对象。',
+    plantLabel: '非最小相位零点',
     difficulty: 10,
     unlocked: false,
-    model: {
-      form: 'tf',
-      numerator: [1],
-      denominator: [1, 2.1, 1.6, 0.4],
-    },
-    simulation: {
-      engineType: 'INERTIAL',
-      gain: 1.0,
-      timeConstant: 2.0,
-    },
+    model: nonMinimumPhaseModel(100, 0.8, 1.2),
+    disturbanceTau: 0.6,
+    tiers: buildTierConfigs(),
+  },
+  {
+    id: 'level-11',
+    name: 'Level 11: 非最小相位 + 积分',
+    description: '反向响应伴随累积环节。',
+    plantLabel: '非最小相位 + 积分',
+    difficulty: 11,
+    unlocked: false,
+    model: nonMinimumPhaseIntegratorModel(80, 0.9, 1.0),
+    disturbanceTau: 0.8,
+    tiers: buildTierConfigs(),
+  },
+  {
+    id: 'level-12',
+    name: 'Level 12: 开环不稳定',
+    description: '右半平面极点导致发散。',
+    plantLabel: '开环不稳定',
+    difficulty: 12,
+    unlocked: false,
+    model: unstablePoleModel(60, 1.8),
+    disturbanceTau: 0.6,
+    tiers: buildTierConfigs(),
+  },
+  {
+    id: 'level-13',
+    name: 'Level 13: 不稳定 + 延时',
+    description: '不稳定对象叠加延时。',
+    plantLabel: '不稳定 + 延时',
+    difficulty: 13,
+    unlocked: false,
+    model: unstablePoleModel(60, 1.8, 0.3),
+    disturbanceTau: 0.6,
+    tiers: buildTierConfigs(),
+  },
+  {
+    id: 'level-14',
+    name: 'Level 14: 三阶惯性链',
+    description: '多极点慢动态。',
+    plantLabel: '三阶惯性链',
+    difficulty: 14,
+    unlocked: false,
+    model: highOrderInertiaModel(100, 0.4, 0.9, 1.6),
+    disturbanceTau: 1.0,
+    tiers: buildTierConfigs(),
+  },
+  {
+    id: 'level-15',
+    name: 'Level 15: 终极混合',
+    description: '非最小相位 + 不稳定 + 延时。',
+    plantLabel: '终极混合',
+    difficulty: 15,
+    unlocked: false,
+    model: nonMinimumPhaseUnstableModel(60, 0.6, 1.5, 0.8, 0.3),
+    disturbanceTau: 0.9,
     tiers: buildTierConfigs(),
   },
 ];

@@ -10,6 +10,7 @@ import { Canvas, useFrame, useThree, extend, type ReactThreeFiber } from '@react
 import { Line, useGLTF, PerspectiveCamera, shaderMaterial, OrbitControls } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
+import { SimulationClock } from '@/lib/simulation';
 import {
   Play,
   Pause,
@@ -684,6 +685,7 @@ function SimulationEngine({
   headingPoints,
   duration,
   guidePath,
+  resetToken,
   onHudUpdate,
   onChartDataUpdate,
 }: {
@@ -695,15 +697,27 @@ function SimulationEngine({
   headingPoints: HeadingPoint[];
   duration: number;
   guidePath: THREE.Vector3[];
+  resetToken: number;
   onHudUpdate: (state: HudState) => void;
   onChartDataUpdate: (time: number, desired: number, actual: number, speed: number, rudder: number) => void;
 }) {
   const lastFrameTimeRef = useRef(0);
   const simTimeRef = useRef(0);
+  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
   const lastHudUpdateRef = useRef(0);
   const lastChartSampleRef = useRef(0);
   const totalErrorRef = useRef(0);
   const errorSampleCountRef = useRef(0);
+
+  useEffect(() => {
+    simTimeRef.current = 0;
+    lastFrameTimeRef.current = 0;
+    lastHudUpdateRef.current = 0;
+    lastChartSampleRef.current = 0;
+    totalErrorRef.current = 0;
+    errorSampleCountRef.current = 0;
+    clockRef.current.reset();
+  }, [resetToken]);
 
   const interpolateHeading = useCallback(
     (t: number) => {
@@ -739,103 +753,111 @@ function SimulationEngine({
 
     if (frameDt <= 0 || frameDt > 0.5) return;
 
-    const dt = Math.min(frameDt, 0.05);
-    simTimeRef.current += dt;
-    const simTime = simTimeRef.current;
+    const stepSimulation = (dt: number) => {
+      simTimeRef.current += dt;
+      const simTime = simTimeRef.current;
 
-    if (simTime > duration) return;
+      if (simTime > duration) return;
 
-    const sim = simRef.current;
-    const targetHeading = interpolateHeading(simTime);
+      const sim = simRef.current;
+      const targetHeading = interpolateHeading(simTime);
 
-    // PID 控制
-    if (controlMode === 'manual') {
-      sim.rudderDeg = sim.manualRudderDeg;
-    } else {
-      const currentHeading = normalizeHeading(toDegrees(sim.headingRad));
-      const errorDeg = angleDelta(targetHeading, currentHeading);
-      const errorRad = toRadians(errorDeg);
-      const derivative = (errorRad - sim.prevErrorRad) / dt;
-      sim.integral += errorRad * dt;
+      // PID 控制
+      if (controlMode === 'manual') {
+        sim.rudderDeg = sim.manualRudderDeg;
+      } else {
+        const currentHeading = normalizeHeading(toDegrees(sim.headingRad));
+        const errorDeg = angleDelta(targetHeading, currentHeading);
+        const errorRad = toRadians(errorDeg);
+        const derivative = (errorRad - sim.prevErrorRad) / dt;
+        sim.integral += errorRad * dt;
 
-      let kp = pidGains.kp;
-      let ki = pidGains.ki;
-      let kd = pidGains.kd;
-      if (controlMode === 'p') {
-        ki = 0;
-        kd = 0;
-      } else if (controlMode === 'pd') {
-        ki = 0;
+        let kp = pidGains.kp;
+        let ki = pidGains.ki;
+        let kd = pidGains.kd;
+        if (controlMode === 'p') {
+          ki = 0;
+          kd = 0;
+        } else if (controlMode === 'pd') {
+          ki = 0;
+        }
+
+        const deltaRad = kp * errorRad + ki * sim.integral + kd * derivative;
+        sim.rudderDeg = clamp(
+          toDegrees(deltaRad),
+          -nomotoParams.maxRudderDeg,
+          nomotoParams.maxRudderDeg
+        );
+        sim.prevErrorRad = errorRad;
       }
 
-      const deltaRad = kp * errorRad + ki * sim.integral + kd * derivative;
-      sim.rudderDeg = clamp(toDegrees(deltaRad), -nomotoParams.maxRudderDeg, nomotoParams.maxRudderDeg);
-      sim.prevErrorRad = errorRad;
-    }
+      // Nomoto 动力学
+      const rudderRad = toRadians(sim.rudderDeg);
+      sim.yawRateRad += ((nomotoParams.K * rudderRad - sim.yawRateRad) / nomotoParams.T) * dt;
+      sim.headingRad += sim.yawRateRad * dt;
 
-    // Nomoto 动力学
-    const rudderRad = toRadians(sim.rudderDeg);
-    sim.yawRateRad += ((nomotoParams.K * rudderRad - sim.yawRateRad) / nomotoParams.T) * dt;
-    sim.headingRad += sim.yawRateRad * dt;
+      sim.position.x += sim.speedMps * Math.cos(sim.headingRad) * dt;
+      sim.position.z += sim.speedMps * Math.sin(sim.headingRad) * dt;
 
-    sim.position.x += sim.speedMps * Math.cos(sim.headingRad) * dt;
-    sim.position.z += sim.speedMps * Math.sin(sim.headingRad) * dt;
+      // 波浪运动
+      const posX = sim.position.x;
+      const posZ = sim.position.z;
+      const heading = sim.headingRad;
+      const halfLength = shipDimensions.length / 2;
+      const halfWidth = shipDimensions.width / 2;
+      const cosH = Math.cos(heading);
+      const sinH = Math.sin(heading);
 
-    // 波浪运动
-    const posX = sim.position.x;
-    const posZ = sim.position.z;
-    const heading = sim.headingRad;
-    const halfLength = shipDimensions.length / 2;
-    const halfWidth = shipDimensions.width / 2;
-    const cosH = Math.cos(heading);
-    const sinH = Math.sin(heading);
+      const centerY = getWaveHeight(posX, posZ, simTime);
+      const bowY = getWaveHeight(posX + cosH * halfLength, posZ + sinH * halfLength, simTime);
+      const sternY = getWaveHeight(posX - cosH * halfLength, posZ - sinH * halfLength, simTime);
+      const portY = getWaveHeight(posX - sinH * halfWidth, posZ + cosH * halfWidth, simTime);
+      const starboardY = getWaveHeight(posX + sinH * halfWidth, posZ - cosH * halfWidth, simTime);
 
-    const centerY = getWaveHeight(posX, posZ, elapsedTime);
-    const bowY = getWaveHeight(posX + cosH * halfLength, posZ + sinH * halfLength, elapsedTime);
-    const sternY = getWaveHeight(posX - cosH * halfLength, posZ - sinH * halfLength, elapsedTime);
-    const portY = getWaveHeight(posX - sinH * halfWidth, posZ + cosH * halfWidth, elapsedTime);
-    const starboardY = getWaveHeight(posX + sinH * halfWidth, posZ - cosH * halfWidth, elapsedTime);
+      const targetPitch = Math.atan2(bowY - sternY, shipDimensions.length);
+      const targetRoll = Math.atan2(portY - starboardY, shipDimensions.width);
 
-    const targetPitch = Math.atan2(bowY - sternY, shipDimensions.length);
-    const targetRoll = Math.atan2(portY - starboardY, shipDimensions.width);
+      const heaveLerp = 0.02;
+      const rotLerp = 0.02;
 
-    const heaveLerp = 0.02;
-    const rotLerp = 0.02;
+      sim.waveY = THREE.MathUtils.lerp(sim.waveY, centerY, heaveLerp);
+      sim.wavePitch = THREE.MathUtils.lerp(sim.wavePitch, targetPitch, rotLerp);
+      sim.waveRoll = THREE.MathUtils.lerp(sim.waveRoll, targetRoll, rotLerp);
 
-    sim.waveY = THREE.MathUtils.lerp(sim.waveY, centerY, heaveLerp);
-    sim.wavePitch = THREE.MathUtils.lerp(sim.wavePitch, targetPitch, rotLerp);
-    sim.waveRoll = THREE.MathUtils.lerp(sim.waveRoll, targetRoll, rotLerp);
+      // 误差计算
+      const currentError = getCrossTrackError(sim.position, guidePath);
+      if (simTime > 0) {
+        totalErrorRef.current += currentError;
+        errorSampleCountRef.current += 1;
+      }
+      const avgError =
+        errorSampleCountRef.current > 0 ? totalErrorRef.current / errorSampleCountRef.current : 0;
 
-    // 误差计算
-    const currentError = getCrossTrackError(sim.position, guidePath);
-    if (simTime > 0) {
-      totalErrorRef.current += currentError;
-      errorSampleCountRef.current += 1;
-    }
-    const avgError = errorSampleCountRef.current > 0 ? totalErrorRef.current / errorSampleCountRef.current : 0;
+      // HUD 更新
+      if (simTime - lastHudUpdateRef.current > 0.1) {
+        lastHudUpdateRef.current = simTime;
+        onHudUpdate({
+          heading: normalizeHeading(toDegrees(sim.headingRad)),
+          yawRate: toDegrees(sim.yawRateRad),
+          rudder: sim.rudderDeg,
+          speed: sim.speedMps,
+          position: { x: sim.position.x, z: sim.position.z },
+          avgError,
+          currentError,
+          time: simTime,
+        });
+      }
 
-    // HUD 更新
-    if (elapsedTime - lastHudUpdateRef.current > 0.1) {
-      lastHudUpdateRef.current = elapsedTime;
-      onHudUpdate({
-        heading: normalizeHeading(toDegrees(sim.headingRad)),
-        yawRate: toDegrees(sim.yawRateRad),
-        rudder: sim.rudderDeg,
-        speed: sim.speedMps,
-        position: { x: sim.position.x, z: sim.position.z },
-        avgError,
-        currentError,
-        time: simTime,
-      });
-    }
+      // 图表数据
+      if (simTime - lastChartSampleRef.current > 0.5) {
+        lastChartSampleRef.current = simTime;
+        const headingDeg = normalizeSignedHeading(toDegrees(sim.headingRad));
+        const targetHeadingSigned = normalizeSignedHeading(targetHeading);
+        onChartDataUpdate(simTime, targetHeadingSigned, headingDeg, sim.speedMps, sim.rudderDeg);
+      }
+    };
 
-    // 图表数据
-    if (simTime - lastChartSampleRef.current > 0.5) {
-      lastChartSampleRef.current = simTime;
-      const headingDeg = normalizeSignedHeading(toDegrees(sim.headingRad));
-      const targetHeadingSigned = normalizeSignedHeading(targetHeading);
-      onChartDataUpdate(simTime, targetHeadingSigned, headingDeg, sim.speedMps, sim.rudderDeg);
-    }
+    clockRef.current.advance(frameDt, stepSimulation);
   });
 
   return null;
@@ -1391,6 +1413,7 @@ export default function DestroyerSimulation() {
           headingPoints={headingPoints}
           duration={task.duration}
           guidePath={guidePath}
+          resetToken={resetToken}
           onHudUpdate={setHudState}
           onChartDataUpdate={handleChartDataUpdate}
         />

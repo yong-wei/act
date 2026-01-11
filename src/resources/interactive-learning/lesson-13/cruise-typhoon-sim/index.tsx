@@ -32,6 +32,7 @@ import { ChampagneTowerPIP } from './ChampagneTowerPIP';
 import { useChampagneTower } from './hooks/useChampagneTower';
 import { TYPHOON_SCENARIO, type TyphoonScenarioConfig } from '../types';
 import { EthicalTrigger, type EthicalTriggerConfig } from '@/components/classroom';
+import { SimulationClock } from '@/lib/simulation';
 
 // 动态导入3D仿真组件
 const CruiseSimulation3D = dynamic(
@@ -106,6 +107,7 @@ export function CruiseTyphoonSim({
     speed: 20, // 邮轮巡航速度 (节)
     lateralAccel: 0,
   });
+  const simStateRef = useRef(simState);
 
   // 任务状态
   const [missionState, setMissionState] = useState({
@@ -120,6 +122,10 @@ export function CruiseTyphoonSim({
   const [ethicalTriggered, setEthicalTriggered] = useState(false);
   const [showEthicalOverlay, setShowEthicalOverlay] = useState(false);
 
+  useEffect(() => {
+    simStateRef.current = simState;
+  }, [simState]);
+
   // 香槟塔状态
   const champagneTower = useChampagneTower({
     params: scenario.champagneTower.params,
@@ -133,6 +139,7 @@ export function CruiseTyphoonSim({
   // 动画帧引用
   const animationRef = useRef<number>();
   const lastTimeRef = useRef<number>(0);
+  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
 
   // 计算侧向加速度（基于横摇角和转向角速度）
   const calculateLateralAccel = useCallback(
@@ -157,37 +164,51 @@ export function CruiseTyphoonSim({
         lastTimeRef.current = timestamp;
       }
 
-      const dt = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
+      const frameDelta = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
       lastTimeRef.current = timestamp;
 
-      setSimState((prev) => {
+      let currentState = simStateRef.current;
+
+      const stepSimulation = (dt: number) => {
         // 模拟航向变化（简化模型）
-        const headingError = prev.targetHeading - prev.heading;
+        const headingError = currentState.targetHeading - currentState.heading;
         const headingRate = Math.sign(headingError) * Math.min(Math.abs(headingError) * 0.1, 2);
-        const newHeading = prev.heading + headingRate * dt;
+        const newHeading = currentState.heading + headingRate * dt;
 
         // 模拟横摇（受海况影响）
-        const wavePhase = prev.time * 0.5;
+        const wavePhase = currentState.time * 0.5;
         const baseRoll = 3 * Math.sin(wavePhase) * (scenario.seaState / 5);
         const turningRoll = headingRate * 2; // 转向引起的横摇
         const newRoll = baseRoll + turningRoll;
 
         // 计算侧向加速度
-        const lateralAccel = calculateLateralAccel(newRoll, headingRate * (Math.PI / 180), prev.speed);
+        const lateralAccel = calculateLateralAccel(
+          newRoll,
+          headingRate * (Math.PI / 180),
+          currentState.speed
+        );
 
-        return {
-          ...prev,
-          time: prev.time + dt,
+        currentState = {
+          ...currentState,
+          time: currentState.time + dt,
           heading: newHeading,
           rollAngle: newRoll,
           yawRate: headingRate,
           lateralAccel,
         };
-      });
+      };
+
+      const steps = clockRef.current.advance(frameDelta, stepSimulation);
+      if (steps > 0) {
+        simStateRef.current = currentState;
+        setSimState(currentState);
+      }
 
       animationRef.current = requestAnimationFrame(simulate);
     };
 
+    clockRef.current.reset();
+    lastTimeRef.current = 0;
     animationRef.current = requestAnimationFrame(simulate);
 
     return () => {

@@ -18,6 +18,7 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { MaritimeEnvironment } from '../environment';
+import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
@@ -28,6 +29,7 @@ import type {
   ControlMode,
   Vector2,
   PIDGains,
+  SimulationState,
 } from '../core/types';
 import { containerMscProfile, getContainerDefaultConfig } from '../profiles/container-msc';
 import {
@@ -609,6 +611,7 @@ export default function ContainerSimulation() {
   const engineRef = useRef<ContainerShipEngine | null>(null);
   const frameRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
+  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
   // 相机状态
@@ -662,40 +665,53 @@ export default function ContainerSimulation() {
     }
 
     const now = performance.now();
-    const dt = Math.min((now - lastTimeRef.current) / 1000, 0.1);
+    const frameDt = Math.min((now - lastTimeRef.current) / 1000, 0.1);
     lastTimeRef.current = now;
 
-    // 执行仿真步进
-    engine.step(
-      simState.targetHeading,
-      null,
-      simState.controlMode,
-      0,
-      simState.speed,
-      dt,
-      simState.time + dt
-    );
+    let nextTime = simState.time;
+    let nextState: SimulationState | null = engine.getState(nextTime);
+    let summary: ReturnType<typeof engine.getContainerShipSummary> =
+      engine.getContainerShipSummary();
 
-    // 获取状态
-    const state = engine.getState(simState.time + dt);
-    const summary = engine.getContainerShipSummary();
+    clockRef.current.advance(frameDt, (dt) => {
+      const stepTime = nextTime + dt;
+      engine.step(
+        simState.targetHeading,
+        null,
+        simState.controlMode,
+        0,
+        simState.speed,
+        dt,
+        stepTime
+      );
+      nextTime = stepTime;
+      nextState = engine.getState(stepTime);
+      summary = engine.getContainerShipSummary();
+    });
 
-    // 更新轨迹 (每秒采样)
-    if (Math.floor(simState.time) !== Math.floor(simState.time + dt)) {
-      setTrajectory(prev => [...prev.slice(-300), state.position]);
+    if (nextState) {
+      const nextPosition = nextState.position;
+      const nextHeading = nextState.heading;
+      const nextYawRate = nextState.yawRate;
+      const nextRudder = nextState.rudder;
+      const nextRollAngle = nextState.waveRoll;
+
+      if (Math.floor(simState.time) !== Math.floor(nextTime)) {
+        setTrajectory(prev => [...prev.slice(-300), nextPosition]);
+      }
+
+      setSimState(prev => ({
+        ...prev,
+        time: nextTime,
+        position: nextPosition,
+        heading: nextHeading,
+        yawRate: nextYawRate,
+        rudder: nextRudder,
+        rollAngle: nextRollAngle,
+        currentK: summary.currentK,
+        currentT: summary.currentT,
+      }));
     }
-
-    setSimState(prev => ({
-      ...prev,
-      time: prev.time + dt,
-      position: state.position,
-      heading: state.heading,
-      yawRate: state.yawRate,
-      rudder: state.rudder,
-      rollAngle: state.waveRoll,
-      currentK: summary.currentK,
-      currentT: summary.currentT,
-    }));
 
     frameRef.current = requestAnimationFrame(simulationLoop);
   }, [simState.isPaused, simState.targetHeading, simState.controlMode, simState.speed, simState.time]);
@@ -703,6 +719,7 @@ export default function ContainerSimulation() {
   // 启动/停止仿真
   useEffect(() => {
     if (simState.isRunning && !simState.isPaused) {
+      clockRef.current.reset();
       lastTimeRef.current = performance.now();
       frameRef.current = requestAnimationFrame(simulationLoop);
     }

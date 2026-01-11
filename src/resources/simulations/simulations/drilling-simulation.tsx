@@ -18,6 +18,7 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { MaritimeEnvironment } from '../environment';
+import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
@@ -731,7 +732,8 @@ export function DrillingSimulation() {
   const waveHeightRef = useRef(1.5);
   const timeRef = useRef(0);
   const animationFrameRef = useRef<number>();
-  const lastUpdateRef = useRef(Date.now());
+  const lastUpdateRef = useRef(performance.now());
+  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
 
@@ -750,158 +752,160 @@ export function DrillingSimulation() {
   const simulate = useCallback(() => {
     if (!isRunning) return;
 
-    const now = Date.now();
-    const realDt = (now - lastUpdateRef.current) / 1000;
+    const now = performance.now();
+    const frameDt = Math.min((now - lastUpdateRef.current) / 1000, 0.1);
     lastUpdateRef.current = now;
 
-    // 仿真步长限制
-    const dt = Math.min(realDt, 0.1);
-    timeRef.current += dt;
+    const stepSimulation = (dt: number) => {
+      timeRef.current += dt;
 
-    // 更新环境
-    currentEnvRef.current = updateCurrentEnvironment(currentEnvRef.current, dt);
-    windEnvRef.current = updateWindEnvironment(windEnvRef.current, dt, windEnvRef.current.speed);
+      // 更新环境
+      currentEnvRef.current = updateCurrentEnvironment(currentEnvRef.current, dt);
+      windEnvRef.current = updateWindEnvironment(windEnvRef.current, dt, windEnvRef.current.speed);
 
-    // 计算环境力
-    const envForces = computeTotalEnvironmentalForces(
-      currentEnvRef.current,
-      windEnvRef.current,
-      waveHeightRef.current,
-      0,
-      platformStateRef.current.psi
-    );
+      // 计算环境力
+      const envForces = computeTotalEnvironmentalForces(
+        currentEnvRef.current,
+        windEnvRef.current,
+        waveHeightRef.current,
+        0,
+        platformStateRef.current.psi
+      );
 
-    // 更新平台状态中的环境力
-    platformStateRef.current.currentForceX = envForces.forceX;
-    platformStateRef.current.currentForceY = envForces.forceY;
-    platformStateRef.current.currentMomentN = envForces.momentN;
+      // 更新平台状态中的环境力
+      platformStateRef.current.currentForceX = envForces.forceX;
+      platformStateRef.current.currentForceY = envForces.forceY;
+      platformStateRef.current.currentMomentN = envForces.momentN;
 
-    // 设置目标
-    platformStateRef.current.targetX = config.targetPosition.x;
-    platformStateRef.current.targetY = config.targetPosition.z;
-    platformStateRef.current.targetPsi = toRadians(config.targetHeading);
-    platformStateRef.current.decouplingEnabled = config.decouplingEnabled;
+      // 设置目标
+      platformStateRef.current.targetX = config.targetPosition.x;
+      platformStateRef.current.targetY = config.targetPosition.z;
+      platformStateRef.current.targetPsi = toRadians(config.targetHeading);
+      platformStateRef.current.decouplingEnabled = config.decouplingEnabled;
 
-    // DP 控制计算
-    dpConfigRef.current.decouplingEnabled = config.decouplingEnabled;
+      // DP 控制计算
+      dpConfigRef.current.decouplingEnabled = config.decouplingEnabled;
 
-    const controlFunc = config.decouplingEnabled ? dpDecoupledControl : dpStandardControl;
-    const [controlOutput, newDPState] = controlFunc(
-      platformStateRef.current,
-      dpStateRef.current,
-      dpConfigRef.current,
-      dt
-    );
-    dpStateRef.current = newDPState;
+      const controlFunc = config.decouplingEnabled ? dpDecoupledControl : dpStandardControl;
+      const [controlOutput, newDPState] = controlFunc(
+        platformStateRef.current,
+        dpStateRef.current,
+        dpConfigRef.current,
+        dt
+      );
+      dpStateRef.current = newDPState;
 
-    // 推力分配
-    const thrusterConfigs = createThrusterConfigs();
+      // 推力分配
+      const thrusterConfigs = createThrusterConfigs();
 
-    const tauCmd: [number, number, number] = [
-      controlOutput.decoupledTauX,
-      controlOutput.decoupledTauY,
-      controlOutput.decoupledTauN,
-    ];
+      const tauCmd: [number, number, number] = [
+        controlOutput.decoupledTauX,
+        controlOutput.decoupledTauY,
+        controlOutput.decoupledTauN,
+      ];
 
-    const allocationResult = allocateThrust(
-      tauCmd,
-      platformStateRef.current.thrusters,
-      thrusterConfigs,
-      dt
-    );
+      const allocationResult = allocateThrust(
+        tauCmd,
+        platformStateRef.current.thrusters,
+        thrusterConfigs,
+        dt
+      );
 
-    platformStateRef.current.thrusters = allocationResult.thrusters;
+      platformStateRef.current.thrusters = allocationResult.thrusters;
 
-    // 计算实际推力作用于平台的力 (kN -> N)
-    const thrusterForce: [number, number, number] = [
-      allocationResult.totalForceX * 1000,
-      allocationResult.totalForceY * 1000,
-      allocationResult.totalMomentN * 1000,
-    ];
+      // 计算实际推力作用于平台的力 (kN -> N)
+      const thrusterForce: [number, number, number] = [
+        allocationResult.totalForceX * 1000,
+        allocationResult.totalForceY * 1000,
+        allocationResult.totalMomentN * 1000,
+      ];
 
-    // 环境力转为元组格式
-    const envForceTuple: [number, number, number] = [
-      envForces.forceX,
-      envForces.forceY,
-      envForces.momentN,
-    ];
+      // 环境力转为元组格式
+      const envForceTuple: [number, number, number] = [
+        envForces.forceX,
+        envForces.forceY,
+        envForces.momentN,
+      ];
 
-    // 平台动力学步进
-    platformStateRef.current = semiSub3DOFStep(
-      platformStateRef.current,
-      thrusterForce,
-      envForceTuple,
-      dt
-    );
+      // 平台动力学步进
+      platformStateRef.current = semiSub3DOFStep(
+        platformStateRef.current,
+        thrusterForce,
+        envForceTuple,
+        dt
+      );
 
-    // 计算误差
-    const posError = Math.sqrt(
-      controlOutput.errorX ** 2 + controlOutput.errorY ** 2
-    );
-    const headError = Math.abs(controlOutput.errorPsi);
-    const totalPower = computeTotalPower(platformStateRef.current.thrusters);
+      // 计算误差
+      const posError = Math.sqrt(
+        controlOutput.errorX ** 2 + controlOutput.errorY ** 2
+      );
+      const headError = Math.abs(controlOutput.errorPsi);
+      const totalPower = computeTotalPower(platformStateRef.current.thrusters);
 
-    // 更新指标
-    setMetrics({
-      positionError: posError,
-      headingError: headError,
-      totalPower,
-      time: timeRef.current,
-    });
-
-    // 更新推进器状态
-    setThrusters([...platformStateRef.current.thrusters]);
-
-    // 违规检测
-    const newViolations: EthicalViolation[] = [];
-
-    if (posError > DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT) {
-      newViolations.push({
-        type: 'EMERGENCY_DISCONNECT',
-        thresholdValue: DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT,
-        actualValue: posError,
-        timestamp: timeRef.current,
-        description: `紧急解脱: 位置偏差 ${posError.toFixed(1)}m`,
-        severity: 'critical',
+      // 更新指标
+      setMetrics({
+        positionError: posError,
+        headingError: headError,
+        totalPower,
+        time: timeRef.current,
       });
-    } else if (posError > DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION) {
-      newViolations.push({
-        type: 'RED_ALERT_POSITION',
-        thresholdValue: DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION,
-        actualValue: posError,
-        timestamp: timeRef.current,
-        description: `红色警报: 位置偏差 ${posError.toFixed(1)}m`,
-        severity: 'critical',
-      });
-    } else if (posError > DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION) {
-      newViolations.push({
-        type: 'YELLOW_ALERT_POSITION',
-        thresholdValue: DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION,
-        actualValue: posError,
-        timestamp: timeRef.current,
-        description: `黄色警报: 位置偏差 ${posError.toFixed(1)}m`,
-        severity: 'warning',
-      });
-    }
 
-    if (newViolations.length > 0) {
-      setViolations((prev) => [...prev.slice(-20), ...newViolations]);
-    }
+      // 更新推进器状态
+      setThrusters([...platformStateRef.current.thrusters]);
 
-    // 记录轨迹
-    setTrajectory((prev) => {
-      const newPoint = {
-        x: platformStateRef.current.x,
-        z: platformStateRef.current.y,
-      };
-      if (prev.length === 0) return [newPoint];
-      const last = prev[prev.length - 1];
-      const dist = Math.sqrt((newPoint.x - last.x) ** 2 + (newPoint.z - last.z) ** 2);
-      if (dist > 0.5) {
-        return [...prev.slice(-300), newPoint];
+      // 违规检测
+      const newViolations: EthicalViolation[] = [];
+
+      if (posError > DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT) {
+        newViolations.push({
+          type: 'EMERGENCY_DISCONNECT',
+          thresholdValue: DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT,
+          actualValue: posError,
+          timestamp: timeRef.current,
+          description: `紧急解脱: 位置偏差 ${posError.toFixed(1)}m`,
+          severity: 'critical',
+        });
+      } else if (posError > DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION) {
+        newViolations.push({
+          type: 'RED_ALERT_POSITION',
+          thresholdValue: DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION,
+          actualValue: posError,
+          timestamp: timeRef.current,
+          description: `红色警报: 位置偏差 ${posError.toFixed(1)}m`,
+          severity: 'critical',
+        });
+      } else if (posError > DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION) {
+        newViolations.push({
+          type: 'YELLOW_ALERT_POSITION',
+          thresholdValue: DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION,
+          actualValue: posError,
+          timestamp: timeRef.current,
+          description: `黄色警报: 位置偏差 ${posError.toFixed(1)}m`,
+          severity: 'warning',
+        });
       }
-      return prev;
-    });
+
+      if (newViolations.length > 0) {
+        setViolations((prev) => [...prev.slice(-20), ...newViolations]);
+      }
+
+      // 记录轨迹
+      setTrajectory((prev) => {
+        const newPoint = {
+          x: platformStateRef.current.x,
+          z: platformStateRef.current.y,
+        };
+        if (prev.length === 0) return [newPoint];
+        const last = prev[prev.length - 1];
+        const dist = Math.sqrt((newPoint.x - last.x) ** 2 + (newPoint.z - last.z) ** 2);
+        if (dist > 0.5) {
+          return [...prev.slice(-300), newPoint];
+        }
+        return prev;
+      });
+    };
+
+    clockRef.current.advance(frameDt, stepSimulation);
 
     animationFrameRef.current = requestAnimationFrame(simulate);
   }, [isRunning, config]);
@@ -909,7 +913,8 @@ export function DrillingSimulation() {
   // 启动/停止仿真
   useEffect(() => {
     if (isRunning) {
-      lastUpdateRef.current = Date.now();
+      clockRef.current.reset();
+      lastUpdateRef.current = performance.now();
       animationFrameRef.current = requestAnimationFrame(simulate);
     }
     return () => {
@@ -927,6 +932,8 @@ export function DrillingSimulation() {
     platformStateRef.current = createSemiSub3DOFState(0, 0, 0);
     dpStateRef.current = createDPState();
     timeRef.current = 0;
+    lastUpdateRef.current = performance.now();
+    clockRef.current.reset();
     setTrajectory([]);
     setViolations([]);
     setThrusters([...platformStateRef.current.thrusters]);

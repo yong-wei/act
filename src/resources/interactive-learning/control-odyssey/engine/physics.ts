@@ -1,3 +1,6 @@
+import type { TransferFunctionModel } from '@/lib/simulation';
+import { createLinearPlant } from '@/lib/simulation';
+
 export interface ShipState {
   y: number;      // 垂直位置 (0-400)
   v: number;      // 垂直速度
@@ -6,10 +9,7 @@ export interface ShipState {
 }
 
 export interface ControlParams {
-  type: 'PROPORTIONAL' | 'INTEGRAL' | 'INERTIAL'; // 被控对象模型类型
-  gain: number;   // 对象增益 K
-  timeConstant?: number; // 对象时间常数 T
-  inputDelay?: number; // 输入纯延时（秒）
+  plantModel: TransferFunctionModel;
   controlRate?: number; // 手动控制量变化率
   
   // 控制器参数
@@ -49,6 +49,10 @@ export interface ControlParams {
 export class PhysicsEngine {
   private state: ShipState;
   private baseY: number = 200;
+  private baseOffset: number = 200;
+  private lastBaseY: number = 200;
+  private plant: ReturnType<typeof createLinearPlant> | null = null;
+  private plantKey: string = '';
   
   // PID 内部状态
   private integral: number = 0;
@@ -56,10 +60,11 @@ export class PhysicsEngine {
   private speedFeedbackState: number = 0;
   private lastMode: 'MANUAL' | 'AUTO' = 'MANUAL';
   private elapsedTime: number = 0;
-  private inputDelayQueue: { time: number; value: number }[] = [];
-  private predictorNoDelay: { baseY: number; v: number } = { baseY: 200, v: 0 };
-  private predictorDelay: { baseY: number; v: number } = { baseY: 200, v: 0 };
-  private predictorDelayQueue: { time: number; value: number }[] = [];
+  private predictorNoDelayPlant: ReturnType<typeof createLinearPlant> | null = null;
+  private predictorDelayPlant: ReturnType<typeof createLinearPlant> | null = null;
+  private predictorNoDelayY: number = 200;
+  private predictorDelayY: number = 200;
+  private predictorKey: string = '';
   private smithEnabled: boolean = false;
   
   constructor() {
@@ -67,16 +72,21 @@ export class PhysicsEngine {
   }
 
   reset(initialY: number = 200) {
+    this.baseOffset = initialY;
     this.baseY = initialY;
+    this.lastBaseY = initialY;
     this.state = { y: initialY, v: 0, u: 0, r: initialY };
     this.integral = 0;
     this.prevError = 0;
     this.speedFeedbackState = 0;
     this.elapsedTime = 0;
-    this.inputDelayQueue = [];
-    this.predictorNoDelay = { baseY: initialY, v: 0 };
-    this.predictorDelay = { baseY: initialY, v: 0 };
-    this.predictorDelayQueue = [];
+    this.plant = null;
+    this.plantKey = '';
+    this.predictorNoDelayPlant = null;
+    this.predictorDelayPlant = null;
+    this.predictorNoDelayY = initialY;
+    this.predictorDelayY = initialY;
+    this.predictorKey = '';
     this.smithEnabled = false;
   }
 
@@ -98,7 +108,7 @@ export class PhysicsEngine {
    * @param disturbance 外部干扰值 (可选，直接叠加到速度或加速度上)
    */
   update(dt: number, inputCommand: number, params: ControlParams, disturbance: number = 0): ShipState {
-    const { type, gain, timeConstant, mode, pid, controlRate, inputDelay } = params;
+    const { plantModel, mode, pid, controlRate } = params;
     const clamp = (value: number, min: number, max: number) =>
       Math.min(max, Math.max(min, value));
 
@@ -113,9 +123,7 @@ export class PhysicsEngine {
 
     const smithEnabled = mode === 'AUTO' && (params.smithPredictor?.enabled ?? false);
     if (smithEnabled && !this.smithEnabled) {
-      this.predictorNoDelay = { baseY: this.baseY, v: this.state.v };
-      this.predictorDelay = { baseY: this.baseY, v: this.state.v };
-      this.predictorDelayQueue = [];
+      this.predictorKey = '';
     }
     this.smithEnabled = smithEnabled;
 
@@ -141,8 +149,8 @@ export class PhysicsEngine {
       const setpointRate = 120;
       this.state.r = clamp(this.state.r + inputCommand * setpointRate * dt, 0, 400);
 
-      const predictorDelayY = this.predictorDelay.baseY;
-      const predictorNoDelayY = this.predictorNoDelay.baseY;
+      const predictorDelayY = this.predictorDelayY;
+      const predictorNoDelayY = this.predictorNoDelayY;
       const feedbackY = smithEnabled
         ? predictorNoDelayY + (this.state.y - predictorDelayY)
         : this.state.y;
@@ -166,80 +174,48 @@ export class PhysicsEngine {
       this.state.u = pTerm + iTerm + dTerm + vfbTerm + ffTerm;
     }
 
-    const stepPlant = (
-      current: { baseY: number; v: number },
-      appliedInput: number
-    ) => {
-      switch (type) {
-        case 'PROPORTIONAL': {
-          const nextV = appliedInput * gain * 200;
-          return {
-            baseY: current.baseY + nextV * dt,
-            v: nextV
-          };
-        }
-        case 'INERTIAL': {
-          const targetV = appliedInput * gain * 200;
-          const dv = (targetV - current.v) / (timeConstant || 0.1) * dt;
-          const nextV = current.v + dv;
-          return {
-            baseY: current.baseY + nextV * dt,
-            v: nextV
-          };
-        }
-        case 'INTEGRAL': {
-          const a = appliedInput * gain * 500;
-          const nextV = (current.v + a * dt) * 0.98;
-          return {
-            baseY: current.baseY + nextV * dt,
-            v: nextV
-          };
-        }
-        default:
-          return current;
-      }
-    };
-
     // ============ 对象层 (Plant) ============
     this.elapsedTime += dt;
     const u = this.state.u;
-    let appliedU = u;
-    const delay = inputDelay ?? 0;
-
-    if (delay > 0) {
-      this.inputDelayQueue.push({ time: this.elapsedTime, value: u });
-      const targetTime = this.elapsedTime - delay;
-      while (this.inputDelayQueue.length > 1 && this.inputDelayQueue[1].time <= targetTime) {
-        this.inputDelayQueue.shift();
-      }
-      appliedU = this.inputDelayQueue[0]?.value ?? u;
-    } else {
-      this.inputDelayQueue = [];
+    const plantKey = `${dt}:${plantModel.numerator.join(',')}:${plantModel.denominator.join(',')}:${plantModel.delay ?? 0}`;
+    if (!this.plant || this.plantKey !== plantKey) {
+      this.plant = createLinearPlant(plantModel, dt);
+      this.plantKey = plantKey;
     }
-
-    const plantState = stepPlant({ baseY: this.baseY, v: this.state.v }, appliedU);
-    this.baseY = plantState.baseY;
-    this.state.v = plantState.v;
+    const plantResult = this.plant.step([u]);
+    const plantOutput = plantResult.output[0] ?? 0;
+    this.baseY = this.baseOffset + plantOutput;
+    this.state.v = dt > 0 ? (this.baseY - this.lastBaseY) / dt : 0;
+    this.lastBaseY = this.baseY;
 
     // 输出端扰动（暗流/乱流）叠加到输出，不参与状态积分
     this.state.y = this.baseY + disturbance;
 
     if (smithEnabled) {
       const predictorDelay = Math.max(0, params.smithPredictor?.delay ?? 0);
-      this.predictorNoDelay = stepPlant(this.predictorNoDelay, u);
-
-      let predictorAppliedU = u;
-      if (predictorDelay > 0) {
-        this.predictorDelayQueue.push({ time: this.elapsedTime, value: u });
-        const targetTime = this.elapsedTime - predictorDelay;
-        while (this.predictorDelayQueue.length > 1 && this.predictorDelayQueue[1].time <= targetTime) {
-          this.predictorDelayQueue.shift();
-        }
-        predictorAppliedU = this.predictorDelayQueue[0]?.value ?? u;
-      } else {
-        this.predictorDelayQueue = [];
+      const predictorKey = `${plantKey}:${predictorDelay}`;
+      if (!this.predictorNoDelayPlant || !this.predictorDelayPlant || this.predictorKey !== predictorKey) {
+        const currentState = this.plant?.getState().state;
+        const noDelayModel: TransferFunctionModel = { ...plantModel, delay: 0 };
+        const delayModel: TransferFunctionModel = { ...plantModel, delay: predictorDelay };
+        this.predictorNoDelayPlant = createLinearPlant(noDelayModel, dt, currentState);
+        this.predictorDelayPlant = createLinearPlant(delayModel, dt, currentState);
+        this.predictorKey = predictorKey;
+        this.predictorNoDelayY = this.baseY;
+        this.predictorDelayY = this.baseY;
       }
-      this.predictorDelay = stepPlant(this.predictorDelay, predictorAppliedU);
+
+      const noDelayResult = this.predictorNoDelayPlant?.step([u]);
+      const delayResult = this.predictorDelayPlant?.step([u]);
+      if (noDelayResult) {
+        this.predictorNoDelayY = this.baseOffset + (noDelayResult.output[0] ?? 0);
+      }
+      if (delayResult) {
+        this.predictorDelayY = this.baseOffset + (delayResult.output[0] ?? 0);
+      }
+    } else {
+      this.predictorNoDelayY = this.baseY;
+      this.predictorDelayY = this.baseY;
     }
 
     return this.state;

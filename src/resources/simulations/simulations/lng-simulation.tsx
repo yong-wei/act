@@ -18,6 +18,7 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { MaritimeEnvironment } from '../environment';
+import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
@@ -480,6 +481,7 @@ export function LNGSimulation() {
   const engineRef = useRef<LNGCarrierEngine | null>(null);
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
+  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
@@ -510,46 +512,49 @@ export function LNGSimulation() {
 
   // 仿真循环
   const simulationStep = useCallback((timestamp: number) => {
-    if (!engineRef.current) return;
+    const engine = engineRef.current;
+    if (!engine) return;
 
-    const dt = 0.5; // 固定步长
-    const now = timestamp / 1000;
+    const frameDt = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
+    lastTimeRef.current = timestamp;
 
-    if (now - lastTimeRef.current >= dt) {
-      lastTimeRef.current = now;
+    let nextTime = state.time;
+    let engineState = engine.getState(nextTime);
+    let sloshingMetrics = engine.getSloshingMetrics();
 
-      engineRef.current.step(
+    clockRef.current.advance(frameDt, (dt) => {
+      const time = nextTime + dt;
+      nextTime = time;
+      engine.step(
         state.targetHeading,
         null,
         state.controlMode,
         0,
         LNG_CHANGHENG_PARAMS.CRUISE_SPEED,
         dt,
-        state.time
+        time
       );
+      engineState = engine.getState(time);
+      sloshingMetrics = engine.getSloshingMetrics();
+    });
 
-      const engineState = engineRef.current.getState(state.time + dt);
-      const sloshingMetrics = engineRef.current.getSloshingMetrics();
+    setState((prev) => ({
+      ...prev,
+      time: nextTime,
+      position: engineState.position,
+      heading: engineState.heading,
+      yawRate: engineState.yawRate,
+      rudder: engineState.rudder,
+      speed: engineState.speed,
+      sloshingAngle: sloshingMetrics.angleDeg,
+      tankPressure: sloshingMetrics.pressure,
+    }));
 
-      setState((prev) => ({
-        ...prev,
-        time: prev.time + dt,
-        position: engineState.position,
-        heading: engineState.heading,
-        yawRate: engineState.yawRate,
-        rudder: engineState.rudder,
-        speed: engineState.speed,
-        sloshingAngle: sloshingMetrics.angleDeg,
-        tankPressure: sloshingMetrics.pressure,
-      }));
-
-      // 更新轨迹
-      setTrajectory((prev) => {
-        const newPoint = { ...engineState.position };
-        const newTraj = [...prev, newPoint];
-        return newTraj.length > 500 ? newTraj.slice(-500) : newTraj;
-      });
-    }
+    setTrajectory((prev) => {
+      const newPoint = { ...engineState.position };
+      const newTraj = [...prev, newPoint];
+      return newTraj.length > 500 ? newTraj.slice(-500) : newTraj;
+    });
 
     if (state.isRunning && !state.isPaused) {
       animationRef.current = requestAnimationFrame(simulationStep);
@@ -559,7 +564,8 @@ export function LNGSimulation() {
   // 控制仿真启停
   useEffect(() => {
     if (state.isRunning && !state.isPaused) {
-      lastTimeRef.current = performance.now() / 1000;
+      clockRef.current.reset();
+      lastTimeRef.current = performance.now();
       animationRef.current = requestAnimationFrame(simulationStep);
     } else if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
@@ -605,6 +611,8 @@ export function LNGSimulation() {
       controlMode: 'pid',
       smithEnabled: false,
     });
+    lastTimeRef.current = 0;
+    clockRef.current.reset();
     setTrajectory([]);
   }, []);
 
