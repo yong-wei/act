@@ -21,14 +21,14 @@ import {
   VolumeX,
   ChevronRight,
 } from 'lucide-react';
+import { useOptionalInteractiveContext } from '@/features/interactive';
+import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 
-export interface CruiseBridgeVideoProps {
+export interface CruiseBridgeVideoProps extends BaseWidgetProps {
   /** 自动播放 */
   autoPlay?: boolean;
   /** 播放时长（秒）*/
   duration?: number;
-  /** 完成回调 */
-  onComplete?: () => void;
   /** 是否显示完成按钮 */
   showCompleteButton?: boolean;
   /** AI 旁白文字 */
@@ -43,9 +43,11 @@ export function CruiseBridgeVideo({
   autoPlay = true,
   duration = 10,
   onComplete,
+  onStateChange,
   showCompleteButton = true,
   narration = DEFAULT_NARRATION,
 }: CruiseBridgeVideoProps) {
+  const interactive = useOptionalInteractiveContext();
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [progress, setProgress] = useState(0);
   const [showNarration, setShowNarration] = useState(false);
@@ -80,13 +82,29 @@ export function CruiseBridgeVideo({
     };
   }, [isPlaying, duration]);
 
+  useEffect(() => {
+    const snapshot = {
+      progress,
+      data: { isPlaying, progress },
+      timestamp: Date.now(),
+    };
+    onStateChange?.(snapshot);
+    interactive?.progress.setProgress(progress);
+  }, [progress, isPlaying, interactive, onStateChange]);
+
   const handlePlay = useCallback(() => {
     setIsPlaying(true);
   }, []);
 
   const handleComplete = useCallback(() => {
-    onComplete?.();
-  }, [onComplete]);
+    const result: WidgetResult = {
+      success: true,
+      score: 100,
+      data: { duration, progress: 100 },
+    };
+    interactive?.progress.markComplete(result);
+    onComplete?.(result);
+  }, [onComplete, duration, interactive]);
 
   const handleToggleMute = useCallback(() => {
     setIsMuted((prev) => !prev);

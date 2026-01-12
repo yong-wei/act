@@ -1,9 +1,11 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Award, Clock, Gauge, Sparkles, TrendingUp } from 'lucide-react';
 import { JUDGE_THRESHOLDS } from '../types';
 import { createLinearPlant } from '@/lib/simulation';
+import { useOptionalInteractiveContext } from '@/features/interactive';
+import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 
 interface SimulationMetrics {
   riseTime: number | null;
@@ -125,7 +127,10 @@ function buildAdvice(metrics: SimulationMetrics) {
   return advices.length ? advices : ['指标表现均衡，判分优秀。保持当前策略。'];
 }
 
-export default function JudgeBenchSim() {
+interface JudgeBenchSimProps extends BaseWidgetProps {}
+
+export default function JudgeBenchSim({ onComplete, onStateChange }: JudgeBenchSimProps) {
+  const interactive = useOptionalInteractiveContext();
   const [zeta, setZeta] = useState(0.45);
   const [omega, setOmega] = useState(4.5);
   const [duration, setDuration] = useState(6);
@@ -135,14 +140,47 @@ export default function JudgeBenchSim() {
   const advices = useMemo(() => buildAdvice(result.metrics), [result.metrics]);
 
   const handleRun = useCallback(() => {
-    setResult(simulateStepResponse(zeta, omega, duration, 0.01));
-  }, [zeta, omega, duration]);
+    const nextResult = simulateStepResponse(zeta, omega, duration, 0.01);
+    setResult(nextResult);
+    interactive?.tracking.emit('submit', {
+      zeta,
+      omega,
+      duration,
+      metrics: nextResult.metrics,
+    });
+  }, [zeta, omega, duration, interactive]);
 
   const pass = result.metrics.overshoot <= JUDGE_THRESHOLDS.overshoot
     && (result.metrics.settlingTime ?? 0) <= JUDGE_THRESHOLDS.settlingTime
     && result.metrics.steadyStateError <= JUDGE_THRESHOLDS.steadyStateError;
 
   const chartPath = useMemo(() => buildPath(result.values, 520, 260), [result.values]);
+
+  useEffect(() => {
+    const snapshot = {
+      progress: score,
+      data: {
+        zeta,
+        omega,
+        duration,
+        pass,
+        metrics: result.metrics,
+      },
+      timestamp: Date.now(),
+    };
+    onStateChange?.(snapshot);
+    interactive?.progress.setProgress(score);
+
+    if (pass && !interactive?.progress.isComplete) {
+      const completion: WidgetResult = {
+        success: true,
+        score,
+        data: snapshot.data,
+      };
+      interactive?.progress.markComplete(completion);
+      onComplete?.(completion);
+    }
+  }, [result, score, pass, zeta, omega, duration, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-6xl mx-auto">

@@ -1,0 +1,19 @@
+/**
+ * 预置教案统一出口
+ */
+
+import { CRUISE_COMFORT_PRESET } from './cruise-comfort';
+import { LESSON_02_MODELING_PRESET } from './lesson-02-modeling';
+import { LESSON_06_JUDGE_BENCH_PRESET } from './lesson-06-judge-bench';
+
+export {
+  CRUISE_COMFORT_PRESET,
+  LESSON_02_MODELING_PRESET,
+  LESSON_06_JUDGE_BENCH_PRESET,
+};
+
+export const ALL_PRESETS = [
+  LESSON_02_MODELING_PRESET,
+  LESSON_06_JUDGE_BENCH_PRESET,
+  CRUISE_COMFORT_PRESET,
+];

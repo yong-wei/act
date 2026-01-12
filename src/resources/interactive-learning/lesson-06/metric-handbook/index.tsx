@@ -1,8 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Info, Target, Gauge, Clock, TrendingUp } from 'lucide-react';
 import { PERFORMANCE_METRIC_DEFINITIONS } from '../types';
+import { useOptionalInteractiveContext } from '@/features/interactive';
+import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 
 function MetricCurve({ activeId }: { activeId: string }) {
   const points = [
@@ -85,10 +87,40 @@ const metricIcons = {
   'steady-error': Info,
 };
 
-export default function MetricHandbookCard() {
+interface MetricHandbookCardProps extends BaseWidgetProps {}
+
+export default function MetricHandbookCard({ onComplete, onStateChange }: MetricHandbookCardProps) {
+  const interactive = useOptionalInteractiveContext();
   const [activeId, setActiveId] = useState(PERFORMANCE_METRIC_DEFINITIONS[0]?.id ?? 'rise-time');
+  const [visitedIds, setVisitedIds] = useState<string[]>([]);
   const activeMetric = PERFORMANCE_METRIC_DEFINITIONS.find((item) => item.id === activeId);
   const Icon = metricIcons[activeId as keyof typeof metricIcons] ?? Info;
+  const totalMetrics = PERFORMANCE_METRIC_DEFINITIONS.length;
+
+  useEffect(() => {
+    if (visitedIds.includes(activeId)) return;
+    const nextVisited = [...visitedIds, activeId];
+    setVisitedIds(nextVisited);
+    const progressValue = Math.round((nextVisited.length / totalMetrics) * 100);
+    const snapshot = {
+      progress: progressValue,
+      data: { metricId: activeId, visitedCount: nextVisited.length },
+      timestamp: Date.now(),
+    };
+    onStateChange?.(snapshot);
+    interactive?.progress.setProgress(progressValue);
+    interactive?.tracking.emit('interact', snapshot.data);
+
+    if (nextVisited.length === totalMetrics && !interactive?.progress.isComplete) {
+      const result: WidgetResult = {
+        success: true,
+        score: 100,
+        data: { visited: nextVisited, total: totalMetrics },
+      };
+      interactive?.progress.markComplete(result);
+      onComplete?.(result);
+    }
+  }, [activeId, visitedIds, totalMetrics, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-5xl mx-auto">

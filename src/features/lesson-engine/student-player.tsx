@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Users, CheckCircle, Loader2, WifiOff } from 'lucide-react';
 import { ResourceRenderer } from './resource-renderer';
-import { TeachingResource, BopppsStage, KnowledgeNode, LessonItemType } from '@prisma/client';
+import { Prisma, TeachingResource, BopppsStage, KnowledgeNode, LessonItemType } from '@prisma/client';
 
 // BOPPPS 阶段标签
 const STAGE_LABELS: Record<BopppsStage, { label: string; color: string }> = {
@@ -22,6 +22,7 @@ interface LessonItemWithResource {
   stage: BopppsStage;
   order: number;
   duration: number | null;
+  overrideConfig?: Prisma.JsonValue | null;
   resource: TeachingResource | null;
   knowledgeNode: KnowledgeNode | null;
 }
@@ -156,7 +157,11 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
       {/* 主内容区 */}
       <main className="flex-1 overflow-hidden relative">
         {currentItem && (currentItem.resource || currentItem.knowledgeNode) ? (
-          <ResourceRenderer resource={currentItem.resource} knowledgeNode={currentItem.knowledgeNode} />
+          <ResourceRenderer
+            resource={currentItem.resource}
+            knowledgeNode={currentItem.knowledgeNode}
+            overrideConfig={currentItem.overrideConfig}
+          />
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">
             <Loader2 className="h-8 w-8 animate-spin mb-4" />

@@ -1,0 +1,100 @@
+/**
+ * 预置教案：Lesson 02 - 机理建模·微分方程
+ *
+ * 基于 BOPPPS 教学框架的完整建模课程流程
+ */
+
+import { ResourceType } from '@prisma/client';
+import type { PresetLessonConfig } from '../types';
+
+export const LESSON_02_MODELING_PRESET: PresetLessonConfig = {
+  key: 'lesson-02-modeling-v1',
+  title: '机理建模·微分方程',
+  description:
+    '通过舵机系统案例引导学生完成机械/电路建模与机电相似映射，形成微分方程统一框架。',
+  totalDuration: 90,
+  thumbnail: '/images/presets/lesson-02-modeling.jpg',
+  tags: ['系统建模', '机电相似', '微分方程', '建模方法'],
+  items: [
+    {
+      stage: 'BRIDGE_IN',
+      order: 1,
+      registryId: 'lesson02-bridge-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 5,
+      title: '导入：透视舵机系统',
+      description: '从舵机结构引出建模任务。',
+      config: {},
+    },
+    {
+      stage: 'OBJECTIVE',
+      order: 1,
+      registryId: 'lesson02-objective-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 2,
+      title: '学习目标',
+      description: '本节课通关目标与技能清单。',
+      config: {},
+    },
+    {
+      stage: 'PRE_ASSESSMENT',
+      order: 1,
+      registryId: 'lesson02-pretest-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 8,
+      title: '前测：物理基础连线',
+      description: '确认机械与电气基础概念掌握情况。',
+      config: {},
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 1,
+      registryId: 'lesson02-mechanical-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 25,
+      title: '参与式学习：机械建模工坊',
+      description: '搭建弹簧-质量-阻尼模型并写出方程。',
+      config: {},
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 2,
+      registryId: 'lesson02-electrical-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 20,
+      title: '参与式学习：电路建模工坊',
+      description: '建立 RLC 电路模型并写出方程。',
+      config: {},
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 3,
+      registryId: 'lesson02-analogy-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 15,
+      title: '参与式学习：机电相似映射',
+      description: '完成机械与电气量的对应关系。',
+      config: {},
+    },
+    {
+      stage: 'POST_ASSESSMENT',
+      order: 1,
+      registryId: 'lesson02-posttest-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 10,
+      title: '后测：导弹发射架建模',
+      description: '检查非线性项与线性化理解。',
+      config: {},
+    },
+    {
+      stage: 'SUMMARY',
+      order: 1,
+      registryId: 'lesson02-summary-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 5,
+      title: '总结：知识图谱',
+      description: '复盘本节课核心概念与关联知识点。',
+      config: {},
+    },
+  ],
+};

@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, RotateCcw, ChevronRight } from 'lucide-react';
+import { useOptionalInteractiveContext } from '@/features/interactive';
+import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 
 interface QuizOption {
   id: string;
@@ -77,9 +79,7 @@ const QUIZ_ITEMS: QuizItem[] = [
   },
 ];
 
-interface MetricQuickCheckProps {
-  onComplete?: (score: number) => void;
-}
+interface MetricQuickCheckProps extends BaseWidgetProps {}
 
 function MetricSketch({ highlight }: { highlight: QuizItem['highlight'] }) {
   const points = [
@@ -131,7 +131,8 @@ function MetricSketch({ highlight }: { highlight: QuizItem['highlight'] }) {
   );
 }
 
-export default function MetricQuickCheck({ onComplete }: MetricQuickCheckProps) {
+export default function MetricQuickCheck({ onComplete, onStateChange }: MetricQuickCheckProps) {
+  const interactive = useOptionalInteractiveContext();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
@@ -143,29 +144,65 @@ export default function MetricQuickCheck({ onComplete }: MetricQuickCheckProps) 
   const handleCheck = useCallback(() => {
     if (!selected) return;
     if (!checked) {
-      if (selected === current.answerId) {
+      const isCorrect = selected === current.answerId;
+      if (isCorrect) {
         setScore((prev) => prev + 1);
       }
       setChecked(true);
+      const nextScore = isCorrect ? score + 1 : score;
+      const answeredCount = currentIndex + 1;
+      const progressValue = Math.round((answeredCount / QUIZ_ITEMS.length) * 100);
+      const snapshot = {
+        progress: progressValue,
+        data: { questionId: current.id, selected, isCorrect, score: nextScore },
+        timestamp: Date.now(),
+      };
+      onStateChange?.(snapshot);
+      interactive?.progress.setProgress(progressValue);
+      interactive?.tracking.emit('submit', snapshot.data);
       if (isLast) {
-        onComplete?.(selected === current.answerId ? score + 1 : score);
+        const result: WidgetResult = {
+          success: true,
+          score: Math.round((nextScore / QUIZ_ITEMS.length) * 100),
+          data: { correct: nextScore, total: QUIZ_ITEMS.length },
+        };
+        interactive?.progress.markComplete(result);
+        onComplete?.(result);
       }
     }
-  }, [selected, checked, current.answerId, isLast, onComplete, score]);
+  }, [
+    selected,
+    checked,
+    current.answerId,
+    current.id,
+    currentIndex,
+    isLast,
+    onComplete,
+    onStateChange,
+    score,
+    interactive,
+  ]);
 
   const handleNext = useCallback(() => {
     if (!checked) return;
     setChecked(false);
     setSelected(null);
     setCurrentIndex((prev) => Math.min(prev + 1, QUIZ_ITEMS.length - 1));
-  }, [checked]);
+    interactive?.tracking.emit('interact', { action: 'next', nextIndex: currentIndex + 1 });
+  }, [checked, currentIndex, interactive]);
 
   const handleReset = useCallback(() => {
     setCurrentIndex(0);
     setSelected(null);
     setChecked(false);
     setScore(0);
-  }, []);
+    onStateChange?.({
+      progress: 0,
+      data: { action: 'reset' },
+      timestamp: Date.now(),
+    });
+    interactive?.progress.reset();
+  }, [interactive, onStateChange]);
 
   const progressText = useMemo(
     () => `第 ${currentIndex + 1} / ${QUIZ_ITEMS.length} 题`,

@@ -10,7 +10,7 @@
  * - 加速度 a → 物品滑落/老人摔倒风险
  */
 
-import { useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   ArrowRight,
   TrendingUp,
@@ -25,6 +25,8 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { ISO_2631_MAPPINGS, type ComfortMapping } from '../types';
+import { useOptionalInteractiveContext } from '@/features/interactive';
+import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 
 interface MappingCardProps {
   mapping: ComfortMapping;
@@ -138,7 +140,7 @@ function MappingCard({ mapping, isExpanded, onToggle, index }: MappingCardProps)
   );
 }
 
-export interface ISO2631MappingCardProps {
+export interface ISO2631MappingCardProps extends BaseWidgetProps {
   /** 是否显示互动提示 */
   showHints?: boolean;
   /** 初始展开的卡片索引 */
@@ -151,12 +153,42 @@ export function ISO2631MappingCard({
   showHints = true,
   initialExpanded = 0,
   compact = false,
+  onComplete,
+  onStateChange,
 }: ISO2631MappingCardProps) {
+  const interactive = useOptionalInteractiveContext();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(initialExpanded);
+  const [visitedIndices, setVisitedIndices] = useState<number[]>(
+    Number.isFinite(initialExpanded) ? [initialExpanded] : []
+  );
 
   const handleToggle = useCallback((index: number) => {
     setExpandedIndex((prev) => (prev === index ? null : index));
-  }, []);
+    setVisitedIndices((prev) => (prev.includes(index) ? prev : [...prev, index]));
+    interactive?.tracking.emit('interact', { mappingIndex: index });
+  }, [interactive]);
+
+  useEffect(() => {
+    if (!visitedIndices.length) return;
+    const progressValue = Math.round((visitedIndices.length / ISO_2631_MAPPINGS.length) * 100);
+    const snapshot = {
+      progress: progressValue,
+      data: { visitedCount: visitedIndices.length, total: ISO_2631_MAPPINGS.length },
+      timestamp: Date.now(),
+    };
+    onStateChange?.(snapshot);
+    interactive?.progress.setProgress(progressValue);
+
+    if (visitedIndices.length === ISO_2631_MAPPINGS.length && !interactive?.progress.isComplete) {
+      const result: WidgetResult = {
+        success: true,
+        score: 100,
+        data: snapshot.data,
+      };
+      interactive?.progress.markComplete(result);
+      onComplete?.(result);
+    }
+  }, [visitedIndices, onComplete, onStateChange, interactive]);
 
   return (
     <div className={`w-full ${compact ? 'max-w-2xl' : 'max-w-4xl'} mx-auto`}>

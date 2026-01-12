@@ -22,10 +22,16 @@ import {
   Gauge,
   TrendingUp,
 } from 'lucide-react';
+import { useOptionalInteractiveContext } from '@/features/interactive';
+import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 
-interface PhysicsBuilderSimpleProps {
-  onComplete?: (score: number, dampingRatio: number) => void;
-  embedded?: boolean;
+interface PhysicsBuilderSimpleProps extends BaseWidgetProps {
+  /** 初始阻尼比 */
+  initialDamping?: number;
+  /** 目标阻尼区间 */
+  targetDampingRange?: [number, number];
+  /** 是否自动评分并完成 */
+  autoGrade?: boolean;
 }
 
 // ========== 物理模拟参数 ==========
@@ -405,9 +411,14 @@ function DisplacementChart({
 
 export function PhysicsBuilderSimple({
   onComplete,
+  onStateChange,
   embedded = false,
+  initialDamping = 0.1,
+  targetDampingRange = [0.6, 0.8],
+  autoGrade = true,
 }: PhysicsBuilderSimpleProps) {
-  const [dampingRatio, setDampingRatio] = useState(0.1);
+  const interactive = useOptionalInteractiveContext();
+  const [dampingRatio, setDampingRatio] = useState(initialDamping);
   const [isRunning, setIsRunning] = useState(false);
   const [time, setTime] = useState(0);
   const [displacement, setDisplacement] = useState(SIMULATION_CONFIG.initialDisplacement);
@@ -419,7 +430,7 @@ export function PhysicsBuilderSimple({
   const startTimeRef = useRef<number>(0);
 
   const characteristics = getResponseCharacteristics(dampingRatio);
-  const isOptimal = dampingRatio >= 0.6 && dampingRatio <= 0.8;
+  const isOptimal = dampingRatio >= targetDampingRange[0] && dampingRatio <= targetDampingRange[1];
 
   // 计算得分
   const calculateScore = (zeta: number): number => {
@@ -452,13 +463,19 @@ export function PhysicsBuilderSimple({
         setIsRunning(false);
 
         // 检查是否达到最佳区间
-        if (isOptimal && !hasCompleted) {
+        if (isOptimal && !hasCompleted && autoGrade) {
           setHasCompleted(true);
           const score = calculateScore(dampingRatio);
           if (score > bestScore) {
             setBestScore(score);
           }
-          onComplete?.(score, dampingRatio);
+          const result: WidgetResult = {
+            success: true,
+            score,
+            data: { dampingRatio, targetRange: targetDampingRange },
+          };
+          interactive?.progress.markComplete(result);
+          onComplete?.(result);
         }
         return;
       }
@@ -472,7 +489,16 @@ export function PhysicsBuilderSimple({
     };
 
     animationRef.current = requestAnimationFrame(animate);
-  }, [dampingRatio, isOptimal, hasCompleted, bestScore, onComplete]);
+  }, [
+    dampingRatio,
+    isOptimal,
+    hasCompleted,
+    bestScore,
+    autoGrade,
+    targetDampingRange,
+    interactive,
+    onComplete,
+  ]);
 
   // 重置
   const reset = useCallback(() => {
@@ -483,7 +509,8 @@ export function PhysicsBuilderSimple({
     setTime(0);
     setDisplacement(SIMULATION_CONFIG.initialDisplacement);
     setHistory([]);
-  }, []);
+    interactive?.progress.reset();
+  }, [interactive]);
 
   // 清理动画
   useEffect(() => {
@@ -493,6 +520,30 @@ export function PhysicsBuilderSimple({
       }
     };
   }, []);
+
+  useEffect(() => {
+    const progressValue = hasCompleted ? 100 : calculateScore(dampingRatio);
+    const snapshot = {
+      progress: progressValue,
+      data: {
+        dampingRatio,
+        isOptimal,
+        bestScore,
+        targetRange: targetDampingRange,
+      },
+      timestamp: Date.now(),
+    };
+    onStateChange?.(snapshot);
+    interactive?.progress.setProgress(progressValue);
+  }, [
+    dampingRatio,
+    isOptimal,
+    bestScore,
+    hasCompleted,
+    targetDampingRange,
+    interactive,
+    onStateChange,
+  ]);
 
   return (
     <div className={`${embedded ? '' : 'min-h-screen'} bg-slate-950 text-white p-6`}>

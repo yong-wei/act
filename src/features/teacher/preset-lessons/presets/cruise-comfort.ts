@@ -5,6 +5,7 @@
  * 主题：多约束条件下的 PID 参数设计
  */
 
+import { ResourceType } from '@prisma/client';
 import type { PresetLessonConfig } from '../types';
 
 export const CRUISE_COMFORT_PRESET: PresetLessonConfig = {
@@ -37,15 +38,22 @@ export const CRUISE_COMFORT_PRESET: PresetLessonConfig = {
       title: '邮轮控制最重要的标准是什么？',
       description: '收集学生对舒适度定义的初步认知',
       config: {
-        question: '你认为衡量豪华邮轮控制好坏的第一标准是什么？',
-        options: [
-          { key: 'A', text: '速度', color: '#3b82f6' },
-          { key: 'B', text: '节能', color: '#10b981' },
-          { key: 'C', text: '不晕船', color: '#f59e0b' },
-          { key: 'D', text: '准点', color: '#ef4444' },
-        ],
-        showLiveResults: true,
-        timeLimit: 30,
+        mode: 'play',
+        config: {
+          id: 'poll-comfort-definition',
+          type: 'poll',
+          question: '你认为衡量豪华邮轮控制好坏的第一标准是什么？',
+          options: [
+            { key: 'A', text: '速度', color: '#3b82f6' },
+            { key: 'B', text: '节能', color: '#10b981' },
+            { key: 'C', text: '不晕船', color: '#f59e0b' },
+            { key: 'D', text: '准点', color: '#ef4444' },
+          ],
+          multiSelect: false,
+          anonymous: false,
+          showLiveResults: true,
+          timeLimit: 30,
+        },
       },
     },
 
@@ -58,33 +66,39 @@ export const CRUISE_COMFORT_PRESET: PresetLessonConfig = {
       title: '本节课学习目标',
       description: '展示三层递进式通关任务',
       config: {
-        title: '三层通关任务',
-        objectives: [
-          {
-            id: 'obj-knowledge',
-            type: 'knowledge',
-            description: '理解阻尼系数与舒适度的关系，掌握超调量、调节时间与用户体验的映射',
-            badgeName: '理论达人',
-            badgeIcon: 'brain',
-            unlocked: false,
-          },
-          {
-            id: 'obj-ability',
-            type: 'ability',
-            description: '在多约束条件下完成台风避障挑战，使香槟塔保持稳定',
-            badgeName: '风浪征服者',
-            badgeIcon: 'zap',
-            unlocked: false,
-          },
-          {
-            id: 'obj-value',
-            type: 'value',
-            description: '在工程决策中将乘客安全置于效率之上，获得"五星舒适度工程师"徽章',
-            badgeName: '五星舒适度工程师',
-            badgeIcon: 'star',
-            unlocked: false,
-          },
-        ],
+        mode: 'play',
+        config: {
+          id: 'objective-lesson-13',
+          type: 'objective',
+          title: '三层通关任务',
+          objectives: [
+            {
+              id: 'obj-knowledge',
+              type: 'knowledge',
+              description: '理解阻尼系数与舒适度的关系，掌握超调量、调节时间与用户体验的映射',
+              badgeName: '理论达人',
+              badgeIcon: 'brain',
+              unlocked: false,
+            },
+            {
+              id: 'obj-ability',
+              type: 'ability',
+              description: '在多约束条件下完成台风避障挑战，使香槟塔保持稳定',
+              badgeName: '风浪征服者',
+              badgeIcon: 'zap',
+              unlocked: false,
+            },
+            {
+              id: 'obj-value',
+              type: 'value',
+              description: '在工程决策中将乘客安全置于效率之上，获得"五星舒适度工程师"徽章',
+              badgeName: '五星舒适度工程师',
+              badgeIcon: 'star',
+              unlocked: false,
+            },
+          ],
+          showUnlockAnimation: true,
+        },
       },
     },
 
@@ -99,7 +113,6 @@ export const CRUISE_COMFORT_PRESET: PresetLessonConfig = {
       config: {
         initialDamping: 0.1,
         targetDampingRange: [0.6, 0.8],
-        showFormula: true,
         autoGrade: true,
       },
     },
@@ -113,14 +126,15 @@ export const CRUISE_COMFORT_PRESET: PresetLessonConfig = {
       title: 'ISO 2631 舒适度映射',
       description: '学习控制指标与用户体验后果的对应关系',
       config: {
-        showAIExplanation: true,
-        interactiveCards: true,
+        showHints: true,
+        initialExpanded: 0,
       },
     },
     {
       stage: 'PARTICIPATORY',
       order: 2,
       registryId: 'lesson13-cruise-typhoon-sim',
+      resourceType: ResourceType.SIMULATION_APP,
       duration: 25,
       title: '香槟塔保卫战',
       description: '在台风避障场景中调节PID参数，保护香槟塔不倒',
@@ -152,17 +166,18 @@ export const CRUISE_COMFORT_PRESET: PresetLessonConfig = {
       title: 'PID 参数评估',
       description: '提交最终PID参数，系统计算综合得分',
       config: {
-        title: '提交你的控制方案',
-        parameters: [
-          { id: 'kp', label: '比例系数 Kp', min: 0, max: 10, step: 0.1, unit: '' },
-          { id: 'ki', label: '积分系数 Ki', min: 0, max: 1, step: 0.01, unit: '' },
-          { id: 'kd', label: '微分系数 Kd', min: 0, max: 5, step: 0.1, unit: '' },
-        ],
-        scoringFormula: 'Score = 100 / (1 + MSI) - Penalty × N_fail',
-        weights: {
-          msi: 0.5,
-          settlingTime: 0.3,
-          violations: 0.2,
+        mode: 'play',
+        config: {
+          id: 'quiz-design-verify',
+          type: 'assessment',
+          title: '提交你的控制方案',
+          description: '根据阻尼调节理解，提交一组 PID 参数并获取评分反馈。',
+          parameters: [
+            { id: 'kp', name: '比例系数', symbol: 'Kp', min: 0, max: 10, step: 0.1, defaultValue: 1.0 },
+            { id: 'ki', name: '积分系数', symbol: 'Ki', min: 0, max: 1, step: 0.01, defaultValue: 0.1 },
+            { id: 'kd', name: '微分系数', symbol: 'Kd', min: 0, max: 5, step: 0.1, defaultValue: 0.5 },
+          ],
+          scoring: { baseScore: 100, msiWeight: 1.0, penaltyPerViolation: 10 },
         },
       },
     },
@@ -176,19 +191,19 @@ export const CRUISE_COMFORT_PRESET: PresetLessonConfig = {
       title: 'AI 课堂报告',
       description: 'AI 生成本节课的学习数据分析报告',
       config: {
-        reportTemplate: `本节课全班 {{studentCount}} 人参与学习。
-共有 {{violationCount}} 人触发了伦理熔断，主要原因是过度追求响应速度。
-经过调整，{{successRate}}% 的同学成功保住了香槟塔。
-表现最佳的是 {{topPerformer}}，采用了高阻尼策略。
-全班平均晕船指数 MSI = {{avgMSI}}。`,
-        visualizations: ['scatter', 'bar'],
-        voiceEnabled: true,
+        mode: 'play',
+        config: {
+          id: 'report-class-summary',
+          type: 'ai-report',
+          title: '课堂学习报告',
+          reportTemplate: `本节课共有 {totalStudents} 名同学参与学习，{completedStudents} 人完成全部任务，完成率 {completionRate}%。\n\n班级平均得分 {averageScore} 分，伦理违规率 {violationRate}%。\n\n通过本节课的学习，同学们理解了控制系统性能指标与用户体验之间的映射关系，掌握了阻尼调节在舒适度控制中的关键作用。`,
+          visualizations: ['bar', 'pie'],
+          enableVoice: true,
+          voiceScript: '',
+        },
       },
     },
   ],
 };
 
-/**
- * 所有预置教案列表
- */
-export const ALL_PRESETS: PresetLessonConfig[] = [CRUISE_COMFORT_PRESET];
+export default CRUISE_COMFORT_PRESET;

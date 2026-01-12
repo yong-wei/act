@@ -5,7 +5,7 @@ import React, { useCallback, useMemo } from 'react';
 import 'katex/dist/katex.min.css';
 import { BlockMath } from 'react-katex';
 import Image from 'next/image';
-import { TeachingResource, KnowledgeNode } from '@prisma/client';
+import { Prisma, TeachingResource, KnowledgeNode } from '@prisma/client';
 import { getRegisteredResource } from '@/lib/resource-registry';
 import { useLessonContext } from './ContextInjector';
 import { InteractiveProvider } from '@/features/interactive';
@@ -16,6 +16,8 @@ import { KnowledgeCard } from '@/features/knowledge/knowledge-card';
 interface ResourceRendererProps {
   resource?: TeachingResource | null;
   knowledgeNode?: KnowledgeNode | null;
+  /** 课程环节级配置覆盖 */
+  overrideConfig?: Prisma.JsonValue | null;
   /** Callback when widget completes */
   onComplete?: (result?: WidgetResult) => void;
   /** Callback when widget state changes (for AI context) */
@@ -63,6 +65,7 @@ const SimpleMarkdown = ({ content }: { content: string }) => {
 export function ResourceRenderer({
   resource,
   knowledgeNode,
+  overrideConfig,
   onComplete,
   onStateChange,
   sessionId,
@@ -126,6 +129,14 @@ export function ResourceRenderer({
 
   if (!resource) return <div>No Resource</div>;
 
+  const rawOverride = (overrideConfig && typeof overrideConfig === 'object' && !Array.isArray(overrideConfig))
+    ? (overrideConfig as Record<string, unknown>)
+    : {};
+  const titleOverride = typeof rawOverride.titleOverride === 'string' ? rawOverride.titleOverride : null;
+  const descriptionOverride = typeof rawOverride.descriptionOverride === 'string' ? rawOverride.descriptionOverride : null;
+  const effectiveTitle = titleOverride ?? resource.title;
+  const effectiveDescription = descriptionOverride ?? resource.description;
+
   // 1. Static Text (Markdown)
   if (resource.type === 'STATIC_TEXT') {
     return (
@@ -147,7 +158,7 @@ export function ResourceRenderer({
                       {resource.content ? (
                           <Image
                               src={resource.content}
-                              alt={resource.title}
+                              alt={effectiveTitle}
                               fill
                               sizes="100vw"
                               className="object-contain"
@@ -175,29 +186,60 @@ export function ResourceRenderer({
 
       // 构建 InteractiveConfig
       const resourceConfig = (resource.config || {}) as InteractiveResourceConfig;
+      const overrideConfigPayload = rawOverride as InteractiveResourceConfig;
+      const overrideProps = (overrideConfigPayload.props && typeof overrideConfigPayload.props === 'object')
+        ? overrideConfigPayload.props
+        : Object.fromEntries(
+            Object.entries(rawOverride).filter(([key]) =>
+              !['titleOverride', 'descriptionOverride', 'props', 'ai', 'tracking', 'completion', 'layout'].includes(key)
+            )
+          );
+      const mergedConfig: InteractiveResourceConfig = {
+        ...resourceConfig,
+        ai: {
+          ...(resourceConfig.ai || {}),
+          ...(overrideConfigPayload.ai || {}),
+        },
+        tracking: {
+          ...(resourceConfig.tracking || {}),
+          ...(overrideConfigPayload.tracking || {}),
+        },
+        completion: {
+          ...(resourceConfig.completion || {}),
+          ...(overrideConfigPayload.completion || {}),
+        },
+        layout: {
+          ...(resourceConfig.layout || {}),
+          ...(overrideConfigPayload.layout || {}),
+        },
+        props: {
+          ...(resourceConfig.props || {}),
+          ...(overrideProps || {}),
+        },
+      };
       const interactiveConfig: InteractiveConfig = {
         resourceId: resource.id,
         registryId: resource.registryId,
-        title: resource.title,
-        description: resource.description || undefined,
+        title: effectiveTitle,
+        description: effectiveDescription || undefined,
         aiHints: resource.aiHints || undefined,
         config: {
           props: {
             ...(registryConfig.defaultConfig || {}),
-            ...resourceConfig.props,
+            ...mergedConfig.props,
           },
           ai: {
             enabled: enableAIPanel,
-            persona: lessonContext.aiConfig?.persona || resourceConfig.ai?.persona,
-            hints: resource.aiHints || resourceConfig.ai?.hints,
-            proactive: resourceConfig.ai?.proactive,
+            persona: lessonContext.aiConfig?.persona || mergedConfig.ai?.persona,
+            hints: resource.aiHints || mergedConfig.ai?.hints,
+            proactive: mergedConfig.ai?.proactive,
           },
-          tracking: resourceConfig.tracking,
-          completion: resourceConfig.completion,
+          tracking: mergedConfig.tracking,
+          completion: mergedConfig.completion,
           layout: {
             showHeader: false, // 嵌入模式下不显示头部
             showAIPanel: enableAIPanel,
-            aiPanelPosition: resourceConfig.layout?.aiPanelPosition || 'right',
+            aiPanelPosition: mergedConfig.layout?.aiPanelPosition || 'right',
           },
         },
       };
@@ -205,11 +247,11 @@ export function ResourceRenderer({
       // 组件 props（不包含 InteractiveProvider 管理的内容）
       const componentProps = {
         ...(registryConfig.defaultConfig || {}),
-        ...(resourceConfig.props || {}),
+        ...(mergedConfig.props || {}),
         ...(resource.config as Record<string, unknown> || {}),
         embedded: true,
         lessonContext: {
-          resourceTitle: lessonContext.title || resource.title,
+          resourceTitle: lessonContext.title || effectiveTitle,
           aiPersona: lessonContext.aiConfig?.persona,
           customPrompt: lessonContext.aiConfig?.systemPromptExtension,
         },

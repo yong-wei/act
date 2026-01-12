@@ -17,7 +17,7 @@ import {
   ChevronRight,
   BookOpen,
 } from 'lucide-react';
-import { ALL_PRESETS } from './presets/cruise-comfort';
+import { ALL_PRESETS } from './presets';
 import { PresetLessonPreview } from './preset-lesson-preview';
 import type { PresetLessonConfig, PresetLessonSummary } from './types';
 import { BOPPPS_STAGES } from './types';

@@ -54,7 +54,7 @@ export async function POST(request: Request) {
           data: {
             title: item.title,
             description: item.description || '',
-            type: ResourceType.INTERACTIVE_COMP,
+            type: item.resourceType || ResourceType.INTERACTIVE_COMP,
             registryId: item.registryId,
             config: (item.config || {}) as object,
             authorId: user.id,

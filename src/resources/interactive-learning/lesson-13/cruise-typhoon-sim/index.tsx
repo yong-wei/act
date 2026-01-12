@@ -33,6 +33,8 @@ import { useChampagneTower } from './hooks/useChampagneTower';
 import { TYPHOON_SCENARIO, type TyphoonScenarioConfig } from '../types';
 import { EthicalTrigger, type EthicalTriggerConfig } from '@/components/classroom';
 import { SimulationClock } from '@/lib/simulation';
+import { useOptionalInteractiveContext } from '@/features/interactive';
+import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 
 // 动态导入3D仿真组件
 const CruiseSimulation3D = dynamic(
@@ -53,13 +55,9 @@ const CruiseSimulation3D = dynamic(
 // 重力加速度
 const G = 9.81;
 
-export interface CruiseTyphoonSimProps {
+export interface CruiseTyphoonSimProps extends BaseWidgetProps {
   /** 场景配置 */
   scenario?: TyphoonScenarioConfig;
-  /** 是否嵌入在课堂中 */
-  embedded?: boolean;
-  /** 任务完成回调 */
-  onComplete?: (result: MissionResult) => void;
   /** 是否显示任务面板 */
   showMissionPanel?: boolean;
   /** 是否显示香槟塔PIP */
@@ -92,9 +90,11 @@ export function CruiseTyphoonSim({
   scenario = TYPHOON_SCENARIO,
   embedded = false,
   onComplete,
+  onStateChange,
   showMissionPanel = true,
   showChampagnePIP = true,
 }: CruiseTyphoonSimProps) {
+  const interactive = useOptionalInteractiveContext();
   // 仿真状态（模拟从3D仿真获取）
   const [simState, setSimState] = useState<SimulationState>({
     isRunning: false,
@@ -268,18 +268,23 @@ export function CruiseTyphoonSim({
         success,
       }));
 
-      // 回调结果
-      if (onComplete) {
-        onComplete({
-          success,
-          duration: simState.time,
-          maxLateralAccel: missionState.maxLateralAccel,
-          champagneTowerFallen: champagneTower.hasFallen,
-          fallCount: champagneTower.fallCount,
-          violationCount: missionState.violationCount,
-          finalHeading: simState.heading,
-        });
-      }
+      const missionResult: MissionResult = {
+        success,
+        duration: simState.time,
+        maxLateralAccel: missionState.maxLateralAccel,
+        champagneTowerFallen: champagneTower.hasFallen,
+        fallCount: champagneTower.fallCount,
+        violationCount: missionState.violationCount,
+        finalHeading: simState.heading,
+      };
+      const score = success ? 100 : Math.max(0, 70 - missionState.violationCount * 10);
+      const completion: WidgetResult = {
+        success,
+        score,
+        data: { mission: missionResult },
+      };
+      interactive?.progress.markComplete(completion);
+      onComplete?.(completion);
     }
   }, [
     simState,
@@ -288,7 +293,39 @@ export function CruiseTyphoonSim({
     champagneTower.fallCount,
     scenario.constraints,
     ethicalTriggered,
+    interactive,
     onComplete,
+  ]);
+
+  useEffect(() => {
+    const headingDelta = Math.abs(scenario.targetHeading - scenario.initialHeading) || 1;
+    const headingProgress = Math.min(
+      Math.abs(simState.heading - scenario.initialHeading) / headingDelta * 100,
+      100
+    );
+    const progressValue = missionState.completed ? 100 : (missionState.started ? headingProgress : 0);
+    const snapshot = {
+      progress: progressValue,
+      data: {
+        started: missionState.started,
+        completed: missionState.completed,
+        heading: simState.heading,
+        targetHeading: scenario.targetHeading,
+        lateralAccel: simState.lateralAccel,
+        violationCount: missionState.violationCount,
+      },
+      timestamp: Date.now(),
+    };
+    onStateChange?.(snapshot);
+    interactive?.progress.setProgress(progressValue);
+  }, [
+    missionState,
+    simState.heading,
+    simState.lateralAccel,
+    scenario.initialHeading,
+    scenario.targetHeading,
+    interactive,
+    onStateChange,
   ]);
 
   // 开始任务
@@ -310,7 +347,8 @@ export function CruiseTyphoonSim({
     champagneTower.reset();
     setEthicalTriggered(false);
     lastTimeRef.current = 0;
-  }, [scenario.initialHeading, champagneTower]);
+    interactive?.tracking.emit('interact', { action: 'start_mission' });
+  }, [scenario.initialHeading, champagneTower, interactive]);
 
   // 暂停/继续
   const handleTogglePause = useCallback(() => {
@@ -318,7 +356,8 @@ export function CruiseTyphoonSim({
       ...prev,
       isPaused: !prev.isPaused,
     }));
-  }, []);
+    interactive?.tracking.emit('interact', { action: 'toggle_pause' });
+  }, [interactive]);
 
   // 重置
   const handleReset = useCallback(() => {
@@ -347,7 +386,9 @@ export function CruiseTyphoonSim({
     setEthicalTriggered(false);
     setShowEthicalOverlay(false);
     lastTimeRef.current = 0;
-  }, [scenario.initialHeading, scenario.targetHeading, champagneTower]);
+    interactive?.progress.reset();
+    interactive?.tracking.emit('interact', { action: 'reset' });
+  }, [scenario.initialHeading, scenario.targetHeading, champagneTower, interactive]);
 
   // 伦理熔断配置
   const ethicalConfig: EthicalTriggerConfig = useMemo(
