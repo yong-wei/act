@@ -142,6 +142,32 @@ const Lesson13CruiseBridgeVideo = dynamic(
     { ssr: false, loading: loadingFallback('邮轮导入视频') }
 );
 
+// Lesson-07 组件
+const Lesson07DampingQuickCheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-07/damping-quick-check'),
+    { ssr: false, loading: loadingFallback('欠阻尼速判') }
+);
+
+const Lesson07SecondOrderTheory = dynamic(
+    () => import('@/resources/interactive-learning/lesson-07/theory-deck'),
+    { ssr: false, loading: loadingFallback('二阶系统标准型') }
+);
+
+const Lesson07ResponseExplorer = dynamic(
+    () => import('@/resources/interactive-learning/lesson-07/response-explorer'),
+    { ssr: false, loading: loadingFallback('衰减振荡实验室') }
+);
+
+const Lesson07ParameterChallenge = dynamic(
+    () => import('@/resources/interactive-learning/lesson-07/parameter-challenge'),
+    { ssr: false, loading: loadingFallback('参数匹配挑战') }
+);
+
+const Lesson07SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-07/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
 // 课堂组件
 const ClassroomVideoComponent = dynamic(
     () => import('@/components/classroom').then(mod => mod.VideoComponent),
@@ -350,6 +376,37 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: '邮轮舒适度导入视频',
         type: 'INTERACTIVE_COMP',
         component: Lesson13CruiseBridgeVideo
+    },
+    // Lesson-07 组件
+    'lesson07-damping-quick-check': {
+        id: 'lesson07-damping-quick-check',
+        label: '欠阻尼速判',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson07DampingQuickCheck
+    },
+    'lesson07-second-order-theory': {
+        id: 'lesson07-second-order-theory',
+        label: '二阶系统标准型知识卡',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson07SecondOrderTheory
+    },
+    'lesson07-response-explorer': {
+        id: 'lesson07-response-explorer',
+        label: '衰减振荡实验室',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson07ResponseExplorer
+    },
+    'lesson07-parameter-challenge': {
+        id: 'lesson07-parameter-challenge',
+        label: '参数匹配挑战',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson07ParameterChallenge
+    },
+    'lesson07-summary-card': {
+        id: 'lesson07-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson07SummaryCard
     },
     // 课堂组件（教师专用）
     'classroom-video': {

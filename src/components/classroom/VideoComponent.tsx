@@ -11,7 +11,6 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import {
   Play,
   Pause,
@@ -189,6 +188,7 @@ function VideoPanel({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -212,13 +212,15 @@ function VideoPanel({
     return (
       <div className="relative h-full bg-slate-900 rounded-lg overflow-hidden">
         {/* 占位符背景 */}
-        {source ? (
-          <Image
+        {source && !imageError ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={source}
             alt="Video placeholder"
-            fill
-            sizes="100vw"
-            className="object-cover opacity-60"
+            className="absolute inset-0 h-full w-full object-cover opacity-60"
+            loading="lazy"
+            decoding="async"
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900" />

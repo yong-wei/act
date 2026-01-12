@@ -11,6 +11,19 @@ interface LessonPlanListProps {
   currentUserId?: string;
 }
 
+const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
+  timeZone: 'Asia/Shanghai',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+function formatStableDate(value: string | Date) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return dateFormatter.format(date);
+}
+
 export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', currentUserId }: LessonPlanListProps) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -68,7 +81,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
           <div className="flex items-center gap-4 text-xs text-slate-500 mb-6">
             <span className="flex items-center gap-1">
                <Clock className="h-3 w-3" />
-               {new Date(plan.updatedAt).toLocaleDateString()}
+               {formatStableDate(plan.updatedAt)}
             </span>
             <span>
                {plan.author.name || '未知教师'}

@@ -9,6 +9,7 @@ export {
   CRUISE_COMFORT_PRESET,
   LESSON_02_MODELING_PRESET,
   LESSON_06_JUDGE_BENCH_PRESET,
+  LESSON_07_UNDERDAMPED_PRESET,
 } from './presets';
 export { BOPPPS_STAGES } from './types';
 export type {

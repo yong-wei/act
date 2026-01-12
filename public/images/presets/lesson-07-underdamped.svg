@@ -1,0 +1,22 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#0f172a" />
+            <stop offset="1" stop-color="#1f2937" />
+        </linearGradient>
+        <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#34d399" />
+            <stop offset="1" stop-color="#38bdf8" />
+        </linearGradient>
+    </defs>
+    <rect width="1200" height="675" rx="36" fill="url(#bg)" />
+    <path
+        d="M 100 520 C 200 280, 300 200, 400 280 C 500 360, 600 420, 700 390 C 800 360, 900 350, 1000 380 C 1100 410, 1150 420, 1150 420"
+        stroke="url(#wave)"
+        stroke-width="8"
+        fill="none"
+    />
+    <text x="120" y="160" fill="#e2e8f0" font-size="40" font-family="Arial" font-weight="bold">Lesson 07 · 衰减振荡</text>
+    <text x="120" y="210" fill="#94a3b8" font-size="22" font-family="Arial">欠阻尼二阶系统 · Underdamped Response</text>
+    <text x="120" y="250" fill="#64748b" font-size="16" font-family="Arial">90 分钟线下课堂 · BOPPPS 结构</text>
+</svg>
