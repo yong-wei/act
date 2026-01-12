@@ -1,0 +1,39 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a" />
+      <stop offset="1" stop-color="#1e293b" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" rx="32" fill="url(#bg)" />
+  <text x="80" y="120" fill="#e2e8f0" font-size="34" font-family="Arial" font-weight="bold">二阶系统传递函数形式及分类</text>
+  <text x="80" y="165" fill="#94a3b8" font-size="18" font-family="Arial">标准型：G(s) = wn^2 / (s^2 + 2*zeta*wn*s + wn^2)</text>
+
+  <rect x="80" y="220" width="1040" height="360" rx="24" fill="#0b1220" stroke="#1f2937" />
+
+  <g>
+    <rect x="120" y="260" width="300" height="260" rx="18" fill="#111827" stroke="#334155" />
+    <text x="140" y="300" fill="#facc15" font-size="20" font-family="Arial" font-weight="bold">欠阻尼</text>
+    <text x="140" y="330" fill="#94a3b8" font-size="14" font-family="Arial">0 &lt; zeta &lt; 1</text>
+    <path d="M 140 400 C 170 320, 210 300, 240 340 C 270 380, 310 400, 340 380" stroke="#38bdf8" stroke-width="4" fill="none" />
+    <text x="140" y="460" fill="#64748b" font-size="14" font-family="Arial">有振荡 · 逐步衰减</text>
+  </g>
+
+  <g>
+    <rect x="450" y="260" width="300" height="260" rx="18" fill="#111827" stroke="#334155" />
+    <text x="470" y="300" fill="#22c55e" font-size="20" font-family="Arial" font-weight="bold">临界阻尼</text>
+    <text x="470" y="330" fill="#94a3b8" font-size="14" font-family="Arial">zeta = 1</text>
+    <path d="M 470 420 C 520 360, 580 340, 640 340" stroke="#22c55e" stroke-width="4" fill="none" />
+    <text x="470" y="460" fill="#64748b" font-size="14" font-family="Arial">最快无振荡</text>
+  </g>
+
+  <g>
+    <rect x="780" y="260" width="300" height="260" rx="18" fill="#111827" stroke="#334155" />
+    <text x="800" y="300" fill="#fb7185" font-size="20" font-family="Arial" font-weight="bold">过阻尼</text>
+    <text x="800" y="330" fill="#94a3b8" font-size="14" font-family="Arial">zeta &gt; 1</text>
+    <path d="M 800 420 C 850 380, 900 370, 1000 360" stroke="#fb7185" stroke-width="4" fill="none" />
+    <text x="800" y="460" fill="#64748b" font-size="14" font-family="Arial">无振荡 · 响应较慢</text>
+  </g>
+
+  <text x="80" y="620" fill="#64748b" font-size="14" font-family="Arial">提示：阻尼比决定振荡与衰减，自然频率决定响应速度。</text>
+</svg>

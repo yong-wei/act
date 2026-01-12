@@ -130,6 +130,16 @@ export const LESSON_07_RESOURCES = {
     path: '@/resources/interactive-learning/lesson-07/theory-deck',
   },
 
+  'media-second-order-classification': {
+    type: 'static-media',
+    content: '/assets/lesson-07/second-order-classification.svg',
+  },
+
+  'media-step-response-metrics': {
+    type: 'static-media',
+    content: '/assets/lesson-07/step-response-metrics.svg',
+  },
+
   'widget-response-explorer': {
     type: 'interactive-widget',
     component: 'ResponseExplorer',

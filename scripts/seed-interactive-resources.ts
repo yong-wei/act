@@ -222,6 +222,51 @@ const INTERACTIVE_RESOURCES = [
     category: InteractiveCategory.TIME_DOMAIN,
     displayOrder: 7,
   },
+  {
+    registryId: 'lesson07-damping-quick-check',
+    title: '欠阻尼速判',
+    displayName: '欠阻尼速判',
+    description: '通过快速测验确认二阶系统标准型与欠阻尼判据',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.TIME_DOMAIN,
+    displayOrder: 3,
+  },
+  {
+    registryId: 'lesson07-second-order-theory',
+    title: '二阶系统标准型知识卡',
+    displayName: '二阶系统标准型知识卡',
+    description: '系统梳理标准型、极点关系与性能指标公式',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.TIME_DOMAIN,
+    displayOrder: 4,
+  },
+  {
+    registryId: 'lesson07-response-explorer',
+    title: '衰减振荡实验室',
+    displayName: '衰减振荡实验室',
+    description: '拖动阻尼比与自然频率观察阶跃响应变化',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.TIME_DOMAIN,
+    displayOrder: 5,
+  },
+  {
+    registryId: 'lesson07-parameter-challenge',
+    title: '参数匹配挑战',
+    displayName: '参数匹配挑战',
+    description: '根据目标超调与调节时间完成参数匹配挑战',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.TIME_DOMAIN,
+    displayOrder: 6,
+  },
+  {
+    registryId: 'lesson07-summary-card',
+    title: '课程总结',
+    displayName: '课程总结',
+    description: '复盘欠阻尼二阶系统的关键指标与课后思考',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.TIME_DOMAIN,
+    displayOrder: 7,
+  },
 
   // ===== 根轨迹分析 =====
   {
@@ -286,6 +331,29 @@ const INTERACTIVE_RESOURCES = [
     type: ResourceType.INTERACTIVE_COMP,
     category: InteractiveCategory.FUN_EXPLORATION,
     displayOrder: 2,
+  },
+];
+
+const STATIC_MEDIA_RESOURCES = [
+  {
+    registryId: 'lesson07-static-classification',
+    title: '二阶系统传递函数与分类',
+    displayName: '二阶系统传递函数与分类',
+    description: '展示二阶系统标准型与阻尼分类要点',
+    type: ResourceType.STATIC_MEDIA,
+    category: InteractiveCategory.TIME_DOMAIN,
+    displayOrder: 8,
+    content: '/assets/lesson-07/second-order-classification.svg',
+  },
+  {
+    registryId: 'lesson07-static-step-response',
+    title: '单位阶跃响应与指标',
+    displayName: '单位阶跃响应与指标',
+    description: '展示超调量、峰值时间与调节时间定义',
+    type: ResourceType.STATIC_MEDIA,
+    category: InteractiveCategory.TIME_DOMAIN,
+    displayOrder: 9,
+    content: '/assets/lesson-07/step-response-metrics.svg',
   },
 ];
 
@@ -410,6 +478,43 @@ async function main() {
   }
 
   console.log(`\n✅ 已注册 ${INTERACTIVE_RESOURCES.length} 个互动学习组件`);
+
+  console.log('\n🖼️ 注册静态媒体资源...');
+  for (const resource of STATIC_MEDIA_RESOURCES) {
+    console.log(`  - ${resource.displayName}`);
+
+    await prisma.teachingResource.upsert({
+      where: {
+        id: resource.registryId
+      },
+      update: {
+        title: resource.title,
+        displayName: resource.displayName,
+        description: resource.description,
+        type: resource.type,
+        category: resource.category,
+        displayOrder: resource.displayOrder,
+        registryId: resource.registryId,
+        content: resource.content,
+        teacherOnly: false,
+      },
+      create: {
+        id: resource.registryId,
+        title: resource.title,
+        displayName: resource.displayName,
+        description: resource.description,
+        type: resource.type,
+        category: resource.category,
+        displayOrder: resource.displayOrder,
+        registryId: resource.registryId,
+        content: resource.content,
+        teacherOnly: false,
+        authorId: authorId,
+      }
+    });
+  }
+
+  console.log(`\n✅ 已注册 ${STATIC_MEDIA_RESOURCES.length} 个静态媒体资源`);
 
   // 注册课堂组件
   console.log('\n📦 注册课堂组件（教师专用）...');

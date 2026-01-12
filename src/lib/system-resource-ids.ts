@@ -23,6 +23,8 @@ export const SYSTEM_RESOURCE_REGISTRY_IDS = [
   'lesson07-response-explorer',
   'lesson07-second-order-theory',
   'lesson07-summary-card',
+  'lesson07-static-classification',
+  'lesson07-static-step-response',
   'physics-modeling-analogy-v1',
   'physics-modeling-electrical-v1',
   'physics-modeling-intro-v1',

@@ -30,6 +30,7 @@ export type ComponentType =
   | 'objective'
   | 'interactive-widget'
   | 'knowledge-card'
+  | 'static-media'
   | 'simulation'
   | 'assessment'
   | 'ai-report';
@@ -109,25 +110,43 @@ export const LESSON_07_BOPPPS_FLOW: BOPPPSPhaseConfig[] = [
     id: 'pretest',
     stage: 'PRE_ASSESSMENT',
     title: '前测：欠阻尼速判',
-    duration: 10,
+    duration: 8,
     color: 'amber',
     resourceId: 'widget-damping-quick-check',
     componentType: 'interactive-widget',
   },
   {
+    id: 'part-static-classification',
+    stage: 'PARTICIPATORY',
+    title: '二阶系统传递函数与分类',
+    duration: 5,
+    color: 'red',
+    resourceId: 'media-second-order-classification',
+    componentType: 'static-media',
+  },
+  {
     id: 'part-theory',
     stage: 'PARTICIPATORY',
     title: '参与式学习：二阶系统标准型',
-    duration: 25,
+    duration: 20,
     color: 'red',
     resourceId: 'card-second-order-theory',
     componentType: 'interactive-widget',
   },
   {
+    id: 'part-static-step-response',
+    stage: 'PARTICIPATORY',
+    title: '单位阶跃响应与指标',
+    duration: 5,
+    color: 'red',
+    resourceId: 'media-step-response-metrics',
+    componentType: 'static-media',
+  },
+  {
     id: 'part-explorer',
     stage: 'PARTICIPATORY',
     title: '参与式学习：衰减振荡实验室',
-    duration: 30,
+    duration: 27,
     color: 'red',
     resourceId: 'widget-response-explorer',
     componentType: 'interactive-widget',
