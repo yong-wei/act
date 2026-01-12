@@ -10,9 +10,14 @@ export default async function TeacherLessonPlansPage() {
   if (!session) redirect('/login');
   if (session.user.role !== 'TEACHER') redirect('/');
 
-  // 只获取当前教师创建的教案
+  // 获取当前教师教案 + 公开预置教案
   const plans = await prisma.lessonPlan.findMany({
-    where: { authorId: session.user.id },
+    where: {
+      OR: [
+        { authorId: session.user.id },
+        { isPublic: true },
+      ],
+    },
     orderBy: { updatedAt: 'desc' },
     include: {
       author: { select: { name: true } },
@@ -51,7 +56,11 @@ export default async function TeacherLessonPlansPage() {
         </div>
 
         {/* List Grid */}
-        <LessonPlanList plans={plans} basePath="/teacher/lesson-plans" />
+        <LessonPlanList
+          plans={plans}
+          basePath="/teacher/lesson-plans"
+          currentUserId={session.user.id}
+        />
 
         {plans.length === 0 && (
             <div className="py-20 text-center border-2 border-dashed border-slate-800 rounded-xl bg-slate-900/20">

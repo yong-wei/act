@@ -8,9 +8,10 @@ import { BookOpen, Clock, MoreVertical, Play, Edit, Trash2, Loader2 } from 'luci
 interface LessonPlanListProps {
   plans: any[];
   basePath?: string; // 默认 /admin/lesson-plans
+  currentUserId?: string;
 }
 
-export function LessonPlanList({ plans, basePath = '/admin/lesson-plans' }: LessonPlanListProps) {
+export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', currentUserId }: LessonPlanListProps) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
@@ -38,7 +39,10 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans' }: Less
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {plans.map((plan) => (
+      {plans.map((plan) => {
+        const isPreset = Boolean(plan.isPreset);
+        const canEdit = !isPreset && (!currentUserId || plan.authorId === currentUserId);
+        return (
         <div 
           key={plan.id} 
           className="group bg-slate-900/50 border border-slate-800 rounded-xl p-5 hover:border-cyan-500/50 transition-all hover:bg-slate-900 hover:shadow-xl hover:shadow-cyan-900/10 flex flex-col"
@@ -55,6 +59,11 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans' }: Less
           <h3 className="text-lg font-semibold text-slate-200 group-hover:text-cyan-300 transition-colors mb-2">
             {plan.title}
           </h3>
+          {isPreset && (
+            <span className="inline-flex w-fit rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] uppercase text-amber-400">
+              预置公开教案
+            </span>
+          )}
           
           <div className="flex items-center gap-4 text-xs text-slate-500 mb-6">
             <span className="flex items-center gap-1">
@@ -72,13 +81,15 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans' }: Less
              </div>
              
              <div className="flex gap-2">
-                <button
-                    onClick={() => router.push(`${basePath}/${plan.id}/edit`)}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-white px-2 py-1 transition-colors"
-                >
-                    <Edit className="h-3 w-3" />
-                    编辑
-                </button>
+                {canEdit && (
+                  <button
+                      onClick={() => router.push(`${basePath}/${plan.id}/edit`)}
+                      className="flex items-center gap-1 text-xs text-slate-400 hover:text-white px-2 py-1 transition-colors"
+                  >
+                      <Edit className="h-3 w-3" />
+                      编辑
+                  </button>
+                )}
                 <button 
                     onClick={() => startSession(plan.id)}
                     disabled={!!loadingId}
@@ -90,7 +101,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans' }: Less
              </div>
           </div>
         </div>
-      ))}
+      )})}
     </div>
   );
 }

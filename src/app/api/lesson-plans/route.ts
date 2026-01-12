@@ -12,13 +12,24 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const isAdmin = session.user.role === 'ADMIN';
     const plans = await prisma.lessonPlan.findMany({
-      where: { authorId: session.user.id },
+      where: isAdmin
+        ? {}
+        : {
+          OR: [
+            { authorId: session.user.id },
+            { isPublic: true },
+          ],
+        },
       orderBy: { updatedAt: 'desc' },
       select: {
         id: true,
         title: true,
         description: true,
+        authorId: true,
+        isPublic: true,
+        isPreset: true,
       },
     });
 
