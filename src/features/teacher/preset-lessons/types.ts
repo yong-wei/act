@@ -2,7 +2,7 @@
  * 预置教案类型定义
  */
 
-import { BopppsStage, ResourceType } from '@prisma/client';
+import { BopppsStage, LessonItemType, ResourceType } from '@prisma/client';
 
 /**
  * 预置教案环节配置
@@ -12,8 +12,12 @@ export interface PresetLessonItem {
   stage: BopppsStage;
   /** 环节顺序 */
   order: number;
-  /** 组件注册 ID */
-  registryId: string;
+  /** 环节类型（默认 RESOURCE） */
+  itemType?: LessonItemType;
+  /** 组件注册 ID（资源类环节） */
+  registryId?: string;
+  /** 知识节点 ID（知识卡片环节） */
+  knowledgeNodeId?: string;
   /** 资源类型（默认 INTERACTIVE_COMP） */
   resourceType?: ResourceType;
   /** 环节时长（分钟）*/

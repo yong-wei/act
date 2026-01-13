@@ -121,8 +121,17 @@ export const CRUISE_COMFORT_PRESET: PresetLessonConfig = {
     {
       stage: 'PARTICIPATORY',
       order: 1,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-iso-2631',
+      duration: 2,
+      title: '知识卡片：ISO 2631 舒适度标准',
+      description: '了解人体全身振动评价的基准。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 2,
       registryId: 'lesson13-iso2631-mapping',
-      duration: 5,
+      duration: 3,
       title: 'ISO 2631 舒适度映射',
       description: '学习控制指标与用户体验后果的对应关系',
       config: {
@@ -132,10 +141,19 @@ export const CRUISE_COMFORT_PRESET: PresetLessonConfig = {
     },
     {
       stage: 'PARTICIPATORY',
-      order: 2,
+      order: 3,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-multi-constraint-pid',
+      duration: 3,
+      title: '知识卡片：多约束 PID 设计',
+      description: '在速度、舒适与安全之间做控制权衡。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 4,
       registryId: 'lesson13-cruise-typhoon-sim',
       resourceType: ResourceType.SIMULATION_APP,
-      duration: 25,
+      duration: 22,
       title: '香槟塔保卫战',
       description: '在台风避障场景中调节PID参数，保护香槟塔不倒',
       config: {

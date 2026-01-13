@@ -190,37 +190,44 @@ function StageSection({ stage, items }: StageSectionProps) {
 
       {/* 环节列表 */}
       <div className="ml-5 space-y-2 border-l-2 border-slate-700 pl-4">
-        {items.map((item, index) => (
-          <div
-            key={`${item.stage}-${item.order}`}
-            className="rounded-lg border border-slate-700 bg-slate-800/50 p-3 transition-colors hover:border-slate-600"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-700 text-xs text-slate-300">
-                    {index + 1}
-                  </span>
-                  <h5 className="font-medium text-white">{item.title}</h5>
+        {items.map((item, index) => {
+          const isKnowledge = item.itemType === 'KNOWLEDGE_NODE' || !!item.knowledgeNodeId;
+          const itemLabel = isKnowledge
+            ? `knowledge:${item.knowledgeNodeId ?? 'unknown'}`
+            : item.registryId ?? 'unknown-resource';
+
+          return (
+            <div
+              key={`${item.stage}-${item.order}`}
+              className="rounded-lg border border-slate-700 bg-slate-800/50 p-3 transition-colors hover:border-slate-600"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-700 text-xs text-slate-300">
+                      {index + 1}
+                    </span>
+                    <h5 className="font-medium text-white">{item.title}</h5>
+                  </div>
+                  {item.description && (
+                    <p className="mt-1 text-sm text-slate-400 ml-7">{item.description}</p>
+                  )}
                 </div>
-                {item.description && (
-                  <p className="mt-1 text-sm text-slate-400 ml-7">{item.description}</p>
-                )}
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Clock className="h-3.5 w-3.5" />
+                  {item.duration}分钟
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <Clock className="h-3.5 w-3.5" />
-                {item.duration}分钟
+              {/* 组件类型标识 */}
+              <div className="mt-2 ml-7">
+                <span className="inline-flex items-center gap-1 rounded-md bg-slate-700/50 px-2 py-0.5 text-xs text-slate-400">
+                  <Layers className="h-3 w-3" />
+                  {itemLabel}
+                </span>
               </div>
             </div>
-            {/* 组件类型标识 */}
-            <div className="mt-2 ml-7">
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-700/50 px-2 py-0.5 text-xs text-slate-400">
-                <Layers className="h-3 w-3" />
-                {item.registryId}
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

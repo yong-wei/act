@@ -101,6 +101,262 @@ const KNOWLEDGE_NODES = [
     tags: ['lesson-05', 'pid', 'controller']
   },
 
+  // Lesson 02: 机理建模（机电类比）
+  {
+    id: 'node-electromechanical-analogy',
+    name: '机电类比映射',
+    filename: 'electromechanical-analogy.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '机械系统与电气系统在数学形式上的对偶关系。',
+    position: { x: 20, y: 0, z: 5 },
+    tags: ['lesson-02', 'analogy', 'modeling']
+  },
+
+  // Lesson 06: 指标裁判席
+  {
+    id: 'node-time-domain-metrics',
+    name: '时域性能指标',
+    filename: 'time-domain-metrics.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '上升时间、超调量与调节时间等指标用于评价响应。',
+    position: { x: 40, y: 5, z: 5 },
+    tags: ['lesson-06', 'time-domain', 'metrics']
+  },
+  {
+    id: 'node-metric-judgement',
+    name: '指标裁判规则',
+    filename: 'metric-judgement.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'PROCEDURAL',
+    description: '将速度、稳定与精度转化为可解释的评分逻辑。',
+    position: { x: 50, y: 5, z: 5 },
+    tags: ['lesson-06', 'assessment', 'metrics']
+  },
+
+  // Lesson 07: 欠阻尼二阶系统
+  {
+    id: 'node-second-order-classification',
+    name: '二阶系统标准型与分类',
+    filename: 'second-order-classification.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '通过阻尼比划分欠阻尼、临界阻尼与过阻尼。',
+    position: { x: 35, y: 20, z: 5 },
+    tags: ['lesson-07', 'second-order', 'classification']
+  },
+  {
+    id: 'node-second-order-standard-form',
+    name: '标准二阶系统参数',
+    filename: 'second-order-standard-form.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '阻尼比与自然频率决定二阶系统响应形态。',
+    position: { x: 45, y: 20, z: 5 },
+    tags: ['lesson-07', 'second-order', 'standard-form']
+  },
+  {
+    id: 'node-damping-wn-tradeoff',
+    name: '阻尼比与自然频率权衡',
+    filename: 'damping-wn-tradeoff.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'PROCEDURAL',
+    description: '响应速度与超调之间的折中关系。',
+    position: { x: 50, y: 25, z: 5 },
+    tags: ['lesson-07', 'time-domain', 'tradeoff']
+  },
+
+  // Lesson 08: 稳定性与稳态误差
+  {
+    id: 'node-stability-concept',
+    name: '稳定性的概念',
+    filename: 'stability-concept.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '用极点位置区分稳定、临界稳定与不稳定。',
+    position: { x: 60, y: 10, z: 5 },
+    tags: ['lesson-08', 'stability']
+  },
+  {
+    id: 'node-routh-criterion',
+    name: '劳斯判据',
+    filename: 'routh-criterion.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '通过劳斯表首列符号判断稳定性。',
+    position: { x: 70, y: 10, z: 5 },
+    tags: ['lesson-08', 'routh', 'stability']
+  },
+  {
+    id: 'node-routh-special-cases',
+    name: '劳斯判据特殊情况',
+    filename: 'routh-special-cases.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '首项为零与全零行的处理方法。',
+    position: { x: 80, y: 10, z: 5 },
+    tags: ['lesson-08', 'routh', 'special-cases']
+  },
+  {
+    id: 'node-routh-table-construction',
+    name: '劳斯表构造',
+    filename: 'routh-table-construction.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '劳斯表的填表规则与递推公式。',
+    position: { x: 70, y: 20, z: 5 },
+    tags: ['lesson-08', 'routh', 'table']
+  },
+  {
+    id: 'node-steady-error-flow',
+    name: '稳态误差计算流程',
+    filename: 'steady-error-flow.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '从误差传递函数到终值定理的计算路径。',
+    position: { x: 60, y: 20, z: 5 },
+    tags: ['lesson-08', 'steady-error']
+  },
+  {
+    id: 'node-static-error-coefficients',
+    name: '静态误差系数',
+    filename: 'static-error-coefficients.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: 'Kp/Kv/Ka 与系统型别的对应关系。',
+    position: { x: 50, y: 20, z: 5 },
+    tags: ['lesson-08', 'steady-error', 'coefficients']
+  },
+
+  // Lesson 09: 校正与时域综合
+  {
+    id: 'node-pd-vs-velocity-feedback',
+    name: 'PD 与输出微分反馈',
+    filename: 'pd-vs-velocity-feedback.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '比较串联 PD 与输出反馈的阻尼改善路径。',
+    position: { x: 70, y: 30, z: 8 },
+    tags: ['lesson-09', 'correction', 'pd']
+  },
+  {
+    id: 'node-pid-tuning-strategy',
+    name: 'PID 参数整定直觉',
+    filename: 'pid-tuning-strategy.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '理解 Kp/Ki/Kd 对响应指标的典型影响。',
+    position: { x: 80, y: 30, z: 8 },
+    tags: ['lesson-09', 'pid', 'tuning']
+  },
+  {
+    id: 'node-feedforward-disturbance',
+    name: '前馈补偿与扰动补偿',
+    filename: 'feedforward-disturbance.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '前馈补偿与扰动补偿的作用路径与差异。',
+    position: { x: 90, y: 30, z: 8 },
+    tags: ['lesson-09', 'compensation', 'feedforward']
+  },
+  {
+    id: 'node-time-domain-tradeoff',
+    name: '时域性能权衡',
+    filename: 'time-domain-tradeoff.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '速度、超调与稳态误差之间的权衡关系。',
+    position: { x: 80, y: 35, z: 8 },
+    tags: ['lesson-09', 'time-domain', 'tradeoff']
+  },
+  {
+    id: 'node-time-domain-synthesis',
+    name: '时域综合流程',
+    filename: 'time-domain-synthesis.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '从稳定范围到场景验证的时域综合步骤。',
+    position: { x: 90, y: 35, z: 8 },
+    tags: ['lesson-09', 'synthesis', 'time-domain']
+  },
+
+  // Lesson 10: 根轨迹法
+  {
+    id: 'node-root-locus-definition',
+    name: '根轨迹定义与起终点',
+    filename: 'root-locus-definition.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '根轨迹描述闭环极点随参数变化的轨迹。',
+    position: { x: 100, y: 10, z: 10 },
+    tags: ['lesson-10', 'root-locus']
+  },
+  {
+    id: 'node-root-locus-conditions',
+    name: '根轨迹条件',
+    filename: 'root-locus-conditions.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '模值条件与相角条件用于确定轨迹上的点。',
+    position: { x: 110, y: 10, z: 10 },
+    tags: ['lesson-10', 'root-locus', 'conditions']
+  },
+  {
+    id: 'node-root-locus-rules',
+    name: '根轨迹基本法则',
+    filename: 'root-locus-rules.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '分支数、实轴段与渐近线等绘制规则。',
+    position: { x: 110, y: 20, z: 10 },
+    tags: ['lesson-10', 'root-locus', 'rules']
+  },
+  {
+    id: 'node-root-locus-detail-corrections',
+    name: '分离点与出射角',
+    filename: 'root-locus-detail-corrections.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'PROCEDURAL',
+    description: '定位分离点与复极点出射角等细节。',
+    position: { x: 120, y: 20, z: 10 },
+    tags: ['lesson-10', 'root-locus', 'details']
+  },
+
+  // Lesson 13: 豪华邮轮舒适度控制
+  {
+    id: 'node-multi-constraint-pid',
+    name: '多约束 PID 设计',
+    filename: 'multi-constraint-pid.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'EVALUATE',
+    knowledgeDim: 'METACOGNITIVE',
+    description: '在速度、舒适与安全之间进行控制权衡。',
+    position: { x: 15, y: 5, z: 15 },
+    tags: ['lesson-13', 'pid', 'comfort']
+  },
+
   // Lesson 13: 豪华邮轮舒适度控制（已有，更新 resources）
   {
     id: 'node-iso-2631',
@@ -185,7 +441,41 @@ const KNOWLEDGE_LINKS = [
 
   // 跨课程关系
   { sourceId: 'node-pid-controller', targetId: 'node-fin-stabilizer', relation: 'related' },
-  { sourceId: 'node-transfer-function', targetId: 'node-roll-damping', relation: 'related' }
+  { sourceId: 'node-transfer-function', targetId: 'node-roll-damping', relation: 'related' },
+
+  // Lesson 02 机电类比
+  { sourceId: 'node-newton-laws', targetId: 'node-electromechanical-analogy', relation: 'related' },
+  { sourceId: 'node-kvl-circuit', targetId: 'node-electromechanical-analogy', relation: 'related' },
+
+  // Lesson 06 指标裁判席
+  { sourceId: 'node-time-domain-metrics', targetId: 'node-metric-judgement', relation: 'follows' },
+
+  // Lesson 07 欠阻尼二阶系统
+  { sourceId: 'node-second-order-classification', targetId: 'node-second-order-standard-form', relation: 'prerequisite' },
+  { sourceId: 'node-second-order-standard-form', targetId: 'node-time-domain-metrics', relation: 'related' },
+  { sourceId: 'node-damping-wn-tradeoff', targetId: 'node-time-domain-metrics', relation: 'related' },
+
+  // Lesson 08 稳定性与稳态误差
+  { sourceId: 'node-stability-concept', targetId: 'node-routh-criterion', relation: 'prerequisite' },
+  { sourceId: 'node-routh-criterion', targetId: 'node-routh-table-construction', relation: 'follows' },
+  { sourceId: 'node-routh-criterion', targetId: 'node-routh-special-cases', relation: 'related' },
+  { sourceId: 'node-steady-error-flow', targetId: 'node-static-error-coefficients', relation: 'follows' },
+
+  // Lesson 09 校正与时域综合
+  { sourceId: 'node-pd-vs-velocity-feedback', targetId: 'node-pid-tuning-strategy', relation: 'related' },
+  { sourceId: 'node-feedforward-disturbance', targetId: 'node-time-domain-synthesis', relation: 'related' },
+  { sourceId: 'node-time-domain-tradeoff', targetId: 'node-time-domain-synthesis', relation: 'related' },
+
+  // Lesson 10 根轨迹法
+  { sourceId: 'node-transfer-function', targetId: 'node-root-locus-definition', relation: 'prerequisite' },
+  { sourceId: 'node-root-locus-definition', targetId: 'node-root-locus-conditions', relation: 'prerequisite' },
+  { sourceId: 'node-root-locus-definition', targetId: 'node-root-locus-rules', relation: 'follows' },
+  { sourceId: 'node-root-locus-rules', targetId: 'node-root-locus-detail-corrections', relation: 'follows' },
+  { sourceId: 'node-routh-criterion', targetId: 'node-root-locus-detail-corrections', relation: 'related' },
+
+  // Lesson 13 舒适度控制
+  { sourceId: 'node-pid-controller', targetId: 'node-multi-constraint-pid', relation: 'related' },
+  { sourceId: 'node-iso-2631', targetId: 'node-multi-constraint-pid', relation: 'influences' }
 ];
 
 // ============================================================================

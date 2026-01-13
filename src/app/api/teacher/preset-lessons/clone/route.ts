@@ -43,6 +43,39 @@ export async function POST(request: Request) {
     const itemsToCreate = [];
 
     for (const item of preset.items) {
+      const isKnowledgeNode = item.itemType === LessonItemType.KNOWLEDGE_NODE || !!item.knowledgeNodeId;
+
+      if (isKnowledgeNode) {
+        if (!item.knowledgeNodeId) {
+          throw new Error(`Knowledge node id missing for preset item: ${item.title}`);
+        }
+        const knowledgeNode = await prisma.knowledgeNode.findUnique({
+          where: { id: item.knowledgeNodeId },
+          select: { id: true },
+        });
+        if (!knowledgeNode) {
+          throw new Error(`Knowledge node not found: ${item.knowledgeNodeId}`);
+        }
+
+        itemsToCreate.push({
+          itemType: LessonItemType.KNOWLEDGE_NODE,
+          knowledgeNodeId: item.knowledgeNodeId,
+          stage: item.stage as BopppsStage,
+          order: item.order,
+          duration: item.duration,
+          overrideConfig: {
+            titleOverride: item.title,
+            descriptionOverride: item.description,
+            ...((item.config || {}) as object),
+          },
+        });
+        continue;
+      }
+
+      if (!item.registryId) {
+        throw new Error(`RegistryId missing for preset item: ${item.title}`);
+      }
+
       // 尝试查找已有的资源
       let resource = await prisma.teachingResource.findFirst({
         where: { registryId: item.registryId },
