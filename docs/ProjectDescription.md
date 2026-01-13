@@ -9,6 +9,8 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
 📅 **最后更新**：2026-01-13
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
+🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教室工作台”入口（`http://localhost:3001/teacher`）
+🧠 **知识点同步**：启动脚本默认执行 `npm run seed:knowledge`，确保预置教案克隆所需 KnowledgeNode 已补齐
 🚀 **部署方式**：本地开发 + Docker 容器化部署
 
 ## 3. 核心功能模块
@@ -142,6 +144,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **Lesson 08 稳定性与稳态误差**：基于稳定判据与误差度量的 90 分钟预置教案，涵盖劳斯判据、终值定理与静态误差系数互动环节
 - **Lesson 09 校正与时域综合**：基于校正手段与航向系统案例的 90 分钟预置教案，覆盖 PD/输出反馈、前馈/扰动补偿与时域综合验证
 - **Lesson 10 根轨迹法**：根轨迹大局与细节修正的 90 分钟预置教案，涵盖模值/相角条件、分离点、渐近线与出射角挑战
+- **Lesson 12 频率特性与伯德图**：频率响应与伯德图的 90 分钟预置教案，覆盖对数频率特性、斜率叠加绘图与读图反推传函
 - **知识卡片嵌入**：所有预置教案在参与式环节补齐知识卡片，并与知识图谱节点绑定，支持课堂内讲授与后续互动巩固
 
 ### 3.13 管理员后台 (Admin) ✅

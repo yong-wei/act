@@ -226,6 +226,37 @@ const Lesson10RootLocusWorkshop = dynamic(
     { ssr: false, loading: loadingFallback('根轨迹规则工作坊') }
 );
 
+// Lesson-12 组件
+const Lesson12FrequencyPrecheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-12/frequency-precheck'),
+    { ssr: false, loading: loadingFallback('频率响应速判') }
+);
+
+const Lesson12BodeStepSorter = dynamic(
+    () => import('@/resources/interactive-learning/lesson-12/bode-step-sorter'),
+    { ssr: false, loading: loadingFallback('伯德图绘制步骤') }
+);
+
+const Lesson12BodeSlopePuzzle = dynamic(
+    () => import('@/resources/interactive-learning/lesson-12/bode-slope-puzzle'),
+    { ssr: false, loading: loadingFallback('斜率叠加拼图') }
+);
+
+const Lesson12BodePlotRecognition = dynamic(
+    () => import('@/resources/interactive-learning/lesson-12/bode-plot-recognition'),
+    { ssr: false, loading: loadingFallback('伯德图识别练习') }
+);
+
+const Lesson12BodePostQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-12/bode-post-quiz'),
+    { ssr: false, loading: loadingFallback('伯德图后测') }
+);
+
+const Lesson12SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-12/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
 // 课堂组件
 const ClassroomVideoComponent = dynamic(
     () => import('@/components/classroom').then(mod => mod.VideoComponent),
@@ -534,6 +565,43 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: '根轨迹规则工作坊',
         type: 'INTERACTIVE_COMP',
         component: Lesson10RootLocusWorkshop
+    },
+    // Lesson-12 组件
+    'lesson12-frequency-precheck': {
+        id: 'lesson12-frequency-precheck',
+        label: '频率响应速判',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson12FrequencyPrecheck
+    },
+    'lesson12-bode-step-sorter': {
+        id: 'lesson12-bode-step-sorter',
+        label: '伯德图绘制步骤',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson12BodeStepSorter
+    },
+    'lesson12-bode-slope-puzzle': {
+        id: 'lesson12-bode-slope-puzzle',
+        label: '斜率叠加拼图',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson12BodeSlopePuzzle
+    },
+    'lesson12-bode-plot-recognition': {
+        id: 'lesson12-bode-plot-recognition',
+        label: '伯德图识别练习',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson12BodePlotRecognition
+    },
+    'lesson12-bode-post-quiz': {
+        id: 'lesson12-bode-post-quiz',
+        label: '伯德图后测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson12BodePostQuiz
+    },
+    'lesson12-summary-card': {
+        id: 'lesson12-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson12SummaryCard
     },
     // 课堂组件（教师专用）
     'classroom-video': {

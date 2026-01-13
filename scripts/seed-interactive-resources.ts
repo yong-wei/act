@@ -298,7 +298,60 @@ const INTERACTIVE_RESOURCES = [
   },
 
   // ===== 频域分析 =====
-  // (暂无组件)
+  {
+    registryId: 'lesson12-frequency-precheck',
+    title: '频率响应速判',
+    displayName: '频率响应速判',
+    description: '快速检测频率响应与对数坐标基础概念',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.FREQUENCY_DOMAIN,
+    displayOrder: 1,
+  },
+  {
+    registryId: 'lesson12-bode-step-sorter',
+    title: '伯德图绘制步骤',
+    displayName: '伯德图绘制步骤',
+    description: '梳理伯德图绘制流程与顺序',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.FREQUENCY_DOMAIN,
+    displayOrder: 2,
+  },
+  {
+    registryId: 'lesson12-bode-slope-puzzle',
+    title: '斜率叠加拼图',
+    displayName: '斜率叠加拼图',
+    description: '拖拽斜率卡片完成转折频率分段叠加',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.FREQUENCY_DOMAIN,
+    displayOrder: 3,
+  },
+  {
+    registryId: 'lesson12-bode-plot-recognition',
+    title: '伯德图识别练习',
+    displayName: '伯德图识别练习',
+    description: '根据幅频曲线识别典型环节与共振峰',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.FREQUENCY_DOMAIN,
+    displayOrder: 4,
+  },
+  {
+    registryId: 'lesson12-bode-post-quiz',
+    title: '伯德图后测',
+    displayName: '伯德图后测',
+    description: '复盘绘图步骤与斜率叠加关键点',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.FREQUENCY_DOMAIN,
+    displayOrder: 5,
+  },
+  {
+    registryId: 'lesson12-summary-card',
+    title: '课程总结',
+    displayName: '课程总结',
+    description: '总结频率响应与伯德图核心结论',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.FREQUENCY_DOMAIN,
+    displayOrder: 6,
+  },
 
   // ===== 系统校正 =====
   {
@@ -528,6 +581,36 @@ const STATIC_MEDIA_RESOURCES = [
     category: InteractiveCategory.ROOT_LOCUS,
     displayOrder: 6,
     content: '/assets/lesson-10/root-locus-detail-corrections.svg',
+  },
+  {
+    registryId: 'lesson12-static-roadmap',
+    title: '课程路线图：频率特性与伯德图',
+    displayName: '课程路线图：频率特性与伯德图',
+    description: '展示频率响应与伯德图绘制的学习主线',
+    type: ResourceType.STATIC_MEDIA,
+    category: InteractiveCategory.FREQUENCY_DOMAIN,
+    displayOrder: 1,
+    content: '/assets/lesson-12/roadmap-frequency-bode.svg',
+  },
+  {
+    registryId: 'lesson12-static-frequency-response',
+    title: '频率响应定义',
+    displayName: '频率响应定义',
+    description: '正弦稳态响应下的幅值与相位关系',
+    type: ResourceType.STATIC_MEDIA,
+    category: InteractiveCategory.FREQUENCY_DOMAIN,
+    displayOrder: 2,
+    content: '/assets/lesson-12/frequency-response-overview.svg',
+  },
+  {
+    registryId: 'lesson12-static-bode-steps',
+    title: '伯德图绘制步骤',
+    displayName: '伯德图绘制步骤',
+    description: '近似叠加绘图流程与斜率变化示意',
+    type: ResourceType.STATIC_MEDIA,
+    category: InteractiveCategory.FREQUENCY_DOMAIN,
+    displayOrder: 3,
+    content: '/assets/lesson-12/bode-steps-overlay.svg',
   },
 ];
 

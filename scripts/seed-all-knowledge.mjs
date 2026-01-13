@@ -344,6 +344,74 @@ const KNOWLEDGE_NODES = [
     tags: ['lesson-10', 'root-locus', 'details']
   },
 
+  // Lesson 12: 频率特性与伯德图
+  {
+    id: 'node-frequency-response-definition',
+    name: '频率响应的定义',
+    filename: 'frequency-response-definition.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '正弦输入稳态响应下的幅值比与相位差。',
+    position: { x: 130, y: 8, z: 12 },
+    tags: ['lesson-12', 'frequency-response', 'bode']
+  },
+  {
+    id: 'node-bode-log-scale',
+    name: 'Bode 图与对数坐标',
+    filename: 'bode-log-scale.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '对数频率与分贝坐标让斜率叠加更直观。',
+    position: { x: 140, y: 14, z: 12 },
+    tags: ['lesson-12', 'bode', 'log-scale']
+  },
+  {
+    id: 'node-typical-link-slopes',
+    name: '典型环节斜率规律',
+    filename: 'bode-typical-slopes.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '零极点对斜率的贡献可直接叠加。',
+    position: { x: 150, y: 18, z: 12 },
+    tags: ['lesson-12', 'bode', 'slope']
+  },
+  {
+    id: 'node-bode-approx-steps',
+    name: '伯德图绘制步骤',
+    filename: 'bode-approx-steps.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '尾 1 标准型 → 转折频率 → 叠加作图 → 修正。',
+    position: { x: 160, y: 22, z: 12 },
+    tags: ['lesson-12', 'bode', 'workflow']
+  },
+  {
+    id: 'node-resonance-peak',
+    name: '振荡环节与谐振峰',
+    filename: 'resonance-peak.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '欠阻尼二阶系统在共振频率附近出现峰值。',
+    position: { x: 170, y: 18, z: 12 },
+    tags: ['lesson-12', 'bode', 'resonance']
+  },
+  {
+    id: 'node-bode-from-plot',
+    name: '根据伯德图反推传函',
+    filename: 'bode-from-plot.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'PROCEDURAL',
+    description: '根据斜率变化与转折频率推断零极点结构。',
+    position: { x: 180, y: 22, z: 12 },
+    tags: ['lesson-12', 'bode', 'identification']
+  },
+
   // Lesson 13: 豪华邮轮舒适度控制
   {
     id: 'node-multi-constraint-pid',
@@ -472,6 +540,13 @@ const KNOWLEDGE_LINKS = [
   { sourceId: 'node-root-locus-definition', targetId: 'node-root-locus-rules', relation: 'follows' },
   { sourceId: 'node-root-locus-rules', targetId: 'node-root-locus-detail-corrections', relation: 'follows' },
   { sourceId: 'node-routh-criterion', targetId: 'node-root-locus-detail-corrections', relation: 'related' },
+
+  // Lesson 12 频率特性与伯德图
+  { sourceId: 'node-frequency-response-definition', targetId: 'node-bode-log-scale', relation: 'follows' },
+  { sourceId: 'node-bode-log-scale', targetId: 'node-bode-approx-steps', relation: 'follows' },
+  { sourceId: 'node-bode-log-scale', targetId: 'node-typical-link-slopes', relation: 'related' },
+  { sourceId: 'node-typical-link-slopes', targetId: 'node-resonance-peak', relation: 'related' },
+  { sourceId: 'node-bode-approx-steps', targetId: 'node-bode-from-plot', relation: 'follows' },
 
   // Lesson 13 舒适度控制
   { sourceId: 'node-pid-controller', targetId: 'node-multi-constraint-pid', relation: 'related' },
