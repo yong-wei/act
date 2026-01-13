@@ -226,6 +226,22 @@ const Lesson10RootLocusWorkshop = dynamic(
     { ssr: false, loading: loadingFallback('根轨迹规则工作坊') }
 );
 
+// Lesson-11 组件
+const Lesson11ParameterRootLocusDeck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-11/parameter-root-locus-deck'),
+    { ssr: false, loading: loadingFallback('参数根轨迹知识卡') }
+);
+
+const Lesson11GraphicalThinkingWorkshop = dynamic(
+    () => import('@/resources/interactive-learning/lesson-11/graphical-thinking-workshop'),
+    { ssr: false, loading: loadingFallback('图形化思考工作坊') }
+);
+
+const Lesson11SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-11/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
 // Lesson-12 组件
 const Lesson12FrequencyPrecheck = dynamic(
     () => import('@/resources/interactive-learning/lesson-12/frequency-precheck'),
@@ -565,6 +581,25 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: '根轨迹规则工作坊',
         type: 'INTERACTIVE_COMP',
         component: Lesson10RootLocusWorkshop
+    },
+    // Lesson-11 组件
+    'lesson11-parameter-root-locus-deck': {
+        id: 'lesson11-parameter-root-locus-deck',
+        label: '参数根轨迹知识卡',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson11ParameterRootLocusDeck
+    },
+    'lesson11-graphical-thinking-workshop': {
+        id: 'lesson11-graphical-thinking-workshop',
+        label: '图形化思考工作坊',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson11GraphicalThinkingWorkshop
+    },
+    'lesson11-summary-card': {
+        id: 'lesson11-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson11SummaryCard
     },
     // Lesson-12 组件
     'lesson12-frequency-precheck': {

@@ -93,6 +93,18 @@ const CATEGORY_ORDER = [
   'FUN_EXPLORATION',
 ];
 
+const FEATURED_LESSONS = [
+  {
+    id: 'lesson-11',
+    title: '参数根轨迹与图形化思考',
+    description: '90 分钟线下课程：广义定义、稳定范围与主导极点选择。',
+    duration: '90 分钟',
+    href: '/interactive-learning/lesson-11',
+    badge: 'Lesson 11',
+    accent: 'violet',
+  },
+];
+
 // 颜色类
 const colorClasses: Record<string, {
   iconBg: string;
@@ -252,6 +264,42 @@ export default function InteractiveLearningPage() {
           </div>
         ) : (
           <div className="space-y-12">
+            {FEATURED_LESSONS.length > 0 && (
+              <section className="rounded-2xl border border-white/5 bg-slate-900/40 p-6">
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">线下课程入口</h2>
+                    <p className="text-sm text-slate-400">基于 BOPPPS 的 90 分钟课堂设计</p>
+                  </div>
+                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-400">
+                    最新课程
+                  </span>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {FEATURED_LESSONS.map((lesson) => (
+                    <Link
+                      key={lesson.id}
+                      href={lesson.href}
+                      className="group relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950/60 p-5 transition hover:border-violet-500/60"
+                    >
+                      <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-violet-500/10 blur-2xl" />
+                      <div className="flex items-center justify-between">
+                        <span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs text-violet-300">
+                          {lesson.badge}
+                        </span>
+                        <span className="text-xs text-slate-400">{lesson.duration}</span>
+                      </div>
+                      <h3 className="mt-4 text-lg font-semibold text-white">{lesson.title}</h3>
+                      <p className="mt-2 text-sm text-slate-400">{lesson.description}</p>
+                      <div className="mt-4 flex items-center text-xs text-violet-300">
+                        进入课程
+                        <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
             {CATEGORY_ORDER.map((categoryKey) => {
               const config = CATEGORY_CONFIG[categoryKey];
               const categoryResources = groupedResources[categoryKey] || [];

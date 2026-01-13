@@ -12,6 +12,7 @@
     "seed:demo": "node ./scripts/seed-demo-user.mjs",
     "seed:admin": "node ./scripts/seed-admin.mjs",
     "seed:missions": "node ./scripts/seed-missions.mjs",
+    "seed:knowledge": "node ./scripts/seed-all-knowledge.mjs",
     "seed:legacy": "node ./scripts/seed-legacy-content.mjs",
     "startup": "./scripts/start.sh",
     "shutdown": "./scripts/stop.sh",

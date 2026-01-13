@@ -7,5 +7,7 @@ export default async function TeacherNewLessonPlanPage() {
   if (!session) redirect('/login');
   if (session.user.role !== 'TEACHER') redirect('/');
 
-  return <OrchestratorBuilder />;
+  return (
+    <OrchestratorBuilder workbenchReturnUrl="http://localhost:3001/teacher" />
+  );
 }

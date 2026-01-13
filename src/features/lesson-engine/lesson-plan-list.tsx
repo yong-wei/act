@@ -1,9 +1,17 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BookOpen, Clock, MoreVertical, Play, Edit, Trash2, Loader2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface LessonPlanListProps {
   plans: any[];
@@ -27,6 +35,14 @@ function formatStableDate(value: string | Date) {
 export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', currentUserId }: LessonPlanListProps) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [visiblePlans, setVisiblePlans] = useState(plans);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    setVisiblePlans(plans);
+  }, [plans]);
 
   const startSession = async (planId: string) => {
     setLoadingId(planId);
@@ -50,9 +66,33 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
     }
   };
 
+  const handleDeleteConfirm = async () => {
+    if (!pendingDelete) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/lesson-plans/${pendingDelete.id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || res.statusText);
+      }
+      setVisiblePlans((prev) => prev.filter((plan) => plan.id !== pendingDelete.id));
+      setPendingDelete(null);
+      setMenuOpenId(null);
+      router.refresh();
+      alert('教案已删除');
+    } catch (error) {
+      console.error(error);
+      alert(`删除失败：${error instanceof Error ? error.message : '未知错误'}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {plans.map((plan) => {
+      {visiblePlans.map((plan) => {
         const isPreset = Boolean(plan.isPreset);
         const canEdit = !isPreset && (!currentUserId || plan.authorId === currentUserId);
         return (
@@ -64,9 +104,31 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
             <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
                <BookOpen className="h-5 w-5" />
             </div>
-            <button className="text-slate-500 hover:text-white p-1">
-              <MoreVertical className="h-5 w-5" />
-            </button>
+            {canEdit && (
+              <div className="relative">
+                <button
+                  onClick={() => setMenuOpenId(menuOpenId === plan.id ? null : plan.id)}
+                  className="text-slate-500 hover:text-white p-1"
+                  aria-label="更多操作"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </button>
+                {menuOpenId === plan.id && (
+                  <div className="absolute right-0 top-8 z-10 w-32 rounded-lg border border-slate-700 bg-slate-900 shadow-lg">
+                    <button
+                      onClick={() => {
+                        setPendingDelete(plan);
+                        setMenuOpenId(null);
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-rose-400 hover:bg-slate-800"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      删除教案
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <h3 className="text-lg font-semibold text-slate-200 group-hover:text-cyan-300 transition-colors mb-2">
@@ -115,6 +177,46 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
           </div>
         </div>
       )})}
+      {visiblePlans.length === 0 && plans.length > 0 && (
+        <div className="col-span-full rounded-xl border border-dashed border-slate-800 bg-slate-900/20 p-8 text-center text-slate-500">
+          当前没有可显示的教案。
+        </div>
+      )}
+      <Dialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDelete(null);
+            setIsDeleting(false);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>删除教案</DialogTitle>
+            <DialogDescription>
+              确认删除“{pendingDelete?.title}”？此操作无法撤销。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex flex-row justify-end gap-3">
+            <button
+              onClick={() => setPendingDelete(null)}
+              className="rounded-lg border border-slate-700 px-4 py-2 text-xs text-slate-300 hover:bg-slate-800"
+              disabled={isDeleting}
+            >
+              取消
+            </button>
+            <button
+              onClick={handleDeleteConfirm}
+              className="inline-flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-xs text-white disabled:opacity-70"
+              disabled={isDeleting}
+            >
+              {isDeleting ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+              确认删除
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

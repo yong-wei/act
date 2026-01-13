@@ -2,9 +2,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  BookOpen, Code, FileText, Video, Save, Trash2, Layout, Search, GripVertical, Eye,
+  ArrowLeft, BookOpen, Code, FileText, Video, Save, Trash2, Layout, Search, GripVertical, Eye,
   Boxes, Activity, GitBranch, Radio, Sliders, Shuffle, Sparkles, Presentation, Filter, Pencil
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -91,6 +92,7 @@ interface OrchestratorBuilderProps {
     items: any[];
   };
   returnPath?: string; // 保存后跳转路径，默认根据当前路径判断
+  workbenchReturnUrl?: string;
 }
 
 // SortableItem component for drag-and-drop reordering
@@ -184,7 +186,11 @@ function SortableItem({ item, idx, onRemove, onDurationChange, onEdit }: Sortabl
   );
 }
 
-export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBuilderProps) {
+export function OrchestratorBuilder({
+  initialData,
+  returnPath,
+  workbenchReturnUrl,
+}: OrchestratorBuilderProps) {
   const router = useRouter();
   const [resources, setResources] = useState<ExtendedTeachingResource[]>([]);
   const [knowledgeNodes, setKnowledgeNodes] = useState<KnowledgeNodeData[]>([]);
@@ -492,6 +498,15 @@ export function OrchestratorBuilder({ initialData, returnPath }: OrchestratorBui
         {/* Left: Resource Library */}
         <div className="w-80 border-r border-slate-800 flex flex-col bg-slate-900/50">
             <div className="p-4 border-b border-slate-800 space-y-3">
+                {workbenchReturnUrl && (
+                  <Link
+                    href={workbenchReturnUrl}
+                    className="inline-flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-cyan-400"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    返回教室工作台
+                  </Link>
+                )}
                 <h2 className="font-bold flex items-center gap-2">
                     <BookOpen className="h-5 w-5 text-cyan-400" />
                     资源库

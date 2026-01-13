@@ -30,11 +30,11 @@ export default async function TeacherLessonPlansPage() {
         <div className="flex items-center justify-between border-b border-slate-800 pb-6">
           <div>
             <Link
-              href="/teacher"
+              href="http://localhost:3001/teacher"
               className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-cyan-400 transition-colors mb-3"
             >
               <ArrowLeft className="h-4 w-4" />
-              返回教师工作台
+              返回教室工作台
             </Link>
             <h1 className="text-2xl font-bold flex items-center gap-3 text-white">
               <BookOpen className="h-8 w-8 text-cyan-400" />
