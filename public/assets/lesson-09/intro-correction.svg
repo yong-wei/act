@@ -1,0 +1,22 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a" />
+      <stop offset="1" stop-color="#111827" />
+    </linearGradient>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f97316" />
+      <stop offset="1" stop-color="#38bdf8" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" rx="36" fill="url(#bg)" />
+  <path
+    d="M 120 470 C 220 360, 320 330, 420 360 C 520 390, 620 440, 720 430 C 820 420, 920 380, 1080 320"
+    stroke="url(#wave)"
+    stroke-width="8"
+    fill="none"
+  />
+  <text x="120" y="170" fill="#e2e8f0" font-size="40" font-family="Arial" font-weight="bold">校正与时域综合</text>
+  <text x="120" y="220" fill="#94a3b8" font-size="22" font-family="Arial">实现控制的手段 · 性能验证的路径</text>
+  <text x="120" y="260" fill="#64748b" font-size="16" font-family="Arial">Lesson 09 · 线下课堂导入</text>
+</svg>

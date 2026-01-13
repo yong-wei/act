@@ -168,6 +168,37 @@ const Lesson07SummaryCard = dynamic(
     { ssr: false, loading: loadingFallback('课程总结') }
 );
 
+// Lesson-08 组件
+const Lesson08StabilityPrecheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-08/stability-precheck'),
+    { ssr: false, loading: loadingFallback('稳定与误差前测') }
+);
+
+const Lesson08RouthGuide = dynamic(
+    () => import('@/resources/interactive-learning/lesson-08/routh-guide'),
+    { ssr: false, loading: loadingFallback('劳斯判据速览') }
+);
+
+const Lesson08RouthPractice = dynamic(
+    () => import('@/resources/interactive-learning/lesson-08/routh-practice'),
+    { ssr: false, loading: loadingFallback('劳斯判据练习') }
+);
+
+const Lesson08SteadyErrorDeck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-08/steady-error-deck'),
+    { ssr: false, loading: loadingFallback('稳态误差知识卡') }
+);
+
+const Lesson08PostQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-08/post-quiz'),
+    { ssr: false, loading: loadingFallback('稳定与误差后测') }
+);
+
+const Lesson08SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-08/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
 // 课堂组件
 const ClassroomVideoComponent = dynamic(
     () => import('@/components/classroom').then(mod => mod.VideoComponent),
@@ -407,6 +438,43 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: '课程总结',
         type: 'INTERACTIVE_COMP',
         component: Lesson07SummaryCard
+    },
+    // Lesson-08 组件
+    'lesson08-stability-precheck': {
+        id: 'lesson08-stability-precheck',
+        label: '稳定与误差前测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson08StabilityPrecheck
+    },
+    'lesson08-routh-guide': {
+        id: 'lesson08-routh-guide',
+        label: '劳斯判据速览',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson08RouthGuide
+    },
+    'lesson08-routh-practice': {
+        id: 'lesson08-routh-practice',
+        label: '劳斯判据练习',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson08RouthPractice
+    },
+    'lesson08-steady-error-deck': {
+        id: 'lesson08-steady-error-deck',
+        label: '稳态误差知识卡',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson08SteadyErrorDeck
+    },
+    'lesson08-post-quiz': {
+        id: 'lesson08-post-quiz',
+        label: '稳定与误差后测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson08PostQuiz
+    },
+    'lesson08-summary-card': {
+        id: 'lesson08-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson08SummaryCard
     },
     // 课堂组件（教师专用）
     'classroom-video': {

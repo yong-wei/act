@@ -1,0 +1,29 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220" />
+      <stop offset="1" stop-color="#1f2937" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" rx="32" fill="url(#bg)" />
+
+  <text x="80" y="115" fill="#e2e8f0" font-size="34" font-family="Arial" font-weight="bold">比例-微分控制 vs 输出微分反馈</text>
+  <text x="80" y="155" fill="#94a3b8" font-size="18" font-family="Arial">两种“增阻尼”方式，零点与结构差异决定响应特征</text>
+
+  <rect x="80" y="210" width="500" height="380" rx="24" fill="#0f172a" stroke="#1f2937" />
+  <rect x="620" y="210" width="500" height="380" rx="24" fill="#0f172a" stroke="#1f2937" />
+
+  <text x="120" y="260" fill="#38bdf8" font-size="22" font-family="Arial" font-weight="bold">比例-微分控制 (PD)</text>
+  <text x="120" y="300" fill="#94a3b8" font-size="16" font-family="Arial">• 增大阻尼比 → 超调减小</text>
+  <text x="120" y="335" fill="#94a3b8" font-size="16" font-family="Arial">• 引入零点 → 响应更快</text>
+  <text x="120" y="370" fill="#94a3b8" font-size="16" font-family="Arial">• 自然频率 ωn 基本不变</text>
+  <text x="120" y="410" fill="#64748b" font-size="14" font-family="Arial">适合追求速度与稳定的平衡</text>
+
+  <text x="660" y="260" fill="#22c55e" font-size="22" font-family="Arial" font-weight="bold">输出微分反馈</text>
+  <text x="660" y="300" fill="#94a3b8" font-size="16" font-family="Arial">• 增大阻尼比 → 超调减小</text>
+  <text x="660" y="335" fill="#94a3b8" font-size="16" font-family="Arial">• 不增加零点 → 结构更简洁</text>
+  <text x="660" y="370" fill="#94a3b8" font-size="16" font-family="Arial">• 自然频率 ωn 基本不变</text>
+  <text x="660" y="410" fill="#64748b" font-size="14" font-family="Arial">适合不想引入零点的系统</text>
+
+  <text x="80" y="620" fill="#64748b" font-size="14" font-family="Arial">结论：两者都能“增阻尼”，差异在“零点”与结构实现。</text>
+</svg>
