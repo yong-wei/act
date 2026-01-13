@@ -412,6 +412,96 @@ const KNOWLEDGE_NODES = [
     tags: ['lesson-12', 'bode', 'identification']
   },
 
+  // Lesson 13: 幅相特性与稳定判据
+  {
+    id: 'node-nyquist-definition',
+    name: '开环幅相特性定义',
+    filename: 'nyquist-definition.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '开环频率响应在复平面形成的极坐标轨迹。',
+    position: { x: 190, y: 8, z: 14 },
+    tags: ['lesson-13', 'nyquist', 'frequency-domain']
+  },
+  {
+    id: 'node-nyquist-start-end',
+    name: '起点与终点',
+    filename: 'nyquist-start-end.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'REMEMBER',
+    knowledgeDim: 'FACTUAL',
+    description: '低频起点与高频终点决定曲线的总体走向。',
+    position: { x: 200, y: 10, z: 14 },
+    tags: ['lesson-13', 'nyquist', 'feature-points']
+  },
+  {
+    id: 'node-nyquist-crossing',
+    name: '负实轴交点与穿越频率',
+    filename: 'nyquist-crossing.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'PROCEDURAL',
+    description: '相位穿越频率与幅值穿越频率共同决定负实轴交点。',
+    position: { x: 210, y: 12, z: 14 },
+    tags: ['lesson-13', 'nyquist', 'crossing']
+  },
+  {
+    id: 'node-nyquist-feature-points',
+    name: '特征点求法',
+    filename: 'nyquist-feature-points.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '通过实部/虚部分析锁定交点并判断轨迹趋势。',
+    position: { x: 220, y: 14, z: 14 },
+    tags: ['lesson-13', 'nyquist', 'feature-points']
+  },
+  {
+    id: 'node-nyquist-sketch-steps',
+    name: '概略绘制步骤',
+    filename: 'nyquist-sketch-steps.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '求频响、找特征点、概略连线三步完成草图。',
+    position: { x: 230, y: 16, z: 14 },
+    tags: ['lesson-13', 'nyquist', 'workflow']
+  },
+  {
+    id: 'node-argument-principle',
+    name: '幅角原理',
+    filename: 'argument-principle.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '映射曲线的旋转圈数与零极点数量相关。',
+    position: { x: 240, y: 18, z: 14 },
+    tags: ['lesson-13', 'nyquist', 'theory']
+  },
+  {
+    id: 'node-nyquist-criterion',
+    name: '奈奎斯特稳定判据',
+    filename: 'nyquist-criterion.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '根据包围 -1 点次数判断闭环稳定性。',
+    position: { x: 250, y: 20, z: 14 },
+    tags: ['lesson-13', 'nyquist', 'stability']
+  },
+  {
+    id: 'node-log-stability-criterion',
+    name: '对数稳定判据',
+    filename: 'log-stability-criterion.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'EVALUATE',
+    knowledgeDim: 'PROCEDURAL',
+    description: '将 Nyquist 判据转换为 Bode 图穿越关系。',
+    position: { x: 260, y: 22, z: 14 },
+    tags: ['lesson-13', 'nyquist', 'bode']
+  },
+
   // Lesson 13: 豪华邮轮舒适度控制
   {
     id: 'node-multi-constraint-pid',
@@ -547,6 +637,15 @@ const KNOWLEDGE_LINKS = [
   { sourceId: 'node-bode-log-scale', targetId: 'node-typical-link-slopes', relation: 'related' },
   { sourceId: 'node-typical-link-slopes', targetId: 'node-resonance-peak', relation: 'related' },
   { sourceId: 'node-bode-approx-steps', targetId: 'node-bode-from-plot', relation: 'follows' },
+
+  // Lesson 13 幅相特性与稳定判据
+  { sourceId: 'node-frequency-response-definition', targetId: 'node-nyquist-definition', relation: 'follows' },
+  { sourceId: 'node-nyquist-definition', targetId: 'node-nyquist-start-end', relation: 'follows' },
+  { sourceId: 'node-nyquist-start-end', targetId: 'node-nyquist-crossing', relation: 'follows' },
+  { sourceId: 'node-nyquist-crossing', targetId: 'node-nyquist-feature-points', relation: 'follows' },
+  { sourceId: 'node-nyquist-feature-points', targetId: 'node-nyquist-sketch-steps', relation: 'follows' },
+  { sourceId: 'node-argument-principle', targetId: 'node-nyquist-criterion', relation: 'prerequisite' },
+  { sourceId: 'node-nyquist-criterion', targetId: 'node-log-stability-criterion', relation: 'follows' },
 
   // Lesson 13 舒适度控制
   { sourceId: 'node-pid-controller', targetId: 'node-multi-constraint-pid', relation: 'related' },

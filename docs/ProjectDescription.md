@@ -11,7 +11,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教室工作台”入口（`http://localhost:3001/teacher`）
 🧠 **知识点同步**：启动脚本默认执行 `npm run seed:knowledge`，确保预置教案克隆所需 KnowledgeNode 已补齐
-📘 **课程更新**：新增 Lesson 13「幅相特性与稳定判据：频域的启示」预置教案与互动学习入口
+📘 **课程更新**：新增 Lesson 13「幅相特性与稳定判据：频域的启示」预置教案、互动学习入口，并完成知识节点绑定
 🧾 **教案管理**：我的教案支持三点菜单删除并二次确认
 🚀 **部署方式**：本地开发 + Docker 容器化部署
 
