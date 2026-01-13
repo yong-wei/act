@@ -502,6 +502,96 @@ const KNOWLEDGE_NODES = [
     tags: ['lesson-13', 'nyquist', 'bode']
   },
 
+  // Lesson 14: 稳定裕度与三频段
+  {
+    id: 'node-stability-margin-definition',
+    name: '稳定裕度',
+    filename: 'stability-margin-definition.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '相角裕度与幅值裕度构成系统的稳定储备量。',
+    position: { x: 270, y: 8, z: 16 },
+    tags: ['lesson-14', 'stability-margin', 'frequency-domain']
+  },
+  {
+    id: 'node-phase-margin',
+    name: '相角裕度',
+    filename: 'phase-margin.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'PROCEDURAL',
+    description: '增益穿越频率处相位与 -180° 的距离。',
+    position: { x: 280, y: 10, z: 16 },
+    tags: ['lesson-14', 'stability-margin', 'phase-margin']
+  },
+  {
+    id: 'node-gain-margin',
+    name: '幅值裕度',
+    filename: 'gain-margin.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'PROCEDURAL',
+    description: '相位穿越频率处幅值距离 1 的倍率。',
+    position: { x: 290, y: 12, z: 16 },
+    tags: ['lesson-14', 'stability-margin', 'gain-margin']
+  },
+  {
+    id: 'node-margin-bode-estimation',
+    name: 'Bode 图估算稳定裕度',
+    filename: 'margin-bode-estimation.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '从 0 dB 与 -180° 穿越点读取稳定裕度。',
+    position: { x: 300, y: 14, z: 16 },
+    tags: ['lesson-14', 'bode', 'stability-margin']
+  },
+  {
+    id: 'node-three-band-theory',
+    name: '三频段理论',
+    filename: 'three-band-theory.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '低、中、高频段分别对应稳态、动态与抗噪性能。',
+    position: { x: 310, y: 16, z: 16 },
+    tags: ['lesson-14', 'three-band', 'frequency-domain']
+  },
+  {
+    id: 'node-low-frequency-band',
+    name: '低频段与稳态误差',
+    filename: 'low-frequency-band.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '低频增益决定稳态误差与抗扰能力。',
+    position: { x: 320, y: 18, z: 16 },
+    tags: ['lesson-14', 'three-band', 'low-frequency']
+  },
+  {
+    id: 'node-mid-frequency-band',
+    name: '中频段与动态性能',
+    filename: 'mid-frequency-band.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '中频段形状影响超调与调节时间。',
+    position: { x: 330, y: 20, z: 16 },
+    tags: ['lesson-14', 'three-band', 'mid-frequency']
+  },
+  {
+    id: 'node-high-frequency-band',
+    name: '高频段与抗噪鲁棒性',
+    filename: 'high-frequency-band.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '高频衰减用于抑制噪声与未建模动态。',
+    position: { x: 340, y: 22, z: 16 },
+    tags: ['lesson-14', 'three-band', 'high-frequency']
+  },
+
   // Lesson 13: 豪华邮轮舒适度控制
   {
     id: 'node-multi-constraint-pid',
@@ -646,6 +736,16 @@ const KNOWLEDGE_LINKS = [
   { sourceId: 'node-nyquist-feature-points', targetId: 'node-nyquist-sketch-steps', relation: 'follows' },
   { sourceId: 'node-argument-principle', targetId: 'node-nyquist-criterion', relation: 'prerequisite' },
   { sourceId: 'node-nyquist-criterion', targetId: 'node-log-stability-criterion', relation: 'follows' },
+
+  // Lesson 14 稳定裕度与三频段
+  { sourceId: 'node-log-stability-criterion', targetId: 'node-stability-margin-definition', relation: 'follows' },
+  { sourceId: 'node-stability-margin-definition', targetId: 'node-phase-margin', relation: 'follows' },
+  { sourceId: 'node-phase-margin', targetId: 'node-gain-margin', relation: 'related' },
+  { sourceId: 'node-gain-margin', targetId: 'node-margin-bode-estimation', relation: 'follows' },
+  { sourceId: 'node-margin-bode-estimation', targetId: 'node-three-band-theory', relation: 'follows' },
+  { sourceId: 'node-three-band-theory', targetId: 'node-low-frequency-band', relation: 'follows' },
+  { sourceId: 'node-three-band-theory', targetId: 'node-mid-frequency-band', relation: 'follows' },
+  { sourceId: 'node-three-band-theory', targetId: 'node-high-frequency-band', relation: 'follows' },
 
   // Lesson 13 舒适度控制
   { sourceId: 'node-pid-controller', targetId: 'node-multi-constraint-pid', relation: 'related' },

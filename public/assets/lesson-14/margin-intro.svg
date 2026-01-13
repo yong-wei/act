@@ -1,0 +1,20 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="675" rx="32" fill="#0f172a" />
+  <rect x="90" y="90" width="1020" height="495" rx="28" fill="#0b1220" stroke="#f59e0b" stroke-width="3" />
+  <text x="140" y="180" fill="#e2e8f0" font-size="40" font-family="Arial">Lesson 14</text>
+  <text x="140" y="230" fill="#fbbf24" font-size="26" font-family="Arial">Stability Margin</text>
+
+  <line x1="210" y1="360" x2="980" y2="360" stroke="#334155" stroke-width="4" />
+  <line x1="420" y1="240" x2="420" y2="470" stroke="#334155" stroke-width="3" stroke-dasharray="8 8" />
+  <line x1="760" y1="240" x2="760" y2="470" stroke="#334155" stroke-width="3" stroke-dasharray="8 8" />
+
+  <path d="M260 260 C380 300, 520 280, 640 320 C740 350, 820 380, 940 410" stroke="#22c55e" stroke-width="8" fill="none" />
+  <path d="M260 440 C380 420, 520 460, 640 420 C760 380, 840 320, 940 300" stroke="#38bdf8" stroke-width="6" fill="none" />
+
+  <circle cx="760" cy="360" r="8" fill="#fbbf24" />
+  <circle cx="420" cy="360" r="8" fill="#f87171" />
+  <text x="400" y="390" fill="#f87171" font-size="16" font-family="Arial">0 dB</text>
+  <text x="740" y="390" fill="#fbbf24" font-size="16" font-family="Arial">-180°</text>
+
+  <text x="140" y="520" fill="#94a3b8" font-size="20" font-family="Arial">Margin is the distance to instability</text>
+</svg>

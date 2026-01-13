@@ -11,6 +11,7 @@ import { LESSON_10_ROOT_LOCUS_PRESET } from './lesson-10-root-locus';
 import { LESSON_11_PARAMETER_ROOT_LOCUS_PRESET } from './lesson-11-parameter-root-locus';
 import { LESSON_12_FREQUENCY_BODE_PRESET } from './lesson-12-frequency-bode';
 import { LESSON_13_PHASE_STABILITY_PRESET } from './lesson-13-phase-stability';
+import { LESSON_14_STABILITY_MARGIN_PRESET } from './lesson-14-stability-margin';
 
 export {
   LESSON_02_MODELING_PRESET,
@@ -22,6 +23,7 @@ export {
   LESSON_11_PARAMETER_ROOT_LOCUS_PRESET,
   LESSON_12_FREQUENCY_BODE_PRESET,
   LESSON_13_PHASE_STABILITY_PRESET,
+  LESSON_14_STABILITY_MARGIN_PRESET,
 };
 
 export const ALL_PRESETS = [
@@ -34,4 +36,5 @@ export const ALL_PRESETS = [
   LESSON_11_PARAMETER_ROOT_LOCUS_PRESET,
   LESSON_12_FREQUENCY_BODE_PRESET,
   LESSON_13_PHASE_STABILITY_PRESET,
+  LESSON_14_STABILITY_MARGIN_PRESET,
 ];

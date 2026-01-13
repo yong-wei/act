@@ -95,6 +95,15 @@ const CATEGORY_ORDER = [
 
 const FEATURED_LESSONS = [
   {
+    id: 'lesson-14',
+    title: '稳定裕度与三频段：宽备窄用',
+    description: '90 分钟线下课程：稳定裕度评估与三频段性能分工。',
+    duration: '90 分钟',
+    href: '/interactive-learning/lesson-14',
+    badge: 'Lesson 14',
+    accent: 'amber',
+  },
+  {
     id: 'lesson-13',
     title: '幅相特性与稳定判据：频域的启示',
     description: '90 分钟线下课程：Nyquist 图、对数判据与频域判稳链路。',

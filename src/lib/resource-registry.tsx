@@ -167,6 +167,37 @@ const Lesson13SummaryCard = dynamic(
     { ssr: false, loading: loadingFallback('课程总结') }
 );
 
+// Lesson-14 组件
+const Lesson14MarginQuickCheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-14/margin-quick-check'),
+    { ssr: false, loading: loadingFallback('稳定裕度速判') }
+);
+
+const Lesson14MarginKnowledgeDeck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-14/margin-knowledge-deck'),
+    { ssr: false, loading: loadingFallback('稳定裕度知识卡片') }
+);
+
+const Lesson14MarginTradeoffLab = dynamic(
+    () => import('@/resources/interactive-learning/lesson-14/margin-tradeoff-lab'),
+    { ssr: false, loading: loadingFallback('稳定裕度策略实验室') }
+);
+
+const Lesson14ThreeBandStudio = dynamic(
+    () => import('@/resources/interactive-learning/lesson-14/three-band-studio'),
+    { ssr: false, loading: loadingFallback('三频段调优工作台') }
+);
+
+const Lesson14MarginExitQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-14/margin-exit-quiz'),
+    { ssr: false, loading: loadingFallback('稳定裕度后测') }
+);
+
+const Lesson14SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-14/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
 // Lesson-07 组件
 const Lesson07DampingQuickCheck = dynamic(
     () => import('@/resources/interactive-learning/lesson-07/damping-quick-check'),
@@ -536,6 +567,43 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: '课程总结',
         type: 'INTERACTIVE_COMP',
         component: Lesson13SummaryCard
+    },
+    // Lesson-14 组件
+    'lesson14-margin-quick-check': {
+        id: 'lesson14-margin-quick-check',
+        label: '稳定裕度速判',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson14MarginQuickCheck
+    },
+    'lesson14-margin-knowledge-deck': {
+        id: 'lesson14-margin-knowledge-deck',
+        label: '稳定裕度与三频段知识卡片',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson14MarginKnowledgeDeck
+    },
+    'lesson14-margin-tradeoff-lab': {
+        id: 'lesson14-margin-tradeoff-lab',
+        label: '稳定裕度策略实验室',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson14MarginTradeoffLab
+    },
+    'lesson14-three-band-studio': {
+        id: 'lesson14-three-band-studio',
+        label: '三频段调优工作台',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson14ThreeBandStudio
+    },
+    'lesson14-margin-exit-quiz': {
+        id: 'lesson14-margin-exit-quiz',
+        label: '稳定裕度后测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson14MarginExitQuiz
+    },
+    'lesson14-summary-card': {
+        id: 'lesson14-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson14SummaryCard
     },
     // Lesson-07 组件
     'lesson07-damping-quick-check': {
