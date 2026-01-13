@@ -142,6 +142,31 @@ const Lesson13CruiseBridgeVideo = dynamic(
     { ssr: false, loading: loadingFallback('邮轮导入视频') }
 );
 
+const Lesson13PhaseConceptQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-13/phase-concept-quiz'),
+    { ssr: false, loading: loadingFallback('幅相概念速判') }
+);
+
+const Lesson13PhaseKnowledgeDeck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-13/phase-knowledge-deck'),
+    { ssr: false, loading: loadingFallback('幅相知识卡片') }
+);
+
+const Lesson13NyquistStabilityScenario = dynamic(
+    () => import('@/resources/interactive-learning/lesson-13/nyquist-stability-scenario'),
+    { ssr: false, loading: loadingFallback('Nyquist 判稳场景') }
+);
+
+const Lesson13PhaseStabilityExitQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-13/phase-stability-exit-quiz'),
+    { ssr: false, loading: loadingFallback('对数判据速测') }
+);
+
+const Lesson13SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-13/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
 // Lesson-07 组件
 const Lesson07DampingQuickCheck = dynamic(
     () => import('@/resources/interactive-learning/lesson-07/damping-quick-check'),
@@ -481,6 +506,36 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: '邮轮舒适度导入视频',
         type: 'INTERACTIVE_COMP',
         component: Lesson13CruiseBridgeVideo
+    },
+    'lesson13-phase-concept-quiz': {
+        id: 'lesson13-phase-concept-quiz',
+        label: '幅相概念速判',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson13PhaseConceptQuiz
+    },
+    'lesson13-phase-knowledge-deck': {
+        id: 'lesson13-phase-knowledge-deck',
+        label: '幅相特性知识卡片',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson13PhaseKnowledgeDeck
+    },
+    'lesson13-nyquist-stability-scenario': {
+        id: 'lesson13-nyquist-stability-scenario',
+        label: 'Nyquist 判稳场景',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson13NyquistStabilityScenario
+    },
+    'lesson13-phase-stability-exit-quiz': {
+        id: 'lesson13-phase-stability-exit-quiz',
+        label: '对数判据速测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson13PhaseStabilityExitQuiz
+    },
+    'lesson13-summary-card': {
+        id: 'lesson13-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson13SummaryCard
     },
     // Lesson-07 组件
     'lesson07-damping-quick-check': {

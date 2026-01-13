@@ -95,6 +95,15 @@ const CATEGORY_ORDER = [
 
 const FEATURED_LESSONS = [
   {
+    id: 'lesson-13',
+    title: '幅相特性与稳定判据：频域的启示',
+    description: '90 分钟线下课程：Nyquist 图、对数判据与频域判稳链路。',
+    duration: '90 分钟',
+    href: '/interactive-learning/lesson-13',
+    badge: 'Lesson 13',
+    accent: 'cyan',
+  },
+  {
     id: 'lesson-11',
     title: '参数根轨迹与图形化思考',
     description: '90 分钟线下课程：广义定义、稳定范围与主导极点选择。',

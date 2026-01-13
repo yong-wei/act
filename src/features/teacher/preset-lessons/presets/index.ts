@@ -2,7 +2,6 @@
  * 预置教案统一出口
  */
 
-import { CRUISE_COMFORT_PRESET } from './cruise-comfort';
 import { LESSON_02_MODELING_PRESET } from './lesson-02-modeling';
 import { LESSON_06_JUDGE_BENCH_PRESET } from './lesson-06-judge-bench';
 import { LESSON_07_UNDERDAMPED_PRESET } from './lesson-07-underdamped';
@@ -11,9 +10,9 @@ import { LESSON_09_CORRECTION_TIME_DOMAIN_PRESET } from './lesson-09-correction-
 import { LESSON_10_ROOT_LOCUS_PRESET } from './lesson-10-root-locus';
 import { LESSON_11_PARAMETER_ROOT_LOCUS_PRESET } from './lesson-11-parameter-root-locus';
 import { LESSON_12_FREQUENCY_BODE_PRESET } from './lesson-12-frequency-bode';
+import { LESSON_13_PHASE_STABILITY_PRESET } from './lesson-13-phase-stability';
 
 export {
-  CRUISE_COMFORT_PRESET,
   LESSON_02_MODELING_PRESET,
   LESSON_06_JUDGE_BENCH_PRESET,
   LESSON_07_UNDERDAMPED_PRESET,
@@ -22,6 +21,7 @@ export {
   LESSON_10_ROOT_LOCUS_PRESET,
   LESSON_11_PARAMETER_ROOT_LOCUS_PRESET,
   LESSON_12_FREQUENCY_BODE_PRESET,
+  LESSON_13_PHASE_STABILITY_PRESET,
 };
 
 export const ALL_PRESETS = [
@@ -33,5 +33,5 @@ export const ALL_PRESETS = [
   LESSON_10_ROOT_LOCUS_PRESET,
   LESSON_11_PARAMETER_ROOT_LOCUS_PRESET,
   LESSON_12_FREQUENCY_BODE_PRESET,
-  CRUISE_COMFORT_PRESET,
+  LESSON_13_PHASE_STABILITY_PRESET,
 ];

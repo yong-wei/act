@@ -11,7 +11,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教室工作台”入口（`http://localhost:3001/teacher`）
 🧠 **知识点同步**：启动脚本默认执行 `npm run seed:knowledge`，确保预置教案克隆所需 KnowledgeNode 已补齐
-📘 **课程更新**：新增 Lesson 11「参数根轨迹与图形化思考」预置教案与互动学习入口
+📘 **课程更新**：新增 Lesson 13「幅相特性与稳定判据：频域的启示」预置教案与互动学习入口
 🧾 **教案管理**：我的教案支持三点菜单删除并二次确认
 🚀 **部署方式**：本地开发 + Docker 容器化部署
 
@@ -148,6 +148,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **Lesson 10 根轨迹法**：根轨迹大局与细节修正的 90 分钟预置教案，涵盖模值/相角条件、分离点、渐近线与出射角挑战
 - **Lesson 11 参数根轨迹与图形化思考**：以参数根轨迹广义定义为核心，聚焦稳定范围判断、主导极点选择与仿真验证流程
 - **Lesson 12 频率特性与伯德图**：频率响应与伯德图的 90 分钟预置教案，覆盖对数频率特性、斜率叠加绘图与读图反推传函
+- **Lesson 13 幅相特性与稳定判据**：Nyquist 图与对数稳定判据的 90 分钟预置教案，覆盖幅相特性特征点、幅角原理与判稳场景演练
 - **知识卡片嵌入**：所有预置教案在参与式环节补齐知识卡片，并与知识图谱节点绑定，支持课堂内讲授与后续互动巩固
 
 ### 3.13 管理员后台 (Admin) ✅
