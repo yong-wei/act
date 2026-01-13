@@ -10,13 +10,10 @@ export default async function TeacherLessonPlansPage() {
   if (!session) redirect('/login');
   if (session.user.role !== 'TEACHER') redirect('/');
 
-  // 获取当前教师教案 + 公开预置教案
+  // 获取当前教师教案（不包含预置教案）
   const plans = await prisma.lessonPlan.findMany({
     where: {
-      OR: [
-        { authorId: session.user.id },
-        { isPublic: true },
-      ],
+      authorId: session.user.id,
     },
     orderBy: { updatedAt: 'desc' },
     include: {

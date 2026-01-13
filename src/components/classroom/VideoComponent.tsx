@@ -395,11 +395,16 @@ export function VideoComponent({
   config,
   onConfigChange,
 }: VideoComponentProps) {
-  if (mode === 'edit') {
-    return <VideoEditor config={config} onConfigChange={onConfigChange} />;
+  const effectiveMode = mode ?? 'play';
+  const effectiveConfig = config
+    ? { ...createDefaultVideoConfig(config.id), ...config }
+    : createDefaultVideoConfig('video-default');
+
+  if (effectiveMode === 'edit') {
+    return <VideoEditor config={effectiveConfig} onConfigChange={onConfigChange} />;
   }
 
-  return <VideoPlayer config={config} />;
+  return <VideoPlayer config={effectiveConfig} />;
 }
 
 // ========== 默认配置 ==========

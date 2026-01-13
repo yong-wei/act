@@ -199,6 +199,33 @@ const Lesson08SummaryCard = dynamic(
     { ssr: false, loading: loadingFallback('课程总结') }
 );
 
+// Lesson-09 组件
+const Lesson09CorrectionPrecheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-09/correction-precheck'),
+    { ssr: false, loading: loadingFallback('校正前测') }
+);
+
+const Lesson09CorrectionStrategy = dynamic(
+    () => import('@/resources/interactive-learning/lesson-09/correction-strategy'),
+    { ssr: false, loading: loadingFallback('校正手段速览') }
+);
+
+const Lesson09TimeDomainSynthesis = dynamic(
+    () => import('@/resources/interactive-learning/lesson-09/time-domain-synthesis'),
+    { ssr: false, loading: loadingFallback('时域综合流程') }
+);
+
+const Lesson09SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-09/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
+// Lesson-10 组件
+const Lesson10RootLocusWorkshop = dynamic(
+    () => import('@/resources/interactive-learning/lesson-10/root-locus-workshop'),
+    { ssr: false, loading: loadingFallback('根轨迹规则工作坊') }
+);
+
 // 课堂组件
 const ClassroomVideoComponent = dynamic(
     () => import('@/components/classroom').then(mod => mod.VideoComponent),
@@ -475,6 +502,38 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: '课程总结',
         type: 'INTERACTIVE_COMP',
         component: Lesson08SummaryCard
+    },
+    // Lesson-09 组件
+    'lesson09-correction-precheck': {
+        id: 'lesson09-correction-precheck',
+        label: '校正前测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson09CorrectionPrecheck
+    },
+    'lesson09-correction-strategy': {
+        id: 'lesson09-correction-strategy',
+        label: '校正手段速览',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson09CorrectionStrategy
+    },
+    'lesson09-time-domain-synthesis': {
+        id: 'lesson09-time-domain-synthesis',
+        label: '时域综合流程',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson09TimeDomainSynthesis
+    },
+    'lesson09-summary-card': {
+        id: 'lesson09-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson09SummaryCard
+    },
+    // Lesson-10 组件
+    'lesson10-root-locus-workshop': {
+        id: 'lesson10-root-locus-workshop',
+        label: '根轨迹规则工作坊',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson10RootLocusWorkshop
     },
     // 课堂组件（教师专用）
     'classroom-video': {

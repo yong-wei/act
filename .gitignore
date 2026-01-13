@@ -7,6 +7,7 @@ GEMINI.md
 .codex/
 .DS_Store
 .logs/
+docs/courses/
 
 # Node/JS
 **/node_modules/

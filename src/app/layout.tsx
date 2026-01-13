@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   description: '智能海事教育平台 - AI驱动的船舶控制与PID参数优化系统',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function RootLayout({
   children,
 }: {

@@ -1,0 +1,33 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a" />
+      <stop offset="1" stop-color="#1f2937" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" rx="32" fill="url(#bg)" />
+
+  <text x="80" y="120" fill="#e2e8f0" font-size="36" font-family="Arial" font-weight="bold">细节修正与关键点</text>
+  <text x="80" y="165" fill="#94a3b8" font-size="18" font-family="Arial">让根轨迹更精准：角度、交点与边界</text>
+
+  <rect x="80" y="220" width="500" height="170" rx="20" fill="#0b1220" stroke="#1f2937" />
+  <rect x="620" y="220" width="500" height="170" rx="20" fill="#0b1220" stroke="#1f2937" />
+  <rect x="80" y="420" width="500" height="170" rx="20" fill="#0b1220" stroke="#1f2937" />
+  <rect x="620" y="420" width="500" height="170" rx="20" fill="#0b1220" stroke="#1f2937" />
+
+  <text x="110" y="265" fill="#38bdf8" font-size="20" font-family="Arial" font-weight="bold">出射/入射角</text>
+  <text x="110" y="300" fill="#94a3b8" font-size="14" font-family="Arial">复极点出射角：180deg + sum(theta_z) - sum(theta_p)</text>
+  <text x="110" y="330" fill="#94a3b8" font-size="14" font-family="Arial">复零点入射角：180deg - sum(theta_z) + sum(theta_p)</text>
+
+  <text x="650" y="265" fill="#22c55e" font-size="20" font-family="Arial" font-weight="bold">虚轴交点</text>
+  <text x="650" y="300" fill="#94a3b8" font-size="14" font-family="Arial">使用劳斯判据或代入 s = j*w 求交点</text>
+  <text x="650" y="330" fill="#94a3b8" font-size="14" font-family="Arial">判断系统临界稳定的增益范围</text>
+
+  <text x="110" y="465" fill="#f97316" font-size="20" font-family="Arial" font-weight="bold">分离点筛选</text>
+  <text x="110" y="500" fill="#94a3b8" font-size="14" font-family="Arial">求 dK/ds = 0 得到候选点</text>
+  <text x="110" y="530" fill="#94a3b8" font-size="14" font-family="Arial">再用实轴法则确认是否属于根轨迹</text>
+
+  <text x="650" y="465" fill="#a855f7" font-size="20" font-family="Arial" font-weight="bold">参数根轨迹</text>
+  <text x="650" y="500" fill="#94a3b8" font-size="14" font-family="Arial">将 K 替换为结构参数</text>
+  <text x="650" y="530" fill="#94a3b8" font-size="14" font-family="Arial">用于鲁棒性与参数敏感性分析</text>
+</svg>
