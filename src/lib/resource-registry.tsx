@@ -229,6 +229,37 @@ const Lesson15SummaryCard = dynamic(
     { ssr: false, loading: loadingFallback('课程总结') }
 );
 
+// Lesson-03 组件
+const Lesson03DiffPrecheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-03/diff-precheck'),
+    { ssr: false, loading: loadingFallback('微分方程速判') }
+);
+
+const Lesson03DiffKnowledgeDeck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-03/diff-knowledge-deck'),
+    { ssr: false, loading: loadingFallback('微分方程知识卡片') }
+);
+
+const Lesson03ModelingScenarioLab = dynamic(
+    () => import('@/resources/interactive-learning/lesson-03/modeling-scenario-lab'),
+    { ssr: false, loading: loadingFallback('建模场景决策') }
+);
+
+const Lesson03ModelingWorkflowPuzzle = dynamic(
+    () => import('@/resources/interactive-learning/lesson-03/modeling-workflow-puzzle'),
+    { ssr: false, loading: loadingFallback('建模流程拼图') }
+);
+
+const Lesson03DiffExitQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-03/diff-exit-quiz'),
+    { ssr: false, loading: loadingFallback('基础模型后测') }
+);
+
+const Lesson03SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-03/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
 // Lesson-07 组件
 const Lesson07DampingQuickCheck = dynamic(
     () => import('@/resources/interactive-learning/lesson-07/damping-quick-check'),
@@ -672,6 +703,43 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: '课程总结',
         type: 'INTERACTIVE_COMP',
         component: Lesson15SummaryCard
+    },
+    // Lesson-03 组件
+    'lesson03-diff-precheck': {
+        id: 'lesson03-diff-precheck',
+        label: '微分方程速判',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson03DiffPrecheck
+    },
+    'lesson03-diff-knowledge-deck': {
+        id: 'lesson03-diff-knowledge-deck',
+        label: '微分方程建模知识卡片',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson03DiffKnowledgeDeck
+    },
+    'lesson03-modeling-scenario-lab': {
+        id: 'lesson03-modeling-scenario-lab',
+        label: '建模场景决策',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson03ModelingScenarioLab
+    },
+    'lesson03-modeling-workflow-puzzle': {
+        id: 'lesson03-modeling-workflow-puzzle',
+        label: '建模流程拼图',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson03ModelingWorkflowPuzzle
+    },
+    'lesson03-diff-exit-quiz': {
+        id: 'lesson03-diff-exit-quiz',
+        label: '基础模型速测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson03DiffExitQuiz
+    },
+    'lesson03-summary-card': {
+        id: 'lesson03-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson03SummaryCard
     },
     // Lesson-07 组件
     'lesson07-damping-quick-check': {

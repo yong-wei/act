@@ -87,6 +87,94 @@ const KNOWLEDGE_NODES = [
     position: { x: 20, y: 20, z: 5 },
     tags: ['lesson-03', 'transfer-function', 's-domain']
   },
+  {
+    id: 'node-differential-equation-model',
+    name: '微分方程模型',
+    filename: 'differential-equation-model.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '用输入/输出的导数关系描述系统动态。',
+    position: { x: 30, y: 10, z: 5 },
+    tags: ['lesson-03', 'differential-equation', 'modeling']
+  },
+  {
+    id: 'node-modeling-methods',
+    name: '机理建模方法',
+    filename: 'modeling-methods.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '基于物理与化学定律建立系统运动方程。',
+    position: { x: 40, y: 12, z: 5 },
+    tags: ['lesson-03', 'modeling', 'laws']
+  },
+  {
+    id: 'node-black-box-modeling',
+    name: '黑箱建模（系统辨识）',
+    filename: 'black-box-modeling.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '通过输入输出数据拟合系统模型。',
+    position: { x: 50, y: 14, z: 5 },
+    tags: ['lesson-03', 'identification', 'modeling']
+  },
+  {
+    id: 'node-system-model-types',
+    name: '控制系统模型类型',
+    filename: 'system-model-types.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '时域、s 域与频率域模型的不同表达。',
+    position: { x: 60, y: 16, z: 5 },
+    tags: ['lesson-03', 'modeling', 'domain']
+  },
+  {
+    id: 'node-differential-modeling-steps',
+    name: '微分方程建模步骤',
+    filename: 'differential-modeling-steps.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '确定变量、列方程、消元并整理为标准形式。',
+    position: { x: 70, y: 18, z: 5 },
+    tags: ['lesson-03', 'modeling', 'workflow']
+  },
+  {
+    id: 'node-modeling-examples',
+    name: '典型建模案例',
+    filename: 'modeling-examples.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: 'RLC、电机与机械系统的建模链路。',
+    position: { x: 80, y: 20, z: 5 },
+    tags: ['lesson-03', 'modeling', 'examples']
+  },
+  {
+    id: 'node-linearization-equilibrium',
+    name: '非线性模型线性化',
+    filename: 'linearization-equilibrium.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '在均衡点附近做泰勒展开并保留一阶项。',
+    position: { x: 90, y: 22, z: 5 },
+    tags: ['lesson-03', 'linearization', 'taylor-series']
+  },
+  {
+    id: 'node-motion-modes',
+    name: '运动模态与齐次解',
+    filename: 'motion-modes.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '齐次微分方程解是各运动模态的线性组合。',
+    position: { x: 100, y: 24, z: 5 },
+    tags: ['lesson-03', 'dynamics', 'modes']
+  },
 
   // Lesson 05: PID 控制
   {
@@ -767,6 +855,13 @@ const KNOWLEDGE_LINKS = [
   // Lesson 03 关系
   { sourceId: 'node-laplace-transform', targetId: 'node-transfer-function', relation: 'prerequisite' },
   { sourceId: 'node-linearization', targetId: 'node-laplace-transform', relation: 'related' },
+  { sourceId: 'node-differential-equation-model', targetId: 'node-system-model-types', relation: 'follows' },
+  { sourceId: 'node-modeling-methods', targetId: 'node-differential-modeling-steps', relation: 'follows' },
+  { sourceId: 'node-black-box-modeling', targetId: 'node-system-model-types', relation: 'related' },
+  { sourceId: 'node-differential-modeling-steps', targetId: 'node-modeling-examples', relation: 'follows' },
+  { sourceId: 'node-modeling-examples', targetId: 'node-linearization-equilibrium', relation: 'related' },
+  { sourceId: 'node-linearization-equilibrium', targetId: 'node-motion-modes', relation: 'follows' },
+  { sourceId: 'node-modeling-intro', targetId: 'node-differential-equation-model', relation: 'related' },
 
   // Lesson 05 关系
   { sourceId: 'node-transfer-function', targetId: 'node-pid-controller', relation: 'prerequisite' },

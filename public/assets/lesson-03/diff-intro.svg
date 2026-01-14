@@ -1,0 +1,15 @@
+<svg width="960" height="540" viewBox="0 0 960 540" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0369a1" />
+      <stop offset="100%" stop-color="#0b1324" />
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" rx="28" fill="url(#bg)" />
+  <circle cx="160" cy="120" r="90" fill="#38bdf8" fill-opacity="0.2" />
+  <circle cx="820" cy="420" r="150" fill="#60a5fa" fill-opacity="0.15" />
+  <rect x="120" y="160" width="720" height="220" rx="20" fill="#0f172a" fill-opacity="0.7" stroke="#38bdf8" stroke-opacity="0.35" />
+  <text x="150" y="230" fill="#e0f2fe" font-size="28" font-family="Arial, sans-serif">Lesson 03 · 微分方程与控制系统基础模型</text>
+  <text x="150" y="270" fill="#bae6fd" font-size="18" font-family="Arial, sans-serif">从机理建模到黑箱辨识的建模主线</text>
+  <text x="150" y="320" fill="#7dd3fc" font-size="16" font-family="Arial, sans-serif">目标：构建可用的时域基础模型</text>
+</svg>

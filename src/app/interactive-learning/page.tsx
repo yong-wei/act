@@ -95,6 +95,15 @@ const CATEGORY_ORDER = [
 
 const FEATURED_LESSONS = [
   {
+    id: 'lesson-03',
+    title: '微分方程与控制系统基础模型',
+    description: '90 分钟线下课程：微分方程建模方法与典型案例。',
+    duration: '90 分钟',
+    href: '/interactive-learning/lesson-03',
+    badge: 'Lesson 03',
+    accent: 'cyan',
+  },
+  {
     id: 'lesson-15',
     title: '串联校正与滞后超前：双管齐下',
     description: '90 分钟线下课程：超前/滞后校正与联合设计流程。',
