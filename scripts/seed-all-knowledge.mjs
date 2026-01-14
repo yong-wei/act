@@ -592,6 +592,96 @@ const KNOWLEDGE_NODES = [
     tags: ['lesson-14', 'three-band', 'high-frequency']
   },
 
+  // Lesson 15: 串联校正与滞后超前
+  {
+    id: 'node-series-compensation',
+    name: '串联校正',
+    filename: 'series-compensation.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '通过串联校正网络调整开环幅相特性以满足性能指标。',
+    position: { x: 350, y: 8, z: 18 },
+    tags: ['lesson-15', 'series-compensation', 'frequency-domain']
+  },
+  {
+    id: 'node-lead-network-feature',
+    name: '超前网络特性',
+    filename: 'lead-network-features.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '相角超前、幅值抬升，提升相角裕度与响应速度。',
+    position: { x: 360, y: 10, z: 18 },
+    tags: ['lesson-15', 'lead', 'series-compensation']
+  },
+  {
+    id: 'node-lead-max-phase',
+    name: '最大超前角',
+    filename: 'lead-max-phase.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '一级超前网络可提供的最大相角超前由参数 a 决定。',
+    position: { x: 370, y: 12, z: 18 },
+    tags: ['lesson-15', 'lead', 'phase-margin']
+  },
+  {
+    id: 'node-lead-design-steps',
+    name: '超前网络设计步骤',
+    filename: 'lead-design-steps.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '按相角裕度目标确定 a、T 并布置零极点。',
+    position: { x: 380, y: 14, z: 18 },
+    tags: ['lesson-15', 'lead', 'workflow']
+  },
+  {
+    id: 'node-lag-network-feature',
+    name: '滞后网络特性',
+    filename: 'lag-network-features.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '低频增益提升、高频衰减并带来相位滞后。',
+    position: { x: 360, y: 18, z: 18 },
+    tags: ['lesson-15', 'lag', 'series-compensation']
+  },
+  {
+    id: 'node-lag-design-steps',
+    name: '滞后网络设计步骤',
+    filename: 'lag-design-steps.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '根据稳态误差目标选择 b 并配置滞后零极点。',
+    position: { x: 370, y: 20, z: 18 },
+    tags: ['lesson-15', 'lag', 'workflow']
+  },
+  {
+    id: 'node-lag-lead-compensation',
+    name: '滞后-超前联合校正',
+    filename: 'lag-lead-compensation.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '稳态精度与相角裕度同时不足时的双目标校正方案。',
+    position: { x: 380, y: 22, z: 18 },
+    tags: ['lesson-15', 'lag-lead', 'series-compensation']
+  },
+  {
+    id: 'node-lag-lead-workflow',
+    name: '滞后-超前设计流程',
+    filename: 'lag-lead-workflow.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '先超前后滞后的联合设计与验证流程。',
+    position: { x: 390, y: 24, z: 18 },
+    tags: ['lesson-15', 'lag-lead', 'workflow']
+  },
+
   // Lesson 13: 豪华邮轮舒适度控制
   {
     id: 'node-multi-constraint-pid',
@@ -746,6 +836,17 @@ const KNOWLEDGE_LINKS = [
   { sourceId: 'node-three-band-theory', targetId: 'node-low-frequency-band', relation: 'follows' },
   { sourceId: 'node-three-band-theory', targetId: 'node-mid-frequency-band', relation: 'follows' },
   { sourceId: 'node-three-band-theory', targetId: 'node-high-frequency-band', relation: 'follows' },
+
+  // Lesson 15 串联校正与滞后超前
+  { sourceId: 'node-margin-bode-estimation', targetId: 'node-series-compensation', relation: 'follows' },
+  { sourceId: 'node-series-compensation', targetId: 'node-lead-network-feature', relation: 'follows' },
+  { sourceId: 'node-lead-network-feature', targetId: 'node-lead-max-phase', relation: 'follows' },
+  { sourceId: 'node-lead-max-phase', targetId: 'node-lead-design-steps', relation: 'follows' },
+  { sourceId: 'node-series-compensation', targetId: 'node-lag-network-feature', relation: 'follows' },
+  { sourceId: 'node-lag-network-feature', targetId: 'node-lag-design-steps', relation: 'follows' },
+  { sourceId: 'node-lead-design-steps', targetId: 'node-lag-lead-compensation', relation: 'related' },
+  { sourceId: 'node-lag-design-steps', targetId: 'node-lag-lead-compensation', relation: 'related' },
+  { sourceId: 'node-lag-lead-compensation', targetId: 'node-lag-lead-workflow', relation: 'follows' },
 
   // Lesson 13 舒适度控制
   { sourceId: 'node-pid-controller', targetId: 'node-multi-constraint-pid', relation: 'related' },

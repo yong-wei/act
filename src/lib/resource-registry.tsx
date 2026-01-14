@@ -198,6 +198,37 @@ const Lesson14SummaryCard = dynamic(
     { ssr: false, loading: loadingFallback('课程总结') }
 );
 
+// Lesson-15 组件
+const Lesson15SeriesPrecheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-15/series-precheck'),
+    { ssr: false, loading: loadingFallback('串联校正速判') }
+);
+
+const Lesson15SeriesKnowledgeDeck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-15/series-knowledge-deck'),
+    { ssr: false, loading: loadingFallback('串联校正知识卡片') }
+);
+
+const Lesson15SeriesStrategyLab = dynamic(
+    () => import('@/resources/interactive-learning/lesson-15/series-strategy-lab'),
+    { ssr: false, loading: loadingFallback('校正策略实验室') }
+);
+
+const Lesson15LagLeadWorkshop = dynamic(
+    () => import('@/resources/interactive-learning/lesson-15/lag-lead-workshop'),
+    { ssr: false, loading: loadingFallback('滞后-超前流程拼图') }
+);
+
+const Lesson15SeriesExitQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-15/series-exit-quiz'),
+    { ssr: false, loading: loadingFallback('滞后超前后测') }
+);
+
+const Lesson15SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-15/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
 // Lesson-07 组件
 const Lesson07DampingQuickCheck = dynamic(
     () => import('@/resources/interactive-learning/lesson-07/damping-quick-check'),
@@ -604,6 +635,43 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: '课程总结',
         type: 'INTERACTIVE_COMP',
         component: Lesson14SummaryCard
+    },
+    // Lesson-15 组件
+    'lesson15-series-precheck': {
+        id: 'lesson15-series-precheck',
+        label: '串联校正速判',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson15SeriesPrecheck
+    },
+    'lesson15-series-knowledge-deck': {
+        id: 'lesson15-series-knowledge-deck',
+        label: '串联校正与滞后超前知识卡片',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson15SeriesKnowledgeDeck
+    },
+    'lesson15-series-strategy-lab': {
+        id: 'lesson15-series-strategy-lab',
+        label: '串联校正策略实验室',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson15SeriesStrategyLab
+    },
+    'lesson15-lag-lead-workshop': {
+        id: 'lesson15-lag-lead-workshop',
+        label: '滞后-超前流程拼图',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson15LagLeadWorkshop
+    },
+    'lesson15-series-exit-quiz': {
+        id: 'lesson15-series-exit-quiz',
+        label: '滞后超前速测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson15SeriesExitQuiz
+    },
+    'lesson15-summary-card': {
+        id: 'lesson15-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson15SummaryCard
     },
     // Lesson-07 组件
     'lesson07-damping-quick-check': {

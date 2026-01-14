@@ -95,6 +95,15 @@ const CATEGORY_ORDER = [
 
 const FEATURED_LESSONS = [
   {
+    id: 'lesson-15',
+    title: '串联校正与滞后超前：双管齐下',
+    description: '90 分钟线下课程：超前/滞后校正与联合设计流程。',
+    duration: '90 分钟',
+    href: '/interactive-learning/lesson-15',
+    badge: 'Lesson 15',
+    accent: 'emerald',
+  },
+  {
     id: 'lesson-14',
     title: '稳定裕度与三频段：宽备窄用',
     description: '90 分钟线下课程：稳定裕度评估与三频段性能分工。',
