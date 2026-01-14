@@ -11,10 +11,10 @@ import { useEffect, useMemo, useState } from 'react';
 
 /** 知识卡片 ID 列表 (Lesson 02) */
 export const LESSON_02_CARD_IDS = [
-  'concept-modeling-intro',
-  'concept-newton-law-application',
-  'concept-kirchhoff-law',
-  'concept-linearization',
+  'node-laplace-transform',
+  'node-laplace-interpretation',
+  'node-laplace-properties',
+  'node-inverse-laplace-methods',
 ] as const;
 
 export type Lesson02CardId = (typeof LESSON_02_CARD_IDS)[number];
@@ -114,10 +114,10 @@ export function useKnowledgeCard(id: string) {
  * 获取 Lesson 02 的所有知识卡片
  */
 export const CARD_PHASE_MAPPING: Record<Lesson02CardId, string> = {
-  'concept-modeling-intro': 'bridge',
-  'concept-newton-law-application': 'mechanical',
-  'concept-kirchhoff-law': 'electrical',
-  'concept-linearization': 'posttest',
+  'node-laplace-transform': 'bridge',
+  'node-laplace-interpretation': 'participatory',
+  'node-laplace-properties': 'participatory',
+  'node-inverse-laplace-methods': 'posttest',
 };
 
 export function useLesson02Cards() {

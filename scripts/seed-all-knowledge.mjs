@@ -18,6 +18,51 @@ const prisma = new PrismaClient();
 // ============================================================================
 
 const KNOWLEDGE_NODES = [
+  // Lesson 01: 反馈控制
+  {
+    id: 'node-feedback-core',
+    name: '反馈的核心思想',
+    filename: 'feedback-core.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '通过输出反馈与误差信号实现自我修正。',
+    position: { x: -10, y: 5, z: 0 },
+    tags: ['lesson-01', 'feedback', 'closed-loop']
+  },
+  {
+    id: 'node-control-system-components',
+    name: '控制系统四要素',
+    filename: 'control-system-components.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '对象、控制器、执行器与传感器构成闭环系统。',
+    position: { x: 0, y: 10, z: 0 },
+    tags: ['lesson-01', 'structure', 'components']
+  },
+  {
+    id: 'node-open-closed-loop',
+    name: '开环与闭环',
+    filename: 'open-closed-loop.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '开环无反馈，闭环依赖误差信号纠偏。',
+    position: { x: 10, y: 12, z: 0 },
+    tags: ['lesson-01', 'open-loop', 'closed-loop']
+  },
+  {
+    id: 'node-feedback-benefits',
+    name: '反馈的价值',
+    filename: 'feedback-benefits.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '反馈可抵御扰动、提升鲁棒性与稳态精度。',
+    position: { x: 20, y: 8, z: 0 },
+    tags: ['lesson-01', 'robustness', 'disturbance']
+  },
   // Lesson 02: 机理建模（微分方程）
   {
     id: 'node-modeling-intro',
@@ -74,7 +119,40 @@ const KNOWLEDGE_NODES = [
     knowledgeDim: 'PROCEDURAL',
     description: '将时域微分方程转换为s域代数方程的数学工具。',
     position: { x: 10, y: 10, z: 5 },
-    tags: ['lesson-03', 'laplace', 's-domain']
+    tags: ['lesson-02', 'lesson-03', 'laplace', 's-domain']
+  },
+  {
+    id: 'node-laplace-interpretation',
+    name: 's平面直觉',
+    filename: 'laplace-interpretation.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '实部决定衰减，虚部决定振荡频率的工程直觉。',
+    position: { x: 15, y: 14, z: 5 },
+    tags: ['lesson-02', 'laplace', 's-plane']
+  },
+  {
+    id: 'node-laplace-properties',
+    name: '拉氏变换常用定理',
+    filename: 'laplace-properties.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '线性、微分、积分、位移与卷积定理的核心公式。',
+    position: { x: 20, y: 16, z: 5 },
+    tags: ['lesson-02', 'laplace', 'properties']
+  },
+  {
+    id: 'node-inverse-laplace-methods',
+    name: '拉氏反变换方法',
+    filename: 'inverse-laplace-methods.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '部分分式、待定系数与留数法的工程用法。',
+    position: { x: 25, y: 18, z: 5 },
+    tags: ['lesson-02', 'laplace', 'inverse']
   },
   {
     id: 'node-transfer-function',
@@ -174,6 +252,118 @@ const KNOWLEDGE_NODES = [
     description: '齐次微分方程解是各运动模态的线性组合。',
     position: { x: 100, y: 24, z: 5 },
     tags: ['lesson-03', 'dynamics', 'modes']
+  },
+
+  // Lesson 04: 传递函数与控制系统数学模型
+  {
+    id: 'node-transfer-function-definition',
+    name: '传递函数定义',
+    filename: 'transfer-function-definition.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '零初始条件下输出拉氏变换与输入拉氏变换之比。',
+    position: { x: 110, y: 10, z: 8 },
+    tags: ['lesson-04', 'transfer-function', 'definition']
+  },
+  {
+    id: 'node-zero-initial-condition',
+    name: '零初始条件',
+    filename: 'zero-initial-condition.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '传递函数定义成立的前提假设。',
+    position: { x: 120, y: 12, z: 8 },
+    tags: ['lesson-04', 'transfer-function', 'assumption']
+  },
+  {
+    id: 'node-differential-to-transfer',
+    name: '微分方程→传递函数',
+    filename: 'differential-to-transfer.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '拉氏变换并整理为输入/输出比值。',
+    position: { x: 130, y: 14, z: 8 },
+    tags: ['lesson-04', 'transfer-function', 'derivation']
+  },
+  {
+    id: 'node-pole-zero-form',
+    name: '零极点形式',
+    filename: 'pole-zero-form.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '传函可写成零点与极点的乘积形式。',
+    position: { x: 140, y: 16, z: 8 },
+    tags: ['lesson-04', 'transfer-function', 'pole-zero']
+  },
+  {
+    id: 'node-characteristic-polynomial',
+    name: '特征多项式与系统阶次',
+    filename: 'characteristic-polynomial.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '分母多项式阶次即系统阶次。',
+    position: { x: 150, y: 18, z: 8 },
+    tags: ['lesson-04', 'transfer-function', 'order']
+  },
+  {
+    id: 'node-transfer-function-properties',
+    name: '传递函数性质',
+    filename: 'transfer-function-properties.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '线性定常系统可串并联/反馈组合。',
+    position: { x: 160, y: 20, z: 8 },
+    tags: ['lesson-04', 'transfer-function', 'properties']
+  },
+  {
+    id: 'node-typical-elements',
+    name: '典型环节',
+    filename: 'typical-elements.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '比例、积分、微分、一阶惯性、二阶振荡等标准形式。',
+    position: { x: 170, y: 22, z: 8 },
+    tags: ['lesson-04', 'transfer-function', 'elements']
+  },
+  {
+    id: 'node-rlc-transfer-example',
+    name: 'RLC 电路传递函数',
+    filename: 'rlc-transfer-example.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '从 KVL 方程得到二阶传函。',
+    position: { x: 180, y: 24, z: 8 },
+    tags: ['lesson-04', 'transfer-function', 'rlc']
+  },
+  {
+    id: 'node-mechanical-motor-transfer',
+    name: '机械/电机系统传递函数',
+    filename: 'mechanical-motor-transfer.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '弹簧-阻尼与电机系统可统一为标准传函。',
+    position: { x: 190, y: 26, z: 8 },
+    tags: ['lesson-04', 'transfer-function', 'mechanical', 'motor']
+  },
+  {
+    id: 'node-matlab-transfer-toolbox',
+    name: 'MATLAB 传递函数工具',
+    filename: 'matlab-transfer-toolbox.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'PROCEDURAL',
+    description: '用 tf/zpk/step/bode 快速建模与分析。',
+    position: { x: 200, y: 28, z: 8 },
+    tags: ['lesson-04', 'transfer-function', 'matlab']
   },
 
   // Lesson 05: PID 控制
@@ -846,6 +1036,12 @@ const KNOWLEDGE_NODES = [
 // ============================================================================
 
 const KNOWLEDGE_LINKS = [
+  // Lesson 01 内部关系
+  { sourceId: 'node-feedback-core', targetId: 'node-control-system-components', relation: 'prerequisite' },
+  { sourceId: 'node-feedback-core', targetId: 'node-open-closed-loop', relation: 'explains' },
+  { sourceId: 'node-open-closed-loop', targetId: 'node-feedback-benefits', relation: 'follows' },
+  { sourceId: 'node-feedback-benefits', targetId: 'node-stability-concept', relation: 'related' },
+
   // Lesson 02 内部关系
   { sourceId: 'node-modeling-intro', targetId: 'node-newton-laws', relation: 'prerequisite' },
   { sourceId: 'node-modeling-intro', targetId: 'node-kvl-circuit', relation: 'prerequisite' },
@@ -854,6 +1050,10 @@ const KNOWLEDGE_LINKS = [
 
   // Lesson 03 关系
   { sourceId: 'node-laplace-transform', targetId: 'node-transfer-function', relation: 'prerequisite' },
+  { sourceId: 'node-laplace-transform', targetId: 'node-laplace-interpretation', relation: 'explains' },
+  { sourceId: 'node-laplace-transform', targetId: 'node-laplace-properties', relation: 'enables' },
+  { sourceId: 'node-laplace-properties', targetId: 'node-inverse-laplace-methods', relation: 'supports' },
+  { sourceId: 'node-laplace-interpretation', targetId: 'node-inverse-laplace-methods', relation: 'related' },
   { sourceId: 'node-linearization', targetId: 'node-laplace-transform', relation: 'related' },
   { sourceId: 'node-differential-equation-model', targetId: 'node-system-model-types', relation: 'follows' },
   { sourceId: 'node-modeling-methods', targetId: 'node-differential-modeling-steps', relation: 'follows' },
@@ -862,6 +1062,19 @@ const KNOWLEDGE_LINKS = [
   { sourceId: 'node-modeling-examples', targetId: 'node-linearization-equilibrium', relation: 'related' },
   { sourceId: 'node-linearization-equilibrium', targetId: 'node-motion-modes', relation: 'follows' },
   { sourceId: 'node-modeling-intro', targetId: 'node-differential-equation-model', relation: 'related' },
+
+  // Lesson 04 关系
+  { sourceId: 'node-laplace-transform', targetId: 'node-transfer-function-definition', relation: 'prerequisite' },
+  { sourceId: 'node-transfer-function', targetId: 'node-transfer-function-definition', relation: 'related' },
+  { sourceId: 'node-transfer-function-definition', targetId: 'node-zero-initial-condition', relation: 'prerequisite' },
+  { sourceId: 'node-zero-initial-condition', targetId: 'node-differential-to-transfer', relation: 'prerequisite' },
+  { sourceId: 'node-differential-to-transfer', targetId: 'node-pole-zero-form', relation: 'follows' },
+  { sourceId: 'node-pole-zero-form', targetId: 'node-characteristic-polynomial', relation: 'related' },
+  { sourceId: 'node-characteristic-polynomial', targetId: 'node-transfer-function-properties', relation: 'follows' },
+  { sourceId: 'node-transfer-function-properties', targetId: 'node-typical-elements', relation: 'follows' },
+  { sourceId: 'node-typical-elements', targetId: 'node-rlc-transfer-example', relation: 'related' },
+  { sourceId: 'node-rlc-transfer-example', targetId: 'node-mechanical-motor-transfer', relation: 'related' },
+  { sourceId: 'node-transfer-function-definition', targetId: 'node-matlab-transfer-toolbox', relation: 'related' },
 
   // Lesson 05 关系
   { sourceId: 'node-transfer-function', targetId: 'node-pid-controller', relation: 'prerequisite' },

@@ -37,7 +37,7 @@ export function PosttestPhase({
     card: knowledgeCard,
     isLoading: isKnowledgeCardLoading,
     error: knowledgeCardError,
-  } = useKnowledgeCard('concept-linearization');
+  } = useKnowledgeCard('node-linearization');
 
   const hints = [
     '转动惯量 J 对应惯性项 J·θ̈',

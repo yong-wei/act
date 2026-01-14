@@ -36,7 +36,7 @@ export function ElectricalPhase({
     card: knowledgeCard,
     isLoading: isKnowledgeCardLoading,
     error: knowledgeCardError,
-  } = useKnowledgeCard('concept-kirchhoff-law');
+  } = useKnowledgeCard('node-kvl-circuit');
 
   // 需要辅助提示（前测在电感/电容上出错）
   const needsHelp = weakAreas.includes('inductor') || weakAreas.includes('capacitor');

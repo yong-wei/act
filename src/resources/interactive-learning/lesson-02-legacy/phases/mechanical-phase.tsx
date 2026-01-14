@@ -35,7 +35,7 @@ export function MechanicalPhase({
     card: knowledgeCard,
     isLoading: isKnowledgeCardLoading,
     error: knowledgeCardError,
-  } = useKnowledgeCard('concept-newton-law-application');
+  } = useKnowledgeCard('node-newton-laws');
 
   // 需要辅助提示（前测弱项）
   const needsHelp = weakAreas.length > 0;

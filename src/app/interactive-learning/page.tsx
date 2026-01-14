@@ -95,6 +95,24 @@ const CATEGORY_ORDER = [
 
 const FEATURED_LESSONS = [
   {
+    id: 'lesson-01',
+    title: '反馈：控制原理的核心思想',
+    description: '90 分钟线下课程：反馈、闭环与控制系统结构。',
+    duration: '90 分钟',
+    href: '/interactive-learning/lesson-01',
+    badge: 'Lesson 01',
+    accent: 'emerald',
+  },
+  {
+    id: 'lesson-02',
+    title: '拉氏变换：工程直觉的数学实现',
+    description: '90 分钟线下课程：s 域直觉、常用定理与反变换路径。',
+    duration: '90 分钟',
+    href: '/interactive-learning/lesson-02',
+    badge: 'Lesson 02',
+    accent: 'amber',
+  },
+  {
     id: 'lesson-03',
     title: '微分方程与控制系统基础模型',
     description: '90 分钟线下课程：微分方程建模方法与典型案例。',
@@ -102,6 +120,15 @@ const FEATURED_LESSONS = [
     href: '/interactive-learning/lesson-03',
     badge: 'Lesson 03',
     accent: 'cyan',
+  },
+  {
+    id: 'lesson-04',
+    title: '传递函数与控制系统数学模型',
+    description: '90 分钟线下课程：传递函数定义、推导与零极点判读。',
+    duration: '90 分钟',
+    href: '/interactive-learning/lesson-04',
+    badge: 'Lesson 04',
+    accent: 'blue',
   },
   {
     id: 'lesson-15',

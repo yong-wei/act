@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Lesson-02 拉氏变换：工程直觉的数学实现 页面入口
+ * Lesson-01 反馈：控制原理的核心思想 页面入口
  */
 
 import { useCallback, useState } from 'react';
@@ -9,55 +9,55 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {
   ArrowLeft,
-  Waves,
+  Anchor,
   Compass,
   BookOpen,
   Shuffle,
-  FlaskConical,
+  Layers,
   ClipboardCheck,
   Sparkles,
   Flag,
   Clock,
 } from 'lucide-react';
-import { LESSON_02_CONFIG } from '@/resources/interactive-learning/lesson-02/manifest';
+import { LESSON_01_CONFIG } from '@/resources/interactive-learning/lesson-01/manifest';
 
-const LaplaceBridgeIntro = dynamic(
-  () => import('@/resources/interactive-learning/lesson-02/bridge-intro'),
+const FeedbackBridgeIntro = dynamic(
+  () => import('@/resources/interactive-learning/lesson-01/bridge-intro'),
   { ssr: false, loading: () => <LoadingPlaceholder text="加载导入..." /> }
 );
 
-const LaplaceObjectiveCard = dynamic(
-  () => import('@/resources/interactive-learning/lesson-02/objective-card'),
+const FeedbackObjectiveCard = dynamic(
+  () => import('@/resources/interactive-learning/lesson-01/objective-card'),
   { ssr: false, loading: () => <LoadingPlaceholder text="加载学习目标..." /> }
 );
 
-const LaplacePrecheck = dynamic(
-  () => import('@/resources/interactive-learning/lesson-02/laplace-precheck'),
+const FeedbackPrecheck = dynamic(
+  () => import('@/resources/interactive-learning/lesson-01/feedback-precheck'),
   { ssr: false, loading: () => <LoadingPlaceholder text="加载前测..." /> }
 );
 
-const LaplaceKnowledgeDeck = dynamic(
-  () => import('@/resources/interactive-learning/lesson-02/laplace-knowledge-deck'),
+const FeedbackKnowledgeDeck = dynamic(
+  () => import('@/resources/interactive-learning/lesson-01/feedback-knowledge-deck'),
   { ssr: false, loading: () => <LoadingPlaceholder text="加载知识卡片..." /> }
 );
 
-const LaplacePropertyMatch = dynamic(
-  () => import('@/resources/interactive-learning/lesson-02/laplace-property-match'),
-  { ssr: false, loading: () => <LoadingPlaceholder text="加载定理匹配..." /> }
+const ComponentRoleMatch = dynamic(
+  () => import('@/resources/interactive-learning/lesson-01/component-role-match'),
+  { ssr: false, loading: () => <LoadingPlaceholder text="加载组件匹配..." /> }
 );
 
-const LaplaceInverseLab = dynamic(
-  () => import('@/resources/interactive-learning/lesson-02/laplace-inverse-lab'),
-  { ssr: false, loading: () => <LoadingPlaceholder text="加载反变换实验..." /> }
+const LoopScenarioLab = dynamic(
+  () => import('@/resources/interactive-learning/lesson-01/loop-scenario-lab'),
+  { ssr: false, loading: () => <LoadingPlaceholder text="加载场景实验..." /> }
 );
 
-const LaplaceExitQuiz = dynamic(
-  () => import('@/resources/interactive-learning/lesson-02/laplace-exit-quiz'),
+const FeedbackExitQuiz = dynamic(
+  () => import('@/resources/interactive-learning/lesson-01/feedback-exit-quiz'),
   { ssr: false, loading: () => <LoadingPlaceholder text="加载后测..." /> }
 );
 
-const LaplaceSummaryCard = dynamic(
-  () => import('@/resources/interactive-learning/lesson-02/summary-card'),
+const FeedbackSummaryCard = dynamic(
+  () => import('@/resources/interactive-learning/lesson-01/summary-card'),
   { ssr: false, loading: () => <LoadingPlaceholder text="加载课程总结..." /> }
 );
 
@@ -83,74 +83,74 @@ interface ModuleOption {
 
 const MODULES: ModuleOption[] = [
   {
-    id: 'laplace-bridge',
-    title: '导入：捷径从哪里来？',
-    description: '从 RLC 微分方程出发寻找工程捷径。',
+    id: 'feedback-bridge',
+    title: '导入：烧水的控制语言',
+    description: '从生活场景识别反馈动作。',
     icon: <Compass className="h-6 w-6" />,
     duration: '5分钟',
-    component: 'LaplaceBridgeIntro',
+    component: 'FeedbackBridgeIntro',
   },
   {
-    id: 'laplace-objective',
-    title: '目标：s 域直觉清单',
-    description: '确认本节课的工程能力目标。',
+    id: 'feedback-objective',
+    title: '目标：反馈核心能力',
+    description: '确认本节课学习目标。',
     icon: <Flag className="h-6 w-6" />,
     duration: '3分钟',
-    component: 'LaplaceObjectiveCard',
+    component: 'FeedbackObjectiveCard',
   },
   {
-    id: 'laplace-precheck',
-    title: '前测：拉氏直觉自查',
-    description: '投票 + 3 题快速诊断。',
-    icon: <Waves className="h-6 w-6" />,
+    id: 'feedback-precheck',
+    title: '前测：基础概念速判',
+    description: '快速检验反馈与闭环基础。',
+    icon: <Anchor className="h-6 w-6" />,
     duration: '8分钟',
-    component: 'LaplacePrecheck',
+    component: 'FeedbackPrecheck',
   },
   {
-    id: 'laplace-knowledge',
-    title: '知识卡片：直觉与定理',
-    description: '4 张卡片串起核心概念。',
+    id: 'feedback-knowledge',
+    title: '知识卡片：反馈要素',
+    description: '4 张卡片串起控制语言。',
     icon: <BookOpen className="h-6 w-6" />,
     duration: '18分钟',
-    component: 'LaplaceKnowledgeDeck',
+    component: 'FeedbackKnowledgeDeck',
   },
   {
-    id: 'laplace-property-match',
-    title: '互动：定理速配',
-    description: '把时域操作映射到 s 域表达。',
+    id: 'feedback-component-match',
+    title: '互动：组件职责匹配',
+    description: '对象、控制器、执行器与传感器。',
     icon: <Shuffle className="h-6 w-6" />,
     duration: '18分钟',
-    component: 'LaplacePropertyMatch',
+    component: 'ComponentRoleMatch',
   },
   {
-    id: 'laplace-inverse-lab',
-    title: '互动：反变换路线',
-    description: '选择最合适的逆变换方法。',
-    icon: <FlaskConical className="h-6 w-6" />,
+    id: 'feedback-loop-lab',
+    title: '互动：场景分类实验',
+    description: '识别开环与闭环系统。',
+    icon: <Layers className="h-6 w-6" />,
     duration: '18分钟',
-    component: 'LaplaceInverseLab',
+    component: 'LoopScenarioLab',
   },
   {
-    id: 'laplace-exit-quiz',
-    title: '后测：定理出口检测',
-    description: '检验初值/终值与位移定理。',
+    id: 'feedback-exit-quiz',
+    title: '后测：反馈核心要点',
+    description: '检验误差与反馈价值。',
     icon: <ClipboardCheck className="h-6 w-6" />,
     duration: '12分钟',
-    component: 'LaplaceExitQuiz',
+    component: 'FeedbackExitQuiz',
   },
   {
-    id: 'laplace-summary',
+    id: 'feedback-summary',
     title: '总结与拓展',
-    description: '回顾拉氏变换与工程直觉的合流。',
+    description: '回顾反馈控制的核心思想。',
     icon: <Sparkles className="h-6 w-6" />,
     duration: '8分钟',
-    component: 'LaplaceSummaryCard',
+    component: 'FeedbackSummaryCard',
   },
 ];
 
-export default function Lesson02Page() {
+export default function Lesson01Page() {
   const [activeModule, setActiveModule] = useState<string | null>(null);
-  const { metadata } = LESSON_02_CONFIG;
+  const { metadata } = LESSON_01_CONFIG;
 
   const handleModuleSelect = useCallback((moduleId: string) => {
     setActiveModule(moduleId);
@@ -162,22 +162,22 @@ export default function Lesson02Page() {
 
   const renderActiveModule = () => {
     switch (activeModule) {
-      case 'laplace-bridge':
-        return <LaplaceBridgeIntro />;
-      case 'laplace-objective':
-        return <LaplaceObjectiveCard />;
-      case 'laplace-precheck':
-        return <LaplacePrecheck />;
-      case 'laplace-knowledge':
-        return <LaplaceKnowledgeDeck />;
-      case 'laplace-property-match':
-        return <LaplacePropertyMatch />;
-      case 'laplace-inverse-lab':
-        return <LaplaceInverseLab />;
-      case 'laplace-exit-quiz':
-        return <LaplaceExitQuiz />;
-      case 'laplace-summary':
-        return <LaplaceSummaryCard />;
+      case 'feedback-bridge':
+        return <FeedbackBridgeIntro />;
+      case 'feedback-objective':
+        return <FeedbackObjectiveCard />;
+      case 'feedback-precheck':
+        return <FeedbackPrecheck />;
+      case 'feedback-knowledge':
+        return <FeedbackKnowledgeDeck />;
+      case 'feedback-component-match':
+        return <ComponentRoleMatch />;
+      case 'feedback-loop-lab':
+        return <LoopScenarioLab />;
+      case 'feedback-exit-quiz':
+        return <FeedbackExitQuiz />;
+      case 'feedback-summary':
+        return <FeedbackSummaryCard />;
       default:
         return null;
     }
@@ -212,18 +212,18 @@ export default function Lesson02Page() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-      <header className="border-b border-amber-700/40">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-950 via-slate-900 to-emerald-950">
+      <header className="border-b border-emerald-700/40">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link
             href="/interactive-learning"
-            className="flex items-center gap-2 text-sm text-amber-200 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-sm text-emerald-200 hover:text-white transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             返回互动学习
           </Link>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-amber-200">
+            <div className="flex items-center gap-2 text-sm text-emerald-200">
               <Clock className="h-4 w-4" />
               <span>{metadata.duration} 分钟</span>
             </div>
@@ -233,20 +233,20 @@ export default function Lesson02Page() {
 
       <div className="mx-auto max-w-7xl px-6 py-12">
         <div className="flex items-start gap-6">
-          <div className="p-4 bg-amber-500/10 rounded-2xl">
-            <Waves className="h-12 w-12 text-amber-300" />
+          <div className="p-4 bg-emerald-500/10 rounded-2xl">
+            <Anchor className="h-12 w-12 text-emerald-300" />
           </div>
           <div className="flex-1">
-            <p className="text-sm uppercase tracking-widest text-amber-300 mb-1">
-              Lesson 02 · {metadata.subtitle}
+            <p className="text-sm uppercase tracking-widest text-emerald-300 mb-1">
+              Lesson 01 · {metadata.subtitle}
             </p>
             <h1 className="text-4xl font-bold text-white mb-3">{metadata.title}</h1>
-            <p className="text-amber-100/80 max-w-2xl">{metadata.description}</p>
+            <p className="text-emerald-100/80 max-w-2xl">{metadata.description}</p>
             <div className="mt-6 flex flex-wrap gap-2">
               {metadata.keywords.map((tag: string) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs text-amber-200"
+                  className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200"
                 >
                   {tag}
                 </span>
@@ -262,18 +262,18 @@ export default function Lesson02Page() {
             <button
               key={module.id}
               onClick={() => handleModuleSelect(module.id)}
-              className="group rounded-2xl border border-amber-500/20 bg-slate-950/50 p-6 text-left transition hover:border-amber-300/60 hover:bg-slate-950/70"
+              className="group rounded-2xl border border-emerald-500/20 bg-slate-950/50 p-6 text-left transition hover:border-emerald-300/60 hover:bg-slate-950/70"
             >
-              <div className="flex items-center gap-3 text-amber-200">
-                <div className="rounded-xl bg-amber-500/10 p-2 text-amber-200">
+              <div className="flex items-center gap-3 text-emerald-200">
+                <div className="rounded-xl bg-emerald-500/10 p-2 text-emerald-200">
                   {module.icon}
                 </div>
-                <div className="text-sm text-amber-100/70">{module.duration}</div>
+                <div className="text-sm text-emerald-100/70">{module.duration}</div>
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-white group-hover:text-amber-200">
+              <h3 className="mt-4 text-lg font-semibold text-white group-hover:text-emerald-200">
                 {module.title}
               </h3>
-              <p className="mt-2 text-sm text-amber-100/70">{module.description}</p>
+              <p className="mt-2 text-sm text-emerald-100/70">{module.description}</p>
             </button>
           ))}
         </div>

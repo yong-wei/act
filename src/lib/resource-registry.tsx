@@ -40,44 +40,124 @@ const ArgumentPrinciple = dynamic(() => import('@/resources/widgets/argument-pri
     loading: () => <div className="p-4 text-center text-slate-400">Loading Argument Principle...</div>
 });
 
-const Lesson02Bridge = dynamic(
-    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02BridgeResource),
-    { loading: loadingFallback('Lesson 02 Bridge') }
+const Lesson02LegacyBridge = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02-legacy/standalone-resources').then(mod => mod.Lesson02LegacyBridgeResource),
+    { loading: loadingFallback('Lesson 02 Legacy Bridge') }
 );
 
-const Lesson02Objective = dynamic(
-    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02ObjectiveResource),
-    { loading: loadingFallback('Lesson 02 Objectives') }
+const Lesson02LegacyObjective = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02-legacy/standalone-resources').then(mod => mod.Lesson02LegacyObjectiveResource),
+    { loading: loadingFallback('Lesson 02 Legacy Objectives') }
 );
 
-const Lesson02Pretest = dynamic(
-    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02PretestResource),
-    { loading: loadingFallback('Lesson 02 Pretest') }
+const Lesson02LegacyPretest = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02-legacy/standalone-resources').then(mod => mod.Lesson02LegacyPretestResource),
+    { loading: loadingFallback('Lesson 02 Legacy Pretest') }
 );
 
-const Lesson02Mechanical = dynamic(
-    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02MechanicalResource),
-    { loading: loadingFallback('Lesson 02 Mechanical') }
+const Lesson02LegacyMechanical = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02-legacy/standalone-resources').then(mod => mod.Lesson02LegacyMechanicalResource),
+    { loading: loadingFallback('Lesson 02 Legacy Mechanical') }
 );
 
-const Lesson02Electrical = dynamic(
-    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02ElectricalResource),
-    { loading: loadingFallback('Lesson 02 Electrical') }
+const Lesson02LegacyElectrical = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02-legacy/standalone-resources').then(mod => mod.Lesson02LegacyElectricalResource),
+    { loading: loadingFallback('Lesson 02 Legacy Electrical') }
 );
 
-const Lesson02Analogy = dynamic(
-    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02AnalogyResource),
-    { loading: loadingFallback('Lesson 02 Analogy') }
+const Lesson02LegacyAnalogy = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02-legacy/standalone-resources').then(mod => mod.Lesson02LegacyAnalogyResource),
+    { loading: loadingFallback('Lesson 02 Legacy Analogy') }
 );
 
-const Lesson02Posttest = dynamic(
-    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02PosttestResource),
-    { loading: loadingFallback('Lesson 02 Posttest') }
+const Lesson02LegacyPosttest = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02-legacy/standalone-resources').then(mod => mod.Lesson02LegacyPosttestResource),
+    { loading: loadingFallback('Lesson 02 Legacy Posttest') }
 );
 
-const Lesson02Summary = dynamic(
-    () => import('@/resources/interactive-learning/lesson-02/standalone-resources').then(mod => mod.Lesson02SummaryResource),
-    { loading: loadingFallback('Lesson 02 Summary') }
+const Lesson02LegacySummary = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02-legacy/standalone-resources').then(mod => mod.Lesson02LegacySummaryResource),
+    { loading: loadingFallback('Lesson 02 Legacy Summary') }
+);
+
+const Lesson02LaplaceBridge = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/bridge-intro'),
+    { ssr: false, loading: loadingFallback('Lesson 02 Laplace Bridge') }
+);
+
+const Lesson02LaplaceObjective = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/objective-card'),
+    { ssr: false, loading: loadingFallback('Lesson 02 Laplace Objectives') }
+);
+
+const Lesson02LaplacePrecheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/laplace-precheck'),
+    { ssr: false, loading: loadingFallback('Lesson 02 Laplace Precheck') }
+);
+
+const Lesson02LaplaceKnowledgeDeck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/laplace-knowledge-deck'),
+    { ssr: false, loading: loadingFallback('Lesson 02 Laplace Knowledge Deck') }
+);
+
+const Lesson02LaplacePropertyMatch = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/laplace-property-match'),
+    { ssr: false, loading: loadingFallback('Lesson 02 Laplace Property Match') }
+);
+
+const Lesson02LaplaceInverseLab = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/laplace-inverse-lab'),
+    { ssr: false, loading: loadingFallback('Lesson 02 Laplace Inverse Lab') }
+);
+
+const Lesson02LaplaceExitQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/laplace-exit-quiz'),
+    { ssr: false, loading: loadingFallback('Lesson 02 Laplace Exit Quiz') }
+);
+
+const Lesson02LaplaceSummary = dynamic(
+    () => import('@/resources/interactive-learning/lesson-02/summary-card'),
+    { ssr: false, loading: loadingFallback('Lesson 02 Laplace Summary') }
+);
+
+const Lesson01FeedbackBridge = dynamic(
+    () => import('@/resources/interactive-learning/lesson-01/bridge-intro'),
+    { ssr: false, loading: loadingFallback('Lesson 01 Feedback Bridge') }
+);
+
+const Lesson01FeedbackObjective = dynamic(
+    () => import('@/resources/interactive-learning/lesson-01/objective-card'),
+    { ssr: false, loading: loadingFallback('Lesson 01 Feedback Objectives') }
+);
+
+const Lesson01FeedbackPrecheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-01/feedback-precheck'),
+    { ssr: false, loading: loadingFallback('Lesson 01 Feedback Precheck') }
+);
+
+const Lesson01FeedbackKnowledgeDeck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-01/feedback-knowledge-deck'),
+    { ssr: false, loading: loadingFallback('Lesson 01 Feedback Knowledge Deck') }
+);
+
+const Lesson01ComponentRoleMatch = dynamic(
+    () => import('@/resources/interactive-learning/lesson-01/component-role-match'),
+    { ssr: false, loading: loadingFallback('Lesson 01 Component Role Match') }
+);
+
+const Lesson01LoopScenarioLab = dynamic(
+    () => import('@/resources/interactive-learning/lesson-01/loop-scenario-lab'),
+    { ssr: false, loading: loadingFallback('Lesson 01 Loop Scenario Lab') }
+);
+
+const Lesson01FeedbackExitQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-01/feedback-exit-quiz'),
+    { ssr: false, loading: loadingFallback('Lesson 01 Feedback Exit Quiz') }
+);
+
+const Lesson01FeedbackSummary = dynamic(
+    () => import('@/resources/interactive-learning/lesson-01/summary-card'),
+    { ssr: false, loading: loadingFallback('Lesson 01 Feedback Summary') }
 );
 
 const PhysicsModelingIntro = dynamic(
@@ -257,6 +337,37 @@ const Lesson03DiffExitQuiz = dynamic(
 
 const Lesson03SummaryCard = dynamic(
     () => import('@/resources/interactive-learning/lesson-03/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
+// Lesson-04 组件
+const Lesson04TransferPrecheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-04/transfer-precheck'),
+    { ssr: false, loading: loadingFallback('传递函数前测') }
+);
+
+const Lesson04TransferKnowledgeDeck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-04/transfer-knowledge-deck'),
+    { ssr: false, loading: loadingFallback('传递函数知识卡片') }
+);
+
+const Lesson04TransferDerivationLab = dynamic(
+    () => import('@/resources/interactive-learning/lesson-04/transfer-derivation-lab'),
+    { ssr: false, loading: loadingFallback('传函推导演练') }
+);
+
+const Lesson04TransferElementWorkshop = dynamic(
+    () => import('@/resources/interactive-learning/lesson-04/transfer-element-workshop'),
+    { ssr: false, loading: loadingFallback('典型环节工作坊') }
+);
+
+const Lesson04TransferExitQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-04/transfer-exit-quiz'),
+    { ssr: false, loading: loadingFallback('传递函数后测') }
+);
+
+const Lesson04SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-04/summary-card'),
     { ssr: false, loading: loadingFallback('课程总结') }
 );
 
@@ -478,53 +589,149 @@ const registry: Record<string, ResourceComponentConfig> = {
         defaultConfig: { showControls: true },
         component: ArgumentPrinciple
     },
-    'lesson02-bridge-v1': {
-        id: 'lesson02-bridge-v1',
-        label: 'Lesson 02 - Bridge In',
+    'lesson02-legacy-bridge-v1': {
+        id: 'lesson02-legacy-bridge-v1',
+        label: 'Lesson 02 Legacy - Bridge In',
         type: 'INTERACTIVE_COMP',
-        component: Lesson02Bridge
+        component: Lesson02LegacyBridge
     },
-    'lesson02-objective-v1': {
-        id: 'lesson02-objective-v1',
-        label: 'Lesson 02 - Objectives',
+    'lesson02-legacy-objective-v1': {
+        id: 'lesson02-legacy-objective-v1',
+        label: 'Lesson 02 Legacy - Objectives',
         type: 'INTERACTIVE_COMP',
-        component: Lesson02Objective
+        component: Lesson02LegacyObjective
     },
-    'lesson02-pretest-v1': {
-        id: 'lesson02-pretest-v1',
-        label: 'Lesson 02 - Pretest',
+    'lesson02-legacy-pretest-v1': {
+        id: 'lesson02-legacy-pretest-v1',
+        label: 'Lesson 02 Legacy - Pretest',
         type: 'INTERACTIVE_COMP',
-        component: Lesson02Pretest
+        component: Lesson02LegacyPretest
     },
-    'lesson02-mechanical-v1': {
-        id: 'lesson02-mechanical-v1',
-        label: 'Lesson 02 - Mechanical Modeling',
+    'lesson02-legacy-mechanical-v1': {
+        id: 'lesson02-legacy-mechanical-v1',
+        label: 'Lesson 02 Legacy - Mechanical Modeling',
         type: 'INTERACTIVE_COMP',
-        component: Lesson02Mechanical
+        component: Lesson02LegacyMechanical
     },
-    'lesson02-electrical-v1': {
-        id: 'lesson02-electrical-v1',
-        label: 'Lesson 02 - Electrical Modeling',
+    'lesson02-legacy-electrical-v1': {
+        id: 'lesson02-legacy-electrical-v1',
+        label: 'Lesson 02 Legacy - Electrical Modeling',
         type: 'INTERACTIVE_COMP',
-        component: Lesson02Electrical
+        component: Lesson02LegacyElectrical
     },
-    'lesson02-analogy-v1': {
-        id: 'lesson02-analogy-v1',
-        label: 'Lesson 02 - Analogy Mapping',
+    'lesson02-legacy-analogy-v1': {
+        id: 'lesson02-legacy-analogy-v1',
+        label: 'Lesson 02 Legacy - Analogy Mapping',
         type: 'INTERACTIVE_COMP',
-        component: Lesson02Analogy
+        component: Lesson02LegacyAnalogy
     },
-    'lesson02-posttest-v1': {
-        id: 'lesson02-posttest-v1',
-        label: 'Lesson 02 - Posttest',
+    'lesson02-legacy-posttest-v1': {
+        id: 'lesson02-legacy-posttest-v1',
+        label: 'Lesson 02 Legacy - Posttest',
         type: 'INTERACTIVE_COMP',
-        component: Lesson02Posttest
+        component: Lesson02LegacyPosttest
     },
-    'lesson02-summary-v1': {
-        id: 'lesson02-summary-v1',
-        label: 'Lesson 02 - Summary',
+    'lesson02-legacy-summary-v1': {
+        id: 'lesson02-legacy-summary-v1',
+        label: 'Lesson 02 Legacy - Summary',
         type: 'INTERACTIVE_COMP',
-        component: Lesson02Summary
+        component: Lesson02LegacySummary
+    },
+    'lesson02-laplace-bridge-v1': {
+        id: 'lesson02-laplace-bridge-v1',
+        label: 'Lesson 02 - Laplace Bridge',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02LaplaceBridge
+    },
+    'lesson02-laplace-objective-v1': {
+        id: 'lesson02-laplace-objective-v1',
+        label: 'Lesson 02 - Laplace Objectives',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02LaplaceObjective
+    },
+    'lesson02-laplace-precheck-v1': {
+        id: 'lesson02-laplace-precheck-v1',
+        label: 'Lesson 02 - Laplace Precheck',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02LaplacePrecheck
+    },
+    'lesson02-laplace-knowledge-deck-v1': {
+        id: 'lesson02-laplace-knowledge-deck-v1',
+        label: 'Lesson 02 - Laplace Knowledge Deck',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02LaplaceKnowledgeDeck
+    },
+    'lesson02-laplace-property-match-v1': {
+        id: 'lesson02-laplace-property-match-v1',
+        label: 'Lesson 02 - Laplace Property Match',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02LaplacePropertyMatch
+    },
+    'lesson02-laplace-inverse-lab-v1': {
+        id: 'lesson02-laplace-inverse-lab-v1',
+        label: 'Lesson 02 - Laplace Inverse Lab',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02LaplaceInverseLab
+    },
+    'lesson02-laplace-exit-quiz-v1': {
+        id: 'lesson02-laplace-exit-quiz-v1',
+        label: 'Lesson 02 - Laplace Exit Quiz',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02LaplaceExitQuiz
+    },
+    'lesson02-laplace-summary-v1': {
+        id: 'lesson02-laplace-summary-v1',
+        label: 'Lesson 02 - Laplace Summary',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson02LaplaceSummary
+    },
+    'lesson01-feedback-bridge-v1': {
+        id: 'lesson01-feedback-bridge-v1',
+        label: 'Lesson 01 - Feedback Bridge',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson01FeedbackBridge
+    },
+    'lesson01-feedback-objective-v1': {
+        id: 'lesson01-feedback-objective-v1',
+        label: 'Lesson 01 - Feedback Objectives',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson01FeedbackObjective
+    },
+    'lesson01-feedback-precheck-v1': {
+        id: 'lesson01-feedback-precheck-v1',
+        label: 'Lesson 01 - Feedback Precheck',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson01FeedbackPrecheck
+    },
+    'lesson01-feedback-knowledge-deck-v1': {
+        id: 'lesson01-feedback-knowledge-deck-v1',
+        label: 'Lesson 01 - Feedback Knowledge Deck',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson01FeedbackKnowledgeDeck
+    },
+    'lesson01-component-role-match-v1': {
+        id: 'lesson01-component-role-match-v1',
+        label: 'Lesson 01 - Component Role Match',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson01ComponentRoleMatch
+    },
+    'lesson01-loop-scenario-lab-v1': {
+        id: 'lesson01-loop-scenario-lab-v1',
+        label: 'Lesson 01 - Loop Scenario Lab',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson01LoopScenarioLab
+    },
+    'lesson01-feedback-exit-quiz-v1': {
+        id: 'lesson01-feedback-exit-quiz-v1',
+        label: 'Lesson 01 - Feedback Exit Quiz',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson01FeedbackExitQuiz
+    },
+    'lesson01-feedback-summary-v1': {
+        id: 'lesson01-feedback-summary-v1',
+        label: 'Lesson 01 - Feedback Summary',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson01FeedbackSummary
     },
     'physics-modeling-intro-v1': {
         id: 'physics-modeling-intro-v1',
@@ -740,6 +947,43 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: '课程总结',
         type: 'INTERACTIVE_COMP',
         component: Lesson03SummaryCard
+    },
+    // Lesson-04 组件
+    'lesson04-transfer-precheck': {
+        id: 'lesson04-transfer-precheck',
+        label: '传递函数前测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson04TransferPrecheck
+    },
+    'lesson04-transfer-knowledge-deck': {
+        id: 'lesson04-transfer-knowledge-deck',
+        label: '传递函数知识卡片',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson04TransferKnowledgeDeck
+    },
+    'lesson04-transfer-derivation-lab': {
+        id: 'lesson04-transfer-derivation-lab',
+        label: '传函推导演练',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson04TransferDerivationLab
+    },
+    'lesson04-transfer-element-workshop': {
+        id: 'lesson04-transfer-element-workshop',
+        label: '典型环节工作坊',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson04TransferElementWorkshop
+    },
+    'lesson04-transfer-exit-quiz': {
+        id: 'lesson04-transfer-exit-quiz',
+        label: '传递函数后测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson04TransferExitQuiz
+    },
+    'lesson04-summary-card': {
+        id: 'lesson04-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson04SummaryCard
     },
     // Lesson-07 组件
     'lesson07-damping-quick-check': {

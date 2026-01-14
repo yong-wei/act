@@ -1,5 +1,5 @@
 /**
- * 预置教案：Lesson 02 - 机理建模·微分方程
+ * 预置教案：Lesson 02 Legacy - 机理建模·微分方程
  *
  * 基于 BOPPPS 教学框架的完整建模课程流程
  */
@@ -7,19 +7,19 @@
 import { ResourceType } from '@prisma/client';
 import type { PresetLessonConfig } from '../types';
 
-export const LESSON_02_MODELING_PRESET: PresetLessonConfig = {
-  key: 'lesson-02-modeling-v1',
-  title: '机理建模·微分方程',
+export const LESSON_02_LEGACY_MODELING_PRESET: PresetLessonConfig = {
+  key: 'lesson-02-legacy-modeling-v1',
+  title: '机理建模·微分方程（Legacy）',
   description:
     '通过舵机系统案例引导学生完成机械/电路建模与机电相似映射，形成微分方程统一框架。',
   totalDuration: 90,
   thumbnail: '/images/presets/lesson-02-modeling.jpg',
-  tags: ['系统建模', '机电相似', '微分方程', '建模方法'],
+  tags: ['系统建模', '机电相似', '微分方程', '建模方法', 'legacy'],
   items: [
     {
       stage: 'BRIDGE_IN',
       order: 1,
-      registryId: 'lesson02-bridge-v1',
+      registryId: 'lesson02-legacy-bridge-v1',
       resourceType: ResourceType.INTERACTIVE_COMP,
       duration: 5,
       title: '导入：透视舵机系统',
@@ -29,7 +29,7 @@ export const LESSON_02_MODELING_PRESET: PresetLessonConfig = {
     {
       stage: 'OBJECTIVE',
       order: 1,
-      registryId: 'lesson02-objective-v1',
+      registryId: 'lesson02-legacy-objective-v1',
       resourceType: ResourceType.INTERACTIVE_COMP,
       duration: 2,
       title: '学习目标',
@@ -39,7 +39,7 @@ export const LESSON_02_MODELING_PRESET: PresetLessonConfig = {
     {
       stage: 'PRE_ASSESSMENT',
       order: 1,
-      registryId: 'lesson02-pretest-v1',
+      registryId: 'lesson02-legacy-pretest-v1',
       resourceType: ResourceType.INTERACTIVE_COMP,
       duration: 8,
       title: '前测：物理基础连线',
@@ -58,7 +58,7 @@ export const LESSON_02_MODELING_PRESET: PresetLessonConfig = {
     {
       stage: 'PARTICIPATORY',
       order: 2,
-      registryId: 'lesson02-mechanical-v1',
+      registryId: 'lesson02-legacy-mechanical-v1',
       resourceType: ResourceType.INTERACTIVE_COMP,
       duration: 22,
       title: '参与式学习：机械建模工坊',
@@ -77,7 +77,7 @@ export const LESSON_02_MODELING_PRESET: PresetLessonConfig = {
     {
       stage: 'PARTICIPATORY',
       order: 4,
-      registryId: 'lesson02-electrical-v1',
+      registryId: 'lesson02-legacy-electrical-v1',
       resourceType: ResourceType.INTERACTIVE_COMP,
       duration: 17,
       title: '参与式学习：电路建模工坊',
@@ -96,7 +96,7 @@ export const LESSON_02_MODELING_PRESET: PresetLessonConfig = {
     {
       stage: 'PARTICIPATORY',
       order: 6,
-      registryId: 'lesson02-analogy-v1',
+      registryId: 'lesson02-legacy-analogy-v1',
       resourceType: ResourceType.INTERACTIVE_COMP,
       duration: 12,
       title: '参与式学习：机电相似映射',
@@ -106,7 +106,7 @@ export const LESSON_02_MODELING_PRESET: PresetLessonConfig = {
     {
       stage: 'POST_ASSESSMENT',
       order: 1,
-      registryId: 'lesson02-posttest-v1',
+      registryId: 'lesson02-legacy-posttest-v1',
       resourceType: ResourceType.INTERACTIVE_COMP,
       duration: 10,
       title: '后测：导弹发射架建模',
@@ -116,7 +116,7 @@ export const LESSON_02_MODELING_PRESET: PresetLessonConfig = {
     {
       stage: 'SUMMARY',
       order: 1,
-      registryId: 'lesson02-summary-v1',
+      registryId: 'lesson02-legacy-summary-v1',
       resourceType: ResourceType.INTERACTIVE_COMP,
       duration: 5,
       title: '总结：知识图谱',

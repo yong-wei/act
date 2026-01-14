@@ -39,7 +39,7 @@ function useWidgetBridge(onComplete?: (result?: WidgetResult) => void, onStateCh
   return { reportProgress, markComplete };
 }
 
-export function Lesson02BridgeResource({ onComplete, onStateChange }: StandalonePhaseProps) {
+export function Lesson02LegacyBridgeResource({ onComplete, onStateChange }: StandalonePhaseProps) {
   const { reportProgress, markComplete } = useWidgetBridge(onComplete, onStateChange);
   return <BridgePhase onComplete={() => {
     reportProgress(100, { phase: 'bridge' });
@@ -47,7 +47,7 @@ export function Lesson02BridgeResource({ onComplete, onStateChange }: Standalone
   }} />;
 }
 
-export function Lesson02ObjectiveResource({ onComplete, onStateChange }: StandalonePhaseProps) {
+export function Lesson02LegacyObjectiveResource({ onComplete, onStateChange }: StandalonePhaseProps) {
   const { reportProgress, markComplete } = useWidgetBridge(onComplete, onStateChange);
   return (
     <ObjectivePhase
@@ -60,7 +60,7 @@ export function Lesson02ObjectiveResource({ onComplete, onStateChange }: Standal
   );
 }
 
-export function Lesson02PretestResource({ onComplete, onStateChange }: StandalonePhaseProps) {
+export function Lesson02LegacyPretestResource({ onComplete, onStateChange }: StandalonePhaseProps) {
   const { reportProgress, markComplete } = useWidgetBridge(onComplete, onStateChange);
   return (
     <PretestPhase
@@ -76,7 +76,7 @@ export function Lesson02PretestResource({ onComplete, onStateChange }: Standalon
   );
 }
 
-export function Lesson02MechanicalResource({ onComplete, onStateChange }: StandalonePhaseProps) {
+export function Lesson02LegacyMechanicalResource({ onComplete, onStateChange }: StandalonePhaseProps) {
   const { reportProgress, markComplete } = useWidgetBridge(onComplete, onStateChange);
   return (
     <MechanicalPhase
@@ -93,7 +93,7 @@ export function Lesson02MechanicalResource({ onComplete, onStateChange }: Standa
   );
 }
 
-export function Lesson02ElectricalResource({ onComplete, onStateChange }: StandalonePhaseProps) {
+export function Lesson02LegacyElectricalResource({ onComplete, onStateChange }: StandalonePhaseProps) {
   const { reportProgress, markComplete } = useWidgetBridge(onComplete, onStateChange);
   return (
     <ElectricalPhase
@@ -110,7 +110,7 @@ export function Lesson02ElectricalResource({ onComplete, onStateChange }: Standa
   );
 }
 
-export function Lesson02AnalogyResource({ onComplete, onStateChange }: StandalonePhaseProps) {
+export function Lesson02LegacyAnalogyResource({ onComplete, onStateChange }: StandalonePhaseProps) {
   const { reportProgress, markComplete } = useWidgetBridge(onComplete, onStateChange);
   const [completedCount, setCompletedCount] = useState(0);
   const totalMappings = ANALOGY_MAPPINGS.length;
@@ -131,7 +131,7 @@ export function Lesson02AnalogyResource({ onComplete, onStateChange }: Standalon
   );
 }
 
-export function Lesson02PosttestResource({ onComplete, onStateChange }: StandalonePhaseProps) {
+export function Lesson02LegacyPosttestResource({ onComplete, onStateChange }: StandalonePhaseProps) {
   const { reportProgress, markComplete } = useWidgetBridge(onComplete, onStateChange);
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -168,7 +168,7 @@ export function Lesson02PosttestResource({ onComplete, onStateChange }: Standalo
   );
 }
 
-export function Lesson02SummaryResource({ onComplete, onStateChange }: StandalonePhaseProps) {
+export function Lesson02LegacySummaryResource({ onComplete, onStateChange }: StandalonePhaseProps) {
   const { reportProgress, markComplete } = useWidgetBridge(onComplete, onStateChange);
 
   useEffect(() => {
