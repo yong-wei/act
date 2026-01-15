@@ -309,6 +309,68 @@ const Lesson15SummaryCard = dynamic(
     { ssr: false, loading: loadingFallback('课程总结') }
 );
 
+// Lesson-16 组件
+const Lesson16NonlinearPrecheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-16/nonlinear-precheck'),
+    { ssr: false, loading: loadingFallback('非线性速判') }
+);
+
+const Lesson16NonlinearKnowledgeDeck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-16/nonlinear-knowledge-deck'),
+    { ssr: false, loading: loadingFallback('非线性知识卡片') }
+);
+
+const Lesson16NonlinearFeatureMatch = dynamic(
+    () => import('@/resources/interactive-learning/lesson-16/nonlinear-feature-match'),
+    { ssr: false, loading: loadingFallback('非线性特性识别') }
+);
+
+const Lesson16HarmonicLinearizationGuide = dynamic(
+    () => import('@/resources/interactive-learning/lesson-16/harmonic-linearization-guide'),
+    { ssr: false, loading: loadingFallback('谐波线性化导航') }
+);
+
+const Lesson16NonlinearExitQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-16/nonlinear-exit-quiz'),
+    { ssr: false, loading: loadingFallback('非线性后测') }
+);
+
+const Lesson16SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-16/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
+// Lesson-17 组件
+const Lesson17DfPrecheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-17/df-precheck'),
+    { ssr: false, loading: loadingFallback('描述函数速查') }
+);
+
+const Lesson17DfKnowledgeDeck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-17/df-knowledge-deck'),
+    { ssr: false, loading: loadingFallback('描述函数知识卡片') }
+);
+
+const Lesson17NegativeInverseWorkshop = dynamic(
+    () => import('@/resources/interactive-learning/lesson-17/negative-inverse-workshop'),
+    { ssr: false, loading: loadingFallback('负倒描述函数工作坊') }
+);
+
+const Lesson17LimitCycleLab = dynamic(
+    () => import('@/resources/interactive-learning/lesson-17/limit-cycle-lab'),
+    { ssr: false, loading: loadingFallback('自振判别实验室') }
+);
+
+const Lesson17DfExitQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-17/df-exit-quiz'),
+    { ssr: false, loading: loadingFallback('自振判别后测') }
+);
+
+const Lesson17SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-17/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
 // Lesson-03 组件
 const Lesson03DiffPrecheck = dynamic(
     () => import('@/resources/interactive-learning/lesson-03/diff-precheck'),
@@ -368,6 +430,42 @@ const Lesson04TransferExitQuiz = dynamic(
 
 const Lesson04SummaryCard = dynamic(
     () => import('@/resources/interactive-learning/lesson-04/summary-card'),
+    { ssr: false, loading: loadingFallback('课程总结') }
+);
+
+// Lesson-05 组件
+const Lesson05BlockDiagramPrecheck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-05/block-diagram-precheck'),
+    { ssr: false, loading: loadingFallback('结构图速判') }
+);
+
+const Lesson05StructureKnowledgeDeck = dynamic(
+    () => import('@/resources/interactive-learning/lesson-05/structure-knowledge-deck'),
+    { ssr: false, loading: loadingFallback('结构图知识卡片') }
+);
+
+const Lesson05BlockDiagramWorkshop = dynamic(
+    () => import('@/resources/interactive-learning/lesson-05/block-diagram-workshop'),
+    { ssr: false, loading: loadingFallback('结构图化简路线') }
+);
+
+const Lesson05SignalFlowLab = dynamic(
+    () => import('@/resources/interactive-learning/lesson-05/signal-flow-lab'),
+    { ssr: false, loading: loadingFallback('信号流图速练') }
+);
+
+const Lesson05MasonLoopChallenge = dynamic(
+    () => import('@/resources/interactive-learning/lesson-05/mason-loop-challenge'),
+    { ssr: false, loading: loadingFallback('梅森公式挑战') }
+);
+
+const Lesson05StructureExitQuiz = dynamic(
+    () => import('@/resources/interactive-learning/lesson-05/structure-exit-quiz'),
+    { ssr: false, loading: loadingFallback('结构图后测') }
+);
+
+const Lesson05SummaryCard = dynamic(
+    () => import('@/resources/interactive-learning/lesson-05/summary-card'),
     { ssr: false, loading: loadingFallback('课程总结') }
 );
 
@@ -911,6 +1009,80 @@ const registry: Record<string, ResourceComponentConfig> = {
         type: 'INTERACTIVE_COMP',
         component: Lesson15SummaryCard
     },
+    // Lesson-16 组件
+    'lesson16-nonlinear-precheck': {
+        id: 'lesson16-nonlinear-precheck',
+        label: '非线性速判',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson16NonlinearPrecheck
+    },
+    'lesson16-nonlinear-knowledge-deck': {
+        id: 'lesson16-nonlinear-knowledge-deck',
+        label: '非线性与描述函数知识卡片',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson16NonlinearKnowledgeDeck
+    },
+    'lesson16-nonlinear-feature-match': {
+        id: 'lesson16-nonlinear-feature-match',
+        label: '非线性特性识别',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson16NonlinearFeatureMatch
+    },
+    'lesson16-harmonic-linearization-guide': {
+        id: 'lesson16-harmonic-linearization-guide',
+        label: '谐波线性化导航',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson16HarmonicLinearizationGuide
+    },
+    'lesson16-nonlinear-exit-quiz': {
+        id: 'lesson16-nonlinear-exit-quiz',
+        label: '非线性基础后测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson16NonlinearExitQuiz
+    },
+    'lesson16-summary-card': {
+        id: 'lesson16-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson16SummaryCard
+    },
+    // Lesson-17 组件
+    'lesson17-df-precheck': {
+        id: 'lesson17-df-precheck',
+        label: '描述函数判别速查',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson17DfPrecheck
+    },
+    'lesson17-df-knowledge-deck': {
+        id: 'lesson17-df-knowledge-deck',
+        label: '描述函数分析知识卡片',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson17DfKnowledgeDeck
+    },
+    'lesson17-negative-inverse-workshop': {
+        id: 'lesson17-negative-inverse-workshop',
+        label: '负倒描述函数工作坊',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson17NegativeInverseWorkshop
+    },
+    'lesson17-limit-cycle-lab': {
+        id: 'lesson17-limit-cycle-lab',
+        label: '自振判别实验室',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson17LimitCycleLab
+    },
+    'lesson17-df-exit-quiz': {
+        id: 'lesson17-df-exit-quiz',
+        label: '自振判别后测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson17DfExitQuiz
+    },
+    'lesson17-summary-card': {
+        id: 'lesson17-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson17SummaryCard
+    },
     // Lesson-03 组件
     'lesson03-diff-precheck': {
         id: 'lesson03-diff-precheck',
@@ -984,6 +1156,49 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: '课程总结',
         type: 'INTERACTIVE_COMP',
         component: Lesson04SummaryCard
+    },
+    // Lesson-05 组件
+    'lesson05-block-diagram-precheck': {
+        id: 'lesson05-block-diagram-precheck',
+        label: '结构图速判',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson05BlockDiagramPrecheck
+    },
+    'lesson05-structure-knowledge-deck': {
+        id: 'lesson05-structure-knowledge-deck',
+        label: '结构图与拓扑知识卡片',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson05StructureKnowledgeDeck
+    },
+    'lesson05-block-diagram-workshop': {
+        id: 'lesson05-block-diagram-workshop',
+        label: '结构图化简路线',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson05BlockDiagramWorkshop
+    },
+    'lesson05-signal-flow-lab': {
+        id: 'lesson05-signal-flow-lab',
+        label: '信号流图速练',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson05SignalFlowLab
+    },
+    'lesson05-mason-loop-challenge': {
+        id: 'lesson05-mason-loop-challenge',
+        label: '梅森公式数圈圈',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson05MasonLoopChallenge
+    },
+    'lesson05-structure-exit-quiz': {
+        id: 'lesson05-structure-exit-quiz',
+        label: '结构图与梅森公式后测',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson05StructureExitQuiz
+    },
+    'lesson05-summary-card': {
+        id: 'lesson05-summary-card',
+        label: '课程总结',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson05SummaryCard
     },
     // Lesson-07 组件
     'lesson07-damping-quick-check': {

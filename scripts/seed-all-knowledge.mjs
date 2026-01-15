@@ -366,6 +366,151 @@ const KNOWLEDGE_NODES = [
     tags: ['lesson-04', 'transfer-function', 'matlab']
   },
 
+  // Lesson 05: 方框图、信号流图与梅森公式
+  {
+    id: 'node-block-diagram-elements',
+    name: '方框图四元素',
+    filename: 'block-diagram-elements.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '信号线、引出点、综合点与方框构成结构图语言。',
+    position: { x: 60, y: 30, z: 10 },
+    tags: ['lesson-05', 'block-diagram', 'elements']
+  },
+  {
+    id: 'node-block-diagram-causal-chain',
+    name: '由微分方程到结构图',
+    filename: 'block-diagram-causal-chain.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '按因果顺序连接动态结构图。',
+    position: { x: 70, y: 34, z: 10 },
+    tags: ['lesson-05', 'block-diagram', 'modeling']
+  },
+  {
+    id: 'node-block-diagram-equivalents',
+    name: '串并联与反馈等效',
+    filename: 'block-diagram-equivalents.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '串联相乘、并联相加、反馈闭环的等效规则。',
+    position: { x: 80, y: 30, z: 10 },
+    tags: ['lesson-05', 'block-diagram', 'equivalent']
+  },
+  {
+    id: 'node-block-diagram-move-points',
+    name: '引出点与综合点移位',
+    filename: 'block-diagram-move-points.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '移位需乘除跨越传递函数，保持信号不变。',
+    position: { x: 90, y: 34, z: 10 },
+    tags: ['lesson-05', 'block-diagram', 'move-rule']
+  },
+  {
+    id: 'node-block-diagram-simplify-strategy',
+    name: '结构图化简策略',
+    filename: 'block-diagram-simplify-strategy.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'PROCEDURAL',
+    description: '找典型、解交叉、由内向外是化简主线。',
+    position: { x: 100, y: 30, z: 10 },
+    tags: ['lesson-05', 'block-diagram', 'simplify']
+  },
+  {
+    id: 'node-signal-flow-basics',
+    name: '信号流图节点与支路',
+    filename: 'signal-flow-basics.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '节点表示变量，支路表示传递关系。',
+    position: { x: 60, y: 42, z: 12 },
+    tags: ['lesson-05', 'signal-flow', 'basics']
+  },
+  {
+    id: 'node-signal-flow-node-types',
+    name: '输入/输出/混合节点',
+    filename: 'signal-flow-node-types.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '只出不入为输入，只入不出为输出，出入兼具为混合节点。',
+    position: { x: 70, y: 46, z: 12 },
+    tags: ['lesson-05', 'signal-flow', 'node-type']
+  },
+  {
+    id: 'node-signal-flow-paths-loops',
+    name: '前向通路与回路增益',
+    filename: 'signal-flow-paths-loops.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '前向通路与回路增益是梅森公式的关键输入。',
+    position: { x: 80, y: 42, z: 12 },
+    tags: ['lesson-05', 'signal-flow', 'path-loop']
+  },
+  {
+    id: 'node-signal-flow-conversion',
+    name: '结构图转信号流图',
+    filename: 'signal-flow-conversion.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '标变量、定出入、列节点、连支路。',
+    position: { x: 90, y: 46, z: 12 },
+    tags: ['lesson-05', 'signal-flow', 'conversion']
+  },
+  {
+    id: 'node-signal-flow-equation',
+    name: '由方程组绘制信号流图',
+    filename: 'signal-flow-equation.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '代数式与初始条件可直接转为支路表达。',
+    position: { x: 100, y: 42, z: 12 },
+    tags: ['lesson-05', 'signal-flow', 'equation']
+  },
+  {
+    id: 'node-mason-formula',
+    name: '梅森增益公式',
+    filename: 'mason-formula.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '总增益由前向通路与余子式加权求和。',
+    position: { x: 70, y: 58, z: 14 },
+    tags: ['lesson-05', 'mason', 'formula']
+  },
+  {
+    id: 'node-mason-delta',
+    name: '特征式 Delta',
+    filename: 'mason-delta.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'PROCEDURAL',
+    description: '回路与互不接触回路乘积交替加减。',
+    position: { x: 80, y: 62, z: 14 },
+    tags: ['lesson-05', 'mason', 'delta']
+  },
+  {
+    id: 'node-mason-cofactor',
+    name: '余子式 Delta_k',
+    filename: 'mason-cofactor.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'PROCEDURAL',
+    description: '剔除与某前向通路相接触回路后的特征式。',
+    position: { x: 90, y: 58, z: 14 },
+    tags: ['lesson-05', 'mason', 'cofactor']
+  },
+
   // Lesson 05: PID 控制
   {
     id: 'node-pid-controller',
@@ -1028,6 +1173,175 @@ const KNOWLEDGE_NODES = [
     description: '在相互冲突的工程目标之间进行权衡的决策过程。',
     position: { x: 5, y: 5, z: 20 },
     tags: ['lesson-13', 'ethics', 'trade-off']
+  },
+
+  // Lesson 16: 非线性系统与描述函数基础
+  {
+    id: 'node-nonlinear-ubiquity',
+    name: '非线性系统的普遍性',
+    filename: 'nonlinear-ubiquity.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '实际控制系统普遍存在饱和、死区、间隙等非线性。',
+    position: { x: 110, y: 0, z: 10 },
+    tags: ['lesson-16', 'nonlinear', 'overview']
+  },
+  {
+    id: 'node-nonlinear-special-properties',
+    name: '非线性系统的特殊性质',
+    filename: 'nonlinear-special-properties.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '不满足叠加原理，稳定性与初始条件和外作用有关。',
+    position: { x: 120, y: 0, z: 10 },
+    tags: ['lesson-16', 'nonlinear', 'properties']
+  },
+  {
+    id: 'node-harmonic-linearization',
+    name: '谐波线性化',
+    filename: 'harmonic-linearization.mdx',
+    nodeType: 'METHOD',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '用输出基波近似非线性响应，得到等效频域特性。',
+    position: { x: 130, y: 5, z: 10 },
+    tags: ['lesson-16', 'describing-function', 'harmonic']
+  },
+  {
+    id: 'node-describing-function-definition',
+    name: '描述函数定义',
+    filename: 'describing-function-definition.mdx',
+    nodeType: 'METHOD',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '描述函数为输出基波与输入正弦的复数比。',
+    position: { x: 140, y: 5, z: 10 },
+    tags: ['lesson-16', 'describing-function', 'definition']
+  },
+  {
+    id: 'node-ideal-relay-describing',
+    name: '理想继电器描述函数',
+    filename: 'ideal-relay-describing.mdx',
+    nodeType: 'METHOD',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '理想继电器的描述函数与输入幅值成反比。',
+    position: { x: 120, y: 15, z: 10 },
+    tags: ['lesson-16', 'nonlinear', 'relay']
+  },
+  {
+    id: 'node-saturation-describing',
+    name: '饱和特性描述函数',
+    filename: 'saturation-describing.mdx',
+    nodeType: 'METHOD',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'PROCEDURAL',
+    description: '饱和特性的描述函数体现限幅对幅值的影响。',
+    position: { x: 130, y: 15, z: 10 },
+    tags: ['lesson-16', 'nonlinear', 'saturation']
+  },
+  {
+    id: 'node-dead-zone-describing',
+    name: '死区特性描述函数',
+    filename: 'dead-zone-describing.mdx',
+    nodeType: 'METHOD',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'PROCEDURAL',
+    description: '死区特性导致小幅输入无法产生输出。',
+    position: { x: 140, y: 15, z: 10 },
+    tags: ['lesson-16', 'nonlinear', 'dead-zone']
+  },
+  {
+    id: 'node-hysteresis-backlash',
+    name: '滞环与间隙特性',
+    filename: 'hysteresis-backlash.mdx',
+    nodeType: 'METHOD',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'PROCEDURAL',
+    description: '滞环/间隙导致描述函数出现复数相位滞后。',
+    position: { x: 150, y: 15, z: 10 },
+    tags: ['lesson-16', 'nonlinear', 'hysteresis']
+  },
+
+  // Lesson 17: 描述函数分析法与自振判别
+  {
+    id: 'node-describing-function-assumptions',
+    name: '描述函数法的基本假设',
+    filename: 'describing-function-assumptions.mdx',
+    nodeType: 'METHOD',
+    bloomLevel: 'UNDERSTAND',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '单一非线性+低通线性部分的适用条件。',
+    position: { x: 110, y: 30, z: 12 },
+    tags: ['lesson-17', 'describing-function', 'assumptions']
+  },
+  {
+    id: 'node-negative-inverse-describing',
+    name: '负倒描述函数',
+    filename: 'negative-inverse-describing.mdx',
+    nodeType: 'METHOD',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '将 -1/N(A) 绘制在复平面用于交点判别。',
+    position: { x: 120, y: 30, z: 12 },
+    tags: ['lesson-17', 'describing-function', 'negative-inverse']
+  },
+  {
+    id: 'node-nonlinear-stability-criterion',
+    name: '非线性系统稳定性判据',
+    filename: 'nonlinear-stability-criterion.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'CONCEPTUAL',
+    description: 'G(jω) 包围关系决定闭环稳定性。',
+    position: { x: 130, y: 30, z: 12 },
+    tags: ['lesson-17', 'describing-function', 'stability']
+  },
+  {
+    id: 'node-limit-cycle-condition',
+    name: '自振存在条件',
+    filename: 'limit-cycle-condition.mdx',
+    nodeType: 'THEORY',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'CONCEPTUAL',
+    description: '交点满足 N(A)G(jω)=-1，是自振必要条件。',
+    position: { x: 140, y: 30, z: 12 },
+    tags: ['lesson-17', 'limit-cycle', 'condition']
+  },
+  {
+    id: 'node-limit-cycle-stability',
+    name: '自振稳定性判别',
+    filename: 'limit-cycle-stability.mdx',
+    nodeType: 'METHOD',
+    bloomLevel: 'ANALYZE',
+    knowledgeDim: 'PROCEDURAL',
+    description: '微小扰动分析用于判断交点稳定性。',
+    position: { x: 150, y: 30, z: 12 },
+    tags: ['lesson-17', 'limit-cycle', 'stability']
+  },
+  {
+    id: 'node-negative-inverse-plot',
+    name: '负倒描述函数绘制',
+    filename: 'negative-inverse-plot.mdx',
+    nodeType: 'METHOD',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '典型非线性对应的 -1/N(A) 轨迹形态。',
+    position: { x: 120, y: 40, z: 12 },
+    tags: ['lesson-17', 'describing-function', 'plot']
+  },
+  {
+    id: 'node-limit-cycle-solving',
+    name: '自振参数求解',
+    filename: 'limit-cycle-solving.mdx',
+    nodeType: 'METHOD',
+    bloomLevel: 'APPLY',
+    knowledgeDim: 'PROCEDURAL',
+    description: '通过幅值/相位方程求解 A 与 ω。',
+    position: { x: 140, y: 40, z: 12 },
+    tags: ['lesson-17', 'limit-cycle', 'solving']
   }
 ];
 
@@ -1077,6 +1391,16 @@ const KNOWLEDGE_LINKS = [
   { sourceId: 'node-transfer-function-definition', targetId: 'node-matlab-transfer-toolbox', relation: 'related' },
 
   // Lesson 05 关系
+  { sourceId: 'node-block-diagram-elements', targetId: 'node-block-diagram-equivalents', relation: 'prerequisite' },
+  { sourceId: 'node-block-diagram-equivalents', targetId: 'node-block-diagram-move-points', relation: 'follows' },
+  { sourceId: 'node-block-diagram-move-points', targetId: 'node-block-diagram-simplify-strategy', relation: 'follows' },
+  { sourceId: 'node-block-diagram-simplify-strategy', targetId: 'node-signal-flow-conversion', relation: 'enables' },
+  { sourceId: 'node-signal-flow-basics', targetId: 'node-signal-flow-node-types', relation: 'related' },
+  { sourceId: 'node-signal-flow-basics', targetId: 'node-signal-flow-paths-loops', relation: 'follows' },
+  { sourceId: 'node-signal-flow-conversion', targetId: 'node-signal-flow-equation', relation: 'related' },
+  { sourceId: 'node-signal-flow-paths-loops', targetId: 'node-mason-formula', relation: 'prerequisite' },
+  { sourceId: 'node-mason-formula', targetId: 'node-mason-delta', relation: 'prerequisite' },
+  { sourceId: 'node-mason-delta', targetId: 'node-mason-cofactor', relation: 'follows' },
   { sourceId: 'node-transfer-function', targetId: 'node-pid-controller', relation: 'prerequisite' },
 
   // Lesson 13 内部关系
@@ -1158,7 +1482,25 @@ const KNOWLEDGE_LINKS = [
 
   // Lesson 13 舒适度控制
   { sourceId: 'node-pid-controller', targetId: 'node-multi-constraint-pid', relation: 'related' },
-  { sourceId: 'node-iso-2631', targetId: 'node-multi-constraint-pid', relation: 'influences' }
+  { sourceId: 'node-iso-2631', targetId: 'node-multi-constraint-pid', relation: 'influences' },
+
+  // Lesson 16 非线性系统与描述函数基础
+  { sourceId: 'node-nonlinear-ubiquity', targetId: 'node-nonlinear-special-properties', relation: 'follows' },
+  { sourceId: 'node-nonlinear-special-properties', targetId: 'node-harmonic-linearization', relation: 'follows' },
+  { sourceId: 'node-harmonic-linearization', targetId: 'node-describing-function-definition', relation: 'follows' },
+  { sourceId: 'node-describing-function-definition', targetId: 'node-ideal-relay-describing', relation: 'example' },
+  { sourceId: 'node-describing-function-definition', targetId: 'node-saturation-describing', relation: 'example' },
+  { sourceId: 'node-describing-function-definition', targetId: 'node-dead-zone-describing', relation: 'example' },
+  { sourceId: 'node-describing-function-definition', targetId: 'node-hysteresis-backlash', relation: 'example' },
+
+  // Lesson 17 描述函数分析法与自振判别
+  { sourceId: 'node-describing-function-definition', targetId: 'node-describing-function-assumptions', relation: 'follows' },
+  { sourceId: 'node-describing-function-assumptions', targetId: 'node-negative-inverse-describing', relation: 'follows' },
+  { sourceId: 'node-negative-inverse-describing', targetId: 'node-nonlinear-stability-criterion', relation: 'follows' },
+  { sourceId: 'node-negative-inverse-describing', targetId: 'node-limit-cycle-condition', relation: 'follows' },
+  { sourceId: 'node-limit-cycle-condition', targetId: 'node-limit-cycle-stability', relation: 'follows' },
+  { sourceId: 'node-negative-inverse-describing', targetId: 'node-negative-inverse-plot', relation: 'supports' },
+  { sourceId: 'node-limit-cycle-condition', targetId: 'node-limit-cycle-solving', relation: 'follows' }
 ];
 
 // ============================================================================
