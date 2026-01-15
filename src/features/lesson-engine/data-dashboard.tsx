@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Users, Activity, TrendingUp, RefreshCw } from 'lucide-react';
+import { X, Users, Activity, TrendingUp, RefreshCw, Trophy, Clock } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -83,6 +83,27 @@ export function DataDashboard({ sessionId, onClose }: DataDashboardProps) {
       }
     : null;
 
+  const poleData = states
+    .filter((state) => {
+      const data = state.data as Record<string, unknown>;
+      return data?.kind === 'pole-manipulator';
+    })
+    .map((state) => {
+      const data = state.data as Record<string, number | string>;
+      return {
+        name: state.user.name || state.user.email.split('@')[0],
+        score: typeof data.score === 'number' ? data.score : 0,
+        duration: typeof data.duration === 'number' ? data.duration : 0,
+      };
+    });
+
+  const avgPole = poleData.length > 0
+    ? {
+        score: (poleData.reduce((sum, d) => sum + d.score, 0) / poleData.length).toFixed(1),
+        duration: (poleData.reduce((sum, d) => sum + d.duration, 0) / poleData.length).toFixed(1),
+      }
+    : null;
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-sm overflow-auto">
       {/* Header */}
@@ -160,6 +181,29 @@ export function DataDashboard({ sessionId, onClose }: DataDashboardProps) {
           )}
         </div>
 
+        {avgPole && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-amber-500/20">
+                  <Trophy className="h-5 w-5 text-amber-400" />
+                </div>
+                <span className="text-slate-400 text-sm">极点挑战平均得分</span>
+              </div>
+              <div className="text-4xl font-bold text-amber-300">{avgPole.score}</div>
+            </div>
+            <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-slate-500/20">
+                  <Clock className="h-5 w-5 text-slate-300" />
+                </div>
+                <span className="text-slate-400 text-sm">极点挑战平均用时</span>
+              </div>
+              <div className="text-4xl font-bold text-slate-200">{avgPole.duration}s</div>
+            </div>
+          </div>
+        )}
+
         {/* PID Parameters Chart */}
         {pidData.length > 0 && (
           <div className="bg-slate-900 rounded-xl border border-slate-800 p-6 mb-8">
@@ -182,6 +226,32 @@ export function DataDashboard({ sessionId, onClose }: DataDashboardProps) {
                   <Bar dataKey="kp" name="Kp" fill="#38bdf8" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="ki" name="Ki" fill="#22c55e" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="kd" name="Kd" fill="#f97316" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {poleData.length > 0 && (
+          <div className="bg-slate-900 rounded-xl border border-slate-800 p-6 mb-8">
+            <h2 className="text-lg font-bold text-white mb-4">极点挑战成绩分布</h2>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={poleData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
+                  <YAxis stroke="#94a3b8" fontSize={12} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1e293b',
+                      border: '1px solid #334155',
+                      borderRadius: '8px',
+                    }}
+                    labelStyle={{ color: '#f1f5f9' }}
+                  />
+                  <Legend />
+                  <Bar dataKey="score" name="得分" fill="#fbbf24" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="duration" name="用时(s)" fill="#38bdf8" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

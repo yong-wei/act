@@ -169,6 +169,16 @@ export const LESSON_07_UNDERDAMPED_PRESET: PresetLessonConfig = {
     {
       stage: 'PARTICIPATORY',
       order: 5,
+      registryId: 'lesson07-pole-manipulator',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 10,
+      title: '参与式学习：极点操纵者',
+      description: '拖拽极点位置，观察衰减与振荡如何改变响应形态。',
+      config: {},
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 6,
       itemType: 'KNOWLEDGE_NODE',
       knowledgeNodeId: 'node-time-domain-metrics',
       duration: 2,
@@ -177,7 +187,7 @@ export const LESSON_07_UNDERDAMPED_PRESET: PresetLessonConfig = {
     },
     {
       stage: 'PARTICIPATORY',
-      order: 6,
+      order: 7,
       registryId: 'lesson07-static-step-response',
       resourceType: ResourceType.STATIC_MEDIA,
       duration: 3,
@@ -187,7 +197,7 @@ export const LESSON_07_UNDERDAMPED_PRESET: PresetLessonConfig = {
     },
     {
       stage: 'PARTICIPATORY',
-      order: 7,
+      order: 8,
       itemType: 'KNOWLEDGE_NODE',
       knowledgeNodeId: 'node-damping-wn-tradeoff',
       duration: 3,
@@ -196,7 +206,7 @@ export const LESSON_07_UNDERDAMPED_PRESET: PresetLessonConfig = {
     },
     {
       stage: 'PARTICIPATORY',
-      order: 8,
+      order: 9,
       registryId: 'lesson07-response-explorer',
       resourceType: ResourceType.INTERACTIVE_COMP,
       duration: 24,

@@ -480,6 +480,11 @@ const Lesson07SecondOrderTheory = dynamic(
     { ssr: false, loading: loadingFallback('二阶系统标准型') }
 );
 
+const Lesson07PoleManipulator = dynamic(
+    () => import('@/resources/interactive-learning/lesson-07/pole-manipulator'),
+    { ssr: false, loading: loadingFallback('极点操纵者') }
+);
+
 const Lesson07ResponseExplorer = dynamic(
     () => import('@/resources/interactive-learning/lesson-07/response-explorer'),
     { ssr: false, loading: loadingFallback('衰减振荡实验室') }
@@ -1212,6 +1217,12 @@ const registry: Record<string, ResourceComponentConfig> = {
         label: '二阶系统标准型知识卡',
         type: 'INTERACTIVE_COMP',
         component: Lesson07SecondOrderTheory
+    },
+    'lesson07-pole-manipulator': {
+        id: 'lesson07-pole-manipulator',
+        label: '极点操纵者',
+        type: 'INTERACTIVE_COMP',
+        component: Lesson07PoleManipulator
     },
     'lesson07-response-explorer': {
         id: 'lesson07-response-explorer',

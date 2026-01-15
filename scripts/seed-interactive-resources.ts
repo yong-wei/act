@@ -196,13 +196,22 @@ const INTERACTIVE_RESOURCES = [
     displayOrder: 4,
   },
   {
+    registryId: 'lesson07-pole-manipulator',
+    title: '极点操纵者',
+    displayName: '极点操纵者',
+    description: '拖拽极点与零点，观察阶跃响应如何变化',
+    type: ResourceType.INTERACTIVE_COMP,
+    category: InteractiveCategory.TIME_DOMAIN,
+    displayOrder: 5,
+  },
+  {
     registryId: 'lesson07-response-explorer',
     title: '衰减振荡实验室',
     displayName: '衰减振荡实验室',
     description: '拖动阻尼比与自然频率观察阶跃响应变化',
     type: ResourceType.INTERACTIVE_COMP,
     category: InteractiveCategory.TIME_DOMAIN,
-    displayOrder: 5,
+    displayOrder: 6,
   },
   {
     registryId: 'lesson07-parameter-challenge',
@@ -211,7 +220,7 @@ const INTERACTIVE_RESOURCES = [
     description: '根据目标超调与调节时间完成参数匹配挑战',
     type: ResourceType.INTERACTIVE_COMP,
     category: InteractiveCategory.TIME_DOMAIN,
-    displayOrder: 6,
+    displayOrder: 7,
   },
   {
     registryId: 'lesson07-summary-card',
@@ -220,7 +229,7 @@ const INTERACTIVE_RESOURCES = [
     description: '复盘欠阻尼二阶系统的关键指标与课后思考',
     type: ResourceType.INTERACTIVE_COMP,
     category: InteractiveCategory.TIME_DOMAIN,
-    displayOrder: 7,
+    displayOrder: 8,
   },
   {
     registryId: 'lesson08-stability-precheck',
@@ -229,7 +238,7 @@ const INTERACTIVE_RESOURCES = [
     description: '检测稳定性判据与稳态误差基础概念掌握情况',
     type: ResourceType.INTERACTIVE_COMP,
     category: InteractiveCategory.TIME_DOMAIN,
-    displayOrder: 8,
+    displayOrder: 9,
   },
   {
     registryId: 'lesson08-routh-guide',
@@ -238,7 +247,7 @@ const INTERACTIVE_RESOURCES = [
     description: '梳理劳斯判据与劳斯表构造流程',
     type: ResourceType.INTERACTIVE_COMP,
     category: InteractiveCategory.TIME_DOMAIN,
-    displayOrder: 9,
+    displayOrder: 10,
   },
   {
     registryId: 'lesson08-routh-practice',
@@ -247,7 +256,7 @@ const INTERACTIVE_RESOURCES = [
     description: '通过典型例题判断系统稳定性',
     type: ResourceType.INTERACTIVE_COMP,
     category: InteractiveCategory.TIME_DOMAIN,
-    displayOrder: 10,
+    displayOrder: 11,
   },
   {
     registryId: 'lesson08-steady-error-deck',
@@ -256,7 +265,7 @@ const INTERACTIVE_RESOURCES = [
     description: '掌握终值定理、静态误差系数与系统型别关系',
     type: ResourceType.INTERACTIVE_COMP,
     category: InteractiveCategory.TIME_DOMAIN,
-    displayOrder: 11,
+    displayOrder: 12,
   },
   {
     registryId: 'lesson08-post-quiz',
@@ -265,7 +274,7 @@ const INTERACTIVE_RESOURCES = [
     description: '综合检验稳定性与稳态误差分析能力',
     type: ResourceType.INTERACTIVE_COMP,
     category: InteractiveCategory.TIME_DOMAIN,
-    displayOrder: 12,
+    displayOrder: 13,
   },
   {
     registryId: 'lesson08-summary-card',
@@ -274,7 +283,7 @@ const INTERACTIVE_RESOURCES = [
     description: '总结稳定判据与稳态误差的关键结论',
     type: ResourceType.INTERACTIVE_COMP,
     category: InteractiveCategory.TIME_DOMAIN,
-    displayOrder: 13,
+    displayOrder: 14,
   },
 
   // ===== 根轨迹分析 =====

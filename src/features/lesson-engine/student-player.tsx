@@ -161,6 +161,7 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
             resource={currentItem.resource}
             knowledgeNode={currentItem.knowledgeNode}
             overrideConfig={currentItem.overrideConfig}
+            sessionId={initialSession.id}
           />
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">

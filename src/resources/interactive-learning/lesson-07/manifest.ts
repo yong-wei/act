@@ -130,6 +130,12 @@ export const LESSON_07_RESOURCES = {
     path: '@/resources/interactive-learning/lesson-07/theory-deck',
   },
 
+  'widget-pole-manipulator': {
+    type: 'interactive-widget',
+    component: 'PoleManipulator',
+    path: '@/resources/interactive-learning/lesson-07/pole-manipulator',
+  },
+
   'media-second-order-classification': {
     type: 'static-media',
     content: '/assets/lesson-07/second-order-classification.svg',
