@@ -197,8 +197,8 @@ const INTERACTIVE_RESOURCES = [
   },
   {
     registryId: 'lesson07-pole-manipulator',
-    title: '极点操纵者',
-    displayName: '极点操纵者',
+    title: '极点操纵器',
+    displayName: '极点操纵器',
     description: '拖拽极点与零点，观察阶跃响应如何变化',
     type: ResourceType.INTERACTIVE_COMP,
     category: InteractiveCategory.TIME_DOMAIN,

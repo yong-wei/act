@@ -482,7 +482,7 @@ const Lesson07SecondOrderTheory = dynamic(
 
 const Lesson07PoleManipulator = dynamic(
     () => import('@/resources/interactive-learning/lesson-07/pole-manipulator'),
-    { ssr: false, loading: loadingFallback('极点操纵者') }
+    { ssr: false, loading: loadingFallback('极点操纵器') }
 );
 
 const Lesson07ResponseExplorer = dynamic(
@@ -1220,7 +1220,7 @@ const registry: Record<string, ResourceComponentConfig> = {
     },
     'lesson07-pole-manipulator': {
         id: 'lesson07-pole-manipulator',
-        label: '极点操纵者',
+        label: '极点操纵器',
         type: 'INTERACTIVE_COMP',
         component: Lesson07PoleManipulator
     },

@@ -3,14 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
-  CheckCircle2,
-  Circle,
   Clock,
   Crosshair,
   Minus,
   Plus,
   RefreshCw,
-  Target,
   Trophy,
 } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
@@ -27,10 +24,25 @@ const PLANE_BOUNDS = {
   maxIm: 4,
 };
 
+type PlaneView = typeof PLANE_BOUNDS;
+
+interface ResponseView {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
 const SVG_SIZE = {
   width: 520,
   height: 360,
   padding: 40,
+};
+
+const RESPONSE_SIZE = {
+  width: 500,
+  height: 220,
+  padding: 34,
 };
 
 const DEFAULT_POLES = [
@@ -51,6 +63,9 @@ interface RootPoint {
 
 interface RenderRoot extends RootPoint {
   mirror: boolean;
+  color?: string;
+  dashed?: boolean;
+  targetId?: string;
 }
 
 interface Complex {
@@ -72,11 +87,11 @@ interface ResponseSeries {
 
 interface ChallengeTarget {
   id: string;
-  title: string;
-  poles: { re: number; im: number };
+  label: string;
+  color: string;
+  pole: { re: number; im: number };
   response: ResponseSeries;
   guess: { re: number; im: number };
-  locked: boolean;
 }
 
 interface BestRecord {
@@ -85,17 +100,46 @@ interface BestRecord {
 }
 
 const DEFAULT_SIGNAL: SignalType = 'step';
-const CHALLENGE_COUNT = 3;
 const SIM_DT = 1 / 60;
 const MAX_SIM_STEPS = 900;
 const BEST_STORAGE_KEY = 'pole-manipulator-best';
+const CHALLENGE_COLORS = ['#60a5fa', '#f59e0b', '#34d399'];
+const ZETA_LINES = [0.2, 0.4, 0.6, 0.8];
+
+const DEFAULT_PLANE_VIEW: PlaneView = { ...PLANE_BOUNDS };
+
+type DragSource = 'explore' | 'challenge';
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
-function toSvgCoords(re: number, im: number) {
-  const { minRe, maxRe, minIm, maxIm } = PLANE_BOUNDS;
+function niceStep(range: number, targetTicks: number) {
+  if (range <= 0 || !Number.isFinite(range)) return 1;
+  const rough = range / Math.max(1, targetTicks);
+  const power = Math.pow(10, Math.floor(Math.log10(rough)));
+  const fraction = rough / power;
+  let niceFraction = 1;
+  if (fraction >= 5) niceFraction = 10;
+  else if (fraction >= 2) niceFraction = 5;
+  else if (fraction >= 1) niceFraction = 2;
+  return niceFraction * power;
+}
+
+function getTicks(min: number, max: number, targetTicks = 5) {
+  const range = max - min;
+  if (range <= 0) return [min];
+  const step = niceStep(range, targetTicks);
+  const start = Math.ceil(min / step) * step;
+  const ticks: number[] = [];
+  for (let value = start; value <= max + 1e-6; value += step) {
+    ticks.push(Number(value.toFixed(2)));
+  }
+  return ticks;
+}
+
+function toSvgCoords(re: number, im: number, view: PlaneView) {
+  const { minRe, maxRe, minIm, maxIm } = view;
   const plotWidth = SVG_SIZE.width - SVG_SIZE.padding * 2;
   const plotHeight = SVG_SIZE.height - SVG_SIZE.padding * 2;
   const x = SVG_SIZE.padding + ((re - minRe) / (maxRe - minRe)) * plotWidth;
@@ -103,8 +147,8 @@ function toSvgCoords(re: number, im: number) {
   return { x, y };
 }
 
-function fromSvgCoords(x: number, y: number) {
-  const { minRe, maxRe, minIm, maxIm } = PLANE_BOUNDS;
+function fromSvgCoords(x: number, y: number, view: PlaneView) {
+  const { minRe, maxRe, minIm, maxIm } = view;
   const plotWidth = SVG_SIZE.width - SVG_SIZE.padding * 2;
   const plotHeight = SVG_SIZE.height - SVG_SIZE.padding * 2;
   const re = minRe + ((x - SVG_SIZE.padding) / plotWidth) * (maxRe - minRe);
@@ -113,6 +157,23 @@ function fromSvgCoords(x: number, y: number) {
     re: clamp(re, minRe, maxRe),
     im: clamp(im, minIm, maxIm),
   };
+}
+
+function fromResponseCoords(
+  x: number,
+  y: number,
+  view: ResponseView,
+  width: number,
+  height: number,
+  padding: number
+) {
+  const plotWidth = width - padding * 2;
+  const plotHeight = height - padding * 2;
+  const rangeX = Math.max(1e-6, view.maxX - view.minX);
+  const rangeY = Math.max(1e-6, view.maxY - view.minY);
+  const t = view.minX + ((x - padding) / plotWidth) * rangeX;
+  const value = view.maxY - ((y - padding) / plotHeight) * rangeY;
+  return { t, y: value };
 }
 
 function complexAdd(a: Complex, b: Complex): Complex {
@@ -169,6 +230,17 @@ function expandRoots(roots: RootPoint[]): Complex[] {
     }
   }
   return expanded;
+}
+
+function toRenderRoots(
+  root: RootPoint,
+  options: { color?: string; dashed?: boolean; targetId?: string } = {}
+) {
+  const base: RenderRoot = { ...root, mirror: false, ...options };
+  if (root.conjugate && Math.abs(root.im) > 1e-6) {
+    return [base, { ...base, im: -root.im, mirror: true }];
+  }
+  return [base];
 }
 
 function estimateDuration(poles: RootPoint[]) {
@@ -229,6 +301,97 @@ function simulateResponse(poles: RootPoint[], zeros: RootPoint[], signal: Signal
   };
 }
 
+function getZetaWn(re: number, im: number) {
+  const beta = Math.abs(im);
+  const wn = Math.sqrt(re * re + beta * beta);
+  const zeta = wn > 0 ? Math.abs(re) / wn : 0;
+  return { zeta, wn };
+}
+
+function poleFromZetaWn(zeta: number, wn: number, sign = 1) {
+  const sigma = -zeta * wn;
+  const beta = wn * Math.sqrt(Math.max(0, 1 - zeta * zeta));
+  return { re: sigma, im: sign * beta };
+}
+
+function buildResponseView(series: ResponseSeries): ResponseView {
+  return {
+    minX: 0,
+    maxX: series.duration,
+    minY: series.minY,
+    maxY: series.maxY,
+  };
+}
+
+function applyResponseView(point: ResponsePoint, view: ResponseView, width: number, height: number, padding: number) {
+  const plotWidth = width - padding * 2;
+  const plotHeight = height - padding * 2;
+  const rangeX = Math.max(1e-6, view.maxX - view.minX);
+  const rangeY = Math.max(1e-6, view.maxY - view.minY);
+  const x = padding + ((point.t - view.minX) / rangeX) * plotWidth;
+  const y = padding + (1 - (point.y - view.minY) / rangeY) * plotHeight;
+  return { x, y };
+}
+
+function buildResponsePath(series: ResponseSeries, view: ResponseView, size: typeof RESPONSE_SIZE) {
+  return series.points
+    .map((point, index) => {
+      const { x, y } = applyResponseView(point, view, size.width, size.height, size.padding);
+      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+    })
+    .join(' ');
+}
+
+function buildChallengeResponseView(targets: ChallengeTarget[]) {
+  if (!targets.length) {
+    return { minX: 0, maxX: 10, minY: -1, maxY: 1 };
+  }
+  const maxX = Math.max(...targets.map((target) => target.response.duration));
+  const minY = Math.min(...targets.map((target) => target.response.minY));
+  const maxY = Math.max(...targets.map((target) => target.response.maxY));
+  const margin = Math.max(0.1, (maxY - minY) * 0.05);
+  return {
+    minX: 0,
+    maxX,
+    minY: minY - margin,
+    maxY: maxY + margin,
+  };
+}
+
+function zoomPlaneView(view: PlaneView, factor: number, focus: { re: number; im: number }) {
+  const width = view.maxRe - view.minRe;
+  const height = view.maxIm - view.minIm;
+  const nextWidth = clamp(width * factor, 1, 40);
+  const nextHeight = clamp(height * factor, 1, 40);
+  const ratioX = nextWidth / width;
+  const ratioY = nextHeight / height;
+  const minRe = focus.re - (focus.re - view.minRe) * ratioX;
+  const minIm = focus.im - (focus.im - view.minIm) * ratioY;
+  return {
+    minRe,
+    maxRe: minRe + nextWidth,
+    minIm,
+    maxIm: minIm + nextHeight,
+  };
+}
+
+function zoomResponseView(view: ResponseView, factor: number, focus: { t: number; y: number }) {
+  const width = view.maxX - view.minX;
+  const height = view.maxY - view.minY;
+  const nextWidth = clamp(width * factor, 0.5, 30);
+  const nextHeight = clamp(height * factor, 0.5, 30);
+  const ratioX = nextWidth / width;
+  const ratioY = nextHeight / height;
+  const minX = focus.t - (focus.t - view.minX) * ratioX;
+  const minY = focus.y - (focus.y - view.minY) * ratioY;
+  return {
+    minX,
+    maxX: minX + nextWidth,
+    minY,
+    maxY: minY + nextHeight,
+  };
+}
+
 function formatSeconds(value: number) {
   const minutes = Math.floor(value / 60);
   const seconds = Math.round(value % 60);
@@ -247,6 +410,86 @@ function scoreGuess(target: { re: number; im: number }, guess: { re: number; im:
   return Math.max(0, Math.round((1 - normalized) * 100));
 }
 
+type RelationType = 'sameRe' | 'sameIm' | 'sameZeta' | 'sameWn';
+
+const RELATIONS: RelationType[] = ['sameRe', 'sameIm', 'sameZeta', 'sameWn'];
+
+function randomInRange(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
+
+function isPoleValid(pole: { re: number; im: number }, view: PlaneView) {
+  return (
+    pole.re < -0.2 &&
+    pole.re >= view.minRe &&
+    pole.re <= view.maxRe &&
+    Math.abs(pole.im) <= view.maxIm &&
+    Math.abs(pole.im) >= 0.3
+  );
+}
+
+function randomStablePole(view: PlaneView) {
+  for (let i = 0; i < 40; i += 1) {
+    const zeta = randomInRange(0.2, 0.85);
+    const wn = randomInRange(1.1, 3.8);
+    const candidate = poleFromZetaWn(zeta, wn);
+    if (isPoleValid(candidate, view)) return candidate;
+  }
+  return { re: -1.2, im: 1.2 };
+}
+
+function poleWithRelation(reference: { re: number; im: number }, relation: RelationType, view: PlaneView) {
+  for (let i = 0; i < 40; i += 1) {
+    if (relation === 'sameRe') {
+      const beta = randomInRange(0.5, view.maxIm - 0.3);
+      const candidate = { re: reference.re, im: beta };
+      if (isPoleValid(candidate, view) && Math.abs(candidate.im - Math.abs(reference.im)) > 0.3) {
+        return candidate;
+      }
+    }
+    if (relation === 'sameIm') {
+      const sigma = randomInRange(view.minRe + 0.5, -0.4);
+      const candidate = { re: sigma, im: Math.abs(reference.im) };
+      if (isPoleValid(candidate, view) && Math.abs(candidate.re - reference.re) > 0.3) {
+        return candidate;
+      }
+    }
+    if (relation === 'sameZeta') {
+      const { zeta } = getZetaWn(reference.re, reference.im);
+      const wn = randomInRange(1.2, 3.8);
+      const candidate = poleFromZetaWn(zeta, wn);
+      if (isPoleValid(candidate, view) && Math.abs(candidate.re - reference.re) > 0.2) {
+        return candidate;
+      }
+    }
+    if (relation === 'sameWn') {
+      const { wn } = getZetaWn(reference.re, reference.im);
+      const zeta = randomInRange(0.2, 0.85);
+      const candidate = poleFromZetaWn(zeta, wn);
+      if (isPoleValid(candidate, view) && Math.abs(candidate.re - reference.re) > 0.2) {
+        return candidate;
+      }
+    }
+  }
+  return randomStablePole(view);
+}
+
+function buildChallengePoles(view: PlaneView) {
+  for (let i = 0; i < 40; i += 1) {
+    const poleA = randomStablePole(view);
+    const relation1 = RELATIONS[Math.floor(Math.random() * RELATIONS.length)];
+    const poleB = poleWithRelation(poleA, relation1, view);
+    const relation2Options = RELATIONS.filter((relation) => relation !== relation1);
+    const relation2 = relation2Options[Math.floor(Math.random() * relation2Options.length)];
+    const targetForC = Math.random() > 0.5 ? poleA : poleB;
+    const poleC = poleWithRelation(targetForC, relation2, view);
+    if (isPoleValid(poleA, view) && isPoleValid(poleB, view) && isPoleValid(poleC, view)) {
+      return [poleA, poleB, poleC];
+    }
+  }
+  return [randomStablePole(view), randomStablePole(view), randomStablePole(view)];
+}
+
 export default function PoleManipulator({ onComplete, onStateChange }: BaseWidgetProps) {
   const interactive = useOptionalInteractiveContext();
   const [mode, setMode] = useState<'explore' | 'challenge'>('explore');
@@ -255,15 +498,44 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
   );
   const [zeros, setZeros] = useState<RootPoint[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>(null);
   const [signal, setSignal] = useState<SignalType>(DEFAULT_SIGNAL);
   const [lockReal, setLockReal] = useState(false);
   const [lockImag, setLockImag] = useState(false);
+  const [lockZeta, setLockZeta] = useState(false);
+  const [lockWn, setLockWn] = useState(false);
+  const [planeView, setPlaneView] = useState<PlaneView>(DEFAULT_PLANE_VIEW);
   const [bestRecord, setBestRecord] = useState<BestRecord | null>(null);
   const [challengeTargets, setChallengeTargets] = useState<ChallengeTarget[]>([]);
-  const [activeTargetId, setActiveTargetId] = useState<string | null>(null);
   const [challengeStart, setChallengeStart] = useState<number | null>(null);
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const [dragging, setDragging] = useState<{ id: string; kind: RootKind } | null>(null);
+  const [challengeSubmitted, setChallengeSubmitted] = useState(false);
+  const [challengeScores, setChallengeScores] = useState<number[] | null>(null);
+
+  const response = useMemo(() => simulateResponse(poles, zeros, signal), [poles, zeros, signal]);
+  const [responseViewMode, setResponseViewMode] = useState<'auto' | 'manual'>('auto');
+  const [responseView, setResponseView] = useState<ResponseView>(() => buildResponseView(response));
+  const [challengeViewMode, setChallengeViewMode] = useState<'auto' | 'manual'>('auto');
+  const [challengeResponseView, setChallengeResponseView] = useState<ResponseView | null>(null);
+
+  const planeSvgRef = useRef<SVGSVGElement | null>(null);
+  const responseSvgRef = useRef<SVGSVGElement | null>(null);
+  const [draggingRoot, setDraggingRoot] = useState<{
+    id: string;
+    kind: RootKind;
+    source: DragSource;
+    targetId?: string;
+  } | null>(null);
+  const [panningPlane, setPanningPlane] = useState<{
+    startX: number;
+    startY: number;
+    view: PlaneView;
+  } | null>(null);
+  const [panningResponse, setPanningResponse] = useState<{
+    startX: number;
+    startY: number;
+    view: ResponseView;
+    source: DragSource;
+  } | null>(null);
 
   const sessionId = interactive?.session.sessionId;
   const progressValue = interactive?.progress.current ?? 0;
@@ -280,81 +552,127 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
     }
   }, [sessionId]);
 
-  const selectedPole = useMemo(() => {
+  const selectedRoot = useMemo(() => {
     if (mode === 'challenge') {
-      const target = challengeTargets.find((item) => item.id === activeTargetId);
+      const target = challengeTargets.find((item) => item.id === selectedChallengeId);
       if (!target) return null;
       return {
-        id: 'challenge-active',
+        id: `guess-${target.id}`,
         re: target.guess.re,
         im: target.guess.im,
         conjugate: true,
         kind: 'pole' as const,
       };
     }
-    const pole = poles.find((item) => item.id === selectedId);
-    if (pole) return pole;
+    const allRoots = [...poles, ...zeros];
+    const root = allRoots.find((item) => item.id === selectedId);
+    if (root) return root;
     return poles[0] ?? null;
-  }, [activeTargetId, challengeTargets, mode, poles, selectedId]);
+  }, [challengeTargets, mode, poles, selectedChallengeId, selectedId, zeros]);
 
-  const response = useMemo(() => simulateResponse(poles, zeros, signal), [poles, zeros, signal]);
-
-  const responsePath = useMemo(() => {
-    const { points, minY, maxY, duration } = response;
-    const width = 500;
-    const height = 220;
-    const padding = 30;
-    const plotWidth = width - padding * 2;
-    const plotHeight = height - padding * 2;
-    const rangeY = Math.max(1e-6, maxY - minY);
-    return points
-      .map((point, index) => {
-        const x = padding + (point.t / duration) * plotWidth;
-        const y = padding + (1 - (point.y - minY) / rangeY) * plotHeight;
-        return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-      })
-      .join(' ');
-  }, [response]);
+  const selectedPole = selectedRoot?.kind === 'pole' ? selectedRoot : null;
+  const responsePath = useMemo(
+    () => buildResponsePath(response, responseView, RESPONSE_SIZE),
+    [response, responseView]
+  );
+  const responseTicksX = useMemo(
+    () => getTicks(responseView.minX, responseView.maxX, 5),
+    [responseView]
+  );
+  const responseTicksY = useMemo(
+    () => getTicks(responseView.minY, responseView.maxY, 5),
+    [responseView]
+  );
+  const challengeBaseView = useMemo(
+    () => buildChallengeResponseView(challengeTargets),
+    [challengeTargets]
+  );
+  const challengeView = challengeResponseView ?? challengeBaseView;
+  const challengeResponsePaths = useMemo(
+    () =>
+      challengeTargets.map((target) => ({
+        id: target.id,
+        color: target.color,
+        label: target.label,
+        path: buildResponsePath(target.response, challengeView, RESPONSE_SIZE),
+      })),
+    [challengeTargets, challengeView]
+  );
+  const challengeTicksX = useMemo(
+    () => getTicks(challengeView.minX, challengeView.maxX, 5),
+    [challengeView]
+  );
+  const challengeTicksY = useMemo(
+    () => getTicks(challengeView.minY, challengeView.maxY, 5),
+    [challengeView]
+  );
+  const challengeAverageScore = useMemo(() => {
+    if (!challengeScores?.length) return null;
+    return Math.round(
+      challengeScores.reduce((sum, score) => sum + score, 0) / challengeScores.length
+    );
+  }, [challengeScores]);
 
   const activeSigma = selectedPole ? selectedPole.re : -1;
-  const activeBeta = selectedPole ? selectedPole.im : 1;
+  const activeBeta = selectedPole ? Math.abs(selectedPole.im) : 0;
+  const activeMetrics = selectedPole ? getZetaWn(selectedPole.re, selectedPole.im) : null;
 
   const renderRoots = useMemo<RenderRoot[]>(() => {
     const allRoots = [...poles, ...zeros];
-    return allRoots.flatMap((root) => {
-      const basePoint: RenderRoot = { ...root, mirror: false };
-      if (root.conjugate && Math.abs(root.im) > 1e-6) {
-        return [
-          basePoint,
-          { ...root, im: -root.im, mirror: true },
-        ];
-      }
-      return [basePoint];
-    });
+    return allRoots.flatMap((root) =>
+      toRenderRoots(root, {
+        color: root.kind === 'pole' ? '#f87171' : '#60a5fa',
+      })
+    );
   }, [poles, zeros]);
 
-  const activeTarget = useMemo(
-    () => challengeTargets.find((target) => target.id === activeTargetId) ?? null,
-    [challengeTargets, activeTargetId]
-  );
-
-  const challengePoles = useMemo(() => {
-    if (!activeTarget) return poles;
-    return [
-      {
-        id: 'challenge-guess',
-        re: activeTarget.guess.re,
-        im: activeTarget.guess.im,
+  const challengeGuessRoots = useMemo<RenderRoot[]>(() => {
+    return challengeTargets.flatMap((target) => {
+      const root: RootPoint = {
+        id: `guess-${target.id}`,
+        re: target.guess.re,
+        im: target.guess.im,
         conjugate: true,
-        kind: 'pole' as const,
-      },
-    ];
-  }, [activeTarget, poles]);
-
-  const challengeProgress = useMemo(() => {
-    const lockedCount = challengeTargets.filter((target) => target.locked).length;
-    return Math.round((lockedCount / CHALLENGE_COUNT) * 100);
+        kind: 'pole',
+      };
+      return toRenderRoots(root, { color: target.color, targetId: target.id });
+    });
   }, [challengeTargets]);
+
+  const challengeAnswerRoots = useMemo<RenderRoot[]>(() => {
+    if (!challengeSubmitted) return [];
+    return challengeTargets.flatMap((target) => {
+      const root: RootPoint = {
+        id: `answer-${target.id}`,
+        re: target.pole.re,
+        im: target.pole.im,
+        conjugate: true,
+        kind: 'pole',
+      };
+      return toRenderRoots(root, { color: target.color, dashed: true });
+    });
+  }, [challengeSubmitted, challengeTargets]);
+
+  const planeTicksX = useMemo(() => getTicks(planeView.minRe, planeView.maxRe, 6), [planeView]);
+  const planeTicksY = useMemo(() => getTicks(planeView.minIm, planeView.maxIm, 6), [planeView]);
+  const wnTicks = useMemo(() => {
+    const radiusMax = Math.max(
+      Math.abs(planeView.minRe),
+      Math.abs(planeView.maxRe),
+      Math.abs(planeView.minIm),
+      Math.abs(planeView.maxIm)
+    );
+    return getTicks(0, radiusMax, 4).filter((value) => value > 0);
+  }, [planeView]);
+  const origin = useMemo(() => toSvgCoords(0, 0, planeView), [planeView]);
+  const showReAxis = planeView.minIm < 0 && planeView.maxIm > 0;
+  const showImAxis = planeView.minRe < 0 && planeView.maxRe > 0;
+
+  const rootsToRender =
+    mode === 'challenge'
+      ? [...challengeAnswerRoots, ...challengeGuessRoots]
+      : renderRoots;
+  const canLockPolar = selectedRoot?.kind !== 'zero';
 
   const updateRoot = useCallback(
     (id: string, kind: RootKind, nextRe: number, nextIm: number) => {
@@ -378,73 +696,176 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
     []
   );
 
+  const applyLockedPosition = useCallback(
+    (target: RootPoint, next: { re: number; im: number }) => {
+      let re = next.re;
+      let im = next.im;
+      const usePolarLock = lockZeta || lockWn;
+
+      if (!usePolarLock) {
+        if (lockReal) re = target.re;
+        if (lockImag) im = target.im;
+      }
+
+      if (usePolarLock && target.kind === 'pole') {
+        if (lockZeta) {
+          const { zeta } = getZetaWn(target.re, target.im);
+          const wn = Math.max(0.3, Math.sqrt(next.re * next.re + next.im * next.im));
+          const pole = poleFromZetaWn(zeta, wn, target.im >= 0 ? 1 : -1);
+          re = pole.re;
+          im = pole.im;
+        }
+        if (lockWn) {
+          const { wn } = getZetaWn(target.re, target.im);
+          const radius = Math.sqrt(next.re * next.re + next.im * next.im) || 1;
+          const scale = wn / radius;
+          re = next.re * scale;
+          im = next.im * scale;
+        }
+      }
+
+      if (target.conjugate) {
+        im = Math.abs(im);
+      }
+
+      return {
+        re: clamp(re, planeView.minRe, planeView.maxRe),
+        im: clamp(im, planeView.minIm, planeView.maxIm),
+      };
+    },
+    [lockImag, lockReal, lockWn, lockZeta, planeView]
+  );
+
   const handlePointerMove = useCallback(
     (event: PointerEvent) => {
-      if (!dragging || !svgRef.current) return;
-      const rect = svgRef.current.getBoundingClientRect();
-      const next = fromSvgCoords(event.clientX - rect.left, event.clientY - rect.top);
+      if (draggingRoot && planeSvgRef.current) {
+        const rect = planeSvgRef.current.getBoundingClientRect();
+        const next = fromSvgCoords(event.clientX - rect.left, event.clientY - rect.top, planeView);
 
-      if (mode === 'challenge') {
-        if (!activeTarget) return;
-        const nextRe = lockReal ? activeTarget.guess.re : next.re;
-        const nextIm = lockImag ? activeTarget.guess.im : next.im;
-        setChallengeTargets((prev) =>
-          prev.map((target) =>
-            target.id === activeTarget.id
-              ? {
-                  ...target,
-                  guess: { re: nextRe, im: Math.abs(nextIm) },
-                  locked: false,
-                }
-              : target
-          )
+        if (draggingRoot.source === 'challenge' && draggingRoot.targetId) {
+          const target = challengeTargets.find((item) => item.id === draggingRoot.targetId);
+          if (!target) return;
+          const targetRoot: RootPoint = {
+            id: target.id,
+            re: target.guess.re,
+            im: target.guess.im,
+            conjugate: true,
+            kind: 'pole',
+          };
+          const locked = applyLockedPosition(targetRoot, next);
+          setChallengeTargets((prev) =>
+            prev.map((item) =>
+              item.id === target.id ? { ...item, guess: { re: locked.re, im: locked.im } } : item
+            )
+          );
+          onStateChange?.({
+            progress: 0,
+            data: {
+              action: 'drag',
+              id: target.id,
+              kind: 'pole',
+              re: locked.re,
+              im: locked.im,
+            },
+            timestamp: Date.now(),
+          });
+          return;
+        }
+
+        const targetRoot = (draggingRoot.kind === 'pole' ? poles : zeros).find(
+          (item) => item.id === draggingRoot.id
         );
+        if (!targetRoot) return;
+        const locked = applyLockedPosition(targetRoot, next);
+        updateRoot(draggingRoot.id, draggingRoot.kind, locked.re, locked.im);
         onStateChange?.({
-          progress: challengeProgress,
-          data: { action: 'drag', id: dragging.id, kind: dragging.kind, re: nextRe, im: nextIm },
+          progress: progressValue,
+          data: {
+            action: 'drag',
+            id: draggingRoot.id,
+            kind: draggingRoot.kind,
+            re: locked.re,
+            im: locked.im,
+          },
           timestamp: Date.now(),
         });
         return;
       }
 
-      const targetRoot = (dragging.kind === 'pole' ? poles : zeros).find((item) => item.id === dragging.id);
-      if (!targetRoot) return;
+      if (panningPlane && planeSvgRef.current) {
+        const plotWidth = SVG_SIZE.width - SVG_SIZE.padding * 2;
+        const plotHeight = SVG_SIZE.height - SVG_SIZE.padding * 2;
+        const rangeRe = panningPlane.view.maxRe - panningPlane.view.minRe;
+        const rangeIm = panningPlane.view.maxIm - panningPlane.view.minIm;
+        const dx = event.clientX - panningPlane.startX;
+        const dy = event.clientY - panningPlane.startY;
+        const deltaRe = (dx / plotWidth) * rangeRe;
+        const deltaIm = (dy / plotHeight) * rangeIm;
+        setPlaneView({
+          minRe: panningPlane.view.minRe - deltaRe,
+          maxRe: panningPlane.view.maxRe - deltaRe,
+          minIm: panningPlane.view.minIm + deltaIm,
+          maxIm: panningPlane.view.maxIm + deltaIm,
+        });
+        return;
+      }
 
-      const nextRe = lockReal ? targetRoot.re : next.re;
-      const nextIm = lockImag ? targetRoot.im : next.im;
-      updateRoot(dragging.id, dragging.kind, nextRe, nextIm);
-      onStateChange?.({
-        progress: progressValue,
-        data: { action: 'drag', id: dragging.id, kind: dragging.kind, re: nextRe, im: nextIm },
-        timestamp: Date.now(),
-      });
+      if (panningResponse && responseSvgRef.current) {
+        const plotWidth = RESPONSE_SIZE.width - RESPONSE_SIZE.padding * 2;
+        const plotHeight = RESPONSE_SIZE.height - RESPONSE_SIZE.padding * 2;
+        const rangeX = panningResponse.view.maxX - panningResponse.view.minX;
+        const rangeY = panningResponse.view.maxY - panningResponse.view.minY;
+        const dx = event.clientX - panningResponse.startX;
+        const dy = event.clientY - panningResponse.startY;
+        const deltaX = (dx / plotWidth) * rangeX;
+        const deltaY = (dy / plotHeight) * rangeY;
+        const nextView = {
+          minX: panningResponse.view.minX - deltaX,
+          maxX: panningResponse.view.maxX - deltaX,
+          minY: panningResponse.view.minY + deltaY,
+          maxY: panningResponse.view.maxY + deltaY,
+        };
+        if (panningResponse.source === 'challenge') {
+          setChallengeViewMode('manual');
+          setChallengeResponseView(nextView);
+        } else {
+          setResponseViewMode('manual');
+          setResponseView(nextView);
+        }
+      }
     },
     [
-      activeTarget,
-      challengeProgress,
-      dragging,
-      progressValue,
-      lockImag,
-      lockReal,
-      mode,
-      onStateChange,
+      applyLockedPosition,
+      challengeTargets,
+      draggingRoot,
+      panningPlane,
+      panningResponse,
+      planeView,
       poles,
+      progressValue,
       updateRoot,
+      onStateChange,
       zeros,
     ]
   );
 
-  const stopDragging = useCallback((dragInfo: { id: string; kind: RootKind } | null) => {
-    if (!dragInfo) return;
-    if (mode === 'challenge' && activeTarget) {
-      interactive?.tracking.emit('param_change', {
-        id: dragInfo.id,
-        kind: dragInfo.kind,
-        re: activeTarget.guess.re,
-        im: activeTarget.guess.im,
-      });
-    } else {
-      const targetRoot = (dragInfo.kind === 'pole' ? poles : zeros).find((item) => item.id === dragInfo.id);
+  const stopDragging = useCallback(
+    (dragInfo: typeof draggingRoot) => {
+      if (!dragInfo) return;
+      if (dragInfo.source === 'challenge' && dragInfo.targetId) {
+        const target = challengeTargets.find((item) => item.id === dragInfo.targetId);
+        if (!target) return;
+        interactive?.tracking.emit('param_change', {
+          id: target.id,
+          kind: 'pole',
+          re: target.guess.re,
+          im: target.guess.im,
+        });
+        return;
+      }
+      const targetRoot = (dragInfo.kind === 'pole' ? poles : zeros).find(
+        (item) => item.id === dragInfo.id
+      );
       if (targetRoot) {
         interactive?.tracking.emit('param_change', {
           id: dragInfo.id,
@@ -453,14 +874,17 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
           im: targetRoot.im,
         });
       }
-    }
-  }, [activeTarget, interactive?.tracking, mode, poles, zeros]);
+    },
+    [challengeTargets, interactive?.tracking, poles, zeros]
+  );
 
   useEffect(() => {
-    if (!dragging) return undefined;
+    if (!draggingRoot && !panningPlane && !panningResponse) return undefined;
     const handleUp = () => {
-      stopDragging(dragging);
-      setDragging(null);
+      stopDragging(draggingRoot);
+      setDraggingRoot(null);
+      setPanningPlane(null);
+      setPanningResponse(null);
     };
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handleUp);
@@ -468,15 +892,103 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handleUp);
     };
-  }, [dragging, handlePointerMove, stopDragging]);
+  }, [draggingRoot, handlePointerMove, panningPlane, panningResponse, stopDragging]);
 
-  const handlePointerDown = useCallback(
-    (id: string, kind: RootKind) => (event: React.PointerEvent) => {
+  const handleRootPointerDown = useCallback(
+    (root: RenderRoot) => (event: React.PointerEvent) => {
       event.preventDefault();
-      setSelectedId(id);
-      setDragging({ id, kind });
+      event.stopPropagation();
+      if (mode === 'challenge') {
+        if (challengeSubmitted || !root.targetId) return;
+        setSelectedChallengeId(root.targetId);
+        setDraggingRoot({
+          id: root.id,
+          kind: root.kind,
+          source: 'challenge',
+          targetId: root.targetId,
+        });
+        return;
+      }
+      setSelectedId(root.id);
+      setDraggingRoot({ id: root.id, kind: root.kind, source: 'explore' });
     },
-    []
+    [challengeSubmitted, mode]
+  );
+
+  const handlePlanePointerDown = useCallback(
+    (event: React.PointerEvent<SVGSVGElement>) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      setPanningPlane({
+        startX: event.clientX,
+        startY: event.clientY,
+        view: planeView,
+      });
+    },
+    [planeView]
+  );
+
+  const handleResponsePointerDown = useCallback(
+    (event: React.PointerEvent<SVGSVGElement>) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      if (mode === 'challenge') {
+        setPanningResponse({
+          startX: event.clientX,
+          startY: event.clientY,
+          view: challengeView,
+          source: 'challenge',
+        });
+        return;
+      }
+      setPanningResponse({
+        startX: event.clientX,
+        startY: event.clientY,
+        view: responseView,
+        source: 'explore',
+      });
+    },
+    [challengeView, mode, responseView]
+  );
+
+  const handlePlaneWheel = useCallback(
+    (event: React.WheelEvent<SVGSVGElement>) => {
+      event.preventDefault();
+      if (!planeSvgRef.current) return;
+      const rect = planeSvgRef.current.getBoundingClientRect();
+      const next = fromSvgCoords(event.clientX - rect.left, event.clientY - rect.top, planeView);
+      const factor = event.deltaY > 0 ? 1.1 : 0.9;
+      setPlaneView((prev) => zoomPlaneView(prev, factor, next));
+    },
+    [planeView]
+  );
+
+  const handleResponseWheel = useCallback(
+    (event: React.WheelEvent<SVGSVGElement>) => {
+      event.preventDefault();
+      if (!responseSvgRef.current) return;
+      const rect = responseSvgRef.current.getBoundingClientRect();
+      const view = mode === 'challenge' ? challengeView : responseView;
+      const focus = fromResponseCoords(
+        event.clientX - rect.left,
+        event.clientY - rect.top,
+        view,
+        RESPONSE_SIZE.width,
+        RESPONSE_SIZE.height,
+        RESPONSE_SIZE.padding
+      );
+      const factor = event.deltaY > 0 ? 1.1 : 0.9;
+      if (mode === 'challenge') {
+        setChallengeViewMode('manual');
+        setChallengeResponseView((prev) =>
+          zoomResponseView(prev ?? challengeView, factor, focus)
+        );
+        return;
+      }
+      setResponseViewMode('manual');
+      setResponseView((prev) => zoomResponseView(prev, factor, focus));
+    },
+    [challengeView, mode, responseView]
   );
 
   const addRoot = useCallback((kind: RootKind, conjugate: boolean) => {
@@ -511,32 +1023,93 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
     setZeros([]);
     setSignal(DEFAULT_SIGNAL);
     setSelectedId(null);
+    setLockReal(false);
+    setLockImag(false);
+    setLockZeta(false);
+    setLockWn(false);
+    setPlaneView(DEFAULT_PLANE_VIEW);
+    setResponseViewMode('auto');
     interactive?.progress.setProgress(0);
     interactive?.tracking.emit('interact', { action: 'reset' });
   }, [interactive]);
 
+  const toggleLockReal = useCallback(() => {
+    setLockReal((prev) => {
+      const next = !prev;
+      if (next) {
+        setLockImag(false);
+        setLockZeta(false);
+        setLockWn(false);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleLockImag = useCallback(() => {
+    setLockImag((prev) => {
+      const next = !prev;
+      if (next) {
+        setLockReal(false);
+        setLockZeta(false);
+        setLockWn(false);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleLockZeta = useCallback(() => {
+    setLockZeta((prev) => {
+      const next = !prev;
+      if (next) {
+        setLockWn(false);
+        setLockReal(false);
+        setLockImag(false);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleLockWn = useCallback(() => {
+    setLockWn((prev) => {
+      const next = !prev;
+      if (next) {
+        setLockZeta(false);
+        setLockReal(false);
+        setLockImag(false);
+      }
+      return next;
+    });
+  }, []);
+
   const buildChallengeTargets = useCallback(() => {
-    const targets: ChallengeTarget[] = [];
-    for (let i = 0; i < CHALLENGE_COUNT; i += 1) {
-      const zeta = 0.2 + Math.random() * 0.55;
-      const wn = 1.2 + Math.random() * 2.5;
-      const sigma = -zeta * wn;
-      const beta = wn * Math.sqrt(1 - zeta * zeta);
+    const polesForChallenge = buildChallengePoles(DEFAULT_PLANE_VIEW);
+    const targets = polesForChallenge.map((pole, index) => {
       const polesForSim: RootPoint[] = [
-        { id: `target-${i}`, re: sigma, im: beta, conjugate: true, kind: 'pole' },
+        {
+          id: `target-${index}`,
+          re: pole.re,
+          im: pole.im,
+          conjugate: true,
+          kind: 'pole',
+        },
       ];
-      targets.push({
-        id: `challenge-${i}`,
-        title: `目标响应 ${i + 1}`,
-        poles: { re: sigma, im: beta },
+      return {
+        id: `challenge-${index}`,
+        label: `曲线 ${index + 1}`,
+        color: CHALLENGE_COLORS[index % CHALLENGE_COLORS.length],
+        pole,
         response: simulateResponse(polesForSim, [], 'step'),
-        guess: { re: -1.2, im: 1.2 },
-        locked: false,
-      });
-    }
+        guess: randomStablePole(DEFAULT_PLANE_VIEW),
+      };
+    });
     setChallengeTargets(targets);
-    setActiveTargetId(targets[0]?.id ?? null);
     setChallengeStart(Date.now());
+    setChallengeSubmitted(false);
+    setChallengeScores(null);
+    setSelectedChallengeId(targets[0]?.id ?? null);
+    setPlaneView(DEFAULT_PLANE_VIEW);
+    setChallengeViewMode('auto');
+    setChallengeResponseView(buildChallengeResponseView(targets));
     interactive?.progress.setProgress(0);
   }, [interactive?.progress]);
 
@@ -544,25 +1117,28 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
     if (mode === 'challenge') {
       buildChallengeTargets();
     }
+    if (mode === 'explore') {
+      setSelectedChallengeId(null);
+      setChallengeSubmitted(false);
+      setChallengeScores(null);
+      setResponseViewMode('auto');
+      setPlaneView(DEFAULT_PLANE_VIEW);
+    }
   }, [buildChallengeTargets, mode]);
 
-  const handleLockTarget = useCallback(() => {
-    if (!activeTarget) return;
-    const nextLockedCount = challengeTargets.filter((target) => target.locked).length + 1;
-    const nextProgress = Math.round((nextLockedCount / CHALLENGE_COUNT) * 100);
-    setChallengeTargets((prev) =>
-      prev.map((target) =>
-        target.id === activeTarget.id ? { ...target, locked: true } : target
-      )
-    );
-    interactive?.progress.setProgress(nextProgress);
-    interactive?.tracking.emit('interact', { action: 'lock_target', id: activeTarget.id });
-  }, [activeTarget, challengeTargets, interactive]);
+  useEffect(() => {
+    if (mode !== 'explore' || responseViewMode !== 'auto') return;
+    setResponseView(buildResponseView(response));
+  }, [mode, response, responseViewMode]);
+
+  useEffect(() => {
+    if (mode !== 'challenge' || challengeViewMode !== 'auto') return;
+    setChallengeResponseView(challengeBaseView);
+  }, [challengeBaseView, challengeViewMode, mode]);
 
   const handleSubmitChallenge = useCallback(() => {
-    if (challengeTargets.some((target) => !target.locked)) return;
     const scores = challengeTargets.map((target) =>
-      scoreGuess(target.poles, target.guess)
+      scoreGuess(target.pole, target.guess)
     );
     const averageScore = Math.round(
       scores.reduce((sum, score) => sum + score, 0) / scores.length
@@ -575,8 +1151,10 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
       data: {
         scores,
         duration,
-        targets: challengeTargets.map((target) => target.poles),
+        targets: challengeTargets.map((target) => target.pole),
         guesses: challengeTargets.map((target) => target.guess),
+        labels: challengeTargets.map((target) => target.label),
+        colors: challengeTargets.map((target) => target.color),
       },
     };
 
@@ -589,6 +1167,8 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
     interactive?.progress.setProgress(100);
     interactive?.progress.markComplete(result);
     onComplete?.(result);
+    setChallengeSubmitted(true);
+    setChallengeScores(scores);
 
     if (!sessionId && typeof window !== 'undefined') {
       const nextBest =
@@ -612,6 +1192,10 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
             score: averageScore,
             duration,
             scores,
+            targets: challengeTargets.map((target) => target.pole),
+            guesses: challengeTargets.map((target) => target.guess),
+            labels: challengeTargets.map((target) => target.label),
+            colors: challengeTargets.map((target) => target.color),
           },
         }),
       }).catch((error) => {
@@ -631,27 +1215,15 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
 
   useEffect(() => {
     if (mode !== 'challenge') return;
-    interactive?.progress.setProgress(challengeProgress);
-  }, [challengeProgress, interactive?.progress, mode]);
-
-  const challengeRenderRoots = useMemo<RenderRoot[]>(() => {
-    return challengePoles.flatMap((root) => {
-      const basePoint: RenderRoot = { ...root, mirror: false };
-      if (root.conjugate && Math.abs(root.im) > 1e-6) {
-        return [basePoint, { ...root, im: -root.im, mirror: true }];
-      }
-      return [basePoint];
-    });
-  }, [challengePoles]);
-
-  const rootsToRender = mode === 'challenge' ? challengeRenderRoots : renderRoots;
+    interactive?.progress.setProgress(0);
+  }, [interactive?.progress, mode]);
 
   return (
     <div className="min-h-[720px] w-full bg-slate-950 text-slate-100">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-8">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-slate-400">时域分析 · 极点操纵者</p>
+            <p className="text-sm text-slate-400">时域分析 · 极点操纵器</p>
             <h2 className="text-2xl font-semibold text-white">S-Plane 极点操纵与响应感知</h2>
             <p className="mt-2 max-w-2xl text-sm text-slate-400">
               在复平面拖拽极点与零点，观察阶跃响应如何随衰减与振荡频率变化。
@@ -686,7 +1258,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <button
-                  onClick={() => setLockReal((prev) => !prev)}
+                  onClick={toggleLockReal}
                   className={`rounded-full border px-3 py-1 transition ${
                     lockReal ? 'border-cyan-400/70 text-cyan-200' : 'border-slate-700 text-slate-400'
                   }`}
@@ -694,28 +1266,48 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                   锁定实部
                 </button>
                 <button
-                  onClick={() => setLockImag((prev) => !prev)}
+                  onClick={toggleLockImag}
                   className={`rounded-full border px-3 py-1 transition ${
                     lockImag ? 'border-amber-400/70 text-amber-200' : 'border-slate-700 text-slate-400'
                   }`}
                 >
                   锁定虚部
                 </button>
+                <button
+                  onClick={toggleLockZeta}
+                  disabled={!canLockPolar}
+                  className={`rounded-full border px-3 py-1 transition ${
+                    lockZeta ? 'border-emerald-400/70 text-emerald-200' : 'border-slate-700 text-slate-400'
+                  } ${!canLockPolar ? 'cursor-not-allowed opacity-40' : ''}`}
+                >
+                  锁定阻尼
+                </button>
+                <button
+                  onClick={toggleLockWn}
+                  disabled={!canLockPolar}
+                  className={`rounded-full border px-3 py-1 transition ${
+                    lockWn ? 'border-violet-400/70 text-violet-200' : 'border-slate-700 text-slate-400'
+                  } ${!canLockPolar ? 'cursor-not-allowed opacity-40' : ''}`}
+                >
+                  锁定频率
+                </button>
               </div>
             </div>
 
             <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
               <svg
-                ref={svgRef}
+                ref={planeSvgRef}
                 viewBox={`0 0 ${SVG_SIZE.width} ${SVG_SIZE.height}`}
-                className="h-[360px] w-full cursor-crosshair"
+                onPointerDown={handlePlanePointerDown}
+                onWheel={handlePlaneWheel}
+                className={`h-[360px] w-full ${panningPlane ? 'cursor-grabbing' : 'cursor-crosshair'}`}
               >
                 <rect width="100%" height="100%" fill="#0b1120" />
-                {Array.from({ length: 6 }).map((_, index) => {
-                  const x = SVG_SIZE.padding + (index / 5) * (SVG_SIZE.width - SVG_SIZE.padding * 2);
+                {planeTicksX.map((tick) => {
+                  const { x } = toSvgCoords(tick, 0, planeView);
                   return (
                     <line
-                      key={`grid-x-${index}`}
+                      key={`grid-x-${tick}`}
                       x1={x}
                       y1={SVG_SIZE.padding}
                       x2={x}
@@ -725,11 +1317,11 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                     />
                   );
                 })}
-                {Array.from({ length: 6 }).map((_, index) => {
-                  const y = SVG_SIZE.padding + (index / 5) * (SVG_SIZE.height - SVG_SIZE.padding * 2);
+                {planeTicksY.map((tick) => {
+                  const { y } = toSvgCoords(0, tick, planeView);
                   return (
                     <line
-                      key={`grid-y-${index}`}
+                      key={`grid-y-${tick}`}
                       x1={SVG_SIZE.padding}
                       y1={y}
                       x2={SVG_SIZE.width - SVG_SIZE.padding}
@@ -739,56 +1331,123 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                     />
                   );
                 })}
-                <line
-                  x1={SVG_SIZE.padding}
-                  y1={SVG_SIZE.height / 2}
-                  x2={SVG_SIZE.width - SVG_SIZE.padding}
-                  y2={SVG_SIZE.height / 2}
-                  stroke="#334155"
-                  strokeWidth="1.5"
-                />
-                <line
-                  x1={SVG_SIZE.padding + ((0 - PLANE_BOUNDS.minRe) / (PLANE_BOUNDS.maxRe - PLANE_BOUNDS.minRe)) *
-                    (SVG_SIZE.width - SVG_SIZE.padding * 2)}
-                  y1={SVG_SIZE.padding}
-                  x2={SVG_SIZE.padding + ((0 - PLANE_BOUNDS.minRe) / (PLANE_BOUNDS.maxRe - PLANE_BOUNDS.minRe)) *
-                    (SVG_SIZE.width - SVG_SIZE.padding * 2)}
-                  y2={SVG_SIZE.height - SVG_SIZE.padding}
-                  stroke="#475569"
-                  strokeWidth="1.5"
-                />
+
+                {wnTicks.map((wn) => {
+                  const radius = Math.abs(toSvgCoords(wn, 0, planeView).x - origin.x);
+                  return (
+                    <circle
+                      key={`wn-${wn}`}
+                      cx={origin.x}
+                      cy={origin.y}
+                      r={radius}
+                      fill="none"
+                      stroke="#1e293b"
+                      strokeDasharray="6 6"
+                    />
+                  );
+                })}
+
+                {ZETA_LINES.map((zeta) => {
+                  const phi = Math.acos(clamp(zeta, 0, 1));
+                  const slope = Math.tan(phi);
+                  const tRe = Math.abs(planeView.minRe);
+                  const tIm = slope === 0 ? Infinity : planeView.maxIm / Math.abs(slope);
+                  const t = Math.min(tRe, tIm);
+                  const endRe = -t;
+                  const endIm = slope * t;
+                  const pos = toSvgCoords(endRe, endIm, planeView);
+                  const neg = toSvgCoords(endRe, -endIm, planeView);
+                  return (
+                    <g key={`zeta-${zeta}`}>
+                      <line
+                        x1={origin.x}
+                        y1={origin.y}
+                        x2={pos.x}
+                        y2={pos.y}
+                        stroke="#1e293b"
+                        strokeDasharray="6 6"
+                      />
+                      <line
+                        x1={origin.x}
+                        y1={origin.y}
+                        x2={neg.x}
+                        y2={neg.y}
+                        stroke="#1e293b"
+                        strokeDasharray="6 6"
+                      />
+                    </g>
+                  );
+                })}
+
+                {showReAxis && (
+                  <line
+                    x1={SVG_SIZE.padding}
+                    y1={origin.y}
+                    x2={SVG_SIZE.width - SVG_SIZE.padding}
+                    y2={origin.y}
+                    stroke="#334155"
+                    strokeWidth="1.5"
+                  />
+                )}
+                {showImAxis && (
+                  <line
+                    x1={origin.x}
+                    y1={SVG_SIZE.padding}
+                    x2={origin.x}
+                    y2={SVG_SIZE.height - SVG_SIZE.padding}
+                    stroke="#475569"
+                    strokeWidth="1.5"
+                  />
+                )}
 
                 {selectedPole && (
                   <>
                     <line
-                      x1={toSvgCoords(activeSigma, 0).x}
+                      x1={toSvgCoords(activeSigma, 0, planeView).x}
                       y1={SVG_SIZE.padding}
-                      x2={toSvgCoords(activeSigma, 0).x}
+                      x2={toSvgCoords(activeSigma, 0, planeView).x}
                       y2={SVG_SIZE.height - SVG_SIZE.padding}
                       stroke="#22d3ee"
                       strokeDasharray="8 6"
                     />
                     <line
                       x1={SVG_SIZE.padding}
-                      y1={toSvgCoords(0, activeBeta).y}
+                      y1={toSvgCoords(0, activeBeta, planeView).y}
                       x2={SVG_SIZE.width - SVG_SIZE.padding}
-                      y2={toSvgCoords(0, activeBeta).y}
+                      y2={toSvgCoords(0, activeBeta, planeView).y}
                       stroke="#f59e0b"
                       strokeDasharray="8 6"
                     />
+                    {activeBeta > 0 && (
+                      <line
+                        x1={SVG_SIZE.padding}
+                        y1={toSvgCoords(0, -activeBeta, planeView).y}
+                        x2={SVG_SIZE.width - SVG_SIZE.padding}
+                        y2={toSvgCoords(0, -activeBeta, planeView).y}
+                        stroke="#f59e0b"
+                        strokeDasharray="8 6"
+                      />
+                    )}
                   </>
                 )}
 
                 {rootsToRender.map((root) => {
-                  const { x, y } = toSvgCoords(root.re, root.im);
-                  const isSelected = selectedId === root.id && !root.mirror && mode === 'explore';
-                  const color = root.kind === 'pole' ? '#f87171' : '#60a5fa';
+                  const { x, y } = toSvgCoords(root.re, root.im, planeView);
+                  const isSelected =
+                    mode === 'explore'
+                      ? selectedId === root.id && !root.mirror
+                      : root.targetId === selectedChallengeId && !root.mirror;
+                  const color = root.color ?? (root.kind === 'pole' ? '#f87171' : '#60a5fa');
                   const label = root.kind === 'pole' ? '×' : '○';
+                  const canDrag =
+                    !root.mirror &&
+                    !root.dashed &&
+                    (mode === 'explore' || (mode === 'challenge' && !challengeSubmitted));
                   return (
                     <g
                       key={`${root.id}-${root.im}-${root.mirror ? 'mirror' : 'base'}`}
-                      onPointerDown={handlePointerDown(root.id, root.kind)}
-                      style={{ cursor: 'grab' }}
+                      onPointerDown={canDrag ? handleRootPointerDown(root) : undefined}
+                      style={{ cursor: canDrag ? 'grab' : 'default' }}
                     >
                       <circle
                         cx={x}
@@ -797,6 +1456,8 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                         fill="transparent"
                         stroke={color}
                         strokeWidth={isSelected ? 3 : 2}
+                        strokeDasharray={root.dashed ? '6 6' : undefined}
+                        opacity={root.dashed ? 0.6 : 1}
                       />
                       <text
                         x={x}
@@ -805,6 +1466,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                         textAnchor="middle"
                         fontSize="16"
                         fontFamily="monospace"
+                        opacity={root.dashed ? 0.6 : 1}
                       >
                         {label}
                       </text>
@@ -812,37 +1474,78 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                   );
                 })}
 
+                {planeTicksX.map((tick) => {
+                  const { x } = toSvgCoords(tick, planeView.minIm, planeView);
+                  return (
+                    <g key={`tick-x-${tick}`}>
+                      <line
+                        x1={x}
+                        y1={SVG_SIZE.height - SVG_SIZE.padding}
+                        x2={x}
+                        y2={SVG_SIZE.height - SVG_SIZE.padding + 6}
+                        stroke="#475569"
+                      />
+                      <text x={x} y={SVG_SIZE.height - 8} fill="#64748b" fontSize="11" textAnchor="middle">
+                        {tick.toFixed(1)}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {planeTicksY.map((tick) => {
+                  const { y } = toSvgCoords(planeView.minRe, tick, planeView);
+                  return (
+                    <g key={`tick-y-${tick}`}>
+                      <line
+                        x1={SVG_SIZE.padding - 6}
+                        y1={y}
+                        x2={SVG_SIZE.padding}
+                        y2={y}
+                        stroke="#475569"
+                      />
+                      <text
+                        x={SVG_SIZE.padding - 10}
+                        y={y + 4}
+                        fill="#64748b"
+                        fontSize="11"
+                        textAnchor="end"
+                      >
+                        {tick.toFixed(1)}
+                      </text>
+                    </g>
+                  );
+                })}
+
                 <text
                   x={SVG_SIZE.width - 60}
-                  y={SVG_SIZE.height / 2 - 6}
+                  y={SVG_SIZE.height - SVG_SIZE.padding + 28}
                   fill="#64748b"
                   fontSize="12"
                 >
                   Re
                 </text>
-                <text x={SVG_SIZE.padding - 24} y={SVG_SIZE.padding - 10} fill="#64748b" fontSize="12">
+                <text x={SVG_SIZE.padding - 28} y={SVG_SIZE.padding - 10} fill="#64748b" fontSize="12">
                   Im
                 </text>
               </svg>
             </div>
 
-            <div className="mt-4 grid gap-3 text-xs text-slate-400 md:grid-cols-3">
+            <div className="mt-4 grid gap-3 text-xs text-slate-400 md:grid-cols-4">
               <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2">
-                <div className="text-cyan-200">σ 线（等衰减）</div>
-                <div>σ = {Math.abs(activeSigma).toFixed(2)}</div>
+                <div className="text-cyan-200">实部 Re / σ</div>
+                <div>{selectedRoot ? selectedRoot.re.toFixed(2) : '--'}</div>
               </div>
               <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
-                <div className="text-amber-200">β 线（等振荡）</div>
-                <div>β = {Math.abs(activeBeta).toFixed(2)}</div>
+                <div className="text-amber-200">虚部 Im / β</div>
+                <div>{selectedRoot ? selectedRoot.im.toFixed(2) : '--'}</div>
               </div>
-              <div className="rounded-lg border border-slate-700 bg-slate-900/40 px-3 py-2">
-                <div className="text-slate-200">阻尼比提示</div>
-                <div>
-                  ζ = {selectedPole
-                    ? (Math.abs(activeSigma) /
-                      Math.sqrt(activeSigma * activeSigma + activeBeta * activeBeta)).toFixed(2)
-                    : '--'}
-                </div>
+              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2">
+                <div className="text-emerald-200">阻尼比 ζ</div>
+                <div>{activeMetrics ? activeMetrics.zeta.toFixed(2) : '--'}</div>
+              </div>
+              <div className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-2">
+                <div className="text-violet-200">自然频率 ωn</div>
+                <div>{activeMetrics ? activeMetrics.wn.toFixed(2) : '--'}</div>
               </div>
             </div>
 
@@ -916,11 +1619,119 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
 
             {mode === 'explore' ? (
               <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-                <svg viewBox="0 0 500 220" className="h-60 w-full">
-                  <rect width="500" height="220" rx="16" fill="#0f172a" />
+                <svg
+                  ref={responseSvgRef}
+                  viewBox={`0 0 ${RESPONSE_SIZE.width} ${RESPONSE_SIZE.height}`}
+                  onPointerDown={handleResponsePointerDown}
+                  onWheel={handleResponseWheel}
+                  className={`h-60 w-full ${panningResponse ? 'cursor-grabbing' : 'cursor-grab'}`}
+                >
+                  <rect width={RESPONSE_SIZE.width} height={RESPONSE_SIZE.height} rx="16" fill="#0f172a" />
+                  {responseTicksX.map((tick) => {
+                    const plotWidth = RESPONSE_SIZE.width - RESPONSE_SIZE.padding * 2;
+                    const rangeX = Math.max(1e-6, responseView.maxX - responseView.minX);
+                    const x =
+                      RESPONSE_SIZE.padding + ((tick - responseView.minX) / rangeX) * plotWidth;
+                    return (
+                      <line
+                        key={`response-grid-x-${tick}`}
+                        x1={x}
+                        y1={RESPONSE_SIZE.padding}
+                        x2={x}
+                        y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
+                        stroke="#1f2937"
+                        strokeDasharray="4 6"
+                      />
+                    );
+                  })}
+                  {responseTicksY.map((tick) => {
+                    const plotHeight = RESPONSE_SIZE.height - RESPONSE_SIZE.padding * 2;
+                    const rangeY = Math.max(1e-6, responseView.maxY - responseView.minY);
+                    const y =
+                      RESPONSE_SIZE.padding +
+                      (1 - (tick - responseView.minY) / rangeY) * plotHeight;
+                    return (
+                      <line
+                        key={`response-grid-y-${tick}`}
+                        x1={RESPONSE_SIZE.padding}
+                        y1={y}
+                        x2={RESPONSE_SIZE.width - RESPONSE_SIZE.padding}
+                        y2={y}
+                        stroke="#1f2937"
+                        strokeDasharray="4 6"
+                      />
+                    );
+                  })}
                   <path d={responsePath} stroke="#34d399" strokeWidth="3" fill="none" />
-                  <line x1="30" y1="190" x2="470" y2="190" stroke="#1f2937" strokeWidth="2" />
-                  <line x1="30" y1="30" x2="30" y2="190" stroke="#1f2937" strokeWidth="2" />
+                  <line
+                    x1={RESPONSE_SIZE.padding}
+                    y1={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
+                    x2={RESPONSE_SIZE.width - RESPONSE_SIZE.padding}
+                    y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
+                    stroke="#1f2937"
+                    strokeWidth="2"
+                  />
+                  <line
+                    x1={RESPONSE_SIZE.padding}
+                    y1={RESPONSE_SIZE.padding}
+                    x2={RESPONSE_SIZE.padding}
+                    y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
+                    stroke="#1f2937"
+                    strokeWidth="2"
+                  />
+                  {responseTicksX.map((tick) => {
+                    const plotWidth = RESPONSE_SIZE.width - RESPONSE_SIZE.padding * 2;
+                    const rangeX = Math.max(1e-6, responseView.maxX - responseView.minX);
+                    const x =
+                      RESPONSE_SIZE.padding + ((tick - responseView.minX) / rangeX) * plotWidth;
+                    return (
+                      <g key={`response-tick-x-${tick}`}>
+                        <line
+                          x1={x}
+                          y1={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
+                          x2={x}
+                          y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding + 6}
+                          stroke="#475569"
+                        />
+                        <text
+                          x={x}
+                          y={RESPONSE_SIZE.height - 6}
+                          fill="#94a3b8"
+                          fontSize="10"
+                          textAnchor="middle"
+                        >
+                          {tick.toFixed(1)}
+                        </text>
+                      </g>
+                    );
+                  })}
+                  {responseTicksY.map((tick) => {
+                    const plotHeight = RESPONSE_SIZE.height - RESPONSE_SIZE.padding * 2;
+                    const rangeY = Math.max(1e-6, responseView.maxY - responseView.minY);
+                    const y =
+                      RESPONSE_SIZE.padding +
+                      (1 - (tick - responseView.minY) / rangeY) * plotHeight;
+                    return (
+                      <g key={`response-tick-y-${tick}`}>
+                        <line
+                          x1={RESPONSE_SIZE.padding - 6}
+                          y1={y}
+                          x2={RESPONSE_SIZE.padding}
+                          y2={y}
+                          stroke="#475569"
+                        />
+                        <text
+                          x={RESPONSE_SIZE.padding - 10}
+                          y={y + 3}
+                          fill="#94a3b8"
+                          fontSize="10"
+                          textAnchor="end"
+                        >
+                          {tick.toFixed(1)}
+                        </text>
+                      </g>
+                    );
+                  })}
                 </svg>
                 <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-slate-400">
                   <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
@@ -934,55 +1745,140 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
-                {challengeTargets.map((target) => {
-                  const active = target.id === activeTargetId;
-                  const responsePathLocal = (() => {
-                    const { points, minY, maxY, duration } = target.response;
-                    const width = 460;
-                    const height = 120;
-                    const padding = 20;
-                    const plotWidth = width - padding * 2;
-                    const plotHeight = height - padding * 2;
-                    const rangeY = Math.max(1e-6, maxY - minY);
-                    return points
-                      .map((point, index) => {
-                        const x = padding + (point.t / duration) * plotWidth;
-                        const y = padding + (1 - (point.y - minY) / rangeY) * plotHeight;
-                        return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-                      })
-                      .join(' ');
-                  })();
-
-                  return (
-                    <button
-                      key={target.id}
-                      onClick={() => setActiveTargetId(target.id)}
-                      className={`w-full rounded-xl border p-3 text-left transition ${
-                        active
-                          ? 'border-cyan-400/60 bg-cyan-500/10'
-                          : 'border-slate-800 bg-slate-950'
-                      }`}
-                    >
-                      <div className="mb-2 flex items-center justify-between text-xs text-slate-300">
-                        <span>{target.title}</span>
-                        {target.locked ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-300">
-                            <CheckCircle2 className="h-3 w-3" /> 已标记
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-slate-500">
-                            <Circle className="h-3 w-3" /> 待标记
-                          </span>
-                        )}
-                      </div>
-                      <svg viewBox="0 0 460 120" className="h-24 w-full">
-                        <rect width="460" height="120" rx="12" fill="#0f172a" />
-                        <path d={responsePathLocal} stroke="#60a5fa" strokeWidth="2.5" fill="none" />
-                      </svg>
-                    </button>
-                  );
-                })}
+              <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
+                <svg
+                  ref={responseSvgRef}
+                  viewBox={`0 0 ${RESPONSE_SIZE.width} ${RESPONSE_SIZE.height}`}
+                  onPointerDown={handleResponsePointerDown}
+                  onWheel={handleResponseWheel}
+                  className={`h-60 w-full ${panningResponse ? 'cursor-grabbing' : 'cursor-grab'}`}
+                >
+                  <rect width={RESPONSE_SIZE.width} height={RESPONSE_SIZE.height} rx="16" fill="#0f172a" />
+                  {challengeTicksX.map((tick) => {
+                    const plotWidth = RESPONSE_SIZE.width - RESPONSE_SIZE.padding * 2;
+                    const rangeX = Math.max(1e-6, challengeView.maxX - challengeView.minX);
+                    const x =
+                      RESPONSE_SIZE.padding + ((tick - challengeView.minX) / rangeX) * plotWidth;
+                    return (
+                      <line
+                        key={`challenge-grid-x-${tick}`}
+                        x1={x}
+                        y1={RESPONSE_SIZE.padding}
+                        x2={x}
+                        y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
+                        stroke="#1f2937"
+                        strokeDasharray="4 6"
+                      />
+                    );
+                  })}
+                  {challengeTicksY.map((tick) => {
+                    const plotHeight = RESPONSE_SIZE.height - RESPONSE_SIZE.padding * 2;
+                    const rangeY = Math.max(1e-6, challengeView.maxY - challengeView.minY);
+                    const y =
+                      RESPONSE_SIZE.padding +
+                      (1 - (tick - challengeView.minY) / rangeY) * plotHeight;
+                    return (
+                      <line
+                        key={`challenge-grid-y-${tick}`}
+                        x1={RESPONSE_SIZE.padding}
+                        y1={y}
+                        x2={RESPONSE_SIZE.width - RESPONSE_SIZE.padding}
+                        y2={y}
+                        stroke="#1f2937"
+                        strokeDasharray="4 6"
+                      />
+                    );
+                  })}
+                  {challengeResponsePaths.map((series) => (
+                    <path
+                      key={series.id}
+                      d={series.path}
+                      stroke={series.color}
+                      strokeWidth="2.5"
+                      fill="none"
+                    />
+                  ))}
+                  <line
+                    x1={RESPONSE_SIZE.padding}
+                    y1={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
+                    x2={RESPONSE_SIZE.width - RESPONSE_SIZE.padding}
+                    y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
+                    stroke="#1f2937"
+                    strokeWidth="2"
+                  />
+                  <line
+                    x1={RESPONSE_SIZE.padding}
+                    y1={RESPONSE_SIZE.padding}
+                    x2={RESPONSE_SIZE.padding}
+                    y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
+                    stroke="#1f2937"
+                    strokeWidth="2"
+                  />
+                  {challengeTicksX.map((tick) => {
+                    const plotWidth = RESPONSE_SIZE.width - RESPONSE_SIZE.padding * 2;
+                    const rangeX = Math.max(1e-6, challengeView.maxX - challengeView.minX);
+                    const x =
+                      RESPONSE_SIZE.padding + ((tick - challengeView.minX) / rangeX) * plotWidth;
+                    return (
+                      <g key={`challenge-tick-x-${tick}`}>
+                        <line
+                          x1={x}
+                          y1={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
+                          x2={x}
+                          y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding + 6}
+                          stroke="#475569"
+                        />
+                        <text
+                          x={x}
+                          y={RESPONSE_SIZE.height - 6}
+                          fill="#94a3b8"
+                          fontSize="10"
+                          textAnchor="middle"
+                        >
+                          {tick.toFixed(1)}
+                        </text>
+                      </g>
+                    );
+                  })}
+                  {challengeTicksY.map((tick) => {
+                    const plotHeight = RESPONSE_SIZE.height - RESPONSE_SIZE.padding * 2;
+                    const rangeY = Math.max(1e-6, challengeView.maxY - challengeView.minY);
+                    const y =
+                      RESPONSE_SIZE.padding +
+                      (1 - (tick - challengeView.minY) / rangeY) * plotHeight;
+                    return (
+                      <g key={`challenge-tick-y-${tick}`}>
+                        <line
+                          x1={RESPONSE_SIZE.padding - 6}
+                          y1={y}
+                          x2={RESPONSE_SIZE.padding}
+                          y2={y}
+                          stroke="#475569"
+                        />
+                        <text
+                          x={RESPONSE_SIZE.padding - 10}
+                          y={y + 3}
+                          fill="#94a3b8"
+                          fontSize="10"
+                          textAnchor="end"
+                        >
+                          {tick.toFixed(1)}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
+                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                  {challengeResponsePaths.map((series) => (
+                    <div key={`legend-${series.id}`} className="flex items-center gap-2">
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: series.color }}
+                      />
+                      <span>{series.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </section>
@@ -993,17 +1889,14 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 text-sm text-slate-300">
-                  <Target className="h-4 w-4 text-amber-400" />
-                  标记极点挑战
+                  <Trophy className="h-4 w-4 text-amber-400" />
+                  极点匹配挑战
                 </div>
                 <p className="mt-1 text-xs text-slate-400">
-                  根据右侧目标响应，在左侧标出对应的二阶极点位置。
+                  右侧展示三条叠加响应曲线，拖动左侧同色极点完成匹配，提交后显示正确位置与得分。
                 </p>
               </div>
               <div className="flex items-center gap-3 text-xs">
-                <div className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-slate-300">
-                  进度 {challengeProgress}%
-                </div>
                 {bestRecord && !sessionId && (
                   <div className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-amber-200">
                     历史最佳 {bestRecord.score}% · {formatSeconds(bestRecord.duration)}
@@ -1021,15 +1914,8 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <button
-                onClick={handleLockTarget}
-                className="inline-flex items-center gap-2 rounded-lg bg-amber-500/20 px-3 py-2 text-xs text-amber-200"
-              >
-                <Target className="h-3 w-3" />
-                标记当前曲线
-              </button>
-              <button
                 onClick={handleSubmitChallenge}
-                disabled={challengeTargets.some((target) => !target.locked)}
+                disabled={challengeSubmitted}
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-500/20 px-3 py-2 text-xs text-emerald-200 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Trophy className="h-3 w-3" />
@@ -1041,7 +1927,29 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                   已用时 {formatSeconds((Date.now() - challengeStart) / 1000)}
                 </div>
               )}
+              {challengeAverageScore !== null && (
+                <div className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
+                  本次得分 {challengeAverageScore}%
+                </div>
+              )}
             </div>
+
+            {challengeSubmitted && challengeScores && (
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-300">
+                {challengeTargets.map((target, index) => (
+                  <div
+                    key={`score-${target.id}`}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1"
+                  >
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: target.color }}
+                    />
+                    {target.label} {challengeScores[index] ?? 0}%
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         ) : (
           <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">

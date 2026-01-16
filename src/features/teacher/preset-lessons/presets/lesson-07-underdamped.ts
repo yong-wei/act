@@ -172,7 +172,7 @@ export const LESSON_07_UNDERDAMPED_PRESET: PresetLessonConfig = {
       registryId: 'lesson07-pole-manipulator',
       resourceType: ResourceType.INTERACTIVE_COMP,
       duration: 10,
-      title: '参与式学习：极点操纵者',
+      title: '参与式学习：极点操纵器',
       description: '拖拽极点位置，观察衰减与振荡如何改变响应形态。',
       config: {},
     },
