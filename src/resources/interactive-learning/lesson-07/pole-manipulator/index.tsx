@@ -159,23 +159,6 @@ function fromSvgCoords(x: number, y: number, view: PlaneView) {
   };
 }
 
-function fromResponseCoords(
-  x: number,
-  y: number,
-  view: ResponseView,
-  width: number,
-  height: number,
-  padding: number
-) {
-  const plotWidth = width - padding * 2;
-  const plotHeight = height - padding * 2;
-  const rangeX = Math.max(1e-6, view.maxX - view.minX);
-  const rangeY = Math.max(1e-6, view.maxY - view.minY);
-  const t = view.minX + ((x - padding) / plotWidth) * rangeX;
-  const value = view.maxY - ((y - padding) / plotHeight) * rangeY;
-  return { t, y: value };
-}
-
 function complexAdd(a: Complex, b: Complex): Complex {
   return { re: a.re + b.re, im: a.im + b.im };
 }
@@ -390,6 +373,41 @@ function zoomResponseView(view: ResponseView, factor: number, focus: { t: number
     minY,
     maxY: minY + nextHeight,
   };
+}
+
+function getPlaneScale(view: PlaneView) {
+  const plotWidth = SVG_SIZE.width - SVG_SIZE.padding * 2;
+  const plotHeight = SVG_SIZE.height - SVG_SIZE.padding * 2;
+  return {
+    scaleX: plotWidth / Math.max(1e-6, view.maxRe - view.minRe),
+    scaleY: plotHeight / Math.max(1e-6, view.maxIm - view.minIm),
+  };
+}
+
+function getZetaLineEndpoint(view: PlaneView, slope: number) {
+  const candidates: { re: number; im: number }[] = [];
+  const reLeft = view.minRe;
+  const imAtLeft = -slope * reLeft;
+  if (imAtLeft >= view.minIm && imAtLeft <= view.maxIm) {
+    candidates.push({ re: reLeft, im: imAtLeft });
+  }
+  if (Math.abs(slope) > 1e-6) {
+    const reTop = -view.maxIm / slope;
+    if (reTop >= view.minRe && reTop <= view.maxRe) {
+      candidates.push({ re: reTop, im: view.maxIm });
+    }
+    const reBottom = -view.minIm / slope;
+    if (reBottom >= view.minRe && reBottom <= view.maxRe) {
+      candidates.push({ re: reBottom, im: view.minIm });
+    }
+  }
+  const valid = candidates.filter((point) => point.re <= 0);
+  if (!valid.length) return { re: view.minRe, im: 0 };
+  return valid.reduce((best, point) => {
+    const dist = point.re * point.re + point.im * point.im;
+    const bestDist = best.re * best.re + best.im * best.im;
+    return dist > bestDist ? point : best;
+  });
 }
 
 function formatSeconds(value: number) {
@@ -664,6 +682,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
     );
     return getTicks(0, radiusMax, 4).filter((value) => value > 0);
   }, [planeView]);
+  const planeScale = useMemo(() => getPlaneScale(planeView), [planeView]);
   const origin = useMemo(() => toSvgCoords(0, 0, planeView), [planeView]);
   const showReAxis = planeView.minIm < 0 && planeView.maxIm > 0;
   const showImAxis = planeView.minRe < 0 && planeView.maxRe > 0;
@@ -951,42 +970,48 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
     [challengeView, mode, responseView]
   );
 
-  const handlePlaneWheel = useCallback(
-    (event: React.WheelEvent<SVGSVGElement>) => {
-      event.preventDefault();
-      if (!planeSvgRef.current) return;
-      const rect = planeSvgRef.current.getBoundingClientRect();
-      const next = fromSvgCoords(event.clientX - rect.left, event.clientY - rect.top, planeView);
-      const factor = event.deltaY > 0 ? 1.1 : 0.9;
-      setPlaneView((prev) => zoomPlaneView(prev, factor, next));
+  const zoomPlane = useCallback(
+    (direction: 'in' | 'out' | 'reset') => {
+      if (direction === 'reset') {
+        setPlaneView(DEFAULT_PLANE_VIEW);
+        return;
+      }
+      const center = {
+        re: (planeView.minRe + planeView.maxRe) / 2,
+        im: (planeView.minIm + planeView.maxIm) / 2,
+      };
+      const factor = direction === 'in' ? 0.9 : 1.1;
+      setPlaneView((prev) => zoomPlaneView(prev, factor, center));
     },
     [planeView]
   );
 
-  const handleResponseWheel = useCallback(
-    (event: React.WheelEvent<SVGSVGElement>) => {
-      event.preventDefault();
-      if (!responseSvgRef.current) return;
-      const rect = responseSvgRef.current.getBoundingClientRect();
+  const zoomResponse = useCallback(
+    (direction: 'in' | 'out' | 'reset') => {
+      if (direction === 'reset') {
+        if (mode === 'challenge') {
+          setChallengeViewMode('auto');
+          setChallengeResponseView(null);
+        } else {
+          setResponseViewMode('auto');
+        }
+        return;
+      }
       const view = mode === 'challenge' ? challengeView : responseView;
-      const focus = fromResponseCoords(
-        event.clientX - rect.left,
-        event.clientY - rect.top,
-        view,
-        RESPONSE_SIZE.width,
-        RESPONSE_SIZE.height,
-        RESPONSE_SIZE.padding
-      );
-      const factor = event.deltaY > 0 ? 1.1 : 0.9;
+      const center = {
+        t: (view.minX + view.maxX) / 2,
+        y: (view.minY + view.maxY) / 2,
+      };
+      const factor = direction === 'in' ? 0.9 : 1.1;
       if (mode === 'challenge') {
         setChallengeViewMode('manual');
         setChallengeResponseView((prev) =>
-          zoomResponseView(prev ?? challengeView, factor, focus)
+          zoomResponseView(prev ?? view, factor, center)
         );
         return;
       }
       setResponseViewMode('manual');
-      setResponseView((prev) => zoomResponseView(prev, factor, focus));
+      setResponseView((prev) => zoomResponseView(prev, factor, center));
     },
     [challengeView, mode, responseView]
   );
@@ -1137,6 +1162,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
   }, [challengeBaseView, challengeViewMode, mode]);
 
   const handleSubmitChallenge = useCallback(() => {
+    if (challengeSubmitted || !challengeTargets.length) return;
     const scores = challengeTargets.map((target) =>
       scoreGuess(target.pole, target.guess)
     );
@@ -1205,6 +1231,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
   }, [
     bestRecord,
     challengeStart,
+    challengeSubmitted,
     challengeTargets,
     interactive?.config.resourceId,
     interactive?.progress,
@@ -1256,7 +1283,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 <Crosshair className="h-4 w-4 text-cyan-400" />
                 复平面 · S-Plane
               </div>
-              <div className="flex items-center gap-2 text-xs">
+              <div className="flex flex-wrap items-center gap-2 text-xs">
                 <button
                   onClick={toggleLockReal}
                   className={`rounded-full border px-3 py-1 transition ${
@@ -1291,6 +1318,28 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 >
                   锁定频率
                 </button>
+                <div className="flex items-center gap-1 rounded-full border border-slate-800 bg-slate-900/50 px-1 py-1">
+                  <button
+                    onClick={() => zoomPlane('in')}
+                    className="rounded-full border border-slate-700 px-2 py-1 text-slate-300 hover:border-slate-500"
+                    aria-label="放大复平面"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => zoomPlane('out')}
+                    className="rounded-full border border-slate-700 px-2 py-1 text-slate-300 hover:border-slate-500"
+                    aria-label="缩小复平面"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => zoomPlane('reset')}
+                    className="rounded-full border border-slate-700 px-3 py-1 text-slate-300 hover:border-slate-500"
+                  >
+                    复位
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1299,7 +1348,6 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 ref={planeSvgRef}
                 viewBox={`0 0 ${SVG_SIZE.width} ${SVG_SIZE.height}`}
                 onPointerDown={handlePlanePointerDown}
-                onWheel={handlePlaneWheel}
                 className={`h-[360px] w-full ${panningPlane ? 'cursor-grabbing' : 'cursor-crosshair'}`}
               >
                 <rect width="100%" height="100%" fill="#0b1120" />
@@ -1333,15 +1381,17 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 })}
 
                 {wnTicks.map((wn) => {
-                  const radius = Math.abs(toSvgCoords(wn, 0, planeView).x - origin.x);
+                  const rx = wn * planeScale.scaleX;
+                  const ry = wn * planeScale.scaleY;
                   return (
-                    <circle
+                    <ellipse
                       key={`wn-${wn}`}
                       cx={origin.x}
                       cy={origin.y}
-                      r={radius}
+                      rx={rx}
+                      ry={ry}
                       fill="none"
-                      stroke="#1e293b"
+                      stroke="#334155"
                       strokeDasharray="6 6"
                     />
                   );
@@ -1350,29 +1400,25 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 {ZETA_LINES.map((zeta) => {
                   const phi = Math.acos(clamp(zeta, 0, 1));
                   const slope = Math.tan(phi);
-                  const tRe = Math.abs(planeView.minRe);
-                  const tIm = slope === 0 ? Infinity : planeView.maxIm / Math.abs(slope);
-                  const t = Math.min(tRe, tIm);
-                  const endRe = -t;
-                  const endIm = slope * t;
-                  const pos = toSvgCoords(endRe, endIm, planeView);
-                  const neg = toSvgCoords(endRe, -endIm, planeView);
+                  const endpoint = getZetaLineEndpoint(planeView, slope);
+                  const upper = toSvgCoords(endpoint.re, Math.abs(endpoint.im), planeView);
+                  const lower = toSvgCoords(endpoint.re, -Math.abs(endpoint.im), planeView);
                   return (
                     <g key={`zeta-${zeta}`}>
                       <line
                         x1={origin.x}
                         y1={origin.y}
-                        x2={pos.x}
-                        y2={pos.y}
-                        stroke="#1e293b"
+                        x2={upper.x}
+                        y2={upper.y}
+                        stroke="#334155"
                         strokeDasharray="6 6"
                       />
                       <line
                         x1={origin.x}
                         y1={origin.y}
-                        x2={neg.x}
-                        y2={neg.y}
-                        stroke="#1e293b"
+                        x2={lower.x}
+                        y2={lower.y}
+                        stroke="#334155"
                         strokeDasharray="6 6"
                       />
                     </g>
@@ -1604,17 +1650,41 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 <Activity className="h-4 w-4 text-emerald-400" />
                 时域响应
               </div>
-              {mode === 'explore' && (
-                <select
-                  value={signal}
-                  onChange={(event) => setSignal(event.target.value as SignalType)}
-                  className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-200"
-                >
-                  <option value="step">单位阶跃</option>
-                  <option value="ramp">斜坡输入</option>
-                  <option value="impulse">单位脉冲</option>
-                </select>
-              )}
+              <div className="flex items-center gap-2 text-xs">
+                {mode === 'explore' && (
+                  <select
+                    value={signal}
+                    onChange={(event) => setSignal(event.target.value as SignalType)}
+                    className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-200"
+                  >
+                    <option value="step">单位阶跃</option>
+                    <option value="ramp">斜坡输入</option>
+                    <option value="impulse">单位脉冲</option>
+                  </select>
+                )}
+                <div className="flex items-center gap-1 rounded-full border border-slate-800 bg-slate-900/50 px-1 py-1">
+                  <button
+                    onClick={() => zoomResponse('in')}
+                    className="rounded-full border border-slate-700 px-2 py-1 text-slate-300 hover:border-slate-500"
+                    aria-label="放大响应曲线"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => zoomResponse('out')}
+                    className="rounded-full border border-slate-700 px-2 py-1 text-slate-300 hover:border-slate-500"
+                    aria-label="缩小响应曲线"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => zoomResponse('reset')}
+                    className="rounded-full border border-slate-700 px-3 py-1 text-slate-300 hover:border-slate-500"
+                  >
+                    复位
+                  </button>
+                </div>
+              </div>
             </div>
 
             {mode === 'explore' ? (
@@ -1623,7 +1693,6 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                   ref={responseSvgRef}
                   viewBox={`0 0 ${RESPONSE_SIZE.width} ${RESPONSE_SIZE.height}`}
                   onPointerDown={handleResponsePointerDown}
-                  onWheel={handleResponseWheel}
                   className={`h-60 w-full ${panningResponse ? 'cursor-grabbing' : 'cursor-grab'}`}
                 >
                   <rect width={RESPONSE_SIZE.width} height={RESPONSE_SIZE.height} rx="16" fill="#0f172a" />
@@ -1750,7 +1819,6 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                   ref={responseSvgRef}
                   viewBox={`0 0 ${RESPONSE_SIZE.width} ${RESPONSE_SIZE.height}`}
                   onPointerDown={handleResponsePointerDown}
-                  onWheel={handleResponseWheel}
                   className={`h-60 w-full ${panningResponse ? 'cursor-grabbing' : 'cursor-grab'}`}
                 >
                   <rect width={RESPONSE_SIZE.width} height={RESPONSE_SIZE.height} rx="16" fill="#0f172a" />
