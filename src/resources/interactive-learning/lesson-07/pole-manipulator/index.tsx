@@ -672,6 +672,16 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
       })),
     [challengeTargets, challengeView]
   );
+  const challengeMetrics = useMemo(
+    () =>
+      challengeTargets.map((target) => ({
+        id: target.id,
+        label: target.label,
+        color: target.color,
+        metrics: computeStepMetrics(target.response),
+      })),
+    [challengeTargets]
+  );
   const challengeTicksX = useMemo(
     () => getTicks(challengeView.minX, challengeView.maxX, 5),
     [challengeView]
@@ -1349,7 +1359,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
           </div>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-6 lg:grid-cols-2">
           <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-lg">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm text-slate-300">
@@ -2048,6 +2058,48 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                         style={{ backgroundColor: series.color }}
                       />
                       <span>{series.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 grid gap-3 text-xs text-slate-400 md:grid-cols-3">
+                  {challengeMetrics.map((item) => (
+                    <div
+                      key={`metric-${item.id}`}
+                      className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2"
+                    >
+                      <div className="flex items-center gap-2 text-slate-200">
+                        <span
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <span>{item.label}</span>
+                      </div>
+                      <div className="mt-2 grid grid-cols-3 gap-2 text-[11px] text-slate-300">
+                        <div>
+                          超调
+                          <div>
+                            {item.metrics.overshoot === null
+                              ? '--'
+                              : `${item.metrics.overshoot.toFixed(1)}%`}
+                          </div>
+                        </div>
+                        <div>
+                          调节
+                          <div>
+                            {item.metrics.settlingTime === null
+                              ? '--'
+                              : `${item.metrics.settlingTime.toFixed(2)} s`}
+                          </div>
+                        </div>
+                        <div>
+                          峰值
+                          <div>
+                            {item.metrics.peakTime === null
+                              ? '--'
+                              : `${item.metrics.peakTime.toFixed(2)} s`}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
