@@ -1140,7 +1140,10 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
 
   useEffect(() => {
     if (mode === 'challenge') {
-      buildChallengeTargets();
+      if (!challengeTargets.length) {
+        buildChallengeTargets();
+      }
+      return;
     }
     if (mode === 'explore') {
       setSelectedChallengeId(null);
@@ -1148,8 +1151,9 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
       setChallengeScores(null);
       setResponseViewMode('auto');
       setPlaneView(DEFAULT_PLANE_VIEW);
+      setChallengeTargets([]);
     }
-  }, [buildChallengeTargets, mode]);
+  }, [buildChallengeTargets, challengeTargets.length, mode]);
 
   useEffect(() => {
     if (mode !== 'explore' || responseViewMode !== 'auto') return;
@@ -1360,7 +1364,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                       y1={SVG_SIZE.padding}
                       x2={x}
                       y2={SVG_SIZE.height - SVG_SIZE.padding}
-                      stroke="#1f2937"
+                      stroke="#334155"
                       strokeDasharray="4 6"
                     />
                   );
@@ -1374,7 +1378,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                       y1={y}
                       x2={SVG_SIZE.width - SVG_SIZE.padding}
                       y2={y}
-                      stroke="#1f2937"
+                      stroke="#334155"
                       strokeDasharray="4 6"
                     />
                   );
@@ -1391,7 +1395,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                       rx={rx}
                       ry={ry}
                       fill="none"
-                      stroke="#334155"
+                      stroke="#475569"
                       strokeDasharray="6 6"
                     />
                   );
@@ -1410,7 +1414,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                         y1={origin.y}
                         x2={upper.x}
                         y2={upper.y}
-                        stroke="#334155"
+                        stroke="#475569"
                         strokeDasharray="6 6"
                       />
                       <line
@@ -1418,7 +1422,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                         y1={origin.y}
                         x2={lower.x}
                         y2={lower.y}
-                        stroke="#334155"
+                        stroke="#475569"
                         strokeDasharray="6 6"
                       />
                     </g>
@@ -1431,7 +1435,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                     y1={origin.y}
                     x2={SVG_SIZE.width - SVG_SIZE.padding}
                     y2={origin.y}
-                    stroke="#334155"
+                    stroke="#cbd5e1"
                     strokeWidth="1.5"
                   />
                 )}
@@ -1441,7 +1445,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                     y1={SVG_SIZE.padding}
                     x2={origin.x}
                     y2={SVG_SIZE.height - SVG_SIZE.padding}
-                    stroke="#475569"
+                    stroke="#cbd5e1"
                     strokeWidth="1.5"
                   />
                 )}
@@ -1529,9 +1533,9 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                         y1={SVG_SIZE.height - SVG_SIZE.padding}
                         x2={x}
                         y2={SVG_SIZE.height - SVG_SIZE.padding + 6}
-                        stroke="#475569"
+                        stroke="#cbd5e1"
                       />
-                      <text x={x} y={SVG_SIZE.height - 8} fill="#64748b" fontSize="11" textAnchor="middle">
+                      <text x={x} y={SVG_SIZE.height - 8} fill="#e2e8f0" fontSize="11" textAnchor="middle">
                         {tick.toFixed(1)}
                       </text>
                     </g>
@@ -1547,12 +1551,12 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                         y1={y}
                         x2={SVG_SIZE.padding}
                         y2={y}
-                        stroke="#475569"
+                        stroke="#cbd5e1"
                       />
                       <text
                         x={SVG_SIZE.padding - 10}
                         y={y + 4}
-                        fill="#64748b"
+                        fill="#e2e8f0"
                         fontSize="11"
                         textAnchor="end"
                       >
@@ -1565,12 +1569,12 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 <text
                   x={SVG_SIZE.width - 60}
                   y={SVG_SIZE.height - SVG_SIZE.padding + 28}
-                  fill="#64748b"
+                  fill="#e2e8f0"
                   fontSize="12"
                 >
                   Re
                 </text>
-                <text x={SVG_SIZE.padding - 28} y={SVG_SIZE.padding - 10} fill="#64748b" fontSize="12">
+                <text x={SVG_SIZE.padding - 28} y={SVG_SIZE.padding - 10} fill="#e2e8f0" fontSize="12">
                   Im
                 </text>
               </svg>
@@ -1708,7 +1712,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                         y1={RESPONSE_SIZE.padding}
                         x2={x}
                         y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
-                        stroke="#1f2937"
+                        stroke="#334155"
                         strokeDasharray="4 6"
                       />
                     );
@@ -1726,7 +1730,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                         y1={y}
                         x2={RESPONSE_SIZE.width - RESPONSE_SIZE.padding}
                         y2={y}
-                        stroke="#1f2937"
+                        stroke="#334155"
                         strokeDasharray="4 6"
                       />
                     );
@@ -1737,7 +1741,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                     y1={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
                     x2={RESPONSE_SIZE.width - RESPONSE_SIZE.padding}
                     y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
-                    stroke="#1f2937"
+                    stroke="#cbd5e1"
                     strokeWidth="2"
                   />
                   <line
@@ -1745,7 +1749,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                     y1={RESPONSE_SIZE.padding}
                     x2={RESPONSE_SIZE.padding}
                     y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
-                    stroke="#1f2937"
+                    stroke="#cbd5e1"
                     strokeWidth="2"
                   />
                   {responseTicksX.map((tick) => {
@@ -1760,12 +1764,12 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                           y1={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
                           x2={x}
                           y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding + 6}
-                          stroke="#475569"
+                          stroke="#cbd5e1"
                         />
                         <text
                           x={x}
                           y={RESPONSE_SIZE.height - 6}
-                          fill="#94a3b8"
+                          fill="#e2e8f0"
                           fontSize="10"
                           textAnchor="middle"
                         >
@@ -1787,12 +1791,12 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                           y1={y}
                           x2={RESPONSE_SIZE.padding}
                           y2={y}
-                          stroke="#475569"
+                          stroke="#cbd5e1"
                         />
                         <text
                           x={RESPONSE_SIZE.padding - 10}
                           y={y + 3}
-                          fill="#94a3b8"
+                          fill="#e2e8f0"
                           fontSize="10"
                           textAnchor="end"
                         >
@@ -1834,7 +1838,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                         y1={RESPONSE_SIZE.padding}
                         x2={x}
                         y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
-                        stroke="#1f2937"
+                        stroke="#334155"
                         strokeDasharray="4 6"
                       />
                     );
@@ -1852,7 +1856,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                         y1={y}
                         x2={RESPONSE_SIZE.width - RESPONSE_SIZE.padding}
                         y2={y}
-                        stroke="#1f2937"
+                        stroke="#334155"
                         strokeDasharray="4 6"
                       />
                     );
@@ -1871,7 +1875,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                     y1={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
                     x2={RESPONSE_SIZE.width - RESPONSE_SIZE.padding}
                     y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
-                    stroke="#1f2937"
+                    stroke="#cbd5e1"
                     strokeWidth="2"
                   />
                   <line
@@ -1879,7 +1883,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                     y1={RESPONSE_SIZE.padding}
                     x2={RESPONSE_SIZE.padding}
                     y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
-                    stroke="#1f2937"
+                    stroke="#cbd5e1"
                     strokeWidth="2"
                   />
                   {challengeTicksX.map((tick) => {
@@ -1894,12 +1898,12 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                           y1={RESPONSE_SIZE.height - RESPONSE_SIZE.padding}
                           x2={x}
                           y2={RESPONSE_SIZE.height - RESPONSE_SIZE.padding + 6}
-                          stroke="#475569"
+                          stroke="#cbd5e1"
                         />
                         <text
                           x={x}
                           y={RESPONSE_SIZE.height - 6}
-                          fill="#94a3b8"
+                          fill="#e2e8f0"
                           fontSize="10"
                           textAnchor="middle"
                         >
@@ -1921,12 +1925,12 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                           y1={y}
                           x2={RESPONSE_SIZE.padding}
                           y2={y}
-                          stroke="#475569"
+                          stroke="#cbd5e1"
                         />
                         <text
                           x={RESPONSE_SIZE.padding - 10}
                           y={y + 3}
-                          fill="#94a3b8"
+                          fill="#e2e8f0"
                           fontSize="10"
                           textAnchor="end"
                         >
