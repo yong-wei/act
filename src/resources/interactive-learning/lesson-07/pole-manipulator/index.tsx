@@ -41,7 +41,7 @@ const SVG_SIZE = {
 
 const RESPONSE_SIZE = {
   width: 500,
-  height: 220,
+  height: 360,
   padding: 34,
 };
 
@@ -83,6 +83,12 @@ interface ResponseSeries {
   minY: number;
   maxY: number;
   duration: number;
+}
+
+interface StepMetrics {
+  overshoot: number | null;
+  settlingTime: number | null;
+  peakTime: number | null;
 }
 
 interface ChallengeTarget {
@@ -242,14 +248,19 @@ function getSignalValue(signal: SignalType, t: number, dt: number) {
   return 1;
 }
 
-function simulateResponse(poles: RootPoint[], zeros: RootPoint[], signal: SignalType): ResponseSeries {
+function simulateResponse(
+  poles: RootPoint[],
+  zeros: RootPoint[],
+  signal: SignalType,
+  durationOverride?: number
+): ResponseSeries {
   const expandedPoles = expandRoots(poles);
   const expandedZeros = expandRoots(zeros);
 
   const numerator = toRealCoefficients(polyFromRoots(expandedZeros));
   const denominator = toRealCoefficients(polyFromRoots(expandedPoles));
 
-  const duration = estimateDuration(poles);
+  const duration = durationOverride ?? estimateDuration(poles);
   const steps = Math.min(MAX_SIM_STEPS, Math.ceil(duration / SIM_DT));
 
   const model = discretizeTransferFunctionTustin(
@@ -281,6 +292,37 @@ function simulateResponse(poles: RootPoint[], zeros: RootPoint[], signal: Signal
     minY: minY - 0.1 * Math.abs(minY),
     maxY: maxY + 0.1 * Math.abs(maxY),
     duration,
+  };
+}
+
+function computeStepMetrics(series: ResponseSeries): StepMetrics {
+  if (!series.points.length) {
+    return { overshoot: null, settlingTime: null, peakTime: null };
+  }
+  const finalValue = series.points[series.points.length - 1]?.y ?? 0;
+  if (Math.abs(finalValue) < 1e-6) {
+    return { overshoot: null, settlingTime: null, peakTime: null };
+  }
+  const peakPoint = series.points.reduce((best, point) => (point.y > best.y ? point : best));
+  const overshoot = Math.max(
+    0,
+    ((peakPoint.y - finalValue) / Math.abs(finalValue)) * 100
+  );
+  const band = 0.02 * Math.abs(finalValue);
+  let settlingTime: number | null = null;
+  for (let i = 0; i < series.points.length; i += 1) {
+    const withinBand = series.points.slice(i).every((point) =>
+      Math.abs(point.y - finalValue) <= band
+    );
+    if (withinBand) {
+      settlingTime = series.points[i]?.t ?? null;
+      break;
+    }
+  }
+  return {
+    overshoot: Number.isFinite(overshoot) ? overshoot : null,
+    settlingTime,
+    peakTime: peakPoint.t ?? null,
   };
 }
 
@@ -330,9 +372,19 @@ function buildChallengeResponseView(targets: ChallengeTarget[]) {
     return { minX: 0, maxX: 10, minY: -1, maxY: 1 };
   }
   const maxX = Math.max(...targets.map((target) => target.response.duration));
-  const minY = Math.min(...targets.map((target) => target.response.minY));
-  const maxY = Math.max(...targets.map((target) => target.response.maxY));
-  const margin = Math.max(0.1, (maxY - minY) * 0.05);
+  let minY = Infinity;
+  let maxY = -Infinity;
+  targets.forEach((target) => {
+    target.response.points.forEach((point) => {
+      minY = Math.min(minY, point.y);
+      maxY = Math.max(maxY, point.y);
+    });
+  });
+  if (!Number.isFinite(minY) || !Number.isFinite(maxY)) {
+    minY = -1;
+    maxY = 1;
+  }
+  const margin = Math.max(0.05, (maxY - minY) * 0.05);
   return {
     minX: 0,
     maxX,
@@ -592,6 +644,10 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
   const responsePath = useMemo(
     () => buildResponsePath(response, responseView, RESPONSE_SIZE),
     [response, responseView]
+  );
+  const responseMetrics = useMemo(
+    () => (signal === 'step' ? computeStepMetrics(response) : null),
+    [response, signal]
   );
   const responseTicksX = useMemo(
     () => getTicks(responseView.minX, responseView.maxX, 5),
@@ -1108,6 +1164,19 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
 
   const buildChallengeTargets = useCallback(() => {
     const polesForChallenge = buildChallengePoles(DEFAULT_PLANE_VIEW);
+    const sharedDuration = Math.max(
+      ...polesForChallenge.map((pole, index) =>
+        estimateDuration([
+          {
+            id: `duration-${index}`,
+            re: pole.re,
+            im: pole.im,
+            conjugate: true,
+            kind: 'pole',
+          },
+        ])
+      )
+    );
     const targets = polesForChallenge.map((pole, index) => {
       const polesForSim: RootPoint[] = [
         {
@@ -1123,7 +1192,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
         label: `曲线 ${index + 1}`,
         color: CHALLENGE_COLORS[index % CHALLENGE_COLORS.length],
         pole,
-        response: simulateResponse(polesForSim, [], 'step'),
+        response: simulateResponse(polesForSim, [], 'step', sharedDuration),
         guess: randomStablePole(DEFAULT_PLANE_VIEW),
       };
     });
@@ -1395,8 +1464,9 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                       rx={rx}
                       ry={ry}
                       fill="none"
-                      stroke="#475569"
+                      stroke="#e2e8f0"
                       strokeDasharray="6 6"
+                      opacity="0.45"
                     />
                   );
                 })}
@@ -1414,16 +1484,18 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                         y1={origin.y}
                         x2={upper.x}
                         y2={upper.y}
-                        stroke="#475569"
+                        stroke="#e2e8f0"
                         strokeDasharray="6 6"
+                        opacity="0.45"
                       />
                       <line
                         x1={origin.x}
                         y1={origin.y}
                         x2={lower.x}
                         y2={lower.y}
-                        stroke="#475569"
+                        stroke="#e2e8f0"
                         strokeDasharray="6 6"
+                        opacity="0.45"
                       />
                     </g>
                   );
@@ -1697,7 +1769,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                   ref={responseSvgRef}
                   viewBox={`0 0 ${RESPONSE_SIZE.width} ${RESPONSE_SIZE.height}`}
                   onPointerDown={handleResponsePointerDown}
-                  className={`h-60 w-full ${panningResponse ? 'cursor-grabbing' : 'cursor-grab'}`}
+                  className={`h-[360px] w-full ${panningResponse ? 'cursor-grabbing' : 'cursor-grab'}`}
                 >
                   <rect width={RESPONSE_SIZE.width} height={RESPONSE_SIZE.height} rx="16" fill="#0f172a" />
                   {responseTicksX.map((tick) => {
@@ -1816,6 +1888,34 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                     <div>{signal === 'step' ? '单位阶跃' : signal === 'ramp' ? '斜坡输入' : '单位脉冲'}</div>
                   </div>
                 </div>
+                {signal === 'step' && responseMetrics && (
+                  <div className="mt-3 grid grid-cols-3 gap-3 text-xs text-slate-400">
+                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
+                      <div className="text-slate-200">超调量</div>
+                      <div>
+                        {responseMetrics.overshoot === null
+                          ? '--'
+                          : `${responseMetrics.overshoot.toFixed(1)}%`}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
+                      <div className="text-slate-200">调节时间</div>
+                      <div>
+                        {responseMetrics.settlingTime === null
+                          ? '--'
+                          : `${responseMetrics.settlingTime.toFixed(2)} s`}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
+                      <div className="text-slate-200">峰值时间</div>
+                      <div>
+                        {responseMetrics.peakTime === null
+                          ? '--'
+                          : `${responseMetrics.peakTime.toFixed(2)} s`}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
@@ -1823,7 +1923,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                   ref={responseSvgRef}
                   viewBox={`0 0 ${RESPONSE_SIZE.width} ${RESPONSE_SIZE.height}`}
                   onPointerDown={handleResponsePointerDown}
-                  className={`h-60 w-full ${panningResponse ? 'cursor-grabbing' : 'cursor-grab'}`}
+                  className={`h-[360px] w-full ${panningResponse ? 'cursor-grabbing' : 'cursor-grab'}`}
                 >
                   <rect width={RESPONSE_SIZE.width} height={RESPONSE_SIZE.height} rx="16" fill="#0f172a" />
                   {challengeTicksX.map((tick) => {
