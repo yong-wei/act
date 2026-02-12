@@ -33,6 +33,10 @@ export const RELATION_TYPE_LABELS: Record<string, string> = {
   provides_foundation: '前置',
   follows: '后置',
   related: '关联',
+  contains: '包含',
+  leads_to: '引出',
+  applies_to: '应用',
+  opposite: '对立',
   influences: '关联',
   defines: '关联',
   implements: '关联',
@@ -66,7 +70,9 @@ export function getRelationLabel(relation?: string | null) {
 // 获取关系类型的分类（用于列表显示）
 export function getRelationCategory(relation?: string | null): 'prerequisite' | 'follows' | 'related' {
   if (!relation) return 'related';
-  if (relation === 'prerequisite' || relation === 'provides_foundation') return 'prerequisite';
-  if (relation === 'follows') return 'follows';
+  if (relation === 'prerequisite' || relation === 'provides_foundation' || relation === 'contains') {
+    return 'prerequisite';
+  }
+  if (relation === 'follows' || relation === 'leads_to') return 'follows';
   return 'related';
 }

@@ -183,13 +183,22 @@ export function KnowledgeGraphCanvas({
   // 3. 获取连线颜色
   const getLinkColor = useCallback((link: any) => {
     const style = getRelationStyle(link.relation);
-    return style.color;
+    const strength = typeof link.strength === 'number'
+      ? Math.min(1, Math.max(0, link.strength))
+      : 1;
+    const color = new THREE.Color(style.color);
+    const gain = 0.55 + strength * 0.45;
+    color.multiplyScalar(gain);
+    return color.getStyle();
   }, []);
 
   // 4. 获取连线宽度
   const getLinkWidth = useCallback((link: any) => {
     const style = getRelationStyle(link.relation);
-    return style.width * 1.2; // 3D中稍微加粗
+    const strength = typeof link.strength === 'number'
+      ? Math.min(1, Math.max(0, link.strength))
+      : 1;
+    return style.width * (0.7 + strength) * 1.1;
   }, []);
 
   // 5. 配置物理引擎
@@ -228,7 +237,7 @@ export function KnowledgeGraphCanvas({
         // 连线渲染
         linkColor={getLinkColor}
         linkWidth={getLinkWidth}
-        linkOpacity={0.6}
+        linkOpacity={0.62}
 
         // 交互
         onNodeClick={handleNodeClick}

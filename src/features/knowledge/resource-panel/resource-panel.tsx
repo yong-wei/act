@@ -27,6 +27,7 @@ interface RelatedNode {
   nodeType: string;
   relation: string;
   category: 'prerequisite' | 'follows' | 'related';
+  strength?: number;
 }
 
 // 扩展的节点详情类型
@@ -187,6 +188,11 @@ export function ResourcePanel({
                       <span className="text-sm text-slate-200 truncate flex-1 group-hover:text-white">
                         {node.name}
                       </span>
+                      {typeof node.strength === 'number' && (
+                        <span className="text-[10px] text-slate-500 shrink-0">
+                          {node.strength.toFixed(1)}
+                        </span>
+                      )}
                       <ArrowRight className="h-3 w-3 text-slate-500 group-hover:text-blue-400 shrink-0" />
                     </button>
                   </li>

@@ -1,9 +1,10 @@
-
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { KnowledgeNodeType, BloomLevel } from '@prisma/client';
+import { filterKnowledgeNodes, loadKnowledgeGraphData } from '@/lib/knowledge-graph-source';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET(request: Request) {
   try {
@@ -11,7 +12,13 @@ export async function GET(request: Request) {
     const type = searchParams.get('type');
     const search = searchParams.get('search');
     const bloom = searchParams.get('bloom');
-    
+
+    const graph = await loadKnowledgeGraphData();
+    if (graph.source === 'file') {
+      const nodes = filterKnowledgeNodes(graph.nodes, { type, bloom, search });
+      return NextResponse.json(nodes);
+    }
+
     const where: any = {
       isActive: true,
     };

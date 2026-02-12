@@ -125,6 +125,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **海洋环境**：风浪流影响
 - **安全规范**：CCS 船舶操纵规范
 - **状态**：知识图谱节点点击显示完整基础信息，知识卡片统一以模态展示，教师编排预览同渲染；MDX 附件支持 PPT 尺寸渲染
+- **知识图谱融合（2026-02）**：接入 `data/knowledge_graph.json`（节点）与 `data/relations.jsonl`（关系），统一映射为现有图谱 API；支持关系类型、关系强度阈值筛选，并在侧栏/悬浮卡片展示节点 Bloom 分类
 
 ### 3.11 伦理案例库 (Ethics) 🚧
 - **工程伦理场景**：两难决策模拟

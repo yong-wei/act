@@ -2,12 +2,26 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import {
+  buildKnowledgeNodeDetailFromGraph,
+  loadKnowledgeGraphData,
+} from '@/lib/knowledge-graph-source';
+
+export const runtime = 'nodejs';
 
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    const graph = await loadKnowledgeGraphData();
+    if (graph.source === 'file') {
+      const detail = buildKnowledgeNodeDetailFromGraph(graph, params.id);
+      if (detail) {
+        return NextResponse.json(detail);
+      }
+    }
+
     const node = await prisma.knowledgeNode.findUnique({
       where: { id: params.id },
       include: {
@@ -53,6 +67,7 @@ export async function GET(
           nodeType: link.sourceNode.nodeType,
           relation: link.relation,
           category: 'prerequisite' as const,
+          strength: 1,
         })),
       // 后置知识点：当前节点指向其他节点，relation 为 follows
       ...node.sourceLinks
@@ -63,6 +78,7 @@ export async function GET(
           nodeType: link.targetNode.nodeType,
           relation: link.relation,
           category: 'follows' as const,
+          strength: 1,
         })),
       // 关联知识点：其他所有关系
       ...node.sourceLinks
@@ -73,6 +89,7 @@ export async function GET(
           nodeType: link.targetNode.nodeType,
           relation: link.relation,
           category: 'related' as const,
+          strength: 1,
         })),
       ...node.targetLinks
         .filter(link => link.relation !== 'prerequisite' && link.relation !== 'provides_foundation')
@@ -82,6 +99,7 @@ export async function GET(
           nodeType: link.sourceNode.nodeType,
           relation: link.relation,
           category: 'related' as const,
+          strength: 1,
         })),
     ];
 

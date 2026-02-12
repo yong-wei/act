@@ -250,19 +250,24 @@ export function KnowledgeGraph2D({
     if (target.x === undefined || target.y === undefined) return;
 
     const style = getRelationStyle(link.relation);
+    const strength = typeof link.strength === 'number'
+      ? Math.min(1, Math.max(0, link.strength))
+      : 1;
+    const alpha = 0.2 + strength * 0.65;
+    const lineWidth = style.width * (0.6 + strength * 0.9);
 
     ctx.beginPath();
     ctx.moveTo(source.x, source.y);
     ctx.lineTo(target.x, target.y);
 
-    ctx.strokeStyle = style.colorRgba;
+    ctx.strokeStyle = hexToRgba(style.color, alpha);
     ctx.setLineDash(style.dash.map(d => d / globalScale));
-    ctx.lineWidth = style.width / globalScale;
+    ctx.lineWidth = lineWidth / globalScale;
     ctx.stroke();
 
     // 绘制箭头（对于有方向的关系）
     if (style.hasArrow) {
-      drawArrow(ctx, source.x, source.y, target.x, target.y, globalScale, style.colorRgba);
+      drawArrow(ctx, source.x, source.y, target.x, target.y, globalScale, hexToRgba(style.color, alpha));
     }
 
     // 重置虚线设置

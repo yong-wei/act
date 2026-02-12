@@ -9,6 +9,7 @@ import { useState, useMemo } from 'react';
 import { Search, ChevronDown, ChevronRight, Circle, Square, Hexagon } from 'lucide-react';
 import type { KnowledgeNodeData } from '../knowledge-graph-system';
 import { NODE_TYPE_CONFIGS } from '../graph/visual-config';
+import { getBloomLabel } from '@/lib/knowledge-labels';
 
 interface KnowledgeSidebarProps {
   nodes: KnowledgeNodeData[];
@@ -172,7 +173,12 @@ export function KnowledgeSidebar({
                         }`}
                         title={node.description}
                       >
-                        <span className="truncate">{node.name}</span>
+                        <span className="truncate flex-1">{node.name}</span>
+                        {node.bloomLevel && (
+                          <span className="shrink-0 rounded px-1 py-0.5 text-[9px] leading-none text-emerald-200 bg-emerald-500/20 border border-emerald-500/30">
+                            {getBloomLabel(node.bloomLevel)}
+                          </span>
+                        )}
                       </button>
                     );
                   })}
