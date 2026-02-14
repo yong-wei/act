@@ -2,6 +2,8 @@
     position: relative;
     width: 100px;
     height: 60px;
+    min-width: 100px;
+    min-height: 60px;
     pointer-events: none;
 }
 
@@ -11,13 +13,13 @@
 }
 
 .baseHull {
-    fill: url(#hullMetalGradient);
+    fill: url(#hullMetalGradient) #334155;
     stroke: #64748b;
     stroke-width: 1.2;
 }
 
 .baseWing {
-    fill: url(#wingMetalGradient);
+    fill: url(#wingMetalGradient) #1f2937;
     stroke: #475569;
     stroke-width: 1;
 }
@@ -37,12 +39,12 @@
 }
 
 .pGlow {
-    fill: url(#pGlowGradient);
+    fill: url(#pGlowGradient) rgba(251, 113, 133, 0.45);
     filter: url(#glowSoft);
 }
 
 .iFlowShape {
-    fill: url(#iFlowGradient);
+    fill: url(#iFlowGradient) rgba(14, 165, 233, 0.55);
     filter: url(#glowSoft);
 }
 
@@ -83,7 +85,7 @@
 }
 
 .ffCowl {
-    fill: url(#ffCowlGradient);
+    fill: url(#ffCowlGradient) rgba(192, 132, 252, 0.45);
     filter: url(#glowSoft);
 }
 
@@ -95,21 +97,21 @@
 }
 
 .tailBase {
-    fill: url(#tailBaseGradient);
+    fill: url(#tailBaseGradient) rgba(148, 163, 184, 0.55);
     opacity: 0.6;
     filter: url(#glowSoft);
     animation: tailPulse 1.8s ease-in-out infinite;
 }
 
 .tailCore {
-    fill: url(#tailCoreGradient);
+    fill: url(#tailCoreGradient) rgba(251, 113, 133, 0.8);
     opacity: 0.9;
     filter: url(#glowStrong);
     animation: tailPulse 1.4s ease-in-out infinite;
 }
 
 .tailI {
-    fill: url(#tailIGradient);
+    fill: url(#tailIGradient) rgba(34, 211, 238, 0.78);
     opacity: 0.85;
     filter: url(#glowSoft);
     animation: tailFlow 2.2s linear infinite;
