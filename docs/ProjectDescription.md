@@ -7,7 +7,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-01-15
+📅 **最后更新**：2026-02-21
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教室工作台”入口（`http://localhost:3001/teacher`）
 🧠 **知识点同步**：启动脚本默认执行 `npm run seed:knowledge`，确保预置教案克隆所需 KnowledgeNode 已补齐
@@ -167,6 +167,60 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **批量导入**：Excel 模板导入学生账号（学号/姓名）
 - **权限控制**：仅管理员登录可访问
 
+### 3.14 多表征联动可视化引擎 ✅
+- **页面路径**：`/interactive-learning/multi-representation-linkage`
+- **开环根轨迹联动**：复平面以开环极点配置为输入，实时绘制根轨迹并叠加闭环极点（不同颜色）
+- **开环零点扩展**：支持添加开环零点（实零点 / 共轭零点对），并参与根轨迹、Bode、Nyquist 联动计算
+- **闭环极点拖拽**：支持在根轨迹上拖拽闭环极点，自动联动等效增益，时域响应按闭环极点位置重算
+- **共轭极点约束**：开环共轭极点联动移动；极点与图表关键数据均统一保留三位小数
+- **刷新策略优化**：拖拽过程中仅本地预览，松开后触发后端重算，降低交互延迟
+- **频域联动升级**：Bode 幅频/相频合并为同模块上下子图（共享十倍频程刻度），可勾选显示相角裕度与幅值裕度
+- **Nyquist + 提示分区**：下方拆分为 Nyquist 图（含裕度标注）与跨域关联提示模块
+- **后端计算 API**：
+  - `POST /api/linkage/calculate-time-domain`
+  - `POST /api/linkage/calculate-frequency-domain`
+  - `POST /api/linkage/stability-analysis`
+- **教学提示**：基于极点分布、增益裕度、相位裕度自动生成跨域关联提示
+
+### 3.15 自适应跨域题库系统 ✅
+- **页面路径**：`/assessment/adaptive-practice`
+- **能力诊断**：计算型/跨域型/设计型三维能力估计与薄弱项识别
+- **自适应出题 API**：
+  - `GET /api/assessment/diagnostic`
+  - `POST /api/assessment/next-question`
+  - `POST /api/assessment/generate-question`
+  - `POST /api/assessment/submit-answer`
+  - `GET /api/assessment/ability-report/:userId`
+- **题库能力**：内置 50 道跨域题，支持按薄弱知识点生成新题
+
+### 3.16 工程场景扩展（邮轮舒适度 / 破冰船鲁棒） ✅
+- **页面路径**：
+  - `/simulations/cruise-comfort`
+  - `/simulations/icebreaker-robust`
+- **邮轮舒适度扩展**：多目标权衡（舒适度/性能/能耗）评分与建议
+- **破冰船鲁棒扩展**：不确定参数区间 + 扰动场景 Monte Carlo 鲁棒评估
+- **分析 API**：
+  - `POST /api/simulation/cruise-comfort-analysis`
+  - `POST /api/simulation/icebreaker-robust-analysis`
+
+### 3.17 AI伴随探究系统 ✅
+- **介入判定**：连续失败、停滞、约束违规三类触发规则
+- **介入生成 API**：
+  - `POST /api/ai/intervention/check`
+  - `POST /api/ai/intervention/generate`
+  - `POST /api/ai/intervention/feedback`
+- **场景融合**：在扩展场景页提供 AI 伴随探究面板，支持“记录尝试→判定介入→生成引导→反馈”
+
+### 3.18 元提示词评价 + 过程一致性校验 ✅
+- **页面路径**：`/evaluation/prompt-assessment`
+- **提示词质量评价 API**：
+  - `POST /api/evaluation/assess-prompt`
+  - 评价维度：完整性、精确性、结构化、可执行性
+- **过程一致性 API**：
+  - `POST /api/evaluation/track-consistency`
+  - `GET /api/evaluation/prompt-history/:userId`
+- **一致性目标**：覆盖“提示结构—设计行为—结果达成”的过程化评价
+
 ## 4. 技术架构
 
 ### 4.1 前端技术栈
@@ -203,6 +257,13 @@ UserProgress      # 用户任务进度
 SimulationLog     # 仿真记录（参数、指标、轨迹）
 EthicalLog        # 伦理违规记录
 Session, Account  # NextAuth 会话
+LinkageSession    # 多表征联动探索记录
+Question          # 跨域题库
+UserAnswer        # 学生答题记录
+AbilityAssessment # 能力评估快照
+AIIntervention    # AI 伴随介入记录
+PromptAssessment  # 元提示词评价记录
+DesignSession     # 设计行为与一致性记录
 ```
 
 ### 4.5 部署架构
@@ -403,6 +464,6 @@ npm test               # 运行测试
 
 ---
 
-**最后更新日期**：2026-01-14
-**版本**：v1.0.0
+**最后更新日期**：2026-02-21
+**版本**：v1.1.0
 **状态**：开发完成，可用于教学实践

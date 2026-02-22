@@ -86,6 +86,14 @@ model User {
 
   // 互动埋点日志
   interactionLogs InteractionLog[]
+
+  // DevelopmentPlan 扩展模块
+  linkageSessions   LinkageSession[]
+  userAnswers       UserAnswer[]
+  abilityAssessments AbilityAssessment[]
+  aiInterventions   AIIntervention[]
+  promptAssessments PromptAssessment[]
+  designSessions    DesignSession[]
 }
 
 model StudentProfile {
@@ -795,4 +803,127 @@ model LearningNote {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+// ========== DevelopmentPlan 扩展模块 ==========
+
+model LinkageSession {
+  id           String   @id @default(cuid())
+  userId       String
+  createdAt    DateTime @default(now())
+  interactions Json[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Question {
+  id               String   @id @default(cuid())
+  stem             String   @db.Text
+  type             String
+  domains          String[]
+  difficulty       Float
+  discrimination   Float
+  guessing         Float
+  knowledgeTags    String[]
+  correctAnswer    String
+  explanation      String   @db.Text
+  crossDomainHint  String?  @db.Text
+  source           String
+  aiMetadata       Json?
+  validationStatus String   @default("pending")
+  timesUsed        Int      @default(0)
+  correctRate      Float?
+  avgTimeSpent     Float?
+  createdAt        DateTime @default(now())
+
+  userAnswers UserAnswer[]
+}
+
+model UserAnswer {
+  id            String   @id @default(cuid())
+  userId        String
+  questionId    String
+  isCorrect     Boolean
+  timeSpent     Int
+  answerGiven   String
+  thetaEstimate Float?
+  createdAt     DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([questionId])
+}
+
+model AbilityAssessment {
+  id                      String   @id @default(cuid())
+  userId                  String
+  computationalTheta      Float
+  crossDomainTheta        Float
+  designTheta             Float
+  knowledgePointAbilities Json
+  assessedAt              DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, assessedAt])
+}
+
+model AIIntervention {
+  id               String   @id @default(cuid())
+  userId           String
+  sessionId        String
+  triggerType      String
+  interventionType String
+  content          String   @db.Text
+  studentResponse  String?  @db.Text
+  wasHelpful       Boolean?
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([sessionId])
+}
+
+model PromptAssessment {
+  id                  String   @id @default(cuid())
+  userId              String
+  sessionId           String
+  promptContent       String   @db.Text
+  structuredData      Json?
+  overallScore        Float
+  completenessScore   Float
+  precisionScore      Float
+  structurizationScore Float
+  executabilityScore  Float
+  suggestions         Json[]
+  version             Int
+  createdAt           DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([sessionId, version])
+}
+
+model DesignSession {
+  id                     String   @id @default(cuid())
+  userId                 String
+  taskType               String
+  promptVersions         Json[]
+  designActions          Json[]
+  finalResult            Json?
+  consistencyScore       Float?
+  goalBehaviorAlignment  Float?
+  behaviorResultCoherence Float?
+  startedAt              DateTime @default(now())
+  completedAt            DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt])
 }
