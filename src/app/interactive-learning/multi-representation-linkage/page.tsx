@@ -959,10 +959,16 @@ export default function MultiRepresentationLinkagePage() {
             </div>
 
             <div className="grid gap-4 xl:grid-cols-2">
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+              <div className="min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
                 <h3 className="mb-2 text-base font-medium">时域响应（按闭环极点）</h3>
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-72 min-w-0">
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                    minWidth={0}
+                    minHeight={240}
+                    initialDimension={{ width: 640, height: 288 }}
+                  >
                     <LineChart data={timeDomain?.samples ?? []}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                       <XAxis dataKey="time" stroke="#94a3b8" />
@@ -978,7 +984,7 @@ export default function MultiRepresentationLinkagePage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+              <div className="min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
                 <div className="mb-2 flex items-center justify-between">
                   <h3 className="text-base font-medium">频域 Bode（幅频 + 相频）</h3>
                   <label className="inline-flex items-center gap-2 text-xs text-slate-300">
@@ -992,8 +998,14 @@ export default function MultiRepresentationLinkagePage() {
                   </label>
                 </div>
 
-                <div className="h-[17rem]">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-[17rem] min-w-0">
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                    minWidth={0}
+                    minHeight={200}
+                    initialDimension={{ width: 640, height: 272 }}
+                  >
                     <LineChart data={frequencyDomainData} margin={{ top: 10, right: 12, left: 8, bottom: 6 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                       <XAxis
@@ -1035,8 +1047,14 @@ export default function MultiRepresentationLinkagePage() {
                   </ResponsiveContainer>
                 </div>
 
-                <div className="h-[17rem] border-t border-slate-800 pt-2">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-[17rem] min-w-0 border-t border-slate-800 pt-2">
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                    minWidth={0}
+                    minHeight={200}
+                    initialDimension={{ width: 640, height: 272 }}
+                  >
                     <LineChart data={frequencyDomainData} margin={{ top: 8, right: 12, left: 8, bottom: 12 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                       <XAxis
@@ -1069,10 +1087,16 @@ export default function MultiRepresentationLinkagePage() {
             </div>
 
             <div className="grid gap-4 xl:grid-cols-[1.7fr_1fr]">
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+              <div className="min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
                 <h3 className="mb-2 text-base font-medium">Nyquist 图</h3>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-80 min-w-0">
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                    minWidth={0}
+                    minHeight={260}
+                    initialDimension={{ width: 640, height: 320 }}
+                  >
                     <LineChart data={nyquistData} margin={{ top: 10, right: 12, left: 8, bottom: 8 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                       <XAxis

@@ -9,6 +9,7 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  ClipboardCheck,
   Compass,
   Cpu,
   Globe,
@@ -137,6 +138,12 @@ const moduleLinks = [
     href: '/interactive-learning',
     icon: BookOpen,
   },
+  {
+    title: '评审入口',
+    description: 'DevelopmentPlan 对齐 · 分支功能演示',
+    href: '/review',
+    icon: ClipboardCheck,
+  },
 ]
 
 export default function HomePage() {
@@ -225,6 +232,7 @@ export default function HomePage() {
               <Link href="/ethics" className="hover:text-amber-alert">思政沙盘</Link>
               <Link href="/ai" className="hover:text-amber-alert">AI工坊</Link>
               <Link href="/interactive-learning" className="hover:text-amber-alert">互动学习</Link>
+              <Link href="/review" className="hover:text-amber-alert">评审入口</Link>
             </div>
             <div className="flex items-center gap-3">
               {session ? (
@@ -334,7 +342,7 @@ export default function HomePage() {
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-semibold">平台入口矩阵</div>
-                  <div className="text-xs text-white/50">四大核心模块</div>
+                  <div className="text-xs text-white/50">五大核心模块</div>
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                   {moduleLinks.map((module) => (

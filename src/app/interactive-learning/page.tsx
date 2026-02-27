@@ -1,367 +1,34 @@
-'use client';
-
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
-import {
-  ArrowRight,
-  Boxes,
-  Activity,
-  GitBranch,
-  Radio,
-  Sliders,
-  Shuffle,
-  Sparkles,
-  Ship,
-  Clock,
-} from 'lucide-react';
-import type { InteractiveCategory } from '@prisma/client';
+import { ArrowRight, Compass, Ship, Sparkles, Workflow } from 'lucide-react';
 
-// 资源类型定义
-interface InteractiveResource {
-  id: string;
-  title: string;
-  displayName: string | null;
-  description: string | null;
-  registryId: string | null;
-  type: string;
-  category: InteractiveCategory | null;
-  displayOrder: number;
-}
-
-// 分类配置
-const CATEGORY_CONFIG: Record<
-  string,
+const ENTRY_ROUTES = [
   {
-    label: string;
-    icon: React.ElementType;
-    color: string;
-    description: string;
-  }
-> = {
-  SYSTEM_MODELING: {
-    label: '系统建模',
-    icon: Boxes,
-    color: 'blue',
-    description: '学习如何建立物理系统的数学模型',
-  },
-  TIME_DOMAIN: {
-    label: '时域分析',
-    icon: Activity,
-    color: 'emerald',
-    description: '分析系统的时间响应特性',
-  },
-  ROOT_LOCUS: {
-    label: '根轨迹分析',
-    icon: GitBranch,
-    color: 'violet',
-    description: '探索闭环极点与系统稳定性的关系',
-  },
-  FREQUENCY_DOMAIN: {
-    label: '频域分析',
-    icon: Radio,
-    color: 'cyan',
-    description: '通过频率响应分析系统特性',
-  },
-  SYSTEM_CORRECTION: {
-    label: '系统校正',
-    icon: Sliders,
-    color: 'amber',
-    description: '设计控制器改善系统性能',
-  },
-  NONLINEAR: {
-    label: '非线性',
-    icon: Shuffle,
-    color: 'rose',
-    description: '处理非线性系统和伦理决策',
-  },
-  FUN_EXPLORATION: {
-    label: '趣味探索',
-    icon: Sparkles,
-    color: 'fuchsia',
-    description: '以轻量游戏体验控制思维与系统直觉',
-  },
-};
-
-// 分类顺序
-const CATEGORY_ORDER = [
-  'SYSTEM_MODELING',
-  'TIME_DOMAIN',
-  'ROOT_LOCUS',
-  'FREQUENCY_DOMAIN',
-  'SYSTEM_CORRECTION',
-  'NONLINEAR',
-  'FUN_EXPLORATION',
-];
-
-const FEATURED_LESSONS = [
-  {
-    id: 'lesson-01',
-    title: '反馈：控制原理的核心思想',
-    description: '90 分钟线下课程：反馈、闭环与控制系统结构。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-01',
-    badge: 'Lesson 01',
-    accent: 'emerald',
+    title: '跨域探索',
+    description:
+      '跨域问题驱动探索：根轨迹、Bode、Nyquist 与时域响应联动，聚焦“结构可见”能力。',
+    href: '/interactive-learning/cross-domain-exploration',
+    badge: 'Cross-Domain',
+    accent: 'text-fuchsia-300 border-fuchsia-400/40 bg-fuchsia-500/10',
   },
   {
-    id: 'lesson-02',
-    title: '拉氏变换：工程直觉的数学实现',
-    description: '90 分钟线下课程：s 域直觉、常用定理与反变换路径。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-02',
-    badge: 'Lesson 02',
-    accent: 'amber',
+    title: '互动课程',
+    description: '进入各章节 90 分钟互动课程入口，按 BOPPPS 路径开展课堂活动与课后复盘。',
+    href: '/interactive-learning/courses',
+    badge: 'Course Hub',
+    accent: 'text-cyan-300 border-cyan-400/40 bg-cyan-500/10',
   },
   {
-    id: 'lesson-03',
-    title: '微分方程与控制系统基础模型',
-    description: '90 分钟线下课程：微分方程建模方法与典型案例。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-03',
-    badge: 'Lesson 03',
-    accent: 'cyan',
+    title: '各章节互动组件',
+    description: '按章节维度查看互动组件库，点击章节后展示对应组件并进入资源页面。',
+    href: '/interactive-learning/chapter-components',
+    badge: 'Component Hub',
+    accent: 'text-amber-300 border-amber-400/40 bg-amber-500/10',
   },
-  {
-    id: 'lesson-04',
-    title: '传递函数与控制系统数学模型',
-    description: '90 分钟线下课程：传递函数定义、推导与零极点判读。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-04',
-    badge: 'Lesson 04',
-    accent: 'blue',
-  },
-  {
-    id: 'lesson-05',
-    title: '方框图、信号流图与梅森公式',
-    description: '90 分钟线下课程：结构图化简、信号流图建模与梅森公式。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-05',
-    badge: 'Lesson 05',
-    accent: 'emerald',
-  },
-  {
-    id: 'lesson-06',
-    title: '指标裁判席：时域性能的量尺',
-    description: '90 分钟线下课程：时域指标速判、裁判手册与计分实训。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-06',
-    badge: 'Lesson 06',
-    accent: 'emerald',
-  },
-  {
-    id: 'lesson-07',
-    title: '衰减振荡：欠阻尼二阶系统',
-    description: '90 分钟线下课程：二阶系统标准型、极点位置与响应指标。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-07',
-    badge: 'Lesson 07',
-    accent: 'emerald',
-  },
-  {
-    id: 'lesson-08',
-    title: '稳定性与稳态误差',
-    description: '90 分钟线下课程：劳斯判据、终值定理与静态误差系数。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-08',
-    badge: 'Lesson 08',
-    accent: 'emerald',
-  },
-  {
-    id: 'lesson-09',
-    title: '校正与时域综合：验证路径',
-    description: '90 分钟线下课程：校正手段、补偿策略与时域综合验证。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-09',
-    badge: 'Lesson 09',
-    accent: 'amber',
-  },
-  {
-    id: 'lesson-10',
-    title: '根轨迹法：从全局到细节',
-    description: '90 分钟线下课程：模值/相角条件、分离点与渐近线判读。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-10',
-    badge: 'Lesson 10',
-    accent: 'violet',
-  },
-  {
-    id: 'lesson-11',
-    title: '参数根轨迹与图形化思考',
-    description: '90 分钟线下课程：广义定义、稳定范围与主导极点选择。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-11',
-    badge: 'Lesson 11',
-    accent: 'violet',
-  },
-  {
-    id: 'lesson-12',
-    title: '频率特性与伯德图',
-    description: '90 分钟线下课程：对数频率特性、斜率叠加与读图反推。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-12',
-    badge: 'Lesson 12',
-    accent: 'cyan',
-  },
-  {
-    id: 'lesson-13',
-    title: '幅相特性与稳定判据：频域的启示',
-    description: '90 分钟线下课程：Nyquist 图、对数判据与频域判稳链路。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-13',
-    badge: 'Lesson 13',
-    accent: 'cyan',
-  },
-  {
-    id: 'lesson-14',
-    title: '稳定裕度与三频段：宽备窄用',
-    description: '90 分钟线下课程：稳定裕度评估与三频段性能分工。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-14',
-    badge: 'Lesson 14',
-    accent: 'amber',
-  },
-  {
-    id: 'lesson-15',
-    title: '串联校正与滞后超前：双管齐下',
-    description: '90 分钟线下课程：超前/滞后校正与联合设计流程。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-15',
-    badge: 'Lesson 15',
-    accent: 'emerald',
-  },
-  {
-    id: 'lesson-16',
-    title: '非线性系统与描述函数基础',
-    description: '90 分钟线下课程：非线性现象、谐波线性化与描述函数基础。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-16',
-    badge: 'Lesson 16',
-    accent: 'rose',
-  },
-  {
-    id: 'lesson-17',
-    title: '描述函数分析法与自振判别',
-    description: '90 分钟线下课程：负倒描述函数与交点判别流程。',
-    duration: '90 分钟',
-    href: '/interactive-learning/lesson-17',
-    badge: 'Lesson 17',
-    accent: 'fuchsia',
-  },
-];
-
-// 颜色类
-const colorClasses: Record<string, {
-  iconBg: string;
-  iconText: string;
-  border: string;
-  badge: string;
-  sectionBorder: string;
-}> = {
-  blue: {
-    iconBg: 'bg-blue-500/20',
-    iconText: 'text-blue-400',
-    border: 'border-blue-500/30 hover:border-blue-500/60',
-    badge: 'bg-blue-500/20 text-blue-400',
-    sectionBorder: 'border-l-blue-500',
-  },
-  emerald: {
-    iconBg: 'bg-emerald-500/20',
-    iconText: 'text-emerald-400',
-    border: 'border-emerald-500/30 hover:border-emerald-500/60',
-    badge: 'bg-emerald-500/20 text-emerald-400',
-    sectionBorder: 'border-l-emerald-500',
-  },
-  violet: {
-    iconBg: 'bg-violet-500/20',
-    iconText: 'text-violet-400',
-    border: 'border-violet-500/30 hover:border-violet-500/60',
-    badge: 'bg-violet-500/20 text-violet-400',
-    sectionBorder: 'border-l-violet-500',
-  },
-  cyan: {
-    iconBg: 'bg-cyan-500/20',
-    iconText: 'text-cyan-400',
-    border: 'border-cyan-500/30 hover:border-cyan-500/60',
-    badge: 'bg-cyan-500/20 text-cyan-400',
-    sectionBorder: 'border-l-cyan-500',
-  },
-  amber: {
-    iconBg: 'bg-amber-500/20',
-    iconText: 'text-amber-400',
-    border: 'border-amber-500/30 hover:border-amber-500/60',
-    badge: 'bg-amber-500/20 text-amber-400',
-    sectionBorder: 'border-l-amber-500',
-  },
-  rose: {
-    iconBg: 'bg-rose-500/20',
-    iconText: 'text-rose-400',
-    border: 'border-rose-500/30 hover:border-rose-500/60',
-    badge: 'bg-rose-500/20 text-rose-400',
-    sectionBorder: 'border-l-rose-500',
-  },
-  fuchsia: {
-    iconBg: 'bg-fuchsia-500/20',
-    iconText: 'text-fuchsia-400',
-    border: 'border-fuchsia-500/30 hover:border-fuchsia-500/60',
-    badge: 'bg-fuchsia-500/20 text-fuchsia-400',
-    sectionBorder: 'border-l-fuchsia-500',
-  },
-};
+] as const;
 
 export default function InteractiveLearningPage() {
-  const [resources, setResources] = useState<InteractiveResource[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchResources = async () => {
-      try {
-        const res = await fetch('/api/resources');
-        if (res.ok) {
-          const data = (await res.json()) as InteractiveResource[];
-          // 过滤掉 CLASSROOM 分类
-          setResources(data.filter((r) => r.category !== 'CLASSROOM'));
-        }
-      } catch (error) {
-        console.error('Failed to load interactive resources', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchResources();
-  }, []);
-
-  // 按分类分组
-  const groupedResources = useMemo(() => {
-    const groups: Record<string, InteractiveResource[]> = {};
-
-    // 初始化所有分类（包括空分类）
-    for (const category of CATEGORY_ORDER) {
-      groups[category] = [];
-    }
-
-    // 分组资源
-    for (const resource of resources) {
-      const category = resource.category || 'OTHER';
-      if (groups[category]) {
-        groups[category].push(resource);
-      }
-    }
-
-    // 按 displayOrder 排序
-    for (const category of Object.keys(groups)) {
-      groups[category].sort((a, b) => a.displayOrder - b.displayOrder);
-    }
-
-    return groups;
-  }, [resources]);
-
-  // 统计总数
-  const totalCount = resources.length;
-
   return (
     <div className="min-h-screen bg-slate-950">
-      {/* 顶部导航 */}
       <nav className="border-b border-white/10">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
@@ -369,9 +36,7 @@ export default function InteractiveLearningPage() {
               <Ship className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-sm font-semibold tracking-wide text-white">
-                AI-OBE船舶智控平台
-              </div>
+              <div className="text-sm font-semibold tracking-wide text-white">AI-OBE船舶智控平台</div>
               <div className="text-xs text-white/50">Mission Control for Maritime Education</div>
             </div>
           </Link>
@@ -384,135 +49,61 @@ export default function InteractiveLearningPage() {
         </div>
       </nav>
 
-      {/* 主内容 */}
-      <main className="mx-auto max-w-[1600px] px-6 py-12">
-        {/* 页面标题 */}
-        <div className="mb-12 text-center">
+      <main className="mx-auto max-w-[1200px] px-6 py-12">
+        <header className="mb-10 rounded-2xl border border-white/10 bg-slate-900/60 p-6">
           <h1 className="mb-3 text-3xl font-bold text-white md:text-4xl">互动学习</h1>
-          <p className="mb-4 text-lg text-slate-400">
-            按照控制论主题分类的互动学习资源，支持独立体验与课堂引用
+          <p className="text-base text-slate-300">
+            入口已按学习意图拆分为独立路由：先选择学习模式，再进入对应课程与组件。
           </p>
-          {!isLoading && (
-            <div className="inline-flex items-center gap-2 rounded-full bg-slate-800/50 px-4 py-2 text-sm text-slate-400">
-              <span className="font-medium text-white">{totalCount}</span> 个互动组件
-            </div>
-          )}
-        </div>
-
-        {isLoading ? (
-          <div className="flex h-64 items-center justify-center text-slate-500">
-            <div className="flex items-center gap-3">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-600 border-t-slate-300" />
-              正在加载互动资源...
-            </div>
+          <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-400">
+            <span className="rounded-full border border-white/10 px-3 py-1">跨域探索</span>
+            <span className="rounded-full border border-white/10 px-3 py-1">互动课程</span>
+            <span className="rounded-full border border-white/10 px-3 py-1">各章节互动组件</span>
           </div>
-        ) : (
-          <div className="space-y-12">
-            {FEATURED_LESSONS.length > 0 && (
-              <section className="rounded-2xl border border-white/5 bg-slate-900/40 p-6">
-                <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-xl font-semibold text-white">线下课程入口</h2>
-                    <p className="text-sm text-slate-400">基于 BOPPPS 的 90 分钟课堂设计</p>
-                  </div>
-                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-400">
-                    最新课程
-                  </span>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {FEATURED_LESSONS.map((lesson) => (
-                    <Link
-                      key={lesson.id}
-                      href={lesson.href}
-                      className="group relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950/60 p-5 transition hover:border-violet-500/60"
-                    >
-                      <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-violet-500/10 blur-2xl" />
-                      <div className="flex items-center justify-between">
-                        <span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs text-violet-300">
-                          {lesson.badge}
-                        </span>
-                        <span className="text-xs text-slate-400">{lesson.duration}</span>
-                      </div>
-                      <h3 className="mt-4 text-lg font-semibold text-white">{lesson.title}</h3>
-                      <p className="mt-2 text-sm text-slate-400">{lesson.description}</p>
-                      <div className="mt-4 flex items-center text-xs text-violet-300">
-                        进入课程
-                        <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            )}
-            {CATEGORY_ORDER.map((categoryKey) => {
-              const config = CATEGORY_CONFIG[categoryKey];
-              const categoryResources = groupedResources[categoryKey] || [];
-              const colors = colorClasses[config.color];
-              const Icon = config.icon;
+        </header>
 
-              return (
-                <section
-                  key={categoryKey}
-                  className={`rounded-2xl border border-white/5 bg-slate-900/30 p-6 pl-8 border-l-4 ${colors.sectionBorder}`}
-                >
-                  {/* 分类标题 */}
-                  <div className="mb-6 flex items-center gap-4">
-                    <div className={`rounded-xl p-3 ${colors.iconBg}`}>
-                      <Icon className={`h-6 w-6 ${colors.iconText}`} />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-white">{config.label}</h2>
-                      <p className="text-sm text-slate-400">{config.description}</p>
-                    </div>
-                    <div className="ml-auto">
-                      <span className={`rounded-full px-3 py-1 text-xs ${colors.badge}`}>
-                        {categoryResources.length} 个组件
-                      </span>
-                    </div>
-                  </div>
+        <section className="grid gap-5 md:grid-cols-3">
+          {ENTRY_ROUTES.map((entry) => (
+            <Link
+              key={entry.href}
+              href={entry.href}
+              className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6 transition hover:-translate-y-0.5 hover:border-white/30"
+            >
+              <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/5 blur-2xl" />
+              <span className={`inline-flex rounded-full border px-3 py-1 text-xs ${entry.accent}`}>{entry.badge}</span>
+              <h2 className="mt-4 text-xl font-semibold text-white">{entry.title}</h2>
+              <p className="mt-3 text-sm leading-6 text-slate-300">{entry.description}</p>
+              <div className="mt-6 inline-flex items-center text-sm text-slate-200">
+                进入入口
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </div>
+            </Link>
+          ))}
+        </section>
 
-                  {/* 资源卡片 */}
-                  {categoryResources.length === 0 ? (
-                    <div className="flex h-32 items-center justify-center rounded-xl border border-dashed border-white/10 bg-slate-900/20">
-                      <div className="flex items-center gap-2 text-slate-500">
-                        <Clock className="h-4 w-4" />
-                        <span>即将推出</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {categoryResources.map((resource) => {
-                        const displayTitle = resource.displayName || resource.title;
-                        const description =
-                          resource.description || '暂无描述，点击查看资源详情';
-
-                        return (
-                          <Link
-                            key={resource.id}
-                            href={`/interactive-learning/resources/${resource.id}`}
-                            className={`group relative overflow-hidden rounded-xl border bg-slate-900/60 p-5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl ${colors.border}`}
-                          >
-                            <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br from-white/5 to-transparent" />
-
-                            <h3 className="mb-2 text-lg font-medium text-white">{displayTitle}</h3>
-                            <p className="mb-4 line-clamp-2 text-sm text-slate-400">
-                              {description}
-                            </p>
-
-                            <div className="flex items-center text-xs font-medium text-slate-400 transition-colors group-hover:text-white">
-                              打开资源
-                              <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </section>
-              );
-            })}
+        <section className="mt-10 grid gap-4 md:grid-cols-3">
+          <div className="rounded-xl border border-white/10 bg-slate-900/40 p-4">
+            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-fuchsia-500/15 text-fuchsia-300">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <h3 className="text-sm font-semibold text-white">跨域问题驱动</h3>
+            <p className="mt-2 text-xs text-slate-400">聚焦跨表征关系，建立“模型-图形-响应”联动直觉。</p>
           </div>
-        )}
+          <div className="rounded-xl border border-white/10 bg-slate-900/40 p-4">
+            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-300">
+              <Workflow className="h-4 w-4" />
+            </div>
+            <h3 className="text-sm font-semibold text-white">课程链路清晰</h3>
+            <p className="mt-2 text-xs text-slate-400">按章节快速进入互动课程，支持课堂演示与学生自学切换。</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-slate-900/40 p-4">
+            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/15 text-amber-300">
+              <Compass className="h-4 w-4" />
+            </div>
+            <h3 className="text-sm font-semibold text-white">组件按章归集</h3>
+            <p className="mt-2 text-xs text-slate-400">章节入口与组件展示分离，路由独立，方便评审与课堂组织。</p>
+          </div>
+        </section>
       </main>
     </div>
   );

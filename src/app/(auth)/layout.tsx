@@ -25,6 +25,9 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
             <Link href="/interactive-learning" className="transition-colors hover:text-amber-500">
               互动学习
             </Link>
+            <Link href="/review" className="transition-colors hover:text-amber-500">
+              评审入口
+            </Link>
             <Link href="/knowledge" className="transition-colors hover:text-amber-500">
               知识图谱
             </Link>
