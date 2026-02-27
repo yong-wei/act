@@ -22,8 +22,13 @@ import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
+  SimulationTopBar,
+  SimulationDock,
+  SimulationAssessmentPanel,
+  simulationUi,
   type CameraMode,
 } from '../components';
+import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 import {
   Play,
   Pause,
@@ -52,6 +57,7 @@ import {
   drillingHYSY981Profile,
   getDrillingDefaultConfig,
 } from '../profiles/drilling-hysy981';
+import { HYSY981_PLATFORM_PARAMS } from '../core/constants';
 import {
   createSemiSub3DOFState,
   semiSub3DOFStep,
@@ -218,14 +224,20 @@ function DrillingPlatformModel({
 
   useFrame(() => {
     if (groupRef.current) {
+      // 平台模型的可见“吃水”应仅占总高度的一小部分，避免整体沉入水面
+      const visualDraft = Math.min(
+        HYSY981_PLATFORM_PARAMS.DRAFT_OPERATING,
+        modelHeight * 0.22
+      );
       groupRef.current.position.x = position.x;
+      groupRef.current.position.y = modelHeight * 0.5 - visualDraft;
       groupRef.current.position.z = position.z;
       groupRef.current.rotation.y = -heading + Math.PI / 2;
     }
   });
 
   return (
-    <group ref={groupRef} position={[0, modelHeight * 0.3, 0]}>
+    <group ref={groupRef}>
       <primitive object={model} scale={scale} />
       {/* 平台中心指示器 */}
       <mesh position={[0, modelHeight * 0.8, 0]}>
@@ -329,7 +341,7 @@ function ThrusterPanel({ thrusters }: { thrusters: ThrusterState[] }) {
   ];
 
   return (
-    <Card className="w-48 bg-slate-900/90 text-white">
+    <Card className={`${simulationUi.panel} w-48`}>
       <CardHeader className="py-2">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Gauge className="h-4 w-4" />
@@ -352,7 +364,7 @@ function ThrusterPanel({ thrusters }: { thrusters: ThrusterState[] }) {
                   flex flex-col items-center justify-center rounded p-1 text-xs
                   ${row === 1 || row === 2 ? 'col-start-1' : ''}
                   ${col === 2 ? 'col-start-3' : ''}
-                  ${isFailed ? 'bg-red-800' : powerPercent > 80 ? 'bg-orange-700' : 'bg-slate-700'}
+                  ${isFailed ? 'bg-red-100 text-red-800' : powerPercent > 80 ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-800'}
                 `}
                 style={{
                   gridRow: row + 1,
@@ -368,13 +380,13 @@ function ThrusterPanel({ thrusters }: { thrusters: ThrusterState[] }) {
           })}
           {/* 中心平台指示 */}
           <div
-            className="flex items-center justify-center rounded bg-slate-600 text-xs"
+            className="flex items-center justify-center rounded bg-slate-200 text-xs text-slate-700"
             style={{ gridRow: '2 / 4', gridColumn: 2 }}
           >
             ▣
           </div>
         </div>
-        <div className="mt-2 text-center text-xs text-slate-400">
+        <div className="mt-2 text-center text-xs text-slate-700">
           前 (Fore) ↑
         </div>
       </CardContent>
@@ -406,7 +418,7 @@ function HUD({
     : 'green';
 
   return (
-    <div className="pointer-events-none absolute left-4 top-4 space-y-2 z-10">
+    <div className="space-y-2">
       {/* 状态指示 */}
       <div className="flex items-center gap-2">
         <Badge variant={isRunning ? 'default' : 'secondary'}>
@@ -421,11 +433,11 @@ function HUD({
       </div>
 
       {/* DP 状态 */}
-      <Card className={`w-64 text-white ${
-        alertLevel === 'emergency' ? 'bg-red-900/95 border-red-500' :
-        alertLevel === 'red' ? 'bg-red-800/90 border-red-400' :
-        alertLevel === 'yellow' ? 'bg-yellow-800/90 border-yellow-500' :
-        'bg-slate-900/90'
+      <Card className={`w-64 ${simulationUi.panel} ${
+        alertLevel === 'emergency' ? 'border-red-400 bg-red-50/95' :
+        alertLevel === 'red' ? 'border-red-300 bg-red-50/95' :
+        alertLevel === 'yellow' ? 'border-amber-300 bg-amber-50/95' :
+        'border-slate-200 bg-slate-50/95'
       }`}>
         <CardHeader className="py-2">
           <CardTitle className="flex items-center gap-2 text-sm">
@@ -452,22 +464,22 @@ function HUD({
           <div className="flex justify-between">
             <span>位置误差:</span>
             <span className={
-              alertLevel === 'green' ? 'text-green-400' :
-              alertLevel === 'yellow' ? 'text-yellow-400' :
-              'text-red-400'
+              alertLevel === 'green' ? 'text-green-700' :
+              alertLevel === 'yellow' ? 'text-amber-700' :
+              'text-red-700'
             }>
               {metrics.positionError.toFixed(2)} m
             </span>
           </div>
           <div className="flex justify-between">
             <span>航向误差:</span>
-            <span className={metrics.headingError > 10 ? 'text-yellow-400' : 'text-green-400'}>
+            <span className={metrics.headingError > 10 ? 'text-amber-700' : 'text-green-700'}>
               {metrics.headingError.toFixed(1)}°
             </span>
           </div>
           <div className="flex justify-between">
             <span>总功率:</span>
-            <span className={metrics.totalPower > 28000 ? 'text-yellow-400' : ''}>
+            <span className={metrics.totalPower > 28000 ? 'text-amber-700' : ''}>
               {(metrics.totalPower / 1000).toFixed(1)} MW
             </span>
           </div>
@@ -485,7 +497,7 @@ function HUD({
                 }}
               />
             </div>
-            <div className="mt-1 flex justify-between text-xs text-slate-400">
+            <div className="mt-1 flex justify-between text-xs text-slate-600">
               <span>0m</span>
               <span>{DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION}m</span>
               <span>{DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION}m</span>
@@ -500,16 +512,16 @@ function HUD({
 
       {/* 违规警告 */}
       {violations.length > 0 && (
-        <Card className="w-64 border-red-500 bg-red-900/90 text-white">
+        <Card className={`w-64 border-red-300 bg-red-50/95 ${simulationUi.panel}`}>
           <CardHeader className="py-2">
-            <CardTitle className="flex items-center gap-2 text-sm text-red-400">
+            <CardTitle className="flex items-center gap-2 text-sm text-red-700">
               <AlertTriangle className="h-4 w-4" />
               伦理违规 ({violations.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="py-2 max-h-32 overflow-y-auto">
             {violations.slice(-5).map((v, i) => (
-              <div key={i} className="text-xs text-red-300 py-0.5">
+              <div key={i} className="py-0.5 text-xs text-red-700">
                 [{v.timestamp.toFixed(1)}s] {v.description}
               </div>
             ))}
@@ -537,7 +549,7 @@ function ControlPanel({
   isRunning: boolean;
 }) {
   return (
-    <Card className="absolute top-4 right-4 w-80 bg-slate-900/95 text-white z-10">
+    <Card className={`${simulationUi.panel}`}>
       <CardHeader className="py-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Settings className="h-4 w-4" />
@@ -551,12 +563,12 @@ function ControlPanel({
             variant={isRunning ? 'secondary' : 'default'}
             size="sm"
             onClick={isRunning ? onPause : onStart}
-            className="flex-1"
+            className={`flex-1 ${isRunning ? simulationUi.buttonSecondary : simulationUi.buttonPrimary}`}
           >
             {isRunning ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
             {isRunning ? '暂停' : '开始'}
           </Button>
-          <Button variant="outline" size="sm" onClick={onReset}>
+          <Button variant="outline" size="sm" onClick={onReset} className={simulationUi.buttonOutline}>
             <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
@@ -578,9 +590,9 @@ function ControlPanel({
         </div>
 
         <Tabs defaultValue="target">
-          <TabsList className="grid w-full grid-cols-2 bg-slate-800">
-            <TabsTrigger value="target">目标</TabsTrigger>
-            <TabsTrigger value="environment">环境</TabsTrigger>
+          <TabsList className={`grid w-full grid-cols-2 ${simulationUi.tabsList}`}>
+            <TabsTrigger value="target" className={simulationUi.tabsTrigger}>目标</TabsTrigger>
+            <TabsTrigger value="environment" className={simulationUi.tabsTrigger}>环境</TabsTrigger>
           </TabsList>
 
           <TabsContent value="target" className="space-y-3">
@@ -588,6 +600,7 @@ function ControlPanel({
             <div className="space-y-2">
               <Label className="text-xs">目标 X (m)</Label>
               <Slider
+                className={simulationUi.slider}
                 value={[config.targetPosition.x]}
                 min={-100}
                 max={100}
@@ -604,6 +617,7 @@ function ControlPanel({
             <div className="space-y-2">
               <Label className="text-xs">目标 Z (m)</Label>
               <Slider
+                className={simulationUi.slider}
                 value={[config.targetPosition.z]}
                 min={-100}
                 max={100}
@@ -620,6 +634,7 @@ function ControlPanel({
             <div className="space-y-2">
               <Label className="text-xs">目标航向 (°)</Label>
               <Slider
+                className={simulationUi.slider}
                 value={[config.targetHeading]}
                 min={-180}
                 max={180}
@@ -640,6 +655,7 @@ function ControlPanel({
                 海况等级
               </Label>
               <Slider
+                className={simulationUi.slider}
                 value={[config.seaStateLevel]}
                 min={1}
                 max={6}
@@ -957,7 +973,7 @@ export function DrillingSimulation() {
   const platformHeading = platformStateRef.current.psi;
 
   return (
-    <div className="relative h-[calc(100vh-73px)] w-full bg-slate-950">
+    <div className={simulationUi.root} data-sim-ui>
       {/* 3D 场景 */}
       <Canvas shadows>
         <PerspectiveCamera makeDefault position={[400, 300, 400]} fov={60} near={1} far={50000} />
@@ -1017,26 +1033,73 @@ export function DrillingSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
-        className="absolute top-4 right-4"
+        className={simulationUi.cameraSwitcherPosition}
       />
 
-      {/* HUD */}
-      <HUD
-        metrics={metrics}
-        violations={violations}
-        isRunning={isRunning}
-        thrusters={thrusters}
-        decouplingEnabled={config.decouplingEnabled}
+      <SimulationDock
+        side="left"
+        title="状态监控"
+        tabs={[
+          {
+            id: 'status',
+            label: '总览',
+            content: (
+              <HUD
+                metrics={metrics}
+                violations={violations}
+                isRunning={isRunning}
+                thrusters={thrusters}
+                decouplingEnabled={config.decouplingEnabled}
+              />
+            ),
+          },
+        ]}
       />
 
-      {/* 控制面板 */}
-      <ControlPanel
-        config={config}
-        onConfigChange={handleConfigChange}
-        onStart={handleStart}
-        onPause={handlePause}
-        onReset={handleReset}
-        isRunning={isRunning}
+      <SimulationDock
+        side="right"
+        title="控制与探究"
+        tabs={[
+          {
+            id: 'control',
+            label: '控制',
+            content: (
+              <ControlPanel
+                config={config}
+                onConfigChange={handleConfigChange}
+                onStart={handleStart}
+                onPause={handlePause}
+                onReset={handleReset}
+                isRunning={isRunning}
+              />
+            ),
+          },
+          {
+            id: 'evaluate',
+            label: '评估',
+            content: (
+              <SimulationAssessmentPanel
+                title="DP定位评估"
+                metrics={[
+                  { id: 'position', label: '位置误差', value: metrics.positionError, max: 12, better: 'lower', unit: 'm' },
+                  { id: 'heading', label: '航向误差', value: metrics.headingError, max: 45, better: 'lower', unit: '°' },
+                  { id: 'power', label: '总功率', value: metrics.totalPower / 1000, max: 40, better: 'lower', unit: 'MW' },
+                ]}
+              />
+            ),
+          },
+          {
+            id: 'ai',
+            label: 'AI伴学',
+            content: <AICompanionPanel title="钻井平台动力定位控制" sessionId="drilling-simulation-session" />,
+          },
+        ]}
+      />
+
+      <SimulationTopBar
+        title="海洋石油981 深水钻井平台"
+        subtitle="DP 解耦控制 · 推力分配 · 风浪流扰动"
+        badge="Drilling / OBE"
       />
 
     </div>

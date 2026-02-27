@@ -22,8 +22,13 @@ import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
+  SimulationTopBar,
+  SimulationDock,
+  SimulationAssessmentPanel,
+  simulationUi,
   type CameraMode,
 } from '../components';
+import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 import {
   Play,
   Pause,
@@ -63,7 +68,7 @@ import {
 } from '../physics/controllers/dp-controller';
 import { DredgingImpactModel } from '../physics/disturbances/dredging-impact';
 import type { ControlMode, EthicalViolation, Vector2, DisturbanceVector } from '../core/types';
-import { toRadians, toDegrees, clamp } from '../core/constants';
+import { toRadians, toDegrees, clamp, TIANJING_DREDGER_PARAMS } from '../core/constants';
 
 // ============ 类型定义 ============
 
@@ -203,13 +208,15 @@ function DredgerModel({
   useFrame(() => {
     if (groupRef.current) {
       groupRef.current.position.x = position.x;
+      groupRef.current.position.y = modelHeight * 0.5 - TIANJING_DREDGER_PARAMS.DRAFT;
       groupRef.current.position.z = position.z;
-      groupRef.current.rotation.y = -heading + Math.PI / 2;
+      // 挖泥船模型前向与仿真航向轴存在 180° 偏置，需显式修正
+      groupRef.current.rotation.y = -heading + Math.PI / 2 + Math.PI;
     }
   });
 
   return (
-    <group ref={groupRef} position={[0, modelHeight * 0.5, 0]}>
+    <group ref={groupRef}>
       <primitive object={model} scale={scale} />
       {/* 船首指示器 */}
       <mesh position={[0, modelHeight * 0.6, 0]}>
@@ -288,7 +295,7 @@ function HUD({
   isRunning: boolean;
 }) {
   return (
-    <div className="pointer-events-none absolute left-4 top-4 space-y-2">
+    <div className="space-y-2">
       {/* 状态指示 */}
       <div className="flex items-center gap-2">
         <Badge variant={isRunning ? 'default' : 'secondary'}>
@@ -300,7 +307,7 @@ function HUD({
       </div>
 
       {/* 定位精度 */}
-      <Card className="w-64 bg-slate-900/90 text-white">
+      <Card className={`w-64 ${simulationUi.panel}`}>
         <CardHeader className="py-2">
           <CardTitle className="flex items-center gap-2 text-sm">
             <Crosshair className="h-4 w-4" />
@@ -310,13 +317,13 @@ function HUD({
         <CardContent className="space-y-1 py-2 text-xs">
           <div className="flex justify-between">
             <span>位置误差:</span>
-            <span className={metrics.positionError > 0.1 ? 'text-red-400' : 'text-green-400'}>
+            <span className={metrics.positionError > 0.1 ? 'text-red-700' : 'text-green-700'}>
               {metrics.positionError.toFixed(3)} m
             </span>
           </div>
           <div className="flex justify-between">
             <span>航向误差:</span>
-            <span className={metrics.headingError > 1 ? 'text-yellow-400' : 'text-green-400'}>
+            <span className={metrics.headingError > 1 ? 'text-amber-700' : 'text-green-700'}>
               {metrics.headingError.toFixed(2)}°
             </span>
           </div>
@@ -333,16 +340,16 @@ function HUD({
 
       {/* 违规警告 */}
       {violations.length > 0 && (
-        <Card className="w-64 border-red-500 bg-red-900/90 text-white">
+        <Card className={`w-64 border-red-300 bg-red-50/95 ${simulationUi.panel}`}>
           <CardHeader className="py-2">
-            <CardTitle className="flex items-center gap-2 text-sm text-red-400">
+            <CardTitle className="flex items-center gap-2 text-sm text-red-700">
               <AlertTriangle className="h-4 w-4" />
               伦理违规
             </CardTitle>
           </CardHeader>
           <CardContent className="py-2">
             {violations.slice(-3).map((v, i) => (
-              <div key={i} className="text-xs text-red-300">
+              <div key={i} className="text-xs text-red-700">
                 {v.description}
               </div>
             ))}
@@ -370,7 +377,7 @@ function ControlPanel({
   isRunning: boolean;
 }) {
   return (
-    <Card className="absolute bottom-4 right-4 w-80 bg-slate-900/95 text-white">
+    <Card className={`${simulationUi.panel}`}>
       <CardHeader className="py-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Settings className="h-4 w-4" />
@@ -384,21 +391,21 @@ function ControlPanel({
             variant={isRunning ? 'secondary' : 'default'}
             size="sm"
             onClick={isRunning ? onPause : onStart}
-            className="flex-1"
+            className={`flex-1 ${isRunning ? simulationUi.buttonSecondary : simulationUi.buttonPrimary}`}
           >
             {isRunning ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
             {isRunning ? '暂停' : '开始'}
           </Button>
-          <Button variant="outline" size="sm" onClick={onReset}>
+          <Button variant="outline" size="sm" onClick={onReset} className={simulationUi.buttonOutline}>
             <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
 
         <Tabs defaultValue="target">
-          <TabsList className="grid w-full grid-cols-3 bg-slate-800">
-            <TabsTrigger value="target">目标</TabsTrigger>
-            <TabsTrigger value="disturbance">扰动</TabsTrigger>
-            <TabsTrigger value="control">控制</TabsTrigger>
+          <TabsList className={`grid w-full grid-cols-3 ${simulationUi.tabsList}`}>
+            <TabsTrigger value="target" className={simulationUi.tabsTrigger}>目标</TabsTrigger>
+            <TabsTrigger value="disturbance" className={simulationUi.tabsTrigger}>扰动</TabsTrigger>
+            <TabsTrigger value="control" className={simulationUi.tabsTrigger}>控制</TabsTrigger>
           </TabsList>
 
           <TabsContent value="target" className="space-y-3">
@@ -406,6 +413,7 @@ function ControlPanel({
             <div className="space-y-2">
               <Label className="text-xs">目标 X (m)</Label>
               <Slider
+                className={simulationUi.slider}
                 value={[config.targetPosition.x]}
                 min={-500}
                 max={500}
@@ -422,6 +430,7 @@ function ControlPanel({
             <div className="space-y-2">
               <Label className="text-xs">目标 Z (m)</Label>
               <Slider
+                className={simulationUi.slider}
                 value={[config.targetPosition.z]}
                 min={-500}
                 max={500}
@@ -438,6 +447,7 @@ function ControlPanel({
             <div className="space-y-2">
               <Label className="text-xs">目标航向 (°)</Label>
               <Slider
+                className={simulationUi.slider}
                 value={[config.targetHeading]}
                 min={-180}
                 max={180}
@@ -457,6 +467,7 @@ function ControlPanel({
               <Button
                 variant={config.dredgingEnabled ? 'default' : 'outline'}
                 size="sm"
+                className={config.dredgingEnabled ? simulationUi.buttonPrimary : simulationUi.buttonOutline}
                 onClick={() => onConfigChange({ dredgingEnabled: !config.dredgingEnabled })}
               >
                 {config.dredgingEnabled ? '已启用' : '已禁用'}
@@ -470,6 +481,7 @@ function ControlPanel({
                 海流速度 (m/s)
               </Label>
               <Slider
+                className={simulationUi.slider}
                 value={[config.currentSpeed]}
                 min={0}
                 max={2}
@@ -488,6 +500,7 @@ function ControlPanel({
                 风速 (m/s)
               </Label>
               <Slider
+                className={simulationUi.slider}
                 value={[config.windSpeed]}
                 min={0}
                 max={20}
@@ -510,6 +523,7 @@ function ControlPanel({
                     key={mode}
                     variant={config.controlMode === mode ? 'default' : 'outline'}
                     size="sm"
+                    className={config.controlMode === mode ? simulationUi.buttonPrimary : simulationUi.buttonOutline}
                     onClick={() => onConfigChange({ controlMode: mode })}
                   >
                     {mode === 'dp' && <Anchor className="mr-1 h-3 w-3" />}
@@ -741,7 +755,7 @@ export function DredgerSimulation() {
   const shipHeading = mmgStateRef.current.psi;
 
   return (
-    <div className="relative h-screen w-full bg-slate-950">
+    <div className={simulationUi.root} data-sim-ui>
       {/* 3D 场景 */}
       <Canvas shadows>
         <PerspectiveCamera makeDefault position={[300, 200, 300]} fov={60} near={1} far={50000} />
@@ -796,37 +810,74 @@ export function DredgerSimulation() {
           headingRad={shipHeading}
           cameraMode={cameraMode}
           controlsRef={controlsRef}
+          config={{ chaseSideOffset: -240 }}
         />
       </Canvas>
 
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
-        className="absolute top-4 right-4"
+        className={simulationUi.cameraSwitcherPosition}
       />
 
-      {/* HUD */}
-      <HUD metrics={metrics} violations={violations} isRunning={isRunning} />
-
-      {/* 控制面板 */}
-      <ControlPanel
-        config={config}
-        onConfigChange={handleConfigChange}
-        onStart={handleStart}
-        onPause={handlePause}
-        onReset={handleReset}
-        isRunning={isRunning}
+      <SimulationDock
+        side="left"
+        title="状态监控"
+        tabs={[
+          {
+            id: 'status',
+            label: '总览',
+            content: <HUD metrics={metrics} violations={violations} isRunning={isRunning} />,
+          },
+        ]}
       />
 
-      {/* 标题 */}
-      <div className="absolute left-1/2 top-4 -translate-x-1/2">
-        <h1 className="text-xl font-bold text-white">
-          天鲸号挖泥船动力定位仿真
-        </h1>
-        <p className="text-center text-sm text-slate-400">
-          MMG 3-DOF 高保真模型 · 定位精度 &lt; 0.1m
-        </p>
-      </div>
+      <SimulationDock
+        side="right"
+        title="控制与探究"
+        tabs={[
+          {
+            id: 'control',
+            label: '控制',
+            content: (
+              <ControlPanel
+                config={config}
+                onConfigChange={handleConfigChange}
+                onStart={handleStart}
+                onPause={handlePause}
+                onReset={handleReset}
+                isRunning={isRunning}
+              />
+            ),
+          },
+          {
+            id: 'evaluate',
+            label: '评估',
+            content: (
+              <SimulationAssessmentPanel
+                title="定位精度评估"
+                metrics={[
+                  { id: 'position', label: '位置误差', value: metrics.positionError, max: 2, better: 'lower', unit: 'm', precision: 3 },
+                  { id: 'heading', label: '航向误差', value: metrics.headingError, max: 20, better: 'lower', unit: '°', precision: 2 },
+                  { id: 'speed', label: '航速稳定', value: metrics.speed, max: 4, better: 'lower', unit: 'm/s', precision: 2 },
+                  { id: 'rudder', label: '舵角幅值', value: Math.abs(metrics.rudderAngle), max: 35, better: 'lower', unit: '°', precision: 1 },
+                ]}
+              />
+            ),
+          },
+          {
+            id: 'ai',
+            label: 'AI伴学',
+            content: <AICompanionPanel title="挖泥船动力定位控制" sessionId="dredger-simulation-session" />,
+          },
+        ]}
+      />
+
+      <SimulationTopBar
+        title="天鲸号挖泥船动力定位仿真"
+        subtitle="MMG 3-DOF 高保真模型 · 定位精度 < 0.1m"
+        badge="Dredger / OBE"
+      />
     </div>
   );
 }

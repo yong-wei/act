@@ -20,8 +20,12 @@ import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
+  SimulationTopBar,
+  SimulationDock,
+  simulationUi,
   type CameraMode,
 } from '../components';
+import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 
 import type {
   ControlMode,
@@ -57,6 +61,16 @@ interface CruiseSimulationState {
   finPower: number;
   portFinAngle: number;
   starboardFinAngle: number;
+}
+
+interface CruiseAnalysisResponse {
+  objectiveScores: {
+    comfort: number;
+    performance: number;
+    energy: number;
+  };
+  blendedScore: number;
+  advice: string[];
 }
 
 // ============ 海面组件 ============
@@ -184,6 +198,7 @@ function CruiseShipModel({
   useFrame(() => {
     if (groupRef.current) {
       groupRef.current.position.x = position.x;
+      groupRef.current.position.y = modelHeight * 0.5 - CRUISE_ADORA_PARAMS.DRAFT;
       groupRef.current.position.z = position.z;
       groupRef.current.rotation.y = -heading + Math.PI / 2;
       groupRef.current.rotation.z = rollAngle;
@@ -191,7 +206,7 @@ function CruiseShipModel({
   });
 
   return (
-    <group ref={groupRef} position={[0, modelHeight * 0.5, 0]}>
+    <group ref={groupRef}>
       <primitive object={model} scale={scale} />
       {/* 船艏标记 */}
       <mesh position={[0, modelHeight * 0.6, 0]}>
@@ -492,29 +507,28 @@ function ControlPanel({
   onReset: () => void;
 }) {
   return (
-    <div className="absolute left-4 top-4 w-72 space-y-3 rounded-lg bg-slate-900/95 p-4 text-sm text-slate-100 shadow-xl">
-      <h3 className="text-lg font-semibold text-purple-400">爱达·魔都号 邮轮仿真</h3>
+    <div className="space-y-3 p-1 text-sm">
 
       {/* 仿真控制 */}
       <div className="flex gap-2">
         {!state.isRunning ? (
           <button
             onClick={onStart}
-            className="flex-1 rounded bg-green-600 px-3 py-2 hover:bg-green-500"
+            className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonPrimary}`}
           >
             开始仿真
           </button>
         ) : (
           <button
             onClick={onPause}
-            className="flex-1 rounded bg-yellow-600 px-3 py-2 hover:bg-yellow-500"
+            className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonSecondary}`}
           >
             {state.isPaused ? '继续' : '暂停'}
           </button>
         )}
         <button
           onClick={onReset}
-          className="flex-1 rounded bg-slate-600 px-3 py-2 hover:bg-slate-500"
+          className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonOutline}`}
         >
           重置
         </button>
@@ -529,7 +543,7 @@ function ControlPanel({
           max="180"
           value={state.targetHeading}
           onChange={(e) => onTargetHeadingChange(Number(e.target.value))}
-          className="w-full accent-purple-500"
+          className={simulationUi.nativeRange}
         />
       </div>
 
@@ -547,7 +561,7 @@ function ControlPanel({
           max="7"
           value={state.seaState}
           onChange={(e) => onSeaStateChange(Number(e.target.value))}
-          className="w-full accent-purple-500"
+          className={simulationUi.nativeRange}
         />
       </div>
 
@@ -565,7 +579,7 @@ function ControlPanel({
           max="360"
           value={state.waveDirection}
           onChange={(e) => onWaveDirectionChange(Number(e.target.value))}
-          className="w-full accent-blue-500"
+          className={simulationUi.nativeRange}
         />
       </div>
 
@@ -577,10 +591,10 @@ function ControlPanel({
             <button
               key={mode}
               onClick={() => onControlModeChange(mode)}
-              className={`rounded px-2 py-1 text-xs ${
+              className={`rounded border px-2 py-1 text-xs ${
                 state.controlMode === mode
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-slate-700 hover:bg-slate-600'
+                  ? simulationUi.buttonPrimary
+                  : simulationUi.buttonOutline
               }`}
             >
               {mode.toUpperCase()}
@@ -615,8 +629,7 @@ function HUD({ state }: { state: CruiseSimulationState }) {
   const rollDeg = toDegrees(state.rollAngle);
 
   return (
-    <div className="absolute right-4 top-4 w-64 space-y-3 rounded-lg bg-slate-900/95 p-4 text-sm text-slate-100 shadow-xl">
-      <h3 className="text-lg font-semibold text-purple-400">状态监控</h3>
+    <div className="space-y-3 p-1 text-sm">
 
       {/* 时间 */}
       <div className="flex justify-between border-b border-slate-700 pb-2">
@@ -677,6 +690,108 @@ function HUD({ state }: { state: CruiseSimulationState }) {
   );
 }
 
+function CruiseTradeoffPanel({ state }: { state: CruiseSimulationState }) {
+  const [weights, setWeights] = useState({ comfortWeight: 0.5, performanceWeight: 0.35, energyWeight: 0.15 });
+  const [analysis, setAnalysis] = useState<CruiseAnalysisResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const derivedMetrics = useMemo(
+    () => ({
+      msi: Number(state.comfort.msi.toFixed(1)),
+      settlingTime: Number(Math.max(6, Math.abs(state.targetHeading - state.heading) * 0.7 + 8).toFixed(1)),
+      overshoot: Number(Math.abs(state.rudder).toFixed(1)),
+      finPower: Number(state.finPower.toFixed(0)),
+    }),
+    [state.comfort.msi, state.finPower, state.heading, state.rudder, state.targetHeading]
+  );
+
+  const runAnalysis = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/simulation/cruise-comfort-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          objectives: weights,
+          metrics: derivedMetrics,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('舒适度分析失败');
+      }
+      setAnalysis((await response.json()) as CruiseAnalysisResponse);
+    } finally {
+      setLoading(false);
+    }
+  }, [derivedMetrics, weights]);
+
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          ['舒适权重', 'comfortWeight'],
+          ['性能权重', 'performanceWeight'],
+          ['能耗权重', 'energyWeight'],
+        ].map(([label, key]) => (
+          <label key={key} className="text-xs text-slate-700">
+            {label}
+            <input
+              type="number"
+              min={0}
+              max={1}
+              step={0.05}
+              value={weights[key as keyof typeof weights]}
+              onChange={(event) =>
+                setWeights((prev) => ({
+                  ...prev,
+                  [key]: Number(event.target.value),
+                }))
+              }
+              className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
+            />
+          </label>
+        ))}
+      </div>
+
+      <div className="rounded-lg border border-slate-300 bg-white p-2 text-xs text-slate-700">
+        <div>MSI: {derivedMetrics.msi}%</div>
+        <div>调节时间: {derivedMetrics.settlingTime}s</div>
+        <div>舵角幅值: {derivedMetrics.overshoot}°</div>
+        <div>减摇鳍功率: {derivedMetrics.finPower}kW</div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => void runAnalysis()}
+        disabled={loading}
+        className={`w-full rounded border px-3 py-2 ${simulationUi.buttonPrimary} disabled:opacity-60`}
+      >
+        {loading ? '分析中...' : '计算权衡得分'}
+      </button>
+
+      {analysis ? (
+        <div className="space-y-2 rounded-lg border border-slate-300 bg-white p-2 text-xs">
+          <div className="text-slate-700">
+            综合评分：<span className="font-semibold text-slate-900">{analysis.blendedScore.toFixed(2)}</span>
+          </div>
+          <div className="grid grid-cols-3 gap-1 text-slate-700">
+            <div>舒适 {analysis.objectiveScores.comfort.toFixed(1)}</div>
+            <div>性能 {analysis.objectiveScores.performance.toFixed(1)}</div>
+            <div>能耗 {analysis.objectiveScores.energy.toFixed(1)}</div>
+          </div>
+          <ul className="space-y-1 text-slate-700">
+            {analysis.advice.map((item) => (
+              <li key={item} className="rounded border border-slate-200 bg-slate-50 px-2 py-1">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 // ============ 主仿真组件 ============
 
 export default function CruiseSimulation() {
@@ -695,7 +810,8 @@ export default function CruiseSimulation() {
     isRunning: false,
     isPaused: false,
     time: 0,
-    position: { x: 0, z: 0 },
+    // 与引擎 initialize(-3000, 0, 0) 保持一致，避免点击“开始仿真”后视角瞬间拉远
+    position: { x: -3000, z: 0 },
     heading: 0,
     yawRate: 0,
     rudder: 0,
@@ -888,8 +1004,8 @@ export default function CruiseSimulation() {
   }, []);
 
   return (
-    <div className="relative h-screen w-full bg-slate-950">
-      <Canvas shadows camera={{ position: [-500, 300, 800], fov: 50, near: 1, far: 50000 }}>
+    <div className={simulationUi.root} data-sim-ui>
+      <Canvas shadows camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
         <Suspense fallback={null}>
           <ambientLight intensity={0.4} />
           <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
@@ -927,28 +1043,54 @@ export default function CruiseSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
-        className="absolute top-4 right-4"
+        className={simulationUi.cameraSwitcherPosition}
       />
 
-      <ControlPanel
-        state={state}
-        onTargetHeadingChange={handleTargetHeadingChange}
-        onControlModeChange={handleControlModeChange}
-        onSeaStateChange={handleSeaStateChange}
-        onWaveDirectionChange={handleWaveDirectionChange}
-        onFinStabilizerToggle={handleFinStabilizerToggle}
-        onNotchFilterToggle={handleNotchFilterToggle}
-        onStart={handleStart}
-        onPause={handlePause}
-        onReset={handleReset}
+      <SimulationDock
+        side="left"
+        title="状态监控"
+        tabs={[
+          { id: 'status', label: '总览', content: <HUD state={state} /> },
+        ]}
       />
 
-      <HUD state={state} />
+      <SimulationDock
+        side="right"
+        title="控制与探究"
+        tabs={[
+          {
+            id: 'control',
+            label: '控制',
+            content: (
+              <ControlPanel
+                state={state}
+                onTargetHeadingChange={handleTargetHeadingChange}
+                onControlModeChange={handleControlModeChange}
+                onSeaStateChange={handleSeaStateChange}
+                onWaveDirectionChange={handleWaveDirectionChange}
+                onFinStabilizerToggle={handleFinStabilizerToggle}
+                onNotchFilterToggle={handleNotchFilterToggle}
+                onStart={handleStart}
+                onPause={handlePause}
+                onReset={handleReset}
+              />
+            ),
+          },
+          { id: 'evaluate', label: '评估', content: <CruiseTradeoffPanel state={state} /> },
+          { id: 'ai', label: 'AI伴学', content: <AICompanionPanel title="邮轮舒适度控制" sessionId="cruise-comfort-session" /> },
+        ]}
+      />
+
+      <SimulationTopBar
+        title="爱达·魔都号豪华邮轮"
+        subtitle="舒适度控制 · 减摇鳍 · 陷波滤波"
+        badge="Cruise / OBE"
+      />
 
       {/* 说明 */}
-      <div className="absolute bottom-4 left-4 rounded bg-slate-900/80 p-2 text-xs text-slate-400">
+      <div className={`${simulationUi.panel} absolute bottom-4 left-4 p-2 text-xs`}>
         <div>拖拽旋转视角 | 滚轮缩放 | 右键平移</div>
-        <div className="mt-1 text-purple-400">
+        <div className="mt-1 text-slate-700">
           知识点: 频率响应 (Ch5), 陷波滤波器 (Ch6)
         </div>
       </div>

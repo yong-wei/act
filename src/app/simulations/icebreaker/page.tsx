@@ -1,6 +1,4 @@
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 
 const IcebreakerSimulation = dynamic(
   () => import('@/resources/simulations/simulations/icebreaker-simulation'),
@@ -21,24 +19,6 @@ const IcebreakerSimulation = dynamic(
 export default function IcebreakerSimulationPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      {/* 导航栏 */}
-      <header className="absolute left-0 right-0 top-0 z-50 flex items-center justify-between border-b border-white/10 bg-slate-900/80 px-6 py-4 backdrop-blur-sm">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-sm text-slate-400 transition hover:text-white"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          返回首页
-        </Link>
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-slate-500">舰队模型</span>
-          <span className="rounded-full bg-cyan-500/20 px-3 py-1 text-xs text-cyan-400">
-            雪龙2号
-          </span>
-        </div>
-      </header>
-
-      {/* 仿真组件 */}
       <IcebreakerSimulation />
     </div>
   );

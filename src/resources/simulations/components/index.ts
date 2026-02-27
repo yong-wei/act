@@ -19,3 +19,12 @@ export {
   CameraViewSwitcherCompact,
   type CameraViewSwitcherProps,
 } from './camera-view-switcher';
+
+export {
+  simulationUi,
+  SimulationTopBar,
+  SimulationDock,
+  SimulationAssessmentPanel,
+  type SimulationDockTab,
+  type SimulationAssessmentMetric,
+} from './simulation-ui';

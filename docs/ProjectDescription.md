@@ -7,9 +7,12 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-02-21
+📅 **最后更新**：2026-02-27
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
-🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教室工作台”入口（`http://localhost:3001/teacher`）
+🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教室工作台”入口（`http://localhost:3001/teacher`）；首页与认证导航新增“评审入口”（`/review`），汇总 DevelopmentPlan 用户备注对应的分支页面
+🛟 **仿真统一改造**：7 个船舶仿真统一为左侧监控、右侧“控制/评估/AI伴学”标签式面板，支持收起/展开与统一配色主题
+🎥 **视角统一**：主视角统一为左舷后方约 45° 且默认跟随，统一相机距离与目标中心构图，跨仿真保持一致
+🧩 **场景合并**：`/simulations/cruise-comfort` 与 `/simulations/icebreaker-robust` 能力合并入 `/simulations/cruise` 与 `/simulations/icebreaker` 主场景
 🧠 **知识点同步**：启动脚本默认执行 `npm run seed:knowledge`，确保预置教案克隆所需 KnowledgeNode 已补齐
 📘 **课程更新**：新增 Lesson 01「反馈：控制原理的核心思想」、Lesson 02「拉氏变换：工程直觉的数学实现」与 Lesson 05「方框图、信号流图与梅森公式」预置教案与互动学习入口，原 Lesson 02 建模课迁移为 Legacy；Lesson 03 预置教案与知识节点绑定已完成；新增 Lesson 16「非线性系统与描述函数基础」与 Lesson 17「描述函数分析法与自振判别」预置教案、互动学习入口与知识节点
 🧾 **教案管理**：我的教案支持三点菜单删除并二次确认
@@ -135,11 +138,17 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 
 ### 3.12 互动学习 (Interactive Learning) ✅
 - **模块入口**：`/interactive-learning`
+- **入口路由拆分（2026-02）**：
+  - `/interactive-learning/cross-domain-exploration`（跨域探索，原“趣味探索”命名升级）
+  - `/interactive-learning/courses`（互动课程，原“线下课程入口”命名升级）
+  - `/interactive-learning/chapter-components`（各章节互动组件入口）
+  - `/interactive-learning/chapter-components/[category]`（章节组件独立路由）
+- **跨域探索置顶组件**：`/interactive-learning/multi-representation-linkage` 作为跨域探索首个入口
 - **资源来源**：动态加载教学资源库中 `INTERACTIVE_COMP` 单页互动资源
 - **资源查看入口**：`/interactive-learning/resources/[id]`
 - **定位**：以单页互动资源浏览为主，提供精选课程入口；课程编排与播放入口统一在管理员课堂流程
 - **统一框架**：课程播放统一走 `TeachingResource` + `LessonPlan` + `ClassSession` 的 BOPPPS 编排链路
-- **新增**：趣味探索分类与十滴水关卡进度/排行榜支持
+- **新增**：跨域探索分类与十滴水关卡进度/排行榜支持
 - **Control Odyssey**：关卡扩展至 15 关与青铜/白银/黄金分级解锁、统一仿真内核（固定步长 + Tustin 离散化 + 非线性积分器）、控制商店积分换购与控制器升级体系、测速反馈/前馈/史密斯预估器复合控制、难度滑块与积分倍率、配置面板分区与控制框图高亮、暗流扰动（含惯性滤波）与通道包络生成、通关结算三指标（超调/稳态/平均相对误差）与分支得分基准、榜单分支标识与指标展示、全息能量壳层飞船外形与动态尾迹、AI 控制建议（20 积分调用，关卡/配置/指标上下文，关卡内最新建议共享与高分配置上下文，建议历史落库）、失败结算详情曲线入口
 - **仿真规范**：统一仿真接口与时间步进规范入口 `docs/Simulation_Guidelines.md`
 - **Lesson 01 反馈：控制原理的核心思想**：从生活场景引入反馈思想的 90 分钟预置教案，覆盖控制系统组成、开环/闭环与反馈价值
@@ -195,8 +204,9 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 
 ### 3.16 工程场景扩展（邮轮舒适度 / 破冰船鲁棒） ✅
 - **页面路径**：
-  - `/simulations/cruise-comfort`
-  - `/simulations/icebreaker-robust`
+  - `/simulations/cruise`（右侧标签 `评估`）
+  - `/simulations/icebreaker`（右侧标签 `评估`）
+- **合并说明**：原 `cruise-comfort`、`icebreaker-robust` 变体页面已并入主仿真页面，不再单独维护
 - **邮轮舒适度扩展**：多目标权衡（舒适度/性能/能耗）评分与建议
 - **破冰船鲁棒扩展**：不确定参数区间 + 扰动场景 Monte Carlo 鲁棒评估
 - **分析 API**：
@@ -209,7 +219,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
   - `POST /api/ai/intervention/check`
   - `POST /api/ai/intervention/generate`
   - `POST /api/ai/intervention/feedback`
-- **场景融合**：在扩展场景页提供 AI 伴随探究面板，支持“记录尝试→判定介入→生成引导→反馈”
+- **场景融合**：在 7 个仿真右侧“AI伴学”标签提供伴随探究面板，支持“记录尝试→判定介入→生成引导→反馈”
 
 ### 3.18 元提示词评价 + 过程一致性校验 ✅
 - **页面路径**：`/evaluation/prompt-assessment`
@@ -464,6 +474,6 @@ npm test               # 运行测试
 
 ---
 
-**最后更新日期**：2026-02-21
+**最后更新日期**：2026-02-23
 **版本**：v1.1.0
 **状态**：开发完成，可用于教学实践

@@ -6,7 +6,7 @@
  */
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import {
   OrbitControls,
   useGLTF,
@@ -17,13 +17,17 @@ import {
 } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { SkyDome, ProceduralClouds } from '../environment';
+import { MaritimeEnvironment } from '../environment';
 import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
+  SimulationTopBar,
+  SimulationDock,
+  simulationUi,
   type CameraMode,
 } from '../components';
+import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 import {
   Play,
   Pause,
@@ -42,7 +46,6 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 
@@ -110,6 +113,22 @@ interface SimulationMetrics {
   time: number;
 }
 
+interface RobustResponse {
+  robustnessMetrics: {
+    disturbanceRejection: number;
+    parameterSensitivity: number;
+    stabilityMargin: number;
+  };
+  scenarioResults: Array<{
+    name: string;
+    intensity: number;
+    disturbanceRejection: number;
+    parameterSensitivity: number;
+    stabilityMargin: number;
+  }>;
+  recommendation: string;
+}
+
 // ============ 着色器材质 ============
 
 const iceWaterVertexShader = `
@@ -142,13 +161,13 @@ const iceWaterFragmentShader = `
   varying float vHeight;
 
   void main() {
-    // 开阔水域颜色
-    vec3 deepColor = vec3(0.0, 0.2, 0.4);
-    vec3 shallowColor = vec3(0.0, 0.5, 0.7);
+    // 统一到平台海洋基色
+    vec3 deepColor = vec3(0.07, 0.25, 0.38);
+    vec3 shallowColor = vec3(0.12, 0.42, 0.63);
 
-    // 冰区颜色 (更亮的蓝白色)
-    vec3 iceDeepColor = vec3(0.6, 0.8, 0.9);
-    vec3 iceShallowColor = vec3(0.85, 0.92, 0.98);
+    // 冰区颜色仅做轻度冷色偏移，避免与其他仿真风格割裂
+    vec3 iceDeepColor = vec3(0.16, 0.34, 0.52);
+    vec3 iceShallowColor = vec3(0.48, 0.67, 0.80);
 
     // 根据冰区模式混合颜色
     vec3 baseDeep = mix(deepColor, iceDeepColor, iceMode);
@@ -161,11 +180,11 @@ const iceWaterFragmentShader = `
     if (iceMode > 0.5) {
       float noise = fract(sin(dot(vUv, vec2(12.9898, 78.233))) * 43758.5453);
       if (noise > 0.7) {
-        waterColor = mix(waterColor, vec3(1.0), 0.5);
+        waterColor = mix(waterColor, vec3(0.90, 0.95, 1.0), 0.2);
       }
     }
 
-    gl_FragColor = vec4(waterColor, 0.9);
+    gl_FragColor = vec4(waterColor, 0.35);
   }
 `;
 
@@ -219,7 +238,7 @@ function IcebreakerModel({
   const { scene } = useGLTF('/assets/icebreaker.glb');
   const groupRef = useRef<THREE.Group>(null);
 
-  const { model, scale } = useMemo(() => {
+  const { model, scale, modelHeight } = useMemo(() => {
     const cloned = scene.clone(true);
     const box = new THREE.Box3().setFromObject(cloned);
     const size = new THREE.Vector3();
@@ -250,12 +269,13 @@ function IcebreakerModel({
     const targetLength = XUELONG_ICEBREAKER_PARAMS.LENGTH;
     const calculatedScale = targetLength / maxDim;
 
-    return { model: cloned, scale: calculatedScale };
+    return { model: cloned, scale: calculatedScale, modelHeight: size.y * calculatedScale };
   }, [scene]);
 
   useFrame(() => {
     if (groupRef.current) {
       groupRef.current.position.x = position.x;
+      groupRef.current.position.y = modelHeight * 0.5 - XUELONG_ICEBREAKER_PARAMS.DRAFT;
       groupRef.current.position.z = position.z;
       groupRef.current.rotation.y = -heading + Math.PI / 2;
     }
@@ -388,11 +408,8 @@ function Scene({
         shadow-mapSize={[2048, 2048]}
       />
 
-      {/* 极地天空 - 必须先渲染 */}
-      <SkyDome horizonColor="#e0e8f0" zenithColor="#6b8aa8" />
-      <ProceduralClouds />
-
-      <IceOcean iceMode={iceMode} />
+      <MaritimeEnvironment shipPosition={position} seaState={3} />
+      {iceMode && <IceOcean iceMode={iceMode} />}
 
       <IcebreakerModel
         position={position}
@@ -440,7 +457,7 @@ function IceStatusPanel({
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full border border-slate-300 bg-white text-slate-900">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <Snowflake className="w-4 h-4" />
@@ -449,7 +466,7 @@ function IceStatusPanel({
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex justify-between items-center">
-          <span className="text-sm text-muted-foreground">冰厚</span>
+          <span className="text-sm text-slate-400">冰厚</span>
           <div className="flex items-center gap-2">
             <span className="font-mono">{iceThickness.toFixed(2)} m</span>
             <div className={`w-3 h-3 rounded-full ${safetyColors[safetyLevel]}`} />
@@ -459,7 +476,7 @@ function IceStatusPanel({
         {iceState.inContact && (
           <>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">相位</span>
+              <span className="text-sm text-slate-400">相位</span>
               <Badge variant={iceState.stickPhase ? 'destructive' : 'default'}>
                 {summary.phase}
               </Badge>
@@ -467,7 +484,7 @@ function IceStatusPanel({
 
             <div className="space-y-1">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">相位进度</span>
+                <span className="text-slate-400">相位进度</span>
                 <span>{(summary.phaseProgress * 100).toFixed(0)}%</span>
               </div>
               <Progress value={summary.phaseProgress * 100} />
@@ -475,17 +492,17 @@ function IceStatusPanel({
 
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
-                <span className="text-muted-foreground">K 摄动</span>
+                <span className="text-slate-400">K 摄动</span>
                 <div className="font-mono text-lg">{summary.kPerturbation}</div>
               </div>
               <div>
-                <span className="text-muted-foreground">T 摄动</span>
+                <span className="text-slate-400">T 摄动</span>
                 <div className="font-mono text-lg">{summary.tPerturbation}</div>
               </div>
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">冰阻力</span>
+              <span className="text-sm text-slate-400">冰阻力</span>
               <span className="font-mono">{summary.resistanceKN.toFixed(0)} kN</span>
             </div>
           </>
@@ -510,7 +527,7 @@ function AzipodStatusPanel({
   const maxThrust = XUELONG_AZIPOD_PARAMS.MAX_SINGLE_THRUST;
 
   return (
-    <Card className="w-full">
+    <Card className="w-full border border-slate-300 bg-white text-slate-900">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <Gauge className="w-4 h-4" />
@@ -547,10 +564,10 @@ function AzipodStatusPanel({
         </div>
 
         {/* 可视化 */}
-        <div className="relative h-24 bg-slate-100 dark:bg-slate-800 rounded-lg">
+        <div className="relative h-24 rounded-lg border border-slate-300 bg-slate-100">
           <div className="absolute inset-0 flex items-center justify-center">
             {/* 船体简化表示 */}
-            <div className="w-16 h-32 bg-slate-300 dark:bg-slate-600 rounded-t-full relative">
+            <div className="relative h-32 w-16 rounded-t-full bg-slate-300">
               {/* Azipod 1 */}
               <div
                 className="absolute -left-4 bottom-4 w-8 h-2 bg-green-500 origin-right"
@@ -592,7 +609,7 @@ function ControlPanel({
         <Button
           variant={isRunning ? 'destructive' : 'default'}
           onClick={onToggleRun}
-          className="flex-1"
+          className={`flex-1 ${isRunning ? simulationUi.buttonSecondary : simulationUi.buttonPrimary}`}
         >
           {isRunning ? (
             <>
@@ -604,7 +621,7 @@ function ControlPanel({
             </>
           )}
         </Button>
-        <Button variant="outline" onClick={onReset}>
+        <Button variant="outline" onClick={onReset} className={simulationUi.buttonOutline}>
           <RotateCcw className="w-4 h-4" />
         </Button>
       </div>
@@ -618,6 +635,7 @@ function ControlPanel({
               key={mode}
               variant={config.controlMode === mode ? 'default' : 'outline'}
               size="sm"
+              className={config.controlMode === mode ? simulationUi.buttonPrimary : simulationUi.buttonOutline}
               onClick={() =>
                 onConfigChange({ controlMode: mode as ControlMode })
               }
@@ -635,6 +653,7 @@ function ControlPanel({
           <span className="text-sm font-mono">{config.targetHeading}°</span>
         </div>
         <Slider
+          className={simulationUi.slider}
           value={[config.targetHeading]}
           onValueChange={([v]) => onConfigChange({ targetHeading: v })}
           min={0}
@@ -650,6 +669,7 @@ function ControlPanel({
           <span className="text-sm font-mono">{config.speed.toFixed(1)} m/s</span>
         </div>
         <Slider
+          className={simulationUi.slider}
           value={[config.speed]}
           onValueChange={([v]) => onConfigChange({ speed: v })}
           min={0}
@@ -659,7 +679,7 @@ function ControlPanel({
       </div>
 
       {/* 冰区模式 */}
-      <div className="space-y-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+      <div className="space-y-3 rounded-lg border border-slate-300 bg-white p-3">
         <div className="flex items-center justify-between">
           <Label className="flex items-center gap-2">
             <ThermometerSnowflake className="w-4 h-4" />
@@ -682,6 +702,7 @@ function ControlPanel({
               </span>
             </div>
             <Slider
+              className={simulationUi.slider}
               value={[config.iceThickness]}
               onValueChange={([v]) => onConfigChange({ iceThickness: v })}
               min={0}
@@ -693,7 +714,7 @@ function ControlPanel({
       </div>
 
       {/* 实时指标 */}
-      <Card>
+      <Card className="border border-slate-300 bg-white text-slate-900">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <Activity className="w-4 h-4" />
@@ -756,6 +777,117 @@ function ViolationsPanel({ violations }: { violations: EthicalViolation[] }) {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function RobustAssessmentPanel() {
+  const [uncertainty, setUncertainty] = useState({ paramKMin: 0.7, paramKMax: 1.2, paramTMin: 0.8, paramTMax: 1.3 });
+  const [disturbance, setDisturbance] = useState([
+    { name: '轻度冰阻', intensity: 1.2 },
+    { name: '中度冰阻', intensity: 2.4 },
+    { name: '强冲击冰阻', intensity: 3.8 },
+  ]);
+  const [analysis, setAnalysis] = useState<RobustResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const runAnalysis = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/simulation/icebreaker-robust-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uncertaintyRange: {
+            paramK: [uncertainty.paramKMin, uncertainty.paramKMax],
+            paramT: [uncertainty.paramTMin, uncertainty.paramTMax],
+          },
+          disturbanceScenarios: disturbance,
+          sampleCount: 120,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('鲁棒分析失败');
+      }
+      setAnalysis((await response.json()) as RobustResponse);
+    } finally {
+      setLoading(false);
+    }
+  }, [disturbance, uncertainty.paramKMax, uncertainty.paramKMin, uncertainty.paramTMax, uncertainty.paramTMin]);
+
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          ['K最小', 'paramKMin'],
+          ['K最大', 'paramKMax'],
+          ['T最小', 'paramTMin'],
+          ['T最大', 'paramTMax'],
+        ].map(([label, key]) => (
+          <label key={key} className="text-xs text-slate-700">
+            {label}
+            <input
+              type="number"
+              step={0.05}
+              value={uncertainty[key as keyof typeof uncertainty]}
+              onChange={(event) =>
+                setUncertainty((prev) => ({
+                  ...prev,
+                  [key]: Number(event.target.value),
+                }))
+              }
+              className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
+            />
+          </label>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        {disturbance.map((item, index) => (
+          <div key={item.name} className="grid grid-cols-[1fr_84px] items-center gap-2 rounded border border-slate-300 bg-white p-2 text-xs">
+            <span className="text-slate-700">{item.name}</span>
+            <input
+              type="number"
+              step={0.1}
+              value={item.intensity}
+              onChange={(event) => {
+                const value = Number(event.target.value);
+                setDisturbance((prev) => prev.map((target, i) => (i === index ? { ...target, intensity: value } : target)));
+              }}
+              className="rounded border border-slate-300 bg-white px-1.5 py-1 text-slate-900"
+            />
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => void runAnalysis()}
+        disabled={loading}
+        className={`w-full rounded border px-3 py-2 ${simulationUi.buttonPrimary} disabled:opacity-60`}
+      >
+        {loading ? '评估中...' : '执行鲁棒评估'}
+      </button>
+
+      {analysis ? (
+        <div className="space-y-2 rounded-lg border border-slate-300 bg-white p-2 text-xs">
+          <div className="grid grid-cols-3 gap-1 text-slate-700">
+            <div>抑制 {analysis.robustnessMetrics.disturbanceRejection.toFixed(1)}</div>
+            <div>敏感 {analysis.robustnessMetrics.parameterSensitivity.toFixed(1)}</div>
+            <div>裕度 {analysis.robustnessMetrics.stabilityMargin.toFixed(1)}</div>
+          </div>
+          <div className="space-y-1 text-slate-700">
+            {analysis.scenarioResults.map((item) => (
+              <div key={item.name} className="rounded border border-slate-200 bg-slate-50 px-2 py-1">
+                {item.name}: 抑制{item.disturbanceRejection.toFixed(1)} / 裕度{item.stabilityMargin.toFixed(1)}
+              </div>
+            ))}
+          </div>
+          <div className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-slate-700">
+            建议：{analysis.recommendation}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -991,80 +1123,70 @@ export default function IcebreakerSimulation() {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      {/* 标题栏 */}
-      <div className="h-14 border-b px-4 flex items-center justify-between bg-card">
-        <div className="flex items-center gap-3">
-          <Snowflake className="w-6 h-6 text-cyan-500" />
-          <div>
-            <h1 className="font-semibold">雪龙2号极地科考破冰船仿真</h1>
-            <p className="text-xs text-muted-foreground">
-              Azipod 推进 · 冰阻力 Stick-Slip 模型 · 参数摄动
-            </p>
-          </div>
-        </div>
-        <Badge variant="outline" className="font-mono">
-          {icebreakerXuelongProfile.name}
-        </Badge>
-      </div>
+    <div className={simulationUi.root} data-sim-ui>
+      <Canvas shadows>
+        <Scene
+          position={position}
+          heading={heading}
+          targetHeading={config.targetHeading}
+          azimuth1={physicsStateRef.current.azipod1.azimuth}
+          azimuth2={physicsStateRef.current.azipod2.azimuth}
+          trail={trail}
+          iceMode={config.iceModeEnabled}
+          controlsRef={controlsRef as React.RefObject<OrbitControlsImpl>}
+          cameraMode={cameraMode}
+          onCameraModeChange={setCameraMode}
+        />
+      </Canvas>
 
-      {/* 主内容 */}
-      <div className="flex-1 flex">
-        {/* 3D 视图 */}
-        <div className="flex-1 relative">
-          <Canvas shadows>
-            <Scene
-              position={position}
-              heading={heading}
-              targetHeading={config.targetHeading}
-              azimuth1={physicsStateRef.current.azipod1.azimuth}
-              azimuth2={physicsStateRef.current.azipod2.azimuth}
-              trail={trail}
-              iceMode={config.iceModeEnabled}
-              controlsRef={controlsRef as React.RefObject<OrbitControlsImpl>}
-              cameraMode={cameraMode}
-              onCameraModeChange={setCameraMode}
-            />
-          </Canvas>
+      <SimulationDock
+        side="left"
+        title="状态监控"
+        tabs={[
+          {
+            id: 'overview',
+            label: '总览',
+            content: (
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <span className="text-slate-700">航向</span>
+                <span className="font-mono">{toDegrees(heading).toFixed(1)}°</span>
+                <span className="text-slate-700">位置</span>
+                <span className="font-mono">
+                  ({position.x.toFixed(0)}, {position.z.toFixed(0)})
+                </span>
+                <span className="text-slate-700">时间</span>
+                <span className="font-mono">{metrics.time.toFixed(1)} s</span>
+              </div>
+            ),
+          },
+          {
+            id: 'ice',
+            label: '冰区',
+            content: <IceStatusPanel iceState={iceStateRef.current} iceThickness={config.iceThickness} />,
+          },
+          {
+            id: 'azipod',
+            label: '推进',
+            content: (
+              <AzipodStatusPanel
+                azimuth1={metrics.azimuth1Deg}
+                azimuth2={metrics.azimuth2Deg}
+                thrust1={metrics.thrust1KN}
+                thrust2={metrics.thrust2KN}
+              />
+            ),
+          },
+        ]}
+      />
 
-          <CameraViewSwitcher
-            currentMode={cameraMode}
-            onModeChange={setCameraMode}
-            className="absolute top-4 right-4"
-          />
-
-          {/* 叠加信息 */}
-          <div className="absolute top-4 left-4 bg-card/80 backdrop-blur rounded-lg p-3 text-sm">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <span className="text-muted-foreground">航向</span>
-              <span className="font-mono">{toDegrees(heading).toFixed(1)}°</span>
-              <span className="text-muted-foreground">位置</span>
-              <span className="font-mono">
-                ({position.x.toFixed(0)}, {position.z.toFixed(0)})
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* 右侧面板 */}
-        <div className="w-80 border-l bg-card p-4 overflow-y-auto">
-          <Tabs defaultValue="control">
-            <TabsList className="w-full mb-4">
-              <TabsTrigger value="control" className="flex-1">
-                控制
-              </TabsTrigger>
-              <TabsTrigger value="ice" className="flex-1">
-                冰区
-              </TabsTrigger>
-              <TabsTrigger value="azipod" className="flex-1">
-                推进
-              </TabsTrigger>
-              <TabsTrigger value="alerts" className="flex-1">
-                警报
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="control">
+      <SimulationDock
+        side="right"
+        title="控制与探究"
+        tabs={[
+          {
+            id: 'control',
+            label: '控制',
+            content: (
               <ControlPanel
                 config={config}
                 onConfigChange={handleConfigChange}
@@ -1073,30 +1195,37 @@ export default function IcebreakerSimulation() {
                 onToggleRun={() => setIsRunning((r) => !r)}
                 metrics={metrics}
               />
-            </TabsContent>
+            ),
+          },
+          {
+            id: 'alerts',
+            label: '警报',
+            content: <ViolationsPanel violations={violations} />,
+          },
+          {
+            id: 'robust',
+            label: '评估',
+            content: <RobustAssessmentPanel />,
+          },
+          {
+            id: 'ai',
+            label: 'AI伴学',
+            content: <AICompanionPanel title="破冰船鲁棒控制" sessionId="icebreaker-robust-session" />,
+          },
+        ]}
+      />
 
-            <TabsContent value="ice">
-              <IceStatusPanel
-                iceState={iceStateRef.current}
-                iceThickness={config.iceThickness}
-              />
-            </TabsContent>
+      <CameraViewSwitcher
+        currentMode={cameraMode}
+        onModeChange={setCameraMode}
+        className={simulationUi.cameraSwitcherPosition}
+      />
 
-            <TabsContent value="azipod">
-              <AzipodStatusPanel
-                azimuth1={metrics.azimuth1Deg}
-                azimuth2={metrics.azimuth2Deg}
-                thrust1={metrics.thrust1KN}
-                thrust2={metrics.thrust2KN}
-              />
-            </TabsContent>
-
-            <TabsContent value="alerts">
-              <ViolationsPanel violations={violations} />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+      <SimulationTopBar
+        title="雪龙2号极地科考破冰船仿真"
+        subtitle="Azipod 推进 · 冰阻力 Stick-Slip 模型 · 参数摄动"
+        badge={icebreakerXuelongProfile.name}
+      />
     </div>
   );
 }

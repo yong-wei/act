@@ -68,7 +68,7 @@ export function CameraViewSwitcher({
   return (
     <div className={cn('flex items-center gap-1', className)}>
       {/* 视角按钮组 */}
-      <div className="flex bg-black/60 rounded-lg p-1 backdrop-blur-sm">
+      <div className="flex rounded-xl border border-slate-200/90 bg-slate-50/92 p-1 shadow-lg shadow-slate-950/20 backdrop-blur-sm">
         {viewModes.map((mode) => {
           const Icon = mode.icon;
           const isActive = currentMode === mode.id;
@@ -82,8 +82,8 @@ export function CameraViewSwitcher({
               className={cn(
                 'transition-all',
                 isActive
-                  ? 'bg-white/20 text-white'
-                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                  ? 'bg-slate-900 text-white'
+                  : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
               )}
               title={`${mode.label} - ${mode.description}`}
             >
@@ -99,7 +99,7 @@ export function CameraViewSwitcher({
       {showFreeLabel && currentMode === 'free' && (
         <Badge
           variant="outline"
-          className="bg-blue-500/20 text-blue-300 border-blue-500/50 backdrop-blur-sm"
+          className="border-sky-300 bg-sky-50 text-sky-700 backdrop-blur-sm"
         >
           <Move3d className="h-3 w-3 mr-1" />
           自由视角
@@ -118,7 +118,7 @@ export function CameraViewSwitcherCompact({
   className,
 }: Omit<CameraViewSwitcherProps, 'showFreeLabel' | 'size'>) {
   return (
-    <div className={cn('flex bg-black/60 rounded-lg p-0.5 backdrop-blur-sm', className)}>
+    <div className={cn('flex rounded-lg border border-slate-200 bg-slate-50/92 p-0.5 backdrop-blur-sm', className)}>
       {viewModes.map((mode) => {
         const Icon = mode.icon;
         const isActive = currentMode === mode.id;
@@ -130,8 +130,8 @@ export function CameraViewSwitcherCompact({
             className={cn(
               'p-1.5 rounded transition-all',
               isActive
-                ? 'bg-white/20 text-white'
-                : 'text-white/60 hover:text-white hover:bg-white/10'
+                ? 'bg-slate-900 text-white'
+                : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
             )}
             title={mode.label}
           >
@@ -140,7 +140,7 @@ export function CameraViewSwitcherCompact({
         );
       })}
       {currentMode === 'free' && (
-        <div className="p-1.5 text-blue-400" title="自由视角">
+        <div className="p-1.5 text-sky-700" title="自由视角">
           <Move3d className="h-4 w-4" />
         </div>
       )}

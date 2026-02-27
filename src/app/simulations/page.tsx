@@ -18,6 +18,7 @@ interface SimulationInfo {
   description: string;
   href: string;
   icon: React.ElementType;
+  previewImage: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   tags: string[];
   controlFocus: string[];
@@ -26,7 +27,6 @@ interface SimulationInfo {
     objectives: string[];
     keyPoints: string[];
   };
-  previewImage?: string;
 }
 
 const simulations: SimulationInfo[] = [
@@ -37,6 +37,7 @@ const simulations: SimulationInfo[] = [
     description: '经典航向控制仿真，学习PID参数整定与船舶操纵性能分析。',
     href: '/simulations/destroyer',
     icon: Ship,
+    previewImage: '/assets/destroyer.png',
     difficulty: 'beginner',
     tags: ['Nomoto模型', 'PID控制', '航向保持'],
     controlFocus: ['航向控制', '舵角响应', '转向特性'],
@@ -62,6 +63,7 @@ const simulations: SimulationInfo[] = [
     description: '模拟大型LNG运输船的操纵特性，体验惯性大、响应慢的控制挑战。',
     href: '/simulations/lng',
     icon: Fuel,
+    previewImage: '/assets/Lng-carrier.png',
     difficulty: 'intermediate',
     tags: ['大惯性系统', '能源运输', '港口靠泊'],
     controlFocus: ['减速控制', '靠泊操作', '安全距离'],
@@ -87,6 +89,7 @@ const simulations: SimulationInfo[] = [
     description: '高速集装箱船的航线规划与经济航速控制，平衡效率与安全。',
     href: '/simulations/container',
     icon: Container,
+    previewImage: '/assets/container.png',
     difficulty: 'intermediate',
     tags: ['航线规划', '经济航速', '定时到达'],
     controlFocus: ['速度控制', '航线跟踪', '油耗优化'],
@@ -112,6 +115,7 @@ const simulations: SimulationInfo[] = [
     description: '邮轮仿真着重乘客舒适度，学习减摇控制和平稳操纵策略。',
     href: '/simulations/cruise',
     icon: Anchor,
+    previewImage: '/assets/luxury-liner.png',
     difficulty: 'intermediate',
     tags: ['舒适性控制', '减摇稳定', '平稳操纵'],
     controlFocus: ['横摇控制', '平稳转向', '加速度限制'],
@@ -137,6 +141,7 @@ const simulations: SimulationInfo[] = [
     description: '深水钻井平台DP系统仿真，学习8推进器解耦控制和位置保持。',
     href: '/simulations/drilling',
     icon: Compass,
+    previewImage: '/assets/drilling-rig.png',
     difficulty: 'advanced',
     tags: ['动力定位', '解耦控制', '多推进器'],
     controlFocus: ['位置保持', '推力分配', '冗余设计'],
@@ -162,6 +167,7 @@ const simulations: SimulationInfo[] = [
     description: '极地破冰船仿真，体验Azipod吊舱推进和冰区Stick-Slip阻力。',
     href: '/simulations/icebreaker',
     icon: Snowflake,
+    previewImage: '/assets/icebreaker.png',
     difficulty: 'advanced',
     tags: ['Azipod推进', '冰阻力', '参数摄动'],
     controlFocus: ['推进角度', '破冰策略', '鲁棒控制'],
@@ -187,6 +193,7 @@ const simulations: SimulationInfo[] = [
     description: '挖泥船在疏浚、航行、定位等多工况间切换，学习模式切换控制。',
     href: '/simulations/dredger',
     icon: Waves,
+    previewImage: '/assets/dredger.png',
     difficulty: 'advanced',
     tags: ['多工况', '模式切换', '自适应控制'],
     controlFocus: ['工况识别', '参数切换', '平滑过渡'],
@@ -363,14 +370,26 @@ function SimulationCard({
   return (
     <Card className="group border-slate-800 bg-slate-900/50 hover:border-slate-700 hover:bg-slate-900 transition-all">
       {/* 预览图区域 */}
-      <div className="relative h-40 bg-gradient-to-br from-slate-800 to-slate-900 overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Icon className="h-16 w-16 text-slate-700 group-hover:text-slate-600 transition-colors" />
-        </div>
+      <div className="relative h-40 overflow-hidden bg-slate-900">
+        <Image
+          src={simulation.previewImage}
+          alt={`${simulation.title} 3D模型预览`}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+          priority={simulation.id === 'destroyer'}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-slate-900/10 to-transparent" />
         <div className="absolute top-3 right-3">
           <Badge className={`${difficultyColors[simulation.difficulty]} border`}>
             {difficultyLabels[simulation.difficulty]}
           </Badge>
+        </div>
+        <div className="absolute bottom-3 left-3 rounded-md border border-white/10 bg-slate-950/70 px-2 py-1 backdrop-blur-sm">
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-200">
+            <Icon className="h-3 w-3 text-amber-400" />
+            <span>3D 模型静态预览</span>
+          </div>
         </div>
       </div>
 

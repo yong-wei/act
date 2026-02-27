@@ -17,14 +17,16 @@ export type CameraView = 'chase' | 'overhead' | 'tactical';
 export type CameraMode = CameraView | 'free';
 
 export interface CameraConfig {
-  /** 跟随距离 (默认450) */
+  /** 跟随距离 (默认240) */
   chaseDistance?: number;
-  /** 跟随高度 (默认180) */
+  /** 跟随高度 (默认130) */
   chaseHeight?: number;
-  /** 侧向偏移 (默认100) */
+  /** 侧向偏移 (默认与跟随距离相同) */
   chaseSideOffset?: number;
   /** 前方观察距离 (默认200) */
   chaseLookAheadDistance?: number;
+  /** 航向偏置（弧度） */
+  headingOffsetRad?: number;
   /** 俯瞰高度 (默认1200) */
   overheadHeight?: number;
   /** 战术视角距离 (默认600) */
@@ -65,10 +67,13 @@ export const cameraViews: Array<{ id: CameraView; label: string; icon?: string }
 // ============ 默认配置 ============
 
 const defaultConfig: Required<CameraConfig> = {
-  chaseDistance: 450,
-  chaseHeight: 180,
-  chaseSideOffset: 100,
-  chaseLookAheadDistance: 200,
+  chaseDistance: 240,
+  chaseHeight: 130,
+  // 默认与跟随距离一致，形成左舷后方约 45° 视角
+  chaseSideOffset: 240,
+  // 以船体中心为观察目标，确保初始构图居中
+  chaseLookAheadDistance: 0,
+  headingOffsetRad: 0,
   overheadHeight: 1200,
   tacticalDistance: 600,
   tacticalHeight: 450,
@@ -85,17 +90,18 @@ function calculatePresetPosition(
   mode: CameraView,
   shipX: number,
   shipZ: number,
-  heading: number,
+  rawHeading: number,
   cfg: Required<CameraConfig>
 ): { position: THREE.Vector3; target: THREE.Vector3 } {
+  const heading = rawHeading + cfg.headingOffsetRad;
   switch (mode) {
     case 'chase':
-      // 主视角：从船尾后方跟随
+      // 主视角：从左舷后方跟随
       return {
         position: new THREE.Vector3(
-          shipX - Math.cos(heading) * cfg.chaseDistance + Math.sin(heading) * cfg.chaseSideOffset,
+          shipX - Math.cos(heading) * cfg.chaseDistance - Math.sin(heading) * cfg.chaseSideOffset,
           cfg.chaseHeight,
-          shipZ - Math.sin(heading) * cfg.chaseDistance - Math.cos(heading) * cfg.chaseSideOffset
+          shipZ - Math.sin(heading) * cfg.chaseDistance + Math.cos(heading) * cfg.chaseSideOffset
         ),
         target: new THREE.Vector3(
           shipX + Math.cos(heading) * cfg.chaseLookAheadDistance,
@@ -157,7 +163,13 @@ export function UnifiedCameraController({
 
   // 合并配置
   const cfg: Required<CameraConfig> = useMemo(
-    () => ({ ...defaultConfig, ...config }),
+    () => {
+      const merged = { ...defaultConfig, ...config };
+      if (config.chaseSideOffset === undefined) {
+        merged.chaseSideOffset = merged.chaseDistance;
+      }
+      return merged;
+    },
     [config]
   );
 
@@ -173,6 +185,8 @@ export function UnifiedCameraController({
 
   // 上一个模式（用于检测模式变化）
   const prevModeRef = useRef<CameraMode>(cameraMode);
+  // 是否已完成首帧视角初始化
+  const initializedRef = useRef(false);
 
   // 监听模式变化，启动过渡动画
   useEffect(() => {
@@ -211,6 +225,22 @@ export function UnifiedCameraController({
 
     const transition = transitionRef.current;
 
+    // 首次进入预设视角时，直接将相机放到预设位置，避免首屏偏移
+    if (!transition.active && !initializedRef.current && cameraMode !== 'free' && controlsRef.current) {
+      const preset = calculatePresetPosition(
+        cameraMode,
+        position.x,
+        position.z,
+        headingRad,
+        cfg
+      );
+      camera.position.copy(preset.position);
+      controlsRef.current.target.copy(preset.target);
+      controlsRef.current.update();
+      initializedRef.current = true;
+      return;
+    }
+
     // 处理过渡动画
     if (transition.active) {
       transition.progress += cfg.positionLerp;
@@ -235,7 +265,7 @@ export function UnifiedCameraController({
       return; // 过渡期间不执行其他逻辑
     }
 
-    // 在非 free 模式下，平滑更新 OrbitControls 的 target 跟随船舶
+    // 在非 free 模式下，平滑更新相机位置与 target 跟随船舶
     if (cameraMode !== 'free' && followTarget && controlsRef.current) {
       const preset = calculatePresetPosition(
         cameraMode,
@@ -245,8 +275,7 @@ export function UnifiedCameraController({
         cfg
       );
 
-      // 仅更新 target，不覆盖相机位置
-      // 这样用户仍可以通过 OrbitControls 调整视角
+      camera.position.lerp(preset.position, cfg.positionLerp);
       controlsRef.current.target.lerp(preset.target, cfg.targetLerp);
       controlsRef.current.update();
     }

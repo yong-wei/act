@@ -54,8 +54,13 @@ import {
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
+  SimulationTopBar,
+  SimulationDock,
+  SimulationAssessmentPanel,
+  simulationUi,
   type CameraMode,
 } from '../components';
+import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 
 Chart.register(...registerables);
 
@@ -116,6 +121,7 @@ const nomotoParams = destroyer055Profile.dynamics.nomoto ?? DEFAULT_NOMOTO_PARAM
 const shipDimensions = {
   length: destroyer055Profile.dimensions.length,
   width: destroyer055Profile.dimensions.beam,
+  draft: destroyer055Profile.dimensions.draft,
 };
 
 const waveParams = [
@@ -661,7 +667,11 @@ function DestroyerModel({
     if (!groupRef.current) return;
     const sim = simRef.current;
 
-    groupRef.current.position.set(sim.position.x, sim.waveY + modelHeight * 0.5, sim.position.z);
+    groupRef.current.position.set(
+      sim.position.x,
+      sim.waveY + modelHeight * 0.5 - shipDimensions.draft,
+      sim.position.z
+    );
     groupRef.current.rotation.set(sim.wavePitch, -sim.headingRad + Math.PI / 2, sim.waveRoll);
   });
 
@@ -876,8 +886,8 @@ function HUD({
   controlMode: ControlMode;
 }) {
   return (
-    <div className="absolute left-4 top-4 space-y-2">
-      <Card className="bg-slate-900/90 border-slate-700 w-56">
+    <div className="space-y-2">
+      <Card className={`${simulationUi.panel} w-56`}>
         <CardHeader className="py-2 px-3">
           <CardTitle className="text-sm flex items-center gap-2">
             <Compass className="w-4 h-4 text-cyan-400" />
@@ -904,7 +914,7 @@ function HUD({
         </CardContent>
       </Card>
 
-      <Card className="bg-slate-900/90 border-slate-700 w-56">
+      <Card className={`${simulationUi.panel} w-56`}>
         <CardHeader className="py-2 px-3">
           <CardTitle className="text-sm flex items-center gap-2">
             <Target className="w-4 h-4 text-green-400" />
@@ -942,34 +952,30 @@ function ControlPanel({
   isRunning,
   controlMode,
   pidGains,
-  cameraMode,
   selectedTask,
   onStart,
   onPause,
   onReset,
   onControlModeChange,
   onPidGainsChange,
-  onCameraModeChange,
   onTaskChange,
   onShowChart,
 }: {
   isRunning: boolean;
   controlMode: ControlMode;
   pidGains: PIDGains;
-  cameraMode: CameraMode;
   selectedTask: number;
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
   onControlModeChange: (mode: ControlMode) => void;
   onPidGainsChange: (gains: PIDGains) => void;
-  onCameraModeChange: (mode: CameraMode) => void;
   onTaskChange: (index: number) => void;
   onShowChart: () => void;
 }) {
   return (
-    <div className="absolute right-4 top-4 w-72">
-      <Card className="bg-slate-900/90 border-slate-700">
+    <div>
+      <Card className={simulationUi.panel}>
         <CardHeader className="py-3 px-4">
           <CardTitle className="text-sm flex items-center gap-2">
             <Settings className="w-4 h-4" />
@@ -984,7 +990,7 @@ function ControlPanel({
               <Button
                 variant="outline"
                 size="icon"
-                className="h-7 w-7"
+                className={`h-7 w-7 ${simulationUi.buttonOutline}`}
                 onClick={() => onTaskChange(Math.max(0, selectedTask - 1))}
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -996,7 +1002,7 @@ function ControlPanel({
               <Button
                 variant="outline"
                 size="icon"
-                className="h-7 w-7"
+                className={`h-7 w-7 ${simulationUi.buttonOutline}`}
                 onClick={() => onTaskChange(Math.min(tasks.length - 1, selectedTask + 1))}
               >
                 <ChevronRight className="w-4 h-4" />
@@ -1013,7 +1019,9 @@ function ControlPanel({
                   key={mode}
                   variant={controlMode === mode ? 'default' : 'outline'}
                   size="sm"
-                  className="h-7 text-xs uppercase"
+                  className={`h-7 text-xs uppercase ${
+                    controlMode === mode ? simulationUi.buttonPrimary : simulationUi.buttonOutline
+                  }`}
                   onClick={() => onControlModeChange(mode)}
                 >
                   {mode}
@@ -1035,7 +1043,7 @@ function ControlPanel({
                     max={5}
                     step={0.1}
                     onValueChange={([v]) => onPidGainsChange({ ...pidGains, kp: v })}
-                    className="flex-1"
+                    className={`flex-1 ${simulationUi.slider}`}
                   />
                   <span className="w-10 text-right text-xs font-mono">{pidGains.kp.toFixed(1)}</span>
                 </div>
@@ -1048,7 +1056,7 @@ function ControlPanel({
                       max={50}
                       step={1}
                       onValueChange={([v]) => onPidGainsChange({ ...pidGains, kd: v })}
-                      className="flex-1"
+                      className={`flex-1 ${simulationUi.slider}`}
                     />
                     <span className="w-10 text-right text-xs font-mono">{pidGains.kd.toFixed(0)}</span>
                   </div>
@@ -1062,7 +1070,7 @@ function ControlPanel({
                       max={0.1}
                       step={0.001}
                       onValueChange={([v]) => onPidGainsChange({ ...pidGains, ki: v })}
-                      className="flex-1"
+                      className={`flex-1 ${simulationUi.slider}`}
                     />
                     <span className="w-10 text-right text-xs font-mono">{pidGains.ki.toFixed(3)}</span>
                   </div>
@@ -1071,44 +1079,23 @@ function ControlPanel({
             </div>
           )}
 
-          {/* 视角切换 */}
-          <div className="space-y-2">
-            <Label className="text-xs text-slate-400">视角</Label>
-            <div className="grid grid-cols-3 gap-1">
-              {(['chase', 'overhead', 'tactical'] as const).map((view) => (
-                <Button
-                  key={view}
-                  variant={cameraMode === view ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => onCameraModeChange(view)}
-                >
-                  {view === 'chase' ? '主视角' : view === 'overhead' ? '俯瞰' : '战术'}
-                </Button>
-              ))}
-            </div>
-            {cameraMode === 'free' && (
-              <p className="text-xs text-blue-400">当前: 自由视角 (拖动/滚轮)</p>
-            )}
-          </div>
-
           {/* 控制按钮 */}
           <div className="flex gap-2">
             {isRunning ? (
-              <Button variant="outline" className="flex-1" onClick={onPause}>
+              <Button variant="outline" className={`flex-1 ${simulationUi.buttonSecondary}`} onClick={onPause}>
                 <Pause className="w-4 h-4 mr-2" />
                 暂停
               </Button>
             ) : (
-              <Button variant="default" className="flex-1" onClick={onStart}>
+              <Button variant="default" className={`flex-1 ${simulationUi.buttonPrimary}`} onClick={onStart}>
                 <Play className="w-4 h-4 mr-2" />
                 开始
               </Button>
             )}
-            <Button variant="outline" onClick={onReset}>
+            <Button variant="outline" onClick={onReset} className={simulationUi.buttonOutline}>
               <RotateCcw className="w-4 h-4" />
             </Button>
-            <Button variant="outline" onClick={onShowChart}>
+            <Button variant="outline" onClick={onShowChart} className={simulationUi.buttonOutline}>
               <Gauge className="w-4 h-4" />
             </Button>
           </div>
@@ -1372,7 +1359,7 @@ export default function DestroyerSimulation() {
   }
 
   return (
-    <div className="relative h-screen w-full">
+    <div className={simulationUi.root} data-sim-ui>
       <Canvas shadows>
         <PerspectiveCamera makeDefault position={[0, 200, 500]} fov={60} near={1} far={50000} />
 
@@ -1419,29 +1406,75 @@ export default function DestroyerSimulation() {
         />
       </Canvas>
 
-      <HUD state={hudState} isRunning={isRunning} controlMode={controlMode} />
+      <SimulationDock
+        side="left"
+        title="状态监控"
+        tabs={[
+          {
+            id: 'status',
+            label: '总览',
+            content: <HUD state={hudState} isRunning={isRunning} controlMode={controlMode} />,
+          },
+        ]}
+      />
 
-      <ControlPanel
-        isRunning={isRunning}
-        controlMode={controlMode}
-        pidGains={pidGains}
-        cameraMode={cameraMode}
-        selectedTask={selectedTask}
-        onStart={() => setIsRunning(true)}
-        onPause={() => setIsRunning(false)}
-        onReset={handleReset}
-        onControlModeChange={setControlMode}
-        onPidGainsChange={setPidGains}
-        onCameraModeChange={setCameraMode}
-        onTaskChange={setSelectedTask}
-        onShowChart={() => setShowChart(true)}
+      <SimulationDock
+        side="right"
+        title="控制与探究"
+        tabs={[
+          {
+            id: 'control',
+            label: '控制',
+            content: (
+              <ControlPanel
+                isRunning={isRunning}
+                controlMode={controlMode}
+                pidGains={pidGains}
+                selectedTask={selectedTask}
+                onStart={() => setIsRunning(true)}
+                onPause={() => setIsRunning(false)}
+                onReset={handleReset}
+                onControlModeChange={setControlMode}
+                onPidGainsChange={setPidGains}
+                onTaskChange={setSelectedTask}
+                onShowChart={() => setShowChart(true)}
+              />
+            ),
+          },
+          {
+            id: 'evaluate',
+            label: '评估',
+            content: (
+              <SimulationAssessmentPanel
+                title="机动任务评估"
+                metrics={[
+                  { id: 'current-error', label: '当前误差', value: hudState.currentError, max: 200, better: 'lower', unit: 'm' },
+                  { id: 'avg-error', label: '平均误差', value: hudState.avgError, max: 200, better: 'lower', unit: 'm' },
+                  { id: 'yaw', label: '转艏速率', value: Math.abs(hudState.yawRate), max: 8, better: 'lower', unit: '°/s' },
+                  { id: 'rudder', label: '舵角幅值', value: Math.abs(hudState.rudder), max: 35, better: 'lower', unit: '°' },
+                ]}
+              />
+            ),
+          },
+          {
+            id: 'ai',
+            label: 'AI伴学',
+            content: <AICompanionPanel title="驱逐舰航向控制" sessionId="destroyer-simulation-session" />,
+          },
+        ]}
       />
 
       {/* 视角切换器 */}
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
-        className="absolute bottom-4 left-1/2 -translate-x-1/2"
+        className={simulationUi.cameraSwitcherPosition}
+      />
+
+      <SimulationTopBar
+        title="055型驱逐舰战术机动仿真"
+        subtitle="Nomoto 航向控制 · 任务场景切换"
+        badge="Destroyer / OBE"
       />
     </div>
   );

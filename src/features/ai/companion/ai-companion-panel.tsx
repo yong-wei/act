@@ -128,8 +128,8 @@ export function AICompanionPanel({
   };
 
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-700 bg-slate-900/70 p-4 text-slate-100">
-      <h3 className="text-base font-semibold text-cyan-300">AI伴随探究</h3>
+    <div className="space-y-3 rounded-xl border border-slate-300 bg-white/95 p-3 text-slate-900">
+      <h3 className="text-sm font-semibold text-slate-900">AI伴随探究</h3>
 
       <div className="grid grid-cols-2 gap-2 text-xs">
         {[
@@ -141,7 +141,7 @@ export function AICompanionPanel({
           ['舒适指数', 'comfortIndex'],
           ['稳定裕度°', 'stabilityMargin'],
         ].map(([label, key]) => (
-          <label key={key} className="block text-slate-400">
+          <label key={key} className="block text-slate-700">
             {label}
             <input
               type="number"
@@ -152,13 +152,13 @@ export function AICompanionPanel({
                   [key]: Number(event.target.value),
                 }))
               }
-              className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-slate-100"
+              className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1 text-slate-900"
             />
           </label>
         ))}
       </div>
 
-      <label className="flex items-center gap-2 text-xs text-slate-300">
+      <label className="flex items-center gap-2 text-xs text-slate-700">
         <input
           type="checkbox"
           checked={current.isSuccessful}
@@ -171,7 +171,7 @@ export function AICompanionPanel({
         <button
           type="button"
           onClick={addAttempt}
-          className="flex-1 rounded bg-slate-700 px-3 py-2 text-sm hover:bg-slate-600"
+          className="flex-1 rounded border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
         >
           记录尝试
         </button>
@@ -179,44 +179,44 @@ export function AICompanionPanel({
           type="button"
           onClick={requestIntervention}
           disabled={loading || attempts.length === 0}
-          className="flex-1 rounded bg-cyan-600 px-3 py-2 text-sm hover:bg-cyan-500 disabled:opacity-60"
+          className="flex-1 rounded border border-transparent bg-sky-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-sky-600 disabled:opacity-60"
         >
           生成介入建议
         </button>
       </div>
 
-      <div className="rounded bg-slate-950 p-2 text-xs text-slate-400">
+      <div className="rounded border border-slate-300 bg-slate-50 p-2 text-xs text-slate-700">
         已记录尝试次数：{attempts.length}
       </div>
 
       {result ? (
-        <div className="space-y-2 rounded border border-cyan-500/30 bg-cyan-500/10 p-3">
+        <div className="space-y-2 rounded border border-slate-300 bg-white p-3">
           <div className="text-sm font-medium">
             介入判定：{result.decision.shouldIntervene ? '需要介入' : '暂不介入'} ({result.decision.reason})
           </div>
-          <p className="text-sm text-slate-200">{result.intervention.content}</p>
-          <ul className="space-y-1 text-xs text-slate-300">
+          <p className="text-sm text-slate-800">{result.intervention.content}</p>
+          <ul className="space-y-1 text-xs text-slate-700">
             {result.intervention.suggestedNextSteps.map((item) => (
-              <li key={item} className="rounded bg-slate-900/70 px-2 py-1">
+              <li key={item} className="rounded border border-slate-200 bg-slate-50 px-2 py-1">
                 {item}
               </li>
             ))}
           </ul>
-          <div className="text-xs text-slate-300">
+          <div className="text-xs text-slate-700">
             建议重点参数：{result.intervention.highlightParams.join(', ')}
           </div>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => void sendFeedback(true)}
-              className="rounded bg-emerald-600 px-2 py-1 text-xs hover:bg-emerald-500"
+              className="rounded border border-transparent bg-sky-700 px-2 py-1 text-xs text-white transition hover:bg-sky-600"
             >
               建议有帮助
             </button>
             <button
               type="button"
               onClick={() => void sendFeedback(false)}
-              className="rounded bg-rose-600 px-2 py-1 text-xs hover:bg-rose-500"
+              className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 transition hover:bg-slate-100"
             >
               建议需改进
             </button>
@@ -224,7 +224,7 @@ export function AICompanionPanel({
         </div>
       ) : null}
 
-      {error ? <div className="text-xs text-rose-300">{error}</div> : null}
+      {error ? <div className="text-xs text-red-700">{error}</div> : null}
     </div>
   );
 }

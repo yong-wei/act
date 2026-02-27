@@ -22,8 +22,13 @@ import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
+  SimulationTopBar,
+  SimulationDock,
+  SimulationAssessmentPanel,
+  simulationUi,
   type CameraMode,
 } from '../components';
+import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 
 import type {
   ControlMode,
@@ -127,6 +132,7 @@ function LNGShipModel({
 }) {
   const { scene } = useGLTF('/assets/Lng-carrier.glb');
   const groupRef = useRef<THREE.Group>(null);
+  const modelYawOffset = -Math.PI / 2;
 
   const { model, scale, modelHeight } = useMemo(() => {
     const cloned = scene.clone(true);
@@ -163,15 +169,17 @@ function LNGShipModel({
   useFrame(() => {
     if (groupRef.current) {
       groupRef.current.position.x = position.x;
+      groupRef.current.position.y = modelHeight * 0.5 - LNG_CHANGHENG_PARAMS.DRAFT;
       groupRef.current.position.z = position.z;
-      groupRef.current.rotation.y = -heading + Math.PI / 2;
+      // 模型默认朝向与仿真前进方向相反，补偿 180° 防止“倒着跑”
+      groupRef.current.rotation.y = -heading + modelYawOffset;
       // 晃荡影响船体横摇
       groupRef.current.rotation.z = sloshingAngle * 0.1;
     }
   });
 
   return (
-    <group ref={groupRef} position={[0, modelHeight * 0.5, 0]}>
+    <group ref={groupRef}>
       <primitive object={model} scale={scale} />
       {/* 船艏标记 */}
       <mesh position={[0, modelHeight * 0.6, 0]}>
@@ -255,7 +263,65 @@ function HeadingIndicator({
 
 // ============ HUD 组件 ============
 
-function HUD({
+function StatusPanel({
+  state,
+}: {
+  state: LNGSimulationState;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+        <span className="text-slate-700">时间:</span>
+        <span>{state.time.toFixed(1)}s</span>
+
+        <span className="text-slate-700">航向:</span>
+        <span>{state.heading.toFixed(1)}°</span>
+
+        <span className="text-slate-700">目标航向:</span>
+        <span className="text-green-700">{state.targetHeading.toFixed(1)}°</span>
+
+        <span className="text-slate-700">航向误差:</span>
+        <span className={Math.abs(state.heading - state.targetHeading) > 5 ? 'text-amber-700' : 'text-green-700'}>
+          {(state.heading - state.targetHeading).toFixed(1)}°
+        </span>
+
+        <span className="text-slate-700">转艏率:</span>
+        <span>{state.yawRate.toFixed(2)}°/s</span>
+
+        <span className="text-slate-700">舵角:</span>
+        <span>{state.rudder.toFixed(1)}°</span>
+
+        <span className="text-slate-700">航速:</span>
+        <span>{(state.speed * 1.944).toFixed(1)} kn</span>
+      </div>
+
+      <div className="border-t border-slate-300"></div>
+
+      <div className="text-sm">
+        <div className="mb-1 flex items-center justify-between">
+          <span className="text-slate-700">液货晃荡:</span>
+          <span className={state.sloshingAngle > 5 ? 'text-red-600' : 'text-sky-700'}>
+            {state.sloshingAngle.toFixed(2)}°
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-slate-700">货舱压力:</span>
+          <span className={state.tankPressure > 150 ? 'text-red-600' : 'text-sky-700'}>
+            {state.tankPressure.toFixed(0)} kPa
+          </span>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-300"></div>
+
+      <div className="rounded border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+        ⚠️ 时滞: 25秒 | 晃荡周期: ~12s
+      </div>
+    </div>
+  );
+}
+
+function ControlPanel({
   state,
   onControlModeChange,
   onTargetHeadingChange,
@@ -271,130 +337,66 @@ function HUD({
   onReset: () => void;
 }) {
   return (
-    <div className="absolute top-0 left-0 right-0 p-4 pointer-events-none">
-      <div className="flex justify-between items-start">
-        {/* 左侧: 状态面板 */}
-        <div className="bg-black/70 text-white p-4 rounded-lg pointer-events-auto min-w-[280px]">
-          <h2 className="text-lg font-bold mb-3 text-blue-400">长恒系列 LNG 船</h2>
+    <div className="space-y-3">
+      <div>
+        <label className="mb-1 block text-sm text-slate-700">控制模式</label>
+        <select
+          value={state.controlMode}
+          onChange={(e) => onControlModeChange(e.target.value as ControlMode)}
+          className="w-full rounded border border-slate-300 bg-white p-2 text-slate-900"
+        >
+          <option value="manual">手动</option>
+          <option value="p">P 控制</option>
+          <option value="pd">PD 控制</option>
+          <option value="pid">PID 控制</option>
+          <option value="autopilot">自动舵</option>
+        </select>
+      </div>
 
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-            <span className="text-gray-400">时间:</span>
-            <span>{state.time.toFixed(1)}s</span>
+      <div>
+        <label className="mb-1 block text-sm text-slate-700">
+          目标航向: {state.targetHeading}°
+        </label>
+        <input
+          type="range"
+          min="-180"
+          max="180"
+          value={state.targetHeading}
+          onChange={(e) => onTargetHeadingChange(Number(e.target.value))}
+          className={simulationUi.nativeRange}
+        />
+      </div>
 
-            <span className="text-gray-400">航向:</span>
-            <span>{state.heading.toFixed(1)}°</span>
+      <div>
+        <label className="flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            checked={state.smithEnabled}
+            onChange={onSmithToggle}
+            className="h-4 w-4 accent-sky-700"
+          />
+          <span className="text-sm">启用 Smith 预估器</span>
+        </label>
+        <p className="mt-1 text-xs text-slate-600">消除25秒时滞影响</p>
+      </div>
 
-            <span className="text-gray-400">目标航向:</span>
-            <span className="text-green-400">{state.targetHeading.toFixed(1)}°</span>
-
-            <span className="text-gray-400">航向误差:</span>
-            <span className={Math.abs(state.heading - state.targetHeading) > 5 ? 'text-yellow-400' : 'text-green-400'}>
-              {(state.heading - state.targetHeading).toFixed(1)}°
-            </span>
-
-            <span className="text-gray-400">转艏率:</span>
-            <span>{state.yawRate.toFixed(2)}°/s</span>
-
-            <span className="text-gray-400">舵角:</span>
-            <span>{state.rudder.toFixed(1)}°</span>
-
-            <span className="text-gray-400">航速:</span>
-            <span>{(state.speed * 1.944).toFixed(1)} kn</span>
-          </div>
-
-          <div className="border-t border-gray-600 my-3"></div>
-
-          <div className="text-sm">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-gray-400">液货晃荡:</span>
-              <span className={state.sloshingAngle > 5 ? 'text-red-400' : 'text-blue-400'}>
-                {state.sloshingAngle.toFixed(2)}°
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400">货舱压力:</span>
-              <span className={state.tankPressure > 150 ? 'text-red-400' : 'text-blue-400'}>
-                {state.tankPressure.toFixed(0)} kPa
-              </span>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-600 my-3"></div>
-
-          <div className="text-xs text-yellow-400 bg-yellow-400/10 p-2 rounded">
-            ⚠️ 时滞: 25秒 | 晃荡周期: ~12s
-          </div>
-        </div>
-
-        {/* 右侧: 控制面板 */}
-        <div className="bg-black/70 text-white p-4 rounded-lg pointer-events-auto min-w-[240px]">
-          <h3 className="font-bold mb-3">控制面板</h3>
-
-          {/* 控制模式 */}
-          <div className="mb-3">
-            <label className="text-sm text-gray-400 block mb-1">控制模式</label>
-            <select
-              value={state.controlMode}
-              onChange={(e) => onControlModeChange(e.target.value as ControlMode)}
-              className="w-full bg-gray-800 text-white p-2 rounded"
-            >
-              <option value="manual">手动</option>
-              <option value="p">P 控制</option>
-              <option value="pd">PD 控制</option>
-              <option value="pid">PID 控制</option>
-              <option value="autopilot">自动舵</option>
-            </select>
-          </div>
-
-          {/* 目标航向 */}
-          <div className="mb-3">
-            <label className="text-sm text-gray-400 block mb-1">
-              目标航向: {state.targetHeading}°
-            </label>
-            <input
-              type="range"
-              min="-180"
-              max="180"
-              value={state.targetHeading}
-              onChange={(e) => onTargetHeadingChange(Number(e.target.value))}
-              className="w-full"
-            />
-          </div>
-
-          {/* Smith 预估器开关 */}
-          <div className="mb-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={state.smithEnabled}
-                onChange={onSmithToggle}
-                className="w-4 h-4"
-              />
-              <span className="text-sm">启用 Smith 预估器</span>
-            </label>
-            <p className="text-xs text-gray-500 mt-1">消除25秒时滞影响</p>
-          </div>
-
-          {/* 控制按钮 */}
-          <div className="flex gap-2">
-            <button
-              onClick={onStartPause}
-              className={`flex-1 py-2 px-4 rounded ${
-                state.isRunning && !state.isPaused
-                  ? 'bg-yellow-600 hover:bg-yellow-700'
-                  : 'bg-green-600 hover:bg-green-700'
-              }`}
-            >
-              {state.isRunning && !state.isPaused ? '暂停' : '开始'}
-            </button>
-            <button
-              onClick={onReset}
-              className="flex-1 py-2 px-4 rounded bg-red-600 hover:bg-red-700"
-            >
-              重置
-            </button>
-          </div>
-        </div>
+      <div className="flex gap-2">
+        <button
+          onClick={onStartPause}
+          className={`flex-1 rounded border px-4 py-2 ${
+            state.isRunning && !state.isPaused
+              ? simulationUi.buttonSecondary
+              : simulationUi.buttonPrimary
+          }`}
+        >
+          {state.isRunning && !state.isPaused ? '暂停' : '开始'}
+        </button>
+        <button
+          onClick={onReset}
+          className={`flex-1 rounded border px-4 py-2 ${simulationUi.buttonOutline}`}
+        >
+          重置
+        </button>
       </div>
     </div>
   );
@@ -465,11 +467,6 @@ function Scene({
         headingRad={toRadians(state.heading)}
         cameraMode={cameraMode}
         controlsRef={controlsRef}
-        config={{
-          chaseDistance: 500,
-          chaseHeight: 200,
-          overheadHeight: 1500,
-        }}
       />
     </>
   );
@@ -635,7 +632,7 @@ export function LNGSimulation() {
   }, []);
 
   return (
-    <div className="w-full h-screen relative bg-slate-900">
+    <div className={simulationUi.root} data-sim-ui>
       <Canvas shadows>
         <Suspense fallback={null}>
           <Scene
@@ -648,20 +645,70 @@ export function LNGSimulation() {
         </Suspense>
       </Canvas>
 
-      <HUD
-        state={state}
-        onControlModeChange={handleControlModeChange}
-        onTargetHeadingChange={handleTargetHeadingChange}
-        onSmithToggle={handleSmithToggle}
-        onStartPause={handleStartPause}
-        onReset={handleReset}
+      <SimulationDock
+        side="left"
+        title="状态监控"
+        tabs={[
+          {
+            id: 'status',
+            label: '总览',
+            content: <StatusPanel state={state} />,
+          },
+        ]}
+      />
+
+      <SimulationDock
+        side="right"
+        title="控制与探究"
+        tabs={[
+          {
+            id: 'control',
+            label: '控制',
+            content: (
+              <ControlPanel
+                state={state}
+                onControlModeChange={handleControlModeChange}
+                onTargetHeadingChange={handleTargetHeadingChange}
+                onSmithToggle={handleSmithToggle}
+                onStartPause={handleStartPause}
+                onReset={handleReset}
+              />
+            ),
+          },
+          {
+            id: 'evaluate',
+            label: '评估',
+            content: (
+              <SimulationAssessmentPanel
+                title="运行质量评估"
+                metrics={[
+                  { id: 'heading-error', label: '航向误差', value: Math.abs(state.heading - state.targetHeading), max: 30, better: 'lower', unit: '°', precision: 1 },
+                  { id: 'rudder', label: '舵角幅值', value: Math.abs(state.rudder), max: 35, better: 'lower', unit: '°', precision: 1 },
+                  { id: 'sloshing', label: '液货晃荡', value: state.sloshingAngle, max: 12, better: 'lower', unit: '°', precision: 2 },
+                  { id: 'pressure', label: '舱压稳定', value: state.tankPressure, max: 200, better: 'lower', unit: 'kPa', precision: 0 },
+                ]}
+              />
+            ),
+          },
+          {
+            id: 'ai',
+            label: 'AI伴学',
+            content: <AICompanionPanel title="LNG船操纵控制" sessionId="lng-simulation-session" />,
+          },
+        ]}
+      />
+
+      <SimulationTopBar
+        title="长恒系列 LNG 运输船"
+        subtitle="时滞补偿控制 · 液货晃荡耦合"
+        badge="LNG / OBE"
       />
 
       {/* 视角切换器 */}
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
-        className="absolute bottom-4 left-1/2 -translate-x-1/2"
+        className={simulationUi.cameraSwitcherPosition}
       />
     </div>
   );

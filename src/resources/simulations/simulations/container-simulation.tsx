@@ -22,8 +22,13 @@ import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   CameraViewSwitcher,
+  SimulationTopBar,
+  SimulationDock,
+  SimulationAssessmentPanel,
+  simulationUi,
   type CameraMode,
 } from '../components';
+import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 
 import type {
   ControlMode,
@@ -133,6 +138,7 @@ function ContainerShipModel({
 }) {
   const { scene } = useGLTF('/assets/container.glb');
   const groupRef = useRef<THREE.Group>(null);
+  const modelYawOffset = 0;
 
   const { model, scale, modelHeight } = useMemo(() => {
     const cloned = scene.clone(true);
@@ -168,16 +174,22 @@ function ContainerShipModel({
 
   useFrame(() => {
     if (groupRef.current) {
+      const clampedLoadRatio = THREE.MathUtils.clamp(loadRatio, 0, 1);
+      const currentDraft =
+        CONTAINER_MSC_PARAMS.DRAFT_EMPTY +
+        (CONTAINER_MSC_PARAMS.DRAFT_FULL - CONTAINER_MSC_PARAMS.DRAFT_EMPTY) * clampedLoadRatio;
       groupRef.current.position.x = position.x;
+      groupRef.current.position.y = modelHeight * 0.5 - currentDraft;
       groupRef.current.position.z = position.z;
-      groupRef.current.rotation.y = -heading + Math.PI / 2;
+      // 集装箱船模型前向轴与仿真坐标系接近，仅保留航向本身
+      groupRef.current.rotation.y = -heading + modelYawOffset;
       // 横摇
       groupRef.current.rotation.z = rollAngle;
     }
   });
 
   return (
-    <group ref={groupRef} position={[0, modelHeight * 0.5, 0]}>
+    <group ref={groupRef}>
       <primitive object={model} scale={scale} />
       {/* 船艏标记 */}
       <mesh position={[0, modelHeight * 0.6, 0]}>
@@ -314,29 +326,28 @@ function ControlPanel({
   onReset: () => void;
 }) {
   return (
-    <div className="absolute left-4 top-4 w-80 rounded-lg bg-slate-900/95 p-4 text-sm text-slate-100 shadow-xl">
-      <h3 className="mb-3 text-lg font-semibold text-orange-400">MSC Tessa 集装箱船仿真</h3>
+    <div className="space-y-3 text-sm">
 
       {/* 仿真控制 */}
       <div className="mb-4 flex gap-2">
         {!state.isRunning ? (
           <button
             onClick={onStart}
-            className="flex-1 rounded bg-green-600 px-3 py-2 hover:bg-green-500"
+            className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonPrimary}`}
           >
             开始仿真
           </button>
         ) : (
           <button
             onClick={onPause}
-            className="flex-1 rounded bg-yellow-600 px-3 py-2 hover:bg-yellow-500"
+            className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonSecondary}`}
           >
             {state.isPaused ? '继续' : '暂停'}
           </button>
         )}
         <button
           onClick={onReset}
-          className="flex-1 rounded bg-slate-600 px-3 py-2 hover:bg-slate-500"
+          className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonOutline}`}
         >
           重置
         </button>
@@ -344,22 +355,22 @@ function ControlPanel({
 
       {/* 目标航向 */}
       <div className="mb-3">
-        <label className="mb-1 block text-xs text-slate-400">目标航向: {state.targetHeading.toFixed(0)}°</label>
+        <label className={`mb-1 block ${simulationUi.mutedText}`}>目标航向: {state.targetHeading.toFixed(0)}°</label>
         <input
           type="range"
           min="-180"
           max="180"
           value={state.targetHeading}
           onChange={(e) => onTargetHeadingChange(Number(e.target.value))}
-          className="w-full accent-orange-500"
+          className={simulationUi.nativeRange}
         />
       </div>
 
       {/* 装载率 */}
       <div className="mb-3">
-        <label className="mb-1 block text-xs text-slate-400">
+        <label className={`mb-1 block ${simulationUi.mutedText}`}>
           装载率: {(state.loadRatio * 100).toFixed(0)}%
-          <span className="ml-2 text-orange-400">
+          <span className="ml-2 text-slate-700">
             ({state.loadRatio < 0.3 ? '空载' : state.loadRatio < 0.7 ? '半载' : '满载'})
           </span>
         </label>
@@ -369,9 +380,9 @@ function ControlPanel({
           max="100"
           value={state.loadRatio * 100}
           onChange={(e) => onLoadRatioChange(Number(e.target.value) / 100)}
-          className="w-full accent-orange-500"
+          className={simulationUi.nativeRange}
         />
-        <div className="mt-1 flex justify-between text-xs text-slate-500">
+        <div className="mt-1 flex justify-between text-xs text-slate-700">
           <span>K={state.currentK.toFixed(3)}</span>
           <span>T={state.currentT.toFixed(0)}s</span>
         </div>
@@ -379,7 +390,7 @@ function ControlPanel({
 
       {/* 风速 */}
       <div className="mb-3">
-        <label className="mb-1 block text-xs text-slate-400">风速: {state.windSpeed.toFixed(1)} m/s</label>
+        <label className={`mb-1 block ${simulationUi.mutedText}`}>风速: {state.windSpeed.toFixed(1)} m/s</label>
         <input
           type="range"
           min="0"
@@ -387,35 +398,35 @@ function ControlPanel({
           step="0.5"
           value={state.windSpeed}
           onChange={(e) => onWindSpeedChange(Number(e.target.value))}
-          className="w-full accent-blue-500"
+          className={simulationUi.nativeRange}
         />
       </div>
 
       {/* 风向 */}
       <div className="mb-3">
-        <label className="mb-1 block text-xs text-slate-400">风向: {state.windDirection.toFixed(0)}°</label>
+        <label className={`mb-1 block ${simulationUi.mutedText}`}>风向: {state.windDirection.toFixed(0)}°</label>
         <input
           type="range"
           min="0"
           max="360"
           value={state.windDirection}
           onChange={(e) => onWindDirectionChange(Number(e.target.value))}
-          className="w-full accent-blue-500"
+          className={simulationUi.nativeRange}
         />
       </div>
 
       {/* 控制模式 */}
       <div className="mb-3">
-        <label className="mb-1 block text-xs text-slate-400">控制模式</label>
+        <label className={`mb-1 block ${simulationUi.mutedText}`}>控制模式</label>
         <div className="flex flex-wrap gap-1">
           {(['manual', 'p', 'pd', 'pid', 'pid_scheduled'] as ControlMode[]).map((mode) => (
             <button
               key={mode}
               onClick={() => onControlModeChange(mode)}
-              className={`rounded px-2 py-1 text-xs ${
+              className={`rounded border px-2 py-1 text-xs ${
                 state.controlMode === mode
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-slate-700 hover:bg-slate-600'
+                  ? simulationUi.buttonPrimary
+                  : simulationUi.buttonOutline
               }`}
             >
               {mode === 'pid_scheduled' ? '增益调度' : mode.toUpperCase()}
@@ -431,9 +442,9 @@ function ControlPanel({
           id="gainScheduling"
           checked={state.gainSchedulingEnabled}
           onChange={onGainSchedulingToggle}
-          className="accent-orange-500"
+          className="accent-sky-700"
         />
-        <label htmlFor="gainScheduling" className="text-xs text-slate-400">
+        <label htmlFor="gainScheduling" className={simulationUi.mutedText}>
           启用增益调度 (自动调整 PID)
         </label>
       </div>
@@ -448,34 +459,33 @@ function HUD({ state }: { state: ContainerSimulationState }) {
   const normalizedError = headingError > 180 ? headingError - 360 : headingError < -180 ? headingError + 360 : headingError;
 
   return (
-    <div className="absolute right-4 top-4 w-72 rounded-lg bg-slate-900/95 p-4 text-sm text-slate-100 shadow-xl">
-      <h3 className="mb-3 text-lg font-semibold text-orange-400">状态监控</h3>
+    <div className="space-y-3 p-1 text-sm">
 
       {/* 时间 */}
-      <div className="mb-2 flex justify-between border-b border-slate-700 pb-2">
-        <span className="text-slate-400">仿真时间</span>
-        <span className="font-mono text-orange-400">{state.time.toFixed(1)}s</span>
+      <div className="mb-2 flex justify-between border-b border-slate-300 pb-2">
+        <span className="text-slate-700">仿真时间</span>
+        <span className="font-mono text-slate-900">{state.time.toFixed(1)}s</span>
       </div>
 
       {/* 航向信息 */}
       <div className="mb-3 grid grid-cols-2 gap-2">
         <div>
-          <div className="text-xs text-slate-500">当前航向</div>
-          <div className="font-mono text-lg text-white">{state.heading.toFixed(1)}°</div>
+          <div className="text-xs text-slate-700">当前航向</div>
+          <div className="font-mono text-lg text-slate-900">{state.heading.toFixed(1)}°</div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">航向误差</div>
-          <div className={`font-mono text-lg ${Math.abs(normalizedError) > 5 ? 'text-red-400' : 'text-green-400'}`}>
+          <div className="text-xs text-slate-700">航向误差</div>
+          <div className={`font-mono text-lg ${Math.abs(normalizedError) > 5 ? 'text-red-600' : 'text-green-700'}`}>
             {normalizedError.toFixed(1)}°
           </div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">转艏角速度</div>
-          <div className="font-mono text-white">{state.yawRate.toFixed(2)}°/s</div>
+          <div className="text-xs text-slate-700">转艏角速度</div>
+          <div className="font-mono text-slate-900">{state.yawRate.toFixed(2)}°/s</div>
         </div>
         <div>
-          <div className="text-xs text-slate-500">舵角</div>
-          <div className="font-mono text-white">{state.rudder.toFixed(1)}°</div>
+          <div className="text-xs text-slate-700">舵角</div>
+          <div className="font-mono text-slate-900">{state.rudder.toFixed(1)}°</div>
         </div>
       </div>
 
@@ -487,8 +497,8 @@ function HUD({ state }: { state: ContainerSimulationState }) {
       )}
 
       {/* 系统参数 */}
-      <div className="mb-3 rounded bg-slate-800 p-2">
-        <div className="mb-1 text-xs font-semibold text-slate-400">当前系统参数</div>
+      <div className="mb-3 rounded border border-slate-200 bg-white/90 p-2">
+        <div className="mb-1 text-xs font-semibold text-slate-700">当前系统参数</div>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>K = {state.currentK.toFixed(3)}</div>
           <div>T = {state.currentT.toFixed(0)}s</div>
@@ -498,13 +508,13 @@ function HUD({ state }: { state: ContainerSimulationState }) {
       </div>
 
       {/* 风载荷 */}
-      <div className="rounded bg-slate-800 p-2">
-        <div className="mb-1 text-xs font-semibold text-slate-400">风载荷</div>
+      <div className="rounded border border-slate-200 bg-white/90 p-2">
+        <div className="mb-1 text-xs font-semibold text-slate-700">风载荷</div>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>风速 = {state.windSpeed.toFixed(1)} m/s</div>
           <div>风向 = {state.windDirection.toFixed(0)}°</div>
           <div>横摇 = {toDegrees(state.rollAngle).toFixed(1)}°</div>
-          <div className={state.windSpeed > 15 ? 'text-yellow-400' : ''}>
+          <div className={state.windSpeed > 15 ? 'text-amber-700' : ''}>
             {state.windSpeed > 20 ? '⚠️ 风速超限' : state.windSpeed > 15 ? '注意大风' : '正常'}
           </div>
         </div>
@@ -594,11 +604,6 @@ function Scene({
         headingRad={toRadians(state.heading)}
         cameraMode={cameraMode}
         controlsRef={controlsRef}
-        config={{
-          chaseDistance: 600,
-          chaseHeight: 250,
-          overheadHeight: 2000,
-        }}
       />
     </>
   );
@@ -818,7 +823,7 @@ export default function ContainerSimulation() {
   };
 
   return (
-    <div className="relative h-screen w-full">
+    <div className={simulationUi.root} data-sim-ui>
       <Canvas shadows gl={{ antialias: true }}>
         <Suspense fallback={null}>
           <Scene
@@ -831,28 +836,74 @@ export default function ContainerSimulation() {
         </Suspense>
       </Canvas>
 
-      {/* 控制面板 */}
-      <ControlPanel
-        state={simState}
-        onTargetHeadingChange={handleTargetHeadingChange}
-        onControlModeChange={handleControlModeChange}
-        onLoadRatioChange={handleLoadRatioChange}
-        onWindSpeedChange={handleWindSpeedChange}
-        onWindDirectionChange={handleWindDirectionChange}
-        onGainSchedulingToggle={handleGainSchedulingToggle}
-        onStart={handleStart}
-        onPause={handlePause}
-        onReset={handleReset}
+      <SimulationDock
+        side="left"
+        title="状态监控"
+        tabs={[
+          {
+            id: 'status',
+            label: '总览',
+            content: <HUD state={simState} />,
+          },
+        ]}
       />
 
-      {/* HUD */}
-      <HUD state={simState} />
+      <SimulationDock
+        side="right"
+        title="控制与探究"
+        tabs={[
+          {
+            id: 'control',
+            label: '控制',
+            content: (
+              <ControlPanel
+                state={simState}
+                onTargetHeadingChange={handleTargetHeadingChange}
+                onControlModeChange={handleControlModeChange}
+                onLoadRatioChange={handleLoadRatioChange}
+                onWindSpeedChange={handleWindSpeedChange}
+                onWindDirectionChange={handleWindDirectionChange}
+                onGainSchedulingToggle={handleGainSchedulingToggle}
+                onStart={handleStart}
+                onPause={handlePause}
+                onReset={handleReset}
+              />
+            ),
+          },
+          {
+            id: 'evaluate',
+            label: '评估',
+            content: (
+              <SimulationAssessmentPanel
+                title="航线控制评估"
+                metrics={[
+                  { id: 'heading-error', label: '航向误差', value: Math.abs(simState.targetHeading - simState.heading), max: 40, better: 'lower', unit: '°' },
+                  { id: 'roll', label: '横摇角', value: Math.abs(toDegrees(simState.rollAngle)), max: 12, better: 'lower', unit: '°' },
+                  { id: 'wind', label: '风速工况', value: simState.windSpeed, max: 25, better: 'lower', unit: 'm/s' },
+                  { id: 'load-stability', label: '装载适配', value: 100 - Math.abs(simState.loadRatio - 0.6) * 100, max: 100, better: 'higher', unit: '%' },
+                ]}
+              />
+            ),
+          },
+          {
+            id: 'ai',
+            label: 'AI伴学',
+            content: <AICompanionPanel title="集装箱船航线控制" sessionId="container-simulation-session" />,
+          },
+        ]}
+      />
+
+      <SimulationTopBar
+        title="MSC Tessa 超大型集装箱船"
+        subtitle="变质量模型 · 风载荷耦合 · 增益调度"
+        badge="Container / OBE"
+      />
 
       {/* 视角切换器 */}
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
-        className="absolute bottom-4 left-1/2 -translate-x-1/2"
+        className={simulationUi.cameraSwitcherPosition}
       />
     </div>
   );
