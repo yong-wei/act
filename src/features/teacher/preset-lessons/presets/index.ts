@@ -20,6 +20,7 @@ import { LESSON_14_STABILITY_MARGIN_PRESET } from './lesson-14-stability-margin'
 import { LESSON_15_SERIES_COMPENSATION_PRESET } from './lesson-15-series-compensation';
 import { LESSON_16_NONLINEAR_BASICS_PRESET } from './lesson-16-nonlinear-basics';
 import { LESSON_17_DESCRIBING_FUNCTION_PRESET } from './lesson-17-describing-function';
+import { CRUISE_COMFORT_PRESET } from './cruise-comfort';
 
 export {
   LESSON_01_FEEDBACK_PRESET,
@@ -40,6 +41,7 @@ export {
   LESSON_15_SERIES_COMPENSATION_PRESET,
   LESSON_16_NONLINEAR_BASICS_PRESET,
   LESSON_17_DESCRIBING_FUNCTION_PRESET,
+  CRUISE_COMFORT_PRESET,
 };
 
 export const ALL_PRESETS = [
@@ -61,4 +63,5 @@ export const ALL_PRESETS = [
   LESSON_15_SERIES_COMPENSATION_PRESET,
   LESSON_16_NONLINEAR_BASICS_PRESET,
   LESSON_17_DESCRIBING_FUNCTION_PRESET,
+  CRUISE_COMFORT_PRESET,
 ];

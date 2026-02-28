@@ -7,7 +7,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-02-27
+📅 **最后更新**：2026-02-28
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教室工作台”入口（`http://localhost:3001/teacher`）；首页与认证导航新增“评审入口”（`/review`），汇总 DevelopmentPlan 用户备注对应的分支页面
 🛟 **仿真统一改造**：7 个船舶仿真统一为左侧监控、右侧“控制/评估/AI伴学”标签式面板，支持收起/展开与统一配色主题
@@ -143,6 +143,27 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
   - `/interactive-learning/courses`（互动课程，原“线下课程入口”命名升级）
   - `/interactive-learning/chapter-components`（各章节互动组件入口）
   - `/interactive-learning/chapter-components/[category]`（章节组件独立路由）
+- **精品课程入口（2026-02-28）**：
+  - `/interactive-learning/courses/cruise-comfort-boppps`（45 分钟课堂实录互动流程入口）
+  - 新增课堂隔离路由：`/interactive-learning/courses/cruise-comfort-boppps/teacher/[sessionId]` 与 `/interactive-learning/courses/cruise-comfort-boppps/student/[sessionId]`
+  - 教师端从入口创建课堂（自动克隆 `cruise-comfort-v1` 并创建 `ClassSession`），第一页展示课堂码；学生端输入课堂码加入，也可进入 `student/demo` 自由浏览
+  - 入口按账号角色隔离显示：学生隐藏“开始上课（教师）”，教师隐藏“输入课堂码加入课堂”；两端保留演示模式
+  - 教师/学生动态路由增加服务端角色守卫：学生访问教师页自动跳转学生页；教师访问学生页自动跳转教师页（`demo` 例外）
+  - 课程导航统一为“返回 + 标题 + 环节下拉 + 下方左右箭头”；课程标题统一为“柔性之海：豪华邮轮舒适度控制”
+  - 演示模式提示文案合并进课程导航栏中部，压缩竖向占用
+  - 教师端保留完整环节；学生端从“工程目标设定”起进入“仿真 + 多表征联动”综合工作台（标签切换），可直接跳转收尾总结
+  - B 阶段接入 `public/videos/luxury-liner-intro.mp4`（缺失时显示空白播放框）
+  - O 阶段支持布鲁姆动词目标设计与个性化目标发布；P1 阶段支持能力点绑定前测与教师端统计
+  - 教师端保留 NeuralODE 静态嵌入页，资源目录：`public/assets/cruise-comfort-boppps/`
+  - 2026-02-28（二次迭代）：
+    - 删除 `/interactive-learning` 顶部“课堂快速加入”入口；保留课程内独立入口流程
+    - 修复教师“开始上课”`preset not found`：将 `cruise-comfort` 预置教案注册进 `ALL_PRESETS`
+    - 教师/学生课堂页移除课堂码信息栏展示；课堂码发放环节改为“等待教师开始授课”+课堂思考提示
+    - 教师与学生端课堂码页均新增“已加入学生名单 + 总人数”动态刷新显示
+    - 课程导航压缩为三段式：左侧英中双行标题，中部 BOPPPS 阶段，右侧环节下拉 + 左右翻页
+    - 学生端从工程目标设定起采用“仿真/多表征”常驻工作台；切换环节不重载 iframe，仅更新提示文案
+    - 仿真控制面板修正：`PD` 模式下 `Kp/Kd` 可调、`Ki` 锁定；课程模式一致性评语保留在评估标签
+    - 课堂总结新增 LLM 洞察接口：`POST /api/simulation/cruise-summary-insight`（教师班级洞察 / 学生个人洞察）
 - **跨域探索置顶组件**：`/interactive-learning/multi-representation-linkage` 作为跨域探索首个入口
 - **资源来源**：动态加载教学资源库中 `INTERACTIVE_COMP` 单页互动资源
 - **资源查看入口**：`/interactive-learning/resources/[id]`
@@ -190,6 +211,11 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
   - `POST /api/linkage/calculate-frequency-domain`
   - `POST /api/linkage/stability-analysis`
 - **教学提示**：基于极点分布、增益裕度、相位裕度自动生成跨域关联提示
+- **课程模式（2026-02-28）**：
+  - 通过 query `courseMode=cruise-boppps` 启用课堂模式，默认注入“邮轮模型 + PID 控制器”近似开环
+  - 课程模式禁用“添加极点/零点”和删除操作，仅保留本课所需联动操作
+  - 与 `/simulations/cruise` 通过同源 `postMessage` 联动：仿真控制器模式与参数变化会更新开环/闭环极点，跨域页手动调整闭环极点（根轨迹）后会反向同步控制器参数
+  - 课程模式下新增一致性评语接口：`POST /api/simulation/cruise-consistency-comment`（评估数值 + LLM 文本）
 
 ### 3.15 自适应跨域题库系统 ✅
 - **页面路径**：`/assessment/adaptive-practice`
@@ -230,6 +256,19 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
   - `POST /api/evaluation/track-consistency`
   - `GET /api/evaluation/prompt-history/:userId`
 - **一致性目标**：覆盖“提示结构—设计行为—结果达成”的过程化评价
+
+### 3.19 教学创新报告配图支持（自适应测评三图） ✅
+- **新增聚合页**：`/review/adaptive-assessment-figures`
+  - 图 A：`/assessment/adaptive-practice?demo=1&scene=stable`（题库稳定性/标准化）
+  - 图 B：`/assessment/adaptive-practice?demo=1&scene=generate`（差异化生成）
+  - 图 C：`/evaluation/prompt-assessment?autodemo=1`（结构化评价常态化）
+- **自适应题库页面增强**：
+  - 支持报告演示模式（`demo=1` + `scene` 参数）用于稳定复现截图
+  - 保留真实接口流程，不影响常规训练
+- **提示词评价页面增强**：
+  - 新增“常态化训练量化追踪”区块（提示词版本轨迹 + 能力成长轨迹）
+  - 接入 `GET /api/evaluation/prompt-history/:userId` 与 `GET /api/assessment/ability-report/:userId`
+  - 新增“生成常态化演示轨迹”能力，支持快速产出可展示数据
 
 ## 4. 技术架构
 
@@ -474,6 +513,6 @@ npm test               # 运行测试
 
 ---
 
-**最后更新日期**：2026-02-23
+**最后更新日期**：2026-02-28
 **版本**：v1.1.0
 **状态**：开发完成，可用于教学实践

@@ -97,6 +97,14 @@ export const CHAPTER_COMPONENT_CATEGORIES = CATEGORY_ORDER.filter(
 
 export const FEATURED_LESSONS = [
   {
+    id: 'cruise-comfort-boppps',
+    title: '柔性之海：豪华邮轮舒适度控制课堂实录',
+    description: '45 分钟精品课程：基于 BOPPPS 的教师端/学生端联动课堂实录流程。',
+    duration: '45 分钟',
+    href: '/interactive-learning/courses/cruise-comfort-boppps',
+    badge: '精品课程',
+  },
+  {
     id: 'lesson-01',
     title: '反馈：控制原理的核心思想',
     description: '90 分钟互动课程：反馈、闭环与控制系统结构。',
@@ -233,6 +241,10 @@ export const FEATURED_LESSONS = [
     badge: 'Lesson 17',
   },
 ] as const;
+
+export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) => lesson.id === 'cruise-comfort-boppps');
+
+export const CHAPTER_LESSONS = FEATURED_LESSONS.filter((lesson) => lesson.id !== 'cruise-comfort-boppps');
 
 export function findCategoryKeyBySlug(slug: string): string | null {
   for (const [categoryKey, config] of Object.entries(CATEGORY_CONFIG)) {

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, Ship } from 'lucide-react';
 
-import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
+import { CHAPTER_LESSONS, PREMIUM_LESSONS } from '@/features/interactive/learning-catalog';
 
 export default function InteractiveCoursesPage() {
   return (
@@ -32,8 +32,39 @@ export default function InteractiveCoursesPage() {
           <p className="mt-2 text-sm text-slate-300">按章节组织的互动课程入口，每节课均为独立路由页面。</p>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {FEATURED_LESSONS.map((lesson) => (
+        <section className="mb-10">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white">精品课程</h2>
+            <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-200">
+              优先推荐
+            </span>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {PREMIUM_LESSONS.map((lesson) => (
+              <Link
+                key={lesson.id}
+                href={lesson.href}
+                className="group rounded-xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/10 to-slate-900/70 p-5 transition hover:-translate-y-0.5 hover:border-cyan-300"
+              >
+                <div className="flex items-center justify-between text-xs">
+                  <span className="rounded-full bg-cyan-500/20 px-3 py-1 text-cyan-200">{lesson.badge}</span>
+                  <span className="text-slate-300">{lesson.duration}</span>
+                </div>
+                <h2 className="mt-4 text-xl font-semibold text-white">{lesson.title}</h2>
+                <p className="mt-2 text-sm text-slate-200">{lesson.description}</p>
+                <div className="mt-4 inline-flex items-center text-xs text-cyan-100">
+                  进入课堂实录流程
+                  <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="mb-4 text-xl font-semibold text-white">章节课程</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {CHAPTER_LESSONS.map((lesson) => (
             <Link
               key={lesson.id}
               href={lesson.href}
@@ -50,7 +81,8 @@ export default function InteractiveCoursesPage() {
                 <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
               </div>
             </Link>
-          ))}
+            ))}
+          </div>
         </section>
       </main>
     </div>

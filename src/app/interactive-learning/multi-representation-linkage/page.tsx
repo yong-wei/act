@@ -8,6 +8,7 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   CartesianGrid,
   Legend,
@@ -21,6 +22,14 @@ import {
   YAxis,
 } from 'recharts';
 import type { Complex } from '@/lib/control/linkage-engine';
+import {
+  CRUISE_COURSE_MODE,
+  CRUISE_DEFAULT_PID,
+  buildOpenLoopFromController,
+  estimateControllerFromOpenLoop,
+  type CruiseControllerMode,
+  type CruiseControllerParams,
+} from '@/lib/cruise-course';
 
 interface TimeDomainResponse {
   samples: Array<{ time: number; response: number }>;
@@ -91,7 +100,7 @@ type DraggingState =
 
 const VIEW_RANGE = 6;
 const CANVAS_SIZE = 360;
-const ROOT_LOCUS_VISIBLE_RANGE = VIEW_RANGE * 1.2;
+const RANGE_PADDING_FACTOR = 1.25;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -115,12 +124,12 @@ function toComplex(point: PoleZeroPoint): Complex {
   };
 }
 
-function isInVisibleLocusRange(point: Complex): boolean {
+function isInVisibleLocusRange(point: Complex, viewRange: number): boolean {
   return (
-    point.re >= -ROOT_LOCUS_VISIBLE_RANGE
-    && point.re <= ROOT_LOCUS_VISIBLE_RANGE
-    && point.im >= -ROOT_LOCUS_VISIBLE_RANGE
-    && point.im <= ROOT_LOCUS_VISIBLE_RANGE
+    point.re >= -viewRange
+    && point.re <= viewRange
+    && point.im >= -viewRange
+    && point.im <= viewRange
   );
 }
 
@@ -230,19 +239,79 @@ function removePointWithPair(points: PoleZeroPoint[], pointId: string): PoleZero
   return points.filter((item) => item.pairKey !== target.pairKey);
 }
 
-export default function MultiRepresentationLinkagePage() {
-  const [modelPoles, setModelPoles] = useState<PoleZeroPoint[]>([
-    { id: 'p1', re: -1.2, im: 1.3, pairKey: 'pair-p1' },
-    { id: 'p2', re: -1.2, im: -1.3, pairKey: 'pair-p1' },
-  ]);
-  const [draftPoles, setDraftPoles] = useState<PoleZeroPoint[]>([
-    { id: 'p1', re: -1.2, im: 1.3, pairKey: 'pair-p1' },
-    { id: 'p2', re: -1.2, im: -1.3, pairKey: 'pair-p1' },
-  ]);
-  const [modelZeros, setModelZeros] = useState<PoleZeroPoint[]>([]);
-  const [draftZeros, setDraftZeros] = useState<PoleZeroPoint[]>([]);
+function toPoleZeroPoints(points: Complex[], prefix: 'p' | 'z'): PoleZeroPoint[] {
+  const result: PoleZeroPoint[] = [];
+  let index = 1;
+  const used = new Set<number>();
 
-  const [gain, setGain] = useState(1);
+  for (let i = 0; i < points.length; i += 1) {
+    if (used.has(i)) {
+      continue;
+    }
+    const point = points[i];
+    if (Math.abs(point.im) < 1e-6) {
+      result.push({ id: `${prefix}${index++}`, re: round3(point.re), im: 0, pairKey: null });
+      used.add(i);
+      continue;
+    }
+
+    const conjugateIdx = points.findIndex(
+      (candidate, idx) =>
+        idx !== i
+        && !used.has(idx)
+        && Math.abs(candidate.re - point.re) < 1e-6
+        && Math.abs(candidate.im + point.im) < 1e-6
+    );
+
+    if (conjugateIdx >= 0) {
+      const pairKey = `${prefix}-pair-${index}`;
+      result.push({
+        id: `${prefix}${index}`,
+        re: round3(point.re),
+        im: round3(Math.abs(point.im)),
+        pairKey,
+      });
+      result.push({
+        id: `${prefix}${index + 1}`,
+        re: round3(point.re),
+        im: round3(-Math.abs(point.im)),
+        pairKey,
+      });
+      index += 2;
+      used.add(i);
+      used.add(conjugateIdx);
+      continue;
+    }
+
+    result.push({ id: `${prefix}${index++}`, re: round3(point.re), im: round3(point.im), pairKey: null });
+    used.add(i);
+  }
+
+  return result;
+}
+
+export default function MultiRepresentationLinkagePage() {
+  const searchParams = useSearchParams();
+  const isCourseMode = searchParams.get('courseMode') === CRUISE_COURSE_MODE;
+  const courseRole = searchParams.get('role') === 'teacher' ? 'teacher' : 'student';
+  const isEmbedded = searchParams.get('embed') === '1';
+  const initialControlMode = (searchParams.get('controlMode') as CruiseControllerMode) || 'pid';
+  const initialController: CruiseControllerParams = {
+    kp: Number(searchParams.get('kp')) || CRUISE_DEFAULT_PID.kp,
+    ki: Number(searchParams.get('ki')) || CRUISE_DEFAULT_PID.ki,
+    kd: Number(searchParams.get('kd')) || CRUISE_DEFAULT_PID.kd,
+  };
+  const openLoopSeed = buildOpenLoopFromController(initialController, initialControlMode);
+  const defaultPoles = toPoleZeroPoints(openLoopSeed.poles, 'p');
+  const defaultZeros = toPoleZeroPoints(openLoopSeed.zeros, 'z');
+
+  const [modelPoles, setModelPoles] = useState<PoleZeroPoint[]>(defaultPoles);
+  const [draftPoles, setDraftPoles] = useState<PoleZeroPoint[]>(defaultPoles);
+  const [modelZeros, setModelZeros] = useState<PoleZeroPoint[]>(defaultZeros);
+  const [draftZeros, setDraftZeros] = useState<PoleZeroPoint[]>(defaultZeros);
+
+  const [gain, setGain] = useState(openLoopSeed.gain);
+  const [courseControlMode, setCourseControlMode] = useState<CruiseControllerMode>(initialControlMode);
   const [previewGain, setPreviewGain] = useState<number | null>(null);
   const [responseType, setResponseType] = useState<'step' | 'impulse' | 'ramp'>('step');
   const [showMargins, setShowMargins] = useState(true);
@@ -256,8 +325,32 @@ export default function MultiRepresentationLinkagePage() {
 
   const idRef = useRef(100);
   const pairRef = useRef(100);
+  const baseControllerRef = useRef<CruiseControllerParams>(initialController);
 
-  const scale = CANVAS_SIZE / (VIEW_RANGE * 2);
+  const displayPoles = dragging?.type === 'open-loop' ? draftPoles : modelPoles;
+  const displayZeros = dragging?.type === 'open-loop' ? draftZeros : modelZeros;
+
+  const viewRange = useMemo(() => {
+    const closedLoopPoles = stability?.closedLoopPoles ?? [];
+    const values = [
+      ...displayPoles.flatMap((point) => [Math.abs(point.re), Math.abs(point.im)]),
+      ...displayZeros.flatMap((point) => [Math.abs(point.re), Math.abs(point.im)]),
+      ...closedLoopPoles.flatMap((point) => [Math.abs(point.re), Math.abs(point.im)]),
+    ];
+    const maxCoordinate = values.length > 0 ? Math.max(...values) : VIEW_RANGE;
+    const padded = maxCoordinate * RANGE_PADDING_FACTOR;
+    return Math.max(1, round3(padded > 0 ? padded : VIEW_RANGE));
+  }, [displayPoles, displayZeros, stability?.closedLoopPoles]);
+
+  const scale = useMemo(() => CANVAS_SIZE / (viewRange * 2), [viewRange]);
+
+  const planeTicks = useMemo(() => {
+    const divisions = 5;
+    return Array.from({ length: divisions * 2 + 1 }, (_, index) => {
+      const ratio = (index - divisions) / divisions;
+      return round3(ratio * viewRange);
+    }).filter((tick) => Math.abs(tick) > 1e-6);
+  }, [viewRange]);
 
   const transformToCanvas = useCallback(
     (point: Complex) => ({
@@ -269,19 +362,19 @@ export default function MultiRepresentationLinkagePage() {
 
   const transformToComplex = useCallback(
     (x: number, y: number): Complex => ({
-      re: clamp((x - CANVAS_SIZE / 2) / scale, -VIEW_RANGE, VIEW_RANGE),
-      im: clamp((CANVAS_SIZE / 2 - y) / scale, -VIEW_RANGE, VIEW_RANGE),
+      re: clamp((x - CANVAS_SIZE / 2) / scale, -viewRange, viewRange),
+      im: clamp((CANVAS_SIZE / 2 - y) / scale, -viewRange, viewRange),
     }),
-    [scale]
+    [scale, viewRange]
   );
-
-  const displayPoles = dragging?.type === 'open-loop' ? draftPoles : modelPoles;
-  const displayZeros = dragging?.type === 'open-loop' ? draftZeros : modelZeros;
 
   const polesPayload = useMemo(() => modelPoles.map(toComplex), [modelPoles]);
   const zerosPayload = useMemo(() => modelZeros.map(toComplex), [modelZeros]);
 
   const addRealPoint = useCallback((type: 'pole' | 'zero') => {
+    if (isCourseMode) {
+      return;
+    }
     const id = `${type}-${idRef.current++}`;
     const item: PoleZeroPoint = { id, re: -2.2, im: 0, pairKey: null };
 
@@ -292,9 +385,12 @@ export default function MultiRepresentationLinkagePage() {
       setModelZeros((previous) => [...previous, item]);
       setDraftZeros((previous) => [...previous, item]);
     }
-  }, []);
+  }, [isCourseMode]);
 
   const addConjugatePair = useCallback((type: 'pole' | 'zero') => {
+    if (isCourseMode) {
+      return;
+    }
     const pairKey = `${type}-pair-${pairRef.current++}`;
     const idA = `${type}-${idRef.current++}`;
     const idB = `${type}-${idRef.current++}`;
@@ -311,9 +407,12 @@ export default function MultiRepresentationLinkagePage() {
       setModelZeros((previous) => [...previous, ...pair]);
       setDraftZeros((previous) => [...previous, ...pair]);
     }
-  }, []);
+  }, [isCourseMode]);
 
   const removePole = useCallback((pointId: string) => {
+    if (isCourseMode) {
+      return;
+    }
     setModelPoles((previous) => {
       const next = removePointWithPair(previous, pointId);
       if (next.length === 0) {
@@ -322,15 +421,18 @@ export default function MultiRepresentationLinkagePage() {
       setDraftPoles(next);
       return next;
     });
-  }, []);
+  }, [isCourseMode]);
 
   const removeZero = useCallback((pointId: string) => {
+    if (isCourseMode) {
+      return;
+    }
     setModelZeros((previous) => {
       const next = removePointWithPair(previous, pointId);
       setDraftZeros(next);
       return next;
     });
-  }, []);
+  }, [isCourseMode]);
 
   const updateModelPole = useCallback((pointId: string, next: Complex) => {
     setModelPoles((previous) => updatePointWithConjugateLink(previous, pointId, next));
@@ -414,6 +516,84 @@ export default function MultiRepresentationLinkagePage() {
     return () => window.clearTimeout(timer);
   }, [fetchAll]);
 
+  useEffect(() => {
+    if (!isCourseMode) {
+      return;
+    }
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) {
+        return;
+      }
+      const data = event.data as {
+        type?: string;
+        source?: 'simulation' | 'linkage';
+        payload?: {
+          controlMode?: CruiseControllerMode;
+          openLoop?: { poles?: Complex[]; zeros?: Complex[]; gain?: number };
+          controller?: CruiseControllerParams;
+        };
+      };
+      if (data?.type !== 'cruise-course-sync' || data.source !== 'simulation') {
+        return;
+      }
+
+      if (data.payload?.controlMode) {
+        setCourseControlMode(data.payload.controlMode);
+      }
+
+      if (data.payload?.controller) {
+        baseControllerRef.current = data.payload.controller;
+      }
+
+      if (data.payload?.openLoop?.poles) {
+        const nextPoles = toPoleZeroPoints(data.payload.openLoop.poles, 'p');
+        setModelPoles(nextPoles);
+        setDraftPoles(nextPoles);
+      } else if (data.payload?.controller) {
+        const model = buildOpenLoopFromController(data.payload.controller, data.payload.controlMode ?? courseControlMode);
+        const nextPoles = toPoleZeroPoints(model.poles, 'p');
+        const nextZeros = toPoleZeroPoints(model.zeros, 'z');
+        setModelPoles(nextPoles);
+        setDraftPoles(nextPoles);
+        setModelZeros(nextZeros);
+        setDraftZeros(nextZeros);
+        setGain(model.gain);
+      }
+
+      if (data.payload?.openLoop?.zeros) {
+        const nextZeros = toPoleZeroPoints(data.payload.openLoop.zeros, 'z');
+        setModelZeros(nextZeros);
+        setDraftZeros(nextZeros);
+      }
+
+      if (typeof data.payload?.openLoop?.gain === 'number' && Number.isFinite(data.payload.openLoop.gain)) {
+        const nextGain = round3(Math.max(0, data.payload.openLoop.gain));
+        setGain(nextGain);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [courseControlMode, isCourseMode]);
+
+  useEffect(() => {
+    if (!isCourseMode) {
+      return;
+    }
+    const controller = estimateControllerFromOpenLoop(polesPayload, zerosPayload, gain, courseControlMode, baseControllerRef.current);
+    window.parent.postMessage(
+      {
+        type: 'cruise-course-sync',
+        source: 'linkage',
+        payload: {
+          controlMode: courseControlMode,
+          controller,
+        },
+      },
+      window.location.origin
+    );
+  }, [courseControlMode, gain, isCourseMode, polesPayload, zerosPayload]);
+
   const hints = useMemo(() => {
     if (stability?.hints?.length) {
       return stability.hints;
@@ -439,7 +619,7 @@ export default function MultiRepresentationLinkagePage() {
       let previousVisible: Complex | null = null;
 
       for (const point of branch) {
-        if (!isInVisibleLocusRange(point)) {
+        if (!isInVisibleLocusRange(point, viewRange)) {
           if (currentPath) {
             segments.push(currentPath);
             currentPath = '';
@@ -469,7 +649,7 @@ export default function MultiRepresentationLinkagePage() {
     }
 
     return segments;
-  }, [rootLocusBranches, transformToCanvas]);
+  }, [rootLocusBranches, transformToCanvas, viewRange]);
 
   const frequencyDomainData = useMemo(() => frequencyDomain?.samples ?? [], [frequencyDomain?.samples]);
 
@@ -608,13 +788,17 @@ export default function MultiRepresentationLinkagePage() {
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 md:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <p className="text-xs uppercase tracking-[0.28em] text-cyan-400">Structure Visible</p>
-          <h1 className="mt-1 text-2xl font-semibold">多表征联动可视化引擎</h1>
-          <p className="mt-2 text-sm text-slate-400">
-            开环极点/零点定义根轨迹，闭环极点位置决定时域响应。拖拽过程只做本地预览，松开后统一刷新计算结果。
-          </p>
-        </header>
+        {!isEmbedded ? (
+          <header className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+            <p className="text-xs uppercase tracking-[0.28em] text-cyan-400">Structure Visible</p>
+            <h1 className="mt-1 text-2xl font-semibold">{isCourseMode ? '多表征联动（课程模式）' : '多表征联动可视化引擎'}</h1>
+            <p className="mt-2 text-sm text-slate-400">
+              {isCourseMode
+                ? `课程模式(${courseRole})：默认按邮轮模型+控制器注入开环，禁用添加极点/零点。`
+                : '开环极点/零点定义根轨迹，闭环极点位置决定时域响应。拖拽过程只做本地预览，松开后统一刷新计算结果。'}
+            </p>
+          </header>
+        ) : null}
 
         <section className="grid gap-4 lg:grid-cols-[430px_1fr]">
           <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
@@ -631,7 +815,7 @@ export default function MultiRepresentationLinkagePage() {
               <line x1={CANVAS_SIZE / 2} y1={0} x2={CANVAS_SIZE / 2} y2={CANVAS_SIZE} stroke="#334155" />
               <line x1={0} y1={CANVAS_SIZE / 2} x2={CANVAS_SIZE} y2={CANVAS_SIZE / 2} stroke="#334155" />
 
-              {[-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].map((tick) => (
+              {planeTicks.map((tick) => (
                 <g key={tick}>
                   <line
                     x1={CANVAS_SIZE / 2 + tick * scale}
@@ -748,6 +932,7 @@ export default function MultiRepresentationLinkagePage() {
               <button
                 type="button"
                 onClick={() => addRealPoint('pole')}
+                disabled={isCourseMode}
                 className="rounded bg-cyan-700 px-3 py-2 text-sm font-medium hover:bg-cyan-600"
               >
                 添加实极点
@@ -755,6 +940,7 @@ export default function MultiRepresentationLinkagePage() {
               <button
                 type="button"
                 onClick={() => addConjugatePair('pole')}
+                disabled={isCourseMode}
                 className="rounded bg-cyan-600 px-3 py-2 text-sm font-medium hover:bg-cyan-500"
               >
                 添加共轭极点对
@@ -762,6 +948,7 @@ export default function MultiRepresentationLinkagePage() {
               <button
                 type="button"
                 onClick={() => addRealPoint('zero')}
+                disabled={isCourseMode}
                 className="rounded bg-rose-700 px-3 py-2 text-sm font-medium hover:bg-rose-600"
               >
                 添加实零点
@@ -769,6 +956,7 @@ export default function MultiRepresentationLinkagePage() {
               <button
                 type="button"
                 onClick={() => addConjugatePair('zero')}
+                disabled={isCourseMode}
                 className="rounded bg-rose-600 px-3 py-2 text-sm font-medium hover:bg-rose-500"
               >
                 添加共轭零点对
@@ -816,6 +1004,7 @@ export default function MultiRepresentationLinkagePage() {
                     <button
                       type="button"
                       onClick={() => removePole(pole.id)}
+                      disabled={isCourseMode}
                       className="rounded bg-slate-700 px-2 py-0.5 text-[11px] text-slate-200 hover:bg-slate-600"
                     >
                       删除
@@ -867,6 +1056,7 @@ export default function MultiRepresentationLinkagePage() {
                     <button
                       type="button"
                       onClick={() => removeZero(zero.id)}
+                      disabled={isCourseMode}
                       className="rounded bg-slate-700 px-2 py-0.5 text-[11px] text-slate-200 hover:bg-slate-600"
                     >
                       删除
@@ -911,15 +1101,23 @@ export default function MultiRepresentationLinkagePage() {
               <button
                 type="button"
                 onClick={() => {
-                  const resetPoles: PoleZeroPoint[] = [
-                    { id: 'p1', re: -1.2, im: 1.3, pairKey: 'pair-p1' },
-                    { id: 'p2', re: -1.2, im: -1.3, pairKey: 'pair-p1' },
-                  ];
+                  const fallbackModel = isCourseMode
+                    ? buildOpenLoopFromController(CRUISE_DEFAULT_PID, courseControlMode)
+                    : {
+                        poles: [
+                          { re: -1.2, im: 1.3 },
+                          { re: -1.2, im: -1.3 },
+                        ],
+                        zeros: [] as Complex[],
+                        gain: 1,
+                      };
+                  const resetPoles = toPoleZeroPoints(fallbackModel.poles, 'p');
+                  const resetZeros = toPoleZeroPoints(fallbackModel.zeros, 'z');
                   setModelPoles(resetPoles);
                   setDraftPoles(resetPoles);
-                  setModelZeros([]);
-                  setDraftZeros([]);
-                  setGain(1);
+                  setModelZeros(resetZeros);
+                  setDraftZeros(resetZeros);
+                  setGain(fallbackModel.gain);
                   setPreviewGain(null);
                   setDragging(null);
                 }}

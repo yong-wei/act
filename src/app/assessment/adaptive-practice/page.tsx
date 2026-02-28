@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 interface DiagnosticResponse {
   knowledgeDimensions: {
@@ -40,11 +41,109 @@ interface SubmitAnswerResponse {
   recommendedFocus: string[];
 }
 
+type DemoScene = 'stable' | 'generate';
+
+const DEMO_SCENES: Record<DemoScene, {
+  diagnostic: DiagnosticResponse;
+  questionState: NextQuestionResponse;
+  feedback: SubmitAnswerResponse | null;
+  defaultSelectedOption: string;
+}> = {
+  stable: {
+    diagnostic: {
+      knowledgeDimensions: {
+        computational: 76,
+        crossDomain: 63,
+        design: 58,
+      },
+      weakAreas: ['phase-margin', 'disturbance-rejection', 'controller-tuning'],
+      recommendedFocus: [
+        '优先练习“相位裕度-超调量”映射题',
+        '补强扰动抑制与鲁棒性分析',
+        '加强 PID 参数因果调节训练',
+      ],
+    },
+    questionState: {
+      estimatedAbility: 0.54,
+      confidenceInterval: [0.31, 0.77],
+      question: {
+        id: 'demo-classic-stable',
+        stem: '某系统相位裕度从 45° 降至 20°，且交叉频率上升。以下哪项最符合“频域→时域”映射规律？',
+        domains: ['frequency', 'time'],
+        type: 'bode-to-stability',
+        difficulty: 0.58,
+        knowledgeTags: ['phase-margin', 'overshoot'],
+        options: [
+          { label: 'A', text: '超调风险升高且鲁棒性下降', explanation: '相位裕度下降通常对应阻尼降低，超调增加且鲁棒性变差。' },
+          { label: 'B', text: '超调下降且抗扰增强', explanation: '该选项与相位裕度下降的典型结果相反。' },
+          { label: 'C', text: '动态几乎不变，仅稳态误差变化', explanation: '动态指标会明显变化，不仅是稳态误差。' },
+          { label: 'D', text: '系统一定变为无振荡响应', explanation: '该结论与裕度降低趋势不一致。' },
+        ],
+      },
+    },
+    feedback: null,
+    defaultSelectedOption: '',
+  },
+  generate: {
+    diagnostic: {
+      knowledgeDimensions: {
+        computational: 68,
+        crossDomain: 71,
+        design: 64,
+      },
+      weakAreas: ['comfort-constraint', 'robustness', 'controller-tuning'],
+      recommendedFocus: [
+        '关注舒适度约束与控制带宽权衡',
+        '增加参数摄动场景下的决策练习',
+        '加强 PID 参数因果调节训练',
+      ],
+    },
+    questionState: {
+      estimatedAbility: 0.89,
+      confidenceInterval: [0.65, 1.12],
+      question: {
+        id: 'demo-generated-live',
+        stem: '【AI现场生成】邮轮横摇舒适度未达标（MSI 偏高），请在保持稳定裕度 > 30° 约束下，给出可执行调参策略。',
+        domains: ['time', 'frequency', 'complex'],
+        type: 'multi-criteria',
+        difficulty: 0.72,
+        knowledgeTags: ['comfort-constraint', 'robustness', 'controller-tuning'],
+        options: [
+          {
+            label: 'A',
+            text: '先识别主导约束，再按跨域因果逐步调参',
+            explanation: '跨域问题应先明确约束，再基于“极点-频域-时域”因果做迭代优化。',
+          },
+          { label: 'B', text: '直接大幅提高 Kp 并忽略约束', explanation: '忽略约束会导致舒适度与鲁棒性风险。' },
+          { label: 'C', text: '仅根据单一指标一次性定参', explanation: '单指标决策难以应对跨域耦合。' },
+          { label: 'D', text: '只追求最快响应，不评估稳定裕度', explanation: '稳定裕度是硬约束，不能跳过。' },
+        ],
+      },
+    },
+    feedback: {
+      isCorrect: true,
+      correctOption: 'A',
+      explanation: '本题强调“约束优先 + 跨域因果”的设计流程，先保稳定再优化舒适度。',
+      estimatedAbility: 0.96,
+      recommendedFocus: ['围绕 comfort-constraint 继续练习跨域题目', '增加参数摄动场景下的决策练习'],
+    },
+    defaultSelectedOption: 'A',
+  },
+};
+
 function percentLabel(value: number): string {
   return `${Math.round(value)}%`;
 }
 
+function resolveDemoScene(sceneParam: string | null): DemoScene {
+  return sceneParam === 'generate' ? 'generate' : 'stable';
+}
+
 export default function AdaptivePracticePage() {
+  const searchParams = useSearchParams();
+  const isDemoMode = searchParams.get('demo') === '1';
+  const demoScene = resolveDemoScene(searchParams.get('scene'));
+
   const sessionId = useMemo(() => `practice-${Math.random().toString(36).slice(2, 10)}`, []);
 
   const [diagnostic, setDiagnostic] = useState<DiagnosticResponse | null>(null);
@@ -54,6 +153,17 @@ export default function AdaptivePracticePage() {
   const [loading, setLoading] = useState(false);
   const [questionStartAt, setQuestionStartAt] = useState<number>(Date.now());
   const [error, setError] = useState<string | null>(null);
+
+  const applyDemoScene = useCallback((scene: DemoScene) => {
+    const demoData = DEMO_SCENES[scene];
+    setDiagnostic(demoData.diagnostic);
+    setQuestionState(demoData.questionState);
+    setSelectedOption(demoData.defaultSelectedOption);
+    setFeedback(demoData.feedback);
+    setQuestionStartAt(Date.now());
+    setLoading(false);
+    setError(null);
+  }, []);
 
   const loadDiagnostic = useCallback(async () => {
     const response = await fetch('/api/assessment/diagnostic');
@@ -65,6 +175,12 @@ export default function AdaptivePracticePage() {
   }, []);
 
   const loadNextQuestion = useCallback(async () => {
+    if (isDemoMode) {
+      const nextScene: DemoScene = demoScene === 'stable' ? 'generate' : 'stable';
+      applyDemoScene(nextScene);
+      return;
+    }
+
     const response = await fetch('/api/assessment/next-question', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -80,9 +196,14 @@ export default function AdaptivePracticePage() {
     setSelectedOption('');
     setFeedback(null);
     setQuestionStartAt(Date.now());
-  }, [sessionId]);
+  }, [applyDemoScene, demoScene, isDemoMode, sessionId]);
 
   useEffect(() => {
+    if (isDemoMode) {
+      applyDemoScene(demoScene);
+      return;
+    }
+
     const bootstrap = async () => {
       setLoading(true);
       setError(null);
@@ -96,10 +217,25 @@ export default function AdaptivePracticePage() {
     };
 
     void bootstrap();
-  }, [loadDiagnostic, loadNextQuestion]);
+  }, [applyDemoScene, demoScene, isDemoMode, loadDiagnostic, loadNextQuestion]);
 
   const submitCurrentAnswer = async () => {
     if (!questionState || !selectedOption) {
+      return;
+    }
+
+    if (isDemoMode) {
+      const correctOption = questionState.question.options[0]?.label ?? '';
+      const isCorrect = selectedOption === correctOption;
+      setFeedback({
+        isCorrect,
+        correctOption,
+        explanation: isCorrect
+          ? '回答正确：已建立“约束优先 + 跨域映射”的解题顺序。'
+          : '回答错误：请优先识别约束，再进行域间因果映射。',
+        estimatedAbility: Number((questionState.estimatedAbility + (isCorrect ? 0.06 : -0.03)).toFixed(2)),
+        recommendedFocus: diagnostic?.recommendedFocus ?? ['围绕关键薄弱点继续练习跨域题目'],
+      });
       return;
     }
 
@@ -134,6 +270,11 @@ export default function AdaptivePracticePage() {
 
   const generateQuestion = async () => {
     if (!diagnostic) {
+      return;
+    }
+
+    if (isDemoMode) {
+      applyDemoScene('generate');
       return;
     }
 
@@ -172,6 +313,11 @@ export default function AdaptivePracticePage() {
           <p className="mt-2 text-sm text-slate-400">
             基于答题历史动态估计能力值，针对薄弱知识点推荐下一题，并支持即时生成跨域题目。
           </p>
+          {isDemoMode ? (
+            <div className="mt-3 inline-flex items-center rounded-full border border-emerald-400/50 bg-emerald-500/15 px-3 py-1 text-xs text-emerald-200">
+              报告演示模式：{demoScene === 'stable' ? '题库稳定性视图' : '差异化生成视图'}
+            </div>
+          ) : null}
         </header>
 
         <section className="grid gap-4 lg:grid-cols-[340px_1fr]">
@@ -344,7 +490,13 @@ export default function AdaptivePracticePage() {
             )}
 
             <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-400">
-              {loading ? '系统正在评估并更新题目推荐...' : error ? `操作失败：${error}` : '提示：答错后会触发跨域解释与后续补强建议。'}
+              {loading
+                ? '系统正在评估并更新题目推荐...'
+                : error
+                  ? `操作失败：${error}`
+                  : isDemoMode
+                    ? '提示：可切换 scene=stable / generate 直接导出两类报告配图。'
+                    : '提示：答错后会触发跨域解释与后续补强建议。'}
             </div>
           </main>
         </section>

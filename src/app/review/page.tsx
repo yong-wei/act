@@ -10,6 +10,12 @@ type ReviewEntry = {
 
 const reviewEntries: ReviewEntry[] = [
   {
+    title: '自适应测评报告配图工作台',
+    href: '/review/adaptive-assessment-figures',
+    description: '三图聚合预览与一键导出入口（题库稳定性 / 差异化生成 / 常态化评价）。',
+    source: 'src/app/review/adaptive-assessment-figures/page.tsx',
+  },
+  {
     title: '多表征联动可视化引擎',
     href: '/interactive-learning/multi-representation-linkage',
     description: '开环极点/零点、根轨迹、Bode、Nyquist 与时域响应跨域联动。',
