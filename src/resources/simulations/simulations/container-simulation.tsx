@@ -528,12 +528,14 @@ function HUD({ state }: { state: ContainerSimulationState }) {
 function Scene({
   state,
   trajectory,
+  showGrid,
   cameraMode,
   onCameraModeChange,
   controlsRef,
 }: {
   state: ContainerSimulationState;
   trajectory: Vector2[];
+  showGrid: boolean;
   cameraMode: CameraMode;
   onCameraModeChange: (mode: CameraMode) => void;
   controlsRef: React.RefObject<OrbitControlsImpl>;
@@ -550,18 +552,20 @@ function Scene({
       <MaritimeEnvironment shipPosition={state.position} seaState={3} />
 
       {/* 参考网格 */}
-      <Grid
-        args={[20000, 20000]}
-        cellSize={100}
-        cellThickness={0.5}
-        cellColor="#1e3a5f"
-        sectionSize={500}
-        sectionThickness={1}
-        sectionColor="#2563eb"
-        fadeDistance={8000}
-        fadeStrength={1}
-        position={[0, 0.1, 0]}
-      />
+      {showGrid ? (
+        <Grid
+          args={[20000, 20000]}
+          cellSize={100}
+          cellThickness={0.5}
+          cellColor="#1e3a5f"
+          sectionSize={500}
+          sectionThickness={1}
+          sectionColor="#2563eb"
+          fadeDistance={9000}
+          fadeStrength={1}
+          position={[0, 0.35, 0]}
+        />
+      ) : null}
 
       {/* 航迹线 */}
       <TrajectoryLine points={trajectory} />
@@ -621,6 +625,7 @@ export default function ContainerSimulation() {
 
   // 相机状态
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+  const [showGrid, setShowGrid] = useState(true);
 
   // 轨迹记录
   const [trajectory, setTrajectory] = useState<Vector2[]>([]);
@@ -829,6 +834,7 @@ export default function ContainerSimulation() {
           <Scene
             state={simState}
             trajectory={trajectory}
+            showGrid={showGrid}
             cameraMode={cameraMode}
             onCameraModeChange={setCameraMode}
             controlsRef={controlsRef}
@@ -903,6 +909,8 @@ export default function ContainerSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        gridEnabled={showGrid}
+        onToggleGrid={() => setShowGrid((previous) => !previous)}
         className={simulationUi.cameraSwitcherPosition}
       />
     </div>

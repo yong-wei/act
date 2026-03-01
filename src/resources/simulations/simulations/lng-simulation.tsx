@@ -407,12 +407,14 @@ function ControlPanel({
 function Scene({
   state,
   trajectory,
+  showGrid,
   cameraMode,
   onCameraModeChange,
   controlsRef,
 }: {
   state: LNGSimulationState;
   trajectory: Vector2[];
+  showGrid: boolean;
   cameraMode: CameraMode;
   onCameraModeChange: (mode: CameraMode) => void;
   controlsRef: React.RefObject<OrbitControlsImpl>;
@@ -426,17 +428,20 @@ function Scene({
 
       <MaritimeEnvironment shipPosition={state.position} seaState={3} />
 
-      <Grid
-        args={[10000, 10000]}
-        cellSize={100}
-        cellThickness={0.5}
-        cellColor="#1e40af"
-        sectionSize={500}
-        sectionThickness={1}
-        sectionColor="#3b82f6"
-        fadeDistance={5000}
-        position={[0, 0.1, 0]}
-      />
+      {showGrid ? (
+        <Grid
+          args={[10000, 10000]}
+          cellSize={100}
+          cellThickness={0.5}
+          cellColor="#1e3a5f"
+          sectionSize={500}
+          sectionThickness={1}
+          sectionColor="#2563eb"
+          fadeDistance={9000}
+          fadeStrength={1}
+          position={[0, 0.35, 0]}
+        />
+      ) : null}
 
       <LNGShipModel
         position={state.position}
@@ -482,6 +487,7 @@ export function LNGSimulation() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+  const [showGrid, setShowGrid] = useState(true);
   const [state, setState] = useState<LNGSimulationState>({
     isRunning: false,
     isPaused: false,
@@ -638,6 +644,7 @@ export function LNGSimulation() {
           <Scene
             state={state}
             trajectory={trajectory}
+            showGrid={showGrid}
             cameraMode={cameraMode}
             onCameraModeChange={setCameraMode}
             controlsRef={controlsRef}
@@ -708,6 +715,8 @@ export function LNGSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        gridEnabled={showGrid}
+        onToggleGrid={() => setShowGrid((previous) => !previous)}
         className={simulationUi.cameraSwitcherPosition}
       />
     </div>

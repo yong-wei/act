@@ -365,6 +365,7 @@ function Scene({
   azimuth2,
   trail,
   iceMode,
+  showGrid,
   controlsRef,
   cameraMode,
   onCameraModeChange,
@@ -376,6 +377,7 @@ function Scene({
   azimuth2: number;
   trail: Vector2[];
   iceMode: boolean;
+  showGrid: boolean;
   controlsRef: React.RefObject<OrbitControlsImpl>;
   cameraMode: CameraMode;
   onCameraModeChange: (mode: CameraMode) => void;
@@ -421,18 +423,21 @@ function Scene({
       <HeadingIndicator position={position} targetHeading={targetHeading} />
       <TrailLine points={trail} />
 
-      <Grid
-        position={[0, -1.9, 0]}
-        args={[2000, 2000]}
-        cellSize={50}
-        cellThickness={0.5}
-        cellColor="#1e40af"
-        sectionSize={200}
-        sectionThickness={1}
-        sectionColor="#3b82f6"
-        fadeDistance={1500}
-        infiniteGrid
-      />
+      {showGrid ? (
+        <Grid
+          position={[0, 0.35, 0]}
+          args={[20000, 20000]}
+          cellSize={100}
+          cellThickness={0.5}
+          cellColor="#1e3a5f"
+          sectionSize={500}
+          sectionThickness={1}
+          sectionColor="#2563eb"
+          fadeDistance={9000}
+          fadeStrength={1}
+          infiniteGrid
+        />
+      ) : null}
     </>
   );
 }
@@ -938,6 +943,7 @@ export default function IcebreakerSimulation() {
   // 相机控制
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+  const [showGrid, setShowGrid] = useState(true);
 
   // Azipod 参数 (使用预定义的默认参数)
   const azipodParams: Azipod3DOFParams = DEFAULT_AZIPOD_3DOF_PARAMS;
@@ -1133,6 +1139,7 @@ export default function IcebreakerSimulation() {
           azimuth2={physicsStateRef.current.azipod2.azimuth}
           trail={trail}
           iceMode={config.iceModeEnabled}
+          showGrid={showGrid}
           controlsRef={controlsRef as React.RefObject<OrbitControlsImpl>}
           cameraMode={cameraMode}
           onCameraModeChange={setCameraMode}
@@ -1218,6 +1225,8 @@ export default function IcebreakerSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        gridEnabled={showGrid}
+        onToggleGrid={() => setShowGrid((previous) => !previous)}
         className={simulationUi.cameraSwitcherPosition}
       />
 

@@ -752,6 +752,7 @@ export function DrillingSimulation() {
   const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+  const [showGrid, setShowGrid] = useState(true);
 
   // 船舶配置
   const profile = drillingHYSY981Profile;
@@ -996,18 +997,20 @@ export function DrillingSimulation() {
         <MaritimeEnvironment shipPosition={platformPosition} seaState={3} />
 
         {/* 网格 */}
-        <Grid
-          position={[0, 0.5, 0]}
-          args={[2000, 2000]}
-          cellSize={20}
-          cellThickness={0.5}
-          cellColor="#1e3a5f"
-          sectionSize={100}
-          sectionThickness={1}
-          sectionColor="#2563eb"
-          fadeDistance={1500}
-          fadeStrength={1}
-        />
+        {showGrid ? (
+          <Grid
+            position={[0, 0.35, 0]}
+            args={[20000, 20000]}
+            cellSize={100}
+            cellThickness={0.5}
+            cellColor="#1e3a5f"
+            sectionSize={500}
+            sectionThickness={1}
+            sectionColor="#2563eb"
+            fadeDistance={9000}
+            fadeStrength={1}
+          />
+        ) : null}
 
         {/* 目标标记 */}
         <TargetMarker position={config.targetPosition} heading={config.targetHeading} />
@@ -1033,6 +1036,8 @@ export function DrillingSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        gridEnabled={showGrid}
+        onToggleGrid={() => setShowGrid((previous) => !previous)}
         className={simulationUi.cameraSwitcherPosition}
       />
 

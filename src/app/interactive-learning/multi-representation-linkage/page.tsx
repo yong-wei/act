@@ -101,6 +101,9 @@ type DraggingState =
 const VIEW_RANGE = 6;
 const CANVAS_SIZE = 360;
 const RANGE_PADDING_FACTOR = 1.25;
+const ZOOM_STEP = 1.25;
+const ZOOM_MIN = 0.5;
+const ZOOM_MAX = 8;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -124,12 +127,12 @@ function toComplex(point: PoleZeroPoint): Complex {
   };
 }
 
-function isInVisibleLocusRange(point: Complex, viewRange: number): boolean {
+function isInVisibleLocusRange(point: Complex, viewRange: number, viewCenter: Complex): boolean {
   return (
-    point.re >= -viewRange
-    && point.re <= viewRange
-    && point.im >= -viewRange
-    && point.im <= viewRange
+    point.re >= viewCenter.re - viewRange
+    && point.re <= viewCenter.re + viewRange
+    && point.im >= viewCenter.im - viewRange
+    && point.im <= viewCenter.im + viewRange
   );
 }
 
@@ -316,6 +319,9 @@ export default function MultiRepresentationLinkagePage() {
   const [responseType, setResponseType] = useState<'step' | 'impulse' | 'ramp'>('step');
   const [showMargins, setShowMargins] = useState(true);
   const [dragging, setDragging] = useState<DraggingState>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [viewCenter, setViewCenter] = useState<Complex>({ re: 0, im: 0 });
+  const [panning, setPanning] = useState<{ startX: number; startY: number; startCenter: Complex } | null>(null);
 
   const [timeDomain, setTimeDomain] = useState<TimeDomainResponse | null>(null);
   const [frequencyDomain, setFrequencyDomain] = useState<FrequencyDomainResponse | null>(null);
@@ -330,7 +336,7 @@ export default function MultiRepresentationLinkagePage() {
   const displayPoles = dragging?.type === 'open-loop' ? draftPoles : modelPoles;
   const displayZeros = dragging?.type === 'open-loop' ? draftZeros : modelZeros;
 
-  const viewRange = useMemo(() => {
+  const baseViewRange = useMemo(() => {
     const closedLoopPoles = stability?.closedLoopPoles ?? [];
     const values = [
       ...displayPoles.flatMap((point) => [Math.abs(point.re), Math.abs(point.im)]),
@@ -342,31 +348,67 @@ export default function MultiRepresentationLinkagePage() {
     return Math.max(1, round3(padded > 0 ? padded : VIEW_RANGE));
   }, [displayPoles, displayZeros, stability?.closedLoopPoles]);
 
+  const viewRange = useMemo(
+    () => Math.max(0.2, round3(baseViewRange / Math.max(zoomLevel, 1e-3))),
+    [baseViewRange, zoomLevel]
+  );
+
   const scale = useMemo(() => CANVAS_SIZE / (viewRange * 2), [viewRange]);
 
-  const planeTicks = useMemo(() => {
-    const divisions = 5;
-    return Array.from({ length: divisions * 2 + 1 }, (_, index) => {
-      const ratio = (index - divisions) / divisions;
-      return round3(ratio * viewRange);
-    }).filter((tick) => Math.abs(tick) > 1e-6);
+  const gridStep = useMemo(() => {
+    const rawStep = viewRange / 5;
+    const exponent = Math.floor(Math.log10(Math.max(rawStep, 1e-6)));
+    const base = 10 ** exponent;
+    const normalized = rawStep / base;
+    const snapped = normalized > 5 ? 10 : normalized > 2 ? 5 : normalized > 1 ? 2 : 1;
+    return round3(snapped * base);
   }, [viewRange]);
+
+  const xGridLines = useMemo(() => {
+    const min = viewCenter.re - viewRange;
+    const max = viewCenter.re + viewRange;
+    const start = Math.floor(min / gridStep) * gridStep;
+    const values: number[] = [];
+    for (let value = start; value <= max + gridStep * 0.5; value += gridStep) {
+      if (Math.abs(value) < 1e-6) {
+        continue;
+      }
+      values.push(round3(value));
+    }
+    return values;
+  }, [gridStep, viewCenter.re, viewRange]);
+
+  const yGridLines = useMemo(() => {
+    const min = viewCenter.im - viewRange;
+    const max = viewCenter.im + viewRange;
+    const start = Math.floor(min / gridStep) * gridStep;
+    const values: number[] = [];
+    for (let value = start; value <= max + gridStep * 0.5; value += gridStep) {
+      if (Math.abs(value) < 1e-6) {
+        continue;
+      }
+      values.push(round3(value));
+    }
+    return values;
+  }, [gridStep, viewCenter.im, viewRange]);
 
   const transformToCanvas = useCallback(
     (point: Complex) => ({
-      x: CANVAS_SIZE / 2 + point.re * scale,
-      y: CANVAS_SIZE / 2 - point.im * scale,
+      x: CANVAS_SIZE / 2 + (point.re - viewCenter.re) * scale,
+      y: CANVAS_SIZE / 2 - (point.im - viewCenter.im) * scale,
     }),
-    [scale]
+    [scale, viewCenter.im, viewCenter.re]
   );
 
   const transformToComplex = useCallback(
     (x: number, y: number): Complex => ({
-      re: clamp((x - CANVAS_SIZE / 2) / scale, -viewRange, viewRange),
-      im: clamp((CANVAS_SIZE / 2 - y) / scale, -viewRange, viewRange),
+      re: clamp((x - CANVAS_SIZE / 2) / scale + viewCenter.re, viewCenter.re - viewRange, viewCenter.re + viewRange),
+      im: clamp((CANVAS_SIZE / 2 - y) / scale + viewCenter.im, viewCenter.im - viewRange, viewCenter.im + viewRange),
     }),
-    [scale, viewRange]
+    [scale, viewCenter.im, viewCenter.re, viewRange]
   );
+
+  const originCanvas = useMemo(() => transformToCanvas({ re: 0, im: 0 }), [transformToCanvas]);
 
   const polesPayload = useMemo(() => modelPoles.map(toComplex), [modelPoles]);
   const zerosPayload = useMemo(() => modelZeros.map(toComplex), [modelZeros]);
@@ -619,7 +661,7 @@ export default function MultiRepresentationLinkagePage() {
       let previousVisible: Complex | null = null;
 
       for (const point of branch) {
-        if (!isInVisibleLocusRange(point, viewRange)) {
+        if (!isInVisibleLocusRange(point, viewRange, viewCenter)) {
           if (currentPath) {
             segments.push(currentPath);
             currentPath = '';
@@ -649,7 +691,7 @@ export default function MultiRepresentationLinkagePage() {
     }
 
     return segments;
-  }, [rootLocusBranches, transformToCanvas, viewRange]);
+  }, [rootLocusBranches, transformToCanvas, viewCenter, viewRange]);
 
   const frequencyDomainData = useMemo(() => frequencyDomain?.samples ?? [], [frequencyDomain?.samples]);
 
@@ -704,7 +746,17 @@ export default function MultiRepresentationLinkagePage() {
   const gainDisplayValue = dragging?.type === 'closed-loop' && previewGain !== null ? previewGain : gain;
 
   const handlePointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
-    if (!dragging) {
+    if (!dragging && !panning) {
+      return;
+    }
+
+    if (panning) {
+      const dx = event.clientX - panning.startX;
+      const dy = event.clientY - panning.startY;
+      setViewCenter({
+        re: round3(panning.startCenter.re - dx / scale),
+        im: round3(panning.startCenter.im + dy / scale),
+      });
       return;
     }
 
@@ -712,6 +764,9 @@ export default function MultiRepresentationLinkagePage() {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     const targetPoint = transformToComplex(x, y);
+    if (!dragging) {
+      return;
+    }
 
     if (dragging.type === 'open-loop') {
       if (dragging.pointType === 'pole') {
@@ -740,12 +795,31 @@ export default function MultiRepresentationLinkagePage() {
     setPreviewGain(round3(Math.max(0, nearest.gain)));
   };
 
+  const handleCanvasPointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (event.button !== 0 || dragging) {
+      return;
+    }
+    setPanning({
+      startX: event.clientX,
+      startY: event.clientY,
+      startCenter: viewCenter,
+    });
+  };
+
+  const startPointDrag = (
+    event: ReactPointerEvent<SVGLineElement | SVGCircleElement>,
+    nextDragging: Exclude<DraggingState, null>
+  ) => {
+    event.stopPropagation();
+    setDragging(nextDragging);
+  };
+
   const finalizeDrag = () => {
-    if (!dragging) {
+    if (!dragging && !panning) {
       return;
     }
 
-    if (dragging.type === 'open-loop') {
+    if (dragging?.type === 'open-loop') {
       if (dragging.pointType === 'pole') {
         setModelPoles(draftPoles.map((item) => ({ ...item, re: round3(item.re), im: round3(item.im) })));
       } else {
@@ -753,13 +827,17 @@ export default function MultiRepresentationLinkagePage() {
       }
     }
 
-    if (dragging.type === 'closed-loop' && previewGain !== null) {
+    if (dragging?.type === 'closed-loop' && previewGain !== null) {
       setGain(round3(Math.max(0, previewGain)));
     }
 
     setDragging(null);
+    setPanning(null);
     setPreviewGain(null);
   };
+
+  const zoomIn = () => setZoomLevel((previous) => Math.min(ZOOM_MAX, round3(previous * ZOOM_STEP)));
+  const zoomOut = () => setZoomLevel((previous) => Math.max(ZOOM_MIN, round3(previous / ZOOM_STEP)));
 
   const renderNyquistTooltip = (props: any) => {
     const active = props?.active as boolean | undefined;
@@ -802,33 +880,73 @@ export default function MultiRepresentationLinkagePage() {
 
         <section className="grid gap-4 lg:grid-cols-[430px_1fr]">
           <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-            <h2 className="text-lg font-medium">开环配置 + 根轨迹</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-medium">开环配置 + 根轨迹</h2>
+              <div className="inline-flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={zoomOut}
+                  className="h-8 w-8 rounded border border-slate-700 bg-slate-950 text-lg leading-none text-slate-100 hover:border-slate-500"
+                  aria-label="缩小"
+                  title="缩小"
+                >
+                  -
+                </button>
+                <span className="min-w-12 text-center text-xs text-slate-400">{zoomLevel.toFixed(2)}x</span>
+                <button
+                  type="button"
+                  onClick={zoomIn}
+                  className="h-8 w-8 rounded border border-slate-700 bg-slate-950 text-lg leading-none text-slate-100 hover:border-slate-500"
+                  aria-label="放大"
+                  title="放大"
+                >
+                  +
+                </button>
+              </div>
+            </div>
 
             <svg
               width={CANVAS_SIZE}
               height={CANVAS_SIZE}
-              className="rounded-lg border border-slate-700 bg-slate-950"
+              className={`rounded-lg border border-slate-700 bg-slate-950 ${panning ? 'cursor-grabbing' : 'cursor-grab'}`}
+              onPointerDown={handleCanvasPointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={finalizeDrag}
               onPointerLeave={finalizeDrag}
             >
-              <line x1={CANVAS_SIZE / 2} y1={0} x2={CANVAS_SIZE / 2} y2={CANVAS_SIZE} stroke="#334155" />
-              <line x1={0} y1={CANVAS_SIZE / 2} x2={CANVAS_SIZE} y2={CANVAS_SIZE / 2} stroke="#334155" />
+              <line
+                x1={originCanvas.x}
+                y1={0}
+                x2={originCanvas.x}
+                y2={CANVAS_SIZE}
+                stroke="#334155"
+              />
+              <line
+                x1={0}
+                y1={originCanvas.y}
+                x2={CANVAS_SIZE}
+                y2={originCanvas.y}
+                stroke="#334155"
+              />
 
-              {planeTicks.map((tick) => (
+              {xGridLines.map((tick) => (
                 <g key={tick}>
                   <line
-                    x1={CANVAS_SIZE / 2 + tick * scale}
+                    x1={transformToCanvas({ re: tick, im: 0 }).x}
                     y1={0}
-                    x2={CANVAS_SIZE / 2 + tick * scale}
+                    x2={transformToCanvas({ re: tick, im: 0 }).x}
                     y2={CANVAS_SIZE}
                     stroke="#1e293b"
                   />
+                </g>
+              ))}
+              {yGridLines.map((tick) => (
+                <g key={`y-${tick}`}>
                   <line
                     x1={0}
-                    y1={CANVAS_SIZE / 2 - tick * scale}
+                    y1={transformToCanvas({ re: 0, im: tick }).y}
                     x2={CANVAS_SIZE}
-                    y2={CANVAS_SIZE / 2 - tick * scale}
+                    y2={transformToCanvas({ re: 0, im: tick }).y}
                     stroke="#1e293b"
                   />
                 </g>
@@ -850,7 +968,9 @@ export default function MultiRepresentationLinkagePage() {
                       stroke="#22d3ee"
                       strokeWidth={2.5}
                       style={{ cursor: 'grab' }}
-                      onPointerDown={() => setDragging({ type: 'open-loop', pointType: 'pole', pointId: pole.id })}
+                      onPointerDown={(event) =>
+                        startPointDrag(event, { type: 'open-loop', pointType: 'pole', pointId: pole.id })
+                      }
                     />
                     <line
                       x1={point.x + 7}
@@ -860,7 +980,9 @@ export default function MultiRepresentationLinkagePage() {
                       stroke="#22d3ee"
                       strokeWidth={2.5}
                       style={{ cursor: 'grab' }}
-                      onPointerDown={() => setDragging({ type: 'open-loop', pointType: 'pole', pointId: pole.id })}
+                      onPointerDown={(event) =>
+                        startPointDrag(event, { type: 'open-loop', pointType: 'pole', pointId: pole.id })
+                      }
                     />
                     <text x={point.x + 8} y={point.y - 8} fontSize={11} fill="#67e8f9">
                       p{index + 1}
@@ -882,7 +1004,9 @@ export default function MultiRepresentationLinkagePage() {
                       stroke="#fda4af"
                       strokeWidth={2.2}
                       style={{ cursor: 'grab' }}
-                      onPointerDown={() => setDragging({ type: 'open-loop', pointType: 'zero', pointId: zero.id })}
+                      onPointerDown={(event) =>
+                        startPointDrag(event, { type: 'open-loop', pointType: 'zero', pointId: zero.id })
+                      }
                     />
                     <text x={point.x + 8} y={point.y - 8} fontSize={11} fill="#fecdd3">
                       z{index + 1}
@@ -904,7 +1028,7 @@ export default function MultiRepresentationLinkagePage() {
                       stroke="#7c2d12"
                       strokeWidth={2}
                       style={{ cursor: rootLocusPoints.length > 0 ? 'grab' : 'default' }}
-                      onPointerDown={() => setDragging({ type: 'closed-loop' })}
+                      onPointerDown={(event) => startPointDrag(event, { type: 'closed-loop' })}
                     />
                     <text x={point.x + 8} y={point.y + 4} fontSize={11} fill="#fdba74">
                       c{index + 1}

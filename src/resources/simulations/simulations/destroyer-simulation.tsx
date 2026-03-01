@@ -1251,6 +1251,7 @@ export default function DestroyerSimulation() {
   const [controlMode, setControlMode] = useState<ControlMode>('pid');
   const [pidGains, setPidGains] = useState<PIDGains>(DEFAULT_PID_GAINS);
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+  const [showGrid, setShowGrid] = useState(true);
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [selectedTask, setSelectedTask] = useState(0);
   const [resetToken, setResetToken] = useState(0);
@@ -1369,7 +1370,7 @@ export default function DestroyerSimulation() {
         <SkyDome />
         <ProceduralClouds />
         <WaveWater simRef={simRef} />
-        <GridHelper simRef={simRef} />
+        {showGrid ? <GridHelper simRef={simRef} /> : null}
         <GuideRoute points={guidePath} />
         <ShipTrail simRef={simRef} resetToken={resetToken} />
         <ShipWake simRef={simRef} />
@@ -1468,6 +1469,8 @@ export default function DestroyerSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        gridEnabled={showGrid}
+        onToggleGrid={() => setShowGrid((previous) => !previous)}
         className={simulationUi.cameraSwitcherPosition}
       />
 

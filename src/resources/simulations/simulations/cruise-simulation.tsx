@@ -10,6 +10,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
   Line,
+  Grid,
   useGLTF,
   PerspectiveCamera,
 } from '@react-three/drei';
@@ -99,6 +100,28 @@ function toCruiseControllerMode(mode: ControlMode): CruiseControllerMode {
   if (mode === 'p') return 'p';
   if (mode === 'pd') return 'pd';
   return 'pid';
+}
+
+const CRUISE_ROUTE_START: Vector2 = { x: -3000, z: 0 };
+const CRUISE_ROUTE_STRAIGHT_DISTANCE = 1800;
+const CRUISE_ROUTE_TURN_HEADING = 30;
+const CRUISE_ROUTE_EXTENSION = 5200;
+
+function getCruiseMissionTargetHeading(position: Vector2): number {
+  const traveled = Math.hypot(position.x - CRUISE_ROUTE_START.x, position.z - CRUISE_ROUTE_START.z);
+  return traveled < CRUISE_ROUTE_STRAIGHT_DISTANCE ? 0 : CRUISE_ROUTE_TURN_HEADING;
+}
+
+function buildCruiseDesiredRoute(): Vector2[] {
+  const turnPoint: Vector2 = {
+    x: CRUISE_ROUTE_START.x + CRUISE_ROUTE_STRAIGHT_DISTANCE,
+    z: CRUISE_ROUTE_START.z,
+  };
+  const endPoint: Vector2 = {
+    x: turnPoint.x + CRUISE_ROUTE_EXTENSION * Math.cos(toRadians(CRUISE_ROUTE_TURN_HEADING)),
+    z: turnPoint.z + CRUISE_ROUTE_EXTENSION * Math.sin(toRadians(CRUISE_ROUTE_TURN_HEADING)),
+  };
+  return [CRUISE_ROUTE_START, turnPoint, endPoint];
 }
 
 // ============ 海面组件 ============
@@ -263,6 +286,22 @@ function TrajectoryLine({ points }: { points: Vector2[] }) {
       color="#8b5cf6"
       lineWidth={2}
       dashed={false}
+    />
+  );
+}
+
+function DesiredRouteLine({ points }: { points: Vector2[] }) {
+  const linePoints = useMemo(() => points.map((p) => [p.x, 1.2, p.z] as [number, number, number]), [points]);
+  if (linePoints.length < 2) return null;
+
+  return (
+    <Line
+      points={linePoints}
+      color="#22c55e"
+      lineWidth={2.2}
+      dashed
+      dashSize={36}
+      gapSize={16}
     />
   );
 }
@@ -515,7 +554,6 @@ function ControlPanel({
   state,
   isCourseMode,
   onPidGainsChange,
-  onTargetHeadingChange,
   onControlModeChange,
   onSeaStateChange,
   onWaveDirectionChange,
@@ -528,7 +566,6 @@ function ControlPanel({
   state: CruiseSimulationState;
   isCourseMode: boolean;
   onPidGainsChange: (key: keyof CruiseControllerParams, value: number) => void;
-  onTargetHeadingChange: (heading: number) => void;
   onControlModeChange: (mode: ControlMode) => void;
   onSeaStateChange: (level: number) => void;
   onWaveDirectionChange: (direction: number) => void;
@@ -579,17 +616,12 @@ function ControlPanel({
         </button>
       </div>
 
-      {/* 目标航向 */}
+      {/* 任务航向 */}
       <div>
-        <label className="mb-1 block text-xs text-slate-400">目标航向: {state.targetHeading.toFixed(0)}°</label>
-        <input
-          type="range"
-          min="-180"
-          max="180"
-          value={state.targetHeading}
-          onChange={(e) => onTargetHeadingChange(Number(e.target.value))}
-          className={simulationUi.nativeRange}
-        />
+        <label className="mb-1 block text-xs text-slate-400">任务目标航向: {state.targetHeading.toFixed(0)}°</label>
+        <div className="rounded border border-slate-300 bg-white/80 px-2 py-1 text-xs text-slate-700">
+          航线规则：先直航 {CRUISE_ROUTE_STRAIGHT_DISTANCE}m，再右转 {CRUISE_ROUTE_TURN_HEADING}° 并保持航向。
+        </div>
       </div>
 
       {/* 海况等级 */}
@@ -1087,6 +1119,7 @@ export default function CruiseSimulation() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
+  const [showGrid, setShowGrid] = useState(true);
 
   const [state, setState] = useState<CruiseSimulationState>({
     isRunning: false,
@@ -1122,6 +1155,7 @@ export default function CruiseSimulation() {
   });
   const [consistencyComment, setConsistencyComment] = useState('等待生成一致性评语。');
   const [consistencyCommentLoading, setConsistencyCommentLoading] = useState(false);
+  const desiredRoutePoints = useMemo(() => buildCruiseDesiredRoute(), []);
 
   // 初始化引擎
   useEffect(() => {
@@ -1167,8 +1201,9 @@ export default function CruiseSimulation() {
       engine.setNotchFilterEnabled(state.notchFilterEnabled);
       engine.setPIDGains(state.pidGains);
 
+      const missionTargetHeading = getCruiseMissionTargetHeading(simState.position);
       engine.step(
-        state.targetHeading,
+        missionTargetHeading,
         null,
         state.controlMode,
         0,
@@ -1201,6 +1236,7 @@ export default function CruiseSimulation() {
         rudder: simState.rudder,
         speed: simState.speed,
         rollAngle: simState.waveRoll,
+        targetHeading: getCruiseMissionTargetHeading(simState.position),
         comfort,
         finPower: finMetrics.powerKW,
         portFinAngle: internalState.fin.portFinAngleDeg,
@@ -1209,7 +1245,7 @@ export default function CruiseSimulation() {
     }
 
     animationRef.current = requestAnimationFrame(simulate);
-  }, [state.isPaused, state.time, state.targetHeading, state.controlMode, state.speed, state.seaState, state.waveDirection, state.finStabilizerEnabled, state.notchFilterEnabled, state.pidGains]);
+  }, [state.isPaused, state.time, state.controlMode, state.speed, state.seaState, state.waveDirection, state.finStabilizerEnabled, state.notchFilterEnabled, state.pidGains]);
 
   // 启动仿真
   const handleStart = useCallback(() => {
@@ -1272,10 +1308,6 @@ export default function CruiseSimulation() {
   }, []);
 
   // 处理器
-  const handleTargetHeadingChange = useCallback((heading: number) => {
-    setState((prev) => ({ ...prev, targetHeading: heading }));
-  }, []);
-
   const handleControlModeChange = useCallback((mode: ControlMode) => {
     const nextMode = toCruiseControllerMode(mode);
     setState((prev) => ({
@@ -1472,11 +1504,26 @@ export default function CruiseSimulation() {
           <ambientLight intensity={0.4} />
           <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
           <MaritimeEnvironment shipPosition={state.position} seaState={state.seaState} />
+          {showGrid ? (
+            <Grid
+              args={[20000, 20000]}
+              cellSize={100}
+              cellThickness={0.5}
+              cellColor="#1e3a5f"
+              sectionSize={500}
+              sectionThickness={1}
+              sectionColor="#2563eb"
+              fadeDistance={9000}
+              fadeStrength={1}
+              position={[0, 0.35, 0]}
+            />
+          ) : null}
           <CruiseShipModel
             position={state.position}
             heading={toRadians(state.heading)}
             rollAngle={state.rollAngle}
           />
+          <DesiredRouteLine points={desiredRoutePoints} />
           <TrajectoryLine points={trajectoryRef.current} />
           <HeadingIndicator
             position={state.position}
@@ -1505,6 +1552,8 @@ export default function CruiseSimulation() {
       <CameraViewSwitcher
         currentMode={cameraMode}
         onModeChange={setCameraMode}
+        gridEnabled={showGrid}
+        onToggleGrid={() => setShowGrid((previous) => !previous)}
         className={simulationUi.cameraSwitcherPosition}
       />
 
@@ -1528,7 +1577,6 @@ export default function CruiseSimulation() {
                 state={state}
                 isCourseMode={isCourseMode}
                 onPidGainsChange={handlePidGainsChange}
-                onTargetHeadingChange={handleTargetHeadingChange}
                 onControlModeChange={handleControlModeChange}
                 onSeaStateChange={handleSeaStateChange}
                 onWaveDirectionChange={handleWaveDirectionChange}
@@ -1582,6 +1630,9 @@ export default function CruiseSimulation() {
       {/* 说明 */}
       <div className={`${simulationUi.panel} absolute bottom-4 left-4 p-2 text-xs`}>
         <div>拖拽旋转视角 | 滚轮缩放 | 右键平移</div>
+        <div className="mt-1">
+          绿色虚线：期望航线 | 紫色实线：实际航迹
+        </div>
         <div className="mt-1 text-slate-700">
           知识点: 频率响应 (Ch5), 陷波滤波器 (Ch6)
         </div>

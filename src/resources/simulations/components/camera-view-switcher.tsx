@@ -22,6 +22,10 @@ export interface CameraViewSwitcherProps {
   showFreeLabel?: boolean;
   /** 按钮大小 */
   size?: 'sm' | 'default' | 'lg';
+  /** 网格是否启用 */
+  gridEnabled?: boolean;
+  /** 切换网格显示 */
+  onToggleGrid?: () => void;
 }
 
 const viewModes: Array<{
@@ -64,6 +68,8 @@ export function CameraViewSwitcher({
   className,
   showFreeLabel = true,
   size = 'sm',
+  gridEnabled,
+  onToggleGrid,
 }: CameraViewSwitcherProps) {
   return (
     <div className={cn('flex items-center gap-1', className)}>
@@ -105,6 +111,26 @@ export function CameraViewSwitcher({
           自由视角
         </Badge>
       )}
+
+      {onToggleGrid ? (
+        <Button
+          variant={gridEnabled ? 'secondary' : 'ghost'}
+          size={size}
+          onClick={onToggleGrid}
+          className={cn(
+            'rounded-xl border border-slate-200/90 bg-slate-50/92 shadow-lg shadow-slate-950/20 backdrop-blur-sm transition-all',
+            gridEnabled
+              ? 'bg-slate-900 text-white hover:bg-slate-800'
+              : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
+          )}
+          title={gridEnabled ? '关闭网格' : '开启网格'}
+          aria-label={gridEnabled ? '关闭网格' : '开启网格'}
+        >
+          <span className="mr-1 text-xs">#</span>
+          <span className="hidden sm:inline">{gridEnabled ? '网格开' : '网格关'}</span>
+          <span className="sm:hidden">网</span>
+        </Button>
+      ) : null}
     </div>
   );
 }
