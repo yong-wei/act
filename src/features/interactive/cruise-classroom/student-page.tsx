@@ -10,6 +10,7 @@ import {
   CRUISE_CLOSING_COPY,
   CRUISE_LESSON_STEPS,
   CRUISE_PRESET_OBJECTIVES,
+  CRUISE_STEP_DURATION,
   CRUISE_WAITING_THINK_PROMPTS,
   buildAbilityProfile,
   buildPersonalizedObjectives,
@@ -19,6 +20,7 @@ import {
   pickTwoAdaptiveQuestions,
   type AdaptiveQuestion,
   type CruiseControllerParams,
+  type CruiseStageTask,
   type CruiseTargetForm,
 } from '@/lib/cruise-course';
 import { CruiseCourseHeader } from '@/features/interactive/cruise-classroom/course-header';
@@ -352,11 +354,30 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
 
     if (step.id === 'bridge') {
       return (
-        <section className="rounded-2xl border border-white/15 bg-slate-900/75 p-6">
-          <p className="text-3xl font-semibold text-white md:text-4xl">开场导入：速度还是舒适？</p>
-          <p className="mt-4 text-xl leading-9 text-slate-200">
-            请先观看教师展示的导入内容，并思考：在真实工程中，为什么“更快”不一定“更好”？
+        <section className="space-y-4 rounded-2xl border border-white/15 bg-slate-900/75 p-6">
+          <p className="inline-flex rounded-full border border-sky-300/35 bg-sky-500/10 px-3 py-1 text-sm text-sky-100">
+            B · 开场导入 · {CRUISE_STEP_DURATION.bridge}
           </p>
+          <p className="text-3xl font-semibold text-white md:text-4xl">开场导入：速度还是舒适？</p>
+          <p className="text-2xl leading-10 text-slate-200">请观看教师屏幕上的导入视频，并代入真实邮轮场景做工程判断。</p>
+          <article className="rounded-xl border border-white/15 bg-slate-950/70 p-4">
+            <p className="text-xl font-semibold text-white">📖 场景</p>
+            <p className="mt-2 text-lg leading-8 text-slate-200">
+              “爱达·魔都”号正在执行 30° 紧急转向以避开台风外围涌浪。你坐在七层宴会厅，面前是一座两米高的香槟塔。
+            </p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-lg text-cyan-100">
+              <li>转向越快，乘客一定越安全吗？</li>
+              <li>如果你是船长，速度和舒适你先保哪个？</li>
+            </ul>
+          </article>
+          <article className="rounded-xl border border-amber-300/30 bg-amber-500/10 p-4">
+            <p className="text-xl font-semibold text-amber-100">📋 工程约束速览</p>
+            <ul className="mt-2 space-y-1 text-base text-slate-100">
+              <li>超调量 σ% ≤ 15%（超过会显著增加晕船风险）</li>
+              <li>调节时间 ts ≤ 120s（过慢会压缩入港窗口）</li>
+              <li>侧向加速度 0.15g 舒适线，0.2g 安全红线</li>
+            </ul>
+          </article>
         </section>
       );
     }
@@ -364,13 +385,23 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
     if (step.id === 'objective') {
       return (
         <section className="space-y-4 rounded-2xl border border-white/15 bg-slate-900/75 p-6">
+          <p className="inline-flex rounded-full border border-emerald-300/35 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-100">
+            O · 个性化目标 · {CRUISE_STEP_DURATION.objective}
+          </p>
           <p className="text-3xl font-semibold text-white md:text-4xl">你的个性化课程目标</p>
+          <p className="text-xl text-slate-200">以下目标根据你的课前能力画像生成，薄弱能力点会被重点关注。</p>
+          <p className="inline-flex rounded-full border border-rose-300/35 bg-rose-500/10 px-3 py-1 text-base text-rose-100">
+            🔴 你的薄弱点：{weakestAbility}
+          </p>
           <ul className="list-disc space-y-2 pl-6 text-xl leading-9 text-cyan-100">
             {objectiveList.map((goal) => (
               <li key={goal}>{goal}</li>
             ))}
           </ul>
-          <p className="text-base text-slate-300">参考课程总目标：{CRUISE_PRESET_OBJECTIVES.join('；')}</p>
+          <details className="rounded-xl border border-white/10 bg-slate-950/60 p-3 text-base text-slate-300">
+            <summary className="cursor-pointer text-slate-100">📋 参考：课程统一目标</summary>
+            <p className="mt-2">{CRUISE_PRESET_OBJECTIVES.join('；')}</p>
+          </details>
         </section>
       );
     }
@@ -387,7 +418,11 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
 
       return (
         <section className="space-y-4 rounded-2xl border border-white/15 bg-slate-900/75 p-6">
+          <p className="inline-flex rounded-full border border-amber-300/35 bg-amber-500/10 px-3 py-1 text-sm text-amber-100">
+            P1 · 快速前测 · {CRUISE_STEP_DURATION.precheck}
+          </p>
           <p className="text-3xl font-semibold text-white md:text-4xl">快速前测</p>
+          <p className="text-lg text-slate-200">请在 2 分钟内完成题目，不计入成绩，仅用于定位你的学习起点。</p>
           {studentQuestions.map((question: AdaptiveQuestion) => {
             const answerFromState = submittedAnswers?.[question.id];
             const selected = hasSubmitted ? answerFromState : answers[question.id];
@@ -444,8 +479,15 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
 
     if (step.id === 'neural-ode') {
       return (
-        <section className="rounded-2xl border border-white/15 bg-slate-900/75 p-6">
+        <section className="space-y-4 rounded-2xl border border-white/15 bg-slate-900/75 p-6">
+          <p className="inline-flex rounded-full border border-violet-300/35 bg-violet-500/10 px-3 py-1 text-sm text-violet-100">
+            前沿窗口 · NeuralODE · {CRUISE_STEP_DURATION['neural-ode']}
+          </p>
           <p className="text-3xl font-semibold text-white md:text-4xl">NeuralODE 前沿嵌入</p>
+          <article className="rounded-xl border border-white/15 bg-slate-950/70 p-4 text-lg text-slate-200">
+            <p>标准二阶模型在真实海况中会遇到非线性、时变和扰动耦合问题。</p>
+            <p className="mt-2">NeuralODE 用 fθ(x,u) 从数据中学习动力学规律，是“模型 + 数据 + 控制”的融合路径。</p>
+          </article>
           <div className="relative mt-4 h-[360px] overflow-hidden rounded-xl border border-white/10 bg-slate-950">
             <Image src="/assets/cruise-comfort-boppps/neuralode-overview.svg" alt="NeuralODE overview" fill className="object-contain" />
           </div>
@@ -458,11 +500,20 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
       const goalScore = Math.round(precheckScore * 0.45 + consistency.score * 0.55);
       return (
         <section className="space-y-4 rounded-2xl border border-white/15 bg-slate-900/75 p-6">
-          <p className="text-2xl leading-9 text-cyan-100">{CRUISE_CLOSING_COPY}</p>
+          <p className="text-center text-3xl leading-10 text-cyan-100">{CRUISE_CLOSING_COPY}</p>
           <h3 className="inline-flex items-center gap-2 text-2xl font-semibold text-white">
             <Target className="h-6 w-6" />
             个性化能力达成
           </h3>
+          <div className="rounded-xl border border-white/10 bg-slate-950/60 p-4">
+            <p className="text-lg font-semibold text-white">📋 你的设计档案</p>
+            <div className="mt-2 grid gap-2 text-base text-slate-200 md:grid-cols-2">
+              <p>最终策略：PID 控制</p>
+              <p>薄弱能力点：{weakestAbility}</p>
+              <p>一致性校验：{consistency.score.toFixed(0)}%</p>
+              <p>前测得分：{precheckScore.toFixed(0)}%</p>
+            </div>
+          </div>
           <div className="space-y-2">
             <MetricBar label="个性化目标综合达成" value={goalScore} />
             <MetricBar label="前测表现" value={precheckScore} />
@@ -499,11 +550,7 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
         ) : null}
 
         {showWorkspace ? (
-          <section className="rounded-2xl border border-cyan-300/25 bg-cyan-500/10 px-4 py-3">
-            <p className="text-sm uppercase tracking-[0.2em] text-cyan-200">当前环节任务</p>
-            <p className="mt-1 text-lg font-semibold text-white">{stageTask.title}</p>
-            <p className="text-base text-cyan-100">{stageTask.description}</p>
-          </section>
+          <StudentTaskBanner stageTask={stageTask} stepId={step.id} />
         ) : null}
 
         {renderStep()}
@@ -552,5 +599,57 @@ function MetricBar({ label, value }: { label: string; value: number }) {
         <div className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-500" style={{ width: `${Math.min(100, value)}%` }} />
       </div>
     </div>
+  );
+}
+
+function StudentTaskBanner({ stageTask, stepId }: { stageTask: CruiseStageTask; stepId: string }) {
+  return (
+    <section className="rounded-2xl border border-cyan-300/25 bg-cyan-500/10 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm uppercase tracking-[0.2em] text-cyan-200">当前环节任务</p>
+        <span className="rounded-full border border-white/20 px-2.5 py-0.5 text-xs text-slate-200">⏱ {CRUISE_STEP_DURATION[stepId]}</span>
+      </div>
+      <p className="mt-1 text-2xl font-semibold text-white">{stageTask.title}</p>
+      <p className="text-lg text-cyan-100">{stageTask.description}</p>
+
+      {stageTask.bullets?.length ? (
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-base text-slate-100">
+          {stageTask.bullets.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      ) : null}
+
+      {stageTask.keyQuestion ? (
+        <p className="mt-2 text-base text-amber-100">
+          🔑 关键问题：{stageTask.keyQuestion}
+        </p>
+      ) : null}
+
+      {stageTask.tips?.length ? (
+        <div className="mt-2 rounded-lg border border-violet-300/25 bg-violet-500/10 p-2">
+          {stageTask.tips.map((tip) => (
+            <p key={tip} className="text-sm text-violet-100">
+              ⚡ {tip}
+            </p>
+          ))}
+        </div>
+      ) : null}
+
+      {stageTask.checks?.length ? (
+        <div className="mt-2 rounded-lg border border-emerald-300/25 bg-emerald-500/10 p-2">
+          <p className="text-sm font-medium text-emerald-100">✅ 检查清单</p>
+          <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-100">
+            {stageTask.checks.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {stageTask.formulaRefs?.length ? (
+        <p className="mt-2 text-xs text-slate-300">参考：{stageTask.formulaRefs.join('，')}</p>
+      ) : null}
+    </section>
   );
 }

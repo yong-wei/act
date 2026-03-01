@@ -55,6 +55,21 @@ export interface CourseOpenLoopModel {
 export interface CruiseStageTask {
   title: string;
   description: string;
+  bullets?: string[];
+  keyQuestion?: string;
+  tips?: string[];
+  checks?: string[];
+  formulaRefs?: string[];
+}
+
+export interface CruiseTeacherStepCopy {
+  title: string;
+  layer: string;
+  duration: string;
+  studentTask: string[];
+  teacherScript: string;
+  patrolFocus: string[];
+  emphasis?: string;
 }
 
 export const CRUISE_COURSE_TITLE = '柔性之海：豪华邮轮舒适度控制';
@@ -172,6 +187,23 @@ export const CRUISE_LESSON_STEPS: CruiseLessonStep[] = [
   },
 ];
 
+export const CRUISE_STEP_DURATION: Record<string, string> = {
+  'class-code': '课前',
+  bridge: '4 min',
+  objective: '1 min',
+  precheck: '2 min',
+  'engineering-target': '3 min',
+  'first-exploration': '8 min',
+  'neural-ode': '1.5 min',
+  'ai-analysis': '3.5 min',
+  'prompt-refine': '4 min',
+  'pause-reflection': '3.5 min',
+  adjustment: '4.5 min',
+  consistency: '3 min',
+  'group-compare': '4 min',
+  summary: '3 min',
+};
+
 export const QUESTION_BANK: AdaptiveQuestion[] = [
   {
     id: 'q1',
@@ -254,35 +286,192 @@ export const CRUISE_CLOSING_COPY = '今天我们选择了安全。控制，不�
 const STUDENT_STAGE_TASKS: Record<string, CruiseStageTask> = {
   'engineering-target': {
     title: '环节目标：工程目标设定',
-    description: '先定义超调、调节时间与侧向加速度约束，再进入调参。',
+    description: '先把工程需求翻译为可计算约束，再开始调参。',
+    bullets: [
+      '填写超调量、调节时间、稳态误差、最大侧向加速度四项指标。',
+      '把侧向加速度控制在 0.15g 舒适线以内，并关注 0.2g 安全红线。',
+      '检查目标是否互相矛盾，避免“既要极快又要极稳”的空目标。',
+    ],
+    keyQuestion: '约束不是越严越好。你设定的目标真的可实现吗？',
+    tips: ['建议先保守设定，再通过一轮探索逐步收紧指标。'],
   },
   'first-exploration': {
     title: '环节目标：第一轮参数探索',
-    description: '观察极点移动、时域响应和频域曲线同步变化，记录一次失败原因。',
+    description: '在三面板联动中制造一次失败，建立跨域映射直觉。',
+    bullets: [
+      '观察复平面极点移动与阶跃响应、Bode 曲线的同步变化。',
+      '至少触发一次约束违反，并记录导致失败的参数方向。',
+      '用“阻尼比/自然频率”描述变化，不只说“参数变大变小”。',
+    ],
+    keyQuestion: '为什么 Kp 增大后，速度可能变快但舒适度反而变差？',
+    formulaRefs: ['公式 4.4', '公式 4.5'],
   },
   'ai-analysis': {
     title: '环节目标：AI介入分析',
-    description: '结合 AI 建议解释失败机制，明确边界，再执行下一轮调参。',
+    description: '借助 AI 诊断失败原因，但决策权仍由你掌握。',
+    bullets: [
+      '触发 AI 分析并核对：当前参数、失败约束、偏差幅度。',
+      '把 AI 建议翻译为极点变化方向，再决定是否采用。',
+      '明确下一次调参的目标：优先修复哪个约束。',
+    ],
+    keyQuestion: 'AI 建议“增大 Kd”时，复平面上的闭环极点会如何移动？',
+    tips: ['先理解“为什么”，再执行“怎么做”。'],
   },
   'prompt-refine': {
     title: '环节目标：结构化提示词修改',
-    description: '按“对象-目标-约束-策略”重写提示词，并验证参数变化效果。',
+    description: '把模糊意图重写为可执行提示词，再回到调参验证。',
+    bullets: [
+      '按“对象→目标→约束→策略”四段式重写提示词。',
+      '目标必须有数值与单位，约束必须包含 0.2g 安全红线。',
+      '修改后立即验证，观察结果是否按预期变化。',
+    ],
+    checks: [
+      '对象信息是否完整（系统类型、关键参数）',
+      '目标是否量化（例如 σ% ≤ 12%，ts ≤ 65s）',
+      '约束是否覆盖安全边界（0.15g 舒适线，0.2g 红线）',
+      '策略是否与失败原因匹配',
+    ],
   },
   'pause-reflection': {
     title: '环节目标：暂停反思',
-    description: '暂停操作，提炼当前方案的一个优点与一个风险。',
+    description: '暂停操作，口头表达你的设计逻辑与风险判断。',
+    bullets: [
+      '说明你当前策略倾向：速度优先、舒适优先或均衡。',
+      '解释闭环极点位置与 σ%、ts 的对应关系。',
+      '指出最接近边界的约束，并判断风浪增大后的风险。',
+    ],
+    keyQuestion: '你的方案是“结果偶然达标”，还是“逻辑一致达标”？',
   },
   adjustment: {
     title: '环节目标：反思调整',
-    description: '基于反思结果做一项关键改动，并给出验证指标。',
+    description: '完成一次“保留-调整-验证”闭环迭代。',
+    bullets: [
+      '保留一项有效决策，明确它为何有效。',
+      '只调整一个关键参数，避免多变量混改。',
+      '指定一个验证指标，确认调整是否成功。',
+    ],
+    tips: ['优先做可解释调整，而不是盲目追求分数。'],
   },
   consistency: {
     title: '环节目标：一致性校验',
-    description: '对照目标表达、调参轨迹与结果指标，修正偏差。',
+    description: '校验“目标表达→调参行为→结果达成”的三层一致性。',
+    bullets: [
+      '检查目标和行为是否一致（写了什么，做了什么）。',
+      '检查行为和结果是否一致（为什么没达到预期）。',
+      '针对黄色/红色偏差，修正提示词或参数策略。',
+    ],
+    keyQuestion: '高分但逻辑不自洽，是否算好方案？',
   },
   'group-compare': {
     title: '环节目标：小组对比',
-    description: '比较不同策略下的极点分布与响应曲线，说明取舍逻辑。',
+    description: '比较激进与舒适两类策略，给出可辩护的工程取舍。',
+    bullets: [
+      '对比两组方案在 ζ、σ%、ts、alat、相位裕度上的差异。',
+      '判断谁更接近安全边界，谁在扰动下更有余量。',
+      '明确你的选择，并说明愿意承担的代价。',
+    ],
+    keyQuestion: '如果真实邮轮载有 5000 名乘客，你会选择哪组方案？',
+  },
+};
+
+const TEACHER_STAGE_COPY: Record<string, CruiseTeacherStepCopy> = {
+  'engineering-target': {
+    title: '工程目标设定',
+    layer: 'P2 · 结构可见',
+    duration: CRUISE_STEP_DURATION['engineering-target'],
+    studentTask: [
+      '在控制面板填写四类约束：σ%、ts、ess、最大侧向加速度。',
+      '检查约束是否覆盖安全边界：舒适线 0.15g，红线 0.2g。',
+    ],
+    teacherScript: '打开控制面板先设目标，再调参数。约束要可实现，不是越严越好。',
+    patrolFocus: [
+      '是否遗漏侧向加速度约束。',
+      '是否把 σ% 和 ts 同时设得过小导致矛盾。',
+      '是否理解“约束是工程决策，不是形式填写”。',
+    ],
+  },
+  'first-exploration': {
+    title: '第一轮参数探索',
+    layer: 'P2 · 结构可见',
+    duration: CRUISE_STEP_DURATION['first-exploration'],
+    studentTask: [
+      '同步观察复平面、时域与频域三面板联动。',
+      '至少触发一次约束违反，并记录失败成因。',
+    ],
+    teacherScript: '先大胆试错，再解释为什么错。失败是建立映射关系的入口。',
+    patrolFocus: [
+      '学生是否只盯单一面板。',
+      '是否有学生直接“猜参数”跳过失败过程。',
+      '是否能用阻尼比/自然频率解释参数变化。',
+    ],
+    emphasis: '至少经历一次失败，才能形成可迁移的控制直觉。',
+  },
+  'ai-analysis': {
+    title: 'AI 介入分析',
+    layer: 'P2 · 结构可用',
+    duration: CRUISE_STEP_DURATION['ai-analysis'],
+    studentTask: [
+      '触发 AI 读取当前参数与结果，定位失败约束。',
+      '将 AI 建议映射到极点移动方向后再执行调整。',
+    ],
+    teacherScript: 'AI 负责诊断与建议，人负责决策与取舍。先解释，再调参。',
+    patrolFocus: [
+      '是否理解 AI 建议背后的机理。',
+      '是否出现“照抄建议不思考”。',
+      '是否能说清参数变化对极点和裕度的影响。',
+    ],
+  },
+  'prompt-refine': {
+    title: '结构化提示词修改',
+    layer: 'P2 · 结构可用',
+    duration: CRUISE_STEP_DURATION['prompt-refine'],
+    studentTask: [
+      '按“对象-目标-约束-策略”四要素改写提示词。',
+      '改写后回到仿真验证，确认策略有效性。',
+    ],
+    teacherScript: '高质量提示词不是“求答案”，而是清晰表达设计意图。',
+    patrolFocus: [
+      '是否包含量化目标与单位。',
+      '是否显式写出 0.2g 安全红线。',
+      '策略是否能直接转化为调参动作。',
+    ],
+  },
+  adjustment: {
+    title: '反思调整',
+    layer: 'P2 · 结构可用→迭代',
+    duration: CRUISE_STEP_DURATION.adjustment,
+    studentTask: ['做一项关键调整，并说明保留项、调整项、验证项。'],
+    teacherScript: '调整前先回答：我在优化什么？我愿意牺牲什么？',
+    patrolFocus: [
+      '是否一次改动过多参数。',
+      '是否有明确验证指标。',
+      '是否能解释调整逻辑而非随机试错。',
+    ],
+  },
+  consistency: {
+    title: '一致性校验',
+    layer: 'P3 · 结构可评',
+    duration: CRUISE_STEP_DURATION.consistency,
+    studentTask: ['校验“目标表达→调参行为→结果达成”三层是否对齐。'],
+    teacherScript: '评价核心是控制思维自洽性，而不只是最终分数。',
+    patrolFocus: [
+      '目标和行为是否偏离。',
+      '行为和结果是否偏离。',
+      '偏差修正是否可追踪。',
+    ],
+  },
+  'group-compare': {
+    title: '小组对比：激进 vs 舒适',
+    layer: 'P2 · 结构可评',
+    duration: CRUISE_STEP_DURATION['group-compare'],
+    studentTask: ['对比两组极点分布和响应差异，给出可辩护的工程取舍。'],
+    teacherScript: '请用数据和边界说话：哪组更安全？哪组更高效？代价是什么？',
+    patrolFocus: [
+      '是否明确提到 0.2g 安全红线。',
+      '是否讨论扰动下的鲁棒余量。',
+      '是否能将价值判断转化为工程语言。',
+    ],
+    emphasis: '工程师的职责不仅是“能跑”，更是“对后果负责”。',
   },
 };
 
@@ -330,6 +519,10 @@ export function getStudentStageTask(stepId: string): CruiseStageTask {
     title: '环节目标',
     description: '根据教师指令完成当前步骤，并记录你的关键判断依据。',
   };
+}
+
+export function getTeacherStageCopy(stepId: string): CruiseTeacherStepCopy | null {
+  return TEACHER_STAGE_COPY[stepId] ?? null;
 }
 
 export function pickTwoAdaptiveQuestions(student: string): AdaptiveQuestion[] {

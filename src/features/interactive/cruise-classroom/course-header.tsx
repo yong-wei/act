@@ -3,7 +3,13 @@
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { CRUISE_COURSE_TITLE, CRUISE_STAGE_COLOR, CRUISE_STAGE_LABEL, type CruiseLessonStep } from '@/lib/cruise-course';
+import {
+  CRUISE_COURSE_TITLE,
+  CRUISE_STAGE_COLOR,
+  CRUISE_STAGE_LABEL,
+  CRUISE_STEP_DURATION,
+  type CruiseLessonStep,
+} from '@/lib/cruise-course';
 
 interface CruiseCourseHeaderProps {
   steps: CruiseLessonStep[];
@@ -16,7 +22,7 @@ export function CruiseCourseHeader({ steps, activeIndex, onIndexChange, middleNo
   const currentStep = steps[activeIndex];
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/95 backdrop-blur">
-      <div className="mx-auto max-w-[1600px] px-4 py-1.5">
+      <div className="mx-auto max-w-[1600px] px-4 py-1">
         <div className="flex items-center gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <Link
@@ -32,12 +38,19 @@ export function CruiseCourseHeader({ steps, activeIndex, onIndexChange, middleNo
           </div>
 
           <div className="hidden min-w-0 flex-1 md:block">
-            <div className="flex justify-center">
-              <span className={`rounded-full border px-3 py-0.5 text-xs ${CRUISE_STAGE_COLOR[currentStep.stage]}`}>
+            <div className="flex items-center justify-center gap-2">
+              <span className={`rounded-full border px-3 py-0.5 text-[11px] ${CRUISE_STAGE_COLOR[currentStep.stage]}`}>
                 {CRUISE_STAGE_LABEL[currentStep.stage]}
               </span>
+              <span className="rounded-full border border-white/20 px-2.5 py-0.5 text-[11px] text-slate-200">
+                ⏱ {CRUISE_STEP_DURATION[currentStep.id]}
+              </span>
             </div>
-            {middleNotice ? <div className="mt-0.5 truncate text-center text-[11px] text-slate-300">{middleNotice}</div> : null}
+            {middleNotice ? (
+              <div className="mt-0.5 truncate text-center text-[11px] text-slate-300">{middleNotice}</div>
+            ) : (
+              <div className="mt-0.5 truncate text-center text-[11px] text-slate-400">{currentStep.title}</div>
+            )}
           </div>
 
           <div className="ml-auto flex shrink-0 flex-col items-end gap-0.5">

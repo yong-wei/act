@@ -7,7 +7,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-02-28
+📅 **最后更新**：2026-03-01
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教室工作台”入口（`http://localhost:3001/teacher`）；首页与认证导航新增“评审入口”（`/review`），汇总 DevelopmentPlan 用户备注对应的分支页面
 🛟 **仿真统一改造**：7 个船舶仿真统一为左侧监控、右侧“控制/评估/AI伴学”标签式面板，支持收起/展开与统一配色主题
@@ -164,6 +164,12 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
     - 学生端从工程目标设定起采用“仿真/多表征”常驻工作台；切换环节不重载 iframe，仅更新提示文案
     - 仿真控制面板修正：`PD` 模式下 `Kp/Kd` 可调、`Ki` 锁定；课程模式一致性评语保留在评估标签
     - 课堂总结新增 LLM 洞察接口：`POST /api/simulation/cruise-summary-insight`（教师班级洞察 / 学生个人洞察）
+  - 2026-03-01（三次迭代：展示页重构）：
+    - 新增课程显示单一配置源：`CRUISE_STEP_DURATION`、`TEACHER_STAGE_COPY`、结构化 `STUDENT_STAGE_TASKS`（bullets/keyQuestion/tips/checks）
+    - 教师端 14 步显示页按 `docs/platform-display-design.md` 重构：Bridge 三约束卡片、Objective 布鲁姆动词高亮、Precheck 教学决策提示、NeuralODE 双栏对比、Summary 回环文案 + 达成总览
+    - 学生端显示页重构：Bridge 场景卡与约束速览、Objective 薄弱点标签、Precheck 大字号引导、Summary 设计档案卡
+    - 学生工作区任务条升级为统一结构组件（🔑关键问题 / ⚡提示 / ✅检查清单），并显示当前环节时长
+    - 课程导航栏压缩并增强中部信息：BOPPPS 阶段 + 环节时长 + 当前环节标题，保持教师/学生端一致
 - **跨域探索置顶组件**：`/interactive-learning/multi-representation-linkage` 作为跨域探索首个入口
 - **资源来源**：动态加载教学资源库中 `INTERACTIVE_COMP` 单页互动资源
 - **资源查看入口**：`/interactive-learning/resources/[id]`

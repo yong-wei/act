@@ -6,13 +6,17 @@ import { BarChart3, GraduationCap, Loader2, PlayCircle, Sparkles } from 'lucide-
 
 import {
   ABILITY_POINTS,
+  BLOOM_VERBS,
   CRUISE_CLOSING_COPY,
   CRUISE_LESSON_STEPS,
   CRUISE_PRESET_OBJECTIVES,
+  CRUISE_STEP_DURATION,
   CRUISE_WAITING_THINK_PROMPTS,
   buildPersonalizedObjectives,
+  getTeacherStageCopy,
   pickTwoAdaptiveQuestions,
   type AdaptiveQuestion,
+  type CruiseTeacherStepCopy,
 } from '@/lib/cruise-course';
 import { CruiseCourseHeader } from '@/features/interactive/cruise-classroom/course-header';
 import { CruiseWorkspace } from '@/features/interactive/cruise-classroom/workspace';
@@ -356,16 +360,42 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
     }
 
     if (step.id === 'bridge') {
+      const cards = [
+        {
+          title: '超调 σ% > 15%',
+          desc: '晕船指数（MSI）显著上升',
+          tone: 'border-amber-300/40 bg-amber-500/15 text-amber-100',
+        },
+        {
+          title: '调节时间 > 120s',
+          desc: '入港操作窗口不足',
+          tone: 'border-sky-300/40 bg-sky-500/15 text-sky-100',
+        },
+        {
+          title: '侧向加速度 > 0.2g',
+          desc: '老年旅客骨折风险（红线）',
+          tone: 'border-rose-300/40 bg-rose-500/15 text-rose-100',
+        },
+      ];
       return (
-        <section className="rounded-2xl border border-white/15 bg-slate-900/75 p-5">
-          <div className="mb-3 inline-flex items-center gap-2 text-base text-cyan-100">
+        <section className="space-y-4 rounded-2xl border border-white/15 bg-slate-900/75 p-5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/35 bg-cyan-500/10 px-3 py-1 text-sm text-cyan-100">
             <PlayCircle className="h-5 w-5" />
-            开场导入（B）
+            B · 开场导入 · {CRUISE_STEP_DURATION.bridge}
           </div>
           <video controls className="h-[460px] w-full rounded-xl border border-white/10 bg-black">
             <source src="/videos/luxury-liner-intro.mp4" type="video/mp4" />
           </video>
-          <p className="mt-4 text-xl leading-8 text-slate-200">今天不是一道例题，而是一场工程决策。</p>
+          <p className="text-center text-2xl leading-10 text-slate-100">“爱达·魔都”号 · 323.6 米 · 5246 名旅客。每一次转向，都是工程决策。</p>
+          <div className="grid gap-3 md:grid-cols-3">
+            {cards.map((card) => (
+              <article key={card.title} className={`rounded-xl border p-4 ${card.tone}`}>
+                <p className="text-lg font-semibold">{card.title}</p>
+                <p className="mt-2 text-base opacity-90">{card.desc}</p>
+              </article>
+            ))}
+          </div>
+          <p className="text-center text-3xl font-semibold text-cyan-100">今天不是一道例题，而是一场工程决策。</p>
         </section>
       );
     }
@@ -373,28 +403,30 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
     if (step.id === 'objective') {
       return (
         <section className="space-y-4 rounded-2xl border border-white/15 bg-slate-900/75 p-6">
-          <div className="inline-flex items-center gap-2 text-base text-cyan-100">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/35 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-100">
             <GraduationCap className="h-5 w-5" />
-            个性化目标（O）
+            O · 个性化目标 · {CRUISE_STEP_DURATION.objective}
           </div>
+          <h2 className="text-4xl font-semibold text-white">本节学习目标</h2>
+          <p className="text-xl text-slate-200">AI 已根据每位同学课前能力画像，生成个性化学习目标。</p>
           <div className="rounded-xl border border-white/10 bg-slate-950/60 p-4">
-            <p className="text-xl font-medium text-white">预设课程目标</p>
-            <ul className="mt-3 list-disc space-y-2 pl-6 text-lg text-cyan-100">
+            <p className="text-2xl font-medium text-white">预设课程目标</p>
+            <ul className="mt-4 space-y-2 text-xl leading-9 text-slate-100">
               {CRUISE_PRESET_OBJECTIVES.map((goal) => (
-                <li key={goal}>{goal}</li>
+                <li key={goal}>{renderBloomGoal(goal)}</li>
               ))}
             </ul>
           </div>
           <div className="rounded-xl border border-white/10 bg-slate-950/60 p-4">
-            <p className="text-xl font-medium text-white">已加入学生个性化目标预览</p>
+            <p className="text-2xl font-medium text-white">已加入学生个性化目标预览</p>
             {joinedStudents.length === 0 ? (
               <p className="mt-2 text-base text-slate-300">暂无学生加入。</p>
             ) : (
               <div className="mt-3 grid gap-3 md:grid-cols-2">
                 {joinedStudents.map((studentName) => (
                   <div key={studentName} className="rounded-lg border border-white/10 bg-slate-900/70 p-3">
-                    <div className="text-base font-medium text-cyan-100">{studentName}</div>
-                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-200">
+                    <div className="text-lg font-medium text-cyan-100">{studentName}</div>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-base text-slate-200">
                       {(personalObjectives[studentName] ?? []).map((item) => (
                         <li key={item}>{item}</li>
                       ))}
@@ -404,6 +436,7 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
               </div>
             )}
           </div>
+          <p className="text-xl text-cyan-100">教师提示：巡视目标差异，点名追问“你为何要优先这个薄弱点”。</p>
         </section>
       );
     }
@@ -411,10 +444,11 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
     if (step.id === 'precheck') {
       return (
         <section className="space-y-4 rounded-2xl border border-white/15 bg-slate-900/75 p-6">
-          <div className="inline-flex items-center gap-2 text-base text-cyan-100">
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/35 bg-amber-500/10 px-3 py-1 text-sm text-amber-100">
             <BarChart3 className="h-5 w-5" />
-            快速前测（P1）
+            P1 · 快速前测 · {CRUISE_STEP_DURATION.precheck}
           </div>
+          <h2 className="text-4xl font-semibold text-white">快速前测：2 道自适应题</h2>
           <div className="flex gap-2">
             <button
               type="button"
@@ -463,6 +497,14 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
                   <MetricBar key={item.abilityPoint} label={item.abilityPoint} value={item.accuracy} />
                 ))}
               </div>
+              <div className="mt-4 rounded-xl border border-cyan-300/25 bg-cyan-500/10 p-3">
+                <p className="text-lg font-medium text-cyan-100">教学决策提示</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-base text-slate-200">
+                  <li>“极点-时域映射”偏低：第一轮探索重点关注复平面与时域联动。</li>
+                  <li>“频域稳定判读”偏低：加强 Bode 图相位裕度解读。</li>
+                  <li>“参数整定收敛”偏低：AI 介入阶段重点追问调整理由。</li>
+                </ul>
+              </div>
             </div>
           )}
         </section>
@@ -471,12 +513,31 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
 
     if (step.id === 'neural-ode') {
       return (
-        <section className="rounded-2xl border border-white/15 bg-slate-900/75 p-6">
-          <h3 className="mb-3 inline-flex items-center gap-2 text-xl font-semibold text-cyan-100">
+        <section className="space-y-4 rounded-2xl border border-white/15 bg-slate-900/75 p-6">
+          <h3 className="inline-flex items-center gap-2 rounded-full border border-violet-300/35 bg-violet-500/10 px-3 py-1 text-sm font-semibold text-violet-100">
             <Sparkles className="h-5 w-5" />
-            NeuralODE 前沿嵌入
+            前沿窗口 · NeuralODE · {CRUISE_STEP_DURATION['neural-ode']}
           </h3>
-          <div className="relative h-[420px] overflow-hidden rounded-xl border border-white/10 bg-slate-950">
+          <h2 className="text-4xl font-semibold text-white">当数学模型不够用时：NeuralODE</h2>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <article className="rounded-xl border border-sky-300/35 bg-sky-500/10 p-4">
+              <p className="text-2xl font-semibold text-sky-100">传统建模</p>
+              <p className="mt-3 text-lg text-slate-100">ẋ = f(x, u)（人工推导）</p>
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-base text-slate-200">
+                <li>优点：简洁、可解释、参数物理意义清晰</li>
+                <li>局限：固定参数，难适应复杂海况与大舵角非线性</li>
+              </ul>
+            </article>
+            <article className="rounded-xl border border-violet-300/35 bg-violet-500/10 p-4">
+              <p className="text-2xl font-semibold text-violet-100">数据驱动建模</p>
+              <p className="mt-3 text-lg text-slate-100">ẋ = fθ(x, u)（数据学习）</p>
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-base text-slate-200">
+                <li>优点：更能捕捉非线性与时变特性</li>
+                <li>局限：依赖大量真实数据，可解释性较弱</li>
+              </ul>
+            </article>
+          </div>
+          <div className="relative h-[360px] overflow-hidden rounded-xl border border-white/10 bg-slate-950">
             <Image
               src="/assets/cruise-comfort-boppps/neuralode-overview.svg"
               alt="NeuralODE embedding overview"
@@ -484,25 +545,34 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
               className="object-contain"
             />
           </div>
-          <p className="mt-4 text-xl leading-8 text-slate-200">传统名义模型难覆盖复杂海况扰动。NeuralODE 展示“模型 + 数据 + 控制”的协同路径。</p>
+          <p className="text-xl leading-8 text-slate-200">今天的二阶模型是起点，不是终点。问题→研究→教学，构成完整闭环。</p>
         </section>
       );
     }
 
     if (step.id === 'pause-reflection') {
       return (
-        <StaticTeacherCopy
-          title="暂停反思"
-          body="请两组同学分别口头说明：你们如何在速度与舒适之间取舍？你们的极点移动是否支持这个取舍？"
-        />
+        <section className="space-y-5 rounded-2xl border border-white/15 bg-slate-900/75 p-8">
+          <p className="text-sm uppercase tracking-[0.18em] text-cyan-200">P2 · 结构可用 → 反思 · {CRUISE_STEP_DURATION['pause-reflection']}</p>
+          <h2 className="text-5xl font-semibold text-white">⏸ 暂停：说出你的设计逻辑</h2>
+          <ol className="space-y-3 text-2xl leading-10 text-slate-100">
+            <li>1. 你选择了“速度优先”还是“舒适优先”？</li>
+            <li>2. 你的极点配置位于复平面的哪个区域？它如何支持取舍？</li>
+            <li>3. 哪个约束最接近边界？你愿意为此承担什么风险？</li>
+          </ol>
+          <p className="text-2xl text-emerald-200">口头表达设计逻辑，是高阶学习证据。</p>
+        </section>
       );
     }
 
     if (step.id === 'summary') {
       return (
         <section className="space-y-4 rounded-2xl border border-white/15 bg-slate-900/75 p-6">
-          <p className="text-2xl leading-9 text-cyan-100">{CRUISE_CLOSING_COPY}</p>
-          <h3 className="text-2xl font-semibold text-white">班级目标达成总览</h3>
+          <div className="rounded-xl border border-cyan-300/25 bg-cyan-500/10 p-5 text-center">
+            <p className="text-xl text-cyan-100">回到开场问题：速度，还是舒适？</p>
+            <p className="mt-2 text-4xl font-semibold text-white">今天，我们选择了安全。</p>
+          </div>
+          <h3 className="text-3xl font-semibold text-white">班级目标达成总览</h3>
           <div className="space-y-2">
             <MetricBar label="班级目标达成度" value={classGoalAttainment} />
             <MetricBar
@@ -515,17 +585,19 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
             />
           </div>
           <div className="rounded-xl border border-white/10 bg-slate-950/60 p-4">
-            <p className="text-lg font-medium text-white">课堂洞察</p>
+            <p className="text-2xl font-medium text-white">课堂洞察</p>
             <p className="mt-2 text-base leading-7 text-slate-200">
               {summaryInsightLoading ? '正在生成课堂洞察...' : summaryInsight}
             </p>
           </div>
+          <p className="text-center text-3xl font-semibold text-cyan-100">{CRUISE_CLOSING_COPY}</p>
         </section>
       );
     }
 
-    if (WORKSPACE_VISIBLE_STEP_IDS.has(step.id)) {
-      return <StaticTeacherCopy title={getTeacherCopyTitle(step.id)} body={getTeacherCopyBody(step.id)} />;
+    const teacherStepCopy = getTeacherStageCopy(step.id);
+    if (WORKSPACE_VISIBLE_STEP_IDS.has(step.id) && teacherStepCopy) {
+      return <TeacherWorkspaceBrief copy={teacherStepCopy} />;
     }
 
     return (
@@ -603,44 +675,57 @@ function StaticTeacherCopy({ title, body }: { title: string; body: string }) {
   );
 }
 
-function getTeacherCopyTitle(stepId: string): string {
-  switch (stepId) {
-    case 'ai-analysis':
-      return 'AI介入分析';
-    case 'prompt-refine':
-      return '结构化提示词指导';
-    case 'consistency':
-      return '一致性校验';
-    case 'group-compare':
-      return '小组对比';
-    case 'adjustment':
-      return '反思后调整';
-    case 'engineering-target':
-      return '工程目标设定';
-    case 'first-exploration':
-      return '第一轮参数探索';
-    default:
-      return '教师端提示';
+function renderBloomGoal(goal: string) {
+  const [firstWord, ...rest] = goal.split(' ');
+  if (!BLOOM_VERBS.includes(firstWord)) {
+    return goal;
   }
+  return (
+    <>
+      <span className="font-bold text-cyan-300">{firstWord}</span>
+      <span className="text-slate-100"> {rest.join(' ')}</span>
+    </>
+  );
 }
 
-function getTeacherCopyBody(stepId: string): string {
-  switch (stepId) {
-    case 'engineering-target':
-      return '请学生先填写目标约束，再开始调参。重点检查其约束是否覆盖超调、时间和舒适度边界。';
-    case 'first-exploration':
-      return '引导学生观察根轨迹、时域与频域联动，并记录一次失败案例。';
-    case 'ai-analysis':
-      return '要求学生解释失败原因、明确约束边界，并给出一条可执行调整策略。';
-    case 'prompt-refine':
-      return '要求学生按“对象-目标-约束-策略”改写提示词，再执行调参验证。';
-    case 'adjustment':
-      return '引导学生给出“一个保留、一项调整、一个验证指标”，完成迭代。';
-    case 'consistency':
-      return '强调一致性校验需同时看目标表达、调参轨迹和结果指标，而不仅是最终分数。';
-    case 'group-compare':
-      return '请激进组和舒适组对比极点分布与响应曲线，并说明安全边界取舍。';
-    default:
-      return '教师端展示静态文案，学生端保持综合工作台操作。';
-  }
+function TeacherWorkspaceBrief({
+  copy,
+}: {
+  copy: CruiseTeacherStepCopy;
+}) {
+  return (
+    <section className="space-y-4 rounded-2xl border border-white/15 bg-slate-900/75 p-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="rounded-full border border-cyan-300/35 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-100">{copy.layer}</span>
+        <span className="rounded-full border border-white/20 px-3 py-1 text-xs text-slate-200">⏱ {copy.duration}</span>
+      </div>
+
+      <h3 className="text-4xl font-semibold text-white">{copy.title}</h3>
+
+      <article className="rounded-xl border border-cyan-300/30 bg-cyan-500/10 p-4">
+        <p className="text-lg font-semibold text-cyan-100">学生任务</p>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-lg text-slate-100">
+          {copy.studentTask.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </article>
+
+      <article className="rounded-xl border border-emerald-300/30 bg-emerald-500/10 p-4">
+        <p className="text-lg font-semibold text-emerald-100">🎯 教师口令</p>
+        <p className="mt-2 text-xl leading-8 text-slate-100">{copy.teacherScript}</p>
+      </article>
+
+      <article className="rounded-xl border border-white/15 bg-slate-950/70 p-4">
+        <p className="text-lg font-semibold text-white">🔍 巡视关注</p>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-base text-slate-200">
+          {copy.patrolFocus.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </article>
+
+      {copy.emphasis ? <p className="text-xl font-medium text-rose-100">⚠️ {copy.emphasis}</p> : null}
+    </section>
+  );
 }
