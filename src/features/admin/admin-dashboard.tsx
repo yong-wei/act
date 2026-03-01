@@ -70,6 +70,21 @@ type AdminDashboardProps = {
   };
 };
 
+type ImportErrorItem = {
+  row: number;
+  account?: string;
+  reason: string;
+};
+
+type ImportResult = {
+  created: number;
+  updated: number;
+  failed: number;
+  skippedEmpty?: number;
+  totalRows?: number;
+  errors?: ImportErrorItem[];
+};
+
 const ROLE_LABELS: Record<UserRole, string> = {
   ADMIN: '管理员',
   TEACHER: '教师',
@@ -102,6 +117,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
   const [resetToDefault, setResetToDefault] = useState(true);
   const [resetPassword, setResetPassword] = useState('');
   const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [creating, setCreating] = useState(false);
   const [createForm, setCreateForm] = useState({
     name: '',
@@ -297,7 +313,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'students-template.xlsx';
+      link.download = 'users-template.xlsx';
       link.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -307,6 +323,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
 
   const handleImport = async (file: File) => {
     setImporting(true);
+    setImportResult(null);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -318,10 +335,11 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
         const error = await res.json();
         throw new Error(error?.error || '导入失败');
       }
-      const result = await res.json();
+      const result = (await res.json()) as ImportResult;
+      setImportResult(result);
       showNotice(
         'success',
-        `导入完成：新增 ${result.created ?? 0}，跳过 ${result.skipped ?? 0}`
+        `导入完成：新增 ${result.created ?? 0}，更新 ${result.updated ?? 0}，失败 ${result.failed ?? 0}`
       );
       fetchUsers();
       fetchOverview();
@@ -477,8 +495,30 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 }}
               />
               <p className="text-xs text-slate-500">
-                导入模板需包含学号、姓名两列
+                模板前三列必填：账号、姓名、角色；其余列为选填
               </p>
+              {importResult && (
+                <div className="mt-3 rounded-lg border border-slate-700 bg-slate-950/70 p-3 text-xs text-slate-300">
+                  <p>
+                    导入结果：新增 {importResult.created ?? 0}，更新 {importResult.updated ?? 0}，
+                    失败 {importResult.failed ?? 0}
+                  </p>
+                  {typeof importResult.totalRows === 'number' && (
+                    <p className="mt-1 text-slate-500">
+                      数据行数 {importResult.totalRows}，空行跳过 {importResult.skippedEmpty ?? 0}
+                    </p>
+                  )}
+                  {(importResult.errors?.length ?? 0) > 0 && (
+                    <div className="mt-2 max-h-32 space-y-1 overflow-y-auto rounded border border-rose-500/30 bg-rose-500/10 p-2 text-rose-200">
+                      {importResult.errors?.map((item, index) => (
+                        <p key={`${item.row}-${index}`}>
+                          第 {item.row} 行{item.account ? `（${item.account}）` : ''}：{item.reason}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </aside>
