@@ -3,7 +3,10 @@
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { CheckCircle2, Loader2, Target } from 'lucide-react';
+import { BlockMath, InlineMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 import {
   ABILITY_POINTS,
@@ -81,6 +84,8 @@ const DEFAULT_TARGET: CruiseTargetForm = { overshoot: 12, settlingTime: 65, stea
 
 export function CruiseStudentPage({ sessionId }: StudentPageProps) {
   const isDemo = sessionId === 'demo';
+  const searchParams = useSearchParams();
+  const demoStepId = searchParams.get('step');
   const { data: authSession } = useSession();
 
   const [sessionInfo, setSessionInfo] = useState<StudentSessionInfo | null>(null);
@@ -138,12 +143,13 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
   useEffect(() => {
     if (isDemo) {
       setLoadingSession(false);
-      setActiveIndex(0);
+      const demoIndex = demoStepId ? CRUISE_LESSON_STEPS.findIndex((item) => item.id === demoStepId) : -1;
+      setActiveIndex(demoIndex >= 0 ? demoIndex : 0);
       return;
     }
     void syncSession();
     void syncStates();
-  }, [isDemo, syncSession, syncStates]);
+  }, [demoStepId, isDemo, syncSession, syncStates]);
 
   useEffect(() => {
     if (isDemo) {
@@ -486,7 +492,16 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
           <p className="text-3xl font-semibold text-white md:text-4xl">NeuralODE 前沿嵌入</p>
           <article className="rounded-xl border border-white/15 bg-slate-950/70 p-4 text-lg text-slate-200">
             <p>标准二阶模型在真实海况中会遇到非线性、时变和扰动耦合问题。</p>
-            <p className="mt-2">NeuralODE 用 fθ(x,u) 从数据中学习动力学规律，是“模型 + 数据 + 控制”的融合路径。</p>
+            <p className="mt-2">
+              NeuralODE 通过
+              <span className="mx-1 inline-block align-middle">
+                <InlineMath math={'\\dot{x}=f_{\\theta}(x,u)'} />
+              </span>
+              从数据中学习动力学规律。
+            </p>
+            <div className="mt-2 rounded-lg border border-white/10 bg-slate-900/70 p-2 text-base">
+              <BlockMath math={'\\min_{\\theta}\\sum_{t}\\left\\|x_{t+1}-\\Phi_{\\Delta t}(x_t,u_t;f_{\\theta})\\right\\|_2^2'} />
+            </div>
           </article>
           <div className="relative mt-4 h-[360px] overflow-hidden rounded-xl border border-white/10 bg-slate-950">
             <Image src="/assets/cruise-comfort-boppps/neuralode-overview.svg" alt="NeuralODE overview" fill className="object-contain" />

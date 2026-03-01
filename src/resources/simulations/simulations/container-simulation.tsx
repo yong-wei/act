@@ -264,6 +264,19 @@ function HeadingIndicator({
   currentHeading: number;
 }) {
   const length = 600;
+  const buildWings = (start: [number, number, number], end: [number, number, number]) => {
+    const dx = end[0] - start[0];
+    const dz = end[2] - start[2];
+    const len = Math.hypot(dx, dz) || 1;
+    const ux = dx / len;
+    const uz = dz / len;
+    const backX = end[0] - ux * 55;
+    const backZ = end[2] - uz * 55;
+    return {
+      left: [backX - uz * 22, end[1], backZ + ux * 22] as [number, number, number],
+      right: [backX + uz * 22, end[1], backZ - ux * 22] as [number, number, number],
+    };
+  };
 
   const targetEnd: [number, number, number] = [
     position.x + length * Math.cos(toRadians(targetHeading)),
@@ -276,23 +289,29 @@ function HeadingIndicator({
     2,
     position.z + length * 0.8 * Math.sin(toRadians(currentHeading)),
   ];
+  const targetWings = buildWings([position.x, 2, position.z], targetEnd);
+  const currentWings = buildWings([position.x, 2, position.z], currentEnd);
 
   return (
     <>
-      {/* 目标航向 - 绿色虚线 */}
+      {/* 目标航向 - 橙色虚线箭头 */}
       <Line
         points={[[position.x, 2, position.z], targetEnd]}
-        color="#22c55e"
+        color="#fb923c"
         lineWidth={2}
         dashed
         dashScale={30}
       />
-      {/* 当前航向 - 橙色实线 */}
+      <Line points={[targetWings.left, targetEnd]} color="#fb923c" lineWidth={2} />
+      <Line points={[targetWings.right, targetEnd]} color="#fb923c" lineWidth={2} />
+      {/* 当前航向 - 深橙色实线箭头 */}
       <Line
         points={[[position.x, 2, position.z], currentEnd]}
         color="#f97316"
         lineWidth={3}
       />
+      <Line points={[currentWings.left, currentEnd]} color="#f97316" lineWidth={3} />
+      <Line points={[currentWings.right, currentEnd]} color="#f97316" lineWidth={3} />
     </>
   );
 }
@@ -626,6 +645,7 @@ export default function ContainerSimulation() {
   // 相机状态
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
+  const [speedScale, setSpeedScale] = useState(1);
 
   // 轨迹记录
   const [trajectory, setTrajectory] = useState<Vector2[]>([]);
@@ -675,7 +695,7 @@ export default function ContainerSimulation() {
     }
 
     const now = performance.now();
-    const frameDt = Math.min((now - lastTimeRef.current) / 1000, 0.1);
+    const frameDt = Math.min(((now - lastTimeRef.current) / 1000) * speedScale, 0.1);
     lastTimeRef.current = now;
 
     let nextTime = simState.time;
@@ -724,7 +744,7 @@ export default function ContainerSimulation() {
     }
 
     frameRef.current = requestAnimationFrame(simulationLoop);
-  }, [simState.isPaused, simState.targetHeading, simState.controlMode, simState.speed, simState.time]);
+  }, [simState.isPaused, simState.targetHeading, simState.controlMode, simState.speed, simState.time, speedScale]);
 
   // 启动/停止仿真
   useEffect(() => {
@@ -911,6 +931,9 @@ export default function ContainerSimulation() {
         onModeChange={setCameraMode}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
+        speedScale={speedScale}
+        onSpeedChange={setSpeedScale}
+        maxSpeedScale={8}
         className={simulationUi.cameraSwitcherPosition}
       />
     </div>

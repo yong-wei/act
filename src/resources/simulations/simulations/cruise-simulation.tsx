@@ -96,6 +96,13 @@ interface CruiseAnalysisResponse {
   advice: string[];
 }
 
+interface RuntimeConsistencyPerformance {
+  overshoot: number;
+  settlingTime: number;
+  accel: number;
+  settled: boolean;
+}
+
 function toCruiseControllerMode(mode: ControlMode): CruiseControllerMode {
   if (mode === 'p') return 'p';
   if (mode === 'pd') return 'pd';
@@ -106,6 +113,9 @@ const CRUISE_ROUTE_START: Vector2 = { x: -3000, z: 0 };
 const CRUISE_ROUTE_STRAIGHT_DISTANCE = 1800;
 const CRUISE_ROUTE_TURN_HEADING = 30;
 const CRUISE_ROUTE_EXTENSION = 5200;
+const CRUISE_HEADING_PRIMARY = '#0ea5e9';
+const CRUISE_HEADING_SECONDARY = '#38bdf8';
+const CRUISE_HULL_SINK_OFFSET = 2.5;
 
 function getCruiseMissionTargetHeading(position: Vector2): number {
   const traveled = Math.hypot(position.x - CRUISE_ROUTE_START.x, position.z - CRUISE_ROUTE_START.z);
@@ -122,6 +132,61 @@ function buildCruiseDesiredRoute(): Vector2[] {
     z: turnPoint.z + CRUISE_ROUTE_EXTENSION * Math.sin(toRadians(CRUISE_ROUTE_TURN_HEADING)),
   };
   return [CRUISE_ROUTE_START, turnPoint, endPoint];
+}
+
+function buildArrowWingPoints(
+  start: [number, number, number],
+  end: [number, number, number],
+  arrowLength = 70,
+  arrowWidth = 28
+): Array<[number, number, number]> {
+  const dx = end[0] - start[0];
+  const dz = end[2] - start[2];
+  const len = Math.hypot(dx, dz) || 1;
+  const ux = dx / len;
+  const uz = dz / len;
+  const bx = end[0] - ux * arrowLength;
+  const bz = end[2] - uz * arrowLength;
+  const lx = bx - uz * arrowWidth;
+  const lz = bz + ux * arrowWidth;
+  const rx = bx + uz * arrowWidth;
+  const rz = bz - ux * arrowWidth;
+  return [
+    [lx, end[1], lz],
+    [rx, end[1], rz],
+  ];
+}
+
+function DirectionArrow({
+  start,
+  end,
+  color,
+  dashed = false,
+  lineWidth = 2.6,
+}: {
+  start: [number, number, number];
+  end: [number, number, number];
+  color: string;
+  dashed?: boolean;
+  lineWidth?: number;
+}) {
+  const [leftWing, rightWing] = useMemo(() => buildArrowWingPoints(start, end), [start, end]);
+
+  return (
+    <>
+      <Line
+        points={[start, end]}
+        color={color}
+        lineWidth={lineWidth}
+        dashed={dashed}
+        dashScale={28}
+        dashSize={28}
+        gapSize={14}
+      />
+      <Line points={[leftWing, end]} color={color} lineWidth={lineWidth} />
+      <Line points={[rightWing, end]} color={color} lineWidth={lineWidth} />
+    </>
+  );
 }
 
 // ============ 海面组件 ============
@@ -249,7 +314,7 @@ function CruiseShipModel({
   useFrame(() => {
     if (groupRef.current) {
       groupRef.current.position.x = position.x;
-      groupRef.current.position.y = modelHeight * 0.5 - CRUISE_ADORA_PARAMS.DRAFT;
+      groupRef.current.position.y = modelHeight * 0.5 - CRUISE_ADORA_PARAMS.DRAFT - CRUISE_HULL_SINK_OFFSET;
       groupRef.current.position.z = position.z;
       groupRef.current.rotation.y = -heading + Math.PI / 2;
       groupRef.current.rotation.z = rollAngle;
@@ -283,8 +348,8 @@ function TrajectoryLine({ points }: { points: Vector2[] }) {
   return (
     <Line
       points={linePoints}
-      color="#8b5cf6"
-      lineWidth={2}
+      color={CRUISE_HEADING_PRIMARY}
+      lineWidth={2.4}
       dashed={false}
     />
   );
@@ -292,17 +357,26 @@ function TrajectoryLine({ points }: { points: Vector2[] }) {
 
 function DesiredRouteLine({ points }: { points: Vector2[] }) {
   const linePoints = useMemo(() => points.map((p) => [p.x, 1.2, p.z] as [number, number, number]), [points]);
-  if (linePoints.length < 2) return null;
+  const arrowStart = linePoints.length > 1 ? linePoints[linePoints.length - 2] : null;
+  const arrowEnd = linePoints.length > 1 ? linePoints[linePoints.length - 1] : null;
+  if (linePoints.length < 2) {
+    return null;
+  }
 
   return (
-    <Line
-      points={linePoints}
-      color="#22c55e"
-      lineWidth={2.2}
-      dashed
-      dashSize={36}
-      gapSize={16}
-    />
+    <>
+      <Line
+        points={linePoints}
+        color={CRUISE_HEADING_SECONDARY}
+        lineWidth={2.2}
+        dashed
+        dashSize={36}
+        gapSize={16}
+      />
+      {arrowStart && arrowEnd ? (
+        <DirectionArrow start={arrowStart} end={arrowEnd} color={CRUISE_HEADING_SECONDARY} dashed={false} lineWidth={2.2} />
+      ) : null}
+    </>
   );
 }
 
@@ -333,17 +407,18 @@ function HeadingIndicator({
 
   return (
     <>
-      <Line
-        points={[[position.x, 2, position.z], targetEnd]}
-        color="#22c55e"
-        lineWidth={2}
+      <DirectionArrow
+        start={[position.x, 2, position.z]}
+        end={targetEnd}
+        color={CRUISE_HEADING_SECONDARY}
         dashed
-        dashScale={30}
+        lineWidth={2.2}
       />
-      <Line
-        points={[[position.x, 2, position.z], currentEnd]}
-        color="#8b5cf6"
-        lineWidth={3}
+      <DirectionArrow
+        start={[position.x, 2, position.z]}
+        end={currentEnd}
+        color={CRUISE_HEADING_PRIMARY}
+        lineWidth={2.8}
       />
     </>
   );
@@ -553,10 +628,12 @@ function NotchFilterPanel({
 function ControlPanel({
   state,
   isCourseMode,
+  virtualModeEnabled,
   onPidGainsChange,
   onControlModeChange,
   onSeaStateChange,
   onWaveDirectionChange,
+  onVirtualModeToggle,
   onFinStabilizerToggle,
   onNotchFilterToggle,
   onStart,
@@ -565,10 +642,12 @@ function ControlPanel({
 }: {
   state: CruiseSimulationState;
   isCourseMode: boolean;
+  virtualModeEnabled: boolean;
   onPidGainsChange: (key: keyof CruiseControllerParams, value: number) => void;
   onControlModeChange: (mode: ControlMode) => void;
   onSeaStateChange: (level: number) => void;
   onWaveDirectionChange: (direction: number) => void;
+  onVirtualModeToggle: () => void;
   onFinStabilizerToggle: () => void;
   onNotchFilterToggle: () => void;
   onStart: () => void;
@@ -590,6 +669,23 @@ function ControlPanel({
 
   return (
     <div className="space-y-3 p-1 text-sm">
+      {isCourseMode ? (
+        <div className="space-y-2 rounded-lg border border-slate-300 bg-white p-2.5 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="font-semibold text-slate-900">虚拟仿真观察</span>
+            <button
+              type="button"
+              onClick={onVirtualModeToggle}
+              className={`rounded border px-2 py-1 ${virtualModeEnabled ? simulationUi.buttonPrimary : simulationUi.buttonOutline}`}
+            >
+              {virtualModeEnabled ? '已开启' : '已关闭'}
+            </button>
+          </div>
+          <p className="text-slate-700">
+            开启后采用真实扰动模型；关闭时使用理想化环境。请对比两者结果差异，并可结合加速仿真节约时间。
+          </p>
+        </div>
+      ) : null}
 
       {/* 仿真控制 */}
       <div className="flex gap-2">
@@ -681,10 +777,10 @@ function ControlPanel({
       </div>
 
       {isCourseMode ? (
-        <div className="space-y-2 rounded-lg border border-slate-700 bg-slate-900/70 p-2.5">
-          <div className="text-xs font-semibold text-slate-200">控制器参数</div>
+        <div className="space-y-2 rounded-lg border border-slate-300 bg-white p-2.5">
+          <div className="text-xs font-semibold text-slate-900">控制器参数</div>
           <div className="grid grid-cols-3 gap-2">
-            <label className="text-[11px] text-slate-300">
+            <label className="text-[11px] text-slate-700">
               Kp
               <input
                 type="number"
@@ -695,12 +791,12 @@ function ControlPanel({
                 onChange={(event) => onPidGainsChange('kp', Number(event.target.value))}
                 className={`mt-1 w-full rounded border px-2 py-1 text-xs ${
                   kpEditable
-                    ? 'border-slate-700 bg-slate-950 text-white'
-                    : 'cursor-not-allowed border-slate-800 bg-slate-900/60 text-slate-500'
+                    ? 'border-slate-300 bg-white text-slate-900'
+                    : 'cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400'
                 }`}
               />
             </label>
-            <label className="text-[11px] text-slate-300">
+            <label className="text-[11px] text-slate-700">
               Ki
               <input
                 type="number"
@@ -711,12 +807,12 @@ function ControlPanel({
                 onChange={(event) => onPidGainsChange('ki', Number(event.target.value))}
                 className={`mt-1 w-full rounded border px-2 py-1 text-xs ${
                   kiEditable
-                    ? 'border-slate-700 bg-slate-950 text-white'
-                    : 'cursor-not-allowed border-slate-800 bg-slate-900/60 text-slate-500'
+                    ? 'border-slate-300 bg-white text-slate-900'
+                    : 'cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400'
                 }`}
               />
             </label>
-            <label className="text-[11px] text-slate-300">
+            <label className="text-[11px] text-slate-700">
               Kd
               <input
                 type="number"
@@ -727,13 +823,13 @@ function ControlPanel({
                 onChange={(event) => onPidGainsChange('kd', Number(event.target.value))}
                 className={`mt-1 w-full rounded border px-2 py-1 text-xs ${
                   kdEditable
-                    ? 'border-slate-700 bg-slate-950 text-white'
-                    : 'cursor-not-allowed border-slate-800 bg-slate-900/60 text-slate-500'
+                    ? 'border-slate-300 bg-white text-slate-900'
+                    : 'cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400'
                 }`}
               />
             </label>
           </div>
-          <div className="text-[11px] text-slate-500">{modeHint}</div>
+          <div className="text-[11px] text-slate-600">{modeHint}</div>
         </div>
       ) : null}
 
@@ -827,19 +923,29 @@ function HUD({ state }: { state: CruiseSimulationState }) {
 function CruiseTradeoffPanel({
   state,
   isCourseMode,
+  courseRole,
+  targetFormTouched,
   performance,
   consistencyScore,
   consistencyComment,
   consistencyLoading,
+  hasRuntimeData,
+  runtimeHint,
+  onTargetFormTouch,
   onTargetFormChange,
   onGenerateConsistencyComment,
 }: {
   state: CruiseSimulationState;
   isCourseMode: boolean;
-  performance: ReturnType<typeof computePerformanceFromController>;
-  consistencyScore: ReturnType<typeof computeConsistencyScore>;
+  courseRole: 'teacher' | 'student';
+  targetFormTouched: Partial<Record<keyof CruiseTargetForm, boolean>>;
+  performance: RuntimeConsistencyPerformance | null;
+  consistencyScore: ReturnType<typeof computeConsistencyScore> | null;
   consistencyComment: string;
   consistencyLoading: boolean;
+  hasRuntimeData: boolean;
+  runtimeHint: string;
+  onTargetFormTouch: (key: keyof CruiseTargetForm, touched: boolean) => void;
   onTargetFormChange: (key: keyof CruiseTargetForm, value: number) => void;
   onGenerateConsistencyComment: () => void;
 }) {
@@ -889,8 +995,20 @@ function CruiseTradeoffPanel({
                 type="number"
                 step={1}
                 min={1}
-                value={state.targetForm.overshoot}
-                onChange={(event) => onTargetFormChange('overshoot', Number(event.target.value))}
+                value={isCourseMode && courseRole === 'student' && !targetFormTouched.overshoot ? '' : state.targetForm.overshoot}
+                placeholder={String(DEFAULT_TARGET_FORM.overshoot)}
+                onChange={(event) => {
+                  const raw = event.target.value.trim();
+                  if (!raw) {
+                    onTargetFormTouch('overshoot', false);
+                    return;
+                  }
+                  const value = Number(raw);
+                  if (Number.isFinite(value)) {
+                    onTargetFormTouch('overshoot', true);
+                    onTargetFormChange('overshoot', value);
+                  }
+                }}
                 className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
               />
             </label>
@@ -900,8 +1018,20 @@ function CruiseTradeoffPanel({
                 type="number"
                 step={1}
                 min={1}
-                value={state.targetForm.settlingTime}
-                onChange={(event) => onTargetFormChange('settlingTime', Number(event.target.value))}
+                value={isCourseMode && courseRole === 'student' && !targetFormTouched.settlingTime ? '' : state.targetForm.settlingTime}
+                placeholder={String(DEFAULT_TARGET_FORM.settlingTime)}
+                onChange={(event) => {
+                  const raw = event.target.value.trim();
+                  if (!raw) {
+                    onTargetFormTouch('settlingTime', false);
+                    return;
+                  }
+                  const value = Number(raw);
+                  if (Number.isFinite(value)) {
+                    onTargetFormTouch('settlingTime', true);
+                    onTargetFormChange('settlingTime', value);
+                  }
+                }}
                 className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
               />
             </label>
@@ -911,8 +1041,20 @@ function CruiseTradeoffPanel({
                 type="number"
                 step={0.1}
                 min={0}
-                value={state.targetForm.steadyError}
-                onChange={(event) => onTargetFormChange('steadyError', Number(event.target.value))}
+                value={isCourseMode && courseRole === 'student' && !targetFormTouched.steadyError ? '' : state.targetForm.steadyError}
+                placeholder={String(DEFAULT_TARGET_FORM.steadyError)}
+                onChange={(event) => {
+                  const raw = event.target.value.trim();
+                  if (!raw) {
+                    onTargetFormTouch('steadyError', false);
+                    return;
+                  }
+                  const value = Number(raw);
+                  if (Number.isFinite(value)) {
+                    onTargetFormTouch('steadyError', true);
+                    onTargetFormChange('steadyError', value);
+                  }
+                }}
                 className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
               />
             </label>
@@ -922,8 +1064,20 @@ function CruiseTradeoffPanel({
                 type="number"
                 step={0.01}
                 min={0}
-                value={state.targetForm.maxLateralAccel}
-                onChange={(event) => onTargetFormChange('maxLateralAccel', Number(event.target.value))}
+                value={isCourseMode && courseRole === 'student' && !targetFormTouched.maxLateralAccel ? '' : state.targetForm.maxLateralAccel}
+                placeholder={String(DEFAULT_TARGET_FORM.maxLateralAccel)}
+                onChange={(event) => {
+                  const raw = event.target.value.trim();
+                  if (!raw) {
+                    onTargetFormTouch('maxLateralAccel', false);
+                    return;
+                  }
+                  const value = Number(raw);
+                  if (Number.isFinite(value)) {
+                    onTargetFormTouch('maxLateralAccel', true);
+                    onTargetFormChange('maxLateralAccel', value);
+                  }
+                }}
                 className="mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1"
               />
             </label>
@@ -1000,16 +1154,27 @@ function CruiseTradeoffPanel({
             <button
               type="button"
               onClick={onGenerateConsistencyComment}
-              disabled={consistencyLoading}
+              disabled={consistencyLoading || !hasRuntimeData}
               className={`rounded border px-2 py-1 ${simulationUi.buttonOutline} disabled:opacity-60`}
             >
               {consistencyLoading ? '生成中...' : '生成评价'}
             </button>
           </div>
-          <div>一致性得分：<span className="font-semibold text-slate-900">{consistencyScore.score}%</span></div>
-          <div>超调：{performance.overshoot}% / 目标≤{state.targetForm.overshoot}%</div>
-          <div>调节时间：{performance.settlingTime}s / 目标≤{state.targetForm.settlingTime}s</div>
-          <div>侧向加速度：{performance.accel}g / 目标≤{state.targetForm.maxLateralAccel}g</div>
+          {!hasRuntimeData || !performance || !consistencyScore ? (
+            <div className="rounded border border-amber-300 bg-amber-50 px-2 py-2 text-amber-800">
+              {runtimeHint}
+            </div>
+          ) : (
+            <>
+              <div>一致性得分：<span className="font-semibold text-slate-900">{consistencyScore.score}%</span></div>
+              <div>超调：{performance.overshoot}% / 目标≤{state.targetForm.overshoot}%</div>
+              <div>调节时间：{performance.settlingTime}s / 目标≤{state.targetForm.settlingTime}s</div>
+              <div>侧向加速度：{performance.accel}g / 目标≤{state.targetForm.maxLateralAccel}g</div>
+              {!performance.settled ? (
+                <div className="text-amber-700">当前仍在收敛中，调节时间按未收敛处理。</div>
+              ) : null}
+            </>
+          )}
           <div className="rounded border border-slate-200 bg-slate-50 px-2 py-1">
             {consistencyComment}
           </div>
@@ -1022,11 +1187,13 @@ function CruiseTradeoffPanel({
 function CruiseAIPanel({
   state,
   isCourseMode,
+  feedback,
   onPromptChange,
   onApplyPrompt,
 }: {
   state: CruiseSimulationState;
   isCourseMode: boolean;
+  feedback: string;
   onPromptChange: (key: keyof CruiseSimulationState['prompt'], value: string) => void;
   onApplyPrompt: () => void;
 }) {
@@ -1089,8 +1256,11 @@ function CruiseAIPanel({
                 onClick={onApplyPrompt}
                 className={`w-full rounded border px-3 py-2 ${simulationUi.buttonPrimary}`}
               >
-                应用结构化提示词
+                发送结构化提示词
               </button>
+              <div className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] text-slate-700">
+                {feedback}
+              </div>
             </div>
           ) : null}
         </div>
@@ -1120,6 +1290,8 @@ export default function CruiseSimulation() {
 
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
+  const [speedScale, setSpeedScale] = useState(1);
+  const [virtualModeEnabled, setVirtualModeEnabled] = useState(true);
 
   const [state, setState] = useState<CruiseSimulationState>({
     isRunning: false,
@@ -1155,7 +1327,21 @@ export default function CruiseSimulation() {
   });
   const [consistencyComment, setConsistencyComment] = useState('等待生成一致性评语。');
   const [consistencyCommentLoading, setConsistencyCommentLoading] = useState(false);
+  const [structuredPromptFeedback, setStructuredPromptFeedback] = useState('在「AI伴学」标签下填写结构化提示词后，点击发送获取即时反馈。');
+  const [targetFormTouched, setTargetFormTouched] = useState<Partial<Record<keyof CruiseTargetForm, boolean>>>(
+    () => ({
+      overshoot: !isCourseMode || courseRole === 'teacher',
+      settlingTime: !isCourseMode || courseRole === 'teacher',
+      steadyError: !isCourseMode || courseRole === 'teacher',
+      maxLateralAccel: !isCourseMode || courseRole === 'teacher',
+    })
+  );
   const desiredRoutePoints = useMemo(() => buildCruiseDesiredRoute(), []);
+  const turnStartTimeRef = useRef<number | null>(null);
+  const maxHeadingAfterTurnRef = useRef(CRUISE_ROUTE_TURN_HEADING);
+  const settleWindowStartRef = useRef<number | null>(null);
+  const settlingTimeRef = useRef<number | null>(null);
+  const maxLateralAccelRef = useRef(0);
 
   // 初始化引擎
   useEffect(() => {
@@ -1177,7 +1363,7 @@ export default function CruiseSimulation() {
       return;
     }
 
-    const frameDt = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
+    const frameDt = Math.min(((timestamp - lastTimeRef.current) / 1000) * speedScale, 0.1);
     lastTimeRef.current = timestamp;
 
     const engine = engineRef.current;
@@ -1196,7 +1382,7 @@ export default function CruiseSimulation() {
       const time = nextTime + dt;
       nextTime = time;
 
-      engine.setSeaState(state.seaState, state.waveDirection);
+      engine.setSeaState(virtualModeEnabled ? state.seaState : 1, state.waveDirection);
       engine.setFinStabilizerEnabled(state.finStabilizerEnabled);
       engine.setNotchFilterEnabled(state.notchFilterEnabled);
       engine.setPIDGains(state.pidGains);
@@ -1216,6 +1402,28 @@ export default function CruiseSimulation() {
       comfort = engine.getComfortMetrics();
       finMetrics = engine.getFinStabilizerMetrics();
       internalState = engine.getInternalState();
+
+      const lateralAccelG = Math.abs((simState.speed * toRadians(simState.yawRate)) / 9.81);
+      maxLateralAccelRef.current = Math.max(maxLateralAccelRef.current, lateralAccelG);
+      if (missionTargetHeading >= CRUISE_ROUTE_TURN_HEADING - 0.1) {
+        if (turnStartTimeRef.current === null) {
+          turnStartTimeRef.current = time;
+          maxHeadingAfterTurnRef.current = simState.heading;
+          settleWindowStartRef.current = null;
+          settlingTimeRef.current = null;
+        }
+        maxHeadingAfterTurnRef.current = Math.max(maxHeadingAfterTurnRef.current, simState.heading);
+        const turnError = Math.abs(simState.heading - CRUISE_ROUTE_TURN_HEADING);
+        if (turnError <= 2) {
+          if (settleWindowStartRef.current === null) {
+            settleWindowStartRef.current = time;
+          } else if (time - settleWindowStartRef.current >= 8 && settlingTimeRef.current === null && turnStartTimeRef.current !== null) {
+            settlingTimeRef.current = settleWindowStartRef.current - turnStartTimeRef.current;
+          }
+        } else {
+          settleWindowStartRef.current = null;
+        }
+      }
     });
 
     if (simState && comfort && finMetrics && internalState) {
@@ -1245,7 +1453,7 @@ export default function CruiseSimulation() {
     }
 
     animationRef.current = requestAnimationFrame(simulate);
-  }, [state.isPaused, state.time, state.controlMode, state.speed, state.seaState, state.waveDirection, state.finStabilizerEnabled, state.notchFilterEnabled, state.pidGains]);
+  }, [speedScale, state.isPaused, state.time, state.controlMode, state.speed, state.seaState, state.waveDirection, state.finStabilizerEnabled, state.notchFilterEnabled, state.pidGains, virtualModeEnabled]);
 
   // 启动仿真
   const handleStart = useCallback(() => {
@@ -1271,6 +1479,11 @@ export default function CruiseSimulation() {
     trajectoryRef.current = [];
     lastTrajectoryTime.current = 0;
     lastTimeRef.current = 0;
+    turnStartTimeRef.current = null;
+    maxHeadingAfterTurnRef.current = CRUISE_ROUTE_TURN_HEADING;
+    settleWindowStartRef.current = null;
+    settlingTimeRef.current = null;
+    maxLateralAccelRef.current = 0;
     clockRef.current.reset();
     setState({
       isRunning: false,
@@ -1305,7 +1518,14 @@ export default function CruiseSimulation() {
     });
     setConsistencyComment('等待生成一致性评语。');
     setConsistencyCommentLoading(false);
-  }, []);
+    setStructuredPromptFeedback('在「AI伴学」标签下填写结构化提示词后，点击发送获取即时反馈。');
+    setTargetFormTouched({
+      overshoot: !isCourseMode || courseRole === 'teacher',
+      settlingTime: !isCourseMode || courseRole === 'teacher',
+      steadyError: !isCourseMode || courseRole === 'teacher',
+      maxLateralAccel: !isCourseMode || courseRole === 'teacher',
+    });
+  }, [courseRole, isCourseMode]);
 
   // 处理器
   const handleControlModeChange = useCallback((mode: ControlMode) => {
@@ -1362,6 +1582,13 @@ export default function CruiseSimulation() {
     }));
   }, []);
 
+  const handleTargetFormTouch = useCallback((key: keyof CruiseTargetForm, touched: boolean) => {
+    setTargetFormTouched((prev) => ({
+      ...prev,
+      [key]: touched,
+    }));
+  }, []);
+
   const handlePromptChange = useCallback((key: keyof CruiseSimulationState['prompt'], value: string) => {
     setState((prev) => ({
       ...prev,
@@ -1389,16 +1616,56 @@ export default function CruiseSimulation() {
         ),
       };
     });
-  }, []);
+    const systemPrompt = [
+      '你是船舶控制系统辅导助手，请按“对象-目标-约束-策略”评估输入。',
+      `对象: ${state.prompt.controlObject}`,
+      `目标: ${state.prompt.performanceGoal}`,
+      `约束: ${state.prompt.constraints}`,
+      `策略: ${state.prompt.strategy}`,
+    ].join('\n');
+    const missingBlocks = Object.values(state.prompt).filter((item) => item.trim().length === 0).length;
+    const quality = missingBlocks === 0 ? '结构完整，已发送并可用于下一轮 AI 介入分析。' : `仍有 ${missingBlocks} 个分段为空，建议补全后再次发送。`;
+    setStructuredPromptFeedback(`AI即时反馈：${quality}\n系统级提示词已组装：\n${systemPrompt}`);
+  }, [state.prompt]);
 
-  const simulationPerformance = useMemo(() => computePerformanceFromController(state.pidGains), [state.pidGains]);
-  const consistencyScore = useMemo(
-    () => computeConsistencyScore(state.targetForm, simulationPerformance),
-    [simulationPerformance, state.targetForm]
-  );
+  const runtimePerformance = useMemo<RuntimeConsistencyPerformance | null>(() => {
+    if (turnStartTimeRef.current === null) {
+      return null;
+    }
+    const overshoot = Math.max(
+      0,
+      ((maxHeadingAfterTurnRef.current - CRUISE_ROUTE_TURN_HEADING) / Math.max(CRUISE_ROUTE_TURN_HEADING, 1)) * 100
+    );
+    const settled = settlingTimeRef.current !== null;
+    const settlingTime = settled ? settlingTimeRef.current! : Math.max(180, state.time - turnStartTimeRef.current);
+    return {
+      overshoot: Number(overshoot.toFixed(1)),
+      settlingTime: Number(settlingTime.toFixed(1)),
+      accel: Number(maxLateralAccelRef.current.toFixed(3)),
+      settled,
+    };
+  }, [state.time]);
+
+  const hasRuntimeData = runtimePerformance !== null;
+  const runtimeHint = hasRuntimeData
+    ? '实时一致性数据已更新。'
+    : '尚未获取仿真数据，请先运行仿真后观察实际结果。';
+
+  const consistencyScore = useMemo(() => {
+    if (!runtimePerformance) {
+      return null;
+    }
+    return computeConsistencyScore(state.targetForm, runtimePerformance);
+  }, [runtimePerformance, state.targetForm]);
+
+  const syntheticPerformance = useMemo(() => computePerformanceFromController(state.pidGains), [state.pidGains]);
 
   const generateConsistencyComment = useCallback(async () => {
     if (!isCourseMode) {
+      return;
+    }
+    if (!runtimePerformance || !consistencyScore) {
+      setConsistencyComment('请先运行仿真并完成转向，再生成一致性评价。');
       return;
     }
     setConsistencyCommentLoading(true);
@@ -1409,7 +1676,7 @@ export default function CruiseSimulation() {
         body: JSON.stringify({
           ...consistencyScore,
           target: state.targetForm,
-          result: simulationPerformance,
+          result: runtimePerformance,
         }),
       });
       const data = (await response.json()) as { text?: string };
@@ -1419,17 +1686,17 @@ export default function CruiseSimulation() {
     } finally {
       setConsistencyCommentLoading(false);
     }
-  }, [consistencyScore, isCourseMode, simulationPerformance, state.targetForm]);
+  }, [consistencyScore, isCourseMode, runtimePerformance, state.targetForm]);
 
   useEffect(() => {
-    if (!isCourseMode) {
+    if (!isCourseMode || !hasRuntimeData || state.isRunning) {
       return;
     }
     const timer = window.setTimeout(() => {
       void generateConsistencyComment();
     }, 500);
     return () => window.clearTimeout(timer);
-  }, [generateConsistencyComment, isCourseMode]);
+  }, [generateConsistencyComment, hasRuntimeData, isCourseMode, state.isRunning]);
 
   useEffect(() => {
     if (!isCourseMode) {
@@ -1444,10 +1711,16 @@ export default function CruiseSimulation() {
         controller: state.pidGains,
         targetForm: state.targetForm,
         openLoop: buildOpenLoopFromController(state.pidGains, controllerMode),
+        metrics: {
+          timeDomain: runtimePerformance ?? syntheticPerformance,
+          lateralAccelG: runtimePerformance?.accel ?? syntheticPerformance.accel,
+          comfortMsi: Number(state.comfort.msi.toFixed(1)),
+          settlingReady: runtimePerformance?.settled ?? false,
+        },
       },
     };
     window.parent.postMessage(message, window.location.origin);
-  }, [isCourseMode, state.controlMode, state.pidGains, state.targetForm]);
+  }, [isCourseMode, runtimePerformance, state.comfort.msi, state.controlMode, state.pidGains, state.targetForm, syntheticPerformance]);
 
   useEffect(() => {
     if (!isCourseMode) {
@@ -1503,7 +1776,7 @@ export default function CruiseSimulation() {
         <Suspense fallback={null}>
           <ambientLight intensity={0.4} />
           <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
-          <MaritimeEnvironment shipPosition={state.position} seaState={state.seaState} />
+          <MaritimeEnvironment shipPosition={state.position} seaState={virtualModeEnabled ? state.seaState : 1} />
           {showGrid ? (
             <Grid
               args={[20000, 20000]}
@@ -1554,6 +1827,9 @@ export default function CruiseSimulation() {
         onModeChange={setCameraMode}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
+        speedScale={speedScale}
+        onSpeedChange={setSpeedScale}
+        maxSpeedScale={8}
         className={simulationUi.cameraSwitcherPosition}
       />
 
@@ -1576,10 +1852,12 @@ export default function CruiseSimulation() {
               <ControlPanel
                 state={state}
                 isCourseMode={isCourseMode}
+                virtualModeEnabled={virtualModeEnabled}
                 onPidGainsChange={handlePidGainsChange}
                 onControlModeChange={handleControlModeChange}
                 onSeaStateChange={handleSeaStateChange}
                 onWaveDirectionChange={handleWaveDirectionChange}
+                onVirtualModeToggle={() => setVirtualModeEnabled((prev) => !prev)}
                 onFinStabilizerToggle={handleFinStabilizerToggle}
                 onNotchFilterToggle={handleNotchFilterToggle}
                 onStart={handleStart}
@@ -1595,10 +1873,15 @@ export default function CruiseSimulation() {
               <CruiseTradeoffPanel
                 state={state}
                 isCourseMode={isCourseMode}
-                performance={simulationPerformance}
+                courseRole={courseRole}
+                targetFormTouched={targetFormTouched}
+                performance={runtimePerformance}
                 consistencyScore={consistencyScore}
                 consistencyComment={consistencyComment}
                 consistencyLoading={consistencyCommentLoading}
+                hasRuntimeData={hasRuntimeData}
+                runtimeHint={runtimeHint}
+                onTargetFormTouch={handleTargetFormTouch}
                 onTargetFormChange={handleTargetFormChange}
                 onGenerateConsistencyComment={() => void generateConsistencyComment()}
               />
@@ -1611,6 +1894,7 @@ export default function CruiseSimulation() {
               <CruiseAIPanel
                 state={state}
                 isCourseMode={isCourseMode}
+                feedback={structuredPromptFeedback}
                 onPromptChange={handlePromptChange}
                 onApplyPrompt={applyPromptToController}
               />
@@ -1631,7 +1915,7 @@ export default function CruiseSimulation() {
       <div className={`${simulationUi.panel} absolute bottom-4 left-4 p-2 text-xs`}>
         <div>拖拽旋转视角 | 滚轮缩放 | 右键平移</div>
         <div className="mt-1">
-          绿色虚线：期望航线 | 紫色实线：实际航迹
+          浅蓝箭头：期望航线 | 深蓝箭头与轨迹：实际航向与航迹
         </div>
         <div className="mt-1 text-slate-700">
           知识点: 频率响应 (Ch5), 陷波滤波器 (Ch6)

@@ -224,6 +224,19 @@ function HeadingIndicator({
   currentHeading: number;
 }) {
   const length = 500;
+  const buildWings = (start: [number, number, number], end: [number, number, number]) => {
+    const dx = end[0] - start[0];
+    const dz = end[2] - start[2];
+    const len = Math.hypot(dx, dz) || 1;
+    const ux = dx / len;
+    const uz = dz / len;
+    const backX = end[0] - ux * 50;
+    const backZ = end[2] - uz * 50;
+    return {
+      left: [backX - uz * 20, end[1], backZ + ux * 20] as [number, number, number],
+      right: [backX + uz * 20, end[1], backZ - ux * 20] as [number, number, number],
+    };
+  };
 
   // 目标航向线
   const targetEnd: [number, number, number] = [
@@ -238,24 +251,30 @@ function HeadingIndicator({
     5,
     position.z + length * 0.8 * Math.sin(toRadians(currentHeading)),
   ];
+  const targetWings = buildWings([position.x, 5, position.z], targetEnd);
+  const currentWings = buildWings([position.x, 5, position.z], currentEnd);
 
   return (
     <group>
-      {/* 目标航向 (绿色虚线) */}
+      {/* 目标航向 (浅蓝虚线箭头) */}
       <Line
         points={[[position.x, 5, position.z], targetEnd]}
-        color="#22c55e"
+        color="#60a5fa"
         lineWidth={2}
         dashed
         dashSize={20}
         gapSize={10}
       />
-      {/* 当前航向 (蓝色实线) */}
+      <Line points={[targetWings.left, targetEnd]} color="#60a5fa" lineWidth={2} />
+      <Line points={[targetWings.right, targetEnd]} color="#60a5fa" lineWidth={2} />
+      {/* 当前航向 (深蓝实线箭头) */}
       <Line
         points={[[position.x, 5, position.z], currentEnd]}
         color="#3b82f6"
         lineWidth={3}
       />
+      <Line points={[currentWings.left, currentEnd]} color="#3b82f6" lineWidth={3} />
+      <Line points={[currentWings.right, currentEnd]} color="#3b82f6" lineWidth={3} />
     </group>
   );
 }
@@ -488,6 +507,7 @@ export function LNGSimulation() {
 
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
+  const [speedScale, setSpeedScale] = useState(1);
   const [state, setState] = useState<LNGSimulationState>({
     isRunning: false,
     isPaused: false,
@@ -518,7 +538,7 @@ export function LNGSimulation() {
     const engine = engineRef.current;
     if (!engine) return;
 
-    const frameDt = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
+    const frameDt = Math.min(((timestamp - lastTimeRef.current) / 1000) * speedScale, 0.1);
     lastTimeRef.current = timestamp;
 
     let nextTime = state.time;
@@ -562,7 +582,7 @@ export function LNGSimulation() {
     if (state.isRunning && !state.isPaused) {
       animationRef.current = requestAnimationFrame(simulationStep);
     }
-  }, [state.isRunning, state.isPaused, state.targetHeading, state.controlMode, state.time]);
+  }, [state.isRunning, state.isPaused, state.targetHeading, state.controlMode, state.time, speedScale]);
 
   // 控制仿真启停
   useEffect(() => {
@@ -717,6 +737,9 @@ export function LNGSimulation() {
         onModeChange={setCameraMode}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
+        speedScale={speedScale}
+        onSpeedChange={setSpeedScale}
+        maxSpeedScale={8}
         className={simulationUi.cameraSwitcherPosition}
       />
     </div>

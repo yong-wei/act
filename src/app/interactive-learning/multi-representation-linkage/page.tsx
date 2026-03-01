@@ -630,11 +630,22 @@ export default function MultiRepresentationLinkagePage() {
         payload: {
           controlMode: courseControlMode,
           controller,
+          metrics: {
+            timeDomain: timeDomain?.metrics ?? null,
+            frequencyDomain: stability
+              ? {
+                  phaseMargin: stability.stabilityMargins.phaseMargin.value,
+                  gainMargin: stability.stabilityMargins.gainMargin.isInfinite
+                    ? Number.POSITIVE_INFINITY
+                    : stability.stabilityMargins.gainMargin.value,
+                }
+              : null,
+          },
         },
       },
       window.location.origin
     );
-  }, [courseControlMode, gain, isCourseMode, polesPayload, zerosPayload]);
+  }, [courseControlMode, gain, isCourseMode, polesPayload, stability, timeDomain?.metrics, zerosPayload]);
 
   const hints = useMemo(() => {
     if (stability?.hints?.length) {

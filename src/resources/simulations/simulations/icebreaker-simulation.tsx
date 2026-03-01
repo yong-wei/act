@@ -944,6 +944,7 @@ export default function IcebreakerSimulation() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
+  const [speedScale, setSpeedScale] = useState(1);
 
   // Azipod 参数 (使用预定义的默认参数)
   const azipodParams: Azipod3DOFParams = DEFAULT_AZIPOD_3DOF_PARAMS;
@@ -1083,7 +1084,7 @@ export default function IcebreakerSimulation() {
     lastTimeRef.current = performance.now();
     let frameId = 0;
     const loop = (timestamp: number) => {
-      const frameDt = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
+      const frameDt = Math.min(((timestamp - lastTimeRef.current) / 1000) * speedScale, 0.1);
       lastTimeRef.current = timestamp;
       clockRef.current.advance(frameDt, simulationStep);
       frameId = requestAnimationFrame(loop);
@@ -1091,7 +1092,7 @@ export default function IcebreakerSimulation() {
     frameId = requestAnimationFrame(loop);
 
     return () => cancelAnimationFrame(frameId);
-  }, [isRunning, simulationStep]);
+  }, [isRunning, simulationStep, speedScale]);
 
   // 重置
   const handleReset = useCallback(() => {
@@ -1227,6 +1228,9 @@ export default function IcebreakerSimulation() {
         onModeChange={setCameraMode}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
+        speedScale={speedScale}
+        onSpeedChange={setSpeedScale}
+        maxSpeedScale={8}
         className={simulationUi.cameraSwitcherPosition}
       />
 

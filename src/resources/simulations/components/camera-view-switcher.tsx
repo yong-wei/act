@@ -5,7 +5,7 @@
  * 提供三种预设视角按钮和自由视角状态显示
  */
 
-import { Video, Eye, Compass, Move3d } from 'lucide-react';
+import { Video, Eye, Compass, Move3d, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -26,6 +26,14 @@ export interface CameraViewSwitcherProps {
   gridEnabled?: boolean;
   /** 切换网格显示 */
   onToggleGrid?: () => void;
+  /** 当前仿真速度倍率 */
+  speedScale?: number;
+  /** 调整仿真速度倍率 */
+  onSpeedChange?: (nextSpeedScale: number) => void;
+  /** 最小仿真速度倍率 */
+  minSpeedScale?: number;
+  /** 最大仿真速度倍率 */
+  maxSpeedScale?: number;
 }
 
 const viewModes: Array<{
@@ -70,7 +78,43 @@ export function CameraViewSwitcher({
   size = 'sm',
   gridEnabled,
   onToggleGrid,
+  speedScale = 1,
+  onSpeedChange,
+  minSpeedScale = 0.5,
+  maxSpeedScale = 8,
 }: CameraViewSwitcherProps) {
+  const speedPresets = [0.5, 1, 2, 4, 8].filter((value) => value >= minSpeedScale && value <= maxSpeedScale);
+
+  const findNextSpeed = (direction: -1 | 1): number => {
+    if (speedPresets.length === 0) {
+      return speedScale;
+    }
+    const exactIndex = speedPresets.findIndex((value) => Math.abs(value - speedScale) < 1e-6);
+    if (exactIndex >= 0) {
+      const nextIndex = Math.min(speedPresets.length - 1, Math.max(0, exactIndex + direction));
+      return speedPresets[nextIndex];
+    }
+    if (direction > 0) {
+      return speedPresets.find((value) => value > speedScale) ?? speedPresets[speedPresets.length - 1];
+    }
+    const reversed = [...speedPresets].reverse();
+    return reversed.find((value) => value < speedScale) ?? speedPresets[0];
+  };
+
+  const handleDecrease = () => {
+    if (!onSpeedChange) {
+      return;
+    }
+    onSpeedChange(findNextSpeed(-1));
+  };
+
+  const handleIncrease = () => {
+    if (!onSpeedChange) {
+      return;
+    }
+    onSpeedChange(findNextSpeed(1));
+  };
+
   return (
     <div className={cn('flex items-center gap-1', className)}>
       {/* 视角按钮组 */}
@@ -130,6 +174,32 @@ export function CameraViewSwitcher({
           <span className="hidden sm:inline">{gridEnabled ? '网格开' : '网格关'}</span>
           <span className="sm:hidden">网</span>
         </Button>
+      ) : null}
+
+      {onSpeedChange ? (
+        <div className="flex items-center gap-1 rounded-xl border border-slate-200/90 bg-slate-50/92 p-1 shadow-lg shadow-slate-950/20 backdrop-blur-sm">
+          <Button
+            variant="ghost"
+            size={size}
+            onClick={handleDecrease}
+            className="text-slate-700 hover:bg-slate-200 hover:text-slate-900"
+            title="减速"
+            aria-label="减速"
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <span className="min-w-11 text-center text-xs font-semibold text-slate-800">{speedScale.toFixed(1)}x</span>
+          <Button
+            variant="ghost"
+            size={size}
+            onClick={handleIncrease}
+            className="text-slate-700 hover:bg-slate-200 hover:text-slate-900"
+            title="加速"
+            aria-label="加速"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       ) : null}
     </div>
   );

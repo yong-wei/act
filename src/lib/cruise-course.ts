@@ -288,6 +288,7 @@ const STUDENT_STAGE_TASKS: Record<string, CruiseStageTask> = {
     title: '环节目标：工程目标设定',
     description: '先把工程需求翻译为可计算约束，再开始调参。',
     bullets: [
+      '在仿真界面右侧面板的「评估」标签下，填写性能指标约束。',
       '填写超调量、调节时间、稳态误差、最大侧向加速度四项指标。',
       '把侧向加速度控制在 0.15g 舒适线以内，并关注 0.2g 安全红线。',
       '检查目标是否互相矛盾，避免“既要极快又要极稳”的空目标。',
@@ -297,11 +298,12 @@ const STUDENT_STAGE_TASKS: Record<string, CruiseStageTask> = {
   },
   'first-exploration': {
     title: '环节目标：第一轮参数探索',
-    description: '在三面板联动中制造一次失败，建立跨域映射直觉。',
+    description: '在下方多表征联动中制造一次失败，建立跨域映射直觉。',
     bullets: [
       '观察复平面极点移动与阶跃响应、Bode 曲线的同步变化。',
       '至少触发一次约束违反，并记录导致失败的参数方向。',
       '用“阻尼比/自然频率”描述变化，不只说“参数变大变小”。',
+      '在控制标签页顶部开启虚拟仿真观察，并与理想模型对比差异来源；可使用加速仿真节约时间。',
     ],
     keyQuestion: '为什么 Kp 增大后，速度可能变快但舒适度反而变差？',
     formulaRefs: ['公式 4.4', '公式 4.5'],
@@ -310,6 +312,7 @@ const STUDENT_STAGE_TASKS: Record<string, CruiseStageTask> = {
     title: '环节目标：AI介入分析',
     description: '借助 AI 诊断失败原因，但决策权仍由你掌握。',
     bullets: [
+      '在「AI伴学」标签下，记录失败的尝试，并生成介入建议。',
       '触发 AI 分析并核对：当前参数、失败约束、偏差幅度。',
       '把 AI 建议翻译为极点变化方向，再决定是否采用。',
       '明确下一次调参的目标：优先修复哪个约束。',
@@ -321,6 +324,7 @@ const STUDENT_STAGE_TASKS: Record<string, CruiseStageTask> = {
     title: '环节目标：结构化提示词修改',
     description: '把模糊意图重写为可执行提示词，再回到调参验证。',
     bullets: [
+      '在「AI伴学」标签下，填写各部分结构化提示词并发送。',
       '按“对象→目标→约束→策略”四段式重写提示词。',
       '目标必须有数值与单位，约束必须包含 0.2g 安全红线。',
       '修改后立即验证，观察结果是否按预期变化。',
@@ -356,6 +360,7 @@ const STUDENT_STAGE_TASKS: Record<string, CruiseStageTask> = {
     title: '环节目标：一致性校验',
     description: '校验“目标表达→调参行为→结果达成”的三层一致性。',
     bullets: [
+      '若尚未运行仿真，请先运行并观察真实响应，再进行一致性校验。',
       '检查目标和行为是否一致（写了什么，做了什么）。',
       '检查行为和结果是否一致（为什么没达到预期）。',
       '针对黄色/红色偏差，修正提示词或参数策略。',
@@ -395,8 +400,9 @@ const TEACHER_STAGE_COPY: Record<string, CruiseTeacherStepCopy> = {
     layer: 'P2 · 结构可见',
     duration: CRUISE_STEP_DURATION['first-exploration'],
     studentTask: [
-      '同步观察复平面、时域与频域三面板联动。',
+      '同步观察下方多表征联动与仿真控制面板的参数变化。',
       '至少触发一次约束违反，并记录失败成因。',
+      '提醒学生在控制标签页开启虚拟仿真观察，并可加速仿真对比理想模型差异。',
     ],
     teacherScript: '先大胆试错，再解释为什么错。失败是建立映射关系的入口。',
     patrolFocus: [

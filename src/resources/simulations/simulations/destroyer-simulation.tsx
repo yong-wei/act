@@ -696,6 +696,7 @@ function SimulationEngine({
   duration,
   guidePath,
   resetToken,
+  speedScale,
   onHudUpdate,
   onChartDataUpdate,
 }: {
@@ -708,6 +709,7 @@ function SimulationEngine({
   duration: number;
   guidePath: THREE.Vector3[];
   resetToken: number;
+  speedScale: number;
   onHudUpdate: (state: HudState) => void;
   onChartDataUpdate: (time: number, desired: number, actual: number, speed: number, rudder: number) => void;
 }) {
@@ -758,7 +760,7 @@ function SimulationEngine({
     }
 
     const elapsedTime = state.clock.getElapsedTime();
-    const frameDt = elapsedTime - lastFrameTimeRef.current;
+    const frameDt = (elapsedTime - lastFrameTimeRef.current) * speedScale;
     lastFrameTimeRef.current = elapsedTime;
 
     if (frameDt <= 0 || frameDt > 0.5) return;
@@ -1252,6 +1254,7 @@ export default function DestroyerSimulation() {
   const [pidGains, setPidGains] = useState<PIDGains>(DEFAULT_PID_GAINS);
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
+  const [speedScale, setSpeedScale] = useState(1);
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [selectedTask, setSelectedTask] = useState(0);
   const [resetToken, setResetToken] = useState(0);
@@ -1402,6 +1405,7 @@ export default function DestroyerSimulation() {
           duration={task.duration}
           guidePath={guidePath}
           resetToken={resetToken}
+          speedScale={speedScale}
           onHudUpdate={setHudState}
           onChartDataUpdate={handleChartDataUpdate}
         />
@@ -1471,6 +1475,9 @@ export default function DestroyerSimulation() {
         onModeChange={setCameraMode}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
+        speedScale={speedScale}
+        onSpeedChange={setSpeedScale}
+        maxSpeedScale={8}
         className={simulationUi.cameraSwitcherPosition}
       />
 

@@ -753,6 +753,7 @@ export function DrillingSimulation() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
+  const [speedScale, setSpeedScale] = useState(1);
 
   // 船舶配置
   const profile = drillingHYSY981Profile;
@@ -770,7 +771,7 @@ export function DrillingSimulation() {
     if (!isRunning) return;
 
     const now = performance.now();
-    const frameDt = Math.min((now - lastUpdateRef.current) / 1000, 0.1);
+    const frameDt = Math.min(((now - lastUpdateRef.current) / 1000) * speedScale, 0.1);
     lastUpdateRef.current = now;
 
     const stepSimulation = (dt: number) => {
@@ -925,7 +926,7 @@ export function DrillingSimulation() {
     clockRef.current.advance(frameDt, stepSimulation);
 
     animationFrameRef.current = requestAnimationFrame(simulate);
-  }, [isRunning, config]);
+  }, [isRunning, config, speedScale]);
 
   // 启动/停止仿真
   useEffect(() => {
@@ -1038,6 +1039,9 @@ export function DrillingSimulation() {
         onModeChange={setCameraMode}
         gridEnabled={showGrid}
         onToggleGrid={() => setShowGrid((previous) => !previous)}
+        speedScale={speedScale}
+        onSpeedChange={setSpeedScale}
+        maxSpeedScale={8}
         className={simulationUi.cameraSwitcherPosition}
       />
 

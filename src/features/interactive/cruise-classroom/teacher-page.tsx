@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BarChart3, GraduationCap, Loader2, PlayCircle, Sparkles } from 'lucide-react';
+import { BlockMath, InlineMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 import {
   ABILITY_POINTS,
@@ -522,7 +524,9 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
           <div className="grid gap-4 lg:grid-cols-2">
             <article className="rounded-xl border border-sky-300/35 bg-sky-500/10 p-4">
               <p className="text-2xl font-semibold text-sky-100">传统建模</p>
-              <p className="mt-3 text-lg text-slate-100">ẋ = f(x, u)（人工推导）</p>
+              <p className="mt-3 text-lg text-slate-100">
+                <InlineMath math={'\\dot{x}=f(x,u)'} />（人工推导）
+              </p>
               <ul className="mt-3 list-disc space-y-1 pl-5 text-base text-slate-200">
                 <li>优点：简洁、可解释、参数物理意义清晰</li>
                 <li>局限：固定参数，难适应复杂海况与大舵角非线性</li>
@@ -530,12 +534,17 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
             </article>
             <article className="rounded-xl border border-violet-300/35 bg-violet-500/10 p-4">
               <p className="text-2xl font-semibold text-violet-100">数据驱动建模</p>
-              <p className="mt-3 text-lg text-slate-100">ẋ = fθ(x, u)（数据学习）</p>
+              <p className="mt-3 text-lg text-slate-100">
+                <InlineMath math={'\\dot{x}=f_{\\theta}(x,u)'} />（数据学习）
+              </p>
               <ul className="mt-3 list-disc space-y-1 pl-5 text-base text-slate-200">
                 <li>优点：更能捕捉非线性与时变特性</li>
                 <li>局限：依赖大量真实数据，可解释性较弱</li>
               </ul>
             </article>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
+            <BlockMath math={'\\min_{\\theta}\\sum_{t}\\left\\|x_{t+1}-\\Phi_{\\Delta t}(x_t,u_t;f_{\\theta})\\right\\|_2^2'} />
           </div>
           <div className="relative h-[360px] overflow-hidden rounded-xl border border-white/10 bg-slate-950">
             <Image
