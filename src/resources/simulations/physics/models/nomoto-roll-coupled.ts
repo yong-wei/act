@@ -96,7 +96,7 @@ export function computeWaveExcitation(
   shipHeading: number = 0
 ): number {
   // 基础波浪幅度 (与海况等级相关)
-  const baseAmplitude = seaStateLevel * 0.02;  // rad
+  const baseAmplitude = 0.2 * Math.pow(seaStateLevel, 1.35);  // rad，增强高海况分辨率
 
   // 主要波浪频率成分 (致晕频段 0.1-0.3 Hz)
   const freq1 = 0.12;  // Hz (周期 ~8.3s)
@@ -105,7 +105,7 @@ export function computeWaveExcitation(
 
   // 相对波向角 (横浪最大)
   const relativeAngle = toRadians(waveDirection);
-  const directionFactor = Math.abs(Math.sin(relativeAngle));
+  const directionFactor = 0.25 + 0.75 * Math.abs(Math.sin(relativeAngle));
 
   // 多频率叠加
   const omega1 = 2 * Math.PI * freq1;
@@ -169,12 +169,13 @@ function rollDerivatives(
   rollRate: number,
   waveExcitation: number,
   finMoment: number,
+  turningExcitation: number,
   params: RollCoupledNomotoParams
 ): { dRollAngle: number; dRollRate: number } {
   const { K_phi, T_phi1, T_phi2 } = params;
 
-  // 总力矩 (波浪激励 - 减摇鳍力矩)
-  const totalMoment = waveExcitation - finMoment;
+  // 总力矩 (波浪激励 + 转向横倾激励 - 减摇鳍力矩)
+  const totalMoment = waveExcitation + turningExcitation - finMoment;
 
   const dRollAngle = rollRate;
   const dRollRate =
@@ -189,7 +190,7 @@ function rollDerivatives(
  *
  * @param state 当前状态
  * @param rudderDeg 舵角指令 (°)
- * @param finAngleDeg 减摇鳍角度 (°)
+ * @param finMomentNormalized 减摇鳍归一化力矩输入 (无量纲)
  * @param waveExcitation 波浪激励 (rad)
  * @param dt 时间步长 (s)
  * @param params 模型参数
@@ -197,18 +198,18 @@ function rollDerivatives(
 export function rollCoupledNomotoStep(
   state: RollCoupledState,
   rudderDeg: number,
-  finAngleDeg: number,
+  finMomentNormalized: number,
   waveExcitation: number,
   dt: number,
-  params: RollCoupledNomotoParams = DEFAULT_ROLL_COUPLED_PARAMS
+  params: RollCoupledNomotoParams = DEFAULT_ROLL_COUPLED_PARAMS,
+  turningExcitation: number = 0
 ): RollCoupledState {
   // 限制舵角
   const clampedRudder = clamp(rudderDeg, -params.maxRudderDeg, params.maxRudderDeg);
   const rudderRad = toRadians(clampedRudder);
 
-  // 减摇鳍力矩 (归一化，与鳍角成正比)
-  const finRad = toRadians(finAngleDeg);
-  const finMoment = finRad * 0.5;  // 简化的鳍力矩系数
+  // 减摇鳍归一化力矩直接参与横摇动力学
+  const finMoment = finMomentNormalized;
 
   // 当前状态
   const { yawRateRad, yawAccelRad, rollRad, rollRateRad } = state;
@@ -242,12 +243,13 @@ export function rollCoupledNomotoStep(
     (dt / 6) * (hk1.dYawAccel + 2 * hk2.dYawAccel + 2 * hk3.dYawAccel + hk4.dYawAccel);
 
   // ============ RK4 积分横摇动力学 ============
-  const rk1 = rollDerivatives(rollRad, rollRateRad, waveExcitation, finMoment, params);
+  const rk1 = rollDerivatives(rollRad, rollRateRad, waveExcitation, finMoment, turningExcitation, params);
   const rk2 = rollDerivatives(
     rollRad + 0.5 * dt * rk1.dRollAngle,
     rollRateRad + 0.5 * dt * rk1.dRollRate,
     waveExcitation,
     finMoment,
+    turningExcitation,
     params
   );
   const rk3 = rollDerivatives(
@@ -255,6 +257,7 @@ export function rollCoupledNomotoStep(
     rollRateRad + 0.5 * dt * rk2.dRollRate,
     waveExcitation,
     finMoment,
+    turningExcitation,
     params
   );
   const rk4 = rollDerivatives(
@@ -262,6 +265,7 @@ export function rollCoupledNomotoStep(
     rollRateRad + dt * rk3.dRollRate,
     waveExcitation,
     finMoment,
+    turningExcitation,
     params
   );
 
@@ -291,7 +295,7 @@ export function rollCoupledNomotoStep(
     positionZ: newZ,
     speedMps: speed,
     rudderDeg: clampedRudder,
-    finAngleDeg,
+    finAngleDeg: state.finAngleDeg,
   };
 }
 

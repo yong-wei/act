@@ -5,7 +5,7 @@
  * 使用 Azipod 3-DOF 模型和冰阻力 Stick-Slip 模型
  */
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -21,7 +21,9 @@ import { MaritimeEnvironment } from '../environment';
 import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
+  RightClickFreeModeBridge,
   CameraViewSwitcher,
+  ModelLoadingPlaceholder,
   SimulationTopBar,
   SimulationDock,
   simulationUi,
@@ -87,6 +89,11 @@ import {
   XUELONG_ICE_PARAMS,
   XUELONG_DEFAULT_GAINS,
 } from '../core/constants';
+import {
+  SIMULATION_FIXED_STEP_SECONDS,
+  SIMULATION_MAX_SUB_STEPS,
+  getSimulationDeltaFromMilliseconds,
+} from '../lib/simulation-timing';
 
 // ============ 类型定义 ============
 
@@ -393,8 +400,8 @@ function Scene({
         enablePan
         enableZoom
         enableRotate
-        onStart={() => onCameraModeChange('free')}
       />
+      <RightClickFreeModeBridge onRequestFreeMode={() => onCameraModeChange('free')} />
       <UnifiedCameraController
         position={position}
         headingRad={heading}
@@ -413,12 +420,21 @@ function Scene({
       <MaritimeEnvironment shipPosition={position} seaState={3} />
       {iceMode && <IceOcean iceMode={iceMode} />}
 
-      <IcebreakerModel
-        position={position}
-        heading={heading}
-        azimuth1={azimuth1}
-        azimuth2={azimuth2}
-      />
+      <Suspense
+        fallback={(
+          <ModelLoadingPlaceholder
+            label="破冰船模型加载中"
+            sublabel="场景已就绪，可先查看冰区与航向目标"
+          />
+        )}
+      >
+        <IcebreakerModel
+          position={position}
+          heading={heading}
+          azimuth1={azimuth1}
+          azimuth2={azimuth2}
+        />
+      </Suspense>
 
       <HeadingIndicator position={position} targetHeading={targetHeading} />
       <TrailLine points={trail} />
@@ -909,7 +925,12 @@ export default function IcebreakerSimulation() {
   const [violations, setViolations] = useState<EthicalViolation[]>([]);
   const simTimeRef = useRef(0);
   const lastTimeRef = useRef(0);
-  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
+  const clockRef = useRef(
+    new SimulationClock({
+      dt: SIMULATION_FIXED_STEP_SECONDS,
+      maxSubSteps: SIMULATION_MAX_SUB_STEPS,
+    })
+  );
 
   // 配置
   const [config, setConfig] = useState<SimulationConfig>(
@@ -1084,7 +1105,7 @@ export default function IcebreakerSimulation() {
     lastTimeRef.current = performance.now();
     let frameId = 0;
     const loop = (timestamp: number) => {
-      const frameDt = Math.min(((timestamp - lastTimeRef.current) / 1000) * speedScale, 0.1);
+      const frameDt = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScale);
       lastTimeRef.current = timestamp;
       clockRef.current.advance(frameDt, simulationStep);
       frameId = requestAnimationFrame(loop);

@@ -172,6 +172,43 @@ export function estimateMsiFromRoll(
   return computeMsi(rmsAccel, exposureHours, frequencyHz);
 }
 
+/**
+ * 教学仿真舒适度 MSI 估算
+ *
+ * 在传统横摇 MSI 基础上，叠加转向引起的横向加速度与转艏角速度影响，
+ * 使“满舵+大浪”工况下舒适度降级更符合教学感知。
+ */
+export function estimateMsiFromMotion(
+  rollRmsDeg: number,
+  lateralAccelG: number,
+  yawRateDegPerSec: number,
+  rollPeriodSec: number = 18,
+  shipBeam: number = 37,
+  exposureHours: number = 2.0
+): number {
+  const rollMsi = estimateMsiFromRoll(rollRmsDeg, rollPeriodSec, shipBeam, exposureHours);
+  const normalizedRoll = Math.pow(clamp(rollRmsDeg / 2.2, 0, 2), 1.25);
+  const normalizedLateral = Math.pow(clamp(lateralAccelG / 0.06, 0, 2), 1.35);
+  const normalizedYaw = Math.pow(clamp(Math.abs(yawRateDegPerSec) / 1.4, 0, 2), 1.1);
+  const lateralCoupling = clamp(
+    0.18 + 0.82 * Math.pow(clamp(rollRmsDeg / 1.1, 0, 2), 1.2),
+    0.18,
+    1.2
+  );
+  const yawCoupling = clamp(
+    0.25 + 0.5 * Math.pow(clamp(rollRmsDeg / 1.2, 0, 2), 1.15),
+    0.25,
+    0.95
+  );
+  const load =
+    0.62 * normalizedRoll +
+    0.26 * normalizedLateral * lateralCoupling +
+    0.12 * normalizedYaw * yawCoupling;
+  const motionMsi = clamp(100 * (1 - Math.exp(-1.6 * load)), 0, 100);
+
+  return clamp(0.4 * rollMsi + 0.6 * motionMsi, 0, 100);
+}
+
 // ============ 振动剂量值 ============
 
 /**
@@ -399,7 +436,7 @@ export function computeComfortMetrics(
   const rollPeak = computeRollPeak(rollHistory);
 
   // 估算 MSI
-  const msi = estimateMsiFromRoll(rollRms, rollPeriodSec, shipBeam, exposureHours);
+  const msi = estimateMsiFromMotion(rollRms, 0, 0, rollPeriodSec, shipBeam, exposureHours);
 
   // 计算 VDV
   const vdv = computeVdvFromRoll(rollHistory, rollPeriodSec, shipBeam, dt);
@@ -438,33 +475,53 @@ export function updateComfortMetricsRealtime(
   currentRollDeg: number,
   rollPeriodSec: number = 18,
   shipBeam: number = 37,
-  alpha: number = 0.02
+  alpha: number = 0.02,
+  dtSec: number = 1 / 60,
+  lateralAccelG: number = 0,
+  yawRateDegPerSec: number = 0
 ): ComfortMetrics {
+  // 根据步长补偿平滑系数，避免加速仿真导致舒适度评估偏差
+  const baseDt = 1 / 60;
+  const safeAlpha = clamp(alpha, 0.001, 0.999);
+  const tau = -baseDt / Math.log(1 - safeAlpha);
+  const alphaEffective = clamp(1 - Math.exp(-Math.max(dtSec, 1e-4) / tau), 0.001, 0.8);
+
   // 指数平滑更新 RMS
   const absRoll = Math.abs(currentRollDeg);
   const newRollRms = Math.sqrt(
-    alpha * absRoll * absRoll + (1 - alpha) * prevMetrics.rollRms * prevMetrics.rollRms
+    alphaEffective * absRoll * absRoll + (1 - alphaEffective) * prevMetrics.rollRms * prevMetrics.rollRms
   );
 
   // 更新峰值
   const newRollPeak = Math.max(prevMetrics.rollPeak * 0.999, absRoll);  // 缓慢衰减
 
   // 重新估算 MSI
-  const newMsi = estimateMsiFromRoll(newRollRms, rollPeriodSec, shipBeam, 2.0);
+  const newMsi = estimateMsiFromMotion(
+    newRollRms,
+    lateralAccelG,
+    yawRateDegPerSec,
+    rollPeriodSec,
+    shipBeam,
+    2.0
+  );
 
   // VDV 简化更新
   const omega = (2 * Math.PI) / rollPeriodSec;
   const armLength = shipBeam / 2;
   const currentAccel = absRoll * (Math.PI / 180) * omega * omega * armLength;
   const newVdv = Math.pow(
-    alpha * Math.pow(currentAccel, 4) + (1 - alpha) * Math.pow(prevMetrics.vdv, 4),
+    alphaEffective * Math.pow(currentAccel, 4) + (1 - alphaEffective) * Math.pow(prevMetrics.vdv, 4),
     0.25
   );
 
   // 频率加权加速度
   const freq = 1 / rollPeriodSec;
   const freqWeight = iso2631FrequencyWeight(freq);
-  const newFreqWeightedAccel = newRollRms * (Math.PI / 180) * omega * omega * armLength * freqWeight;
+  const rollWeightedAccel = newRollRms * (Math.PI / 180) * omega * omega * armLength * freqWeight;
+  const lateralWeightedAccel = lateralAccelG * 9.81 * 0.65;
+  const newFreqWeightedAccel = Math.sqrt(
+    rollWeightedAccel * rollWeightedAccel + lateralWeightedAccel * lateralWeightedAccel
+  );
 
   // 评级
   const newRating = getComfortRating(newRollRms, newMsi);

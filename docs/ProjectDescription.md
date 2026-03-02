@@ -7,9 +7,13 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-03-01
+📅 **最后更新**：2026-03-02
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
+⚡ **首页与仿真加载优化（2026-03-02）**：首页船模改为“截图优先 + 3D 后台懒加载”，移除首屏一次性预加载全部 7 个 GLB（约 125MB）策略，改为按轮播仅预热“当前 + 下一”模型；仿真页改为“场景先渲染、船模独立 Suspense 加载”，在船模解析期间显示“模型加载中”占位动画，避免黑屏等待
+🧪 **邮轮仿真教学标定（2026-03-02）**：重构邮轮舒适度评估模型（横摇 + 横向加速度 + 转艏角速度耦合），并引入“满舵转向横倾激励”，使海况等级、波向、减摇鳍与陷波滤波器开关在状态监控与舒适度评级中具备显著可感知差异；同时新增单次仿真校验时长（180s）与到时自动结束机制，结束后锁定评估参数用于一次性一致性校验
+🐘 **容器运行时兼容修复（2026-03-02）**：`prisma/schema.prisma` 增加 `binaryTargets = [\"native\", \"linux-musl\"]`，并将构建脚本调整为 `prisma generate && next build`，解决 Podman/Alpine 环境下 `linux-musl` Query Engine 缺失导致的课外展示页加载失败
 🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教室工作台”入口（`http://localhost:3001/teacher`）；首页与认证导航新增“评审入口”（`/review`），汇总 DevelopmentPlan 用户备注对应的分支页面
+📺 **课外展示班级落地（2026-03-01）**：演示学生数据并入 `2023自动化启航班`（30 人，`demo` 脱班保留账号），班级描述更新为“AI-OBE平台教改班”；课堂历史重建为 17 次（2025-03 至 2025-06 每周一节 + 当前展示课《柔性之海——豪华邮轮的舒适度控制》）；课堂记录详情页改为按当前课程 `course_review` 数据展示“课前/课后能力追踪 + 课后个性化补强路径”，柔性之海固定重点学生 `20230010102608/20230010102605`，其余课程重点学生按课次随机化
 🛟 **仿真统一改造**：7 个船舶仿真统一为左侧监控、右侧“控制/评估/AI伴学”标签式面板，支持收起/展开与统一配色主题
 🎥 **视角统一**：主视角统一为左舷后方约 45° 且默认跟随，统一相机距离与目标中心构图，跨仿真保持一致
 🧩 **场景合并**：`/simulations/cruise-comfort` 与 `/simulations/icebreaker-robust` 能力合并入 `/simulations/cruise` 与 `/simulations/icebreaker` 主场景
@@ -525,14 +529,36 @@ npm test               # 运行测试
 
 ## 11. 近期更新（2026-03-01）
 
+- 展示班级数据迁移到“2023自动化启航班”：移除展示班 `demo` 学生（保留账号）、30名演示学生并入启航班，启航班描述更新为“AI-OBE平台教改班”，并删除“2023自动化课外展示班”。
+- 启航班课堂历史补齐：新增 17 次课堂记录（含本次课堂），可在班级“课堂历史”中查看。
+- 新增课堂复盘页：`/classroom/teacher/[sessionId]/review`，用于展示“课前 vs 课后能力追踪”与“课后个性化补强路径”。
+- `/review/extracurricular-showcase` 文案和班级定位更新为“2023启航班”。
+- 新增课外展示数据填充脚本 `scripts/seed-extracurricular-showcase.mjs`：一键填充 `data/test_students.md` 全部 31 个学生账号（含 `demo`）的班级归属、前后测能力、题单作答、提示词评估、设计会话、补强路径与奥德赛进度数据。
+- 新增展示班级（班级码 `ECSHOW`）主链路数据：重点演示账号 `20230010102608` 与 `20230010102605` 已构造差异化学习轨迹，用于脚本 A/B 镜头展示。
+- 新增教师班级分析聚合能力：`/api/teacher/classes/[classId]/analytics`，统一输出班级热力图、推荐流程、前后测对比、A/B题单、补强路径和提示词结构-设计效果相关性（当前样本 `r≈0.834`）。
+- 新增教师端班级分析页面：`/teacher/classes/[classId]/analytics`，并在班级详情页加入“学情热力图与展示分析”入口。
+- 扩展学生个人中心与用户画像接口：`/api/user/profile` 与 `/profile` 新增“课前/课后能力追踪、个性化补强路径、推荐题单、结构分与设计效果分”展示。
+- 新增评审聚合入口：`/review/extracurricular-showcase`，可从 `/review` 快速进入并定位脚本关键镜头页面。
+- 展示分析入口职责收敛：`/teacher/classes/[classId]/analytics` 班级整体仅保留雷达热力图展示；重点名单、课前/课后追踪、个性化题单与课后补强统一下沉到单次课堂记录页 `/classroom/teacher/[sessionId]/review`。
 - 邮轮仿真基础航线改为“先直航后转向”任务：默认航行约 `1800m` 后切换到 `30°` 目标航向。
 - 邮轮仿真新增期望航线可视化：绿色虚线为期望航线，紫色实线为实际航迹，便于课堂对比。
 - 多表征联动画布增强：支持 `+/-` 缩放与空白区域拖动画布平移，拖拽零极点后自动刷新坐标范围。
 - 全部主仿真页面新增统一网格开关：在视角切换按钮组右侧提供“网格开/关”按钮。
 - 各仿真网格样式统一（100m 细分 / 500m 主分区），用于相对位置判断与轨迹分析。
+- 新增全局深色/浅色主题切换：在根布局注入主题初始化脚本，新增 `ThemeProvider` 与全局悬浮切换按钮，支持记忆用户选择并在全站生效。
+- 主题体系升级为 class 模式：Tailwind `darkMode` 切换为 `class`，并补充 `.light` 主题变量；教师与登录布局已适配浅/深色双主题样式。
+- 统一主入口视觉样式：主页 `/`、虚拟实验室 `/virtual-lab`、仿真入口 `/simulations`、互动学习 `/interactive-learning`、评审入口 `/review` 与课外展示入口 `/review/extracurricular-showcase` 已移除硬编码深色配色，改为主题语义色与统一卡片/按钮体系。
+- 新增全链路主题桥接层（`globals.css`）：对历史页面中高频硬编码深色 token（`bg-slate-*`、`text-white`、`border-white/*`、`from/to-slate-*` 及知识图谱/AI/思政模块常见深色 hex 背景）在浅色模式下做统一映射，实现旧页面无需大改即可随主题切换并保持视觉一致性。
+- 学生主工作流页面（`/dashboard`、`/missions`）完成语义化样式改造：统一使用 `surface-page` / `surface-card` / `cta-primary` 等主题组件类，提升跨页面一致性与可维护性。
+- 新增主题覆盖回归测试 `scripts/test-theme-coverage.ts`，用于防止主入口页面再次引入固定深色 token 导致切换失效。
+- 新增高频链路主题回归测试 `scripts/test-theme-workflow-pages.ts`（`npm run test:theme-workflow`）：覆盖 `profile`、班级详情、课堂复盘、提示词评估、多表征联动页面，强制要求页面具备主题语义基类。
+- 主题统一改造扩展到高频业务页面：`/profile`、`/teacher/classes/[classId]`、`/classroom/teacher/[sessionId]/review`、`/evaluation/prompt-assessment`、`/interactive-learning/multi-representation-linkage` 已统一到 `surface-page` / `surface-topbar` / `surface-card` / `surface-card-soft` 语义样式体系。
+- Chrome DevTools 实测通过：在学生端与教师端核心链路中验证了深浅主题切换（`body` 与 `surface-card` 计算样式在 dark/light 间正确切换），并确认改造页面无新增控制台报错。
+- 修复知识图谱浅色可读性问题：`/knowledge` 的 2D 图谱节点标签由固定白字改为主题感知（浅色深字、深色浅字），并增加反差描边，避免浅色背景下文字不可读。
+- 新增知识图谱主题回归测试 `scripts/test-knowledge-graph-theme.ts`（`npm run test:knowledge-theme`），防止 2D 图谱标签颜色回退为固定白字。
 
 ---
 
-**最后更新日期**：2026-03-01
+**最后更新日期**：2026-03-02
 **版本**：v1.1.1
 **状态**：开发完成，可用于教学实践

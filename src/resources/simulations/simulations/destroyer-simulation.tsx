@@ -5,7 +5,7 @@
  * 模块化重构版本 - 使用统一物理引擎和控制器
  */
 
-import { useState, useRef, useCallback, useEffect, useMemo, useLayoutEffect } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, useMemo, useLayoutEffect } from 'react';
 import { Canvas, useFrame, useThree, extend, type ReactThreeFiber } from '@react-three/fiber';
 import { Line, useGLTF, PerspectiveCamera, shaderMaterial, OrbitControls } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -53,14 +53,21 @@ import {
 } from '../core/constants';
 import {
   UnifiedCameraController,
+  RightClickFreeModeBridge,
   CameraViewSwitcher,
   SimulationTopBar,
   SimulationDock,
   SimulationAssessmentPanel,
+  ModelLoadingPlaceholder,
   simulationUi,
   type CameraMode,
 } from '../components';
 import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
+import {
+  SIMULATION_FIXED_STEP_SECONDS,
+  SIMULATION_MAX_SUB_STEPS,
+  getSimulationDeltaFromSeconds,
+} from '../lib/simulation-timing';
 
 Chart.register(...registerables);
 
@@ -715,7 +722,12 @@ function SimulationEngine({
 }) {
   const lastFrameTimeRef = useRef(0);
   const simTimeRef = useRef(0);
-  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
+  const clockRef = useRef(
+    new SimulationClock({
+      dt: SIMULATION_FIXED_STEP_SECONDS,
+      maxSubSteps: SIMULATION_MAX_SUB_STEPS,
+    })
+  );
   const lastHudUpdateRef = useRef(0);
   const lastChartSampleRef = useRef(0);
   const totalErrorRef = useRef(0);
@@ -760,10 +772,10 @@ function SimulationEngine({
     }
 
     const elapsedTime = state.clock.getElapsedTime();
-    const frameDt = (elapsedTime - lastFrameTimeRef.current) * speedScale;
+    const frameDt = getSimulationDeltaFromSeconds(elapsedTime, lastFrameTimeRef.current, speedScale);
     lastFrameTimeRef.current = elapsedTime;
 
-    if (frameDt <= 0 || frameDt > 0.5) return;
+    if (frameDt <= 0) return;
 
     const stepSimulation = (dt: number) => {
       simTimeRef.current += dt;
@@ -1377,7 +1389,16 @@ export default function DestroyerSimulation() {
         <GuideRoute points={guidePath} />
         <ShipTrail simRef={simRef} resetToken={resetToken} />
         <ShipWake simRef={simRef} />
-        <DestroyerModel simRef={simRef} />
+        <Suspense
+          fallback={(
+            <ModelLoadingPlaceholder
+              label="驱逐舰模型加载中"
+              sublabel="场景已就绪，可先查看海面与航迹"
+            />
+          )}
+        >
+          <DestroyerModel simRef={simRef} />
+        </Suspense>
 
         <OrbitControls
           ref={controlsRef}
@@ -1387,8 +1408,8 @@ export default function DestroyerSimulation() {
           minDistance={100}
           maxDistance={5000}
           maxPolarAngle={Math.PI / 2.1}
-          onStart={() => setCameraMode('free')}
         />
+        <RightClickFreeModeBridge onRequestFreeMode={() => setCameraMode('free')} />
         <UnifiedCameraController
           position={{ x: simRef.current.position.x, z: simRef.current.position.z }}
           headingRad={simRef.current.headingRad}

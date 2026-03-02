@@ -4,10 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "node ./scripts/clear-logs.mjs && next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "node ./scripts/clear-logs.mjs && next start -p 3001",
     "lint": "next lint",
     "test": "node ./scripts/smoke-test.mjs",
+    "test:theme": "npx --yes tsx ./scripts/test-theme-toggle.ts",
+    "test:theme-bridge": "npx --yes tsx ./scripts/test-theme-bridge.ts",
+    "test:theme-coverage": "npx --yes tsx ./scripts/test-theme-coverage.ts",
+    "test:cruise-sensitivity": "npx --yes tsx ./scripts/test-cruise-control-sensitivity.ts",
+    "test:cruise-teaching": "npx --yes tsx ./scripts/test-cruise-teaching-evaluation.ts",
     "test:integration": "PLAYWRIGHT_PORT=3200 node ./scripts/integration-test.mjs && playwright test",
     "seed:demo": "node ./scripts/seed-demo-user.mjs",
     "seed:admin": "node ./scripts/seed-admin.mjs",
@@ -17,7 +22,9 @@
     "startup": "./scripts/start.sh",
     "shutdown": "./scripts/stop.sh",
     "logs": "tail -f .logs/frontend.log",
-    "logs:error": "tail -f .logs/error.log"
+    "logs:error": "tail -f .logs/error.log",
+    "test:theme-workflow": "npx --yes tsx ./scripts/test-theme-workflow-pages.ts",
+    "test:knowledge-theme": "npx --yes tsx ./scripts/test-knowledge-graph-theme.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.72",

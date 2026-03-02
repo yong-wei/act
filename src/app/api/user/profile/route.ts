@@ -8,6 +8,7 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { computeCompetencyFromSimulations, type CompetencyData } from '@/lib/competency';
+import { getUserExtracurricularSnapshot } from '@/lib/extracurricular-analytics';
 
 export interface UserProfileResponse {
   user: {
@@ -42,6 +43,46 @@ export interface UserProfileResponse {
     unlocked: number;
     locked: number;
   };
+  abilityTracking: {
+    pre: {
+      computational: number;
+      crossDomain: number;
+      designTradeoff: number;
+      poleTimeMapping: number;
+      frequencyStability: number;
+    };
+    post: {
+      computational: number;
+      crossDomain: number;
+      designTradeoff: number;
+      poleTimeMapping: number;
+      frequencyStability: number;
+    };
+    delta: {
+      computational: number;
+      crossDomain: number;
+      designTradeoff: number;
+      poleTimeMapping: number;
+      frequencyStability: number;
+    };
+    preWeakTag: string;
+    postWeakTag: string;
+    weakTagLabel: string;
+  };
+  reinforcementPaths: Array<{
+    id: string;
+    title: string;
+    description: string;
+    estimatedTime: number;
+  }>;
+  recommendedQuestions: Array<{
+    id: string;
+    stem: string;
+    difficulty: number;
+    knowledgeTags: string[];
+  }>;
+  promptStructuringScore: number | null;
+  designEffectScore: number | null;
 }
 
 export async function GET() {
@@ -58,7 +99,7 @@ export async function GET() {
     const userId = session.user.id;
 
     // 并行获取用户数据
-    const [user, profile, simulationLogs, ethicalLogs, missionProgress] = await Promise.all([
+    const [user, profile, simulationLogs, ethicalLogs, missionProgress, extracurricularSnapshot] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -97,6 +138,7 @@ export async function GET() {
           },
         },
       }),
+      getUserExtracurricularSnapshot(userId),
     ]);
 
     if (!user) {
@@ -198,6 +240,18 @@ export async function GET() {
       competency,
       recentActivity: recentActivity.slice(0, 10),
       missionProgress: missionStats,
+      abilityTracking: {
+        pre: extracurricularSnapshot.pre,
+        post: extracurricularSnapshot.post,
+        delta: extracurricularSnapshot.delta,
+        preWeakTag: extracurricularSnapshot.preWeakTag,
+        postWeakTag: extracurricularSnapshot.postWeakTag,
+        weakTagLabel: extracurricularSnapshot.weakTagLabel,
+      },
+      reinforcementPaths: extracurricularSnapshot.reinforcementPaths,
+      recommendedQuestions: extracurricularSnapshot.recommendedQuestions,
+      promptStructuringScore: extracurricularSnapshot.promptStructuringScore,
+      designEffectScore: extracurricularSnapshot.designEffectScore,
     };
 
     return NextResponse.json(response);

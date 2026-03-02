@@ -400,19 +400,15 @@ export function finStabilizerStep(
  * 用于与波浪激励力矩在同一量纲下比较
  *
  * @param antiRollMomentNm 抗横摇力矩 (N·m)
- * @param shipDisplacement 船舶排水量 (t)
- * @param shipBeam 船宽 (m)
+ * @param referenceMomentNm 归一化参考力矩 (N·m)
  */
 export function normalizeFinMoment(
   antiRollMomentNm: number,
-  shipDisplacement: number = CRUISE_ADORA_PARAMS.DISPLACEMENT / 1000, // GT to t approx
-  shipBeam: number = CRUISE_ADORA_PARAMS.BEAM
+  referenceMomentNm: number = 2_000_000
 ): number {
-  // 归一化因子: 排水量 * 船宽 * 重力加速度
-  // 典型值约 1e8 量级
-  const normalizationFactor = shipDisplacement * 1000 * shipBeam * 9.81;
-
-  return antiRollMomentNm / normalizationFactor;
+  // 教学仿真中将真实力矩映射到横摇模型输入区间，确保开关效果可见且稳定
+  const normalized = antiRollMomentNm / Math.max(referenceMomentNm, 1);
+  return clamp(normalized, -2.5, 2.5);
 }
 
 // ============ 指标计算 ============

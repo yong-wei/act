@@ -21,8 +21,9 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { ShipModelPreview } from '@/resources/simulations/ship-model-preview'
+import { ShipModelPreview, preloadShipModel } from '@/resources/simulations/ship-model-preview'
 import { LoginModal } from '@/components/shared/login-modal'
+import { useTheme } from '@/components/providers/theme-provider'
 
 type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN'
 
@@ -149,6 +150,7 @@ const moduleLinks = [
 export default function HomePage() {
   const router = useRouter()
   const { data: session } = useSession()
+  const { theme } = useTheme()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
@@ -190,6 +192,18 @@ export default function HomePage() {
     return () => clearInterval(timer)
   }, [isDragging, totalSlides])
 
+  useEffect(() => {
+    const current = shipScenarios[currentSlide]
+    const next = shipScenarios[(currentSlide + 1) % totalSlides]
+
+    if (current?.modelPath) {
+      preloadShipModel(current.modelPath, 'high')
+    }
+    if (next?.modelPath) {
+      preloadShipModel(next.modelPath, 'idle')
+    }
+  }, [currentSlide, totalSlides])
+
   const nextSlide = () => {
     setIsDragging(false)
     setCurrentSlide((prev) => (prev + 1) % totalSlides)
@@ -201,51 +215,53 @@ export default function HomePage() {
   }
 
   const currentScenario = shipScenarios[currentSlide]
+  const scenarioBackgroundClass =
+    theme === 'dark'
+      ? `bg-gradient-to-br ${currentScenario.bgGradient}`
+      : 'bg-gradient-to-br from-sky-100 via-cyan-50 to-slate-100'
 
   return (
     <div
-      className="min-h-screen bg-[#0b1024] text-white"
+      className="surface-page"
       style={{ fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif' }}
     >
       <div className="relative overflow-hidden">
-        <div
-          className={`absolute inset-0 bg-gradient-to-br ${currentScenario.bgGradient} transition-all duration-1000`}
-        />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_55%)]" />
-        <div className="absolute -right-24 top-10 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
-        <div className="absolute -left-32 bottom-0 h-96 w-96 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className={`absolute inset-0 transition-all duration-1000 ${scenarioBackgroundClass}`} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.16),_transparent_58%)] dark:bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.1),_transparent_55%)]" />
+        <div className="absolute -right-24 top-10 h-72 w-72 rounded-full bg-cyan-400/15 blur-3xl dark:bg-cyan-400/10" />
+        <div className="absolute -left-32 bottom-0 h-96 w-96 rounded-full bg-indigo-500/15 blur-3xl dark:bg-indigo-500/10" />
 
-        <nav className="relative z-10 border-b border-white/10">
+        <nav className="surface-topbar relative z-10">
           <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-alert/15 text-amber-alert">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-primary">
                 <Ship className="h-6 w-6" />
               </div>
               <div>
-                <div className="text-lg font-semibold tracking-wide">AI-OBE船舶智控平台</div>
-                <div className="text-xs text-white/60">Mission Control for Maritime Education</div>
+                <div className="text-lg font-semibold tracking-wide text-foreground">AI-OBE船舶智控平台</div>
+                <div className="text-xs text-subtle">Mission Control for Maritime Education</div>
               </div>
             </div>
-            <div className="hidden items-center gap-6 text-sm text-white/80 md:flex">
-              <Link href="/simulations" className="hover:text-amber-alert">虚拟仿真</Link>
-              <Link href="/knowledge" className="hover:text-amber-alert">知识图谱</Link>
-              <Link href="/ethics" className="hover:text-amber-alert">思政沙盘</Link>
-              <Link href="/ai" className="hover:text-amber-alert">AI工坊</Link>
-              <Link href="/interactive-learning" className="hover:text-amber-alert">互动学习</Link>
-              <Link href="/review" className="hover:text-amber-alert">评审入口</Link>
+            <div className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
+              <Link href="/simulations" className="transition hover:text-primary">虚拟仿真</Link>
+              <Link href="/knowledge" className="transition hover:text-primary">知识图谱</Link>
+              <Link href="/ethics" className="transition hover:text-primary">思政沙盘</Link>
+              <Link href="/ai" className="transition hover:text-primary">AI工坊</Link>
+              <Link href="/interactive-learning" className="transition hover:text-primary">互动学习</Link>
+              <Link href="/review" className="transition hover:text-primary">评审入口</Link>
             </div>
             <div className="flex items-center gap-3">
               {session ? (
                 <Button
                   onClick={handleEnterCockpit}
-                  className="bg-amber-alert text-dark-blue hover:bg-yellow-500"
+                  className="cta-primary"
                 >
                   进入驾驶舱
                 </Button>
               ) : (
                 <Button
                   onClick={() => setShowLoginModal(true)}
-                  className="bg-amber-alert text-dark-blue hover:bg-yellow-500"
+                  className="cta-primary"
                 >
                   进入驾驶舱
                 </Button>
@@ -257,29 +273,29 @@ export default function HomePage() {
         <section className="relative z-10">
           <div className="mx-auto grid max-w-[1600px] gap-10 px-6 py-12 lg:grid-cols-[1.1fr_1fr]">
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-white/80">
-                <Sparkles className="h-4 w-4 text-amber-alert" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/65 bg-card/70 px-3 py-1 text-xs text-subtle">
+                <Sparkles className="h-4 w-4 text-primary" />
                 {currentScenario.tag} · {currentScenario.difficulty} · {currentScenario.participants}人参与
               </div>
-              <h1 className="text-4xl font-semibold leading-tight md:text-5xl">
+              <h1 className="text-4xl font-semibold leading-tight text-foreground md:text-5xl">
                 {currentScenario.title}
               </h1>
-              <p className="text-lg text-white/80">{currentScenario.description}</p>
+              <p className="text-lg text-subtle">{currentScenario.description}</p>
               <div className="flex flex-wrap gap-3">
                 {currentScenario.ctaHref ? (
-                  <Button asChild className="bg-amber-alert text-dark-blue hover:bg-yellow-500">
+                  <Button asChild className="cta-primary">
                     <Link href={currentScenario.ctaHref}>
                       <Play className="mr-2 h-4 w-4" />
                       {currentScenario.ctaLabel ?? '开启任务链'}
                     </Link>
                   </Button>
                 ) : (
-                  <Button className="bg-amber-alert text-dark-blue hover:bg-yellow-500">
+                  <Button className="cta-primary">
                     <Play className="mr-2 h-4 w-4" />
                     {currentScenario.ctaLabel ?? '开启任务链'}
                   </Button>
                 )}
-                <Button variant="outline" className="border-white/30 text-white/80 hover:bg-white/10">
+                <Button variant="outline" className="btn-ghost-themed border">
                   了解课程设计
                 </Button>
               </div>
@@ -289,16 +305,16 @@ export default function HomePage() {
                   { label: '仿真模型库', value: '7种主力船型' },
                   { label: 'AI分析维度', value: '24项指标' },
                 ].map((item) => (
-                  <div key={item.label} className="rounded-xl border border-white/10 bg-white/5 p-4">
-                    <div className="text-xs text-white/60">{item.label}</div>
-                    <div className="mt-2 text-sm font-semibold text-white">{item.value}</div>
+                  <div key={item.label} className="surface-card-soft p-4">
+                    <div className="text-xs text-subtle">{item.label}</div>
+                    <div className="mt-2 text-sm font-semibold text-foreground">{item.value}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs text-white/70">
+              <div className="flex items-center justify-between text-xs text-subtle">
                 <span>可拖拽旋转模型</span>
                 <span>虚拟视角：战术俯视</span>
               </div>
@@ -307,7 +323,7 @@ export default function HomePage() {
                 onInteractionStart={() => setIsDragging(true)}
                 onInteractionEnd={() => setIsDragging(false)}
               />
-              <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/70">
+              <div className="surface-card-soft flex items-center justify-between px-4 py-3 text-xs text-subtle">
                 <span>当前任务：{currentScenario.tag}</span>
                 <span>响应窗口：6秒轮播</span>
               </div>
@@ -316,10 +332,10 @@ export default function HomePage() {
 
           <div className="mx-auto max-w-[1600px] px-6 pb-12">
             <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <div className="surface-card p-6">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold">任务序列</div>
-                  <div className="text-xs text-white/50">{currentSlide + 1}/{totalSlides}</div>
+                  <div className="text-sm font-semibold text-foreground">任务序列</div>
+                  <div className="text-xs text-subtle">{currentSlide + 1}/{totalSlides}</div>
                 </div>
                 <div className="mt-4 space-y-3">
                   {shipScenarios.map((scenario, index) => (
@@ -328,8 +344,8 @@ export default function HomePage() {
                       onClick={() => setCurrentSlide(index)}
                       className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition ${
                         currentSlide === index
-                          ? 'bg-amber-alert/20 text-amber-alert'
-                          : 'bg-white/0 text-white/70 hover:bg-white/5'
+                          ? 'bg-primary/15 text-primary'
+                          : 'text-subtle hover:bg-accent/55 hover:text-foreground'
                       }`}
                     >
                       <span className="truncate">{scenario.title}</span>
@@ -339,26 +355,26 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <div className="surface-card p-6">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold">平台入口矩阵</div>
-                  <div className="text-xs text-white/50">五大核心模块</div>
+                  <div className="text-sm font-semibold text-foreground">平台入口矩阵</div>
+                  <div className="text-xs text-subtle">五大核心模块</div>
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                   {moduleLinks.map((module) => (
                     <Link
                       key={module.title}
                       href={module.href}
-                      className="group rounded-xl border border-white/10 bg-[#0f1b3d] p-4 transition hover:-translate-y-1 hover:border-amber-alert/50"
+                      className="surface-card-soft group p-4 transition hover:-translate-y-1 hover:border-primary/45"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-amber-alert">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
                           <module.icon className="h-5 w-5" />
                         </div>
-                        <ArrowUpRight className="h-4 w-4 text-white/60 group-hover:text-amber-alert" />
+                        <ArrowUpRight className="h-4 w-4 text-subtle group-hover:text-primary" />
                       </div>
-                      <div className="mt-4 text-sm font-semibold">{module.title}</div>
-                      <div className="mt-2 text-xs text-white/60">{module.description}</div>
+                      <div className="mt-4 text-sm font-semibold text-foreground">{module.title}</div>
+                      <div className="mt-2 text-xs text-subtle">{module.description}</div>
                     </Link>
                   ))}
                 </div>
@@ -367,20 +383,20 @@ export default function HomePage() {
           </div>
 
           <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 pb-12">
-            <div className="flex items-center gap-3 text-xs text-white/70">
-              <GraduationCap className="h-4 w-4 text-amber-alert" />
+            <div className="flex items-center gap-3 text-xs text-subtle">
+              <GraduationCap className="h-4 w-4 text-primary" />
               今日推荐任务：半潜平台动力定位挑战 · 预计时长 90 分钟
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={prevSlide}
-                className="rounded-full border border-white/20 bg-white/10 p-2 text-white/80 transition hover:bg-white/20"
+                className="btn-ghost-themed rounded-full border p-2 transition"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={nextSlide}
-                className="rounded-full border border-white/20 bg-white/10 p-2 text-white/80 transition hover:bg-white/20"
+                className="btn-ghost-themed rounded-full border p-2 transition"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>

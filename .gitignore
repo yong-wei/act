@@ -8,6 +8,8 @@ GEMINI.md
 .DS_Store
 .logs/
 docs/courses/
+deploy/
+data/
 
 # Node/JS
 **/node_modules/

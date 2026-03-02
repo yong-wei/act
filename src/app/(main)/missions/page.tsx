@@ -58,11 +58,11 @@ export default function MissionsPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
-        <header className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
+      <div className="surface-page">
+        <header className="surface-topbar px-6 py-4">
           <div className="mx-auto flex max-w-[1600px] items-center gap-4">
-            <div className="h-6 w-6 rounded bg-slate-700" />
-            <div className="h-6 w-32 rounded bg-slate-700" />
+            <div className="h-6 w-6 rounded bg-accent" />
+            <div className="h-6 w-32 rounded bg-accent" />
           </div>
         </header>
         <main className="mx-auto max-w-[1600px] px-6 py-8">
@@ -78,12 +78,12 @@ export default function MissionsPage() {
 
   if (status === 'unauthenticated') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="surface-page flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl text-slate-300">请先登录</p>
+          <p className="text-xl text-muted-foreground">请先登录</p>
           <Link
             href="/login"
-            className="mt-4 inline-block rounded-lg bg-amber-600 px-6 py-2 text-white hover:bg-amber-700"
+            className="cta-primary mt-4 inline-block rounded-lg px-6 py-2"
           >
             前往登录
           </Link>
@@ -94,12 +94,12 @@ export default function MissionsPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="surface-page flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl text-red-400">{error}</p>
           <button
             onClick={fetchMissions}
-            className="mt-4 rounded-lg bg-slate-700 px-6 py-2 text-white hover:bg-slate-600"
+            className="btn-ghost-themed mt-4 rounded-lg border px-6 py-2"
           >
             重试
           </button>
@@ -116,12 +116,12 @@ export default function MissionsPage() {
   }) || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
+    <div className="surface-page">
       {/* 头部导航 */}
-      <header className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
+      <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-slate-400 hover:text-white">
+            <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -131,11 +131,11 @@ export default function MissionsPage() {
                 />
               </svg>
             </Link>
-            <h1 className="text-xl font-bold text-white">任务大厅</h1>
+            <h1 className="text-xl font-bold text-foreground">任务大厅</h1>
           </div>
           <Link
             href="/profile"
-            className="rounded-lg bg-slate-800 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
+            className="btn-ghost-themed rounded-lg border px-4 py-2 text-sm"
           >
             个人中心
           </Link>
@@ -173,13 +173,13 @@ export default function MissionsPage() {
 
         {/* 进度条 */}
         <div className="mb-8">
-          <div className="flex items-center justify-between text-sm text-slate-400">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>学习进度</span>
             <span>
               {data?.statistics.completed || 0} / {data?.statistics.total || 0}
             </span>
           </div>
-          <div className="mt-2 h-3 rounded-full bg-slate-800">
+          <div className="mt-2 h-3 rounded-full bg-accent">
             <div
               className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500"
               style={{
@@ -216,10 +216,10 @@ export default function MissionsPage() {
 
         {/* 任务网格 */}
         {filteredMissions.length === 0 ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-12 text-center">
+          <div className="surface-card p-12 text-center">
             <div className="text-6xl">🎯</div>
-            <h3 className="mt-4 text-lg font-medium text-white">暂无任务</h3>
-            <p className="mt-2 text-slate-400">
+            <h3 className="mt-4 text-lg font-medium text-foreground">暂无任务</h3>
+            <p className="mt-2 text-muted-foreground">
               {filter === 'all'
                 ? '系统还没有配置任务，请联系管理员'
                 : filter === 'unlocked'
@@ -229,7 +229,7 @@ export default function MissionsPage() {
             {filter !== 'all' && (
               <button
                 onClick={() => setFilter('all')}
-                className="mt-4 rounded-lg bg-slate-700 px-4 py-2 text-white hover:bg-slate-600"
+                className="btn-ghost-themed mt-4 rounded-lg border px-4 py-2"
               >
                 查看全部
               </button>
@@ -248,8 +248,8 @@ export default function MissionsPage() {
         )}
 
         {/* 学习路径说明 */}
-        <div className="mt-12 rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">学习路径</h3>
+        <div className="surface-card mt-12 p-6">
+          <h3 className="mb-4 text-lg font-semibold text-foreground">学习路径</h3>
           <div className="flex flex-wrap items-center gap-4">
             <PathNode label="入门" description="掌握基础操作" icon="🌱" active />
             <PathArrow />
@@ -277,11 +277,11 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+    <div className="surface-card-soft p-4">
       <div className="flex items-center gap-3">
         <span className="text-2xl">{icon}</span>
         <div>
-          <p className="text-xs text-slate-500">{label}</p>
+          <p className="text-xs text-muted-foreground">{label}</p>
           <p className={`text-2xl font-bold ${color}`}>{value}</p>
         </div>
       </div>
@@ -305,14 +305,14 @@ function FilterButton({
       onClick={onClick}
       className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
         active
-          ? 'bg-amber-500 text-white'
-          : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'
+          ? 'bg-primary text-primary-foreground'
+          : 'bg-accent text-muted-foreground hover:bg-accent/80 hover:text-foreground'
       }`}
     >
       {children}
       <span
         className={`rounded-full px-2 py-0.5 text-xs ${
-          active ? 'bg-amber-600' : 'bg-slate-700'
+          active ? 'bg-primary/85 text-primary-foreground' : 'bg-background text-muted-foreground'
         }`}
       >
         {count}
@@ -335,15 +335,15 @@ function PathNode({
   return (
     <div
       className={`flex items-center gap-3 rounded-lg p-3 transition-all ${
-        active ? 'bg-amber-500/20' : 'bg-slate-800/50 opacity-50'
+        active ? 'bg-primary/20' : 'bg-accent/60 opacity-60'
       }`}
     >
       <span className="text-2xl">{icon}</span>
       <div>
-        <p className={`font-medium ${active ? 'text-amber-400' : 'text-slate-500'}`}>
+        <p className={`font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}>
           {label}
         </p>
-        <p className="text-xs text-slate-500">{description}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
     </div>
   );
@@ -352,7 +352,7 @@ function PathNode({
 function PathArrow() {
   return (
     <svg
-      className="h-5 w-5 text-slate-600"
+      className="h-5 w-5 text-muted-foreground"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"

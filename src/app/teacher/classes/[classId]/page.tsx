@@ -22,6 +22,7 @@ import {
   UserPlus,
   Trash2,
   Loader2,
+  BarChart3,
 } from 'lucide-react';
 import { AddStudentsModal } from '@/components/teacher/add-students-modal';
 
@@ -273,10 +274,10 @@ export default function ClassDetailPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-[1600px] px-6 py-8">
+      <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-64 rounded bg-slate-800" />
-          <div className="h-32 rounded-xl bg-slate-800" />
+          <div className="h-8 w-64 rounded bg-accent" />
+          <div className="h-32 rounded-xl bg-accent" />
         </div>
       </main>
     );
@@ -284,12 +285,12 @@ export default function ClassDetailPage() {
 
   if (!classData) {
     return (
-      <main className="mx-auto max-w-[1600px] px-6 py-8">
+      <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
         <div className="text-center">
-          <p className="text-xl text-slate-400">班级不存在</p>
+          <p className="text-xl text-subtle">班级不存在</p>
           <Link
             href="/teacher/classes"
-            className="mt-4 inline-block text-sky-400 hover:text-sky-300"
+            className="mt-4 inline-block text-primary hover:text-primary/80"
           >
             返回班级列表
           </Link>
@@ -299,29 +300,29 @@ export default function ClassDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-[1600px] px-6 py-8">
+    <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
       {/* 返回链接 */}
       <Link
         href="/teacher/classes"
-        className="mb-6 inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-white"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-subtle transition hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
         返回班级列表
       </Link>
 
       {/* 班级信息卡片 */}
-      <div className="mb-8 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 p-6">
+      <div className="surface-card mb-8 bg-gradient-to-br from-card via-card to-accent/35 p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-sky-500/20 text-sky-400">
               <Users className="h-8 w-8" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">{classData.name}</h1>
+              <h1 className="text-2xl font-bold text-foreground">{classData.name}</h1>
               {classData.description && (
-                <p className="mt-1 text-slate-400">{classData.description}</p>
+                <p className="mt-1 text-subtle">{classData.description}</p>
               )}
-              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-400">
+              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-subtle">
                 {classData.year && <span>{classData.year}</span>}
                 {classData.semester && <span>{classData.semester}</span>}
                 <span className="flex items-center gap-1">
@@ -357,13 +358,20 @@ export default function ClassDetailPage() {
               <Play className="h-5 w-5" />
               开始上课
             </button>
+            <Link
+              href={`/teacher/classes/${classId}/analytics`}
+              className="flex items-center gap-2 rounded-xl border border-sky-500/40 bg-sky-500/10 px-6 py-4 font-medium text-sky-200 transition hover:border-sky-400 hover:bg-sky-500/20"
+            >
+              <BarChart3 className="h-5 w-5" />
+              学情热力图与展示分析
+            </Link>
           </div>
         </div>
       </div>
 
       {/* 进行中的课堂 */}
       {activeSession && (
-        <div className="mb-8 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6">
+        <div className="surface-card mb-8 border-emerald-500/30 bg-emerald-500/10 p-6">
           <div className="mb-4 flex items-center gap-2">
             <div className="h-3 w-3 animate-pulse rounded-full bg-emerald-400" />
             <h2 className="text-lg font-semibold text-emerald-400">进行中的课堂</h2>
@@ -371,7 +379,7 @@ export default function ClassDetailPage() {
 
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xl font-medium text-white">{activeSession.plan.title}</p>
+              <p className="text-xl font-medium text-foreground">{activeSession.plan.title}</p>
               <div className="mt-2 flex items-center gap-4 text-sm text-slate-400">
                 <span className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
@@ -385,9 +393,9 @@ export default function ClassDetailPage() {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2">
+              <div className="surface-card-soft flex items-center gap-2 px-4 py-2">
                 <QrCode className="h-5 w-5 text-emerald-400" />
-                <span className="font-mono text-lg font-bold text-white">{activeSession.joinCode}</span>
+                <span className="font-mono text-lg font-bold text-foreground">{activeSession.joinCode}</span>
               </div>
               <button
                 onClick={handleRegenerateJoinCode}
@@ -409,11 +417,11 @@ export default function ClassDetailPage() {
       )}
 
       {/* 课堂历史 */}
-      <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <div className="surface-card mb-8 p-6">
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <History className="h-5 w-5 text-slate-400" />
-            <h2 className="text-lg font-semibold text-white">课堂历史</h2>
+            <History className="h-5 w-5 text-subtle" />
+            <h2 className="text-lg font-semibold text-foreground">课堂历史</h2>
             <span className="text-sm text-slate-500">({historySessions.length})</span>
           </div>
 
@@ -422,7 +430,7 @@ export default function ClassDetailPage() {
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none"
+              className="btn-ghost-themed rounded-lg px-3 py-2 text-sm focus:border-primary focus:outline-none"
             >
               <option value="">全部状态</option>
               <option value="FINISHED">已结束</option>
@@ -437,7 +445,7 @@ export default function ClassDetailPage() {
                 placeholder="搜索教案..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-48 rounded-lg border border-slate-700 bg-slate-800 py-2 pl-9 pr-3 text-sm text-white placeholder-slate-500 focus:border-sky-500 focus:outline-none"
+                className="w-48 rounded-lg border border-border/70 bg-background/70 py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-slate-500 focus:border-primary focus:outline-none"
               />
             </div>
           </div>
@@ -453,10 +461,10 @@ export default function ClassDetailPage() {
             {historySessions.map(session => (
               <div
                 key={session.id}
-                className="flex flex-col gap-4 rounded-xl border border-slate-700 bg-slate-800/50 p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="surface-card-soft flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
-                  <p className="font-medium text-white">{session.plan.title}</p>
+                  <p className="font-medium text-foreground">{session.plan.title}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3.5 w-3.5" />
@@ -474,7 +482,7 @@ export default function ClassDetailPage() {
                 </div>
                 <Link
                   href={`/classroom/teacher/${session.id}/review`}
-                  className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-300 transition hover:bg-slate-700"
+                  className="btn-ghost-themed rounded-lg px-3 py-1.5 text-sm transition"
                 >
                   查看记录
                 </Link>
@@ -485,11 +493,11 @@ export default function ClassDetailPage() {
       </div>
 
       {/* 学生列表 */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <div className="surface-card p-6">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <GraduationCap className="h-5 w-5 text-slate-400" />
-            <h2 className="text-lg font-semibold text-white">班级学生</h2>
+            <GraduationCap className="h-5 w-5 text-subtle" />
+            <h2 className="text-lg font-semibold text-foreground">班级学生</h2>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-slate-400">{classData.students.length} 人</span>
@@ -516,7 +524,7 @@ export default function ClassDetailPage() {
             {classData.students.map((student) => (
               <div
                 key={student.id}
-                className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 p-4 transition hover:border-sky-500/50 hover:bg-slate-800"
+                className="surface-card-soft flex items-center justify-between p-4 transition hover:border-primary/40 hover:bg-accent/65"
               >
                 <Link
                   href={`/teacher/classes/${classId}/students/${student.user.id}`}
@@ -526,7 +534,7 @@ export default function ClassDetailPage() {
                     {student.user.name?.charAt(0) || 'S'}
                   </div>
                   <div>
-                    <p className="font-medium text-white">
+                    <p className="font-medium text-foreground">
                       {student.user.name || '未命名学生'}
                     </p>
                     <p className="text-xs text-slate-400">
@@ -572,12 +580,12 @@ export default function ClassDetailPage() {
       {/* 开始上课模态框 */}
       {showStartModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+          <div className="surface-card mx-4 w-full max-w-md p-6 shadow-2xl">
             <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-white">开始上课</h3>
+              <h3 className="text-xl font-bold text-foreground">开始上课</h3>
               <button
                 onClick={() => setShowStartModal(false)}
-                className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+                className="btn-ghost-themed rounded-lg p-1 transition"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -588,7 +596,7 @@ export default function ClassDetailPage() {
                 选择教案
               </label>
               {lessonPlans.length === 0 ? (
-                <div className="rounded-lg border border-slate-700 bg-slate-800 p-4 text-center">
+                <div className="surface-card-soft p-4 text-center">
                   <BookOpen className="mx-auto h-8 w-8 text-slate-500" />
                   <p className="mt-2 text-sm text-slate-400">暂无可用教案</p>
                   <Link
@@ -602,7 +610,7 @@ export default function ClassDetailPage() {
                 <select
                   value={selectedPlanId}
                   onChange={e => setSelectedPlanId(e.target.value)}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white focus:border-sky-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border/70 bg-background/70 px-4 py-3 text-foreground focus:border-primary focus:outline-none"
                 >
                   <option value="">请选择教案...</option>
                   {lessonPlans.map(plan => (
@@ -617,7 +625,7 @@ export default function ClassDetailPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowStartModal(false)}
-                className="flex-1 rounded-lg border border-slate-600 py-3 font-medium text-slate-300 transition hover:bg-slate-800"
+                className="btn-ghost-themed flex-1 rounded-lg py-3 font-medium transition"
               >
                 取消
               </button>

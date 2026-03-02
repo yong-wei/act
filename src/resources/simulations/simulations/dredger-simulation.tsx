@@ -5,7 +5,7 @@
  * 使用 MMG 3-DOF 高保真模型和 DP 控制器
  */
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -21,10 +21,12 @@ import { MaritimeEnvironment } from '../environment';
 import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
+  RightClickFreeModeBridge,
   CameraViewSwitcher,
   SimulationTopBar,
   SimulationDock,
   SimulationAssessmentPanel,
+  ModelLoadingPlaceholder,
   simulationUi,
   type CameraMode,
 } from '../components';
@@ -69,6 +71,11 @@ import {
 import { DredgingImpactModel } from '../physics/disturbances/dredging-impact';
 import type { ControlMode, EthicalViolation, Vector2, DisturbanceVector } from '../core/types';
 import { toRadians, toDegrees, clamp, TIANJING_DREDGER_PARAMS } from '../core/constants';
+import {
+  SIMULATION_FIXED_STEP_SECONDS,
+  SIMULATION_MAX_SUB_STEPS,
+  getSimulationDeltaFromMilliseconds,
+} from '../lib/simulation-timing';
 
 // ============ 类型定义 ============
 
@@ -577,7 +584,12 @@ export function DredgerSimulation() {
   const timeRef = useRef(0);
   const animationFrameRef = useRef<number>();
   const lastUpdateRef = useRef(performance.now());
-  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
+  const clockRef = useRef(
+    new SimulationClock({
+      dt: SIMULATION_FIXED_STEP_SECONDS,
+      maxSubSteps: SIMULATION_MAX_SUB_STEPS,
+    })
+  );
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
@@ -591,7 +603,7 @@ export function DredgerSimulation() {
     if (!isRunning) return;
 
     const now = performance.now();
-    const frameDt = Math.min(((now - lastUpdateRef.current) / 1000) * speedScale, 0.1);
+    const frameDt = getSimulationDeltaFromMilliseconds(now, lastUpdateRef.current, speedScale);
     lastUpdateRef.current = now;
 
     const stepSimulation = (dt: number) => {
@@ -769,8 +781,8 @@ export function DredgerSimulation() {
           minDistance={50}
           maxDistance={2000}
           maxPolarAngle={Math.PI / 2.1}
-          onStart={() => setCameraMode('free')}
         />
+        <RightClickFreeModeBridge onRequestFreeMode={() => setCameraMode('free')} />
 
         {/* 环境 */}
         <ambientLight intensity={0.4} />
@@ -799,11 +811,20 @@ export function DredgerSimulation() {
         <TargetMarker position={config.targetPosition} heading={config.targetHeading} />
 
         {/* 挖泥船 */}
-        <DredgerModel
-          position={shipPosition}
-          heading={shipHeading}
-          rudderAngle={mmgStateRef.current.rudderAngle}
-        />
+        <Suspense
+          fallback={(
+            <ModelLoadingPlaceholder
+              label="挖泥船模型加载中"
+              sublabel="场景已就绪，可先查看施工环境"
+            />
+          )}
+        >
+          <DredgerModel
+            position={shipPosition}
+            heading={shipHeading}
+            rudderAngle={mmgStateRef.current.rudderAngle}
+          />
+        </Suspense>
 
         {/* 航迹 */}
         {trajectory.length > 1 && <TrajectoryLine points={trajectory} />}

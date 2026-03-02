@@ -10,20 +10,42 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
+    --primary: 196 82% 56%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 218 34% 14%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --muted: 218 34% 14%;
+    --muted-foreground: 214 20% 71%;
+    --accent: 218 34% 18%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 196 82% 56%;
     --radius: 0.5rem;
+  }
+
+  .light {
+    --background: 210 40% 98%;
+    --foreground: 222.2 47.4% 11.2%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+    --primary: 203 88% 42%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 206 38% 92%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 203 88% 42%;
   }
 }
 
@@ -34,6 +56,127 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .surface-page {
+    @apply min-h-screen bg-background text-foreground;
+  }
+
+  .surface-topbar {
+    @apply border-b border-border/70 bg-card/75 backdrop-blur;
+  }
+
+  .surface-card {
+    @apply rounded-2xl border border-border/70 bg-card/75 backdrop-blur;
+  }
+
+  .surface-card-soft {
+    @apply rounded-xl border border-border/60 bg-card/55 backdrop-blur;
+  }
+
+  .text-subtle {
+    @apply text-muted-foreground;
+  }
+
+  .cta-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .btn-ghost-themed {
+    @apply border-border/70 bg-background/65 text-foreground hover:bg-accent hover:text-accent-foreground;
+  }
+}
+
+@layer utilities {
+  /* Legacy dark-theme bridge: normalize old hardcoded dark tokens in light mode. */
+  .light .bg-slate-950 { background-color: hsl(var(--background)) !important; }
+  .light .bg-slate-950\/90 { background-color: hsl(var(--background) / 0.9) !important; }
+  .light .bg-slate-950\/80 { background-color: hsl(var(--background) / 0.8) !important; }
+  .light .bg-slate-950\/70 { background-color: hsl(var(--background) / 0.7) !important; }
+  .light .bg-slate-950\/60 { background-color: hsl(var(--background) / 0.6) !important; }
+  .light .bg-slate-950\/50 { background-color: hsl(var(--background) / 0.5) !important; }
+  .light .bg-slate-950\/40 { background-color: hsl(var(--background) / 0.4) !important; }
+
+  .light .bg-slate-900 { background-color: hsl(var(--card)) !important; }
+  .light .bg-slate-900\/90 { background-color: hsl(var(--card) / 0.9) !important; }
+  .light .bg-slate-900\/80 { background-color: hsl(var(--card) / 0.8) !important; }
+  .light .bg-slate-900\/70 { background-color: hsl(var(--card) / 0.7) !important; }
+  .light .bg-slate-900\/60 { background-color: hsl(var(--card) / 0.6) !important; }
+  .light .bg-slate-900\/50 { background-color: hsl(var(--card) / 0.5) !important; }
+  .light .bg-slate-900\/40 { background-color: hsl(var(--card) / 0.4) !important; }
+  .light .bg-slate-900\/30 { background-color: hsl(var(--card) / 0.3) !important; }
+  .light .bg-slate-900\/20 { background-color: hsl(var(--card) / 0.2) !important; }
+  .light .bg-slate-900\/10 { background-color: hsl(var(--card) / 0.1) !important; }
+
+  .light .bg-slate-800 { background-color: hsl(var(--accent)) !important; }
+  .light .bg-slate-800\/90 { background-color: hsl(var(--accent) / 0.9) !important; }
+  .light .bg-slate-800\/80 { background-color: hsl(var(--accent) / 0.8) !important; }
+  .light .bg-slate-800\/70 { background-color: hsl(var(--accent) / 0.7) !important; }
+  .light .bg-slate-800\/60 { background-color: hsl(var(--accent) / 0.6) !important; }
+  .light .bg-slate-800\/50 { background-color: hsl(var(--accent) / 0.5) !important; }
+  .light .bg-slate-800\/40 { background-color: hsl(var(--accent) / 0.4) !important; }
+  .light .bg-slate-700 { background-color: hsl(var(--accent)) !important; }
+
+  .light .text-white { color: hsl(var(--foreground)) !important; }
+  .light .text-white\/90 { color: hsl(var(--foreground) / 0.9) !important; }
+  .light .text-white\/80 { color: hsl(var(--foreground) / 0.8) !important; }
+  .light .text-white\/70 { color: hsl(var(--foreground) / 0.7) !important; }
+  .light .text-white\/60 { color: hsl(var(--foreground) / 0.6) !important; }
+  .light .text-white\/50 { color: hsl(var(--foreground) / 0.5) !important; }
+
+  .light .text-slate-100 { color: hsl(var(--foreground)) !important; }
+  .light .text-slate-200 { color: hsl(var(--foreground) / 0.92) !important; }
+  .light .text-slate-300 { color: hsl(var(--muted-foreground)) !important; }
+  .light .text-slate-400 { color: hsl(var(--muted-foreground)) !important; }
+  .light .text-slate-500 { color: hsl(var(--muted-foreground)) !important; }
+
+  .light .border-white\/10 { border-color: hsl(var(--border) / 0.45) !important; }
+  .light .border-white\/15 { border-color: hsl(var(--border) / 0.5) !important; }
+  .light .border-white\/20 { border-color: hsl(var(--border) / 0.55) !important; }
+  .light .border-white\/30 { border-color: hsl(var(--border) / 0.65) !important; }
+  .light .border-slate-900 { border-color: hsl(var(--border)) !important; }
+  .light .border-slate-800 { border-color: hsl(var(--border)) !important; }
+  .light .border-slate-700 { border-color: hsl(var(--border)) !important; }
+  .light .border-slate-600 { border-color: hsl(var(--border)) !important; }
+
+  .light .from-slate-950 {
+    --tw-gradient-from: hsl(var(--background)) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: hsl(var(--background) / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+
+  .light .from-slate-900 {
+    --tw-gradient-from: hsl(var(--card)) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: hsl(var(--card) / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+
+  .light .to-slate-900 { --tw-gradient-to: hsl(var(--card)) var(--tw-gradient-to-position) !important; }
+  .light .to-slate-800 { --tw-gradient-to: hsl(var(--accent)) var(--tw-gradient-to-position) !important; }
+
+  .light .bg-\[\#0b1024\],
+  .light .bg-\[\#0b132b\],
+  .light .bg-\[\#0f1b3d\],
+  .light .bg-\[\#0F172A\],
+  .light .bg-\[\#0b183f\]\/90,
+  .light .bg-\[\#020721\],
+  .light .bg-\[\#091540\],
+  .light .bg-\[\#091540\]\/95,
+  .light .bg-\[\#091540\]\/90,
+  .light .bg-\[\#0c1d4f\]\/50,
+  .light .bg-\[\#0c1d4f\]\/40,
+  .light .bg-\[\#1c2331\],
+  .light .bg-\[\#1a2942\]\/95,
+  .light .bg-\[\#1a2942\]\/80,
+  .light .bg-\[\#1a2942\]\/50,
+  .light .bg-\[\#0a2a43\],
+  .light .bg-\[\#0a2a43\]\/80,
+  .light .bg-\[\#0a2a43\]\/50,
+  .light .bg-\[\#0c3654\]\/80,
+  .light .bg-\[\#0c3654\]\/50 {
+    background-color: hsl(var(--card)) !important;
   }
 }
 

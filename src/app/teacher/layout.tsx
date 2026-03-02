@@ -25,23 +25,23 @@ export default async function TeacherLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
+    <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900 dark:text-slate-100">
       {/* 顶部导航栏 */}
-      <header className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
+      <header className="border-b border-slate-200 bg-white/90 px-6 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-3 text-slate-400 transition hover:text-white">
+            <Link href="/" className="flex items-center gap-3 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
               <Home className="h-5 w-5" />
               <span className="text-sm">返回首页</span>
             </Link>
-            <div className="h-6 w-px bg-slate-700" />
+            <div className="h-6 w-px bg-slate-300 dark:bg-slate-700" />
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/15 text-sky-400">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400">
                 <Ship className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-white">教师工作台</h1>
-                <p className="text-xs text-slate-400">课程编排与班级管理</p>
+                <h1 className="text-lg font-semibold text-slate-900 dark:text-white">教师工作台</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400">课程编排与班级管理</p>
               </div>
             </div>
           </div>

@@ -232,22 +232,22 @@ export default function SimulationsPage() {
   const [selectedSimulation, setSelectedSimulation] = useState<SimulationInfo | null>(null);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="surface-page">
       {/* 头部 */}
-      <header className="border-b border-slate-800 bg-slate-950/90 backdrop-blur">
+      <header className="surface-topbar">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+            <Link href="/" className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground">
               <ArrowLeft className="h-4 w-4" />
               <span className="text-sm">返回首页</span>
             </Link>
-            <div className="h-6 w-px bg-slate-700" />
+            <div className="h-6 w-px bg-border" />
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Virtual Simulation Lab</p>
-              <h1 className="text-xl font-semibold text-white">虚拟仿真实验室</h1>
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Virtual Simulation Lab</p>
+              <h1 className="text-xl font-semibold text-foreground">虚拟仿真实验室</h1>
             </div>
           </div>
-          <Badge variant="outline" className="border-amber-500/50 text-amber-400">
+          <Badge variant="outline" className="border-primary/50 text-primary">
             7 个仿真场景
           </Badge>
         </div>
@@ -255,9 +255,9 @@ export default function SimulationsPage() {
 
       {/* 简介 */}
       <div className="mx-auto max-w-7xl px-6 py-8">
-        <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-6">
-          <h2 className="text-lg font-medium text-white mb-2">船舶控制理论实践平台</h2>
-          <p className="text-sm text-slate-400 leading-relaxed">
+        <div className="surface-card p-6">
+          <h2 className="mb-2 text-lg font-medium text-foreground">船舶控制理论实践平台</h2>
+          <p className="text-sm leading-relaxed text-subtle">
             通过7种典型船舶的3D仿真，深入理解自动控制原理在海洋工程中的应用。
             从经典PID到多自由度解耦控制，从单一工况到自适应控制，循序渐进掌握控制系统设计方法。
           </p>
@@ -279,17 +279,17 @@ export default function SimulationsPage() {
 
       {/* 课程设计模态框 */}
       <Dialog open={!!selectedSimulation} onOpenChange={() => setSelectedSimulation(null)}>
-        <DialogContent className="max-w-2xl bg-slate-900 border-slate-700 text-slate-100">
+        <DialogContent className="max-w-2xl border-border bg-card text-card-foreground">
           {selectedSimulation && (
             <>
               <DialogHeader>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-800">
-                    <selectedSimulation.icon className="h-5 w-5 text-amber-400" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
+                    <selectedSimulation.icon className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <DialogTitle className="text-xl text-white">{selectedSimulation.title}</DialogTitle>
-                    <DialogDescription className="text-slate-400">{selectedSimulation.subtitle}</DialogDescription>
+                    <DialogTitle className="text-xl text-foreground">{selectedSimulation.title}</DialogTitle>
+                    <DialogDescription className="text-subtle">{selectedSimulation.subtitle}</DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
@@ -297,19 +297,19 @@ export default function SimulationsPage() {
               <div className="space-y-6 pt-4">
                 {/* 概述 */}
                 <div>
-                  <h4 className="text-sm font-medium text-slate-300 mb-2">课程概述</h4>
-                  <p className="text-sm text-slate-400 leading-relaxed">
+                  <h4 className="mb-2 text-sm font-medium text-foreground/90">课程概述</h4>
+                  <p className="text-sm leading-relaxed text-subtle">
                     {selectedSimulation.courseDesign.overview}
                   </p>
                 </div>
 
                 {/* 学习目标 */}
                 <div>
-                  <h4 className="text-sm font-medium text-slate-300 mb-2">学习目标</h4>
+                  <h4 className="mb-2 text-sm font-medium text-foreground/90">学习目标</h4>
                   <ul className="space-y-2">
                     {selectedSimulation.courseDesign.objectives.map((obj, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                      <li key={i} className="flex items-start gap-2 text-sm text-subtle">
+                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                         {obj}
                       </li>
                     ))}
@@ -318,11 +318,11 @@ export default function SimulationsPage() {
 
                 {/* 要点提示 */}
                 <div>
-                  <h4 className="text-sm font-medium text-slate-300 mb-2">要点提示</h4>
-                  <div className="rounded-lg bg-slate-800/50 p-4 space-y-2">
+                  <h4 className="mb-2 text-sm font-medium text-foreground/90">要点提示</h4>
+                  <div className="space-y-2 rounded-lg bg-accent/45 p-4">
                     {selectedSimulation.courseDesign.keyPoints.map((point, i) => (
-                      <p key={i} className="text-sm text-slate-400">
-                        <span className="text-amber-400 mr-2">#{i + 1}</span>
+                      <p key={i} className="text-sm text-subtle">
+                        <span className="mr-2 text-primary">#{i + 1}</span>
                         {point}
                       </p>
                     ))}
@@ -332,16 +332,16 @@ export default function SimulationsPage() {
                 {/* 控制重点 */}
                 <div className="flex flex-wrap gap-2">
                   {selectedSimulation.controlFocus.map((focus) => (
-                    <Badge key={focus} variant="outline" className="border-slate-600 text-slate-300">
+                    <Badge key={focus} variant="outline" className="border-border text-subtle">
                       {focus}
                     </Badge>
                   ))}
                 </div>
 
                 {/* 开始按钮 */}
-                <div className="pt-4 border-t border-slate-700">
+                <div className="border-t border-border pt-4">
                   <Link href={selectedSimulation.href}>
-                    <Button className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900">
+                    <Button className="cta-primary w-full">
                       <Play className="mr-2 h-4 w-4" />
                       开始仿真实验
                     </Button>
@@ -368,9 +368,9 @@ function SimulationCard({
   const Icon = simulation.icon;
 
   return (
-    <Card className="group border-slate-800 bg-slate-900/50 hover:border-slate-700 hover:bg-slate-900 transition-all">
+    <Card className="surface-card group transition-all hover:border-primary/45 hover:bg-card/90">
       {/* 预览图区域 */}
-      <div className="relative h-40 overflow-hidden bg-slate-900">
+      <div className="relative h-40 overflow-hidden bg-secondary/35">
         <Image
           src={simulation.previewImage}
           alt={`${simulation.title} 3D模型预览`}
@@ -379,15 +379,15 @@ function SimulationCard({
           sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
           priority={simulation.id === 'destroyer'}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-slate-900/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
         <div className="absolute top-3 right-3">
           <Badge className={`${difficultyColors[simulation.difficulty]} border`}>
             {difficultyLabels[simulation.difficulty]}
           </Badge>
         </div>
-        <div className="absolute bottom-3 left-3 rounded-md border border-white/10 bg-slate-950/70 px-2 py-1 backdrop-blur-sm">
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-200">
-            <Icon className="h-3 w-3 text-amber-400" />
+        <div className="absolute bottom-3 left-3 rounded-md border border-border/50 bg-background/80 px-2 py-1 backdrop-blur-sm">
+          <div className="flex items-center gap-1.5 text-[11px] text-foreground/90">
+            <Icon className="h-3 w-3 text-primary" />
             <span>3D 模型静态预览</span>
           </div>
         </div>
@@ -396,19 +396,19 @@ function SimulationCard({
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg text-white">{simulation.title}</CardTitle>
-            <CardDescription className="text-slate-500">{simulation.subtitle}</CardDescription>
+            <CardTitle className="text-lg text-foreground">{simulation.title}</CardTitle>
+            <CardDescription className="text-subtle">{simulation.subtitle}</CardDescription>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <p className="text-sm text-slate-400 line-clamp-2">{simulation.description}</p>
+        <p className="line-clamp-2 text-sm text-subtle">{simulation.description}</p>
 
         {/* 标签 */}
         <div className="flex flex-wrap gap-1.5">
           {simulation.tags.slice(0, 3).map((tag) => (
-            <Badge key={tag} variant="secondary" className="bg-slate-800 text-slate-400 text-xs">
+            <Badge key={tag} variant="secondary" className="bg-accent text-subtle text-xs">
               {tag}
             </Badge>
           ))}
@@ -417,7 +417,7 @@ function SimulationCard({
         {/* 操作按钮 */}
         <div className="flex gap-2 pt-2">
           <Link href={simulation.href} className="flex-1">
-            <Button className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900" size="sm">
+            <Button className="cta-primary w-full" size="sm">
               <Play className="mr-1.5 h-3.5 w-3.5" />
               开启任务链
             </Button>
@@ -425,7 +425,7 @@ function SimulationCard({
           <Button
             variant="outline"
             size="sm"
-            className="border-slate-700 text-slate-300 hover:bg-slate-800"
+            className="btn-ghost-themed border"
             onClick={onLearnMore}
           >
             <BookOpen className="mr-1.5 h-3.5 w-3.5" />

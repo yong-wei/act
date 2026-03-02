@@ -2,7 +2,10 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { SessionProvider } from '@/components/providers/session-provider'
+import { ThemeProvider } from '@/components/providers/theme-provider'
+import { ThemeToggleButton } from '@/components/shared/theme-toggle-button'
 import { getServerAuthSession } from '@/lib/auth'
+import { buildThemeInitScript } from '@/lib/theme-config'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,11 +24,17 @@ export default async function RootLayout({
   const session = await getServerAuthSession()
 
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" className="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: buildThemeInitScript() }} />
+      </head>
       <body className={inter.className}>
-        <SessionProvider session={session}>
-          {children}
-        </SessionProvider>
+        <ThemeProvider>
+          <SessionProvider session={session}>
+            {children}
+            <ThemeToggleButton />
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

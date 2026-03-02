@@ -120,6 +120,7 @@ import {
   finStabilizerStep,
   createFinStabilizerState,
   pdRollControl,
+  normalizeFinMoment,
   getFinStabilizerMetrics,
   isFinPowerExceeded,
   DEFAULT_FIN_PARAMS,
@@ -1400,7 +1401,17 @@ export class CruiseShipEngine implements SimulationEngine {
     };
 
     // 减摇鳍力矩归一化
-    const finMomentNormalized = this.finState.antiRollMoment / 1e8;
+    const finMomentNormalized = -normalizeFinMoment(this.finState.antiRollMoment);
+    const centripetalAccelG = Math.abs((this.state.speedMps * this.state.yawRateRad) / 9.81);
+    const rollInducedAccelG = Math.abs(Math.sin(this.state.rollRad)) * 1.2;
+    const lateralAccelGCurrent = centripetalAccelG + rollInducedAccelG;
+    const rudderRatio = Math.abs(rudderDeg) / Math.max(this.profile.dynamics.rudder.maxAngle, 1);
+    // 转向引起的离心横倾激励，保证满舵工况下具备可感知横倾
+    const turningExcitation = Math.sign(rudderDeg || this.state.yawRateRad) * clamp(
+      centripetalAccelG * 2.2 + Math.pow(rudderRatio, 1.1) * 0.02,
+      -2.5,
+      2.5
+    );
 
     this.state = rollCoupledNomotoStep(
       this.state,
@@ -1408,8 +1419,10 @@ export class CruiseShipEngine implements SimulationEngine {
       finMomentNormalized,
       waveExcitation,
       dt,
-      rollCoupledParams
+      rollCoupledParams,
+      turningExcitation
     );
+    this.state.finAngleDeg = finAngleDeg;
 
     // ========== 5. 舒适度评估 ==========
     const currentRollDeg = toDegrees(Math.abs(this.state.rollRad));
@@ -1426,7 +1439,10 @@ export class CruiseShipEngine implements SimulationEngine {
       currentRollDeg,
       CRUISE_ADORA_PARAMS.NATURAL_ROLL_PERIOD,
       CRUISE_ADORA_PARAMS.BEAM,
-      0.02
+      0.02,
+      dt,
+      lateralAccelGCurrent,
+      Math.abs(currentYawRate)
     );
 
     // 记录最大横摇角

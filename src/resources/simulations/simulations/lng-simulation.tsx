@@ -21,10 +21,12 @@ import { MaritimeEnvironment } from '../environment';
 import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
+  RightClickFreeModeBridge,
   CameraViewSwitcher,
   SimulationTopBar,
   SimulationDock,
   SimulationAssessmentPanel,
+  ModelLoadingPlaceholder,
   simulationUi,
   type CameraMode,
 } from '../components';
@@ -42,6 +44,11 @@ import {
   createSimulationEngine,
 } from '../physics/engine-factory';
 import { toDegrees, toRadians, LNG_CHANGHENG_PARAMS } from '../core/constants';
+import {
+  SIMULATION_FIXED_STEP_SECONDS,
+  SIMULATION_MAX_SUB_STEPS,
+  getSimulationDeltaFromMilliseconds,
+} from '../lib/simulation-timing';
 
 // ============ 类型定义 ============
 
@@ -462,11 +469,20 @@ function Scene({
         />
       ) : null}
 
-      <LNGShipModel
-        position={state.position}
-        heading={toRadians(state.heading)}
-        sloshingAngle={state.sloshingAngle}
-      />
+      <Suspense
+        fallback={(
+          <ModelLoadingPlaceholder
+            label="LNG 船模型加载中"
+            sublabel="场景已就绪，可先查看海况与航向参考"
+          />
+        )}
+      >
+        <LNGShipModel
+          position={state.position}
+          heading={toRadians(state.heading)}
+          sloshingAngle={state.sloshingAngle}
+        />
+      </Suspense>
 
       <TrajectoryLine points={trajectory} />
 
@@ -484,8 +500,8 @@ function Scene({
         minDistance={100}
         maxDistance={5000}
         maxPolarAngle={Math.PI / 2.1}
-        onStart={() => onCameraModeChange('free')}
       />
+      <RightClickFreeModeBridge onRequestFreeMode={() => onCameraModeChange('free')} />
       <UnifiedCameraController
         position={state.position}
         headingRad={toRadians(state.heading)}
@@ -502,7 +518,12 @@ export function LNGSimulation() {
   const engineRef = useRef<LNGCarrierEngine | null>(null);
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
-  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
+  const clockRef = useRef(
+    new SimulationClock({
+      dt: SIMULATION_FIXED_STEP_SECONDS,
+      maxSubSteps: SIMULATION_MAX_SUB_STEPS,
+    })
+  );
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
@@ -538,7 +559,7 @@ export function LNGSimulation() {
     const engine = engineRef.current;
     if (!engine) return;
 
-    const frameDt = Math.min(((timestamp - lastTimeRef.current) / 1000) * speedScale, 0.1);
+    const frameDt = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScale);
     lastTimeRef.current = timestamp;
 
     let nextTime = state.time;
@@ -660,16 +681,14 @@ export function LNGSimulation() {
   return (
     <div className={simulationUi.root} data-sim-ui>
       <Canvas shadows>
-        <Suspense fallback={null}>
-          <Scene
-            state={state}
-            trajectory={trajectory}
-            showGrid={showGrid}
-            cameraMode={cameraMode}
-            onCameraModeChange={setCameraMode}
-            controlsRef={controlsRef}
-          />
-        </Suspense>
+        <Scene
+          state={state}
+          trajectory={trajectory}
+          showGrid={showGrid}
+          cameraMode={cameraMode}
+          onCameraModeChange={setCameraMode}
+          controlsRef={controlsRef}
+        />
       </Canvas>
 
       <SimulationDock

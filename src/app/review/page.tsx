@@ -10,6 +10,12 @@ type ReviewEntry = {
 
 const reviewEntries: ReviewEntry[] = [
   {
+    title: '课外教学展示聚合入口',
+    href: '/review/extracurricular-showcase',
+    description: '脚本关键镜头聚合：班级热力图、A/B题单、前后测追踪、补强路径与相关性。',
+    source: 'src/app/review/extracurricular-showcase/page.tsx',
+  },
+  {
     title: '自适应测评报告配图工作台',
     href: '/review/adaptive-assessment-figures',
     description: '三图聚合预览与一键导出入口（题库稳定性 / 差异化生成 / 常态化评价）。',
@@ -49,26 +55,26 @@ const reviewEntries: ReviewEntry[] = [
 
 export default function ReviewPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
+    <main className="surface-page">
       <div className="mx-auto w-full max-w-6xl px-6 py-10">
-        <header className="mb-8 rounded-2xl border border-white/10 bg-slate-900/70 p-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-300">
+        <header className="surface-card mb-8 p-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/35 bg-primary/10 px-3 py-1 text-xs text-primary">
             <Sparkles className="h-3.5 w-3.5" />
             DevelopmentPlan 对齐入口
           </div>
-          <h1 className="mt-4 flex items-center gap-3 text-3xl font-semibold text-white">
-            <ClipboardCheck className="h-7 w-7 text-amber-400" />
+          <h1 className="mt-4 flex items-center gap-3 text-3xl font-semibold text-foreground">
+            <ClipboardCheck className="h-7 w-7 text-primary" />
             评审入口
           </h1>
-          <p className="mt-3 text-sm text-slate-300">
+          <p className="mt-3 text-sm text-subtle">
             汇总本分支已完成并可演示的页面入口，按 `docs/DevelopmentPlan.md` 用户备注整理。
           </p>
           <div className="mt-5">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:border-amber-400/60 hover:text-white"
+              className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition hover:border-primary/60"
             >
-              <Ship className="h-4 w-4 text-amber-400" />
+              <Ship className="h-4 w-4 text-primary" />
               返回首页
             </Link>
           </div>
@@ -79,14 +85,14 @@ export default function ReviewPage() {
             <Link
               key={entry.href}
               href={entry.href}
-              className="group rounded-xl border border-white/10 bg-slate-900/60 p-5 transition hover:-translate-y-0.5 hover:border-amber-400/50"
+              className="surface-card-soft group p-5 transition hover:-translate-y-0.5 hover:border-primary/50"
             >
               <div className="flex items-start justify-between gap-3">
-                <h2 className="text-lg font-semibold text-white">{entry.title}</h2>
-                <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-slate-400 transition group-hover:text-amber-300" />
+                <h2 className="text-lg font-semibold text-foreground">{entry.title}</h2>
+                <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-primary" />
               </div>
-              <p className="mt-2 text-sm text-slate-300">{entry.description}</p>
-              <p className="mt-3 break-all text-xs text-slate-500">来源：{entry.source}</p>
+              <p className="mt-2 text-sm text-subtle">{entry.description}</p>
+              <p className="mt-3 break-all text-xs text-muted-foreground">来源：{entry.source}</p>
             </Link>
           ))}
         </section>

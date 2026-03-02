@@ -875,10 +875,10 @@ export default function MultiRepresentationLinkagePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 md:px-8">
+    <div className="surface-page px-4 py-6 md:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
         {!isEmbedded ? (
-          <header className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+          <header className="surface-card bg-gradient-to-br from-card via-card to-accent/35 p-5">
             <p className="text-xs uppercase tracking-[0.28em] text-cyan-400">Structure Visible</p>
             <h1 className="mt-1 text-2xl font-semibold">{isCourseMode ? '多表征联动（课程模式）' : '多表征联动可视化引擎'}</h1>
             <p className="mt-2 text-sm text-slate-400">
@@ -890,14 +890,14 @@ export default function MultiRepresentationLinkagePage() {
         ) : null}
 
         <section className="grid gap-4 lg:grid-cols-[430px_1fr]">
-          <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+          <div className="surface-card space-y-4 p-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-medium">开环配置 + 根轨迹</h2>
               <div className="inline-flex items-center gap-2">
                 <button
                   type="button"
                   onClick={zoomOut}
-                  className="h-8 w-8 rounded border border-slate-700 bg-slate-950 text-lg leading-none text-slate-100 hover:border-slate-500"
+                  className="btn-ghost-themed h-8 w-8 rounded text-lg leading-none"
                   aria-label="缩小"
                   title="缩小"
                 >
@@ -907,7 +907,7 @@ export default function MultiRepresentationLinkagePage() {
                 <button
                   type="button"
                   onClick={zoomIn}
-                  className="h-8 w-8 rounded border border-slate-700 bg-slate-950 text-lg leading-none text-slate-100 hover:border-slate-500"
+                  className="btn-ghost-themed h-8 w-8 rounded text-lg leading-none"
                   aria-label="放大"
                   title="放大"
                 >
@@ -1049,7 +1049,7 @@ export default function MultiRepresentationLinkagePage() {
               })}
             </svg>
 
-            <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-2 text-xs text-slate-300">
+            <div className="surface-card-soft p-2 text-xs text-slate-300">
               <div className="flex flex-wrap items-center gap-4">
                 <span className="inline-flex items-center gap-1">
                   <span className="inline-block h-2 w-2 rounded-full bg-cyan-300" /> 开环极点
@@ -1098,7 +1098,7 @@ export default function MultiRepresentationLinkagePage() {
               </button>
             </div>
 
-            <div className="space-y-2 rounded-lg border border-slate-700 bg-slate-950/50 p-2">
+            <div className="surface-card-soft space-y-2 p-2">
               <div className="text-xs font-medium text-cyan-300">开环极点</div>
               {modelPoles.map((pole, index) => (
                 <div key={pole.id} className="grid grid-cols-[1fr_1fr_auto] gap-2">
@@ -1149,7 +1149,7 @@ export default function MultiRepresentationLinkagePage() {
               ))}
             </div>
 
-            <div className="space-y-2 rounded-lg border border-slate-700 bg-slate-950/50 p-2">
+            <div className="surface-card-soft space-y-2 p-2">
               <div className="text-xs font-medium text-rose-300">开环零点</div>
               {modelZeros.length === 0 ? <div className="text-xs text-slate-500">当前无开环零点</div> : null}
               {modelZeros.map((zero, index) => (
@@ -1265,25 +1265,25 @@ export default function MultiRepresentationLinkagePage() {
 
           <div className="space-y-4">
             <div className="grid gap-4 md:grid-cols-4">
-              <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+              <div className="surface-card-soft p-3">
                 <div className="text-xs text-slate-400">超调量</div>
                 <div className="mt-1 text-xl font-semibold text-cyan-300">
                   {timeDomain ? `${format3(timeDomain.metrics.overshoot)}%` : '--'}
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+              <div className="surface-card-soft p-3">
                 <div className="text-xs text-slate-400">调节时间</div>
                 <div className="mt-1 text-xl font-semibold text-cyan-300">
                   {timeDomain ? `${format3(timeDomain.metrics.settlingTime)} s` : '--'}
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+              <div className="surface-card-soft p-3">
                 <div className="text-xs text-slate-400">相位裕度</div>
                 <div className="mt-1 text-xl font-semibold text-emerald-300">
                   {stability ? `${format3(stability.stabilityMargins.phaseMargin.value)}°` : '--'}
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+              <div className="surface-card-soft p-3">
                 <div className="text-xs text-slate-400">稳定性（闭环）</div>
                 <div className={`mt-1 text-xl font-semibold ${stability?.isStable ? 'text-emerald-300' : 'text-rose-300'}`}>
                   {stability ? (stability.isStable ? '稳定' : '不稳定') : '--'}
@@ -1292,7 +1292,7 @@ export default function MultiRepresentationLinkagePage() {
             </div>
 
             <div className="grid gap-4 xl:grid-cols-2">
-              <div className="min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+              <div className="surface-card min-w-0 p-4">
                 <h3 className="mb-2 text-base font-medium">时域响应（按闭环极点）</h3>
                 <div className="h-72 min-w-0">
                   <ResponsiveContainer
@@ -1317,7 +1317,7 @@ export default function MultiRepresentationLinkagePage() {
                 </div>
               </div>
 
-              <div className="min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+              <div className="surface-card min-w-0 p-4">
                 <div className="mb-2 flex items-center justify-between">
                   <h3 className="text-base font-medium">频域 Bode（幅频 + 相频）</h3>
                   <label className="inline-flex items-center gap-2 text-xs text-slate-300">
@@ -1420,7 +1420,7 @@ export default function MultiRepresentationLinkagePage() {
             </div>
 
             <div className="grid gap-4 xl:grid-cols-[1.7fr_1fr]">
-              <div className="min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+              <div className="surface-card min-w-0 p-4">
                 <h3 className="mb-2 text-base font-medium">Nyquist 图</h3>
                 <div className="h-80 min-w-0">
                   <ResponsiveContainer
@@ -1489,7 +1489,7 @@ export default function MultiRepresentationLinkagePage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+              <div className="surface-card p-4">
                 <h3 className="mb-2 text-base font-medium">跨域关联提示</h3>
                 <ul className="space-y-2 text-sm text-slate-300">
                   {hints.map((hint) => (
@@ -1501,7 +1501,7 @@ export default function MultiRepresentationLinkagePage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-3 text-sm text-slate-400">
+            <div className="surface-card-soft rounded-lg px-4 py-3 text-sm text-slate-400">
               {loading
                 ? '正在计算联动结果（拖拽过程中暂停刷新，松开后自动更新）...'
                 : error

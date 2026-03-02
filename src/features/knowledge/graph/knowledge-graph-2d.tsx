@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import * as d3 from 'd3';
 import { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
@@ -151,6 +151,22 @@ export function KnowledgeGraph2D({
   height,
 }: KnowledgeGraph2DProps) {
   const fgRef = useRef<any>();
+  const [isLightTheme, setIsLightTheme] = useState(false);
+
+  useEffect(() => {
+    const updateTheme = () => {
+      setIsLightTheme(document.documentElement.classList.contains('light'));
+    };
+
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   // 1. 处理数据并应用布局
   const graphData = useMemo(() => {
@@ -232,12 +248,22 @@ export function KnowledgeGraph2D({
     ctx.font = `${isActive ? 'bold' : 'normal'} ${displayFontSize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.85)';
-
+    const labelFillColor = isLightTheme
+      ? (isActive ? '#0f172a' : 'rgba(15, 23, 42, 0.9)')
+      : (isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.85)');
+    const labelStrokeColor = isLightTheme
+      ? 'rgba(255, 255, 255, 0.95)'
+      : 'rgba(2, 8, 23, 0.82)';
     // 标签位置：节点下方
     const labelOffset = (glowColor ? glowRadius : baseRadius) + 8;
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = labelStrokeColor;
+    ctx.lineWidth = (isActive ? 3.1 : 2.4) / globalScale;
+    ctx.strokeText(label, node.x, node.y + labelOffset);
+    ctx.fillStyle = labelFillColor;
+
     ctx.fillText(label, node.x, node.y + labelOffset);
-  }, [selectedNode, hoveredNode]);
+  }, [selectedNode, hoveredNode, isLightTheme]);
 
   // 3. 自定义连线渲染
   const paintLink = useCallback((link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {

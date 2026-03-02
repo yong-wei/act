@@ -50,21 +50,21 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
+    <div className="surface-page">
       {/* 顶部导航栏 */}
-      <header className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
+      <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <div className="flex items-center gap-6">
             <Link
               href="/"
-              className="flex items-center gap-2 text-slate-400 transition hover:text-white"
+              className="flex items-center gap-2 text-muted-foreground transition hover:text-foreground"
             >
               <Home className="h-5 w-5" />
               <span className="text-sm">返回首页</span>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-white">AI-OBE 船舶智控平台</h1>
-              <p className="text-sm text-slate-400">成果导向教育 · 智能控制实训</p>
+              <h1 className="text-2xl font-bold text-foreground">AI-OBE 船舶智控平台</h1>
+              <p className="text-sm text-muted-foreground">成果导向教育 · 智能控制实训</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -75,12 +75,12 @@ export default async function DashboardPage() {
 
       <main className="mx-auto max-w-[1600px] px-6 py-8">
         {/* 欢迎区域 */}
-        <div className="mb-8 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 p-8">
+        <div className="surface-card mb-8 bg-gradient-to-br from-card to-accent/75 p-8">
           <div className="mb-6">
-            <h2 className="text-3xl font-bold text-white">
+            <h2 className="text-3xl font-bold text-foreground">
               欢迎回来，{session.user.name || '学员'}！
             </h2>
-            <p className="mt-2 text-slate-400">
+            <p className="mt-2 text-muted-foreground">
               继续你的船舶控制系统学习之旅，掌握 PID 控制理论与实践
             </p>
           </div>
@@ -118,10 +118,7 @@ export default async function DashboardPage() {
         <div className="mb-8">
           <Link
             href="/classroom/join"
-            className="flex items-center justify-center gap-3 w-full py-5 rounded-2xl
-              bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500
-              text-white font-medium text-lg transition-all shadow-lg shadow-cyan-900/30
-              border border-cyan-500/30"
+            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary to-cyan-600 py-5 text-lg font-medium text-primary-foreground shadow-lg shadow-cyan-900/20 transition-all hover:from-primary/90 hover:to-cyan-500"
           >
             <Users className="h-6 w-6" />
             加入课堂
@@ -131,7 +128,7 @@ export default async function DashboardPage() {
 
         {/* 功能模块网格 */}
         <div className="mb-8">
-          <h3 className="mb-4 text-xl font-semibold text-white">学习模块</h3>
+          <h3 className="mb-4 text-xl font-semibold text-foreground">学习模块</h3>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* 任务大厅 */}
             <FeatureCard
@@ -262,8 +259,8 @@ export default async function DashboardPage() {
         </div>
 
         {/* 快速开始 */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">快速开始</h3>
+        <div className="surface-card p-6">
+          <h3 className="mb-4 text-lg font-semibold text-foreground">快速开始</h3>
           <div className="grid gap-4 md:grid-cols-3">
             <QuickAction
               href="/missions"
@@ -302,11 +299,11 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
+    <div className="surface-card-soft p-4">
       <div className="flex items-center gap-3">
         <span className="text-3xl">{icon}</span>
         <div>
-          <p className="text-xs text-slate-500">{label}</p>
+          <p className="text-xs text-muted-foreground">{label}</p>
           <p className={`text-2xl font-bold ${color}`}>{value}</p>
         </div>
       </div>
@@ -334,7 +331,7 @@ function FeatureCard({
   return (
     <Link
       href={href}
-      className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/50 p-6 transition-all hover:border-amber-600 hover:bg-slate-800 hover:shadow-lg hover:shadow-amber-900/20"
+      className="surface-card-soft group relative overflow-hidden p-6 transition-all hover:border-primary/45 hover:bg-accent/85 hover:shadow-lg hover:shadow-primary/15"
     >
       <div className="mb-4 flex items-start justify-between">
         <div className={`rounded-lg p-3 ${iconBg}`}>{icon}</div>
@@ -342,9 +339,9 @@ function FeatureCard({
           {badge}
         </span>
       </div>
-      <h4 className="mb-2 text-lg font-semibold text-white">{title}</h4>
-      <p className="text-sm text-slate-400">{description}</p>
-      <div className="mt-4 flex items-center text-sm font-medium text-amber-400">
+      <h4 className="mb-2 text-lg font-semibold text-foreground">{title}</h4>
+      <p className="text-sm text-muted-foreground">{description}</p>
+      <div className="mt-4 flex items-center text-sm font-medium text-primary">
         进入
         <svg
           className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1"
@@ -373,12 +370,12 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="flex items-center gap-4 rounded-xl border border-slate-700 bg-slate-800/30 p-4 transition-colors hover:border-slate-600 hover:bg-slate-800/50"
+      className="surface-card-soft flex items-center gap-4 p-4 transition-colors hover:border-primary/35 hover:bg-accent/70"
     >
       <span className="text-3xl">{icon}</span>
       <div>
-        <p className="font-medium text-white">{title}</p>
-        <p className="text-xs text-slate-400">{description}</p>
+        <p className="font-medium text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
     </Link>
   );

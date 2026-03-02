@@ -5,7 +5,7 @@
  * 使用 3DOF 耦合模型 + 解耦控制 + 8台推进器推力分配
  */
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -21,10 +21,12 @@ import { MaritimeEnvironment } from '../environment';
 import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
+  RightClickFreeModeBridge,
   CameraViewSwitcher,
   SimulationTopBar,
   SimulationDock,
   SimulationAssessmentPanel,
+  ModelLoadingPlaceholder,
   simulationUi,
   type CameraMode,
 } from '../components';
@@ -92,6 +94,11 @@ import {
   DRILLING_ETHICAL_THRESHOLDS,
   DRILLING_DEFAULT_DP,
 } from '../core/constants';
+import {
+  SIMULATION_FIXED_STEP_SECONDS,
+  SIMULATION_MAX_SUB_STEPS,
+  getSimulationDeltaFromMilliseconds,
+} from '../lib/simulation-timing';
 import type { ControlMode, EthicalViolation, Vector2, ThrusterState } from '../core/types';
 import { toRadians, toDegrees } from '../core/constants';
 
@@ -749,7 +756,12 @@ export function DrillingSimulation() {
   const timeRef = useRef(0);
   const animationFrameRef = useRef<number>();
   const lastUpdateRef = useRef(performance.now());
-  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
+  const clockRef = useRef(
+    new SimulationClock({
+      dt: SIMULATION_FIXED_STEP_SECONDS,
+      maxSubSteps: SIMULATION_MAX_SUB_STEPS,
+    })
+  );
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
@@ -771,7 +783,7 @@ export function DrillingSimulation() {
     if (!isRunning) return;
 
     const now = performance.now();
-    const frameDt = Math.min(((now - lastUpdateRef.current) / 1000) * speedScale, 0.1);
+    const frameDt = getSimulationDeltaFromMilliseconds(now, lastUpdateRef.current, speedScale);
     lastUpdateRef.current = now;
 
     const stepSimulation = (dt: number) => {
@@ -987,8 +999,8 @@ export function DrillingSimulation() {
           minDistance={100}
           maxDistance={2500}
           maxPolarAngle={Math.PI / 2.1}
-          onStart={() => setCameraMode('free')}
         />
+        <RightClickFreeModeBridge onRequestFreeMode={() => setCameraMode('free')} />
 
         {/* 环境 */}
         <ambientLight intensity={0.4} />
@@ -1017,10 +1029,19 @@ export function DrillingSimulation() {
         <TargetMarker position={config.targetPosition} heading={config.targetHeading} />
 
         {/* 钻井平台 */}
-        <DrillingPlatformModel
-          position={platformPosition}
-          heading={platformHeading}
-        />
+        <Suspense
+          fallback={(
+            <ModelLoadingPlaceholder
+              label="钻井平台模型加载中"
+              sublabel="场景已就绪，可先查看海况与目标点"
+            />
+          )}
+        >
+          <DrillingPlatformModel
+            position={platformPosition}
+            heading={platformHeading}
+          />
+        </Suspense>
 
         {/* 航迹 */}
         {trajectory.length > 1 && <TrajectoryLine points={trajectory} />}

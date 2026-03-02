@@ -4,6 +4,7 @@
 
 export {
   UnifiedCameraController,
+  RightClickFreeModeBridge,
   cameraViews,
   getNextCameraView,
   getCameraViewLabel,
@@ -12,6 +13,7 @@ export {
   type CameraMode,
   type CameraConfig,
   type UnifiedCameraControllerProps,
+  type RightClickFreeModeBridgeProps,
 } from './camera-controller';
 
 export {
@@ -28,3 +30,5 @@ export {
   type SimulationDockTab,
   type SimulationAssessmentMetric,
 } from './simulation-ui';
+
+export { ModelLoadingPlaceholder } from './model-loading-placeholder';

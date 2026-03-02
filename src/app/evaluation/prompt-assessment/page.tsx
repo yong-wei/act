@@ -364,9 +364,9 @@ export default function PromptAssessmentPage() {
   }, [autoDemo, autoSeeded, seedDemoHistory]);
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 md:px-8">
+    <div className="surface-page px-4 py-6 md:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
-        <header className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+        <header className="surface-card bg-gradient-to-br from-card via-card to-accent/35 p-5">
           <p className="text-xs uppercase tracking-[0.28em] text-amber-400">Structure Evaluated</p>
           <h1 className="mt-1 text-2xl font-semibold">元提示词评价与过程一致性</h1>
           <p className="mt-2 text-sm text-slate-400">
@@ -375,7 +375,7 @@ export default function PromptAssessmentPage() {
         </header>
 
         <section className="grid gap-4 lg:grid-cols-[380px_1fr]">
-          <aside className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+          <aside className="surface-card space-y-4 p-4">
             <h2 className="text-lg font-medium">结构化提示词编辑器</h2>
 
             {[
@@ -390,7 +390,7 @@ export default function PromptAssessmentPage() {
                   value={structured[field.key] ?? ''}
                   onChange={(event) => setStructured((prev) => ({ ...prev, [field.key]: event.target.value }))}
                   rows={2}
-                  className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm"
+                  className="mt-1 w-full rounded border border-border/70 bg-background/70 px-2 py-1 text-sm"
                 />
               </label>
             ))}
@@ -401,7 +401,7 @@ export default function PromptAssessmentPage() {
                 value={freeText}
                 onChange={(event) => setFreeText(event.target.value)}
                 rows={4}
-                className="mt-1 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm"
+                className="mt-1 w-full rounded border border-border/70 bg-background/70 px-2 py-1 text-sm"
               />
             </label>
 
@@ -434,13 +434,13 @@ export default function PromptAssessmentPage() {
           </aside>
 
           <main className="space-y-4">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+            <div className="surface-card p-4">
               <h3 className="mb-2 text-base font-medium">提示词预览</h3>
               <pre className="whitespace-pre-wrap rounded bg-slate-950 p-3 text-sm leading-6 text-slate-200">{compiledPrompt}</pre>
             </div>
 
             <div className="grid gap-4 xl:grid-cols-2">
-              <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+              <section className="surface-card p-4">
                 <h3 className="mb-2 text-base font-medium">提示词质量仪表盘</h3>
                 {assessment ? (
                   <div className="space-y-3">
@@ -473,7 +473,7 @@ export default function PromptAssessmentPage() {
                 )}
               </section>
 
-              <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+              <section className="surface-card p-4">
                 <h3 className="mb-2 text-base font-medium">一致性报告</h3>
                 {consistency ? (
                   <div className="space-y-3 text-sm">
@@ -525,13 +525,13 @@ export default function PromptAssessmentPage() {
               </section>
             </div>
 
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+            <section className="surface-card p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-base font-medium">常态化训练量化追踪</h3>
                 <button
                   type="button"
                   onClick={() => void loadTrendData()}
-                  className="rounded bg-slate-700 px-3 py-1.5 text-xs font-medium hover:bg-slate-600"
+                  className="btn-ghost-themed rounded px-3 py-1.5 text-xs font-medium"
                   disabled={trendLoading}
                 >
                   刷新趋势数据
@@ -616,7 +616,7 @@ export default function PromptAssessmentPage() {
               )}
             </section>
 
-            <div className="rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-3 text-sm text-slate-400">
+            <div className="surface-card-soft rounded-lg px-4 py-3 text-sm text-slate-400">
               {loading
                 ? '正在计算评价结果...'
                 : trendLoading

@@ -21,10 +21,12 @@ import { MaritimeEnvironment } from '../environment';
 import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
+  RightClickFreeModeBridge,
   CameraViewSwitcher,
   SimulationTopBar,
   SimulationDock,
   SimulationAssessmentPanel,
+  ModelLoadingPlaceholder,
   simulationUi,
   type CameraMode,
 } from '../components';
@@ -42,6 +44,11 @@ import {
   createSimulationEngine,
 } from '../physics/engine-factory';
 import { toDegrees, toRadians, CONTAINER_MSC_PARAMS } from '../core/constants';
+import {
+  SIMULATION_FIXED_STEP_SECONDS,
+  SIMULATION_MAX_SUB_STEPS,
+  getSimulationDeltaFromMilliseconds,
+} from '../lib/simulation-timing';
 
 // ============ 类型定义 ============
 
@@ -604,12 +611,21 @@ function Scene({
       />
 
       {/* 集装箱船模型 */}
-      <ContainerShipModel
-        position={state.position}
-        heading={toRadians(state.heading)}
-        rollAngle={state.rollAngle}
-        loadRatio={state.loadRatio}
-      />
+      <Suspense
+        fallback={(
+          <ModelLoadingPlaceholder
+            label="集装箱船模型加载中"
+            sublabel="场景已就绪，可先查看风场与航向参考"
+          />
+        )}
+      >
+        <ContainerShipModel
+          position={state.position}
+          heading={toRadians(state.heading)}
+          rollAngle={state.rollAngle}
+          loadRatio={state.loadRatio}
+        />
+      </Suspense>
 
       {/* 相机控制 */}
       <OrbitControls
@@ -620,8 +636,8 @@ function Scene({
         minDistance={200}
         maxDistance={5000}
         maxPolarAngle={Math.PI / 2.1}
-        onStart={() => onCameraModeChange('free')}
       />
+      <RightClickFreeModeBridge onRequestFreeMode={() => onCameraModeChange('free')} />
       <UnifiedCameraController
         position={state.position}
         headingRad={toRadians(state.heading)}
@@ -639,7 +655,12 @@ export default function ContainerSimulation() {
   const engineRef = useRef<ContainerShipEngine | null>(null);
   const frameRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
-  const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
+  const clockRef = useRef(
+    new SimulationClock({
+      dt: SIMULATION_FIXED_STEP_SECONDS,
+      maxSubSteps: SIMULATION_MAX_SUB_STEPS,
+    })
+  );
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
   // 相机状态
@@ -695,7 +716,7 @@ export default function ContainerSimulation() {
     }
 
     const now = performance.now();
-    const frameDt = Math.min(((now - lastTimeRef.current) / 1000) * speedScale, 0.1);
+    const frameDt = getSimulationDeltaFromMilliseconds(now, lastTimeRef.current, speedScale);
     lastTimeRef.current = now;
 
     let nextTime = simState.time;
@@ -850,16 +871,14 @@ export default function ContainerSimulation() {
   return (
     <div className={simulationUi.root} data-sim-ui>
       <Canvas shadows gl={{ antialias: true }}>
-        <Suspense fallback={null}>
-          <Scene
-            state={simState}
-            trajectory={trajectory}
-            showGrid={showGrid}
-            cameraMode={cameraMode}
-            onCameraModeChange={setCameraMode}
-            controlsRef={controlsRef}
-          />
-        </Suspense>
+        <Scene
+          state={simState}
+          trajectory={trajectory}
+          showGrid={showGrid}
+          cameraMode={cameraMode}
+          onCameraModeChange={setCameraMode}
+          controlsRef={controlsRef}
+        />
       </Canvas>
 
       <SimulationDock

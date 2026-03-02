@@ -56,6 +56,13 @@ export interface UnifiedCameraControllerProps {
   enabled?: boolean;
 }
 
+export interface RightClickFreeModeBridgeProps {
+  /** 触发切换到自由视角 */
+  onRequestFreeMode: () => void;
+  /** 是否启用监听 */
+  enabled?: boolean;
+}
+
 // ============ 预设视角配置 ============
 
 export const cameraViews: Array<{ id: CameraView; label: string; icon?: string }> = [
@@ -141,6 +148,63 @@ interface TransitionState {
   endTarget: THREE.Vector3;
 }
 
+interface ViewOrbitOffset {
+  radius: number;
+  theta: number;
+  phi: number;
+}
+
+const MIN_ORBIT_RADIUS = 20;
+const MIN_POLAR_ANGLE = 0.05;
+const MAX_POLAR_ANGLE = Math.PI - 0.05;
+
+function createDefaultViewOffsets(): Record<CameraView, ViewOrbitOffset> {
+  return {
+    chase: { radius: 0, theta: 0, phi: 0 },
+    overhead: { radius: 0, theta: 0, phi: 0 },
+    tactical: { radius: 0, theta: 0, phi: 0 },
+  };
+}
+
+function applyViewOffset(
+  presetPosition: THREE.Vector3,
+  presetTarget: THREE.Vector3,
+  offset: ViewOrbitOffset
+): THREE.Vector3 {
+  const baseOffset = presetPosition.clone().sub(presetTarget);
+  const spherical = new THREE.Spherical().setFromVector3(baseOffset);
+  spherical.radius = Math.max(MIN_ORBIT_RADIUS, spherical.radius + offset.radius);
+  spherical.theta += offset.theta;
+  spherical.phi = THREE.MathUtils.clamp(
+    spherical.phi + offset.phi,
+    MIN_POLAR_ANGLE,
+    MAX_POLAR_ANGLE
+  );
+  return new THREE.Vector3().setFromSpherical(spherical).add(presetTarget);
+}
+
+function captureViewOffset(
+  presetPosition: THREE.Vector3,
+  presetTarget: THREE.Vector3,
+  currentPosition: THREE.Vector3,
+  currentTarget: THREE.Vector3
+): ViewOrbitOffset {
+  const presetOffset = presetPosition.clone().sub(presetTarget);
+  const currentOffset = currentPosition.clone().sub(currentTarget);
+
+  if (presetOffset.lengthSq() < 1e-6 || currentOffset.lengthSq() < 1e-6) {
+    return { radius: 0, theta: 0, phi: 0 };
+  }
+
+  const presetSpherical = new THREE.Spherical().setFromVector3(presetOffset);
+  const currentSpherical = new THREE.Spherical().setFromVector3(currentOffset);
+  return {
+    radius: currentSpherical.radius - presetSpherical.radius,
+    theta: currentSpherical.theta - presetSpherical.theta,
+    phi: currentSpherical.phi - presetSpherical.phi,
+  };
+}
+
 /**
  * 统一相机控制器
  * 在Canvas内部使用，与 OrbitControls 配合工作
@@ -159,7 +223,7 @@ export function UnifiedCameraController({
   followTarget = true,
   enabled = true,
 }: UnifiedCameraControllerProps) {
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
 
   // 合并配置
   const cfg: Required<CameraConfig> = useMemo(
@@ -187,6 +251,34 @@ export function UnifiedCameraController({
   const prevModeRef = useRef<CameraMode>(cameraMode);
   // 是否已完成首帧视角初始化
   const initializedRef = useRef(false);
+  // 当前按下的鼠标键（用于识别左键拖动）
+  const pointerButtonRef = useRef<number | null>(null);
+  // 记录各预设视角的用户拖动偏移
+  const viewOffsetsRef = useRef<Record<CameraView, ViewOrbitOffset>>(createDefaultViewOffsets());
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const domElement = gl.domElement;
+    const handlePointerDown = (event: PointerEvent) => {
+      pointerButtonRef.current = event.button;
+    };
+    const clearPointer = () => {
+      pointerButtonRef.current = null;
+    };
+
+    domElement.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('pointerup', clearPointer);
+    window.addEventListener('pointercancel', clearPointer);
+    window.addEventListener('blur', clearPointer);
+
+    return () => {
+      domElement.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointerup', clearPointer);
+      window.removeEventListener('pointercancel', clearPointer);
+      window.removeEventListener('blur', clearPointer);
+    };
+  }, [enabled, gl]);
 
   // 监听模式变化，启动过渡动画
   useEffect(() => {
@@ -195,12 +287,17 @@ export function UnifiedCameraController({
     // 检测模式是否变化
     if (prevModeRef.current !== cameraMode && cameraMode !== 'free') {
       // 计算目标位置
-      const preset = calculatePresetPosition(
+      const presetBase = calculatePresetPosition(
         cameraMode,
         position.x,
         position.z,
         headingRad,
         cfg
+      );
+      const presetPosition = applyViewOffset(
+        presetBase.position,
+        presetBase.target,
+        viewOffsetsRef.current[cameraMode]
       );
 
       // 获取当前 OrbitControls 的 target
@@ -211,9 +308,9 @@ export function UnifiedCameraController({
         active: true,
         progress: 0,
         startPos: camera.position.clone(),
-        endPos: preset.position,
+        endPos: presetPosition,
         startTarget: currentTarget,
-        endTarget: preset.target,
+        endTarget: presetBase.target,
       };
     }
 
@@ -227,15 +324,20 @@ export function UnifiedCameraController({
 
     // 首次进入预设视角时，直接将相机放到预设位置，避免首屏偏移
     if (!transition.active && !initializedRef.current && cameraMode !== 'free' && controlsRef.current) {
-      const preset = calculatePresetPosition(
+      const presetBase = calculatePresetPosition(
         cameraMode,
         position.x,
         position.z,
         headingRad,
         cfg
       );
-      camera.position.copy(preset.position);
-      controlsRef.current.target.copy(preset.target);
+      const presetPosition = applyViewOffset(
+        presetBase.position,
+        presetBase.target,
+        viewOffsetsRef.current[cameraMode]
+      );
+      camera.position.copy(presetPosition);
+      controlsRef.current.target.copy(presetBase.target);
       controlsRef.current.update();
       initializedRef.current = true;
       return;
@@ -267,21 +369,70 @@ export function UnifiedCameraController({
 
     // 在非 free 模式下，平滑更新相机位置与 target 跟随船舶
     if (cameraMode !== 'free' && followTarget && controlsRef.current) {
-      const preset = calculatePresetPosition(
+      const presetBase = calculatePresetPosition(
         cameraMode,
         position.x,
         position.z,
         headingRad,
         cfg
       );
+      const presetPosition = applyViewOffset(
+        presetBase.position,
+        presetBase.target,
+        viewOffsetsRef.current[cameraMode]
+      );
 
-      camera.position.lerp(preset.position, cfg.positionLerp);
-      controlsRef.current.target.lerp(preset.target, cfg.targetLerp);
+      // 左键拖动：保持船体为目标中心，并记录拖动后的视角偏移
+      if (pointerButtonRef.current === 0) {
+        const targetDelta = presetBase.target.clone().sub(controlsRef.current.target);
+        camera.position.add(targetDelta);
+        controlsRef.current.target.copy(presetBase.target);
+        viewOffsetsRef.current[cameraMode] = captureViewOffset(
+          presetBase.position,
+          presetBase.target,
+          camera.position,
+          controlsRef.current.target
+        );
+        controlsRef.current.update();
+        return;
+      }
+
+      camera.position.lerp(presetPosition, cfg.positionLerp);
+      controlsRef.current.target.lerp(presetBase.target, cfg.targetLerp);
       controlsRef.current.update();
     }
 
     // free 模式：OrbitControls 完全接管，这里不做任何操作
   });
+
+  return null;
+}
+
+/**
+ * 右键按下时切换自由视角
+ * 左键拖动保持当前预设视角跟随逻辑，不主动切换到 free
+ */
+export function RightClickFreeModeBridge({
+  onRequestFreeMode,
+  enabled = true,
+}: RightClickFreeModeBridgeProps) {
+  const { gl } = useThree();
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const domElement = gl.domElement;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.button === 2) {
+        onRequestFreeMode();
+      }
+    };
+
+    domElement.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      domElement.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [enabled, gl, onRequestFreeMode]);
 
   return null;
 }

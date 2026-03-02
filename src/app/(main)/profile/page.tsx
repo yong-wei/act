@@ -52,6 +52,46 @@ interface UserProfile {
     unlocked: number;
     locked: number;
   };
+  abilityTracking: {
+    pre: {
+      computational: number;
+      crossDomain: number;
+      designTradeoff: number;
+      poleTimeMapping: number;
+      frequencyStability: number;
+    };
+    post: {
+      computational: number;
+      crossDomain: number;
+      designTradeoff: number;
+      poleTimeMapping: number;
+      frequencyStability: number;
+    };
+    delta: {
+      computational: number;
+      crossDomain: number;
+      designTradeoff: number;
+      poleTimeMapping: number;
+      frequencyStability: number;
+    };
+    preWeakTag: string;
+    postWeakTag: string;
+    weakTagLabel: string;
+  };
+  reinforcementPaths: Array<{
+    id: string;
+    title: string;
+    description: string;
+    estimatedTime: number;
+  }>;
+  recommendedQuestions: Array<{
+    id: string;
+    stem: string;
+    difficulty: number;
+    knowledgeTags: string[];
+  }>;
+  promptStructuringScore: number | null;
+  designEffectScore: number | null;
 }
 
 export default function ProfilePage() {
@@ -93,10 +133,10 @@ export default function ProfilePage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="surface-page flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
-          <p className="text-slate-400">加载中...</p>
+          <p className="text-subtle">加载中...</p>
         </div>
       </div>
     );
@@ -104,12 +144,12 @@ export default function ProfilePage() {
 
   if (status === 'unauthenticated') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="surface-page flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl text-slate-300">请先登录</p>
+          <p className="text-xl text-subtle">请先登录</p>
           <Link
             href="/login"
-            className="mt-4 inline-block rounded-lg bg-amber-600 px-6 py-2 text-white hover:bg-amber-700"
+            className="cta-primary mt-4 inline-block rounded-lg px-6 py-2"
           >
             前往登录
           </Link>
@@ -120,12 +160,12 @@ export default function ProfilePage() {
 
   if (error || !profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="surface-page flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl text-red-400">{error || '加载失败'}</p>
           <button
             onClick={fetchProfile}
-            className="mt-4 rounded-lg bg-slate-700 px-6 py-2 text-white hover:bg-slate-600"
+            className="btn-ghost-themed mt-4 rounded-lg px-6 py-2"
           >
             重试
           </button>
@@ -136,19 +176,26 @@ export default function ProfilePage() {
 
   const overallScore = calculateOverallScore(profile.competency);
   const competencyLevel = getCompetencyLevel(overallScore);
+  const trackingRows = [
+    { key: 'computational', label: '计算能力' },
+    { key: 'crossDomain', label: '跨域映射' },
+    { key: 'designTradeoff', label: '设计权衡' },
+    { key: 'poleTimeMapping', label: '极点-时域映射' },
+    { key: 'frequencyStability', label: '频域稳定判读' },
+  ] as const;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
+    <div className="surface-page">
       {/* 头部导航 */}
-      <header className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
+      <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-slate-400 hover:text-white">
+            <Link href="/dashboard" className="text-subtle transition hover:text-foreground">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
-            <h1 className="text-xl font-bold text-white">个人中心</h1>
+            <h1 className="text-xl font-bold text-foreground">个人中心</h1>
           </div>
           <div className="flex items-center gap-3">
             <UserMenu user={profile.user} />
@@ -158,15 +205,15 @@ export default function ProfilePage() {
 
       <main className="mx-auto max-w-[1600px] px-6 py-8">
         {/* 用户卡片 */}
-        <div className="mb-8 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 p-6">
+        <div className="surface-card mb-8 bg-gradient-to-br from-card via-card to-accent/40 p-6">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-3xl font-bold text-white">
                 {profile.user.name?.charAt(0) || 'U'}
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">{profile.user.name}</h2>
-                <p className="text-slate-400">
+                <h2 className="text-2xl font-bold text-foreground">{profile.user.name}</h2>
+                <p className="text-subtle">
                   {profile.profile?.classId || '未设置班级'} · {profile.user.role === 'STUDENT' ? '学生' : profile.user.role}
                 </p>
                 <div className="mt-2 flex items-center gap-4">
@@ -190,8 +237,8 @@ export default function ProfilePage() {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* 左侧：能力雷达图 */}
           <div className="lg:col-span-2">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-              <h3 className="mb-4 text-lg font-semibold text-white">能力画像</h3>
+            <div className="surface-card p-6">
+              <h3 className="mb-4 text-lg font-semibold text-foreground">能力画像</h3>
               <CompetencyRadar data={profile.competency} size="lg" />
               <div className="mt-4 grid grid-cols-5 gap-2">
                 {Object.entries(profile.competency).map(([key, value]) => {
@@ -204,7 +251,7 @@ export default function ProfilePage() {
                   };
                   return (
                     <div key={key} className="text-center">
-                      <div className="text-2xl font-bold text-white">{value}</div>
+                      <div className="text-2xl font-bold text-foreground">{value}</div>
                       <div className="text-xs text-slate-500">{labels[key]}</div>
                     </div>
                   );
@@ -216,8 +263,8 @@ export default function ProfilePage() {
           {/* 右侧：统计数据 */}
           <div className="space-y-6">
             {/* 学习统计 */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-              <h3 className="mb-4 text-lg font-semibold text-white">学习统计</h3>
+            <div className="surface-card p-6">
+              <h3 className="mb-4 text-lg font-semibold text-foreground">学习统计</h3>
               <div className="space-y-4">
                 <StatItem
                   label="完成仿真"
@@ -253,9 +300,9 @@ export default function ProfilePage() {
             </div>
 
             {/* 任务进度 */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-              <h3 className="mb-4 text-lg font-semibold text-white">任务进度</h3>
-              <div className="relative h-4 rounded-full bg-slate-700">
+            <div className="surface-card p-6">
+              <h3 className="mb-4 text-lg font-semibold text-foreground">任务进度</h3>
+              <div className="relative h-4 rounded-full bg-accent/80">
                 <div
                   className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500"
                   style={{
@@ -272,7 +319,7 @@ export default function ProfilePage() {
                   已完成 <span className="text-amber-400">{profile.missionProgress.completed}</span> /{' '}
                   {profile.missionProgress.total}
                 </span>
-                <Link href="/missions" className="text-amber-400 hover:text-amber-300">
+                <Link href="/missions" className="text-primary transition hover:text-primary/80">
                   查看全部 →
                 </Link>
               </div>
@@ -280,9 +327,81 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* 课前 vs 课后能力追踪 + 补强路径 */}
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          <div className="surface-card p-6">
+            <h3 className="mb-4 text-lg font-semibold text-foreground">能力追踪（课前 vs 课后）</h3>
+            <div className="space-y-3">
+              {trackingRows.map((row) => {
+                const pre = profile.abilityTracking.pre[row.key];
+                const post = profile.abilityTracking.post[row.key];
+                const delta = profile.abilityTracking.delta[row.key];
+                return (
+                  <div key={row.key} className="surface-card-soft p-3">
+                    <div className="mb-2 flex items-center justify-between text-sm">
+                      <span className="text-subtle">{row.label}</span>
+                      <span className={delta >= 0 ? 'text-emerald-300' : 'text-red-300'}>
+                        {delta >= 0 ? '+' : ''}{delta}
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-accent/85">
+                      <div
+                        className="h-2 rounded-full bg-slate-500"
+                        style={{ width: `${Math.max(0, Math.min(100, pre))}%` }}
+                      />
+                    </div>
+                    <div className="mt-1 h-2 rounded-full bg-accent/85">
+                      <div
+                        className="h-2 rounded-full bg-emerald-500"
+                        style={{ width: `${Math.max(0, Math.min(100, post))}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-xs text-slate-500">
+                      课前 {pre} → 课后 {post}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+              当前短板：{profile.abilityTracking.weakTagLabel}（{profile.abilityTracking.postWeakTag}）
+            </div>
+            <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-400">
+              <span>提示词结构分：<span className="text-violet-300">{profile.promptStructuringScore ?? '-'}</span></span>
+              <span>设计效果分：<span className="text-emerald-300">{profile.designEffectScore ?? '-'}</span></span>
+            </div>
+          </div>
+
+          <div className="surface-card p-6">
+            <h3 className="mb-4 text-lg font-semibold text-foreground">个性化补强路径</h3>
+            <div className="space-y-3">
+              {profile.reinforcementPaths.map((path) => (
+                <div key={path.id} className="surface-card-soft p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium text-foreground">{path.title}</p>
+                    <span className="text-xs text-amber-300">{path.estimatedTime} min</span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-400">{path.description}</p>
+                </div>
+              ))}
+            </div>
+            <h4 className="mt-5 text-sm font-medium text-slate-200">推荐题单</h4>
+            <div className="mt-2 space-y-2">
+              {profile.recommendedQuestions.map((question) => (
+                <div key={question.id} className="surface-card-soft p-3 text-sm text-slate-200">
+                  <p className="line-clamp-2">{question.stem}</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    难度 {question.difficulty.toFixed(2)} · {question.knowledgeTags.join(' / ')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* 最近活动 */}
-        <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">最近活动</h3>
+        <div className="surface-card mt-8 p-6">
+          <h3 className="mb-4 text-lg font-semibold text-foreground">最近活动</h3>
           {profile.recentActivity.length === 0 ? (
             <p className="text-center text-slate-500 py-8">暂无活动记录</p>
           ) : (
@@ -392,12 +511,12 @@ function ActivityItem({
   };
 
   return (
-    <div className="flex items-center gap-4 rounded-lg bg-slate-800/50 px-4 py-3">
+    <div className="surface-card-soft flex items-center gap-4 px-4 py-3">
       <span className={`rounded-lg px-2 py-1 text-sm ${typeStyles[activity.type]}`}>
         {typeIcons[activity.type]}
       </span>
       <div className="flex-1">
-        <p className="text-sm text-white">{activity.title}</p>
+        <p className="text-sm text-foreground">{activity.title}</p>
         <p className="text-xs text-slate-500">{formatDate(activity.timestamp)}</p>
       </div>
       {activity.result && (
@@ -421,14 +540,14 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="flex items-center gap-4 rounded-xl border border-slate-700 bg-slate-800/50 p-4 transition-colors hover:border-amber-600 hover:bg-slate-800"
+      className="surface-card-soft flex items-center gap-4 p-4 transition-colors hover:border-amber-500/40 hover:bg-accent/70"
     >
       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
         {icon}
       </div>
       <div>
-        <h4 className="font-medium text-white">{title}</h4>
-        <p className="text-sm text-slate-400">{description}</p>
+        <h4 className="font-medium text-foreground">{title}</h4>
+        <p className="text-sm text-subtle">{description}</p>
       </div>
     </Link>
   );
