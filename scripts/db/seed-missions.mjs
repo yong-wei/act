@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * 任务/关卡数据种子脚本
- * 运行: node scripts/seed-missions.mjs
- * 强制覆盖: node scripts/seed-missions.mjs --force
+ * 运行: node scripts/db/seed-missions.mjs
+ * 强制覆盖: node scripts/db/seed-missions.mjs --force
  */
 
 import { PrismaClient } from '@prisma/client';

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * 旧资源迁移脚本（知识卡片 + 资源注册）
- * 运行: node scripts/seed-legacy-content.mjs
+ * 运行: node scripts/db/seed-legacy-content.mjs
  */
 
 import { PrismaClient, ResourceType, KnowledgeNodeType, InteractiveCategory, LessonItemType } from '@prisma/client';

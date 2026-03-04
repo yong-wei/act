@@ -10,6 +10,7 @@ GEMINI.md
 docs/courses/
 deploy/
 data/
+.cache/
 
 # Node/JS
 **/node_modules/
@@ -42,3 +43,5 @@ my-next-app/prisma/dev.db
 
 $ Playwright temp
 .playwright-mcp/
+scripts/**/__pycache__/
+scripts/**/*.pyc

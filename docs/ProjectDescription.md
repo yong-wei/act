@@ -535,7 +535,7 @@ npm test               # 运行测试
 - 启航班课堂历史补齐：新增 17 次课堂记录（含本次课堂），可在班级“课堂历史”中查看。
 - 新增课堂复盘页：`/classroom/teacher/[sessionId]/review`，用于展示“课前 vs 课后能力追踪”与“课后个性化补强路径”。
 - `/review/extracurricular-showcase` 文案和班级定位更新为“2023启航班”。
-- 新增课外展示数据填充脚本 `scripts/seed-extracurricular-showcase.mjs`：一键填充 `data/test_students.md` 全部 31 个学生账号（含 `demo`）的班级归属、前后测能力、题单作答、提示词评估、设计会话、补强路径与奥德赛进度数据。
+- 新增课外展示数据填充脚本 `scripts/db/seed-extracurricular-showcase.mjs`：一键填充 `data/test_students.md` 全部 31 个学生账号（含 `demo`）的班级归属、前后测能力、题单作答、提示词评估、设计会话、补强路径与奥德赛进度数据。
 - 新增展示班级（班级码 `ECSHOW`）主链路数据：重点演示账号 `20230010102608` 与 `20230010102605` 已构造差异化学习轨迹，用于脚本 A/B 镜头展示。
 - 新增教师班级分析聚合能力：`/api/teacher/classes/[classId]/analytics`，统一输出班级热力图、推荐流程、前后测对比、A/B题单、补强路径和提示词结构-设计效果相关性（当前样本 `r≈0.834`）。
 - 新增教师端班级分析页面：`/teacher/classes/[classId]/analytics`，并在班级详情页加入“学情热力图与展示分析”入口。
@@ -552,27 +552,27 @@ npm test               # 运行测试
 - 统一主入口视觉样式：主页 `/`、虚拟实验室 `/virtual-lab`、仿真入口 `/simulations`、互动学习 `/interactive-learning`、评审入口 `/review` 与课外展示入口 `/review/extracurricular-showcase` 已移除硬编码深色配色，改为主题语义色与统一卡片/按钮体系。
 - 新增全链路主题桥接层（`globals.css`）：对历史页面中高频硬编码深色 token（`bg-slate-*`、`text-white`、`border-white/*`、`from/to-slate-*` 及知识图谱/AI/思政模块常见深色 hex 背景）在浅色模式下做统一映射，实现旧页面无需大改即可随主题切换并保持视觉一致性。
 - 学生主工作流页面（`/dashboard`、`/missions`）完成语义化样式改造：统一使用 `surface-page` / `surface-card` / `cta-primary` 等主题组件类，提升跨页面一致性与可维护性。
-- 新增主题覆盖回归测试 `scripts/test-theme-coverage.ts`，用于防止主入口页面再次引入固定深色 token 导致切换失效。
-- 新增高频链路主题回归测试 `scripts/test-theme-workflow-pages.ts`（`npm run test:theme-workflow`）：覆盖 `profile`、班级详情、课堂复盘、提示词评估、多表征联动页面，强制要求页面具备主题语义基类。
+- 新增主题覆盖回归测试 `scripts/tests/test-theme-coverage.ts`，用于防止主入口页面再次引入固定深色 token 导致切换失效。
+- 新增高频链路主题回归测试 `scripts/tests/test-theme-workflow-pages.ts`（`npm run test:theme-workflow`）：覆盖 `profile`、班级详情、课堂复盘、提示词评估、多表征联动页面，强制要求页面具备主题语义基类。
 - 主题统一改造扩展到高频业务页面：`/profile`、`/teacher/classes/[classId]`、`/classroom/teacher/[sessionId]/review`、`/evaluation/prompt-assessment`、`/interactive-learning/multi-representation-linkage` 已统一到 `surface-page` / `surface-topbar` / `surface-card` / `surface-card-soft` 语义样式体系。
 - Chrome DevTools 实测通过：在学生端与教师端核心链路中验证了深浅主题切换（`body` 与 `surface-card` 计算样式在 dark/light 间正确切换），并确认改造页面无新增控制台报错。
 - 修复知识图谱浅色可读性问题：`/knowledge` 的 2D 图谱节点标签由固定白字改为主题感知（浅色深字、深色浅字），并增加反差描边，避免浅色背景下文字不可读。
-- 新增知识图谱主题回归测试 `scripts/test-knowledge-graph-theme.ts`（`npm run test:knowledge-theme`），防止 2D 图谱标签颜色回退为固定白字。
+- 新增知识图谱主题回归测试 `scripts/tests/test-knowledge-graph-theme.ts`（`npm run test:knowledge-theme`），防止 2D 图谱标签颜色回退为固定白字。
 - 知识图谱筛选器升级：新增章节（多选下拉）、`category`、`bloom_level`、关键词联合筛选；关系类型计数改为按当前筛选/搜索结果实时统计；默认仅展示“前置关系”。
 - 知识图谱章节化展示升级：左侧节点列表改为按章节分组并默认折叠；图谱渲染中注入章节顶层节点并按顺序显示：`基本概念 → 系统模型 → 时域分析 → 根轨迹分析 → 频域分析 → 系统校正 → 离散系统 → 非线性系统 → 状态空间`。
 - 知识图谱节点详情增强：点击节点后新增条件展示字段 `examples`、`difficulty`、`importance`、`keywords`、`formulas`；节点信息栏新增章节信息。
 - 知识图谱浅色主题细化：关系筛选区与左侧节点标签完成浅色重配色；3D 视图节点标签在浅色模式改为深色文字，提升可读性。
 - 数据源补齐：`data/knowledge_graph.json` 全量 612 个节点新增 `chapter_name` 字段，前后端统一按数据文件中的章节名称渲染与排序。
-- 新增知识图谱筛选回归测试 `scripts/test-knowledge-graph-filters.ts`（`npm run test:knowledge-filters`），覆盖章节映射、默认前置关系选择与筛选范围内关系计数。
+- 新增知识图谱筛选回归测试 `scripts/tests/test-knowledge-graph-filters.ts`（`npm run test:knowledge-filters`），覆盖章节映射、默认前置关系选择与筛选范围内关系计数。
 - 新增统一导航组件 `src/components/shared/feature-page-nav.tsx`，并接入知识图谱、虚拟仿真、思政沙盘、AI工坊、评审入口及其下层页面，统一“返回上一级”样式并固定在左上区域。
 - 评审入口页简化文案：头部仅保留标题；下方入口卡片移除“来源文件”字段展示。
 - 主页入口隐藏“思政沙盘”“AI工坊”：同步移除首页顶栏导航与入口矩阵中的两个入口，并调整入口矩阵说明为“三大核心模块”。
-- 账号口令对齐：新增固定账号密码更新脚本 `scripts/update-fixed-account-passwords.mjs`，将工号 `201300000012` 密码设置为 `zyw1983@Just`，管理员账号 `admin` 密码设置为 `admin@Just`。
+- 账号口令对齐：新增固定账号密码更新脚本 `scripts/db/update-fixed-account-passwords.mjs`，将工号 `201300000012` 密码设置为 `zyw1983@Just`，管理员账号 `admin` 密码设置为 `admin@Just`。
 - 用户菜单主题统一：`src/components/shared/user-menu.tsx` 移除硬编码深色样式，改为语义主题样式（支持深/浅色统一）；同时提升下拉与弹窗层级，避免在 dashboard/teacher/admin 顶栏中被遮挡。
-- 新增回归脚本：`scripts/test-user-menu-theme.mjs`（菜单主题样式校验）、`scripts/test-account-password-overrides.mjs`（固定账号密码校验），并在 `package.json` 增加 `seed:fixed-passwords`、`test:user-menu-theme`、`test:account-passwords`。
-- 新增学期级学生使用数据填充脚本 `scripts/seed-semester-usage-for-test-students.mjs`：按 `data/test_students.md` 全量 142 个学生账号重建仿真日志、习题作答与关卡进度数据，满足“仿真每类 10-30 次（可缺席部分类型）、每类仿真时长 60-300 分钟、习题 300-500 次、游戏每关 1-30 次且积分 1000-2000”。
-- 新增学期数据校验脚本 `scripts/verify-semester-usage-for-test-students.mjs`（`npm run test:semester-usage`），用于自动核验上述数据区间约束。
-- 新增模型渲染策略测试脚本 `scripts/test-model-render-policy.ts`（`npm run test:model-render-policy`），覆盖“管理员开关 + 网络条件降级”的决策逻辑。
+- 新增回归脚本：`scripts/tests/test-user-menu-theme.mjs`（菜单主题样式校验）、`scripts/tests/test-account-password-overrides.mjs`（固定账号密码校验），并在 `package.json` 增加 `seed:fixed-passwords`、`test:user-menu-theme`、`test:account-passwords`。
+- 新增学期级学生使用数据填充脚本 `scripts/db/seed-semester-usage-for-test-students.mjs`：按 `data/test_students.md` 全量 142 个学生账号重建仿真日志、习题作答与关卡进度数据，满足“仿真每类 10-30 次（可缺席部分类型）、每类仿真时长 60-300 分钟、习题 300-500 次、游戏每关 1-30 次且积分 1000-2000”。
+- 新增学期数据校验脚本 `scripts/tests/verify-semester-usage-for-test-students.mjs`（`npm run test:semester-usage`），用于自动核验上述数据区间约束。
+- 新增模型渲染策略测试脚本 `scripts/tests/test-model-render-policy.ts`（`npm run test:model-render-policy`），覆盖“管理员开关 + 网络条件降级”的决策逻辑。
 - 新增服务器配置指南 `docs/Server_Codex_Nginx_HTTP2_Guide_2026-03-03.md`，用于在 ECS 上由 Codex 执行 Nginx 配置加固（HTTP2/RSC/GLB 传输稳定性）。
 
 ---

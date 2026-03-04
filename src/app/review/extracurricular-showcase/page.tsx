@@ -14,7 +14,7 @@ export default async function ExtracurricularShowcaseReviewPage() {
   try {
     const classInfo = await fetchShowcaseClass()
     if (!classInfo?.id) {
-      error = `未找到展示班级（${SHOWCASE_CLASS_NAME} / ${SHOWCASE_CLASS_CODE}），请先执行 scripts/migrate-showcase-to-qihang.mjs`
+      error = `未找到展示班级（${SHOWCASE_CLASS_NAME} / ${SHOWCASE_CLASS_CODE}），请先执行 scripts/db/migrate-showcase-to-qihang.mjs`
     } else {
       analytics = await getClassExtracurricularAnalytics(classInfo.id)
     }
@@ -30,7 +30,7 @@ export default async function ExtracurricularShowcaseReviewPage() {
           <div className="mx-auto w-full max-w-5xl rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-foreground">
             <h1 className="text-2xl font-semibold">课外展示聚合入口</h1>
             <p className="mt-3 text-sm text-red-200">{error || '暂无可展示数据'}</p>
-            <p className="mt-3 text-xs text-subtle">建议执行：`node scripts/migrate-showcase-to-qihang.mjs`</p>
+            <p className="mt-3 text-xs text-subtle">建议执行：`node scripts/db/migrate-showcase-to-qihang.mjs`</p>
           </div>
         </div>
       </main>

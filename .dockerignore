@@ -20,8 +20,9 @@ coverage
 codex
 .codex
 .playwright-mcp
-.buildx-cache
-.buildx-cache*
+.cache
+.cache/*
+scripts/
 *.tsbuildinfo
 deploy/images
 deploy

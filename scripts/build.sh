@@ -11,13 +11,15 @@ NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"
 PRISMA_ENGINES_MIRROR="${PRISMA_ENGINES_MIRROR:-https://registry.npmmirror.com/-/binary/prisma}"
 CACHE_MODE="${CACHE_MODE:-min}"
 
-CACHE_FROM_DIR="${CACHE_FROM_DIR:-.buildx-cache}"
-CACHE_TO_DIR="${CACHE_TO_DIR:-.buildx-cache-new}"
+CACHE_ROOT="${CACHE_ROOT:-.cache/buildx}"
+CACHE_FROM_DIR="${CACHE_FROM_DIR:-${CACHE_ROOT}/cache}"
+CACHE_TO_DIR="${CACHE_TO_DIR:-${CACHE_ROOT}/cache-new}"
 
 echo "[1/2] 本地构建校验（含 Prisma generate + Next 类型检查）"
 npm run build
 
 mkdir -p "$(dirname "${OUTPUT_TAR}")"
+mkdir -p "${CACHE_ROOT}"
 rm -rf "${CACHE_TO_DIR}"
 mkdir -p "${CACHE_TO_DIR}"
 

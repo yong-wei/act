@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(scriptDir, '..');
+const rootDir = path.resolve(scriptDir, '../..');
 const schemaPath = path.join(rootDir, 'prisma', 'schema.prisma');
 const authRoutePath = path.join(
   rootDir,

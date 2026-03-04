@@ -18,7 +18,7 @@ NC='\033[0m' # No Color
 
 # 目录定义
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOGS_DIR="$PROJECT_DIR/.logs"
 PIDS_DIR="$LOGS_DIR/pids"
 

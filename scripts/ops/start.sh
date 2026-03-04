@@ -19,7 +19,7 @@ NC='\033[0m' # No Color
 
 # 目录定义
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOGS_DIR="$PROJECT_DIR/.logs"
 PIDS_DIR="$LOGS_DIR/pids"
 
@@ -207,5 +207,5 @@ echo -e "  ${BLUE}查看日志:${NC}"
 echo -e "    ${YELLOW}tail -f $LOGS_DIR/frontend.log${NC}"
 echo ""
 echo -e "  ${BLUE}停止服务:${NC}"
-echo -e "    ${YELLOW}./scripts/stop.sh${NC}"
+echo -e "    ${YELLOW}./scripts/ops/stop.sh${NC}"
 echo ""

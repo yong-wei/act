@@ -1,7 +1,7 @@
 /**
  * 种子脚本：注册所有互动学习组件到数据库
  *
- * 运行命令：npx ts-node scripts/seed-interactive-resources.ts
+ * 运行命令：npx ts-node scripts/db/seed-interactive-resources.ts
  */
 
 import { PrismaClient } from '@prisma/client';

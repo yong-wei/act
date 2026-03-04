@@ -259,7 +259,7 @@ npm run startup
 
 ### Q: 如何添加新任务？
 
-运行 `scripts/seed-missions.mjs`，或手动在数据库中添加。
+运行 `scripts/db/seed-missions.mjs`，或手动在数据库中添加。
 
 ### Q: 如何查看数据库内容？
 

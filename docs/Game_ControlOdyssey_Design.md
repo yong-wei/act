@@ -359,7 +359,7 @@ interface ShopConfig {
     *   `index.tsx`: 组装了游戏主界面，包含 Canvas 和 控制面板占位符。
 *   **系统集成**：
     *   在 `src/lib/resource-registry.tsx` 中注册为 `control-odyssey-v1`。
-    *   执行了 `scripts/seed-interactive-resources.ts`，将游戏添加到数据库的 `FUN_EXPLORATION` 分类中。
+    *   执行了 `scripts/db/seed-interactive-resources.ts`，将游戏添加到数据库的 `FUN_EXPLORATION` 分类中。
     *   创建了独立访问路由 `src/app/interactive-learning/control-odyssey/page.tsx`。
 
 ### 2026-01-08: UI 与流程修正

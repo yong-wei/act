@@ -2,10 +2,25 @@
 
 ## 📋 目录
 
+- [目录结构](#目录结构)
 - [启动和停止脚本](#启动和停止脚本)
 - [数据种子脚本](#数据种子脚本)
 - [测试脚本](#测试脚本)
 - [日志管理](#日志管理)
+
+## 🗂️ 目录结构
+
+脚本按职责分层，避免所有文件堆在 `scripts/` 根目录：
+
+```text
+scripts/
+├── analysis/   # 分析与诊断脚本
+├── db/         # 数据迁移、种子与数据修复脚本
+├── ops/        # 启停、日志、运维辅助脚本
+├── tests/      # 各类测试与校验脚本
+├── build.sh    # 统一镜像构建入口
+└── README.md
+```
 
 ## 🚀 启动和停止脚本
 
@@ -15,7 +30,7 @@
 
 ```bash
 # 方式 1: 直接运行脚本
-./scripts/start.sh
+./scripts/ops/start.sh
 
 # 方式 2: 使用 npm 命令
 npm run startup
@@ -36,7 +51,7 @@ npm run startup
 
 ```bash
 # 方式 1: 直接运行脚本
-./scripts/stop.sh
+./scripts/ops/stop.sh
 
 # 方式 2: 使用 npm 命令
 npm run shutdown
@@ -66,13 +81,13 @@ npm run dev
 
 ```bash
 # 首次导入
-node scripts/seed-missions.mjs
+node scripts/db/seed-missions.mjs
 
 # 或使用 npm 命令
 npm run seed:missions
 
 # 强制覆盖现有数据
-node scripts/seed-missions.mjs --force
+node scripts/db/seed-missions.mjs --force
 ```
 
 **任务列表：**
@@ -157,7 +172,7 @@ tail -f .logs/error.log
 手动清理：
 
 ```bash
-node scripts/clear-logs.mjs
+node scripts/ops/clear-logs.mjs
 ```
 
 ## 🔧 故障排查
@@ -176,8 +191,8 @@ node scripts/clear-logs.mjs
 
 3. **清理进程并重启：**
    ```bash
-   ./scripts/stop.sh
-   ./scripts/start.sh
+   ./scripts/ops/stop.sh
+   ./scripts/ops/start.sh
    ```
 
 ### PostgreSQL 连接失败

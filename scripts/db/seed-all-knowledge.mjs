@@ -4,7 +4,7 @@
  * 统一的知识点种子脚本
  * 将所有 content/concepts/ 下的 MDX 文件关联到数据库中的 KnowledgeNode
  *
- * 运行方式: node scripts/seed-all-knowledge.mjs
+ * 运行方式: node scripts/db/seed-all-knowledge.mjs
  */
 
 import { PrismaClient } from '@prisma/client';

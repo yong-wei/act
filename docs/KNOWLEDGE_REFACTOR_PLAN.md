@@ -22,7 +22,7 @@
     - [x] **验收标准**: `npx prisma migrate dev` 成功执行，生成的 SQL 符合预期。
 
 - [x] **1.2 数据迁移脚本 (Seeding)**
-    - [x] 编写 `scripts/seed-knowledge.ts` (实际使用 .mjs)。
+    - [x] 编写 `scripts/db/seed-knowledge.ts` (实际使用 .mjs)。
     - [x] 将 `src/components/knowledge/data/lesson-knowledge-cards.ts` 中的静态数据迁移到数据库。
     - [x] **验收标准**: 运行脚本后，数据库中 `KnowledgeNode` 表有数据，且包含正确的元数据。
 
