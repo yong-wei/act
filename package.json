@@ -24,7 +24,16 @@
     "logs": "tail -f .logs/frontend.log",
     "logs:error": "tail -f .logs/error.log",
     "test:theme-workflow": "npx --yes tsx ./scripts/test-theme-workflow-pages.ts",
-    "test:knowledge-theme": "npx --yes tsx ./scripts/test-knowledge-graph-theme.ts"
+    "test:knowledge-theme": "npx --yes tsx ./scripts/test-knowledge-graph-theme.ts",
+    "test:knowledge-filters": "npx --yes tsx ./scripts/test-knowledge-graph-filters.ts",
+    "test:knowledge-panel": "npx --yes tsx ./scripts/test-knowledge-resource-panel-format.ts",
+    "test:user-menu-theme": "node ./scripts/test-user-menu-theme.mjs",
+    "test:cruise-class-code": "node ./scripts/test-cruise-class-code-display.mjs",
+    "test:account-passwords": "node ./scripts/test-account-password-overrides.mjs",
+    "test:model-render-policy": "npx --yes tsx ./scripts/test-model-render-policy.ts",
+    "seed:fixed-passwords": "node ./scripts/update-fixed-account-passwords.mjs",
+    "seed:semester-usage": "node ./scripts/seed-semester-usage-for-test-students.mjs",
+    "test:semester-usage": "node ./scripts/verify-semester-usage-for-test-students.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.72",

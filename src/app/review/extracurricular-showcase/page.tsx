@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ArrowUpRight, Brain, Sigma, Users } from 'lucide-react'
+import { FeaturePageNav } from '@/components/shared/feature-page-nav'
 import { getClassExtracurricularAnalytics } from '@/lib/extracurricular-analytics'
 import { prisma } from '@/lib/prisma'
 
@@ -23,11 +24,14 @@ export default async function ExtracurricularShowcaseReviewPage() {
 
   if (error || !analytics) {
     return (
-      <main className="surface-page px-6 py-10">
-        <div className="mx-auto w-full max-w-5xl rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-foreground">
-          <h1 className="text-2xl font-semibold">课外展示聚合入口</h1>
-          <p className="mt-3 text-sm text-red-200">{error || '暂无可展示数据'}</p>
-          <p className="mt-3 text-xs text-subtle">建议执行：`node scripts/migrate-showcase-to-qihang.mjs`</p>
+      <main className="surface-page">
+        <FeaturePageNav title="课外展示聚合入口" backHref="/review" backLabel="返回评审入口" />
+        <div className="px-6 py-10">
+          <div className="mx-auto w-full max-w-5xl rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-foreground">
+            <h1 className="text-2xl font-semibold">课外展示聚合入口</h1>
+            <p className="mt-3 text-sm text-red-200">{error || '暂无可展示数据'}</p>
+            <p className="mt-3 text-xs text-subtle">建议执行：`node scripts/migrate-showcase-to-qihang.mjs`</p>
+          </div>
         </div>
       </main>
     )
@@ -35,6 +39,7 @@ export default async function ExtracurricularShowcaseReviewPage() {
 
   return (
     <main className="surface-page">
+      <FeaturePageNav title="课外展示聚合入口" backHref="/review" backLabel="返回评审入口" />
       <div className="mx-auto w-full max-w-6xl px-6 py-10">
         <header className="surface-card mb-6 p-6">
           <h1 className="text-3xl font-semibold text-foreground">课外教学展示聚合入口</h1>
@@ -108,15 +113,6 @@ export default async function ExtracurricularShowcaseReviewPage() {
           </ol>
         </section>
 
-        <div className="mt-6">
-          <Link
-            href="/review"
-            className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition hover:border-primary/60"
-          >
-            返回评审入口
-            <ArrowUpRight className="h-4 w-4" />
-          </Link>
-        </div>
       </div>
     </main>
   )

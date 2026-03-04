@@ -376,7 +376,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="border-b border-cyan-500/30 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      <header className="relative z-20 border-b border-cyan-500/30 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
         <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-6 py-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>

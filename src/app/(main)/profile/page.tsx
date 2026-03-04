@@ -540,6 +540,7 @@ function QuickAction({
   return (
     <Link
       href={href}
+      prefetch={href.startsWith('/simulations') ? false : undefined}
       className="surface-card-soft flex items-center gap-4 p-4 transition-colors hover:border-amber-500/40 hover:bg-accent/70"
     >
       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">

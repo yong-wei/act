@@ -331,6 +331,7 @@ function FeatureCard({
   return (
     <Link
       href={href}
+      prefetch={href.startsWith('/simulations') ? false : undefined}
       className="surface-card-soft group relative overflow-hidden p-6 transition-all hover:border-primary/45 hover:bg-accent/85 hover:shadow-lg hover:shadow-primary/15"
     >
       <div className="mb-4 flex items-start justify-between">
@@ -370,6 +371,7 @@ function QuickAction({
   return (
     <Link
       href={href}
+      prefetch={href.startsWith('/simulations') ? false : undefined}
       className="surface-card-soft flex items-center gap-4 p-4 transition-colors hover:border-primary/35 hover:bg-accent/70"
     >
       <span className="text-3xl">{icon}</span>

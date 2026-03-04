@@ -3,7 +3,7 @@ import 'server-only';
 import fs from 'fs/promises';
 import path from 'path';
 import { prisma } from '@/lib/prisma';
-import { getRelationCategory } from '@/lib/knowledge-labels';
+import { getRelationCategory, resolveChapterName } from '@/lib/knowledge-labels';
 
 type NodeType = 'THEORY' | 'SCENARIO' | 'ETHICS';
 type BloomLevel = 'REMEMBER' | 'UNDERSTAND' | 'APPLY' | 'ANALYZE' | 'EVALUATE' | 'CREATE';
@@ -25,6 +25,7 @@ export interface UnifiedKnowledgeNode {
   resources?: unknown[];
   tags?: string[];
   chapter?: number;
+  chapterName?: string;
 }
 
 export interface UnifiedKnowledgeLink {
@@ -60,6 +61,7 @@ interface RawKnowledgeGraphNode {
   category?: string;
   bloom_level?: string;
   chapter?: number;
+  chapter_name?: string;
   definition?: string;
   examples?: string[];
   formulas?: string[];
@@ -232,6 +234,7 @@ async function loadKnowledgeGraphFromFiles(): Promise<UnifiedKnowledgeGraphPaylo
     byName.set(node.name, existing);
 
     const chapter = typeof node.chapter === 'number' ? node.chapter : undefined;
+    const chapterName = resolveChapterName(chapter, node.chapter_name);
     const ring = Math.floor(index / 24);
     const angle = (index % 24) * ((2 * Math.PI) / 24);
     const radius = (chapter ?? 1) * 14 + ring * 6;
@@ -247,9 +250,12 @@ async function loadKnowledgeGraphFromFiles(): Promise<UnifiedKnowledgeGraphPaylo
       positionY: Math.round(Math.sin(angle) * radius * 10) / 10,
       positionZ: chapter ?? 0,
       chapter,
+      chapterName,
       metadata: {
         chapter,
+        chapterName,
         category: node.category ?? null,
+        bloom_level: node.bloom_level ?? null,
         definition: node.definition ?? null,
         examples: node.examples ?? [],
         formulas: node.formulas ?? [],
@@ -330,13 +336,26 @@ async function loadKnowledgeGraphFromDatabase(): Promise<UnifiedKnowledgeGraphPa
   ]);
 
   return {
-    nodes: nodes.map((node) => ({
-      ...node,
-      metadata: (node.metadata ?? {}) as Record<string, unknown>,
-      content: (node.content ?? {}) as Record<string, unknown>,
-      resources: Array.isArray(node.resources) ? (node.resources as unknown[]) : [],
-      tags: node.tags ?? [],
-    })),
+    nodes: nodes.map((node) => {
+      const metadata = (node.metadata ?? {}) as Record<string, unknown>;
+      const chapterValue = metadata.chapter;
+      const chapter = typeof chapterValue === 'number' ? chapterValue : undefined;
+      const chapterNameValue = metadata.chapterName;
+      const chapterName = resolveChapterName(
+        chapter,
+        typeof chapterNameValue === 'string' ? chapterNameValue : null
+      );
+
+      return {
+        ...node,
+        chapter,
+        chapterName,
+        metadata,
+        content: (node.content ?? {}) as Record<string, unknown>,
+        resources: Array.isArray(node.resources) ? (node.resources as unknown[]) : [],
+        tags: node.tags ?? [],
+      };
+    }),
     links: links.map((link) => {
       const relationType = normalizeRelationType(link.relation);
       return {

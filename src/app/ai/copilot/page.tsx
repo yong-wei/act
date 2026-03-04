@@ -9,6 +9,7 @@
 import { useChat } from 'ai/react';
 import { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { FeaturePageNav } from '@/components/shared/feature-page-nav';
 
 export default function CopilotPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -43,7 +44,8 @@ export default function CopilotPage() {
   ];
 
   return (
-    <div className="flex h-screen flex-col bg-gradient-to-b from-slate-950 to-slate-900">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-slate-950 to-slate-900">
+      <FeaturePageNav title="AI 虚拟总工" backHref="/ai" backLabel="返回AI工坊" />
       {/* 头部 */}
       <header className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
@@ -62,12 +64,6 @@ export default function CopilotPage() {
               <p className="text-sm text-amber-400">中船重工船舶控制教学助手</p>
             </div>
           </div>
-          <a
-            href="/simulations/destroyer"
-            className="rounded-lg bg-slate-800 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
-          >
-            返回仿真
-          </a>
         </div>
       </header>
 

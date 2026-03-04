@@ -928,3 +928,10 @@ model DesignSession {
 
   @@index([userId, startedAt])
 }
+
+model PlatformSetting {
+  key       String   @id
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

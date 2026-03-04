@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { Camera, ExternalLink, Layers } from 'lucide-react';
+import { FeaturePageNav } from '@/components/shared/feature-page-nav';
 
 type FigureEntry = {
   id: string;
@@ -35,7 +35,8 @@ const figureEntries: FigureEntry[] = [
 
 export default function AdaptiveAssessmentFiguresPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
+    <main className="surface-page">
+      <FeaturePageNav title="自适应测评三图聚合预览" backHref="/review" backLabel="返回评审入口" />
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         <header className="rounded-2xl border border-white/10 bg-slate-900/60 p-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
@@ -46,14 +47,6 @@ export default function AdaptiveAssessmentFiguresPage() {
           <p className="mt-2 text-sm text-slate-300">
             每个卡片均对应报告模板中的一个空白位。可直接在本页预览并按截图文件名导出。
           </p>
-          <div className="mt-4">
-            <Link
-              href="/review"
-              className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-slate-200 hover:border-cyan-300/70 hover:text-white"
-            >
-              返回评审入口
-            </Link>
-          </div>
         </header>
 
         <section className="grid gap-5">

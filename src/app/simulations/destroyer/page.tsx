@@ -1,4 +1,5 @@
 import dynamicImport from 'next/dynamic';
+import { FeaturePageNav } from '@/components/shared/feature-page-nav';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,10 +17,8 @@ const DestroyerSimulation = dynamicImport(
 
 export default function DestroyerSimulationPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-6 pb-2 pt-5">
-        <h1 className="text-lg font-semibold text-slate-100">军用驱逐舰战术机动仿真</h1>
-      </header>
+    <div className="relative min-h-screen bg-slate-950 text-slate-100">
+      <FeaturePageNav title="军用驱逐舰战术机动仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
       <DestroyerSimulation />
     </div>
   );

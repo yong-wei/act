@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { getServerAuthSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import type { Prisma } from '@prisma/client';
 import {
   CONTROL_SHOP_CONFIG,
   CONTROLLER_UPGRADE_RULES,
@@ -63,6 +64,29 @@ type ControlBestScores = Record<
     tiers: Partial<Record<LevelTier, number>>;
   }
 >;
+type ControlBestScoreLog = {
+  score: number | null;
+  missionId: string | null;
+  inputParams: unknown;
+};
+type ControlLeaderboardLog = {
+  userId: string;
+  inputParams: unknown;
+  score: number | null;
+  metrics: unknown;
+  createdAt: Date;
+  user: {
+    name: string | null;
+    image: string | null;
+    email: string | null;
+  };
+};
+type ControlConfigLog = {
+  score: number | null;
+  createdAt: Date;
+  inputParams: unknown;
+  metrics: unknown;
+};
 
 const normalizeUnlocks = (value: unknown): ControllerId[] => {
   if (!Array.isArray(value)) {
@@ -132,7 +156,7 @@ const resolveTierUnlock = (currentTier: LevelTier | undefined, completedTier?: L
 };
 
 const buildBestScores = async (userId: string): Promise<ControlBestScores> => {
-  const logs = await prisma.simulationLog.findMany({
+  const logs = (await prisma.simulationLog.findMany({
     where: {
       userId,
       controlMode: 'GAME',
@@ -145,7 +169,7 @@ const buildBestScores = async (userId: string): Promise<ControlBestScores> => {
       missionId: true,
       inputParams: true
     }
-  });
+  })) as ControlBestScoreLog[];
   const bestScores: ControlBestScores = {};
 
   logs.forEach((log) => {
@@ -222,7 +246,7 @@ export async function purchaseController(controllerId: ControllerId): Promise<Co
     throw new Error('无效的控制器类型');
   }
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const profile = await tx.studentProfile.findUnique({
       where: { userId: session.user.id },
       select: {
@@ -301,7 +325,7 @@ export async function upgradeController(controllerId: ControllerId): Promise<Con
     throw new Error('无效的升级类型');
   }
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const profile = await tx.studentProfile.findUnique({
       where: { userId: session.user.id },
       select: {
@@ -367,7 +391,7 @@ export async function redeemControlAICredits(): Promise<number | null> {
     return null;
   }
 
-  const updatedCredits = await prisma.$transaction(async (tx) => {
+  const updatedCredits = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const profile = await tx.studentProfile.findUnique({
       where: { userId: session.user.id },
       select: {
@@ -402,7 +426,7 @@ export async function redeemControlAICredits(): Promise<number | null> {
  */
 export async function getLevelLeaderboard(levelId: string): Promise<LeaderboardEntry[]> {
   try {
-    const logs = await prisma.simulationLog.findMany({
+    const logs = (await prisma.simulationLog.findMany({
       where: {
         score: {
           not: null
@@ -430,7 +454,7 @@ export async function getLevelLeaderboard(levelId: string): Promise<LeaderboardE
           }
         }
       }
-    });
+    })) as ControlLeaderboardLog[];
 
     const seenUsers = new Set<string>();
     const uniqueLogs = logs.filter((log) => {
@@ -588,7 +612,7 @@ export async function getTopControlConfigs(levelId: string): Promise<ControlConf
     return [];
   }
 
-  const logs = await prisma.simulationLog.findMany({
+  const logs = (await prisma.simulationLog.findMany({
     where: {
       userId: session.user.id,
       score: {
@@ -614,7 +638,7 @@ export async function getTopControlConfigs(levelId: string): Promise<ControlConf
       inputParams: true,
       metrics: true
     }
-  });
+  })) as ControlConfigLog[];
 
   return logs.map((log) => {
     const params = (log.inputParams ?? {}) as Record<string, any>;

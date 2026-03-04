@@ -5,10 +5,26 @@ RUN apk add --no-cache libc6-compat openssl
 # Dependencies stage
 FROM base AS deps
 WORKDIR /app
+ARG NPM_REGISTRY=https://registry.npmmirror.com
+ARG PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma
+ARG PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=
 
 # Copy package files
 COPY package.json package-lock.json* ./
-RUN npm ci
+COPY prisma ./prisma
+RUN --mount=type=cache,target=/root/.npm \
+  --mount=type=cache,target=/root/.cache/prisma \
+  npm config set registry ${NPM_REGISTRY} \
+  && npm config set fetch-retries 5 \
+  && npm config set fetch-retry-mintimeout 20000 \
+  && npm config set fetch-retry-maxtimeout 120000 \
+  && npm config set fetch-timeout 600000 \
+  && if [ -n "${PRISMA_ENGINES_MIRROR}" ]; then export PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}; fi \
+  && if [ -n "${PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING}" ]; then export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=${PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING}; fi \
+  && npm config get registry \
+  && echo "PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}" \
+  && echo "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=${PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING}" \
+  && npm ci --prefer-offline
 
 # Builder stage
 FROM base AS builder
@@ -20,7 +36,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Build the application
-RUN npm run build
+RUN npx next build
 
 # Runner stage
 FROM base AS runner

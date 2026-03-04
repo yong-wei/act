@@ -6,7 +6,8 @@ const prisma = new PrismaClient()
 const ADMIN_ACCOUNT = {
   name: 'admin',
   email: 'admin',
-  password: '123456',
+  employeeNumber: 'admin',
+  password: 'admin@Just',
 }
 
 async function main() {
@@ -26,6 +27,7 @@ async function main() {
       data: {
         name: ADMIN_ACCOUNT.name,
         email: ADMIN_ACCOUNT.email,
+        employeeNumber: ADMIN_ACCOUNT.employeeNumber,
         passwordHash,
         role: UserRole.ADMIN,
       },
@@ -38,6 +40,7 @@ async function main() {
     data: {
       name: ADMIN_ACCOUNT.name,
       email: ADMIN_ACCOUNT.email,
+      employeeNumber: ADMIN_ACCOUNT.employeeNumber,
       passwordHash,
       role: UserRole.ADMIN,
     },

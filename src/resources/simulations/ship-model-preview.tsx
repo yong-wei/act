@@ -1,12 +1,15 @@
 'use client'
 
 import {
+  Component,
   Suspense,
   useEffect,
   useMemo,
   useRef,
   useState,
+  type ErrorInfo,
   type MutableRefObject,
+  type ReactNode,
   type RefObject,
 } from 'react'
 import Image from 'next/image'
@@ -14,6 +17,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+import { shouldForceStaticByConnection, type ConnectionHint } from '@/lib/model-render-policy'
 
 type ShipModelPreviewProps = {
   modelPath: string
@@ -62,6 +66,7 @@ const MODEL_POSTER: Record<string, string> = {
 }
 
 const preloadRequested = new Set<string>()
+let preloadQueue = Promise.resolve()
 
 function runInIdle(callback: () => void) {
   if (typeof window === 'undefined') {
@@ -71,7 +76,6 @@ function runInIdle(callback: () => void) {
 
   const maybeWindow = window as Window & {
     requestIdleCallback?: (cb: IdleRequestCallback, options?: IdleRequestOptions) => number
-    cancelIdleCallback?: (id: number) => void
   }
 
   if (typeof maybeWindow.requestIdleCallback === 'function') {
@@ -82,15 +86,43 @@ function runInIdle(callback: () => void) {
   window.setTimeout(callback, 180)
 }
 
+function getConnectionHint(): ConnectionHint | undefined {
+  if (typeof navigator === 'undefined') {
+    return undefined
+  }
+
+  const maybeNavigator = navigator as Navigator & {
+    connection?: ConnectionHint
+  }
+
+  return maybeNavigator.connection
+}
+
+function queuePreload(run: () => void) {
+  preloadQueue = preloadQueue
+    .then(() => {
+      run()
+    })
+    .catch(() => {
+      run()
+    })
+}
+
 export function preloadShipModel(modelPath: string, priority: PreloadPriority = 'idle') {
   if (!modelPath || preloadRequested.has(modelPath)) {
+    return
+  }
+
+  if (shouldForceStaticByConnection(getConnectionHint())) {
     return
   }
 
   preloadRequested.add(modelPath)
 
   const run = () => {
-    useGLTF.preload(modelPath)
+    queuePreload(() => {
+      useGLTF.preload(modelPath)
+    })
   }
 
   if (priority === 'high') {
@@ -103,6 +135,19 @@ export function preloadShipModel(modelPath: string, priority: PreloadPriority = 
 
 export function getShipModelPosterPath(modelPath: string) {
   return MODEL_POSTER[modelPath] ?? '/assets/destroyer.png'
+}
+
+class ModelLoadBoundary extends Component<{
+  children: ReactNode
+  onError: () => void
+}> {
+  componentDidCatch(_error: unknown, _errorInfo: ErrorInfo) {
+    this.props.onError()
+  }
+
+  render() {
+    return this.props.children
+  }
 }
 
 function CenteredModel({ modelPath, onReady }: { modelPath: string; onReady: () => void }) {
@@ -156,22 +201,64 @@ export function ShipModelPreview({
 }: ShipModelPreviewProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null)
   const isInteractingRef = useRef(false)
+  const retryTimerRef = useRef<number | null>(null)
   const [showCanvas, setShowCanvas] = useState(false)
   const [isModelReady, setIsModelReady] = useState(false)
+  const [isStaticOnly, setIsStaticOnly] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+  const [retryKey, setRetryKey] = useState(0)
+  const [loadFailed, setLoadFailed] = useState(false)
 
   const posterPath = getShipModelPosterPath(modelPath)
 
   useEffect(() => {
     setShowCanvas(false)
     setIsModelReady(false)
+    setRetryCount(0)
+    setRetryKey(0)
+    setLoadFailed(false)
+
+    if (retryTimerRef.current) {
+      window.clearTimeout(retryTimerRef.current)
+      retryTimerRef.current = null
+    }
+
+    const staticOnly = shouldForceStaticByConnection(getConnectionHint())
+    setIsStaticOnly(staticOnly)
+    if (staticOnly) {
+      return
+    }
 
     const timer = window.setTimeout(() => {
       preloadShipModel(modelPath, 'high')
       setShowCanvas(true)
     }, 120)
 
-    return () => window.clearTimeout(timer)
+    return () => {
+      window.clearTimeout(timer)
+      if (retryTimerRef.current) {
+        window.clearTimeout(retryTimerRef.current)
+        retryTimerRef.current = null
+      }
+    }
   }, [modelPath])
+
+  const handleModelError = () => {
+    setIsModelReady(false)
+    if (retryCount < 2) {
+      const nextRetryCount = retryCount + 1
+      setRetryCount(nextRetryCount)
+      retryTimerRef.current = window.setTimeout(() => {
+        preloadShipModel(modelPath, 'high')
+        setRetryKey((prev) => prev + 1)
+        setShowCanvas(true)
+      }, 600 * nextRetryCount)
+      return
+    }
+
+    setShowCanvas(false)
+    setLoadFailed(true)
+  }
 
   const handleInteractionStart = () => {
     isInteractingRef.current = true
@@ -195,8 +282,9 @@ export function ShipModelPreview({
         }`}
       />
 
-      {showCanvas ? (
+      {showCanvas && !isStaticOnly && !loadFailed ? (
         <Canvas
+          key={`${modelPath}-${retryKey}`}
           className={`h-full w-full transition-opacity duration-500 ${isModelReady ? 'opacity-100' : 'opacity-60'}`}
           camera={{ position: CAMERA_POSITION, fov: 35 }}
           onPointerDown={handleInteractionStart}
@@ -208,9 +296,11 @@ export function ShipModelPreview({
           <directionalLight position={[2.5, 4, 4]} intensity={1.1} />
           <directionalLight position={[-3, 1, -2]} intensity={0.4} />
           <AutoOrbit controlsRef={controlsRef} isInteractingRef={isInteractingRef} />
-          <Suspense fallback={null}>
-            <CenteredModel modelPath={modelPath} onReady={() => setIsModelReady(true)} />
-          </Suspense>
+          <ModelLoadBoundary onError={handleModelError}>
+            <Suspense fallback={null}>
+              <CenteredModel modelPath={modelPath} onReady={() => setIsModelReady(true)} />
+            </Suspense>
+          </ModelLoadBoundary>
           <OrbitControls
             ref={controlsRef}
             enableZoom={false}
@@ -229,7 +319,13 @@ export function ShipModelPreview({
       {!isModelReady ? (
         <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-4">
           <div className="rounded-full border border-white/20 bg-slate-900/70 px-3 py-1 text-xs text-slate-100">
-            模型加载中...
+            {isStaticOnly
+              ? '弱网模式：静态预览'
+              : loadFailed
+                ? '模型加载失败，已切换静态预览'
+                : retryCount > 0
+                  ? '模型重试加载中...'
+                  : '模型加载中...'}
           </div>
         </div>
       ) : null}

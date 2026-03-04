@@ -10,6 +10,8 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 📅 **最后更新**：2026-03-02
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 ⚡ **首页与仿真加载优化（2026-03-02）**：首页船模改为“截图优先 + 3D 后台懒加载”，移除首屏一次性预加载全部 7 个 GLB（约 125MB）策略，改为按轮播仅预热“当前 + 下一”模型；仿真页改为“场景先渲染、船模独立 Suspense 加载”，在船模解析期间显示“模型加载中”占位动画，避免黑屏等待
+🧰 **首页模型策略开关（2026-03-03）**：新增平台级配置 `PlatformSetting` 与管理接口 `/api/admin/platform-settings`、公开读取接口 `/api/platform/settings`；管理员可在 `/admin/config` 切换“首页动态模型渲染”，首页根据开关在静态截图与动态 3D 预览间切换
+📉 **弱网与并发降载（2026-03-03）**：首页仿真入口与学生高频入口关闭仿真路由预取，船模预加载改为串行队列，并在 `saveData/2g/3g` 网络下自动静态回退；模型加载失败时自动重试并回落静态图
 🧪 **邮轮仿真教学标定（2026-03-02）**：重构邮轮舒适度评估模型（横摇 + 横向加速度 + 转艏角速度耦合），并引入“满舵转向横倾激励”，使海况等级、波向、减摇鳍与陷波滤波器开关在状态监控与舒适度评级中具备显著可感知差异；同时新增单次仿真校验时长（180s）与到时自动结束机制，结束后锁定评估参数用于一次性一致性校验
 🐘 **容器运行时兼容修复（2026-03-02）**：`prisma/schema.prisma` 增加 `binaryTargets = [\"native\", \"linux-musl\"]`，并将构建脚本调整为 `prisma generate && next build`，解决 Podman/Alpine 环境下 `linux-musl` Query Engine 缺失导致的课外展示页加载失败
 🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教室工作台”入口（`http://localhost:3001/teacher`）；首页与认证导航新增“评审入口”（`/review`），汇总 DevelopmentPlan 用户备注对应的分支页面
@@ -556,9 +558,25 @@ npm test               # 运行测试
 - Chrome DevTools 实测通过：在学生端与教师端核心链路中验证了深浅主题切换（`body` 与 `surface-card` 计算样式在 dark/light 间正确切换），并确认改造页面无新增控制台报错。
 - 修复知识图谱浅色可读性问题：`/knowledge` 的 2D 图谱节点标签由固定白字改为主题感知（浅色深字、深色浅字），并增加反差描边，避免浅色背景下文字不可读。
 - 新增知识图谱主题回归测试 `scripts/test-knowledge-graph-theme.ts`（`npm run test:knowledge-theme`），防止 2D 图谱标签颜色回退为固定白字。
+- 知识图谱筛选器升级：新增章节（多选下拉）、`category`、`bloom_level`、关键词联合筛选；关系类型计数改为按当前筛选/搜索结果实时统计；默认仅展示“前置关系”。
+- 知识图谱章节化展示升级：左侧节点列表改为按章节分组并默认折叠；图谱渲染中注入章节顶层节点并按顺序显示：`基本概念 → 系统模型 → 时域分析 → 根轨迹分析 → 频域分析 → 系统校正 → 离散系统 → 非线性系统 → 状态空间`。
+- 知识图谱节点详情增强：点击节点后新增条件展示字段 `examples`、`difficulty`、`importance`、`keywords`、`formulas`；节点信息栏新增章节信息。
+- 知识图谱浅色主题细化：关系筛选区与左侧节点标签完成浅色重配色；3D 视图节点标签在浅色模式改为深色文字，提升可读性。
+- 数据源补齐：`data/knowledge_graph.json` 全量 612 个节点新增 `chapter_name` 字段，前后端统一按数据文件中的章节名称渲染与排序。
+- 新增知识图谱筛选回归测试 `scripts/test-knowledge-graph-filters.ts`（`npm run test:knowledge-filters`），覆盖章节映射、默认前置关系选择与筛选范围内关系计数。
+- 新增统一导航组件 `src/components/shared/feature-page-nav.tsx`，并接入知识图谱、虚拟仿真、思政沙盘、AI工坊、评审入口及其下层页面，统一“返回上一级”样式并固定在左上区域。
+- 评审入口页简化文案：头部仅保留标题；下方入口卡片移除“来源文件”字段展示。
+- 主页入口隐藏“思政沙盘”“AI工坊”：同步移除首页顶栏导航与入口矩阵中的两个入口，并调整入口矩阵说明为“三大核心模块”。
+- 账号口令对齐：新增固定账号密码更新脚本 `scripts/update-fixed-account-passwords.mjs`，将工号 `201300000012` 密码设置为 `zyw1983@Just`，管理员账号 `admin` 密码设置为 `admin@Just`。
+- 用户菜单主题统一：`src/components/shared/user-menu.tsx` 移除硬编码深色样式，改为语义主题样式（支持深/浅色统一）；同时提升下拉与弹窗层级，避免在 dashboard/teacher/admin 顶栏中被遮挡。
+- 新增回归脚本：`scripts/test-user-menu-theme.mjs`（菜单主题样式校验）、`scripts/test-account-password-overrides.mjs`（固定账号密码校验），并在 `package.json` 增加 `seed:fixed-passwords`、`test:user-menu-theme`、`test:account-passwords`。
+- 新增学期级学生使用数据填充脚本 `scripts/seed-semester-usage-for-test-students.mjs`：按 `data/test_students.md` 全量 142 个学生账号重建仿真日志、习题作答与关卡进度数据，满足“仿真每类 10-30 次（可缺席部分类型）、每类仿真时长 60-300 分钟、习题 300-500 次、游戏每关 1-30 次且积分 1000-2000”。
+- 新增学期数据校验脚本 `scripts/verify-semester-usage-for-test-students.mjs`（`npm run test:semester-usage`），用于自动核验上述数据区间约束。
+- 新增模型渲染策略测试脚本 `scripts/test-model-render-policy.ts`（`npm run test:model-render-policy`），覆盖“管理员开关 + 网络条件降级”的决策逻辑。
+- 新增服务器配置指南 `docs/Server_Codex_Nginx_HTTP2_Guide_2026-03-03.md`，用于在 ECS 上由 Codex 执行 Nginx 配置加固（HTTP2/RSC/GLB 传输稳定性）。
 
 ---
 
-**最后更新日期**：2026-03-02
+**最后更新日期**：2026-03-03
 **版本**：v1.1.1
 **状态**：开发完成，可用于教学实践

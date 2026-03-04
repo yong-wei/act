@@ -4,7 +4,21 @@
  * 运行命令：npx ts-node scripts/seed-interactive-resources.ts
  */
 
-import { PrismaClient, ResourceType, InteractiveCategory } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+
+const ResourceType: Record<string, string> = new Proxy(
+  {},
+  {
+    get: (_target, prop) => String(prop),
+  }
+);
+
+const InteractiveCategory: Record<string, string> = new Proxy(
+  {},
+  {
+    get: (_target, prop) => String(prop),
+  }
+);
 
 const prisma = new PrismaClient();
 

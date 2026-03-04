@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+import { FeaturePageNav } from '@/components/shared/feature-page-nav';
 
 const IcebreakerSimulation = dynamic(
   () => import('@/resources/simulations/simulations/icebreaker-simulation'),
@@ -18,7 +19,8 @@ const IcebreakerSimulation = dynamic(
 
 export default function IcebreakerSimulationPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="relative min-h-screen bg-slate-950 text-slate-100">
+      <FeaturePageNav title="雪龙2号破冰船仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
       <IcebreakerSimulation />
     </div>
   );

@@ -85,6 +85,7 @@
 - `npm run test`（smoke test）
 - `npm run test:integration`（Playwright 集成测试）
 - `npm run startup` / `npm run shutdown`
+- 镜像构建默认使用 `bash scripts/build.sh`（或配套环境变量覆写）；除非脚本本身异常排障，否则不直接手写 `docker buildx build`。
 
 ## Coding Style & Naming Conventions
 - Static assets: keep 4-space indentation in `css/` and `js/`, and follow existing naming (e.g., `pid-simulator.js`, `pid-simulator.css`).

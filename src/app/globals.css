@@ -65,7 +65,7 @@
   }
 
   .surface-topbar {
-    @apply border-b border-border/70 bg-card/75 backdrop-blur;
+    @apply relative z-20 border-b border-border/70 bg-card/75 backdrop-blur;
   }
 
   .surface-card {

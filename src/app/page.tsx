@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -10,8 +11,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
-  Compass,
-  Cpu,
   Globe,
   GraduationCap,
   Layers,
@@ -21,9 +20,14 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { ShipModelPreview, preloadShipModel } from '@/resources/simulations/ship-model-preview'
+import {
+  ShipModelPreview,
+  getShipModelPosterPath,
+  preloadShipModel,
+} from '@/resources/simulations/ship-model-preview'
 import { LoginModal } from '@/components/shared/login-modal'
 import { useTheme } from '@/components/providers/theme-provider'
+import { resolveHomeModelRenderMode, type ConnectionHint } from '@/lib/model-render-policy'
 
 type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN'
 
@@ -122,18 +126,6 @@ const moduleLinks = [
     icon: Globe,
   },
   {
-    title: '思政沙盘',
-    description: '伦理决策 · 风险权衡 · 多维代价',
-    href: '/ethics',
-    icon: Compass,
-  },
-  {
-    title: 'AI工坊',
-    description: '多模态助教 · 学情分析 · 问答中枢',
-    href: '/ai',
-    icon: Cpu,
-  },
-  {
     title: '互动学习',
     description: '幅角原理 · 控制地图 · 交互探索',
     href: '/interactive-learning',
@@ -154,6 +146,8 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [homeDynamicModelEnabled, setHomeDynamicModelEnabled] = useState(false)
+  const [connectionHint, setConnectionHint] = useState<ConnectionHint | undefined>(undefined)
   const totalSlides = shipScenarios.length
 
   const routeByRole = (role: UserRole) => {
@@ -183,6 +177,45 @@ export default function HomePage() {
   }
 
   useEffect(() => {
+    let active = true
+    const loadSettings = async () => {
+      try {
+        const response = await fetch('/api/platform/settings', { cache: 'no-store' })
+        if (!response.ok) {
+          return
+        }
+        const payload = await response.json() as { homeDynamicModelEnabled?: boolean }
+        if (active) {
+          setHomeDynamicModelEnabled(payload.homeDynamicModelEnabled === true)
+        }
+      } catch {
+        if (active) {
+          setHomeDynamicModelEnabled(false)
+        }
+      }
+    }
+
+    loadSettings()
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined') {
+      return
+    }
+    const maybeNavigator = navigator as Navigator & { connection?: ConnectionHint }
+    setConnectionHint(maybeNavigator.connection)
+  }, [])
+
+  const homeModelRenderMode = resolveHomeModelRenderMode({
+    adminEnabled: homeDynamicModelEnabled,
+    connection: connectionHint,
+  })
+  const shouldUseDynamicHomeModel = homeModelRenderMode === 'dynamic'
+
+  useEffect(() => {
     if (isDragging) {
       return
     }
@@ -193,16 +226,15 @@ export default function HomePage() {
   }, [isDragging, totalSlides])
 
   useEffect(() => {
+    if (!shouldUseDynamicHomeModel) {
+      return
+    }
     const current = shipScenarios[currentSlide]
-    const next = shipScenarios[(currentSlide + 1) % totalSlides]
 
     if (current?.modelPath) {
       preloadShipModel(current.modelPath, 'high')
     }
-    if (next?.modelPath) {
-      preloadShipModel(next.modelPath, 'idle')
-    }
-  }, [currentSlide, totalSlides])
+  }, [currentSlide, shouldUseDynamicHomeModel])
 
   const nextSlide = () => {
     setIsDragging(false)
@@ -243,10 +275,8 @@ export default function HomePage() {
               </div>
             </div>
             <div className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-              <Link href="/simulations" className="transition hover:text-primary">虚拟仿真</Link>
+              <Link href="/simulations" prefetch={false} className="transition hover:text-primary">虚拟仿真</Link>
               <Link href="/knowledge" className="transition hover:text-primary">知识图谱</Link>
-              <Link href="/ethics" className="transition hover:text-primary">思政沙盘</Link>
-              <Link href="/ai" className="transition hover:text-primary">AI工坊</Link>
               <Link href="/interactive-learning" className="transition hover:text-primary">互动学习</Link>
               <Link href="/review" className="transition hover:text-primary">评审入口</Link>
             </div>
@@ -284,7 +314,7 @@ export default function HomePage() {
               <div className="flex flex-wrap gap-3">
                 {currentScenario.ctaHref ? (
                   <Button asChild className="cta-primary">
-                    <Link href={currentScenario.ctaHref}>
+                    <Link href={currentScenario.ctaHref} prefetch={false}>
                       <Play className="mr-2 h-4 w-4" />
                       {currentScenario.ctaLabel ?? '开启任务链'}
                     </Link>
@@ -315,17 +345,30 @@ export default function HomePage() {
 
             <div className="space-y-4">
               <div className="flex items-center justify-between text-xs text-subtle">
-                <span>可拖拽旋转模型</span>
-                <span>虚拟视角：战术俯视</span>
+                <span>{shouldUseDynamicHomeModel ? '可拖拽旋转模型' : '静态模型预览'}</span>
+                <span>{shouldUseDynamicHomeModel ? '虚拟视角：战术俯视' : '当前策略：静态模式'}</span>
               </div>
-              <ShipModelPreview
-                modelPath={currentScenario.modelPath}
-                onInteractionStart={() => setIsDragging(true)}
-                onInteractionEnd={() => setIsDragging(false)}
-              />
+              {shouldUseDynamicHomeModel ? (
+                <ShipModelPreview
+                  modelPath={currentScenario.modelPath}
+                  onInteractionStart={() => setIsDragging(true)}
+                  onInteractionEnd={() => setIsDragging(false)}
+                />
+              ) : (
+                <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm">
+                  <Image
+                    src={getShipModelPosterPath(currentScenario.modelPath)}
+                    alt={`${currentScenario.title}静态预览`}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+              )}
               <div className="surface-card-soft flex items-center justify-between px-4 py-3 text-xs text-subtle">
                 <span>当前任务：{currentScenario.tag}</span>
-                <span>响应窗口：6秒轮播</span>
+                <span>{shouldUseDynamicHomeModel ? '响应窗口：6秒轮播' : '响应窗口：静态图直出'}</span>
               </div>
             </div>
           </div>
@@ -358,7 +401,7 @@ export default function HomePage() {
               <div className="surface-card p-6">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-semibold text-foreground">平台入口矩阵</div>
-                  <div className="text-xs text-subtle">五大核心模块</div>
+                  <div className="text-xs text-subtle">三大核心模块</div>
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                   {moduleLinks.map((module) => (

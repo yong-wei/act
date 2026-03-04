@@ -43,6 +43,33 @@ export const RELATION_TYPE_LABELS: Record<string, string> = {
   governs: '关联',
 };
 
+// 章节显示顺序（用于知识图谱默认分组与筛选）
+export const CHAPTER_DISPLAY_ORDER = [
+  '基本概念',
+  '系统模型',
+  '时域分析',
+  '根轨迹分析',
+  '频域分析',
+  '系统校正',
+  '离散系统',
+  '非线性系统',
+  '状态空间',
+] as const;
+
+const CHAPTER_NAME_BY_NUMBER: Record<number, (typeof CHAPTER_DISPLAY_ORDER)[number]> = {
+  1: '基本概念',
+  2: '系统模型',
+  3: '时域分析',
+  4: '根轨迹分析',
+  5: '频域分析',
+  6: '系统校正',
+  7: '离散系统',
+  8: '非线性系统',
+  9: '状态空间',
+  // 历史数据中第10章（最优控制相关）并入“状态空间”展示域。
+  10: '状态空间',
+};
+
 // 获取 Bloom 认知层级标签
 export function getBloomLabel(level?: string | null) {
   if (!level) return '';
@@ -75,4 +102,10 @@ export function getRelationCategory(relation?: string | null): 'prerequisite' | 
   }
   if (relation === 'follows' || relation === 'leads_to') return 'follows';
   return 'related';
+}
+
+export function resolveChapterName(chapter?: number, chapterName?: string | null): string {
+  if (chapterName && chapterName.trim()) return chapterName.trim();
+  if (typeof chapter === 'number') return CHAPTER_NAME_BY_NUMBER[chapter] ?? `第${chapter}章`;
+  return '未分章';
 }

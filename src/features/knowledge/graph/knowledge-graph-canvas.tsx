@@ -7,7 +7,7 @@
  * 支持自动布局、手动拖拽、节点标签始终显示
  */
 
-import { useRef, useCallback, useMemo, useEffect } from 'react';
+import { useRef, useCallback, useMemo, useEffect, useState } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import * as THREE from 'three';
 import type { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
@@ -17,6 +17,8 @@ import {
   getRelationStyle,
   getNodeTypeConfig,
 } from './visual-config';
+import { CHAPTER_DISPLAY_ORDER } from '@/lib/knowledge-labels';
+import { CHAPTER_NODE_PREFIX } from './filter-utils';
 
 interface KnowledgeGraphCanvasProps {
   nodes: KnowledgeNodeData[];
@@ -49,7 +51,7 @@ function createGeometryByType(nodeType?: string): THREE.BufferGeometry {
 /**
  * 创建文本精灵（始终面向相机的标签）
  */
-function createTextSprite(text: string): THREE.Sprite {
+function createTextSprite(text: string, isLightTheme: boolean): THREE.Sprite {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d')!;
 
@@ -66,12 +68,12 @@ function createTextSprite(text: string): THREE.Sprite {
 
   // 绘制文字
   ctx.font = `bold ${fontSize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
-  ctx.fillStyle = 'white';
+  ctx.fillStyle = isLightTheme ? '#0f172a' : '#ffffff';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   // 添加描边增强可读性
-  ctx.strokeStyle = 'rgba(9, 21, 64, 0.8)';
+  ctx.strokeStyle = isLightTheme ? 'rgba(255, 255, 255, 0.95)' : 'rgba(9, 21, 64, 0.8)';
   ctx.lineWidth = 4;
   ctx.strokeText(text, canvas.width / 2, canvas.height / 2);
   ctx.fillText(text, canvas.width / 2, canvas.height / 2);
@@ -103,9 +105,76 @@ export function KnowledgeGraphCanvas({
   onNodeHover,
 }: KnowledgeGraphCanvasProps) {
   const fgRef = useRef<any>();
+  const [isLightTheme, setIsLightTheme] = useState(false);
+
+  useEffect(() => {
+    const updateTheme = () => {
+      setIsLightTheme(document.documentElement.classList.contains('light'));
+    };
+
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   // 1. 处理数据并转换 links 格式
   const graphData = useMemo(() => {
+    const clonedNodes = nodes.map((n) => ({ ...n } as any));
+    const nodeById = new Map(clonedNodes.map((node) => [node.id, node]));
+
+    const chapterNodes = clonedNodes.filter((node) => node.id.startsWith(CHAPTER_NODE_PREFIX));
+    if (chapterNodes.length > 0) {
+      const chapterOrderMap = new Map(CHAPTER_DISPLAY_ORDER.map((name, index) => [name, index]));
+      const orderedChapterNodes = [...chapterNodes].sort((a, b) => {
+        const orderA = chapterOrderMap.get(a.name);
+        const orderB = chapterOrderMap.get(b.name);
+        if (typeof orderA === 'number' && typeof orderB === 'number') return orderA - orderB;
+        if (typeof orderA === 'number') return -1;
+        if (typeof orderB === 'number') return 1;
+        return a.name.localeCompare(b.name, 'zh-Hans-CN');
+      });
+      const chapterRadius = Math.max(180, orderedChapterNodes.length * 32);
+      orderedChapterNodes.forEach((node, index) => {
+        const angle = -Math.PI / 2 + (index / orderedChapterNodes.length) * Math.PI * 2;
+        node.x = chapterRadius * Math.cos(angle);
+        node.y = chapterRadius * Math.sin(angle);
+        node.z = 0;
+        node.fx = node.x;
+        node.fy = node.y;
+        node.fz = 0;
+      });
+
+      const containsLinks = links.filter(
+        (link) => (link.relationType || link.relation) === 'contains'
+      );
+      const membersByChapter = new Map<string, string[]>();
+      containsLinks.forEach((link) => {
+        if (!link.sourceId.startsWith(CHAPTER_NODE_PREFIX)) return;
+        if (!nodeById.has(link.targetId)) return;
+        const list = membersByChapter.get(link.sourceId) ?? [];
+        list.push(link.targetId);
+        membersByChapter.set(link.sourceId, list);
+      });
+
+      orderedChapterNodes.forEach((chapterNode) => {
+        const members = membersByChapter.get(chapterNode.id) ?? [];
+        members.forEach((memberId, index) => {
+          const member = nodeById.get(memberId);
+          if (!member) return;
+          const ring = Math.floor(index / 14);
+          const angle = (index % 14) * ((2 * Math.PI) / 14);
+          const radius = 55 + ring * 22;
+          member.x = chapterNode.x + radius * Math.cos(angle);
+          member.y = chapterNode.y + radius * Math.sin(angle);
+          member.z = (ring % 2 === 0 ? 1 : -1) * 12;
+        });
+      });
+    }
+
     // 转换 links: sourceId/targetId -> source/target (ForceGraph3D 格式)
     const transformedLinks = links.map(l => ({
       ...l,
@@ -114,7 +183,7 @@ export function KnowledgeGraphCanvas({
     }));
 
     return {
-      nodes: nodes.map(n => ({ ...n })),
+      nodes: clonedNodes,
       links: transformedLinks
     };
   }, [nodes, links]);
@@ -173,12 +242,12 @@ export function KnowledgeGraphCanvas({
     }
 
     // 5. 创建标签（始终显示）
-    const sprite = createTextSprite(node.name);
+    const sprite = createTextSprite(node.name, isLightTheme);
     sprite.position.set(0, 10, 0);
     group.add(sprite);
 
     return group;
-  }, [selectedNode, hoveredNode]);
+  }, [selectedNode, hoveredNode, isLightTheme]);
 
   // 3. 获取连线颜色
   const getLinkColor = useCallback((link: any) => {

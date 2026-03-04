@@ -1,4 +1,6 @@
 import { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
+import { CHAPTER_DISPLAY_ORDER } from '@/lib/knowledge-labels';
+import { CHAPTER_NODE_PREFIX } from './filter-utils';
 
 /**
  * Calculates a Radial Layout for the graph.
@@ -16,6 +18,87 @@ export function applyRadialLayout(
   radiusStep: number = 150
 ): KnowledgeNodeData[] {
   if (nodes.length === 0) return [];
+
+  const chapterNodes = nodes.filter((node) => node.id.startsWith(CHAPTER_NODE_PREFIX));
+  if (chapterNodes.length > 0) {
+    const chapterOrderMap = new Map<string, number>(
+      CHAPTER_DISPLAY_ORDER.map((name, index) => [name, index])
+    );
+    const resultNodes = nodes.map((node) => ({ ...node }));
+    const nodeById = new Map(resultNodes.map((node) => [node.id, node]));
+
+    const orderedChapterNodes = [...chapterNodes].sort((a, b) => {
+      const orderA = chapterOrderMap.get(a.name);
+      const orderB = chapterOrderMap.get(b.name);
+      if (typeof orderA === 'number' && typeof orderB === 'number') return orderA - orderB;
+      if (typeof orderA === 'number') return -1;
+      if (typeof orderB === 'number') return 1;
+      return a.name.localeCompare(b.name, 'zh-Hans-CN');
+    });
+
+    const chapterRadius = Math.max(220, orderedChapterNodes.length * 38);
+    orderedChapterNodes.forEach((node, index) => {
+      const angle = -Math.PI / 2 + (index / orderedChapterNodes.length) * 2 * Math.PI;
+      const x = chapterRadius * Math.cos(angle);
+      const y = chapterRadius * Math.sin(angle);
+      const target = nodeById.get(node.id);
+      if (!target) return;
+      (target as any).x = x;
+      (target as any).y = y;
+      (target as any).fx = x;
+      (target as any).fy = y;
+      target.positionX = x;
+      target.positionY = y;
+    });
+
+    const membersByChapter = new Map<string, string[]>();
+    links.forEach((link) => {
+      const relation = link.relationType || link.relation;
+      if (relation !== 'contains') return;
+      if (!link.sourceId.startsWith(CHAPTER_NODE_PREFIX)) return;
+      if (!nodeById.has(link.targetId)) return;
+      const list = membersByChapter.get(link.sourceId) ?? [];
+      list.push(link.targetId);
+      membersByChapter.set(link.sourceId, list);
+    });
+
+    orderedChapterNodes.forEach((chapterNode) => {
+      const chapter = nodeById.get(chapterNode.id);
+      if (!chapter) return;
+      const chapterX = (chapter as any).x ?? 0;
+      const chapterY = (chapter as any).y ?? 0;
+      const members = membersByChapter.get(chapterNode.id) ?? [];
+      members.forEach((memberId, index) => {
+        const member = nodeById.get(memberId);
+        if (!member) return;
+        const ring = Math.floor(index / 16);
+        const angle = (index % 16) * ((2 * Math.PI) / 16) - Math.PI / 2;
+        const radius = 65 + ring * 26;
+        const x = chapterX + radius * Math.cos(angle);
+        const y = chapterY + radius * Math.sin(angle);
+        (member as any).x = x;
+        (member as any).y = y;
+        member.positionX = x;
+        member.positionY = y;
+      });
+    });
+
+    const unassigned = resultNodes.filter(
+      (node) => !node.id.startsWith(CHAPTER_NODE_PREFIX) && (node as any).x === undefined
+    );
+    unassigned.forEach((node, index) => {
+      const angle = (index / Math.max(1, unassigned.length)) * 2 * Math.PI;
+      const radius = chapterRadius + 150;
+      const x = radius * Math.cos(angle);
+      const y = radius * Math.sin(angle);
+      (node as any).x = x;
+      (node as any).y = y;
+      node.positionX = x;
+      node.positionY = y;
+    });
+
+    return resultNodes;
+  }
 
   // 1. Build Adjacency List & Degree Count
   const adjacency: Record<string, string[]> = {};

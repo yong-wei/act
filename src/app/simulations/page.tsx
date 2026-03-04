@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import { Ship, Anchor, Compass, Snowflake, Fuel, Container, Waves, ArrowLeft, Play, BookOpen, X } from 'lucide-react';
+import { Ship, Anchor, Compass, Snowflake, Fuel, Container, Waves, Play, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FeaturePageNav } from '@/components/shared/feature-page-nav';
 
 // ============ 仿真数据定义 ============
 
@@ -233,25 +234,16 @@ export default function SimulationsPage() {
 
   return (
     <div className="surface-page">
-      {/* 头部 */}
-      <header className="surface-topbar">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground">
-              <ArrowLeft className="h-4 w-4" />
-              <span className="text-sm">返回首页</span>
-            </Link>
-            <div className="h-6 w-px bg-border" />
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Virtual Simulation Lab</p>
-              <h1 className="text-xl font-semibold text-foreground">虚拟仿真实验室</h1>
-            </div>
-          </div>
+      <FeaturePageNav
+        title="虚拟仿真实验室"
+        backHref="/"
+        backLabel="返回首页"
+        rightSlot={(
           <Badge variant="outline" className="border-primary/50 text-primary">
             7 个仿真场景
           </Badge>
-        </div>
-      </header>
+        )}
+      />
 
       {/* 简介 */}
       <div className="mx-auto max-w-7xl px-6 py-8">
@@ -340,7 +332,7 @@ export default function SimulationsPage() {
 
                 {/* 开始按钮 */}
                 <div className="border-t border-border pt-4">
-                  <Link href={selectedSimulation.href}>
+                  <Link href={selectedSimulation.href} prefetch={false}>
                     <Button className="cta-primary w-full">
                       <Play className="mr-2 h-4 w-4" />
                       开始仿真实验
@@ -416,7 +408,7 @@ function SimulationCard({
 
         {/* 操作按钮 */}
         <div className="flex gap-2 pt-2">
-          <Link href={simulation.href} className="flex-1">
+          <Link href={simulation.href} prefetch={false} className="flex-1">
             <Button className="cta-primary w-full" size="sm">
               <Play className="mr-1.5 h-3.5 w-3.5" />
               开启任务链

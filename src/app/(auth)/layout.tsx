@@ -31,12 +31,6 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
             <Link href="/knowledge" className="transition-colors hover:text-amber-500 dark:hover:text-amber-500">
               知识图谱
             </Link>
-            <Link href="/ethics" className="transition-colors hover:text-amber-500 dark:hover:text-amber-500">
-              思政沙盘
-            </Link>
-            <Link href="/ai" className="transition-colors hover:text-amber-500 dark:hover:text-amber-500">
-              AI工坊
-            </Link>
           </div>
         </div>
       </nav>

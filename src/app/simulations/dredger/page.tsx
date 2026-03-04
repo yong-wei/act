@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+import { FeaturePageNav } from '@/components/shared/feature-page-nav';
 
 const DredgerSimulation = dynamic(
   () => import('@/resources/simulations/simulations/dredger-simulation').then((m) => m.DredgerSimulation),
@@ -18,7 +19,8 @@ const DredgerSimulation = dynamic(
 
 export default function DredgerSimulationPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="relative min-h-screen bg-slate-950 text-slate-100">
+      <FeaturePageNav title="天鲸号挖泥船仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
       <DredgerSimulation />
     </div>
   );

@@ -25,6 +25,7 @@ import { CruiseWorkspace } from '@/features/interactive/cruise-classroom/workspa
 
 interface TeacherSessionInfo {
   id: string;
+  joinCode: string;
   status: 'ACTIVE' | 'PAUSED' | 'FINISHED';
   currentItemId: string | null;
 }
@@ -84,7 +85,9 @@ const WORKSPACE_VISIBLE_STEP_IDS = new Set([
 export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
   const [loadingSession, setLoadingSession] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [sessionInfo, setSessionInfo] = useState<TeacherSessionInfo | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [copyNotice, setCopyNotice] = useState<string | null>(null);
   const [stateRecords, setStateRecords] = useState<SessionStateRecord[]>([]);
   const [precheckTab, setPrecheckTab] = useState<'precheck' | 'stats'>('precheck');
   const [workspaceBooted, setWorkspaceBooted] = useState(false);
@@ -101,6 +104,7 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
       if (!response.ok) {
         throw new Error(data.error || '课堂不存在');
       }
+      setSessionInfo(data);
       const index = data.currentItemId
         ? CRUISE_LESSON_STEPS.findIndex((item) => item.id === data.currentItemId)
         : -1;
@@ -341,13 +345,41 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
   }
 
   const showWorkspace = WORKSPACE_VISIBLE_STEP_IDS.has(step.id);
+  const handleCopyJoinCode = async () => {
+    if (!sessionInfo?.joinCode) {
+      setCopyNotice('课堂码暂不可用');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(sessionInfo.joinCode);
+      setCopyNotice('课堂码已复制');
+    } catch {
+      setCopyNotice('复制失败，请手动记录课堂码');
+    }
+  };
 
   const renderStepContent = () => {
     if (step.id === 'class-code') {
       return (
         <section className="space-y-4 rounded-2xl border border-white/15 bg-slate-900/75 p-6">
           <h2 className="text-3xl font-semibold text-white md:text-4xl">课堂准备中</h2>
-          <p className="text-lg leading-8 text-slate-200">请等待学生加入完成，确认名单后开始授课。</p>
+          <p className="text-lg leading-8 text-slate-200">请发布课堂码，等待学生加入完成后开始授课。</p>
+          <div className="rounded-xl border border-cyan-300/35 bg-cyan-500/10 p-4">
+            <p className="text-base text-cyan-100">课堂码（6位数字）</p>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <span className="rounded-lg border border-cyan-300/35 bg-slate-950/60 px-4 py-2 font-mono text-3xl tracking-[0.25em] text-white">
+                {sessionInfo?.joinCode ?? '------'}
+              </span>
+              <button
+                type="button"
+                onClick={() => void handleCopyJoinCode()}
+                className="rounded-lg border border-cyan-300/60 px-3 py-2 text-sm text-cyan-100 hover:bg-cyan-500/15"
+              >
+                复制课堂码
+              </button>
+            </div>
+            {copyNotice ? <p className="mt-2 text-xs text-cyan-100/90">{copyNotice}</p> : null}
+          </div>
           <JoinedStudentPanel names={joinedStudents} />
           <div className="rounded-xl border border-white/10 bg-slate-950/60 p-4">
             <p className="text-lg font-medium text-cyan-100">在等待的时候，想一想这些问题</p>

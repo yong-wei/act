@@ -2,6 +2,10 @@
 .gitignore
 .next
 node_modules
+!node_modules/@prisma
+!node_modules/@prisma/**
+!node_modules/.prisma
+!node_modules/.prisma/**
 .logs
 test-results
 playwright-report
@@ -16,6 +20,8 @@ coverage
 codex
 .codex
 .playwright-mcp
+.buildx-cache
+.buildx-cache*
 *.tsbuildinfo
 deploy/images
 deploy

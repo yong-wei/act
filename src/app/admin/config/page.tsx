@@ -21,6 +21,7 @@ interface SystemConfig {
   aiModelName: string;
   enableNotifications: boolean;
   ethicsAlertThreshold: number;
+  homeDynamicModelEnabled: boolean;
 }
 
 export default function SystemConfigPage() {
@@ -33,14 +34,33 @@ export default function SystemConfigPage() {
     aiModelName: '',
     enableNotifications: true,
     ethicsAlertThreshold: 3,
+    homeDynamicModelEnabled: false,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
-    // 模拟加载配置
-    setLoading(false);
+    const loadConfig = async () => {
+      try {
+        const response = await fetch('/api/admin/platform-settings', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error('加载配置失败');
+        }
+        const payload = await response.json() as { homeDynamicModelEnabled?: boolean };
+        setConfig((prev) => ({
+          ...prev,
+          homeDynamicModelEnabled: payload.homeDynamicModelEnabled === true,
+        }));
+      } catch {
+        setNotice({ type: 'error', message: '读取平台配置失败，已使用默认值' });
+        setTimeout(() => setNotice(null), 3000);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadConfig();
   }, []);
 
   const showNotice = (type: 'success' | 'error', message: string) => {
@@ -51,8 +71,16 @@ export default function SystemConfigPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // TODO: 实现保存配置 API
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const response = await fetch('/api/admin/platform-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          homeDynamicModelEnabled: config.homeDynamicModelEnabled,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('保存失败');
+      }
       showNotice('success', '配置已保存');
     } catch {
       showNotice('error', '保存失败');
@@ -71,6 +99,7 @@ export default function SystemConfigPage() {
       aiModelName: '',
       enableNotifications: true,
       ethicsAlertThreshold: 3,
+      homeDynamicModelEnabled: false,
     });
     showNotice('success', '已重置为默认配置');
   };
@@ -182,6 +211,24 @@ export default function SystemConfigPage() {
                   <span
                     className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition ${
                       config.maintenanceMode ? 'translate-x-5' : ''
+                    }`}
+                  />
+                </button>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-800/30 px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-200">首页动态模型渲染</p>
+                  <p className="text-xs text-slate-500">关闭后首页仅显示静态图片，仿真页保持不变</p>
+                </div>
+                <button
+                  onClick={() => setConfig({ ...config, homeDynamicModelEnabled: !config.homeDynamicModelEnabled })}
+                  className={`relative h-6 w-11 rounded-full transition ${
+                    config.homeDynamicModelEnabled ? 'bg-cyan-500' : 'bg-slate-600'
+                  }`}
+                >
+                  <span
+                    className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition ${
+                      config.homeDynamicModelEnabled ? 'translate-x-5' : ''
                     }`}
                   />
                 </button>
