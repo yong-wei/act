@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {
   Activity,
   AlertTriangle,
+  BarChart3,
   Download,
   Plus,
   RefreshCcw,
@@ -444,6 +445,12 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 <div className="flex items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-slate-800/70 cursor-pointer">
                    <Settings className="h-4 w-4" />
                    系统配置
+                </div>
+              </Link>
+              <Link href="/admin/states">
+                <div className="flex items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-slate-800/70 cursor-pointer">
+                  <BarChart3 className="h-4 w-4" />
+                  使用量统计
                 </div>
               </Link>
               <div className="rounded-lg px-3 py-2 transition hover:bg-slate-800/70">

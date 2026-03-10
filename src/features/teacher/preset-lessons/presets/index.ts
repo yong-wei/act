@@ -21,6 +21,7 @@ import { LESSON_15_SERIES_COMPENSATION_PRESET } from './lesson-15-series-compens
 import { LESSON_16_NONLINEAR_BASICS_PRESET } from './lesson-16-nonlinear-basics';
 import { LESSON_17_DESCRIBING_FUNCTION_PRESET } from './lesson-17-describing-function';
 import { CRUISE_COMFORT_PRESET } from './cruise-comfort';
+import { L2A_TIME_DOMAIN_FASTTRACK_PRESET } from './l2a-time-domain-fasttrack';
 
 export {
   LESSON_01_FEEDBACK_PRESET,
@@ -42,6 +43,7 @@ export {
   LESSON_16_NONLINEAR_BASICS_PRESET,
   LESSON_17_DESCRIBING_FUNCTION_PRESET,
   CRUISE_COMFORT_PRESET,
+  L2A_TIME_DOMAIN_FASTTRACK_PRESET,
 };
 
 export const ALL_PRESETS = [
@@ -64,4 +66,5 @@ export const ALL_PRESETS = [
   LESSON_16_NONLINEAR_BASICS_PRESET,
   LESSON_17_DESCRIBING_FUNCTION_PRESET,
   CRUISE_COMFORT_PRESET,
+  L2A_TIME_DOMAIN_FASTTRACK_PRESET,
 ];

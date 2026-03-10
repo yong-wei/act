@@ -30,7 +30,9 @@
     "test:user-menu-theme": "node ./scripts/tests/test-user-menu-theme.mjs",
     "test:cruise-class-code": "node ./scripts/tests/test-cruise-class-code-display.mjs",
     "test:account-passwords": "node ./scripts/tests/test-account-password-overrides.mjs",
+    "test:docker-migration-readiness": "node ./scripts/tests/test-docker-migration-readiness.mjs",
     "test:model-render-policy": "npx --yes tsx ./scripts/tests/test-model-render-policy.ts",
+    "test:admin-states": "npx --yes tsx ./scripts/tests/test-admin-states-mock-data.ts",
     "seed:fixed-passwords": "node ./scripts/db/update-fixed-account-passwords.mjs",
     "seed:semester-usage": "node ./scripts/db/seed-semester-usage-for-test-students.mjs",
     "test:semester-usage": "node ./scripts/tests/verify-semester-usage-for-test-students.mjs"

@@ -7,20 +7,22 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-03-02
+📅 **最后更新**：2026-03-10
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 ⚡ **首页与仿真加载优化（2026-03-02）**：首页船模改为“截图优先 + 3D 后台懒加载”，移除首屏一次性预加载全部 7 个 GLB（约 125MB）策略，改为按轮播仅预热“当前 + 下一”模型；仿真页改为“场景先渲染、船模独立 Suspense 加载”，在船模解析期间显示“模型加载中”占位动画，避免黑屏等待
 🧰 **首页模型策略开关（2026-03-03）**：新增平台级配置 `PlatformSetting` 与管理接口 `/api/admin/platform-settings`、公开读取接口 `/api/platform/settings`；管理员可在 `/admin/config` 切换“首页动态模型渲染”，首页根据开关在静态截图与动态 3D 预览间切换
 📉 **弱网与并发降载（2026-03-03）**：首页仿真入口与学生高频入口关闭仿真路由预取，船模预加载改为串行队列，并在 `saveData/2g/3g` 网络下自动静态回退；模型加载失败时自动重试并回落静态图
 🧪 **邮轮仿真教学标定（2026-03-02）**：重构邮轮舒适度评估模型（横摇 + 横向加速度 + 转艏角速度耦合），并引入“满舵转向横倾激励”，使海况等级、波向、减摇鳍与陷波滤波器开关在状态监控与舒适度评级中具备显著可感知差异；同时新增单次仿真校验时长（180s）与到时自动结束机制，结束后锁定评估参数用于一次性一致性校验
 🐘 **容器运行时兼容修复（2026-03-02）**：`prisma/schema.prisma` 增加 `binaryTargets = [\"native\", \"linux-musl\"]`，并将构建脚本调整为 `prisma generate && next build`，解决 Podman/Alpine 环境下 `linux-musl` Query Engine 缺失导致的课外展示页加载失败
+🧱 **容器自动迁移（2026-03-04）**：镜像新增 `docker-entrypoint.sh`，容器启动时默认执行 `prisma migrate deploy`（可通过 `RUN_MIGRATIONS_ON_START=0` 关闭），并将 `prisma/migrations`、`@prisma`、`prisma` CLI 一并打包进运行镜像，避免部署后出现 `PlatformSetting` 等缺表问题
+📊 **管理员统计页（2026-03-05）**：新增 ` /admin/states ` 静态统计面板（全量模拟数据），按教师 18 人、学生 1890 人规模展示互动类型拆分、7类仿真访问量、Control Odyssey 高访问量、月度访问趋势与完课率趋势图，支持管理后台直接跳转访问
 🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教室工作台”入口（`http://localhost:3001/teacher`）；首页与认证导航新增“评审入口”（`/review`），汇总 DevelopmentPlan 用户备注对应的分支页面
 📺 **课外展示班级落地（2026-03-01）**：演示学生数据并入 `2023自动化启航班`（30 人，`demo` 脱班保留账号），班级描述更新为“AI-OBE平台教改班”；课堂历史重建为 17 次（2025-03 至 2025-06 每周一节 + 当前展示课《柔性之海——豪华邮轮的舒适度控制》）；课堂记录详情页改为按当前课程 `course_review` 数据展示“课前/课后能力追踪 + 课后个性化补强路径”，柔性之海固定重点学生 `20230010102608/20230010102605`，其余课程重点学生按课次随机化
 🛟 **仿真统一改造**：7 个船舶仿真统一为左侧监控、右侧“控制/评估/AI伴学”标签式面板，支持收起/展开与统一配色主题
 🎥 **视角统一**：主视角统一为左舷后方约 45° 且默认跟随，统一相机距离与目标中心构图，跨仿真保持一致
 🧩 **场景合并**：`/simulations/cruise-comfort` 与 `/simulations/icebreaker-robust` 能力合并入 `/simulations/cruise` 与 `/simulations/icebreaker` 主场景
 🧠 **知识点同步**：启动脚本默认执行 `npm run seed:knowledge`，确保预置教案克隆所需 KnowledgeNode 已补齐
-📘 **课程更新**：新增 Lesson 01「反馈：控制原理的核心思想」、Lesson 02「拉氏变换：工程直觉的数学实现」与 Lesson 05「方框图、信号流图与梅森公式」预置教案与互动学习入口，原 Lesson 02 建模课迁移为 Legacy；Lesson 03 预置教案与知识节点绑定已完成；新增 Lesson 16「非线性系统与描述函数基础」与 Lesson 17「描述函数分析法与自振判别」预置教案、互动学习入口与知识节点
+📘 **课程更新**：新增 Lesson 01「反馈：控制原理的核心思想」、Lesson 02「拉氏变换：工程直觉的数学实现」与 Lesson 05「方框图、信号流图与梅森公式」预置教案与互动学习入口，原 Lesson 02 建模课迁移为 Legacy；Lesson 03 预置教案与知识节点绑定已完成；新增 Lesson 16「非线性系统与描述函数基础」与 Lesson 17「描述函数分析法与自振判别」预置教案、互动学习入口与知识节点；新增 L-2a「三张面孔，同一系统 · 时域直觉速通」精品互动课堂，按重构课程入口独立展示
 🧾 **教案管理**：我的教案支持三点菜单删除并二次确认
 🚀 **部署方式**：本地开发 + Docker 容器化部署
 
@@ -182,6 +184,11 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
     - 课堂综合工作台新增实时指标条：在“仿真/多表征”切换旁显示控制器参数与时域/频域关键指标，支持跨 iframe 实时同步
     - 邮轮课程模式新增“虚拟仿真观察”开关、学生侧评估约束手动填写、结构化提示词“发送+即时反馈”、一致性校验改为基于真实仿真数据（未运行时提示先运行）
     - NeuralODE 环节教师端/学生端公式改为 LaTeX 渲染（`react-katex`）
+  - 2026-03-10（L-2a 精品课重构）：
+    - 新增 `/interactive-learning/courses/l2a-time-domain-fasttrack` 精品互动课堂入口，以及教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]` 同级隔离路由
+    - 互动课程页重组为“精品课程 + 默认折叠的旧版章节课程”；保留“柔性之海”精品入口，并将原 `lessonXX` 系列统一收纳到默认收起的折叠菜单
+    - 新课采用与“柔性之海”一致的精品课程结构，围绕 L-2a 材料实现 18 步 BOPPPS 课堂流程，并提供左侧常驻双面板工作区（极点平面 + 时域响应）
+    - 课堂状态与统计埋点复用现有 `/api/session`、`/api/session/[id]/state` 与 `useInteractiveTracking`，演示模式静默同步，避免为匿名访问新增接口
 - **跨域探索置顶组件**：`/interactive-learning/multi-representation-linkage` 作为跨域探索首个入口
 - **资源来源**：动态加载教学资源库中 `INTERACTIVE_COMP` 单页互动资源
 - **资源查看入口**：`/interactive-learning/resources/[id]`

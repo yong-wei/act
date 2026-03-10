@@ -340,7 +340,7 @@ export default function ProfilePage() {
                   <div key={row.key} className="surface-card-soft p-3">
                     <div className="mb-2 flex items-center justify-between text-sm">
                       <span className="text-subtle">{row.label}</span>
-                      <span className={delta >= 0 ? 'text-emerald-300' : 'text-red-300'}>
+                      <span className={delta >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}>
                         {delta >= 0 ? '+' : ''}{delta}
                       </span>
                     </div>
@@ -356,19 +356,19 @@ export default function ProfilePage() {
                         style={{ width: `${Math.max(0, Math.min(100, post))}%` }}
                       />
                     </div>
-                    <p className="mt-2 text-xs text-slate-500">
+                    <p className="mt-2 text-xs text-subtle">
                       课前 {pre} → 课后 {post}
                     </p>
                   </div>
                 );
               })}
             </div>
-            <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+            <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300">
               当前短板：{profile.abilityTracking.weakTagLabel}（{profile.abilityTracking.postWeakTag}）
             </div>
-            <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-400">
-              <span>提示词结构分：<span className="text-violet-300">{profile.promptStructuringScore ?? '-'}</span></span>
-              <span>设计效果分：<span className="text-emerald-300">{profile.designEffectScore ?? '-'}</span></span>
+            <div className="mt-3 flex flex-wrap gap-3 text-xs text-subtle">
+              <span>提示词结构分：<span className="text-violet-700 dark:text-violet-300">{profile.promptStructuringScore ?? '-'}</span></span>
+              <span>设计效果分：<span className="text-emerald-700 dark:text-emerald-300">{profile.designEffectScore ?? '-'}</span></span>
             </div>
           </div>
 
@@ -379,18 +379,18 @@ export default function ProfilePage() {
                 <div key={path.id} className="surface-card-soft p-3">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-medium text-foreground">{path.title}</p>
-                    <span className="text-xs text-amber-300">{path.estimatedTime} min</span>
+                    <span className="text-xs text-amber-700 dark:text-amber-300">{path.estimatedTime} min</span>
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">{path.description}</p>
+                  <p className="mt-1 text-xs text-subtle">{path.description}</p>
                 </div>
               ))}
             </div>
-            <h4 className="mt-5 text-sm font-medium text-slate-200">推荐题单</h4>
+            <h4 className="mt-5 text-sm font-medium text-foreground">推荐题单</h4>
             <div className="mt-2 space-y-2">
               {profile.recommendedQuestions.map((question) => (
-                <div key={question.id} className="surface-card-soft p-3 text-sm text-slate-200">
+                <div key={question.id} className="surface-card-soft p-3 text-sm text-foreground">
                   <p className="line-clamp-2">{question.stem}</p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-subtle">
                     难度 {question.difficulty.toFixed(2)} · {question.knowledgeTags.join(' / ')}
                   </p>
                 </div>

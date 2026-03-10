@@ -10,6 +10,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 
+import { L2A_PREMIUM_LESSON_CARD } from '@/lib/l2a-course';
+
 export interface InteractiveResource {
   id: string;
   title: string;
@@ -96,6 +98,7 @@ export const CHAPTER_COMPONENT_CATEGORIES = CATEGORY_ORDER.filter(
 );
 
 export const FEATURED_LESSONS = [
+  L2A_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -242,9 +245,15 @@ export const FEATURED_LESSONS = [
   },
 ] as const;
 
-export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) => lesson.id === 'cruise-comfort-boppps');
+export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
+  lesson.id === 'cruise-comfort-boppps' || lesson.id === 'l2a-time-domain-fasttrack'
+);
 
-export const CHAPTER_LESSONS = FEATURED_LESSONS.filter((lesson) => lesson.id !== 'cruise-comfort-boppps');
+export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
+  (lesson) => lesson.id !== 'cruise-comfort-boppps' && lesson.id !== 'l2a-time-domain-fasttrack'
+);
+
+export const CHAPTER_LESSONS = LEGACY_LESSONS;
 
 export function findCategoryKeyBySlug(slug: string): string | null {
   for (const [categoryKey, config] of Object.entries(CATEGORY_CONFIG)) {

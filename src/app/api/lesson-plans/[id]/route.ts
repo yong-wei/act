@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { BopppsStage, LessonItemType } from '@prisma/client';
+import { BopppsStage, LessonItemType, Prisma } from '@prisma/client';
+import {
+  buildLessonPlanDeleteConflictMessage,
+  canDeleteLessonPlan,
+} from '@/lib/lesson-plan-delete-policy';
 
 export async function GET(
   request: Request,
@@ -126,7 +130,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -154,6 +158,17 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden: not the plan owner' }, { status: 403 });
     }
 
+    const referencedSessionCount = await prisma.classSession.count({
+      where: { planId: params.id },
+    });
+
+    if (!canDeleteLessonPlan(referencedSessionCount)) {
+      return NextResponse.json(
+        { error: buildLessonPlanDeleteConflictMessage(referencedSessionCount) },
+        { status: 409 }
+      );
+    }
+
     // Delete plan (items will cascade delete due to schema relation)
     await prisma.lessonPlan.delete({
       where: { id: params.id }
@@ -161,6 +176,22 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+      let referencedSessionCount = 1;
+      try {
+        referencedSessionCount = await prisma.classSession.count({
+          where: { planId: params.id },
+        });
+      } catch (countError) {
+        console.warn('Failed to recount class sessions for plan deletion conflict:', countError);
+      }
+
+      return NextResponse.json(
+        { error: buildLessonPlanDeleteConflictMessage(referencedSessionCount || 1) },
+        { status: 409 }
+      );
+    }
+
     console.error('Error deleting lesson plan:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
