@@ -1,0 +1,29 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a" />
+      <stop offset="1" stop-color="#1e293b" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" rx="32" fill="url(#bg)" />
+
+  <text x="80" y="115" fill="#e2e8f0" font-size="34" font-family="Arial" font-weight="bold">前馈补偿与扰动补偿</text>
+  <text x="80" y="155" fill="#94a3b8" font-size="18" font-family="Arial">分别从“输入侧”和“扰动侧”提高稳态精度</text>
+
+  <rect x="80" y="210" width="500" height="380" rx="24" fill="#0b1220" stroke="#1f2937" />
+  <rect x="620" y="210" width="500" height="380" rx="24" fill="#0b1220" stroke="#1f2937" />
+
+  <text x="120" y="260" fill="#f97316" font-size="22" font-family="Arial" font-weight="bold">前馈补偿（输入补偿）</text>
+  <text x="120" y="300" fill="#94a3b8" font-size="16" font-family="Arial">• 提高一阶无差度，改善斜坡误差</text>
+  <text x="120" y="335" fill="#94a3b8" font-size="16" font-family="Arial">• 微分时间常数 τ 决定误差大小</text>
+  <text x="120" y="370" fill="#94a3b8" font-size="16" font-family="Arial">• 适合输入可预测的系统</text>
+  <text x="120" y="410" fill="#64748b" font-size="14" font-family="Arial">常见：给定输入补偿、前馈通道</text>
+
+  <text x="660" y="260" fill="#38bdf8" font-size="22" font-family="Arial" font-weight="bold">扰动补偿</text>
+  <text x="660" y="300" fill="#94a3b8" font-size="16" font-family="Arial">• 削弱扰动通道对输出的影响</text>
+  <text x="660" y="335" fill="#94a3b8" font-size="16" font-family="Arial">• 需要扰动测量或估计</text>
+  <text x="660" y="370" fill="#94a3b8" font-size="16" font-family="Arial">• 适合扰动主导的工况</text>
+  <text x="660" y="410" fill="#64748b" font-size="14" font-family="Arial">常见：按扰动补偿、扰动前馈</text>
+
+  <text x="80" y="620" fill="#64748b" font-size="14" font-family="Arial">提示：前馈补偿“用已知抵消”，扰动补偿“用观测削弱”。</text>
+</svg>

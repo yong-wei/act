@@ -1,0 +1,416 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 196 82% 56%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 218 34% 14%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 218 34% 14%;
+    --muted-foreground: 214 20% 71%;
+    --accent: 218 34% 18%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 196 82% 56%;
+    --radius: 0.5rem;
+  }
+
+  .light {
+    --background: 210 40% 98%;
+    --foreground: 222.2 47.4% 11.2%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+    --primary: 203 88% 42%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 206 38% 92%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 203 88% 42%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .surface-page {
+    @apply min-h-screen bg-background text-foreground;
+  }
+
+  .surface-topbar {
+    @apply relative z-20 border-b border-border/70 bg-card/75 backdrop-blur;
+  }
+
+  .surface-card {
+    @apply rounded-2xl border border-border/70 bg-card/75 backdrop-blur;
+  }
+
+  .surface-card-soft {
+    @apply rounded-xl border border-border/60 bg-card/55 backdrop-blur;
+  }
+
+  .text-subtle {
+    @apply text-muted-foreground;
+  }
+
+  .cta-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .btn-ghost-themed {
+    @apply border-border/70 bg-background/65 text-foreground hover:bg-accent hover:text-accent-foreground;
+  }
+}
+
+@layer utilities {
+  /* Legacy dark-theme bridge: normalize old hardcoded dark tokens in light mode. */
+  .light .bg-slate-950 { background-color: hsl(var(--background)) !important; }
+  .light .bg-slate-950\/90 { background-color: hsl(var(--background) / 0.9) !important; }
+  .light .bg-slate-950\/80 { background-color: hsl(var(--background) / 0.8) !important; }
+  .light .bg-slate-950\/70 { background-color: hsl(var(--background) / 0.7) !important; }
+  .light .bg-slate-950\/60 { background-color: hsl(var(--background) / 0.6) !important; }
+  .light .bg-slate-950\/50 { background-color: hsl(var(--background) / 0.5) !important; }
+  .light .bg-slate-950\/40 { background-color: hsl(var(--background) / 0.4) !important; }
+
+  .light .bg-slate-900 { background-color: hsl(var(--card)) !important; }
+  .light .bg-slate-900\/90 { background-color: hsl(var(--card) / 0.9) !important; }
+  .light .bg-slate-900\/80 { background-color: hsl(var(--card) / 0.8) !important; }
+  .light .bg-slate-900\/70 { background-color: hsl(var(--card) / 0.7) !important; }
+  .light .bg-slate-900\/60 { background-color: hsl(var(--card) / 0.6) !important; }
+  .light .bg-slate-900\/50 { background-color: hsl(var(--card) / 0.5) !important; }
+  .light .bg-slate-900\/40 { background-color: hsl(var(--card) / 0.4) !important; }
+  .light .bg-slate-900\/30 { background-color: hsl(var(--card) / 0.3) !important; }
+  .light .bg-slate-900\/20 { background-color: hsl(var(--card) / 0.2) !important; }
+  .light .bg-slate-900\/10 { background-color: hsl(var(--card) / 0.1) !important; }
+
+  .light .bg-slate-800 { background-color: hsl(var(--accent)) !important; }
+  .light .bg-slate-800\/90 { background-color: hsl(var(--accent) / 0.9) !important; }
+  .light .bg-slate-800\/80 { background-color: hsl(var(--accent) / 0.8) !important; }
+  .light .bg-slate-800\/70 { background-color: hsl(var(--accent) / 0.7) !important; }
+  .light .bg-slate-800\/60 { background-color: hsl(var(--accent) / 0.6) !important; }
+  .light .bg-slate-800\/50 { background-color: hsl(var(--accent) / 0.5) !important; }
+  .light .bg-slate-800\/40 { background-color: hsl(var(--accent) / 0.4) !important; }
+  .light .bg-slate-700 { background-color: hsl(var(--accent)) !important; }
+
+  .light .text-white { color: hsl(var(--foreground)) !important; }
+  .light .text-white\/90 { color: hsl(var(--foreground) / 0.9) !important; }
+  .light .text-white\/80 { color: hsl(var(--foreground) / 0.8) !important; }
+  .light .text-white\/70 { color: hsl(var(--foreground) / 0.7) !important; }
+  .light .text-white\/60 { color: hsl(var(--foreground) / 0.6) !important; }
+  .light .text-white\/50 { color: hsl(var(--foreground) / 0.5) !important; }
+
+  .light .text-slate-100 { color: hsl(var(--foreground)) !important; }
+  .light .text-slate-200 { color: hsl(var(--foreground) / 0.92) !important; }
+  .light .text-slate-300 { color: hsl(var(--muted-foreground)) !important; }
+  .light .text-slate-400 { color: hsl(var(--muted-foreground)) !important; }
+  .light .text-slate-500 { color: hsl(var(--muted-foreground)) !important; }
+
+  .light .border-white\/10 { border-color: hsl(var(--border) / 0.45) !important; }
+  .light .border-white\/15 { border-color: hsl(var(--border) / 0.5) !important; }
+  .light .border-white\/20 { border-color: hsl(var(--border) / 0.55) !important; }
+  .light .border-white\/30 { border-color: hsl(var(--border) / 0.65) !important; }
+  .light .border-slate-900 { border-color: hsl(var(--border)) !important; }
+  .light .border-slate-800 { border-color: hsl(var(--border)) !important; }
+  .light .border-slate-700 { border-color: hsl(var(--border)) !important; }
+  .light .border-slate-600 { border-color: hsl(var(--border)) !important; }
+
+  .light .from-slate-950 {
+    --tw-gradient-from: hsl(var(--background)) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: hsl(var(--background) / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+
+  .light .from-slate-900 {
+    --tw-gradient-from: hsl(var(--card)) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: hsl(var(--card) / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+
+  .light .to-slate-900 { --tw-gradient-to: hsl(var(--card)) var(--tw-gradient-to-position) !important; }
+  .light .to-slate-800 { --tw-gradient-to: hsl(var(--accent)) var(--tw-gradient-to-position) !important; }
+
+  .light .bg-\[\#0b1024\],
+  .light .bg-\[\#0b132b\],
+  .light .bg-\[\#0f1b3d\],
+  .light .bg-\[\#0F172A\],
+  .light .bg-\[\#0b183f\]\/90,
+  .light .bg-\[\#020721\],
+  .light .bg-\[\#091540\],
+  .light .bg-\[\#091540\]\/95,
+  .light .bg-\[\#091540\]\/90,
+  .light .bg-\[\#0c1d4f\]\/50,
+  .light .bg-\[\#0c1d4f\]\/40,
+  .light .bg-\[\#1c2331\],
+  .light .bg-\[\#1a2942\]\/95,
+  .light .bg-\[\#1a2942\]\/80,
+  .light .bg-\[\#1a2942\]\/50,
+  .light .bg-\[\#0a2a43\],
+  .light .bg-\[\#0a2a43\]\/80,
+  .light .bg-\[\#0a2a43\]\/50,
+  .light .bg-\[\#0c3654\]\/80,
+  .light .bg-\[\#0c3654\]\/50 {
+    background-color: hsl(var(--card)) !important;
+  }
+}
+
+/* Custom ship-themed styles */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.grid-area-header { grid-area: header; }
+.grid-area-qa-section { grid-area: qa-section; }
+.grid-area-matrix { grid-area: matrix; }
+.grid-area-sidebar { grid-area: sidebar; }
+.grid-area-footer { grid-area: footer; }
+
+/* Wave animation for voice recording */
+@keyframes wave {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(2); }
+}
+
+/* Slow rotation for 3D elements */
+@keyframes rotate-slowly {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+/* Cruise Bridge Video Animations */
+@keyframes shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  10% { transform: translateX(-3px) rotate(-1deg); }
+  20% { transform: translateX(5px) rotate(1deg); }
+  30% { transform: translateX(-5px) rotate(-1deg); }
+  40% { transform: translateX(4px) rotate(0.5deg); }
+  50% { transform: translateX(-4px) rotate(-0.5deg); }
+  60% { transform: translateX(3px) rotate(0.5deg); }
+  70% { transform: translateX(-3px) rotate(-0.5deg); }
+  80% { transform: translateX(2px) rotate(0.25deg); }
+  90% { transform: translateX(-2px) rotate(-0.25deg); }
+}
+
+@keyframes boat-shake {
+  0%, 100% { transform: rotate(-5deg) translateY(0); }
+  25% { transform: rotate(8deg) translateY(-10px); }
+  50% { transform: rotate(-8deg) translateY(5px); }
+  75% { transform: rotate(5deg) translateY(-5px); }
+}
+
+@keyframes splash {
+  0%, 100% { opacity: 0; transform: scale(0.5) translateY(0); }
+  50% { opacity: 1; transform: scale(1.5) translateY(-20px); }
+}
+
+@keyframes glow {
+  0%, 100% { opacity: 0.6; box-shadow: 0 0 10px 2px rgba(251, 191, 36, 0.3); }
+  50% { opacity: 1; box-shadow: 0 0 20px 4px rgba(251, 191, 36, 0.6); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-shake {
+  animation: shake 0.8s ease-in-out infinite;
+}
+
+.animate-boat-shake {
+  animation: boat-shake 1.2s ease-in-out infinite;
+}
+
+.animate-splash {
+  animation: splash 1.5s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* ===== Ten Drops Game Animations ===== */
+
+/* Puddle Animations (New) */
+@keyframes puddle-idle {
+  0%, 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+  33% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; }
+  66% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+}
+
+@keyframes puddle-wobble-intense {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg); 
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  }
+  25% { 
+    transform: scale(1.05) rotate(2deg); 
+    border-radius: 50% 50% 20% 80% / 25% 80% 20% 75%;
+  }
+  50% { 
+    transform: scale(0.95) rotate(-1deg); 
+    border-radius: 70% 30% 30% 70% / 70% 30% 30% 70%;
+  }
+  75% { 
+    transform: scale(1.02) rotate(1deg); 
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+}
+
+.animate-puddle-idle {
+  animation: puddle-idle 4s ease-in-out infinite;
+}
+
+.animate-puddle-wobble-intense {
+  animation: puddle-wobble-intense 0.3s ease-in-out infinite;
+}
+
+
+/* Old Animations (Keep what is needed) */
+/* 水滴出现动画 */
+@keyframes drop-appear {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* 水滴摇晃动画（接近满载时） */
+@keyframes drop-wobble {
+  0%, 100% { transform: translateY(0) scale(1); }
+  25% { transform: translateY(-2px) scale(1.05); }
+  50% { transform: translateY(1px) scale(0.98); }
+  75% { transform: translateY(-1px) scale(1.02); }
+}
+
+/* 格子爆炸动画 */
+@keyframes cell-explode {
+  0% { transform: scale(1); background-color: rgba(59, 130, 246, 0.2); }
+  30% { transform: scale(1.1); background-color: rgba(251, 191, 36, 0.5); }
+  60% { transform: scale(1.15); background-color: rgba(251, 191, 36, 0.7); }
+  100% { transform: scale(1); background-color: transparent; }
+}
+
+/* 水滴飞散动画 - 四个方向 */
+@keyframes drop-fly-up {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-50px) scale(0.6); opacity: 0; }
+}
+
+@keyframes drop-fly-down {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(50px) scale(0.6); opacity: 0; }
+}
+
+@keyframes drop-fly-left {
+  0% { transform: translateX(0) scale(1); opacity: 1; }
+  100% { transform: translateX(-50px) scale(0.6); opacity: 0; }
+}
+
+@keyframes drop-fly-right {
+  0% { transform: translateX(0) scale(1); opacity: 1; }
+  100% { transform: translateX(50px) scale(0.6); opacity: 0; }
+}
+
+/* 水滴接收动画 */
+@keyframes drop-receive {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* 涟漪效果 */
+@keyframes ripple {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* 连锁高亮 */
+@keyframes chain-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.8); }
+}
+
+/* 胜利庆祝 */
+@keyframes victory-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* 十滴水游戏动画工具类 */
+.animate-drop-appear {
+  animation: drop-appear 0.2s ease-out forwards;
+}
+
+.animate-drop-wobble {
+  animation: drop-wobble 0.6s ease-in-out infinite;
+}
+
+.animate-cell-explode {
+  animation: cell-explode 0.25s ease-out forwards;
+}
+
+.animate-drop-fly-up {
+  animation: drop-fly-up 0.2s ease-out forwards;
+}
+
+.animate-drop-fly-down {
+  animation: drop-fly-down 0.2s ease-out forwards;
+}
+
+.animate-drop-fly-left {
+  animation: drop-fly-left 0.2s ease-out forwards;
+}
+
+.animate-drop-fly-right {
+  animation: drop-fly-right 0.2s ease-out forwards;
+}
+
+.animate-drop-receive {
+  animation: drop-receive 0.15s ease-out forwards;
+}
+
+.animate-ripple {
+  animation: ripple 0.3s ease-out forwards;
+}
+
+.animate-chain-glow {
+  animation: chain-glow 0.4s ease-in-out;
+}
+
+.animate-victory-bounce {
+  animation: victory-bounce 0.5s ease-in-out infinite;
+}

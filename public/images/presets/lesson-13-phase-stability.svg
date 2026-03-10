@@ -1,0 +1,15 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="675" rx="32" fill="#0f172a" />
+  <rect x="80" y="90" width="1040" height="495" rx="28" fill="#0b1220" stroke="#38bdf8" stroke-width="3" />
+  <text x="130" y="180" fill="#e2e8f0" font-size="40" font-family="Arial">Lesson 13</text>
+  <text x="130" y="230" fill="#94a3b8" font-size="26" font-family="Arial">Phase Characteristics & Stability</text>
+
+  <line x1="220" y1="360" x2="980" y2="360" stroke="#334155" stroke-width="4" />
+  <line x1="600" y1="260" x2="600" y2="460" stroke="#334155" stroke-width="4" stroke-dasharray="10 8" />
+  <circle cx="470" cy="360" r="8" fill="#ef4444" />
+  <text x="445" y="390" fill="#f87171" font-size="18" font-family="Arial">-1</text>
+  <path d="M700 320 C800 240, 930 280, 930 360 C930 440, 800 480, 700 400" stroke="#22c55e" stroke-width="10" fill="none" />
+  <path d="M700 400 C650 380, 650 340, 700 320" stroke="#22c55e" stroke-width="10" fill="none" />
+
+  <text x="130" y="520" fill="#94a3b8" font-size="20" font-family="Arial">Nyquist plot highlights • Stability insight</text>
+</svg>

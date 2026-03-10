@@ -1,0 +1,26 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a" />
+      <stop offset="1" stop-color="#1f2937" />
+    </linearGradient>
+    <linearGradient id="curve" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a78bfa" />
+      <stop offset="1" stop-color="#38bdf8" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" rx="36" fill="url(#bg)" />
+  <path
+    d="M 120 460 C 240 360, 340 300, 520 320 C 700 340, 840 420, 1030 360"
+    stroke="url(#curve)"
+    stroke-width="8"
+    fill="none"
+  />
+  <circle cx="220" cy="400" r="10" fill="#f97316" />
+  <circle cx="360" cy="340" r="10" fill="#f97316" />
+  <circle cx="560" cy="330" r="10" fill="#f97316" />
+  <circle cx="840" cy="400" r="10" fill="#38bdf8" />
+  <text x="120" y="160" fill="#e2e8f0" font-size="40" font-family="Arial" font-weight="bold">Lesson 11 · 参数根轨迹</text>
+  <text x="120" y="210" fill="#94a3b8" font-size="22" font-family="Arial">Parametric Root Locus & Visual Reasoning</text>
+  <text x="120" y="250" fill="#64748b" font-size="16" font-family="Arial">90 分钟线下课堂 · BOPPPS 结构</text>
+</svg>

@@ -1,0 +1,43 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="40" x2="1480" y2="860" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06152A"/>
+      <stop offset="1" stop-color="#13283A"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="230" y1="110" x2="1420" y2="780" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#6366F1"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" rx="40" fill="url(#bg)"/>
+  <rect x="60" y="60" width="1480" height="780" rx="28" stroke="url(#accent)" stroke-opacity="0.5" stroke-width="2"/>
+
+  <text x="120" y="160" fill="#E2E8F0" font-family="Arial, sans-serif" font-size="48" font-weight="700">
+    NeuralODE 嵌入：邮轮舒适度控制前沿补偿
+  </text>
+  <text x="120" y="210" fill="#94A3B8" font-family="Arial, sans-serif" font-size="24">
+    课堂说明：数据驱动模型用于补偿名义模型在复杂海况下的偏差
+  </text>
+
+  <rect x="120" y="270" width="400" height="460" rx="18" fill="#0F1E31" stroke="#334155"/>
+  <text x="150" y="320" fill="#67E8F9" font-family="Arial, sans-serif" font-size="24" font-weight="700">1. 采集航行数据</text>
+  <text x="150" y="370" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="20">• 横摇角 / 航向误差 / 舵角命令</text>
+  <text x="150" y="410" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="20">• 海况与扰动信息（风浪、波向）</text>
+  <text x="150" y="450" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="20">• 舒适度指标（MSI、加速度）</text>
+
+  <rect x="600" y="270" width="400" height="460" rx="18" fill="#0F1E31" stroke="#334155"/>
+  <text x="630" y="320" fill="#67E8F9" font-family="Arial, sans-serif" font-size="24" font-weight="700">2. NeuralODE 拟合动态</text>
+  <text x="630" y="370" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="20">• 学习残差动力学 Δf(x, u, d)</text>
+  <text x="630" y="410" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="20">• 与名义模型并联形成补偿模型</text>
+  <text x="630" y="450" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="20">• 输出可解释的误差演化轨迹</text>
+
+  <rect x="1080" y="270" width="400" height="460" rx="18" fill="#0F1E31" stroke="#334155"/>
+  <text x="1110" y="320" fill="#67E8F9" font-family="Arial, sans-serif" font-size="24" font-weight="700">3. 回馈课堂决策</text>
+  <text x="1110" y="370" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="20">• 对比“有/无补偿”性能差异</text>
+  <text x="1110" y="410" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="20">• 强化“目标-约束-参数”一致性</text>
+  <text x="1110" y="450" fill="#CBD5E1" font-family="Arial, sans-serif" font-size="20">• 支撑 AI 介入后的再设计迭代</text>
+
+  <path d="M520 500H600" stroke="#22D3EE" stroke-width="3" stroke-dasharray="8 8"/>
+  <path d="M1000 500H1080" stroke="#22D3EE" stroke-width="3" stroke-dasharray="8 8"/>
+</svg>

@@ -1,0 +1,14 @@
+<svg width="1200" height="600" viewBox="0 0 1200 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="600" rx="28" fill="#0f172a" />
+  <line x1="140" y1="300" x2="1060" y2="300" stroke="#334155" stroke-width="4" />
+  <line x1="600" y1="100" x2="600" y2="500" stroke="#334155" stroke-width="4" stroke-dasharray="12 10" />
+  <circle cx="460" cy="300" r="10" fill="#ef4444" />
+  <text x="430" y="340" fill="#f87171" font-size="28" font-family="Arial">-1</text>
+  <path d="M720 240 C820 160, 980 200, 980 300 C980 420, 820 440, 720 360" stroke="#38bdf8" stroke-width="10" fill="none" />
+  <path d="M720 360 C660 330, 660 270, 720 240" stroke="#38bdf8" stroke-width="10" fill="none" />
+  <circle cx="720" cy="300" r="8" fill="#38bdf8" />
+  <text x="120" y="140" fill="#e2e8f0" font-size="40" font-family="Arial">Nyquist Plot</text>
+  <text x="120" y="190" fill="#94a3b8" font-size="26" font-family="Arial">Can a single curve decide stability?</text>
+  <text x="950" y="280" fill="#64748b" font-size="22" font-family="Arial">Re</text>
+  <text x="620" y="130" fill="#64748b" font-size="22" font-family="Arial">Im</text>
+</svg>

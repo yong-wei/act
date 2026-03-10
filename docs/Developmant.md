@@ -1,204 +1,224 @@
-AI-OBE 船舶智控平台开发计划书 (Technical Spec)
+这份文档是专门为您正在使用的**编程AI（如 Cursor, Windsurf, GitHub Copilot）准备的。它将教育理念转化为软件工程规范**。
 
-0. 技术栈与全局规范 (Global Context)
+你可以将以下内容直接复制粘贴给AI，作为项目的**“技术宪法”**。它定义了系统的骨架，确保后续填充60学时内容时，系统不会崩塌。
 
-Framework: Next.js 14 (App Router)
+---
 
-Language: TypeScript
+# AI-OBE 船舶智控全互动平台：技术架构与开发规范 (Technical Specification)
 
-Styling: Tailwind CSS + Radix UI / Shadcn UI (Default: Dark Mode)
+## 1. 项目愿景与技术背景 (Context)
 
-State Management: Zustand (用于仿真器状态), React Context (用于全局偏好)
+本项目旨在构建一个**“去PPT化”**的新一代《自动控制原理》教学平台。系统需支持60学时的全互动教学，集成了数字孪生仿真、AI Agent 辅助、实时数据分析和即时交互课件。
 
-AI SDK: Vercel AI SDK (React) + OpenAI/Azure (LLM Provider)
+* **核心栈:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Shadcn UI.
+* **状态管理:** Zustand (客户端仿真状态), TanStack Query (服务端数据).
+* **AI 引擎:** Vercel AI SDK (OpenAI/Azure).
+* **可视化:** React Flow (拓扑图), Recharts/Maifs (图表), Three.js/R3F (3D场景).
+* **数据库:** PostgreSQL (Prisma ORM).
 
-Database: PostgreSQL (Supabase/Neon) + Prisma ORM
+---
 
-Auth: Clerk
+## 2. 核心模块一：弹性课程引擎 (Flexible Curriculum Engine)
 
-Visualization: Recharts (统计图表), Three.js/R3F (3D 船舶态势 - 可选), Canvas API (2D 轨迹)
+**需求描述：**
+我们需要一个基于配置文件的课程管理系统，能够动态渲染 30 个 Lesson 模块。每个 Lesson 不是静态页面，而是一个由“交互原子”组成的流式文档。
 
-阶段一：数据底座与基础设施 (Infrastructure & Data Layer)
+### 2.1 数据结构定义 (Interfaces)
 
-模块 1.1：数据库架构设计 (Schema Design)
+请在 `types/curriculum.ts` 中定义以下核心接口，用于支撑 60 学时的弹性编排：
 
-开发需求：
-使用 Prisma 定义数据模型，需涵盖用户档案、仿真记录、任务进度及伦理日志。
+```typescript
+// 课程模块结构
+export type ModuleId = 'introduction' | 'modeling' | 'time-domain' | 'frequency-domain' | 'design' | 'nonlinear';
 
-核心模型定义 (Schema Requirements)：
+export interface CourseModule {
+  id: ModuleId;
+  title: string;
+  lessons: LessonConfig[];
+}
 
-UserProfile: 扩展 Clerk 的用户表，存储 studentId, classId, tech_score (技术分), ethics_score (伦理分)。
+export interface LessonConfig {
+  id: string; // e.g., 'lesson-03-differential-equations'
+  title: string;
+  durationMinutes: number; // e.g., 90
+  type: 'theory' | 'workshop' | 'battle' | 'review';
+  // MDX 文件路径，指向 content/lessons/xxx.mdx
+  contentPath: string; 
+  // 该课程需要的预加载资源（如 3D 模型 key）
+  assets?: string[];
+  // 该课程关联的 AI Agent 角色设定 ID
+  aiPersonaId: 'analyst' | 'devil_advocate' | 'tutor';
+}
 
-Mission (关卡): 包含 id, title, difficulty, unlock_criteria (解锁所需分数), sea_state_config (海况配置 JSON)。
+```
 
-UserProgress: 关联 User 和 Mission，记录 status (LOCKED/UNLOCKED/COMPLETED), best_score。
+### 2.2 MDX 渲染架构 (The "No-PPT" Engine)
 
-SimulationLog: 记录单次仿真的完整数据。
+请在 `components/mdx-engine` 下构建渲染器。我们需要在 Markdown 中直接调用复杂的交互组件。
 
-Fields: input_params (PID参数/K/T值 JSON), metrics (ACTE, 能量消耗, 舵机磨损), trajectory_data (压缩后的时序数据), is_ethical_violation (Boolean)。
+**组件注册表 (Component Registry):**
+必须实现 `MDXRemote` 或 `next-mdx-remote`，并注入以下自定义组件：
 
-EthicalLog: 专门记录违规行为。
+* `<SlideSection>`: 用于将长文档分割为类似 PPT 的“屏”。支持 `mode="teacher"` (广播) 和 `mode="student"` (跟随)。
+* `<Scene3D model="..." />`: 加载 Three.js 模型的容器。
+* `<MathCanvas type="block-diagram|signal-flow" />`: 基于 React Flow 的绘图板。
+* `<Plotter type="bode|nyquist|root-locus" />`: 动态数学绘图仪。
+* `<SimulationPanel scenario="..." />`: 嵌入式仿真控制器。
 
-Fields: violation_type (e.g., "OVERSPEED", "UNSTABLE"), ai_critique (AI给出的批评), student_justification (学生整改理由)。
+---
 
-验收标准 (Acceptance Criteria)：
+## 3. 核心模块二：通用仿真与交互设施 (Simulation Infrastructure)
 
-[ ] Prisma schema 文件编译通过，成功 push 到数据库。
+**需求描述：**
+为了支持从“微分方程”到“非线性控制”的广泛内容，我们需要一个**“可插拔”**的数学物理引擎，而不是为每一课写死代码。
 
-[ ] 能够通过 Server Action 创建一条包含 JSON 数据的仿真记录。
+### 3.1 统一仿真 Hook (`useControlSystem`)
 
-[ ] 能够关联查询某位学生的所有伦理违规记录。
+请实现一个通用的 React Hook，用于驱动前端的实时计算。
 
-模块 1.2：身份验证与状态同步 (Auth & Sync)
+```typescript
+// hooks/useControlSystem.ts
 
-开发需求：
-集成 Clerk，并利用 Webhook 机制在用户注册时同步创建 UserProfile。
+interface SimulationConfig {
+  // 物理模型定义：可以是传递函数(s域)或状态空间(t域)
+  model: {
+    type: 'transfer_function' | 'state_space' | 'nonlinear_script';
+    params: Record<string, number>; // { K: 10, T: 2.5, zeta: 0.7 }
+  };
+  // 求解器设置
+  solver: 'euler' | 'runge_kutta_4';
+  stepSize: number; // dt
+}
 
-验收标准：
+interface SimulationState {
+  t: number;
+  inputs: number[];
+  outputs: number[];
+  states: number[];
+  // 伦理熔断标志
+  safetyViolation: null | { type: string; message: string };
+}
 
-[ ] 用户通过 Clerk 登录后，系统能自动读取或初始化 Postgres 中的用户档案。
+// 核心驱动逻辑
+export const useControlSystem = (config: SimulationConfig) => {
+  // 使用 requestAnimationFrame 实现实时仿真循环
+  // 实现“伦理熔断”检测逻辑 (中间件模式)
+  // 返回 { start, pause, reset, setParam, data }
+};
 
-[ ] 路由中间件 (Middleware) 正确拦截未登录访问  /simulation 路径。
+```
 
-阶段二：仿真引擎与 AI Agent 核心 (Core Simulation & Agent)
+### 3.2 交互组件库规范 (Interactive Widgets)
 
-模块 2.1：仿真引擎重构与 Hook 化 (Simulation Engine)
+在 `components/widgets` 下开发以下“通用教具”：
 
-开发需求：
-将现有的 Nomoto 模型和物理计算逻辑封装为可复用的 React Hook useShipSimulation。
+1. **`ParameterSlider`**: 带实时波形预览的滑块。拖动时，不仅改变数值，还能向外抛出事件 `onValueChange` 给 AI。
+2. **`TransferFunctionEditor`**: 一个允许用户输入分子分母多项式的 UI，能自动渲染 LaTeX 公式。
+3. **`PoleZeroMap` (s-plane)**: 交互式复平面。允许拖动 `x` (极点) 和 `o` (零点)，并实时回调新的传递函数。
 
-功能逻辑：
+---
 
-Input: 接收 Kp, Ki, Kd, TargetHeading, SeaState 作为参数。
+## 4. 核心模块三：AI Agent 深度集成架构
 
-Loop: 使用 requestAnimationFrame 运行物理步进 (Step)。
+**需求描述：**
+AI 不应只是一个右下角的聊天框。它需要具备**上下文感知 (Context-Aware)** 和 **功能调用 (Function Calling)** 能力。
 
-Monitor: 在每一步计算中，实时检查以下指标：
+### 4.1 全局 AI 上下文 (AI Context Provider)
 
-max_rudder_rate (舵角速度)
+请使用 React Context 构建 `AIProvider`，包裹整个应用。它需要实时收集以下信息并注入到 System Prompt 中：
 
-energy_consumption (能耗积分)
+* **CurrentLesson**: 当前正在学的章节。
+* **SimulationStatus**: 当前仿真器的参数（如 , 震荡中）。
+* **UserAction**: 用户的最近一次操作（如“触发了熔断”）。
 
-cross_track_error (航迹误差)
+### 4.2 AI 工具链定义 (Tool Definitions)
 
-Output: 返回实时状态对象和控制函数 start(), pause(), reset()。
+在 `lib/ai/tools.ts` 中定义 AI 可调用的函数，赋予 AI “手”：
 
-验收标准：
+```typescript
+export const aiTools = {
+  // 允许 AI 修改仿真参数（辅助设计）
+  setSimulationParameters: tool({
+    description: 'Update the control system parameters (K, T, etc.)',
+    parameters: z.object({ ... }),
+    execute: async ({ params }) => { ... } // 更新 Zustand store
+  }),
+  // 允许 AI 高亮界面上的某个区域（教学引导）
+  highlightUIElement: tool({
+    description: 'Highlight a specific UI component to guide the student',
+    parameters: z.object({ elementId: z.string() }),
+    execute: async ({ elementId }) => { ... }
+  }),
+  // 允许 AI 触发挑战模式
+  triggerScenarioEvent: tool({
+    description: 'Inject a disturbance or fault into the simulation',
+    parameters: z.object({ type: z.enum(['storm', 'sensor_fail']) }),
+  })
+};
 
-[ ] 仿真循环在后台标签页不卡顿（考虑 Web Worker 优化）。
+```
 
-[ ] 提供 onStep 回调，用于前端图表实时更新。
+---
 
-[ ] 提供 onComplete 回调，自动触发数据上传 Server Action。
+## 5. 核心模块四：课堂同步与数据看板 (Classroom Sync)
 
-模块 2.2：AI Copilot (虚拟总工) 集成 (AI Agent)
+**需求描述：**
+支持 30 人线下课堂的实时互动。教师端可控制进度，并查看全班数据。
 
-开发需求：
-基于 Vercel AI SDK (useChat, useAssistant) 开发具备 Function Calling 能力的 AI 助手。
+### 5.1 实时同步层 (Realtime Layer)
 
-Prompt System:
-设定 System Prompt 为：“你是由中船重工指派的虚拟总工程师。你拥有查看仿真器状态和修改参数的权限。你需要根据 CCS 规范审核学生的设计。”
+利用 **Supabase Realtime** 或 **Socket.io** 实现 `ClassroomSession`。
 
-Tool/Function Definitions (工具定义):
+* **Teacher Mode**: 教师点击“加载模型 A”，所有连接的学生端自动跳转到模型 A 视图。
+* **State Broadcasting**: 学生端的仿真结果（如 `overshoot` 值）需以 1Hz 的频率节流上传，汇聚到教师大屏。
 
-get_simulation_status: 获取当前仿真器的 K, T, 海况, 误差值。
+### 5.2 数据库 Schema 扩展 (Prisma)
 
-set_simulation_params: 允许 AI 直接修改 PID 参数或环境参数（需前端确认）。
+```prisma
+model ClassSession {
+  id        String   @id @default(cuid())
+  isActive  Boolean
+  currentLessonId String?
+  // 存储全班当前的聚合状态
+  snapshot  Json?    
+}
 
-analyze_result: 接收仿真结果 JSON，结合知识库进行点评。
+model StudentActivity {
+  id        String   @id @default(cuid())
+  studentId String
+  lessonId  String
+  // 记录关键里程碑：如“成功整定PID”、“触发伦理熔断”
+  eventType String   
+  payload   Json
+  createdAt DateTime @default(now())
+}
 
-验收标准：
+```
 
-[ ] 聊天窗口能流畅对话。
+---
 
-[ ] 当用户输入“把海况设为5级”，AI 能自动调用 set_simulation_params，且仿真器参数实际发生变化。
+## 6. 开发路线图与验收标准 (Implementation Roadmap)
 
-[ ] AI 能读取到当前的仿真结果并给出具体的数值分析（如：“你的超调量为 25%，超过了标准”）。
+### 阶段一：基础架构 (Week 1-2)
 
-阶段三：教学逻辑与伦理熔断 (Pedagogy & Ethics)
+* [ ] 搭建 MDX 渲染引擎，支持加载本地 `.mdx` 文件。
+* [ ] 实现 `CourseLayout`，包含左侧目录树和右侧 AI 侧边栏。
+* [ ] 集成 React Flow 和 Recharts，创建一个 Demo 页面（如“弹簧-质量”系统）。
 
-模块 3.1：伦理熔断触发器 (Ethical Kill-switch)
+### 阶段二：仿真核心 (Week 3-4)
 
-开发需求：
-在 useShipSimulation 中植入“中间件”逻辑，用于强制中断仿真。
+* [ ] 完成 `useControlSystem` Hook，支持 Runge-Kutta 解算。
+* [ ] 实现 **“伦理熔断”中间件**，当变量溢出时强制暂停并弹窗。
+* [ ] 建立 `BlockDiagram` 组件，允许拖拽连接方框图。
 
-逻辑流程：
+### 阶段三：AI 赋能 (Week 5-6)
 
-定义阈值常量：MAX_RUDDER_RATE = 5.0 deg/s, MAX_ROLL_ANGLE = 15 deg。
+* [ ] 接入 Vercel AI SDK。
+* [ ] 实现 Tool Calling：AI 可以帮你改参数。
+* [ ] 实现 Context Injection：AI 知道你正在学哪一课。
 
-在物理步进中判断：如果当前值 > 阈值，立即调用 pause()。
+---
 
-触发全局状态 setIsEthicalViolation(true)。
+**给 AI 编程助手的指令 (Prompt Example):**
 
-UI 层面弹出全屏红色模态框 (Dialog)，内容包含：
-
-违规类型（如：舵机过载）。
-
-AI 自动生成的风险后果描述（如：可能导致液压系统爆裂）。
-
-强制输入框：“请输入整改方案”。
-
-验收标准：
-
-[ ] 当仿真数据触碰红线时，画面立即停止并变红。
-
-[ ] 学生不提交整改方案无法关闭弹窗。
-
-[ ] 违规事件成功写入数据库 EthicalLog 表。
-
-模块 3.2：逆向反推沙箱 (Reverse Design Sandbox)
-
-开发需求：
-开发一个新的视图模式，从“设置参数”转变为“设定目标”。
-
-UI/交互设计：
-
-目标绘制器: 在 Canvas 绘图区，允许用户拖拽生成一个“绿色包络线通道” (Target Envelope)。
-
-AI 辅助寻优: 增加“AI 推荐参数”按钮。点击后，触发 Server Action，在后端运行多次快速仿真（Monte Carlo），寻找能落入绿色通道的参数范围。
-
-参数回填: 将 AI 推荐的参数范围回填到输入框，供学生微调。
-
-验收标准：
-
-[ ] 用户能在图表上直观看到期望的“目标带”。
-
-[ ] “AI 推荐”功能能在 3秒内返回一组可行参数（建议使用简单算法估算，非大模型生成，减少延迟）。
-
-阶段四：数据可视化与任务中台 (Dashboard & Visualization)
-
-模块 4.1：学生能力画像 (Student Dashboard)
-
-开发需求：
-在学生个人中心使用 Recharts 绘制动态雷达图。
-
-数据源：
-
-技术维: 基于 UserProgress 中各关卡的最高分加权计算。
-
-伦理维: 基于 EthicalLog 的记录数量反向计算（违规越少分越高）。
-
-验收标准：
-
-[ ] 雷达图包含至少5个维度：稳态精度、动态响应、鲁棒性、安全性、能耗控制。
-
-[ ] 数据需从后端实时拉取，而非硬编码。
-
-模块 4.2：任务链解锁系统 (Mission Chain)
-
-开发需求：
-实现基于分数的关卡解锁逻辑。
-
-逻辑流程：
-
-用户进入“任务大厅”页面，获取所有 Mission 列表。
-
-前端根据 UserProgress 判断每个 Card 的状态 (Lock/Unlock)。
-
-Server Action completeMission(score): 当仿真结束且分数 > 60 时，查找下一关 ID，并在 DB 中将其状态置为 UNLOCKED。
-
-验收标准：
-
-[ ] 未解锁关卡呈灰色且不可点击。
-
-[ ] 完成关卡后，无需刷新页面，下一关自动高亮解锁（使用 React Server Components + Revalidate）。
+> "作为一个高级全栈架构师，请根据上述《技术架构与开发规范》，首先为我初始化 `types/curriculum.ts` 和 `hooks/useControlSystem.ts` 的基础代码框架。请确保使用了 TypeScript 的强类型定义，并为仿真引擎预留了扩展非线性模型的能力。"

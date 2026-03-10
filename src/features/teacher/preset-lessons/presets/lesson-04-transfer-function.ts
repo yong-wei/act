@@ -1,0 +1,302 @@
+/**
+ * 预置教案：Lesson 04 - 传递函数与控制系统数学模型
+ *
+ * 基于 BOPPPS 教学框架设计的 90 分钟线下课堂流程
+ */
+
+import { ResourceType } from '@prisma/client';
+import type { PresetLessonConfig } from '../types';
+
+export const LESSON_04_TRANSFER_FUNCTION_PRESET: PresetLessonConfig = {
+  key: 'lesson-04-transfer-function-v1',
+  title: '传递函数与控制系统数学模型',
+  description: '围绕传递函数定义、推导、零极点判读与典型环节识别构建 90 分钟课堂。',
+  totalDuration: 90,
+  tags: ['传递函数', '拉普拉斯变换', '零极点', '系统阶次', '典型环节'],
+  items: [
+    // ==================== Stage 1: Bridge-in (导入) - 10分钟 ====================
+    {
+      stage: 'BRIDGE_IN',
+      order: 1,
+      registryId: 'classroom-video',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 4,
+      title: '导入：为什么需要传递函数？',
+      description: '从“复杂微分方程难以分析”切入课程主题。',
+      config: {
+        mode: 'play',
+        config: {
+          id: 'video-lesson-04-intro',
+          type: 'video',
+          title: '导入：传递函数的价值',
+          sourceType: 'placeholder',
+          primarySource: '/assets/lesson-04/transfer-intro.svg',
+          splitMode: 'none',
+          narration: '传递函数让系统分析从微分方程切换到 s 域代数世界。',
+          description: '突出传递函数的作用与必要性。',
+          autoPlay: false,
+          autoAdvance: false,
+        },
+      },
+    },
+    {
+      stage: 'BRIDGE_IN',
+      order: 2,
+      registryId: 'classroom-poll',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 6,
+      title: '投票：你最困惑传递函数的哪一步？',
+      description: '收集学生学习痛点。',
+      config: {
+        mode: 'play',
+        config: {
+          id: 'poll-lesson-04-pain',
+          type: 'poll',
+          question: '你觉得学习传递函数最难的是？',
+          options: [
+            { key: 'A', text: '零初始条件的理解', color: '#38bdf8' },
+            { key: 'B', text: '微分方程推导传函', color: '#f59e0b' },
+            { key: 'C', text: '零极点与稳定性', color: '#22c55e' },
+            { key: 'D', text: '典型环节识别', color: '#a855f7' },
+          ],
+          multiSelect: false,
+          anonymous: false,
+          showLiveResults: true,
+          timeLimit: 45,
+        },
+      },
+    },
+
+    // ==================== Stage 2: Objective (目标) - 8分钟 ====================
+    {
+      stage: 'OBJECTIVE',
+      order: 1,
+      registryId: 'classroom-objective',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 4,
+      title: '本节课学习目标',
+      description: '明确传递函数建模与判读能力。',
+      config: {
+        mode: 'play',
+        config: {
+          id: 'objective-lesson-04',
+          type: 'objective',
+          title: '传递函数 学习目标',
+          objectives: [
+            {
+              id: 'obj-1',
+              type: 'knowledge',
+              description: '理解传递函数定义与零初始条件',
+              badgeName: '传函观察员',
+              badgeIcon: 'book-open',
+              unlocked: false,
+            },
+            {
+              id: 'obj-2',
+              type: 'ability',
+              description: '能从微分方程推导传递函数',
+              badgeName: '推导工程师',
+              badgeIcon: 'workflow',
+              unlocked: false,
+            },
+            {
+              id: 'obj-3',
+              type: 'ability',
+              description: '掌握零极点与系统阶次判读',
+              badgeName: '极点侦探',
+              badgeIcon: 'target',
+              unlocked: false,
+            },
+            {
+              id: 'obj-4',
+              type: 'value',
+              description: '建立典型环节的工程直觉',
+              badgeName: '系统感知者',
+              badgeIcon: 'sparkles',
+              unlocked: false,
+            },
+          ],
+          showUnlockAnimation: true,
+        },
+      },
+    },
+    {
+      stage: 'OBJECTIVE',
+      order: 2,
+      registryId: 'classroom-video',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 4,
+      title: '课程路线图：定义 → 推导 → 零极点 → 典型环节',
+      description: '梳理学习主线。',
+      config: {
+        mode: 'play',
+        config: {
+          id: 'video-lesson-04-roadmap',
+          type: 'video',
+          title: '传递函数路线图',
+          sourceType: 'placeholder',
+          primarySource: '/assets/lesson-04/transfer-roadmap.svg',
+          splitMode: 'none',
+          narration: '从定义出发，完成推导与判读，再落到典型环节识别。',
+          description: '明确本节课阶段目标。',
+          autoPlay: false,
+          autoAdvance: false,
+        },
+      },
+    },
+
+    // ==================== Stage 3: Pre-assessment (前测) - 10分钟 ====================
+    {
+      stage: 'PRE_ASSESSMENT',
+      order: 1,
+      registryId: 'lesson04-transfer-precheck',
+      duration: 10,
+      title: '前测：传递函数概念速判',
+      description: '快速检查定义、阶次与典型环节掌握情况。',
+      config: {},
+    },
+
+    // ==================== Stage 4: Participatory (参与式学习) - 50分钟 ====================
+    {
+      stage: 'PARTICIPATORY',
+      order: 1,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-transfer-function-definition',
+      duration: 1,
+      title: '知识卡片：传递函数定义',
+      description: '明确传递函数在 s 域的定义。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 2,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-zero-initial-condition',
+      duration: 1,
+      title: '知识卡片：零初始条件',
+      description: '理解传函定义的前提假设。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 3,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-differential-to-transfer',
+      duration: 1,
+      title: '知识卡片：微分方程到传函',
+      description: '掌握推导流程。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 4,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-pole-zero-form',
+      duration: 1,
+      title: '知识卡片：零极点形式',
+      description: '理解零点与极点的意义。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 5,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-characteristic-polynomial',
+      duration: 1,
+      title: '知识卡片：特征多项式',
+      description: '系统阶次与特征根对应关系。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 6,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-transfer-function-properties',
+      duration: 1,
+      title: '知识卡片：传函性质',
+      description: '掌握串并联与反馈组合规则。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 7,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-typical-elements',
+      duration: 1,
+      title: '知识卡片：典型环节',
+      description: '建立典型传函的工程直觉。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 8,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-rlc-transfer-example',
+      duration: 1,
+      title: '知识卡片：RLC 电路示例',
+      description: '理解电路系统的二阶传函。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 9,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-mechanical-motor-transfer',
+      duration: 1,
+      title: '知识卡片：机械/电机系统',
+      description: '掌握机械与电机系统的传函表示。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 10,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-matlab-transfer-toolbox',
+      duration: 1,
+      title: '知识卡片：MATLAB 工具',
+      description: '熟悉常用建模命令。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 11,
+      registryId: 'lesson04-transfer-knowledge-deck',
+      duration: 16,
+      title: '知识卡片：传递函数核心概念',
+      description: '用互动卡片复盘定义、推导与典型环节。',
+      config: {},
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 12,
+      registryId: 'lesson04-transfer-derivation-lab',
+      duration: 12,
+      title: '参与式学习：传函推导演练',
+      description: '从微分方程推导典型系统传函。',
+      config: {},
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 13,
+      registryId: 'lesson04-transfer-element-workshop',
+      duration: 12,
+      title: '参与式学习：典型环节工作坊',
+      description: '快速识别比例、积分、一阶惯性与二阶振荡。',
+      config: {},
+    },
+
+    // ==================== Stage 5: Post-assessment (后测) - 8分钟 ====================
+    {
+      stage: 'POST_ASSESSMENT',
+      order: 1,
+      registryId: 'lesson04-transfer-exit-quiz',
+      duration: 8,
+      title: '后测：传递函数速测',
+      description: '验证零极点与工具使用掌握度。',
+      config: {},
+    },
+
+    // ==================== Stage 6: Summary (总结) - 4分钟 ====================
+    {
+      stage: 'SUMMARY',
+      order: 1,
+      registryId: 'lesson04-summary-card',
+      duration: 4,
+      title: '总结：传递函数学习主线',
+      description: '回顾建模路线与后续学习方向。',
+      config: {},
+    },
+  ],
+};
+
+export default LESSON_04_TRANSFER_FUNCTION_PRESET;

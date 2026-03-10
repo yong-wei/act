@@ -1,0 +1,30 @@
+<svg width="960" height="540" viewBox="0 0 960 540" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#041f2e" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" rx="32" fill="url(#bg)" />
+  <text x="120" y="120" font-family="'Segoe UI', sans-serif" font-size="32" font-weight="700" fill="#e2e8f0">
+    Lesson 05 Roadmap
+  </text>
+  <text x="120" y="155" font-family="'Segoe UI', sans-serif" font-size="18" fill="#a7f3d0">
+    结构图 -> 信号流图 -> 梅森公式
+  </text>
+
+  <rect x="120" y="200" width="200" height="90" rx="18" fill="#0f766e" stroke="#5eead4" stroke-width="2" />
+  <text x="150" y="245" font-family="'Segoe UI', sans-serif" font-size="20" fill="#ecfeff">结构图</text>
+  <text x="150" y="270" font-family="'Segoe UI', sans-serif" font-size="14" fill="#ccfbf1">等效化简</text>
+
+  <rect x="380" y="200" width="200" height="90" rx="18" fill="#115e59" stroke="#38bdf8" stroke-width="2" />
+  <text x="410" y="245" font-family="'Segoe UI', sans-serif" font-size="20" fill="#e2e8f0">信号流图</text>
+  <text x="410" y="270" font-family="'Segoe UI', sans-serif" font-size="14" fill="#bae6fd">拓扑表达</text>
+
+  <rect x="640" y="200" width="200" height="90" rx="18" fill="#0b3b37" stroke="#facc15" stroke-width="2" />
+  <text x="670" y="245" font-family="'Segoe UI', sans-serif" font-size="20" fill="#fef9c3">梅森公式</text>
+  <text x="670" y="270" font-family="'Segoe UI', sans-serif" font-size="14" fill="#fde68a">公式求解</text>
+
+  <path d="M330 245 H370" stroke="#5eead4" stroke-width="4" stroke-linecap="round" />
+  <path d="M590 245 H630" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" />
+</svg>

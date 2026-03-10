@@ -1,0 +1,148 @@
+.ship {
+    position: relative;
+    width: 100px;
+    height: 60px;
+    min-width: 100px;
+    min-height: 60px;
+    pointer-events: none;
+}
+
+.svg {
+    width: 100%;
+    height: 100%;
+}
+
+.baseHull {
+    fill: url(#hullMetalGradient) #334155;
+    stroke: #64748b;
+    stroke-width: 1.2;
+}
+
+.baseWing {
+    fill: url(#wingMetalGradient) #1f2937;
+    stroke: #475569;
+    stroke-width: 1;
+}
+
+.basePanel {
+    fill: #0f172a;
+    opacity: 0.55;
+}
+
+.layer {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.layerActive {
+    opacity: 1;
+}
+
+.pGlow {
+    fill: url(#pGlowGradient) rgba(251, 113, 133, 0.45);
+    filter: url(#glowSoft);
+}
+
+.iFlowShape {
+    fill: url(#iFlowGradient) rgba(14, 165, 233, 0.55);
+    filter: url(#glowSoft);
+}
+
+.dSparks {
+    fill: none;
+    stroke: #d9f99d;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: url(#sparkJitter);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: sparkFlicker 0.6s ease-in-out infinite, sparkDrift 1.4s ease-in-out infinite;
+}
+
+.dSparksAlt {
+    fill: none;
+    stroke: #bef264;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: url(#sparkJitter);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: sparkFlicker 0.8s ease-in-out infinite, sparkDrift 1.8s ease-in-out infinite;
+}
+
+.dAura {
+    fill: none;
+    stroke: rgba(190, 242, 100, 0.75);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: url(#sparkJitter);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: sparkFlicker 0.8s ease-in-out infinite, sparkDrift 1.6s ease-in-out infinite;
+}
+
+.ffCowl {
+    fill: url(#ffCowlGradient) rgba(192, 132, 252, 0.45);
+    filter: url(#glowSoft);
+}
+
+.vfArmor {
+    fill: rgba(45, 212, 191, 0.22);
+    stroke: rgba(94, 234, 212, 0.6);
+    stroke-width: 1.2;
+    filter: url(#glowSoft);
+}
+
+.tailBase {
+    fill: url(#tailBaseGradient) rgba(148, 163, 184, 0.55);
+    opacity: 0.6;
+    filter: url(#glowSoft);
+    animation: tailPulse 1.8s ease-in-out infinite;
+}
+
+.tailCore {
+    fill: url(#tailCoreGradient) rgba(251, 113, 133, 0.8);
+    opacity: 0.9;
+    filter: url(#glowStrong);
+    animation: tailPulse 1.4s ease-in-out infinite;
+}
+
+.tailI {
+    fill: url(#tailIGradient) rgba(34, 211, 238, 0.78);
+    opacity: 0.85;
+    filter: url(#glowSoft);
+    animation: tailFlow 2.2s linear infinite;
+}
+
+.tailHidden {
+    opacity: 0;
+}
+
+
+@keyframes tailPulse {
+    0% { opacity: 0.45; }
+    50% { opacity: 0.9; }
+    100% { opacity: 0.45; }
+}
+
+@keyframes tailFlow {
+    0% { transform: translateX(0); opacity: 0.7; }
+    50% { transform: translateX(-4px); opacity: 1; }
+    100% { transform: translateX(0); opacity: 0.7; }
+}
+
+
+@keyframes sparkFlicker {
+    0% { opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { opacity: 0.3; }
+}
+
+@keyframes sparkDrift {
+    0% { transform: translate(0, 0); }
+    50% { transform: translate(-2px, 1px); }
+    100% { transform: translate(1px, -1px); }
+}

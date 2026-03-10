@@ -1,0 +1,25 @@
+<svg width="1200" height="600" viewBox="0 0 1200 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="600" rx="28" fill="#0f172a" />
+  <text x="120" y="120" fill="#e2e8f0" font-size="36" font-family="Arial">Frequency-Domain Roadmap</text>
+  <text x="120" y="170" fill="#94a3b8" font-size="22" font-family="Arial">Phase characteristics to stability insight</text>
+
+  <rect x="120" y="240" width="240" height="100" rx="18" fill="#0b1220" stroke="#38bdf8" stroke-width="3" />
+  <text x="150" y="300" fill="#bae6fd" font-size="20" font-family="Arial">Frequency Response</text>
+
+  <rect x="420" y="240" width="240" height="100" rx="18" fill="#0b1220" stroke="#22c55e" stroke-width="3" />
+  <text x="470" y="300" fill="#bbf7d0" font-size="20" font-family="Arial">Nyquist Plot</text>
+
+  <rect x="720" y="240" width="240" height="100" rx="18" fill="#0b1220" stroke="#f97316" stroke-width="3" />
+  <text x="760" y="300" fill="#fed7aa" font-size="20" font-family="Arial">Stability Check</text>
+
+  <line x1="360" y1="290" x2="420" y2="290" stroke="#475569" stroke-width="4" />
+  <line x1="660" y1="290" x2="720" y2="290" stroke="#475569" stroke-width="4" />
+
+  <circle cx="390" cy="290" r="6" fill="#475569" />
+  <circle cx="690" cy="290" r="6" fill="#475569" />
+
+  <text x="120" y="420" fill="#94a3b8" font-size="20" font-family="Arial">Key steps:</text>
+  <text x="120" y="460" fill="#cbd5f5" font-size="18" font-family="Arial">1. Locate start/end and negative real-axis crossing</text>
+  <text x="120" y="490" fill="#cbd5f5" font-size="18" font-family="Arial">2. Apply argument principle (Z = P - N)</text>
+  <text x="120" y="520" fill="#cbd5f5" font-size="18" font-family="Arial">3. Translate to Bode crossings for fast checks</text>
+</svg>

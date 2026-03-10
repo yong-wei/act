@@ -1,0 +1,90 @@
+{
+  "id": "lesson-13-cruise-comfort",
+  "title": "柔性之海——豪华邮轮的舒适度控制",
+  "description": "融合 ISO 2631 标准与工程伦理的深度仿真课程。以'爱达·魔都'号为场景，探究阻尼控制与乘坐体验的关系。",
+  "durationMinutes": 45,
+  "version": "1.0.0",
+  "author": "AI-OBE Platform",
+  "teachingModel": "BOPPPS",
+  "prerequisites": ["lesson-02-differential-equations", "linear-system-stability"],
+  "objectives": [
+    "能准确阐述超调量、调节时间与系统阻尼比的对应关系",
+    "能在多约束条件下，设计满足 ISO 2631 舒适度标准的控制器",
+    "在工程决策中，能主动将乘客体验置于运行效率之上"
+  ],
+  "phases": [
+    {
+      "id": "bridge",
+      "title": "导入 (Bridge-in)",
+      "description": "速度与尊严的较量",
+      "durationMinutes": 3,
+      "resources": ["res-video-comfort-contrast", "res-poll-comfort-def"],
+      "aiPersona": "service-director"
+    },
+    {
+      "id": "objective",
+      "title": "学习目标 (Objective)",
+      "description": "通关任务发布",
+      "durationMinutes": 2,
+      "resources": ["res-card-lesson-obj"]
+    },
+    {
+      "id": "pretest",
+      "title": "前测 (Pre-assessment)",
+      "description": "物理工坊 - 寻找完美阻尼",
+      "durationMinutes": 5,
+      "resources": ["res-widget-damping-intro"],
+      "aiPersona": "tutor"
+    },
+    {
+      "id": "participatory-mapping",
+      "title": "指标映射",
+      "description": "从控制参数到晕船指数",
+      "durationMinutes": 5,
+      "resources": ["res-card-iso2631-mapping"],
+      "aiPersona": "analyst"
+    },
+    {
+      "id": "participatory-sim",
+      "title": "仿真挑战：香槟塔保卫战",
+      "description": "台风海况下的参数整定",
+      "durationMinutes": 15,
+      "resources": ["res-sim-champagne-defense"],
+      "aiPersona": "safety-officer"
+    },
+    {
+      "id": "participatory-ethics",
+      "title": "伦理熔断与整改",
+      "description": "当加速度触发红色警报",
+      "durationMinutes": 5,
+      "resources": ["res-sim-champagne-defense"],
+      "aiPersona": "safety-officer"
+    },
+    {
+      "id": "participatory-optimization",
+      "title": "优化设计",
+      "description": "响应整形与极点配置",
+      "durationMinutes": 5,
+      "resources": ["res-widget-response-shaping"],
+      "aiPersona": "analyst"
+    },
+    {
+      "id": "posttest",
+      "title": "后测 (Post-assessment)",
+      "description": "最终方案验证",
+      "durationMinutes": 3,
+      "resources": ["res-quiz-design-verify"],
+      "aiPersona": "examiner"
+    },
+    {
+      "id": "summary",
+      "title": "总结 (Summary)",
+      "description": "AI 课堂数据报告",
+      "durationMinutes": 2,
+      "resources": ["res-ai-report-summary"],
+      "aiPersona": "service-director"
+    }
+  ],
+  "createdAt": "2026-01-01T00:00:00Z",
+  "updatedAt": "2026-01-01T00:00:00Z"
+}

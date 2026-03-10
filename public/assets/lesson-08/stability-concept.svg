@@ -1,0 +1,38 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a" />
+      <stop offset="1" stop-color="#1f2937" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" rx="32" fill="url(#bg)" />
+
+  <text x="80" y="110" fill="#e2e8f0" font-size="34" font-family="Arial" font-weight="bold">稳定性的概念与充要条件</text>
+  <text x="80" y="150" fill="#94a3b8" font-size="18" font-family="Arial">扰动消失后系统能恢复平衡 → 稳定</text>
+
+  <rect x="80" y="210" width="520" height="380" rx="24" fill="#0b1220" stroke="#1f2937" />
+  <rect x="650" y="210" width="470" height="380" rx="24" fill="#0b1220" stroke="#1f2937" />
+
+  <text x="110" y="260" fill="#38bdf8" font-size="20" font-family="Arial" font-weight="bold">极点位置判别</text>
+  <text x="110" y="300" fill="#94a3b8" font-size="16" font-family="Arial">稳定：所有闭环根在左半平面</text>
+  <text x="110" y="335" fill="#94a3b8" font-size="16" font-family="Arial">临界稳定：存在纯虚根</text>
+  <text x="110" y="370" fill="#94a3b8" font-size="16" font-family="Arial">不稳定：存在右半平面根</text>
+
+  <rect x="190" y="410" width="240" height="160" rx="14" fill="#0f172a" stroke="#334155" />
+  <rect x="190" y="410" width="120" height="160" rx="14" fill="#1e293b" />
+  <line x1="310" y1="410" x2="310" y2="570" stroke="#334155" stroke-width="2" />
+  <line x1="190" y1="490" x2="430" y2="490" stroke="#334155" stroke-width="2" />
+  <text x="198" y="430" fill="#22c55e" font-size="12" font-family="Arial">左半平面</text>
+  <text x="330" y="430" fill="#f97316" font-size="12" font-family="Arial">右半平面</text>
+  <circle cx="250" cy="460" r="5" fill="#22c55e" />
+  <circle cx="350" cy="520" r="5" fill="#f97316" />
+  <text x="420" y="500" fill="#94a3b8" font-size="12" font-family="Arial">σ</text>
+  <text x="300" y="420" fill="#94a3b8" font-size="12" font-family="Arial">jω</text>
+
+  <text x="680" y="260" fill="#22c55e" font-size="20" font-family="Arial" font-weight="bold">充要条件</text>
+  <text x="680" y="300" fill="#94a3b8" font-size="16" font-family="Arial">闭环特征根均满足 Re(s) &lt; 0</text>
+  <text x="680" y="335" fill="#94a3b8" font-size="16" font-family="Arial">劳斯判据可直接由特征方程判断</text>
+  <text x="680" y="370" fill="#94a3b8" font-size="16" font-family="Arial">稳定是后续性能指标的前提</text>
+
+  <text x="80" y="620" fill="#64748b" font-size="14" font-family="Arial">提示：极点越靠左，系统越稳定、衰减越快。</text>
+</svg>

@@ -1,0 +1,127 @@
+/**
+ * 预置教案：Lesson 02 Legacy - 机理建模·微分方程
+ *
+ * 基于 BOPPPS 教学框架的完整建模课程流程
+ */
+
+import { ResourceType } from '@prisma/client';
+import type { PresetLessonConfig } from '../types';
+
+export const LESSON_02_LEGACY_MODELING_PRESET: PresetLessonConfig = {
+  key: 'lesson-02-legacy-modeling-v1',
+  title: '机理建模·微分方程（Legacy）',
+  description:
+    '通过舵机系统案例引导学生完成机械/电路建模与机电相似映射，形成微分方程统一框架。',
+  totalDuration: 90,
+  thumbnail: '/images/presets/lesson-02-modeling.jpg',
+  tags: ['系统建模', '机电相似', '微分方程', '建模方法', 'legacy'],
+  items: [
+    {
+      stage: 'BRIDGE_IN',
+      order: 1,
+      registryId: 'lesson02-legacy-bridge-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 5,
+      title: '导入：透视舵机系统',
+      description: '从舵机结构引出建模任务。',
+      config: {},
+    },
+    {
+      stage: 'OBJECTIVE',
+      order: 1,
+      registryId: 'lesson02-legacy-objective-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 2,
+      title: '学习目标',
+      description: '本节课通关目标与技能清单。',
+      config: {},
+    },
+    {
+      stage: 'PRE_ASSESSMENT',
+      order: 1,
+      registryId: 'lesson02-legacy-pretest-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 8,
+      title: '前测：物理基础连线',
+      description: '确认机械与电气基础概念掌握情况。',
+      config: {},
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 1,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-newton-laws',
+      duration: 3,
+      title: '知识卡片：牛顿定律在旋转体中的应用',
+      description: '理解力矩-惯量-角加速度的建模关系。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 2,
+      registryId: 'lesson02-legacy-mechanical-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 22,
+      title: '参与式学习：机械建模工坊',
+      description: '搭建弹簧-质量-阻尼模型并写出方程。',
+      config: {},
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 3,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-kvl-circuit',
+      duration: 3,
+      title: '知识卡片：KVL 与动态电路',
+      description: '掌握 RLC 电路的电压平衡与微分方程。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 4,
+      registryId: 'lesson02-legacy-electrical-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 17,
+      title: '参与式学习：电路建模工坊',
+      description: '建立 RLC 电路模型并写出方程。',
+      config: {},
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 5,
+      itemType: 'KNOWLEDGE_NODE',
+      knowledgeNodeId: 'node-electromechanical-analogy',
+      duration: 3,
+      title: '知识卡片：机电类比映射',
+      description: '理解机械量与电气量的对应关系。',
+    },
+    {
+      stage: 'PARTICIPATORY',
+      order: 6,
+      registryId: 'lesson02-legacy-analogy-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 12,
+      title: '参与式学习：机电相似映射',
+      description: '完成机械与电气量的对应关系。',
+      config: {},
+    },
+    {
+      stage: 'POST_ASSESSMENT',
+      order: 1,
+      registryId: 'lesson02-legacy-posttest-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 10,
+      title: '后测：导弹发射架建模',
+      description: '检查非线性项与线性化理解。',
+      config: {},
+    },
+    {
+      stage: 'SUMMARY',
+      order: 1,
+      registryId: 'lesson02-legacy-summary-v1',
+      resourceType: ResourceType.INTERACTIVE_COMP,
+      duration: 5,
+      title: '总结：知识图谱',
+      description: '复盘本节课核心概念与关联知识点。',
+      config: {},
+    },
+  ],
+};

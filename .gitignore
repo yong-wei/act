@@ -7,6 +7,10 @@ GEMINI.md
 .codex/
 .DS_Store
 .logs/
+docs/courses/
+deploy/
+data/
+.cache/
 
 # Node/JS
 **/node_modules/
@@ -32,6 +36,12 @@ pnpm-debug.log*
 # Env files
 .env
 .env.*
+.envrc
 
 # Prisma local db
 my-next-app/prisma/dev.db
+
+$ Playwright temp
+.playwright-mcp/
+scripts/**/__pycache__/
+scripts/**/*.pyc

@@ -1,39 +1,27 @@
-# Fix Report - 2025-12-25
+# Fix Report
 
-## Destroyer Simulation Visual & Physics Improvements
+## 2026-01-07: Ten Drops Game - Level Selector Scroll & Game Mechanics
 
-### Issues Identified
-1.  **Unrealistic Sea Surface:** The sea surface material was using `meshStandardMaterial` with manual vertex displacement in JavaScript. This resulted in a "mirror-like" appearance due to the lack of per-frame normal updates (normals were only updated every 0.5s to save CPU).
-2.  **Invisible Waves:** Although wave parameters existed, the combination of low frequency and standard material shading made them difficult to see.
-3.  **Unreasonable Buoyancy:** The ship would either sink too deep or float too high because the vertical offset was hardcoded and didn't account for the ship's specific hull geometry relative to the wave height. The damping was also insufficient for high waves.
+### 1. Level Selector Scroll Issue
+**Problem:** The level selection modal in the Ten Drops game was not scrolling correctly. On some devices/browsers, attempting to scroll the list would scroll the background page instead, or the list height was not calculated correctly, preventing access to bottom items.
 
-### Fixes Applied
+**Attempts & Final Solution:**
+1.  **Initial Attempt (Body Lock):** Tried simple `document.body.style.overflow = 'hidden'`.
+    *   *Result:* Inconsistent. Some mobile browsers continue to scroll the "html" element or ignore the lock if the modal doesn't capture touch events properly.
+2.  **Intermediate Attempt (CSS Classes):** Switched to Tailwind's `overflow-hidden` class.
+    *   *Result:* Failed if Tailwind's base styles didn't prioritize correctly or if the dynamic class addition had timing issues. Reverted to inline styles for reliability.
+3.  **Final Solution (Flexbox + Dual Lock):**
+    *   **Layout Architecture:** Completely refactored the modal structure from a Block layout with `calc(80vh - 120px)` height to a **Flexbox Column** layout.
+        *   Container: `flex flex-col max-h-[85vh]`
+        *   Header: `flex-none`
+        *   Scroll Area: `flex-1 min-h-0 overflow-y-auto`
+        *   *Why:* This ensures the scrollable area automatically fills the available space without fragile magic number calculations. `min-h-0` is crucial in Flex items to allow scrolling.
+    *   **Dual Scroll Locking:** Now locks both `document.body` and `document.documentElement` (html tag).
+        *   *Why:* Covers differences in browser rendering engines (some scroll on body, some on html).
+    *   **Overscroll Containment:** Added `overscroll-behavior: contain`.
+        *   *Why:* Prevents "scroll chaining" where scrolling past the end of the modal triggers the background page scroll.
 
-#### 1. Custom Shader Material for Water
-*   **Replaced** `meshStandardMaterial` with a custom `ShaderMaterial` using `@react-three/drei/shaderMaterial`.
-*   **Vertex Shader:** Implemented the wave height calculation (Sum of Sines) directly in the vertex shader for high performance. Crucially, it now calculates **Analytical Normals** (using partial derivatives of the wave function). This ensures perfect, smooth lighting that matches the wave shape every frame, eliminating the flat/mirror look.
-*   **Fragment Shader:** Implemented a custom shading model including:
-    *   **Fresnel Effect:** Mixes deep blue and sky blue based on viewing angle.
-    *   **Specular Highlights:** Simulates sun reflection.
-    *   **Foam:** Automatically generates white foam at wave peaks (based on height threshold).
-
-#### 2. Enhanced Wave Parameters
-*   Updated `waveParams` to use higher amplitudes (max 1.5m) and varied frequencies/directions to create a more chaotic and visible sea state.
-*   The wave physics in JavaScript (`getWaveHeight`) was synchronized with the Shader logic (same superposition of 5 sine waves) to ensure the ship physically rides the waves that are visually rendered.
-
-#### 3. Buoyancy & Ship Movement Tuning
-*   **Vertical Offset:** Adjusted the ship's base Y position to `avgY - 1.5m` (relative to the average wave height at 4 corners). This "sinks" the hull slightly into the water while keeping the deck dry.
-*   **Damping:** Increased `lerpFactor` slightly for vertical movement (`0.1`) to make the ship more responsive to waves, while keeping rotation damping (`0.05`) to simulate inertia.
-*   **Clamp Removed:** Removed the hard clamp on wave height for the ship physics, allowing it to ride larger waves naturally.
-
-### Verification
-*   **Visuals:** The sea now has proper lighting, waves are clearly visible with foam at the peaks, and the surface reacts to the sun direction.
-*   **Physics:** The ship bobs and tilts effectively with the waves without clipping excessively or floating in mid-air.
-*   **Scale Correction:** The destroyer model has been scaled up to its realistic length of 180m (previously 80m), ensuring it matches the 100m grid scale of the environment.
-*   **Buoyancy Height Adjustment:** Raised the ship's vertical offset from `+0.5` to `+15.5` (through iterative adjustments). This correction ensures the ship's gunwale remains above the water surface even during wave peaks, achieving a more realistic draft of approximately 6 meters for the scaled-up 180m model.
-*   **Camera Distance Scaling:** Adjusted camera distances in `CameraRig` (increased by approx. 2.25x) to maintain the same visual proportion of the ship in the frame after scaling the model up from 80m to 180m.
-*   **Scenario & Environment Scaling:** Scaled up the obstacle island, guide paths, and task waypoints by 2.25x to match the new ship scale.
-*   **Collision Detection:** Increased the collision buffer radius from 10m to 100m to correctly account for the larger ship dimensions.
-
----
-*Generated by Gemini CLI*
+### 2. Game Mechanics & Visuals
+*   **Visuals:** Replaced static droplet icons with a dynamic "Puddle" visualization (SVG + CSS border-radius morphing) for static states, and a directional "Teardrop" icon for flying projectiles.
+*   **Animation:** Implemented a new `calculateChainSteps` logic to decouple calculation from rendering, allowing for a precise "Explode -> Fly -> Land" animation sequence.
+*   **Resource System:** Shifted from a "Move Limit" system to a "Water Drop Resource" system (spend drops to play, earn drops from chain reactions), adding strategic depth.

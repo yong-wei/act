@@ -1,0 +1,937 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+// 任务难度等级
+enum MissionDifficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+// 用户进度状态
+enum ProgressStatus {
+  LOCKED
+  UNLOCKED
+  IN_PROGRESS
+  COMPLETED
+}
+
+// 伦理违规类型
+enum ViolationType {
+  EXCESSIVE_RUDDER_RATE // 舵角速度过快
+  EXCESSIVE_ROLL_ANGLE // 横摇角过大
+  COLLISION_RISK // 碰撞风险
+  ENVIRONMENTAL_HAZARD // 环境危害
+  SAFETY_VIOLATION // 安全违规
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
+  role           UserRole  @default(STUDENT)
+  passwordHash   String?
+  employeeNumber String? // 工号（教师/管理员使用）
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  accounts           Account[]
+  sessions           Session[]
+  profile            StudentProfile?
+  simulationSessions SimulationSession[]
+  llmSessions        LlmSession[]
+  progress           UserProgress[]
+  simulationLogs     SimulationLog[]
+  ethicalLogs        EthicalLog[]
+  controlOdysseyAiHistories ControlOdysseyAiHistory[]
+
+  // 新增关系：学习模块
+  learningProfile LearningProfile?
+  milestones      LearningMilestone[]
+  achievements    Achievement[]
+
+  // 新增关系：伦理模块
+  ethicsDecisions    EthicsDecision[]
+  ethicsDecisionLogs EthicsDecisionLog[]
+
+  // 新增关系：知识图谱模块
+  knowledgeProgress KnowledgeProgress[]
+  learningPaths     LearningPath[]
+  learningNotes     LearningNote[]
+
+  // 教学资源与教案
+  createdResources TeachingResource[]
+  createdPlans     LessonPlan[]
+  teachingSessions ClassSession[]
+  studentStates    StudentState[]
+
+  // 教师班级管理
+  teacherClasses Class[] @relation("TeacherClasses")
+
+  // 互动埋点日志
+  interactionLogs InteractionLog[]
+
+  // DevelopmentPlan 扩展模块
+  linkageSessions   LinkageSession[]
+  userAnswers       UserAnswer[]
+  abilityAssessments AbilityAssessment[]
+  aiInterventions   AIIntervention[]
+  promptAssessments PromptAssessment[]
+  designSessions    DesignSession[]
+}
+
+model StudentProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  studentNumber String?
+  classId       String? // 班级ID
+  techScore     Float    @default(0) // 技术能力分
+  ethicsScore   Float    @default(100) // 伦理分（初始满分，违规扣减）
+  major         String?
+  year          String?
+  className     String?
+  controlCredits Int @default(0)
+  controlUnlocks Json @default("[]")
+  controlOdysseyProgress Json @default("{}")
+  controlControllerLevels Json @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class Class? @relation(fields: [classId], references: [id])
+}
+
+model ControlOdysseyAiHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  levelId   String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, levelId])
+  @@index([levelId])
+}
+
+// 班级管理
+model Class {
+  id        String @id @default(cuid())
+  name      String
+  code      String @unique // 6位班级码，学生通过此码加入班级
+  teacherId String
+  teacher   User   @relation("TeacherClasses", fields: [teacherId], references: [id])
+
+  description String?
+  year        String? // 学年
+  semester    String? // 学期
+  isActive    Boolean @default(true)
+
+  students StudentProfile[]
+  sessions ClassSession[] // 班级的课堂会话
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([teacherId])
+}
+
+model SimulationSession {
+  id            String   @id @default(cuid())
+  userId        String
+  module        String?
+  simType       String
+  inputParams   Json
+  outputSummary String?
+  artifacts     Json?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model LlmSession {
+  id        String   @id @default(cuid())
+  userId    String
+  module    String?
+  threadId  String?
+  summary   String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ========== 新增模型 ==========
+
+// 任务/关卡定义
+model Mission {
+  id             String            @id @default(cuid())
+  title          String // 任务名称
+  description    String? // 任务描述
+  difficulty     MissionDifficulty @default(EASY) // 难度等级
+  order          Int               @default(0) // 排序索引
+  objectives     Json? // 任务目标列表 string[]
+  unlockCriteria Json? // 解锁条件 { requiredMissionId: string, requiredScore: number }
+  seaStateConfig Json? // 海况配置 { level, waveHeight, windSpeed }
+  shipType       String            @default("destroyer") // 船舶类型
+  taskType       String            @default("turn90") // 任务类型: turn90, obstacle, circle
+  duration       Int               @default(180) // 任务时长（秒）
+  isActive       Boolean           @default(true) // 是否启用
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  progress       UserProgress[]
+  simulationLogs SimulationLog[]
+}
+
+// 用户任务进度
+model UserProgress {
+  id          String         @id @default(cuid())
+  userId      String
+  missionId   String
+  status      ProgressStatus @default(LOCKED)
+  bestScore   Float? // 最高分
+  attempts    Int            @default(0) // 尝试次数
+  completedAt DateTime? // 完成时间
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, missionId])
+  @@index([userId])
+  @@index([missionId])
+}
+
+// 仿真详细日志
+model SimulationLog {
+  id                 String   @id @default(cuid())
+  userId             String
+  missionId          String?
+  sessionId          String? // 关联 SimulationSession
+  controlMode        String   @default("PID") // 控制模式: Manual, P, PD, PID
+  inputParams        Json // { kp, ki, kd, targetHeading, seaState }
+  metrics            Json // { avgError, maxRudderRate, energyConsumption, settlingTime }
+  trajectoryData     Json? // 轨迹数据数组 [{ time, x, z, heading, rudder }]
+  isEthicalViolation Boolean  @default(false) // 是否触发伦理违规
+  score              Float? // 得分
+  duration           Float? // 实际仿真时长（秒）
+  createdAt          DateTime @default(now())
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission    Mission?    @relation(fields: [missionId], references: [id])
+  ethicalLog EthicalLog?
+
+  @@index([userId])
+  @@index([missionId])
+}
+
+// 伦理违规记录
+model EthicalLog {
+  id                   String        @id @default(cuid())
+  simulationLogId      String        @unique
+  userId               String
+  violationType        ViolationType // 违规类型
+  thresholdValue       Float? // 阈值
+  actualValue          Float? // 实际值
+  aiCritique           String?       @db.Text // AI生成的风险描述
+  studentJustification String?       @db.Text // 学生整改方案
+  isResolved           Boolean       @default(false) // 是否已整改
+  resolvedAt           DateTime? // 整改时间
+  createdAt            DateTime      @default(now())
+
+  simulationLog SimulationLog @relation(fields: [simulationLogId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ========== 学习模块 ==========
+
+// 学习风格枚举
+enum LearningStyle {
+  VISUAL // 视觉型
+  TEXTUAL // 文本型
+  INTERACTIVE // 互动型
+  AUDITORY // 听觉型
+  LOGICAL // 逻辑型
+}
+
+// 里程碑状态枚举
+enum MilestoneStatus {
+  PENDING // 待完成
+  CURRENT // 当前进行
+  COMPLETED // 已完成
+}
+
+// 学习画像
+model LearningProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  learningStyle  LearningStyle @default(VISUAL) // 学习风格
+  cognitiveLevel Int           @default(1) // 认知水平 L1-L5
+  fleetGroup     String? // 舰队/班组
+
+  // 每日学习统计
+  dailyStudyMinutes Int   @default(0)
+  experimentMinutes Int   @default(0)
+  ethicsMinutes     Int   @default(0)
+  aiRecommendIndex  Float @default(0.75) // AI 推荐指数 0-1
+
+  // 成就统计
+  unlockedShips Int @default(0)
+  totalShips    Int @default(36)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 学习里程碑
+model LearningMilestone {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  order       Int
+  status      MilestoneStatus @default(PENDING)
+
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// 成就徽章
+model Achievement {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  badgeType   String // fast_response, wave_conqueror, defense_expert, precision, eco_guardian
+  title       String
+  description String
+  icon        String // emoji 或图标名
+  earnedAt    DateTime @default(now())
+
+  @@unique([userId, badgeType])
+  @@index([userId])
+}
+
+// ========== 伦理决策模块 ==========
+
+// 伦理场景定义
+model EthicsScenario {
+  id           String @id @default(cuid())
+  title        String
+  description  String @db.Text
+  scenarioType String // polar_navigation, collision_avoidance, environmental
+
+  // 默认价值权重 (0-100)
+  defaultSafety  Int @default(33)
+  defaultEcology Int @default(33)
+  defaultEconomy Int @default(34)
+
+  // 压力设置
+  defaultTimeLimit Int @default(120) // 秒
+  defaultInfoFog   Int @default(30) // 0-100
+
+  // 相关法规 JSON 数组
+  regulations Json     @default("[]")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  decisions EthicsDecision[]
+  logs      EthicsDecisionLog[]
+}
+
+// 用户伦理决策记录
+model EthicsDecision {
+  id         String         @id @default(cuid())
+  scenarioId String
+  scenario   EthicsScenario @relation(fields: [scenarioId], references: [id])
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 价值权重选择
+  safetyWeight  Int
+  ecologyWeight Int
+  economyWeight Int
+
+  // 选择的法规
+  selectedRules Json @default("[]")
+
+  // 决策结果
+  chosenOption  String
+  optionDetails String @db.Text
+
+  // 代价评估
+  humanCost      Float @default(0)
+  ecologicalCost Float @default(0)
+  economicCost   Float @default(0)
+  culturalImpact Float @default(0)
+
+  // 时间指标
+  decisionTime  Int // 用时（秒）
+  timeRemaining Int // 剩余时间
+
+  // AI 评价
+  aiScore    Float?
+  aiFeedback String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([scenarioId])
+}
+
+// 决策过程日志
+model EthicsDecisionLog {
+  id         String         @id @default(cuid())
+  scenarioId String
+  scenario   EthicsScenario @relation(fields: [scenarioId], references: [id])
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  timestamp DateTime @default(now())
+  eventType String // view_case, consult_expert, adjust_slider, select_rule, make_decision
+  eventData Json     @default("{}")
+
+  @@index([userId, scenarioId])
+}
+
+// ========== 知识图谱模块 ==========
+
+// 知识节点类型枚举
+enum KnowledgeNodeType {
+  THEORY // 理论节点（蓝色）
+  SCENARIO // 场景节点（红色）
+  ETHICS // 伦理节点（绿色）
+}
+
+// 布鲁姆认知维度
+enum BloomLevel {
+  REMEMBER // 记忆
+  UNDERSTAND // 理解
+  APPLY // 应用
+  ANALYZE // 分析
+  EVALUATE // 评价
+  CREATE // 创造
+}
+
+// 知识维度
+enum KnowledgeDimension {
+  FACTUAL // 事实性
+  CONCEPTUAL // 概念性
+  PROCEDURAL // 程序性
+  METACOGNITIVE // 元认知
+}
+
+// 学习状态枚举
+enum LearningStatus {
+  NOT_STARTED // 未开始
+  IN_PROGRESS // 进行中
+  COMPLETED // 已完成
+}
+
+// 知识节点
+model KnowledgeNode {
+  id          String            @id @default(cuid())
+  name        String
+  nodeType    KnowledgeNodeType
+  description String            @db.Text
+
+  // 新增分类标签
+  bloomLevel   BloomLevel         @default(UNDERSTAND)
+  knowledgeDim KnowledgeDimension @default(CONCEPTUAL)
+
+  // 3D 位置
+  positionX Float @default(0)
+  positionY Float @default(0)
+  positionZ Float @default(0)
+
+  // 学习资源 & 核心内容
+  // 包含：mediaType (text, video, image, model3d), contentUrl, transcript, etc.
+  content       Json  @default("{}") // 旧字段保留，作为向后兼容或特定结构
+  metadata      Json  @default("{}") // 新字段：标准化的原子化元数据
+  resources     Json  @default("[]") // 相关文档、视频等
+  ethicsContent Json? // 伦理考量
+
+  // 标签系统
+  tags String[]
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  sourceLinks KnowledgeLink[]     @relation("SourceNode")
+  targetLinks KnowledgeLink[]     @relation("TargetNode")
+  progress    KnowledgeProgress[]
+
+  // 关联的教学资源
+  teachingResources TeachingResource[]
+  lessonItems       LessonItem[]
+}
+
+// 知识连接
+model KnowledgeLink {
+  id String @id @default(cuid())
+
+  sourceId   String
+  sourceNode KnowledgeNode @relation("SourceNode", fields: [sourceId], references: [id])
+
+  targetId   String
+  targetNode KnowledgeNode @relation("TargetNode", fields: [targetId], references: [id])
+
+  relation String // provides_foundation, stability_analysis 等
+
+  @@unique([sourceId, targetId])
+}
+
+// ========== 新增：资源分层与 BOPPPS 引擎 ==========
+
+// 资源类型
+enum ResourceType {
+  STATIC_TEXT // 静态文本/Markdown
+  STATIC_MEDIA // 图片/视频链接
+  INTERACTIVE_COMP // 注册的交互组件 (Code)
+  SIMULATION_APP // 注册的仿真应用 (Code)
+  ETHICS_SCENARIO // 伦理场景
+}
+
+// 互动组件分类（按控制论主题）
+enum InteractiveCategory {
+  SYSTEM_MODELING // 系统建模
+  TIME_DOMAIN // 时域分析
+  ROOT_LOCUS // 根轨迹分析
+  FREQUENCY_DOMAIN // 频域分析
+  SYSTEM_CORRECTION // 系统校正
+  NONLINEAR // 非线性
+  FUN_EXPLORATION // 趣味探索
+  CLASSROOM // 课堂组件（教师专用）
+}
+
+// 教学资源 (Type A & Type B)
+model TeachingResource {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  type        ResourceType
+
+  // 内容载体
+  content    String? @db.Text // Markdown 内容 或 URL
+  registryId String? // 组件注册ID (如 'sim-pid-v1')
+
+  // 分类与展示
+  category     InteractiveCategory? // 组件分类
+  displayName  String? // 中文显示名称
+  displayOrder Int      @default(0) // 显示排序
+  teacherOnly  Boolean  @default(false) // 是否仅教师可见
+
+  // 配置与元数据
+  config  Json    @default("{}") // 组件默认 Props 或 参数
+  aiHints String? @db.Text // 给 AI 的上下文提示
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  // 关联知识点 (多对多)
+  knowledgeNodes KnowledgeNode[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lessonItems LessonItem[]
+
+  // 互动埋点日志
+  interactionLogs InteractionLog[]
+}
+
+enum BopppsStage {
+  BRIDGE_IN // 导入
+  OBJECTIVE // 目标
+  PRE_ASSESSMENT // 前测
+  PARTICIPATORY // 参与式学习
+  POST_ASSESSMENT // 后测
+  SUMMARY // 总结
+}
+
+enum LessonItemType {
+  RESOURCE // 教学资源（TeachingResource）
+  KNOWLEDGE_NODE // 知识卡片（KnowledgeNode）
+}
+
+// 课程教案 (LessonPlan - 替代原 CoursePlaylist)
+model LessonPlan {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  authorId    String
+  author      User    @relation(fields: [authorId], references: [id])
+  isPublic    Boolean @default(false)
+
+  // 预置教案标识
+  isPreset    Boolean @default(false)  // 系统预置教案
+  presetKey   String? @unique          // 预置教案唯一标识 (如 "cruise-comfort-v1")
+
+  // BOPPPS 结构化环节
+  items LessonItem[]
+
+  sessions ClassSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 教案环节 (PlaylistItem 升级版)
+model LessonItem {
+  id     String     @id @default(cuid())
+  planId String
+  plan   LessonPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  itemType LessonItemType @default(RESOURCE)
+
+  resourceId String?
+  resource   TeachingResource? @relation(fields: [resourceId], references: [id])
+
+  knowledgeNodeId String?
+  knowledgeNode   KnowledgeNode? @relation(fields: [knowledgeNodeId], references: [id])
+
+  stage BopppsStage // 属于 BOPPPS 哪个阶段
+  order Int // 阶段内的排序
+
+  duration Int? // 预计时长 (分钟)
+
+  // 环节级配置覆盖（仅在本教案中生效）
+  overrideConfig Json? @default("{}") // { titleOverride?: string, descriptionOverride?: string }
+
+  createdAt DateTime @default(now())
+
+  @@index([planId])
+  @@index([resourceId])
+  @@index([knowledgeNodeId])
+  @@index([itemType])
+}
+
+// 课堂会话 (实时状态管理)
+model ClassSession {
+  id       String @id @default(cuid())
+  joinCode String @unique // 6位入会码
+
+  planId String
+  plan   LessonPlan @relation(fields: [planId], references: [id])
+
+  teacherId String
+  teacher   User   @relation(fields: [teacherId], references: [id])
+
+  // 关联班级 - 仅限该班级学生加入（可选，向后兼容旧数据）
+  classId String?
+  class   Class?  @relation(fields: [classId], references: [id])
+
+  status SessionStatus @default(ACTIVE)
+
+  // 当前进度控制
+  currentStage  BopppsStage?
+  currentItemId String? // 当前激活的 LessonItem ID
+
+  startTime DateTime  @default(now())
+  endTime   DateTime?
+
+  studentStates StudentState[]
+
+  @@index([classId])
+}
+
+enum SessionStatus {
+  ACTIVE
+  PAUSED
+  FINISHED
+}
+
+// 学生实时交互状态
+model StudentState {
+  id        String       @id @default(cuid())
+  sessionId String
+  session   ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  itemId String? // 关联的 LessonItem
+
+  // 实时数据 (答案、仿真参数、操作日志等)
+  data Json
+
+  submittedAt DateTime @default(now())
+
+  @@unique([sessionId, userId])
+  @@index([sessionId])
+  @@index([userId])
+}
+
+// 互动事件日志（埋点追踪）
+model InteractionLog {
+  id         String   @id @default(cuid())
+  userId     String
+  resourceId String
+  sessionId  String? // 课堂会话ID（可选）
+  eventType  String // view, interact, param_change, submit, ai_query, complete, error
+  eventData  Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource TeachingResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([userId, resourceId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([eventType])
+}
+
+// 知识学习进度
+model KnowledgeProgress {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  nodeId String
+  node   KnowledgeNode @relation(fields: [nodeId], references: [id])
+
+  status    LearningStatus @default(NOT_STARTED)
+  progress  Float          @default(0) // 0-100
+  timeSpent Int            @default(0) // 秒
+
+  lastVisited DateTime  @default(now())
+  completedAt DateTime?
+
+  @@unique([userId, nodeId])
+  @@index([userId])
+}
+
+// 学习路径
+model LearningPath {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title         String
+  description   String?
+  estimatedTime Int // 预计时长（分钟）
+
+  nodeIds       Json    @default("[]") // 节点 ID 有序数组
+  isAiGenerated Boolean @default(false)
+  isBookmarked  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// 学习笔记
+model LearningNote {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  nodeId  String? // 可选关联知识节点
+  content String  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ========== DevelopmentPlan 扩展模块 ==========
+
+model LinkageSession {
+  id           String   @id @default(cuid())
+  userId       String
+  createdAt    DateTime @default(now())
+  interactions Json[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Question {
+  id               String   @id @default(cuid())
+  stem             String   @db.Text
+  type             String
+  domains          String[]
+  difficulty       Float
+  discrimination   Float
+  guessing         Float
+  knowledgeTags    String[]
+  correctAnswer    String
+  explanation      String   @db.Text
+  crossDomainHint  String?  @db.Text
+  source           String
+  aiMetadata       Json?
+  validationStatus String   @default("pending")
+  timesUsed        Int      @default(0)
+  correctRate      Float?
+  avgTimeSpent     Float?
+  createdAt        DateTime @default(now())
+
+  userAnswers UserAnswer[]
+}
+
+model UserAnswer {
+  id            String   @id @default(cuid())
+  userId        String
+  questionId    String
+  isCorrect     Boolean
+  timeSpent     Int
+  answerGiven   String
+  thetaEstimate Float?
+  createdAt     DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([questionId])
+}
+
+model AbilityAssessment {
+  id                      String   @id @default(cuid())
+  userId                  String
+  computationalTheta      Float
+  crossDomainTheta        Float
+  designTheta             Float
+  knowledgePointAbilities Json
+  assessedAt              DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, assessedAt])
+}
+
+model AIIntervention {
+  id               String   @id @default(cuid())
+  userId           String
+  sessionId        String
+  triggerType      String
+  interventionType String
+  content          String   @db.Text
+  studentResponse  String?  @db.Text
+  wasHelpful       Boolean?
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([sessionId])
+}
+
+model PromptAssessment {
+  id                  String   @id @default(cuid())
+  userId              String
+  sessionId           String
+  promptContent       String   @db.Text
+  structuredData      Json?
+  overallScore        Float
+  completenessScore   Float
+  precisionScore      Float
+  structurizationScore Float
+  executabilityScore  Float
+  suggestions         Json[]
+  version             Int
+  createdAt           DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([sessionId, version])
+}
+
+model DesignSession {
+  id                     String   @id @default(cuid())
+  userId                 String
+  taskType               String
+  promptVersions         Json[]
+  designActions          Json[]
+  finalResult            Json?
+  consistencyScore       Float?
+  goalBehaviorAlignment  Float?
+  behaviorResultCoherence Float?
+  startedAt              DateTime @default(now())
+  completedAt            DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt])
+}
+
+model PlatformSetting {
+  key       String   @id
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

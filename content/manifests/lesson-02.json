@@ -1,0 +1,82 @@
+{
+  "id": "lesson-02-differential-equations",
+  "title": "机理建模：微分方程",
+  "description": "基于 BOPPPS 教学模式的完整互动课程。从052D驱逐舰舵机系统出发，学习建立物理系统的微分方程模型。",
+  "durationMinutes": 90,
+  "version": "1.0.0",
+  "author": "AI-OBE Platform",
+  "teachingModel": "BOPPPS",
+  "prerequisites": [],
+  "objectives": [
+    "能识别机械系统中的惯性、阻尼、弹性元件，并列写微分方程",
+    "能识别电路系统中的 R、L、C 元件，利用 KVL 列写方程",
+    "能阐述机电系统的相似性，并统一为二阶微分方程标准式"
+  ],
+  "phases": [
+    {
+      "id": "bridge",
+      "title": "导入 (Bridge-in)",
+      "description": "看不见的'骨架' - 透视舵机系统",
+      "durationMinutes": 5,
+      "resources": ["scene-destroyer-rudder"],
+      "aiPersona": "analyst"
+    },
+    {
+      "id": "objective",
+      "title": "学习目标 (Objective)",
+      "description": "本次任务清单",
+      "durationMinutes": 2,
+      "resources": ["concept-learning-objectives"]
+    },
+    {
+      "id": "pretest",
+      "title": "前测 (Pre-assessment)",
+      "description": "装备点检 - 物理基础连线",
+      "durationMinutes": 8,
+      "resources": ["quiz-physics-basics"],
+      "aiPersona": "examiner"
+    },
+    {
+      "id": "participatory-mechanical",
+      "title": "机械建模工坊",
+      "description": "Physics Builder - 搭建弹簧-质量-阻尼模型",
+      "durationMinutes": 25,
+      "resources": ["widget-physics-builder"],
+      "aiPersona": "tutor"
+    },
+    {
+      "id": "participatory-electrical",
+      "title": "电路建模工坊",
+      "description": "Physics Builder - 建立RLC电路模型",
+      "durationMinutes": 20,
+      "resources": ["widget-physics-builder"],
+      "aiPersona": "tutor"
+    },
+    {
+      "id": "participatory-analogy",
+      "title": "机电相似映射",
+      "description": "发现机械与电气系统的数学同构",
+      "durationMinutes": 15,
+      "resources": ["widget-analogy-mapper"],
+      "aiPersona": "analyst"
+    },
+    {
+      "id": "posttest",
+      "title": "后测 (Post-assessment)",
+      "description": "实战挑战 - 导弹发射架建模",
+      "durationMinutes": 10,
+      "resources": ["widget-equation-input"],
+      "aiPersona": "reviewer",
+      "targetEquation": "J\\ddot{\\theta} + f\\dot{\\theta} + mgl\\sin\\theta = T"
+    },
+    {
+      "id": "summary",
+      "title": "总结 (Summary)",
+      "description": "万物皆数 - 知识图谱",
+      "durationMinutes": 5,
+      "resources": ["concept-knowledge-graph"]
+    }
+  ],
+  "createdAt": "2024-12-29T00:00:00Z",
+  "updatedAt": "2024-12-29T00:00:00Z"
+}
