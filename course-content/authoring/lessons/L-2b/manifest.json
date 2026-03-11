@@ -1,0 +1,30 @@
+{
+  "lessonId": "L-2b",
+  "title": "根轨迹直觉速通——极点迁移的几何感知",
+  "routeSegment": "l2b-root-locus-fasttrack",
+  "status": "draft",
+  "designDocs": {
+    "interactivePage": "design/interactive-page.md",
+    "boppps": "design/boppps.md",
+    "handout": "design/handout.md",
+    "multimedia": "design/multimedia.md"
+  },
+  "media": {
+    "rawDir": "media/raw",
+    "processedDir": "media/processed"
+  },
+  "graph": {
+    "nodes": "graph/nodes.jsonl",
+    "relations": "graph/relations.jsonl",
+    "cardRefs": "graph/card-refs.json"
+  },
+  "cards": {
+    "sequence": "cards/sequence.json",
+    "overridesDir": "cards/overrides"
+  },
+  "runtime": {
+    "lessonJson": "../../runtime/lessons/L-2b/lesson.json",
+    "mediaDir": "../../runtime/lessons/L-2b/media",
+    "graphOverlay": "../../runtime/lessons/L-2b/graph-overlay.json"
+  }
+}
