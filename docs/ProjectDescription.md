@@ -22,7 +22,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 🎥 **视角统一**：主视角统一为左舷后方约 45° 且默认跟随，统一相机距离与目标中心构图，跨仿真保持一致
 🧩 **场景合并**：`/simulations/cruise-comfort` 与 `/simulations/icebreaker-robust` 能力合并入 `/simulations/cruise` 与 `/simulations/icebreaker` 主场景
 🧠 **知识点同步**：启动脚本默认执行 `npm run seed:knowledge`，确保预置教案克隆所需 KnowledgeNode 已补齐
-📘 **课程更新**：新增 Lesson 01「反馈：控制原理的核心思想」、Lesson 02「拉氏变换：工程直觉的数学实现」与 Lesson 05「方框图、信号流图与梅森公式」预置教案与互动学习入口，原 Lesson 02 建模课迁移为 Legacy；Lesson 03 预置教案与知识节点绑定已完成；新增 Lesson 16「非线性系统与描述函数基础」与 Lesson 17「描述函数分析法与自振判别」预置教案、互动学习入口与知识节点；新增 L-2a「三张面孔，同一系统 · 时域直觉速通」精品互动课堂，按重构课程入口独立展示
+📘 **课程更新**：新增 Lesson 01「反馈：控制原理的核心思想」、Lesson 02「拉氏变换：工程直觉的数学实现」与 Lesson 05「方框图、信号流图与梅森公式」预置教案与互动学习入口，原 Lesson 02 建模课迁移为 Legacy；Lesson 03 预置教案与知识节点绑定已完成；新增 Lesson 16「非线性系统与描述函数基础」与 Lesson 17「描述函数分析法与自振判别」预置教案、互动学习入口与知识节点；新增 L-2a「三张面孔，同一系统 · 时域直觉速通」与 L-2b「根轨迹直觉速通 · 极点迁移的几何感知」两门精品互动课堂，按重构课程入口独立展示，其中 L-2b 已打通 `course-content/runtime` 运行时媒体链路与双端同步课堂页
 🧾 **教案管理**：我的教案支持三点菜单删除并二次确认
 🚀 **部署方式**：本地开发 + Docker 容器化部署
 🚚 **远端部署脚本（2026-03-11）**：新增 `scripts/remote-deploy.sh`，在本机调用 `scripts/build.sh` 完成镜像构建后，自动上传 `deploy/images/act-obe.tar` 到服务器 `/home/projects/act/images/act-obe.tar`，执行远端 `/home/projects/act/scripts/0-one-key.sh`，并验证公网、数据库与 systemd/Podman 服务状态
@@ -197,6 +197,12 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
     - L-2a 与“柔性之海”教师页补齐“结束课堂”按钮；教师班级详情页支持直接停止进行中的课堂，避免残留 `ACTIVE` 课堂
     - 教师端翻页改为“本地权威 + 服务端确认”模式，消除轮询导致的偶发回跳；学生端改为“检测不同步并手动跳转”，不再强制追页
     - `/api/session/[sessionId]/state` 增加 `scope=self` 与 `scope=student-view` 查询范围，学生端不再轮询全班完整状态；课堂关键节点增加结构化日志（入课、翻页推进、结束课堂、到场、教师同步发布）
+  - 2026-03-11（L-2b 精品课首轮落地）：
+    - 新增 `/interactive-learning/courses/l2b-root-locus-fasttrack` 精品互动课堂入口，以及教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]` 同级隔离路由
+    - `course-content/authoring/lessons/L-2b/media/raw/*.py` 补齐 `--output` 输出参数；新增 `scripts/generate_l2b_runtime_media.py`，把根轨迹性能区、45°射线定位图与三阶穿越图直出到 `course-content/runtime/lessons/L-2b/media`
+    - 新增 `/course-runtime/[...assetPath]` 运行时资源路由，页面直接读取 `course-content/runtime` 下 SVG 产物，不再依赖 `public/` 占位图
+    - L-2b 学生端保留首次对齐、后续不同步提示与手动跳转；教师端复用结束课堂回跳、课堂码解析与会话广播链路
+    - 工作区按步骤分化为反馈框图认知卡、广播/独立根轨迹工作台、轨迹选点信息卡与 45° 射线几何定位区，补齐预测→验证→AI 对比→总结回看链路
 - **跨域探索置顶组件**：`/interactive-learning/multi-representation-linkage` 作为跨域探索首个入口
 - **资源来源**：动态加载教学资源库中 `INTERACTIVE_COMP` 单页互动资源
 - **资源查看入口**：`/interactive-learning/resources/[id]`

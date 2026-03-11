@@ -1,5 +1,6 @@
 import { CRUISE_COURSE_TITLE } from '@/lib/cruise-course';
 import { L2A_COURSE_TITLE, L2A_ROUTE_SEGMENT } from '@/lib/l2a-course';
+import { L2B_COURSE_TITLE, L2B_ROUTE_SEGMENT } from '@/lib/l2b-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -21,6 +22,10 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
   {
     routeSegment: L2A_ROUTE_SEGMENT,
     aliases: [L2A_COURSE_TITLE],
+  },
+  {
+    routeSegment: L2B_ROUTE_SEGMENT,
+    aliases: [L2B_COURSE_TITLE],
   },
 ];
 
