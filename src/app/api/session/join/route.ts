@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { buildSessionParticipantHref, resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
+import { logClassroomEvent } from '@/lib/classroom-observability';
 
 /**
  * 根据入会码查找课堂会话
@@ -92,7 +94,34 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json(classSession);
+    const routeInfo = resolveSessionRouteFromPlanTitle(classSession.plan.title);
+
+    const response = {
+      ...classSession,
+      routeSegment: routeInfo.routeSegment,
+      studentHref: buildSessionParticipantHref({
+        role: 'student',
+        sessionId: classSession.id,
+        planTitle: classSession.plan.title,
+      }),
+      teacherHref: buildSessionParticipantHref({
+        role: 'teacher',
+        sessionId: classSession.id,
+        planTitle: classSession.plan.title,
+      }),
+    };
+
+    logClassroomEvent('session_join_lookup', {
+      sessionId: classSession.id,
+      userId: userSession.user.id,
+      role: userSession.user.role,
+      joinCode,
+      routeSegment: routeInfo.routeSegment,
+      classId: classSession.classId,
+      planTitle: classSession.plan.title,
+    });
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Error finding session by join code:', error);
     return NextResponse.json(

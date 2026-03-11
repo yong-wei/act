@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { SessionStatus, BopppsStage } from '@prisma/client';
+import { logClassroomEvent } from '@/lib/classroom-observability';
 
 export async function PATCH(request: Request, { params }: { params: { sessionId: string } }) {
   try {
@@ -63,6 +64,16 @@ export async function PATCH(request: Request, { params }: { params: { sessionId:
       data: updateData
     });
 
+    if (currentItemId !== undefined || status !== undefined) {
+      logClassroomEvent('session_patch', {
+        sessionId,
+        actorUserId: session.user.id,
+        currentItemId: currentItemId ?? null,
+        currentStage: currentStage ?? null,
+        status: status ?? null,
+      });
+    }
+
     return NextResponse.json(updatedSession);
   } catch (error) {
     console.error('Error updating session:', error);
@@ -78,6 +89,7 @@ export async function GET(request: Request, { params }: { params: { sessionId: s
                 id: true,
                 joinCode: true,
                 status: true,
+                classId: true,
                 currentItemId: true,
                 currentStage: true,
                 // Include minimal plan info for student check
@@ -88,7 +100,10 @@ export async function GET(request: Request, { params }: { params: { sessionId: s
         });
         
         if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-        return NextResponse.json(session);
+        return NextResponse.json({
+            ...session,
+            planTitle: session.plan.title,
+        });
     } catch (error) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }

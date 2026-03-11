@@ -131,6 +131,22 @@
   .light .text-slate-300 { color: hsl(var(--muted-foreground)) !important; }
   .light .text-slate-400 { color: hsl(var(--muted-foreground)) !important; }
   .light .text-slate-500 { color: hsl(var(--muted-foreground)) !important; }
+  .light .text-cyan-50,
+  .light .text-cyan-100 { color: hsl(192 88% 23%) !important; }
+  .light .text-cyan-200,
+  .light .text-cyan-300 { color: hsl(194 82% 30%) !important; }
+  .light .text-sky-100,
+  .light .text-sky-200 { color: hsl(204 87% 30%) !important; }
+  .light .text-emerald-100,
+  .light .text-emerald-200 { color: hsl(158 84% 25%) !important; }
+  .light .text-amber-100,
+  .light .text-amber-200 { color: hsl(32 95% 28%) !important; }
+  .light .text-orange-100,
+  .light .text-orange-200 { color: hsl(24 94% 32%) !important; }
+  .light .text-rose-100,
+  .light .text-rose-200 { color: hsl(347 77% 33%) !important; }
+  .light .text-violet-100,
+  .light .text-violet-200 { color: hsl(262 61% 38%) !important; }
 
   .light .border-white\/10 { border-color: hsl(var(--border) / 0.45) !important; }
   .light .border-white\/15 { border-color: hsl(var(--border) / 0.5) !important; }

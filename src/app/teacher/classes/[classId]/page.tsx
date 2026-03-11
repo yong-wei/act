@@ -87,6 +87,7 @@ export default function ClassDetailPage() {
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const [starting, setStarting] = useState(false);
   const [regeneratingJoinCode, setRegeneratingJoinCode] = useState(false);
+  const [endingSessionId, setEndingSessionId] = useState<string | null>(null);
 
   // 历史筛选
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -228,9 +229,43 @@ export default function ClassDetailPage() {
     }
   };
 
+  const handleFinishSession = async (sessionId: string) => {
+    if (!confirm('确定停止这节正在进行的课堂吗？')) return;
+
+    setEndingSessionId(sessionId);
+    try {
+      const res = await fetch(`/api/session/${sessionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'FINISHED' }),
+      });
+
+      if (!res.ok) {
+        const payloadText = await res.text();
+        let message = '停止课堂失败';
+        if (payloadText) {
+          try {
+            const payload = JSON.parse(payloadText);
+            message = payload?.error || message;
+          } catch {
+            message = payloadText;
+          }
+        }
+        throw new Error(message);
+      }
+
+      await fetchSessions();
+    } catch (error) {
+      console.error('Finish session error:', error);
+      alert(error instanceof Error ? error.message : '停止课堂失败');
+    } finally {
+      setEndingSessionId(null);
+    }
+  };
+
   // 当前进行中的课堂
   const activeSession = sessions.find(s => s.status === 'ACTIVE');
-  const historySessions = sessions.filter(s => s.status === 'FINISHED');
+  const displayedSessions = statusFilter === 'ACTIVE' ? sessions.filter(s => s.status === 'ACTIVE') : sessions.filter(s => s.status === 'FINISHED');
 
   const handleRegenerateJoinCode = async () => {
     if (!activeSession) return;
@@ -411,6 +446,14 @@ export default function ClassDetailPage() {
               >
                 进入课堂
               </Link>
+              <button
+                onClick={() => void handleFinishSession(activeSession.id)}
+                disabled={endingSessionId === activeSession.id}
+                className="inline-flex items-center gap-2 rounded-lg border border-rose-500/40 px-4 py-2 text-sm font-medium text-rose-300 transition hover:border-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {endingSessionId === activeSession.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                停止课堂
+              </button>
             </div>
           </div>
         </div>
@@ -422,7 +465,7 @@ export default function ClassDetailPage() {
           <div className="flex items-center gap-2">
             <History className="h-5 w-5 text-subtle" />
             <h2 className="text-lg font-semibold text-foreground">课堂历史</h2>
-            <span className="text-sm text-slate-500">({historySessions.length})</span>
+            <span className="text-sm text-slate-500">({displayedSessions.length})</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -451,14 +494,14 @@ export default function ClassDetailPage() {
           </div>
         </div>
 
-        {historySessions.length === 0 ? (
+        {displayedSessions.length === 0 ? (
           <div className="py-12 text-center">
             <History className="mx-auto h-12 w-12 text-slate-600" />
             <p className="mt-4 text-slate-500">暂无课堂历史记录</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {historySessions.map(session => (
+            {displayedSessions.map(session => (
               <div
                 key={session.id}
                 className="surface-card-soft flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -480,12 +523,32 @@ export default function ClassDetailPage() {
                     </span>
                   </div>
                 </div>
-                <Link
-                  href={`/classroom/teacher/${session.id}/review`}
-                  className="btn-ghost-themed rounded-lg px-3 py-1.5 text-sm transition"
-                >
-                  查看记录
-                </Link>
+                <div className="flex items-center gap-2">
+                  {session.status === 'ACTIVE' ? (
+                    <>
+                      <Link
+                        href={`/classroom/teacher/${session.id}`}
+                        className="btn-ghost-themed rounded-lg px-3 py-1.5 text-sm transition"
+                      >
+                        进入课堂
+                      </Link>
+                      <button
+                        onClick={() => void handleFinishSession(session.id)}
+                        disabled={endingSessionId === session.id}
+                        className="rounded-lg border border-rose-500/40 px-3 py-1.5 text-sm text-rose-300 transition hover:border-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {endingSessionId === session.id ? '停止中...' : '停止课堂'}
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      href={`/classroom/teacher/${session.id}/review`}
+                      className="btn-ghost-themed rounded-lg px-3 py-1.5 text-sm transition"
+                    >
+                      查看记录
+                    </Link>
+                  )}
+                </div>
               </div>
             ))}
           </div>

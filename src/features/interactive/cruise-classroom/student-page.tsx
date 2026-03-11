@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle2, Loader2, Target } from 'lucide-react';
@@ -91,6 +91,7 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
   const [sessionInfo, setSessionInfo] = useState<StudentSessionInfo | null>(null);
   const [loadingSession, setLoadingSession] = useState(!isDemo);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [teacherIndex, setTeacherIndex] = useState(0);
   const [workspaceBooted, setWorkspaceBooted] = useState(false);
   const [states, setStates] = useState<SessionStateRecord[]>([]);
   const [answers, setAnswers] = useState<Record<string, 'A' | 'B' | 'C' | 'D'>>({});
@@ -98,6 +99,7 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [insight, setInsight] = useState('课堂洞察生成中...');
   const [insightLoading, setInsightLoading] = useState(false);
+  const initialTeacherSyncRef = useRef(isDemo);
 
   const currentStudentName = authSession?.user?.name?.trim() || '学生';
   const currentUserId = authSession?.user?.id;
@@ -115,7 +117,13 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
       setSessionInfo(data);
       const nextIndex = data.currentItemId ? CRUISE_LESSON_STEPS.findIndex((step) => step.id === data.currentItemId) : -1;
       if (nextIndex >= 0) {
-        setActiveIndex(nextIndex);
+        setTeacherIndex(nextIndex);
+        if (!initialTeacherSyncRef.current) {
+          setActiveIndex(nextIndex);
+          initialTeacherSyncRef.current = true;
+        }
+      } else if (!initialTeacherSyncRef.current) {
+        initialTeacherSyncRef.current = true;
       }
       setLoadingSession(false);
     } catch (requestError) {
@@ -129,7 +137,7 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
       return;
     }
     try {
-      const response = await fetch(`/api/session/${sessionId}/state`);
+      const response = await fetch(`/api/session/${sessionId}/state?scope=student-view`);
       if (!response.ok) {
         return;
       }
@@ -144,7 +152,10 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
     if (isDemo) {
       setLoadingSession(false);
       const demoIndex = demoStepId ? CRUISE_LESSON_STEPS.findIndex((item) => item.id === demoStepId) : -1;
-      setActiveIndex(demoIndex >= 0 ? demoIndex : 0);
+      const nextIndex = demoIndex >= 0 ? demoIndex : 0;
+      setActiveIndex(nextIndex);
+      setTeacherIndex(nextIndex);
+      initialTeacherSyncRef.current = true;
       return;
     }
     void syncSession();
@@ -158,11 +169,13 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
     const timer = window.setInterval(() => {
       void syncSession();
       void syncStates();
-    }, 2500);
+    }, 5000);
     return () => window.clearInterval(timer);
   }, [isDemo, syncSession, syncStates]);
 
   const step = CRUISE_LESSON_STEPS[activeIndex];
+  const teacherStep = CRUISE_LESSON_STEPS[teacherIndex];
+  const isOutOfSync = !isDemo && teacherIndex !== activeIndex;
 
   useEffect(() => {
     if (WORKSPACE_PERSIST_STEP_IDS.has(step.id)) {
@@ -562,6 +575,23 @@ export function CruiseStudentPage({ sessionId }: StudentPageProps) {
       <main className="mx-auto max-w-[1600px] space-y-4 px-4 py-4">
         {error ? (
           <div className="rounded-lg border border-rose-300/40 bg-rose-500/10 px-4 py-2 text-sm text-rose-100">{error}</div>
+        ) : null}
+        {isOutOfSync ? (
+          <div className="flex flex-col gap-3 rounded-[24px] border border-amber-300/35 bg-amber-500/10 px-4 py-4 text-sm text-amber-50 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-[0.2em] text-amber-200">同步提醒</div>
+              <p className="mt-1 leading-6">
+                当前页面与教师不同步，教师当前位于“{teacherStep?.title ?? '当前环节'}”。
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveIndex(teacherIndex)}
+              className="inline-flex items-center justify-center rounded-full border border-amber-200/40 px-4 py-2 text-xs font-medium text-amber-50 transition hover:bg-amber-200/10"
+            >
+              点击跳转
+            </button>
+          </div>
         ) : null}
 
         {showWorkspace ? (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
@@ -9,6 +9,7 @@ import {
   createEmptyL2AStudentState,
   getL2AStep,
   L2A_LESSON_STEPS,
+  L2A_WORKSPACE_VISIBLE_STEP_IDS,
   type L2AStudentCourseState,
   type L2AStepResponse,
 } from '@/lib/l2a-course';
@@ -51,11 +52,13 @@ export function L2AStudentPage({ sessionId }: { sessionId: string }) {
   const [sessionInfo, setSessionInfo] = useState<StudentSessionInfo | null>(null);
   const [loadingSession, setLoadingSession] = useState(!isDemo);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [teacherIndex, setTeacherIndex] = useState(0);
   const [stateRecords, setStateRecords] = useState<SessionStateRecord[]>([]);
   const [courseState, setCourseState] = useState<L2AStudentCourseState>(() =>
     createEmptyL2AStudentState(authSession?.user?.name?.trim() || '学生'),
   );
   const [error, setError] = useState<string | null>(null);
+  const initialTeacherSyncRef = useRef(isDemo);
 
   const currentStudentName = authSession?.user?.name?.trim() || '学生';
   const currentUserId = authSession?.user?.id;
@@ -71,7 +74,13 @@ export function L2AStudentPage({ sessionId }: { sessionId: string }) {
       setSessionInfo(data);
       const index = data.currentItemId ? L2A_LESSON_STEPS.findIndex((item) => item.id === data.currentItemId) : -1;
       if (index >= 0) {
-        setActiveIndex(index);
+        setTeacherIndex(index);
+        if (!initialTeacherSyncRef.current) {
+          setActiveIndex(index);
+          initialTeacherSyncRef.current = true;
+        }
+      } else if (!initialTeacherSyncRef.current) {
+        initialTeacherSyncRef.current = true;
       }
       setLoadingSession(false);
     } catch (requestError) {
@@ -83,7 +92,7 @@ export function L2AStudentPage({ sessionId }: { sessionId: string }) {
   const syncStates = useCallback(async () => {
     if (isDemo) return;
     try {
-      const response = await fetch(`/api/session/${sessionId}/state`);
+      const response = await fetch(`/api/session/${sessionId}/state?scope=self`);
       if (!response.ok) {
         return;
       }
@@ -98,7 +107,10 @@ export function L2AStudentPage({ sessionId }: { sessionId: string }) {
     if (isDemo) {
       setLoadingSession(false);
       const demoIndex = demoStepId ? L2A_LESSON_STEPS.findIndex((item) => item.id === demoStepId) : -1;
-      setActiveIndex(demoIndex >= 0 ? demoIndex : 0);
+      const nextIndex = demoIndex >= 0 ? demoIndex : 0;
+      setActiveIndex(nextIndex);
+      setTeacherIndex(nextIndex);
+      initialTeacherSyncRef.current = true;
       return;
     }
     void syncSession();
@@ -109,10 +121,9 @@ export function L2AStudentPage({ sessionId }: { sessionId: string }) {
     if (isDemo) return;
     const timer = window.setInterval(() => {
       void syncSession();
-      void syncStates();
-    }, 2500);
+    }, 5000);
     return () => window.clearInterval(timer);
-  }, [isDemo, syncSession, syncStates]);
+  }, [isDemo, syncSession]);
 
   useEffect(() => {
     setCourseState((prev) => ({
@@ -167,8 +178,11 @@ export function L2AStudentPage({ sessionId }: { sessionId: string }) {
   );
 
   const step = L2A_LESSON_STEPS[activeIndex];
+  const teacherStep = L2A_LESSON_STEPS[teacherIndex];
   const stepDefinition = getL2AStep(step.id);
   const savedResponse = courseState.responses[step.id];
+  const showWorkspace = L2A_WORKSPACE_VISIBLE_STEP_IDS.has(step.id);
+  const isOutOfSync = !isDemo && teacherIndex !== activeIndex;
 
   const handleSubmitResponse = (response: L2AStepResponse) => {
     void saveCourseState((prev) => ({
@@ -214,41 +228,64 @@ export function L2AStudentPage({ sessionId }: { sessionId: string }) {
         }}
       />
 
-      <main className="mx-auto max-w-[1680px] space-y-4 px-4 py-4">
+      <main className="mx-auto max-w-[1180px] space-y-4 px-4 py-4">
         {error ? (
           <div className="rounded-2xl border border-rose-300/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">{error}</div>
         ) : null}
-
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
-          <div className="space-y-4">
-            <L2AWorkspace
-              role="student"
-              sessionId={sessionId}
-              currentStepId={step.id}
-              currentStepTitle={step.title}
-              state={courseState.workspace}
-              onChange={(workspace) => {
-                void saveCourseState((prev) => ({
-                  ...prev,
-                  workspace,
-                  updatedAt: Date.now(),
-                }));
-              }}
-            />
+        {isOutOfSync ? (
+          <div className="flex flex-col gap-3 rounded-[24px] border border-amber-300/35 bg-amber-500/10 px-4 py-4 text-sm text-amber-50 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-[0.2em] text-amber-200">同步提醒</div>
+              <p className="mt-1 leading-6">
+                当前页面与教师不同步，教师当前位于“{teacherStep?.title ?? '当前环节'}”。
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveIndex(teacherIndex)}
+              className="inline-flex items-center justify-center rounded-full border border-amber-200/40 px-4 py-2 text-xs font-medium text-amber-50 transition hover:bg-amber-200/10"
+            >
+              点击跳转
+            </button>
           </div>
+        ) : null}
 
-          <div className="space-y-4">
-            {step.id === 'knowledge-map' ? <KnowledgeMapVisual /> : null}
-            <StepContentPanel content={stepDefinition.student} />
-            <StudentActivityForm
-              key={step.id}
-              stepId={step.id}
-              activity={stepDefinition.student.activity}
-              savedResponse={savedResponse}
-              onSubmit={handleSubmitResponse}
-            />
-            {step.id === 'summary' ? <StudentSummaryPanel courseState={courseState} /> : null}
-          </div>
+        <div className="space-y-4">
+          {step.id === 'knowledge-map' ? <KnowledgeMapVisual /> : null}
+          <StepContentPanel content={stepDefinition.student} />
+          <StudentActivityForm
+            key={step.id}
+            stepId={step.id}
+            activity={stepDefinition.student.activity}
+            savedResponse={savedResponse}
+            onSubmit={handleSubmitResponse}
+          />
+          {step.id === 'summary' ? <StudentSummaryPanel courseState={courseState} /> : null}
+
+          {showWorkspace ? (
+            <section className="space-y-3">
+              <div className="rounded-[24px] border border-cyan-300/20 bg-cyan-500/8 px-4 py-3">
+                <div className="text-xs uppercase tracking-[0.22em] text-cyan-200">Interactive Workspace</div>
+                <p className="mt-1 text-sm leading-6 text-slate-200">
+                  当前环节需要你动手比较参数与曲线。若设备屏幕较小，请先阅读上方提示，再在这里完成探索。
+                </p>
+              </div>
+              <L2AWorkspace
+                role="student"
+                sessionId={sessionId}
+                currentStepId={step.id}
+                currentStepTitle={step.title}
+                state={courseState.workspace}
+                onChange={(workspace) => {
+                  void saveCourseState((prev) => ({
+                    ...prev,
+                    workspace,
+                    updatedAt: Date.now(),
+                  }));
+                }}
+              />
+            </section>
+          ) : null}
         </div>
       </main>
     </div>

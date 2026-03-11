@@ -20,11 +20,11 @@ export function PremiumClassroomQuickJoin() {
     setIsJoining(true);
     try {
       const response = await fetch(`/api/session/join?code=${joinCode}`);
-      const data = (await response.json()) as { id?: string; error?: string };
-      if (!response.ok || !data.id) {
+      const data = (await response.json()) as { id?: string; studentHref?: string; error?: string };
+      if (!response.ok || !data.id || !data.studentHref) {
         throw new Error(data.error || '课堂码无效');
       }
-      router.push(`/interactive-learning/courses/cruise-comfort-boppps/student/${data.id}`);
+      router.push(data.studentHref);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '加入失败');
     } finally {

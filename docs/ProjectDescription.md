@@ -25,6 +25,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 📘 **课程更新**：新增 Lesson 01「反馈：控制原理的核心思想」、Lesson 02「拉氏变换：工程直觉的数学实现」与 Lesson 05「方框图、信号流图与梅森公式」预置教案与互动学习入口，原 Lesson 02 建模课迁移为 Legacy；Lesson 03 预置教案与知识节点绑定已完成；新增 Lesson 16「非线性系统与描述函数基础」与 Lesson 17「描述函数分析法与自振判别」预置教案、互动学习入口与知识节点；新增 L-2a「三张面孔，同一系统 · 时域直觉速通」精品互动课堂，按重构课程入口独立展示
 🧾 **教案管理**：我的教案支持三点菜单删除并二次确认
 🚀 **部署方式**：本地开发 + Docker 容器化部署
+🚚 **远端部署脚本（2026-03-11）**：新增 `scripts/remote-deploy.sh`，在本机调用 `scripts/build.sh` 完成镜像构建后，自动上传 `deploy/images/act-obe.tar` 到服务器 `/home/projects/act/images/act-obe.tar`，执行远端 `/home/projects/act/scripts/0-one-key.sh`，并验证公网、数据库与 systemd/Podman 服务状态
 
 ## 3. 核心功能模块
 
@@ -189,6 +190,12 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
     - 互动课程页重组为“精品课程 + 默认折叠的旧版章节课程”；保留“柔性之海”精品入口，并将原 `lessonXX` 系列统一收纳到默认收起的折叠菜单
     - 新课采用与“柔性之海”一致的精品课程结构，围绕 L-2a 材料实现 18 步 BOPPPS 课堂流程，并提供左侧常驻双面板工作区（极点平面 + 时域响应）
     - 课堂状态与统计埋点复用现有 `/api/session`、`/api/session/[id]/state` 与 `useInteractiveTracking`，演示模式静默同步，避免为匿名访问新增接口
+  - 2026-03-11（课堂链路稳定性修复）：
+    - 统一课堂码跳转解析：`/api/session/join` 返回按课堂所属课程计算出的教师/学生目标地址；`/dashboard`、`/classroom/join`、精品课程入口页输入同一课堂码后会跳转到同一正确课堂页面
+    - 旧 `/classroom/teacher/[sessionId]` 与 `/classroom/student/[sessionId]` 路由增加精品课程自动转发，教师后台与历史链接可继续复用旧入口
+    - L-2a 与“柔性之海”教师页补齐“结束课堂”按钮；教师班级详情页支持直接停止进行中的课堂，避免残留 `ACTIVE` 课堂
+    - 教师端翻页改为“本地权威 + 服务端确认”模式，消除轮询导致的偶发回跳；学生端改为“检测不同步并手动跳转”，不再强制追页
+    - `/api/session/[sessionId]/state` 增加 `scope=self` 与 `scope=student-view` 查询范围，学生端不再轮询全班完整状态；课堂关键节点增加结构化日志（入课、翻页推进、结束课堂、到场、教师同步发布）
 - **跨域探索置顶组件**：`/interactive-learning/multi-representation-linkage` 作为跨域探索首个入口
 - **资源来源**：动态加载教学资源库中 `INTERACTIVE_COMP` 单页互动资源
 - **资源查看入口**：`/interactive-learning/resources/[id]`
@@ -569,6 +576,8 @@ npm test               # 运行测试
 - 知识图谱章节化展示升级：左侧节点列表改为按章节分组并默认折叠；图谱渲染中注入章节顶层节点并按顺序显示：`基本概念 → 系统模型 → 时域分析 → 根轨迹分析 → 频域分析 → 系统校正 → 离散系统 → 非线性系统 → 状态空间`。
 - 知识图谱节点详情增强：点击节点后新增条件展示字段 `examples`、`difficulty`、`importance`、`keywords`、`formulas`；节点信息栏新增章节信息。
 - 知识图谱浅色主题细化：关系筛选区与左侧节点标签完成浅色重配色；3D 视图节点标签在浅色模式改为深色文字，提升可读性。
+- 精品课程浅色主题增强：在 `globals.css` 的统一桥接层补齐 `text-cyan-*`、`text-sky-*`、`text-emerald-*`、`text-amber-*`、`text-orange-*`、`text-rose-*`、`text-violet-*` 的浅色高对比映射，提升互动课程浅色模式下的文字可读性。
+- 新增浅色对比回归测试 `scripts/tests/test-theme-light-contrast.ts`，防止精品课程中常见强调色在浅色主题下再次退回低对比度。
 - 数据源补齐：`data/knowledge_graph.json` 全量 612 个节点新增 `chapter_name` 字段，前后端统一按数据文件中的章节名称渲染与排序。
 - 新增知识图谱筛选回归测试 `scripts/tests/test-knowledge-graph-filters.ts`（`npm run test:knowledge-filters`），覆盖章节映射、默认前置关系选择与筛选范围内关系计数。
 - 新增统一导航组件 `src/components/shared/feature-page-nav.tsx`，并接入知识图谱、虚拟仿真、思政沙盘、AI工坊、评审入口及其下层页面，统一“返回上一级”样式并固定在左上区域。

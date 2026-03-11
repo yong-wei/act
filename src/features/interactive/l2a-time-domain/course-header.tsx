@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import {
@@ -18,11 +19,13 @@ export function L2ACourseHeader({
   activeIndex,
   onIndexChange,
   middleNotice,
+  rightSlot,
 }: {
   steps: L2ALessonStep[];
   activeIndex: number;
   onIndexChange: (index: number) => void;
   middleNotice?: string;
+  rightSlot?: ReactNode;
 }) {
   const currentStep = steps[activeIndex];
 
@@ -58,6 +61,7 @@ export function L2ACourseHeader({
           </div>
 
           <div className="ml-auto flex shrink-0 flex-col items-end gap-1">
+            {rightSlot ? <div className="flex items-center gap-2">{rightSlot}</div> : null}
             <label className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-slate-900 px-2 py-1 text-xs text-slate-200">
               <span>环节</span>
               <select

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import {
@@ -16,9 +17,10 @@ interface CruiseCourseHeaderProps {
   activeIndex: number;
   onIndexChange: (index: number) => void;
   middleNotice?: string;
+  rightSlot?: ReactNode;
 }
 
-export function CruiseCourseHeader({ steps, activeIndex, onIndexChange, middleNotice }: CruiseCourseHeaderProps) {
+export function CruiseCourseHeader({ steps, activeIndex, onIndexChange, middleNotice, rightSlot }: CruiseCourseHeaderProps) {
   const currentStep = steps[activeIndex];
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/95 backdrop-blur">
@@ -54,6 +56,7 @@ export function CruiseCourseHeader({ steps, activeIndex, onIndexChange, middleNo
           </div>
 
           <div className="ml-auto flex shrink-0 flex-col items-end gap-0.5">
+            {rightSlot ? <div className="flex items-center gap-2">{rightSlot}</div> : null}
             <label className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-slate-900 px-2 py-1 text-xs text-slate-200">
               <span>环节</span>
               <select

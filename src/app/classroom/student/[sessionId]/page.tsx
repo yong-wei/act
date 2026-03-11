@@ -1,6 +1,7 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { StudentPlayer } from '@/features/lesson-engine/student-player';
+import { buildSessionParticipantHref } from '@/lib/classroom-session-route';
 
 interface PageProps {
   params: { sessionId: string };
@@ -22,6 +23,15 @@ export default async function StudentSessionPage({ params }: PageProps) {
   });
 
   if (!session) notFound();
+
+  const studentHref = buildSessionParticipantHref({
+    role: 'student',
+    sessionId: session.id,
+    planTitle: session.plan.title,
+  });
+  if (studentHref !== `/classroom/student/${session.id}`) {
+    redirect(studentHref);
+  }
 
   // 检查课堂状态
   if (session.status === 'FINISHED') {

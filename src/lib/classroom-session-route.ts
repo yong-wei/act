@@ -1,0 +1,67 @@
+import { CRUISE_COURSE_TITLE } from '@/lib/cruise-course';
+import { L2A_COURSE_TITLE, L2A_ROUTE_SEGMENT } from '@/lib/l2a-course';
+
+const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
+
+type SessionRole = 'teacher' | 'student';
+
+interface PremiumRouteDescriptor {
+  routeSegment: string;
+  aliases: string[];
+}
+
+const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
+  {
+    routeSegment: CRUISE_ROUTE_SEGMENT,
+    aliases: [
+      CRUISE_COURSE_TITLE,
+      '柔性之海——豪华邮轮的舒适度控制',
+    ],
+  },
+  {
+    routeSegment: L2A_ROUTE_SEGMENT,
+    aliases: [L2A_COURSE_TITLE],
+  },
+];
+
+function normalizePlanTitle(value: string | null | undefined) {
+  return String(value ?? '')
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/[（(]副本[）)]$/, '')
+    .replace(/[：:]/g, '：');
+}
+
+export function resolveSessionRouteFromPlanTitle(planTitle: string | null | undefined) {
+  const normalizedTitle = normalizePlanTitle(planTitle);
+
+  for (const descriptor of PREMIUM_ROUTE_DESCRIPTORS) {
+    if (descriptor.aliases.some((alias) => normalizedTitle.startsWith(normalizePlanTitle(alias)))) {
+      return {
+        routeSegment: descriptor.routeSegment,
+        isPremiumCourse: true,
+      };
+    }
+  }
+
+  return {
+    routeSegment: null,
+    isPremiumCourse: false,
+  };
+}
+
+export function buildSessionParticipantHref({
+  role,
+  sessionId,
+  planTitle,
+}: {
+  role: SessionRole;
+  sessionId: string;
+  planTitle: string | null | undefined;
+}) {
+  const { routeSegment } = resolveSessionRouteFromPlanTitle(planTitle);
+  if (routeSegment) {
+    return `/interactive-learning/courses/${routeSegment}/${role}/${sessionId}`;
+  }
+  return `/classroom/${role}/${sessionId}`;
+}
