@@ -7,7 +7,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-03-10
+📅 **最后更新**：2026-03-11
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 ⚡ **首页与仿真加载优化（2026-03-02）**：首页船模改为“截图优先 + 3D 后台懒加载”，移除首屏一次性预加载全部 7 个 GLB（约 125MB）策略，改为按轮播仅预热“当前 + 下一”模型；仿真页改为“场景先渲染、船模独立 Suspense 加载”，在船模解析期间显示“模型加载中”占位动画，避免黑屏等待
 🧰 **首页模型策略开关（2026-03-03）**：新增平台级配置 `PlatformSetting` 与管理接口 `/api/admin/platform-settings`、公开读取接口 `/api/platform/settings`；管理员可在 `/admin/config` 切换“首页动态模型渲染”，首页根据开关在静态截图与动态 3D 预览间切换
@@ -26,6 +26,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 🧾 **教案管理**：我的教案支持三点菜单删除并二次确认
 🚀 **部署方式**：本地开发 + Docker 容器化部署
 🚚 **远端部署脚本（2026-03-11）**：新增 `scripts/remote-deploy.sh`，在本机调用 `scripts/build.sh` 完成镜像构建后，自动上传 `deploy/images/act-obe.tar` 到服务器 `/home/projects/act/images/act-obe.tar`，执行远端 `/home/projects/act/scripts/0-one-key.sh`，并验证公网、数据库与 systemd/Podman 服务状态
+🗂️ **课程内容目录迁移（2026-03-11）**：新增 `course-content/` 作为课程制作统一目录，采用 `authoring/` 与 `runtime/` 分层，沉淀 L-2a 课次设计稿、图谱增量、知识卡片、媒体目录骨架与面向 Claude 的迁移/闭环说明；`runtime/` 导出链路预留给后续平台接线阶段完成
 
 ## 3. 核心功能模块
 

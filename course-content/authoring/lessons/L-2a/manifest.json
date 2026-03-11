@@ -1,0 +1,30 @@
+{
+  "lessonId": "L-2a",
+  "title": "三张面孔，同一系统 · 时域直觉速通",
+  "routeSegment": "l2a-time-domain-fasttrack",
+  "status": "draft",
+  "designDocs": {
+    "interactivePage": "design/interactive-page.md",
+    "boppps": "design/boppps.md",
+    "handout": "design/handout.md",
+    "multimedia": "design/multimedia.md"
+  },
+  "media": {
+    "rawDir": "media/raw",
+    "processedDir": "media/processed"
+  },
+  "graph": {
+    "nodes": "graph/nodes.jsonl",
+    "relations": "graph/relations.jsonl",
+    "cardRefs": "graph/card-refs.json"
+  },
+  "cards": {
+    "sequence": "cards/sequence.json",
+    "overridesDir": "cards/overrides"
+  },
+  "runtime": {
+    "lessonJson": "../../runtime/lessons/L-2a/lesson.json",
+    "mediaDir": "../../runtime/lessons/L-2a/media",
+    "graphOverlay": "../../runtime/lessons/L-2a/graph-overlay.json"
+  }
+}

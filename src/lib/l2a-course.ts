@@ -958,13 +958,20 @@ export const L2A_WORKSPACE_PERSIST_STEP_IDS = new Set(
 );
 
 export const L2A_WORKSPACE_VISIBLE_STEP_IDS = new Set(
-  L2A_LESSON_STEPS.map((step) => step.id),
+  [
+    'participatory-families-2',
+    'participatory-metrics-2',
+    'participatory-zeta',
+    'participatory-wn',
+    'participatory-table',
+    'participatory-limit',
+  ],
 );
 
 export const L2A_PREMIUM_LESSON_CARD = {
   id: 'l2a-time-domain-fasttrack',
   title: 'L-2a：三张面孔，同一系统',
-  description: '79 分钟精品互动课堂：围绕船舶阶跃响应建立时域直觉，双端同步 + 常驻工作区。',
+  description: '79 分钟精品互动课堂：围绕船舶阶跃响应建立时域直觉，双端同步 + 按需工作区。',
   duration: '79 分钟',
   href: `/interactive-learning/courses/${L2A_ROUTE_SEGMENT}`,
   badge: '重构精品课',
