@@ -32,6 +32,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 🧾 **L-2b 首页二次收口（2026-03-13）**：按最新课程规范将教师入口/自由浏览/学生入口上移至首页最上方；知识点网络增加前置/后置箭头关系；讲义入口改为智能摘要并支持导出 PDF；学生页与教师页新增按 runtime 编排驱动的步骤知识卡抽屉，且仅在当前步骤存在知识卡时显示
 🧩 **L-2b 知识卡统一框架（2026-03-13）**：首页节点卡片与步骤抽屉统一复用 `KnowledgeCard` runtime 分节渲染；`course-content/runtime/knowledge/cards/nodes/*.md` 只在概览态展示 `## 首页`，通过 `详情 / 概览` 切换到 `## 详情`，标题保持不变；非首页知识卡入口统一挂到页面标题模块右上角
 🎨 **L-2b 主题框架收口（2026-03-13）**：L-2b 首页与课堂内页已统一切到精品课深浅主题语义类；深色模式下移除残留的深字深底与浅色突兀块，浅色模式保持原有高对比；同时新增 `test-l2b-theme-no-hardcoded-styles.ts`，明确禁止在课程模块继续新增 `dark:`、十六进制色和旧式色阶硬编码
+🧾 **L-2b 讲义 PDF 服务端导出（2026-03-14）**：弃用首页讲义入口此前依赖 `window.print()` 的前端导出方式，新增 `/interactive-learning/lessons/[lessonId]/handout-print` 服务端讲义打印页与 `/api/course-runtime/lessons/[lessonId]/handout-pdf` 下载接口；当前由服务端使用 Playwright/Chromium 渲染 runtime 讲义并生成 PDF，前端仅负责触发下载，从而避免用户浏览器打印能力差异导致的空白页或无文件产出
 📦 **运行时资源外置部署（2026-03-12）**：`scripts/build.sh` 现在要求通过 `.dockerignore` 排除 `course-content/runtime`，镜像不再打包运行时课程资源；`scripts/remote-deploy.sh` 会使用 `rsync` 将本地 `course-content/runtime/` 同步到服务器 `/home/projects/act/course-content/runtime/`，并同步最新 `deploy/podman/deploy.sh` 到远端 `scripts/4-deploy.sh`，由 Podman 以只读挂载方式映射到容器内 `/app/course-content/runtime`
 
 ## 3. 核心功能模块

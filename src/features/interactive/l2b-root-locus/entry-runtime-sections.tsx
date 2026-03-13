@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Download, Network, PanelTopOpen, Sparkles } from 'lucide-react';
 
 import 'katex/dist/katex.min.css';
@@ -8,7 +8,7 @@ import 'katex/dist/katex.min.css';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MdxSlide } from '@/components/shared/mdx-slide';
 import { KnowledgeCard, normalizeKnowledgeMetadata } from '@/features/knowledge/knowledge-card';
-import { exportElementToPdf } from '@/features/interactive/shared/export-to-pdf';
+import { downloadLessonHandoutPdf } from '@/features/interactive/shared/download-handout-pdf';
 import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-runtime';
 
 const surfaceClassName =
@@ -132,9 +132,27 @@ export function L2BEntryRuntimeSections({
   const defaultNodeId = runtime.graphOverlay.entry_nodes?.[0] ?? orderedNodes[0]?.id ?? positionedNodes[0]?.id ?? null;
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(defaultNodeId);
   const [isHandoutOpen, setIsHandoutOpen] = useState(false);
-  const handoutPrintRef = useRef<HTMLDivElement | null>(null);
+  const [isExportingHandout, setIsExportingHandout] = useState(false);
 
   const selectedNode = selectedNodeId ? nodeById.get(selectedNodeId) ?? orderedNodes[0] ?? null : orderedNodes[0] ?? null;
+
+  const handleHandoutExport = async () => {
+    if (isExportingHandout) {
+      return;
+    }
+
+    setIsExportingHandout(true);
+    try {
+      await downloadLessonHandoutPdf({
+        lessonId: runtime.lesson.lesson_id,
+        lessonTitle: runtime.lesson.title,
+      });
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : '讲义 PDF 导出失败，请稍后重试。');
+    } finally {
+      setIsExportingHandout(false);
+    }
+  };
 
   return (
     <>
@@ -315,11 +333,12 @@ export function L2BEntryRuntimeSections({
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={() => exportElementToPdf({ title: `${runtime.lesson.title}-讲义`, element: handoutPrintRef.current })}
+              onClick={() => void handleHandoutExport()}
+              disabled={isExportingHandout}
               className="premium-lesson-action-secondary"
             >
               <Download className="h-4 w-4" />
-              导出 PDF
+              {isExportingHandout ? '导出中...' : '导出 PDF'}
             </button>
             <button
               type="button"
@@ -338,11 +357,12 @@ export function L2BEntryRuntimeSections({
               <DialogTitle className="text-foreground">L-2b 讲义</DialogTitle>
               <button
                 type="button"
-                onClick={() => exportElementToPdf({ title: `${runtime.lesson.title}-讲义`, element: handoutPrintRef.current })}
+                onClick={() => void handleHandoutExport()}
+                disabled={isExportingHandout}
                 className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-accent"
               >
                 <Download className="h-4 w-4" />
-                导出 PDF
+                {isExportingHandout ? '导出中...' : '导出 PDF'}
               </button>
             </div>
           </DialogHeader>
@@ -351,12 +371,6 @@ export function L2BEntryRuntimeSections({
           </div>
         </DialogContent>
       </Dialog>
-
-      <div className="pointer-events-none absolute -left-[99999px] top-0 w-[960px] opacity-0">
-        <div ref={handoutPrintRef}>
-          <MdxSlide path={runtime.handoutSourcePath} theme={isLightTheme ? 'light' : 'dark'} size="adaptive" />
-        </div>
-      </div>
     </>
   );
 }

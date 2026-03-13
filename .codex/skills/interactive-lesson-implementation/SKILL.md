@@ -1,13 +1,13 @@
 ---
 name: interactive-lesson-implementation
-description: Use when implementing or optimizing this repository's interactive lesson pages from `/Users/YW/JianguoYun/1教学/教学材料-课程/@自动控制原理/@新体系/notes/lessons` design documents, especially for lesson-by-lesson page building, media placeholder planning, design-vs-implementation gap analysis, or maintaining lesson implementation notes.
+description: Use when implementing or optimizing this repository's interactive lesson pages from `course-content/authoring/lessons/<lesson>/` design documents, especially for lesson-by-lesson page building, media placeholder planning, design-vs-implementation gap analysis, or maintaining lesson implementation notes.
 ---
 
 # Interactive Lesson Implementation
 
 ## Overview
 
-按外部课程设计文档为本项目实现或优化互动课程页面。把 `notes/lessons/<lesson>/` 视为设计源，把仓库中的实现视为待核对对象；优先复用现有框架、资源注册、埋点和会话同步能力，避免写成孤立页面。
+按外部课程设计文档为本项目实现或优化互动课程页面。把 `course-content/authoring/lessons/<lesson>/` 视为设计源，把仓库中的实现视为待核对对象；优先复用现有框架、资源注册、埋点和会话同步能力，避免写成孤立页面。
 
 **核心原则：**
 - 先确认课程与任务模式，再动手。
@@ -42,7 +42,7 @@ description: Use when implementing or optimizing this repository's interactive l
    - `1. 开始新课设计（推荐）`
    - `2. 优化现有课程`
 2. 课程是哪个课次？
-   - 先列出 `/Users/YW/JianguoYun/1教学/教学材料-课程/@自动控制原理/@新体系/notes/lessons` 下可用目录，优先给出最相关的 2-3 个选项
+   - 先列出 `.codex/skills/interactive-lesson-implementation/notes` 下可用目录，优先给出最相关的 2-3 个选项
    - 允许用户自定义输入
 
 如果用户选择优化现有课，先读取 `notes/<lesson>.md`；若笔记不存在，先创建再继续。
