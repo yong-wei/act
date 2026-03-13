@@ -1,10 +1,15 @@
 
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { BlockMath } from 'react-katex';
-import { X } from 'lucide-react';
+import { ArrowLeftRight, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Dialog,
@@ -14,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { MdxSlide } from '@/components/shared/mdx-slide';
 import { getBloomLabel, getKnowledgeDimLabel, getNodeTypeLabel } from '@/lib/knowledge-labels';
+import { useMdxContent } from '@/hooks/use-mdx-content';
 
 // Define standardized metadata structure (matches what we seeded)
 export interface KnowledgeMetadata {
@@ -52,7 +58,7 @@ export function extractMdxPaths(resources?: unknown[]): string[] {
       }
       return null;
     })
-    .filter((path): path is string => !!path && path.endsWith('.mdx'));
+    .filter((path): path is string => !!path && (path.endsWith('.md') || path.endsWith('.mdx')));
 }
 
 export function normalizeKnowledgeMetadata({
@@ -108,6 +114,94 @@ interface KnowledgeCardProps {
   className?: string;
   /** 关闭按钮回调（传入时显示关闭按钮） */
   onClose?: () => void;
+  showSectionToggle?: boolean;
+}
+
+function stripFrontmatter(markdown: string) {
+  return markdown.replace(/^---\n[\s\S]*?\n---\n?/, '');
+}
+
+function extractMarkdownSection(markdown: string, heading: string) {
+  const normalized = stripFrontmatter(markdown);
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`^##\\s+${escaped}\\s*$([\\s\\S]*?)(?=^##\\s+|(?![\\s\\S]))`, 'm');
+  const match = normalized.match(pattern);
+  return match?.[1]?.trim() ?? '';
+}
+
+function stripLeadingHeading(markdown: string) {
+  return markdown.replace(/^\s{0,3}#{1,6}\s+.+?\n+/, '').trim();
+}
+
+function isRuntimeNodeCardPath(path: string) {
+  return path.startsWith('course-content/runtime/knowledge/cards/nodes/') && path.endsWith('.md');
+}
+
+function RuntimeNodeCardSections({
+  path,
+  title,
+  isLightTheme,
+}: {
+  path: string;
+  title: string;
+  isLightTheme: boolean;
+}) {
+  const { content, isLoading, error } = useMdxContent(path);
+  const [view, setView] = useState<'overview' | 'detail'>('overview');
+
+  useEffect(() => {
+    setView('overview');
+  }, [path]);
+
+  const sections = useMemo(() => {
+    const overview = stripLeadingHeading(extractMarkdownSection(content, '首页'));
+    const detail = stripLeadingHeading(extractMarkdownSection(content, '详情'));
+    return {
+      overview,
+      detail,
+      active: view === 'detail' && detail ? detail : overview,
+      hasDetail: Boolean(detail),
+    };
+  }, [content, view]);
+
+  if (isLoading) {
+    return <div className="text-sm text-muted-foreground">正在加载知识卡片...</div>;
+  }
+
+  if (error) {
+    return <div className="text-sm text-destructive">{error}</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex items-center rounded-full border border-border/70 bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground">
+          {view === 'detail' ? '详情视图' : '概览视图'}
+        </div>
+        {sections.hasDetail ? (
+          <button
+            type="button"
+            onClick={() => setView((prev) => (prev === 'overview' ? 'detail' : 'overview'))}
+            className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-accent"
+          >
+            <ArrowLeftRight className="h-3.5 w-3.5" />
+            {view === 'overview' ? '详情' : '概览'}
+          </button>
+        ) : null}
+      </div>
+      <div className="max-h-[52vh] overflow-y-auto rounded-2xl border border-border/70 bg-muted/25 p-4">
+        {sections.active ? (
+          <div className={`max-w-none ${isLightTheme ? 'prose prose-slate' : 'prose prose-invert'} prose-p:leading-7 prose-li:leading-7`}>
+            <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+              {sections.active}
+            </ReactMarkdown>
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground">当前知识卡片暂未提供可展示内容。</div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function KnowledgeCard({
@@ -121,12 +215,15 @@ export function KnowledgeCard({
   variant = 'compact',
   className,
   onClose,
+  showSectionToggle = true,
 }: KnowledgeCardProps) {
+  const [isLightTheme, setIsLightTheme] = useState(false);
   const bloomLabel = getBloomLabel(bloomLevel);
   const knowledgeLabel = getKnowledgeDimLabel(knowledgeDim);
   const typeLabel = getNodeTypeLabel(nodeType);
 
   const mdxPaths = extractMdxPaths(resources);
+  const runtimeNodeCardPath = mdxPaths.find((path) => isRuntimeNodeCardPath(path)) ?? null;
   const isCompact = variant === 'compact';
 
   // Helper to render type badge with Chinese label
@@ -152,13 +249,36 @@ export function KnowledgeCard({
     metadata.content.includes('**')
   ));
 
+  useEffect(() => {
+    const updateTheme = () => {
+      setIsLightTheme(document.documentElement.classList.contains('light'));
+    };
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  const surfaceClassName = 'border-border bg-card text-card-foreground';
+  const headingClassName = 'text-foreground';
+  const descriptionClassName = 'text-muted-foreground';
+  const subtlePanelClassName = 'border-border bg-muted/60 text-card-foreground';
+  const subtleChipClassName = 'border-border bg-muted/75 text-card-foreground';
+
   return (
-    <Card className={`w-full bg-[#0F172A] text-slate-200 border-slate-700 relative ${className || ''}`}>
+    <Card className={`relative w-full ${surfaceClassName} ${className || ''}`}>
       {/* 关闭按钮 - 仅在传入 onClose 时显示 */}
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+          className={`absolute top-3 right-3 z-10 rounded-full p-1.5 transition-colors ${
+            isLightTheme
+              ? 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+          }`}
           aria-label="关闭"
         >
           <X className="h-4 w-4" />
@@ -167,23 +287,33 @@ export function KnowledgeCard({
       <CardHeader className={`${isCompact ? 'pb-3' : 'pb-4'} ${onClose ? 'pr-12' : ''}`}>
         <div className="flex justify-between items-start gap-3">
           <div className="space-y-1 min-w-0 flex-1">
-            <CardTitle className={`${isCompact ? 'text-xl' : 'text-2xl'} font-bold text-white flex items-center gap-2 flex-wrap`}>
+            <CardTitle className={`${isCompact ? 'text-xl' : 'text-2xl'} ${headingClassName} flex items-center gap-2 font-bold flex-wrap`}>
               <span className="truncate">{name}</span>
               {renderTypeBadge()}
             </CardTitle>
-            <CardDescription className={`text-slate-400 ${isCompact ? 'line-clamp-2' : ''}`}>
-              {description}
-            </CardDescription>
+            {!runtimeNodeCardPath ? (
+              <CardDescription className={`${descriptionClassName} ${isCompact ? 'line-clamp-2' : ''}`}>
+                {description}
+              </CardDescription>
+            ) : null}
           </div>
           {(bloomLabel || knowledgeLabel) && (
             <div className="flex flex-col items-end gap-1.5 shrink-0">
               {bloomLabel && (
-                <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300 whitespace-nowrap">
+                <span className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-xs ${
+                  isLightTheme
+                    ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                    : 'border-emerald-400/40 bg-emerald-500/12 text-emerald-100'
+                }`}>
                   认知：{bloomLabel}
                 </span>
               )}
               {knowledgeLabel && (
-                <span className="rounded-full border border-blue-500/40 bg-blue-500/15 px-2 py-0.5 text-xs text-blue-300 whitespace-nowrap">
+                <span className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-xs ${
+                  isLightTheme
+                    ? 'border-blue-300 bg-blue-50 text-blue-700'
+                    : 'border-blue-400/40 bg-blue-500/12 text-blue-100'
+                }`}>
                   知识：{knowledgeLabel}
                 </span>
               )}
@@ -193,25 +323,33 @@ export function KnowledgeCard({
       </CardHeader>
       <CardContent className={isCompact ? 'space-y-3 pt-0' : 'space-y-5'}>
         {/* Main Content - 仅在没有 MDX 文件且不是 MDX 格式时显示纯文本 */}
-        {metadata.content && !hasMdxContent && !isMdxFormat && (
-          <div className="prose prose-invert max-w-none text-slate-300">
+        {runtimeNodeCardPath && showSectionToggle ? (
+          <RuntimeNodeCardSections
+            path={runtimeNodeCardPath}
+            title={name}
+            isLightTheme={isLightTheme}
+          />
+        ) : null}
+
+        {metadata.content && !hasMdxContent && !isMdxFormat && !runtimeNodeCardPath && (
+          <div className={`max-w-none ${isLightTheme ? 'prose prose-slate' : 'prose prose-invert'} `}>
             <p className={isCompact ? 'text-sm' : 'text-base'}>{metadata.content}</p>
           </div>
         )}
 
         {/* Formulas - 仅在没有 MDX 内容时显示 */}
-        {!hasMdxContent && metadata.formulas && (metadata.formulas.continuous || metadata.formulas.discrete) && (
-          <div className={`space-y-3 ${isCompact ? 'p-3' : 'p-4'} bg-slate-900 rounded-lg border border-slate-800`}>
-            <h4 className="text-sm font-semibold text-blue-400">数学表达</h4>
+        {!hasMdxContent && !runtimeNodeCardPath && metadata.formulas && (metadata.formulas.continuous || metadata.formulas.discrete) && (
+          <div className={`space-y-3 rounded-lg border ${subtlePanelClassName} ${isCompact ? 'p-3' : 'p-4'}`}>
+            <h4 className={`text-sm font-semibold ${isLightTheme ? 'text-blue-700' : 'text-blue-400'}`}>数学表达</h4>
             {metadata.formulas.continuous && (
               <div>
-                <div className="text-xs text-slate-500 mb-1">连续时间</div>
+                <div className={`mb-1 text-xs ${isLightTheme ? 'text-slate-500' : 'text-slate-500'}`}>连续时间</div>
                 <BlockMath math={metadata.formulas.continuous} />
               </div>
             )}
             {metadata.formulas.discrete && (
               <div>
-                <div className="text-xs text-slate-500 mb-1">离散时间</div>
+                <div className={`mb-1 text-xs ${isLightTheme ? 'text-slate-500' : 'text-slate-500'}`}>离散时间</div>
                 <BlockMath math={metadata.formulas.discrete} />
               </div>
             )}
@@ -219,12 +357,12 @@ export function KnowledgeCard({
         )}
 
         {/* Applications - 仅在没有 MDX 内容时显示 */}
-        {!hasMdxContent && metadata.applications && metadata.applications.length > 0 && (
+        {!hasMdxContent && !runtimeNodeCardPath && metadata.applications && metadata.applications.length > 0 && (
           <div>
-            <h4 className="text-sm font-semibold text-slate-400 mb-2">应用领域</h4>
+            <h4 className={`mb-2 text-sm font-semibold ${descriptionClassName}`}>应用领域</h4>
             <div className="flex flex-wrap gap-1.5">
               {metadata.applications.map((app, idx) => (
-                <span key={idx} className="px-2 py-0.5 rounded-md bg-slate-800 text-xs text-slate-300 border border-slate-700">
+                <span key={idx} className={`rounded-md border px-2 py-0.5 text-xs ${subtleChipClassName}`}>
                   {app}
                 </span>
               ))}
@@ -233,10 +371,10 @@ export function KnowledgeCard({
         )}
 
         {/* MDX Content - 使用暗色主题和自适应尺寸 */}
-        {mdxPaths.length > 0 && (
+        {mdxPaths.length > 0 && !runtimeNodeCardPath && (
           <div className="space-y-3">
             {mdxPaths.map((path) => (
-              <MdxSlide key={path} path={path} theme="dark" size="adaptive" />
+              <MdxSlide key={path} path={path} theme={isLightTheme ? 'light' : 'dark'} size="adaptive" />
             ))}
           </div>
         )}
@@ -264,7 +402,7 @@ export function KnowledgeCardDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[75vh] overflow-hidden bg-slate-900 border-slate-700 p-0">
+      <DialogContent className="max-h-[75vh] max-w-2xl overflow-hidden border-border bg-background p-0">
         <DialogHeader className="sr-only">
           <DialogTitle>{node.name}</DialogTitle>
         </DialogHeader>

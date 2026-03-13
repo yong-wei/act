@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 
+import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   createEmptyL2BStudentState,
   getL2BMediaSrc,
@@ -23,6 +24,7 @@ import {
   StudentSummaryPanel,
 } from './step-panels';
 import { L2BWorkspace } from './workspace';
+import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 
 interface StudentSessionInfo {
   id: string;
@@ -49,10 +51,17 @@ interface TeacherCourseSyncState {
   kind: 'teacher_sync';
   activeStepId: string;
   workspace: L2BWorkspaceSnapshot;
+  revealedAnswers: Record<string, boolean>;
   updatedAt: number;
 }
 
-export function L2BStudentPage({ sessionId }: { sessionId: string }) {
+export function L2BStudentPage({
+  sessionId,
+  lessonRuntime,
+}: {
+  sessionId: string;
+  lessonRuntime: RuntimeLessonEntryBundle;
+}) {
   const isDemo = sessionId === 'demo';
   const searchParams = useSearchParams();
   const demoStepId = searchParams.get('step');
@@ -130,9 +139,10 @@ export function L2BStudentPage({ sessionId }: { sessionId: string }) {
     if (isDemo) return;
     const timer = window.setInterval(() => {
       void syncSession();
+      void syncStates();
     }, 5000);
     return () => window.clearInterval(timer);
-  }, [isDemo, syncSession]);
+  }, [isDemo, syncSession, syncStates]);
 
   useEffect(() => {
     setCourseState((prev) => ({
@@ -236,7 +246,7 @@ export function L2BStudentPage({ sessionId }: { sessionId: string }) {
     return (
       <div className="premium-lesson-shell flex items-center justify-center px-3">
         <div className="premium-lesson-panel max-w-xl text-center">
-          <p className="text-lg font-semibold text-slate-900">课堂已结束</p>
+          <p className="premium-lesson-title text-lg font-semibold">课堂已结束</p>
           <p className="premium-lesson-muted mt-2">教师已结束课堂，本页面保留你的学习记录。</p>
         </div>
       </div>
@@ -258,12 +268,12 @@ export function L2BStudentPage({ sessionId }: { sessionId: string }) {
 
       <main className="premium-lesson-main max-w-[1080px] px-3 py-3 sm:px-4 sm:py-4">
         {error ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
+          <div className="premium-lesson-tone-block premium-tone-rose">{error}</div>
         ) : null}
         {isOutOfSync ? (
-          <div className="flex flex-col gap-3 rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 md:flex-row md:items-center md:justify-between">
+          <div className="premium-lesson-tone-card premium-tone-amber flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="text-xs uppercase tracking-[0.2em] text-amber-600">同步提醒</div>
+              <div className="premium-lesson-kicker">同步提醒</div>
               <p className="mt-1 leading-6">
                 当前页面与教师不同步，教师当前位于“{teacherStep?.title ?? '当前环节'}”。
               </p>
@@ -271,7 +281,7 @@ export function L2BStudentPage({ sessionId }: { sessionId: string }) {
             <button
               type="button"
               onClick={() => setActiveIndex(teacherIndex)}
-              className="inline-flex items-center justify-center rounded-full border border-amber-300 px-4 py-2 text-xs font-medium text-amber-700"
+              className="premium-lesson-action-tone premium-tone-amber"
             >
               点击跳转
             </button>
@@ -284,12 +294,21 @@ export function L2BStudentPage({ sessionId }: { sessionId: string }) {
             content={stepDefinition.student}
             mediaSrc={getL2BMediaSrc(step.mediaKey)}
             mediaAlt={step.title}
+            rightSlot={
+              <StepKnowledgeDrawer
+                lessonRuntime={lessonRuntime}
+                currentStepId={step.id}
+                orderedStepIds={L2B_LESSON_STEPS.map((item) => item.id)}
+                title="页面知识卡片"
+              />
+            }
           />
           <StudentActivityForm
             stepId={step.id}
             activity={stepDefinition.student.activity}
             savedResponse={savedResponse}
             courseState={courseState}
+            answerVisible={Boolean(teacherSyncRecord?.revealedAnswers?.[step.id])}
             onSubmit={handleSubmitResponse}
           />
           {step.id === 'summary' ? <StudentSummaryPanel courseState={courseState} /> : null}

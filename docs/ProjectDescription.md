@@ -7,7 +7,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-03-11
+📅 **最后更新**：2026-03-13
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 ⚡ **首页与仿真加载优化（2026-03-02）**：首页船模改为“截图优先 + 3D 后台懒加载”，移除首屏一次性预加载全部 7 个 GLB（约 125MB）策略，改为按轮播仅预热“当前 + 下一”模型；仿真页改为“场景先渲染、船模独立 Suspense 加载”，在船模解析期间显示“模型加载中”占位动画，避免黑屏等待
 🧰 **首页模型策略开关（2026-03-03）**：新增平台级配置 `PlatformSetting` 与管理接口 `/api/admin/platform-settings`、公开读取接口 `/api/platform/settings`；管理员可在 `/admin/config` 切换“首页动态模型渲染”，首页根据开关在静态截图与动态 3D 预览间切换
@@ -26,7 +26,13 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 🧾 **教案管理**：我的教案支持三点菜单删除并二次确认
 🚀 **部署方式**：本地开发 + Docker 容器化部署
 🚚 **远端部署脚本（2026-03-11）**：新增 `scripts/remote-deploy.sh`，在本机调用 `scripts/build.sh` 完成镜像构建后，自动上传 `deploy/images/act-obe.tar` 到服务器 `/home/projects/act/images/act-obe.tar`，执行远端 `/home/projects/act/scripts/0-one-key.sh`，并验证公网、数据库与 systemd/Podman 服务状态
-🗂️ **课程内容目录迁移（2026-03-11）**：新增 `course-content/` 作为课程制作统一目录，采用 `authoring/` 与 `runtime/` 分层，沉淀 L-2a 课次设计稿、图谱增量、知识卡片、媒体目录骨架与面向 Claude 的迁移/闭环说明；`runtime/` 导出链路预留给后续平台接线阶段完成
+🗂️ **课程内容目录迁移（2026-03-11）**：新增 `course-content/` 作为课程制作统一目录，采用 `authoring/` 与 `runtime/` 分层，沉淀 L-2a 课次设计稿、图谱增量、知识卡片、媒体目录骨架与面向 Claude 的迁移/闭环说明
+🧠 **runtime 知识源接线（2026-03-13）**：新增 `course-content/scripts/export-runtime.sh` 导出链路，当前已完成 L-2b 试点：全局知识图谱改从 `course-content/runtime/knowledge/graph/{nodes.json,relations.jsonl}` 读取；`authoring/knowledge/cards/nodes/*.md` 与 `content/concepts/*.mdx` 会同步到 `course-content/runtime/knowledge/cards/`；L-2b 额外生成 `lesson.json`、`graph-overlay.json` 与 `handout.md`，为后续 L-2c 及新课次统一接入 runtime 奠定基础
+🗺️ **L-2b 首页 runtime 导学（2026-03-13）**：L-2b 课程首页已接入 runtime lesson bundle，入口页可直接展示本课知识点网络、节点卡片正面与统一 `详情 / 概览` 视图、按 sequence 排列的知识卡片预览，以及支持 LaTeX/媒体渲染的讲义入口
+🧾 **L-2b 首页二次收口（2026-03-13）**：按最新课程规范将教师入口/自由浏览/学生入口上移至首页最上方；知识点网络增加前置/后置箭头关系；讲义入口改为智能摘要并支持导出 PDF；学生页与教师页新增按 runtime 编排驱动的步骤知识卡抽屉，且仅在当前步骤存在知识卡时显示
+🧩 **L-2b 知识卡统一框架（2026-03-13）**：首页节点卡片与步骤抽屉统一复用 `KnowledgeCard` runtime 分节渲染；`course-content/runtime/knowledge/cards/nodes/*.md` 只在概览态展示 `## 首页`，通过 `详情 / 概览` 切换到 `## 详情`，标题保持不变；非首页知识卡入口统一挂到页面标题模块右上角
+🎨 **L-2b 主题框架收口（2026-03-13）**：L-2b 首页与课堂内页已统一切到精品课深浅主题语义类；深色模式下移除残留的深字深底与浅色突兀块，浅色模式保持原有高对比；同时新增 `test-l2b-theme-no-hardcoded-styles.ts`，明确禁止在课程模块继续新增 `dark:`、十六进制色和旧式色阶硬编码
+📦 **运行时资源外置部署（2026-03-12）**：`scripts/build.sh` 现在要求通过 `.dockerignore` 排除 `course-content/runtime`，镜像不再打包运行时课程资源；`scripts/remote-deploy.sh` 会使用 `rsync` 将本地 `course-content/runtime/` 同步到服务器 `/home/projects/act/course-content/runtime/`，并同步最新 `deploy/podman/deploy.sh` 到远端 `scripts/4-deploy.sh`，由 Podman 以只读挂载方式映射到容器内 `/app/course-content/runtime`
 
 ## 3. 核心功能模块
 
@@ -597,6 +603,12 @@ npm test               # 运行测试
 - 新增学期数据校验脚本 `scripts/tests/verify-semester-usage-for-test-students.mjs`（`npm run test:semester-usage`），用于自动核验上述数据区间约束。
 - 新增模型渲染策略测试脚本 `scripts/tests/test-model-render-policy.ts`（`npm run test:model-render-policy`），覆盖“管理员开关 + 网络条件降级”的决策逻辑。
 - 新增服务器配置指南 `docs/Server_Codex_Nginx_HTTP2_Guide_2026-03-03.md`，用于在 ECS 上由 Codex 执行 Nginx 配置加固（HTTP2/RSC/GLB 传输稳定性）。
+
+## 12. 近期更新（2026-03-12）
+
+- 新增项目内技能 `.codex/skills/homework-problem-authoring/`：支持按 `course-content/authoring/shared/homework-framework.md` 中的题号（如 `T1-1`、`T3-2`）执行“3 个出题智能体 + 裁判 + 3 个作答智能体”的出题闭环，并固化临时文件交接、防作弊文件访问限制、`C/X/D` 三类题一致性判定与二轮复核规则。
+- 新增辅助脚本 `.codex/skills/homework-problem-authoring/scripts/extract_homework_question.py`：用于从作业框架中按题号提取最小题目规范，供主代理构造任务包时使用。
+- 新增技能回归测试 `scripts/tests/test-homework-problem-authoring-skill.ts` 与脚本测试 `scripts/tests/test_extract_homework_question.py`，用于校验技能文本约束和题号抽取脚本行为。
 
 ---
 

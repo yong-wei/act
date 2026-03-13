@@ -74,13 +74,12 @@ interface RawKnowledgeGraphNode {
   updated_at?: string;
 }
 
-interface RawKnowledgeGraphPayload {
-  nodes?: Record<string, RawKnowledgeGraphNode>;
-}
-
 interface RawRelationRecord {
+  id?: string;
   relation_id?: string;
+  source_id?: string;
   source: string;
+  target_id?: string;
   target: string;
   source_chapter?: number;
   target_chapter?: number;
@@ -199,13 +198,13 @@ function resolveNodeId(
 }
 
 async function loadKnowledgeGraphFromFiles(): Promise<UnifiedKnowledgeGraphPayload | null> {
-  const graphPath = path.join(process.cwd(), 'data', 'knowledge_graph.json');
-  const relationsPath = path.join(process.cwd(), 'data', 'relations.jsonl');
+  const graphPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'nodes.json');
+  const relationsPath = path.join(process.cwd(), 'course-content', 'runtime', 'knowledge', 'graph', 'relations.jsonl');
 
-  let rawGraph: string;
+  let rawNodes: string;
   let rawRelations: string;
   try {
-    [rawGraph, rawRelations] = await Promise.all([
+    [rawNodes, rawRelations] = await Promise.all([
       fs.readFile(graphPath, 'utf-8'),
       fs.readFile(relationsPath, 'utf-8'),
     ]);
@@ -213,72 +212,69 @@ async function loadKnowledgeGraphFromFiles(): Promise<UnifiedKnowledgeGraphPaylo
     return null;
   }
 
-  let parsedGraph: RawKnowledgeGraphPayload;
+  let parsedNodes: UnifiedKnowledgeNode[];
   try {
-    parsedGraph = JSON.parse(rawGraph) as RawKnowledgeGraphPayload;
+    parsedNodes = JSON.parse(rawNodes) as UnifiedKnowledgeNode[];
   } catch {
     return null;
   }
 
-  const rawNodes = Object.values(parsedGraph.nodes ?? {});
-  if (rawNodes.length === 0) {
+  if (!Array.isArray(parsedNodes) || parsedNodes.length === 0) {
     return null;
   }
 
+  const nodes: UnifiedKnowledgeNode[] = parsedNodes.map((node) => {
+    const metadata = (node.metadata ?? {}) as Record<string, unknown>;
+    const chapter = typeof node.chapter === 'number'
+      ? node.chapter
+      : typeof metadata.chapter === 'number'
+        ? metadata.chapter
+        : undefined;
+    const chapterNameValue = typeof node.chapterName === 'string'
+      ? node.chapterName
+      : typeof metadata.chapterName === 'string'
+        ? metadata.chapterName
+        : null;
+
+    return {
+      ...node,
+      nodeType: node.nodeType ?? inferNodeType({
+        id: node.id,
+        name: node.name,
+        category: typeof metadata.category === 'string' ? metadata.category : undefined,
+      }),
+      description: node.description?.trim() || `${node.name} 的知识节点`,
+      bloomLevel: normalizeBloomLevel(node.bloomLevel ?? (typeof metadata.bloom_level === 'string' ? metadata.bloom_level : undefined)),
+      knowledgeDim: normalizeKnowledgeDim(node.knowledgeDim ?? (typeof metadata.category === 'string' ? metadata.category : undefined)),
+      chapter,
+      chapterName: resolveChapterName(chapter, chapterNameValue),
+      metadata,
+      content: (node.content ?? {}) as Record<string, unknown>,
+      resources: Array.isArray(node.resources) ? node.resources : [],
+      tags: Array.isArray(node.tags) ? node.tags : [],
+    };
+  });
+
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const byNameChapter = new Map<string, string>();
   const byName = new Map<string, string[]>();
-  const nodes: UnifiedKnowledgeNode[] = rawNodes.map((node, index) => {
+  nodes.forEach((node) => {
     byNameChapter.set(`${node.name}|${node.chapter ?? -1}`, node.id);
     const existing = byName.get(node.name) ?? [];
     existing.push(node.id);
     byName.set(node.name, existing);
-
-    const chapter = typeof node.chapter === 'number' ? node.chapter : undefined;
-    const chapterName = resolveChapterName(chapter, node.chapter_name);
-    const ring = Math.floor(index / 24);
-    const angle = (index % 24) * ((2 * Math.PI) / 24);
-    const radius = (chapter ?? 1) * 14 + ring * 6;
-
-    return {
-      id: node.id,
-      name: node.name,
-      nodeType: inferNodeType(node),
-      description: node.definition?.trim() || `${node.name} 的知识节点`,
-      bloomLevel: normalizeBloomLevel(node.bloom_level),
-      knowledgeDim: normalizeKnowledgeDim(node.category),
-      positionX: Math.round(Math.cos(angle) * radius * 10) / 10,
-      positionY: Math.round(Math.sin(angle) * radius * 10) / 10,
-      positionZ: chapter ?? 0,
-      chapter,
-      chapterName,
-      metadata: {
-        chapter,
-        chapterName,
-        category: node.category ?? null,
-        bloom_level: node.bloom_level ?? null,
-        definition: node.definition ?? null,
-        examples: node.examples ?? [],
-        formulas: node.formulas ?? [],
-        prerequisites: node.prerequisites ?? [],
-        relatedConcepts: node.related_concepts ?? [],
-        difficulty: node.difficulty ?? null,
-        importance: node.importance ?? null,
-        keywords: node.keywords ?? [],
-        createdAt: node.created_at ?? null,
-        updatedAt: node.updated_at ?? null,
-        source: 'data/knowledge_graph.json',
-      },
-      resources: [],
-      tags: [`chapter-${chapter ?? 0}`, ...(node.keywords ?? [])].slice(0, 16),
-    };
   });
 
   const relationLines = parseJsonlLines(rawRelations);
   const linkMap = new Map<string, UnifiedKnowledgeLink>();
 
   relationLines.forEach((record, index) => {
-    const sourceId = resolveNodeId(record.source, record.source_chapter, byNameChapter, byName);
-    const targetId = resolveNodeId(record.target, record.target_chapter, byNameChapter, byName);
+    const sourceId = record.source_id && nodeById.has(record.source_id)
+      ? record.source_id
+      : resolveNodeId(record.source, record.source_chapter, byNameChapter, byName);
+    const targetId = record.target_id && nodeById.has(record.target_id)
+      ? record.target_id
+      : resolveNodeId(record.target, record.target_chapter, byNameChapter, byName);
     if (!sourceId || !targetId || sourceId === targetId) return;
 
     const relationType = normalizeRelationType(record.relation_type);

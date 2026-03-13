@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Users } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2, Users } from 'lucide-react';
 
+import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   getL2BMediaSrc,
   getL2BStep,
@@ -17,6 +18,8 @@ import { L2BCourseHeader } from './course-header';
 import { KnowledgeMapVisual, StepContentPanel, StudentSummaryPanel, TeacherActivitySummary } from './step-panels';
 import { L2BWorkspace } from './workspace';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
+import { selectTeacherSummaryActivity } from './activity-utils';
+import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 
 interface TeacherSessionInfo {
   id: string;
@@ -40,10 +43,17 @@ interface TeacherCourseSyncState {
   kind: 'teacher_sync';
   activeStepId: string;
   workspace: L2BWorkspaceSnapshot;
+  revealedAnswers: Record<string, boolean>;
   updatedAt: number;
 }
 
-export function L2BTeacherPage({ sessionId }: { sessionId: string }) {
+export function L2BTeacherPage({
+  sessionId,
+  lessonRuntime,
+}: {
+  sessionId: string;
+  lessonRuntime: RuntimeLessonEntryBundle;
+}) {
   const router = useRouter();
   const [loadingSession, setLoadingSession] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -51,6 +61,8 @@ export function L2BTeacherPage({ sessionId }: { sessionId: string }) {
   const [stateRecords, setStateRecords] = useState<SessionStateRecord[]>([]);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [endingSession, setEndingSession] = useState(false);
+  const [showStudentList, setShowStudentList] = useState(false);
+  const [revealedAnswers, setRevealedAnswers] = useState<Record<string, boolean>>({});
   const [workspaceState, setWorkspaceState] = useState<L2BWorkspaceSnapshot>({
     gain: 1,
     selectedPointKey: null,
@@ -236,8 +248,9 @@ export function L2BTeacherPage({ sessionId }: { sessionId: string }) {
     void postTeacherSyncState({
       activeStepId: step.id,
       workspace: workspaceState,
+      revealedAnswers,
     });
-  }, [postTeacherSyncState, step.id, workspaceState]);
+  }, [postTeacherSyncState, revealedAnswers, step.id, workspaceState]);
 
   if (loadingSession) {
     return (
@@ -248,6 +261,7 @@ export function L2BTeacherPage({ sessionId }: { sessionId: string }) {
   }
 
   const stepDefinition = getL2BStep(step.id);
+  const teacherSummaryActivity = selectTeacherSummaryActivity(stepDefinition);
 
   return (
     <div className="premium-lesson-shell">
@@ -260,7 +274,7 @@ export function L2BTeacherPage({ sessionId }: { sessionId: string }) {
             type="button"
             onClick={() => void handleEndSession()}
             disabled={endingSession}
-            className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-700 disabled:opacity-60"
+            className="premium-lesson-action-tone premium-tone-rose"
           >
             {endingSession ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
             结束课堂
@@ -270,7 +284,7 @@ export function L2BTeacherPage({ sessionId }: { sessionId: string }) {
 
       <main className="premium-lesson-main max-w-[1080px] px-3 py-3 sm:px-4 sm:py-4">
         {syncError ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{syncError}</div>
+          <div className="premium-lesson-tone-block premium-tone-rose">{syncError}</div>
         ) : null}
 
         <div className="space-y-4">
@@ -280,28 +294,58 @@ export function L2BTeacherPage({ sessionId }: { sessionId: string }) {
             mediaSrc={getL2BMediaSrc(step.mediaKey)}
             mediaAlt={step.title}
             rightSlot={
-              <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs text-cyan-700">
-                课堂码：{sessionInfo?.joinCode ?? '------'}
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <StepKnowledgeDrawer
+                  lessonRuntime={lessonRuntime}
+                  currentStepId={step.id}
+                  orderedStepIds={L2B_LESSON_STEPS.map((item) => item.id)}
+                  title="页面知识卡片"
+                />
+                <span className="premium-lesson-tone-pill premium-tone-cyan">
+                  课堂码：{sessionInfo?.joinCode ?? '------'}
+                </span>
+              </div>
             }
           />
-          <TeacherActivitySummary responses={currentResponses} />
+          <TeacherActivitySummary
+            activity={teacherSummaryActivity}
+            responses={currentResponses}
+            answerVisible={Boolean(revealedAnswers[step.id])}
+            onToggleAnswerVisible={() =>
+              setRevealedAnswers((prev) => ({
+                ...prev,
+                [step.id]: !prev[step.id],
+              }))
+            }
+          />
           <section className="premium-lesson-panel-soft">
-            <div className="flex items-center gap-2 text-sm font-medium text-slate-900">
-              <Users className="h-4 w-4 text-cyan-700" />
-              当前在线学生
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {joinedStudents.length ? (
-                joinedStudents.map((name) => (
-                  <span key={name} className="premium-lesson-chip">
-                    {name}
-                  </span>
-                ))
-              ) : (
-                <span className="text-sm text-slate-500">暂无学生提交本课状态。</span>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowStudentList((prev) => !prev)}
+              className="flex w-full items-center justify-between gap-3 text-left"
+            >
+              <div className="premium-lesson-title flex items-center gap-2 text-sm font-medium">
+                <Users className="h-4 w-4" />
+                当前在线学生（在线 {joinedStudents.length} 人）
+              </div>
+              <span className="premium-lesson-caption inline-flex items-center gap-1 text-xs">
+                {showStudentList ? '收起名单' : '展开名单'}
+                {showStudentList ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </span>
+            </button>
+            {showStudentList ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {joinedStudents.length ? (
+                  joinedStudents.map((name) => (
+                    <span key={name} className="premium-lesson-chip">
+                      {name}
+                    </span>
+                  ))
+                ) : (
+                  <span className="premium-lesson-caption text-sm">暂无学生提交本课状态。</span>
+                )}
+              </div>
+            ) : null}
           </section>
 
           {step.id === 'summary' && studentStates[0] ? <StudentSummaryPanel courseState={studentStates[0].state} /> : null}

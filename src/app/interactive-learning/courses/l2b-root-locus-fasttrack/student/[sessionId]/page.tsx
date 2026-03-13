@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 
 import { authOptions } from '@/lib/auth';
+import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { L2BStudentPage } from '@/features/interactive/l2b-root-locus/student-page';
 
 export default async function L2BStudentRoute({
@@ -24,5 +25,6 @@ export default async function L2BStudentRoute({
     }
   }
 
-  return <L2BStudentPage sessionId={params.sessionId} />;
+  const lessonRuntime = await loadLessonRuntimeEntry('L-2b');
+  return <L2BStudentPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} />;
 }

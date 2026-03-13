@@ -13,6 +13,8 @@ const CONTENT_TYPES: Record<string, string> = {
   '.webp': 'image/webp',
   '.json': 'application/json; charset=utf-8',
   '.txt': 'text/plain; charset=utf-8',
+  '.md': 'text/markdown; charset=utf-8',
+  '.mdx': 'text/markdown; charset=utf-8',
 };
 
 export async function GET(

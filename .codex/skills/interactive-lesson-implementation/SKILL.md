@@ -13,8 +13,26 @@ description: Use when implementing or optimizing this repository's interactive l
 - 先确认课程与任务模式，再动手。
 - 先核对设计稿与现状，再做实现计划。
 - 媒体缺失必须显式提醒，不能默认“以后再补”。
+- 设计稿里凡是可代码直出或可前端 SVG 绘制的图，优先在实现阶段直接落地，不留“后续补图”。
 - 可以提出更好的交互方案，但必须先向用户说明原因并纳入计划。
 - 实现完成后，必须回到设计文档做一次闭环核对，并更新本技能的课程笔记。
+
+## Runtime First 约束
+
+课程重构阶段，`L-2c` 结构是当前唯一正确结构。后续分析旧课次时，不再把旧目录样式当作规范，而是要反向对齐到 `L-2c` 的组织方式。
+
+所有运行时课程资源统一以 `course-content/runtime` 为唯一来源。页面、接口、知识图谱、讲义、知识卡片都应优先从 runtime 读取；`authoring` 只作为制作源，不直接作为运行时依赖。
+
+默认迁移路径：
+1. 能脚本化迁移的内容，优先补到 `course-content/scripts/export-runtime.sh`（内部调用 `python3` 脚本）完成导出。
+2. 不能自动迁移的内容，必须基于内容理解在 `course-content/runtime` 下重建，不允许停留在“以后人工补”。
+3. 讲义保留 Markdown 原文到 runtime，再由页面渲染；不要在导出阶段把讲义改写成不可回溯的 HTML。
+
+知识组织统一采用“全局 knowledge 统一来源 + lesson graph overlay 局部编排”：
+- 全局节点唯一来源：`course-content/runtime/knowledge/graph/nodes.json`
+- 全局关系唯一来源：`course-content/runtime/knowledge/graph/relations.jsonl`
+- 节点卡片唯一来源：`course-content/runtime/knowledge/cards/nodes/`
+- 课次局部结构与编排：`course-content/runtime/lessons/<lesson>/graph-overlay.json`、`lesson.json`
 
 ## 启动方式
 
@@ -40,6 +58,13 @@ description: Use when implementing or optimizing this repository's interactive l
 - `notes/lessons/<lesson>/multimedia.md`（如果存在）
 
 把这些文件当作设计源，不要只根据现有代码继续“顺着改”。
+
+如果课次已进入 runtime 化阶段，还要同步读取：
+- `course-content/runtime/lessons/<lesson>/lesson.json`
+- `course-content/runtime/lessons/<lesson>/graph-overlay.json`
+- `course-content/runtime/lessons/<lesson>/handout.md`
+
+若 `authoring` 与 runtime 不一致，以 runtime 组织要求为准，再回头补 export 流程。
 
 ### 2. 判断任务模式
 
@@ -74,6 +99,12 @@ description: Use when implementing or optimizing this repository's interactive l
 
 把差异先记入课程笔记，再进入实现。
 
+对 runtime 课次额外核对：
+- `authoring -> export-runtime.sh -> course-content/runtime -> 页面/接口` 文件链路是否闭合
+- 课程首页是否真的消费 runtime，而不是偷偷回读 `authoring` 或 `content`
+- 讲义中的图片、SVG、视频等媒体引用是否都改写为 `/course-runtime/...`
+- 知识点网络是否来自 runtime 全局图 + lesson overlay，而不是页面内硬编码
+
 ### 4. 媒体资源缺失处理
 
 如果 `interactive-page.md` 或 `multimedia.md` 定义了媒体，但仓库内找不到对应资源：
@@ -101,7 +132,33 @@ description: Use when implementing or optimizing this repository's interactive l
 
 更多规则见 [references/media-and-path-rules.md](references/media-and-path-rules.md)。
 
-### 5. 允许提出更好的交互方案
+### 5. 资源制作（仅限代码直出 / SVG 绘制）
+
+如果设计稿中的资源满足以下任一条件，默认应在本轮实现中直接制作：
+- `multimedia.md` 标注为“代码直出”
+- `interactive-page.md` 或 `multimedia.md` 标注为“前端绘制”
+- 图本质上是结构图、知识地图、参数曲线、示意图、坐标图、反馈框图、几何标注图
+
+执行顺序：
+1. 先从 `multimedia.md` 提取资源清单，明确哪些是“代码直出”，哪些是“前端绘制”。
+2. 代码直出图统一放在：
+   - 设计源：`course-content/authoring/lessons/<lesson>/media/raw/`
+   - 运行时产物：`course-content/runtime/lessons/<lesson>/media/`
+3. 若已有原始脚本，优先补齐统一 `--output` 参数，不要新起一套平行脚本。
+4. 若没有统一生成入口，新增形如 `scripts/generate_<lesson>_runtime_media.py` 的脚本，用 `python3` 负责批量导出。
+5. 前端 SVG 绘制图优先直接落在课程组件中，但要把布局参数、语义标注和验证方式写进课程笔记。
+6. 资源完成后，必须做两层验证：
+   - 文件层：确认 runtime 目录下已生成目标文件
+   - 页面层：确认课程页面或 `/course-runtime/...` 实际可读
+
+硬约束：
+- 只制作“可代码直出 / SVG 绘制”的图；照片、录屏、真人素材、复杂插画不在本技能默认制作范围内。
+- 不把这类运行时图导出到 `public/`，除非用户明确要求或项目现有链路只能如此。
+- 运行时图一旦进入页面，必须优先验证中文文字是否可显示，不能只检查“文件存在”。
+
+详细规则与常见问题见 [references/runtime-code-generated-media.md](references/runtime-code-generated-media.md)。
+
+### 6. 允许提出更好的交互方案
 
 课程设计文档优先定义教学目标，但不一定最贴合平台实现。你应当：
 - 先严格尊重教学意图
@@ -116,7 +173,7 @@ description: Use when implementing or optimizing this repository's interactive l
 
 提出建议时使用简短选项，并标注推荐项。用户同意后，再把建议写进实施计划。
 
-### 6. 实现约束
+### 7. 实现约束
 
 实现时遵守以下规则：
 - 优先复用现有课程框架、会话同步、埋点、资源注册、`InteractiveProvider`
@@ -127,8 +184,53 @@ description: Use when implementing or optimizing this repository's interactive l
 - 区分平台级代码与资源级代码边界，不把资源实现塞进页面层
 - 不把课程设计文本直接硬编码成不可复用的大块页面逻辑；尽量组织成步骤配置、媒体清单、工作区显示条件等结构化数据
 - 页面布局按课程内涵决定：纯文本/静态图页面可不显示互动；需要探索时再显示工作区
+- 所有选择题形的互动，不论是前测、后测还是中间的调查，学生提交后都必须在教师端显示选项的统计；如果该题存在正确答案，教师端还必须提供显示答案的按钮，点击后学生端能看到答案
+- 所有文本型的互动都必须在教师端显示词云；词云下方提供默认折叠的学生回复列表，并按提交时间排序
+- 所有页面的当前在线学生清单默认折叠；折叠时只给出人数，不默认展开整名单
+- 打开AI助手应在页面上直接弹出对话框
+- 不要跳转或调用现有的助手页面；如需 AI 交互，应在当前课程页内复用对话组件完成
+- 学生端使用移动设备较多，默认按窄屏优先设计：顶部信息压缩、单屏信息密度更高、按钮与表单更紧凑、主要内容优先纵向堆叠
+- 移动端要求内容更加紧凑：减少不必要留白，缩短标题区高度，提示区与互动区之间保持短节奏过渡，不依赖宽屏双栏才能完成学习
+- 精品课浅色模式统一要求：浅色模式下，所有形状填充色全部采用浅色色系；所有文本全部采用较深的颜色；避免保留大面积深色渐变块或低对比提示文案
+- 同时适配深色模式；不要硬编码模块样式，不要把浅色模式写成散落在组件里的固定颜色
+- 明确拒绝硬编码样式：如果某个模块需要单独写死颜色值、十六进制色、`dark:` 分支或浅色块/深色字组合，先补统一主题变量或语义类，再实现模块；不要继续在模块内散写颜色
+- 即使已有历史兼容桥接层，也不允许在新课或新改动里继续新增 `bg-white`、`text-slate-*`、`border-cyan-*`、`dark:` 之类的旧式颜色类；桥接层只用于兜底，不作为继续硬编码的理由
 
-### 7. 闭环验证
+如果课程首页存在导学页或入口页，首页必须补齐以下 runtime 模块：
+- 入口模块顺序：教师入口、自由浏览、学生入口放在页面最上方，再进入课程概览与 runtime 导学区
+- 知识点网络：默认显示本课次相关知识点网络，来源是 runtime 图谱与 lesson overlay
+- 关系表达：知识点网络要用箭头清楚标出前置与后置关系，不能只画无方向连线
+- 节点交互：点击节点后显示卡片正面内容，并通过卡片内部 `详情 / 概览` 切换完整内容
+- 知识点网络文案固定为：`点击任意节点查看卡片正面内容，再用“详情”展开完整知识卡。`
+- 卡片预览：在页面最下方按 `course-content/runtime/lessons/<lesson>/lesson.json` 或 `sequence.json` 对应顺序给出知识卡片预览
+- 卡片预览文案固定为：`展示本课知识卡片顺序，便于在进入课堂前先建立知识主线。`
+- 讲义入口：首页提供讲义入口，点击后可查看讲义详细内容，并放在知识卡片预览下方
+- 讲义摘要文案不能直接机械截取原文，应由智能体基于讲义内容形成简短表述
+
+讲义入口的硬要求：
+- 必须正确渲染 LaTeX 公式
+- 必须正确插入讲义引用的图片和媒体资源
+- 优先直接读取 runtime Markdown 原文，不为单课单独发明另一套讲义存储格式
+- 讲义入口区和讲义详情区都必须提供 `导出 PDF` 功能
+
+如果课程 runtime 编排里为某些步骤分配了知识卡片：
+- 必须把知识卡片按编排设计插入对应互动课程页面
+- 交互形式默认采用抽屉设计呼出
+- 所有互动页面（除了首页）知识卡片入口统一放在页面顶部标题模块的右上角
+- 入口按钮文案统一为：`知识卡片`
+- 抽屉标题统一为：`页面知识卡片`
+- 抽屉说明统一为：`当前页面相关的知识卡片`
+- 没有知识卡片的不需要抽屉，也不要渲染空入口
+
+节点卡片渲染统一框架：
+- 对 `course-content/runtime/knowledge/cards/nodes/*.md`，卡片正面只显示 `## 首页` 分节内容
+- 不显示 `## 首页` 之前的基本信息，也不显示从 `## 详情` 开始的内容
+- 卡片内部提供 `详情` 按钮切换到详情视图，并提供 `概览` 按钮返回概览视图
+- 切换前后卡片标题保持不变；视图状态不能拼进标题文本
+- 内容较长时必须支持滚动
+- 首页节点卡片与互动页面抽屉卡片都必须复用同一套渲染机制，不为单课单独写两套卡片逻辑
+
+### 8. 闭环验证
 
 实现完成后，必须重新执行一次“设计稿 vs 实现稿”核对流程，至少覆盖：
 - 步骤数、标题、顺序
@@ -136,9 +238,32 @@ description: Use when implementing or optimizing this repository's interactive l
 - 教师端/学生端内容与动作是否对应设计稿
 - 工作区是否只在需要时出现
 - 互动输入、汇总、记录、埋点是否通路正常
+- 选择题是否在教师端形成选项统计；有标准答案时，教师端“显示答案”后学生端是否同步可见
+- 文本题是否在教师端生成词云；回复列表是否默认折叠且按提交时间排序
+- 当前在线学生清单是否默认折叠，折叠态是否仅显示人数
+- AI 助手是否在当前页面直接弹出对话框，而不是跳转到独立助手页
 - `dashboard`、`/classroom/join`、课程入口页输入同一课堂码后是否落到同一正确课堂页面
 - 教师是否能从课程页结束课堂，后台是否能停止进行中的课堂
 - 学生端在教师翻页后是否出现不同步提示与手动跳转能力
+
+如果课程包含代码直出图或前端 SVG 图，额外覆盖：
+- runtime 图是否生成到正确目录
+- 页面实际渲染时中文文本是否可见
+- 前端 SVG 图是否存在布局错位、遮挡或回路线断裂
+- 绘图脚本是否固定了系统中文字体与 SVG 导出策略
+
+如果课程首页接入了 runtime 资源，额外覆盖：
+- `bash course-content/scripts/export-runtime.sh <lesson>` 能否完整导出
+- 教师入口、自由浏览、学生入口是否位于首页最上方
+- 知识点网络模块是否正确出现，默认节点是否可读
+- 知识点网络是否用箭头表达前置与后置关系
+- 点击节点后是否显示卡片正面，`详情 / 概览` 是否工作且标题保持不变
+- 卡片预览顺序是否与 lesson sequence 一致
+- 讲义入口是否可打开，LaTeX、图片和媒体链接是否正确，`导出 PDF` 是否可用
+- 当前步骤若有知识卡片，抽屉是否按编排出现；若无卡片，抽屉是否不出现
+- `course-content/runtime/knowledge/cards/nodes/*.md` 是否按 `## 首页 / ## 详情` 分节正确渲染，并支持 `详情 / 概览` 切换
+- `course-content/runtime` 是否已经成为页面读取的唯一来源
+- 深色模式与浅色模式下是否都可读，不要为了浅色模式去硬编码模块样式
 
 验证后更新课程笔记，记录：
 - 本次实现了什么
@@ -177,6 +302,8 @@ python3 scripts/init_course_note.py --lesson L-2a --title "三张面孔，同一
 
 - `references/media-and-path-rules.md`
   - 媒体缺失时的占位符、路径、命名与输出规范
+- `references/runtime-code-generated-media.md`
+  - 代码直出 / SVG 绘制资源的目录、生成、字体、验证与常见问题
 - `references/verification-and-note-update.md`
   - 设计核对流程、验证清单和课程笔记更新规则
 
@@ -191,8 +318,22 @@ python3 scripts/init_course_note.py --lesson L-2a --title "三张面孔，同一
 - [ ] 已读取对应课程设计文档
 - [ ] 已核对当前实现与设计稿差异
 - [ ] 已检查媒体是否缺失
+- [ ] 已判断哪些资源应直接代码直出或 SVG 绘制
+- [ ] 已把 runtime 资源生成到正确目录并做页面验证
+- [ ] 已确认本次课次结构对齐 `L-2c`，不再沿用旧目录作为规范
+- [ ] 已确认 `course-content/runtime` 是当前页面与接口的唯一来源
+- [ ] 已优先通过 `course-content/scripts/export-runtime.sh` 完成可自动迁移内容
+- [ ] 已确认教师入口、自由浏览、学生入口位于课程首页最上方
 - [ ] 已向用户提出必要的更优交互建议
 - [ ] 已基于仓库现有框架写实施计划
 - [ ] 已完成实现
+- [ ] 已在首页补齐知识点网络、卡片预览与讲义入口
+- [ ] 已确保知识点网络用箭头表达前置与后置关系
+- [ ] 已确保讲义入口与讲义详情支持导出 PDF
+- [ ] 已按编排把知识卡片插入对应步骤，且无卡片步骤不渲染抽屉
+- [ ] 已确保知识卡片统一走 `## 首页 / ## 详情` 渲染框架，并支持 `详情 / 概览` 切换
+- [ ] 已确保非首页页面的知识卡片入口位于标题模块右上角，按钮文案统一为“知识卡片”
+- [ ] 已核对选择题统计、答案揭示、文本词云与在线学生折叠等教师端联动要求
+- [ ] 已检查浅色/深色模式都可读，并避免硬编码模块样式
 - [ ] 已重新执行设计稿对照验证
 - [ ] 已更新 `notes/<lesson>.md`

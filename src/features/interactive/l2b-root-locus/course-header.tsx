@@ -39,7 +39,7 @@ export function L2BCourseHeader({
             </Link>
             <div className="min-w-0">
               <div className="premium-lesson-kicker truncate text-[10px] tracking-[0.24em]">{L2B_COURSE_SUBTITLE}</div>
-              <h1 className="truncate text-sm font-semibold text-slate-100 md:text-base">{L2B_COURSE_TITLE}</h1>
+              <h1 className="premium-lesson-title truncate text-sm font-semibold md:text-base">{L2B_COURSE_TITLE}</h1>
             </div>
           </div>
 
@@ -48,7 +48,7 @@ export function L2BCourseHeader({
               <span className={`rounded-full border px-3 py-0.5 text-[11px] ${L2B_STAGE_COLOR[currentStep.stage]}`}>
                 {L2B_STAGE_LABEL[currentStep.stage]}
               </span>
-              <span className="rounded-full border border-white/20 px-2.5 py-0.5 text-[11px] text-slate-200">
+              <span className="premium-lesson-tone-pill premium-tone-slate px-2.5 py-0.5 text-[11px]">
                 ⏱ {L2B_STEP_DURATION[currentStep.id]}
               </span>
             </div>
@@ -96,7 +96,7 @@ export function L2BCourseHeader({
               >
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
-              <span className="text-xs text-slate-400">
+              <span className="premium-lesson-caption text-xs">
                 {activeIndex + 1} / {steps.length}
               </span>
             </div>

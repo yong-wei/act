@@ -6,12 +6,14 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, Loader2, LogIn, Presentation, Users } from 'lucide-react';
 
+import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   L2B_COURSE_DESCRIPTION,
   L2B_COURSE_TITLE,
   L2B_PRESET_KEY,
   L2B_ROUTE_SEGMENT,
 } from '@/lib/l2b-course';
+import { L2BEntryRuntimeSections } from './entry-runtime-sections';
 
 interface JoinSessionResponse {
   id: string;
@@ -28,7 +30,13 @@ function normalizeRole(raw: string | null | undefined): NormalizedRole {
   return null;
 }
 
-export function L2BCourseEntryPage({ initialRole }: { initialRole?: string | null }) {
+export function L2BCourseEntryPage({
+  initialRole,
+  lessonRuntime,
+}: {
+  initialRole?: string | null;
+  lessonRuntime: RuntimeLessonEntryBundle;
+}) {
   const { data: authSession } = useSession();
   const router = useRouter();
   const [joinCode, setJoinCode] = useState('');
@@ -105,46 +113,42 @@ export function L2BCourseEntryPage({ initialRole }: { initialRole?: string | nul
 
   const showTeacherSection = roleResolved ? canCreateAsTeacher : true;
   const showStudentSection = roleResolved ? canJoinAsStudent : true;
+  const entryCardClassName =
+    'premium-lesson-panel p-5';
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#0f766e20,transparent_32%),radial-gradient(circle_at_top_right,#1d4ed81c,transparent_28%),#f7fbff] text-slate-900">
-      <header className="border-b border-slate-200/80 bg-white/70 backdrop-blur">
+    <div className="premium-lesson-shell">
+      <header className="premium-lesson-topbar">
         <div className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6">
           <Link
             href="/interactive-learning/courses"
-            className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-700"
+            className="premium-lesson-nav-button inline-flex items-center gap-1 px-3 py-1"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             返回课程总览
           </Link>
           <div className="text-right">
-            <div className="text-[10px] uppercase tracking-[0.24em] text-cyan-700/70">Premium Classroom</div>
-            <h1 className="text-base font-semibold text-slate-900 sm:text-lg">{L2B_COURSE_TITLE}</h1>
+            <div className="premium-lesson-kicker text-[10px] tracking-[0.24em]">Premium Classroom</div>
+            <h1 className="premium-lesson-title text-base font-semibold sm:text-lg">{L2B_COURSE_TITLE}</h1>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-8">
-        <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-5 shadow-[0_20px_70px_rgba(15,23,42,0.08)]">
-          <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">L-2b · Root-Locus Intuition</div>
-          <h2 className="mt-2 text-3xl font-semibold text-slate-900 sm:text-4xl">根轨迹、45°射线与双端同步课堂</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">{L2B_COURSE_DESCRIPTION}</p>
-        </section>
-
+      <main className="premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-8">
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           {showTeacherSection ? (
-            <section className="rounded-[24px] border border-slate-200 bg-white p-5">
-              <div className="mb-3 inline-flex items-center gap-2 text-sm text-cyan-700">
+            <section className={entryCardClassName}>
+              <div className="premium-lesson-title mb-3 inline-flex items-center gap-2 text-sm">
                 <Presentation className="h-4 w-4" />
                 教师入口
               </div>
-              <h3 className="text-xl font-semibold text-slate-900">创建课堂并进入教师端</h3>
-              <p className="mt-2 text-sm leading-7 text-slate-600">自动克隆 L-2b 预置教案，生成课堂码并进入根轨迹精品课堂。</p>
+              <h3 className="premium-lesson-title text-xl font-semibold">创建课堂并进入教师端</h3>
+              <p className="premium-lesson-muted mt-2">自动克隆 L-2b 预置教案，生成课堂码并进入根轨迹精品课堂。</p>
               <button
                 type="button"
                 onClick={() => void createClassroom()}
                 disabled={isCreating}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-cyan-600 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"
+                className="premium-lesson-action-primary mt-5 flex w-full"
               >
                 {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 开始上课（教师）
@@ -152,14 +156,25 @@ export function L2BCourseEntryPage({ initialRole }: { initialRole?: string | nul
             </section>
           ) : null}
 
+          <section className={entryCardClassName}>
+            <h3 className="premium-lesson-title text-xl font-semibold">自由浏览</h3>
+            <p className="premium-lesson-muted mt-2">以演示模式进入学生端，自由浏览全部 17 个环节和根轨迹工作区。</p>
+            <Link
+              href={`/interactive-learning/courses/${L2B_ROUTE_SEGMENT}/student/demo`}
+              className="premium-lesson-action-secondary mt-5 flex w-full"
+            >
+              进入演示模式
+            </Link>
+          </section>
+
           {showStudentSection ? (
-            <section className="rounded-[24px] border border-slate-200 bg-white p-5">
-              <div className="mb-3 inline-flex items-center gap-2 text-sm text-cyan-700">
+            <section className={entryCardClassName}>
+              <div className="premium-lesson-title mb-3 inline-flex items-center gap-2 text-sm">
                 <Users className="h-4 w-4" />
                 学生入口
               </div>
-              <h3 className="text-xl font-semibold text-slate-900">输入课堂码加入课堂</h3>
-              <label className="mt-4 block text-xs text-slate-600">
+              <h3 className="premium-lesson-title text-xl font-semibold">输入课堂码加入课堂</h3>
+              <label className="premium-lesson-caption mt-4 block text-xs">
                 课堂码
                 <input
                   type="text"
@@ -168,35 +183,36 @@ export function L2BCourseEntryPage({ initialRole }: { initialRole?: string | nul
                   value={joinCode}
                   onChange={(event) => setJoinCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="输入 6 位课堂码"
-                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base tracking-[0.24em] text-slate-900 outline-none focus:border-cyan-400"
+                  className="premium-lesson-input mt-2 text-base tracking-[0.24em]"
                 />
               </label>
               <button
                 type="button"
                 onClick={() => void joinClassroom()}
                 disabled={isJoining}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-cyan-300 px-4 py-2.5 text-sm text-cyan-800 disabled:opacity-60"
+                className="premium-lesson-action-secondary mt-4 flex w-full"
               >
                 {isJoining ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                 加入课堂
               </button>
             </section>
           ) : null}
-
-          <section className="rounded-[24px] border border-slate-200 bg-white p-5">
-            <h3 className="text-xl font-semibold text-slate-900">自由浏览</h3>
-            <p className="mt-2 text-sm leading-7 text-slate-600">以演示模式进入学生端，自由浏览全部 17 个环节和根轨迹工作区。</p>
-            <Link
-              href={`/interactive-learning/courses/${L2B_ROUTE_SEGMENT}/student/demo`}
-              className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-slate-200 px-4 py-2.5 text-sm text-slate-700"
-            >
-              进入演示模式
-            </Link>
-          </section>
         </div>
 
+        <section className="premium-lesson-panel mt-4 px-5 py-5">
+          <div className="premium-lesson-kicker">L-2b · Root-Locus Intuition</div>
+          <h2 className="premium-lesson-title mt-2 text-3xl font-semibold sm:text-4xl">根轨迹、45°射线与双端同步课堂</h2>
+          <p className="premium-lesson-muted mt-3 max-w-3xl sm:text-base">{L2B_COURSE_DESCRIPTION}</p>
+          <p className="premium-lesson-muted mt-3 max-w-3xl">
+            课程首页已接入本课知识点网络、知识卡片预览与讲义入口，帮助教师在开课前快速浏览本课的知识主线。
+          </p>
+        </section>
+
+        {/* 首页 runtime 内容模块：知识点网络、节点卡片正面 + 更多（KnowledgeCardDialog）、卡片预览、讲义入口（MdxSlide）。 */}
+        <L2BEntryRuntimeSections runtime={lessonRuntime} />
+
         {error ? (
-          <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
+          <div className="premium-lesson-tone-block premium-tone-rose mt-4">{error}</div>
         ) : null}
       </main>
     </div>

@@ -35,16 +35,16 @@
     --popover-foreground: 222.2 47.4% 11.2%;
     --primary: 203 88% 42%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
+    --secondary: 200 36% 97%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 206 38% 92%;
+    --muted: 200 38% 96.5%;
+    --muted-foreground: 215 28% 30%;
+    --accent: 196 42% 93%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 205 28% 86%;
+    --input: 205 28% 86%;
     --ring: 203 88% 42%;
   }
 }
@@ -87,9 +87,539 @@
   .btn-ghost-themed {
     @apply border-border/70 bg-background/65 text-foreground hover:bg-accent hover:text-accent-foreground;
   }
+
+  .premium-lesson-shell {
+    @apply min-h-screen;
+    --premium-lesson-surface: 222 42% 13%;
+    --premium-lesson-surface-soft: 222 38% 10%;
+    --premium-lesson-surface-elevated: 220 32% 18%;
+    --premium-lesson-surface-muted: 220 28% 22%;
+    --premium-lesson-foreground: 210 40% 96%;
+    --premium-lesson-foreground-strong: 210 40% 99%;
+    --premium-lesson-muted: 214 18% 76%;
+    --premium-lesson-kicker-color: 189 94% 80%;
+    --premium-lesson-border: 217 25% 28%;
+    --premium-lesson-border-soft: 217 22% 24%;
+    --premium-lesson-chip-bg: 222 30% 18%;
+    --premium-lesson-chip-border: 217 24% 30%;
+    --premium-lesson-chip-text: 210 40% 94%;
+    --premium-lesson-input-bg: 222 39% 11%;
+    --premium-lesson-input-border: 217 23% 28%;
+    --premium-lesson-accent-start: 192 74% 22%;
+    --premium-lesson-accent-end: 223 42% 14%;
+    --premium-lesson-summary-start: 265 54% 24%;
+    --premium-lesson-summary-end: 223 42% 14%;
+    --premium-tone-cyan-bg: 192 72% 18%;
+    --premium-tone-cyan-border: 192 66% 32%;
+    --premium-tone-cyan-text: 189 92% 90%;
+    --premium-tone-sky-bg: 201 68% 18%;
+    --premium-tone-sky-border: 200 60% 34%;
+    --premium-tone-sky-text: 199 92% 91%;
+    --premium-tone-emerald-bg: 160 54% 18%;
+    --premium-tone-emerald-border: 160 48% 34%;
+    --premium-tone-emerald-text: 156 92% 89%;
+    --premium-tone-amber-bg: 36 72% 18%;
+    --premium-tone-amber-border: 34 70% 35%;
+    --premium-tone-amber-text: 44 96% 88%;
+    --premium-tone-rose-bg: 348 52% 18%;
+    --premium-tone-rose-border: 347 56% 35%;
+    --premium-tone-rose-text: 350 94% 90%;
+    --premium-tone-violet-bg: 262 46% 19%;
+    --premium-tone-violet-border: 263 48% 36%;
+    --premium-tone-violet-text: 268 94% 91%;
+    --premium-tone-slate-bg: 220 24% 20%;
+    --premium-tone-slate-border: 217 22% 33%;
+    --premium-tone-slate-text: 214 32% 90%;
+    --premium-tone-orange-bg: 24 70% 18%;
+    --premium-tone-orange-border: 23 70% 36%;
+    --premium-tone-orange-text: 32 96% 89%;
+    --premium-lesson-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+    --premium-lesson-graph-edge: 216 20% 42%;
+    --premium-lesson-graph-edge-active: 189 90% 68%;
+    --premium-lesson-graph-node-fill: 202 72% 16%;
+    --premium-lesson-graph-node-stroke: 194 84% 48%;
+    --premium-lesson-graph-node-active-fill: 193 74% 28%;
+    --premium-lesson-graph-node-active-stroke: 189 90% 68%;
+    --premium-lesson-graph-node-text: 210 40% 92%;
+    --premium-lesson-graph-label-bg: 202 70% 16%;
+    --premium-lesson-graph-label-stroke: 195 62% 30%;
+    --premium-lesson-graph-label-text: 187 95% 88%;
+    color: hsl(var(--premium-lesson-foreground));
+    background:
+      radial-gradient(circle at top left, rgba(8, 145, 178, 0.2), transparent 32%),
+      radial-gradient(circle at top right, rgba(14, 116, 144, 0.16), transparent 34%),
+      #020617;
+  }
+
+  .premium-lesson-topbar {
+    @apply sticky top-0 z-40 border-b border-white/10 bg-slate-950/90 backdrop-blur;
+  }
+
+  .premium-lesson-main {
+    @apply mx-auto max-w-[1080px] space-y-3 px-3 py-3 sm:space-y-4 sm:px-4 sm:py-4;
+  }
+
+  .premium-lesson-panel {
+    @apply rounded-[28px] border p-4 sm:p-5;
+    border-color: hsl(var(--premium-lesson-border) / 0.92);
+    background: hsl(var(--premium-lesson-surface) / 0.88);
+    color: hsl(var(--premium-lesson-foreground));
+    box-shadow: var(--premium-lesson-shadow);
+  }
+
+  .premium-lesson-panel-soft {
+    @apply rounded-[24px] border p-4;
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.92);
+    background: hsl(var(--premium-lesson-surface-soft) / 0.82);
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-accent-panel {
+    @apply rounded-[28px] border p-4 sm:p-5;
+    border-color: hsl(var(--premium-tone-cyan-border) / 0.58);
+    color: hsl(var(--premium-lesson-foreground));
+    background: linear-gradient(
+      180deg,
+      hsl(var(--premium-lesson-accent-start) / 0.62),
+      hsl(var(--premium-lesson-accent-end) / 0.94)
+    );
+  }
+
+  .premium-lesson-summary-panel {
+    @apply rounded-[28px] border p-4 sm:p-5;
+    border-color: hsl(var(--premium-tone-violet-border) / 0.58);
+    color: hsl(var(--premium-lesson-foreground));
+    background: linear-gradient(
+      180deg,
+      hsl(var(--premium-lesson-summary-start) / 0.56),
+      hsl(var(--premium-lesson-summary-end) / 0.94)
+    );
+  }
+
+  .premium-lesson-kicker {
+    @apply text-xs uppercase tracking-[0.22em];
+    color: hsl(var(--premium-lesson-kicker-color));
+  }
+
+  .premium-lesson-muted {
+    @apply text-sm leading-6;
+    color: hsl(var(--premium-lesson-muted));
+  }
+
+  .premium-lesson-title {
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .premium-lesson-body {
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-caption {
+    color: hsl(var(--premium-lesson-muted));
+  }
+
+  .premium-lesson-chip {
+    @apply rounded-full border px-3 py-1.5 text-xs;
+    border-color: hsl(var(--premium-lesson-chip-border) / 0.88);
+    background: hsl(var(--premium-lesson-chip-bg) / 0.9);
+    color: hsl(var(--premium-lesson-chip-text));
+  }
+
+  .premium-lesson-surface-elevated {
+    @apply rounded-2xl border;
+    border-color: hsl(var(--premium-lesson-border) / 0.92);
+    background: hsl(var(--premium-lesson-surface-elevated) / 0.92);
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-surface-muted {
+    @apply rounded-2xl border;
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.92);
+    background: hsl(var(--premium-lesson-surface-muted) / 0.92);
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-tone-block {
+    @apply rounded-2xl border px-4 py-3 text-sm;
+  }
+
+  .premium-lesson-tone-card {
+    @apply rounded-[24px] border px-4 py-4 text-sm;
+  }
+
+  .premium-lesson-tone-pill {
+    @apply rounded-full border px-3 py-1 text-xs font-medium;
+  }
+
+  .premium-tone-cyan {
+    border-color: hsl(var(--premium-tone-cyan-border) / 0.9);
+    background: hsl(var(--premium-tone-cyan-bg) / 0.92);
+    color: hsl(var(--premium-tone-cyan-text));
+  }
+
+  .premium-tone-sky {
+    border-color: hsl(var(--premium-tone-sky-border) / 0.9);
+    background: hsl(var(--premium-tone-sky-bg) / 0.92);
+    color: hsl(var(--premium-tone-sky-text));
+  }
+
+  .premium-tone-emerald {
+    border-color: hsl(var(--premium-tone-emerald-border) / 0.9);
+    background: hsl(var(--premium-tone-emerald-bg) / 0.92);
+    color: hsl(var(--premium-tone-emerald-text));
+  }
+
+  .premium-tone-amber {
+    border-color: hsl(var(--premium-tone-amber-border) / 0.9);
+    background: hsl(var(--premium-tone-amber-bg) / 0.92);
+    color: hsl(var(--premium-tone-amber-text));
+  }
+
+  .premium-tone-rose {
+    border-color: hsl(var(--premium-tone-rose-border) / 0.9);
+    background: hsl(var(--premium-tone-rose-bg) / 0.92);
+    color: hsl(var(--premium-tone-rose-text));
+  }
+
+  .premium-tone-violet {
+    border-color: hsl(var(--premium-tone-violet-border) / 0.9);
+    background: hsl(var(--premium-tone-violet-bg) / 0.92);
+    color: hsl(var(--premium-tone-violet-text));
+  }
+
+  .premium-tone-slate {
+    border-color: hsl(var(--premium-tone-slate-border) / 0.92);
+    background: hsl(var(--premium-tone-slate-bg) / 0.92);
+    color: hsl(var(--premium-tone-slate-text));
+  }
+
+  .premium-tone-orange {
+    border-color: hsl(var(--premium-tone-orange-border) / 0.9);
+    background: hsl(var(--premium-tone-orange-bg) / 0.92);
+    color: hsl(var(--premium-tone-orange-text));
+  }
+
+  .premium-lesson-choice {
+    @apply rounded-2xl border px-3 py-3 text-left text-sm transition;
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.9);
+    background: hsl(var(--premium-lesson-surface-soft) / 0.88);
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-choice-active {
+    border-color: hsl(var(--premium-tone-cyan-border) / 0.9);
+    background: hsl(var(--premium-tone-cyan-bg) / 0.82);
+    color: hsl(var(--premium-tone-cyan-text));
+  }
+
+  .premium-lesson-input {
+    @apply mt-2 w-full rounded-2xl border px-4 py-3 text-sm outline-none transition;
+    border-color: hsl(var(--premium-lesson-input-border) / 0.92);
+    background: hsl(var(--premium-lesson-input-bg) / 0.92);
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .premium-lesson-nav-button {
+    @apply inline-flex items-center rounded-full border px-3 py-1 text-xs transition;
+    border-color: hsl(var(--premium-lesson-border) / 0.9);
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-control {
+    @apply rounded-lg border px-2 py-1 text-xs;
+    border-color: hsl(var(--premium-lesson-border) / 0.9);
+    background: hsl(var(--premium-lesson-surface-elevated));
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-select {
+    @apply rounded border px-2 py-1 text-xs outline-none;
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.92);
+    background: hsl(var(--premium-lesson-input-bg));
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .premium-lesson-action-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition disabled:opacity-60;
+    background: hsl(var(--premium-tone-cyan-border));
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .premium-lesson-action-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition disabled:opacity-60;
+    border-color: hsl(var(--premium-lesson-border) / 0.92);
+    background: hsl(var(--premium-lesson-surface-elevated) / 0.92);
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .premium-lesson-action-tone {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition disabled:opacity-60;
+  }
+
+  .light .premium-lesson-shell {
+    --premium-lesson-surface: 0 0% 100%;
+    --premium-lesson-surface-soft: 200 32% 95%;
+    --premium-lesson-surface-elevated: 0 0% 100%;
+    --premium-lesson-surface-muted: 197 44% 96%;
+    --premium-lesson-foreground: 222.2 47.4% 11.2%;
+    --premium-lesson-foreground-strong: 222.2 47.4% 11.2%;
+    --premium-lesson-muted: 215 28% 30%;
+    --premium-lesson-kicker-color: 196 72% 32%;
+    --premium-lesson-border: 205 28% 86%;
+    --premium-lesson-border-soft: 203 28% 84%;
+    --premium-lesson-chip-bg: 0 0% 100%;
+    --premium-lesson-chip-border: 205 28% 86%;
+    --premium-lesson-chip-text: 222.2 47.4% 11.2%;
+    --premium-lesson-input-bg: 0 0% 100%;
+    --premium-lesson-input-border: 205 28% 86%;
+    --premium-lesson-accent-start: 190 56% 93%;
+    --premium-lesson-accent-end: 200 38% 98%;
+    --premium-lesson-summary-start: 267 56% 94%;
+    --premium-lesson-summary-end: 210 42% 98%;
+    --premium-tone-cyan-bg: 191 70% 90%;
+    --premium-tone-cyan-border: 193 60% 68%;
+    --premium-tone-cyan-text: 196 72% 24%;
+    --premium-tone-sky-bg: 200 92% 93%;
+    --premium-tone-sky-border: 201 76% 76%;
+    --premium-tone-sky-text: 204 84% 25%;
+    --premium-tone-emerald-bg: 151 72% 93%;
+    --premium-tone-emerald-border: 151 60% 75%;
+    --premium-tone-emerald-text: 158 84% 22%;
+    --premium-tone-amber-bg: 48 96% 89%;
+    --premium-tone-amber-border: 42 92% 74%;
+    --premium-tone-amber-text: 32 95% 28%;
+    --premium-tone-rose-bg: 353 100% 95%;
+    --premium-tone-rose-border: 351 95% 83%;
+    --premium-tone-rose-text: 347 77% 33%;
+    --premium-tone-violet-bg: 267 100% 96%;
+    --premium-tone-violet-border: 265 88% 85%;
+    --premium-tone-violet-text: 262 61% 38%;
+    --premium-tone-slate-bg: 210 40% 96%;
+    --premium-tone-slate-border: 205 28% 86%;
+    --premium-tone-slate-text: 215 28% 30%;
+    --premium-tone-orange-bg: 34 100% 93%;
+    --premium-tone-orange-border: 28 95% 82%;
+    --premium-tone-orange-text: 24 85% 28%;
+    --premium-lesson-shadow: 0 18px 42px rgba(148, 163, 184, 0.14);
+    --premium-lesson-graph-edge: 215 20% 64%;
+    --premium-lesson-graph-edge-active: 194 82% 40%;
+    --premium-lesson-graph-node-fill: 190 76% 92%;
+    --premium-lesson-graph-node-stroke: 191 78% 62%;
+    --premium-lesson-graph-node-active-fill: 194 82% 40%;
+    --premium-lesson-graph-node-active-stroke: 196 72% 24%;
+    --premium-lesson-graph-node-text: 222.2 47.4% 11.2%;
+    --premium-lesson-graph-label-bg: 183 100% 96%;
+    --premium-lesson-graph-label-stroke: 191 78% 62%;
+    --premium-lesson-graph-label-text: 196 72% 24%;
+    color: hsl(var(--premium-lesson-foreground));
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.14), transparent 28%),
+      radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 30%),
+      linear-gradient(180deg, #f8fcff 0%, #edf6fb 100%);
+  }
+
+  .light .premium-lesson-topbar {
+    border-color: hsl(var(--border) / 0.8);
+    background: hsl(var(--card) / 0.94);
+    box-shadow: 0 10px 28px rgba(148, 163, 184, 0.12);
+  }
+
+  .light .premium-lesson-panel {
+    background: linear-gradient(180deg, hsl(var(--premium-lesson-surface)), hsl(195 42% 97%));
+  }
+
+  .light .premium-lesson-panel-soft {
+    background: linear-gradient(180deg, hsl(var(--premium-lesson-surface-soft)), hsl(var(--premium-lesson-surface)));
+  }
+
+  .light .premium-lesson-accent-panel {
+    box-shadow: 0 18px 42px rgba(125, 211, 252, 0.14);
+  }
+
+  .light .premium-lesson-summary-panel {
+    box-shadow: 0 18px 42px rgba(196, 181, 253, 0.12);
+  }
+
+  .light .premium-lesson-muted {
+    color: hsl(var(--premium-lesson-muted));
+  }
+
+  .light .premium-lesson-input {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
 }
 
 @layer utilities {
+  .premium-lesson-shell .bg-white,
+  .premium-lesson-shell .bg-white\/80,
+  .premium-lesson-shell .bg-white\/90,
+  .premium-lesson-shell .bg-white\/95 {
+    background-color: hsl(var(--premium-lesson-surface-elevated)) !important;
+  }
+
+  .premium-lesson-shell .bg-slate-50,
+  .premium-lesson-shell .bg-slate-50\/80,
+  .premium-lesson-shell .bg-slate-50\/90 {
+    background-color: hsl(var(--premium-lesson-surface-muted)) !important;
+  }
+
+  .premium-lesson-shell .bg-cyan-50,
+  .premium-lesson-shell .bg-cyan-50\/80,
+  .premium-lesson-shell .bg-cyan-50\/90 {
+    background-color: hsl(var(--premium-tone-cyan-bg)) !important;
+  }
+
+  .premium-lesson-shell .bg-sky-50 {
+    background-color: hsl(var(--premium-tone-sky-bg)) !important;
+  }
+
+  .premium-lesson-shell .bg-emerald-50 {
+    background-color: hsl(var(--premium-tone-emerald-bg)) !important;
+  }
+
+  .premium-lesson-shell .bg-amber-50 {
+    background-color: hsl(var(--premium-tone-amber-bg)) !important;
+  }
+
+  .premium-lesson-shell .bg-rose-50,
+  .premium-lesson-shell .bg-rose-50\/80 {
+    background-color: hsl(var(--premium-tone-rose-bg)) !important;
+  }
+
+  .premium-lesson-shell .bg-violet-50 {
+    background-color: hsl(var(--premium-tone-violet-bg)) !important;
+  }
+
+  .premium-lesson-shell .bg-orange-100 {
+    background-color: hsl(var(--premium-tone-orange-bg)) !important;
+  }
+
+  .premium-lesson-shell .text-white,
+  .premium-lesson-shell .text-slate-100,
+  .premium-lesson-shell .text-slate-200,
+  .premium-lesson-shell .text-slate-900,
+  .premium-lesson-shell .text-slate-950 {
+    color: hsl(var(--premium-lesson-foreground-strong)) !important;
+  }
+
+  .premium-lesson-shell .text-slate-800,
+  .premium-lesson-shell .text-slate-700,
+  .premium-lesson-shell .text-slate-600 {
+    color: hsl(var(--premium-lesson-foreground)) !important;
+  }
+
+  .premium-lesson-shell .text-slate-500,
+  .premium-lesson-shell .text-slate-400 {
+    color: hsl(var(--premium-lesson-muted)) !important;
+  }
+
+  .premium-lesson-shell .text-cyan-900,
+  .premium-lesson-shell .text-cyan-800,
+  .premium-lesson-shell .text-cyan-700,
+  .premium-lesson-shell .text-cyan-600,
+  .premium-lesson-shell .text-cyan-500 {
+    color: hsl(var(--premium-tone-cyan-text)) !important;
+  }
+
+  .premium-lesson-shell .text-sky-900,
+  .premium-lesson-shell .text-sky-800,
+  .premium-lesson-shell .text-sky-700 {
+    color: hsl(var(--premium-tone-sky-text)) !important;
+  }
+
+  .premium-lesson-shell .text-emerald-900,
+  .premium-lesson-shell .text-emerald-800,
+  .premium-lesson-shell .text-emerald-700 {
+    color: hsl(var(--premium-tone-emerald-text)) !important;
+  }
+
+  .premium-lesson-shell .text-amber-900,
+  .premium-lesson-shell .text-amber-800,
+  .premium-lesson-shell .text-amber-700,
+  .premium-lesson-shell .text-amber-600 {
+    color: hsl(var(--premium-tone-amber-text)) !important;
+  }
+
+  .premium-lesson-shell .text-rose-700 {
+    color: hsl(var(--premium-tone-rose-text)) !important;
+  }
+
+  .premium-lesson-shell .text-violet-800,
+  .premium-lesson-shell .text-violet-700 {
+    color: hsl(var(--premium-tone-violet-text)) !important;
+  }
+
+  .premium-lesson-shell .fill-slate-900 {
+    fill: hsl(var(--premium-lesson-foreground-strong)) !important;
+  }
+
+  .premium-lesson-shell .fill-slate-600 {
+    fill: hsl(var(--premium-lesson-muted)) !important;
+  }
+
+  .premium-lesson-shell .fill-slate-500 {
+    fill: hsl(var(--premium-lesson-muted)) !important;
+  }
+
+  .premium-lesson-shell .fill-cyan-700 {
+    fill: hsl(var(--premium-tone-cyan-text)) !important;
+  }
+
+  .premium-lesson-shell .fill-sky-700 {
+    fill: hsl(var(--premium-tone-sky-text)) !important;
+  }
+
+  .premium-lesson-shell .fill-orange-700 {
+    fill: hsl(var(--premium-tone-orange-text)) !important;
+  }
+
+  .premium-lesson-shell .fill-orange-600 {
+    fill: hsl(var(--premium-tone-orange-text)) !important;
+  }
+
+  .premium-lesson-shell .border-white\/10,
+  .premium-lesson-shell .border-white\/15,
+  .premium-lesson-shell .border-white\/20 {
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.92) !important;
+  }
+
+  .premium-lesson-shell .border-slate-200,
+  .premium-lesson-shell .border-slate-300 {
+    border-color: hsl(var(--premium-lesson-border)) !important;
+  }
+
+  .premium-lesson-shell .border-cyan-200,
+  .premium-lesson-shell .border-cyan-300 {
+    border-color: hsl(var(--premium-tone-cyan-border)) !important;
+  }
+
+  .premium-lesson-shell .border-sky-200 {
+    border-color: hsl(var(--premium-tone-sky-border)) !important;
+  }
+
+  .premium-lesson-shell .border-emerald-200 {
+    border-color: hsl(var(--premium-tone-emerald-border)) !important;
+  }
+
+  .premium-lesson-shell .border-amber-200,
+  .premium-lesson-shell .border-amber-300 {
+    border-color: hsl(var(--premium-tone-amber-border)) !important;
+  }
+
+  .premium-lesson-shell .border-rose-200,
+  .premium-lesson-shell .border-rose-300\/60 {
+    border-color: hsl(var(--premium-tone-rose-border)) !important;
+  }
+
+  .premium-lesson-shell .border-violet-100,
+  .premium-lesson-shell .border-violet-200 {
+    border-color: hsl(var(--premium-tone-violet-border)) !important;
+  }
+
+  .premium-lesson-shell .border-orange-100 {
+    border-color: hsl(var(--premium-tone-orange-border)) !important;
+  }
+
   /* Legacy dark-theme bridge: normalize old hardcoded dark tokens in light mode. */
   .light .bg-slate-950 { background-color: hsl(var(--background)) !important; }
   .light .bg-slate-950\/90 { background-color: hsl(var(--background) / 0.9) !important; }
@@ -125,6 +655,8 @@
   .light .text-white\/70 { color: hsl(var(--foreground) / 0.7) !important; }
   .light .text-white\/60 { color: hsl(var(--foreground) / 0.6) !important; }
   .light .text-white\/50 { color: hsl(var(--foreground) / 0.5) !important; }
+  .light .text-cyan-50\/90 { color: hsl(192 88% 23% / 0.94) !important; }
+  .light .text-amber-50 { color: hsl(32 95% 28%) !important; }
 
   .light .text-slate-100 { color: hsl(var(--foreground)) !important; }
   .light .text-slate-200 { color: hsl(var(--foreground) / 0.92) !important; }
@@ -193,6 +725,30 @@
   .light .bg-\[\#0c3654\]\/80,
   .light .bg-\[\#0c3654\]\/50 {
     background-color: hsl(var(--card)) !important;
+  }
+
+  .light .bg-\[linear-gradient\(180deg\,rgba\(6\,182\,212\,0\.10\)\,rgba\(15\,23\,42\,0\.82\)\)\] {
+    background: linear-gradient(180deg, hsl(190 56% 93%), hsl(200 38% 98%)) !important;
+  }
+
+  .light .bg-\[linear-gradient\(135deg\,rgba\(4\,47\,46\,0\.18\)\,rgba\(15\,23\,42\,0\.96\)\)\] {
+    background: linear-gradient(135deg, hsl(188 52% 94%), hsl(206 42% 98%)) !important;
+  }
+
+  .light .bg-\[linear-gradient\(135deg\,rgba\(14\,165\,233\,0\.10\)\,rgba\(15\,23\,42\,0\.92\)\)\] {
+    background: linear-gradient(135deg, hsl(197 70% 94%), hsl(205 42% 98%)) !important;
+  }
+
+  .light .bg-\[linear-gradient\(180deg\,rgba\(124\,58\,237\,0\.10\)\,rgba\(15\,23\,42\,0\.85\)\)\] {
+    background: linear-gradient(180deg, hsl(268 58% 94%), hsl(210 42% 98%)) !important;
+  }
+
+  .light .bg-\[radial-gradient\(circle_at_top_left\,\#0f766e22\,transparent_45\%\)\,\#020617\] {
+    background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.16), transparent 45%), hsl(195 44% 97%) !important;
+  }
+
+  .light .bg-\[radial-gradient\(circle_at_top_left\,\#164e6326\,transparent_45\%\)\,\#020617\] {
+    background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 45%), hsl(200 42% 97%) !important;
   }
 }
 
