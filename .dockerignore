@@ -22,6 +22,7 @@ codex
 .playwright-mcp
 .cache
 .cache/*
+course-content/runtime
 scripts/
 *.tsbuildinfo
 deploy/images

@@ -19,6 +19,30 @@ assert.equal(
 );
 
 assert.equal(
+  fs.existsSync(path.join(root, 'course-content/runtime/lessons/L-2b/lesson.json')),
+  true,
+  'L-2b runtime lesson.json 应存在',
+);
+
+assert.equal(
+  fs.existsSync(path.join(root, 'course-content/runtime/lessons/L-2b/graph-overlay.json')),
+  true,
+  'L-2b runtime graph-overlay.json 应存在',
+);
+
+assert.equal(
+  fs.existsSync(path.join(root, 'course-content/runtime/lessons/L-2b/handout.md')),
+  true,
+  'L-2b runtime handout.md 应存在',
+);
+
+assert.equal(
+  fs.existsSync(path.join(root, 'course-content/runtime/knowledge/cards/nodes/极点迁移_4_L2b001.md')),
+  true,
+  'L-2b 节点卡片应导出到 runtime/knowledge/cards/nodes',
+);
+
+assert.equal(
   runtimeRoute.includes("join(process.cwd(), 'course-content', 'runtime'") &&
     runtimeRoute.includes('await readFile') &&
     runtimeRoute.includes('NextResponse'),

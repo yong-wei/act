@@ -3,10 +3,12 @@
   "groups": [
     {
       "group_name": "引入",
+      "step_ids": ["step-01", "step-02", "step-03", "step-04"],
       "node_ids": ["开环增益_3_d73dc120"]
     },
     {
       "group_name": "核心概念",
+      "step_ids": ["step-05", "step-06", "step-07", "step-08", "step-09", "step-10", "step-11"],
       "node_ids": [
         "极点迁移_4_L2b001",
         "根轨迹_4_c19f8854"
@@ -14,6 +16,7 @@
     },
     {
       "group_name": "挑战任务",
+      "step_ids": ["step-12", "step-13", "step-14", "step-15"],
       "node_ids": [
         "阻尼比_3_b849784e",
         "最佳阻尼比_3_L2b002"
@@ -21,6 +24,7 @@
     },
     {
       "group_name": "展望",
+      "step_ids": ["step-16", "step-17"],
       "node_ids": ["稳定裕度_5_bfd54f1c"]
     }
   ],

@@ -4,6 +4,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from matplotlib_font import configure_matplotlib_for_cjk
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Generate h-04 example root locus SVG.')
@@ -18,6 +20,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+    configure_matplotlib_for_cjk()
 
     fig, ax = plt.subplots(figsize=(7, 6))
     ax.set_facecolor('#0f172a')
@@ -45,8 +48,8 @@ def main():
     ax.plot(-5, 0, 'x', color=white, markersize=12, markeredgewidth=2.5)
     ax.plot(-3, 0, 'o', color='#fbbf24', markersize=10, markerfacecolor='none', markeredgewidth=2.5, label='开环零点 ○')
 
-    ax.annotate('p₁=(0,0)', xy=(0, 0), xytext=(0.15, 0.4), color=white, fontsize=9)
-    ax.annotate('p₂=(-5,0)', xy=(-5, 0), xytext=(-5.5, 0.4), color=white, fontsize=9)
+    ax.annotate('p1=(0,0)', xy=(0, 0), xytext=(0.15, 0.4), color=white, fontsize=9)
+    ax.annotate('p2=(-5,0)', xy=(-5, 0), xytext=(-5.5, 0.4), color=white, fontsize=9)
     ax.annotate('z=(-3,0)', xy=(-3, 0), xytext=(-3.5, -0.6), color='#fbbf24', fontsize=9)
 
     ax.plot(-2.5, 0, 'D', color='#f59e0b', markersize=8)

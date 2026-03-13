@@ -14,6 +14,12 @@ CACHE_MODE="${CACHE_MODE:-min}"
 CACHE_ROOT="${CACHE_ROOT:-.cache/buildx}"
 CACHE_FROM_DIR="${CACHE_FROM_DIR:-${CACHE_ROOT}/cache}"
 CACHE_TO_DIR="${CACHE_TO_DIR:-${CACHE_ROOT}/cache-new}"
+EXTERNAL_RUNTIME_DIR="${EXTERNAL_RUNTIME_DIR:-course-content/runtime}"
+
+if ! grep -qx "${EXTERNAL_RUNTIME_DIR}" .dockerignore; then
+  echo "ERROR: .dockerignore 必须排除 ${EXTERNAL_RUNTIME_DIR}，避免运行时资源进入镜像构建上下文。" >&2
+  exit 1
+fi
 
 echo "[1/2] 本地构建校验（含 Prisma generate + Next 类型检查）"
 npm run build
@@ -32,6 +38,7 @@ else
 fi
 
 echo "[2/2] 构建并导出镜像（容器内 next build 同样执行类型检查）"
+echo "[build] 外部运行时资源目录由宿主机提供，不进入镜像构建上下文: ${EXTERNAL_RUNTIME_DIR}"
 docker buildx build \
   --platform "${PLATFORM}" \
   --progress=plain \

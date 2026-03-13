@@ -3,17 +3,17 @@
   "groups": [
     {
       "group_name": "引入",
-      "step_range": "01-02",
+      "step_ids": ["knowledge-map", "bridge-in-1", "bridge-in-2", "objective", "pre-assessment"],
       "node_ids": ["阶跃响应_10_47ad4df2"]
     },
     {
       "group_name": "四个家族",
-      "step_range": "03-05",
+      "step_ids": ["participatory-intro-1", "participatory-families-1", "participatory-families-2"],
       "node_ids": ["四种响应家族_3_L2a"]
     },
     {
       "group_name": "三个指标",
-      "step_range": "06-09",
+      "step_ids": ["participatory-intro-2", "participatory-metrics-1", "participatory-metrics-2"],
       "node_ids": [
         "动态性能指标_3_a10733c1",
         "超调量_3_fc3f5b17",
@@ -23,7 +23,7 @@
     },
     {
       "group_name": "两个参数",
-      "step_range": "10-14",
+      "step_ids": ["participatory-intro-3", "participatory-zeta", "participatory-wn", "participatory-table", "participatory-limit"],
       "node_ids": [
         "二阶系统标准型_3_L2a",
         "阻尼比_3_b849784e",

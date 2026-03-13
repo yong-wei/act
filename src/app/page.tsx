@@ -28,6 +28,7 @@ import {
 import { LoginModal } from '@/components/shared/login-modal'
 import { useTheme } from '@/components/providers/theme-provider'
 import { resolveHomeModelRenderMode, type ConnectionHint } from '@/lib/model-render-policy'
+import { getHomepageScenarioBackgroundClass } from '@/lib/homepage-theme'
 
 type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN'
 
@@ -142,7 +143,7 @@ const moduleLinks = [
 export default function HomePage() {
   const router = useRouter()
   const { data: session } = useSession()
-  const { theme } = useTheme()
+  const { mounted, theme } = useTheme()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
@@ -247,10 +248,11 @@ export default function HomePage() {
   }
 
   const currentScenario = shipScenarios[currentSlide]
-  const scenarioBackgroundClass =
-    theme === 'dark'
-      ? `bg-gradient-to-br ${currentScenario.bgGradient}`
-      : 'bg-gradient-to-br from-sky-100 via-cyan-50 to-slate-100'
+  const scenarioBackgroundClass = getHomepageScenarioBackgroundClass({
+    mounted,
+    theme,
+    scenarioGradient: currentScenario.bgGradient,
+  })
 
   return (
     <div

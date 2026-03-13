@@ -15,21 +15,25 @@ export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
-    // 验证用户身份
-    const session = await getServerAuthSession();
-    if (!session?.user?.id) {
-      return new Response(JSON.stringify({ error: '未授权' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
     const body = await request.json();
     const { messages, simulationState, lessonContext } = body as {
       messages: Message[];
       simulationState?: Record<string, unknown>;
       lessonContext?: LessonContext;
     };
+
+    // 验证用户身份
+    const session = await getServerAuthSession();
+    const allowAnonymousInteractive =
+      process.env.NODE_ENV === 'development' &&
+      lessonContext?.stage === 'interactive';
+
+    if (!session?.user?.id && !allowAnonymousInteractive) {
+      return new Response(JSON.stringify({ error: '未授权' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     // 如果提供了仿真状态，更新到工具存储
     if (simulationState) {

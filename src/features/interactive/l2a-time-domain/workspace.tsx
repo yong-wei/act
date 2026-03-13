@@ -189,12 +189,12 @@ export function L2AWorkspace({
     .join(' ');
 
   return (
-    <section className="rounded-[32px] border border-white/12 bg-[linear-gradient(135deg,rgba(4,47,46,0.18),rgba(15,23,42,0.96))] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)]">
+    <section className="premium-lesson-panel">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="text-xs uppercase tracking-[0.24em] text-cyan-200">Flexible Sea Studio</div>
-          <h2 className="mt-1 text-xl font-semibold text-white">双面板工作区</h2>
-          <p className="text-sm text-slate-300">当前环节：{currentStepTitle}</p>
+          <div className="premium-lesson-kicker tracking-[0.24em]">Flexible Sea Studio</div>
+          <h2 className="mt-1 text-lg font-semibold text-slate-100 sm:text-xl">双面板工作区</h2>
+          <p className="premium-lesson-muted">当前环节：{currentStepTitle}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <MetricChip icon={Waves} label="家族" value={familyLabel(response.family)} />
@@ -204,21 +204,21 @@ export function L2AWorkspace({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[0.98fr_1.02fr]">
-        <article className="rounded-[28px] border border-white/10 bg-slate-950/70 p-4">
+      <div className="mt-4 grid gap-3 xl:grid-cols-[0.98fr_1.02fr]">
+        <article className="premium-lesson-panel-soft">
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <div className="text-xs uppercase tracking-[0.22em] text-cyan-200">Pole Plane</div>
-              <div className="text-sm text-slate-300">拖动上半平面的极点可直接改写欠阻尼状态</div>
+              <div className="premium-lesson-kicker tracking-[0.22em]">Pole Plane</div>
+              <div className="premium-lesson-muted">拖动上半平面的极点可直接改写欠阻尼状态</div>
             </div>
-            <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-200">
+            <span className="premium-lesson-chip px-3 py-1">
               ζ={localState.zeta.toFixed(2)} · ωₙ={localState.wn.toFixed(2)}
             </span>
           </div>
           <svg
             ref={planeRef}
             viewBox={`0 0 ${PLANE.width} ${PLANE.height}`}
-            className="h-[320px] w-full rounded-[24px] bg-[radial-gradient(circle_at_top_left,#0f766e22,transparent_45%),#020617]"
+            className="h-[248px] w-full rounded-[24px] bg-[radial-gradient(circle_at_top_left,#0f766e22,transparent_45%),#020617] sm:h-[320px]"
             onPointerDown={(event) => {
               beginDrag();
               dragTo(event.clientX, event.clientY);
@@ -270,11 +270,11 @@ export function L2AWorkspace({
           </p>
         </article>
 
-        <article className="rounded-[28px] border border-white/10 bg-slate-950/70 p-4">
+        <article className="premium-lesson-panel-soft">
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <div className="text-xs uppercase tracking-[0.22em] text-cyan-200">Time Response</div>
-              <div className="text-sm text-slate-300">时域曲线始终在线，帮助你把参数和行为绑在一起</div>
+              <div className="premium-lesson-kicker tracking-[0.22em]">Time Response</div>
+              <div className="premium-lesson-muted">时域曲线始终在线，帮助你把参数和行为绑在一起</div>
             </div>
             <button
               type="button"
@@ -286,13 +286,13 @@ export function L2AWorkspace({
                 });
                 tracking.emit('interact', { action: 'reset', stepId: currentStepId });
               }}
-              className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1 text-xs text-slate-100 transition hover:border-cyan-300/40"
+              className="premium-lesson-chip inline-flex items-center gap-2 px-3 py-1 transition hover:border-cyan-300/40"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               重置
             </button>
           </div>
-          <svg viewBox="0 0 520 270" className="h-[320px] w-full rounded-[24px] bg-[radial-gradient(circle_at_top_left,#164e6326,transparent_45%),#020617]">
+          <svg viewBox="0 0 520 270" className="h-[248px] w-full rounded-[24px] bg-[radial-gradient(circle_at_top_left,#164e6326,transparent_45%),#020617] sm:h-[320px]">
             <line x1="34" y1="236" x2="486" y2="236" stroke="rgba(148,163,184,0.45)" />
             <line x1="34" y1="28" x2="34" y2="236" stroke="rgba(148,163,184,0.45)" />
             <line x1="34" y1={236 - (1.1 / 2.7) * 184} x2="486" y2={236 - (1.1 / 2.7) * 184} stroke="rgba(148,163,184,0.25)" strokeDasharray="6 5" />
@@ -305,8 +305,8 @@ export function L2AWorkspace({
         </article>
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-        <article className="rounded-[28px] border border-white/10 bg-slate-950/70 p-4">
+      <div className="mt-4 grid gap-3 xl:grid-cols-[1fr_0.9fr]">
+        <article className="premium-lesson-panel-soft">
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
               <div className="mb-2 text-xs uppercase tracking-[0.2em] text-slate-300">阻尼比 ζ</div>
@@ -353,7 +353,7 @@ export function L2AWorkspace({
           </div>
         </article>
 
-        <article className="rounded-[28px] border border-white/10 bg-slate-950/70 p-4">
+        <article className="premium-lesson-panel-soft">
           <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-300">
             <Move className="h-3.5 w-3.5" />
             快速预设
@@ -364,10 +364,8 @@ export function L2AWorkspace({
                 key={preset.id}
                 type="button"
                 onClick={() => handlePreset(preset.id)}
-                className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                  localState.selectedPreset === preset.id
-                    ? 'border-cyan-300/70 bg-cyan-400/20 text-cyan-50'
-                    : 'border-white/10 bg-white/5 text-slate-200 hover:border-cyan-300/30'
+                className={`premium-lesson-chip text-sm transition ${
+                  localState.selectedPreset === preset.id ? 'premium-lesson-choice-active' : 'hover:border-cyan-300/30'
                 }`}
               >
                 {preset.label}
@@ -404,7 +402,7 @@ function MetricChip({
   value: string;
 }) {
   return (
-    <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-100">
+    <div className="premium-lesson-chip">
       <span className="inline-flex items-center gap-1.5">
         <Icon className="h-3.5 w-3.5 text-cyan-200" />
         <span className="text-slate-300">{label}</span>

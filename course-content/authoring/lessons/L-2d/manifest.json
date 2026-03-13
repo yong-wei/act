@@ -1,0 +1,38 @@
+{
+  "lesson_id": "L-2d",
+  "title": "三域联动探索——平台操作初体验",
+  "layer": "层0",
+  "unit_type": "实践",
+  "hours": 2,
+  "knowledge_type": "X",
+  "graph_version": "617+2",
+  "focus_node_ids": [
+    "三域联动操作体验_5_L2d001",
+    "临界增益体验_5_L2d002"
+  ],
+  "reuse_node_ids": [
+    "三域直觉联动_5_L2c005",
+    "相位裕度直觉_5_L2c003",
+    "频率响应直觉_5_L2c001",
+    "根轨迹直觉_3_L2b001",
+    "阻尼比_3_b849784e",
+    "超调量_3_fc3f5b17",
+    "调节时间_10_fcbccf4e"
+  ],
+  "entry_nodes": ["三域联动操作体验_5_L2d001"],
+  "summary_nodes": ["临界增益体验_5_L2d002"],
+  "card_order": [
+    "三域联动操作体验_5_L2d001",
+    "临界增益体验_5_L2d002"
+  ],
+  "preceding_lesson": "L-2c",
+  "following_lesson": "L-sum",
+  "refinement_units": ["2-1", "2-5"],
+  "practice_config": {
+    "system": "G(s) = K / [s(s+1)(s+6)]",
+    "open_loop_poles": [0, -1, -6],
+    "k_critical": 42,
+    "k_range": [0.01, 80],
+    "platform_modules": ["interactive-framework", "three-panel-linkage"]
+  }
+}

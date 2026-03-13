@@ -6,15 +6,76 @@
 
 ## 当前进度快照
 
-**更新时间**：2026-03-10（晚间）
-**技能版本**：control-lesson-creator v1.4（Step 6 参考更新：互动页面布局原则追加）
+**更新时间**：2026-03-13
+**技能版本**：lesson skill v2.2（含实践课支持，参考文件 references/practice-lesson.md）
 **大纲版本**：SyllabusRefactor v3.0
 
 ### 已完成产出
 
-| 单元 | 讲义 | 教案 | 互动页面 | 多模态资源 | 知识图谱 |
-|:----:|:----:|:----:|:--------:|:----------:|:--------:|
-| L-2a | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 单元 | 课型 | 讲义/实践任务书 | 教案 | 互动页面 | 多模态资源 | 知识图谱 |
+|:----:|:----:|:--------------:|:----:|:--------:|:----------:|:--------:|
+| L-2a | 理论 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| L-2b | 理论 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| L-2c | 理论 | ✅ | ✅ | ✅ | ✅（代码直出×5，AI图×1待生成） | ✅ |
+| L-2d | 实践 | ✅（practice-guide.md + assessment-spec.md） | ✅ | ✅（14步骤，全前端绘制） | ✅（全前端绘制，无静态文件） | ✅ |
+
+**L-2c 文件路径（全套）**：
+- 讲义：`authoring/lessons/L-2c/design/handout.md`
+- 教案：`authoring/lessons/L-2c/design/boppps.md`
+- 互动页面：`authoring/lessons/L-2c/design/interactive-page.md`
+- 多模态资源文档：`authoring/lessons/L-2c/design/multimedia.md`
+- Python 脚本：`authoring/lessons/L-2c/media/raw/`（5个 .py + matplotlib_font.py）
+- 知识图谱节点：`authoring/lessons/L-2c/graph/nodes.jsonl`（5个新节点）
+- 知识图谱关系：`authoring/lessons/L-2c/graph/relations.jsonl`（12条关系）
+- 知识卡片：`authoring/knowledge/cards/nodes/`（5张卡片）
+- 设计决策备忘：`authoring/lessons/L-2c/notes/design-decisions.md`
+
+**L-2d 文件路径（全套）**：
+- 实践任务书：`authoring/lessons/L-2d/design/practice-guide.md`
+- 评价量规：`authoring/lessons/L-2d/design/assessment-spec.md`
+- 教案：`authoring/lessons/L-2d/design/boppps.md`
+- 互动页面：`authoring/lessons/L-2d/design/interactive-page.md`
+- 课次元数据：`authoring/lessons/L-2d/manifest.json`（含 practice_config，K_cr=42）
+- 知识图谱节点：`authoring/lessons/L-2d/graph/nodes.jsonl`（2个新节点）
+- 知识图谱关系：`authoring/lessons/L-2d/graph/relations.jsonl`（7条关系）
+- 知识卡片：`authoring/knowledge/cards/nodes/三域联动操作体验_5_L2d001.md` + `临界增益体验_5_L2d002.md`
+- 卡片排序：`authoring/knowledge/cards/lessons/L-2d/sequence.json`（4组，14步骤）
+
+---
+
+## L-2c 待办事项
+
+| 项 | 说明 |
+|----|------|
+| `sh-00-equalizer-analogy.png` | AI 生图（Midjourney/DALL·E），提示词已在 multimedia.md 中，生成后放入 `media/raw/`，压缩版放入 `media/processed/`，interactive-page step-02 处引用路径已写入（待文件实际生成） |
+| 执行 Python 脚本 | `cd authoring/lessons/L-2c/media/raw && python3 各脚本 --output ../processed/xxx.svg` |
+| 下一单元 | L-2d（三域联动平台实操），本节多次提到"下节平台实操" |
+
+---
+
+## 当前会话工作记录（2026-03-13）
+
+### L-2c 全套创作（7步完整流程）已完成
+
+**关键设计决策**：
+
+| 决策 | 结论 |
+|------|------|
+| ωc vs ωg 术语区分 | ωc=截止频率（幅频穿越0dB）用于γ；ωg=穿越频率（相频穿越-180°）用于Kg。贯穿所有文档5处强调 |
+| 第一轮速通内容 | γ和Kg的直觉概念已在第一轮口头速通，L-2c用精确术语"接续"，不从零重建 |
+| 互动页面知识密度 | 技能文件追加"知识传授与互动引导的平衡"——知识内容是主体，互动在知识完毕后出现 |
+| 层0速通范围 | 不推导，但完整呈现直觉定义、类比、工程数值、跨域关系 |
+
+### 续接下一会话：创作 L-∑（三域综合复习）
+
+L-2d 已完整完成（收尾验证全部通过）。层0单元 L-2a/L-2b/L-2c/L-2d 均已完成。
+
+下一单元：**L-∑**（三域综合复习，承接 L-2d 的对照表，正式提炼跨域约束边界）。
+
+---
+
+*上一进度快照（L-2a/L-2b 阶段）已归档于本文件历史版本*
+
 
 **文件路径（L-2a 全套）**：
 - 讲义：`notes/lessons/L-2a/handout.md`
@@ -236,3 +297,16 @@ scripts/
 - 完成 L-2a 多模态资源设计（Step 7）：5项资源，含Python代码草稿
 - 更新 Step 6 参考：追加"按需互动"和"纵向布局"设计原则
 - **L-2a 全套完成**：讲义 ✅ 教案 ✅ 互动页面 ✅ 多模态资源 ✅ 知识图谱 ✅
+
+---
+
+## 待办：零点专题（来自 L-2d 设计决策，2026-03-13）
+
+**背景**：L-2d 选用三阶无零点系统，刻意回避零点影响，聚焦"极点↔三域"的纯净因果链。
+
+**待设计专题**：在后续某课次（建议层2或层3的频域/根轨迹精化单元中）设计"零点的物理意义及其对系统的影响"小主题，包括：
+- 零点对根轨迹形态的影响（分支吸引/排斥）
+- 零点对频率特性的影响（相位超前网络的直觉来源）
+- 非最小相位零点的特殊性
+
+**建议插入单元**：3-2（超前校正）或 2-3（根轨迹精化）。届时可用 L-2d 的三阶系统为基础，加入零点后对比观察。

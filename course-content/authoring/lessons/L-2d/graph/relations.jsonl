@@ -1,0 +1,7 @@
+{"source_id": "三域联动操作体验_5_L2d001", "target_id": "三域直觉联动_5_L2c005", "relation": "leads_to", "weight": 5, "description": "L-2d 操作体验是 L-2c 三域直觉联动的实践验证，将直觉从“知道”推进到“感受到”"}
+{"source_id": "临界增益体验_5_L2d002", "target_id": "三域联动操作体验_5_L2d001", "relation": "contains", "weight": 4, "description": "找临界增益是三域联动操作体验的核心子任务之一"}
+{"source_id": "三域联动操作体验_5_L2d001", "target_id": "临界增益体验_5_L2d002", "relation": "leads_to", "weight": 4, "description": "操作探索自然引导学生发现临界增益现象"}
+{"source_id": "临界增益体验_5_L2d002", "target_id": "相位裕度直觉_5_L2c003", "relation": "related", "weight": 4, "description": "临界增益对应γ=0°，直接体现相位裕度的物理含义"}
+{"source_id": "三域联动操作体验_5_L2d001", "target_id": "根轨迹直觉_3_L2b001", "relation": "related", "weight": 4, "description": "操作体验中学生通过拖动根轨迹极点改变K，激活并强化L-2b的根轨迹直觉"}
+{"source_id": "三域联动操作体验_5_L2d001", "target_id": "频率响应直觉_5_L2c001", "relation": "related", "weight": 3, "description": "三面板联动中Bode图实时更新，将频率响应直觉与极点操作直接连接"}
+{"source_id": "临界增益体验_5_L2d002", "target_id": "稳定性判据", "relation": "leads_to", "weight": 5, "description": "实验发现的临界增益为劳斯判据（单元2-1）的精确推导建立直觉锚点"}

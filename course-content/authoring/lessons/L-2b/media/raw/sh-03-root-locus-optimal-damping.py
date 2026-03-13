@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Arc
 
+from matplotlib_font import configure_matplotlib_for_cjk
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Generate sh-03 optimal damping SVG.')
@@ -19,6 +21,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+    configure_matplotlib_for_cjk()
 
     fig, ax = plt.subplots(figsize=(7, 8))
     ax.set_facecolor('#0f172a')

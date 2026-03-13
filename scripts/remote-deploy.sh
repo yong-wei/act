@@ -11,11 +11,19 @@ LOCAL_IMAGE_TAR="${LOCAL_IMAGE_TAR:-deploy/images/act-obe.tar}"
 REMOTE_IMAGES_DIR="${REMOTE_IMAGES_DIR:-${REMOTE_PROJECT_DIR}/images}"
 REMOTE_IMAGE_TAR="${REMOTE_IMAGE_TAR:-${REMOTE_IMAGES_DIR}/act-obe.tar}"
 REMOTE_DEPLOY_SCRIPT="${REMOTE_DEPLOY_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/0-one-key.sh}"
+LOCAL_RUNTIME_DIR="${LOCAL_RUNTIME_DIR:-${ROOT_DIR}/course-content/runtime}"
+REMOTE_RUNTIME_DIR="${REMOTE_RUNTIME_DIR:-${REMOTE_PROJECT_DIR}/course-content/runtime}"
+LOCAL_APP_DEPLOY_SCRIPT="${LOCAL_APP_DEPLOY_SCRIPT:-${ROOT_DIR}/deploy/podman/deploy.sh}"
+REMOTE_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/4-deploy.sh}"
+LOCAL_SERVICE_SCRIPT="${LOCAL_SERVICE_SCRIPT:-${ROOT_DIR}/deploy/podman/configure-service.sh}"
+REMOTE_SERVICE_SCRIPT="${REMOTE_SERVICE_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/5-configure-service.sh}"
 PUBLIC_URL="${PUBLIC_URL:-https://act.adapt-learn.online/}"
 APP_NAME_HINT="${APP_NAME_HINT:-act-obe-app}"
 DB_NAME_HINT="${DB_NAME_HINT:-act-obe-postgres}"
 
 REMOTE_TMP_TAR="${REMOTE_IMAGE_TAR}.tmp"
+REMOTE_TMP_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT}.tmp"
+REMOTE_TMP_SERVICE_SCRIPT="${REMOTE_SERVICE_SCRIPT}.tmp"
 REMOTE_LOG_FILE="${REMOTE_LOG_FILE:-/tmp/act-obe-one-key.log}"
 
 while [[ $# -gt 0 ]]; do
@@ -212,8 +220,9 @@ require_cmd bash
 require_cmd ssh
 require_cmd scp
 require_cmd curl
+require_cmd rsync
 
-log "[1/4] 本地构建"
+log "[1/5] 本地构建"
 if [[ "${SKIP_BUILD}" == "1" ]]; then
   log "已启用 --skip-build，跳过本地构建，直接使用现有镜像产物"
 else
@@ -227,8 +236,26 @@ log "本地镜像: ${LOCAL_IMAGE_TAR}"
 log "本地 SHA256: ${LOCAL_SHA}"
 
 log
-log "[2/4] 上传镜像"
-remote "mkdir -p '${REMOTE_IMAGES_DIR}'"
+log "[2/5] 同步运行时资源与部署脚本"
+[[ -d "${LOCAL_RUNTIME_DIR}" ]] || fail "本地 runtime 目录不存在: ${LOCAL_RUNTIME_DIR}"
+[[ -f "${LOCAL_APP_DEPLOY_SCRIPT}" ]] || fail "本地应用部署脚本不存在: ${LOCAL_APP_DEPLOY_SCRIPT}"
+[[ -f "${LOCAL_SERVICE_SCRIPT}" ]] || fail "本地 systemd 配置脚本不存在: ${LOCAL_SERVICE_SCRIPT}"
+
+remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")'"
+rsync -az --delete -e "ssh -o BatchMode=yes" "${LOCAL_RUNTIME_DIR}/" "${SSH_TARGET}:${REMOTE_RUNTIME_DIR}/"
+
+scp -q "${LOCAL_APP_DEPLOY_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_APP_DEPLOY_SCRIPT}"
+remote "chmod +x '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' && mv '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' '${REMOTE_APP_DEPLOY_SCRIPT}'"
+
+scp -q "${LOCAL_SERVICE_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_SERVICE_SCRIPT}"
+remote "chmod +x '${REMOTE_TMP_SERVICE_SCRIPT}' && mv '${REMOTE_TMP_SERVICE_SCRIPT}' '${REMOTE_SERVICE_SCRIPT}'"
+
+log "远端 runtime 目录: ${REMOTE_RUNTIME_DIR}"
+log "远端应用部署脚本: ${REMOTE_APP_DEPLOY_SCRIPT}"
+log "远端 systemd 配置脚本: ${REMOTE_SERVICE_SCRIPT}"
+
+log
+log "[3/5] 上传镜像"
 remote "rm -f '${REMOTE_TMP_TAR}'"
 scp -q "${LOCAL_IMAGE_TAR}" "${SSH_TARGET}:${REMOTE_TMP_TAR}"
 
@@ -248,14 +275,23 @@ log "远端镜像路径: ${REMOTE_IMAGE_TAR}"
 log "远端 SHA256: ${REMOTE_FINAL_SHA}"
 
 log
-log "[3/4] 远端部署"
+log "[4/5] 远端部署"
 remote "bash -lc 'set -euo pipefail; bash \"${REMOTE_DEPLOY_SCRIPT}\" 2>&1 | tee \"${REMOTE_LOG_FILE}\"'"
 
 log
-log "[4/4] 部署验证"
+log "[5/5] 部署验证"
 
 log "- 校验远端镜像文件"
 remote "test -s '${REMOTE_IMAGE_TAR}'"
+
+log "- 校验远端 runtime 目录"
+remote "test -d '${REMOTE_PROJECT_DIR}/course-content/runtime'"
+
+log "- 校验远端应用部署脚本已更新 runtime 挂载"
+remote "grep -q '/app/course-content/runtime:ro' '${REMOTE_APP_DEPLOY_SCRIPT}'"
+
+log "- 校验远端 systemd 配置脚本已更新数据库等待逻辑"
+remote "grep -q 'pg_isready' '${REMOTE_SERVICE_SCRIPT}'"
 
 log "- 校验系统服务"
 remote "test \"\$(systemctl is-active nginx)\" = active"

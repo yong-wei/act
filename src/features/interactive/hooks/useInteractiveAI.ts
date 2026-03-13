@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import type { AIMessage, InteractiveAIContextValue, InteractiveConfig } from '../types';
+import { extractAITextFromStreamChunk } from './ai-stream';
 
 interface UseInteractiveAIOptions {
   config: InteractiveConfig;
@@ -92,30 +93,24 @@ export function useInteractiveAI(
       }
 
       let assistantContent = '';
+      let pendingBuffer = '';
       const decoder = new TextDecoder();
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        // 解析 SSE 格式
-        const lines = chunk.split('\n');
+        pendingBuffer += decoder.decode(value, { stream: true });
+        const lines = pendingBuffer.split('\n');
+        pendingBuffer = lines.pop() ?? '';
+
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.content) {
-                assistantContent += parsed.content;
-              }
-            } catch {
-              // 可能是纯文本
-              assistantContent += data;
-            }
-          }
+          assistantContent += extractAITextFromStreamChunk(line);
         }
+      }
+
+      if (pendingBuffer) {
+        assistantContent += extractAITextFromStreamChunk(pendingBuffer);
       }
 
       // 添加助手消息

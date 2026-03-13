@@ -4,6 +4,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from matplotlib_font import configure_matplotlib_for_cjk
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Generate h-05 root locus crossing SVG.')
@@ -18,6 +20,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+    configure_matplotlib_for_cjk()
 
     fig, ax = plt.subplots(figsize=(7, 7))
     ax.set_facecolor('#0f172a')

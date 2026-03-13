@@ -52,9 +52,11 @@ assert.equal(
 assert.equal(
   workspace.includes('开环增益（旋钮）') &&
     workspace.includes('闭环极点（结果）') &&
-    workspace.includes('根轨迹 = 旋钮从 0 拧到 ∞'),
+    workspace.includes('根轨迹 = 旋钮从 0 拧到 ∞') &&
+    workspace.includes('viewBox="0 0 540 260"') &&
+    workspace.includes('<rect x="320" y="184" width="132" height="46"'),
   true,
-  'L-2b step-06 应提供符合设计稿的反馈框图认知卡与开环/闭环标注',
+  'L-2b step-06 应修正反馈框图布局，避免底部传感器和回路线错位',
 );
 
 console.log('l2b workspace features test passed');

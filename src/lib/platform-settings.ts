@@ -15,16 +15,21 @@ function toBooleanValue(value: unknown, fallback: boolean): boolean {
 }
 
 export async function getHomeDynamicModelEnabled(defaultValue = false): Promise<boolean> {
-  const setting = await prisma.platformSetting.findUnique({
-    where: { key: HOME_DYNAMIC_MODEL_KEY },
-    select: { value: true },
-  })
+  try {
+    const setting = await prisma.platformSetting.findUnique({
+      where: { key: HOME_DYNAMIC_MODEL_KEY },
+      select: { value: true },
+    })
 
-  if (!setting) {
+    if (!setting) {
+      return defaultValue
+    }
+
+    return toBooleanValue(setting.value, defaultValue)
+  } catch (error) {
+    console.warn('[platform-settings] 读取首页模型开关失败，已回退默认值。', error)
     return defaultValue
   }
-
-  return toBooleanValue(setting.value, defaultValue)
 }
 
 export async function setHomeDynamicModelEnabled(enabled: boolean): Promise<void> {

@@ -198,7 +198,7 @@ export function L2AStudentPage({ sessionId }: { sessionId: string }) {
 
   if (loadingSession) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-100">
+      <div className="premium-lesson-shell flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     );
@@ -206,17 +206,17 @@ export function L2AStudentPage({ sessionId }: { sessionId: string }) {
 
   if (!isDemo && sessionInfo?.status === 'FINISHED') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-100">
-        <div className="rounded-[28px] border border-white/12 bg-slate-900/80 p-6 text-center">
-          <p className="text-lg font-semibold text-white">课堂已结束</p>
-          <p className="mt-2 text-sm text-slate-300">教师已结束课堂，本页面保留你的学习记录。</p>
+      <div className="premium-lesson-shell flex items-center justify-center px-3">
+        <div className="premium-lesson-panel max-w-xl text-center">
+          <p className="text-lg font-semibold text-slate-100">课堂已结束</p>
+          <p className="premium-lesson-muted mt-2">教师已结束课堂，本页面保留你的学习记录。</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#164e6333,transparent_35%),radial-gradient(circle_at_top_right,#082f4922,transparent_38%),#020617] text-slate-100">
+    <div className="premium-lesson-shell">
       <L2ACourseHeader
         steps={L2A_LESSON_STEPS}
         activeIndex={activeIndex}
@@ -228,12 +228,12 @@ export function L2AStudentPage({ sessionId }: { sessionId: string }) {
         }}
       />
 
-      <main className="mx-auto max-w-[1180px] space-y-4 px-4 py-4">
+      <main className="premium-lesson-main max-w-[1080px] px-3 py-3 sm:px-4 sm:py-4">
         {error ? (
           <div className="rounded-2xl border border-rose-300/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">{error}</div>
         ) : null}
         {isOutOfSync ? (
-          <div className="flex flex-col gap-3 rounded-[24px] border border-amber-300/35 bg-amber-500/10 px-4 py-4 text-sm text-amber-50 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 rounded-[24px] border border-amber-300/35 bg-amber-500/10 px-4 py-3 text-sm text-amber-50 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="text-xs uppercase tracking-[0.2em] text-amber-200">同步提醒</div>
               <p className="mt-1 leading-6">
@@ -264,9 +264,9 @@ export function L2AStudentPage({ sessionId }: { sessionId: string }) {
 
           {showWorkspace ? (
             <section className="space-y-3">
-              <div className="rounded-[24px] border border-cyan-300/20 bg-cyan-500/8 px-4 py-3">
-                <div className="text-xs uppercase tracking-[0.22em] text-cyan-200">Interactive Workspace</div>
-                <p className="mt-1 text-sm leading-6 text-slate-200">
+              <div className="premium-lesson-panel-soft px-4 py-3">
+                <div className="premium-lesson-kicker">Interactive Workspace</div>
+                <p className="premium-lesson-muted mt-1">
                   当前环节需要你动手比较参数与曲线。若设备屏幕较小，请先阅读上方提示，再在这里完成探索。
                 </p>
               </div>

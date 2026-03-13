@@ -4,6 +4,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from matplotlib_font import configure_matplotlib_for_cjk
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Generate sh-02 root locus performance zones SVG.')
@@ -18,6 +20,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+    configure_matplotlib_for_cjk()
 
     fig, ax = plt.subplots(figsize=(7, 8))
     ax.set_facecolor('#0f172a')
@@ -35,7 +38,7 @@ def main():
 
     ax.fill_between([-1.8, -0.2], [0.8, 0.8], [1.8, 1.8], alpha=0.2, color='#22d3ee')
     ax.fill_between([-1.8, -0.2], [-1.8, -1.8], [-0.8, -0.8], alpha=0.2, color='#22d3ee')
-    ax.text(-1.5, 1.25, '② ✓ 理想工作区', color=cyan, fontsize=8.5, fontweight='bold')
+    ax.text(-1.5, 1.25, '② 理想工作区', color=cyan, fontsize=8.5, fontweight='bold')
 
     ax.fill_between([-1.8, -0.2], [1.8, 1.8], [3.5, 3.5], alpha=0.12, color='#f59e0b')
     ax.fill_between([-1.8, -0.2], [-3.5, -3.5], [-1.8, -1.8], alpha=0.12, color='#f59e0b')
