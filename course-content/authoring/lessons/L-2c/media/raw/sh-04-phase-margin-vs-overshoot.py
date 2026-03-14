@@ -56,6 +56,7 @@ mp_approx_interp = zeta_to_mp(gamma_range / 100)  # 用近似ζ算Mp
 
 
 def main():
+    args = parse_args()
     configure_matplotlib_for_cjk()
 
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -99,10 +100,8 @@ def main():
               edgecolor='#334155', labelcolor='#cbd5e1')
 
     plt.tight_layout()
-    from pathlib import Path
-    output = Path('sh-04-phase-margin-vs-overshoot.svg')
-    plt.savefig(output, format='svg', bbox_inches='tight', dpi=150)
-    print(f'已生成：{output}')
+    plt.savefig(args.output, format='svg', bbox_inches='tight', dpi=150)
+    print(f'已生成：{args.output}')
 
 
 if __name__ == '__main__':

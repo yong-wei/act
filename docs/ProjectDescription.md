@@ -7,7 +7,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-03-13
+📅 **最后更新**：2026-03-14
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 ⚡ **首页与仿真加载优化（2026-03-02）**：首页船模改为“截图优先 + 3D 后台懒加载”，移除首屏一次性预加载全部 7 个 GLB（约 125MB）策略，改为按轮播仅预热“当前 + 下一”模型；仿真页改为“场景先渲染、船模独立 Suspense 加载”，在船模解析期间显示“模型加载中”占位动画，避免黑屏等待
 🧰 **首页模型策略开关（2026-03-03）**：新增平台级配置 `PlatformSetting` 与管理接口 `/api/admin/platform-settings`、公开读取接口 `/api/platform/settings`；管理员可在 `/admin/config` 切换“首页动态模型渲染”，首页根据开关在静态截图与动态 3D 预览间切换
@@ -33,6 +33,8 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 🧩 **L-2b 知识卡统一框架（2026-03-13）**：首页节点卡片与步骤抽屉统一复用 `KnowledgeCard` runtime 分节渲染；`course-content/runtime/knowledge/cards/nodes/*.md` 只在概览态展示 `## 首页`，通过 `详情 / 概览` 切换到 `## 详情`，标题保持不变；非首页知识卡入口统一挂到页面标题模块右上角
 🎨 **L-2b 主题框架收口（2026-03-13）**：L-2b 首页与课堂内页已统一切到精品课深浅主题语义类；深色模式下移除残留的深字深底与浅色突兀块，浅色模式保持原有高对比；同时新增 `test-l2b-theme-no-hardcoded-styles.ts`，明确禁止在课程模块继续新增 `dark:`、十六进制色和旧式色阶硬编码
 🧾 **L-2b 讲义 PDF 服务端导出（2026-03-14）**：弃用首页讲义入口此前依赖 `window.print()` 的前端导出方式，新增 `/interactive-learning/lessons/[lessonId]/handout-print` 服务端讲义打印页与 `/api/course-runtime/lessons/[lessonId]/handout-pdf` 下载接口；当前由服务端使用 Playwright/Chromium 渲染 runtime 讲义并生成 PDF，前端仅负责触发下载，从而避免用户浏览器打印能力差异导致的空白页或无文件产出
+📡 **L-2c 频域直觉课首轮落地（2026-03-14）**：新增 L-2c「频域直觉速通 · Bode图与相位裕度初识」精品互动课，完成 `course-content/authoring -> runtime` 导出、17 步课堂配置、首页 runtime 导学、页内 AI 助手、选择题/文本题教师汇总、步骤知识卡抽屉与教师/学生双端课堂页；同时将首页知识图/讲义/PDF 模块提炼为共享 `LessonEntryRuntimeSections`，供 L-2b/L-2c 统一复用，并补做浏览器级验收与共享知识卡链路的主题语义化收口，继续明确拒绝旧式颜色硬编码
+🧪 **L-2d 三域联动实践课已接入验收链路（2026-03-14）**：`L-2d`「三域联动探索 · 平台操作初体验」现已完成 `practice-guide.md -> runtime/handout.md` 导出、14 步课堂配置、首页 runtime 导学、三面板联动工作区、任务一/二/三即时评分、步骤知识卡抽屉与教师/学生双端课堂页；同时补齐 `test-l2d-*` 定向验证脚本，并修复 runtime 导出测试在 ESM 执行下的路径兼容问题
 📦 **运行时资源外置部署（2026-03-12）**：`scripts/build.sh` 现在要求通过 `.dockerignore` 排除 `course-content/runtime`，镜像不再打包运行时课程资源；`scripts/remote-deploy.sh` 会使用 `rsync` 将本地 `course-content/runtime/` 同步到服务器 `/home/projects/act/course-content/runtime/`，并同步最新 `deploy/podman/deploy.sh` 到远端 `scripts/4-deploy.sh`，由 Podman 以只读挂载方式映射到容器内 `/app/course-content/runtime`
 
 ## 3. 核心功能模块
@@ -43,8 +45,8 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **自动档案创建**：新用户自动创建学生档案和解锁第一关
 - **账号安全**：个人中心支持修改密码与退出登录
 - **演示账号**：
-  - 演示教师账号：`test_teacher`，密码：`test@Just`
-  - 演示学生账号：`demo`，密码：`demo@Just`
+- 演示教师账号：`test_teacher`，密码：`TestTeacher@Just2026!`
+- 演示学生账号：`demo`，密码：`DemoStudent@Just2026!`
 
 ### 3.2 驱逐舰航向控制仿真 ✅
 - **3D 可视化**：基于 Three.js / React Three Fiber 的沉浸式体验
@@ -476,8 +478,8 @@ npm run startup
 
 ### 6.3 访问系统
 - **前端地址**：http://localhost:3000
-- **登录账号**：`demo` / `demo@example.com`
-- **密码**：`123456`
+- **登录账号**：`demo`
+- **密码**：`DemoStudent@Just2026!`
 
 ### 6.4 常用命令
 ```bash

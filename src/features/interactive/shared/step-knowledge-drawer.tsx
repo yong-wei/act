@@ -97,7 +97,7 @@ export function StepKnowledgeDrawer({
           setSelectedNodeId(nodes[0]?.id ?? null);
           setIsOpen(true);
         }}
-        className="no-print inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:bg-accent"
+        className="premium-lesson-action-secondary no-print"
       >
         <BookOpen className="h-4 w-4" />
         知识卡片
@@ -119,10 +119,10 @@ export function StepKnowledgeDrawer({
                     key={node.id}
                     type="button"
                     onClick={() => setSelectedNodeId(node.id)}
-                    className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
+                    className={`w-full px-3 py-3 text-left ${
                       node.id === selectedNode?.id
-                        ? 'border-cyan-400/60 bg-cyan-500/10 text-foreground'
-                        : 'border-border bg-card text-foreground hover:bg-accent'
+                        ? 'premium-lesson-selectable-card premium-lesson-selectable-card-active'
+                        : 'premium-lesson-selectable-card'
                     }`}
                   >
                     <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Card {index + 1}</div>
@@ -147,7 +147,7 @@ export function StepKnowledgeDrawer({
                   })}
                   resources={selectedNode.resources}
                   variant="compact"
-                  className="border border-border bg-card text-card-foreground"
+                  className="premium-lesson-surface-elevated shadow-none"
                 />
               ) : null}
             </div>

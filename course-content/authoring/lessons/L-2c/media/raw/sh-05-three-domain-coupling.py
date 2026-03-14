@@ -102,7 +102,7 @@ def main():
             color='#fde047', fontsize=11, ha='center', va='center',
             fontweight='bold', zorder=5)
     ax.text(center_x, center_y - 0.02,
-            '极点位置  ↔  时域响应  ↔  频域特性',
+            '极点位置 / 时域响应 / 频域特性',
             color='#94a3b8', fontsize=8.5, ha='center', va='center', zorder=5)
 
     # 中心小圆

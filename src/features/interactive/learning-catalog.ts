@@ -12,6 +12,8 @@ import {
 
 import { L2A_PREMIUM_LESSON_CARD } from '@/lib/l2a-course';
 import { L2B_PREMIUM_LESSON_CARD } from '@/lib/l2b-course';
+import { L2C_PREMIUM_LESSON_CARD } from '@/lib/l2c-course';
+import { L2D_PREMIUM_LESSON_CARD } from '@/lib/l2d-course';
 
 export interface InteractiveResource {
   id: string;
@@ -101,6 +103,8 @@ export const CHAPTER_COMPONENT_CATEGORIES = CATEGORY_ORDER.filter(
 export const FEATURED_LESSONS = [
   L2A_PREMIUM_LESSON_CARD,
   L2B_PREMIUM_LESSON_CARD,
+  L2C_PREMIUM_LESSON_CARD,
+  L2D_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -250,14 +254,17 @@ export const FEATURED_LESSONS = [
 export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
   lesson.id === 'cruise-comfort-boppps' ||
   lesson.id === 'l2a-time-domain-fasttrack' ||
-  lesson.id === 'l2b-root-locus-fasttrack'
+  lesson.id === 'l2b-root-locus-fasttrack' ||
+  lesson.id === 'l2c-frequency-bode-fasttrack' ||
+  lesson.id === 'l2d-three-domain-linkage-practice'
 );
 
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
   (lesson) =>
     lesson.id !== 'cruise-comfort-boppps' &&
     lesson.id !== 'l2a-time-domain-fasttrack' &&
-    lesson.id !== 'l2b-root-locus-fasttrack'
+    lesson.id !== 'l2b-root-locus-fasttrack' &&
+    lesson.id !== 'l2c-frequency-bode-fasttrack'
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;

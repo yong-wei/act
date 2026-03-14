@@ -284,7 +284,12 @@ def rewrite_markdown_media(markdown: str, lesson_id: str) -> str:
 
 
 def export_handout(lesson_id: str) -> None:
-    source = AUTHORING_ROOT / 'lessons' / lesson_id / 'design' / 'handout.md'
+    design_dir = AUTHORING_ROOT / 'lessons' / lesson_id / 'design'
+    source = design_dir / 'handout.md'
+    if not source.exists():
+        practice_guide = design_dir / 'practice-guide.md'
+        if practice_guide.exists():
+            source = practice_guide
     destination = RUNTIME_ROOT / 'lessons' / lesson_id / 'handout.md'
     content = source.read_text(encoding='utf-8')
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -298,6 +303,27 @@ def generate_runtime_media(lesson_id: str) -> None:
 
     output_dir = RUNTIME_ROOT / 'lessons' / lesson_id / 'media'
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    static_suffixes = {
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.svg',
+        '.webp',
+        '.gif',
+        '.mp4',
+        '.webm',
+        '.mp3',
+        '.wav',
+        '.pdf',
+    }
+
+    for asset in sorted(raw_dir.iterdir()):
+        if not asset.is_file() or asset.suffix.lower() not in static_suffixes:
+            continue
+        if (raw_dir / f'{asset.stem}.py').exists():
+            continue
+        shutil.copy2(asset, output_dir / asset.name)
 
     for script in sorted(raw_dir.glob('*.py')):
         if script.name == 'matplotlib_font.py':

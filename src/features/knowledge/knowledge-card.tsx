@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -228,13 +229,8 @@ export function KnowledgeCard({
 
   // Helper to render type badge with Chinese label
   const renderTypeBadge = () => {
-    let colorClass = 'bg-slate-500';
-    if (nodeType === 'THEORY') colorClass = 'bg-blue-600';
-    if (nodeType === 'SCENARIO') colorClass = 'bg-red-600';
-    if (nodeType === 'ETHICS') colorClass = 'bg-green-600';
-
     return (
-      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white ${colorClass}`}>
+      <span className="inline-flex items-center rounded-full border border-border bg-muted/75 px-2 py-0.5 text-xs font-medium text-foreground">
         {typeLabel || nodeType}
       </span>
     );
@@ -274,11 +270,7 @@ export function KnowledgeCard({
       {onClose && (
         <button
           onClick={onClose}
-          className={`absolute top-3 right-3 z-10 rounded-full p-1.5 transition-colors ${
-            isLightTheme
-              ? 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-          }`}
+          className="absolute right-3 top-3 z-10 rounded-full bg-muted p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
           aria-label="关闭"
         >
           <X className="h-4 w-4" />
@@ -300,20 +292,12 @@ export function KnowledgeCard({
           {(bloomLabel || knowledgeLabel) && (
             <div className="flex flex-col items-end gap-1.5 shrink-0">
               {bloomLabel && (
-                <span className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-xs ${
-                  isLightTheme
-                    ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
-                    : 'border-emerald-400/40 bg-emerald-500/12 text-emerald-100'
-                }`}>
+                <span className="whitespace-nowrap rounded-full border border-border bg-muted/75 px-2 py-0.5 text-xs text-foreground">
                   认知：{bloomLabel}
                 </span>
               )}
               {knowledgeLabel && (
-                <span className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-xs ${
-                  isLightTheme
-                    ? 'border-blue-300 bg-blue-50 text-blue-700'
-                    : 'border-blue-400/40 bg-blue-500/12 text-blue-100'
-                }`}>
+                <span className="whitespace-nowrap rounded-full border border-border bg-muted/75 px-2 py-0.5 text-xs text-foreground">
                   知识：{knowledgeLabel}
                 </span>
               )}
@@ -340,16 +324,16 @@ export function KnowledgeCard({
         {/* Formulas - 仅在没有 MDX 内容时显示 */}
         {!hasMdxContent && !runtimeNodeCardPath && metadata.formulas && (metadata.formulas.continuous || metadata.formulas.discrete) && (
           <div className={`space-y-3 rounded-lg border ${subtlePanelClassName} ${isCompact ? 'p-3' : 'p-4'}`}>
-            <h4 className={`text-sm font-semibold ${isLightTheme ? 'text-blue-700' : 'text-blue-400'}`}>数学表达</h4>
+            <h4 className={`text-sm font-semibold ${headingClassName}`}>数学表达</h4>
             {metadata.formulas.continuous && (
               <div>
-                <div className={`mb-1 text-xs ${isLightTheme ? 'text-slate-500' : 'text-slate-500'}`}>连续时间</div>
+                <div className={`mb-1 text-xs ${descriptionClassName}`}>连续时间</div>
                 <BlockMath math={metadata.formulas.continuous} />
               </div>
             )}
             {metadata.formulas.discrete && (
               <div>
-                <div className={`mb-1 text-xs ${isLightTheme ? 'text-slate-500' : 'text-slate-500'}`}>离散时间</div>
+                <div className={`mb-1 text-xs ${descriptionClassName}`}>离散时间</div>
                 <BlockMath math={metadata.formulas.discrete} />
               </div>
             )}
@@ -405,6 +389,7 @@ export function KnowledgeCardDialog({
       <DialogContent className="max-h-[75vh] max-w-2xl overflow-hidden border-border bg-background p-0">
         <DialogHeader className="sr-only">
           <DialogTitle>{node.name}</DialogTitle>
+          <DialogDescription>{node.description}</DialogDescription>
         </DialogHeader>
         <div className="max-h-[75vh] overflow-y-auto">
           <KnowledgeCard

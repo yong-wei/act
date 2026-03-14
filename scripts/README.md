@@ -108,8 +108,8 @@ npm run seed:demo
 ```
 
 **演示账号信息：**
-- 邮箱: `demo@example.com`
-- 密码: `demo123456`
+- 账号: `demo`
+- 密码: `DemoStudent@Just2026!`
 - 角色: STUDENT
 
 ## 🧪 测试脚本

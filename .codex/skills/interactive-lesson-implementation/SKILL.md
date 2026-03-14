@@ -195,6 +195,7 @@ description: Use when implementing or optimizing this repository's interactive l
 - 同时适配深色模式；不要硬编码模块样式，不要把浅色模式写成散落在组件里的固定颜色
 - 明确拒绝硬编码样式：如果某个模块需要单独写死颜色值、十六进制色、`dark:` 分支或浅色块/深色字组合，先补统一主题变量或语义类，再实现模块；不要继续在模块内散写颜色
 - 即使已有历史兼容桥接层，也不允许在新课或新改动里继续新增 `bg-white`、`text-slate-*`、`border-cyan-*`、`dark:` 之类的旧式颜色类；桥接层只用于兜底，不作为继续硬编码的理由
+- 课程实现后，必须在互动课程总入口页注册精品课程入口；当前注册点以 `src/features/interactive/learning-catalog.ts` 的 `FEATURED_LESSONS` / `PREMIUM_LESSONS` 为准，不能只完成路由、预设课和课程页而漏掉入口
 
 如果课程首页存在导学页或入口页，首页必须补齐以下 runtime 模块：
 - 入口模块顺序：教师入口、自由浏览、学生入口放在页面最上方，再进入课程概览与 runtime 导学区
@@ -232,47 +233,14 @@ description: Use when implementing or optimizing this repository's interactive l
 
 ### 8. 闭环验证
 
-实现完成后，必须重新执行一次“设计稿 vs 实现稿”核对流程，至少覆盖：
-- 步骤数、标题、顺序
-- 媒体资源是否可读取
-- 教师端/学生端内容与动作是否对应设计稿
-- 工作区是否只在需要时出现
-- 互动输入、汇总、记录、埋点是否通路正常
-- 选择题是否在教师端形成选项统计；有标准答案时，教师端“显示答案”后学生端是否同步可见
-- 文本题是否在教师端生成词云；回复列表是否默认折叠且按提交时间排序
-- 当前在线学生清单是否默认折叠，折叠态是否仅显示人数
-- AI 助手是否在当前页面直接弹出对话框，而不是跳转到独立助手页
-- `dashboard`、`/classroom/join`、课程入口页输入同一课堂码后是否落到同一正确课堂页面
-- 教师是否能从课程页结束课堂，后台是否能停止进行中的课堂
-- 学生端在教师翻页后是否出现不同步提示与手动跳转能力
+实现完成后，必须先重新执行一次“设计稿 vs 实现稿”核对，确认代码与设计文稿已经对齐；只有这一步结束后，才进入浏览器闭环验收。
 
-如果课程包含代码直出图或前端 SVG 图，额外覆盖：
-- runtime 图是否生成到正确目录
-- 页面实际渲染时中文文本是否可见
-- 前端 SVG 图是否存在布局错位、遮挡或回路线断裂
-- 绘图脚本是否固定了系统中文字体与 SVG 导出策略
-
-如果课程首页接入了 runtime 资源，额外覆盖：
-- `bash course-content/scripts/export-runtime.sh <lesson>` 能否完整导出
-- 教师入口、自由浏览、学生入口是否位于首页最上方
-- 知识点网络模块是否正确出现，默认节点是否可读
-- 知识点网络是否用箭头表达前置与后置关系
-- 点击节点后是否显示卡片正面，`详情 / 概览` 是否工作且标题保持不变
-- 卡片预览顺序是否与 lesson sequence 一致
-- 讲义入口是否可打开，LaTeX、图片和媒体链接是否正确，`导出 PDF` 是否可用
-- 当前步骤若有知识卡片，抽屉是否按编排出现；若无卡片，抽屉是否不出现
-- `course-content/runtime/knowledge/cards/nodes/*.md` 是否按 `## 首页 / ## 详情` 分节正确渲染，并支持 `详情 / 概览` 切换
-- `course-content/runtime` 是否已经成为页面读取的唯一来源
-- 深色模式与浅色模式下是否都可读，不要为了浅色模式去硬编码模块样式
-
-验证后更新课程笔记，记录：
-- 本次实现了什么
-- 仍有哪些差异
-- 哪些差异是有意偏离，并说明原因
-- 哪些媒体还未补齐
-- 下次优化建议
-
-验证与笔记更新格式见 [references/verification-and-note-update.md](references/verification-and-note-update.md)。
+- 设计稿对照与课程笔记更新规则见 [references/verification-and-note-update.md](references/verification-and-note-update.md)
+- 浏览器闭环验收、双子代理逐页流程、测试账号与详细覆盖项见 [references/closed-loop-browser-validation.md](references/closed-loop-browser-validation.md)
+- 若采用双子代理浏览器验收，主代理只需读取总则，并按角色给子代理分发各自规范文件：
+  - 教师端子代理读取 [references/browser-validation-teacher-subagent.md](references/browser-validation-teacher-subagent.md)
+  - 学生端子代理读取 [references/browser-validation-student-subagent.md](references/browser-validation-student-subagent.md)
+- 主代理不需要读取这两个子代理规范文件，避免把教师/学生端逐页操作细节堆进主上下文；主代理负责启动基线、分派角色、汇总结果与判断是否通过
 
 ## 课程笔记机制
 
@@ -306,6 +274,12 @@ python3 scripts/init_course_note.py --lesson L-2a --title "三张面孔，同一
   - 代码直出 / SVG 绘制资源的目录、生成、字体、验证与常见问题
 - `references/verification-and-note-update.md`
   - 设计核对流程、验证清单和课程笔记更新规则
+- `references/closed-loop-browser-validation.md`
+  - 设计对齐后的浏览器闭环验收流程、双子代理分工、测试账号与逐页验收规则
+- `references/browser-validation-teacher-subagent.md`
+  - 教师端浏览器验收子代理规范：登录、建课、翻页、显示答案、结束课堂与对话框处理
+- `references/browser-validation-student-subagent.md`
+  - 学生端浏览器验收子代理规范：课堂码加入、跟页提示、提交作答、知识卡片与 AI 弹窗验证
 
 ### notes/
 
@@ -327,6 +301,7 @@ python3 scripts/init_course_note.py --lesson L-2a --title "三张面孔，同一
 - [ ] 已向用户提出必要的更优交互建议
 - [ ] 已基于仓库现有框架写实施计划
 - [ ] 已完成实现
+- [ ] 课程实现后已在互动课程总入口页注册精品课程入口
 - [ ] 已在首页补齐知识点网络、卡片预览与讲义入口
 - [ ] 已确保知识点网络用箭头表达前置与后置关系
 - [ ] 已确保讲义入口与讲义详情支持导出 PDF
@@ -336,4 +311,5 @@ python3 scripts/init_course_note.py --lesson L-2a --title "三张面孔，同一
 - [ ] 已核对选择题统计、答案揭示、文本词云与在线学生折叠等教师端联动要求
 - [ ] 已检查浅色/深色模式都可读，并避免硬编码模块样式
 - [ ] 已重新执行设计稿对照验证
+- [ ] 已在设计对齐后按浏览器闭环参考完成双子代理逐页验收
 - [ ] 已更新 `notes/<lesson>.md`

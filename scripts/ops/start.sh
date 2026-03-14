@@ -30,7 +30,7 @@ echo -e "${BLUE}========================================${NC}\n"
 ###############################################################################
 # 步骤 1: 清理日志文件内容
 ###############################################################################
-echo -e "${YELLOW}[1/6] 清理日志文件...${NC}"
+echo -e "${YELLOW}[1/7] 清理日志文件...${NC}"
 
 # 确保目录存在
 mkdir -p "$LOGS_DIR"
@@ -60,7 +60,7 @@ echo ""
 ###############################################################################
 # 步骤 2: 检查 PostgreSQL 数据库
 ###############################################################################
-echo -e "${YELLOW}[2/6] 检查 PostgreSQL 数据库...${NC}"
+echo -e "${YELLOW}[2/7] 检查 PostgreSQL 数据库...${NC}"
 
 if command -v pg_isready &> /dev/null; then
   if pg_isready -h localhost -p 5432 &> /dev/null; then
@@ -93,7 +93,7 @@ echo ""
 ###############################################################################
 # 步骤 3: 检查环境配置
 ###############################################################################
-echo -e "${YELLOW}[3/6] 检查环境配置...${NC}"
+echo -e "${YELLOW}[3/7] 检查环境配置...${NC}"
 
 cd "$PROJECT_DIR"
 
@@ -125,7 +125,7 @@ echo ""
 ###############################################################################
 # 步骤 4: 检查依赖
 ###############################################################################
-echo -e "${YELLOW}[4/6] 检查依赖...${NC}"
+echo -e "${YELLOW}[4/7] 检查依赖...${NC}"
 
 if [ ! -d "node_modules" ]; then
   echo -e "  ${YELLOW}node_modules 不存在，安装依赖...${NC}"
@@ -139,7 +139,7 @@ echo ""
 ###############################################################################
 # 步骤 5: 同步预置知识点
 ###############################################################################
-echo -e "${YELLOW}[5/6] 同步预置知识点...${NC}"
+echo -e "${YELLOW}[5/7] 同步预置知识点...${NC}"
 
 npm run seed:knowledge >> "$LOGS_DIR/database.log" 2>&1
 echo -e "  ${GREEN}✓${NC} 知识点同步完成"
@@ -147,9 +147,19 @@ echo -e "  ${GREEN}✓${NC} 知识点同步完成"
 echo ""
 
 ###############################################################################
-# 步骤 6: 启动 Next.js 开发服务器
+# 步骤 6: 同步固定测试账号口令
 ###############################################################################
-echo -e "${YELLOW}[6/6] 启动 Next.js 开发服务器...${NC}"
+echo -e "${YELLOW}[6/7] 同步固定测试账号口令...${NC}"
+
+npm run seed:fixed-passwords >> "$LOGS_DIR/database.log" 2>&1
+echo -e "  ${GREEN}✓${NC} 固定测试账号口令同步完成"
+
+echo ""
+
+###############################################################################
+# 步骤 7: 启动 Next.js 开发服务器
+###############################################################################
+echo -e "${YELLOW}[7/7] 启动 Next.js 开发服务器...${NC}"
 
 # 检查是否已有进程在运行
 if [ -f "$PIDS_DIR/frontend.pid" ]; then
@@ -177,7 +187,7 @@ echo -e "  ${BLUE}日志位置: $LOGS_DIR/frontend.log${NC}"
 
 # 等待服务器启动
 echo -e "\n  ${YELLOW}等待服务器启动...${NC}"
-sleep 3
+sleep 1
 
 # 检查进程是否还在运行
 if ps -p "$FRONTEND_PID" > /dev/null 2>&1; then
@@ -187,6 +197,41 @@ else
   echo -e "  ${YELLOW}查看错误日志: tail -f $LOGS_DIR/error.log${NC}"
   exit 1
 fi
+
+wait_for_page() {
+  local label=$1
+  local url=$2
+  local marker=$3
+  local attempts=${4:-40}
+  local interval=${5:-1}
+  local body=""
+
+  echo -e "  ${YELLOW}等待 $label 页面就绪...${NC}"
+
+  for ((i=1; i<=attempts; i++)); do
+    if ! ps -p "$FRONTEND_PID" > /dev/null 2>&1; then
+      echo -e "  ${RED}✗${NC} Next.js 进程提前退出"
+      echo -e "  ${YELLOW}查看错误日志: tail -f $LOGS_DIR/error.log${NC}"
+      exit 1
+    fi
+
+    body=$(curl -fsS "$url" 2>/dev/null || true)
+    if [[ -n "$body" && "$body" == *"$marker"* ]]; then
+      echo -e "  ${GREEN}✓${NC} $label 页面已就绪"
+      return 0
+    fi
+    sleep "$interval"
+  done
+
+  echo -e "  ${RED}✗${NC} $label 页面未在预期时间内就绪"
+  echo -e "  ${YELLOW}目标地址: $url${NC}"
+  echo -e "  ${YELLOW}目标标记: $marker${NC}"
+  echo -e "  ${YELLOW}查看错误日志: tail -f $LOGS_DIR/error.log${NC}"
+  exit 1
+}
+
+wait_for_page "登录" "http://127.0.0.1:3001/login" "账号登录"
+wait_for_page "互动课程入口" "http://127.0.0.1:3001/interactive-learning/courses/l2d-three-domain-linkage-practice" "输入课堂码加入课堂"
 
 ###############################################################################
 # 启动完成
