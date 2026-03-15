@@ -1,0 +1,1276 @@
+{
+  "lesson_id": "L-sum",
+  "title": "设计可行域——让约束成为指南针",
+  "focus_node_ids": [
+    "复平面可行域_4_Lsum001",
+    "时域响应包络_3_Lsum002",
+    "频域可行带_5_Lsum003",
+    "设计可行域_4_Lsum004"
+  ],
+  "reuse_node_ids": [
+    "动态性能指标_3_a10733c1",
+    "超调量_3_fc3f5b17",
+    "调节时间_10_fcbccf4e",
+    "阻尼比_3_b849784e",
+    "开环增益_3_d73dc120",
+    "根轨迹_4_c19f8854",
+    "根轨迹图_4_290e12b6",
+    "极点迁移_4_L2b001",
+    "最佳阻尼比_3_L2b002",
+    "三域直觉联动_5_L2c005",
+    "三域联动操作体验_5_L2d001",
+    "临界增益体验_5_L2d002"
+  ],
+  "entry_nodes": [
+    "设计可行域_4_Lsum004"
+  ],
+  "summary_nodes": [
+    "设计可行域_4_Lsum004"
+  ],
+  "card_order": [
+    "动态性能指标_3_a10733c1",
+    "复平面可行域_4_Lsum001",
+    "时域响应包络_3_Lsum002",
+    "频域可行带_5_Lsum003",
+    "设计可行域_4_Lsum004"
+  ],
+  "groups": [
+    {
+      "group_name": "引入：分析 vs 设计",
+      "step_ids": [
+        "step-01",
+        "step-02"
+      ],
+      "node_ids": [
+        "动态性能指标_3_a10733c1"
+      ]
+    },
+    {
+      "group_name": "复平面可行域",
+      "step_ids": [
+        "step-03",
+        "step-04",
+        "step-05"
+      ],
+      "node_ids": [
+        "超调量_3_fc3f5b17",
+        "调节时间_10_fcbccf4e",
+        "阻尼比_3_b849784e",
+        "复平面可行域_4_Lsum001"
+      ]
+    },
+    {
+      "group_name": "三域投影",
+      "step_ids": [
+        "step-06",
+        "step-07",
+        "step-08"
+      ],
+      "node_ids": [
+        "极点迁移_4_L2b001",
+        "根轨迹图_4_290e12b6",
+        "时域响应包络_3_Lsum002",
+        "频域可行带_5_Lsum003"
+      ]
+    },
+    {
+      "group_name": "设计可行域综合",
+      "step_ids": [
+        "step-09",
+        "step-10"
+      ],
+      "node_ids": [
+        "设计可行域_4_Lsum004",
+        "最佳阻尼比_3_L2b002"
+      ]
+    },
+    {
+      "group_name": "例题与层0收束",
+      "step_ids": [
+        "step-11",
+        "step-12"
+      ],
+      "node_ids": [
+        "设计可行域_4_Lsum004"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "动态性能指标_3_a10733c1",
+      "name": "动态性能指标",
+      "nodeType": "THEORY",
+      "description": "描述稳定系统在单位阶跃函数作用下，动态过程随时间变化状况的指标，用于评价系统响应特性。",
+      "positionX": -18.6,
+      "positionY": -69.5,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "描述稳定系统在单位阶跃函数作用下，动态过程随时间变化状况的指标，用于评价系统响应特性。",
+        "examples": [
+          "上升时间",
+          "峰值时间",
+          "调节时间",
+          "超调量"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "上升时间",
+          "调节时间",
+          "超调量",
+          "响应速度",
+          "阻尼"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627751",
+        "updatedAt": "2026-02-04T17:54:16.627752",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/动态性能指标_3_a10733c1.md"
+      ],
+      "tags": [
+        "上升时间",
+        "调节时间",
+        "超调量",
+        "响应速度",
+        "阻尼",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "开环增益_3_d73dc120",
+      "name": "开环增益",
+      "nodeType": "THEORY",
+      "description": "系统开环传递函数中的增益参数，影响系统的稳态误差和动态性能。",
+      "positionX": -55.2,
+      "positionY": 55.2,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "系统开环传递函数中的增益参数，影响系统的稳态误差和动态性能。",
+        "examples": [
+          "比例-微分控制中，允许选取较高的开环增益以减小稳态误差。",
+          "测速反馈控制会降低开环增益，从而可能加大斜坡输入时的稳态误差。"
+        ],
+        "formulas": [
+          "K"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "增益",
+          "稳态误差",
+          "传递函数"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627891",
+        "updatedAt": "2026-02-04T17:54:16.627891",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "增益",
+        "稳态误差",
+        "传递函数",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "时域响应包络_3_Lsum002",
+      "name": "时域响应包络",
+      "nodeType": "THEORY",
+      "description": "以K_min和K_max对应的阶跃响应曲线为边界围成的管道；满足性能约束的所有系统响应均落在此包络内，是复平面可行域在时域上的投影。",
+      "positionX": -78.0,
+      "positionY": 0.0,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "以K_min和K_max对应的阶跃响应曲线为边界围成的管道；满足性能约束的所有系统响应均落在此包络内，是复平面可行域在时域上的投影。",
+        "examples": [
+          "Mp≤20%、ts≤5s的约束对应响应包络：上边界为超调约20%的快响应曲线，下边界为刚好在5s内稳定的慢响应曲线，船舶航向控制的可行响应必须在此管道内"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "复平面可行域_4_Lsum001",
+          "四种响应家族_3_L2a"
+        ],
+        "relatedConcepts": [
+          "设计可行域",
+          "动态性能指标",
+          "开环增益"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "响应包络",
+          "管道",
+          "边界曲线",
+          "可行响应",
+          "时域投影"
+        ],
+        "createdAt": "2026-03-14T00:44:08.247687+00:00",
+        "updatedAt": "2026-03-14T00:44:08.247687+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/时域响应包络_3_Lsum002.md"
+      ],
+      "tags": [
+        "响应包络",
+        "管道",
+        "边界曲线",
+        "可行响应",
+        "时域投影",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "最佳阻尼比_3_L2b002",
+      "name": "最佳阻尼比",
+      "nodeType": "THEORY",
+      "description": "ζ=0.707时，系统在快速响应与最小超调（约4.3%）之间取得最优平衡，对应根轨迹图上与负实轴成45°的射线。",
+      "positionX": -67.5,
+      "positionY": -39.0,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "ζ=0.707时，系统在快速响应与最小超调（约4.3%）之间取得最优平衡，对应根轨迹图上与负实轴成45°的射线。",
+        "examples": [
+          "船舶航向控制中，取K=2使极点落在(-1,±j1)，阻尼比恰好为0.707"
+        ],
+        "formulas": [
+          "\\zeta = 0.707 = \\cos 45°",
+          "\\theta = 45°"
+        ],
+        "prerequisites": [
+          "阻尼比",
+          "根轨迹"
+        ],
+        "relatedConcepts": [
+          "超调量",
+          "极点迁移",
+          "开环增益"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "最佳阻尼比",
+          "0.707",
+          "45度射线",
+          "超调量",
+          "工程选取"
+        ],
+        "createdAt": "2026-03-11T15:04:55.391791+00:00",
+        "updatedAt": "2026-03-11T15:04:55.391791+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/最佳阻尼比_3_L2b002.md"
+      ],
+      "tags": [
+        "最佳阻尼比",
+        "0.707",
+        "45度射线",
+        "超调量",
+        "工程选取",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "超调量_3_fc3f5b17",
+      "name": "超调量",
+      "nodeType": "THEORY",
+      "description": "系统单位阶跃响应中最大超出稳态值的部分与稳态值之比的百分数，仅与阻尼比有关。",
+      "positionX": -72.7,
+      "positionY": -42.0,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "系统单位阶跃响应中最大超出稳态值的部分与稳态值之比的百分数，仅与阻尼比有关。",
+        "examples": [
+          "若超调量为零，则响应无超调",
+          "衡量系统响应平稳性的重要指标，仅适用于欠阻尼系统。",
+          "图3-12显示了超调量与阻尼比的关系曲线，阻尼比越大，超调量越小。",
+          "比例-微分控制使阶跃响应的超调量下降。",
+          "在相同阻尼比下，比例-微分控制系统的超调量大于测速反馈控制系统。",
+          "习题3-4中要求根据单位阶跃响应求系统的超调量。"
+        ],
+        "formulas": [
+          "\\sigma \\% = \\frac{h(t_p) - h(\\infty)}{h(\\infty)} \\times 100\\%",
+          "\\sigma\\% = e^{-\\pi\\zeta / \\sqrt{1-\\zeta^2}} \\times 100\\%",
+          "\\sigma\\% = e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}} \\times 100\\%",
+          "\\sigma\\% = e^{-\\pi\\zeta/\\sqrt{1-\\zeta^2}} \\times 100\\%",
+          "\\sigma \\% = \\frac{c_{max} - c(\\infty)}{c(\\infty)} \\times 100\\%"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "最大超调量",
+          "百分比超调量",
+          "阻尼",
+          "超调量",
+          "σ%",
+          "平稳性",
+          "阻尼比",
+          "单位阶跃响应",
+          "动态性能",
+          "阶跃响应",
+          "振荡"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627762",
+        "updatedAt": "2026-02-04T17:54:16.627762",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/超调量_3_fc3f5b17.md"
+      ],
+      "tags": [
+        "最大超调量",
+        "百分比超调量",
+        "阻尼",
+        "超调量",
+        "σ%",
+        "平稳性",
+        "阻尼比",
+        "单位阶跃响应",
+        "动态性能",
+        "阶跃响应",
+        "振荡",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "阻尼比_3_b849784e",
+      "name": "阻尼比",
+      "nodeType": "THEORY",
+      "description": "阻尼比是描述二阶系统阻尼程度的无量纲参数，其值等于负实轴夹角的余弦。",
+      "positionX": 90.0,
+      "positionY": 0.0,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "阻尼比是描述二阶系统阻尼程度的无量纲参数，其值等于负实轴夹角的余弦。",
+        "examples": [
+          "ζ<1为欠阻尼（振荡），ζ=1为临界阻尼，ζ>1为过阻尼。",
+          "用于计算欠阻尼二阶系统的超调量、峰值时间等动态性能指标。",
+          "比例-微分控制和测速反馈控制均可增大系统的阻尼比。",
+          "例3-5中要求使系统阻尼比为0.5。",
+          "ζ值越大，振荡性越弱；ζ值越小，振荡性越强。",
+          "习题3-6中要求根据单位阶跃响应确定系统的阻尼比和自然频率。"
+        ],
+        "formulas": [
+          "\\zeta = \\frac{\\text{实际阻尼系数}}{\\text{临界阻尼系数}}",
+          "\\zeta = \\cos\\beta",
+          "\\zeta",
+          "\\zeta_d",
+          "\\zeta_t"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "阻尼比",
+          "ζ",
+          "阻尼程度",
+          "阻尼角",
+          "二阶系统",
+          "阻尼",
+          "振荡",
+          "超调量",
+          "振荡性",
+          "系统特性",
+          "稳定性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627825",
+        "updatedAt": "2026-02-04T17:54:16.627825",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/阻尼比_3_b849784e.md"
+      ],
+      "tags": [
+        "阻尼比",
+        "ζ",
+        "阻尼程度",
+        "阻尼角",
+        "二阶系统",
+        "阻尼",
+        "振荡",
+        "超调量",
+        "振荡性",
+        "系统特性",
+        "稳定性",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "复平面可行域_4_Lsum001",
+      "name": "复平面可行域",
+      "nodeType": "THEORY",
+      "description": "在复平面上，同时满足超调量约束（阻尼比射线下方）和调节时间约束（实部垂线左侧）的极点允许区域；是三域设计可行域的几何枢纽。",
+      "positionX": -52.0,
+      "positionY": -90.1,
+      "positionZ": 4,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "在复平面上，同时满足超调量约束（阻尼比射线下方）和调节时间约束（实部垂线左侧）的极点允许区域；是三域设计可行域的几何枢纽。",
+        "examples": [
+          "Mp≤20%对应ζ≥0.45，阻尼比射线夹角63°，极点须在线下方；ts≤5s对应σ≥0.8，极点须在Re(s)=-0.8垂线左侧；两约束交集形成扇形可行区域"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "极点迁移_4_L2b001",
+          "阻尼比_3_b849784e",
+          "动态性能指标_3_a10733c1"
+        ],
+        "relatedConcepts": [
+          "根轨迹图",
+          "设计可行域",
+          "超调量",
+          "调节时间"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "可行域",
+          "扇形区域",
+          "阻尼比射线",
+          "实部垂线",
+          "极点约束"
+        ],
+        "createdAt": "2026-03-14T00:44:08.244152+00:00",
+        "updatedAt": "2026-03-14T00:44:08.244152+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/复平面可行域_4_Lsum001.md"
+      ],
+      "tags": [
+        "可行域",
+        "扇形区域",
+        "阻尼比射线",
+        "实部垂线",
+        "极点约束",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "极点迁移_4_L2b001",
+      "name": "极点迁移",
+      "nodeType": "THEORY",
+      "description": "当系统参数（如开环增益K）变化时，闭环极点在复平面上发生位移的现象；根轨迹描述了极点迁移的完整路径。",
+      "positionX": 100.5,
+      "positionY": -26.9,
+      "positionZ": 4,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "当系统参数（如开环增益K）变化时，闭环极点在复平面上发生位移的现象；根轨迹描述了极点迁移的完整路径。",
+        "examples": [
+          "船舶航向控制中，增大增益K使极点从负实轴分叉为共轭复数极点，响应由单调转为振荡"
+        ],
+        "formulas": [
+          "s^2 + 2s + K = 0"
+        ],
+        "prerequisites": [
+          "极点",
+          "开环增益",
+          "闭环极点"
+        ],
+        "relatedConcepts": [
+          "根轨迹",
+          "阻尼比",
+          "超调量"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "极点",
+          "迁移",
+          "增益",
+          "复平面",
+          "轨迹"
+        ],
+        "createdAt": "2026-03-11T15:04:55.388112+00:00",
+        "updatedAt": "2026-03-11T15:04:55.388112+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/极点迁移_4_L2b001.md"
+      ],
+      "tags": [
+        "极点",
+        "迁移",
+        "增益",
+        "复平面",
+        "轨迹",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "根轨迹_4_c19f8854",
+      "name": "根轨迹",
+      "nodeType": "THEORY",
+      "description": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
+      "positionX": 110.0,
+      "positionY": 0.0,
+      "positionZ": 4,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
+        "examples": [
+          "图4-2所示，开环增益K变化时，二阶系统闭环极点在s平面上沿实轴和复平面变化的轨迹。",
+          "用于分析开环增益变化对闭环系统稳定性和动态性能的影响。"
+        ],
+        "formulas": [
+          "1 + G(s)H(s) = 0",
+          "\\prod_{j=1}^{n}(s - p_j) + K^* \\prod_{i=1}^{m}(s - z_i) = 0",
+          "1+KG(s)H(s)=0",
+          "\\sum_{i=1}^{m}\\angle(s-z_i)-\\sum_{j=1}^{n}\\angle(s-p_j)=(2k+1)\\pi"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "闭环极点",
+          "s平面",
+          "轨迹",
+          "特征方程",
+          "闭环特征根",
+          "开环增益",
+          "复平面"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628098",
+        "updatedAt": "2026-02-04T17:54:16.628099",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "闭环极点",
+        "s平面",
+        "轨迹",
+        "特征方程",
+        "闭环特征根",
+        "开环增益",
+        "复平面",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "根轨迹图_4_290e12b6",
+      "name": "根轨迹图",
+      "nodeType": "THEORY",
+      "description": "在复平面上描绘系统闭环极点随开环增益变化而移动的轨迹图。",
+      "positionX": 28.5,
+      "positionY": 106.3,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "在复平面上描绘系统闭环极点随开环增益变化而移动的轨迹图。",
+        "examples": [
+          "用于分析系统参数变化对稳定性和动态性能的影响。"
+        ],
+        "formulas": [
+          "$1 + KG(s)H(s) = 0$"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "根轨迹",
+          "闭环极点",
+          "稳定性分析"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628351",
+        "updatedAt": "2026-02-04T17:54:16.628351",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "根轨迹",
+        "闭环极点",
+        "稳定性分析",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "设计可行域_4_Lsum004",
+      "name": "设计可行域",
+      "nodeType": "THEORY",
+      "description": "在参数空间（如开环增益K）中，同时满足所有性能约束的参数允许范围；在三域各有对应投影：复平面上为扇形可行区域，时域上为响应包络，频域上为Bode幅频可行带。",
+      "positionX": 77.8,
+      "positionY": -77.8,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "在参数空间（如开环增益K）中，同时满足所有性能约束的参数允许范围；在三域各有对应投影：复平面上为扇形可行区域，时域上为响应包络，频域上为Bode幅频可行带。",
+        "examples": [
+          "Mp≤20%、ts≤5s的约束将开环增益限制在[K_min, K_max]；约束越严则可行域越小，有时约束过严导致原系统无解，需改变系统结构"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "复平面可行域_4_Lsum001",
+          "极点迁移_4_L2b001",
+          "三域直觉联动_5_L2c005"
+        ],
+        "relatedConcepts": [
+          "时域响应包络",
+          "频域可行带",
+          "最佳阻尼比_3_L2b002",
+          "开环增益"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "可行域",
+          "参数范围",
+          "约束映射",
+          "三域投影",
+          "设计决策"
+        ],
+        "createdAt": "2026-03-14T00:44:08.253171+00:00",
+        "updatedAt": "2026-03-14T00:44:08.253171+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/设计可行域_4_Lsum004.md"
+      ],
+      "tags": [
+        "可行域",
+        "参数范围",
+        "约束映射",
+        "三域投影",
+        "设计决策",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "三域直觉联动_5_L2c005",
+      "name": "三域直觉联动",
+      "nodeType": "THEORY",
+      "description": "时域（Mp, ts）、复平面（极点位置, ζ, ωn）、频域（γ, ωc）三种表征通过阻尼比ζ和自然频率ωn相互连通，改变一个参数三个面孔同时变化。",
+      "positionX": -112.6,
+      "positionY": -65.0,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "时域（Mp, ts）、复平面（极点位置, ζ, ωn）、频域（γ, ωc）三种表征通过阻尼比ζ和自然频率ωn相互连通，改变一个参数三个面孔同时变化。",
+        "examples": [
+          "γ↑→ζ↑→Mp↓；ωc↑→ts↓：相位裕度增大意味着阻尼增大、超调减小、响应变慢"
+        ],
+        "formulas": [
+          "\\gamma \\approx 100\\zeta°",
+          "M_p \\approx e^{-\\pi\\zeta/\\sqrt{1-\\zeta^2}}"
+        ],
+        "prerequisites": [
+          "频率响应直觉",
+          "阻尼比",
+          "超调量",
+          "极点迁移"
+        ],
+        "relatedConcepts": [
+          "截止频率直觉",
+          "相位裕度直觉",
+          "频域指标与时域指标转换"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "三域联动",
+          "时域",
+          "频域",
+          "复平面",
+          "跨域映射"
+        ],
+        "createdAt": "2026-03-13T03:07:32.395807+00:00",
+        "updatedAt": "2026-03-13T03:07:32.395807+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/三域直觉联动_5_L2c005.md"
+      ],
+      "tags": [
+        "三域联动",
+        "时域",
+        "频域",
+        "复平面",
+        "跨域映射",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "三域联动操作体验_5_L2d001",
+      "name": "三域联动操作体验",
+      "nodeType": "THEORY",
+      "description": "通过在三面板工具（根轨迹+时域+Bode图）中同时操作单一参数K，亲身感知增益变化如何同步改变三域指标，建立“一拨全动”的操作直觉。",
+      "positionX": -91.9,
+      "positionY": -91.9,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "通过在三面板工具（根轨迹+时域+Bode图）中同时操作单一参数K，亲身感知增益变化如何同步改变三域指标，建立“一拨全动”的操作直觉。",
+        "examples": [
+          "在G(s)=K/[s(s+1)(s+6)]中增大K：根轨迹极点右移→时域Mp增大→Bode图γ减小，三者同步联动"
+        ],
+        "formulas": [
+          "G(s) = \\frac{K}{s(s+1)(s+6)}",
+          "K_{cr} = 42"
+        ],
+        "prerequisites": [
+          "三域直觉联动",
+          "根轨迹直觉",
+          "频率响应直觉"
+        ],
+        "relatedConcepts": [
+          "临界增益体验",
+          "三域对照表",
+          "三域直觉联动"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "三域联动",
+          "操作体验",
+          "增益",
+          "一拨全动",
+          "三面板"
+        ],
+        "createdAt": "2026-03-13T00:00:00+00:00",
+        "updatedAt": "2026-03-13T00:00:00+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/三域联动操作体验_5_L2d001.md"
+      ],
+      "tags": [
+        "三域联动",
+        "操作体验",
+        "增益",
+        "一拨全动",
+        "三面板",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "临界增益体验_5_L2d002",
+      "name": "临界增益体验",
+      "nodeType": "THEORY",
+      "description": "通过操作实验发现系统从稳定变为不稳定的临界增益K_cr，体验“极点越过虚轴→时域等幅振荡→相位裕度归零”三域同步失稳现象，为劳斯判据的精确推导建立直觉锚点。",
+      "positionX": -65.0,
+      "positionY": -112.6,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "通过操作实验发现系统从稳定变为不稳定的临界增益K_cr，体验“极点越过虚轴→时域等幅振荡→相位裕度归零”三域同步失稳现象，为劳斯判据的精确推导建立直觉锚点。",
+        "examples": [
+          "G(s)=K/[s(s+1)(s+6)]的临界增益K_cr=42：劳斯判据辅助条件7×6−K=0给出精确值，实验探索值通常在[36,48]区间"
+        ],
+        "formulas": [
+          "K_{cr} = 42",
+          "\\gamma|_{K=K_{cr}} = 0°"
+        ],
+        "prerequisites": [
+          "三域直觉联动",
+          "三域联动操作体验",
+          "相位裕度直觉"
+        ],
+        "relatedConcepts": [
+          "稳定性判据",
+          "三域联动操作体验",
+          "劳斯判据"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "临界增益",
+          "稳定边界",
+          "劳斯判据",
+          "等幅振荡",
+          "γ=0"
+        ],
+        "createdAt": "2026-03-13T00:00:00+00:00",
+        "updatedAt": "2026-03-13T00:00:00+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/临界增益体验_5_L2d002.md"
+      ],
+      "tags": [
+        "临界增益",
+        "稳定边界",
+        "劳斯判据",
+        "等幅振荡",
+        "γ=0",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "频域可行带_5_Lsum003",
+      "name": "频域可行带",
+      "nodeType": "THEORY",
+      "description": "以K_min和K_max对应的Bode幅频特性曲线为上下边界形成的可行带；K增大幅频曲线上移、穿越频率增大、相位裕度减小，可行带刻画了同时满足带宽和稳定裕度约束的频域范围。",
+      "positionX": 143.0,
+      "positionY": 38.3,
+      "positionZ": 5,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "以K_min和K_max对应的Bode幅频特性曲线为上下边界形成的可行带；K增大幅频曲线上移、穿越频率增大、相位裕度减小，可行带刻画了同时满足带宽和稳定裕度约束的频域范围。",
+        "examples": [
+          "船舶航向控制中，K从K_min到K_max时Bode幅频曲线在可行带内上下移动，穿越频率从ωc_min增大到ωc_max，对应系统带宽和稳定裕度的允许范围"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "复平面可行域_4_Lsum001",
+          "频率响应直觉_5_L2c001",
+          "三域直觉联动_5_L2c005"
+        ],
+        "relatedConcepts": [
+          "设计可行域",
+          "相位裕度直觉_5_L2c003",
+          "截止频率直觉_5_L2c002",
+          "开环增益"
+        ],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "可行带",
+          "Bode图",
+          "幅频边界",
+          "穿越频率",
+          "频域投影"
+        ],
+        "createdAt": "2026-03-14T00:44:08.250483+00:00",
+        "updatedAt": "2026-03-14T00:44:08.250483+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/频域可行带_5_Lsum003.md"
+      ],
+      "tags": [
+        "可行带",
+        "Bode图",
+        "幅频边界",
+        "穿越频率",
+        "频域投影",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "调节时间_10_fcbccf4e",
+      "name": "调节时间",
+      "nodeType": "THEORY",
+      "description": "系统阶跃响应达到并保持在稳态值允许误差范围内所需的时间。",
+      "positionX": -0.0,
+      "positionY": -290.0,
+      "positionZ": 10,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 10,
+      "chapterName": "状态空间",
+      "metadata": {
+        "chapter": 10,
+        "chapterName": "状态空间",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "系统阶跃响应达到并保持在稳态值允许误差范围内所需的时间。",
+        "examples": [
+          "表10-7中给出了不同参数下的系统阶跃响应调节时间。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "阶跃响应",
+          "性能指标",
+          "动态性能"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627366",
+        "updatedAt": "2026-02-04T17:54:16.627367",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/调节时间_10_fcbccf4e.md"
+      ],
+      "tags": [
+        "阶跃响应",
+        "性能指标",
+        "动态性能",
+        "chapter-10"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "动态性能指标|超调量|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "动态性能指标|阻尼比|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "动态性能指标|开环增益|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "开环增益_3_d73dc120",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "超调量|阻尼比|3",
+      "sourceId": "超调量_3_fc3f5b17",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
+    },
+    {
+      "id": "超调量|开环增益|3",
+      "sourceId": "超调量_3_fc3f5b17",
+      "targetId": "开环增益_3_d73dc120",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "阻尼比|开环增益|3",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "开环增益_3_d73dc120",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "开环增益|根轨迹|3-4",
+      "sourceId": "开环增益_3_d73dc120",
+      "targetId": "根轨迹_4_c19f8854",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "根轨迹|根轨迹图|4",
+      "sourceId": "根轨迹_4_c19f8854",
+      "targetId": "根轨迹图_4_290e12b6",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "调节时间|超调量|10-3",
+      "sourceId": "调节时间_10_fcbccf4e",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "调节时间|动态性能指标|10-3",
+      "sourceId": "调节时间_10_fcbccf4e",
+      "targetId": "动态性能指标_3_a10733c1",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "阻尼比|超调量|new",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "阻尼比|调节时间|new",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.85
+    },
+    {
+      "id": "动态性能指标|调节时间|new",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "开环增益|极点迁移|new",
+      "sourceId": "开环增益_3_d73dc120",
+      "targetId": "极点迁移_4_L2b001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "极点迁移|根轨迹|new",
+      "sourceId": "极点迁移_4_L2b001",
+      "targetId": "根轨迹_4_c19f8854",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "根轨迹|阻尼比|new",
+      "sourceId": "根轨迹_4_c19f8854",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "阻尼比|最佳阻尼比|new",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "最佳阻尼比_3_L2b002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "最佳阻尼比|开环增益|new",
+      "sourceId": "最佳阻尼比_3_L2b002",
+      "targetId": "开环增益_3_d73dc120",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.85
+    },
+    {
+      "id": "三域直觉联动|极点迁移|new",
+      "sourceId": "三域直觉联动_5_L2c005",
+      "targetId": "极点迁移_4_L2b001",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16250",
+      "sourceId": "三域联动操作体验_5_L2d001",
+      "targetId": "三域直觉联动_5_L2c005",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
+    },
+    {
+      "id": "rt-16251",
+      "sourceId": "临界增益体验_5_L2d002",
+      "targetId": "三域联动操作体验_5_L2d001",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
+    },
+    {
+      "id": "rt-16252",
+      "sourceId": "三域联动操作体验_5_L2d001",
+      "targetId": "临界增益体验_5_L2d002",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
+    },
+    {
+      "id": "动态性能指标|复平面可行域|new",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "阻尼比|复平面可行域|new",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.92
+    },
+    {
+      "id": "调节时间|复平面可行域|new",
+      "sourceId": "调节时间_10_fcbccf4e",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.92
+    },
+    {
+      "id": "极点迁移|复平面可行域|new",
+      "sourceId": "极点迁移_4_L2b001",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.88
+    },
+    {
+      "id": "复平面可行域|时域响应包络|new",
+      "sourceId": "复平面可行域_4_Lsum001",
+      "targetId": "时域响应包络_3_Lsum002",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "复平面可行域|频域可行带|new",
+      "sourceId": "复平面可行域_4_Lsum001",
+      "targetId": "频域可行带_5_Lsum003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.88
+    },
+    {
+      "id": "复平面可行域|设计可行域|new",
+      "sourceId": "复平面可行域_4_Lsum001",
+      "targetId": "设计可行域_4_Lsum004",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "三域直觉联动|设计可行域|new",
+      "sourceId": "三域直觉联动_5_L2c005",
+      "targetId": "设计可行域_4_Lsum004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.85
+    }
+  ]
+}

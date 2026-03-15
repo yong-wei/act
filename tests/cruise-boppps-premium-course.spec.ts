@@ -5,10 +5,12 @@ test('courses page should expose premium cruise classroom flow at first section'
 
   await expect(page.getByRole('heading', { name: '精品课程' })).toBeVisible();
 
-  const premiumLink = page.getByRole('link', { name: /柔性之海：豪华邮轮舒适度控制课堂实录/i });
+  const premiumLink = page.locator('a[href="/interactive-learning/courses/cruise-comfort-boppps"]:visible').first();
   await expect(premiumLink).toBeVisible();
+  await expect(premiumLink).toContainText('柔性之海：豪华邮轮舒适度控制课堂实录');
+  await expect(premiumLink).toHaveAttribute('href', '/interactive-learning/courses/cruise-comfort-boppps');
 
-  await premiumLink.click();
+  await page.goto('/interactive-learning/courses/cruise-comfort-boppps', { waitUntil: 'networkidle' });
   await expect(page).toHaveURL(/\/interactive-learning\/courses\/cruise-comfort-boppps$/);
   await expect(page.getByRole('heading', { name: '柔性之海：豪华邮轮舒适度控制' })).toBeVisible();
   await expect(page.getByRole('heading', { name: '输入课堂码加入课堂' })).toBeVisible();

@@ -1,10 +1,22 @@
+import argparse
+from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
-import os
 
-os.makedirs(os.path.join(os.path.dirname(__file__), '..', 'processed'), exist_ok=True)
-out_path = os.path.join(os.path.dirname(__file__), '..', 'processed', 'h-06-bode-feasible-band.svg')
+from matplotlib_font import configure_matplotlib_for_cjk
+
+
+def resolve_output_path() -> Path:
+    default_output = Path(__file__).resolve().parent.parent / 'processed' / 'h-06-bode-feasible-band.svg'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--output', default=str(default_output))
+    return Path(parser.parse_args().output)
+
+
+out_path = resolve_output_path()
+out_path.parent.mkdir(parents=True, exist_ok=True)
+configure_matplotlib_for_cjk()
 
 fig, ax = plt.subplots(figsize=(7, 4))
 omega = np.logspace(-1.5, 1.2, 500)

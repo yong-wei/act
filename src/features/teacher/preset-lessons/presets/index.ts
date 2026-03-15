@@ -25,6 +25,7 @@ import { L2A_TIME_DOMAIN_FASTTRACK_PRESET } from './l2a-time-domain-fasttrack';
 import { L2B_ROOT_LOCUS_FASTTRACK_PRESET } from './l2b-root-locus-fasttrack';
 import { L2C_FREQUENCY_BODE_FASTTRACK_PRESET } from './l2c-frequency-bode-fasttrack';
 import { L2D_THREE_DOMAIN_LINKAGE_PRACTICE_PRESET } from './l2d-three-domain-linkage-practice';
+import { LSUM_DESIGN_FEASIBLE_DOMAIN_PRESET } from './lsum-design-feasible-domain';
 
 export {
   LESSON_01_FEEDBACK_PRESET,
@@ -50,6 +51,7 @@ export {
   L2B_ROOT_LOCUS_FASTTRACK_PRESET,
   L2C_FREQUENCY_BODE_FASTTRACK_PRESET,
   L2D_THREE_DOMAIN_LINKAGE_PRACTICE_PRESET,
+  LSUM_DESIGN_FEASIBLE_DOMAIN_PRESET,
 };
 
 export const ALL_PRESETS = [
@@ -76,4 +78,5 @@ export const ALL_PRESETS = [
   L2B_ROOT_LOCUS_FASTTRACK_PRESET,
   L2C_FREQUENCY_BODE_FASTTRACK_PRESET,
   L2D_THREE_DOMAIN_LINKAGE_PRACTICE_PRESET,
+  LSUM_DESIGN_FEASIBLE_DOMAIN_PRESET,
 ];

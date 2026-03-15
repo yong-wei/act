@@ -7,7 +7,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-03-14
+📅 **最后更新**：2026-03-15
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 ⚡ **首页与仿真加载优化（2026-03-02）**：首页船模改为“截图优先 + 3D 后台懒加载”，移除首屏一次性预加载全部 7 个 GLB（约 125MB）策略，改为按轮播仅预热“当前 + 下一”模型；仿真页改为“场景先渲染、船模独立 Suspense 加载”，在船模解析期间显示“模型加载中”占位动画，避免黑屏等待
 🧰 **首页模型策略开关（2026-03-03）**：新增平台级配置 `PlatformSetting` 与管理接口 `/api/admin/platform-settings`、公开读取接口 `/api/platform/settings`；管理员可在 `/admin/config` 切换“首页动态模型渲染”，首页根据开关在静态截图与动态 3D 预览间切换
@@ -35,6 +35,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 🧾 **L-2b 讲义 PDF 服务端导出（2026-03-14）**：弃用首页讲义入口此前依赖 `window.print()` 的前端导出方式，新增 `/interactive-learning/lessons/[lessonId]/handout-print` 服务端讲义打印页与 `/api/course-runtime/lessons/[lessonId]/handout-pdf` 下载接口；当前由服务端使用 Playwright/Chromium 渲染 runtime 讲义并生成 PDF，前端仅负责触发下载，从而避免用户浏览器打印能力差异导致的空白页或无文件产出
 📡 **L-2c 频域直觉课首轮落地（2026-03-14）**：新增 L-2c「频域直觉速通 · Bode图与相位裕度初识」精品互动课，完成 `course-content/authoring -> runtime` 导出、17 步课堂配置、首页 runtime 导学、页内 AI 助手、选择题/文本题教师汇总、步骤知识卡抽屉与教师/学生双端课堂页；同时将首页知识图/讲义/PDF 模块提炼为共享 `LessonEntryRuntimeSections`，供 L-2b/L-2c 统一复用，并补做浏览器级验收与共享知识卡链路的主题语义化收口，继续明确拒绝旧式颜色硬编码
 🧪 **L-2d 三域联动实践课已接入验收链路（2026-03-14）**：`L-2d`「三域联动探索 · 平台操作初体验」现已完成 `practice-guide.md -> runtime/handout.md` 导出、14 步课堂配置、首页 runtime 导学、三面板联动工作区、任务一/二/三即时评分、步骤知识卡抽屉与教师/学生双端课堂页；同时补齐 `test-l2d-*` 定向验证脚本，并修复 runtime 导出测试在 ESM 执行下的路径兼容问题
+🧭 **L-sum 设计可行域课同步闭环落地（2026-03-15）**：`L-sum`「设计可行域——让约束成为指南针」在正式课堂框架基础上，本轮继续接入真实 `/api/session` 会话读取与步骤推进、教师端 `teacher:course-sync` 广播、学生端 `student:lsum:state` 持久化、首次对齐/不同步提示、课堂结束态提示，并修复课程总入口的精品课程过滤链路，使 `L-sum` 正式出现在 `/interactive-learning/courses` 的精品课程区；同时新增 `tests/lsum-premium-course.spec.ts` 与 `tests/lsum-live-classroom-sync.spec.ts` 浏览器回归，覆盖课程总入口卡片、demo 学生端知识卡抽屉/页内 AI、以及真实教师/学生双账号创建课堂、加入课堂、不同步跳转、前测释放与答案揭示链路；入口路由测试 `tests/interactive-learning-entry-routes.spec.ts` 也同步改为更稳的 `href + direct goto` 校验，避免 Next 开发态并行编译导致的伪失败；当前 `test-lsum-runtime-export.ts`、`test-lsum-course-registration.ts`、`test-lsum-step-knowledge-drawer.ts`、`test-lsum-assessment-controls.ts`、`test-lsum-teacher-session-sync.ts`、`test-lsum-student-session-sync.ts`、`npm run lint`、`npm run test`、`npm run build`、`npm run test:integration` 均已通过
 📦 **运行时资源外置部署（2026-03-12）**：`scripts/build.sh` 现在要求通过 `.dockerignore` 排除 `course-content/runtime`，镜像不再打包运行时课程资源；`scripts/remote-deploy.sh` 会使用 `rsync` 将本地 `course-content/runtime/` 同步到服务器 `/home/projects/act/course-content/runtime/`，并同步最新 `deploy/podman/deploy.sh` 到远端 `scripts/4-deploy.sh`，由 Podman 以只读挂载方式映射到容器内 `/app/course-content/runtime`
 
 ## 3. 核心功能模块
