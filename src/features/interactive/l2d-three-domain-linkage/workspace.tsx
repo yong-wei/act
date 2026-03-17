@@ -74,18 +74,25 @@ export type WorkspaceMetrics = {
   isStable: boolean;
 };
 
+export type WorkspaceParameterChange = {
+  gain: number;
+  source: 'slider' | 'root-locus';
+};
+
 export function L2DThreeDomainWorkspace({
   gain,
   onGainChange,
   readOnly = false,
   accentLabel,
   onMetricsChange,
+  onParameterChange,
 }: {
   gain: number;
   onGainChange: (gain: number) => void;
   readOnly?: boolean;
   accentLabel?: string;
   onMetricsChange?: (metrics: WorkspaceMetrics) => void;
+  onParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const [dragging, setDragging] = useState(false);
 
@@ -242,6 +249,10 @@ export function L2DThreeDomainWorkspace({
     }
     const nextGain = nearestGainFromPointer(event.clientX, event.clientY, event.currentTarget);
     onGainChange(nextGain);
+    onParameterChange?.({
+      gain: nextGain,
+      source: 'root-locus',
+    });
   };
 
   return (
@@ -279,7 +290,14 @@ export function L2DThreeDomainWorkspace({
             step="0.01"
             value={gain}
             disabled={readOnly}
-            onChange={(event) => onGainChange(Number(event.target.value))}
+            onChange={(event) => {
+              const nextGain = Number(event.target.value);
+              onGainChange(nextGain);
+              onParameterChange?.({
+                gain: nextGain,
+                source: 'slider',
+              });
+            }}
             className="mt-4 w-full accent-[hsl(var(--premium-tone-cyan-border))]"
           />
           <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">

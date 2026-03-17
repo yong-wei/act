@@ -9,6 +9,7 @@ interface UseInteractiveAIOptions {
   persona?: 'tutor' | 'critic' | 'analyst';
   contextData?: Record<string, unknown>;
   onMessage?: (message: AIMessage) => void;
+  onEvent?: (eventType: string, data?: Record<string, unknown>) => void;
 }
 
 /**
@@ -19,7 +20,7 @@ interface UseInteractiveAIOptions {
 export function useInteractiveAI(
   options: UseInteractiveAIOptions
 ): InteractiveAIContextValue {
-  const { config, persona = 'tutor', contextData, onMessage } = options;
+  const { config, persona = 'tutor', contextData, onMessage, onEvent } = options;
 
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [messages, setMessages] = useState<AIMessage[]>([]);
@@ -33,8 +34,17 @@ export function useInteractiveAI(
 
   // 切换面板
   const togglePanel = useCallback(() => {
-    setIsPanelOpen((prev) => !prev);
-  }, []);
+    setIsPanelOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        onEvent?.('ai_panel_open', {
+          resourceKey: config.resourceId,
+          resourceId: config.resourceId,
+        });
+      }
+      return next;
+    });
+  }, [config.resourceId, onEvent]);
 
   // 发送消息
   const sendMessage = useCallback(async (content: string): Promise<string> => {
@@ -57,6 +67,11 @@ export function useInteractiveAI(
     };
     setMessages((prev) => [...prev, userMessage]);
     onMessage?.(userMessage);
+    onEvent?.('ai_query_submit', {
+      question: content,
+      resourceKey: config.resourceId,
+      resourceId: config.resourceId,
+    });
 
     setIsLoading(true);
     setError(null);
@@ -134,7 +149,7 @@ export function useInteractiveAI(
     } finally {
       setIsLoading(false);
     }
-  }, [isEnabled, config, persona, contextData, onMessage]);
+  }, [isEnabled, config, persona, contextData, onMessage, onEvent]);
 
   return {
     isEnabled,

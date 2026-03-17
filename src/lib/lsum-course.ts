@@ -1,5 +1,7 @@
 import type { BopppsStage } from '@prisma/client';
 
+import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
+
 export type LSUMStageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
 export type LSUMPageType = 'display' | 'quiz' | 'form' | 'ai' | 'summary';
 
@@ -34,8 +36,33 @@ export interface LSUMTeacherCourseSyncState {
   updatedAt: number;
 }
 
+export interface LSUMTeacherSyncInput {
+  activeStepId: string;
+  revealedAnswers: Record<string, boolean>;
+  releasedActivities: Record<string, boolean>;
+  updatedAt?: number;
+  [key: string]: unknown;
+}
+
+export interface LSUMTeacherSyncPostGateInput {
+  loadingSession: boolean;
+  teacherViewHydrated: boolean;
+}
+
+export interface LSUMTeacherFinalizeInput {
+  finishSession: () => Promise<void>;
+  trackSessionFinalize: (data: { currentStepId: string }) => void;
+  currentStepId: string;
+}
+
 export const LSUM_ROUTE_SEGMENT = 'lsum-design-feasible-domain';
 export const LSUM_PRESET_KEY = 'lsum-design-feasible-domain-v1';
+export const LSUM_RESOURCE_KEY = 'lsum-design-feasible-domain';
+export const LSUM_LESSON_KEY = LSUM_PRESET_KEY;
+export const LSUM_STUDENT_ITEM_ID = 'student:lsum:state';
+export const LSUM_TEACHER_SYNC_ITEM_ID = 'teacher:course-sync';
+export const LSUM_STUDENT_STATE_KEY = 'course';
+export const LSUM_TEACHER_STATE_KEY = 'teacher-sync';
 export const LSUM_COURSE_TITLE = 'L-sum：设计可行域——让约束成为指南针';
 export const LSUM_COURSE_SUBTITLE = 'Design Feasible Domain';
 export const LSUM_COURSE_DESCRIPTION =
@@ -112,4 +139,66 @@ const LSUM_MEDIA_BY_STEP_ID: Record<string, string> = {
 
 export function getLSUMMediaSrc(stepId: string) {
   return LSUM_MEDIA_BY_STEP_ID[stepId] ?? null;
+}
+
+export function isLSUMStudentState(value: unknown): value is LSUMStudentCourseState {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const data = value as Partial<LSUMStudentCourseState>;
+  return data.kind === 'lsum_student_state' && data.version === 1;
+}
+
+export function isLSUMTeacherSyncState(value: unknown): value is LSUMTeacherCourseSyncState {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const data = value as Partial<LSUMTeacherCourseSyncState>;
+  return data.kind === 'teacher_sync_lsum' && typeof data.activeStepId === 'string';
+}
+
+export const LSUM_SESSION_ADAPTER: LessonSessionAdapter<
+  LSUMStudentCourseState,
+  LSUMTeacherCourseSyncState,
+  LSUMTeacherSyncInput
+> = {
+  lessonKey: LSUM_LESSON_KEY,
+  studentItemId: LSUM_STUDENT_ITEM_ID,
+  teacherItemId: LSUM_TEACHER_SYNC_ITEM_ID,
+  studentStateKey: 'course',
+  teacherStateKey: 'teacher-sync',
+  createEmptyStudentState: createEmptyLSUMStudentState,
+  isStudentState: isLSUMStudentState,
+  isTeacherSyncState: isLSUMTeacherSyncState,
+  buildTeacherSyncPayload(input) {
+    return {
+      kind: 'teacher_sync_lsum',
+      activeStepId: input.activeStepId,
+      revealedAnswers: input.revealedAnswers,
+      releasedActivities: input.releasedActivities,
+      updatedAt: input.updatedAt ?? Date.now(),
+    };
+  },
+};
+
+export function shouldPostLSUMTeacherSync(input: LSUMTeacherSyncPostGateInput) {
+  return !input.loadingSession && input.teacherViewHydrated;
+}
+
+export function resolveLSUMTeacherSyncDraft(input: {
+  localRevealedAnswers: Record<string, boolean> | null;
+  localReleasedActivities: Record<string, boolean> | null;
+  teacherSyncState: LSUMTeacherCourseSyncState | null;
+}) {
+  return {
+    revealedAnswers: input.localRevealedAnswers ?? input.teacherSyncState?.revealedAnswers ?? {},
+    releasedActivities: input.localReleasedActivities ?? input.teacherSyncState?.releasedActivities ?? {},
+  };
+}
+
+export async function finalizeLSUMTeacherSession(input: LSUMTeacherFinalizeInput) {
+  await input.finishSession();
+  input.trackSessionFinalize({
+    currentStepId: input.currentStepId,
+  });
 }

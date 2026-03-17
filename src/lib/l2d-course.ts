@@ -1,5 +1,7 @@
 import type { BopppsStage } from '@prisma/client';
 
+import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
+
 export type L2DStageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
 export type L2DPageType = 'display' | 'quiz' | 'workspace' | 'reflection' | 'summary';
 export type L2DTone = 'cyan' | 'sky' | 'emerald' | 'amber' | 'violet' | 'rose' | 'slate' | 'orange';
@@ -108,6 +110,35 @@ export interface L2DStudentCourseState {
   updatedAt: number;
 }
 
+export interface L2DTeacherSyncState {
+  kind: 'teacher_sync_l2d';
+  activeStepId: string;
+  revealedAnswers: Record<string, boolean>;
+  updatedAt: number;
+}
+
+export interface L2DTeacherSyncInput {
+  activeStepId: string;
+  revealedAnswers: Record<string, boolean>;
+  updatedAt?: number;
+  [key: string]: unknown;
+}
+
+export interface L2DStudentFrozenSummaryResult {
+  courseState?: L2DStudentCourseState | null;
+}
+
+export interface L2DTeacherSyncPostGateInput {
+  loadingSession: boolean;
+  teacherViewHydrated: boolean;
+}
+
+export interface L2DTeacherFinalizeInput {
+  finishSession: () => Promise<void>;
+  trackSessionFinalize: (data: { currentStepId: string }) => void;
+  currentStepId: string;
+}
+
 const EMPTY_ACTIVITY: L2DActivity = { kind: 'none' };
 
 function createStep(config: {
@@ -152,6 +183,12 @@ function createStep(config: {
 
 export const L2D_ROUTE_SEGMENT = 'l2d-three-domain-linkage-practice';
 export const L2D_PRESET_KEY = 'l2d-three-domain-linkage-practice-v1';
+export const L2D_RESOURCE_KEY = 'l2d-three-domain-linkage-practice';
+export const L2D_LESSON_KEY = L2D_PRESET_KEY;
+export const L2D_STUDENT_ITEM_ID = 'student:l2d:state';
+export const L2D_TEACHER_SYNC_ITEM_ID = 'teacher:course-sync';
+export const L2D_STUDENT_STATE_KEY = 'course';
+export const L2D_TEACHER_STATE_KEY = 'teacher-sync';
 export const L2D_COURSE_TITLE = 'L-2d：三域联动探索 · 平台操作初体验';
 export const L2D_COURSE_SUBTITLE = 'Three-Domain Practice Studio';
 export const L2D_COURSE_DESCRIPTION =
@@ -524,6 +561,78 @@ export function createEmptyL2DStudentState(studentName: string): L2DStudentCours
     taskTwoRows: {},
     updatedAt: Date.now(),
   };
+}
+
+export function isL2DStudentState(value: unknown): value is L2DStudentCourseState {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const data = value as Partial<L2DStudentCourseState>;
+  return data.kind === 'l2d_student_state' && data.version === 1;
+}
+
+export function isL2DTeacherSyncState(value: unknown): value is L2DTeacherSyncState {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const data = value as Partial<L2DTeacherSyncState>;
+  return data.kind === 'teacher_sync_l2d' && typeof data.activeStepId === 'string';
+}
+
+export const L2D_SESSION_ADAPTER: LessonSessionAdapter<
+  L2DStudentCourseState,
+  L2DTeacherSyncState,
+  L2DTeacherSyncInput
+> = {
+  lessonKey: L2D_LESSON_KEY,
+  studentItemId: L2D_STUDENT_ITEM_ID,
+  teacherItemId: L2D_TEACHER_SYNC_ITEM_ID,
+  studentStateKey: 'course',
+  teacherStateKey: 'teacher-sync',
+  createEmptyStudentState: createEmptyL2DStudentState,
+  isStudentState: isL2DStudentState,
+  isTeacherSyncState: isL2DTeacherSyncState,
+  buildTeacherSyncPayload(input) {
+    return {
+      kind: 'teacher_sync_l2d',
+      activeStepId: input.activeStepId,
+      revealedAnswers: input.revealedAnswers,
+      updatedAt: input.updatedAt ?? Date.now(),
+    };
+  },
+};
+
+export function buildL2DAttemptKey(input: {
+  stepId: string;
+  submissionKey: string;
+  submittedAt?: number;
+}) {
+  return `${input.stepId}:${input.submissionKey}:${input.submittedAt ?? Date.now()}`;
+}
+
+export function resolveL2DStudentSummaryCourseState(input: {
+  frozenSummary?: L2DStudentFrozenSummaryResult | null;
+  fallbackState: L2DStudentCourseState;
+}) {
+  return input.frozenSummary?.courseState ?? input.fallbackState;
+}
+
+export function shouldPostL2DTeacherSync(input: L2DTeacherSyncPostGateInput) {
+  return !input.loadingSession && input.teacherViewHydrated;
+}
+
+export function resolveL2DTeacherRevealedAnswers(input: {
+  localRevealedAnswers: Record<string, boolean> | null;
+  teacherSyncState: L2DTeacherSyncState | null;
+}) {
+  return input.localRevealedAnswers ?? input.teacherSyncState?.revealedAnswers ?? {};
+}
+
+export async function finalizeL2DTeacherSession(input: L2DTeacherFinalizeInput) {
+  await input.finishSession();
+  input.trackSessionFinalize({
+    currentStepId: input.currentStepId,
+  });
 }
 
 export function getL2DStep(stepId: string) {

@@ -1167,8 +1167,10 @@ export function LSUMStudentSummaryPanel({
 
 export function LSUMStepAiAssistant({
   step,
+  onAiEvent,
 }: {
   step: LSUMStepDefinition;
+  onAiEvent?: (eventType: string, data?: Record<string, unknown>) => void;
 }) {
   const prompts = getAiPrompts(step);
   const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
@@ -1179,6 +1181,7 @@ export function LSUMStepAiAssistant({
       stepId: step.id,
       prompts,
     },
+    onEvent: onAiEvent,
   });
 
   useEffect(() => {

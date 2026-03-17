@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import type { ClassroomInteractionEventInput } from '@/lib/classroom-analytics/types';
+
+function toDateTime(value: number | string | null | undefined): Date | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return new Date(value);
+  }
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+  return null;
+}
 
 /**
  * POST /api/interactive/events
@@ -23,9 +37,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 验证并过滤事件
-    const validEvents = events.filter((event) => {
+    const validEvents = (events as ClassroomInteractionEventInput[]).filter((event) => {
       return (
-        event.resourceId &&
+        (event.resourceKey || event.resourceId) &&
         event.type &&
         typeof event.timestamp === 'number'
       );
@@ -39,10 +53,16 @@ export async function POST(request: NextRequest) {
     const created = await prisma.interactionLog.createMany({
       data: validEvents.map((event) => ({
         userId: session.user.id,
-        resourceId: event.resourceId,
+        resourceId: event.resourceId || null,
+        resourceKey: event.resourceKey ?? event.resourceId ?? '__missing_resource_key__',
         sessionId: event.sessionId || null,
+        lessonKey: event.lessonKey || null,
+        stepId: event.stepId || null,
+        actorRole: event.actorRole || null,
+        attemptKey: event.attemptKey || null,
         eventType: event.type,
-        eventData: event.data || {},
+        eventData: (event.data || {}) as unknown as import('@prisma/client').Prisma.InputJsonValue,
+        clientEventAt: toDateTime(event.clientEventAt ?? event.timestamp),
       })),
       skipDuplicates: true,
     });
@@ -66,7 +86,8 @@ export async function POST(request: NextRequest) {
  * 查询资源的互动事件（教师端）
  *
  * Query params:
- * - resourceId: 资源 ID（必需）
+   * - resourceId: 资源 ID（可选）
+   * - resourceKey: 资源逻辑标识（可选，推荐）
  * - sessionId: 课堂会话 ID（可选）
  * - userId: 用户 ID（可选）
  * - eventType: 事件类型（可选）
@@ -84,17 +105,26 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const resourceId = searchParams.get('resourceId');
+    const resourceKey = searchParams.get('resourceKey');
     const sessionId = searchParams.get('sessionId');
     const userId = searchParams.get('userId');
     const eventType = searchParams.get('eventType');
     const limit = parseInt(searchParams.get('limit') || '100', 10);
 
-    if (!resourceId) {
-      return NextResponse.json({ error: 'resourceId is required' }, { status: 400 });
+    if (!resourceId && !resourceKey) {
+      return NextResponse.json({ error: 'resourceId or resourceKey is required' }, { status: 400 });
     }
 
     // 构建查询条件
-    const where: Record<string, unknown> = { resourceId };
+    const where: Record<string, unknown> = {};
+
+    if (resourceId) {
+      where.resourceId = resourceId;
+    }
+
+    if (resourceKey) {
+      where.resourceKey = resourceKey;
+    }
 
     if (sessionId) {
       where.sessionId = sessionId;

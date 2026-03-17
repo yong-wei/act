@@ -6,39 +6,33 @@ import { ChevronDown, ChevronUp, Loader2, Users } from 'lucide-react';
 
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
+  finalizeL2DTeacherSession,
+  isL2DTeacherSyncState,
+  L2D_LESSON_KEY,
   L2D_LESSON_STEPS,
+  L2D_RESOURCE_KEY,
+  resolveL2DTeacherRevealedAnswers,
+  L2D_SESSION_ADAPTER,
   L2D_STAGE_MAP,
+  shouldPostL2DTeacherSync,
   type L2DStudentCourseState,
 } from '@/lib/l2d-course';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
+import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
+import { useCourseEventTracking, useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { L2DCourseHeader } from './course-header';
 import { L2DStepContentPanel, L2DKnowledgeMapVisual, L2DTeacherActivitySummary } from './step-panels';
-import { L2DThreeDomainWorkspace } from './workspace';
+import { L2DThreeDomainWorkspace, type WorkspaceParameterChange } from './workspace';
 
-interface TeacherSessionInfo {
-  id: string;
-  joinCode: string;
-  status: 'ACTIVE' | 'PAUSED' | 'FINISHED';
-  classId: string | null;
-  currentItemId: string | null;
-  planTitle?: string;
-}
+function areRevealedAnswersEqual(left: Record<string, boolean>, right: Record<string, boolean>) {
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  if (leftKeys.length !== rightKeys.length) {
+    return false;
+  }
 
-interface SessionStateRecord {
-  itemId: string | null;
-  data: unknown;
-  user?: {
-    id: string;
-    name: string | null;
-  };
-}
-
-interface TeacherCourseSyncState {
-  kind: 'teacher_sync_l2d';
-  activeStepId: string;
-  revealedAnswers: Record<string, boolean>;
-  updatedAt: number;
+  return leftKeys.every((key) => left[key] === right[key]);
 }
 
 export function L2DTeacherPage({
@@ -49,126 +43,112 @@ export function L2DTeacherPage({
   lessonRuntime: RuntimeLessonEntryBundle;
 }) {
   const router = useRouter();
-  const [loadingSession, setLoadingSession] = useState(true);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [sessionInfo, setSessionInfo] = useState<TeacherSessionInfo | null>(null);
-  const [stateRecords, setStateRecords] = useState<SessionStateRecord[]>([]);
-  const [syncError, setSyncError] = useState<string | null>(null);
   const [endingSession, setEndingSession] = useState(false);
   const [showStudentList, setShowStudentList] = useState(false);
-  const [revealedAnswers, setRevealedAnswers] = useState<Record<string, boolean>>({});
+  const [localRevealedAnswers, setLocalRevealedAnswers] = useState<Record<string, boolean> | null>(null);
   const [workspaceGain, setWorkspaceGain] = useState(1);
-  const initializedStepRef = useRef(false);
-  const pendingStepIdRef = useRef<string | null>(null);
 
-  const step = L2D_LESSON_STEPS[activeIndex];
+  const interactiveTracking = useInteractiveTracking({
+    resourceId: L2D_RESOURCE_KEY,
+    resourceKey: L2D_RESOURCE_KEY,
+    sessionId,
+  });
 
-  const fetchSession = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/session/${sessionId}`);
-      const data = (await response.json()) as TeacherSessionInfo & { error?: string };
-      if (!response.ok) {
-        throw new Error(data.error || '课堂不存在');
-      }
-      setSessionInfo(data);
-      const index = data.currentItemId ? L2D_LESSON_STEPS.findIndex((item) => item.id === data.currentItemId) : -1;
-      if (!initializedStepRef.current) {
-        if (index >= 0) {
-          setActiveIndex(index);
-        }
-        initializedStepRef.current = true;
-        pendingStepIdRef.current = null;
-      } else if (index >= 0 && pendingStepIdRef.current === L2D_LESSON_STEPS[index].id) {
-        pendingStepIdRef.current = null;
-      }
-      setLoadingSession(false);
-    } catch (error) {
-      setSyncError(error instanceof Error ? error.message : '课堂读取失败');
-      setLoadingSession(false);
-    }
-  }, [sessionId]);
+  const {
+    sessionInfo,
+    courseStates,
+    teacherStates,
+    activeIndex,
+    loadingSession,
+    error,
+    teacherViewHydrated,
+    patchCurrentStep,
+    postTeacherSyncInput,
+    finishSession,
+  } = useTeacherLessonSession({
+    sessionId,
+    steps: L2D_LESSON_STEPS,
+    adapter: L2D_SESSION_ADAPTER,
+  });
 
-  const fetchStates = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/session/${sessionId}/state`);
-      if (!response.ok) {
-        return;
-      }
-      const data = (await response.json()) as { states?: SessionStateRecord[] };
-      setStateRecords(data.states ?? []);
-    } catch {
-      // ignore
-    }
-  }, [sessionId]);
+  const {
+    trackSessionFinalize,
+    trackStepLeave,
+    trackStepView,
+    trackSyncError,
+    trackWorkspaceParamChange,
+  } = useCourseEventTracking({
+    resourceKey: L2D_RESOURCE_KEY,
+    resourceId: L2D_RESOURCE_KEY,
+    sessionId,
+    lessonKey: L2D_LESSON_KEY,
+    actorRole: 'teacher',
+    emit: interactiveTracking.emit,
+  });
 
-  useEffect(() => {
-    void fetchSession();
-    void fetchStates();
-  }, [fetchSession, fetchStates]);
+  const step = L2D_LESSON_STEPS[activeIndex] ?? L2D_LESSON_STEPS[0];
+  const previousStepIdRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      void fetchSession();
-      void fetchStates();
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, [fetchSession, fetchStates]);
+  const teacherSyncState = useMemo(() => {
+    const latestRecord = [...teacherStates].reverse().find((record) => isL2DTeacherSyncState(record.data));
+    return latestRecord && isL2DTeacherSyncState(latestRecord.data) ? latestRecord.data : null;
+  }, [teacherStates]);
 
-  const patchCurrentStep = useCallback(
-    async (nextIndex: number) => {
-      const nextStep = L2D_LESSON_STEPS[nextIndex];
-      const previousIndex = activeIndex;
-      setActiveIndex(nextIndex);
-      setSyncError(null);
-      pendingStepIdRef.current = nextStep.id;
-      try {
-        const response = await fetch(`/api/session/${sessionId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            currentItemId: nextStep.id,
-            currentStage: L2D_STAGE_MAP[nextStep.stage],
-          }),
-        });
-
-        if (!response.ok) {
-          const data = (await response.json()) as { error?: string };
-          throw new Error(data.error || '课堂推进失败');
-        }
-      } catch (error) {
-        pendingStepIdRef.current = null;
-        setActiveIndex(previousIndex);
-        setSyncError(error instanceof Error ? error.message : '课堂推进失败');
-      }
-    },
-    [activeIndex, sessionId],
+  const revealedAnswers = useMemo(
+    () =>
+      resolveL2DTeacherRevealedAnswers({
+        localRevealedAnswers,
+        teacherSyncState,
+      }),
+    [localRevealedAnswers, teacherSyncState],
   );
 
-  const postTeacherSyncState = useCallback(async () => {
-    await fetch(`/api/session/${sessionId}/state`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        itemId: 'teacher:course-sync',
-        data: {
-          kind: 'teacher_sync_l2d',
-          activeStepId: step.id,
-          revealedAnswers,
-          updatedAt: Date.now(),
-        } satisfies TeacherCourseSyncState,
-      }),
+  useEffect(() => {
+    if (loadingSession) {
+      return;
+    }
+
+    const previousStepId = previousStepIdRef.current;
+    if (previousStepId && previousStepId !== step.id) {
+      trackStepLeave(previousStepId, {
+        nextStepId: step.id,
+      });
+    }
+
+    trackStepView(step.id, {
+      pageType: step.pageType,
+      stepIndex: activeIndex,
     });
-  }, [revealedAnswers, sessionId, step.id]);
+    previousStepIdRef.current = step.id;
+  }, [activeIndex, loadingSession, step.id, step.pageType, trackStepLeave, trackStepView]);
 
   useEffect(() => {
-    void postTeacherSyncState();
-  }, [postTeacherSyncState]);
+    if (!error) {
+      return;
+    }
+
+    trackSyncError(step.id, {
+      message: error,
+      scope: 'teacher-page',
+    });
+  }, [error, step.id, trackSyncError]);
+
+  useEffect(() => {
+    if (!shouldPostL2DTeacherSync({ loadingSession, teacherViewHydrated })) {
+      return;
+    }
+
+    void postTeacherSyncInput({
+      activeStepId: step.id,
+      revealedAnswers,
+    });
+  }, [loadingSession, postTeacherSyncInput, revealedAnswers, step.id, teacherViewHydrated]);
 
   const studentStates = useMemo(() => {
-    return stateRecords
+    return courseStates
       .map((record) => {
         const data = record.data as Partial<L2DStudentCourseState> | null;
-        if (record.itemId !== 'student:l2d:state' || data?.kind !== 'l2d_student_state') {
+        if (data?.kind !== 'l2d_student_state') {
           return null;
         }
 
@@ -178,12 +158,33 @@ export function L2DTeacherPage({
         };
       })
       .filter(Boolean) as Array<{ studentName: string; state: L2DStudentCourseState }>;
-  }, [stateRecords]);
+  }, [courseStates]);
 
   const joinedStudents = useMemo(() => {
     const names = new Set(studentStates.map((item) => item.studentName));
     return Array.from(names);
   }, [studentStates]);
+
+  const handleStepChange = useCallback(
+    async (nextIndex: number) => {
+      const nextStep = L2D_LESSON_STEPS[nextIndex];
+      await patchCurrentStep(nextIndex, {
+        currentItemId: nextStep.id,
+        currentStage: L2D_STAGE_MAP[nextStep.stage],
+      });
+    },
+    [patchCurrentStep],
+  );
+
+  const handleWorkspaceParameterChange = useCallback(
+    (change: WorkspaceParameterChange) => {
+      trackWorkspaceParamChange(step.id, {
+        gain: change.gain,
+        source: change.source,
+      });
+    },
+    [step.id, trackWorkspaceParamChange],
+  );
 
   const handleEndSession = useCallback(async () => {
     if (!sessionInfo) {
@@ -194,29 +195,22 @@ export function L2DTeacherPage({
     }
 
     setEndingSession(true);
-    setSyncError(null);
     try {
-      const response = await fetch(`/api/session/${sessionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'FINISHED' }),
+      await finalizeL2DTeacherSession({
+        finishSession,
+        trackSessionFinalize,
+        currentStepId: step.id,
       });
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        throw new Error(data.error || '结束课堂失败');
-      }
-
       router.push(
         buildSessionEndReturnHref({
           classId: sessionInfo.classId,
           planTitle: sessionInfo.planTitle,
         }),
       );
-    } catch (error) {
-      setSyncError(error instanceof Error ? error.message : '结束课堂失败');
+    } catch {
       setEndingSession(false);
     }
-  }, [router, sessionId, sessionInfo]);
+  }, [finishSession, router, sessionInfo, step.id, trackSessionFinalize]);
 
   if (loadingSession) {
     return (
@@ -231,7 +225,7 @@ export function L2DTeacherPage({
       <L2DCourseHeader
         steps={L2D_LESSON_STEPS}
         activeIndex={activeIndex}
-        onIndexChange={(index) => void patchCurrentStep(index)}
+        onIndexChange={(index) => void handleStepChange(index)}
         middleNotice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
         rightSlot={
           <StepKnowledgeDrawer
@@ -287,13 +281,11 @@ export function L2DTeacherPage({
           </div>
         </div>
 
-        {syncError ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{syncError}</div> : null}
+        {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
         {step.id === 'step-01' ? <L2DKnowledgeMapVisual /> : null}
 
-        <L2DStepContentPanel
-          content={step.teacher}
-        />
+        <L2DStepContentPanel content={step.teacher} />
 
         {step.pageType === 'workspace' ? (
           <div className="mt-4">
@@ -301,6 +293,7 @@ export function L2DTeacherPage({
               gain={workspaceGain}
               onGainChange={setWorkspaceGain}
               accentLabel={`教师示教 · ${step.observationId ?? '自由探索'}`}
+              onParameterChange={handleWorkspaceParameterChange}
             />
           </div>
         ) : null}
@@ -311,10 +304,14 @@ export function L2DTeacherPage({
             studentStates={studentStates}
             answerVisible={Boolean(revealedAnswers[step.id])}
             onToggleAnswerVisible={() =>
-              setRevealedAnswers((prev) => ({
-                ...prev,
-                [step.id]: !prev[step.id],
-              }))
+              setLocalRevealedAnswers((prev) => {
+                const baseAnswers = prev ?? revealedAnswers;
+                const nextAnswers = {
+                  ...baseAnswers,
+                  [step.id]: !baseAnswers[step.id],
+                };
+                return areRevealedAnswersEqual(baseAnswers, nextAnswers) ? baseAnswers : nextAnswers;
+              })
             }
           />
         </div>

@@ -6,14 +6,20 @@ import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
+import { useStudentLessonSession } from '@/features/interactive/session-framework';
+import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
+import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import {
   createEmptyLSUMStudentState,
   getLSUMMediaSrc,
   LSUM_LESSON_STEPS,
+  LSUM_SESSION_ADAPTER,
+  LSUM_RESOURCE_KEY,
+  LSUM_LESSON_KEY,
   type LSUMStudentCourseState,
   type LSUMStepResponse,
-  type LSUMTeacherCourseSyncState,
 } from '@/lib/lsum-course';
 import { LSUMCourseHeader } from './course-header';
 import {
@@ -23,33 +29,6 @@ import {
   LSUMStudentActivityForm,
   LSUMStudentSummaryPanel,
 } from './step-panels';
-
-interface StudentSessionInfo {
-  id: string;
-  status: 'ACTIVE' | 'PAUSED' | 'FINISHED';
-  currentItemId: string | null;
-}
-
-interface SessionStateRecord {
-  itemId: string | null;
-  data: unknown;
-  user?: {
-    id: string;
-    name: string | null;
-  };
-}
-
-function isLSUMStudentState(value: unknown): value is LSUMStudentCourseState {
-  if (!value || typeof value !== 'object') return false;
-  const data = value as Partial<LSUMStudentCourseState>;
-  return data.kind === 'lsum_student_state' && data.version === 1;
-}
-
-function isTeacherSyncState(value: unknown): value is LSUMTeacherCourseSyncState {
-  if (!value || typeof value !== 'object') return false;
-  const data = value as Partial<LSUMTeacherCourseSyncState>;
-  return data.kind === 'teacher_sync_lsum';
-}
 
 export function LSUMStudentPage({
   sessionId,
@@ -63,183 +42,120 @@ export function LSUMStudentPage({
   const demoStepId = searchParams.get('step');
   const { data: authSession } = useSession();
 
-  const [sessionInfo, setSessionInfo] = useState<StudentSessionInfo | null>(null);
-  const [loadingSession, setLoadingSession] = useState(!isDemo);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [teacherIndex, setTeacherIndex] = useState(0);
-  const [stateRecords, setStateRecords] = useState<SessionStateRecord[]>([]);
-  const [courseState, setCourseState] = useState<LSUMStudentCourseState>(() =>
-    createEmptyLSUMStudentState(authSession?.user?.name?.trim() || '学生'),
-  );
-  const [error, setError] = useState<string | null>(null);
-  const initialTeacherSyncRef = useRef(isDemo);
-  const initialPresenceSyncedRef = useRef(false);
-
   const currentStudentName = authSession?.user?.name?.trim() || '学生';
   const currentUserId = authSession?.user?.id;
 
-  const syncSession = useCallback(async () => {
-    if (isDemo) return;
-    try {
-      const response = await fetch(`/api/session/${sessionId}`);
-      const data = (await response.json()) as StudentSessionInfo & { error?: string };
-      if (!response.ok) {
-        throw new Error(data.error || '课堂读取失败');
-      }
+  // Unified tracking setup
+  const interactiveTracking = useInteractiveTracking({
+    resourceId: LSUM_RESOURCE_KEY,
+    resourceKey: LSUM_RESOURCE_KEY,
+    userId: currentUserId,
+    sessionId: isDemo ? undefined : sessionId,
+  });
 
-      setSessionInfo(data);
-      const index = data.currentItemId ? LSUM_LESSON_STEPS.findIndex((item) => item.id === data.currentItemId) : -1;
-      if (index >= 0) {
-        setTeacherIndex(index);
-        if (!initialTeacherSyncRef.current) {
-          setActiveIndex(index);
-          initialTeacherSyncRef.current = true;
-        }
-      } else if (!initialTeacherSyncRef.current) {
-        initialTeacherSyncRef.current = true;
-      }
-      setLoadingSession(false);
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : '课堂同步失败');
-      setLoadingSession(false);
-    }
-  }, [isDemo, sessionId]);
+  // Unified student session hook
+  const {
+    sessionInfo,
+    courseState,
+    teacherSyncState,
+    activeIndex,
+    teacherIndex,
+    loadingSession,
+    error,
+    isOutOfSync,
+    saveCourseState,
+  } = useStudentLessonSession({
+    sessionId,
+    steps: LSUM_LESSON_STEPS,
+    adapter: LSUM_SESSION_ADAPTER,
+    currentStudentName,
+    currentUserId,
+    isDemo,
+    demoStepId,
+  });
 
-  const syncStates = useCallback(async () => {
-    if (isDemo) return;
-    try {
-      const response = await fetch(`/api/session/${sessionId}/state?scope=student-view`);
-      if (!response.ok) {
-        return;
-      }
-      const data = (await response.json()) as { states?: SessionStateRecord[] };
-      setStateRecords(data.states ?? []);
-    } catch {
-      // ignore
-    }
-  }, [isDemo, sessionId]);
-
-  useEffect(() => {
-    if (isDemo) {
-      setLoadingSession(false);
-      const demoIndex = demoStepId ? LSUM_LESSON_STEPS.findIndex((item) => item.id === demoStepId) : -1;
-      const nextIndex = demoIndex >= 0 ? demoIndex : 0;
-      setActiveIndex(nextIndex);
-      setTeacherIndex(nextIndex);
-      initialTeacherSyncRef.current = true;
-      return;
-    }
-    void syncSession();
-    void syncStates();
-  }, [demoStepId, isDemo, syncSession, syncStates]);
-
-  useEffect(() => {
-    if (isDemo) return;
-    const timer = window.setInterval(() => {
-      void syncSession();
-      void syncStates();
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, [isDemo, syncSession, syncStates]);
-
-  useEffect(() => {
-    setCourseState((prev) => ({
-      ...prev,
-      studentName: currentStudentName,
-    }));
-  }, [currentStudentName]);
-
-  const selfState = useMemo(() => {
-    if (!currentUserId) {
-      return null;
-    }
-    const record = stateRecords.find((item) => item.user?.id === currentUserId && item.itemId === 'student:lsum:state');
-    return record && isLSUMStudentState(record.data) ? record.data : null;
-  }, [currentUserId, stateRecords]);
-
-  const teacherSyncRecord = useMemo(() => {
-    for (const record of stateRecords) {
-      if (record.itemId !== 'teacher:course-sync') {
-        continue;
-      }
-      if (isTeacherSyncState(record.data)) {
-        return record.data;
-      }
-    }
-    return null;
-  }, [stateRecords]);
-
-  useEffect(() => {
-    if (selfState) {
-      initialPresenceSyncedRef.current = true;
-      setCourseState(selfState);
-    }
-  }, [selfState]);
-
-  const persistState = useCallback(
-    async (nextState: LSUMStudentCourseState) => {
-      if (isDemo) {
-        return;
-      }
-      await fetch(`/api/session/${sessionId}/state`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          itemId: 'student:lsum:state',
-          data: {
-            ...nextState,
-            updatedAt: Date.now(),
-          },
-        }),
-      });
-    },
-    [isDemo, sessionId],
-  );
-
-  const saveCourseState = useCallback(
-    async (updater: (prev: LSUMStudentCourseState) => LSUMStudentCourseState) => {
-      setCourseState((prev) => {
-        const nextState = updater(prev);
-        void persistState(nextState);
-        return nextState;
-      });
-    },
-    [persistState],
-  );
-
-  useEffect(() => {
-    if (isDemo || loadingSession || !currentUserId || selfState || initialPresenceSyncedRef.current) {
-      return;
-    }
-
-    initialPresenceSyncedRef.current = true;
-    void persistState(createEmptyLSUMStudentState(currentStudentName));
-    void syncStates();
-  }, [currentStudentName, currentUserId, isDemo, loadingSession, persistState, selfState, syncStates]);
+  // Course event tracking
+  const { trackCourseEvent, trackStepLeave, trackStepView, trackSyncError } = useCourseEventTracking({
+    resourceKey: LSUM_RESOURCE_KEY,
+    resourceId: LSUM_RESOURCE_KEY,
+    sessionId: isDemo ? null : sessionId,
+    lessonKey: LSUM_LESSON_KEY,
+    actorRole: 'student',
+    emit: interactiveTracking.emit,
+  });
 
   const step = LSUM_LESSON_STEPS[activeIndex];
-  const isOutOfSync = !isDemo && teacherIndex !== activeIndex;
   const savedResponse = courseState.responses[step.id];
   const answerVisible =
-    teacherSyncRecord?.activeStepId === step.id ? Boolean(teacherSyncRecord.revealedAnswers?.[step.id]) : false;
+    teacherSyncState?.activeStepId === step.id
+      ? Boolean((teacherSyncState as { revealedAnswers?: Record<string, boolean> })?.revealedAnswers?.[step.id])
+      : false;
   const released =
     isDemo || step.pageType !== 'quiz'
       ? true
-      : teacherSyncRecord?.activeStepId === step.id
-        ? Boolean(teacherSyncRecord.releasedActivities?.[step.id])
+      : teacherSyncState?.activeStepId === step.id
+        ? Boolean((teacherSyncState as { releasedActivities?: Record<string, boolean> })?.releasedActivities?.[step.id])
         : false;
 
+  // Step view/leave tracking
+  const previousStepIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (loadingSession) return;
+    const previousStepId = previousStepIdRef.current;
+    if (previousStepId && previousStepId !== step.id) {
+      trackStepLeave(previousStepId, { nextStepId: step.id });
+    }
+    trackStepView(step.id, { pageType: step.pageType, stepIndex: activeIndex });
+    previousStepIdRef.current = step.id;
+  }, [activeIndex, loadingSession, step.id, step.pageType, trackStepLeave, trackStepView]);
+
+  // Error tracking
+  useEffect(() => {
+    if (!error) return;
+    trackSyncError(step.id, { message: error, scope: 'student-page' });
+  }, [error, step.id, trackSyncError]);
+
+  // Track submission helper
+  const trackSubmission = useCallback(
+    (input: { stepId: string; isResubmit: boolean; data?: Record<string, unknown> }) => {
+      const submittedAt = Date.now();
+      const attemptKey = `${input.stepId}:response:${submittedAt}`;
+      trackCourseEvent(
+        input.isResubmit ? COURSE_EVENT_TYPES.LESSON_RESUBMIT : COURSE_EVENT_TYPES.LESSON_SUBMIT,
+        { stepId: input.stepId, attemptKey, clientEventAt: submittedAt, data: input.data },
+      );
+      return submittedAt;
+    },
+    [trackCourseEvent],
+  );
+
   const handleSubmitResponse = (response: LSUMStepResponse) => {
-    void saveCourseState((prev) => ({
-      ...prev,
-      studentName: currentStudentName,
-      updatedAt: Date.now(),
-      responses: {
-        ...prev.responses,
-        [step.id]: response,
-      },
-    }));
+    const isResubmit = Boolean(savedResponse);
+    void saveCourseState((prev) => {
+      const nextState: LSUMStudentCourseState = {
+        ...prev,
+        studentName: currentStudentName,
+        updatedAt: Date.now(),
+        responses: {
+          ...prev.responses,
+          [step.id]: response,
+        },
+      };
+      trackSubmission({ stepId: step.id, isResubmit, data: { stepId: step.id } });
+      return nextState;
+    });
   };
+
+  // Handle AI events
+  const handleAiEvent = useCallback(
+    (eventType: string, data?: Record<string, unknown>) => {
+      trackCourseEvent(COURSE_EVENT_TYPES.AI_QUERY_SUBMIT, {
+        stepId: step.id,
+        data: { eventType, ...data },
+      });
+    },
+    [step.id, trackCourseEvent],
+  );
 
   if (loadingSession) {
     return (
@@ -265,7 +181,10 @@ export function LSUMStudentPage({
       <LSUMCourseHeader
         steps={LSUM_LESSON_STEPS}
         activeIndex={activeIndex}
-        onIndexChange={setActiveIndex}
+        onIndexChange={(index) => {
+          // Student can navigate freely but we track it
+          trackStepLeave(step.id, { nextStepId: LSUM_LESSON_STEPS[index]?.id });
+        }}
         middleNotice={isOutOfSync ? `当前页面与教师不同步，教师正在第 ${teacherIndex + 1} 页` : step.hint}
         rightSlot={
           <StepKnowledgeDrawer
@@ -283,7 +202,13 @@ export function LSUMStudentPage({
             <span>当前页面与教师不同步，点击可跳转到教师所在环节。</span>
             <button
               type="button"
-              onClick={() => setActiveIndex(teacherIndex)}
+              onClick={() => {
+                trackStepView(LSUM_LESSON_STEPS[teacherIndex]?.id, {
+                  pageType: LSUM_LESSON_STEPS[teacherIndex]?.pageType,
+                  stepIndex: teacherIndex,
+                  source: 'sync-to-teacher',
+                });
+              }}
               className="premium-lesson-action-tone premium-tone-amber"
             >
               跳到教师当前页
@@ -309,7 +234,7 @@ export function LSUMStudentPage({
 
         {step.pageType === 'ai' ? (
           <div className="mt-4">
-            <LSUMStepAiAssistant step={step} />
+            <LSUMStepAiAssistant step={step} onAiEvent={handleAiEvent} />
           </div>
         ) : null}
 

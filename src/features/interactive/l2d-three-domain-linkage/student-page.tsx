@@ -7,9 +7,13 @@ import { Loader2 } from 'lucide-react';
 
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
-  createEmptyL2DStudentState,
+  buildL2DAttemptKey,
   getCourseTotals,
+  L2D_LESSON_KEY,
   L2D_LESSON_STEPS,
+  L2D_RESOURCE_KEY,
+  L2D_SESSION_ADAPTER,
+  resolveL2DStudentSummaryCourseState,
   scoreReflection,
   scoreTaskOne,
   scoreTaskTwoRow,
@@ -18,38 +22,13 @@ import {
   type L2DTaskOneSubmission,
   type L2DTaskTwoRowSubmission,
 } from '@/lib/l2d-course';
+import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
+import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
+import { useCourseEventTracking, useStudentLessonSession } from '@/features/interactive/session-framework';
 import { L2DCourseHeader } from './course-header';
 import { L2DStepContentPanel, L2DKnowledgeMapVisual, L2DStudentActivityForm, L2DStudentSummaryPanel } from './step-panels';
-import { L2DThreeDomainWorkspace } from './workspace';
-
-interface StudentSessionInfo {
-  id: string;
-  status: 'ACTIVE' | 'PAUSED' | 'FINISHED';
-  currentItemId: string | null;
-}
-
-interface SessionStateRecord {
-  itemId: string | null;
-  data: unknown;
-  user?: {
-    id: string;
-    name: string | null;
-  };
-}
-
-interface TeacherCourseSyncState {
-  kind: 'teacher_sync_l2d';
-  activeStepId: string;
-  revealedAnswers: Record<string, boolean>;
-  updatedAt: number;
-}
-
-function isL2DStudentState(value: unknown): value is L2DStudentCourseState {
-  if (!value || typeof value !== 'object') return false;
-  const data = value as Partial<L2DStudentCourseState>;
-  return data.kind === 'l2d_student_state' && data.version === 1;
-}
+import { L2DThreeDomainWorkspace, type WorkspaceMetrics, type WorkspaceParameterChange } from './workspace';
 
 export function L2DStudentPage({
   sessionId,
@@ -63,16 +42,12 @@ export function L2DStudentPage({
   const demoStepId = searchParams.get('step');
   const { data: authSession } = useSession();
 
-  const [sessionInfo, setSessionInfo] = useState<StudentSessionInfo | null>(null);
-  const [loadingSession, setLoadingSession] = useState(!isDemo);
+  const currentStudentName = authSession?.user?.name?.trim() || '学生';
+  const currentUserId = authSession?.user?.id;
+
   const [activeIndex, setActiveIndex] = useState(0);
-  const [teacherIndex, setTeacherIndex] = useState(0);
-  const [stateRecords, setStateRecords] = useState<SessionStateRecord[]>([]);
-  const [courseState, setCourseState] = useState<L2DStudentCourseState>(() =>
-    createEmptyL2DStudentState(authSession?.user?.name?.trim() || '学生'),
-  );
   const [workspaceGain, setWorkspaceGain] = useState(1);
-  const [workspaceMetrics, setWorkspaceMetrics] = useState({
+  const [workspaceMetrics, setWorkspaceMetrics] = useState<WorkspaceMetrics>({
     gain: 1,
     sigma: -0.5,
     omega: 0.5,
@@ -81,148 +56,305 @@ export function L2DStudentPage({
     gamma: 60,
     isStable: true,
   });
-  const [error, setError] = useState<string | null>(null);
-  const initialTeacherSyncRef = useRef(isDemo);
 
-  const currentStudentName = authSession?.user?.name?.trim() || '学生';
-  const currentUserId = authSession?.user?.id;
+  const interactiveTracking = useInteractiveTracking({
+    resourceId: L2D_RESOURCE_KEY,
+    resourceKey: L2D_RESOURCE_KEY,
+    userId: currentUserId,
+    sessionId: isDemo ? undefined : sessionId,
+  });
 
-  const syncSession = useCallback(async () => {
-    if (isDemo) return;
-    try {
-      const response = await fetch(`/api/session/${sessionId}`);
-      const data = (await response.json()) as StudentSessionInfo & { error?: string };
-      if (!response.ok) {
-        throw new Error(data.error || '课堂读取失败');
-      }
-      setSessionInfo(data);
-      const index = data.currentItemId ? L2D_LESSON_STEPS.findIndex((item) => item.id === data.currentItemId) : -1;
-      if (index >= 0) {
-        setTeacherIndex(index);
-        if (!initialTeacherSyncRef.current) {
-          setActiveIndex(index);
-          initialTeacherSyncRef.current = true;
-        }
-      } else if (!initialTeacherSyncRef.current) {
-        initialTeacherSyncRef.current = true;
-      }
-      setLoadingSession(false);
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : '课堂同步失败');
-      setLoadingSession(false);
-    }
-  }, [isDemo, sessionId]);
+  const {
+    sessionInfo,
+    loadingSession,
+    error,
+    courseState,
+    teacherSyncState,
+    teacherIndex,
+    saveCourseState,
+  } = useStudentLessonSession({
+    sessionId,
+    steps: L2D_LESSON_STEPS,
+    adapter: L2D_SESSION_ADAPTER,
+    currentStudentName,
+    currentUserId,
+    isDemo,
+    demoStepId,
+  });
 
-  const syncStates = useCallback(async () => {
-    if (isDemo) return;
-    try {
-      const response = await fetch(`/api/session/${sessionId}/state?scope=student-view`);
-      if (!response.ok) {
-        return;
-      }
-      const data = (await response.json()) as { states?: SessionStateRecord[] };
-      setStateRecords(data.states ?? []);
-    } catch {
-      // ignore
-    }
-  }, [isDemo, sessionId]);
+  const {
+    trackCourseEvent,
+    trackStepLeave,
+    trackStepView,
+    trackSyncError,
+    trackWorkspaceParamChange,
+  } = useCourseEventTracking({
+    resourceKey: L2D_RESOURCE_KEY,
+    resourceId: L2D_RESOURCE_KEY,
+    sessionId: isDemo ? null : sessionId,
+    lessonKey: L2D_LESSON_KEY,
+    actorRole: 'student',
+    emit: interactiveTracking.emit,
+  });
+
+  const activeIndexInitializedRef = useRef(false);
+  const previousStepIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (isDemo) {
-      setLoadingSession(false);
-      const demoIndex = demoStepId ? L2D_LESSON_STEPS.findIndex((item) => item.id === demoStepId) : -1;
-      const nextIndex = demoIndex >= 0 ? demoIndex : 0;
-      setActiveIndex(nextIndex);
-      setTeacherIndex(nextIndex);
-      initialTeacherSyncRef.current = true;
+    if (!activeIndexInitializedRef.current || isDemo) {
+      setActiveIndex((prev) => {
+        if (prev === teacherIndex && activeIndexInitializedRef.current && !isDemo) {
+          return prev;
+        }
+        return teacherIndex;
+      });
+      activeIndexInitializedRef.current = true;
+    }
+  }, [isDemo, teacherIndex]);
+
+  const step = L2D_LESSON_STEPS[activeIndex] ?? L2D_LESSON_STEPS[0];
+  const isOutOfSync = !isDemo && teacherIndex !== activeIndex;
+  const answerVisible = teacherSyncState?.activeStepId === step.id ? Boolean(teacherSyncState.revealedAnswers?.[step.id]) : false;
+  const summaryCourseState = resolveL2DStudentSummaryCourseState({
+    frozenSummary: null,
+    fallbackState: courseState,
+  });
+
+  useEffect(() => {
+    if (loadingSession) {
       return;
     }
-    void syncSession();
-    void syncStates();
-  }, [demoStepId, isDemo, syncSession, syncStates]);
 
-  useEffect(() => {
-    if (isDemo) return;
-    const timer = window.setInterval(() => {
-      void syncSession();
-      void syncStates();
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, [isDemo, syncSession, syncStates]);
-
-  useEffect(() => {
-    setCourseState((prev) => ({
-      ...prev,
-      studentName: currentStudentName,
-    }));
-  }, [currentStudentName]);
-
-  const selfState = useMemo(() => {
-    if (!currentUserId) {
-      return null;
-    }
-    const record = stateRecords.find((item) => item.user?.id === currentUserId && item.itemId === 'student:l2d:state');
-    return record && isL2DStudentState(record.data) ? record.data : null;
-  }, [currentUserId, stateRecords]);
-
-  const teacherSyncRecord = useMemo(() => {
-    for (const record of stateRecords) {
-      if (record.itemId !== 'teacher:course-sync') {
-        continue;
-      }
-      const payload = record.data as Partial<TeacherCourseSyncState> | null;
-      if (payload?.kind === 'teacher_sync_l2d') {
-        return payload as TeacherCourseSyncState;
-      }
-    }
-    return null;
-  }, [stateRecords]);
-
-  useEffect(() => {
-    if (selfState) {
-      setCourseState(selfState);
-    }
-  }, [selfState]);
-
-  const persistState = useCallback(
-    async (nextState: L2DStudentCourseState) => {
-      if (isDemo) {
-        return;
-      }
-      await fetch(`/api/session/${sessionId}/state`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          itemId: 'student:l2d:state',
-          data: {
-            ...nextState,
-            updatedAt: Date.now(),
-          },
-        }),
+    const previousStepId = previousStepIdRef.current;
+    if (previousStepId && previousStepId !== step.id) {
+      trackStepLeave(previousStepId, {
+        nextStepId: step.id,
       });
-    },
-    [isDemo, sessionId],
-  );
+    }
 
-  const saveCourseState = useCallback(
-    async (updater: (prev: L2DStudentCourseState) => L2DStudentCourseState) => {
-      setCourseState((prev) => {
-        const nextState = updater(prev);
-        void persistState(nextState);
-        return nextState;
-      });
-    },
-    [persistState],
-  );
+    trackStepView(step.id, {
+      pageType: step.pageType,
+      stepIndex: activeIndex,
+    });
+    previousStepIdRef.current = step.id;
+  }, [activeIndex, loadingSession, step.id, step.pageType, trackStepLeave, trackStepView]);
 
-  const step = L2D_LESSON_STEPS[activeIndex];
-  const isOutOfSync = !isDemo && teacherIndex !== activeIndex;
-  const answerVisible = teacherSyncRecord?.activeStepId === step.id ? Boolean(teacherSyncRecord.revealedAnswers?.[step.id]) : false;
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
 
-  const updateWorkspaceMetrics = (metrics: typeof workspaceMetrics) => {
+    trackSyncError(step.id, {
+      message: error,
+      scope: 'student-page',
+    });
+  }, [error, step.id, trackSyncError]);
+
+  const updateWorkspaceMetrics = useCallback((metrics: WorkspaceMetrics) => {
     setWorkspaceGain(metrics.gain);
     setWorkspaceMetrics(metrics);
-  };
+  }, []);
+
+  const handleWorkspaceParameterChange = useCallback(
+    (change: WorkspaceParameterChange) => {
+      trackWorkspaceParamChange(step.id, {
+        gain: change.gain,
+        source: change.source,
+      });
+    },
+    [step.id, trackWorkspaceParamChange],
+  );
+
+  const trackSubmission = useCallback(
+    (input: {
+      stepId: string;
+      submissionKey: string;
+      isResubmit: boolean;
+      data?: Record<string, unknown>;
+    }) => {
+      const submittedAt = Date.now();
+      const attemptKey = buildL2DAttemptKey({
+        stepId: input.stepId,
+        submissionKey: input.submissionKey,
+        submittedAt,
+      });
+
+      trackCourseEvent(
+        input.isResubmit ? COURSE_EVENT_TYPES.LESSON_RESUBMIT : COURSE_EVENT_TYPES.LESSON_SUBMIT,
+        {
+          stepId: input.stepId,
+          attemptKey,
+          clientEventAt: submittedAt,
+          data: {
+            submissionKey: input.submissionKey,
+            ...input.data,
+          },
+        },
+      );
+
+      return submittedAt;
+    },
+    [trackCourseEvent],
+  );
+
+  const handleSavePreAssessment = useCallback(
+    async (answers: Record<string, string>) => {
+      const isResubmit = Boolean(courseState.preAssessment);
+      const submittedAt = Date.now();
+      await saveCourseState((prev) => ({
+        ...prev,
+        preAssessment: { answers, submittedAt },
+        updatedAt: submittedAt,
+      }));
+      trackSubmission({
+        stepId: step.id,
+        submissionKey: 'pre-assessment',
+        isResubmit,
+        data: {
+          questionCount: Object.keys(answers).length,
+          submittedAt,
+        },
+      });
+    },
+    [courseState.preAssessment, saveCourseState, step.id, trackSubmission],
+  );
+
+  const handleSaveTaskOne = useCallback(
+    async (input: Omit<L2DTaskOneSubmission, 'score' | 'feedback' | 'submittedAt'>) => {
+      const previousSubmission = courseState.taskOne;
+      const result = scoreTaskOne(input.kCritical);
+      const submittedAt = Date.now();
+
+      await saveCourseState((prev) => ({
+        ...prev,
+        taskOne:
+          !prev.taskOne || result.score >= prev.taskOne.score
+            ? {
+                ...input,
+                score: result.score,
+                feedback: result.feedback,
+                submittedAt,
+              }
+            : prev.taskOne,
+        updatedAt: submittedAt,
+      }));
+
+      trackSubmission({
+        stepId: step.id,
+        submissionKey: 'task-one',
+        isResubmit: Boolean(previousSubmission),
+        data: {
+          score: result.score,
+          bestScore: Math.max(previousSubmission?.score ?? 0, result.score),
+          submittedAt,
+        },
+      });
+    },
+    [courseState.taskOne, saveCourseState, step.id, trackSubmission],
+  );
+
+  const handleSaveTaskTwoRow = useCallback(
+    async (row: Omit<L2DTaskTwoRowSubmission, 'score' | 'checks' | 'feedback' | 'submittedAt'>) => {
+      const previousSubmission = courseState.taskTwoRows[row.rowId];
+      const previousRowIndex = ['row-1', 'row-2', 'row-3', 'row-4'].indexOf(row.rowId) - 1;
+      const previousRow =
+        previousRowIndex >= 0 ? courseState.taskTwoRows[['row-1', 'row-2', 'row-3', 'row-4'][previousRowIndex]] : undefined;
+      const result = scoreTaskTwoRow(row, previousRow ?? null);
+      const submittedAt = Date.now();
+
+      await saveCourseState((prev) => {
+        const existingRow = prev.taskTwoRows[row.rowId];
+        const nextRow: L2DTaskTwoRowSubmission = {
+          ...row,
+          score: result.score,
+          checks: result.checks,
+          feedback: result.feedback,
+          submittedAt,
+        };
+
+        return {
+          ...prev,
+          taskTwoRows: {
+            ...prev.taskTwoRows,
+            [row.rowId]: !existingRow || nextRow.score >= existingRow.score ? nextRow : existingRow,
+          },
+          updatedAt: submittedAt,
+        };
+      });
+
+      trackSubmission({
+        stepId: step.id,
+        submissionKey: `task-two:${row.rowId}`,
+        isResubmit: Boolean(previousSubmission),
+        data: {
+          rowId: row.rowId,
+          score: result.score,
+          bestScore: Math.max(previousSubmission?.score ?? 0, result.score),
+          submittedAt,
+        },
+      });
+    },
+    [courseState.taskTwoRows, saveCourseState, step.id, trackSubmission],
+  );
+
+  const handleSaveReflection = useCallback(
+    async (input: Omit<L2DReflectionSubmission, 'score' | 'feedback' | 'submittedAt'>) => {
+      const previousSubmission = courseState.reflection;
+      const result = scoreReflection(input);
+      const submittedAt = Date.now();
+
+      await saveCourseState((prev) => ({
+        ...prev,
+        reflection: {
+          ...input,
+          score: result.score,
+          feedback: result.feedback,
+          submittedAt,
+        },
+        updatedAt: submittedAt,
+      }));
+
+      trackSubmission({
+        stepId: step.id,
+        submissionKey: 'reflection',
+        isResubmit: Boolean(previousSubmission),
+        data: {
+          score: result.score,
+          selectedOption: input.selectedOption,
+          submittedAt,
+        },
+      });
+    },
+    [courseState.reflection, saveCourseState, step.id, trackSubmission],
+  );
+
+  const handleSavePostAssessment = useCallback(
+    async (range: { lowerBound: string; upperBound: string }) => {
+      const isResubmit = Boolean(courseState.postAssessment);
+      const submittedAt = Date.now();
+
+      await saveCourseState((prev) => ({
+        ...prev,
+        postAssessment: {
+          ...range,
+          submittedAt,
+        },
+        updatedAt: submittedAt,
+      }));
+
+      trackSubmission({
+        stepId: step.id,
+        submissionKey: 'post-assessment',
+        isResubmit,
+        data: {
+          submittedAt,
+          lowerBound: range.lowerBound,
+          upperBound: range.upperBound,
+        },
+      });
+    },
+    [courseState.postAssessment, saveCourseState, step.id, trackSubmission],
+  );
 
   if (loadingSession) {
     return (
@@ -240,7 +372,7 @@ export function L2DStudentPage({
             <p className="premium-lesson-title text-lg font-semibold">课堂已结束</p>
             <p className="premium-lesson-muted mt-2">教师已结束课堂，本页面保留你的学习记录与成绩概览。</p>
           </div>
-          <L2DStudentSummaryPanel courseState={courseState} />
+          <L2DStudentSummaryPanel courseState={summaryCourseState} />
         </div>
       </div>
     );
@@ -277,9 +409,7 @@ export function L2DStudentPage({
 
         {step.id === 'step-01' ? <L2DKnowledgeMapVisual /> : null}
 
-        <L2DStepContentPanel
-          content={step.student}
-        />
+        <L2DStepContentPanel content={step.student} />
 
         {step.pageType === 'workspace' ? (
           <div className="mt-4">
@@ -288,6 +418,7 @@ export function L2DStudentPage({
               onGainChange={setWorkspaceGain}
               accentLabel={step.observationId ?? undefined}
               onMetricsChange={updateWorkspaceMetrics}
+              onParameterChange={handleWorkspaceParameterChange}
             />
           </div>
         ) : null}
@@ -299,83 +430,21 @@ export function L2DStudentPage({
             courseState={courseState}
             metrics={workspaceMetrics}
             answerVisible={answerVisible}
-            onSavePreAssessment={(answers) =>
-              void saveCourseState((prev) => ({
-                ...prev,
-                preAssessment: { answers, submittedAt: Date.now() },
-                updatedAt: Date.now(),
-              }))
-            }
-            onSaveTaskOne={(input) => {
-              const result = scoreTaskOne(input.kCritical);
-              void saveCourseState((prev) => ({
-                ...prev,
-                taskOne:
-                  !prev.taskOne || result.score >= prev.taskOne.score
-                    ? {
-                        ...input,
-                        score: result.score,
-                        feedback: result.feedback,
-                        submittedAt: Date.now(),
-                      }
-                    : prev.taskOne,
-                updatedAt: Date.now(),
-              }));
-            }}
-            onSaveTaskTwoRow={(row) => {
-              const previousRowIndex = ['row-1', 'row-2', 'row-3', 'row-4'].indexOf(row.rowId) - 1;
-              const previousRow = previousRowIndex >= 0 ? courseState.taskTwoRows[['row-1', 'row-2', 'row-3', 'row-4'][previousRowIndex]] : undefined;
-              const result = scoreTaskTwoRow(row, previousRow ?? null);
-              void saveCourseState((prev) => {
-                const previous = prev.taskTwoRows[row.rowId];
-                const nextRow: L2DTaskTwoRowSubmission = {
-                  ...row,
-                  score: result.score,
-                  checks: result.checks,
-                  feedback: result.feedback,
-                  submittedAt: Date.now(),
-                };
-                return {
-                  ...prev,
-                  taskTwoRows: {
-                    ...prev.taskTwoRows,
-                    [row.rowId]: !previous || nextRow.score >= previous.score ? nextRow : previous,
-                  },
-                  updatedAt: Date.now(),
-                };
-              });
-            }}
-            onSaveReflection={(input) => {
-              const result = scoreReflection(input);
-              void saveCourseState((prev) => ({
-                ...prev,
-                reflection: {
-                  ...input,
-                  score: result.score,
-                  feedback: result.feedback,
-                  submittedAt: Date.now(),
-                },
-                updatedAt: Date.now(),
-              }));
-            }}
-            onSavePostAssessment={(range) =>
-              void saveCourseState((prev) => ({
-                ...prev,
-                postAssessment: {
-                  ...range,
-                  submittedAt: Date.now(),
-                },
-                updatedAt: Date.now(),
-              }))
-            }
+            onSavePreAssessment={(answers) => void handleSavePreAssessment(answers)}
+            onSaveTaskOne={(input) => void handleSaveTaskOne(input)}
+            onSaveTaskTwoRow={(row) => void handleSaveTaskTwoRow(row)}
+            onSaveReflection={(input) => void handleSaveReflection(input)}
+            onSavePostAssessment={(range) => void handleSavePostAssessment(range)}
           />
         </div>
 
         {step.pageType === 'summary' ? (
           <div className="mt-4">
-            <L2DStudentSummaryPanel courseState={courseState} />
+            <L2DStudentSummaryPanel courseState={summaryCourseState} />
           </div>
         ) : null}
+
+        <div className="sr-only">{getCourseTotals(summaryCourseState).total}</div>
       </main>
     </div>
   );
