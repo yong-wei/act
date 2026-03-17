@@ -29,6 +29,8 @@ import {
   LSUMStudentActivityForm,
   LSUMStudentSummaryPanel,
 } from './step-panels';
+import { useGlobalAI } from '@/components/providers/global-ai-provider';
+import { getLSUMStepAIContext } from '@/lib/course-ai-contexts';
 
 export function LSUMStudentPage({
   sessionId,
@@ -86,6 +88,28 @@ export function LSUMStudentPage({
 
   const step = LSUM_LESSON_STEPS[activeIndex];
   const savedResponse = courseState.responses[step.id];
+
+  // AI助手已通过全局框架集成，获取更新上下文的方法
+  const { updatePageContext } = useGlobalAI();
+
+  // 当步骤变化时，更新AI上下文
+  useEffect(() => {
+    const stepContext = getLSUMStepAIContext(step.id);
+    if (stepContext) {
+      updatePageContext({
+        courseId: stepContext.courseId,
+        courseTitle: stepContext.courseTitle,
+        pageType: stepContext.pageType,
+        stepId: stepContext.stepId,
+        topic: stepContext.topic,
+        learningObjectives: stepContext.learningObjectives,
+        knowledgeType: stepContext.knowledgeType,
+        tools: stepContext.tools,
+        quickQuestions: stepContext.quickQuestions,
+        systemPromptExtension: stepContext.systemPromptExtension,
+      });
+    }
+  }, [step.id, updatePageContext]);
   const answerVisible =
     teacherSyncState?.activeStepId === step.id
       ? Boolean((teacherSyncState as { revealedAnswers?: Record<string, boolean> })?.revealedAnswers?.[step.id])

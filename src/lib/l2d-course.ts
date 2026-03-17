@@ -1,6 +1,7 @@
 import type { BopppsStage } from '@prisma/client';
 
 import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
+import type { StepAIContext } from '@/types/ai-context';
 
 export type L2DStageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
 export type L2DPageType = 'display' | 'quiz' | 'workspace' | 'reflection' | 'summary';
@@ -53,6 +54,7 @@ export interface L2DStepDefinition {
   observationId?: 'OBS-PRE' | 'OBS-01' | 'OBS-02' | 'OBS-03' | 'OBS-POST' | null;
   teacher: L2DContentBlock;
   student: L2DContentBlock;
+  aiContext?: StepAIContext;
 }
 
 export interface L2DTaskOneSubmission {

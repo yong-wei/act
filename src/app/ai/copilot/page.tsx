@@ -4,15 +4,28 @@
  * AI Copilot 页面
  *
  * 独立的 AI 助教页面，提供完整的聊天界面
+ * 使用控灵品牌
  */
 
 import { useChat } from 'ai/react';
 import { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { FeaturePageNav } from '@/components/shared/feature-page-nav';
+import { KonlingAvatar } from '@/components/ai/konling-avatar';
+import { AIMessageContent } from '@/components/ai/ai-message-content';
+import { KONLING_BRAND } from '@/lib/ai-branding';
+import { usePageAIContext } from '@/hooks/usePageAIContext';
 
 export default function CopilotPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // 获取页面上下文和用户画像
+  const { pageContext, userProfile } = usePageAIContext({
+    courseId: 'general',
+    courseTitle: 'AI-OBE智能学习平台',
+    topic: '通用学习辅助',
+    pageType: 'workspace',
+  });
 
   const {
     messages,
@@ -26,6 +39,10 @@ export default function CopilotPage() {
     append,
   } = useChat({
     api: '/api/ai/chat',
+    body: {
+      pageContext,
+      userProfile,
+    },
   });
 
   // 自动滚动到底部
@@ -45,23 +62,17 @@ export default function CopilotPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-slate-950 to-slate-900">
-      <FeaturePageNav title="AI 虚拟总工" backHref="/ai" backLabel="返回AI工坊" />
+      <FeaturePageNav title={KONLING_BRAND.name} backHref="/ai" backLabel="返回AI工坊" />
       {/* 头部 */}
       <header className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600">
-              <svg className="h-7 w-7 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <KonlingAvatar size="md" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">AI 虚拟总工</h1>
-              <p className="text-sm text-amber-400">中船重工船舶控制教学助手</p>
+              <h1 className="text-xl font-bold text-white">{KONLING_BRAND.name}</h1>
+              <p className="text-sm text-amber-400">{KONLING_BRAND.subtitle}</p>
             </div>
           </div>
         </div>
@@ -76,9 +87,12 @@ export default function CopilotPage() {
               <div className="space-y-6">
                 {/* 欢迎信息 */}
                 <div className="rounded-xl bg-gradient-to-br from-amber-900/30 to-orange-900/20 p-6">
-                  <h2 className="mb-3 text-lg font-semibold text-amber-300">欢迎使用 AI 虚拟总工</h2>
+                  <div className="flex items-center gap-3 mb-3">
+                    <KonlingAvatar size="md" />
+                    <h2 className="text-lg font-semibold text-amber-300">欢迎使用 {KONLING_BRAND.name}</h2>
+                  </div>
                   <p className="text-slate-300">
-                    我是由中船重工指派的虚拟总工程师，专门负责船舶自动控制系统的教学与审核工作。
+                    我是你的AI学习伴侣{KONLING_BRAND.name}，专门负责自动控制原理的教学与答疑工作。
                     我可以帮助您：
                   </p>
                   <ul className="mt-3 space-y-2 text-sm text-slate-400">
@@ -148,8 +162,8 @@ export default function CopilotPage() {
                       ))}
                       {/* 文本消息 */}
                       {message.content && (
-                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                          {message.content}
+                        <div className="text-sm leading-relaxed">
+                          <AIMessageContent content={message.content} />
                         </div>
                       )}
                     </div>
@@ -162,7 +176,7 @@ export default function CopilotPage() {
                       <div className="h-2 w-2 animate-bounce rounded-full bg-amber-400" style={{ animationDelay: '150ms' }} />
                       <div className="h-2 w-2 animate-bounce rounded-full bg-amber-400" style={{ animationDelay: '300ms' }} />
                     </div>
-                    <span>总工正在思考...</span>
+                    <span>{KONLING_BRAND.name}正在思考...</span>
                   </div>
                 )}
                 {error && (

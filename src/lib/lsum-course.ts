@@ -1,6 +1,7 @@
 import type { BopppsStage } from '@prisma/client';
 
 import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
+import type { StepAIContext } from '@/types/ai-context';
 
 export type LSUMStageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
 export type LSUMPageType = 'display' | 'quiz' | 'form' | 'ai' | 'summary';
@@ -12,6 +13,7 @@ export interface LSUMStepDefinition {
   hint: string;
   duration: string;
   pageType: LSUMPageType;
+  aiContext?: StepAIContext;
 }
 
 export interface LSUMStepResponse {

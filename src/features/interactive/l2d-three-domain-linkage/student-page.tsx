@@ -29,6 +29,8 @@ import { useCourseEventTracking, useStudentLessonSession } from '@/features/inte
 import { L2DCourseHeader } from './course-header';
 import { L2DStepContentPanel, L2DKnowledgeMapVisual, L2DStudentActivityForm, L2DStudentSummaryPanel } from './step-panels';
 import { L2DThreeDomainWorkspace, type WorkspaceMetrics, type WorkspaceParameterChange } from './workspace';
+import { useGlobalAI } from '@/components/providers/global-ai-provider';
+import { getStepAIContext, getL2DStepAIContext } from '@/lib/course-ai-contexts';
 
 export function L2DStudentPage({
   sessionId,
@@ -56,6 +58,9 @@ export function L2DStudentPage({
     gamma: 60,
     isStable: true,
   });
+
+  // AI助手已通过全局框架集成，获取更新上下文的方法
+  const { updatePageContext } = useGlobalAI();
 
   const interactiveTracking = useInteractiveTracking({
     resourceId: L2D_RESOURCE_KEY,
@@ -113,6 +118,26 @@ export function L2DStudentPage({
   }, [isDemo, teacherIndex]);
 
   const step = L2D_LESSON_STEPS[activeIndex] ?? L2D_LESSON_STEPS[0];
+
+  // 当步骤变化时，更新AI上下文
+  useEffect(() => {
+    const stepContext = getL2DStepAIContext(step.id);
+    if (stepContext) {
+      updatePageContext({
+        courseId: stepContext.courseId,
+        courseTitle: stepContext.courseTitle,
+        pageType: stepContext.pageType,
+        stepId: stepContext.stepId,
+        topic: stepContext.topic,
+        learningObjectives: stepContext.learningObjectives,
+        knowledgeType: stepContext.knowledgeType,
+        tools: stepContext.tools,
+        quickQuestions: stepContext.quickQuestions,
+        systemPromptExtension: stepContext.systemPromptExtension,
+      });
+    }
+  }, [step.id, updatePageContext]);
+
   const isOutOfSync = !isDemo && teacherIndex !== activeIndex;
   const answerVisible = teacherSyncState?.activeStepId === step.id ? Boolean(teacherSyncState.revealedAnswers?.[step.id]) : false;
   const summaryCourseState = resolveL2DStudentSummaryCourseState({

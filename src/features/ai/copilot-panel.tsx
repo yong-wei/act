@@ -10,6 +10,10 @@ import { useChat, type Message } from 'ai/react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { type SimulationState, type SimulationMetrics } from '@/resources/simulations/types';
+import { KonlingAvatar } from '@/components/ai/konling-avatar';
+import { AIMessageContent } from '@/components/ai/ai-message-content';
+import { KONLING_BRAND } from '@/lib/ai-branding';
+import { usePageAIContext } from '@/hooks/usePageAIContext';
 
 interface CopilotPanelProps {
   simulationState?: SimulationState;
@@ -31,6 +35,15 @@ export function CopilotPanel({
   const [isExpanded, setIsExpanded] = useState(!isCollapsed);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // 获取页面上下文和用户画像
+  const { pageContext, userProfile } = usePageAIContext({
+    courseId: 'simulation',
+    courseTitle: '船舶控制仿真',
+    topic: '航向控制仿真',
+    pageType: 'workspace',
+    learningObjectives: ['理解PID控制原理', '掌握参数调节方法'],
+  });
+
   // 使用 Vercel AI SDK 的 useChat hook
   const {
     messages,
@@ -45,6 +58,8 @@ export function CopilotPanel({
   } = useChat({
     api: '/api/ai/chat',
     body: {
+      pageContext,
+      userProfile,
       simulationState: simulationState
         ? {
             isRunning: simulationState.isRunning,
@@ -94,17 +109,10 @@ export function CopilotPanel({
           setIsExpanded(true);
           onToggleCollapse?.();
         }}
-        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg transition-transform hover:scale-110"
-        title="打开 AI 助教"
+        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25 transition-transform hover:scale-110"
+        title={`打开 ${KONLING_BRAND.name}`}
       >
-        <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-          />
-        </svg>
+        <KonlingAvatar size="md" />
       </button>
     );
   }
@@ -114,18 +122,10 @@ export function CopilotPanel({
       {/* 头部 */}
       <div className="flex items-center justify-between border-b border-slate-700 bg-gradient-to-r from-amber-900/50 to-orange-900/50 px-4 py-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/20">
-            <svg className="h-6 w-6 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
+          <KonlingAvatar size="md" />
           <div>
-            <h3 className="font-semibold text-white">虚拟总工</h3>
-            <p className="text-xs text-amber-300">中船重工 AI 助教</p>
+            <h3 className="font-semibold text-white">{KONLING_BRAND.name}</h3>
+            <p className="text-xs text-amber-300">{KONLING_BRAND.subtitle}</p>
           </div>
         </div>
         <button
@@ -146,8 +146,12 @@ export function CopilotPanel({
         {messages.length === 0 ? (
           <div className="space-y-4">
             <div className="rounded-lg bg-slate-800/50 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <KonlingAvatar size="sm" />
+                <span className="text-sm font-medium text-amber-300">{KONLING_BRAND.name}</span>
+              </div>
               <p className="text-sm text-slate-300">
-                您好！我是虚拟总工程师，负责指导您完成船舶航向控制系统的设计与调试。
+                您好！我是{KONLING_BRAND.name}，你的AI学习伴侣。我可以协助您完成船舶航向控制系统的设计与调试。
               </p>
               <p className="mt-2 text-sm text-slate-400">
                 您可以问我关于PID调参、船舶运动学、安全规范等问题，我也可以直接分析您的仿真数据。
@@ -180,7 +184,7 @@ export function CopilotPanel({
               <div className="h-2 w-2 animate-bounce rounded-full bg-amber-400" style={{ animationDelay: '150ms' }} />
               <div className="h-2 w-2 animate-bounce rounded-full bg-amber-400" style={{ animationDelay: '300ms' }} />
             </div>
-            <span>总工正在分析...</span>
+            <span>{KONLING_BRAND.name}正在分析...</span>
           </div>
         )}
         {error && (
@@ -239,8 +243,8 @@ function MessageBubble({ message }: { message: Message }) {
         ))}
         {/* 普通文本消息 */}
         {message.content && (
-          <div className="whitespace-pre-wrap text-sm leading-relaxed">
-            {message.content}
+          <div className="text-sm leading-relaxed">
+            <AIMessageContent content={message.content} />
           </div>
         )}
       </div>

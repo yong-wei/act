@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, User, Loader2, X, Sparkles } from 'lucide-react';
+import { AIMessageContent } from '@/components/ai/ai-message-content';
 import type { AIMessage, InteractiveAIContextValue } from './types';
 
 interface InteractiveAIPanelProps {
@@ -160,7 +161,7 @@ function MessageBubble({ message }: { message: AIMessage }) {
             : 'bg-slate-800 text-slate-200'
         }`}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        <AIMessageContent content={message.content} />
       </div>
     </div>
   );
