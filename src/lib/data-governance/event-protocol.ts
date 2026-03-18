@@ -165,7 +165,7 @@ export function validateEvent(event: unknown): ValidatedEvent {
   }
 
   return {
-    event: e as LearningEvent,
+    event: e as unknown as LearningEvent,
     isValid: errors.length === 0,
     errors: errors.length > 0 ? errors : undefined,
   };

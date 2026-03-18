@@ -140,8 +140,8 @@ export async function POST(request: NextRequest) {
         {
           userId: session.user.id,
           role: (session.user.role?.toLowerCase() as 'student' | 'teacher' | 'admin') || 'student',
-          pagePath: eventData.event.pagePath || '/unknown',
-          pageType: (eventData.event.pageType as PageType) || 'dashboard',
+          pagePath: '/unknown',
+          pageType: 'dashboard',
         }
       );
 
@@ -158,11 +158,11 @@ export async function POST(request: NextRequest) {
     if (coreEvents.length > 0) {
       const queueEvents = coreEvents.map(event => ({
         userId: event.userId,
-        resourceId: null as string | null, // Will be set based on context
+        resourceId: null as string | null,
         resourceKey: event.moduleId || event.actionType,
-        sessionId: event.sessionId,
-        lessonKey: event.lessonId,
-        stepId: event.targetId,
+        sessionId: event.sessionId || null,
+        lessonKey: event.lessonId || null,
+        stepId: event.targetId || null,
         actorRole: event.role,
         attemptKey: null as string | null,
         eventType: event.actionType,

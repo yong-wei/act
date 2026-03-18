@@ -708,6 +708,7 @@ model ClassSession {
 
   startTime DateTime  @default(now())
   endTime   DateTime?
+  updatedAt DateTime? @updatedAt
 
   studentStates         StudentState[]
   classSessionReports   ClassSessionReport[]
@@ -752,7 +753,7 @@ model InteractionLog {
   id            String    @id @default(cuid())
   userId        String
   resourceId    String?
-  resourceKey   String
+  resourceKey   String?
   sessionId     String? // 课堂会话ID（可选）
   lessonKey     String?
   stepId        String?
