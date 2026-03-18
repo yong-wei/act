@@ -5,6 +5,10 @@ import { prisma } from '@/lib/prisma';
 import { eventQueue } from '@/lib/event-queue';
 import { eventRateLimiter } from '@/lib/rate-limiter';
 import type { ClassroomInteractionEventInput } from '@/lib/classroom-analytics/types';
+import { toLearningEvent, validateEvent, type LearningEvent } from '@/lib/data-governance/event-protocol';
+import { routeEvent } from '@/lib/data-governance/event-buffer';
+import { isCoreEvent } from '@/lib/data-governance/event-types';
+import type { PageType } from '@/lib/data-governance/event-protocol';
 
 function toDateTime(value: number | string | null | undefined): Date | null {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -126,33 +130,59 @@ export async function POST(request: NextRequest) {
       logDegradedEvent(session.user.id, event, reason);
     }
 
-    // 将有效事件加入异步队列（立即返回成功，后台批量落库）
-    const queueEvents = validEvents.map(({ event, resourceId }) => ({
-      userId: session.user.id,
-      resourceId: resourceId,
-      resourceKey: event.resourceKey ?? event.resourceId ?? '__missing_resource_key__',
-      sessionId: event.sessionId || null,
-      lessonKey: event.lessonKey || null,
-      stepId: event.stepId || null,
-      actorRole: event.actorRole || null,
-      attemptKey: event.attemptKey || null,
-      eventType: event.type,
-      eventData: (event.data || {}) as Record<string, unknown>,
-      clientEventAt: toDateTime(event.clientEventAt ?? event.timestamp),
-    }));
+    // Route events based on priority
+    const coreEvents: LearningEvent[] = [];
+    const routingResults: Array<{ eventType: string; destination: string; reason?: string }> = [];
 
-    // 批量入队
-    eventQueue.enqueueBatch(queueEvents);
+    for (const eventData of validEvents) {
+      const learningEvent = toLearningEvent(
+        { ...eventData.event, priority: isCoreEvent(eventData.event.type) ? 'core' : 'secondary' },
+        {
+          userId: session.user.id,
+          role: (session.user.role?.toLowerCase() as 'student' | 'teacher' | 'admin') || 'student',
+          pagePath: eventData.event.pagePath || '/unknown',
+          pageType: (eventData.event.pageType as PageType) || 'dashboard',
+        }
+      );
 
-    // 获取队列统计（调试用）
-    const queueStats = eventQueue.getStats();
+      const result = await routeEvent(learningEvent);
+      routingResults.push({ eventType: learningEvent.actionType, ...result });
 
+      // Core events still go through existing EventQueue for now
+      if (result.destination === 'postgresql') {
+        coreEvents.push(learningEvent);
+      }
+    }
+
+    // Existing queue for core events (will be migrated later)
+    if (coreEvents.length > 0) {
+      const queueEvents = coreEvents.map(event => ({
+        userId: event.userId,
+        resourceId: null as string | null, // Will be set based on context
+        resourceKey: event.moduleId || event.actionType,
+        sessionId: event.sessionId,
+        lessonKey: event.lessonId,
+        stepId: event.targetId,
+        actorRole: event.role,
+        attemptKey: null as string | null,
+        eventType: event.actionType,
+        eventData: event.payload,
+        clientEventAt: new Date(event.occurredAt),
+      }));
+
+      eventQueue.enqueueBatch(queueEvents);
+    }
+
+    // Update response
     return NextResponse.json({
       success: true,
-      count: queueEvents.length,
+      count: validEvents.length,
       degraded: degradedEvents.length,
-      queued: true,
-      pending: queueStats.pending,
+      routing: routingResults.reduce((acc, r) => {
+        acc[r.destination] = (acc[r.destination] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+      pending: eventQueue.getStats().pending,
     });
   } catch (error) {
     console.error('[Interactive Events API] Error:', error);

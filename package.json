@@ -38,7 +38,9 @@
     "test:semester-usage": "node ./scripts/tests/verify-semester-usage-for-test-students.mjs",
     "migrate:events": "npx tsx scripts/migrations/001-seed-event-dictionary.ts",
     "migrate:facts": "npx tsx scripts/migrations/002-migrate-to-learning-facts.ts",
-    "migrate:snapshots": "npx tsx scripts/migrations/003-backfill-snapshots.ts"
+    "migrate:snapshots": "npx tsx scripts/migrations/003-backfill-snapshots.ts",
+    "worker:dev": "npx tsx scripts/workers/data-governance-worker.ts",
+    "worker:scheduler": "npx tsx scripts/workers/scheduler.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.72",
@@ -64,11 +66,11 @@
     "ai": "3.4",
     "autoprefixer": "^10.4.0",
     "bcryptjs": "^2.4.3",
+    "bullmq": "^5.71.0",
     "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "d3": "^7.9.0",
-    "ioredis": "^5.10.0",
     "katex": "^0.16.27",
     "lucide-react": "^0.263.0",
     "mathjs": "^15.1.0",

@@ -101,6 +101,9 @@ model User {
 
   // 控灵AI助手会话
   konlingSessions    KonlingSession[]
+
+  // Data governance
+  riskFlags          StudentRiskFlag[]
 }
 
 model StudentProfile {
@@ -1013,4 +1016,207 @@ model KonlingSession {
   @@index([userId, courseId, pageId])
   @@index([expiresAt])
   @@index([userId, updatedAt])
+}
+
+// ========== Data Governance Tables ==========
+
+// Event batch storage for secondary events
+model LearningEventBatch {
+  id          String    @id @default(cuid())
+  batchDate   DateTime  @db.Date
+  events      Json      // Compressed array of LearningEvent
+  eventCount  Int
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([batchDate])
+  @@index([processedAt])
+}
+
+// Event type metadata dictionary
+model EventDictionary {
+  eventType         String   @id
+  category          String
+  priority          String
+  description       String?
+  schema            Json?    // JSON Schema for payload
+  competencyMapping Json?    // Which competencies this event contributes to
+  createdAt         DateTime @default(now())
+}
+
+// Unified learning facts (derived from events)
+model LearningFact {
+  id              String   @id @default(cuid())
+  userId          String
+  factType        String   // simulation, question, ai_intervention, prompt_design, ethical
+  moduleId        String?
+  sessionId       String?
+
+  startedAt       DateTime
+  finishedAt      DateTime?
+
+  outcome         String   // success, partial, failure, abandoned
+  score           Float?
+  timeSpent       Int?     // Seconds
+
+  // Competency contribution (-1 to 1 per dimension)
+  competencyContribution Json
+
+  // Source references
+  sourceEventId   String?
+  sourceLogId     String?
+
+  // Context
+  courseId        String?
+  lessonId        String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([userId, factType])
+  @@index([userId, startedAt])
+  @@index([sessionId])
+  @@index([factType, startedAt])
+}
+
+// Student competency snapshot
+model StudentCompetencySnapshot {
+  id                  String   @id @default(cuid())
+  userId              String
+  snapshotAt          DateTime
+
+  // Six-dimensional competency vector
+  competencyVector    Json
+
+  // Evidence summary
+  evidenceSummary     Json
+
+  // Risk flags
+  riskFlags           Json
+
+  // Learning trajectory
+  trajectoryVector    Json?
+
+  // Metadata
+  calculationVersion  String   @default("v1")
+  factCount           Int
+
+  @@index([userId, snapshotAt])
+  @@index([snapshotAt])
+}
+
+// Optimized profile summary for AI assistant
+model StudentProfileSummary {
+  userId                 String   @id
+  updatedAt              DateTime @updatedAt
+
+  overallLevel           String   // 优秀/良好/中等偏上/需关注
+  overallScore           Float
+
+  strengthsJson          Json     // ['动态响应分析', '仿真调参']
+  weaknessesJson         Json     // ['跨域解释一致性']
+
+  recentTrend            String   // 近两周稳步提升/波动/停滞
+  trendDirection         String   // up/down/stable
+
+  riskFlagsJson          Json     // ['遇到复杂任务倾向直接请求AI']
+  riskLevel              String   // none/low/medium/high
+
+  recommendedScaffolding String
+
+  recentActivityJson     Json
+
+  cacheExpiresAt         DateTime
+
+  @@index([updatedAt])
+  @@index([riskLevel])
+}
+
+// Class-level competency aggregation
+model ClassCompetencySnapshot {
+  id                String   @id @default(cuid())
+  classId           String
+  snapshotAt        DateTime
+
+  aggregateJson     Json     // Mean/stdev per dimension
+  distributionJson  Json     // Score distribution
+  trendJson         Json     // Change from previous
+  riskSummaryJson   Json
+
+  levelDistribution Json     // { excellent: 5, good: 10, ... }
+
+  activeStudentCount Int
+  totalStudentCount  Int
+
+  @@index([classId, snapshotAt])
+}
+
+// Student risk flags
+model StudentRiskFlag {
+  id            String    @id @default(cuid())
+  userId        String
+  flagType      String    // participation, stagnation, ai_misuse, constraint, cross_domain
+  severity      String    // low, medium, high
+  description   String
+
+  evidenceJson  Json
+  triggeredAt   DateTime
+
+  isResolved    Boolean   @default(false)
+  resolvedAt    DateTime?
+  resolutionNote String?
+
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, flagType])
+  @@index([userId, isResolved])
+  @@index([flagType, severity])
+}
+
+// Growth records for portfolio
+model GrowthRecord {
+  id          String   @id @default(cuid())
+  userId      String
+
+  recordType  String   // milestone, breakthrough, remediation, reflection, portfolio
+  title       String
+  description String
+
+  evidenceJson Json
+  mediaUrls    String[]
+
+  occurredAt  DateTime
+  courseId    String?
+  isPublic    Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId, recordType])
+  @@index([userId, occurredAt])
+}
+
+// Learning recommendations
+model LearningRecommendation {
+  id          String   @id @default(cuid())
+  userId      String
+
+  recType     String   // immediate, weekly, challenge
+  title       String
+  description String
+  reasoning   String
+
+  actionType   String
+  targetModule String?
+  estimatedTime Int
+
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  wasHelpful  Boolean?
+
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+
+  @@index([userId, recType])
+  @@index([userId, isCompleted])
 }

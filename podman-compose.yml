@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  redis:
+    image: docker.io/redis:7-alpine
+    container_name: act-obe-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - act-obe-network
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: act-obe-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - REDIS_URL=redis://act-obe-redis:6379
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+    networks:
+      - act-obe-network
+    depends_on:
+      - redis
+
+networks:
+  act-obe-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
