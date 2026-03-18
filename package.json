@@ -35,11 +35,13 @@
     "test:admin-states": "npx --yes tsx ./scripts/tests/test-admin-states-mock-data.ts",
     "seed:fixed-passwords": "node ./scripts/db/update-fixed-account-passwords.mjs",
     "seed:semester-usage": "node ./scripts/db/seed-semester-usage-for-test-students.mjs",
-    "test:semester-usage": "node ./scripts/tests/verify-semester-usage-for-test-students.mjs"
+    "test:semester-usage": "node ./scripts/tests/verify-semester-usage-for-test-students.mjs",
+    "migrate:events": "npx tsx scripts/migrations/001-seed-event-dictionary.ts",
+    "migrate:facts": "npx tsx scripts/migrations/002-migrate-to-learning-facts.ts",
+    "migrate:snapshots": "npx tsx scripts/migrations/003-backfill-snapshots.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.72",
-    "sharp": "^0.33.0",
     "@ai-sdk/react": "^3.0.3",
     "@auth/prisma-adapter": "^1.5.0",
     "@dnd-kit/core": "^6.3.1",
@@ -66,6 +68,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "d3": "^7.9.0",
+    "ioredis": "^5.10.0",
     "katex": "^0.16.27",
     "lucide-react": "^0.263.0",
     "mathjs": "^15.1.0",
@@ -84,6 +87,7 @@
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
+    "sharp": "^0.33.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss": "^3.3.0",
     "three": "^0.165.0",
