@@ -72,6 +72,12 @@ export interface LessonSessionAdapter<
   buildTeacherSyncPayload(input: TeacherSyncInput): TeacherSyncState;
 }
 
+export interface SessionSSEStatus {
+  isConnected: boolean;
+  reconnectAttempt: number;
+  isFallbackActive: boolean;
+}
+
 export interface StudentLessonSessionResult<StudentState, TeacherSyncState> {
   sessionInfo: SessionInfo | null;
   stateRecords: SessionStateRecord[];
@@ -88,6 +94,10 @@ export interface StudentLessonSessionResult<StudentState, TeacherSyncState> {
   saveCourseState: (updater: (prev: StudentState) => StudentState) => Promise<void>;
   syncSession: () => Promise<void>;
   syncStates: () => Promise<void>;
+  /**
+   * SSE 连接状态（用于调试和 UI 显示）
+   */
+  sseStatus?: SessionSSEStatus;
 }
 
 export interface TeacherLessonSessionResult<

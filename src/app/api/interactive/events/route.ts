@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { eventQueue } from '@/lib/event-queue';
+import { eventRateLimiter } from '@/lib/rate-limiter';
 import type { ClassroomInteractionEventInput } from '@/lib/classroom-analytics/types';
 
 function toDateTime(value: number | string | null | undefined): Date | null {
@@ -67,6 +69,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // 限流检查：防止事件上报过载
+    const clientId = session.user.id;
+    const limitCheck = eventRateLimiter.check(clientId);
+
+    if (!limitCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded', retryAfter: limitCheck.retryAfter },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { events } = body;
 
@@ -113,37 +126,33 @@ export async function POST(request: NextRequest) {
       logDegradedEvent(session.user.id, event, reason);
     }
 
-    if (validEvents.length === 0) {
-      // 返回成功但不报错，避免前端重试风暴
-      return NextResponse.json({
-        success: true,
-        count: 0,
-        degraded: degradedEvents.length,
-      });
-    }
+    // 将有效事件加入异步队列（立即返回成功，后台批量落库）
+    const queueEvents = validEvents.map(({ event, resourceId }) => ({
+      userId: session.user.id,
+      resourceId: resourceId,
+      resourceKey: event.resourceKey ?? event.resourceId ?? '__missing_resource_key__',
+      sessionId: event.sessionId || null,
+      lessonKey: event.lessonKey || null,
+      stepId: event.stepId || null,
+      actorRole: event.actorRole || null,
+      attemptKey: event.attemptKey || null,
+      eventType: event.type,
+      eventData: (event.data || {}) as Record<string, unknown>,
+      clientEventAt: toDateTime(event.clientEventAt ?? event.timestamp),
+    }));
 
-    // 批量插入 - 只插入验证通过的事件
-    const created = await prisma.interactionLog.createMany({
-      data: validEvents.map(({ event, resourceId }) => ({
-        userId: session.user.id,
-        resourceId: resourceId,
-        resourceKey: event.resourceKey ?? event.resourceId ?? '__missing_resource_key__',
-        sessionId: event.sessionId || null,
-        lessonKey: event.lessonKey || null,
-        stepId: event.stepId || null,
-        actorRole: event.actorRole || null,
-        attemptKey: event.attemptKey || null,
-        eventType: event.type,
-        eventData: (event.data || {}) as unknown as import('@prisma/client').Prisma.InputJsonValue,
-        clientEventAt: toDateTime(event.clientEventAt ?? event.timestamp),
-      })),
-      skipDuplicates: true,
-    });
+    // 批量入队
+    eventQueue.enqueueBatch(queueEvents);
+
+    // 获取队列统计（调试用）
+    const queueStats = eventQueue.getStats();
 
     return NextResponse.json({
       success: true,
-      count: created.count,
+      count: queueEvents.length,
       degraded: degradedEvents.length,
+      queued: true,
+      pending: queueStats.pending,
     });
   } catch (error) {
     console.error('[Interactive Events API] Error:', error);
