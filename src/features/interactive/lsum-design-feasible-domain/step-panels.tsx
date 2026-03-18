@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   BarChart3,
   BookOpen,
@@ -809,7 +809,8 @@ export function LSUMStudentActivityForm({
   answerVisible?: boolean;
   onSubmit: (response: LSUMStepResponse) => void;
 }) {
-  const activity = getStepActivity(step);
+  // 使用 useMemo 缓存 activity 对象，避免每次渲染创建新引用导致无限循环
+  const activity = useMemo(() => getStepActivity(step), [step]);
   const [draft, setDraft] = useState<Record<string, string>>({});
 
   useEffect(() => {

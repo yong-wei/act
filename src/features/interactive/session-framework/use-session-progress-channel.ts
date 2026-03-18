@@ -36,6 +36,10 @@ export function useSessionProgressChannel({
   const isPatchingRef = useRef<boolean>(false);
   // 轮询暂停计数器 - 允许暂停指定次数的轮询
   const pollSkipCountRef = useRef<number>(0);
+  // 错误计数和退避
+  const errorCountRef = useRef<number>(0);
+  const lastErrorTimeRef = useRef<number>(0);
+  const isPausedRef = useRef<boolean>(false);
 
   /**
    * 获取服务器状态的时间戳（毫秒）
@@ -117,11 +121,37 @@ export function useSessionProgressChannel({
         }
       }
 
+      // 成功时重置错误计数
+      if (errorCountRef.current > 0) {
+        errorCountRef.current = 0;
+      }
+
+      // 合并状态更新，避免抖动
       setLoadingSession(false);
       setError(null);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : '课堂同步失败');
+      const errorMessage = requestError instanceof Error ? requestError.message : '课堂同步失败';
+
+      // 错误退避：连续错误时增加跳过次数
+      errorCountRef.current += 1;
+      lastErrorTimeRef.current = Date.now();
+
+      // 根据错误次数增加轮询暂停次数（指数退避）
+      const backoffSkips = Math.min(errorCountRef.current * 2, 10);
+      pollSkipCountRef.current = backoffSkips;
+
+      // 合并状态更新，避免抖动
+      setError(errorMessage);
       setLoadingSession(false);
+
+      // 连续错误超过5次，暂停轮询5秒
+      if (errorCountRef.current >= 5) {
+        isPausedRef.current = true;
+        setTimeout(() => {
+          isPausedRef.current = false;
+          errorCountRef.current = 0;
+        }, 5000);
+      }
     }
   }, [followTeacher, isDemo, sessionId, stepIds, getTimestampFromSession]);
 
@@ -180,9 +210,11 @@ export function useSessionProgressChannel({
         setSessionInfo(data);
       } catch (requestError) {
         pendingStepIdRef.current = null;
+        // 合并状态更新，避免抖动
+        const errorMessage = requestError instanceof Error ? requestError.message : '课堂推进失败';
+        setError(errorMessage);
         setActiveIndex(previousIndex);
         setTeacherIndex(previousIndex);
-        setError(requestError instanceof Error ? requestError.message : '课堂推进失败');
         throw requestError;
       } finally {
         // 恢复轮询
@@ -229,6 +261,10 @@ export function useSessionProgressChannel({
     }
 
     const timer = window.setInterval(() => {
+      // 如果暂停或错误退避中，跳过本次轮询
+      if (isPausedRef.current) {
+        return;
+      }
       void syncSession();
     }, pollIntervalMs);
 

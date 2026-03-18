@@ -46,5 +46,17 @@ export default async function TeacherSessionPage({ params }: PageProps) {
       return a.order - b.order;
   });
 
-  return <TeacherPlayer session={session} initialItems={sortedItems} />;
+  // 显式构建 session 对象，确保 joinCode 被正确传递
+  const sessionData = {
+    id: session.id,
+    joinCode: session.joinCode,
+    status: session.status,
+    currentItemId: session.currentItemId,
+    currentStage: session.currentStage,
+    plan: {
+      title: session.plan.title,
+    },
+  };
+
+  return <TeacherPlayer session={sessionData} initialItems={sortedItems} />;
 }
