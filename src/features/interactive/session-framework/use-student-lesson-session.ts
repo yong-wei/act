@@ -214,6 +214,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     saveCourseState,
     syncSession: progress.syncSession,
     syncStates,
+    setActiveIndex: progress.setActiveIndex,
     // SSE 连接状态（用于调试和 UI 显示）
     sseStatus: {
       isConnected: sseConnection.isConnected,

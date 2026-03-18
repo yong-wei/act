@@ -95,6 +95,10 @@ export interface StudentLessonSessionResult<StudentState, TeacherSyncState> {
   syncSession: () => Promise<void>;
   syncStates: () => Promise<void>;
   /**
+   * 设置当前活动步骤索引（用于学生自主导航）
+   */
+  setActiveIndex: (index: number) => void;
+  /**
    * SSE 连接状态（用于调试和 UI 显示）
    */
   sseStatus?: SessionSSEStatus;

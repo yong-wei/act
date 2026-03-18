@@ -53,6 +53,12 @@ export function useSessionSSE({
   const [error, setError] = useState<Error | null>(null);
   const [reconnectAttempt, setReconnectAttempt] = useState(0);
 
+  // Use ref to track current reconnectAttempt value for closures
+  const reconnectAttemptRef = useRef(reconnectAttempt);
+  useEffect(() => {
+    reconnectAttemptRef.current = reconnectAttempt;
+  }, [reconnectAttempt]);
+
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastStateRef = useRef<SessionState | null>(null);
@@ -128,9 +134,10 @@ export function useSessionSSE({
         setError(new Error('SSE connection error'));
         onError?.(event);
 
-        // 自动重连
-        if (reconnectAttempt < maxReconnectAttempts) {
-          const nextAttempt = reconnectAttempt + 1;
+        // 自动重连 - use ref to get current value in closure
+        const currentAttempt = reconnectAttemptRef.current;
+        if (currentAttempt < maxReconnectAttempts) {
+          const nextAttempt = currentAttempt + 1;
           setReconnectAttempt(nextAttempt);
 
           // 指数退避
@@ -152,7 +159,6 @@ export function useSessionSSE({
     disconnect,
     onStateChange,
     onError,
-    reconnectAttempt,
     reconnectInterval,
     maxReconnectAttempts,
   ]);

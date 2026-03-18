@@ -66,6 +66,7 @@ export function LSUMStudentPage({
     error,
     isOutOfSync,
     saveCourseState,
+    setActiveIndex,
   } = useStudentLessonSession({
     sessionId,
     steps: LSUM_LESSON_STEPS,
@@ -208,6 +209,8 @@ export function LSUMStudentPage({
         onIndexChange={(index) => {
           // Student can navigate freely but we track it
           trackStepLeave(step.id, { nextStepId: LSUM_LESSON_STEPS[index]?.id });
+          // Actually update the active index to navigate to the selected step
+          setActiveIndex(index);
         }}
         middleNotice={isOutOfSync ? `当前页面与教师不同步，教师正在第 ${teacherIndex + 1} 页` : step.hint}
         rightSlot={

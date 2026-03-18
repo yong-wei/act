@@ -74,6 +74,13 @@ export function useInteractiveTracking(
     const events = eventsRef.current;
     if (events.length === 0) return;
 
+    // Skip server sync in demo mode (no sessionId)
+    if (!sessionId) {
+      // Just clear events from memory after saving to storage
+      saveToStorage();
+      return;
+    }
+
     if (onSync) {
       try {
         await onSync(events);
@@ -99,7 +106,7 @@ export function useInteractiveTracking(
         console.error('[InteractiveTracking] API sync failed:', e);
       }
     }
-  }, [onSync, saveToStorage]);
+  }, [onSync, saveToStorage, sessionId]);
 
   // 设置定时同步
   useEffect(() => {
