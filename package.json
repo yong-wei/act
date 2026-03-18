@@ -14,6 +14,7 @@
     "test:cruise-sensitivity": "npx --yes tsx ./scripts/tests/test-cruise-control-sensitivity.ts",
     "test:cruise-teaching": "npx --yes tsx ./scripts/tests/test-cruise-teaching-evaluation.ts",
     "test:integration": "PLAYWRIGHT_PORT=3200 node ./scripts/tests/integration-test.mjs && playwright test",
+    "test:data-governance": "npx tsx ./scripts/tests/data-governance-integration-test.ts",
     "seed:demo": "node ./scripts/db/seed-demo-user.mjs",
     "seed:admin": "node ./scripts/db/seed-admin.mjs",
     "seed:missions": "node ./scripts/db/seed-missions.mjs",
