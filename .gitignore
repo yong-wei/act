@@ -49,3 +49,4 @@ scripts/**/*.pyc
 **/__pycache__/
 **/*.pyc
 .worktrees/
+chroma/

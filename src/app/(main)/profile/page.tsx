@@ -217,19 +217,19 @@ export default function ProfilePage() {
                   {profile.profile?.classId || '未设置班级'} · {profile.user.role === 'STUDENT' ? '学生' : profile.user.role}
                 </p>
                 <div className="mt-2 flex items-center gap-4">
-                  <span className="text-sm text-slate-500">
-                    技术分: <span className="text-amber-400">{profile.profile?.techScore || 0}</span>
+                  <span className="text-sm text-subtle">
+                    技术分: <span className="text-amber-500">{profile.profile?.techScore || 0}</span>
                   </span>
-                  <span className="text-sm text-slate-500">
-                    伦理分: <span className="text-emerald-400">{profile.profile?.ethicsScore || 100}</span>
+                  <span className="text-sm text-subtle">
+                    伦理分: <span className="text-emerald-500">{profile.profile?.ethicsScore || 100}</span>
                   </span>
                 </div>
               </div>
             </div>
             <div className="text-center md:text-right">
-              <div className="text-5xl font-bold text-amber-400">{overallScore}</div>
+              <div className="text-5xl font-bold text-amber-500">{overallScore}</div>
               <p className={`text-lg font-medium ${competencyLevel.color}`}>{competencyLevel.level}</p>
-              <p className="text-sm text-slate-500">{competencyLevel.description}</p>
+              <p className="text-sm text-subtle">{competencyLevel.description}</p>
             </div>
           </div>
         </div>
@@ -252,7 +252,7 @@ export default function ProfilePage() {
                   return (
                     <div key={key} className="text-center">
                       <div className="text-2xl font-bold text-foreground">{value}</div>
-                      <div className="text-xs text-slate-500">{labels[key]}</div>
+                      <div className="text-xs text-subtle">{labels[key]}</div>
                     </div>
                   );
                 })}
@@ -270,31 +270,31 @@ export default function ProfilePage() {
                   label="完成仿真"
                   value={profile.statistics.totalSimulations}
                   unit="次"
-                  color="text-blue-400"
+                  color="text-blue-500"
                 />
                 <StatItem
                   label="完成任务"
                   value={profile.statistics.completedMissions}
                   unit="个"
-                  color="text-emerald-400"
+                  color="text-emerald-500"
                 />
                 <StatItem
                   label="伦理违规"
                   value={profile.statistics.ethicalViolations}
                   unit="次"
-                  color="text-red-400"
+                  color="text-red-500"
                 />
                 <StatItem
                   label="仿真时长"
                   value={Math.round(profile.statistics.totalSimulationTime / 60)}
                   unit="分钟"
-                  color="text-amber-400"
+                  color="text-amber-500"
                 />
                 <StatItem
                   label="平均得分"
                   value={profile.statistics.averageScore}
                   unit="分"
-                  color="text-purple-400"
+                  color="text-purple-500"
                 />
               </div>
             </div>
@@ -315,8 +315,8 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="mt-3 flex justify-between text-sm">
-                <span className="text-slate-400">
-                  已完成 <span className="text-amber-400">{profile.missionProgress.completed}</span> /{' '}
+                <span className="text-subtle">
+                  已完成 <span className="text-amber-500">{profile.missionProgress.completed}</span> /{' '}
                   {profile.missionProgress.total}
                 </span>
                 <Link href="/missions" className="text-primary transition hover:text-primary/80">
@@ -346,7 +346,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="h-2 rounded-full bg-accent/85">
                       <div
-                        className="h-2 rounded-full bg-slate-500"
+                        className="h-2 rounded-full bg-muted-foreground/50"
                         style={{ width: `${Math.max(0, Math.min(100, pre))}%` }}
                       />
                     </div>
@@ -403,7 +403,7 @@ export default function ProfilePage() {
         <div className="surface-card mt-8 p-6">
           <h3 className="mb-4 text-lg font-semibold text-foreground">最近活动</h3>
           {profile.recentActivity.length === 0 ? (
-            <p className="text-center text-slate-500 py-8">暂无活动记录</p>
+            <p className="text-center text-subtle py-8">暂无活动记录</p>
           ) : (
             <div className="space-y-3">
               {profile.recentActivity.map((activity) => (
@@ -413,39 +413,93 @@ export default function ProfilePage() {
           )}
         </div>
 
+        {/* 核心功能区 - 数据治理新增入口 */}
+        <div className="mt-8">
+          <h3 className="mb-4 text-lg font-semibold text-foreground">学习成长中心</h3>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <QuickAction
+              href="/profile/growth"
+              icon={
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              }
+              title="成长中枢"
+              description="能力雷达、成长轨迹、下一步建议"
+              badge="新增"
+              badgeColor="bg-emerald-500/20 text-emerald-400"
+            />
+            <QuickAction
+              href="/profile/portfolio"
+              icon={
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              }
+              title="学习档案"
+              description="优秀作品、提示词收藏、仿真记录"
+              badge="新增"
+              badgeColor="bg-emerald-500/20 text-emerald-400"
+            />
+            <QuickAction
+              href="/ai/copilot"
+              icon={
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+              }
+              title="AI 助教"
+              description="咨询虚拟总工程师控灵"
+            />
+            <QuickAction
+              href="/missions"
+              icon={
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              }
+              title="任务大厅"
+              description="查看学习任务进度"
+            />
+          </div>
+        </div>
+
         {/* 快捷操作 */}
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <QuickAction
-            href="/simulations/destroyer"
-            icon={
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            }
-            title="开始仿真"
-            description="进入驱逐舰航向控制仿真"
-          />
-          <QuickAction
-            href="/ai/copilot"
-            icon={
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-            }
-            title="AI 助教"
-            description="咨询虚拟总工程师"
-          />
-          <QuickAction
-            href="/missions"
-            icon={
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-            }
-            title="任务大厅"
-            description="查看学习任务进度"
-          />
+        <div className="mt-8">
+          <h3 className="mb-4 text-lg font-semibold text-foreground">快捷入口</h3>
+          <div className="grid gap-4 md:grid-cols-3">
+            <QuickAction
+              href="/simulations/destroyer"
+              icon={
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              }
+              title="开始仿真"
+              description="进入驱逐舰航向控制仿真"
+            />
+            <QuickAction
+              href="/interactive-learning"
+              icon={
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              }
+              title="互动课程"
+              description="BOPPPS互动教学模块"
+            />
+            <QuickAction
+              href="/assessment/adaptive-practice"
+              icon={
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+              }
+              title="自适应练习"
+              description="个性化智能题库推荐"
+            />
+          </div>
         </div>
       </main>
     </div>
@@ -465,9 +519,9 @@ function StatItem({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-slate-400">{label}</span>
+      <span className="text-subtle">{label}</span>
       <span className={`font-semibold ${color}`}>
-        {value} <span className="text-sm text-slate-500">{unit}</span>
+        {value} <span className="text-sm text-subtle">{unit}</span>
       </span>
     </div>
   );
@@ -485,9 +539,9 @@ function ActivityItem({
   };
 }) {
   const typeStyles = {
-    simulation: 'bg-blue-500/20 text-blue-400',
-    mission: 'bg-emerald-500/20 text-emerald-400',
-    violation: 'bg-red-500/20 text-red-400',
+    simulation: 'bg-blue-500/20 text-blue-500',
+    mission: 'bg-emerald-500/20 text-emerald-500',
+    violation: 'bg-red-500/20 text-red-500',
   };
 
   const typeIcons = {
@@ -517,10 +571,10 @@ function ActivityItem({
       </span>
       <div className="flex-1">
         <p className="text-sm text-foreground">{activity.title}</p>
-        <p className="text-xs text-slate-500">{formatDate(activity.timestamp)}</p>
+        <p className="text-xs text-subtle">{formatDate(activity.timestamp)}</p>
       </div>
       {activity.result && (
-        <span className="text-sm text-slate-400">{activity.result}</span>
+        <span className="text-sm text-subtle">{activity.result}</span>
       )}
     </div>
   );
@@ -531,23 +585,34 @@ function QuickAction({
   icon,
   title,
   description,
+  badge,
+  badgeColor,
 }: {
   href: string;
   icon: React.ReactNode;
   title: string;
   description: string;
+  badge?: string;
+  badgeColor?: string;
 }) {
   return (
     <Link
       href={href}
       prefetch={href.startsWith('/simulations') ? false : undefined}
-      className="surface-card-soft flex items-center gap-4 p-4 transition-colors hover:border-amber-500/40 hover:bg-accent/70"
+      className="surface-card-soft group flex items-center gap-4 p-4 transition-all duration-300 hover:border-amber-500/40 hover:bg-accent/70 hover:shadow-lg hover:shadow-amber-500/5"
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
+      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-500/20 text-amber-500 transition-transform duration-300 group-hover:scale-110">
         {icon}
       </div>
-      <div>
-        <h4 className="font-medium text-foreground">{title}</h4>
+      <div className="flex-1">
+        <div className="flex items-center gap-2">
+          <h4 className="font-medium text-foreground">{title}</h4>
+          {badge && (
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${badgeColor || 'bg-amber-500/20 text-amber-500'}`}>
+              {badge}
+            </span>
+          )}
+        </div>
         <p className="text-sm text-subtle">{description}</p>
       </div>
     </Link>

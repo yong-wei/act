@@ -12,6 +12,9 @@ import {
   Clock,
   Library,
   FileText,
+  BarChart3,
+  LineChart,
+  Activity,
 } from 'lucide-react';
 
 interface TeacherDashboardProps {
@@ -102,7 +105,7 @@ export function TeacherDashboard({
       </div>
 
       {/* 快捷操作 */}
-      <div className="mb-8 grid gap-4 md:grid-cols-5">
+      <div className="mb-8 grid gap-4 md:grid-cols-3 lg:grid-cols-7">
         <QuickAction
           href="/teacher/classes/new"
           icon={<Plus className="h-5 w-5" />}
@@ -137,6 +140,22 @@ export function TeacherDashboard({
           title="教学资源管理"
           description="管理互动组件与知识卡片"
           color="bg-purple-500/20 text-purple-400"
+        />
+        <QuickAction
+          href="/teacher/classes/analytics-v2"
+          icon={<BarChart3 className="h-5 w-5" />}
+          title="班级能力驾驶舱"
+          description="学情分析、能力热力图、趋势"
+          color="bg-rose-500/20 text-rose-400"
+          badge="V2"
+          badgeColor="bg-rose-500/30 text-rose-300"
+        />
+        <QuickAction
+          href="/admin/data-governance"
+          icon={<Activity className="h-5 w-5" />}
+          title="数据治理监控"
+          description="系统状态、队列监控、快照"
+          color="bg-orange-500/20 text-orange-400"
         />
       </div>
 
@@ -302,22 +321,33 @@ function QuickAction({
   title,
   description,
   color,
+  badge,
+  badgeColor,
 }: {
   href: string;
   icon: React.ReactNode;
   title: string;
   description: string;
   color: string;
+  badge?: string;
+  badgeColor?: string;
 }) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-4 rounded-xl border border-slate-700 bg-slate-800/30 p-4 transition-colors hover:border-slate-600 hover:bg-slate-800/50"
+      className="group flex items-center gap-3 rounded-xl border border-slate-700 bg-slate-800/30 p-4 transition-all duration-300 hover:border-slate-500 hover:bg-slate-800/60 hover:shadow-lg hover:shadow-slate-900/20"
     >
-      <div className={`rounded-lg p-3 ${color}`}>{icon}</div>
-      <div>
-        <p className="font-medium text-white">{title}</p>
-        <p className="text-xs text-slate-400">{description}</p>
+      <div className={`rounded-lg p-2.5 transition-transform duration-300 group-hover:scale-110 ${color}`}>{icon}</div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="font-medium text-white truncate">{title}</p>
+          {badge && (
+            <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${badgeColor || 'bg-slate-700 text-slate-300'}`}>
+              {badge}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-slate-400 truncate">{description}</p>
       </div>
     </Link>
   );
