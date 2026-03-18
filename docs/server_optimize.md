@@ -11,15 +11,62 @@
 
 | 阶段 | 任务 | 状态 | 关键文件 |
 |------|------|------|----------|
-| Phase 1 | 连接池配置 | 代码就绪 | `.env.server` |
+| Phase 1 | 连接池配置 | 部署依赖，需按环境确认 | `.env` / 服务器环境变量 |
 | Phase 1 | 外键校验 | ✅ 完成 | `events/route.ts` |
 | Phase 1 | 页面回跳修复 | ✅ 完成 | `use-session-progress-channel.ts` |
-| Phase 2 | Session LRU 缓存 | ✅ 完成 | `lru-cache.ts`, `auth.ts` |
+| Phase 2 | Session LRU 缓存 | ✅ 已真正接入 | `lru-cache.ts`, `auth.ts` |
 | Phase 2 | 异步事件队列 | ✅ 完成 | `event-queue.ts` |
-| Phase 3 | Redis 部署 | ✅ 完成 | `docker-compose.yml`, `podman-compose.yml` |
-| Phase 3 | 状态迁移到 Redis | ✅ 完成 | `redis-client.ts` |
-| Phase 3 | SSE 推送 | ✅ 完成 | `stream/route.ts`, `use-session-sse.ts` |
+| Phase 3 | Redis 部署 | ⚠️ 部分完成 | `podman-compose.yml`, `scripts/ops/start.sh` |
+| Phase 3 | 状态迁移到 Redis | ⚠️ 部分完成 | `redis-client.ts`, `session/[sessionId]/route.ts` |
+| Phase 3 | SSE 推送 | ⚠️ 保留代码但默认关闭 | `stream/route.ts`, `use-session-sse.ts`, `use-student-lesson-session.ts` |
 | Phase 3 | 限流退避 | ✅ 完成 | `rate-limiter.ts` |
+
+## 当前判断（2026-03-19）
+
+这份计划里有几项此前被标记为“已完成”，但代码层面并不完全成立：
+
+- `Session LRU 缓存` 原先只有 `lru-cache.ts` 实现，`auth.ts` 并未真正接入。现已补上 `sessionProfileCache + sessionRequestDeduplicator`。
+- `状态迁移到 Redis` 并未全量完成。当前 Redis 主要承载 `ClassSession` 快速读取、presence 与广播；学生作答状态仍以 PostgreSQL `studentState` 为主。
+- `SSE 推送` 原先虽有代码，但发布通道和订阅通道不一致，实际上不可靠。现已统一为 `channel:session:${sessionId}`，但学生端默认已关闭 SSE。
+- `Redis 部署` 仅 `podman-compose.yml` 明确包含 Redis；本地启动脚本此前并未覆盖 Redis / worker / scheduler，现已补齐。
+
+## SSE Hook 在当前服务器上的真实效果
+
+目标场景：100+ 学生、2 核 8G、3Mbps 带宽、真实课堂。
+
+### 结论
+
+- **不建议把 SSE 作为学生端默认模式。**
+- **更有效的优化点是削减轮询成本，而不是把所有学生切成长连接。**
+- **当前最稳妥方案是：学生端默认轮询 + Redis 快路径 + 精简 `student-view` 查询。**
+
+### 原因
+
+1. SSE 的收益主要是把“教师翻页到学生感知”的延迟从秒级压到亚秒级，但这不直接解决数据库与 CPU 压力。
+2. 100+ 学生的 SSE 长连接本身带宽占用不算夸张，心跳包通常还能接受；真正的问题是 Next.js 进程要长期维护这些连接、心跳与断线重连，低配服务器更容易出现事件循环抖动和连接管理成本。
+3. 之前学生端轮询链路更重的根因不是“有没有 SSE”，而是：
+   - `/api/session/[sessionId]` 即使命中缓存也会额外查库；
+   - `/api/session/[sessionId]/state?scope=student-view` 会把全班 `participantStates` 一并查出来。
+4. 在 100 名学生、5 秒轮询下，请求频率约为每秒 20 次。只要请求足够轻，Redis/数据库都还能承受；如果每次都把全班状态查一遍，再快的 SSE 也救不了后台。
+
+### 因此本轮修正为
+
+- 学生端 `useStudentLessonSession` 默认 `enableSSE = false`。
+- 学生端不再把“实时连接失败，已降级到轮询模式”暴露成课堂错误提示。
+- `/api/session/[sessionId]` 命中 Redis 后直接返回 `joinCode/classId/planTitle/currentItemId/currentStage/status`，不再额外查 Prisma。
+- `/api/session/[sessionId]/state?scope=student-view` 只返回：
+  - 当前学生自己的 `courseState`
+  - 最新教师同步 `teacher-sync`
+  - `totalStudents`
+
+## 推荐运行策略
+
+- **真实课堂（80~120 人）**：默认轮询，不启用 SSE。
+- **教师端或小班演示（< 30 人）**：如确需更低延迟，可显式开启 SSE 做受控实验。
+- **服务器优先级**：
+  1. 先保证 Redis 可用；
+  2. 再保证 `student-view` 查询轻量；
+  3. 再考虑是否需要 SSE。
 
 ## 核心实现详解
 

@@ -21,10 +21,8 @@ interface UseStudentLessonSessionOptions<StudentState, TeacherSyncState> {
   demoStepId?: string | null;
   pollIntervalMs?: number;
   /**
-   * 是否启用 SSE 实时推送
-   * - true: 优先使用 SSE，失败时自动降级到轮询
-   * - false: 仅使用轮询（默认行为，向后兼容）
-   * @default true
+   * 是否显式启用 SSE 实时推送
+   * 当前默认关闭，课堂场景以轮询为主，避免在低配服务器上维护大量长连接。
    */
   enableSSE?: boolean;
 }
@@ -38,7 +36,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
   isDemo = false,
   demoStepId,
   pollIntervalMs,
-  enableSSE = true,
+  enableSSE = false,
 }: UseStudentLessonSessionOptions<StudentState, TeacherSyncState>): StudentLessonSessionResult<StudentState, TeacherSyncState> {
   // SSE 状态追踪
   const [sseLastUpdate, setSseLastUpdate] = useState<number>(0);
@@ -102,13 +100,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
   const initialPresenceSyncedRef = useRef(false);
 
   // 合并 SSE 和轮询的错误状态
-  const combinedError = useMemo(() => {
-    if (error) return error;
-    if (sseConnection.error && !sseConnection.isConnected && sseConnection.reconnectAttempt >= 5) {
-      return '实时连接失败，已降级到轮询模式';
-    }
-    return progressError;
-  }, [error, progressError, sseConnection.error, sseConnection.isConnected, sseConnection.reconnectAttempt]);
+  const combinedError = useMemo(() => error ?? progressError, [error, progressError]);
 
   // SSE 状态同步到 progress channel
   useEffect(() => {

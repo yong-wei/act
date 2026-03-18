@@ -84,9 +84,12 @@ stop_process() {
 }
 
 ###############################################################################
-# 停止 Next.js 开发服务器
+# 停止主要后台服务
 ###############################################################################
+stop_process "数据治理 worker" "$PIDS_DIR/worker.pid"
+stop_process "scheduler" "$PIDS_DIR/scheduler.pid"
 stop_process "Next.js 开发服务器" "$PIDS_DIR/frontend.pid"
+stop_process "本地 Redis" "$PIDS_DIR/redis.pid"
 
 ###############################################################################
 # 停止可能存在的其他相关进程

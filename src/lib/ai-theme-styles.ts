@@ -148,7 +148,7 @@ export function getAvatarBorderStyles(): string {
  * 获取浮动按钮样式
  */
 export function getFloatingButtonStyles(isDark: boolean): string {
-  const base = 'fixed bottom-24 right-6 z-40 flex items-center justify-center rounded-full transition-all duration-300 hover:scale-110';
+  const base = 'fixed bottom-16 right-6 z-40 flex items-center justify-center rounded-full transition-all duration-300 hover:scale-110';
   const colors = isDark
     ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25'
     : 'bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-lg shadow-amber-400/25';

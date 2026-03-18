@@ -7,6 +7,7 @@ import { BarChart3, BookOpen, CheckCircle2, ChevronDown, ChevronUp, ClipboardLis
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
 import { useInteractiveAI } from '@/features/interactive/hooks/useInteractiveAI';
+import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import type {
   L2CChoiceOption,
   L2CContentBlock,
@@ -176,6 +177,7 @@ export function L2CStudentActivityForm({
 }) {
   const activity = step.student.activity;
   const [draft, setDraft] = useState<Record<string, string>>({});
+  const isSubmitted = Boolean(savedResponse);
 
   useEffect(() => {
     if (!activity || activity.kind === 'none') {
@@ -236,6 +238,7 @@ export function L2CStudentActivityForm({
                 key={field.key}
                 field={field}
                 value={draft[field.key]}
+                disabled={isSubmitted}
                 onChange={(value) => setDraft((prev) => ({ ...prev, [field.key]: value }))}
               />
             ))
@@ -245,14 +248,16 @@ export function L2CStudentActivityForm({
                 question={question}
                 value={draft[question.key]}
                 answerVisible={answerVisible}
+                disabled={isSubmitted}
                 onChange={(value) => setDraft((prev) => ({ ...prev, [question.key]: value }))}
               />
             ))}
       </div>
 
-      <button type="button" onClick={submitCurrent} className="premium-lesson-action-primary mt-4">
-        {activity.submitLabel ?? '提交'}
+      <button type="button" onClick={submitCurrent} disabled={isSubmitted} className="premium-lesson-action-primary mt-4">
+        {isSubmitted ? '已提交' : activity.submitLabel ?? '提交'}
       </button>
+      <SubmissionStatus submitted={isSubmitted} />
     </section>
   );
 }
@@ -276,10 +281,12 @@ function RecallCard({
 function FieldRenderer({
   field,
   value,
+  disabled,
   onChange,
 }: {
   field: L2CFormField;
   value?: string;
+  disabled: boolean;
   onChange: (value: string) => void;
 }) {
   return (
@@ -294,6 +301,7 @@ function FieldRenderer({
                 name={field.key}
                 value={option.value}
                 checked={value === option.value}
+                disabled={disabled}
                 onChange={(event) => onChange(event.target.value)}
               />
               <span>{option.label}</span>
@@ -303,6 +311,7 @@ function FieldRenderer({
       ) : field.type === 'textarea' ? (
         <textarea
           value={value ?? ''}
+          disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           placeholder={field.placeholder}
           className="premium-lesson-input mt-3 min-h-[120px] w-full resize-y text-sm tracking-normal"
@@ -310,6 +319,7 @@ function FieldRenderer({
       ) : (
         <input
           value={value ?? ''}
+          disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           placeholder={field.placeholder}
           className="premium-lesson-input mt-3 w-full text-sm tracking-normal"
@@ -323,11 +333,13 @@ function QuestionRenderer({
   question,
   value,
   answerVisible,
+  disabled,
   onChange,
 }: {
   question: L2CQuestion;
   value?: string;
   answerVisible: boolean;
+  disabled: boolean;
   onChange: (value: string) => void;
 }) {
   return (
@@ -342,6 +354,7 @@ function QuestionRenderer({
                 name={question.key}
                 value={option.value}
                 checked={value === option.value}
+                disabled={disabled}
                 onChange={(event) => onChange(event.target.value)}
               />
               <span>
@@ -358,6 +371,7 @@ function QuestionRenderer({
       ) : (
         <textarea
           value={value ?? ''}
+          disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           placeholder={question.placeholder}
           className="premium-lesson-input mt-3 min-h-[120px] w-full resize-y text-sm tracking-normal"

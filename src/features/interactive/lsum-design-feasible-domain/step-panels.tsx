@@ -17,6 +17,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
 import { useInteractiveAI } from '@/features/interactive/hooks/useInteractiveAI';
+import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import type { InteractiveConfig } from '@/features/interactive/types';
 import {
   LSUM_LESSON_STEPS,
@@ -705,10 +706,12 @@ export function LSUMStepContentPanel({
 function FieldRenderer({
   field,
   value,
+  disabled,
   onChange,
 }: {
   field: FieldSpec;
   value?: string;
+  disabled: boolean;
   onChange: (value: string) => void;
 }) {
   return (
@@ -723,6 +726,7 @@ function FieldRenderer({
                 name={field.key}
                 value={option.value}
                 checked={value === option.value}
+                disabled={disabled}
                 onChange={(event) => onChange(event.target.value)}
               />
               <span>
@@ -734,6 +738,7 @@ function FieldRenderer({
       ) : (
         <textarea
           value={value ?? ''}
+          disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           placeholder={field.placeholder}
           className="premium-lesson-input mt-3 min-h-[120px] w-full resize-y text-sm tracking-normal"
@@ -747,11 +752,13 @@ function QuestionRenderer({
   question,
   value,
   answerVisible,
+  disabled,
   onChange,
 }: {
   question: QuestionSpec;
   value?: string;
   answerVisible: boolean;
+  disabled: boolean;
   onChange: (value: string) => void;
 }) {
   if (question.type === 'text') {
@@ -760,6 +767,7 @@ function QuestionRenderer({
         <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
         <textarea
           value={value ?? ''}
+          disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           placeholder={question.placeholder}
           className="premium-lesson-input mt-3 min-h-[120px] w-full resize-y text-sm tracking-normal"
@@ -779,6 +787,7 @@ function QuestionRenderer({
               name={question.key}
               value={option.value}
               checked={value === option.value}
+              disabled={disabled}
               onChange={(event) => onChange(event.target.value)}
             />
             <span>
@@ -812,6 +821,7 @@ export function LSUMStudentActivityForm({
   // 使用 useMemo 缓存 activity 对象，避免每次渲染创建新引用导致无限循环
   const activity = useMemo(() => getStepActivity(step), [step]);
   const [draft, setDraft] = useState<Record<string, string>>({});
+  const isSubmitted = Boolean(savedResponse);
 
   useEffect(() => {
     setDraft(getDefaultDraft(activity, savedResponse));
@@ -857,6 +867,7 @@ export function LSUMStudentActivityForm({
                 question={question}
                 value={draft[question.key]}
                 answerVisible={answerVisible}
+                disabled={isSubmitted}
                 onChange={(value) => setDraft((prev) => ({ ...prev, [question.key]: value }))}
               />
             ))
@@ -865,6 +876,7 @@ export function LSUMStudentActivityForm({
                 key={field.key}
                 field={field}
                 value={draft[field.key]}
+                disabled={isSubmitted}
                 onChange={(value) => setDraft((prev) => ({ ...prev, [field.key]: value }))}
               />
             ))}
@@ -872,6 +884,7 @@ export function LSUMStudentActivityForm({
 
       <button
         type="button"
+        disabled={isSubmitted}
         onClick={() =>
           onSubmit({
             stepId: step.id,
@@ -881,8 +894,9 @@ export function LSUMStudentActivityForm({
         }
         className="premium-lesson-action-primary mt-4"
       >
-        {activity.submitLabel ?? '提交'}
+        {isSubmitted ? '已提交' : activity.submitLabel ?? '提交'}
       </button>
+      <SubmissionStatus submitted={isSubmitted} />
     </section>
   );
 }
@@ -1224,19 +1238,19 @@ export function LSUMStepAiAssistant({
       </div>
 
       <button type="button" onClick={ai.togglePanel} className="premium-lesson-action-primary mt-4">
-        打开 AI 助手
+        打开控灵助手
       </button>
 
       <Dialog open={ai.isPanelOpen} onOpenChange={ai.togglePanel}>
         <DialogContent className="max-w-5xl border-border bg-background p-0 text-foreground">
           <DialogHeader className="border-b border-border px-6 py-4">
-            <DialogTitle className="premium-lesson-title">L-∑ 页内 AI 助手</DialogTitle>
+            <DialogTitle className="premium-lesson-title">L-∑ 页内控灵助手</DialogTitle>
             <DialogDescription className="premium-lesson-muted">
               围绕当前页面的可行域判断进行追问，不离开课程页。
             </DialogDescription>
           </DialogHeader>
           <div className="h-[560px] overflow-hidden">
-            <InteractiveAIPanel ai={ai} title={`${step.title} · AI 学习助手`} onClose={ai.togglePanel} position="right" />
+            <InteractiveAIPanel ai={ai} title={`${step.title} · 控灵助手`} onClose={ai.togglePanel} position="right" />
           </div>
         </DialogContent>
       </Dialog>

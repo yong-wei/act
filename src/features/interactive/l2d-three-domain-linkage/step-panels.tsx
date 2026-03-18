@@ -20,6 +20,7 @@ import {
   scoreTaskOne,
   scoreTaskTwoRow,
 } from '@/lib/l2d-course';
+import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import type { WorkspaceMetrics } from './workspace';
 
 function toneClass(tone?: L2DContentBlock['sections'][number]['tone']) {
@@ -155,6 +156,10 @@ export function L2DStudentActivityForm({
   const [taskOneDraft, setTaskOneDraft] = useState({ kCritical: '', gammaApprox: '', observation: '' });
   const [reflectionDraft, setReflectionDraft] = useState({ surpriseText: '', selectedOption: '' as '' | 'A' | 'B', answerText: '' });
   const [postRangeDraft, setPostRangeDraft] = useState({ lowerBound: '', upperBound: '' });
+  const quizSubmitted = Boolean(courseState.preAssessment);
+  const taskOneSubmitted = Boolean(courseState.taskOne);
+  const reflectionSubmitted = Boolean(courseState.reflection);
+  const postRangeSubmitted = Boolean(courseState.postAssessment);
 
   useEffect(() => {
     setQuizDraft(courseState.preAssessment?.answers ?? {});
@@ -194,12 +199,14 @@ export function L2DStudentActivityForm({
               question={question}
               value={quizDraft[question.key] ?? ''}
               answerVisible={answerVisible}
+              disabled={quizSubmitted}
               onChange={(value) => setQuizDraft((prev) => ({ ...prev, [question.key]: value }))}
             />
           ))}
-          <button type="button" onClick={() => onSavePreAssessment(quizDraft)} className="premium-lesson-action-primary">
-            {activity.submitLabel ?? '提交'}
+          <button type="button" onClick={() => onSavePreAssessment(quizDraft)} disabled={quizSubmitted} className="premium-lesson-action-primary">
+            {quizSubmitted ? '已提交' : activity.submitLabel ?? '提交'}
           </button>
+          <SubmissionStatus submitted={quizSubmitted} />
         </div>
       ) : null}
 
@@ -210,6 +217,7 @@ export function L2DStudentActivityForm({
               <span className="mb-2 block text-sm font-medium">我找到的临界 K 值</span>
               <input
                 value={taskOneDraft.kCritical}
+                disabled={taskOneSubmitted}
                 onChange={(event) => setTaskOneDraft((prev) => ({ ...prev, kCritical: event.target.value }))}
                 className="premium-lesson-input"
                 placeholder="例如 41.8"
@@ -219,6 +227,7 @@ export function L2DStudentActivityForm({
               <span className="mb-2 block text-sm font-medium">此时 γ ≈</span>
               <input
                 value={taskOneDraft.gammaApprox}
+                disabled={taskOneSubmitted}
                 onChange={(event) => setTaskOneDraft((prev) => ({ ...prev, gammaApprox: event.target.value }))}
                 className="premium-lesson-input"
                 placeholder="例如 1.2°"
@@ -229,6 +238,7 @@ export function L2DStudentActivityForm({
             <span className="mb-2 block text-sm font-medium">我观察到的时域变化</span>
             <textarea
               value={taskOneDraft.observation}
+              disabled={taskOneSubmitted}
               onChange={(event) => setTaskOneDraft((prev) => ({ ...prev, observation: event.target.value }))}
               className="premium-lesson-input min-h-[96px]"
               placeholder="例如：响应从收敛振荡变成接近等幅振荡。"
@@ -239,6 +249,7 @@ export function L2DStudentActivityForm({
           </div>
           <button
             type="button"
+            disabled={taskOneSubmitted}
             onClick={() =>
               onSaveTaskOne({
                 kCritical: Number(taskOneDraft.kCritical),
@@ -248,8 +259,9 @@ export function L2DStudentActivityForm({
             }
             className="premium-lesson-action-primary"
           >
-            提交任务一
+            {taskOneSubmitted ? '已提交' : '提交任务一'}
           </button>
+          <SubmissionStatus submitted={taskOneSubmitted} />
           {courseState.taskOne ? (
             <FeedbackBox title={`当前最高分：${courseState.taskOne.score} / 30`} tone={courseState.taskOne.score >= 30 ? 'emerald' : courseState.taskOne.score > 0 ? 'amber' : 'rose'}>
               {courseState.taskOne.feedback}
@@ -285,6 +297,7 @@ export function L2DStudentActivityForm({
             <span className="mb-2 block text-sm font-medium">描述一个今天让你意外的现象</span>
             <textarea
               value={reflectionDraft.surpriseText}
+              disabled={reflectionSubmitted}
               onChange={(event) => setReflectionDraft((prev) => ({ ...prev, surpriseText: event.target.value }))}
               className="premium-lesson-input min-h-[120px]"
               placeholder="至少写满一句话。"
@@ -293,6 +306,7 @@ export function L2DStudentActivityForm({
           <div className="grid gap-3 md:grid-cols-2">
             <button
               type="button"
+              disabled={reflectionSubmitted}
               onClick={() => setReflectionDraft((prev) => ({ ...prev, selectedOption: prev.selectedOption === 'A' ? '' : 'A', answerText: prev.selectedOption === 'A' ? prev.answerText : '' }))}
               className={`premium-lesson-selectable-card text-left ${reflectionDraft.selectedOption === 'A' ? 'premium-lesson-selectable-card-active' : ''}`}
             >
@@ -301,6 +315,7 @@ export function L2DStudentActivityForm({
             </button>
             <button
               type="button"
+              disabled={reflectionSubmitted}
               onClick={() => setReflectionDraft((prev) => ({ ...prev, selectedOption: prev.selectedOption === 'B' ? '' : 'B', answerText: prev.selectedOption === 'B' ? prev.answerText : '' }))}
               className={`premium-lesson-selectable-card text-left ${reflectionDraft.selectedOption === 'B' ? 'premium-lesson-selectable-card-active' : ''}`}
             >
@@ -312,6 +327,7 @@ export function L2DStudentActivityForm({
             <span className="mb-2 block text-sm font-medium">选答内容</span>
             <textarea
               value={reflectionDraft.answerText}
+              disabled={reflectionSubmitted}
               onChange={(event) => setReflectionDraft((prev) => ({ ...prev, answerText: event.target.value }))}
               className="premium-lesson-input min-h-[120px]"
               placeholder="如果选 B，建议带入具体数值。"
@@ -319,6 +335,7 @@ export function L2DStudentActivityForm({
           </label>
           <button
             type="button"
+            disabled={reflectionSubmitted}
             onClick={() =>
               onSaveReflection({
                 surpriseText: reflectionDraft.surpriseText,
@@ -328,8 +345,9 @@ export function L2DStudentActivityForm({
             }
             className="premium-lesson-action-primary"
           >
-            提交反思
+            {reflectionSubmitted ? '已提交' : '提交反思'}
           </button>
+          <SubmissionStatus submitted={reflectionSubmitted} />
           {courseState.reflection ? (
             <FeedbackBox title={`本项得分：${courseState.reflection.score} / 30`} tone={courseState.reflection.score >= 30 ? 'emerald' : courseState.reflection.score >= 20 ? 'amber' : 'rose'}>
               {courseState.reflection.feedback.length ? courseState.reflection.feedback.join('；') : '已提交，你可以继续向页内 AI 助手追问自己的发现。'}
@@ -345,6 +363,7 @@ export function L2DStudentActivityForm({
               <span className="mb-2 block text-sm font-medium">区间下界</span>
               <input
                 value={postRangeDraft.lowerBound}
+                disabled={postRangeSubmitted}
                 onChange={(event) => setPostRangeDraft((prev) => ({ ...prev, lowerBound: event.target.value }))}
                 className="premium-lesson-input"
                 placeholder="例如 1"
@@ -354,15 +373,17 @@ export function L2DStudentActivityForm({
               <span className="mb-2 block text-sm font-medium">区间上界</span>
               <input
                 value={postRangeDraft.upperBound}
+                disabled={postRangeSubmitted}
                 onChange={(event) => setPostRangeDraft((prev) => ({ ...prev, upperBound: event.target.value }))}
                 className="premium-lesson-input"
                 placeholder="例如 8"
               />
             </label>
           </div>
-          <button type="button" onClick={() => onSavePostAssessment(postRangeDraft)} className="premium-lesson-action-primary">
-            {activity.submitLabel ?? '提交'}
+          <button type="button" onClick={() => onSavePostAssessment(postRangeDraft)} disabled={postRangeSubmitted} className="premium-lesson-action-primary">
+            {postRangeSubmitted ? '已提交' : activity.submitLabel ?? '提交'}
           </button>
+          <SubmissionStatus submitted={postRangeSubmitted} />
         </div>
       ) : null}
     </section>
@@ -373,11 +394,13 @@ function QuestionRenderer({
   question,
   value,
   answerVisible,
+  disabled = false,
   onChange,
 }: {
   question: L2DQuestion;
   value: string;
   answerVisible: boolean;
+  disabled?: boolean;
   onChange: (value: string) => void;
 }) {
   return (
@@ -392,6 +415,7 @@ function QuestionRenderer({
               <button
                 key={option.value}
                 type="button"
+                disabled={disabled}
                 onClick={() => onChange(option.value)}
                 className={`premium-lesson-selectable-card text-left ${selected ? 'premium-lesson-selectable-card-active' : ''} ${correct ? 'ring-2 ring-emerald-400/70' : ''}`}
               >
@@ -403,6 +427,7 @@ function QuestionRenderer({
       ) : (
         <textarea
           value={value}
+          disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           className="premium-lesson-input mt-3 min-h-[96px]"
           placeholder={question.placeholder}
@@ -466,21 +491,23 @@ function TaskTwoRowEditor({
 
   return (
     <div className="premium-lesson-surface-elevated rounded-[24px] px-4 py-4">
+      {savedRow ? <SubmissionStatus submitted={true} idleText="" submittedText="这一行已提交成功，已锁定。" /> : null}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-sm font-semibold">第 {index + 1} 行</div>
         {savedRow ? <span className="premium-lesson-chip">最高分 {savedRow.score} / 10</span> : null}
       </div>
       <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <SmallField label="K" value={draft.k} onChange={(value) => setDraft((prev) => ({ ...prev, k: value }))} />
-        <SmallField label="σ" value={draft.sigma} onChange={(value) => setDraft((prev) => ({ ...prev, sigma: value }))} />
-        <SmallField label="ω" value={draft.omega} onChange={(value) => setDraft((prev) => ({ ...prev, omega: value }))} />
-        <SmallField label="Mp (%)" value={draft.mp} onChange={(value) => setDraft((prev) => ({ ...prev, mp: value }))} />
-        <SmallField label="ts (s)" value={draft.ts} onChange={(value) => setDraft((prev) => ({ ...prev, ts: value }))} />
-        <SmallField label="γ (°)" value={draft.gamma} onChange={(value) => setDraft((prev) => ({ ...prev, gamma: value }))} />
+        <SmallField label="K" value={draft.k} disabled={Boolean(savedRow)} onChange={(value) => setDraft((prev) => ({ ...prev, k: value }))} />
+        <SmallField label="σ" value={draft.sigma} disabled={Boolean(savedRow)} onChange={(value) => setDraft((prev) => ({ ...prev, sigma: value }))} />
+        <SmallField label="ω" value={draft.omega} disabled={Boolean(savedRow)} onChange={(value) => setDraft((prev) => ({ ...prev, omega: value }))} />
+        <SmallField label="Mp (%)" value={draft.mp} disabled={Boolean(savedRow)} onChange={(value) => setDraft((prev) => ({ ...prev, mp: value }))} />
+        <SmallField label="ts (s)" value={draft.ts} disabled={Boolean(savedRow)} onChange={(value) => setDraft((prev) => ({ ...prev, ts: value }))} />
+        <SmallField label="γ (°)" value={draft.gamma} disabled={Boolean(savedRow)} onChange={(value) => setDraft((prev) => ({ ...prev, gamma: value }))} />
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
+          disabled={Boolean(savedRow)}
           onClick={() =>
             setDraft({
               k: metrics.gain.toFixed(2),
@@ -497,6 +524,7 @@ function TaskTwoRowEditor({
         </button>
         <button
           type="button"
+          disabled={Boolean(savedRow)}
           onClick={() =>
             onSave({
               rowId,
@@ -510,7 +538,7 @@ function TaskTwoRowEditor({
           }
           className="premium-lesson-action-primary"
         >
-          记录这一行
+          {savedRow ? '已提交' : '记录这一行'}
         </button>
       </div>
       <div className="mt-3 grid gap-2 md:grid-cols-3">
@@ -526,11 +554,21 @@ function TaskTwoRowEditor({
   );
 }
 
-function SmallField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+function SmallField({
+  label,
+  value,
+  disabled = false,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}) {
   return (
     <label className="premium-lesson-control block">
       <span className="mb-2 block text-xs font-medium uppercase tracking-[0.16em]">{label}</span>
-      <input value={value} onChange={(event) => onChange(event.target.value)} className="premium-lesson-input" />
+      <input value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)} className="premium-lesson-input" />
     </label>
   );
 }

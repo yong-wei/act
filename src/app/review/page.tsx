@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowUpRight, ClipboardCheck } from 'lucide-react'
-import { FeaturePageNav } from '@/components/shared/feature-page-nav'
+import { UnifiedTopBar } from '@/components/shared/unified-top-bar'
 
 type ReviewEntry = {
   title: string
@@ -41,7 +41,7 @@ const reviewEntries: ReviewEntry[] = [
 export default function ReviewPage() {
   return (
     <main className="surface-page">
-      <FeaturePageNav title="评审入口" backHref="/" backLabel="返回首页" />
+      <UnifiedTopBar title="评审入口" backHref="/" backLabel="返回首页" subtitle="Review Hub" />
       <div className="mx-auto w-full max-w-6xl px-6 py-10">
         <header className="surface-card mb-8 p-6">
           <h1 className="flex items-center gap-3 text-3xl font-semibold text-foreground">

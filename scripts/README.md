@@ -40,10 +40,14 @@ npm run startup
 
 1. ✅ 清理日志文件内容（保留文件）
 2. ✅ 检查 PostgreSQL 数据库是否运行
-3. ✅ 检查环境配置（.env）
-4. ✅ 检查依赖（node_modules）
-5. ✅ 启动 Next.js 开发服务器（后台运行）
-6. ✅ 记录进程 PID 到 `.logs/pids/`
+3. ✅ 检查 Redis 是否运行，必要时尝试本地拉起
+4. ✅ 检查环境配置（.env）
+5. ✅ 检查依赖（node_modules）
+6. ✅ 执行 `npm run seed:knowledge`
+7. ✅ 执行 `npm run seed:fixed-passwords`
+8. ✅ 执行 `npm run worker:scheduler` 初始化周期任务
+9. ✅ 启动 `npm run worker:dev` 数据治理 worker
+10. ✅ 启动 Next.js 开发服务器（后台运行）并记录 PID 到 `.logs/pids/`
 
 ### 停止服务
 
@@ -59,8 +63,8 @@ npm run shutdown
 
 **停止脚本会自动执行：**
 
-1. ✅ 优雅停止 Next.js 开发服务器（SIGTERM）
-2. ✅ 清理占用 3000 端口的进程
+1. ✅ 优雅停止数据治理 worker、scheduler、Next.js 与本地 Redis（若由脚本拉起）
+2. ✅ 清理占用 3001 端口的进程
 3. ✅ 清理所有 Next.js 相关进程
 4. ✅ 删除 PID 文件
 5. ✅ 如果优雅停止失败，强制终止（SIGKILL）
@@ -141,10 +145,16 @@ npm run test:integration
 ├── frontend.log      # Next.js 前端日志
 ├── backend.log       # 后端 API 日志
 ├── database.log      # 数据库日志
+├── redis.log         # Redis 启动日志
+├── worker.log        # 数据治理 worker 日志
+├── scheduler.log     # 周期任务初始化日志
 ├── console.log       # 控制台输出
 ├── error.log         # 错误日志
 └── pids/            # 进程 PID 文件
-    └── frontend.pid
+    ├── frontend.pid
+    ├── worker.pid
+    ├── scheduler.pid
+    └── redis.pid
 ```
 
 ### 查看日志
@@ -181,7 +191,7 @@ node scripts/ops/clear-logs.mjs
 
 1. **检查端口占用：**
    ```bash
-   lsof -ti:3000
+   lsof -ti:3001
    ```
 
 2. **查看错误日志：**
@@ -238,6 +248,8 @@ pkill -f "next dev"
 | `npm run startup` | 启动完整服务 |
 | `npm run shutdown` | 停止所有服务 |
 | `npm run dev` | 前台启动开发服务器 |
+| `npm run worker:dev` | 单独启动数据治理 worker |
+| `npm run worker:scheduler` | 单次初始化 BullMQ 周期任务 |
 | `npm run build` | 构建生产版本 |
 | `npm run lint` | 代码检查 |
 | `npm test` | 冒烟测试 |
@@ -254,7 +266,7 @@ pkill -f "next dev"
 # 1. 启动服务
 npm run startup
 
-# 2. 开发调试（浏览器访问 http://localhost:3000）
+# 2. 开发调试（浏览器访问 http://localhost:3001）
 
 # 3. 查看日志（另一个终端）
 npm run logs

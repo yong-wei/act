@@ -201,7 +201,7 @@ export async function GET(
     }
 
     if (scope === 'student-view') {
-      const [selfState, teacherSyncState, participantStates] = await Promise.all([
+      const [selfState, teacherSyncState, totalStudents] = await Promise.all([
         prisma.studentState.findUnique({
           where: {
             sessionId_userId_stateKey: {
@@ -237,39 +237,23 @@ export async function GET(
             },
           },
         }),
-        prisma.studentState.findMany({
+        prisma.studentState.count({
           where: {
             sessionId: params.sessionId,
             stateKey: courseStateKey,
           },
-          select: {
-            itemId: true,
-            submittedAt: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-          orderBy: { submittedAt: 'desc' },
         }),
       ]);
 
-      const states = [
-        teacherSyncState,
-        selfState,
-        ...participantStates.filter((item) => item.user.id !== session.user.id),
-      ].filter(Boolean);
+      const states = [teacherSyncState, selfState].filter(Boolean);
 
       return NextResponse.json({
         states,
-        courseStates: [selfState, ...participantStates.filter((item) => item.user.id !== session.user.id)].filter(Boolean),
+        courseStates: selfState ? [selfState] : [],
         teacherStates: teacherSyncState ? [teacherSyncState] : [],
         summary: {
-          totalStudents: participantStates.length,
-          latestUpdate: participantStates[0]?.submittedAt || teacherSyncState?.submittedAt || selfState?.submittedAt || null,
+          totalStudents,
+          latestUpdate: teacherSyncState?.submittedAt || selfState?.submittedAt || null,
         },
       });
     }

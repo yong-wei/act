@@ -125,28 +125,15 @@ export async function GET(request: Request, { params }: { params: { sessionId: s
         if (redisClient.isReady()) {
             const cachedState = await redisClient.getSessionState(sessionId);
             if (cachedState) {
-                const sessionMeta = await prisma.classSession.findUnique({
-                    where: { id: sessionId },
-                    select: {
-                        joinCode: true,
-                        classId: true,
-                        plan: { select: { title: true } }
-                    }
-                });
-
-                if (!sessionMeta) {
-                    return NextResponse.json({ error: 'Not found' }, { status: 404 });
-                }
-
                 return NextResponse.json({
                     id: sessionId,
-                    joinCode: sessionMeta.joinCode,
-                    classId: sessionMeta.classId,
+                    joinCode: typeof cachedState.joinCode === 'string' ? cachedState.joinCode : '',
+                    classId: typeof cachedState.classId === 'string' ? cachedState.classId : null,
                     currentItemId: cachedState.currentItemId ?? null,
                     currentStage: cachedState.currentStage ?? null,
                     status: cachedState.status ?? 'ACTIVE',
                     updatedAt: cachedState.updatedAt ?? Date.now(),
-                    planTitle: sessionMeta.plan?.title ?? '',
+                    planTitle: typeof cachedState.planTitle === 'string' ? cachedState.planTitle : '',
                 });
             }
         }

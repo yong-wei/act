@@ -314,7 +314,7 @@ function MessageBubble({
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div className="flex max-w-[85%] gap-2">
-        {!isUser && <KonlingAvatar size="sm" />}
+        {!isUser && <KonlingAvatar size="sm" className="mt-0.5 shrink-0 self-start" />}
         <div
           className={`
             rounded-2xl px-4 py-2.5 text-sm leading-relaxed

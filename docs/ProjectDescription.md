@@ -7,7 +7,8 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-03-18
+📅 **最后更新**：2026-03-19
+🛠️ **课堂服务与导航回补（2026-03-19）**：按 `docs/server_optimize.md` 与 `docs/plans/nevplan.md` 重新校正课堂链路和导航统一方案；学生端课堂会话默认关闭 SSE，去除“实时连接失败，已降级到轮询模式”页面提示，修正 Redis 发布/订阅频道不一致问题，并进一步收窄 `student-view` 查询与 `/api/session/[sessionId]` Redis 快路径返回；L-2a/L-2b/L-2c/L-2d/L-sum 的互动提交补齐“提交成功”常驻提示与锁定逻辑，L-sum 第 10 页按钮文案改为“打开控灵助手”且页内控灵头像在消息气泡中恢复显示；知识图谱、评审入口、互动学习、互动课程、跨域探索、章节组件与 Lesson-02 页面重新接入 `UnifiedTopBar`，控灵浮动按钮位置下调；本地 `startup/shutdown` 同步纳入 Redis、`worker:dev` 与 `worker:scheduler`
 🔧 **L-sum课程演示模式与教师页面错误修复（2026-03-18）**：修复 L-sum 课程演示模式 "Maximum update depth exceeded" 无限渲染错误（`step-panels.tsx` 使用 `useMemo` 缓存 `getStepActivity` 返回值）；修复教师页面不显示课堂码问题（显式构建包含 `joinCode` 的 session 对象）；优化课堂同步轮询错误处理（`use-session-progress-channel.ts` 添加错误退避、状态合并更新、5秒暂停机制，防止多轮询竞争导致的抖动和 fetch 失败）
 🗃️ **数据治理系统（2026-03-18）**：新增数据治理核心模块（competency-engine, risk-detector, event-buffer），实现学生六维能力画像计算、风险学生检测、学习事实追踪；配套新增学生成长追踪页面（`/profile/growth`, `/profile/portfolio`）、教师分析 v2（`/teacher/classes/[classId]/analytics-v2`）、学生诊断（`/teacher/students/[studentId]/diagnosis`）及相关 API；管理员统计面板支持演示/真实数据切换；新增 vitest 单元测试配置与数据治理模块测试套件
 🔧 **L-2d课堂服务稳定性整改（2026-03-18）**：针对L-2d课程期间出现的服务不稳定问题（数据库连接池耗尽、外键错误、页面回跳），实施P0级紧急整改：

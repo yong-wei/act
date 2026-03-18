@@ -13,6 +13,7 @@ import type {
   L2AStudentCourseState,
   L2AStepResponse,
 } from '@/lib/l2a-course';
+import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 
 function toneClass(tone: L2AContentSection['tone']) {
   switch (tone) {
@@ -171,7 +172,7 @@ export function StudentActivityForm({
                 key={field.key}
                 field={field}
                 value={draft[field.key]}
-                disabled={false}
+                disabled={isSubmitted}
                 onChange={(value) => updateValue(field.key, value)}
               />
             ))
@@ -180,7 +181,7 @@ export function StudentActivityForm({
                 key={question.key}
                 question={question}
                 value={draft[question.key]}
-                disabled={false}
+                disabled={isSubmitted}
                 onChange={(value) => updateValue(question.key, value)}
               />
             ))}
@@ -190,17 +191,14 @@ export function StudentActivityForm({
         <button
           type="button"
           onClick={submitCurrent}
+          disabled={isSubmitted}
           className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-cyan-200"
         >
           <CheckCircle2 className="h-4 w-4" />
-          {activity.submitLabel ?? '保存'}
+          {isSubmitted ? '已提交' : activity.submitLabel ?? '保存'}
         </button>
-        {isSubmitted ? (
-          <span className="text-sm text-emerald-200">已保存于当前课堂记录中，可重复覆盖更新。</span>
-        ) : (
-          <span className="premium-lesson-muted">提交后会同步到教师端汇总。</span>
-        )}
       </div>
+      <SubmissionStatus submitted={isSubmitted} />
     </section>
   );
 }

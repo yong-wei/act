@@ -1,27 +1,13 @@
 import Link from 'next/link';
-import { ArrowRight, ChevronDown, Ship } from 'lucide-react';
+import { ArrowRight, ChevronDown } from 'lucide-react';
 
+import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
 import { LEGACY_LESSONS, PREMIUM_LESSONS } from '@/features/interactive/learning-catalog';
 
 export default function InteractiveCoursesPage() {
   return (
     <div className="interactive-course-hub-shell">
-      <nav className="interactive-course-hub-topbar">
-        <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-4">
-          <Link href="/interactive-learning" className="flex items-center gap-3">
-            <div className="interactive-course-hub-nav-mark">
-              <Ship className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="interactive-course-hub-title text-sm font-semibold tracking-wide">互动学习</div>
-              <div className="interactive-course-hub-muted text-xs">Interactive Courses</div>
-            </div>
-          </Link>
-          <Link href="/interactive-learning" className="interactive-course-hub-back-link">
-            返回入口
-          </Link>
-        </div>
-      </nav>
+      <UnifiedTopBar title="互动课程" backHref="/interactive-learning" backLabel="返回互动学习" subtitle="Interactive Courses" className="pb-2" />
 
       <main className="mx-auto max-w-[1280px] px-6 py-10">
         <header className="interactive-course-hub-hero">

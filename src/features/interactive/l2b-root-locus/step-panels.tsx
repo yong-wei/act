@@ -21,6 +21,7 @@ import {
   L2B_POST_ASSESSMENT_QUESTIONS,
   L2B_PRE_ASSESSMENT_QUESTIONS,
 } from '@/lib/l2b-course';
+import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 
 function toneClass(tone: L2BSection['tone']) {
   switch (tone) {
@@ -212,6 +213,8 @@ export function StudentActivityForm({
     return null;
   }
 
+  const isSubmitted = Boolean(savedResponse);
+
   const submitCurrent = () => {
     onSubmit({
       stepId,
@@ -256,6 +259,7 @@ export function StudentActivityForm({
                 key={field.key}
                 field={field}
                 value={draft[field.key]}
+                disabled={isSubmitted}
                 onChange={(value) => setDraft((prev) => ({ ...prev, [field.key]: value }))}
               />
             ))
@@ -264,6 +268,7 @@ export function StudentActivityForm({
                 key={question.key}
                 question={question}
                 value={draft[question.key]}
+                disabled={isSubmitted}
                 onChange={(value) => setDraft((prev) => ({ ...prev, [question.key]: value }))}
               />
             ))}
@@ -277,13 +282,14 @@ export function StudentActivityForm({
         <button
           type="button"
           onClick={submitCurrent}
+          disabled={isSubmitted}
           className="premium-lesson-action-primary"
         >
           <CheckCircle2 className="h-4 w-4" />
-          {activity.submitLabel ?? '保存'}
+          {isSubmitted ? '已提交' : activity.submitLabel ?? '保存'}
         </button>
-        <span className="premium-lesson-muted">提交后会同步到教师端汇总。</span>
       </div>
+      <SubmissionStatus submitted={isSubmitted} />
     </section>
   );
 }
@@ -535,10 +541,12 @@ function AnswerRevealPanel({
 function FieldRenderer({
   field,
   value,
+  disabled,
   onChange,
 }: {
   field: L2BFormField;
   value: string | undefined;
+  disabled: boolean;
   onChange: (value: string) => void;
 }) {
   if (field.type === 'radio' && field.options) {
@@ -552,6 +560,7 @@ function FieldRenderer({
               <button
                 key={option.value}
                 type="button"
+                disabled={disabled}
                 onClick={() => onChange(option.value)}
                 className={`premium-lesson-choice ${checked ? 'premium-lesson-choice-active' : ''}`}
               >
@@ -570,6 +579,7 @@ function FieldRenderer({
         <span className="premium-lesson-title mb-2 block font-medium">{field.label}</span>
         <textarea
           value={value ?? ''}
+          disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           placeholder={field.placeholder}
           rows={4}
@@ -584,6 +594,7 @@ function FieldRenderer({
       <span className="premium-lesson-title mb-2 block font-medium">{field.label}</span>
       <input
         value={value ?? ''}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         placeholder={field.placeholder}
         className="premium-lesson-input w-full rounded-2xl px-3 py-3 text-sm"
@@ -595,10 +606,12 @@ function FieldRenderer({
 function QuestionRenderer({
   question,
   value,
+  disabled,
   onChange,
 }: {
   question: L2BQuestion;
   value: string | undefined;
+  disabled: boolean;
   onChange: (value: string) => void;
 }) {
   if (question.type === 'text') {
@@ -607,6 +620,7 @@ function QuestionRenderer({
         <span className="premium-lesson-title mb-2 block font-medium">{question.prompt}</span>
         <textarea
           value={value ?? ''}
+          disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           rows={4}
           placeholder={question.placeholder}
@@ -626,6 +640,7 @@ function QuestionRenderer({
             <button
               key={option.value}
               type="button"
+              disabled={disabled}
               onClick={() => onChange(option.value)}
               className={`premium-lesson-choice ${checked ? 'premium-lesson-choice-active' : ''}`}
             >

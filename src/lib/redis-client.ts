@@ -214,7 +214,7 @@ class RedisClient {
    * 发布订阅频道
    */
   private channelKey(sessionId: string): string {
-    return `channel:${sessionId}`;
+    return `channel:session:${sessionId}`;
   }
 
   /**
