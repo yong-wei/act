@@ -7,7 +7,13 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-03-17
+📅 **最后更新**：2026-03-18
+🔧 **L-2d课堂服务稳定性整改（2026-03-18）**：针对L-2d课程期间出现的服务不稳定问题（数据库连接池耗尽、外键错误、页面回跳），实施P0级紧急整改：
+- 调整Prisma连接池配置（limit=3→10, timeout=10s→20s）
+- 修复InteractionLog外键错误，添加resourceId格式校验与降级处理
+- 修复教师端页面回跳，实现基于时间戳的版本控制机制
+- 添加sharp库解决图片处理警告
+- 详见部署指南：`docs/L2D-STABILIZATION-DEPLOY.md`
 🧠 **长期记忆骨架（2026-03-17）**：新增 `.codex/memory/` 分层长期记忆目录，按“项目总览 / 架构 / 运维 / 业务域 / 决策 / 事故 / 工作流 / 归档”组织跨会话知识，作为 `AGENTS.md` 规则与 `docs/ProjectDescription.md` 阶段进展之外的第三层项目记忆
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 ⚡ **首页与仿真加载优化（2026-03-02）**：首页船模改为“截图优先 + 3D 后台懒加载”，移除首屏一次性预加载全部 7 个 GLB（约 125MB）策略，改为按轮播仅预热“当前 + 下一”模型；仿真页改为“场景先渲染、船模独立 Suspense 加载”，在船模解析期间显示“模型加载中”占位动画，避免黑屏等待

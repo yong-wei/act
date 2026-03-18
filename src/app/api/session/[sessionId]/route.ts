@@ -31,13 +31,16 @@ export async function PATCH(request: Request, { params }: { params: { sessionId:
     const body = await request.json();
     const { currentItemId, currentStage, status } = body;
 
-    // 构建更新数据
+    // 构建更新数据 - 始终更新updatedAt以触发版本号递增
     const updateData: {
       currentItemId?: string;
       currentStage?: BopppsStage | null;
       status?: SessionStatus;
       endTime?: Date;
-    } = {};
+      updatedAt?: Date;
+    } = {
+      updatedAt: new Date(), // 强制更新时间戳作为版本控制依据
+    };
 
     if (currentItemId !== undefined) updateData.currentItemId = currentItemId;
     if (currentStage !== undefined) {
@@ -92,13 +95,14 @@ export async function GET(request: Request, { params }: { params: { sessionId: s
                 classId: true,
                 currentItemId: true,
                 currentStage: true,
+                updatedAt: true, // 添加updatedAt用于前端版本控制
                 // Include minimal plan info for student check
                 plan: {
                     select: { title: true }
                 }
             }
         });
-        
+
         if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 });
         return NextResponse.json({
             ...session,
