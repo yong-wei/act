@@ -6,7 +6,7 @@
  * 展示学生代表性作品、高质量提示词、仿真设计等
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -66,17 +66,7 @@ export default function PortfolioPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'works' | 'prompts' | 'simulations' | 'ethics' | 'reflections'>('works');
 
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user?.id) {
-      if (session.user.role !== 'STUDENT') {
-        router.replace('/dashboard');
-        return;
-      }
-      fetchPortfolio();
-    }
-  }, [status, session, router]);
-
-  const fetchPortfolio = async () => {
+  const fetchPortfolio = useCallback(async () => {
     try {
       setLoading(true);
       // For now, generate mock data from existing data sources
@@ -126,7 +116,17 @@ export default function PortfolioPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.id) {
+      if (session.user.role !== 'STUDENT') {
+        router.replace('/dashboard');
+        return;
+      }
+      void fetchPortfolio();
+    }
+  }, [status, session, router, fetchPortfolio]);
 
   if (status === 'loading' || loading) {
     return (

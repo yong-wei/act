@@ -74,7 +74,15 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     return pollIntervalMs ?? 5000;
   }, [isDemo, pollIntervalMs, sseConnection.isConnected, sseConnection.reconnectAttempt]);
 
-  const progress = useSessionProgressChannel({
+  const {
+    sessionInfo,
+    loadingSession,
+    activeIndex,
+    teacherIndex,
+    error: progressError,
+    syncSession: syncProgressSession,
+    setActiveIndex,
+  } = useSessionProgressChannel({
     sessionId,
     stepIds: steps.map((step) => step.id),
     isDemo,
@@ -82,7 +90,13 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     followTeacher: true,
     pollIntervalMs: effectivePollInterval,
   });
-  const stateChannel = useSessionStateChannel({ sessionId, isDemo });
+  const {
+    stateRecords,
+    courseStates,
+    teacherStates,
+    fetchStudentViewStates,
+    postState,
+  } = useSessionStateChannel({ sessionId, isDemo });
   const [courseState, setCourseState] = useState<StudentState>(() => adapter.createEmptyStudentState(currentStudentName));
   const [error, setError] = useState<string | null>(null);
   const initialPresenceSyncedRef = useRef(false);
@@ -93,8 +107,8 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     if (sseConnection.error && !sseConnection.isConnected && sseConnection.reconnectAttempt >= 5) {
       return '实时连接失败，已降级到轮询模式';
     }
-    return progress.error;
-  }, [error, sseConnection.error, sseConnection.isConnected, sseConnection.reconnectAttempt, progress.error]);
+    return progressError;
+  }, [error, progressError, sseConnection.error, sseConnection.isConnected, sseConnection.reconnectAttempt]);
 
   // SSE 状态同步到 progress channel
   useEffect(() => {
@@ -102,18 +116,18 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
 
     // 当 SSE 推送了新状态，触发进度同步
     if (sseLastUpdate > 0) {
-      progress.syncSession();
+      syncProgressSession();
     }
-  }, [isDemo, enableSSE, sseLastUpdate, sseConnection.state, progress]);
+  }, [enableSSE, isDemo, sseLastUpdate, sseConnection.state, syncProgressSession]);
 
   const syncStates = useCallback(async () => {
     try {
-      await stateChannel.fetchStudentViewStates();
+      await fetchStudentViewStates();
       setError(null);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '课堂状态同步失败');
     }
-  }, [stateChannel]);
+  }, [fetchStudentViewStates]);
 
   useEffect(() => {
     if (isDemo) {
@@ -140,14 +154,14 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
       return null;
     }
 
-    const record = stateChannel.courseStates.find((item) => item.user?.id === currentUserId);
+    const record = courseStates.find((item) => item.user?.id === currentUserId);
     return record && adapter.isStudentState(record.data) ? record.data : null;
-  }, [adapter, currentUserId, stateChannel.courseStates]);
+  }, [adapter, courseStates, currentUserId]);
 
   const teacherSyncState = useMemo(() => {
-    const record = stateChannel.teacherStates.find((item) => item.itemId === adapter.teacherItemId);
+    const record = teacherStates.find((item) => item.itemId === adapter.teacherItemId);
     return record && adapter.isTeacherSyncState(record.data) ? record.data : null;
-  }, [adapter, stateChannel.teacherStates]);
+  }, [adapter, teacherStates]);
 
   useEffect(() => {
     if (selfState) {
@@ -162,7 +176,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
         return;
       }
 
-      await stateChannel.postState({
+      await postState({
         itemId: adapter.studentItemId,
         stateKey: adapter.studentStateKey,
         lessonKey: adapter.lessonKey,
@@ -170,7 +184,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
         data: nextState,
       });
     },
-    [adapter, isDemo, stateChannel],
+    [adapter, isDemo, postState],
   );
 
   const saveCourseState = useCallback(
@@ -189,37 +203,59 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
   );
 
   useEffect(() => {
-    if (isDemo || progress.loadingSession || !currentUserId || selfState || initialPresenceSyncedRef.current) {
+    if (isDemo || loadingSession || !currentUserId || selfState || initialPresenceSyncedRef.current) {
       return;
     }
 
     initialPresenceSyncedRef.current = true;
     void persistCourseState(adapter.createEmptyStudentState(currentStudentName));
     void syncStates();
-  }, [adapter, currentStudentName, currentUserId, isDemo, persistCourseState, progress.loadingSession, selfState, syncStates]);
+  }, [adapter, currentStudentName, currentUserId, isDemo, loadingSession, persistCourseState, selfState, syncStates]);
 
-  return {
-    sessionInfo: progress.sessionInfo,
-    stateRecords: stateChannel.stateRecords,
-    courseStates: stateChannel.courseStates,
-    teacherStates: stateChannel.teacherStates,
-    activeIndex: progress.activeIndex,
-    teacherIndex: progress.teacherIndex,
-    isOutOfSync: !isDemo && progress.teacherIndex !== progress.activeIndex,
-    loadingSession: progress.loadingSession,
-    error: combinedError,
-    courseState,
-    selfState,
-    teacherSyncState,
-    saveCourseState,
-    syncSession: progress.syncSession,
-    syncStates,
-    setActiveIndex: progress.setActiveIndex,
-    // SSE 连接状态（用于调试和 UI 显示）
-    sseStatus: {
-      isConnected: sseConnection.isConnected,
-      reconnectAttempt: sseConnection.reconnectAttempt,
-      isFallbackActive: !sseConnection.isConnected && sseConnection.reconnectAttempt > 0,
-    },
-  };
+  return useMemo(
+    () => ({
+      sessionInfo,
+      stateRecords,
+      courseStates,
+      teacherStates,
+      activeIndex,
+      teacherIndex,
+      isOutOfSync: !isDemo && teacherIndex !== activeIndex,
+      loadingSession,
+      error: combinedError,
+      courseState,
+      selfState,
+      teacherSyncState,
+      saveCourseState,
+      syncSession: syncProgressSession,
+      syncStates,
+      setActiveIndex,
+      // SSE 连接状态（用于调试和 UI 显示）
+      sseStatus: {
+        isConnected: sseConnection.isConnected,
+        reconnectAttempt: sseConnection.reconnectAttempt,
+        isFallbackActive: !sseConnection.isConnected && sseConnection.reconnectAttempt > 0,
+      },
+    }),
+    [
+      sessionInfo,
+      stateRecords,
+      courseStates,
+      teacherStates,
+      activeIndex,
+      teacherIndex,
+      isDemo,
+      loadingSession,
+      combinedError,
+      courseState,
+      selfState,
+      teacherSyncState,
+      saveCourseState,
+      syncProgressSession,
+      syncStates,
+      setActiveIndex,
+      sseConnection.isConnected,
+      sseConnection.reconnectAttempt,
+    ],
+  );
 }

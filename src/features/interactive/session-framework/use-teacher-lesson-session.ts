@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type {
   LessonSessionAdapter,
@@ -31,23 +31,39 @@ export function useTeacherLessonSession<
   adapter,
   pollIntervalMs,
 }: UseTeacherLessonSessionOptions<StudentState, TeacherSyncState, TeacherSyncInput>): TeacherLessonSessionResult<TeacherSyncState, TeacherSyncInput> {
-  const progress = useSessionProgressChannel({
+  const {
+    sessionInfo,
+    activeIndex,
+    teacherIndex,
+    loadingSession,
+    error: progressError,
+    patchCurrentStep: patchProgressCurrentStep,
+    syncSession,
+    finishSession,
+  } = useSessionProgressChannel({
     sessionId,
     stepIds: steps.map((step) => step.id),
     followTeacher: false,
     pollIntervalMs,
   });
-  const stateChannel = useSessionStateChannel({ sessionId });
+  const {
+    stateRecords,
+    courseStates,
+    teacherStates,
+    teacherViewHydrated,
+    fetchTeacherViewStates,
+    postState,
+  } = useSessionStateChannel({ sessionId });
   const [error, setError] = useState<string | null>(null);
 
   const syncStates = useCallback(async () => {
     try {
-      await stateChannel.fetchTeacherViewStates();
+      await fetchTeacherViewStates();
       setError(null);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '课堂状态同步失败');
     }
-  }, [stateChannel]);
+  }, [fetchTeacherViewStates]);
 
   useEffect(() => {
     void syncStates();
@@ -63,14 +79,14 @@ export function useTeacherLessonSession<
 
   const patchCurrentStep = useCallback(
     async (nextIndex: number, patch: Record<string, unknown>) => {
-      await progress.patchCurrentStep(nextIndex, patch);
+      await patchProgressCurrentStep(nextIndex, patch);
     },
-    [progress],
+    [patchProgressCurrentStep],
   );
 
   const postTeacherSyncState = useCallback(
     async (payload: TeacherSyncState) => {
-      await stateChannel.postState({
+      await postState({
         itemId: adapter.teacherItemId,
         stateKey: adapter.teacherStateKey,
         lessonKey: adapter.lessonKey,
@@ -78,7 +94,7 @@ export function useTeacherLessonSession<
         data: payload,
       });
     },
-    [adapter, stateChannel],
+    [adapter, postState],
   );
 
   const postTeacherSyncInput = useCallback(
@@ -88,22 +104,42 @@ export function useTeacherLessonSession<
     [adapter, postTeacherSyncState],
   );
 
-  return {
-    sessionInfo: progress.sessionInfo,
-    stateRecords: stateChannel.stateRecords,
-    courseStates: stateChannel.courseStates,
-    teacherStates: stateChannel.teacherStates,
-    activeIndex: progress.activeIndex,
-    teacherIndex: progress.teacherIndex,
-    isOutOfSync: false,
-    loadingSession: progress.loadingSession,
-    error: error ?? progress.error,
-    teacherViewHydrated: stateChannel.teacherViewHydrated,
-    patchCurrentStep,
-    postTeacherSyncState,
-    postTeacherSyncInput,
-    syncSession: progress.syncSession,
-    syncStates,
-    finishSession: progress.finishSession,
-  };
+  return useMemo(
+    () => ({
+      sessionInfo,
+      stateRecords,
+      courseStates,
+      teacherStates,
+      activeIndex,
+      teacherIndex,
+      isOutOfSync: false,
+      loadingSession,
+      error: error ?? progressError,
+      teacherViewHydrated,
+      patchCurrentStep,
+      postTeacherSyncState,
+      postTeacherSyncInput,
+      syncSession,
+      syncStates,
+      finishSession,
+    }),
+    [
+      sessionInfo,
+      stateRecords,
+      courseStates,
+      teacherStates,
+      activeIndex,
+      teacherIndex,
+      loadingSession,
+      error,
+      progressError,
+      teacherViewHydrated,
+      patchCurrentStep,
+      postTeacherSyncState,
+      postTeacherSyncInput,
+      syncSession,
+      syncStates,
+      finishSession,
+    ],
+  );
 }

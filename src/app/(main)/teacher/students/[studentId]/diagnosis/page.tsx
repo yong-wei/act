@@ -6,7 +6,7 @@
  * 教师查看单个学生的详细画像和风险分析
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -72,17 +72,7 @@ export default function StudentDiagnosisPage() {
   const [error, setError] = useState<string | null>(null);
   const [teacherNote, setTeacherNote] = useState('');
 
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user?.id && studentId) {
-      if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
-        router.replace('/dashboard');
-        return;
-      }
-      fetchData();
-    }
-  }, [status, session, router, studentId]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       // For now, fetch from the student snapshot API
@@ -134,7 +124,17 @@ export default function StudentDiagnosisPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [studentId]);
+
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.id && studentId) {
+      if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
+        router.replace('/dashboard');
+        return;
+      }
+      void fetchData();
+    }
+  }, [status, session, router, studentId, fetchData]);
 
   const handlePushTask = async () => {
     // TODO: Implement push task functionality

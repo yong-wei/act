@@ -623,8 +623,17 @@ npm test               # 运行测试
 - 新增辅助脚本 `.codex/skills/homework-problem-authoring/scripts/extract_homework_question.py`：用于从作业框架中按题号提取最小题目规范，供主代理构造任务包时使用。
 - 新增技能回归测试 `scripts/tests/test-homework-problem-authoring-skill.ts` 与脚本测试 `scripts/tests/test_extract_homework_question.py`，用于校验技能文本约束和题号抽取脚本行为。
 
+## 13. 近期更新（2026-03-18）
+
+- 修复 L-sum 课堂会话回归：`/api/session/[sessionId]` 在 Redis 快路径下重新返回 `joinCode/classId/planTitle`，教师端课堂码恢复显示。
+- 修复课堂状态同步风暴：稳定化 `useSessionProgressChannel` 与 `useSessionStateChannel` 的返回值，并移除上层会话 hook 对整对象依赖导致的自激 GET/POST 循环。
+- 修复 L-sum 学生端“跳到教师当前页”按钮只打点不跳转的问题，补齐实际翻页行为。
+- 新增 L-sum 回归脚本 `scripts/tests/test-lsum-session-regression.mjs`，覆盖课堂码返回、会话 hook 稳定化与学生页跳转约束。
+- 调整数据治理集成脚本 `scripts/tests/data-governance-integration-test.ts`，将 Redis 就绪和鉴权前置条件纳入验证，避免误报。
+- 新增的成长中枢、学习档案、班级分析 V2、学生诊断页面已修复 `useEffect` 依赖告警，`npm run lint` 结果恢复干净。
+
 ---
 
-**最后更新日期**：2026-03-03
+**最后更新日期**：2026-03-18
 **版本**：v1.1.1
 **状态**：开发完成，可用于教学实践

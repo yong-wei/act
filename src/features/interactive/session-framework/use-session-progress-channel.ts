@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { SessionInfo } from './session-contract';
 
@@ -271,16 +271,30 @@ export function useSessionProgressChannel({
     return () => window.clearInterval(timer);
   }, [isDemo, pollIntervalMs, syncSession]);
 
-  return {
-    sessionInfo,
-    loadingSession,
-    activeIndex,
-    teacherIndex,
-    error,
-    setActiveIndex,
-    setTeacherIndex,
-    syncSession,
-    patchCurrentStep,
-    finishSession,
-  };
+  return useMemo(
+    () => ({
+      sessionInfo,
+      loadingSession,
+      activeIndex,
+      teacherIndex,
+      error,
+      setActiveIndex,
+      setTeacherIndex,
+      syncSession,
+      patchCurrentStep,
+      finishSession,
+    }),
+    [
+      sessionInfo,
+      loadingSession,
+      activeIndex,
+      teacherIndex,
+      error,
+      setActiveIndex,
+      setTeacherIndex,
+      syncSession,
+      patchCurrentStep,
+      finishSession,
+    ],
+  );
 }

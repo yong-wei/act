@@ -235,6 +235,7 @@ export function LSUMStudentPage({
                   stepIndex: teacherIndex,
                   source: 'sync-to-teacher',
                 });
+                setActiveIndex(teacherIndex);
               }}
               className="premium-lesson-action-tone premium-tone-amber"
             >

@@ -6,7 +6,7 @@
  * 数据治理系统 - 教师端班级分析页面
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -78,17 +78,7 @@ export default function ClassAnalyticsV2Page() {
   const [error, setError] = useState<string | null>(null);
   const [heatmapView, setHeatmapView] = useState<'score' | 'change' | 'risk'>('score');
 
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user?.id && classId) {
-      if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
-        router.replace('/dashboard');
-        return;
-      }
-      fetchData();
-    }
-  }, [status, session, router, classId]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       // Fetch heatmap data
@@ -165,7 +155,17 @@ export default function ClassAnalyticsV2Page() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [classId]);
+
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.id && classId) {
+      if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
+        router.replace('/dashboard');
+        return;
+      }
+      void fetchData();
+    }
+  }, [status, session, router, classId, fetchData]);
 
   if (status === 'loading' || loading) {
     return (

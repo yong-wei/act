@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import type {
   SelfViewStatePayload,
@@ -119,15 +119,28 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
     [isDemo, sessionId],
   );
 
-  return {
-    stateRecords,
-    courseStates,
-    teacherStates,
-    summary,
-    teacherViewHydrated,
-    fetchSelfStates,
-    fetchStudentViewStates,
-    fetchTeacherViewStates,
-    postState,
-  };
+  return useMemo(
+    () => ({
+      stateRecords,
+      courseStates,
+      teacherStates,
+      summary,
+      teacherViewHydrated,
+      fetchSelfStates,
+      fetchStudentViewStates,
+      fetchTeacherViewStates,
+      postState,
+    }),
+    [
+      stateRecords,
+      courseStates,
+      teacherStates,
+      summary,
+      teacherViewHydrated,
+      fetchSelfStates,
+      fetchStudentViewStates,
+      fetchTeacherViewStates,
+      postState,
+    ],
+  );
 }

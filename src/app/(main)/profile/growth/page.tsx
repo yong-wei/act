@@ -6,7 +6,7 @@
  * 学生成长数据可视化与个性化建议中心
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -76,17 +76,7 @@ export default function GrowthPage() {
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
 
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user?.id) {
-      if (session.user.role !== 'STUDENT') {
-        router.replace('/dashboard');
-        return;
-      }
-      fetchData();
-    }
-  }, [status, session, router, timeRange]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [snapshotRes, recordsRes] = await Promise.all([
@@ -110,7 +100,17 @@ export default function GrowthPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange]);
+
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.id) {
+      if (session.user.role !== 'STUDENT') {
+        router.replace('/dashboard');
+        return;
+      }
+      void fetchData();
+    }
+  }, [status, session, router, fetchData]);
 
   if (status === 'loading' || loading) {
     return (

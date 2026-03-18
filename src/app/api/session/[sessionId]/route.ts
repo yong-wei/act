@@ -125,19 +125,28 @@ export async function GET(request: Request, { params }: { params: { sessionId: s
         if (redisClient.isReady()) {
             const cachedState = await redisClient.getSessionState(sessionId);
             if (cachedState) {
-                // 获取课程标题（不经常变化，可以从缓存读取或简单查询）
-                const planTitle = await prisma.classSession.findUnique({
+                const sessionMeta = await prisma.classSession.findUnique({
                     where: { id: sessionId },
-                    select: { plan: { select: { title: true } } }
+                    select: {
+                        joinCode: true,
+                        classId: true,
+                        plan: { select: { title: true } }
+                    }
                 });
+
+                if (!sessionMeta) {
+                    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+                }
 
                 return NextResponse.json({
                     id: sessionId,
+                    joinCode: sessionMeta.joinCode,
+                    classId: sessionMeta.classId,
                     currentItemId: cachedState.currentItemId ?? null,
                     currentStage: cachedState.currentStage ?? null,
                     status: cachedState.status ?? 'ACTIVE',
                     updatedAt: cachedState.updatedAt ?? Date.now(),
-                    planTitle: planTitle?.plan?.title ?? '',
+                    planTitle: sessionMeta.plan?.title ?? '',
                 });
             }
         }
@@ -165,9 +174,12 @@ export async function GET(request: Request, { params }: { params: { sessionId: s
         // 写入 Redis 缓存以便后续快速读取
         if (redisClient.isReady()) {
             await redisClient.setSessionState(sessionId, {
+                joinCode: session.joinCode,
+                classId: session.classId,
                 currentItemId: session.currentItemId,
                 currentStage: session.currentStage,
                 status: session.status,
+                planTitle: session.plan.title,
                 updatedAt: session.updatedAt?.getTime() || Date.now(),
             });
         }
