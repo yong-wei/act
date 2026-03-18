@@ -8,6 +8,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
 📅 **最后更新**：2026-03-18
+🗃️ **数据治理系统（2026-03-18）**：新增数据治理核心模块（competency-engine, risk-detector, event-buffer），实现学生六维能力画像计算、风险学生检测、学习事实追踪；配套新增学生成长追踪页面（`/profile/growth`, `/profile/portfolio`）、教师分析 v2（`/teacher/classes/[classId]/analytics-v2`）、学生诊断（`/teacher/students/[studentId]/diagnosis`）及相关 API；管理员统计面板支持演示/真实数据切换；新增 vitest 单元测试配置与数据治理模块测试套件
 🔧 **L-2d课堂服务稳定性整改（2026-03-18）**：针对L-2d课程期间出现的服务不稳定问题（数据库连接池耗尽、外键错误、页面回跳），实施P0级紧急整改：
 - 调整Prisma连接池配置（limit=3→10, timeout=10s→20s）
 - 修复InteractionLog外键错误，添加resourceId格式校验与降级处理
