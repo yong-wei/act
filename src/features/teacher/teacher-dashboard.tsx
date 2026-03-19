@@ -141,13 +141,11 @@ export function TeacherDashboard({
           color="bg-purple-500/20 text-purple-400"
         />
         <QuickAction
-          href="/teacher/classes/analytics-v2"
+          href="/teacher/classes"
           icon={<BarChart3 className="h-5 w-5" />}
-          title="班级能力驾驶舱"
-          description="学情分析、能力热力图、趋势"
+          title="班级与学情"
+          description="从班级进入查看课堂、学生与学情画像"
           color="bg-rose-500/20 text-rose-400"
-          badge="V2"
-          badgeColor="bg-rose-500/30 text-rose-300"
         />
       </div>
 

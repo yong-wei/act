@@ -23,10 +23,57 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOGS_DIR="$PROJECT_DIR/.logs"
 PIDS_DIR="$LOGS_DIR/pids"
 REDIS_URL="${REDIS_URL:-redis://localhost:6379}"
+FRONTEND_PORT="${FRONTEND_PORT:-3001}"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  AI-OBE 船舶智控平台 - 启动脚本${NC}"
 echo -e "${BLUE}========================================${NC}\n"
+
+kill_pid_tree() {
+  local pid=$1
+
+  if [ -z "$pid" ] || ! ps -p "$pid" > /dev/null 2>&1; then
+    return 0
+  fi
+
+  local child_pids
+  child_pids=$(pgrep -P "$pid" 2>/dev/null || true)
+  if [ -n "$child_pids" ]; then
+    while read -r child_pid; do
+      [ -n "$child_pid" ] && kill_pid_tree "$child_pid"
+    done <<< "$child_pids"
+  fi
+
+  kill "$pid" 2>/dev/null || true
+  sleep 1
+  if ps -p "$pid" > /dev/null 2>&1; then
+    kill -9 "$pid" 2>/dev/null || true
+  fi
+}
+
+free_frontend_port() {
+  local port=$1
+  local port_pids
+  port_pids=$(lsof -tiTCP:"$port" -sTCP:LISTEN 2>/dev/null || true)
+
+  if [ -z "$port_pids" ]; then
+    return 0
+  fi
+
+  echo -e "  ${YELLOW}!${NC} 发现占用 ${port} 端口的进程: $(echo "$port_pids" | tr '\n' ' ' | xargs)"
+  while read -r port_pid; do
+    [ -n "$port_pid" ] && kill_pid_tree "$port_pid"
+  done <<< "$port_pids"
+
+  sleep 1
+  if lsof -tiTCP:"$port" -sTCP:LISTEN > /dev/null 2>&1; then
+    echo -e "  ${RED}✗${NC} 端口 ${port} 仍被占用"
+    lsof -nP -iTCP:"$port" -sTCP:LISTEN || true
+    exit 1
+  fi
+
+  echo -e "  ${GREEN}✓${NC} 端口 ${port} 已释放"
+}
 
 ###############################################################################
 # 步骤 1: 清理日志文件内容
@@ -264,18 +311,16 @@ if [ -f "$PIDS_DIR/frontend.pid" ]; then
   if ps -p "$OLD_PID" > /dev/null 2>&1; then
     echo -e "  ${YELLOW}!${NC} 发现已运行的进程 (PID: $OLD_PID)"
     echo -e "  ${YELLOW}正在停止旧进程...${NC}"
-    kill "$OLD_PID" 2>/dev/null || true
-    sleep 1
-    if ps -p "$OLD_PID" > /dev/null 2>&1; then
-      kill -9 "$OLD_PID" 2>/dev/null || true
-    fi
+    kill_pid_tree "$OLD_PID"
   fi
   rm -f "$PIDS_DIR/frontend.pid"
 fi
 
+free_frontend_port "$FRONTEND_PORT"
+
 # 启动开发服务器（后台运行）
-echo -e "  ${BLUE}启动命令: npm run dev -- --hostname 127.0.0.1 --port 3001${NC}"
-nohup npm run dev -- --hostname 127.0.0.1 --port 3001 > "$LOGS_DIR/frontend.log" 2> "$LOGS_DIR/error.log" &
+echo -e "  ${BLUE}启动命令: npm run dev -- --hostname 127.0.0.1 --port ${FRONTEND_PORT}${NC}"
+nohup npm run dev -- --hostname 127.0.0.1 --port "$FRONTEND_PORT" < /dev/null > "$LOGS_DIR/frontend.log" 2> "$LOGS_DIR/error.log" &
 FRONTEND_PID=$!
 echo "$FRONTEND_PID" > "$PIDS_DIR/frontend.pid"
 
@@ -327,8 +372,14 @@ wait_for_page() {
   exit 1
 }
 
-wait_for_page "登录" "http://127.0.0.1:3001/login" "账号登录"
-wait_for_page "互动课程入口" "http://127.0.0.1:3001/interactive-learning/courses/l2d-three-domain-linkage-practice" "输入课堂码加入课堂"
+wait_for_page "登录" "http://127.0.0.1:${FRONTEND_PORT}/login" "账号登录"
+wait_for_page "互动课程入口" "http://127.0.0.1:${FRONTEND_PORT}/interactive-learning/courses/l2d-three-domain-linkage-practice" "输入课堂码加入课堂"
+
+LISTEN_PID=$(lsof -tiTCP:"$FRONTEND_PORT" -sTCP:LISTEN 2>/dev/null | head -n 1 || true)
+if [ -n "$LISTEN_PID" ]; then
+  echo "$LISTEN_PID" > "$PIDS_DIR/frontend.pid"
+  echo -e "  ${GREEN}✓${NC} 已记录前端监听进程 PID: $LISTEN_PID"
+fi
 
 ###############################################################################
 # 启动完成
@@ -339,7 +390,7 @@ echo -e "${GREEN}  启动完成！${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 echo -e "  ${BLUE}访问地址:${NC}"
-echo -e "    • 前端: ${GREEN}http://localhost:3001${NC}"
+echo -e "    • 前端: ${GREEN}http://localhost:${FRONTEND_PORT}${NC}"
 echo ""
 echo -e "  ${BLUE}日志位置:${NC}"
 echo -e "    • 前端日志: ${YELLOW}$LOGS_DIR/frontend.log${NC}"

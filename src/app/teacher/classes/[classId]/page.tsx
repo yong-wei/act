@@ -23,8 +23,15 @@ import {
   Trash2,
   Loader2,
   BarChart3,
+  ShieldAlert,
+  Sparkles,
 } from 'lucide-react';
 import { AddStudentsModal } from '@/components/teacher/add-students-modal';
+import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
+import {
+  buildTeacherClassInsightsHref,
+  buildTeacherStudentInsightsHref,
+} from '@/features/teacher/teacher-insights';
 
 interface Student {
   id: string;
@@ -79,6 +86,7 @@ export default function ClassDetailPage() {
   const [classData, setClassData] = useState<ClassDetail | null>(null);
   const [sessions, setSessions] = useState<ClassSession[]>([]);
   const [lessonPlans, setLessonPlans] = useState<LessonPlan[]>([]);
+  const [insights, setInsights] = useState<TeacherClassInsightsPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
@@ -129,6 +137,19 @@ export default function ClassDetailPage() {
     }
   }, [classId, statusFilter, searchTerm]);
 
+  const fetchInsights = useCallback(async () => {
+    if (!classId) return;
+    try {
+      const res = await fetch(`/api/teacher/classes/${classId}/insights`);
+      if (res.ok) {
+        const data = await res.json();
+        setInsights(data);
+      }
+    } catch (error) {
+      console.error('获取班级学情失败', error);
+    }
+  }, [classId]);
+
   // 获取教案列表
   const fetchLessonPlans = useCallback(async () => {
     try {
@@ -145,13 +166,13 @@ export default function ClassDetailPage() {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchClass(), fetchSessions(), fetchLessonPlans()]);
+      await Promise.all([fetchClass(), fetchSessions(), fetchLessonPlans(), fetchInsights()]);
       setLoading(false);
     };
     if (classId) {
       loadData();
     }
-  }, [classId, fetchClass, fetchSessions, fetchLessonPlans]);
+  }, [classId, fetchClass, fetchSessions, fetchLessonPlans, fetchInsights]);
 
   // 筛选变化时重新获取
   useEffect(() => {
@@ -216,7 +237,7 @@ export default function ClassDetailPage() {
       });
 
       if (res.ok) {
-        fetchClass();
+        await Promise.all([fetchClass(), fetchInsights()]);
       } else {
         const data = await res.json();
         alert(data.error || '移除失败');
@@ -266,6 +287,8 @@ export default function ClassDetailPage() {
   // 当前进行中的课堂
   const activeSession = sessions.find(s => s.status === 'ACTIVE');
   const displayedSessions = statusFilter === 'ACTIVE' ? sessions.filter(s => s.status === 'ACTIVE') : sessions.filter(s => s.status === 'FINISHED');
+  const governance = insights?.governance;
+  const studentInsightMap = new Map(insights?.students.map((student) => [student.id, student]) || []);
 
   const handleRegenerateJoinCode = async () => {
     if (!activeSession) return;
@@ -346,46 +369,83 @@ export default function ClassDetailPage() {
       </Link>
 
       {/* 班级信息卡片 */}
-      <div className="surface-card mb-8 bg-gradient-to-br from-card via-card to-accent/35 p-6">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-sky-500/20 text-sky-400">
-              <Users className="h-8 w-8" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">{classData.name}</h1>
-              {classData.description && (
-                <p className="mt-1 text-subtle">{classData.description}</p>
-              )}
-              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-subtle">
-                {classData.year && <span>{classData.year}</span>}
-                {classData.semester && <span>{classData.semester}</span>}
-                <span className="flex items-center gap-1">
-                  <GraduationCap className="h-4 w-4" />
-                  {classData._count.students} 名学生
-                </span>
+      <section className="teacher-insight-hero mb-8">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+          <div className="space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-500 dark:text-sky-300">
+                <Users className="h-8 w-8" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-2xl font-bold text-foreground">{classData.name}</h1>
+                  {governance && (
+                    <span className={`teacher-insight-chip ${
+                      governance.tone === 'healthy'
+                        ? 'teacher-insight-chip-healthy'
+                        : governance.tone === 'warning'
+                          ? 'teacher-insight-chip-warning'
+                          : 'teacher-insight-chip-pending'
+                    }`}>
+                      {governance.label}
+                    </span>
+                  )}
+                </div>
+                {classData.description && (
+                  <p className="mt-1 max-w-3xl text-subtle">{classData.description}</p>
+                )}
+                <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-subtle">
+                  {classData.year && <span>{classData.year}</span>}
+                  {classData.semester && <span>{classData.semester}</span>}
+                  <span className="flex items-center gap-1">
+                    <GraduationCap className="h-4 w-4" />
+                    {classData._count.students} 名学生
+                  </span>
+                  {governance && <span>{governance.lastUpdatedLabel}</span>}
+                </div>
               </div>
             </div>
+
+            {governance && (
+              <div className="teacher-insight-metric max-w-3xl">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">班级学情治理进度</p>
+                    <p className="mt-1 text-sm text-subtle">{governance.detail}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-semibold text-foreground">
+                      {governance.coveredStudents}/{governance.totalStudents || classData._count.students}
+                    </p>
+                    <p className="text-xs text-subtle">已覆盖学生</p>
+                  </div>
+                </div>
+                <div className="teacher-insight-track mt-4">
+                  <div
+                    className="teacher-insight-fill"
+                    style={{ width: `${Math.min(governance.coverageRatio * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            {/* 班级码 */}
-            <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 p-4">
-              <p className="text-xs text-sky-300">班级加入码</p>
+            <div className="teacher-insight-metric min-w-[220px]">
+              <p className="text-xs uppercase tracking-[0.18em] text-subtle">班级加入码</p>
               <div className="mt-2 flex items-center gap-3">
-                <span className="font-mono text-2xl font-bold tracking-wider text-sky-400">
+                <span className="font-mono text-2xl font-bold tracking-wider text-sky-500 dark:text-sky-300">
                   {classData.code}
                 </span>
                 <button
                   onClick={copyCode}
-                  className="rounded-lg border border-sky-500/30 p-2 text-sky-400 transition hover:bg-sky-500/20"
+                  className="rounded-lg border border-sky-500/30 p-2 text-sky-500 transition hover:bg-sky-500/10 dark:text-sky-300"
                 >
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {/* 开始上课按钮 */}
             <button
               onClick={() => setShowStartModal(true)}
               className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-4 font-medium text-white transition hover:from-emerald-500 hover:to-green-500"
@@ -393,16 +453,83 @@ export default function ClassDetailPage() {
               <Play className="h-5 w-5" />
               开始上课
             </button>
-            <Link
-              href={`/teacher/classes/${classId}/analytics`}
-              className="flex items-center gap-2 rounded-xl border border-sky-500/40 bg-sky-500/10 px-6 py-4 font-medium text-sky-200 transition hover:border-sky-400 hover:bg-sky-500/20"
-            >
-              <BarChart3 className="h-5 w-5" />
-              学情热力图与展示分析
-            </Link>
           </div>
         </div>
-      </div>
+      </section>
+
+      <section className="mb-8 grid gap-4 lg:grid-cols-4">
+        <Link href={buildTeacherClassInsightsHref(classId)} className="teacher-insight-entry">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">班级学情总览</p>
+              <p className="mt-2 text-sm text-subtle">
+                查看能力矩阵、风险分层和治理覆盖情况。
+              </p>
+            </div>
+            <BarChart3 className="h-5 w-5 text-sky-500 dark:text-sky-300" />
+          </div>
+        </Link>
+        <Link href="#history" className="teacher-insight-entry">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">课堂历史</p>
+              <p className="mt-2 text-sm text-subtle">
+                回看已结束课堂、课堂记录与复盘入口。
+              </p>
+            </div>
+            <History className="h-5 w-5 text-amber-500" />
+          </div>
+        </Link>
+        <Link href="#students" className="teacher-insight-entry">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">学生清单</p>
+              <p className="mt-2 text-sm text-subtle">
+                进入学生画像、成长档案与个体风险详情。
+              </p>
+            </div>
+            <GraduationCap className="h-5 w-5 text-emerald-500" />
+          </div>
+        </Link>
+        <div className="teacher-insight-entry">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">重点关注</p>
+              <p className="mt-2 text-sm text-subtle">
+                {insights
+                  ? `${insights.overview.attentionStudents} 名学生处于需重点跟进状态。`
+                  : '等待治理结果生成后自动显示重点学生。'}
+              </p>
+            </div>
+            <ShieldAlert className="h-5 w-5 text-rose-500" />
+          </div>
+        </div>
+      </section>
+
+      {insights && (
+        <section className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="teacher-insight-metric">
+            <p className="text-sm text-subtle">班级总体指数</p>
+            <p className="mt-2 text-3xl font-semibold text-foreground">{insights.overview.overallIndex}</p>
+            <p className="mt-2 text-xs text-subtle">来自最新班级快照与学生画像聚合。</p>
+          </div>
+          <div className="teacher-insight-metric">
+            <p className="text-sm text-subtle">高风险学生</p>
+            <p className="mt-2 text-3xl font-semibold text-rose-500">{insights.overview.highRiskStudents}</p>
+            <p className="mt-2 text-xs text-subtle">需要优先干预的个体数量。</p>
+          </div>
+          <div className="teacher-insight-metric">
+            <p className="text-sm text-subtle">中风险学生</p>
+            <p className="mt-2 text-3xl font-semibold text-amber-500">{insights.overview.mediumRiskStudents}</p>
+            <p className="mt-2 text-xs text-subtle">建议在课堂中持续观察的学生。</p>
+          </div>
+          <div className="teacher-insight-metric">
+            <p className="text-sm text-subtle">人均学习事实</p>
+            <p className="mt-2 text-3xl font-semibold text-foreground">{insights.overview.averageFactCount}</p>
+            <p className="mt-2 text-xs text-subtle">反映治理链路沉淀下来的过程证据密度。</p>
+          </div>
+        </section>
+      )}
 
       {/* 进行中的课堂 */}
       {activeSession && (
@@ -460,7 +587,7 @@ export default function ClassDetailPage() {
       )}
 
       {/* 课堂历史 */}
-      <div className="surface-card mb-8 p-6">
+      <div id="history" className="surface-card mb-8 p-6">
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <History className="h-5 w-5 text-subtle" />
@@ -556,11 +683,14 @@ export default function ClassDetailPage() {
       </div>
 
       {/* 学生列表 */}
-      <div className="surface-card p-6">
+      <div id="students" className="surface-card p-6">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <GraduationCap className="h-5 w-5 text-subtle" />
-            <h2 className="text-lg font-semibold text-foreground">班级学生</h2>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">班级学生</h2>
+              <p className="text-sm text-subtle">以学生画像、风险和成长档案为主视图，不再只显示技术分/伦理分。</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-slate-400">{classData.students.length} 人</span>
@@ -587,10 +717,10 @@ export default function ClassDetailPage() {
             {classData.students.map((student) => (
               <div
                 key={student.id}
-                className="surface-card-soft flex items-center justify-between p-4 transition hover:border-primary/40 hover:bg-accent/65"
+                className="surface-card-soft flex flex-col gap-4 p-4 transition hover:border-primary/40 hover:bg-accent/65 lg:flex-row lg:items-center lg:justify-between"
               >
                 <Link
-                  href={`/teacher/classes/${classId}/students/${student.user.id}`}
+                  href={buildTeacherStudentInsightsHref(classId, student.user.id)}
                   className="flex flex-1 items-center gap-4"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-sm font-bold text-white">
@@ -605,19 +735,52 @@ export default function ClassDetailPage() {
                     </p>
                   </div>
                 </Link>
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="text-sm text-slate-400">技术分</p>
-                    <p className="text-lg font-semibold text-amber-400">
-                      {student.techScore.toFixed(1)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-slate-400">伦理分</p>
-                    <p className="text-lg font-semibold text-emerald-400">
-                      {student.ethicsScore}
-                    </p>
-                  </div>
+                <div className="flex flex-1 flex-wrap items-center justify-end gap-4 lg:gap-6">
+                  {(() => {
+                    const insight = studentInsightMap.get(student.user.id);
+                    if (!insight) {
+                      return (
+                        <div className="teacher-insight-metric min-w-[240px]">
+                          <div className="flex items-center gap-2 text-sm text-subtle">
+                            <Sparkles className="h-4 w-4" />
+                            学情结果待生成
+                          </div>
+                          <p className="mt-2 text-sm text-subtle">
+                            当前仅可进行班级管理；治理产物生成后会自动显示画像与成长指标。
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <>
+                        <div className="min-w-[110px] text-right">
+                          <p className="text-sm text-subtle">画像等级</p>
+                          <p className="text-lg font-semibold text-foreground">{insight.overallLevel}</p>
+                        </div>
+                        <div className="min-w-[110px] text-right">
+                          <p className="text-sm text-subtle">综合指数</p>
+                          <p className="text-lg font-semibold text-sky-500 dark:text-sky-300">
+                            {insight.overallScore}
+                          </p>
+                        </div>
+                        <div className="min-w-[120px] text-right">
+                          <p className="text-sm text-subtle">风险状态</p>
+                          <span className={`teacher-insight-chip teacher-insight-risk-${insight.riskLevel}`}>
+                            {insight.riskLabel}
+                          </span>
+                        </div>
+                        <div className="min-w-[120px] text-right">
+                          <p className="text-sm text-subtle">近期趋势</p>
+                          <p className="text-sm font-medium text-foreground">{insight.recentTrend}</p>
+                        </div>
+                        <div className="min-w-[120px] text-right">
+                          <p className="text-sm text-subtle">成长档案</p>
+                          <p className="text-lg font-semibold text-foreground">{insight.growthRecordCount}</p>
+                        </div>
+                      </>
+                    );
+                  })()}
                   <button
                     onClick={() => handleRemoveStudent(student.user.id, student.user.name || '该学生')}
                     disabled={removingStudent === student.user.id}
@@ -630,7 +793,7 @@ export default function ClassDetailPage() {
                       <Trash2 className="h-4 w-4" />
                     )}
                   </button>
-                  <Link href={`/teacher/classes/${classId}/students/${student.user.id}`}>
+                  <Link href={buildTeacherStudentInsightsHref(classId, student.user.id)}>
                     <ChevronRight className="h-5 w-5 text-slate-500" />
                   </Link>
                 </div>
@@ -720,7 +883,9 @@ export default function ClassDetailPage() {
         className={classData?.name || ''}
         isOpen={showAddStudentsModal}
         onClose={() => setShowAddStudentsModal(false)}
-        onSuccess={fetchClass}
+        onSuccess={() => {
+          void Promise.all([fetchClass(), fetchInsights()]);
+        }}
       />
     </main>
   );

@@ -1,67 +1,27 @@
 'use client';
 
-/**
- * 班级能力驾驶舱 V2
- *
- * 数据治理系统 - 教师端班级分析页面
- */
-
-import { useCallback, useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter, useParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  Cell,
-  ReferenceLine,
-} from 'recharts';
-import { getCompetencyLabel, COMPETENCY_DIMENSIONS } from '@/lib/data-governance/competency-model';
+  ArrowLeft,
+  BarChart3,
+  RefreshCw,
+  ShieldAlert,
+  Sparkles,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
+
+import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
 import type { HeatmapData } from '@/app/api/teacher/classes/[classId]/heatmap/route';
+import {
+  buildTeacherStudentInsightsHref,
+  type GovernanceTone,
+} from '@/features/teacher/teacher-insights';
 
-interface ClassAnalyticsData {
-  classId: string;
-  className: string;
-  studentCount: number;
-  activeRate: number;
-  overallIndex: number;
-  weeklyImprovement: number;
-  riskStats: {
-    highRiskCount: number;
-    aiDependencyCount: number;
-    constraintWeakCount: number;
-  };
-  dimensionAverages: Record<string, number>;
-  levelDistribution: {
-    excellent: number;
-    good: number;
-    average: number;
-    needsImprovement: number;
-    atRisk: number;
-  };
-  trendData: Array<{
-    date: string;
-    averageScore: number;
-    activeCount: number;
-  }>;
-}
-
-interface StudentListItem {
-  id: string;
-  name: string;
-  avatar: string | null;
-  overallScore: number;
-  riskLevel: 'none' | 'low' | 'medium' | 'high';
-  riskFlags: string[];
-  lastActive: string;
-}
+type HeatmapView = 'score' | 'change' | 'risk';
 
 export default function ClassAnalyticsV2Page() {
   const router = useRouter();
@@ -71,85 +31,34 @@ export default function ClassAnalyticsV2Page() {
   const session = sessionData?.data;
   const status = sessionData?.status ?? 'loading';
 
-  const [analytics, setAnalytics] = useState<ClassAnalyticsData | null>(null);
+  const [insights, setInsights] = useState<TeacherClassInsightsPayload | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapData | null>(null);
-  const [students, setStudents] = useState<StudentListItem[]>([]);
+  const [heatmapView, setHeatmapView] = useState<HeatmapView>('score');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [heatmapView, setHeatmapView] = useState<'score' | 'change' | 'risk'>('score');
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      // Fetch heatmap data
-      const heatmapRes = await fetch(`/api/teacher/classes/${classId}/heatmap`);
-      if (!heatmapRes.ok) throw new Error('获取热力图数据失败');
-      const heatmapData = await heatmapRes.json();
-      setHeatmap(heatmapData);
+      setError(null);
+      const [insightsRes, heatmapRes] = await Promise.all([
+        fetch(`/api/teacher/classes/${classId}/insights`),
+        fetch(`/api/teacher/classes/${classId}/heatmap`),
+      ]);
 
-      // Generate mock analytics data for now
-      // In production, this would be a dedicated API endpoint
-      const mockAnalytics: ClassAnalyticsData = {
-        classId,
-        className: '示例班级',
-        studentCount: heatmapData.students?.length || 0,
-        activeRate: 85,
-        overallIndex: 72,
-        weeklyImprovement: 5.2,
-        riskStats: {
-          highRiskCount: heatmapData.matrix?.filter((m: { riskLevel: string }) => m.riskLevel === 'high').length || 0,
-          aiDependencyCount: 3,
-          constraintWeakCount: 4,
-        },
-        dimensionAverages: heatmapData.dimensions?.reduce((acc: Record<string, number>, dim: string) => {
-          const scores = heatmapData.matrix
-            ?.filter((m: { dimension: string }) => m.dimension === dim)
-            .map((m: { score: number }) => m.score) || [];
-          acc[dim] = scores.length
-            ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length)
-            : 0;
-          return acc;
-        }, {}),
-        levelDistribution: {
-          excellent: 5,
-          good: 12,
-          average: 15,
-          needsImprovement: 6,
-          atRisk: 2,
-        },
-        trendData: [
-          { date: '2024-01-01', averageScore: 68, activeCount: 35 },
-          { date: '2024-01-08', averageScore: 70, activeCount: 36 },
-          { date: '2024-01-15', averageScore: 71, activeCount: 38 },
-          { date: '2024-01-22', averageScore: 72, activeCount: 40 },
-        ],
-      };
-      setAnalytics(mockAnalytics);
+      if (!insightsRes.ok) {
+        throw new Error('获取班级学情总览失败');
+      }
 
-      // Generate student list from heatmap data
-      const studentList: StudentListItem[] = heatmapData.students?.map((s: { id: string; name: string | null }) => {
-        const studentMatrix = heatmapData.matrix?.filter((m: { studentId: string }) => m.studentId === s.id) || [];
-        const avgScore = studentMatrix.length
-          ? Math.round(studentMatrix.reduce((acc: number, m: { score: number }) => acc + m.score, 0) / studentMatrix.length)
-          : 0;
-        const maxRisk = studentMatrix.reduce(
-          (max: string, m: { riskLevel: string }) => {
-            const riskOrder = ['none', 'low', 'medium', 'high'];
-            return riskOrder.indexOf(m.riskLevel) > riskOrder.indexOf(max) ? m.riskLevel : max;
-          },
-          'none'
-        );
-        return {
-          id: s.id,
-          name: s.name || '未命名学生',
-          avatar: null,
-          overallScore: avgScore,
-          riskLevel: maxRisk as StudentListItem['riskLevel'],
-          riskFlags: [],
-          lastActive: new Date().toISOString(),
-        };
-      }) || [];
-      setStudents(studentList);
+      const insightsPayload = (await insightsRes.json()) as TeacherClassInsightsPayload;
+      setInsights(insightsPayload);
+
+      if (heatmapRes.ok) {
+        const heatmapPayload = (await heatmapRes.json()) as HeatmapData;
+        setHeatmap(heatmapPayload);
+      } else {
+        setHeatmap(null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
     } finally {
@@ -165,24 +74,34 @@ export default function ClassAnalyticsV2Page() {
       }
       void fetchData();
     }
-  }, [status, session, router, classId, fetchData]);
+  }, [classId, fetchData, router, session, status]);
+
+  const matrixByStudent = useMemo(() => {
+    const matrix = new Map<string, Map<string, HeatmapData['matrix'][number]>>();
+    heatmap?.matrix.forEach((item) => {
+      const studentMap = matrix.get(item.studentId) ?? new Map();
+      studentMap.set(item.dimension, item);
+      matrix.set(item.studentId, studentMap);
+    });
+    return matrix;
+  }, [heatmap]);
 
   if (status === 'loading' || loading) {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div className="teacher-insight-shell flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
-          <p className="text-subtle">加载班级分析数据...</p>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-sky-500 border-t-transparent" />
+          <p className="text-subtle">加载班级学情总览...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !insights) {
     return (
-      <div className="surface-page flex items-center justify-center">
+      <div className="teacher-insight-shell flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl text-red-500">{error}</p>
+          <p className="text-xl text-red-500">{error || '加载失败'}</p>
           <button onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
@@ -191,421 +110,337 @@ export default function ClassAnalyticsV2Page() {
     );
   }
 
-  // Prepare heatmap grid data
-  const heatmapGrid = heatmap?.students?.map((student) => {
-    const row: Record<string, number | string> = { studentId: student.id, studentName: student.name || '' };
-    heatmap?.dimensions?.forEach((dim) => {
-      const cell = heatmap.matrix?.find((m) => m.studentId === student.id && m.dimension === dim);
-      row[dim] = cell
-        ? heatmapView === 'score'
-          ? cell.score
-          : heatmapView === 'change'
-            ? cell.change
-            : cell.riskLevel === 'high'
-              ? 3
-              : cell.riskLevel === 'medium'
-                ? 2
-                : cell.riskLevel === 'low'
-                  ? 1
-                  : 0
-        : 0;
-    });
-    return row;
-  }) || [];
+  const governanceToneClass = getGovernanceToneClass(insights.governance.tone);
 
   return (
-    <div className="surface-page">
-      {/* Header */}
+    <div className="teacher-insight-shell">
       <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link href={`/teacher/classes/${classId}`} className="text-subtle transition hover:text-foreground">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
+              <ArrowLeft className="h-6 w-6" />
             </Link>
             <div>
-              <h1 className="text-xl font-bold text-foreground">班级能力驾驶舱 V2</h1>
-              <p className="text-sm text-subtle">{analytics?.className} · {analytics?.studentCount} 名学生</p>
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-xl font-bold text-foreground">班级学情总览</h1>
+                <span className={`teacher-insight-chip ${governanceToneClass}`}>{insights.governance.label}</span>
+              </div>
+              <p className="text-sm text-subtle">
+                {insights.classInfo.name} · {insights.classInfo.studentCount} 名学生 · {insights.governance.lastUpdatedLabel}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-subtle">
-              数据更新: {heatmap?.lastUpdated ? new Date(heatmap.lastUpdated).toLocaleString('zh-CN') : '-'}
-            </span>
-            <button onClick={fetchData} className="btn-ghost-themed rounded-lg px-4 py-2 text-sm">
-              刷新数据
-            </button>
-          </div>
+          <button onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm">
+            <RefreshCw className="h-4 w-4" />
+            刷新数据
+          </button>
         </div>
       </header>
 
       <main className="mx-auto max-w-[1600px] px-6 py-8">
-        {/* Top Stats Cards */}
-        <div className="mb-8 grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-          <StatCard
-            label="班级活跃率"
-            value={`${analytics?.activeRate || 0}%`}
-            trend="本周"
-            color="text-blue-500"
-            bgColor="bg-blue-500/10"
-          />
-          <StatCard
-            label="总体能力指数"
-            value={analytics?.overallIndex || 0}
-            trend={`${analytics?.weeklyImprovement || 0 > 0 ? '+' : ''}${analytics?.weeklyImprovement || 0}%`}
-            color="text-amber-500"
-            bgColor="bg-amber-500/10"
-          />
-          <StatCard
-            label="本周提升率"
-            value={`${analytics?.weeklyImprovement || 0}%`}
-            trend="环比"
-            color="text-emerald-500"
-            bgColor="bg-emerald-500/10"
-          />
-          <StatCard
-            label="高风险学生"
-            value={analytics?.riskStats.highRiskCount || 0}
-            trend="需关注"
-            color="text-red-500"
-            bgColor="bg-red-500/10"
-          />
-          <StatCard
-            label="AI依赖偏高"
-            value={analytics?.riskStats.aiDependencyCount || 0}
-            trend="需引导"
-            color="text-violet-500"
-            bgColor="bg-violet-500/10"
-          />
-          <StatCard
-            label="约束意识薄弱"
-            value={analytics?.riskStats.constraintWeakCount || 0}
-            trend="需干预"
-            color="text-orange-500"
-            bgColor="bg-orange-500/10"
-          />
-        </div>
+        <section className="teacher-insight-hero mb-8">
+          <div className="grid gap-4 xl:grid-cols-[1.3fr,0.7fr]">
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-500 dark:text-sky-300">
+                  <BarChart3 className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-foreground">从治理结果回看班级学情</h2>
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">
+                    这里不再展示孤立的技术分和伦理分，而是围绕能力矩阵、风险分层、治理覆盖度和重点学生，为教师提供可行动的班级判断依据。
+                  </p>
+                </div>
+              </div>
+              <div className="teacher-insight-metric">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">治理覆盖进度</p>
+                    <p className="mt-1 text-sm text-subtle">{insights.governance.detail}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-semibold text-foreground">
+                      {insights.governance.coveredStudents}/{insights.governance.totalStudents}
+                    </p>
+                    <p className="text-xs text-subtle">已生成画像</p>
+                  </div>
+                </div>
+                <div className="teacher-insight-track mt-4">
+                  <div
+                    className="teacher-insight-fill"
+                    style={{ width: `${Math.min(insights.governance.coverageRatio * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
 
-        {/* Heatmap Section */}
-        <div className="mb-8">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-foreground">班级能力热力图</h3>
-            <div className="flex gap-2">
-              {(['score', 'change', 'risk'] as const).map((view) => (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+              <MetricCard
+                title="班级总体指数"
+                value={insights.overview.overallIndex}
+                detail="最新班级快照与学生画像聚合值"
+                icon={<TrendingUp className="h-5 w-5 text-sky-500 dark:text-sky-300" />}
+              />
+              <MetricCard
+                title="重点关注学生"
+                value={insights.overview.attentionStudents}
+                detail="中高风险或整体表现偏弱"
+                icon={<ShieldAlert className="h-5 w-5 text-rose-500" />}
+              />
+              <MetricCard
+                title="高风险学生"
+                value={insights.overview.highRiskStudents}
+                detail="建议优先一对一跟进"
+                icon={<Sparkles className="h-5 w-5 text-amber-500" />}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-8 grid gap-4 lg:grid-cols-[1.1fr,0.9fr]">
+          <div className="surface-card p-6">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">能力维度概览</h2>
+                <p className="mt-1 text-sm text-subtle">六维能力均值与波动，可快速判断本班共性短板。</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              {insights.ability.dimensions.map((item) => (
+                <div key={item.dimension} className="space-y-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-sm font-medium text-foreground">{item.label}</p>
+                    <p className="text-sm text-subtle">均值 {item.mean} / 波动 {item.stdDev}</p>
+                  </div>
+                  <div className="teacher-insight-track">
+                    <div className="teacher-insight-fill" style={{ width: `${Math.min(item.mean, 100)}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="surface-card p-6">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground">画像等级分布</h2>
+              <p className="mt-1 text-sm text-subtle">基于当前治理结果的班级层级结构。</p>
+            </div>
+            <div className="space-y-3">
+              {Object.entries(insights.ability.levelDistribution).map(([key, value]) => (
+                <div key={key} className="teacher-insight-metric">
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-sm font-medium text-foreground">{getDistributionLabel(key)}</p>
+                    <p className="text-sm text-subtle">{value} 人</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="surface-card mb-8 p-6">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">能力矩阵</h2>
+              <p className="mt-1 text-sm text-subtle">
+                按学生逐项查看能力分、变化趋势或风险等级，让教师先看到“谁需要关注”，再决定看哪一门能力。
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: 'score', label: '能力分' },
+                { key: 'change', label: '近阶段变化' },
+                { key: 'risk', label: '风险等级' },
+              ].map((view) => (
                 <button
-                  key={view}
-                  onClick={() => setHeatmapView(view)}
-                  className={`rounded-lg px-3 py-1.5 text-sm transition ${
-                    heatmapView === view
-                      ? 'bg-amber-500 text-white'
-                      : 'surface-card-soft text-subtle hover:text-foreground'
+                  key={view.key}
+                  type="button"
+                  onClick={() => setHeatmapView(view.key as HeatmapView)}
+                  className={`rounded-full px-4 py-2 text-sm transition ${
+                    heatmapView === view.key
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border border-border/70 bg-card/70 text-subtle hover:text-foreground'
                   }`}
                 >
-                  {view === 'score' ? '当前得分' : view === 'change' ? '变化量' : '风险等级'}
+                  {view.label}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="surface-card overflow-x-auto p-6">
-            <div className="min-w-[800px]">
-              {/* Heatmap Header */}
-              <div className="grid grid-cols-[200px_repeat(6,1fr)] gap-1">
-                <div className="p-2 text-sm font-medium text-subtle">学生</div>
-                {COMPETENCY_DIMENSIONS.map((dim) => (
-                  <div key={dim} className="p-2 text-center text-xs text-subtle">
-                    {getCompetencyLabel(dim).slice(0, 4)}
+          {!heatmap || heatmap.students.length === 0 ? (
+            <div className="teacher-insight-metric">
+              <p className="text-sm text-subtle">当前还没有可展示的班级能力矩阵，请等待学生画像快照生成。</p>
+            </div>
+          ) : (
+            <div className="space-y-3 overflow-x-auto">
+              <div className="teacher-insight-matrix min-w-[980px]">
+                <div className="teacher-insight-matrix-cell font-medium text-foreground">学生</div>
+                {heatmap.dimensions.map((dimension) => (
+                  <div key={dimension} className="teacher-insight-matrix-cell text-center font-medium text-foreground">
+                    {insights.ability.dimensions.find((item) => item.dimension === dimension)?.label || dimension}
                   </div>
                 ))}
               </div>
-
-              {/* Heatmap Rows */}
-              {students.slice(0, 20).map((student) => (
-                <div key={student.id} className="grid grid-cols-[200px_repeat(6,1fr)] gap-1">
+              {heatmap.students.map((student) => (
+                <div key={student.id} className="teacher-insight-matrix min-w-[980px]">
                   <Link
-                    href={`/teacher/students/${student.id}/diagnosis`}
-                    className="flex items-center gap-2 truncate p-2 text-sm text-foreground transition hover:text-amber-500"
+                    href={buildTeacherStudentInsightsHref(classId, student.id)}
+                    className="teacher-insight-matrix-cell flex items-center justify-between gap-3 hover:border-primary/40"
                   >
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-xs">
-                      {student.name.charAt(0)}
+                    <div>
+                      <p className="font-medium text-foreground">{student.name || '未命名学生'}</p>
+                      <p className="text-xs text-subtle">{student.id.slice(0, 8)}</p>
                     </div>
-                    <span className="truncate">{student.name}</span>
+                    <Users className="h-4 w-4 text-subtle" />
                   </Link>
-                  {COMPETENCY_DIMENSIONS.map((dim) => {
-                    const cell = heatmap?.matrix?.find(
-                      (m) => m.studentId === student.id && m.dimension === dim
-                    );
-                    const value = cell?.score || 0;
-                    const change = cell?.change || 0;
-                    const risk = cell?.riskLevel || 'none';
-
-                    let bgColor = 'bg-accent';
-                    let textColor = 'text-subtle';
-
-                    if (heatmapView === 'score') {
-                      if (value >= 75) {
-                        bgColor = 'bg-emerald-500/30';
-                        textColor = 'text-emerald-500';
-                      } else if (value >= 55) {
-                        bgColor = 'bg-amber-500/30';
-                        textColor = 'text-amber-500';
-                      } else {
-                        bgColor = 'bg-red-500/30';
-                        textColor = 'text-red-500';
-                      }
-                    } else if (heatmapView === 'change') {
-                      if (change > 5) {
-                        bgColor = 'bg-emerald-500/30';
-                        textColor = 'text-emerald-500';
-                      } else if (change < -5) {
-                        bgColor = 'bg-red-500/30';
-                        textColor = 'text-red-500';
-                      } else {
-                        bgColor = 'bg-accent';
-                        textColor = 'text-subtle';
-                      }
-                    } else {
-                      if (risk === 'high') {
-                        bgColor = 'bg-red-500/50';
-                        textColor = 'text-red-500';
-                      } else if (risk === 'medium') {
-                        bgColor = 'bg-amber-500/50';
-                        textColor = 'text-amber-500';
-                      } else if (risk === 'low') {
-                        bgColor = 'bg-blue-500/30';
-                        textColor = 'text-blue-500';
-                      }
-                    }
-
+                  {heatmap.dimensions.map((dimension) => {
+                    const cell = matrixByStudent.get(student.id)?.get(dimension);
                     return (
                       <div
-                        key={dim}
-                        className={`flex h-10 items-center justify-center rounded ${bgColor} ${textColor} text-xs font-medium`}
-                        title={`${getCompetencyLabel(dim)}: ${value}分 (变化: ${change > 0 ? '+' : ''}${change})`}
+                        key={`${student.id}-${dimension}`}
+                        className={`teacher-insight-matrix-cell text-center ${getHeatmapCellClass(heatmapView, cell)}`}
                       >
-                        {heatmapView === 'score'
-                          ? Math.round(value)
-                          : heatmapView === 'change'
-                            ? `${change > 0 ? '+' : ''}${Math.round(change)}`
-                            : risk === 'none'
-                              ? '✓'
-                              : '!'}
+                        {renderHeatmapCellValue(heatmapView, cell)}
                       </div>
                     );
                   })}
                 </div>
               ))}
             </div>
-          </div>
-        </div>
+          )}
+        </section>
 
-        {/* Charts Section */}
-        <div className="mb-8 grid gap-6 lg:grid-cols-2">
-          {/* Dimension Averages Bar Chart */}
-          <div className="surface-card p-6">
-            <h3 className="mb-4 text-lg font-semibold text-foreground">维度均值对比</h3>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={Object.entries(analytics?.dimensionAverages || {}).map(([dim, score]) => ({
-                    dimension: getCompetencyLabel(dim as never).slice(0, 4),
-                    score,
-                  }))}
-                  margin={{ left: 40 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
-                  <XAxis dataKey="dimension" tick={{ fontSize: 12 }} />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="surface-card border p-3 shadow-lg">
-                            <p className="font-medium">{payload[0].payload.dimension}</p>
-                            <p className="text-2xl font-bold text-amber-500">{payload[0].value}分</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <ReferenceLine y={60} stroke="#ef4444" strokeDasharray="3 3" />
-                  <ReferenceLine y={75} stroke="#22c55e" strokeDasharray="3 3" />
-                  <Bar dataKey="score" radius={[4, 4, 0, 0]}>
-                    {Object.entries(analytics?.dimensionAverages || {}).map(([, score], index) => (
-                      <Cell
-                        key={index}
-                        fill={score >= 75 ? '#22c55e' : score >= 55 ? '#f59e0b' : '#ef4444'}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+        <section className="surface-card p-6">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">重点学生</h2>
+              <p className="mt-1 text-sm text-subtle">按风险、整体表现与成长记录综合排序，便于教师快速锁定跟进对象。</p>
             </div>
           </div>
-
-          {/* Trend Line Chart */}
-          <div className="surface-card p-6">
-            <h3 className="mb-4 text-lg font-semibold text-foreground">能力趋势</h3>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={analytics?.trendData || []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(value) => new Date(value).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="surface-card border p-3 shadow-lg">
-                            <p className="text-sm text-subtle">
-                              {new Date(payload[0].payload.date).toLocaleDateString('zh-CN')}
-                            </p>
-                            <p className="text-xl font-bold text-amber-500">{payload[0].value}分</p>
-                            <p className="text-xs text-subtle">活跃: {payload[0].payload.activeCount}人</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="averageScore"
-                    stroke="#f59e0b"
-                    strokeWidth={2}
-                    dot={{ fill: '#f59e0b' }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* Level Distribution */}
-        <div className="mb-8">
-          <h3 className="mb-4 text-lg font-semibold text-foreground">能力分层分布</h3>
-          <div className="grid gap-4 md:grid-cols-5">
-            {[
-              { key: 'excellent', label: '优秀', color: 'bg-emerald-500', textColor: 'text-emerald-500', minScore: 85 },
-              { key: 'good', label: '良好', color: 'bg-blue-500', textColor: 'text-blue-500', minScore: 70 },
-              { key: 'average', label: '中等', color: 'bg-amber-500', textColor: 'text-amber-500', minScore: 55 },
-              { key: 'needsImprovement', label: '需提升', color: 'bg-orange-500', textColor: 'text-orange-500', minScore: 40 },
-              { key: 'atRisk', label: '需关注', color: 'bg-red-500', textColor: 'text-red-500', minScore: 0 },
-            ].map((level) => {
-              const count = analytics?.levelDistribution[level.key as keyof typeof analytics.levelDistribution] || 0;
-              const percentage = analytics?.studentCount ? Math.round((count / analytics.studentCount) * 100) : 0;
-              return (
-                <div key={level.key} className="surface-card-soft p-4 text-center">
-                  <div className={`mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full ${level.color}/20`}>
-                    <span className={`text-lg font-bold ${level.textColor}`}>{count}</span>
-                  </div>
-                  <p className="text-sm font-medium text-foreground">{level.label}</p>
-                  <p className="text-xs text-subtle">≥{level.minScore}分 · {percentage}%</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Student List */}
-        <div>
-          <h3 className="mb-4 text-lg font-semibold text-foreground">学生列表</h3>
-          <div className="surface-card overflow-hidden">
-            <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 border-b border-accent p-4 text-sm font-medium text-subtle">
-              <div>学生</div>
-              <div>综合得分</div>
-              <div>风险等级</div>
-              <div>最近活跃</div>
-              <div>操作</div>
-            </div>
-            {students.slice(0, 10).map((student) => (
-              <div
-                key={student.id}
-                className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] items-center gap-4 border-b border-accent/50 p-4 last:border-0"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm">
-                    {student.name.charAt(0)}
-                  </div>
-                  <span className="font-medium text-foreground">{student.name}</span>
-                </div>
-                <div className={`font-bold ${
-                  student.overallScore >= 75 ? 'text-emerald-500' :
-                  student.overallScore >= 55 ? 'text-amber-500' : 'text-red-500'
-                }`}>
-                  {student.overallScore}
-                </div>
-                <div>
-                  {student.riskLevel === 'high' ? (
-                    <span className="rounded bg-red-500/20 px-2 py-1 text-xs text-red-500">高风险</span>
-                  ) : student.riskLevel === 'medium' ? (
-                    <span className="rounded bg-amber-500/20 px-2 py-1 text-xs text-amber-500">中风险</span>
-                  ) : student.riskLevel === 'low' ? (
-                    <span className="rounded bg-blue-500/20 px-2 py-1 text-xs text-blue-500">低风险</span>
-                  ) : (
-                    <span className="rounded bg-emerald-500/20 px-2 py-1 text-xs text-emerald-500">正常</span>
-                  )}
-                </div>
-                <div className="text-sm text-subtle">{formatRelativeDate(student.lastActive)}</div>
-                <div>
-                  <Link
-                    href={`/teacher/students/${student.id}/diagnosis`}
-                    className="btn-ghost-themed rounded px-3 py-1.5 text-sm"
-                  >
-                    查看详情
-                  </Link>
-                </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {insights.spotlightStudents.length === 0 ? (
+              <div className="teacher-insight-metric">
+                <p className="text-sm text-subtle">当前没有需要特别提示的学生，继续观察班级治理结果即可。</p>
               </div>
-            ))}
+            ) : (
+              insights.spotlightStudents.map((student) => (
+                <Link
+                  key={student.id}
+                  href={buildTeacherStudentInsightsHref(classId, student.id)}
+                  className="teacher-insight-entry"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-base font-semibold text-foreground">{student.name}</p>
+                        <span className={`teacher-insight-chip teacher-insight-risk-${student.riskLevel}`}>
+                          {student.riskLabel}
+                        </span>
+                      </div>
+                      <p className="text-sm text-subtle">{student.recentTrend}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {student.weaknesses.slice(0, 2).map((item) => (
+                          <span key={item} className="teacher-insight-chip teacher-insight-chip-warning">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-subtle">综合指数</p>
+                      <p className="text-2xl font-semibold text-foreground">{student.overallScore}</p>
+                      <p className="mt-2 text-xs text-subtle">成长档案 {student.growthRecordCount} 条</p>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
-        </div>
+        </section>
       </main>
     </div>
   );
 }
 
-function StatCard({
-  label,
+function MetricCard({
+  title,
   value,
-  trend,
-  color,
-  bgColor,
+  detail,
+  icon,
 }: {
-  label: string;
-  value: string | number;
-  trend: string;
-  color: string;
-  bgColor: string;
+  title: string;
+  value: number;
+  detail: string;
+  icon: ReactNode;
 }) {
   return (
-    <div className="surface-card p-4">
-      <p className="text-sm text-subtle">{label}</p>
-      <div className="mt-2 flex items-baseline gap-2">
-        <span className={`text-2xl font-bold ${color}`}>{value}</span>
-        <span className="text-xs text-subtle">{trend}</span>
+    <div className="teacher-insight-metric">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm text-subtle">{title}</p>
+          <p className="mt-2 text-3xl font-semibold text-foreground">{value}</p>
+        </div>
+        {icon}
       </div>
-      <div className={`mt-3 h-1.5 w-full rounded-full bg-accent`}>
-        <div className={`h-full rounded-full ${bgColor.replace('/10', '')}`} style={{ width: '60%' }} />
-      </div>
+      <p className="mt-2 text-xs text-subtle">{detail}</p>
     </div>
   );
 }
 
-function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+function getGovernanceToneClass(tone: GovernanceTone) {
+  if (tone === 'healthy') return 'teacher-insight-chip-healthy';
+  if (tone === 'warning') return 'teacher-insight-chip-warning';
+  return 'teacher-insight-chip-pending';
+}
 
-  if (diffDays === 0) return '今天';
-  if (diffDays === 1) return '昨天';
-  if (diffDays < 7) return `${diffDays}天前`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前`;
-  return `${Math.floor(diffDays / 30)}月前`;
+function getDistributionLabel(level: string) {
+  if (level === 'excellent') return '优秀';
+  if (level === 'good') return '良好';
+  if (level === 'average') return '中等';
+  if (level === 'needsImprovement') return '需提升';
+  return '需关注';
+}
+
+function getHeatmapCellClass(view: HeatmapView, cell: HeatmapData['matrix'][number] | undefined) {
+  if (!cell) {
+    return 'text-subtle';
+  }
+
+  if (view === 'risk') {
+    if (cell.riskLevel === 'high') return 'teacher-insight-risk-high';
+    if (cell.riskLevel === 'medium') return 'teacher-insight-risk-medium';
+    if (cell.riskLevel === 'low') return 'teacher-insight-risk-low';
+    return 'teacher-insight-risk-none';
+  }
+
+  if (view === 'change') {
+    if (cell.change > 0) return 'text-emerald-600 dark:text-emerald-300';
+    if (cell.change < 0) return 'text-rose-600 dark:text-rose-300';
+    return 'text-subtle';
+  }
+
+  if (cell.score >= 85) return 'text-emerald-600 dark:text-emerald-300';
+  if (cell.score >= 70) return 'text-sky-600 dark:text-sky-300';
+  if (cell.score >= 55) return 'text-amber-600 dark:text-amber-300';
+  return 'text-rose-600 dark:text-rose-300';
+}
+
+function renderHeatmapCellValue(view: HeatmapView, cell: HeatmapData['matrix'][number] | undefined) {
+  if (!cell) {
+    return '-';
+  }
+
+  if (view === 'risk') {
+    if (cell.riskLevel === 'high') return '高';
+    if (cell.riskLevel === 'medium') return '中';
+    if (cell.riskLevel === 'low') return '低';
+    return '稳';
+  }
+
+  if (view === 'change') {
+    return `${cell.change > 0 ? '+' : ''}${cell.change}`;
+  }
+
+  return cell.score;
 }

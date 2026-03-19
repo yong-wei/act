@@ -100,22 +100,19 @@ export async function GET(
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const previousSnapshots = await prisma.$queryRaw<
-      Array<{
-        user_id: string;
-        competency_vector: string;
-        snapshot_at: Date;
-      }>
-    >`
-      SELECT DISTINCT ON (user_id) 
-        user_id,
-        competency_vector::text,
-        snapshot_at
-      FROM "StudentCompetencySnapshot"
-      WHERE user_id = ANY(${studentIds}::text[])
-        AND snapshot_at <= ${thirtyDaysAgo}
-      ORDER BY user_id, snapshot_at DESC
-    `;
+    const previousSnapshots = await prisma.studentCompetencySnapshot.findMany({
+      where: {
+        userId: { in: studentIds },
+        snapshotAt: { lte: thirtyDaysAgo },
+      },
+      orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }],
+    });
+    const previousSnapshotMap = previousSnapshots.reduce((accumulator, snapshot) => {
+      if (!accumulator.has(snapshot.userId)) {
+        accumulator.set(snapshot.userId, snapshot);
+      }
+      return accumulator;
+    }, new Map<string, (typeof previousSnapshots)[number]>());
 
     // Get active risk flags for all students
     const riskFlags = await prisma.studentRiskFlag.findMany({
@@ -134,11 +131,9 @@ export async function GET(
 
     for (const snapshot of latestSnapshots) {
       const vector = snapshot.competencyVector as Record<string, { score: number }>;
-      const prevSnapshot = previousSnapshots.find(
-        ps => ps.user_id === snapshot.userId
-      );
+      const prevSnapshot = previousSnapshotMap.get(snapshot.userId);
       const prevVector = prevSnapshot
-        ? (JSON.parse(prevSnapshot.competency_vector) as Record<string, { score: number }>)
+        ? (prevSnapshot.competencyVector as Record<string, { score: number }>)
         : null;
 
       // Calculate risk level for this student
