@@ -1,14 +1,27 @@
+import { UserRole } from '@prisma/client';
+import { redirect } from 'next/navigation';
+
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { TeacherDashboard } from '@/features/teacher/teacher-dashboard';
 
 export default async function TeacherPage() {
   const session = await getServerAuthSession();
+  if (!session?.user) {
+    redirect('/login');
+  }
+
+  if (session.user.role !== UserRole.TEACHER) {
+    if (session.user.role === UserRole.ADMIN) {
+      redirect('/admin');
+    }
+    redirect('/dashboard');
+  }
 
   // 获取教师统计数据
   const [classes, lessonPlans, activeSessions] = await Promise.all([
     prisma.class.findMany({
-      where: { teacherId: session!.user.id },
+      where: { teacherId: session.user.id },
       include: {
         _count: { select: { students: true } },
       },
@@ -16,13 +29,13 @@ export default async function TeacherPage() {
       take: 5,
     }),
     prisma.lessonPlan.findMany({
-      where: { authorId: session!.user.id },
+      where: { authorId: session.user.id },
       orderBy: { updatedAt: 'desc' },
       take: 5,
     }),
     prisma.classSession.findMany({
       where: {
-        teacherId: session!.user.id,
+        teacherId: session.user.id,
         status: 'ACTIVE',
       },
       include: {
@@ -35,22 +48,22 @@ export default async function TeacherPage() {
 
   // 计算统计数据
   const totalClasses = await prisma.class.count({
-    where: { teacherId: session!.user.id },
+    where: { teacherId: session.user.id },
   });
 
   const totalStudents = await prisma.studentProfile.count({
     where: {
-      class: { teacherId: session!.user.id },
+      class: { teacherId: session.user.id },
     },
   });
 
   const totalPlans = await prisma.lessonPlan.count({
-    where: { authorId: session!.user.id },
+    where: { authorId: session.user.id },
   });
 
   return (
     <TeacherDashboard
-      user={session!.user}
+      user={session.user}
       stats={{
         totalClasses,
         totalStudents,
