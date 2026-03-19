@@ -1,0 +1,16 @@
+{"source_id":"拉氏变换工程动机_2_11001","source_name":"拉氏变换工程动机","target_id":"拉氏变换_2_243496d4","target_name":"拉氏变换","relation":"leads_to","strength":0.95,"description":"工程动机引出拉氏变换的定义与性质","run_id":"1-1"}
+{"source_id":"微分方程_2_775c96a3","source_name":"微分方程","target_id":"拉氏变换工程动机_2_11001","target_name":"拉氏变换工程动机","relation":"leads_to","strength":0.9,"description":"微分方程求解困难引出拉氏变换的需求","run_id":"1-1"}
+{"source_id":"拉氏变换_2_243496d4","source_name":"拉氏变换","target_id":"微分定理_2_11002","target_name":"微分定理","relation":"contains","strength":0.95,"description":"微分定理是拉氏变换最重要的性质","run_id":"1-1"}
+{"source_id":"微分定理_2_11002","source_name":"微分定理","target_id":"传递函数_2_2c5e2589","target_name":"传递函数","relation":"leads_to","strength":0.95,"description":"微分定理是从微分方程推导传递函数的核心工具","run_id":"1-1"}
+{"source_id":"传递函数_2_2c5e2589","source_name":"传递函数","target_id":"传递函数标准形式_2_11003","target_name":"传递函数标准形式","relation":"contains","strength":0.9,"description":"传递函数的首一形式和尾一形式是两种标准化表示","run_id":"1-1"}
+{"source_id":"传递函数标准形式_2_11003","source_name":"传递函数标准形式","target_id":"零点_2_c29600a1","target_name":"零点","relation":"leads_to","strength":0.85,"description":"首一形式便于直接读出零极点","run_id":"1-1"}
+{"source_id":"传递函数标准形式_2_11003","source_name":"传递函数标准形式","target_id":"极点_2_cc79a4c5","target_name":"极点","relation":"leads_to","strength":0.85,"description":"首一形式便于直接读出零极点","run_id":"1-1"}
+{"source_id":"极点_2_cc79a4c5","source_name":"极点","target_id":"四种响应家族_3_L2a","target_name":"四种响应家族","relation":"cross_domain","strength":0.95,"description":"极点类型与L-2a四种响应家族精确对应","run_id":"1-1"}
+{"source_id":"传递函数_2_2c5e2589","source_name":"传递函数","target_id":"比例环节_2_11004","target_name":"比例环节","relation":"contains","strength":0.8,"description":"比例环节是最简单的典型环节","run_id":"1-1"}
+{"source_id":"传递函数_2_2c5e2589","source_name":"传递函数","target_id":"积分环节_2_11005","target_name":"积分环节","relation":"contains","strength":0.8,"description":"积分环节是基本典型环节","run_id":"1-1"}
+{"source_id":"传递函数_2_2c5e2589","source_name":"传递函数","target_id":"微分环节_2_11006","target_name":"微分环节","relation":"contains","strength":0.8,"description":"微分环节是基本典型环节","run_id":"1-1"}
+{"source_id":"传递函数_2_2c5e2589","source_name":"传递函数","target_id":"惯性环节_2_11007","target_name":"惯性环节","relation":"contains","strength":0.85,"description":"惯性环节是最常见的一阶典型环节","run_id":"1-1"}
+{"source_id":"传递函数_2_2c5e2589","source_name":"传递函数","target_id":"振荡环节_5_d677d1e6","target_name":"振荡环节","relation":"contains","strength":0.85,"description":"振荡环节是最常见的二阶典型环节","run_id":"1-1"}
+{"source_id":"惯性环节_2_11007","source_name":"惯性环节","target_id":"四种响应家族_3_L2a","target_name":"四种响应家族","relation":"cross_domain","strength":0.8,"description":"惯性环节对应家族1（单调上升）","run_id":"1-1"}
+{"source_id":"振荡环节_5_d677d1e6","source_name":"振荡环节","target_id":"四种响应家族_3_L2a","target_name":"四种响应家族","relation":"cross_domain","strength":0.8,"description":"振荡环节对应家族2（振荡衰减）","run_id":"1-1"}
+{"source_id":"拉氏变换工程动机_2_11001","source_name":"拉氏变换工程动机","target_id":"传递函数_1_5b0faf8b","target_name":"传递函数","relation":"leads_to","strength":0.85,"description":"拉氏变换动机最终指向传递函数的建立","run_id":"1-1"}

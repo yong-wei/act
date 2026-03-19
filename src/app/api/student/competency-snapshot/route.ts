@@ -7,8 +7,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { calculateTrendVector, generateEvidenceSummary } from '@/lib/data-governance/competency-engine';
+import { calculateTrendVector } from '@/lib/data-governance/competency-engine';
 import type { CompetencyVector, TrendVector } from '@/lib/data-governance/competency-model';
+import {
+  dedupeRecommendations,
+  dedupeRiskFlags,
+} from '@/lib/data-governance/profile-center';
 import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 
 export interface StudentSnapshotResponse {
@@ -33,7 +37,7 @@ export interface StudentSnapshotResponse {
   }>;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerAuthSession();
 
@@ -42,15 +46,6 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    const { searchParams } = new URL(request.url);
-    const timeRange = searchParams.get('timeRange') as '7d' | '30d' | '90d' | null;
-
-    // Calculate date range
-    const now = new Date();
-    const daysMap = { '7d': 7, '30d': 30, '90d': 90 };
-    const days = timeRange && daysMap[timeRange] ? daysMap[timeRange] : 30;
-    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-
     // Get current snapshot
     const currentSnapshot = await prisma.studentCompetencySnapshot.findFirst({
       where: { userId },
@@ -86,7 +81,7 @@ export async function GET(request: NextRequest) {
     >) || {};
 
     // Get risk flags
-    const riskFlags = await prisma.studentRiskFlag.findMany({
+    const rawRiskFlags = await prisma.studentRiskFlag.findMany({
       where: {
         userId,
         isResolved: false,
@@ -94,6 +89,16 @@ export async function GET(request: NextRequest) {
       orderBy: { triggeredAt: 'desc' },
       take: 10,
     });
+
+    const riskFlags = dedupeRiskFlags(
+      rawRiskFlags.map((rf) => ({
+        type: rf.flagType as RiskFlag['type'],
+        severity: rf.severity as RiskFlag['severity'],
+        description: rf.description,
+        evidence: rf.evidenceJson as Record<string, unknown>,
+        triggeredAt: rf.triggeredAt,
+      }))
+    );
 
     // Calculate trend vector
     const currentVector = currentSnapshot.competencyVector as unknown as CompetencyVector;
@@ -107,13 +112,7 @@ export async function GET(request: NextRequest) {
     // Generate basic recommendations based on snapshot data
     const recommendations = generateSnapshotRecommendations(
       currentVector,
-      riskFlags.map((rf) => ({
-        type: rf.flagType as RiskFlag['type'],
-        severity: rf.severity as RiskFlag['severity'],
-        description: rf.description,
-        evidence: rf.evidenceJson as Record<string, unknown>,
-        triggeredAt: rf.triggeredAt,
-      })),
+      riskFlags,
       evidenceSummary
     );
 
@@ -131,13 +130,7 @@ export async function GET(request: NextRequest) {
         : null,
       trendVector,
       evidenceSummary,
-      riskFlags: riskFlags.map((rf) => ({
-        type: rf.flagType as RiskFlag['type'],
-        severity: rf.severity as RiskFlag['severity'],
-        description: rf.description,
-        evidence: rf.evidenceJson as unknown as Record<string, unknown>,
-        triggeredAt: rf.triggeredAt,
-      })),
+      riskFlags,
       recommendations,
     };
 
@@ -251,5 +244,7 @@ function generateSnapshotRecommendations(
   }
 
   // Sort by priority
-  return recommendations.sort((a, b) => b.priority - a.priority);
+  return dedupeRecommendations(
+    recommendations.sort((a, b) => b.priority - a.priority)
+  );
 }

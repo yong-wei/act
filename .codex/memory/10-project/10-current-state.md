@@ -2,7 +2,7 @@
 
 状态: active
 最后更新: 2026-03-19
-摘要: 记录项目当前的重要现状，帮助跨会话快速回答“现在做到哪里了、最近重点在哪”，并提醒最近刚收敛的教师端学情入口与本地启动链路变化。
+摘要: 记录项目当前的重要现状，帮助跨会话快速回答“现在做到哪里了、最近重点在哪”，并提醒最近刚收敛的教师端学情入口、学生端个人中心六维画像收口与本地启动链路变化。
 上游:
 - [00-overview.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/00-overview.md)
 下游:
@@ -20,6 +20,10 @@
 
 ## 最近值得记住的变化
 
+- 学生个人中心 `/profile` 已不再使用旧的五维仿真雷达或课外展示补强卡口径，而是统一消费数据治理六维能力快照；姓名下显示学号，页面只保留学生态信息，不再显示“学生”角色文案
+- 学生个人中心的最近活动已经改为真实聚合：来源包括 `StudentState/ClassSession` 的课堂加入记录、`InteractionLog` 的互动/知识卡/跨域探索行为、`SimulationLog` 的仿真记录，以及 `LearningFact(question)` 的题目与自适应练习记录
+- 个性化补强路径已接入 `generateRecommendations(userId)` 与自适应习题诊断摘要；个人中心现在直接展示资源推荐卡和 `/assessment/adaptive-practice` 的继续练习入口
+- 成长中枢 `/profile/growth` 所依赖的 `/api/student/competency-snapshot` 已对重复 `StudentRiskFlag` 和重复建议做接口层去重，因此 UI 中“学习活跃度低/增加学习活跃度”类重复卡片已明显收敛
 - 教师端班级链路已重构为“教师首页/班级页 -> 班级学情总览 -> 学生个体学情”模式；不再把教师引向独立的数据治理入口或无上下文的 `analytics-v2` 坏路由
 - 教师端新增聚合接口 `/api/teacher/classes/[classId]/insights` 与 `/api/teacher/classes/[classId]/students/[studentId]/insights`，班级页、班级学情页与学生详情页已改为直接消费治理产物
 - `src/app/api/teacher/classes/[classId]/heatmap/route.ts` 已修复；此前会因原生 SQL 错把 Prisma 驼峰列名写成下划线列名而返回 500

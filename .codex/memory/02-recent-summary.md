@@ -2,7 +2,7 @@
 
 状态: active
 最后更新: 2026-03-19
-摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前应优先知道教师端学情入口已重构，以及 startup/shutdown 脚本刚修复前端端口残留问题。
+摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前应优先知道教师端学情入口已重构，学生端个人中心也已统一到六维治理画像，且 startup/shutdown 脚本刚修复前端端口残留问题。
 上游:
 - [00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
 - [README.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/README.md)
@@ -15,6 +15,9 @@
 
 ## 最近最重要的稳定变化
 
+- 学生端个人中心 `/profile` 与 `/api/user/profile` 已从旧的五维仿真/课外展示口径切到数据治理六维能力模型；页面现展示真实 `StudentCompetencySnapshot` 维度、聚合学习活动、资源推荐与自适应习题诊断摘要
+- 学生端最近活动已不再只看仿真和违规，而是聚合课堂加入记录、互动埋点、仿真记录与 `LearningFact(question)`；首页默认显示前三条，查看全部按课堂参与 / 互动探索 / 仿真训练 / 评测题目分类展开
+- 成长中枢 `/profile/growth` 的“关注事项”和“下一步建议”已在 `/api/student/competency-snapshot` 接口层按风险类型与建议标题去重，不再直接把重复 `StudentRiskFlag` 或重复建议逐条透出
 - 教师端班级链路已经改成“班级入口 -> 班级学情总览 -> 学生个体学情”主路径；教师首页不再暴露独立数据治理入口或无上下文的错误学情快捷入口
 - 教师端新增 `/api/teacher/classes/[classId]/insights` 与 `/api/teacher/classes/[classId]/students/[studentId]/insights` 聚合接口；班级页、班级学情页、学生详情页都已切到治理结果驱动
 - 班级 `heatmap` 接口已修复：此前原生 SQL 错把 Prisma 驼峰列名当成下划线列名，导致教师学情页能力矩阵返回 500
@@ -35,6 +38,7 @@
 
 ## 初始化后的建议下一跳
 
+- 若任务和学生个人中心、成长中枢、活动聚合或自适应习题接入有关，先读 [10-project/10-current-state.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/10-current-state.md)
 - 若任务和课堂事件、事实沉淀、会话同步有关，先读 [10-project/10-current-state.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/10-current-state.md)
 - 若任务和教师端班级页、班级学情、学生学情详情或 startup 失败有关，也先读 [10-project/10-current-state.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/10-current-state.md)
 - 若任务和管理员后台入口、统计或数据治理看板有关，也先读 [10-project/10-current-state.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/10-current-state.md)

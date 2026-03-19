@@ -1,14 +1,33 @@
 /**
  * 用户画像 API
  *
- * 获取用户的能力画像数据，包括仿真统计、能力雷达图数据
+ * 统一返回学生个人中心所需的六维能力画像、最近活动和个性化补强信息。
  */
 
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { computeCompetencyFromSimulations, type CompetencyData } from '@/lib/competency';
-import { getUserExtracurricularSnapshot } from '@/lib/extracurricular-analytics';
+import {
+  buildAdaptivePracticeSummary,
+  buildCompetencyDimensions,
+  buildProfileActivityFeed,
+  dedupeRecommendations,
+  getCompetencyLevelLabel,
+  mapRecommendationsToResourceCards,
+  type AdaptivePracticeSummary,
+  type PersonalizedResourceCard,
+  type ProfileActivityGroup,
+  type ProfileActivityItem,
+} from '@/lib/data-governance/profile-center';
+import {
+  calculateOverallScore,
+  createEmptyCompetencyVector,
+  getCompetencyLevel,
+  type CompetencyDimension,
+  type CompetencyVector,
+} from '@/lib/data-governance/competency-model';
+import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
+import { getAbilityReport, getDiagnostic } from '@/features/assessment/adaptive-engine';
 
 export interface UserProfileResponse {
   user: {
@@ -18,7 +37,9 @@ export interface UserProfileResponse {
     role: string;
   };
   profile: {
+    studentNumber: string | null;
     classId: string | null;
+    className: string | null;
     techScore: number;
     ethicsScore: number;
   } | null;
@@ -26,63 +47,124 @@ export interface UserProfileResponse {
     totalSimulations: number;
     completedMissions: number;
     ethicalViolations: number;
-    totalSimulationTime: number; // 秒
+    totalSimulationTime: number;
     averageScore: number;
   };
-  competency: CompetencyData;
-  recentActivity: Array<{
-    id: string;
-    type: 'simulation' | 'mission' | 'violation';
-    title: string;
-    timestamp: Date;
-    result?: string;
-  }>;
+  competency: {
+    overallScore: number;
+    level: string;
+    trend: string;
+    strengths: string[];
+    weaknesses: string[];
+    dimensions: Array<{
+      key: CompetencyDimension;
+      label: string;
+      description: string;
+      score: number;
+      trend: 'up' | 'stable' | 'down';
+      confidence: number;
+      evidenceCount: number;
+    }>;
+  };
+  recentActivity: {
+    preview: ProfileActivityItem[];
+    grouped: ProfileActivityGroup[];
+    total: number;
+  };
   missionProgress: {
     total: number;
     completed: number;
     unlocked: number;
     locked: number;
   };
-  abilityTracking: {
-    pre: {
-      computational: number;
-      crossDomain: number;
-      designTradeoff: number;
-      poleTimeMapping: number;
-      frequencyStability: number;
-    };
-    post: {
-      computational: number;
-      crossDomain: number;
-      designTradeoff: number;
-      poleTimeMapping: number;
-      frequencyStability: number;
-    };
-    delta: {
-      computational: number;
-      crossDomain: number;
-      designTradeoff: number;
-      poleTimeMapping: number;
-      frequencyStability: number;
-    };
-    preWeakTag: string;
-    postWeakTag: string;
-    weakTagLabel: string;
+  personalizedReinforcement: {
+    resources: PersonalizedResourceCard[];
+    adaptivePractice: AdaptivePracticeSummary;
   };
-  reinforcementPaths: Array<{
-    id: string;
-    title: string;
-    description: string;
-    estimatedTime: number;
-  }>;
-  recommendedQuestions: Array<{
-    id: string;
-    stem: string;
-    difficulty: number;
-    knowledgeTags: string[];
-  }>;
-  promptStructuringScore: number | null;
-  designEffectScore: number | null;
+}
+
+function parseStringList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  }
+  return [];
+}
+
+function describeFactOutcome(outcome: string) {
+  switch (outcome) {
+    case 'success':
+      return '表现稳定';
+    case 'partial':
+      return '完成了一部分';
+    case 'failure':
+      return '仍需继续补强';
+    default:
+      return '已记录一次练习';
+  }
+}
+
+function inferInteractionTitle(event: {
+  eventType: string;
+  resourceKey: string | null;
+  lessonKey: string | null;
+  eventData: unknown;
+}) {
+  const eventData =
+    event.eventData && typeof event.eventData === 'object'
+      ? (event.eventData as Record<string, unknown>)
+      : {};
+
+  const embeddedTitle = typeof eventData.title === 'string' ? eventData.title : null;
+  if (embeddedTitle) {
+    return embeddedTitle;
+  }
+
+  if (event.eventType === 'knowledge_card_open') {
+    return `知识卡片：${event.resourceKey ?? '未命名资源'}`;
+  }
+
+  if (event.lessonKey) {
+    return `互动环节：${event.lessonKey}`;
+  }
+
+  if (event.resourceKey) {
+    return `互动探索：${event.resourceKey}`;
+  }
+
+  return '互动学习记录';
+}
+
+function inferInteractionDescription(eventType: string) {
+  switch (eventType) {
+    case 'knowledge_card_open':
+      return '打开知识卡片进行补充学习';
+    case 'lesson_step_view':
+      return '进入课堂互动环节';
+    case 'ai_query_submit':
+      return '在互动页面中发起了 AI 追问';
+    default:
+      return '完成一次互动学习操作';
+  }
+}
+
+function inferInteractionHref(resourceKey: string | null, sessionId: string | null) {
+  if (sessionId) {
+    return `/classroom/student/${sessionId}`;
+  }
+
+  if (resourceKey?.includes('l2d')) {
+    return '/interactive-learning/courses/l2d-three-domain-linkage-practice';
+  }
+
+  if (resourceKey?.includes('lsum')) {
+    return '/interactive-learning/courses/lsum-design-feasible-domain';
+  }
+
+  if (resourceKey?.includes('knowledge')) {
+    return '/knowledge';
+  }
+
+  return '/interactive-learning';
 }
 
 export async function GET() {
@@ -90,16 +172,23 @@ export async function GET() {
     const session = await getServerAuthSession();
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: '未授权' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: '未授权' }, { status: 401 });
     }
 
     const userId = session.user.id;
 
-    // 并行获取用户数据
-    const [user, profile, simulationLogs, ethicalLogs, missionProgress, extracurricularSnapshot] = await Promise.all([
+    const [
+      user,
+      profile,
+      latestSnapshot,
+      profileSummary,
+      simulationLogs,
+      ethicalLogs,
+      missionProgress,
+      interactionLogs,
+      learningFacts,
+      studentStates,
+    ] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -112,15 +201,31 @@ export async function GET() {
       prisma.studentProfile.findUnique({
         where: { userId },
         select: {
+          studentNumber: true,
           classId: true,
+          className: true,
           techScore: true,
           ethicsScore: true,
         },
       }),
+      prisma.studentCompetencySnapshot.findFirst({
+        where: { userId },
+        orderBy: { snapshotAt: 'desc' },
+      }),
+      prisma.studentProfileSummary.findUnique({
+        where: { userId },
+      }),
       prisma.simulationLog.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
-        take: 100, // 最近100条仿真记录
+        take: 20,
+        select: {
+          id: true,
+          controlMode: true,
+          createdAt: true,
+          score: true,
+          duration: true,
+        },
       }),
       prisma.ethicalLog.findMany({
         where: { userId },
@@ -138,83 +243,166 @@ export async function GET() {
           },
         },
       }),
-      getUserExtracurricularSnapshot(userId),
+      prisma.interactionLog.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 40,
+        select: {
+          id: true,
+          eventType: true,
+          resourceKey: true,
+          sessionId: true,
+          lessonKey: true,
+          eventData: true,
+          createdAt: true,
+        },
+      }),
+      prisma.learningFact.findMany({
+        where: { userId },
+        orderBy: { startedAt: 'desc' },
+        take: 40,
+        select: {
+          id: true,
+          factType: true,
+          moduleId: true,
+          sessionId: true,
+          startedAt: true,
+          outcome: true,
+          score: true,
+          timeSpent: true,
+        },
+      }),
+      prisma.studentState.findMany({
+        where: { userId },
+        orderBy: { submittedAt: 'desc' },
+        take: 10,
+        select: {
+          sessionId: true,
+          submittedAt: true,
+        },
+      }),
     ]);
 
     if (!user) {
-      return NextResponse.json(
-        { error: '用户不存在' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '用户不存在' }, { status: 404 });
     }
 
-    // 计算统计数据
+    const sessionIds = Array.from(new Set(studentStates.map((item) => item.sessionId)));
+    const classSessions =
+      sessionIds.length > 0
+        ? await prisma.classSession.findMany({
+            where: {
+              id: {
+                in: sessionIds,
+              },
+            },
+            select: {
+              id: true,
+              joinCode: true,
+              plan: {
+                select: {
+                  title: true,
+                },
+              },
+              class: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          })
+        : [];
+
+    const sessionMap = new Map(classSessions.map((item) => [item.id, item]));
+    const competencyVector =
+      (latestSnapshot?.competencyVector as CompetencyVector | null) ?? createEmptyCompetencyVector();
+    const competencyDimensions = buildCompetencyDimensions(competencyVector);
+    const overallScore = Math.round(
+      (profileSummary?.overallScore ?? calculateOverallScore(competencyVector)) * 10
+    ) / 10;
+    const level =
+      profileSummary?.overallLevel ??
+      getCompetencyLevelLabel(getCompetencyLevel(overallScore));
+
     const totalSimulations = simulationLogs.length;
-    const completedMissions = missionProgress.filter((p) => p.status === 'COMPLETED').length;
+    const completedMissions = missionProgress.filter((item) => item.status === 'COMPLETED').length;
     const ethicalViolations = ethicalLogs.length;
     const totalSimulationTime = simulationLogs.reduce(
-      (acc, log) => acc + (log.duration || 0),
+      (sum, log) => sum + (log.duration ?? 0),
       0
     );
     const averageScore =
       totalSimulations > 0
-        ? simulationLogs.reduce((acc, log) => acc + (log.score || 0), 0) / totalSimulations
+        ? Math.round(
+            simulationLogs.reduce((sum, log) => sum + (log.score ?? 0), 0) / totalSimulations
+          )
         : 0;
 
-    // 计算能力雷达图数据
-    const competencyInput = simulationLogs.map((log) => {
-      const metrics = log.metrics as Record<string, number> | null;
-      const inputParams = log.inputParams as Record<string, number> | null;
+    const totalMissions = await prisma.mission.count();
+
+    const classroomActivities: ProfileActivityItem[] = studentStates.map((state) => {
+      const relatedSession = sessionMap.get(state.sessionId);
       return {
-        avgError: metrics?.avgError || 100,
-        maxRudderRate: metrics?.maxRudderRate || 3,
-        settlingTime: metrics?.settlingTime,
-        overshoot: metrics?.overshoot,
-        seaStateLevel: inputParams?.seaStateLevel || 3,
-        isEthicalViolation: log.isEthicalViolation,
+        id: `classroom-${state.sessionId}`,
+        category: 'classroom',
+        title: `加入课堂：${relatedSession?.plan.title ?? '未命名课堂'}`,
+        description: `${relatedSession?.class?.name ?? profile?.className ?? '未绑定班级'} · 课堂码 ${relatedSession?.joinCode ?? '------'}`,
+        timestamp: state.submittedAt.toISOString(),
+        href: `/classroom/student/${state.sessionId}`,
+        badge: '课堂',
+        dedupeKey: `classroom-${state.sessionId}`,
       };
     });
 
-    const competency = computeCompetencyFromSimulations(competencyInput);
+    const simulationActivities: ProfileActivityItem[] = simulationLogs.map((log) => ({
+      id: log.id,
+      category: 'simulation',
+      title: `完成仿真：${log.controlMode?.toUpperCase() ?? 'PID'} 模式`,
+      description: `得分 ${Math.round(log.score ?? 0)} · 用时 ${Math.max(1, Math.round((log.duration ?? 0) / 60))} 分钟`,
+      timestamp: log.createdAt.toISOString(),
+      href: '/simulations/destroyer',
+      badge: '仿真',
+    }));
 
-    // 构建最近活动
-    const recentActivity: UserProfileResponse['recentActivity'] = [];
+    const interactiveActivities: ProfileActivityItem[] = interactionLogs.map((event) => ({
+      id: event.id,
+      category: 'interactive',
+      title: inferInteractionTitle(event),
+      description: inferInteractionDescription(event.eventType),
+      timestamp: event.createdAt.toISOString(),
+      href: inferInteractionHref(event.resourceKey, event.sessionId),
+      badge: event.eventType === 'knowledge_card_open' ? '知识卡片' : '互动',
+      dedupeKey: `${event.eventType}|${event.resourceKey ?? ''}|${event.sessionId ?? ''}|${event.lessonKey ?? ''}`,
+    }));
 
-    // 添加最近仿真
-    simulationLogs.slice(0, 5).forEach((log) => {
-      recentActivity.push({
-        id: log.id,
-        type: 'simulation',
-        title: `仿真练习 - ${log.controlMode?.toUpperCase() || 'PID'} 模式`,
-        timestamp: log.createdAt,
-        result: log.score ? `得分: ${log.score}` : undefined,
-      });
-    });
+    const assessmentActivities: ProfileActivityItem[] = learningFacts
+      .filter((fact) => fact.factType === 'question')
+      .map((fact) => ({
+        id: fact.id,
+        category: 'assessment',
+        title:
+          fact.moduleId === 'adaptive-practice'
+            ? '完成自适应练习'
+            : '完成一次题目练习',
+        description: `${describeFactOutcome(fact.outcome)}${typeof fact.score === 'number' ? ` · 得分 ${Math.round(fact.score * 100)}` : ''}`,
+        timestamp: fact.startedAt.toISOString(),
+        href: '/assessment/adaptive-practice',
+        badge: '评测',
+        dedupeKey: `${fact.factType}|${fact.moduleId ?? ''}|${fact.startedAt.toISOString()}`,
+      }));
 
-    // 添加最近违规
-    ethicalLogs.slice(0, 3).forEach((log) => {
-      recentActivity.push({
-        id: log.id,
-        type: 'violation',
-        title: `伦理违规 - ${log.violationType}`,
-        timestamp: log.createdAt,
-        result: log.studentJustification ? '已整改' : '待整改',
-      });
-    });
+    const recentActivity = buildProfileActivityFeed([
+      ...classroomActivities,
+      ...interactiveActivities,
+      ...simulationActivities,
+      ...assessmentActivities,
+    ]);
 
-    // 按时间排序
-    recentActivity.sort(
-      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-
-    // 计算任务进度
-    const totalMissions = await prisma.mission.count();
-    const missionStats = {
-      total: totalMissions,
-      completed: missionProgress.filter((p) => p.status === 'COMPLETED').length,
-      unlocked: missionProgress.filter((p) => p.status === 'UNLOCKED').length,
-      locked: totalMissions - missionProgress.length,
-    };
+    const adaptiveReport = getAbilityReport(userId);
+    const adaptiveDiagnostic = getDiagnostic(userId);
+    const recommendationCards = mapRecommendationsToResourceCards(
+      dedupeRecommendations(await generateRecommendations(userId))
+    ).slice(0, 4);
 
     const response: UserProfileResponse = {
       user: {
@@ -225,7 +413,9 @@ export async function GET() {
       },
       profile: profile
         ? {
-            classId: profile.classId,
+            studentNumber: profile.studentNumber ?? null,
+            classId: profile.classId ?? null,
+            className: profile.className ?? null,
             techScore: profile.techScore,
             ethicsScore: profile.ethicsScore,
           }
@@ -235,51 +425,53 @@ export async function GET() {
         completedMissions,
         ethicalViolations,
         totalSimulationTime,
-        averageScore: Math.round(averageScore),
+        averageScore,
       },
-      competency,
-      recentActivity: recentActivity.slice(0, 10),
-      missionProgress: missionStats,
-      abilityTracking: {
-        pre: extracurricularSnapshot.pre,
-        post: extracurricularSnapshot.post,
-        delta: extracurricularSnapshot.delta,
-        preWeakTag: extracurricularSnapshot.preWeakTag,
-        postWeakTag: extracurricularSnapshot.postWeakTag,
-        weakTagLabel: extracurricularSnapshot.weakTagLabel,
+      competency: {
+        overallScore,
+        level,
+        trend: profileSummary?.recentTrend ?? '近期表现平稳',
+        strengths: parseStringList(profileSummary?.strengthsJson),
+        weaknesses: parseStringList(profileSummary?.weaknessesJson),
+        dimensions: competencyDimensions,
       },
-      reinforcementPaths: extracurricularSnapshot.reinforcementPaths,
-      recommendedQuestions: extracurricularSnapshot.recommendedQuestions,
-      promptStructuringScore: extracurricularSnapshot.promptStructuringScore,
-      designEffectScore: extracurricularSnapshot.designEffectScore,
+      recentActivity,
+      missionProgress: {
+        total: totalMissions,
+        completed: completedMissions,
+        unlocked: missionProgress.filter((item) => item.status === 'UNLOCKED').length,
+        locked: totalMissions - missionProgress.length,
+      },
+      personalizedReinforcement: {
+        resources: recommendationCards,
+        adaptivePractice: buildAdaptivePracticeSummary({
+          estimatedAbility: adaptiveReport?.estimatedAbility ?? null,
+          confidenceInterval: adaptiveReport?.confidenceInterval ?? null,
+          timeline: adaptiveReport?.timeline ?? [],
+          weakAreas: adaptiveDiagnostic?.weakAreas ?? [],
+          recommendedFocus: adaptiveDiagnostic?.recommendedFocus ?? [],
+        }),
+      },
     };
 
     return NextResponse.json(response);
   } catch (error) {
     console.error('获取用户画像失败:', error);
-    return NextResponse.json(
-      { error: '服务器错误' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
 }
 
-// 更新用户 profile
 export async function PATCH(request: Request) {
   try {
     const session = await getServerAuthSession();
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: '未授权' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: '未授权' }, { status: 401 });
     }
 
     const body = await request.json();
     const { name, classId } = body;
 
-    // 更新用户名称
     if (name) {
       await prisma.user.update({
         where: { id: session.user.id },
@@ -287,7 +479,6 @@ export async function PATCH(request: Request) {
       });
     }
 
-    // 更新或创建 StudentProfile
     if (classId !== undefined) {
       await prisma.studentProfile.upsert({
         where: { userId: session.user.id },
@@ -302,9 +493,6 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('更新用户画像失败:', error);
-    return NextResponse.json(
-      { error: '服务器错误' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
 }
