@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildTeacherClassInsightsHref,
+  buildTeacherHistoryHref,
+  formatTeacherStudentDisplayId,
   buildTeacherStudentInsightsHref,
   rankStudentsByAttention,
   summarizeGovernanceState,
@@ -15,6 +17,10 @@ describe('teacher-insights helpers', () => {
 
   it('builds the student insights route nested under the class', () => {
     expect(buildTeacherStudentInsightsHref('class-42', 'student-9')).toBe('/teacher/classes/class-42/students/student-9');
+  });
+
+  it('builds the teacher history route', () => {
+    expect(buildTeacherHistoryHref()).toBe('/teacher/history');
   });
 
   it('summarizes governance progress from coverage and freshness', () => {
@@ -97,5 +103,27 @@ describe('teacher-insights helpers', () => {
       'medium-risk',
       'low-risk',
     ]);
+  });
+
+  it('prefers student number when formatting the display identifier', () => {
+    expect(formatTeacherStudentDisplayId({
+      studentNumber: '2024001001',
+      email: 'student@example.com',
+      fallbackId: 'abcdef123456',
+    })).toBe('2024001001');
+  });
+
+  it('falls back to email and shortened id when student number is missing', () => {
+    expect(formatTeacherStudentDisplayId({
+      studentNumber: null,
+      email: 'student@example.com',
+      fallbackId: 'abcdef123456',
+    })).toBe('student@example.com');
+
+    expect(formatTeacherStudentDisplayId({
+      studentNumber: null,
+      email: null,
+      fallbackId: 'abcdef123456',
+    })).toBe('abcdef12');
   });
 });

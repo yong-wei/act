@@ -69,8 +69,32 @@ export function buildTeacherClassInsightsHref(classId: string) {
   return `/teacher/classes/${classId}/analytics-v2`;
 }
 
+export function buildTeacherHistoryHref() {
+  return '/teacher/history';
+}
+
 export function buildTeacherStudentInsightsHref(classId: string, studentId: string) {
   return `/teacher/classes/${classId}/students/${studentId}`;
+}
+
+export function formatTeacherStudentDisplayId({
+  studentNumber,
+  email,
+  fallbackId,
+}: {
+  studentNumber: string | null | undefined;
+  email: string | null | undefined;
+  fallbackId: string;
+}) {
+  if (studentNumber && studentNumber.trim().length > 0) {
+    return studentNumber.trim();
+  }
+
+  if (email && email.trim().length > 0) {
+    return email.trim();
+  }
+
+  return fallbackId.slice(0, 8);
 }
 
 export function summarizeGovernanceState({

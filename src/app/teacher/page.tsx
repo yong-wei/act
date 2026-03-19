@@ -19,7 +19,7 @@ export default async function TeacherPage() {
   }
 
   // 获取教师统计数据
-  const [classes, lessonPlans, activeSessions] = await Promise.all([
+  const [classes, lessonPlans, activeSessions, finishedSessions] = await Promise.all([
     prisma.class.findMany({
       where: { teacherId: session.user.id },
       include: {
@@ -42,6 +42,12 @@ export default async function TeacherPage() {
         plan: { select: { title: true } },
         class: { select: { id: true, name: true } },
         _count: { select: { studentStates: true } },
+      },
+    }),
+    prisma.classSession.count({
+      where: {
+        teacherId: session.user.id,
+        status: 'FINISHED',
       },
     }),
   ]);
@@ -69,6 +75,7 @@ export default async function TeacherPage() {
         totalStudents,
         totalPlans,
         activeSessions: activeSessions.length,
+        finishedSessions,
       }}
       recentClasses={classes.map((c) => ({
         id: c.id,

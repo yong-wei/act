@@ -170,6 +170,87 @@
     @apply absolute -left-[1.05rem] top-5 h-3 w-3 rounded-full border-2 border-primary bg-background;
   }
 
+  .teacher-home-hero {
+    @apply surface-card overflow-hidden p-8;
+    background:
+      linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.96) 62%, hsl(var(--primary) / 0.1) 100%);
+  }
+
+  .teacher-home-stat-card {
+    @apply surface-card-soft p-4;
+  }
+
+  .teacher-home-stat-card-link {
+    @apply transition;
+  }
+
+  .teacher-home-stat-card-link:hover {
+    @apply border-primary/40 bg-accent/70;
+    transform: translateY(-1px);
+  }
+
+  .teacher-home-stat-icon,
+  .teacher-home-action-icon {
+    @apply flex items-center justify-center rounded-xl;
+  }
+
+  .teacher-home-stat-icon {
+    @apply h-11 w-11;
+  }
+
+  .teacher-home-action-icon {
+    @apply h-12 w-12 shrink-0;
+  }
+
+  .teacher-home-tone-sky {
+    @apply bg-sky-500/15 text-sky-600 dark:text-sky-300;
+  }
+
+  .teacher-home-tone-emerald {
+    @apply bg-emerald-500/15 text-emerald-600 dark:text-emerald-300;
+  }
+
+  .teacher-home-tone-amber {
+    @apply bg-amber-500/15 text-amber-600 dark:text-amber-300;
+  }
+
+  .teacher-home-tone-rose {
+    @apply bg-rose-500/15 text-rose-600 dark:text-rose-300;
+  }
+
+  .teacher-home-tone-cyan {
+    @apply bg-cyan-500/15 text-cyan-600 dark:text-cyan-300;
+  }
+
+  .teacher-home-tone-violet {
+    @apply bg-violet-500/15 text-violet-600 dark:text-violet-300;
+  }
+
+  .teacher-home-action {
+    @apply surface-card-soft flex items-center gap-4 p-4 transition;
+  }
+
+  .teacher-home-action:hover {
+    @apply border-primary/40 bg-accent/70;
+    transform: translateY(-1px);
+  }
+
+  .teacher-home-live-shell {
+    @apply rounded-2xl border p-6;
+    border-color: hsl(347 77% 70% / 0.28);
+    background:
+      linear-gradient(180deg, hsl(var(--card) / 0.92), hsl(var(--card) / 0.84)),
+      radial-gradient(circle at top right, hsl(347 77% 62% / 0.08), transparent 36%);
+  }
+
+  .teacher-home-list-item {
+    @apply flex items-center justify-between rounded-xl border border-border/60 bg-card/75 p-4 transition;
+  }
+
+  .teacher-home-list-item:hover {
+    @apply border-primary/35 bg-accent/65;
+  }
+
   .interactive-course-hub-shell {
     @apply min-h-screen;
     --interactive-course-hub-bg: 222 47% 8%;

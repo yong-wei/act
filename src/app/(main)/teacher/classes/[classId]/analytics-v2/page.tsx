@@ -18,6 +18,7 @@ import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[cla
 import type { HeatmapData } from '@/app/api/teacher/classes/[classId]/heatmap/route';
 import {
   buildTeacherStudentInsightsHref,
+  formatTeacherStudentDisplayId,
   type GovernanceTone,
 } from '@/features/teacher/teacher-insights';
 
@@ -290,7 +291,13 @@ export default function ClassAnalyticsV2Page() {
                   >
                     <div>
                       <p className="font-medium text-foreground">{student.name || '未命名学生'}</p>
-                      <p className="text-xs text-subtle">{student.id.slice(0, 8)}</p>
+                      <p className="text-xs text-subtle">
+                        {formatTeacherStudentDisplayId({
+                          studentNumber: student.studentNumber,
+                          email: null,
+                          fallbackId: student.id,
+                        })}
+                      </p>
                     </div>
                     <Users className="h-4 w-4 text-subtle" />
                   </Link>

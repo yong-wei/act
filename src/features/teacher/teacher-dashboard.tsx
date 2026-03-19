@@ -1,20 +1,27 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import {
   BookOpen,
-  GraduationCap,
-  Plus,
-  Play,
-  Users,
-  Radio,
   ChevronRight,
   Clock,
-  Library,
   FileText,
-  BarChart3,
-  LineChart,
+  GraduationCap,
+  History,
+  Library,
+  Plus,
+  Radio,
+  Users,
 } from 'lucide-react';
+
+import {
+  TEACHER_DASHBOARD_PRIMARY_STATS,
+  TEACHER_DASHBOARD_QUICK_ACTIONS,
+  type TeacherDashboardIconKey,
+  type TeacherDashboardPrimaryStat,
+  type TeacherDashboardQuickAction,
+} from './teacher-dashboard-config';
 
 interface TeacherDashboardProps {
   user: {
@@ -27,6 +34,7 @@ interface TeacherDashboardProps {
     totalStudents: number;
     totalPlans: number;
     activeSessions: number;
+    finishedSessions: number;
   };
   recentClasses: Array<{
     id: string;
@@ -58,105 +66,33 @@ export function TeacherDashboard({
   activeSessions,
 }: TeacherDashboardProps) {
   return (
-    <main className="mx-auto max-w-[1600px] px-6 py-8">
-      {/* 欢迎区域 */}
-      <div className="mb-8 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 p-8">
+    <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
+      <div className="teacher-home-hero mb-8">
         <div className="mb-6">
-          <h2 className="text-3xl font-bold text-white">
-            欢迎回来，{user.name || '老师'}！
-          </h2>
-          <p className="mt-2 text-slate-400">
-            管理您的班级和课程，开始互动教学
-          </p>
+          <h2 className="text-3xl font-bold text-foreground">欢迎回来，{user.name || '老师'}！</h2>
+          <p className="mt-2 text-subtle">从班级、教案和课堂历史进入日常教学工作流。</p>
         </div>
 
-        {/* 统计卡片 */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <StatCard
-            icon={<Users className="h-6 w-6" />}
-            label="我的班级"
-            value={stats.totalClasses}
-            color="text-sky-400"
-            iconBg="bg-sky-500/20"
-          />
-          <StatCard
-            icon={<GraduationCap className="h-6 w-6" />}
-            label="班级学生"
-            value={stats.totalStudents}
-            color="text-emerald-400"
-            iconBg="bg-emerald-500/20"
-          />
-          <StatCard
-            icon={<BookOpen className="h-6 w-6" />}
-            label="教案数量"
-            value={stats.totalPlans}
-            color="text-amber-400"
-            iconBg="bg-amber-500/20"
-          />
-          <StatCard
-            icon={<Radio className="h-6 w-6" />}
-            label="进行中课堂"
-            value={stats.activeSessions}
-            color="text-rose-400"
-            iconBg="bg-rose-500/20"
-          />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {TEACHER_DASHBOARD_PRIMARY_STATS.map((item) => (
+            <StatCard key={item.label} config={item} value={stats[item.key]} />
+          ))}
         </div>
       </div>
 
-      {/* 快捷操作 */}
-      <div className="mb-8 grid gap-4 md:grid-cols-3 lg:grid-cols-7">
-        <QuickAction
-          href="/teacher/classes/new"
-          icon={<Plus className="h-5 w-5" />}
-          title="新建班级"
-          description="创建班级并生成加入码"
-          color="bg-sky-500/20 text-sky-400"
-        />
-        <QuickAction
-          href="/teacher/lesson-plans/new"
-          icon={<BookOpen className="h-5 w-5" />}
-          title="新建教案"
-          description="创建 BOPPPS 教学设计"
-          color="bg-amber-500/20 text-amber-400"
-        />
-        <QuickAction
-          href="/teacher/preset-lessons"
-          icon={<FileText className="h-5 w-5" />}
-          title="预置教案"
-          description="浏览系统预置的教学模板"
-          color="bg-cyan-500/20 text-cyan-400"
-        />
-        <QuickAction
-          href="/teacher/classes"
-          icon={<Play className="h-5 w-5" />}
-          title="开始上课"
-          description="进入班级开始课堂"
-          color="bg-emerald-500/20 text-emerald-400"
-        />
-        <QuickAction
-          href="/teacher/resources"
-          icon={<Library className="h-5 w-5" />}
-          title="教学资源管理"
-          description="管理互动组件与知识卡片"
-          color="bg-purple-500/20 text-purple-400"
-        />
-        <QuickAction
-          href="/teacher/classes"
-          icon={<BarChart3 className="h-5 w-5" />}
-          title="班级与学情"
-          description="从班级进入查看课堂、学生与学情画像"
-          color="bg-rose-500/20 text-rose-400"
-        />
+      <div className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        {TEACHER_DASHBOARD_QUICK_ACTIONS.map((item) => (
+          <QuickAction key={item.title} config={item} />
+        ))}
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        {/* 进行中的课堂 */}
         {activeSessions.length > 0 && (
           <div className="lg:col-span-2">
-            <div className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-6">
+            <div className="teacher-home-live-shell">
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
-                  <Radio className="h-5 w-5 animate-pulse text-rose-400" />
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                  <Radio className="h-5 w-5 animate-pulse text-rose-500 dark:text-rose-300" />
                   进行中的课堂
                 </h3>
               </div>
@@ -165,20 +101,20 @@ export function TeacherDashboard({
                   <Link
                     key={session.id}
                     href={`/classroom/teacher/${session.id}`}
-                    className="flex items-center justify-between rounded-xl border border-rose-500/20 bg-slate-900/50 p-4 transition hover:border-rose-500/40 hover:bg-slate-900"
+                    className="teacher-home-list-item"
                   >
                     <div>
-                      <p className="font-medium text-white">{session.planTitle}</p>
-                      <p className="mt-1 text-sm text-slate-400">
+                      <p className="font-medium text-foreground">{session.planTitle}</p>
+                      <p className="mt-1 text-sm text-subtle">
                         {session.className && (
-                          <span className="text-sky-400">{session.className} · </span>
+                          <span className="text-sky-600 dark:text-sky-300">{session.className} · </span>
                         )}
-                        加入码: <span className="font-mono text-rose-400">{session.joinCode}</span>
+                        加入码: <span className="font-mono text-rose-600 dark:text-rose-300">{session.joinCode}</span>
                         {' · '}
                         {session.studentCount} 人在线
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-slate-400" />
+                    <ChevronRight className="h-5 w-5 text-subtle" />
                   </Link>
                 ))}
               </div>
@@ -186,24 +122,23 @@ export function TeacherDashboard({
           </div>
         )}
 
-        {/* 我的班级 */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="surface-card p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-white">我的班级</h3>
+            <h3 className="text-lg font-semibold text-foreground">我的班级</h3>
             <Link
               href="/teacher/classes"
-              className="text-sm text-sky-400 hover:text-sky-300"
+              className="text-sm text-sky-600 transition hover:text-sky-500 dark:text-sky-300 dark:hover:text-sky-200"
             >
               查看全部
             </Link>
           </div>
           {recentClasses.length === 0 ? (
             <div className="py-8 text-center">
-              <Users className="mx-auto h-12 w-12 text-slate-600" />
-              <p className="mt-2 text-slate-500">暂无班级</p>
+              <Users className="mx-auto h-12 w-12 text-slate-500" />
+              <p className="mt-2 text-subtle">暂无班级</p>
               <Link
                 href="/teacher/classes/new"
-                className="mt-4 inline-block text-sm text-sky-400 hover:text-sky-300"
+                className="mt-4 inline-block text-sm text-sky-600 transition hover:text-sky-500 dark:text-sky-300 dark:hover:text-sky-200"
               >
                 创建第一个班级
               </Link>
@@ -214,41 +149,40 @@ export function TeacherDashboard({
                 <Link
                   key={cls.id}
                   href={`/teacher/classes/${cls.id}`}
-                  className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 p-4 transition hover:border-sky-500/50 hover:bg-slate-800"
+                  className="teacher-home-list-item"
                 >
                   <div>
-                    <p className="font-medium text-white">{cls.name}</p>
-                    <p className="mt-1 text-xs text-slate-400">
-                      班级码: <span className="font-mono text-sky-400">{cls.code}</span>
+                    <p className="font-medium text-foreground">{cls.name}</p>
+                    <p className="mt-1 text-xs text-subtle">
+                      班级码: <span className="font-mono text-sky-600 dark:text-sky-300">{cls.code}</span>
                       {' · '}
                       {cls.studentCount} 名学生
                     </p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-slate-400" />
+                  <ChevronRight className="h-5 w-5 text-subtle" />
                 </Link>
               ))}
             </div>
           )}
         </div>
 
-        {/* 我的教案 */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="surface-card p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-white">我的教案</h3>
+            <h3 className="text-lg font-semibold text-foreground">我的教案</h3>
             <Link
               href="/teacher/lesson-plans"
-              className="text-sm text-amber-400 hover:text-amber-300"
+              className="text-sm text-amber-600 transition hover:text-amber-500 dark:text-amber-300 dark:hover:text-amber-200"
             >
               查看全部
             </Link>
           </div>
           {recentPlans.length === 0 ? (
             <div className="py-8 text-center">
-              <BookOpen className="mx-auto h-12 w-12 text-slate-600" />
-              <p className="mt-2 text-slate-500">暂无教案</p>
+              <BookOpen className="mx-auto h-12 w-12 text-slate-500" />
+              <p className="mt-2 text-subtle">暂无教案</p>
               <Link
                 href="/teacher/lesson-plans/new"
-                className="mt-4 inline-block text-sm text-amber-400 hover:text-amber-300"
+                className="mt-4 inline-block text-sm text-amber-600 transition hover:text-amber-500 dark:text-amber-300 dark:hover:text-amber-200"
               >
                 创建第一个教案
               </Link>
@@ -259,16 +193,16 @@ export function TeacherDashboard({
                 <Link
                   key={plan.id}
                   href={`/teacher/lesson-plans/${plan.id}/edit`}
-                  className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 p-4 transition hover:border-amber-500/50 hover:bg-slate-800"
+                  className="teacher-home-list-item"
                 >
                   <div>
-                    <p className="font-medium text-white">{plan.title}</p>
-                    <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
+                    <p className="font-medium text-foreground">{plan.title}</p>
+                    <p className="mt-1 flex items-center gap-1 text-xs text-subtle">
                       <Clock className="h-3 w-3" />
                       {formatDate(plan.updatedAt)}
                     </p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-slate-400" />
+                  <ChevronRight className="h-5 w-5 text-subtle" />
                 </Link>
               ))}
             </div>
@@ -279,68 +213,60 @@ export function TeacherDashboard({
   );
 }
 
-function StatCard({
-  icon,
-  label,
-  value,
-  color,
-  iconBg,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  color: string;
-  iconBg: string;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
+function StatCard({ config, value }: { config: TeacherDashboardPrimaryStat; value: number }) {
+  const content = (
+    <div className={`teacher-home-stat-card ${config.href ? 'teacher-home-stat-card-link' : ''}`}>
       <div className="flex items-center gap-3">
-        <div className={`rounded-lg p-2 ${iconBg} ${color}`}>{icon}</div>
+        <div className={`teacher-home-stat-icon ${getToneClass(config.tone)}`}>
+          {renderDashboardIcon(config.icon, 'h-6 w-6')}
+        </div>
         <div>
-          <p className="text-xs text-slate-500">{label}</p>
-          <p className={`text-2xl font-bold ${color}`}>{value}</p>
+          <p className="text-xs text-subtle">{config.label}</p>
+          <p className="text-2xl font-bold text-foreground">{value}</p>
         </div>
       </div>
     </div>
   );
+
+  if (config.href) {
+    return <Link href={config.href}>{content}</Link>;
+  }
+
+  return content;
 }
 
-function QuickAction({
-  href,
-  icon,
-  title,
-  description,
-  color,
-  badge,
-  badgeColor,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  color: string;
-  badge?: string;
-  badgeColor?: string;
-}) {
+function QuickAction({ config }: { config: TeacherDashboardQuickAction }) {
   return (
-    <Link
-      href={href}
-      className="group flex items-center gap-3 rounded-xl border border-slate-700 bg-slate-800/30 p-4 transition-all duration-300 hover:border-slate-500 hover:bg-slate-800/60 hover:shadow-lg hover:shadow-slate-900/20"
-    >
-      <div className={`rounded-lg p-2.5 transition-transform duration-300 group-hover:scale-110 ${color}`}>{icon}</div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="font-medium text-white truncate">{title}</p>
-          {badge && (
-            <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${badgeColor || 'bg-slate-700 text-slate-300'}`}>
-              {badge}
-            </span>
-          )}
-        </div>
-        <p className="text-xs text-slate-400 truncate">{description}</p>
+    <Link href={config.href} className="teacher-home-action">
+      <div className={`teacher-home-action-icon ${getToneClass(config.tone)}`}>
+        {renderDashboardIcon(config.icon, 'h-5 w-5')}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium text-foreground">{config.title}</p>
+        <p className="mt-1 text-sm text-subtle">{config.description}</p>
       </div>
     </Link>
   );
+}
+
+function renderDashboardIcon(icon: TeacherDashboardIconKey, className: string): ReactNode {
+  if (icon === 'users') return <Users className={className} />;
+  if (icon === 'graduation-cap') return <GraduationCap className={className} />;
+  if (icon === 'book-open') return <BookOpen className={className} />;
+  if (icon === 'radio') return <Radio className={className} />;
+  if (icon === 'history') return <History className={className} />;
+  if (icon === 'plus') return <Plus className={className} />;
+  if (icon === 'file-text') return <FileText className={className} />;
+  return <Library className={className} />;
+}
+
+function getToneClass(tone: TeacherDashboardPrimaryStat['tone'] | TeacherDashboardQuickAction['tone']) {
+  if (tone === 'sky') return 'teacher-home-tone-sky';
+  if (tone === 'emerald') return 'teacher-home-tone-emerald';
+  if (tone === 'amber') return 'teacher-home-tone-amber';
+  if (tone === 'rose') return 'teacher-home-tone-rose';
+  if (tone === 'cyan') return 'teacher-home-tone-cyan';
+  return 'teacher-home-tone-violet';
 }
 
 function formatDate(dateStr: string) {

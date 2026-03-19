@@ -14,6 +14,7 @@ export interface HeatmapData {
     id: string;
     name: string | null;
     avatar: string | null;
+    studentNumber: string | null;
   }>;
   dimensions: string[];
   matrix: Array<{
@@ -177,6 +178,7 @@ export async function GET(
         id: cs.user.id,
         name: cs.user.name,
         avatar: cs.user.image,
+        studentNumber: cs.studentNumber,
       })),
       dimensions,
       matrix,
