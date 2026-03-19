@@ -421,7 +421,7 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
 
         {/* 学期简报 */}
         <section className={`rounded-2xl border p-5 ${isDark ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-white/90'}`}>
-          <p className={`text-xs uppercase tracking-[0.24em] ${isDark ? 'text-cyan-300/65' : 'text-cyan-700/80'}`}>Semester Brief</p>
+          <p className={`text-xs uppercase tracking-[0.24em] ${isDark ? 'text-cyan-300/65' : 'text-cyan-700/80'}`}>学期摘要</p>
           <div className="mt-3 grid gap-3 md:grid-cols-3">
             <BriefCard
               icon={<GraduationCap className="h-4 w-4" />}
