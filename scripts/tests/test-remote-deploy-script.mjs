@@ -77,6 +77,18 @@ function main() {
     '远端部署脚本必须验证 act-obe-stack.service 状态'
   );
 
+  assert.match(
+    script,
+    /REDIS_NAME_HINT="\$\{REDIS_NAME_HINT:-act-obe-redis\}"/,
+    '远端部署脚本必须约定 Redis 容器名提示'
+  );
+
+  assert.match(
+    script,
+    /WORKER_NAME_HINT="\$\{WORKER_NAME_HINT:-act-obe-worker\}"/,
+    '远端部署脚本必须约定 worker 容器名提示'
+  );
+
   assert.equal(
     script.includes('psql -U \\"\\${DB_USER_REAL}\\" -d \\"\\${DB_NAME_REAL}\\" -tAc \\"select 1;\\"'),
     true,
@@ -111,6 +123,36 @@ function main() {
     script.includes('migrate resolve --applied 20260303142500_add_platform_settings'),
     true,
     '远端部署脚本必须能在 PlatformSetting 已存在时补记最新迁移'
+  );
+
+  assert.equal(
+    script.includes("data-governance-worker.ts"),
+    true,
+    '远端部署脚本必须校验远端部署脚本已纳入 worker'
+  );
+
+  assert.equal(
+    script.includes("redis-cli ping | grep -qx PONG"),
+    true,
+    '远端部署脚本必须验证 Redis PING'
+  );
+
+  assert.equal(
+    script.includes("CONFIG GET maxmemory-policy"),
+    true,
+    '远端部署脚本必须验证 Redis 使用 noeviction 策略'
+  );
+
+  assert.equal(
+    script.includes("podman logs --tail 120 '${WORKER_NAME_HINT}' | grep -q '\\\\[Worker\\\\] Data governance worker started'"),
+    true,
+    '远端部署脚本必须验证 worker 启动日志'
+  );
+
+  assert.equal(
+    script.includes("redis-cli --scan --pattern 'bull:*'"),
+    true,
+    '远端部署脚本必须验证 BullMQ 队列 key'
   );
 
   console.log('remote deploy script test passed');

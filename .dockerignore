@@ -24,6 +24,10 @@ codex
 .cache/*
 course-content/runtime
 scripts/
+!scripts/
+scripts/*
+!scripts/workers/
+!scripts/workers/**
 *.tsbuildinfo
 deploy/images
 deploy

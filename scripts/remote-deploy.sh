@@ -20,6 +20,8 @@ REMOTE_SERVICE_SCRIPT="${REMOTE_SERVICE_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/5-
 PUBLIC_URL="${PUBLIC_URL:-https://act.adapt-learn.online/}"
 APP_NAME_HINT="${APP_NAME_HINT:-act-obe-app}"
 DB_NAME_HINT="${DB_NAME_HINT:-act-obe-postgres}"
+REDIS_NAME_HINT="${REDIS_NAME_HINT:-act-obe-redis}"
+WORKER_NAME_HINT="${WORKER_NAME_HINT:-act-obe-worker}"
 
 REMOTE_TMP_TAR="${REMOTE_IMAGE_TAR}.tmp"
 REMOTE_TMP_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT}.tmp"
@@ -290,8 +292,14 @@ remote "test -d '${REMOTE_PROJECT_DIR}/course-content/runtime'"
 log "- 校验远端应用部署脚本已更新 runtime 挂载"
 remote "grep -q '/app/course-content/runtime:ro' '${REMOTE_APP_DEPLOY_SCRIPT}'"
 
-log "- 校验远端 systemd 配置脚本已更新数据库等待逻辑"
+log "- 校验远端应用部署脚本已纳入 Redis 与 worker"
+remote "grep -q 'redis-server --appendonly yes' '${REMOTE_APP_DEPLOY_SCRIPT}'"
+remote "grep -q 'data-governance-worker.ts' '${REMOTE_APP_DEPLOY_SCRIPT}'"
+
+log "- 校验远端 systemd 配置脚本已更新数据库/Redis 等待逻辑"
 remote "grep -q 'pg_isready' '${REMOTE_SERVICE_SCRIPT}'"
+remote "grep -q 'redis-cli ping' '${REMOTE_SERVICE_SCRIPT}'"
+remote "grep -q 'scheduler.ts' '${REMOTE_SERVICE_SCRIPT}'"
 
 log "- 校验系统服务"
 remote "test \"\$(systemctl is-active nginx)\" = active"
@@ -300,6 +308,8 @@ remote "test \"\$(systemctl is-active act-obe-stack.service)\" = active"
 log "- 校验容器状态"
 remote "podman ps --format '{{.Names}}' | grep -qx '${APP_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}' | grep -qx '${DB_NAME_HINT}'"
+remote "podman ps --format '{{.Names}}' | grep -qx '${REDIS_NAME_HINT}'"
+remote "podman ps --format '{{.Names}}' | grep -qx '${WORKER_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}\t{{.Status}}' | grep -E '^${DB_NAME_HINT}[[:space:]].*healthy'"
 
 log "- 校验数据库连通性"
@@ -316,6 +326,21 @@ DB_PASSWORD_REAL=\${DB_PASSWORD:-\${POSTGRES_PASSWORD:-}}
 export PGPASSWORD=\"\${DB_PASSWORD_REAL}\"
 podman exec \"\${DB_CONTAINER_REAL}\" psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tAc \"select 1;\" | grep -qx 1
 '"
+
+log "- 校验 Redis 连通性"
+remote "podman exec '${REDIS_NAME_HINT}' redis-cli ping | grep -qx PONG"
+remote "podman exec '${REDIS_NAME_HINT}' redis-cli CONFIG GET maxmemory-policy | tail -n 1 | grep -qx 'noeviction'"
+
+log "- 校验应用与 worker 容器环境变量"
+remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}:6379$'"
+remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^DATABASE_URL=.*connection_limit=10&pool_timeout=20'"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}:6379$'"
+
+log "- 校验 worker 启动日志"
+remote "podman logs --tail 120 '${WORKER_NAME_HINT}' | grep -q '\\[Worker\\] Data governance worker started'"
+
+log "- 校验 scheduler 已注册 BullMQ 任务"
+remote "podman exec '${REDIS_NAME_HINT}' redis-cli --scan --pattern 'bull:*' | grep -q 'bull:'"
 
 log "- 校验应用本机端口响应"
 if ! wait_for_remote_http 45; then
