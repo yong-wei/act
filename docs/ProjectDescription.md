@@ -8,6 +8,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
 📅 **最后更新**：2026-03-19
+🧭 **管理员后台重构（2026-03-19）**：`/admin` 已调整为统一后台入口页，用户管理、系统使用量统计、数据治理三个能力统一收口到同一管理总台，并分别下沉到 `/admin/users`、`/admin/states`、`/admin/data-governance` 子路由；用户管理页改为复用后台全局浅色/深色样式，浅色模式不再混入深色硬编码组件；新增 `/api/admin/system-usage` 真实统计接口，关闭演示模式后可直接读取实际使用量；数据治理页完成中文化与信息层级增强，可直接查看事实分布、队列健康、风险清单与学生快照明细
 🧪 **数据治理事实沉淀校验（2026-03-19）**：本地再次通过 `bash scripts/db/sync-remote-db-to-local.sh` 全量同步远端数据库，当前对齐后的关键计数为 `User=291`、`LearningFact=0`、`StudentCompetencySnapshot=1829`、`StudentProfileSummary=100`、`ClassCompetencySnapshot=2`、`LearningEventBatch=25`；随后基于新的事件归一化链路执行 `npx tsx scripts/db/backfill-learning-facts-from-event-batches.ts`，成功从 `25` 个事件批次中回放出 `55` 条 `LearningFact`（覆盖 `41` 个用户，类型均为 `question`），再次 dry-run 为 `0` 候选，说明本地回放脚本已具备幂等性；同时核查发现远端数据库中 `LearningEventBatch` 与 `StudentCompetencySnapshot` 仍在持续增长，但 `ClassCompetencySnapshot` 仅有 `2` 条、未体现出按 15 分钟持续产出的节奏，说明数据治理链路已部分开展，但“班级快照调度稳定落地”仍需继续跟进
 🧰 **服务运维技能、本地数据同步与教师驾驶舱守卫修复（2026-03-19）**：已将生产库导出并同步回本地开发数据库，恢复后关键计数核对为 `User=291`、`StudentCompetencySnapshot=96`、`ClassCompetencySnapshot=2`、`StudentProfileSummary=96`，便于后续围绕真实课堂数据排查与分析；同时参考 `.claude/skills/server-ops` 在仓库内新增 `.codex/skills/server-ops`，采用“主入口只给总览、详细流程拆到 `references/`”的结构，覆盖远端调查、部署验收、数据库同步与测试账号核对；另外修复 `src/app/teacher/page.tsx` 与 `src/app/teacher/resources/page.tsx` 的服务端鉴权空会话崩溃，未登录时统一重定向 `/login`，管理员重定向 `/admin`，其他非教师角色重定向 `/dashboard`，并新增 `scripts/tests/test-teacher-auth-guards.mjs` 做回归校验
 🚀 **服务器部署收口（2026-03-19）**：补齐 `prisma/migrations/20260319092000_add_data_governance_and_missing_schema_updates`，将此前只存在于 `schema.prisma` 的 `LearningFact`、`StudentCompetencySnapshot`、`StudentProfileSummary`、`ClassCompetencySnapshot`、`StudentRiskFlag`、`GrowthRecord`、`LearningRecommendation`、`EventDictionary`、`KonlingSession`、`LearningEventBatch` 等表正式纳入迁移；生产镜像重新打包 `Redis + worker + scheduler` 运行链路并部署到 `act.adapt-learn.online`，远端 `.env.server` 已对齐 `REDIS_URL`、`WORKER_NAME`、`WORKER_CONCURRENCY`、`DATABASE_URL(connection_limit=10&pool_timeout=20)` 与 `APP_PORT=8084`；验收确认公网首页与 `/api/auth/session` 正常、Redis 策略为 `noeviction`、BullMQ 重复任务已注册，数据治理 worker 已成功生成学生能力快照与画像摘要
@@ -254,8 +255,10 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **知识卡片嵌入**：所有预置教案在参与式环节补齐知识卡片，并与知识图谱节点绑定，支持课堂内讲授与后续互动巩固
 
 ### 3.13 管理员后台 (Admin) ✅
-- **全局态势总览**：用户规模、活跃会话、仿真与伦理风险指标统一汇总
-- **账号管理**：新建/查看/改密/删除账号，支持角色区分
+- **统一后台入口**：`/admin` 作为管理总台，集中展示用户管理、系统使用量统计、数据治理三个入口
+- **用户管理子路由**：`/admin/users` 负责新建/查看/改密/删除账号、角色区分与批量导入，视觉层统一复用后台全局样式
+- **系统使用量统计子路由**：`/admin/states` 支持演示/真实数据切换，真实数据通过 `/api/admin/system-usage` 聚合用户、互动、仿真、LLM 与伦理日志
+- **数据治理子路由**：`/admin/data-governance` 提供学习事实分布、队列健康、风险清单、最新快照与高值快照关注，并支持返回管理后台
 - **批量导入**：Excel 模板支持账号批量导入/更新（前三列必填：账号/姓名/角色；其他字段选填），重复账号按账号更新，前端展示失败明细
 - **权限控制**：仅管理员登录可访问
 

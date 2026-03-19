@@ -9,6 +9,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redisClient } from '@/lib/redis-client';
+import { summarizeLearningFactTypes } from '@/features/admin/states/system-usage-data';
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,6 +48,9 @@ export async function GET(request: NextRequest) {
       learningFactCount,
       riskFlagCount,
       recentSnapshots,
+      snapshotLeaders,
+      recentRiskFlags,
+      learningFacts,
     ] = await Promise.all([
       prisma.studentCompetencySnapshot.count(),
       prisma.classCompetencySnapshot.count(),
@@ -61,6 +65,42 @@ export async function GET(request: NextRequest) {
           userId: true,
           snapshotAt: true,
           factCount: true,
+        },
+      }),
+      prisma.studentCompetencySnapshot.findMany({
+        orderBy: { snapshotAt: 'desc' },
+        take: 40,
+        select: {
+          userId: true,
+          snapshotAt: true,
+          factCount: true,
+        },
+      }),
+      prisma.studentRiskFlag.findMany({
+        where: { isResolved: false },
+        orderBy: { triggeredAt: 'desc' },
+        take: 8,
+        select: {
+          id: true,
+          userId: true,
+          flagType: true,
+          severity: true,
+          description: true,
+          triggeredAt: true,
+          isResolved: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      }),
+      prisma.learningFact.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 400,
+        select: {
+          factType: true,
         },
       }),
     ]);
@@ -82,6 +122,37 @@ export async function GET(request: NextRequest) {
       ? Math.round((Date.now() - new Date(lastSnapshotTime).getTime()) / (1000 * 60))
       : null;
 
+    const snapshotUserIds = Array.from(
+      new Set([...recentSnapshots.map((item) => item.userId), ...snapshotLeaders.map((item) => item.userId)])
+    );
+    const snapshotUsers = snapshotUserIds.length
+      ? await prisma.user.findMany({
+          where: { id: { in: snapshotUserIds } },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        })
+      : [];
+    const snapshotUserMap = new Map(
+      snapshotUsers.map((user) => [user.id, user.name || user.email || user.id.slice(0, 8)])
+    );
+
+    const topSnapshotStudents = snapshotLeaders
+      .reduce<Array<{ userId: string; snapshotAt: Date; factCount: number }>>((accumulator, item) => {
+        const existing = accumulator.find((entry) => entry.userId === item.userId);
+        if (!existing || item.factCount > existing.factCount) {
+          return [
+            ...accumulator.filter((entry) => entry.userId !== item.userId),
+            item,
+          ];
+        }
+        return accumulator;
+      }, [])
+      .sort((left, right) => right.factCount - left.factCount)
+      .slice(0, 5);
+
     return NextResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -99,9 +170,27 @@ export async function GET(request: NextRequest) {
       },
       recentSnapshots: recentSnapshots.map(s => ({
         userId: s.userId,
+        userName: snapshotUserMap.get(s.userId) || s.userId.slice(0, 8),
         snapshotAt: s.snapshotAt.toISOString(),
         factCount: s.factCount,
       })),
+      topSnapshotStudents: topSnapshotStudents.map((item) => ({
+        userId: item.userId,
+        userName: snapshotUserMap.get(item.userId) || item.userId.slice(0, 8),
+        snapshotAt: item.snapshotAt.toISOString(),
+        factCount: item.factCount,
+      })),
+      recentRiskFlags: recentRiskFlags.map((risk) => ({
+        id: risk.id,
+        userId: risk.userId,
+        userName: risk.user.name || risk.user.email || risk.userId.slice(0, 8),
+        flagType: risk.flagType,
+        severity: risk.severity,
+        description: risk.description,
+        triggeredAt: risk.triggeredAt.toISOString(),
+        isResolved: risk.isResolved,
+      })),
+      factTypeDistribution: summarizeLearningFactTypes(learningFacts),
     });
   } catch (error) {
     console.error('[DataGovernanceStatus] Error:', error);

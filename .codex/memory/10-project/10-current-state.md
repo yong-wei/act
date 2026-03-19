@@ -20,6 +20,10 @@
 
 ## 最近值得记住的变化
 
+- 管理员后台已经改为“统一入口 + 三个子路由”结构：`/admin` 为管理总台，`/admin/users` 负责账号管理，`/admin/states` 负责使用量统计，`/admin/data-governance` 负责数据治理看板
+- 用户管理页已统一接入后台全局视觉样式，浅色模式下不再保留深色硬编码表格与容器
+- 系统使用量统计真实数据入口为 `/api/admin/system-usage`，与演示数据共用同一前端面板
+- 数据治理页已经中文化，并下钻到事实分布、队列健康、风险清单与快照明细，不再只是基础计数
 - `PlatformSetting` 已被纳入平台级开关体系，首页动态模型渲染可后台切换
 - 远端部署链路新增 `scripts/remote-deploy.sh`，并带有 Prisma 失败迁移自愈逻辑
 - 会话同步已经从部分精品课程打通到真实 `/api/session` 与 `/api/session/[id]/state` 链路

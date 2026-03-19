@@ -16,7 +16,6 @@ import {
   ToggleLeft,
   ToggleRight,
   RefreshCw,
-  Database,
   AlertCircle,
 } from 'lucide-react';
 import {
@@ -39,6 +38,7 @@ import {
 import { useTheme } from '@/components/providers/theme-provider';
 import { UserMenu } from '@/components/shared/user-menu';
 import { adminStatesMockData } from './stats-data';
+import type { SystemUsageData } from './system-usage-data';
 
 type AdminStatesDashboardProps = {
   currentUser: {
@@ -47,44 +47,6 @@ type AdminStatesDashboardProps = {
     email?: string | null;
     role: 'ADMIN';
   };
-};
-
-type InteractionStat = {
-  type: string;
-  count: number;
-  avgPerStudent: number;
-};
-
-type SimulationVisitStat = {
-  simulation: string;
-  visits: number;
-  avgDurationMinutes: number;
-  completionRate: number;
-};
-
-type MonthlyTrendStat = {
-  month: string;
-  activeStudents: number;
-  totalVisits: number;
-  interactions: number;
-  simulationVisits: number;
-  completionRate: number;
-};
-
-type SystemUsageData = {
-  generatedAt: string;
-  semester: string;
-  userScale: {
-    teachers: number;
-    students: number;
-    admins: number;
-  };
-  estimatedPerStudent: Record<string, number>;
-  interactionByType: InteractionStat[];
-  simulationVisits: SimulationVisitStat[];
-  controlOdysseyVisits: number;
-  moduleVisitShare: Array<{ module: string; visits: number }>;
-  monthlyTrend: MonthlyTrendStat[];
 };
 
 const numberFormatter = new Intl.NumberFormat('zh-CN');
@@ -143,8 +105,10 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
       setLastUpdated(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
-      // 出错时回退到演示数据
+      // 保持按钮状态和提示文案一致，失败时显式回退到演示模式
+      setDemoMode(true);
       setData(adminStatesMockData);
+      setLastUpdated(new Date());
     } finally {
       setLoading(false);
     }
@@ -208,7 +172,7 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
           </Link>
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className={`text-xs uppercase tracking-[0.28em] ${isDark ? 'text-cyan-300/65' : 'text-cyan-700/80'}`}>Platform States</p>
+              <p className={`text-xs uppercase tracking-[0.28em] ${isDark ? 'text-cyan-300/65' : 'text-cyan-700/80'}`}>使用态势</p>
               <h1 className={`mt-1 text-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>系统使用量统计</h1>
               <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                 学期：{data.semester} · 数据更新时间：{lastUpdated.toLocaleString('zh-CN')}
@@ -251,7 +215,7 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
 
       <main className="mx-auto grid max-w-[1600px] gap-6 px-6 py-6">
         {/* 错误提示 */}
-        {error && !demoMode && (
+        {error && (
           <div className={`rounded-xl border p-4 ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-red-400 bg-red-50 text-red-800'}`}>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
@@ -480,25 +444,6 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
           </div>
         </section>
 
-        {/* 数据治理监控入口 */}
-        <section className={`rounded-2xl border p-5 ${isDark ? 'border-cyan-500/20 bg-cyan-500/5' : 'border-cyan-200 bg-cyan-50/50'}`}>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className={`text-xs uppercase tracking-[0.24em] ${isDark ? 'text-cyan-300/65' : 'text-cyan-700/80'}`}>Data Governance</p>
-              <h3 className={`mt-1 text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>数据治理监控</h3>
-              <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                查看事件队列、能力快照、风险标记等实时数据
-              </p>
-            </div>
-            <Link
-              href="/admin/data-governance"
-              className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-400 transition hover:bg-cyan-500/20"
-            >
-              <Database className="h-4 w-4" />
-              打开监控面板
-            </Link>
-          </div>
-        </section>
       </main>
     </div>
   );

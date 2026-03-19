@@ -288,6 +288,343 @@
     @apply border-border/70 bg-background/65 text-foreground hover:bg-accent hover:text-accent-foreground;
   }
 
+  .admin-console-shell {
+    @apply min-h-screen;
+    --admin-console-bg: 220 39% 11%;
+    --admin-console-bg-soft: 220 34% 15%;
+    --admin-console-surface: 222 30% 16%;
+    --admin-console-surface-soft: 220 24% 19%;
+    --admin-console-surface-muted: 220 21% 22%;
+    --admin-console-border: 217 23% 28%;
+    --admin-console-border-soft: 217 20% 24%;
+    --admin-console-foreground: 210 40% 96%;
+    --admin-console-foreground-strong: 210 40% 99%;
+    --admin-console-muted: 214 20% 72%;
+    --admin-console-accent: 191 88% 58%;
+    --admin-console-accent-strong: 189 94% 88%;
+    --admin-console-accent-bg: 191 84% 18%;
+    --admin-console-success-bg: 154 62% 18%;
+    --admin-console-success-border: 160 58% 34%;
+    --admin-console-success-text: 156 82% 88%;
+    --admin-console-danger-bg: 0 56% 18%;
+    --admin-console-danger-border: 0 68% 36%;
+    --admin-console-danger-text: 0 86% 90%;
+    --admin-console-shadow: 0 26px 72px rgba(2, 8, 23, 0.3);
+    color: hsl(var(--admin-console-foreground));
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.12), transparent 30%),
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), transparent 34%),
+      linear-gradient(180deg, hsl(var(--admin-console-bg)), hsl(var(--admin-console-bg-soft)));
+  }
+
+  .admin-console-container {
+    @apply mx-auto w-full max-w-[1600px] px-6;
+  }
+
+  .admin-console-topbar {
+    @apply border-b backdrop-blur;
+    border-color: hsl(var(--admin-console-border-soft) / 0.92);
+    background: hsl(var(--admin-console-bg) / 0.74);
+  }
+
+  .admin-console-hero,
+  .admin-console-surface,
+  .admin-console-surface-soft,
+  .admin-console-link-card,
+  .admin-console-metric-card,
+  .admin-console-table-shell,
+  .admin-console-modal {
+    box-shadow: var(--admin-console-shadow);
+  }
+
+  .admin-console-hero,
+  .admin-console-surface,
+  .admin-console-link-card,
+  .admin-console-table-shell,
+  .admin-console-modal {
+    @apply rounded-[28px] border;
+    border-color: hsl(var(--admin-console-border) / 0.88);
+    background: hsl(var(--admin-console-surface) / 0.92);
+  }
+
+  .admin-console-hero {
+    @apply p-6;
+    background:
+      linear-gradient(135deg, hsl(var(--admin-console-accent-bg) / 0.46), hsl(var(--admin-console-surface) / 0.94)),
+      hsl(var(--admin-console-surface) / 0.92);
+  }
+
+  .admin-console-surface,
+  .admin-console-table-shell {
+    @apply p-5;
+  }
+
+  .admin-console-surface-soft {
+    @apply rounded-2xl border p-4;
+    border-color: hsl(var(--admin-console-border-soft) / 0.9);
+    background: hsl(var(--admin-console-surface-soft) / 0.92);
+  }
+
+  .admin-console-link-card,
+  .admin-console-metric-card {
+    @apply block border p-5 transition;
+    border-color: hsl(var(--admin-console-border) / 0.88);
+    background: linear-gradient(
+      180deg,
+      hsl(var(--admin-console-surface) / 0.94),
+      hsl(var(--admin-console-surface-soft) / 0.94)
+    );
+  }
+
+  .admin-console-link-card:hover,
+  .admin-console-metric-card:hover {
+    border-color: hsl(var(--admin-console-accent) / 0.46);
+    transform: translateY(-2px);
+  }
+
+  .admin-console-kicker {
+    @apply text-xs uppercase tracking-[0.24em];
+    color: hsl(var(--admin-console-accent-strong));
+  }
+
+  .admin-console-title {
+    color: hsl(var(--admin-console-foreground-strong));
+  }
+
+  .admin-console-muted {
+    color: hsl(var(--admin-console-muted));
+  }
+
+  .admin-console-chip {
+    @apply inline-flex items-center rounded-full border px-3 py-1 text-xs;
+    border-color: hsl(var(--admin-console-border) / 0.88);
+    background: hsl(var(--admin-console-surface-soft) / 0.9);
+    color: hsl(var(--admin-console-foreground));
+  }
+
+  .admin-console-icon-badge {
+    @apply flex h-11 w-11 items-center justify-center rounded-2xl;
+    background: hsl(var(--admin-console-accent-bg) / 0.58);
+    color: hsl(var(--admin-console-accent-strong));
+  }
+
+  .admin-console-link-text {
+    color: hsl(var(--admin-console-accent-strong));
+  }
+
+  .admin-console-button,
+  .admin-console-button-primary,
+  .admin-console-back-link {
+    @apply inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm transition;
+  }
+
+  .admin-console-button,
+  .admin-console-back-link {
+    border-color: hsl(var(--admin-console-border) / 0.88);
+    background: hsl(var(--admin-console-surface-soft) / 0.86);
+    color: hsl(var(--admin-console-foreground));
+  }
+
+  .admin-console-button:hover,
+  .admin-console-back-link:hover {
+    border-color: hsl(var(--admin-console-accent) / 0.46);
+  }
+
+  .admin-console-button-primary {
+    border-color: hsl(var(--admin-console-accent) / 0.32);
+    background: hsl(var(--admin-console-accent-bg) / 0.62);
+    color: hsl(var(--admin-console-accent-strong));
+  }
+
+  .admin-console-button-primary:hover {
+    border-color: hsl(var(--admin-console-accent) / 0.56);
+  }
+
+  .admin-console-nav-item {
+    @apply flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition;
+    color: hsl(var(--admin-console-foreground));
+  }
+
+  .admin-console-nav-item:hover {
+    background: hsl(var(--admin-console-surface-muted) / 0.72);
+  }
+
+  .admin-console-nav-item-active {
+    border: 1px solid hsl(var(--admin-console-accent) / 0.28);
+    background: hsl(var(--admin-console-accent-bg) / 0.52);
+    color: hsl(var(--admin-console-accent-strong));
+  }
+
+  .admin-console-input,
+  .admin-console-select {
+    @apply rounded-xl border px-3 py-2 text-sm outline-none transition;
+    border-color: hsl(var(--admin-console-border) / 0.88);
+    background: hsl(var(--admin-console-surface-soft) / 0.94);
+    color: hsl(var(--admin-console-foreground));
+  }
+
+  .admin-console-input::placeholder {
+    color: hsl(var(--admin-console-muted));
+  }
+
+  .admin-console-input:focus,
+  .admin-console-select:focus {
+    border-color: hsl(var(--admin-console-accent) / 0.58);
+  }
+
+  .admin-console-table-shell {
+    @apply overflow-hidden;
+  }
+
+  .admin-console-table {
+    @apply w-full text-left text-sm;
+    color: hsl(var(--admin-console-foreground));
+  }
+
+  .admin-console-table thead {
+    background: hsl(var(--admin-console-surface-soft) / 0.92);
+    color: hsl(var(--admin-console-muted));
+  }
+
+  .admin-console-table tbody {
+    background: hsl(var(--admin-console-surface) / 0.84);
+  }
+
+  .admin-console-table tbody tr {
+    border-top: 1px solid hsl(var(--admin-console-border-soft) / 0.72);
+  }
+
+  .admin-console-table tbody tr:hover {
+    background: hsl(var(--admin-console-surface-muted) / 0.56);
+  }
+
+  .admin-console-table-subtle {
+    color: hsl(var(--admin-console-muted));
+  }
+
+  .admin-console-pill {
+    @apply inline-flex items-center rounded-full border px-2.5 py-1 text-xs;
+  }
+
+  .admin-console-pill-admin {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+  }
+
+  .admin-console-pill-teacher {
+    border-color: rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.12);
+    color: #7dd3fc;
+  }
+
+  .admin-console-pill-student {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: rgba(16, 185, 129, 0.12);
+    color: #6ee7b7;
+  }
+
+  .admin-console-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center px-4;
+    background: rgba(2, 6, 23, 0.58);
+  }
+
+  .admin-console-modal {
+    @apply w-full border p-6;
+    border-color: hsl(var(--admin-console-border) / 0.88);
+    background: hsl(var(--admin-console-surface) / 0.96);
+    color: hsl(var(--admin-console-foreground));
+  }
+
+  .admin-console-modal-sm {
+    @apply max-w-md;
+  }
+
+  .admin-console-modal-lg {
+    @apply max-w-lg;
+  }
+
+  .admin-console-notice {
+    @apply rounded-2xl border px-4 py-3 text-sm;
+  }
+
+  .admin-console-notice-success {
+    border-color: hsl(var(--admin-console-success-border) / 0.78);
+    background: hsl(var(--admin-console-success-bg) / 0.82);
+    color: hsl(var(--admin-console-success-text));
+  }
+
+  .admin-console-notice-danger {
+    border-color: hsl(var(--admin-console-danger-border) / 0.82);
+    background: hsl(var(--admin-console-danger-bg) / 0.82);
+    color: hsl(var(--admin-console-danger-text));
+  }
+
+  .admin-console-tone-danger {
+    border-color: hsl(var(--admin-console-danger-border) / 0.72);
+    background: hsl(var(--admin-console-danger-bg) / 0.62);
+    color: hsl(var(--admin-console-danger-text));
+  }
+
+  .admin-console-tone-success {
+    border-color: hsl(var(--admin-console-success-border) / 0.72);
+    background: hsl(var(--admin-console-success-bg) / 0.62);
+    color: hsl(var(--admin-console-success-text));
+  }
+
+  .light .admin-console-shell {
+    --admin-console-bg: 196 54% 98%;
+    --admin-console-bg-soft: 198 52% 95%;
+    --admin-console-surface: 0 0% 100%;
+    --admin-console-surface-soft: 198 36% 96%;
+    --admin-console-surface-muted: 198 34% 92%;
+    --admin-console-border: 199 30% 80%;
+    --admin-console-border-soft: 199 26% 84%;
+    --admin-console-foreground: 222.2 47.4% 11.2%;
+    --admin-console-foreground-strong: 222.2 47.4% 11.2%;
+    --admin-console-muted: 215 24% 35%;
+    --admin-console-accent: 194 84% 42%;
+    --admin-console-accent-strong: 196 72% 24%;
+    --admin-console-accent-bg: 192 74% 88%;
+    --admin-console-success-bg: 154 72% 92%;
+    --admin-console-success-border: 154 40% 66%;
+    --admin-console-success-text: 160 52% 24%;
+    --admin-console-danger-bg: 0 88% 95%;
+    --admin-console-danger-border: 0 68% 76%;
+    --admin-console-danger-text: 0 58% 30%;
+    --admin-console-shadow: 0 20px 52px rgba(148, 163, 184, 0.16);
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.18), transparent 32%),
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 34%),
+      linear-gradient(180deg, #f8fcff 0%, #edf7fb 100%);
+  }
+
+  .light .admin-console-topbar {
+    background: hsl(var(--admin-console-bg) / 0.92);
+  }
+
+  .light .admin-console-hero {
+    background:
+      linear-gradient(135deg, hsl(var(--admin-console-accent-bg) / 0.92), hsl(var(--admin-console-surface) / 0.98)),
+      hsl(var(--admin-console-surface));
+  }
+
+  .light .admin-console-pill-admin {
+    color: #b45309;
+  }
+
+  .light .admin-console-pill-teacher {
+    color: #0369a1;
+  }
+
+  .light .admin-console-pill-student {
+    color: #047857;
+  }
+
+  .light .admin-console-overlay {
+    background: rgba(248, 250, 252, 0.72);
+  }
+
   .premium-lesson-shell {
     @apply min-h-screen;
     --premium-lesson-surface: 222 42% 13%;

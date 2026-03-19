@@ -14,7 +14,6 @@ import {
   FileText,
   BarChart3,
   LineChart,
-  Activity,
 } from 'lucide-react';
 
 interface TeacherDashboardProps {
@@ -149,13 +148,6 @@ export function TeacherDashboard({
           color="bg-rose-500/20 text-rose-400"
           badge="V2"
           badgeColor="bg-rose-500/30 text-rose-300"
-        />
-        <QuickAction
-          href="/admin/data-governance"
-          icon={<Activity className="h-5 w-5" />}
-          title="数据治理监控"
-          description="系统状态、队列监控、快照"
-          color="bg-orange-500/20 text-orange-400"
         />
       </div>
 

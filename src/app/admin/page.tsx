@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { UserRole } from '@prisma/client';
 import { getServerAuthSession } from '@/lib/auth';
-import { AdminDashboard } from '@/features/admin/admin-dashboard';
+import { AdminConsoleHome } from '@/features/admin/admin-console-home';
 
 export default async function AdminPage() {
   const session = await getServerAuthSession();
@@ -23,5 +23,14 @@ export default async function AdminPage() {
     );
   }
 
-  return <AdminDashboard currentUser={session.user} />;
+  return (
+    <AdminConsoleHome
+      currentUser={{
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        role: 'ADMIN',
+      }}
+    />
+  );
 }

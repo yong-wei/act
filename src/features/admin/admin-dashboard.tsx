@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {
   Activity,
   AlertTriangle,
-  BarChart3,
+  ArrowLeft,
   Download,
   Plus,
   RefreshCcw,
@@ -13,7 +13,8 @@ import {
   UploadCloud,
   Users,
 } from 'lucide-react';
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
 import { UserMenu } from '@/components/shared/user-menu';
 
 type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN';
@@ -93,9 +94,9 @@ const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 const ROLE_STYLES: Record<UserRole, string> = {
-  ADMIN: 'border-amber-400/50 text-amber-300 bg-amber-400/10',
-  TEACHER: 'border-sky-400/50 text-sky-200 bg-sky-400/10',
-  STUDENT: 'border-emerald-400/50 text-emerald-200 bg-emerald-400/10',
+  ADMIN: 'admin-console-pill admin-console-pill-admin',
+  TEACHER: 'admin-console-pill admin-console-pill-teacher',
+  STUDENT: 'admin-console-pill admin-console-pill-student',
 };
 
 export function AdminDashboard({ currentUser }: AdminDashboardProps) {
@@ -267,6 +268,9 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
       showNotice('success', '账号已删除');
       fetchUsers();
       fetchOverview();
+      if (selectedUser?.id === user.id) {
+        setSelectedUser(null);
+      }
     } catch (error) {
       showNotice('error', error instanceof Error ? error.message : '删除失败');
     }
@@ -376,118 +380,94 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
   }, [overview]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="relative z-20 border-b border-cyan-500/30 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-        <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-6 py-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-cyan-300/60">
-                Admin Command Deck
-              </p>
-              <h1 className="text-2xl font-semibold text-white">管理员后台</h1>
-              <p className="mt-2 text-sm text-slate-400">
-                当前登录：{currentUser.name || currentUser.email || '管理员'} · {formattedNow}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={handleRefresh}
-                className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-slate-500"
-              >
-                <RefreshCcw className="h-4 w-4" />
-                刷新数据
-              </button>
-              <UserMenu user={currentUser} />
-            </div>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-3">
-            {overviewCards.map((card) => {
-              const Icon = card.icon;
-              return (
-                <div
-                  key={card.title}
-                  className="flex min-h-[120px] flex-col justify-between rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4 shadow-[0_0_40px_rgba(34,211,238,0.08)]"
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-cyan-200/70">{card.title}</p>
-                    <span className="rounded-full bg-cyan-500/10 p-2 text-cyan-200">
-                      <Icon className="h-4 w-4" />
-                    </span>
-                  </div>
-                  <div className="flex items-end justify-between">
-                    <p className="text-2xl font-semibold text-white">
-                      {loadingOverview ? '...' : card.value}
-                    </p>
-                    <p className="text-xs text-slate-400">{card.meta}</p>
-                  </div>
+    <div className="admin-console-shell">
+      <header className="admin-console-topbar">
+        <div className="admin-console-container py-8">
+          <div className="admin-console-hero">
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+              <div className="space-y-4">
+                <Link href="/admin" className="admin-console-back-link">
+                  <ArrowLeft className="h-4 w-4" />
+                  返回管理后台
+                </Link>
+                <div className="space-y-2">
+                  <span className="admin-console-kicker">账号体系</span>
+                  <h1 className="admin-console-title text-3xl font-semibold">用户管理</h1>
+                  <p className="admin-console-muted max-w-3xl text-sm leading-6">
+                    账号资产、角色权限、密码重置和批量导入统一放在这里处理。页面颜色由全局后台样式控制，浅色模式不再回退到深色填充。
+                  </p>
                 </div>
-              );
-            })}
+                <div className="flex flex-wrap gap-3 text-sm">
+                  <span className="admin-console-chip">
+                    当前登录：{currentUser.name || currentUser.email || '管理员'}
+                  </span>
+                  <span className="admin-console-chip">{formattedNow}</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <button onClick={handleRefresh} className="admin-console-button">
+                  <RefreshCcw className="h-4 w-4" />
+                  刷新数据
+                </button>
+                <UserMenu user={currentUser} />
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-4 lg:grid-cols-3">
+              {overviewCards.map((card) => {
+                const Icon = card.icon;
+                return (
+                  <div key={card.title} className="admin-console-metric-card">
+                    <div className="flex items-center justify-between">
+                      <span className="admin-console-kicker">{card.title}</span>
+                      <span className="admin-console-icon-badge">
+                        <Icon className="h-4 w-4" />
+                      </span>
+                    </div>
+                    <div className="mt-6">
+                      <p className="admin-console-title text-3xl font-semibold">
+                        {loadingOverview ? '...' : card.value}
+                      </p>
+                      <p className="admin-console-muted mt-2 text-sm">{card.meta}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-[1600px] gap-6 px-6 py-6 lg:grid-cols-[220px_1fr] xl:grid-cols-[220px_1fr_320px]">
+      <main className="admin-console-container grid gap-6 py-8 xl:grid-cols-[260px_minmax(0,1fr)_320px]">
         <aside className="space-y-4">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/70">
-              导航
-            </p>
-            <div className="mt-4 space-y-2 text-sm text-slate-300">
-              <div className="rounded-lg bg-cyan-500/10 px-3 py-2 text-cyan-100">
-                总览面板
-              </div>
-              <div className="rounded-lg px-3 py-2 transition hover:bg-slate-800/70">
-                账号管理
-              </div>
-              <Link href="/admin/config">
-                <div className="flex items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-slate-800/70 cursor-pointer">
-                   <Settings className="h-4 w-4" />
-                   系统配置
-                </div>
-              </Link>
-              <Link href="/admin/states">
-                <div className="flex items-center gap-2 rounded-lg px-3 py-2 transition hover:bg-slate-800/70 cursor-pointer">
-                  <BarChart3 className="h-4 w-4" />
-                  使用量统计
-                </div>
-              </Link>
-              <div className="rounded-lg px-3 py-2 transition hover:bg-slate-800/70">
-                批量导入
-              </div>
-              <div className="rounded-lg px-3 py-2 transition hover:bg-slate-800/70">
-                风险监测
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/70">
-              系统指令
-            </p>
-            <div className="mt-4 space-y-2 text-sm text-slate-300">
+          <div className="admin-console-surface">
+            <span className="admin-console-kicker">操作区</span>
+            <div className="mt-4 space-y-3">
               <button
                 onClick={() => setCreateOpen(true)}
-                className="flex w-full items-center justify-between rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-cyan-100 transition hover:border-cyan-400"
+                className="admin-console-button-primary w-full justify-between"
               >
                 新建账号
                 <Plus className="h-4 w-4" />
               </button>
               <button
                 onClick={handleDownloadTemplate}
-                className="flex w-full items-center justify-between rounded-lg border border-slate-700 px-3 py-2 text-slate-200 transition hover:border-slate-500"
+                className="admin-console-button w-full justify-between"
               >
                 下载模板
                 <Download className="h-4 w-4" />
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex w-full items-center justify-between rounded-lg border border-slate-700 px-3 py-2 text-slate-200 transition hover:border-slate-500"
+                className="admin-console-button w-full justify-between"
               >
                 批量导入
                 <UploadCloud className="h-4 w-4" />
               </button>
+              <Link href="/admin/config" className="admin-console-nav-item">
+                <Settings className="h-4 w-4" />
+                打开系统配置
+              </Link>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -501,31 +481,44 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   event.target.value = '';
                 }}
               />
-              <p className="text-xs text-slate-500">
-                模板前三列必填：账号、姓名、角色；其余列为选填
-              </p>
-              {importResult && (
-                <div className="mt-3 rounded-lg border border-slate-700 bg-slate-950/70 p-3 text-xs text-slate-300">
+            </div>
+            <p className="admin-console-muted mt-4 text-xs leading-5">
+              模板前三列必填：账号、姓名、角色。其余字段按角色选填。
+            </p>
+          </div>
+
+          {importResult && (
+            <div className="admin-console-surface-soft">
+              <span className="admin-console-kicker">导入结果</span>
+              <div className="admin-console-muted mt-3 space-y-2 text-sm">
+                <p>
+                  新增 {importResult.created ?? 0}，更新 {importResult.updated ?? 0}，失败 {importResult.failed ?? 0}
+                </p>
+                {typeof importResult.totalRows === 'number' && (
                   <p>
-                    导入结果：新增 {importResult.created ?? 0}，更新 {importResult.updated ?? 0}，
-                    失败 {importResult.failed ?? 0}
+                    数据行数 {importResult.totalRows}，空行跳过 {importResult.skippedEmpty ?? 0}
                   </p>
-                  {typeof importResult.totalRows === 'number' && (
-                    <p className="mt-1 text-slate-500">
-                      数据行数 {importResult.totalRows}，空行跳过 {importResult.skippedEmpty ?? 0}
-                    </p>
-                  )}
-                  {(importResult.errors?.length ?? 0) > 0 && (
-                    <div className="mt-2 max-h-32 space-y-1 overflow-y-auto rounded border border-rose-500/30 bg-rose-500/10 p-2 text-rose-200">
-                      {importResult.errors?.map((item, index) => (
-                        <p key={`${item.row}-${index}`}>
-                          第 {item.row} 行{item.account ? `（${item.account}）` : ''}：{item.reason}
-                        </p>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+                {(importResult.errors?.length ?? 0) > 0 && (
+                  <div className="admin-console-notice admin-console-notice-danger mt-3 max-h-40 overflow-y-auto text-xs">
+                    {importResult.errors?.map((item, index) => (
+                      <p key={`${item.row}-${index}`}>
+                        第 {item.row} 行{item.account ? `（${item.account}）` : ''}：{item.reason}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="admin-console-surface-soft">
+            <span className="admin-console-kicker">当前页面</span>
+            <div className="mt-3 space-y-2">
+              <div className="admin-console-nav-item admin-console-nav-item-active">用户管理</div>
+              <div className="admin-console-muted text-xs leading-5">
+                其他后台入口已收口至管理后台首页，避免在业务页里分散入口。
+              </div>
             </div>
           </div>
         </aside>
@@ -533,27 +526,28 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
         <section className="space-y-6">
           {notice && (
             <div
-              className={`rounded-xl border px-4 py-3 text-sm ${
+              className={`admin-console-notice ${
                 notice.type === 'success'
-                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200'
-                  : 'border-rose-500/40 bg-rose-500/10 text-rose-200'
+                  ? 'admin-console-notice-success'
+                  : 'admin-console-notice-danger'
               }`}
             >
               {notice.message}
             </div>
           )}
 
-          <div className="rounded-2xl border border-slate-800 bg-[linear-gradient(0deg,rgba(15,23,42,0.6),rgba(15,23,42,0.9))] p-5">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="admin-console-surface">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="text-sm font-semibold text-white">账号管理</p>
-                <p className="text-xs text-slate-400">
-                  全局账号、权限与密码管理
+                <span className="admin-console-kicker">账号视图</span>
+                <h2 className="admin-console-title mt-2 text-2xl font-semibold">账号列表</h2>
+                <p className="admin-console-muted mt-2 text-sm">
+                  按角色、姓名、账号或学号筛选，并在右侧查看详情与执行敏感操作。
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                  <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 admin-console-muted" />
                   <input
                     value={search}
                     onChange={(event) => {
@@ -561,7 +555,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                       setPage(1);
                     }}
                     placeholder="搜索姓名/账号/学号"
-                    className="w-56 rounded-lg border border-slate-700 bg-slate-950/60 py-2 pl-9 pr-3 text-sm text-slate-200 outline-none transition focus:border-cyan-400"
+                    className="admin-console-input w-64 pl-9"
                   />
                 </div>
                 <select
@@ -570,7 +564,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                     setRoleFilter(event.target.value as UserRole | 'ALL');
                     setPage(1);
                   }}
-                  className="rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 outline-none"
+                  className="admin-console-select"
                 >
                   <option value="ALL">全部角色</option>
                   <option value="ADMIN">管理员</option>
@@ -579,7 +573,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 </select>
                 <button
                   onClick={() => setCreateOpen(true)}
-                  className="flex items-center gap-2 rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100 transition hover:border-cyan-400"
+                  className="admin-console-button-primary"
                 >
                   <Plus className="h-4 w-4" />
                   新建账号
@@ -587,9 +581,9 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               </div>
             </div>
 
-            <div className="mt-5 overflow-hidden rounded-xl border border-slate-800">
-              <table className="w-full text-left text-sm text-slate-200">
-                <thead className="bg-slate-900/80 text-xs text-slate-400">
+            <div className="admin-console-table-shell mt-6">
+              <table className="admin-console-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3">账号信息</th>
                     <th className="px-4 py-3">学号/工号</th>
@@ -598,44 +592,35 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                     <th className="px-4 py-3 text-right">操作</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody>
                   {loadingUsers ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
-                        正在加载账号列表...
+                      <td colSpan={5} className="px-4 py-8 text-center admin-console-table-subtle">
+                        正在加载账号列表…
                       </td>
                     </tr>
                   ) : users.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                      <td colSpan={5} className="px-4 py-8 text-center admin-console-table-subtle">
                         暂无账号数据
                       </td>
                     </tr>
                   ) : (
                     users.map((user) => (
-                      <tr key={user.id} className="hover:bg-slate-900/40">
+                      <tr key={user.id}>
                         <td className="px-4 py-3">
-                          <div className="font-medium text-white">
-                            {user.name || '未命名'}
-                          </div>
-                          <div className="text-xs text-slate-500">
-                            {user.email ||
-                              user.employeeNumber ||
-                              user.profile?.studentNumber ||
-                              '未绑定账号'}
+                          <div className="admin-console-title font-medium">{user.name || '未命名'}</div>
+                          <div className="admin-console-table-subtle mt-1 text-xs">
+                            {user.email || user.employeeNumber || user.profile?.studentNumber || '未绑定账号'}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-slate-400">
+                        <td className="px-4 py-3 admin-console-table-subtle">
                           {user.profile?.studentNumber || user.employeeNumber || '-'}
                         </td>
                         <td className="px-4 py-3">
-                          <span
-                            className={`rounded-full border px-2 py-1 text-xs ${ROLE_STYLES[user.role]}`}
-                          >
-                            {ROLE_LABELS[user.role]}
-                          </span>
+                          <span className={ROLE_STYLES[user.role]}>{ROLE_LABELS[user.role]}</span>
                         </td>
-                        <td className="px-4 py-3 text-slate-400">
+                        <td className="px-4 py-3 admin-console-table-subtle">
                           {new Intl.DateTimeFormat('zh-CN', {
                             dateStyle: 'medium',
                             timeStyle: 'short',
@@ -645,19 +630,19 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                           <div className="flex justify-end gap-2">
                             <button
                               onClick={() => setSelectedUser(user)}
-                              className="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 transition hover:border-slate-500"
+                              className="admin-console-button px-3 py-1.5 text-xs"
                             >
                               查看
                             </button>
                             <button
                               onClick={() => openReset(user)}
-                              className="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 transition hover:border-slate-500"
+                              className="admin-console-button px-3 py-1.5 text-xs"
                             >
                               改密
                             </button>
                             <button
                               onClick={() => handleDelete(user)}
-                              className="rounded-lg border border-rose-500/40 px-2 py-1 text-xs text-rose-300 transition hover:border-rose-400"
+                              className="admin-console-button admin-console-tone-danger px-3 py-1.5 text-xs"
                             >
                               删除
                             </button>
@@ -670,22 +655,22 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               </table>
             </div>
 
-            <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
-              <span>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <span className="admin-console-muted text-sm">
                 共 {totalUsers} 条 · 第 {page} / {totalPages} 页
               </span>
               <div className="flex gap-2">
                 <button
                   disabled={page <= 1}
-                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                  className="rounded-lg border border-slate-700 px-3 py-1 text-xs text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  className="admin-console-button px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   上一页
                 </button>
                 <button
                   disabled={page >= totalPages}
-                  onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-                  className="rounded-lg border border-slate-700 px-3 py-1 text-xs text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                  className="admin-console-button px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   下一页
                 </button>
@@ -694,53 +679,61 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
           </div>
         </section>
 
-        <aside className="space-y-4">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/70">
-              预警动态
-            </p>
-            <div className="mt-4 space-y-3 text-sm text-slate-300">
-              {!overview?.recentViolations?.length && (
-                <div className="text-xs text-slate-500">暂无违规记录</div>
-              )}
-              {overview?.recentViolations?.map((violation) => (
-                <div
-                  key={violation.id}
-                  className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200"
-                >
-                  <div className="font-medium">
-                    {violation.student.name || '未命名'} ·{' '}
-                    {violation.student.studentNumber || '未知学号'}
+        <aside className="space-y-6">
+          <div className="admin-console-surface">
+            <span className="admin-console-kicker">风险提示</span>
+            <div className="mt-4 space-y-3">
+              {overview?.recentViolations.length ? (
+                overview.recentViolations.map((violation) => (
+                  <div key={violation.id} className="admin-console-surface-soft">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="admin-console-title text-sm font-semibold">
+                          {violation.student.name || '未命名学生'}
+                        </p>
+                        <p className="admin-console-muted mt-1 text-xs">{violation.violationType}</p>
+                      </div>
+                      <span
+                        className={`admin-console-chip ${
+                          violation.isResolved ? 'admin-console-tone-success' : 'admin-console-tone-danger'
+                        }`}
+                      >
+                        {violation.isResolved ? '已处理' : '待处理'}
+                      </span>
+                    </div>
+                    <p className="admin-console-muted mt-3 text-xs">
+                      {new Intl.DateTimeFormat('zh-CN', {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      }).format(new Date(violation.createdAt))}
+                    </p>
                   </div>
-                  <div className="mt-1 flex items-center justify-between text-[11px] text-rose-200/70">
-                    <span>{violation.violationType}</span>
-                    <span>{violation.isResolved ? '已整改' : '待整改'}</span>
-                  </div>
+                ))
+              ) : (
+                <div className="admin-console-surface-soft admin-console-muted text-sm">
+                  暂无违规记录
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/70">
-              账号详情
-            </p>
+          <div className="admin-console-surface">
+            <span className="admin-console-kicker">账号详情</span>
             {selectedUser ? (
-              <div className="mt-4 space-y-2 text-sm text-slate-300">
-                <div className="text-lg font-semibold text-white">
-                  {selectedUser.name || '未命名'}
+              <div className="mt-4 space-y-4">
+                <div>
+                  <p className="admin-console-title text-xl font-semibold">
+                    {selectedUser.name || '未命名'}
+                  </p>
+                  <p className="admin-console-muted mt-1 text-sm">
+                    {selectedUser.email || selectedUser.employeeNumber || '-'}
+                  </p>
                 </div>
-                <div className="text-xs text-slate-500">
-                  {selectedUser.email ||
-                    selectedUser.employeeNumber ||
-                    selectedUser.profile?.studentNumber ||
-                    '未绑定账号'}
-                </div>
-                <div className="mt-4 grid gap-2 rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400">
+                <div className="admin-console-surface-soft grid gap-2 text-sm">
                   <div>角色：{ROLE_LABELS[selectedUser.role]}</div>
                   <div>学号：{selectedUser.profile?.studentNumber || '-'}</div>
-                  <div>工号：{selectedUser.employeeNumber || '-'}</div>
                   <div>班级：{selectedUser.profile?.className || '-'}</div>
+                  <div>工号：{selectedUser.employeeNumber || '-'}</div>
                   <div>
                     创建时间：
                     {new Intl.DateTimeFormat('zh-CN', {
@@ -749,24 +742,24 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                     }).format(new Date(selectedUser.createdAt))}
                   </div>
                 </div>
-                <div className="mt-3 flex gap-2">
+                <div className="flex gap-2">
                   <button
                     onClick={() => openReset(selectedUser)}
-                    className="flex-1 rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-200 transition hover:border-slate-500"
+                    className="admin-console-button flex-1 justify-center"
                   >
                     修改密码
                   </button>
                   <button
                     onClick={() => handleDelete(selectedUser)}
-                    className="flex-1 rounded-lg border border-rose-500/40 px-3 py-2 text-xs text-rose-200 transition hover:border-rose-400"
+                    className="admin-console-button admin-console-tone-danger flex-1 justify-center"
                   >
                     删除账号
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="mt-4 text-xs text-slate-500">
-                选择账号查看详情
+              <div className="admin-console-surface-soft admin-console-muted mt-4 text-sm">
+                选择账号后，可在这里查看详情并执行敏感操作。
               </div>
             )}
           </div>
@@ -774,31 +767,29 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
       </main>
 
       {createOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-950 p-6 text-slate-200">
-            <div className="flex items-center justify-between">
+        <div className="admin-console-overlay">
+          <div className="admin-console-modal admin-console-modal-lg">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-lg font-semibold text-white">新建账号</p>
-                <p className="text-xs text-slate-500">
-                  支持创建学生、教师、管理员账号
-                </p>
+                <p className="admin-console-title text-xl font-semibold">新建账号</p>
+                <p className="admin-console-muted mt-1 text-sm">支持创建学生、教师、管理员账号</p>
               </div>
               <button
                 onClick={() => setCreateOpen(false)}
-                className="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-400"
+                className="admin-console-button px-3 py-1.5 text-xs"
               >
                 关闭
               </button>
             </div>
 
-            <div className="mt-4 grid gap-3">
+            <div className="mt-5 grid gap-3">
               <input
                 value={createForm.name}
                 onChange={(event) =>
                   setCreateForm((prev) => ({ ...prev, name: event.target.value }))
                 }
                 placeholder="姓名 *"
-                className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-400"
+                className="admin-console-input"
               />
               <div className="grid gap-3 md:grid-cols-2">
                 <select
@@ -809,7 +800,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                       role: event.target.value as UserRole,
                     }))
                   }
-                  className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-200 outline-none"
+                  className="admin-console-select"
                 >
                   <option value="STUDENT">学生</option>
                   <option value="TEACHER">教师</option>
@@ -821,7 +812,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                     setCreateForm((prev) => ({ ...prev, email: event.target.value }))
                   }
                   placeholder="账号邮箱（可选）"
-                  className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-400"
+                  className="admin-console-input"
                 />
               </div>
               {createForm.role === 'STUDENT' && (
@@ -835,7 +826,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                       }))
                     }
                     placeholder="学号 *"
-                    className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-400"
+                    className="admin-console-input"
                   />
                   <input
                     value={createForm.className}
@@ -846,7 +837,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                       }))
                     }
                     placeholder="班级（可选）"
-                    className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-400"
+                    className="admin-console-input"
                   />
                 </div>
               )}
@@ -860,7 +851,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                     }))
                   }
                   placeholder="工号 *"
-                  className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-400"
+                  className="admin-console-input"
                 />
               )}
               <input
@@ -870,21 +861,18 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 }
                 placeholder="初始密码（默认 123456）"
                 type="password"
-                className="rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-400"
+                className="admin-console-input"
               />
             </div>
 
-            <div className="mt-6 flex items-center justify-end gap-2">
-              <button
-                onClick={() => setCreateOpen(false)}
-                className="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300"
-              >
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button onClick={() => setCreateOpen(false)} className="admin-console-button">
                 取消
               </button>
               <button
                 disabled={creating}
                 onClick={handleCreate}
-                className="flex items-center gap-2 rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100 disabled:opacity-50"
+                className="admin-console-button-primary disabled:opacity-50"
               >
                 <Plus className="h-4 w-4" />
                 {creating ? '提交中...' : '确认创建'}
@@ -895,32 +883,32 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
       )}
 
       {resetOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-6 text-slate-200">
-            <div className="flex items-center justify-between">
+        <div className="admin-console-overlay">
+          <div className="admin-console-modal admin-console-modal-sm">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-lg font-semibold text-white">修改密码</p>
-                <p className="text-xs text-slate-500">
+                <p className="admin-console-title text-xl font-semibold">修改密码</p>
+                <p className="admin-console-muted mt-1 text-sm">
                   {resetTarget?.name || '账号'} · {resetTarget?.email || resetTarget?.profile?.studentNumber || ''}
                 </p>
               </div>
               <button
                 onClick={() => setResetOpen(false)}
-                className="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-400"
+                className="admin-console-button px-3 py-1.5 text-xs"
               >
                 关闭
               </button>
             </div>
 
-            <div className="mt-4 space-y-3 text-sm">
-              <label className="flex items-center gap-2 text-slate-300">
+            <div className="mt-5 space-y-3 text-sm">
+              <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={resetToDefault}
                   onChange={(event) => setResetToDefault(event.target.checked)}
                   className="h-4 w-4"
                 />
-                重置为默认密码 123456
+                <span className="admin-console-muted">重置为默认密码 123456</span>
               </label>
               {!resetToDefault && (
                 <input
@@ -928,22 +916,16 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   onChange={(event) => setResetPassword(event.target.value)}
                   placeholder="输入新密码"
                   type="password"
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-200 outline-none focus:border-cyan-400"
+                  className="admin-console-input w-full"
                 />
               )}
             </div>
 
-            <div className="mt-6 flex items-center justify-end gap-2">
-              <button
-                onClick={() => setResetOpen(false)}
-                className="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300"
-              >
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button onClick={() => setResetOpen(false)} className="admin-console-button">
                 取消
               </button>
-              <button
-                onClick={handleResetPassword}
-                className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100"
-              >
+              <button onClick={handleResetPassword} className="admin-console-button-primary">
                 确认修改
               </button>
             </div>
@@ -952,8 +934,10 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
       )}
 
       {importing && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 text-sm text-cyan-100">
-          正在导入，请稍候...
+        <div className="admin-console-overlay">
+          <div className="admin-console-surface admin-console-title text-sm font-medium">
+            正在导入，请稍候…
+          </div>
         </div>
       )}
     </div>
