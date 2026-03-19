@@ -188,6 +188,36 @@ export const CORE_EVENTS: EventTypeMetadata[] = [
       selfDirectedLearning: 0.3,
     },
   },
+  {
+    eventType: 'lesson_submit',
+    category: 'assessment',
+    priority: 'core',
+    description: '课堂步骤提交',
+    competencyMapping: {
+      controlModeling: 0.5,
+      selfDirectedLearning: 0.3,
+    },
+  },
+  {
+    eventType: 'lesson_resubmit',
+    category: 'assessment',
+    priority: 'core',
+    description: '课堂步骤重提',
+    competencyMapping: {
+      controlModeling: 0.4,
+      selfDirectedLearning: 0.4,
+    },
+  },
+  {
+    eventType: 'session_finalize',
+    category: 'assessment',
+    priority: 'core',
+    description: '课堂阶段完成',
+    competencyMapping: {
+      inquiryReflection: 0.5,
+      selfDirectedLearning: 0.4,
+    },
+  },
 ];
 
 // ============================================
@@ -259,6 +289,42 @@ export const SECONDARY_EVENTS: EventTypeMetadata[] = [
         context: { type: 'string' },
       },
     },
+  },
+  {
+    eventType: 'lesson_step_view',
+    category: 'navigation',
+    priority: 'secondary',
+    description: '查看课堂步骤',
+  },
+  {
+    eventType: 'lesson_step_leave',
+    category: 'navigation',
+    priority: 'secondary',
+    description: '离开课堂步骤',
+  },
+  {
+    eventType: 'workspace_param_change',
+    category: 'interaction',
+    priority: 'secondary',
+    description: '课堂工作区参数变化',
+  },
+  {
+    eventType: 'ai_panel_open',
+    category: 'interaction',
+    priority: 'secondary',
+    description: '打开课堂 AI 面板',
+  },
+  {
+    eventType: 'ai_query_submit',
+    category: 'ai',
+    priority: 'secondary',
+    description: '课堂内提交 AI 查询',
+  },
+  {
+    eventType: 'sync_error',
+    category: 'interaction',
+    priority: 'secondary',
+    description: '课堂同步错误',
   },
 ];
 

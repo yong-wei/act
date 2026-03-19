@@ -26,6 +26,13 @@ import {
 } from '@/lib/data-governance/risk-detector';
 import { fetchSecondaryEvents, markEventsProcessed } from '@/lib/data-governance/event-buffer';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
+import {
+  deriveFactOutcome,
+  deriveFactScore,
+  deriveFactTimeSpent,
+  mapActionTypeToFactType,
+  resolveCompetencyContribution,
+} from '@/lib/data-governance/event-normalization';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
 import type { EventIngestionJob, StudentSnapshotJob, ClassSnapshotJob } from './types';
@@ -105,9 +112,9 @@ function eventToFact(event: LearningEvent) {
     sessionId: event.sessionId,
     startedAt: new Date(event.occurredAt),
     finishedAt: new Date(event.occurredAt),
-    outcome: (event.payload.outcome as string) || 'unknown',
-    score: event.payload.score as number | undefined,
-    timeSpent: event.payload.timeSpent as number | undefined,
+    outcome: deriveFactOutcome(event.actionType, event.payload),
+    score: deriveFactScore(event.payload),
+    timeSpent: deriveFactTimeSpent(event.payload),
     competencyContribution: competencyMapping,
     sourceEventId: event.eventId,
     sourceLogId: event.payload.sourceLogId as string | undefined,
@@ -116,26 +123,11 @@ function eventToFact(event: LearningEvent) {
   };
 }
 
-function mapActionTypeToFactType(actionType: string): string {
-  const mapping: Record<string, string> = {
-    answer_submit: 'question',
-    assessment_complete: 'question',
-    simulation_finish: 'simulation',
-    ai_intervention_complete: 'ai_intervention',
-    prompt_assessed: 'prompt_design',
-    design_session_complete: 'design',
-    ethical_violation: 'ethical',
-    ethical_resolved: 'ethical',
-  };
-  return mapping[actionType] || 'unknown';
-}
-
 function getCompetencyMappingForEvent(event: LearningEvent): Record<string, number> {
-  // Use payload contributions or derive from event type
-  return (
-    (event.payload.competencyContribution as Record<string, number>) ||
-    (event.derivedMetrics as Record<string, number>) ||
-    {}
+  return resolveCompetencyContribution(
+    event.actionType,
+    event.payload,
+    event.derivedMetrics,
   );
 }
 

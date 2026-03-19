@@ -8,6 +8,7 @@ import type { ClassroomInteractionEventInput } from '@/lib/classroom-analytics/t
 import { toLearningEvent, validateEvent, type LearningEvent } from '@/lib/data-governance/event-protocol';
 import { routeEvent } from '@/lib/data-governance/event-buffer';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
+import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
 import type { PageType } from '@/lib/data-governance/event-protocol';
 
 function toDateTime(value: number | string | null | undefined): Date | null {
@@ -96,33 +97,39 @@ export async function POST(request: NextRequest) {
     const degradedEvents: Array<{ event: ClassroomInteractionEventInput; reason: string }> = [];
 
     for (const event of events as ClassroomInteractionEventInput[]) {
+      const resolvedResourceKey = event.resourceKey ?? event.resourceId;
+      const normalizedEvent: ClassroomInteractionEventInput = {
+        ...event,
+        resourceKey: event.resourceKey || event.resourceId || '',
+      };
+
       // 基础校验
-      if (!event.type || typeof event.timestamp !== 'number') {
-        degradedEvents.push({ event, reason: 'missing_type_or_timestamp' });
+      if (!normalizedEvent.type || typeof normalizedEvent.timestamp !== 'number') {
+        degradedEvents.push({ event: normalizedEvent, reason: 'missing_type_or_timestamp' });
         continue;
       }
 
-      if (!event.resourceKey && !event.resourceId) {
-        degradedEvents.push({ event, reason: 'missing_resource_key_and_id' });
+      if (!resolvedResourceKey && !normalizedEvent.resourceId) {
+        degradedEvents.push({ event: normalizedEvent, reason: 'missing_resource_key_and_id' });
         continue;
       }
 
       // 校验resourceId - 不合法的ID会导致外键错误
-      const validatedResourceId = validateResourceId(event.resourceId);
+      const validatedResourceId = validateResourceId(normalizedEvent.resourceId);
 
-      if (event.resourceId && !validatedResourceId) {
+      if (normalizedEvent.resourceId && !validatedResourceId) {
         // resourceId存在但不合法 - 降级处理，只记录到控制台
-        logDegradedEvent(session.user.id, event, 'invalid_resource_id_format');
+        logDegradedEvent(session.user.id, normalizedEvent, 'invalid_resource_id_format');
         // 如果resourceKey存在，仍尝试记录（resourceKey是字符串，不会触发外键错误）
-        if (event.resourceKey) {
-          validEvents.push({ event, resourceId: null });
+        if (normalizedEvent.resourceKey) {
+          validEvents.push({ event: normalizedEvent, resourceId: null });
         } else {
-          degradedEvents.push({ event, reason: 'invalid_resource_id_no_fallback' });
+          degradedEvents.push({ event: normalizedEvent, reason: 'invalid_resource_id_no_fallback' });
         }
         continue;
       }
 
-      validEvents.push({ event, resourceId: validatedResourceId });
+      validEvents.push({ event: normalizedEvent, resourceId: validatedResourceId });
     }
 
     // 记录降级事件（不入库，避免外键错误）
@@ -135,8 +142,21 @@ export async function POST(request: NextRequest) {
     const routingResults: Array<{ eventType: string; destination: string; reason?: string }> = [];
 
     for (const eventData of validEvents) {
+      const payload =
+        eventData.event.data && typeof eventData.event.data === 'object'
+          ? eventData.event.data
+          : {};
+      const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
       const learningEvent = toLearningEvent(
-        { ...eventData.event, priority: isCoreEvent(eventData.event.type) ? 'core' : 'secondary' },
+        {
+          ...eventData.event,
+          actionType: canonicalEventType,
+          payload: {
+            ...payload,
+            originalEventType: eventData.event.type,
+          },
+          priority: isCoreEvent(canonicalEventType) ? 'core' : 'secondary',
+        },
         {
           userId: session.user.id,
           role: (session.user.role?.toLowerCase() as 'student' | 'teacher' | 'admin') || 'student',
