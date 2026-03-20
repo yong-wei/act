@@ -10,6 +10,7 @@ description: Use when implementing or optimizing this repository's interactive l
 按外部课程设计文档为本项目实现或优化互动课程页面。把 `course-content/authoring/lessons/<lesson>/` 视为设计源，把仓库中的实现视为待核对对象；优先复用现有框架、资源注册、AI 上下文、课程事件链、数据治理与会话同步能力，避免写成孤立页面。
 
 **核心原则：**
+- 先确认本课是否已经通过 `lesson-content-review` 审查；未审查时，先运行课程审查技能，不要在本技能里顺手修正文档、知识卡片或媒体脚本。
 - 先确认课程与任务模式，再动手。
 - 先核对设计稿与现状，再做实现计划。
 - 媒体缺失必须显式提醒，不能默认“以后再补”。
@@ -57,20 +58,21 @@ description: Use when implementing or optimizing this repository's interactive l
 
 ### 1. 锁定设计源
 
-始终读取以下资料，按需补充：
+页面实现阶段始终读取以下资料：
 - `course-content/authoring/lessons/<lesson>/design/interactive-page.md`
-- `course-content/authoring/lessons/<lesson>/design/boppps.md`
-- `course-content/authoring/lessons/<lesson>/design/handout.md`
-- `course-content/authoring/lessons/<lesson>/design/multimedia.md`（如果存在）
-
-把这些文件当作设计源，不要只根据现有代码继续“顺着改”。
-
-如果课次已进入 runtime 化阶段，还要同步读取：
 - `course-content/runtime/lessons/<lesson>/lesson.json`
 - `course-content/runtime/lessons/<lesson>/graph-overlay.json`
 - `course-content/runtime/lessons/<lesson>/handout.md`
+- `course-content/runtime/lessons/<lesson>/review/boppps.md`
+- `course-content/runtime/lessons/<lesson>/review/review-report.md`
+- `course-content/runtime/lessons/<lesson>/review/knowledge-card-check.json`
+- `course-content/runtime/lessons/<lesson>/review/multimedia-check.json`
 
-若 `authoring` 与 runtime 不一致，以 runtime 组织要求为准，再回头补 export 流程。
+其中：
+- `interactive-page.md` 负责页面步骤与交互设计
+- runtime 下的 handout / boppps / knowledge / media review 产物视为**已审查输入**
+
+不要在本技能里重新承担 `design/handout.md`、`design/practice-guide.md`、`design/assessment-spec.md`、知识卡片正文、`multimedia.md` 的技术审查职责；这些内容若有问题，应返回 `lesson-content-review` 处理。
 
 ### 2. 判断任务模式
 

@@ -2955,7 +2955,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/串联连接_2_98ee18bc.md"
+    ],
     "tags": [
       "方框连接",
       "等效",
@@ -3224,7 +3226,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/信号流图_2_372d4084.md"
+    ],
     "tags": [
       "线性系统",
       "图形表示",
@@ -3650,7 +3654,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/反馈连接_2_40a881cb.md"
+    ],
     "tags": [
       "闭环",
       "反馈",
@@ -3928,7 +3934,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/并联连接_2_0e5f1ec2.md"
+    ],
     "tags": [
       "方框连接",
       "代数和",
@@ -4029,7 +4037,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开环传递函数定义_2_12002.md"
+    ],
     "tags": [
       "开环",
       "断开回路",
@@ -4782,7 +4792,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/concepts/梅森增益公式_2_419eab0c.mdx"
+      "course-content/runtime/knowledge/cards/nodes/梅森增益公式_2_419eab0c.md"
     ],
     "tags": [
       "直接求取",
@@ -5406,7 +5416,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/系统结构图_2_5d3751f8.md"
+    ],
     "tags": [
       "方框图",
       "信号流",
@@ -5603,7 +5615,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/结构图等效变换_2_12001.md"
+    ],
     "tags": [
       "等效变换",
       "引出点移动",
@@ -5649,7 +5663,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/结构图简化_2_6d86a775.md"
+    ],
     "tags": [
       "等效变换",
       "比较点移动",
@@ -5936,7 +5952,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环传递函数_2_5399c369.md"
+    ],
     "tags": [
       "反馈连接",
       "等效传递函数",

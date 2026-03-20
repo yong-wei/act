@@ -1,0 +1,1440 @@
+{
+  "lesson_id": "1-2",
+  "title": "系统结构图与化简——从积木块到系统蓝图",
+  "focus_node_ids": [
+    "系统结构图_2_5d3751f8",
+    "结构图等效变换_2_12001",
+    "结构图简化_2_6d86a775",
+    "梅森增益公式_2_419eab0c",
+    "开环传递函数定义_2_12002"
+  ],
+  "reuse_node_ids": [
+    "传递函数_2_2c5e2589",
+    "串联连接_2_98ee18bc",
+    "并联连接_2_0e5f1ec2",
+    "反馈连接_2_40a881cb",
+    "信号流图_2_372d4084",
+    "开环传递函数_2_ee6bdacf",
+    "闭环传递函数_2_5399c369",
+    "比例环节_2_11004",
+    "积分环节_2_11005",
+    "惯性环节_2_11007"
+  ],
+  "entry_nodes": [
+    "系统结构图_2_5d3751f8"
+  ],
+  "summary_nodes": [
+    "闭环传递函数_2_5399c369"
+  ],
+  "card_order": [
+    "系统结构图_2_5d3751f8",
+    "串联连接_2_98ee18bc",
+    "并联连接_2_0e5f1ec2",
+    "反馈连接_2_40a881cb",
+    "开环传递函数定义_2_12002",
+    "闭环传递函数_2_5399c369",
+    "结构图等效变换_2_12001",
+    "结构图简化_2_6d86a775",
+    "信号流图_2_372d4084",
+    "梅森增益公式_2_419eab0c"
+  ],
+  "groups": [
+    {
+      "group_name": "引入与基本元素",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03"
+      ],
+      "node_ids": [
+        "系统结构图_2_5d3751f8"
+      ]
+    },
+    {
+      "group_name": "三种基本连接",
+      "step_ids": [
+        "step-04",
+        "step-05",
+        "step-06"
+      ],
+      "node_ids": [
+        "串联连接_2_98ee18bc",
+        "并联连接_2_0e5f1ec2",
+        "反馈连接_2_40a881cb",
+        "开环传递函数定义_2_12002",
+        "闭环传递函数_2_5399c369"
+      ]
+    },
+    {
+      "group_name": "等效变换与化简",
+      "step_ids": [
+        "step-07",
+        "step-08",
+        "step-09"
+      ],
+      "node_ids": [
+        "结构图等效变换_2_12001",
+        "结构图简化_2_6d86a775"
+      ]
+    },
+    {
+      "group_name": "梅森增益公式",
+      "step_ids": [
+        "step-10",
+        "step-11"
+      ],
+      "node_ids": [
+        "信号流图_2_372d4084",
+        "梅森增益公式_2_419eab0c"
+      ]
+    },
+    {
+      "group_name": "总结",
+      "step_ids": [
+        "step-12",
+        "step-13"
+      ],
+      "node_ids": []
+    }
+  ],
+  "nodes": [
+    {
+      "id": "串联连接_2_98ee18bc",
+      "name": "串联连接",
+      "nodeType": "THEORY",
+      "description": "前一方框的输出量作为后一方框的输入量的连接方式，等效传递函数为各传递函数乘积。",
+      "positionX": -28.3,
+      "positionY": -28.3,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "前一方框的输出量作为后一方框的输入量的连接方式，等效传递函数为各传递函数乘积。",
+        "examples": [
+          "图2-24(a)所示的串联方框及其简化等效。"
+        ],
+        "formulas": [
+          "$G(s) = G_1(s)G_2(s)$"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "方框连接",
+          "等效",
+          "传递函数乘积"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627613",
+        "updatedAt": "2026-02-04T17:54:16.627613",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/串联连接_2_98ee18bc.md"
+      ],
+      "tags": [
+        "方框连接",
+        "等效",
+        "传递函数乘积",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "传递函数_2_2c5e2589",
+      "name": "传递函数",
+      "nodeType": "THEORY",
+      "description": "描述线性时不变系统输入与输出关系的复频域数学模型，通常表示为输出拉氏变换与输入拉氏变换之比。",
+      "positionX": -20.0,
+      "positionY": -34.6,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "描述线性时不变系统输入与输出关系的复频域数学模型，通常表示为输出拉氏变换与输入拉氏变换之比。",
+        "examples": [
+          "例2-8中RLC无源网络的传递函数，例2-9中直流电动机的传递函数。",
+          "电枢电压到转速的传递函数",
+          "负载扰动转矩到转速的传递函数",
+          "单容水槽传递函数$G(s)=\\frac{R}{Ts+1}$，电加热炉传递函数$G(s)=\\frac{K}{Ts+1}$。",
+          "计算控制系统的闭环传递函数以分析系统性能。"
+        ],
+        "formulas": [
+          "G(s) = \\frac{C(s)}{R(s)} = \\frac{b_m s^m + \\cdots + b_1 s + b_0}{a_n s^n + \\cdots + a_1 s + a_0}",
+          "G(s) = \\frac{Y(s)}{U(s)}",
+          "G(s) = K\\frac{(s-z_1)(s-z_2)\\cdots(s-z_m)}{(s-p_1)(s-p_2)\\cdots(s-p_n)}",
+          "G(s) = K\\frac{(\\tau_1 s+1)(\\tau_2^2 s^2+2\\zeta\\tau_2 s+1)\\cdots}{(T_1 s+1)(T_2^2 s^2+2\\zeta T_2 s+1)\\cdots}",
+          "$G(s) = \\frac{Y(s)}{X(s)}$",
+          "$G(s) = \\frac{R}{Ts+1}$",
+          "$G(s) = \\frac{K}{Ts+1}$",
+          "$G(s) = \\frac{K}{(T_1s+1)(T_2s+1)}$",
+          "$G(s) = \\frac{K}{Ts+1}e^{-\\tau s}$",
+          "\\Phi(s) = \\frac{G(s)}{1 + G(s)H(s)}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "复数域",
+          "拉氏变换",
+          "线性定常",
+          "零初始条件",
+          "系统模型",
+          "零极点",
+          "增益",
+          "线性系统",
+          "数学模型"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627437",
+        "updatedAt": "2026-02-04T17:54:16.627437",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "复数域",
+        "拉氏变换",
+        "线性定常",
+        "零初始条件",
+        "系统模型",
+        "零极点",
+        "增益",
+        "线性系统",
+        "数学模型",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "信号流图_2_372d4084",
+      "name": "信号流图",
+      "nodeType": "THEORY",
+      "description": "一种用节点和支路表示系统变量和传递关系的图形化数学模型，用于描述线性系统的结构和信号流向。",
+      "positionX": 20.0,
+      "positionY": -34.6,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "一种用节点和支路表示系统变量和传递关系的图形化数学模型，用于描述线性系统的结构和信号流向。",
+        "examples": [
+          "用于系统计算机模拟仿真和状态空间法分析设计。",
+          "图2-31(a)表示欧姆定律U=IR的信号流图；图2-32表示一组代数方程式的信号流图。",
+          "图2-36(b)所示的系统信号流图",
+          "图2-44(d)给出的信号流图，以及习题2-19要求绘制的结构图对应的信号流图。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "线性系统",
+          "图形表示",
+          "仿真",
+          "节点",
+          "支路",
+          "支路增益",
+          "因果关系",
+          "增益",
+          "图形化模型",
+          "梅森公式"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627608",
+        "updatedAt": "2026-02-04T17:54:16.627608",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/信号流图_2_372d4084.md"
+      ],
+      "tags": [
+        "线性系统",
+        "图形表示",
+        "仿真",
+        "节点",
+        "支路",
+        "支路增益",
+        "因果关系",
+        "增益",
+        "图形化模型",
+        "梅森公式",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "反馈连接_2_40a881cb",
+      "name": "反馈连接",
+      "nodeType": "THEORY",
+      "description": "两个传递函数方框以输出信号反馈到输入端的形式连接，分为正反馈和负反馈。",
+      "positionX": 11.9,
+      "positionY": 44.4,
+      "positionZ": 2,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "两个传递函数方框以输出信号反馈到输入端的形式连接，分为正反馈和负反馈。",
+        "examples": [
+          "图2-26(a)所示的反馈连接方框及其简化，得到闭环传递函数。",
+          "图2-26(a)所示的反馈连接结构，其中“+”为正反馈，“-”为负反馈。"
+        ],
+        "formulas": [
+          "$\\Phi(s) = \\frac{G(s)}{1 \\mp G(s)H(s)}$",
+          "\\Phi(s) = \\frac{G(s)}{1 \\mp G(s)H(s)}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "闭环",
+          "反馈",
+          "传递函数",
+          "正反馈",
+          "负反馈",
+          "闭环传递函数"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627624",
+        "updatedAt": "2026-02-04T17:54:16.627624",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/反馈连接_2_40a881cb.md"
+      ],
+      "tags": [
+        "闭环",
+        "反馈",
+        "传递函数",
+        "正反馈",
+        "负反馈",
+        "闭环传递函数",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "并联连接_2_0e5f1ec2",
+      "name": "并联连接",
+      "nodeType": "THEORY",
+      "description": "多个方框有相同输入量，输出量为各方框输出量代数和的连接方式。",
+      "positionX": -44.4,
+      "positionY": 11.9,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "多个方框有相同输入量，输出量为各方框输出量代数和的连接方式。",
+        "examples": [
+          "图2-25(a)所示的并联方框及其简化等效。"
+        ],
+        "formulas": [
+          "$G(s) = G_1(s) \\pm G_2(s)$"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "方框连接",
+          "代数和",
+          "等效"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627618",
+        "updatedAt": "2026-02-04T17:54:16.627619",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/并联连接_2_0e5f1ec2.md"
+      ],
+      "tags": [
+        "方框连接",
+        "代数和",
+        "等效",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "开环传递函数_2_ee6bdacf",
+      "name": "开环传递函数",
+      "nodeType": "THEORY",
+      "description": "主反馈断开时，从系统输入信号到反馈信号之间的传递函数，通常表示为G(s)H(s)。",
+      "positionX": -46.0,
+      "positionY": 0.0,
+      "positionZ": 2,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "主反馈断开时，从系统输入信号到反馈信号之间的传递函数，通常表示为G(s)H(s)。",
+        "examples": [
+          "图2-42系统中，开环传递函数为G1(s)G2(s)H(s)"
+        ],
+        "formulas": [
+          "G(s)H(s)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "主反馈断开",
+          "前向通路",
+          "反馈通路"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627688",
+        "updatedAt": "2026-02-04T17:54:16.627688",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "主反馈断开",
+        "前向通路",
+        "反馈通路",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "开环传递函数定义_2_12002",
+      "name": "开环传递函数（精化）",
+      "nodeType": "THEORY",
+      "description": "将反馈回路在比较点处断开后，从断点输入到断点输出的传递函数，记为G_o(s)=G(s)H(s)。开环传递函数是分析闭环系统稳定性和性能的关键中间量。",
+      "positionX": -30.9,
+      "positionY": -8.3,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "将反馈回路在比较点处断开后，从断点输入到断点输出的传递函数，记为G_o(s)=G(s)H(s)。开环传递函数是分析闭环系统稳定性和性能的关键中间量。",
+        "examples": [
+          "船舶航向控制系统中，开环传递函数=控制器×舵机×船体×罗经",
+          "单位反馈系统中开环传递函数就是前向通路传递函数"
+        ],
+        "formulas": [
+          "G_o(s) = G(s)H(s)",
+          "单位反馈时 G_o(s) = G(s)"
+        ],
+        "prerequisites": [
+          "反馈连接_2_40a881cb",
+          "传递函数_2_2c5e2589"
+        ],
+        "relatedConcepts": [
+          "闭环传递函数_2_5399c369",
+          "开环传递函数_2_ee6bdacf"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "开环",
+          "断开回路",
+          "GH",
+          "稳定性分析基础"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/开环传递函数定义_2_12002.md"
+      ],
+      "tags": [
+        "开环",
+        "断开回路",
+        "GH",
+        "稳定性分析基础",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "惯性环节_2_11007",
+      "name": "惯性环节",
+      "nodeType": "THEORY",
+      "description": "传递函数为G(s)=1/(Ts+1)的一阶环节，具有一个负实极点s=-1/T。时间常数T越大响应越慢。物理原型包括RC低通电路、温度计热惯性。",
+      "positionX": -8.3,
+      "positionY": -30.9,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "典型环节",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "典型环节",
+        "bloom_level": "理解",
+        "definition": "传递函数为G(s)=1/(Ts+1)的一阶环节，具有一个负实极点s=-1/T。时间常数T越大响应越慢。物理原型包括RC低通电路、温度计热惯性。",
+        "examples": [
+          "RC电路：G(s)=1/(RCs+1)",
+          "温度计：T为热时间常数"
+        ],
+        "formulas": [
+          "G(s) = 1/(Ts+1)",
+          "极点 s = -1/T"
+        ],
+        "prerequisites": [
+          "传递函数_2_2c5e2589",
+          "极点_2_cc79a4c5"
+        ],
+        "relatedConcepts": [
+          "振荡环节_5_d677d1e6",
+          "比例环节_2_11004"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "惯性",
+          "一阶",
+          "时间常数",
+          "负实极点",
+          "RC电路"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "惯性",
+        "一阶",
+        "时间常数",
+        "负实极点",
+        "RC电路",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "梅森增益公式_2_419eab0c",
+      "name": "梅森增益公式",
+      "nodeType": "THEORY",
+      "description": "一种用于直接从信号流图或系统结构图中求取从源节点到阱节点传递函数的公式，无需简化图形。",
+      "positionX": 26.0,
+      "positionY": 45.0,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "一种用于直接从信号流图或系统结构图中求取从源节点到阱节点传递函数的公式，无需简化图形。",
+        "examples": [
+          "用于直接求解例2-13等复杂系统的传递函数，避免了繁琐的图简化过程。",
+          "例2-14、例2-15、例2-16、例2-17中应用梅森公式求传递函数",
+          "利用图2-44(d)的信号流图和梅森增益公式求取系统闭环传递函数。"
+        ],
+        "formulas": [
+          "\\Delta = 1 - \\sum L_a + \\sum L_bL_c - \\sum L_dL_eL_f + \\cdots",
+          "P = \\frac{1}{\\Delta} \\sum_{k=1}^{n} P_k \\Delta_k",
+          "P = \\frac{1}{\\Delta} \\sum_k P_k \\Delta_k"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 5,
+        "importance": 5,
+        "keywords": [
+          "直接求取",
+          "传递函数",
+          "信号流图",
+          "结构图",
+          "前向通路",
+          "回路增益",
+          "特征式",
+          "余因子式",
+          "回路"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627672",
+        "updatedAt": "2026-02-04T17:54:16.627672",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/梅森增益公式_2_419eab0c.md"
+      ],
+      "tags": [
+        "直接求取",
+        "传递函数",
+        "信号流图",
+        "结构图",
+        "前向通路",
+        "回路增益",
+        "特征式",
+        "余因子式",
+        "回路",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "比例环节_2_11004",
+      "name": "比例环节",
+      "nodeType": "THEORY",
+      "description": "传递函数为常数G(s)=K的环节，输出与输入成正比，无动态过程。物理原型包括杠杆、齿轮变比、放大器等。",
+      "positionX": 0.0,
+      "positionY": 38.0,
+      "positionZ": 0,
+      "bloomLevel": "REMEMBER",
+      "knowledgeDim": "典型环节",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "典型环节",
+        "bloom_level": "记忆",
+        "definition": "传递函数为常数G(s)=K的环节，输出与输入成正比，无动态过程。物理原型包括杠杆、齿轮变比、放大器等。",
+        "examples": [
+          "放大器增益K=10",
+          "齿轮变比"
+        ],
+        "formulas": [
+          "G(s) = K"
+        ],
+        "prerequisites": [
+          "传递函数_2_2c5e2589"
+        ],
+        "relatedConcepts": [
+          "积分环节_2_11005",
+          "微分环节_2_11006"
+        ],
+        "difficulty": 1,
+        "importance": 3,
+        "keywords": [
+          "比例",
+          "增益",
+          "无动态"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "比例",
+        "增益",
+        "无动态",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "积分环节_2_11005",
+      "name": "积分环节",
+      "nodeType": "THEORY",
+      "description": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
+      "positionX": -19.0,
+      "positionY": -32.9,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "典型环节",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "典型环节",
+        "bloom_level": "理解",
+        "definition": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
+        "examples": [
+          "水箱：流量输入→液位输出",
+          "船舶：角速度→航向角"
+        ],
+        "formulas": [
+          "G(s) = 1/s",
+          "y(t) = ∫₀ᵗ u(τ)dτ"
+        ],
+        "prerequisites": [
+          "传递函数_2_2c5e2589"
+        ],
+        "relatedConcepts": [
+          "比例环节_2_11004",
+          "极点_2_cc79a4c5"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "积分",
+          "原点极点",
+          "累积效应"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "积分",
+        "原点极点",
+        "累积效应",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "系统结构图_2_5d3751f8",
+      "name": "系统结构图",
+      "nodeType": "THEORY",
+      "description": "描述系统各元部件之间信号传递关系的数学图形，由信号线、引出点、比较点和方框组成。",
+      "positionX": -13.5,
+      "positionY": -50.2,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "描述系统各元部件之间信号传递关系的数学图形，由信号线、引出点、比较点和方框组成。",
+        "examples": [
+          "图2-23所示的电压测量装置系统结构图。"
+        ],
+        "formulas": [
+          "$Y(s) = G(s)X(s)$"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "方框图",
+          "信号流",
+          "数学模型"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627603",
+        "updatedAt": "2026-02-04T17:54:16.627603",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/系统结构图_2_5d3751f8.md"
+      ],
+      "tags": [
+        "方框图",
+        "信号流",
+        "数学模型",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "结构图等效变换_2_12001",
+      "name": "结构图等效变换",
+      "nodeType": "THEORY",
+      "description": "在不改变系统输入-输出关系的前提下，通过移动引出点或比较点的位置来简化结构图的操作方法。核心规则：逆流补乘G，顺流补除G。",
+      "positionX": 26.9,
+      "positionY": -26.9,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "在不改变系统输入-输出关系的前提下，通过移动引出点或比较点的位置来简化结构图的操作方法。核心规则：逆流补乘G，顺流补除G。",
+        "examples": [
+          "比较点前移越过方框G(s)，移动支路串联G(s)",
+          "引出点后移越过方框G(s)，移动支路串联G(s)"
+        ],
+        "formulas": [
+          "比较点前移：补乘G(s)",
+          "比较点后移：补除1/G(s)",
+          "引出点前移：补除1/G(s)",
+          "引出点后移：补乘G(s)"
+        ],
+        "prerequisites": [
+          "系统结构图_2_5d3751f8",
+          "串联连接_2_98ee18bc"
+        ],
+        "relatedConcepts": [
+          "结构图简化_2_6d86a775",
+          "反馈连接_2_40a881cb"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "等效变换",
+          "引出点移动",
+          "比较点移动",
+          "逆流补乘",
+          "顺流补除"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/结构图等效变换_2_12001.md"
+      ],
+      "tags": [
+        "等效变换",
+        "引出点移动",
+        "比较点移动",
+        "逆流补乘",
+        "顺流补除",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "结构图简化_2_6d86a775",
+      "name": "结构图简化",
+      "nodeType": "THEORY",
+      "description": "通过移动比较点或引出点，并运用等效变换规则，将复杂系统结构图简化为求取传递函数的过程。",
+      "positionX": 45.0,
+      "positionY": -26.0,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "通过移动比较点或引出点，并运用等效变换规则，将复杂系统结构图简化为求取传递函数的过程。",
+        "examples": [
+          "例2-11中通过移动引出点和简化内反馈回路，最终求得系统传递函数。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "等效变换",
+          "比较点移动",
+          "引出点移动"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627646",
+        "updatedAt": "2026-02-04T17:54:16.627647",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/结构图简化_2_6d86a775.md"
+      ],
+      "tags": [
+        "等效变换",
+        "比较点移动",
+        "引出点移动",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "闭环传递函数_2_5399c369",
+      "name": "闭环传递函数",
+      "nodeType": "THEORY",
+      "description": "在反馈连接中，系统输出与输入之间的传递函数，是反馈连接的等效传递函数。",
+      "positionX": 29.0,
+      "positionY": 50.2,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "在反馈连接中，系统输出与输入之间的传递函数，是反馈连接的等效传递函数。",
+        "examples": [
+          "图2-26(b)所示的等效方框，表示反馈连接简化后的闭环传递函数。",
+          "图2-42典型反馈控制系统中，输入R(s)作用下的闭环传递函数C(s)/R(s)",
+          "例2-19中磁盘驱动读取系统的闭环传递函数计算。"
+        ],
+        "formulas": [
+          "\\Phi(s) = \\frac{G(s)}{1 \\mp G(s)H(s)}",
+          "\\frac{C(s)}{R(s)} = \\frac{G(s)}{1 + G(s)H(s)}",
+          "\\frac{C(s)}{N(s)} = \\frac{G_2(s)}{1 + G_1(s)G_2(s)H(s)}",
+          "\\Phi(s) = \\frac{G(s)}{1 + G(s)H(s)}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "反馈连接",
+          "等效传递函数",
+          "正负号对应",
+          "反馈系统",
+          "输出",
+          "输入",
+          "扰动",
+          "反馈",
+          "系统性能",
+          "稳定性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627641",
+        "updatedAt": "2026-02-04T17:54:16.627641",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环传递函数_2_5399c369.md"
+      ],
+      "tags": [
+        "反馈连接",
+        "等效传递函数",
+        "正负号对应",
+        "反馈系统",
+        "输出",
+        "输入",
+        "扰动",
+        "反馈",
+        "系统性能",
+        "稳定性",
+        "chapter-2"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "传递函数|系统结构图|2",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "系统结构图_2_5d3751f8",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "传递函数|信号流图|2",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "信号流图_2_372d4084",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "传递函数|串联连接|2",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "串联连接_2_98ee18bc",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "传递函数|并联连接|2",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "并联连接_2_0e5f1ec2",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "传递函数|反馈连接|2",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "反馈连接_2_40a881cb",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "传递函数|闭环传递函数|2",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "传递函数|结构图简化|2",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "结构图简化_2_6d86a775",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "传递函数|梅森增益公式|2",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "传递函数|开环传递函数|2",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "开环传递函数_2_ee6bdacf",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16245",
+      "sourceId": "系统结构图_2_5d3751f8",
+      "targetId": "信号流图_2_372d4084",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.85
+    },
+    {
+      "id": "系统结构图|串联连接|2",
+      "sourceId": "系统结构图_2_5d3751f8",
+      "targetId": "串联连接_2_98ee18bc",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "系统结构图|并联连接|2",
+      "sourceId": "系统结构图_2_5d3751f8",
+      "targetId": "并联连接_2_0e5f1ec2",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "系统结构图|反馈连接|2",
+      "sourceId": "系统结构图_2_5d3751f8",
+      "targetId": "反馈连接_2_40a881cb",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "系统结构图|闭环传递函数|2",
+      "sourceId": "系统结构图_2_5d3751f8",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "系统结构图|结构图简化|2",
+      "sourceId": "系统结构图_2_5d3751f8",
+      "targetId": "结构图简化_2_6d86a775",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 1.0
+    },
+    {
+      "id": "系统结构图|梅森增益公式|2",
+      "sourceId": "系统结构图_2_5d3751f8",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "系统结构图|开环传递函数|2",
+      "sourceId": "系统结构图_2_5d3751f8",
+      "targetId": "开环传递函数_2_ee6bdacf",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "信号流图|串联连接|2",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "串联连接_2_98ee18bc",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.6
+    },
+    {
+      "id": "信号流图|并联连接|2",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "并联连接_2_0e5f1ec2",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.6
+    },
+    {
+      "id": "信号流图|反馈连接|2",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "反馈连接_2_40a881cb",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "信号流图|闭环传递函数|2",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "信号流图|结构图简化|2",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "结构图简化_2_6d86a775",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "信号流图|梅森增益公式|2",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "信号流图|开环传递函数|2",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "开环传递函数_2_ee6bdacf",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.5
+    },
+    {
+      "id": "串联连接|并联连接|2",
+      "sourceId": "串联连接_2_98ee18bc",
+      "targetId": "并联连接_2_0e5f1ec2",
+      "relation": "opposite",
+      "relationType": "opposite",
+      "strength": 0.8
+    },
+    {
+      "id": "串联连接|反馈连接|2",
+      "sourceId": "串联连接_2_98ee18bc",
+      "targetId": "反馈连接_2_40a881cb",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "串联连接|闭环传递函数|2",
+      "sourceId": "串联连接_2_98ee18bc",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.5
+    },
+    {
+      "id": "串联连接|结构图简化|2",
+      "sourceId": "串联连接_2_98ee18bc",
+      "targetId": "结构图简化_2_6d86a775",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "串联连接|梅森增益公式|2",
+      "sourceId": "串联连接_2_98ee18bc",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "串联连接|开环传递函数|2",
+      "sourceId": "串联连接_2_98ee18bc",
+      "targetId": "开环传递函数_2_ee6bdacf",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "并联连接|反馈连接|2",
+      "sourceId": "并联连接_2_0e5f1ec2",
+      "targetId": "反馈连接_2_40a881cb",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "并联连接|闭环传递函数|2",
+      "sourceId": "并联连接_2_0e5f1ec2",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.2
+    },
+    {
+      "id": "并联连接|结构图简化|2",
+      "sourceId": "并联连接_2_0e5f1ec2",
+      "targetId": "结构图简化_2_6d86a775",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.6
+    },
+    {
+      "id": "并联连接|开环传递函数|2",
+      "sourceId": "并联连接_2_0e5f1ec2",
+      "targetId": "开环传递函数_2_ee6bdacf",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "反馈连接|闭环传递函数|2",
+      "sourceId": "反馈连接_2_40a881cb",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "反馈连接|结构图简化|2",
+      "sourceId": "反馈连接_2_40a881cb",
+      "targetId": "结构图简化_2_6d86a775",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.6
+    },
+    {
+      "id": "反馈连接|梅森增益公式|2",
+      "sourceId": "反馈连接_2_40a881cb",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.6
+    },
+    {
+      "id": "反馈连接|开环传递函数|2",
+      "sourceId": "反馈连接_2_40a881cb",
+      "targetId": "开环传递函数_2_ee6bdacf",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.7
+    },
+    {
+      "id": "闭环传递函数|结构图简化|2",
+      "sourceId": "闭环传递函数_2_5399c369",
+      "targetId": "结构图简化_2_6d86a775",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "闭环传递函数|梅森增益公式|2",
+      "sourceId": "闭环传递函数_2_5399c369",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "闭环传递函数|开环传递函数|2",
+      "sourceId": "闭环传递函数_2_5399c369",
+      "targetId": "开环传递函数_2_ee6bdacf",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "结构图简化|梅森增益公式|2",
+      "sourceId": "结构图简化_2_6d86a775",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "结构图简化|开环传递函数|2",
+      "sourceId": "结构图简化_2_6d86a775",
+      "targetId": "开环传递函数_2_ee6bdacf",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "梅森增益公式|开环传递函数|2",
+      "sourceId": "梅森增益公式_2_419eab0c",
+      "targetId": "开环传递函数_2_ee6bdacf",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "rt-16227",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "比例环节_2_11004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "rt-16228",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "积分环节_2_11005",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "rt-16230",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "惯性环节_2_11007",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.85
+    },
+    {
+      "id": "rt-16235",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "系统结构图_2_5d3751f8",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16236",
+      "sourceId": "系统结构图_2_5d3751f8",
+      "targetId": "串联连接_2_98ee18bc",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16237",
+      "sourceId": "系统结构图_2_5d3751f8",
+      "targetId": "并联连接_2_0e5f1ec2",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16238",
+      "sourceId": "系统结构图_2_5d3751f8",
+      "targetId": "反馈连接_2_40a881cb",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16239",
+      "sourceId": "反馈连接_2_40a881cb",
+      "targetId": "开环传递函数定义_2_12002",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16240",
+      "sourceId": "反馈连接_2_40a881cb",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16241",
+      "sourceId": "结构图等效变换_2_12001",
+      "targetId": "结构图简化_2_6d86a775",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16242",
+      "sourceId": "串联连接_2_98ee18bc",
+      "targetId": "结构图等效变换_2_12001",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "rt-16243",
+      "sourceId": "结构图简化_2_6d86a775",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16244",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16246",
+      "sourceId": "梅森增益公式_2_419eab0c",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16247",
+      "sourceId": "比例环节_2_11004",
+      "targetId": "系统结构图_2_5d3751f8",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.7
+    },
+    {
+      "id": "rt-16248",
+      "sourceId": "惯性环节_2_11007",
+      "targetId": "系统结构图_2_5d3751f8",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.7
+    },
+    {
+      "id": "rt-16249",
+      "sourceId": "积分环节_2_11005",
+      "targetId": "系统结构图_2_5d3751f8",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.7
+    },
+    {
+      "id": "rt-16250",
+      "sourceId": "开环传递函数定义_2_12002",
+      "targetId": "开环传递函数_2_ee6bdacf",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    }
+  ]
+}

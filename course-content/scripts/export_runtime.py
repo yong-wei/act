@@ -296,13 +296,43 @@ def export_handout(lesson_id: str) -> None:
     destination.write_text(rewrite_markdown_media(content, lesson_id), encoding='utf-8')
 
 
+def copy_media_assets(source_dir: Path, destination_dir: Path) -> list[str]:
+    copied: list[str] = []
+    static_suffixes = {
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.svg',
+        '.webp',
+        '.gif',
+        '.mp4',
+        '.webm',
+        '.mp3',
+        '.wav',
+        '.pdf',
+    }
+
+    for asset in sorted(source_dir.iterdir()):
+        if not asset.is_file() or asset.suffix.lower() not in static_suffixes:
+            continue
+        shutil.copy2(asset, destination_dir / asset.name)
+        copied.append(asset.name)
+
+    return copied
+
+
 def generate_runtime_media(lesson_id: str) -> None:
     raw_dir = AUTHORING_ROOT / 'lessons' / lesson_id / 'media' / 'raw'
-    if not raw_dir.exists():
+    output_dir = RUNTIME_ROOT / 'lessons' / lesson_id / 'media'
+    reset_directory(output_dir)
+
+    processed_dir = AUTHORING_ROOT / 'lessons' / lesson_id / 'media' / 'processed'
+    if processed_dir.exists() and any(path.is_file() for path in processed_dir.iterdir()):
+        copy_media_assets(processed_dir, output_dir)
         return
 
-    output_dir = RUNTIME_ROOT / 'lessons' / lesson_id / 'media'
-    output_dir.mkdir(parents=True, exist_ok=True)
+    if not raw_dir.exists():
+        return
 
     static_suffixes = {
         '.png',
@@ -334,6 +364,42 @@ def generate_runtime_media(lesson_id: str) -> None:
             cwd=str(raw_dir),
             check=True,
         )
+
+
+def export_review_bundle(lesson_id: str) -> dict[str, Any]:
+    review_dir = RUNTIME_ROOT / 'lessons' / lesson_id / 'review'
+    review_dir.mkdir(parents=True, exist_ok=True)
+    design_dir = AUTHORING_ROOT / 'lessons' / lesson_id / 'design'
+
+    review_paths: dict[str, Any] = {'status': 'pending'}
+    copy_pairs = {
+        'boppps.md': 'boppps_path',
+        'practice-guide.md': 'practice_guide_path',
+        'assessment-spec.md': 'assessment_spec_path',
+    }
+
+    for source_name, json_key in copy_pairs.items():
+        source = design_dir / source_name
+        if not source.exists():
+            continue
+        destination = review_dir / source_name
+        destination.write_text(rewrite_markdown_media(source.read_text(encoding='utf-8'), lesson_id), encoding='utf-8')
+        review_paths[json_key] = f'/course-runtime/lessons/{lesson_id}/review/{source_name}'
+
+    report_path = review_dir / 'review-report.md'
+    if report_path.exists():
+        review_paths['report_path'] = f'/course-runtime/lessons/{lesson_id}/review/review-report.md'
+        review_paths['status'] = 'reviewed'
+
+    for filename, json_key in (
+        ('knowledge-card-check.json', 'knowledge_card_check_path'),
+        ('multimedia-check.json', 'multimedia_check_path'),
+        ('source-manifest.json', 'source_manifest_path'),
+    ):
+        if (review_dir / filename).exists():
+            review_paths[json_key] = f'/course-runtime/lessons/{lesson_id}/review/{filename}'
+
+    return review_paths
 
 
 def load_manifest(lesson_id: str) -> dict[str, Any]:
@@ -396,6 +462,7 @@ def export_lesson_runtime(
     sequence = load_sequence(lesson_id)
     export_handout(lesson_id)
     generate_runtime_media(lesson_id)
+    review_paths = export_review_bundle(lesson_id)
 
     lesson_dir = RUNTIME_ROOT / 'lessons' / lesson_id
     graph_overlay = build_graph_overlay(lesson_id, manifest, sequence, runtime_nodes, runtime_relations)
@@ -408,6 +475,7 @@ def export_lesson_runtime(
         'handout_source_path': f'course-content/runtime/lessons/{lesson_id}/handout.md',
         'graph_overlay_path': f'/course-runtime/lessons/{lesson_id}/graph-overlay.json',
         'media_base_path': f'/course-runtime/lessons/{lesson_id}/media',
+        'review': review_paths,
     }
     write_json(lesson_dir / 'lesson.json', lesson_json)
 

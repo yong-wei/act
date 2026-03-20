@@ -2,7 +2,7 @@
 
 状态: active
 最后更新: 2026-03-20
-摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前应优先知道 1-1 拉氏变换精品互动课已完成 runtime-first 落地并注册到互动课程目录，同时教师端学情入口、学生端六维治理画像与 startup/shutdown 端口残留修复也仍是最近稳定上下文。
+摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 1-1 拉氏变换精品互动课 runtime-first 落地外，还应优先知道课程制作链已拆出独立 `lesson-content-review` 审查流程，并已在 `1-2` 上跑通。
 上游:
 - [00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
 - [README.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/README.md)
@@ -15,6 +15,9 @@
 
 ## 最近最重要的稳定变化
 
+- 已新增 `.codex/skills/lesson-content-review` 与 `course-content/scripts/review_lesson_content.py`：互动课程制作前，先按“正文/实践指南 -> BOPPPS -> sequence/knowledge cards -> multimedia -> runtime/review”顺序审查；修复回写 `authoring`，再导出 `course-content/runtime/lessons/<lesson>/review` 供制作技能直接消费
+- `1-2` 已作为首个课程审查试跑样例：补齐 10 张知识卡、4 个代码直出 SVG，并在 `course-content/runtime/lessons/1-2` 生成 `handout.md`、`lesson.json` 以及 `review/boppps.md`、`review-report.md`、`knowledge-card-check.json`、`multimedia-check.json`
+- `export_runtime.py` 现在对新课优先使用 `authoring/.../media/processed`，但仍保留 `media/raw` fallback，避免已完成旧课因为新审查流程缺失而回归
 - `1-1`「拉氏变换与传递函数——从微分方程到代数方程」已经完成精品互动课落地：存在独立入口页、教师页、学生页、预置教案、步骤级 AI 上下文、教师/学生会话同步与统一课程事件埋点
 - `1-1` 课程已接入 `course-content/runtime/lessons/1-1` 运行时内容，包含 `lesson.json`、`graph-overlay.json`、`handout.md` 和 6 个媒体文件；课程首页统一通过 runtime 展示知识点网络、知识卡片预览、讲义入口和 PDF 导出
 - 针对 `1-1` 的代码直出媒体，当前稳定流程是：先生成到 `course-content/authoring/lessons/<lesson>/media/processed` 审核合理性，再执行 `bash course-content/scripts/export-runtime.sh <lesson>` 导出到 runtime；不要跳过 `processed` 审核直接进运行时
@@ -42,6 +45,7 @@
 
 ## 初始化后的建议下一跳
 
+- 若任务是新课讲义、教案、知识卡或代码直出图的技术审查，先读 [70-workflows/35-lesson-content-review.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/35-lesson-content-review.md)
 - 若任务与 `1-1`、精品互动课注册、runtime 讲义/媒体导出或页面级 AI 上下文有关，先读 [40-domain/20-premium-courses.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/40-domain/20-premium-courses.md)
 - 若任务和学生个人中心、成长中枢、活动聚合或自适应习题接入有关，先读 [10-project/10-current-state.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/10-current-state.md)
 - 若任务和课堂事件、事实沉淀、会话同步有关，先读 [10-project/10-current-state.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/10-current-state.md)

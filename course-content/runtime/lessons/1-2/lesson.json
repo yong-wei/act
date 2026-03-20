@@ -1,0 +1,136 @@
+{
+  "lesson_id": "1-2",
+  "title": "系统结构图与化简——从积木块到系统蓝图",
+  "layer": "层1",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "C",
+  "graph_version": "612+17",
+  "focus_node_ids": [
+    "系统结构图_2_5d3751f8",
+    "结构图等效变换_2_12001",
+    "结构图简化_2_6d86a775",
+    "梅森增益公式_2_419eab0c",
+    "开环传递函数定义_2_12002"
+  ],
+  "reuse_node_ids": [
+    "传递函数_2_2c5e2589",
+    "串联连接_2_98ee18bc",
+    "并联连接_2_0e5f1ec2",
+    "反馈连接_2_40a881cb",
+    "信号流图_2_372d4084",
+    "开环传递函数_2_ee6bdacf",
+    "闭环传递函数_2_5399c369",
+    "比例环节_2_11004",
+    "积分环节_2_11005",
+    "惯性环节_2_11007"
+  ],
+  "entry_nodes": [
+    "系统结构图_2_5d3751f8"
+  ],
+  "summary_nodes": [
+    "闭环传递函数_2_5399c369"
+  ],
+  "card_order": [
+    "系统结构图_2_5d3751f8",
+    "串联连接_2_98ee18bc",
+    "并联连接_2_0e5f1ec2",
+    "反馈连接_2_40a881cb",
+    "开环传递函数定义_2_12002",
+    "闭环传递函数_2_5399c369",
+    "结构图等效变换_2_12001",
+    "结构图简化_2_6d86a775",
+    "信号流图_2_372d4084",
+    "梅森增益公式_2_419eab0c"
+  ],
+  "preceding_lesson": "1-1",
+  "following_lesson": "1-3",
+  "refinement_units": [],
+  "ideological_point": "梅森增益公式——全局观与工程认知",
+  "sequence": {
+    "lesson_id": "1-2",
+    "groups": [
+      {
+        "group_name": "引入与基本元素",
+        "step_ids": [
+          "step-01",
+          "step-02",
+          "step-03"
+        ],
+        "node_ids": [
+          "系统结构图_2_5d3751f8"
+        ]
+      },
+      {
+        "group_name": "三种基本连接",
+        "step_ids": [
+          "step-04",
+          "step-05",
+          "step-06"
+        ],
+        "node_ids": [
+          "串联连接_2_98ee18bc",
+          "并联连接_2_0e5f1ec2",
+          "反馈连接_2_40a881cb",
+          "开环传递函数定义_2_12002",
+          "闭环传递函数_2_5399c369"
+        ]
+      },
+      {
+        "group_name": "等效变换与化简",
+        "step_ids": [
+          "step-07",
+          "step-08",
+          "step-09"
+        ],
+        "node_ids": [
+          "结构图等效变换_2_12001",
+          "结构图简化_2_6d86a775"
+        ]
+      },
+      {
+        "group_name": "梅森增益公式",
+        "step_ids": [
+          "step-10",
+          "step-11"
+        ],
+        "node_ids": [
+          "信号流图_2_372d4084",
+          "梅森增益公式_2_419eab0c"
+        ]
+      },
+      {
+        "group_name": "总结",
+        "step_ids": [
+          "step-12",
+          "step-13"
+        ],
+        "node_ids": []
+      }
+    ],
+    "card_order": [
+      "系统结构图_2_5d3751f8",
+      "串联连接_2_98ee18bc",
+      "并联连接_2_0e5f1ec2",
+      "反馈连接_2_40a881cb",
+      "开环传递函数定义_2_12002",
+      "闭环传递函数_2_5399c369",
+      "结构图等效变换_2_12001",
+      "结构图简化_2_6d86a775",
+      "信号流图_2_372d4084",
+      "梅森增益公式_2_419eab0c"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/1-2/handout.md",
+  "handout_source_path": "course-content/runtime/lessons/1-2/handout.md",
+  "graph_overlay_path": "/course-runtime/lessons/1-2/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/1-2/media",
+  "review": {
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/1-2/review/boppps.md",
+    "report_path": "/course-runtime/lessons/1-2/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/1-2/review/knowledge-card-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/1-2/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/1-2/review/source-manifest.json"
+  }
+}
