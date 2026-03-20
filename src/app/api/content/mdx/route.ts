@@ -14,14 +14,21 @@ export async function GET(request: Request) {
     }
 
     const sanitizedPath = rawPath.replace(/^\/+/, '');
-    if (!sanitizedPath.endsWith('.mdx')) {
-      return NextResponse.json({ error: 'Only MDX files are supported' }, { status: 400 });
+    if (!sanitizedPath.endsWith('.md') && !sanitizedPath.endsWith('.mdx')) {
+      return NextResponse.json({ error: 'Only Markdown files are supported' }, { status: 400 });
     }
 
-    const baseDir = path.resolve(process.cwd(), 'content');
     const resolvedPath = path.resolve(process.cwd(), sanitizedPath);
+    const allowedBaseDirs = [
+      path.resolve(process.cwd(), 'content'),
+      path.resolve(process.cwd(), 'course-content', 'runtime'),
+    ];
 
-    if (!resolvedPath.startsWith(baseDir)) {
+    const isAllowed = allowedBaseDirs.some((baseDir) =>
+      resolvedPath === baseDir || resolvedPath.startsWith(`${baseDir}${path.sep}`)
+    );
+
+    if (!isAllowed) {
       return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
     }
 

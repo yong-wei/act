@@ -1,9 +1,26 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import bcryptModule from 'bcryptjs';
+
+const bcrypt = bcryptModule.default ?? bcryptModule;
 
 const prisma = new PrismaClient();
 
 const CASES = [
+  {
+    label: 'teacher-test_teacher',
+    where: { employeeNumber: 'test_teacher' },
+    expectedPassword: 'TestTeacher@Just2026!',
+  },
+  {
+    label: 'student-demo',
+    where: {
+      OR: [
+        { name: { equals: 'demo', mode: 'insensitive' } },
+        { email: { equals: 'demo@example.com', mode: 'insensitive' } },
+      ],
+    },
+    expectedPassword: 'DemoStudent@Just2026!',
+  },
   {
     label: 'teacher-201300000012',
     where: { employeeNumber: '201300000012' },

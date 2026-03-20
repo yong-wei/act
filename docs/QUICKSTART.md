@@ -86,7 +86,7 @@ npm run startup
 
 - **注册**: http://localhost:3000/register
 - **登录**: http://localhost:3000/login
-- **演示账号**: `demo@example.com` / `demo123456`
+- **演示账号**: `demo` / `DemoStudent@Just2026!`
 
 ### 2. 学生仪表板
 

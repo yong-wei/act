@@ -1,0 +1,77 @@
+{
+  "lesson_id": "1-1",
+  "sequence": [
+    {
+      "order": 1,
+      "node_id": "拉氏变换工程动机_2_11001",
+      "phase": "bridge",
+      "note": "引入——为什么需要拉氏变换"
+    },
+    {
+      "order": 2,
+      "node_id": "拉氏变换_2_243496d4",
+      "phase": "participatory",
+      "note": "定义与三条核心性质"
+    },
+    {
+      "order": 3,
+      "node_id": "微分定理_2_11002",
+      "phase": "participatory",
+      "note": "最重要的性质——微分变乘法"
+    },
+    {
+      "order": 4,
+      "node_id": "传递函数_2_2c5e2589",
+      "phase": "participatory",
+      "note": "严格定义与三步法"
+    },
+    {
+      "order": 5,
+      "node_id": "传递函数标准形式_2_11003",
+      "phase": "participatory",
+      "note": "首一形式与尾一形式"
+    },
+    {
+      "order": 6,
+      "node_id": "零点_2_c29600a1",
+      "phase": "participatory",
+      "note": "零点定义与定性作用"
+    },
+    {
+      "order": 7,
+      "node_id": "极点_2_cc79a4c5",
+      "phase": "participatory",
+      "note": "极点与四个家族的精确对应"
+    },
+    {
+      "order": 8,
+      "node_id": "比例环节_2_11004",
+      "phase": "participatory",
+      "note": "典型环节——比例"
+    },
+    {
+      "order": 9,
+      "node_id": "积分环节_2_11005",
+      "phase": "participatory",
+      "note": "典型环节——积分"
+    },
+    {
+      "order": 10,
+      "node_id": "微分环节_2_11006",
+      "phase": "participatory",
+      "note": "典型环节——微分"
+    },
+    {
+      "order": 11,
+      "node_id": "惯性环节_2_11007",
+      "phase": "participatory",
+      "note": "典型环节——惯性"
+    },
+    {
+      "order": 12,
+      "node_id": "振荡环节_5_d677d1e6",
+      "phase": "participatory",
+      "note": "典型环节——振荡"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+/**
+ * Data Governance Library
+ *
+ * Unified exports for the data governance system.
+ */
+
+// Event system
+export * from './event-protocol';
+export * from './event-types';
+export * from './event-buffer';
+
+// Competency system
+export * from './competency-model';
+export * from './competency-engine';
+
+// Risk detection
+export * from './risk-detector';
+
+// Worker client
+export * from './worker-client';

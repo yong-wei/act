@@ -113,8 +113,9 @@ export async function POST(request: NextRequest) {
       data: {
         userId: session.user.id,
         resourceId: resource.id,
+        resourceKey: `ten-drops:${levelId}`,
         eventType: 'complete',
-        eventData: payload,
+        eventData: payload as unknown as import('@prisma/client').Prisma.InputJsonValue,
       },
     });
 

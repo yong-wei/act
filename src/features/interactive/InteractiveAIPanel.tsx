@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, User, Loader2, X, Sparkles } from 'lucide-react';
+import { AIMessageContent } from '@/components/ai/ai-message-content';
+import { KonlingAvatar } from '@/components/ai/konling-avatar';
 import type { AIMessage, InteractiveAIContextValue } from './types';
 
 interface InteractiveAIPanelProps {
@@ -146,13 +148,13 @@ function MessageBubble({ message }: { message: AIMessage }) {
 
   return (
     <div className={`flex gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
-      <div
-        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-          isUser ? 'bg-emerald-500/15 text-emerald-400' : 'bg-blue-500/15 text-blue-400'
-        }`}
-      >
-        {isUser ? <User className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
-      </div>
+      {isUser ? (
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
+          <User className="h-3.5 w-3.5" />
+        </div>
+      ) : (
+        <KonlingAvatar size="sm" className="mt-0.5 shrink-0 self-start" />
+      )}
       <div
         className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
           isUser
@@ -160,7 +162,7 @@ function MessageBubble({ message }: { message: AIMessage }) {
             : 'bg-slate-800 text-slate-200'
         }`}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        <AIMessageContent content={message.content} />
       </div>
     </div>
   );

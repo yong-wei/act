@@ -1,0 +1,38 @@
+{
+  "lesson_id": "L-2a",
+  "title": "三张面孔，同一系统 · 时域直觉速通",
+  "layer": "层0",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "X",
+  "graph_version": "612+2",
+  "focus_node_ids": [
+    "四种响应家族_3_L2a",
+    "二阶系统标准型_3_L2a"
+  ],
+  "reuse_node_ids": [
+    "阶跃响应_10_47ad4df2",
+    "动态性能指标_3_a10733c1",
+    "超调量_3_fc3f5b17",
+    "上升时间_3_6fa0ec00",
+    "调节时间_10_fcbccf4e",
+    "阻尼比_3_b849784e",
+    "自然频率_10_51a8b7d0"
+  ],
+  "entry_nodes": ["四种响应家族_3_L2a"],
+  "summary_nodes": ["二阶系统标准型_3_L2a"],
+  "card_order": [
+    "阶跃响应_10_47ad4df2",
+    "四种响应家族_3_L2a",
+    "动态性能指标_3_a10733c1",
+    "超调量_3_fc3f5b17",
+    "上升时间_3_6fa0ec00",
+    "调节时间_10_fcbccf4e",
+    "二阶系统标准型_3_L2a",
+    "阻尼比_3_b849784e",
+    "自然频率_10_51a8b7d0"
+  ],
+  "preceding_lesson": "L-AI",
+  "following_lesson": "L-2b",
+  "refinement_units": ["1-1", "2-1"]
+}

@@ -49,6 +49,7 @@ export function InteractiveProvider({
   // 初始化追踪钩子
   const tracking = useInteractiveTracking({
     resourceId: config.resourceId,
+    resourceKey: config.resourceId,
     userId,
     sessionId,
     syncInterval: config.config.tracking?.syncInterval,
@@ -78,9 +79,21 @@ export function InteractiveProvider({
       progress: progressValue,
       isComplete: isProgressComplete,
     },
-    onMessage: (message) => {
-      if (message.role === 'user') {
-        tracking.emit('ai_query', { question: message.content });
+    onEvent: (eventType, data) => {
+      if (eventType === 'ai_panel_open') {
+        tracking.emit('interact', {
+          eventType: 'ai_panel_open',
+          resourceKey: config.resourceId,
+          ...data,
+        });
+      }
+
+      if (eventType === 'ai_query_submit') {
+        tracking.emit('ai_query', {
+          eventType: 'ai_query_submit',
+          resourceKey: config.resourceId,
+          ...data,
+        });
       }
     },
   });

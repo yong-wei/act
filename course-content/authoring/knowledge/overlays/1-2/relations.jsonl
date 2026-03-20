@@ -1,0 +1,16 @@
+{"source_id":"传递函数_2_2c5e2589","source_name":"传递函数","target_id":"系统结构图_2_5d3751f8","target_name":"系统结构图","relation":"leads_to","strength":0.9,"description":"传递函数是结构图中每个方框的数学内容","run_id":"1-2"}
+{"source_id":"系统结构图_2_5d3751f8","source_name":"系统结构图","target_id":"串联连接_2_98ee18bc","target_name":"串联连接","relation":"contains","strength":0.9,"description":"串联是结构图三种基本连接之一","run_id":"1-2"}
+{"source_id":"系统结构图_2_5d3751f8","source_name":"系统结构图","target_id":"并联连接_2_0e5f1ec2","target_name":"并联连接","relation":"contains","strength":0.9,"description":"并联是结构图三种基本连接之一","run_id":"1-2"}
+{"source_id":"系统结构图_2_5d3751f8","source_name":"系统结构图","target_id":"反馈连接_2_40a881cb","target_name":"反馈连接","relation":"contains","strength":0.95,"description":"反馈连接是结构图最核心的连接方式","run_id":"1-2"}
+{"source_id":"反馈连接_2_40a881cb","source_name":"反馈连接","target_id":"开环传递函数定义_2_12002","target_name":"开环传递函数（精化）","relation":"leads_to","strength":0.9,"description":"反馈连接引出开环传递函数的定义","run_id":"1-2"}
+{"source_id":"反馈连接_2_40a881cb","source_name":"反馈连接","target_id":"闭环传递函数_2_5399c369","target_name":"闭环传递函数","relation":"leads_to","strength":0.95,"description":"反馈连接化简得到闭环传递函数","run_id":"1-2"}
+{"source_id":"结构图等效变换_2_12001","source_name":"结构图等效变换","target_id":"结构图简化_2_6d86a775","target_name":"结构图简化","relation":"leads_to","strength":0.95,"description":"等效变换是代数化简法的基本操作工具","run_id":"1-2"}
+{"source_id":"串联连接_2_98ee18bc","source_name":"串联连接","target_id":"结构图等效变换_2_12001","target_name":"结构图等效变换","relation":"leads_to","strength":0.8,"description":"基本连接规则是等效变换的前提","run_id":"1-2"}
+{"source_id":"结构图简化_2_6d86a775","source_name":"结构图简化","target_id":"闭环传递函数_2_5399c369","target_name":"闭环传递函数","relation":"leads_to","strength":0.9,"description":"结构图化简的最终目标是求闭环传递函数","run_id":"1-2"}
+{"source_id":"信号流图_2_372d4084","source_name":"信号流图","target_id":"梅森增益公式_2_419eab0c","target_name":"梅森增益公式","relation":"leads_to","strength":0.95,"description":"信号流图是梅森增益公式的图形基础","run_id":"1-2"}
+{"source_id":"系统结构图_2_5d3751f8","source_name":"系统结构图","target_id":"信号流图_2_372d4084","target_name":"信号流图","relation":"related","strength":0.85,"description":"信号流图是结构图的等价图形表示","run_id":"1-2"}
+{"source_id":"梅森增益公式_2_419eab0c","source_name":"梅森增益公式","target_id":"闭环传递函数_2_5399c369","target_name":"闭环传递函数","relation":"leads_to","strength":0.9,"description":"梅森公式可直接求闭环传递函数","run_id":"1-2"}
+{"source_id":"比例环节_2_11004","source_name":"比例环节","target_id":"系统结构图_2_5d3751f8","target_name":"系统结构图","relation":"instance_of","strength":0.7,"description":"比例环节是结构图中最简单的方框","run_id":"1-2"}
+{"source_id":"惯性环节_2_11007","source_name":"惯性环节","target_id":"系统结构图_2_5d3751f8","target_name":"系统结构图","relation":"instance_of","strength":0.7,"description":"惯性环节是结构图中常见的方框","run_id":"1-2"}
+{"source_id":"积分环节_2_11005","source_name":"积分环节","target_id":"系统结构图_2_5d3751f8","target_name":"系统结构图","relation":"instance_of","strength":0.7,"description":"积分环节是结构图中常见的方框","run_id":"1-2"}
+{"source_id":"开环传递函数定义_2_12002","source_name":"开环传递函数（精化）","target_id":"开环传递函数_2_ee6bdacf","target_name":"开环传递函数","relation":"generalizes","strength":0.9,"description":"本课精化了开环传递函数的定义和工程意义","run_id":"1-2"}

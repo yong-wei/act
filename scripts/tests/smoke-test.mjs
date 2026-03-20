@@ -35,7 +35,7 @@ assertFile(envExamplePath);
 assertFile(shipModelPreviewPath);
 
 const schemaContent = fs.readFileSync(schemaPath, 'utf8');
-if (!schemaContent.includes('provider = "postgresql"')) {
+if (!/provider\s+=\s+"postgresql"/.test(schemaContent)) {
   throw new Error('Prisma schema is not configured for PostgreSQL.');
 }
 if (!schemaContent.includes('binaryTargets')) {

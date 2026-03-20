@@ -11,6 +11,7 @@ docs/courses/
 deploy/
 data/
 .cache/
+.tmp/
 
 # Node/JS
 **/node_modules/
@@ -45,3 +46,7 @@ $ Playwright temp
 .playwright-mcp/
 scripts/**/__pycache__/
 scripts/**/*.pyc
+**/__pycache__/
+**/*.pyc
+.worktrees/
+chroma/

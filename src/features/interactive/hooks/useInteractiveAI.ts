@@ -2,12 +2,14 @@
 
 import { useState, useCallback, useRef } from 'react';
 import type { AIMessage, InteractiveAIContextValue, InteractiveConfig } from '../types';
+import { extractAITextFromStreamChunk } from './ai-stream';
 
 interface UseInteractiveAIOptions {
   config: InteractiveConfig;
   persona?: 'tutor' | 'critic' | 'analyst';
   contextData?: Record<string, unknown>;
   onMessage?: (message: AIMessage) => void;
+  onEvent?: (eventType: string, data?: Record<string, unknown>) => void;
 }
 
 /**
@@ -18,7 +20,7 @@ interface UseInteractiveAIOptions {
 export function useInteractiveAI(
   options: UseInteractiveAIOptions
 ): InteractiveAIContextValue {
-  const { config, persona = 'tutor', contextData, onMessage } = options;
+  const { config, persona = 'tutor', contextData, onMessage, onEvent } = options;
 
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [messages, setMessages] = useState<AIMessage[]>([]);
@@ -32,8 +34,17 @@ export function useInteractiveAI(
 
   // 切换面板
   const togglePanel = useCallback(() => {
-    setIsPanelOpen((prev) => !prev);
-  }, []);
+    setIsPanelOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        onEvent?.('ai_panel_open', {
+          resourceKey: config.resourceId,
+          resourceId: config.resourceId,
+        });
+      }
+      return next;
+    });
+  }, [config.resourceId, onEvent]);
 
   // 发送消息
   const sendMessage = useCallback(async (content: string): Promise<string> => {
@@ -56,6 +67,11 @@ export function useInteractiveAI(
     };
     setMessages((prev) => [...prev, userMessage]);
     onMessage?.(userMessage);
+    onEvent?.('ai_query_submit', {
+      question: content,
+      resourceKey: config.resourceId,
+      resourceId: config.resourceId,
+    });
 
     setIsLoading(true);
     setError(null);
@@ -92,30 +108,24 @@ export function useInteractiveAI(
       }
 
       let assistantContent = '';
+      let pendingBuffer = '';
       const decoder = new TextDecoder();
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        // 解析 SSE 格式
-        const lines = chunk.split('\n');
+        pendingBuffer += decoder.decode(value, { stream: true });
+        const lines = pendingBuffer.split('\n');
+        pendingBuffer = lines.pop() ?? '';
+
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.content) {
-                assistantContent += parsed.content;
-              }
-            } catch {
-              // 可能是纯文本
-              assistantContent += data;
-            }
-          }
+          assistantContent += extractAITextFromStreamChunk(line);
         }
+      }
+
+      if (pendingBuffer) {
+        assistantContent += extractAITextFromStreamChunk(pendingBuffer);
       }
 
       // 添加助手消息
@@ -139,7 +149,7 @@ export function useInteractiveAI(
     } finally {
       setIsLoading(false);
     }
-  }, [isEnabled, config, persona, contextData, onMessage]);
+  }, [isEnabled, config, persona, contextData, onMessage, onEvent]);
 
   return {
     isEnabled,

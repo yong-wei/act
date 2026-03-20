@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { ArrowRight, Compass, Ship, Sparkles, Workflow } from 'lucide-react';
+import { ArrowRight, Compass, Sparkles, Workflow } from 'lucide-react';
+import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
 
 const ENTRY_ROUTES = [
   {
@@ -29,25 +30,7 @@ const ENTRY_ROUTES = [
 export default function InteractiveLearningPage() {
   return (
     <div className="surface-page">
-      <nav className="surface-topbar">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-4">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
-              <Ship className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-sm font-semibold tracking-wide text-foreground">AI-OBE船舶智控平台</div>
-              <div className="text-xs text-subtle">Mission Control for Maritime Education</div>
-            </div>
-          </Link>
-          <Link
-            href="/dashboard"
-            className="btn-ghost-themed rounded-lg border px-4 py-2 text-sm transition-colors"
-          >
-            进入驾驶舱
-          </Link>
-        </div>
-      </nav>
+      <UnifiedTopBar title="互动学习" backHref="/" backLabel="返回首页" subtitle="Interactive Learning" />
 
       <main className="mx-auto max-w-[1200px] px-6 py-12">
         <header className="surface-card mb-10 p-6">

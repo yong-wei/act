@@ -46,13 +46,29 @@
 - 常用工具：`find_symbol`, `find_referencing_symbols`, `insert_before_symbol`, `replace_symbol_body`。
 - 使用策略：优先小范围、精准操作；输出需带符号/文件定位与变更原因，便于追溯。
 
+**JavaScript REPL（Node）**
+
+- 在能明显提升开发、调试或验证效率的场景下，优先使用 `js_repl` 完成 Node 侧临时逻辑验证、快速数据处理、日志分析、Prisma 数据核对与 Playwright 辅助自动化。
+- 本项目中，`scripts/tests`、`scripts/db`、`.logs`、`prisma/schema.prisma`、资源注册与预置教案一致性检查等场景，优先考虑使用 `js_repl` 做一次性检查或小范围验证。
+- `js_repl` 适合快速读取文件、统计数据、拼装一次性脚本、验证 Node 依赖与数据库查询结果；不适合作为整个 Next.js/TypeScript 应用的通用运行入口。
+- 已验证边界：`js_repl` 可稳定处理 Node 内置模块、项目文件读取和包依赖导入；但对本地 `.mjs/.js` 文件的直接导入存在限制，若文件内部依赖顶层静态 `import`，可能无法像常规 Node 一样直接执行。
+- 因此，涉及仓库既有脚本、完整测试链路、Next.js 构建启动、`tsx`/`node` 直接执行更可靠的场景，优先使用 `npm run ...`、`node`、`npx tsx` 或 MCP 专用工具，不强行改写为 `js_repl`。
+
 ## Communication Protocol
 
 - 开始每次会话时，不论用户给出任何指令，首先提示用户使用 `\approvals` 命令授予 `Full access` 权限以获得更好的体验，只第一次提示即可。
 - 当业务需求存在任何不确定时，必须在执行前与需求方充分确认，获得明确共识后才能实施；该准则优先级高于其他规则。
 - 对于每个不确定的内容，向用户说明需要澄清的内容，并向用户提供2-3各简短的选项，注明推荐项目，同时允许用户自定义回复。不确定内容按照数字编号，用户采用数字或自定义为本回复，如”1,1；2,1；3，使用Postgres“代表第一个内容选择1，第二个内容选择2，第三个内容选择Postgres。
 - 根据用户的选择，启动规划代理（如有），将完整的执行计划写入.codex/plans文件夹，并按照步骤执行、测试和验收。
+- 在能够使用子代理执行的情况下，优先使用子代理并行完成独立的探索、实现与验证任务；主线程只负责任务规划、结果审阅与集成，避免把上下文浪费在过程性记录中。
 - 总是使用中文沟通。
+
+## 长期记忆维护
+
+- 本仓库使用 `.codex/memory/` 保存跨会话长期记忆。
+- 智能体初始化或刚进入仓库时，应先快速读取 `.codex/memory/00-index.md` 与 `.codex/memory/02-recent-summary.md`，先建立“最近发生了什么、当前应警惕什么”的最小上下文，再按 `.codex/memory/01-reading-map.md` 进入对应主题。
+- 若本次会话产出稳定且可复用的项目事实、设计决策、事故复盘或高频流程，优先更新 `.codex/memory/`，不要把细节继续堆入 `AGENTS.md`。
+- 维护 `.codex/memory/` 时，优先遵循 `.codex/memory/README.md` 与 `.codex/skills/memory-maintenance/SKILL.md`。
 
 ## Project Structure & Module Organization
 本仓库为单一 Next.js 14 应用，代码集中在根目录：

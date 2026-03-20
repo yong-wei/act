@@ -1,11 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
@@ -52,14 +52,14 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  accounts           Account[]
-  sessions           Session[]
-  profile            StudentProfile?
-  simulationSessions SimulationSession[]
-  llmSessions        LlmSession[]
-  progress           UserProgress[]
-  simulationLogs     SimulationLog[]
-  ethicalLogs        EthicalLog[]
+  accounts                  Account[]
+  sessions                  Session[]
+  profile                   StudentProfile?
+  simulationSessions        SimulationSession[]
+  llmSessions               LlmSession[]
+  progress                  UserProgress[]
+  simulationLogs            SimulationLog[]
+  ethicalLogs               EthicalLog[]
   controlOdysseyAiHistories ControlOdysseyAiHistory[]
 
   // 新增关系：学习模块
@@ -88,31 +88,40 @@ model User {
   // 互动埋点日志
   interactionLogs InteractionLog[]
 
+  // 课堂固化报告
+  studentSessionReports StudentSessionReport[]
+
   // DevelopmentPlan 扩展模块
-  linkageSessions   LinkageSession[]
-  userAnswers       UserAnswer[]
+  linkageSessions    LinkageSession[]
+  userAnswers        UserAnswer[]
   abilityAssessments AbilityAssessment[]
-  aiInterventions   AIIntervention[]
-  promptAssessments PromptAssessment[]
-  designSessions    DesignSession[]
+  aiInterventions    AIIntervention[]
+  promptAssessments  PromptAssessment[]
+  designSessions     DesignSession[]
+
+  // 控灵AI助手会话
+  konlingSessions    KonlingSession[]
+
+  // Data governance
+  riskFlags          StudentRiskFlag[]
 }
 
 model StudentProfile {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  studentNumber String?
-  classId       String? // 班级ID
-  techScore     Float    @default(0) // 技术能力分
-  ethicsScore   Float    @default(100) // 伦理分（初始满分，违规扣减）
-  major         String?
-  year          String?
-  className     String?
-  controlCredits Int @default(0)
-  controlUnlocks Json @default("[]")
-  controlOdysseyProgress Json @default("{}")
-  controlControllerLevels Json @default("{}")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  studentNumber           String?
+  classId                 String? // 班级ID
+  techScore               Float    @default(0) // 技术能力分
+  ethicsScore             Float    @default(100) // 伦理分（初始满分，违规扣减）
+  major                   String?
+  year                    String?
+  className               String?
+  controlCredits          Int      @default(0)
+  controlUnlocks          Json     @default("[]")
+  controlOdysseyProgress  Json     @default("{}")
+  controlControllerLevels Json     @default("{}")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   class Class? @relation(fields: [classId], references: [id])
@@ -588,8 +597,8 @@ model TeachingResource {
   // 分类与展示
   category     InteractiveCategory? // 组件分类
   displayName  String? // 中文显示名称
-  displayOrder Int      @default(0) // 显示排序
-  teacherOnly  Boolean  @default(false) // 是否仅教师可见
+  displayOrder Int                  @default(0) // 显示排序
+  teacherOnly  Boolean              @default(false) // 是否仅教师可见
 
   // 配置与元数据
   config  Json    @default("{}") // 组件默认 Props 或 参数
@@ -634,8 +643,8 @@ model LessonPlan {
   isPublic    Boolean @default(false)
 
   // 预置教案标识
-  isPreset    Boolean @default(false)  // 系统预置教案
-  presetKey   String? @unique          // 预置教案唯一标识 (如 "cruise-comfort-v1")
+  isPreset  Boolean @default(false) // 系统预置教案
+  presetKey String? @unique // 预置教案唯一标识 (如 "cruise-comfort-v1")
 
   // BOPPPS 结构化环节
   items LessonItem[]
@@ -699,8 +708,11 @@ model ClassSession {
 
   startTime DateTime  @default(now())
   endTime   DateTime?
+  updatedAt DateTime? @updatedAt
 
-  studentStates StudentState[]
+  studentStates         StudentState[]
+  classSessionReports   ClassSessionReport[]
+  studentSessionReports StudentSessionReport[]
 
   @@index([classId])
 }
@@ -720,35 +732,84 @@ model StudentState {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  itemId String? // 关联的 LessonItem
+  stateKey  String  @default("course")
+  lessonKey String?
+  itemId    String? // 关联的 LessonItem
 
   // 实时数据 (答案、仿真参数、操作日志等)
   data Json
 
-  submittedAt DateTime @default(now())
+  submittedAt       DateTime  @default(now())
+  lastClientEventAt DateTime?
 
-  @@unique([sessionId, userId])
+  @@unique([sessionId, userId, stateKey])
   @@index([sessionId])
   @@index([userId])
+  @@index([lessonKey])
 }
 
 // 互动事件日志（埋点追踪）
 model InteractionLog {
-  id         String   @id @default(cuid())
-  userId     String
-  resourceId String
-  sessionId  String? // 课堂会话ID（可选）
-  eventType  String // view, interact, param_change, submit, ai_query, complete, error
-  eventData  Json     @default("{}")
-  createdAt  DateTime @default(now())
+  id            String    @id @default(cuid())
+  userId        String
+  resourceId    String?
+  resourceKey   String?
+  sessionId     String? // 课堂会话ID（可选）
+  lessonKey     String?
+  stepId        String?
+  actorRole     String?
+  attemptKey    String?
+  eventType     String // view, interact, param_change, submit, ai_query, complete, error
+  eventData     Json      @default("{}")
+  clientEventAt DateTime?
+  createdAt     DateTime  @default(now())
 
-  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resource TeachingResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource TeachingResource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
 
   @@index([userId, resourceId])
+  @@index([userId, resourceKey])
   @@index([sessionId])
+  @@index([sessionId, lessonKey])
   @@index([createdAt])
   @@index([eventType])
+}
+
+model ClassSessionReport {
+  id         String       @id @default(cuid())
+  sessionId  String
+  session    ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  lessonKey  String?
+  reportType String       @default("class-summary")
+  status     String       @default("READY")
+  summary    String?
+  reportData Json         @default("{}")
+  aiSummary  String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([sessionId, reportType])
+  @@index([lessonKey])
+}
+
+model StudentSessionReport {
+  id         String       @id @default(cuid())
+  sessionId  String
+  session    ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonKey  String?
+  reportType String       @default("student-summary")
+  status     String       @default("READY")
+  summary    String?
+  reportData Json         @default("{}")
+  aiSummary  String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([sessionId, userId, reportType])
+  @@index([lessonKey])
+  @@index([userId])
 }
 
 // 知识学习进度
@@ -891,19 +952,19 @@ model AIIntervention {
 }
 
 model PromptAssessment {
-  id                  String   @id @default(cuid())
-  userId              String
-  sessionId           String
-  promptContent       String   @db.Text
-  structuredData      Json?
-  overallScore        Float
-  completenessScore   Float
-  precisionScore      Float
+  id                   String   @id @default(cuid())
+  userId               String
+  sessionId            String
+  promptContent        String   @db.Text
+  structuredData       Json?
+  overallScore         Float
+  completenessScore    Float
+  precisionScore       Float
   structurizationScore Float
-  executabilityScore  Float
-  suggestions         Json[]
-  version             Int
-  createdAt           DateTime @default(now())
+  executabilityScore   Float
+  suggestions          Json[]
+  version              Int
+  createdAt            DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -912,17 +973,17 @@ model PromptAssessment {
 }
 
 model DesignSession {
-  id                     String   @id @default(cuid())
-  userId                 String
-  taskType               String
-  promptVersions         Json[]
-  designActions          Json[]
-  finalResult            Json?
-  consistencyScore       Float?
-  goalBehaviorAlignment  Float?
+  id                      String    @id @default(cuid())
+  userId                  String
+  taskType                String
+  promptVersions          Json[]
+  designActions           Json[]
+  finalResult             Json?
+  consistencyScore        Float?
+  goalBehaviorAlignment   Float?
   behaviorResultCoherence Float?
-  startedAt              DateTime @default(now())
-  completedAt            DateTime?
+  startedAt               DateTime  @default(now())
+  completedAt             DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -934,4 +995,229 @@ model PlatformSetting {
   value     Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ========== 控灵AI助手会话模型 ==========
+
+model KonlingSession {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String   // 课程ID (L-2d, L-sum等)
+  pageId    String   // 页面/步骤ID
+  title     String   // 会话标题
+
+  messages  Json     // 消息历史数组
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime // 7天后过期
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, courseId, pageId])
+  @@index([expiresAt])
+  @@index([userId, updatedAt])
+}
+
+// ========== Data Governance Tables ==========
+
+// Event batch storage for secondary events
+model LearningEventBatch {
+  id          String    @id @default(cuid())
+  batchDate   DateTime  @db.Date
+  events      Json      // Compressed array of LearningEvent
+  eventCount  Int
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([batchDate])
+  @@index([processedAt])
+}
+
+// Event type metadata dictionary
+model EventDictionary {
+  eventType         String   @id
+  category          String
+  priority          String
+  description       String?
+  schema            Json?    // JSON Schema for payload
+  competencyMapping Json?    // Which competencies this event contributes to
+  createdAt         DateTime @default(now())
+}
+
+// Unified learning facts (derived from events)
+model LearningFact {
+  id              String   @id @default(cuid())
+  userId          String
+  factType        String   // simulation, question, ai_intervention, prompt_design, ethical
+  moduleId        String?
+  sessionId       String?
+
+  startedAt       DateTime
+  finishedAt      DateTime?
+
+  outcome         String   // success, partial, failure, abandoned
+  score           Float?
+  timeSpent       Int?     // Seconds
+
+  // Competency contribution (-1 to 1 per dimension)
+  competencyContribution Json
+
+  // Source references
+  sourceEventId   String?
+  sourceLogId     String?
+
+  // Context
+  courseId        String?
+  lessonId        String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([userId, factType])
+  @@index([userId, startedAt])
+  @@index([sessionId])
+  @@index([factType, startedAt])
+}
+
+// Student competency snapshot
+model StudentCompetencySnapshot {
+  id                  String   @id @default(cuid())
+  userId              String
+  snapshotAt          DateTime
+
+  // Six-dimensional competency vector
+  competencyVector    Json
+
+  // Evidence summary
+  evidenceSummary     Json
+
+  // Risk flags
+  riskFlags           Json
+
+  // Learning trajectory
+  trajectoryVector    Json?
+
+  // Metadata
+  calculationVersion  String   @default("v1")
+  factCount           Int
+
+  @@index([userId, snapshotAt])
+  @@index([snapshotAt])
+}
+
+// Optimized profile summary for AI assistant
+model StudentProfileSummary {
+  userId                 String   @id
+  updatedAt              DateTime @updatedAt
+
+  overallLevel           String   // 优秀/良好/中等偏上/需关注
+  overallScore           Float
+
+  strengthsJson          Json     // ['动态响应分析', '仿真调参']
+  weaknessesJson         Json     // ['跨域解释一致性']
+
+  recentTrend            String   // 近两周稳步提升/波动/停滞
+  trendDirection         String   // up/down/stable
+
+  riskFlagsJson          Json     // ['遇到复杂任务倾向直接请求AI']
+  riskLevel              String   // none/low/medium/high
+
+  recommendedScaffolding String
+
+  recentActivityJson     Json
+
+  cacheExpiresAt         DateTime
+
+  @@index([updatedAt])
+  @@index([riskLevel])
+}
+
+// Class-level competency aggregation
+model ClassCompetencySnapshot {
+  id                String   @id @default(cuid())
+  classId           String
+  snapshotAt        DateTime
+
+  aggregateJson     Json     // Mean/stdev per dimension
+  distributionJson  Json     // Score distribution
+  trendJson         Json     // Change from previous
+  riskSummaryJson   Json
+
+  levelDistribution Json     // { excellent: 5, good: 10, ... }
+
+  activeStudentCount Int
+  totalStudentCount  Int
+
+  @@index([classId, snapshotAt])
+}
+
+// Student risk flags
+model StudentRiskFlag {
+  id            String    @id @default(cuid())
+  userId        String
+  flagType      String    // participation, stagnation, ai_misuse, constraint, cross_domain
+  severity      String    // low, medium, high
+  description   String
+
+  evidenceJson  Json
+  triggeredAt   DateTime
+
+  isResolved    Boolean   @default(false)
+  resolvedAt    DateTime?
+  resolutionNote String?
+
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, flagType])
+  @@index([userId, isResolved])
+  @@index([flagType, severity])
+}
+
+// Growth records for portfolio
+model GrowthRecord {
+  id          String   @id @default(cuid())
+  userId      String
+
+  recordType  String   // milestone, breakthrough, remediation, reflection, portfolio
+  title       String
+  description String
+
+  evidenceJson Json
+  mediaUrls    String[]
+
+  occurredAt  DateTime
+  courseId    String?
+  isPublic    Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId, recordType])
+  @@index([userId, occurredAt])
+}
+
+// Learning recommendations
+model LearningRecommendation {
+  id          String   @id @default(cuid())
+  userId      String
+
+  recType     String   // immediate, weekly, challenge
+  title       String
+  description String
+  reasoning   String
+
+  actionType   String
+  targetModule String?
+  estimatedTime Int
+
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  wasHelpful  Boolean?
+
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+
+  @@index([userId, recType])
+  @@index([userId, isCompleted])
 }

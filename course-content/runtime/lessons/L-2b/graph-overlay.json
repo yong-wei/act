@@ -1,0 +1,576 @@
+{
+  "lesson_id": "L-2b",
+  "title": "根轨迹直觉速通——极点迁移的几何感知",
+  "focus_node_ids": [
+    "根轨迹_4_c19f8854",
+    "开环增益_3_d73dc120",
+    "极点迁移_4_L2b001",
+    "最佳阻尼比_3_L2b002"
+  ],
+  "reuse_node_ids": [
+    "阻尼比_3_b849784e",
+    "稳定裕度_5_bfd54f1c",
+    "根轨迹法_4_4e598387"
+  ],
+  "entry_nodes": [
+    "极点迁移_4_L2b001"
+  ],
+  "summary_nodes": [
+    "最佳阻尼比_3_L2b002"
+  ],
+  "card_order": [
+    "开环增益_3_d73dc120",
+    "极点迁移_4_L2b001",
+    "根轨迹_4_c19f8854",
+    "阻尼比_3_b849784e",
+    "最佳阻尼比_3_L2b002",
+    "稳定裕度_5_bfd54f1c"
+  ],
+  "groups": [
+    {
+      "group_name": "引入",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04"
+      ],
+      "node_ids": [
+        "开环增益_3_d73dc120"
+      ]
+    },
+    {
+      "group_name": "核心概念",
+      "step_ids": [
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11"
+      ],
+      "node_ids": [
+        "极点迁移_4_L2b001",
+        "根轨迹_4_c19f8854"
+      ]
+    },
+    {
+      "group_name": "挑战任务",
+      "step_ids": [
+        "step-12",
+        "step-13",
+        "step-14",
+        "step-15"
+      ],
+      "node_ids": [
+        "阻尼比_3_b849784e",
+        "最佳阻尼比_3_L2b002"
+      ]
+    },
+    {
+      "group_name": "展望",
+      "step_ids": [
+        "step-16",
+        "step-17"
+      ],
+      "node_ids": [
+        "稳定裕度_5_bfd54f1c"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "开环增益_3_d73dc120",
+      "name": "开环增益",
+      "nodeType": "THEORY",
+      "description": "系统开环传递函数中的增益参数，影响系统的稳态误差和动态性能。",
+      "positionX": -55.2,
+      "positionY": 55.2,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "系统开环传递函数中的增益参数，影响系统的稳态误差和动态性能。",
+        "examples": [
+          "比例-微分控制中，允许选取较高的开环增益以减小稳态误差。",
+          "测速反馈控制会降低开环增益，从而可能加大斜坡输入时的稳态误差。"
+        ],
+        "formulas": [
+          "K"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "增益",
+          "稳态误差",
+          "传递函数"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627891",
+        "updatedAt": "2026-02-04T17:54:16.627891",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "增益",
+        "稳态误差",
+        "传递函数",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "最佳阻尼比_3_L2b002",
+      "name": "最佳阻尼比",
+      "nodeType": "THEORY",
+      "description": "ζ=0.707时，系统在快速响应与最小超调（约4.3%）之间取得最优平衡，对应根轨迹图上与负实轴成45°的射线。",
+      "positionX": -75.3,
+      "positionY": -20.2,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "ζ=0.707时，系统在快速响应与最小超调（约4.3%）之间取得最优平衡，对应根轨迹图上与负实轴成45°的射线。",
+        "examples": [
+          "船舶航向控制中，取K=2使极点落在(-1,±j1)，阻尼比恰好为0.707"
+        ],
+        "formulas": [
+          "\\zeta = 0.707 = \\cos 45°",
+          "\\theta = 45°"
+        ],
+        "prerequisites": [
+          "阻尼比",
+          "根轨迹"
+        ],
+        "relatedConcepts": [
+          "超调量",
+          "极点迁移",
+          "开环增益"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "最佳阻尼比",
+          "0.707",
+          "45度射线",
+          "超调量",
+          "工程选取"
+        ],
+        "createdAt": "2026-03-11T15:04:55.391791+00:00",
+        "updatedAt": "2026-03-11T15:04:55.391791+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/最佳阻尼比_3_L2b002.md"
+      ],
+      "tags": [
+        "最佳阻尼比",
+        "0.707",
+        "45度射线",
+        "超调量",
+        "工程选取",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "阻尼比_3_b849784e",
+      "name": "阻尼比",
+      "nodeType": "THEORY",
+      "description": "阻尼比是描述二阶系统阻尼程度的无量纲参数，其值等于负实轴夹角的余弦。",
+      "positionX": 81.1,
+      "positionY": -21.7,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "阻尼比是描述二阶系统阻尼程度的无量纲参数，其值等于负实轴夹角的余弦。",
+        "examples": [
+          "ζ<1为欠阻尼（振荡），ζ=1为临界阻尼，ζ>1为过阻尼。",
+          "用于计算欠阻尼二阶系统的超调量、峰值时间等动态性能指标。",
+          "比例-微分控制和测速反馈控制均可增大系统的阻尼比。",
+          "例3-5中要求使系统阻尼比为0.5。",
+          "ζ值越大，振荡性越弱；ζ值越小，振荡性越强。",
+          "习题3-6中要求根据单位阶跃响应确定系统的阻尼比和自然频率。"
+        ],
+        "formulas": [
+          "\\zeta = \\frac{\\text{实际阻尼系数}}{\\text{临界阻尼系数}}",
+          "\\zeta = \\cos\\beta",
+          "\\zeta",
+          "\\zeta_d",
+          "\\zeta_t"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "阻尼比",
+          "ζ",
+          "阻尼程度",
+          "阻尼角",
+          "二阶系统",
+          "阻尼",
+          "振荡",
+          "超调量",
+          "振荡性",
+          "系统特性",
+          "稳定性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627825",
+        "updatedAt": "2026-02-04T17:54:16.627825",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/阻尼比_3_b849784e.md"
+      ],
+      "tags": [
+        "阻尼比",
+        "ζ",
+        "阻尼程度",
+        "阻尼角",
+        "二阶系统",
+        "阻尼",
+        "振荡",
+        "超调量",
+        "振荡性",
+        "系统特性",
+        "稳定性",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "极点迁移_4_L2b001",
+      "name": "极点迁移",
+      "nodeType": "THEORY",
+      "description": "当系统参数（如开环增益K）变化时，闭环极点在复平面上发生位移的现象；根轨迹描述了极点迁移的完整路径。",
+      "positionX": 73.5,
+      "positionY": -73.5,
+      "positionZ": 4,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "当系统参数（如开环增益K）变化时，闭环极点在复平面上发生位移的现象；根轨迹描述了极点迁移的完整路径。",
+        "examples": [
+          "船舶航向控制中，增大增益K使极点从负实轴分叉为共轭复数极点，响应由单调转为振荡"
+        ],
+        "formulas": [
+          "s^2 + 2s + K = 0"
+        ],
+        "prerequisites": [
+          "极点",
+          "开环增益",
+          "闭环极点"
+        ],
+        "relatedConcepts": [
+          "根轨迹",
+          "阻尼比",
+          "超调量"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "极点",
+          "迁移",
+          "增益",
+          "复平面",
+          "轨迹"
+        ],
+        "createdAt": "2026-03-11T15:04:55.388112+00:00",
+        "updatedAt": "2026-03-11T15:04:55.388112+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/极点迁移_4_L2b001.md"
+      ],
+      "tags": [
+        "极点",
+        "迁移",
+        "增益",
+        "复平面",
+        "轨迹",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "根轨迹_4_c19f8854",
+      "name": "根轨迹",
+      "nodeType": "THEORY",
+      "description": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
+      "positionX": 90.1,
+      "positionY": -52.0,
+      "positionZ": 4,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
+        "examples": [
+          "图4-2所示，开环增益K变化时，二阶系统闭环极点在s平面上沿实轴和复平面变化的轨迹。",
+          "用于分析开环增益变化对闭环系统稳定性和动态性能的影响。"
+        ],
+        "formulas": [
+          "1 + G(s)H(s) = 0",
+          "\\prod_{j=1}^{n}(s - p_j) + K^* \\prod_{i=1}^{m}(s - z_i) = 0",
+          "1+KG(s)H(s)=0",
+          "\\sum_{i=1}^{m}\\angle(s-z_i)-\\sum_{j=1}^{n}\\angle(s-p_j)=(2k+1)\\pi"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "闭环极点",
+          "s平面",
+          "轨迹",
+          "特征方程",
+          "闭环特征根",
+          "开环增益",
+          "复平面"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628098",
+        "updatedAt": "2026-02-04T17:54:16.628099",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "闭环极点",
+        "s平面",
+        "轨迹",
+        "特征方程",
+        "闭环特征根",
+        "开环增益",
+        "复平面",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "根轨迹法_4_4e598387",
+      "name": "根轨迹法",
+      "nodeType": "THEORY",
+      "description": "分析和设计线性定常控制系统的图解方法，通过绘制开环参数变化时闭环极点在s平面上的轨迹来分析系统性能。",
+      "positionX": 0.0,
+      "positionY": 110.0,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "分析和设计线性定常控制系统的图解方法，通过绘制开环参数变化时闭环极点在s平面上的轨迹来分析系统性能。",
+        "examples": [
+          "分析开环增益K变化对二阶系统闭环极点位置及系统稳定性和动态性能的影响。",
+          "用于设计自动平衡称和自动焊接头控制系统的参数，以满足性能指标。",
+          "例4-9中，使用MATLAB的rlocus命令绘制根轨迹，以分析比例反馈和超前补偿的效果。"
+        ],
+        "formulas": [
+          "\\frac{C(s)}{R(s)} = \\frac{G(s)}{1 + G(s)H(s)}",
+          "1 + G(s)H(s) = 0",
+          "\\sum_{i=1}^{m} \\angle(s - z_i) - \\sum_{j=1}^{n} \\angle(s - p_j) = (2k+1)\\pi",
+          "K^* \\frac{\\prod_{i=1}^{m}|s - z_i|}{\\prod_{j=1}^{n}|s - p_j|} = 1",
+          "1 + KG(s)H(s) = 0"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "根轨迹",
+          "闭环极点",
+          "开环增益",
+          "s平面",
+          "参数变化",
+          "系统设计",
+          "极点",
+          "稳定性分析"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628093",
+        "updatedAt": "2026-02-04T17:54:16.628093",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "根轨迹",
+        "闭环极点",
+        "开环增益",
+        "s平面",
+        "参数变化",
+        "系统设计",
+        "极点",
+        "稳定性分析",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "稳定裕度_5_bfd54f1c",
+      "name": "稳定裕度",
+      "nodeType": "THEORY",
+      "description": "衡量控制系统相对稳定性的指标，包括相角裕度和幅值裕度，反映系统偏离临界稳定的程度。",
+      "positionX": 0.0,
+      "positionY": 142.0,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "衡量控制系统相对稳定性的指标，包括相角裕度和幅值裕度，反映系统偏离临界稳定的程度。",
+        "examples": [
+          "例5-12中，计算K=4和K=10时系统的相角裕度和幅值裕度。"
+        ],
+        "formulas": [
+          "\\gamma = 180^\\circ + \\varphi(\\omega_c)",
+          "h = \\frac{1}{|G(j\\omega_g)|}",
+          "h_{dB} = 20\\lg h"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "相角裕度",
+          "幅值裕度",
+          "相对稳定性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628580",
+        "updatedAt": "2026-02-04T17:54:16.628580",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/concepts/稳定裕度_5_bfd54f1c.mdx"
+      ],
+      "tags": [
+        "相角裕度",
+        "幅值裕度",
+        "相对稳定性",
+        "chapter-5"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "阻尼比|开环增益|3",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "开环增益_3_d73dc120",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "开环增益|根轨迹法|3-4",
+      "sourceId": "开环增益_3_d73dc120",
+      "targetId": "根轨迹法_4_4e598387",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "开环增益|根轨迹|3-4",
+      "sourceId": "开环增益_3_d73dc120",
+      "targetId": "根轨迹_4_c19f8854",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "根轨迹法|根轨迹|4",
+      "sourceId": "根轨迹法_4_4e598387",
+      "targetId": "根轨迹_4_c19f8854",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "开环增益|极点迁移|new",
+      "sourceId": "开环增益_3_d73dc120",
+      "targetId": "极点迁移_4_L2b001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "极点迁移|根轨迹|new",
+      "sourceId": "极点迁移_4_L2b001",
+      "targetId": "根轨迹_4_c19f8854",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "根轨迹|阻尼比|new",
+      "sourceId": "根轨迹_4_c19f8854",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "阻尼比|最佳阻尼比|new",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "最佳阻尼比_3_L2b002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "最佳阻尼比|开环增益|new",
+      "sourceId": "最佳阻尼比_3_L2b002",
+      "targetId": "开环增益_3_d73dc120",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.85
+    },
+    {
+      "id": "根轨迹|稳定裕度|new",
+      "sourceId": "根轨迹_4_c19f8854",
+      "targetId": "稳定裕度_5_bfd54f1c",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.8
+    }
+  ]
+}

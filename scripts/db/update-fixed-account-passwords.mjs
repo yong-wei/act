@@ -5,6 +5,21 @@ const prisma = new PrismaClient();
 
 const TARGETS = [
   {
+    label: 'teacher-test_teacher',
+    where: { employeeNumber: 'test_teacher' },
+    password: 'TestTeacher@Just2026!',
+  },
+  {
+    label: 'student-demo',
+    where: {
+      OR: [
+        { name: { equals: 'demo', mode: 'insensitive' } },
+        { email: { equals: 'demo@example.com', mode: 'insensitive' } },
+      ],
+    },
+    password: 'DemoStudent@Just2026!',
+  },
+  {
     label: 'teacher-201300000012',
     where: { employeeNumber: '201300000012' },
     password: 'zyw1983@Just',
@@ -45,4 +60,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

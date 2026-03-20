@@ -13,6 +13,7 @@ import type {
   L2AStudentCourseState,
   L2AStepResponse,
 } from '@/lib/l2a-course';
+import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 
 function toneClass(tone: L2AContentSection['tone']) {
   switch (tone) {
@@ -42,23 +43,23 @@ export function StepContentPanel({
   rightSlot?: ReactNode;
 }) {
   return (
-    <section className="rounded-[28px] border border-white/12 bg-slate-900/80 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+    <section className="premium-lesson-panel">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="rounded-full border border-cyan-300/30 bg-cyan-500/10 px-3 py-1 text-xs uppercase tracking-[0.22em] text-cyan-100">
+        <span className="premium-lesson-kicker rounded-full border border-cyan-300/30 bg-cyan-500/10 px-3 py-1">
           {content.kicker}
         </span>
         {rightSlot}
       </div>
 
       <div className="mt-4">
-        <h2 className="text-3xl font-semibold text-white md:text-[2.1rem]">{content.title}</h2>
-        <p className="mt-3 text-lg leading-8 text-slate-200">{content.intro}</p>
+        <h2 className="text-2xl font-semibold text-slate-100 sm:text-[2rem]">{content.title}</h2>
+        <p className="mt-3 text-base leading-7 text-slate-200 sm:text-lg sm:leading-8">{content.intro}</p>
       </div>
 
       <div className="mt-5 space-y-3">
         {content.sections.map((section) => (
           <article key={section.title} className={`rounded-2xl border p-4 ${toneClass(section.tone)}`}>
-            <h3 className="text-lg font-semibold text-white">{section.title}</h3>
+            <h3 className="text-lg font-semibold text-slate-100">{section.title}</h3>
             {section.body ? <p className="mt-2 text-base leading-7 text-slate-100">{section.body}</p> : null}
             {section.bullets?.length ? (
               <ul className="mt-2 list-disc space-y-1.5 pl-5 text-base leading-7 text-slate-100">
@@ -72,7 +73,7 @@ export function StepContentPanel({
       </div>
 
       {content.controls?.length ? (
-        <div className="mt-5 rounded-2xl border border-white/10 bg-slate-950/65 p-4">
+        <div className="premium-lesson-panel-soft mt-5">
           <div className="flex items-center gap-2 text-sm font-medium text-cyan-100">
             <ClipboardList className="h-4 w-4" />
             教学控制建议
@@ -81,7 +82,7 @@ export function StepContentPanel({
             {content.controls.map((control) => (
               <span
                 key={control}
-                className="rounded-full border border-white/12 bg-white/5 px-3 py-1 text-sm text-slate-100"
+                className="premium-lesson-chip px-3 py-1 text-sm"
               >
                 {control}
               </span>
@@ -157,12 +158,12 @@ export function StudentActivityForm({
   };
 
   return (
-    <section className="rounded-[28px] border border-cyan-300/18 bg-[linear-gradient(180deg,rgba(6,182,212,0.10),rgba(15,23,42,0.82))] p-5">
+    <section className="premium-lesson-accent-panel">
       <div className="flex items-center gap-2 text-sm font-medium text-cyan-100">
         <BookOpen className="h-4 w-4" />
         学生任务提交区
       </div>
-      {activity.helper ? <p className="mt-2 text-sm leading-6 text-cyan-50/90">{activity.helper}</p> : null}
+      {activity.helper ? <p className="premium-lesson-muted mt-2">{activity.helper}</p> : null}
 
       <div className="mt-4 space-y-4">
         {activity.kind === 'form'
@@ -171,7 +172,7 @@ export function StudentActivityForm({
                 key={field.key}
                 field={field}
                 value={draft[field.key]}
-                disabled={false}
+                disabled={isSubmitted}
                 onChange={(value) => updateValue(field.key, value)}
               />
             ))
@@ -180,7 +181,7 @@ export function StudentActivityForm({
                 key={question.key}
                 question={question}
                 value={draft[question.key]}
-                disabled={false}
+                disabled={isSubmitted}
                 onChange={(value) => updateValue(question.key, value)}
               />
             ))}
@@ -190,17 +191,14 @@ export function StudentActivityForm({
         <button
           type="button"
           onClick={submitCurrent}
+          disabled={isSubmitted}
           className="inline-flex items-center gap-2 rounded-full bg-cyan-300 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-cyan-200"
         >
           <CheckCircle2 className="h-4 w-4" />
-          {activity.submitLabel ?? '保存'}
+          {isSubmitted ? '已提交' : activity.submitLabel ?? '保存'}
         </button>
-        {isSubmitted ? (
-          <span className="text-sm text-emerald-200">已保存于当前课堂记录中，可重复覆盖更新。</span>
-        ) : (
-          <span className="text-sm text-slate-300">提交后会同步到教师端汇总。</span>
-        )}
       </div>
+      <SubmissionStatus submitted={isSubmitted} />
     </section>
   );
 }
@@ -229,11 +227,7 @@ function FieldRenderer({
                 type="button"
                 disabled={disabled}
                 onClick={() => onChange(option.value)}
-                className={`rounded-2xl border px-3 py-3 text-left text-sm transition ${
-                  checked
-                    ? 'border-cyan-300/80 bg-cyan-400/20 text-cyan-50'
-                    : 'border-white/10 bg-slate-950/70 text-slate-200 hover:border-white/30'
-                }`}
+                className={`premium-lesson-choice ${checked ? 'premium-lesson-choice-active' : ''}`}
               >
                 {option.label}
               </button>
@@ -264,11 +258,7 @@ function FieldRenderer({
                     onChange([...selected, option.value]);
                   }
                 }}
-                className={`rounded-2xl border px-3 py-3 text-left text-sm transition ${
-                  checked
-                    ? 'border-cyan-300/80 bg-cyan-400/20 text-cyan-50'
-                    : 'border-white/10 bg-slate-950/70 text-slate-200 hover:border-white/30'
-                }`}
+                className={`premium-lesson-choice ${checked ? 'premium-lesson-choice-active' : ''}`}
               >
                 {option.label}
               </button>
@@ -282,7 +272,7 @@ function FieldRenderer({
   if (field.type === 'textarea') {
     return (
       <label className="block">
-        <div className="text-sm font-medium text-white">{field.label}</div>
+        <div className="text-sm font-medium text-slate-100">{field.label}</div>
         {field.help ? <div className="mt-1 text-xs text-slate-400">{field.help}</div> : null}
         <textarea
           rows={4}
@@ -290,7 +280,7 @@ function FieldRenderer({
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           placeholder={field.placeholder}
-          className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/75 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-300/60"
+          className="premium-lesson-input"
         />
       </label>
     );
@@ -298,7 +288,7 @@ function FieldRenderer({
 
   return (
     <label className="block">
-      <div className="text-sm font-medium text-white">{field.label}</div>
+      <div className="text-sm font-medium text-slate-100">{field.label}</div>
       {field.help ? <div className="mt-1 text-xs text-slate-400">{field.help}</div> : null}
       <input
         type={field.type === 'number' ? 'number' : 'text'}
@@ -306,7 +296,7 @@ function FieldRenderer({
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         placeholder={field.placeholder}
-        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/75 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-300/60"
+        className="premium-lesson-input"
       />
     </label>
   );
@@ -326,14 +316,14 @@ function QuestionRenderer({
   if (question.type === 'text') {
     return (
       <label className="block">
-        <div className="text-sm font-medium text-white">{question.prompt}</div>
+        <div className="text-sm font-medium text-slate-100">{question.prompt}</div>
         <textarea
           rows={3}
           value={typeof value === 'string' ? value : ''}
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           placeholder={question.placeholder}
-          className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/75 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-300/60"
+          className="premium-lesson-input"
         />
       </label>
     );
@@ -343,7 +333,7 @@ function QuestionRenderer({
     const selected = Array.isArray(value) ? value : [];
     return (
       <div className="space-y-2">
-        <p className="text-sm font-medium text-white">{question.prompt}</p>
+        <p className="text-sm font-medium text-slate-100">{question.prompt}</p>
         {question.options?.map((option) => {
           const checked = selected.includes(option.value);
           return (
@@ -358,11 +348,7 @@ function QuestionRenderer({
                   onChange([...selected, option.value]);
                 }
               }}
-              className={`block w-full rounded-2xl border px-3 py-3 text-left text-sm transition ${
-                checked
-                  ? 'border-cyan-300/80 bg-cyan-400/20 text-cyan-50'
-                  : 'border-white/10 bg-slate-950/70 text-slate-200 hover:border-white/30'
-              }`}
+              className={`premium-lesson-choice block w-full ${checked ? 'premium-lesson-choice-active' : ''}`}
             >
               {option.label}
             </button>
@@ -374,7 +360,7 @@ function QuestionRenderer({
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-white">{question.prompt}</p>
+      <p className="text-sm font-medium text-slate-100">{question.prompt}</p>
       {question.options?.map((option) => {
         const checked = value === option.value;
         return (
@@ -383,11 +369,7 @@ function QuestionRenderer({
             type="button"
             disabled={disabled}
             onClick={() => onChange(option.value)}
-            className={`block w-full rounded-2xl border px-3 py-3 text-left text-sm transition ${
-              checked
-                ? 'border-cyan-300/80 bg-cyan-400/20 text-cyan-50'
-                : 'border-white/10 bg-slate-950/70 text-slate-200 hover:border-white/30'
-            }`}
+            className={`premium-lesson-choice block w-full ${checked ? 'premium-lesson-choice-active' : ''}`}
           >
             {option.value}. {option.label}
           </button>
@@ -415,7 +397,7 @@ export function TeacherActivitySummary({
 
   if (responses.length === 0) {
     return (
-      <section className="rounded-[28px] border border-white/12 bg-slate-950/70 p-5">
+      <section className="premium-lesson-panel-soft">
         <div className="flex items-center gap-2 text-sm font-medium text-cyan-100">
           <BarChart3 className="h-4 w-4" />
           实时课堂响应
@@ -442,8 +424,8 @@ export function TeacherActivitySummary({
     }
 
     return (
-      <article className="rounded-2xl border border-white/10 bg-slate-950/65 p-4">
-        <h3 className="text-sm font-medium text-white">{label}</h3>
+      <article className="premium-lesson-panel-soft rounded-2xl p-4">
+        <h3 className="text-sm font-medium text-slate-100">{label}</h3>
         <div className="mt-3 space-y-2">
           {options.map((option) => {
             const count = counts[option.value] ?? 0;
@@ -471,8 +453,8 @@ export function TeacherActivitySummary({
   const renderTextSamples = (items: Array<{ label: string; values: Array<{ studentName: string; text: string }> }>) => (
     <div className="space-y-4">
       {items.map((group) => (
-        <article key={group.label} className="rounded-2xl border border-white/10 bg-slate-950/65 p-4">
-          <h3 className="text-sm font-medium text-white">{group.label}</h3>
+        <article key={group.label} className="premium-lesson-panel-soft rounded-2xl p-4">
+          <h3 className="text-sm font-medium text-slate-100">{group.label}</h3>
           <div className="mt-3 space-y-3">
             {group.values.slice(0, 4).map((item) => (
               <div key={`${group.label}-${item.studentName}`} className="rounded-2xl border border-white/10 bg-white/5 p-3">
@@ -505,7 +487,7 @@ export function TeacherActivitySummary({
       .filter((group) => group.values.length > 0);
 
     return (
-      <section className="space-y-4 rounded-[28px] border border-white/12 bg-slate-900/80 p-5">
+      <section className="premium-lesson-panel space-y-4">
         <div className="flex items-center gap-2 text-sm font-medium text-cyan-100">
           <BarChart3 className="h-4 w-4" />
           实时课堂响应（{responses.length} 人）
@@ -538,7 +520,7 @@ export function TeacherActivitySummary({
     .filter((group) => group.values.length > 0);
 
   return (
-    <section className="space-y-4 rounded-[28px] border border-white/12 bg-slate-900/80 p-5">
+    <section className="premium-lesson-panel space-y-4">
       <div className="flex items-center gap-2 text-sm font-medium text-cyan-100">
         <Sparkles className="h-4 w-4" />
         题目汇总（{responses.length} 人）
@@ -553,8 +535,8 @@ export function TeacherActivitySummary({
 
 export function KnowledgeMapVisual() {
   return (
-    <div className="rounded-[28px] border border-white/12 bg-[linear-gradient(135deg,rgba(14,165,233,0.10),rgba(15,23,42,0.92))] p-5">
-      <div className="text-sm uppercase tracking-[0.24em] text-cyan-200">Knowledge Map</div>
+    <div className="premium-lesson-accent-panel">
+      <div className="premium-lesson-kicker text-sm tracking-[0.24em]">Knowledge Map</div>
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         <MapNode title="L-1 传递函数与极点" status="已掌握" />
         <MapNode title="L-2a 时域直觉" status="当前高亮" active />
@@ -562,7 +544,7 @@ export function KnowledgeMapVisual() {
       </div>
       <div className="mt-4 grid gap-2 md:grid-cols-2">
         {['阶跃响应', 'Mₚ', 'tₛ', 'tᵣ', 'ζ', 'ωₙ'].map((item) => (
-          <div key={item} className="rounded-2xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-100">
+          <div key={item} className="premium-lesson-panel-soft rounded-2xl px-3 py-2 text-sm">
             {item}
           </div>
         ))}
@@ -584,8 +566,8 @@ function MapNode({
     <div
       className={`rounded-[24px] border px-4 py-4 ${
         active
-          ? 'border-cyan-300/45 bg-cyan-400/18 text-cyan-50 shadow-[0_12px_36px_rgba(34,211,238,0.18)]'
-          : 'border-white/10 bg-slate-950/65 text-slate-100'
+          ? 'premium-lesson-choice-active shadow-[0_12px_36px_rgba(34,211,238,0.18)]'
+          : 'premium-lesson-panel-soft'
       }`}
     >
       <div className="text-xs uppercase tracking-[0.2em] text-slate-300">{status}</div>
@@ -604,7 +586,7 @@ export function StudentSummaryPanel({
   const exploration = courseState.responses['participatory-families-2'];
 
   return (
-    <section className="rounded-[28px] border border-violet-300/18 bg-[linear-gradient(180deg,rgba(124,58,237,0.10),rgba(15,23,42,0.85))] p-5">
+    <section className="premium-lesson-summary-panel">
       <div className="flex items-center gap-2 text-sm font-medium text-violet-100">
         <Sparkles className="h-4 w-4" />
         你的学习记录
@@ -641,7 +623,7 @@ export function StudentSummaryPanel({
 
 function SummaryCard({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-slate-950/65 p-4">
+    <div className="premium-lesson-panel-soft rounded-2xl p-4">
       <div className="text-xs uppercase tracking-[0.18em] text-violet-200">{title}</div>
       <div className="mt-2 text-sm leading-6 text-slate-100">{value}</div>
     </div>

@@ -1,7 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { BarChart3, GraduationCap, Loader2, PlayCircle, Sparkles } from 'lucide-react';
 import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
@@ -22,12 +23,15 @@ import {
 } from '@/lib/cruise-course';
 import { CruiseCourseHeader } from '@/features/interactive/cruise-classroom/course-header';
 import { CruiseWorkspace } from '@/features/interactive/cruise-classroom/workspace';
+import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 
 interface TeacherSessionInfo {
   id: string;
   joinCode: string;
   status: 'ACTIVE' | 'PAUSED' | 'FINISHED';
+  classId: string | null;
   currentItemId: string | null;
+  planTitle?: string;
 }
 
 interface SessionStateRecord {
@@ -83,6 +87,7 @@ const WORKSPACE_VISIBLE_STEP_IDS = new Set([
 ]);
 
 export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
+  const router = useRouter();
   const [loadingSession, setLoadingSession] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const [sessionInfo, setSessionInfo] = useState<TeacherSessionInfo | null>(null);
@@ -91,6 +96,9 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
   const [stateRecords, setStateRecords] = useState<SessionStateRecord[]>([]);
   const [precheckTab, setPrecheckTab] = useState<'precheck' | 'stats'>('precheck');
   const [workspaceBooted, setWorkspaceBooted] = useState(false);
+  const [endingSession, setEndingSession] = useState(false);
+  const initializedStepRef = useRef(false);
+  const pendingStepIdRef = useRef<string | null>(null);
 
   const [summaryInsight, setSummaryInsight] = useState('课堂洞察生成中...');
   const [summaryInsightLoading, setSummaryInsightLoading] = useState(false);
@@ -108,8 +116,14 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
       const index = data.currentItemId
         ? CRUISE_LESSON_STEPS.findIndex((item) => item.id === data.currentItemId)
         : -1;
-      if (index >= 0) {
-        setActiveIndex(index);
+      if (!initializedStepRef.current) {
+        if (index >= 0) {
+          setActiveIndex(index);
+        }
+        initializedStepRef.current = true;
+        pendingStepIdRef.current = null;
+      } else if (index >= 0 && pendingStepIdRef.current === CRUISE_LESSON_STEPS[index].id) {
+        pendingStepIdRef.current = null;
       }
       setLoadingSession(false);
     } catch (error) {
@@ -140,7 +154,7 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
     const timer = window.setInterval(() => {
       void fetchSession();
       void fetchStates();
-    }, 3000);
+    }, 5000);
     return () => window.clearInterval(timer);
   }, [fetchSession, fetchStates]);
 
@@ -153,8 +167,10 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
   const patchCurrentStep = useCallback(
     async (nextIndex: number) => {
       const nextStep = CRUISE_LESSON_STEPS[nextIndex];
+      const previousIndex = activeIndex;
       setActiveIndex(nextIndex);
       setSyncError(null);
+      pendingStepIdRef.current = nextStep.id;
       try {
         const response = await fetch(`/api/session/${sessionId}`, {
           method: 'PATCH',
@@ -169,10 +185,12 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
           throw new Error(data.error || '课堂推进失败');
         }
       } catch (error) {
+        pendingStepIdRef.current = null;
+        setActiveIndex(previousIndex);
         setSyncError(error instanceof Error ? error.message : '课堂推进失败');
       }
     },
-    [sessionId]
+    [activeIndex, sessionId]
   );
 
   const postTeacherSyncState = useCallback(
@@ -217,6 +235,39 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
     }
     return null;
   }, [stateRecords]);
+
+  const handleEndSession = useCallback(async () => {
+    if (!sessionInfo) {
+      return;
+    }
+    if (!window.confirm('确定要结束课堂吗？结束后学生将停止同步课堂进度。')) {
+      return;
+    }
+
+    setEndingSession(true);
+    setSyncError(null);
+    try {
+      const response = await fetch(`/api/session/${sessionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'FINISHED' }),
+      });
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string };
+        throw new Error(data.error || '结束课堂失败');
+      }
+
+      router.push(
+        buildSessionEndReturnHref({
+          classId: sessionInfo.classId,
+          planTitle: sessionInfo.planTitle,
+        }),
+      );
+    } catch (error) {
+      setSyncError(error instanceof Error ? error.message : '结束课堂失败');
+      setEndingSession(false);
+    }
+  }, [router, sessionId, sessionInfo]);
 
   const personalObjectives = useMemo(() => {
     return joinedStudents.reduce<Record<string, string[]>>((acc, studentName) => {
@@ -651,7 +702,22 @@ export function CruiseTeacherPage({ sessionId }: TeacherPageProps) {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#0b1f3f,transparent_40%),radial-gradient(circle_at_top_right,#09232d,transparent_45%),#020617] text-slate-100">
-      <CruiseCourseHeader steps={CRUISE_LESSON_STEPS} activeIndex={activeIndex} onIndexChange={(index) => void patchCurrentStep(index)} />
+      <CruiseCourseHeader
+        steps={CRUISE_LESSON_STEPS}
+        activeIndex={activeIndex}
+        onIndexChange={(index) => void patchCurrentStep(index)}
+        rightSlot={
+          <button
+            type="button"
+            onClick={() => void handleEndSession()}
+            disabled={endingSession}
+            className="inline-flex items-center gap-2 rounded-full border border-rose-300/30 bg-rose-500/10 px-3 py-1 text-xs text-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {endingSession ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            结束课堂
+          </button>
+        }
+      />
 
       <main className="mx-auto max-w-[1600px] space-y-4 px-4 py-4">
         {syncError ? (

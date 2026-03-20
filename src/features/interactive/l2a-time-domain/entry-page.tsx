@@ -15,6 +15,7 @@ import {
 
 interface JoinSessionResponse {
   id: string;
+  studentHref?: string;
 }
 
 type NormalizedRole = 'STUDENT' | 'TEACHER' | 'ADMIN' | null;
@@ -94,10 +95,10 @@ export function L2ACourseEntryPage({ initialRole }: { initialRole?: string | nul
     try {
       const response = await fetch(`/api/session/join?code=${joinCode}`);
       const data = (await response.json()) as JoinSessionResponse & { error?: string };
-      if (!response.ok || !data.id) {
+      if (!response.ok || !data.id || !data.studentHref) {
         throw new Error(data.error || '课堂码无效');
       }
-      router.push(`/interactive-learning/courses/${L2A_ROUTE_SEGMENT}/student/${data.id}`);
+      router.push(data.studentHref);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '加入失败，请稍后重试');
     } finally {
@@ -127,7 +128,7 @@ export function L2ACourseEntryPage({ initialRole }: { initialRole?: string | nul
         <section className="rounded-[32px] border border-white/12 bg-slate-900/70 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
           <div className="max-w-3xl">
             <div className="text-xs uppercase tracking-[0.24em] text-cyan-200">L-2a · Time Domain Intuition</div>
-            <h2 className="mt-2 text-4xl font-semibold text-white">双端同步 + 常驻工作区的时域精品课堂</h2>
+            <h2 className="mt-2 text-4xl font-semibold text-white">双端同步 + 按需互动工作区的时域精品课堂</h2>
             <p className="mt-4 text-lg leading-8 text-slate-200">{L2A_COURSE_DESCRIPTION}</p>
           </div>
         </section>

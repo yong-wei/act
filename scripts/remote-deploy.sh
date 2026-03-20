@@ -1,0 +1,361 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${ROOT_DIR}"
+
+SKIP_BUILD="${SKIP_BUILD:-0}"
+SSH_TARGET="${SSH_TARGET:-root@121.40.124.135}"
+REMOTE_PROJECT_DIR="${REMOTE_PROJECT_DIR:-/home/projects/act}"
+LOCAL_IMAGE_TAR="${LOCAL_IMAGE_TAR:-deploy/images/act-obe.tar}"
+REMOTE_IMAGES_DIR="${REMOTE_IMAGES_DIR:-${REMOTE_PROJECT_DIR}/images}"
+REMOTE_IMAGE_TAR="${REMOTE_IMAGE_TAR:-${REMOTE_IMAGES_DIR}/act-obe.tar}"
+REMOTE_DEPLOY_SCRIPT="${REMOTE_DEPLOY_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/0-one-key.sh}"
+LOCAL_RUNTIME_DIR="${LOCAL_RUNTIME_DIR:-${ROOT_DIR}/course-content/runtime}"
+REMOTE_RUNTIME_DIR="${REMOTE_RUNTIME_DIR:-${REMOTE_PROJECT_DIR}/course-content/runtime}"
+LOCAL_APP_DEPLOY_SCRIPT="${LOCAL_APP_DEPLOY_SCRIPT:-${ROOT_DIR}/deploy/podman/deploy.sh}"
+REMOTE_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/4-deploy.sh}"
+LOCAL_SERVICE_SCRIPT="${LOCAL_SERVICE_SCRIPT:-${ROOT_DIR}/deploy/podman/configure-service.sh}"
+REMOTE_SERVICE_SCRIPT="${REMOTE_SERVICE_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/5-configure-service.sh}"
+PUBLIC_URL="${PUBLIC_URL:-https://act.adapt-learn.online/}"
+APP_NAME_HINT="${APP_NAME_HINT:-act-obe-app}"
+DB_NAME_HINT="${DB_NAME_HINT:-act-obe-postgres}"
+REDIS_NAME_HINT="${REDIS_NAME_HINT:-act-obe-redis}"
+WORKER_NAME_HINT="${WORKER_NAME_HINT:-act-obe-worker}"
+
+REMOTE_TMP_TAR="${REMOTE_IMAGE_TAR}.tmp"
+REMOTE_TMP_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT}.tmp"
+REMOTE_TMP_SERVICE_SCRIPT="${REMOTE_SERVICE_SCRIPT}.tmp"
+REMOTE_LOG_FILE="${REMOTE_LOG_FILE:-/tmp/act-obe-one-key.log}"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --skip-build)
+      SKIP_BUILD=1
+      shift
+      ;;
+    -h|--help)
+      cat <<'EOF'
+用法: scripts/remote-deploy.sh [--skip-build]
+
+默认行为:
+  1. 调用 scripts/build.sh 本地构建镜像
+  2. 上传 deploy/images/act-obe.tar 到远端
+  3. 执行远端一键部署并做验证
+
+选项:
+  --skip-build   跳过本地构建，直接上传并部署现有镜像产物
+EOF
+      exit 0
+      ;;
+    *)
+      fail "未知参数: $1"
+      ;;
+  esac
+done
+
+log() {
+  printf '%s\n' "$*"
+}
+
+fail() {
+  printf 'ERROR: %s\n' "$*" >&2
+  exit 1
+}
+
+require_cmd() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    fail "缺少命令: $1"
+  fi
+}
+
+local_sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+    return 0
+  fi
+
+  if command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+    return 0
+  fi
+
+  fail "本机缺少 sha256sum/shasum，无法校验镜像文件"
+}
+
+remote() {
+  ssh -o BatchMode=yes "${SSH_TARGET}" "$@"
+}
+
+remote_sha256() {
+  remote "if command -v sha256sum >/dev/null 2>&1; then sha256sum '${1}' | awk '{print \$1}'; else shasum -a 256 '${1}' | awk '{print \$1}'; fi"
+}
+
+wait_for_remote_http() {
+  local max_wait="${1:-120}"
+  local elapsed=0
+
+  while [[ "${elapsed}" -lt "${max_wait}" ]]; do
+    if remote "bash -lc '
+set -euo pipefail
+. \"${REMOTE_PROJECT_DIR}/data/runtime/act-obe.env\"
+curl -fsS \"http://127.0.0.1:\${APP_PORT}/\" | grep -q \"AI-OBE\"
+'"; then
+      return 0
+    fi
+
+    sleep 3
+    elapsed=$((elapsed + 3))
+  done
+
+  return 1
+}
+
+wait_for_public_http() {
+  local max_wait="${1:-120}"
+  local elapsed=0
+
+  while [[ "${elapsed}" -lt "${max_wait}" ]]; do
+    if curl -fsS "${PUBLIC_URL}" | grep -q 'AI-OBE'; then
+      return 0
+    fi
+
+    sleep 3
+    elapsed=$((elapsed + 3))
+  done
+
+  return 1
+}
+
+wait_for_public_session_api() {
+  local max_wait="${1:-120}"
+  local elapsed=0
+
+  while [[ "${elapsed}" -lt "${max_wait}" ]]; do
+    if curl -fsS "${PUBLIC_URL%/}/api/auth/session" >/dev/null; then
+      return 0
+    fi
+
+    sleep 3
+    elapsed=$((elapsed + 3))
+  done
+
+  return 1
+}
+
+recover_prisma_migration_state() {
+  log "- 检测到应用可能卡在 Prisma 迁移阶段，尝试修复迁移元数据"
+
+  remote "bash -lc '
+set -euo pipefail
+set -a
+. \"${REMOTE_PROJECT_DIR}/.env.server\"
+. \"${REMOTE_PROJECT_DIR}/data/runtime/act-obe.env\"
+set +a
+
+APP_CONTAINER_REAL=\${APP_CONTAINER:-${APP_NAME_HINT}}
+DB_CONTAINER_REAL=\${DB_CONTAINER:-${DB_NAME_HINT}}
+NETWORK_NAME_REAL=\${NETWORK_NAME:-act-obe-net}
+DB_USER_REAL=\${DB_USER:-\${POSTGRES_USER:-act_user}}
+DB_NAME_REAL=\${DB_NAME:-\${POSTGRES_DB:-act_obe}}
+DB_PASSWORD_REAL=\${DB_PASSWORD:-\${POSTGRES_PASSWORD:-}}
+APP_IMAGE_REAL=\$(podman inspect \"\${APP_CONTAINER_REAL}\" --format \"{{.ImageName}}\")
+DATABASE_URL_REAL=\$(podman inspect \"\${APP_CONTAINER_REAL}\" --format \"{{range .Config.Env}}{{println .}}{{end}}\" | grep \"^DATABASE_URL=\" | head -n 1 | cut -d= -f2-)
+
+FAILED_MIGRATIONS=\$(podman exec -e PGPASSWORD=\"\${DB_PASSWORD_REAL}\" \"\${DB_CONTAINER_REAL}\" \
+  psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select migration_name from _prisma_migrations where finished_at is null and rolled_back_at is null order by started_at;\" || true)
+
+for migration in \${FAILED_MIGRATIONS}; do
+  [ -z \"\${migration}\" ] && continue
+  podman run --rm --network \"\${NETWORK_NAME_REAL}\" \
+    -e RUN_MIGRATIONS_ON_START=0 \
+    -e DATABASE_URL=\"\${DATABASE_URL_REAL}\" \
+    \"\${APP_IMAGE_REAL}\" \
+    node ./node_modules/prisma/build/index.js migrate resolve --rolled-back \"\${migration}\" --schema ./prisma/schema.prisma
+done
+
+if podman exec -e PGPASSWORD=\"\${DB_PASSWORD_REAL}\" \"\${DB_CONTAINER_REAL}\" \
+  psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select 1 from information_schema.tables where table_schema='public' and table_name='PlatformSetting';\" | grep -qx 1; then
+  if ! podman exec -e PGPASSWORD=\"\${DB_PASSWORD_REAL}\" \"\${DB_CONTAINER_REAL}\" \
+    psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tA -c \"select 1 from _prisma_migrations where migration_name='20260303142500_add_platform_settings' and finished_at is not null limit 1;\" | grep -qx 1; then
+    podman run --rm --network \"\${NETWORK_NAME_REAL}\" \
+      -e RUN_MIGRATIONS_ON_START=0 \
+      -e DATABASE_URL=\"\${DATABASE_URL_REAL}\" \
+      \"\${APP_IMAGE_REAL}\" \
+      node ./node_modules/prisma/build/index.js migrate resolve --applied 20260303142500_add_platform_settings --schema ./prisma/schema.prisma
+  fi
+fi
+
+podman restart \"\${APP_CONTAINER_REAL}\" >/dev/null
+'"
+}
+
+print_remote_diagnostics() {
+  log
+  log "[diagnostics] 远端部署日志尾部"
+  remote "test -f '${REMOTE_LOG_FILE}' && tail -n 120 '${REMOTE_LOG_FILE}' || true" || true
+
+  log
+  log "[diagnostics] systemd 服务状态"
+  remote "systemctl --no-pager --full status act-obe-stack.service || true" || true
+
+  log
+  log "[diagnostics] 容器状态"
+  remote "podman ps -a --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}' || true" || true
+
+  log
+  log "[diagnostics] Nginx 状态"
+  remote "systemctl --no-pager --full status nginx || true" || true
+}
+
+on_error() {
+  local exit_code=$?
+  log
+  log "部署流程失败，退出码: ${exit_code}"
+  print_remote_diagnostics
+  exit "${exit_code}"
+}
+
+trap on_error ERR
+
+require_cmd bash
+require_cmd ssh
+require_cmd scp
+require_cmd curl
+require_cmd rsync
+
+log "[1/5] 本地构建"
+if [[ "${SKIP_BUILD}" == "1" ]]; then
+  log "已启用 --skip-build，跳过本地构建，直接使用现有镜像产物"
+else
+  bash "${ROOT_DIR}/scripts/build.sh"
+fi
+
+[[ -s "${LOCAL_IMAGE_TAR}" ]] || fail "本地镜像产物不存在或为空: ${LOCAL_IMAGE_TAR}"
+
+LOCAL_SHA="$(local_sha256 "${LOCAL_IMAGE_TAR}")"
+log "本地镜像: ${LOCAL_IMAGE_TAR}"
+log "本地 SHA256: ${LOCAL_SHA}"
+
+log
+log "[2/5] 同步运行时资源与部署脚本"
+[[ -d "${LOCAL_RUNTIME_DIR}" ]] || fail "本地 runtime 目录不存在: ${LOCAL_RUNTIME_DIR}"
+[[ -f "${LOCAL_APP_DEPLOY_SCRIPT}" ]] || fail "本地应用部署脚本不存在: ${LOCAL_APP_DEPLOY_SCRIPT}"
+[[ -f "${LOCAL_SERVICE_SCRIPT}" ]] || fail "本地 systemd 配置脚本不存在: ${LOCAL_SERVICE_SCRIPT}"
+
+remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")'"
+rsync -az --delete -e "ssh -o BatchMode=yes" "${LOCAL_RUNTIME_DIR}/" "${SSH_TARGET}:${REMOTE_RUNTIME_DIR}/"
+
+scp -q "${LOCAL_APP_DEPLOY_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_APP_DEPLOY_SCRIPT}"
+remote "chmod +x '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' && mv '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' '${REMOTE_APP_DEPLOY_SCRIPT}'"
+
+scp -q "${LOCAL_SERVICE_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_SERVICE_SCRIPT}"
+remote "chmod +x '${REMOTE_TMP_SERVICE_SCRIPT}' && mv '${REMOTE_TMP_SERVICE_SCRIPT}' '${REMOTE_SERVICE_SCRIPT}'"
+
+log "远端 runtime 目录: ${REMOTE_RUNTIME_DIR}"
+log "远端应用部署脚本: ${REMOTE_APP_DEPLOY_SCRIPT}"
+log "远端 systemd 配置脚本: ${REMOTE_SERVICE_SCRIPT}"
+
+log
+log "[3/5] 上传镜像"
+remote "rm -f '${REMOTE_TMP_TAR}'"
+scp -q "${LOCAL_IMAGE_TAR}" "${SSH_TARGET}:${REMOTE_TMP_TAR}"
+
+REMOTE_TMP_SHA="$(remote_sha256 "${REMOTE_TMP_TAR}")"
+if [[ "${LOCAL_SHA}" != "${REMOTE_TMP_SHA}" ]]; then
+  remote "rm -f '${REMOTE_TMP_TAR}'" || true
+  fail "远端临时文件 SHA256 不一致，本地=${LOCAL_SHA}，远端=${REMOTE_TMP_SHA}"
+fi
+
+remote "mv '${REMOTE_TMP_TAR}' '${REMOTE_IMAGE_TAR}'"
+REMOTE_FINAL_SHA="$(remote_sha256 "${REMOTE_IMAGE_TAR}")"
+if [[ "${LOCAL_SHA}" != "${REMOTE_FINAL_SHA}" ]]; then
+  fail "远端最终文件 SHA256 不一致，本地=${LOCAL_SHA}，远端=${REMOTE_FINAL_SHA}"
+fi
+
+log "远端镜像路径: ${REMOTE_IMAGE_TAR}"
+log "远端 SHA256: ${REMOTE_FINAL_SHA}"
+
+log
+log "[4/5] 远端部署"
+remote "bash -lc 'set -euo pipefail; bash \"${REMOTE_DEPLOY_SCRIPT}\" 2>&1 | tee \"${REMOTE_LOG_FILE}\"'"
+
+log
+log "[5/5] 部署验证"
+
+log "- 校验远端镜像文件"
+remote "test -s '${REMOTE_IMAGE_TAR}'"
+
+log "- 校验远端 runtime 目录"
+remote "test -d '${REMOTE_PROJECT_DIR}/course-content/runtime'"
+
+log "- 校验远端应用部署脚本已更新 runtime 挂载"
+remote "grep -q '/app/course-content/runtime:ro' '${REMOTE_APP_DEPLOY_SCRIPT}'"
+
+log "- 校验远端应用部署脚本已纳入 Redis 与 worker"
+remote "grep -q 'redis-server --appendonly yes' '${REMOTE_APP_DEPLOY_SCRIPT}'"
+remote "grep -q 'data-governance-worker.ts' '${REMOTE_APP_DEPLOY_SCRIPT}'"
+
+log "- 校验远端 systemd 配置脚本已更新数据库/Redis 等待逻辑"
+remote "grep -q 'pg_isready' '${REMOTE_SERVICE_SCRIPT}'"
+remote "grep -q 'redis-cli ping' '${REMOTE_SERVICE_SCRIPT}'"
+remote "grep -q 'scheduler.ts' '${REMOTE_SERVICE_SCRIPT}'"
+
+log "- 校验系统服务"
+remote "test \"\$(systemctl is-active nginx)\" = active"
+remote "test \"\$(systemctl is-active act-obe-stack.service)\" = active"
+
+log "- 校验容器状态"
+remote "podman ps --format '{{.Names}}' | grep -qx '${APP_NAME_HINT}'"
+remote "podman ps --format '{{.Names}}' | grep -qx '${DB_NAME_HINT}'"
+remote "podman ps --format '{{.Names}}' | grep -qx '${REDIS_NAME_HINT}'"
+remote "podman ps --format '{{.Names}}' | grep -qx '${WORKER_NAME_HINT}'"
+remote "podman ps --format '{{.Names}}\t{{.Status}}' | grep -E '^${DB_NAME_HINT}[[:space:]].*healthy'"
+
+log "- 校验数据库连通性"
+remote "bash -lc '
+set -euo pipefail
+set -a
+. \"${REMOTE_PROJECT_DIR}/.env.server\"
+. \"${REMOTE_PROJECT_DIR}/data/runtime/act-obe.env\"
+set +a
+DB_CONTAINER_REAL=\${DB_CONTAINER:-${DB_NAME_HINT}}
+DB_USER_REAL=\${DB_USER:-\${POSTGRES_USER:-act_user}}
+DB_NAME_REAL=\${DB_NAME:-\${POSTGRES_DB:-act_obe}}
+DB_PASSWORD_REAL=\${DB_PASSWORD:-\${POSTGRES_PASSWORD:-}}
+export PGPASSWORD=\"\${DB_PASSWORD_REAL}\"
+podman exec \"\${DB_CONTAINER_REAL}\" psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NAME_REAL}\" -tAc \"select 1;\" | grep -qx 1
+'"
+
+log "- 校验 Redis 连通性"
+remote "podman exec '${REDIS_NAME_HINT}' redis-cli ping | grep -qx PONG"
+remote "podman exec '${REDIS_NAME_HINT}' redis-cli CONFIG GET maxmemory-policy | tail -n 1 | grep -qx 'noeviction'"
+
+log "- 校验应用与 worker 容器环境变量"
+remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}:6379$'"
+remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^DATABASE_URL=.*connection_limit=10&pool_timeout=20'"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}:6379$'"
+
+log "- 校验 worker 启动日志"
+remote "podman logs --tail 120 '${WORKER_NAME_HINT}' | grep -q '\\[Worker\\] Data governance worker started'"
+
+log "- 校验 scheduler 已注册 BullMQ 任务"
+remote "podman exec '${REDIS_NAME_HINT}' redis-cli --scan --pattern 'bull:*' | grep -q 'bull:'"
+
+log "- 校验应用本机端口响应"
+if ! wait_for_remote_http 45; then
+  recover_prisma_migration_state
+  wait_for_remote_http 120 || fail "应用容器在自愈后仍未就绪"
+fi
+
+log "- 校验公网首页"
+wait_for_public_http 120 || fail "公网首页未在预期时间内恢复"
+
+log "- 校验公网认证会话接口"
+wait_for_public_session_api 120 || fail "公网认证会话接口未在预期时间内恢复"
+
+log
+log "远端部署完成并验证通过"
+log "  公网地址: ${PUBLIC_URL}"
+log "  远端镜像: ${REMOTE_IMAGE_TAR}"
+log "  SHA256: ${REMOTE_FINAL_SHA}"

@@ -2,6 +2,65 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { eventQueue } from '@/lib/event-queue';
+import { eventRateLimiter } from '@/lib/rate-limiter';
+import type { ClassroomInteractionEventInput } from '@/lib/classroom-analytics/types';
+import { toLearningEvent, validateEvent, type LearningEvent } from '@/lib/data-governance/event-protocol';
+import { routeEvent } from '@/lib/data-governance/event-buffer';
+import { isCoreEvent } from '@/lib/data-governance/event-types';
+import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
+import type { PageType } from '@/lib/data-governance/event-protocol';
+
+function toDateTime(value: number | string | null | undefined): Date | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return new Date(value);
+  }
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+  return null;
+}
+
+/**
+ * 验证 resourceId 是否合法
+ * - 合法的resourceId必须是cuid格式（25个字符，以c开头）或null/undefined
+ * - 返回null表示不合法，应该丢弃或降级处理
+ */
+function validateResourceId(resourceId: string | null | undefined): string | null {
+  if (!resourceId) return null;
+
+  // CUID格式校验: 以c开头，后跟24个字母数字字符，共25字符
+  const cuidRegex = /^c[\w]{24}$/;
+  if (cuidRegex.test(resourceId)) {
+    return resourceId;
+  }
+
+  // 其他可能的合法格式（如特定的key格式）
+  // resourceKey通常使用下划线分隔的格式，不是CUID
+  return null;
+}
+
+/**
+ * 降级日志 - 记录不合法的事件到控制台，不入库
+ * 用于排查前端问题，避免数据库外键错误
+ */
+function logDegradedEvent(
+  userId: string,
+  event: ClassroomInteractionEventInput,
+  reason: string
+): void {
+  console.warn('[InteractionLog Degraded]', {
+    userId,
+    reason,
+    eventType: event.type,
+    resourceId: event.resourceId,
+    resourceKey: event.resourceKey,
+    timestamp: event.timestamp,
+  });
+}
 
 /**
  * POST /api/interactive/events
@@ -15,6 +74,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // 限流检查：防止事件上报过载
+    const clientId = session.user.id;
+    const limitCheck = eventRateLimiter.check(clientId);
+
+    if (!limitCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded', retryAfter: limitCheck.retryAfter },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { events } = body;
 
@@ -23,33 +93,116 @@ export async function POST(request: NextRequest) {
     }
 
     // 验证并过滤事件
-    const validEvents = events.filter((event) => {
-      return (
-        event.resourceId &&
-        event.type &&
-        typeof event.timestamp === 'number'
-      );
-    });
+    const validEvents: Array<{ event: ClassroomInteractionEventInput; resourceId: string | null }> = [];
+    const degradedEvents: Array<{ event: ClassroomInteractionEventInput; reason: string }> = [];
 
-    if (validEvents.length === 0) {
-      return NextResponse.json({ error: 'No valid events' }, { status: 400 });
+    for (const event of events as ClassroomInteractionEventInput[]) {
+      const resolvedResourceKey = event.resourceKey ?? event.resourceId;
+      const normalizedEvent: ClassroomInteractionEventInput = {
+        ...event,
+        resourceKey: event.resourceKey || event.resourceId || '',
+      };
+
+      // 基础校验
+      if (!normalizedEvent.type || typeof normalizedEvent.timestamp !== 'number') {
+        degradedEvents.push({ event: normalizedEvent, reason: 'missing_type_or_timestamp' });
+        continue;
+      }
+
+      if (!resolvedResourceKey && !normalizedEvent.resourceId) {
+        degradedEvents.push({ event: normalizedEvent, reason: 'missing_resource_key_and_id' });
+        continue;
+      }
+
+      // 校验resourceId - 不合法的ID会导致外键错误
+      const validatedResourceId = validateResourceId(normalizedEvent.resourceId);
+
+      if (normalizedEvent.resourceId && !validatedResourceId) {
+        // resourceId存在但不合法 - 降级处理，只记录到控制台
+        logDegradedEvent(session.user.id, normalizedEvent, 'invalid_resource_id_format');
+        // 如果resourceKey存在，仍尝试记录（resourceKey是字符串，不会触发外键错误）
+        if (normalizedEvent.resourceKey) {
+          validEvents.push({ event: normalizedEvent, resourceId: null });
+        } else {
+          degradedEvents.push({ event: normalizedEvent, reason: 'invalid_resource_id_no_fallback' });
+        }
+        continue;
+      }
+
+      validEvents.push({ event: normalizedEvent, resourceId: validatedResourceId });
     }
 
-    // 批量插入
-    const created = await prisma.interactionLog.createMany({
-      data: validEvents.map((event) => ({
-        userId: session.user.id,
-        resourceId: event.resourceId,
-        sessionId: event.sessionId || null,
-        eventType: event.type,
-        eventData: event.data || {},
-      })),
-      skipDuplicates: true,
-    });
+    // 记录降级事件（不入库，避免外键错误）
+    for (const { event, reason } of degradedEvents) {
+      logDegradedEvent(session.user.id, event, reason);
+    }
 
+    // Route events based on priority
+    const coreEvents: LearningEvent[] = [];
+    const routingResults: Array<{ eventType: string; destination: string; reason?: string }> = [];
+
+    for (const eventData of validEvents) {
+      const payload =
+        eventData.event.data && typeof eventData.event.data === 'object'
+          ? eventData.event.data
+          : {};
+      const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
+      const learningEvent = toLearningEvent(
+        {
+          ...eventData.event,
+          actionType: canonicalEventType,
+          payload: {
+            ...payload,
+            originalEventType: eventData.event.type,
+          },
+          priority: isCoreEvent(canonicalEventType) ? 'core' : 'secondary',
+        },
+        {
+          userId: session.user.id,
+          role: (session.user.role?.toLowerCase() as 'student' | 'teacher' | 'admin') || 'student',
+          pagePath: '/unknown',
+          pageType: 'dashboard',
+        }
+      );
+
+      const result = await routeEvent(learningEvent);
+      routingResults.push({ eventType: learningEvent.actionType, ...result });
+
+      // Core events still go through existing EventQueue for now
+      if (result.destination === 'postgresql') {
+        coreEvents.push(learningEvent);
+      }
+    }
+
+    // Existing queue for core events (will be migrated later)
+    if (coreEvents.length > 0) {
+      const queueEvents = coreEvents.map(event => ({
+        userId: event.userId,
+        resourceId: null as string | null,
+        resourceKey: event.moduleId || event.actionType,
+        sessionId: event.sessionId || null,
+        lessonKey: event.lessonId || null,
+        stepId: event.targetId || null,
+        actorRole: event.role,
+        attemptKey: null as string | null,
+        eventType: event.actionType,
+        eventData: event.payload,
+        clientEventAt: new Date(event.occurredAt),
+      }));
+
+      eventQueue.enqueueBatch(queueEvents);
+    }
+
+    // Update response
     return NextResponse.json({
       success: true,
-      count: created.count,
+      count: validEvents.length,
+      degraded: degradedEvents.length,
+      routing: routingResults.reduce((acc, r) => {
+        acc[r.destination] = (acc[r.destination] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+      pending: eventQueue.getStats().pending,
     });
   } catch (error) {
     console.error('[Interactive Events API] Error:', error);
@@ -66,7 +219,8 @@ export async function POST(request: NextRequest) {
  * 查询资源的互动事件（教师端）
  *
  * Query params:
- * - resourceId: 资源 ID（必需）
+   * - resourceId: 资源 ID（可选）
+   * - resourceKey: 资源逻辑标识（可选，推荐）
  * - sessionId: 课堂会话 ID（可选）
  * - userId: 用户 ID（可选）
  * - eventType: 事件类型（可选）
@@ -84,17 +238,26 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const resourceId = searchParams.get('resourceId');
+    const resourceKey = searchParams.get('resourceKey');
     const sessionId = searchParams.get('sessionId');
     const userId = searchParams.get('userId');
     const eventType = searchParams.get('eventType');
     const limit = parseInt(searchParams.get('limit') || '100', 10);
 
-    if (!resourceId) {
-      return NextResponse.json({ error: 'resourceId is required' }, { status: 400 });
+    if (!resourceId && !resourceKey) {
+      return NextResponse.json({ error: 'resourceId or resourceKey is required' }, { status: 400 });
     }
 
     // 构建查询条件
-    const where: Record<string, unknown> = { resourceId };
+    const where: Record<string, unknown> = {};
+
+    if (resourceId) {
+      where.resourceId = resourceId;
+    }
+
+    if (resourceKey) {
+      where.resourceKey = resourceKey;
+    }
 
     if (sessionId) {
       where.sessionId = sessionId;

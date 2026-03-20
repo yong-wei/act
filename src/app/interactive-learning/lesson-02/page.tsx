@@ -8,7 +8,6 @@ import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {
-  ArrowLeft,
   Waves,
   Compass,
   BookOpen,
@@ -19,6 +18,7 @@ import {
   Flag,
   Clock,
 } from 'lucide-react';
+import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
 import { LESSON_02_CONFIG } from '@/resources/interactive-learning/lesson-02/manifest';
 
 const LaplaceBridgeIntro = dynamic(
@@ -156,10 +156,6 @@ export default function Lesson02Page() {
     setActiveModule(moduleId);
   }, []);
 
-  const handleBack = useCallback(() => {
-    setActiveModule(null);
-  }, []);
-
   const renderActiveModule = () => {
     switch (activeModule) {
       case 'laplace-bridge':
@@ -187,22 +183,20 @@ export default function Lesson02Page() {
     const currentModule = MODULES.find((module) => module.id === activeModule);
 
     return (
-      <div className="min-h-screen bg-slate-50">
-        <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-            <button
-              onClick={handleBack}
-              className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              返回模块列表
-            </button>
-            <div className="text-center">
-              <h1 className="font-semibold text-slate-900">{currentModule?.title}</h1>
+      <div className="surface-page min-h-screen">
+        <UnifiedTopBar
+          title={currentModule?.title ?? 'Lesson-02'}
+          backHref="/interactive-learning/lesson-02"
+          backLabel="返回模块列表"
+          subtitle="Lesson 02 Module"
+          onBackClick={() => setActiveModule(null)}
+          rightSlot={
+            <div className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-background px-3 py-1.5 text-xs font-medium text-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              {currentModule?.duration}
             </div>
-            <div className="w-20" />
-          </div>
-        </header>
+          }
+        />
 
         <main className="mx-auto max-w-7xl px-4 py-6">
           {renderActiveModule()}
@@ -212,41 +206,36 @@ export default function Lesson02Page() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-      <header className="border-b border-amber-700/40">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link
-            href="/interactive-learning"
-            className="flex items-center gap-2 text-sm text-amber-200 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            返回互动学习
-          </Link>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-amber-200">
-              <Clock className="h-4 w-4" />
-              <span>{metadata.duration} 分钟</span>
-            </div>
+    <div className="surface-page min-h-screen">
+      <UnifiedTopBar
+        title={metadata.title}
+        backHref="/interactive-learning"
+        backLabel="返回互动学习"
+        subtitle={`Lesson 02 · ${metadata.subtitle}`}
+        rightSlot={
+          <div className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-background px-3 py-1.5 text-xs font-medium text-foreground">
+            <Clock className="h-3.5 w-3.5" />
+            {metadata.duration} 分钟
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <div className="mx-auto max-w-7xl px-6 py-12">
-        <div className="flex items-start gap-6">
-          <div className="p-4 bg-amber-500/10 rounded-2xl">
-            <Waves className="h-12 w-12 text-amber-300" />
+        <div className="surface-card flex items-start gap-6 p-8">
+          <div className="rounded-2xl bg-amber-500/10 p-4">
+            <Waves className="h-12 w-12 text-amber-500 dark:text-amber-300" />
           </div>
           <div className="flex-1">
-            <p className="text-sm uppercase tracking-widest text-amber-300 mb-1">
+            <p className="mb-1 text-sm uppercase tracking-widest text-amber-600 dark:text-amber-300">
               Lesson 02 · {metadata.subtitle}
             </p>
-            <h1 className="text-4xl font-bold text-white mb-3">{metadata.title}</h1>
-            <p className="text-amber-100/80 max-w-2xl">{metadata.description}</p>
+            <h1 className="mb-3 text-4xl font-bold text-foreground">{metadata.title}</h1>
+            <p className="max-w-2xl text-subtle">{metadata.description}</p>
             <div className="mt-6 flex flex-wrap gap-2">
               {metadata.keywords.map((tag: string) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs text-amber-200"
+                  className="rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs text-amber-700 dark:text-amber-200"
                 >
                   {tag}
                 </span>

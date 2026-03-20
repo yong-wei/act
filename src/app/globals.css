@@ -35,16 +35,16 @@
     --popover-foreground: 222.2 47.4% 11.2%;
     --primary: 203 88% 42%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
+    --secondary: 200 36% 97%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 206 38% 92%;
+    --muted: 200 38% 96.5%;
+    --muted-foreground: 215 28% 30%;
+    --accent: 196 42% 93%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 205 28% 86%;
+    --input: 205 28% 86%;
     --ring: 203 88% 42%;
   }
 }
@@ -76,6 +76,381 @@
     @apply rounded-xl border border-border/60 bg-card/55 backdrop-blur;
   }
 
+  .teacher-insight-shell {
+    @apply surface-page;
+    background:
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.12), transparent 28%),
+      radial-gradient(circle at top right, hsl(var(--accent) / 0.1), transparent 24%),
+      linear-gradient(180deg, hsl(var(--background)), hsl(var(--background)));
+  }
+
+  .teacher-insight-hero {
+    @apply surface-card overflow-hidden p-6;
+    background:
+      linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.92) 58%, hsl(var(--primary) / 0.12) 100%);
+  }
+
+  .teacher-insight-entry {
+    @apply surface-card-soft block p-4 transition;
+  }
+
+  .teacher-insight-entry:hover {
+    @apply border-primary/40 bg-accent/60;
+    transform: translateY(-1px);
+  }
+
+  .teacher-insight-metric {
+    @apply surface-card-soft p-4;
+  }
+
+  .teacher-insight-chip {
+    @apply inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium;
+  }
+
+  .teacher-insight-chip-healthy {
+    @apply border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300;
+  }
+
+  .teacher-insight-chip-warning {
+    @apply border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-300;
+  }
+
+  .teacher-insight-chip-pending {
+    @apply border-slate-400/30 bg-slate-400/10 text-slate-600 dark:text-slate-300;
+  }
+
+  .teacher-insight-risk-none {
+    @apply border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300;
+  }
+
+  .teacher-insight-risk-low {
+    @apply border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-300;
+  }
+
+  .teacher-insight-risk-medium {
+    @apply border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-300;
+  }
+
+  .teacher-insight-risk-high {
+    @apply border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-300;
+  }
+
+  .teacher-insight-track {
+    @apply h-2 overflow-hidden rounded-full bg-accent/60;
+  }
+
+  .teacher-insight-fill {
+    @apply h-full rounded-full bg-primary;
+  }
+
+  .teacher-insight-matrix {
+    @apply grid gap-3;
+    grid-template-columns: minmax(160px, 220px) repeat(6, minmax(0, 1fr));
+  }
+
+  .teacher-insight-matrix-cell {
+    @apply rounded-xl border border-border/60 bg-card/75 px-3 py-3 text-sm;
+  }
+
+  .teacher-insight-timeline {
+    @apply relative pl-6;
+  }
+
+  .teacher-insight-timeline::before {
+    content: '';
+    @apply absolute bottom-0 left-2 top-0 w-px bg-border;
+  }
+
+  .teacher-insight-timeline-item {
+    @apply relative mb-4 surface-card-soft p-4;
+  }
+
+  .teacher-insight-timeline-item::before {
+    content: '';
+    @apply absolute -left-[1.05rem] top-5 h-3 w-3 rounded-full border-2 border-primary bg-background;
+  }
+
+  .teacher-home-hero {
+    @apply surface-card overflow-hidden p-8;
+    background:
+      linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.96) 62%, hsl(var(--primary) / 0.1) 100%);
+  }
+
+  .teacher-home-stat-card {
+    @apply surface-card-soft p-4;
+  }
+
+  .teacher-home-stat-card-link {
+    @apply transition;
+  }
+
+  .teacher-home-stat-card-link:hover {
+    @apply border-primary/40 bg-accent/70;
+    transform: translateY(-1px);
+  }
+
+  .teacher-home-stat-icon,
+  .teacher-home-action-icon {
+    @apply flex items-center justify-center rounded-xl;
+  }
+
+  .teacher-home-stat-icon {
+    @apply h-11 w-11;
+  }
+
+  .teacher-home-action-icon {
+    @apply h-12 w-12 shrink-0;
+  }
+
+  .teacher-home-tone-sky {
+    @apply bg-sky-500/15 text-sky-600 dark:text-sky-300;
+  }
+
+  .teacher-home-tone-emerald {
+    @apply bg-emerald-500/15 text-emerald-600 dark:text-emerald-300;
+  }
+
+  .teacher-home-tone-amber {
+    @apply bg-amber-500/15 text-amber-600 dark:text-amber-300;
+  }
+
+  .teacher-home-tone-rose {
+    @apply bg-rose-500/15 text-rose-600 dark:text-rose-300;
+  }
+
+  .teacher-home-tone-cyan {
+    @apply bg-cyan-500/15 text-cyan-600 dark:text-cyan-300;
+  }
+
+  .teacher-home-tone-violet {
+    @apply bg-violet-500/15 text-violet-600 dark:text-violet-300;
+  }
+
+  .teacher-home-action {
+    @apply surface-card-soft flex items-center gap-4 p-4 transition;
+  }
+
+  .teacher-home-action:hover {
+    @apply border-primary/40 bg-accent/70;
+    transform: translateY(-1px);
+  }
+
+  .teacher-home-live-shell {
+    @apply rounded-2xl border p-6;
+    border-color: hsl(347 77% 70% / 0.28);
+    background:
+      linear-gradient(180deg, hsl(var(--card) / 0.92), hsl(var(--card) / 0.84)),
+      radial-gradient(circle at top right, hsl(347 77% 62% / 0.08), transparent 36%);
+  }
+
+  .teacher-home-list-item {
+    @apply flex items-center justify-between rounded-xl border border-border/60 bg-card/75 p-4 transition;
+  }
+
+  .teacher-home-list-item:hover {
+    @apply border-primary/35 bg-accent/65;
+  }
+
+  .interactive-course-hub-shell {
+    @apply min-h-screen;
+    --interactive-course-hub-bg: 222 47% 8%;
+    --interactive-course-hub-bg-soft: 220 41% 12%;
+    --interactive-course-hub-surface: 220 36% 14%;
+    --interactive-course-hub-surface-soft: 220 30% 18%;
+    --interactive-course-hub-surface-muted: 220 28% 22%;
+    --interactive-course-hub-border: 217 24% 28%;
+    --interactive-course-hub-border-soft: 217 22% 24%;
+    --interactive-course-hub-foreground: 210 40% 96%;
+    --interactive-course-hub-foreground-strong: 210 40% 99%;
+    --interactive-course-hub-muted: 214 20% 72%;
+    --interactive-course-hub-accent-bg: 193 72% 22%;
+    --interactive-course-hub-accent-bg-soft: 194 68% 18%;
+    --interactive-course-hub-accent-border: 193 76% 48%;
+    --interactive-course-hub-accent-text: 188 95% 90%;
+    --interactive-course-hub-shadow: 0 28px 80px rgba(2, 8, 23, 0.36);
+    color: hsl(var(--interactive-course-hub-foreground));
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.12), transparent 28%),
+      radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 30%),
+      linear-gradient(180deg, hsl(var(--interactive-course-hub-bg)), hsl(var(--interactive-course-hub-bg-soft)));
+  }
+
+  .interactive-course-hub-topbar {
+    @apply border-b backdrop-blur;
+    border-color: hsl(var(--interactive-course-hub-border-soft) / 0.92);
+    background: hsl(var(--interactive-course-hub-bg) / 0.72);
+  }
+
+  .interactive-course-hub-nav-mark {
+    @apply flex h-10 w-10 items-center justify-center rounded-xl;
+    background: hsl(var(--interactive-course-hub-accent-bg) / 0.28);
+    color: hsl(var(--interactive-course-hub-accent-text));
+  }
+
+  .interactive-course-hub-back-link {
+    @apply rounded-lg border px-4 py-2 text-sm transition;
+    border-color: hsl(var(--interactive-course-hub-border) / 0.92);
+    color: hsl(var(--interactive-course-hub-foreground));
+    background: hsl(var(--interactive-course-hub-surface-soft) / 0.34);
+  }
+
+  .interactive-course-hub-back-link:hover {
+    background: hsl(var(--interactive-course-hub-surface-soft) / 0.58);
+  }
+
+  .interactive-course-hub-hero {
+    @apply mb-8 rounded-[28px] border p-6;
+    border-color: hsl(var(--interactive-course-hub-border) / 0.92);
+    background: linear-gradient(
+      180deg,
+      hsl(var(--interactive-course-hub-surface)),
+      hsl(var(--interactive-course-hub-surface-soft))
+    );
+    box-shadow: var(--interactive-course-hub-shadow);
+  }
+
+  .interactive-course-hub-title {
+    color: hsl(var(--interactive-course-hub-foreground-strong));
+  }
+
+  .interactive-course-hub-muted {
+    color: hsl(var(--interactive-course-hub-muted));
+  }
+
+  .interactive-course-hub-section-title {
+    color: hsl(var(--interactive-course-hub-foreground-strong));
+  }
+
+  .interactive-course-hub-chip {
+    @apply rounded-full border px-3 py-1 text-xs;
+    border-color: hsl(var(--interactive-course-hub-accent-border) / 0.26);
+    background: hsl(var(--interactive-course-hub-accent-bg) / 0.24);
+    color: hsl(var(--interactive-course-hub-accent-text));
+  }
+
+  .interactive-course-hub-premium-card {
+    @apply rounded-[24px] border p-5 transition;
+    border-color: hsl(var(--interactive-course-hub-accent-border) / 0.28);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--interactive-course-hub-accent-bg) / 0.3),
+      hsl(var(--interactive-course-hub-surface-muted) / 0.92)
+    );
+    box-shadow: var(--interactive-course-hub-shadow);
+  }
+
+  .interactive-course-hub-premium-card:hover {
+    border-color: hsl(var(--interactive-course-hub-accent-border) / 0.48);
+    transform: translateY(-2px);
+  }
+
+  .interactive-course-hub-premium-badge,
+  .interactive-course-hub-legacy-badge {
+    @apply rounded-full px-3 py-1 text-xs;
+  }
+
+  .interactive-course-hub-premium-badge {
+    background: hsl(var(--interactive-course-hub-accent-bg) / 0.28);
+    color: hsl(var(--interactive-course-hub-accent-text));
+  }
+
+  .interactive-course-hub-premium-meta {
+    color: hsl(var(--interactive-course-hub-muted));
+  }
+
+  .interactive-course-hub-premium-title,
+  .interactive-course-hub-legacy-title {
+    color: hsl(var(--interactive-course-hub-foreground-strong));
+  }
+
+  .interactive-course-hub-premium-desc,
+  .interactive-course-hub-legacy-desc {
+    color: hsl(var(--interactive-course-hub-foreground));
+  }
+
+  .interactive-course-hub-link {
+    color: hsl(var(--interactive-course-hub-accent-text));
+  }
+
+  .interactive-course-hub-legacy-shell {
+    @apply rounded-[28px] border p-4;
+    border-color: hsl(var(--interactive-course-hub-border) / 0.92);
+    background: linear-gradient(
+      180deg,
+      hsl(var(--interactive-course-hub-surface-soft) / 0.94),
+      hsl(var(--interactive-course-hub-surface-muted) / 0.94)
+    );
+  }
+
+  .interactive-course-hub-legacy-toggle {
+    @apply inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs;
+    border-color: hsl(var(--interactive-course-hub-border) / 0.92);
+    color: hsl(var(--interactive-course-hub-muted));
+    background: hsl(var(--interactive-course-hub-surface) / 0.55);
+  }
+
+  .interactive-course-hub-legacy-card {
+    @apply rounded-[22px] border p-5 transition;
+    border-color: hsl(var(--interactive-course-hub-border) / 0.9);
+    background: hsl(var(--interactive-course-hub-surface) / 0.9);
+  }
+
+  .interactive-course-hub-legacy-card:hover {
+    border-color: hsl(var(--interactive-course-hub-accent-border) / 0.36);
+    transform: translateY(-2px);
+  }
+
+  .interactive-course-hub-legacy-badge {
+    background: hsl(var(--interactive-course-hub-accent-bg-soft) / 0.48);
+    color: hsl(var(--interactive-course-hub-accent-text));
+  }
+
+  .interactive-course-hub-legacy-meta {
+    color: hsl(var(--interactive-course-hub-muted));
+  }
+
+  .light .interactive-course-hub-shell {
+    --interactive-course-hub-bg: 196 58% 98%;
+    --interactive-course-hub-bg-soft: 198 52% 94%;
+    --interactive-course-hub-surface: 195 56% 96%;
+    --interactive-course-hub-surface-soft: 194 50% 93%;
+    --interactive-course-hub-surface-muted: 193 46% 89%;
+    --interactive-course-hub-border: 197 34% 79%;
+    --interactive-course-hub-border-soft: 196 30% 82%;
+    --interactive-course-hub-foreground: 222.2 47.4% 11.2%;
+    --interactive-course-hub-foreground-strong: 222.2 47.4% 11.2%;
+    --interactive-course-hub-muted: 215 25% 34%;
+    --interactive-course-hub-accent-bg: 190 74% 86%;
+    --interactive-course-hub-accent-bg-soft: 192 58% 90%;
+    --interactive-course-hub-accent-border: 193 64% 58%;
+    --interactive-course-hub-accent-text: 196 72% 24%;
+    --interactive-course-hub-shadow: 0 20px 52px rgba(148, 163, 184, 0.16);
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.16), transparent 30%),
+      radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 32%),
+      linear-gradient(180deg, #f8fcff 0%, #edf7fb 100%);
+  }
+
+  .light .interactive-course-hub-topbar {
+    background: hsl(var(--interactive-course-hub-bg) / 0.92);
+  }
+
+  .light .interactive-course-hub-premium-card {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--interactive-course-hub-accent-bg) / 0.42),
+      hsl(var(--interactive-course-hub-surface-muted))
+    );
+  }
+
+  .light .interactive-course-hub-legacy-shell {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--interactive-course-hub-surface)),
+      hsl(var(--interactive-course-hub-surface-soft))
+    );
+  }
+
   .text-subtle {
     @apply text-muted-foreground;
   }
@@ -87,9 +462,907 @@
   .btn-ghost-themed {
     @apply border-border/70 bg-background/65 text-foreground hover:bg-accent hover:text-accent-foreground;
   }
+
+  .admin-console-shell {
+    @apply min-h-screen;
+    --admin-console-bg: 220 39% 11%;
+    --admin-console-bg-soft: 220 34% 15%;
+    --admin-console-surface: 222 30% 16%;
+    --admin-console-surface-soft: 220 24% 19%;
+    --admin-console-surface-muted: 220 21% 22%;
+    --admin-console-border: 217 23% 28%;
+    --admin-console-border-soft: 217 20% 24%;
+    --admin-console-foreground: 210 40% 96%;
+    --admin-console-foreground-strong: 210 40% 99%;
+    --admin-console-muted: 214 20% 72%;
+    --admin-console-accent: 191 88% 58%;
+    --admin-console-accent-strong: 189 94% 88%;
+    --admin-console-accent-bg: 191 84% 18%;
+    --admin-console-success-bg: 154 62% 18%;
+    --admin-console-success-border: 160 58% 34%;
+    --admin-console-success-text: 156 82% 88%;
+    --admin-console-danger-bg: 0 56% 18%;
+    --admin-console-danger-border: 0 68% 36%;
+    --admin-console-danger-text: 0 86% 90%;
+    --admin-console-shadow: 0 26px 72px rgba(2, 8, 23, 0.3);
+    color: hsl(var(--admin-console-foreground));
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.12), transparent 30%),
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), transparent 34%),
+      linear-gradient(180deg, hsl(var(--admin-console-bg)), hsl(var(--admin-console-bg-soft)));
+  }
+
+  .admin-console-container {
+    @apply mx-auto w-full max-w-[1600px] px-6;
+  }
+
+  .admin-console-topbar {
+    @apply border-b backdrop-blur;
+    border-color: hsl(var(--admin-console-border-soft) / 0.92);
+    background: hsl(var(--admin-console-bg) / 0.74);
+  }
+
+  .admin-console-hero,
+  .admin-console-surface,
+  .admin-console-surface-soft,
+  .admin-console-link-card,
+  .admin-console-metric-card,
+  .admin-console-table-shell,
+  .admin-console-modal {
+    box-shadow: var(--admin-console-shadow);
+  }
+
+  .admin-console-hero,
+  .admin-console-surface,
+  .admin-console-link-card,
+  .admin-console-table-shell,
+  .admin-console-modal {
+    @apply rounded-[28px] border;
+    border-color: hsl(var(--admin-console-border) / 0.88);
+    background: hsl(var(--admin-console-surface) / 0.92);
+  }
+
+  .admin-console-hero {
+    @apply p-6;
+    background:
+      linear-gradient(135deg, hsl(var(--admin-console-accent-bg) / 0.46), hsl(var(--admin-console-surface) / 0.94)),
+      hsl(var(--admin-console-surface) / 0.92);
+  }
+
+  .admin-console-surface,
+  .admin-console-table-shell {
+    @apply p-5;
+  }
+
+  .admin-console-surface-soft {
+    @apply rounded-2xl border p-4;
+    border-color: hsl(var(--admin-console-border-soft) / 0.9);
+    background: hsl(var(--admin-console-surface-soft) / 0.92);
+  }
+
+  .admin-console-link-card,
+  .admin-console-metric-card {
+    @apply block border p-5 transition;
+    border-color: hsl(var(--admin-console-border) / 0.88);
+    background: linear-gradient(
+      180deg,
+      hsl(var(--admin-console-surface) / 0.94),
+      hsl(var(--admin-console-surface-soft) / 0.94)
+    );
+  }
+
+  .admin-console-link-card:hover,
+  .admin-console-metric-card:hover {
+    border-color: hsl(var(--admin-console-accent) / 0.46);
+    transform: translateY(-2px);
+  }
+
+  .admin-console-kicker {
+    @apply text-xs uppercase tracking-[0.24em];
+    color: hsl(var(--admin-console-accent-strong));
+  }
+
+  .admin-console-title {
+    color: hsl(var(--admin-console-foreground-strong));
+  }
+
+  .admin-console-muted {
+    color: hsl(var(--admin-console-muted));
+  }
+
+  .admin-console-chip {
+    @apply inline-flex items-center rounded-full border px-3 py-1 text-xs;
+    border-color: hsl(var(--admin-console-border) / 0.88);
+    background: hsl(var(--admin-console-surface-soft) / 0.9);
+    color: hsl(var(--admin-console-foreground));
+  }
+
+  .admin-console-icon-badge {
+    @apply flex h-11 w-11 items-center justify-center rounded-2xl;
+    background: hsl(var(--admin-console-accent-bg) / 0.58);
+    color: hsl(var(--admin-console-accent-strong));
+  }
+
+  .admin-console-link-text {
+    color: hsl(var(--admin-console-accent-strong));
+  }
+
+  .admin-console-button,
+  .admin-console-button-primary,
+  .admin-console-back-link {
+    @apply inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm transition;
+  }
+
+  .admin-console-button,
+  .admin-console-back-link {
+    border-color: hsl(var(--admin-console-border) / 0.88);
+    background: hsl(var(--admin-console-surface-soft) / 0.86);
+    color: hsl(var(--admin-console-foreground));
+  }
+
+  .admin-console-button:hover,
+  .admin-console-back-link:hover {
+    border-color: hsl(var(--admin-console-accent) / 0.46);
+  }
+
+  .admin-console-button-primary {
+    border-color: hsl(var(--admin-console-accent) / 0.32);
+    background: hsl(var(--admin-console-accent-bg) / 0.62);
+    color: hsl(var(--admin-console-accent-strong));
+  }
+
+  .admin-console-button-primary:hover {
+    border-color: hsl(var(--admin-console-accent) / 0.56);
+  }
+
+  .admin-console-nav-item {
+    @apply flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition;
+    color: hsl(var(--admin-console-foreground));
+  }
+
+  .admin-console-nav-item:hover {
+    background: hsl(var(--admin-console-surface-muted) / 0.72);
+  }
+
+  .admin-console-nav-item-active {
+    border: 1px solid hsl(var(--admin-console-accent) / 0.28);
+    background: hsl(var(--admin-console-accent-bg) / 0.52);
+    color: hsl(var(--admin-console-accent-strong));
+  }
+
+  .admin-console-input,
+  .admin-console-select {
+    @apply rounded-xl border px-3 py-2 text-sm outline-none transition;
+    border-color: hsl(var(--admin-console-border) / 0.88);
+    background: hsl(var(--admin-console-surface-soft) / 0.94);
+    color: hsl(var(--admin-console-foreground));
+  }
+
+  .admin-console-input::placeholder {
+    color: hsl(var(--admin-console-muted));
+  }
+
+  .admin-console-input:focus,
+  .admin-console-select:focus {
+    border-color: hsl(var(--admin-console-accent) / 0.58);
+  }
+
+  .admin-console-table-shell {
+    @apply overflow-hidden;
+  }
+
+  .admin-console-table {
+    @apply w-full text-left text-sm;
+    color: hsl(var(--admin-console-foreground));
+  }
+
+  .admin-console-table thead {
+    background: hsl(var(--admin-console-surface-soft) / 0.92);
+    color: hsl(var(--admin-console-muted));
+  }
+
+  .admin-console-table tbody {
+    background: hsl(var(--admin-console-surface) / 0.84);
+  }
+
+  .admin-console-table tbody tr {
+    border-top: 1px solid hsl(var(--admin-console-border-soft) / 0.72);
+  }
+
+  .admin-console-table tbody tr:hover {
+    background: hsl(var(--admin-console-surface-muted) / 0.56);
+  }
+
+  .admin-console-table-subtle {
+    color: hsl(var(--admin-console-muted));
+  }
+
+  .admin-console-pill {
+    @apply inline-flex items-center rounded-full border px-2.5 py-1 text-xs;
+  }
+
+  .admin-console-pill-admin {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+  }
+
+  .admin-console-pill-teacher {
+    border-color: rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.12);
+    color: #7dd3fc;
+  }
+
+  .admin-console-pill-student {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: rgba(16, 185, 129, 0.12);
+    color: #6ee7b7;
+  }
+
+  .admin-console-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center px-4;
+    background: rgba(2, 6, 23, 0.58);
+  }
+
+  .admin-console-modal {
+    @apply w-full border p-6;
+    border-color: hsl(var(--admin-console-border) / 0.88);
+    background: hsl(var(--admin-console-surface) / 0.96);
+    color: hsl(var(--admin-console-foreground));
+  }
+
+  .admin-console-modal-sm {
+    @apply max-w-md;
+  }
+
+  .admin-console-modal-lg {
+    @apply max-w-lg;
+  }
+
+  .admin-console-notice {
+    @apply rounded-2xl border px-4 py-3 text-sm;
+  }
+
+  .admin-console-notice-success {
+    border-color: hsl(var(--admin-console-success-border) / 0.78);
+    background: hsl(var(--admin-console-success-bg) / 0.82);
+    color: hsl(var(--admin-console-success-text));
+  }
+
+  .admin-console-notice-danger {
+    border-color: hsl(var(--admin-console-danger-border) / 0.82);
+    background: hsl(var(--admin-console-danger-bg) / 0.82);
+    color: hsl(var(--admin-console-danger-text));
+  }
+
+  .admin-console-tone-danger {
+    border-color: hsl(var(--admin-console-danger-border) / 0.72);
+    background: hsl(var(--admin-console-danger-bg) / 0.62);
+    color: hsl(var(--admin-console-danger-text));
+  }
+
+  .admin-console-tone-success {
+    border-color: hsl(var(--admin-console-success-border) / 0.72);
+    background: hsl(var(--admin-console-success-bg) / 0.62);
+    color: hsl(var(--admin-console-success-text));
+  }
+
+  .light .admin-console-shell {
+    --admin-console-bg: 196 54% 98%;
+    --admin-console-bg-soft: 198 52% 95%;
+    --admin-console-surface: 0 0% 100%;
+    --admin-console-surface-soft: 198 36% 96%;
+    --admin-console-surface-muted: 198 34% 92%;
+    --admin-console-border: 199 30% 80%;
+    --admin-console-border-soft: 199 26% 84%;
+    --admin-console-foreground: 222.2 47.4% 11.2%;
+    --admin-console-foreground-strong: 222.2 47.4% 11.2%;
+    --admin-console-muted: 215 24% 35%;
+    --admin-console-accent: 194 84% 42%;
+    --admin-console-accent-strong: 196 72% 24%;
+    --admin-console-accent-bg: 192 74% 88%;
+    --admin-console-success-bg: 154 72% 92%;
+    --admin-console-success-border: 154 40% 66%;
+    --admin-console-success-text: 160 52% 24%;
+    --admin-console-danger-bg: 0 88% 95%;
+    --admin-console-danger-border: 0 68% 76%;
+    --admin-console-danger-text: 0 58% 30%;
+    --admin-console-shadow: 0 20px 52px rgba(148, 163, 184, 0.16);
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.18), transparent 32%),
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 34%),
+      linear-gradient(180deg, #f8fcff 0%, #edf7fb 100%);
+  }
+
+  .light .admin-console-topbar {
+    background: hsl(var(--admin-console-bg) / 0.92);
+  }
+
+  .light .admin-console-hero {
+    background:
+      linear-gradient(135deg, hsl(var(--admin-console-accent-bg) / 0.92), hsl(var(--admin-console-surface) / 0.98)),
+      hsl(var(--admin-console-surface));
+  }
+
+  .light .admin-console-pill-admin {
+    color: #b45309;
+  }
+
+  .light .admin-console-pill-teacher {
+    color: #0369a1;
+  }
+
+  .light .admin-console-pill-student {
+    color: #047857;
+  }
+
+  .light .admin-console-overlay {
+    background: rgba(248, 250, 252, 0.72);
+  }
+
+  .premium-lesson-shell {
+    @apply min-h-screen;
+    --premium-lesson-surface: 222 42% 13%;
+    --premium-lesson-surface-soft: 222 38% 10%;
+    --premium-lesson-surface-elevated: 220 32% 18%;
+    --premium-lesson-surface-muted: 220 28% 22%;
+    --premium-lesson-foreground: 210 40% 96%;
+    --premium-lesson-foreground-strong: 210 40% 99%;
+    --premium-lesson-muted: 214 18% 76%;
+    --premium-lesson-kicker-color: 189 94% 80%;
+    --premium-lesson-border: 217 25% 28%;
+    --premium-lesson-border-soft: 217 22% 24%;
+    --premium-lesson-chip-bg: 222 30% 18%;
+    --premium-lesson-chip-border: 217 24% 30%;
+    --premium-lesson-chip-text: 210 40% 94%;
+    --premium-lesson-input-bg: 222 39% 11%;
+    --premium-lesson-input-border: 217 23% 28%;
+    --premium-lesson-accent-start: 192 74% 22%;
+    --premium-lesson-accent-end: 223 42% 14%;
+    --premium-lesson-summary-start: 265 54% 24%;
+    --premium-lesson-summary-end: 223 42% 14%;
+    --premium-tone-cyan-bg: 192 72% 18%;
+    --premium-tone-cyan-border: 192 66% 32%;
+    --premium-tone-cyan-text: 189 92% 90%;
+    --premium-tone-sky-bg: 201 68% 18%;
+    --premium-tone-sky-border: 200 60% 34%;
+    --premium-tone-sky-text: 199 92% 91%;
+    --premium-tone-emerald-bg: 160 54% 18%;
+    --premium-tone-emerald-border: 160 48% 34%;
+    --premium-tone-emerald-text: 156 92% 89%;
+    --premium-tone-amber-bg: 36 72% 18%;
+    --premium-tone-amber-border: 34 70% 35%;
+    --premium-tone-amber-text: 44 96% 88%;
+    --premium-tone-rose-bg: 348 52% 18%;
+    --premium-tone-rose-border: 347 56% 35%;
+    --premium-tone-rose-text: 350 94% 90%;
+    --premium-tone-violet-bg: 262 46% 19%;
+    --premium-tone-violet-border: 263 48% 36%;
+    --premium-tone-violet-text: 268 94% 91%;
+    --premium-tone-slate-bg: 220 24% 20%;
+    --premium-tone-slate-border: 217 22% 33%;
+    --premium-tone-slate-text: 214 32% 90%;
+    --premium-tone-orange-bg: 24 70% 18%;
+    --premium-tone-orange-border: 23 70% 36%;
+    --premium-tone-orange-text: 32 96% 89%;
+    --premium-lesson-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+    --premium-lesson-highlight-surface: 192 72% 18%;
+    --premium-lesson-highlight-border: 189 90% 68%;
+    --premium-lesson-highlight-shadow: 0 18px 42px rgba(8, 145, 178, 0.18);
+    --premium-lesson-graph-edge: 216 20% 42%;
+    --premium-lesson-graph-edge-active: 189 90% 68%;
+    --premium-lesson-graph-node-fill: 202 72% 16%;
+    --premium-lesson-graph-node-stroke: 194 84% 48%;
+    --premium-lesson-graph-node-active-fill: 193 74% 28%;
+    --premium-lesson-graph-node-active-stroke: 189 90% 68%;
+    --premium-lesson-graph-node-text: 210 40% 92%;
+    --premium-lesson-graph-label-bg: 202 70% 16%;
+    --premium-lesson-graph-label-stroke: 195 62% 30%;
+    --premium-lesson-graph-label-text: 187 95% 88%;
+    color: hsl(var(--premium-lesson-foreground));
+    background:
+      radial-gradient(circle at top left, rgba(8, 145, 178, 0.2), transparent 32%),
+      radial-gradient(circle at top right, rgba(14, 116, 144, 0.16), transparent 34%),
+      #020617;
+  }
+
+  .premium-lesson-topbar {
+    @apply sticky top-0 z-40 border-b border-white/10 bg-slate-950/90 backdrop-blur;
+  }
+
+  .premium-lesson-main {
+    @apply mx-auto max-w-[1080px] space-y-3 px-3 py-3 sm:space-y-4 sm:px-4 sm:py-4;
+  }
+
+  .premium-lesson-panel {
+    @apply rounded-[28px] border p-4 sm:p-5;
+    border-color: hsl(var(--premium-lesson-border) / 0.92);
+    background: hsl(var(--premium-lesson-surface) / 0.88);
+    color: hsl(var(--premium-lesson-foreground));
+    box-shadow: var(--premium-lesson-shadow);
+  }
+
+  .premium-lesson-panel-soft {
+    @apply rounded-[24px] border p-4;
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.92);
+    background: hsl(var(--premium-lesson-surface-soft) / 0.82);
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-accent-panel {
+    @apply rounded-[28px] border p-4 sm:p-5;
+    border-color: hsl(var(--premium-tone-cyan-border) / 0.58);
+    color: hsl(var(--premium-lesson-foreground));
+    background: linear-gradient(
+      180deg,
+      hsl(var(--premium-lesson-accent-start) / 0.62),
+      hsl(var(--premium-lesson-accent-end) / 0.94)
+    );
+  }
+
+  .premium-lesson-summary-panel {
+    @apply rounded-[28px] border p-4 sm:p-5;
+    border-color: hsl(var(--premium-tone-violet-border) / 0.58);
+    color: hsl(var(--premium-lesson-foreground));
+    background: linear-gradient(
+      180deg,
+      hsl(var(--premium-lesson-summary-start) / 0.56),
+      hsl(var(--premium-lesson-summary-end) / 0.94)
+    );
+  }
+
+  .premium-lesson-kicker {
+    @apply text-xs uppercase tracking-[0.22em];
+    color: hsl(var(--premium-lesson-kicker-color));
+  }
+
+  .premium-lesson-muted {
+    @apply text-sm leading-6;
+    color: hsl(var(--premium-lesson-muted));
+  }
+
+  .premium-lesson-title {
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .premium-lesson-body {
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-caption {
+    color: hsl(var(--premium-lesson-muted));
+  }
+
+  .premium-lesson-chip {
+    @apply rounded-full border px-3 py-1.5 text-xs;
+    border-color: hsl(var(--premium-lesson-chip-border) / 0.88);
+    background: hsl(var(--premium-lesson-chip-bg) / 0.9);
+    color: hsl(var(--premium-lesson-chip-text));
+  }
+
+  .premium-lesson-surface-elevated {
+    @apply rounded-2xl border;
+    border-color: hsl(var(--premium-lesson-border) / 0.92);
+    background: hsl(var(--premium-lesson-surface-elevated) / 0.92);
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-surface-muted {
+    @apply rounded-2xl border;
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.92);
+    background: hsl(var(--premium-lesson-surface-muted) / 0.92);
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-selectable-card {
+    @apply rounded-[24px] border transition;
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.92);
+    background: hsl(var(--premium-lesson-surface-elevated) / 0.92);
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-selectable-card:hover {
+    background: hsl(var(--premium-lesson-surface-muted) / 0.94);
+  }
+
+  .premium-lesson-selectable-card-active {
+    border-color: hsl(var(--premium-lesson-highlight-border) / 0.92);
+    background: hsl(var(--premium-lesson-highlight-surface) / 0.9);
+    box-shadow: var(--premium-lesson-highlight-shadow);
+  }
+
+  .premium-lesson-tone-block {
+    @apply rounded-2xl border px-4 py-3 text-sm;
+  }
+
+  .premium-lesson-tone-card {
+    @apply rounded-[24px] border px-4 py-4 text-sm;
+  }
+
+  .premium-lesson-tone-pill {
+    @apply rounded-full border px-3 py-1 text-xs font-medium;
+  }
+
+  .premium-tone-cyan {
+    border-color: hsl(var(--premium-tone-cyan-border) / 0.9);
+    background: hsl(var(--premium-tone-cyan-bg) / 0.92);
+    color: hsl(var(--premium-tone-cyan-text));
+  }
+
+  .premium-tone-sky {
+    border-color: hsl(var(--premium-tone-sky-border) / 0.9);
+    background: hsl(var(--premium-tone-sky-bg) / 0.92);
+    color: hsl(var(--premium-tone-sky-text));
+  }
+
+  .premium-tone-emerald {
+    border-color: hsl(var(--premium-tone-emerald-border) / 0.9);
+    background: hsl(var(--premium-tone-emerald-bg) / 0.92);
+    color: hsl(var(--premium-tone-emerald-text));
+  }
+
+  .premium-tone-amber {
+    border-color: hsl(var(--premium-tone-amber-border) / 0.9);
+    background: hsl(var(--premium-tone-amber-bg) / 0.92);
+    color: hsl(var(--premium-tone-amber-text));
+  }
+
+  .premium-tone-rose {
+    border-color: hsl(var(--premium-tone-rose-border) / 0.9);
+    background: hsl(var(--premium-tone-rose-bg) / 0.92);
+    color: hsl(var(--premium-tone-rose-text));
+  }
+
+  .premium-tone-violet {
+    border-color: hsl(var(--premium-tone-violet-border) / 0.9);
+    background: hsl(var(--premium-tone-violet-bg) / 0.92);
+    color: hsl(var(--premium-tone-violet-text));
+  }
+
+  .premium-tone-slate {
+    border-color: hsl(var(--premium-tone-slate-border) / 0.92);
+    background: hsl(var(--premium-tone-slate-bg) / 0.92);
+    color: hsl(var(--premium-tone-slate-text));
+  }
+
+  .premium-tone-orange {
+    border-color: hsl(var(--premium-tone-orange-border) / 0.9);
+    background: hsl(var(--premium-tone-orange-bg) / 0.92);
+    color: hsl(var(--premium-tone-orange-text));
+  }
+
+  .premium-lesson-choice {
+    @apply rounded-2xl border px-3 py-3 text-left text-sm transition;
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.9);
+    background: hsl(var(--premium-lesson-surface-soft) / 0.88);
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-choice-active {
+    border-color: hsl(var(--premium-tone-cyan-border) / 0.9);
+    background: hsl(var(--premium-tone-cyan-bg) / 0.82);
+    color: hsl(var(--premium-tone-cyan-text));
+  }
+
+  .premium-lesson-input {
+    @apply mt-2 w-full rounded-2xl border px-4 py-3 text-sm outline-none transition;
+    border-color: hsl(var(--premium-lesson-input-border) / 0.92);
+    background: hsl(var(--premium-lesson-input-bg) / 0.92);
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .premium-lesson-nav-button {
+    @apply inline-flex items-center rounded-full border px-3 py-1 text-xs transition;
+    border-color: hsl(var(--premium-lesson-border) / 0.9);
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-control {
+    @apply rounded-lg border px-2 py-1 text-xs;
+    border-color: hsl(var(--premium-lesson-border) / 0.9);
+    background: hsl(var(--premium-lesson-surface-elevated));
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-lesson-select {
+    @apply rounded border px-2 py-1 text-xs outline-none;
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.92);
+    background: hsl(var(--premium-lesson-input-bg));
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .premium-lesson-action-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition disabled:opacity-60;
+    background: hsl(var(--premium-tone-cyan-border));
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .premium-lesson-action-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition disabled:opacity-60;
+    border-color: hsl(var(--premium-lesson-border) / 0.92);
+    background: hsl(var(--premium-lesson-surface-elevated) / 0.92);
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .premium-lesson-action-tone {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition disabled:opacity-60;
+  }
+
+  .light .premium-lesson-shell {
+    --premium-lesson-surface: 194 58% 96%;
+    --premium-lesson-surface-soft: 192 52% 92%;
+    --premium-lesson-surface-elevated: 196 46% 98%;
+    --premium-lesson-surface-muted: 191 54% 93%;
+    --premium-lesson-foreground: 222.2 47.4% 11.2%;
+    --premium-lesson-foreground-strong: 222.2 47.4% 11.2%;
+    --premium-lesson-muted: 215 28% 30%;
+    --premium-lesson-kicker-color: 196 72% 32%;
+    --premium-lesson-border: 197 36% 80%;
+    --premium-lesson-border-soft: 195 34% 77%;
+    --premium-lesson-chip-bg: 193 44% 95%;
+    --premium-lesson-chip-border: 196 34% 79%;
+    --premium-lesson-chip-text: 222.2 47.4% 11.2%;
+    --premium-lesson-input-bg: 195 48% 97%;
+    --premium-lesson-input-border: 197 34% 80%;
+    --premium-lesson-accent-start: 190 74% 88%;
+    --premium-lesson-accent-end: 198 62% 94%;
+    --premium-lesson-summary-start: 266 72% 91%;
+    --premium-lesson-summary-end: 212 56% 95%;
+    --premium-tone-cyan-bg: 190 78% 86%;
+    --premium-tone-cyan-border: 191 70% 62%;
+    --premium-tone-cyan-text: 196 72% 24%;
+    --premium-tone-sky-bg: 201 94% 88%;
+    --premium-tone-sky-border: 201 78% 70%;
+    --premium-tone-sky-text: 204 84% 25%;
+    --premium-tone-emerald-bg: 152 72% 88%;
+    --premium-tone-emerald-border: 152 56% 70%;
+    --premium-tone-emerald-text: 158 84% 22%;
+    --premium-tone-amber-bg: 48 96% 84%;
+    --premium-tone-amber-border: 42 92% 68%;
+    --premium-tone-amber-text: 32 95% 28%;
+    --premium-tone-rose-bg: 353 100% 92%;
+    --premium-tone-rose-border: 351 92% 78%;
+    --premium-tone-rose-text: 347 77% 33%;
+    --premium-tone-violet-bg: 268 100% 93%;
+    --premium-tone-violet-border: 265 84% 78%;
+    --premium-tone-violet-text: 262 61% 38%;
+    --premium-tone-slate-bg: 199 35% 94%;
+    --premium-tone-slate-border: 197 30% 79%;
+    --premium-tone-slate-text: 215 28% 30%;
+    --premium-tone-orange-bg: 35 100% 89%;
+    --premium-tone-orange-border: 28 92% 74%;
+    --premium-tone-orange-text: 24 85% 28%;
+    --premium-lesson-shadow: 0 18px 42px rgba(148, 163, 184, 0.14);
+    --premium-lesson-highlight-surface: 191 72% 88%;
+    --premium-lesson-highlight-border: 193 64% 60%;
+    --premium-lesson-highlight-shadow: 0 18px 36px rgba(14, 116, 144, 0.12);
+    --premium-lesson-graph-edge: 215 20% 64%;
+    --premium-lesson-graph-edge-active: 194 82% 40%;
+    --premium-lesson-graph-node-fill: 190 76% 88%;
+    --premium-lesson-graph-node-stroke: 191 74% 58%;
+    --premium-lesson-graph-node-active-fill: 194 82% 40%;
+    --premium-lesson-graph-node-active-stroke: 196 72% 24%;
+    --premium-lesson-graph-node-text: 222.2 47.4% 11.2%;
+    --premium-lesson-graph-label-bg: 184 92% 92%;
+    --premium-lesson-graph-label-stroke: 191 72% 58%;
+    --premium-lesson-graph-label-text: 196 72% 24%;
+    color: hsl(var(--premium-lesson-foreground));
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 32%),
+      linear-gradient(180deg, #f7fcff 0%, #eaf5fb 100%);
+  }
+
+  .light .premium-lesson-topbar {
+    border-color: hsl(var(--border) / 0.8);
+    background: hsl(var(--card) / 0.94);
+    box-shadow: 0 10px 28px rgba(148, 163, 184, 0.12);
+  }
+
+  .light .premium-lesson-panel {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--premium-lesson-surface-elevated)),
+      hsl(var(--premium-lesson-surface))
+    );
+  }
+
+  .light .premium-lesson-panel-soft {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--premium-lesson-surface-muted)),
+      hsl(var(--premium-lesson-surface-soft))
+    );
+  }
+
+  .light .premium-lesson-accent-panel {
+    box-shadow: 0 18px 42px rgba(125, 211, 252, 0.14);
+  }
+
+  .light .premium-lesson-summary-panel {
+    box-shadow: 0 18px 42px rgba(196, 181, 253, 0.12);
+  }
+
+  .light .premium-lesson-muted {
+    color: hsl(var(--premium-lesson-muted));
+  }
+
+  .light .premium-lesson-input {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
 }
 
 @layer utilities {
+  .premium-lesson-shell .bg-white,
+  .premium-lesson-shell .bg-white\/80,
+  .premium-lesson-shell .bg-white\/90,
+  .premium-lesson-shell .bg-white\/95 {
+    background-color: hsl(var(--premium-lesson-surface-elevated)) !important;
+  }
+
+  .premium-lesson-shell .bg-slate-50,
+  .premium-lesson-shell .bg-slate-50\/80,
+  .premium-lesson-shell .bg-slate-50\/90 {
+    background-color: hsl(var(--premium-lesson-surface-muted)) !important;
+  }
+
+  .premium-lesson-shell .bg-cyan-50,
+  .premium-lesson-shell .bg-cyan-50\/80,
+  .premium-lesson-shell .bg-cyan-50\/90 {
+    background-color: hsl(var(--premium-tone-cyan-bg)) !important;
+  }
+
+  .premium-lesson-shell .bg-sky-50 {
+    background-color: hsl(var(--premium-tone-sky-bg)) !important;
+  }
+
+  .premium-lesson-shell .bg-emerald-50 {
+    background-color: hsl(var(--premium-tone-emerald-bg)) !important;
+  }
+
+  .premium-lesson-shell .bg-amber-50 {
+    background-color: hsl(var(--premium-tone-amber-bg)) !important;
+  }
+
+  .premium-lesson-shell .bg-rose-50,
+  .premium-lesson-shell .bg-rose-50\/80 {
+    background-color: hsl(var(--premium-tone-rose-bg)) !important;
+  }
+
+  .premium-lesson-shell .bg-violet-50 {
+    background-color: hsl(var(--premium-tone-violet-bg)) !important;
+  }
+
+  .premium-lesson-shell .bg-orange-100 {
+    background-color: hsl(var(--premium-tone-orange-bg)) !important;
+  }
+
+  .premium-lesson-shell .text-white,
+  .premium-lesson-shell .text-slate-100,
+  .premium-lesson-shell .text-slate-200,
+  .premium-lesson-shell .text-slate-900,
+  .premium-lesson-shell .text-slate-950 {
+    color: hsl(var(--premium-lesson-foreground-strong)) !important;
+  }
+
+  .premium-lesson-shell .text-slate-800,
+  .premium-lesson-shell .text-slate-700,
+  .premium-lesson-shell .text-slate-600 {
+    color: hsl(var(--premium-lesson-foreground)) !important;
+  }
+
+  .premium-lesson-shell .text-slate-500,
+  .premium-lesson-shell .text-slate-400 {
+    color: hsl(var(--premium-lesson-muted)) !important;
+  }
+
+  .premium-lesson-shell .text-cyan-900,
+  .premium-lesson-shell .text-cyan-800,
+  .premium-lesson-shell .text-cyan-700,
+  .premium-lesson-shell .text-cyan-600,
+  .premium-lesson-shell .text-cyan-500 {
+    color: hsl(var(--premium-tone-cyan-text)) !important;
+  }
+
+  .premium-lesson-shell .text-sky-900,
+  .premium-lesson-shell .text-sky-800,
+  .premium-lesson-shell .text-sky-700 {
+    color: hsl(var(--premium-tone-sky-text)) !important;
+  }
+
+  .premium-lesson-shell .text-emerald-900,
+  .premium-lesson-shell .text-emerald-800,
+  .premium-lesson-shell .text-emerald-700 {
+    color: hsl(var(--premium-tone-emerald-text)) !important;
+  }
+
+  .premium-lesson-shell .text-amber-900,
+  .premium-lesson-shell .text-amber-800,
+  .premium-lesson-shell .text-amber-700,
+  .premium-lesson-shell .text-amber-600 {
+    color: hsl(var(--premium-tone-amber-text)) !important;
+  }
+
+  .premium-lesson-shell .text-rose-700 {
+    color: hsl(var(--premium-tone-rose-text)) !important;
+  }
+
+  .premium-lesson-shell .text-violet-800,
+  .premium-lesson-shell .text-violet-700 {
+    color: hsl(var(--premium-tone-violet-text)) !important;
+  }
+
+  .premium-lesson-shell .fill-slate-900 {
+    fill: hsl(var(--premium-lesson-foreground-strong)) !important;
+  }
+
+  .premium-lesson-shell .fill-slate-600 {
+    fill: hsl(var(--premium-lesson-muted)) !important;
+  }
+
+  .premium-lesson-shell .fill-slate-500 {
+    fill: hsl(var(--premium-lesson-muted)) !important;
+  }
+
+  .premium-lesson-shell .fill-cyan-700 {
+    fill: hsl(var(--premium-tone-cyan-text)) !important;
+  }
+
+  .premium-lesson-shell .fill-sky-700 {
+    fill: hsl(var(--premium-tone-sky-text)) !important;
+  }
+
+  .premium-lesson-shell .fill-orange-700 {
+    fill: hsl(var(--premium-tone-orange-text)) !important;
+  }
+
+  .premium-lesson-shell .fill-orange-600 {
+    fill: hsl(var(--premium-tone-orange-text)) !important;
+  }
+
+  .premium-lesson-shell .border-white\/10,
+  .premium-lesson-shell .border-white\/15,
+  .premium-lesson-shell .border-white\/20 {
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.92) !important;
+  }
+
+  .premium-lesson-shell .border-slate-200,
+  .premium-lesson-shell .border-slate-300 {
+    border-color: hsl(var(--premium-lesson-border)) !important;
+  }
+
+  .premium-lesson-shell .border-cyan-200,
+  .premium-lesson-shell .border-cyan-300 {
+    border-color: hsl(var(--premium-tone-cyan-border)) !important;
+  }
+
+  .premium-lesson-shell .border-sky-200 {
+    border-color: hsl(var(--premium-tone-sky-border)) !important;
+  }
+
+  .premium-lesson-shell .border-emerald-200 {
+    border-color: hsl(var(--premium-tone-emerald-border)) !important;
+  }
+
+  .premium-lesson-shell .border-amber-200,
+  .premium-lesson-shell .border-amber-300 {
+    border-color: hsl(var(--premium-tone-amber-border)) !important;
+  }
+
+  .premium-lesson-shell .border-rose-200,
+  .premium-lesson-shell .border-rose-300\/60 {
+    border-color: hsl(var(--premium-tone-rose-border)) !important;
+  }
+
+  .premium-lesson-shell .border-violet-100,
+  .premium-lesson-shell .border-violet-200 {
+    border-color: hsl(var(--premium-tone-violet-border)) !important;
+  }
+
+  .premium-lesson-shell .border-orange-100 {
+    border-color: hsl(var(--premium-tone-orange-border)) !important;
+  }
+
   /* Legacy dark-theme bridge: normalize old hardcoded dark tokens in light mode. */
   .light .bg-slate-950 { background-color: hsl(var(--background)) !important; }
   .light .bg-slate-950\/90 { background-color: hsl(var(--background) / 0.9) !important; }
@@ -125,12 +1398,30 @@
   .light .text-white\/70 { color: hsl(var(--foreground) / 0.7) !important; }
   .light .text-white\/60 { color: hsl(var(--foreground) / 0.6) !important; }
   .light .text-white\/50 { color: hsl(var(--foreground) / 0.5) !important; }
+  .light .text-cyan-50\/90 { color: hsl(192 88% 23% / 0.94) !important; }
+  .light .text-amber-50 { color: hsl(32 95% 28%) !important; }
 
   .light .text-slate-100 { color: hsl(var(--foreground)) !important; }
   .light .text-slate-200 { color: hsl(var(--foreground) / 0.92) !important; }
   .light .text-slate-300 { color: hsl(var(--muted-foreground)) !important; }
   .light .text-slate-400 { color: hsl(var(--muted-foreground)) !important; }
   .light .text-slate-500 { color: hsl(var(--muted-foreground)) !important; }
+  .light .text-cyan-50,
+  .light .text-cyan-100 { color: hsl(192 88% 23%) !important; }
+  .light .text-cyan-200,
+  .light .text-cyan-300 { color: hsl(194 82% 30%) !important; }
+  .light .text-sky-100,
+  .light .text-sky-200 { color: hsl(204 87% 30%) !important; }
+  .light .text-emerald-100,
+  .light .text-emerald-200 { color: hsl(158 84% 25%) !important; }
+  .light .text-amber-100,
+  .light .text-amber-200 { color: hsl(32 95% 28%) !important; }
+  .light .text-orange-100,
+  .light .text-orange-200 { color: hsl(24 94% 32%) !important; }
+  .light .text-rose-100,
+  .light .text-rose-200 { color: hsl(347 77% 33%) !important; }
+  .light .text-violet-100,
+  .light .text-violet-200 { color: hsl(262 61% 38%) !important; }
 
   .light .border-white\/10 { border-color: hsl(var(--border) / 0.45) !important; }
   .light .border-white\/15 { border-color: hsl(var(--border) / 0.5) !important; }
@@ -177,6 +1468,30 @@
   .light .bg-\[\#0c3654\]\/80,
   .light .bg-\[\#0c3654\]\/50 {
     background-color: hsl(var(--card)) !important;
+  }
+
+  .light .bg-\[linear-gradient\(180deg\,rgba\(6\,182\,212\,0\.10\)\,rgba\(15\,23\,42\,0\.82\)\)\] {
+    background: linear-gradient(180deg, hsl(190 56% 93%), hsl(200 38% 98%)) !important;
+  }
+
+  .light .bg-\[linear-gradient\(135deg\,rgba\(4\,47\,46\,0\.18\)\,rgba\(15\,23\,42\,0\.96\)\)\] {
+    background: linear-gradient(135deg, hsl(188 52% 94%), hsl(206 42% 98%)) !important;
+  }
+
+  .light .bg-\[linear-gradient\(135deg\,rgba\(14\,165\,233\,0\.10\)\,rgba\(15\,23\,42\,0\.92\)\)\] {
+    background: linear-gradient(135deg, hsl(197 70% 94%), hsl(205 42% 98%)) !important;
+  }
+
+  .light .bg-\[linear-gradient\(180deg\,rgba\(124\,58\,237\,0\.10\)\,rgba\(15\,23\,42\,0\.85\)\)\] {
+    background: linear-gradient(180deg, hsl(268 58% 94%), hsl(210 42% 98%)) !important;
+  }
+
+  .light .bg-\[radial-gradient\(circle_at_top_left\,\#0f766e22\,transparent_45\%\)\,\#020617\] {
+    background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.16), transparent 45%), hsl(195 44% 97%) !important;
+  }
+
+  .light .bg-\[radial-gradient\(circle_at_top_left\,\#164e6326\,transparent_45\%\)\,\#020617\] {
+    background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 45%), hsl(200 42% 97%) !important;
   }
 }
 

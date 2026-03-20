@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import {
@@ -18,28 +19,30 @@ export function L2ACourseHeader({
   activeIndex,
   onIndexChange,
   middleNotice,
+  rightSlot,
 }: {
   steps: L2ALessonStep[];
   activeIndex: number;
   onIndexChange: (index: number) => void;
   middleNotice?: string;
+  rightSlot?: ReactNode;
 }) {
   const currentStep = steps[activeIndex];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/92 backdrop-blur">
-      <div className="mx-auto max-w-[1680px] px-4 py-2">
-        <div className="flex items-center gap-3">
+    <header className="premium-lesson-topbar">
+      <div className="mx-auto max-w-[1280px] px-3 py-2 sm:px-4 sm:py-2.5">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <Link
               href={`/interactive-learning/courses/${L2A_ROUTE_SEGMENT}`}
-              className="inline-flex shrink-0 items-center rounded-full border border-white/20 px-3 py-1 text-xs text-slate-200 transition hover:border-cyan-300/60"
+              className="premium-lesson-nav-button shrink-0"
             >
               返回
             </Link>
             <div className="min-w-0">
-              <div className="truncate text-[10px] uppercase tracking-[0.24em] text-cyan-300/80">{L2A_COURSE_SUBTITLE}</div>
-              <h1 className="truncate text-sm font-semibold text-white md:text-base">{L2A_COURSE_TITLE}</h1>
+              <div className="premium-lesson-kicker truncate text-[10px] tracking-[0.24em]">{L2A_COURSE_SUBTITLE}</div>
+              <h1 className="truncate text-sm font-semibold text-slate-100 md:text-base">{L2A_COURSE_TITLE}</h1>
             </div>
           </div>
 
@@ -52,13 +55,14 @@ export function L2ACourseHeader({
                 ⏱ {L2A_STEP_DURATION[currentStep.id]}
               </span>
             </div>
-            <div className="mt-0.5 truncate text-center text-[11px] text-slate-300">
+            <div className="premium-lesson-muted mt-0.5 truncate text-center text-[11px] leading-5">
               {middleNotice ?? currentStep.title}
             </div>
           </div>
 
           <div className="ml-auto flex shrink-0 flex-col items-end gap-1">
-            <label className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-slate-900 px-2 py-1 text-xs text-slate-200">
+            {rightSlot ? <div className="flex items-center gap-2">{rightSlot}</div> : null}
+            <label className="premium-lesson-control inline-flex items-center gap-2">
               <span>环节</span>
               <select
                 value={currentStep.id}
@@ -68,7 +72,7 @@ export function L2ACourseHeader({
                     onIndexChange(nextIndex);
                   }
                 }}
-                className="rounded border border-white/15 bg-slate-950 px-2 py-1 text-xs text-white outline-none"
+                className="premium-lesson-select"
               >
                 {steps.map((step) => (
                   <option key={step.id} value={step.id}>
@@ -83,7 +87,7 @@ export function L2ACourseHeader({
                 type="button"
                 disabled={activeIndex <= 0}
                 onClick={() => onIndexChange(Math.max(0, activeIndex - 1))}
-                className="inline-flex items-center rounded border border-white/20 px-2 py-1 text-xs text-slate-200 disabled:opacity-40"
+                className="premium-lesson-control inline-flex items-center disabled:opacity-40"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
@@ -91,7 +95,7 @@ export function L2ACourseHeader({
                 type="button"
                 disabled={activeIndex >= steps.length - 1}
                 onClick={() => onIndexChange(Math.min(steps.length - 1, activeIndex + 1))}
-                className="inline-flex items-center rounded border border-white/20 px-2 py-1 text-xs text-slate-200 disabled:opacity-40"
+                className="premium-lesson-control inline-flex items-center disabled:opacity-40"
               >
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>

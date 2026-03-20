@@ -7,7 +7,24 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-03-10
+📅 **最后更新**：2026-03-20
+🧭 **1-1 拉氏变换精品互动课落地（2026-03-20）**：新增 `/interactive-learning/courses/unit-1-1-laplace-transfer-function` 精品互动课堂，并补齐教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]`、预置教案、课堂码路由识别与步骤级 AI 上下文；按 `course-content/authoring/lessons/1-1` 设计稿完成 14 步课堂流程、零极点/典型环节工作区、文本词云与选择题统计反馈闭环；同时完成 `1-1` 课次 `authoring -> runtime` 导出，生成 `lesson.json`、`graph-overlay.json`、`handout.md` 与 6 个媒体资源，并通过定向测试、`npm run lint`、`npm run test`、`npm run build` 验证
+🧭 **教师首页与上课历史整理（2026-03-19）**：教师首页第一行统计卡现支持直接进入核心入口，其中“我的班级”可点击进入班级管理，“上课历史”新增为教师维度的已结束课堂总表入口；首页第二行快捷操作删除与 `/teacher/classes` 重复的“开始上课 / 班级与学情”卡片，改为 5 个均分入口并统一接入全局 `teacher-home-*` 语义样式以适配浅色/深色主题；新增 `/teacher/history` 与 `/api/teacher/sessions`，教师可查看全部已结束课堂、将课堂归档到某个现有班级，或删除课堂；班级页课堂历史的已结束课堂入口统一收敛到课堂统计页 `/classroom/teacher/[sessionId]/review`
+🧭 **教师端班级学情入口重构（2026-03-19）**：教师首页不再暴露无上下文的“班级能力驾驶舱”与管理员“数据治理”入口，统一改为从 `/teacher/classes` 进入班级；班级详情页重构为“班级学情总览 / 课堂历史 / 学生清单 / 重点关注”四类入口卡，学生清单不再只显示技术分和伦理分，而是显示画像等级、风险级别、近期趋势、成长档案数量等治理结果；新增教师聚合接口 `/api/teacher/classes/[classId]/insights` 与 `/api/teacher/classes/[classId]/students/[studentId]/insights`，并落地学生个体学情页 `/teacher/classes/[classId]/students/[studentId]`；`/teacher/classes/[classId]/analytics-v2` 现基于真实治理快照渲染能力维度、画像分布、能力矩阵与重点学生，同时修复 `heatmap` 接口因错误使用下划线列名导致的 500，相关页面样式统一接入全局 `teacher-insight-*` 语义类以适配浅色/深色主题
+🧭 **管理员后台重构（2026-03-19）**：`/admin` 已调整为统一后台入口页，用户管理、系统使用量统计、数据治理三个能力统一收口到同一管理总台，并分别下沉到 `/admin/users`、`/admin/states`、`/admin/data-governance` 子路由；用户管理页改为复用后台全局浅色/深色样式，浅色模式不再混入深色硬编码组件；新增 `/api/admin/system-usage` 真实统计接口，关闭演示模式后可直接读取实际使用量；数据治理页完成中文化与信息层级增强，可直接查看事实分布、队列健康、风险清单与学生快照明细
+🧪 **数据治理事实沉淀校验（2026-03-19）**：本地再次通过 `bash scripts/db/sync-remote-db-to-local.sh` 全量同步远端数据库，当前对齐后的关键计数为 `User=291`、`LearningFact=0`、`StudentCompetencySnapshot=1829`、`StudentProfileSummary=100`、`ClassCompetencySnapshot=2`、`LearningEventBatch=25`；随后基于新的事件归一化链路执行 `npx tsx scripts/db/backfill-learning-facts-from-event-batches.ts`，成功从 `25` 个事件批次中回放出 `55` 条 `LearningFact`（覆盖 `41` 个用户，类型均为 `question`），再次 dry-run 为 `0` 候选，说明本地回放脚本已具备幂等性；同时核查发现远端数据库中 `LearningEventBatch` 与 `StudentCompetencySnapshot` 仍在持续增长，但 `ClassCompetencySnapshot` 仅有 `2` 条、未体现出按 15 分钟持续产出的节奏，说明数据治理链路已部分开展，但“班级快照调度稳定落地”仍需继续跟进
+🧰 **服务运维技能、本地数据同步与教师驾驶舱守卫修复（2026-03-19）**：已将生产库导出并同步回本地开发数据库，恢复后关键计数核对为 `User=291`、`StudentCompetencySnapshot=96`、`ClassCompetencySnapshot=2`、`StudentProfileSummary=96`，便于后续围绕真实课堂数据排查与分析；同时参考 `.claude/skills/server-ops` 在仓库内新增 `.codex/skills/server-ops`，采用“主入口只给总览、详细流程拆到 `references/`”的结构，覆盖远端调查、部署验收、数据库同步与测试账号核对；另外修复 `src/app/teacher/page.tsx` 与 `src/app/teacher/resources/page.tsx` 的服务端鉴权空会话崩溃，未登录时统一重定向 `/login`，管理员重定向 `/admin`，其他非教师角色重定向 `/dashboard`，并新增 `scripts/tests/test-teacher-auth-guards.mjs` 做回归校验
+🚀 **服务器部署收口（2026-03-19）**：补齐 `prisma/migrations/20260319092000_add_data_governance_and_missing_schema_updates`，将此前只存在于 `schema.prisma` 的 `LearningFact`、`StudentCompetencySnapshot`、`StudentProfileSummary`、`ClassCompetencySnapshot`、`StudentRiskFlag`、`GrowthRecord`、`LearningRecommendation`、`EventDictionary`、`KonlingSession`、`LearningEventBatch` 等表正式纳入迁移；生产镜像重新打包 `Redis + worker + scheduler` 运行链路并部署到 `act.adapt-learn.online`，远端 `.env.server` 已对齐 `REDIS_URL`、`WORKER_NAME`、`WORKER_CONCURRENCY`、`DATABASE_URL(connection_limit=10&pool_timeout=20)` 与 `APP_PORT=8084`；验收确认公网首页与 `/api/auth/session` 正常、Redis 策略为 `noeviction`、BullMQ 重复任务已注册，数据治理 worker 已成功生成学生能力快照与画像摘要
+🛠️ **课堂服务与导航回补（2026-03-19）**：按 `docs/server_optimize.md` 与 `docs/plans/nevplan.md` 重新校正课堂链路和导航统一方案；学生端课堂会话默认关闭 SSE，去除“实时连接失败，已降级到轮询模式”页面提示，修正 Redis 发布/订阅频道不一致问题，并进一步收窄 `student-view` 查询与 `/api/session/[sessionId]` Redis 快路径返回；L-2a/L-2b/L-2c/L-2d/L-sum 的互动提交补齐“提交成功”常驻提示与锁定逻辑，L-sum 第 10 页按钮文案改为“打开控灵助手”且页内控灵头像在消息气泡中恢复显示；知识图谱、评审入口、互动学习、互动课程、跨域探索、章节组件与 Lesson-02 页面重新接入 `UnifiedTopBar`，控灵浮动按钮位置下调；本地 `startup/shutdown` 同步纳入 Redis、`worker:dev` 与 `worker:scheduler`
+🔧 **L-sum课程演示模式与教师页面错误修复（2026-03-18）**：修复 L-sum 课程演示模式 "Maximum update depth exceeded" 无限渲染错误（`step-panels.tsx` 使用 `useMemo` 缓存 `getStepActivity` 返回值）；修复教师页面不显示课堂码问题（显式构建包含 `joinCode` 的 session 对象）；优化课堂同步轮询错误处理（`use-session-progress-channel.ts` 添加错误退避、状态合并更新、5秒暂停机制，防止多轮询竞争导致的抖动和 fetch 失败）
+🗃️ **数据治理系统（2026-03-18）**：新增数据治理核心模块（competency-engine, risk-detector, event-buffer），实现学生六维能力画像计算、风险学生检测、学习事实追踪；配套新增学生成长追踪页面（`/profile/growth`, `/profile/portfolio`）、教师分析 v2（`/teacher/classes/[classId]/analytics-v2`）、学生诊断（`/teacher/students/[studentId]/diagnosis`）及相关 API；管理员统计面板支持演示/真实数据切换；新增 vitest 单元测试配置与数据治理模块测试套件
+🔧 **L-2d课堂服务稳定性整改（2026-03-18）**：针对L-2d课程期间出现的服务不稳定问题（数据库连接池耗尽、外键错误、页面回跳），实施P0级紧急整改：
+- 调整Prisma连接池配置（limit=3→10, timeout=10s→20s）
+- 修复InteractionLog外键错误，添加resourceId格式校验与降级处理
+- 修复教师端页面回跳，实现基于时间戳的版本控制机制
+- 添加sharp库解决图片处理警告
+- 详见部署指南：`docs/L2D-STABILIZATION-DEPLOY.md`
+🧠 **长期记忆骨架（2026-03-17）**：新增 `.codex/memory/` 分层长期记忆目录，按“项目总览 / 架构 / 运维 / 业务域 / 决策 / 事故 / 工作流 / 归档”组织跨会话知识，作为 `AGENTS.md` 规则与 `docs/ProjectDescription.md` 阶段进展之外的第三层项目记忆
 🧩 **整改进展**：统一课程框架已确立为 DB BOPPPS 教案 + TeachingResource/registry + 互动埋点主链路（规范见 `docs/Unified_Lesson_Framework.md`），课次整改与预置教案对齐中；统一仿真内核（固定步长时钟 + Tustin 离散化 + 非线性积分器）覆盖 Control Odyssey 与虚拟仿真，Control Odyssey 关卡扩展至 15 关；仿真规范说明见 `docs/Simulation_Guidelines.md`
 ⚡ **首页与仿真加载优化（2026-03-02）**：首页船模改为“截图优先 + 3D 后台懒加载”，移除首屏一次性预加载全部 7 个 GLB（约 125MB）策略，改为按轮播仅预热“当前 + 下一”模型；仿真页改为“场景先渲染、船模独立 Suspense 加载”，在船模解析期间显示“模型加载中”占位动画，避免黑屏等待
 🧰 **首页模型策略开关（2026-03-03）**：新增平台级配置 `PlatformSetting` 与管理接口 `/api/admin/platform-settings`、公开读取接口 `/api/platform/settings`；管理员可在 `/admin/config` 切换“首页动态模型渲染”，首页根据开关在静态截图与动态 3D 预览间切换
@@ -22,9 +39,22 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 🎥 **视角统一**：主视角统一为左舷后方约 45° 且默认跟随，统一相机距离与目标中心构图，跨仿真保持一致
 🧩 **场景合并**：`/simulations/cruise-comfort` 与 `/simulations/icebreaker-robust` 能力合并入 `/simulations/cruise` 与 `/simulations/icebreaker` 主场景
 🧠 **知识点同步**：启动脚本默认执行 `npm run seed:knowledge`，确保预置教案克隆所需 KnowledgeNode 已补齐
-📘 **课程更新**：新增 Lesson 01「反馈：控制原理的核心思想」、Lesson 02「拉氏变换：工程直觉的数学实现」与 Lesson 05「方框图、信号流图与梅森公式」预置教案与互动学习入口，原 Lesson 02 建模课迁移为 Legacy；Lesson 03 预置教案与知识节点绑定已完成；新增 Lesson 16「非线性系统与描述函数基础」与 Lesson 17「描述函数分析法与自振判别」预置教案、互动学习入口与知识节点；新增 L-2a「三张面孔，同一系统 · 时域直觉速通」精品互动课堂，按重构课程入口独立展示
+📘 **课程更新**：新增 Lesson 01「反馈：控制原理的核心思想」、Lesson 02「拉氏变换：工程直觉的数学实现」与 Lesson 05「方框图、信号流图与梅森公式」预置教案与互动学习入口，原 Lesson 02 建模课迁移为 Legacy；Lesson 03 预置教案与知识节点绑定已完成；新增 Lesson 16「非线性系统与描述函数基础」与 Lesson 17「描述函数分析法与自振判别」预置教案、互动学习入口与知识节点；新增 L-2a「三张面孔，同一系统 · 时域直觉速通」与 L-2b「根轨迹直觉速通 · 极点迁移的几何感知」两门精品互动课堂，按重构课程入口独立展示，其中 L-2b 已打通 `course-content/runtime` 运行时媒体链路与双端同步课堂页
 🧾 **教案管理**：我的教案支持三点菜单删除并二次确认
 🚀 **部署方式**：本地开发 + Docker 容器化部署
+🚚 **远端部署脚本（2026-03-11）**：新增 `scripts/remote-deploy.sh`，在本机调用 `scripts/build.sh` 完成镜像构建后，自动上传 `deploy/images/act-obe.tar` 到服务器 `/home/projects/act/images/act-obe.tar`，执行远端 `/home/projects/act/scripts/0-one-key.sh`，并验证公网、数据库与 systemd/Podman 服务状态
+🗂️ **课程内容目录迁移（2026-03-11）**：新增 `course-content/` 作为课程制作统一目录，采用 `authoring/` 与 `runtime/` 分层，沉淀 L-2a 课次设计稿、图谱增量、知识卡片、媒体目录骨架与面向 Claude 的迁移/闭环说明
+🧠 **runtime 知识源接线（2026-03-13）**：新增 `course-content/scripts/export-runtime.sh` 导出链路，当前已完成 L-2b 试点：全局知识图谱改从 `course-content/runtime/knowledge/graph/{nodes.json,relations.jsonl}` 读取；`authoring/knowledge/cards/nodes/*.md` 与 `content/concepts/*.mdx` 会同步到 `course-content/runtime/knowledge/cards/`；L-2b 额外生成 `lesson.json`、`graph-overlay.json` 与 `handout.md`，为后续 L-2c 及新课次统一接入 runtime 奠定基础
+🗺️ **L-2b 首页 runtime 导学（2026-03-13）**：L-2b 课程首页已接入 runtime lesson bundle，入口页可直接展示本课知识点网络、节点卡片正面与统一 `详情 / 概览` 视图、按 sequence 排列的知识卡片预览，以及支持 LaTeX/媒体渲染的讲义入口
+🧾 **L-2b 首页二次收口（2026-03-13）**：按最新课程规范将教师入口/自由浏览/学生入口上移至首页最上方；知识点网络增加前置/后置箭头关系；讲义入口改为智能摘要并支持导出 PDF；学生页与教师页新增按 runtime 编排驱动的步骤知识卡抽屉，且仅在当前步骤存在知识卡时显示
+🧩 **L-2b 知识卡统一框架（2026-03-13）**：首页节点卡片与步骤抽屉统一复用 `KnowledgeCard` runtime 分节渲染；`course-content/runtime/knowledge/cards/nodes/*.md` 只在概览态展示 `## 首页`，通过 `详情 / 概览` 切换到 `## 详情`，标题保持不变；非首页知识卡入口统一挂到页面标题模块右上角
+🎨 **L-2b 主题框架收口（2026-03-13）**：L-2b 首页与课堂内页已统一切到精品课深浅主题语义类；深色模式下移除残留的深字深底与浅色突兀块，浅色模式保持原有高对比；同时新增 `test-l2b-theme-no-hardcoded-styles.ts`，明确禁止在课程模块继续新增 `dark:`、十六进制色和旧式色阶硬编码
+🧾 **L-2b 讲义 PDF 服务端导出（2026-03-14）**：弃用首页讲义入口此前依赖 `window.print()` 的前端导出方式，新增 `/interactive-learning/lessons/[lessonId]/handout-print` 服务端讲义打印页与 `/api/course-runtime/lessons/[lessonId]/handout-pdf` 下载接口；当前由服务端使用 Playwright/Chromium 渲染 runtime 讲义并生成 PDF，前端仅负责触发下载，从而避免用户浏览器打印能力差异导致的空白页或无文件产出
+📡 **L-2c 频域直觉课首轮落地（2026-03-14）**：新增 L-2c「频域直觉速通 · Bode图与相位裕度初识」精品互动课，完成 `course-content/authoring -> runtime` 导出、17 步课堂配置、首页 runtime 导学、页内 AI 助手、选择题/文本题教师汇总、步骤知识卡抽屉与教师/学生双端课堂页；同时将首页知识图/讲义/PDF 模块提炼为共享 `LessonEntryRuntimeSections`，供 L-2b/L-2c 统一复用，并补做浏览器级验收与共享知识卡链路的主题语义化收口，继续明确拒绝旧式颜色硬编码
+🧪 **L-2d 三域联动实践课已接入验收链路（2026-03-14）**：`L-2d`「三域联动探索 · 平台操作初体验」现已完成 `practice-guide.md -> runtime/handout.md` 导出、14 步课堂配置、首页 runtime 导学、三面板联动工作区、任务一/二/三即时评分、步骤知识卡抽屉与教师/学生双端课堂页；同时补齐 `test-l2d-*` 定向验证脚本，并修复 runtime 导出测试在 ESM 执行下的路径兼容问题
+🧠 **1-1 拉氏变换精品互动课（2026-03-20）**：新增 `/interactive-learning/courses/unit-1-1-laplace-transfer-function` 精品互动课堂入口，以及教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]` 同级隔离路由；首页接入 runtime lesson bundle，统一展示知识点网络、知识卡片预览、讲义入口与 PDF 导出；课堂内按 14 步落地页内 AI 助手、教师释放/显示答案、学生提交状态、词云与回复列表、零极点联动/零点作用/典型环节滑块工作区；`course-content/authoring/lessons/1-1/media/raw/*.py` 已补齐 `--output` 输出参数并通过 `processed` 审核后导出到 `course-content/runtime/lessons/1-1/media`
+🧭 **L-sum 设计可行域课同步闭环落地（2026-03-15）**：`L-sum`「设计可行域——让约束成为指南针」在正式课堂框架基础上，本轮继续接入真实 `/api/session` 会话读取与步骤推进、教师端 `teacher:course-sync` 广播、学生端 `student:lsum:state` 持久化、首次对齐/不同步提示、课堂结束态提示，并修复课程总入口的精品课程过滤链路，使 `L-sum` 正式出现在 `/interactive-learning/courses` 的精品课程区；同时新增 `tests/lsum-premium-course.spec.ts` 与 `tests/lsum-live-classroom-sync.spec.ts` 浏览器回归，覆盖课程总入口卡片、demo 学生端知识卡抽屉/页内 AI、以及真实教师/学生双账号创建课堂、加入课堂、不同步跳转、前测释放与答案揭示链路；入口路由测试 `tests/interactive-learning-entry-routes.spec.ts` 也同步改为更稳的 `href + direct goto` 校验，避免 Next 开发态并行编译导致的伪失败；当前 `test-lsum-runtime-export.ts`、`test-lsum-course-registration.ts`、`test-lsum-step-knowledge-drawer.ts`、`test-lsum-assessment-controls.ts`、`test-lsum-teacher-session-sync.ts`、`test-lsum-student-session-sync.ts`、`npm run lint`、`npm run test`、`npm run build`、`npm run test:integration` 均已通过
+📦 **运行时资源外置部署（2026-03-12）**：`scripts/build.sh` 现在要求通过 `.dockerignore` 排除 `course-content/runtime`，镜像不再打包运行时课程资源；`scripts/remote-deploy.sh` 会使用 `rsync` 将本地 `course-content/runtime/` 同步到服务器 `/home/projects/act/course-content/runtime/`，并同步最新 `deploy/podman/deploy.sh` 到远端 `scripts/4-deploy.sh`，由 Podman 以只读挂载方式映射到容器内 `/app/course-content/runtime`
 
 ## 3. 核心功能模块
 
@@ -34,8 +64,8 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **自动档案创建**：新用户自动创建学生档案和解锁第一关
 - **账号安全**：个人中心支持修改密码与退出登录
 - **演示账号**：
-  - 演示教师账号：`test_teacher`，密码：`test@Just`
-  - 演示学生账号：`demo`，密码：`demo@Just`
+- 演示教师账号：`test_teacher`，密码：`TestTeacher@Just2026!`
+- 演示学生账号：`demo`，密码：`DemoStudent@Just2026!`
 
 ### 3.2 驱逐舰航向控制仿真 ✅
 - **3D 可视化**：基于 Three.js / React Three Fiber 的沉浸式体验
@@ -113,10 +143,11 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 
 ### 3.8 个人中心 ✅
 - **用户信息管理**：查看和编辑个人资料
-- **能力雷达图**：直观展示五维能力
+- **六维能力画像**：对齐数据治理真实能力维度，展示控制建模、参数设计、跨域迁移、工程决策、探究反思、自主学习
 - **学习统计**：完成任务、仿真次数、技术分、伦理分
-- **最近活动**：仿真练习、任务完成、伦理违规记录
+- **最近活动**：聚合课堂参与、仿真训练、互动页面、跨域探索模块与自适应题目，并支持前三条预览与查看全部分类
 - **任务进度**：进度条和完成率
+- **个性化补强路径**：根据当前状态推荐具体互动模块、知识卡片、仿真与自适应习题入口，并展示自适应诊断摘要
 
 ### 3.9 主控制台 (Dashboard) ✅
 - **统计卡片**：完成任务、仿真次数、技术分、伦理分
@@ -189,6 +220,18 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
     - 互动课程页重组为“精品课程 + 默认折叠的旧版章节课程”；保留“柔性之海”精品入口，并将原 `lessonXX` 系列统一收纳到默认收起的折叠菜单
     - 新课采用与“柔性之海”一致的精品课程结构，围绕 L-2a 材料实现 18 步 BOPPPS 课堂流程，并提供左侧常驻双面板工作区（极点平面 + 时域响应）
     - 课堂状态与统计埋点复用现有 `/api/session`、`/api/session/[id]/state` 与 `useInteractiveTracking`，演示模式静默同步，避免为匿名访问新增接口
+  - 2026-03-11（课堂链路稳定性修复）：
+    - 统一课堂码跳转解析：`/api/session/join` 返回按课堂所属课程计算出的教师/学生目标地址；`/dashboard`、`/classroom/join`、精品课程入口页输入同一课堂码后会跳转到同一正确课堂页面
+    - 旧 `/classroom/teacher/[sessionId]` 与 `/classroom/student/[sessionId]` 路由增加精品课程自动转发，教师后台与历史链接可继续复用旧入口
+    - L-2a 与“柔性之海”教师页补齐“结束课堂”按钮；教师班级详情页支持直接停止进行中的课堂，避免残留 `ACTIVE` 课堂
+    - 教师端翻页改为“本地权威 + 服务端确认”模式，消除轮询导致的偶发回跳；学生端改为“检测不同步并手动跳转”，不再强制追页
+    - `/api/session/[sessionId]/state` 增加 `scope=self` 与 `scope=student-view` 查询范围，学生端不再轮询全班完整状态；课堂关键节点增加结构化日志（入课、翻页推进、结束课堂、到场、教师同步发布）
+  - 2026-03-11（L-2b 精品课首轮落地）：
+    - 新增 `/interactive-learning/courses/l2b-root-locus-fasttrack` 精品互动课堂入口，以及教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]` 同级隔离路由
+    - `course-content/authoring/lessons/L-2b/media/raw/*.py` 补齐 `--output` 输出参数；新增 `scripts/generate_l2b_runtime_media.py`，把根轨迹性能区、45°射线定位图与三阶穿越图直出到 `course-content/runtime/lessons/L-2b/media`
+    - 新增 `/course-runtime/[...assetPath]` 运行时资源路由，页面直接读取 `course-content/runtime` 下 SVG 产物，不再依赖 `public/` 占位图
+    - L-2b 学生端保留首次对齐、后续不同步提示与手动跳转；教师端复用结束课堂回跳、课堂码解析与会话广播链路
+    - 工作区按步骤分化为反馈框图认知卡、广播/独立根轨迹工作台、轨迹选点信息卡与 45° 射线几何定位区，补齐预测→验证→AI 对比→总结回看链路
 - **跨域探索置顶组件**：`/interactive-learning/multi-representation-linkage` 作为跨域探索首个入口
 - **资源来源**：动态加载教学资源库中 `INTERACTIVE_COMP` 单页互动资源
 - **资源查看入口**：`/interactive-learning/resources/[id]`
@@ -217,8 +260,10 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 - **知识卡片嵌入**：所有预置教案在参与式环节补齐知识卡片，并与知识图谱节点绑定，支持课堂内讲授与后续互动巩固
 
 ### 3.13 管理员后台 (Admin) ✅
-- **全局态势总览**：用户规模、活跃会话、仿真与伦理风险指标统一汇总
-- **账号管理**：新建/查看/改密/删除账号，支持角色区分
+- **统一后台入口**：`/admin` 作为管理总台，集中展示用户管理、系统使用量统计、数据治理三个入口
+- **用户管理子路由**：`/admin/users` 负责新建/查看/改密/删除账号、角色区分与批量导入，视觉层统一复用后台全局样式
+- **系统使用量统计子路由**：`/admin/states` 支持演示/真实数据切换，真实数据通过 `/api/admin/system-usage` 聚合用户、互动、仿真、LLM 与伦理日志
+- **数据治理子路由**：`/admin/data-governance` 提供学习事实分布、队列健康、风险清单、最新快照与高值快照关注，并支持返回管理后台
 - **批量导入**：Excel 模板支持账号批量导入/更新（前三列必填：账号/姓名/角色；其他字段选填），重复账号按账号更新，前端展示失败明细
 - **权限控制**：仅管理员登录可访问
 
@@ -455,8 +500,8 @@ npm run startup
 
 ### 6.3 访问系统
 - **前端地址**：http://localhost:3000
-- **登录账号**：`demo` / `demo@example.com`
-- **密码**：`123456`
+- **登录账号**：`demo`
+- **密码**：`DemoStudent@Just2026!`
 
 ### 6.4 常用命令
 ```bash
@@ -547,6 +592,7 @@ npm test               # 运行测试
 - 新增教师班级分析聚合能力：`/api/teacher/classes/[classId]/analytics`，统一输出班级热力图、推荐流程、前后测对比、A/B题单、补强路径和提示词结构-设计效果相关性（当前样本 `r≈0.834`）。
 - 新增教师端班级分析页面：`/teacher/classes/[classId]/analytics`，并在班级详情页加入“学情热力图与展示分析”入口。
 - 扩展学生个人中心与用户画像接口：`/api/user/profile` 与 `/profile` 新增“课前/课后能力追踪、个性化补强路径、推荐题单、结构分与设计效果分”展示。
+- 个人中心与成长中枢进一步收口到数据治理主链路：`/api/user/profile` 与 `/profile` 已改为消费六维能力快照、聚合课堂/互动/仿真/题目活动，并在个人中心直接展示自适应练习诊断摘要与资源推荐；`/api/student/competency-snapshot` 对重复风险与建议做去重，减少成长中枢中的重复提醒。
 - 新增评审聚合入口：`/review/extracurricular-showcase`，可从 `/review` 快速进入并定位脚本关键镜头页面。
 - 展示分析入口职责收敛：`/teacher/classes/[classId]/analytics` 班级整体仅保留雷达热力图展示；重点名单、课前/课后追踪、个性化题单与课后补强统一下沉到单次课堂记录页 `/classroom/teacher/[sessionId]/review`。
 - 邮轮仿真基础航线改为“先直航后转向”任务：默认航行约 `1800m` 后切换到 `30°` 目标航向。
@@ -569,6 +615,8 @@ npm test               # 运行测试
 - 知识图谱章节化展示升级：左侧节点列表改为按章节分组并默认折叠；图谱渲染中注入章节顶层节点并按顺序显示：`基本概念 → 系统模型 → 时域分析 → 根轨迹分析 → 频域分析 → 系统校正 → 离散系统 → 非线性系统 → 状态空间`。
 - 知识图谱节点详情增强：点击节点后新增条件展示字段 `examples`、`difficulty`、`importance`、`keywords`、`formulas`；节点信息栏新增章节信息。
 - 知识图谱浅色主题细化：关系筛选区与左侧节点标签完成浅色重配色；3D 视图节点标签在浅色模式改为深色文字，提升可读性。
+- 精品课程浅色主题增强：在 `globals.css` 的统一桥接层补齐 `text-cyan-*`、`text-sky-*`、`text-emerald-*`、`text-amber-*`、`text-orange-*`、`text-rose-*`、`text-violet-*` 的浅色高对比映射，提升互动课程浅色模式下的文字可读性。
+- 新增浅色对比回归测试 `scripts/tests/test-theme-light-contrast.ts`，防止精品课程中常见强调色在浅色主题下再次退回低对比度。
 - 数据源补齐：`data/knowledge_graph.json` 全量 612 个节点新增 `chapter_name` 字段，前后端统一按数据文件中的章节名称渲染与排序。
 - 新增知识图谱筛选回归测试 `scripts/tests/test-knowledge-graph-filters.ts`（`npm run test:knowledge-filters`），覆盖章节映射、默认前置关系选择与筛选范围内关系计数。
 - 新增统一导航组件 `src/components/shared/feature-page-nav.tsx`，并接入知识图谱、虚拟仿真、思政沙盘、AI工坊、评审入口及其下层页面，统一“返回上一级”样式并固定在左上区域。
@@ -582,8 +630,23 @@ npm test               # 运行测试
 - 新增模型渲染策略测试脚本 `scripts/tests/test-model-render-policy.ts`（`npm run test:model-render-policy`），覆盖“管理员开关 + 网络条件降级”的决策逻辑。
 - 新增服务器配置指南 `docs/Server_Codex_Nginx_HTTP2_Guide_2026-03-03.md`，用于在 ECS 上由 Codex 执行 Nginx 配置加固（HTTP2/RSC/GLB 传输稳定性）。
 
+## 12. 近期更新（2026-03-12）
+
+- 新增项目内技能 `.codex/skills/homework-problem-authoring/`：支持按 `course-content/authoring/shared/homework-framework.md` 中的题号（如 `T1-1`、`T3-2`）执行“3 个出题智能体 + 裁判 + 3 个作答智能体”的出题闭环，并固化临时文件交接、防作弊文件访问限制、`C/X/D` 三类题一致性判定与二轮复核规则。
+- 新增辅助脚本 `.codex/skills/homework-problem-authoring/scripts/extract_homework_question.py`：用于从作业框架中按题号提取最小题目规范，供主代理构造任务包时使用。
+- 新增技能回归测试 `scripts/tests/test-homework-problem-authoring-skill.ts` 与脚本测试 `scripts/tests/test_extract_homework_question.py`，用于校验技能文本约束和题号抽取脚本行为。
+
+## 13. 近期更新（2026-03-18）
+
+- 修复 L-sum 课堂会话回归：`/api/session/[sessionId]` 在 Redis 快路径下重新返回 `joinCode/classId/planTitle`，教师端课堂码恢复显示。
+- 修复课堂状态同步风暴：稳定化 `useSessionProgressChannel` 与 `useSessionStateChannel` 的返回值，并移除上层会话 hook 对整对象依赖导致的自激 GET/POST 循环。
+- 修复 L-sum 学生端“跳到教师当前页”按钮只打点不跳转的问题，补齐实际翻页行为。
+- 新增 L-sum 回归脚本 `scripts/tests/test-lsum-session-regression.mjs`，覆盖课堂码返回、会话 hook 稳定化与学生页跳转约束。
+- 调整数据治理集成脚本 `scripts/tests/data-governance-integration-test.ts`，将 Redis 就绪和鉴权前置条件纳入验证，避免误报。
+- 新增的成长中枢、学习档案、班级分析 V2、学生诊断页面已修复 `useEffect` 依赖告警，`npm run lint` 结果恢复干净。
+
 ---
 
-**最后更新日期**：2026-03-03
+**最后更新日期**：2026-03-18
 **版本**：v1.1.1
 **状态**：开发完成，可用于教学实践

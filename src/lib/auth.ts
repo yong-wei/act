@@ -3,6 +3,7 @@ import { compare } from 'bcryptjs';
 import { getServerSession, type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
+import { sessionProfileCache, sessionRequestDeduplicator } from '@/lib/lru-cache';
 import { prisma } from '@/lib/prisma';
 
 export const authOptions: NextAuthOptions = {
@@ -75,18 +76,29 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = (token.role as UserRole) ?? UserRole.STUDENT;
 
-        // 获取学生档案数据
-        const profile = await prisma.studentProfile.findUnique({
-          where: { userId: token.id as string },
-          select: {
-            studentNumber: true,
-            classId: true,
-            techScore: true,
-            ethicsScore: true,
-            major: true,
-            className: true,
-          },
-        });
+        const userId = token.id as string;
+        const cachedProfile = sessionProfileCache.get(userId);
+        const profile =
+          cachedProfile ??
+          (await sessionRequestDeduplicator.execute(userId, async () => {
+            const fetchedProfile = await prisma.studentProfile.findUnique({
+              where: { userId },
+              select: {
+                studentNumber: true,
+                classId: true,
+                techScore: true,
+                ethicsScore: true,
+                major: true,
+                className: true,
+              },
+            });
+
+            if (fetchedProfile) {
+              sessionProfileCache.set(userId, fetchedProfile);
+            }
+
+            return fetchedProfile;
+          }));
 
         if (profile) {
           session.user.profile = profile;

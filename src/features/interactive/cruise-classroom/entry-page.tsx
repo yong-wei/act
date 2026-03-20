@@ -10,6 +10,7 @@ import { CRUISE_COURSE_TITLE, CRUISE_PRESET_KEY } from '@/lib/cruise-course';
 
 interface JoinSessionResponse {
   id: string;
+  studentHref?: string;
 }
 
 type NormalizedRole = 'STUDENT' | 'TEACHER' | 'ADMIN' | null;
@@ -88,10 +89,10 @@ export function CruiseCourseEntryPage({ initialRole }: { initialRole?: string | 
     try {
       const response = await fetch(`/api/session/join?code=${joinCode}`);
       const data = (await response.json()) as JoinSessionResponse & { error?: string };
-      if (!response.ok || !data.id) {
+      if (!response.ok || !data.id || !data.studentHref) {
         throw new Error(data.error || '课堂码无效');
       }
-      router.push(`/interactive-learning/courses/cruise-comfort-boppps/student/${data.id}`);
+      router.push(data.studentHref);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '加入失败，请稍后重试');
     } finally {

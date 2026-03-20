@@ -1,0 +1,93 @@
+name: server-ops
+description: |
+  AI-OBE平台服务器运行状态调查与故障排查技能。
+  适用于基于Podman/Docker容器化部署的Next.js + PostgreSQL架构。
+  部署地址: https://act.adapt-learn.online
+  提供系统化的日志分析、错误模式识别和常见问题解决方案。
+
+triggers:
+  - "服务器有问题"
+  - "服务不稳定"
+  - "查看服务器日志"
+  - "排查线上故障"
+  - "连接池错误"
+  - "数据库超时"
+  - "网站无法访问"
+  - "课堂同步失败"
+  - "页面回跳"
+  - "日志分析"
+  - "服务器状态"
+  - "故障排查"
+  - "act.adapt-learn.online"
+
+workflow:
+  - phase: "Phase 1: 日志定位"
+    steps:
+      - 确定环境（本地开发/远端服务器）
+      - 查看前端日志（.logs/frontend.log, .logs/error.log）
+      - 查看容器日志（podman logs act-obe-app）
+
+  - phase: "Phase 2: 错误模式识别"
+    steps:
+      - 搜索数据库连接池问题（"Timed out fetching"）
+      - 搜索外键约束错误（"foreign key", "_fkey"）
+      - 搜索资源加载问题（"sharp", "ChunkLoadError"）
+      - 搜索课堂同步问题（"session", "sync"）
+
+  - phase: "Phase 3: 系统资源检查"
+    steps:
+      - 检查容器状态（podman ps, podman stats）
+      - 检查数据库连接（pg_stat_activity）
+      - 检查系统资源（free, df, uptime）
+
+  - phase: "Phase 4: 问题诊断与修复"
+    steps:
+      - 匹配已知问题模式
+      - 应用对应解决方案
+      - 验证修复效果
+
+tools_required:
+  - bash
+  - ssh (for remote)
+  - grep/ripgrep
+  - podman/docker
+
+critical_patterns:
+  database_pool_exhaustion:
+    pattern: "Timed out fetching a new connection from the pool"
+    severity: critical
+    solution: "增加DATABASE_URL连接池参数: ?connection_limit=10&pool_timeout=20"
+
+  foreign_key_violation:
+    pattern: "_fkey|foreign key constraint"
+    severity: warning
+    solution: "检查前端发送的ID格式，确认降级处理逻辑"
+
+  sharp_missing:
+    pattern: "sharp is required"
+    severity: warning
+    solution: "npm install sharp，并确保Dockerfile安装依赖"
+
+  chunk_load_error:
+    pattern: "ChunkLoadError"
+    severity: error
+    solution: "重新构建并清除浏览器缓存"
+
+references:
+  - docs/L2D-STABILIZATION-DEPLOY.md
+  - CLAUDE.md (Development Commands section)
+  - .logs/
+
+emergency_commands:
+  restart_container: "podman restart act-obe-app"
+  view_logs: "podman logs act-obe-app -f"
+  check_db_connections: |
+    podman exec act-obe-postgres psql -U act_user -d act_obe -c
+    "SELECT state, COUNT(*) FROM pg_stat_activity GROUP BY state;"
+
+deployment:
+  url: "https://act.adapt-learn.online"
+  server: "121.40.124.135"
+  containers:
+    app: "act-obe-app"
+    database: "act-obe-postgres"

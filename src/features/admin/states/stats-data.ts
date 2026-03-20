@@ -1,26 +1,11 @@
-export type InteractionStat = {
-  type: string;
-  count: number;
-  avgPerStudent: number;
-};
+import type {
+  InteractionStat,
+  SimulationVisitStat,
+  MonthlyTrendStat,
+  SystemUsageData,
+} from './system-usage-data';
 
-export type SimulationVisitStat = {
-  simulation: string;
-  visits: number;
-  avgDurationMinutes: number;
-  completionRate: number;
-};
-
-export type MonthlyTrendStat = {
-  month: string;
-  activeStudents: number;
-  totalVisits: number;
-  interactions: number;
-  simulationVisits: number;
-  completionRate: number;
-};
-
-export const adminStatesMockData = {
+export const adminStatesMockData: SystemUsageData = {
   generatedAt: '2026-03-05',
   semester: '2025-2026-1',
   userScale: {

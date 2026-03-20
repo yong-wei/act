@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Ship } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
+import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
 import {
   CATEGORY_CONFIG,
   CHAPTER_COMPONENT_CATEGORIES,
@@ -47,35 +48,17 @@ export default function ChapterComponentsPage() {
   }, [resources]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <nav className="border-b border-white/10">
-        <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-4">
-          <Link href="/interactive-learning" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400">
-              <Ship className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-sm font-semibold tracking-wide">互动学习</div>
-              <div className="text-xs text-white/50">Chapter Components</div>
-            </div>
-          </Link>
-          <Link
-            href="/interactive-learning"
-            className="rounded-lg border border-white/20 px-4 py-2 text-sm text-white/80 transition hover:bg-white/10"
-          >
-            返回入口
-          </Link>
-        </div>
-      </nav>
+    <div className="surface-page min-h-screen text-foreground">
+      <UnifiedTopBar title="各章节互动组件" backHref="/interactive-learning" backLabel="返回互动学习" subtitle="Chapter Components" className="pb-2" />
 
       <main className="mx-auto max-w-[1280px] px-6 py-10">
-        <header className="mb-8 rounded-2xl border border-white/10 bg-slate-900/60 p-6">
+        <header className="surface-card mb-8 p-6">
           <h1 className="text-3xl font-semibold">各章节互动组件</h1>
-          <p className="mt-2 text-sm text-slate-300">先选择章节分类，再进入对应组件列表页。</p>
+          <p className="mt-2 text-sm text-subtle">先选择章节分类，再进入对应组件列表页。</p>
         </header>
 
         {isLoading ? (
-          <div className="rounded-2xl border border-dashed border-white/15 bg-slate-900/30 px-6 py-12 text-center text-sm text-slate-400">
+          <div className="surface-card rounded-2xl border-dashed px-6 py-12 text-center text-sm text-subtle">
             正在加载章节组件入口...
           </div>
         ) : (
@@ -87,16 +70,16 @@ export default function ChapterComponentsPage() {
                 <Link
                   key={categoryKey}
                   href={`/interactive-learning/chapter-components/${config.routeSlug}`}
-                  className="group rounded-xl border border-slate-800 bg-slate-900/60 p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45"
+                  className="surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45"
                 >
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-white">
+                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <h2 className="mt-4 text-lg font-semibold text-white">{config.label}</h2>
-                  <p className="mt-2 text-sm text-slate-300">{config.description}</p>
-                  <div className="mt-4 flex items-center justify-between text-xs text-slate-300">
+                  <h2 className="mt-4 text-lg font-semibold text-foreground">{config.label}</h2>
+                  <p className="mt-2 text-sm text-subtle">{config.description}</p>
+                  <div className="mt-4 flex items-center justify-between text-xs text-subtle">
                     <span>{counts[categoryKey] ?? 0} 个组件</span>
-                    <span className="inline-flex items-center text-amber-200">
+                    <span className="inline-flex items-center text-amber-700 dark:text-amber-200">
                       查看组件
                       <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                     </span>

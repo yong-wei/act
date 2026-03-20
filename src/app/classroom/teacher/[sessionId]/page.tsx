@@ -1,7 +1,8 @@
 
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { TeacherPlayer } from '@/features/lesson-engine/teacher-player';
+import { buildSessionParticipantHref } from '@/lib/classroom-session-route';
 
 interface PageProps {
   params: { sessionId: string };
@@ -24,6 +25,15 @@ export default async function TeacherSessionPage({ params }: PageProps) {
 
   if (!session) notFound();
 
+  const teacherHref = buildSessionParticipantHref({
+    role: 'teacher',
+    sessionId: session.id,
+    planTitle: session.plan.title,
+  });
+  if (teacherHref !== `/classroom/teacher/${session.id}`) {
+    redirect(teacherHref);
+  }
+
   // Prisma Enum ordering is by definition order in schema. 
   // We should manually sort if needed, but 'asc' on Enum might work based on definition index.
   // To be safe, we rely on the returned order or handle it in client.
@@ -36,5 +46,17 @@ export default async function TeacherSessionPage({ params }: PageProps) {
       return a.order - b.order;
   });
 
-  return <TeacherPlayer session={session} initialItems={sortedItems} />;
+  // 显式构建 session 对象，确保 joinCode 被正确传递
+  const sessionData = {
+    id: session.id,
+    joinCode: session.joinCode,
+    status: session.status,
+    currentItemId: session.currentItemId,
+    currentStage: session.currentStage,
+    plan: {
+      title: session.plan.title,
+    },
+  };
+
+  return <TeacherPlayer session={sessionData} initialItems={sortedItems} />;
 }

@@ -11,6 +11,7 @@ export default function JoinClassroomPage() {
   const [error, setError] = useState<string | null>(null);
   const [sessionInfo, setSessionInfo] = useState<{
     id: string;
+    studentHref: string;
     plan: { title: string };
     teacher: { name: string };
     class?: { name: string };
@@ -52,7 +53,7 @@ export default function JoinClassroomPage() {
 
   const joinSession = () => {
     if (sessionInfo) {
-      router.push(`/classroom/student/${sessionInfo.id}`);
+      router.push(sessionInfo.studentHref);
     }
   };
 

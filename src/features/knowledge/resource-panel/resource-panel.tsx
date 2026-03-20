@@ -125,7 +125,11 @@ export function ResourcePanel({
       (typeof metadata.chapterName === 'string' ? metadata.chapterName : null)
   );
   const mdxPaths = extractMdxPaths(displayNode.resources);
-  const knowledgeCardPaths = mdxPaths.filter((path) => path.startsWith('content/concepts/'));
+  const knowledgeCardPaths = mdxPaths.filter(
+    (path) =>
+      path.startsWith('content/concepts/')
+      || path.startsWith('course-content/runtime/knowledge/cards/')
+  );
   const hasKnowledgeCard = knowledgeCardPaths.length > 0;
 
   const typeLabel = getNodeTypeLabel(displayNode.nodeType);

@@ -6,6 +6,9 @@ import { ThemeProvider } from '@/components/providers/theme-provider'
 import { ThemeToggleButton } from '@/components/shared/theme-toggle-button'
 import { getServerAuthSession } from '@/lib/auth'
 import { buildThemeInitScript } from '@/lib/theme-config'
+import { GlobalAIProvider } from '@/components/providers/global-ai-provider'
+import { GlobalAIFloatingButton } from '@/components/ai/global-ai-button'
+import { GlobalAISidebar } from '@/components/ai/global-ai-sidebar'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -31,8 +34,12 @@ export default async function RootLayout({
       <body className={inter.className}>
         <ThemeProvider>
           <SessionProvider session={session}>
-            {children}
-            <ThemeToggleButton />
+            <GlobalAIProvider>
+              {children}
+              <ThemeToggleButton />
+              <GlobalAIFloatingButton />
+              <GlobalAISidebar />
+            </GlobalAIProvider>
           </SessionProvider>
         </ThemeProvider>
       </body>

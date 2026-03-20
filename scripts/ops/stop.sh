@@ -21,6 +21,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOGS_DIR="$PROJECT_DIR/.logs"
 PIDS_DIR="$LOGS_DIR/pids"
+FRONTEND_PORT="${FRONTEND_PORT:-3001}"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  AI-OBE 船舶智控平台 - 停止脚本${NC}"
@@ -57,12 +58,24 @@ stop_process() {
   echo -e "  ${BLUE}发送 SIGTERM 信号到进程 $PID...${NC}"
   kill "$PID" 2>/dev/null || true
 
+  CHILD_PIDS=$(pgrep -P "$PID" 2>/dev/null || true)
+  if [ -n "$CHILD_PIDS" ]; then
+    while read -r child_pid; do
+      [ -n "$child_pid" ] && kill "$child_pid" 2>/dev/null || true
+    done <<< "$CHILD_PIDS"
+  fi
+
   # 等待进程结束（最多 5 秒）
   local count=0
   while ps -p "$PID" > /dev/null 2>&1; do
     if [ $count -ge 5 ]; then
       echo -e "  ${YELLOW}!${NC} 进程未响应，强制终止..."
       kill -9 "$PID" 2>/dev/null || true
+      if [ -n "$CHILD_PIDS" ]; then
+        while read -r child_pid; do
+          [ -n "$child_pid" ] && kill -9 "$child_pid" 2>/dev/null || true
+        done <<< "$CHILD_PIDS"
+      fi
       sleep 1
       break
     fi
@@ -84,9 +97,12 @@ stop_process() {
 }
 
 ###############################################################################
-# 停止 Next.js 开发服务器
+# 停止主要后台服务
 ###############################################################################
+stop_process "数据治理 worker" "$PIDS_DIR/worker.pid"
+stop_process "scheduler" "$PIDS_DIR/scheduler.pid"
 stop_process "Next.js 开发服务器" "$PIDS_DIR/frontend.pid"
+stop_process "本地 Redis" "$PIDS_DIR/redis.pid"
 
 ###############################################################################
 # 停止可能存在的其他相关进程
@@ -94,18 +110,26 @@ stop_process "Next.js 开发服务器" "$PIDS_DIR/frontend.pid"
 echo -e "\n${YELLOW}检查其他相关进程...${NC}"
 
 # 查找占用 3001 端口的进程
-PORT_3001_PID=$(lsof -ti:3001 2>/dev/null || true)
+PORT_3001_PID=$(lsof -tiTCP:"$FRONTEND_PORT" -sTCP:LISTEN 2>/dev/null || true)
 if [ -n "$PORT_3001_PID" ]; then
-  echo -e "  ${YELLOW}!${NC} 发现占用 3001 端口的进程 (PID: $PORT_3001_PID)"
-  kill "$PORT_3001_PID" 2>/dev/null || true
-  sleep 1
-  if lsof -ti:3001 > /dev/null 2>&1; then
-    kill -9 "$PORT_3001_PID" 2>/dev/null || true
-    echo -e "  ${GREEN}✓${NC} 已强制终止"
+  echo -e "  ${YELLOW}!${NC} 发现占用 ${FRONTEND_PORT} 端口的进程:"
+  while read -r pid; do
+    [ -z "$pid" ] && continue
+    echo -e "    ${YELLOW}停止 PID: $pid${NC}"
+    kill "$pid" 2>/dev/null || true
+    sleep 0.5
+    if ps -p "$pid" > /dev/null 2>&1; then
+      kill -9 "$pid" 2>/dev/null || true
+    fi
+  done <<< "$PORT_3001_PID"
+
+  if lsof -tiTCP:"$FRONTEND_PORT" -sTCP:LISTEN > /dev/null 2>&1; then
+    echo -e "  ${RED}✗${NC} ${FRONTEND_PORT} 端口仍被占用"
+    FAILED_COUNT=$((FAILED_COUNT + 1))
   else
-    echo -e "  ${GREEN}✓${NC} 已停止"
+    echo -e "  ${GREEN}✓${NC} 已释放 ${FRONTEND_PORT} 端口"
+    STOPPED_COUNT=$((STOPPED_COUNT + 1))
   fi
-  STOPPED_COUNT=$((STOPPED_COUNT + 1))
 fi
 
 # 查找 node 进程中包含 "next dev" 的进程

@@ -1,0 +1,29 @@
+{
+  "lesson_id": "L-2d",
+  "groups": [
+    {
+      "group_name": "定位与引入",
+      "step_ids": ["step-01", "step-02", "step-03", "step-04", "step-05"],
+      "node_ids": ["三域联动操作体验_5_L2d001"]
+    },
+    {
+      "group_name": "稳定边界探索",
+      "step_ids": ["step-06", "step-07", "step-08"],
+      "node_ids": ["临界增益体验_5_L2d002"]
+    },
+    {
+      "group_name": "三域对照与反思",
+      "step_ids": ["step-09", "step-10", "step-11", "step-12"],
+      "node_ids": ["三域联动操作体验_5_L2d001", "临界增益体验_5_L2d002"]
+    },
+    {
+      "group_name": "后测与总结",
+      "step_ids": ["step-13", "step-14"],
+      "node_ids": ["三域联动操作体验_5_L2d001"]
+    }
+  ],
+  "card_order": [
+    "三域联动操作体验_5_L2d001",
+    "临界增益体验_5_L2d002"
+  ]
+}
