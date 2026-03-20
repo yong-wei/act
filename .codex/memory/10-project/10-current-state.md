@@ -1,8 +1,8 @@
 # 当前状态
 
 状态: active
-最后更新: 2026-03-19
-摘要: 记录项目当前的重要现状，帮助跨会话快速回答“现在做到哪里了、最近重点在哪”，并提醒最近刚收敛的教师端学情入口、学生端个人中心六维画像收口与本地启动链路变化。
+最后更新: 2026-03-20
+摘要: 记录项目当前的重要现状，帮助跨会话快速回答“现在做到哪里了、最近重点在哪”；当前除教师端学情入口、学生端个人中心六维画像与本地启动链路变化外，还应优先记住 1-1 拉氏变换精品互动课已完成 runtime-first 落地。
 上游:
 - [00-overview.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/00-overview.md)
 下游:
@@ -14,12 +14,15 @@
 ## 当前高优先级现状
 
 - 统一课程框架已明确为 DB BOPPPS + `TeachingResource/registry` + `ClassSession`
-- 多门精品课程已接入独立入口与教师/学生双端课堂页，包括 L-2a、L-2b、L-2c、L-2d、L-sum 等
+- 多门精品课程已接入独立入口与教师/学生双端课堂页，包括 L-2a、L-2b、L-2c、L-2d、L-sum、1-1 等
 - 运行时课程资源已转为镜像外置部署，远端通过 `rsync` 同步 `course-content/runtime`
 - 容器启动阶段默认执行 Prisma 迁移，但真实线上仍需警惕迁移状态与实际表结构漂移
 
 ## 最近值得记住的变化
 
+- `1-1` 精品互动课已经落地到 `/interactive-learning/courses/unit-1-1-laplace-transfer-function`，并补齐教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]`、预置教案、课堂码路由解析与步骤级 AI 上下文注册
+- `1-1` 首页与课堂内页已经统一改为 runtime-first：课程入口从 `course-content/runtime/lessons/1-1` 读取知识图、讲义、媒体和卡片编排，不再直接消费 `authoring`
+- `1-1` 课次已经形成一套稳定媒体流程：代码直出图先生成到 `course-content/authoring/lessons/1-1/media/processed` 审核，再导出到 `course-content/runtime/lessons/1-1/media`
 - 学生个人中心 `/profile` 已不再使用旧的五维仿真雷达或课外展示补强卡口径，而是统一消费数据治理六维能力快照；姓名下显示学号，页面只保留学生态信息，不再显示“学生”角色文案
 - 学生个人中心的最近活动已经改为真实聚合：来源包括 `StudentState/ClassSession` 的课堂加入记录、`InteractionLog` 的互动/知识卡/跨域探索行为、`SimulationLog` 的仿真记录，以及 `LearningFact(question)` 的题目与自适应练习记录
 - 个性化补强路径已接入 `generateRecommendations(userId)` 与自适应习题诊断摘要；个人中心现在直接展示资源推荐卡和 `/assessment/adaptive-practice` 的继续练习入口
