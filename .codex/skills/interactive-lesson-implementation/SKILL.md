@@ -1,19 +1,21 @@
 ---
 name: interactive-lesson-implementation
-description: Use when implementing or optimizing this repository's interactive lesson pages from `course-content/authoring/lessons/<lesson>/` design documents, especially for lesson-by-lesson page building, media placeholder planning, design-vs-implementation gap analysis, or maintaining lesson implementation notes.
+description: Use when implementing or optimizing this repository's interactive lesson pages from `course-content/authoring/lessons/<lesson>/` design documents, especially for lesson-by-lesson page building, AI assistant context wiring, event tracking/data-governance alignment, media placeholder planning, design-vs-implementation gap analysis, or maintaining lesson implementation notes.
 ---
 
 # Interactive Lesson Implementation
 
 ## Overview
 
-按外部课程设计文档为本项目实现或优化互动课程页面。把 `course-content/authoring/lessons/<lesson>/` 视为设计源，把仓库中的实现视为待核对对象；优先复用现有框架、资源注册、埋点和会话同步能力，避免写成孤立页面。
+按外部课程设计文档为本项目实现或优化互动课程页面。把 `course-content/authoring/lessons/<lesson>/` 视为设计源，把仓库中的实现视为待核对对象；优先复用现有框架、资源注册、AI 上下文、课程事件链、数据治理与会话同步能力，避免写成孤立页面。
 
 **核心原则：**
 - 先确认课程与任务模式，再动手。
 - 先核对设计稿与现状，再做实现计划。
 - 媒体缺失必须显式提醒，不能默认“以后再补”。
 - 设计稿里凡是可代码直出或可前端 SVG 绘制的图，优先在实现阶段直接落地，不留“后续补图”。
+- 每个页面不仅要有视觉内容，还要有 AI 助手上下文、课程事件语义和学生反馈闭环。
+- 互动课程的数据面必须进入统一治理链路；不要把“埋点以后再补”当作默认选项。
 - 可以提出更好的交互方案，但必须先向用户说明原因并纳入计划。
 - 实现完成后，必须回到设计文档做一次闭环核对，并更新本技能的课程笔记。
 
@@ -34,6 +36,10 @@ description: Use when implementing or optimizing this repository's interactive l
 - 节点卡片唯一来源：`course-content/runtime/knowledge/cards/nodes/`
 - 课次局部结构与编排：`course-content/runtime/lessons/<lesson>/graph-overlay.json`、`lesson.json`
 
+互动课程的新增样板优先参考：
+- 结构与 runtime 首页组织：`L-2c`
+- 理论型精品课的 AI / 埋点 / 反馈 / 课堂同步：`L-sum`
+
 ## 启动方式
 
 技能加载后，如果用户没有明确说明“开始哪一课”或“优化哪一课”，先询问：
@@ -52,10 +58,10 @@ description: Use when implementing or optimizing this repository's interactive l
 ### 1. 锁定设计源
 
 始终读取以下资料，按需补充：
-- `notes/lessons/<lesson>/interactive-page.md`
-- `notes/lessons/<lesson>/boppps.md`
-- `notes/lessons/<lesson>/handout.md`
-- `notes/lessons/<lesson>/multimedia.md`（如果存在）
+- `course-content/authoring/lessons/<lesson>/design/interactive-page.md`
+- `course-content/authoring/lessons/<lesson>/design/boppps.md`
+- `course-content/authoring/lessons/<lesson>/design/handout.md`
+- `course-content/authoring/lessons/<lesson>/design/multimedia.md`（如果存在）
 
 把这些文件当作设计源，不要只根据现有代码继续“顺着改”。
 
@@ -104,6 +110,25 @@ description: Use when implementing or optimizing this repository's interactive l
 - 课程首页是否真的消费 runtime，而不是偷偷回读 `authoring` 或 `content`
 - 讲义中的图片、SVG、视频等媒体引用是否都改写为 `/course-runtime/...`
 - 知识点网络是否来自 runtime 全局图 + lesson overlay，而不是页面内硬编码
+
+### 3.5 先补页面级 AI / 数据 / 反馈设计
+
+在开始实现前，针对每个步骤额外回答以下问题；没有答案就不要急着写页面：
+
+- 这个步骤是否需要页内 AI 助手？如果需要：
+  - 当前步骤的 `topic`、`learningObjectives`、`knowledgeType`、`quickQuestions`、`systemPromptExtension` 分别是什么
+  - 该步骤的 AI 是解释概念、提示推理、还是做对照反思；不要全部写成泛化问答
+- 这个步骤要产生哪些统一课程事件？
+  - 至少判断是否包含 `lesson_step_view`、`lesson_step_leave`、`lesson_submit`、`lesson_resubmit`、`workspace_param_change`、`ai_panel_open`、`ai_query_submit`、`sync_error`、`session_finalize`
+  - 如果现有事件不够表达该步骤语义，先确认是否需要扩展事件注册与数据治理映射，不要直接临时发明字符串
+- 这个步骤进入数据治理时，哪些事件属于 `core`，哪些属于 `secondary`
+  - 会沉淀成学习事实的提交、重提、课堂结束等高价值事件，要保证 payload 能支撑归一化
+  - 高频浏览、开关、参数拖动等事件可以只走次级事件链，但也要复用统一协议
+- 学生在这一页提交后会收到什么反馈？
+  - 至少明确“提交状态 / 等待教师释放 / 正确答案揭示 / 教师端统计或词云 / 回看与修正”中的哪几项成立
+  - 如果是 AI 对照页，默认顺序是“先写自己的判断，再打开 AI 对照，再提交修正或反思”
+
+如果这些内容在设计稿里没写清，要先补到计划或课程笔记里，再进入实现。
 
 ### 4. 媒体资源缺失处理
 
@@ -178,14 +203,23 @@ description: Use when implementing or optimizing this repository's interactive l
 实现时遵守以下规则：
 - 优先复用现有课程框架、会话同步、埋点、资源注册、`InteractiveProvider`
 - 非必要不新增接口和新方法；优先改造已有接口进行复用
+- 每个互动步骤都要显式决定 AI 上下文来源；优先采用 `src/lib/<lesson>-ai-contexts.ts` + `src/lib/course-ai-contexts.ts` 的方式集中维护，并通过 `useCoursePageAIContext` 或页面级 `updatePageContext(...)` 在步骤切换时更新
+- 不要把 AI 提示词、课程目标、快捷问题散落在多个组件里；步骤级 AI 上下文应可集中检索、可随步骤切换、可被全局 AI 框架消费
 - 涉及课堂码加入时，必须复用平台统一的课堂会话路由解析，不允许在 `dashboard`、通用加入页或课程入口页硬编码学生/教师跳转路径
 - 精品互动课教师页必须提供“结束课堂”入口；如课程会出现在教师后台的进行中课堂列表中，也必须允许从后台停止课堂
 - 学生页默认与教师页解耦：首次进入对齐教师页，之后若不同步，应亮起“当前页面与教师不同步，点击跳转”提示，而不是强制自动翻页
 - 区分平台级代码与资源级代码边界，不把资源实现塞进页面层
 - 不把课程设计文本直接硬编码成不可复用的大块页面逻辑；尽量组织成步骤配置、媒体清单、工作区显示条件等结构化数据
 - 页面布局按课程内涵决定：纯文本/静态图页面可不显示互动；需要探索时再显示工作区
+- 统一课程语义事件优先通过 `useCourseEventTracking` 等现有封装写入，不要在课程页继续直接拼裸 `tracking.emit(...)` 作为课程语义实现
+- 提交类事件要区分首次提交与重提；如有提交记录，payload 中优先带上 `stepId`、`attemptKey`、`clientEventAt` 等可归一化字段
+- 若新增事件类型，必须同步检查 `src/lib/classroom-analytics/event-taxonomy.ts`、`src/lib/data-governance/event-normalization.ts`、`src/lib/data-governance/event-types.ts` 及相关测试，不允许只在页面里单点新增
+- 如果课程要进入数据治理画像或教师学情，就把事件设计成后续可沉淀 `LearningFact` 的结构，不要只满足“前端控制台里看见了”
 - 所有选择题形的互动，不论是前测、后测还是中间的调查，学生提交后都必须在教师端显示选项的统计，学生端应显示提交状态；如果该题存在正确答案，教师端还必须提供显示答案的按钮，点击后学生端能看到答案
 - 所有文本型的互动都必须在教师端显示词云，学生端应显示提交状态；词云下方提供默认折叠的学生回复列表，并按提交时间排序
+- 所有学生输入页都必须有明确反馈：至少包含 `SubmissionStatus` 或同等级别的提交态提示，不能点完提交后页面无反馈
+- 对“教师先释放，学生后作答”的题型，学生端在未释放前必须看到明确等待态，不能只显示空白区域
+- 对“先个人判断再 AI 对照”的题型，页面文案和交互顺序都要明确阻止学生把 AI 当作第一步答案机
 - 所有页面的当前在线学生清单默认折叠；折叠时只给出人数，不默认展开整名单
 - 打开AI助手应在页面上直接弹出对话框
 - 不要跳转或调用现有的助手页面；如需 AI 交互，应在当前课程页内复用对话组件完成
@@ -234,6 +268,17 @@ description: Use when implementing or optimizing this repository's interactive l
 ### 8. 闭环验证
 
 实现完成后，必须先重新执行一次“设计稿 vs 实现稿”核对，确认代码与设计文稿已经对齐；只有这一步结束后，才进入浏览器闭环验收。
+
+除现有结构与页面核验外，还要额外确认：
+- 每个需要 AI 的步骤都已接上正确的步骤级上下文，而不是复用错误课程或默认空上下文
+- 教师端 / 学生端的步骤浏览、提交、AI 打开与提问、课堂结束等关键事件已进入统一课程事件链
+- 若课程新增了治理相关事件或扩展 payload，文本级 / 单测级检查已经覆盖，不是只靠人工点页面
+- 学生提交后是否能稳定看到提交状态、等待态、答案揭示、词云/统计等反馈闭环
+
+推荐参考 `L-sum` 的做法，为新课至少补一类“文本级守卫测试”：
+- 例如检查 AI 助手必须页内弹窗、不得跳转
+- 检查步骤浏览与提交事件是否复用统一事件链
+- 检查教师端统计 / 词云 / 答案揭示是否仍然存在
 
 - 设计稿对照与课程笔记更新规则见 [references/verification-and-note-update.md](references/verification-and-note-update.md)
 - 浏览器闭环验收、双子代理逐页流程、测试账号与详细覆盖项见 [references/closed-loop-browser-validation.md](references/closed-loop-browser-validation.md)
@@ -291,6 +336,9 @@ python3 scripts/init_course_note.py --lesson L-2a --title "三张面孔，同一
 - [ ] 已确认是“开始新课设计”还是“优化现有课”
 - [ ] 已读取对应课程设计文档
 - [ ] 已核对当前实现与设计稿差异
+- [ ] 已逐步定义需要 AI 助手的页面及其上下文字段（topic / objectives / quickQuestions / prompt extension）
+- [ ] 已梳理每个关键步骤的统一课程事件，而不是临时散写埋点
+- [ ] 已确认高价值事件如何进入数据治理归一化链路
 - [ ] 已检查媒体是否缺失
 - [ ] 已判断哪些资源应直接代码直出或 SVG 绘制
 - [ ] 已把 runtime 资源生成到正确目录并做页面验证
@@ -309,6 +357,9 @@ python3 scripts/init_course_note.py --lesson L-2a --title "三张面孔，同一
 - [ ] 已确保知识卡片统一走 `## 首页 / ## 详情` 渲染框架，并支持 `详情 / 概览` 切换
 - [ ] 已确保非首页页面的知识卡片入口位于标题模块右上角，按钮文案统一为“知识卡片”
 - [ ] 已核对选择题统计、答案揭示、文本词云与在线学生折叠等教师端联动要求
+- [ ] 已核对学生提交状态、等待教师释放、AI 对照与修正反馈等学生端闭环
+- [ ] 已核对 AI 助手为页内弹窗，且步骤切换时上下文会同步更新
+- [ ] 已核对关键课程事件与数据治理映射没有脱节
 - [ ] 已检查浅色/深色模式都可读，并避免硬编码模块样式
 - [ ] 已重新执行设计稿对照验证
 - [ ] 已在设计对齐后按浏览器闭环参考完成双子代理逐页验收
