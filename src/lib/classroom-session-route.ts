@@ -4,6 +4,7 @@ import { L2B_COURSE_TITLE, L2B_ROUTE_SEGMENT } from '@/lib/l2b-course';
 import { L2C_COURSE_TITLE, L2C_ROUTE_SEGMENT } from '@/lib/l2c-course';
 import { L2D_COURSE_TITLE, L2D_ROUTE_SEGMENT } from '@/lib/l2d-course';
 import { LSUM_COURSE_TITLE, LSUM_ROUTE_SEGMENT } from '@/lib/lsum-course';
+import { UNIT_1_1_COURSE_TITLE, UNIT_1_1_ROUTE_SEGMENT } from '@/lib/unit-1-1-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -44,6 +45,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       LSUM_COURSE_TITLE,
       'L-∑：设计可行域——让约束成为指南针',
       '设计可行域——让约束成为指南针',
+    ],
+  },
+  {
+    routeSegment: UNIT_1_1_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_1_1_COURSE_TITLE,
+      '1-1：拉氏变换与传递函数——从微分方程到代数方程',
+      '拉氏变换与传递函数——从微分方程到代数方程',
+      '拉氏变换与传递函数',
     ],
   },
 ];

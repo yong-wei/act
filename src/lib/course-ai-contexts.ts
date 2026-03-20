@@ -29,6 +29,16 @@ export {
   getLSUMStepQuickQuestions,
 } from './lsum-ai-contexts';
 
+// 1-1 课程 AI 上下文
+export {
+  UNIT_1_1_COURSE_META,
+  UNIT_1_1_STEP_AI_CONTEXTS,
+  getUNIT_1_1StepAIContext,
+  getUNIT_1_1StepQuickQuestions,
+  getUnit11StepAIContext,
+  getUnit11StepQuickQuestions,
+} from './unit-1-1-ai-contexts';
+
 /**
  * 课程AI上下文注册表
  * key: courseId, value: 步骤配置映射
@@ -78,6 +88,23 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: 'L-sum：设计可行域——让约束成为指南针',
       courseDescription:
         '围绕复平面可行域、根轨迹可行弧段以及时域/频域投影，把"给性能找参数"的设计视角第一次完整搭起来。',
+    },
+  },
+
+  'unit-1-1-laplace-transfer-function-v1': {
+    getStepContext: (stepId: string) => {
+      const { getUnit11StepAIContext } = require('./unit-1-1-ai-contexts');
+      return getUnit11StepAIContext(stepId);
+    },
+    getQuickQuestions: (stepId: string) => {
+      const { getUnit11StepQuickQuestions } = require('./unit-1-1-ai-contexts');
+      return getUnit11StepQuickQuestions(stepId);
+    },
+    courseMeta: {
+      courseId: 'unit-1-1-laplace-transfer-function-v1',
+      courseTitle: '1-1：拉氏变换与传递函数——从微分方程到代数方程',
+      courseDescription:
+        '围绕降维逻辑、微分定理、传递函数三步法、零极点判读和典型环节识别，建立层1的第一节数学精化课。',
     },
   },
 };
