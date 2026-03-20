@@ -2,7 +2,7 @@
 
 状态: active
 最后更新: 2026-03-20
-摘要: 记录精品课程与普通课堂路由的差异，以及当前已经接入的主要课程类型；当前除 L-2 系列与 L-sum 外，`1-1` 也已作为 runtime-first 精品课接入。
+摘要: 记录精品课程与普通课堂路由的差异，以及当前已经接入的主要课程类型；当前除 L-2 系列与 L-sum 外，`1-1`、`1-2` 也已作为 runtime-first 精品课接入。
 上游:
 - [10-lesson-framework.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/40-domain/10-lesson-framework.md)
 下游: []
@@ -21,6 +21,7 @@
 - L-2d
 - L-sum
 - 1-1
+- 1-2
 - Cruise comfort
 
 ## 记忆重点
@@ -30,4 +31,8 @@
 - `1-1` 的固定路由段是 `unit-1-1-laplace-transfer-function`
 - `1-1` 的入口、教师页、学生页都位于 `/interactive-learning/courses/unit-1-1-laplace-transfer-function/*`
 - `1-1` 的运行时内容位于 `course-content/runtime/lessons/1-1`
+- `1-2` 的固定路由段是 `unit-1-2-block-diagram-simplification`
+- `1-2` 的入口、教师页、学生页都位于 `/interactive-learning/courses/unit-1-2-block-diagram-simplification/*`
+- `1-2` 的运行时内容位于 `course-content/runtime/lessons/1-2`，并要求先消费 `review/*` 审查产物再进入互动课实现
+- `1-2` 的课堂实现以 `design/interactive-page.md` 的 17 步为真源；当前 `runtime/lessons/1-2/lesson.json` 仍保留 13 步摘要编排，这个差异是已知状态，不要误判为导出失败
 - 对于存在代码直出媒体的精品课程，当前稳定做法是先把输出落到 `authoring/.../media/processed` 审核，再走 runtime 导出链

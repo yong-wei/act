@@ -39,6 +39,16 @@ export {
   getUnit11StepQuickQuestions,
 } from './unit-1-1-ai-contexts';
 
+// 1-2 课程 AI 上下文
+export {
+  UNIT_1_2_COURSE_META,
+  UNIT_1_2_STEP_AI_CONTEXTS,
+  getUNIT_1_2StepAIContext,
+  getUNIT_1_2StepQuickQuestions,
+  getUnit12StepAIContext,
+  getUnit12StepQuickQuestions,
+} from './unit-1-2-ai-contexts';
+
 /**
  * 课程AI上下文注册表
  * key: courseId, value: 步骤配置映射
@@ -105,6 +115,23 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '1-1：拉氏变换与传递函数——从微分方程到代数方程',
       courseDescription:
         '围绕降维逻辑、微分定理、传递函数三步法、零极点判读和典型环节识别，建立层1的第一节数学精化课。',
+    },
+  },
+
+  'unit-1-2-block-diagram-simplification-v1': {
+    getStepContext: (stepId: string) => {
+      const { getUnit12StepAIContext } = require('./unit-1-2-ai-contexts');
+      return getUnit12StepAIContext(stepId);
+    },
+    getQuickQuestions: (stepId: string) => {
+      const { getUnit12StepQuickQuestions } = require('./unit-1-2-ai-contexts');
+      return getUnit12StepQuickQuestions(stepId);
+    },
+    courseMeta: {
+      courseId: 'unit-1-2-block-diagram-simplification-v1',
+      courseTitle: '1-2：系统结构图与化简——从积木块到系统蓝图',
+      courseDescription:
+        '围绕结构图四元素、三种基本连接、等效变换、代数化简与梅森公式，建立从局部积木到系统蓝图的组装视角。',
     },
   },
 };

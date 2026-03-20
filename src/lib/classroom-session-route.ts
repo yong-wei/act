@@ -5,6 +5,7 @@ import { L2C_COURSE_TITLE, L2C_ROUTE_SEGMENT } from '@/lib/l2c-course';
 import { L2D_COURSE_TITLE, L2D_ROUTE_SEGMENT } from '@/lib/l2d-course';
 import { LSUM_COURSE_TITLE, LSUM_ROUTE_SEGMENT } from '@/lib/lsum-course';
 import { UNIT_1_1_COURSE_TITLE, UNIT_1_1_ROUTE_SEGMENT } from '@/lib/unit-1-1-course';
+import { UNIT_1_2_COURSE_TITLE, UNIT_1_2_ROUTE_SEGMENT } from '@/lib/unit-1-2-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -54,6 +55,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '1-1：拉氏变换与传递函数——从微分方程到代数方程',
       '拉氏变换与传递函数——从微分方程到代数方程',
       '拉氏变换与传递函数',
+    ],
+  },
+  {
+    routeSegment: UNIT_1_2_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_1_2_COURSE_TITLE,
+      '1-2：系统结构图与化简——从积木块到系统蓝图',
+      '系统结构图与化简——从积木块到系统蓝图',
+      '系统结构图与化简',
     ],
   },
 ];
