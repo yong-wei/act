@@ -1,5 +1,5 @@
 export interface EventIngestionJob {
-  batchDate: string;
+  batchDate?: string;
 }
 
 export interface StudentSnapshotJob {

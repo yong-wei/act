@@ -55,7 +55,7 @@ let isShuttingDown = false;
 const eventIngestionWorker = new Worker(
   'event-ingestion',
   async (job: Job<EventIngestionJob>) => {
-    const { batchDate } = job.data;
+    const batchDate = resolveBatchDate(job.data.batchDate);
     console.log(`[EventIngestion] Processing batch for ${batchDate}`);
 
     // Fetch events from Redis buffer
@@ -101,6 +101,14 @@ const eventIngestionWorker = new Worker(
   { connection: redis, concurrency: WORKER_CONCURRENCY }
 );
 
+function resolveBatchDate(batchDate?: string, now = new Date()): string {
+  if (batchDate && batchDate.trim().length > 0) {
+    return batchDate;
+  }
+
+  return now.toISOString().split('T')[0];
+}
+
 function eventToFact(event: LearningEvent) {
   // Map event to LearningFact structure
   const competencyMapping = getCompetencyMappingForEvent(event);
@@ -140,6 +148,7 @@ const studentSnapshotWorker = new Worker(
   async (job: Job<StudentSnapshotJob>) => {
     const { userId } = job.data;
     console.log(`[StudentSnapshot] Calculating snapshot for ${userId}`);
+    const snapshotAt = new Date();
 
     // Fetch recent learning facts
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -183,7 +192,7 @@ const studentSnapshotWorker = new Worker(
     const snapshot = await prisma.studentCompetencySnapshot.create({
       data: {
         userId,
-        snapshotAt: new Date(),
+        snapshotAt,
         competencyVector: competencyVector as unknown as Prisma.InputJsonValue,
         evidenceSummary: generateEvidenceSummary(facts) as unknown as Prisma.InputJsonValue,
         riskFlags: risks.map((r) => r.type),
@@ -194,17 +203,28 @@ const studentSnapshotWorker = new Worker(
     // Update or create profile summary
     await updateProfileSummary(userId, competencyVector, risks, facts);
 
-    // Store risk flags
-    for (const risk of risks) {
-      await prisma.studentRiskFlag.create({
-        data: {
+    await prisma.studentRiskFlag.updateMany({
+      where: {
+        userId,
+        isResolved: false,
+      },
+      data: {
+        isResolved: true,
+        resolvedAt: snapshotAt,
+        resolutionNote: 'Superseded by latest competency snapshot',
+      },
+    });
+
+    if (risks.length > 0) {
+      await prisma.studentRiskFlag.createMany({
+        data: risks.map((risk) => ({
           userId,
           flagType: risk.type,
           severity: risk.severity,
           description: risk.description,
           evidenceJson: risk.evidence as Prisma.InputJsonValue,
           triggeredAt: risk.triggeredAt,
-        },
+        })),
       });
     }
 

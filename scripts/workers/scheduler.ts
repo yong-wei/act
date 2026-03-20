@@ -34,7 +34,7 @@ async function scheduleJobs() {
   // Schedule event ingestion
   await eventQueue.add(
     'scheduled-ingestion',
-    { batchDate: new Date().toISOString().split('T')[0] },
+    {},
     {
       repeat: { cron: SCHEDULES.EVENT_INGESTION },
       jobId: 'scheduled-event-ingestion',

@@ -1,9 +1,38 @@
 import 'server-only';
 
+import { access } from 'node:fs/promises';
+
 import { chromium } from 'playwright';
 
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import { buildLessonHandoutPrintUrl } from '@/lib/handout-pdf';
+
+const SYSTEM_CHROMIUM_EXECUTABLE_CANDIDATES = [
+  process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+  '/usr/bin/chromium-browser',
+  '/usr/bin/chromium',
+].filter((value): value is string => Boolean(value));
+
+let chromiumExecutablePathPromise: Promise<string | undefined> | null = null;
+
+async function resolveChromiumExecutablePath() {
+  if (!chromiumExecutablePathPromise) {
+    chromiumExecutablePathPromise = (async () => {
+      for (const candidate of SYSTEM_CHROMIUM_EXECUTABLE_CANDIDATES) {
+        try {
+          await access(candidate);
+          return candidate;
+        } catch {
+          continue;
+        }
+      }
+
+      return undefined;
+    })();
+  }
+
+  return chromiumExecutablePathPromise;
+}
 
 export async function generateLessonHandoutPdf({
   origin,
@@ -13,7 +42,14 @@ export async function generateLessonHandoutPdf({
   lessonId: string;
 }) {
   const runtime = await loadLessonRuntimeEntry(lessonId);
-  const browser = await chromium.launch({ headless: true });
+  const executablePath = await resolveChromiumExecutablePath();
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath,
+    args: executablePath
+      ? ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      : undefined,
+  });
 
   try {
     const context = await browser.newContext({
