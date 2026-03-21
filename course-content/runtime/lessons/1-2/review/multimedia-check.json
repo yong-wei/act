@@ -1,0 +1,23 @@
+{
+  "lesson_id": "1-2",
+  "expected_assets": [
+    "sh-01-block-diagram-elements.svg",
+    "sh-02-ship-heading-control.svg",
+    "sh-03-equivalent-transform-rules.svg",
+    "sh-04-signal-flow-graph.svg"
+  ],
+  "generated_assets": [
+    "sh-01-block-diagram-elements.svg",
+    "sh-02-ship-heading-control.svg",
+    "sh-03-equivalent-transform-rules.svg",
+    "sh-04-signal-flow-graph.svg"
+  ],
+  "missing_assets": [],
+  "executed_scripts": [
+    "sh-01-block-diagram-elements.py",
+    "sh-02-ship-heading-control.py",
+    "sh-03-equivalent-transform-rules.py",
+    "sh-04-signal-flow-graph.py"
+  ],
+  "processed_dir": "course-content/authoring/lessons/1-2/media/processed"
+}

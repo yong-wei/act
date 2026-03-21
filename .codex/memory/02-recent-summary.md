@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-03-20
-摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前应优先知道 1-1 拉氏变换精品互动课已完成 runtime-first 落地并注册到互动课程目录，同时教师端学情入口、学生端六维治理画像与 startup/shutdown 端口残留修复也仍是最近稳定上下文。
+最后更新: 2026-03-21
+摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前 `1-1`、`1-2`、`1-3` 已形成 runtime-first 精品互动课主线，其中 `1-3` 本轮完成增强版工作区收口。
 上游:
 - [00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
 - [README.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/README.md)
@@ -15,10 +15,17 @@
 
 ## 最近最重要的稳定变化
 
+- `1-3`「时域响应分析——从响应曲线到动态性能指标」已经完成精品互动课首轮落地与增强版工作区收口：存在独立入口页、教师页、学生页、预置教案、课堂码路由识别与步骤级 AI 上下文注册，课堂内按 `interactive-page.md` 实现 17 步流程
+- `1-3` 课程首页和课堂页现在统一消费 `course-content/runtime/lessons/1-3` 运行时内容与 `review/*` 审查产物；课堂内已额外补强 `step-07` 参数-公式-现象三列表、`step-09` 四指标叠加总览与 `step-13` 例题三步法计算面板
+- `1-2`「系统结构图与化简——从积木块到系统蓝图」已经完成精品互动课落地：存在独立入口页、教师页、学生页、预置教案、课堂码路由识别与步骤级 AI 上下文注册，课堂内按 `interactive-page.md` 实现 17 步蓝图
+- `1-2` 课程首页和课堂页现在统一消费 `course-content/runtime/lessons/1-2` 运行时内容与 `review/*` 审查产物；课堂步骤覆盖结构图四元素、基本连接、等效变换、AI 对照、信号流图、梅森公式、前后测与总结
+- 已新增 `.codex/skills/lesson-content-review` 与 `course-content/scripts/review_lesson_content.py`：互动课程制作前，先按“正文/实践指南 -> BOPPPS -> sequence/knowledge cards -> multimedia -> runtime/review”顺序审查；修复回写 `authoring`，再导出 `course-content/runtime/lessons/<lesson>/review` 供制作技能直接消费
+- `1-2` 已作为首个课程审查试跑样例：补齐 10 张知识卡、4 个代码直出 SVG，并在 `course-content/runtime/lessons/1-2` 生成 `handout.md`、`lesson.json` 以及 `review/boppps.md`、`review-report.md`、`knowledge-card-check.json`、`multimedia-check.json`
+- `export_runtime.py` 现在对新课优先使用 `authoring/.../media/processed`，但仍保留 `media/raw` fallback，避免已完成旧课因为新审查流程缺失而回归
 - `1-1`「拉氏变换与传递函数——从微分方程到代数方程」已经完成精品互动课落地：存在独立入口页、教师页、学生页、预置教案、步骤级 AI 上下文、教师/学生会话同步与统一课程事件埋点
 - `1-1` 课程已接入 `course-content/runtime/lessons/1-1` 运行时内容，包含 `lesson.json`、`graph-overlay.json`、`handout.md` 和 6 个媒体文件；课程首页统一通过 runtime 展示知识点网络、知识卡片预览、讲义入口和 PDF 导出
 - 针对 `1-1` 的代码直出媒体，当前稳定流程是：先生成到 `course-content/authoring/lessons/<lesson>/media/processed` 审核合理性，再执行 `bash course-content/scripts/export-runtime.sh <lesson>` 导出到 runtime；不要跳过 `processed` 审核直接进运行时
-- 精品课程族现在除 `L-2a/L-2b/L-2c/L-2d/L-sum/Cruise comfort` 外，还应包括 `1-1`
+- 精品课程族现在除 `L-2a/L-2b/L-2c/L-2d/L-sum/Cruise comfort` 外，还应包括 `1-1`、`1-2` 与 `1-3`
 - 学生端个人中心 `/profile` 与 `/api/user/profile` 已从旧的五维仿真/课外展示口径切到数据治理六维能力模型；页面现展示真实 `StudentCompetencySnapshot` 维度、聚合学习活动、资源推荐与自适应习题诊断摘要
 - 学生端最近活动已不再只看仿真和违规，而是聚合课堂加入记录、互动埋点、仿真记录与 `LearningFact(question)`；首页默认显示前三条，查看全部按课堂参与 / 互动探索 / 仿真训练 / 评测题目分类展开
 - 成长中枢 `/profile/growth` 的“关注事项”和“下一步建议”已在 `/api/student/competency-snapshot` 接口层按风险类型与建议标题去重，不再直接把重复 `StudentRiskFlag` 或重复建议逐条透出
@@ -42,7 +49,8 @@
 
 ## 初始化后的建议下一跳
 
-- 若任务与 `1-1`、精品互动课注册、runtime 讲义/媒体导出或页面级 AI 上下文有关，先读 [40-domain/20-premium-courses.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/40-domain/20-premium-courses.md)
+- 若任务是新课讲义、教案、知识卡或代码直出图的技术审查，先读 [70-workflows/35-lesson-content-review.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/35-lesson-content-review.md)
+- 若任务与 `1-1`、`1-2`、`1-3`、精品互动课注册、runtime 讲义/媒体导出或页面级 AI 上下文有关，先读 [40-domain/20-premium-courses.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/40-domain/20-premium-courses.md)
 - 若任务和学生个人中心、成长中枢、活动聚合或自适应习题接入有关，先读 [10-project/10-current-state.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/10-current-state.md)
 - 若任务和课堂事件、事实沉淀、会话同步有关，先读 [10-project/10-current-state.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/10-current-state.md)
 - 若任务和教师端班级页、班级学情、学生学情详情或 startup 失败有关，也先读 [10-project/10-current-state.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/10-current-state.md)

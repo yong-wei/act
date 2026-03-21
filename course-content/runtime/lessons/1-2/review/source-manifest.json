@@ -1,0 +1,28 @@
+{
+  "lesson_id": "1-2",
+  "unit_type": "理论",
+  "generated_at": "2026-03-20T07:19:27.712965+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/1-2/design/handout.md"
+  ],
+  "boppps_source": "course-content/authoring/lessons/1-2/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/1-2/sequence.json",
+  "expected_code_media": [
+    {
+      "script": "sh-01-block-diagram-elements.py",
+      "output": "sh-01-block-diagram-elements.svg"
+    },
+    {
+      "script": "sh-02-ship-heading-control.py",
+      "output": "sh-02-ship-heading-control.svg"
+    },
+    {
+      "script": "sh-03-equivalent-transform-rules.py",
+      "output": "sh-03-equivalent-transform-rules.svg"
+    },
+    {
+      "script": "sh-04-signal-flow-graph.py",
+      "output": "sh-04-signal-flow-graph.svg"
+    }
+  ]
+}

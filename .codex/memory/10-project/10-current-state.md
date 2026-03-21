@@ -2,7 +2,7 @@
 
 状态: active
 最后更新: 2026-03-20
-摘要: 记录项目当前的重要现状，帮助跨会话快速回答“现在做到哪里了、最近重点在哪”；当前除教师端学情入口、学生端个人中心六维画像与本地启动链路变化外，还应优先记住 1-1 拉氏变换精品互动课已完成 runtime-first 落地。
+摘要: 记录项目当前的重要现状，帮助跨会话快速回答“现在做到哪里了、最近重点在哪”；当前除教师端学情入口、学生端个人中心六维画像外，还应优先记住课程内容审查已从互动课实现技能中拆分，并已在 `1-2` 形成“审查 -> runtime -> 精品互动课”闭环。
 上游:
 - [00-overview.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/00-overview.md)
 下游:
@@ -14,12 +14,18 @@
 ## 当前高优先级现状
 
 - 统一课程框架已明确为 DB BOPPPS + `TeachingResource/registry` + `ClassSession`
-- 多门精品课程已接入独立入口与教师/学生双端课堂页，包括 L-2a、L-2b、L-2c、L-2d、L-sum、1-1 等
+- 多门精品课程已接入独立入口与教师/学生双端课堂页，包括 L-2a、L-2b、L-2c、L-2d、L-sum、1-1、1-2 等
 - 运行时课程资源已转为镜像外置部署，远端通过 `rsync` 同步 `course-content/runtime`
 - 容器启动阶段默认执行 Prisma 迁移，但真实线上仍需警惕迁移状态与实际表结构漂移
 
 ## 最近值得记住的变化
 
+- `1-2` 精品互动课已经落地到 `/interactive-learning/courses/unit-1-2-block-diagram-simplification`，并补齐教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]`、预置教案、课堂码路由解析与步骤级 AI 上下文注册
+- `1-2` 首页与课堂内页已经统一改为 runtime-first：课程入口从 `course-content/runtime/lessons/1-2` 读取知识图、讲义、知识卡与审查索引，课堂内按 `interactive-page.md` 的 17 步蓝图实现结构图四元素、等效变换、AI 对照、信号流图与梅森公式等内容
+- 互动课程制作前现在有独立 `lesson-content-review` 前置环节：先审 `design/handout.md` / `practice-guide.md` / `assessment-spec.md` 的技术正确性，再审 `design/boppps.md`、知识卡 sequence 与卡片正文，最后按 `design/multimedia.md` 生成并核对代码直出媒体
+- `course-content/scripts/review_lesson_content.py` 已成为新课内容审查入口；它会把问题修回 `course-content/authoring`，再导出 `course-content/runtime/lessons/<lesson>/review`，并把 `boppps`、审查报告、知识卡检查、多媒体检查索引写进 runtime
+- `1-2` 已完成首个课程审查试跑：补齐了缺失知识卡和代码直出媒体，runtime 下现在存在可供后续互动课程制作直接消费的 `review/*` 产物
+- `course-content/scripts/export_runtime.py` 已调整为“processed 优先、raw fallback”模式：新课按审查流走 `media/processed`，旧课仍可继续导出，避免已完成课程被迫回补新目录结构
 - `1-1` 精品互动课已经落地到 `/interactive-learning/courses/unit-1-1-laplace-transfer-function`，并补齐教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]`、预置教案、课堂码路由解析与步骤级 AI 上下文注册
 - `1-1` 首页与课堂内页已经统一改为 runtime-first：课程入口从 `course-content/runtime/lessons/1-1` 读取知识图、讲义、媒体和卡片编排，不再直接消费 `authoring`
 - `1-1` 课次已经形成一套稳定媒体流程：代码直出图先生成到 `course-content/authoring/lessons/1-1/media/processed` 审核，再导出到 `course-content/runtime/lessons/1-1/media`

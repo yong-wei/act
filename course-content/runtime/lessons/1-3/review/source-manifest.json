@@ -1,0 +1,36 @@
+{
+  "lesson_id": "1-3",
+  "unit_type": "理论",
+  "generated_at": "2026-03-20T15:47:19.899044+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/1-3/design/handout.md"
+  ],
+  "boppps_source": "course-content/authoring/lessons/1-3/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/1-3/sequence.json",
+  "expected_code_media": [
+    {
+      "script": "td-01-time-domain-input-response-overview.py",
+      "output": "td-01-time-domain-input-response-overview.svg"
+    },
+    {
+      "script": "td-02-first-order-step-time-constant.py",
+      "output": "td-02-first-order-step-time-constant.svg"
+    },
+    {
+      "script": "td-03-second-order-response-families.py",
+      "output": "td-03-second-order-response-families.svg"
+    },
+    {
+      "script": "td-04-time-domain-indices-annotated.py",
+      "output": "td-04-time-domain-indices-annotated.svg"
+    },
+    {
+      "script": "td-05-example-response-with-indices.py",
+      "output": "td-05-example-response-with-indices.svg"
+    },
+    {
+      "script": "td-06-time-spec-to-pole-region.py",
+      "output": "td-06-time-spec-to-pole-region.svg"
+    }
+  ]
+}

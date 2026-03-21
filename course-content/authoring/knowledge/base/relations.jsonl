@@ -4,10 +4,10 @@
 {"relation_id": "自动控制|被控量|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "自动控制", "target": "被控量", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "自动控制|控制装置|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "自动控制", "target": "控制装置", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "自动控制|自动控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "自动控制", "target": "自动控制系统", "relation_type": "leads_to", "strength": 0.8}
-{"relation_id": "自动控制|经典控制理论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "经典控制理论", "target": "自动控制", "relation_type": "applies_to", "strength": 0.8}
+{"relation_id": "自动控制|经典控制理论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "经典控制理论", "target": "自动控制", "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "自动控制|现代控制论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "自动控制", "target": "现代控制论", "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "自动控制|稳态误差|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "自动控制", "target": "稳态误差", "relation_type": "contains", "strength": 0.8}
-{"relation_id": "反馈控制|负反馈|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "负反馈", "target": "反馈控制", "relation_type": "contains", "strength": 0.8}
+{"relation_id": "反馈控制|负反馈|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "负反馈", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "反馈控制|被控对象|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "反馈控制", "target": "被控对象", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "反馈控制|被控量|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "反馈控制", "target": "被控量", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "反馈控制|控制装置|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "反馈控制", "target": "控制装置", "relation_type": "applies_to", "strength": 0.8}
@@ -21,53 +21,18 @@
 {"relation_id": "负反馈|自动控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "负反馈", "target": "自动控制系统", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "负反馈|经典控制理论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "负反馈", "target": "经典控制理论", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "负反馈|现代控制论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "负反馈", "target": "现代控制论", "relation_type": "applies_to", "strength": 0.7}
-{"relation_id": "负反馈|稳态误差|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "负反馈", "target": "稳态误差", "relation_type": "leads_to", "strength": 0.8}
+{"relation_id": "负反馈|稳态误差|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "负反馈", "target": "稳态误差", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "被控对象|被控量|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "被控对象", "target": "被控量", "relation_type": "contains", "strength": 0.8}
-{"relation_id": "被控对象|控制装置|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "控制装置", "target": "被控对象", "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "被控对象|控制装置|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控对象", "target": "控制装置", "relation_type": "related", "strength": 0.8}
 {"relation_id": "被控对象|自动控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "被控对象", "target": "自动控制系统", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "被控对象|经典控制理论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "经典控制理论", "target": "被控对象", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "被控对象|现代控制论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "现代控制论", "target": "被控对象", "relation_type": "applies_to", "strength": 0.8}
+{"relation_id": "被控对象|现代控制论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控对象", "target": "现代控制论", "relation_type": "related", "strength": 0.4}
 {"relation_id": "被控对象|稳态误差|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "被控对象", "target": "稳态误差", "relation_type": "related", "strength": 0.4}
-{"relation_id": "被控量|控制装置|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "被控量", "target": "控制装置", "relation_type": "applies_to", "strength": 0.8}
+{"relation_id": "被控量|控制装置|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控量", "target": "控制装置", "relation_type": "related", "strength": 0.6}
 {"relation_id": "被控量|自动控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "被控量", "target": "自动控制系统", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "被控量|经典控制理论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "被控量", "target": "经典控制理论", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "被控量|现代控制论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "被控量", "target": "现代控制论", "relation_type": "related", "strength": 0.3}
 {"relation_id": "被控量|稳态误差|1", "source_chapter": 1, "target_chapter": 1, "run_id": "79a00a53-475a-4e31-848b-115e6884e1f7", "source": "被控量", "target": "稳态误差", "relation_type": "leads_to", "strength": 0.8}
-{"relation_id": "自动控制|反馈控制|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制", "target": "反馈控制", "relation_type": "contains", "strength": 0.9}
-{"relation_id": "自动控制|负反馈|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "负反馈", "target": "自动控制", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "自动控制|被控对象|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制", "target": "被控对象", "relation_type": "contains", "strength": 0.9}
-{"relation_id": "自动控制|被控量|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制", "target": "被控量", "relation_type": "contains", "strength": 0.9}
-{"relation_id": "自动控制|控制装置|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制", "target": "控制装置", "relation_type": "contains", "strength": 0.9}
-{"relation_id": "自动控制|自动控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制", "target": "自动控制系统", "relation_type": "leads_to", "strength": 0.8}
-{"relation_id": "自动控制|经典控制理论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "经典控制理论", "target": "自动控制", "relation_type": "applies_to", "strength": 0.9}
-{"relation_id": "自动控制|现代控制论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制", "target": "现代控制论", "relation_type": "leads_to", "strength": 0.8}
-{"relation_id": "自动控制|稳态误差|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制", "target": "稳态误差", "relation_type": "contains", "strength": 0.8}
-{"relation_id": "反馈控制|负反馈|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "负反馈", "relation_type": "contains", "strength": 0.9}
-{"relation_id": "反馈控制|被控对象|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "被控对象", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "反馈控制|被控量|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "被控量", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "反馈控制|控制装置|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "控制装置", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "反馈控制|自动控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "自动控制系统", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "反馈控制|经典控制理论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "经典控制理论", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "反馈控制|现代控制论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "现代控制论", "relation_type": "leads_to", "strength": 0.8}
-{"relation_id": "反馈控制|稳态误差|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "稳态误差", "relation_type": "leads_to", "strength": 0.8}
-{"relation_id": "负反馈|被控对象|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "负反馈", "target": "被控对象", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "负反馈|被控量|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "负反馈", "target": "被控量", "relation_type": "applies_to", "strength": 0.6}
-{"relation_id": "负反馈|控制装置|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "负反馈", "target": "控制装置", "relation_type": "applies_to", "strength": 0.7}
-{"relation_id": "负反馈|自动控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "负反馈", "target": "自动控制系统", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "负反馈|经典控制理论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "负反馈", "target": "经典控制理论", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "负反馈|现代控制论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "负反馈", "target": "现代控制论", "relation_type": "applies_to", "strength": 0.7}
-{"relation_id": "负反馈|稳态误差|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "负反馈", "target": "稳态误差", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "被控对象|被控量|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控对象", "target": "被控量", "relation_type": "contains", "strength": 0.8}
-{"relation_id": "被控对象|控制装置|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控对象", "target": "控制装置", "relation_type": "related", "strength": 0.8}
-{"relation_id": "被控对象|自动控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控对象", "target": "自动控制系统", "relation_type": "contains", "strength": 0.9}
-{"relation_id": "被控对象|经典控制理论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "经典控制理论", "target": "被控对象", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "被控对象|现代控制论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控对象", "target": "现代控制论", "relation_type": "related", "strength": 0.4}
-{"relation_id": "被控对象|稳态误差|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控对象", "target": "稳态误差", "relation_type": "related", "strength": 0.3}
-{"relation_id": "被控量|控制装置|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控量", "target": "控制装置", "relation_type": "related", "strength": 0.6}
-{"relation_id": "被控量|自动控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控量", "target": "自动控制系统", "relation_type": "contains", "strength": 0.8}
-{"relation_id": "被控量|经典控制理论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控量", "target": "经典控制理论", "relation_type": "applies_to", "strength": 0.7}
-{"relation_id": "被控量|现代控制论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控量", "target": "现代控制论", "relation_type": "related", "strength": 0.3}
-{"relation_id": "被控量|稳态误差|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "被控量", "target": "稳态误差", "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "控制装置|自动控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "控制装置", "target": "自动控制系统", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "控制装置|经典控制理论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "控制装置", "target": "经典控制理论", "relation_type": "applies_to", "strength": 0.7}
 {"relation_id": "控制装置|现代控制论|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "控制装置", "target": "现代控制论", "relation_type": "applies_to", "strength": 0.6}
@@ -1309,7 +1274,6 @@
 {"relation_id": "测速发电机|反馈连接|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "测速发电机", "target": "反馈连接", "relation_type": "applies_to", "strength": 0.7}
 {"relation_id": "测速发电机|闭环传递函数|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "测速发电机", "target": "闭环传递函数", "relation_type": "applies_to", "strength": 0.6}
 {"relation_id": "测速发电机|力反馈|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "测速发电机", "target": "力反馈", "relation_type": "related", "strength": 0.4}
-{"relation_id": "测速发电机|闭环传递函数|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "测速发电机", "target": "闭环传递函数", "relation_type": "applies_to", "strength": 0.6}
 {"relation_id": "测速发电机|单位反馈控制系统|1-4", "source_chapter": 1, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "测速发电机", "target": "单位反馈控制系统", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "测速发电机|反馈补偿器|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "测速发电机", "target": "反馈补偿器", "relation_type": "related", "strength": 0.5}
 {"relation_id": "测速发电机|状态反馈|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "测速发电机", "target": "状态反馈", "relation_type": "applies_to", "strength": 0.6}
@@ -1581,7 +1545,6 @@
 {"relation_id": "自动控制系统分类|系统离散化与连续化|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制系统分类", "target": "系统离散化与连续化", "relation_type": "related", "strength": 0.4}
 {"relation_id": "自动控制系统分类|液位自动控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制系统分类", "target": "液位自动控制系统", "relation_type": "contains", "strength": 0.7}
 {"relation_id": "自动控制系统分类|稳态误差|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制系统分类", "target": "稳态误差", "relation_type": "related", "strength": 0.2}
-{"relation_id": "自动控制系统分类|稳态误差|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制系统分类", "target": "稳态误差", "relation_type": "related", "strength": 0.2}
 {"relation_id": "线性定常连续系统|恒值控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "线性定常连续系统", "target": "恒值控制系统", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "线性定常连续系统|随动系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "线性定常连续系统", "target": "随动系统", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "线性定常连续系统|程序控制系统|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "线性定常连续系统", "target": "程序控制系统", "relation_type": "contains", "strength": 0.9}
@@ -1697,7 +1660,6 @@
 {"relation_id": "线性定常离散控制系统|z变换|1-7", "source_chapter": 1, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "线性定常离散控制系统", "target": "z变换", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "线性定常离散控制系统|差分方程|1-7", "source_chapter": 1, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "线性定常离散控制系统", "target": "差分方程", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "线性定常离散控制系统|脉冲传递函数|1-7", "source_chapter": 1, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "线性定常离散控制系统", "target": "脉冲传递函数", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "线性定常离散控制系统|差分方程|1-7", "source_chapter": 1, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "线性定常离散控制系统", "target": "差分方程", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "线性定常离散控制系统|脉冲传递函数|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "线性定常离散控制系统", "target": "脉冲传递函数", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "线性定常离散控制系统|线性离散系统的可控性与可达性|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "线性定常离散控制系统", "target": "线性离散系统的可控性与可达性", "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "线性定常离散控制系统|离散系统极小值原理|1-10", "source_chapter": 1, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "线性定常离散控制系统", "target": "离散系统极小值原理", "relation_type": "leads_to", "strength": 0.7}
@@ -1801,11 +1763,10 @@
 {"relation_id": "稳定性|状态调节器|1-10", "source_chapter": 1, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "状态调节器", "relation_type": "prerequisite", "strength": 0.9}
 {"relation_id": "稳定性|状态调节器问题|1-10", "source_chapter": 1, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "状态调节器问题", "relation_type": "prerequisite", "strength": 0.9}
 {"relation_id": "稳定性|输出调节器问题|1-10", "source_chapter": 1, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "输出调节器问题", "relation_type": "prerequisite", "strength": 0.9}
-{"relation_id": "稳定性|李雅普诺夫稳定性|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "李雅普诺夫稳定性", "relation_type": "contains", "strength": 0.9}
+{"relation_id": "稳定性|李雅普诺夫稳定性|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "李雅普诺夫稳定性", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "稳定性|非线性系统|1-8", "source_chapter": 1, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "非线性系统", "relation_type": "applies_to", "strength": 0.7}
 {"relation_id": "稳定性|平衡状态|1-8", "source_chapter": 1, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "平衡状态", "relation_type": "prerequisite", "strength": 0.8}
 {"relation_id": "稳定性|奇点（平衡点）|1-8", "source_chapter": 1, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "奇点（平衡点）", "relation_type": "related", "strength": 0.6}
-{"relation_id": "稳定性|李雅普诺夫稳定性|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "李雅普诺夫稳定性", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "稳定性|李雅普诺夫意义下的稳定性|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "李雅普诺夫意义下的稳定性", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "稳定性|渐近稳定性|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "渐近稳定性", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "稳定性|不稳定平衡状态|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "不稳定平衡状态", "relation_type": "opposite", "strength": 0.8}
@@ -1813,7 +1774,6 @@
 {"relation_id": "稳定性|超调量|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "超调量", "relation_type": "related", "strength": 0.6}
 {"relation_id": "稳定性|阻尼比|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "阻尼比", "relation_type": "related", "strength": 0.7}
 {"relation_id": "稳定性|欠阻尼二阶系统|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "欠阻尼二阶系统", "relation_type": "contains", "strength": 0.8}
-{"relation_id": "稳定性|阻尼比|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "阻尼比", "relation_type": "related", "strength": 0.7}
 {"relation_id": "稳定性|极限环|1-8", "source_chapter": 1, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "极限环", "relation_type": "related", "strength": 0.5}
 {"relation_id": "快速性|准确性|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "快速性", "target": "准确性", "relation_type": "related", "strength": 0.6}
 {"relation_id": "快速性|阶跃函数|1", "source_chapter": 1, "target_chapter": 1, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "快速性", "target": "阶跃函数", "relation_type": "applies_to", "strength": 0.8}
@@ -1833,7 +1793,6 @@
 {"relation_id": "快速性|动态性能指标|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "快速性", "target": "动态性能指标", "relation_type": "contains", "strength": 1.0}
 {"relation_id": "快速性|上升时间|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "快速性", "target": "上升时间", "relation_type": "related", "strength": 0.9}
 {"relation_id": "快速性|时间常数|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "快速性", "target": "时间常数", "relation_type": "related", "strength": 0.7}
-{"relation_id": "快速性|调节时间|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "快速性", "target": "调节时间", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "快速性|调节时间|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "快速性", "target": "调节时间", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "快速性|超前补偿|1-4", "source_chapter": 1, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "快速性", "target": "超前补偿", "relation_type": "applies_to", "strength": 0.6}
 {"relation_id": "快速性|带宽|1-5", "source_chapter": 1, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "快速性", "target": "带宽", "relation_type": "related", "strength": 0.8}
@@ -1964,7 +1923,6 @@
 {"relation_id": "零极点增益模型|闭环零点|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "零极点增益模型", "target": "闭环零点", "relation_type": "contains", "strength": 0.6}
 {"relation_id": "零极点增益模型|开环零极点|1-4", "source_chapter": 1, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "零极点增益模型", "target": "开环零极点", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "零极点增益模型|开环零点|1-4", "source_chapter": 1, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "零极点增益模型", "target": "开环零点", "relation_type": "contains", "strength": 0.7}
-{"relation_id": "零极点增益模型|闭环零点|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "零极点增益模型", "target": "闭环零点", "relation_type": "contains", "strength": 0.6}
 {"relation_id": "零极点增益模型|偶极子|1-4", "source_chapter": 1, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "零极点增益模型", "target": "偶极子", "relation_type": "related", "strength": 0.5}
 {"relation_id": "零极点增益模型|最小相位环节|1-5", "source_chapter": 1, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "零极点增益模型", "target": "最小相位环节", "relation_type": "related", "strength": 0.7}
 {"relation_id": "零极点增益模型|最小相位系统|1-6", "source_chapter": 1, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "零极点增益模型", "target": "最小相位系统", "relation_type": "related", "strength": 0.7}
@@ -2010,8 +1968,6 @@
 {"relation_id": "系统离散化与连续化|连续系统|1-7", "source_chapter": 1, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "系统离散化与连续化", "target": "连续系统", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "系统离散化与连续化|离散系统|1-7", "source_chapter": 1, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "系统离散化与连续化", "target": "离散系统", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "系统离散化与连续化|z变换|1-7", "source_chapter": 1, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "系统离散化与连续化", "target": "z变换", "relation_type": "applies_to", "strength": 0.7}
-{"relation_id": "系统离散化与连续化|差分方程|1-7", "source_chapter": 1, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "系统离散化与连续化", "target": "差分方程", "relation_type": "leads_to", "strength": 0.8}
-{"relation_id": "系统离散化与连续化|脉冲传递函数|1-7", "source_chapter": 1, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "系统离散化与连续化", "target": "脉冲传递函数", "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "系统离散化与连续化|差分方程|1-7", "source_chapter": 1, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "系统离散化与连续化", "target": "差分方程", "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "系统离散化与连续化|脉冲传递函数|1-7", "source_chapter": 1, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "系统离散化与连续化", "target": "脉冲传递函数", "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "系统离散化与连续化|线性离散系统的可控性与可达性|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "系统离散化与连续化", "target": "线性离散系统的可控性与可达性", "relation_type": "prerequisite", "strength": 0.7}
@@ -2081,8 +2037,6 @@
 {"relation_id": "时域分析|阶跃响应|2-10", "source_chapter": 2, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "时域分析", "target": "阶跃响应", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "时域分析|超调量|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "时域分析", "target": "超调量", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "时域分析|单位阶跃响应|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "时域分析", "target": "单位阶跃响应", "relation_type": "contains", "strength": 0.9}
-{"relation_id": "时域分析|超调量|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "时域分析", "target": "超调量", "relation_type": "contains", "strength": 0.8}
-{"relation_id": "时域分析|超调量|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "时域分析", "target": "超调量", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "频域分析|LTI观测器|2", "source_chapter": 2, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "频域分析", "target": "LTI观测器", "relation_type": "applies_to", "strength": 0.6}
 {"relation_id": "频域分析|数学模型|2", "source_chapter": 2, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "频域分析", "target": "数学模型", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "频域分析|动态数学模型|2", "source_chapter": 2, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "频域分析", "target": "动态数学模型", "relation_type": "applies_to", "strength": 0.9}
@@ -2487,7 +2441,6 @@
 {"relation_id": "传递函数|开环增益|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "传递函数", "target": "开环增益", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "传递函数|频率响应法|2-5", "source_chapter": 2, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "传递函数", "target": "频率响应法", "relation_type": "applies_to", "strength": 0.7}
 {"relation_id": "传递函数|P控制器|2-6", "source_chapter": 2, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "传递函数", "target": "P控制器", "relation_type": "applies_to", "strength": 0.6}
-{"relation_id": "传递函数|开环增益|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "传递函数", "target": "开环增益", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "传递函数|输出反馈增益矩阵|2-9", "source_chapter": 2, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "传递函数", "target": "输出反馈增益矩阵", "relation_type": "related", "strength": 0.5}
 {"relation_id": "传递函数|幅角原理|2-5", "source_chapter": 2, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "传递函数", "target": "幅角原理", "relation_type": "related", "strength": 0.5}
 {"relation_id": "传递函数|最小相位系统|2-5", "source_chapter": 2, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "传递函数", "target": "最小相位系统", "relation_type": "applies_to", "strength": 0.8}
@@ -2631,7 +2584,6 @@
 {"relation_id": "叠加原理|频域分析法|2-5", "source_chapter": 2, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "叠加原理", "target": "频域分析法", "relation_type": "related", "strength": 0.6}
 {"relation_id": "叠加原理|线性系统|2-8", "source_chapter": 2, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "叠加原理", "target": "线性系统", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "叠加原理|反馈线性化|2-8", "source_chapter": 2, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "叠加原理", "target": "反馈线性化", "relation_type": "related", "strength": 0.4}
-{"relation_id": "叠加原理|线性定常系统|2-9", "source_chapter": 2, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "叠加原理", "target": "线性定常系统", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "叠加原理|线性定常系统|2-9", "source_chapter": 2, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "叠加原理", "target": "线性定常系统", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "叠加原理|线性定常离散系统|2-7", "source_chapter": 2, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "叠加原理", "target": "线性定常离散系统", "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "相似系统|拉普拉斯变换法|2", "source_chapter": 2, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "相似系统", "target": "拉普拉斯变换法", "relation_type": "related", "strength": 0.3}
@@ -3274,7 +3226,6 @@
 {"relation_id": "双容水槽|二阶系统|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "双容水槽", "target": "二阶系统", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "双容水槽|阻尼比|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "双容水槽", "target": "阻尼比", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "双容水槽|自然频率|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "双容水槽", "target": "自然频率", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "双容水槽|阻尼比|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "双容水槽", "target": "阻尼比", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "系统结构图|信号流图|2", "source_chapter": 2, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "系统结构图", "target": "信号流图", "relation_type": "related", "strength": 0.8}
 {"relation_id": "系统结构图|串联连接|2", "source_chapter": 2, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "系统结构图", "target": "串联连接", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "系统结构图|并联连接|2", "source_chapter": 2, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "系统结构图", "target": "并联连接", "relation_type": "contains", "strength": 0.9}
@@ -3323,7 +3274,6 @@
 {"relation_id": "信号流图|开环增益|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "信号流图", "target": "开环增益", "relation_type": "related", "strength": 0.6}
 {"relation_id": "信号流图|频率响应法|2-5", "source_chapter": 2, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "信号流图", "target": "频率响应法", "relation_type": "related", "strength": 0.5}
 {"relation_id": "信号流图|P控制器|2-6", "source_chapter": 2, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "信号流图", "target": "P控制器", "relation_type": "related", "strength": 0.5}
-{"relation_id": "信号流图|开环增益|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "信号流图", "target": "开环增益", "relation_type": "related", "strength": 0.6}
 {"relation_id": "信号流图|输出反馈增益矩阵|2-9", "source_chapter": 2, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "信号流图", "target": "输出反馈增益矩阵", "relation_type": "related", "strength": 0.2}
 {"relation_id": "信号流图|系统外部描述|2-9", "source_chapter": 2, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "信号流图", "target": "系统外部描述", "relation_type": "related", "strength": 0.3}
 {"relation_id": "信号流图|梅森增益公式|2-3", "source_chapter": 2, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "信号流图", "target": "梅森增益公式", "relation_type": "applies_to", "strength": 0.9}
@@ -3712,7 +3662,6 @@
 {"relation_id": "极点配置|内模控制器|3-9", "source_chapter": 3, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "极点配置", "target": "内模控制器", "relation_type": "applies_to", "strength": 0.7}
 {"relation_id": "极点配置|PID控制器|3-10", "source_chapter": 3, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "极点配置", "target": "PID控制器", "relation_type": "related", "strength": 0.5}
 {"relation_id": "极点配置|数字控制系统设计|3-7", "source_chapter": 3, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "极点配置", "target": "数字控制系统设计", "relation_type": "applies_to", "strength": 0.7}
-{"relation_id": "极点配置|PID控制器|3-10", "source_chapter": 3, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "极点配置", "target": "PID控制器", "relation_type": "related", "strength": 0.5}
 {"relation_id": "LQ/LQG最优控制|SISO系统设计工具|3", "source_chapter": 3, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "LQ/LQG最优控制", "target": "SISO系统设计工具", "relation_type": "related", "strength": 0.3}
 {"relation_id": "LQ/LQG最优控制|鲁棒控制|3", "source_chapter": 3, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "LQ/LQG最优控制", "target": "鲁棒控制", "relation_type": "related", "strength": 0.7}
 {"relation_id": "LQ/LQG最优控制|时域分析法|3", "source_chapter": 3, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "LQ/LQG最优控制", "target": "时域分析法", "relation_type": "applies_to", "strength": 0.6}
@@ -4584,7 +4533,6 @@
 {"relation_id": "单位阶跃响应|超调量|3-5", "source_chapter": 3, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "单位阶跃响应", "target": "超调量", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "单位阶跃响应|调节时间|3-4", "source_chapter": 3, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "单位阶跃响应", "target": "调节时间", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "单位阶跃响应|频域指标与时域指标转换|3-5", "source_chapter": 3, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "单位阶跃响应", "target": "频域指标与时域指标转换", "relation_type": "prerequisite", "strength": 0.8}
-{"relation_id": "单位阶跃响应|调节时间|3-4", "source_chapter": 3, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "单位阶跃响应", "target": "调节时间", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "单位阶跃响应|闭环实数极点|3-4", "source_chapter": 3, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "单位阶跃响应", "target": "闭环实数极点", "relation_type": "related", "strength": 0.6}
 {"relation_id": "单位阶跃响应|阻尼比|3-4", "source_chapter": 3, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "单位阶跃响应", "target": "阻尼比", "relation_type": "related", "strength": 0.6}
 {"relation_id": "单位阶跃响应|前置滤波器|3-6", "source_chapter": 3, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "单位阶跃响应", "target": "前置滤波器", "relation_type": "related", "strength": 0.5}
@@ -4927,7 +4875,6 @@
 {"relation_id": "阻尼比|PD控制器|3-6", "source_chapter": 3, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阻尼比", "target": "PD控制器", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "阻尼比|超调量|3-6", "source_chapter": 3, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阻尼比", "target": "超调量", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "阻尼比|极限环|3-8", "source_chapter": 3, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阻尼比", "target": "极限环", "relation_type": "related", "strength": 0.3}
-{"relation_id": "阻尼比|超调量|3-6", "source_chapter": 3, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阻尼比", "target": "超调量", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "阻尼比|频域指标与时域指标转换|3-5", "source_chapter": 3, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阻尼比", "target": "频域指标与时域指标转换", "relation_type": "related", "strength": 0.6}
 {"relation_id": "阻尼比|超调量|3-5", "source_chapter": 3, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阻尼比", "target": "超调量", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "阻尼比|速度反馈|3-8", "source_chapter": 3, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阻尼比", "target": "速度反馈", "relation_type": "applies_to", "strength": 0.7}
@@ -5092,7 +5039,6 @@
 {"relation_id": "峰值时间|超调量|3-4", "source_chapter": 3, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "峰值时间", "target": "超调量", "relation_type": "related", "strength": 0.7}
 {"relation_id": "峰值时间|阻尼比|3-4", "source_chapter": 3, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "峰值时间", "target": "阻尼比", "relation_type": "related", "strength": 0.6}
 {"relation_id": "峰值时间|频域指标与时域指标转换|3-5", "source_chapter": 3, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "峰值时间", "target": "频域指标与时域指标转换", "relation_type": "related", "strength": 0.3}
-{"relation_id": "峰值时间|超调量|3-4", "source_chapter": 3, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "峰值时间", "target": "超调量", "relation_type": "related", "strength": 0.7}
 {"relation_id": "峰值时间|前置滤波器|3-6", "source_chapter": 3, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "峰值时间", "target": "前置滤波器", "relation_type": "related", "strength": 0.3}
 {"relation_id": "峰值时间|超调量|3-6", "source_chapter": 3, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "峰值时间", "target": "超调量", "relation_type": "related", "strength": 0.8}
 {"relation_id": "峰值时间|速度反馈|3-8", "source_chapter": 3, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "峰值时间", "target": "速度反馈", "relation_type": "related", "strength": 0.4}
@@ -5453,7 +5399,6 @@
 {"relation_id": "稳定性|非线性系统|3-8", "source_chapter": 3, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "非线性系统", "relation_type": "applies_to", "strength": 0.7}
 {"relation_id": "稳定性|平衡状态|3-8", "source_chapter": 3, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "平衡状态", "relation_type": "prerequisite", "strength": 0.8}
 {"relation_id": "稳定性|奇点（平衡点）|3-8", "source_chapter": 3, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "奇点（平衡点）", "relation_type": "related", "strength": 0.6}
-{"relation_id": "稳定性|李雅普诺夫稳定性|3-9", "source_chapter": 3, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "李雅普诺夫稳定性", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "稳定性|李雅普诺夫意义下的稳定性|3-9", "source_chapter": 3, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "李雅普诺夫意义下的稳定性", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "稳定性|渐近稳定性|3-9", "source_chapter": 3, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "渐近稳定性", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "稳定性|不稳定平衡状态|3-9", "source_chapter": 3, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳定性", "target": "不稳定平衡状态", "relation_type": "opposite", "strength": 0.9}
@@ -5701,7 +5646,6 @@
 {"relation_id": "静态位置误差系数|系统稳定性|3", "source_chapter": 3, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态位置误差系数", "target": "系统稳定性", "relation_type": "related", "strength": 0.3}
 {"relation_id": "静态位置误差系数|稳态跟踪误差|3", "source_chapter": 3, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态位置误差系数", "target": "稳态跟踪误差", "relation_type": "related", "strength": 0.8}
 {"relation_id": "静态位置误差系数|I型系统|3-4", "source_chapter": 3, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态位置误差系数", "target": "I型系统", "relation_type": "related", "strength": 0.7}
-{"relation_id": "静态位置误差系数|稳态跟踪误差|3", "source_chapter": 3, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态位置误差系数", "target": "稳态跟踪误差", "relation_type": "related", "strength": 0.8}
 {"relation_id": "静态位置误差系数|稳态误差|3-7", "source_chapter": 3, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态位置误差系数", "target": "稳态误差", "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "静态速度误差系数|静态加速度误差系数|3", "source_chapter": 3, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态速度误差系数", "target": "静态加速度误差系数", "relation_type": "related", "strength": 0.8}
 {"relation_id": "静态速度误差系数|动态误差系数|3", "source_chapter": 3, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态速度误差系数", "target": "动态误差系数", "relation_type": "related", "strength": 0.6}
@@ -5719,7 +5663,6 @@
 {"relation_id": "静态速度误差系数|特征根|3", "source_chapter": 3, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态速度误差系数", "target": "特征根", "relation_type": "related", "strength": 0.3}
 {"relation_id": "静态速度误差系数|单位斜坡内模控制系统|3-9", "source_chapter": 3, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态速度误差系数", "target": "单位斜坡内模控制系统", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "静态速度误差系数|开环增益|3-6", "source_chapter": 3, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态速度误差系数", "target": "开环增益", "relation_type": "related", "strength": 0.7}
-{"relation_id": "静态速度误差系数|稳态跟踪误差|3", "source_chapter": 3, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态速度误差系数", "target": "稳态跟踪误差", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "静态速度误差系数|稳态误差|3-7", "source_chapter": 3, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态速度误差系数", "target": "稳态误差", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "静态加速度误差系数|动态误差系数|3", "source_chapter": 3, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态加速度误差系数", "target": "动态误差系数", "relation_type": "related", "strength": 0.6}
 {"relation_id": "静态加速度误差系数|终值定理|3", "source_chapter": 3, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "静态加速度误差系数", "target": "终值定理", "relation_type": "applies_to", "strength": 0.8}
@@ -7057,7 +7000,6 @@
 {"relation_id": "I型系统|环轮（张力控制系统）|4", "source_chapter": 4, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "I型系统", "target": "环轮（张力控制系统）", "relation_type": "applies_to", "strength": 0.5}
 {"relation_id": "I型系统|V-22鱼鹰倾斜旋翼飞机高度控制系统|4", "source_chapter": 4, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "I型系统", "target": "V-22鱼鹰倾斜旋翼飞机高度控制系统", "relation_type": "applies_to", "strength": 0.5}
 {"relation_id": "I型系统|智能汽车-高速公路系统车辆间距控制系统|4", "source_chapter": 4, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "I型系统", "target": "智能汽车-高速公路系统车辆间距控制系统", "relation_type": "applies_to", "strength": 0.5}
-{"relation_id": "I型系统|系统型别|4-6", "source_chapter": 4, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "I型系统", "target": "系统型别", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "I型系统|系统型别|4-6", "source_chapter": 4, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "I型系统", "target": "系统型别", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "I型系统|虚轴极点|4-5", "source_chapter": 4, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "I型系统", "target": "虚轴极点", "relation_type": "related", "strength": 0.7}
 {"relation_id": "I型系统|PID控制器|4-6", "source_chapter": 4, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "I型系统", "target": "PID控制器", "relation_type": "applies_to", "strength": 0.6}
@@ -12497,42 +12439,24 @@
 {"relation_id": "李雅普诺夫稳定性|全维状态观测器|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "全维状态观测器", "relation_type": "related", "strength": 0.3}
 {"relation_id": "李雅普诺夫稳定性|分离定理|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "分离定理", "relation_type": "prerequisite", "strength": 0.7}
 {"relation_id": "李雅普诺夫稳定性|李雅普诺夫意义下的稳定性|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "李雅普诺夫意义下的稳定性", "relation_type": "contains", "strength": 0.9}
-{"relation_id": "李雅普诺夫稳定性|渐近稳定性|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "渐近稳定性", "relation_type": "contains", "strength": 0.8}
-{"relation_id": "李雅普诺夫稳定性|大范围（全局）渐近稳定性|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "大范围（全局）渐近稳定性", "relation_type": "contains", "strength": 0.7}
-{"relation_id": "李雅普诺夫稳定性|不稳定平衡状态|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "不稳定平衡状态", "relation_type": "opposite", "strength": 0.9}
-{"relation_id": "李雅普诺夫稳定性|李雅普诺夫第一法（间接法）|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "李雅普诺夫第一法（间接法）", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "李雅普诺夫稳定性|李雅普诺夫第二法（直接法）|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "李雅普诺夫第二法（直接法）", "relation_type": "leads_to", "strength": 0.9}
-{"relation_id": "李雅普诺夫稳定性|李雅普诺夫函数|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "李雅普诺夫函数", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "李雅普诺夫稳定性|正定函数|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "正定函数", "relation_type": "related", "strength": 0.6}
-{"relation_id": "李雅普诺夫稳定性|线性定常系统的李雅普诺夫方程|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "线性定常系统的李雅普诺夫方程", "relation_type": "related", "strength": 0.7}
-{"relation_id": "李雅普诺夫稳定性|渐近稳定|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "渐近稳定", "relation_type": "contains", "strength": 0.8}
-{"relation_id": "李雅普诺夫稳定性|李雅普诺夫方程|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "李雅普诺夫方程", "relation_type": "leads_to", "strength": 0.9}
-{"relation_id": "李雅普诺夫稳定性|内模控制器|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "内模控制器", "relation_type": "related", "strength": 0.3}
-{"relation_id": "李雅普诺夫稳定性|内模控制系统|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "内模控制系统", "relation_type": "related", "strength": 0.3}
-{"relation_id": "李雅普诺夫稳定性|状态反馈增益|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "状态反馈增益", "relation_type": "related", "strength": 0.4}
-{"relation_id": "李雅普诺夫稳定性|闭环极点|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "闭环极点", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "李雅普诺夫稳定性|稳态跟踪误差|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "稳态跟踪误差", "relation_type": "related", "strength": 0.3}
-{"relation_id": "李雅普诺夫稳定性|单位阶跃响应|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "单位阶跃响应", "relation_type": "related", "strength": 0.4}
-{"relation_id": "李雅普诺夫稳定性|单位斜坡内模控制系统|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "单位斜坡内模控制系统", "relation_type": "related", "strength": 0.3}
-{"relation_id": "李雅普诺夫稳定性|单位斜坡响应|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "单位斜坡响应", "relation_type": "related", "strength": 0.4}
-{"relation_id": "李雅普诺夫稳定性|李雅普诺夫意义下的稳定性|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "李雅普诺夫意义下的稳定性", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "李雅普诺夫稳定性|渐近稳定性|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "渐近稳定性", "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "李雅普诺夫稳定性|大范围（全局）渐近稳定性|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "大范围（全局）渐近稳定性", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "李雅普诺夫稳定性|不稳定平衡状态|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "不稳定平衡状态", "relation_type": "opposite", "strength": 0.9}
-{"relation_id": "李雅普诺夫稳定性|李雅普诺夫第一法（间接法）|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "李雅普诺夫第一法（间接法）", "relation_type": "applies_to", "strength": 0.7}
+{"relation_id": "李雅普诺夫稳定性|李雅普诺夫第一法（间接法）|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "李雅普诺夫第一法（间接法）", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "李雅普诺夫稳定性|李雅普诺夫第二法（直接法）|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "李雅普诺夫第二法（直接法）", "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "李雅普诺夫稳定性|李雅普诺夫函数|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "李雅普诺夫函数", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "李雅普诺夫稳定性|正定函数|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "正定函数", "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "李雅普诺夫稳定性|线性定常系统的李雅普诺夫方程|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "线性定常系统的李雅普诺夫方程", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "李雅普诺夫稳定性|渐近稳定|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "渐近稳定", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "李雅普诺夫稳定性|李雅普诺夫方程|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "李雅普诺夫方程", "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "李雅普诺夫稳定性|内模控制器|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "内模控制器", "relation_type": "related", "strength": 0.3}
 {"relation_id": "李雅普诺夫稳定性|内模控制系统|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "内模控制系统", "relation_type": "related", "strength": 0.3}
 {"relation_id": "李雅普诺夫稳定性|状态反馈增益|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "状态反馈增益", "relation_type": "related", "strength": 0.4}
 {"relation_id": "李雅普诺夫稳定性|闭环极点|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "闭环极点", "relation_type": "related", "strength": 0.6}
-{"relation_id": "李雅普诺夫稳定性|稳态跟踪误差|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "稳态跟踪误差", "relation_type": "related", "strength": 0.2}
-{"relation_id": "李雅普诺夫稳定性|单位阶跃响应|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "单位阶跃响应", "relation_type": "related", "strength": 0.2}
-{"relation_id": "李雅普诺夫稳定性|单位斜坡内模控制系统|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "单位斜坡内模控制系统", "relation_type": "related", "strength": 0.2}
-{"relation_id": "李雅普诺夫稳定性|单位斜坡响应|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "单位斜坡响应", "relation_type": "related", "strength": 0.2}
+{"relation_id": "李雅普诺夫稳定性|稳态跟踪误差|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "稳态跟踪误差", "relation_type": "related", "strength": 0.3}
+{"relation_id": "李雅普诺夫稳定性|单位阶跃响应|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "单位阶跃响应", "relation_type": "related", "strength": 0.4}
+{"relation_id": "李雅普诺夫稳定性|单位斜坡内模控制系统|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "单位斜坡内模控制系统", "relation_type": "related", "strength": 0.3}
+{"relation_id": "李雅普诺夫稳定性|单位斜坡响应|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "单位斜坡响应", "relation_type": "related", "strength": 0.4}
 {"relation_id": "李雅普诺夫稳定性|扰动内模控制器|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "扰动内模控制器", "relation_type": "related", "strength": 0.2}
 {"relation_id": "李雅普诺夫稳定性|阶跃扰动|9", "source_chapter": 9, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "阶跃扰动", "relation_type": "related", "strength": 0.2}
 {"relation_id": "李雅普诺夫稳定性|非线性系统|9-8", "source_chapter": 9, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "李雅普诺夫稳定性", "target": "非线性系统", "relation_type": "applies_to", "strength": 0.8}
@@ -15100,10 +15024,9 @@
 {"relation_id": "状态调节器|传递函数|10", "source_chapter": 10, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器", "target": "传递函数", "relation_type": "related", "strength": 0.4}
 {"relation_id": "状态调节器|阶跃响应|10", "source_chapter": 10, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器", "target": "阶跃响应", "relation_type": "applies_to", "strength": 0.7}
 {"relation_id": "状态调节器|稳定性|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器", "target": "稳定性", "relation_type": "applies_to", "strength": 0.7}
-{"relation_id": "状态调节器|李雅普诺夫稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器", "target": "李雅普诺夫稳定性", "relation_type": "related", "strength": 0.5}
+{"relation_id": "状态调节器|李雅普诺夫稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器", "target": "李雅普诺夫稳定性", "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "状态调节器|平衡状态|10-8", "source_chapter": 10, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器", "target": "平衡状态", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "状态调节器|奇点（平衡点）|10-8", "source_chapter": 10, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器", "target": "奇点（平衡点）", "relation_type": "applies_to", "strength": 0.8}
-{"relation_id": "状态调节器|李雅普诺夫稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器", "target": "李雅普诺夫稳定性", "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "状态调节器|李雅普诺夫意义下的稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器", "target": "李雅普诺夫意义下的稳定性", "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "状态调节器|渐近稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器", "target": "渐近稳定性", "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "状态调节器|不稳定平衡状态|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器", "target": "不稳定平衡状态", "relation_type": "applies_to", "strength": 0.8}
@@ -15712,17 +15635,15 @@
 {"relation_id": "状态调节器问题|阶跃响应|10", "source_chapter": 10, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "阶跃响应", "relation_type": "applies_to", "strength": 0.6}
 {"relation_id": "状态调节器问题|复合控制|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "复合控制", "relation_type": "related", "strength": 0.3}
 {"relation_id": "状态调节器问题|复合校正|10-6", "source_chapter": 10, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "复合校正", "relation_type": "related", "strength": 0.3}
-{"relation_id": "状态调节器问题|复合控制|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "复合控制", "relation_type": "related", "strength": 0.3}
 {"relation_id": "状态调节器问题|复合控制系统|10-6", "source_chapter": 10, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "复合控制系统", "relation_type": "related", "strength": 0.3}
 {"relation_id": "状态调节器问题|速度反馈|10-8", "source_chapter": 10, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "速度反馈", "relation_type": "related", "strength": 0.2}
 {"relation_id": "状态调节器问题|PID控制器|10-8", "source_chapter": 10, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "PID控制器", "relation_type": "related", "strength": 0.2}
 {"relation_id": "状态调节器问题|状态反馈|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "状态反馈", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "状态调节器问题|稳定性|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "稳定性", "relation_type": "leads_to", "strength": 0.7}
-{"relation_id": "状态调节器问题|李雅普诺夫稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "李雅普诺夫稳定性", "relation_type": "related", "strength": 0.3}
+{"relation_id": "状态调节器问题|李雅普诺夫稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "李雅普诺夫稳定性", "relation_type": "related", "strength": 0.6}
 {"relation_id": "状态调节器问题|非线性系统|10-8", "source_chapter": 10, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "非线性系统", "relation_type": "applies_to", "strength": 0.4}
 {"relation_id": "状态调节器问题|平衡状态|10-8", "source_chapter": 10, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "平衡状态", "relation_type": "related", "strength": 0.8}
 {"relation_id": "状态调节器问题|奇点（平衡点）|10-8", "source_chapter": 10, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "奇点（平衡点）", "relation_type": "related", "strength": 0.7}
-{"relation_id": "状态调节器问题|李雅普诺夫稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "李雅普诺夫稳定性", "relation_type": "related", "strength": 0.6}
 {"relation_id": "状态调节器问题|李雅普诺夫意义下的稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "李雅普诺夫意义下的稳定性", "relation_type": "related", "strength": 0.6}
 {"relation_id": "状态调节器问题|渐近稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "渐近稳定性", "relation_type": "leads_to", "strength": 0.8}
 {"relation_id": "状态调节器问题|不稳定平衡状态|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "状态调节器问题", "target": "不稳定平衡状态", "relation_type": "opposite", "strength": 0.7}
@@ -15780,7 +15701,6 @@
 {"relation_id": "输出调节器问题|非线性系统|10-8", "source_chapter": 10, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "输出调节器问题", "target": "非线性系统", "relation_type": "applies_to", "strength": 0.7}
 {"relation_id": "输出调节器问题|平衡状态|10-8", "source_chapter": 10, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "输出调节器问题", "target": "平衡状态", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "输出调节器问题|奇点（平衡点）|10-8", "source_chapter": 10, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "输出调节器问题", "target": "奇点（平衡点）", "relation_type": "contains", "strength": 0.8}
-{"relation_id": "输出调节器问题|李雅普诺夫稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "输出调节器问题", "target": "李雅普诺夫稳定性", "relation_type": "applies_to", "strength": 0.6}
 {"relation_id": "输出调节器问题|李雅普诺夫意义下的稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "输出调节器问题", "target": "李雅普诺夫意义下的稳定性", "relation_type": "related", "strength": 0.3}
 {"relation_id": "输出调节器问题|渐近稳定性|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "输出调节器问题", "target": "渐近稳定性", "relation_type": "related", "strength": 0.4}
 {"relation_id": "输出调节器问题|不稳定平衡状态|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "输出调节器问题", "target": "不稳定平衡状态", "relation_type": "related", "strength": 0.2}
@@ -15971,7 +15891,6 @@
 {"relation_id": "前置滤波器|反馈连接|10-2", "source_chapter": 10, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "前置滤波器", "target": "反馈连接", "relation_type": "related", "strength": 0.3}
 {"relation_id": "前置滤波器|闭环传递函数|10-2", "source_chapter": 10, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "前置滤波器", "target": "闭环传递函数", "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "前置滤波器|闭环零点|10-4", "source_chapter": 10, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "前置滤波器", "target": "闭环零点", "relation_type": "applies_to", "strength": 0.9}
-{"relation_id": "前置滤波器|闭环传递函数|10-2", "source_chapter": 10, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "前置滤波器", "target": "闭环传递函数", "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "前置滤波器|保持器|10-7", "source_chapter": 10, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "前置滤波器", "target": "保持器", "relation_type": "related", "strength": 0.3}
 {"relation_id": "前置滤波器|速度反馈|10-8", "source_chapter": 10, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "前置滤波器", "target": "速度反馈", "relation_type": "related", "strength": 0.4}
 {"relation_id": "前置滤波器|输出反馈|10-9", "source_chapter": 10, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "前置滤波器", "target": "输出反馈", "relation_type": "related", "strength": 0.4}
@@ -15990,8 +15909,6 @@
 {"relation_id": "调节时间|自然频率|10", "source_chapter": 10, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "调节时间", "target": "自然频率", "relation_type": "related", "strength": 0.6}
 {"relation_id": "调节时间|超调量|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "调节时间", "target": "超调量", "relation_type": "related", "strength": 0.8}
 {"relation_id": "调节时间|单位阶跃响应|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "调节时间", "target": "单位阶跃响应", "relation_type": "applies_to", "strength": 0.9}
-{"relation_id": "调节时间|超调量|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "调节时间", "target": "超调量", "relation_type": "related", "strength": 0.8}
-{"relation_id": "调节时间|超调量|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "调节时间", "target": "超调量", "relation_type": "related", "strength": 0.8}
 {"relation_id": "调节时间|阻尼比|10-4", "source_chapter": 10, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "调节时间", "target": "阻尼比", "relation_type": "related", "strength": 0.7}
 {"relation_id": "调节时间|频域设计|10-5", "source_chapter": 10, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "调节时间", "target": "频域设计", "relation_type": "applies_to", "strength": 0.6}
 {"relation_id": "调节时间|频率响应法|10-5", "source_chapter": 10, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "调节时间", "target": "频率响应法", "relation_type": "applies_to", "strength": 0.6}
@@ -16047,17 +15964,12 @@
 {"relation_id": "阶跃响应|自然频率|10", "source_chapter": 10, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "自然频率", "relation_type": "related", "strength": 0.6}
 {"relation_id": "阶跃响应|超调量|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "超调量", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "阶跃响应|单位阶跃响应|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "单位阶跃响应", "relation_type": "contains", "strength": 0.9}
-{"relation_id": "阶跃响应|超调量|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "超调量", "relation_type": "contains", "strength": 0.9}
-{"relation_id": "阶跃响应|超调量|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "超调量", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "阶跃响应|动态性能指标|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "动态性能指标", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "阶跃响应|调节时间|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "调节时间", "relation_type": "contains", "strength": 0.8}
-{"relation_id": "阶跃响应|调节时间|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "调节时间", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "阶跃响应|频域指标与时域指标转换|10-5", "source_chapter": 10, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "频域指标与时域指标转换", "relation_type": "related", "strength": 0.7}
-{"relation_id": "阶跃响应|调节时间|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "调节时间", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "阶跃响应|阻尼比|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "阻尼比", "relation_type": "related", "strength": 0.8}
 {"relation_id": "阶跃响应|峰值时间|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "峰值时间", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "阶跃响应|闭环实数极点|10-4", "source_chapter": 10, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "闭环实数极点", "relation_type": "related", "strength": 0.7}
-{"relation_id": "阶跃响应|阻尼比|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "阻尼比", "relation_type": "related", "strength": 0.8}
 {"relation_id": "阶跃响应|前置滤波器|10-6", "source_chapter": 10, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "前置滤波器", "relation_type": "applies_to", "strength": 0.6}
 {"relation_id": "阶跃响应|超调量|10-6", "source_chapter": 10, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "超调量", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "阶跃响应|速度反馈|10-8", "source_chapter": 10, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "阶跃响应", "target": "速度反馈", "relation_type": "related", "strength": 0.7}
@@ -16070,7 +15982,6 @@
 {"relation_id": "反馈控制|反馈连接|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "反馈连接", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "反馈控制|闭环传递函数|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "闭环传递函数", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "反馈控制|力反馈|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "力反馈", "relation_type": "applies_to", "strength": 0.7}
-{"relation_id": "反馈控制|闭环传递函数|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "闭环传递函数", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "反馈控制|单位反馈控制系统|1-4", "source_chapter": 1, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "单位反馈控制系统", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "反馈控制|反馈补偿器|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "反馈补偿器", "relation_type": "applies_to", "strength": 0.6}
 {"relation_id": "反馈控制|状态反馈|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "状态反馈", "relation_type": "contains", "strength": 0.9}
@@ -16080,14 +15991,12 @@
 {"relation_id": "反馈控制|状态调节器问题|1-10", "source_chapter": 1, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "状态调节器问题", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "反馈控制|复合控制|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "复合控制", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "反馈控制|复合校正|1-6", "source_chapter": 1, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "复合校正", "relation_type": "contains", "strength": 0.9}
-{"relation_id": "反馈控制|复合控制|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "复合控制", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "反馈控制|复合控制系统|1-6", "source_chapter": 1, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "复合控制系统", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "反馈控制|速度反馈|1-8", "source_chapter": 1, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "速度反馈", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "反馈控制|PID控制器|1-8", "source_chapter": 1, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制", "target": "PID控制器", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "自动控制系统|反馈连接|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制系统", "target": "反馈连接", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "自动控制系统|闭环传递函数|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制系统", "target": "闭环传递函数", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "自动控制系统|力反馈|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制系统", "target": "力反馈", "relation_type": "applies_to", "strength": 0.7}
-{"relation_id": "自动控制系统|闭环传递函数|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制系统", "target": "闭环传递函数", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "自动控制系统|单位反馈控制系统|1-4", "source_chapter": 1, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制系统", "target": "单位反馈控制系统", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "自动控制系统|反馈补偿器|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制系统", "target": "反馈补偿器", "relation_type": "contains", "strength": 0.6}
 {"relation_id": "自动控制系统|状态反馈|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自动控制系统", "target": "状态反馈", "relation_type": "contains", "strength": 0.8}
@@ -16098,7 +16007,6 @@
 {"relation_id": "反馈控制系统|反馈连接|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制系统", "target": "反馈连接", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "反馈控制系统|闭环传递函数|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制系统", "target": "闭环传递函数", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "反馈控制系统|力反馈|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制系统", "target": "力反馈", "relation_type": "applies_to", "strength": 0.7}
-{"relation_id": "反馈控制系统|闭环传递函数|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制系统", "target": "闭环传递函数", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "反馈控制系统|单位反馈控制系统|1-4", "source_chapter": 1, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制系统", "target": "单位反馈控制系统", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "反馈控制系统|反馈补偿器|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制系统", "target": "反馈补偿器", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "反馈控制系统|状态反馈|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "反馈控制系统", "target": "状态反馈", "relation_type": "contains", "strength": 0.9}
@@ -16109,7 +16017,6 @@
 {"relation_id": "主反馈通路|反馈连接|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "主反馈通路", "target": "反馈连接", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "主反馈通路|闭环传递函数|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "主反馈通路", "target": "闭环传递函数", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "主反馈通路|力反馈|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "主反馈通路", "target": "力反馈", "relation_type": "applies_to", "strength": 0.7}
-{"relation_id": "主反馈通路|闭环传递函数|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "主反馈通路", "target": "闭环传递函数", "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "主反馈通路|单位反馈控制系统|1-4", "source_chapter": 1, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "主反馈通路", "target": "单位反馈控制系统", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "主反馈通路|反馈补偿器|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "主反馈通路", "target": "反馈补偿器", "relation_type": "related", "strength": 0.6}
 {"relation_id": "主反馈通路|状态反馈|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "主反馈通路", "target": "状态反馈", "relation_type": "related", "strength": 0.7}
@@ -16124,7 +16031,6 @@
 {"relation_id": "液位自动控制系统|状态调节器问题|1-10", "source_chapter": 1, "target_chapter": 10, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "液位自动控制系统", "target": "状态调节器问题", "relation_type": "related", "strength": 0.3}
 {"relation_id": "液位自动控制系统|复合控制|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "液位自动控制系统", "target": "复合控制", "relation_type": "related", "strength": 0.4}
 {"relation_id": "液位自动控制系统|复合校正|1-6", "source_chapter": 1, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "液位自动控制系统", "target": "复合校正", "relation_type": "related", "strength": 0.4}
-{"relation_id": "液位自动控制系统|复合控制|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "液位自动控制系统", "target": "复合控制", "relation_type": "related", "strength": 0.4}
 {"relation_id": "液位自动控制系统|复合控制系统|1-6", "source_chapter": 1, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "液位自动控制系统", "target": "复合控制系统", "relation_type": "related", "strength": 0.4}
 {"relation_id": "液位自动控制系统|速度反馈|1-8", "source_chapter": 1, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "液位自动控制系统", "target": "速度反馈", "relation_type": "related", "strength": 0.3}
 {"relation_id": "液位自动控制系统|PID控制器|1-8", "source_chapter": 1, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "液位自动控制系统", "target": "PID控制器", "relation_type": "applies_to", "strength": 0.7}
@@ -16141,7 +16047,6 @@
 {"relation_id": "现代控制论|LQ/LQG最优控制|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "现代控制论", "target": "LQ/LQG最优控制", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "现代控制论|状态空间法|1-9", "source_chapter": 1, "target_chapter": 9, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "现代控制论", "target": "状态空间法", "relation_type": "applies_to", "strength": 1.0}
 {"relation_id": "稳态误差|调节时间|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳态误差", "target": "调节时间", "relation_type": "related", "strength": 0.6}
-{"relation_id": "稳态误差|调节时间|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳态误差", "target": "调节时间", "relation_type": "related", "strength": 0.6}
 {"relation_id": "稳态误差|时域分析法|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳态误差", "target": "时域分析法", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "稳态误差|I控制器|1-6", "source_chapter": 1, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳态误差", "target": "I控制器", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "稳态误差|稳态跟踪误差|1-7", "source_chapter": 1, "target_chapter": 7, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳态误差", "target": "稳态跟踪误差", "relation_type": "contains", "strength": 0.9}
@@ -16150,15 +16055,12 @@
 {"relation_id": "稳态误差|前馈校正|1-6", "source_chapter": 1, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "稳态误差", "target": "前馈校正", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "有静差系统|稳态误差|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "有静差系统", "target": "稳态误差", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "有静差系统|调节时间|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "有静差系统", "target": "调节时间", "relation_type": "related", "strength": 0.3}
-{"relation_id": "有静差系统|调节时间|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "有静差系统", "target": "调节时间", "relation_type": "related", "strength": 0.3}
-{"relation_id": "有静差系统|稳态误差|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "有静差系统", "target": "稳态误差", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "校正元件|前馈校正|1-6", "source_chapter": 1, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "校正元件", "target": "前馈校正", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "校正元件|无源网络|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "校正元件", "target": "无源网络", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "按扰动控制|前馈校正|1-6", "source_chapter": 1, "target_chapter": 6, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "按扰动控制", "target": "前馈校正", "relation_type": "contains", "strength": 0.8}
 {"relation_id": "前向通路|梅森增益公式|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "前向通路", "target": "梅森增益公式", "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "前向通路|余因子式|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "前向通路", "target": "余因子式", "relation_type": "prerequisite", "strength": 0.8}
 {"relation_id": "前向通路|开环传递函数|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "前向通路", "target": "开环传递函数", "relation_type": "related", "strength": 0.7}
-{"relation_id": "前向通路|梅森增益公式|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "前向通路", "target": "梅森增益公式", "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "扰动|闭环传递函数|1-2", "source_chapter": 1, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "扰动", "target": "闭环传递函数", "relation_type": "related", "strength": 0.3}
 {"relation_id": "扰动|稳态误差|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "扰动", "target": "稳态误差", "relation_type": "related", "strength": 0.6}
 {"relation_id": "扰动|稳定性|1-3", "source_chapter": 1, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "扰动", "target": "稳定性", "relation_type": "leads_to", "strength": 0.7}
@@ -16166,9 +16068,7 @@
 {"relation_id": "自然频率|时间常数|10-2", "source_chapter": 10, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "时间常数", "relation_type": "related", "strength": 0.6}
 {"relation_id": "自然频率|动态性能指标|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "动态性能指标", "relation_type": "related", "strength": 0.7}
 {"relation_id": "自然频率|上升时间|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "上升时间", "relation_type": "related", "strength": 0.6}
-{"relation_id": "自然频率|时间常数|10-2", "source_chapter": 10, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "时间常数", "relation_type": "related", "strength": 0.6}
 {"relation_id": "自然频率|峰值时间|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "峰值时间", "relation_type": "related", "strength": 0.8}
-{"relation_id": "自然频率|调节时间|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "调节时间", "relation_type": "related", "strength": 0.7}
 {"relation_id": "自然频率|调节时间|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "调节时间", "relation_type": "related", "strength": 0.7}
 {"relation_id": "自然频率|超前补偿|10-4", "source_chapter": 10, "target_chapter": 4, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "超前补偿", "relation_type": "related", "strength": 0.5}
 {"relation_id": "自然频率|带宽|10-5", "source_chapter": 10, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "带宽", "relation_type": "related", "strength": 0.8}
@@ -16180,7 +16080,6 @@
 {"relation_id": "自然频率|二阶系统|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "二阶系统", "relation_type": "contains", "strength": 0.9}
 {"relation_id": "自然频率|振荡环节|10-5", "source_chapter": 10, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "振荡环节", "relation_type": "related", "strength": 0.8}
 {"relation_id": "自然频率|双容水槽|10-2", "source_chapter": 10, "target_chapter": 2, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "双容水槽", "relation_type": "related", "strength": 0.4}
-{"relation_id": "自然频率|阻尼比|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "阻尼比", "relation_type": "related", "strength": 0.9}
 {"relation_id": "自然频率|阻尼比|10-3", "source_chapter": 10, "target_chapter": 3, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "自然频率", "target": "阻尼比", "relation_type": "related", "strength": 0.9}
 {"relation_id": "拉普拉斯变换|频域分析法|2-5", "source_chapter": 2, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "拉普拉斯变换", "target": "频域分析法", "relation_type": "applies_to", "strength": 0.8}
 {"relation_id": "拉普拉斯变换|线性系统|2-8", "source_chapter": 2, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "拉普拉斯变换", "target": "线性系统", "relation_type": "applies_to", "strength": 0.9}
@@ -16217,3 +16116,77 @@
 {"relation_id": "根轨迹绘制法则|对数频率特性曲线|4-5", "source_chapter": 4, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "根轨迹绘制法则", "target": "对数频率特性曲线", "relation_type": "related", "strength": 0.3}
 {"relation_id": "根轨迹绘制法则|对数幅频渐近特性曲线|4-5", "source_chapter": 4, "target_chapter": 5, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "根轨迹绘制法则", "target": "对数幅频渐近特性曲线", "relation_type": "related", "strength": 0.3}
 {"relation_id": "根轨迹绘制法则|鞍点|4-8", "source_chapter": 4, "target_chapter": 8, "run_id": "3062f414-3011-4282-b45f-402654d6ca83", "source": "根轨迹绘制法则", "target": "鞍点", "relation_type": "related", "strength": 0.2}
+{"relation_id": "rt-16219", "source": "拉氏变换工程动机", "target": "拉氏变换", "source_chapter": "2", "target_chapter": 2, "relation_type": "related", "strength": 0.95}
+{"relation_id": "rt-16220", "source": "微分方程", "target": "拉氏变换工程动机", "source_chapter": 2, "target_chapter": "2", "relation_type": "related", "strength": 0.9}
+{"relation_id": "rt-16221", "source": "拉氏变换", "target": "微分定理", "source_chapter": 2, "target_chapter": "2", "relation_type": "related", "strength": 0.95}
+{"relation_id": "rt-16222", "source": "微分定理", "target": "传递函数", "source_chapter": "2", "target_chapter": 2, "relation_type": "related", "strength": 0.95}
+{"relation_id": "rt-16223", "source": "传递函数", "target": "传递函数标准形式", "source_chapter": 2, "target_chapter": "2", "relation_type": "related", "strength": 0.9}
+{"relation_id": "rt-16224", "source": "传递函数标准形式", "target": "零点", "source_chapter": "2", "target_chapter": 2, "relation_type": "related", "strength": 0.85}
+{"relation_id": "rt-16225", "source": "传递函数标准形式", "target": "极点", "source_chapter": "2", "target_chapter": 2, "relation_type": "related", "strength": 0.85}
+{"relation_id": "rt-16226", "source": "极点", "target": "四种响应家族", "source_chapter": 2, "target_chapter": 3, "relation_type": "related", "strength": 0.95}
+{"relation_id": "rt-16227", "source": "传递函数", "target": "比例环节", "source_chapter": 2, "target_chapter": "2", "relation_type": "related", "strength": 0.8}
+{"relation_id": "rt-16228", "source": "传递函数", "target": "积分环节", "source_chapter": 2, "target_chapter": "2", "relation_type": "related", "strength": 0.8}
+{"relation_id": "rt-16229", "source": "传递函数", "target": "微分环节", "source_chapter": 2, "target_chapter": "2", "relation_type": "related", "strength": 0.8}
+{"relation_id": "rt-16230", "source": "传递函数", "target": "惯性环节", "source_chapter": 2, "target_chapter": "2", "relation_type": "related", "strength": 0.85}
+{"relation_id": "rt-16231", "source": "传递函数", "target": "振荡环节", "source_chapter": 2, "target_chapter": 5, "relation_type": "related", "strength": 0.85}
+{"relation_id": "rt-16232", "source": "惯性环节", "target": "四种响应家族", "source_chapter": "2", "target_chapter": 3, "relation_type": "related", "strength": 0.8}
+{"relation_id": "rt-16233", "source": "振荡环节", "target": "四种响应家族", "source_chapter": 5, "target_chapter": 3, "relation_type": "related", "strength": 0.8}
+{"relation_id": "rt-16234", "source": "拉氏变换工程动机", "target": "传递函数", "source_chapter": "2", "target_chapter": 1, "relation_type": "related", "strength": 0.85}
+{"relation_id": "rt-16235", "source": "传递函数", "target": "系统结构图", "source_chapter": 2, "target_chapter": 2, "relation_type": "related", "strength": 0.9}
+{"relation_id": "rt-16236", "source": "系统结构图", "target": "串联连接", "source_chapter": 2, "target_chapter": 2, "relation_type": "related", "strength": 0.9}
+{"relation_id": "rt-16237", "source": "系统结构图", "target": "并联连接", "source_chapter": 2, "target_chapter": 2, "relation_type": "related", "strength": 0.9}
+{"relation_id": "rt-16238", "source": "系统结构图", "target": "反馈连接", "source_chapter": 2, "target_chapter": 2, "relation_type": "related", "strength": 0.95}
+{"relation_id": "rt-16239", "source": "反馈连接", "target": "开环传递函数（精化）", "source_chapter": 2, "target_chapter": "2", "relation_type": "related", "strength": 0.9}
+{"relation_id": "rt-16240", "source": "反馈连接", "target": "闭环传递函数", "source_chapter": 2, "target_chapter": 2, "relation_type": "related", "strength": 0.95}
+{"relation_id": "rt-16241", "source": "结构图等效变换", "target": "结构图简化", "source_chapter": "2", "target_chapter": 2, "relation_type": "related", "strength": 0.95}
+{"relation_id": "rt-16242", "source": "串联连接", "target": "结构图等效变换", "source_chapter": 2, "target_chapter": "2", "relation_type": "related", "strength": 0.8}
+{"relation_id": "rt-16243", "source": "结构图简化", "target": "闭环传递函数", "source_chapter": 2, "target_chapter": 2, "relation_type": "related", "strength": 0.9}
+{"relation_id": "rt-16244", "source": "信号流图", "target": "梅森增益公式", "source_chapter": 2, "target_chapter": 2, "relation_type": "related", "strength": 0.95}
+{"relation_id": "rt-16245", "source": "系统结构图", "target": "信号流图", "source_chapter": 2, "target_chapter": 2, "relation_type": "related", "strength": 0.85}
+{"relation_id": "rt-16246", "source": "梅森增益公式", "target": "闭环传递函数", "source_chapter": 2, "target_chapter": 2, "relation_type": "related", "strength": 0.9}
+{"relation_id": "rt-16247", "source": "比例环节", "target": "系统结构图", "source_chapter": "2", "target_chapter": 2, "relation_type": "related", "strength": 0.7}
+{"relation_id": "rt-16248", "source": "惯性环节", "target": "系统结构图", "source_chapter": "2", "target_chapter": 2, "relation_type": "related", "strength": 0.7}
+{"relation_id": "rt-16249", "source": "积分环节", "target": "系统结构图", "source_chapter": "2", "target_chapter": 2, "relation_type": "related", "strength": 0.7}
+{"relation_id": "rt-16250", "source": "开环传递函数（精化）", "target": "开环传递函数", "source_chapter": "2", "target_chapter": 2, "relation_type": "related", "strength": 0.9}
+{"relation_id": "rt-16282", "source": "三域联动操作体验", "target": "三域直觉联动", "source_chapter": 5, "target_chapter": 5, "relation_type": "related", "strength": 1.0}
+{"relation_id": "rt-16283", "source": "临界增益体验", "target": "三域联动操作体验", "source_chapter": 5, "target_chapter": 5, "relation_type": "related", "strength": 1.0}
+{"relation_id": "rt-16284", "source": "三域联动操作体验", "target": "临界增益体验", "source_chapter": 5, "target_chapter": 5, "relation_type": "related", "strength": 1.0}
+{"relation_id": "rt-16285", "source": "临界增益体验", "target": "相位裕度直觉", "source_chapter": 5, "target_chapter": 5, "relation_type": "related", "strength": 1.0}
+{"relation_id": "rt-16287", "source": "三域联动操作体验", "target": "频率响应直觉", "source_chapter": 5, "target_chapter": 5, "relation_type": "related", "strength": 1.0}
+{"relation_id": "三域直觉联动|极点迁移|new", "source": "三域直觉联动", "target": "极点迁移", "source_chapter": 5, "target_chapter": 4, "relation_type": "contains", "strength": 0.9}
+{"relation_id": "三域直觉联动|相位裕度直觉|new", "source": "三域直觉联动", "target": "相位裕度直觉", "source_chapter": 5, "target_chapter": 5, "relation_type": "cross_domain", "strength": 0.95}
+{"relation_id": "三域直觉联动|设计可行域|new", "source": "三域直觉联动", "target": "设计可行域", "source_chapter": 5, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.85}
+{"relation_id": "三域直觉联动|频率响应直觉|new", "source": "三域直觉联动", "target": "频率响应直觉", "source_chapter": 5, "target_chapter": 5, "relation_type": "contains", "strength": 0.9}
+{"relation_id": "二阶系统标准型|自然频率|new", "source": "二阶系统标准型", "target": "自然频率", "source_chapter": 3, "target_chapter": 10, "relation_type": "contains", "strength": 0.95}
+{"relation_id": "二阶系统标准型|阶跃响应|new", "source": "二阶系统标准型", "target": "阶跃响应", "source_chapter": 3, "target_chapter": 10, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "二阶系统标准型|阻尼比|new", "source": "二阶系统标准型", "target": "阻尼比", "source_chapter": 3, "target_chapter": 3, "relation_type": "contains", "strength": 0.95}
+{"relation_id": "动态性能指标|复平面可行域|new", "source": "动态性能指标", "target": "复平面可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "动态性能指标|调节时间|new", "source": "动态性能指标", "target": "调节时间", "source_chapter": 3, "target_chapter": 10, "relation_type": "contains", "strength": 0.95}
+{"relation_id": "四种响应家族|阶跃响应|new", "source": "四种响应家族", "target": "阶跃响应", "source_chapter": 3, "target_chapter": 10, "relation_type": "contains", "strength": 0.85}
+{"relation_id": "四种响应家族|阻尼比|new", "source": "四种响应家族", "target": "阻尼比", "source_chapter": 3, "target_chapter": 3, "relation_type": "related", "strength": 0.9}
+{"relation_id": "复平面可行域|时域响应包络|new", "source": "复平面可行域", "target": "时域响应包络", "source_chapter": 4, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "复平面可行域|设计可行域|new", "source": "复平面可行域", "target": "设计可行域", "source_chapter": 4, "target_chapter": 4, "relation_type": "contains", "strength": 0.95}
+{"relation_id": "复平面可行域|频域可行带|new", "source": "复平面可行域", "target": "频域可行带", "source_chapter": 4, "target_chapter": 5, "relation_type": "cross_domain", "strength": 0.88}
+{"relation_id": "幅值裕度直觉|幅值裕度|new", "source": "幅值裕度直觉", "target": "幅值裕度", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "幅值裕度直觉|相位裕度直觉|new", "source": "幅值裕度直觉", "target": "相位裕度直觉", "source_chapter": 5, "target_chapter": 5, "relation_type": "related", "strength": 0.8}
+{"relation_id": "开环增益|极点迁移|new", "source": "开环增益", "target": "极点迁移", "source_chapter": 3, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "截止频率直觉|截止频率|new", "source": "截止频率直觉", "target": "截止频率", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "截止频率直觉|相位裕度直觉|new", "source": "截止频率直觉", "target": "相位裕度直觉", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "最佳阻尼比|开环增益|new", "source": "最佳阻尼比", "target": "开环增益", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.85}
+{"relation_id": "极点迁移|复平面可行域|new", "source": "极点迁移", "target": "复平面可行域", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.88}
+{"relation_id": "极点迁移|根轨迹|new", "source": "极点迁移", "target": "根轨迹", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "根轨迹|稳定裕度|new", "source": "根轨迹", "target": "稳定裕度", "source_chapter": 4, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.8}
+{"relation_id": "根轨迹|阻尼比|new", "source": "根轨迹", "target": "阻尼比", "source_chapter": 4, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "相位裕度直觉|相角裕度|new", "source": "相位裕度直觉", "target": "相角裕度", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "相位裕度直觉|超调量|new", "source": "相位裕度直觉", "target": "超调量", "source_chapter": 5, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "相位裕度直觉|阻尼比|new", "source": "相位裕度直觉", "target": "阻尼比", "source_chapter": 5, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
+{"relation_id": "自然频率|上升时间|new", "source": "自然频率", "target": "上升时间", "source_chapter": 10, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "自然频率|调节时间|new", "source": "自然频率", "target": "调节时间", "source_chapter": 10, "target_chapter": 10, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "调节时间|复平面可行域|new", "source": "调节时间", "target": "复平面可行域", "source_chapter": 10, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.92}
+{"relation_id": "阶跃响应|四种响应家族|new", "source": "阶跃响应", "target": "四种响应家族", "source_chapter": 10, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.85}
+{"relation_id": "阻尼比|复平面可行域|new", "source": "阻尼比", "target": "复平面可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.92}
+{"relation_id": "阻尼比|最佳阻尼比|new", "source": "阻尼比", "target": "最佳阻尼比", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "阻尼比|调节时间|new", "source": "阻尼比", "target": "调节时间", "source_chapter": 3, "target_chapter": 10, "relation_type": "leads_to", "strength": 0.85}
+{"relation_id": "阻尼比|超调量|new", "source": "阻尼比", "target": "超调量", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "频率响应直觉|截止频率直觉|new", "source": "频率响应直觉", "target": "截止频率直觉", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "频率响应直觉|频域分析|new", "source": "频率响应直觉", "target": "频域分析", "source_chapter": 5, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.9}

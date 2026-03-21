@@ -13,6 +13,37 @@ interface UseSessionProgressChannelOptions {
   pollIntervalMs?: number;
 }
 
+type DemoStepSyncUpdate = {
+  nextIndex: number;
+  syncKey: string;
+};
+
+function getStepIdsSyncKey(stepIds: string[]) {
+  return stepIds.join('::');
+}
+
+export function resolveDemoStepSyncUpdate({
+  stepIds,
+  demoStepId,
+  previousSyncKey,
+}: {
+  stepIds: string[];
+  demoStepId?: string | null;
+  previousSyncKey: string | null;
+}): DemoStepSyncUpdate | null {
+  const syncKey = `${getStepIdsSyncKey(stepIds)}::${demoStepId ?? ''}`;
+  if (previousSyncKey === syncKey) {
+    return null;
+  }
+
+  const demoIndex = demoStepId ? stepIds.findIndex((stepId) => stepId === demoStepId) : -1;
+
+  return {
+    nextIndex: demoIndex >= 0 ? demoIndex : 0,
+    syncKey,
+  };
+}
+
 export function useSessionProgressChannel({
   sessionId,
   stepIds,
@@ -29,6 +60,7 @@ export function useSessionProgressChannel({
   const initialTeacherSyncRef = useRef(isDemo || !followTeacher);
   const initializedTeacherRef = useRef(isDemo || followTeacher);
   const pendingStepIdRef = useRef<string | null>(null);
+  const demoSyncKeyRef = useRef<string | null>(null);
 
   // 版本控制: 记录已知最新状态的时间戳，防止旧状态覆盖新状态
   const lastKnownTimestampRef = useRef<number>(0);
@@ -239,10 +271,17 @@ export function useSessionProgressChannel({
     }
 
     setLoadingSession(false);
-    const demoIndex = demoStepId ? stepIds.findIndex((stepId) => stepId === demoStepId) : -1;
-    const nextIndex = demoIndex >= 0 ? demoIndex : 0;
-    setActiveIndex(nextIndex);
-    setTeacherIndex(nextIndex);
+    const nextSync = resolveDemoStepSyncUpdate({
+      stepIds,
+      demoStepId,
+      previousSyncKey: demoSyncKeyRef.current,
+    });
+    if (!nextSync) {
+      return;
+    }
+    demoSyncKeyRef.current = nextSync.syncKey;
+    setActiveIndex(nextSync.nextIndex);
+    setTeacherIndex(nextSync.nextIndex);
     initialTeacherSyncRef.current = true;
     initializedTeacherRef.current = true;
   }, [demoStepId, isDemo, stepIds]);
