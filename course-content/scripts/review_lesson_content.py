@@ -80,12 +80,15 @@ def extract_expected_code_media(multimedia_path: Path) -> list[dict[str, str]]:
 
     expected: list[dict[str, str]] = []
     text = multimedia_path.read_text(encoding='utf-8')
-    pattern = re.compile(r'文件名：([A-Za-z0-9_-]+)\.py\s*/\s*\.svg')
+    pattern = re.compile(
+        r'media/raw/(?P<script>[A-Za-z0-9_-]+)\.py`\s*->\s*`media/processed/(?P<output>[A-Za-z0-9_-]+)\.svg'
+    )
     for match in pattern.finditer(text):
-        stem = match.group(1)
+        script_stem = match.group('script')
+        output_stem = match.group('output')
         expected.append({
-            'script': f'{stem}.py',
-            'output': f'{stem}.svg',
+            'script': f'{script_stem}.py',
+            'output': f'{output_stem}.svg',
         })
     return expected
 

@@ -12,6 +12,10 @@
  */
 
 import type { AIContextConfig } from '@/types/ai-context';
+import {
+  getUnit13StepAIContext as getUnit13StepAIContextLocal,
+  getUnit13StepQuickQuestions as getUnit13StepQuickQuestionsLocal,
+} from './unit-1-3-ai-contexts';
 
 // L2D课程AI上下文
 export {
@@ -48,6 +52,16 @@ export {
   getUnit12StepAIContext,
   getUnit12StepQuickQuestions,
 } from './unit-1-2-ai-contexts';
+
+// 1-3 课程 AI 上下文
+export {
+  UNIT_1_3_COURSE_META,
+  UNIT_1_3_STEP_AI_CONTEXTS,
+  getUNIT_1_3StepAIContext,
+  getUNIT_1_3StepQuickQuestions,
+  getUnit13StepAIContext,
+  getUnit13StepQuickQuestions,
+} from './unit-1-3-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -115,6 +129,17 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '1-1：拉氏变换与传递函数——从微分方程到代数方程',
       courseDescription:
         '围绕降维逻辑、微分定理、传递函数三步法、零极点判读和典型环节识别，建立层1的第一节数学精化课。',
+    },
+  },
+
+  'unit-1-3-time-domain-response-v1': {
+    getStepContext: (stepId: string) => getUnit13StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit13StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-1-3-time-domain-response-v1',
+      courseTitle: '1-3：时域响应分析——从响应曲线到动态性能指标',
+      courseDescription:
+        '围绕单位阶跃响应、一阶与二阶系统标准型及四个关键时域指标，建立从响应曲线到动态品质判断的第一套语言。',
     },
   },
 

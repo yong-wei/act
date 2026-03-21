@@ -258,6 +258,8 @@ export function KonlingSidebar({
           <div className="flex gap-2">
             <input
               type="text"
+              name="konling-sidebar-input"
+              aria-label="控灵 AI 问题输入框"
               value={input}
               onChange={handleInputChange}
               placeholder="请输入你的问题..."

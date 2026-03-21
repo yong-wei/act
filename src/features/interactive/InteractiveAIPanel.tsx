@@ -121,6 +121,8 @@ export function InteractiveAIPanel({
         <div className="flex items-end gap-2">
           <textarea
             ref={inputRef}
+            name="interactive-ai-input"
+            aria-label="AI 问题输入框"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}

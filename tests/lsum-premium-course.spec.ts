@@ -19,7 +19,7 @@ test('L-sum demo student route should show knowledge drawer and inline AI entry'
     waitUntil: 'networkidle',
   });
 
-  await expect(page.getByRole('heading', { name: 'L-sum：设计可行域——让约束成为指南针' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'L-sum：设计可行域——让约束成为指南针' }).first()).toBeVisible();
   await expect(page.getByRole('button', { name: '知识卡片' })).toBeVisible();
-  await expect(page.getByRole('button', { name: '打开 AI 助手' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '打开控灵助手' })).toBeVisible();
 });

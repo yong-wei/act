@@ -17,6 +17,7 @@ import { L2D_PREMIUM_LESSON_CARD } from '@/lib/l2d-course';
 import { LSUM_PREMIUM_LESSON_CARD } from '@/lib/lsum-course';
 import { UNIT_1_1_PREMIUM_LESSON_CARD } from '@/lib/unit-1-1-course';
 import { UNIT_1_2_PREMIUM_LESSON_CARD } from '@/lib/unit-1-2-course';
+import { UNIT_1_3_PREMIUM_LESSON_CARD } from '@/lib/unit-1-3-course';
 
 export interface InteractiveResource {
   id: string;
@@ -111,6 +112,7 @@ export const FEATURED_LESSONS = [
   LSUM_PREMIUM_LESSON_CARD,
   UNIT_1_1_PREMIUM_LESSON_CARD,
   UNIT_1_2_PREMIUM_LESSON_CARD,
+  UNIT_1_3_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -264,7 +266,9 @@ export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
   lesson.id === 'l2c-frequency-bode-fasttrack' ||
   lesson.id === 'l2d-three-domain-linkage-practice' ||
   lesson.id === 'lsum-design-feasible-domain' ||
-  lesson.id === 'unit-1-1-laplace-transfer-function'
+  lesson.id === 'unit-1-1-laplace-transfer-function' ||
+  lesson.id === 'unit-1-2-block-diagram-simplification' ||
+  lesson.id === 'unit-1-3-time-domain-response'
 );
 
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
@@ -275,7 +279,9 @@ export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
     lesson.id !== 'l2c-frequency-bode-fasttrack' &&
     lesson.id !== 'l2d-three-domain-linkage-practice' &&
     lesson.id !== 'lsum-design-feasible-domain' &&
-    lesson.id !== 'unit-1-1-laplace-transfer-function'
+    lesson.id !== 'unit-1-1-laplace-transfer-function' &&
+    lesson.id !== 'unit-1-2-block-diagram-simplification' &&
+    lesson.id !== 'unit-1-3-time-domain-response'
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;

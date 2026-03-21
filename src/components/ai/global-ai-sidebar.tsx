@@ -266,6 +266,8 @@ export function GlobalAISidebar() {
           <div className="flex gap-2">
             <input
               type="text"
+              name="global-ai-sidebar-input"
+              aria-label="全局 AI 问题输入框"
               value={input}
               onChange={handleInputChange}
               placeholder="请输入你的问题..."

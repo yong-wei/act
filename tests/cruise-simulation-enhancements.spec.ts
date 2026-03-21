@@ -6,6 +6,7 @@ test('cruise simulation course mode should expose speed controls', async ({ page
     { waitUntil: 'domcontentloaded' }
   );
 
+  await expect(page.getByText('邮轮模型加载中')).toBeHidden({ timeout: 20000 });
   await expect(page.getByRole('button', { name: '减速' })).toBeVisible();
   await expect(page.getByRole('button', { name: '加速' })).toBeVisible();
 });
