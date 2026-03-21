@@ -6,6 +6,7 @@ import { L2D_COURSE_TITLE, L2D_ROUTE_SEGMENT } from '@/lib/l2d-course';
 import { LSUM_COURSE_TITLE, LSUM_ROUTE_SEGMENT } from '@/lib/lsum-course';
 import { UNIT_1_1_COURSE_TITLE, UNIT_1_1_ROUTE_SEGMENT } from '@/lib/unit-1-1-course';
 import { UNIT_1_2_COURSE_TITLE, UNIT_1_2_ROUTE_SEGMENT } from '@/lib/unit-1-2-course';
+import { UNIT_1_3_COURSE_TITLE, UNIT_1_3_ROUTE_SEGMENT } from '@/lib/unit-1-3-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -64,6 +65,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '1-2：系统结构图与化简——从积木块到系统蓝图',
       '系统结构图与化简——从积木块到系统蓝图',
       '系统结构图与化简',
+    ],
+  },
+  {
+    routeSegment: UNIT_1_3_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_1_3_COURSE_TITLE,
+      '1-3：时域响应分析——从响应曲线到动态性能指标',
+      '时域响应分析——从响应曲线到动态性能指标',
+      '时域响应分析',
     ],
   },
 ];
