@@ -5,9 +5,9 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
-const lessonJsonPath = 'course-content/runtime/lessons/L-2d/lesson.json';
-const graphOverlayPath = 'course-content/runtime/lessons/L-2d/graph-overlay.json';
-const handoutPath = 'course-content/runtime/lessons/L-2d/handout.md';
+const lessonJsonPath = 'course-content/runtime/lessons/legacy/L-2d/lesson.json';
+const graphOverlayPath = 'course-content/runtime/lessons/legacy/L-2d/graph-overlay.json';
+const handoutPath = 'course-content/runtime/lessons/legacy/L-2d/handout.md';
 
 assert.equal(fs.existsSync(path.join(root, lessonJsonPath)), true, '应导出 L-2d lesson.json');
 assert.equal(fs.existsSync(path.join(root, graphOverlayPath)), true, '应导出 L-2d graph-overlay.json');
@@ -15,8 +15,8 @@ assert.equal(fs.existsSync(path.join(root, handoutPath)), true, '应导出 L-2d 
 
 const lessonJson = JSON.parse(fs.readFileSync(path.join(root, lessonJsonPath), 'utf8'));
 assert.equal(lessonJson.lesson_id, 'L-2d', 'lesson.json 应标记当前课次');
-assert.equal(lessonJson.handout_path, '/course-runtime/lessons/L-2d/handout.md', 'handout_path 应走 course-runtime');
-assert.equal(lessonJson.media_base_path, '/course-runtime/lessons/L-2d/media', 'media_base_path 应走 course-runtime');
+assert.equal(lessonJson.handout_path, '/course-runtime/lessons/legacy/L-2d/handout.md', 'handout_path 应走 course-runtime');
+assert.equal(lessonJson.media_base_path, '/course-runtime/lessons/legacy/L-2d/media', 'media_base_path 应走 course-runtime');
 
 const graphOverlay = JSON.parse(fs.readFileSync(path.join(root, graphOverlayPath), 'utf8'));
 assert.equal(graphOverlay.lesson_id, 'L-2d', 'graph-overlay 应标记当前课次');

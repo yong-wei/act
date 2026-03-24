@@ -156,12 +156,12 @@ export const L2C_STAGE_MAP: Record<L2CStageCode, BopppsStage> = {
 };
 
 export const L2C_MEDIA = {
-  equalizerAnalogy: '/course-runtime/lessons/L-2c/media/sh-00-equalizer-analogy.png',
-  bodeMagnitudeRegions: '/course-runtime/lessons/L-2c/media/h-01-bode-magnitude-regions.svg',
-  phaseMarginDiagram: '/course-runtime/lessons/L-2c/media/h-02-phase-margin-diagram.svg',
-  bodeExampleAnnotated: '/course-runtime/lessons/L-2c/media/h-03-bode-example-annotated.svg',
-  phaseMarginVsOvershoot: '/course-runtime/lessons/L-2c/media/sh-04-phase-margin-vs-overshoot.svg',
-  threeDomainCoupling: '/course-runtime/lessons/L-2c/media/sh-05-three-domain-coupling.svg',
+  equalizerAnalogy: '/course-runtime/lessons/legacy/L-2c/media/sh-00-equalizer-analogy.png',
+  bodeMagnitudeRegions: '/course-runtime/lessons/legacy/L-2c/media/h-01-bode-magnitude-regions.svg',
+  phaseMarginDiagram: '/course-runtime/lessons/legacy/L-2c/media/h-02-phase-margin-diagram.svg',
+  bodeExampleAnnotated: '/course-runtime/lessons/legacy/L-2c/media/h-03-bode-example-annotated.svg',
+  phaseMarginVsOvershoot: '/course-runtime/lessons/legacy/L-2c/media/sh-04-phase-margin-vs-overshoot.svg',
+  threeDomainCoupling: '/course-runtime/lessons/legacy/L-2c/media/sh-05-three-domain-coupling.svg',
 } as const;
 
 export const L2C_PRE_ASSESSMENT_QUESTIONS: L2CQuestion[] = [

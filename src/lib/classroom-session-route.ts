@@ -71,7 +71,9 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
     routeSegment: UNIT_1_3_ROUTE_SEGMENT,
     aliases: [
       UNIT_1_3_COURSE_TITLE,
+      '2-2：时域响应基础——从响应曲线到动态性能指标',
       '1-3：时域响应分析——从响应曲线到动态性能指标',
+      '时域响应基础——从响应曲线到动态性能指标',
       '时域响应分析——从响应曲线到动态性能指标',
       '时域响应分析',
     ],

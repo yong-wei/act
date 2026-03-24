@@ -137,7 +137,7 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
     getQuickQuestions: (stepId: string) => getUnit13StepQuickQuestionsLocal(stepId),
     courseMeta: {
       courseId: 'unit-1-3-time-domain-response-v1',
-      courseTitle: '1-3：时域响应分析——从响应曲线到动态性能指标',
+      courseTitle: '2-2：时域响应基础——从响应曲线到动态性能指标',
       courseDescription:
         '围绕单位阶跃响应、一阶与二阶系统标准型及四个关键时域指标，建立从响应曲线到动态品质判断的第一套语言。',
     },

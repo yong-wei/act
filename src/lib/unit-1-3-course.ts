@@ -75,7 +75,7 @@ export const UNIT_1_3_STUDENT_ITEM_ID = 'student:unit13:state';
 export const UNIT_1_3_TEACHER_SYNC_ITEM_ID = 'teacher:course-sync';
 export const UNIT_1_3_STUDENT_STATE_KEY = 'course';
 export const UNIT_1_3_TEACHER_STATE_KEY = 'teacher-sync';
-export const UNIT_1_3_COURSE_TITLE = '1-3：时域响应分析——从响应曲线到动态性能指标';
+export const UNIT_1_3_COURSE_TITLE = '2-2：时域响应基础——从响应曲线到动态性能指标';
 export const UNIT_1_3_COURSE_SUBTITLE = 'Time-Domain Response';
 export const UNIT_1_3_COURSE_DESCRIPTION =
   '围绕单位阶跃响应、一阶与二阶系统标准型、上升时间、峰值时间、超调量与调节时间，建立从闭环传递函数到动态性能语言的第一套分析框架。';
@@ -268,13 +268,13 @@ export const UNIT_1_3_PREMIUM_LESSON_CARD = {
 } as const;
 
 const UNIT_1_3_MEDIA_BY_STEP_ID: Record<string, string> = {
-  'step-02': '/course-runtime/lessons/1-3/media/td-04-time-domain-indices-annotated.svg',
-  'step-05': '/course-runtime/lessons/1-3/media/td-01-time-domain-input-response-overview.svg',
-  'step-06': '/course-runtime/lessons/1-3/media/td-02-first-order-step-time-constant.svg',
-  'step-08': '/course-runtime/lessons/1-3/media/td-03-second-order-response-families.svg',
-  'step-09': '/course-runtime/lessons/1-3/media/td-04-time-domain-indices-annotated.svg',
-  'step-13': '/course-runtime/lessons/1-3/media/td-05-example-response-with-indices.svg',
-  'step-15': '/course-runtime/lessons/1-3/media/td-06-time-spec-to-pole-region.svg',
+  'step-02': '/course-runtime/lessons/2-2/media/td-04-time-domain-indices-annotated.svg',
+  'step-05': '/course-runtime/lessons/2-2/media/td-01-time-domain-input-response-overview.svg',
+  'step-06': '/course-runtime/lessons/2-2/media/td-02-first-order-step-time-constant.svg',
+  'step-08': '/course-runtime/lessons/2-2/media/td-03-second-order-response-families.svg',
+  'step-09': '/course-runtime/lessons/2-2/media/td-04-time-domain-indices-annotated.svg',
+  'step-13': '/course-runtime/lessons/2-2/media/td-05-example-response-with-indices.svg',
+  'step-15': '/course-runtime/lessons/2-2/media/td-06-time-spec-to-pole-region.svg',
 };
 
 export function getUNIT_1_3MediaSrc(stepId: string) {

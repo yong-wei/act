@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** 实现 `1-3` 精品互动课程入口页、教师端、学生端、AI 上下文、知识卡片抽屉、runtime 导学模块与课程注册，使页面完整消费 `course-content/runtime/lessons/1-3/*`。
+**Goal:** 实现 `1-3` 精品互动课程入口页、教师端、学生端、AI 上下文、知识卡片抽屉、runtime 导学模块与课程注册，使页面完整消费 `course-content/runtime/lessons/2-2/*`。
 
 **Architecture:** 以 `unit-1-2` 的层1理论课双端同步骨架为最近参考，以 `L-sum` 的 runtime 首页体验为入口页参考。课程实现拆成三层：`src/lib` 维护 1-3 步骤配置与 AI 上下文，`src/features/interactive/unit-1-3-time-response/` 承载入口页与教师/学生页面，`src/app/interactive-learning/courses/unit-1-3-time-domain-response/` 提供路由入口并在 `learning-catalog` 注册。
 
@@ -18,7 +18,7 @@
 
 ```python
 def test_extract_expected_code_media_reads_storage_lines():
-    multimedia_path = Path('authoring/lessons/1-3/design/multimedia.md')
+    multimedia_path = Path('authoring/lessons/2-2/design/multimedia.md')
     expected_media = review_lesson_content.extract_expected_code_media(multimedia_path)
     assert [item['output'] for item in expected_media] == [
         'td-01-time-domain-input-response-overview.svg',
@@ -47,7 +47,7 @@ Expected: PASS。
 **Step 5: Verify export result**
 
 Run: `python3 scripts/review_lesson_content.py --lesson 1-3`
-Expected: `runtime/lessons/1-3/review/multimedia-check.json` 中 `generated_assets` 为 6。
+Expected: `runtime/lessons/2-2/review/multimedia-check.json` 中 `generated_assets` 为 6。
 
 ### Task 2: 建立 1-3 课程配置与 AI 上下文
 

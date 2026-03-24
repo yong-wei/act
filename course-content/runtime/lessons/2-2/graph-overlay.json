@@ -1,0 +1,2141 @@
+{
+  "lesson_id": "2-2",
+  "title": "时域响应基础——从响应曲线到动态性能指标",
+  "focus_node_ids": [
+    "时间常数_2_68356eae",
+    "二阶系统标准型_3_L2a",
+    "无阻尼自然频率_3_13001",
+    "阻尼振荡频率_3_13002",
+    "动态性能指标_3_a10733c1",
+    "上升时间_3_6fa0ec00",
+    "峰值时间_3_adc7ea95",
+    "超调量_3_fc3f5b17",
+    "调节时间_10_fcbccf4e",
+    "时域指标到极点参数映射_3_13003"
+  ],
+  "reuse_node_ids": [
+    "时域分析_2_1874cdb9",
+    "单位阶跃响应_2_6a2a83b9",
+    "一阶系统_3_4f3b29ce",
+    "四种响应家族_3_L2a",
+    "阻尼比_3_b849784e",
+    "自然频率_10_51a8b7d0",
+    "欠阻尼响应_3_c2d57b37",
+    "临界阻尼响应_3_5839e0e4",
+    "过阻尼响应_3_adf3867e",
+    "欠阻尼二阶系统_3_242477a2",
+    "闭环极点_3_f9432bf3",
+    "复平面可行域_4_Lsum001"
+  ],
+  "entry_nodes": [
+    "时域分析_2_1874cdb9"
+  ],
+  "summary_nodes": [
+    "时域指标到极点参数映射_3_13003"
+  ],
+  "card_order": [
+    "时域分析_2_1874cdb9",
+    "单位阶跃响应_2_6a2a83b9",
+    "一阶系统_3_4f3b29ce",
+    "时间常数_2_68356eae",
+    "二阶系统标准型_3_L2a",
+    "四种响应家族_3_L2a",
+    "无阻尼自然频率_3_13001",
+    "阻尼比_3_b849784e",
+    "阻尼振荡频率_3_13002",
+    "动态性能指标_3_a10733c1",
+    "上升时间_3_6fa0ec00",
+    "峰值时间_3_adc7ea95",
+    "超调量_3_fc3f5b17",
+    "调节时间_10_fcbccf4e",
+    "时域指标到极点参数映射_3_13003",
+    "闭环极点_3_f9432bf3",
+    "复平面可行域_4_Lsum001"
+  ],
+  "groups": [
+    {
+      "group_name": "引入与研究对象",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04",
+        "step-05"
+      ],
+      "node_ids": [
+        "时域分析_2_1874cdb9",
+        "单位阶跃响应_2_6a2a83b9"
+      ]
+    },
+    {
+      "group_name": "一阶与二阶基础",
+      "step_ids": [
+        "step-06",
+        "step-07",
+        "step-08"
+      ],
+      "node_ids": [
+        "一阶系统_3_4f3b29ce",
+        "时间常数_2_68356eae",
+        "二阶系统标准型_3_L2a",
+        "四种响应家族_3_L2a",
+        "无阻尼自然频率_3_13001",
+        "阻尼比_3_b849784e",
+        "阻尼振荡频率_3_13002",
+        "欠阻尼响应_3_c2d57b37",
+        "临界阻尼响应_3_5839e0e4",
+        "过阻尼响应_3_adf3867e"
+      ]
+    },
+    {
+      "group_name": "动态性能指标精讲",
+      "step_ids": [
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-12",
+        "step-13"
+      ],
+      "node_ids": [
+        "动态性能指标_3_a10733c1",
+        "上升时间_3_6fa0ec00",
+        "峰值时间_3_adc7ea95",
+        "超调量_3_fc3f5b17",
+        "调节时间_10_fcbccf4e"
+      ]
+    },
+    {
+      "group_name": "例题与跨域桥接",
+      "step_ids": [
+        "step-14",
+        "step-15"
+      ],
+      "node_ids": [
+        "时域指标到极点参数映射_3_13003",
+        "闭环极点_3_f9432bf3",
+        "复平面可行域_4_Lsum001"
+      ]
+    },
+    {
+      "group_name": "后测与收束",
+      "step_ids": [
+        "step-16",
+        "step-17"
+      ],
+      "node_ids": []
+    }
+  ],
+  "nodes": [
+    {
+      "id": "单位阶跃响应_2_6a2a83b9",
+      "name": "单位阶跃响应",
+      "nodeType": "THEORY",
+      "description": "系统在单位阶跃输入信号作用下的输出响应。",
+      "positionX": 39.8,
+      "positionY": 23.0,
+      "positionZ": 2,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "系统在单位阶跃输入信号作用下的输出响应。",
+        "examples": [
+          "例2-6中当输入为阶跃函数时网络的输出响应。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "阶跃输入",
+          "动态响应"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627485",
+        "updatedAt": "2026-02-04T17:54:16.627485",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/单位阶跃响应_2_6a2a83b9.md"
+      ],
+      "tags": [
+        "阶跃输入",
+        "动态响应",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "时域分析_2_1874cdb9",
+      "name": "时域分析",
+      "nodeType": "THEORY",
+      "description": "在时间域内分析系统对特定输入信号（如脉冲、阶跃）的响应特性。",
+      "positionX": 50.2,
+      "positionY": 13.5,
+      "positionZ": 2,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "在时间域内分析系统对特定输入信号（如脉冲、阶跃）的响应特性。",
+        "examples": [
+          "仿真系统的单位阶跃响应，评估系统的超调量和调节时间。"
+        ],
+        "formulas": [
+          "单位脉冲响应: h(t)",
+          "单位阶跃响应: s(t) = \\int_0^t h(\\tau)d\\tau"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "脉冲响应",
+          "阶跃响应",
+          "零输入响应",
+          "仿真"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627035",
+        "updatedAt": "2026-02-04T17:54:16.627036",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/时域分析_2_1874cdb9.md"
+      ],
+      "tags": [
+        "脉冲响应",
+        "阶跃响应",
+        "零输入响应",
+        "仿真",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "时间常数_2_68356eae",
+      "name": "时间常数",
+      "nodeType": "THEORY",
+      "description": "系统响应速度的度量，表示系统达到稳态值所需的时间特性参数。",
+      "positionX": 45.0,
+      "positionY": 26.0,
+      "positionZ": 2,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "系统响应速度的度量，表示系统达到稳态值所需的时间特性参数。",
+        "examples": [
+          "单容水槽时间常数$T=RC$，电加热炉时间常数$T=\\frac{MC}{KS}$。"
+        ],
+        "formulas": [
+          "$T = RC$",
+          "$T = \\frac{MC}{KS}$"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "响应速度",
+          "动态特性",
+          "参数"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627587",
+        "updatedAt": "2026-02-04T17:54:16.627588",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/时间常数_2_68356eae.md"
+      ],
+      "tags": [
+        "响应速度",
+        "动态特性",
+        "参数",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "一阶系统_3_4f3b29ce",
+      "name": "一阶系统",
+      "nodeType": "THEORY",
+      "description": "以一阶微分方程作为运动方程的控制系统，其特性可用时间常数来表征，常见于RC电路等实际系统。",
+      "positionX": -50.9,
+      "positionY": -50.9,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "以一阶微分方程作为运动方程的控制系统，其特性可用时间常数来表征，常见于RC电路等实际系统。",
+        "examples": [
+          "RC电路",
+          "室温调节系统",
+          "恒温箱",
+          "水位调节系统",
+          "RC电路，简单的热力学系统。"
+        ],
+        "formulas": [
+          "T\\frac{dc(t)}{dt} + c(t) = r(t)",
+          "\\Phi(s) = \\frac{C(s)}{R(s)} = \\frac{1}{Ts+1}",
+          "G(s) = K / (Ts + 1)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "一阶微分方程",
+          "时间常数",
+          "惯性",
+          "一阶系统"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627772",
+        "updatedAt": "2026-02-04T17:54:16.627772",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/一阶系统_3_4f3b29ce.md"
+      ],
+      "tags": [
+        "一阶微分方程",
+        "时间常数",
+        "惯性",
+        "一阶系统",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "上升时间_3_6fa0ec00",
+      "name": "上升时间",
+      "nodeType": "THEORY",
+      "description": "响应从终值10%上升到终值90%所需的时间，或从零第一次上升到终值所需的时间，是系统响应速度的度量。",
+      "positionX": -36.0,
+      "positionY": -62.4,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "响应从终值10%上升到终值90%所需的时间，或从零第一次上升到终值所需的时间，是系统响应速度的度量。",
+        "examples": [
+          "用于评价系统的响应速度"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "响应速度",
+          "时间",
+          "度量"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627757",
+        "updatedAt": "2026-02-04T17:54:16.627757",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/上升时间_3_6fa0ec00.md"
+      ],
+      "tags": [
+        "响应速度",
+        "时间",
+        "度量",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "临界阻尼响应_3_5839e0e4",
+      "name": "临界阻尼响应",
+      "nodeType": "THEORY",
+      "description": "阻尼比ζ=1时，二阶系统的单位阶跃响应是无超调的单调上升过程。",
+      "positionX": 18.6,
+      "positionY": -69.5,
+      "positionZ": 3,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "阻尼比ζ=1时，二阶系统的单位阶跃响应是无超调的单调上升过程。",
+        "examples": [
+          "响应速度最快且无振荡，是单调响应中过渡时间最短的情况。"
+        ],
+        "formulas": [
+          "c(t) = 1 - e^{-\\omega_n t}(1 + \\omega_n t)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "临界阻尼",
+          "单调上升",
+          "最快响应"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627841",
+        "updatedAt": "2026-02-04T17:54:16.627841",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/临界阻尼响应_3_5839e0e4.md"
+      ],
+      "tags": [
+        "临界阻尼",
+        "单调上升",
+        "最快响应",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "二阶系统标准型_3_L2a",
+      "name": "二阶系统标准型",
+      "nodeType": "THEORY",
+      "description": "以无阻尼自然频率ωₙ和阻尼比ζ为参数的二阶系统传递函数标准形式：G(s) = ωₙ²/(s² + 2ζωₙs + ωₙ²)，用于统一描述和分析各类二阶动态系统。",
+      "positionX": 50.9,
+      "positionY": -50.9,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "以无阻尼自然频率ωₙ和阻尼比ζ为参数的二阶系统传递函数标准形式：G(s) = ωₙ²/(s² + 2ζωₙs + ωₙ²)，用于统一描述和分析各类二阶动态系统。",
+        "examples": [
+          "船舶航向控制系统可近似为二阶标准型",
+          "弹簧-质量-阻尼机械系统符合此标准型",
+          "RLC电路的传递函数也可写成此形式"
+        ],
+        "formulas": [
+          "G(s) = \\frac{\\omega_n^2}{s^2 + 2\\zeta\\omega_n s + \\omega_n^2}"
+        ],
+        "prerequisites": [
+          "传递函数",
+          "阻尼比",
+          "自然频率"
+        ],
+        "relatedConcepts": [
+          "阻尼比",
+          "自然频率",
+          "阶跃响应"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "二阶系统",
+          "标准型",
+          "传递函数",
+          "ωₙ",
+          "ζ"
+        ],
+        "createdAt": "2026-03-10T13:14:23.104067+00:00",
+        "updatedAt": "2026-03-10T13:14:23.104067+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/二阶系统标准型_3_L2a.md"
+      ],
+      "tags": [
+        "二阶系统",
+        "标准型",
+        "传递函数",
+        "ωₙ",
+        "ζ",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "动态性能指标_3_a10733c1",
+      "name": "动态性能指标",
+      "nodeType": "THEORY",
+      "description": "描述稳定系统在单位阶跃函数作用下，动态过程随时间变化状况的指标，用于评价系统响应特性。",
+      "positionX": 67.5,
+      "positionY": 39.0,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "描述稳定系统在单位阶跃函数作用下，动态过程随时间变化状况的指标，用于评价系统响应特性。",
+        "examples": [
+          "上升时间",
+          "峰值时间",
+          "调节时间",
+          "超调量"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "上升时间",
+          "调节时间",
+          "超调量",
+          "响应速度",
+          "阻尼"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627751",
+        "updatedAt": "2026-02-04T17:54:16.627752",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/动态性能指标_3_a10733c1.md"
+      ],
+      "tags": [
+        "上升时间",
+        "调节时间",
+        "超调量",
+        "响应速度",
+        "阻尼",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "四种响应家族_3_L2a",
+      "name": "四种响应家族",
+      "nodeType": "THEORY",
+      "description": "由系统极点位置决定的四种基本时域响应类型：过阻尼（负实极点，单调上升）、欠阻尼（共轭复极点负实部，振荡衰减）、临界稳定（虚轴极点，持续振荡）、不稳定（右半平面极点，发散）。",
+      "positionX": -75.3,
+      "positionY": -20.2,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "由系统极点位置决定的四种基本时域响应类型：过阻尼（负实极点，单调上升）、欠阻尼（共轭复极点负实部，振荡衰减）、临界稳定（虚轴极点，持续振荡）、不稳定（右半平面极点，发散）。",
+        "examples": [
+          "船舶航向控制中典型的欠阻尼响应（振荡衰减型）",
+          "过阻尼：两负实极点，如重载船舶转向缓慢但平稳",
+          "不稳定：极点在右半平面，如未加控制的不稳定系统"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "极点",
+          "稳定性"
+        ],
+        "relatedConcepts": [
+          "阻尼比",
+          "阶跃响应",
+          "极点"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "极点",
+          "时域响应",
+          "过阻尼",
+          "欠阻尼",
+          "临界稳定",
+          "不稳定"
+        ],
+        "createdAt": "2026-03-10T13:14:23.099889+00:00",
+        "updatedAt": "2026-03-10T13:14:23.099889+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/四种响应家族_3_L2a.md"
+      ],
+      "tags": [
+        "极点",
+        "时域响应",
+        "过阻尼",
+        "欠阻尼",
+        "临界稳定",
+        "不稳定",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "峰值时间_3_adc7ea95",
+      "name": "峰值时间",
+      "nodeType": "THEORY",
+      "description": "系统单位阶跃响应达到第一个峰值所需的时间，与阻尼振荡频率成反比。",
+      "positionX": -20.2,
+      "positionY": -75.3,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "系统单位阶跃响应达到第一个峰值所需的时间，与阻尼振荡频率成反比。",
+        "examples": [
+          "用于衡量欠阻尼系统响应的快速性。",
+          "例3-1中根据给定的σ%和tp计算系统参数K和τ。",
+          "习题3-4中要求根据单位阶跃响应求系统的峰值时间。"
+        ],
+        "formulas": [
+          "t_p = \\frac{\\pi}{\\omega_d} = \\frac{\\pi}{\\omega_n \\sqrt{1-\\zeta^2}}",
+          "t_p = \\frac{\\pi}{\\omega_d}",
+          "\\omega_d = \\omega_n \\sqrt{1-\\zeta^2}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "峰值时间",
+          "t_p",
+          "快速性",
+          "阻尼振荡频率",
+          "闭环极点",
+          "动态性能",
+          "响应速度",
+          "超调量"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627852",
+        "updatedAt": "2026-02-04T17:54:16.627852",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/峰值时间_3_adc7ea95.md"
+      ],
+      "tags": [
+        "峰值时间",
+        "t_p",
+        "快速性",
+        "阻尼振荡频率",
+        "闭环极点",
+        "动态性能",
+        "响应速度",
+        "超调量",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "无阻尼自然频率_3_13001",
+      "name": "无阻尼自然频率",
+      "nodeType": "THEORY",
+      "description": "标准二阶系统在不计阻尼作用时的固有振荡角频率，记作ω_n，是刻画响应快慢时间尺度的核心参数。",
+      "positionX": 25.0,
+      "positionY": -43.3,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "标准二阶系统在不计阻尼作用时的固有振荡角频率，记作ω_n，是刻画响应快慢时间尺度的核心参数。",
+        "examples": [
+          "当阻尼比保持不变而ω_n增大时，峰值时间和上升时间都会缩短。",
+          "船舶航向控制中，执行机构越灵敏、闭环极点越远离原点，往往对应更大的ω_n。"
+        ],
+        "formulas": [
+          "G(s)=\\frac{\\omega_n^2}{s^2+2\\zeta\\omega_n s+\\omega_n^2}",
+          "t_p=\\frac{\\pi}{\\omega_n\\sqrt{1-\\zeta^2}}"
+        ],
+        "prerequisites": [
+          "二阶系统标准型_3_L2a"
+        ],
+        "relatedConcepts": [
+          "自然频率_10_51a8b7d0",
+          "阻尼振荡频率_3_13002",
+          "峰值时间_3_adc7ea95"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "ω_n",
+          "时间尺度",
+          "响应速度",
+          "二阶系统"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/无阻尼自然频率_3_13001.md"
+      ],
+      "tags": [
+        "ω_n",
+        "时间尺度",
+        "响应速度",
+        "二阶系统",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "时域指标到极点参数映射_3_13003",
+      "name": "时域指标到极点参数映射",
+      "nodeType": "THEORY",
+      "description": "把上升时间、峰值时间、超调量、调节时间等时域指标，与阻尼比、自然频率、极点实部和闭环极点位置建立一一对应关系的跨域桥梁。",
+      "positionX": 48.3,
+      "positionY": -12.9,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "把上升时间、峰值时间、超调量、调节时间等时域指标，与阻尼比、自然频率、极点实部和闭环极点位置建立一一对应关系的跨域桥梁。",
+        "examples": [
+          "由M_p反推阻尼比ζ，再由t_s反推极点实部σ，进而确定复平面允许区域。",
+          "由t_p读出ω_d，再结合ζ恢复二阶系统主导极点位置。"
+        ],
+        "formulas": [
+          "M_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times100\\%",
+          "t_p=\\frac{\\pi}{\\omega_n\\sqrt{1-\\zeta^2}}",
+          "t_s\\approx\\frac{4}{\\zeta\\omega_n}=\\frac{4}{\\sigma}"
+        ],
+        "prerequisites": [
+          "上升时间_3_6fa0ec00",
+          "峰值时间_3_adc7ea95",
+          "超调量_3_fc3f5b17",
+          "调节时间_10_fcbccf4e",
+          "闭环极点_3_f9432bf3"
+        ],
+        "relatedConcepts": [
+          "复平面可行域_4_Lsum001",
+          "闭环极点_3_f9432bf3",
+          "二阶系统标准型_3_L2a"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "跨域桥接",
+          "ζ",
+          "ω_n",
+          "σ",
+          "闭环极点"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/时域指标到极点参数映射_3_13003.md"
+      ],
+      "tags": [
+        "跨域桥接",
+        "ζ",
+        "ω_n",
+        "σ",
+        "闭环极点",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "欠阻尼二阶系统_3_242477a2",
+      "name": "欠阻尼二阶系统",
+      "nodeType": "THEORY",
+      "description": "指阻尼比在0到1之间的二阶系统，其单位阶跃响应呈现衰减振荡特性。",
+      "positionX": 42.0,
+      "positionY": 72.7,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "指阻尼比在0到1之间的二阶系统，其单位阶跃响应呈现衰减振荡特性。",
+        "examples": [
+          "例3-1中要求系统具有性能指标σ%和tp，即为欠阻尼系统设计。",
+          "分析系统在非零初始条件下的响应特性。"
+        ],
+        "formulas": [
+          "0 < \\zeta < 1",
+          "\\text{标准形式：} \\frac{\\omega_n^2}{s^2 + 2\\zeta\\omega_n s + \\omega_n^2}",
+          "\\text{响应分量：} h(t) = h_1(t) + h_2(t)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "欠阻尼",
+          "衰减振荡",
+          "动态性能",
+          "阻尼比",
+          "振荡",
+          "衰减"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627862",
+        "updatedAt": "2026-02-04T17:54:16.627862",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "欠阻尼",
+        "衰减振荡",
+        "动态性能",
+        "阻尼比",
+        "振荡",
+        "衰减",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "欠阻尼响应_3_c2d57b37",
+      "name": "欠阻尼响应",
+      "nodeType": "THEORY",
+      "description": "阻尼比0<ζ<1时，二阶系统的单位阶跃响应呈现衰减振荡过程。",
+      "positionX": 21.7,
+      "positionY": 81.1,
+      "positionZ": 3,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "阻尼比0<ζ<1时，二阶系统的单位阶跃响应呈现衰减振荡过程。",
+        "examples": [
+          "具有超调量，最终趋于稳态值，是常见的工程系统响应类型。"
+        ],
+        "formulas": [
+          "c(t) = 1 - \\frac{e^{-\\zeta\\omega_n t}}{\\sqrt{1-\\zeta^2}} \\sin(\\omega_d t + \\beta)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "欠阻尼",
+          "衰减振荡",
+          "超调"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627836",
+        "updatedAt": "2026-02-04T17:54:16.627836",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/欠阻尼响应_3_c2d57b37.md"
+      ],
+      "tags": [
+        "欠阻尼",
+        "衰减振荡",
+        "超调",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "超调量_3_fc3f5b17",
+      "name": "超调量",
+      "nodeType": "THEORY",
+      "description": "系统单位阶跃响应中最大超出稳态值的部分与稳态值之比的百分数，仅与阻尼比有关。",
+      "positionX": 86.9,
+      "positionY": 23.3,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "系统单位阶跃响应中最大超出稳态值的部分与稳态值之比的百分数，仅与阻尼比有关。",
+        "examples": [
+          "若超调量为零，则响应无超调",
+          "衡量系统响应平稳性的重要指标，仅适用于欠阻尼系统。",
+          "图3-12显示了超调量与阻尼比的关系曲线，阻尼比越大，超调量越小。",
+          "比例-微分控制使阶跃响应的超调量下降。",
+          "在相同阻尼比下，比例-微分控制系统的超调量大于测速反馈控制系统。",
+          "习题3-4中要求根据单位阶跃响应求系统的超调量。"
+        ],
+        "formulas": [
+          "\\sigma \\% = \\frac{h(t_p) - h(\\infty)}{h(\\infty)} \\times 100\\%",
+          "\\sigma\\% = e^{-\\pi\\zeta / \\sqrt{1-\\zeta^2}} \\times 100\\%",
+          "\\sigma\\% = e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}} \\times 100\\%",
+          "\\sigma\\% = e^{-\\pi\\zeta/\\sqrt{1-\\zeta^2}} \\times 100\\%",
+          "\\sigma \\% = \\frac{c_{max} - c(\\infty)}{c(\\infty)} \\times 100\\%"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "最大超调量",
+          "百分比超调量",
+          "阻尼",
+          "超调量",
+          "σ%",
+          "平稳性",
+          "阻尼比",
+          "单位阶跃响应",
+          "动态性能",
+          "阶跃响应",
+          "振荡"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627762",
+        "updatedAt": "2026-02-04T17:54:16.627762",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/超调量_3_fc3f5b17.md"
+      ],
+      "tags": [
+        "最大超调量",
+        "百分比超调量",
+        "阻尼",
+        "超调量",
+        "σ%",
+        "平稳性",
+        "阻尼比",
+        "单位阶跃响应",
+        "动态性能",
+        "阶跃响应",
+        "振荡",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "过阻尼响应_3_adf3867e",
+      "name": "过阻尼响应",
+      "nodeType": "THEORY",
+      "description": "阻尼比ζ>1时，二阶系统的单位阶跃响应是非振荡的单调上升过程。",
+      "positionX": 45.0,
+      "positionY": 77.9,
+      "positionZ": 3,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "阻尼比ζ>1时，二阶系统的单位阶跃响应是非振荡的单调上升过程。",
+        "examples": [
+          "响应速度比临界阻尼慢，由两个衰减指数项叠加而成。"
+        ],
+        "formulas": [
+          "c(t) = 1 + \\frac{1}{T_2/T_1 - 1} e^{-t/T_1} + \\frac{1}{T_1/T_2 - 1} e^{-t/T_2}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 3,
+        "keywords": [
+          "过阻尼",
+          "非振荡",
+          "单调"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627846",
+        "updatedAt": "2026-02-04T17:54:16.627847",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/过阻尼响应_3_adf3867e.md"
+      ],
+      "tags": [
+        "过阻尼",
+        "非振荡",
+        "单调",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "闭环极点_3_f9432bf3",
+      "name": "闭环极点",
+      "nodeType": "THEORY",
+      "description": "闭环传递函数分母多项式的根，决定系统时间响应的类型。",
+      "positionX": -45.0,
+      "positionY": 77.9,
+      "positionZ": 3,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "闭环传递函数分母多项式的根，决定系统时间响应的类型。",
+        "examples": [
+          "主导极点、非主导极点对系统动态性能的不同影响。"
+        ],
+        "formulas": [
+          "s_i \\text{ 为 } D(s)=0 \\text{ 之根}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "响应类型",
+          "主导极点",
+          "系统特性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627920",
+        "updatedAt": "2026-02-04T17:54:16.627920",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环极点_3_f9432bf3.md"
+      ],
+      "tags": [
+        "响应类型",
+        "主导极点",
+        "系统特性",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "阻尼振荡频率_3_13002",
+      "name": "阻尼振荡频率",
+      "nodeType": "THEORY",
+      "description": "欠阻尼二阶系统实际响应中的振荡角频率，记作ω_d，由ω_n与ζ共同决定，直接控制峰值到来的快慢。",
+      "positionX": -59.9,
+      "positionY": 16.0,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "欠阻尼二阶系统实际响应中的振荡角频率，记作ω_d，由ω_n与ζ共同决定，直接控制峰值到来的快慢。",
+        "examples": [
+          "同样的ω_n下，阻尼比越大，ω_d越小，响应振荡周期越长。",
+          "峰值时间公式t_p=π/ω_d可直接把曲线上的时间点与系统参数联系起来。"
+        ],
+        "formulas": [
+          "\\omega_d=\\omega_n\\sqrt{1-\\zeta^2}",
+          "t_p=\\frac{\\pi}{\\omega_d}"
+        ],
+        "prerequisites": [
+          "无阻尼自然频率_3_13001",
+          "阻尼比_3_b849784e"
+        ],
+        "relatedConcepts": [
+          "峰值时间_3_adc7ea95",
+          "欠阻尼响应_3_c2d57b37"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "ω_d",
+          "欠阻尼",
+          "振荡周期",
+          "峰值时间"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/阻尼振荡频率_3_13002.md"
+      ],
+      "tags": [
+        "ω_d",
+        "欠阻尼",
+        "振荡周期",
+        "峰值时间",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "阻尼比_3_b849784e",
+      "name": "阻尼比",
+      "nodeType": "THEORY",
+      "description": "阻尼比是描述二阶系统阻尼程度的无量纲参数，其值等于负实轴夹角的余弦。",
+      "positionX": -90.0,
+      "positionY": 0.0,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "阻尼比是描述二阶系统阻尼程度的无量纲参数，其值等于负实轴夹角的余弦。",
+        "examples": [
+          "ζ<1为欠阻尼（振荡），ζ=1为临界阻尼，ζ>1为过阻尼。",
+          "用于计算欠阻尼二阶系统的超调量、峰值时间等动态性能指标。",
+          "比例-微分控制和测速反馈控制均可增大系统的阻尼比。",
+          "例3-5中要求使系统阻尼比为0.5。",
+          "ζ值越大，振荡性越弱；ζ值越小，振荡性越强。",
+          "习题3-6中要求根据单位阶跃响应确定系统的阻尼比和自然频率。"
+        ],
+        "formulas": [
+          "\\zeta = \\frac{\\text{实际阻尼系数}}{\\text{临界阻尼系数}}",
+          "\\zeta = \\cos\\beta",
+          "\\zeta",
+          "\\zeta_d",
+          "\\zeta_t"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "阻尼比",
+          "ζ",
+          "阻尼程度",
+          "阻尼角",
+          "二阶系统",
+          "阻尼",
+          "振荡",
+          "超调量",
+          "振荡性",
+          "系统特性",
+          "稳定性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627825",
+        "updatedAt": "2026-02-04T17:54:16.627825",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/阻尼比_3_b849784e.md"
+      ],
+      "tags": [
+        "阻尼比",
+        "ζ",
+        "阻尼程度",
+        "阻尼角",
+        "二阶系统",
+        "阻尼",
+        "振荡",
+        "超调量",
+        "振荡性",
+        "系统特性",
+        "稳定性",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "复平面可行域_4_Lsum001",
+      "name": "复平面可行域",
+      "nodeType": "THEORY",
+      "description": "在复平面上，同时满足超调量约束（阻尼比射线下方）和调节时间约束（实部垂线左侧）的极点允许区域；是三域设计可行域的几何枢纽。",
+      "positionX": 55.0,
+      "positionY": 95.3,
+      "positionZ": 4,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "在复平面上，同时满足超调量约束（阻尼比射线下方）和调节时间约束（实部垂线左侧）的极点允许区域；是三域设计可行域的几何枢纽。",
+        "examples": [
+          "Mp≤20%对应ζ≥0.45，阻尼比射线夹角63°，极点须在线下方；ts≤5s对应σ≥0.8，极点须在Re(s)=-0.8垂线左侧；两约束交集形成扇形可行区域"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "极点迁移_4_L2b001",
+          "阻尼比_3_b849784e",
+          "动态性能指标_3_a10733c1"
+        ],
+        "relatedConcepts": [
+          "根轨迹图",
+          "设计可行域",
+          "超调量",
+          "调节时间"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "可行域",
+          "扇形区域",
+          "阻尼比射线",
+          "实部垂线",
+          "极点约束"
+        ],
+        "createdAt": "2026-03-14T00:44:08.244152+00:00",
+        "updatedAt": "2026-03-14T00:44:08.244152+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/复平面可行域_4_Lsum001.md"
+      ],
+      "tags": [
+        "可行域",
+        "扇形区域",
+        "阻尼比射线",
+        "实部垂线",
+        "极点约束",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "自然频率_10_51a8b7d0",
+      "name": "自然频率",
+      "nodeType": "THEORY",
+      "description": "二阶系统无阻尼振荡时的频率，是影响系统响应速度的重要参数。",
+      "positionX": 76.6,
+      "positionY": 285.9,
+      "positionZ": 10,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 10,
+      "chapterName": "状态空间",
+      "metadata": {
+        "chapter": 10,
+        "chapterName": "状态空间",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "二阶系统无阻尼振荡时的频率，是影响系统响应速度的重要参数。",
+        "examples": [
+          "文本中指出，控制器输出受限会约束系统自然频率的可选值，从而限制最小调节时间。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 3,
+        "keywords": [
+          "二阶系统",
+          "响应速度",
+          "系统带宽"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627398",
+        "updatedAt": "2026-02-04T17:54:16.627399",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/自然频率_10_51a8b7d0.md"
+      ],
+      "tags": [
+        "二阶系统",
+        "响应速度",
+        "系统带宽",
+        "chapter-10"
+      ]
+    },
+    {
+      "id": "调节时间_10_fcbccf4e",
+      "name": "调节时间",
+      "nodeType": "THEORY",
+      "description": "系统阶跃响应达到并保持在稳态值允许误差范围内所需的时间。",
+      "positionX": 0.0,
+      "positionY": 296.0,
+      "positionZ": 10,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 10,
+      "chapterName": "状态空间",
+      "metadata": {
+        "chapter": 10,
+        "chapterName": "状态空间",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "系统阶跃响应达到并保持在稳态值允许误差范围内所需的时间。",
+        "examples": [
+          "表10-7中给出了不同参数下的系统阶跃响应调节时间。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "阶跃响应",
+          "性能指标",
+          "动态性能"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627366",
+        "updatedAt": "2026-02-04T17:54:16.627367",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/调节时间_10_fcbccf4e.md"
+      ],
+      "tags": [
+        "阶跃响应",
+        "性能指标",
+        "动态性能",
+        "chapter-10"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "时域分析|单位阶跃响应|2",
+      "sourceId": "时域分析_2_1874cdb9",
+      "targetId": "单位阶跃响应_2_6a2a83b9",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "时域分析|时间常数|2",
+      "sourceId": "时域分析_2_1874cdb9",
+      "targetId": "时间常数_2_68356eae",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "时域分析|调节时间|2-10",
+      "sourceId": "时域分析_2_1874cdb9",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "时域分析|超调量|2-3",
+      "sourceId": "时域分析_2_1874cdb9",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "单位阶跃响应|时间常数|2",
+      "sourceId": "单位阶跃响应_2_6a2a83b9",
+      "targetId": "时间常数_2_68356eae",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "单位阶跃响应|超调量|2-3",
+      "sourceId": "单位阶跃响应_2_6a2a83b9",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "时间常数|动态性能指标|2-3",
+      "sourceId": "时间常数_2_68356eae",
+      "targetId": "动态性能指标_3_a10733c1",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "时间常数|上升时间|2-3",
+      "sourceId": "时间常数_2_68356eae",
+      "targetId": "上升时间_3_6fa0ec00",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.7
+    },
+    {
+      "id": "时间常数|峰值时间|2-3",
+      "sourceId": "时间常数_2_68356eae",
+      "targetId": "峰值时间_3_adc7ea95",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "时间常数|一阶系统|2-3",
+      "sourceId": "时间常数_2_68356eae",
+      "targetId": "一阶系统_3_4f3b29ce",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "动态性能指标|上升时间|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "上升时间_3_6fa0ec00",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "动态性能指标|超调量|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "动态性能指标|一阶系统|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "一阶系统_3_4f3b29ce",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "动态性能指标|阻尼比|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "动态性能指标|欠阻尼响应|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "欠阻尼响应_3_c2d57b37",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "动态性能指标|临界阻尼响应|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "临界阻尼响应_3_5839e0e4",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "动态性能指标|过阻尼响应|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "过阻尼响应_3_adf3867e",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "动态性能指标|峰值时间|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "峰值时间_3_adc7ea95",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "动态性能指标|欠阻尼二阶系统|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "欠阻尼二阶系统_3_242477a2",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "动态性能指标|闭环极点|3",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "上升时间|超调量|3",
+      "sourceId": "上升时间_3_6fa0ec00",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.7
+    },
+    {
+      "id": "上升时间|一阶系统|3",
+      "sourceId": "上升时间_3_6fa0ec00",
+      "targetId": "一阶系统_3_4f3b29ce",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "上升时间|阻尼比|3",
+      "sourceId": "上升时间_3_6fa0ec00",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "上升时间|欠阻尼响应|3",
+      "sourceId": "上升时间_3_6fa0ec00",
+      "targetId": "欠阻尼响应_3_c2d57b37",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "上升时间|临界阻尼响应|3",
+      "sourceId": "上升时间_3_6fa0ec00",
+      "targetId": "临界阻尼响应_3_5839e0e4",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "上升时间|过阻尼响应|3",
+      "sourceId": "上升时间_3_6fa0ec00",
+      "targetId": "过阻尼响应_3_adf3867e",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "上升时间|峰值时间|3",
+      "sourceId": "上升时间_3_6fa0ec00",
+      "targetId": "峰值时间_3_adc7ea95",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "上升时间|欠阻尼二阶系统|3",
+      "sourceId": "上升时间_3_6fa0ec00",
+      "targetId": "欠阻尼二阶系统_3_242477a2",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "上升时间|闭环极点|3",
+      "sourceId": "上升时间_3_6fa0ec00",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.5
+    },
+    {
+      "id": "超调量|阻尼比|3",
+      "sourceId": "超调量_3_fc3f5b17",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
+    },
+    {
+      "id": "超调量|欠阻尼响应|3",
+      "sourceId": "超调量_3_fc3f5b17",
+      "targetId": "欠阻尼响应_3_c2d57b37",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "超调量|临界阻尼响应|3",
+      "sourceId": "超调量_3_fc3f5b17",
+      "targetId": "临界阻尼响应_3_5839e0e4",
+      "relation": "opposite",
+      "relationType": "opposite",
+      "strength": 0.8
+    },
+    {
+      "id": "超调量|过阻尼响应|3",
+      "sourceId": "超调量_3_fc3f5b17",
+      "targetId": "过阻尼响应_3_adf3867e",
+      "relation": "opposite",
+      "relationType": "opposite",
+      "strength": 0.8
+    },
+    {
+      "id": "超调量|峰值时间|3",
+      "sourceId": "超调量_3_fc3f5b17",
+      "targetId": "峰值时间_3_adc7ea95",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.7
+    },
+    {
+      "id": "超调量|欠阻尼二阶系统|3",
+      "sourceId": "超调量_3_fc3f5b17",
+      "targetId": "欠阻尼二阶系统_3_242477a2",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "超调量|闭环极点|3",
+      "sourceId": "超调量_3_fc3f5b17",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "一阶系统|欠阻尼二阶系统|3",
+      "sourceId": "一阶系统_3_4f3b29ce",
+      "targetId": "欠阻尼二阶系统_3_242477a2",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "一阶系统|闭环极点|3",
+      "sourceId": "一阶系统_3_4f3b29ce",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "阻尼比|欠阻尼响应|3",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "欠阻尼响应_3_c2d57b37",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "阻尼比|临界阻尼响应|3",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "临界阻尼响应_3_5839e0e4",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "阻尼比|过阻尼响应|3",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "过阻尼响应_3_adf3867e",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "阻尼比|峰值时间|3",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "峰值时间_3_adc7ea95",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "阻尼比|欠阻尼二阶系统|3",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "欠阻尼二阶系统_3_242477a2",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "阻尼比|闭环极点|3",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "欠阻尼响应|临界阻尼响应|3",
+      "sourceId": "欠阻尼响应_3_c2d57b37",
+      "targetId": "临界阻尼响应_3_5839e0e4",
+      "relation": "opposite",
+      "relationType": "opposite",
+      "strength": 0.8
+    },
+    {
+      "id": "欠阻尼响应|过阻尼响应|3",
+      "sourceId": "欠阻尼响应_3_c2d57b37",
+      "targetId": "过阻尼响应_3_adf3867e",
+      "relation": "opposite",
+      "relationType": "opposite",
+      "strength": 0.8
+    },
+    {
+      "id": "欠阻尼响应|峰值时间|3",
+      "sourceId": "欠阻尼响应_3_c2d57b37",
+      "targetId": "峰值时间_3_adc7ea95",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "欠阻尼响应|欠阻尼二阶系统|3",
+      "sourceId": "欠阻尼响应_3_c2d57b37",
+      "targetId": "欠阻尼二阶系统_3_242477a2",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "欠阻尼响应|闭环极点|3",
+      "sourceId": "欠阻尼响应_3_c2d57b37",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.8
+    },
+    {
+      "id": "临界阻尼响应|过阻尼响应|3",
+      "sourceId": "临界阻尼响应_3_5839e0e4",
+      "targetId": "过阻尼响应_3_adf3867e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "临界阻尼响应|峰值时间|3",
+      "sourceId": "临界阻尼响应_3_5839e0e4",
+      "targetId": "峰值时间_3_adc7ea95",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.4
+    },
+    {
+      "id": "临界阻尼响应|欠阻尼二阶系统|3",
+      "sourceId": "临界阻尼响应_3_5839e0e4",
+      "targetId": "欠阻尼二阶系统_3_242477a2",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "临界阻尼响应|闭环极点|3",
+      "sourceId": "临界阻尼响应_3_5839e0e4",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "过阻尼响应|峰值时间|3",
+      "sourceId": "过阻尼响应_3_adf3867e",
+      "targetId": "峰值时间_3_adc7ea95",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "过阻尼响应|欠阻尼二阶系统|3",
+      "sourceId": "过阻尼响应_3_adf3867e",
+      "targetId": "欠阻尼二阶系统_3_242477a2",
+      "relation": "opposite",
+      "relationType": "opposite",
+      "strength": 0.8
+    },
+    {
+      "id": "过阻尼响应|闭环极点|3",
+      "sourceId": "过阻尼响应_3_adf3867e",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.8
+    },
+    {
+      "id": "峰值时间|欠阻尼二阶系统|3",
+      "sourceId": "峰值时间_3_adc7ea95",
+      "targetId": "欠阻尼二阶系统_3_242477a2",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "峰值时间|闭环极点|3",
+      "sourceId": "峰值时间_3_adc7ea95",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "欠阻尼二阶系统|闭环极点|3",
+      "sourceId": "欠阻尼二阶系统_3_242477a2",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "调节时间|自然频率|10",
+      "sourceId": "调节时间_10_fcbccf4e",
+      "targetId": "自然频率_10_51a8b7d0",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "调节时间|超调量|10-3",
+      "sourceId": "调节时间_10_fcbccf4e",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "调节时间|动态性能指标|10-3",
+      "sourceId": "调节时间_10_fcbccf4e",
+      "targetId": "动态性能指标_3_a10733c1",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "自然频率|时间常数|10-2",
+      "sourceId": "自然频率_10_51a8b7d0",
+      "targetId": "时间常数_2_68356eae",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "自然频率|动态性能指标|10-3",
+      "sourceId": "自然频率_10_51a8b7d0",
+      "targetId": "动态性能指标_3_a10733c1",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.7
+    },
+    {
+      "id": "自然频率|上升时间|10-3",
+      "sourceId": "自然频率_10_51a8b7d0",
+      "targetId": "上升时间_3_6fa0ec00",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "自然频率|峰值时间|10-3",
+      "sourceId": "自然频率_10_51a8b7d0",
+      "targetId": "峰值时间_3_adc7ea95",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "自然频率|阻尼比|10-3",
+      "sourceId": "自然频率_10_51a8b7d0",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "二阶系统标准型|自然频率|new",
+      "sourceId": "二阶系统标准型_3_L2a",
+      "targetId": "自然频率_10_51a8b7d0",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "二阶系统标准型|阻尼比|new",
+      "sourceId": "二阶系统标准型_3_L2a",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "动态性能指标|复平面可行域|new",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "动态性能指标|调节时间|new",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "四种响应家族|阻尼比|new",
+      "sourceId": "四种响应家族_3_L2a",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "自然频率|上升时间|new",
+      "sourceId": "自然频率_10_51a8b7d0",
+      "targetId": "上升时间_3_6fa0ec00",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "自然频率|调节时间|new",
+      "sourceId": "自然频率_10_51a8b7d0",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "调节时间|复平面可行域|new",
+      "sourceId": "调节时间_10_fcbccf4e",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.92
+    },
+    {
+      "id": "阻尼比|复平面可行域|new",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.92
+    },
+    {
+      "id": "阻尼比|调节时间|new",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.85
+    },
+    {
+      "id": "阻尼比|超调量|new",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16192",
+      "sourceId": "时域分析_2_1874cdb9",
+      "targetId": "单位阶跃响应_2_6a2a83b9",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16193",
+      "sourceId": "单位阶跃响应_2_6a2a83b9",
+      "targetId": "动态性能指标_3_a10733c1",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16194",
+      "sourceId": "一阶系统_3_4f3b29ce",
+      "targetId": "时间常数_2_68356eae",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16195",
+      "sourceId": "二阶系统标准型_3_L2a",
+      "targetId": "无阻尼自然频率_3_13001",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16196",
+      "sourceId": "二阶系统标准型_3_L2a",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16197",
+      "sourceId": "自然频率_10_51a8b7d0",
+      "targetId": "无阻尼自然频率_3_13001",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.85
+    },
+    {
+      "id": "rt-16198",
+      "sourceId": "无阻尼自然频率_3_13001",
+      "targetId": "阻尼振荡频率_3_13002",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16199",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "阻尼振荡频率_3_13002",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16200",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "上升时间_3_6fa0ec00",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16201",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "峰值时间_3_adc7ea95",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16202",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16203",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16204",
+      "sourceId": "无阻尼自然频率_3_13001",
+      "targetId": "上升时间_3_6fa0ec00",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.85
+    },
+    {
+      "id": "rt-16205",
+      "sourceId": "阻尼振荡频率_3_13002",
+      "targetId": "峰值时间_3_adc7ea95",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16206",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.98
+    },
+    {
+      "id": "rt-16207",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.86
+    },
+    {
+      "id": "rt-16208",
+      "sourceId": "上升时间_3_6fa0ec00",
+      "targetId": "时域指标到极点参数映射_3_13003",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.88
+    },
+    {
+      "id": "rt-16209",
+      "sourceId": "峰值时间_3_adc7ea95",
+      "targetId": "时域指标到极点参数映射_3_13003",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16210",
+      "sourceId": "超调量_3_fc3f5b17",
+      "targetId": "时域指标到极点参数映射_3_13003",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16211",
+      "sourceId": "调节时间_10_fcbccf4e",
+      "targetId": "时域指标到极点参数映射_3_13003",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16212",
+      "sourceId": "时域指标到极点参数映射_3_13003",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.98
+    },
+    {
+      "id": "rt-16213",
+      "sourceId": "时域指标到极点参数映射_3_13003",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    }
+  ]
+}

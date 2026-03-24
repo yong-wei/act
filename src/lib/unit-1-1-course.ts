@@ -232,11 +232,11 @@ export const UNIT_1_1_PREMIUM_LESSON_CARD = {
 } as const;
 
 const UNIT_1_1_MEDIA_BY_STEP_ID: Record<string, string> = {
-  'step-03': '/course-runtime/lessons/1-1/media/h-02-laplace-transform-flow.svg',
-  'step-07': '/course-runtime/lessons/1-1/media/h-05-rc-circuit.svg',
-  'step-10': '/course-runtime/lessons/1-1/media/h-03-pole-response-family.svg',
-  'step-13': '/course-runtime/lessons/1-1/media/h-04-typical-elements.svg',
-  'step-14': '/course-runtime/lessons/1-1/media/h-01-spring-mass-damper.svg',
+  'step-03': '/course-runtime/lessons/legacy/1-1/media/h-02-laplace-transform-flow.svg',
+  'step-07': '/course-runtime/lessons/legacy/1-1/media/h-05-rc-circuit.svg',
+  'step-10': '/course-runtime/lessons/legacy/1-1/media/h-03-pole-response-family.svg',
+  'step-13': '/course-runtime/lessons/legacy/1-1/media/h-04-typical-elements.svg',
+  'step-14': '/course-runtime/lessons/legacy/1-1/media/h-01-spring-mass-damper.svg',
 };
 
 export function getUNIT_1_1MediaSrc(stepId: string) {

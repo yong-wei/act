@@ -130,13 +130,13 @@ export const LSUM_PREMIUM_LESSON_CARD = {
 } as const;
 
 const LSUM_MEDIA_BY_STEP_ID: Record<string, string> = {
-  'step-01': '/course-runtime/lessons/L-sum/media/cd-01-feasible-domain-overview.svg',
-  'step-07': '/course-runtime/lessons/L-sum/media/sh-03-feasible-region-full.svg',
-  'step-08': '/course-runtime/lessons/L-sum/media/h-04-root-locus-feasible-arc.svg',
-  'step-09': '/course-runtime/lessons/L-sum/media/h-06-bode-feasible-band.svg',
-  'step-11': '/course-runtime/lessons/L-sum/media/h-07-example1-root-locus.svg',
-  'step-12': '/course-runtime/lessons/L-sum/media/h-08-feasible-region-comparison.svg',
-  'step-13': '/course-runtime/lessons/L-sum/media/ic-09-posttest-complex-plane.svg',
+  'step-01': '/course-runtime/lessons/legacy/L-sum/media/cd-01-feasible-domain-overview.svg',
+  'step-07': '/course-runtime/lessons/legacy/L-sum/media/sh-03-feasible-region-full.svg',
+  'step-08': '/course-runtime/lessons/legacy/L-sum/media/h-04-root-locus-feasible-arc.svg',
+  'step-09': '/course-runtime/lessons/legacy/L-sum/media/h-06-bode-feasible-band.svg',
+  'step-11': '/course-runtime/lessons/legacy/L-sum/media/h-07-example1-root-locus.svg',
+  'step-12': '/course-runtime/lessons/legacy/L-sum/media/h-08-feasible-region-comparison.svg',
+  'step-13': '/course-runtime/lessons/legacy/L-sum/media/ic-09-posttest-complex-plane.svg',
 };
 
 export function getLSUMMediaSrc(stepId: string) {

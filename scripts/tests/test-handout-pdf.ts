@@ -12,8 +12,8 @@ function run() {
   );
 
   assert.equal(
-    resolveHandoutAssetUrl('/course-runtime/lessons/L-2b/media/sh-01.svg', { origin, lessonId }),
-    `${origin}/course-runtime/lessons/L-2b/media/sh-01.svg`,
+    resolveHandoutAssetUrl('/course-runtime/lessons/legacy/L-2b/media/sh-01.svg', { origin, lessonId }),
+    `${origin}/course-runtime/lessons/legacy/L-2b/media/sh-01.svg`,
   );
 
   assert.equal(

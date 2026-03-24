@@ -1,0 +1,108 @@
+{
+  "lesson_id": "L-2b",
+  "title": "根轨迹直觉速通——极点迁移的几何感知",
+  "layer": "层0",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "X",
+  "graph_version": "612+2",
+  "focus_node_ids": [
+    "根轨迹_4_c19f8854",
+    "开环增益_3_d73dc120",
+    "极点迁移_4_L2b001",
+    "最佳阻尼比_3_L2b002"
+  ],
+  "reuse_node_ids": [
+    "阻尼比_3_b849784e",
+    "稳定裕度_5_bfd54f1c",
+    "根轨迹法_4_4e598387"
+  ],
+  "entry_nodes": [
+    "极点迁移_4_L2b001"
+  ],
+  "summary_nodes": [
+    "最佳阻尼比_3_L2b002"
+  ],
+  "card_order": [
+    "开环增益_3_d73dc120",
+    "极点迁移_4_L2b001",
+    "根轨迹_4_c19f8854",
+    "阻尼比_3_b849784e",
+    "最佳阻尼比_3_L2b002",
+    "稳定裕度_5_bfd54f1c"
+  ],
+  "preceding_lesson": "L-2a",
+  "following_lesson": "L-2c",
+  "refinement_units": [
+    "2-2",
+    "2-3"
+  ],
+  "sequence": {
+    "lesson_id": "L-2b",
+    "groups": [
+      {
+        "group_name": "引入",
+        "step_ids": [
+          "step-01",
+          "step-02",
+          "step-03",
+          "step-04"
+        ],
+        "node_ids": [
+          "开环增益_3_d73dc120"
+        ]
+      },
+      {
+        "group_name": "核心概念",
+        "step_ids": [
+          "step-05",
+          "step-06",
+          "step-07",
+          "step-08",
+          "step-09",
+          "step-10",
+          "step-11"
+        ],
+        "node_ids": [
+          "极点迁移_4_L2b001",
+          "根轨迹_4_c19f8854"
+        ]
+      },
+      {
+        "group_name": "挑战任务",
+        "step_ids": [
+          "step-12",
+          "step-13",
+          "step-14",
+          "step-15"
+        ],
+        "node_ids": [
+          "阻尼比_3_b849784e",
+          "最佳阻尼比_3_L2b002"
+        ]
+      },
+      {
+        "group_name": "展望",
+        "step_ids": [
+          "step-16",
+          "step-17"
+        ],
+        "node_ids": [
+          "稳定裕度_5_bfd54f1c"
+        ]
+      }
+    ],
+    "card_order": [
+      "开环增益_3_d73dc120",
+      "极点迁移_4_L2b001",
+      "根轨迹_4_c19f8854",
+      "阻尼比_3_b849784e",
+      "最佳阻尼比_3_L2b002",
+      "稳定裕度_5_bfd54f1c"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/legacy/L-2b/handout.md",
+  "handout_source_path": "course-content/runtime/lessons/legacy/L-2b/handout.md",
+  "graph_overlay_path": "/course-runtime/lessons/legacy/L-2b/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/legacy/L-2b/media"
+}

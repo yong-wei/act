@@ -19,7 +19,7 @@ export default function InteractiveCoursesPage() {
 
         <section className="mb-10">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="interactive-course-hub-section-title text-xl font-semibold">精品课程</h2>
+                <h2 className="interactive-course-hub-section-title text-xl font-semibold">精品课程</h2>
             <span className="interactive-course-hub-chip">优先推荐</span>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
@@ -48,13 +48,13 @@ export default function InteractiveCoursesPage() {
           <details className="interactive-course-hub-legacy-shell group" open={false}>
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
               <div>
-                <h2 className="interactive-course-hub-section-title text-xl font-semibold">旧版章节课程</h2>
+                <h2 className="interactive-course-hub-section-title text-xl font-semibold">归档课程</h2>
                 <p className="interactive-course-hub-muted mt-1 text-sm">
-                  原有 `lessonXX` 系列默认收起，保留为旧版章节课程入口。
+                  `legacy` 来源课与旧版 `lessonXX` 系列默认收起，保留为归档入口。
                 </p>
               </div>
               <div className="interactive-course-hub-legacy-toggle">
-                展开旧版章节课程
+                展开归档课程
                 <ChevronDown className="h-3.5 w-3.5 transition group-open:rotate-180" />
               </div>
             </summary>

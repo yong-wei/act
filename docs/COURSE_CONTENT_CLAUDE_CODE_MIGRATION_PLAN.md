@@ -296,7 +296,7 @@ Claude Code 默认在以下目录内工作：
 例如用户说“开始做 L-2a”，Claude Code 应优先进入：
 
 ```text
-course-content/authoring/lessons/L-2a/
+course-content/authoring/lessons/legacy/L-2a/
 ```
 
 从该目录内读取：
@@ -358,9 +358,9 @@ Claude Code 在制作内容时：
     "overridesDir": "cards/overrides"
   },
   "runtime": {
-    "lessonJson": "../../runtime/lessons/L-2a/lesson.json",
-    "mediaDir": "../../runtime/lessons/L-2a/media",
-    "graphOverlay": "../../runtime/lessons/L-2a/graph-overlay.json"
+    "lessonJson": "../../runtime/lessons/legacy/L-2a/lesson.json",
+    "mediaDir": "../../runtime/lessons/legacy/L-2a/media",
+    "graphOverlay": "../../runtime/lessons/legacy/L-2a/graph-overlay.json"
   }
 }
 ```
@@ -412,15 +412,15 @@ course-content/authoring/knowledge/base/knowledge_graph.json
 不应继续全局平铺，建议拆为：
 
 ```text
-course-content/authoring/knowledge/overlays/L-2a/nodes.jsonl
-course-content/authoring/knowledge/overlays/L-2a/relations.jsonl
+course-content/authoring/knowledge/overlays/legacy/L-2a/nodes.jsonl
+course-content/authoring/knowledge/overlays/legacy/L-2a/relations.jsonl
 ```
 
 或等价地放入：
 
 ```text
-course-content/authoring/lessons/L-2a/graph/nodes.jsonl
-course-content/authoring/lessons/L-2a/graph/relations.jsonl
+course-content/authoring/lessons/legacy/L-2a/graph/nodes.jsonl
+course-content/authoring/lessons/legacy/L-2a/graph/relations.jsonl
 ```
 
 二者可保留一份主源，另一份由脚本生成索引镜像。
@@ -586,5 +586,5 @@ COURSE_CONTENT_ROOT=/Users/YW/Documents/Site/act.just.edu.cn/course-content/runt
 如果你愿意，下一步我可以直接继续为你写：
 
 - `course-content/README.md`
-- `course-content/authoring/lessons/L-2a/manifest.json` 模板
+- `course-content/authoring/lessons/legacy/L-2a/manifest.json` 模板
 - 面向 Claude Code 的“内容迁移执行清单”

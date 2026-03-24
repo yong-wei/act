@@ -16,14 +16,14 @@
 ## 最近最重要的稳定变化
 
 - `1-3`「时域响应分析——从响应曲线到动态性能指标」已经完成精品互动课首轮落地与增强版工作区收口：存在独立入口页、教师页、学生页、预置教案、课堂码路由识别与步骤级 AI 上下文注册，课堂内按 `interactive-page.md` 实现 17 步流程
-- `1-3` 课程首页和课堂页现在统一消费 `course-content/runtime/lessons/1-3` 运行时内容与 `review/*` 审查产物；课堂内已额外补强 `step-07` 参数-公式-现象三列表、`step-09` 四指标叠加总览与 `step-13` 例题三步法计算面板
+- `1-3` 课程首页和课堂页现在统一消费 `course-content/runtime/lessons/2-2` 运行时内容与 `review/*` 审查产物；课堂内已额外补强 `step-07` 参数-公式-现象三列表、`step-09` 四指标叠加总览与 `step-13` 例题三步法计算面板
 - `1-2`「系统结构图与化简——从积木块到系统蓝图」已经完成精品互动课落地：存在独立入口页、教师页、学生页、预置教案、课堂码路由识别与步骤级 AI 上下文注册，课堂内按 `interactive-page.md` 实现 17 步蓝图
-- `1-2` 课程首页和课堂页现在统一消费 `course-content/runtime/lessons/1-2` 运行时内容与 `review/*` 审查产物；课堂步骤覆盖结构图四元素、基本连接、等效变换、AI 对照、信号流图、梅森公式、前后测与总结
+- `1-2` 课程首页和课堂页现在统一消费 `course-content/runtime/lessons/legacy/1-2` 运行时内容与 `review/*` 审查产物；课堂步骤覆盖结构图四元素、基本连接、等效变换、AI 对照、信号流图、梅森公式、前后测与总结
 - 已新增 `.codex/skills/lesson-content-review` 与 `course-content/scripts/review_lesson_content.py`：互动课程制作前，先按“正文/实践指南 -> BOPPPS -> sequence/knowledge cards -> multimedia -> runtime/review”顺序审查；修复回写 `authoring`，再导出 `course-content/runtime/lessons/<lesson>/review` 供制作技能直接消费
-- `1-2` 已作为首个课程审查试跑样例：补齐 10 张知识卡、4 个代码直出 SVG，并在 `course-content/runtime/lessons/1-2` 生成 `handout.md`、`lesson.json` 以及 `review/boppps.md`、`review-report.md`、`knowledge-card-check.json`、`multimedia-check.json`
+- `1-2` 已作为首个课程审查试跑样例：补齐 10 张知识卡、4 个代码直出 SVG，并在 `course-content/runtime/lessons/legacy/1-2` 生成 `handout.md`、`lesson.json` 以及 `review/boppps.md`、`review-report.md`、`knowledge-card-check.json`、`multimedia-check.json`
 - `export_runtime.py` 现在对新课优先使用 `authoring/.../media/processed`，但仍保留 `media/raw` fallback，避免已完成旧课因为新审查流程缺失而回归
 - `1-1`「拉氏变换与传递函数——从微分方程到代数方程」已经完成精品互动课落地：存在独立入口页、教师页、学生页、预置教案、步骤级 AI 上下文、教师/学生会话同步与统一课程事件埋点
-- `1-1` 课程已接入 `course-content/runtime/lessons/1-1` 运行时内容，包含 `lesson.json`、`graph-overlay.json`、`handout.md` 和 6 个媒体文件；课程首页统一通过 runtime 展示知识点网络、知识卡片预览、讲义入口和 PDF 导出
+- `1-1` 课程已接入 `course-content/runtime/lessons/legacy/1-1` 运行时内容，包含 `lesson.json`、`graph-overlay.json`、`handout.md` 和 6 个媒体文件；课程首页统一通过 runtime 展示知识点网络、知识卡片预览、讲义入口和 PDF 导出
 - 针对 `1-1` 的代码直出媒体，当前稳定流程是：先生成到 `course-content/authoring/lessons/<lesson>/media/processed` 审核合理性，再执行 `bash course-content/scripts/export-runtime.sh <lesson>` 导出到 runtime；不要跳过 `processed` 审核直接进运行时
 - 精品课程族现在除 `L-2a/L-2b/L-2c/L-2d/L-sum/Cruise comfort` 外，还应包括 `1-1`、`1-2` 与 `1-3`
 - 学生端个人中心 `/profile` 与 `/api/user/profile` 已从旧的五维仿真/课外展示口径切到数据治理六维能力模型；页面现展示真实 `StudentCompetencySnapshot` 维度、聚合学习活动、资源推荐与自适应习题诊断摘要

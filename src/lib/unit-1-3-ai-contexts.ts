@@ -2,7 +2,7 @@ import type { AIContextConfig } from '@/types/ai-context';
 
 export const UNIT_1_3_COURSE_META = {
   courseId: 'unit-1-3-time-domain-response-v1',
-  courseTitle: '1-3：时域响应分析——从响应曲线到动态性能指标',
+  courseTitle: '2-2：时域响应基础——从响应曲线到动态性能指标',
   courseDescription:
     '围绕单位阶跃响应、一阶与二阶系统标准型及四个关键时域指标，建立从响应曲线到动态品质判断的第一套语言。',
   keyConcepts: ['单位阶跃响应', '时间常数', '二阶系统标准型', '阻尼比', '上升时间', '超调量', '调节时间'],
@@ -36,9 +36,9 @@ export const UNIT_1_3_STEP_AI_CONTEXTS: Record<string, AIContextConfig> = {
     'step-01',
     '课程定位：从闭环传递函数走向响应曲线',
     'theory',
-    ['理解 1-3 承接 1-2 的位置', '把注意力从结构化简推进到动态品质判断'],
+    ['理解 2-2 承接 2-1 的位置', '把注意力从对象语言推进到动态品质判断'],
     [
-      { label: '承接关系', question: '为什么学完 1-2 之后自然会进入 1-3？' },
+      { label: '承接关系', question: '为什么学完 2-1 之后自然会进入 2-2？' },
       { label: '本课任务', question: '这节课要新增的分析语言是什么？' },
     ],
     '当前步骤只做主线定位。请把学生拉回“先有闭环传递函数，才能进一步讨论响应曲线、快慢与超调”这条线索，不要直接跳到公式推导。',
@@ -215,7 +215,7 @@ export const UNIT_1_3_STEP_AI_CONTEXTS: Record<string, AIContextConfig> = {
     ['压缩本课关键词', '把视角推进到极点区域与后续设计问题'],
     [
       { label: '关键词', question: '这一课最关键的几个关键词是什么？' },
-      { label: '后续课程', question: '为什么学完 1-3 后，自然会继续讨论极点与设计约束？' },
+      { label: '后续课程', question: '为什么学完 2-2 后，自然会继续讨论极点与设计约束？' },
     ],
     '当前步骤用于收束与迁移。请帮助学生把本课从“会看曲线”提升到“会把时域指标连到极点与后续设计”的层面。',
   ),

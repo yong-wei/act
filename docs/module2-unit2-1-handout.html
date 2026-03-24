@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>自动控制原理教学讲义</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <link rel="stylesheet" href="teaching-handout.css" />
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+  type="text/javascript"></script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">自动控制原理教学讲义</h1>
+</header>
+<h2 id="模块2-单元2-1建模与变换语言">模块2 单元2-1：建模与变换语言</h2>
+<h3
+id="拉氏变换传递函数结构图信号流图梅森公式典型环节">拉氏变换、传递函数、结构图、信号流图、梅森公式、典型环节</h3>
+<div class="meta-grid">
+<div><strong>课程</strong><br>自动控制原理</div>
+<div><strong>单元</strong><br>2-1</div>
+<div><strong>课型</strong><br>理论课</div>
+<div><strong>学时</strong><br>2 学时</div>
+<div><strong>知识类型</strong><br>[C] 计算型</div>
+<div><strong>核心任务</strong><br>把工程对象变成后续可分析、可连接、可运算的统一模型对象</div>
+</div>
+
+<blockquote>
+<p>本单元是模块2的入口课。模块1已经帮助我们建立了“系统会动起来、极点会决定表现”的第一轮直觉；从本单元开始，这些直觉要被翻译成正式的分析语言。这里最关键的不是会背多少工具，而是会把真实对象转成统一对象、会看懂对象之间如何连接。</p>
+</blockquote>
+<h2 id="1-引入案例为什么工程对象必须先变成模型语言">1.
+引入案例：为什么工程对象必须“先变成模型语言”</h2>
+<p>在船舶航向控制中，驾驶员或自动舵输出的是舵角指令，船体实际呈现的是航向角变化。若只盯着时间变化过程，我们看到的是“转向慢不慢、有没有过冲、会不会摆动”；但一旦要比较不同船型、不同控制器、不同连接结构，仅靠口头描述和原始微分方程就很难继续分析。工程上真正需要的是一种统一对象语言：它既能保留系统本身的动态特性，又能方便做串联、并联、反馈等连接运算。</p>
+<p>因此，自动控制原理在这里做的第一件事，不是直接讨论“控制器怎么调”，而是把对象先翻译成可计算、可组合的形式。这正是拉氏变换、传递函数、结构图和信号流图存在的意义。</p>
+<p><strong>情境问题</strong><br />
+如果同样面对“舵角改变后航向如何变化”这一问题，为什么工程师更愿意先把对象写成传递函数，再谈闭环结构，而不是一直停留在原始微分方程上？</p>
+<h2 id="2-核心内容">2. 核心内容</h2>
+<h3 id="21-为什么要把时域微分方程变成复变量代数对象">2.1
+为什么要把时域微分方程变成复变量代数对象</h3>
+<p>控制对象原本常由微分方程描述。例如输入为 <span
+class="math inline">\(u(t)\)</span>、输出为 <span
+class="math inline">\(y(t)\)</span> 的线性定常系统，可写成：</p>
+<p><span class="math display">\[a_n y^{(n)}(t) + a_{n-1} y^{(n-1)}(t) +
+\cdots + a_1 y&#39;(t) + a_0 y(t) = b_m u^{(m)}(t) + \cdots + b_1
+u&#39;(t) + b_0 u(t)\]</span></p>
+<p>直接使用微分方程有三个不便：</p>
+<ol type="1">
+<li>导数运算不利于不同子系统做连接运算。</li>
+<li>系统本身特性与输入信号常混在一起，不便抽出“对象自身”。</li>
+<li>后续做时域、频域和结构分析时，微分形式不如代数形式直观。</li>
+</ol>
+<p>拉氏变换的核心工程价值，不是“多学一种积分公式”，而是把微分运算转成代数运算：</p>
+<p><span class="math display">\[
+\mathcal{L}\{y&#39;(t)\}=sY(s)-y(0^-)
+\]</span></p>
+<p><span class="math display">\[
+\mathcal{L}\{y&#39;&#39;(t)\}=s^2Y(s)-sy(0^-)-y&#39;(0^-)
+\]</span></p>
+<p>于是，系统从“时间域里的变化关系”被改写成“复变量域里的代数关系”。这一步的意义是：对象被标准化了，后续才能谈统一分析。</p>
+<p><strong>零初值假设为什么重要</strong><br />
+本课程在定义传递函数时采用零初值假设，即系统研究对象从平衡态出发。这样做的目的，是把“系统自身动态特性”与“起始存储能量带来的附加影响”分开。传递函数描述的是系统结构和参数决定的映射关系，而不是某一次特殊初始状态下的偶然过程。</p>
+<p><strong>[AI融入点]</strong><br />
+先自己回答：“若初始条件不为零，传递函数还能不能代表系统本身？”再让 AI
+用一句话解释零初值假设的作用，并比对你与 AI
+的表述差异。判断标准不是谁更长，而是谁真正抓住了“系统固有特性”和“初始状态影响”这两个关键词。</p>
+<h3 id="22-从微分方程到传递函数">2.2 从微分方程到传递函数</h3>
+<p>在零初值条件下，对前述微分方程做拉氏变换，可得：</p>
+<p><span class="math display">\[\left(a_n s^n + a_{n-1} s^{n-1} + \cdots
++ a_1 s + a_0\right)Y(s) = \left(b_m s^m + \cdots + b_1 s +
+b_0\right)U(s)\]</span></p>
+<p>因此传递函数定义为：</p>
+<p><span class="math display">\[G(s)=\frac{Y(s)}{U(s)}=\frac{b_m s^m +
+\cdots + b_1 s + b_0}{a_n s^n + a_{n-1} s^{n-1} + \cdots + a_1 s +
+a_0}\]</span></p>
+<p>这里要抓住三个关键词：</p>
+<ol type="1">
+<li><span class="math inline">\(G(s)\)</span>
+只描述系统，不描述某个具体输入本身。</li>
+<li><span class="math inline">\(G(s)\)</span>
+把输入到输出的动态关系压缩为一个统一对象。</li>
+<li>同一个 <span class="math inline">\(G(s)\)</span>
+既能服务时域分析，也能服务频域分析和结构连接分析。</li>
+</ol>
+<p>传递函数并不是“把物理系统变简单了”，而是“把物理系统变成后续课程都能使用的共同语言”。所以从本节开始，看到一个对象时，首先要问的不是“它长得像哪道题”，而是“它能不能被整理成一个标准传递函数对象”。</p>
+<h4 id="示例船舶航向对象的对象化">示例：船舶航向对象的对象化</h4>
+<p>设船舶横摇影响忽略后，可用简化的 Nomoto 一阶航向模型描述舵角 <span
+class="math inline">\(\delta(t)\)</span> 对角速度 <span
+class="math inline">\(r(t)\)</span> 的作用：</p>
+<p><span class="math display">\[
+T r&#39;(t) + r(t) = K \delta(t)
+\]</span></p>
+<p>又因为航向角 <span class="math inline">\(\psi(t)\)</span>
+与角速度满足：</p>
+<p><span class="math display">\[
+\psi&#39;(t) = r(t)
+\]</span></p>
+<p>零初值下有：</p>
+<p><span class="math display">\[
+(Ts + 1)R(s) = K\Delta(s)
+\]</span></p>
+<p><span class="math display">\[
+s\Psi(s) = R(s)
+\]</span></p>
+<p>于是得到：</p>
+<p><span class="math display">\[
+\frac{R(s)}{\Delta(s)}=\frac{K}{Ts+1}
+\]</span></p>
+<p><span class="math display">\[
+\frac{\Psi(s)}{\Delta(s)}=\frac{K}{s(Ts+1)}
+\]</span></p>
+<p>这说明从舵角到航向角的对象，可以看作“惯性环节 +
+积分环节”的串联。这个结论非常重要，因为它把真实工程对象接入了本课程的“标准环节库”。</p>
+<h3 id="23-典型环节后续全课反复调用的标准对象库">2.3
+典型环节：后续全课反复调用的标准对象库</h3>
+<p>典型环节不是为了把系统切碎，而是为了让复杂对象能被识别、组合、比较。后续讲时域响应、频率特性、根轨迹和控制器作用时，都会不断回到这些标准对象。</p>
+<table>
+<thead>
+<tr class="header">
+<th>典型环节</th>
+<th>传递函数</th>
+<th>主要作用</th>
+<th>直观物理意义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>比例环节</td>
+<td><span class="math inline">\(G(s)=K\)</span></td>
+<td>放大或缩小信号</td>
+<td>输出即时按比例变化，不引入动态滞后</td>
+</tr>
+<tr class="even">
+<td>积分环节</td>
+<td><span class="math inline">\(G(s)=\dfrac{K}{s}\)</span></td>
+<td>累积输入</td>
+<td>反映“长期积累”的过程，如航向角由角速度积分得到</td>
+</tr>
+<tr class="odd">
+<td>微分环节</td>
+<td><span class="math inline">\(G(s)=Ks\)</span></td>
+<td>强调变化趋势</td>
+<td>对变化快慢敏感，理想微分在工程上通常需谨慎使用</td>
+</tr>
+<tr class="even">
+<td>惯性环节</td>
+<td><span class="math inline">\(G(s)=\dfrac{K}{Ts+1}\)</span></td>
+<td>体现滞后与缓冲</td>
+<td>对输入变化不能立刻跟上，常见于执行机构与对象主体</td>
+</tr>
+<tr class="odd">
+<td>振荡环节</td>
+<td><span
+class="math inline">\(G(s)=\dfrac{\omega_n^2}{s^2+2\zeta\omega_n
+s+\omega_n^2}\)</span></td>
+<td>体现振荡与阻尼</td>
+<td>对应具有储能交换特征的二阶系统</td>
+</tr>
+</tbody>
+</table>
+<p>识别典型环节时，不要只看字母形式，更要看它在系统中的功能角色。例如前面的船舶航向模型中，<span
+class="math inline">\(\dfrac{1}{s}\)</span>
+不是单纯“多了一个分母”，而是说明角速度到航向角之间存在累积关系；<span
+class="math inline">\(\dfrac{1}{Ts+1}\)</span>
+则表明对象不可能瞬时完成响应。</p>
+<h4 id="常见误区">常见误区</h4>
+<ol type="1">
+<li>把典型环节当成彼此孤立的“公式卡片”，看不到它们在真实对象中的组合。</li>
+<li>只会代入参数，不会说明参数改变后物理表现如何变化。</li>
+<li>误把“模型长得像某个环节”理解为“真实设备就是一个单独环节”；事实上，很多真实系统只是可近似拆解为若干典型环节。</li>
+</ol>
+<h3 id="24-结构图对象之间如何连接">2.4 结构图：对象之间如何连接</h3>
+<p>当系统由多个环节组成时，仅写单个传递函数还不够，还需要说明它们如何连接。结构图的价值在于把“信号如何流动、对象如何耦合”表达清楚。</p>
+<p>本单元只保留三类最基础连接：</p>
+<h4 id="1-串联">1. 串联</h4>
+<p>前一环节输出作为后一环节输入，总传递函数为：</p>
+<p><span class="math display">\[
+G(s)=G_1(s)G_2(s)
+\]</span></p>
+<h4 id="2-并联">2. 并联</h4>
+<p>多个环节接受同一输入，输出再相加或相减，总传递函数为：</p>
+<p><span class="math display">\[
+G(s)=G_1(s)\pm G_2(s)
+\]</span></p>
+<h4 id="3-反馈">3. 反馈</h4>
+<p>输出经测量后与参考输入比较，形成误差信号。负反馈闭环传递函数为：</p>
+<p><span class="math display">\[
+\frac{\Phi(s)}{R(s)}=\frac{G(s)}{1+G(s)H(s)}
+\]</span></p>
+<p>若 <span class="math inline">\(G(s)\)</span>
+包含前向通道全部环节，<span class="math inline">\(H(s)\)</span>
+为反馈通道环节，则这一公式给出了闭环对象的标准表达。这里最应建立的不是公式熟练度，而是结构意识：闭环系统不是“多了一个分母”，而是“输出反过来影响输入端决策”。</p>
+<p><strong>[AI融入点]</strong><br />
+先自己判断：一个执行器 <span class="math inline">\(G_a(s)\)</span>
+与对象主体 <span class="math inline">\(G_p(s)\)</span>
+的组合，应该优先视为串联、并联还是反馈？给出理由后，再请 AI
+用一句话判断，并要求它必须指出“信号流向”。如果 AI
+只报答案、不说信号流向，说明它的解释仍然不够合格。</p>
+<h3 id="25-信号流图与梅森公式复杂连接时的补充表达与求解工具">2.5
+信号流图与梅森公式：复杂连接时的补充表达与求解工具</h3>
+<p>当结构图连接关系较复杂、移动加法点或分支点不方便时，可以换一种表达：信号流图。</p>
+<h4 id="信号流图基本概念">信号流图基本概念</h4>
+<ol type="1">
+<li>节点：代表变量。</li>
+<li>支路：代表变量间单向传递关系。</li>
+<li>前向通路：从输入节点到输出节点、且不重复经过任何节点的通路。</li>
+<li>回路：起点与终点相同的闭合通路。</li>
+<li>互不接触回路：两个回路之间没有公共节点。</li>
+</ol>
+<p>信号流图更强调“变量之间的因果连接”，适合从整体结构直接识别通路和回路。它不是为了替代结构图，而是给复杂结构提供另一种更适于求解的视角。</p>
+<h4 id="梅森公式">梅森公式</h4>
+<p>设系统共有若干条前向通路，则总传递函数为：</p>
+<p><span class="math display">\[
+T=\frac{\sum P_k \Delta_k}{\Delta}
+\]</span></p>
+<p>其中：</p>
+<p><span class="math display">\[
+\Delta = 1-\sum L_i + \sum (L_iL_j) - \sum (L_iL_jL_k) + \cdots
+\]</span></p>
+<p><span class="math inline">\(L_i\)</span> 为各回路增益；<span
+class="math inline">\(\Delta_k\)</span> 表示把与第 <span
+class="math inline">\(k\)</span>
+条前向通路接触的回路删去后得到的判别式。</p>
+<p>本单元对梅森公式的要求只有三点：</p>
+<ol type="1">
+<li>会解释它为什么适用于复杂连接求总传递函数。</li>
+<li>会识别前向通路、回路和互不接触回路。</li>
+<li>会完成一个代表性例题。</li>
+</ol>
+<p>不要求在本节课中进行大量多回路技巧训练。</p>
+<h4 id="结构图与信号流图的关系">结构图与信号流图的关系</h4>
+<p>结构图更适合表达标准控制结构；信号流图更适合在变量层面观察复杂耦合关系。二者不是两个完全割裂的新章节，而是同一对象连接关系的两种表达方式。</p>
+<h3 id="26-一个代表性例题链从对象到总传递函数">2.6
+一个代表性例题链：从对象到总传递函数</h3>
+<p>下面给出本节必须掌握的完整链条。它体现本单元的真正任务：从真实对象出发，构造统一分析对象，并在需要时引入补充工具。</p>
+<h2 id="3-例题精解">3. 例题精解</h2>
+<h3
+id="例题1由船舶航向模型建立传递函数并识别典型环节">例题1：由船舶航向模型建立传递函数，并识别典型环节</h3>
+<p><strong>题目陈述</strong><br />
+某船舶航向对象满足简化模型：</p>
+<p><span class="math display">\[
+T r&#39;(t) + r(t) = K \delta(t), \qquad \psi&#39;(t)=r(t)
+\]</span></p>
+<p>求：</p>
+<ol type="1">
+<li>从舵角 <span class="math inline">\(\delta(t)\)</span> 到角速度 <span
+class="math inline">\(r(t)\)</span> 的传递函数；</li>
+<li>从舵角 <span class="math inline">\(\delta(t)\)</span> 到航向角 <span
+class="math inline">\(\psi(t)\)</span> 的传递函数；</li>
+<li>说明其由哪些典型环节构成，并解释工程意义。</li>
+</ol>
+<p><strong>解题思路</strong><br />
+先分别对两个关系式做拉氏变换，再消去中间变量 <span
+class="math inline">\(R(s)\)</span>，最后按标准环节形式识别对象组成。</p>
+<p><strong>详细求解</strong></p>
+<p>Step 1. 零初值下进行拉氏变换：</p>
+<p><span class="math display">\[
+(Ts+1)R(s)=K\Delta(s)
+\]</span></p>
+<p><span class="math display">\[
+s\Psi(s)=R(s)
+\]</span></p>
+<p>Step 2. 写出角速度对象：</p>
+<p><span class="math display">\[
+\frac{R(s)}{\Delta(s)}=\frac{K}{Ts+1}
+\]</span></p>
+<p>这是一个惯性环节。</p>
+<p>Step 3. 写出航向角对象：</p>
+<p><span
+class="math display">\[\frac{\Psi(s)}{\Delta(s)}=\frac{R(s)}{\Delta(s)}\cdot\frac{\Psi(s)}{R(s)}=\frac{K}{Ts+1}\cdot\frac{1}{s}=\frac{K}{s(Ts+1)}\]</span></p>
+<p>Step 4. 识别典型环节：</p>
+<ol type="1">
+<li><span class="math inline">\(K\)</span> 对应比例环节。</li>
+<li><span class="math inline">\(\dfrac{1}{Ts+1}\)</span>
+对应惯性环节。</li>
+<li><span class="math inline">\(\dfrac{1}{s}\)</span>
+对应积分环节。</li>
+</ol>
+<p><strong>结论与工程意义</strong><br />
+该对象可理解为“舵角先经过船体惯性形成角速度，再对角速度积分得到航向角”。这说明真实工程对象不是抽象公式堆砌，而是可以拆解为标准对象的组合。后续分析阶跃响应、频率特性或闭环性能时，都将直接调用这一对象表达。</p>
+<h3
+id="例题2用结构图与梅森公式求闭环航向控制系统总传递函数">例题2：用结构图与梅森公式求闭环航向控制系统总传递函数</h3>
+<p><strong>题目陈述</strong><br />
+设闭环航向控制系统由以下环节组成：</p>
+<ol type="1">
+<li>控制器 <span class="math inline">\(G_c(s)\)</span>；</li>
+<li>执行机构 <span class="math inline">\(G_a(s)\)</span>；</li>
+<li>船舶航向对象 <span class="math inline">\(G_p(s)\)</span>；</li>
+<li>单位反馈 <span class="math inline">\(H(s)=1\)</span>。</li>
+</ol>
+<p>要求：</p>
+<ol type="1">
+<li>写出从参考输入 <span class="math inline">\(R(s)\)</span> 到输出
+<span class="math inline">\(Y(s)\)</span> 的结构图关系；</li>
+<li>转写为信号流图时，指出前向通路与回路；</li>
+<li>用梅森公式求总传递函数。</li>
+</ol>
+<p><strong>解题思路</strong><br />
+先从负反馈结构写出前向通道，再换到变量层面识别前向通路和回路，最后验证梅森公式与闭环公式一致。</p>
+<p><strong>详细求解</strong></p>
+<p>Step 1. 结构图主关系。<br />
+前向通道总传递函数为：</p>
+<p><span class="math display">\[
+G(s)=G_c(s)G_a(s)G_p(s)
+\]</span></p>
+<p>单位负反馈下的闭环关系为：</p>
+<p><span class="math display">\[
+\frac{Y(s)}{R(s)}=\frac{G(s)}{1+G(s)}
+\]</span></p>
+<p>Step 2. 转写为信号流图。<br />
+按变量关系可写出：</p>
+<ol type="1">
+<li><span class="math inline">\(R \to E\)</span>，增益为 <span
+class="math inline">\(1\)</span>；</li>
+<li><span class="math inline">\(Y \to E\)</span>，增益为 <span
+class="math inline">\(-1\)</span>；</li>
+<li><span class="math inline">\(E \to U\)</span>，增益为 <span
+class="math inline">\(G_c(s)\)</span>；</li>
+<li><span class="math inline">\(U \to V\)</span>，增益为 <span
+class="math inline">\(G_a(s)\)</span>；</li>
+<li><span class="math inline">\(V \to Y\)</span>，增益为 <span
+class="math inline">\(G_p(s)\)</span>。</li>
+</ol>
+<p>于是：</p>
+<ol type="1">
+<li>前向通路只有一条：</li>
+</ol>
+<p><span class="math display">\[
+P_1 = G_c(s)G_a(s)G_p(s)
+\]</span></p>
+<ol start="2" type="1">
+<li>单个回路为：</li>
+</ol>
+<p><span class="math display">\[
+L_1 = -G_c(s)G_a(s)G_p(s)
+\]</span></p>
+<ol start="3" type="1">
+<li>不存在互不接触回路。</li>
+</ol>
+<p>Step 3. 套用梅森公式。<br />
+由于只有一条前向通路、一个回路：</p>
+<p><span class="math display">\[
+\Delta = 1 - L_1 = 1 + G_c(s)G_a(s)G_p(s)
+\]</span></p>
+<p><span class="math display">\[
+\Delta_1 = 1
+\]</span></p>
+<p>所以：</p>
+<p><span
+class="math display">\[\frac{Y(s)}{R(s)}=\frac{P_1\Delta_1}{\Delta}=\frac{G_c(s)G_a(s)G_p(s)}{1+G_c(s)G_a(s)G_p(s)}\]</span></p>
+<p><strong>结论与工程意义</strong><br />
+这个例题说明：结构图与信号流图虽然外观不同，但描述的是同一连接系统。结构图更方便表达标准反馈结构，信号流图更方便识别复杂耦合中的通路和回路；二者服务同一个目标，即求得总传递函数并保持对系统结构的理解。</p>
+<p><strong>[AI融入点]</strong><br />
+先独立判断：如果在例题2中再加一条不经过主通路的旁路，梅森公式中的哪一部分会首先发生变化？再让
+AI 只用“前向通路 / 回路 / 互不接触回路 / <span
+class="math inline">\(\Delta\)</span>”这四个词回答。你要检查的是它有没有抓住结构变化真正影响的是哪一个量，而不是有没有堆很多术语。</p>
+<h2 id="4-思政融合叙事梅森公式背后的工具观">4.
+思政融合叙事：梅森公式背后的工具观</h2>
+<p>控制理论中的很多工具，看似只是“解题公式”，实际上都回应着真实工程中的复杂性。梅森公式之所以值得保留，不只是因为它能算传递函数，还因为它体现了一种工程工具观：面对复杂连接关系，与其让人被繁琐过程拖住，不如设计一种更清晰、更可复用的表达方式。课程中提到“梅森的人文关怀”，正是要提醒我们，优秀工具的价值不仅在于正确，更在于它能降低理解门槛、帮助更多人看清结构。本节学习这些模型语言，也是在训练一种工程素养：把复杂对象整理成可以沟通、可以协作、可以验证的公共语言。</p>
+<h2 id="5-本节小结与前后衔接">5. 本节小结与前后衔接</h2>
+<h3 id="51-本节核心要点">5.1 本节核心要点</h3>
+<ol type="1">
+<li>拉氏变换的工程价值，是把微分关系转成复变量代数关系，便于统一分析。</li>
+<li>传递函数是在零初值条件下定义的系统输入输出之比，它描述的是系统本身的动态特性。</li>
+<li>比例、积分、微分、惯性、振荡等典型环节构成了后续课程反复调用的标准对象库。</li>
+<li>结构图用于表达串联、并联、反馈等基本连接关系；信号流图与梅森公式是复杂连接时的补充表达与求解工具。</li>
+<li>本单元的重点是“对象构造能力”，不是复杂化简和技巧竞赛。</li>
+</ol>
+<h3 id="52-在知识地图中的位置">5.2 在知识地图中的位置</h3>
+<ul>
+<li>回到地图，我们现在位于“模块2：建模与基础响应层”的入口。</li>
+<li>本节输出的是统一模型对象语言。</li>
+<li>下一节 <code>2-2</code>
+将在这些标准对象上讨论典型输入激发出的时域响应与性能指标。</li>
+</ul>
+<h3 id="53-前后衔接">5.3 前后衔接</h3>
+<p><strong>前衔接</strong><br />
+模块1已经建立了“系统结构会影响动态表现”的第一轮直觉，本节把这种直觉翻译为正式对象：传递函数、典型环节和连接结构。</p>
+<p><strong>后铺垫</strong><br />
+<code>2-2</code>
+要用本节得到的传递函数对象研究一阶、二阶系统响应；<code>2-3</code> 与
+<code>2-4</code>
+会继续把同一对象带入频域与图形语言；模块3则会在这些对象之上追问“为什么系统会表现成这样”。</p>
+<h3 id="54-本节不承担的内容">5.4 本节不承担的内容</h3>
+<p>为避免单元过载，本节明确不系统展开：</p>
+<ol type="1">
+<li>复杂方框图化简训练；</li>
+<li>多回路梅森公式技巧题训练；</li>
+<li>根轨迹、稳定判据与频域判稳；</li>
+<li>控制器整定与结构选型。</li>
+</ol>
+<blockquote>
+<p>这并不意味着这些内容不重要，而是意味着它们将在后续更合适的位置出现。当前先把对象语言立起来，后面的分析才有共同基础。</p>
+</blockquote>
+</body>
+</html>

@@ -25,6 +25,6 @@ export default async function UNIT_1_3StudentRoute({
     }
   }
 
-  const lessonRuntime = await loadLessonRuntimeEntry('1-3');
+  const lessonRuntime = await loadLessonRuntimeEntry('2-2');
   return <UNIT_1_3StudentPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} />;
 }

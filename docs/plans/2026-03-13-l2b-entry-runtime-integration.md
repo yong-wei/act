@@ -4,7 +4,7 @@
 
 **Goal:** 将 runtime 知识资源的最新规则固化到技能中，并把 L-2b 首页接入知识点网络、卡片预览和讲义入口。
 
-**Architecture:** 在 `export-runtime` 中把 `content/concepts` 兼容卡片按知识节点 ID 重命名并映射到 runtime 节点资源；入口页通过服务端读取 `course-content/runtime/lessons/L-2b/lesson.json`、`graph-overlay.json` 与 `handout.md`，渲染首页知识点网络、卡片预览和讲义弹层。技能文件同步补充统一结构、runtime 导出、首页设计和收尾验收规则。
+**Architecture:** 在 `export-runtime` 中把 `content/concepts` 兼容卡片按知识节点 ID 重命名并映射到 runtime 节点资源；入口页通过服务端读取 `course-content/runtime/lessons/legacy/L-2b/lesson.json`、`graph-overlay.json` 与 `handout.md`，渲染首页知识点网络、卡片预览和讲义弹层。技能文件同步补充统一结构、runtime 导出、首页设计和收尾验收规则。
 
 **Tech Stack:** Next.js 14、TypeScript、React、Node 文件读取、Bash、Python 3、React Markdown / KaTeX。
 

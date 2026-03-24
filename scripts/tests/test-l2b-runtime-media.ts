@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const runtimeDir = path.join(root, 'course-content/runtime/lessons/L-2b/media');
-const rawDir = path.join(root, 'course-content/authoring/lessons/L-2b/media/raw');
+const runtimeDir = path.join(root, 'course-content/runtime/lessons/legacy/L-2b/media');
+const rawDir = path.join(root, 'course-content/authoring/lessons/legacy/L-2b/media/raw');
 
 const expectedFiles = [
   'sh-01-pole-migration-locus.svg',
@@ -16,7 +16,7 @@ const expectedFiles = [
 
 for (const fileName of expectedFiles) {
   const filePath = path.join(runtimeDir, fileName);
-  assert.equal(fs.existsSync(filePath), true, `${fileName} 应生成到 course-content/runtime/lessons/L-2b/media`);
+  assert.equal(fs.existsSync(filePath), true, `${fileName} 应生成到 course-content/runtime/lessons/legacy/L-2b/media`);
 
   const content = fs.readFileSync(filePath, 'utf8').trim();
   assert.equal(content.length > 0, true, `${fileName} 不应为空文件`);

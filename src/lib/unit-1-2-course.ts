@@ -253,10 +253,10 @@ export const UNIT_1_2_PREMIUM_LESSON_CARD = {
 } as const;
 
 const UNIT_1_2_MEDIA_BY_STEP_ID: Record<string, string> = {
-  'step-02': '/course-runtime/lessons/1-2/media/sh-02-ship-heading-control.svg',
-  'step-03': '/course-runtime/lessons/1-2/media/sh-01-block-diagram-elements.svg',
-  'step-08': '/course-runtime/lessons/1-2/media/sh-03-equivalent-transform-rules.svg',
-  'step-12': '/course-runtime/lessons/1-2/media/sh-04-signal-flow-graph.svg',
+  'step-02': '/course-runtime/lessons/legacy/1-2/media/sh-02-ship-heading-control.svg',
+  'step-03': '/course-runtime/lessons/legacy/1-2/media/sh-01-block-diagram-elements.svg',
+  'step-08': '/course-runtime/lessons/legacy/1-2/media/sh-03-equivalent-transform-rules.svg',
+  'step-12': '/course-runtime/lessons/legacy/1-2/media/sh-04-signal-flow-graph.svg',
 };
 
 export function getUNIT_1_2MediaSrc(stepId: string) {

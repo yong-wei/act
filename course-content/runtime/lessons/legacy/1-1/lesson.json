@@ -1,0 +1,129 @@
+{
+  "lesson_id": "2-1",
+  "title": "拉氏变换与传递函数——从微分方程到代数方程",
+  "layer": "层1",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "C",
+  "graph_version": "612+15",
+  "focus_node_ids": [
+    "拉氏变换工程动机_2_11001",
+    "微分定理_2_11002",
+    "传递函数标准形式_2_11003"
+  ],
+  "reuse_node_ids": [
+    "拉氏变换_2_243496d4",
+    "传递函数_2_2c5e2589",
+    "零点_2_c29600a1",
+    "极点_2_cc79a4c5",
+    "微分方程_2_775c96a3",
+    "振荡环节_5_d677d1e6",
+    "闭环特征方程_3_87c88e19"
+  ],
+  "entry_nodes": [
+    "拉氏变换工程动机_2_11001"
+  ],
+  "summary_nodes": [
+    "传递函数标准形式_2_11003"
+  ],
+  "card_order": [
+    "拉氏变换工程动机_2_11001",
+    "拉氏变换_2_243496d4",
+    "微分定理_2_11002",
+    "传递函数_2_2c5e2589",
+    "传递函数标准形式_2_11003",
+    "零点_2_c29600a1",
+    "极点_2_cc79a4c5",
+    "比例环节_2_11004",
+    "积分环节_2_11005",
+    "微分环节_2_11006",
+    "惯性环节_2_11007",
+    "振荡环节_5_d677d1e6"
+  ],
+  "preceding_lesson": "L-∑",
+  "following_lesson": "1-2",
+  "refinement_units": [],
+  "ideological_point": "梅森的人文关怀",
+  "sequence": {
+    "lesson_id": "2-1",
+    "groups": [
+      {
+        "group_name": "引入：从直觉回到公式",
+        "step_ids": [
+          "step-01",
+          "step-02",
+          "step-03"
+        ],
+        "node_ids": [
+          "拉氏变换工程动机_2_11001",
+          "拉氏变换_2_243496d4"
+        ]
+      },
+      {
+        "group_name": "拉氏变换与三步法",
+        "step_ids": [
+          "step-04",
+          "step-05",
+          "step-06",
+          "step-07",
+          "step-08"
+        ],
+        "node_ids": [
+          "拉氏变换_2_243496d4",
+          "微分定理_2_11002",
+          "传递函数_2_2c5e2589"
+        ]
+      },
+      {
+        "group_name": "标准形式与零极点",
+        "step_ids": [
+          "step-09",
+          "step-10",
+          "step-11"
+        ],
+        "node_ids": [
+          "传递函数标准形式_2_11003",
+          "零点_2_c29600a1",
+          "极点_2_cc79a4c5"
+        ]
+      },
+      {
+        "group_name": "典型环节与综合例题",
+        "step_ids": [
+          "step-12",
+          "step-13",
+          "step-14"
+        ],
+        "node_ids": [
+          "比例环节_2_11004",
+          "积分环节_2_11005",
+          "微分环节_2_11006",
+          "惯性环节_2_11007",
+          "振荡环节_5_d677d1e6"
+        ]
+      }
+    ],
+    "card_order": [
+      "拉氏变换工程动机_2_11001",
+      "拉氏变换_2_243496d4",
+      "微分定理_2_11002",
+      "传递函数_2_2c5e2589",
+      "传递函数标准形式_2_11003",
+      "零点_2_c29600a1",
+      "极点_2_cc79a4c5",
+      "比例环节_2_11004",
+      "积分环节_2_11005",
+      "微分环节_2_11006",
+      "惯性环节_2_11007",
+      "振荡环节_5_d677d1e6"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/legacy/1-1/handout.md",
+  "handout_source_path": "course-content/runtime/lessons/legacy/1-1/handout.md",
+  "graph_overlay_path": "/course-runtime/lessons/legacy/1-1/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/legacy/1-1/media",
+  "review": {
+    "status": "pending",
+    "boppps_path": "/course-runtime/lessons/legacy/1-1/review/boppps.md"
+  }
+}

@@ -21,14 +21,14 @@
 ## 最近值得记住的变化
 
 - `1-2` 精品互动课已经落地到 `/interactive-learning/courses/unit-1-2-block-diagram-simplification`，并补齐教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]`、预置教案、课堂码路由解析与步骤级 AI 上下文注册
-- `1-2` 首页与课堂内页已经统一改为 runtime-first：课程入口从 `course-content/runtime/lessons/1-2` 读取知识图、讲义、知识卡与审查索引，课堂内按 `interactive-page.md` 的 17 步蓝图实现结构图四元素、等效变换、AI 对照、信号流图与梅森公式等内容
+- `1-2` 首页与课堂内页已经统一改为 runtime-first：课程入口从 `course-content/runtime/lessons/legacy/1-2` 读取知识图、讲义、知识卡与审查索引，课堂内按 `interactive-page.md` 的 17 步蓝图实现结构图四元素、等效变换、AI 对照、信号流图与梅森公式等内容
 - 互动课程制作前现在有独立 `lesson-content-review` 前置环节：先审 `design/handout.md` / `practice-guide.md` / `assessment-spec.md` 的技术正确性，再审 `design/boppps.md`、知识卡 sequence 与卡片正文，最后按 `design/multimedia.md` 生成并核对代码直出媒体
 - `course-content/scripts/review_lesson_content.py` 已成为新课内容审查入口；它会把问题修回 `course-content/authoring`，再导出 `course-content/runtime/lessons/<lesson>/review`，并把 `boppps`、审查报告、知识卡检查、多媒体检查索引写进 runtime
 - `1-2` 已完成首个课程审查试跑：补齐了缺失知识卡和代码直出媒体，runtime 下现在存在可供后续互动课程制作直接消费的 `review/*` 产物
 - `course-content/scripts/export_runtime.py` 已调整为“processed 优先、raw fallback”模式：新课按审查流走 `media/processed`，旧课仍可继续导出，避免已完成课程被迫回补新目录结构
 - `1-1` 精品互动课已经落地到 `/interactive-learning/courses/unit-1-1-laplace-transfer-function`，并补齐教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]`、预置教案、课堂码路由解析与步骤级 AI 上下文注册
-- `1-1` 首页与课堂内页已经统一改为 runtime-first：课程入口从 `course-content/runtime/lessons/1-1` 读取知识图、讲义、媒体和卡片编排，不再直接消费 `authoring`
-- `1-1` 课次已经形成一套稳定媒体流程：代码直出图先生成到 `course-content/authoring/lessons/1-1/media/processed` 审核，再导出到 `course-content/runtime/lessons/1-1/media`
+- `1-1` 首页与课堂内页已经统一改为 runtime-first：课程入口从 `course-content/runtime/lessons/legacy/1-1` 读取知识图、讲义、媒体和卡片编排，不再直接消费 `authoring`
+- `1-1` 课次已经形成一套稳定媒体流程：代码直出图先生成到 `course-content/authoring/lessons/legacy/1-1/media/processed` 审核，再导出到 `course-content/runtime/lessons/legacy/1-1/media`
 - 学生个人中心 `/profile` 已不再使用旧的五维仿真雷达或课外展示补强卡口径，而是统一消费数据治理六维能力快照；姓名下显示学号，页面只保留学生态信息，不再显示“学生”角色文案
 - 学生个人中心的最近活动已经改为真实聚合：来源包括 `StudentState/ClassSession` 的课堂加入记录、`InteractionLog` 的互动/知识卡/跨域探索行为、`SimulationLog` 的仿真记录，以及 `LearningFact(question)` 的题目与自适应练习记录
 - 个性化补强路径已接入 `generateRecommendations(userId)` 与自适应习题诊断摘要；个人中心现在直接展示资源推荐卡和 `/assessment/adaptive-practice` 的继续练习入口

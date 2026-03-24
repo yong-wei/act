@@ -12,9 +12,9 @@ const pagePath = path.join(root, 'src/app/interactive-learning/courses/page.tsx'
 const pageContent = fs.readFileSync(pagePath, 'utf8');
 
 assert.equal(
-  PREMIUM_LESSONS.some((lesson) => lesson.id === 'l2a-time-domain-fasttrack'),
+  PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-1-3-time-domain-response'),
   true,
-  '精品课程分组中应新增 L-2a 重构课程入口',
+  '精品课程分组中应保留 2-2 主线课程入口',
 );
 
 assert.equal(
@@ -24,9 +24,9 @@ assert.equal(
 );
 
 assert.equal(
-  PREMIUM_LESSONS.some((lesson) => lesson.id === 'l2d-three-domain-linkage-practice'),
+  LEGACY_LESSONS.some((lesson) => lesson.id === 'l2d-three-domain-linkage-practice'),
   true,
-  '精品课程分组中应补齐 L-2d 三域联动实践课程入口',
+  'legacy 来源课应归入归档课程分组',
 );
 
 assert.equal(
@@ -42,9 +42,9 @@ assert.equal(
 );
 
 assert.equal(
-  pageContent.includes('默认收起') || pageContent.includes('展开旧版章节课程') || pageContent.includes('旧版章节课程'),
+  pageContent.includes('默认收起') || pageContent.includes('展开归档课程') || pageContent.includes('归档课程'),
   true,
-  '互动课程页应明确标识旧 lessonXX 系列为折叠区内容',
+  '互动课程页应明确标识归档课程折叠区',
 );
 
 assert.equal(

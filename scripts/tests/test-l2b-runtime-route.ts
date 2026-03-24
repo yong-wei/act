@@ -12,26 +12,26 @@ const l2bCourse = read('src/lib/l2b-course.ts');
 const runtimeRoute = read('src/app/course-runtime/[...assetPath]/route.ts');
 
 assert.equal(
-  l2bCourse.includes("/course-runtime/lessons/L-2b/media/sh-01-pole-migration-locus.svg") &&
-    l2bCourse.includes("/course-runtime/lessons/L-2b/media/h-05-example2-root-locus-crossing.svg"),
+  l2bCourse.includes("/course-runtime/lessons/legacy/L-2b/media/sh-01-pole-migration-locus.svg") &&
+    l2bCourse.includes("/course-runtime/lessons/legacy/L-2b/media/h-05-example2-root-locus-crossing.svg"),
   true,
   'L-2b 媒体 URL 应通过 course-runtime 路由读取 runtime 产物',
 );
 
 assert.equal(
-  fs.existsSync(path.join(root, 'course-content/runtime/lessons/L-2b/lesson.json')),
+  fs.existsSync(path.join(root, 'course-content/runtime/lessons/legacy/L-2b/lesson.json')),
   true,
   'L-2b runtime lesson.json 应存在',
 );
 
 assert.equal(
-  fs.existsSync(path.join(root, 'course-content/runtime/lessons/L-2b/graph-overlay.json')),
+  fs.existsSync(path.join(root, 'course-content/runtime/lessons/legacy/L-2b/graph-overlay.json')),
   true,
   'L-2b runtime graph-overlay.json 应存在',
 );
 
 assert.equal(
-  fs.existsSync(path.join(root, 'course-content/runtime/lessons/L-2b/handout.md')),
+  fs.existsSync(path.join(root, 'course-content/runtime/lessons/legacy/L-2b/handout.md')),
   true,
   'L-2b runtime handout.md 应存在',
 );

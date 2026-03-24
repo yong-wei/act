@@ -1,0 +1,112 @@
+{
+  "lesson_id": "L-2c",
+  "title": "频域直觉速通——Bode图与相位裕度初识（先用，不推导）",
+  "layer": "层0",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "X",
+  "graph_version": "612+5",
+  "focus_node_ids": [
+    "频率响应直觉_5_L2c001",
+    "截止频率直觉_5_L2c002",
+    "相位裕度直觉_5_L2c003",
+    "幅值裕度直觉_5_L2c004",
+    "三域直觉联动_5_L2c005"
+  ],
+  "reuse_node_ids": [
+    "频域分析_2_2e257d89",
+    "截止频率_5_c7d09ff7",
+    "相角裕度_5_5a74b451",
+    "幅值裕度_5_73af26a5",
+    "阻尼比_3_b849784e",
+    "超调量_3_fc3f5b17",
+    "极点迁移_4_L2b001"
+  ],
+  "entry_nodes": [
+    "频率响应直觉_5_L2c001"
+  ],
+  "summary_nodes": [
+    "三域直觉联动_5_L2c005"
+  ],
+  "card_order": [
+    "频率响应直觉_5_L2c001",
+    "截止频率直觉_5_L2c002",
+    "相位裕度直觉_5_L2c003",
+    "幅值裕度直觉_5_L2c004",
+    "三域直觉联动_5_L2c005"
+  ],
+  "preceding_lesson": "L-2b",
+  "following_lesson": "L-2d",
+  "refinement_units": [
+    "2-4",
+    "2-5"
+  ],
+  "sequence": {
+    "lesson_id": "L-2c",
+    "groups": [
+      {
+        "group_name": "引入",
+        "step_ids": [
+          "step-01",
+          "step-02"
+        ],
+        "node_ids": [
+          "频率响应直觉_5_L2c001"
+        ]
+      },
+      {
+        "group_name": "频率简历与截止频率",
+        "step_ids": [
+          "step-03",
+          "step-04",
+          "step-05",
+          "step-06",
+          "step-07"
+        ],
+        "node_ids": [
+          "频率响应直觉_5_L2c001",
+          "截止频率直觉_5_L2c002",
+          "相位裕度直觉_5_L2c003"
+        ]
+      },
+      {
+        "group_name": "稳定余量",
+        "step_ids": [
+          "step-08",
+          "step-09",
+          "step-10",
+          "step-11",
+          "step-12",
+          "step-13"
+        ],
+        "node_ids": [
+          "相位裕度直觉_5_L2c003",
+          "幅值裕度直觉_5_L2c004"
+        ]
+      },
+      {
+        "group_name": "三域汇聚与收束",
+        "step_ids": [
+          "step-14",
+          "step-15",
+          "step-16",
+          "step-17"
+        ],
+        "node_ids": [
+          "三域直觉联动_5_L2c005"
+        ]
+      }
+    ],
+    "card_order": [
+      "频率响应直觉_5_L2c001",
+      "截止频率直觉_5_L2c002",
+      "相位裕度直觉_5_L2c003",
+      "幅值裕度直觉_5_L2c004",
+      "三域直觉联动_5_L2c005"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/legacy/L-2c/handout.md",
+  "handout_source_path": "course-content/runtime/lessons/legacy/L-2c/handout.md",
+  "graph_overlay_path": "/course-runtime/lessons/legacy/L-2c/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/legacy/L-2c/media"
+}

@@ -142,7 +142,7 @@ export function UNIT_1_3CourseEntryPage({
               </div>
               <h3 className="premium-lesson-title text-xl font-semibold">创建课堂并进入教师端</h3>
               <p className="premium-lesson-muted mt-2">
-                自动克隆 1-3 预置教案，生成课堂码并进入“时域响应分析”精品课堂。
+                自动克隆 2-2 预置教案，生成课堂码并进入“时域响应基础”精品课堂。
               </p>
               <button
                 type="button"
@@ -202,7 +202,7 @@ export function UNIT_1_3CourseEntryPage({
         </div>
 
         <section className="premium-lesson-panel mt-4 px-5 py-5">
-          <div className="premium-lesson-kicker">1-3 · Time-Domain Response</div>
+          <div className="premium-lesson-kicker">2-2 · Time-Domain Response</div>
           <h2 className="premium-lesson-title mt-2 text-3xl font-semibold sm:text-4xl">{UNIT_1_3_COURSE_TITLE}</h2>
           <p className="premium-lesson-muted mt-3 max-w-3xl sm:text-base">{UNIT_1_3_COURSE_DESCRIPTION}</p>
           <p className="premium-lesson-muted mt-3 max-w-3xl">

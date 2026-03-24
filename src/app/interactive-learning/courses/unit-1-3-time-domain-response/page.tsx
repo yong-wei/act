@@ -8,6 +8,6 @@ export const dynamic = 'force-dynamic';
 
 export default async function UNIT_1_3DesignFeasibleDomainEntryRoute() {
   const session = await getServerSession(authOptions);
-  const lessonRuntime = await loadLessonRuntimeEntry('1-3');
+  const lessonRuntime = await loadLessonRuntimeEntry('2-2');
   return <UNIT_1_3CourseEntryPage initialRole={session?.user?.role} lessonRuntime={lessonRuntime} />;
 }

@@ -20,26 +20,26 @@
 | L-2d | 实践 | ✅（practice-guide.md + assessment-spec.md） | ✅ | ✅（14步骤，全前端绘制） | ✅（全前端绘制，无静态文件） | ✅ |
 
 **L-2c 文件路径（全套）**：
-- 讲义：`authoring/lessons/L-2c/design/handout.md`
-- 教案：`authoring/lessons/L-2c/design/boppps.md`
-- 互动页面：`authoring/lessons/L-2c/design/interactive-page.md`
-- 多模态资源文档：`authoring/lessons/L-2c/design/multimedia.md`
-- Python 脚本：`authoring/lessons/L-2c/media/raw/`（5个 .py + matplotlib_font.py）
-- 知识图谱节点：`authoring/lessons/L-2c/graph/nodes.jsonl`（5个新节点）
-- 知识图谱关系：`authoring/lessons/L-2c/graph/relations.jsonl`（12条关系）
+- 讲义：`authoring/lessons/legacy/L-2c/design/handout.md`
+- 教案：`authoring/lessons/legacy/L-2c/design/boppps.md`
+- 互动页面：`authoring/lessons/legacy/L-2c/design/interactive-page.md`
+- 多模态资源文档：`authoring/lessons/legacy/L-2c/design/multimedia.md`
+- Python 脚本：`authoring/lessons/legacy/L-2c/media/raw/`（5个 .py + matplotlib_font.py）
+- 知识图谱节点：`authoring/lessons/legacy/L-2c/graph/nodes.jsonl`（5个新节点）
+- 知识图谱关系：`authoring/lessons/legacy/L-2c/graph/relations.jsonl`（12条关系）
 - 知识卡片：`authoring/knowledge/cards/nodes/`（5张卡片）
-- 设计决策备忘：`authoring/lessons/L-2c/notes/design-decisions.md`
+- 设计决策备忘：`authoring/lessons/legacy/L-2c/notes/design-decisions.md`
 
 **L-2d 文件路径（全套）**：
-- 实践任务书：`authoring/lessons/L-2d/design/practice-guide.md`
-- 评价量规：`authoring/lessons/L-2d/design/assessment-spec.md`
-- 教案：`authoring/lessons/L-2d/design/boppps.md`
-- 互动页面：`authoring/lessons/L-2d/design/interactive-page.md`
-- 课次元数据：`authoring/lessons/L-2d/manifest.json`（含 practice_config，K_cr=42）
-- 知识图谱节点：`authoring/lessons/L-2d/graph/nodes.jsonl`（2个新节点）
-- 知识图谱关系：`authoring/lessons/L-2d/graph/relations.jsonl`（7条关系）
+- 实践任务书：`authoring/lessons/legacy/L-2d/design/practice-guide.md`
+- 评价量规：`authoring/lessons/legacy/L-2d/design/assessment-spec.md`
+- 教案：`authoring/lessons/legacy/L-2d/design/boppps.md`
+- 互动页面：`authoring/lessons/legacy/L-2d/design/interactive-page.md`
+- 课次元数据：`authoring/lessons/legacy/L-2d/manifest.json`（含 practice_config，K_cr=42）
+- 知识图谱节点：`authoring/lessons/legacy/L-2d/graph/nodes.jsonl`（2个新节点）
+- 知识图谱关系：`authoring/lessons/legacy/L-2d/graph/relations.jsonl`（7条关系）
 - 知识卡片：`authoring/knowledge/cards/nodes/三域联动操作体验_5_L2d001.md` + `临界增益体验_5_L2d002.md`
-- 卡片排序：`authoring/knowledge/cards/lessons/L-2d/sequence.json`（4组，14步骤）
+- 卡片排序：`authoring/knowledge/cards/lessons/legacy/L-2d/sequence.json`（4组，14步骤）
 
 ---
 
@@ -48,7 +48,7 @@
 | 项 | 说明 |
 |----|------|
 | `sh-00-equalizer-analogy.png` | AI 生图（Midjourney/DALL·E），提示词已在 multimedia.md 中，生成后放入 `media/raw/`，压缩版放入 `media/processed/`，interactive-page step-02 处引用路径已写入（待文件实际生成） |
-| 执行 Python 脚本 | `cd authoring/lessons/L-2c/media/raw && python3 各脚本 --output ../processed/xxx.svg` |
+| 执行 Python 脚本 | `cd authoring/lessons/legacy/L-2c/media/raw && python3 各脚本 --output ../processed/xxx.svg` |
 | 下一单元 | L-2d（三域联动平台实操），本节多次提到"下节平台实操" |
 
 ---
@@ -223,7 +223,7 @@ data/
 
 **建立目录骨架**：
 ```
-authoring/lessons/L-2a/{design,media/raw,media/processed,graph,cards/overrides,notes}/
+authoring/lessons/legacy/L-2a/{design,media/raw,media/processed,graph,cards/overrides,notes}/
 authoring/knowledge/{base,overlays/L-2a,cards/{nodes,lessons/L-2a}}/
 authoring/shared/{media-placeholders,templates,schema}/
 runtime/{lessons/L-2a,knowledge,indexes}/
@@ -231,17 +231,17 @@ scripts/
 ```
 
 **迁移文件（复制方式，原文件保留）**：
-- 设计文档 4 份 → `authoring/lessons/L-2a/design/`
-- 图谱数据 → `authoring/lessons/L-2a/graph/` 及 `authoring/knowledge/overlays/L-2a/`
+- 设计文档 4 份 → `authoring/lessons/legacy/L-2a/design/`
+- 图谱数据 → `authoring/lessons/legacy/L-2a/graph/` 及 `authoring/knowledge/overlays/legacy/L-2a/`
 - 9 张卡片 → `authoring/knowledge/cards/nodes/`
-- sequence.json + overrides.json → `authoring/lessons/L-2a/cards/` 及 `authoring/knowledge/cards/lessons/L-2a/`
+- sequence.json + overrides.json → `authoring/lessons/legacy/L-2a/cards/` 及 `authoring/knowledge/cards/lessons/legacy/L-2a/`
 - 知识图谱基线 → `authoring/knowledge/base/`
 - 大纲 + 图谱 schema → `authoring/shared/` 及 `authoring/shared/schema/`
 
 **新建文件**：
-- `authoring/lessons/L-2a/manifest.json`（课次元数据与路径索引）
-- `authoring/lessons/L-2a/graph/card-refs.json`（9个节点ID的卡片引用列表）
-- `authoring/knowledge/overlays/L-2a/nodes.jsonl` + `relations.jsonl`（图谱增量镜像）
+- `authoring/lessons/legacy/L-2a/manifest.json`（课次元数据与路径索引）
+- `authoring/lessons/legacy/L-2a/graph/card-refs.json`（9个节点ID的卡片引用列表）
+- `authoring/knowledge/overlays/legacy/L-2a/nodes.jsonl` + `relations.jsonl`（图谱增量镜像）
 - `README.md`（目录规范说明）
 - `scripts/export-runtime.sh`（运行态导出占位脚本）
 
@@ -261,14 +261,14 @@ scripts/
 **从 `course-content/authoring/lessons/` 开始工作**，下次会话可选择：
 
 **选项 A——推进 L-2b（根轨迹直觉速通）**：
-- 新建 `authoring/lessons/L-2b/` 目录
+- 新建 `authoring/lessons/legacy/L-2b/` 目录
 - 运行 `python3 course-content/scripts/kg_query.py unit L-2b` 查询相关节点
 - 开始创作 L-2b 讲义
 
 **选项 B——L-2c（频域直觉速通）**
 
 **选项 C——运行多模态资源脚本**：
-- 运行 `authoring/lessons/L-2a/design/multimedia.md` 中的 Python 代码，生成实际图片文件
+- 运行 `authoring/lessons/legacy/L-2a/design/multimedia.md` 中的 Python 代码，生成实际图片文件
 
 ---
 

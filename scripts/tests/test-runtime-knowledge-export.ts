@@ -17,9 +17,9 @@ const relationsPath = 'course-content/runtime/knowledge/graph/relations.jsonl';
 const runtimeNodeCardPath = 'course-content/runtime/knowledge/cards/nodes/极点迁移_4_L2b001.md';
 const runtimeConceptPath = 'course-content/runtime/knowledge/cards/concepts/相角裕度_5_5a74b451.mdx';
 const legacyConceptPath = 'course-content/runtime/knowledge/cards/concepts/phase-margin.mdx';
-const lessonJsonPath = 'course-content/runtime/lessons/L-2b/lesson.json';
-const graphOverlayPath = 'course-content/runtime/lessons/L-2b/graph-overlay.json';
-const handoutPath = 'course-content/runtime/lessons/L-2b/handout.md';
+const lessonJsonPath = 'course-content/runtime/lessons/legacy/L-2b/lesson.json';
+const graphOverlayPath = 'course-content/runtime/lessons/legacy/L-2b/graph-overlay.json';
+const handoutPath = 'course-content/runtime/lessons/legacy/L-2b/handout.md';
 
 assert.equal(fs.existsSync(path.join(root, nodesPath)), true, '应导出 runtime 全局知识节点文件 nodes.json');
 assert.equal(fs.existsSync(path.join(root, relationsPath)), true, '应导出 runtime 全局关系文件 relations.jsonl');
@@ -60,7 +60,7 @@ const lessonJson = readJson(lessonJsonPath);
 assert.equal(lessonJson.lesson_id, 'L-2b', 'lesson.json 应标记当前课次');
 assert.equal(Array.isArray(lessonJson.card_order), true, 'lesson.json 应保留卡片顺序');
 assert.equal(typeof lessonJson.handout_path, 'string', 'lesson.json 应暴露讲义路径');
-assert.equal(lessonJson.handout_path, '/course-runtime/lessons/L-2b/handout.md', 'handout_path 应走 course-runtime');
+assert.equal(lessonJson.handout_path, '/course-runtime/lessons/legacy/L-2b/handout.md', 'handout_path 应走 course-runtime');
 
 const graphOverlay = readJson(graphOverlayPath);
 assert.deepEqual(
@@ -73,7 +73,7 @@ assert.equal(Array.isArray(graphOverlay.links), true, 'graph-overlay 应包含�
 
 const handout = readText(handoutPath);
 assert.equal(
-  handout.includes('/course-runtime/lessons/L-2b/media/sh-01-pole-migration-locus.svg'),
+  handout.includes('/course-runtime/lessons/legacy/L-2b/media/sh-01-pole-migration-locus.svg'),
   true,
   '导出的 handout 应将相对媒体路径改写为 course-runtime 路径',
 );

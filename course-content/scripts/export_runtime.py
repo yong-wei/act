@@ -4,9 +4,11 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +18,17 @@ COURSE_ROOT = REPO_ROOT / 'course-content'
 AUTHORING_ROOT = COURSE_ROOT / 'authoring'
 RUNTIME_ROOT = COURSE_ROOT / 'runtime'
 CONTENT_CONCEPTS_ROOT = REPO_ROOT / 'content' / 'concepts'
+
+sys.path.insert(0, str(COURSE_ROOT / 'scripts'))
+from lesson_id_map import (  # noqa: E402
+    get_authoring_cards_dir,
+    get_authoring_lesson_dir,
+    get_authoring_overlays_dir,
+    get_lesson_entry,
+    get_mapped_target_id,
+    get_runtime_lesson_dir,
+    load_lesson_id_map,
+)
 
 CHAPTER_NAME_BY_NUMBER = {
     1: '基本概念',
@@ -49,7 +62,7 @@ KNOWLEDGE_DIM_MAP = {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Export authoring course content to runtime.')
-    parser.add_argument('lesson', nargs='?', help='Lesson id such as L-2b')
+    parser.add_argument('lesson', nargs='?', help='Lesson id such as 2-2, 4-1 or legacy/L-2d')
     parser.add_argument('--all', action='store_true', dest='export_all', help='Export all lessons')
     return parser.parse_args()
 
@@ -265,18 +278,23 @@ def copy_tree_contents(source: Path, target: Path, patterns: tuple[str, ...]) ->
 
 def reset_directory(target: Path) -> None:
     if target.exists():
-        shutil.rmtree(target)
+        def handle_remove_error(function, path, exc_info):  # type: ignore[no-untyped-def]
+            if issubclass(exc_info[0], FileNotFoundError):
+                return
+            raise exc_info[1]
+
+        shutil.rmtree(target, onerror=handle_remove_error)
     target.mkdir(parents=True, exist_ok=True)
 
 
-def rewrite_markdown_media(markdown: str, lesson_id: str) -> str:
+def rewrite_markdown_media(markdown: str, runtime_dir_fragment: str) -> str:
     def replace(match: re.Match[str]) -> str:
         label = match.group(1)
         url = match.group(2).strip()
         if '://' in url or url.startswith('/'):
             return match.group(0)
         filename = Path(url).name
-        rewritten = f'/course-runtime/lessons/{lesson_id}/media/{filename}'
+        rewritten = f'/course-runtime/lessons/{runtime_dir_fragment}/media/{filename}'
         return f'![{label}]({rewritten})'
 
     pattern = re.compile(r'!\[([^\]]*)\]\(([^)]+)\)')
@@ -284,16 +302,19 @@ def rewrite_markdown_media(markdown: str, lesson_id: str) -> str:
 
 
 def export_handout(lesson_id: str) -> None:
-    design_dir = AUTHORING_ROOT / 'lessons' / lesson_id / 'design'
+    lesson_dir = get_authoring_lesson_dir(lesson_id)
+    runtime_dir = get_runtime_lesson_dir(lesson_id)
+    runtime_fragment = str(runtime_dir.relative_to(RUNTIME_ROOT / 'lessons')).replace('\\', '/')
+    design_dir = lesson_dir / 'design'
     source = design_dir / 'handout.md'
     if not source.exists():
         practice_guide = design_dir / 'practice-guide.md'
         if practice_guide.exists():
             source = practice_guide
-    destination = RUNTIME_ROOT / 'lessons' / lesson_id / 'handout.md'
+    destination = runtime_dir / 'handout.md'
     content = source.read_text(encoding='utf-8')
     destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(rewrite_markdown_media(content, lesson_id), encoding='utf-8')
+    destination.write_text(rewrite_markdown_media(content, runtime_fragment), encoding='utf-8')
 
 
 def copy_media_assets(source_dir: Path, destination_dir: Path) -> list[str]:
@@ -322,17 +343,23 @@ def copy_media_assets(source_dir: Path, destination_dir: Path) -> list[str]:
 
 
 def generate_runtime_media(lesson_id: str) -> None:
-    raw_dir = AUTHORING_ROOT / 'lessons' / lesson_id / 'media' / 'raw'
-    output_dir = RUNTIME_ROOT / 'lessons' / lesson_id / 'media'
+    lesson_dir = get_authoring_lesson_dir(lesson_id)
+    raw_dir = lesson_dir / 'media' / 'raw'
+    output_dir = get_runtime_lesson_dir(lesson_id) / 'media'
     reset_directory(output_dir)
 
-    processed_dir = AUTHORING_ROOT / 'lessons' / lesson_id / 'media' / 'processed'
+    processed_dir = lesson_dir / 'media' / 'processed'
     if processed_dir.exists() and any(path.is_file() for path in processed_dir.iterdir()):
         copy_media_assets(processed_dir, output_dir)
         return
 
     if not raw_dir.exists():
         return
+
+    matplotlib_env = os.environ.copy()
+    matplotlib_env['MPLBACKEND'] = 'Agg'
+    matplotlib_env['MPLCONFIGDIR'] = str(raw_dir / '.matplotlib')
+    Path(matplotlib_env['MPLCONFIGDIR']).mkdir(parents=True, exist_ok=True)
 
     static_suffixes = {
         '.png',
@@ -363,13 +390,15 @@ def generate_runtime_media(lesson_id: str) -> None:
             ['python3', script.name, '--output', str(output_path)],
             cwd=str(raw_dir),
             check=True,
+            env=matplotlib_env,
         )
 
 
 def export_review_bundle(lesson_id: str) -> dict[str, Any]:
-    review_dir = RUNTIME_ROOT / 'lessons' / lesson_id / 'review'
+    review_dir = get_runtime_lesson_dir(lesson_id) / 'review'
     review_dir.mkdir(parents=True, exist_ok=True)
-    design_dir = AUTHORING_ROOT / 'lessons' / lesson_id / 'design'
+    design_dir = get_authoring_lesson_dir(lesson_id) / 'design'
+    runtime_fragment = str(review_dir.parent.relative_to(RUNTIME_ROOT / 'lessons')).replace('\\', '/')
 
     review_paths: dict[str, Any] = {'status': 'pending'}
     copy_pairs = {
@@ -383,12 +412,15 @@ def export_review_bundle(lesson_id: str) -> dict[str, Any]:
         if not source.exists():
             continue
         destination = review_dir / source_name
-        destination.write_text(rewrite_markdown_media(source.read_text(encoding='utf-8'), lesson_id), encoding='utf-8')
-        review_paths[json_key] = f'/course-runtime/lessons/{lesson_id}/review/{source_name}'
+        destination.write_text(
+            rewrite_markdown_media(source.read_text(encoding='utf-8'), runtime_fragment),
+            encoding='utf-8',
+        )
+        review_paths[json_key] = f'/course-runtime/lessons/{runtime_fragment}/review/{source_name}'
 
     report_path = review_dir / 'review-report.md'
     if report_path.exists():
-        review_paths['report_path'] = f'/course-runtime/lessons/{lesson_id}/review/review-report.md'
+        review_paths['report_path'] = f'/course-runtime/lessons/{runtime_fragment}/review/review-report.md'
         review_paths['status'] = 'reviewed'
 
     for filename, json_key in (
@@ -397,21 +429,22 @@ def export_review_bundle(lesson_id: str) -> dict[str, Any]:
         ('source-manifest.json', 'source_manifest_path'),
     ):
         if (review_dir / filename).exists():
-            review_paths[json_key] = f'/course-runtime/lessons/{lesson_id}/review/{filename}'
+            review_paths[json_key] = f'/course-runtime/lessons/{runtime_fragment}/review/{filename}'
 
     return review_paths
 
 
 def load_manifest(lesson_id: str) -> dict[str, Any]:
-    return read_json(AUTHORING_ROOT / 'lessons' / lesson_id / 'manifest.json')
+    return read_json(get_authoring_lesson_dir(lesson_id) / 'manifest.json')
 
 
 def load_sequence(lesson_id: str) -> dict[str, Any]:
-    return read_json(AUTHORING_ROOT / 'knowledge' / 'cards' / 'lessons' / lesson_id / 'sequence.json')
+    return read_json(get_authoring_cards_dir(lesson_id) / 'sequence.json')
 
 
 def build_graph_overlay(
     lesson_id: str,
+    graph_lesson_id: str,
     manifest: dict[str, Any],
     sequence: dict[str, Any],
     runtime_nodes: list[dict[str, Any]],
@@ -429,7 +462,7 @@ def build_graph_overlay(
     node_set = set(node_ids)
 
     return {
-        'lesson_id': lesson_id,
+        'lesson_id': graph_lesson_id,
         'title': manifest.get('title'),
         'focus_node_ids': manifest.get('focus_node_ids', []),
         'reuse_node_ids': manifest.get('reuse_node_ids', []),
@@ -460,24 +493,31 @@ def export_lesson_runtime(
 ) -> None:
     manifest = load_manifest(lesson_id)
     sequence = load_sequence(lesson_id)
+    runtime_dir = get_runtime_lesson_dir(lesson_id)
+    runtime_fragment = str(runtime_dir.relative_to(RUNTIME_ROOT / 'lessons')).replace('\\', '/')
+    graph_lesson_id = get_mapped_target_id(lesson_id) or str(manifest.get('lesson_id') or lesson_id)
+    runtime_sequence = {
+        **sequence,
+        'lesson_id': graph_lesson_id,
+    }
     export_handout(lesson_id)
     generate_runtime_media(lesson_id)
     review_paths = export_review_bundle(lesson_id)
 
-    lesson_dir = RUNTIME_ROOT / 'lessons' / lesson_id
-    graph_overlay = build_graph_overlay(lesson_id, manifest, sequence, runtime_nodes, runtime_relations)
-    write_json(lesson_dir / 'graph-overlay.json', graph_overlay)
+    graph_overlay = build_graph_overlay(lesson_id, graph_lesson_id, manifest, runtime_sequence, runtime_nodes, runtime_relations)
+    write_json(runtime_dir / 'graph-overlay.json', graph_overlay)
 
     lesson_json = {
         **manifest,
-        'sequence': sequence,
-        'handout_path': f'/course-runtime/lessons/{lesson_id}/handout.md',
-        'handout_source_path': f'course-content/runtime/lessons/{lesson_id}/handout.md',
-        'graph_overlay_path': f'/course-runtime/lessons/{lesson_id}/graph-overlay.json',
-        'media_base_path': f'/course-runtime/lessons/{lesson_id}/media',
+        'lesson_id': graph_lesson_id,
+        'sequence': runtime_sequence,
+        'handout_path': f'/course-runtime/lessons/{runtime_fragment}/handout.md',
+        'handout_source_path': f'course-content/runtime/lessons/{runtime_fragment}/handout.md',
+        'graph_overlay_path': f'/course-runtime/lessons/{runtime_fragment}/graph-overlay.json',
+        'media_base_path': f'/course-runtime/lessons/{runtime_fragment}/media',
         'review': review_paths,
     }
-    write_json(lesson_dir / 'lesson.json', lesson_json)
+    write_json(runtime_dir / 'lesson.json', lesson_json)
 
 
 def load_combined_authoring_graph() -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]]]:
@@ -486,7 +526,16 @@ def load_combined_authoring_graph() -> tuple[dict[str, dict[str, Any]], list[dic
     relation_records = read_jsonl(AUTHORING_ROOT / 'knowledge' / 'base' / 'relations.jsonl')
 
     lesson_root = AUTHORING_ROOT / 'lessons'
-    for lesson_dir in sorted(path for path in lesson_root.iterdir() if path.is_dir()):
+    lesson_dirs = []
+    for path in sorted(lesson_root.iterdir()):
+        if not path.is_dir():
+            continue
+        if path.name == 'legacy':
+            lesson_dirs.extend(sorted(child for child in path.iterdir() if child.is_dir()))
+            continue
+        lesson_dirs.append(path)
+
+    for lesson_dir in lesson_dirs:
         for node in read_jsonl(lesson_dir / 'graph' / 'nodes.jsonl'):
             node_id = str(node['id'])
             nodes_by_id[node_id] = node
@@ -558,12 +607,20 @@ def export_global_knowledge() -> tuple[list[dict[str, Any]], list[dict[str, Any]
 
 
 def resolve_lessons(args: argparse.Namespace) -> list[str]:
-    lesson_dirs = sorted(path.name for path in (AUTHORING_ROOT / 'lessons').iterdir() if path.is_dir())
     if args.export_all:
-        return lesson_dirs
+        lessons: list[str] = []
+        for entry in load_lesson_id_map().get('entries', []):
+            request_ids = entry.get('request_ids', [])
+            if not request_ids:
+                continue
+            request_id = str(request_ids[0])
+            if get_authoring_lesson_dir(request_id).exists():
+                lessons.append(request_id)
+        return lessons
     if args.lesson:
-        if args.lesson not in lesson_dirs:
-            raise SystemExit(f'Unknown lesson: {args.lesson}')
+        get_lesson_entry(args.lesson)
+        if not get_authoring_lesson_dir(args.lesson).exists():
+            raise SystemExit(f'Unknown lesson storage: {args.lesson}')
         return [args.lesson]
     raise SystemExit('Please provide a lesson id or --all')
 

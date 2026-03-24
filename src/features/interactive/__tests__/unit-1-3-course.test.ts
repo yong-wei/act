@@ -8,7 +8,7 @@ describe('unit 1-3 interactive course', () => {
     const registry = COURSE_AI_CONTEXT_REGISTRY['unit-1-3-time-domain-response-v1'];
 
     expect(registry).toBeDefined();
-    expect(registry.courseMeta.courseTitle).toContain('时域响应分析');
+    expect(registry.courseMeta.courseTitle).toContain('时域响应基础');
   });
 
   it('defines the full 17-step lesson flow', () => {

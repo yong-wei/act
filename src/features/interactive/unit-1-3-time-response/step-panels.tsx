@@ -87,7 +87,7 @@ function getStepBlueprint(step: UNIT_1_3StepDefinition): StepBlueprint {
       return {
         kicker: 'Roadmap',
         intro:
-          '1-1 教会我们把对象写成传递函数，1-2 教会我们把多个环节化成闭环传函，1-3 则继续追问：这个闭环系统到底快不快、稳不稳、会不会冲过头。',
+          '2-1 教会我们把对象写成可分析的标准模型，2-2 则继续追问：这个闭环系统到底快不快、稳不稳、会不会冲过头。',
         sections: [
           {
             title: '本课新增的观察语言',
@@ -1379,12 +1379,12 @@ export function UNIT_1_3KnowledgeMapVisual() {
   return (
     <section className="premium-lesson-panel-soft px-4 py-5">
       <div className="premium-lesson-kicker">Course Bridge</div>
-      <h2 className="premium-lesson-title mt-2 text-xl font-semibold">从 1-2 到 2-1：1-3 是动态品质这座桥</h2>
+      <h2 className="premium-lesson-title mt-2 text-xl font-semibold">从 2-1 到 2-3：2-2 是动态品质这座桥</h2>
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         {[
-          ['1-2', '先把多环节系统化成闭环传递函数，得到可分析的系统蓝图。'],
-          ['1-3', '把闭环传函翻译成响应曲线，并用快、冲、稳的指标语言描述它。'],
-          ['2-1', '继续把时域指标与极点、设计约束和后续综合问题连接起来。'],
+          ['2-1', '先把工程对象写成可分析、可连接、可运算的标准模型。'],
+          ['2-2', '把标准模型翻译成响应曲线，并用快、冲、稳的指标语言描述它。'],
+          ['2-3', '继续把时域对象推广到频率响应对象，准备进入更完整的结构机理层。'],
         ].map(([title, body], index) => (
           <div
             key={title}
@@ -1455,7 +1455,7 @@ export function UNIT_1_3StepContentPanel({
             className="h-auto w-full rounded-2xl border border-border/60 bg-background/60"
           />
           <figcaption className="premium-lesson-muted mt-3 text-xs">
-            课程 runtime 配套图示。当前交互实现直接消费 `course-content/runtime/lessons/1-3/media/*`。
+            课程 runtime 配套图示。当前交互实现直接消费 `course-content/runtime/lessons/2-2/media/*`。
           </figcaption>
         </figure>
       ) : null}
@@ -1807,7 +1807,7 @@ export function UNIT_1_3StepAiAssistant({
   const ai = useInteractiveAI({
     config: buildInteractiveAiConfig(step),
     contextData: {
-      lessonId: '1-3',
+      lessonId: '2-2',
       stepId: step.id,
       prompts,
     },

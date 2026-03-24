@@ -23,6 +23,6 @@ export default async function UNIT_1_3TeacherRoute({
     redirect(`/interactive-learning/courses/unit-1-3-time-domain-response/student/${params.sessionId}`);
   }
 
-  const lessonRuntime = await loadLessonRuntimeEntry('1-3');
+  const lessonRuntime = await loadLessonRuntimeEntry('2-2');
   return <UNIT_1_3TeacherPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} />;
 }

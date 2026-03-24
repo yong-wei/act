@@ -22,8 +22,8 @@
   - 断言 `course-content/runtime/knowledge/graph/relations.jsonl`
   - 断言 `course-content/runtime/knowledge/cards/nodes/极点迁移_4_L2b001.md`
   - 断言 `course-content/runtime/knowledge/cards/concepts/phase-margin.mdx`
-  - 断言 `course-content/runtime/lessons/L-2b/lesson.json`
-  - 断言 `course-content/runtime/lessons/L-2b/graph-overlay.json`
+  - 断言 `course-content/runtime/lessons/legacy/L-2b/lesson.json`
+  - 断言 `course-content/runtime/lessons/legacy/L-2b/graph-overlay.json`
 - `test-runtime-knowledge-source.ts`
   - 断言 `src/lib/knowledge-graph-source.ts` 读取 `course-content/runtime`
   - 断言不再读取根目录 `data/knowledge_graph.json`
@@ -69,10 +69,10 @@ Expected: FAIL，提示 runtime 知识导出文件和 runtime 读取逻辑尚未
   - 输出 `runtime/knowledge/graph/relations.jsonl`
   - 复制 `authoring/knowledge/cards/nodes/*.md` 到 `runtime/knowledge/cards/nodes/`
   - 复制 `content/concepts/*.mdx` 到 `runtime/knowledge/cards/concepts/`
-  - 为 `L-2b` 生成 `runtime/lessons/L-2b/lesson.json`
-  - 为 `L-2b` 生成 `runtime/lessons/L-2b/graph-overlay.json`
-  - 将 `authoring/lessons/L-2b/design/handout.md` 导出到 runtime，并按 runtime 媒体路径改写相对图片引用
-  - 调用现有 L-2b 媒体脚本生成/刷新 `runtime/lessons/L-2b/media/*.svg`
+  - 为 `L-2b` 生成 `runtime/lessons/legacy/L-2b/lesson.json`
+  - 为 `L-2b` 生成 `runtime/lessons/legacy/L-2b/graph-overlay.json`
+  - 将 `authoring/lessons/legacy/L-2b/design/handout.md` 导出到 runtime，并按 runtime 媒体路径改写相对图片引用
+  - 调用现有 L-2b 媒体脚本生成/刷新 `runtime/lessons/legacy/L-2b/media/*.svg`
 
 **Step 4: Run test to verify it passes**
 

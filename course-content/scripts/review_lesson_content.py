@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -14,6 +16,13 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 COURSE_ROOT = REPO_ROOT / 'course-content'
 AUTHORING_ROOT = COURSE_ROOT / 'authoring'
 RUNTIME_ROOT = COURSE_ROOT / 'runtime'
+
+sys.path.insert(0, str(COURSE_ROOT / 'scripts'))
+from lesson_id_map import (  # noqa: E402
+    get_authoring_cards_dir,
+    get_authoring_lesson_dir,
+    get_runtime_lesson_dir,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,7 +51,7 @@ def write_text(path: Path, content: str) -> None:
 
 
 def ensure_runtime_review_dir(lesson_id: str) -> Path:
-    target = RUNTIME_ROOT / 'lessons' / lesson_id / 'review'
+    target = get_runtime_lesson_dir(lesson_id) / 'review'
     target.mkdir(parents=True, exist_ok=True)
     return target
 
@@ -94,7 +103,7 @@ def extract_expected_code_media(multimedia_path: Path) -> list[dict[str, str]]:
 
 
 def build_primary_sources(lesson_id: str, unit_type: str) -> list[Path]:
-    design_dir = AUTHORING_ROOT / 'lessons' / lesson_id / 'design'
+    design_dir = get_authoring_lesson_dir(lesson_id) / 'design'
     sources: list[Path] = []
     handout = design_dir / 'handout.md'
     practice_guide = design_dir / 'practice-guide.md'
@@ -112,9 +121,14 @@ def build_primary_sources(lesson_id: str, unit_type: str) -> list[Path]:
 
 
 def run_media_generation(lesson_id: str, expected_media: list[dict[str, str]]) -> dict[str, Any]:
-    raw_dir = AUTHORING_ROOT / 'lessons' / lesson_id / 'media' / 'raw'
-    processed_dir = AUTHORING_ROOT / 'lessons' / lesson_id / 'media' / 'processed'
+    lesson_dir = get_authoring_lesson_dir(lesson_id)
+    raw_dir = lesson_dir / 'media' / 'raw'
+    processed_dir = lesson_dir / 'media' / 'processed'
     processed_dir.mkdir(parents=True, exist_ok=True)
+    matplotlib_env = os.environ.copy()
+    matplotlib_env['MPLBACKEND'] = 'Agg'
+    matplotlib_env['MPLCONFIGDIR'] = str(raw_dir / '.matplotlib')
+    Path(matplotlib_env['MPLCONFIGDIR']).mkdir(parents=True, exist_ok=True)
 
     generated_assets: list[str] = []
     missing_assets: list[str] = []
@@ -131,6 +145,7 @@ def run_media_generation(lesson_id: str, expected_media: list[dict[str, str]]) -
             ['python3', script_path.name, '--output', str(output_path)],
             cwd=str(raw_dir),
             check=True,
+            env=matplotlib_env,
         )
         executed_scripts.append(item['script'])
         if output_path.exists():
@@ -149,7 +164,7 @@ def run_media_generation(lesson_id: str, expected_media: list[dict[str, str]]) -
 
 
 def check_knowledge_cards(lesson_id: str) -> dict[str, Any]:
-    sequence_path = AUTHORING_ROOT / 'knowledge' / 'cards' / 'lessons' / lesson_id / 'sequence.json'
+    sequence_path = get_authoring_cards_dir(lesson_id) / 'sequence.json'
     sequence = read_json(sequence_path)
     card_dir = AUTHORING_ROOT / 'knowledge' / 'cards' / 'nodes'
 
@@ -221,7 +236,9 @@ def build_review_report(
         str(path.relative_to(REPO_ROOT)).replace('\\', '/')
         for path in primary_sources
     ]
-    reviewed_paths.append(f'course-content/authoring/lessons/{lesson_id}/design/boppps.md')
+    reviewed_paths.append(
+        str((get_authoring_lesson_dir(lesson_id) / 'design' / 'boppps.md').relative_to(REPO_ROOT)).replace('\\', '/')
+    )
 
     issue_lines: list[str] = []
     for item in text_review['files']:
@@ -282,8 +299,8 @@ def build_source_manifest(
             str(path.relative_to(REPO_ROOT)).replace('\\', '/')
             for path in primary_sources
         ],
-        'boppps_source': f'course-content/authoring/lessons/{lesson_id}/design/boppps.md',
-        'sequence_source': f'course-content/authoring/knowledge/cards/lessons/{lesson_id}/sequence.json',
+        'boppps_source': str((get_authoring_lesson_dir(lesson_id) / 'design' / 'boppps.md').relative_to(REPO_ROOT)).replace('\\', '/'),
+        'sequence_source': str((get_authoring_cards_dir(lesson_id) / 'sequence.json').relative_to(REPO_ROOT)).replace('\\', '/'),
         'expected_code_media': expected_media,
     }
 
@@ -291,7 +308,7 @@ def build_source_manifest(
 def main() -> None:
     args = parse_args()
     lesson_id = args.lesson
-    lesson_dir = AUTHORING_ROOT / 'lessons' / lesson_id
+    lesson_dir = get_authoring_lesson_dir(lesson_id)
     manifest = read_json(lesson_dir / 'manifest.json')
     unit_type = str(manifest.get('unit_type', '理论'))
     design_dir = lesson_dir / 'design'

@@ -1,0 +1,26 @@
+{
+  "lesson_id": "2-2",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/2-2/sequence.json",
+  "card_order": [
+    "时域分析_2_1874cdb9",
+    "单位阶跃响应_2_6a2a83b9",
+    "一阶系统_3_4f3b29ce",
+    "时间常数_2_68356eae",
+    "二阶系统标准型_3_L2a",
+    "四种响应家族_3_L2a",
+    "无阻尼自然频率_3_13001",
+    "阻尼比_3_b849784e",
+    "阻尼振荡频率_3_13002",
+    "动态性能指标_3_a10733c1",
+    "上升时间_3_6fa0ec00",
+    "峰值时间_3_adc7ea95",
+    "超调量_3_fc3f5b17",
+    "调节时间_10_fcbccf4e",
+    "时域指标到极点参数映射_3_13003",
+    "闭环极点_3_f9432bf3",
+    "复平面可行域_4_Lsum001"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

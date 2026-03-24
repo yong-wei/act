@@ -23,8 +23,8 @@ assert.equal(l2aRoute.routeSegment, 'l2a-time-domain-fasttrack', 'L-2a 副本教
 const unit12Route = resolveSessionRouteFromPlanTitle('1-2：系统结构图与化简——从积木块到系统蓝图 (副本)');
 assert.equal(unit12Route.routeSegment, 'unit-1-2-block-diagram-simplification', '1-2 副本教案应解析到 1-2 精品课程路由');
 
-const unit13Route = resolveSessionRouteFromPlanTitle('1-3：时域响应分析——从响应曲线到动态性能指标 (副本)');
-assert.equal(unit13Route.routeSegment, 'unit-1-3-time-domain-response', '1-3 副本教案应解析到 1-3 精品课程路由');
+const unit13Route = resolveSessionRouteFromPlanTitle('2-2：时域响应基础——从响应曲线到动态性能指标 (副本)');
+assert.equal(unit13Route.routeSegment, 'unit-1-3-time-domain-response', '2-2 副本教案应解析到 2-2 主线课程路由');
 
 const defaultRoute = resolveSessionRouteFromPlanTitle('普通教案：控制系统导论');
 assert.equal(defaultRoute.routeSegment, null, '普通教案不应被错误解析为精品课程');
@@ -55,10 +55,10 @@ assert.equal(
   buildSessionParticipantHref({
     role: 'student',
     sessionId: 'demo999',
-    planTitle: '1-3：时域响应分析——从响应曲线到动态性能指标 (副本)',
+    planTitle: '2-2：时域响应基础——从响应曲线到动态性能指标 (副本)',
   }),
   '/interactive-learning/courses/unit-1-3-time-domain-response/student/demo999',
-  '1-3 学生跳转路径应指向 1-3 精品课程学生页',
+  '2-2 学生跳转路径应指向主线课程学生页',
 );
 
 for (const [label, content] of [

@@ -12,7 +12,7 @@ function readText(relativePath: string) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
-const lessonDir = 'course-content/runtime/lessons/1-2';
+const lessonDir = 'course-content/runtime/lessons/legacy/1-2';
 const reviewDir = `${lessonDir}/review`;
 
 const requiredFiles = [
@@ -39,26 +39,26 @@ for (const file of requiredFiles) {
 
 const lessonJson = readJson(`${lessonDir}/lesson.json`);
 assert.equal(lessonJson.lesson_id, '1-2', 'lesson.json 应标记 1-2');
-assert.equal(lessonJson.handout_path, '/course-runtime/lessons/1-2/handout.md', '讲义路径应走 runtime');
+assert.equal(lessonJson.handout_path, '/course-runtime/lessons/legacy/1-2/handout.md', '讲义路径应走 runtime');
 assert.equal(
   lessonJson.review?.report_path,
-  '/course-runtime/lessons/1-2/review/review-report.md',
+  '/course-runtime/lessons/legacy/1-2/review/review-report.md',
   'lesson.json 应暴露 review 报告路径',
 );
 assert.equal(
   lessonJson.review?.boppps_path,
-  '/course-runtime/lessons/1-2/review/boppps.md',
+  '/course-runtime/lessons/legacy/1-2/review/boppps.md',
   'lesson.json 应暴露审查后 boppps 路径',
 );
 
 const handout = readText(`${lessonDir}/handout.md`);
 assert.equal(
-  handout.includes('/course-runtime/lessons/1-2/media/sh-01-block-diagram-elements.svg'),
+  handout.includes('/course-runtime/lessons/legacy/1-2/media/sh-01-block-diagram-elements.svg'),
   true,
   '1-2 handout 应改写结构图元素示意图到 runtime 媒体路径',
 );
 assert.equal(
-  handout.includes('/course-runtime/lessons/1-2/media/sh-03-equivalent-transform-rules.svg'),
+  handout.includes('/course-runtime/lessons/legacy/1-2/media/sh-03-equivalent-transform-rules.svg'),
   true,
   '1-2 handout 应改写等效变换图到 runtime 媒体路径',
 );

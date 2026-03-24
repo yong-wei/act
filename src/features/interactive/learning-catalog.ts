@@ -261,11 +261,6 @@ export const FEATURED_LESSONS = [
 
 export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
   lesson.id === 'cruise-comfort-boppps' ||
-  lesson.id === 'l2a-time-domain-fasttrack' ||
-  lesson.id === 'l2b-root-locus-fasttrack' ||
-  lesson.id === 'l2c-frequency-bode-fasttrack' ||
-  lesson.id === 'l2d-three-domain-linkage-practice' ||
-  lesson.id === 'lsum-design-feasible-domain' ||
   lesson.id === 'unit-1-1-laplace-transfer-function' ||
   lesson.id === 'unit-1-2-block-diagram-simplification' ||
   lesson.id === 'unit-1-3-time-domain-response'
@@ -274,11 +269,6 @@ export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
   (lesson) =>
     lesson.id !== 'cruise-comfort-boppps' &&
-    lesson.id !== 'l2a-time-domain-fasttrack' &&
-    lesson.id !== 'l2b-root-locus-fasttrack' &&
-    lesson.id !== 'l2c-frequency-bode-fasttrack' &&
-    lesson.id !== 'l2d-three-domain-linkage-practice' &&
-    lesson.id !== 'lsum-design-feasible-domain' &&
     lesson.id !== 'unit-1-1-laplace-transfer-function' &&
     lesson.id !== 'unit-1-2-block-diagram-simplification' &&
     lesson.id !== 'unit-1-3-time-domain-response'

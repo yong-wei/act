@@ -18,4 +18,9 @@ describe('PREMIUM_LESSONS', () => {
   it('does not leave unit 1-3 in the legacy lesson list', () => {
     expect(LEGACY_LESSONS.some((lesson) => lesson.id === 'unit-1-3-time-domain-response')).toBe(false);
   });
+
+  it('moves legacy fast-track lessons into the archive list', () => {
+    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'l2a-time-domain-fasttrack')).toBe(false);
+    expect(LEGACY_LESSONS.some((lesson) => lesson.id === 'l2a-time-domain-fasttrack')).toBe(true);
+  });
 });

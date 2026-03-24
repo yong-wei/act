@@ -166,12 +166,12 @@ export const L2B_STAGE_MAP: Record<L2BStageCode, BopppsStage> = {
 };
 
 export const L2B_MEDIA = {
-  knowledgeMap: '/course-runtime/lessons/L-2b/media/knowledge-map-l2b.svg',
-  poleMigration: '/course-runtime/lessons/L-2b/media/sh-01-pole-migration-locus.svg',
-  performanceZones: '/course-runtime/lessons/L-2b/media/sh-02-root-locus-performance-zones.svg',
-  optimalDamping: '/course-runtime/lessons/L-2b/media/sh-03-root-locus-optimal-damping.svg',
-  exampleOne: '/course-runtime/lessons/L-2b/media/h-04-example1-root-locus.svg',
-  exampleTwo: '/course-runtime/lessons/L-2b/media/h-05-example2-root-locus-crossing.svg',
+  knowledgeMap: '/course-runtime/lessons/legacy/L-2b/media/knowledge-map-l2b.svg',
+  poleMigration: '/course-runtime/lessons/legacy/L-2b/media/sh-01-pole-migration-locus.svg',
+  performanceZones: '/course-runtime/lessons/legacy/L-2b/media/sh-02-root-locus-performance-zones.svg',
+  optimalDamping: '/course-runtime/lessons/legacy/L-2b/media/sh-03-root-locus-optimal-damping.svg',
+  exampleOne: '/course-runtime/lessons/legacy/L-2b/media/h-04-example1-root-locus.svg',
+  exampleTwo: '/course-runtime/lessons/legacy/L-2b/media/h-05-example2-root-locus-crossing.svg',
 } as const;
 
 export const L2B_PRE_ASSESSMENT_QUESTIONS: L2BQuestion[] = [

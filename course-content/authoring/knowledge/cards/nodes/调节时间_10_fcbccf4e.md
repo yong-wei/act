@@ -14,8 +14,8 @@ tags:
   - 动态性能指标
 card_version: "2.0"
 source_docs:
-  - authoring/lessons/L-2a/design/handout.md
-  - authoring/lessons/1-3/design/handout.md
+  - authoring/lessons/legacy/L-2a/design/handout.md
+  - authoring/lessons/2-2/design/handout.md
 asset_refs:
   - td-04-time-domain-indices-annotated.svg
   - td-06-time-spec-to-pole-region.svg

@@ -12,17 +12,17 @@
 
 **Files:**
 - Create: `scripts/tests/test-lsum-runtime-export.ts`
-- Modify: `course-content/authoring/lessons/L-sum/media/raw/*.py`
-- Create: `course-content/authoring/lessons/L-sum/media/raw/cd-01-feasible-domain-overview.py`
-- Create: `course-content/authoring/lessons/L-sum/media/raw/matplotlib_font.py`
+- Modify: `course-content/authoring/lessons/legacy/L-sum/media/raw/*.py`
+- Create: `course-content/authoring/lessons/legacy/L-sum/media/raw/cd-01-feasible-domain-overview.py`
+- Create: `course-content/authoring/lessons/legacy/L-sum/media/raw/matplotlib_font.py`
 - Modify: `course-content/authoring/knowledge/cards/nodes/*Lsum*.md`
 
 **Step 1: Write the failing test**
 
 断言：
-- `course-content/runtime/lessons/L-sum/{lesson.json,graph-overlay.json,handout.md}` 存在
+- `course-content/runtime/lessons/legacy/L-sum/{lesson.json,graph-overlay.json,handout.md}` 存在
 - 10 个 runtime 媒体文件存在
-- handout 中媒体路径已改写到 `/course-runtime/lessons/L-sum/media/*`
+- handout 中媒体路径已改写到 `/course-runtime/lessons/legacy/L-sum/media/*`
 
 **Step 2: Run test to verify it fails**
 

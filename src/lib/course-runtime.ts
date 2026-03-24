@@ -78,6 +78,15 @@ export interface RuntimeLessonEntryBundle {
 }
 
 const RUNTIME_ROOT = path.join(process.cwd(), 'course-content', 'runtime');
+const LESSON_ID_MAP_PATH = path.join(
+  process.cwd(),
+  'course-content',
+  'authoring',
+  'shared',
+  'lesson-id-map.json',
+);
+
+let runtimeLessonDirIndexPromise: Promise<Record<string, string>> | null = null;
 
 async function readJson<T>(absolutePath: string): Promise<T> {
   const content = await fs.readFile(absolutePath, 'utf8');
@@ -86,6 +95,32 @@ async function readJson<T>(absolutePath: string): Promise<T> {
 
 async function readText(absolutePath: string): Promise<string> {
   return fs.readFile(absolutePath, 'utf8');
+}
+
+async function loadRuntimeLessonDirIndex() {
+  if (!runtimeLessonDirIndexPromise) {
+    runtimeLessonDirIndexPromise = readJson<{
+      entries?: Array<{ request_ids?: string[]; runtime_lesson_dir?: string }>;
+    }>(LESSON_ID_MAP_PATH).then((payload) => {
+      const index: Record<string, string> = {};
+      for (const entry of payload.entries ?? []) {
+        const runtimeLessonDir = entry.runtime_lesson_dir;
+        if (!runtimeLessonDir) {
+          continue;
+        }
+        for (const requestId of entry.request_ids ?? []) {
+          index[String(requestId)] = runtimeLessonDir;
+        }
+      }
+      return index;
+    });
+  }
+  return runtimeLessonDirIndexPromise;
+}
+
+async function resolveLessonRuntimeFragment(lessonId: string) {
+  const index = await loadRuntimeLessonDirIndex();
+  return index[lessonId] ?? lessonId;
 }
 
 function stripFrontmatter(markdown: string): string {
@@ -143,14 +178,16 @@ async function loadFrontContentForNode(node: RuntimeNode): Promise<string> {
 }
 
 export async function loadLessonRuntimeEntry(lessonId: string): Promise<RuntimeLessonEntryBundle> {
-  const lessonDir = path.join(RUNTIME_ROOT, 'lessons', lessonId);
+  const runtimeLessonFragment = await resolveLessonRuntimeFragment(lessonId);
+  const lessonDir = path.join(RUNTIME_ROOT, 'lessons', runtimeLessonFragment);
   const [lesson, graphOverlay] = await Promise.all([
     readJson<RuntimeLessonJson>(path.join(lessonDir, 'lesson.json')),
     readJson<RuntimeGraphOverlay>(path.join(lessonDir, 'graph-overlay.json')),
   ]);
 
-  const handoutSourcePath = lesson.handout_source_path ?? `course-content/runtime/lessons/${lessonId}/handout.md`;
-  const handoutPath = lesson.handout_path ?? `/course-runtime/lessons/${lessonId}/handout.md`;
+  const handoutSourcePath =
+    lesson.handout_source_path ?? `course-content/runtime/lessons/${runtimeLessonFragment}/handout.md`;
+  const handoutPath = lesson.handout_path ?? `/course-runtime/lessons/${runtimeLessonFragment}/handout.md`;
   const handoutMarkdown = await readText(path.join(process.cwd(), handoutSourcePath));
   const handoutPreview = createHandoutPreview(handoutMarkdown);
 

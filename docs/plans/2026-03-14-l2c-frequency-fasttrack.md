@@ -16,16 +16,16 @@
 **Step 1: Write the failing test**
 
 断言：
-- `course-content/runtime/lessons/L-2c/lesson.json` 存在
-- `course-content/runtime/lessons/L-2c/graph-overlay.json` 存在
-- `course-content/runtime/lessons/L-2c/handout.md` 存在
-- `course-content/runtime/lessons/L-2c/media/h-01-bode-magnitude-regions.svg` 存在
-- `course-content/runtime/lessons/L-2c/media/h-02-phase-margin-diagram.svg` 存在
-- `course-content/runtime/lessons/L-2c/media/h-03-bode-example-annotated.svg` 存在
-- `course-content/runtime/lessons/L-2c/media/sh-04-phase-margin-vs-overshoot.svg` 存在
-- `course-content/runtime/lessons/L-2c/media/sh-05-three-domain-coupling.svg` 存在
-- `course-content/runtime/lessons/L-2c/media/sh-00-equalizer-analogy.png` 存在
-- handout 中媒体路径已改写为 `/course-runtime/lessons/L-2c/media/*`
+- `course-content/runtime/lessons/legacy/L-2c/lesson.json` 存在
+- `course-content/runtime/lessons/legacy/L-2c/graph-overlay.json` 存在
+- `course-content/runtime/lessons/legacy/L-2c/handout.md` 存在
+- `course-content/runtime/lessons/legacy/L-2c/media/h-01-bode-magnitude-regions.svg` 存在
+- `course-content/runtime/lessons/legacy/L-2c/media/h-02-phase-margin-diagram.svg` 存在
+- `course-content/runtime/lessons/legacy/L-2c/media/h-03-bode-example-annotated.svg` 存在
+- `course-content/runtime/lessons/legacy/L-2c/media/sh-04-phase-margin-vs-overshoot.svg` 存在
+- `course-content/runtime/lessons/legacy/L-2c/media/sh-05-three-domain-coupling.svg` 存在
+- `course-content/runtime/lessons/legacy/L-2c/media/sh-00-equalizer-analogy.png` 存在
+- handout 中媒体路径已改写为 `/course-runtime/lessons/legacy/L-2c/media/*`
 
 **Step 2: Run test to verify it fails**
 
