@@ -636,7 +636,7 @@ npm test               # 运行测试
 
 ## 12. 近期更新（2026-03-12）
 
-- 新增项目内技能 `.codex/skills/homework-problem-authoring/`：支持按 `course-content/authoring/shared/homework-framework.md` 中的题号（如 `T1-1`、`T3-2`）执行“3 个出题智能体 + 裁判 + 3 个作答智能体”的出题闭环，并固化临时文件交接、防作弊文件访问限制、`C/X/D` 三类题一致性判定与二轮复核规则。
+- 新增项目内技能 `.codex/skills/homework-problem-authoring/`：支持按 `course-content/syllabus-refactor/homework-framework.md` 中的题号（如 `T1-1`、`T3-2`）执行“3 个出题智能体 + 裁判 + 3 个作答智能体”的出题闭环，并固化临时文件交接、防作弊文件访问限制、`C/X/D` 三类题一致性判定与二轮复核规则。
 - 新增辅助脚本 `.codex/skills/homework-problem-authoring/scripts/extract_homework_question.py`：用于从作业框架中按题号提取最小题目规范，供主代理构造任务包时使用。
 - 新增技能回归测试 `scripts/tests/test-homework-problem-authoring-skill.ts` 与脚本测试 `scripts/tests/test_extract_homework_question.py`，用于校验技能文本约束和题号抽取脚本行为。
 

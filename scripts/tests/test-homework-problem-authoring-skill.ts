@@ -45,11 +45,12 @@ assert.equal(
 
 assert.equal(
   skill.includes('extract_homework_question.py') &&
+    skill.includes('course-content/syllabus-refactor/homework-framework.md') &&
     contract.includes('draft-1.json') &&
     contract.includes('solver-1.json') &&
     contract.includes('final-package.md'),
   true,
-  '出题技能应引用题号提取脚本，并在参考文件中给出临时产物约定',
+  '出题技能应引用新的作业框架真值文件、题号提取脚本，并在参考文件中给出临时产物约定',
 );
 
 console.log('homework problem authoring skill test passed');

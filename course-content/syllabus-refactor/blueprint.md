@@ -6,7 +6,7 @@
 
 ## 当前确认的修订决策（2026-03-23）
 
-> 本节只记录已经确认并已回写到总蓝图的决策。模块骨架与单元细节分别以 `note/module-skeletons.md` 和 `note/unit-design-details.md` 入口页及其模块分文件为准。
+> 本节只记录已经确认并已回写到总蓝图的决策。模块骨架与单元细节分别以 `course-content/syllabus-refactor/module-skeletons.md` 和 `course-content/syllabus-refactor/unit-design-details.md` 入口页及其模块分文件为准。
 
 ### 1. 课程总主线保持不变
 
@@ -116,16 +116,25 @@
 
 ### 12. 设计支撑文件
 
-- 为避免 `note/blueprint.md` 过重，模块骨架与单元细节已拆分至以下文件：
-  - `note/module-skeletons.md`
-  - `note/unit-design-details.md`
-  - `note/unit-design-details/`
+- 为避免 `course-content/syllabus-refactor/blueprint.md` 过重，模块骨架与单元细节已拆分至以下文件：
+  - `course-content/syllabus-refactor/module-skeletons.md`
+  - `course-content/syllabus-refactor/unit-design-details.md`
+  - `course-content/syllabus-refactor/unit-design-details/`
 - 当前约定：
-  - `note/blueprint.md` 只保留总蓝图级、确定性内容；
-  - `note/module-skeletons.md` 记录各模块完整单元骨架；
-  - `note/unit-design-details.md` 作为单元细节入口页；
-  - `note/unit-design-details/` 按模块记录单元级知识清单、能力清单、边界与接口，并作为后续讲义、教案、互动课程设计、媒体清单的模块级总体设计文稿。
+  - `course-content/syllabus-refactor/blueprint.md` 只保留总蓝图级、确定性内容；
+  - `course-content/syllabus-refactor/module-skeletons.md` 记录各模块完整单元骨架；
+  - `course-content/syllabus-refactor/unit-design-details.md` 作为单元细节入口页；
+  - `course-content/syllabus-refactor/unit-design-details/` 按模块记录单元级知识清单、能力清单、边界与接口，并作为后续讲义、教案、互动课程设计、媒体清单的模块级总体设计文稿。
 - 当前最新结构以这两个支撑文件为准；总蓝图只同步已经确认的模块骨架与模块定位。
+
+### 13. 作业体系改按“20道闭题题库 + 7段开放主线”重构
+
+- 课程作业体系当前固定为 `7次作业`：
+  - `作业1-6` 为 `3道闭题 + 1道开放题`；
+  - `作业7` 为 `2道闭题 + 1道开放题`。
+- 全学期闭题总量固定为 `20道`，全部进入期末题库。
+- 全学期开放题总量固定为 `7道`，按同一主线递进，最终收束为一份自选对象或系统的完整控制方案。
+- 后续期末复习不再按旧章节刷题逻辑独立组织，而必须以闭题题库五簇为底板重写。
 
 ---
 

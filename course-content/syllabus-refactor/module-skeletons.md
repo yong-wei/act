@@ -5,14 +5,14 @@
 ## 使用说明
 
 - 本文件记录各模块的完整单元骨架，用于查看模块级结构、课时分布、单元链条和设计约束。
-- `note/blueprint.md` 只保留总蓝图级、确定性内容，不再承载重型单元细节。
-- 单元级知识清单、能力清单与边界，详见 `note/unit-design-details.md` 入口页及其模块分文件。
+- `course-content/syllabus-refactor/blueprint.md` 只保留总蓝图级、确定性内容，不再承载重型单元细节。
+- 单元级知识清单、能力清单与边界，详见 `course-content/syllabus-refactor/unit-design-details.md` 入口页及其模块分文件。
 - 若三者表述出现冲突，优先级为：
-  - `note/decisions.md`
-  - `note/blueprint.md`
+  - `course-content/syllabus-refactor/decisions.md`
+  - `course-content/syllabus-refactor/blueprint.md`
   - 本文件
-  - `note/unit-design-details.md`
-  - `note/unit-design-details/`
+  - `course-content/syllabus-refactor/unit-design-details.md`
+  - `course-content/syllabus-refactor/unit-design-details/`
 
 ## 总览
 
@@ -24,7 +24,7 @@
 | 模块4 | 16学时 | 5理论 + 3实践 | 已完成骨架重排 |
 | 模块5 | 12学时 | 10h理论 + 2h实践 | 已完成强重构 |
 | 外部实验占位 | 6学时 | 0理论 + 3实践 | 教务协同，不纳入内部重构 |
-| 期末复习 | 6学时 | 3理论 | 暂沿用现有骨架 |
+| 期末复习 | 6学时 | 3理论 | 待按新题库五簇重写 |
 
 > 说明：全课程实践学时共 24 学时，其中仅有 18 学时属于课程内部可规划实践；其余 6 学时为教务运行中的外部实验，占位主题为时域、频域、非线性。
 
@@ -191,6 +191,11 @@
 
 | 顺序 | 单元 | 性质 | 主要任务 |
 |------|------|------|----------|
-| 1 | `复习1` | 理论 | 知识框架梳理 |
-| 2 | `复习2` | 理论 | 题型专项训练 |
-| 3 | `复习3` | 理论 | 综合答疑与考前梳理 |
+| 1 | `复习1` | 理论 | 待按题库簇A/B重写：建模与基础计算、稳定与结构机理 |
+| 2 | `复习2` | 理论 | 待按题库簇C/D重写：三域联动、约束设计与失败诊断 |
+| 3 | `复习3` | 理论 | 待按题库簇E与综合答疑重写：方法边界、路线比较、考前收束 |
+
+### 当前约束
+
+- 期末复习不再沿用旧“章节回顾 + 泛化刷题”骨架。
+- 后续复习重构必须以 `course-content/syllabus-refactor/homework-framework.md` 中的 `20道闭题题库` 为底板。

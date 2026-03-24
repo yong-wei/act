@@ -159,6 +159,12 @@
   - 强化学习只作为方法迁移终点引入，不把模块5写成 RL 算法课；
   - 模块5改为 `5 理论 + 1 实践`，以把全课程内部实践总量压实回 `18h` 约束；
   - 模块5的唯一实践单元负责同题比较经典控制、数据驱动与策略学习三条路线，不做算法实现竞赛。
+- 课程作业体系当前进一步确认：
+  - 固定为 `7次作业`；
+  - 其中 `作业1-6` 为 `3道闭题 + 1道开放题`，`作业7` 为 `2道闭题 + 1道开放题`；
+  - 合计形成 `20道闭题题库 + 7段开放主线`；
+  - 开放主线按 `O1 → O7` 递进，最终收束为一份自选对象或系统的完整控制方案；
+  - 所有闭题统一构成期末题库，后续期末复习必须按题库簇而不是旧章节刷题逻辑重写。
 - 模块1当前确认骨架为：
   - `1-1` 基本概念建立、课程规范与学习规则、课程总图发布
   - `1-2` 模型与复平面极点的第一轮速通
@@ -172,8 +178,9 @@
 
 ## 文档分工
 
-- `note/blueprint.md`：只保留总蓝图级、确定性内容。
-- `note/module-skeletons.md`：记录各模块完整单元骨架。
-- `note/unit-design-details.md`：单元细节入口页。
-- `note/unit-design-details/`：按模块拆分记录单元级知识清单、能力清单、边界与接口，并作为后续讲义、教案、互动课程设计、媒体清单的模块级总体设计文稿。
-- `note/decisions.md`：记录关键决策、理由与影响范围。
+- `course-content/syllabus-refactor/blueprint.md`：只保留总蓝图级、确定性内容。
+- `course-content/syllabus-refactor/module-skeletons.md`：记录各模块完整单元骨架。
+- `course-content/syllabus-refactor/unit-design-details.md`：单元细节入口页。
+- `course-content/syllabus-refactor/unit-design-details/`：按模块拆分记录单元级知识清单、能力清单、边界与接口，并作为后续讲义、教案、互动课程设计、媒体清单的模块级总体设计文稿。
+- `course-content/syllabus-refactor/homework-framework.md`：记录课程作业体系、20道闭题题库、7段开放主线与期末复习接口。
+- `course-content/syllabus-refactor/decisions.md`：记录关键决策、理由与影响范围。
