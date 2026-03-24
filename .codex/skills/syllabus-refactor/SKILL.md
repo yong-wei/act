@@ -1,6 +1,6 @@
 ---
 name: syllabus-refactor
-description: Use when restructuring an engineering course at whole-course level or refining chapter/unit/2-hour lesson content under a shared blueprint, especially for balancing classic foundations with AI and frontier additions, translating教学创新比赛要求 into real course goals, maintaining a living syllabus blueprint in course-content/syllabus-refactor/, and keeping lecture notes, lesson plans, page-based interactive lessons, and media lists aligned.
+description: Use when restructuring an engineering course at whole-course level or refining chapter/unit/2-hour lesson content, homework architecture, or assessment boundaries under a shared blueprint, especially for balancing classic foundations with AI and frontier additions, translating教学创新比赛要求 into real course goals, maintaining a living syllabus blueprint in course-content/syllabus-refactor/, and keeping lecture notes, lesson plans, page-based interactive lessons, media lists, and homework frameworks aligned.
 ---
 
 # Syllabus Refactor
@@ -24,6 +24,7 @@ description: Use when restructuring an engineering course at whole-course level 
 按需再读取：
 
 - `course-content/syllabus-refactor/unit-design-details/`
+- `course-content/syllabus-refactor/homework-framework.md`
 - `references/course-quality-lens.md`
 - `references/source-map.md`
 - `.claude/jiaochuang/scoring-rubric.md`
@@ -53,9 +54,12 @@ description: Use when restructuring an engineering course at whole-course level 
    - 教案
    - 互动课程设计
    - 媒体清单
-10. “互动课程设计”在本项目中默认指页面化课堂主载体，不是从传统 `PPT` 中切出的零散互动片段。
-11. “教案”默认指课堂后台控制文稿，不承担前台页面展示稿职责。
-12. “媒体清单”默认同时服务静态页面呈现与互动状态切换，不只记录插图。
+10. 若任务进入作业、题库或考试架构，必须先核对该次作业开始时学生已经学习的知识点、禁止越界知识与能力边界，避免能力失配后再讨论题目。
+11. 课程级作业设计先处理结构与边界，再处理具体题号；只有在逐题审核通过后，才允许交给 `homework-problem-authoring` 按题号生成完整习题。
+12. 作业开放题必须沿课程主线连续演进，且每次新增要求都要建立在前一次作业已完成产物之上，不能把未教能力提前压给学生。
+13. “互动课程设计”在本项目中默认指页面化课堂主载体，不是从传统 `PPT` 中切出的零散互动片段。
+14. “教案”默认指课堂后台控制文稿，不承担前台页面展示稿职责。
+15. “媒体清单”默认同时服务静态页面呈现与互动状态切换，不只记录插图。
 
 ## Default Scope Order
 
@@ -64,7 +68,8 @@ description: Use when restructuring an engineering course at whole-course level 
 1. 课程总蓝图
 2. 章节结构
 3. 单元与任务
-4. 单次课（2 学时）重点
+4. 作业与考试架构
+5. 单次课（2 学时）重点
 
 若用户直接讨论局部内容，先判断该局部对总蓝图的影响，再继续。
 
@@ -77,6 +82,7 @@ description: Use when restructuring an engineering course at whole-course level 
 - 课程总蓝图
 - 某章
 - 某单元
+- 作业架构 / 某次作业 / 某道题的设计边界
 - 某次课（2 学时）
 
 若用户描述不清，先问清层级再讨论方案。
@@ -97,6 +103,13 @@ description: Use when restructuring an engineering course at whole-course level 
 - 教师在这里需要怎样的后台控制信息，而不是前台展示信息？
 - 媒体应准备静态图示，还是互动状态切换素材，抑或两者都要？
 
+若已进入作业或题库层面，还要继续翻译为以下评价问题：
+
+- 该题服务的是哪次作业、哪个模块接口、哪项能力，不是“出一道像样的题”即可？
+- 该次作业开始时，学生已经学习的知识点是什么，哪些知识还不能用？
+- 这道题的题目边界、禁止越界知识、允许方法与评分锚点是否已经清楚到足以稳定出题？
+- 这是在补基本计算训练、补跨域分析、推进开放主线，还是在无意中提前引入后续内容？
+
 ### 3. 执行全局审查
 
 至少检查以下 8 项：
@@ -109,6 +122,8 @@ description: Use when restructuring an engineering course at whole-course level 
 6. 是否需要外部资源补证，或需要剔除无效资源。
 7. 是否与 `course-content/syllabus-refactor/blueprint.md` 中已确认内容冲突。
 8. 若面向教创赛表达，是否仍能映射到真实课程质量与比赛口径。
+9. 若涉及作业，是否严格基于作业开始时的已学内容判定可做性，避免能力失配。
+10. 若涉及开放题主线，是否与前次作业产物可衔接，而不是重新起炉灶。
 
 ### 4. 给出双输出
 
@@ -138,7 +153,7 @@ description: Use when restructuring an engineering course at whole-course level 
 - 本轮内容对互动课程设计的约束
 - 本轮内容对媒体清单的约束
 
-只有在确有必要时，才扩展到评价、资源、作业或实验设计。
+只有在确有必要时，才扩展到评价、资源、作业或实验设计；一旦扩展到作业，必须进入下文“作业题目重构入口”。
 
 ### 5. 等待确认后回写
 
@@ -184,6 +199,10 @@ description: Use when restructuring an engineering course at whole-course level 
 - 教案设计接口
 - 互动课程设计接口
 - 媒体清单接口
+
+### `course-content/syllabus-refactor/homework-framework.md`
+
+课程级作业与题库设计的唯一真值源。凡是讨论作业架构、题目边界、期末考试题库、开放题主线或复习架构，一律先读取这里，再决定是否需要下钻到单题。
 
 ### `course-content/syllabus-refactor/chapters/<slug>.md`
 
@@ -240,6 +259,8 @@ description: Use when restructuring an engineering course at whole-course level 
 
 不要在“单元设计层”过早写成最终产物全文，也不要把四类产物混写成一个文件。
 
+当任务进入作业架构层时，先稳定 `course-content/syllabus-refactor/homework-framework.md` 的边界与接口，再决定是否进入单题设计。
+
 ## Interactive Lesson Principle
 
 当用户提到“互动课”“互动课程”“平台课件”“页面课”等表述时，默认按以下理解处理：
@@ -264,6 +285,65 @@ description: Use when restructuring an engineering course at whole-course level 
 
 当讨论依赖最新行业趋势、AI 技术进展或政策导向时，优先查证最新资料后再下结论。
 
+## 作业题目重构入口
+
+当用户要求重构某次作业、重写题库边界、调整开放题主线、确认期末考试题库，或在正式出题前先把题目骨架与边界审清时，不要直接调用 `homework-problem-authoring`。先在本技能内完成课程级作业重构。
+
+### 作业基本规范
+
+当前课程的作业基本规范以 `course-content/syllabus-refactor/homework-framework.md` 为准，至少要保持以下约束：
+
+- 全课程共 `7 次作业`，总负担受控，不靠堆题量制造难度。
+- 每次作业同时覆盖基本计算训练与跨域分析视角，但两者都要服从当次已学内容边界。
+- 每次作业保留一道开放性题目，组成连续推进的 `开放性题目主线`，要求学生在前一次产物基础上迭代完善，最终形成完整控制方案。
+- 除开放题外，其余题目共同构成 `期末考试题库`，因此每道题都必须可独立判分、可回收到考试与复习架构。
+- 若准备修改这些基本规范，先改 `homework-framework.md`，不要直接跳到单题题面。
+
+### 进入条件
+
+进入作业设计流程前，主代理必须先读取并交叉核对：
+
+- `course-content/syllabus-refactor/homework-framework.md`
+- `course-content/syllabus-refactor/blueprint.md`
+- `course-content/syllabus-refactor/module-skeletons.md`
+- `course-content/syllabus-refactor/unit-design-details.md`
+- 必要时补读对应模块的 `unit-design-details/<module>.md`
+
+然后先回答四个问题：
+
+1. 这是在讨论课程级作业架构、某次作业，还是某个具体题号？
+2. 该次作业开始时，学生已经学习的知识点是什么？
+3. 哪些知识在该时点尚未学习，因此必须列为 `禁止越界知识`？
+4. 现有边界是否已经清晰到可以稳定出题，否则是否应先重构框架？
+
+若上述任一问题答不清，就停在框架重构，不进入正式出题。
+
+### 逐题审核协议
+
+进入作业设计流程后，协议固定为 `逐个审核题目、内容和边界`，不批量放行。
+
+- 每次只处理一个题号。
+- 顺序固定为：已学知识 → 禁止越界知识 → 题目边界 → 内容覆盖 → 工作量 → 评分可执行性。
+- 主代理必须显式写出“该题在作业开始时学生已经学习的知识点”和“该题禁止调用的后续知识”，用来避免能力失配。
+- 若发现题目需要学生提前使用尚未覆盖的概念、方法或工程判断，立即退回到 `homework-framework.md` 修改，不允许靠弱化表述掩盖越界。
+- 审核记录中必须区分“题目想考什么”“学生此时能做到什么”“本题明确不允许越过什么边界”。
+- 先审核，再出题；未完成审核的题号不得交给下游出题技能。
+
+### 与 `homework-problem-authoring` 的交接
+
+`homework-problem-authoring` 只负责在既定题号规范下按题号生成完整习题，不负责课程级边界设计。
+
+- 只有在逐题审核通过后，才允许调用 `homework-problem-authoring`。
+- 交接前，必须保证目标题号在 `course-content/syllabus-refactor/homework-framework.md` 中已经写清：
+  - 所属作业
+  - 模块边界
+  - 先备知识
+  - 禁止越界知识
+  - 题目边界
+  - 允许方法
+  - 评分锚点
+- 若用户仍在讨论题目范围、内容和边界，继续留在本技能，不要提前切到正式出题流程。
+
 ## Reference Index
 
 - 课程质量透镜：`references/course-quality-lens.md`
@@ -271,6 +351,7 @@ description: Use when restructuring an engineering course at whole-course level 
 - 持续蓝图：`course-content/syllabus-refactor/blueprint.md`
 - 模块骨架：`course-content/syllabus-refactor/module-skeletons.md`
 - 单元细节入口：`course-content/syllabus-refactor/unit-design-details.md`
+- 作业框架：`course-content/syllabus-refactor/homework-framework.md`
 - 决策摘要：`course-content/syllabus-refactor/main.md`
 - 决策日志：`course-content/syllabus-refactor/decisions.md`
 
