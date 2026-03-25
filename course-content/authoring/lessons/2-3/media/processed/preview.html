@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>2-3 配图预览</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Hiragino Sans GB", sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 56px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+    }
+    p {
+      margin: 0 0 24px;
+      color: #475569;
+      line-height: 1.6;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+    .card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+    .path {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #64748b;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>2-3 配图预览</h1>
+    <p>当前 handout 中引用的 4 张图都在这里。你可以先整体看风格，再逐张打开 SVG/PNG 检查细节。</p>
+    <div class="grid">
+      <section class="card">
+        <h2>封面漫画</h2>
+        <p>本轮不直接生成封面图，只保留讲义占位。制作提示词见：</p>
+        <div class="path">../raw/cover-comic-prompt.md</div>
+      </section>
+      <section class="card">
+        <h2>船舶系统对低频指令与高频扰动的不同反应</h2>
+        <img src="./fr-01-command-vs-disturbance.svg" alt="fr-01" />
+        <div class="path">fr-01-command-vs-disturbance.svg</div>
+      </section>
+      <section class="card">
+        <h2>方波谐波分解与系统滤波后重构</h2>
+        <img src="./fr-02-square-wave-harmonics.svg" alt="fr-02" />
+        <div class="path">fr-02-square-wave-harmonics.svg</div>
+      </section>
+      <section class="card">
+        <h2>正弦输入与正弦稳态输出</h2>
+        <img src="./fr-03-sine-in-sine-out.svg" alt="fr-03" />
+        <div class="path">fr-03-sine-in-sine-out.svg</div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,29 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,fit}
+\input{styles/block_styles}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\begin{tikzpicture}[auto, >=stealth]
+
+  \node (rin) at (0,0) {$R$};
+  \node[sum] (sum1) at (1.4,0) {};
+  \node[block large] (gc) at (3.2,0) {$G_c$};
+  \node[block large] (ga) at (5.4,0) {$G_a$};
+  \node[block large] (gp) at (7.8,0) {$G_p$};
+  \node[tap] (tap1) at (9.3,0) {};
+  \node (yout) at (10.7,0) {$Y$};
+  \node[block large] (h) at (5.6,-2.2) {$H$};
+  \draw[signal] (rin) -- (sum1) -- (gc) -- (ga) -- (gp) -- (tap1) -- (yout);
+  \draw[signal] (tap1) |- (h);
+  \draw[signal] (h) -| node[neg sign, left] {$-$} (sum1.south);
+  \node[font=\scriptsize] at (3.2,-0.8) {航向控制器};
+  \node[font=\scriptsize] at (5.4,-0.8) {舵机伺服};
+  \node[font=\scriptsize] at (7.8,-0.8) {船体对象};
+  \node[font=\scriptsize] at (5.6,-3.0) {罗经反馈};
+
+\end{tikzpicture}
+\end{CJK*}
+\end{document}

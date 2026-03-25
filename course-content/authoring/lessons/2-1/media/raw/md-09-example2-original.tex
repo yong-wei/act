@@ -1,0 +1,37 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,fit}
+\input{styles/block_styles}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\begin{tikzpicture}[auto, >=stealth]
+
+  \node (rin) at (0,0) {$R$};
+  \node[sum] (sum1) at (1.0,0) {};
+  \node[block large] (g1) at (2.6,0) {$G_1$};
+  \node[tap] (tap1) at (4.0,0) {};
+  \node[sum] (sum2) at (5.1,1.6) {};
+  \node[block large] (g2) at (6.9,1.6) {$G_2$};
+  \node[tap] (tap2) at (8.3,1.6) {};
+  \node[block large] (g3) at (6.9,-1.8) {$G_3$};
+  \node[sum] (sum3) at (10.0,0) {};
+  \node[tap] (tap3) at (11.3,0) {};
+  \node (yout) at (12.5,0) {$Y$};
+  \node[block] (h1) at (6.9,0.0) {$H_1$};
+  \node[block] (h2) at (6.4,-3.6) {$H_2$};
+  \draw[signal] (rin) -- (sum1) -- (g1) -- (tap1);
+  \draw[signal] (tap1) |- (sum2);
+  \draw[signal] (sum2) -- (g2) -- (tap2) -| (sum3);
+  \draw[signal] (tap1) |- (g3);
+  \draw[signal] (g3) -| (sum3);
+  \draw[signal] (sum3) -- (tap3) -- (yout);
+  \draw[signal] (tap2) |- (h1);
+  \draw[signal] (h1) -| node[neg sign, right] {$-$} (sum2.south);
+  \draw[signal] (tap3) |- (h2);
+  \draw[signal] (h2) -| node[neg sign, left] {$-$} (sum1.south);
+
+\end{tikzpicture}
+\end{CJK*}
+\end{document}

@@ -37,6 +37,7 @@
 1. 标题
 2. 课次信息节（课型、学时、知识类型、前置/后续位置等）
 3. **封面图片占位**
+4. **信息图占位（附录前）**
 
 封面图片占位必须放在“讲义信息节”之后、“引入案例”之前，默认使用如下引用形式：
 
@@ -45,6 +46,18 @@
 ```
 
 后续媒体制作完成后，直接按该占位文件名回写，即可在 Markdown 与 PDF 中正常显示；不要在讲义完成后再临时改结构腾位置。
+
+封面漫画在 Step 3 默认**只产出提示词文件** `media/raw/cover-comic-prompt.md`，不要求在讲义起草阶段立即生成 `cover-comic.png`。讲义正文保留图片占位，待图片制作完成后再回写并导出正式 PDF。
+
+---
+
+在正文结束、附录开始之前，固定预留信息图占位：
+
+```markdown
+![本讲信息图总结](../media/processed/info.png)
+```
+
+`info.png` 默认不要求在 Step 3 同步生成提示词；讲义先保留占位，待后续多媒体制作或人工制作完成后回写，再导出最终 PDF。
 
 ---
 
@@ -142,7 +155,8 @@ Step 3 不再只包含学生版讲义，而是固定分成两段：
 
 1. **学生版讲义阶段**
    - 先完成 `handout.md`
-   - 经用户确认后，导出 `handout.pdf`
+   - 同步补齐 `cover-comic-prompt.md`，并确认 `cover-comic.png` 与 `info.png` 的占位路径已固定
+   - 经用户确认且所需图片已回写后，导出 `handout.pdf`
    - 抽样检查 PDF 版面
 2. **教师版课堂讲义阶段**
    - 只有在学生版讲义与学生版 PDF 都通过确认后，才开始 `teacher-handout.md`
@@ -209,6 +223,12 @@ python3 .codex/skills/lesson/scripts/export_handout_pdf.py \
 - 导出时脚本会在目标文档同目录生成对应样式文件，如 `handout-pdf-style.tex`、`teacher-handout-pdf-style.tex`
 - 如需统一升级样式，优先改模板，不要逐课手写不同版本
 - `handout.pdf` 与 `teacher-handout.pdf` 必须共用该模板，不允许教师版另配一套独立样式体系
+
+### 导出前必须确认
+
+- `cover-comic.png` 若仍未制作完成，学生版讲义只保留占位，不执行最终 PDF 导出
+- `info.png` 若仍未制作完成，学生版讲义只保留占位，不执行最终 PDF 导出
+- 若用户明确要求“先审 Markdown、后补图再导 PDF”，则必须按该顺序执行，不得把缺图状态误报为讲义完成态
 
 ### 导出后必须检查
 

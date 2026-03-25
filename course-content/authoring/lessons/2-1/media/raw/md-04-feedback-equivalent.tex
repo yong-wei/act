@@ -1,0 +1,29 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,fit}
+\input{styles/block_styles}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\begin{tikzpicture}[auto, >=stealth]
+
+  \node (rin) at (0,0) {$R$};
+  \node[sum] (sum1) at (1.0,0) {};
+  \node[block large] (g) at (2.8,0) {$G$};
+  \node[tap] (tap1) at (4.3,0) {};
+  \node (yout) at (5.5,0) {$Y$};
+  \node[block] (h) at (2.8,-1.5) {$H$};
+  \draw[signal] (rin) -- (sum1) -- (g) -- (tap1) -- (yout);
+  \draw[signal] (tap1) |- (h);
+  \draw[signal] (h) -| node[neg sign, left] {$-$} (sum1.south);
+  \node at (6.5,0) {$\Longrightarrow$};
+  \node (rin2) at (0,-3.0) {$R$};
+  \node[block large] (geq) at (2.7,-3.0) {$\dfrac{G}{1+GH}$};
+  \node (yout2) at (5.5,-3.0) {$Y$};
+  \draw[signal] (rin2) -- (geq);
+  \draw[signal] (geq) -- (yout2);
+
+\end{tikzpicture}
+\end{CJK*}
+\end{document}

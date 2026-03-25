@@ -8,6 +8,7 @@
 \usepackage{array}
 \usepackage{caption}
 \usepackage{float}
+\usepackage{needspace}
 \usepackage{enumitem}
 \usepackage{fvextra}
 \usepackage[svgnames]{xcolor}

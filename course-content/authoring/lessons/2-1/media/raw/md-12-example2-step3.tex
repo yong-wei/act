@@ -1,0 +1,24 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,fit}
+\input{styles/block_styles}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\begin{tikzpicture}[auto, >=stealth]
+
+  \node (rin) at (0,0) {$R$};
+  \node[sum] (sum1) at (1.0,0) {};
+  \node[block large, minimum width=3.9cm] (g) at (3.6,0)
+  {\(\scriptstyle G_1\left[\frac{G_2}{1+G_2H_1}+G_3\right]\)};
+  \node[tap] (tap3) at (5.9,0) {};
+  \node (yout) at (7.0,0) {$Y$};
+  \node[block] (h2) at (4.0,-2.2) {$H_2$};
+  \draw[signal] (rin) -- (sum1) -- (g) -- (tap3) -- (yout);
+  \draw[signal] (tap3) |- (h2);
+  \draw[signal] (h2) -| node[neg sign, left] {$-$} (sum1.south);
+
+\end{tikzpicture}
+\end{CJK*}
+\end{document}

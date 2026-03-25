@@ -1,0 +1,27 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,fit}
+\input{styles/block_styles}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\begin{tikzpicture}[auto, >=stealth]
+
+  \node (rin) at (0,1.0) {$R$};
+  \node[block] (g1) at (1.6,1.0) {$G_1$};
+  \node[block] (g2) at (3.0,1.0) {$G_2$};
+  \node (yout) at (4.6,1.0) {$Y$};
+  \draw[signal] (rin) -- (g1);
+  \draw[signal] (g1) -- (g2);
+  \draw[signal] (g2) -- (yout);
+  \node at (5.6,1.0) {$\Longrightarrow$};
+  \node (rin2) at (0,-0.6) {$R$};
+  \node[block large] (geq) at (2.3,-0.6) {$G_1G_2$};
+  \node (yout2) at (4.6,-0.6) {$Y$};
+  \draw[signal] (rin2) -- (geq);
+  \draw[signal] (geq) -- (yout2);
+
+\end{tikzpicture}
+\end{CJK*}
+\end{document}

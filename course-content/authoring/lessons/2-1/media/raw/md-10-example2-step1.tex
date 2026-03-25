@@ -1,0 +1,32 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,fit}
+\input{styles/block_styles}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\begin{tikzpicture}[auto, >=stealth]
+
+  \node (rin) at (0,0) {$R$};
+  \node[sum] (sum1) at (1.0,0) {};
+  \node[block large] (g1) at (2.6,0) {$G_1$};
+  \node[tap] (tap1) at (4.0,0) {};
+  \node[block large] (gu) at (6.9,1.3) {$\dfrac{G_2}{1+G_2H_1}$};
+  \node[block large] (g3) at (6.9,-1.5) {$G_3$};
+  \node[sum] (sum3) at (9.8,0) {};
+  \node[tap] (tap3) at (11.0,0) {};
+  \node (yout) at (12.2,0) {$Y$};
+  \node[block] (h2) at (6.3,-3.3) {$H_2$};
+  \draw[signal] (rin) -- (sum1) -- (g1) -- (tap1);
+  \draw[signal] (tap1) |- (gu);
+  \draw[signal] (tap1) |- (g3);
+  \draw[signal] (gu) -| (sum3);
+  \draw[signal] (g3) -| (sum3);
+  \draw[signal] (sum3) -- (tap3) -- (yout);
+  \draw[signal] (tap3) |- (h2);
+  \draw[signal] (h2) -| node[neg sign, left] {$-$} (sum1.south);
+
+\end{tikzpicture}
+\end{CJK*}
+\end{document}

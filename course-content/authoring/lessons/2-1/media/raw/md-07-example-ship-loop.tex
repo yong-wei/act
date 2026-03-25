@@ -1,0 +1,31 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,fit}
+\input{styles/block_styles}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\begin{tikzpicture}[auto, >=stealth]
+
+  \node (rin) at (0,0) {$R$};
+  \node[sum] (sum1) at (1.0,0) {};
+  \node[block large] (gc) at (2.5,0) {$K_c$};
+  \node[block large] (ga) at (4.6,0) {$\dfrac{1}{T_a s+1}$};
+  \node[block large] (gp) at (7.1,0) {$\dfrac{K_p}{s(T_p s+1)}$};
+  \node[tap] (tap1) at (8.8,0) {};
+  \node (yout) at (10.0,0) {$Y$};
+  \node[block large] (h) at (5.1,-2.0) {$K_h$};
+  \draw[signal] (rin) -- (sum1) -- (gc) -- (ga) -- (gp) -- (tap1) -- (yout);
+  \draw[signal] (tap1) |- (h);
+  \draw[signal] (h) -| node[neg sign, left] {$-$} (sum1.south);
+  \node[font=\scriptsize] at (0.5,0.35) {$R$};
+  \node[font=\scriptsize] at (1.65,0.35) {$E$};
+  \node[font=\scriptsize] at (3.55,0.35) {$U$};
+  \node[font=\scriptsize] at (5.95,0.35) {$\delta$};
+  \node[font=\scriptsize] at (9.35,0.35) {$Y$};
+  \node[font=\scriptsize] at (2.2,-1.25) {$B$};
+
+\end{tikzpicture}
+\end{CJK*}
+\end{document}
