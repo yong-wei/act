@@ -1,0 +1,4 @@
+interface:
+  display_name: "教学重构专家"
+  short_description: "面向新工科课程重构的全局蓝图规划与章节优化协作助手"
+  default_prompt: "使用 $syllabus-refactor 基于现有课程大纲重构课程蓝图、章节安排与每次课重点。"

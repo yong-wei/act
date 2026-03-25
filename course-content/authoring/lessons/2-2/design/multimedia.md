@@ -1,7 +1,7 @@
 # 多模态资源设计 | 单元 2-2：时域响应基础——从响应曲线到动态性能指标
 
-> **资源总数**：13 项  
-> **说明**：本课讲义已沿用 `td-01`~`td-06` 文件名作为静态图占位，以下设计保持同名，避免后续回写时再次改动讲义。
+> **资源总数**：15 项  
+> **说明**：本课讲义已沿用 `td-01`~`td-06` 文件名作为静态图占位，并已在学生版讲义的信息节后加入 `cover-comic.png` 封面占位。以下设计保持同名，避免后续回写时再次改动讲义。
 
 ---
 
@@ -15,13 +15,33 @@
 | 4 | td-04-time-domain-indices-annotated.svg | 代码直出图 | handout §2.4 / interactive step-12 | P0 |
 | 5 | td-05-example-response-with-indices.svg | 代码直出图 | handout §3.1 / interactive step-13 | P1 |
 | 6 | td-06-time-spec-to-pole-region.svg | 代码直出图 | handout §3.2 / interactive step-14 | P1 |
-| 7 | ic-01-pretest-distribution | 前端绘制 | interactive step-04 | P1 |
-| 8 | ic-02-first-order-time-slider | 前端绘制 | interactive step-06 | P0 |
-| 9 | ic-03-second-order-family-switcher | 前端绘制 | interactive step-08 | P0 |
-| 10 | ic-04-index-overlay | 前端绘制 | interactive step-12 | P0 |
-| 11 | ic-05-metric-calculator | 前端绘制 | interactive step-13 | P1 |
-| 12 | ic-06-ai-compare-workspace | 前端绘制 | interactive step-14 | P0 |
-| 13 | ic-07-metric-to-pole-plane | 前端绘制 | interactive step-15 | P0 |
+| 7 | cover-comic.png | AI 生成位图 | handout 信息节后 / 讲义封面导入 | P0 |
+| 8 | intro-video.mp4 | AI 生成视频 | 课堂开场 / interactive 首页导入 | P1 |
+| 9 | ic-01-pretest-distribution | 前端绘制 | interactive step-04 | P1 |
+| 10 | ic-02-first-order-time-slider | 前端绘制 | interactive step-06 | P0 |
+| 11 | ic-03-second-order-family-switcher | 前端绘制 | interactive step-08 | P0 |
+| 12 | ic-04-index-overlay | 前端绘制 | interactive step-12 | P0 |
+| 13 | ic-05-metric-calculator | 前端绘制 | interactive step-13 | P1 |
+| 14 | ic-06-ai-compare-workspace | 前端绘制 | interactive step-14 | P0 |
+| 15 | ic-07-metric-to-pole-plane | 前端绘制 | interactive step-15 | P0 |
+
+---
+
+## AI 导入媒体规格
+
+### 资源 cover-comic | 讲义封面漫画
+- **原料**：`media/raw/cover-comic-prompt.md`
+- **成品**：`media/processed/cover-comic.png`
+- **引用位置**：`handout.md` 信息节后、正文前
+- **用途**：用于学生版讲义首页导入，在进入正式引入前先建立问题意识和阅读兴趣。
+- **备注**：采用多格漫画封面方案；对话全中文且简洁，格子允许错落，但必须用箭头标明阅读顺序。
+
+### 资源 intro-video | 15 秒导入视频
+- **原料**：`media/raw/intro-video-prompt.md`
+- **成品**：`media/processed/intro-video.mp4`
+- **引用位置**：课堂开场 / `interactive-page.md` 首页导入区域
+- **用途**：在开课最初 15 秒快速建立“稳定了为什么还不够”的问题情境，激发学生兴趣。
+- **备注**：本单元已选定“高质量 2D 动漫课堂科幻风格”作为唯一视频风格，用来兼顾讲义封面漫画的亲和感与控制课堂的动态感；提示词中必须按该单一风格组织镜头、运镜和转场。
 
 ---
 

@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-03-21
-摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前 `1-1`、`1-2`、`1-3` 已形成 runtime-first 精品互动课主线，其中 `1-3` 本轮完成增强版工作区收口。
+最后更新: 2026-03-25
+摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，还必须注意刚落地的数据治理 worker 故障收敛与低压调度修复。
 上游:
 - [00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
 - [README.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/README.md)
@@ -15,11 +15,16 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-03-25 已完成一次关键的运维侧收敛：数据治理 worker 现在具备 Redis/BullMQ 基础设施异常识别、冷却文件熔断、日志节流、`unhandledRejection` / `uncaughtException` 收敛；scheduler 也已改为“凌晨事件批处理 + 每小时活跃学生快照 + 每日班级快照”的 coordinator 模式，详细复盘见 [60-incidents/2026-03-25-worker-redis-oom-log-flood.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-03-25-worker-redis-oom-log-flood.md)
+- 本地 `Octave` 已通过 Homebrew 安装，`control` 包可用；当前稳定做法是保持旧整包 `qt` 处于 `unlink` 状态，并补 `/opt/homebrew/share/qt/plugins/platforms -> /opt/homebrew/opt/qtbase/share/qt/plugins/platforms` 符号链接，使图形版 `octave` 无需额外环境变量即可启动；详细复盘见 [60-incidents/2026-03-24-homebrew-octave-qt-plugin.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-03-24-homebrew-octave-qt-plugin.md)
 - `1-3`「时域响应分析——从响应曲线到动态性能指标」已经完成精品互动课首轮落地与增强版工作区收口：存在独立入口页、教师页、学生页、预置教案、课堂码路由识别与步骤级 AI 上下文注册，课堂内按 `interactive-page.md` 实现 17 步流程
 - `1-3` 课程首页和课堂页现在统一消费 `course-content/runtime/lessons/2-2` 运行时内容与 `review/*` 审查产物；课堂内已额外补强 `step-07` 参数-公式-现象三列表、`step-09` 四指标叠加总览与 `step-13` 例题三步法计算面板
 - `1-2`「系统结构图与化简——从积木块到系统蓝图」已经完成精品互动课落地：存在独立入口页、教师页、学生页、预置教案、课堂码路由识别与步骤级 AI 上下文注册，课堂内按 `interactive-page.md` 实现 17 步蓝图
 - `1-2` 课程首页和课堂页现在统一消费 `course-content/runtime/lessons/legacy/1-2` 运行时内容与 `review/*` 审查产物；课堂步骤覆盖结构图四元素、基本连接、等效变换、AI 对照、信号流图、梅森公式、前后测与总结
 - 已新增 `.codex/skills/lesson-content-review` 与 `course-content/scripts/review_lesson_content.py`：互动课程制作前，先按“正文/实践指南 -> BOPPPS -> sequence/knowledge cards -> multimedia -> runtime/review”顺序审查；修复回写 `authoring`，再导出 `course-content/runtime/lessons/<lesson>/review` 供制作技能直接消费
+- `.codex/skills/lesson` 已增强为“讲义/教案/互动课/媒体”一体化严约束工作流：讲义生成前必须先读 `legacy/L-2a/design/handout.md` 只吸收文风、不借具体内容；讲义正文不再做机械限长，需作为单元唯一真实来源，围绕单一逻辑链完整覆盖知识链与能力链，复杂长推导可转入附录；全流程统一公式写法为行内 `$...$`、行间 `$$...$$`，控制计算与仿真统一用 `python3` + `control` 验证，线框图统一走 `tikz-control-draw`
+- `.codex/skills/lesson-content-review` 已从“结构/格式审查”增强为“四层正确性审查”技能：先建待审事实与结论清单，再分别审结构正确性、事实正确性、科学合理性与确定性结论；对任务/事迹/新闻/标准/时间敏感数字等外部事实必须联网核验并记录来源链接与核验日期，对控制计算与响应/频域/根轨迹等确定性内容必须用 `python3` + `control` 复现，卡片与媒体也纳入同一正确性口径
+- `.codex/skills/interactive-lesson-implementation` 已升级到新 runtime-first 体系：不再把 `L-2c` 当唯一结构基线，而是以 `1-1`、`1-2`、`1-3` 为当前默认样例；技能明确“互动课先承担完整 PPT/课件职责，再升级关键互动”，并把步骤级 AI 上下文、`SubmissionStatus`/等待态/答案揭示、教师端统计与词云、统一事件治理、Redis/SSE 会话同步复用、`media/processed -> export-runtime -> runtime` 媒体链路，以及“所有图像禁止 ASCII 图、控制图用 `python3 + control`、线框图用 `tikz-control-draw`”写成显式约束
 - `1-2` 已作为首个课程审查试跑样例：补齐 10 张知识卡、4 个代码直出 SVG，并在 `course-content/runtime/lessons/legacy/1-2` 生成 `handout.md`、`lesson.json` 以及 `review/boppps.md`、`review-report.md`、`knowledge-card-check.json`、`multimedia-check.json`
 - `export_runtime.py` 现在对新课优先使用 `authoring/.../media/processed`，但仍保留 `media/raw` fallback，避免已完成旧课因为新审查流程缺失而回归
 - `1-1`「拉氏变换与传递函数——从微分方程到代数方程」已经完成精品互动课落地：存在独立入口页、教师页、学生页、预置教案、步骤级 AI 上下文、教师/学生会话同步与统一课程事件埋点
@@ -43,6 +48,7 @@
 ## 当前需要优先记住的运行事实
 
 - 若 `startup` 看似成功但 `/login` 或教师页仍是 `502/500`，先查 `3001` 端口监听、`.logs/error.log` 和 `.logs/pids/frontend.pid`，不要先假设是业务代码回归
+- 若线上磁盘突然暴涨且伴随 Redis `OOM command not allowed` 或 worker 高频重启，优先检查 `act-obe-worker` 的 `ctr.log`、`snapshot-student` 队列历史和 scheduler 是否被回滚成高频 repeatable jobs，不要先把问题归因为数据库容量
 - 2026-03-19 对齐远端后的数据库计数是 `User=291`、`LearningFact=0`、`StudentCompetencySnapshot=1829`、`StudentProfileSummary=100`、`ClassCompetencySnapshot=2`、`LearningEventBatch=25`
 - 在这份对齐库上执行 `npx tsx scripts/db/backfill-learning-facts-from-event-batches.ts` 后，本地成功回放出 `55` 条 `LearningFact`，覆盖 `41` 个用户；再次 dry-run 为 `0`，说明回放脚本具备幂等性
 - 远端数据治理链路是“部分开展”：`LearningEventBatch` 与 `StudentCompetencySnapshot` 持续增长，但 `ClassCompetencySnapshot` 只有 `2` 条，未体现出按调度器预期持续产出
@@ -56,5 +62,6 @@
 - 若任务和教师端班级页、班级学情、学生学情详情或 startup 失败有关，也先读 [10-project/10-current-state.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/10-current-state.md)
 - 若任务和管理员后台入口、统计或数据治理看板有关，也先读 [10-project/10-current-state.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/10-current-state.md)
 - 若任务和部署、数据库、worker、远端调查有关，先读 [30-operations/30-database-and-migrations.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/30-operations/30-database-and-migrations.md)
+- 若任务和 Redis OOM、worker 日志刷爆、Podman stopped container 占满磁盘有关，先读 [60-incidents/2026-03-25-worker-redis-oom-log-flood.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-03-25-worker-redis-oom-log-flood.md)
 - 若任务和本地启动脚本、端口残留、伪成功启动有关，先读 [60-incidents/2026-03-19-startup-port-residue.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-03-19-startup-port-residue.md)
 - 若任务要直接操作远端数据库同步，先读 [70-workflows/40-remote-db-sync.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/40-remote-db-sync.md)

@@ -1,0 +1,4 @@
+interface:
+  display_name: "互动课程实现"
+  short_description: "按新 runtime 体系实现互动课，先满足完整课件职责，再升级关键互动并维护课程笔记"
+  default_prompt: "使用 $interactive-lesson-implementation 为某一课生成或优化互动课程实现：以 reviewed runtime 产物为输入，先保证页面具备完整课件/PPT功能，再接入页内 AI、提交反馈、教师汇聚、事件治理与 runtime 媒体，并更新课程实现笔记。"
