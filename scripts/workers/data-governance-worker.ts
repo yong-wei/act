@@ -2,16 +2,19 @@
  * Data Governance Worker Service
  *
  * Standalone worker service for processing:
- * - Event ingestion (secondary events from Redis)
- * - Student competency snapshots
- * - Class competency snapshots
+ * - Nightly secondary-event ingestion
+ * - Hourly snapshots for active students
+ * - Daily class competency snapshots
  *
  * Run with: ts-node scripts/workers/data-governance-worker.ts
  */
 
-import { Worker, Job } from 'bullmq';
-import { Redis } from 'ioredis';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { Job, Queue, Worker } from 'bullmq';
 import { PrismaClient, Prisma } from '@prisma/client';
+import { Redis } from 'ioredis';
 import {
   calculateCompetencyVector,
   calculateTrendVector,
@@ -19,13 +22,7 @@ import {
   identifyStrengths,
   identifyWeaknesses,
 } from '@/lib/data-governance/competency-engine';
-import {
-  detectRisks,
-  getRiskLevelDescription,
-  getRecommendedScaffolding,
-} from '@/lib/data-governance/risk-detector';
 import { fetchSecondaryEvents, markEventsProcessed } from '@/lib/data-governance/event-buffer';
-import { isCoreEvent } from '@/lib/data-governance/event-types';
 import {
   deriveFactOutcome,
   deriveFactScore,
@@ -33,73 +30,430 @@ import {
   mapActionTypeToFactType,
   resolveCompetencyContribution,
 } from '@/lib/data-governance/event-normalization';
-import type { LearningEvent } from '@/lib/data-governance/event-protocol';
+import { isCoreEvent } from '@/lib/data-governance/event-types';
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
-import type { EventIngestionJob, StudentSnapshotJob, ClassSnapshotJob } from './types';
+import type { LearningEvent } from '@/lib/data-governance/event-protocol';
+import {
+  detectRisks,
+  getRecommendedScaffolding,
+  getRiskLevelDescription,
+} from '@/lib/data-governance/risk-detector';
+import type { ClassSnapshotJob, EventIngestionJob, StudentSnapshotJob } from './types';
 
-// Configuration
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const WORKER_CONCURRENCY = parseInt(process.env.WORKER_CONCURRENCY || '2', 10);
+const EVENT_BATCH_SIZE = parseInt(process.env.EVENT_INGESTION_BATCH_SIZE || '100', 10);
+const ACTIVE_WINDOW_MINUTES = parseInt(process.env.ACTIVE_STUDENT_WINDOW_MINUTES || '90', 10);
+const COOLDOWN_MS = parseInt(process.env.DATA_GOVERNANCE_WORKER_COOLDOWN_MS || '900000', 10);
+const LOG_WINDOW_MS = parseInt(process.env.DATA_GOVERNANCE_WORKER_LOG_WINDOW_MS || '60000', 10);
+const COOLDOWN_FILE =
+  process.env.DATA_GOVERNANCE_WORKER_COOLDOWN_FILE ||
+  path.join(os.tmpdir(), 'act-obe-data-governance-worker.cooldown.json');
 
-// Initialize clients
-const redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
-const prisma = new PrismaClient();
+const JOB_HISTORY_OPTIONS = {
+  removeOnComplete: { count: 50 },
+  removeOnFail: { count: 200 },
+} as const;
 
-// Track worker status
+const logWindow = new Map<
+  string,
+  {
+    windowStart: number;
+    summaryCount: number;
+  }
+>();
+
+let redis: Redis | null = null;
+let prisma: PrismaClient | null = null;
+let eventQueue: Queue<EventIngestionJob> | null = null;
+let studentQueue: Queue<StudentSnapshotJob> | null = null;
+let classQueue: Queue<ClassSnapshotJob> | null = null;
+let eventIngestionWorker: Worker<EventIngestionJob> | null = null;
+let studentSnapshotWorker: Worker<StudentSnapshotJob> | null = null;
+let classSnapshotWorker: Worker<ClassSnapshotJob> | null = null;
 let isShuttingDown = false;
+let infrastructureFailureHandled = false;
 
-// ============================================
-// Worker 1: Event Ingestion
-// ============================================
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-const eventIngestionWorker = new Worker(
-  'event-ingestion',
-  async (job: Job<EventIngestionJob>) => {
-    const batchDate = resolveBatchDate(job.data.batchDate);
-    console.log(`[EventIngestion] Processing batch for ${batchDate}`);
+function getRedisClient(): Redis {
+  if (!redis) {
+    throw new Error('Redis client is not initialized');
+  }
+  return redis;
+}
 
-    // Fetch events from Redis buffer
-    const events = await fetchSecondaryEvents(batchDate, 100);
+function getPrismaClient(): PrismaClient {
+  if (!prisma) {
+    throw new Error('Prisma client is not initialized');
+  }
+  return prisma;
+}
 
-    if (events.length === 0) {
-      console.log(`[EventIngestion] No events to process for ${batchDate}`);
-      return { processed: 0, factsCreated: 0 };
+function logWithThrottle(
+  key: string,
+  level: 'info' | 'warn' | 'error',
+  message: string,
+  error?: unknown,
+) {
+  const now = Date.now();
+  const entry = logWindow.get(key);
+
+  if (!entry || now - entry.windowStart >= LOG_WINDOW_MS) {
+    if (entry && entry.summaryCount > 0) {
+      writeLog(
+        level,
+        `[Worker][${key}] suppressed ${entry.summaryCount} similar messages in the previous ${Math.round(LOG_WINDOW_MS / 1000)}s`,
+      );
     }
 
-    // Store batch
-    await prisma.learningEventBatch.create({
-      data: {
-        batchDate: new Date(batchDate),
-        events: events as unknown as Prisma.InputJsonValue,
-        eventCount: events.length,
-        processedAt: new Date(),
+    logWindow.set(key, { windowStart: now, summaryCount: 0 });
+    writeLog(level, message, error);
+    return;
+  }
+
+  entry.summaryCount += 1;
+  logWindow.set(key, entry);
+
+  if (entry.summaryCount === 1 || entry.summaryCount % 20 === 0) {
+    writeLog(level, `${message} (suppressed duplicates: ${entry.summaryCount})`);
+  }
+}
+
+function writeLog(level: 'info' | 'warn' | 'error', message: string, error?: unknown) {
+  if (level === 'error') {
+    if (error) {
+      console.error(message, formatError(error));
+      return;
+    }
+    console.error(message);
+    return;
+  }
+
+  if (level === 'warn') {
+    if (error) {
+      console.warn(message, formatError(error));
+      return;
+    }
+    console.warn(message);
+    return;
+  }
+
+  if (error) {
+    console.log(message, formatError(error));
+    return;
+  }
+
+  console.log(message);
+}
+
+function formatError(error: unknown): string {
+  if (error instanceof Error) {
+    return `${error.name}: ${error.message}`;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
+
+function isInfrastructureError(error: unknown): boolean {
+  const message = formatError(error).toLowerCase();
+
+  return [
+    'oom command not allowed',
+    'maxmemory',
+    'readonly',
+    'read only',
+    'econnrefused',
+    'etimedout',
+    'connection is closed',
+    'connection closed',
+    'socket closed',
+    'connection lost',
+    'ready check failed',
+    'redis connection',
+    'bullmq',
+  ].some((token) => message.includes(token));
+}
+
+async function readCooldownState(): Promise<{ cooldownUntil: number; reason?: string } | null> {
+  try {
+    const raw = await fs.readFile(COOLDOWN_FILE, 'utf8');
+    return JSON.parse(raw) as { cooldownUntil: number; reason?: string };
+  } catch {
+    return null;
+  }
+}
+
+async function clearCooldown(): Promise<void> {
+  await fs.rm(COOLDOWN_FILE, { force: true });
+}
+
+async function armCooldown(reason: string): Promise<void> {
+  const payload = {
+    cooldownUntil: Date.now() + COOLDOWN_MS,
+    reason,
+    armedAt: new Date().toISOString(),
+  };
+
+  await fs.writeFile(COOLDOWN_FILE, JSON.stringify(payload, null, 2), 'utf8');
+}
+
+async function respectCooldown(): Promise<void> {
+  for (;;) {
+    const state = await readCooldownState();
+    if (!state) {
+      return;
+    }
+
+    const remaining = state.cooldownUntil - Date.now();
+    if (remaining <= 0) {
+      await clearCooldown();
+      return;
+    }
+
+    logWithThrottle(
+      'cooldown',
+      'warn',
+      `[Worker] cooldown active for another ${Math.ceil(remaining / 1000)}s (${state.reason || 'infrastructure failure'})`,
+    );
+
+    await sleep(Math.min(remaining, 30000));
+  }
+}
+
+async function handleInfrastructureFailure(source: string, error: unknown) {
+  if (isShuttingDown || infrastructureFailureHandled) {
+    return;
+  }
+
+  infrastructureFailureHandled = true;
+  const reason = `${source}: ${formatError(error)}`;
+
+  logWithThrottle(
+    'infrastructure:error',
+    'error',
+    `[Worker] infrastructure failure detected, entering cooldown before restart`,
+    error,
+  );
+
+  await armCooldown(reason);
+  await shutdown(1);
+}
+
+async function handleFatalProcessError(source: string, error: unknown) {
+  if (isInfrastructureError(error)) {
+    await handleInfrastructureFailure(source, error);
+    return;
+  }
+
+  logWithThrottle(`fatal:${source}`, 'error', `[Worker] fatal process error from ${source}`, error);
+  await shutdown(1);
+}
+
+function registerWorkerHandlers<T>(name: string, worker: Worker<T>) {
+  worker.on('completed', (job) => {
+    logWithThrottle(`${name}:completed`, 'info', `[${name}] Job ${job.id} completed`);
+  });
+
+  worker.on('failed', (job, err) => {
+    if (isInfrastructureError(err)) {
+      void handleInfrastructureFailure(`${name}:failed:${job?.id ?? 'unknown'}`, err);
+      return;
+    }
+
+    logWithThrottle(`${name}:failed`, 'error', `[${name}] Job ${job?.id ?? 'unknown'} failed`, err);
+  });
+
+  worker.on('error', (err) => {
+    if (isInfrastructureError(err)) {
+      void handleInfrastructureFailure(`${name}:worker-error`, err);
+      return;
+    }
+
+    logWithThrottle(`${name}:error`, 'error', `[${name}] Worker error`, err);
+  });
+}
+
+async function scheduleEventIngestionBatch(date: string, batchIndex: number, triggerId: string) {
+  if (!eventQueue) {
+    throw new Error('event queue is not initialized');
+  }
+
+  await eventQueue.add(
+    `event-ingestion-${date}-${batchIndex}`,
+    { batchDate: date },
+    {
+      attempts: 2,
+      backoff: { type: 'exponential', delay: 5000 },
+      jobId: `event-ingestion-${date}-${triggerId}-${batchIndex}`,
+      ...JOB_HISTORY_OPTIONS,
+    },
+  );
+}
+
+async function enqueueStudentSnapshot(userId: string, triggerId: string) {
+  if (!studentQueue) {
+    throw new Error('student queue is not initialized');
+  }
+
+  await studentQueue.add(
+    `student-snapshot-${userId}`,
+    { userId },
+    {
+      attempts: 2,
+      backoff: { type: 'exponential', delay: 10000 },
+      jobId: `student-snapshot-${userId}-${triggerId}`,
+      ...JOB_HISTORY_OPTIONS,
+    },
+  );
+}
+
+async function enqueueClassSnapshot(classId: string, triggerId: string) {
+  if (!classQueue) {
+    throw new Error('class queue is not initialized');
+  }
+
+  await classQueue.add(
+    `class-snapshot-${classId}`,
+    { classId },
+    {
+      attempts: 2,
+      backoff: { type: 'exponential', delay: 15000 },
+      jobId: `class-snapshot-${classId}-${triggerId}`,
+      ...JOB_HISTORY_OPTIONS,
+    },
+  );
+}
+
+async function listBufferedDates(): Promise<Array<{ date: string; count: number }>> {
+  const client = getRedisClient();
+  const keys = await client.keys('event:buffer:secondary:*');
+
+  if (keys.length === 0) {
+    return [];
+  }
+
+  const counts = await Promise.all(keys.map((key) => client.llen(key)));
+
+  return keys
+    .map((key, index) => ({
+      date: key.replace('event:buffer:secondary:', ''),
+      count: counts[index],
+    }))
+    .filter((entry) => entry.count > 0)
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+async function getActiveStudentIds(): Promise<string[]> {
+  const db = getPrismaClient();
+  const activeSince = new Date(Date.now() - ACTIVE_WINDOW_MINUTES * 60 * 1000);
+
+  const [interactionUsers, factUsers] = await Promise.all([
+    db.interactionLog.findMany({
+      where: {
+        createdAt: { gte: activeSince },
       },
-    });
+      select: { userId: true },
+      distinct: ['userId'],
+    }),
+    db.learningFact.findMany({
+      where: {
+        startedAt: { gte: activeSince },
+      },
+      select: { userId: true },
+      distinct: ['userId'],
+    }),
+  ]);
 
-    // Transform core events to LearningFacts
-    const coreEvents = events.filter((e) => isCoreEvent(e.actionType));
-    const facts = coreEvents.map(eventToFact).filter(Boolean);
+  const candidateIds = Array.from(
+    new Set([...interactionUsers.map((item) => item.userId), ...factUsers.map((item) => item.userId)]),
+  );
 
-    // Upsert facts (skip duplicates)
-    if (facts.length > 0) {
-      await prisma.learningFact.createMany({
-        data: facts as Prisma.LearningFactCreateManyInput[],
-        skipDuplicates: true,
-      });
+  if (candidateIds.length === 0) {
+    return [];
+  }
+
+  const studentProfiles = await db.studentProfile.findMany({
+    where: { userId: { in: candidateIds } },
+    select: { userId: true },
+  });
+
+  return studentProfiles.map((item) => item.userId);
+}
+
+async function processEventIngestionJob(job: Job<EventIngestionJob>) {
+  if (job.data.coordinator) {
+    const bufferedDates = await listBufferedDates();
+    if (bufferedDates.length === 0) {
+      logWithThrottle('event-ingestion:coordinator', 'info', '[EventIngestion] No buffered event batches to schedule');
+      return { scheduled: 0, pendingDates: 0 };
     }
 
-    // Update stats
-    await markEventsProcessed(events.length);
+    let scheduled = 0;
+    const triggerId = `${job.id ?? 'manual'}-${Date.now()}`;
+    for (const entry of bufferedDates) {
+      const batchCount = Math.ceil(entry.count / EVENT_BATCH_SIZE);
+      for (let batchIndex = 0; batchIndex < batchCount; batchIndex += 1) {
+        await scheduleEventIngestionBatch(entry.date, batchIndex + 1, triggerId);
+        scheduled += 1;
+      }
+    }
 
-    console.log(`[EventIngestion] Processed ${events.length} events, created ${facts.length} facts`);
+    logWithThrottle(
+      'event-ingestion:coordinator',
+      'info',
+      `[EventIngestion] Scheduled ${scheduled} one-off ingestion jobs across ${bufferedDates.length} buffered dates`,
+    );
 
     return {
-      processed: events.length,
-      factsCreated: facts.length,
+      scheduled,
+      pendingDates: bufferedDates.length,
     };
-  },
-  { connection: redis, concurrency: WORKER_CONCURRENCY }
-);
+  }
+
+  const db = getPrismaClient();
+  const batchDate = resolveBatchDate(job.data.batchDate);
+  logWithThrottle('event-ingestion:job', 'info', `[EventIngestion] Processing batch for ${batchDate}`);
+
+  const events = await fetchSecondaryEvents(batchDate, EVENT_BATCH_SIZE);
+  if (events.length === 0) {
+    return { processed: 0, factsCreated: 0 };
+  }
+
+  await db.learningEventBatch.create({
+    data: {
+      batchDate: new Date(batchDate),
+      events: events as unknown as Prisma.InputJsonValue,
+      eventCount: events.length,
+      processedAt: new Date(),
+    },
+  });
+
+  const coreEvents = events.filter((event) => isCoreEvent(event.actionType));
+  const facts = coreEvents.map(eventToFact).filter(Boolean);
+
+  if (facts.length > 0) {
+    await db.learningFact.createMany({
+      data: facts as Prisma.LearningFactCreateManyInput[],
+      skipDuplicates: true,
+    });
+  }
+
+  await markEventsProcessed(events.length);
+
+  return {
+    processed: events.length,
+    factsCreated: facts.length,
+  };
+}
 
 function resolveBatchDate(batchDate?: string, now = new Date()): string {
   if (batchDate && batchDate.trim().length > 0) {
@@ -110,9 +464,6 @@ function resolveBatchDate(batchDate?: string, now = new Date()): string {
 }
 
 function eventToFact(event: LearningEvent) {
-  // Map event to LearningFact structure
-  const competencyMapping = getCompetencyMappingForEvent(event);
-
   return {
     userId: event.userId,
     factType: mapActionTypeToFactType(event.actionType),
@@ -123,7 +474,7 @@ function eventToFact(event: LearningEvent) {
     outcome: deriveFactOutcome(event.actionType, event.payload),
     score: deriveFactScore(event.payload),
     timeSpent: deriveFactTimeSpent(event.payload),
-    competencyContribution: competencyMapping,
+    competencyContribution: getCompetencyMappingForEvent(event),
     sourceEventId: event.eventId,
     sourceLogId: event.payload.sourceLogId as string | undefined,
     courseId: event.courseId,
@@ -139,124 +490,131 @@ function getCompetencyMappingForEvent(event: LearningEvent): Record<string, numb
   );
 }
 
-// ============================================
-// Worker 2: Student Snapshot
-// ============================================
-
-const studentSnapshotWorker = new Worker(
-  'snapshot-student',
-  async (job: Job<StudentSnapshotJob>) => {
-    const { userId } = job.data;
-    console.log(`[StudentSnapshot] Calculating snapshot for ${userId}`);
-    const snapshotAt = new Date();
-
-    // Fetch recent learning facts
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const facts = await prisma.learningFact.findMany({
-      where: {
-        userId,
-        startedAt: { gte: thirtyDaysAgo },
-      },
-      orderBy: { startedAt: 'desc' },
-    });
-
-    // Calculate competency vector
-    const competencyVector = calculateCompetencyVector(facts, '1m');
-
-    // Get previous snapshot for trend calculation
-    const previousSnapshot = await prisma.studentCompetencySnapshot.findFirst({
-      where: { userId },
-      orderBy: { snapshotAt: 'desc' },
-    });
-
-    // Calculate trend
-    if (previousSnapshot) {
-      const previousVector = previousSnapshot.competencyVector as unknown as CompetencyVector;
-      const trendVector = calculateTrendVector(competencyVector, previousVector);
-
-      // Update trends in vector
-      for (const dim of Object.keys(trendVector)) {
-        competencyVector[dim as keyof CompetencyVector].trend = trendVector[dim as keyof CompetencyVector];
-      }
+async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {
+  if (job.data.coordinator) {
+    const activeStudentIds = await getActiveStudentIds();
+    if (activeStudentIds.length === 0) {
+      logWithThrottle('student-snapshot:coordinator', 'info', '[StudentSnapshot] No active students in the last 90 minutes');
+      return { scheduled: 0 };
     }
 
-    // Detect risks
-    const risks = detectRisks({
+    const triggerId = new Date().toISOString().slice(0, 13);
+    for (const userId of activeStudentIds) {
+      await enqueueStudentSnapshot(userId, triggerId);
+    }
+
+    logWithThrottle(
+      'student-snapshot:coordinator',
+      'info',
+      `[StudentSnapshot] Scheduled ${activeStudentIds.length} active student snapshot jobs`,
+    );
+
+    return { scheduled: activeStudentIds.length };
+  }
+
+  if (!job.data.userId) {
+    throw new Error('snapshot-student job requires userId unless it is a coordinator job');
+  }
+
+  const db = getPrismaClient();
+  const { userId } = job.data;
+  const snapshotAt = new Date();
+
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const facts = await db.learningFact.findMany({
+    where: {
       userId,
-      facts,
-      competencyVector,
-      previousSnapshot: previousSnapshot?.competencyVector as unknown as CompetencyVector,
-    });
+      startedAt: { gte: thirtyDaysAgo },
+    },
+    orderBy: { startedAt: 'desc' },
+  });
 
-    // Create snapshot
-    const snapshot = await prisma.studentCompetencySnapshot.create({
-      data: {
-        userId,
-        snapshotAt,
-        competencyVector: competencyVector as unknown as Prisma.InputJsonValue,
-        evidenceSummary: generateEvidenceSummary(facts) as unknown as Prisma.InputJsonValue,
-        riskFlags: risks.map((r) => r.type),
-        factCount: facts.length,
-      },
-    });
+  const competencyVector = calculateCompetencyVector(facts, '1m');
 
-    // Update or create profile summary
-    await updateProfileSummary(userId, competencyVector, risks, facts);
+  const previousSnapshot = await db.studentCompetencySnapshot.findFirst({
+    where: { userId },
+    orderBy: { snapshotAt: 'desc' },
+  });
 
-    await prisma.studentRiskFlag.updateMany({
-      where: {
-        userId,
-        isResolved: false,
-      },
-      data: {
-        isResolved: true,
-        resolvedAt: snapshotAt,
-        resolutionNote: 'Superseded by latest competency snapshot',
-      },
-    });
+  if (previousSnapshot) {
+    const previousVector = previousSnapshot.competencyVector as unknown as CompetencyVector;
+    const trendVector = calculateTrendVector(competencyVector, previousVector);
 
-    if (risks.length > 0) {
-      await prisma.studentRiskFlag.createMany({
-        data: risks.map((risk) => ({
-          userId,
-          flagType: risk.type,
-          severity: risk.severity,
-          description: risk.description,
-          evidenceJson: risk.evidence as Prisma.InputJsonValue,
-          triggeredAt: risk.triggeredAt,
-        })),
-      });
+    for (const dimension of Object.keys(trendVector)) {
+      competencyVector[dimension as keyof CompetencyVector].trend =
+        trendVector[dimension as keyof CompetencyVector];
     }
+  }
 
-    console.log(`[StudentSnapshot] Created snapshot ${snapshot.id} with ${risks.length} risks`);
+  const risks = detectRisks({
+    userId,
+    facts,
+    competencyVector,
+    previousSnapshot: previousSnapshot?.competencyVector as unknown as CompetencyVector,
+  });
 
-    return {
-      snapshotId: snapshot.id,
+  const snapshot = await db.studentCompetencySnapshot.create({
+    data: {
+      userId,
+      snapshotAt,
+      competencyVector: competencyVector as unknown as Prisma.InputJsonValue,
+      evidenceSummary: generateEvidenceSummary(facts) as unknown as Prisma.InputJsonValue,
+      riskFlags: risks.map((risk) => risk.type),
       factCount: facts.length,
-      riskCount: risks.length,
-    };
-  },
-  { connection: redis, concurrency: WORKER_CONCURRENCY }
-);
+    },
+  });
+
+  await updateProfileSummary(userId, competencyVector, risks, facts);
+
+  await db.studentRiskFlag.updateMany({
+    where: {
+      userId,
+      isResolved: false,
+    },
+    data: {
+      isResolved: true,
+      resolvedAt: snapshotAt,
+      resolutionNote: 'Superseded by latest competency snapshot',
+    },
+  });
+
+  if (risks.length > 0) {
+    await db.studentRiskFlag.createMany({
+      data: risks.map((risk) => ({
+        userId,
+        flagType: risk.type,
+        severity: risk.severity,
+        description: risk.description,
+        evidenceJson: risk.evidence as Prisma.InputJsonValue,
+        triggeredAt: risk.triggeredAt,
+      })),
+    });
+  }
+
+  return {
+    snapshotId: snapshot.id,
+    factCount: facts.length,
+    riskCount: risks.length,
+  };
+}
 
 async function updateProfileSummary(
   userId: string,
   vector: CompetencyVector,
   risks: ReturnType<typeof detectRisks>,
-  facts: Array<{ factType: string; outcome: string; startedAt: Date }>
+  facts: Array<{ factType: string; outcome: string; startedAt: Date }>,
 ) {
+  const db = getPrismaClient();
   const strengths = identifyStrengths(vector);
   const weaknesses = identifyWeaknesses(vector);
   const riskLevel = getRiskLevelDescription(risks.length);
 
-  // Get recent activity (last 5)
-  const recentActivity = facts.slice(0, 5).map((f) => ({
-    type: f.factType,
-    outcome: f.outcome,
-    date: f.startedAt.toISOString(),
+  const recentActivity = facts.slice(0, 5).map((fact) => ({
+    type: fact.factType,
+    outcome: fact.outcome,
+    date: fact.startedAt.toISOString(),
   }));
 
-  // Calculate trend description
   const trendDirection = calculateOverallTrend(vector);
   const trendDescriptions: Record<string, string> = {
     up: '近两周稳步提升',
@@ -264,7 +622,7 @@ async function updateProfileSummary(
     down: '近期出现下滑',
   };
 
-  await prisma.studentProfileSummary.upsert({
+  await db.studentProfileSummary.upsert({
     where: { userId },
     update: {
       overallLevel: getOverallLevel(vector),
@@ -273,11 +631,11 @@ async function updateProfileSummary(
       weaknessesJson: weaknesses as Prisma.InputJsonValue,
       recentTrend: trendDescriptions[trendDirection],
       trendDirection,
-      riskFlagsJson: risks.map((r) => r.description) as Prisma.InputJsonValue,
+      riskFlagsJson: risks.map((risk) => risk.description) as Prisma.InputJsonValue,
       riskLevel,
       recommendedScaffolding: getRecommendedScaffolding(risks),
       recentActivityJson: recentActivity as Prisma.InputJsonValue,
-      cacheExpiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+      cacheExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
     },
     create: {
       userId,
@@ -287,7 +645,7 @@ async function updateProfileSummary(
       weaknessesJson: weaknesses as Prisma.InputJsonValue,
       recentTrend: trendDescriptions[trendDirection],
       trendDirection,
-      riskFlagsJson: risks.map((r) => r.description) as Prisma.InputJsonValue,
+      riskFlagsJson: risks.map((risk) => risk.description) as Prisma.InputJsonValue,
       riskLevel,
       recommendedScaffolding: getRecommendedScaffolding(risks),
       recentActivityJson: recentActivity as Prisma.InputJsonValue,
@@ -306,97 +664,104 @@ function getOverallLevel(vector: CompetencyVector): string {
 }
 
 function calculateOverallScore(vector: CompetencyVector): number {
-  const scores = Object.values(vector).map((v) => v.score);
+  const scores = Object.values(vector).map((value) => value.score);
   return Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10;
 }
 
 function calculateOverallTrend(vector: CompetencyVector): 'up' | 'stable' | 'down' {
-  const trends = Object.values(vector).map((v) => v.trend);
-  const upCount = trends.filter((t) => t === 'up').length;
-  const downCount = trends.filter((t) => t === 'down').length;
+  const trends = Object.values(vector).map((value) => value.trend);
+  const upCount = trends.filter((item) => item === 'up').length;
+  const downCount = trends.filter((item) => item === 'down').length;
 
   if (upCount > downCount + 1) return 'up';
   if (downCount > upCount + 1) return 'down';
   return 'stable';
 }
 
-// ============================================
-// Worker 3: Class Snapshot
-// ============================================
-
-const classSnapshotWorker = new Worker(
-  'snapshot-class',
-  async (job: Job<ClassSnapshotJob>) => {
-    const { classId } = job.data;
-    console.log(`[ClassSnapshot] Calculating snapshot for class ${classId}`);
-
-    // Get all students in class
-    const students = await prisma.studentProfile.findMany({
-      where: { classId },
-      select: { userId: true },
+async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
+  if (job.data.coordinator) {
+    const db = getPrismaClient();
+    const classes = await db.class.findMany({
+      where: { isActive: true },
+      select: { id: true },
     });
 
-    // Get latest snapshots for all students
-    const snapshots = await Promise.all(
-      students.map((s) =>
-        prisma.studentCompetencySnapshot.findFirst({
-          where: { userId: s.userId },
-          orderBy: { snapshotAt: 'desc' },
-        })
-      )
-    );
-
-    const validSnapshots = snapshots.filter(Boolean);
-
-    if (validSnapshots.length === 0) {
-      console.log(`[ClassSnapshot] No student snapshots for class ${classId}`);
-      return { studentCount: 0, snapshotId: null };
+    const triggerId = new Date().toISOString().slice(0, 10);
+    for (const cls of classes) {
+      await enqueueClassSnapshot(cls.id, triggerId);
     }
 
-    // Calculate aggregates
-    const aggregate = calculateClassAggregate(validSnapshots);
-    const distribution = calculateLevelDistribution(validSnapshots);
-    const riskSummary = calculateRiskSummary(validSnapshots);
-
-    // Create class snapshot
-    const snapshot = await prisma.classCompetencySnapshot.create({
-      data: {
-        classId,
-        snapshotAt: new Date(),
-        aggregateJson: aggregate as unknown as Prisma.InputJsonValue,
-        distributionJson: distribution as unknown as Prisma.InputJsonValue,
-        trendJson: {} as Prisma.InputJsonValue, // TODO: Compare with previous
-        riskSummaryJson: riskSummary as unknown as Prisma.InputJsonValue,
-        levelDistribution: distribution as unknown as Prisma.InputJsonValue,
-        activeStudentCount: validSnapshots.length,
-        totalStudentCount: students.length,
-      },
-    });
-
-    console.log(
-      `[ClassSnapshot] Created snapshot ${snapshot.id} for ${validSnapshots.length}/${students.length} students`
+    logWithThrottle(
+      'class-snapshot:coordinator',
+      'info',
+      `[ClassSnapshot] Scheduled ${classes.length} class snapshot jobs`,
     );
 
-    return {
-      snapshotId: snapshot.id,
-      studentCount: validSnapshots.length,
-    };
-  },
-  { connection: redis, concurrency: 1 } // Lower concurrency for heavier work
-);
+    return { scheduled: classes.length };
+  }
+
+  if (!job.data.classId) {
+    throw new Error('snapshot-class job requires classId unless it is a coordinator job');
+  }
+
+  const db = getPrismaClient();
+  const { classId } = job.data;
+
+  const students = await db.studentProfile.findMany({
+    where: { classId },
+    select: { userId: true },
+  });
+
+  const snapshots = await Promise.all(
+    students.map((student) =>
+      db.studentCompetencySnapshot.findFirst({
+        where: { userId: student.userId },
+        orderBy: { snapshotAt: 'desc' },
+      }),
+    ),
+  );
+
+  const validSnapshots = snapshots.filter(Boolean);
+  if (validSnapshots.length === 0) {
+    return { studentCount: 0, snapshotId: null };
+  }
+
+  const aggregate = calculateClassAggregate(validSnapshots as Array<{ competencyVector: unknown }>);
+  const distribution = calculateLevelDistribution(validSnapshots as Array<{ competencyVector: unknown }>);
+  const riskSummary = calculateRiskSummary(validSnapshots as Array<{ riskFlags: unknown }>);
+
+  const snapshot = await db.classCompetencySnapshot.create({
+    data: {
+      classId,
+      snapshotAt: new Date(),
+      aggregateJson: aggregate as unknown as Prisma.InputJsonValue,
+      distributionJson: distribution as unknown as Prisma.InputJsonValue,
+      trendJson: {} as Prisma.InputJsonValue,
+      riskSummaryJson: riskSummary as unknown as Prisma.InputJsonValue,
+      levelDistribution: distribution as unknown as Prisma.InputJsonValue,
+      activeStudentCount: validSnapshots.length,
+      totalStudentCount: students.length,
+    },
+  });
+
+  return {
+    snapshotId: snapshot.id,
+    studentCount: validSnapshots.length,
+  };
+}
 
 function calculateClassAggregate(snapshots: Array<{ competencyVector: unknown }>) {
-  const vectors = snapshots.map((s) => s.competencyVector as CompetencyVector);
+  const vectors = snapshots.map((snapshot) => snapshot.competencyVector as CompetencyVector);
   const dimensions = Object.keys(vectors[0]) as Array<keyof CompetencyVector>;
 
   const aggregate: Record<string, { mean: number; stdDev: number }> = {};
 
-  for (const dim of dimensions) {
-    const scores = vectors.map((v) => v[dim].score);
+  for (const dimension of dimensions) {
+    const scores = vectors.map((vector) => vector[dimension].score);
     const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
-    const variance = scores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / scores.length;
+    const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
 
-    aggregate[dim] = {
+    aggregate[dimension] = {
       mean: Math.round(mean * 10) / 10,
       stdDev: Math.round(Math.sqrt(variance) * 10) / 10,
     };
@@ -406,26 +771,25 @@ function calculateClassAggregate(snapshots: Array<{ competencyVector: unknown }>
 }
 
 function calculateLevelDistribution(snapshots: Array<{ competencyVector: unknown }>) {
-  const vectors = snapshots.map((s) => s.competencyVector as CompetencyVector);
-
+  const vectors = snapshots.map((snapshot) => snapshot.competencyVector as CompetencyVector);
   const levels = { excellent: 0, good: 0, average: 0, needsImprovement: 0, atRisk: 0 };
 
   for (const vector of vectors) {
     const avg = calculateOverallScore(vector);
-    if (avg >= 85) levels.excellent++;
-    else if (avg >= 70) levels.good++;
-    else if (avg >= 55) levels.average++;
-    else if (avg >= 40) levels.needsImprovement++;
-    else levels.atRisk++;
+    if (avg >= 85) levels.excellent += 1;
+    else if (avg >= 70) levels.good += 1;
+    else if (avg >= 55) levels.average += 1;
+    else if (avg >= 40) levels.needsImprovement += 1;
+    else levels.atRisk += 1;
   }
 
   return levels;
 }
 
 function calculateRiskSummary(snapshots: Array<{ riskFlags: unknown }>) {
-  const allFlags = snapshots.flatMap((s) => s.riskFlags as string[]);
-
+  const allFlags = snapshots.flatMap((snapshot) => snapshot.riskFlags as string[]);
   const summary: Record<string, number> = {};
+
   for (const flag of allFlags) {
     summary[flag] = (summary[flag] || 0) + 1;
   }
@@ -433,57 +797,102 @@ function calculateRiskSummary(snapshots: Array<{ riskFlags: unknown }>) {
   return summary;
 }
 
-// ============================================
-// Event Handlers & Shutdown
-// ============================================
+async function startWorkers() {
+  await respectCooldown();
 
-// Log worker events
-eventIngestionWorker.on('completed', (job) => {
-  console.log(`[EventIngestion] Job ${job.id} completed`, job.returnvalue);
-});
+  redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
+  prisma = new PrismaClient();
 
-eventIngestionWorker.on('failed', (job, err) => {
-  console.error(`[EventIngestion] Job ${job?.id} failed:`, err.message);
-});
+  redis.on('error', (error) => {
+    if (isInfrastructureError(error)) {
+      void handleInfrastructureFailure('redis:error', error);
+      return;
+    }
 
-studentSnapshotWorker.on('completed', (job) => {
-  console.log(`[StudentSnapshot] Job ${job.id} completed`, job.returnvalue);
-});
+    logWithThrottle('redis:error', 'error', '[Worker] Redis emitted a non-fatal error', error);
+  });
 
-studentSnapshotWorker.on('failed', (job, err) => {
-  console.error(`[StudentSnapshot] Job ${job?.id} failed:`, err.message);
-});
+  redis.on('close', () => {
+    if (!isShuttingDown) {
+      void handleInfrastructureFailure('redis:close', new Error('Redis connection closed'));
+    }
+  });
 
-classSnapshotWorker.on('completed', (job) => {
-  console.log(`[ClassSnapshot] Job ${job.id} completed`, job.returnvalue);
-});
+  eventQueue = new Queue<EventIngestionJob>('event-ingestion', { connection: redis });
+  studentQueue = new Queue<StudentSnapshotJob>('snapshot-student', { connection: redis });
+  classQueue = new Queue<ClassSnapshotJob>('snapshot-class', { connection: redis });
 
-classSnapshotWorker.on('failed', (job, err) => {
-  console.error(`[ClassSnapshot] Job ${job?.id} failed:`, err.message);
-});
+  eventIngestionWorker = new Worker<EventIngestionJob>('event-ingestion', processEventIngestionJob, {
+    connection: redis,
+    concurrency: WORKER_CONCURRENCY,
+  });
+  studentSnapshotWorker = new Worker<StudentSnapshotJob>('snapshot-student', processStudentSnapshotJob, {
+    connection: redis,
+    concurrency: WORKER_CONCURRENCY,
+  });
+  classSnapshotWorker = new Worker<ClassSnapshotJob>('snapshot-class', processClassSnapshotJob, {
+    connection: redis,
+    concurrency: 1,
+  });
 
-// Graceful shutdown
-async function shutdown() {
-  if (isShuttingDown) return;
-  isShuttingDown = true;
+  registerWorkerHandlers('EventIngestion', eventIngestionWorker);
+  registerWorkerHandlers('StudentSnapshot', studentSnapshotWorker);
+  registerWorkerHandlers('ClassSnapshot', classSnapshotWorker);
 
-  console.log('[Worker] Shutting down...');
+  process.on('SIGTERM', () => {
+    void shutdown(0);
+  });
+  process.on('SIGINT', () => {
+    void shutdown(0);
+  });
+  process.on('unhandledRejection', (reason) => {
+    void handleFatalProcessError('unhandledRejection', reason);
+  });
+  process.on('uncaughtException', (error) => {
+    void handleFatalProcessError('uncaughtException', error);
+  });
 
-  await Promise.all([
-    eventIngestionWorker.close(),
-    studentSnapshotWorker.close(),
-    classSnapshotWorker.close(),
-  ]);
-
-  await prisma.$disconnect();
-  await redis.quit();
-
-  console.log('[Worker] Shutdown complete');
-  process.exit(0);
+  console.log('[Worker] Data governance worker started');
+  console.log(`[Worker] Concurrency: ${WORKER_CONCURRENCY}`);
 }
 
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
+async function shutdown(exitCode: number) {
+  if (isShuttingDown) {
+    return;
+  }
 
-console.log('[Worker] Data governance worker started');
-console.log(`[Worker] Concurrency: ${WORKER_CONCURRENCY}`);
+  isShuttingDown = true;
+  console.log('[Worker] Shutting down...');
+
+  const cleanupTasks: Array<Promise<unknown>> = [];
+
+  if (eventIngestionWorker) cleanupTasks.push(eventIngestionWorker.close());
+  if (studentSnapshotWorker) cleanupTasks.push(studentSnapshotWorker.close());
+  if (classSnapshotWorker) cleanupTasks.push(classSnapshotWorker.close());
+  if (eventQueue) cleanupTasks.push(eventQueue.close());
+  if (studentQueue) cleanupTasks.push(studentQueue.close());
+  if (classQueue) cleanupTasks.push(classQueue.close());
+  if (prisma) cleanupTasks.push(prisma.$disconnect());
+  if (redis) {
+    cleanupTasks.push(
+      redis.quit().catch(() => {
+        redis?.disconnect();
+      }),
+    );
+  }
+
+  await Promise.allSettled(cleanupTasks);
+
+  console.log('[Worker] Shutdown complete');
+  process.exit(exitCode);
+}
+
+startWorkers().catch(async (error) => {
+  if (isInfrastructureError(error)) {
+    await handleInfrastructureFailure('worker:start', error);
+    return;
+  }
+
+  logWithThrottle('worker:start', 'error', '[Worker] Failed to start data governance worker', error);
+  await shutdown(1);
+});

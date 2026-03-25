@@ -19,6 +19,11 @@ let eventIngestionQueue: Queue | null = null;
 let studentSnapshotQueue: Queue | null = null;
 let classSnapshotQueue: Queue | null = null;
 
+const JOB_HISTORY_OPTIONS = {
+  removeOnComplete: { count: 50 },
+  removeOnFail: { count: 200 },
+} as const;
+
 /**
  * Initialize queues
  */
@@ -69,6 +74,7 @@ export async function scheduleEventIngestion(batchDate: string): Promise<void> {
     {
       attempts: 3,
       backoff: { type: 'exponential', delay: 5000 },
+      ...JOB_HISTORY_OPTIONS,
     }
   );
 }
@@ -86,6 +92,7 @@ export async function scheduleStudentSnapshot(userId: string): Promise<void> {
       attempts: 3,
       backoff: { type: 'exponential', delay: 10000 },
       jobId: `student-${userId}`, // Deduplication
+      ...JOB_HISTORY_OPTIONS,
     }
   );
 }
@@ -103,6 +110,7 @@ export async function scheduleClassSnapshot(classId: string): Promise<void> {
       attempts: 3,
       backoff: { type: 'exponential', delay: 15000 },
       jobId: `class-${classId}`, // Deduplication
+      ...JOB_HISTORY_OPTIONS,
     }
   );
 }
