@@ -1,0 +1,673 @@
+{
+  "source_pptx": "course-content/slides-ref/3方框图_控制系统结构.pptx",
+  "selected_slides": {
+    "4": {
+      "shapes": [
+        {
+          "type": "TEXT_BOX (17)",
+          "name": "标题",
+          "left": 406574,
+          "top": 330279,
+          "width": 5328592,
+          "height": 523220,
+          "text": "方框图(Block Diagram)的组成"
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "步骤1",
+          "left": 262558,
+          "top": 1033814,
+          "width": 2232992,
+          "height": 759849,
+          "children": [
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "标题",
+              "left": 5305665,
+              "top": 1556792,
+              "width": 2346448,
+              "height": 1013000,
+              "text": "信号线"
+            },
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "序号",
+              "left": 4675178,
+              "top": 1605119,
+              "width": 964673,
+              "height": 964673,
+              "text": "01"
+            }
+          ]
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "组合 1",
+          "left": 4891659,
+          "top": 1959224,
+          "width": 1903695,
+          "height": 461665,
+          "children": [
+            {
+              "type": "LINE (9)",
+              "name": "信号1",
+              "left": 4891659,
+              "top": 2420888,
+              "width": 1903695,
+              "height": 0
+            }
+          ]
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "步骤2",
+          "left": 334964,
+          "top": 2733829,
+          "width": 2229196,
+          "height": 759849,
+          "children": [
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "标题",
+              "left": 5434624,
+              "top": 3027297,
+              "width": 2346449,
+              "height": 1013002,
+              "text": "引出点"
+            },
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "序号",
+              "left": 4809199,
+              "top": 3051459,
+              "width": 964673,
+              "height": 964675,
+              "text": "02"
+            }
+          ]
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "组合 3",
+          "left": 4022716,
+          "top": 4694617,
+          "width": 936104,
+          "height": 1224137,
+          "children": [
+            {
+              "type": "LINE (9)",
+              "name": "信号3",
+              "left": 4022716,
+              "top": 4694617,
+              "width": 0,
+              "height": 1224136
+            }
+          ]
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "组合 2",
+          "left": 2602817,
+          "top": 4167906,
+          "width": 2592615,
+          "height": 526711,
+          "children": [
+            {
+              "type": "LINE (9)",
+              "name": "信号2",
+              "left": 3070870,
+              "top": 4694617,
+              "width": 1903695,
+              "height": 0
+            }
+          ]
+        },
+        {
+          "type": "TEXT_BOX (17)",
+          "name": "说明",
+          "left": 6268479,
+          "top": 4584951,
+          "width": 4766028,
+          "height": 1055608,
+          "text": "从同一信号线上引出的信号，数值和性质完全相同"
+        },
+        {
+          "type": "TEXT_BOX (17)",
+          "name": "文本1",
+          "left": 2812778,
+          "top": 1152128,
+          "width": 6563269,
+          "height": 523220,
+          "text": "有箭头的直线，箭头表示信号传递方向"
+        },
+        {
+          "type": "TEXT_BOX (17)",
+          "name": "文本2",
+          "left": 2812778,
+          "top": 2857686,
+          "width": 4464496,
+          "height": 523220,
+          "text": "信号引出或测量的位置"
+        }
+      ]
+    },
+    "5": {
+      "shapes": [
+        {
+          "type": "GROUP (6)",
+          "name": "组合 4",
+          "left": 6786826,
+          "top": 1930114,
+          "width": 1544296,
+          "height": 691046,
+          "children": [
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "椭圆 16",
+              "left": 6786826,
+              "top": 2333160,
+              "width": 288000,
+              "height": 288000
+            },
+            {
+              "type": "LINE (9)",
+              "name": "1直线箭头连接符3",
+              "left": 7074827,
+              "top": 2477160,
+              "width": 1043247,
+              "height": 0
+            }
+          ]
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "组合 1",
+          "left": 4807475,
+          "top": 1904920,
+          "width": 2116696,
+          "height": 565291,
+          "children": [
+            {
+              "type": "LINE (9)",
+              "name": "直线箭头连接符 27",
+              "left": 4891659,
+              "top": 2470211,
+              "width": 1903695,
+              "height": 0
+            }
+          ]
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "组合 2",
+          "left": 6355930,
+          "top": 2512635,
+          "width": 1555995,
+          "height": 1060381,
+          "children": [
+            {
+              "type": "LINE (9)",
+              "name": "1直线箭头连接符3",
+              "left": 6930826,
+              "top": 2621160,
+              "width": 0,
+              "height": 903268
+            }
+          ]
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "组合 3",
+          "left": 3904427,
+          "top": 5245409,
+          "width": 5503147,
+          "height": 806834,
+          "children": [
+            {
+              "type": "LINE (9)",
+              "name": "1直线箭头连接符3",
+              "left": 6479640,
+              "top": 5764243,
+              "width": 2711910,
+              "height": 0
+            },
+            {
+              "type": "LINE (9)",
+              "name": "1直线箭头连接符3",
+              "left": 4362590,
+              "top": 5764243,
+              "width": 929051,
+              "height": 1
+            }
+          ]
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "困难1",
+          "left": 262558,
+          "top": 1071638,
+          "width": 2232992,
+          "height": 759849,
+          "children": [
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "íŝlïďê",
+              "left": 5305665,
+              "top": 1556792,
+              "width": 2346448,
+              "height": 1013000,
+              "text": "综合点"
+            },
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "ï$ľiďê",
+              "left": 4675178,
+              "top": 1605119,
+              "width": 964673,
+              "height": 964673,
+              "text": "03"
+            }
+          ]
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "组合 35",
+          "left": 262558,
+          "top": 3729370,
+          "width": 2232992,
+          "height": 759849,
+          "children": [
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "ïṡľíḑé",
+              "left": 5434623,
+              "top": 3027297,
+              "width": 2351511,
+              "height": 1013002,
+              "text": "方框"
+            },
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "ï$ḷiďè",
+              "left": 4809199,
+              "top": 3051459,
+              "width": 964673,
+              "height": 964675,
+              "text": "04"
+            }
+          ]
+        },
+        {
+          "type": "TEXT_BOX (17)",
+          "name": "TextBox 3",
+          "left": 406574,
+          "top": 330279,
+          "width": 5337005,
+          "height": 523220,
+          "text": "方框图(Block Diagram)的组成"
+        },
+        {
+          "type": "TEXT_BOX (17)",
+          "name": "文本2",
+          "left": 2812779,
+          "top": 992633,
+          "width": 8971059,
+          "height": 954107,
+          "text": "对两个或两个以上的信号进行代数运算，“+”表示相加，常省略，“−”表示相减。"
+        },
+        {
+          "type": "TEXT_BOX (17)",
+          "name": "文本2",
+          "left": 2806130,
+          "top": 3724166,
+          "width": 8971059,
+          "height": 954107,
+          "text": "表示典型环节或其组合，框内为对应的传递函数，两侧为输入、输出信号线。"
+        }
+      ]
+    },
+    "11": {
+      "shapes": [
+        {
+          "type": "TEXT_BOX (17)",
+          "name": "标题",
+          "left": 419468,
+          "top": 346798,
+          "width": 4269061,
+          "height": 523220,
+          "text": "典型连接方式及等效变换"
+        },
+        {
+          "type": "LINE (9)",
+          "name": "信号1",
+          "left": 650730,
+          "top": 1860769,
+          "width": 929051,
+          "height": 1
+        },
+        {
+          "type": "LINE (9)",
+          "name": "信号2",
+          "left": 2767781,
+          "top": 1860769,
+          "width": 1063119,
+          "height": 0
+        },
+        {
+          "type": "LINE (9)",
+          "name": "信号3",
+          "left": 5018900,
+          "top": 1860769,
+          "width": 1007251,
+          "height": 1
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "组合 1",
+          "left": 6672215,
+          "top": 1341936,
+          "width": 4209132,
+          "height": 860870,
+          "children": [
+            {
+              "type": "LINE (9)",
+              "name": "信号4",
+              "left": 5641965,
+              "top": 3428999,
+              "width": 883230,
+              "height": 1
+            },
+            {
+              "type": "LINE (9)",
+              "name": "信号5",
+              "left": 8164304,
+              "top": 3429000,
+              "width": 883230,
+              "height": 0
+            },
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "燕尾形 8",
+              "left": 4876424,
+              "top": 3086961,
+              "width": 396044,
+              "height": 684076
+            }
+          ]
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "步骤1",
+          "left": 6199288,
+          "top": 213541,
+          "width": 3028134,
+          "height": 723599,
+          "children": [
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "文本",
+              "left": 5305665,
+              "top": 1677420,
+              "width": 3406499,
+              "height": 771742,
+              "text": "串联及等效"
+            },
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "序号",
+              "left": 4675178,
+              "top": 1605119,
+              "width": 964673,
+              "height": 964673,
+              "text": "01"
+            }
+          ]
+        }
+      ]
+    },
+    "29": {
+      "shapes": [
+        {
+          "type": "TEXT_BOX (17)",
+          "name": "TextBox 3",
+          "left": 218736,
+          "top": 357512,
+          "width": 5300406,
+          "height": 523220,
+          "text": "例：简化结构图，并求传递函数"
+        },
+        {
+          "type": "LINE (9)",
+          "name": "1直线箭头连接符3",
+          "left": 2088148,
+          "top": 2143724,
+          "width": 1126738,
+          "height": 1883
+        },
+        {
+          "type": "LINE (9)",
+          "name": "1直线箭头连接符3",
+          "left": 5828297,
+          "top": 2145606,
+          "width": 1155882,
+          "height": 0
+        },
+        {
+          "type": "LINE (9)",
+          "name": "4肘形连接符",
+          "left": 3358888,
+          "top": 2289608,
+          "width": 1681045,
+          "height": 646207
+        },
+        {
+          "type": "AUTO_SHAPE (1)",
+          "name": "椭圆 105",
+          "left": 3214886,
+          "top": 2001606,
+          "width": 288000,
+          "height": 288000
+        },
+        {
+          "type": "LINE (9)",
+          "name": "1直线箭头连接符3",
+          "left": 3502887,
+          "top": 2145606,
+          "width": 1543985,
+          "height": 0
+        },
+        {
+          "type": "LINE (9)",
+          "name": "4肘形连接符",
+          "left": 5751848,
+          "top": 2213006,
+          "width": 792090,
+          "height": 653524
+        },
+        {
+          "type": "AUTO_SHAPE (1)",
+          "name": "椭圆 137",
+          "left": 6984179,
+          "top": 2001606,
+          "width": 288000,
+          "height": 288000
+        },
+        {
+          "type": "LINE (9)",
+          "name": "4肘形连接符",
+          "left": 5821131,
+          "top": 1340736,
+          "width": 1307048,
+          "height": 660870
+        },
+        {
+          "type": "LINE (9)",
+          "name": "4肘形连接符",
+          "left": 4365932,
+          "top": 1469725,
+          "width": 802987,
+          "height": 545013
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "组合 1",
+          "left": 4343978,
+          "top": 1998478,
+          "width": 2258578,
+          "height": 298871,
+          "children": [
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "椭圆 83",
+              "left": 4343978,
+              "top": 1998478,
+              "width": 288000,
+              "height": 288000
+            },
+            {
+              "type": "AUTO_SHAPE (1)",
+              "name": "椭圆 84",
+              "left": 6314556,
+              "top": 2009349,
+              "width": 288000,
+              "height": 288000
+            },
+            {
+              "type": "LINE (9)",
+              "name": "曲线连接符 18",
+              "left": 5467833,
+              "top": 1306624,
+              "width": 10871,
+              "height": 1970578
+            }
+          ]
+        },
+        {
+          "type": "AUTO_SHAPE (1)",
+          "name": "圆角矩形标注 20",
+          "left": 7088409,
+          "top": 2699491,
+          "width": 2895229,
+          "height": 621876,
+          "text": "方法1：引出点后移"
+        },
+        {
+          "type": "LINE (9)",
+          "name": "1直线箭头连接符3",
+          "left": 7287478,
+          "top": 2144290,
+          "width": 1111984,
+          "height": 0
+        },
+        {
+          "type": "GROUP (6)",
+          "name": "组合 7",
+          "left": 2016140,
+          "top": 3557690,
+          "width": 6383322,
+          "height": 2172958,
+          "children": [
+            {
+              "type": "GROUP (6)",
+              "name": "组合 2",
+              "left": 2016140,
+              "top": 3557690,
+              "width": 6192143,
+              "height": 2172958,
+              "children": [
+                {
+                  "type": "LINE (9)",
+                  "name": "1直线箭头连接符3",
+                  "left": 2088148,
+                  "top": 4650559,
+                  "width": 1126738,
+                  "height": 1883
+                },
+                {
+                  "type": "LINE (9)",
+                  "name": "1直线箭头连接符3",
+                  "left": 4500368,
+                  "top": 4652441,
+                  "width": 2483811,
+                  "height": 0
+                },
+                {
+                  "type": "LINE (9)",
+                  "name": "4肘形连接符",
+                  "left": 3358888,
+                  "top": 4796443,
+                  "width": 1681045,
+                  "height": 646207
+                },
+                {
+                  "type": "AUTO_SHAPE (1)",
+                  "name": "椭圆 50",
+                  "left": 3214886,
+                  "top": 4508441,
+                  "width": 288000,
+                  "height": 288000
+                },
+                {
+                  "type": "LINE (9)",
+                  "name": "1直线箭头连接符3",
+                  "left": 3502886,
+                  "top": 4652441,
+                  "width": 216056,
+                  "height": 0
+                },
+                {
+                  "type": "LINE (9)",
+                  "name": "4肘形连接符",
+                  "left": 5751848,
+                  "top": 4719841,
+                  "width": 792090,
+                  "height": 653524
+                },
+                {
+                  "type": "AUTO_SHAPE (1)",
+                  "name": "椭圆 54",
+                  "left": 6984179,
+                  "top": 4508441,
+                  "width": 288000,
+                  "height": 288000
+                },
+                {
+                  "type": "LINE (9)",
+                  "name": "4肘形连接符",
+                  "left": 6887295,
+                  "top": 3847571,
+                  "width": 240885,
+                  "height": 660870
+                },
+                {
+                  "type": "LINE (9)",
+                  "name": "4肘形连接符",
+                  "left": 4483436,
+                  "top": 4087838,
+                  "width": 805809,
+                  "height": 321514
+                },
+                {
+                  "type": "LINE (9)",
+                  "name": "1直线箭头连接符3",
+                  "left": 5828296,
+                  "top": 3845691,
+                  "width": 277798,
+                  "height": 1881
+                }
+              ]
+            },
+            {
+              "type": "LINE (9)",
+              "name": "1直线箭头连接符3",
+              "left": 7287478,
+              "top": 4667102,
+              "width": 1111984,
+              "height": 0
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

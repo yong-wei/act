@@ -1,0 +1,19 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{matrix,positioning}
+
+\begin{document}
+\begin{tikzpicture}
+  \matrix[matrix of math nodes,
+    nodes={draw, minimum width=1.4cm, minimum height=0.85cm, anchor=center},
+    column sep=-\pgflinewidth, row sep=-\pgflinewidth] (m) {
+    s^4 & a_4 & a_2 & a_0 \\
+    s^3 & a_3 & a_1 & 0 \\
+    s^2 & b_1 & b_2 & 0 \\
+    s^1 & c_1 & c_2 & 0 \\
+    s^0 & d_1 & 0 & 0 \\
+  };
+  \node[font=\small, align=left, right=1.0cm of m] {stability rule:\\first-column entries\\all positive};
+\end{tikzpicture}
+\end{document}

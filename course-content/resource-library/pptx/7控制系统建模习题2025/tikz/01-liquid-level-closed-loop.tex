@@ -1,0 +1,30 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\tikzset{
+  signal/.style={->, line width=1.2pt, draw=black!80, >=Stealth},
+  block/.style={draw=blue!70!black, line width=1.2pt, rectangle, rounded corners=2pt, minimum width=2.7cm, minimum height=1.0cm, align=center, fill=none},
+  tank/.style={draw=blue!70!black, line width=1.2pt},
+  note/.style={font=\small, align=center}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=1.25cm]
+  \node[block] (ref) {desired level\\$c_r$};
+  \node[block, right=of ref] (cmp) {error\\detector};
+  \node[block, right=of cmp] (act) {motor + reducer\\+ valve};
+  \draw[tank] (8.2,-0.8) rectangle (9.8,1.2);
+  \draw[tank] (8.2,0.25) -- (9.35,0.25);
+  \draw[signal] (act.east) -- (8.2,0.2);
+  \draw[signal] (9.0,1.2) -- ++(0,0.7) -| (cmp.south);
+  \node[note, above=0.05cm of cmp] {float + potentiometer};
+  \node[note, below=0.1cm of act] {adjust inlet flow};
+  \node[note, below=0.0cm of ref] {set-point};
+  \node[note, above=0.0cm of cmp] {};
+  \draw[signal] (ref) -- (cmp);
+  \draw[signal] (cmp) -- (act);
+  \node[note, right=0.35cm of act] {tank};
+  \node[note] at (9.0,-1.3) {liquid level $c$};
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,20 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\tikzset{
+  box/.style={draw=blue!70!black, line width=1.2pt, rectangle, rounded corners=2pt, minimum width=3.2cm, minimum height=1.2cm, align=center, fill=none},
+  signal/.style={->, line width=1.2pt, draw=black!80, >=Stealth}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=0.9cm]
+  \node[box] (a) {proper rational\\function?};
+  \node[box, right=of a] (b) {yes: partial fractions\\no repeated roots};
+  \node[box, right=of b] (c) {repeated roots:\\higher-order terms};
+  \node[box, right=of c] (d) {undetermined\\coefficients};
+  \draw[signal] (a) -- (b);
+  \draw[signal] (b) -- (c);
+  \draw[signal] (c) -- (d);
+\end{tikzpicture}
+\end{document}

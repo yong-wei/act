@@ -26,11 +26,11 @@
 | 5.1梅森公式_数圈圈与消消乐 | done | [5.1梅森公式_数圈圈与消消乐](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/5.1梅森公式_数圈圈与消消乐) |
 | 5.2系统建模综合 | done | [5.2系统建模综合](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/5.2系统建模综合) |
 | 6性能指标_控制效果评价 | done | [6性能指标_控制效果评价](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/6性能指标_控制效果评价) |
-| 7控制系统建模习题2025 | pending | - |
-| 7.1衰减振荡_欠阻尼二阶系统 | pending | - |
-| 7.2拉氏变换_工程直觉的数学实现 | pending | - |
-| 8稳定_控制系统首要任务 | pending | - |
-| 9稳态误差_准确性的度量 | pending | - |
+| 7控制系统建模习题2025 | done | [7控制系统建模习题2025](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/7控制系统建模习题2025) |
+| 7.1衰减振荡_欠阻尼二阶系统 | done | [7.1衰减振荡_欠阻尼二阶系统](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/7.1衰减振荡_欠阻尼二阶系统) |
+| 7.2拉氏变换_工程直觉的数学实现 | done | [7.2拉氏变换_工程直觉的数学实现](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/7.2拉氏变换_工程直觉的数学实现) |
+| 8稳定_控制系统首要任务 | done | [8稳定_控制系统首要任务](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/8稳定_控制系统首要任务) |
+| 9稳态误差_准确性的度量 | done | [9稳态误差_准确性的度量](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/9稳态误差_准确性的度量) |
 | 10.1校正_实现控制的手段 | pending | - |
 | 10.2时域分析综合 | pending | - |
 | 11放眼大局_根轨迹法 | pending | - |

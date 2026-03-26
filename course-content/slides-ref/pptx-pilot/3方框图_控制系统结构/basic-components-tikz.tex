@@ -1,0 +1,45 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setCJKmainfont[
+  Path=/Users/YW/Library/Fonts/,
+  Extension=.ttf
+]{Microsoft Yahei}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+\begin{document}
+\begin{tikzpicture}[
+  >=Stealth,
+  signal/.style={->, line width=1.2pt},
+  block/.style={draw, rectangle, minimum width=2.3cm, minimum height=1.0cm, line width=1.2pt},
+  sum/.style={draw, circle, minimum size=0.55cm, inner sep=0pt, line width=1.2pt},
+  tap/.style={draw, circle, minimum size=0.18cm, inner sep=0pt, fill=white, line width=1.2pt},
+  note/.style={font=\small, align=left}
+]
+
+\node[font=\bfseries] at (4.8, 4.2) {方框图基本组件试重建};
+
+\draw[signal] (0,3.1) -- (2.6,3.1);
+\node[note, anchor=west] at (3.0,3.1) {信号线\\有箭头的直线，箭头表示信号传递方向};
+
+\draw[signal] (0,1.5) -- (2.6,1.5);
+\node[tap] (tap1) at (1.3,1.5) {};
+\draw[signal] (tap1) -- ++(0,-0.9);
+\node[note, anchor=west] at (3.0,1.5) {引出点\\从同一信号线上引出的信号，数值和性质完全相同};
+
+\node[sum] (sum1) at (1.3,-0.2) {$\times$};
+\draw[signal] (0.1,-0.2) -- (sum1);
+\draw[signal] (1.3,0.9) -- (sum1);
+\draw[signal] (sum1) -- (2.6,-0.2);
+\node at (0.9,0.18) {$+$};
+\node at (1.68,0.18) {$-$};
+\node[note, anchor=west] at (3.0,-0.2) {综合点\\对两个或两个以上的信号进行代数运算};
+
+\node[block] (g1) at (1.3,-2.3) {$G(s)$};
+\draw[signal] (-0.1,-2.3) -- (g1.west);
+\draw[signal] (g1.east) -- (2.7,-2.3);
+\node[note, anchor=west] at (3.0,-2.3) {方框\\表示典型环节或其组合，框内写传递函数};
+
+\end{tikzpicture}
+\end{document}

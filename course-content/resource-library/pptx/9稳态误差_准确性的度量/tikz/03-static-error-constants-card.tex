@@ -1,0 +1,29 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+\tikzset{
+  card/.style={draw=blue!70!black, line width=1.2pt, rounded corners=3pt, minimum width=5.8cm, minimum height=4.6cm, align=left, fill=none}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=1.0cm]
+  \node[card] (left) {
+    \begin{minipage}{5.2cm}
+      \textbf{static error constants}\\[4pt]
+      $K_p=\lim_{s\to 0}G(s)H(s)$\\[6pt]
+      $K_v=\lim_{s\to 0}sG(s)H(s)$\\[6pt]
+      $K_a=\lim_{s\to 0}s^2G(s)H(s)$
+    \end{minipage}
+  };
+  \node[card, right=1.0cm of left] (right) {
+    \begin{minipage}{5.2cm}
+      \textbf{unit-input errors}\\[4pt]
+      step: $e_{ss}=1/(1+K_p)$\\[6pt]
+      ramp: $e_{ss}=1/K_v$\\[6pt]
+      acceleration: $e_{ss}=1/K_a$
+    \end{minipage}
+  };
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,36 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+\tikzset{
+  card/.style={draw=blue!70!black, line width=1.2pt, rounded corners=3pt, minimum width=5.6cm, minimum height=4.0cm, align=left, fill=none},
+  title/.style={font=\bfseries},
+  text/.style={font=\small, align=left}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=0.8cm]
+  \node[card] (left) {
+    \begin{minipage}{5.0cm}
+      \textbf{Case A}\\
+      two forward paths\\
+      three single loops\\
+      no non-touching loops\\[4pt]
+      $\Delta = 1-(L_1+L_2+L_3)$\\[4pt]
+      $T=\dfrac{P_1\Delta_1+P_2\Delta_2}{\Delta}$
+    \end{minipage}
+  };
+
+  \node[card, right=1.0cm of left] (right) {
+    \begin{minipage}{5.0cm}
+      \textbf{Case B}\\
+      two forward paths\\
+      three single loops\\
+      two pairs of non-touching loops\\[4pt]
+      $\Delta = 1-(L_1+L_2+L_3)+(\text{pair products})$\\[4pt]
+      add positive product terms
+    \end{minipage}
+  };
+\end{tikzpicture}
+\end{document}
