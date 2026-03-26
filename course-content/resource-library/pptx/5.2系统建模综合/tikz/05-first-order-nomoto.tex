@@ -1,0 +1,32 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{amsmath}
+\usepackage{xcolor}
+
+\definecolor{blockblue}{HTML}{4A90D9}
+
+\begin{document}
+\begin{tikzpicture}[line width=1.2pt]
+  \node[
+    draw=blockblue,
+    rounded corners=4pt,
+    inner sep=10pt,
+    align=left
+  ] at (0,0) {
+    \begin{minipage}{13.4cm}
+    \[
+    T_\psi \ddot{\psi} + \dot{\psi} = K_\delta \delta + \frac{1}{N_{\dot \psi}}N_d
+    \]
+    \[
+    T_\psi = \frac{I_z}{N_{\dot \psi}} = \tau_1+\tau_2+\tau_3,
+    \qquad
+    K_\delta = \frac{C_\delta}{N_{\dot \psi}}
+    \]
+    \[
+    \frac{\Psi(s)}{\Delta(s)}=\frac{K_\delta}{s(T_\psi s + 1)},
+    \qquad
+    \frac{\Psi(s)}{N_d(s)}=\frac{1/N_{\dot \psi}}{s(T_\psi s + 1)}
+    \]
+    \end{minipage}
+  };
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,23 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning}
+
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{linegray}{HTML}{333333}
+
+\begin{document}
+\begin{tikzpicture}[
+  >=Stealth,
+  line width=1.2pt,
+  block/.style={rectangle, draw=blockblue, rounded corners=2pt, minimum width=3cm, minimum height=1cm, align=center, font=\small\bfseries},
+  flow/.style={->, draw=linegray, line width=1.2pt}
+]
+  \node[block] (m1) at (0,0) {physics / chemistry\\laws};
+  \node[block, right=1.6cm of m1] (m2) {local dynamic\\equations};
+  \node[block, right=1.6cm of m2] (m3) {eliminate internal\\variables};
+  \node[block, below=1.4cm of m2] (m4) {input-output differential equation};
+  \draw[flow] (m1) -- (m2) -- (m3);
+  \draw[flow] (m2) -- (m4);
+  \draw[flow] (m3) -- (m4);
+\end{tikzpicture}
+\end{document}

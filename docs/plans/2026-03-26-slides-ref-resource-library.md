@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Build a reusable Markdown resource library under `course-content/slides-ref/` so old TeX slides and Chinese PDF slides can be referenced during syllabus refactor and lesson authoring.
+**Goal:** Build a reusable Markdown resource library under `course-content/resource-library/` so old TeX slides, Chinese PDF slides, and later PPTX extraction packages can be referenced during syllabus refactor and lesson authoring.
 
 **Architecture:** Add a Python extraction script that reads `slides-ref` source assets and writes a structured resource library with `tex/`, `pdf/`, and top-level index files. TeX extraction preserves titles, sections, frame titles, formula blocks, and drawing/code blocks as readable Markdown; PDF extraction produces page-based Markdown with source metadata and normalized text.
 
@@ -11,8 +11,8 @@
 ### Task 1: Define output contract
 
 **Files:**
-- Create: `course-content/slides-ref/resource-library/README.md`
-- Create: `course-content/slides-ref/resource-library/.gitkeep`
+- Create: `course-content/resource-library/README.md`
+- Create: `course-content/resource-library/.gitkeep`
 - Create: `course-content/tests/test_extract_slides_ref_resources.py`
 
 **Step 1: Write the failing tests**
@@ -46,7 +46,7 @@ Expected: FAIL because extraction script and resource library do not exist yet.
 **Step 1: Implement minimal CLI**
 
 - Default input: `course-content/slides-ref`
-- Default output: `course-content/slides-ref/resource-library`
+- Default output: `course-content/resource-library`
 - Generate:
   - `tex/<stem>.md`
   - `pdf/<stem>.md`
@@ -68,7 +68,7 @@ Expected: FAIL because extraction script and resource library do not exist yet.
 ### Task 3: Generate library and verify
 
 **Files:**
-- Modify: `course-content/slides-ref/resource-library/**` (generated)
+- Modify: `course-content/resource-library/**` (generated)
 
 **Step 1: Run tests**
 

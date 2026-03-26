@@ -1,0 +1,21 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\tikzset{
+  box/.style={draw=blue!70!black, line width=1.2pt, rounded corners=2pt, minimum width=3.35cm, minimum height=2.3cm, align=center, fill=none},
+  signal/.style={->, line width=1.2pt, draw=black!80, >=Stealth}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=0.7cm]
+  \node[box] (stab) {\textbf{Stability}\\[4pt]return to equilibrium\\after disturbance};
+  \node[box, right=0.95cm of stab] (acc) {\textbf{Accuracy}\\[4pt]small steady-state\\tracking error};
+  \node[box, right=0.95cm of acc] (speed) {\textbf{Speed}\\[4pt]fast and smooth\\transient process};
+
+  \draw[signal] (stab) -- (acc);
+  \draw[signal] (acc) -- (speed);
+
+  \node[font=\small, align=center, below=0.8cm of acc] {basic control requirements recovered from slides 8--10};
+\end{tikzpicture}
+\end{document}

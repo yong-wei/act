@@ -1,0 +1,23 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning}
+
+\definecolor{cardblue}{HTML}{4A90D9}
+\definecolor{cardgreen}{HTML}{5CB85C}
+\definecolor{cardgray}{HTML}{333333}
+
+\begin{document}
+\begin{tikzpicture}[
+  line width=1.2pt,
+  box/.style={rounded corners=3pt, draw=cardblue, minimum width=11.5cm, minimum height=1.9cm, inner sep=6pt},
+  hint/.style={rounded corners=3pt, draw=cardgreen, minimum width=11.5cm, minimum height=1.5cm, inner sep=6pt},
+  >=Stealth
+]
+  \node[box] (p) at (0,2.2) {$\displaystyle P=\frac{1}{\Delta}\sum_{k=1}^{n} p_k\Delta_k$};
+  \node[box] (d) at (0,0) {$\displaystyle \Delta=1-\sum_a L_a+\sum_{bc}L_bL_c-\sum_{def}L_dL_eL_f+\cdots$};
+  \node[hint] (h) at (0,-2.1) {$p_k$: forward-path gain \qquad $L_a$: loop gain \qquad $\Delta_k$: cofactor of the $k$th forward path};
+  \draw[-{Stealth[length=3mm]}] (p.south) -- (d.north);
+  \draw[-{Stealth[length=3mm]}] (d.south) -- (h.north);
+\end{tikzpicture}
+\end{document}

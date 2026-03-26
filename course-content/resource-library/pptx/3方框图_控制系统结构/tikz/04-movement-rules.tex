@@ -1,0 +1,85 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+
+\tikzset{
+  signal/.style={->, line width=1.2pt, draw=black!80, >=Stealth},
+  block/.style={draw=blue!70!black, line width=1.2pt, rectangle, minimum width=1.9cm, minimum height=0.95cm, fill=none},
+  sum/.style={
+    draw=green!55!black, line width=1.2pt, circle, minimum size=0.56cm, inner sep=0pt, fill=none,
+    path picture={
+      \draw[green!55!black, line width=0.9pt]
+        (path picture bounding box.south west) -- (path picture bounding box.north east)
+        (path picture bounding box.north west) -- (path picture bounding box.south east);
+    }
+  },
+  tap/.style={draw=orange!85!black, line width=1.2pt, circle, minimum size=4.5pt, inner sep=0pt, fill=none},
+  small/.style={font=\small}
+}
+
+\begin{document}
+\begin{tikzpicture}
+  % Tap forward
+  \node[small, anchor=west] at (0,5.2) {Tap forward: branch $\times G(s)$};
+  \node (r1) at (0.4,4.3) {$R$};
+  \node[tap] (ta1) at (1.2,4.3) {};
+  \node[block] (g1) at (3.2,4.3) {$G(s)$};
+  \node (y1) at (5.1,4.3) {$Y_1$};
+  \node[block] (h1) at (3.2,5.6) {$H$};
+  \draw[signal] (r1) -- (ta1) -- (g1) -- (y1);
+  \draw[signal] (ta1) |- (h1);
+
+  \node[small] at (6.4,4.95) {$\Longrightarrow$};
+
+  \node (r2) at (7.4,4.3) {$R$};
+  \node[block] (g2) at (9.2,4.3) {$G(s)$};
+  \node[tap] (ta2) at (10.6,4.3) {};
+  \node (y2) at (11.6,4.3) {$Y_1$};
+  \node[block] (h2) at (9.2,5.6) {$G(s)H$};
+  \draw[signal] (r2) -- (g2) -- (ta2) -- (y2);
+  \draw[signal] (ta2) |- (h2);
+
+  % Tap backward
+  \node[small, anchor=west] at (0,2.4) {Tap backward: branch $\times 1/G(s)$};
+  \node (r3) at (0.4,1.5) {$R$};
+  \node[block] (g3) at (2.2,1.5) {$G(s)$};
+  \node[tap] (ta3) at (3.7,1.5) {};
+  \node (y3) at (4.8,1.5) {$Y_2$};
+  \node[block] (h3) at (2.2,0.2) {$H$};
+  \draw[signal] (r3) -- (g3) -- (ta3) -- (y3);
+  \draw[signal] (ta3) |- (h3);
+
+  \node[small] at (6.4,1.95) {$\Longrightarrow$};
+
+  \node (r4) at (7.4,1.5) {$R$};
+  \node[tap] (ta4) at (8.2,1.5) {};
+  \node[block] (g4) at (10.0,1.5) {$G(s)$};
+  \node (y4) at (11.8,1.5) {$Y_2$};
+  \node[block] (h4) at (10.0,0.2) {$\dfrac{H}{G(s)}$};
+  \draw[signal] (r4) -- (ta4) -- (g4) -- (y4);
+  \draw[signal] (ta4) |- (h4);
+
+  % Sum movement
+  \node[small, anchor=west] at (0,-0.8) {Sum movement};
+  \node (u1) at (0.3,-1.8) {$R$};
+  \node[sum] (s1) at (1.4,-1.8) {};
+  \node[block] (gb1) at (3.5,-1.8) {$G(s)$};
+  \node (o1) at (5.1,-1.8) {$Y$};
+  \node (d1) at (1.4,-3.2) {$D$};
+  \draw[signal] (u1) -- (s1) -- (gb1) -- (o1);
+  \draw[signal] (d1) -- node[pos=0.85, left] {$-$} (s1.south);
+  \node[font=\scriptsize] at ($(s1)+(-0.35,0.35)$) {$+$};
+
+  \node[small] at (6.4,-1.35) {$\Longleftrightarrow$};
+
+  \node (u2) at (7.4,-1.8) {$R$};
+  \node[block] (gb2) at (9.3,-1.8) {$G(s)$};
+  \node[sum] (s2) at (11.1,-1.8) {};
+  \node (o2) at (12.2,-1.8) {$Y$};
+  \node[block] (db2) at (9.3,-3.2) {$\dfrac{D}{G(s)}$};
+  \draw[signal] (u2) -- (gb2) -- (s2) -- (o2);
+  \draw[signal] (db2) -| node[pos=0.95, right] {$-$} (s2.south);
+  \node[font=\scriptsize] at ($(s2)+(-0.35,0.35)$) {$+$};
+\end{tikzpicture}
+\end{document}

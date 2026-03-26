@@ -1,0 +1,30 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning}
+
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{linegray}{HTML}{333333}
+
+\begin{document}
+\begin{tikzpicture}[
+  >=Stealth,
+  line width=1.2pt,
+  block/.style={rectangle, draw=blockblue, rounded corners=3pt, minimum width=2.8cm, minimum height=1.0cm, align=center},
+  flow/.style={->, draw=linegray, line width=1.2pt}
+]
+  \node[block] (arm) at (0,0) {armature\\circuit};
+  \node[block, right=1.8cm of arm] (torque) {electromagnetic\\torque};
+  \node[block, right=1.8cm of torque] (mech) {mechanical\\dynamics};
+  \draw[flow] (-1.6,0) -- (arm) node[left] at (-1.6,0) {$u_r(t)$};
+  \draw[flow] (arm) -- node[above] {$i$} (torque);
+  \draw[flow] (torque) -- node[above] {$T_m$} (mech);
+  \draw[flow] (mech) -- ++(1.6,0) node[right] {$\omega_m(t)$ / $\theta_m(t)$};
+  \draw[flow] (mech.south) |- node[pos=0.25, right] {$E_b$} (arm.south);
+
+  \node[align=left] at (4.1,-2.0) {$T_m\dot{\omega}_m(t)+\omega_m=K_m u_r(t)$};
+  \node[align=left] at (4.2,-3.0) {$\displaystyle \frac{\Omega_m(s)}{U_r(s)}=\frac{K_m}{T_ms+1}$};
+  \node[align=left] at (4.4,-4.3) {$T_m\ddot{\theta}_m(t)+\dot{\theta}_m(t)=K_m u_r(t)$};
+  \node[align=left] at (4.4,-5.3) {$\displaystyle \frac{\Theta_m(s)}{U_r(s)}=\frac{K_m}{s(T_ms+1)}$};
+\end{tikzpicture}
+\end{document}

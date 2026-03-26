@@ -1,0 +1,27 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{xcolor}
+
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{linegray}{HTML}{333333}
+
+\begin{document}
+\begin{tikzpicture}[line width=1.2pt]
+  \node[
+    draw=blockblue,
+    rounded corners=4pt,
+    inner sep=8pt,
+    align=left
+  ] at (0,0) {
+    \begin{tabular}{p{3.3cm}p{8.4cm}}
+      \textbf{Item} & \textbf{Conclusion} \\
+      applicability & linear time-invariant systems only \\
+      model boundary & maps input to output, not internal states \\
+      SISO / MIMO & one transfer function is for one SISO channel \\
+      system order & highest power of $s$ in the denominator \\
+      properness & for physical systems, denominator order $>$ numerator order \\
+      initial state & cannot represent nonzero initial-condition motion \\
+      characteristic info & $D(s)$ is the characteristic polynomial \\
+    \end{tabular}
+  };
+\end{tikzpicture}
+\end{document}

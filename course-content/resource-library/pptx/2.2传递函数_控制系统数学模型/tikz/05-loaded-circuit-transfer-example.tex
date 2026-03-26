@@ -1,0 +1,25 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage[europeanresistors]{circuitikz}
+\usepackage{amsmath}
+\usepackage{xcolor}
+
+\begin{document}
+\begin{circuitikz}[line width=1.2pt]
+  \draw (0,0) to[sV, l=$u_r(t)$] (0,3)
+        to[R, l=$R_1$] (2.2,3)
+        to[R, l=$R_2$] (4.4,3)
+        -- (6.2,3);
+  \draw (2.2,3) to[C, l_=$C_1$] (2.2,0);
+  \draw (4.4,3) to[C, l_=$C_2$] (4.4,0);
+  \draw (0,0) -- (6.2,0);
+  \draw (4.4,3) -- (6.0,3) node[right] {$u_c(t)$};
+  \node[align=center] at (3.1,-1.4) {$
+    R_1R_2C_1C_2\ddot{u}_c(t)+(R_1C_1+R_2C_2+R_1C_2)\dot{u}_c(t)+u_c(t)=u_r(t)
+  $};
+  \node[align=center] at (3.1,-2.6) {$
+    \displaystyle
+    \frac{U_c(s)}{U_r(s)}=
+    \frac{1}{R_1R_2C_1C_2s^2+(R_1C_1+R_2C_2+R_1C_2)s+1}
+  $};
+\end{circuitikz}
+\end{document}

@@ -1,0 +1,23 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{xcolor}
+
+\definecolor{blockblue}{HTML}{4A90D9}
+
+\begin{document}
+\begin{tikzpicture}[line width=1.2pt]
+  \node[
+    draw=blockblue,
+    rounded corners=3pt,
+    inner sep=8pt,
+    align=left
+  ] at (0,0) {
+    \begin{tabular}{p{3.4cm}p{8.2cm}}
+      \textbf{Feature point} & \textbf{Meaning} \\
+      start point & low-frequency limit $G(j0)H(j0)$ \\
+      end point & high-frequency limit $G(j\infty)H(j\infty)$ \\
+      negative real-axis crossing & where phase reaches about $-180^\circ$ \\
+      unit-circle crossing & where $|G(j\omega)H(j\omega)|=1$ \\
+    \end{tabular}
+  };
+\end{tikzpicture}
+\end{document}

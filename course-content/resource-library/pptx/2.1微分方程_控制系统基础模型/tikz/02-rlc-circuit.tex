@@ -1,0 +1,12 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage[europeanresistors]{circuitikz}
+\begin{document}
+\begin{circuitikz}[line width=1.2pt]
+  \draw (0,0) to[sV, l=$u_i(t)$] (0,3)
+        to[R, l=$R$] (3,3)
+        to[L, l=$L$] (6,3)
+        to[C, l=$C$] (6,0)
+        -- (0,0);
+  \draw (6,3) -- (7.2,3) node[right] {$u_o(t)$};
+\end{circuitikz}
+\end{document}

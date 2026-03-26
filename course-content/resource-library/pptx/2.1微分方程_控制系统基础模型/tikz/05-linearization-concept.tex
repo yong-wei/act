@@ -1,0 +1,27 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{pgfplots}
+\usepackage{xcolor}
+\pgfplotsset{compat=1.18}
+
+\definecolor{lineblue}{HTML}{4A90D9}
+\definecolor{linered}{HTML}{E74C3C}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{axis}[
+    width=8.5cm,
+    height=5.6cm,
+    axis lines=left,
+    xmin=-2, xmax=2,
+    ymin=-2, ymax=5,
+    xlabel={$x$},
+    ylabel={$y$},
+    grid=major
+  ]
+    \addplot[lineblue, line width=1.2pt, domain=-2:2, samples=200] {x^2 + 0.8*x + 1};
+    \addplot[linered, dashed, line width=1.2pt, domain=-0.5:1.5] {2.8*x + 1};
+    \addplot[only marks, mark=*, color=linered] coordinates {(0,1)};
+    \node at (axis cs:0.35,1.45) {\small work point};
+  \end{axis}
+\end{tikzpicture}
+\end{document}

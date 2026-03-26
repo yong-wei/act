@@ -1,0 +1,38 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning}
+
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{linegray}{HTML}{333333}
+
+\begin{document}
+\begin{tikzpicture}[
+  >=Stealth,
+  line width=1.2pt,
+  flow/.style={->, draw=linegray, line width=1.2pt},
+  box/.style={draw=blockblue, rounded corners=3pt, minimum width=4.6cm, minimum height=2.5cm, align=center}
+]
+  \node[align=center] (in) at (0,0) {
+    $\begin{bmatrix}R_1(s)\\[3pt]R_2(s)\end{bmatrix}$
+  };
+  \node[box, right=2.0cm of in] (g) {
+    $\mathbf{G}(s)=
+    \begin{bmatrix}
+      G_{11}(s) & G_{12}(s)\\[3pt]
+      G_{21}(s) & G_{22}(s)
+    \end{bmatrix}$
+  };
+  \node[align=center, right=2.0cm of g] (out) {
+    $\begin{bmatrix}C_1(s)\\[3pt]C_2(s)\end{bmatrix}$
+  };
+
+  \draw[flow] (in) -- (g);
+  \draw[flow] (g) -- (out);
+
+  \node[align=left, font=\small] at (4.7,-2.1) {
+    One transfer function = one input-output pair\\
+    MIMO systems require a transfer matrix
+  };
+\end{tikzpicture}
+\end{document}

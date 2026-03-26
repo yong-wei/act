@@ -1,0 +1,41 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{pgfplots}
+\usepackage{xcolor}
+\pgfplotsset{compat=1.18}
+
+\definecolor{lineblue}{HTML}{2F6DB2}
+\definecolor{linedark}{HTML}{333333}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{axis}[
+    width=11.2cm,
+    height=6.4cm,
+    xmin=0, xmax=6,
+    ymin=0, ymax=1.28,
+    axis lines=left,
+    xlabel={$t$},
+    ylabel={$h(t)$},
+    xtick=\empty,
+    ytick={0.5,0.9,1.0},
+    yticklabels={$0.5h(\infty)$,$0.9h(\infty)$,$h(\infty)$},
+    every axis plot/.append style={line width=1.2pt, color=lineblue},
+    clip=false
+  ]
+    \addplot[samples=240, domain=0:6] {1 - exp(-0.9*x)*(cos(deg(3*x)) + 0.22*sin(deg(3*x)))};
+    \addplot[dashed, color=linedark] coordinates {(0,1.0) (6,1.0)};
+    \addplot[dashed, color=linedark] coordinates {(0,0.5) (0.63,0.5)};
+    \addplot[dashed, color=linedark] coordinates {(0,0.9) (0.92,0.9)};
+    \draw[dashed, color=linedark] (axis cs:0.63,0) -- (axis cs:0.63,0.5);
+    \draw[dashed, color=linedark] (axis cs:0.92,0) -- (axis cs:0.92,0.9);
+    \draw[dashed, color=linedark] (axis cs:1.28,0) -- (axis cs:1.28,1.14);
+    \addplot[only marks, mark=*, mark size=1.8pt, color=linedark] coordinates {(1.28,1.14)};
+
+    \node[font=\small, anchor=north] at (axis cs:0.63,-0.02) {$t_d$};
+    \node[font=\small, anchor=north] at (axis cs:0.92,-0.02) {$t_r$};
+    \node[font=\small, anchor=south west] at (axis cs:1.28,1.14) {$t_p$};
+    \node[font=\small, anchor=west] at (axis cs:3.35,1.02) {final value};
+  \end{axis}
+\end{tikzpicture}
+\end{document}

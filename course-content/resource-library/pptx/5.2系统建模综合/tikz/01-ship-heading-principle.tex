@@ -1,0 +1,36 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{linegray}{HTML}{333333}
+
+\begin{document}
+\begin{tikzpicture}[
+  >=Stealth,
+  line width=1.2pt,
+  block/.style={rectangle, draw=blockblue, rounded corners=3pt, minimum width=2.5cm, minimum height=0.95cm, align=center},
+  sum/.style={circle, draw=linegray, minimum size=0.7cm},
+  flow/.style={->, draw=linegray, line width=1.2pt}
+]
+  \node[sum] (s) at (0,0) {$\Sigma$};
+  \node[block, right=1.2cm of s] (c) {heading\\controller};
+  \node[block, right=1.2cm of c] (servo) {rudder servo};
+  \node[block, right=1.2cm of servo] (ship) {ship};
+  \node[block, below=1.8cm of ship] (compass) {compass\\feedback};
+  \coordinate (out) at ($(ship.east)+(1.2,0)$);
+  \coordinate (dist) at ($(ship.north)+(0,1.0)$);
+
+  \draw[flow] (-1.6,0) -- node[above] {$\psi_r$} (s);
+  \draw[flow] (s) -- (c);
+  \draw[flow] (c) -- node[above] {$\delta_c$} (servo);
+  \draw[flow] (servo) -- node[above] {$\delta$} (ship);
+  \draw[flow] (ship) -- (out) node[right] {$\psi$};
+  \draw[flow] (out) |- (compass);
+  \draw[flow] (compass.west) -| node[pos=0.22,left] {$-$} (s.south);
+  \draw[flow] (ship.north) -- (dist) node[above] {disturbance};
+
+  \node[align=center, font=\small] at (5.9,-1.7) {sea wave / wind / current};
+  \node[align=center, font=\small] at (5.0,-3.1) {magnetic compass\\gyrocompass};
+\end{tikzpicture}
+\end{document}

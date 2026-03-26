@@ -1,0 +1,26 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning}
+
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{linegray}{HTML}{333333}
+
+\begin{document}
+\begin{tikzpicture}[
+  >=Stealth,
+  line width=1.2pt,
+  stage/.style={rectangle, draw=blockblue, rounded corners=2pt, minimum width=2.6cm, minimum height=1.0cm, align=center, font=\small\bfseries},
+  flow/.style={->, draw=linegray, line width=1.2pt}
+]
+  \node[stage] (c) at (1.5,0) {controller};
+  \node[stage, right=1.4cm of c] (a) {actuator};
+  \node[stage, right=1.4cm of a] (p) {plant};
+  \node[stage, below=1.2cm of p] (s) {sensor};
+  \draw[flow] (0.0,0) -- (c);
+  \draw[flow] (c) -- (a);
+  \draw[flow] (a) -- (p);
+  \draw[flow] (p) -- ++(1.4,0) node[right] {output};
+  \draw[flow] (p) -- (s);
+  \node[left] at (0.0,0) {reference};
+\end{tikzpicture}
+\end{document}

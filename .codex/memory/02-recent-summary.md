@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-03-25
-摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，还必须注意刚落地的数据治理 worker 故障收敛与低压调度修复。
+最后更新: 2026-03-26
+摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，还必须注意 `slides-ref` 已启动 `pptx -> Markdown + TikZ` 资源库长期转换任务，以及数据治理 worker 故障收敛后的稳定运维边界。
 上游:
 - [00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
 - [README.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/README.md)
@@ -15,6 +15,7 @@
 
 ## 最近最重要的稳定变化
 
+- `slides-ref` 的旧版中文 `pptx` 现已确认可以按“`pptx` 对象层 + `ppt/media/*` 补公式/标签 + `TikZ` 重建线框图 + `extracted.md` 直接嵌图”的方式转成高质量教学资源库；正式提取包现统一存放在 [course-content/resource-library/pptx](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx)，首个完整样例是 [course-content/resource-library/pptx/3方框图_控制系统结构](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/3方框图_控制系统结构)，稳定流程已沉淀到 [70-workflows/50-pptx-slides-ref-extraction.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/50-pptx-slides-ref-extraction.md)
 - 课程重构蓝图已进一步确认模块2的 `2-4` 不是单纯“Bode/Nyquist 图入门”，而是同时承担“典型环节与简单组合对象的手工绘图入门 + 纯极点系统 Nyquist 基础读图 + 基于基础 Bode 图的标准对象反向识别入口”；对应 `HW2/T2-3` 也已同步改成“时域-频域基础对照与频域反向识别”，但边界仍明确限制在标准对象、粗粒度参数判断，不提前进入判稳、裕度或完整系统辨识
 - 2026-03-25 已完成一次关键的运维侧收敛：数据治理 worker 现在具备 Redis/BullMQ 基础设施异常识别、冷却文件熔断、日志节流、`unhandledRejection` / `uncaughtException` 收敛；scheduler 也已改为“凌晨事件批处理 + 每小时活跃学生快照 + 每日班级快照”的 coordinator 模式，详细复盘见 [60-incidents/2026-03-25-worker-redis-oom-log-flood.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-03-25-worker-redis-oom-log-flood.md)
 - 本地 `Octave` 已通过 Homebrew 安装，`control` 包可用；当前稳定做法是保持旧整包 `qt` 处于 `unlink` 状态，并补 `/opt/homebrew/share/qt/plugins/platforms -> /opt/homebrew/opt/qtbase/share/qt/plugins/platforms` 符号链接，使图形版 `octave` 无需额外环境变量即可启动；详细复盘见 [60-incidents/2026-03-24-homebrew-octave-qt-plugin.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-03-24-homebrew-octave-qt-plugin.md)
@@ -56,6 +57,7 @@
 
 ## 初始化后的建议下一跳
 
+- 若任务和 `slides-ref` 中的 `pptx` 课件提取、教学资源库构建、公式/图示恢复或 `TikZ` 重建有关，先读 [70-workflows/50-pptx-slides-ref-extraction.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/50-pptx-slides-ref-extraction.md)
 - 若任务是新课讲义、教案、知识卡或代码直出图的技术审查，先读 [70-workflows/35-lesson-content-review.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/35-lesson-content-review.md)
 - 若任务与 `1-1`、`1-2`、`1-3`、精品互动课注册、runtime 讲义/媒体导出或页面级 AI 上下文有关，先读 [40-domain/20-premium-courses.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/40-domain/20-premium-courses.md)
 - 若任务和学生个人中心、成长中枢、活动聚合或自适应习题接入有关，先读 [10-project/10-current-state.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/10-current-state.md)

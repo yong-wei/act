@@ -1,0 +1,24 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\tikzset{
+  signal/.style={->, line width=1.2pt, draw=black!80, >=Stealth},
+  block/.style={draw=blue!70!black, line width=1.2pt, rectangle, rounded corners=2pt, minimum width=2.9cm, minimum height=1.15cm, align=center, fill=none},
+  note/.style={font=\small, align=center}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=1.35cm]
+  \node[block] (system) {control system\\(differential equation)};
+  \node[block, right=of system] (input) {typical\\input};
+  \node[block, right=of input] (output) {output\\response};
+  \node[block, right=of output, minimum width=3.4cm] (judge) {performance judgement\\stability / accuracy / speed};
+
+  \draw[signal] (system) -- (input);
+  \draw[signal] (input) -- (output);
+  \draw[signal] (output) -- (judge);
+
+  \node[note, below=0.8cm of input] {time-domain method:\\solve response first,\\evaluate performance next};
+\end{tikzpicture}
+\end{document}

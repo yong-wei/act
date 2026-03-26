@@ -1,0 +1,65 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+
+\tikzset{
+  signal/.style={->, line width=1.2pt, draw=black!80, >=Stealth},
+  block/.style={draw=blue!70!black, line width=1.2pt, rectangle, minimum width=2.2cm, minimum height=1.0cm, fill=none},
+  sum/.style={
+    draw=green!55!black, line width=1.2pt, circle, minimum size=0.56cm, inner sep=0pt, fill=none,
+    path picture={
+      \draw[green!55!black, line width=0.9pt]
+        (path picture bounding box.south west) -- (path picture bounding box.north east)
+        (path picture bounding box.north west) -- (path picture bounding box.south east);
+    }
+  },
+  tap/.style={draw=orange!85!black, line width=1.2pt, circle, minimum size=4.5pt, inner sep=0pt, fill=none},
+  small/.style={font=\small}
+}
+
+\begin{document}
+\begin{tikzpicture}
+  % Series
+  \node[small, anchor=west] at (0,4.0) {Series};
+  \node (r1) at (0.5,3.2) {$R(s)$};
+  \node[block] (g1) at (2.3,3.2) {$G_1(s)$};
+  \node (x1) at (4.2,3.2) {$X_1(s)$};
+  \node[block] (g2) at (6.0,3.2) {$G_2(s)$};
+  \node (y1) at (7.8,3.2) {$Y(s)$};
+  \draw[signal] (r1) -- (g1) -- (x1) -- (g2) -- (y1);
+  \node[small, anchor=west] at (8.4,3.2) {$G_{\mathrm{eq}}(s)=G_1(s)G_2(s)$};
+
+  % Parallel
+  \node[small, anchor=west] at (0,1.8) {Parallel};
+  \node (r2) at (0.5,0.9) {$R(s)$};
+  \node[tap] (tp) at (1.6,0.9) {};
+  \node[block] (pg1) at (3.6,1.8) {$G_1(s)$};
+  \node[block] (pg2) at (3.6,0.0) {$G_2(s)$};
+  \node[sum] (sum2) at (6.1,0.9) {};
+  \node (y2) at (7.4,0.9) {$Y(s)$};
+  \draw[signal] (r2) -- (tp);
+  \draw[signal] (tp) |- (pg1);
+  \draw[signal] (tp) |- (pg2);
+  \draw[signal] (pg1) -| (sum2);
+  \draw[signal] (pg2) -| (sum2);
+  \draw[signal] (sum2) -- (y2);
+  \node[font=\scriptsize] at ($(sum2)+(-0.35,0.35)$) {$+$};
+  \node[font=\scriptsize] at ($(sum2)+(-0.35,-0.35)$) {$\pm$};
+  \node[small, anchor=west] at (8.4,0.9) {$G_{\mathrm{eq}}(s)=G_1(s)\pm G_2(s)$};
+
+  % Feedback
+  \node[small, anchor=west] at (0,-1.5) {Feedback};
+  \node (r3) at (0.5,-2.4) {$R(s)$};
+  \node[sum] (sum3) at (1.8,-2.4) {};
+  \node[block] (fg) at (4.0,-2.4) {$G(s)$};
+  \node[tap] (tpf) at (5.8,-2.4) {};
+  \node (y3) at (7.1,-2.4) {$Y(s)$};
+  \node[block] (fh) at (4.0,-4.0) {$H(s)$};
+  \draw[signal] (r3) -- (sum3) -- (fg) -- (tpf) -- (y3);
+  \draw[signal] (tpf) |- (fh);
+  \draw[signal] (fh) -| node[pos=0.96, left] {$-$} (sum3.south);
+  \node[font=\scriptsize] at ($(sum3)+(-0.35,0.35)$) {$+$};
+  \node[small, anchor=west] at (8.4,-2.4) {$G_{\mathrm{eq}}(s)=\dfrac{G(s)}{1\pm G(s)H(s)}$};
+\end{tikzpicture}
+\end{document}

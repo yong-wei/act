@@ -1,0 +1,29 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{pgfplots}
+\usepackage{xcolor}
+\pgfplotsset{compat=1.18}
+
+\definecolor{lineblue}{HTML}{4A90D9}
+\definecolor{linered}{HTML}{E74C3C}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{axis}[
+    width=8.5cm,
+    height=7cm,
+    axis lines=middle,
+    xmin=-0.1, xmax=1.2,
+    ymin=-0.6, ymax=0.2,
+    xlabel={$\Re$},
+    ylabel={$\Im$},
+    xtick={0,0.5,1},
+    ytick={-0.5,0},
+    grid=major
+  ]
+    \addplot[domain=0:10, samples=200, line width=1.2pt, color=lineblue] ({1/(1+x^2)},{-x/(1+x^2)});
+    \addplot[only marks, mark=*, color=linered] coordinates {(1,0) (0,0)};
+    \node at (axis cs:1.02,0.06) {\small start};
+    \node at (axis cs:0.12,0.06) {\small end};
+  \end{axis}
+\end{tikzpicture}
+\end{document}
