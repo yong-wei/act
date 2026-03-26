@@ -64,3 +64,7 @@ scripts/**/*.pyc
 **/*.pyc
 .worktrees/
 chroma/
+course-content/slides-ref
+!course-content/slides-ref/
+!course-content/slides-ref/resource-library/
+!course-content/slides-ref/resource-library/**

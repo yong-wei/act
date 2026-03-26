@@ -12,7 +12,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         '--output',
         type=Path,
-        default=Path(__file__).resolve().parent.parent / 'processed' / 'fr-99-illustrations-preview.png',
+        default=Path(__file__).resolve().parent.parent / 'processed' / '2-3-fr-99-illustrations-preview.png',
     )
     return parser.parse_args()
 
@@ -23,7 +23,7 @@ def main() -> None:
     configure_matplotlib_for_cjk()
     processed = Path(__file__).resolve().parent.parent / 'processed'
 
-    cover = mpimg.imread(processed / 'cover-comic.png')
+    cover = mpimg.imread(processed / '2-3-cover-comic.png')
 
     fig = plt.figure(figsize=(13, 7.6), dpi=180)
     fig.patch.set_facecolor('#f8fafc')

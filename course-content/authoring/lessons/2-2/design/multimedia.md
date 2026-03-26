@@ -1,7 +1,7 @@
 # 多模态资源设计 | 单元 2-2：时域响应基础——从响应曲线到动态性能指标
 
 > **资源总数**：15 项  
-> **说明**：本课讲义已沿用 `td-01`~`td-06` 文件名作为静态图占位，并已在学生版讲义的信息节后加入 `cover-comic.png` 封面占位。以下设计保持同名，避免后续回写时再次改动讲义。
+> **说明**：本课讲义与媒体命名已统一切换到 `2-2-...` 前缀；以下设计与 `handout.md`、`media/` 目录保持一致，避免后续回写再次改路径。
 
 ---
 
@@ -9,14 +9,18 @@
 
 | 编号 | 文件名 / 标识 | 生成方式 | 引用于 | 优先级 |
 |:---:|---------------|----------|--------|:---:|
-| 1 | td-01-time-domain-input-response-overview.svg | 代码直出图 | handout §2.1 / interactive step-05 | P0 |
-| 2 | td-02-first-order-step-time-constant.svg | 代码直出图 | handout §2.2 / interactive step-06 | P0 |
-| 3 | td-03-second-order-response-families.svg | 代码直出图 | handout §2.3 / interactive step-08 | P0 |
-| 4 | td-04-time-domain-indices-annotated.svg | 代码直出图 | handout §2.4 / interactive step-12 | P0 |
-| 5 | td-05-example-response-with-indices.svg | 代码直出图 | handout §3.1 / interactive step-13 | P1 |
-| 6 | td-06-time-spec-to-pole-region.svg | 代码直出图 | handout §3.2 / interactive step-14 | P1 |
-| 7 | cover-comic.png | AI 生成位图 | handout 信息节后 / 讲义封面导入 | P0 |
-| 8 | intro-video.mp4 | AI 生成视频 | 课堂开场 / interactive 首页导入 | P1 |
+| 1 | 2-2-td-01-time-domain-input-response-overview.svg | 代码直出图 | handout §2.1 / interactive step-05 | P0 |
+| 2 | 2-2-td-02-first-order-step-time-constant.svg | 代码直出图 | handout §2.2 / interactive step-06 | P0 |
+| 3 | 2-2-td-03-second-order-response-families.svg | 代码直出图 | handout §2.3 / interactive step-08 | P0 |
+| 4 | 2-2-td-04-time-domain-indices-annotated.svg | 代码直出图 | handout §2.4 / interactive step-12 | P0 |
+| 5 | 2-2-td-05-example-response-with-indices.svg | 代码直出图 | handout §3.1 / interactive step-13 | P1 |
+| 6 | 2-2-td-06-time-spec-to-pole-region.svg | 代码直出图 | handout §3.2 / interactive step-14 | P1 |
+| 7 | 2-2-cover-comic.png | AI 生成位图 | handout 信息节后 / 讲义封面导入 | P0 |
+| 8 | 2-2-intro-video.mp4 | AI 生成视频 | 课堂开场 / interactive 首页导入 | P1 |
+| 9 | 2-2-info.png | 讲义信息图 | 位图 | handout 总结后 / 附录前 | P0 |
+| 10 | 2-2-slides.pdf | 生成式课件 | PDF | 课件导出配套 | P1 |
+| 11 | 2-2-course.mp4 | 课程内容视频 | 视频 | 课堂播放 / 课后复习 | P1 |
+| 12 | 2-2-audio.m4a | 课程音频播客 | 音频 | 课后复习 | P1 |
 | 9 | ic-01-pretest-distribution | 前端绘制 | interactive step-04 | P1 |
 | 10 | ic-02-first-order-time-slider | 前端绘制 | interactive step-06 | P0 |
 | 11 | ic-03-second-order-family-switcher | 前端绘制 | interactive step-08 | P0 |
@@ -30,15 +34,15 @@
 ## AI 导入媒体规格
 
 ### 资源 cover-comic | 讲义封面漫画
-- **原料**：`media/raw/cover-comic-prompt.md`
-- **成品**：`media/processed/cover-comic.png`
+- **原料**：`media/raw/2-2-cover-comic-prompt.md`
+- **成品**：`media/processed/2-2-cover-comic.png`
 - **引用位置**：`handout.md` 信息节后、正文前
 - **用途**：用于学生版讲义首页导入，在进入正式引入前先建立问题意识和阅读兴趣。
 - **备注**：采用多格漫画封面方案；对话全中文且简洁，格子允许错落，但必须用箭头标明阅读顺序。
 
 ### 资源 intro-video | 15 秒导入视频
-- **原料**：`media/raw/intro-video-prompt.md`
-- **成品**：`media/processed/intro-video.mp4`
+- **原料**：`media/raw/2-2-intro-video-prompt.md`
+- **成品**：`media/processed/2-2-intro-video.mp4`
 - **引用位置**：课堂开场 / `interactive-page.md` 首页导入区域
 - **用途**：在开课最初 15 秒快速建立“稳定了为什么还不够”的问题情境，激发学生兴趣。
 - **备注**：本单元已选定“高质量 2D 动漫课堂科幻风格”作为唯一视频风格，用来兼顾讲义封面漫画的亲和感与控制课堂的动态感；提示词中必须按该单一风格组织镜头、运镜和转场。
@@ -48,25 +52,25 @@
 ## 代码直出图规格
 
 ### 资源 td-01 | 典型输入与响应对象概览
-- **存放**：`media/raw/td-01-time-domain-input-response-overview.py` -> `media/processed/td-01-time-domain-input-response-overview.svg`
+- **存放**：`media/raw/2-2-td-01-time-domain-input-response-overview.py` -> `media/processed/2-2-td-01-time-domain-input-response-overview.svg`
 - **内容**：左侧并列绘制单位脉冲、单位阶跃、单位斜坡输入；右侧对应给出典型输出曲线，并以高亮框突出“本课聚焦单位阶跃”。
 - **重点标注**：输入名称、时间轴、输出响应对象、单位阶跃高亮标签。
 - **绘制建议**：Matplotlib 子图 2×3 布局；颜色上阶跃输入用高亮青色，其余灰蓝。
 
 ### 资源 td-02 | 一阶系统阶跃响应与时间常数
-- **存放**：`media/raw/td-02-first-order-step-time-constant.py` -> `media/processed/td-02-first-order-step-time-constant.svg`
+- **存放**：`media/raw/2-2-td-02-first-order-step-time-constant.py` -> `media/processed/2-2-td-02-first-order-step-time-constant.svg`
 - **内容**：在同一坐标系中绘制两到三条不同 $T$ 值下的一阶阶跃响应曲线，并标记 $t=T$ 时达到终值的 $63.2\%$。
 - **重点标注**：终值虚线、$0.632K$ 水平线、$T$ 垂线。
 - **绘制建议**：主图显示曲线，右上角加小注释框“$T$ 越大，响应越慢”。
 
 ### 资源 td-03 | 二阶系统四种响应家族
-- **存放**：`media/raw/td-03-second-order-response-families.py` -> `media/processed/td-03-second-order-response-families.svg`
+- **存放**：`media/raw/2-2-td-03-second-order-response-families.py` -> `media/processed/2-2-td-03-second-order-response-families.svg`
 - **内容**：四联图并排展示无阻尼、欠阻尼、临界阻尼、过阻尼响应。
 - **重点标注**：每个子图标出阻尼比区间，并用一句工程语言描述曲线特点。
 - **绘制建议**：统一横纵坐标范围，便于学生直接比较“是否振荡、谁更快、谁更平”。
 
 ### 资源 td-04 | 动态性能指标标注图
-- **存放**：`media/raw/td-04-time-domain-indices-annotated.py` -> `media/processed/td-04-time-domain-indices-annotated.svg`
+- **存放**：`media/raw/2-2-td-04-time-domain-indices-annotated.py` -> `media/processed/2-2-td-04-time-domain-indices-annotated.svg`
 - **内容**：在一条标准欠阻尼响应曲线上同时标出 $t_r$、$t_p$、$M_p$、$t_s$、稳态值和误差带。
 - **重点标注**：
   - 第一次达到终值的时刻；
@@ -76,13 +80,13 @@
 - **绘制建议**：用不同颜色箭头对应不同指标，避免一图混乱。
 
 ### 资源 td-05 | 例题一响应曲线与指标结果
-- **存放**：`media/raw/td-05-example-response-with-indices.py` -> `media/processed/td-05-example-response-with-indices.svg`
+- **存放**：`media/raw/2-2-td-05-example-response-with-indices.py` -> `media/processed/2-2-td-05-example-response-with-indices.svg`
 - **内容**：使用例题一参数 $\zeta=0.4, \omega_n=5$ 绘制曲线，并在图侧给出计算结果卡片。
 - **重点标注**：四指标数值与曲线上对应位置一一对应。
 - **绘制建议**：左图曲线、右图结果摘要，强化“数值不是漂浮的”。
 
 ### 资源 td-06 | 指标反推极点区域
-- **存放**：`media/raw/td-06-time-spec-to-pole-region.py` -> `media/processed/td-06-time-spec-to-pole-region.svg`
+- **存放**：`media/raw/2-2-td-06-time-spec-to-pole-region.py` -> `media/processed/2-2-td-06-time-spec-to-pole-region.svg`
 - **内容**：在 $s$ 平面中画出阻尼比射线与 $\sigma$ 垂线，阴影表示满足超调量和调节时间双约束的可行区域。
 - **重点标注**：
   - 阻尼比射线；
@@ -144,7 +148,7 @@
 
 ## 后续执行建议
 
-1. 先生成 `td-01`~`td-04`，它们覆盖主讲内容与课堂展示主干；
-2. 再生成 `td-05`~`td-06`，补齐例题与跨域桥接；
+1. 先生成 `2-2-td-01`~`2-2-td-04`，它们覆盖主讲内容与课堂展示主干；
+2. 再生成 `2-2-td-05`~`2-2-td-06`，补齐例题与跨域桥接；
 3. `ic-02`、`ic-03`、`ic-04`、`ic-07` 是最有教学增益的互动组件，优先级高于一般答题面板；
 4. AI 对照工作区要严格限制提示词模式：先预测、再验证、再反思。

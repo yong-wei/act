@@ -1,0 +1,4355 @@
+# Cpt5
+
+- 来源文件：`Cpt5.tex`
+- 课程标题：自动控制原理
+- 副标题：第五章 线性系统的频域分析
+
+#### 幻灯片：线性系统的频域分析
+
+**频域分析法特点**
+			-  研究稳态正弦响应的幅值和相角随频率的变化规律
+			-  由开环频率特性研究闭环稳定性及性能
+			-  图解分析法，简单形象，有一定的近似性
+			-  物理意义明确，许多元部件都可用实验法确定
+			-  在校正方法中，频率法校正最为方便
+
+## 频率特性的基本概念
+
+#### 幻灯片：频率特性的基本概念
+
+RC 电路如图所示，$u_r(t)=A\sin \omega t$, 求$u_c(t)=?$
+	$U_c(s) = \frac{A\omega T}{1 + \omega^2 T^2}\cdot\frac{1}{s + 1/T} + \frac{A}{\sqrt{1 + \omega^2 T^2}}\left[\frac{1}{\sqrt{1 + \omega^2 T^2}}\cdot\frac{\omega}{s^2 + \omega^2} - \frac{T\omega}{\sqrt{1 + \omega^2 T^2}}\cdot\frac{s}{s^2 + \omega^2}\right]$
+	$arrayrl
+		u_c(t) &= A T1 + ^2 T^2e^-tT + A1 + ^2 T^2[ t a -  t a]
+		&= A T1 + ^2 T^2e^-tT + A1 + ^2 T^2( t -  T)
+	array$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[circuit ee IEC, x = 1em, y=1em]
+			\node [terminal] (z1) at (0,0) {};
+			\node [terminal] (z2) at (5,0) {};
+			\node [terminal] (z3) at (0,-4) {};
+			\node [terminal] (z4) at (5,-4) {};
+			\path [line] (z1) to [circuit symbol unit=5pt, current direction={very near start, info={[black]$i$}}, resistor={info={[black]$R$}}] (z2);
+			\path [line] (4,0) to [capacitor={info'={[black]$C$}}] (4,-4);
+			\path [line] (z3) to (z4);
+			\path [arr] ($(z1)+(0,-.5em)$) -- node [left] {$u_r$} ($(z3)+(0,.5em)$);
+			\path [arr] ($(z2)+(0,-.5em)$) -- node [right] {$u_c$} ($(z4)+(0,.5em)$);
+			
+			\path [line] (1,-7) -- node[below] {1} (4,-7) -- node [right] {$\omega T$} (4,-5.5) -- node [midway,left] {$\sqrt{1 + \omega^2 T^2}$} cycle;
+			\path [line] (2,-7) arc (0:26.57:1em) node [right] {$\alpha$};
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[0]{r}{10em}
+		
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}
+		&G(s) = \frac{U_c(s)}{U_r(s)} = \frac{1}{CRs + 1} \xlongequal{T = CR} \frac{1}{Ts  + 1} = \frac{1/T}{s + 1/T}&\\
+		&U_c(s) = \frac{1/T}{s + 1/T}\cdot \frac{A\omega}{s^2 + \omega^2} = \frac{C_0}{s + 1/T} + \frac{C_1 s + C_2}{s^2 + \omega^2}&\\
+		&C_0 = \lim_{s\rightarrow -1/T} \frac{A\omega/T}{s^2 + \omega^2} = \frac{A\omega T}{1 + \omega^2T^2}&\\
+		&C_1 = \frac{-A\omega T}{1 + \omega^2 T^2}\quad C_2 = \frac{A\omega}{1 + \omega^2T^2}&
+	\end{flalign*}
+```
+
+### 频率特性 $G(j\omega)$ 的定义
+
+#### 幻灯片：频率特性 $G(j\omega)$ 的定义
+
+$G(j\omega)$定义一：$G(\rj\omega) = |G(\rj\omega)|\angle G(\rj\omega)$
+	 	$\arrayl
+			|G()| = |c_s(t)||r(t)| = 11 + ^2 T^2
+			 G() =  c_s(t) -  r(t) =   T
+		array.$
+	$G(j\omega)$定义二：$G(\rj\omega) = G(s)|_{s = \rj\omega}$
+	$G(j\omega)$定义三：$G(j\omega) = \frac{C(\rj\omega)}{R(\rj\omega)}$
+
+**原始公式代码**
+
+```tex
+$$\frac{1}{\sqrt{1 + \omega^2 T^2}}\angle -\arctan \omega T = \left|\frac{1}{1 + \rj\omega T}\right|\angle\frac{1}{1 + \rj\omega T} = \frac{1}{1 + \rj\omega T} = \left.\frac{1}{Ts + 1}\right|_{s = \rj\omega}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1em, y=1em]
+			\path [arr] (0,0) -- node [at end, above] {$\omega$} (5,0);
+			\path [arr] (0,0) -- node [at start, left] {0} node [near end, left] {1} node [very near end, right] {$|G(j\omega)|$} node [left=1em] {\sf 幅频特性} (0,3);
+			\path [rlocus, -] (0,2) .. controls (1,2) and (2,0.2) .. (4.5,0.2);
+			\begin{scope}[yshift=-4em]
+				\path [arr] (0,2) -- node [at end, above] {$\omega$} (5,2);
+				\path [arr] (0,0) -- node [at start, left] {$-90^\circ$} node [near end, left] {$0^\circ$} node [very near end, right] {$\angle G(j\omega)$} node [left=1em] {\sf 相频特性} (0,3);
+				\path [line, dashed, thin] (0,0.2) -- (5,0.2);
+				\path [rlocus, -] (0,2) .. controls ($(0,2)+(-45:1em)$) and (3,0.3) .. (4.5,0.3);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[2]{r}{12em}
+		
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}&c_s(t) = \frac{A}{\sqrt{1 + \omega^2 T^2}} \sin(\omega t - \arctan \omega T)&\end{flalign*}
+```
+
+#### 幻灯片：频率特性 $G(j\omega)$ 的定义
+
+系统结构图如图所示，
+ $r(t)=3\sin(2t+30^\circ)$，求 $c_s(t)$。
+	$\arrayl
+		|()| = |11 + | = 11 + ^2  = 2= 15 = |c_s(t)||r(t)| = |c_s(t)|3
+		() = - =2= - 63.4^ =  c_s(t) -  r(t) =  c_s(t) - 30^
+	array.$
+	$\arrayl
+		|c_s(t)| = 35
+		 c_s(t) = - 63.4^ + 30^ = -33.4^
+	array.$
+
+**原始公式代码**
+
+```tex
+$$c_s(t) = \frac{3}{\sqrt{5}}\sin (2t - 33.4^\circ)$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 2em, y=1em]
+			\path [arr] (0,0) -- node [above, red] {$r$} ++(.5,0) coordinate (t);
+			\node [cross, anchor = west] (c) at (t) {};
+			\path [arr] (c.east) -- node [above, red] {$e$} ++(.5,0) coordinate (t);
+			\node [block] (b) at (t) {$\frac{1}{s}$};
+			\path [arr] (b.east) -- ++(.5,0) coordinate (t) -- node [above, red] {$c$}++(.5,0);
+			\path [arr] (t) -- ++(0,-2) -| node [right, at end] {$-$} (c.south);
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[4]{r}{10em}
+		
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		 \textbf{解：}&\Phi (s) = \frac{1}{s  + 1} \Rightarrow \Phi (\rj\omega) = \frac{1}{1 + \rj\omega}
+	\end{align*}
+```
+
+### 频率特性 $G(\rj\omega)$的推导
+
+#### 幻灯片：频率特性 $G(\rj\omega)$的推导
+
+设线性定常系统传递函数的一般形式：
+	输入信号为正弦信号$r(t)$
+	其拉氏变换为：
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{D(s)}{N(s)} = \frac{D(s)}{(s-s_1)(s-s_2)\cdots(s-s_n)}$$
+```
+
+**原始公式代码**
+
+```tex
+$$r(t) = A\sin\omega t$$
+```
+
+**原始公式代码**
+
+```tex
+$$R(s) = \frac{A\omega}{s^2+\omega^2} = \frac{A\omega}{(s+\rj\omega)(s-\rj\omega)}$$
+```
+
+#### 幻灯片：频率特性 $G(\rj\omega)$的推导
+
+输出信号的拉氏变换：
+	对于一个稳定的控制系统，$s_1$、$s_2$、……$s_n$都具有负实部，当时间$t\rightarrow\infty$时，上式的暂态分量将衰减至零。因此系统的稳态响应为：
+
+**原始公式代码**
+
+```tex
+$$c(t) = \mathcal{L}^{-1}[C(s)] = be^{-\rj\omega t} + \bar{b}e^{\rj\omega t} + a_1e^{s_1t} + a_2e^{s_2t} + \cdots + a_ne^{s_nt}$$
+```
+
+**原始公式代码**
+
+```tex
+$$c_s(t) = \lim_{t\rightarrow\infty}c(t) = be^{-\rj\omega t} + \bar{b}e^{\rj\omega t}$$
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		C(s) 	&= G(s)R(s)\\
+			&= \frac{D(s)}{(s-s_1)(s-s_2)\cdots(s-s_n)}\cdot\frac{A\omega}{(s+\rj\omega)(s-\rj\omega)}\\
+			&= \frac{b}{s+\rj\omega} + \frac{\bar{b}}{s-\rj\omega} + \frac{a_1}{s-s_1} + \frac{a_2}{s-s_2} + \cdots + \frac{a_n}{s-s_n}
+	\end{align*}
+```
+
+#### 幻灯片：频率特性 $G(\rj\omega)$的推导
+
+其中，待定系数$b$和$\bar{b}$可按下式计算
+	$G(\rj\omega)$是一个复数，用模和幅角可表示为
+	同样，$G(-\rj\omega)$可以表示为
+
+**原始公式代码**
+
+```tex
+$$G(-\rj\omega)=|G(-\rj\omega)|\cdot e^{-\rj\phi(\omega)} = |G(\rj\omega)|\cdot e^{-\rj\phi(\omega)}$$
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		b		&= \left.G(s)\frac{A\omega}{(s+\rj\omega)(s-\rj\omega)}\cdot(s+\rj\omega)\right|_{s=-\rj\omega} = -\frac{G(-\rj\omega)A}{2\rj}\\
+		\bar{b}	&= \left.G(s)\frac{A\omega}{(s+\rj\omega)(s-\rj\omega)}\cdot(s-\rj\omega)\right|_{s=\rj\omega} = \frac{G(\rj\omega)A}{2\rj}
+	\end{align*}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		G(\rj\omega)	&= |G(\rj\omega)|\cdot e^{\rj\phi(\omega)}\\
+		\phi(\omega)	&= \angle G(\rj\omega) = \arctan\left[\frac{\Im G(\rj\omega)}{\Re G(\rj\omega)}\right]
+	\end{align*}
+```
+
+#### 幻灯片：频率特性 $G(\rj\omega)$的推导
+
+则系统稳态响应可化为
+	或 $c_s(t) = M\sin(\omega t+\phi)$，其中：
+	$M = |G(\rj\omega)|A$为稳态输出信号的幅值，
+	$\phi=\angle G(\rj\omega)$为稳态输出信号的相移。
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		c_s(t) 	&= -|G(\rj\omega)|e^{-\rj\phi(\omega)}\cdot\frac{Ae^{-\rj\omega t}}{2\rj} + |G(\rj\omega)|e^{\rj\phi(\omega)}\cdot\frac{Ae^{\rj\omega t}}{2\rj}\\
+				&= |G(\rj\omega)|A\cdot\frac{e^{\rj(\omega t + \phi)}-e^{-\rj(\omega t + \phi)}}{2\rj}\\
+				&= |G(\rj\omega)|A\cdot\sin(\omega t + \phi)
+	\end{align*}
+```
+
+#### 幻灯片：频率特性 $G(\rj\omega)$的推导
+
+**系统的频率特性**
+		反映了在正弦信号作用下，系统的稳态响应与输入正弦信号的关系。
+	**幅频特性**
+		反映系统在不同频率正弦信号作用下，稳态输出信号与输入信号幅值的比值，及系统的放大（或衰减）特性。
+	**相频特性**
+		反映系统在不同频率正弦信号作用下，稳态输出信号相对于输入信号的相移。
+
+**原始公式代码**
+
+```tex
+$$G(\rj\omega) = |G(\rj\omega)|e^{\rj\angle G(\rj\omega)}$$
+```
+
+**原始公式代码**
+
+```tex
+$$G(\rj\omega)=\frac{M(\omega)}{A}$$
+```
+
+**原始公式代码**
+
+```tex
+$$\angle G(\rj\omega) = \phi(\omega) = \arctan\left[\frac{\Im G(\rj\omega)}{\Re G(\rj\omega)}\right]$$
+```
+
+### 频率特性 $G(\rj\omega)$ 的图解表示
+
+#### 幻灯片：频率特性 $G(\rj\omega)$ 的图解表示
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1em, y=1em]
+			\node [anchor=west] at (-8.5,4) {I.~\sf 频率特性};
+			\path [arr] (0,0) -- node [at end, above] {$\omega$} (5,0);
+			\path [arr] (0,0) -- node [at start, left] {0} node [near end, left] {1} node [very near end, right] {$|G(\rj\omega)|$} node [left=2.5em] {\sf 幅频$|G(\rj\omega)|$} (0,3);
+			\path [rlocus, -] (0,2) .. controls (1,2) and (2,0.2) .. (4.5,0.2);
+			\path [arr] (0,-2) -- node [at end, above] {$\omega$} (5,-2);
+			\path [arr] (0,-4) -- node [at start, left] {$-90^\circ$} node [near end, left] {$0^\circ$} node [very near end, right] {$\angle G(\rj\omega)$} node [left=2.5em] {\sf 相频$\angle G(\rj\omega)$} (0,-1);
+			\path [line, dashed, thin] (0,-3.8) -- (5,-3.8);
+			\path [rlocus, -] (0,-2) .. controls ($(0,-2)+(-45:1em)$) and (3,-3.7) .. (4.5,-3.7);
+			
+			\begin{scope}[xshift=10em]
+			\node [anchor=west] at (-3,4) {II.~\sf 幅相特性(Nyquist、极坐标)};
+			\path [arr] (-1,0) -- node [pos=0.3, above] {$\omega=\infty$} node [at end, above] {$\omega$} node [at end, below] {$\omega=0$} (8,0);
+			\path [arr] (0,-4) -- node [pos=0.58, left] {0} node [very near end, left] {$\rj$} (0,2);
+			\path [rlocus, name path=arc] (6.5,0) arc (0:-180:3.25);
+			\path [name path=line] (0,0) -- +(-30:7);
+			\path [name intersections={of=arc and line}];
+			\path [line, -latex] (0,0) -- node[at end, right] {$\color{black}|G(\rj\omega)|$} (intersection-1); 
+			\path [arr] (2,0) arc (0:-30:2) node [right] {$\angle G(\rj\omega)$};
+			\end{scope}
+			
+			\begin{scope}[yshift=-9em]
+			\node [anchor=west] at (-8.5,4) {III.~\sf 对数频率特性(Bode)};
+			\path [arr] (0,2) -- node [at end, above] {$\omega$} (5,2);
+			\path [arr] (0,0) -- node [pos=0.3, left] {-20} node [near end, left] {0} node [very near end, right] {$L(\omega)$dB} node [left=1em, text width=7em] {\sf 对数幅频$L(\omega)=20\lg |G(\rj\omega)|$} (0,3);
+			\path [rlocus, -] (0,2) -- (2.5,2) -- (5,0);
+			\path [arr] (0,-2) -- node [at end, above] {$\omega$} (5,-2);
+			\path [arr] (0,-4) -- node [at start, left] {$-90^\circ$} node [near end, left] {$0^\circ$} node [very near end, right] {$\psi(\omega)$} node [left=1em, text width=7em] {\sf 对数相频$\psi(\omega)=\angle G(\rj\omega)$} (0,-1);
+			\path [line, dashed, thin] (0,-3.8) -- (5,-3.8);
+			\path [rlocus, -] (0,-2) .. controls (1.5,-2) and (2.5,-3.7) .. (4.5,-3.7);
+			\end{scope}
+			
+			\begin{scope}[xshift=10em, yshift=-12.5em]
+			\node [anchor=west] at (-3,7.5) {IV.~\sf 对数幅相特性(Nichols)};
+			\path [arr] (0,0) -- node [at start, below] {$-180^\circ$} node [pos=0.45, below] {$-90^\circ$} node [pos=0.9, below] {$0^\circ$} (8,0);
+			\path [arr] (0,0) -- node [at start, left] {-40} node [pos=0.4, left] {-20} node [pos=0.8, left] {0} node [very near end, right] {$L(\omega)$dB} (0,6.5);
+			\path [line, dashed, thin] (0,5.2) -- (7.2,5.2) -- (7.2,0);
+			\path [rlocus, -] (3.6,0) .. controls ($(3.6,0)+(80:3em)$) and ($(7.22,5.2)+(-145:2em)$) .. (7.2,5.2);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：系统模型间的关系
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1em, y=1em]
+			\tikzstyle{barr} = [anchor=west, single arrow, draw, single arrow head extend=.3em, blue!50, minimum height=2em, thick]
+			\node [block, label=above left:$G(s)$] (b1) at (0,0) {\sf 传递函数};
+			\node [barr, shape border rotate=180] (a1) at (b1.east) {};
+			\node [block, inner sep=1em] (b2) at (a1.east) {\sf 系统};
+			\node [barr, anchor=south, shape border rotate=90, minimum height=2em] (a2) at (b2.north) {};
+			\node [barr, anchor=north, shape border rotate=270, minimum height=2em] (a3) at (b2.south) {};
+			\node [block, anchor=south] (b3) at (a2.north) {\sf 微分方程};
+			\node [block, anchor=north, label=below:$G(\rj\omega)$] (b4) at (a3.south) {\sf 频率特性};
+			\path [arr] ($(b1.north)+(.2em,.5em)$) arc (165:112:6em and 4.4em);
+			\path [arr] ($(b4.west)+(-.5em,.3em)$) arc (248:195:6em and 4.4em);
+			\path [arr] ($(b3.east)+(.5em,-.3em)$) arc (68:-68:6em and 4.6em);
+			\path [arr] ($(b3.west)+(-.5em,.4em)$) arc (112:165:6.7em and 5.3em) node [midway, left] {$s=\fracd{}{t}$};
+			\path [arr] ($(b1.south)+(-.5em,-.5em)$) arc (195:250:6.7em and 5.1em) node [midway, left] {$\rj\omega=s$};
+			\path [arr] ($(b4.east)+(.5em,-.4em)$) arc (-68:68:6.8em and 5.1em) node [midway, right] {$\fracd{}{t}=\rj\omega$};
+		\end{tikzpicture}
+```
+
+## 对数频率特性（Bode图）
+
+#### 幻灯片：对数频率特性（Bode图）
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 3.5em, y=.8em]
+			\foreach \x/\y in {0.1/0.1,0.2/~,0.3/~,0.4/~,0.5/~,0.6/~,0.7/~,0.8/~,0.9/~,1/1,2/~,3/~,4/~,5/~,6/~,7/~,8/~,9/~,10/10,20/~,30/~,40/~,50/~,60/~,70/~,80/~,90/~,100/100}{
+				\pgfmathln{\x}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\path [draw=gray, dotted, thick] (\re,10) -- node [at end, below] {\y} (\re,-8);
+			}
+			\foreach \x/\y/\z in {8/80/$360^\circ$,6/60/$270^\circ$,4/40/$180^\circ$,2/20/$90^\circ$,0/0/~,-2/-20/$-90^\circ$,-4/-40/$-180^\circ$,-6/-60/$-270^\circ$,-8/-80/$-360^\circ$}{
+				\path [draw=gray, dotted, thick] (-2.3,\x) -- node [at start, left] {\y} node [at end, right] {\z} (4.61,\x);
+			}
+			\path [arr] (-2.3,0) -- node [at end, above right] {$0^\circ$} (4.61,0) -- node [near end, above] {$\omega$} (5.4,0);
+			\path [arr] (-2.3,-8) -- node [pos=0.95, right] {$L(\omega)$dB} (-2.3,12);
+			\path [draw=gray, thick] (-2.3,10) -- node [at end, above right] {$\psi(\omega)$} (4.61,10) |- (-2.3,-8);
+		\end{tikzpicture}
+```
+
+#### 幻灯片：对数频率特性（Bode图）的特点
+
+- **横轴**
+			-  按 $\lg\omega$ 刻度，dec “十倍频程”
+			-  按$\omega$标定，等距等比
+		- **纵轴**
+		$L(\omega)=20\lg |G(\rj\omega)|$dB“分贝”
+		- **特点**
+			-  幅值相乘 = 对数相加，便于叠加作图；
+			-  可在大范围内表示频率特性；
+			-  使各个频段（分别关系到系统各种性能）都可以得到同等重视；
+			-  (非直线）特性曲线可以绘制渐近对数幅频特性，进一步简化绘制过程；
+			-  最小相位系统，可由对数幅频特性曲线得到系统的传递函数。
+
+### 典型环节的Bode图
+
+#### 幻灯片：典型环节的Bode图
+
+(1) 比例环节$G()=K\arrayl
+				L() = 20 K
+				() = 0^
+			array.$
+	(2) 微分环节$G()=\arrayl
+				L() = 20
+				() = 90^
+			array.$
+	$L(\omega)$是一条斜率为＋20db/dec，
+ 过（1,0)点的直线，记作[＋20]。
+	注：当$G()=()^ \arrayl
+		L() = 20
+		() = 90^
+	array.$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1em, y=1em]
+			\path [arr] (0,0) -- node [at end, above] {$\omega$} (6,0);
+			\path [arr] (0,-1) -- node [near end, right] {$L(\omega)$dB} (0,4);
+			\path [rlocus, -] (0,2) -- node [at start, left] {$20\lg K$} (5,2);
+			\path [rlocus, -, draw=red!50!yellow] (0,0) -- node [at start, left] {0} node [near end,above] {$\psi(\omega)$} (5,0);
+			
+			\begin{scope}[yshift=-5em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (6,0);
+			\path [arr] (0,-2.5) -- node [near end, right] {$L(\omega)$dB} (0,3);
+			\foreach \x/\y in {-2/-20,0/0,2/20}{
+				\path [draw] (0,\x) -- node [at start, left] {\y} (.3,\x);
+			}
+			\path [rlocus, -, name path=slope] (0,-2) -- +(35:6em);
+			\path [name intersections={of={slope and x axis}}];
+			\node [label=below:1] at (intersection-1) {};
+			\end{scope}
+			
+			\begin{scope}[yshift=-11.5em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (6,0);
+			\path [arr] (0,-2.5) -- node [very near end, right] {$\psi(\omega)$} (0,3);
+			\path [rlocus, -, draw=red!50!yellow] (0,1.5) -- node [at start, left] {$90^\circ$} (5,1.5);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[7]{r}{11em}
+		\vs{-2em}
+		
+	\end{wrapfigure}
+```
+
+#### 幻灯片：典型环节的Bode图
+
+(3) 积分环节$G(\rj\omega)=\frac{1}{\rj\omega}$
+			$\arrayl
+				L() = -20
+				() = -90^
+			array.$
+	$L(\omega)$是一条斜率为-20dB/dec，
+过（1,0)点的直线，记作[-20]。
+	注：当有$\alpha$个积分环节串联时，即$G(\rj\omega)=(\frac{1}{\rj\omega})^\alpha$时，有
+	$\arrayl
+		L() = -20
+		() = -90^
+	array.$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1em, y=1em]			
+			\begin{scope}[yshift=0em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (6,0);
+			\path [arr] (0,-2) -- node [very near end, right] {$L(\omega)$dB} (0,2.5);
+			\foreach \x/\y in {-1.5/-20,0/0,1.5/20}{
+				\path [draw] (0,\x) -- node [at start, left] {\y} (.3,\x);
+			}
+			\path [rlocus, -, name path=slope] (0,1.5) -- +(-35:6em);
+			\path [name intersections={of={slope and x axis}}];
+			\node [label=below:1] at (intersection-1) {};
+			\end{scope}
+			
+			\begin{scope}[yshift=-6em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (6,0);
+			\path [arr] (0,-2.5) -- node [very near end, right] {$\phi(\omega)$} (0,3);
+			\foreach \x/\y in {-1.5/$-90^\circ$,1.5/$90^\circ$}{
+				\path [draw] (0,\x) -- node [at start, left] {\y} (.3,\x);
+			}
+			\path [rlocus, -, draw=red!50!yellow] (0,-1.5) -- (5,-1.5);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[7]{r}{11em}
+		\vs{-2em}
+		
+	\end{wrapfigure}
+```
+
+#### 幻灯片：典型环节的Bode图
+
+(4) 惯性环节$G(\rj\omega)=\frac{1}{1+\rj\omega T}$
+	$\arrayl
+		L() = -20 1+^2T^2
+		() = -  T
+	array.$
+		- **渐近线**  惯性环节可由一组折线组成的渐近线近似
+		- **交接频率**  渐近线各近似线 段相交的交点频率称为交接频率。
+	交接频率处误差最大
+	可达$\left.-20\lg\sqrt{1+T^2\omega^2}\right|_{\omega=\frac{1}{T}}=-20\lg\sqrt{2}=-3(\mathrm{dB})$
+		-  误差曲线对称与交接频率
+		-  误差主要位于交接频率上下十倍频程范围内
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1em, y=1em]
+		\begin{scope}[yshift=0em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (6,0);
+			\path [arr] (0,-4) -- node [very near end, right] {$L(\omega)$dB} (0,1.5);
+			\foreach \x/\y in {-3/-40,-1.5/-20,0/0}{
+				\path [draw=gray, dashed] (0,\x) -- node [at start, left] {\y} (6,\x);
+			}
+			\path [rlocus, -, name path=slope] (0,0) -- node [at end, below left] {$\frac{1}{T}$} (3,0) -- +(-40:4em);
+			\end{scope}
+			
+			\begin{scope}[yshift=-6em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (6,0);
+			\path [arr] (0,-4) -- node [very near end, right] {$\phi(\omega)$} (0,1.5);
+			\foreach \x/\y in {-3/$-180^\circ$,-1.5/$-90^\circ$,0/$0^\circ$}{
+				\path [draw=gray, dashed] (0,\x) -- node [at start, left] {\y} (6,\x);
+			}
+			\path [rlocus, -, draw=red!50!yellow] (0,0) .. controls (0:3em) and ($(6,-1.5)+(-180:3em)$) .. (6,-1.5);;
+			\end{scope}
+			\path [asy] (3,0) -- (3,-9);
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[7]{r}{11em}
+		\vs{-2em}
+		
+	\end{wrapfigure}
+```
+
+#### 幻灯片：典型环节的Bode图
+
+(5) 一阶微分
+		$G(s) = \tau s + 1$
+		$G(\rj\omega) = 1+ \rj\omega \tau$
+		$\arrayl
+			L() = 20 1+^2^2
+			() =
+		array.$
+		交接频率处误差最大，可达$\left.20\lg\sqrt{1+T^2\omega^2}\right|_{\omega=\frac{1}{\tau}}=-20\lg\sqrt{2}=3(\mathrm{dB})$
+			-  误差曲线对称与交接频率
+			-  误差主要位于交接频率上下十倍频程范围内
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 3em, y=1em]			
+			\begin{scope}[yshift=0em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (4.5,0);
+			\foreach \x/\y in {0/0.01,1/0.1,2/1,3/10,4/100}{
+				\path [draw] (\x,0) -- node [at start, below] {\y} (\x,.3);
+			}
+			\path [arr] (0,0) -- node [very near end, right] {$L(\omega)$dB} (0,7.5);
+			\foreach \x/\y in {0/0,1.5/~,3/20,4.5/~,6/40}{
+				\path [draw=gray, dashed] (0,\x) -- node [at start, left] {\y} (4.5,\x);
+			}
+			\path [draw=gray, dashed] (2,0) -- (2,6);
+			\path [rlocus, -] (0,0) -- (2,0) -- node [midway, left] {20dB/dec} (3.5,5.5);
+			\path [rlocus, -, draw=red!50!yellow] (0,0) .. controls (0:2.6) and ($(3.5,5.5)+(253.5:6)$) .. (3.5,5.5);
+			\end{scope}
+			
+			\begin{scope}[yshift=-9em]
+			\path [arr] (0,0) -- node [at end, above] {$\omega$} (4.5,0);
+			\foreach \x/\y in {0/0.01,1/0.1,2/1,3/10,4/100}{
+				\path [draw] (\x,0) -- node [at start, below] {\y} (\x,.3);
+			}
+			\path [arr] (0,0) -- node [very near end, right] {$\phi(\omega)$} (0,7.5);
+			\foreach \x/\y in {0/$0^\circ$,1.5/$45^\circ$,3/$90^\circ$,4.5/$135^\circ$,6/$180^\circ$}{
+				\path [draw=gray, dashed] (0,\x) -- node [at start, left] {\y} (4.5,\x);
+			}
+			\path [draw=gray, dashed] (2,0) -- (2,6);
+			\path [rlocus, -, draw=red!50!yellow] (0,0) .. controls (0:2) and ($(4,3)+(180:2)$) .. (4,3);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：典型环节的Bode图
+
+(6) 振荡环节$G(s)= \frac{\omega_n^2}{s^2 + 2\zeta\omega_n s + \omega_n^2} = \frac{1}{\frac{s^2}{\omega_n^2}+\frac{2\zeta s}{\omega_n}+1}$
+        	$G(\rj\omega) = \frac{1}{1-\frac{\omega^2}{\omega_n^2}+\rj 2\zeta\frac{\omega}{\omega_n}}$
+        	$\arrayl
+        		L() = -20 [1-^2_n^2]^2+[2_n]^2
+        		() =
+        	array.$
+        	$_n 1 \arrayl
+        		L()  0
+        		()  0
+        	array.$
+        	$_n 1 \arrayl
+        		L()  -40 (/_n)
+        		()  -180^
+        	array.$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 2.5em, y=1em]			
+			\begin{scope}[yshift=0em]
+			\path [arr] (0,0) -- node [at end, above] {$\omega$} (4.5,0);
+			\foreach \x in {2,4}{
+				\path [draw=gray, dashed] (\x,0) -- (\x,-6);
+			}
+			\path [arr] (0,-6.5) -- node [very near end, right] {$L(\omega)$dB} (0,1.5);
+			\foreach \x/\y in {0/0,-3/-20,-6/-40}{
+				\path [draw=gray, dashed] (0,\x) -- node [at start, left] {\y} (4,\x);
+			}
+			\foreach \x/\y/\z/\k in {3.5/9/0.3/0.3,3/8/0.5/0.6,3/5/0.7/0.6,3/3/\zeta=0.85/0.7}{
+				\path [rlocus, -] (0,0) .. controls (0:\x) and ($(4,-5.5)+(110:\y)$) .. (4,-5.5) node [pos=\k,above] {$\z$};
+			}
+			\end{scope}
+			
+			\begin{scope}[yshift=-9em]
+			\path [arr] (0,0) -- node [at end, above] {$\omega$} (4.5,0);
+			\foreach \x in {2,4}{
+				\path [draw=gray, dashed] (\x,0) -- (\x,-6);
+			}
+			\path [arr] (0,-6.5) -- node [very near end, right] {$\phi(\omega)$dB} (0,1.5);
+			\foreach \x/\y in {-3/~,-6/$-180^\circ$}{
+				\path [draw=gray, dashed] (0,\x) -- node [at start, left] {\y} (4,\x);
+			}
+			\foreach \x/\y in {3.5/-5.8,2.8/-5.6,2/-5.4,1.2/-5.2}{
+				\path [rlocus, -] (0,0) .. controls (-15:\x) and ($(4,\y)+(170:\x)$) .. (4,\y);
+			}
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：典型环节的Bode图
+
+谐振频率$\omega_r$和谐振峰值$M_r$
+
+**原始公式代码**
+
+```tex
+$$L(\omega) = 20\lg |G| = 20\lg 1/\sqrt{[1-\frac{\omega^2}{\omega_n^2}]^2+[2\zeta\frac{\omega}{\omega_n}]^2}$$
+```
+
+**原始公式代码**
+
+```tex
+$$\fracd{}{\omega} |G| = 0\quad \fracd{}{\omega}\left\{[1-\frac{\omega^2}{\omega_n^2}]^2+[2\zeta\frac{\omega}{\omega_n}]^2\right\} = 0$$
+```
+
+**原始公式代码**
+
+```tex
+$$2[1-\frac{\omega^2}{\omega_n^2}][-2(\frac{\omega}{\omega_n})] + 2[2\zeta\frac{\omega}{\omega_n}](\frac{2\zeta}{\omega_n}) = 0$$
+```
+
+**原始公式代码**
+
+```tex
+$$\begin{array}{l}
+		\frac{4\omega}{\omega_n^2}[-1+\frac{\omega_2}{\omega_n^2}+2\zeta^2] = 0\\
+		\frac{\omega^2}{\omega_n^2} = 1-2\zeta^2
+	\end{array}\quad
+	\left\{\begin{array}{l}
+		\omega_r = \omega_n\sqrt{1-2\zeta^2}\\
+		M_r = 20\lg |G(\rj\omega_r)| = 20\lg \frac{1}{2\zeta\sqrt{1-\zeta^2}}
+	\end{array}\right.$$
+```
+
+#### 幻灯片：典型环节的Bode图
+
+(7) 不稳定环节$G(\rj\omega)=\frac{1}{\rj\omega T-1}$
+			$\arrayl
+			L() = -20 1+^2T^2
+			() = -180^ +   T
+			array.$
+				- **低频段**  $0<\omega<\frac{1}{T}:\quad -20\lg\sqrt{T^2\omega^2+1}\approx 0$
+				- **高频段**  $\frac{1}{T}<\omega<\infty: \quad -20\lg\sqrt{T^2\omega^2+1}\approx -20\lg T\omega$
+				- **$\omega=0$**  $\angle G(\rj 0)=-180^\circ$
+				- **$\omega=\frac{1}{T}$**  $\angle G(\rj \frac{1}{T})=-135^\circ$
+				- **$\omega=\infty$**  $\angle G(\rj \infty)=-90^\circ$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1em, y=1em]
+			\begin{scope}[yshift=0em]
+				\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (6,0);
+				\path [arr] (0,-4) -- node [very near end, right] {$L(\omega)$dB} (0,1.5);
+				\foreach \x/\y in {-3/-40,-1.5/-20,0/0}{
+					\path [draw=gray, dashed] (0,\x) -- node [at start, left] {\y} (6,\x);
+				}
+				\path [rlocus, -, name path=slope] (0,0) -- node [at end, below left] {$\frac{1}{T}$} (3,0) -- +(-40:4em);
+				\end{scope}
+			
+				\begin{scope}[yshift=-6em]
+				\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (6,0);
+				\path [arr] (0,-4) -- node [very near end, right] {$\phi(\omega)$} (0,1.5);
+				\foreach \x/\y in {-3/$-180^\circ$,-1.5/$-90^\circ$,0/$0^\circ$}{
+					\path [draw=gray, dashed] (0,\x) -- node [at start, left] {\y} (6,\x);
+				}
+				\path [rlocus, -, draw=red!50!yellow] (0,-3) .. controls ($(0,-3)+(0:3em)$) and ($(6,-1.5)+(-180:3em)$) .. (6,-1.5);;
+				\end{scope}
+				\path [asy] (3,0) -- (3,-9);
+		\end{tikzpicture}
+```
+
+### 开环系统对数频率特性 ( Bode)
+
+#### 幻灯片：开环系统的Bode图
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{K(\tau_1 s + 1)\cdots(\tau_m s + 1)}{s^v(T_1 s + 1)\cdots(T_{n-v}s + 1)}$$
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		L(\omega) =& 20\lg |G|\\
+				=& 20\lg K + 20 \lg |1+\rj\tau_1\omega| + \cdots + 20\lg |1 + \rj\tau_m\omega|\\
+				&-20v\lg | \omega | - 20\lg | 1 + \rj T_1\omega | - \cdots - 20\lg | 1+ \rj T_{n-v}\omega |\\
+		\psi(\omega) =& \angle G\\
+				=& \arctan \tau_1\omega + \cdots + \arctan \tau_m\omega\\
+				& -90^\circ v - \arctan T_1\omega - \cdots - \arctan T_{n-v}\omega
+	\end{align*}
+```
+
+### 绘制开环系统Bode图的步骤
+
+#### 幻灯片：绘制开环系统Bode图的步骤
+
+(1) 化$G(s)$为尾1标准型
+			(2) 顺序列出转折频率
+			(3) 确定低频特性$(matrix最小转折频率之左
+ 的特性或其延长线
+matrix)$
+			(4) 叠加作图$\arrayl
+				一阶\arrayl
+					惯性环节  -20dB/dec
+					复合环节  +20dB/dec
+				array.
+				二阶    震荡环节  -40dB/dec
+			array.$
+			$\arraycl
+				0.2&惯性环节
+				0.5&一阶复合微分
+				1&振荡环节
+			array.$
+			$\arrayl
+				基准点 (=1, L(1)=20 K)
+				斜率 -20v dB/dec
+			array.$
+			$\arraylll
+				=0.2&惯性环节&-20
+				=0.5&一阶复合微分&+20
+				=1&振荡环节&-40
+			array.$
+
+**原始公式代码**
+
+```tex
+$$\text{\example{}{}} G(s) = \frac{40(s  + 0.5)}{s(s+0.2)(s^2+s+1)}$$
+```
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{100(\frac{s}{0.5}+1)}{s(\frac{s}{0.2}+1)(s^2+s+1)}$$
+```
+
+#### 幻灯片：绘制开环系统Bode图的步骤
+
+$\arrayl
+		基准点 =1, L(1)=20 K = 40dB
+		斜率 -20v dB/dec
+	array.$
+	$\arraylll
+		=0.2&惯性环节&-20
+		=0.5&一阶复合微分&+20
+		=1&振荡环节&-40
+	array.$
+	(5) 修正，如振荡环节$\zeta\notin (0.38, 0.8)$时
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 3.5em, y=.7em]
+			\foreach \x/\y in {0.1/0.1,0.2/~,0.3/~,0.4/~,0.5/~,0.6/~,0.7/~,0.8/~,0.9/~,1/1,2/~,3/~,4/~,5/~,6/~,7/~,8/~,9/~,10/10}{
+				\pgfmathln{\x}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\path [draw=gray, dotted, thick] (\re,6) -- node [at end, below] {\y} (\re,-6);
+			}
+			\foreach \x/\y/\z in {6/60/$270^\circ$,4/40/$180^\circ$,2/20/$90^\circ$,0/0/~,-2/-20/$-90^\circ$,-4/-40/$-180^\circ$,-6/-60/$-270^\circ$}{
+				\path [draw=gray, dotted, thick] (-2.3,\x) -- node [at start, left] {\y} node [at end, right] {\z} (2.3,\x);
+			}
+			\path [arr] (-2.3,0) -- node [at end, above right] {$0^\circ$} (2.3,0) -- node [near end, above] {$\omega$} (3,0);
+			\path [arr] (-2.3,-6) -- node [pos=0.95, right] {$L(\omega)$dB} (-2.3,8);
+			\path [draw=gray, thick] (-2.3,6) -- node [at end, above right] {$\psi(\omega)$} (2.3,6) |- (-2.3,-6);
+			\path [rlocus, -] (-2.3,6) -- node [midway, below] {-20} ++(0.69,-0.6) -- node[midway, below] {-40} ++(0.92,-1.6) -- node [midway, below] {-20} ++(0.69,-0.6) -- node [midway, below] {-60} ++(2.3,-6);
+			\path [rlocus, -] (-2.3,-2.3) .. controls ($(-2.3,-2.3)+(-20:3)$) and ($(2.3,-6)+(180:2.8)$) .. (2.3,-6);
+			\path [draw=red!50!yellow, dashed, thick] (-2.3,6) -- (0,4);
+			\path [draw=red!50!yellow, thick] (0,4) -- +(0.69,0);
+			\path [draw=red!50!yellow, thick] (0,0) -- +(0.69,0);
+			\path [draw=red!50!yellow, thick, <->] (0.345,0) -- node [midway, right] {$20\lg K$} (0.345,4);
+		\end{tikzpicture}
+```
+
+### 环系统对数频率特性（Bode）：实例
+
+#### 幻灯片：绘制频率对数特性A
+
+解：(1) 标准型$G(s) = \frac{s^3}{(\frac{s}{0.2}+1)(s+1)(\frac{s}{5}+1)}$
+	(2) 转折频率：$\omega_1=0.2\rightarrow-20$，$\omega_2=1\rightarrow-20$，$\omega_3=5\rightarrow-20$
+	(3) 基准线：基点（$\omega=1$，$20\lg 1=0$dB），斜率：$-20\times (-3) = 60$dB/dec
+	(4) 作图
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 3.5em, y=.8em]
+			\foreach \x/\y in {0.1/0.1,0.2/~,0.3/~,0.4/~,0.5/~,0.6/~,0.7/~,0.8/~,0.9/~,1/1,2/~,3/~,4/~,5/~,6/~,7/~,8/~,9/~,10/10}{
+				\pgfmathln{\x}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\path [draw=gray, dotted, thick] (\re,6) -- node [at end, below] {\y} (\re,-6);
+			}
+			\foreach \x/\y/\z in {6/60/$270^\circ$,4/40/$180^\circ$,2/20/$90^\circ$,0/0/~,-2/-20/$-90^\circ$,-4/-40/$-180^\circ$,-6/-60/$-270^\circ$}{
+				\path [draw=gray, dotted, thick] (-2.3,\x) -- node [at start, left] {\y} node [at end, right] {\z} (2.3,\x);
+			}
+			\path [arr] (-2.3,0) -- node [at end, above right] {$0^\circ$} (2.3,0) -- node [near end, above] {$\omega$} (3,0);
+			\path [arr] (-2.3,-6) -- (-2.3,7);
+			\path [draw=gray, thick] (-2.3,6) -- (2.3,6) |- (-2.3,-6); 
+			\onslide<5->{\draw[rlocus, -, domain=-2.3:2.3] plot[id=psi1] function{(270+(-atan(5*exp(x))-atan(exp(x))-atan(0.2*exp(x)))/(2*pi)*360)/54} node [midway, above] {$\psi(\omega)$};
+			\path [rlocus, -] (-2.3,-6) -- node [midway, above] {60} (-1.61,-4.2) -- node [midway, above] {40}  (0,-1.4) -- node [midway, above] {20} node [midway, below] {$L(\omega)$dB}  (1.61,0) -- (2.3,0);
+			\path [draw=red!50!yellow, thick, dashed] (-2.3,-6) -- (0,0);}
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}&G(s) = \frac{s^3}{(s+0.2)(s+1)(s+5)}&\end{flalign*}
+```
+
+#### 幻灯片：绘制对数频率特性B
+
+解：(1) 标准型$G(s) = \frac{\frac{8\times 0.1}{25}\left(\frac{s}{0.1}+1\right)}{s(s^2+s+1)\left[\left(\frac{s}{5}\right)^2+\frac{4}{5}\cdot\frac{s}{5}+1\right]}$
+	(2) 转折频率：$\omega_1=0.1\rightarrow+20$，$\omega_2=1\rightarrow-40$，$\omega_3=5\rightarrow-40$
+	(3) 基准线：基点（$\omega=1$，$20\lg 0.032=-30$dB），斜率：$-20v = -20$dB/dec
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 2.5em, y=.7em]
+			\def\Left{-4.61}
+			\def\Right{4.61}
+			\def\Up{4}
+			\def\Bottom{-8}
+			\foreach \x/\y in {0.01/0.01,0.02/~,0.03/~,0.04/~,0.05/~,0.06/~,0.07/~,0.08/~,0.09/~,0.1/0.1,0.2/~,0.3/~,0.4/~,0.5/~,0.6/~,0.7/~,0.8/~,0.9/~,1/1,2/~,3/~,4/~,5/~,6/~,7/~,8/~,9/~,10/10,20/~,30/~,40/~,50/~,60/~,70/~,80/~,90/~,100/100}{
+				\pgfmathln{\x}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\path [draw=gray, dotted, thick] (\re,\Up) -- node [at end, below] {\y} (\re,\Bottom);
+			}
+			\foreach \x/\y/\z in {4/40/$180^\circ$,2/20/$90^\circ$,0/0/~,-2/-20/$-90^\circ$,-4/-40/$-180^\circ$,-6/-60/$-270^\circ$,-8/-80/$-360^\circ$}{
+				\path [draw=gray, dotted, thick] (-4.61,\x) -- node [at start, left] {\y} node [at end, right] {\z} (4.61,\x);
+			}
+			\path [arr] (\Left,0) -- node [at end, above right] {$0^\circ$} (\Right,0) -- node [near end, above] {$\omega$} (5.3,0);
+			\path [arr] (\Left,\Bottom) -- node [pos=0.95, right] {$L(\omega)$dB} ($(\Left,\Up)+(0,2)$);
+			\path [draw=gray, thick] (\Left,\Up) -- node [at end, above right] {$\psi(\omega)$} (\Right,\Up) |- (\Left,\Bottom);
+			\onslide<5->{\path [rlocus, -] (\Left,1) -- node [midway, above] {-20} (-2.3,-1) -- (0,-1) -- node [midway, below] {-40}  (1.61,-3.8) -- node [midway, below] {-80} (2.82,-8.01);
+			\path [draw=red!50!yellow, thick, dashed] (\Left,1) -- (0,-3);}
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}&G(s) = \frac{8(s+0.1)}{s(s^2+s+1)(s^2+4s+25)}&\end{flalign*}
+```
+
+#### 幻灯片：根据Bode图确定系统传递函数A
+
+解：依图有$G(s) = \frac{K}{Ts + 1}$
+	$20\lg K = 30 \rightarrow K = 10^{\frac{30}{20}} = 31.6$
+	转折频率：$\omega = 2 = 1/T\rightarrow T = 0.5$
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{31.6}{\frac{s}{2}+1}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 2em, y=1em]
+			\def\Left{-2.3}
+			\def\Right{4.6}
+			\def\Up{3}
+			\def\Bottom{-3}
+			\foreach \x/\y in {0.1/0.1,0.2/~,0.3/~,0.4/~,0.5/~,0.6/~,0.7/~,0.8/~,0.9/~,1/1,2/~,3/~,4/~,5/~,6/~,7/~,8/~,9/~,10/10,20/~,30/~,40/~,50/~,60/~,70/~,80/~,90/~,100/100}{
+				\pgfmathln{\x}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\path [draw=gray, dotted, thick] (\re,\Up) -- node [at end, below] {\y} (\re,\Bottom);
+			}
+			\foreach \x/\y/\z in {3/30/$135^\circ$,2/20/$90^\circ$,1/10/$45^\circ$,0/0/~,-1/-10/$-45^\circ$,-2/-20/$-90^\circ$,-3/-30/$-135^\circ$}{
+				\path [draw=gray, dotted, thick] (\Left,\x) -- node [at start, left] {\y} node [at end, right] {\z} (\Right,\x);
+			}
+			\path [arr] (\Left,0) -- node [at end, right] {$\omega$} (5.3,0);
+			\path [arr] (\Left,\Bottom) -- node [pos=0.95, right] {$L(\omega)$dB} ($(\Left,\Up)+(0,1.5)$);
+			\path [draw=gray, thick] (\Left,\Up) -- node [at end, above right] {$\psi(\omega)$} (\Right,\Up) |- (\Left,\Bottom);
+			\path [rlocus, -] (\Left,3) -- (0.69,3) -- node [midway, below] {-20}  (\Right,-0.398);
+			\path [rlocus, -] (\Left,-.1) .. controls ($(\Left,-.1)+(0:3)$) and ($(\Right,-1.9)+(180:4)$) .. (\Right,-1.9);
+		\end{tikzpicture}
+```
+
+#### 幻灯片：由$L(w)$计算$G(s)$，绘制$\psi(w)$
+
+已知$ L(w)$，写出$G(s)$，绘制$\psi(w)$，$\omega_1$，$\omega_2$，$\omega_c$已知。
+	解：(1) $G(s) = \frac{K(\frac{s}{\omega_1}+1)}{s(\frac{s}{\omega_2}+1)}$
+	$20\lg \frac{\omega_c}{\omega_2} = 20\lg \frac{\omega_0}{\omega_1} \rightarrow \omega_0 = \frac{\omega_1\omega_c}{\omega_2}\quad\therefore K^{\frac{1}{v}} = \omega_0 = \frac{\omega_1\omega_c}{\omega_2}$
+	结论：起始段或其延长线与$\omega$轴交点坐标$\omega_0 = K^{\frac{1}{v}}$，其中$v$为系统的型别。
+	(2) 相频叠加作图如下
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 2em, y=1em]
+			\def\Left{-2.3}
+			\def\Right{3.91}
+			\def\Up{3}
+			\def\Bottom{-3}
+			\foreach \x/\y in {0.5/$\omega_1$,5/$\omega_2$,20/$\omega_c$}{
+				\pgfmathln{\x}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\path [draw=gray, dotted, thick] (\re,\Up) -- node [at end, below] {\y} (\re,\Bottom);
+			}
+			\foreach \x/\y/\z in {3/30/$135^\circ$,2/20/$90^\circ$,1/10/$45^\circ$,0/0/~,-1/-10/$-45^\circ$,-2/-20/$-90^\circ$,-3/-30/$-135^\circ$}{
+				\path [draw=gray, dotted, thick] (\Left,\x) -- node [at start, left] {} node [at end, right] {\z} (\Right,\x);
+			}
+			\path [arr, name path=omega] (\Left,0) -- node [at end, right] {$\omega$} (5.3,0);
+			\path [arr] (\Left,\Bottom) -- node [pos=0.95, right] {$L(\omega)$dB} ($(\Left,\Up)+(0,1.5)$);
+			\path [draw=gray, thick] (\Left,\Up) --  (\Right,\Up) |- (\Left,\Bottom);
+			\path [rlocus, -] (\Left,2.602) --  node [midway, above] {-20} (-0.69,1.2) -- (1.61,1.2) -- node [near start, above] {-20} (\Right,-.8);
+			\path [draw=red!50!yellow, thick, dashed] (\Left,2.602) -- node [at end, above] {$\omega_0$} (0.69,0);
+			\node [zero, fill=red, inner sep=1pt, label=above:B] at (2.99,0) {};
+			\path [rlocus, -, cyan] (\Left,-.2) .. controls ($(\Left,-.1)+(0:5)$) and ($(\Right,-1.9)+(170:1.5)$) .. (\Right,-1.9);
+			\path [rlocus, -, cyan] (\Left,-1.9) .. controls ($(\Left,-1.9)+(10:1.5)$) and ($(\Right,-.2)+(180:6)$) .. (\Right,-.2);
+			\path [rlocus, -] (\Left,-2.1) .. controls ($(\Left,-2.1)+(0:2)$) and ($(0.69,-.6)+(180:1)$) .. (0.69,-.6);
+			\path [rlocus, -] (0.69,-.6) .. controls ($(0.69,-.6)+(0:1)$) and ($(\Right,-2.1)+(180:2)$) .. (\Right,-2.1) node [midway, below] {$\psi(\omega)$};
+			\node [zero, fill=red, inner sep=1pt, label=below:A] at (0.69,-.6) {};
+		\end{tikzpicture}
+```
+
+#### 幻灯片：根据 Bode 图确定系统传递函数B
+
+开环系统Bode图如图所示，求 G(s)。
+	解：
+	注意：开环增益$K$也可以利用渐进幅频特性的表达式确定
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.5em, y=1.5em]
+			\def\Left{-2.3}
+			\def\Right{3.91}
+			\def\Up{4}
+			\def\Bottom{0}
+			\path [arr, name path=omega] (\Left,0) -- node [very near end, above] {$\omega$} (5.3,0);
+			\path [arr] (\Left,\Bottom) -- node [pos=0.95, right] {$L(\omega)$dB} ($(\Left,\Up)+(0,1.5)$);
+			\node (o1) at (-0.69,3.5) {};
+			\node (o2) at (1.3,1) {};
+			\node (o3) at (3.9,-.5) {};
+			\path [rlocus, -, name path=L] (\Left,\Up) -- node [midway, above] {-20} (o1.center) -- node [midway, above] {-40} (o2.center) -- node [midway, above] {-20} (o3.center);
+			\path [name intersections={of={omega and L}}];
+			\path [draw=gray, dotted, thick] (o1.center) -- node [at end, below] {$\omega_1$} (o1.center |- 0,0);
+			\path [draw=gray, dotted, thick] (o2.center) -- node [at end, below] {$\omega_2$} (o2.center |- 0,0);
+			\node [label=below:$\omega_c$] at (intersection-1) {};
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[5]{r}{12em}
+		
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}
+		&G(s) = \frac{K(\frac{s}{\omega_2}+1)}{s(\frac{s}{\omega_1}+1)}&\\
+		&L(\omega_c) = 20\lg \left|\frac{K\sqrt{\left(\frac{\omega_c}{\omega_2}\right)^2+1}}{\omega_c\sqrt{\left(\frac{\omega_c}{\omega_1}\right)^2+1}}\right| \approx 20\lg \frac{K\frac{\omega_c}{\omega_2}}{\omega_c\frac{\omega_c}{\omega_1}} = 0 \rightarrow K = \frac{\omega_c \omega_2}{\omega_1}&
+	\end{flalign*}
+```
+
+#### 幻灯片：根据 Bode 图确定系统传递函数B
+
+解：依图有
+	*注：28dB是比例和振荡环节叠加的结果，震荡环节的谐振峰为8dB。
+		$\omega_n = \frac{\omega_r}{\sqrt{1-2\zeta^2}} = 30$
+		$G(s) = \frac{10\times 30^2}{s^2 + 2\times 0.203\times 30s + 30^2}$
+		$=\frac{9000}{s^2 + 12.18s + 900}$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 2em, y=1em]
+			\def\Left{-2.3}
+			\def\Right{2.3}
+			\def\Up{3}
+			\def\Bottom{-4}
+			\foreach \x/\y/\z in {2/20/$90^\circ$,0/0/~,-2/-20/$-90^\circ$,-4/-40/$-180^\circ$}{
+				\path [draw=gray, dotted, thick] (\Left,\x) -- node [at start, left] {\y} node [at end, right] {\z} (\Right,\x);
+			}
+			\path [draw=gray, dotted, thick] (\Right,2) -- (\Right,-4);
+			\path [arr] (\Left,0) -- node [at end, right] {$\omega$} (3,0);
+			\path [arr] (\Left,\Bottom) -- node [pos=0.95, right] {$L(\omega)$dB} ($(\Left,\Up)+(0,1.5)$);
+			\path [rlocus, -] (\Left,2) .. controls ($(\Left,2)+(0:3.5)$) and ($(\Right,-1.9)+(117:8)$) .. (\Right,-1.9);
+			\path [rlocus, -] (\Left,-.2) .. controls ($(\Left,-.2)+(0:3)$) and ($(\Right,-3.8)+(180:3)$) .. (\Right,-3.8) node [very near start, below] {$\psi(\omega)$};
+			\coordinate (on) at (0,2.8);
+			\path [draw=gray, dotted, thick] (on) --node [at end, left] {28} (on -| \Left,0);
+			\path [draw=gray, dotted, thick] (on) -- node [pos=0.5] {$\omega_n$} (on |- \Left,-4);
+			\path [draw=black, dotted, thick] (-0.1,2.8) -- node [midway,left] {28.77}(-0.1,0);
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}
+		&G(s) = \frac{K}{\frac{s^2}{\omega_n^2}+2\zeta\frac{s}{\omega_n}+1}&\\
+		&20\lg K = 20\rightarrow K = 10&\\
+		&\left\{\begin{array}{l}
+			20\lg M_r = 20\lg \frac{1}{2\zeta\sqrt{1-\zeta^2}} = 8\text{dB}\\
+			\omega_r = \omega_n\sqrt{1-2\zeta^2} = 28.77
+		\end{array}\right.&\\
+		&2\zeta\sqrt{1-\zeta^2} = -10^{\frac{8}{20}} = -2.512&\\
+		&\zeta^4 - \zeta^2 - 1.5774 = 0&\\
+		&\rightarrow \zeta_1=0.979,~\zeta_2=0.203&
+	\end{flalign*}
+```
+
+#### 幻灯片：根据 Bode 图确定系统传递函数C
+
+已知最小相位系统的对数幅频渐近曲线如图所示。曲线部分是对谐振峰值附近的修正线，试确定系统的传递函数,并求出$\omega_1$和$\omega_2$的值。
+	解：$G(s)H(s) = \frac{Ks}{(T_1 s + 1)(T_2^2 s^2 + 2T_2\zeta s + 1)}\quad K = 1$
+	$20\lg \omega_1 = 12\text{dB} \rightarrow \omega_1 = 10^{\frac{12}{20}} = 3.98$
+	$\frac{0-12}{\lg 100 - \lg\omega_2} = -40 \rightarrow \omega_2 = 100\times 10^{-\frac{12}{40}}= 50.1$
+	$20\lg\frac{1}{2\zeta\sqrt{1-\zeta^2}} = 8\text{dB} \rightarrow \zeta_1 = 0.203$,
+   [cross out,draw=red] (X) $\zeta_2 = 0.980$;
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 2em, y=.8em]
+			\def\Left{-2.3}
+			\def\Right{6.91}
+			\def\Up{2}
+			\def\Bottom{-4}
+			\foreach \x/\y in {0.1/0.1,1/1,10/10,100/100,1000/1000}{
+				\pgfmathln{\x}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\path [draw=gray, dotted, thick] (\re,\Up) -- node [at end, below] {\y} (\re,\Bottom);
+			}
+			\foreach \x/\y/\z in {0/0/~,1.2/12/$135^\circ$,2/20/$90^\circ$}{
+				\path [draw=gray, dotted, thick] (\Left,\x) -- node [at start, left] {\y} (\Right,\x);
+			}
+			\path [arr] (\Left,0) -- node [at end, above] {$\omega$} (7.5,0);
+			\path [arr] (\Left,\Bottom) -- node [pos=0.95, right] {$L(\omega)$dB} ($(\Left,\Up)+(0,1.5)$);
+			\path [draw=gray, thick] (\Left,\Up) -- node [at end, above right] {$\psi(\omega)$} (\Right,\Up) |- (\Left,\Bottom);
+			\path [rlocus, -, red] (\Left,-2) -- node [above, sloped] {20dB/dec} (1.38,1.2) -- node [midway, below] {0db/dec}  (3.91,1.2) -- node [above, sloped] {-40dB/dec} (6.91,-4);
+			\path [draw=gray, dotted, thick] (1.38,1.2) -- node [at end, below] {$\omega_1$} (1.38,0);
+			\path [draw=gray, dotted, thick] (3.91,2) -- node [at end, below] {$\omega_2$} (3.91,0);
+			\path [draw=red!50!yellow, thick, dashed] (1.38,1.2) .. controls ($(1.38,1.2)+(0:4.4)$) and ($(6.91,-4)+(120:10)$) .. (6.91,-4);
+		\end{tikzpicture}
+```
+
+#### 幻灯片：由$\psi(\omega)$计算$G(s)$
+
+已知最小相位系统 $\psi(\omega)$表达式，求 $G(s)$。
+	解：
+	注意：$K$不影响 $\psi(\omega)$ 表达式。
+
+**原始公式代码**
+
+```tex
+$$\psi = \arctan\omega - 90^\circ - \arctan\frac{\omega}{2} - \arctan\frac{2\omega}{1-4\omega^2}$$
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		G(s) &= \frac{K(s+1)}{s(\frac{s}{2}+1)[(2s)^2+2s+1]}\\
+		&= \frac{K(s+1)}{s(\frac{s}{2}+1)[(\frac{s^2}{0.5^2})+2\times 0.5\times \frac{s}{0.5}+1]}
+	\end{align*}
+```
+
+### 开环系统对数频率特性（Bode）：补充
+
+#### 幻灯片：开环系统对数频率特性（Bode）
+
+**非最小相位系统**
+		在右半$s$平面存在开环零点或开环极点的系统
+		-  非最小相角系统未必不稳定
+		-  最小相角系统由$L(\omega)$可以惟一确定$G(s)$
+		-  非最小相角系统由$L(\omega)$不能惟一确定$G(s)$
+
+### 课程小结
+
+#### 幻灯片：课程小结
+
+**绘制开环系统Bode图的步骤**
+		-  化$G(\rj\omega)$为尾1标准型
+		-  顺序列出转折频率
+		-  确定基准线(第一转折频率之左的特性及其延长线)
+			$\arrayl
+				基准点 (=1, L(1)=20 K)
+				斜率 -20v dB/dec
+			array.$
+		-  叠加作图
+			$\arrayl
+				一阶\arrayl
+					惯性环节  -20dB/dec
+					复合环节  +20dB/dec
+				array.
+				二阶\arrayl
+					震荡环节  --40dB/dec
+					复合环节  -40dB/dec
+				array.
+			array.$
+		-  修正
+
+## 幅相频率特性（Nyquist图）
+
+#### 幻灯片：幅相频率特性 ( Nyquist )
+
+**幅相频率特性曲线**
+		简称幅相曲线，又称极坐标图，是以角 频率$\omega\in [0,\infty)$作自变量，把幅频特性和相频特性用一条曲线同时表示在复平面上。
+	系统开环传递函数可表示为若干典型环节的串联：
+		- **比例环节**  $G(s)=K$
+		- **积分环节**  $G(s)=\frac{1}{s}$
+		- **微分环节**  $G(s)=s$
+		- **惯性环节**  $G(s)=\frac{1}{Ts+1}$
+		- **一阶微分**  $G(s)=\tau s+1$
+		- **振荡环节**  $G(s)=\frac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}$
+		- **二阶微分**  $G(s)=\tau^2 s^2 + 2\zeta\tau s + 1$
+
+### 典型环节的幅相频率特性
+
+#### 幻灯片：典型环节的幅相频率特性
+
+-  比例环节 $G(s) = K\quad G(\rj\omega)  = K$ $\left\{\begin{array}{l}|G|=K\\ \angle G=0^\circ\end{array}\right.$
+				-  微分环节 $G(s) = s\quad G(\rj\omega)  = \rj\omega$ $\left\{\begin{array}{l}|G|=\omega\\ \angle G=90^\circ\end{array}\right.$
+				-  积分环节 $G(s) = \frac{1}{s}\quad G(\rj\omega)  = \frac{1}{\rj\omega}$ $\left\{\begin{array}{l}|G|=\frac{1}{\omega}\\ \angle G=-90^\circ\end{array}\right.$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1em, y=.9em]
+			\path [arr] (-1,0) -- (5,0);
+			\path [arr] (0,-2) -- node [pos=0.37, right] {0} node [at end, left] {$\rj$} node [at end, right] {$[G]$} (0,2);
+			\node [zero, inner sep=1pt, fill=red, label=above:$K$] at (3,0) {};
+			\begin{scope}[xshift=2em, yshift=-6em]
+			\path [arr] (-3,0) -- (3,0);
+			\path [arr] (0,-3) -- node [pos=0.41, right] {0} node [at end, left] {$\rj$} node [at end, right] {$[G]$} (0,3);
+			\path [rlocus] (0,-3) -- node [midway, right] {$\frac{1}{\rj\omega}$} (0,0);
+			\path [rlocus] (0,0) -- node [midway, right] {$\rj\omega$} (0,3);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：典型环节的幅相频率特性
+
+enumi3
+		-  惯性环节
+	当$\omega$由零至正无穷大变化时，惯性环节的频率特性在$[G(\rj\omega)]$平面上是正实轴下方的半个圆周。
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{1}{Ts+1}$$
+```
+
+**原始公式代码**
+
+```tex
+$$G(\rj\omega)  = \frac{1}{1+\rj\omega T}~\left\{\begin{array}{l}|G|=\frac{1}{\sqrt{1+\omega^2T^2}}\\ \angle G=-\arctan\omega T\end{array}\right.$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.5em, y=1.5em]
+				\path [arr] (-2,0) -- node[pos=0.1, above] {$\omega=\infty$} node [near end, below] {1} node[near end, above right] {$\omega=0$} (5,0);
+				\path [arr] (0,-2) -- node [pos=0.37, right] {0} node [at end, left] {$\rj$} node [at end, right] {$[G]$} (0,2);
+				\path [rlocus] (4,0) arc (0:-180:2) node [midway, below] {$\frac{1}{1+\rj\omega T}$};
+			\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+				G(\rj 0)			&=1\angle	 0^\circ\\
+				G(\rj\frac{1}{\tau})	&=\frac{1}{\sqrt{2}}\angle -45^\circ = 0.707\angle -45^\circ\\
+				G(\rj\infty)		&=0\angle -90^\circ
+			\end{align*}
+```
+
+#### 幻灯片：典型环节的幅相频率特性
+
+**证明**
+	**推广**
+		当惯性环节传递函数的分子是常数$K$时，即$G(\rj\omega)=\frac{K}{\rj T\omega +1}$时，其频率特性是圆心为$\left(\frac{K}{2},0\right)$，半径为$\frac{K}{2}$的实轴下方半个圆周。
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+			G(\rj\omega) 		&= \frac{1}{\rj T\omega +1} = \frac{1}{1+T^2\omega^2}-\rj\frac{T\omega}{1+T^2\omega^2}\\
+			\Re [G(\rj\omega)] 	&= \frac{1}{1+T^2\omega^2}=u(\omega)\\
+			\Im [G(\rj\omega)] 	&= -\frac{T\omega}{1+T^2\omega^2}=v(\omega)\\
+			\left[u(\omega)-\frac{1}{2}\right]^2 + \left[v(\omega)\right]^2	&= \left(\frac{1}{1+T^2\omega^2}-\frac{1}{2}\right)^2 + \left(\frac{-T\omega}{1+T^2\omega^2}\right)^2 = \left(\frac{1}{2}\right)^2
+		\end{align*}
+```
+
+#### 幻灯片：典型环节的幅相频率特性
+
+enumi4
+				-  一阶微分 $G(s) = \tau s+1$
+
+**原始公式代码**
+
+```tex
+$$G(\rj\omega)  = 1+\rj\omega ~ \left\{\begin{array}{l}|G|=\sqrt{1+\omega^2\tau^2}\\ \angle G=\arctan\omega \tau\end{array}\right.$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1em, y=1em]
+				\path [arr] (0,0) -- node[at start, below] {0} node [pos=0.7, below] {1} (6,0);
+				\path [arr] (0,0) -- node [at end, left] {$\rj$} node [at end, right] {$[G]$} (0,4);
+				\path [rlocus] (3,0) -- node [very near start, right] {$\omega=0$} node [pos=0.6,right] {$\omega\uparrow$} node [very near end, right] {$1+\rj\omega \tau$} (3,4);
+				\path [arr, draw=blue] (0,0) -- (3,2.4);
+				\path [arr, draw=blue] (1,0) arc (0:40:1) node [right] {$\phi$};
+			\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		G(\rj 0)			&=1\angle	 0^\circ\\
+		G(\rj\frac{1}{\tau})	&=\sqrt{2}\angle 45^\circ = 1.414\angle 45^\circ\\
+		G(\rj\infty)|		&=\infty\angle 90^\circ
+	\end{align*}
+```
+
+#### 幻灯片：典型环节的幅相频率特性
+
+enumi5
+		-  震荡环节
+			$\arrayl
+				|G|=1(1-^2_n^2)^2+(2_n)^2
+				 G=-2_n1-^2_n^2
+			array.$
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{\omega_n^2}{s^2 + 2\zeta\omega_n s+\omega_n^2}  = \frac{1}{(\frac{s}{\omega_n})^2+2\zeta\frac{s}{\omega_n}+1}$$
+```
+
+**原始公式代码**
+
+```tex
+$$G(\rj\omega) = \frac{1}{1-\frac{\omega^2}{\omega_n^2}+\rj 2\zeta\frac{\omega}{\omega_n}} = \frac{(1-\frac{\omega^2}{\omega_n^2})-\rj 2\zeta\frac{\omega}{\omega_n}}{(1-\frac{\omega^2}{\omega_n^2})^2+(2\zeta\frac{\omega}{\omega_n})^2}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.5em, y=1.5em]
+			\begin{scope}[yshift=0em]
+			\path [arr] (-2,0) -- node[pos=0.15, above] {$\omega=\infty$} node [pos=0.8, below] {1} node[near end, above] {$\omega=0$} (5,0);
+			\path [arr] (0,-5) -- node [pos=0.78, right] {0} node [at end, left] {$\rj$} node [at end, right] {$[G]$} (0,1);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (3,0);
+			\coordinate (o3) at (0,-4.5);
+			\path [rlocus] (o2) .. controls ($(o2)+(-90:2)$) and ($(o1)+(-130:2)$) .. (o1) node [midway, above] {$\zeta=0.85$};
+			\path [rlocus] (o2) .. controls ($(o2)+(-90:3.5)$) and ($(o1)+(-130:2.5)$) .. (o1) node [midway, above] {$\zeta=0.7$};
+			\path [rlocus] (o2) .. controls ($(o2)+(-80:5)$) and ($(o1)+(-135:5)$) .. (o1) node [midway, above] {$\zeta=0.5$};
+			\path [rlocus] (o2) .. controls ($(o2)+(-60:4)$) and ($(o3)+(-20:2)$) .. node [midway, above] {$\zeta=0.3$} (o3) .. controls ($(o3)+(165:1.5)$) and ($(o1)+(-150:3)$) .. (o1);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+				G(\rj 0) 			&= 1\angle 0^\circ\\
+				G(\rj\omega_n) 	&= \frac{1}{2\zeta}\angle -90^\circ\\
+				G(\rj\infty) 		&= 0\angle -180^\circ
+			\end{align*}
+```
+
+#### 幻灯片：典型环节的幅相频率特性
+
+当阻尼较小时（$0<\zeta<0.707$）会发生谐振，通过对幅频特性求导可得谐振频率$\omega_r$和谐振峰值$M_r$ ：
+		$\arrayl
+			_r = _n1-2^2
+			M_r = |G(_r)| = 121-^2
+		array.$
+
+**原始公式代码**
+
+```tex
+$$\Rightarrow	 \frac{\omega^2}{\omega_n^2} = 1-2\zeta^2$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.5em, y=1.5em]
+			\path [arr] (-2,0) -- node[pos=0.1, above] {$\omega=\infty$} node [pos=0.8, below] {1} node[near end, above] {$\omega=0$} (5,0);
+			\path [arr] (0,-5) -- node [pos=0.78, right] {0} node [at end, left] {$\rj$} node [at end, right] {$[G]$} (0,1);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (3,0);
+			\coordinate (o3) at (0,-4.5);
+			\path [rlocus, name path=nyquist] (o2) .. controls ($(o2)+(-60:4)$) and ($(o3)+(-20:2)$) .. (o3) .. controls ($(o3)+(165:1.5)$) and ($(o1)+(-155:3)$) .. (o1);
+			\path [arr, blue, name path=mr] (0,0) -- node [midway, right] {$M_r$} node [at end, below] {$\omega_r$} +(-65:4.9);
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		|G|	&=\frac{1}{\sqrt{(1-\frac{\omega^2}{\omega_n^2})^2+(2\zeta\frac{\omega}{\omega_n})^2}}\\
+		0	&= \fracd{}{\omega}|G| \\
+			&= \fracd{}{\omega}\left[(1-\frac{\omega^2}{\omega_n^2})^2+(2\zeta\frac{\omega}{\omega_n})^2\right]\\
+			&= 2(1-\frac{\omega^2}{\omega_n^2})(-2\frac{\omega}{\omega_n^2})+2(2\zeta\frac{\omega}{\omega_n})(\frac{2\zeta}{\omega_n})\\
+			&= \frac{4\omega}{\omega_n^2}(-1+\frac{\omega^2}{\omega_n^2}+2\zeta^2)
+	\end{align*}
+```
+
+#### 幻灯片：典型环节的幅相频率特性
+
+$\omega_n$即振荡环节的无阻尼自然振荡频率，是振荡环节频率特性曲线与虚轴交点处的频率。
+	$\zeta=\frac{1}{\sqrt{2}}$是幅相曲线出射角为$-90^\circ$时的临界值
+	$\zeta<\frac{1}{\sqrt{2}}$时，幅相曲线先向外扩，再向内收，因此存在幅值的极值；
+	$\zeta>\frac{1}{\sqrt{2}}$时，幅相曲线的幅值单调减少，不存在谐振峰值。
+	例：当$\zeta=0.3$，$\omega_n=1$时
+		$\arrayl
+			_r =11-2 0.3^2 = 0.9055
+			M_r = 12 0.31-0.3^2 = 1.832
+		array.$
+
+#### 幻灯片：典型环节的幅相频率特性
+
+当$0<\omega<\omega_r$时，随着$\omega$增加，幅值缓慢增大；
+	当$\omega=\omega_r$时，幅值达到最大值$M_r$；
+	当$\omega>\omega_r$时，幅值迅速减小，$M(\omega)=0.707M(0)$时的频率$\omega_c$称为截止频率；$\omega>\omega_c$后，输出幅值衰减更快。
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 4em, y=4em]
+		\foreach \no/\c/\h/\x in {1/cyan/1.85/0.3,2/red/1.6/0.5,3/gray/1.35/0.7}{
+		\path [draw, thick, \c] plot [smooth] file {../figs/oscAmp\no.txt};
+		\path [draw=\c, thick] (2,\h) -- (2.5,\h) node [at end, right] {$\zeta=\x$};
+		}
+		\path [arr] (-0.5,0) -- (3.5,0) node [at end, above] {$\omega$};
+		\path [arr] (0,-0.5) -- (0,2) node [at end, left] {$M(\omega)$};
+		\path (0,0) -- (0,1) node [at start, below left] {$0$} node [at end, left] {$1$};
+		\path [dline] (0,0.707) -| (1.27,0) node [at start, left] {0.707} node [at end, below] {$\omega_c$} ;
+		\path [dline] (2.5,1.16) -| (0.72,0) node [at end, below] {$\omega_r$};
+		\path [draw, thick, <->] (2,1.16) -- (2,0) node [midway, right] {$M_r$};
+	\end{tikzpicture}
+```
+
+#### 幻灯片：典型环节的幅相频率特性
+
+enumi6
+		-  二阶微分环节$G(s)=\tau^2 s^2 + 2\zeta\tau s +1$
+
+**原始公式代码**
+
+```tex
+$$G(\rj\omega)  = -\tau^2\omega^2 + \rj 2\zeta\tau\omega + 1 ~ \left\{\begin{array}{l}|G|=\sqrt{(1-\tau^2\omega^2)^2+4\zeta^2\tau^2\omega^2}\\ \angle G=\arctan\frac{2\zeta\tau\omega}{1-\tau^2\omega^2}\end{array}\right.$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.5em, y=1.5em]
+			\path [arr] (-3,0) -- (4,0);
+			\path [arr] (0,-1) --  node [at end, left] {$\rj$} node [at end, right] {$[G]$} (0,5);
+			\path (0,0) -- (2,0) node [at start, below left] {$0$} node [at end, below] {$\omega=0$} node [at end, above right] {$1$};
+			\coordinate (o1) at (2,0);
+			\coordinate (o2) at (-3,3);
+			\coordinate (o3) at (0,-4.5);
+			\path [rlocus] (o1) .. controls ($(o1)+(105:2.5)$) and ($(o2)+(-15:3)$) .. (o2);
+			\path [arr, draw=blue, name path=mr] (-0.8,3) -- node [at start, right] {$\omega$} node [at end, left] {$\infty$} +(165:1);
+			\path [arr, draw=blue] (1,3) -- +(-140:1) node [at start, above right] {$2\zeta$}; 
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+				G(\rj 0) 			&= 1\angle 0^\circ\\
+				G(\rj\frac{1}{\tau}) 	&= 2\zeta\angle 90^\circ\\
+				G(\rj\infty) 		&= \infty\angle 180^\circ
+			\end{align*}
+```
+
+#### 幻灯片：典型环节的幅相频率特性
+
+enumi7
+		-  不稳定惯性环节$G(s)=\frac{1}{1-Ts}$
+
+**原始公式代码**
+
+```tex
+$$G(\rj\omega)  = \frac{1}{1-\rj T\omega} ~ \left\{\begin{array}{l}|G|=\frac{1}{\sqrt{T^2\omega^2+1}}\\ \angle G=\arctan T\omega\end{array}\right.$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.5em, y=1.5em]
+			\path [arr] (-1,0) -- node [near end, above] {1} (5,0);
+			\path [arr] (0,-1) -- node [pos=0.37, right] {0} node [at end, left] {$\rj$} node [at end, right] {$[G]$} (0,3);
+			\path [rlocus] (4,0) arc (0:180:2) node [at start, below] {$\omega=0$} node [at end, below left] {$\omega=\infty$};
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+				G(\rj 0) 			&= 1\angle 0^\circ\\
+				G(\rj\frac{1}{T}) 	&= \frac{1}{\sqrt{2}}\angle 45^\circ\\
+				G(\rj\infty) 		&= 0\angle 90^\circ
+			\end{align*}
+```
+
+#### 幻灯片：典型环节幅频与相频特性总结
+
+tabularccccc
+				&比例	&积分			&惯性						&振荡*
+		$G(s)$	&$K$		&$\frac{1}{s}$		&$\frac{1}{Ts+1}$				&$\frac{1}{(\frac{s}{\omega_n})^2+2\zeta\frac{s}{\omega_n}+1}$
+		$G(\rj\omega)$&$K$&$\frac{1}{\rj\omega}$&$\frac{1}{1+\rj\omega T}$		&$\frac{1-T^2\omega^2-\rj 2\zeta T\omega}{(1-T^2\omega^2)^2+(2\zeta T\omega)^2}$
+		$|G|$		&$K$	&$\frac{1}{\omega}$	&$\frac{1}{\sqrt{1+\omega^2T^2}}$	&$\frac{1}{\sqrt{(1-T^2\omega^2)^2+(2\zeta T\omega)^2}}$
+		$\angle G$&$0^\circ$	&$-90^\circ$	&$\begin{array}{c}-\arctan\omega T\text{(稳定)}\\	\arctan\omega T\text{(不稳定)}\end{array}$	&$-\arctan\frac{2\zeta T\omega}{1-T^2\omega^2}$
+				&		&微分			&一阶微分					&二阶微分
+		$G(s)$	&		&$s$			&$\tau s + 1$				&$\tau^2s^2+2\zeta\tau s +1$
+		$G(\rj\omega)$&	&$\rj\omega$		&$1+\rj\tau\omega$		&$1-\tau^2\omega^2+\rj 2\zeta\tau\omega$
+		$|G|$		&		&$\omega$		&$\sqrt{1+\omega^2T^2}$	&$\sqrt{(1-\tau^2\omega^2)^2+(2\zeta\tau\omega)^2}$
+		$\angle G$&		&$90^\circ$		&$\arctan\omega T$		&$\arctan\frac{2\zeta\tau\omega}{1-\tau^2\omega^2}$
+	tabular
+	*记$T = \frac{1}{\omega_n}$
+
+### 幅相频率特性：实例
+
+#### 幻灯片：由幅相曲线求传递函数
+
+解：
+		由曲线形状有
+		$\arrayl
+			|G|=K(1-^2_n^2)^2+(2_n)^2
+			 G=-2_n1-^2_n^2
+		array.$
+		由起点：$G(\rj 0) = K\angle 0^\circ\quad K=2$
+		由$\angle G(\omega_0)$：$\angle G(\rj\omega_0) = -90^\circ\quad \omega_0 = \omega_n = 10$
+		由$|G(\omega_0)|$：$|G(\omega_0)|=3\overset{\omega_0=\omega_n}{=} \frac{K}{2\zeta} = \frac{2}{2\zeta}\quad\zeta = \frac{1}{3}$
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{K}{\frac{s^2}{\omega_n^2}+2\zeta\frac{s}{\omega_n}+1}$$
+```
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{2\times 10^2}{s^2 + 2\times\frac{1}{3}\times 10s + 10^2} = \frac{200}{s^2 + 6.67s + 100}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 2em, y=2em]
+			\begin{scope}[yshift=0em]
+			\path [arr] (-1.5,0) -- (2.5,0);
+			\foreach \x in {-1,1,2}{
+				\path [draw] (\x,0) -- node [at start, below] {\x} (\x,.1);
+			}
+			\path [arr] (0,-3.5) -- node [pos=0.72, right] {0} node [at end, below left] {$\rj$} node [at end, below right] {$[G]$} (0,1);
+			\foreach \x in {-3,-2,-1}{
+				\path [draw] (0,\x) -- node [at end, right] {\x} (.1,\x);
+			}
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (2,0);
+			\coordinate (o3) at (0,-3);
+			\path [rlocus, name path=nyquist] (o2) .. controls ($(o2)+(-60:2)$) and ($(o3)+(-15:2)$) .. node [at end, below] {$\omega_0=10$} (o3) .. controls ($(o3)+(165:1.5)$) and ($(o1)+(-155:1.5)$) .. (o1);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[6]{r}{10em}
+		
+	\end{wrapfigure}
+```
+
+### 系统开环幅相曲线
+
+#### 幻灯片：系统开环幅相曲线
+
+(1) 起点（低频段）：
+		可得低频段乃氏图：
+
+**原始公式代码**
+
+```tex
+$$G(s)H(s) = \frac{K(\tau_1 s + 1)(\tau_2 s +1)\cdots (\tau_m s + 1)}{s^v(T_1 s + 1)(T_2 s + 1)\cdots (T_n s + 1)}\quad (n>m)$$
+```
+
+**原始公式代码**
+
+```tex
+$$G(\rj\omega)H(\rj\omega) = \frac{K(\rj\tau_1\omega + 1)(\rj\tau_2\omega +1)\cdots (\rj\tau_m\omega + 1)}{(\rj\omega)^v(\rj T_1\omega + 1)(\rj T_2\omega + 1)\cdots (\rj T_n\omega + 1)}$$
+```
+
+**原始公式代码**
+
+```tex
+$$G(\rj 0^+)H(\rj 0^+) = \lim_{\omega\rightarrow 0^+}\frac{K}{(\rj\omega)^v}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.7em, y=1.7em]
+			\begin{scope}[yshift=0em]
+			\path [arr] (-3,0) -- node [at end, above] {Re} (3,0);
+			\path [arr] (0,-3) -- node [midway, above right] {0} node [at end, below left] {Im} (0,3);
+			\path [rlocus] (2,0) arc (0:-60:2) node [near start, right] {$\omega\rightarrow 0$} node [midway, right] {$v=0$};
+			\path [rlocus] (-.1,-3) arc (0:60:2) node [near start, left] {$\omega\rightarrow 0$} node [midway, left] {$v=1$};
+			\path [rlocus] (-3,.1) arc (-90:-30:2) node [near start, above] {$\omega\rightarrow 0$} node [near end, above] {$v=2$};
+			\path [rlocus] (.1,2.8) arc (180:240:2) node [near start, right] {$\omega\rightarrow 0$} node [near end, right] {$v=3$};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：系统开环幅相曲线
+
+(2) 终点（高频段）：$\omega\rightarrow\infty$
+		终点处幅值：
+		终点处相角：
+		*对于由最小相位环节组成的开环系统
+
+**原始公式代码**
+
+```tex
+$$\lim_{\omega\rightarrow +\infty}G(\rj \omega)H(\rj \omega) = \lim_{\omega\rightarrow +\infty}\frac{K(\rj\omega)^m}{(\rj\omega)^n} = \lim_{\omega\rightarrow +\infty}\frac{K}{(\rj\omega)^{n-m}}\quad (n>m)$$
+```
+
+**原始公式代码**
+
+```tex
+$$\lim_{\omega\rightarrow +\infty}|G(\rj\omega)| = 0$$
+```
+
+**原始公式代码**
+
+```tex
+$$\lim_{\omega\rightarrow +\infty}\angle G(\rj\omega) = (n-m)(-\frac{\pi}{2})$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.5em, y=1.5em]
+			\begin{scope}[yshift=0em]
+			\path [arr] (-4,0) -- node [at end, above] {Re} (4,0);
+			\path [arr] (0,-4) -- node [midway, above right] {0} node [at end, below left] {Im} (0,4);
+			\path [rlocus] (3,0) arc (0:-30:3) node [midway, right] {$v=0$};
+			\path [rlocus] (3,0) arc (0:30:3);
+			\path [rlocus] (-.1,-4) arc (0:30:3);
+			\path [rlocus] (.1,-4) arc (180:150:3) node [midway, right] {$v=1$};
+			\path [rlocus] (-4,.1) arc (-90:-60:3) node [near end, above] {$v=2$};
+			\path [rlocus] (-4,-.1) arc (90:60:3);
+			\path [rlocus] (.1,3.8) arc (180:210:3) node [near end, right] {$v=3$};
+			\path [rlocus] (-.1,3.8) arc (0:-30:3);
+			\path [rlocus,latex-] (0,0) arc (180:150:3) node [at end, above] {$n-m=3$};
+			\path [rlocus,latex-] (0,0) arc (180:210:3) node [at end, below] {$n-m=1$};
+			\path [rlocus,latex-] (0,0) arc (0:30:3);
+			\path [rlocus,latex-] (0,0) arc (0:-30:3);
+			\path [rlocus,latex-] (0,0) arc (-90:-120:3) ;
+			\path [rlocus,latex-] (0,0) arc (90:120:3) node [at end, below] {$n-m=2$};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：系统开环幅相曲线
+
+(3) 与负实轴交点：试探法
+	**方法1**
+		令$\text{Im}[G(\rj\omega)] = 0\rightarrow \omega_g\rightarrow\text{Re}[G(\rj\omega_g)]$
+	**方法2**
+		令$\angle G(\rj\omega) = -180^\circ \rightarrow \omega_g\rightarrow |G(\rj\omega_g)|$
+	$arrayll
+		_g:   G(_g) = 180^&相角穿越频率
+		_c:  |G(_c)| = 1, L() = 0dB&幅值穿越频率，截止频率
+	array$
+
+#### 幻灯片：概略绘制极坐标图步骤：
+
+-  由开环频率特性$G(\rj\omega)$求出幅频特性$|G(\rj\omega)|$和相频特性$\angle G(\rj\omega)$，或实频特性Re[$G(\rj\omega)$]和虚频特性Im[$G(\rj\omega)$]。
+		-  求特征点。起点$G(\rj 0) = \left\{\begin{array}{ll}K&v=0\\ \infty&v\neq 0\end{array}\right.$，$\angle G(\rj 0) = v(-90^\circ)$
+		终点$n>m\quad G(\rj\infty) = 0\angle -90^\circ (n-m)$
+		与负实轴交点：试探
+		方法1，令$\text{Im}[G(\rj\omega)] = 0\rightarrow \omega_g\rightarrow\text{Re}[G(\rj\omega_g)]$
+		方法2，令$\angle G(\rj\omega) = -180^\circ \rightarrow \omega_g\rightarrow |G(\rj\omega_g)|$
+		当$v=1$求$\omega\rightarrow 0$时实部渐近线$V_x=\lim\limits_{\omega\rightarrow 0}\text{Re}[G(\rj\omega)]$
+		-  根据$G(\rj\omega)$的变化趋势，所在象限和单调性，绘制大概形状。$G(\rj\omega)$不含零点时，模值和相位一般会单调收缩，当有零点时，曲线可能会扭曲。
+
+### 系统开环幅相曲线：实例
+
+#### 幻灯片：由系统传递函数绘制概略极坐标图A
+
+$\angle G(\rj\omega) = -\arctan 0.1\omega - \arctan\omega$
+	$G(\rj 0) = 10\angle 0^\circ$
+	$\angle G(\rj\infty) = (n-m)\times(-90^\circ) = -180^\circ$
+	分析:$\omega:0\rightarrow +\infty$，$\angle G(\rj\omega):0^\circ\rightarrow -180^\circ$
+	因为不含零点，幅值和相位均单调收缩
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{10}{(0.1s + 1)(s + 1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 2em, y=2em]
+			\begin{scope}[yshift=0em]
+			\path [arr] (-1.5,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-3.5) -- node [pos=0.62, right] {0} node [at end, below left] {Im} node [at end, below right] {$[G]$} (0,1.5);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (3,0);
+			\coordinate (o3) at (0,-3);
+			\path [rlocus, name path=nyquist] (o2) .. controls ($(o2)+(-90:2)$) and ($(o3)+(-15:2)$) .. node [at start, above] {$\omega=0$} (o3) .. controls ($(o3)+(165:1.5)$) and ($(o1)+(-165:2.5)$) .. node [at end, above left] {$\omega=\infty$}(o1);
+			\node at (1,-4) {\sf 0型二阶系统的奈氏图};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[8]{r}{14em}
+		
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}
+		&\text{\emph{解：}}&G(\rj\omega) &= \frac{10}{(1 + 0.1\rj\omega)(1 + \rj\omega)}\\
+		&&|G(\rj\omega)| &= \frac{10}{\sqrt{1+(0.1\omega)^2}\sqrt{1+\omega^2}}
+	\end{flalign*}
+```
+
+#### 幻灯片：由系统传递函数绘制概略极坐标图B
+
+解：
+	当$\omega=0^+$时，$G(\rj 0^+) = \infty\angle -90^\circ$
+	当$\omega\rightarrow\infty$时，$G(\rj \infty) =0\angle -180^\circ$
+	$\lim_{\omega\rightarrow 0^+}\text{Re}[G(\rj\omega)]=-10$
+	分析:$\omega:0\rightarrow +\infty$，$\angle G(\rj\omega):-90^\circ\rightarrow -180^\circ$
+	因为不含零点，幅值和相位均单调收缩
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{10}{s(s + 1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 2em, y=2em]
+			\path [arr] (-3,0) -- node [at end, below left] {Re} (2,0);
+			\path [arr] (0,-5) -- node [pos=0.68, right] {0} node [at end, below left] {Im} node [at end, below right] {$[G]$} (0,1.5);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-2,-5);
+			\path [rlocus, name path=nyquist] ($(o2)+(.2,0)$) .. controls ($(o2)+(80:2)$) and ($(o1)+(210:2)$) .. node [at end, above left] {$\omega=\infty$} (o1);
+			\path [draw, dashed, blue] (o2) -- node [at end, below left] {-10} (o2 |- o1);
+			\node at (-.5,-5.5) {\sf I型二阶系统的奈氏图};
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[8]{r}{12em}
+		
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}
+		G(\rj\omega) &= \frac{10}{\rj\omega(1 + \rj\omega)}&\\
+		G(\rj\omega) &= \frac{-10\rj(1-\rj\omega)}{-\rj^2\omega(1+\rj\omega)(1-\rj\omega)}&\\
+		&=\frac{-10\omega-10\rj}{\omega(1+\omega^2)} = \frac{-10}{1+\omega^2}-\rj\frac{10}{\omega+\omega^3}
+	\end{flalign*}
+```
+
+#### 幻灯片：由系统传递函数绘制概略极坐标图C
+
+当$\omega=0^+$时，$G(\rj 0^+) = \infty\angle -180^\circ$
+	当$\omega\rightarrow\infty$时，$G(\rj \infty) =0\angle -90^\circ(n-m) = 0\angle -270^\circ$
+	分析:$\omega:0\rightarrow +\infty$，$\angle G(\rj\omega):-180^\circ\rightarrow -270^\circ$
+	因为不含零点，幅值和相位均单调收缩
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{10}{s^2(s + 1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 2em, y=2em]
+			\begin{scope}[yshift=0em]
+			\path [arr] (-5,0) -- node [at end, below left] {Re} (2,0);
+			\path [arr] (0,-1) -- node [at end, below left] {Im} node [at end, below right] {$[G]$} (0,3);
+			\node [label=below right:0] at (0,0) {};
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-4,2);
+			\path [rlocus, name path=nyquist] ($(o2)+(0,-.2)$) .. controls ($(o2)+(-10:2)$) and ($(o1)+(120:2)$) .. node [at start, above] {$\omega\rightarrow 0$} node [at end, above right] {$\omega=\infty$} (o1);
+			\node at (-1.5,-1.5) {\sf II型二阶系统的奈氏图};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[6]{r}{14em}
+		
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}
+		&\text{\emph{解：}}&G(\rj\omega) &= \frac{10}{(\rj\omega)^2(1 + \rj\omega)}\\
+		&&|G(\rj\omega)| &= \frac{10}{\omega^2\sqrt{1+\omega^2}}\\
+		&&\phi(\omega) &= -180^\circ - \arctan\omega
+	\end{flalign*}
+```
+
+#### 幻灯片：由系统传递函数绘制概略极坐标图D
+
+- **渐近线：** Re$[G(\rj 0)]\rightarrow -15$
+		- **与实轴交点：** Im$[G(\rj\omega)]=0\rightarrow$
+穿越频率$\omega_g=1/\sqrt{2}=0.707$
+	Re$[G(\rj 0.707)] = \frac{-15}{(1+0.5)(1+4\times 0.5)}=-\frac{10}{3}$
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{5}{s(s + 1)(2s+1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 2em, y=2em]
+			\begin{scope}[yshift=0em]
+			\path [arr] (-4,0) -- node [at end, below left] {Re} (2,0);
+			\path [arr] (0,-4) -- node [at end, below left] {Im} node [at end, below right] {$[G]$} (0,2);
+			\node [label=below right:0] at (0,0) {};
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-3,-4);
+			\path [rlocus, name path=nyquist] ($(o2)+(.2,0)$) .. controls ($(o2)+(80:2)$) and ($(o1)+(120:1)$) .. (o1);
+			\node [label=above:$-\frac{10}{3}$] at (-1,0) {};
+			\path [draw, dashed, blue] (o2) -- node [at end, above] {-15} (o2 |- o1);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[8]{r}{12em}
+	\vs{6em}
+		
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}
+		\text{\emph{解：}}G(\rj\omega) &= \frac{5}{\rj\omega(1+\rj\omega)(1 + \rj 2\omega)} = \frac{-\rj 5(1-\rj\omega)(1-\rj 2\omega)}{\omega(1+\omega^2)(1+4\omega^2)}\\
+		&= \frac{-15}{(1+\omega^2)(1+4\omega^2)}-\rj\frac{5(1-2\omega^2)}{\omega(1+\omega^2)(1+4\omega^2)}\\
+		G(\rj 0) &= \infty\angle -90^\circ\\
+		G(\rj\infty) &= 0\angle -270^\circ
+	\end{flalign*}
+```
+
+#### 幻灯片：由系统传递函数绘制概略极坐标图E
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.3em, y=1.3em]
+			\onslide<2->{\begin{scope}[yshift=0em]
+			\path [arr] (-2,0) -- (4,0);
+			\path [arr] (0,-3) -- node [at end, below left] {$\rj$} node [at end, below right] {$[G_1]$} (0,2);
+			\node [label=below left:0] at (0,0) {};
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (3,0);
+			\path [rlocus, name path=nyquist] (o2) .. controls ($(o2)+(-90:2.5)$) and ($(o1)+(-70:1.5)$) .. node [at start, above] {10} (o1);
+			\end{scope}}
+			
+			\onslide<3->{\begin{scope}[xshift=10em,yshift=0em]
+			\path [arr] (-2,0) -- (4,0);
+			\path [arr] (0,-3) -- node [at end, below left] {$\rj$} node [at end, below right] {$[G_2]$} (0,2);
+			\node [label=below left:0] at (0,0) {};
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (3,0);
+			\path [rlocus, name path=nyquist] (o2) .. controls ($(o2)+(-120:3.5)$) and ($(o1)+(-170:2.5)$) .. node [at start, above] {10} (o1);
+			\end{scope}}
+			
+			\onslide<4->{\begin{scope}[xshift=3em,yshift=-8em]
+			\path [arr] (-4,0) -- (2,0);
+			\path [arr] (0,-4) -- node [at end, below left] {$\rj$} node [at end, below right] {$[G_3]$} (0,2);
+			\node [label=below right:0] at (0,0) {};
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-3,-4);
+			\path [rlocus, name path=nyquist] ($(o2)+(.2,0)$) .. controls ($(o2)+(80:2)$) and ($(o1)+(-150:2)$) .. (o1);
+			\path [draw, dashed, blue] (o2) -- (o2 |- o1);
+			\end{scope}}
+			
+			\onslide<5->{\begin{scope}[xshift=13em,yshift=-8em]
+			\path [arr] (-4,0) -- (2,0);
+			\path [arr] (0,-4) -- node [at end, below left] {$\rj$} node [at end, below right] {$[G_4]$} (0,2);
+			\node [label=below right:0] at (0,0) {};
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-3,-4);
+			\path [rlocus, name path=nyquist] ($(o2)+(.2,0)$) .. controls ($(o2)+(80:2)$) and ($(o1)+(120:2)$) .. (o1);
+			\path [draw, dashed, blue] (o2) -- (o2 |- o1);
+			\end{scope}}
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[8]{r}{18em}
+		
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}
+		(1) ~G_1(s) &= \frac{10}{2s + 1}&\\
+		(2) ~G_2(s) &= \frac{10}{(2s + 1)(5s + 1)}&\\
+		(3) ~G_3(s) &= \frac{10}{s(2s + 1)}&\\
+		(4) ~G_4(s) &= \frac{10}{s(2s + 1)(5s  +1)}&
+	\end{flalign*}
+```
+
+#### 幻灯片：由系统传递函数绘制概略极坐标图F
+
+- **频率特性**  $G(\rj) = \frac{K[\omega(T_1+T_2)-\omega\tau(1-\omega^2T_1T_2)+\rj(1-\omega^2T_1T_2+\omega^2\tau(T_1T_2))]}{-\omega(1+\omega^2T_1^2)(1+\omega^2T_2^2)}$
+		- **幅频特性**  $|G(\rj\omega)| = \frac{\sqrt{\omega^2\tau^2+1}}{\omega\sqrt{\omega^2T_1^2+1}\sqrt{\omega^2T_2^2 +1}}$：$\omega\uparrow,|G|\downarrow$
+		- **相频特性**  $\angle G(\rj\omega) = \arctan\omega\tau - 90^\circ - \arctan\omega T_1 - \arctan\omega T_2$：$\omega\uparrow,\angle G$不定($\tau>\frac{T_1T_2}{T_2+T_2}$时单调递减$[-90^\circ,-180^\circ]$)
+		- **渐近线**  $\Re[G(\rj 0)] = -K(T_1+T_2-\tau)$
+		- **穿越频率**  $\Im[G(\rj\omega)]=0\rightarrow \omega_g = \frac{1}{\sqrt{T_1T_2-\tau(T_1+T_2)}}$
+		- **与实轴交点**  $\Re[\rj\omega_g]$(满足$\tau<\frac{T_1T_2}{T_2+T_2}$时存在)
+		- **起点**  $G(\rj 0)	 = \infty\angle -90^\circ$
+		- **终点**  $G(\rj\infty) = 0\angle -180^\circ$
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{K(\tau s +1)}{s(T_1 s+1)(T_2 s +1)}$$
+```
+
+#### 幻灯片：存在零点的概略极坐标图
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.3em, y=1.3em]
+		\path [arr] (-6,0) -- (4,0);
+		\path [arr] (0,-6) -- node [at end, below left] {$\rj$} node [at end, below right] {$[G_1]$} (0,4);
+		\node [label=below right:0] at (0,0) {};
+		\coordinate (o1) at (-3,-6);
+		\coordinate (o2) at (-0.2,-6);
+		\coordinate (o3) at (3,-6);
+		\path [rlocus] (o1) .. controls ($(o1)+(95:2)$) and (140:4) .. node [at start, below] {$T_1+T_2>\tau$} node [pos=0.8, above left] {$\tau<\frac{T_1T_2}{T_1+T_2}$} (0,0);
+		\path [rlocus,dotted,-] (0,-7) .. controls ($(0,-7)+(100:2)$) and ($(o2)+(-80:.5)$) .. node [at start, below] {$T_1+T_2=\tau$} (o2);
+		\path [rlocus] (o2) .. controls ($(o2)+(100:2)$) and (-145:3) .. (0,0);
+		\path [rlocus] (o3) .. controls ($(o3)+(95:3)$) and (-130:3) .. node [at start, below] {$T_1+T_2<\tau$} node [at end, above right] {$\omega=\infty$} (0,0);
+	\end{tikzpicture}
+```
+
+## 频域稳定判据
+
+#### 幻灯片：频域稳定判据
+
+**系统稳定的充要条件 red— 全部闭环极点均具有负的实部**
+	**代数稳定判据 red— Routh判据**
+			-  由闭环特征多项式系数（不解根）判定系统稳定性
+			-  不能用于研究如何调整系统结构参数来改善系统稳定性及性能的问题
+	**频域稳定判据 red — Nyquist 判据，对数稳定判据**
+			-  由开环频率特性直接判定闭环系统的稳定性
+			-  可研究如何调整系统结构参数改善系统稳定性及性能问题
+
+### 幅角原理
+
+#### 幻灯片：幅角原理
+
+设函数$F(s)$在$s$平面上任一闭合曲线$\Gamma_s$上处处解析且不为0，即曲线$\Gamma_s$上任意点都不是$F(s)$的零点或极点。如果曲线$\Gamma_s$包围$F(s)$的$Z$个零点和$P$个极点，则当动点$s_1$在$s$平面上顺时针沿$\Gamma_s$绕 一周时，在$F(s)$平面上也将映射出一条闭合曲线$\Gamma_F$，且包围原点的圈数 $R=P-Z$。
+		-  $R<0$，顺时针包围$F(s)$平面原点
+		-  $R>0$，逆时针包围$F(s)$平面原点
+		-  $R=0$，不包围$F(s)$平面原点
+
+### 幅角原理：实例
+
+#### 幻灯片：选择曲线$\Gamma_s$，围绕$F(s)$的一个零点
+
+选$F(s) = s-2$。
+	 结论:  $\Gamma_s$按顺时针方向围绕$F(s)$的一个零点，则其在$F(s)$平面上的
+映射曲线$\Gamma_F$亦按顺时针方向围绕$F(s)$平面的坐标原点旋转一周。
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.3em, y=1.3em]
+			\begin{scope}[yshift=0em]
+			\path [arr] (-4,0) -- (4,0);
+			\path [arr] (0,-4) -- node [at end, below left] {$\rj$} node [at end, below right] {$[s]$} (0,4);
+			\node [label=below left:0] at (0,0) {};
+			\foreach \x in {1,2}{
+				\path [draw] (\x,0) -- node [at start, below] {\x} (\x,.2);
+			}
+			\path [rlocus, ->] (2,1) arc (90:-275:1);
+			\node at (0,-4.5) {\sf $s$平面上的曲线$\Gamma_s$};
+			\end{scope}
+			
+			\begin{scope}[xshift = 14em, yshift=0em]
+			\path [arr] (-4,0) -- (4,0);
+			\path [arr] (0,-3) -- node [at end, below left] {$\rj$} node [at end, below right] {$[F]$} (0,4);
+			\node [label=below left:0] at (0,0) {};
+			\foreach \x in {1,2}{
+				\path [draw] (\x,0) -- node [at start, below] {\x} (\x,.2);
+			}
+			\path [rlocus, ->] (0,1) arc (90:-275:1);
+			\node at (0,-3.5) {\sf $R=P-Z=0-1=-1$};
+			\node at (0,-4.5) {\sf $\Gamma_s$在$F$平面上的映射$\Gamma_F$};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：选择曲线$\Gamma_s$，围绕$F(s)$的一个极点
+
+选$F(s) = \frac{1}{s-2}$。
+	 结论:  $\Gamma_s$按顺时针方向围绕$F(s)$的一个极点,则其在$F(s)$平面上的映射曲线$\Gamma_F亦$按red逆时针方向围绕$F(s)$平面的坐标原点旋转一周。
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.3em, y=1.3em]
+			\begin{scope}[yshift=0em]
+			\path [arr] (-4,0) -- (4,0);
+			\path [arr] (0,-4) -- node [at end, below left] {$\rj$} node [at end, below right] {$[s]$} (0,4);
+			\node [label=below left:0] at (0,0) {};
+			\foreach \x in {1,2}{
+				\path [draw] (\x,0) -- node [at start, below] {\x} (\x,.2);
+			}
+			\path [rlocus, ->] (2,1) arc (90:-275:1);
+			\node at (0,-4.5) {\sf $s$平面上的曲线$\Gamma_s$};
+			\end{scope}
+			
+			\begin{scope}[xshift = 14em, yshift=0em]
+			\path [arr] (-4,0) -- (4,0);
+			\path [arr] (0,-3) -- node [at end, below left] {$\rj$} node [at end, below right] {$[F]$} (0,4);
+			\node [label=below left:0] at (0,0) {};
+			\foreach \x in {1,2}{
+				\path [draw] (\x,0) -- node [at start, below] {\x} (\x,.2);
+			}
+			\path [rlocus, ->] (0,1) arc (-275:90:1);
+			\node at (0,-3.5) {\sf $R=P-Z=1-0=1$};
+			\node at (0,-4.5) {\sf $\Gamma_s$在$F$平面上的映射$\Gamma_F$};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+### 绘制奈奎斯特曲线
+
+#### 幻灯片：绘制奈奎斯特曲线
+
+1、辅助函数选择
+	$F(s)$的特点l
+	F(s)的\arrayl零点_i与(s)闭环极点
+ 极点p_i与GH(s)开环极点array\个数相同
+	F() = 1 + GH()
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=2em,  y=2em]
+			\tikzstyle{arr} = [draw, blue, -latex, thick]
+			\tikzstyle{line} = [draw=black, -latex, thick]
+			\path [arr] (0,0) -- node [above, red] {$r$} ++(.5,0) coordinate (t);
+			\node [cross, anchor = west] (c) at (t) {};
+			\path [arr] (c.east) -- node [above, red] {$e$} ++(.5,0) coordinate (t);
+			\node [block] (b1) at (t) {$G(s)$};
+			\path [arr] (b1.east) -- ++(.5,0) coordinate (t) -- node [above, red] {$c$}++(.5,0);		
+			\node [block, below of = b1] (b2) {$H(s)$};
+			\path [arr] (t) |- (b2.east);
+			\path [arr] (b2.west) -| node [right, at end] {$-$} (c.south);
+			\node at (2,-3) {$\Phi(s) = \frac{G(s)}{1+GH(s)}$};
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[0]{r}{10em}
+		
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}
+		F(s) &= 1 + GH(s)&\\
+		&= 1 + \frac{K^*M(s)}{N(s)} = \frac{N(s)+K^*M(s)}{N(s)}&\\
+		&= \frac{(s-p_1)(s-p_2)(s-p_3) + K^*M(s)}{(s-p1)(s-p_2)(s-p_3)}&\\
+		&= \frac{D(s)}{N(s)} = \frac{(s-\lambda_1)(s-\lambda_2)(s-\lambda_3) }{(s-p_1)(s-p_2)(s-p_3)}&
+	\end{flalign*}
+```
+
+#### 幻灯片：绘制奈奎斯特曲线
+
+$F(s)$的特点l
+	(1) F(s)的\arrayl零点_i闭环极点
+ 极点p_i开环极点array\个数相同
+	(2) 在s平面内选择一条包围整个右半平面的闭合曲线_s
+	（包围P个右半平面开环极点）；
+	然后在F平面绘制_F，并确定_F围绕原点周数R，
+	就可由幅角原理Z=P-R，确定是否有F(s)的零点
+	（闭环极点）在右半s平面（系统稳定性）。
+	(3) F(s) = 1 + GH(s)
+	_F可以由_GH沿实轴正向平移1个单位得到。
+	_F包围原点圈数就等于_GH包围(-1, 0)点圈数。
+
+#### 幻灯片：绘制奈奎斯特曲线
+
+2、$\Gamma_s$的选择：奈氏路径，包围右半平面
+	$v=0$，由(1)(2)(3)组成；
+	$v\neq 0$，由(1)(2)(3)(4)组成；
+		-  $s=\rj\omega,~\omega=0^+\rightarrow +\infty$
+		-  $s=\lim_{R\rightarrow\infty}\text{Re}^{\rj\theta},~\theta:\frac{\pi}{2}\rightarrow 0\rightarrow -\frac{\pi}{2}$
+		-  $s=\rj\omega,~\omega=-\infty\rightarrow 0^-$
+		-  $v\neq 0,~s=\lim_{r\rightarrow 0}re^{\rj\psi},~\psi:-\frac{\pi}{2}\rightarrow 0\rightarrow\frac{\pi}{2}$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=2em,  y=2em]
+			\path [arr]	(0,0) -- node [at start, left] {0} node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} (0,4);
+			\path [rlocus] (0,0) -- node [midway, left] {(1)} (0,3);
+			\path [rlocus, dotted] (0,3) arc (90:0:3) node [near end, right] {$\Gamma$} node [at end, above right] {(2)}; 
+			\path [rlocus, dotted] (3,0) arc (0:-90:3);
+			\path [rlocus] (0,-3) -- node [midway, left] {(3)} (0,0);
+			\path [rlocus, dotted] (0,-1) arc (-90:90:1) node [pos=0.6, right] {(4)};
+			\path [arr] (0,0) -- node [midway, above] {$\infty$} +(45:3);
+		\end{tikzpicture}
+```
+
+#### 幻灯片：绘制奈奎斯特曲线
+
+3、$\Gamma_{GH}$的绘制
+	$\Gamma_{GH}$的绘制可以分别考虑$\Gamma_s$四个组成部分在$GH$平面上的映射。
+		-  $s=\rj\omega,~\omega=0^+\rightarrow +\infty$
+		$G(s)H(s) = G(\rj\omega)H(\rj\omega)$，即为开环幅相曲线，极坐标图
+		-  $s=\lim_{R\rightarrow\infty}\text{Re}^{\rj\theta},~\theta:\frac{\pi}{2}\rightarrow 0\rightarrow -\frac{\pi}{2}$
+		$G(s)H(s) = \lim_{R\rightarrow\infty}\frac{K^*}{(\text{Re}^{-\rj\theta})^{n-m}} = 0.e^{\rj(n-m)\theta},~n>m$
+		对应原点，一般为开环幅相曲线终点。
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.8em,  y=1.8em]
+			\path [arr]	(0,0) -- node [at start, left] {0} node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} (0,4);
+			\path [rlocus] (0,0) -- node [midway, left] {(1)} (0,3);
+			\path [rlocus, dotted] (0,3) arc (90:0:3) node [near end, right] {$\Gamma$} node [at end, above right] {(2)}; 
+			\path [rlocus, dotted] (3,0) arc (0:-90:3);
+			\path [rlocus] (0,-3) -- node [midway, left] {(3)} (0,0);
+			\path [rlocus, dotted] (0,-1) arc (-90:90:1) node [pos=0.6, right] {(4)};
+			\path [arr] (0,0) -- node [midway, above] {$\infty$} +(45:3);
+		\end{tikzpicture}
+```
+
+#### 幻灯片：绘制奈奎斯特曲线
+
+enumi2
+		-  $s=\rj\omega,~\omega=-\infty\rightarrow 0^-$
+		$G(s)H(s) = G(\rj\omega)H(\rj\omega)$，与开环幅相曲线关于实轴对称。
+		-  $v\neq 0,~s=\lim_{r\rightarrow 0}re^{\rj\psi},~\psi:-\frac{\pi}{2}\rightarrow 0\rightarrow\frac{\pi}{2}$
+		$G(s)H(s) = \lim_{r\rightarrow 0}\frac{K}{(re^{\rj\psi})^v} = \infty.e^{-\rj v \psi}$
+	$\Gamma_s$在原点附近，当$\omega$从$0\rightarrow 0^+$，$\Gamma_{GH}$为从起点$G(\rj 0)H(\rj 0)$起顺时针旋转$v*180^\circ$，半径$\infty$到达$G(\rj 0^+)H(\rj 0^+)$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.8em,  y=1.8em]
+			\path [arr]	(0,0) -- node [at start, left] {0} node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} (0,4);
+			\path [rlocus] (0,0) -- node [midway, left] {(1)} (0,3);
+			\path [rlocus, dotted] (0,3) arc (90:0:3) node [near end, right] {$\Gamma$} node [at end, above right] {(2)}; 
+			\path [rlocus, dotted] (3,0) arc (0:-90:3);
+			\path [rlocus] (0,-3) -- node [midway, left] {(3)} (0,0);
+			\path [rlocus, dotted] (0,-1) arc (-90:90:1) node [pos=0.6, right] {(4)};
+			\path [arr] (0,0) -- node [midway, above] {$\infty$} +(45:3);
+		\end{tikzpicture}
+```
+
+### 绘制奈奎斯特曲线：实例
+
+#### 幻灯片：绘制0型系统奈奎斯特图
+
+**原始公式代码**
+
+```tex
+$$G(s)H(s) = \frac{6}{(s+1)(0.5s + 1)(0.2s+1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.5em,  y=1.5em]
+			\path [arr]	(-1,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[s]} (0,4);
+			\path [rlocus] (0,0) -- node [at start, left] {A} node [at end, left] {B} (0,3);
+			\path [rlocus, dotted] (0,3) arc (90:0:3) node [at end, above right] {C}; 
+			\path [rlocus, dotted] (3,0) arc (0:-90:3);
+			\path [rlocus] (0,-3) -- node [at start, left] {D} (0,0);
+			\path [arr, blue] (0,0) -- node [at end, right] {$R\rightarrow\infty$} +(45:3);
+			
+			\begin{scope}[xshift=12em]
+			\path [arr]	(-2,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[GH]} (0,4);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (3,0);
+			\coordinate (o3) at (0,-2);
+			\coordinate (o4) at (0,2);
+			\path [rlocus] (o2) .. controls ($(o2)+(-90:2)$) and ($(o3)+(-30:1)$) .. (o3);
+			\path [rlocus] (o3) .. controls ($(o3)+(150:2)$) and ($(o1)+(120:1)$) .. (o1) node [at end, above right] {B',C',D'};
+			\path [rlocus, latex-] (o2) .. controls ($(o2)+(90:2)$) and ($(o4)+(30:1)$) .. (o4);
+			\path [rlocus, latex-] (o4) .. controls ($(o4)+(-150:2)$) and ($(o1)+(-120:1)$) .. (o1);
+			\node [pole, label=above:-1] at (-1.5,0) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：绘制I型系统奈奎斯特图
+
+**原始公式代码**
+
+```tex
+$$G(s)H(s) = \frac{K}{s(T_1 s + 1)(T_2 s+1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.5em,  y=1.5em]
+			\path [arr]	(-1,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[s]} (0,4);
+			\path [rlocus] (0,.5) -- node [at start, left] {A} node [at end, left] {B} (0,3);
+			\path [rlocus, dotted] (0,3) arc (90:0:3) node [at end, above right] {C}; 
+			\path [rlocus, dotted] (3,0) arc (0:-90:3);
+			\path [rlocus] (0,-3) -- node [at start, left] {D} node [at end, left] {E} (0,-.5);
+			\path [rlocus] (0,-.5) arc (-90:90:.5) node [midway, right] {F};
+			
+			\begin{scope}[xshift=12em]
+			\path [arr]	(-2,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[GH]} (0,4);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-2,1);
+			\coordinate (o3) at (-2,-1);
+			\path [rlocus] (o1) .. controls ($(o1)+(-135:1)$) and ($(o2)+(-45:1)$) .. (o2) node[at start, above right] {B',C',D'};
+			\path [rlocus, dotted] (o2) -- (0,3.5) node [at end, left] {E'};
+			\path [rlocus, dotted] (0,3.5) arc (90:-90:3.5) node [midway, above right] {F'};
+			\path [rlocus, dotted] (0,-3.5) -- (o3) node [at start, left] {A'};
+			\path [rlocus] (o3) .. controls ($(o3)+(45:1)$) and ($(o1)+(135:1)$) .. (o1);
+			\node [pole, label=above:-1] at (-1.5,0) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：绘制II型系统奈奎斯特图
+
+**原始公式代码**
+
+```tex
+$$G(s)H(s) = \frac{K}{s^2(T s + 1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.5em,  y=1.5em]			
+			\begin{scope}[xshift=12em]
+			\path [arr]	(-4,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[GH]} (0,4);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-2.5,-1);
+			\coordinate (o3) at (-2.5,1);
+			\path [rlocus] (o1) .. controls ($(o1)+(-135:1)$) and ($(o2)+(15:1)$) .. (o2) node [at start, below right] {$\omega\rightarrow-\infty$} node [at end, below right] {$\omega=0^-$};
+			\path [rlocus, dotted] (o2) -- (-3.5,.5);
+			\path [rlocus, dotted] (-3.5,.5) arc (172.5:-172.5:3.5);
+			\path [rlocus, dotted] (-3.5,-.5) -- (o3);
+			\path [rlocus] (o3) .. controls ($(o3)+(-15:1)$) and ($(o1)+(135:1)$) .. (o1) node [at end, above right] {$\omega\rightarrow\infty$} node [at start, above right] {$\omega=0^+$};
+			\node [pole, label=above:-1] at (-1.5,0) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+### 奈奎斯特稳定判据
+
+#### 幻灯片：奈奎斯特稳定判据
+
+4、Nyquist稳定性判据
+	分析:系统稳定时,右半平面无闭环极点，即$F(s)$右半平面无开环零点，即$\Gamma_s$包围$F(s)$的零点数$Z=0$。
+所以系统稳定时，$R=P-Z=P$，即$\Gamma_F$按逆时针方向围绕原点周数$R$等于右半平面开环极点数$P$，即$\Gamma_{GH}$逆时针包围点$(-1,\rj 0) P$周。
+负反馈系统稳定的充要条件： Nyquist曲线$\Gamma_{GH}$不通过$(-1,\rj 0)$点，且逆时针围绕$(-1,\rj 0)$点的周数$R$，等于右半平面的开环极点数$P$（不计虚轴上的极点），即$R=P$。
+
+#### 幻灯片：使用Nyquist判据判定0型系统稳定性
+
+$R=0=P$稳定
+
+**原始公式代码**
+
+```tex
+$$G(s)H(s) = \frac{6}{(s+1)(0.5s + 1)(0.2s+1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.5em,  y=1.5em]
+			\path [arr]	(-1,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[s]} (0,4);
+			\path [rlocus] (0,0) -- node [at start, left] {A} node [at end, left] {B} (0,3);
+			\path [rlocus, dotted] (0,3) arc (90:0:3) node [at end, above right] {C}; 
+			\path [rlocus, dotted] (3,0) arc (0:-90:3);
+			\path [rlocus] (0,-3) -- node [at start, left] {D} (0,0);
+			\path [arr, blue] (0,0) -- node [at end, right] {$R\rightarrow\infty$} +(45:3);
+			
+			\begin{scope}[xshift=12em]
+			\path [arr]	(-2,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[GH]} (0,4);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (3,0);
+			\coordinate (o3) at (0,-2);
+			\coordinate (o4) at (0,2);
+			\path [rlocus] (o2) .. controls ($(o2)+(-90:2)$) and ($(o3)+(-30:1)$) .. (o3);
+			\path [rlocus] (o3) .. controls ($(o3)+(150:2)$) and ($(o1)+(120:1)$) .. (o1) node [at end, above right] {B',C',D'};
+			\path [rlocus, latex-] (o2) .. controls ($(o2)+(90:2)$) and ($(o4)+(30:1)$) .. (o4);
+			\path [rlocus, latex-] (o4) .. controls ($(o4)+(-150:2)$) and ($(o1)+(-120:1)$) .. (o1);
+			\node [pole, label=above:-1] at (-1.5,0) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：使用Nyquist判据判定I型系统稳定性
+
+$R=0=P$稳定
+
+**原始公式代码**
+
+```tex
+$$G(s)H(s) = \frac{K}{s(T_1 s + 1)(T_2 s+1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.5em,  y=1.5em]
+			\path [arr]	(-1,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[s]} (0,4);
+			\path [rlocus] (0,.5) -- node [at start, left] {A} node [at end, left] {B} (0,3);
+			\path [rlocus, dotted] (0,3) arc (90:0:3) node [at end, above right] {C}; 
+			\path [rlocus, dotted] (3,0) arc (0:-90:3);
+			\path [rlocus] (0,-3) -- node [at start, left] {D} node [at end, left] {E} (0,-.5);
+			\path [rlocus] (0,-.5) arc (-90:90:.5) node [midway, right] {F};
+			
+			\begin{scope}[xshift=12em]
+			\path [arr]	(-2,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[GH]} (0,4);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-2,1);
+			\coordinate (o3) at (-2,-1);
+			\path [rlocus] (o1) .. controls ($(o1)+(-135:1)$) and ($(o2)+(-45:1)$) .. (o2) node[at start, above right] {B',C',D'};
+			\path [rlocus, dotted] (o2) -- (0,3.5) node [at end, left] {E'};
+			\path [rlocus, dotted] (0,3.5) arc (90:-90:3.5) node [midway, above right] {F'};
+			\path [rlocus, dotted] (0,-3.5) -- (o3) node [at start, left] {A'};
+			\path [rlocus] (o3) .. controls ($(o3)+(45:1)$) and ($(o1)+(135:1)$) .. (o1);
+			\node [pole, label=above:-1] at (-1.5,0) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：使用Nyquist判据判定II型系统稳定性
+
+$R=-2,~P=0$不稳定
+
+**原始公式代码**
+
+```tex
+$$G(s)H(s) = \frac{K}{s^2(T s + 1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.5em,  y=1.5em]			
+			\begin{scope}[xshift=12em]
+			\path [arr]	(-4,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[GH]} (0,4);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-2.5,-1);
+			\coordinate (o3) at (-2.5,1);
+			\path [rlocus] (o1) .. controls ($(o1)+(-135:1)$) and ($(o2)+(15:1)$) .. (o2) node [at start, below right] {$\omega\rightarrow-\infty$} node [at end, below right] {$\omega=0^-$};
+			\path [rlocus, dotted] (o2) -- (-3.5,.5);
+			\path [rlocus, dotted] (-3.5,.5) arc (172.5:-172.5:3.5);
+			\path [rlocus, dotted] (-3.5,-.5) -- (o3);
+			\path [rlocus] (o3) .. controls ($(o3)+(-15:1)$) and ($(o1)+(135:1)$) .. (o1) node [at end, above right] {$\omega\rightarrow\infty$} node [at start, above right] {$\omega=0^+$};
+			\node [pole, label=above:-1] at (-1.5,0) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+### 奈奎斯特稳定判据：实用结论
+
+#### 幻灯片：奈奎斯特稳定判据：实用结论
+
+5、实用结论：
+	考虑到对称性，只要绘制闭合曲线$\Gamma_{GH}$ 的一半，即半闭合Nyquist曲线。
+		-  先画出开环幅相曲线$G(\rj \omega)H(\rj\omega)$，即$\omega\in(0^+,\infty)$时的映射。
+		-  若存在$v$个积分环节，则将曲线起点$G(\rj 0^+)H(\rj0^+)$ 逆时针旋转$v$个$90^\circ$，补上$\omega\in(0^+ , 0)$的映射，即得到$\omega\in(0 , +\infty)$时$\Gamma_s$在平面$GH$的映射，即半个$\Gamma_{GH}$ 。
+
+### 奈奎斯特稳定判据：实例（半闭合曲线）
+
+#### 幻灯片：使用Nyquist判据判定0型系统稳定性
+
+$R=0=P$稳定
+
+**原始公式代码**
+
+```tex
+$$G(s)H(s) = \frac{6}{(s+1)(0.5s + 1)(0.2s+1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.5em,  y=1.5em]
+			\path [arr]	(-1,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[s]} (0,4);
+			\path [rlocus] (0,0) -- node [at start, left] {A} node [at end, left] {B} (0,3);
+			\path [rlocus, dotted] (0,3) arc (90:0:3) node [at end, above right] {C}; 
+			\path [rlocus, dotted, draw=black] (3,0) arc (0:-90:3);
+			\path [rlocus, draw=black] (0,-3) -- node [at start, left] {D} (0,0);
+			\path [arr, blue] (0,0) -- node [at end, right] {$R\rightarrow\infty$} +(45:3);
+			
+			\begin{scope}[xshift=12em]
+			\path [arr]	(-2,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[GH]} (0,4);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (3,0);
+			\coordinate (o3) at (0,-2);
+			\coordinate (o4) at (0,2);
+			\path [rlocus] (o2) .. controls ($(o2)+(-90:2)$) and ($(o3)+(-30:1)$) .. (o3) node [at start, above right] {A'};
+			\path [rlocus] (o3) .. controls ($(o3)+(150:2)$) and ($(o1)+(120:1)$) .. (o1) node [at end, above right] {B',C',D'};
+			\path [rlocus, latex-, draw=black] (o2) .. controls ($(o2)+(90:2)$) and ($(o4)+(30:1)$) .. (o4);
+			\path [rlocus, latex-, draw=black] (o4) .. controls ($(o4)+(-150:2)$) and ($(o1)+(-120:1)$) .. (o1);
+			\node [pole, label=above:-1] at (-1.5,0) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：使用Nyquist判据判定I型系统稳定性
+
+$R=0=P$稳定
+
+**原始公式代码**
+
+```tex
+$$G(s)H(s) = \frac{K}{s(T_1 s + 1)(T_2 s+1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.5em,  y=1.5em]
+			\path [arr]	(-1,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[s]} (0,4);
+			\path [rlocus] (0,.5) -- node [at start, left] {A} node [at end, left] {B} (0,3);
+			\path [rlocus, dotted] (0,3) arc (90:0:3) node [at end, above right] {C}; 
+			\path [rlocus, dotted, draw=black] (3,0) arc (0:-90:3);
+			\path [rlocus, draw=black] (0,-3) -- node [at start, left] {D} node [at end, left] {E} (0,-.5);
+			\path [rlocus, -, draw=black] (0,-.5) arc (-90:0:.5) node [midway, right] {F};
+			\path [rlocus] (.5,0) arc (0:90:.5);
+			
+			\begin{scope}[xshift=12em]
+			\path [arr]	(-2,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[GH]} (0,4);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-2,1);
+			\coordinate (o3) at (-2,-1);
+			\path [rlocus, draw=black] (o1) .. controls ($(o1)+(-135:1)$) and ($(o2)+(-45:1)$) .. (o2) node[at start, above right] {B',C',D'};
+			\path [rlocus, dotted, draw=black] (o2) -- (0,3.5) node [at end, left] {E'};
+			\path [rlocus, dotted, draw=black] (0,3.5) arc (90:-90:3.5) node [midway, above right] {F'};
+			\path [rlocus, dotted] (0,-3.5) -- (o3) node [at start, left] {A'};
+			\path [rlocus] (o3) .. controls ($(o3)+(45:1)$) and ($(o1)+(135:1)$) .. (o1);
+			\node [pole, label=above:-1] at (-1.5,0) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：使用Nyquist判据判定II型系统稳定性
+
+$R=-2,~P=0$不稳定
+
+**原始公式代码**
+
+```tex
+$$G(s)H(s) = \frac{K}{s^2(T s + 1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.5em,  y=1.5em]			
+			\begin{scope}[xshift=12em]
+			\path [arr]	(-4,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[GH]} (0,4);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-2.5,-1);
+			\coordinate (o3) at (-2.5,1);
+			\path [rlocus, draw=black] (o1) .. controls ($(o1)+(-135:1)$) and ($(o2)+(15:1)$) .. (o2) node [at start, below right] {$\omega\rightarrow-\infty$} node [at end, below right] {$\omega=0^-$};
+			\path [rlocus, dotted, draw=black] (o2) -- (-3.5,.5);
+			\path [rlocus, dotted, -, draw=black] (-3.5,.5) arc (172.5:0:3.5);
+			\path [rlocus, dotted] (3.5,0) arc (0:-172.5:3.5);
+			\path [rlocus, dotted] (-3.48,-.5) -- (o3);
+			\path [rlocus] (o3) .. controls ($(o3)+(-15:1)$) and ($(o1)+(135:1)$) .. (o1) node [at end, above right] {$\omega\rightarrow\infty$} node [at start, above right] {$\omega=0^+$};
+			\node [pole, label=above:-1] at (-1.5,0) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+### 奈奎斯特稳定判据：其它特性
+
+#### 幻灯片：奈奎斯特稳定判据
+
+6、按正负穿越计算闭合曲线$\Gamma_{GH}$包围$(-1,\rj 0)$点圈数$R$
+	可由半闭合Nyquist曲线获得。
+	设$N$为半闭合曲线穿越负实轴段$(-\infty,-1)$次数（若包围，必相交，称为穿越）。
+		-  $N^+$：正穿越次数之和，从上向下，逆时针包围
+		-  $N^-$：负穿越次数之和，从下向上，顺时针包围
+	则：$N=N^+-N^-$
+	闭合曲线:$R=2N=2(N^+-N^-)$
+		$N=1-1=0$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.2em,  y=1.2em]			
+			\begin{scope}[xshift=12em]
+			\path [arr]	(-7,0) -- node [at end, below left] {Re} (4,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[GH]} (0,2);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-1,0);
+			\coordinate (o3) at (-3,0);
+			\coordinate (o4) at (-6,0);
+			\path [rlocus, dotted, -] (3.5,0) arc (0:-120:3.5);
+			\path [rlocus, -] (-1.75,-3.03) .. controls ($(-1.75,-3.03)+(100:2)$) and ($(o4)+(-90:2)$) .. (o4) node [at end, below left] {$(-)$};
+			\path [rlocus, -] (o4) arc (160:20:1.6) node [at end, below left] {$(+)$}; 
+			\path [rlocus, -] (o3) arc (-160:-20:1.05);
+			\path [rlocus, -] (o2) arc (160:20:.5);
+			\node [pole, label=above:-1] at (-1.5,0) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：奈奎斯特稳定判据
+
+7、简化的Nyquist稳定性判据：
+	若半闭合Nyquist曲线不通过点$(-1,\rj 0)$，且穿越负实轴段$(-\infty,-1)$次数$N=P/2$，则系统闭环稳定。$P$为右半平面开环极点数目。
+	若$N\neq P/2$，则闭环不稳定。不稳定根个数为$Z=P-R$。
+
+#### 幻灯片：奈奎斯特稳定判据
+
+注意问题
+		-  当$[s]$平面虚轴上有开环极点时，奈氏路径要从其右边绕出半径为无穷小的圆弧；$[GH]$平面对应要补充大圆弧;
+		-  只有穿越实轴段$(-\infty,-1)$才算，其它段不算；
+		-  N 的最小单位为二分之一。从实轴段$(-\infty,-1)$起始或终止于实轴段$(-\infty,-1)$算穿越半次。起始点向下$N=+0.5$，向上$N=-0.5$。终止点从上向下$N=+0.5$，从下向上$N=-0.5$。
+		-  $Z$ll
+			>0 & 闭环系统不稳定
+			=0 & 闭环系统稳定
+			<0 & 有误！
+
+### 奈奎斯特判据的应用
+
+#### 幻灯片：奈氏判据的应用(1)
+
+已知单位反馈系统开环传递函数，
+	分析系统稳定性。
+	解：依题有lG( 0) = K 0^
+ G() = 0 -270^
+	$K=~$l
+		K_1(小) N=0=P/2(稳定)
+		K_2(大) N=-1 P/2(不稳定)
+		Z = P-2N=0-2(-1)=2
+	注：$\omega_g$与$K$无关，但$|G(\omega_g)|$与$K$成正比
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{K}{(T_1 s+1)(T_2 s+1)(T_3 s +1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1em,  y=1em]			
+			\begin{scope}[xshift=0em]
+			\path [arr]	(-5,0) -- node [at end, below left] {Re} (3,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[s]} (0,4);
+			\node [pole, label=below:$\frac{-1}{T_1}$] (p1) at (-1,0) {};
+			\node [pole, label=below:$\frac{-1}{T_2}$] (p2) at (-2,0) {};
+			\node [pole, label=below:$\frac{-1}{T_3}$] (p3) at (-3,0) {};
+			\coordinate (d) at (-1.5,0);
+			\coordinate (o1) at (2,3);
+			\coordinate (o2) at (2,-3);			
+			\path [rlocus] (p1) -- (d) .. controls ($(d)+(90:1)$) and ($(o1)+(-145:1)$) .. (o1);
+			\path [rlocus] (p2) -- (d) .. controls ($(d)+(-90:1)$) and ($(o2)+(145:1)$) .. (o2);
+			\path [rlocus] (p3) -- ++(-2,0);
+			\end{scope}
+			
+			\begin{scope}[xshift=-3em, yshift=-7em]
+			\path [arr]	(-2,0) -- node [at end, below left] {Re} (6,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[G]} (0,2);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (2,0);
+			\coordinate (o3) at (4,0);
+			\coordinate (o4) at (0,-2);
+			\coordinate (o5) at (0,-3);
+			\path [rlocus, -] (o2) .. controls ($(o2)+(-90:1)$) and ($(o4)+(-20:1.5)$) .. (o4) node [at start, above] {$K_1$};
+			\path [rlocus] (o4) .. controls ($(o4)+(150:2)$) and ($(o1)+(120:1.5)$) .. (o1);
+			\path [rlocus, -] (o3) .. controls ($(o3)+(-90:2)$) and ($(o5)+(-20:2)$) .. (o5) node [at start, above] {$K_1$};
+			\path [rlocus] (o5) .. controls ($(o5)+(160:4)$) and ($(o1)+(120:3)$) .. (o1);
+			\node [pole, label=above:-1] at (-1.5,0) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[8]{r}{12em}
+		
+	\end{wrapfigure}
+```
+
+#### 幻灯片：奈氏判据的应用(2)
+
+已知系统开环传递函数，
+分析系统稳定性，求临界值。
+	解：依题有lG( 0) =  0^
+ G( 0^+) =  -90^
+ G() = 0 -270^
+	$K=~$l
+		K_1(小) N=0=P/2(稳定)
+		K_2(大) N=-1 P/2(不稳定)
+		Z = P-2N=0-2(-1)=2
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{K}{s(T_1 s+1)(T_2 s+1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1em,  y=1em]			
+			\begin{scope}[xshift=0em]
+			\path [arr]	(-5,0) -- node [at end, below left] {Re} (3,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[s]} (0,4);
+			\node [pole] (p1) at (0,0) {};
+			\node [pole, label=below:$\frac{-1}{T_1}$] (p2) at (-1,0) {};
+			\node [pole, label=below:$\frac{-1}{T_2}$] (p3) at (-3,0) {};
+			\coordinate (d) at (-.5,0);
+			\coordinate (o1) at (2,3);
+			\coordinate (o2) at (2,-3);			
+			\path [rlocus] (p1) -- (d) .. controls ($(d)+(90:1)$) and ($(o1)+(-145:1)$) .. (o1);
+			\path [rlocus] (p2) -- (d) .. controls ($(d)+(-90:1)$) and ($(o2)+(145:1)$) .. (o2);
+			\path [rlocus] (p3) -- ++(-2,0);
+			\end{scope}
+			
+			\begin{scope}[xshift=-1em, yshift=-7em]
+			\path [arr]	(-5,0) -- node [at end, below left] {Re} (4.5,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[GH]} (0,2);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-2.5,-3);
+			\coordinate (o3) at (-4,-3);
+			\path [rlocus, -] (o2) .. controls ($(o2)+(70:1)$) and ($(o1)+(110:2.5)$) .. (o1) node [at start, below] {$K_1$};
+			\path [rlocus, -] (o3) .. controls ($(o3)+(70:1)$) and ($(o1)+(110:4)$) .. (o1) node [at start, below] {$K_2$};
+			\path [rlocus, -, dotted] (4,0) arc (0:-120:4);
+			\node [pole, label=below:-1] at (-1.5,0) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[8]{r}{11em}
+		
+	\end{wrapfigure}
+```
+
+#### 幻灯片：奈氏判据的应用(3)
+
+已知单位反馈系统开环传递函数，
+	分析系统稳定性。
+	解：依题有lG( 0^+) =  -180^
+ G() = 0 -270^
+	$K=~$l
+		K_1(小) N=0=P/2(稳定)
+		K_2(大) N=-1 P/2(不稳定)
+		Z = P-2N=0-2(-1)=2
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{K(\tau s +1)}{s^2(T_1 s+1)(T_2 s+1)}~~\tau>T_1>T_2$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1em,  y=1em]			
+			\path [arr]	(-5,0) -- node [at end, below left] {Re} (4.5,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[G]} (0,2);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-3,-2);
+			\coordinate (o3) at (-5,-2.5);
+			\path [rlocus, -] (o2) .. controls ($(o2)+(20:3)$) and ($(o1)+(110:1.5)$) .. (o1) node [at start, below] {$K_1$};
+			\path [rlocus, -] (o3) .. controls ($(o3)+(10:4)$) and ($(o1)+(110:4)$) .. (o1) node [at start, below] {$K_2$} node [at start, above] {$\omega=0^+$} node [at end, above right] {$\omega=\infty$};
+			\path [rlocus, -, dotted] (4,0) arc (0:-120:4) node [midway, above] {$\omega=0$};
+			\node [pole, label=below:-1] at (-1.5,0) {};
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[8]{r}{11em}
+		
+	\end{wrapfigure}
+```
+
+### 对数稳定判据
+
+#### 幻灯片：对数稳定判据(1)
+
+****
+		$v=0$时， Bode图不变；
+		$v\neq 0$时，只要把相频曲线$\psi(\omega)$的起点$\omega\rightarrow 0^+$向上提升$v$个$90^\circ$（补上$\omega=0$时变化的相角）
+	****
+			在[GH]平面穿越是指$|GH(\rj\omega)|>1$时$GH(\rj\omega)$穿越负实轴。对应地，在Bode图发生穿越就是$L(\omega)>0$时，（起点提升后的）相频特性穿越$－180*v$线。
+			正穿越：相位增加（$\omega\uparrow$）
+			负穿越：相位减少（$\omega\uparrow$）
+	****
+		穿越次数计算
+		正穿越一次：$L(\omega)>0$时，相频曲线由下向上穿越$-180*v$线一次（逆时针穿越）
+		负穿越一次：$L(\omega)>0$时，相频曲线由上向下穿越$-180*v$线一次（顺时针穿越）
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1em, y=1em]			
+				\begin{scope}[yshift=0em]
+				\clip (-2.5,-7) rectangle (6.5,3);
+				\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (6,0);
+				\path [arr] (0,-2) -- node [at end, right] {$L(\omega)$dB} (0,2);
+				\foreach \x/\y in {0/0}{
+					\path [draw] (0,\x) -- node [at start, left] {\y} (.3,\x);
+				}
+				\path [rlocus, -, name path=slope] (.5,1) .. controls ($(.5,1)+(-10:2)$) and ($(5,-1.5)+(120:2)$) .. (5,-1.5);
+				\path [name intersections={of={slope and x axis}}];
+				\node [label=above:$\omega_c$] at (intersection-1) {};
+				\path [arr, -, dashed] (intersection-1) -- +(0,-5.5);
+				\end{scope}
+			
+				\begin{scope}[yshift=-4em]
+				\path [arr, name path=x axis] (0,0) -- node [at start, left] {$0^\circ$} node [at end, above] {$\omega$} (6,0);
+				\path [arr] (0,-2.5) -- node [very near end, right] {$\psi(\omega)$} (0,1);
+				\path [arr, -, dashed] (0,-2) -- node [at start, left] {$180^\circ$} (5,-2);
+				\path [rlocus, -, name path=slope] (.5,-1) .. controls ($(.5,-1)+(-60:4)$) and ($(5,-2.5)+(130:4)$) .. (5,-2.5) node [pos=.15, below] {$-$} node [pos=.5, above] {$+$};
+				\end{scope}
+			\end{tikzpicture}
+```
+
+#### 幻灯片：对数稳定判据(2)
+
+已知单位反馈系统开环传递函数,分析系统稳定性。
+	*注意相频特性起点提升！
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{K(\tau + 1)}{s^2(Ts + 1)}\quad (a)~\tau>T\quad (b)~\tau<T$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.5em, y=1em]
+
+			\begin{scope}[yshift=0em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (6,0);
+			\path [arr] (0,-2) -- node [at end, right] {$L(\omega)$dB} (0,3);
+			\foreach \x/\y in {0/0}{
+				\path [draw] (0,\x) -- node [at start, left] {\y} (.3,\x);
+			}
+			\path [rlocus, -, name path=slope] (0,1.5) -- node [pos=0.7, above] {-40} ++(-40:1.5) coordinate (t1) -- node [pos=0.5, above] {-20} ++(-20:3) coordinate (t2) -- ++(-40:1.5)   node [pos=0.9,above] {-40};
+			\path [name intersections={of={slope and x axis}}];
+			\path [arr, -, dashed] (intersection-1) -- +(0,-5.1);
+			\path [draw] (t1) -- node [at end, below] {$1/\tau$} (t1 |- 0,0);
+			\path [draw] (t2) -- node [at end, above] {$1/T$} (t2 |- 0,0);
+			\end{scope}
+			
+			\begin{scope}[yshift=-4em]
+			\path [arr, name path=x axis] (0,0) -- node [at start, left] {$0^\circ$} node [at end, above] {$\omega$} (6,0);
+			\path [arr] (0,-3.5) -- node [very near end, right] {$\psi(\omega)$} (0,1.5);
+			\foreach \x/\y in {-1/-90,-2/-180,-3/-270}{
+				\path [arr, -, dashed] (0,\x) -- node [at start, left] {$\y^\circ$} (5,\x);
+			}
+			
+			\path [rlocus, -, dashed] (0,0) -- (0.2,-2);
+			\path [rlocus, -, name path=slope] (0.2,-1.8) .. controls ($(0,-1.9)+(0:1)$) and ($(2.5,-1.1)+(180:1)$) .. (2.5,-1.1) .. controls ($(2.5,-1.1)+(0:1)$) and ($(5,-1.9)+(180:1)$) .. (5,-1.9);
+			\node at (2.5,-4) {(a)~N=0=P/2,~稳定};
+			\end{scope}
+			
+			\begin{scope}[xshift=13em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (6,0);
+			\path [arr] (0,-2) -- node [at end, right] {$L(\omega)$dB} (0,3);
+			\foreach \x/\y in {0/0}{
+				\path [draw] (0,\x) -- node [at start, left] {\y} (.3,\x);
+			}
+			\path [rlocus, -, name path=slope] (1,2) -- node [pos=0.7, above] {-40} ++(-40:1) coordinate (t1) -- node [pos=0.2, right] {-60} ++(-60:4) coordinate (t2) -- ++(-40:1.5)   node [pos=0.9,above] {-40};
+			\path [name intersections={of={slope and x axis}}];
+			\path [arr, -, dashed] (intersection-1) -- +(0,-6.9);
+			\path [draw] (t1) -- node [at end, below] {$1/T$} (t1 |- 0,0);
+			\path [draw] (t2) -- node [at end, below right] {$1/\tau$} (t2 |- 0,0);
+			\end{scope}
+			
+			\begin{scope}[xshift=13em, yshift=-4em]
+			\path [arr, name path=x axis] (0,0) -- node [at start, left] {$0^\circ$} node [at end, above] {$\omega$} (6,0);
+			\path [arr] (0,-3.5) -- node [very near end, right] {$\psi(\omega)$} (0,1.5);
+			\foreach \x/\y in {-1/-90,-2/-180,-3/-270}{
+				\path [arr, -, dashed] (0,\x) -- node [at start, left] {$\y^\circ$} (5,\x);
+			}
+			
+			\path [rlocus, -, dashed] (0,0) -- (0.2,-2);
+			\path [rlocus, -, name path=slope] (0.2,-2) .. controls ($(0,-2.1)+(0:1)$) and ($(2.5,-2.9)+(180:1)$) .. (2.5,-2.9) .. controls ($(2.5,-2.9)+(0:1)$) and ($(5,-2.1)+(180:1)$) .. (5,-2.1);
+			\node at (2.5,-4) {(b)~N=-1, P=0};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：对数稳定判据(3)
+
+已知单位反馈系统开环传递函数,分析系统稳定性。
+		对数稳定判据lZ = P-2N
+ N = N_+ - N_-
+		$K=$l
+		K_1\arrayl
+			N = N_+ - N_- = 0-0=0
+			Z = P- 2N = 0 -2 0 = 0
+			稳定
+		array.
+		K_2\arrayl
+			N = N_+ - N_- = 0-1=-1
+			Z = P- 2N = 0 -2 (-1) = 2
+			不稳定
+		array.
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{K}{s(T_1s+1)(T_2s+1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1em,  y=1em]						
+			\begin{scope}[xshift=0em]
+			\path [arr]	(-5,0) -- (5.5,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[G]} (0,3);
+			\foreach \x/\y in {-2.5/-1,2.5/1}{
+				\path [line] (\x,0) -- (\x,.1) node [at start, below] {\y};
+			}
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-2.5,-3);
+			\coordinate (o3) at (-4,-2);
+			\path [rlocus, -, name path=n1] (o2) .. controls ($(o2)+(70:1)$) and ($(o1)+(110:2.5)$) .. (o1) node [at start, below] {$K_1$} node [at end, above right, blue] {$\omega=\infty$};
+			\path [rlocus, -, name path=n2] (o3) .. controls ($(o3)+(70:1)$) and ($(o1)+(110:4)$) .. (o1) node [at start, below] {$K_2$};
+			\path [rlocus, -, dotted] (4,0) arc (0:-120:4) node [at start, below, blue] {$\omega=0$} node [at end, below, blue] {$\omega=0^+$};
+			\coordinate (p) at (-2.5,0);
+			\node [draw, blue, circle through=(p), name path=c] at (o1) {}; 
+			\path [line, blue, thin, name intersections={of=c and n1}] (intersection-1) -- node [at start, zero, inner sep=1pt, fill=red] {} node [midway, below] {$\beta$} (o1);
+			\path [line, blue, thin, name intersections={of=c and n2}] (intersection-1) -- node [at start, zero, inner sep=1pt, fill=red] {} node [midway, above] {$\alpha$} (o1);
+			\end{scope}
+			
+			\begin{scope}[xshift=-2em, yshift=-10em]
+			\path [arr, name path=x axis] (0,0) -- node [at start, left] {$0^\circ$} node [at end, above] {$\omega$} (8,0);
+			\path [arr] (0,-4) -- node [at end, right] {$L(\omega)$dB} (0,4);
+			\foreach \x/\y in {-1/-90,-2/-180,-3/-270}{
+				\path [arr, -, dashed] (0,\x) -- node [at start, left] {$\y^\circ$} (7,\x);
+			}
+			\path [very thick, name path=slope, blue, draw=red] (0,3) -- node [pos=0.7, above] {-20} ++(-20:3) coordinate (t1) -- node [pos=0.5, above] {-40} ++(-40:3) coordinate (t2) -- ++(-60:4)   node [pos=0.5,right] {-60};
+			\path [very thick, name path=slope, blue, draw=red] (0,1) -- node [pos=0.7, above] {-20} ++(-20:3) -- node [pos=0.5, above] {-40} ++(-40:3) -- ++(-60:2.5)   node [pos=0.5,right] {-60};
+			\path [rlocus, -] (0,-1.1) .. controls ($(0,-1.1)+(0:4)$) and ($(7,-2.9)+(180:4)$) .. (7,-2.9);
+			\path [draw, dashed] (t1) -- node [at end, below] {$1/T_1$} (t1 |- 0,-3);
+			\path [draw, dashed] (t2) -- node [at end, below] {$1/T_2$} (t2 |- 0,-3);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+## 稳定裕度
+
+#### 幻灯片：稳定裕度
+
+系统动态性能
+		tabularccc
+			稳定程度			&稳定边界		&稳定指标
+			时域$(t)$			&虚轴		&阻尼比$\zeta$
+			频域$(\omega)$	&$(-1,\rj 0)$	&到$(-1,\rj 0)$的距离
+							&			&red稳定裕度
+							&			&(开环频率指标)
+		tabular
+
+### 稳定裕度的定义
+
+#### 幻灯片：稳定裕度的定义
+
+tabularll
+			截止频率$\omega_c$	&$|G(\rj\omega)| = 1$
+			相角裕度$\gamma$		&$\gamma = 180^\circ + \angle G(\rj\omega_c)$
+			相角交界频率$\omega_g$	&$\angle G(\rj\omega_g) = -180^\circ$
+			幅值裕度$h$			&$h = \frac{1}{|G(\rj\omega_g)|}$
+			$\gamma , h$的几何意义	&2*$h(\text{dB}) = 20\lg \frac{1}{|G(\rj\omega_g)|}$
+			$\gamma , h$的物理意义	&
+		tabular
+		l
+ h系统在l相角
+ 幅值方面的稳定储备量
+		一般要求l>40^
+ h>2
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1em,  y=1em]						
+			\begin{scope}[xshift=0em]
+			\path [arr, name path=x]	(-6,0) -- (2,0);
+			\path [arr] (0,-6) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[G]} (0,3);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-4,-4);
+			\path [rlocus, -, name path=n] (o2) .. controls ($(o2)+(70:1)$) and ($(o1)+(110:4)$) .. (o1) node [at start, below] {$G(\rj \omega)$};
+			\path [line, dotted, blue, name path=arc] (0,-5) arc (-90:-180:5) node [at start, right] {$-1$} node [at end, above] {$-1$};
+			\path [draw, latex-, blue, thin, name intersections={of=arc and n}] (intersection-1) -- node [at start, zero, inner sep=1pt, fill=red, label=left:$\omega_c$] {} (o1);
+			\path [draw, ->, blue] (-1,0) arc (180:222:1) node [left] {$\gamma$};
+			\path [line, blue, thin, name path=h, name intersections={of=n and x}] (intersection-1) -- node [at start, zero, inner sep=1pt, fill=red, label=above left:$\omega_g$] {} +(90:3);
+			\path [draw, <->, red] (0,2.5) -- node [midway, fill=white] {$\frac{1}{h}$} (0,2.5 -| intersection-1);
+			\end{scope}
+			
+			\begin{scope}[xshift=-4em, yshift=-9em]
+			\path [arr, name path=x axis] (0,0) -- node [at start, left] {$0^\circ$} node [at end, above] {$\omega$} (8,0);
+			\path [arr] (0,-5) -- node [at end, right] {$L(\omega)$dB} (0,2);
+			\foreach \x/\y in {-1.5/-90,-3/-180,-4.5/-270}{
+				\path [arr, -, dashed] (0,\x) -- node [at start, left] {$\y^\circ$} (7,\x);
+			}
+			\path [very thick, name path=slope, blue, draw=red] (0,.5) -- node [pos=0.5, above] {-20} ++(-20:3) coordinate (t1) -- node [pos=0.7] {-40} ++(-40:4) coordinate (t2) -- ++(-60:2)   node [pos=0.5,right] {-60};
+			\path [rlocus, -, name path=psi] (0,-1.6) .. controls ($(0,-1.6)+(0:4.5)$) and ($(7,-4.4)+(160:4)$) .. (7,-4.4);
+			\path [draw, dashed, blue] (t1) -- node [at end, below] {$1/T_1$} (t1 |- 0,-4.5);
+			\path [draw, dashed, blue] (t2) -- node [at end, below] {$1/T_2$} (t2 |- 0,-4.5);
+			\path [draw, dashed, blue] (t1) -- (t1 |- 0,0);
+			\path [draw, dashed, blue] (t2) -- (t2 |- 0,0);
+			
+			\path [name path=c, name intersections={of=x axis and slope, by=a}] (a) -- +(-90:5);
+			\path [draw, |-|, red, name intersections={of=c and psi, by=gamma}] (gamma) -- node [left] {$\gamma$} (gamma |- 0,-3);
+			\path [draw, dashed, blue] (a) -- node [at start, below] {$\omega_c$}(gamma);
+			
+			\path [name path=dash] (0,-3) -- (7,-3);
+			\path [draw, dashed, blue, name path=g, name intersections={of=psi and dash, by=b}] (b) -- node [at end, below] {$\omega_g$} (b |- 0,0);
+			\path [draw, dashed, blue, name intersections={of=g and slope, by=h}] (h) -- +(3,0);
+			\path [draw, |-|, red] (7,0) -- node [] {$20\lg h$} (7,0 |-h);			
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：稳定裕度的定义
+
+幅值裕度同（过-180时幅值一样）,
+		相角裕度$\gamma$不同（穿过单位圆时相角不同）
+		幅值裕度$h$不同（过-180时幅值不同）,
+		相角裕度同（穿过单位圆时相角相同）
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=.75em,  y=.75em]						
+			\begin{scope}[xshift=0em]
+				\path [arr, name path=x]	(-6,0) -- (2,0);
+				\path [arr] (0,-6) -- node [at end, right] {[GH]} (0,3);
+				\coordinate (o1) at (0,0);
+				\coordinate (o2) at (-1,-4);
+				\coordinate (o3) at (-6,-2);
+				\path [rlocus, ->, name path=n] (-1,-4) .. controls ++(135:5) and ++(110:3) .. (0,0) node [at start, below] {B};
+				\path [rlocus, ->, dotted, name path=n] (-6,-2) .. controls ++(15:2) and ++(150:2.3) .. (0,0) node [at start, above] {A};
+				\node [zero, inner sep=1pt, fill=red, label=above:$-1$] at (-4,0) {};
+			\end{scope}
+			
+			\begin{scope}[xshift=-2em, yshift=-10em]
+			\path [arr, name path=x]	(-5,0) -- (5,0);
+			\path [arr] (0,-5) -- node [at end, right] {[GH]} (0,5);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-4,-3);
+			\coordinate (o3) at (-4.5,-2.2);
+			\coordinate (o4) at (-4,0);
+			\path [rlocus, ->, name path=n] (o2) .. controls ($(o2)+(70:1)$) and ($(o1)+(110:4)$) .. (o1) node [at start, below] {B};
+			\path [rlocus, ->, dotted, name path=n] (o3) .. controls ($(o3)+(10:1.8)$) and ($(o1)+(140:1)$) .. (o1) node [at start, above] {A};
+			\node [label=above:$-1$] at (-4,0) {};
+			\node [draw, blue, dotted, circle through=(o4)] at (0,0) {}; 
+			\end{scope}
+		\end{tikzpicture}
+```
+
+### 稳定裕度的计算
+
+#### 幻灯片：稳定裕度的计算
+
+$G(s) = \frac{5}{s(\frac{s}{2}+1)(\frac{s}{10}+1)} = \frac{100}{s(s+2)(s+10)}$，求$\gamma$, $h$
+		解法I：由幅相曲线求$\gamma$, $h$
+		(1) 令$|G(\rj\omega_c)| = 1 = \frac{100}{\omega_c\sqrt{\omega_c^2+2^2}\sqrt{\omega_c^2+10^2}}$
+		$\omega_c^2 [\omega_c^4+104\omega_c^2+400] = 10000$
+		试根得$\omega_c=2.9$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1em,  y=1em]						
+			\begin{scope}[xshift=0em]
+			\path [arr, name path=x]	(-6,0) -- (2,0);
+			\path [arr] (0,-6) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[G]} (0,3);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-4,-4);
+			\path [rlocus, -, name path=n] (o2) .. controls ($(o2)+(70:1)$) and ($(o1)+(110:4)$) .. (o1) node [at start, below] {$G(\rj \omega)$};
+			\path [line, dotted, blue, name path=arc] (0,-5) arc (-90:-180:5) node [at start, right] {$-1$} node [at end, above] {$-1$};
+			\path [draw, latex-, blue, thin, name intersections={of=arc and n}] (intersection-1) -- node [at start, zero, inner sep=1pt, fill=red, label=left:$\omega_c$] {} (o1);
+			\path [draw, ->, blue] (-1,0) arc (180:222:1) node [left] {$\gamma$};
+			\path [line, blue, thin, name path=h, name intersections={of=n and x}] (intersection-1) -- node [at start, zero, inner sep=1pt, fill=red, label=above left:$\omega_g$] {} +(90:3);
+			\path [draw, <->, red] (0,2.5) -- node [midway, fill=white] {$\frac{1}{h}$} (0,2.5 -| intersection-1);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+			\gamma &= 180^\circ + \angle G(\rj\omega_c) = 180^\circ + \psi(2.9)\\
+			&=180^\circ - 90^\circ - \arctan \frac{2.9}{2} - \arctan\frac{2.9}{10}\\
+			&=90^\circ - 55.4^\circ - 16.1^\circ = 18.5^\circ
+		\end{align*}
+```
+
+#### 幻灯片：稳定裕度的计算
+
+令
+		可得$\arctan\frac{\omega_g}{2} + \arctan\frac{\omega_g}{10} = 90^\circ$
+
+**原始公式代码**
+
+```tex
+$$\psi(\omega_g) = -180^\circ = -90^\circ-\arctan\frac{\omega_g}{2} - \arctan\frac{\omega_g}{10}$$
+```
+
+**原始公式代码**
+
+```tex
+$$\frac{\frac{\omega_g}{2}+\frac{\omega_g}{10}}{1-\frac{\omega_g^2}{20}} = \tan 90^\circ \Rightarrow \begin{array}{l}\omega_g^2 = 20\\ \omega_g = 4.47\end{array}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1em,  y=1em]						
+			\begin{scope}[xshift=0em]
+			\path [arr, name path=x]	(-6,0) -- (2,0);
+			\path [arr] (0,-6) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[G]} (0,3);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-4,-4);
+			\path [rlocus, -, name path=n] (o2) .. controls ($(o2)+(70:1)$) and ($(o1)+(110:4)$) .. (o1) node [at start, below] {$G(\rj \omega)$};
+			\path [line, dotted, blue, name path=arc] (0,-5) arc (-90:-180:5) node [at start, right] {$-1$} node [at end, above] {$-1$};
+			\path [draw, latex-, blue, thin, name intersections={of=arc and n}] (intersection-1) -- node [at start, zero, inner sep=1pt, fill=red, label=left:$\omega_c$] {} (o1);
+			\path [draw, ->, blue] (-1,0) arc (180:222:1) node [left] {$\gamma$};
+			\path [line, blue, thin, name path=h, name intersections={of=n and x}] (intersection-1) -- node [at start, zero, inner sep=1pt, fill=red, label=above left:$\omega_g$] {} +(90:3);
+			\path [draw, <->, red] (0,2.5) -- node [midway, fill=white] {$\frac{1}{h}$} (0,2.5 -| intersection-1);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+			h &= \frac{1}{|G(\rj\omega_g)|} = \frac{\omega_g\sqrt{\omega_g^2+2^2}\sqrt{\omega_g^2+10^2}}{100}\\
+			&\overset{\omega_g = 4.47}{=} 2.4~(7.6\text{dB})
+		\end{align*}
+```
+
+#### 幻灯片：稳定裕度的计算
+
+或令
+
+**原始公式代码**
+
+```tex
+$$G(\rj\omega) = \frac{100}{\rj\omega(2+\rj\omega)(10+\rj\omega)} = \frac{-1200\omega - \rj 100(20-\omega^2)}{\omega(4+\omega^2)(100+\omega^2)} = G_x + \rj G_Y$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1em,  y=1em]						
+			\begin{scope}[xshift=0em]
+			\path [arr, name path=x]	(-6,0) -- (2,0);
+			\path [arr] (0,-6) -- node [at end, right] {Im} node [at end, right, xshift=2em] {[G]} (0,3);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-4,-4);
+			\path [rlocus, -, name path=n] (o2) .. controls ($(o2)+(70:1)$) and ($(o1)+(110:4)$) .. (o1) node [at start, below] {$G(\rj \omega)$};
+			\path [line, dotted, blue, name path=arc] (0,-5) arc (-90:-180:5) node [at start, right] {$-1$} node [at end, above] {$-1$};
+			\path [draw, latex-, blue, thin, name intersections={of=arc and n}] (intersection-1) -- node [at start, zero, inner sep=1pt, fill=red, label=left:$\omega_c$] {} (o1);
+			\path [draw, ->, blue] (-1,0) arc (180:222:1) node [left] {$\gamma$};
+			\path [line, blue, thin, name path=h, name intersections={of=n and x}] (intersection-1) -- node [at start, zero, inner sep=1pt, fill=red, label=above left:$\omega_g$] {} +(90:3);
+			\path [draw, <->, red] (0,2.5) -- node [midway, fill=white] {$\frac{1}{h}$} (0,2.5 -| intersection-1);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+			\text{令}&\text{Im}[G(\rj\omega)] = G_Y = 0\\
+			\text{得}&\omega_g = \sqrt{20} = 4.47\\
+			\text{代入实部}&G_X(\omega_g) = -0.4167\\
+			&|G(\omega_g)| = 0.4167\\
+			&h = \frac{1}{|G(\rj\omega_g)|} = \frac{1}{0.4167} = 2.4
+		\end{align*}
+```
+
+#### 幻灯片：稳定裕度的计算
+
+解法II：由Bode图求$\gamma$, $h$
+		由$L(\omega)$：$|G(\rj\omega_c)| = 1 = \frac{5}{\omega_c\frac{\omega_c}{2}\cdot 1} = \frac{10}{\omega_c^2}$
+		得$\omega_c = \sqrt{10} = 3.16 > 2.9$
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{5}{s(\frac{s}{2}+1)(\frac{s}{10}+1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.2em,  y=1em]									
+			\begin{scope}[xshift=-4em, yshift=-9em]
+			\path [arr, name path=x axis] (0,0) -- node [at start, left] {$0^\circ$} node [at end, above] {$\omega$} (8,0);
+			\path [arr] (0,-5) -- node [at end, right] {$L(\omega)$dB} (0,2.5);
+			\foreach \x/\y in {-1.5/-90,-3/-180,-4.5/-270}{
+				\path [arr, -, dashed] (0,\x) -- node [at start, left] {$\y^\circ$} (7,\x);
+			}
+			\path [very thick, name path=slope, blue, draw=red] (0,1.5) -- node [pos=0.5, above] {-20} ++(-20:2) coordinate (t1) -- node [pos=0.1] {-40} ++(-40:4.5) coordinate (t2) -- ++(-60:2.5)   node [pos=0.5,right] {-60};
+			\path [rlocus, -, name path=psi] (0,-1.6) .. controls ($(0,-1.6)+(0:4.5)$) and ($(7,-4.4)+(160:4)$) .. (7,-4.4);
+			\path [draw, dashed, blue] (t1) -- node [at end, below] {2} (t1 |- 0,-4.5);
+			\path [draw, dashed, blue] (t2) -- node [at end, below] {10} (t2 |- 0,-4.5);
+			\path [draw, dashed, blue] (t1) -- (t1 |- 0,0);
+			\path [draw, dashed, blue] (t2) -- (t2 |- 0,0);
+			
+			\path [name path=c, name intersections={of=x axis and slope, by=a}] (a) -- +(-90:5);
+			\path [draw, |-|, red, name intersections={of=c and psi, by=gamma}] (gamma) -- node [left] {$\gamma$} (gamma |- 0,-3);
+			\path [draw, dashed, blue] (a) -- node [at start, below] {$\omega_c$}(gamma);
+			
+			\path [name path=dash] (0,-3) -- (7,-3);
+			\path [draw, dashed, blue, name path=g, name intersections={of=psi and dash, by=b}] (b) -- node [at start, below] {$\omega_g$} (b |- 0,0);
+			\path [draw, dashed, blue, name intersections={of=g and slope, by=h}] (h) -- +(3,0);
+			\path [draw, |-|, red] (7,0) -- node [] {$20\lg h$} (7,0 |-h);			
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+			\gamma &= 180^\circ + \angle G(\rj\omega_c) = 180^\circ + \psi(3.16)\\
+			&180^\circ - 90^\circ - \arctan\frac{3.16}{2} - \arctan\frac{3.16}{10}\\
+			&=90^\circ - 57.67^\circ - 17.541^\circ = 14.8^\circ < 18.5^\circ
+		\end{align*}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+			\omega_g &= \sqrt{2\times 10} = 4.47\\
+			h &=\frac{1}{|G(\rj 4.47)|}\\
+			&=\frac{1}{0.4167} = 2.4
+		\end{align*}
+```
+
+#### 幻灯片：稳定裕度的计算
+
+求$\gamma$，$h$
+		解：作$L(\omega)$求$\omega_c$
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{6(\frac{s}{2.5}+1)}{s(\frac{s}{2}+1)(\frac{s}{5}+1)(\frac{s}{12.5}+1)}$$
+```
+
+**原始公式代码**
+
+```tex
+$$|G(\rj\omega_c)| = 1 = \frac{6\times\frac{\omega_c}{2.5}}{\omega_c\cdot\frac{\omega_c}{2}\cdot 1\cdot 1} = \frac{6\times 2}{2.5\omega_c}\quad \omega_c = \frac{6\times 2}{2.5} = 4.8$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1em,  y=1em]							
+			\begin{scope}[xshift=0, yshift=0]
+			\path [arr, name path=x axis] (0,0) -- node [at start, left] {$0$} node [at end, above] {$\omega$} (11,0);
+			\path [arr] (0,-3) -- node [at end, right] {$L(\omega)$dB} (0,5);
+			\path [very thick, name path=slope, blue, draw=red] (0,3) -- node [pos=0.5, above] {-20} ++(-20:2) coordinate (t1) -- node [pos=0.7] {-40} ++(-40:2) coordinate (t2) -- node [pos=0.3,right] {-20} ++(-20:4) coordinate (t3) -- node [pos=0.5] {-40} ++(-40:3) coordinate (t4) -- node [pos=0.7] {-60} ++(-60:2);
+			\path [dline] (t1) -- node [at end, below] {2} (t1 |- 0,0);
+			\path [dline] (t2) -- node [at end, below] {2.5} (t2 |- 0,0);
+			\path [dline] (t3) -- node [at end, above] {5} (t3 |- 0,0);
+			\path [dline] (t4) -- node [at end, above] {12} (t4 |- 0,0);
+			\path [draw, red, name intersections={of=x axis and slope, by=a}];
+			\node [label=below:$\omega_c$] at (a) {};
+			\path [name path=dash] (0,3) -- ++(-20:10);
+			\path [draw=red, dashed, name intersections={of=dash and x axis}] (intersection-1) -- node [at start, below] {6} (0,3);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		\gamma &= 180^\circ + \angle G(\rj\omega_c)\\
+		&= 180^\circ + \arctan\frac{4.8}{2.5} - 90^\circ - \arctan\frac{4.8}{2} - \arctan\frac{4.8}{5} - \arctan\frac{4.8}{12.5}\\
+		&= 180^\circ + 62.5^\circ - 90^\circ - 67.4^\circ - 43.8^\circ - 21^\circ = 20.3^\circ
+	\end{align*}
+```
+
+#### 幻灯片：稳定裕度的计算
+
+$\psi(\omega_g) =  \arctan\frac{\omega_g}{2.5} - 90^\circ - \arctan\frac{\omega_g}{2} - \arctan\frac{\omega_g}{5} - \arctan\frac{\omega_g}{12.5} = -180^\circ$
+	$\arctan\frac{\omega_g}{12.5} + \arctan\frac{\omega_g}{5} + \arctan\frac{\omega_g}{2} - \arctan\frac{\omega_g}{2.5} = 90^\circ$
+	整理得$\omega_g^4 - 49.75\omega_g^2 - 312.5 = 0$，解出$\omega_g = 7.4$(rad/s)
+
+**原始公式代码**
+
+```tex
+$$\arctan\left[\frac{\frac{\omega_g}{12.5}+\frac{\omega_g}{5}}{1-\frac{\omega_g^2}{12.5\times 5}}\right] + \arctan\left[\frac{\frac{\omega_g}{2}-\frac{\omega_g}{2.5}}{1+\frac{\omega_g^2}{2\times 2.5}}\right] = 90^\circ$$
+```
+
+**原始公式代码**
+
+```tex
+$$\arctan\frac{[A]+[B]}{1-[A]\cdot [B]} = 90^\circ\Rightarrow [A]\cdot [B] = 1$$
+```
+
+**原始公式代码**
+
+```tex
+$$h = \frac{1}{|G(\rj\omega_g)|} = \frac{\omega_g\sqrt{\omega_g^2+2^2}\sqrt{\omega_g^2+5^2}\sqrt{\omega_g^2+12.5^2}}{300\cdot\sqrt{\omega_g^2+2.5^2}} = 3.135$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=.75em,  y=.75em]							
+			\begin{scope}[xshift=0, yshift=0]
+			\path [arr, name path=x axis] (0,0) -- node [at start, left] {$0$} node [at end, above] {$\omega$} (11,0);
+			\path [arr] (0,-3) -- node [at end, right] {$L(\omega)$dB} (0,5);
+			\path [very thick, name path=slope, blue, draw=red] (0,3) -- node [pos=0.5, above] {-20} ++(-20:2) coordinate (t1) -- node [pos=0.7] {-40} ++(-40:2) coordinate (t2) -- node [pos=0.3,right] {-20} ++(-20:4) coordinate (t3) -- node [pos=0.5] {-40} ++(-40:3) coordinate (t4) -- node [pos=0.7] {-60} ++(-60:2);
+			\path [dline] (t1) -- node [at end, below] {2} (t1 |- 0,0);
+			\path [dline] (t2) -- node [at end, below] {2.5} (t2 |- 0,0);
+			\path [dline] (t3) -- node [at end, above] {5} (t3 |- 0,0);
+			\path [dline] (t4) -- node [at end, above] {12} (t4 |- 0,0);
+			\path [draw, red, name intersections={of=x axis and slope, by=a}];
+			\node [label=below:$\omega_c$] at (a) {};
+			\path [name path=dash] (0,3) -- ++(-20:10);
+			\path [draw=red, dashed, name intersections={of=dash and x axis}] (intersection-1) -- node [at start, below] {6} (0,3);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+### 课程小结
+
+#### 幻灯片：课程小结
+
+-  稳定裕度的概念：(开环频率指标)
+		-  稳定裕度的定义
+			$cases
+				截止频率_c & |G(_c)| = 1
+				相角裕度 &  = 180^ +  G()
+				穿越频率_g &  G(_g) = -180^
+				幅值裕度 h & 1|G(_g)|
+			cases$
+		-  稳定裕度的意义
+			$cases
+				, h的几何意义
+				, h的物理意义
+			cases$
+		-  稳定裕度计算方法
+			$cases
+				L()_c  = 180^ + (_c)
+				() = -180^ _g h = 1|G(_g)|
+			cases$
+
+## 利用开环频率特性分析系统的性能
+
+### 三频段理论
+
+#### 幻灯片：三频段理论
+
+1. $L(\omega)$低频段$\leftrightarrow$系统稳态误差$e_{ss}$
+		$L(\omega)$低频段：通常最小转折频率之前
+		$G_0(s) = Ks^vcases
+			20|G_0| = 20 K - v 20
+			 G_0 = -v 90^
+		cases$
+	2. $L(\omega)$中频段$\leftrightarrow$系统动态性能$(\
+	red希望$L(\omega)$以-20dB/sec斜率穿越0dB线，并保持较宽的频段
+	3. $L(\omega)$高频段$\leftrightarrow$通常10倍$\omega_c$以上频段，系统抗高频噪声能力
+
+**原始公式代码**
+
+```tex
+$$\Phi(s) = \frac{G(s)}{1+G(s)}\xlongrightarrow{|G(s)|\ll 1}|\Phi(s)|\approx |G(s)|\ll 1$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1.3em, y = 1em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (12,0);
+			\path [arr] (0,-4) -- node [at end, left] {$L(\omega)$dB} (0,4);
+			\path [rlocus, -, name path=slope] (0,3) -- node [pos=0.4, above] {-20} ++(-20:2) coordinate (t1) -- node [pos=0.5, above] {-40} ++(-40:2) coordinate (t2) -- node [pos=0.5, above] {-20} ++(-20:4) coordinate (t3) -- node [pos=0.5, above] {-40} ++(-40:2) coordinate (t4) -- node [pos=0.5, right] {-60} ++(-60:2);
+			\path [name intersections={of=x axis and slope}];
+			\node [label=below:$\omega_c$] at (intersection-1) {};
+			\path [dline] (t1) -- (t1 |- 0,0);
+			\path [dline] (t2) -- (t2 |- 0,0);
+			\path [dline] (t3) -- (t3 |- 0,0);
+			\path [dline] (t4) -- (t4 |- 0,0);
+			\path [line, <->] (0,-5) -- node [fill=white] {低频段} (4,-5);
+			\path [line, <->] (4,-5) -- node [fill=white] {中频段} (8,-5);
+			\path [line, <->] (8,-5) -- node [fill=white] {高频段} (12,-5);
+			\path [line] (4,-5) -- ++(0,2);
+			\path [line] (8,-5) -- ++(0,2);
+		\end{tikzpicture}
+```
+
+### 三频段理论：实例
+
+#### 幻灯片：利用开环频率特性分析系统的性能实例(1)
+
+二阶系统
+	$\omega_c^2[\omega_c^2 + 4\zeta^2\omega_n^2] - \omega_n^4 = \omega_c^4 + 4\zeta^2\omega_n^2\omega_c^2 - \omega_n^4 = 0$
+	$\omega_c = \sqrt{\sqrt{4\zeta^4+1}-2\zeta^2}\cdot\omega_n$
+	$\gamma = 180^\circ + \psi(\omega_c) = 90^\circ - \arctan\frac{\omega_c}{2\zeta\omega_n} = \arctan\frac{2\zeta\omega_n}{\omega_c}$
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{\omega_n^2}{s(s+2\zeta\omega_n)}\begin{cases}K = \omega_n/2\zeta\\ v = 1\end{cases}$$
+```
+
+**原始公式代码**
+
+```tex
+$$\begin{cases}
+		|G(\rj\omega)| = \frac{\omega_n^2}{\omega\sqrt{\omega^2+(2\zeta\omega_n)^2}}\\
+		\angle G(\rj\omega) = -90^\circ - \arctan\frac{\omega}{2\zeta\omega_n}
+	\end{cases}\quad\Phi(s) = \frac{\omega_n^2}{s^2+2\zeta\omega_ns+\omega_n^2}$$
+```
+
+**原始公式代码**
+
+```tex
+$$|G(\rj\omega_c)| = \frac{\omega_n^2}{\omega_c\sqrt{\omega_c^2+(2\zeta\omega_n)^2}} = 1$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=2em,  y=2em]
+			\tikzstyle{arr} = [draw, blue, -latex, thick]
+			\tikzstyle{line} = [draw=black, -latex, thick]
+			\path [arr] (0,0) -- node [above, red] {$r$} ++(.5,0) coordinate (t);
+			\node [cross, anchor = west] (c) at (t) {};
+			\path [arr] (c.east) -- node [above, red] {$e$} ++(.5,0) coordinate (t);
+			\node [block] (b1) at (t) {$\frac{\omega_n^2}{s(s+2\zeta\omega_n)}$};
+			\path [arr] (b1.east) -- ++(.5,0) coordinate (t) -- node [above, red] {$c$}++(.5,0);		
+			\path [arr] (t) -- ++(0,-1) - | node [right, at end] {$-$} (c.south);
+		\end{tikzpicture}
+```
+
+#### 幻灯片：利用开环频率特性分析系统的性能实例(1)
+
+$$.arrayl = 24^4+1-2^2
+ \
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{\omega_n^2}{s(s+2\zeta\omega_n)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=2em,  y=2em]
+		\tikzstyle{arr} = [draw, blue, -latex, thick]
+		\tikzstyle{line} = [draw=black, -latex, thick]
+		\path [arr] (0,0) -- node [above, red] {$r$} ++(.5,0) coordinate (t);
+		\node [cross, anchor = west] (c) at (t) {};
+		\path [arr] (c.east) -- node [above, red] {$e$} ++(.5,0) coordinate (t);
+		\node [block] (b1) at (t) {$\frac{\omega_n^2}{s(s+2\zeta\omega_n)}$};
+		\path [arr] (b1.east) -- ++(.5,0) coordinate (t) -- node [above, red] {$c$}++(.5,0);		
+		\path [arr] (t) -- ++(0,-1) - | node [right, at end] {$-$} (c.south);
+	\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+			\gamma &=180^\circ + \psi(\omega_c) = 90^\circ - \arctan\frac{\omega_c}{2\zeta\omega_n} = \arctan\frac{2\zeta\omega_n}{\omega_c}\\
+			\omega_c &= \sqrt{\sqrt{4\zeta^4+1}-2\zeta^2}\cdot\omega_n
+		\end{align*}
+```
+
+#### 幻灯片：利用开环频率特性分析系统的性能实例(1)
+
+结论:阻尼比$\zeta$不变,即相角裕度$\gamma$不变,则阶跃响应的调整时间$t_s$将随$\omega_c$的增大而减小。
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.5em,  y=1em]
+			\path [draw, thick] (0,0) rectangle (5,8) node [at start, left, yshift=8em] {\color{red}$\sigma\
+			\foreach \x/\y in {0/0,1/0.2,2/0.4,3/0.6,4/0.8,5/1}{
+				\path [dline] (\x,0) -- node [at start, below] {\y} (\x,8);
+			}
+			\foreach \x/\y/\z in {1/0/10,2/20/20,3/40/30,4/60/40,5/80/50,6/100/60,7/120/70}{
+				\path [dline] (0,\x) -- node [at start, left] {\y} node [at end, right] {\z} (5,\x);
+			}
+			\path [rlocus, -, blue] (0,0) .. controls (70:2) and ($(5,6.5)+(190:4)$) .. (5,7.5);
+			\path [rlocus, -] (0,6) .. controls ($(0,6)+(-70:2)$) and ($(5,1)+(180:4)$) .. (5,1);
+			\node [label=below:$\zeta$] at (2.5,-.5) {};
+			
+			\begin{scope}[xshift=12em, x=1.25em, y=0.89em]
+			\path [draw, thick] (0,0) rectangle (6,9);
+			\foreach \x/\y in {0/20,1/30,2/40,3/50,4/60,5/70,6/80}{
+				\path [dline] (\x,0) -- node [at start, below] {\y} (\x,9);
+			}
+			\foreach \x/\y/\z in {0/0/0,1/2/10,2/4/20,3/6/30,4/8/40,5/10/50,6/12/60,7/14/70,8/16/0,9/18/0}{
+				\path [dline] (0,\x) -- node [at start, left] {\y} (6,\x);
+			}
+			\path [rlocus, -, red] (0.4,8.5) .. controls ($(0.4,8.5)+(-75:3)$) and ($(5.5,0.8)+(160:3)$) .. node [near start, right] {$t_s\omega_c$} (5.5,0.8);
+			\node [label=below:$\gamma(^\circ)$] at (2.5,-.5) {};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{figure}
+		
+		\caption{阻尼、相角裕度、调节时间及截止频率之间的关系}\label{fig:xi-gamma}
+	\end{figure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+				t_s &= \frac{3}{\zeta\omega_n}\\
+				t_s\omega_c &= \frac{3}{\zeta}\sqrt{\sqrt{4\zeta^4+1}-2\zeta^2}\\
+				&= 6\cdot \frac{\sqrt{\sqrt{4\zeta^4+1}-2\zeta^2}}{2\zeta} = \frac{6}{\tan\gamma}
+			\end{align*}
+```
+
+#### 幻灯片：利用开环频率特性分析系统的性能实例(2)
+
+已知系统结构图，求$\omega_c$，并确定$\
+	解：绘制$L(\omega)$曲线
+	查slide:xi-gammafig:xi-gamma有$\
+	$t_s = \frac{6}{\omega_c\cdot \tan\gamma}= \frac{6}{31\times\tan 32.8^\circ} = 0.3$
+	按时域方法：
+	$G(s) = \frac{48}{s(s/20+1)} = \frac{48\times 20}{s(s+20)}$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = .8em, y = .8em]
+			\path [arr] (0,0) -- node [above, red] {$r$} ++(.7,0) coordinate (t);
+			\node [cross, anchor = west] (c) at (t) {};
+			\path [arr] (c.east) -- node [above, red] {$e$} ++(.7,0) coordinate (t);
+			\node [block] (b1) at (t) {$\frac{48}{s(\frac{s}{20}+1)}$};
+			\path [arr] (b1.east) -- ++(.3,0) coordinate (t) -- node [above, red] {$c$}++(.7,0);		
+			\path [arr] (t) -- ++(0,-2) - | node [right, at end] {$-$} (c.south);
+			
+			\begin{scope}[xshift=7em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (8,0);
+			\path [arr] (0,-2) -- node [pos=0.9, right] {$L(\omega)$dB} (0,4);
+			\path [rlocus, -, name path=slope] (0,2) -- node [pos=0.4, above] {-20} ++(-20:2) coordinate (t1) -- node [pos=1, above] {-40} ++(-40:6);
+			\path [name intersections={of=x axis and slope}];
+			\node [label=below:$\omega_c$] at (intersection-1) {};
+			\path [dline] (t1) -- node [at end, below] {20}(t1 |- 0,0);
+			\path [name path=dash] (0,2) -- ++(-20:8);
+			\path [draw=red, dashed, name intersections={of=dash and x axis}] (intersection-1) -- node [at start, below] {48} (0,2);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		1 &=  \frac{48}{\omega_c\frac{\omega_c}{20}}\rightarrow\\
+		\omega_c &= \sqrt{20\times 48} =31\\
+		\gamma &= 180^\circ - 90^\circ - \arctan\frac{31}{20}\\
+		&= 90^\circ - 57.2^\circ = 32.8^\circ
+	\end{align*}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		\Phi(s) &= \frac{G(s)}{1+G(s)} = \frac{960}{s^2 + 20s + 960}\\
+			&\begin{cases}\omega_n = \sqrt{960}=31\\
+				\zeta = \frac{20}{2\times 31} = 0.3226
+			\end{cases}\\
+		\sigma\
+		t_s &= \frac{3}{\zeta\omega_n} = \frac{3}{10} = 0.3
+	\end{align*}
+```
+
+### 高阶系统
+
+#### 幻灯片：高阶系统
+
+-  希望 $L(\omega)$ 以-20dB/dec斜率穿越 0dB线，并保持较宽的频段,以确保足够的相角裕度关于超调的要求;
+			-  保持所需相裕度,选择合适的截止频率可以影响调节时间.
+
+**原始公式代码**
+
+```tex
+$$\begin{cases}
+			\sigma\
+			t_s = \frac{\pi}{\omega_c}\left[2+1.5\left(\frac{1}{\sin\gamma}-1\right)+2.5\left(\frac{1}{\sin\gamma}-1\right)^2\right]
+		\end{cases}$$
+```
+
+**原始公式代码**
+
+```tex
+$$(35^\circ\le\gamma\le 90^\circ)$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.2em,  y=1em]
+			\path [draw, thick] (0,0) rectangle (6,9);
+			\foreach \x/\y in {0/30,1/40,2/50,3/60,4/70,5/80,6/90}{
+				\path [dline] (\x,0) -- node [at start, below] {\y} (\x,9);
+			}
+			\foreach \x/\y/\z in {0/0.10/$\frac{6}{\omega_c}$,1/0.15/~,2/0.20/$\frac{8}{\omega_c}$,3/0.25/~,4/0.3/$\frac{10}{\omega_c}$,5/0.35/~,6/0.40/$\frac{12}{\omega_c}$,7/0.45/~,8/0.50/$\frac{14}{\omega_c}$,9/{\color{blue}$\sigma\
+				\path [dline] (0,\x) -- node [at start, left] {\y} node [at end, right] {\z} (6,\x);
+			}
+			\path [rlocus, -, blue] (0.3,8) .. controls ($(0.3,8)+(-70:2)$) and ($(6,1.2)+(180:4)$) .. (6,1.2);
+			\path [rlocus, -] (0.7,8) .. controls ($(.7,8)+(-80:2)$) and ($(6,.4)+(180:4)$) .. (6,.4);
+			\node [label=below:$\gamma(^\circ)$] at (2.5,-.5) {};
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{figure}
+	
+		\caption{相角裕度、超调量和 调节时间之间的关系}\label{fig:sigma-gamma}
+		\end{figure}
+```
+
+#### 幻灯片：高阶系统
+
+已知单位反馈系统$G(s)$，求$\omega_c$,  $\gamma$；确定$\
+	解：绘制$L(\omega)$曲线$\frac{\omega_c}{48} = \frac{20}{10}$
+	查slide:sigma-gammafig:sigma-gamma$cases
+		\
+		t_s = 8_c = 896 = 0.0714
+	cases$
+
+**原始公式代码**
+
+```tex
+$$G(s) = \frac{48(\frac{s}{10}+1)}{s(\frac{s}{20}+1)(\frac{s}{100}+1)}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1em, y = 1em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (12,0);
+			\path [arr] (0,-2) -- node [pos=0.9, right] {$L(\omega)$dB} (0,4);
+			\path [rlocus, -, name path=slope] (0,2) -- node [pos=0.4, above] {-20} ++(-20:2) coordinate (t1) -- node [pos=.5, above] {0} ++(0:2) coordinate (t2) -- node [pos=0.4, above] {-20} ++(-20:6) coordinate (t3) -- node [pos=0.8, above] {-40} ++(-40:2);
+			\path [name intersections={of=x axis and slope}];
+			\node [label=below:$\omega_c$] at (intersection-1) {};
+			\path [dline] (t1) -- node [at end, below] {10}(t1 |- 0,0);
+			\path [dline] (t2) -- node [at end, below] {20}(t2 |- 0,0);
+			\path [dline] (t3) -- node [at end, above] {100}(t3 |- 0,0);
+			\path [name path=dash] (0,2) -- ++(-20:8);
+			\path [draw=red, dashed, name intersections={of=dash and x axis}] (intersection-1) -- node [at start, below] {48} (0,2);
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+		\gamma &= 180^\circ + \psi(\omega_c) = 180^\circ + \arctan\frac{96}{10} - 90^\circ - \arctan\frac{96}{20} - \arctan\frac{96}{100}\\
+		&= 180^\circ + 84^\circ - 90^\circ -78^\circ - 43.8^\circ = 52.1^\circ
+	\end{align*}
+```
+
+#### 幻灯片：利用开环频率特性分析系统的性能
+
+已知最小相角系统 $L(\omega)$ 如图所示，试确定
+			-  开环传递函数G(s);
+			-  由$\gamma$确定系统的稳定性；
+			-  将 $L(\omega)$右移10倍频，讨论对系统的影响。
+		解：
+		$(1)~G(s) = \frac{10}{s(\frac{s}{0.1}+1)(\frac{s}{20}+1)}$
+(2)$|G(\rj\omega_c)|\approx \frac{10}{\omega_c\frac{\omega_c}{0.1}}\rightarrow \omega_c = \sqrt{0.1\times 10} = 1$
+		$arrayrl
+			 &= 180^ -90^ - 10.1 - 120
+			&= 90^ - 84.3^ - 2.86^ = 2.8^ > 0red稳定
+		array$
+		$L(\omega)$右移后$cases
+		不变\
+		_c增大 t_s减小
+	cases$
+		(3) 将$L(\omega)$右移10倍频后有
+		$G(s) = \frac{100}{s(\frac{s}{1}+1)(\frac{s}{200}+1)}$
+		$arrayrl
+			_c &= 1 100 = 10
+			 &= 180^ -90^
+			&- 101 - 10200
+			&= 90^ - 84.3^ - 2.86^
+			&= 2.8^
+		array$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x = 1em, y = 1em]
+			\path [arr, name path=x axis] (0,0) -- node [at end, above] {$\omega$} (8,0);
+			\path [arr] (0,-2) -- node [pos=0.9, right] {$L(\omega)$dB} (0,4);
+			\path [rlocus, -, name path=slope] (0,2) -- node [pos=0.4, above] {-20} ++(-20:2) coordinate (t1) -- node [pos=.9, above] {-40} ++(-40:6) coordinate (t2) -- node [pos=0.8, above] {-60} ++(-60:2);
+			\path [name intersections={of=x axis and slope}];
+			\node [label=below:$\omega_c$] at (intersection-1) {};
+			\path [dline] (t1) -- node [at end, below] {0.1}(t1 |- 0,0);
+			\path [dline] (t2) -- node [at end, above] {20}(t2 |- 0,0);
+			\path [name path=dash] (0,2) -- ++(-20:8);
+			\path [draw=red, dashed, name intersections={of=dash and x axis}] (intersection-1) -- node [at start, below] {10} (0,2);
+		\end{tikzpicture}
+```
+
+### 课程小结
+
+#### 幻灯片：利用开环频率特性分析系统的性能
+
+三频段理论
+	                     频段            对应性能                    希望形状
+	三频段理论并没有提供设计系统的具体步骤，但它给出了调整系统结构改善系统性能的原则和方向
+
+**原始公式代码**
+
+```tex
+$$L(\omega)\begin{cases}
+		\text{低频段}\begin{cases}\text{开环增益}K\\ \text{系统型别}v\end{cases}\text{稳态误差}e_{ss} & \text{陡，高}\\
+		\text{高频段}\begin{cases}\text{截止频率}\omega_c\\\text{相角裕度}\gamma\end{cases}\text{动态性能}\begin{cases}\sigma\
+		\text{高频段~~~~~~~系统抗高频干扰能力} &\text{低，陡}
+	\end{cases}$$
+```
+
+#### 幻灯片：利用开环频率特性分析系统的性能
+
+关于三频段理论的说明：
+		-  各频段分界线没有明确的划分标准；
+		-  与无线电学科中的“低”、“中”、“高”频概念不同；
+		-  不能用是否以-20dB/dec过0dB线作为判定闭环系统是否稳定的标准；
+		-  只适用于单位反馈的最小相角系统。
+
+## 利用闭环频率特性分析系统的性能
+
+#### 幻灯片：利用闭环频率特性分析系统的性能
+
+**研究闭环频率特性的必要性**
+			-  闭环频率特性的一些特征量在实际工程中应用十分广泛；
+			-  通过实验方法很容易得到系统的闭环频率特性；
+			-  通过闭环频率特性可以估算系统的性能指标。
+
+### 用向量法求闭环频率特性
+
+#### 幻灯片：闭环频率特性曲线的绘制
+
+用向量法求闭环频率特性
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=2em,  y=2em]
+			\path [arr] (0,0) -- node [above, red] {$r$} ++(.5,0) coordinate (t);
+			\node [cross, anchor = west] (c) at (t) {};
+			\path [arr] (c.east) -- node [above, red] {$e$} ++(.5,0) coordinate (t);
+			\node [block] (b1) at (t) {$G(s)$};
+			\path [arr] (b1.east) -- ++(.5,0) coordinate (t) -- node [above, red] {$c$}++(.5,0);		
+			\path [arr] (t) -- ++(0,-1) - | node [right, at end] {$-$} (c.south);
+			
+			\begin{scope}[xshift=5em, yshift=-8em]
+			\path [arr, name path=x]	(-6,0) -- (2,0);
+			\path [arr] (0,-4) -- node [at end, right] {Im} node [at end, right, xshift=-2em] {[G]} (0,2);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-4,-5);
+			\coordinate (O) at (0,0);
+			\coordinate (B) at (-5,0);
+			\path [rlocus, -, name path=n] (o2) .. controls ($(o2)+(70:1)$) and ($(o1)+(110:4)$) .. (o1);
+
+			\path [name path=w1] (O) -- +(-135:6);
+			\path [name intersections={of=w1 and n}];
+			\node [zero, fill=red, inner sep=1pt, label=below right:$A$] (w1) at (intersection-1) {};
+			\path [line, blue, thin, ->] (O) -- node {\color{red}$\vv{G}$} (w1); 
+			\path [line, blue, thin, ->] (B) -- node [at start, below left] {$B$} node {\color{red}$\vv{1+G}$} node [at end, left] {$\omega_1$} (w1); 
+			\path [line, blue, thin, <->] ($(w1)+(45:1)$) arc (45:113:1) node [midway, above] {$\alpha_1$};
+			
+			\path [name path=w2] (O) -- +(-155:6);
+			\path [name intersections={of=w2 and n}];
+			\node [zero, fill=red, inner sep=1pt] (w2) at (intersection-1) {};
+			\path [line, blue, thin, ->] (O) -- node [at end, right] {$\omega_2$} (w2); 
+			\path [line, blue, thin, ->] (B) -- (w2); 
+			\path [line, blue, thin, <->] ($(w2)+(25:1)$) arc (25:155:1) node [midway, above] {$\alpha_2$};
+			
+			\path [name path=w3] (O) -- +(155:6);
+			\path [name intersections={of=w3 and n}];
+			\node [zero, fill=red, inner sep=1pt] (w3) at (intersection-1) {};
+			\path [line, blue, thin, ->] (O) -- node [at end, below] {$\omega_3$} (w3); 
+			\path [line, blue, thin, ->] (B) -- (w3); 
+			\path [line, blue, thin, <->] ($(w3)+(-25:1)$) arc (-25:193:1) node [midway, above] {$\alpha_3$};
+			
+			\path [line, blue, thin, ->] (w1) -- ++(5,0) coordinate (C);
+			\path [line, blue, thin, ->] (O) -- (C);
+			\path [line, blue, thin, <->] ($(O)+(0:1)$) arc (0:-135:1);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[0]{r}{16em}
+		
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}
+		&G(s) = \frac{K}{s(T_1s  +1)(T_2s + 1)}&\\
+		&\Phi(\omega) = \frac{G(\rj\omega)}{1+G(\rj\omega)} = M(\omega)\cdot e^{\rj\phi(\omega)}
+		\begin{cases}
+			M(\omega) = |\Phi(\rj\omega)|\\
+			\phi(\omega) = \angle \Phi(\rj\omega)
+		\end{cases}&\\
+		&G(\rj\omega) = \vv{OA}&\\
+		&1+G(\rj\omega) = \vv{BA}&\\
+		&\Phi(\rj\omega) = \frac{\vv{OA}}{\vv{BA}}&\\
+		&\begin{cases}
+			M(\omega) = |\vv{OA}|/|\vv{BA}|\\
+			\psi(\omega) = \angle\vv{OA} - \angle\vv{BA} = \alpha
+		\end{cases}&\\
+	\end{flalign*}
+```
+
+#### 幻灯片：闭环频率特性曲线的绘制
+
+等M圆 等N圆图
+	red等M圆 --$\Phi(\omega) = \frac{OA}{BA}$为常数的轨迹
+	整理得等M圆方程
+
+**原始公式代码**
+
+```tex
+$$\left(X-\frac{M^2}{1-M^2}\right)^2 + Y^2 = \left(\frac{M}{1-M^2}\right)^2$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=10em,  y=10em]
+			\clip (-1.6,-1) rectangle (0.6,1);
+			
+			\foreach \x in {-0.8,-0.6,-0.4,-0.2,0,0.2,0.4,0.6,0.8}{
+				\path [dline, gray] (-1.6,\x) -- node [pos=0.8, below] {\x} (.6,\x);
+			}
+			\foreach \x in {-1.5,-1,-0.5,0.5}{
+				\node [label=below:\x] at (\x,0) {};
+			}
+			\path [dline, gray] (-1,-1) -- (-1,1);
+			\path [arr, very thick] (-1.6,0) -- (.6,0);
+			\path [arr, very thick] (0,-1) -- (0,1);
+			\foreach \x/\y in {0.1/100,0.2/115,0.3/120,0.4/125,0.5/130,0.6/140,0.7/150,0.8/160,0.9/170,0.99/179,1.1/-170,1.25/-157,1.4/-150,1.67/-140,2/-130,2.5/-125,3.3/-120,5/-115,10/-110}{
+				\pgfmathparse{\x^2/(1-\x^2)}
+				\pgfmathsetmacro{\reone}{\pgfmathresult}
+				\pgfmathparse{\x/(1-\x^2)}
+				\pgfmathsetmacro{\retwo}{\pgfmathresult}
+				\path [draw, blue, thick] (\reone,0) circle (\retwo);
+				\node at ($(\reone,0)+(\y:\retwo)$) {\color{red}\x};
+			}
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-1,-1);
+			\path [rlocus, -, name path=n] (o2) .. controls ($(o2)+(70:1)$) and ($(o1)+(110:.5)$) .. (o1);
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[0]{r}{13.5em}
+		\scalebox{0.6}{
+		}
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}
+		\text{设} &G(\rj\omega) = X + \rj Y&\\
+		&\Phi(\rj\omega) = M(\omega)\angle\alpha(\omega)&\\
+		&|\Phi| = \left| \frac{G}{1+G}\right| = \left|\frac{X+\rj Y}{1+X+\rj Y}\right|&\\
+		&=\frac{\sqrt{X^2+Y^2}}{\sqrt{(X+1)^2+Y^2}} = M(\omega)&
+	\end{flalign*}
+```
+
+#### 幻灯片：闭环频率特性曲线的绘制
+
+red等N圆 --$\angle OAB = \alpha$为常数的轨迹
+	整理得等N圆方程
+
+**原始公式代码**
+
+```tex
+$$\left(X+\frac{1}{2}\right)^2 + \left(Y-\frac{1}{2N}\right)^2 = \frac{N^2+1}{4N^2}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=10em,  y=10em]
+			\clip (-1.6,-1) rectangle (0.6,1);
+			
+			\foreach \x in {-0.8,-0.6,-0.4,-0.2,0,0.2,0.4,0.6,0.8}{
+				\path [dline, gray] (-1.6,\x) -- node [pos=0.8, below] {\x} (.6,\x);
+			}
+			\foreach \x in {-1.5,-1,-0.5,0.5}{
+				\path [dline, gray] (\x,-1) -- node [pos=0.5, below] {\x} (\x,1);
+			}
+			
+			\path [arr] (-1.6,0) -- (.6,0);
+			\path [arr] (0,-1) -- (0,1);
+			\foreach \x/\y in {150,130,110,70,50,30,10,-10,-30,-50,-70,-110,-130,-150}{
+				\pgfmathparse{1/(2*tan(\x))}
+				\pgfmathsetmacro{\reone}{\pgfmathresult}
+				\pgfmathparse{sqrt((tan(\x)^2+1)/(4*tan(\x)^2))}
+				\pgfmathsetmacro{\retwo}{\pgfmathresult}
+				\path [draw, blue] (-.5,\reone) circle (\retwo);
+			}
+			\foreach \x/\y in {150/15,130/25,110/42,90/60,70/85,50/105,30/135,10/165}{
+				\node at ($(-1,0)+(\y:.4)$) {$\x^\circ$};
+				\node at ($(-1,0)+(-\y:.4)$) {$-\x^\circ$};
+			}
+			\path [draw, blue] (-.5,0) circle (.5);
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-1,-1);
+			\path [rlocus, -, name path=n] (o2) .. controls ($(o2)+(70:1)$) and ($(o1)+(110:.5)$) .. (o1);
+		\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{wrapfigure}[0]{r}{13.5em}
+		\scalebox{0.6}{
+		
+		}
+	\end{wrapfigure}
+```
+
+**原始公式代码**
+
+```tex
+\begin{flalign*}
+		\text{设} &G(\rj\omega) = X + \rj Y&\\
+		&\Phi(\rj\omega) = \frac{G}{1+G} = \frac{X+\rj Y}{1+X+\rj Y}&\\
+		&=\frac{X^2 + X  + Y^2 + \rj Y}{(X+1)^2+Y^2}&\\
+		&\angle\Phi(\omega) = \arctan\frac{Y}{X^2 + X  +Y^2} = \alpha&\\
+		&\tan\alpha = N(\omega) = \frac{Y}{X^2 + X + Y^2}&
+	\end{flalign*}
+```
+
+#### 幻灯片：闭环频率特性曲线的绘制
+
+等M圆和等N圆上的极坐标图
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=8em,  y=8em]
+			\clip (-2.3,-1) rectangle (1.2,1);
+			
+			\path [arr] (-2.3,0) -- (1.2,0);
+			\path [arr] (0,-1) -- (0,1);
+			
+			\foreach \x in {-2,-1.5,-1,-0.5,0.5}{
+				\node [zero, fill=red, inner sep=1pt, label=below:\x] at (\x,0) {};
+			}
+			\foreach \x/\y in {0.2/45,0.5/45,0.65/130,0.85/165,1.15/15,1.5/40,2/135,5/135}{
+				\pgfmathparse{\x^2/(1-\x^2)}
+				\pgfmathsetmacro{\reone}{\pgfmathresult}
+				\pgfmathparse{abs(\x/(1-\x^2))}
+				\pgfmathsetmacro{\retwo}{\pgfmathresult}
+				\path [line, thick] (\reone,0) circle (\retwo);
+				\node at ($(\reone,0)+(\y:\retwo)$) {\color{red}\x};
+			}
+						
+			\foreach \x/\y in {150,120,100,80,60,30}{
+				\pgfmathparse{1/(2*tan(\x))}
+				\pgfmathsetmacro{\reone}{\pgfmathresult}
+				\pgfmathparse{sqrt((tan(\x)^2+1)/(4*tan(\x)^2))}
+				\pgfmathsetmacro{\retwo}{\pgfmathresult}
+				\path [line, blue] (-.5,\reone) circle (\retwo);
+				\node at ($(-.5,\reone)+(0,\retwo)$) {\color{red}$\x^\circ$};
+			}
+			\foreach \x/\y in {-30,-60,-80,-100,-120,-150}{
+				\pgfmathparse{1/(2*tan(\x))}
+				\pgfmathsetmacro{\reone}{\pgfmathresult}
+				\pgfmathparse{sqrt((tan(\x)^2+1)/(4*tan(\x)^2))}
+				\pgfmathsetmacro{\retwo}{\pgfmathresult}
+				\path [line, blue] (-.5,\reone) circle (\retwo);
+				\node at ($(-.5,\reone)+(0,-\retwo)$) {\color{red}$\x^\circ$};
+			}
+			\coordinate (o1) at (0,0);
+			\coordinate (o2) at (-1,-1);
+			\path [rlocus, -, name path=n] (o2) .. controls ($(o2)+(70:1)$) and ($(o1)+(110:.5)$) .. (o1);
+		\end{tikzpicture}
+```
+
+#### 幻灯片：闭环频率特性曲线的绘制
+
+将等M 圆和等N  圆变换到对数幅相特性图上,得尼柯尔斯图.
+		0.7
+		等M圆和等N圆上的Bode图
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=.075em,  y=.29em]
+			\begin{scope}[draw=cyan]
+			\foreach \x/\y in {1/~,2/~,3/~,4/~,5/~,6/50^\circ,7/90^\circ,8/120^\circ,9/150^\circ,10/~,
+			11/~,12/~,13/~,14/~,15/~,16/-50^\circ,17/-90^\circ,18/-120^\circ,19/-150^\circ,20/~}{
+				\path [draw, dashed, thick] plot [smooth] file {../figs/ngriddata/ngriddata\x.txt} node[above=2em] {$\y$};
+			}
+			\node at (-320,-15) {$30^\circ$};
+			\node at (-40,-15) {$-30^\circ$};
+			\node at (-330,-5) {$20^\circ$};
+			\node at (-30,-5) {$-20^\circ$};
+			\node at (-330,5) {$10^\circ$};
+			\node at (-30,5) {$-10^\circ$};
+			\node at (-340,12) {$5^\circ$};
+			\node at (-20,12) {$-5^\circ$};
+			\node at (-330,32) {$\alpha=1^\circ$};
+			\node at (-30,32) {$\alpha=-1^\circ$};
+			\end{scope}
+			\foreach \x/\y in {21/6,22/3,23/1,24/0.5,25/0.25,26/0,27/-1,28/-3,29/-6,30/-12,31/-20,32/-40}{
+				\path [draw=orange, dashed, thick] plot [smooth] file {../figs/ngriddata/ngriddata\x.txt} node[right] {\y dB};
+			}
+			\foreach \x in {-360,-300,-240,-180,-120,-60,0}{
+				\path [dline, draw=gray] (\x,-40) -- node [at start, below] {$\x^\circ$} (\x,40);
+			}
+			\foreach \x in {40,30,20,10,0,-10,-20,-30,-40}{
+				\path [dline, draw=gray] (-360,\x) -- node [at start, left] {$\x$} (0,\x);
+			}
+			\node at (-180,-47) {$\psi(^\circ)$};
+			\node [rotate=90] at (-385,0) {$20\log A$(dB)};
+		\end{tikzpicture}
+```
+
+#### 幻灯片：未命名页
+
+0.6
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=.075em,  y=.3em]
+			\begin{scope}[x=4em, y=1.4em, xshift=-47em, yshift=9em]
+			\def\Left{0}
+			\def\Right{4.61}
+			\def\Up{3}
+			\def\Bottom{-6}
+			\node [anchor=west, text width=25em] at (-0.5,6.5) {\huge \example{}{}~\emph{已知$G(s) = \frac{11.7}{s(\frac{s}{10}+1)(\frac{s}{20}+1)}$，求$\Phi(\rj\omega)$}};
+			\foreach \x/\y in {1/1,2/~,3/~,4/~,5/~,6/~,7/~,8/~,9/~,10/10,20/~,30/~,40/~,50/~,60/~,70/~,80/~,90/~,100/100}{
+				\pgfmathln{\x}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\path [draw=gray, dotted, thick] (\re,\Up) -- node [at end, below] {\y} (\re,\Bottom);
+			}
+			\foreach \x/\y/\z in {3/30/~,2/20/$90^\circ$,1/10/~,0/0/~,-1/-10/~,-2/-20/$-90^\circ$,-3/-30/~,-4/-40/$-180^\circ$,-5/-50/~,-6/-60/$-270^\circ$}{
+				\path [draw=gray, dotted, thick] (\Left,\x) -- node [at start, left] {\y} node [at end, right] {\z} (4.61,\x);
+			}
+			\path [arr] (\Left,0) -- node [at end, above right] {$0^\circ$} (\Right,0) -- node [near end, above] {$\omega$} (5.3,0);
+			\path [arr] (\Left,\Bottom) -- node [pos=0.95, right] {$L(\omega)$dB} ($(\Left,\Up)+(0,1)$);
+			\path [draw=gray, thick] (\Left,\Up) -- node [at end, above right] {$\psi(\omega)$} (\Right,\Up) |- (\Left,\Bottom);
+			\foreach \x/\y/\z/\k in {1/1/21.3/-99,2/3/11.5/-115,3/5/6.3/-130,4/9/-1/-157,5/11.7/-5.2/-170,6/20/-14.5/-198,7/100/-52/-260}{
+				\pgfmathln{\y}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\coordinate (L\x) at (\re,\z/10);
+				\coordinate (p\x) at (\re,\k/90*2);
+			}
+			\path [rlocus, -] (L1) .. controls ($(L1)+(-35:1)$) and ($(L2)+(135:.5)$) .. (L2) .. controls ($(L2)+(-40:.5)$) and ($(L3)+(135:.2)$) .. (L3) .. controls ($(L3)+(-45:.2)$) and ($(L4)+(130:.2)$).. (L4) .. controls ($(L4)+(-50:.2)$) and ($(L5)+(140:.1)$) .. (L5) .. controls ($(L5)+(-50:.2)$) and ($(L6)+(120:.2)$) .. (L6) .. controls ($(L6)+(-60:1)$) and ($(L7)+(110:1)$) .. (L7);
+			\path [draw=red!50!yellow, very thick] (p1) .. controls ($(p1)+(-10:.5)$) and ($(p2)+(145:.5)$) .. (p2) .. controls ($(p2)+(-30:.5)$) and ($(p3)+(130:.2)$) .. (p3) .. controls ($(p3)+(-45:.2)$) and ($(p4)+(130:.2)$).. (p4) .. controls ($(p4)+(-50:.2)$) and ($(p5)+(140:.1)$) .. (p5) .. controls ($(p5)+(-50:.2)$) and ($(p6)+(120:.2)$) .. (p6) .. controls ($(p6)+(-50:1)$) and ($(p7)+(170:.5)$) .. (p7);
+			\foreach \x in {1,2,3,4,5,6}{
+				\node [zero, fill=red, inner sep=1pt] at (L\x) {};
+				\node [zero, fill=red!50!yellow, draw=red!50!yellow, inner sep=1pt] at (p\x) {};
+			}
+			\end{scope}
+			
+			\begin{scope}[x=4em, y=1.4em, xshift=-47em, yshift=-5em]
+			\def\Left{0}
+			\def\Right{4.61}
+			\def\Up{1}
+			\def\Bottom{-6}
+			\foreach \x/\y in {1/1,2/~,3/~,4/~,5/~,6/~,7/~,8/~,9/~,10/10,20/~,30/~,40/~,50/~,60/~,70/~,80/~,90/~,100/100}{
+				\pgfmathln{\x}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\path [draw=gray, dotted, thick] (\re,\Up) -- node [at end, below] {\y} (\re,\Bottom);
+			}
+			\foreach \x/\y/\z in {1/10/~,0/0/~,-1/-10/~,-2/-20/$-90^\circ$,-3/-30/~,-4/-40/$-180^\circ$,-5/-50/~,-6/-60/$-270^\circ$}{
+				\path [draw=gray, dotted, thick] (\Left,\x) -- node [at start, left] {\y} node [at end, right] {\z} (4.61,\x);
+			}
+			\path [arr] (\Left,0) -- node [at end, above right] {$0^\circ$} (\Right,0) -- node [near end, above] {$\omega$} (5.3,0);
+			\path [arr] (\Left,\Bottom) -- node [pos=0.95, right] {$M(\omega)$dB} ($(\Left,\Up)+(0,1)$);
+			\path [draw=gray, thick] (\Left,\Up) -- node [at end, above right] {$\alpha(\omega)$} (\Right,\Up) |- (\Left,\Bottom);
+			\foreach \x/\y/\z/\k in {1/1/0.1/-5,2/3/0.67/-14,3/5/2.2/-28,4/9/6.9/-95,5/11.7/1.5/-158,6/20/-12.8/-202,7/100/-52/-250}{
+				\pgfmathln{\y}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\coordinate (L\x) at (\re,\z/10);
+				\coordinate (p\x) at (\re,\k/90*2);				
+			}
+			\path [rlocus, -] (L1) .. controls ($(L1)+(0:1)$) and ($(L2)+(190:.5)$) .. (L2) .. controls ($(L2)+(10:.5)$) and ($(L3)+(190:.2)$) .. (L3) .. controls ($(L3)+(30:.2)$) and ($(L4)+(-180:.2)$).. (L4) .. controls ($(L4)+(0:.1)$) and ($(L5)+(130:.2)$) .. (L5) .. controls ($(L5)+(-70:.2)$) and ($(L6)+(125:.2)$) .. (L6) .. controls ($(L6)+(-70:2)$) and ($(L7)+(115:2)$) .. (L7);
+			\path [draw=red!50!yellow, very thick] (p1) .. controls ($(p1)+(-10:.5)$) and ($(p2)+(165:.5)$) .. (p2) .. controls ($(p2)+(-20:.5)$) and ($(p3)+(150:.2)$) .. (p3) .. controls ($(p3)+(-40:.2)$) and ($(p4)+(100:.8)$).. (p4) .. controls ($(p4)+(-80:.5)$) and ($(p5)+(110:.3)$) .. (p5) .. controls ($(p5)+(-70:.4)$) and ($(p6)+(130:.3)$) .. (p6) .. controls ($(p6)+(-50:1)$) and ($(p7)+(170:.5)$) .. (p7);
+			\foreach \x in {1,2,3,4,5,6}{
+				\node [zero, fill=red, inner sep=1pt] at (L\x) {};
+				\node [zero, fill=red!50!yellow, draw=red!50!yellow, inner sep=1pt] at (p\x) {};
+			}
+			\end{scope}
+			
+			\begin{scope}
+			\node at (-80,55) {
+			\begin{tabular}{|c|c|c|c|c|c|c|}\hline
+				$\omega$~rad/s	&1	&3	&5	&9	&11.7	&20\\\hline
+				$L(\omega)$~dB	&21.3	&11.5	&6.3	&-1	&-5.2	&-14.5\\\hline
+				$\psi(\omega)~(^\circ)$	&$-99^\circ$	&$-115^\circ$	&$-130^\circ$	&$-157^\circ$	&$-170^\circ$	&$-198^\circ$\\\hline
+				$M(\omega)$~dB	&0.1	&0.67	&2.2	&6.9	&1.5	&-12.8\\\hline
+				$\alpha(\omega)~(^\circ)$	&$-5^\circ$	&$-14^\circ$	&$-28^\circ$	&$-95^\circ$	&$-158^\circ$	&$-202^\circ$\\\hline
+				$M(\omega)$		&1.01	&1.08	&1.29	&2.21	&1.19	&0.23\\\hline
+			\end{tabular}};
+			\end{scope}
+			
+			\begin{scope}[draw=cyan, xshift=8em]
+			\foreach \x/\y in {1/~,2/~,3/~,4/~,5/~,6/50^\circ,7/90^\circ,8/120^\circ,9/150^\circ,10/~,
+			11/~,12/~,13/~,14/~,15/~,16/-50^\circ,17/-90^\circ,18/-120^\circ,19/-150^\circ,20/~}{
+				\path [draw, dashed, thick] plot [smooth] file {../figs/ngriddata/ngriddata\x.txt} node[above=2em] {$\y$};
+			}
+			\node at (-320,-15) {$30^\circ$};
+			\node at (-40,-15) {$-30^\circ$};
+			\node at (-330,-5) {$20^\circ$};
+			\node at (-30,-5) {$-20^\circ$};
+			\node at (-330,5) {$10^\circ$};
+			\node at (-30,5) {$-10^\circ$};
+			\node at (-340,12) {$5^\circ$};
+			\node at (-20,12) {$-5^\circ$};
+			\node at (-330,32) {$\alpha=1^\circ$};
+			\node at (-30,32) {$\alpha=-1^\circ$};
+			
+			\foreach \x/\y in {21/6,22/3,23/1,24/0.5,25/0.25,26/0,27/-1,28/-3,29/-6,30/-12,31/-20,32/-40}{
+				\path [draw=orange, dashed, thick] plot [smooth] file {../figs/ngriddata/ngriddata\x.txt} node[right] {\y dB};
+			}
+			\foreach \x in {-360,-300,-240,-180,-120,-60,0}{
+				\path [dline, draw=gray, very thick] (\x,-40) -- node [at start, below] {$\x^\circ$} (\x,40);
+			}
+			\foreach \x in {40,30,20,10,0,-10,-20,-30,-40}{
+				\path [dline, draw=gray, very thick] (-360,\x) -- node [at start, left] {$\x$} (0,\x);
+			}
+			\node at (-180,-47) {$\psi(^\circ)$};
+			\node [rotate=90] at (-385,0) {$20\log A$(dB)};
+			
+			\foreach \x/\y/\z/\k in {0/40/-100,1/21.3/-99,2/11.5/-115,3/6.3/-130,4/-1/-157,5/-5.2/-170,6/-14.5/-198,7/-40/-248}{
+				\coordinate (L\x) at (\z,\y);				
+			}
+			\path [rlocus, -] (L0) .. controls ($(L0)+(-90:1)$) and ($(L1)+(90:1)$) .. (L1) .. controls ($(L1)+(-95:3)$) and ($(L2)+(20:5)$) .. (L2) .. controls ($(L2)+(-140:2)$) and ($(L3)+(60:.2)$) .. (L3) .. controls ($(L3)+(-140:.2)$) and ($(L4)+(40:1)$).. (L4) .. controls ($(L4)+(-145:1)$) and ($(L5)+(40:1)$) .. (L5) .. controls ($(L5)+(-130:.2)$) and ($(L6)+(50:1)$) .. (L6) .. controls ($(L6)+(-160:10)$) and ($(L7)+(70:10)$) .. (L7);
+			\foreach \x in {1,2,3,4,5,6}{
+				\node [zero, fill=red, inner sep=1pt] at (L\x) {};
+				\path [draw=blue, thick] (L\x) -- (L\x -| -360,0);
+				\path [draw=blue, thick] (L\x) -- (L\x |- -180,-40);
+			}
+			\end{scope}
+		\end{tikzpicture}
+```
+
+### 闭环频率特性的几个特征量
+
+#### 幻灯片：闭环频率特性的几个特征量
+
+-  零频值$M_0=M(0)$
+			-  l谐振频率_r
+谐振峰值M_r
+			对二阶欠阻尼系统l_r = _n1-2^2
+ M_r = 121-^2
+			-  带宽频率$\omega_b$：$M(\omega)$下降到0.707倍的频率为0时的分贝值$M_0$对应的频率值$\omega_b$
+	例 一阶系统llG(s) = 1Ts&_c = 1/T
+ (s) = 1Ts+1& _b = 1/T $t_s=3T=\frac{3}{\omega_c}=\frac{3}{\omega_b}$
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1em,  y=1em]
+			\path [arr] (0,0) -- node [at start, left] {0} node [at end, below] {(rad/s)} (8,0) -- node [near end, above] {$\omega$} (8.3,0);
+			\path [arr] (0,0) -- node [pos=0.95, right] {$\frac{M(\omega)}{M_0}$} ($(0,4)+(0,1)$);
+			\coordinate (p0) at (0,3);
+			\coordinate (p1) at (3,4);
+			\coordinate (p2) at (5,2.121);
+			\coordinate (p3) at (7.5,0.5);
+			\path [rlocus, -] (p0) .. controls ($(p0)+(0:1)$) and ($(p1)+(180:1)$) .. (p1) node [at start, left] {1}.. controls ($(p1)+(0:0.5)$) and ($(p2)+(130:2)$) .. (p2) .. controls ($(p2)+(-45:1)$) and ($(p3)+(160:1)$) .. (p3);
+			\path [dline] (p1) -- (p1 |- 0,0) node [at end, below] {$\omega_r$};
+			\path [dline] (p2) -- (p2 -| 0,0) node [at end, left] {0.707};
+			\path [dline] (p2) -- (p2 |- 0,0) node [at end, below] {$\omega_b$};
+			\path [line] (p1) -- ++(4.5,0);
+			\path [line, <->] (7.5,4) -- node [midway, fill=white] {$M_r$} (7.5,0);
+			
+			\begin{scope}[yshift=-6em]
+			\path [arr] (0,0) -- node [at end, above] {$\omega$} (8.3,0);
+			\path [arr] (0,-3) -- node [pos=0.95, right] {$L(\omega)$dB} ($(0,4)+(0,1)$);
+			\coordinate (p1) at (0,0);
+			\coordinate (p2) at (4.2,-0.3);
+			\coordinate (p3) at (8,-3);
+			\path [rlocus, -] (p1) .. controls ($(p1)+(0:4.5)$) and ($(p2)+(160:0.5)$) .. node [very near start, above] {$M(\omega)$} (p2) .. controls ($(p2)+(-40:0.5)$) and ($(p3)+(140:1)$) .. (p3) node [near end, left] {-20dB/dec};
+			\path [dline] (p2) -- (p2 -| 0,0) node [at start, below] {$\omega_b$} node [at end, left] {-3};
+			\path [draw=orange!50!red, very thick] (0,3) -- ($(p3)+(0,0.2)$) node [near start, right] {-20dB/dec} node [midway, above] {$\omega_c$};
+			\end{scope}
+		\end{tikzpicture}
+```
+
+#### 幻灯片：闭环频域指标与时域指标的关系：二阶系统
+
+l_r = _n1-2^2
+ M_r = 121-^2 $0\le \zeta\le 0.707$
+		0.9
+
+**原始公式代码**
+
+```tex
+$$\Phi(s) = \frac{\omega_n^2}{s^2+2\zeta\omega_n s +\omega_n^2}$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=10em,  y=1em]
+			\foreach \x/\y/\z in {1/0/~,2/10/0,3/20/20,4/30/40,5/40/60,6/50/80,7/60/100,8/70/~}{
+				\path [dline, draw=gray] (0,\x) -- node [at start, left=1.2em] {\z} node [at start, left] {\x} node [at end, right] {\y} (1,\x);
+			}
+			\foreach \x in {0,0.2,0.4,0.6,0.8,1}{
+				\path [dline, draw=gray] (\x,1) -- node [at start, below] {\x} (\x,9); 
+			}
+			\path [line, draw=black] (0,9) -- node [at start, left=1.2em] {\color{blue}$\sigma\
+			\path [rlocus, -] (0.1,7.5) .. controls ($(0.1,7.5)+(-90:7)$) and ($(1,1)+(180:.5)$) .. (1,1);
+			\path [rlocus, -, draw=blue] (0,7) .. controls ($(0,7)+(-88:2)$) and ($(1,2)+(180:.5)$) .. (1,2);
+			\path [rlocus, -, draw=black] (0,1) .. controls ($(0,1)+(85:3)$) and ($(1,8.5)+(-140:.5)$) .. (1,8.5);
+			\node at (.5,-1) {$\zeta$};
+			
+			\begin{scope}[yshift=-8em]
+			\foreach \x in {0,10,20,30,40,50,60}{
+				\path [dline, draw=gray] (0,\x/10) -- node [at start, left] {\x} (1,\x/10);
+			}
+			\foreach \x/\y in {1/0,2/0.2,3/0.4,4/0.6,5/0.8,6/1}{
+				\path [dline, draw=gray] (\y,0) -- node [at start, below] {\x} (\y,6); 
+			}
+			\path [line, draw=black] (0,6) -| node [at start, above right] {$\omega_b t_s$} node [at end, above right] {$M_r$} (1,0);
+			\path [arr] (0,0) -- (1.2,0);
+			\path [arr] (0,0) -- (0,7);
+			\path [rlocus, -] (0,.5) .. controls ($(0,.5)+(88:.5)$) and ($(1,5.5)+(-135:.1)$) .. (1,5.5);
+			\end{scope}
+		\end{tikzpicture}
+```
+
+**原始公式代码**
+
+```tex
+\begin{align*}
+			M(\omega_b) &= \frac{\omega_n^2}{\sqrt{(\omega_n^2-\omega_b^2)^2+(2\zeta\omega_n \omega_b)^2}}\\
+			&=0.707\\
+			\omega_b &= \omega_n\sqrt{1-2\zeta^2+\sqrt{2-4\zeta^2+4\zeta^2}}\\
+			t_s &= 3/\zeta\omega_n\\
+			\omega_b t_s &= \frac{3}{\zeta}\sqrt{1-2\zeta^2+\sqrt{2-4\zeta^2+4\zeta^2}}
+		\end{align*}
+```
+
+#### 幻灯片：闭环频域指标与时域指标的关系：二阶系统
+
+实验测得某闭环系统的对数幅频特性如图所示，试确定系统的动态性能$(\
+			 依图，可以确定是欠阻尼二阶系统
+	$20\lg M_r = 3$dB
+	lcc
+		M_r = 10^320 = 1.4125 & P342 图5-46 & \
+		_b = 5& 前页图 & t_s _b M_r=1.4= 9 t_s=9/5=1.8
+	或由l
+		M_r = 121-^2
+		_b = _n1-2^2+2-4^2+4^2
+	解出$\zeta$，$\omega_n$，可确定$\
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.5em,  y=.4em]
+				\path [arr] (0,0) -- node [at end, above] {$\omega$} (7,0);
+				\path [arr] (0,-7) -- node [pos=0.95, right] {$M(\omega)$dB} (0,6);
+				\coordinate (p1) at (0,0);
+				\coordinate (p2) at (3.5,3);
+				\coordinate (p3) at (5,-3);
+				\coordinate (p4) at (6,-7);
+				\path [rlocus, -] (p1) .. controls ($(p1)+(0:2)$) and ($(p2)+(180:0.5)$) .. (p2) .. controls ($(p2)+(0:.5)$) and ($(p3)+(108:1)$) .. (p3) -- node [near end, right] {-40} (p4);
+				\path [dline] (p2) -- (p2 -| 0,0) node [at end,left] {3};
+				\path [dline] (p3) -- (p3 -| 0,0) node [at end,left] {-3};
+				\path [dline] (p3) -- (p3 |- 0,0) node [at end,above] {5};
+				\end{tikzpicture}
+```
+
+**原始图示代码**
+
+```tex
+\begin{figure}
+				
+			\end{figure}
+```
+
+#### 幻灯片：闭环频域指标与时域指标的关系：高阶系统
+
+t_s = _c[2+1.5(M_r-1)+2.5(M_r-1)^2](1 M_r  1.8)$$
+
+**原始公式代码**
+
+```tex
+$$\sigma\
+		$$
+```
+
+**原始公式代码**
+
+```tex
+$$
+		$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=10em,  y=1.5em]
+			\foreach \x/\y/\z in {1/0.1/6,2/0.2/8,3/0.3/10,4/0.4/12,5/0.5/14}{
+				\path [dline, draw=gray] (1,\x) -- node [at start, left] {\y} node [at end, right] {$\z/\omega_c$} (1.8,\x);
+			}
+			\foreach \x in {1,1.2,1.4,1.6,1.8}{
+				\path [dline, draw=gray] (\x,1) -- node [at start, below] {\x} (\x,5.5); 
+			}
+			\path [line, draw=black] (1,5.5) -- node [at start, left] {\color{blue}$\sigma$} node [at end, right] {\color{red}$t_s$} (1.8,5.5) |- (1,1) -- (1,5.5);
+			\path [rlocus, -] (1,1.2) .. controls ($(1,1.2)+(50:.5)$) and ($(1.8,5.5)+(-100:.5)$) .. (1.8,5.5);
+			\path [rlocus, -, blue] (1,1.7) -- (1.8,4.8);
+			\node at (1.4,-.3) {$M_r$};
+		\end{tikzpicture}
+```
+
+#### 幻灯片：用频域分析方法估算系统的动态性能
+
+一台笔录仪的传递函数为$\Phi(s) = \frac{1}{Ts+1}$，要求在5Hz以内时，记录仪的振幅误差不大于被测信号的10$\
+		解：依题意，当$\omega=5\times 2\pi=10\pi$ (rad/s)时，要求
+		即$T^2\omega^2+1 \le \frac{1}{0.9^2}$
+
+**原始公式代码**
+
+```tex
+$$\left|\frac{1}{1+\rj T\omega}\right| = \frac{1}{\sqrt{1+T^2\omega^2}} \ge 0.9$$
+```
+
+**原始公式代码**
+
+```tex
+$$T \le \left.\frac{1}{\omega}\sqrt{\frac{1}{0.9^2}-1}\right|_{\omega=10\pi}=0.0154\quad \omega_b=\frac{1}{T} \ge \frac{1}{0.0154} = 64.833(\text{rad/s})$$
+```
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1em,  y=1em]
+			\path [arr] (0,0) -- node [at start, left] {0} node [at end, above] {$\omega$} (8.3,0);
+			\path [arr] (0,-3) -- node [pos=0.95, right] {$M(\omega)$dB} (0,1.5);
+			\coordinate (p1) at (0,0);
+			\coordinate (p2) at (4.2,-0.3);
+			\coordinate (p3) at (8,-3);
+			\path [rlocus, -] (p1) .. controls ($(p1)+(0:4.5)$) and ($(p2)+(160:0.5)$) .. (p2) .. controls ($(p2)+(-40:0.5)$) and ($(p3)+(140:1)$) .. (p3);
+			\path [dline] (p2) -- (p2 -| 0,0) node [at start, below] {$\frac{1}{T}$};
+		\end{tikzpicture}
+```
+
+### 课程小结
+
+#### 幻灯片：课程小结
+
+**原始绘图代码**
+
+```tex
+\begin{tikzpicture}[x=1.2em,  y=1.2em, node distance=4em]
+			\tikzstyle{barr} = [draw=cyan, -implies, line width=4pt]
+			\node (Gi) {$G(s)$};
+			\node [right of=Gi, right=0em] (G) {$G(\rj\omega)$};
+			\node [right of=G, right=2em] (Ny) {\bigbrace{l}{\text{奈氏判据}\\ \text{对数判据}}};
+			\node [right of=Ny, right=4em] (stable) {稳定性};
+			\node [below of=Ny] (margin) {稳定裕度\bigbrace{l}{\omega_c\rightarrow\gamma\\ \omega_g\rightarrow h}};
+			\node [below of=Gi, below=4em, text width=2em] (exp) {实验测试};
+			\node [right of=exp, right=0em] (Phi) {$\Phi(\rj\omega)$};
+			\node [right of=Phi, right=-.5em, text width=4em, text centered] (Cl) {闭环频率特征量};
+			\node [right of=Cl, right=-2em] (M) {\bigbrace{l}{M_0\\ \omega_r\\ \omega_b}，$M_r$};
+			\node [below of=stable, below=2em, text width=1em] (sigma) {$\sigma\
+			 \draw[decorate,decoration=brace, very thick] (23,-3.5) -- (23,-10);
+			 
+			 \path [barr] (Gi.east) -- (G.west);
+			 \path [barr] (G.east) -- (Ny.west);
+			 \path [barr] (Ny.east) -- (stable.west);
+			 \path [barr] (G.south) -- (Phi.north);
+			 \path [barr] (exp.east) -- (Phi.west);
+			 \path [barr] (Phi.east) -- (Cl.west);
+			 \path [barr] (M.east) -- ++(3,0);
+			 \path [barr] ($(G.south)+(2,0)$) |- (margin.west);
+			 \path [barr] (margin.east) -- ++(3,0);
+		\end{tikzpicture}
+```

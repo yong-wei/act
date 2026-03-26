@@ -138,12 +138,12 @@ def render_cover():
         bhy = y2 - 18 * math.sin(ang + math.pi / 6)
         draw.polygon([(x2, y2), (ahx, ahy), (bhx, bhy)], fill='#0d8fd8')
 
-    save_image(img, 'cover-comic.png')
+    save_image(img, '2-1-cover-comic.png')
 
 
 def render_info():
     img = Image.new('RGB', (1400, 1100), '#ffffff')
-    save_image(img, 'info.png')
+    save_image(img, '2-1-info.png')
 
 
 def block_doc(body: str) -> str:
@@ -200,7 +200,7 @@ def render_tikz(name: str, doc: str):
 
 
 def make_block_diagrams():
-    render_tikz('md-02-series-equivalent', block_doc(r"""
+    render_tikz('2-1-md-02-series-equivalent', block_doc(r"""
       \node (rin) at (0,1.0) {$R$};
       \node[block] (g1) at (1.6,1.0) {$G_1$};
       \node[block] (g2) at (3.0,1.0) {$G_2$};
@@ -216,7 +216,7 @@ def make_block_diagrams():
       \draw[signal] (geq) -- (yout2);
     """))
 
-    render_tikz('md-03-parallel-equivalent', block_doc(r"""
+    render_tikz('2-1-md-03-parallel-equivalent', block_doc(r"""
       \node (rin) at (0,0) {$R$};
       \node[tap] (tap1) at (1.1,0) {};
       \node[sum] (sum2) at (4.8,0) {};
@@ -237,7 +237,7 @@ def make_block_diagrams():
       \draw[signal] (geq) -- (yout2);
     """))
 
-    render_tikz('md-04-feedback-equivalent', block_doc(r"""
+    render_tikz('2-1-md-04-feedback-equivalent', block_doc(r"""
       \node (rin) at (0,0) {$R$};
       \node[sum] (sum1) at (1.0,0) {};
       \node[block large] (g) at (2.8,0) {$G$};
@@ -255,7 +255,7 @@ def make_block_diagrams():
       \draw[signal] (geq) -- (yout2);
     """))
 
-    render_tikz('md-05-ship-heading-physical-blocks', block_doc(r"""
+    render_tikz('2-1-md-05-ship-heading-physical-blocks', block_doc(r"""
       \node (rin) at (0,0) {$R$};
       \node[sum] (sum1) at (1.4,0) {};
       \node[block large] (gc) at (3.2,0) {$G_c$};
@@ -273,7 +273,7 @@ def make_block_diagrams():
       \node[font=\scriptsize] at (5.6,-3.0) {罗经反馈};
     """))
 
-    render_tikz('md-06-block-vs-sfg', dedent(r"""
+    render_tikz('2-1-md-06-block-vs-sfg', dedent(r"""
     \documentclass[tikz,border=8pt]{standalone}
     \usepackage{amsmath}
     \usepackage{CJKutf8}
@@ -315,7 +315,7 @@ def make_block_diagrams():
     \end{document}
     """).strip() + "\n")
 
-    render_tikz('md-07-example-ship-loop', block_doc(r"""
+    render_tikz('2-1-md-07-example-ship-loop', block_doc(r"""
       \node (rin) at (0,0) {$R$};
       \node[sum] (sum1) at (1.0,0) {};
       \node[block large] (gc) at (2.5,0) {$K_c$};
@@ -335,7 +335,7 @@ def make_block_diagrams():
       \node[font=\scriptsize] at (2.2,-1.25) {$B$};
     """))
 
-    render_tikz('md-09-example2-original', block_doc(r"""
+    render_tikz('2-1-md-09-example2-original', block_doc(r"""
       \node (rin) at (0,0) {$R$};
       \node[sum] (sum1) at (1.0,0) {};
       \node[block large] (g1) at (2.6,0) {$G_1$};
@@ -361,7 +361,7 @@ def make_block_diagrams():
       \draw[signal] (h2) -| node[neg sign, left] {$-$} (sum1.south);
     """))
 
-    render_tikz('md-10-example2-step1', block_doc(r"""
+    render_tikz('2-1-md-10-example2-step1', block_doc(r"""
       \node (rin) at (0,0) {$R$};
       \node[sum] (sum1) at (1.0,0) {};
       \node[block large] (g1) at (2.6,0) {$G_1$};
@@ -382,7 +382,7 @@ def make_block_diagrams():
       \draw[signal] (h2) -| node[neg sign, left] {$-$} (sum1.south);
     """))
 
-    render_tikz('md-11-example2-step2', block_doc(r"""
+    render_tikz('2-1-md-11-example2-step2', block_doc(r"""
       \node (rin) at (0,0) {$R$};
       \node[sum] (sum1) at (1.0,0) {};
       \node[block large] (g1) at (2.5,0) {$G_1$};
@@ -396,7 +396,7 @@ def make_block_diagrams():
       \draw[signal] (h2) -| node[neg sign, left] {$-$} (sum1.south);
     """))
 
-    render_tikz('md-12-example2-step3', block_doc(r"""
+    render_tikz('2-1-md-12-example2-step3', block_doc(r"""
       \node (rin) at (0,0) {$R$};
       \node[sum] (sum1) at (1.0,0) {};
       \node[block large, minimum width=3.9cm] (g) at (3.6,0)
@@ -410,7 +410,7 @@ def make_block_diagrams():
     """))
 
     # Simple line diagram for example1 SFG
-    render_tikz('md-08-example-ship-sfg', sfg_doc(r"""
+    render_tikz('2-1-md-08-example-ship-sfg', sfg_doc(r"""
       \node[sfgsource] (r) at (0,0) {$R$};
       \node[sfgnode] (e) at (1.8,0) {$E$};
       \node[sfgnode] (u) at (3.7,0) {$U$};
@@ -427,7 +427,7 @@ def make_block_diagrams():
       \draw[sfgedge, out=180, in=-95, looseness=1.1] (b) to node[gain label below] {$-1$} (e);
     """))
 
-    render_tikz('md-13-example2-labeled-block', block_doc(r"""
+    render_tikz('2-1-md-13-example2-labeled-block', block_doc(r"""
       \node (rin) at (0,0) {$R$};
       \node[sum] (sum1) at (1.0,0) {};
       \node[block large] (g1) at (2.6,0) {$G_1$};
@@ -460,7 +460,7 @@ def make_block_diagrams():
       \node[font=\scriptsize] at (10.9,0.35) {$Y$};
     """))
 
-    render_tikz('md-14-example2-sfg', sfg_doc(r"""
+    render_tikz('2-1-md-14-example2-sfg', sfg_doc(r"""
       \node[sfgsource] (r) at (0,0) {$R$};
       \node[sfgnode] (e) at (1.8,0) {$E$};
       \node[sfgnode] (a) at (3.8,0) {$A$};

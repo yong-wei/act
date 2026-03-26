@@ -1,0 +1,1131 @@
+% !TEX TS-program = xelatex
+% !TEX encoding = UTF-8 Unicode
+
+%下面四行用以创建hanout版本
+%\documentclass[handhout,cjkutf8,table]{beamer} % handout, slidestop 
+%\usepackage{pgfpages}
+%\pgfpagesuselayout{8 on 1}[a4paper,border shrink=5mm]
+
+\documentclass[handout,cjkutf8,table,aspectratio=1610]{beamer} % slidestop
+%%\mode* %mode*屏蔽所有不在frame中的内容，当需要生成讲稿模式的文件时，取消注释，并取消导言区关于article的三行注释
+\input{../preamble.tex}
+%--------------------------------------------------------------
+%仅对本文件有效的导言
+\newcounter{chp}\usecounter{chp}\setcounter{chp}{6} %设置一个章节计数器，但是只用在标号定义内，不用以计数
+\includeonlylecture{Lecture 1}
+%\includeonlyframes{current} % 只显示带标签的页面
+%\setbeameroption{show notes} % 显示note或只显示note(show only note)
+%\useoutertheme{shadow}
+%%% Begin Document %%%
+\begin{document}
+%---------------------------------------------------------------------------------------------------
+%% Set title
+\title[自动控制原理]{自动控制原理}
+\subtitle{第六章~~频率法串联校正}
+\author[第六章~~频率法串联校正]{\vspace{-1em}\center{\includegraphics[scale=0.5]{../figs/JUSTs.pdf}}\\\large 电子信息学院\\ 张永韡~~博士~~副教授}\vspace{-4em}
+\date[2022-2023学年春]{2022-2023学年春}
+%---------------------------------------------------------------------------------------------------
+%\title[自动控制原理]{\vspace{5em}《自动控制原理》讲稿}
+%\author[第一章~~自动控制原理的一般概念]{\vspace{5em}\Large 第一章~~自动控制原理的一般概念}%文章模式
+%---------------------------------------------------------------------------------------------------
+\begin{frame}[plain]
+	\titlepage
+\end{frame}
+%\maketitle
+%---------------------------------------------------------------------------------------------------
+%:Lecture 1: 引言
+\lecture{串联超前校正}{Lecture 1}
+\begin{frame}{主要内容}
+	\tableofcontents[hideallsubsections]
+\end{frame}
+
+\section{引言}
+\subsection{控制目标--性能指标}
+\begin{frame}{控制目标--性能指标}
+	\emph{
+	\begin{center}
+		控制目标——性能指标\vs{2em}	\\
+	性能指标\bigbrace{l}{
+		\text{时域}\left\{\begin{array}{l}
+			\text{超调量}\sigma\%\\
+			\text{调节时间}t_s\\
+			\text{稳态误差}e_{ss}
+		\end{array}\right.\\
+		\text{频域}\left\{\begin{array}{l}
+			\text{稳定裕量}(h,\gamma),\text{截止频率}\omega_c\\
+			\text{谐振峰值}M_r,\text{频带宽}\omega_b
+		\end{array}\right.
+	}
+	\end{center}}
+\end{frame}
+
+\begin{frame}{控制目标--性能指标}
+	\emph{系统开环频率特性与系统性能指标密切相关，一般可以将校正问题归纳为三类：}
+	\begin{enumerate}
+		\item 如果系统稳定且有较满意的暂态响应，但稳态误差太大，这就必须增加低频段的增益来减小稳态误差，同时保持中、高频特性不变；
+		\item 如系统稳定且有较满意的误差，但其动态性能较差，则应改变系统的中频段和高频段，以改变系统的截止频率和相角裕度；
+		\item 如果一个系统的稳态和动态性能均不能令人满意，就必须增加低频增益，并改变中频段和高频段。
+	\end{enumerate}
+\end{frame}
+
+\begin{frame}{控制目标--性能指标}
+	\emph{对应上面三种情况的BODE图：}
+	\begin{center}
+		\begin{tikzpicture}[x=1.5em,  y=1.2em]
+			\path [arr] (0,0) -- node [at end, below] {$\omega$} (7,0);
+			\path [arr] (0,0) -- node [at end, right] {$L(\omega)$} (0,5);
+			\path [rlocus, -] (0,2.5) -- (3.5,1.5) -- (6,-1.5);
+			\path [dline, very thick] (0,4) -- (1.5,2) -- (3.5,1.5) -- (6,-1.5);
+			\node at (3.5,-2.5) {a)~\emph{改变低频段}};
+			
+			\begin{scope}[xshift=12em]
+			\path [arr] (0,0) -- node [at end, below] {$\omega$} (7,0);
+			\path [arr] (0,0) -- node [at end, right] {$L(\omega)$} (0,5);
+			\path [rlocus, -] (0,3.5) -- (2,2.5) -- (6,-1.5);
+			\path [dline, very thick] (0,3.5) -- (2,2.5) -- (4,.5) -- (6.5,-.5);
+			\node at (3.5,-2.5) {b)~\emph{改变中高频段}};
+			\end{scope}
+			
+			\begin{scope}[xshift=25em]
+			\path [arr] (0,0) -- node [at end, below] {$\omega$} (8,0);
+			\path [arr] (0,0) -- node [at end, right] {$L(\omega)$} (0,5);
+			\path [rlocus, -] (0,3.5) -- (2,2.5) -- (6,-1.5);
+			\path [dline, very thick] (0,4.5) -- (2,3.5) -- (4,1.5) -- (6,.5) -- (7.5,-1);
+			\node at (3.5,-2.5) {c)~\emph{低中高频段均改变}};
+			\end{scope}
+		\end{tikzpicture}
+	\end{center}
+\end{frame}
+
+\subsection{校正方法}
+\begin{frame}{校正方法}
+	采用适当方式，在系统中加入一些参数可调整的装置（校正装置），用以改变系统结构，进一步提高系统的性能，使系统满足指标要求。
+	\begin{center}
+		
+		\begin{tikzpicture}[x=1em,y=1em]
+			\tikzstyle{block}=[draw,rectangle,very thick,text badly centered,anchor=west,text width=4em]
+			\tikzstyle{line}=[-latex,very thick]
+			\node[block,text width=2em,fill=green!50](b1){给定元件};
+			\draw[line](b1.east)--node[above]{输入}++(2,0)coordinate(o1)--++(1,0)coordinate(t);
+			\node[cross,thick,label={[align=center,text width=2em]below left:比较元件},fill=blue!50](c1)at(t){};
+			\draw[line](c1.east)--node[above]{偏差}++(2,0)coordinate(t);
+			\node[block,fill=yellow!50](b2)at(t){串联校正元件};
+			\draw[line](b2.east)--++(1,0)coordinate(t);
+			\node[cross,thick,fill=blue!50](c2)at(t){};
+			\draw[line](c2.east)--++(1,0)coordinate(t);
+			\node[block,text width=2em,fill=green!50](b3)at(t){放大元件};
+			\draw[line](b3.east)--++(1,0)coordinate(t);
+			\node[block,text width=2em,fill=green!50](b4)at(t){执行元件};
+			\draw[line](b4.east)--++(1,0)coordinate(t);
+			\node[block,text width=2em,fill=cyan!50](b5)at(t){被控对象};
+			\draw[line](b5.east)--++(1,0)coordinate(t)node[above,at end]{输出}--++(2,0);
+			\draw[line](t)--++(0,-4)coordinate(o2)|-++(-9,-2)coordinate(t);
+			\node[block,anchor=east,fill=green!50](b7)at(t){测量元件};
+			\draw[line](b7.west)-|node[above,near start]{主反馈}node[right,at end]{$-$}(c1.south);
+			\draw[line](o2)--++(-3,0)coordinate(t);
+			\node[block,anchor=east,fill=yellow!50](b6)at(t){反馈校正元件};
+			\draw[line](b6.west)-|node[above,near start]{局部反馈}node[right,at end]{$-$}(c2.south);
+			\draw[line]($(b5.north)+(0,4em)$)--node[right]{扰动}++(0,-1em)coordinate(t)--(b5.north);
+			\draw[line](t)-++(-1,0)coordinate(t);
+			\node[block,anchor=east,label=above:按干扰补偿,fill=yellow!50](b8)at(t){前馈校正元件};
+			\draw[line](b8.west)--++(-1,0)--(c2.north east);
+			\draw[line](o1)|-++(2,4)coordinate(t);
+			\node[block,label=above:按输入补偿,fill=yellow!50](b9)at(t){前馈校正元件};
+			\draw[line](b9.east)--++(1,0)--(c2.north);
+		\end{tikzpicture}\\
+		\emph{校正方式：{\color{red}串联校正， 反馈校正， 复合校正}}
+	\end{center}
+\end{frame}
+
+\begin{frame}{频率法串联校正}
+\emph{频率法串联校正的设计过程}
+	\begin{tikzpicture}[x = 2em, y=1em]
+		\path [arr] (0,0) -- node [above, red] {$r$} ++(.5,0) coordinate (t);
+		\node [cross, anchor = west] (c) at (t) {};
+		\path [arr] (c.east) -- node [above, red] {$e$} ++(.5,0) coordinate (t);
+		\node [block] (b1) at (t) {$G_c(s)$};
+		\path [arr] (b1.east) -- ++(.5,0) coordinate (t);
+		\node [block] (b2) at (t) {$G_0(s)$};
+		\path [arr] (b2.east) -- ++(.5,0) coordinate (t) -- node [above, red] {$c$}++(.5,0);
+		\path [arr] (t) -- ++(0,-2) -| node [right, at end] {$-$} (c.south);
+	\end{tikzpicture}
+	\begin{center}
+		\begin{tikzpicture}[x = 2em, y=1em]
+			\node [block] (b1) {$G_0(s)$};
+			\path [arr] (b1.east) -- ++(.5,0) coordinate (t);
+			\node [cross, anchor = west] (c1) at (t) {};
+			\path [arr] (c1.east) -- ++(.5,0) coordinate (t);
+			\node [block] (b2) at (t) {$G(s)=G_c(s)G_0(s)$};
+			\path [arr] (b2.east) -- node [at end, below] {\color{red}$-$}++(.5,0) coordinate (t);
+			\node [cross, anchor = west] (c2) at (t) {};
+			\path [arr] (c2.east) -- ++(.5,0) coordinate (t);
+			\path [arr] ($(c2.north)+(90:2)$) -- node [at start, right] {给定指标} (c2.north);
+			\node[draw, diamond, aspect=2, thick, blue, anchor=west] (b3) at (t) {满足？};
+			\path [arr] (b3.east) -- node [at end, above] {\color{red}Y} ++(.5,0);
+			\node [block, below of=b2] (b4) {设计$G_c(s)$};
+			\path [arr] (b3.south) |- node [at start, below right] {\color{red}N} (b4.east);
+			\path [arr] (b4.west) -| (c1.south);
+		\end{tikzpicture}\\\vspace{2em}
+		合理确定性能指标\bigbrace{l}{
+			\text{有重点地照顾各项指标要求；}\\
+			\text{不要追求不切实际的高指标。}
+		}
+	\end{center}
+\end{frame}
+
+\section{串联超前校正}
+\subsection{超前网络特性}
+\begin{frame}{超前网络特性}
+	\begin{center}
+		\begin{tikzpicture}[x=2em, y=2em, circuit ee IEC, thick]
+			\tikzstyle{terminal} = [draw, circle, inner sep=2pt]
+    			\node[terminal] (t1) at (0,0){};
+   			\node[terminal] (t2) at (5,0){};
+  			\node[terminal] (t3) at (0,-2){};
+  			\node[terminal] (t4) at (5,-2){};
+  			\draw (t1.east) -- (1,0) to[resistor={info={$R_1$}}] (3,0) -- (t2.west);
+  			\draw (1,0) -- +(0,-1) to[capacitor={info'={$C$}}] (3,-1) -- (3,0);
+  			\draw (t3.east) to (t4.west);
+			\draw (4.5,0) to [resistor={info'={$R_2$}}] (4.5,-2);
+
+    			\path[draw, stealth'-stealth'] (0,-0.2) -- node[left]{\color{red}$u_r$}(0,-1.8);
+    			\path[draw, stealth'-stealth'] (5,-0.2) -- node[right]{\color{red}$u_c$}(5,-1.8);
+		\end{tikzpicture}
+	\end{center}
+	$$G_c(s) = \frac{U_c(s)}{U_r(s)} = \frac{R_2}{R_2+\frac{R_1\frac{1}{Cs}}{R_1+\frac{1}{Cs}}} = \frac{R_2}{R_2+\frac{R_1}{CR_1s+1}}$$
+	$$=\frac{R_2(CR_1s+1)}{R_2(CR_1s+1)+R_1} = \frac{R_2(CR_1s+1)}{R_1R_2Cs+R_1+R_2} = \frac{\frac{R_2}{R_1+R_2}(CR_1s+1)}{\frac{R_1R_2C}{R_1+R_2}s+1}$$
+	$$=\frac{1}{a}\cdot\frac{aTs+1}{Ts+1}
+	\left\{\begin{array}{l}
+		a = \frac{R_1+R_2}{R_2}>1\\
+		T = \frac{R_1R_2C}{R_1+R_2}
+	\end{array}\right.
+	\quad a\cdot G_c(s) = \frac{aTs+1}{Ts+1}
+	$$
+\end{frame}
+
+\begin{frame}{超前网络特性}
+	\begin{wrapfigure}[20]{r}{13em}
+		\vs{-2em}
+		\begin{tikzpicture}[x=1.5em, y=1.1em]
+			\path [arr] (0,0) -- node [at end, above left] {$\omega$} (7,0);
+			\path [arr] (0,0) -- node [at start, left] {0} node [at end, below right] {$L(\omega)$~dB} (0,4);
+			\path [rlocus, -, name path=slope, blue, draw=red] (0,0) -- (1.5,0) coordinate (t1) -- node[pos=0.8, left] {+20} (4.5,3) coordinate (t2) -- (6,3);
+			\path [name path=h] (0,1.5) -- ++(5,0);
+			\path [line, name intersections={of=h and slope, by=m}] (m) -- (m -| 0,0);
+			
+			\path [arr, stealth-stealth, blue] (5.5,3) -- node [midway, fill=white] {$20\log a$} (5.5,0);
+			
+			\path [arr] (0,-5) -- node [at end, above left] {$\omega$} (7,-5);
+			\path [arr] (0,-5) -- node [at start, left] {$0^\circ$} node [at end, below right] {$\psi(\omega)$} (0,-1);
+			\path [line] (0,-2) -- node [at start, left] {$90^\circ$} ++(6,0);
+			\path [dline] (t1) -- node [at start, below, fill=white] {$\frac{1}{aT}$} (t1 |- 0,-5); 
+			\path [dline] (t2) -- (t2 |- 0,0) -- node [at start, below, fill=white] {$\frac{1}{T}$} (t2 |- 0,-5);
+			\path [arr, -stealth, blue] (1,-.5) -- (1,0);
+			\path [arr, -stealth, blue] (1,2) -- node [at end, below] {$10\log a$} (1,1.5);
+			\path [line, blue, name path=v] (m) -- node [at end, below] {$\omega_m$} (m |- 0,-5);
+			\coordinate (s) at (3,-3);			
+			\path [rlocus, -, draw=blue!50!green] (0,-2.2) .. controls ($(0,-2.2)+(0:4)$) and ($(6,-4.8)+(160:1)$) .. (6,-4.8);
+			\path [rlocus, -, draw=blue!50!green] (0,-4.8) .. controls ($(0,-4.8)+(20:1)$) and ($(6,-2.2)+(-180:4)$) .. (6,-2.2);
+			\path [rlocus, -, name path=psi] (0,-4.8) .. controls ($(0,-4.8)+(20:1)$) and ($(s)+(-180:1)$) .. (s) .. controls ($(s)+(0:1)$) and ($(6,-4.8)+(160:1)$) .. (6,-4.8);
+			\path [line, name intersections={of=v and psi, by=psim}] (psim) -- ++(2.5,0) coordinate (t3)-- ++(.5,0);
+			\path [arr, stealth-stealth, blue] (t3) -- node [pos=0.3, right] {$\psi_m$} (t3 |- 0,-5);
+			\begin{scope}[yshift=-10em]
+			\path [line] (0,0) -- node[below] {\color{red}$2\sqrt{a}$} ++(3,0) -- node[right] {\color{red}$a-1$}++(0,2) -- node[above] {\color{red}$a+1$} (0,0);
+			\path [draw, red, ->] (1,0) arc (0:30:1) node [right] {$\psi$};
+			\end{scope}
+		\end{tikzpicture}
+	\end{wrapfigure}
+	$a\cdot G_c(s) = \frac{aTs+1}{Ts+1}~~(a>1)$，
+	抬升$H = 20\log \frac{1/T}{1/aT} = 20\log a$
+	$$\psi(\omega) = \arctan(aT\omega) - \arctan(T\omega) = \arctan\frac{T\omega(a-1)}{1+aT^2\omega^2}$$
+	$$\fracd{\psi(\omega)}{\omega} = 0 \rightarrow \fracd{}{\omega}[\tan\psi(\omega)] = 0$$
+	$$\fracd{}{\omega}\left[\frac{T\omega(a-1)}{1+aT^2\omega^2}\right] = \frac{T(a-1)[1-aT^2\omega^2]}{(1+aT^2\omega^2)^2} = 0$$
+	$$\omega_m = 1/\sqrt{a}T$$
+	$$\tan\psi(\omega_m) = \left.\frac{T\omega(a-1)}{1+aT^2\omega^2}\right|_{\omega_m=\frac{1}{\sqrt{a}T}} = \frac{a-1}{2\sqrt{a}}$$
+	$$\psi_m = \psi(\omega_m) = \arctan\frac{a-1}{2\sqrt{2}} = \arcsin\frac{a-1}{a+1}\text{可解出}
+	\left\{\begin{array}{l}
+		a = \frac{1+\sin\psi_m}{1-\sin\psi_m}\\
+		L(\omega_m) = 10\log a
+	\end{array}\right.$$
+\end{frame}
+
+\begin{frame}{超前网络特性}
+	\begin{columns}[T]
+	\column{.5\textwidth}
+		$$\begin{cases}
+			\psi_m = \arctan \frac{a-1}{a+1}\\
+			a = \frac{1+\sin\psi_m}{1-\sin\psi_m}
+		\end{cases}$$
+	\column{.5\textwidth}
+		\begin{tikzpicture}[x=1.5em, y=1.1em]
+			\path [arr] (0,0) -- node [at end, above left] {$\omega$} (7,0);
+			\path [arr] (0,0) -- node [at start, left] {0} node [at end, below right] {$L(\omega)$~dB} (0,4);
+			\path [rlocus, -, name path=slope, blue, draw=red] (0,0) -- (1.5,0) coordinate (t1) -- node[pos=0.8, left] {+20} (4.5,3) coordinate (t2) -- (6,3);
+			\path [name path=h] (0,1.5) -- ++(5,0);
+			\path [line, name intersections={of=h and slope, by=m}] (m) -- (m -| 0,0);
+			
+			\path [arr, stealth-stealth, blue] (5.5,3) -- node [midway, fill=white] {$20\log a$} (5.5,0);
+			
+			\path [arr] (0,-5) -- node [at end, above left] {$\omega$} (7,-5);
+			\path [arr] (0,-5) -- node [at start, left] {$0^\circ$} node [at end, below right] {$\psi(\omega)$} (0,-1);
+			\path [line, black, draw=blue] (0,-2) -- node [at start, left] {$90^\circ$} ++(6,0);
+			\path [dline] (t1) -- node [at start, below, fill=white] {$\frac{1}{aT}$} (t1 |- 0,-5); 
+			\path [dline] (t2) -- (t2 |- 0,0) -- node [at start, below, fill=white] {$\frac{1}{T}$} (t2 |- 0,-5);
+			\path [arr, -stealth, blue] (1,-.5) -- (1,0);
+			\path [arr, -stealth, blue] (1,2) -- node [at end, below] {$10\log a$} (1,1.5);
+			\path [line, blue, name path=v] (m) -- node [at end, below] {$\omega_m$} (m |- 0,-5);
+			\coordinate (s) at (3,-3);
+			\path [rlocus, -, draw=blue!50!green] (0,-2.2) .. controls ($(0,-2.2)+(0:4)$) and ($(6,-4.8)+(160:1)$) .. (6,-4.8);
+			\path [rlocus, -, draw=blue!50!green] (0,-4.8) .. controls ($(0,-4.8)+(20:1)$) and ($(6,-2.2)+(-180:4)$) .. (6,-2.2);
+			\path [rlocus, -, name path=psi] (0,-4.8) .. controls ($(0,-4.8)+(20:1)$) and ($(s)+(-180:1)$) .. (s) .. controls ($(s)+(0:1)$) and ($(6,-4.8)+(160:1)$) .. (6,-4.8);
+			\path [line, name intersections={of=v and psi, by=psim}] (psim) -- ++(2.5,0) coordinate (t3)-- ++(.5,0);
+			\path [arr, stealth-stealth, blue] (t3) -- node [pos=0.3, right] {$\psi_m$} (t3 |- 0,-5);
+		\end{tikzpicture}
+	\end{columns}
+	\begin{itemize}
+		\item 超前网络特点：相角超前，幅值增加
+		\item 一级超前网络最大超前角为$60^\circ$
+		\item 最有效的$a \in (4,10)$
+	\end{itemize}
+\end{frame}
+
+\subsection{步骤}
+\begin{frame}{步骤}
+	\emph{\color{red}实质 — 利用超前网络相角超前特性提高系统的相角裕度}\\
+	\emph{超前校正步骤 (设给定指标$e_{ss}^*,~\omega_c^*,~\gamma^*$)}
+	\begin{enumerate}[(1)]
+		\item 由$e_{ss}^*\rightarrow K$
+		\item 由$G_0(s)\rightarrow L_0(\omega)\rightarrow \omega_{c0}\rightarrow\gamma_0\{\omega_{c0},~\gamma_0\}$均不足
+		\item 确定$\psi_m=\gamma^*-\gamma_0+(5^\circ\sim10^\circ)\{a=\frac{1+\sin\psi_m}{1-\sin\psi_m},~10\log a\}$
+		\item 作图确定原系统幅值为$-10\log a$时的频率：$L_0(\omega_c)=-10\log a$，$\omega_c=\omega_m\rightarrow\omega_2=\omega_m\sqrt{a}=a\omega_1\rightarrow G_c(s)$
+		\item $G(s) = G_c(s)\cdot G_0(s)$验算$\{\omega_c,~\gamma\}$是否满足要求
+	\end{enumerate}
+\end{frame}
+
+\subsection{校正实例}
+\begin{frame}{\example{考虑系统的开环传递函数为$G_0(s) = \frac{K}{s(0.2s+1)}$，$r(t)=$}}
+	\emph{要求：1）$\epsilon_{ssv}\le 0.32\%$，2）$\gamma \ge 45^\circ$}
+	\begin{enumerate}[(1)]
+		\item 由$e_{ss}^*\rightarrow K$\quad$K=K_v=316s^{-1}$
+		\item 由$G_0(s)\rightarrow L_0(\omega)\rightarrow \omega_{c0}=39.6~\text{rad/s}\rightarrow\gamma_0=7.2^\circ$
+		\item 确定$\psi_m=\gamma^*-\gamma_0+(5^\circ\sim10^\circ) = 45^\circ - 7^\circ + 5^\circ = 42.8^\circ$
+		\item 估算参数
+		$$a = \frac{1 + \sin\psi_m}{1-\sin\psi_m} = \frac{1+\sin42.8^\circ}{1-\sin42.8^\circ} = 5.24$$
+		取设计$\omega_c=\omega_m$，此时超前网络幅值$10\log a = 7.2$~dB\\
+		原系统和超前网络在$\omega_c$时幅值和应恰好为0。$\therefore L_0(\omega_m) = -7.2$~dB\\
+		由图$L_0(\omega)$求得$\omega_m=\omega_c=60$~rad/s\\
+	\end{enumerate}
+\end{frame}
+
+\begin{frame}{\examplec{考虑系统的开环传递函数为$G_0(s) = \frac{K}{s(0.2s+1)}$}}
+	\emph{要求：1）$\epsilon_{ssv}\le 0.32\%$，2）$\gamma \ge 45^\circ$}
+	\begin{enumerate}[(1)]
+		\setcounter{enumi}{4}
+		\item 得出控制器
+		\begin{align*}
+			\omega_m &= \frac{1}{\sqrt{a}T} \rightarrow T=0.0073 \text{s} \rightarrow \omega_2 = \frac{1}{T} = 137.42~\text{rad/s}\\
+			\omega_1 &= \frac{1}{aT} = 26.23~\text{rad/s},~G_c(s) = \frac{0.0381s+1}{0.0073s+1}
+		\end{align*}
+		\item $G(s) = G_c(s)\cdot G_0(s)$验算\bigbrace{l}{\omega_c=60~\text{rad/s}\\ \gamma = 47.56^\circ}满足要求
+	\end{enumerate}
+\end{frame}
+
+\begin{frame}
+	\begin{center}
+		\begin{tikzpicture}[x = 1em, y = 1em]
+			\datavisualization [scientific axes=inner ticks, 
+							x axis={logarithmic, attribute=w, length=34em, 
+							ticks={major at={
+							26.23 as [tick text padding=1.1em]f. $\omega_1=\omega_2/a$,
+							137.42 as [tick text padding=1.5em]e. $\omega_2=\omega_m\sqrt{a}$,
+							39.6 as [tick text padding=0.4em]$\omega_{c0}=39.6$ rad/s,
+							60 as $\omega_c$,
+							5 as 5
+							}},
+							grid, grid={minor steps between steps=8}},
+							y axis={attribute=mag, length = 8.5em, ticks and grid={major at={-60,-40,-20,0,20,40,60,80}}, label={Magnitude (dB)}, include value={-60,80}},
+							every minor grid/.style={style={gray,dotted}},
+							visualize as smooth line/.list={G0,Gc,G},
+							legend = north east inside,
+							G0={label in legend={text=$G_0$},
+								label in data={text'={$K=316$}, when=w is 1, text colored}, 
+								label in data={text=-20, when=w is 2, text colored}, 
+								label in data={text'=-40, when=w is 300, text colored}},
+							Gc={label in legend={text=$G_c$}},
+							G={label in legend={text=$G$},
+								label in data={text=-40, when=w is 10, text colored}, 
+								label in data={text=-20, when=w is 40, text colored},
+								label in data={text=-40, when=w is 200, text colored}},
+							style sheet=strong colors]
+			data [set=G0, read from file=../figs/leadG0Mag.csv, headline={mag,w}]
+			data [set=Gc, read from file=../figs/leadGcMag.csv, headline={mag,w}]
+			data [set=G, read from file=../figs/leadGMag.csv, headline={mag,w}]
+			info {
+			\draw [thick] (visualization cs: w=60, mag=0) -- (visualization cs: w=60, mag=-7.2)
+				node [below, at end, font=\footnotesize] {d. $L_0(\omega_m)=-7.2$ dB}; 
+			\draw [thick,red] (visualization cs: w=60, mag=0) -- (visualization cs: w=60, mag=7.2)
+				node [right, midway, font=\footnotesize] {c. $10\lg a=7.2$ dB}; 
+			\foreach \w in {5,26.23,39.6,60,137.42}{
+				\draw [dashed, cyan] (visualization cs: w=\w, mag=-60) -- (visualization cs: w=\w, mag=80);
+				}
+				};
+			%------------------Phase-----------------------------------
+			\begin{scope}[yshift=-11em]
+			\datavisualization [scientific axes=inner ticks, 
+							x axis={logarithmic, attribute=w, length=34em, 
+							grid, grid={minor steps between steps=8}, label={Frequency (rad/s)}},
+							y axis={attribute=mag, length = 8.5em, ticks and grid={major at={-270,-180,-90,0,90}}, label={Phase (deg)}, , include value={-270,90}},
+							every minor grid/.style={style={gray,dotted}},
+							visualize as smooth line/.list={G0,Gc,G},
+							style sheet=strong colors]
+			data [set=G0, read from file=../figs/leadG0Ph.csv, headline={mag,w}]
+			data [set=Gc, read from file=../figs/leadGcPh.csv, headline={mag,w}]
+			data [set=G, read from file=../figs/leadGPh.csv, headline={mag,w}]
+			info {
+			\draw [thick] (visualization cs: w=39.6, mag=-180) -- (visualization cs: w=39.6, mag=-172.2)
+				node [below, at start, font=\footnotesize] {a. $\gamma_0=7.2^\circ$}; 
+			\draw [thick,red] (visualization cs: w=60, mag=0) -- (visualization cs: w=60, mag=43)
+				node [below, at start, font=\footnotesize] {b. $\psi_m= \gamma^*-\gamma_0+5^\circ=42.8^\circ$}; 
+			\draw [thick,blue] (visualization cs: w=60, mag=-180) -- (visualization cs: w=60, mag=-132.5)
+				node [above, at end, font=\footnotesize] {$\gamma=47.56^\circ$}; 
+				};
+			\end{scope}
+		\end{tikzpicture}
+	\end{center}
+\end{frame}
+
+\section{串联滞后校正}
+\subsection{滞后网络特性}
+\begin{frame}{串联滞后校正}
+	\begin{columns}[T]
+	\column{.55\textwidth}
+		\begin{align*}
+			G_c(s) &= \frac{U_c(s)}{U_r(s)} = \frac{R_2+\frac{1}{Cs}}{R_1+R_2+\frac{1}{Cs}} \\
+			&= \frac{R_2Cs+1}{(R_1+R_2)Cs+1}\\
+			&= \frac{bTs+1}{Ts+1}
+			\left\{\begin{array}{l}
+				b = \frac{R_2}{R_1+R_2}<1\\
+				T=(R_1+R_2)C
+			\end{array}\right.
+		\end{align*}
+		$$G_c(s) = \frac{bTs+1}{Ts+1}$$
+	\column{.4\textwidth}
+	\scalebox{0.75}{
+		\begin{tikzpicture}[x=1.5em, y=1.5em, circuit ee IEC, thick]
+			\tikzstyle{terminal} = [draw, circle, inner sep =3pt]
+    			\node[terminal] (t1) at (0,0){};
+   			\node[terminal] (t2) at (5,0){};
+  			\node[terminal] (t3) at (0,-4){};
+  			\node[terminal] (t4) at (5,-4){};
+  			\draw (t1.east) -- (1,0) to[resistor={info={$R_1$}}] (3,0) -- (t2.west);
+  			\draw (t3.east) to (t4.west);
+			\draw (4,0) to [resistor={info'={$R_2$}}] (4,-3) to [capacitor={info'={$C$}}] (4,-4);
+
+    			\path[draw, stealth'-stealth'] (t1.south) -- node[left]{\color{red}$u_r$}(t3.north);
+    			\path[draw, stealth'-stealth'] (t2.south) -- node[right]{\color{red}$u_c$}(t4.north);
+			
+			\begin{scope}[yshift=-9em]
+			\path [arr] (0,0) -- node [at start, left] {0} node [at end, above left] {$\omega$} (7,0);
+			\path [arr] (0,-3) -- node [at end, below right] {$L(\omega)$~dB} (0,1);
+			\path [rlocus, -, name path=slope, blue, draw=red] (0,0) -- (1.5,0) coordinate (t1) -- node[pos=0.8, left] {-20} (4.5,-3) coordinate (t2) -- (6,-3);			
+						
+			\path [arr] (0,-4) -- node [at start, left] {$0^\circ$} node [at end, above left] {$\omega$} (7,-4);
+			\path [arr] (0,-7) --  node [at end, below right] {$\psi(\omega)$} (0,-3);
+			\path [line, black, draw=blue] (0,-7) -- node [at start, left] {$-90^\circ$} (6,-7);
+			\path [dline] (t1) -- node [at start, below=1em, fill=white] {$\frac{1}{T}$} (t1 |- 0,-7); 
+			\path [dline] (t2) -- node [at end, below, fill=white] {$\frac{1}{bT}$} (t2 |- 0,0); 
+			\path [arr, stealth-stealth, blue] (5.8,-3) -- node [pos=0.3, fill=white] {$20\log b$} (5.8,0);
+
+			\path [dline] (t2) --  (t2 |- 0,-7);		
+			\coordinate (s) at (3,-6);			
+			\path [rlocus, -, draw=blue!80!green] (0,-6.8) .. controls ($(0,-6.8)+(0:4)$) and ($(6,-4.2)+(-160:1)$) .. (6,-4.2);
+			\path [rlocus, -, draw=blue!80!green] (0,-4.2) .. controls ($(0,-4.2)+(-20:1)$) and ($(6,-6.8)+(-180:4)$) .. (6,-6.8);
+			\path [rlocus, -, name path=psi] (0,-4.2) .. controls ($(0,-4.2)+(-20:1)$) and ($(s)+(-180:1)$) .. (s) .. controls ($(s)+(0:1)$) and ($(6,-4.2)+(-160:1)$) .. (6,-4.2);
+			\path [dline, draw=gray] (3,0) -- node [at end, below] {$\omega_m=\frac{1}{\sqrt{b}T}$} (3,-7);
+			\end{scope}
+		\end{tikzpicture}
+		}
+	\end{columns}
+\end{frame}
+
+\subsection{滞后校正分析}
+\begin{frame}{滞后校正分析}
+	\begin{enumerate}[(1)]
+		\item 幅频高频衰减特性，使原系统截止频率$\omega_c$左移减小，相角裕度提高。适用于$\omega_c$有余，相角裕度不足时；
+     		\item 相位滞后，会减小原系统相角裕度，应附加相角$5\sim\ 12^\circ$，并力求避免$\omega_m$出现在$\omega_c$附近（可放置在相角较为充裕的频率），一般取
+		$$\omega_2 = 1/bT = (0.1\sim 0.2)\omega_c$$
+	\end{enumerate}
+	$$\begin{cases}
+		\text{相角迟后：是不利因素，应当避免}\\
+		\text{幅值衰减：是有利因素，应当利用}
+	\end{cases}$$
+\end{frame}
+
+\subsection{步骤}
+\begin{frame}{步骤}
+	\emph{\color{red}实质 — 利用滞后网络幅值衰减特性挖掘系统自身的相角储备}\\
+	\emph{滞后校正步骤 (设给定指标$e_{ss}^*,~\omega_c^*,~\gamma^*$)}
+	\begin{enumerate}[(1)]
+		\item 由$e_{ss}^*\rightarrow K$
+		\item 由$G_0(s)\rightarrow L_0(\omega)\rightarrow \omega_{c0}\rightarrow\gamma_0\begin{cases}\omega_{c0}\text{有余}\\ \gamma_0\text{不足}\end{cases}$
+		\item 绘制曲线$\gamma_c(\omega) = \gamma^* + 5^\circ \le180^\circ+\psi(\omega_c) \rightarrow \omega_c$
+		\item 参数$b$由$\omega_c$时原系统需要降低的幅值决定：$-L_0(\omega_c)=20\log b$
+		\item 作图设计$\rightarrow G_c(s)$：$\omega_2=0.1\omega_c$，$\omega_1=b\omega_2$
+		\item $G(s) = G_c(s)\cdot G_0(s)$验算$\{\omega_c,~\gamma\}$是否满足要求
+	\end{enumerate}
+\end{frame}
+
+\subsection{校正实例}
+\begin{frame}{\example{单位反馈系统$G_0(s) = \frac{K}{s(0.2s+1)}$}{}}
+	\emph{设计串联滞后校正环节，要求：1）$K_v = 316\text{s}^{-1}$；2）$r \ge 45^\circ$}
+	\begin{enumerate}[(1)]
+		\item 由$e_{ss}^*\rightarrow K =316$
+		\item 由$G_0(s)\rightarrow L_0(\omega_c)\rightarrow \omega_{c0}\rightarrow \gamma_0\begin{cases}\omega_{c0}=39.6~\text{rad/s}\\ \gamma_0=7.2^\circ\text{不足}\end{cases}$
+		\item 在$L_0(\omega)$上找$\gamma_0(\omega_c)=\gamma^* + 5^\circ=45^\circ+5^\circ = 50^\circ$
+		$$\gamma_0 = 180^\circ - 90^\circ - \arctan0.2\omega \ge 50^\circ \rightarrow \omega_c = 4.05~\text{rad/s}$$
+		\item 确定参数$b$。由图求$L_0(\omega_c=4.05)=38~\text{dB}$，令滞后网络$20\log b=-38~\text{db}\rightarrow b=0.0165$，$\omega_2=0.1\omega_c=0.4$~rad/s，$\omega_1 = b\omega_2 = 0.0067$~rad/s
+		$$G_c(s) = \frac{2.5s+1}{149.25s+1}$$
+		\item $G(s) = G_c(s)\cdot G_0(s)$验算\bigbrace{l}{\omega_c=4.06~\text{rad/s}\\ \gamma = 45.3^\circ}满足要求
+	\end{enumerate}
+\end{frame}
+
+\begin{frame}
+	\begin{center}
+		\begin{tikzpicture}[x = 1em, y=1em]
+			\datavisualization [scientific axes=inner ticks, 
+							x axis={logarithmic, attribute=w, length=34em, 
+							ticks={major at={
+							0.0067 as f. $\omega_1=b\omega_2$,
+							0.405 as e. $\omega_2=0.1\omega_c$,
+							4.06 as [tick text padding=0.7em]b. $\omega_c=4.05$ rad/s,
+							39.6 as b. $\omega_{c0}$,
+							5 as 5
+							}},
+							grid, grid={minor steps between steps=8}},
+							y axis={attribute=mag, length = 8.5em, ticks and grid={major at={-60,-40,-20,0,20,40,60,80,100,120}}, label={Magnitude (dB)}, include value={-60,120}},
+							every minor grid/.style={style={gray,dotted}},
+							visualize as smooth line/.list={G0,Gc,G},
+							legend = north east inside,
+							G0={label in legend={text=$G_0$},
+								label in data={text={$K=316$}, when=w is 0.01, text colored}, 
+								label in data={text=-20, when=w is 0.1, text colored}, 
+								label in data={text=-40, when=w is 10, text colored}},
+							Gc={label in legend={text=$G_c$}},
+							G={label in legend={text=$G$},
+								label in data={text'=-40, when=w is 0.04, text colored}, 
+								label in data={text'=-20, when=w is 1, text colored},
+								label in data={text=-40, when=w is 15, text colored}},
+							style sheet=strong colors]
+			data [set=G0, read from file=../figs/lagG0Mag.csv, headline={mag,w}]
+			data [set=Gc, read from file=../figs/lagGcMag.csv, headline={mag,w}]
+			data [set=G, read from file=../figs/lagGMag.csv, headline={mag,w}]
+			info {
+			\draw [thick] (visualization cs: w=4.05, mag=0) -- (visualization cs: w=4.05, mag=38)
+				node [above, at end, font=\footnotesize] {c. $L_0(\omega_c)=38$ dB}; 
+			\draw [thick,red] (visualization cs: w=4.05, mag=0) -- (visualization cs: w=4.05, mag=-38)
+				node [left, midway, font=\footnotesize] {d. $20\lg b=-38$ dB}; 
+			\foreach \w in {0.0067,0.405,4.05,39.6}{
+				\draw [dashed, cyan] (visualization cs: w=\w, mag=-60) -- (visualization cs: w=\w, mag=120);
+				}
+				};
+			%------------------Phase-----------------------------------
+			\begin{scope}[yshift=-11em]
+			\datavisualization [scientific axes=inner ticks, 
+							x axis={logarithmic, attribute=w, length=34em, 
+							grid, grid={minor steps between steps=8}, label={Frequency (rad/s)}},
+							y axis={attribute=mag, length = 8.5em, ticks and grid={major at={-270,-180,-90,0,90}}, label={Phase (deg)},  include value={-270,90}},
+							every minor grid/.style={style={gray,dotted}},
+							visualize as smooth line/.list={G0,Gc,G},
+							style sheet=strong colors]
+			data [set=G0, read from file=../figs/lagG0Ph.csv, headline={mag,w}]
+			data [set=Gc, read from file=../figs/lagGcPh.csv, headline={mag,w}]
+			data [set=G, read from file=../figs/lagGPh.csv, headline={mag,w}]
+			info {
+			\draw [thick] (visualization cs: w=4.05, mag=-180) -- (visualization cs: w=4.05, mag=-130)
+				node [below, at start, font=\footnotesize] {a. $\gamma_0(\omega_c)= \gamma^*+5^\circ=50^\circ$}; 
+			\draw [thick] (visualization cs: w=39.6, mag=-180) -- (visualization cs: w=39.6, mag=-172.8)
+				node [above, at end, font=\footnotesize] {$\gamma_0= 7.2^\circ$}; 
+			\draw [thick,blue] (visualization cs: w=4.06, mag=-180) -- (visualization cs: w=4.06, mag=-134.7)
+				node [above, at end, font=\footnotesize] {$\gamma=45.3^\circ$}; 
+				};
+			\end{scope}
+		\end{tikzpicture}
+	\end{center}
+\end{frame}
+
+\begin{frame}{\example{$G_0 = \frac{K}{s(\frac{s}{5}+1)(\frac{s}{10}+1)}$}{}}
+	\begin{center}
+	\scalebox{0.9}{
+		\begin{tikzpicture}[x = 4em, y=1em]
+			\foreach \x/\y in {0.01/0.01,0.02/~,0.03/~,0.04/~,0.05/~,0.06/~,0.07/~,0.08/~,0.09/~,0.1/0.1,0.2/~,0.3/~,0.4/~,0.5/~,0.6/~,0.7/~,0.8/~,0.9/~,1/1,2/~,3/~,4/~,5/~,6/~,7/~,8/~,9/~,10/10,20/~,30/~,40/~,50/~,60/~,70/~,80/~,90/~,100/100}{
+				\pgfmathln{\x}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\path [draw=gray, dotted, thick] (\re,8) -- node [at end, below] {\y} (\re,-8);
+			}
+			\foreach \x/\y/\z in {8/80/$360^\circ$,6/60/$270^\circ$,4/40/$180^\circ$,2/20/$90^\circ$,0/0/~,-2/-20/$-90^\circ$,-4/-40/$-180^\circ$,-6/-60/$-270^\circ$,-8/-80/$-360^\circ$}{
+				\path [draw=gray, dotted, thick] (-4.6,\x) -- node [at start, left] {\y} node [at end, right] {\z} (4.61,\x);
+			}
+			\path [arr] (-4.6,0) -- node [at end, above right] {$0^\circ$} (4.61,0) -- node [near end, above] {$\omega$} (5.4,0);
+			\path [arr] (-4.6,-8) -- node [pos=0.95, right] {$L(\omega)$dB} (-4.6,10);
+			\path [draw=gray, thick] (-4.6,8) -- node [at end, above right] {$\psi(\omega)$} (4.61,8) |- (-4.6,-8);
+			\path [rlocus, -, blue, name path=blue] (-4.6,7) -- node[above] {-20} (1.61,1.6) -- node [above] {-40}(2.3,0.398) -- node[at start, right] {$\omega_{c0}$} node [right] {-60} node[left] {$L_0(\omega)$}(4.6,-5.6);
+			\path [daline] (1.61,1.6) -- (3.4,0);
+			\path [dline, very thick] (1.61,8) -- (1.61,-8);
+			\path [dline, very thick] (2.3,8) -- (2.3,-8);
+			\node [zero, inner sep=1pt, fill=red, label=below:{\color{red}$D$}] (w1) at (-3.82,0) {};
+			\coordinate (w2) at (-1.35,0);
+			\node [zero, inner sep=1pt, fill=red, label=below:{\color{red}$C$}] (C) at (-1.35,-2.1) {};
+			\node [zero, inner sep=1pt, fill=red, label=below right:{\color{red}$B$}] (B) at (0.96,-2.1) {};
+			\node [zero, inner sep=1pt, fill=red, label=above right:{\color{red}$A$}] (A) at (0.96,2.2) {};
+			\path [name path=w] (w1) -- ++(0,8);
+			\path [dline, name intersections={of=blue and w, by=t1}] (t1) -- node [at end, above] {$\omega_1$} (w1);
+			\path [name path=w] (w2) -- ++(0,8);
+			\path [dline] (w2) -- (C);
+			\path [dline, name intersections={of=blue and w, by=t2}] (t2) -- node [at end, above] {$\omega_2$} (w2);
+			\path [rlocus, -, red] (-4.6,0) -- (w1) -- node[near end, above] {-20}(-1.35,-2.1) -- node [very near end, above] {$L_c(\omega)$} (4.6,-2.1);
+			\path [rlocus, -, draw=black] (-4.6,7) -- (t1) -- node [right] {-40}(-1.35,2) -- node [above] {-20}(1.61,-0.6) --node [right] {-40} (2.3,-2) -- node [right] {-60}node[near end, left]{$L(\omega)$}(4.6,-7.8);
+			
+			\path [rlocus, -, blue] (-4.6,-2.05) .. controls ($(-4.6,-2.05)+(0:9)$) and ($(4.6,-5.9)+(-190:2)$).. (4.6,-5.9);
+			\path [rlocus, -] (-4.6,-0.4) .. controls ($(-4.6,-.4)+(-30:5)$) and ($(4.6,-.1)+(-180:8)$) .. (4.6,-.1);
+			\path [rlocus, -, draw=black] (-4.6,-2.8) .. controls ($(-4.6,-2.8)+(-30:3)$) and ($(0,-2.8)+(-180:2)$) .. (0,-2.8).. controls ($(0,-2.8)+(-5:3)$) and ($(4.6,-5.9)+(-190:1)$) .. (4.6,-5.9);
+			\path [draw=red, thick] (0.96,-4) -- node [pos=0.3] {2.7}(0.96,4.8) coordinate (t3) -- node[at end, right] {$46^\circ$}++(2,0);
+			\path [draw=red, thick] (0.96,4.8) --++(-75:1);
+			\path [draw=red, thick] (0.96,4.8) --++(105:1);
+			\path [draw=red] (0.96,-4) -- ++(-.5,0);
+			\path [draw=red] (0.96,-3) -- node [near end, below] {\color{red}$\gamma$}++(-.5,0);
+			
+			\path [daline, draw=red] (0.85,0) -- node[at start, below left]{2.3}++(0,5.4) -- node[at end, right] {$52.35^\circ$}++(1.4,0);
+			\path [daline, draw=red] (1.07,0) -- node[at start, below right]{3}++(0,4.3) -- node[at end, right] {$42.34^\circ$}++(1.17,0);
+		\end{tikzpicture}
+		}
+	\end{center}
+\end{frame}
+
+\begin{frame}{\examplec{串联滞后校正}{}}
+	\emph{系统结构图如图所示
+	\begin{center}
+		\begin{tikzpicture}[x = 2em, y=1em]
+			\path [arr] (0,0) -- node [above, red] {$r$} ++(.5,0) coordinate (t);
+			\node [cross, anchor = west] (c) at (t) {};
+			\path [arr] (c.east) -- node [above, red] {$e$} ++(.5,0) coordinate (t);
+			\node [block] (b) at (t) {$\frac{K}{s(s+1)(\frac{s}{2}+1)}$};
+			\path [arr] (b.east) -- ++(.5,0) coordinate (t) -- node [above, red] {$c$}++(.5,0);
+			\path [arr] (t) -- ++(0,-2) -| node [right, at end] {$-$} (c.south);
+		\end{tikzpicture}
+	\end{center}
+	要求：}
+	\begin{enumerate}[(1)]
+		\item 静态速度误差$e_{ssv}\le 0.2$
+		\item $\gamma^* \ge 40^\circ$
+		\item $h^* \ge 10$~dB
+	\end{enumerate}
+	\emph{试确定校正装置传递函数}$G_c(s)=$?
+\end{frame}
+
+\begin{frame}{\example{串联滞后校正}}
+	\begin{center}
+	\scalebox{0.9}{
+		\begin{tikzpicture}[x = 4em, y=1em]
+			\foreach \x/\y in {0.001/0.001,0.002/~,0.003/~,0.004/~,0.005/~,0.006/~,0.007/~,0.008/~,0.009/~,0.01/0.01,0.02/~,0.03/~,0.04/~,0.05/~,0.06/~,0.07/~,0.08/~,0.09/~,0.1/0.1,0.2/~,0.3/~,0.4/~,0.5/~,0.6/~,0.7/~,0.8/~,0.9/~,1/1,2/~,3/~,4/~,5/~,6/~,7/~,8/~,9/~,10/10}{
+				\pgfmathln{\x}
+				\pgfmathsetmacro{\re}{\pgfmathresult}
+				\path [draw=gray, dotted, thick] (\re,8) -- node [at end, below] {\y} (\re,-8);
+			}
+			\foreach \x/\y/\z in {8/80/$360^\circ$,6/60/$270^\circ$,4/40/$180^\circ$,2/20/$90^\circ$,0/0/~,-2/-20/$-90^\circ$,-4/-40/$-180^\circ$,-6/-60/$-270^\circ$,-8/-80/$-360^\circ$}{
+				\path [draw=gray, dotted, thick] (-6.9,\x) -- node [at start, left] {\y} node [at end, right] {\z} (2.3,\x);
+			}
+			\path [arr] (-6.9,0) -- node [at end, above right] {$0^\circ$} (2.3,0) -- node [near end, above] {$\omega$} (3.1,0);
+			\path [arr] (-6.9,-8) -- node [pos=0.95, right] {$L(\omega)$dB} (-6.9,10);
+			\path [draw=gray, thick] (-6.9,8) -- node [at end, above right] {$\psi(\omega)$} (2.3,8) |- (-6.9,-8);
+			\path [rlocus, -, blue, name path=blue] (-6.9,8) -- node[above] {-20} node[near end, above] {$L_0(\omega)$} (0,2) -- node [above] {-40}(0.69,1) -- node [very near start, right] {$\omega_{c0}$}node [right] {-60} (2.3,-3.5);
+			\path [daline] (0,2) -- (2.3,0);
+			\path [dline, very thick] (0,8) -- (0,-8);
+			\path [dline, very thick] (0.69,8) -- (0.69,-8);
+			\node [zero, inner sep=1pt, fill=red, label=below:{\color{red}$D$}] (w1) at (-5.75,0) {};
+			\coordinate (w2) at (-2.9,0);
+			\node [zero, inner sep=1pt, fill=red, label=below:{\color{red}$C$}] (C) at (-2.9,-2.4) {};
+			\node [zero, inner sep=1pt, fill=red, label=below right:{\color{red}$B$}] (B) at (-0.59,-2.4) {};
+			\node [zero, inner sep=1pt, fill=red, label=above right:{\color{red}$A$}] (A) at (-0.59,2.5) {};
+			\path [name path=w] (w1) -- ++(0,8);
+			\path [dline, name intersections={of=blue and w, by=t1}] (t1) -- node [at end, above] {$\omega_1$} (w1);
+			\path [name path=w] (w2) -- ++(0,8);
+			\path [dline] (w2) -- (C);
+			\path [dline, name intersections={of=blue and w, by=t2}] (t2) -- node [at end, above] {$\omega_2=0.055$} (w2);
+			\path [rlocus, -, red] (-6.9,0) -- (w1) -- node[above] {-20} (C) -- node [near start, above] {$L_c(\omega)$} (2.3,-2.4);
+			\path [rlocus, -, draw=black] (-6.9,8) -- (t1) -- node [right] {-40}(-2.9,2) -- node [above] {-20}(0,-0.5) --node [right] {-40} (0.69,-1.5) -- node [right] {-60}node[near end, left]{$L(\omega)$}(2.3,-6);
+			
+			\path [rlocus, -, blue] (-6.9,-2.05) .. controls ($(-6.9,-2.05)+(0:9)$) and ($(2.3,-5.9)+(-190:2)$).. (2.3,-5.9);
+			\path [rlocus, -] (-6.9,-0.4) .. controls ($(-6.9,-.4)+(-30:5)$) and ($(2.3,-.1)+(-180:8)$) .. (2.3,-.1);
+			\path [rlocus, -, draw=black] (-6.9,-2.8) .. controls ($(-6.9,-2.8)+(-30:3)$) and ($(-2.3,-2.8)+(-180:2)$) .. (-2.3,-2.8).. controls ($(-2.3,-2.8)+(-5:3)$) and ($(2.3,-5.9)+(-190:1)$) .. (2.3,-5.9);
+			\path [draw=red, thick] (-0.59,-4) -- node [pos=0.3] {0.55}(-0.59,4.8) coordinate (t3) -- node[at end, right] {$46^\circ$}++(2,0);
+			\path [draw=red, thick] (-0.59,4.8) --++(-75:1);
+			\path [draw=red, thick] (-0.59,4.8) --++(105:1);
+			\path [draw=red] (-0.59,-4) -- ++(-.5,0);
+			\path [draw=red] (-0.59,-3.3) -- node [near end, below] {\color{red}$\gamma$}++(-.5,0);
+			
+			\path [daline, draw=red] (-0.69,0) -- node[at start, below left]{0.47}++(0,5.2) -- node[at end, right] {$51.6^\circ$}++(1.3,0);
+			\path [daline, draw=red] (-0.49,0) -- node[at start, below right]{0.6}++(0,4.4) -- node[at end, right] {$42.34^\circ$}++(1.07,0);
+		\end{tikzpicture}
+		}
+	\end{center}
+\end{frame}
+
+\section{串联滞后－超前校正}
+\subsection{滞后-超前网络特性}
+\begin{frame}{滞后-超前网络特性}
+	\emph{当用超前网络不足以达到指标，而用迟后校正时，又不能使系统落在有足够相角裕量的地方，要用迟后—超前网络校正。}
+	\begin{columns}[T]
+	\column{.55\textwidth}
+		\begin{align*}
+			G_c(s) &= \frac{(T_as+1)T_bs+1}{T_aT_bs^2+(T_a+T_b+T_{ab})s+1}\\
+			&T_1T_2 = T_aT_b\\
+			&T_1+T_2 = T_a + T_b + T_{ab}\\
+			&T_1 > T_a\\
+			&T_1/T_a = T_b/T_2 = a > 1\\
+			G_c(s) &= \frac{T_as+1}{aT_as+1}\cdot\frac{T_bs+1}{\frac{T_b}{a}s+1}
+		\end{align*}
+	\column{.45\textwidth}
+		$$\begin{cases}
+			T_a = R_1C_1\\
+			T_b = R_2C_2\\
+			T_{ab} = R_1C_2
+		\end{cases}$$
+		\begin{tikzpicture}[circuit ee IEC, x = 2.5em, y=1.5em, thick]
+			\node [zero, blue, inner sep = 1pt] (z1) at (0,0) {};
+			\node [zero, blue, inner sep = 1pt] (z2) at (4,0) {};
+			\node [zero, blue, inner sep = 1pt] (z3) at (0,-4) {};
+			\node [zero, blue, inner sep = 1pt] (z4) at (4,-4) {};
+			\path [line] (z1) to [resistor={info={[black]$R_1$}}] (3,0) -- (z2);
+			\path [line] (.5,0) -- +(0,-1) to [capacitor={info'={[black]$C_1$}}] (2.5,-1) -- (2.5,0);
+			\path [line] (3.5,0) to [capacitor={info'={[black]$C_2$}}] (3.5,-1) to [resistor={info'={[black]$R_2$}}] (3.5,-4);
+			\path [line] (z3) to (z4);
+			\path [arr] ($(z1)+(0,-.5em)$) -- node [left] {$u_r$} ($(z3)+(0,.5em)$);
+			\path [arr] ($(z2)+(0,-.5em)$) -- node [right] {$u_c$} ($(z4)+(0,.5em)$);			
+		\end{tikzpicture}
+		$aT_a = T_1 > T_a >T_b>T_2=\frac{T_b}{a}$
+	\end{columns}
+\end{frame}
+
+\begin{frame}{滞后-超前网络特性}
+	\begin{columns}[T]
+	\column{.6\textwidth}
+		$$\begin{array}{rccc}
+		& (s+\frac{1}{T_a}) & & (s+\frac{1}{T_b})\\
+		G_c(s) = &\tikz{\draw( 0,0)--(2,0)} & \cdot & \tikz{\draw (0,0) -- (2,0);}\\
+		& (s+\frac{1}{aT_a}) & & (s+\frac{a}{T_b})\\
+		& \underbrace{\rule{17mm}{0mm}}_{\text{滞后部分}}& & \underbrace{\rule{17mm}{0mm}}_{\text{超前部分}}
+		\end{array}$$
+		$$(a>1)$$
+		\emph{滞后-超前网络特点： 幅值衰减，相角超前}
+		若高频与低频部分衰减因子分别为$\alpha>1$，$\beta<1$，则高频部分幅值为$20\log\alpha\beta$
+	\column{.35\textwidth}
+		\begin{tikzpicture}[x=1.5em, y=1.1em]
+			\path [arr] (0,0) -- node [at end, above left] {$\omega$} (7,0);
+			\path [arr] (0,-2) -- node [at end, below right] {$L(\omega)$~dB} (0,3);
+			\coordinate (t1) at (1,0) {};
+			\coordinate (t2) at (2.5,0) {};
+			\coordinate (t3) at (3,0);
+			\coordinate (t4) at (3.5,0) {};
+			\coordinate (t5) at (5,0) {};
+			\path [rlocus, -, name path=slope, blue, draw=red] (0,0) -- (t1) -- (2.5,-2) -- (3.5,-2) -- (t5) -- (6,0);			
+			\path [dline] (3.5,-2) -- ++(3,0);
+			\path [arr, stealth-stealth, blue] (6.5,-2) -- node [midway, fill=white] {$20\log a$} (6.5,0);
+			\path [arr] (0,-5) -- node [at end, above left] {$\omega$} (7,-5);
+			\path [arr] (0,-7) -- node [at end, below right] {$\psi(\omega)$} (0,-3);
+			\path [dline] (t1) -- node[at start, above] {$\frac{1}{aT_a}$} ++(0,-6);
+			\path [dline] (t2) -- node[at start, above] {$\frac{1}{T_a}$} ++(0,-5.5);
+			\path [dline] (t3) -- ++(0,-5);
+			\path [dline] (t4) -- node[at start, above] {$\frac{1}{T_b}$} ++(0,-4.5);
+			\path [dline] (t5) -- node[at start, above] {$\frac{a}{T_b}$} ++(0,-3.8);
+			\path [rlocus, -, domain=.5:5.5] plot (\x*1.2-0.6,{(-sin(\x*60)-4.1)*1.2});
+		\end{tikzpicture}
+	\end{columns}
+\end{frame}
+
+\begin{frame}{校正步骤}
+	\emph{\color{red}实质 — 综合利用滞后网络幅值衰减、超前网络相角超前的特性，改造开环频率特性，提高系统性能}\\
+	\emph{滞后-超前校正步骤  (设给定指标$e_{ss}^*,~\omega_c^*,~\gamma^*$)}
+	\begin{enumerate}[(1)]
+		\item 由$e_{ss}^*\rightarrow K$
+		\item 由$G_0(s)\rightarrow L_0(\omega)\rightarrow \omega_{c0}\rightarrow\gamma_0~\text{用}\begin{cases}\text{超前校正}\\ \text{滞后校正}\end{cases}\text{均无效时}$
+		\item 确定$\psi_m = \gamma^* - \gamma_0(\omega_c)+6^\circ \begin{cases}a=\frac{1+\sin\psi_m}{1-\sin\psi_m}\end{cases}$，$\sqrt{a}$
+		\item 设计超前校正$G_{lead}$：$\omega_m=\omega_c$，$\omega_4=\omega_m*\sqrt{a}$，$\omega_3=\omega_4/a$
+		\item 根据超前后的系统在$\omega_m$处的幅值决定滞后网络系数：$L_{lead}(\omega_m)=-20\lg b$
+		\item 设计滞后校正$G_{lag}$：$\omega_2=\omega_c/10$，$\omega_1=\omega_2b$
+		\item $G(s) = G_{lag}(s)\cdot G_{lead}(s) \cdot G_0(s)$验算$\{\omega_c,~\gamma\}$是否满足要求
+	\end{enumerate}
+\end{frame}
+
+\subsection{校正实例}
+%\begin{frame}{串联滞后 - 超前校正}
+%	\example{}{} \emph{单位反馈系统，已知：
+%	$$G(s) = \frac{K}{s(s+1)(0.5s+1)}$$
+%	要求
+%	$$\begin{cases}
+%		K = 10\\
+%		\gamma^* = 50^\circ\\
+%		h^* \ge 10~\text{dB}\\
+%		\omega_c \ge 1.2
+%	\end{cases}$$
+%	确定$G(s)=$}?
+%\end{frame}
+
+%\note{$|G_0(\rj\omega_c)|=1=\frac{10}{\omega_c\cdot\omega_c\cdot\frac{\omega_c}{2}}\rightarrow\omega_c^3=20\rightarrow\omega_c=20^{\frac{1}{3}}=2.7144$\\
+%期望穿越频率$\omega_c^*=1.4$\\
+%$\psi_m = \gamma^* - \gamma_0(\omega_c)+6^\circ =  50^\circ - (180^\circ - 90^\circ - \arctan 1.4-\arctan 0.7) + 6^\circ = 55.45^\circ$\\
+%$a \ge \frac{1+\sin 55.45^\circ}{1-\sin 55.45^\circ} = 10$\\
+%超前部分交接频率选择带校正系统斜率由-20变为-40的频率，可以降低已校正系统的阶次，并可保证中频区-20的斜率
+%$\omega_3 = 1/T_b= 1\rightarrow T_b=1$\\
+%$\omega_4=a/T_b = 10$
+%}
+
+%\begin{frame}{串联滞后 - 超前校正}%留待日后补完
+%	\begin{tikzpicture}[x = 3.5em, y=1em]
+%			\foreach \x/\y in {0.01/0.01,0.02/~,0.03/~,0.04/~,0.05/~,0.06/~,0.07/~,0.08/~,0.09/~,0.1/0.1,0.2/~,0.3/~,0.4/~,0.5/~,0.6/~,0.7/~,0.8/~,0.9/~,1/1,2/~,3/~,4/~,5/~,6/~,7/~,8/~,9/~,10/10,20/~,30/~,40/~,50/~,60/~,70/~,80/~,90/~,100/100}{
+%				\pgfmathln{\x}
+%				\pgfmathsetmacro{\re}{\pgfmathresult}
+%				\path [draw=gray, dotted, thick] (\re,8) -- node [at end, below] {\y} (\re,-8);
+%			}
+%			\foreach \x/\y/\z in {8/80/$360^\circ$,6/60/$270^\circ$,4/40/$180^\circ$,2/20/$90^\circ$,0/0/~,-2/-20/$-90^\circ$,-4/-40/$-180^\circ$,-6/-60/$-270^\circ$,-8/-80/$-360^\circ$}{
+%				\path [draw=gray, dotted, thick] (-4.6,\x) -- node [at start, left] {\y} node [at end, right] {\z} (4.61,\x);
+%			}
+%			\path [arr] (-4.6,0) -- node [at end, above right] {$0^\circ$} (4.61,0) -- node [near end, above] {$\omega$} (5.4,0);
+%			\path [arr] (-4.6,-8) -- node [pos=0.95, right] {$L(\omega)$dB} (-4.6,10);
+%			\path [draw=gray, thick] (-4.6,8) -- node [at end, above right] {$\psi(\omega)$} (4.61,8) |- (-4.6,-8);
+%			\path [rlocus, -, blue, name path=blue] (-4.6,6) -- node[above] {-20} (0,2) -- node [above] {-40}(0.69,0.796) -- node[at start, right] {$\omega_{c0}$} node [right] {-60} node[left] {$L_0(\omega)$}(4.07,-8);
+%			\path [daline] (0,2) -- (2.3,0);
+%			\path [rlocus, -, draw=black] (-4.6,6) -- (t1) -- node [right] {-40}(-1.35,2) -- node [above] {-20}(1.61,-0.2) --node [right] {-40} (2.3,-1.6) -- node [right] {-60}node[near end, left]{$L(\omega)$}(4.6,-7.8);
+%			\path [dline, very thick] (1.61,8) -- (1.61,-8);
+%			\path [dline, very thick] (2.3,8) -- (2.3,-8);
+%			\node [zero, inner sep=1pt, fill=red, label=below:{\color{red}$D$}] (w1) at (-3.82,0) {};
+%			\coordinate (w2) at (-1.35,0);
+%			\node [zero, inner sep=1pt, fill=red, label=below:{\color{red}$C$}] (C) at (-1.35,-2.1) {};
+%			\node [zero, inner sep=1pt, fill=red, label=below right:{\color{red}$B$}] (B) at (0.96,-2.1) {};
+%			\node [zero, inner sep=1pt, fill=red, label=above right:{\color{red}$A$}] (A) at (0.96,2.2) {};
+%			\path [name path=w] (w1) -- ++(0,8);
+%			\path [dline, name intersections={of=blue and w, by=t1}] (t1) -- node [at end, above] {$\omega_1$} (w1);
+%			\path [name path=w] (w2) -- ++(0,8);
+%			\path [dline] (w2) -- (C);
+%			\path [dline, name intersections={of=blue and w, by=t2}] (t2) -- node [at end, above] {$\omega_2$} (w2);
+%			\path [rlocus, -, red] (-4.6,0) -- (w1) -- node[near end, above] {-20}(-1.35,-2.1) -- node [very near end, above] {$L_c(\omega)$} (4.6,-2.1);
+
+%			
+%			\path [rlocus, -, blue] (-4.6,-2.05) .. controls ($(-4.6,-2.05)+(0:9)$) and ($(4.6,-5.9)+(-190:2)$).. (4.6,-5.9);
+%			\path [rlocus, -] (-4.6,-0.4) .. controls ($(-4.6,-.4)+(-30:5)$) and ($(4.6,-.1)+(-180:8)$) .. (4.6,-.1);
+%			\path [rlocus, -, draw=black] (-4.6,-2.8) .. controls ($(-4.6,-2.8)+(-30:3)$) and ($(0,-2.8)+(-180:2)$) .. (0,-2.8).. controls ($(0,-2.8)+(-5:3)$) and ($(4.6,-5.9)+(-190:1)$) .. (4.6,-5.9);
+%			\path [draw=red, thick] (0.96,-4) -- node [pos=0.3] {2.7}(0.96,4.8) coordinate (t3) -- node[at end, right] {$46^\circ$}++(2,0);
+%			\path [draw=red, thick] (0.96,4.8) --++(-75:1);
+%			\path [draw=red, thick] (0.96,4.8) --++(105:1);
+%			\path [draw=red] (0.96,-4) -- ++(-.5,0);
+%			\path [draw=red] (0.96,-3) -- node [near end, below] {\color{red}$\gamma$}++(-.5,0);
+%			
+%			\path [daline, draw=red] (0.85,0) -- node[at start, below left]{2.3}++(0,5.4) -- node[at end, right] {$52.35^\circ$}++(1.4,0);
+%			\path [daline, draw=red] (1.07,0) -- node[at start, below right]{3}++(0,4.3) -- node[at end, right] {$42.34^\circ$}++(1.17,0);
+%		\end{tikzpicture}
+%\end{frame}
+
+\begin{frame}{\example{串联滞后 - 超前校正实例}}
+	\emph{单位反馈系统，已知：
+	$$G(s) = \frac{K}{s(\frac{s}{10}+1)(\frac{s}{60}+1)}$$
+	要求
+	$$\begin{cases}
+		K = 100\\
+		\gamma^* = 50^\circ\\
+		h^* \ge 10~\textrm{dB}\\
+		\omega_c = 20
+	\end{cases}$$
+	确定$G_c(s)=$}?
+\end{frame}
+
+\begin{frame}{\examplec{串联滞后 - 超前校正实例}}
+	\vs{-0.5em}
+	\begin{center}
+	%\scalebox{.9}{
+		\begin{tikzpicture}[x = 1em, y=1em]
+			\datavisualization [scientific axes=inner ticks, 
+							x axis={logarithmic, attribute=w, length=34em, ticks={major at={
+							0.37 as [tick text padding=0.5em] f. $\omega_1=\omega_2b$,
+							2 as e. $\omega_2=\omega_c/10$,
+							7.9 as [tick text padding=0.5em]c. $\omega_3=\omega_4/a$,
+							50.6 as [tick text padding=1.1em]b. $\omega_4=\omega_m\sqrt{a}$,
+							20 as $\omega_c$,
+							10 as $10$,
+							60 as $60$,
+							}},
+							grid, grid={minor steps between steps=8}},
+							y axis={attribute=mag, length = 8em, ticks and grid={major at={-100,-80,-60,-40,-20,0,20,40,60,80}}, label={Magnitude (dB)}, include value={-100,80}},
+							every minor grid/.style={style={gray,dotted}},
+							visualize as smooth line/.list={G0,Gc,G},
+							G0={label in data={text=-20, when=w is 1, text colored}, 
+								label in data={text=-40, when=w is 20, text colored},
+								label in data={text=-60, when=w is 400, text colored}},
+							G={label in data={text'=-40, when=w is 0.5, text colored}, 
+								label in data={text'=-20, when=w is 10, text colored},
+								label in data={text'=-40, when=w is 80, text colored},
+								label in data={text'=-60, when=w is 400, text colored}},
+							style sheet=strong colors]
+			data [set=G0, read from file=../figs/lagLeadG0Mag.csv, headline={mag,w}]
+			data [set=Gc, read from file=../figs/lagLeadGcMag.csv, headline={mag,w}]
+			data [set=G, read from file=../figs/lagLeadGMag.csv, headline={mag,w}]
+			info {
+			\draw [thick,blue] (visualization cs: w=55.5, mag=0) -- (visualization cs: w=55.5, mag=-13.6)
+				node [right, midway, font=\footnotesize] {$h=$ 13.61 dB}; 
+			\draw [thick,red] (visualization cs: w=4, mag=0) -- (visualization cs: w=4, mag=-14.6)
+				node [below, at end, font=\footnotesize] {d. $20\lg b=-L_{lead}(\omega_m)-L_0(\omega_m)=$ -14.61 dB}; 
+			\foreach \w in {0.37,2,7.9,10,20,50.6,55.5,60}{
+				\draw [dashed, cyan] (visualization cs: w=\w, mag=-100) -- (visualization cs: w=\w, mag=80);
+				}
+				};
+			%------------------Phase-----------------------------------
+			\begin{scope}[yshift=-10em]
+			\datavisualization [scientific axes=inner ticks, 
+							x axis={logarithmic, attribute=w, length=34em, ticks={major={also at=55.5 as $\omega_g$,also at=20 as $\omega_c$}},
+							grid, grid={minor steps between steps=8}, label={Frequency (rad/s)}},
+							y axis={attribute=mag, length = 8em, ticks and grid={major at={-270,-180,-90,0,90}}, label={Phase (deg)}, , include value={-270,90}},
+							every minor grid/.style={style={gray,dotted}},
+							visualize as smooth line/.list={G0,Gc,G},
+							legend = east inside,
+							G0={label in legend={text=$G_0$}},
+							Gc={label in legend={text=$G_c$}},
+							G={label in legend={text=$G$}},
+							style sheet=strong colors]
+			data [set=G0, read from file=../figs/lagLeadG0Ph.csv, headline={mag,w}]
+			data [set=Gc, read from file=../figs/lagLeadGcPh.csv, headline={mag,w}]
+			data [set=G, read from file=../figs/lagLeadGPh.csv, headline={mag,w}]
+			info {
+			\draw [thick,blue] (visualization cs: w=20, mag=-180) -- (visualization cs: w=20, mag=-130)
+				node [right, midway, font=\footnotesize] {$\gamma= 50.22^\circ$}; 
+			\draw [thick] (visualization cs: w=20, mag=-180) -- (visualization cs: w=20, mag=-172)
+				node [left, midway, font=\footnotesize] {$\gamma_0(\omega_c)= 8.13^\circ$}; 
+			\draw [thick,red] (visualization cs: w=20, mag=0) -- (visualization cs: w=20, mag=46.87)
+				node [below, at start, font=\footnotesize] {a. $\psi_m= \gamma^*-\gamma_0(\omega_c)+6^\circ=46.87^\circ$}; 
+				};
+			\end{scope}
+		\end{tikzpicture}
+		
+	\end{center}
+\end{frame}
+
+\note{$$\frac{100}{\omega_{c0}\cdot\frac{\omega_{c0}}{10}}=1\rightarrow\omega_{c0}=31.62\quad\gamma_0=-10.24$$
+$\gamma_0(\omega_c)=180^\circ-90^\circ-\arctan\frac{\omega_c}{10}-\arctan\frac{\omega_c}{60}\overset{\omega_c=20}{=}31.62^\circ$，$\omega_c$处需超前
+$$\psi_m=\gamma^*-\gamma_0(\omega_c)+6^\circ=47.87^\circ\quad a=\frac{1+\sin\psi_m}{1-\sin\psi_m}=6.74$$
+$$L_0(\omega_c)=\frac{100}{\omega_{c0}\cdot\frac{\omega_{c0}}{10}}\overset{\omega_c=20}{=}7.96~\text{dB}$$
+超前部分在$\omega_c$处应有$20\log|G_c(\rj\omega)_{\omega=20}|=-7.96$，
+考虑到未校正系统在$\omega=10$处的开环极点，选择原系统-20到-40斜率变化的交接频率作为校正网络超前部分的交接频率$\omega_3=10$，$\omega_2=0.1\omega_c=2$
+}
+
+\subsection{课程小结}
+\begin{frame}{课程小结}
+	\begin{center}
+	\emph{串联校正方法的比较\vspace{1em}
+	\begin{tabular}{ccp{4em}c}\vspace{1em}
+	\renewcommand{\arraystretch}{1.5}
+		校正方法	&校正网络特点	&应用场合	&效果\\\vspace{1em}
+		超前校正	&\begin{tabular}{c}幅值增加\\ 相角超前\end{tabular}	&$\begin{cases}\omega_{c0}<\omega_c^*\\ \gamma_0 < \gamma^*\end{cases}$	&$\begin{cases}\omega_c\uparrow,~\gamma\uparrow\\ \text{高频段}\uparrow\end{cases}$\\\vspace{1em}
+		滞后校正	&\begin{tabular}{c}幅值衰减\\ 相角滞后\end{tabular}	&$\begin{cases}\omega_{c0}>\omega_c^*\\ \gamma_0 < \gamma^*\end{cases}$	&$\begin{cases}\omega_c\downarrow,~\gamma\uparrow\\ \text{高频段}\downarrow\end{cases}$\\\vspace{1em}
+		滞后超前	&\begin{tabular}{c}幅值衰减\\相角超前\end{tabular}	&\begin{tabular}{c}滞后超前\\ 均不奏效\end{tabular}	&$\begin{cases}\omega_c\sim,~\gamma\uparrow\\ \text{高频段}\sim\end{cases}$
+	\end{tabular}
+	}
+	\end{center}
+\end{frame}
+
+\section{比例-积分-微分（PID）调节器}
+\subsection{特性}
+\begin{frame}{比例-积分-微分（PID）调节器}
+	\begin{center}
+		\begin{tikzpicture}[x = 2em, y=1em]
+			\path [arr] (0,0) -- node [above, red] {$r$} ++(.5,0) coordinate (t);
+			\node [cross, anchor = west] (c) at (t) {};
+			\path [arr] (c.east) -- node [above, red] {$e$} ++(.5,0) coordinate (t);
+			\node [block] (b1) at (t) {PID};
+			\path [arr] (b1.east) -- node[above, red]{$u$}++(.5,0) coordinate (t);
+			\node [block] (b2) at (t) {$G_0(s)$};
+			\path [arr] (b2.east) -- ++(.5,0) coordinate (t) -- node [above, red] {$c$}++(.5,0);
+			\path [arr] (t) -- ++(0,-2) -| node [right, at end] {$-$} (c.south);
+		\end{tikzpicture}
+	\end{center}
+	PID调节器：无需知道精确的控制对象模型
+	$$u(t) = K_P e(t) + K_I\int_0^t e(\tau)\dif\tau + K_D\fracd{e(t)}{t}$$
+	$u(t)$：控制器输出；$e(t)$：误差信号
+	$$G_c(s) = \frac{U(s)}{E(s)} = K_P + \frac{K_I}{s} + K_Ds$$
+	通常采用试探法确定参数$K_P$，$K_I$和$K_D$
+\end{frame}
+
+\subsection{比例(P)调节器}
+\begin{frame}{比例(P)调节器}
+	$$G_c(s) = K_P$$
+	只调节系统增益，不影响系统相角
+	\begin{center}
+		\begin{tikzpicture}[x=1.5em, y=1.1em]
+			\path [arr] (0,0) -- node [at end, above left] {$\omega$} (7,0);
+			\path [arr] (0,-2) -- node [at end, below right] {$L(\omega)$~dB} (0,3);
+			\path [rlocus, -, name path=slope] (0,1) -- node[at start, left] {$20\log K_P$}++ (6,0); 	
+			\path [arr] (0,-5) -- node [at start, left] {$0^\circ$}node [at end, above left] {$\omega$} (7,-5);
+			\path [arr] (0,-7) -- node [at end, below right] {$\psi(\omega)$} (0,-3);
+			\path [rlocus, -] (0,-5) -- ++(6,0);
+		\end{tikzpicture}
+	\end{center}
+\end{frame}
+
+\subsection{比例-积分(PI)调节器}
+\begin{frame}{比例-积分(PI)调节器}
+	$$G_c(s) = K_P + \frac{K_I}{s} = \frac{K_Ps + K_I}{s} = \frac{K_I(\tau s +1)}{s}$$
+	其中$\tau = K_P/K_I$。PI调节器增加系统型别，可改善稳态性能。
+	\begin{center}
+		\begin{tikzpicture}[x=1.5em, y=1.1em]
+			\path [arr] (0,0) -- node [at end, above left] {$\omega$} (7,0);
+			\path [arr] (0,-2) -- node [at end, below right] {$L(\omega)$~dB} (0,3);
+			\path [rlocus, -, name path=slope, blue, draw=red] (0,1) -- node[near start, right] {-20}(3,-1)coordinate (t1) --++ (3,0); 			
+			\path [dline] (t1) -- node[at end, left] {$20\log K_P$} (t1 -| 0,0);
+			
+			\path [arr] (0,-5) -- node [at start, left] {$0^\circ$}node [at end, above left] {$\omega$} (7,-5);
+			\path [arr] (0,-7) -- node [at end, below right] {$\psi(\omega)$} (0,-3);
+			
+%			\begin{scope}[xshift=4.45em, yshift=-7.4em]
+			\path [rlocus, -, domain=-2.3:2.3, name path = psi] plot (\x*1.25+2.95,{atan(pow(10,\x))/60-6.7});	
+%			\end{scope}
+			
+			\path [name path=w1](t1) -- ++(0,-6);
+			\path [dline, name intersections={of=psi and w1, by=p}] (p) -- node [at end, above] {$\frac{K_I}{K_P}$}(p |- 0,0);
+			\path [dline] (p) -- node[at end, left] {$-45^\circ$}(p -| 0,0);
+			\path [dline] (0,-6.9) -- node[at start, left] {$-90^\circ$}++(6,0);
+		\end{tikzpicture}
+	\end{center}
+\end{frame}
+
+\subsection{比例-微分(PD)调节器}
+\begin{frame}{比例-微分(PD)调节器}
+	$$G_c(s) = K_P + K_D s = K_P\left(\frac{K_D}{K_P}s +1\right)$$
+	相位超前校正，改善瞬态响应
+	\begin{columns}[T]
+	\column{.5\textwidth}
+		PD调节器对高频噪声有放大作用，可通过引入一个模值大于零点的极点（保证相位仍然超前）改善：
+		\begin{align*}
+			G_c(s) &= \frac{K_P + K_D s}{s - p_{add}}\\
+			&= K_P\frac{(K_D/K_P)s+1}{s-p_{add}}
+		\end{align*}
+	\column{.5\textwidth}
+		\begin{tikzpicture}[x=1.5em, y=1.1em]
+			\path [arr] (0,0) -- node [at end, above left] {$\omega$} (7,0);
+			\path [arr] (0,-2) -- node [at end, below right] {$L(\omega)$~dB} (0,3);
+			\path [rlocus, -, name path=slope, blue, draw=red] (0,-1) -- ++ (3,0) coordinate (t1) --node[near start, right] {20}(6,1); 			
+			\path [dline] (t1) -- node[at end, left] {$20\log K_P$} (t1 -| 0,0);			
+			\path [arr] (0,-6) -- node [at start, left] {$0^\circ$}node [at end, above left] {$\omega$} (7,-6);
+			\path [arr] (0,-6) -- node [at end, below right] {$\psi(\omega)$} (0,-2.5);	
+%			\begin{scope}[xshift=4.45em, yshift=-6.4em] % Scope is not recognized any more
+			\path [rlocus, -, domain=-2.3:2.3, name path=psi] plot (\x*1.25+2.95,{atan(pow(10,\x))/60-5.75});
+%			\end{scope}
+			
+			\path [name path=w1](t1) -- ++(0,-6);
+			\path [dline, name intersections={of=psi and w1, by=p}] (p) -- node [at end, above] {$\frac{K_P}{K_D}$}(p |- 0,0);
+			\path [dline] (p) -- node[at end, left] {$45^\circ$}(p -| 0,0);
+			\path [dline] (0,-4) -- node[at start, left] {$90^\circ$}++(6,0);
+		\end{tikzpicture}
+	\end{columns}
+\end{frame}
+
+\subsection{比例-积分-微分(PID)调节器}
+\begin{frame}{比例-积分-微分(PID)调节器}
+	$$G_c(s) = K_P + \frac{K_I}{s} + K_D s = \frac{K_D s^2 +K_P s + K_I}{s}$$
+	积分校正低频，微分校正高频
+	\begin{columns}[T]
+	\column{.5\textwidth}
+		PID调节器是一种滞后-超前校正器，同样会放大高频噪声，需要引入极点：
+		$$G_c(s) = K_P + \frac{K_I}{s} + \frac{K_D s}{s - p_{add}}$$
+	\column{.5\textwidth}
+		\begin{tikzpicture}[x=1.5em, y=1.1em]
+			\path [arr] (0,0) -- node [at end, above left] {$\omega$} (7,0);
+			\path [arr] (0,-2) -- node [at end, below right] {$L(\omega)$~dB} (0,3);
+			\path [rlocus, -, name path=slope, blue, draw=red] (0,1) --  node[near start, right] {-20}(2,-1) coordinate (t1) -- ++(2,0)coordinate (t2) -- node[near end, left] {20}(6,1); 			
+			\path [dline] (t1) -- node[at end, left] {$20\log K_P$} (t1 -| 0,0);	
+			\path [dline] (t1) -- (t1 |- 0,0);	
+			\path [dline] (t2) -- (t2 |- 0,0);	
+			\path [arr] (0,-5) -- node [at start, left] {$0^\circ$}node [at end, above left] {$\omega$} (7,-5);
+			\path [arr] (0,-7) -- node [at end, below right] {$\psi(\omega)$} (0,-2.5);	
+			\begin{scope}[xshift=4.45em, yshift=-6.4em]
+			\path [rlocus, -, domain=-2.3:2.3, name path=psi] plot (\x*1.25,{(atan(pow(10,\x))+atan(pow(10,\x)*5))/110})	;
+			\end{scope}
+			
+			\path [dline] (0,-4) -- node[at start, left] {$90^\circ$}++(6,0);
+			\path [dline] (0,-6) -- node[at start, left] {$-90^\circ$}++(6,0);
+		\end{tikzpicture}
+	\end{columns}
+\end{frame}
+
+\section{反馈校正}
+\subsection{特性}
+\begin{frame}{反馈校正}
+	\begin{center}
+		\begin{tikzpicture}[x = 2em, y=1em]
+			\path [arr] (0,0) -- node [above, red] {$r$} ++(.5,0) coordinate (t);
+			\node [cross, anchor = west] (c1) at (t) {};
+			\path [arr] (c1.east) -- node [above, red] {$e$} ++(.5,0) coordinate (t);
+			\node [block] (b1) at (t) {$G_{p1}(s)$};
+			\path [arr] (b1.east) -- node[above, red]{$r_1$}++(.5,0) coordinate (t);
+			\node [cross, anchor = west] (c2) at (t) {};
+			\path [arr] (c2.east) -- ++(.5,0) coordinate (t);
+			\node [block] (b2) at (t) {$G_{p2}(s)$};
+			\path [arr] (b2.east) -- ++(.5,0) coordinate (t) -- node [above, red] {$c$}++(.5,0);
+			\node [block, below of=b2] (b3)  {$G_{c}(s)$}; 
+			\path [arr] (t) |- (b3.east);
+			\path [arr] (b3.west) - | node [at end, right] {$-$} (c2.south);
+			\path [arr] (t) |- ++(-2,-5) coordinate (t);
+			\node [block, anchor=east] (b4) at (t) {$H(s)$};
+			\path [arr] (b4.west) -| node [right, at end] {$-$} (c1.south);
+		\end{tikzpicture}
+	\end{center}
+	$G_c(s)$为反馈校正装置，$G_{p2}(s)$和$G_c(s)$构成局部回路，和$G_{p1}(s)$串联形成的回路为外回路（主回路）。
+\end{frame}
+
+\subsection{位置反馈}
+\begin{frame}{位置反馈}
+	设$$G_{p2}(s) = \frac{K_2}{Ts+1}$$
+	且$$G_c(s) = K_P$$
+	则局部闭环传函
+	$$\frac{C(s)}{R_1(s)} = \frac{\frac{K_2}{Ts+1}}{1+\frac{K_2K_P}{Ts+1}} = \frac{K'_2}{T's+1}$$
+	其中
+	$$K' = \frac{K_2}{1+K_2K_P},\quad T' = \frac{T}{1+K_2K_P}$$
+	位置反馈减小原系统的时间常数和增益，加快系统响应。但增益减小增大稳态误差，可在$G_{p1}(s)$中加入放大器进行补偿。
+\end{frame}
+
+\subsection{速度反馈}
+\begin{frame}{速度反馈}
+	设$G_{p2}(s)$由功放和执行电机组成，则$c$为角位移，有
+	$$G_{p2}(s) = \frac{K_2}{s(T_m s+1)}$$
+	$G_c(s)$为测速发电机：$G_c(s) = K_1 s$，在$K_2K_t \gg 1$时，局部闭环传函可简化为
+	$$\frac{C(s)}{R_1(s)} = \frac{1}{K_t s\left(\frac{T_m}{K_2K_t}s+1\right)}$$
+	用$\frac{C(s)}{R_1(s)}$除去$G_{p2}(s)$，局部反馈相当于在$G_{p2}(s)$前串联$G_{eq}$：
+	$$G_{eq}(s) = \frac{1}{K_2K_t}\cdot\frac{T_ms +1}{\frac{T_m}{K_2K_t}s+1} = \frac{1}{a}\cdot\frac{aTs+1}{Ts+1}, G_{eq}G_{p2}=\frac{C(s)}{R_1(s)}$$
+	*速度反馈效果等价于超前校正装置
+\end{frame}
+
+\subsection{速度微分反馈}
+\begin{frame}{速度微分反馈}
+	考虑上例，在局部反馈中串接微分网络$\frac{T_d s}{T_d s+1}$，则有
+	$$G_c(s) = \frac{K_tT_ds^2}{T_ds+1}$$
+	局部反馈的传递函数为
+	$$\frac{C(s)}{R_1(s)} = \frac{K_2(T_ds+1)}{s[T_mT_ds^2+(T_m+K_2K_tT_d+T_d)s+1]}$$
+	若$K_2K_t\gg 1$且$K_2K_tT_d\gg T_m$，局部反馈相当于在$G_{p2}(s)$前串接
+	$$G_{eq} = \frac{(T_ms+1)(T_ds+1)}{\left(\frac{T_m}{K_2K_t}s+1\right)(K_2K_tT_ds+1)}$$
+	*速度微分反馈效果等价于滞后-超前校正装置。
+\end{frame}
+
+\subsection{课程小结}
+\begin{frame}{课程小结}
+	\begin{enumerate}[(1)]
+		\item 串联超前校正：改变中高频幅值，提升相角
+		\item 串联滞后校正：幅频高频衰减，会减小原系统$\gamma$，应附加相角$5^\circ\sim12^\circ$
+		\item 串联滞后-超前：幅值衰减，相角超前，提升$\gamma$，不影响高频段
+		\item 比例调节器：只调节系统增益，不影响相角
+		\item 比例积分调节器：增加系统型别，改善稳态性能
+		\item 比例微分调节器：相位超前校正，改善瞬态响应
+		\item 比例积分微分调节器：等价于滞后超前校正，实际使用应引入极点
+		\item 位置反馈校正：减小时间常数，加快响应
+		\item 速度反馈校正：等价于超前校正
+		\item 速度微分反馈：等价于滞后超前校正
+		\item 按扰动补偿复合校正：前馈抑制大扰动，反馈抑制小扰动
+		\item 按输入补偿复合校正，使输出完美复现输入，时间响应特性理想。
+	\end{enumerate}
+\end{frame}
+
+\end{document}

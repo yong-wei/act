@@ -1,189 +1,91 @@
 # 多模态资源设计 | 单元 2-4：Bode图与Nyquist图基础——从频率特性到图形语言
 
-> **资源总数**：12 项  
-> **本轮状态**：先完成配图规划，不回写 `handout.md` 图片链接；待正式成图后再逐项嵌入正文。  
-> **核心约定**：本单元凡涉及 `Bode` / `Nyquist` 曲线的正式成图，统一优先采用 `Octave + control` 包的 `.m` 脚本生成，优先输出 `.svg`；若运行时或 PDF 兼容性需要，再补 `.png`。`python-control` 在本单元只作为必要时的交叉校验工具，不作为主出图链路。  
-> **范围说明**：本单元不单独再做“典型环节标准对象库”信息图，因为正文和附录 B 已有表格速查；图像资源重点服务于“图形对象建立、典型趋势观察、渐近骨架、Nyquist 轨迹直觉、两图一致性”。
+> **资源总数**：16 项  
+> **当前完成**：12 项（封面图、信息图、`fd-01` 至 `fd-10`）  
+> **待制作**：4 项（`2-4-slides.pdf`、`2-4-intro-video.mp4`、`2-4-course.mp4`、`2-4-audio.m4a`）  
+> **本轮状态**：已统一全部正式媒体命名为 `2-4-` 前缀，并补齐学生版讲义导出所需的 `2-4-cover-comic.png` 与 `2-4-info.png`。  
+> **核心约定**：涉及频域曲线、响应曲线和性能指标的数值校验，统一使用 `Octave + control` 包原生函数完成，例如 `tf`、`bode`、`bodemag`、`nyquist`、`step`、`impulse`、`margin`、`feedback`；不自造基础计算函数。
 
 ---
 
-## 资源总表
+## 1. 正式命名与目录约束
 
-| 编号 | 文件名 / 标识 | 生成方式 | 引用于 | 优先级 |
-|:---:|---------------|----------|--------|:---:|
-| 1 | `cover-comic.png` | AI 生成位图 | 学生版讲义封面导入 | P1 |
-| 2 | `intro-video.mp4` | AI 生成视频 | 课堂开场 / 互动课首页导入 | P1 |
-| 3 | `fd-01-bode-dual-view-overview.png` | 概念图（TikZ） | handout §2.2 | P0 |
-| 4 | `fd-02-log-frequency-db-intuition.png` | 概念图（TikZ） | handout §2.3 / §2.3.1 / 附录A | P0 |
-| 5 | `fd-03-typical-elements-bode-comparison.svg` | 代码直出图（Octave） | handout §2.4 / §2.10 / 附录B / 例题三 | P0 |
-| 6 | `fd-04-first-order-exact-vs-asymptote.svg` | 代码直出图（Octave） | handout §2.5 / 附录C | P0 |
-| 7 | `fd-05-first-order-nyquist-track.svg` | 代码直出图（Octave） | handout §2.6 / §2.7 / 例题二 / 附录D | P0 |
-| 8 | `fd-06-pure-pole-nyquist-comparison.svg` | 代码直出图（Octave） | handout §2.7 / 附录B | P1 |
-| 9 | `fd-07-second-order-damping-bode.svg` | 代码直出图（Octave） | handout §2.4.4 / 附录D | P1 |
-| 10 | `fd-08-bode-nyquist-consistency-panel.svg` | 代码直出图（Octave） | handout §2.8 / 例题二 / 工程视角 | P1 |
-| 11 | `fd-09-bode-sketch-checklist.png` | 流程图（TikZ） | handout §2.9 / 附录C.1-C.4 | P1 |
-| 12 | `fd-10-nyquist-sketch-checklist.png` | 流程图（TikZ） | handout §2.9 / 附录C.5 | P1 |
+- 所有正式媒体一律使用 `[单元编号]-{资源名}` 命名，本单元固定为 `2-4-...`
+- 讲义封面图：`2-4-cover-comic.png`
+- 讲义信息图：`2-4-info.png`
+- 生成式课件：`2-4-slides.pdf`
+- 课程导入视频：`2-4-intro-video.mp4`
+- 课程内容视频：`2-4-course.mp4`
+- 课程音频播客：`2-4-audio.m4a`
+- 代码直出图与线框图：`2-4-fd-01-...` 至 `2-4-fd-10-...`
+- 原料目录固定为 `media/raw/`，成品目录固定为 `media/processed/`
+- `handout.md`、`multimedia.md`、原料脚本默认输出名必须与上述成品命名完全一致
 
 ---
 
-## AI 导入媒体规格
+## 2. 资源总表
 
-### 资源 `cover-comic` | 讲义封面漫画
-- **原料**：`media/raw/cover-comic-prompt.md`
-- **成品**：`media/processed/cover-comic.png`
-- **引用位置**：学生版讲义封面导入区
-- **用途**：在学生进入正文前，先建立“频率特性为什么还要画成图”的问题意识。
-- **画面主线**：不要把公式堆成主角，而要让学生先看到“同一个系统，对慢变化和快变化的态度完全不同”，进而引出“需要一种能看整体趋势的图形语言”。
-- **备注**：本轮只做规划；若后续只先交提示词，则不强制把封面图插回正文。
-
-### 资源 `intro-video` | 15 秒导入视频
-- **原料**：`media/raw/intro-video-prompt.md`
-- **成品**：`media/processed/intro-video.mp4`
-- **引用位置**：课堂开场 / `interactive-page.md` 首页导入区
-- **用途**：先让学生在感受上建立“低频命令、海浪扰动、噪声抖动并不一样，系统对它们的态度也不一样”，再自然进入 `Bode` / `Nyquist` 图的必要性。
-- **制作要求**：
-  - 默认调用 `seedance` 技能生成中文提示词；
-  - 保留“随机选定一个最适合本单元主线的单一风格”；
-  - 保留“电影感可以很强，但不要让公式、板书、推导成为画面主体”。
-
----
-
-## 代码直出图规格
-
-### 资源 `fd-01` | Bode 图双图结构总览
-- **存放**：`media/raw/fd-01-bode-dual-view-overview.tex` -> `media/processed/fd-01-bode-dual-view-overview.png`
-- **内容**：上下双子图排布。上图是幅频图，下图是相频图，共用对数频率横轴；用一组简单的一阶惯性示例曲线来说明“同一个对象被拆成两张图看”。
-- **重点标注**：
-  - 上图明确标注“幅频图 / dB”；
-  - 下图明确标注“相频图 / deg”；
-  - 共用横轴位置标注“对数频率轴”；
-  - 图侧加短说明：“强弱变化”和“相位拖后”。
-- **生成方式说明**：这是概念关系图，不追求数值扫描，优先用 `TikZ` 保证结构、标注和留白稳定。
-- **用途判断**：这是 `2.2` 的关键首图，必须第一眼就让学生看出 Bode 不是单图，而是双图结构。
-
-### 资源 `fd-02` | 对数频率轴与 dB 直觉示意
-- **存放**：`media/raw/fd-02-log-frequency-db-intuition.tex` -> `media/processed/fd-02-log-frequency-db-intuition.png`
-- **内容**：左右双栏。
-  - 左栏画一条对数频率轴，突出 `0.1 -> 1 -> 10 -> 100` 等间隔显示“等倍数、不同差值”的特点；
-  - 右栏画 dB 对照示意，标出 `0 dB`、`+20 dB`、`-20 dB` 与“幅值 1 倍、10 倍、1/10 倍”的对应。
-- **重点标注**：
-  - 左栏要突出“看倍数，不看差值”；
-  - 右栏要突出“幅值乘法关系改写为 dB 加法关系”的直觉；
-  - 不做分贝史图，只做课堂最小解释图。
-- **生成方式说明**：这张图强调的是“表达逻辑”和“单位直觉”，优先用 `TikZ` 做说明图，不必强做数值曲线。
-- **用途判断**：服务 `2.3` 与 `2.3.1`，把“为什么横轴取对数、纵轴常写 dB”一起落成视觉锚点。
-
-### 资源 `fd-03` | 典型环节 Bode 图对照板
-- **存放**：`media/raw/fd-03-typical-elements-bode-comparison.m` -> `media/processed/fd-03-typical-elements-bode-comparison.svg`
-- **内容**：采用多联图对照，至少覆盖比例、积分、微分、一阶惯性、欠阻尼二阶振荡五类标准对象。每类对象给出一组简洁的幅频图与相频图轮廓，并配一句“第一眼判断语”。
-- **重点标注**：
-  - 每类对象名称必须直接写在图中；
-  - 每类对象下方保留一句极简判断语，如“先平后降”“持续上升”“有峰起”等；
-  - 同一版面对齐纵横尺度，保证学生能直接横向比较。
-- **用途判断**：这是本课最重要的总览图之一，可同时支撑正文 `2.4`、基础反向识别 `2.10`、例题三和附录 B。
-
-### 资源 `fd-04` | 一阶惯性环节：精确曲线与渐近骨架对照
-- **存放**：`media/raw/fd-04-first-order-exact-vs-asymptote.m` -> `media/processed/fd-04-first-order-exact-vs-asymptote.svg`
-- **内容**：上下双图。上图在同一坐标系中叠放一阶惯性环节的精确幅频曲线与渐近线骨架；下图叠放精确相频曲线与关键角度区间提示。
-- **重点标注**：
-  - 转折频率位置；
-  - 低频近似、 高频渐近趋势；
-  - “先抓骨架，再补细节”的侧边说明。
-- **用途判断**：服务 `2.5` 与附录 C，帮助学生理解为什么渐近画法不是偷懒，而是先抓主要结构。
-
-### 资源 `fd-05` | 一阶惯性环节 Nyquist 轨迹
-- **存放**：`media/raw/fd-05-first-order-nyquist-track.m` -> `media/processed/fd-05-first-order-nyquist-track.svg`
-- **内容**：复平面中绘制一阶惯性环节的 Nyquist 轨迹，明确给出低频起点、频率增大方向箭头和高频收向原点的趋势。
-- **重点标注**：
-  - 起点 `(1, 0)` 附近；
-  - 轨迹方向箭头；
-  - 终点趋近原点；
-  - 实轴、虚轴与“向下弯转”的观察提示。
-- **用途判断**：这是学生第一次建立 Nyquist 运动感的核心图，直接服务 `2.6`、`2.7` 和例题二。
-
-### 资源 `fd-06` | 纯极点系统 Nyquist 阶次对照
-- **存放**：`media/raw/fd-06-pure-pole-nyquist-comparison.m` -> `media/processed/fd-06-pure-pole-nyquist-comparison.svg`
-- **内容**：并列给出一阶、二阶、三阶纯极点系统的 Nyquist 轨迹对照，突出起点、终点、方向与总转角随阶次增加而加深的变化。
-- **重点标注**：
-  - 每条轨迹的对象标签；
-  - 各自的起点和收尾方式；
-  - 用短标签说明“累计相位拖后更多，轨迹转向更深”。
-- **用途判断**：服务 `2.7` 与附录 B，帮助学生把“极点数增加”与“轨迹转向变化”直接挂钩。
-
-### 资源 `fd-07` | 阻尼变化下的二阶振荡环节 Bode 图
-- **存放**：`media/raw/fd-07-second-order-damping-bode.m` -> `media/processed/fd-07-second-order-damping-bode.svg`
-- **内容**：在统一坐标系中对比不同阻尼比下的二阶振荡环节 Bode 图，重点呈现“峰起是否明显、相位变化是否更剧烈”。
-- **重点标注**：
-  - 不同阻尼比曲线的图例；
-  - 峰起区域的视觉强调；
-  - 一句说明：“阻尼减小时，某段频率更容易起反应”。
-- **用途判断**：服务 `2.4.4` 与附录 D，帮助学生形成“二阶对象不只是下降更快，还可能在局部鼓起”的直觉。
-
-### 资源 `fd-08` | 同一对象的 Bode / Nyquist 一致性面板
-- **存放**：`media/raw/fd-08-bode-nyquist-consistency-panel.m` -> `media/processed/fd-08-bode-nyquist-consistency-panel.svg`
-- **内容**：同一版面中同时放入一个标准对象的 Bode 双图与 Nyquist 轨迹，建议仍选一阶惯性对象，旁边用三条短句把二者的一致判断串起来：
-  - 低频幅值大、相位接近 `0°`；
-  - 高频衰减、相位继续拖后；
-  - 复平面轨迹因此从右侧出发，向下弯并收向原点。
-- **重点标注**：
-  - 三图之间的对应箭头；
-  - “拆开看”和“合起来看”的对照语；
-  - 不再单独塞公式推导。
-- **用途判断**：服务 `2.8`、例题二和工程视角收束，是本课“同一对象，两种图形语言”最直接的闭环图。
-
-### 资源 `fd-09` | Bode 手绘步骤检查单
-- **存放**：`media/raw/fd-09-bode-sketch-checklist.tex` -> `media/processed/fd-09-bode-sketch-checklist.png`
-- **内容**：做成一张 4 步流程板，建议顺序固定为：
-  1. 写出 $G(j\omega)$；
-  2. 看低频；
-  3. 看高频；
-  4. 找转折并画骨架。
-- **重点标注**：
-  - 每一步只保留一个动作动词；
-  - 用极简箭头串联步骤；
-  - 角落补一句“先骨架，后细节”。
-- **用途判断**：服务 `2.9` 与附录 C.1-C.4，适合课堂投屏时快速提醒学生“第一次下笔到底先做什么”。
-
-### 资源 `fd-10` | Nyquist 手绘步骤检查单
-- **存放**：`media/raw/fd-10-nyquist-sketch-checklist.tex` -> `media/processed/fd-10-nyquist-sketch-checklist.png`
-- **内容**：做成一张 5 步流程板，建议顺序固定为：
-  1. 先定低频起点；
-  2. 再看高频终点；
-  3. 判断轨迹朝哪边转；
-  4. 补中间段走势；
-  5. 最后核对总转角。
-- **重点标注**：
-  - “起点 / 终点 / 方向 / 总转角”四个关键词必须醒目；
-  - 用频率增大的箭头强化运动感；
-  - 不塞判据内容，只保留本课范围内的读图与作图动作。
-- **用途判断**：服务 `2.9` 与附录 C.5，让 Nyquist 手绘顺序在讲义里有独立的视觉抓手。
+| 编号 | 文件名 | 类型 | 状态 | 引用于 |
+|:---:|---|---|:---:|---|
+| 1 | `2-4-cover-comic.png` | 讲义封面图 | 已完成 | `handout.md` 首页导入 |
+| 2 | `2-4-info.png` | 讲义信息图 | 已完成 | `handout.md` 附录前总结 |
+| 3 | `2-4-slides.pdf` | 生成式课件 | 待制作 | 课堂投屏 / 课件归档 |
+| 4 | `2-4-intro-video.mp4` | 导入视频 | 待制作 | 课堂开场 / 互动课首页 |
+| 5 | `2-4-course.mp4` | 课程内容视频 | 待制作 | 课程视频归档 |
+| 6 | `2-4-audio.m4a` | 课程音频播客 | 待制作 | 音频归档 / 播客分发 |
+| 7 | `2-4-fd-01-bode-dual-view-overview.png` | 线框概念图 | 已完成 | `handout` §2.2 |
+| 8 | `2-4-fd-02-log-frequency-db-intuition.png` | 线框概念图 | 已完成 | `handout` §2.3 / §2.3.1 / 附录A |
+| 9 | `2-4-fd-03-typical-elements-bode-comparison.svg` | 代码直出图 | 已完成 | `handout` §2.4 / §2.10 / 附录B |
+| 10 | `2-4-fd-04-first-order-exact-vs-asymptote.svg` | 代码直出图 | 已完成 | `handout` §2.5 / 附录C |
+| 11 | `2-4-fd-05-first-order-nyquist-track.svg` | 代码直出图 | 已完成 | `handout` §2.6 / §2.7 / 例题二 |
+| 12 | `2-4-fd-06-pure-pole-nyquist-comparison.svg` | 代码直出图 | 已完成 | `handout` §2.7 / 附录B |
+| 13 | `2-4-fd-07-second-order-damping-bode.svg` | 代码直出图 | 已完成 | `handout` §2.4.4 / 附录D |
+| 14 | `2-4-fd-08-bode-nyquist-consistency-panel.svg` | 代码直出图 | 已完成 | `handout` §2.8 / 工程视角 |
+| 15 | `2-4-fd-09-bode-sketch-checklist.png` | 线框流程图 | 已完成 | `handout` §2.9 / 附录C |
+| 16 | `2-4-fd-10-nyquist-sketch-checklist.png` | 线框流程图 | 已完成 | `handout` §2.9 / 附录C |
 
 ---
 
-## 命名与执行约定
+## 3. 课程级媒体
 
-### 命名前缀
-- 本单元静态图统一使用 `fd-` 前缀，表示 `frequency-domain`，避免与 `2-2` 的 `td-` 命名混淆。
-- AI 导入资源继续使用通用命名：
-  - `cover-comic.png`
-  - `intro-video.mp4`
+### 3.1 已完成
 
-### 出图工具
-- 真正的 `Bode` / `Nyquist` 曲线与对比图，统一优先用 `Octave` 脚本输出。
-- `fd-01`、`fd-02`、`fd-09`、`fd-10` 这类概念说明图或流程图，优先用 `TikZ` 生成。
-- `Octave` 成图优先输出 `.svg`；`TikZ` 说明图优先输出 `.png`。
-- 若后续需要把同一图嵌入互动课，可优先复用 `processed/` 中的同名成图，不重复造轮子。
+| 资源 | 原料 | 成品 | 说明 |
+|---|---|---|---|
+| 封面漫画 | `media/raw/2-4-cover-comic-prompt.md` | `media/processed/2-4-cover-comic.png` | 学生版讲义首页导入图，突出“从逐点计算过渡到整体读图” |
+| 信息图 | 无独立提示词文件 | `media/processed/2-4-info.png` | 讲义附录前总结图，压缩本讲主线、Bode/Nyquist 对照与手绘顺序 |
 
-### 本轮暂不单列的资源
-- 不额外制作“标准对象库大图”，因为附录 B 的速查表已承担该职责。
-- 反向识别暂不单独再做“对象库总海报”，优先复用 `fd-03` 的典型环节 Bode 对照图；若后续课堂试投后仍觉得反看入口不够强，再追加一张缩略对照板。
+### 3.2 待制作
+
+| 资源 | 正式文件名 | 当前说明 |
+|---|---|---|
+| 生成式课件 | `media/processed/2-4-slides.pdf` | 待在学生版讲义定稿后生成，与讲义同口径 |
+| 导入视频 | `media/processed/2-4-intro-video.mp4` | 待根据本讲“为什么要把频率特性画成图”主线制作 |
+| 课程视频 | `media/processed/2-4-course.mp4` | 待课堂讲授脚本稳定后制作 |
+| 音频播客 | `media/processed/2-4-audio.m4a` | 待课程视频或讲义旁白定稿后制作 |
 
 ---
 
-## 建议执行顺序
+## 4. 代码直出图与线框图映射
 
-1. 先做 `fd-01`、`fd-02`、`fd-03`，把正文前半段的图形入口立住。
-2. 再做 `fd-04`、`fd-05`、`fd-06`，闭合“渐近骨架 + Nyquist 轨迹”的核心直觉。
-3. 然后做 `fd-07`、`fd-08`，分别服务二阶对象观察与 Bode / Nyquist 一致性收束。
-4. 再做 `fd-09`、`fd-10`，把附录 C 的手绘步骤补成可投屏的流程图。
-5. 封面漫画与导入视频放在静态图之后处理，避免导入媒体先行、正文主图反而缺位。
+| 标识 | 原料文件 | 成品文件 | 工具 | 核心用途 |
+|---|---|---|---|---|
+| `fd-01` | `media/raw/2-4-fd-01-bode-dual-view-overview.tex` | `media/processed/2-4-fd-01-bode-dual-view-overview.png` | TikZ | 说明 Bode 图是“幅频图 + 相频图”双图结构 |
+| `fd-02` | `media/raw/2-4-fd-02-log-frequency-db-intuition.tex` | `media/processed/2-4-fd-02-log-frequency-db-intuition.png` | TikZ | 说明对数频率轴与 dB 的读图直觉 |
+| `fd-03` | `media/raw/2-4-fd-03-typical-elements-bode-comparison.m` | `media/processed/2-4-fd-03-typical-elements-bode-comparison.svg` | Octave | 典型环节 Bode 图总览对照 |
+| `fd-04` | `media/raw/2-4-fd-04-first-order-exact-vs-asymptote.m` | `media/processed/2-4-fd-04-first-order-exact-vs-asymptote.svg` | Octave | 一阶惯性精确曲线与渐近骨架对照 |
+| `fd-05` | `media/raw/2-4-fd-05-first-order-nyquist-track.m` | `media/processed/2-4-fd-05-first-order-nyquist-track.svg` | Octave | 一阶惯性 Nyquist 轨迹与方向感 |
+| `fd-06` | `media/raw/2-4-fd-06-pure-pole-nyquist-comparison.m` | `media/processed/2-4-fd-06-pure-pole-nyquist-comparison.svg` | Octave | 纯极点 Nyquist 阶次对照 |
+| `fd-07` | `media/raw/2-4-fd-07-second-order-damping-bode.m` | `media/processed/2-4-fd-07-second-order-damping-bode.svg` | Octave | 二阶振荡环节的阻尼变化观察 |
+| `fd-08` | `media/raw/2-4-fd-08-bode-nyquist-consistency-panel.m` | `media/processed/2-4-fd-08-bode-nyquist-consistency-panel.svg` | Octave | 同一对象的 Bode / Nyquist 一致性 |
+| `fd-09` | `media/raw/2-4-fd-09-bode-sketch-checklist.tex` | `media/processed/2-4-fd-09-bode-sketch-checklist.png` | TikZ | Bode 图手绘步骤检查单 |
+| `fd-10` | `media/raw/2-4-fd-10-nyquist-sketch-checklist.tex` | `media/processed/2-4-fd-10-nyquist-sketch-checklist.png` | TikZ | Nyquist 图手绘步骤检查单 |
+
+---
+
+## 5. 制作与回写要求
+
+- 原料脚本导出的默认文件名必须直接落到 `2-4-...` 正式文件名，不允许先生成 `fd-03-...` 再手工改名
+- 讲义中的媒体引用必须只使用 `../media/processed/2-4-...`，不保留旧命名兼容层
+- 新增媒体时，优先补齐 `multimedia.md` 资源总表，再生成原料与成品
+- 若后续补做 `slides / intro-video / course / audio`，必须沿用本文件中的正式命名，不另开无前缀版本
