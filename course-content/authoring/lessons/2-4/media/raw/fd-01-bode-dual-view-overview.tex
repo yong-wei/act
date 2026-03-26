@@ -1,0 +1,53 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\begin{tikzpicture}[
+  >=Stealth,
+  axis/.style={line width=1.1pt, ->},
+  curve/.style={line width=1.4pt},
+  note/.style={font=\small, align=left},
+  boxnote/.style={draw=black, rounded corners=2pt, inner sep=5pt, font=\small, align=left}
+]
+  \node[font=\large\bfseries] at (4.7,6.25) {Bode 图把同一个频率特性拆成两张图来看};
+
+  \draw[axis] (0.6,3.15) -- (0.6,5.55);
+  \draw[axis] (0.6,3.15) -- (7.05,3.15);
+  \draw[axis] (0.6,0.55) -- (0.6,2.95);
+  \draw[axis] (0.6,0.55) -- (7.05,0.55);
+
+  \foreach \x/\lab in {1.2/{0.1},3.1/{1},5.0/{10},6.6/{100}} {
+    \draw (\x,3.08) -- (\x,3.22);
+    \draw (\x,0.48) -- (\x,0.62);
+    \node[font=\scriptsize] at (\x,0.2) {$\lab$};
+  }
+
+  \node[font=\small] at (0.2,4.4) {dB};
+  \node[font=\small] at (0.2,1.8) {deg};
+  \node[font=\small] at (6.3,-0.15) {对数频率轴 $\omega$};
+
+  \draw[curve] plot[smooth] coordinates {
+    (0.9,4.95) (2.0,4.95) (3.2,4.92) (4.1,4.65) (5.0,4.05) (5.8,3.55) (6.7,3.2)
+  };
+  \draw[curve] plot[smooth] coordinates {
+    (0.9,2.55) (2.0,2.52) (3.0,2.44) (4.0,2.05) (5.0,1.45) (5.8,1.0) (6.7,0.72)
+  };
+
+  \node[font=\small\bfseries] at (1.5,5.33) {幅频图};
+  \node[font=\small\bfseries] at (1.5,2.73) {相频图};
+
+  \draw[->, line width=0.9pt] (7.45,4.55) -- (6.15,4.35);
+  \node[boxnote, anchor=west] at (7.55,4.55) {看强弱怎样变化\\低频保留多少\\高频衰减多快};
+
+  \draw[->, line width=0.9pt] (7.45,1.95) -- (6.1,1.55);
+  \node[boxnote, anchor=west] at (7.55,1.95) {看相位怎样拖后\\节奏被延迟多少\\变化是否突然};
+
+  \draw[densely dashed] (0.6,3.15) -- (7.05,3.15);
+  \node[note, anchor=west] at (0.9,5.85) {同一个对象：$G(j\omega)$};
+  \node[note, anchor=west] at (4.5,5.85) {拆开看：幅值 + 相位};
+\end{tikzpicture}
+\end{CJK*}
+\end{document}

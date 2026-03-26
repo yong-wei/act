@@ -16,7 +16,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - 代码直出媒体必须先落 `media/processed/` 审核，再进入 runtime。
 - `course-content/runtime/knowledge/cards/nodes/` 继续作为全局知识卡片运行时来源；lesson runtime 只保存审查索引与报告。
 - 对涉及任务、事迹、新闻、机构、标准、时间敏感数字等外部事实，必须联网核验。
-- 对涉及控制计算、响应曲线、频域/根轨迹、性能指标等确定性内容，必须使用 `python3` + `control` 验证。
+- 对涉及控制计算、响应曲线、频域/根轨迹、性能指标等确定性内容，默认必须使用 `Octave` 中的原生函数与 `control` 包内置函数验证；不要为阶跃响应、频率响应、性能指标等基础能力自造底层计算函数。
 
 ## Inputs
 
@@ -56,10 +56,17 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
   - 事实表述、例题计算、评分逻辑正确
   - 图片描述与系统结构一致
   - 媒体引用路径与文件名一致
+  - 讲义依赖的关键媒体是否完整落盘：
+    - `[单元编号]-cover-comic.png`
+    - `[单元编号]-info.png`
+    - `[单元编号]-slides.pdf`
+    - `[单元编号]-intro-video.mp4`
+    - `[单元编号]-course.mp4`
+    - `[单元编号]-audio.m4a`
   - 正文是否围绕单元主线组织，而不是零散堆砌
   - 正式讲义中的图片、表格是否按出现顺序编号，并以“图1. …”“表1. …”等成品图题/表题呈现
   - 正文是否还残留“图示建议”“待制作”“占位说明”“脚本验证”等作者态过程文本
-  - 设计阶段的 `python3` + `control` 校验要求是否错误暴露成讲义正文内容
+  - 设计阶段的 `Octave` + `control` 内置函数校验要求是否错误暴露成讲义正文内容
   - 若需要学生复现，正文是否仅点名 MATLAB/Octave 文件名，具体最简代码是否收在附录
 - 不改文风，不做泛化重写
 
@@ -88,15 +95,17 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 ### 5. 审确定性结论（必须可复现）
 
 - 所有涉及计算、仿真、控制系统结论的内容，都要问一句：**能否用脚本复现？**
-- 必须使用 `python3` + `control` 验证的典型内容：
+- 默认必须使用 `Octave` 中的原生函数与 `control` 包内置函数验证的典型内容：
   - 传递函数、闭环/开环响应、时域指标、稳态误差
   - 根轨迹、Bode/Nyquist、裕度、极点零点位置
   - 参数变化趋势、结论表格、例题数值答案
 - 审查要求：
   - 先写或补验证脚本，再核对文字结论
   - 脚本输出与正文不一致时，以查明原因和修正文稿为先
+  - 对阶跃响应、脉冲响应、Bode/Nyquist、根轨迹、`stepinfo` 类性能指标、极点零点等基础能力，优先直接调用 `step`、`impulse`、`bode`、`nyquist`、`rlocus`、`pole`、`zero`、`margin`、`dcgain` 等现成函数或其等价内置能力，不手写底层数值计算流程
+  - 若内置函数已能覆盖目标，不得再自造基础计算函数；自写函数只允许用于内置能力无法直接表达的高层加工、批量整理或成图排版
   - 验证脚本优先落在本课 `media/raw/` 或等价可追溯位置，不要只做一次性口头校验
-  - 审查结论里可以记录“已用 `python3` + `control` 复现”，但不要要求把这一审查过程写回正式讲义正文
+  - 审查结论里可以记录“已用 `Octave` + `control` 内置函数复现”，但不要要求把这一审查过程写回正式讲义正文
 
 ### 6. 审 `design/boppps.md`
 
@@ -124,9 +133,19 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - 根据 `design/multimedia.md` 的描述识别代码直出图
 - 先在 `course-content/authoring/lessons/<lesson>/media/raw/` 补齐脚本
 - 统一运行脚本生成到 `course-content/authoring/lessons/<lesson>/media/processed/`
+- 先检查本课关键媒体完整性：
+  - `course-content/authoring/lessons/<lesson>/media/processed/<lesson>-cover-comic.png`
+  - `course-content/authoring/lessons/<lesson>/media/processed/<lesson>-info.png`
+  - `course-content/authoring/lessons/<lesson>/media/processed/<lesson>-slides.pdf`
+  - `course-content/authoring/lessons/<lesson>/media/processed/<lesson>-intro-video.mp4`
+  - `course-content/authoring/lessons/<lesson>/media/processed/<lesson>-course.mp4`
+  - `course-content/authoring/lessons/<lesson>/media/processed/<lesson>-audio.m4a`
+- 检查所有媒体命名是否统一采用单元前缀：
+  - AI 媒体、代码直出图、线框图、信息图、课件 PDF、音视频都必须以 `<lesson>-` 开头
+  - 例如 `2-1-cover-comic.png`、`2-1-info.png`、`2-1-fd-01-bode-overview.svg`
 - 逐项核对：标题、标注、箭头、公式、中文字体、颜色语义、图意是否正确
 - 额外核对成图质量：字符是否正确、是否乱码、标注是否互相遮挡、元素是否被错误截断、图例或说明框是否拥挤、箭头是否误指、留白是否足够
-- 若是控制图，检查其生成逻辑是否确由 `python3` + `control` 支撑
+- 若是控制图，检查其生成逻辑是否确由 `Octave` + `control` 内置函数或等价的库内现成能力支撑，而不是手写基础数值求解过程
 - 若是线框图，检查其来源是否符合真实绘图流程，而不是 ASCII 或截图占位
 - 审查标准不是“能看懂就行”，而是“是否已经达到规范、清晰、可直接进讲义或页面的出版级配图水准”
 - 审核通过后，再导出到 `course-content/runtime/lessons/<lesson>/media/`
@@ -159,7 +178,7 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - 结构正确性：文件、路径、引用、覆盖关系是否通过
 - 事实正确性：哪些内容已联网核验，哪些内容只能保守表述
 - 科学合理性：哪些逻辑链成立，哪些结论需要删改或补条件
-- 确定性验证：哪些公式、图像、例题、指标已由 `python3` + `control` 复现
+- 确定性验证：哪些公式、图像、例题、指标已由 `Octave` + `control` 内置函数复现
 
 ## Quick Checks
 
@@ -169,14 +188,16 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 已检查 design/handout.md 或 design/practice-guide.md / design/assessment-spec.md
 - [ ] 已检查正式讲义中的图号/表号、图题/表题是否完整且连续
 - [ ] 已确认正文中没有“图示建议”“待制作”“脚本验证”等作者态过程文本
-- [ ] 已确认设计期 `python3` + `control` 校验未被错误写入讲义正文
+- [ ] 已确认设计期 `Octave` + `control` 内置函数校验未被错误写入讲义正文
 - [ ] 已确认学生复现内容采用“正文点名 `.m` 文件 + 附录最简 MATLAB/Octave 代码”的成品形式（如适用）
+- [ ] 已检查关键媒体完整性：`<lesson>-cover-comic.png`、`<lesson>-info.png`、`<lesson>-slides.pdf`、`<lesson>-intro-video.mp4`、`<lesson>-course.mp4`、`<lesson>-audio.m4a`
 - [ ] 已完成外部事实的联网核验（如适用）
 - [ ] 已完成科学合理性分析
-- [ ] 已用 `python3` + `control` 验证确定性结论（如适用）
+- [ ] 已用 `Octave` + `control` 内置函数验证确定性结论（如适用）
 - [ ] 已检查 design/boppps.md 的覆盖与事实正确性
 - [ ] 已检查 lesson sequence 与知识卡片节点文件
 - [ ] 已生成 `media/processed/` 并核对图片正确性
+- [ ] 已检查所有媒体资源命名是否统一带单元前缀，包括代码直出图与线框图
 - [ ] 已检查媒体成图质量：字符、遮挡、截断、图例拥挤、留白与指向关系
 - [ ] 已导出 runtime/review 报告与 JSON 索引
 
@@ -189,11 +210,14 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - 只审事实和公式，不审讲义是否仍带有“图示建议”“待制作”“脚本验证”等作者态痕迹
 - 把设计期验证过程直接保留在讲义正文，而不是转成审查记录或学生附录代码
 - 学生复现部分直接贴复杂脚本、复杂绘图控制或审查脚本，而不是保留最简 MATLAB/Octave 代码
+- 漏查 `cover-comic`、`info`、`slides`、导入视频、课程视频、播客音频等关键媒体是否存在
+- 媒体文件命名不带单元前缀，或代码直出图/线框图仍沿用无课次前缀旧命名
 - 认为“图做出来了”就算通过，不检查字符错误、标注遮挡、裁切、拥挤和误指
 - 修改正文后忘记同步知识卡片与媒体引用
 - 把“常识”当证据，不去联网核验任务、事迹、新闻、标准、时间敏感数字
 - 把“像是对的”当科学合理，不检查条件、边界、因果与量纲
-- 对确定性内容只口头验算，不写 `python3` + `control` 脚本
+- 对确定性内容只口头验算，不写 `Octave` 验证脚本
+- 明明 `Octave` / `control` 内置函数已可直接完成，却重新手写阶跃、频响或指标计算函数
 
 ## Red Flags
 

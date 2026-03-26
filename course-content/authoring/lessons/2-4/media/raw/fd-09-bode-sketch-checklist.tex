@@ -1,0 +1,28 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\begin{tikzpicture}[
+  >=Stealth,
+  stepbox/.style={draw=black, rounded corners=2pt, minimum width=2.8cm, minimum height=1.2cm, align=center, font=\small},
+  flow/.style={->, line width=1.0pt}
+]
+  \node[font=\large\bfseries] at (6.0,2.4) {Bode 图第一次下笔时的检查单};
+
+  \node[stepbox] (s1) at (1.6,0) {1\\写出\\$G(j\omega)$};
+  \node[stepbox] (s2) at (5.0,0) {2\\看低频\\先抓起点};
+  \node[stepbox] (s3) at (8.4,0) {3\\看高频\\判断走向};
+  \node[stepbox] (s4) at (11.8,0) {4\\找转折\\画出骨架};
+
+  \draw[flow] (s1) -- (s2);
+  \draw[flow] (s2) -- (s3);
+  \draw[flow] (s3) -- (s4);
+
+  \node[font=\small, align=left] at (6.0,-1.85) {操作口令：先把对象换到频域，再看两头，最后找转折。};
+  \node[font=\small\bfseries] at (6.0,-2.55) {先骨架，后细节};
+\end{tikzpicture}
+\end{CJK*}
+\end{document}

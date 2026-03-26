@@ -15,6 +15,7 @@
 
 ## 最近最重要的稳定变化
 
+- 课程重构蓝图已进一步确认模块2的 `2-4` 不是单纯“Bode/Nyquist 图入门”，而是同时承担“典型环节与简单组合对象的手工绘图入门 + 纯极点系统 Nyquist 基础读图 + 基于基础 Bode 图的标准对象反向识别入口”；对应 `HW2/T2-3` 也已同步改成“时域-频域基础对照与频域反向识别”，但边界仍明确限制在标准对象、粗粒度参数判断，不提前进入判稳、裕度或完整系统辨识
 - 2026-03-25 已完成一次关键的运维侧收敛：数据治理 worker 现在具备 Redis/BullMQ 基础设施异常识别、冷却文件熔断、日志节流、`unhandledRejection` / `uncaughtException` 收敛；scheduler 也已改为“凌晨事件批处理 + 每小时活跃学生快照 + 每日班级快照”的 coordinator 模式，详细复盘见 [60-incidents/2026-03-25-worker-redis-oom-log-flood.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-03-25-worker-redis-oom-log-flood.md)
 - 本地 `Octave` 已通过 Homebrew 安装，`control` 包可用；当前稳定做法是保持旧整包 `qt` 处于 `unlink` 状态，并补 `/opt/homebrew/share/qt/plugins/platforms -> /opt/homebrew/opt/qtbase/share/qt/plugins/platforms` 符号链接，使图形版 `octave` 无需额外环境变量即可启动；详细复盘见 [60-incidents/2026-03-24-homebrew-octave-qt-plugin.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-03-24-homebrew-octave-qt-plugin.md)
 - `1-3`「时域响应分析——从响应曲线到动态性能指标」已经完成精品互动课首轮落地与增强版工作区收口：存在独立入口页、教师页、学生页、预置教案、课堂码路由识别与步骤级 AI 上下文注册，课堂内按 `interactive-page.md` 实现 17 步流程

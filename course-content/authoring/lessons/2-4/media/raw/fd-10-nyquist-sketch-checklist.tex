@@ -1,0 +1,30 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{amsmath}
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\begin{tikzpicture}[
+  >=Stealth,
+  stepbox/.style={draw=black, rounded corners=2pt, minimum width=2.4cm, minimum height=1.2cm, align=center, font=\small},
+  flow/.style={->, line width=1.0pt}
+]
+  \node[font=\large\bfseries] at (7.2,2.45) {Nyquist 图第一次下笔时的检查单};
+
+  \node[stepbox] (s1) at (1.4,0) {1\\定起点};
+  \node[stepbox] (s2) at (4.3,0) {2\\看终点};
+  \node[stepbox] (s3) at (7.2,0) {3\\判方向};
+  \node[stepbox] (s4) at (10.1,0) {4\\补中段};
+  \node[stepbox] (s5) at (13.0,0) {5\\核总转角};
+
+  \draw[flow] (s1) -- (s2);
+  \draw[flow] (s2) -- (s3);
+  \draw[flow] (s3) -- (s4);
+  \draw[flow] (s4) -- (s5);
+
+  \node[font=\small, align=left] at (7.2,-1.9) {关键词固定不变：起点、终点、方向、总转角。};
+  \node[font=\small\bfseries] at (7.2,-2.6) {先看轨迹怎么动，再谈它意味着什么};
+\end{tikzpicture}
+\end{CJK*}
+\end{document}
