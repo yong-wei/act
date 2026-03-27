@@ -1,0 +1,21 @@
+{
+  "question_id": "AC-Q-0164",
+  "source_ref": "8-21",
+  "question_number": "8-21",
+  "chapter": 8,
+  "section": "非线性控制系统分析",
+  "stem_md": "已知带速度反馈的非线性系统如图8-89所示。系统原来处于静止状态，且 ，输入 ，试分别画出有速度反馈和无速度反馈时的系统相轨迹。",
+  "solution_md": "解 (1) 无速度反馈。由图8-89可知，。当  时，，而 ；当  时，，故 ；当  时，必有 ，故 。相轨迹方程为\n\n显然，开关线\n\n|e| = a\n\n初始条件\n\n当  时，，有 。由初始条件\n\n故有\n\n这是一条抛物线，其顶点为 。\n\n当  时，由相轨迹的对称性知，相轨迹是一条开口相反的抛物线，其顶点为 。\n\n当  时，因 ，有  相轨迹为水平直线。 无速度反馈时，系统的相轨迹如图 8-21-1 所示。 (2) 有速度反馈。系统等效结构图如图 8-21-2 所示。由图知\n\n由于 ，所以\n\n相轨迹方程为\n\n开关线\n\n初始条件\n\n有速度反馈时，系统的概略相轨迹如图 8-21-3 所示。\n\n设 ，运行以下 MATLAB 文件，得有速度反馈时系统的相轨迹图，如图 8-21-4 所示。\n\nMATLAB 程序：exe821.m\n\nglobal a b beta R\n\na=1; b=2; beta=0.5; R=2;\n\nt=0:0.01:6;\n\ne0=$-2 0$';\n\n[t,e2]=ode23('sys821',t,e0);\n\ned=-10,0.01,10;\n\ne3=1-beta*ed;\n\ne4=-1-beta*ed;\n\nplot(e3,ed,'-',e4,ed,'-');\n\nhold on;\n\nplot(e2(:,1),e2(:,2));\n\naxis($-2,1,-0.5,1.5$)\n\n调用函数：\n\nfunction de = sys821 (t,e)\n\nglobal a b beta R\n\nde1 = e(2);\n\nif ((e(1) + beta * e(2))< -a)\n\nde2 = b;\n\nelseif (abs(e(1) + beta * e(2))<=a)\n\nde2 = 0;\n\nelse\n\nde2 = -b;\n\nend\n\nde = [de1 de2]';",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "非线性控制系统分析",
+    "非线性系统"
+  ]
+}

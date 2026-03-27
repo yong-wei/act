@@ -1,0 +1,25 @@
+{
+  "question_id": "AC-Q-0022",
+  "source_ref": "2-12 23-24-1R(ab)",
+  "question_number": "2-12",
+  "chapter": 2,
+  "section": "控制系统的数学模型",
+  "stem_md": "求下图所示有源网络的传递函数。",
+  "solution_md": "解 本题研究用等效复数阻抗方法推导有源网络的传递函数的方法。\n\n（1）对于图（a）所示的有源网络，可得\n\n（2）对于图（b）所示的有源网络，可得\n\n（3）对于图（c）所示的有源网络，可得",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0022/image-01.png",
+    "assets/AC-Q-0022/image-02.png",
+    "assets/AC-Q-0022/image-03.png"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "控制系统的数学模型",
+    "传递函数"
+  ]
+}

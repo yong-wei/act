@@ -1,0 +1,24 @@
+{
+  "question_id": "AC-Q-0129",
+  "source_ref": "6-11",
+  "question_number": "6-11",
+  "chapter": 6,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "设复合校正控制系统如图6-43所示。图中 $G_n(s)$ 为前馈补偿装置的传递函数， $G_e(s) = K_1s$ 为测速发电机的传递函数，$G_1(s)$ 和 $G_2(s)$ 为前向通路环节的传递函数，$N(s)$ 为可测量扰动。如果 $G_1(s) = K_1, \\quad G_2(s) = \\frac{1}{s^2}$ 试确定 $G_n(s)$, $G_e(s)$ 和 $K_1$, 使系统的输出量完全不受可量测扰动的影响，且单位阶跃响应的超调量 $\\sigma % = 25%$，峰值时间 $t_p = 2s$。",
+  "solution_md": "解 本题主要考查关于按扰动补偿的复合校正方法。根据系统的输出量完全不受扰动的影响，可确定前馈补偿装置 $G_n(s)$ 的形式，再根据系统要求的动态性能指标确定参数 ( K ), $K_e$ 和 $G_e(s)$。\n\n将图6-43等效变换如图6-11-1所示。由图6-11-1可见， $\\frac{C(s)}{N(s)} = \\frac{1 + G_1(s)G_2(s)G_e(s)}{1 + G_1(s)G_2(s) + G_1(s)G_2(s)G_e(s)} \\left[ 1 + \\frac{G_2(s)G_n(s)}{1 + G_1(s)G_2(s)G_e(s)} \\right]$\n\n图6-11-1 系统结构图等效变换\n\n为使系统输出完全不受扰动的影响，应使 $1 + G_2(s)G_n(s) + G_1(s)G_2(s)G_e(s) = 0$ 于是得 $G_n(s) = -\\frac{1}{G_2(s)[1 + G_1(s)]} = -\\frac{s^2}{1 + K_1}$ 系统对输入的开环传递函数为 $G(s) = \\frac{G_1(s)G_2(s)}{1 + G_1(s)G_2(s)G_e(s)} = \\frac{K_1}{s(s + K_1K_e)} = \\frac{\\omega_n^2}{s(s + 2\\zeta\\omega_n)}$ 按题意要求 $\\sigma % = e^{-\\sqrt{1 - \\xi}} = 25%, \\quad t_p = \\frac{\\pi}{\\omega_n \\sqrt{1 - \\xi^2}} = 2s$ 从而解得 $\\cdot 198 \\cdot$\n\n$$ \\zeta = \\frac{\\ln 4}{\\sqrt{\\pi^2 + (\\ln 4)^2}} = 0.404, \\quad \\omega_n = \\frac{\\pi}{2 \\sqrt{1 - \\zeta^2}} = 1.717 \\text{rad/s} $$\n\n因此 $K_1 = \\omega_n^2 = 2.948, \\quad K_r = \\frac{2\\zeta \\omega_n}{K_1} = \\frac{2 \\cdot 0.471}{2.948} = 0.471$\n\n于是 $G_c(s) = K_1s = 0.471s$ $G_n(s) = -0.253s^2$\n\nMATLAB 验证: 对复合控制系统进行 MATLAB 仿真, 可得系统单位阶跃响应, 如图 6-11-2 所示, 测得 $\\sigma = 25%, \\quad t_p = 1.99s, \\quad t_s = 5.89s (\\Delta = 2%)$\n\n图 6-11-2 复合控制系统时间响应 (MATLAB)\n\n**MATLAB 程序: ** exe611.m\n\nK1 = 2.948; Kt = 0.471;\n\nG1 = K1; G2 = tf([1, [1, 0, 0]]);\n\nGc = tf([Kt, 0], 1); % 前向通道环节的传递函数\n\nG3 = series(G1, G2); G4 = feedback(G3, Gc);\n\nG = feedback(G4, 1); % 复合控制系统的闭环传递函数\n\nstep(G); grid % 复合控制系统单位阶跃响应",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图6-11-1 系统结构图等效变换",
+    "图 6-11-2 复合控制系统时间响应 (MATLAB)"
+  ],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "source_missing",
+  "formula_status": "mixed",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数"
+  ]
+}

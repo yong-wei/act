@@ -1,0 +1,24 @@
+{
+  "question_id": "AC-Q-0072",
+  "source_ref": "4-7 23-24-1R/A",
+  "question_number": "4-7",
+  "chapter": 4,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "已知开环传递函数为\n\n试概略画出闭环系统根轨迹图。",
+  "solution_md": "解 本题可应用根轨迹绘制法则，绘制对称系统的概略根轨迹图，特别注意复平面上的分离点。\n\n① 根轨迹的分支和起点与终点。由于，，，故根轨迹有四条分支，其起点分别为，，，，其终点都为无穷远处。\n\n② 实轴上的根轨迹。实轴上的根轨迹分布区为。\n\n③ 根轨迹的渐近线。\n\n④ 根轨迹的分离点。根轨迹的分离点坐标满足\n\n即\n\n解得\n\n⑤ 根轨迹与虚轴的交点。系统的闭环特征方程为\n\n令，并代入上式可得\n\n即\n\n解得，。\n\n绘制根轨迹如下\n\nG = zpk([],$0 -4 -2-4i -2+4i$,1);\n\nrlocus(G);",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0072/image-01.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "根轨迹"
+  ]
+}

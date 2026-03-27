@@ -1,0 +1,35 @@
+{
+  "question_id": "AC-Q-0044",
+  "source_ref": "3-10",
+  "question_number": "3-10",
+  "chapter": 3,
+  "section": "线性系统的时域分析法",
+  "stem_md": "下图所示控制系统有(a)和(b)两种不同的结构方案，其中  不可变。\n\n要求：\n\n(1) 在这两种方案中，应如何调整 、 和 ，才能使系统获得较好的动态性能？\n\n(2) 比较说明两种结构方案的特点。\n\n图 3-10 控制系统结构图",
+  "solution_md": "解 本题说明如何分别利用测速反馈控制和比例-微分控制来改善二阶系统的动态\n\n为方便讨论，假设 。\n\n原系统，即 ；\n\n开环传递函数为\n\n闭环传递函数为\n\n方案(a) 测速反馈控制系统：\n\n开环传递函数为\n\n闭环传递函数为\n\n方案(b) 比例-微分控制系统：\n\n开环传递函数为\n\n闭环传递函数为\n\n由三者的开环传递函数可知，原系统、测速反馈控制系统与比例-微分控制系统均为 I 型系统，其静态速度误差系数分别为\n\n(1) 参数调整措施。\n\n方案(a) 测速反馈控制系统：在原系统中引入速度反馈，在不影响系统的自然频率的同时可以增大系统的阻尼比，达到改善系统动态性能的目的，如减小超调量、加快调节时间等。至于测速反馈系数  的选择，要使阻尼比在  之间，从而满足给定的各项动态性能指标。但是，测速反馈会降低系统的开环增益，从而加大系统在斜坡输入时的稳态误差，因此必须考虑加大原系统的开环增益。然而，增加  又会导致阻尼比下降，从而使超调量加大，此时应考虑增加 。下面利用 MATLAB 软件包，形象地说明当引入速度反馈时参数调整的措施。不同参数下，系统阶跃响应曲线如图 3-10-1 图 3-10-4 所示。\n\nMATLAB 程序：exe310a.m\n\nk1 = 1; k2 = 5; k3 = 0.2; t = 0:0.01:15;\n\n% 原系统\n\nnum0 = $k1 * k2$; den0 = $1 1 k1 * k2$;\tsys0 = tf(num0, den0);\n\n% 测速反馈系统\n\nnum1 = $k1 * k2$;  den1 = $1 1 + k2 * k3 k1 * k2$; sys1 = tf(num1, den1);\n\n% 测速反馈系统，为了减小稳态误差，增大k1\n\nk1 = 2; k2 = 5; k3 = 0.2;\n\nnum2 = $k1 * k2$; den2 = $1 1 + k2 * k3 k1 * k2$; sys2 = tf(num2, den2);\n\n% 测速反馈系统，为了减小稳态误差，增大k2\n\nk1 = 1;\tk2 = 15;\tk3 = 0.2;\n\nnum3 = $k1 * k2$; den3 = $1 1 + k2 * k3 k1 * k2$; sys3 = tf(num3, den3);\n\n% 求取各系统的单位阶跃响应\n\nfigure(1)\n\nstep(sys0, t); grid; set(findall(gcf,'type','line'),'linewidth',2);\n\nfigure(2)\n\nstep(sys1, t); grid; set(findall(gcf,'type','line'),'linewidth',2);\n\nfigure(3)\n\nstep(sys2, t); grid; set(findall(gcf,'type','line'),'linewidth',2);\n\nfigure(4)\n\nstep(sys3, t); grid; set(findall(gcf,'type','line'),'linewidth',2);\n\n方案(b) 比例-微分控制系统：比例-微分控制可以增大系统的阻尼比，使超调量下降，调节时间缩短，且不影响系统的自然频率和常值稳态误差。由于采用微分控制后，允许选取较高的开环增益，因此在保证一定的动态性能条件下，可以减小稳态误差。然而，增加又会导致阻尼比下降，从而超调量加大，此时应考虑增加。下面利用 MATLAB 软件包，形象地说明比例-微分控制系统参数调整的措施，如图3-10-5～图3-10-8所示。\n\nMATLAB 程序：exe310b.m\n\nk1 = 1; k2 = 5; k3 = 0.2; t = 0:0.01:15;\n\n% 原系统\n\nnum0 = $k1 * k2$; den0 = $1 1 k1 * k2$; sys0 = tf(num0, den0);\n\n% 比例-微分系统\n\nnum1 = $k2 * k3 k1 * k2$; den1 = $1 1 + k2 * k3 k1 * k2$; sys1 = tf(num1, den1);\n\n% 比例-微分系统 为了减小稳态误差 大 k1\n\nk1 = 2; k2 = 5; k3 = 0.2;\n\nnum2 = $k2 * k3 k1 * k2$; den2 = $1 1 + k2 * k3 k1 * k2$; sys2 = tf(num2, den2);\n\n% 比例-微分系统 为了减小稳态误差 增大 k2\n\nk1 = 1; k2 = 15; k3 = 0.2;\n\nnum3 = $k2 * k3 k1 * k2$; den3 = $1 1 + k2 * k3 k1 * k2$; sys3 = tf(num3, den3);\n\n% 求取各系统的单位阶跃响应\n\nfigure(1)\n\nstep(sys0, t); grid; set(findall(gcf,'type','line'),'linewidth',2);\n\nfigure(2)\n\nstep(sys1, t); grid; set(findall(gcf,'type','line'),'linewidth',2);\n\nfigure(3)\n\nstep(sys2, t); grid; set(findall(gcf,'type','line'),'linewidth',2);\n\nfigure(4) s\n\ntep(sys3, t); grid; set(findall(gcf,'type','line'),'linewidth',2);\n\n（2）方案特点。测速反馈控制与比例-微分控制都可以改善二阶系统的动态性能，但是它们各有特点。\n\n比例-微分控制对系统的开环增益和自然频率均无影响，测速反馈控制虽不影响自然频率，但会降低开环增益。因此，对于确定的常值稳态误差，测速反馈控制要求有较大的开环增益。\n\n比例-微分控制的阻尼作用产生于系统的输入端误差信号的速度，而测速反馈控制的阻尼作用来源于系统输出端的响应的速度，因此对于给定的开环增益和指令输入速度，后者对应较大的稳态误差值。\n\n比例-微分控制对噪声有明显的放大作用。当系统输入端噪声严重时，一般不宜选用比...\n\n例-微分控制。测速反馈控制对系统输入端噪声有滤波作用，因此使用场合比较广泛。",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图 3-10 控制系统结构图"
+  ],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0044/image-01.png",
+    "assets/AC-Q-0044/image-02.png",
+    "assets/AC-Q-0044/image-03.emf",
+    "assets/AC-Q-0044/image-04.emf",
+    "assets/AC-Q-0044/image-05.emf",
+    "assets/AC-Q-0044/image-06.emf",
+    "assets/AC-Q-0044/image-07.emf",
+    "assets/AC-Q-0044/image-08.emf",
+    "assets/AC-Q-0044/image-09.emf",
+    "assets/AC-Q-0044/image-10.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性系统的时域分析法",
+    "传递函数",
+    "频域分析"
+  ]
+}

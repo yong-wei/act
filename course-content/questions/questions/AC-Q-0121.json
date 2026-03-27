@@ -1,0 +1,46 @@
+{
+  "question_id": "AC-Q-0121",
+  "source_ref": "6-3 24G/A",
+  "question_number": "6-3",
+  "chapter": 6,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "已知一单位反馈最小相位控制系统，其固定不变部分传递函数和串联校正装置分别如下图所示。要求：\n\n（1）写出校正前后各系统的开环传递函数；\n\n（2）分析对系统的作用，并比较其优缺点。\n\n(a) 滞后校正              (b) 超前校正",
+  "solution_md": "解 本题主要考察根据系统的开环幅频特性曲线求取传递函数的方法，以及分析不同校正方案对系统性能的影响。\n\n（1）校正前后系统的开环传递函数。由图可知，各系统的固定不变部分、校正网络和校正后的传递函数如下：\n\n图（a）\n\n图（b）\n\n（2）校正方案分析。对于图（a），采用滞后校正。利用高频衰减特性来减小，提高，从而减少；还可以已知高频噪声，但不利于系统的快速性。(4分)\n\n对于图（b），采用超前校正。利用相角超前特性来提高与，从而减少；还可以提高系统的快速性，改善系统的动态性能；但抗高频干扰能力较弱。(4分)\n\nMATLAB 验证：\n\n图 6-39(a): 校正前闭环系统传递函数\n\n$$ \\Phi_0(s) = \\frac{20}{0.1s^2 + s + 20} $$\n\n滞后校正后闭环系统传递函数\n\n$$ \\Phi(s) = \\frac{20(2s+1)}{s^3 + 10.1s^2 + 41s + 20} $$\n\n校正前系统时间响应如图 6-3-1 所示，滞后校正后系统时间响应如图 6-3-2 所示。运行 M 文件，可得\n\n校正前 $\\omega_k=12.5\\text{rad/s}, \\gamma=38.7^\\circ, \\omega_k=20\\text{rad/s}, \\sigma%=30%, t_c=0.227\\text{s}, t_d=0.752\\text{s}(\\Delta=2%)$； 校正后 $\\omega_k=3.77\\text{rad/s}, \\gamma=63.3^\\circ, \\omega_k=5.86\\text{rad/s}, \\sigma%=11%, t_c=0.778\\text{s}, t_d=3.11\\text{s}(\\Delta=2%)$。\n\nMATLAB程序：\n\n% 待校正系统的开环传递函数\n\nG01 = tf([20, conv([1, 0], [0, 1, 1]));\n\n% 滞后校正网络的传递函数\n\nGc1 = tf([2, 1], [10, 1]);\n\nG1 = series(G01, Gc1);\n\n% 待校正系统的闭环传递函数\n\nclop0 = feedback(G01, 1);\n\n% 已校正系统的闭环传递函数\n\nclopl = feedback(G1, 1);\n\nfigure(1); step(clop0); grid;\n\nfigure(2); step(clop1); grid;\n\n图6-39(b)：校正前闭环系统传递函数\n\n$$\\Phi(s) = \\frac{20}{0.1s^2 + s + 20}$$\n\n超前校正后闭环系统传递函数\n\n$$\\Phi(s) = \\frac{20}{0.01s^2 + s + 20}$$\n\n校正前系统时间响应如图6-3-3所示，超前校正后系统时间响应如图6-3-4所示。运行MATLAB文件，可得\n\n校正前 $\\omega_k=12.5\\text{rad/s}, \\gamma=38.7^\\circ, \\omega_k=20\\text{rad/s}, \\sigma%=30%, t_c=0.227\\text{s}, t_d=0.752\\text{s}(\\Delta=2%)$； 校正后 $\\omega_k=19.6\\text{rad/s}, \\gamma=79.8^\\circ, \\omega_k=24.3\\text{rad/s}, \\sigma%=0%, t_c=0.16\\text{s}(\\Delta=2%)$。\n\nMATLAB程序：\n\n% 待校正系统的开环传递函数\n\nG02 = tf([20, conv([1, 0], [0, 1, 1]));\n\n% 超前校正网络的传递函数\n\nGc2 = tf([0, 1], [0.01, 1]);\n\n% 待校正系统的闭环传递函数\n\nG2 = series(G02, Gc2);\n\n% 已校正系统的闭环传递函数\n\nclop0 = feedback(G01, 1);\n\nclopl = feedback(G2, 1);\n\nfigure(3); step(clop0); grid;\n\nfigure(4); step(clop1); grid;",
+  "inline_score_points": [
+    {
+      "points": 4,
+      "excerpt": "（2）校正方案分析。对于图（a），采用滞后校正。利用高频衰减特性来减小，提高，从而减少；还可以已知高频噪声，但不利于系统的快速性。(4分)"
+    },
+    {
+      "points": 4,
+      "excerpt": "对于图（b），采用超前校正。利用相角超前特性来提高与，从而减少；还可以提高系统的快速性，改善系统的动态性能；但抗高频干扰能力较弱。(4分)"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 4,
+      "criteria": "（2）校正方案分析。对于图（a），采用滞后校正。利用高频衰减特性来减小，提高，从而减少；还可以已知高频噪声，但不利于系统的快速性。(4分)"
+    },
+    {
+      "step": "步骤 2",
+      "points": 4,
+      "criteria": "对于图（b），采用超前校正。利用相角超前特性来提高与，从而减少；还可以提高系统的快速性，改善系统的动态性能；但抗高频干扰能力较弱。(4分)"
+    }
+  ],
+  "figure_titles": [
+    "图 6-39(a): 校正前闭环系统传递函数",
+    "图6-39(b)：校正前闭环系统传递函数"
+  ],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0121/image-01.png"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数"
+  ]
+}

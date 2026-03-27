@@ -1,0 +1,23 @@
+{
+  "question_id": "AC-Q-0136",
+  "source_ref": "6-18",
+  "question_number": "6-18",
+  "chapter": 6,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "MANUTEC机器人具有很大的惯性和较长的手臂,其实物如图6-49(a)所示。机械臂的动力学特性可以表示为\n\n机械臂\n\n控制系统框图模型\n\n图6-49 机器人控制\n\n$$ G_0(s) = \\frac{250}{s(s+2)(s+40)(s+45)} $$\n\n要求选用图 6-49(b)所示控制方案,使系统阶跃响应的超调量小于 20%,上升时间小于 0.5s,调节时间小于 1.2s($\\Delta = 2%$),静态速度误差系数 $K_v \\geq 10$。试问:采用超前校正网络是否合适?",
+  "solution_md": "解 开环传递函数\n\n$$ G_c(s)G_0(s) = \\frac{370925(s + 3.5)}{s(s + 2)(s + 33.75)(s + 40)(s + 45)} $$\n\n$$ = \\frac{10.7\\left(\\frac{s}{3.5} + 1\\right)}{s\\left(\\frac{s}{2} + 1\\right)\\left(\\frac{s}{33.75} + 1\\right)\\left(\\frac{s}{40} + 1\\right)\\left(\\frac{s}{45} + 1\\right)} $$\n\n可知\n\n$$ K_v = 10.7 > 10 $$\n\n闭环传递函数\n\n$$ \\Phi(s) = \\frac{370925(s + 3.5)}{s(s + 2)(s + 33.75)(s + 40)(s + 45) + 370925(s + 3.5)} $$\n\n$$ = \\frac{370925s + 1298237.5}{s^5 + 120.75s^4 + 4906.25s^3 + 70087.5s^2 + 4924255s + 1298237.5} $$\n\n校正后系统的单位阶跃响应如图 6-18-1 所示。MATLAB 仿真表明: $\\sigma% = 18% < 20%$, $t_r = 0.29s < 0.5s$, $t_{\\text{max}} = 1.0s < 1.2s$, $K_v = 10.7 > 10$。设计指标全部满足，故该超前校正网络是合适的。\n\nMATLAB 程序: exe618.m\n\nGO = tf([250], conv([1,2,0], conv([1,40],[1,50])));\n\nGe = tf($1483.7 *[1,3.5],[1,33.75]$);\n\nG = series(Gc,GO);\n\nG1 = feedback(G,1);\n\nstep(G1);grid\n\n被控对象的传递函数\n\n超前网络的传递函数\n\n系统的开环传递函数\n\n系统的闭环传递函数",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图6-49 机器人控制"
+  ],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "source_missing",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数"
+  ]
+}

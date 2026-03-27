@@ -1,0 +1,25 @@
+{
+  "question_id": "AC-Q-0135",
+  "source_ref": "6-17",
+  "question_number": "6-17",
+  "chapter": 6,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "机器人已广泛应用于核电站的维护与保养。在核工业中，远程机器人主要用\n\n回收和处理核废料，同时也用于监控核反应堆、清除放射性污染和处理意外事故事\n\n图 6-48 所示的是核工厂的遥控机器人示意图，其构成的远程监控系统可以完成某些特定作\n\n的监测任务。若系统的开环传递函数为\n\n$$ G_0(s) = \\frac{K_a e^{-sT}}{(s+1)(s+3)} $$\n\n要求： (1) 当 $T = 0.5 \\text{s}$ 时，确定 $K_a$ 的合适取值，使系统阶跃响应的超调量小于 30%，并计算所得系统的稳态误差； (2) 设计校正网络\n\n$$ G_c(s) = \\frac{s+2}{s+b} $$\n\n图 6-48 核电厂的遥控机器人示意图\n\n以改进要求(1)中所得系统的性能，使系统的稳态误差小于 12%。",
+  "solution_md": "解 本题研究延迟系统的分析与设计问题。通常，在频域中进行设计比较方便，通过选择合适的系统截止频率和相角裕度，可以满足给定的稳态误差和动态性能要求。\n\n(1) 确定待校正系统增益 $K_a$，并计算 $e_\\infty(\\infty)$。系统开环传递函数\n\n$$ G_0(s) = \\frac{K_a e^{-0.5s}}{s^2 + 4s + 3} $$\n\n因为要求 $\\sigma % < 30%$，由《自动控制原理(第七版)》教材中图 3-12 表示的欠阻尼二阶系统 $\\xi$ 与 ( % ) 关系曲线知，应有 $\\xi > 0.36$。现取 $\\xi = 0.4$，由教材中图 5-46 表示的典型二阶系统的 $\\gamma \\xi$ 曲线知，$\\gamma = 43^\\circ$。\n\n因\n\n$$ |G_0(j\\omega_c)| = \\frac{K_a}{\\sqrt{(3 - \\omega_c^2 + 16\\omega_c^2)}} = 1 $$\n\n解出截止频率\n\n$$ \\omega_c = \\sqrt{-5 + \\sqrt{K_a^2 + 16}} $$\n\n而相角裕度\n\n$$ \\gamma = 180^\\circ - \\arctan\\omega_c - \\arctan\\frac{\\omega_c}{3} - 28.65\\omega_c $$\n\n则 $K_a, \\omega_c, \\gamma$ 关系如下表:\n\n( K_a )\t3.1\t4.0\t6.0\t6.5\t7.0\n\n( \\omega_c )\t0.25\t0.81\t1.49\t1.62\t1.75\n\n( \\gamma )\t154°\t102.7°\t54.6°\t46.9°\t39.4°\n\n由表可取 $K_a = 6.5, \\omega_c = 1.62, \\gamma = 46.9^\\circ$。由教材中图 5-46 可以查出：$\\xi = 0.45$。由于静态位置系数 $K_p = K_a/3 = 2.17$，故稳态误差\n\n$$ e_\\infty(\\infty) = \\frac{1}{1 + K_p} = 31.5% > 12% $$\n\n(2) 设计校正网络，改善系统性能。开环传递函数\n\n$$ G_c(s)G_0(s) = \\frac{K_a(s+2)e^{-0.5s}}{(s+1)(s+3)(s+6)} $$\n\n静态位置误差系数\n\n$$ K_p = \\frac{2K_a}{3b} $$\n\n选 $b = 0.1$，使 $G_c(s)$ 为滞后网络，则 $K_p = 6.67K_a$，故\n\n$$ e_\\infty(\\infty) = \\frac{1}{1 + K_p} = \\frac{1}{1 + 6.67K_a} $$\n\n取 $e_\\infty(\\infty) = 10%$，求出 $K_p = 1.35$，可满足 $e_\\infty(\\infty) < 12%$ 的要求。令\n\n$$ |G_c(j\\omega)G_o(j\\omega)| = \\frac{1.35 \\sqrt{4 + \\omega^2}}{\\sqrt{(1 + \\omega^2)(9 + \\omega^2)(0.01 + \\omega^2)}} = 1 $$\n\n求出\n\n$$ \\omega_c = 0.75 \\text{rad/s} $$\n\n算出相角裕度\n\n$$ \\gamma = 180^\\circ + \\arctan \\frac{\\omega_0}{2} - \\arctan \\omega_0 - \\arctan \\frac{\\omega_0}{3} - \\arctan 10\\omega_0 = 28.65^\\circ $$\n\n校正后系统的动态性能可以估算如下:\n\n$$ \\sigma% = 100 \\left[ 0.16 + 0.4 \\left( \\frac{1}{\\sin \\gamma} - 1 \\right) \\right] % = 31.8% $$\n\n$$ K_0 = 2 + 1.5 \\left( \\frac{1}{\\sin \\gamma} - 1 \\right) + 2.5 \\left( \\frac{1}{\\sin \\gamma} - 1 \\right)^2 = 2.98 $$\n\n$$ t_s = \\frac{K_0 \\pi}{\\omega_c} = 12.48 \\text{s} $$\n\n上述估算结果是偏保守的，需要进一步验证。\n\nMATLAB-Simulink 仿真验证:\n\n校正前:\n\n$$ G_o(s) = \\frac{6.5e^{-0.5s}}{(s+1)(s+3)} $$\n\n校正后:\n\n$$ G_r(s)G_o(s) = \\frac{1.35(s+2)e^{-0.5s}}{(s+0.1)(s+1)(s+3)} $$\n\n在 MATLAB 的 Simulink 环境下搭建系统校正前后结构图，分别如图 6-17-1 和图 6-17-2 所示。设置延迟时间为 0.5s，仿真时间为 20s，分别运行可得系统校正前后的单位阶跃响应输出如图 6-17-3 和图 6-17-4 所示。\n\n校正后遥控机器人Simulink仿真图\n\n校正前系统时间响应(MATLAB) 图6-17-3 校正后系统时间响应(MATLAB) 图6-17-4\n\n已校正系统的性能为\n\n$$\\sigma = 28% < 30% , \\quad t_s = 10.9s , \\quad \\epsilon_s(\\infty) = 10% < 12%$$\n\n由图6-17-4可见,遥控机器人系统采用滞后校正后,减少了系统的稳态误差,使系统的性能满足了设计指标要求,但系统的动态性能不理想,可考虑重新选择$b$值,或选择滞后-超前网络进行校正。读者不妨一试。",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图 6-48 所示的是核工厂的遥控机器人示意图，其构成的远程监控系统可以完成某些特定作",
+    "图 6-48 核电厂的遥控机器人示意图"
+  ],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "source_missing",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "频域分析"
+  ]
+}

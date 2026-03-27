@@ -1,0 +1,23 @@
+{
+  "question_id": "AC-Q-0035",
+  "source_ref": "3-1 23G/A|22-23-2R/B",
+  "question_number": "3-1",
+  "chapter": 3,
+  "section": "线性系统的时域分析法",
+  "stem_md": "设某高阶系统可用下列一阶微分方程近似描述：\n\n试证明系统的动态性能指标为",
+  "solution_md": "证明 首先要明确动态性能指标的概念，然后根据概念来进行证明。\n\n动态性能指标：描述稳定的系统在单位阶跃函数作用下，动态过程随时间的变换状况的指标。\n\n根据系统的微分方程可得到其传递函数\n\n在单位阶跃输入作用下，有，于是\n\n则\n\n表示上升时间，指响应曲线从终止10%上升到终止90%所需的时间。令\n\n其中\n\n解得\n\n则\n\n表示调节时间，指响应到达并保持在终值5%或2%内所需的最短时间。当时，须有\n\n解得\n\n显然，当时，可得",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性系统的时域分析法",
+    "微分方程",
+    "传递函数",
+    "稳定性"
+  ]
+}

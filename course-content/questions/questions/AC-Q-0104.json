@@ -1,0 +1,24 @@
+{
+  "question_id": "AC-Q-0104",
+  "source_ref": "5-15",
+  "question_number": "5-15",
+  "chapter": 5,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "根据奈氏判据确定如下系统的闭环稳定性。",
+  "solution_md": "解 本题主要考察如何根据系统的开环幅相特性曲线，运用奈氏判据来确定不稳定的闭环极点的个数，进而判别闭环系统的稳定性，特别要注意对虚极点的处理。\n\n系统开环传递函数对应的概略开环幅相特性曲线如下所示：\n\n由于，从开环幅相特性曲线上对应的点起逆时针补做且半径为无穷大的虚圆弧。因为存在一对纯虚极点，故从的对应点起，逆时针补做且半径为无穷大的虚圆弧，所所圆弧如上图所示。\n\n因为，由开环幅相特性曲线知，右半平面闭环极点的个数\n\n所以闭环系统不稳定，有两个正实部闭环极点。\n\nMATLAB 验证如图 5-15-2 所示。\n\n$$ G(s)H(s) = \\frac{10}{s(s+1)(1-s^2/4)} $$\n\n概略开环幅相特性曲线\n\nMATLAB 程序：exe515.m\n\nGO = tf([10],[0.25,0.25,1,1,0]);\n\nG = feedback(GO,1);\n\nt = 0:0.1:30;\n\nstep(G,t);\n\ngrid",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0104/image-01.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "稳定性"
+  ]
+}

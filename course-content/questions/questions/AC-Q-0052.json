@@ -1,0 +1,26 @@
+{
+  "question_id": "AC-Q-0052",
+  "source_ref": "3-18 22-23-2R/A",
+  "question_number": "3-18",
+  "chapter": 3,
+  "section": "线性系统的时域分析法",
+  "stem_md": "设控制系统如下图所示，其中\n\n输入以及扰动和均为单位阶跃函数。试求：\n\n（1）在作用下系统的稳态误差；\n\n（2）在作用下系统的稳态误差；\n\n（3）在和同时作用下系统的稳态误差。\n\n（4）任意给定、及参数，分别在前三种情况下进行仿真验证计算结果。参数出现雷同的认定为抄袭，此题不得分。",
+  "solution_md": "解 本题为系统在输入及扰动作用下稳态误差的计算。先求出系统在不同作用下的误差函数，再根据终值定理来求系统的稳态误差。\n\n（1）作用下系统的稳态误差。误差传递函数为\n\n则\n\n根据终值定理，系统的稳态误差为\n\n由于，，，故有\n\n即在作用下系统的稳态误差为0。\n\n（2）作用下系统的稳态误差。在作用下系统的输出为\n\n故引起的误差函数为\n\n此时系统的稳态误差为\n\n由于，，，故有\n\n即在作用下系统的稳态误差为0。\n\n（3）和同时作用下系统的稳态误差。和分别作用下系统的误差函数为\n\n故和同时作用引起的误差为\n\n此时系统的稳态误差为\n\n即在和同时作用下系统的稳态误差为0。\n\n显然，从系统结构图可以直接看出：系统对输入为II型系统，对为I型系统，对为II型系统，因此当、和均为单位阶跃函数时，系统的稳态误差必为零。\n\n代码及响应如下\n\n% 绘制r、n1和n2分别作用下误差阶跃响应\n\nKp = 1; K = 1; J = 1;\n\nG = tf([Kp,K],[1,0]); F = tf(1,[J,0]);\n\nPhi_e = feedback(1,G*F);\n\nstep(Phi_e)\n\n% N1作用下到E前向通道为-F，由输出E到输入N1经过G，但是G的输出和N1执行加法操作，所以为事实上的正反馈\n\nPhi_en1 = feedback(-F,-G);\n\nfigure\n\nstep(Phi_en1)\n\nPhi_en2 = feedback(-1,-G*F); % 与上同理\n\nfigure\n\nstep(Phi_en2)",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0052/image-01.png",
+    "assets/AC-Q-0052/image-02.emf",
+    "assets/AC-Q-0052/image-03.emf",
+    "assets/AC-Q-0052/image-04.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性系统的时域分析法",
+    "传递函数"
+  ]
+}

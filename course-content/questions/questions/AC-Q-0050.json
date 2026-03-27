@@ -1,0 +1,20 @@
+{
+  "question_id": "AC-Q-0050",
+  "source_ref": "3-16 已知单位反馈系统的开环传递函数:",
+  "question_number": "3-16",
+  "chapter": 3,
+  "section": "线性系统的时域分析法",
+  "stem_md": "(1) $G(s) = \\frac{50}{(0.1s + 1)(2s + 1)}$;\n\n(2) $G(s) = \\frac{K}{s(s^2 + 4s + 200)}$;\n\n(3) $G(s) = \\frac{10(2s + 1)(4s + 1)}{s^2(s^2 + 2s + 10)}$.\n\n试求位置误差系数 $K_p$、速度误差系数 $K_v$、加速度误差系数 $K_a$。",
+  "solution_md": "解：根据静态误差系数的定义式可以分别求得位置误差系数、速度误差系数和加速度误差系数。\n\n(1) 根据静态误差系数的定义式可得\n\n$$ K_p = \\lim_{s \\to 0} G(s)H(s) = \\lim_{s \\to 0} \\frac{50}{(0.1s + 1)(2s + 1)} = 50 $$\n\n$$ K_v = \\lim_{s \\to 0} s \\cdot G(s)H(s) = \\lim_{s \\to 0} \\frac{50}{(0.1s + 1)(2s + 1)} = 0 $$\n\n$$ K_a = \\lim_{s \\to 0} s^2 \\cdot G(s)H(s) = \\lim_{s \\to 0} \\frac{50}{s(s^2 + 4s + 200)} = 0 $$\n\n(2) 根据静态误差系数的定义式可得\n\n$$ K_p = \\lim_{s \\to 0} G(s)H(s) = \\lim_{s \\to 0} \\frac{10(2s + 1)(4s + 1)}{s^2(s^2 + 2s + 10)} = \\infty $$\n\n$$ K_v = \\lim_{s \\to 0} s \\cdot G(s)H(s) = \\lim_{s \\to 0} \\frac{10(2s + 1)(4s + 1)}{s^2(s^2 + 2s + 10)} = 0 $$\n\n$$ K_a = \\lim_{s \\to 0} s^2 \\cdot G(s)H(s) = \\lim_{s \\to 0} \\frac{10(2s + 1)(4s + 1)}{s^2(s^2 + 2s + 10)} = 1 $$",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性系统的时域分析法"
+  ]
+}

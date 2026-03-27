@@ -1,0 +1,34 @@
+{
+  "question_id": "AC-Q-0023",
+  "source_ref": "2-13 24G/B",
+  "question_number": "2-13",
+  "chapter": 2,
+  "section": "控制系统的数学模型",
+  "stem_md": "由运算放大器组成的控制系统模拟电路如下图所示，试求闭环传递函数。",
+  "solution_md": "解 本题研究用等效复数阻抗方法推导网络模拟系统的传递函数。\n\n在图中，令第一级运算放大器输出为，第二级运算放大器输出为，则可得\n\n因为，故有；又因，故有。(3分)则有\n\n所以\n\n整理后可得闭环传递函数为",
+  "inline_score_points": [
+    {
+      "points": 3,
+      "excerpt": "因为，故有；又因，故有。(3分)则有"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 3,
+      "criteria": "因为，故有；又因，故有。(3分)则有"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0023/image-01.png"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "控制系统的数学模型",
+    "传递函数"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "question_id": "AC-Q-0086",
+  "source_ref": "4-21",
+  "question_number": "4-21",
+  "chapter": 4,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "一种由耐热性好、重量轻的材料制成的未来超音速客机如图 (a)所示。该机可容纳300名乘客，并配备先进的计算机控制系统，以三倍音速在高空飞行。为该型飞机设计的一种自动飞行控制系统如图(b)所示，系统主导极点的理想阻尼比 。飞机的特征参数为 ，，。增益因子  的可调范围较大：当飞机飞行状态从中等重量巡航变为轻重量降落时， 可以从0.02变至0.2。要求:\n\n（a）未来的超音速喷气式客机\n\n（b）控制系统\n\n(1) 画出增益 ， 变化时，系统的概略根轨迹图；\n\n(2) 当飞机以中等重量巡航时，确定  的取值，使系统阻尼比 ；\n\n(3) 若  由(2)中给出， 为轻重量降落时的增益，试确定系统的阻尼比 。",
+  "solution_md": "解 本题综合运用根轨迹技术来设计控制器参数，同时引入了变质量系统的初步概念。\n\n代入 ，有\n\n令从 ，可以绘出系统概略根轨迹如图（c）所示。图中\n\n（c）概略根轨迹图\n\n渐近线：，\n\n分离点：由\n\n解出\n\n（2）当，中重量巡航时，确定使的 值。在根轨迹图上，作  阻尼比线，与复根轨迹部分的交点为主导极点\n\n利用模值条件，可以算出 处的根轨迹增益\n\n于是求得\n\n以上结果如图（d）所示。\n\n（d）中重量巡航时，确定使的增益值（MATLAB）\n\n（3）当, ，轻重量降落时，确定闭环系统阻尼比。因为，故可确定出闭环极点为\n\n由于复极点  的位置十分接近重零点 ，其作用相互削弱，形成近似偶极子，故  为系统主导极点。因为  ，所以系统阻尼比 。 以上结果可参见图（e）。\n\n（e）轻重量降落时，确定闭环系统阻尼比（MATLAB）\n\nMATLAB 验证： 运行以下 MATLAB 程序，可以得到根轨迹图，如图（f）所示。当，中重量巡航时，确定使  的  值，可参见图（d）；当, ，轻重量降落时，确定闭环系统阻尼比 ，可参见图（e）；还可以得到中重量巡航时的时间响应曲线，如图（g）所示，以及轻重量降落时的时间响应曲线，如图（h）所示。\n\n（f）系统根轨迹图（MATLAB）\n\n（g）中重量巡航时系统的时间响应曲线（MATLAB）\n\n（h）轻重量降落时系统的时间响应曲线（MATLAB）\n\nMATLAB 程序：\n\n% 建立开环传递函数模型\n\nG = zpk($-2 -2$, $-10 -100 -0.75+2.38i -0.75-2.38i$, 1); z = 0.707;\n\n% 绘制相应系统的根轨迹\n\nfigure(1) % 图(f)\n\nrlocus(G); axis equal;\n\nfigure (2) % 图（d）\n\nrlocus(G); sgrid(z,[]); hold on;      % 取阻尼比为0.707\n\naxis($-6 2 -5 5$); K = 1430;          % 最佳阻尼比为对应的根轨迹增益\n\nrlocus(G,K)                           % 最佳阻尼比为0.707时，系统的闭环特征根\n\nfigure (3)  % 图（e）\n\nrlocus(G); axis equal; hold on; axis($-120 20 -150 150$);\n\nK = 14300; rlocus(G,K)                % K=14300时,系统的闭环特征根\n\n% 中重量巡航时的时间响应\n\nK1 = 0.02; K2 = 71500; wn = 2.5; kos = 0.3;\n\nnum1 = $K2 4*K2 4*K2$; den1 = [1 110 1000];\n\nnum2 = [K1]; den2 = $1 2*wn * kos wn^2$;\n\n[numc, denc] = series(num1, den1, num2, den2);\n\n[num, den] = cloop(numc, denc); roots(den); % 系统闭环传递函数与闭环极点\n\nsys = tf(num, den); t = 0:0.001:7;\n\nfigure(4) % 图（g）\n\nstep(sys,t); grid on;\n\n% 轻重量降落时的时间响应\n\nK1 = 0.2; K2 = 71500; wn=2.5; kos=0.3;\n\nnum1 = $K2 4*K2 4*K2$; den1 = [1 110 1000];\n\nnum2 = [K1]; den2 = $1 2*wn * kos wn^2$;\n\n[numc, denc] = series(num1, den1, num2, den2);\n\n[num, den] = cloop(numc, denc); roots(den); % 系统闭环传递函数与闭环极点\n\nsys = tf(num, den); t = 0:0.001:3;\n\nfigure(5) % 图（h）\n\nstep(sys,t); grid on;",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0086/image-01.png",
+    "assets/AC-Q-0086/image-02.png",
+    "assets/AC-Q-0086/image-03.png",
+    "assets/AC-Q-0086/image-04.emf",
+    "assets/AC-Q-0086/image-05.emf",
+    "assets/AC-Q-0086/image-06.emf",
+    "assets/AC-Q-0086/image-07.emf",
+    "assets/AC-Q-0086/image-08.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "根轨迹"
+  ]
+}

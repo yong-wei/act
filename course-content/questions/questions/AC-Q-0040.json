@@ -1,0 +1,22 @@
+{
+  "question_id": "AC-Q-0040",
+  "source_ref": "3-6 25G/A",
+  "question_number": "3-6",
+  "chapter": 3,
+  "section": "线性系统的时域分析法",
+  "stem_md": "已知控制系统的单位阶跃响应为\n\n试确定系统的阻尼比  和自然频率 。",
+  "solution_md": "解 欲确定系统的阻尼比和自然频率，可以通过系统的闭环传递函数获得；而系统的闭环传递函数恰好是单位脉冲响应的拉氏变换，但已知条件是系统的单位阶跃响应，故可以将其微分得到单位脉冲响应，便可求得结果。(5分，用单位阶跃响应对比参数方法一样得分)\n\n系统的单位脉冲响应为\n\n此时系统的闭环传递函数为\n\n则系统的自然频率和阻尼比为",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性系统的时域分析法",
+    "传递函数",
+    "频域分析"
+  ]
+}

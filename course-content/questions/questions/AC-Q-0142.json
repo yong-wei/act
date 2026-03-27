@@ -1,0 +1,28 @@
+{
+  "question_id": "AC-Q-0142",
+  "source_ref": "7-15 22-23-2R/A",
+  "question_number": "7-15",
+  "chapter": 7,
+  "section": "线性离散系统的分析与校正",
+  "stem_md": "设离散系统如下图所示，其中采样周期，，，试用终值定理法计算系统的稳态误差。使用Simulink进行仿真以验证分析。",
+  "solution_md": "解 本题关键是求出闭环系统的脉冲传递函数。\n\n将系统简化为如图结构。\n\n反馈回路传递函数为\n\n前向通路传递函数为\n\n对取变换，有\n\n误差脉冲传递函数为\n\n闭环特征方程为\n\n求得特征根\n\n由于，故系统稳定。\n\n由\n\n求得系统稳态误差\n\nSimulink仿真：",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0142/image-01.png",
+    "assets/AC-Q-0142/image-02.png",
+    "assets/AC-Q-0142/image-03.png",
+    "assets/AC-Q-0142/image-04.png",
+    "assets/AC-Q-0142/image-05.png"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性离散系统的分析与校正",
+    "传递函数",
+    "稳定性"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "question_id": "AC-Q-0024",
+  "source_ref": "2-14 23-24-2R/A",
+  "question_number": "2-14",
+  "chapter": 2,
+  "section": "控制系统的数学模型",
+  "stem_md": "电枢控制直流电动机可由如下微分方程描述。画出直流电动机的结构图，并由结构图等效变换求出电动机的传递函数和。",
+  "solution_md": "解 本题研究将系统的微分方程通过拉氏变换得到系统的传递函数，并根据传递函数画出系统的结构图。\n\n对上述三式分别进行拉氏变换并设初始条件为零，可得\n\n根据此三式可以画出直流电动机的结构图如下所示。\n\n电动机的传递函数如下：",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0024/image-01.png"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "控制系统的数学模型",
+    "微分方程",
+    "传递函数"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "question_id": "AC-Q-0026",
+  "source_ref": "2-16不完整",
+  "question_number": "2-16",
+  "chapter": 2,
+  "section": "控制系统的数学模型",
+  "stem_md": "设直流电动机双闭环调速系统的原理线路如图 2-55 所示。\n\n图 2-55 直流电动机调速系统原理图\n\n（1）分别求速度调节器和电流调节器的传递函数；\n\n(2) 画出系统结构图$设可控硅电路传递函数为 $K_3/$T_3s+1$$; 电流互感器和测速发电机的传递系数分别为 $K_i$ 和 $K_3$; 直流电动机的结构图用题 2-14 的结果$;\n\n(3) 简化结构图, 求系统传递函数 $\\Omega(s)/U_i(s)$。",
+  "solution_md": "解 本题研究通过调速系统的原理图得出结构图, 并简化结构图求出闭环传递函数。\n\n(1) 求调节器的传递函数。速度调节器和电流调节器的传递函数分别为\n\n$$ G_1(s) = -\\frac{R_1 + \\frac{1}{C_1s}}{R} = -\\left(\\frac{R_1}{R} + \\frac{1}{RC_1s}\\right) $$\n\n$$ G_2(s) = -\\frac{R_2 + \\frac{1}{C_2s}}{R} = -\\left(\\frac{R_2}{R} + \\frac{1}{RC_2s}\\right) $$\n\n(2) 画系统结构图。由于直流电动机的结构图用题 2-14 的结果, 同时由于引入了电流反馈, 故在电动机的动态结构图中必须把电枢电流 $I_a$ 显露出来, 于是直流电动机调速系统的结构图如图 2-16-1 所示。\n\n(3) 求系统传递函数。为了推导方便, 设\n\n$$ G_3(s) = \\frac{K_3}{T_3s+1}, \\quad G_4(s) = \\frac{1}{L_ao + R_a}, \\quad G_5(s) = \\frac{1}{J_m s + f_m} $$\n\n则简化结构图如图 2-16-2 所示。\n\n经过反馈连接等效, 可得图 2-16-3 所示简化结构图。\n\n由简化的结构图可得系统的传递函数\n\n$$ \\Omega(s) = \\frac{C_G C_IG_IG_IG_IG_G}{1 + K_1G_2G_3G_1G_5 + C_1C_G C_IG_IG_5 + C_1K_1G_2G_1G_5G_3G_G} $$\n\n其中\n\n电机调速系统结构图简化\n\n$$ G_1(s) = \\frac{-R_1}{R \\cdot \\text{RC}_1 s} ], \\quad G_2(s) = \\frac{-R_2}{R \\cdot \\text{RC}_2 s} $$\n\n$$ G_3(s) = \\frac{K_s}{T_3 s + 1}, \\quad G_4(s) = \\frac{1}{L_m s + R_a}, \\quad G_5(s) = \\frac{1}{J_m s + f_m} $$\n\n可用信号流图（图2-16-4）及梅森增益进行验证。\n\n电机调速系统信号流图\n\n由图2-16-4可知，本系统有一条前向通道，三个单独回路，无互不接触回路，即\n\n$$ L_1 = -K_1G_2G_3G_4, \\quad L_2 = -C_mC_mG_4G_5, \\quad L_3 = -C_mK_3G_1G_2G_3G_4G_5 $$\n\n$$ \\Delta = 1 - (L_1 + L_2 + L_3) = 1 + K_1G_2G_3G_4 + C_mC_mG_4G_5 + C_mK_3G_1G_2G_3G_4G_5 $$\n\n$$ p_1 = C_mG_1G_2G_3G_4G_5, \\quad \\Delta_1 = 1 $$\n\n由梅森增益公式可得系统的传递函数为\n\n$$ \\frac{Q(s)}{U_1(s)} = \\sum p_i \\Delta_i = \\frac{C_mG_1G_2G_3G_4G_5}{1 + K_1G_2G_3G_4 + C_mC_mG_4G_5 + C_mK_3G_1G_2G_3G_4G_5} $$",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图 2-55 直流电动机调速系统原理图"
+  ],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "source_missing",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "控制系统的数学模型",
+    "信号流图",
+    "传递函数"
+  ]
+}

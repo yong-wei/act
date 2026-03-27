@@ -1,0 +1,51 @@
+{
+  "question_id": "AC-Q-0112",
+  "source_ref": "5-23 24G/B",
+  "question_number": "5-23",
+  "chapter": 5,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "对于典型二阶系统，已知，，试计算相角裕度。",
+  "solution_md": "解 本题主要考察如何根据典型二阶系统的时域指标来求取其频域指标，要注意典型二阶系统时域指标和频域指标之间的关系。\n\n典型二阶系统的开环传递函数为\n\n由，，即\n\n有\n\n解得，，(2分)则二阶系统的开环频率特性\n\n由，即\n\n解得。(2分)再由\n\n解得。(2分)",
+  "inline_score_points": [
+    {
+      "points": 2,
+      "excerpt": "解得，，(2分)则二阶系统的开环频率特性"
+    },
+    {
+      "points": 2,
+      "excerpt": "解得。(2分)再由"
+    },
+    {
+      "points": 2,
+      "excerpt": "解得。(2分)"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 2,
+      "criteria": "解得，，(2分)则二阶系统的开环频率特性"
+    },
+    {
+      "step": "步骤 2",
+      "points": 2,
+      "criteria": "解得。(2分)再由"
+    },
+    {
+      "step": "步骤 3",
+      "points": 2,
+      "criteria": "解得。(2分)"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "频域分析"
+  ]
+}

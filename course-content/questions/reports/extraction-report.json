@@ -1,0 +1,15 @@
+{
+  "question_count": 167,
+  "title_only_figures": 57,
+  "missing_figure_questions": 57,
+  "source_missing_questions": 56,
+  "text_reference_only_questions": 1,
+  "figure_status_breakdown": {
+    "complete": 69,
+    "source_missing": 56,
+    "text_reference_only": 1,
+    "none": 41
+  },
+  "mixed_formula_questions": 25,
+  "duplicate_candidates": 0
+}

@@ -1,0 +1,65 @@
+{
+  "question_id": "AC-Q-0094",
+  "source_ref": "5-5 25G/A",
+  "question_number": "5-5",
+  "chapter": 5,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "已知系统开环传递函数\n\n试分析并绘制 和  情况下的概略开环幅相特性曲线。",
+  "solution_md": "解 本题主要考查根据系统参数之间的关系绘制开环幅相特性曲线,掌握系统参数变化对开环幅相特性曲线的影响。\n\n系统的开环频率特性\n\n开环幅相特性曲线的起点 ; (4分)终点: , 且与实轴无交点。(4分)\n\n若 , 则 , 故开环幅相特性曲线位于第 III 象限, 如图 5-5-1 所示(4分); 若 , 则, 故开环幅相特性曲线位于第 (II) 象限, 如图 5-5-2 所示。(4分)\n\nMATLAB 验证: 设 , 则系统开环幅相特性曲线如图 5-5-3 所示; 设 , 则系统开环幅相特性曲线如图 5-5-4 所示。\n\nMATLAB 程序: exe505.m\n\nK = 1; t = 2; T = 1;\n\nG1 = tf(K*[1,t,1],conv([1,0,0],[t,1])); % 确定系统的传递函数\n\nfigure(1); nyquist(G1); set(findall(gcf,'type','line'),'linewidth',2); % 绘制系统的开环幅相特性曲\n\nK = 1; t = 1; T = 2;\n\nG2 = tf(K*[1,t,1],conv([1,0,0],[T,1]));\n\nfigure(2); nyquist(G2); set(findall(gcf,'type','line'),'linewidth',2);",
+  "inline_score_points": [
+    {
+      "points": 4,
+      "excerpt": "开环幅相特性曲线的起点 ; (4分)终点: , 且与实轴无交点。(4分)"
+    },
+    {
+      "points": 4,
+      "excerpt": "开环幅相特性曲线的起点 ; (4分)终点: , 且与实轴无交点。(4分)"
+    },
+    {
+      "points": 4,
+      "excerpt": "若 , 则 , 故开环幅相特性曲线位于第 III 象限, 如图 5-5-1 所示(4分); 若 , 则, 故开环幅相特性曲线位于第 (II) 象限, 如图 5-5-2 所示。(4分)"
+    },
+    {
+      "points": 4,
+      "excerpt": "若 , 则 , 故开环幅相特性曲线位于第 III 象限, 如图 5-5-1 所示(4分); 若 , 则, 故开环幅相特性曲线位于第 (II) 象限, 如图 5-5-2 所示。(4分)"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 4,
+      "criteria": "开环幅相特性曲线的起点 ; (4分)终点: , 且与实轴无交点。(4分)"
+    },
+    {
+      "step": "步骤 2",
+      "points": 4,
+      "criteria": "开环幅相特性曲线的起点 ; (4分)终点: , 且与实轴无交点。(4分)"
+    },
+    {
+      "step": "步骤 3",
+      "points": 4,
+      "criteria": "若 , 则 , 故开环幅相特性曲线位于第 III 象限, 如图 5-5-1 所示(4分); 若 , 则, 故开环幅相特性曲线位于第 (II) 象限, 如图 5-5-2 所示。(4分)"
+    },
+    {
+      "step": "步骤 4",
+      "points": 4,
+      "criteria": "若 , 则 , 故开环幅相特性曲线位于第 III 象限, 如图 5-5-1 所示(4分); 若 , 则, 故开环幅相特性曲线位于第 (II) 象限, 如图 5-5-2 所示。(4分)"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0094/image-01.png",
+    "assets/AC-Q-0094/image-02.png",
+    "assets/AC-Q-0094/image-03.emf",
+    "assets/AC-Q-0094/image-04.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "频域分析"
+  ]
+}

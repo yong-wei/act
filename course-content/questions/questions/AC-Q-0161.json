@@ -1,0 +1,60 @@
+{
+  "question_id": "AC-Q-0161",
+  "source_ref": "8-18 22-23-1R/B",
+  "question_number": "8-18",
+  "chapter": 8,
+  "section": "非线性控制系统分析",
+  "stem_md": "非线性系统如下图所示，试用描述函数法分析周期运动的稳定性，并确定系统输出信号振荡的振幅和频率。",
+  "solution_md": "解 本题首先应根据结构图进行等效变换，求出线性部分的传递函数，然后绘制非线性部分的负倒描述函数和线性部分的幅相特性曲线，求出自振点，由频率域稳定判据判断其稳定性，并确定系统输出信号振荡的振幅和频率。\n\n（1）将原系统结构图等效变换为下图。（1分）\n\n（2）非线性环节的描述函数为\n\n其负倒描述函数位\n\n做曲线如下图所示。\n\n（3）等效结构图线性部分\n\n其频率特性为\n\n线性部分的曲线如下图所示。（2分）\n\n（4）周期运动的稳定性。由描述函数分析法有\n\n上图表明和存在交点，且由的不稳定区域穿到稳定区域，故系统存在稳定自振。由联立方程组可得\n\n解得自振频率，自振振幅。因此系统输出信号振荡的振幅。（1分）\n\n响应曲线绘制：\n\n线性系统输入和输出之间的关系为，假设开始时系统处于静止状态，即\n\n微分方程为\n\n其中，\n\n根据整理上述关系式后可得\n\n建立双状态的微分方程函数并求解之：\n\nLineWidth = 2;\n\nG = zpk([],$0,-1$,10);\n\nA = 0.01:0.01:10;\n\nN = -0.25*pi.*A.*sqrt(1-(0.2./A).^2)-1i*0.2*pi/4;\n\nplot(real(N),imag(N)); hold on\n\nnyquist(G);\n\nset(findall(gcf,'type','line'),'linewidth',LineWidth);\n\nset(findall(gcf,'-property','FontSize'),'FontSize',18);axis normal\n\nlegend({'-1/N(A)','G(jw)'});\n\naxis($-2,0,-0.5,0.5$);\n\n% 解微分方程\n\nt = 0:0.01:10;\n\nc0 = [0;0];\n\n[t,c] = ode45(@sys,t,c0);\n\nfigure\n\nplot(t,c(:,1));\n\nset(findall(gcf,'type','line'),'linewidth',LineWidth);\n\nset(findall(gcf,'-property','FontSize'),'FontSize',18);grid;axis normal\n\nfunction dc = sys(t,c)\n\ndc1 = c(2);\n\nif c(1)<-0.04||$(c(1)<0.04&&c(1)>-0.04)&&c(2)>0$\n\ndc2 = 2-c(2);\n\nelse\n\ndc2 = -2-c(2);\n\nend\n\ndc = [dc1;dc2];\n\nend",
+  "inline_score_points": [
+    {
+      "points": 1,
+      "excerpt": "（1）将原系统结构图等效变换为下图。（1分）"
+    },
+    {
+      "points": 2,
+      "excerpt": "线性部分的曲线如下图所示。（2分）"
+    },
+    {
+      "points": 1,
+      "excerpt": "解得自振频率，自振振幅。因此系统输出信号振荡的振幅。（1分）"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 1,
+      "criteria": "（1）将原系统结构图等效变换为下图。（1分）"
+    },
+    {
+      "step": "步骤 2",
+      "points": 2,
+      "criteria": "线性部分的曲线如下图所示。（2分）"
+    },
+    {
+      "step": "步骤 3",
+      "points": 1,
+      "criteria": "解得自振频率，自振振幅。因此系统输出信号振荡的振幅。（1分）"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0161/image-01.png",
+    "assets/AC-Q-0161/image-02.png",
+    "assets/AC-Q-0161/image-03.png",
+    "assets/AC-Q-0161/image-04.emf",
+    "assets/AC-Q-0161/image-05.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "非线性控制系统分析",
+    "微分方程",
+    "传递函数",
+    "稳定性",
+    "频域分析",
+    "非线性系统"
+  ]
+}

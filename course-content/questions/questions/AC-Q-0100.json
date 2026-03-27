@@ -1,0 +1,27 @@
+{
+  "question_id": "AC-Q-0100",
+  "source_ref": "5-11",
+  "question_number": "5-11",
+  "chapter": 5,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "绘制下列传递函数的对数幅频渐近特性曲线:\n\n(1)\n\n(2)\n\n(3)\n\n(4)",
+  "solution_md": "解 本题主要考查根据系统的传递函数绘制系统对数幅频渐近特性曲线的方法。计算时，注意按大小排列交接频率，并标注斜率变化。\n\n(1)\n\n① 确定各交接频率 及斜率变化值。\n\n最小相位惯性环节：  ，斜率减小\n\n最小相位惯性环节：   ，斜率减小\n\n最小交接频率：\n\n② 绘制低频段 渐近特性曲线。\n\n因为   ，则低频段渐近线斜率 (  )，并且通过点  。\n\n③ 绘制频段    渐近特性曲线。\n\n系统开环对数幅频渐近特性曲线如下图所示。\n\n(2)\n\n① 确定各交接频率   及斜率变化值。\n\n最小相位惯性环节：   ，斜率减小\n\n最小相位惯性环节：  ，斜率减小\n\n最小交接频率：\n\n② 绘制低频段 渐近特性曲线。因为   ，则低频段渐近线斜率   ，并且通过点  。\n\n③ 绘制频段   渐近特性曲线。\n\n系统开环对数幅频渐近特性曲线如下图所示。\n\n(3)\n\n① 确定各交接频率 及斜率变化值\n\n最小相位一阶微分环节: ( , 斜 率 增 加 20dB/dec\n\n最小相位振荡环节: , 斜 率 减 小 40dB/dec\n\n最小相位惯性环节:  , 斜 率 减 小 20dB/dec\n\n最 小 交 接 频 率:\n\n② 绘制低频段 (  ) 渐近特性曲线, 因为  ), 则低频段渐近线斜率   , 并且通过点  。\n\n③ 绘制频段   渐近特性曲线。\n\n系统开环对数幅频渐近特性曲线如下图所示。\n\n(4)\n\n① 确定各交接频率   及斜率变化值。\n\n最小相位惯性环节:  , 斜率减小20dB/dec\n\n最小相位惯性环节: , 斜率减小 20dB/dec\n\n最小相位二阶微分环节: , 斜率增加 40dB/dec\n\n最小交接频率:\n\n② 绘制低频段 渐近特性曲线。因为   , 则低频段渐近线斜率   , 并且通过点  。\n\n③ 绘制频段  渐近特性曲线。\n\n系统开环对数幅频渐近特性曲线如下图所示。\n\nMATLAB 程序: exe511.m\n\n% 确定各系统传递函数\n\nG1 = tf(2,[conv([2,1],[8,1])]);\n\nG2 = tf(200,[conv([1,1,0,0],[10,1])]);\n\nG3 = tf(8*[10,1],[conv([1,1,1,0],[0.5,1])]);\n\nG4 = tf(10*[0.0025,0.1,1],[conv([1,1,0],[10,1])]);\n\n% 调用子程序绘制系统开环对数幅频渐近特性曲线\n\nw = 10e-3:0.1:100;\n\n[x1,y1] = bd_asymp(G1,w);\n\n[x2,y2] = bd_asymp(G2,w);\n\n[x3,y3] = bd_asymp(G3,w);\n\n[x4,y4] = bd_asymp(G4,w);\n\nfigure(1); semilogx(x1,y1),grid;\n\nfigure(2); semilogx(x2,y2),grid;\n\nfigure(3); semilogx(x3,y3),grid;\n\nfigure(4); semilogx(x4,y4),grid;\n\nfunction [wpos,ypos] = bd_asymp(G,w)\n\n% 绘制伯德图渐近线\n\nG1 = zpk(G); wpos = []; pos1 = [];\n\nif nargin == 1, w = freqint2(G); end\n\nzer = G1.z{1}; pol = G1.p{1}; gain = G1.k;\n\nfor i = 1:length(zer)\n\nif isreal(zer(i))\n\nwpos = $wpos,abs(zer(i))$;\n\npos1 = [pos1, 20];\n\nelse\n\nif imag(zer(i)) > 0\n\nwpos = $wpos,abs(zer(i))$;\n\npos1 = [pos1, 40];\n\nend\n\nend\n\nend\n\nfor i = 1:length(pol)\n\nif isreal(pol(i))\n\nwpos = $wpos,abs(pol(i))$;\n\npos1 = $pos1, -20$;\n\nelse\n\nif imag(pol(i)) > 0\n\nwpos = $wpos, abs(pol(i))$;\n\npos1 = $pos1, -40$;\n\nend\n\nend\n\nend\n\nwpos = $wpos w(1) w(length(w))$;\n\npos1 = [pos1,0,0];\n\n[wpos, ii] = sort(wpos); pos1 = pos1(ii) ;\n\nii = find(abs(wpos) < eps) ; kslp = 0;\n\nw_start = 1000 * eps;\n\nif length(ii) > 0\n\nkslp = sum(pos1(ii));\n\nii = $ii(length(ii))+1$:length(wpos);\n\nwpos = wpos(ii); pos1 = pos1(ii) ;\n\nend\n\nwhile 1\n\n[ypos1,pp] = bode(G, w_start);\n\nif isinf(ypos1)\n\nw_start = w_start * 10;\n\nelse\n\nbreak;\n\nend\n\nend\n\nwpos = $w_start wpos$;\n\nypos(1) = 20 * log10(ypos1) ;\n\npos1 = [kslp pos1];\n\nfor i = 2:length(wpos)\n\nkslp = sum(pos1(1:i - 1)) ;\n\nypos(i) = ypos(i - 1) + kslp * log10(wpos(i)/wpos(i - 1));\n\nend\n\nii = find(wpos >= w(1) & wpos <= w(length(w)));\n\nwpos = wpos(ii) ; ypos = ypos(ii);",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0100/image-01.emf",
+    "assets/AC-Q-0100/image-02.emf",
+    "assets/AC-Q-0100/image-03.emf",
+    "assets/AC-Q-0100/image-04.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "频域分析"
+  ]
+}

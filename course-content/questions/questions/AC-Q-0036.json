@@ -1,0 +1,56 @@
+{
+  "question_id": "AC-Q-0036",
+  "source_ref": "3-2 24G/A(1)/B(2)/23-24-2R/A(2)",
+  "question_number": "3-2",
+  "chapter": 3,
+  "section": "线性系统的时域分析法",
+  "stem_md": "设系统的微分方程式如下：\n\n（1）；\n\n（2）。\n\n试求系统的单位脉冲响应和单位阶跃响应。已知全部初始条件为零。\n\n（3）使用MATLAB以传递函数为模型验证两个系统的单位脉冲响应和单位阶跃响应。（使用impulse和step函数，附代码及响应曲线）",
+  "solution_md": "解 此类问题的解决方法主要是先利用拉氏变换将微分方程转换为系统的传递函数，然后根据拉氏反变换求得系统的各类响应。\n\n（1）系统。\n\n由于初始条件为零，对微分方程两边进行拉氏变换可得\n\n则系统的传递函数为\n\n当输入为单位脉冲信号时，，系统的单位脉冲响应\n\n当输入为单位阶跃信号时，，系统的单位阶跃响应\n\n（2）系统。\n\n由于初始条件为零，对微分方程两边进行拉氏变换可得\n\n则系统的传递函数为\n\n由的形式可以确定\n\n则，，，。(2分)\n\n当输入为单位脉冲信号时，，系统的单位脉冲响应\n\n输入为单位阶跃信号时，，系统的单位阶跃响应\n\n（3）第一问代码及响应曲线(5分)\n\nPhi = tf(10,[1,0]);\n\nimpulse(Phi)\n\nfigure\n\nstep(Phi)\n\n第二问代码及响应曲线(5分)\n\nPhi = tf(25,[1,6,25]);\n\nimpulse(Phi)\n\nfigure\n\nstep(Phi)",
+  "inline_score_points": [
+    {
+      "points": 2,
+      "excerpt": "则，，，。(2分)"
+    },
+    {
+      "points": 5,
+      "excerpt": "（3）第一问代码及响应曲线(5分)"
+    },
+    {
+      "points": 5,
+      "excerpt": "第二问代码及响应曲线(5分)"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 2,
+      "criteria": "则，，，。(2分)"
+    },
+    {
+      "step": "步骤 2",
+      "points": 5,
+      "criteria": "（3）第一问代码及响应曲线(5分)"
+    },
+    {
+      "step": "步骤 3",
+      "points": 5,
+      "criteria": "第二问代码及响应曲线(5分)"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0036/image-01.emf",
+    "assets/AC-Q-0036/image-02.emf",
+    "assets/AC-Q-0036/image-03.emf",
+    "assets/AC-Q-0036/image-04.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性系统的时域分析法",
+    "微分方程",
+    "传递函数"
+  ]
+}

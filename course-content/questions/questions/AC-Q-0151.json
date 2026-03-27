@@ -1,0 +1,22 @@
+{
+  "question_id": "AC-Q-0151",
+  "source_ref": "8-8",
+  "question_number": "8-8",
+  "chapter": 8,
+  "section": "非线性控制系统分析",
+  "stem_md": "设非线性系统如图 8-80 所示，输入为单位斜坡函数。试在  平面上绘制相轨迹。",
+  "solution_md": "解：本题首先应根据系统结构图解出相应的微分方程和开关线，得到解析表达式，然后根据给定输入单位斜坡信号和初始条件，绘制相轨迹，并由相轨迹分析系统运动特点。\n\n假设开始时系统处于静止状态, 即  则描述系统的方程组为 , 其中   因为 , 故有 , 初始条件为 。 整理解上述关系式, 可得  在相平面的 I 区 , 描述系统的微分方程为  积分可得  在相平面的 II 区 , 描述系统的微分方程为  积分可得  由初始条件  出发, 概略绘制其相轨迹如图 8-8-1 所示。 下面利用 MATLAB 程序 exe808. m 精确绘制系统相轨迹, 如图 8-8-2 所示。由图可见, 系统振荡发散。\n\nMATLAB 程序：exe808.m\n\n% 设置仿真时间为 30s\n\n% 设定初始条件为 e(0) = 0, \\dot{e}(0) = 1\n\n% 求解微分方程\n\n% 绘制系统相轨迹\n\nt = 0:0.01:30;\n\ne0 = [0 1]';\n\n[t,e1] = ode45('sys808', t, e0);\n\nplot(e1(:,1), e1(:,2)); grid\n\nfunction de = sys808(t,e)\n\nde1 = e(2);\n\nif (e(1)>1) && $(e(1)<1) && (e(1)>-1)$ && $e(2)<0$\n\nde2 = -1;\n\nelse de2 = 1;\n\nend\n\nde = [de1 de2];",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "非线性控制系统分析",
+    "微分方程",
+    "非线性系统"
+  ]
+}

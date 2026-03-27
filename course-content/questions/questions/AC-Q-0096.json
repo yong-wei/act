@@ -1,0 +1,37 @@
+{
+  "question_id": "AC-Q-0096",
+  "source_ref": "5-7 25G/A",
+  "question_number": "5-7",
+  "chapter": 5,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "已知系统开环传递函数\n\n当取  时，。当输入为单位速度信号时，系统稳态误差为 0.1，试写出系统开环频率特性表达式。",
+  "solution_md": "解 本题主要考查对幅频特性和相频特性定义的理解，并结合系统的稳态误差，求取系统的参数。\n\n系统的开环频率特性\n\n由  时 ，可得\n\n应有\n\n等式两端取正切，得\n\n根据两角和的三角函数关系，得\n\n表明应有\n\n由 时 ，可得\n\n再由  时 ，可得  (2分)\n\n于是由上述三个方程，可解得\n\n故系统的开环频率特性为\n\n系统的开环幅相特性曲线如图 5-7-1 所示。\n\n图 5-7-1  幅相特性曲线（MATLAB）\n\nMATLAB 程序：exe507.m\n\nK = 10; T1 = 20; T2 = 0.05;\n\nG = tf(K * $-T2,1$,[T1,1,0]);\n\nnyquist(G);\n\naxis($-3,0,-0.2,0.2$);",
+  "inline_score_points": [
+    {
+      "points": 2,
+      "excerpt": "再由  时 ，可得  (2分)"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 2,
+      "criteria": "再由  时 ，可得  (2分)"
+    }
+  ],
+  "figure_titles": [
+    "图 5-7-1  幅相特性曲线（MATLAB）"
+  ],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0096/image-01.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "频域分析"
+  ]
+}

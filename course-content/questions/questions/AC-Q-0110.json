@@ -1,0 +1,42 @@
+{
+  "question_id": "AC-Q-0110",
+  "source_ref": "5-21 24G/A",
+  "question_number": "5-21",
+  "chapter": 5,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "设单位反馈系统的开环传递函数\n\n试确定相角裕度为时参数的值。",
+  "solution_md": "解 本题主要考察对系统相角裕度定义的理解，并要注意与相角裕度相关的截止频率的定义。\n\n系统的开环频率特性\n\n其中。(4分)由相角裕度定义可知\n\n解得\n\n解得，。(4分)",
+  "inline_score_points": [
+    {
+      "points": 4,
+      "excerpt": "其中。(4分)由相角裕度定义可知"
+    },
+    {
+      "points": 4,
+      "excerpt": "解得，。(4分)"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 4,
+      "criteria": "其中。(4分)由相角裕度定义可知"
+    },
+    {
+      "step": "步骤 2",
+      "points": 4,
+      "criteria": "解得，。(4分)"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "频域分析"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "question_id": "AC-Q-0018",
+  "source_ref": "2-8 24-25-2R",
+  "question_number": "2-8",
+  "chapter": 2,
+  "section": "控制系统的数学模型",
+  "stem_md": "设晶闸管三相桥式全控整流电路的输入量为控制角，输出量为空载整流电流，其间的关系为\n\n式中是整流电压的理想空载值，试推导其线性化方程式。",
+  "solution_md": "解 本题考查电路非线性微分方程的线性化，具体做法是，对非线性微分方程在其平衡点附近用泰勒级数展开并取前面的线性项，得到等效的线性化方程。\n\n在  处对进行泰勒展开，然后取其一次项近似可得\n\n由上式可得全控整流电路的线性化方程为",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "控制系统的数学模型",
+    "微分方程",
+    "非线性系统"
+  ]
+}

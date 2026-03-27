@@ -1,0 +1,22 @@
+{
+  "question_id": "AC-Q-0073",
+  "source_ref": "4-8",
+  "question_number": "4-8",
+  "chapter": 4,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "已知开环传递函数为\n\n$$G(s) = \\frac{K^* (s+2)}{(s^2+4s+9)^2}$$\n\n试概略绘制其闭环系统根轨迹图。",
+  "solution_md": "解 本题可应用根轨迹绘制法则，绘制开环系统具有复重极点时的闭环系统的概略根轨迹图。\n\n$$G(s) = \\frac{K^* (s+2)}{(s^2+4s+9)^2}$$\n\n根轨迹的分支和起点与终点。由于 $n=4, m=1, n-m=3$，故根轨迹有四条分支，其中两条根轨迹的终点为 $z_1 = -2$，其余都为无穷远处。\n\n实轴上的根轨迹。实轴上的根轨迹分布区为 $[-2, -\\infty)$。\n\n根轨迹的渐近线。\n\n$$\\sigma = \\frac{2 \\times (-2+j\\sqrt{5}) + 2 \\times (-2-j\\sqrt{5}) + 2}{4-1} = -2, \\quad \\varphi = \\pm \\frac{\\pi}{3}, \\pi$$\n\n根轨迹的分离点。根轨迹的分离点坐标满足\n\n$$\\frac{2}{d+2-j\\sqrt{5}} + \\frac{2}{d+2+j\\sqrt{5}} = \\frac{1}{d+2}$$\n\n即\n\n$$3d^2 + 12d + 7 = 0$$\n\n解得\n\n$$d_1 = 3.29, \\quad d_2 = -0.71$$（舍去）\n\n故分离点的坐标为 $d = -3.29$。\n\n根轨迹与虚轴的交点。系统的闭环特征方程式为 $D(s) = (s^2 + 4s + 9)^2 + K^* (s + 2)$ $= s^4 + 8s^3 + 34s^2 + (72 + K^)s + $2K^ + 81$ = 0$ 令 $s = j\\omega$，将其代入上式可得 $(j\\omega)^4 + 8(j\\omega)^3 + 34(j\\omega)^2 + $72 + K^$$j\\omega$ + $2K^ + 81$ = 0$ 即 $(\\omega^4 - 34\\omega^2 + 2K^* + 81) = 0$ $-8\\omega^3 + 72 + K^* = 0$ 解得 $\\omega = \\pm 4.58, \\quad K^* = 96$ 根据以上分析，画出系统的闭环根轨迹如图 4-8-1 所示。其仿真图如图 4-8-2 所示。\n\nMATLAB 程序：exe408.m\n\nG = zpk($-2$, $-2-sqrt(5)*i -2-sqrt(5)*i-2+sqrt(5)*i -2+sqrt(5)*i$, 1);\n\nfigure\n\nrlocus(G);",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "根轨迹"
+  ]
+}

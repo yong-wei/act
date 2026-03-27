@@ -1,0 +1,24 @@
+{
+  "question_id": "AC-Q-0098",
+  "source_ref": "5-9 未完成",
+  "question_number": "5-9",
+  "chapter": 5,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "已知系统开环传递函数\n\n试绘制系统的概略开环幅相特性曲线。",
+  "solution_md": "解 本题主要练习含有虚数极点系统的幅相特性的绘制，注意虚数极点对绘制系统幅相曲线的影响。\n\n系统的开环频率特性为\n\n$$ G(j\\omega)H(j\\omega) = \\frac{10}{j\\omega(1 + j\\omega)(1 - \\omega^2/4)} $$\n\n开环系统有虚数极点 $s = \\pm j2$，且\n\n$$ \\begin{align*} |G(j\\omega)H(j\\omega)| &= \\frac{10}{\\omega(1-\\omega^2/4)\\sqrt{(1+\\omega^2)}} \\bigg|{\\omega=0}^\\infty, \\ \\angle G(j\\omega)H(j\\omega) &= -90\\degree - \\arctan\\omega \\bigg|{\\omega=0}^\\infty = -90\\degree \\end{align*} $$\n\n当 $\\omega \\to 0^{-}$ 时，\n\n$$ \\begin{align*} |G(j\\omega)H(j\\omega)| &= \\frac{10}{\\omega(1-\\omega^2/4)\\sqrt{(1+\\omega^2)}} \\bigg|{\\omega=0^{-}}^\\infty, \\ \\angle G(j\\omega)H(j\\omega) &= -90\\degree - \\arctan\\omega \\bigg|{\\omega=0^{-}}^\\infty = -360\\degree \\end{align*} $$\n\n当 $\\omega \\to 2^{-}$ 时，\n\n$$ \\begin{align*} |G(j\\omega)H(j\\omega)| &= \\frac{10}{\\omega(1-\\omega^2/4)\\sqrt{(1+\\omega^2)}} \\bigg|{\\omega=2^{-}}^\\infty, \\ \\angle G(j\\omega)H(j\\omega) &= -90\\degree - \\arctan\\omega \\bigg|{\\omega=2^{-}}^\\infty = -153.4\\degree \\end{align*} $$\n\n当 $\\omega \\to 2^{+}$ 时，\n\n$$ \\begin{align*} |G(j\\omega)H(j\\omega)| &= \\frac{10}{\\omega(1-\\omega^2/4)\\sqrt{(1+\\omega^2)}} \\bigg|{\\omega=2^{+}}^\\infty, \\ \\angle G(j\\omega)H(j\\omega) &= -90\\degree - \\arctan\\omega \\bigg|{\\omega=2^{+}}^\\infty = -333.4\\degree \\end{align*} $$\n\n系统开环幅相曲线如图 5-9-1 所示，MATLAB 验证结果如图 5-9-2 所示。\n\n$$ G(s)H(s) = \\frac{s+1}{s(\\frac{s}{2}+1)(\\frac{s^2}{3}+1)} $$\n\n要求选择频率点，列表计算 $A(\\omega), L(\\omega)$ 和 $\\varphi(\\omega)$，并据此在半对数坐标纸上绘制系统开环对数频率特性曲线。\n\nMATLAB 程序: exe509.m\n\n$$ G = tf([10, [0.25, 0.25, 1, 1, 0]]); $$\n\n$$ nyquist(G); $$\n\n$$ axis([-20, 20, -20, 20]); $$",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0098/image-01.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "频域分析"
+  ]
+}

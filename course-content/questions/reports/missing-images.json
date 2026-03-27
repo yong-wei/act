@@ -1,0 +1,606 @@
+[
+  {
+    "question_id": "AC-Q-0002",
+    "source_ref": "1-2",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 1-2-1 仓库大门自动开闭控制系统方块图"
+    ],
+    "figure_references": [
+      "图1-22是仓库大门自动开闭控制系统原理图。试说明系统自动控制大门开闭的工作原理并画出系统方块图。"
+    ]
+  },
+  {
+    "question_id": "AC-Q-0003",
+    "source_ref": "1-3",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 1-23 自动调压系统原理图"
+    ],
+    "figure_references": [
+      "图 1-23(a)和(b)均为自动调压系统。设空载时，图(a)无差系统和图(b)有差系统的发电机端电压均为 110V。试问带上负载后，图(a)和图(b)中哪个系统能保持 110V 电压不变？哪个系统的电压会稍低于 110V？为什么？"
+    ]
+  },
+  {
+    "question_id": "AC-Q-0004",
+    "source_ref": "1-4",
+    "figure_status": "text_reference_only",
+    "figure_titles": [],
+    "figure_references": [
+      "图 1-24 为水温控制系统原理示意图。冷水在热交换器中由通入的蒸汽加热,从而得到一定温度的热水。冷水温度变化用流量计测量。试绘制系统方块图,并说明为了保持热水温度为期望值,系统是如何工作的?系统的被控对象和控制装置各是什么?"
+    ]
+  },
+  {
+    "question_id": "AC-Q-0005",
+    "source_ref": "1-5",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图1-5-1 电炉温度控制系统方块图"
+    ],
+    "figure_references": [
+      "图 1-25 是电炉温度控制系统原理示意图。试分析系统保持电炉温度恒定的工作过程,指出系统的被控对象、被控量以及各部件的作用,最后画出系统方块图。"
+    ]
+  },
+  {
+    "question_id": "AC-Q-0006",
+    "source_ref": "1-6",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 1-26 自整角机随动系统原理图",
+      "图 1-6-1 自整角机随动系统方块图"
+    ],
+    "figure_references": [
+      "图1-26是自整角机随动系统原理示意图。系统的功能是使接受自整角机TR的转子角位移与发送自整角机TX的转子角位移始终保持一致。试说明系统是如何工作的，并指出被控对象、被控量以及控制装置各部件的作用并画出系统方块图。"
+    ]
+  },
+  {
+    "question_id": "AC-Q-0007",
+    "source_ref": "1-7",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 1-6 为按电枢电流进行补偿的速度控制系 统。当电动机的激磁电压增大时，电动机的转速上升；当电动机的激磁电压减小时，电动机的转速下降。这 种补偿装置不能补偿由激磁电压变化引起的转速变化。"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0008",
+    "source_ref": "1-8",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 1-27 为谷物湿度控制系统原理示意图。在 谷物磨粉的生产过程中，有一种出粉最多的湿度，因此磨粉之前要给谷物加水以得到给定的湿度。图中，谷物 用传送装置按一定流量通过加水点，加水量由自动阀门控制。",
+      "图 1-6 按扰动控制的速度控制系统原理图"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0009",
+    "source_ref": "1-9",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 1-28 机床刀具进给系统方块图"
+    ],
+    "figure_references": [
+      "图 1-28 为数字计算机控制的机床刀具进给系统。要求将工件的加工任务编制成程序预先存入数字计算 机。加工时，步进电动机按照计算机给出的信息动作，完成加工任务。试说明该系统的原理。"
+    ]
+  },
+  {
+    "question_id": "AC-Q-0026",
+    "source_ref": "2-16不完整",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 2-55 直流电动机调速系统原理图"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0028",
+    "source_ref": "2-18不完整",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 2-18-3 ( R(s) = 0 ) 时系统(a)结构图变换",
+      "图 2-18-5 ( R(s) = 0 ) 时系统(a)结构图变换",
+      "图 2-18-7 ( N(s) = 0 ) 时系统(b)结构图"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0033",
+    "source_ref": "2-23不完整",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 2-60 所示为双摆系统，双摆悬挂在无摩擦的旋轴上，并且用弹簧把它们的中点连在一起。假定：摆的质量为 ( M ); 摆杆长度为 ( l ), 摆杆质量不计; 弹簧置于摆杆的 ( l/2 ) 处，弹性系数为 ( k ); 摆的角位移很小，( \\sin \\theta, \\cos \\theta ) 均可作线性近似处理；当 ( \\theta_1 = \\theta_2 = 0 ) 时，位于杆中",
+      "图 2-23-3 双摆系统信号流图"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0034",
+    "source_ref": "2-24不完整",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 2-24-1 生态系统的信号流图"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0054",
+    "source_ref": "3-20",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 3-20-1 系统结构图"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0058",
+    "source_ref": "3-24",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 3-68 机器人手爪控制系统",
+      "图 3-24-1 机器人控制系统单位阶跃响应曲线 (MATLAB)",
+      "图 3-24-2 机器人控制系统单位斜坡响应曲线 (MATLAB)",
+      "图 3-24-3 机器人控制系统单位阶跃扰动响应曲线 (MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0059",
+    "source_ref": "3-25",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图3-69 宇航员机动控制系统",
+      "图 3-25-1 宇航员控制系统单位阶跃响应曲线（MATLAB） 图 3-25-2 宇航员控制系统单位斜坡响应曲线（MATLAB）"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0060",
+    "source_ref": "3-26",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 3-26-1 飞机横滚系统单位阶跃响应曲线（$K_1 = 0.7$, MATLAB)",
+      "图 3-26-2 飞机横滚系统单位阶跃响应曲线（$K_1 = 3$, MATLAB)",
+      "图 3-26-3 飞机横滚系统单位阶跃响应曲线（$K_1 = 6$, MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0061",
+    "source_ref": "3-27",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 3-71 打磨机器人结构图"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0062",
+    "source_ref": "3-28",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图3-72 电动轮椅控制系统结构图",
+      "图 3-28-1 轮椅控制系统的单位阶跃响应曲线（MATLAB）"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0063",
+    "source_ref": "3-29",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 3-73 垂直起飞机高度控制系统",
+      "图 3-29-1 垂直起降高度控制系统的单位阶跃响应（$K_i = 0.7$，MATLAB）",
+      "图 3-29-2 垂直起飞高度控制系统的单位阶跃响应（K₁ = 0.5, MATLAB）"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0066",
+    "source_ref": "4-1",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 4-1-1 [ 1 + \\frac{K(3s+1)}{s(2s+1)} = 0 ] 根轨迹图",
+      "图 4-1-2 [ 1 + \\frac{K(3s+1)}{s(2s+1)} = 0 ] 根轨迹图 (MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0080",
+    "source_ref": "4-15",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 4-15-1 1+ ( \\frac{K}{s(s+1)} = 0 ) 概略根轨迹图 (( K = 0 ))",
+      "图 4-15-2 $K_i = 0$ 时 $1 + \\frac{K_i (1 + K_i s)}{s(s+1)} = 0$",
+      "图 4-15-4 $K_i = 0.5$ 时 $1 + \\frac{K_i (1 + K_i s)}{s(s+1)} = 0$",
+      "图 4-15-5 1+K(1+Ks)/s(s+1)=0",
+      "图 4-15-6 K_s=2 时 1+K(1+Ks)/s(s+1)=0"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0081",
+    "source_ref": "4-16",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 4-41 控制系统结构图"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0082",
+    "source_ref": "4-17",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 4-17-3 [ 1 + \\frac{10K_s s^2 (s+20)}{s^3 + 30s^2 + 200s + 1000} = 0 ] 概略参数根轨迹图",
+      "图 4-17-4 [ 1 + \\frac{10K_s s^2 (s+20)}{s^3 + 30s^2 + 200s + 1000} = 0 ] 参数根轨迹图 (MATLAB)",
+      "图 4-17-5 [ 1 + \\frac{10K_s s^2}{s^3 + 30s^2 + 200s + 1000} = 0 ] 概略参数根轨迹图",
+      "图 4-17-6 [ 1 + \\frac{10K_s s^2}{s^3 + 30s^2 + 200s + 1000} = 0 ] 参数根轨迹图 (MATLAB)",
+      "图 4-17-7 采用 G(s) = Ks 时系统的响应 (K, = 0.302, MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0085",
+    "source_ref": "4-20",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图4-20-1 空间站方位控制系统概略根轨迹图",
+      "图4-20-2 空间站控制系统根轨迹图(MATLAB)",
+      "图4-20-3 $K^*=10$ 时空间站系统单位阶跃响应(MATLAB)"
+    ],
+    "figure_references": [
+      "图4-44为空间站示意图。为了有利于产生能量和进行通信，必须保持空间站对太阳和地球的合适指向。空间站的方位控制系统可由带有执行机构和控制器的单位反馈控制系统来表征，其开环传递函数为 [ G(s) = \\frac{K^* (s+20)}{s(s+24s+144)} ] 试画出( K^* )值增大时的系统概略根轨迹图，并求出使系统产生振荡的( K^* )的取值范围。"
+    ]
+  },
+  {
+    "question_id": "AC-Q-0087",
+    "source_ref": "4-22",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 4-22-3 轧钢机系统根轨迹图 (MATLAB)",
+      "图 4-22-4 轧钢机系统时间响应（MATLAB）"
+    ],
+    "figure_references": [
+      "图 4-22-2 确定 $\\xi = 0.707$ 以及分离点处的 $K_a$ (MATLAB)"
+    ]
+  },
+  {
+    "question_id": "AC-Q-0088",
+    "source_ref": "4-23",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图4-47(a)是V-22鱼鹰型倾斜旋翼飞机示意图。V-22既是一种普通飞机，又是一种直升机。当飞机起飞和着陆时，其发动机位置可以如图示那样，使V-22像直升机那样垂直起降；而在起飞后，它又可以将发动机旋转90°，切换到水平位置，像普通飞机一样飞行。在直升机模式下，飞机的高度控制系统如图4-47(b)所示。",
+      "图4-47 V-22旋翼机的高度控制系统",
+      "图 4-23-3 V-22 旋翼机的高度时间响应 (MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0095",
+    "source_ref": "5-6",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图5-6-1 $v=1,2,3,4$ 时，$G(j\\omega)H(j\\omega) = \\frac{1}{(j\\omega)^2(1+j\\omega)(2+j\\omega)}$ 幅相特性曲线（MATLAB）"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0103",
+    "source_ref": "5-14",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 5-63 题 5-14 系统开环幅相特性曲线"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0113",
+    "source_ref": "5-24",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 5-24-3 的开环"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0114",
+    "source_ref": "5-25",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 5-65 油船航向控制系统的开环对数频率特性",
+      "图 5-25-1 船航向控制系统开环对数频率特性（MATLAB）"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0115",
+    "source_ref": "5-26",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 5-66 航天飞机机械臂控制系统",
+      "图 5-26-1 航天飞机机械臂系统单位阶跃扰动响应 (MATLAB)",
+      "图 5-26-2 航天飞机机械臂系统闭环对数频率特性 (MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0116",
+    "source_ref": "5-27",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 5-67 旋转翼飞机示意图",
+      "图 5-27-1 $G(s) = \\frac{4(0.5s+1)}{s(2s+1)(3/64+s/20+1)}$ 的开环对数频率特性曲线 (MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0125",
+    "source_ref": "6-7",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图6-40为三种推荐稳定系统的串联校正网络特性，它们均由最小相位环节组成，若控制系统为单位反馈系统，其开环传递函数为",
+      "图6-40(a)：",
+      "图6-40(b)：",
+      "图6-7-1 采用(a)方案时的开环对数幅频渐近特性表明已校正系统稳定，但稳定裕度不够。",
+      "图6-40(c)： $$G_c(s) = \\frac{(0.5s + 1)^2}{(10s + 1)(0.025s + 1)}$$ $$G(s) = G_0(s)G_c(s) = \\frac{400(0.5s + 1)^2}{s^2(0.01s + 1)(10s + 1)(0.025s + 1)}$$"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0129",
+    "source_ref": "6-11",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图6-11-1 系统结构图等效变换",
+      "图 6-11-2 复合控制系统时间响应 (MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0130",
+    "source_ref": "6-12",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 6-33 为《自动控制原理(第七版)》正文中的图。",
+      "图 6-12-1 复合控制系统时间响应（$T=0$，MATLAB） 图 6-12-2 复合控制系统时间响应（$T=0.2$，MATLAB）",
+      "图 6-12-3 复合控制系统时间响应（$T=20$，MATLAB）"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0131",
+    "source_ref": "6-13",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 6-44 组合驱动装置示意图",
+      "图 6-45 组合驱动装置转速控制系统结构图",
+      "图 6-13-1 驱动装置转速控制系统时间响应（MATLAB）"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0132",
+    "source_ref": "6-14",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 6-46 具有前置滤波器的鲁棒控制系统结构图",
+      "图6-14-1 系统单位阶跃响应(MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0133",
+    "source_ref": "6-15",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 6-15-2 卫星回收系统 Simulink 仿真图",
+      "图 6-15-3 卫星回收系统的时间响应(MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0134",
+    "source_ref": "6-16",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 6-16-1 汽车点火子系统的时间响应 (MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0135",
+    "source_ref": "6-17",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 6-48 所示的是核工厂的遥控机器人示意图，其构成的远程监控系统可以完成某些特定作",
+      "图 6-48 核电厂的遥控机器人示意图"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0136",
+    "source_ref": "6-18",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图6-49 机器人控制"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0137",
+    "source_ref": "6-19",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图6-19-1 机器人控制系统的时间响应(MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0138",
+    "source_ref": "6-20",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图6-51为机器人和视觉系统的示意图，移动机器人利用摄像系统来观测环境信息。已知机器人系统为单位反馈系统，被控对象为机械臂，其传递函数",
+      "图 6-20-1 机器人控制系统单位阶跃响应（MATLAB）"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0139",
+    "source_ref": "6-21",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 6-52 天线指向控制系统",
+      "图6-21-1 天线指向控制系统的时间响应(MATLAB)"
+    ],
+    "figure_references": [
+      "图 6-52（a）所示的大型天线可以用来接收卫星信号。为了能跟踪卫星的运动，必须保证天线的准确定向。天线指向控制系统采用电枢控制的电机来驱动天线，其结构图如图 6-52（b）所示。若要求系统斜坡响应的稳态误差小于 1%，阶跃响应的超调量小于 5%，调节时间小于 2s（Δ=2%）。要求："
+    ]
+  },
+  {
+    "question_id": "AC-Q-0140",
+    "source_ref": "6-22",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图6-22-1 热轧机控制系统时间响应（MATLAB）"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0145",
+    "source_ref": "8-1",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图8-76 题8-1系统结构图",
+      "图8-1-3 题8-1系统(2)的相轨迹 (MATLAB)",
+      "图8-1-5 题8-1系统(3)的相轨迹(MATLAB)",
+      "图8-1-6 题8-1系统(3)的 e(t)零输入响应曲线(MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0147",
+    "source_ref": "8-3",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 8-3-1 题 8-3 系统(1)相轨迹 (MATLAB)",
+      "图 8-3-2 题 8-3 系统(2)相轨迹 (MATLAB)",
+      "图 8-3-3 题 8-3 系统(3)相轨迹"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0149",
+    "source_ref": "8-6",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 8-78 题 8-6 具有变增益放大器的系统",
+      "图 8-6-2 题8-6系统误差响应曲线（MATLAB）"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0150",
+    "source_ref": "8-7",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 8-79 题 8-7 有库仑摩擦的二阶系统结构图",
+      "图 8-7-2 带有库伦摩擦的二阶系统（Simulink 环境）",
+      "图 8-7-1 库伦摩擦系统相轨迹（MATLAB）",
+      "图 8-7-3 题 8-7 系统输出响应曲线（MATLAB）"
+    ],
+    "figure_references": [
+      "图 8-79 为一带有库仑摩擦的二阶系统，试用相平面法讨论库仑摩擦对系统单位阶跃响应的影响。"
+    ]
+  },
+  {
+    "question_id": "AC-Q-0152",
+    "source_ref": "8-9",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 8-81 题 8-9 的非线性系统结构图"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0153",
+    "source_ref": "8-10",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 8-10-1  时系统相轨迹 (MATLAB)",
+      "图 8-10-2 具有继电器的非线性系统 (Simulink 环境)",
+      "图 8-10-3  时系统的时间响应 (MATLAB)",
+      "图 8-10-4  时系统相轨迹 (MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0154",
+    "source_ref": "8-11",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 8-11-2 题 8-11 开关闭合时系统的相轨迹（MATLAB）",
+      "图 8-11-3 题 8-11 系统误差响应曲线（MATLAB）"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0156",
+    "source_ref": "8-13",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 8-13-1 题 8-13 变增益特性和正弦响应曲线",
+      "图 8-13-2 所见，y(t) 是奇函数，所以有 A_1 = 0。而 y(t) 又为半周期内对称，故",
+      "图 8-13-2 具有死区的继电特性和正弦响应曲线",
+      "图 8-13-3  特性和正弦响应曲线"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0157",
+    "source_ref": "8-14",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 8-14(b)经过结构简化, 如图 8-14-1 所示。得线性部分的传递函数",
+      "图 8-14-2 非线性系统(b)的简化结构图",
+      "图 8-14(a)经过结构简化, 如图 8-14-2 所示。得线性部分的传递函数",
+      "图 8-14-2 非线性系统(a)的简化结构图"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0158",
+    "source_ref": "8-15",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图8-85(a)中的非线性环节相当于死区非线性和死区继电非线性环节（图8-15-1）的并联。",
+      "图8-15-1 非线性特性并联时的等效非线性特性",
+      "图8-85(b)中的非线性环节相当于两个死区继电非线性环节（图8-15-2）的并联：",
+      "图8-15-2 非线性特性并联时的等效非线性特性",
+      "图8-15-3",
+      "图 8-15-3 非线性特性串联时的等效非线性特性"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0165",
+    "source_ref": "8-22",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 8-90 非线性系统结构图",
+      "图 8-22-3 Simulink 环境下的延迟系统模型",
+      "图 8-22-4 系统输出时间响应 (MATLAB)"
+    ],
+    "figure_references": []
+  },
+  {
+    "question_id": "AC-Q-0167",
+    "source_ref": "8-24",
+    "figure_status": "source_missing",
+    "figure_titles": [
+      "图 8-92 题 8-24 非线性系统结构图",
+      "图8-24-1 非线性系统输出时间响应（MATLAB）"
+    ],
+    "figure_references": []
+  }
+]

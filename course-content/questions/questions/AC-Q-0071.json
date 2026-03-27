@@ -1,0 +1,22 @@
+{
+  "question_id": "AC-Q-0071",
+  "source_ref": "4-6",
+  "question_number": "4-6",
+  "chapter": 4,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "设单位反馈系统的开环传递函数为\n\n$$ G(s) = \\frac{K^*(s+2)}{s(s+1)} $$\n\n试从数学上证明: 复数根轨迹部分是以 $(-2, j0)$ 为圆心、以 $\\sqrt{2}$ 为半径的一个圆。",
+  "solution_md": "证明 由系统的开环传递函数可知, 该系统的闭环特征方程为\n\n$$ D(s) = s(s+1) + K^(s+2) = s^2 + (K^ + 1)s + 2K^* = 0 $$\n\n解得\n\n$$ s_{1,2} = \\frac{-1}{2} (K^* + 1) \\pm \\frac{1}{2} \\sqrt{8K^* - (K^* + 1)^2} $$\n\n令\n\n$$ x = -\\frac{1}{2} (K^* + 1), \\quad y = \\frac{1}{2} \\sqrt{8K^* - (K^* + 1)^2} $$\n\n则由 $x = -\\frac{1}{2} (K^* + 1)$ 可得 $K^* = -2x-1$, 将其代入 (y) 的表达式, 有\n\n$$ (x+2)^2 + y^2 = 2 $$\n\n证得复数根轨迹部分是以 $(-2, j0)$ 为圆心、以 $\\sqrt{2}$ 为半径的一个圆。其仿真图如图 4-6-1 所示。",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "根轨迹"
+  ]
+}

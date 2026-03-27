@@ -1,0 +1,25 @@
+{
+  "question_id": "AC-Q-0066",
+  "source_ref": "4-1",
+  "question_number": "4-1",
+  "chapter": 4,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "设单位负反馈控制系统的开环传递函数为 $G(s) = \\frac{K(3s+1)}{s(2s+1)}$ 试用解析法绘出开环增益 ( K ) 从零变到无穷时的闭环根轨迹图。",
+  "solution_md": "解 由题意可知，该系统的闭环传递函数为 $\\Phi(s) = \\frac{G(s)}{1+G(s)} = \\frac{K(3s+1)}{s(2s+1)+K(3s+1)}$ 显然，系统的闭环特征方程为 $D(s) = s(2s+1)+K(3s+1) = 2s^2 + (1+3K)s + K = 0$ 解上述闭环特征方程可得 $s_1 = -\\frac{1}{4} \\left[ 3K + 1 + \\sqrt{(3K+1)^2 - 8K} \\right], \\quad s_2 = -\\frac{1}{4} \\left[ 3K + 1 - \\sqrt{(3K+1)^2 - 8K} \\right]$ 故系统的根轨迹有两条。\n\n采用逐个描点的方法来绘制系统的闭环根轨迹图： 当 $K=0$ 时，$s_1 = -\\frac{1}{2}$; 随着 ( K ) 的增大，$s_1$ 单调减小; 当 $K=\\infty$ 时，$s_1 = -\\infty$。 当 $K=0$ 时，$s_2 = 0$; 随着 ( K ) 的增大，$s_2$ 也是单调减小; 当 $K=\\infty$ 时， $s_2 = -\\frac{1}{4} \\lim_{K \\to \\infty} \\left[ 3K + 1 - \\sqrt{(3K+1)^2 - 8K} \\right]$ 由此可得，系统的闭环根轨迹图如图4-1-1、图4-1-2所示。\n\nMATLAB 程序: exe401.m\n\nG = tf([3 1],[2 1 0]);    % 建立等效开环传递函数模型\n\nfigure\n\nrlocus(G);                % 绘制根轨迹\n\n图 4-1-1 $1 + \\frac{K(3s+1)}{s(2s+1)} = 0$ 根轨迹图\n\n图 4-1-2 $1 + \\frac{K(3s+1)}{s(2s+1)} = 0$ 根轨迹图 (MATLAB)",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图 4-1-1 [ 1 + \\frac{K(3s+1)}{s(2s+1)} = 0 ] 根轨迹图",
+    "图 4-1-2 [ 1 + \\frac{K(3s+1)}{s(2s+1)} = 0 ] 根轨迹图 (MATLAB)"
+  ],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "source_missing",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "根轨迹"
+  ]
+}

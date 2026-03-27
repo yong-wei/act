@@ -1,0 +1,24 @@
+{
+  "question_id": "AC-Q-0155",
+  "source_ref": "8-12 24-25-2R",
+  "question_number": "8-12",
+  "chapter": 8,
+  "section": "非线性控制系统分析",
+  "stem_md": "设三个非线性系统的非线性环节一样，其线性部分分别为\n\n用描述函数法分析时，哪个系统分析的准确度高？",
+  "solution_md": "解 由于非线性环节的输入为正弦信号时，实际输出必定含有高次谐波分量，线性部分的低通滤波性能越差，高次谐波分量越被大幅削弱，因此闭环通道内近似只有一次谐波分量流通，从而保证应用描述函数分析法所得结果的准确性。\n\n由于系统(2)的线性环节部分的频率特性在高频段衰减较快，低通滤波性能较好，因此系统(2)采用描述函数分析法所得的结果准确度高。\n\n利用 MATLAB 的 bode 命令，绘制三个系统线性部分的开环对数幅频特性曲线如图 8-12-1 所示。\n\nMATLAB 程序：exe812.m\n\nG1 = tf([1],[0.1 1 0]);\n\nG2 = zpk([],$0 -1$,2);\n\nG3 = tf([3 2],[0.1 1.1 1 0]);\n\nbode(G1,G2,G3);\n\nlegend\n\ngrid",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0155/image-01.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "非线性控制系统分析",
+    "频域分析",
+    "非线性系统"
+  ]
+}

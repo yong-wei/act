@@ -1,0 +1,22 @@
+{
+  "question_id": "AC-Q-0016",
+  "source_ref": "2-6",
+  "question_number": "2-6",
+  "chapter": 2,
+  "section": "控制系统的数学模型",
+  "stem_md": "在液压系统管道中，设通过阀门的流量  满足流量方程\n\n式中， 为比例系数； 为阀门前后的压差。若流量  与压差  在其平衡点  附近作微小变化，试导出线性化流量方程。",
+  "solution_md": "解 本题考查流量非线性微分方程的线性化，具体做法是，对非线性微分方程在其平衡点附近用泰勒级数展开并取前面的线性项，得到等效的线性化方程。\n\n在平衡点  处，对流量  泰勒展开并取一次项近似可得\n\n则线性化流量方程为\n\n省去符号“Δ”，上式可以简写为",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "控制系统的数学模型",
+    "微分方程",
+    "非线性系统"
+  ]
+}

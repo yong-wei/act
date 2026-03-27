@@ -1,0 +1,28 @@
+{
+  "question_id": "AC-Q-0078",
+  "source_ref": "4-13",
+  "question_number": "4-13",
+  "chapter": 4,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "设控制系统的结构图如下图所示，试概略绘制其（零度）根轨迹图。\n\n图4-13控制系统结构图",
+  "solution_md": "解 本题考查零度根轨迹的绘制。由上图可知，该系统是一个正反馈控制系统，其根轨迹为零度根轨迹。\n\n该系统的开环传递函数为\n\n根据绘制零度根轨迹图的法则可得:\n\n① 根轨迹的分支和起点与终点。由于 ，故根轨迹有两条分支，其起点分别为  ，其终点分别为 。\n\n② 实轴上的根轨迹。实轴上的根轨迹分布区为全部实轴。\n\n根据以上分析，可以绘制该系统的零度根轨迹如图 4-13-1 所示。其仿真图如图 4-13-2 所示。\n\nMATLAB 程序: exe413.m\n\nG = zpk($-1 -1$, $-2 -2$, -1); % 建立开环传递函数模型\n\nfigure\n\nrlocus(G); set(findall(gcf,'type','line'),'linewidth',2); % 绘制根轨迹",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图4-13控制系统结构图"
+  ],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0078/image-01.png",
+    "assets/AC-Q-0078/image-02.png",
+    "assets/AC-Q-0078/image-03.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "根轨迹"
+  ]
+}

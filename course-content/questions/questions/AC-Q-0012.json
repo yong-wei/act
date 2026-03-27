@@ -1,0 +1,48 @@
+{
+  "question_id": "AC-Q-0012",
+  "source_ref": "2-2 25G/A(b)",
+  "question_number": "2-2",
+  "chapter": 2,
+  "section": "控制系统的数学模型",
+  "stem_md": "设机械系统如下图所示，其中  是输入位移， 是输出位移。试分别写系统的微分方程。\n\n图2-2机械系统原理图",
+  "solution_md": "解 本题研究建立机械系统的微分方程数学模型。\n\n(1) 对于图 (a) 所示系统，根据力平衡方程，在不计重力时，可得\n\n则系统的微分方程式为\n\n(2) 对于图 (b) 所示系统，在上部分弹簧与阻尼器之间取辅助点 ，并设  点位为 ，方向向下。(2分)根据力平衡方程，在不计重力时，可得方程\n\n消去中间变量 ，由于\n\n故有  (2分) 则系统的微分方程式为\n\n(3) 对于图 (c) 所示系统，根据力平衡方程，在不计重力时，可得\n\n则系统的微分方程式为",
+  "inline_score_points": [
+    {
+      "points": 2,
+      "excerpt": "(2) 对于图 (b) 所示系统，在上部分弹簧与阻尼器之间取辅助点 ，并设  点位为 ，方向向下。(2分)根据力平衡方程，在不计重力时，可得方程"
+    },
+    {
+      "points": 2,
+      "excerpt": "故有  (2分) 则系统的微分方程式为"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 2,
+      "criteria": "(2) 对于图 (b) 所示系统，在上部分弹簧与阻尼器之间取辅助点 ，并设  点位为 ，方向向下。(2分)根据力平衡方程，在不计重力时，可得方程"
+    },
+    {
+      "step": "步骤 2",
+      "points": 2,
+      "criteria": "故有  (2分) 则系统的微分方程式为"
+    }
+  ],
+  "figure_titles": [
+    "图2-2机械系统原理图"
+  ],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0012/image-01.png",
+    "assets/AC-Q-0012/image-02.png",
+    "assets/AC-Q-0012/image-03.png"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "控制系统的数学模型",
+    "微分方程",
+    "机械系统"
+  ]
+}

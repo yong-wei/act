@@ -1,0 +1,25 @@
+{
+  "question_id": "AC-Q-0131",
+  "source_ref": "6-13",
+  "question_number": "6-13",
+  "chapter": 6,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "设组合驱动装置如图 6-44 所示。该装置由两个工作滑轮 $A$ 和 $B$ 组成，通过弹性皮带连在一起，挂在弹簧上的第三个滑轮可以将皮带拉紧，而弹簧运动可以视为无摩擦的运动。在组合驱动装置中，主滑轮 $A$ 由直流电机驱动，滑轮 $A$ 和 $B$ 上都装有测速仪，其输出电压与滑轮的转速成正比。利用测得的速度信号，可以估计每个滑轮的转角。\n\n设组合驱动装置的转速控制系统如图 6-45 所示，其中被控对象为组合驱动装置，其传递函数\n\n$$ G_0(s) = \\frac{10}{(s + 6)^2} $$\n\n$G_0(s)$ 为 PI 控制器，其传递函数\n\n图 6-44 组合驱动装置示意图\n\n图 6-45 组合驱动装置转速控制系统结构图",
+  "solution_md": "解 本题应采用 PI 控制器设计具有良好动态性能的最小节拍系统。通常，控制器必须与前置滤波器联合应用，才能达到设计指标要求。\n\n系统的开环传递函数 $G(s) = G_c(s)G_0(s)G_p(s) = \\frac{K(s+z)}{s(s+2)^2G_p(s)}$\n\n式中 $K = 10K_1, \\quad z = \\frac{K_2}{K_1}$\n\n闭环传递函数 $\\Phi(s) = \\frac{G_c(s)G_0(s)G_p(s)}{1+G_c(s)G_0(s)} = \\frac{K(s+z)}{s^3+12s^2+(36+K)s+Kz}G_p(s)$\n\n令 $G_p(s) = \\frac{z}{s+z}$，则 $\\Phi(s) = \\frac{Kz}{s^3+12s^2+(36+K)s+Kz}$\n\n该系统为 I 型系统，在单位阶跃输入作用下，$e_\\infty = 0$。\n\n由教材中表 6-4 知，三阶系统最小节拍标准化传递函数为 $\\Phi(s) = \\frac{\\omega_n}{s^3 + \\alpha \\omega_n s^2 + \\beta \\omega_n s + \\omega_n^3}$\n\n其中 $\\alpha = 1.9, \\beta = 2.20$。将上式与系统实际闭环传递函数相比，应有 $a\\omega_n = 12, \\quad \\beta \\omega_n^2 = 36 + K, \\quad \\omega_n^3 = Kz$\n\n故求出 $\\omega_n = \\frac{12}{a} = 6.32, \\quad K = 7\\beta \\omega_n^2 = 51.87, \\quad z = \\frac{\\omega_n^3}{K} = 4.87$\n\n于是 $K_1 = \\frac{K}{10} = 5.187, \\quad K_2 = K_1z = 25.26$\n\n所求的 PI 控制器与前置滤波器为 $G_c(s) = K_1 + \\frac{K_2}{s} = 5.187 + \\frac{25.26}{s}$\n\n$$ G_p(s) = \\frac{z}{s+z} = \\frac{4.87}{s+4.87} $$\n\n由教材中表 6-4 知，系统动态性能为 $\\sigma% = 1.65%, \\quad t_s = \\frac{4.04}{\\omega_n} = 0.64 < 1 \\quad (\\Delta = 2%)$\n\n满足设计指标要求。\n\nMATLAB 验证: 应用 MATLAB 软件包，对驱动装置转速控制系统\n\n$$ \\Phi(s) = \\frac{252.44}{s^3 + 12s^2 + 87.87s + 252.44} $$\n\n进行仿真，其单位阶跃响应如图 6-13-1 所示，测得 $\\sigma% = 2%$, $t_e = 0.64s$ （$\\Delta = 2%$)。\n\nMATLAB 程序：exe613.m\n\nK1 = 5.187; K2 = 25.26; z = 4.87;\n\nGc = tf([K1, K2], [1, 0]);\n\n% PI 控制器的传递函数\n\nG0 = tf([10, 1, 12, 36]);\n\nGp = tf(z, [1, 2]);\n\n% 前置滤波器的传递函数\n\nGl = feedback(Gc * G0, 1);\n\nG2 = series(Gp, Gl);\n\n% 系统的闭环传递函数\n\nstep(G2); grid\n\n图 6-13-1 驱动装置转速控制系统时间响应（MATLAB）",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图 6-44 组合驱动装置示意图",
+    "图 6-45 组合驱动装置转速控制系统结构图",
+    "图 6-13-1 驱动装置转速控制系统时间响应（MATLAB）"
+  ],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "source_missing",
+  "formula_status": "mixed",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数"
+  ]
+}

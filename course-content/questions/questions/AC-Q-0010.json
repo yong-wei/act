@@ -1,0 +1,22 @@
+{
+  "question_id": "AC-Q-0010",
+  "source_ref": "1-10",
+  "question_number": "1-10",
+  "chapter": 1,
+  "section": "自动控制的一般概念",
+  "stem_md": "下列各式是描述系统的微分方程，其中 $c(t)$ 为输出量，$r(t)$ 为输入量，试判断哪些是线性定常或时变系统，哪些是非线性系统。\n\n(1) $c(t) = r^2(t) + t \\dfrac{d^2 r(t)}{dt^2}$；\n\n(2) $3 \\dfrac{d^2 c(t)}{dt^2} + 6 \\dfrac{dc(t)}{dt} + 8c(t) = r(t)$；\n\n(3) $t \\dfrac{dc(t)}{dt} + c(t) = r(t) + 3 \\dfrac{dr(t)}{dt}$；\n\n(4) $c(t) = r(t) \\cos t + 5$；\n\n(5) $c(t) = 3r(t) + 6 \\dfrac{dr(t)}{dt} + 5 \\int_0^t r(\\tau)\\,d\\tau$；\n\n(6) $c(t) = r^2(t)$；\n\n(7) $$c(t) = \\begin{cases} 0, & t < 6, \\\\ r(t), & t \\ge 6. \\end{cases}$$",
+  "solution_md": "解 本题研究自动控制系统的分类。\n\n可用线性微分方程或差分方程描述的系统称为线性系统。如果微分方程或差分方程的系数全为常数，则称为线性定常系统；否则称为线性时变系统。\n\n用非线性方程描述的系统称为非线性系统。非线性方程的特点是系数与变量有关，或者方程中含有变量及其导数的高次幂或乘积项。\n\n基于以上定义，可得：\n\n(1) 非线性时变系统；\n\n(2) 线性定常系统；\n\n(3) 线性时变系统；\n\n(4) 非线性时变系统；\n\n(5) 线性定常系统；\n\n(6) 非线性定常系统；\n\n(7) 线性延迟系统。",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "cleaned",
+  "knowledge_tags": [
+    "自动控制的一般概念",
+    "微分方程",
+    "非线性系统"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "question_id": "AC-Q-0143",
+  "source_ref": "7-16 22-23-1R/A",
+  "question_number": "7-16",
+  "chapter": 7,
+  "section": "线性离散系统的分析与校正",
+  "stem_md": "设离散系统如下图所示，其中，，，试求静态误差系数，，，并求系统稳态误差。",
+  "solution_md": "解 本题关键是先判断系统的稳定性，再求得各个误差系数。\n\n由于开环脉冲传递函数\n\n闭环误差脉冲传递函数\n\n闭环特征方程为\n\n求得特征根。由于，故闭环系统稳定。（1分）\n\n系统静态误差系数\n\n根据开环脉冲传递函数的形式，可以判定该系统是I型系统，在单位斜坡输入的情况下，稳态误差为",
+  "inline_score_points": [
+    {
+      "points": 1,
+      "excerpt": "求得特征根。由于，故闭环系统稳定。（1分）"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 1,
+      "criteria": "求得特征根。由于，故闭环系统稳定。（1分）"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0143/image-01.png",
+    "assets/AC-Q-0143/image-02.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性离散系统的分析与校正",
+    "传递函数",
+    "稳定性"
+  ]
+}

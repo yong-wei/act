@@ -1,0 +1,24 @@
+{
+  "question_id": "AC-Q-0138",
+  "source_ref": "6-20",
+  "question_number": "6-20",
+  "chapter": 6,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "图6-51为机器人和视觉系统的示意图，移动机器人利用摄像系统来观测环境信息。已知机器人系统为单位反馈系统，被控对象为机械臂，其传递函数\n\n$$G_0(s) = \\frac{1}{(s+1)(0.5s+1)}$$\n\n为了使系统阶跃响应的稳态误差为零，采用串联PI控制器\n\n$$G_c(s) = K_1 + \\frac{K_2}{s}$$\n\n试设计合适的$K_1$与$K_2$值，使系统阶跃响应的超调量不大于5%，调节时间小于6s（$\\Delta=2%$），静态速度误差系数$K_v \\geq 0.9$。",
+  "solution_md": "解 本题可用试探法确定PI控制器参数，调整$K_1$与$K_2$时，需要综合考虑系统的稳态性能和动态性能要求。\n\n系统开环传递函数\n\n$$G_c(s)G_0(s) = \\frac{2K_1(s+z)}{s(s+1)(s+2)} = \\frac{K_2\\left(\\frac{1}{z}s+1\\right)}{s(0.5s+1)(s+1)}$$\n\n式中，$z = K_2/K_1$。\n\n对于PI控制器，一种可能的选择方案为\n\n$$z = 1.1, \\quad K_1 = 0.8182, \\quad K_2 = K_1z = 0.9$$\n\n则闭环传递函数为\n\n$$\\Phi(s) = \\frac{2K_1(s+z)}{s(s+1)$s+2$+2K_1(s+z)} = \\frac{1.64(s+1.1)}{s^3+3s^2+3.64s+1.8}$$\n\n应用MATLAB软件包，可绘出系统单位阶跃响应曲线，如图6-20-1所示。仿真结果表明，校正后系统的性能为\n\n$$\\sigma % = 4.6% < 5%, \\quad t_* = 4.93s < 6s(\\Delta = 2%), \\quad K_v = K_2 = 0.9$$\n\n满足设计指标要求。\n\nMATLAB程序：exe620.m\n\nK1 = 0.8182; K2 = 0.9;\n\nGO = tf(1, conv([1,1],[0.5,1]));\n\nGc = tf([K1,K2],[1,0]);\n\nG = series(Gc,GO);\n\nG1 = feedback(G, 1);\n\nstep(G1); grid\n\n图 6-20-1 机器人控制系统单位阶跃响应（MATLAB）",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图6-51为机器人和视觉系统的示意图，移动机器人利用摄像系统来观测环境信息。已知机器人系统为单位反馈系统，被控对象为机械臂，其传递函数",
+    "图 6-20-1 机器人控制系统单位阶跃响应（MATLAB）"
+  ],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "source_missing",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数"
+  ]
+}

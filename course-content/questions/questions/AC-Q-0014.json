@@ -1,0 +1,26 @@
+{
+  "question_id": "AC-Q-0014",
+  "source_ref": "2-4 25G/B(a)/C(b)",
+  "question_number": "2-4",
+  "chapter": 2,
+  "section": "控制系统的数学模型",
+  "stem_md": "试分别列写下图中各无源网络的微分方程式。\n\n图2-4无源网络电路图",
+  "solution_md": "解 本题研究网络数学模型的建立方法。\n\n(1) 对于图 (a)所示的无源网络，设通过电阻的电流为  (方向自左向右)，通过电容  的电流为  (方向自左向右)，通过电阻  的电流为 (方向自上向下)，根据电压平衡可得\n\n于是\n\n从而\n\n整理后可得图 (a) 所示的无源网络的微分方程为\n\n(2) 对于图 (b) 所示的无源网络, 设通过左侧电阻 的电流为 (方向自左向右)，通过右侧电阻 的电流为  (方向自右向左), 通过电容  的电流为  (方向自左向右)，通过电容  的电流为  (方向自上向下)，根据电压平衡可得\n\n于是\n\n从而\n\n又因为,则\n\n即\n\n整理后可得图 (b) 所示的无源网络的微分方程",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图2-4无源网络电路图"
+  ],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0014/image-01.png",
+    "assets/AC-Q-0014/image-02.png"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "控制系统的数学模型",
+    "微分方程"
+  ]
+}

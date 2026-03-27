@@ -1,0 +1,26 @@
+{
+  "question_id": "AC-Q-0167",
+  "source_ref": "8-24",
+  "question_number": "8-24",
+  "chapter": 8,
+  "section": "非线性控制系统分析",
+  "stem_md": "设非线性系统如图 8-92 所示，其中参数  均为正。试确定： (1) 系统发生自振时，各参数应满足的条件； (2) 自振频率和振幅。",
+  "solution_md": "解 将图示非线性系统化为典型结构    当  时，有\n\n296 -\n\n因此，即\n\n由此可知，使系统产生稳定自振时各参数应满足的条件为 ，自振参数为\n\nMATLAB 验证：设 ，正好满足稳定条件，且有如下自振参数\n\n运行如下 MATLAB 文件，可得系统输出时间响应，如图 8-24-1 所示。\n\n图 8-92 题 8-24 非线性系统结构图\n\n图8-24-1 非线性系统输出时间响应（MATLAB）\n\nMATLAB 程序: exe 824.m\n\n% t=0:0.01:120;\n\nc0=[0 0 0]';\n\n[t,c]=ode45('sys824',t,c0);\n\nplot(t,c(:,1));grid\n\n调用函数:\n\nfunction dc = sys824(t,c)\n\ndc1 = c(2);\n\ndc2 = c(3);\n\nif (c(1)<0)\n\ndc3 = 5 - 0.5 * c(1) - 0.5 * c(2) - 1.5 * c(3);\n\nelse\n\ndc3 = -5 - 0.5 * c(1) - 0.5 * c(2) - 1.5 * c(3);\n\nend\n\ndc = [dc1 dc2 dc3]';",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图 8-92 题 8-24 非线性系统结构图",
+    "图8-24-1 非线性系统输出时间响应（MATLAB）"
+  ],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "source_missing",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "非线性控制系统分析",
+    "稳定性",
+    "频域分析",
+    "非线性系统"
+  ]
+}

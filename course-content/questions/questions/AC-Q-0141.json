@@ -1,0 +1,37 @@
+{
+  "question_id": "AC-Q-0141",
+  "source_ref": "7-14 22-23-1R/B",
+  "question_number": "7-14",
+  "chapter": 7,
+  "section": "线性离散系统的分析与校正",
+  "stem_md": "设离散系统如下图所示，采样周期s，为零阶保持器。\n\n要求：\n\n（1）当时，分别在域和域中分析系统的稳定性；\n\n（2）确定使系统稳定的值范围。",
+  "solution_md": "解 首先求出闭环脉冲传递函数，再使用合适的稳定判据对闭环系统进行稳定性分析及确定值的范围。\n\n（1）稳定性分析。\n\n闭环脉冲传递函数为\n\n域特征方程为\n\n求得特征值为\n\n因，故闭环系统不稳定。\n\n将代入，由域特征方程\n\n求得特征值为\n\n应，故在域分析，闭环系统也不稳定。\n\n（2）确定使系统稳定的值范围。\n\n将代入，有\n\n在域中可以用劳斯表来确定值范围，最后可得。（1分）\n\n令值分别为5和1时离散系统的单位阶跃响应如下图所示。",
+  "inline_score_points": [
+    {
+      "points": 1,
+      "excerpt": "在域中可以用劳斯表来确定值范围，最后可得。（1分）"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 1,
+      "criteria": "在域中可以用劳斯表来确定值范围，最后可得。（1分）"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0141/image-01.png",
+    "assets/AC-Q-0141/image-02.emf",
+    "assets/AC-Q-0141/image-03.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性离散系统的分析与校正",
+    "传递函数",
+    "稳定性"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "question_id": "AC-Q-0117",
+  "source_ref": "5-28 24-25-2R",
+  "question_number": "5-28",
+  "chapter": 5,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "在空间机器人与地面测控站之间，存在着较大的通信时延。因此，对火星一类的远距离行星进行星际探索时，要求空间机器人有较高的自主性。空间机器人的自主性要求将影响整个系统的各个方面，包括任务规划、感知系统和机械结构等。只有当每个机器人都配备了完善的感知系统，能可靠地构建并维持环境模型时，星际探索系统才能具备所需要的自主性。\n\n美国卡内基-梅隆大学机器人研究所开发研制了一套用于星际探索的系统，其目标机器人是一个六足步行机器人，如下图(a)所示。该机器人单足控制系统结构图如下图(b)所示。\n\n(a) 六足步行机器人\n\n(b) 机器人单足控制系统结构图\n\n要求:\n\n(1) 绘制  时,闭环系统的对数频率特性;\n\n(2) 分别确定  和  时,闭环系统的谐振峰值 , 谐振频率 , 和带宽频率 。",
+  "solution_md": "解：本题展示了在频域中进行空间机器人控制系统参数的设计过程。确定不同增益取值时的系统的频域特征参数, 为进一步设计控制系统参数提供必备的技术数据。\n\n(1)  时的闭环系统 Bode 图。开环传递函数\n\n闭环传递函数\n\n应用 MATLAB 软件包, 可得闭环系统对数频率特性如下图所示。\n\n(2) 确定谐振峰值 , 谐振频率 , 和带宽频率 。令 , 由上图可得: 谐振峰值 ; 谐振频率  不存在; 在  处, 查出带宽频率 。\n\n令 , 因\n\n故可将上图中  向上平移 , 可得\n\nMATLAB 验证:\n\n时的闭环对数频率特性如下图所示。由下图测得\n\nMATLAB 程序：exe528.m\n\nK = [20,40];\n\nGc = tf([1],conv([1,0],[1,2,10]));\n\nfor ii = 1:2\n\nG1 = tf(K(ii)*[1,1],[1,5]);\n\nG0 = series(G1,Gc);\n\nG = feedback(G0,1);\n\nfigure(ii); bode(G); grid\n\nend",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0117/image-01.png",
+    "assets/AC-Q-0117/image-02.png",
+    "assets/AC-Q-0117/image-03.emf",
+    "assets/AC-Q-0117/image-04.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "频域分析"
+  ]
+}

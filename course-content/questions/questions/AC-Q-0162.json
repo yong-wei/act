@@ -1,0 +1,43 @@
+{
+  "question_id": "AC-Q-0162",
+  "source_ref": "8-19 22-23-2R/B",
+  "question_number": "8-19",
+  "chapter": 8,
+  "section": "非线性控制系统分析",
+  "stem_md": "试用描述函数法说明下图所示系统必然存在自振，并确定的自振振幅和频率，画出，，的稳态波形。",
+  "solution_md": "解 本题首先应根据结构图进行等效变换，求出线性部分的传递函数，然后绘制非线性部分的负倒描述函数和线性部分的幅相特性曲线，求出自振点，由频域稳定判据判断其稳定性，并确定输出的自振振幅和频率，画出，，的稳态波形。\n\n（1）理想继电环节的描述函数\n\n其负倒描述函数为\n\n为单调减函数，作曲线如下图所示。\n\n（2）线性部分的幅相曲线\n\n线性部分的曲线如下图所示。由图可知，与存在交点。点处频率为的穿越频率。因\n\n令，得。\n\n曲线与负实轴的交点为\n\n（3）自振稳定性。由描述函数法，有\n\n根据上图表示系统必然存在稳定的自振。令\n\n解得自振振幅\n\n由此产生的自振信号为。(1分)\n\n绘制MATLAB响应曲线，首先分析微分方程\n\n非线性环节输入与输出关系：\n\n取状态，，，同时将表达为，则有状态方程组：\n\n根据状态方程编写微分方程函数，并绘制相关曲线如下\n\nLineWidth = 2;\n\nG = zpk([],$0,-2,-2$,10);\n\nA = 0.01:0.01:100;\n\nN = -4./$pi*A$;\n\nplot(real(N),imag(N)); hold on\n\nnyquist(G);\n\nset(findall(gcf,'type','line'),'linewidth',LineWidth);\n\nset(findall(gcf,'-property','FontSize'),'FontSize',18);axis normal\n\nlegend({'-1/N(A)','G(jw)'});\n\nt = 0:0.01:14;\n\nc0 = $-0.1;0;0$;\n\n[t,c] = ode45(@sys819,t,c0);\n\nfigure\n\nplot(t,c(:,1)); hold on % c\n\nplot(t,-2*c(:,1),'.-'); % x\n\nplot(t,sign(c(:,1)),'--'); % y\n\nlegend({'c','x','y'});\n\nset(findall(gcf,'type','line'),'linewidth',LineWidth);\n\nset(findall(gcf,'-property','FontSize'),'FontSize',18);grid;axis normal\n\nSimulink仿真如下",
+  "inline_score_points": [
+    {
+      "points": 1,
+      "excerpt": "由此产生的自振信号为。(1分)"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 1,
+      "criteria": "由此产生的自振信号为。(1分)"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0162/image-01.png",
+    "assets/AC-Q-0162/image-02.png",
+    "assets/AC-Q-0162/image-03.emf",
+    "assets/AC-Q-0162/image-04.emf",
+    "assets/AC-Q-0162/image-05.png",
+    "assets/AC-Q-0162/image-06.png"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "非线性控制系统分析",
+    "微分方程",
+    "传递函数",
+    "稳定性",
+    "频域分析",
+    "非线性系统"
+  ]
+}

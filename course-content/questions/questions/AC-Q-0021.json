@@ -1,0 +1,35 @@
+{
+  "question_id": "AC-Q-0021",
+  "source_ref": "2-11 22-23-2R/A (10分)",
+  "question_number": "2-11",
+  "chapter": 2,
+  "section": "控制系统的数学模型",
+  "stem_md": "在下图中，已知和两方框对应的微分方程分别是\n\n且初始条件均为零，试求传递函数及。",
+  "solution_md": "解 本题研究系统微分方程与系统传递函数的转换方法。\n\n对题设所给的微分方程两边同时进行拉氏变换，由于初始条件均为0，所以有\n\n由上式可得\n\n由上图可得，\n\n将和代入得\n\n又 (1分)\n\n则\n\n所以传递函数和分别是",
+  "inline_score_points": [
+    {
+      "points": 1,
+      "excerpt": "又 (1分)"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 1,
+      "criteria": "又 (1分)"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0021/image-01.png"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "控制系统的数学模型",
+    "微分方程",
+    "传递函数"
+  ]
+}

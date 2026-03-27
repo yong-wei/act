@@ -1,0 +1,25 @@
+{
+  "question_id": "AC-Q-0152",
+  "source_ref": "8-9",
+  "question_number": "8-9",
+  "chapter": 8,
+  "section": "非线性控制系统分析",
+  "stem_md": "设非线性系统如图 8-81 所示，其中 。若输出为零初始条件，输入 ，要求：\n\n在  平面上画出相轨迹；\n\n判断该系统是否稳定，最大稳态误差是多少；\n\n绘出  及  的时间响应曲线。",
+  "solution_md": "解：本题首先应根据系统结构图解出相应的微分方程和开关线，然后根根据给定输入信号和初始条件，用等倾线法或 MATLAB 法绘制相轨迹，并由相轨迹分析系统性能，得到最大稳态误差，绘制  及  的时间响应曲线。\n\n相轨迹。假设系统输出为零初始条件，即  则描述系统的方程为  其中  由比较点可得\n\n因为 ，故有 ，初始条件为 。\n\n整理上述关系式后可得\n\n开关线为 。\n\n在  区 :\n\n图 8-81 题 8-9 的非线性系统结构图\n\n令 ，得等倾线方程为\n\n在 II 区 ():\n\n得  或 。\n\n在 III 区 ():\n\n得等倾线方程为\n\n为便于作图，取 ，下表给出了不同  值下等倾线的斜率:\n\n根据表格作等倾线或运行 MATLAB 程序 exe809.m，可得系统相轨迹如图 8-9-1 所示。 MATLAB 程序：exe809.m\n\nt = 0:0.01:12;\n\ne01 = [1 0];\n\n[t,e1] = ode45('sys809',t,e01);\n\nfigure(1)\n\nplot(e1(:,1),e1(:,2));grid\n\naxis($-1.1,-1.5,1.5$);\n\nfigure(2)\n\nplot(t,e1(:,1),t,(1-e1(:,1)));grid\n\naxis($0 12 -0.5 1.5$);\n\n调用函数：sys809.m function de = sys809(t,e) def = e(2); if (e(1) < -0.1) def2 = 2 - e(2); end\n\nelseif (abs(e(1)) < 0.1) de2 = 0; else de2 = -2 - e(2); end de = [de1 de2]';\n\n(2) 稳定性。由相轨迹可见，系统存在稳定自振，最大稳态误差 。\n\n(3) 时间响应。运行 MATLAB 程序 exe809.m 可得  及  时间响应波形如图 8-9-2 所示。",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图 8-81 题 8-9 的非线性系统结构图"
+  ],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "source_missing",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "非线性控制系统分析",
+    "微分方程",
+    "稳定性",
+    "非线性系统"
+  ]
+}

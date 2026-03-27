@@ -1,0 +1,21 @@
+{
+  "question_id": "AC-Q-0163",
+  "source_ref": "8-20",
+  "question_number": "8-20",
+  "chapter": 8,
+  "section": "非线性控制系统分析",
+  "stem_md": "已知非线性系统的输入和输出关系式\n\n说明书系统方程可得",
+  "solution_md": "解 由原系统方程可得\n\n则线性系统方程为\n\n将线性系统方程代入原系统方程可得\n\n线性系统等效为三重积分环节，其实现形式如图8-20-1所示。",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "非线性控制系统分析",
+    "非线性系统"
+  ]
+}

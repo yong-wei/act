@@ -1,0 +1,25 @@
+{
+  "question_id": "AC-Q-0133",
+  "source_ref": "6-15",
+  "question_number": "6-15",
+  "chapter": 6,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "NASA的宇航员可以在航天飞机中通过控制机械手将卫星回收到航天飞机的货舱中，如图6-47(a)所示，图中显示宇航员站在机械臂上工作的情况。该卫星回收系统结构图如图6-47(b)所示。要求： (1) 当 $T=0.1$ 时，确定 $K_a$ 的取值，使系统的相角裕度 $\\gamma=50^\\circ$； (2) 当 $T=0.5$ 时，仍采用(1)中确定的 $K_a$，求此时系统的相角裕度 $\\gamma$； (3) 当 $T=0.5$ 时，若要求 $\\gamma=50^\\circ$ ，试问 $K_a$ 值应如何改变？ 解 本题为延迟系统的参数设计问题。 延迟环节的幅相特性 $e^{-T_1}L = 1 \\cdot L - 57.3T_1$ 表明 $e^{-sT}$ 不影响开环频率特性的幅值，但会造成相频特性的明显滞后。令\n\n解出系统截止频率\n\n$$\\omega_c = \\sqrt{-50 + \\sqrt{2500 + K_a^2}}$$\n\n故相角裕度\n\n$$\\gamma = 180^\\circ - 90^\\circ - \\arctan 0.1 \\omega_c - 57.3 T \\omega_c$$\n\n于是，可以算出如下表格:\n\n$K_a$\t2\t5\t10\t11.5\t12\t20\t30\t37\n\n$\\omega_c$\t0.2\t0.5\t1.0\t1.14\t1.19\t1.96\t2.88\t3.49\n\n$\\gamma (T=0.1)$\t87.7°\t84.3°\t78.6°\t77.0°\t76.4°\t67.7°\t57.4°\t50.8°\n\n$\\gamma (T=0.5)$\t83.1°\t72.8°\t55.6°\t50.8°\t49.1°\t22.8°\t—8.6°\t—29.2°\n\n由表可知:\n\n$T=0.1$ 时，取 $K_a=37$，可以保证 $\\gamma=50^\\circ$；\n\n$T=0.5$ 时，仍取 $K_a=37$，则 $\\gamma=-29.2^\\circ$，系统不稳定；\n\n$T=0.5$ 时，若要求 $\\gamma=50^\\circ$，则应取 $K_a=11.5$。\n\nMATLAB 验证：令 $T=0.5, K_a=11.5$，则\n\n$$G(s) = \\frac{11.5e^{-0.5s}}{s(s+10)}$$\n\n其开环系统的 Bode 图如图 6-15-1 所示，测得\n\n$$\\omega_c = 1.14 \\text{rad/s}, \\quad \\gamma = 50.8^\\circ$$\n\n$$h(\\text{dB}) = 7.47 \\text{dB}$$\n\n在 MATLAB 的 Simulink 环境下搭建系统结构图，如图 6-15-2 所示。设置延迟时间为 0.5s，仿真时间为 10s，运行可得系统的单位阶跃响应输出如图 6-15-3 所示，由图测得\n\n$\\sigma% = 19%$, $t_p = 2.21s$, $t_s = 4.51s (\\Delta = 2%)$\n\n图 6-15-2 卫星回收系统 Simulink 仿真图\n\n图 6-15-3 卫星回收系统的时间响应(MATLAB)\n\nMATLAB 程序: exe615.m\n\nT=0.5; Ka = 11.5;\n\nG=tf(Ka, [1,10,0], 'iodelay', 0.5);\n\nmargin(G); grid",
+  "solution_md": "",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图 6-15-2 卫星回收系统 Simulink 仿真图",
+    "图 6-15-3 卫星回收系统的时间响应(MATLAB)"
+  ],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "source_missing",
+  "formula_status": "mixed",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "稳定性",
+    "频域分析"
+  ]
+}

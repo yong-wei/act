@@ -1,0 +1,21 @@
+{
+  "question_id": "AC-Q-0053",
+  "source_ref": "3-19 24-25-2R/A",
+  "question_number": "3-19",
+  "chapter": 3,
+  "section": "线性系统的时域分析法",
+  "stem_md": "设闭环传递函数的一般形式为\n\n误差定义取。试证：\n\n（1）系统在阶跃信号输入下，稳态误差为零的充分条件是： ；\n\n（2）系统在斜坡信号输入下，稳态误差为零的充分条件是： 。",
+  "solution_md": "证明 本题主要运用终值定理求证。\n\n系统的误差传递函数为\n\n（1）当时，\n\n由终值定理可得\n\n因而充分条件得证。\n\n（2）当时，\n\n由终值定理可得\n\n因而充分条件得证。",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性系统的时域分析法",
+    "传递函数"
+  ]
+}

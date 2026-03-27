@@ -1,0 +1,25 @@
+{
+  "question_id": "AC-Q-0041",
+  "source_ref": "3-7 24-25-2R/A",
+  "question_number": "3-7",
+  "chapter": 3,
+  "section": "线性系统的时域分析法",
+  "stem_md": "设下图是简化的飞行控制系统的结构图，试选择参数和  ，使系统的 。\n\n图3-7飞行控制系统结构图",
+  "solution_md": "解 求出上图所示系统的闭环传递函数，并将其与二阶系统的传递函数的标准形式相比较，便可得所求参数。\n\n通过简化结构图，可得系统的开环和闭环传递函数为\n\n二阶系统的传递函数的标准形式为\n\n比较可得\n\n解之得",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图3-7飞行控制系统结构图"
+  ],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0041/image-01.png"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性系统的时域分析法",
+    "传递函数"
+  ]
+}

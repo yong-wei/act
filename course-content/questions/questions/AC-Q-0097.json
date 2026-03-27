@@ -1,0 +1,22 @@
+{
+  "question_id": "AC-Q-0097",
+  "source_ref": "5-8 24G/B",
+  "question_number": "5-8",
+  "chapter": 5,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "已知系统开环传递函数\n\n试分别计算和时，开环频率特性的幅值和相位。",
+  "solution_md": "解 本题根据幅频特性和相频特性定义来进行计算，以进一步加深对频率特性定义的理解，注意震荡环节的相角计算象限。\n\n系统的开环频率特性\n\n其中\n\n故当时\n\n当时",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "频域分析"
+  ]
+}

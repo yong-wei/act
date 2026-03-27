@@ -1,0 +1,33 @@
+{
+  "question_id": "AC-Q-0093",
+  "source_ref": "5-4 24G/A|23-24-2R|25G/C",
+  "question_number": "5-4",
+  "chapter": 5,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "二阶系统的开环传递函数\n\n当取时，系统的稳态输出，试确定系统参数，。",
+  "solution_md": "解 本题主要考察根据频率特性的定义，已知输入为正弦信号时系统的稳态输出，求解系统的参数。注意，系统的稳态输出是指闭环系统的输出，故在求系统稳态输出时，应从系统的闭环传递函数着手。\n\n系统闭环传递函数\n\n则系统的幅频特性为\n\n相频特性为\n\n由题设条件知，系统稳态输出\n\n其中\n\n故有\n\n解得，(2分)",
+  "inline_score_points": [
+    {
+      "points": 2,
+      "excerpt": "解得，(2分)"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 2,
+      "criteria": "解得，(2分)"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "频域分析"
+  ]
+}

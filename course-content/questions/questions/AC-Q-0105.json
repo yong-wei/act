@@ -1,0 +1,40 @@
+{
+  "question_id": "AC-Q-0105",
+  "source_ref": "5-16 22-23-1R/TA|22-23-2R",
+  "question_number": "5-16",
+  "chapter": 5,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "已知系统开环传递函数\n\n试根据奈氏判据，确定其闭环稳定条件：\n\n（1）时，值的范围；\n\n（2）时，值的范围；\n\n（3）、值的范围。",
+  "solution_md": "解 本题主要考察根据系统的幅相特性曲线，应用奈氏判据，来确定使闭环系统稳定的参数的取值范围。\n\n系统的开环频率特性\n\n开环幅相特性曲线的起点为\n\n终点为\n\n与实轴的交点：\n\n令，解得\n\n其中为穿越频率。概略开环幅相特性曲线如下图所示。（3分）\n\n由于，，若使，应有，即幅相特性曲线不包围点。\n\n（1）当时与实轴交于点。令\n\n可得使闭环系统稳定的值范围\n\n（2）当时与实轴交于点。令\n\n可得使闭环系统稳定的值范围\n\n（3）开环幅相特性曲线与实轴交于点。令\n\n可得使闭环系统稳定的值范围\n\nMATLAB 验证: 应用 MATLAB 软件包, 对三组使闭环系统稳定的参数组 $(K=1, T=2), (K=2, T=0.5)$ 及 $(K=10, T=0.1)$ 作单位阶跃响应曲线, 分别如图 5-16-2、图 5-16-3 和图 5-16-4 所图5-16-1 ( G(j\\omega) = \\frac{K}{j\\omega(1+jT\\omega)(1+j\\omega)} ) 概略幅相特性曲线\n\nMATLAB程序: exe516.m\n\nK1 = 1; T1 = 2;\n\nG1 = tf([K1], [conv([conv([1,0],[T1,1]),[1,1])], [1,1]));\n\nG11 = feedback(G1, 1);\n\nK2 = 2; T2 = 0.5;\n\nG2 = tf([K2], [conv([conv([1,0],[T2,1]),[1,1])], [1,1]));\n\nG21 = feedback(G2, 1);\n\nK3 = 10; T3 = 0.1;\n\nG3 = tf([K3], [conv([conv([1,0],[T3,1]),[1,1])], [1,1]));\n\nG31 = feedback(G3, 1);\n\nfigure(1); step(G11); grid;\n\nfigure(2); step(G21); grid;\n\nfigure(3); step(G31); grid;\n\n图5-16-3 ( K=2, T=0.5 )时系统时间响应(MATLAB)\n\n图5-16-2 ( K=1, T=2 )时系统时间响应(MATLAB)\n\n图5-16-4 ( K=10, T=0.1 )时系统时间响应(MATLAB)",
+  "inline_score_points": [
+    {
+      "points": 3,
+      "excerpt": "其中为穿越频率。概略开环幅相特性曲线如下图所示。（3分）"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 3,
+      "criteria": "其中为穿越频率。概略开环幅相特性曲线如下图所示。（3分）"
+    }
+  ],
+  "figure_titles": [
+    "图5-16-3 ( K=2, T=0.5 )时系统时间响应(MATLAB)",
+    "图5-16-2 ( K=1, T=2 )时系统时间响应(MATLAB)",
+    "图5-16-4 ( K=10, T=0.1 )时系统时间响应(MATLAB)"
+  ],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0105/image-01.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "稳定性",
+    "频域分析"
+  ]
+}

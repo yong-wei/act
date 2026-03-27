@@ -1,0 +1,22 @@
+{
+  "question_id": "AC-Q-0030",
+  "source_ref": "2-20不完整",
+  "question_number": "2-20",
+  "chapter": 2,
+  "section": "控制系统的数学模型",
+  "stem_md": "画出教材中图 2-57 各系统结构图对应的信号流图,并用梅森增益公式求各系统的传递函数 $C(s)/R(s)$ 和 $C(s)/N(s)$。",
+  "solution_md": "解 本题研究系统的信号流图,以及运用梅森增益公式求传递函数。\n\n(1) 图 2-57(a)系统。系统信号流图如图 2-20-1所示。\n\n仅考虑输入 $R(s)$ 作用于系统时,本系统有一条前向通道,两个单独回路,即\n\n$$ L_1 = -G_1 G_2 H_1, \\quad L_2 = -G_1 G_2, \\quad \\Delta = 1 - (L_1 + L_2) = 1 + G_1 G_2 H_1 + G_1 G_2 $$\n\n$$ p_1 = -1, \\quad L_1 \\text{ 与 } p_1 \\text{ 不接触}, \\quad \\Delta_1 = 1 + G_1 G_2 H_1 $$\n\n$$ p_2 = G_2 G_3, \\quad \\Delta_2 = 1 $$\n\n由梅森增益公式,可得系统的传递函数\n\n$$ \\frac{C(s)}{R(s)} = \\sum \\frac{p_i \\Delta_i}{\\Delta} = \\frac{G_1 G_2}{1 + G_2 G_3 H_2 + G_1 G_2} $$\n\n仅考虑扰动 $N(s)$ 作用于系统时,本系统有两条前向通道,两个单独回路,即\n\n$$ L_1 = -G_1 G_2 H_1, \\quad L_2 = -G_1 G_2, \\quad \\Delta = 1 - (L_1 + L_2) = 1 + G_1 G_2 H_1 + G_1 G_2 $$\n\n$$ p_1 = -1, \\quad L_1 \\text{ 与 } p_1 \\text{ 不接触}, \\quad \\Delta_1 = 1 + G_1 G_2 H_1 $$\n\n$$ p_2 = G_2 G_3, \\quad \\Delta_2 = 1 $$\n\n由梅森增益公式可得系统的传递函数为\n\n$$ \\frac{C(s)}{N(s)} = \\sum \\frac{p_i \\Delta_i}{\\Delta} = \\frac{G_1 G_2 G_3 - (1 + G_1 G_2 H_1)}{1 + G_2 G_3 H_2 + G_1 G_2} $$\n\n(2) 图 2-57(b)系统。系统信号流图如图 2-20-2 所示。\n\n仅考虑输入 $R(s)$ 作用于系统时，本系统有三条前向通道，两个单独回路，即\n\n$$L_1 = -G_2 G_4, \\quad L_2 = -G_3 G_4, \\quad \\Delta = 1 - $L_1 + L_2$ = 1 + G_2 G_4 + G_3 G_4$$\n\n$$p_1 = G_2 G_4, \\quad \\Delta_1 = 1$$ $$p_2 = G_1 G_2 G_4, \\quad \\Delta_2 = 1$$ $$p_3 = G_3 G_4, \\quad \\Delta_3 = 1$$\n\n由梅森增益公式可得系统的传递函数为\n\n$$\\frac{C(s)}{R(s)} = \\frac{\\sum p_i \\Delta_i}{\\Delta} = \\frac{G_2 G_4 + G_1 G_2 G_4 + G_3 G_4}{1 + G_2 G_4 + G_3 G_4}$$\n\n仅考虑扰动 $N(s)$ 作用于系统时，本系统有一条前向通道，两个单独回路，即\n\n$$L_1 = -G_2 G_4, \\quad L_2 = -G_3 G_4, \\quad \\Delta = 1 - $L_1 + L_2$ = 1 + G_2 G_4 + G_3 G_4$$\n\n$$p_1 = G_4, \\quad \\Delta_1 = 1$$\n\n由梅森增益公式可得系统的传递函数为\n\n$$\\frac{C(s)}{N(s)} = \\frac{\\sum p_i \\Delta_i}{\\Delta} = \\frac{G_4}{1 + G_2 G_4 + G_3 G_4}$$\n\n2-21 试绘制图 2-58 中系统结构图对应的信号流图，并用梅森增益公式求传递函数 $C(s)/R(s)$ 和 $E(s)/R(s)$。\n\n解 本题研究系统的信号流图，以及运用梅森增益公式求解系统传递函数。\n\n（1）图 2-58（a）系统。信号流图如图 2-21-1 所示。\n\n用梅森增益公式求传递函数 $C(s)/R(s)$：观察系统信号流图可知，本系统有两条前向通道，三个单独回路，其中一对回路互不接触，即",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "控制系统的数学模型",
+    "信号流图",
+    "传递函数"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "question_id": "AC-Q-0013",
+  "source_ref": "2-3",
+  "question_number": "2-3",
+  "chapter": 2,
+  "section": "控制系统的数学模型",
+  "stem_md": "试证明下图 (a)的电网络与图 (b)的机械系统有相同的数学模型。\n\n图2-3电网络与机械系统原理图",
+  "solution_md": "解 本题研究用拉氏变换法建立系统的传递函数数学模型。\n\n(1) 对于图 (a)，根据复数阻抗的方法可得电网络的传递函数为\n\n(2) 对于图 (b)，在弹簧 和阻尼器之间引入辅助点，设其位移为，方向向下。根据力平衡方程，在不计重力时，可得\n\n对上述两式进行拉氏变换，考虑初始条件为零，可得\n\n消去中间变量,有\n\n则机械系统的传递函数为\n\n通过比较、可知, 两传递函数的类型相同，即图 (a) 的电网络与图 (b) 的机械系统有相同的数学模型。",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图2-3电网络与机械系统原理图"
+  ],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0013/image-01.png",
+    "assets/AC-Q-0013/image-02.png"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "控制系统的数学模型",
+    "传递函数",
+    "机械系统"
+  ]
+}

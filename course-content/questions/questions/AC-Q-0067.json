@@ -1,0 +1,24 @@
+{
+  "question_id": "AC-Q-0067",
+  "source_ref": "4-2 24-25-2R",
+  "question_number": "4-2",
+  "chapter": 4,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "已知开环零、极点分布如下图所示，试概略绘出相应的闭环根轨迹图。",
+  "solution_md": "解 本题考察根据根轨迹法则，结合开环零、极点的分布，绘制系统的概略根轨迹图的技巧。所有的闭环概略根轨迹如下图所示。",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0067/image-01.png",
+    "assets/AC-Q-0067/image-02.png"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "根轨迹"
+  ]
+}

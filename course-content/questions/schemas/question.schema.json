@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutoControlQuestion",
+  "type": "object",
+  "required": [
+    "question_id",
+    "source_ref",
+    "chapter",
+    "stem_md",
+    "solution_md",
+    "inline_score_points",
+    "rubric",
+    "figure_status",
+    "formula_status",
+    "usage_status"
+  ],
+  "properties": {
+    "question_id": { "type": "string" },
+    "source_ref": { "type": "string" },
+    "question_number": { "type": "string" },
+    "chapter": { "type": "integer" },
+    "section": { "type": ["string", "null"] },
+    "stem_md": { "type": "string" },
+    "solution_md": { "type": "string" },
+    "inline_score_points": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["points", "excerpt"],
+        "properties": {
+          "points": { "type": "number" },
+          "excerpt": { "type": "string" }
+        }
+      }
+    },
+    "rubric": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["step", "points", "criteria"],
+        "properties": {
+          "step": { "type": "string" },
+          "points": { "type": "number" },
+          "criteria": { "type": "string" }
+        }
+      }
+    },
+    "figure_titles": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "figure_references": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "figure_assets": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "figure_status": {
+      "type": "string",
+      "enum": ["complete", "source_missing", "text_reference_only", "none"]
+    },
+    "formula_status": {
+      "type": "string",
+      "enum": ["clean", "mixed"]
+    },
+    "usage_status": {
+      "type": "string",
+      "enum": ["raw", "cleaned", "verified", "publish_ready"]
+    },
+    "knowledge_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

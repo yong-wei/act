@@ -1,0 +1,21 @@
+{
+  "question_id": "AC-Q-0039",
+  "source_ref": "3-5 24-25-2R",
+  "question_number": "3-5",
+  "chapter": 3,
+  "section": "线性系统的时域分析法",
+  "stem_md": "设单位反馈系统的开环传递函数为\n\n试求系统在单位阶跃输入下的动态性能。\n\n使用MATLAB验证计算结果。（使用stepinfo函数）",
+  "solution_md": "解 由开环传递函数可得系统的闭环传递函数为\n\n从的形式可以看出，该系统是比例-微分控制二阶系统，其标准形式为\n\n由\n\n可得，，。由于\n\n算得该系统的动态性能指标为\n\n代码及输出结果如下：\n\nPhi = tf([0.4,1],[1,1,1]);\n\nstepinfo(Phi)\n\nRiseTime: 1.4615\n\nTransientTime: 7.7418\n\nSettlingTime: 7.7418\n\nSettlingMin: 0.9289\n\nSettlingMax: 1.1799\n\nOvershoot: 17.9894\n\nUndershoot: 0\n\nPeak: 1.1799\n\nPeakTime: 3.1315",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性系统的时域分析法",
+    "传递函数"
+  ]
+}

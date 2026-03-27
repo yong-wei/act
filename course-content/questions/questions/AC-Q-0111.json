@@ -1,0 +1,25 @@
+{
+  "question_id": "AC-Q-0111",
+  "source_ref": "5-22 22-23-2R",
+  "question_number": "5-22",
+  "chapter": 5,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "对于典型二阶系统，已知参数，，试确定截止频率和相角裕度。",
+  "solution_md": "解 本题主要考察如何根据典型二阶系统的参数来求取频域指标。\n\n典型二阶系统的开环传递函数为\n\n代入参数，，得\n\n二阶系统的开环频率特性\n\n由，即\n\n解得 rad/s。\n\n再由\n\n解得。",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0111/image-01.emf",
+    "assets/AC-Q-0111/image-02.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数",
+    "频域分析"
+  ]
+}

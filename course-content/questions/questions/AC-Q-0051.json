@@ -1,0 +1,21 @@
+{
+  "question_id": "AC-Q-0051",
+  "source_ref": "3-17",
+  "question_number": "3-17",
+  "chapter": 3,
+  "section": "线性系统的时域分析法",
+  "stem_md": "设单位反馈系统的开环传递函数为。试用动态误差系数法求出当输入信号分别为 和时，系统的稳态误差。",
+  "solution_md": "解 本题利用动态误差系数法来求系统的稳态误差。\n\n由题设可知，该系统属于单位反馈系统，则系统的误差传递函数为\n\n所以有\n\n故动态误差系数为\n\n本系统为 I 型系统，有 C，其中 为静态速度误差系数，故当  时，有\n\n又解\n\n对 在零初始条件下进行拉氏反变换，可得\n\n当时，显然有\n\n将上述各式代入的表达式，可得\n\n故系统的稳态误差为\n\n当时，显然有\n\n将上述各式代入的表达式，可得稳态误差\n\n又解\n\n代入  及，得",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性系统的时域分析法",
+    "传递函数"
+  ]
+}

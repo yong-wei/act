@@ -1,0 +1,33 @@
+{
+  "question_id": "AC-Q-0020",
+  "source_ref": "2-10 24G/A(15分)",
+  "question_number": "2-10",
+  "chapter": 2,
+  "section": "控制系统的数学模型",
+  "stem_md": "设系统的传递函数为\n\n初始条件，。试求单位阶跃输入时，系统的输出响应。",
+  "solution_md": "解 本题用拉氏变换法研究系统传递函数与输出响应的相互关系。\n\n已知系统的传递函数，则对应的微分方程为\n\n对上式两边同时进行拉氏变换。可得\n\n输入为，即，(3分)代入初始条件，，可得\n\n对上式进行拉氏反变换，可得系统在阶跃输入时输出响应为",
+  "inline_score_points": [
+    {
+      "points": 3,
+      "excerpt": "输入为，即，(3分)代入初始条件，，可得"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 3,
+      "criteria": "输入为，即，(3分)代入初始条件，，可得"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "none",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "控制系统的数学模型",
+    "微分方程",
+    "传递函数"
+  ]
+}

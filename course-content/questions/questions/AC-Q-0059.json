@@ -1,0 +1,24 @@
+{
+  "question_id": "AC-Q-0059",
+  "source_ref": "3-25",
+  "question_number": "3-25",
+  "chapter": 3,
+  "section": "线性系统的时域分析法",
+  "stem_md": "1984 年 2 月 7 日，美国宇航员利用手持喷气推进装置，完成了人类历史上的首次太空行走，如图3-69(a)所示。宇航员机动控制系统结构图如图3-69(b)所示，其中喷气控制器可用增益 $K_s$ 表示，$K_s$ 为速度反馈增益。若将宇航员以及他手臂上的装置一并考虑，系统总的转动惯量 $J = 25 \\text{N} \\cdot \\text{m} \\cdot \\text{s}^2/\\text{rad}$。要求：\n\n（1）当输入为单位斜坡 $r(t) = t \\ (\\text{m} \\cdot \\text{s}^{-1})$ 时，确定速度反馈增益 $K_s$ 的取值，使系统稳态误差 $e_\\infty(\\infty) \\leq 0.01 \\text{m}$。\n\n（2）采用（1）中求得的 $K_s$，确定 $K_1, K_2$ 的取值，使系统超调量 $\\sigma % \\leq 10 %$。\n\n图3-69 宇航员机动控制系统",
+  "solution_md": "解 本题研究系统参数选择与系统稳态误差和动态性能之间的关系。\n\n（1）确定 $K_s$ 值。由图3-69(b)可知，内回路传递函数\n\n$$G_0(s) = \\frac{K_1 K_2}{1 + K_1 K_2 K_s/J_s} = \\frac{K_1 K_2}{J s + K_1 K_2 K_s}$$\n\n闭环传递函数\n\n$$\\Phi(s) = \\frac{G_0(s)/s}{1 + G_0(s)/s} = \\frac{K_1 K_2}{J s^2 + K_1 K_2 K_s s + K_1 K_2}$$\n\n误差传递函数\n\n$$\\Phi_\\infty(s) = 1 - \\Phi(s) = \\frac{s(J s + K_1 K_2 K_s)}{J s^2 + K_1 K_2 K_s s + K_1 K_2}$$\n\n稳态误差\n\n$$e_\\infty(\\infty) = \\lim_{s \\to 0} E(s) = \\lim_{s \\to 0} \\Phi(s) R(s)$$\n\n因 $R(s) = \\frac{1}{s^2}$，故\n\n$$e_\\infty(\\infty) = \\lim_{s \\to 0} \\frac{s^2(J s + K_1 K_2 K_s)}{s^2 + K_1 K_2 K_s s + K_1 K_2} \\cdot \\frac{1}{s^2} = K_s$$\n\n由于要求 $e_\\infty(\\infty) \\leq 0.01$，所以应有 $K_s \\leq 0.01$，取 $K_s = 0.01$。\n\n（2）确定 $K_1, K_2$ 值。对于 $\\sigma % \\leq 10 %$，应有 $\\zeta \\geq 0.6$。取 $\\zeta = 0.6, K_s = 0.01$。令\n\n$$\\Phi(s) = \\frac{K_1 K_2}{s^2 + K_1 K_2 K_s s + K_1 K_2} = \\frac{\\omega_n^2}{s^2 + 2 \\zeta \\omega_n s + \\omega_n^2}$$\n\n$$\\omega_n^2 = \\frac{K_1 K_2}{J}$$\n\n$$2 \\zeta \\omega_n = \\frac{K_1 K_2 K_s}{J}$$\n\n由\n\n代入 $J = 25, \\zeta = 0.6, K_s = 0.01$，可得\n\n$$ K_1 K_2 (K_1 K_2 - 36 \\times 10^4) = 0 $$\n\n显然 $K_1 K_2 \\neq 0$，必有\n\n$$ K_1 K_2 = 36 \\times 10^4, \\omega_n = 120 $$\n\n系统时间响应的 MATLAB 仿真: 应用 MATLAB 软件包，可得系统单位阶跃响应如图 3-25-1 所示，而系统单位斜坡响应如图 3-25-2 所示。\n\n图 3-25-1 宇航员控制系统单位阶跃响应曲线（MATLAB） 图 3-25-2 宇航员控制系统单位斜坡响应曲线（MATLAB）\n\nMATLAB 程序: exe325.m\n\n% 单位阶跃输入响应\n\nnum = [360000];\n\nden = [25 3600 360000];\n\nt = 0:0.01:1.2;\n\nfigure\n\nstep(num, den, u, t);\n\ngrid\n\n% 单位斜坡输入响应\n\nnum = [360000];\n\nden = [25 3600 360000];\n\nt = 0:0.005:1;\n\nu = t;\n\nfigure\n\nlsim(num, den, u, t);\n\ngrid",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [
+    "图3-69 宇航员机动控制系统",
+    "图 3-25-1 宇航员控制系统单位阶跃响应曲线（MATLAB） 图 3-25-2 宇航员控制系统单位斜坡响应曲线（MATLAB）"
+  ],
+  "figure_references": [],
+  "figure_assets": [],
+  "figure_status": "source_missing",
+  "formula_status": "mixed",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性系统的时域分析法",
+    "传递函数"
+  ]
+}

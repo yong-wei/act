@@ -1,0 +1,25 @@
+{
+  "question_id": "AC-Q-0048",
+  "source_ref": "3-14 23-24-2R/A",
+  "question_number": "3-14",
+  "chapter": 3,
+  "section": "线性系统的时域分析法",
+  "stem_md": "已知系统结构如下图所示。试用劳斯判据确定能使系统稳定的反馈参数的取值范围。\n\n使用MATLAB对6组典型参数取值时系统的单位阶跃响应进行仿真，并分析响应对参数变换的趋势。",
+  "solution_md": "解 应用劳斯判据可以解此题，但具体选值时，还要兼顾系统的动态性能。\n\n右图可得系统的闭环传递函数为\n\n则闭环系统的特征方程为\n\n列劳斯表如下所示：\n\n由劳斯判据可得，若要使系统稳定，必须满足以下条件：\n\n解上述不等式组可得。所以，使系统稳定的反馈参数的取值范围为。\n\n代码及响应曲线如下：\n\ntau = logspace(-1,1,6);\n\ntiledlayout(2,3)\n\nfor ii = 1:length(tau)\n\nPhi = tf([10,10],$1,1+10*tau(ii),10,10$);\n\nnexttile\n\n[y,t] = step(Phi);\n\nplot(t,y)\n\ntitle($'\\tau = ',num2str(tau(ii))$)\n\nend\n\nfig = gcf;\n\nfig.Position = [70,295,785,420];",
+  "inline_score_points": [],
+  "rubric": [],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0048/image-01.png",
+    "assets/AC-Q-0048/image-02.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "clean",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "线性系统的时域分析法",
+    "传递函数",
+    "稳定性"
+  ]
+}

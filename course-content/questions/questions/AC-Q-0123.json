@@ -1,0 +1,53 @@
+{
+  "question_id": "AC-Q-0123",
+  "source_ref": "6-5 22-23-2R/B|25G/B",
+  "question_number": "6-5",
+  "chapter": 6,
+  "section": "尚婕 24-25-2R/A",
+  "stem_md": "设单位反馈系统的开环传递函数为\n\n若采用滞后-超前校正装置\n\n对系统进行串联校正，试绘制系统校正前后的对数幅频渐进特性，并计算系统校正前后的相角裕度。",
+  "solution_md": "解 本题主要考察串联滞后-超前校正对系统性能的影响。\n\n绘制出待校正系统、滞后-超前校正装置和已校正系统的对数幅频渐进特性曲线，如下图所示。(6分)\n\n由图中与轴交点，得待校正系统的截止评率 rad/s，(2分)算出待校正系统的相角裕度为\n\n由图中与轴交点，得已校正系统的截止评率 rad/s，(2分)算出已校正系统的相角裕度为\n\n校正前后单位阶跃响应对比如下\n\n应用MATLAB软件包，进行校正效果检验。作待校正系统的单位阶跃响应，如图6-5-2所示，测得 $$\\sigma = 67%, \\quad t_p = 1.61s$$ $$t_e = 14.6s \\quad (\\Delta = 2%)$$ 作已校正系统的单位阶跃响应，如图6-5-3所示，测得 $$\\sigma = 8%$$ $$t_e = 4.89s \\quad t_s = 16.9s \\quad (\\Delta = 2%)$$ MATLAB程序：exe605.m\n\nw = 0.001:1:100;\n\nGO = tf([8, [conv([1,0],[2,1])]]);\n\n% 待校正系统的开环传递函数\n\nGc = tf([conv([10,1],[2,1])], [conv([100,1],[0.2,1])]);\n\nG = series(G0,Gc);\n\n% 已校正系统的开环传递函数\n\n% 绘制待校正系统、滞后-超前校正装置和已校正系统的对数幅频渐近线\n\n[x,Y] = bd_asymp(G0,w); [xc,yc] = bd_asymp(Gc,w);\n\n[xl,Y1] = bd_asymp(G,w);\n\nfigure(1);\n\nsemilogx(x,Y,'r'); hold on;\n\nsemilogx(xc,yc,'b'); semilogx(xl,Y1,'k');\n\ngrid; hold off\n\n% 待校正和已校正系统的闭环传递函数\n\nGl = feedback(G0,1); G11 = feedback(G,1);\n\nfigure(2); step(G1); grid\n\nfigure(3); step(G11); grid",
+  "inline_score_points": [
+    {
+      "points": 6,
+      "excerpt": "绘制出待校正系统、滞后-超前校正装置和已校正系统的对数幅频渐进特性曲线，如下图所示。(6分)"
+    },
+    {
+      "points": 2,
+      "excerpt": "由图中与轴交点，得待校正系统的截止评率 rad/s，(2分)算出待校正系统的相角裕度为"
+    },
+    {
+      "points": 2,
+      "excerpt": "由图中与轴交点，得已校正系统的截止评率 rad/s，(2分)算出已校正系统的相角裕度为"
+    }
+  ],
+  "rubric": [
+    {
+      "step": "步骤 1",
+      "points": 6,
+      "criteria": "绘制出待校正系统、滞后-超前校正装置和已校正系统的对数幅频渐进特性曲线，如下图所示。(6分)"
+    },
+    {
+      "step": "步骤 2",
+      "points": 2,
+      "criteria": "由图中与轴交点，得待校正系统的截止评率 rad/s，(2分)算出待校正系统的相角裕度为"
+    },
+    {
+      "step": "步骤 3",
+      "points": 2,
+      "criteria": "由图中与轴交点，得已校正系统的截止评率 rad/s，(2分)算出已校正系统的相角裕度为"
+    }
+  ],
+  "figure_titles": [],
+  "figure_references": [],
+  "figure_assets": [
+    "assets/AC-Q-0123/image-01.emf",
+    "assets/AC-Q-0123/image-02.emf"
+  ],
+  "figure_status": "complete",
+  "formula_status": "mixed",
+  "usage_status": "raw",
+  "knowledge_tags": [
+    "尚婕 24-25-2R/A",
+    "传递函数"
+  ]
+}
