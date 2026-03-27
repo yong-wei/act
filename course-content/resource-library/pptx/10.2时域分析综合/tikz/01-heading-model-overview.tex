@@ -1,0 +1,30 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\tikzset{
+  block/.style={draw=blue!70!black, line width=1.2pt, minimum width=2.0cm, minimum height=0.95cm, align=center, fill=none},
+  sum/.style={circle, draw=green!50!black, line width=1.2pt, minimum size=7mm, inner sep=0pt},
+  note/.style={draw=orange!80!black, line width=1.2pt, rounded corners=3pt, minimum width=3.2cm, minimum height=0.95cm, align=center, fill=none},
+  signal/.style={-{Stealth[length=3mm]}, line width=1.2pt, draw=black!70}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=0.9cm and 0.9cm]
+  \node (r) {$R$};
+  \node[sum, right=0.9cm of r] (s1) {$+$};
+  \node[block, right=1.0cm of s1] (k) {$K$};
+  \node[block, right=1.0cm of k] (g1) {$G_1(s)=\frac{3.43}{s+2.14375}$};
+  \node[sum, right=1.1cm of g1] (s2) {$+$};
+  \node[block, right=1.0cm of s2] (g2) {$G_2(s)=\frac{0.005}{s(s+0.1)}$};
+  \node[right=1.0cm of g2] (c) {$C$};
+  \node[above=1.2cm of s2] (n) {$N$};
+
+  \draw[signal] (r) -- (s1) -- (k) -- (g1) -- (s2) -- (g2) -- (c);
+  \draw[signal] (n) -- (s2);
+  \draw[signal] (c) |- ++(0,-1.6) -| node[pos=0.95,left] {$-$} (s1.south);
+
+  \node[note, below=1.9cm of g1] (a) {reference: heading command};
+  \node[note, below=1.9cm of g2] (b) {disturbance: wave / sway / yaw};
+\end{tikzpicture}
+\end{document}

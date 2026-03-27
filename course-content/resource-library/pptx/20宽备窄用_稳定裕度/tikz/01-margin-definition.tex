@@ -1,0 +1,44 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta}
+
+\definecolor{axisgray}{HTML}{333333}
+\definecolor{lineblue}{HTML}{4A90D9}
+\definecolor{linered}{HTML}{E74C3C}
+\definecolor{labelgreen}{HTML}{3C763D}
+
+\begin{document}
+\begin{tikzpicture}[>=Stealth, line width=1.2pt, font=\small]
+  \draw[axisgray, ->] (-3.2,0) -- (2.7,0) node[right] {$\Re$};
+  \draw[axisgray, ->] (0,-2.5) -- (0,2.6) node[above] {$\Im$};
+  \filldraw[fill=white, draw=axisgray] (-1.0,0) circle (2.3pt);
+  \draw[lineblue, ->] (1.8,0.0) .. controls (1.4,-0.6) and (0.4,-1.3) .. (-0.2,-1.8)
+    .. controls (-0.8,-2.2) and (-1.6,-1.7) .. (-1.5,-1.0);
+  \draw[axisgray, dashed] (0,0) -- (-1.5,-1.0);
+  \draw[axisgray, dashed] (0,0) -- (-2.4,0);
+  \draw[linered] (-2.0,0) arc[start angle=180,end angle=214,radius=1.0];
+  \node at (-1.95,-0.35) {$\gamma$};
+  \draw[labelgreen, <->] (-1.5,-1.0) -- (-1.0,-1.0);
+  \node[below] at (-1.25,-1.0) {$h$};
+  \node[below] at (-1.0,0) {$-1$};
+
+  \begin{scope}[xshift=7.3cm]
+    \draw[axisgray, ->] (0,0) -- (6.8,0) node[right] {$\log \omega$};
+    \draw[axisgray, ->] (0,-2.5) -- (0,2.3);
+    \node[left] at (0,1.9) {$L(\omega)$};
+    \node[left] at (0,-1.8) {$\varphi(\omega)$};
+    \draw[axisgray, dashed] (0,0.7) -- (6.4,0.7);
+    \node[left] at (0,0.7) {$0\,\mathrm{dB}$};
+    \draw[axisgray, dashed] (0,-1.8) -- (6.4,-1.8);
+    \node[left] at (0,-1.8) {$-180^\circ$};
+    \draw[lineblue] (0.3,1.7) -- (3.1,0.7) -- (6.1,-0.8);
+    \draw[lineblue] (0.3,0.2) -- (2.4,-0.8) -- (5.4,-2.2);
+    \draw[linered, dashed] (3.1,0.7) -- (3.1,-0.8);
+    \node[below] at (3.1,-2.35) {$\omega_c$};
+    \draw[linered, dashed] (5.4,-1.8) -- (5.4,-0.8);
+    \node[below] at (5.4,-2.35) {$\omega_g$};
+    \node[align=left, anchor=west] at (6.9,1.2) {$\gamma$: phase reserve at $\omega_c$\\$h$: gain reserve at $\omega_g$};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

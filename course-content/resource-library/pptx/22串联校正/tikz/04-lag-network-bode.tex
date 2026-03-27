@@ -1,0 +1,28 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta}
+
+\definecolor{axisgray}{HTML}{333333}
+\definecolor{lineblue}{HTML}{4A90D9}
+\definecolor{linered}{HTML}{E74C3C}
+
+\begin{document}
+\begin{tikzpicture}[>=Stealth, line width=1.2pt, font=\small]
+  \draw[axisgray, ->] (0,0) -- (8.2,0) node[right] {$\log \omega$};
+  \draw[axisgray, ->] (0,-2.5) -- (0,2.0) node[above] {$L(\omega)$};
+  \draw[lineblue] (0.6,0.0) -- (3.3,0.0) -- (5.2,-0.9) -- (7.3,-0.9);
+  \draw[axisgray, dashed] (3.3,-2.1) -- (3.3,0.0);
+  \draw[axisgray, dashed] (5.2,-2.1) -- (5.2,-0.9);
+  \node[below] at (3.3,-2.1) {$1/(bT)$};
+  \node[below] at (5.2,-2.1) {$1/T$};
+  \node[right] at (7.3,-0.9) {$20\log b$};
+
+  \begin{scope}[xshift=9.5cm]
+    \draw[axisgray, ->] (0,0) -- (8.2,0) node[right] {$\log \omega$};
+    \draw[axisgray, ->] (0,-2.4) -- (0,1.2) node[above] {$\psi(\omega)$};
+    \draw[linered] (0.6,0.0) .. controls (2.3,-0.2) and (3.1,-1.5) .. (4.1,-1.8)
+      .. controls (5.2,-1.6) and (6.0,-0.5) .. (7.4,0.0);
+    \node[align=left, anchor=west] at (8.5,-0.7) {gain attenuation helps\\phase lag must be kept\\away from the new crossover};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

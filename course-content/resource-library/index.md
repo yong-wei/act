@@ -2,7 +2,7 @@
 
 - TeX 资源：9 项
 - PDF 资源：34 项
-- PPTX 提取包：10 项
+- PPTX 提取包：30 项
 
 本目录面向后续大纲重构、讲义设计和媒体策划，优先提供“可搜索、可引用”的素材索引，而不是最终排版稿。
 
@@ -81,6 +81,20 @@
   - `7.2拉氏变换_工程直觉的数学实现.pptx` -> [pptx/7.2拉氏变换_工程直觉的数学实现/README.md](pptx/7.2拉氏变换_工程直觉的数学实现/README.md)
   - `8稳定_控制系统首要任务.pptx` -> [pptx/8稳定_控制系统首要任务/README.md](pptx/8稳定_控制系统首要任务/README.md)
   - `9稳态误差_准确性的度量.pptx` -> [pptx/9稳态误差_准确性的度量/README.md](pptx/9稳态误差_准确性的度量/README.md)
+  - `10.1校正_实现控制的手段.pptx` -> [pptx/10.1校正_实现控制的手段/README.md](pptx/10.1校正_实现控制的手段/README.md)
+  - `10.2时域分析综合.pptx` -> [pptx/10.2时域分析综合/README.md](pptx/10.2时域分析综合/README.md)
+  - `11放眼大局_根轨迹法.pptx` -> [pptx/11放眼大局_根轨迹法/README.md](pptx/11放眼大局_根轨迹法/README.md)
+  - `12根轨迹_基本形态.pptx` -> [pptx/12根轨迹_基本形态/README.md](pptx/12根轨迹_基本形态/README.md)
+  - `13根轨迹_细节修正.pptx` -> [pptx/13根轨迹_细节修正/README.md](pptx/13根轨迹_细节修正/README.md)
+  - `13时域分析习题2025.pptx` -> [pptx/13时域分析习题2025/README.md](pptx/13时域分析习题2025/README.md)
+  - `14参数根轨迹_广义定义.pptx` -> [pptx/14参数根轨迹_广义定义/README.md](pptx/14参数根轨迹_广义定义/README.md)
+  - `15.1根轨迹法_图形化思考.pptx` -> [pptx/15.1根轨迹法_图形化思考/README.md](pptx/15.1根轨迹法_图形化思考/README.md)
+  - `15.2根轨迹分析综合.pptx` -> [pptx/15.2根轨迹分析综合/README.md](pptx/15.2根轨迹分析综合/README.md)
   - `16频率特性_换个角度看控制.pptx` -> [pptx/16频率特性_换个角度看控制/README.md](pptx/16频率特性_换个角度看控制/README.md)
   - `17近似叠加_绘制伯德图.pptx` -> [pptx/17近似叠加_绘制伯德图/README.md](pptx/17近似叠加_绘制伯德图/README.md)
   - `18幅相特性_换个角度看频域.pptx` -> [pptx/18幅相特性_换个角度看频域/README.md](pptx/18幅相特性_换个角度看频域/README.md)
+  - `19稳定判据_频域的启示.pptx` -> [pptx/19稳定判据_频域的启示/README.md](pptx/19稳定判据_频域的启示/README.md)
+  - `20宽备窄用_稳定裕度.pptx` -> [pptx/20宽备窄用_稳定裕度/README.md](pptx/20宽备窄用_稳定裕度/README.md)
+  - `21三频段_各司其职.pptx` -> [pptx/21三频段_各司其职/README.md](pptx/21三频段_各司其职/README.md)
+  - `22串联校正.pptx` -> [pptx/22串联校正/README.md](pptx/22串联校正/README.md)
+  - `23滞后超前.pptx` -> [pptx/23滞后超前/README.md](pptx/23滞后超前/README.md)

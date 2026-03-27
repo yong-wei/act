@@ -1,0 +1,25 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{amsmath}
+\usepackage{xcolor}
+
+\definecolor{blockblue}{HTML}{4A90D9}
+
+\begin{document}
+\begin{tikzpicture}[line width=1.2pt]
+  \node[
+    draw=blockblue,
+    rounded corners=3pt,
+    inner sep=8pt,
+    align=left
+  ] at (0,0) {
+    \begin{tabular}{p{3.4cm}p{4.2cm}p{4.5cm}}
+      \textbf{Quantity} & \textbf{Bode estimate} & \textbf{Comment} \\
+      $\omega_c$ & $\sqrt{10}=3.16$ & larger than the exact value $2.8$ \\
+      $\gamma$ & $14.8^\circ$ & lower than the exact value $19.9^\circ$ \\
+      $\omega_g$ & $\sqrt{20}=4.47$ & coincides with the exact value \\
+      $h$ & $2.4$ & also matches the exact value well \\
+      workflow & hand sketch $\rightarrow$ read $\rightarrow$ `margin(G)` & use software to verify the approximation error \\
+    \end{tabular}
+  };
+\end{tikzpicture}
+\end{document}

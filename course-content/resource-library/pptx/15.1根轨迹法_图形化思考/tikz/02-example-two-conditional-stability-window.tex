@@ -1,0 +1,44 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,matrix,positioning}
+
+\tikzset{
+  axis/.style={-{Stealth[length=3mm]}, line width=1.1pt, draw=black!75},
+  tickmark/.style={line width=1.2pt, draw=red!75},
+  cell/.style={draw=black!70, line width=1.0pt, minimum width=5.0cm, minimum height=1.0cm, align=center, text width=4.5cm},
+  head/.style={cell, draw=blue!70!black, line width=1.2pt},
+  left/.style={cell, draw=green!50!black, line width=1.2pt},
+  band/.style={line width=5pt, draw=red!65}
+}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{scope}[yshift=0.9cm]
+    \draw[axis] (0,0) -- (8.2,0) node[right] {$K$};
+    \draw[band] (0.8,0) -- (2.8,0);
+    \draw[band] (2.8,0) -- (4.6,0);
+    \draw[band] (4.6,0) -- (7.4,0);
+    \draw[tickmark] (2.65,-0.2) -- (2.95,0.2);
+    \draw[tickmark] (2.65,0.2) -- (2.95,-0.2);
+    \draw[tickmark] (4.45,-0.2) -- (4.75,0.2);
+    \draw[tickmark] (4.45,0.2) -- (4.75,-0.2);
+    \node[below] at (0.8,0) {$0$};
+    \node[below] at (2.8,0) {$1$};
+    \node[below] at (4.6,0) {$9/7$};
+    \node[below] at (7.4,0) {$+\infty$};
+    \node[above, black!75] at (1.8,0.22) {unstable};
+    \node[above, black!75] at (3.7,0.22) {stable};
+    \node[above, black!75] at (6.0,0.22) {unstable};
+  \end{scope}
+
+  \begin{scope}[yshift=-3.7cm]
+    \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
+      \node[head] {item}; & \node[head] {example 2}; \\
+      \node[left] {open-loop form}; & \node[cell] {$G(s)=K(2s+1)\,/\!\left[(s+1)^2\left(\frac{4}{7}s-1\right)\right]$}; \\
+      \node[left] {root-locus gain}; & \node[cell] {$K^\ast=3.5K$}; \\
+      \node[left] {imaginary-axis crossings}; & \node[cell] {$\omega=0,\ K=1$ and $\omega=\pm\sqrt{2},\ K=9/7$}; \\
+      \node[left] {design conclusion}; & \node[cell] {the closed loop is only conditionally stable, and the usable range is $1<K<9/7$}; \\
+    };
+  \end{scope}
+\end{tikzpicture}
+\end{document}

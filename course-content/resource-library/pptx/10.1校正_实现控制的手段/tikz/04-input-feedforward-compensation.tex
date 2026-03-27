@@ -1,0 +1,32 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\tikzset{
+  block/.style={draw=blue!70!black, line width=1.2pt, minimum width=2.0cm, minimum height=0.95cm, align=center, fill=none},
+  sum/.style={circle, draw=green!50!black, line width=1.2pt, minimum size=7mm, inner sep=0pt},
+  card/.style={draw=orange!80!black, line width=1.2pt, rounded corners=3pt, minimum width=4.1cm, minimum height=0.95cm, align=center, fill=none},
+  signal/.style={-{Stealth[length=3mm]}, line width=1.2pt, draw=black!70}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=0.9cm and 0.9cm]
+  \node (r) at (0,0) {$R$};
+  \node[sum] (s1) at (1.4,0) {$+$};
+  \node[block] (g1) at (3.5,0) {$G_1(s)$};
+  \node[sum] (s2) at (5.7,0) {$+$};
+  \node[block] (g2) at (7.9,0) {$G_2(s)$};
+  \node (c) at (9.5,0) {$C$};
+  \node[block] (gc) at (3.5,1.8) {$G_c(s)$};
+
+  \draw[signal] (r) -- (s1) -- (g1) -- (s2) -- (g2) -- (c);
+  \draw[signal] (c) |- ++(0,-1.6) -| node[pos=0.95,left] {$-$} (s1.south);
+  \draw[signal] (r) |- (gc);
+  \draw[signal] (gc) -| (s2);
+
+  \node[card] (c1) at (2.5,-2.1) {$G_c(s) G_2(s)=1$ full compensation};
+  \node[card] (c2) at (7.2,-2.1) {$e_{ss}=\frac{A(1-\tau K_2)}{K_1 K_2}$};
+  \node[card] (c3) at (2.5,-3.4) {raise system type by one};
+  \node[card] (c4) at (7.2,-3.4) {too large $\tau$ may over-compensate};
+\end{tikzpicture}
+\end{document}

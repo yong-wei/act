@@ -1,0 +1,26 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\tikzset{
+  card/.style={draw=blue!70!black, line width=1.2pt, rounded corners=3pt, minimum width=3.8cm, minimum height=1.0cm, align=center, fill=none},
+  result/.style={draw=orange!80!black, line width=1.2pt, rounded corners=3pt, minimum width=3.8cm, minimum height=1.0cm, align=center, fill=none},
+  flow/.style={-{Stealth[length=3mm]}, line width=1.2pt, draw=black!70}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=0.9cm and 1.0cm]
+  \node[card] (a) {choose $K$ in stable range};
+  \node[card, right=of a] (b) {check ramp accuracy};
+  \node[card, right=of b] (c) {check disturbance rejection};
+  \node[card, below=1.3cm of b] (d) {compare turning / turning circle / avoidance};
+  \node[result, below=1.3cm of d] (e) {final gain must balance stability, accuracy, and maneuver quality};
+
+  \draw[flow] (a) -- (b);
+  \draw[flow] (b) -- (c);
+  \draw[flow] (a) |- (d);
+  \draw[flow] (b) -- (d);
+  \draw[flow] (c) |- (d);
+  \draw[flow] (d) -- (e);
+\end{tikzpicture}
+\end{document}

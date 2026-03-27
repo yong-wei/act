@@ -1,0 +1,19 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+
+\tikzset{
+  cell/.style={draw=black!70, line width=1.0pt, minimum width=5.4cm, minimum height=1.1cm, align=center, text width=5.0cm, fill=none},
+  head/.style={cell, draw=blue!70!black, line width=1.2pt}
+}
+
+\begin{document}
+\begin{tikzpicture}
+  \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
+    \node[head] {angle condition}; &
+    \node[head] {magnitude condition}; \\
+    \node[cell] {$\angle G(s)H(s)=\sum \angle (s-z_i)-\sum \angle (s-p_i)=(2k+1)\pi$\\point belongs to root locus}; &
+    \node[cell] {$|G(s)H(s)|=1$\\determine the corresponding $K^\ast$}; \\
+  };
+\end{tikzpicture}
+\end{document}

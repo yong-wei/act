@@ -1,0 +1,21 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+
+\tikzset{
+  cell/.style={draw=black!70, line width=1.0pt, minimum width=5.2cm, minimum height=1.2cm, align=center, text width=4.8cm, fill=none},
+  head/.style={cell, draw=blue!70!black, line width=1.2pt}
+}
+
+\begin{document}
+\begin{tikzpicture}
+  \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
+    \node[head] {ordinary root locus}; &
+    \node[head] {parameter root locus}; \\
+    \node[cell] {vary gain $K^\ast$ from $0$ to $+\infty$}; &
+    \node[cell] {vary another parameter such as $T_a$, $a$, or $T$}; \\
+    \node[cell] {already in standard form}; &
+    \node[cell] {must first convert to an equivalent standard form}; \\
+  };
+\end{tikzpicture}
+\end{document}

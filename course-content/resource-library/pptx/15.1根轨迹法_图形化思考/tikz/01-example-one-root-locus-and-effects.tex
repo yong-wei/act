@@ -1,0 +1,43 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,matrix,positioning}
+
+\tikzset{
+  axis/.style={-{Stealth[length=3mm]}, line width=1.1pt, draw=black!75},
+  rl/.style={draw=red!75, line width=1.4pt},
+  pole/.style={draw=red!75, line width=1.2pt},
+  zero/.style={draw=red!75, line width=1.2pt},
+  cell/.style={draw=black!70, line width=1.0pt, minimum width=5.1cm, minimum height=1.05cm, align=center, text width=4.6cm},
+  head/.style={cell, draw=blue!70!black, line width=1.2pt},
+  left/.style={cell, draw=green!50!black, line width=1.2pt}
+}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{scope}[shift={(0,0)}]
+    \draw[axis] (-2.8,0) -- (2.8,0) node[right] {$\sigma$};
+    \draw[axis] (0,-2.6) -- (0,2.9) node[above] {$j\omega$};
+    \draw[rl] (-2,0) -- (-1,0);
+    \draw[rl] (-1,0) -- (-1,2.2);
+    \draw[rl] (-1,0) -- (-1,-2.2);
+    \draw[pole] (-2.15,-0.15) -- (-1.85,0.15);
+    \draw[pole] (-2.15,0.15) -- (-1.85,-0.15);
+    \draw[pole] (-0.15,-0.15) -- (0.15,0.15);
+    \draw[pole] (-0.15,0.15) -- (0.15,-0.15);
+    \fill[green!60!black] (-1,0) circle (0.07);
+    \node[below] at (-2,0) {$-2$};
+    \node[below] at (0,0) {$0$};
+    \node[below left] at (-1,0) {$-1$};
+    \node[blue!70!black] at (-0.2,2.4) {$K^\ast \uparrow$};
+  \end{scope}
+
+  \begin{scope}[xshift=7.0cm]
+    \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
+      \node[head] {view}; & \node[head] {engineering meaning}; \\
+      \node[left] {dynamic behavior}; & \node[cell] {real poles first, then a complex pair; the locus moves from overdamped to oscillatory behavior}; \\
+      \node[left] {stability}; & \node[cell] {$\Re\{\lambda_{1,2}\}<0$ for all shown branches, so the closed loop stays absolutely stable}; \\
+      \node[left] {steady-state error}; & \node[cell] {$e_{ss}=2A/K^\ast$ for ramp input, hence larger $K^\ast$ means smaller tracking error}; \\
+    };
+  \end{scope}
+\end{tikzpicture}
+\end{document}

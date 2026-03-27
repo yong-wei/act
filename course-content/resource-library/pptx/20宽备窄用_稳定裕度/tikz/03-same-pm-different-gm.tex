@@ -1,0 +1,30 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta}
+
+\definecolor{axisgray}{HTML}{333333}
+\definecolor{lineblue}{HTML}{4A90D9}
+\definecolor{linered}{HTML}{E74C3C}
+
+\begin{document}
+\begin{tikzpicture}[>=Stealth, line width=1.2pt, font=\small]
+  \draw[axisgray, ->] (-3.4,0) -- (2.6,0) node[right] {$\Re$};
+  \draw[axisgray, ->] (0,-2.5) -- (0,2.5) node[above] {$\Im$};
+  \filldraw[fill=white, draw=axisgray] (-1.0,0) circle (2.3pt);
+  \draw[lineblue, ->] (1.9,0) .. controls (1.0,-0.5) and (-0.1,-1.1) .. (-1.25,-1.25);
+  \draw[linered, ->] (1.9,0) .. controls (1.1,-0.5) and (0.0,-1.1) .. (-1.75,-1.75);
+  \draw[axisgray, dashed] (0,0) -- (-1.25,-1.25);
+  \draw[axisgray, dashed] (0,0) -- (-1.75,-1.75);
+  \node[below] at (-1.0,0) {$-1$};
+  \node[align=left, anchor=west] at (2.9,1.2) {
+    same phase margin:\\
+    both curves meet the unit circle\\
+    along the same direction
+  };
+  \node[align=left, anchor=west] at (2.9,-0.4) {
+    different gain margin:\\
+    their $-180^\circ$ crossing points\\
+    are not equally far from $-1$
+  };
+\end{tikzpicture}
+\end{document}

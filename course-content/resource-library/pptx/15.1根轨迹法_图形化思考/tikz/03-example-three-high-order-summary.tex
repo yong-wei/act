@@ -1,0 +1,57 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,matrix}
+
+\tikzset{
+  axis/.style={-{Stealth[length=3mm]}, line width=1.1pt, draw=black!75},
+  rl/.style={draw=red!75, line width=1.3pt},
+  asym/.style={draw=black!45, dashed, line width=1.0pt},
+  pole/.style={line width=1.2pt, draw=red!75},
+  cell/.style={draw=black!70, line width=1.0pt, minimum width=4.8cm, minimum height=1.0cm, align=center, text width=4.3cm},
+  head/.style={cell, draw=blue!70!black, line width=1.2pt},
+  left/.style={cell, draw=green!50!black, line width=1.2pt}
+}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{scope}
+    \draw[axis] (-5.8,0) -- (2.8,0) node[right] {$\sigma$};
+    \draw[axis] (0,-3.0) -- (0,3.2) node[above] {$j\omega$};
+    \draw[asym] (-3,0) -- (2.2,2.6);
+    \draw[asym] (-3,0) -- (2.2,-2.6);
+    \draw[asym] (-3,0) -- (-5.5,2.5);
+    \draw[asym] (-3,0) -- (-5.5,-2.5);
+    \draw[rl] (-5.0,0) -- (-3.9,0);
+    \draw[rl] (-3.9,0) .. controls (-3.9,1.2) and (-4.7,1.9) .. (-5.3,2.4);
+    \draw[rl] (-3.9,0) .. controls (-3.9,-1.2) and (-4.7,-1.9) .. (-5.3,-2.4);
+    \draw[rl] (0,0) .. controls (0.8,0.9) and (1.5,1.7) .. (2.3,2.6);
+    \draw[rl] (0,0) .. controls (0.8,-0.9) and (1.5,-1.7) .. (2.3,-2.6);
+    \foreach \x in {-5,0} {
+      \draw[pole] (\x-0.12,-0.12) -- (\x+0.12,0.12);
+      \draw[pole] (\x-0.12,0.12) -- (\x+0.12,-0.12);
+    }
+    \foreach \y in {1,-1} {
+      \draw[pole] (-0.62,1.02*\y-0.12) -- (-0.38,1.02*\y+0.12);
+      \draw[pole] (-0.62,1.02*\y+0.12) -- (-0.38,1.02*\y-0.12);
+    }
+    \fill[green!60!black] (-3.9,0) circle (0.07);
+    \node[below] at (-5,0) {$-20$};
+    \node[below] at (0,0) {$0$};
+    \node[left] at (-0.5,1.02) {$-2+4j$};
+    \node[left] at (-0.5,-1.02) {$-2-4j$};
+    \node[below] at (-3,0) {$-6$};
+    \node[above left, blue!70!black] at (-0.45,1.05) {$\theta=-39^\circ$};
+    \node[below] at (-4.35,-0.32) {$d=-15.1$};
+  \end{scope}
+
+  \begin{scope}[xshift=7.2cm]
+    \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
+      \node[head] {item}; & \node[head] {example 3}; \\
+      \node[left] {open-loop model}; & \node[cell] {$G(s)=K^\ast/\!\left[s(s+20)(s^2+4s+20)\right]$, with $K=K^\ast/400$}; \\
+      \node[left] {root-locus skeleton}; & \node[cell] {real-axis locus $[-20,0]$, centroid $-6$, asymptotes $\pm45^\circ,\pm135^\circ$}; \\
+      \node[left] {key points}; & \node[cell] {departure angle $-39^\circ$, breakaway $d=-15.1$, and $K_d^\ast=13881$}; \\
+      \node[left] {stability result}; & \node[cell] {imaginary-axis crossing at $\omega=4.1$, $K^\ast=1389$, so the usable open-loop gain range is $0<K<3.4725$}; \\
+    };
+  \end{scope}
+\end{tikzpicture}
+\end{document}

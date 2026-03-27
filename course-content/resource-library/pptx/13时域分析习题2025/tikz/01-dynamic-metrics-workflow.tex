@@ -1,0 +1,24 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\tikzset{
+  card/.style={draw=blue!70!black, line width=1.2pt, rounded corners=3pt, minimum width=5.8cm, minimum height=1.0cm, align=center, fill=none},
+  result/.style={draw=orange!80!black, line width=1.2pt, rounded corners=3pt, minimum width=5.8cm, minimum height=1.0cm, align=center, fill=none},
+  flow/.style={-{Stealth[length=3mm]}, line width=1.2pt, draw=black!70}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=0.9cm]
+  \node[card] (a) {$G(s)=\frac{0.4s+1}{s(s+0.6)}$};
+  \node[card, below=of a] (b) {$\Phi(s)=\frac{0.4s+1}{s^2+s+1}$};
+  \node[card, below=of b] (c) {$z=2.5,\ \omega_n=1,\ \zeta_d=0.5$};
+  \node[result, below=of c] (d) {$t_p=3.156\ \mathrm{s},\ \sigma\%=18.0\%,\ t_s=8.01\ \mathrm{s}$};
+  \node[result, below=of d] (e) {verify with \texttt{stepinfo}};
+
+  \draw[flow] (a) -- (b);
+  \draw[flow] (b) -- (c);
+  \draw[flow] (c) -- (d);
+  \draw[flow] (d) -- (e);
+\end{tikzpicture}
+\end{document}

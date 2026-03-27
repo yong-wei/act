@@ -1,0 +1,31 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+
+\tikzset{
+  cell/.style={draw=black!70, line width=1.0pt, minimum width=4.2cm, minimum height=1.15cm, align=center, text width=3.8cm, fill=none},
+  head/.style={cell, draw=blue!70!black, line width=1.2pt},
+  left/.style={cell, draw=green!50!black, line width=1.2pt}
+}
+
+\begin{document}
+\begin{tikzpicture}
+  \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
+    \node[head] {item}; &
+    \node[head] {example 2}; &
+    \node[head] {example 3}; \\
+    \node[left] {open-loop form}; &
+    \node[cell] {$\frac{K^\ast}{s(s+1)(s+2)}$}; &
+    \node[cell] {$K^\ast\frac{s+2}{s(s+1)(s+4)}$}; \\
+    \node[left] {real-axis locus}; &
+    \node[cell] {$(-\infty,-2]\cup[-1,0]$}; &
+    \node[cell] {$[-4,-2]\cup[-1,0]$}; \\
+    \node[left] {asymptotes}; &
+    \node[cell] {$\sigma_a=-1$, $\psi_a=\pm60^\circ,180^\circ$}; &
+    \node[cell] {$\sigma_a=-\frac{3}{2}$, $\psi_a=\pm90^\circ$}; \\
+    \node[left] {next step}; &
+    \node[cell] {find breakaway point}; &
+    \node[cell] {find breakaway and imaginary-axis crossing}; \\
+  };
+\end{tikzpicture}
+\end{document}

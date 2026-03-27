@@ -1,0 +1,19 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+
+\begin{document}
+\begin{tikzpicture}[>=Stealth, line width=1.2pt]
+  \draw[->] (-3.5,0) -- (1.0,0) node[right] {$\mathrm{Re}(s)$};
+  \draw[fill=black] (-2,0) circle (2pt) node[below] {$-2$};
+  \draw[fill=black] (-1,0) circle (2pt) node[below] {$-1$};
+  \draw[fill=black] (0,0) circle (2pt) node[below] {$0$};
+  \draw[orange!80!black, very thick] (-1,0) -- (0,0);
+  \draw[blue!70!black, dashed] (-1.577,0.35) -- (-1.577,-0.35);
+  \draw[blue!70!black, dashed] (-0.423,0.45) -- (-0.423,-0.45);
+  \node[above left] at (-1.577,0.35) {$-1.577$ not on locus};
+  \node[above right] at (-0.423,0.45) {$-0.423$ valid breakaway};
+  \node[draw=blue!70!black, rounded corners=3pt, line width=1.2pt, fill=none, align=center] at (-1.2,1.6)
+    {$G(s)=\frac{K^\ast}{s(s+1)(s+2)}$\\$3d^2+6d+2=0$};
+\end{tikzpicture}
+\end{document}

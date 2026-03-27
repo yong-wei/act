@@ -1,0 +1,36 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+
+\tikzset{
+  cell/.style={draw=black!70, line width=1.0pt, minimum width=2.0cm, minimum height=0.95cm, align=center, text width=1.8cm, fill=none},
+  head/.style={cell, draw=blue!70!black, line width=1.2pt},
+  left/.style={cell, draw=green!50!black, line width=1.2pt}
+}
+
+\begin{document}
+\begin{tikzpicture}
+  \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
+    \node[head] {scenario}; &
+    \node[head] {$K=28$}; &
+    \node[head] {$K=10$}; &
+    \node[head] {$K=5$}; &
+    \node[head] {$K=1$}; \\
+    \node[left] {right-angle turn}; &
+    \node[cell] {slides 17 / 21}; &
+    \node[cell] {slides 18 / 23}; &
+    \node[cell] {slides 19 / 24}; &
+    \node[cell] {slides 20 / 25}; \\
+    \node[left] {turning}; &
+    \node[cell] {slide 22}; &
+    \node[cell] {slide 23}; &
+    \node[cell] {slide 24}; &
+    \node[cell] {slide 25}; \\
+    \node[left] {obstacle avoidance}; &
+    \node[cell] {slide 27}; &
+    \node[cell] {slide 28}; &
+    \node[cell] {slide 29}; &
+    \node[cell] {slide 30}; \\
+  };
+\end{tikzpicture}
+\end{document}

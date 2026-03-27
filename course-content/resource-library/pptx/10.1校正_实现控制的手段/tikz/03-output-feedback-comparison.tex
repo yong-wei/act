@@ -1,0 +1,40 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\tikzset{
+  block/.style={draw=blue!70!black, line width=1.2pt, minimum width=2.1cm, minimum height=0.95cm, align=center, fill=none},
+  sum/.style={circle, draw=green!50!black, line width=1.2pt, minimum size=7mm, inner sep=0pt},
+  note/.style={draw=orange!80!black, line width=1.2pt, rounded corners=3pt, minimum width=3.0cm, minimum height=0.95cm, align=center, fill=none},
+  titlebox/.style={draw=black!60, line width=1.0pt, rounded corners=3pt, minimum width=4.6cm, minimum height=0.85cm, align=center, fill=none},
+  signal/.style={-{Stealth[length=3mm]}, line width=1.2pt, draw=black!70}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=0.9cm and 0.9cm]
+  \node[titlebox] (t1) at (0,2.3) {series PD};
+  \node (r1) at (-2.8,1.0) {$R$};
+  \node[sum] (s1) at (-1.8,1.0) {$+$};
+  \node[block] (pd) at (0.2,1.0) {$1+T_d s$};
+  \node[block] (gp1) at (2.5,1.0) {$G_p(s)$};
+  \node (y1) at (4.2,1.0) {$Y$};
+  \draw[signal] (r1) -- (s1) -- (pd) -- (gp1) -- (y1);
+  \draw[signal] (y1) |- ++(0,-1.3) -| node[pos=0.95,left] {$-$} (s1.south);
+
+  \node[note] (n11) at (-0.9,-0.9) {$\zeta$ up};
+  \node[note] (n12) at (1.8,-0.9) {zero added};
+
+  \node[titlebox] (t2) at (9.2,2.3) {velocity feedback};
+  \node (r2) at (6.4,1.0) {$R$};
+  \node[sum] (s2) at (7.4,1.0) {$+$};
+  \node[block] (gp2) at (9.8,1.0) {$G_p(s)$};
+  \node (y2) at (11.5,1.0) {$Y$};
+  \node[block] (kf) at (9.8,-0.9) {$K_t s$};
+  \draw[signal] (r2) -- (s2) -- (gp2) -- (y2);
+  \draw[signal] (y2) |- (kf);
+  \draw[signal] (kf) -| node[pos=0.95,left] {$-$} (s2.south);
+
+  \node[note] (n21) at (8.3,-2.2) {$\zeta_t = \zeta + \frac{1}{2} K_t \omega_n$};
+  \node[note] (n22) at (11.1,-2.2) {no extra zero};
+\end{tikzpicture}
+\end{document}

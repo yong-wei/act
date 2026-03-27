@@ -1,0 +1,25 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta}
+
+\definecolor{axisgray}{HTML}{333333}
+\definecolor{lineblue}{HTML}{4A90D9}
+\definecolor{linered}{HTML}{E74C3C}
+
+\begin{document}
+\begin{tikzpicture}[>=Stealth, line width=1.2pt, font=\small]
+  \draw[axisgray, ->] (0,0) -- (9.2,0) node[right] {$\log \omega$};
+  \draw[axisgray, ->] (0,-2.7) -- (0,2.3) node[above] {$L(\omega)$};
+  \draw[lineblue] (0.5,-0.8) -- (2.5,-0.8) -- (4.2,-1.2) -- (6.2,0.2) -- (8.4,0.2);
+  \node[align=center] at (2.1,-1.8) {lag part\\gain shaping};
+  \node[align=center] at (6.4,1.1) {lead part\\phase boost};
+
+  \begin{scope}[xshift=10.2cm]
+    \draw[axisgray, ->] (0,0) -- (9.2,0) node[right] {$\log \omega$};
+    \draw[axisgray, ->] (0,-1.7) -- (0,2.2) node[above] {$\psi(\omega)$};
+    \draw[linered] (0.5,0.0) .. controls (2.0,-0.2) and (2.8,-1.0) .. (3.6,-1.1)
+      .. controls (4.5,-1.0) and (5.8,1.5) .. (6.8,1.8)
+      .. controls (7.6,1.6) and (8.2,0.6) .. (8.8,0.0);
+  \end{scope}
+\end{tikzpicture}
+\end{document}

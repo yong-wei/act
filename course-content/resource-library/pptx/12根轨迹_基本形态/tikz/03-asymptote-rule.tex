@@ -1,0 +1,19 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+
+\tikzset{
+  cell/.style={draw=black!70, line width=1.0pt, minimum width=5.2cm, minimum height=1.2cm, align=center, text width=4.8cm, fill=none},
+  head/.style={cell, draw=blue!70!black, line width=1.2pt}
+}
+
+\begin{document}
+\begin{tikzpicture}
+  \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
+    \node[head] {number of asymptotes}; &
+    \node[head] {centroid and angle}; \\
+    \node[cell] {$n-m$ branches go to infinity when $n>m$}; &
+    \node[cell] {$\sigma_a=\frac{\sum p_i-\sum z_i}{n-m}$\\$\psi_a=\frac{(2k+1)\pi}{n-m}$}; \\
+  };
+\end{tikzpicture}
+\end{document}
