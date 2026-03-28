@@ -5,7 +5,7 @@
   "chapter": 3,
   "section": "线性系统的时域分析法",
   "stem_md": "设垂直起飞机如图 3-73(a) 所示，起飞时飞机的四个发动机将同时工作。垂直起飞机的高度控制系统如图 3-73(b) 所示。要求：\n\n(1) 当 $K_1 = 1$ 时，判断系统是否稳定；\n\n图 3-73 垂直起飞机高度控制系统\n\n(a) 垂直起飞机\n\n(b) 控制系统结构图\n\n（2）确定使系统稳定的 $K_i$ 的取值范围。",
-  "solution_md": "解：本题主要研究系统参数与系统稳定性的关系。\n\n系统开环传递函数\n\n$$ G(s) = \\frac{K_i(4s^3 + 2s + 1)}{s^3(s^2 + s + 4)} $$\n\n闭环特征方程\n\n$$ D(s) = s^5 + s^4 + 4s^3 + 4K_i s^2 + 2K_i s + K_1 = 0 $$\n\n列劳斯表如下:\n\n$s^5$\t1\t4\t2$K_1$\n\n$s^4$\t1\t4$K_1$\t$K_1$\n\n$s^3$\t$4(1 - K_1)$\t$K_1(15 - 16K_1)$\t$4(1 - K_1)$\n\n$s^2$\t$-32K_1 + 47K_1 - 16$\t$15 - 16K_1$\n\n$s^1$\t$K_1$\n\n由劳斯稳定判据，系统稳定的充要条件为\n\n$$ 0 < K_1 < 1 $$ $$ K_1 < 0.9375 $$\n\n$$(K_i - 0.9327)$K_i - 0.5362$ < 0$$\n\n根据第三个不等式，有\n\n$$ \\begin{cases} K_i - 0.9327 > 0, & K_i > 0.9327, \\ K_i - 0.5362 < 0, & K_i < 0.5362, \\end{cases} $$\n\n无解\n\n或者\n\n$$ \\begin{cases} K_i - 0.9327 < 0, & \\text{无解} \\ K_i - 0.5362 > 0 \\end{cases} $$\n\n可得\n\n$$ 0.5362 < K_i < 0.9327 $$\n\n显然，当取 $K_i = 1$ 时，闭环系统是不稳定的。\n\n应用 MATLAB 软件包，可以给出 $K_i = 0.7, K_i = 0.5, K_i = 1$ 时系统的单位阶跃响应，分别如图 3-29-1～图 3-29-3 所示。\n\nMATLAB 程序：exe329.m\n\n图 3-29-1 垂直起降高度控制系统的单位阶跃响应（$K_i = 0.7$，MATLAB）\n\n图 3-29-2 垂直起飞高度控制系统的单位阶跃响应（K₁ = 0.5, MATLAB）\n\n% K = 0.7 时系统单位阶跃响应 k = 0.7; t = 0:0.2:120; figure num = $4*k 2 * k k$; den = $1 1 4 4 * k 2 * k k$; step(num, den, t); grid;\n\n% K = 0.5 时系统单位阶跃响应 k = 0.5; t = 0:0.1:70; figure(2) num = $4*k 2 * k k$; den = $1 1 4 4 * k 2 * k k$; step(num, den, t); grid;\n\n% K = 1 时系统单位阶跃响应 k = 1; t = 0:0.1:40; figure(3) num = $4*k 2 * k k$; den = $1 1 4 4 * k 2 * k k$; step(num, den, t); grid;",
+  "solution_md": "解：本题主要研究系统参数与系统稳定性的关系。\n\n系统开环传递函数\n\n$$ G(s) = \\frac{K_i(4s^3 + 2s + 1)}{s^3(s^2 + s + 4)} $$\n\n闭环特征方程\n\n$$ D(s) = s^5 + s^4 + 4s^3 + 4K_i s^2 + 2K_i s + K_i = 0 $$\n\n列劳斯表如下:\n\n$s^5$\\t1\\t4\\t2K_i\n\n$s^4$\\t1\\t4K_i\\tK_i\n\n$s^3$\\t4(1 - K_i)\\tK_i(15 - 16K_i)\\t4(1 - K_i)\n\n$s^2$\\t-32K_i^2 + 47K_i - 16\\t15 - 16K_i\n\n$s^1$\\tK_i\n\n由劳斯稳定判据，系统稳定的充要条件为\n\n$$ 0 < K_i < 1 $$\n\n$$ K_i < 0.9375 $$\n\n$$ (K_i - 0.9327)(K_i - 0.5362) < 0 $$\n\n根据第三个不等式，可得\n\n$$ 0.5362 < K_i < 0.9327 $$\n\n显然，当取 $K_i = 1$ 时，闭环系统是不稳定的。\n\n应用 MATLAB 软件包，可以给出 $K_i = 0.7, K_i = 0.5, K_i = 1$ 时系统的单位阶跃响应，分别如图 3-29-1～图 3-29-3 所示。\n\nMATLAB 程序：exe329.m\n\n图 3-29-1 垂直起降高度控制系统的单位阶跃响应（$K_i = 0.7$，MATLAB）\n\n图 3-29-2 垂直起飞高度控制系统的单位阶跃响应（$K_i = 0.5$，MATLAB）\n\n```matlab\n% K = 0.7 时系统单位阶跃响应\nk = 0.7;\nt = 0:0.2:120;\nfigure(1);\nnum = [4*k 2*k k];\nden = [1 1 4 4*k 2*k k];\nstep(num, den, t); grid on;\n\n% K = 0.5 时系统单位阶跃响应\nk = 0.5;\nt = 0:0.1:70;\nfigure(2);\nnum = [4*k 2*k k];\nden = [1 1 4 4*k 2*k k];\nstep(num, den, t); grid on;\n\n% K = 1 时系统单位阶跃响应\nk = 1;\nt = 0:0.1:40;\nfigure(3);\nnum = [4*k 2*k k];\nden = [1 1 4 4*k 2*k k];\nstep(num, den, t); grid on;\n```",
   "inline_score_points": [],
   "rubric": [],
   "figure_titles": [
@@ -17,7 +17,7 @@
   "figure_assets": [],
   "figure_status": "source_missing",
   "formula_status": "clean",
-  "usage_status": "raw",
+  "usage_status": "cleaned",
   "knowledge_tags": [
     "线性系统的时域分析法",
     "传递函数",

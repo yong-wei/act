@@ -26,6 +26,7 @@ LATEX_MARKER_RE = re.compile(r'(\\[A-Za-z]+|[_^]|\\frac|\\omega|\\theta|\\sigma|
 MAX_BODY_FALLBACK_CHAPTER = 8
 CJK_RE = re.compile(r'[\u4e00-\u9fff]')
 FORMULA_SYMBOL_RE = re.compile(r'(=|\\cdot|\\lim|\\sum|\\prod|\\int|\\to|/|\+|-|\*|[A-Za-z]+\([A-Za-z0-9])')
+UNRESOLVED_BRACKET_FORMULA_RE = re.compile(r'(?<!\\left)\[[^\]\n]*\\[A-Za-z]+[^\]\n]*(?<!\\right)\]')
 
 
 @dataclass
@@ -169,9 +170,34 @@ def extract_images_from_element(element: object, part: object) -> list[tuple[byt
     return images
 
 
+def has_malformed_dollar_delimiters(text: str) -> bool:
+    active: str | None = None
+    index = 0
+
+    while index < len(text):
+        if text[index] != '$':
+            index += 1
+            continue
+
+        token = '$$' if text[index:index + 2] == '$$' else '$'
+        index += len(token)
+
+        if active is None:
+            active = token
+            continue
+
+        if active == token:
+            active = None
+            continue
+
+        return True
+
+    return active is not None
+
+
 def classify_formula_status(stem_md: str, solution_md: str) -> str:
     combined = f'{stem_md}\n{solution_md}'
-    unresolved = re.search(r'\[\s*\\| \(\s*\\', combined)
+    unresolved = has_malformed_dollar_delimiters(combined) or UNRESOLVED_BRACKET_FORMULA_RE.search(combined)
     return 'mixed' if unresolved else 'clean'
 
 

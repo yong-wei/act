@@ -5,7 +5,7 @@
   "chapter": 3,
   "section": "线性系统的时域分析法",
   "stem_md": "现代船舶航向控制系统如图 3-67 所示。$N(s)$ 表示持续不断的风力扰动, 已知\n\n$$ N(s) = \\frac{1}{s}, \\quad \\text{增益} \\quad K_1 = 5 \\quad \\text{或} \\quad K_1 = 30. $$\n\n要求在下面所给的条件下, 确定风力对船舶航向的稳态影响:\n\n假定方向舵的输入 $R(s) = 0$, 系统没有任何其他扰动, 或其他调整措施;\n\n证明操纵方向舵能使航向偏离重新归零。",
-  "solution_md": "解 本题为 ( 0 ) 型系统, 也是二阶系统, 因此增益 $K_1$ 的大小对系统稳定性没有影响, 但 会影响扰动作用下航向偏差的大小。如果操纵方向舵 $R(s)$ 抵消风力扰动 $N(s)$ 的作用, 航 向偏差自然可以重新归零。\n\n(1) 风力对船舶航向稳态偏差的影响。令 $R(s) = 0, G_1(s) = \\frac{100}{s^2 + 10s + 100}$, 在 $N(s) = \\frac{1}{s}$ 作 用下, 闭环航向偏离输出\n\n$$ C_n(s) = \\frac{G_1(s)}{1 + K_1G_1(s)} N(s) = \\frac{100}{s^2 + 10s + 100(1 + K_1)} N(s) $$\n\n稳态输出\n\n$$ c_w(\\infty) = \\lim_{s \\to 0} C_n(s) = \\lim_{s \\to 0} \\frac{100}{s^2 + 10s + 100(1 + K_1)} = \\frac{1}{1 + K_1} $$\n\n当 $K_1 = 5$ 时, 有 $c_w(\\infty) = \\frac{1}{6} \\text{rad} = 9.55^\\circ$\n\n当 $K_1 = 30$ 时，有\n\n$$e_{\\text{ms}}(\\infty) = \\frac{1}{31}\\text{rad} = 1.85^\\circ$$\n\n(2) 选择 $R(s)$ 使航向偏离归零。在航向舵输入 $R(s)$ 及风力扰动 $N(s)$ 同时作用下，系统航向偏离输出\n\n$$C(s) = \\frac{K_1 G_1(s) R(s) + G_1(s) N(s)}{1 + K_1 G_1(s)} = \\frac{$K_1 R(s) + N(s)$ G_1(s)}{1 + K_1 G_1(s)}$$\n\n若选 $R(s) = -\\frac{N(s)}{K_1} = -\\frac{1}{K_1 s}$，可得航向偏离 $C(s) = 0$。",
+  "solution_md": "解 本题为 ( 0 ) 型系统, 也是二阶系统, 因此增益 $K_1$ 的大小对系统稳定性没有影响, 但 会影响扰动作用下航向偏差的大小。如果操纵方向舵 $R(s)$ 抵消风力扰动 $N(s)$ 的作用, 航 向偏差自然可以重新归零。\n\n(1) 风力对船舶航向稳态偏差的影响。令 $R(s) = 0, G_1(s) = \\frac{100}{s^2 + 10s + 100}$, 在 $N(s) = \\frac{1}{s}$ 作 用下, 闭环航向偏离输出\n\n$$ C_n(s) = \\frac{G_1(s)}{1 + K_1G_1(s)} N(s) = \\frac{100}{s^2 + 10s + 100(1 + K_1)} N(s) $$\n\n稳态输出\n\n$$ c_w(\\infty) = \\lim_{s \\to 0} C_n(s) = \\lim_{s \\to 0} \\frac{100}{s^2 + 10s + 100(1 + K_1)} = \\frac{1}{1 + K_1} $$\n\n当 $K_1 = 5$ 时, 有 $c_w(\\infty) = \\frac{1}{6} \\text{rad} = 9.55^\\circ$\n\n当 $K_1 = 30$ 时，有\n\n$$e_{\\text{ms}}(\\infty) = \\frac{1}{31}\\text{rad} = 1.85^\\circ$$\n\n(2) 选择 $R(s)$ 使航向偏离归零。在航向舵输入 $R(s)$ 及风力扰动 $N(s)$ 同时作用下，系统航向偏离输出\n\n$$ C(s) = \\frac{K_1 G_1(s) R(s) + G_1(s) N(s)}{1 + K_1 G_1(s)} = \\frac{\\left[K_1 R(s) + N(s)\\right] G_1(s)}{1 + K_1 G_1(s)} $$\n\n若选 $R(s) = -\\frac{N(s)}{K_1} = -\\frac{1}{K_1 s}$，可得航向偏离 $C(s) = 0$。",
   "inline_score_points": [],
   "rubric": [],
   "figure_titles": [],
@@ -13,7 +13,7 @@
   "figure_assets": [],
   "figure_status": "none",
   "formula_status": "clean",
-  "usage_status": "raw",
+  "usage_status": "cleaned",
   "knowledge_tags": [
     "线性系统的时域分析法",
     "稳定性"

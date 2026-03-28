@@ -37,6 +37,43 @@
   - `formula_status = clean`
   - `usage_status = cleaned`
 
+### AC-Q-0033 | 2-23 双摆系统
+
+- 文件：
+  - `course-content/questions/questions/AC-Q-0033.md`
+  - `course-content/questions/questions/AC-Q-0033.json`
+- 处理内容：
+  - 将题面中的变量说明统一为规范行内公式
+  - 修复梅森增益公式末尾的断裂行内公式
+  - 将运动方程与传递函数表达式整理为连续、可读的 Markdown 公式
+- 当前状态：
+  - `formula_status = clean`
+  - `usage_status = cleaned`
+
+### AC-Q-0090 | 5-1 频率特性定义证明题
+
+- 文件：
+  - `course-content/questions/questions/AC-Q-0090.md`
+  - `course-content/questions/questions/AC-Q-0090.json`
+- 处理内容：
+  - 修复复指数展开到三角恒等变换时的花括号混排
+  - 统一相位项与三角项的排版，避免行内/行间公式交错断裂
+- 当前状态：
+  - `formula_status = clean`
+  - `usage_status = cleaned`
+
+### AC-Q-0134 | 6-16 汽车点火 PI 校正
+
+- 文件：
+  - `course-content/questions/questions/AC-Q-0134.md`
+  - `course-content/questions/questions/AC-Q-0134.json`
+- 处理内容：
+  - 修复开环传递函数与劳斯表中的碎裂公式
+  - 将动态性能指标与 MATLAB 验证段落改为规范公式/代码块表达
+- 当前状态：
+  - `formula_status = clean`
+  - `usage_status = cleaned`
+
 ### 结构性修复 | AC-Q-0025
 
 - 原问题：

@@ -4,8 +4,8 @@
   "question_number": "5-29",
   "chapter": 5,
   "section": "尚婕 24-25-2R/A",
-  "stem_md": "在脑外科、眼外科等手术中，患者肌肉的无意识运动可能会导致灾难性的后果。为了保证合适的手术条件，可以采用控制系统实施自动麻醉，以保证稳定的用药量，使患者肌肉放松。图5-69为麻醉控制系统模型，试确定控制器增益 ( K ) 和时间常数 $\\tau$，使系统谐振峰值 $M_z \\leq 1.5$，并确定相应的闭环带宽频率 $\\omega_b$。",
-  "solution_md": "解：本题研究根据频域指标，在频域中设计控制器参数的方法，并涉及工程系统设计中利用零、极点相消来简化系统复杂度的措施。\n\n选 $\\tau = 0.5$，可使系统简化为二阶系统，其开环传递函数\n\n$$ G_c(s)G_0(s) = \\frac{K}{(0.1s+1)(0.5s+1)} $$\n\n闭环特征方程\n\n$$ D(s) = $0.1s+1$$0.5s+1$ + K = 0 $$\n\n上式可整理为\n\n$$ D(s) = s^2 + 12s + 20(1 + K) = s^2 + 2\\zeta\\omega_n s + \\omega_n^2 = 0 $$\n\n因此有\n\n$\\zeta = 6, \\quad K = \\frac{\\omega_n^2}{20} - 1$\n\n取 $M_z = 1.5$，由教材中式$6-1$，有\n\n$$ M_z = \\frac{1}{2\\zeta \\sqrt{1 - \\zeta^2}}, \\quad \\zeta \\leq 0.707 $$\n\n解出 $\\zeta = 0.36$，于是\n\n$$ \\omega_n = \\frac{6}{\\zeta} = 16.67, \\quad K = \\frac{277.78}{20} - 1 = 12.89 $$\n\n由教材中式$6-3$算出带宽频率\n\n$$ \\omega_b = \\omega_n \\sqrt{1 - 2\\zeta^2 + \\sqrt{2 - 4\\zeta^2 + 4\\zeta^4}} = 23.49 \\text{rad/s} $$\n\n对上述计算结果，可应用MATLAB软件包加以验证。闭环系统的Bode图如图5-29-1所示。由图5-29-1可得，$M_z = 2.81 \\text{dB}, M_r = 1.38, \\omega_b = 22.8 \\text{rad/s}$。\n\nMATLAB程序：exe529.m\n\n$$ K = 12.89, \\text{tou} = 0.5; $$\n\n$$ G_1 = \\text{tf}(K* [\\text{tou},1],[0.1,1]); $$\n\n$$ G_2 = \\text{tf}([1], \\text{conv}([0.5,1],[0.5,1])); $$\n\n$$ G_0 = \\text{series}(G_1,G_2); $$\n\n\\textbf{图 5-29-1} 麻醉控制系统闭环 Bode 图（MATLAB）\n\n\\begin{verbatim} G = feedback(G0,1); W = 1:0.01:1000; bode(G); grid \\end{verbatim}\n\n线性系统的校正方法\n\n尚婕 24-25-2R/A\n\n单位反馈系统采用串联滞后校正，校正前（）、校正后（）以及校正装置（）的开环对数幅频特性曲线如下：\n\n（1）图中，分别写出校正前后的开环传递函数；\n\n（2）写出校正前后的幅值穿越频率，并计算相应的相角裕度。\n\n解: （1）\n\n（2）",
+  "stem_md": "在脑外科、眼外科等手术中，患者肌肉的无意识运动可能会导致灾难性的后果。为了保证合适的手术条件，可以采用控制系统实施自动麻醉，以保证稳定的用药量，使患者肌肉放松。图5-69为麻醉控制系统模型，试确定控制器增益 $K$ 和时间常数 $\\tau$，使系统谐振峰值 $M_z \\leq 1.5$，并确定相应的闭环带宽频率 $\\omega_b$。",
+  "solution_md": "解：本题研究根据频域指标，在频域中设计控制器参数的方法，并涉及工程系统设计中利用零、极点相消来简化系统复杂度的措施。\n\n选 $\\tau = 0.5$，可使系统简化为二阶系统，其开环传递函数为\n\n$$ G_c(s)G_0(s) = \\frac{K}{(0.1s+1)(0.5s+1)} $$\n\n闭环特征方程为\n\n$$ D(s) = (0.1s+1)(0.5s+1) + K = 0 $$\n\n整理得\n\n$$ D(s) = s^2 + 12s + 20(1 + K) = s^2 + 2\\zeta\\omega_n s + \\omega_n^2 = 0 $$\n\n因此有\n\n$$ \\zeta\\omega_n = 6, \\quad K = \\frac{\\omega_n^2}{20} - 1 $$\n\n取 $M_z = 1.5$，由教材式(6-1)可得\n\n$$ M_z = \\frac{1}{2\\zeta \\sqrt{1 - \\zeta^2}}, \\quad \\zeta \\leq 0.707 $$\n\n解出 $\\zeta = 0.36$，于是\n\n$$ \\omega_n = \\frac{6}{\\zeta} = 16.67, \\quad K = \\frac{277.78}{20} - 1 = 12.89 $$\n\n由教材式(6-3)可得带宽频率\n\n$$ \\omega_b = \\omega_n \\sqrt{1 - 2\\zeta^2 + \\sqrt{2 - 4\\zeta^2 + 4\\zeta^4}} = 23.49 \\text{rad/s} $$\n\n对上述计算结果，可应用 MATLAB 软件包加以验证。闭环系统的 Bode 图如图5-29-1所示。由图5-29-1可得，$M_z = 2.81 \\text{dB}, M_r = 1.38, \\omega_b = 22.8 \\text{rad/s}$。\n\nMATLAB 程序：exe529.m\n\n```matlab\nK = 12.89;\ntau = 0.5;\nG1 = tf(K * [tau, 1], [0.1, 1]);\nG2 = tf([1], conv([0.5,1], [0.5,1]));\nG0 = series(G1, G2);\nG = feedback(G0, 1);\nW = 1:0.01:1000;\nbode(G, W); grid on;\n```",
   "inline_score_points": [],
   "rubric": [],
   "figure_titles": [],
@@ -14,8 +14,8 @@
     "assets/AC-Q-0118/image-01.png"
   ],
   "figure_status": "complete",
-  "formula_status": "mixed",
-  "usage_status": "raw",
+  "formula_status": "clean",
+  "usage_status": "cleaned",
   "knowledge_tags": [
     "尚婕 24-25-2R/A",
     "传递函数",

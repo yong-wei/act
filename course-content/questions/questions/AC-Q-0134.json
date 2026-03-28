@@ -5,7 +5,7 @@
   "chapter": 6,
   "section": "尚婕 24-25-2R/A",
   "stem_md": "已知汽车点火系统中有一个单位负反馈子系统,其开环传递函数为 $G_c(s)G_0(s)$, 其中\n\n$$ G_0(s) = \\frac{10}{s(s+10)}, \\quad G_c(s) = K_1 + \\frac{K_2}{s} $$\n\n若已知 $K_2/K_1 = 0.5$, 试确定 $K_1$ 和 $K_2$ 的取值, 使系统主导极点的阻尼比 $\\zeta = 0.707$, 且单位阶跃响应的调节时间 $t_r \\leq 2s (\\Delta = 5%)$。",
-  "solution_md": "解 本题练习根据系统阻尼比与调节时间的指标要求,设计 PI 控制器参数。设计方法采用了试探法。\n\n系统开环传递函数\n\n$$ G_c(s)G_0(s) = \\frac{10K_1(s + K_2/K_1)}{s^2(s+10)} \\quad \\frac{10K_1(s+0.5)}{s^2(s+10)} $$\n\n闭环特征方程\n\n$$ D(s) = s^3 + 10s^2 + 10K_1s + 5K_1 = 0 $$\n\n列劳斯表如下:\n\n$s^3$\t1\t$10K_1$\n\n$s^2$\t10\t$5K_1$\n\n$s^1$\t9.5$K_1$\n\n$s^0$\t$5K_1$\n\n由劳斯判据知，选 $K_1 > 0$，便可以保证闭环系统的稳定性。\n\n试取 $K_1 = 5$，则闭环特征方程为\n\n$$ s^3 + 10s^2 + 50s + 25 = (s + 0.56)(s + 9.44s + 44.71) = 0 $$\n\n故闭环极点\n\n$$ s_1 = -0.56, \\quad s_{2,3} = -4.72 \\pm j4.74 $$\n\n其中，闭环极点 $s_1 = -0.56$ 与闭环零点 $z = -0.5$ 近似对消，故系统主导极点为 $s_{2,3}$，其\n\n阻尼比 $\\zeta = 0.709 \\approx 0.707$，预期调节时间 $t_s = \\frac{3.5}{\\zeta \\omega_n} = \\frac{3.5}{4.72} = 0.74s (\\Delta = 5%)$\n\n由于 $s_1$ 与 $z$ 不能准确对消，故实际调节时间 $t_s \\approx 2s$，满足指标要求，于是最终得\n\n$K_1 = 5, \\quad K_2 = 2.5$\n\nMATLAB 验证:\n\n应用 MATLAB 软件包，对汽车点火系\n\n统\n\n图 6-16-1 汽车点火子系统的时间响应 (MATLAB)\n\n进行仿真，其单位阶跃响应如图 6-16-1 所示，测得\n\n$\\sigma% = 14%, \\quad t_p = 0.6s, \\quad t_s = 1.55s (\\Delta = 5%)$\n\nMATLAB 程序：exe616.m\n\n$$ K1 = 5; K2 = 2.5; GO = \\text{tf}(10, [1,10,0]); Gc = \\text{tf}([K1,K2], [1,0]); G = \\text{series}(GO,Gc); G1 = \\text{feedback}(G,1); $$\n\n*系统开环传递函数 *系统闭环传递函数\n\n$$ \\text{step}(G1); \\quad \\text{grid} $$",
+  "solution_md": "解 本题根据阻尼比与调节时间的指标要求设计 PI 控制器参数，采用试探法选取控制器参数。\n\n系统开环传递函数为\n\n$$ G_c(s)G_0(s) = \\frac{10K_1(s + K_2/K_1)}{s^2(s+10)} = \\frac{10K_1(s+0.5)}{s^2(s+10)} $$\n\n闭环特征方程为\n\n$$ D(s) = s^3 + 10s^2 + 10K_1s + 5K_1 = 0 $$\n\n劳斯表可写为：\n\n| 行 | 第一列 | 第二列 |\n| --- | --- | --- |\n| $s^3$ | $1$ | $10K_1$ |\n| $s^2$ | $10$ | $5K_1$ |\n| $s^1$ | $9.5K_1$ | $0$ |\n| $s^0$ | $5K_1$ | $0$ |\n\n由劳斯判据知，只要 $K_1 > 0$，闭环系统即稳定。\n\n试取 $K_1 = 5$，则闭环特征方程化为\n\n$$ s^3 + 10s^2 + 50s + 25 = (s + 0.56)(s^2 + 9.44s + 44.71) = 0 $$\n\n故闭环极点为\n\n$$ s_1 = -0.56, \\quad s_{2,3} = -4.72 \\pm j4.74 $$\n\n其中闭环极点 $s_1 = -0.56$ 与闭环零点 $z = -0.5$ 近似对消，因此系统主导极点为 $s_{2,3}$。此时阻尼比约为 $\\zeta = 0.709 \\approx 0.707$，预期调节时间\n\n$$ t_s = \\frac{3.5}{\\zeta \\omega_n} = \\frac{3.5}{4.72} = 0.74\\text{s} \\quad (\\Delta = 5\\%) $$\n\n考虑到 $s_1$ 与 $z$ 不能完全对消，实际调节时间会略大于理论估计，但仍满足题设指标，故最终取\n\n$$ K_1 = 5, \\quad K_2 = 2.5 $$\n\nMATLAB 验证：对汽车点火子系统进行仿真，其单位阶跃响应如图 6-16-1 所示，可测得\n\n$$ \\sigma = 14\\%, \\quad t_p = 0.6\\text{s}, \\quad t_s = 1.55\\text{s} \\quad (\\Delta = 5\\%) $$\n\nMATLAB 程序：\n\n```matlab\nK1 = 5;\nK2 = 2.5;\nG0 = tf(10, [1, 10, 0]);\nGc = tf([K1, K2], [1, 0]);\nG = series(G0, Gc);\nG1 = feedback(G, 1);\nstep(G1);\ngrid on;\n```\n\n图 6-16-1 给出了汽车点火子系统的时间响应。",
   "inline_score_points": [],
   "rubric": [],
   "figure_titles": [
@@ -14,8 +14,8 @@
   "figure_references": [],
   "figure_assets": [],
   "figure_status": "source_missing",
-  "formula_status": "mixed",
-  "usage_status": "raw",
+  "formula_status": "clean",
+  "usage_status": "cleaned",
   "knowledge_tags": [
     "尚婕 24-25-2R/A",
     "传递函数",

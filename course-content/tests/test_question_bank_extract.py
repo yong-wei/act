@@ -364,3 +364,135 @@ def test_extract_docx_keeps_parenthesized_groups_inside_fractions(tmp_path) -> N
     combined = f"{question_524['stem_md']}\n{question_524['solution_md']}"
     assert r'\frac{2}{(2s+1)(8s+1)}' in combined
     assert r'{$2s+1$' not in combined
+
+
+def test_curated_formula_cleanup_batch_01_is_clean() -> None:
+    expectations = {
+        'AC-Q-0033': [
+            r'1 - $L_1 + L_2 + L_3$ + L_1L_3',
+        ],
+        'AC-Q-0090': [
+            '{ \\cos',
+        ],
+        'AC-Q-0134': [
+            r'\frac{10K_1(s + K_2/K_1)}{s^2(s+10)} \quad \frac{10K_1(s+0.5)}{s^2(s+10)}',
+            '$s^3$\t',
+            r'$\sigma% = 14%',
+        ],
+    }
+
+    for question_id, forbidden_snippets in expectations.items():
+        payload = json.loads(
+            (QUESTION_ROOT / 'questions' / f'{question_id}.json').read_text(encoding='utf-8')
+        )
+        combined = f"{payload['stem_md']}\n{payload['solution_md']}"
+        assert payload['formula_status'] == 'clean', question_id
+        assert payload['usage_status'] == 'cleaned', question_id
+        for snippet in forbidden_snippets:
+            assert snippet not in combined, f'{question_id}: unexpected snippet {snippet!r}'
+
+
+def test_curated_formula_cleanup_batch_02_is_clean() -> None:
+    expectations = {
+        'AC-Q-0026': ['画出系统结构图$设', 'RC}_1 s ]'],
+        'AC-Q-0030': [r'1 - $L_1 + L_2$'],
+        'AC-Q-0032': ['] [ p_1 ='],
+        'AC-Q-0054': ['| $s^3$ | $T_1 T_2$ | 1 | |'],
+        'AC-Q-0065': [r'$$D(s) = $s+12$$s+2$ + K_a(s-4)$$'],
+        'AC-Q-0087': ['] [ \\text{roots}(den);'],
+        'AC-Q-0118': [r'$0.1s+1$$0.5s+1$'],
+        'AC-Q-0125': [r'(0.01s + 1)$10s + 1$'],
+        'AC-Q-0138': [r's(s+1)$s+2$'],
+    }
+    cleaned_ids = {
+        'AC-Q-0026',
+        'AC-Q-0030',
+        'AC-Q-0032',
+        'AC-Q-0054',
+        'AC-Q-0056',
+        'AC-Q-0057',
+        'AC-Q-0062',
+        'AC-Q-0063',
+        'AC-Q-0064',
+        'AC-Q-0065',
+        'AC-Q-0068',
+        'AC-Q-0073',
+        'AC-Q-0079',
+        'AC-Q-0081',
+        'AC-Q-0087',
+        'AC-Q-0089',
+        'AC-Q-0095',
+        'AC-Q-0103',
+        'AC-Q-0113',
+        'AC-Q-0116',
+        'AC-Q-0118',
+        'AC-Q-0125',
+        'AC-Q-0138',
+    }
+
+    for question_id in cleaned_ids:
+        payload = json.loads(
+            (QUESTION_ROOT / 'questions' / f'{question_id}.json').read_text(encoding='utf-8')
+        )
+        combined = f"{payload['stem_md']}\n{payload['solution_md']}"
+        assert payload['formula_status'] == 'clean', question_id
+        assert payload['usage_status'] == 'cleaned', question_id
+        for snippet in expectations.get(question_id, []):
+            assert snippet not in combined, f'{question_id}: unexpected snippet {snippet!r}'
+
+
+def test_extract_docx_does_not_treat_delta_annotations_as_mixed(tmp_path) -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT),
+            '--source',
+            str(SOURCE_DOCX),
+            '--output-root',
+            str(tmp_path),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr or result.stdout
+
+    payloads = [
+        json.loads(path.read_text(encoding='utf-8'))
+        for path in sorted((tmp_path / 'questions').glob('AC-Q-*.json'))
+    ]
+
+    for question_number in ('6-4', '6-13', '6-14', '6-21'):
+        payload = next(item for item in payloads if item['question_number'] == question_number)
+        combined = f"{payload['stem_md']}\n{payload['solution_md']}"
+        assert r'(\Delta = 2%' in combined or r'(\Delta = 2%)' in combined
+        assert payload['formula_status'] == 'clean', question_number
+
+
+def test_extract_docx_does_not_treat_left_right_brackets_as_mixed(tmp_path) -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT),
+            '--source',
+            str(SOURCE_DOCX),
+            '--output-root',
+            str(tmp_path),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr or result.stdout
+
+    payloads = [
+        json.loads(path.read_text(encoding='utf-8'))
+        for path in sorted((tmp_path / 'questions').glob('AC-Q-*.json'))
+    ]
+
+    payload = next(item for item in payloads if item['question_number'] == '3-24')
+    combined = f"{payload['stem_md']}\n{payload['solution_md']}"
+    assert r'\left[' in combined and r'\right]' in combined
+    assert payload['formula_status'] == 'clean'

@@ -4,8 +4,8 @@
   "question_number": "5-27",
   "chapter": 5,
   "section": "尚婕 24-25-2R/A",
-  "stem_md": "试验中的旋翼飞机装有一个可以旋转的机翼，如图 5-67 所示。当飞机速度较低时，机翼将处在正常位置；而在飞机速度较高时，机翼将旋转到一个其他的合适位置，以便改善飞机的超音速飞行品质。假定飞机控制系统的 $H(s)=1$，且\n\n$$G(s) = \\frac{4(0.5s+1)}{s(2s+1)$\\left(\\frac{s}{8}\\right)^2 + \\frac{s}{20} + 1$}$$\n\n图 5-67 旋转翼飞机示意图\n\n要求：\n\n(1) 绘制开环系统的对数频率特性曲线；\n\n(2) 确定幅值增益为 0dB 时对应的频率 $\\omega_r$ 和相角为 $-180^\\circ$ 时对应的频率 $\\omega_c$。",
-  "solution_md": "解 本题主要练习频率响应法中的基本技能，并巩固有关基本概念。\n\n(1) 开环 Bode 图。由给出的 $G(s)$ 的知，开环系统由五种典型环节组成。开环增益 $K=4, 20\\lg K=12\\text{dB}$。\n\n开环系统各组成环节特性列表如下，以便绘制 Bode 图。据下表，可以方便绘制开环 Bode 图。图 5-27-1 是已修正后的开环准确 Bode 图。\n\n典型环节\t交接频率\t斜率变化\t相角变化\n\n$K$\t$\\omega_1 = 0.5$\t-20dB/dec\t$0^\\circ$\n\n$\\frac{1}{s}$\t$\\omega_2 = 2$\t-20~-40dB/dec\t$-90^\\circ$\n\n$0.5s + 1$\t$\\omega_3 = 8$\t-40~-20dB/dec\t$\\varphi_1(\\omega) = 0^\\circ - 90^\\circ$\n\n$(\\frac{1}{s})^2 + 2 \\times 0.2 (\\frac{s}{8}) + 1$\t\t-20~-60dB/dec\t$\\varphi_2(\\omega) = 0^\\circ - 90^\\circ$\n\n$\\varphi_3(\\omega) = 0^\\circ - 180^\\circ$\n\n图 5-27-1 $G(s) = \\frac{4(0.5s+1)}{s(2s+1)(3/64+s/20+1)}$ 的开环对数频率特性曲线 (MATLAB)\n\n（2）截止频率与穿越频率。由已绘出的开环准确 Bode 图 5-27-1 可得：截止频率 $\\omega_c = 1.6\\text{rad/s}$, 穿越频率 $\\omega_r = 7.7\\text{rad/s}$。\n\nMATLAB 程序：exe527.m\n\nG = tf([4*[0.5,1],$conv(conv([1,0],[2,1]),[1/64,1/20,1])$);\n\nbode(G);grid",
+  "stem_md": "试验中的旋翼飞机装有一个可以旋转的机翼，如图 5-67 所示。当飞机速度较低时，机翼将处在正常位置；而在飞机速度较高时，机翼将旋转到一个其他的合适位置，以便改善飞机的超音速飞行品质。假定飞机控制系统的 $H(s)=1$，且\n\n$$ G(s) = \\frac{4(0.5s+1)}{s(2s+1)\\left[\\left(\\frac{s}{8}\\right)^2 + \\frac{s}{20} + 1\\right]} $$\n\n图 5-67 旋转翼飞机示意图\n\n要求：\n\n(1) 绘制开环系统的对数频率特性曲线；\n\n(2) 确定幅值增益为 0dB 时对应的频率 $\\omega_r$ 和相角为 $-180^\\circ$ 时对应的频率 $\\omega_c$。",
+  "solution_md": "解 本题主要练习频率响应法中的基本技能，并巩固有关基本概念。\n\n(1) 开环 Bode 图。由给出的 $G(s)$ 可知，开环系统由五种典型环节组成。开环增益 $K=4$，$20\\lg K=12\\text{dB}$。\n\n开环系统各组成环节特性列表如下，以便绘制 Bode 图。图 5-27-1 是已修正后的开环准确 Bode 图。\n\n典型环节\\t交接频率\\t斜率变化\\t相角变化\n\n$K$\\t-\\t0\\t$0^\\circ$\n\n$\\frac{1}{s}$\\t-\\t-20dB/dec\\t$-90^\\circ$\n\n$0.5s + 1$\\t$\\omega = 2$\\t+20dB/dec\\t$0^\\circ \\to 90^\\circ$\n\n$2s + 1$\\t$\\omega = 0.5$\\t-20dB/dec\\t$0^\\circ \\to -90^\\circ$\n\n$\\left(\\frac{s}{8}\\right)^2 + \\frac{s}{20} + 1$\\t$\\omega = 8$\\t-40dB/dec\\t$0^\\circ \\to -180^\\circ$\n\n图 5-27-1 $G(s) = \\frac{4(0.5s+1)}{s(2s+1)\\left[(s/8)^2 + s/20 + 1\\right]}$ 的开环对数频率特性曲线 (MATLAB)\n\n（2）截止频率与穿越频率。由已绘出的开环准确 Bode 图 5-27-1 可得：截止频率 $\\omega_c = 1.6\\text{rad/s}$，穿越频率 $\\omega_r = 7.7\\text{rad/s}$。\n\nMATLAB 程序：exe527.m\n\n```matlab\nG = tf([4*0.5 4], conv(conv([1 0], [2 1]), [1/64 1/20 1]));\nbode(G); grid on;\n```",
   "inline_score_points": [],
   "rubric": [],
   "figure_titles": [
@@ -15,8 +15,8 @@
   "figure_references": [],
   "figure_assets": [],
   "figure_status": "source_missing",
-  "formula_status": "mixed",
-  "usage_status": "raw",
+  "formula_status": "clean",
+  "usage_status": "cleaned",
   "knowledge_tags": [
     "尚婕 24-25-2R/A",
     "频域分析"
