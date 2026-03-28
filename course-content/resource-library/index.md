@@ -3,6 +3,8 @@
 - TeX 资源：9 项
 - PDF 资源：34 项
 - PPTX 提取包：30 项
+- 课程思政案例资源包：1 项
+- 船舶控制案例资源包：1 项
 
 本目录面向后续大纲重构、讲义设计和媒体策划，优先提供“可搜索、可引用”的素材索引，而不是最终排版稿。
 
@@ -98,3 +100,16 @@
   - `21三频段_各司其职.pptx` -> [pptx/21三频段_各司其职/README.md](pptx/21三频段_各司其职/README.md)
   - `22串联校正.pptx` -> [pptx/22串联校正/README.md](pptx/22串联校正/README.md)
   - `23滞后超前.pptx` -> [pptx/23滞后超前/README.md](pptx/23滞后超前/README.md)
+
+## 课程思政案例资源包
+
+- 总览入口 -> [civics-cases/README.md](civics-cases/README.md)
+- 案例总览 -> [civics-cases/extracted.md](civics-cases/extracted.md)
+- 融入点索引 -> [civics-cases/integration-points.md](civics-cases/integration-points.md)
+
+## 船舶控制案例资源包
+
+- 总览入口 -> [ship-control-cases/README.md](ship-control-cases/README.md)
+- 案例总览 -> [ship-control-cases/extracted.md](ship-control-cases/extracted.md)
+- 章节映射 -> [ship-control-cases/indexes/section-map.md](ship-control-cases/indexes/section-map.md)
+- 图片映射 -> [ship-control-cases/indexes/media-map.md](ship-control-cases/indexes/media-map.md)
