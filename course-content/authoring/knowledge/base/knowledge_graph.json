@@ -17420,12 +17420,250 @@
       ],
       "created_at": null,
       "updated_at": null
+    },
+    "余子式接触判定_2_21003": {
+      "id": "余子式接触判定_2_21003",
+      "name": "余子式接触判定",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 0,
+      "chapter_name": "未分章",
+      "definition": "在梅森公式中判断某条前向通路对应余子式Δ_k的操作规则：删除所有与该前向通路接触的回路后，对剩余回路写特征式；若仍有不接触回路保留，则Δ_k不等于1。",
+      "examples": [
+        "例题二中第二条前向通路不经过局部回路L_1，因此\\Delta_2=1-L_1，而不是1。",
+        "若某条前向通路与所有回路都接触，则删去后图中无剩余回路，此时对应余子式等于1。"
+      ],
+      "formulas": [
+        "\\Delta_k=1-\\sum L_i+\\sum L_iL_j-\\cdots\\quad(\\text{仅保留与}P_k\\text{不接触的回路})"
+      ],
+      "prerequisites": [
+        "信号流图_2_372d4084",
+        "前向通路_1_7d1c792e",
+        "回路_2_e1adbdfa",
+        "余因子式_2_1da0d7e8",
+        "梅森增益公式_2_419eab0c"
+      ],
+      "related_concepts": [
+        "闭环传递函数_2_5399c369"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "余子式",
+        "接触",
+        "不接触",
+        "梅森公式",
+        "Δk"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "典型环节对象库_2_21002": {
+      "id": "典型环节对象库_2_21002",
+      "name": "典型环节对象库",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 0,
+      "chapter_name": "未分章",
+      "definition": "把复杂传递函数优先拆解为比例、积分、微分、惯性、振荡等标准环节的识别框架，用于在对象层面先看清系统由哪些基础动态部件组成。",
+      "examples": [
+        "G(s)=K_p/[s(Ts+1)] 可以先识别为比例环节、积分环节和惯性环节的组合，而不是直接把它当成难记的长分式。",
+        "航向控制系统中的控制器、舵机和船体对象都可以先还原为典型环节，再讨论它们怎样连接成闭环系统。"
+      ],
+      "formulas": [
+        "G(s)=K\\cdot G_1(s)\\cdot G_2(s)\\cdots G_r(s)",
+        "G(s)=K,\\;\\frac{1}{s},\\;s,\\;\\frac{1}{Ts+1},\\;\\frac{\\omega_n^2}{s^2+2\\zeta\\omega_n s+\\omega_n^2}"
+      ],
+      "prerequisites": [
+        "传递函数_1_5b0faf8b"
+      ],
+      "related_concepts": [
+        "比例环节_2_11004",
+        "积分环节_2_11005",
+        "微分环节_2_11006",
+        "惯性环节_2_11007",
+        "振荡环节_5_d677d1e6"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "典型环节",
+        "对象识别",
+        "标准对象库",
+        "系统分解"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "零初值传递函数_2_21001": {
+      "id": "零初值传递函数_2_21001",
+      "name": "零初值传递函数",
+      "category": "概念性",
+      "bloom_level": "理解",
+      "chapter": 0,
+      "chapter_name": "未分章",
+      "definition": "把传递函数理解为零初值语境下的输入输出固有关系：系统对象由传递函数给出，而初始状态带来的附加项必须与该对象分开处理。",
+      "examples": [
+        "一阶系统若初值不为零，则输出像中会额外出现由初始状态决定的项，因此不能只看Y(s)/U(s)。",
+        "船舶航向动力学对象在零初值下可被稳定抽象为统一的传递函数对象，用于后续时域与频域分析。"
+      ],
+      "formulas": [
+        "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}",
+        "Y(s)=G(s)U(s)+Y_{ic}(s)"
+      ],
+      "prerequisites": [
+        "微分方程_2_775c96a3",
+        "拉氏变换工程动机_2_11001"
+      ],
+      "related_concepts": [
+        "传递函数_1_5b0faf8b",
+        "闭环传递函数_2_5399c369"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "零初值",
+        "系统对象",
+        "初始状态",
+        "传递函数"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "Bode首轮骨架_5_1e07d9da": {
+      "id": "Bode首轮骨架_5_1e07d9da",
+      "name": "Bode首轮骨架",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 5,
+      "chapter_name": "频域分析",
+      "definition": "面对典型环节或简单标准型对象时，先写标准型、列转折频率、判低频起势，再按斜率变化画出第一层渐近趋势的手绘流程。",
+      "examples": [
+        "对一阶惯性环节先标出 1/T，再画 0 dB 起步、过转折后以 -20 dB/dec 下降的首轮骨架。"
+      ],
+      "formulas": [
+        "L(\\omega)=20\\log_{10}|G(j\\omega)|"
+      ],
+      "prerequisites": [
+        "对数频率特性曲线",
+        "交接频率（转折频率）"
+      ],
+      "related_concepts": [
+        "伯德图",
+        "对数幅频曲线"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "标准型",
+        "转折频率",
+        "渐近线",
+        "手绘"
+      ],
+      "created_at": "2026-03-28T09:57:11.127527+00:00",
+      "updated_at": "2026-03-28T09:57:11.127527+00:00"
+    },
+    "对数频率坐标_5_5e366881": {
+      "id": "对数频率坐标_5_5e366881",
+      "name": "对数频率坐标",
+      "category": "概念性",
+      "bloom_level": "理解",
+      "chapter": 5,
+      "chapter_name": "频域分析",
+      "definition": "把频率轴按数量级展开的表示方式，使跨多个十倍频程的变化能在同一图上均衡呈现，并突出转折频率与斜率变化。",
+      "examples": [
+        "一阶惯性环节从 0.1/T 到 10/T 的变化在对数坐标下能清楚看出转折点前后趋势。"
+      ],
+      "formulas": [
+        "x=\\log_{10}\\omega"
+      ],
+      "prerequisites": [
+        "频率特性"
+      ],
+      "related_concepts": [
+        "对数频率特性曲线",
+        "交接频率（转折频率）"
+      ],
+      "difficulty": 2,
+      "importance": 4,
+      "keywords": [
+        "十倍频程",
+        "数量级",
+        "转折频率"
+      ],
+      "created_at": "2026-03-28T09:57:11.124577+00:00",
+      "updated_at": "2026-03-28T09:57:11.124577+00:00"
+    },
+    "正弦稳态响应_5_b6dc1100": {
+      "id": "正弦稳态响应_5_b6dc1100",
+      "name": "正弦稳态响应",
+      "category": "概念性",
+      "bloom_level": "理解",
+      "chapter": 5,
+      "chapter_name": "频域分析",
+      "definition": "线性定常系统在正弦输入下，暂态消失后输出仍保持同一频率，只改变振幅和相位的稳态响应形式。",
+      "examples": [
+        "一阶惯性环节对 4 rad/s 正弦输入会输出同频但幅值变小、相位滞后的正弦波。"
+      ],
+      "formulas": [
+        "c_{ss}(t)=A|G(j\\omega)|\\sin(\\omega t+\\angle G(j\\omega))"
+      ],
+      "prerequisites": [
+        "正弦函数",
+        "传递函数"
+      ],
+      "related_concepts": [
+        "频率特性",
+        "幅频特性",
+        "相频特性"
+      ],
+      "difficulty": 2,
+      "importance": 5,
+      "keywords": [
+        "同频输出",
+        "幅值变化",
+        "相位变化"
+      ],
+      "created_at": "2026-03-28T09:57:11.118123+00:00",
+      "updated_at": "2026-03-28T09:57:11.118123+00:00"
+    },
+    "频率分量重构_5_42082c97": {
+      "id": "频率分量重构_5_42082c97",
+      "name": "频率分量重构",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 5,
+      "chapter_name": "频域分析",
+      "definition": "把复杂输入拆成多个频率分量、分别通过系统后再叠加回时域输出的理解框架，是连接傅里叶思想、频率响应与时域现象的核心桥梁。",
+      "examples": [
+        "方波经低通对象后边缘被抹平，本质上是高频谐波被削弱后的重构结果。"
+      ],
+      "formulas": [
+        "c(t)=\\sum_i |G(j\\omega_i)|A_i\\sin(\\omega_i t+\\phi_i+\\angle G(j\\omega_i))"
+      ],
+      "prerequisites": [
+        "周期信号频谱",
+        "非周期信号频谱"
+      ],
+      "related_concepts": [
+        "正弦稳态响应",
+        "频率特性"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "频率分解",
+        "响应叠加",
+        "时域重塑"
+      ],
+      "created_at": "2026-03-28T09:57:11.113186+00:00",
+      "updated_at": "2026-03-28T09:57:11.113186+00:00"
     }
   },
   "relations": [],
   "metadata": {
-    "merged_at": "2026-03-25T06:51:13.675943+00:00",
-    "total_nodes": 639,
-    "total_relations": 16214
+    "merged_at": "2026-03-28T12:31:07.887954+00:00",
+    "total_nodes": 646,
+    "total_relations": 16232
   }
 }

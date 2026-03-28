@@ -4,6 +4,7 @@ name: 传递函数
 name_en: Transfer Function
 lesson_units:
   - 2-1
+  - 2-3
 category: 概念性
 knowledge_type: C
 chapter: 2
@@ -14,6 +15,7 @@ tags:
 card_version: 1
 source_docs:
   - authoring/lessons/2-1/design/handout.md
+  - authoring/lessons/2-3/design/handout.md
 asset_refs: []
 ---
 

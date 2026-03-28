@@ -1,0 +1,24 @@
+{
+  "lesson_id": "2-3",
+  "unit_type": "理论",
+  "generated_at": "2026-03-28T12:17:42.652941+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/2-3/design/handout.md"
+  ],
+  "boppps_source": "course-content/authoring/lessons/2-3/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/2-3/sequence.json",
+  "expected_code_media": [
+    {
+      "script": "2-3-fr-01-command-vs-disturbance.py",
+      "output": "2-3-fr-01-command-vs-disturbance.svg"
+    },
+    {
+      "script": "2-3-fr-02-square-wave-harmonics.py",
+      "output": "2-3-fr-02-square-wave-harmonics.svg"
+    },
+    {
+      "script": "2-3-fr-03-sine-in-sine-out.py",
+      "output": "2-3-fr-03-sine-in-sine-out.svg"
+    }
+  ]
+}

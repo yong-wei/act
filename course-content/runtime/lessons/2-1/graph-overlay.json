@@ -1084,8 +1084,8 @@
       "name": "振荡环节",
       "nodeType": "THEORY",
       "description": "传递函数具有一对共轭复数极点的典型环节，其响应呈现振荡特性。",
-      "positionX": -123.0,
-      "positionY": -71.0,
+      "positionX": -71.0,
+      "positionY": -123.0,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -1146,7 +1146,7 @@
       "strength": 0.8
     },
     {
-      "id": "rt-16224",
+      "id": "rt-16228",
       "sourceId": "结构图_2_3f312ccc",
       "targetId": "信号流图_2_372d4084",
       "relation": "related",
@@ -1322,7 +1322,7 @@
       "strength": 0.8
     },
     {
-      "id": "rt-16214",
+      "id": "rt-16218",
       "sourceId": "微分方程_2_775c96a3",
       "targetId": "拉氏变换工程动机_2_11001",
       "relation": "related",
@@ -1386,7 +1386,7 @@
       "strength": 0.95
     },
     {
-      "id": "rt-16219",
+      "id": "rt-16223",
       "sourceId": "典型环节对象库_2_21002",
       "targetId": "积分环节_2_11005",
       "relation": "related",
@@ -1394,7 +1394,7 @@
       "strength": 0.95
     },
     {
-      "id": "rt-16220",
+      "id": "rt-16224",
       "sourceId": "典型环节对象库_2_21002",
       "targetId": "微分环节_2_11006",
       "relation": "related",
@@ -1402,7 +1402,7 @@
       "strength": 0.95
     },
     {
-      "id": "rt-16221",
+      "id": "rt-16225",
       "sourceId": "典型环节对象库_2_21002",
       "targetId": "惯性环节_2_11007",
       "relation": "related",
@@ -1410,7 +1410,7 @@
       "strength": 0.95
     },
     {
-      "id": "rt-16222",
+      "id": "rt-16226",
       "sourceId": "典型环节对象库_2_21002",
       "targetId": "振荡环节_5_d677d1e6",
       "relation": "related",
@@ -1418,7 +1418,7 @@
       "strength": 0.9
     },
     {
-      "id": "rt-16223",
+      "id": "rt-16227",
       "sourceId": "结构图_2_3f312ccc",
       "targetId": "闭环传递函数_2_5399c369",
       "relation": "related",
@@ -1426,7 +1426,7 @@
       "strength": 0.92
     },
     {
-      "id": "rt-16225",
+      "id": "rt-16229",
       "sourceId": "信号流图_2_372d4084",
       "targetId": "前向通路_1_7d1c792e",
       "relation": "related",
@@ -1434,7 +1434,7 @@
       "strength": 0.95
     },
     {
-      "id": "rt-16226",
+      "id": "rt-16230",
       "sourceId": "信号流图_2_372d4084",
       "targetId": "回路_2_e1adbdfa",
       "relation": "related",
@@ -1442,7 +1442,7 @@
       "strength": 0.95
     },
     {
-      "id": "rt-16228",
+      "id": "rt-16232",
       "sourceId": "前向通路_1_7d1c792e",
       "targetId": "余子式接触判定_2_21003",
       "relation": "related",
@@ -1450,7 +1450,7 @@
       "strength": 0.95
     },
     {
-      "id": "rt-16229",
+      "id": "rt-16233",
       "sourceId": "回路_2_e1adbdfa",
       "targetId": "余子式接触判定_2_21003",
       "relation": "related",
@@ -1458,7 +1458,7 @@
       "strength": 0.95
     },
     {
-      "id": "rt-16230",
+      "id": "rt-16234",
       "sourceId": "余因子式_2_1da0d7e8",
       "targetId": "余子式接触判定_2_21003",
       "relation": "related",
@@ -1466,7 +1466,7 @@
       "strength": 0.9
     },
     {
-      "id": "rt-16231",
+      "id": "rt-16235",
       "sourceId": "梅森增益公式_2_419eab0c",
       "targetId": "余子式接触判定_2_21003",
       "relation": "related",
@@ -1474,7 +1474,7 @@
       "strength": 0.92
     },
     {
-      "id": "rt-16232",
+      "id": "rt-16236",
       "sourceId": "余子式接触判定_2_21003",
       "targetId": "闭环传递函数_2_5399c369",
       "relation": "related",

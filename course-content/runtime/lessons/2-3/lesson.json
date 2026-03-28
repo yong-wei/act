@@ -1,0 +1,194 @@
+{
+  "lesson_id": "2-3",
+  "title": "频率响应基础与 Bode 图初步——从时域现象到频域图形入口",
+  "layer": "层1",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "X",
+  "graph_version": "642+4",
+  "focus_node_ids": [
+    "频率分量重构_5_42082c97",
+    "正弦稳态响应_5_b6dc1100",
+    "频率特性_5_404adfdd",
+    "幅频特性_5_4e8408d2",
+    "相频特性_5_abda14da",
+    "对数频率坐标_5_5e366881",
+    "对数频率特性曲线_5_75c6945f",
+    "伯德图_6_1a069614",
+    "交接频率_转折频率__5_8bca814b",
+    "Bode首轮骨架_5_1e07d9da"
+  ],
+  "reuse_node_ids": [
+    "时域分析_2_1874cdb9",
+    "传递函数_1_5b0faf8b",
+    "频率响应直觉_5_L2c001",
+    "频域分析_2_2e257d89",
+    "正弦函数_1_98499ac0",
+    "周期信号频谱_5_2d1b006d",
+    "非周期信号频谱_5_e2fff926",
+    "对数幅频曲线_5_f86ba11b",
+    "典型环节对象库_2_21002",
+    "比例环节_2_11004",
+    "积分环节_2_11005",
+    "微分环节_2_11006",
+    "惯性环节_2_11007",
+    "振荡环节_5_d677d1e6"
+  ],
+  "entry_nodes": [
+    "时域分析_2_1874cdb9",
+    "频域分析_2_2e257d89"
+  ],
+  "summary_nodes": [
+    "频率分量重构_5_42082c97",
+    "Bode首轮骨架_5_1e07d9da"
+  ],
+  "card_order": [
+    "时域分析_2_1874cdb9",
+    "传递函数_1_5b0faf8b",
+    "频率响应直觉_5_L2c001",
+    "频域分析_2_2e257d89",
+    "正弦函数_1_98499ac0",
+    "周期信号频谱_5_2d1b006d",
+    "非周期信号频谱_5_e2fff926",
+    "频率分量重构_5_42082c97",
+    "正弦稳态响应_5_b6dc1100",
+    "频率特性_5_404adfdd",
+    "幅频特性_5_4e8408d2",
+    "相频特性_5_abda14da",
+    "对数频率坐标_5_5e366881",
+    "对数频率特性曲线_5_75c6945f",
+    "对数幅频曲线_5_f86ba11b",
+    "伯德图_6_1a069614",
+    "典型环节对象库_2_21002",
+    "比例环节_2_11004",
+    "积分环节_2_11005",
+    "微分环节_2_11006",
+    "惯性环节_2_11007",
+    "振荡环节_5_d677d1e6",
+    "交接频率_转折频率__5_8bca814b",
+    "Bode首轮骨架_5_1e07d9da"
+  ],
+  "preceding_lesson": "2-2",
+  "following_lesson": "2-4",
+  "refinement_units": [],
+  "ideological_point": "系统不必追每一次抖动，工程控制要区分哪些频率代表任务意图，哪些频率应主动抑制。",
+  "sequence": {
+    "lesson_id": "2-3",
+    "groups": [
+      {
+        "group_name": "引入与频域入口",
+        "step_ids": [
+          "step-01",
+          "step-02",
+          "step-03",
+          "step-04",
+          "step-05"
+        ],
+        "node_ids": [
+          "时域分析_2_1874cdb9",
+          "传递函数_1_5b0faf8b",
+          "频率响应直觉_5_L2c001",
+          "频域分析_2_2e257d89"
+        ]
+      },
+      {
+        "group_name": "频率分量与正弦稳态",
+        "step_ids": [
+          "step-06",
+          "step-07",
+          "step-08"
+        ],
+        "node_ids": [
+          "正弦函数_1_98499ac0",
+          "周期信号频谱_5_2d1b006d",
+          "非周期信号频谱_5_e2fff926",
+          "频率分量重构_5_42082c97",
+          "正弦稳态响应_5_b6dc1100"
+        ]
+      },
+      {
+        "group_name": "G(jω) 与幅相语言",
+        "step_ids": [
+          "step-09",
+          "step-10"
+        ],
+        "node_ids": [
+          "传递函数_1_5b0faf8b",
+          "频率特性_5_404adfdd",
+          "幅频特性_5_4e8408d2",
+          "相频特性_5_abda14da"
+        ]
+      },
+      {
+        "group_name": "Bode 表示与首轮判断",
+        "step_ids": [
+          "step-11",
+          "step-12",
+          "step-13",
+          "step-14",
+          "step-15"
+        ],
+        "node_ids": [
+          "对数频率坐标_5_5e366881",
+          "对数频率特性曲线_5_75c6945f",
+          "对数幅频曲线_5_f86ba11b",
+          "伯德图_6_1a069614",
+          "典型环节对象库_2_21002",
+          "比例环节_2_11004",
+          "积分环节_2_11005",
+          "微分环节_2_11006",
+          "惯性环节_2_11007",
+          "振荡环节_5_d677d1e6",
+          "交接频率_转折频率__5_8bca814b",
+          "Bode首轮骨架_5_1e07d9da"
+        ]
+      },
+      {
+        "group_name": "后测与收束",
+        "step_ids": [
+          "step-16",
+          "step-17"
+        ],
+        "node_ids": []
+      }
+    ],
+    "card_order": [
+      "时域分析_2_1874cdb9",
+      "传递函数_1_5b0faf8b",
+      "频率响应直觉_5_L2c001",
+      "频域分析_2_2e257d89",
+      "正弦函数_1_98499ac0",
+      "周期信号频谱_5_2d1b006d",
+      "非周期信号频谱_5_e2fff926",
+      "频率分量重构_5_42082c97",
+      "正弦稳态响应_5_b6dc1100",
+      "频率特性_5_404adfdd",
+      "幅频特性_5_4e8408d2",
+      "相频特性_5_abda14da",
+      "对数频率坐标_5_5e366881",
+      "对数频率特性曲线_5_75c6945f",
+      "对数幅频曲线_5_f86ba11b",
+      "伯德图_6_1a069614",
+      "典型环节对象库_2_21002",
+      "比例环节_2_11004",
+      "积分环节_2_11005",
+      "微分环节_2_11006",
+      "惯性环节_2_11007",
+      "振荡环节_5_d677d1e6",
+      "交接频率_转折频率__5_8bca814b",
+      "Bode首轮骨架_5_1e07d9da"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/2-3/handout.md",
+  "handout_source_path": "course-content/runtime/lessons/2-3/handout.md",
+  "graph_overlay_path": "/course-runtime/lessons/2-3/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/2-3/media",
+  "review": {
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/2-3/review/boppps.md",
+    "report_path": "/course-runtime/lessons/2-3/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/2-3/review/knowledge-card-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/2-3/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/2-3/review/source-manifest.json"
+  }
+}

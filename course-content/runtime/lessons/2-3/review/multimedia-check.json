@@ -1,0 +1,20 @@
+{
+  "lesson_id": "2-3",
+  "expected_assets": [
+    "2-3-fr-01-command-vs-disturbance.svg",
+    "2-3-fr-02-square-wave-harmonics.svg",
+    "2-3-fr-03-sine-in-sine-out.svg"
+  ],
+  "generated_assets": [
+    "2-3-fr-01-command-vs-disturbance.svg",
+    "2-3-fr-02-square-wave-harmonics.svg",
+    "2-3-fr-03-sine-in-sine-out.svg"
+  ],
+  "missing_assets": [],
+  "executed_scripts": [
+    "2-3-fr-01-command-vs-disturbance.py",
+    "2-3-fr-02-square-wave-harmonics.py",
+    "2-3-fr-03-sine-in-sine-out.py"
+  ],
+  "processed_dir": "course-content/authoring/lessons/2-3/media/processed"
+}

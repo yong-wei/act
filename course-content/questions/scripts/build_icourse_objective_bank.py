@@ -10,6 +10,12 @@ from pathlib import Path
 
 OBJECTIVE_KINDS = {'single', 'multiple', 'fill_blank'}
 SOURCE_PREFIX_RE = re.compile(r'^U\d+\.\s*')
+FORMULA_SEGMENT_RE = re.compile(
+    r'(?<!\$)(?P<segment>[A-Za-z0-9\\][^$\u4e00-\u9fff，。；：、“”‘’！？【】《》…\n]*?(?:\\[A-Za-z]+|[_^=<>]|[(){}\[\]|/+*-])[^$\u4e00-\u9fff，。；：、“”‘’！？【】《》…\n]*)'
+)
+SINGLE_LATEX_COMMAND_RE = re.compile(
+    r'(?P<segment>\\(?:alpha|beta|gamma|delta|epsilon|varepsilon|zeta|eta|theta|vartheta|iota|kappa|lambda|mu|nu|xi|pi|rho|varrho|sigma|varsigma|tau|upsilon|phi|varphi|chi|psi|omega|Gamma|Delta|Theta|Lambda|Xi|Pi|Sigma|Upsilon|Phi|Psi|Omega|infty|uparrow|downarrow))(?![A-Za-z])'
+)
 TAG_RULES: tuple[tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]], ...] = (
     (('奈奎斯特', 'Nyquist', '\\Gamma_{GH}', '负实轴', '围包'), ('频域分析', 'Nyquist稳定判据'), ('frequency',)),
     (('带宽', '对数幅频', '幅频', '相频', 'Bode', 'bode', '伯德', 'L_a(', 'dB/dec', '交接频率'), ('频域分析', 'Bode图', '对数幅频渐近线'), ('frequency',)),
@@ -182,6 +188,26 @@ def build_search_text(entry: dict[str, object]) -> str:
     )
 
 
+def wrap_overview_formula_segments(text: str) -> str:
+    def replacer(match: re.Match[str]) -> str:
+        segment = match.group('segment')
+        stripped = segment.strip()
+        if not stripped or stripped.startswith('http'):
+            return segment
+
+        leading_len = len(segment) - len(segment.lstrip())
+        trailing_len = len(segment) - len(segment.rstrip())
+        leading = segment[:leading_len]
+        trailing = segment[len(segment) - trailing_len:] if trailing_len else ''
+        return f'{leading}${stripped}${trailing}'
+
+    wrapped = FORMULA_SEGMENT_RE.sub(replacer, text)
+    parts = wrapped.split('$')
+    for idx in range(0, len(parts), 2):
+        parts[idx] = SINGLE_LATEX_COMMAND_RE.sub(lambda m: f"${m.group('segment')}$", parts[idx])
+    return '$'.join(parts)
+
+
 def build_overview(entries: list[dict[str, object]], bank_slug: str) -> str:
     lines = [
         f'# {bank_slug}',
@@ -194,10 +220,10 @@ def build_overview(entries: list[dict[str, object]], bank_slug: str) -> str:
     for entry in entries:
         lines.append(f"### {entry['question_id']} | {entry['question_kind']} | {entry['choice_mode'] or 'none'}")
         lines.append('')
-        lines.append(entry['stem'])
+        lines.append(wrap_overview_formula_segments(entry['stem']))
         lines.append('')
         for option in entry.get('options', []):
-            lines.append(f"- {option['key']}. {option['text']}")
+            lines.append(f"- {option['key']}. {wrap_overview_formula_segments(str(option['text']))}")
         if not entry.get('options'):
             lines.append('- 无选项')
         lines.append('')

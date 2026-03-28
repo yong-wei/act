@@ -3,6 +3,7 @@
 \usepackage{setspace}
 \usepackage{titlesec}
 \usepackage{fancyhdr}
+\usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
@@ -69,8 +70,16 @@
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\small 自动控制原理}
+\fancyhead[C]{%
+  \raisebox{0pt}[0pt][0pt]{%
+    \includegraphics[height=8.5mm]{../../../../../public/images/extracted/校徽校名组合-横版-提取.pdf}%
+    \hspace{1.4pt}%
+    \includegraphics[height=7.65mm]{../../../../../public/images/CAlogo128.png}%
+  }%
+}
 \fancyhead[R]{\small 单元 2-3 讲义}
 \fancyfoot[C]{\small \thepage}
+\setlength{\headheight}{34pt}
 \renewcommand{\headrulewidth}{0.35pt}
 \renewcommand{\footrulewidth}{0pt}
 
@@ -79,5 +88,5 @@
   linkcolor=TitleBlue,
   urlcolor=DarkSlateBlue,
   citecolor=TitleBlue,
-  pdftitle={单元 2-3 | 频率响应基础——从时域现象到 $G(j\omega)$}
+  pdftitle={单元 2-3 | 频率响应基础与 Bode 图初步——从时域现象到频域图形入口}
 }

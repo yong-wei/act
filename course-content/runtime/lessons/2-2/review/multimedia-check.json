@@ -1,29 +1,29 @@
 {
   "lesson_id": "2-2",
   "expected_assets": [
-    "td-01-time-domain-input-response-overview.svg",
-    "td-02-first-order-step-time-constant.svg",
-    "td-03-second-order-response-families.svg",
-    "td-04-time-domain-indices-annotated.svg",
-    "td-05-example-response-with-indices.svg",
-    "td-06-time-spec-to-pole-region.svg"
+    "2-2-td-01-time-domain-input-response-overview.svg",
+    "2-2-td-02-first-order-step-time-constant.svg",
+    "2-2-td-03-second-order-response-families.svg",
+    "2-2-td-04-time-domain-indices-annotated.svg",
+    "2-2-td-05-example-response-with-indices.svg",
+    "2-2-td-06-time-spec-to-pole-region.svg"
   ],
   "generated_assets": [
-    "td-01-time-domain-input-response-overview.svg",
-    "td-02-first-order-step-time-constant.svg",
-    "td-03-second-order-response-families.svg",
-    "td-04-time-domain-indices-annotated.svg",
-    "td-05-example-response-with-indices.svg",
-    "td-06-time-spec-to-pole-region.svg"
+    "2-2-td-01-time-domain-input-response-overview.svg",
+    "2-2-td-02-first-order-step-time-constant.svg",
+    "2-2-td-03-second-order-response-families.svg",
+    "2-2-td-04-time-domain-indices-annotated.svg",
+    "2-2-td-05-example-response-with-indices.svg",
+    "2-2-td-06-time-spec-to-pole-region.svg"
   ],
   "missing_assets": [],
   "executed_scripts": [
-    "td-01-time-domain-input-response-overview.py",
-    "td-02-first-order-step-time-constant.py",
-    "td-03-second-order-response-families.py",
-    "td-04-time-domain-indices-annotated.py",
-    "td-05-example-response-with-indices.py",
-    "td-06-time-spec-to-pole-region.py"
+    "2-2-td-01-time-domain-input-response-overview.py",
+    "2-2-td-02-first-order-step-time-constant.py",
+    "2-2-td-03-second-order-response-families.py",
+    "2-2-td-04-time-domain-indices-annotated.py",
+    "2-2-td-05-example-response-with-indices.py",
+    "2-2-td-06-time-spec-to-pole-region.py"
   ],
   "processed_dir": "course-content/authoring/lessons/2-2/media/processed"
 }

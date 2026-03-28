@@ -115,6 +115,8 @@ def test_build_objective_bank_exports_only_objective_questions_and_replaces_form
     overview = (output_root / 'icourse-bank-bankType4.overview.md').read_text(encoding='utf-8')
     assert 'IC-B4-0001' in overview
     assert 'IC-B4-0002' not in overview
+    assert '$G(s)=\\frac{1}{s(Ts+1)}$' in overview
+    assert '$s=-1$ 为开环零点' in overview
 
     index_payload = json.loads((output_root / 'icourse-bank-bankType4.index.json').read_text(encoding='utf-8'))
     assert index_payload['question_count'] == 1
@@ -164,3 +166,13 @@ def test_build_objective_bank_derives_single_choice_from_answer_count(tmp_path):
     assert row['question_kind'] == 'single'
     assert row['choice_mode'] == 'single'
     assert '单选题' in row['knowledge_tags']
+
+
+def test_wrap_overview_formula_segments_wraps_only_display_layer_math_fragments():
+    rendered = objective_module.wrap_overview_formula_segments(
+        '系统单位阶跃响应 c(t) 有振荡，稳态值0<c(\\infty)<\\infty，且满足 G(s)=\\frac{1}{s+1}。'
+    )
+    assert '$c(t)$' in rendered
+    assert '$0<c(\\infty)<\\infty$' in rendered
+    assert '$G(s)=\\frac{1}{s+1}$' in rendered
+    assert '系统单位阶跃响应' in rendered
