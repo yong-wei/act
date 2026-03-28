@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -14,7 +20,7 @@
   \node[card, below=of a] (b) {$1+a\frac{A(s)}{B(s)}=0$};
   \node[result, below=of b] (c) {$G_e(s)H_e(s)=\frac{A(s)}{B(s)}$};
   \node[result, below=of c] (d) {$K_e^\ast=a$};
-  \node[result, below=of d] (e) {apply ordinary root-locus rules to the equivalent open-loop system};
+  \node[result, below=of d] (e) {对等效开环系统应用普通根轨迹规则};
 
   \draw[flow] (a) -- (b);
   \draw[flow] (b) -- (c);

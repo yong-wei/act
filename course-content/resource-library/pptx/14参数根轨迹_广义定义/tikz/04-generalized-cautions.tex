@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -10,10 +16,10 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=0.9cm]
-  \node[card] (a) {after transformation, the equivalent system may have a new pole-zero count};
-  \node[warn, below=of a] (b) {it is possible that $n' < m'$};
-  \node[warn, below=of b] (c) {then $m'-n'$ branches may come from poles at infinity};
-  \node[card, below=of c] (d) {real-axis locus, breakaway, imaginary-axis crossing, and arrival / departure angles must all be re-checked on the equivalent system};
+  \node[card] (a) {变换后，等效系统的极零点个数可能变化};
+  \node[warn, below=of a] (b) {可能出现 $n' < m'$};
+  \node[warn, below=of b] (c) {此时会有 $m'-n'$ 条分支从无穷远极点出发};
+  \node[card, below=of c] (d) {实轴根轨迹、分离点、虚轴交点以及入射/出射角都必须在等效系统上重新检查};
 
   \draw[flow] (a) -- (b);
   \draw[flow] (b) -- (c);

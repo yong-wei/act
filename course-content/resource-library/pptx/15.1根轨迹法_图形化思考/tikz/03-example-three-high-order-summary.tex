@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,matrix}
 
@@ -46,11 +52,11 @@
 
   \begin{scope}[xshift=7.2cm]
     \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-      \node[head] {item}; & \node[head] {example 3}; \\
-      \node[left] {open-loop model}; & \node[cell] {$G(s)=K^\ast/\!\left[s(s+20)(s^2+4s+20)\right]$, with $K=K^\ast/400$}; \\
-      \node[left] {root-locus skeleton}; & \node[cell] {real-axis locus $[-20,0]$, centroid $-6$, asymptotes $\pm45^\circ,\pm135^\circ$}; \\
-      \node[left] {key points}; & \node[cell] {departure angle $-39^\circ$, breakaway $d=-15.1$, and $K_d^\ast=13881$}; \\
-      \node[left] {stability result}; & \node[cell] {imaginary-axis crossing at $\omega=4.1$, $K^\ast=1389$, so the usable open-loop gain range is $0<K<3.4725$}; \\
+      \node[head] {项目}; & \node[head] {例 3}; \\
+      \node[left] {开环模型}; & \node[cell] {$G(s)=K^\ast/\!\left[s(s+20)(s^2+4s+20)\right]$，其中 $K=K^\ast/400$}; \\
+      \node[left] {根轨迹骨架}; & \node[cell] {实轴根轨迹为 $[-20,0]$，渐近线交点为 $-6$，渐近线角度为 $\pm45^\circ,\pm135^\circ$}; \\
+      \node[left] {关键点}; & \node[cell] {出射角 $-39^\circ$，分离点 $d=-15.1$，且 $K_d^\ast=13881$}; \\
+      \node[left] {稳定性结论}; & \node[cell] {虚轴交点在 $\omega=4.1$，$K^\ast=1389$，因此可用开环增益范围为 $0<K<3.4725$}; \\
     };
   \end{scope}
 \end{tikzpicture}

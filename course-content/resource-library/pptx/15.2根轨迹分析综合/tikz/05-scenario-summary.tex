@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -11,11 +17,11 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {scenario}; & \node[head] {what the slide verifies}; \\
-    \node[left] {turning}; & \node[cell] {with the gain selected from root locus, the vessel can complete the heading change, but the path still shows transient lag}; \\
-    \node[left] {obstacle avoidance}; & \node[cell] {the designed gain lets the ship bypass an obstacle smoothly, showing that the root-locus choice is not limited to a step input}; \\
-    \node[left] {one-minute turning with $K=0.6064$}; & \node[cell] {the heading response follows the command, while the trajectory reveals the practical turning-circle bias of the designed controller}; \\
-    \node[left] {one-minute turning with $K=20$}; & \node[cell] {a much larger gain changes the maneuvering trace noticeably, so gain selection must be judged in task space, not only on the pole map}; \\
+    \node[head] {场景}; & \node[head] {本页验证内容}; \\
+    \node[left] {回转}; & \node[cell] {按根轨迹选出的增益下，船舶可以完成改向，但航迹仍存在过渡滞后}; \\
+    \node[left] {避障}; & \node[cell] {该增益能够让船舶平滑绕开障碍物，说明根轨迹选点并不只服务于阶跃输入}; \\
+    \node[left] {$K=0.6064$ 的一分钟回转}; & \node[cell] {航向响应能够跟随指令，但航迹暴露出该控制器在实际回转圈上的偏差}; \\
+    \node[left] {$K=20$ 的一分钟回转}; & \node[cell] {过大的增益会显著改变操纵轨迹，因此增益选择必须在任务空间中判断，不能只看极点图}; \\
   };
 \end{tikzpicture}
 \end{document}

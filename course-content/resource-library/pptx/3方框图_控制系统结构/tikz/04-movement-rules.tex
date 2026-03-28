@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,calc,positioning}
@@ -21,7 +27,7 @@
 \begin{document}
 \begin{tikzpicture}
   % Tap forward
-  \node[small, anchor=west] at (0,5.2) {Tap forward: branch $\times G(s)$};
+  \node[small, anchor=west] at (0,5.2) {取样点前移：支路乘 $G(s)$};
   \node (r1) at (0.4,4.3) {$R$};
   \node[tap] (ta1) at (1.2,4.3) {};
   \node[block] (g1) at (3.2,4.3) {$G(s)$};
@@ -41,7 +47,7 @@
   \draw[signal] (ta2) |- (h2);
 
   % Tap backward
-  \node[small, anchor=west] at (0,2.4) {Tap backward: branch $\times 1/G(s)$};
+  \node[small, anchor=west] at (0,2.4) {取样点后移：支路乘 $1/G(s)$};
   \node (r3) at (0.4,1.5) {$R$};
   \node[block] (g3) at (2.2,1.5) {$G(s)$};
   \node[tap] (ta3) at (3.7,1.5) {};
@@ -61,7 +67,7 @@
   \draw[signal] (ta4) |- (h4);
 
   % Sum movement
-  \node[small, anchor=west] at (0,-0.8) {Sum movement};
+  \node[small, anchor=west] at (0,-0.8) {比较点移动};
   \node (u1) at (0.3,-1.8) {$R$};
   \node[sum] (s1) at (1.4,-1.8) {};
   \node[block] (gb1) at (3.5,-1.8) {$G(s)$};

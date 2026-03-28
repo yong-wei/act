@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -11,21 +17,21 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {key point}; &
-    \node[head] {how to compute}; &
-    \node[head] {what it corrects}; \\
-    \node[left] {breakaway point}; &
+    \node[head] {关键点}; &
+    \node[head] {计算方法}; &
+    \node[head] {解决什么问题}; \\
+    \node[left] {分离点}; &
     \node[cell] {$\sum \frac{1}{d-p_i}=\sum \frac{1}{d-z_j}$}; &
-    \node[cell] {where branches leave the real axis}; \\
-    \node[left] {departure angle}; &
-    \node[cell] {pole-centered angle balance}; &
-    \node[cell] {initial tangent near complex poles}; \\
-    \node[left] {arrival angle}; &
-    \node[cell] {zero-centered angle balance}; &
-    \node[cell] {final tangent near complex zeros}; \\
-    \node[left] {imaginary-axis crossing}; &
-    \node[cell] {set $s=j\omega$ and solve real/imag parts}; &
-    \node[cell] {stability boundary and critical gain}; \\
+    \node[cell] {分支离开实轴的位置}; \\
+    \node[left] {出射角}; &
+    \node[cell] {以极点为中心的角度平衡}; &
+    \node[cell] {复极点附近的初始切线方向}; \\
+    \node[left] {入射角}; &
+    \node[cell] {以零点为中心的角度平衡}; &
+    \node[cell] {复零点附近的终末切线方向}; \\
+    \node[left] {虚轴交点}; &
+    \node[cell] {令 $s=j\omega$，联立实部与虚部方程求解}; &
+    \node[cell] {稳定边界与临界增益}; \\
   };
 \end{tikzpicture}
 \end{document}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta}
 
@@ -17,14 +23,14 @@
   \draw[axisgray, dashed] (0,0) -- (-1.75,-1.75);
   \node[below] at (-1.0,0) {$-1$};
   \node[align=left, anchor=west] at (2.9,1.2) {
-    same phase margin:\\
-    both curves meet the unit circle\\
-    along the same direction
+    相同相角裕度：\\
+    两条曲线都与单位圆相交\\
+    沿同一方向
   };
   \node[align=left, anchor=west] at (2.9,-0.4) {
-    different gain margin:\\
-    their $-180^\circ$ crossing points\\
-    are not equally far from $-1$
+    不同增益裕度：\\
+    它们在 $-180^\circ$ 处的交点\\
+    到 $-1$ 的距离并不相等
   };
 \end{tikzpicture}
 \end{document}

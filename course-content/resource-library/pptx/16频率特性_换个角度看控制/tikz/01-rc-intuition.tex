@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -31,6 +37,6 @@
   \draw[wiregray, ->] (0.45,0.22) -- (1.1,0.22);
   \node[above] at (0.8,0.22) {$i$};
   \draw[wiregray, ->, draw=sinkred] (6.5,0.5) -- (7.5,0.5);
-  \node[right, align=left] at (7.55,0.5) {\small low frequency: tracks well\\\small high frequency: attenuated \& lagged};
+  \node[right, align=left] at (7.55,0.5) {\small 低频时：输出跟随较好\\\small 高频时：输出衰减且滞后};
 \end{tikzpicture}
 \end{document}

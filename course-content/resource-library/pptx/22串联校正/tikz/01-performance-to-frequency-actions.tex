@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 
 \definecolor{blockblue}{HTML}{4A90D9}
@@ -12,10 +18,10 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{4.2cm}p{8.8cm}}
-      \textbf{Observed problem} & \textbf{Frequency-domain action} \\
-      good transient, large steady-state error & increase low-frequency gain, keep mid/high frequency almost unchanged \\
-      small steady-state error, poor dynamics & modify mid/high frequency to change $\omega_c$ and phase margin \\
-      both steady-state and transient are unsatisfactory & low / mid / high frequency bands all need redesign \\
+      \textbf{观测到的问题} & \textbf{频域动作} \\
+      动态好，但稳态误差大 & 提高低频增益，同时尽量不改变中高频 \\
+      稳态误差小，但动态差 & 调整中高频，以改变 $\omega_c$ 与相角裕度 \\
+      稳态与动态都不理想 & 低频 / 中频 / 高频都需要重新设计 \\
     \end{tabular}
   };
 \end{tikzpicture}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta}
 
@@ -23,9 +29,9 @@
   \draw[sfgedge] (x) -- node[gain, right] {$h$} (z);
   \draw[sfgedge] (z) -- node[gain, below] {$k$} (x);
 
-  \node[note, anchor=north] at (u.south) {input node};
-  \node[note, anchor=north] at (x.south) {mixed node};
-  \node[note, anchor=north] at (y.south) {output node};
-  \node[note, anchor=east] at (2.0,-1.0) {branch with gain};
+  \node[note, anchor=north] at (u.south) {输入节点};
+  \node[note, anchor=north] at (x.south) {中间节点};
+  \node[note, anchor=north] at (y.south) {输出节点};
+  \node[note, anchor=east] at (2.0,-1.0) {带增益支路};
 \end{tikzpicture}
 \end{document}

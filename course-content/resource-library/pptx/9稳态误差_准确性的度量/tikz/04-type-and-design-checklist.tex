@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -9,10 +15,10 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=1.0cm]
-  \node[box] (a) {write open-loop form\\in type-standard form};
-  \node[box, right=of a] (b) {identify system\\type};
-  \node[box, right=of b] (c) {choose $K_p/K_v/K_a$\\from input type};
-  \node[box, right=of c] (d) {compute error or\\solve parameter range};
+  \node[box] (a) {写成开环标准型\\并判断类型};
+  \node[box, right=of a] (b) {识别系统\\类型};
+  \node[box, right=of b] (c) {按输入类型选择\\$K_p/K_v/K_a$};
+  \node[box, right=of c] (d) {计算误差或\\反求参数范围};
   \draw[signal] (a) -- (b);
   \draw[signal] (b) -- (c);
   \draw[signal] (c) -- (d);

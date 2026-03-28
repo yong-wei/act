@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,calc,positioning}
@@ -21,7 +27,7 @@
 \begin{document}
 \begin{tikzpicture}
   % Series
-  \node[small, anchor=west] at (0,4.0) {Series};
+  \node[small, anchor=west] at (0,4.0) {串联};
   \node (r1) at (0.5,3.2) {$R(s)$};
   \node[block] (g1) at (2.3,3.2) {$G_1(s)$};
   \node (x1) at (4.2,3.2) {$X_1(s)$};
@@ -31,7 +37,7 @@
   \node[small, anchor=west] at (8.4,3.2) {$G_{\mathrm{eq}}(s)=G_1(s)G_2(s)$};
 
   % Parallel
-  \node[small, anchor=west] at (0,1.8) {Parallel};
+  \node[small, anchor=west] at (0,1.8) {并联};
   \node (r2) at (0.5,0.9) {$R(s)$};
   \node[tap] (tp) at (1.6,0.9) {};
   \node[block] (pg1) at (3.6,1.8) {$G_1(s)$};
@@ -49,7 +55,7 @@
   \node[small, anchor=west] at (8.4,0.9) {$G_{\mathrm{eq}}(s)=G_1(s)\pm G_2(s)$};
 
   % Feedback
-  \node[small, anchor=west] at (0,-1.5) {Feedback};
+  \node[small, anchor=west] at (0,-1.5) {反馈};
   \node (r3) at (0.5,-2.4) {$R(s)$};
   \node[sum] (sum3) at (1.8,-2.4) {};
   \node[block] (fg) at (4.0,-2.4) {$G(s)$};

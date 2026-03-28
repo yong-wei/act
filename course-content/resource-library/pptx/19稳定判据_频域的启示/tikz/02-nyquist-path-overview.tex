@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning,calc}
@@ -16,7 +22,7 @@
   \draw[lineblue] (0.35,0) arc[start angle=90,end angle=-90,radius=0.35] node[midway, right] {(4)};
   \draw[lineblue, ->] (0,-0.45) -- (0,-2.0) node[pos=0.8, right] {(3)};
   \draw[lineblue, ->] (0,2.0) arc[start angle=180,end angle=-180,x radius=3.0,y radius=2.0] node[pos=0.88, below] {(2)};
-  \node[align=center] at (1.8,2.55) {Nyquist contour\\around the whole RHP};
+  \node[align=center] at (1.8,2.55) {围绕整个右半平面的\\奈奎斯特路径};
   \node[right] at (0.38,0) {$0$};
 
   \draw[axisgray, ->] (6.0,0) -- (11.7,0) node[right] {$\Re[G(j\omega)H(j\omega)]$};
@@ -30,7 +36,7 @@
     .. controls (7.2,-0.2) and (7.6,0.3) .. (8.5,0.9)
     .. controls (9.4,1.6) and (9.1,2.0) .. (8.3,2.2);
   \draw[labelgreen, ->] (10.6,0.2) -- (9.2,0.2);
-  \node[align=left, anchor=west] at (10.7,0.3) {upper branch: $\omega:0\to+\infty$\\lower branch: conjugate image};
-  \node[align=left, anchor=west] at (9.2,-2.65) {small detour at the origin\\$\Rightarrow$ large arc in the image plane};
+  \node[align=left, anchor=west] at (10.7,0.3) {上支：$\omega:0\to+\infty$\\下支：共轭映像};
+  \node[align=left, anchor=west] at (9.2,-2.65) {原点处的小绕行\\$\Rightarrow$ 像平面中的大圆弧};
 \end{tikzpicture}
 \end{document}

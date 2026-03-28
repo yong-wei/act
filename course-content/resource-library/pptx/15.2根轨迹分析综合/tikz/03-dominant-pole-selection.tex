@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,matrix}
 
@@ -24,18 +30,18 @@
     \draw[rl] (-0.06,-0.06) .. controls (-0.02,-0.55) and (0.12,-1.3) .. (0.45,-2.2);
     \fill[chosen] (-0.55,0.55) circle (0.06);
     \fill[chosen] (-0.55,-0.55) circle (0.06);
-    \node[blue!70!black] at (-1.6,2.35) {$\zeta=0.707$ line};
+    \node[blue!70!black] at (-1.6,2.35) {$\zeta=0.707$ 线};
     \node[left] at (-0.55,0.55) {$-0.0488+j0.0495$};
     \node[left] at (-0.55,-0.55) {$-0.0488-j0.0495$};
   \end{scope}
 
   \begin{scope}[xshift=7.4cm]
     \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-      \node[head] {step}; & \node[head] {selected point}; \\
-      \node[left] {design target}; & \node[cell] {choose the dominant poles on the $\zeta=0.707$ line}; \\
-      \node[left] {closed-loop poles}; & \node[cell] {$s_{1,2}=-0.0488\pm j0.0495$}; \\
-      \node[left] {locus gain}; & \node[cell] {$k=0.01715K=0.0104$}; \\
-      \node[left] {controller gain}; & \node[cell] {$K=0.6064$}; \\
+      \node[head] {步骤}; & \node[head] {选取点}; \\
+      \node[left] {设计目标}; & \node[cell] {在 $\zeta=0.707$ 线上选取主导极点}; \\
+      \node[left] {闭环极点}; & \node[cell] {$s_{1,2}=-0.0488\pm j0.0495$}; \\
+      \node[left] {轨迹增益}; & \node[cell] {$k=0.01715K=0.0104$}; \\
+      \node[left] {控制器增益}; & \node[cell] {$K=0.6064$}; \\
     };
   \end{scope}
 \end{tikzpicture}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
@@ -20,9 +26,9 @@
     {a_0(s-p_1)\cdots(s-p_n)}
   $};
 
-  \node[callout] (z) at (-3.4,-2.0) {roots of $N(s)$\\zeros $z_i$};
-  \node[callout] (p) at (3.5,-2.0) {roots of $D(s)$\\poles $p_i$};
-  \node[callout] (d) at (5.2,1.7) {characteristic\\polynomial $D(s)$};
+  \node[callout] (z) at (-3.4,-2.0) {$N(s)$ 的根\\零点 $z_i$};
+  \node[callout] (p) at (3.5,-2.0) {$D(s)$ 的根\\极点 $p_i$};
+  \node[callout] (d) at (5.2,1.7) {特征\\多项式 $D(s)$};
 
   \draw[flow] (-1.9,-0.3) -- (z.north);
   \draw[flow] (1.7,-0.3) -- (p.north);

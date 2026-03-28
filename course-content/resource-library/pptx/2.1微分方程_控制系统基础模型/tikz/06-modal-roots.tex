@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 
 \definecolor{blockblue}{HTML}{4A90D9}
@@ -12,11 +18,11 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{3.3cm}p{7.2cm}}
-      \textbf{Root type} & \textbf{Mode} \\
-      real root & exponential growth / decay \\
-      repeated root & polynomial $\times$ exponential \\
-      complex conjugate root & damped oscillation \\
-      all homogeneous solutions & linear combination of modal responses \\
+      \textbf{根类型} & \textbf{对应模态} \\
+      实根 & 指数增长 / 衰减 \\
+      重根 & 多项式 $\times$ 指数项 \\
+      共轭复根 & 阻尼振荡 \\
+      所有齐次解 & 各模态响应的线性组合 \\
     \end{tabular}
   };
 \end{tikzpicture}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -11,11 +17,11 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {focus}; & \node[head] {what root locus provides}; \\
-    \node[left] {root-locus essentials}; & \node[cell] {start point, end point, real-axis segments, asymptotes, breakaway, departure / arrival angles, imaginary-axis crossings, and root sum}; \\
-    \node[left] {stability range}; & \node[cell] {use imaginary-axis crossings as boundaries, then read the stable parameter interval from the plot}; \\
-    \node[left] {gain conversion}; & \node[cell] {root-locus gain is often an intermediate variable, so convert $K^\ast$ back to the physical controller gain $K$}; \\
-    \node[left] {pole selection}; & \node[cell] {combine dominant poles, damping ratio, oscillation frequency, and time response before making design decisions}; \\
+    \node[head] {关注点}; & \node[head] {根轨迹能提供什么}; \\
+    \node[left] {根轨迹关键规则}; & \node[cell] {起点、终点、实轴区段、渐近线、分离点、入射/出射角、虚轴交点与根和}; \\
+    \node[left] {稳定范围}; & \node[cell] {以虚轴交点为边界，再从图上读出稳定参数区间}; \\
+    \node[left] {增益换算}; & \node[cell] {根轨迹增益常是中间变量，因此要把 $K^\ast$ 换回实际控制器增益 $K$}; \\
+    \node[left] {极点选择}; & \node[cell] {结合主导极点、阻尼比、振荡频率和时域响应后再做设计判断}; \\
   };
 \end{tikzpicture}
 \end{document}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
@@ -31,8 +37,8 @@
   \draw[flow] (g) -- (out);
 
   \node[align=left, font=\small] at (4.7,-2.1) {
-    One transfer function = one input-output pair\\
-    MIMO systems require a transfer matrix
+    一个传递函数对应一个输入输出通道\\
+    多输入多输出系统需要传递函数矩阵
   };
 \end{tikzpicture}
 \end{document}

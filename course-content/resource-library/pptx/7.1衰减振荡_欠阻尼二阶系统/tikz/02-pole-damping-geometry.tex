@@ -1,4 +1,10 @@
 \documentclass[tikz,border=8pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{pgfplots}
 \usepackage{xcolor}
@@ -25,7 +31,7 @@
     \addplot[dashed, color=linegray] coordinates {(-5.0,-3.6) (0,0)};
     \addplot[color=lineblue, mark=*, only marks, mark size=2pt] coordinates {(-2.1,2.3) (-2.1,-2.3)};
     \node[font=\small, anchor=west] at (axis cs:-2.0,2.3) {$s_{1,2}=-\zeta\omega_n\pm j\omega_d$};
-    \node[font=\small, anchor=west] at (axis cs:-4.0,2.8) {constant damping ratio};
+    \node[font=\small, anchor=west] at (axis cs:-4.0,2.8) {等阻尼比};
     \draw[->, line width=1.0pt] (axis cs:0,0) -- (axis cs:-2.1,2.3);
     \node[font=\small, anchor=south] at (axis cs:-1.2,1.45) {$\omega_n$};
     \node[font=\small, anchor=north east] at (axis cs:-2.25,0.0) {$\zeta\omega_n$};

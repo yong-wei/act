@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,calc,positioning}
@@ -20,7 +26,7 @@
 
 \begin{document}
 \begin{tikzpicture}
-  \node[small, anchor=west] at (0,3.8) {Original structure};
+  \node[small, anchor=west] at (0,3.8) {原结构};
   \node (r) at (0.3,2.7) {$R(s)$};
   \node[tap] (tp) at (1.0,2.7) {};
   \node[sum] (s1) at (2.0,2.7) {};
@@ -39,7 +45,7 @@
   \node[font=\scriptsize] at ($(s2)+(-0.35,0.35)$) {$+$};
   \node[font=\scriptsize] at ($(s2)+(0.35,0.35)$) {$+$};
 
-  \node[small, anchor=west] at (0,-0.1) {Equivalent transfer function};
+  \node[small, anchor=west] at (0,-0.1) {等效传递函数};
   \node (r2) at (0.3,-1.2) {$R(s)$};
   \node[block] (eq) at (4.0,-1.2) {$\dfrac{G+H_1}{1+GH_2}$};
   \node (y2) at (7.0,-1.2) {$Y(s)$};

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,calc,positioning}
 
@@ -11,11 +17,11 @@
 \begin{document}
 \begin{tikzpicture}[node distance=0.9cm]
   \node[block] (r) {$\Phi_R(s)=\frac{K G_1(s) G_2(s)}{1 + K G_1(s) G_2(s)}$};
-  \node[note, below=of r] (rr) {tracking path: command to output};
+  \node[note, below=of r] (rr) {跟踪通道：指令到输出};
   \node[block, below=1.2cm of rr] (n) {$\Phi_N(s)=\frac{G_2(s)}{1 + K G_1(s) G_2(s)}$};
-  \node[note, below=of n] (nn) {disturbance path: wave to output};
+  \node[note, below=of n] (nn) {扰动通道：海浪到输出};
   \node[block, below=1.2cm of nn] (sum) {$y(t)=y_R(t)+y_N(t)$};
-  \node[note, below=of sum] (stepn) {$C_N(\infty)\approx \frac{0.625}{K}$ for step disturbance};
+  \node[note, below=of sum] (stepn) {对阶跃扰动，$C_N(\infty)\approx \frac{0.625}{K}$};
 
   \draw[flow] (r) -- (rr);
   \draw[flow] (rr) -- (n);

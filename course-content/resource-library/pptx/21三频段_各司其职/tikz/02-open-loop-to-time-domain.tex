@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -12,10 +18,10 @@
   stage/.style={rectangle, draw=blockblue, rounded corners=2pt, minimum width=2.8cm, minimum height=1.0cm, align=center, font=\small\bfseries},
   flow/.style={->, draw=linegray, line width=1.2pt}
 ]
-  \node[stage] (s1) at (0,0) {read $\omega_c$\\from $L(\omega)$};
-  \node[stage, right=1.2cm of s1] (s2) {read $\gamma$\\at $\omega_c$};
+  \node[stage] (s1) at (0,0) {从 $L(\omega)$\\读出 $\omega_c$};
+  \node[stage, right=1.2cm of s1] (s2) {在 $\omega_c$ 处\\读出 $\gamma$};
   \node[stage, right=1.2cm of s2] (s3) {$\gamma \leftrightarrow \zeta \leftrightarrow \sigma\%$};
-  \node[stage, right=1.2cm of s3] (s4) {$\omega_c \uparrow \Rightarrow t_s \downarrow$\\if $\gamma$ stays similar};
+  \node[stage, right=1.2cm of s3] (s4) {$\omega_c \uparrow \Rightarrow t_s \downarrow$\\若 $\gamma$ 近似不变};
   \draw[flow] (s1) -- (s2);
   \draw[flow] (s2) -- (s3);
   \draw[flow] (s3) -- (s4);

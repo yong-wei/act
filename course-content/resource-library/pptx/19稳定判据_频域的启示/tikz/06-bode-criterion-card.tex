@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta}
@@ -20,13 +26,13 @@
   \draw[axisgray] (2.2,-2.2) rectangle (5.4,-0.3);
   \node at (3.8,-1.25) {$L(\omega)>0$};
   \node[align=left, anchor=west] at (7.9,1.5) {
-    solid: original phase\\
-    dashed: raise the start by $v\times 90^\circ$
+    实线：原始相频曲线\\
+    虚线：起点上移 $v\times 90^\circ$
   };
   \node[align=left, anchor=west] at (7.9,-0.2) {
-    when $L(\omega)>0$:\\
-    upward crossing $\Rightarrow N_+$\\
-    downward crossing $\Rightarrow N_-$
+    当 $L(\omega)>0$ 时：\\
+    向上穿越 $\Rightarrow N_+$\\
+    向下穿越 $\Rightarrow N_-$
   };
 \end{tikzpicture}
 \end{document}

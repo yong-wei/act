@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -10,15 +16,15 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=1.0cm and 1.2cm]
-  \node[centerbox] (core) {correction\\improve stability, speed, accuracy};
+  \node[centerbox] (core) {校正\\改善稳定性、速度与精度};
 
-  \node[concept, above left=1.7cm and 3.2cm of core] (series) {series correction\\PD / lead action};
-  \node[concept, above=1.9cm of core] (feedback) {feedback correction\\velocity / output feedback};
-  \node[concept, above right=1.7cm and 3.2cm of core] (compound) {compound correction\\mix series and feedback};
+  \node[concept, above left=1.7cm and 3.2cm of core] (series) {串联校正\\比例微分或超前校正};
+  \node[concept, above=1.9cm of core] (feedback) {反馈校正\\速度反馈或输出反馈};
+  \node[concept, above right=1.7cm and 3.2cm of core] (compound) {复合校正\\串联与反馈并用};
 
-  \node[concept, below left=1.7cm and 3.2cm of core] (inputff) {input compensation\\reference feedforward};
-  \node[concept, below=1.9cm of core] (disturb) {disturbance compensation\\cancel load effect};
-  \node[concept, below right=1.7cm and 3.2cm of core] (target) {design target\\steady and fast};
+  \node[concept, below left=1.7cm and 3.2cm of core] (inputff) {输入补偿\\给定前馈};
+  \node[concept, below=1.9cm of core] (disturb) {扰动补偿\\抵消负载影响};
+  \node[concept, below right=1.7cm and 3.2cm of core] (target) {设计目标\\又稳又快};
 
   \draw[link] (core) -- (series);
   \draw[link] (core) -- (feedback);

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 
@@ -21,9 +27,9 @@
     \]
     \vspace{3pt}
 
-    \textbf{State variables:}
-    sway velocity $v$, yaw rate $r$, rudder angle $\delta$ \\
-    \textbf{Hydrodynamic terms:}
+    \textbf{状态变量：}
+    横荡速度 $v$、横摆角速度 $r$、舵角 $\delta$ \\
+    \textbf{水动力项：}
     $Y_\delta,\ N_\delta,\ Y_d,\ N_d$
     \end{minipage}
   };

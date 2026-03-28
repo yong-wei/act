@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -10,8 +16,8 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {departure angle at pole $p_0$}; &
-    \node[head] {arrival angle at zero $z_0$}; \\
+    \node[head] {极点 $p_0$ 处的出射角}; &
+    \node[head] {零点 $z_0$ 处的入射角}; \\
     \node[cell] {$\theta_{d0}=180^\circ+\sum \angle(p_0-z_j)-\sum_{i\ne 0}\angle(p_0-p_i)$}; &
     \node[cell] {$\theta_{a0}=180^\circ+\sum \angle(z_0-p_i)-\sum_{j\ne 0}\angle(z_0-z_j)$}; \\
   };

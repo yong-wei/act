@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{pgfplots}
 \usepackage{xcolor}
 \pgfplotsset{compat=1.18}
@@ -22,8 +28,8 @@
   ]
     \addplot[domain=0:10, samples=200, line width=1.2pt, color=lineblue] ({1/(1+x^2)},{-x/(1+x^2)});
     \addplot[only marks, mark=*, color=linered] coordinates {(1,0) (0,0)};
-    \node at (axis cs:1.02,0.06) {\small start};
-    \node at (axis cs:0.12,0.06) {\small end};
+    \node at (axis cs:1.02,0.06) {\small 起点};
+    \node at (axis cs:0.12,0.06) {\small 终点};
   \end{axis}
 \end{tikzpicture}
 \end{document}

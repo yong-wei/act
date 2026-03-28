@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -14,19 +20,19 @@
   flow/.style={->, draw=linegray, line width=1.2pt},
   sum/.style={circle, draw=sumgreen, minimum size=6mm, inner sep=0pt}
 ]
-  \node[font=\small\bfseries] at (2.8,1.7) {open-loop};
-  \node[block] (c1) at (1.4,0.9) {controller};
-  \node[block] (p1) at (4.2,0.9) {plant};
+  \node[font=\small\bfseries] at (2.8,1.7) {开环};
+  \node[block] (c1) at (1.4,0.9) {控制器};
+  \node[block] (p1) at (4.2,0.9) {被控对象};
   \draw[flow] (-0.2,0.9) -- (c1);
   \draw[flow] (c1) -- (p1);
   \draw[flow] (p1) -- (6.1,0.9);
 
-  \node[font=\small\bfseries] at (2.8,-0.2) {closed-loop};
+  \node[font=\small\bfseries] at (2.8,-0.2) {闭环};
   \node[sum] (sum1) at (0.7,-1.1) {};
   \node at (0.7,-1.1) {\small $\times$};
-  \node[block] (c2) at (2.5,-1.1) {controller};
-  \node[block] (p2) at (5.0,-1.1) {plant};
-  \node[block] (s2) at (5.0,-2.6) {sensor};
+  \node[block] (c2) at (2.5,-1.1) {控制器};
+  \node[block] (p2) at (5.0,-1.1) {被控对象};
+  \node[block] (s2) at (5.0,-2.6) {传感器};
   \draw[flow] (-0.4,-1.1) -- (sum1);
   \draw[flow] (sum1) -- node[above, font=\small] {$e$} (c2);
   \draw[flow] (c2) -- (p2);

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{pgfplots}
 \usepackage{xcolor}
@@ -16,8 +22,8 @@
     xmin=0.1, xmax=100,
     ymin=-25, ymax=25,
     axis lines=left,
-    xlabel={$\omega$ (log scale)},
-    ylabel={$L(\omega)=20\log_{10}|G(j\omega)|$ / dB},
+    xlabel={$\omega$（对数刻度）},
+    ylabel={$L(\omega)=20\log_{10}|G(j\omega)|$ / 分贝},
     xtick={0.1,1,10,100},
     xticklabels={$10^{-1}$,$10^0$,$10^1$,$10^2$},
     ytick={-20,0,20},
@@ -26,6 +32,6 @@
   ]
     \addplot coordinates {(0.1,15) (1,15) (10,-5) (100,-25)};
   \end{axis}
-  \node[align=left, font=\small] at (10.6,0.5) {decade:\\equal spacing for\\$10\times$ frequency change};
+  \node[align=left, font=\small] at (10.6,0.5) {十倍频程：\\频率增大 $10$ 倍时\\占据相同宽度};
 \end{tikzpicture}
 \end{document}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 
 \definecolor{blockblue}{HTML}{4A90D9}
@@ -13,14 +19,14 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{3.3cm}p{8.4cm}}
-      \textbf{Item} & \textbf{Conclusion} \\
-      applicability & linear time-invariant systems only \\
-      model boundary & maps input to output, not internal states \\
-      SISO / MIMO & one transfer function is for one SISO channel \\
-      system order & highest power of $s$ in the denominator \\
-      properness & for physical systems, denominator order $>$ numerator order \\
-      initial state & cannot represent nonzero initial-condition motion \\
-      characteristic info & $D(s)$ is the characteristic polynomial \\
+      \textbf{条目} & \textbf{结论} \\
+      适用范围 & 仅适用于线性定常系统 \\
+      模型边界 & 描述输入到输出的关系，不直接呈现内部状态 \\
+      单输入单输出 / 多输入多输出 & 一个传递函数只对应一个单输入单输出通道 \\
+      系统阶次 & 分母中 $s$ 的最高次幂 \\
+      真有理性 & 对物理系统通常有分母阶次 $>$ 分子阶次 \\
+      初始状态 & 不能直接表示非零初始条件引起的运动 \\
+      特征信息 & $D(s)$ 是特征多项式 \\
     \end{tabular}
   };
 \end{tikzpicture}

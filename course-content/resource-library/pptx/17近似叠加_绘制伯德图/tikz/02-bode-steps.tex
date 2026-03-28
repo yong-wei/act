@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -12,11 +18,11 @@
   stage/.style={rectangle, draw=blockblue, rounded corners=2pt, minimum width=2.6cm, minimum height=1.0cm, align=center, font=\small\bfseries},
   flow/.style={->, draw=linegray, line width=1.2pt}
 ]
-  \node[stage] (s1) at (0,0) {tail-1\\standard form};
-  \node[stage, right=0.9cm of s1] (s2) {list break\\frequencies};
-  \node[stage, right=0.9cm of s2] (s3) {set low-frequency\\behavior};
-  \node[stage, right=0.9cm of s3] (s4) {superpose\\asymptotes};
-  \node[stage, right=0.9cm of s4] (s5) {local\\correction};
+  \node[stage] (s1) at (0,0) {化为尾 1\\标准形式};
+  \node[stage, right=0.9cm of s1] (s2) {列出转折\\频率};
+  \node[stage, right=0.9cm of s2] (s3) {确定低频段\\起始规律};
+  \node[stage, right=0.9cm of s3] (s4) {叠加各段\\渐近线};
+  \node[stage, right=0.9cm of s4] (s5) {在转折处\\局部修正};
   \draw[flow] (s1) -- (s2);
   \draw[flow] (s2) -- (s3);
   \draw[flow] (s3) -- (s4);

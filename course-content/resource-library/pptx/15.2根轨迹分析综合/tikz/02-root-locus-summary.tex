@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,matrix}
 
@@ -33,11 +39,11 @@
 
   \begin{scope}[xshift=6.8cm]
     \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-      \node[head] {item}; & \node[head] {case result}; \\
-      \node[left] {characteristic equation}; & \node[cell] {$D(s)=1+\frac{0.01715K}{s(s+0.1)(s+2.14375)}=0$}; \\
-      \node[left] {root-locus form}; & \node[cell] {$G(s)=\frac{0.01715K}{s(s+0.1)(s+2.14375)}$}; \\
-      \node[left] {open-loop poles}; & \node[cell] {$0$, $-0.1$, and $-2.14375$}; \\
-      \node[left] {reading rule}; & \node[cell] {one branch moves left, while the other two form a complex pair near the origin where damping-ratio selection is performed}; \\
+      \node[head] {项目}; & \node[head] {本例结果}; \\
+      \node[left] {特征方程}; & \node[cell] {$D(s)=1+\frac{0.01715K}{s(s+0.1)(s+2.14375)}=0$}; \\
+      \node[left] {根轨迹形式}; & \node[cell] {$G(s)=\frac{0.01715K}{s(s+0.1)(s+2.14375)}$}; \\
+      \node[left] {开环极点}; & \node[cell] {$0$、$-0.1$ 和 $-2.14375$}; \\
+      \node[left] {读图规则}; & \node[cell] {一条分支向左远去，另外两条在原点附近形成复根对，并在此处进行阻尼比选点}; \\
     };
   \end{scope}
 \end{tikzpicture}

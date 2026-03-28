@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,matrix,positioning}
 
@@ -33,10 +39,10 @@
 
   \begin{scope}[xshift=7.0cm]
     \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-      \node[head] {view}; & \node[head] {engineering meaning}; \\
-      \node[left] {dynamic behavior}; & \node[cell] {real poles first, then a complex pair; the locus moves from overdamped to oscillatory behavior}; \\
-      \node[left] {stability}; & \node[cell] {$\Re\{\lambda_{1,2}\}<0$ for all shown branches, so the closed loop stays absolutely stable}; \\
-      \node[left] {steady-state error}; & \node[cell] {$e_{ss}=2A/K^\ast$ for ramp input, hence larger $K^\ast$ means smaller tracking error}; \\
+      \node[head] {视角}; & \node[head] {工程含义}; \\
+      \node[left] {动态行为}; & \node[cell] {先是实极点，后转为共轭复根；系统由过阻尼走向振荡}; \\
+      \node[left] {稳定性}; & \node[cell] {$\Re\{\lambda_{1,2}\}<0$ 在全部图示分支上都成立，因此闭环始终绝对稳定}; \\
+      \node[left] {稳态误差}; & \node[cell] {对斜坡输入有 $e_{ss}=2A/K^\ast$，因此 $K^\ast$ 越大，跟踪误差越小}; \\
     };
   \end{scope}
 \end{tikzpicture}

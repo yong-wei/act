@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta}
 
@@ -11,8 +17,8 @@
   \draw[axisgray, ->] (0,0) -- (9.2,0) node[right] {$\log \omega$};
   \draw[axisgray, ->] (0,-2.7) -- (0,2.3) node[above] {$L(\omega)$};
   \draw[lineblue] (0.5,-0.8) -- (2.5,-0.8) -- (4.2,-1.2) -- (6.2,0.2) -- (8.4,0.2);
-  \node[align=center] at (2.1,-1.8) {lag part\\gain shaping};
-  \node[align=center] at (6.4,1.1) {lead part\\phase boost};
+  \node[align=center] at (2.1,-1.8) {滞后部分\\调整增益分布};
+  \node[align=center] at (6.4,1.1) {超前部分\\提供相位超前};
 
   \begin{scope}[xshift=10.2cm]
     \draw[axisgray, ->] (0,0) -- (9.2,0) node[right] {$\log \omega$};

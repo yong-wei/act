@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -9,11 +15,11 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=0.9cm]
-  \node[card] (a) {Fourier series\\periodic signals};
-  \node[card, right=of a] (b) {Fourier transform\\aperiodic signals};
-  \node[card, right=of b] (c) {absolute integrability\\is restrictive};
-  \node[card, right=of c] (d) {multiply by\\$e^{-\sigma t}$};
-  \node[card, right=of d] (e) {Laplace transform\\larger signal class};
+  \node[card] (a) {傅里叶级数\\处理周期信号};
+  \node[card, right=of a] (b) {傅里叶变换\\处理非周期信号};
+  \node[card, right=of b] (c) {绝对可积条件\\限制较强};
+  \node[card, right=of c] (d) {乘以衰减因子\\$e^{-\sigma t}$};
+  \node[card, right=of d] (e) {拉普拉斯变换\\适用信号范围更广};
   \draw[signal] (a) -- (b);
   \draw[signal] (b) -- (c);
   \draw[signal] (c) -- (d);

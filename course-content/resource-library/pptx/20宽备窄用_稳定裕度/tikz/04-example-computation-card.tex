@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 
@@ -13,12 +19,12 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{3.6cm}p{9.3cm}}
-      \textbf{Open-loop model} & $\displaystyle G(s)=\frac{100}{s(s+2)(s+10)}$ \\
-      gain crossover & $\omega_c \approx 2.8$ from $|G(j\omega_c)|=1$ \\
-      phase margin & $\gamma = 180^\circ + \angle G(j\omega_c) = 19.9^\circ$ \\
-      phase crossover & $\omega_g^2 = 20 \Rightarrow \omega_g = 4.47$ \\
-      gain margin & $\displaystyle h=\frac{1}{|G(j\omega_g)|}=2.4\ (7.6\,\mathrm{dB})$ \\
-      interpretation & stable, but phase reserve is tight and should not be reduced much further \\
+      \textbf{开环模型} & $\displaystyle G(s)=\frac{100}{s(s+2)(s+10)}$ \\
+      幅值穿越频率 & $\omega_c \approx 2.8$，满足 $|G(j\omega_c)|=1$ \\
+      相角裕度 & $\gamma = 180^\circ + \angle G(j\omega_c) = 19.9^\circ$ \\
+      相位穿越频率 & $\omega_g^2 = 20 \Rightarrow \omega_g = 4.47$ \\
+      增益裕度 & $\displaystyle h=\frac{1}{|G(j\omega_g)|}=2.4\ (7.6\,\mathrm{分贝})$ \\
+      结果解读 & 系统稳定，但相位储备偏紧，不宜再继续降低 \\
     \end{tabular}
   };
 \end{tikzpicture}

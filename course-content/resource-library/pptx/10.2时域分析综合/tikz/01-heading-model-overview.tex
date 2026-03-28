@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -24,7 +30,7 @@
   \draw[signal] (n) -- (s2);
   \draw[signal] (c) |- ++(0,-1.6) -| node[pos=0.95,left] {$-$} (s1.south);
 
-  \node[note, below=1.9cm of g1] (a) {reference: heading command};
-  \node[note, below=1.9cm of g2] (b) {disturbance: wave / sway / yaw};
+  \node[note, below=1.9cm of g1] (a) {参考输入：航向指令};
+  \node[note, below=1.9cm of g2] (b) {扰动：海浪 / 横荡 / 偏航};
 \end{tikzpicture}
 \end{document}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning,calc}
 
@@ -14,10 +20,10 @@
   flow/.style={->, draw=linegray, line width=1.2pt}
 ]
   \node[sum] (s) at (0,0) {$\Sigma$};
-  \node[block, right=1.2cm of s] (c) {heading\\controller};
-  \node[block, right=1.2cm of c] (servo) {rudder servo};
-  \node[block, right=1.2cm of servo] (ship) {ship};
-  \node[block, below=1.8cm of ship] (compass) {compass\\feedback};
+  \node[block, right=1.2cm of s] (c) {航向\\控制器};
+  \node[block, right=1.2cm of c] (servo) {舵机};
+  \node[block, right=1.2cm of servo] (ship) {船舶};
+  \node[block, below=1.8cm of ship] (compass) {罗经\\反馈};
   \coordinate (out) at ($(ship.east)+(1.2,0)$);
   \coordinate (dist) at ($(ship.north)+(0,1.0)$);
 
@@ -28,9 +34,9 @@
   \draw[flow] (ship) -- (out) node[right] {$\psi$};
   \draw[flow] (out) |- (compass);
   \draw[flow] (compass.west) -| node[pos=0.22,left] {$-$} (s.south);
-  \draw[flow] (ship.north) -- (dist) node[above] {disturbance};
+  \draw[flow] (ship.north) -- (dist) node[above] {扰动};
 
-  \node[align=center, font=\small] at (5.9,-1.7) {sea wave / wind / current};
-  \node[align=center, font=\small] at (5.0,-3.1) {magnetic compass\\gyrocompass};
+  \node[align=center, font=\small] at (5.9,-1.7) {海浪 / 风 / 海流};
+  \node[align=center, font=\small] at (5.0,-3.1) {磁罗经\\陀螺罗经};
 \end{tikzpicture}
 \end{document}

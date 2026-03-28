@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -12,13 +18,13 @@
   block/.style={rectangle, draw=blockblue, rounded corners=2pt, minimum width=2.2cm, minimum height=1.2cm, align=center, font=\small\bfseries},
   flow/.style={->, draw=linegray, line width=1.2pt}
 ]
-  \node[block] (ctrl) at (2,0) {controller};
-  \node[block] (plant) at (6,0) {plant};
+  \node[block] (ctrl) at (2,0) {控制器};
+  \node[block] (plant) at (6,0) {被控对象};
   \draw[flow] (-0.5,0.4) -- (ctrl.west |- -0.5,0.4) node[left] {$r_1$};
   \draw[flow] (-0.5,-0.4) -- (ctrl.west |- -0.5,-0.4) node[left] {$r_2$};
   \draw[flow] (ctrl) -- (plant);
   \draw[flow] (plant.east |- 8.8,0.4) -- (8.8,0.4) node[right] {$y_1$};
   \draw[flow] (plant.east |- 8.8,-0.4) -- (8.8,-0.4) node[right] {$y_2$};
-  \node[below] at (4,-1.1) {multi-input multi-output feedback system};
+  \node[below] at (4,-1.1) {多输入多输出反馈系统};
 \end{tikzpicture}
 \end{document}

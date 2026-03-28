@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,matrix,positioning}
 
@@ -26,18 +32,18 @@
     \node[below] at (2.8,0) {$1$};
     \node[below] at (4.6,0) {$9/7$};
     \node[below] at (7.4,0) {$+\infty$};
-    \node[above, black!75] at (1.8,0.22) {unstable};
-    \node[above, black!75] at (3.7,0.22) {stable};
-    \node[above, black!75] at (6.0,0.22) {unstable};
+    \node[above, black!75] at (1.8,0.22) {不稳定};
+    \node[above, black!75] at (3.7,0.22) {稳定};
+    \node[above, black!75] at (6.0,0.22) {不稳定};
   \end{scope}
 
   \begin{scope}[yshift=-3.7cm]
     \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-      \node[head] {item}; & \node[head] {example 2}; \\
-      \node[left] {open-loop form}; & \node[cell] {$G(s)=K(2s+1)\,/\!\left[(s+1)^2\left(\frac{4}{7}s-1\right)\right]$}; \\
-      \node[left] {root-locus gain}; & \node[cell] {$K^\ast=3.5K$}; \\
-      \node[left] {imaginary-axis crossings}; & \node[cell] {$\omega=0,\ K=1$ and $\omega=\pm\sqrt{2},\ K=9/7$}; \\
-      \node[left] {design conclusion}; & \node[cell] {the closed loop is only conditionally stable, and the usable range is $1<K<9/7$}; \\
+      \node[head] {项目}; & \node[head] {例 2}; \\
+      \node[left] {开环形式}; & \node[cell] {$G(s)=K(2s+1)\,/\!\left[(s+1)^2\left(\frac{4}{7}s-1\right)\right]$}; \\
+      \node[left] {根轨迹增益}; & \node[cell] {$K^\ast=3.5K$}; \\
+      \node[left] {虚轴交点}; & \node[cell] {$\omega=0,\ K=1$ and $\omega=\pm\sqrt{2},\ K=9/7$}; \\
+      \node[left] {设计结论}; & \node[cell] {闭环仅条件稳定，可用范围为 $1<K<9/7$}; \\
     };
   \end{scope}
 \end{tikzpicture}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -11,26 +17,26 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[headcell] {method}; &
-    \node[headcell] {main effect}; &
-    \node[headcell] {zero / pole side effect}; &
-    \node[headcell] {best use case}; \\
-    \node[leftcell] {PD series}; &
-    \node[tablecell] {$\zeta$ up, overshoot down}; &
-    \node[tablecell] {adds one zero}; &
-    \node[tablecell] {shape transient response}; \\
-    \node[leftcell] {velocity feedback}; &
-    \node[tablecell] {$\zeta$ up, $\omega_n$ fixed}; &
-    \node[tablecell] {no extra zero}; &
-    \node[tablecell] {improve damping with cleaner structure}; \\
-    \node[leftcell] {input feedforward}; &
-    \node[tablecell] {reduce tracking error}; &
-    \node[tablecell] {needs model matching}; &
-    \node[tablecell] {raise steady-state accuracy}; \\
-    \node[leftcell] {disturbance compensation}; &
-    \node[tablecell] {cancel load effect}; &
-    \node[tablecell] {sensitive to disturbance model}; &
-    \node[tablecell] {disturbance rejection}; \\
+    \node[headcell] {方法}; &
+    \node[headcell] {主要作用}; &
+    \node[headcell] {零点 / 极点附带影响}; &
+    \node[headcell] {适用场景}; \\
+    \node[leftcell] {比例微分串联校正}; &
+    \node[tablecell] {$\zeta$ 增大，超调减小}; &
+    \node[tablecell] {增加一个零点}; &
+    \node[tablecell] {整形过渡过程}; \\
+    \node[leftcell] {速度反馈}; &
+    \node[tablecell] {$\zeta$ 增大，$\omega_n$ 保持不变}; &
+    \node[tablecell] {不引入额外零点}; &
+    \node[tablecell] {改善阻尼且结构更干净}; \\
+    \node[leftcell] {输入前馈}; &
+    \node[tablecell] {减小跟踪误差}; &
+    \node[tablecell] {需要模型匹配}; &
+    \node[tablecell] {提高稳态精度}; \\
+    \node[leftcell] {扰动补偿}; &
+    \node[tablecell] {抵消负载影响}; &
+    \node[tablecell] {对扰动模型较敏感}; &
+    \node[tablecell] {抑制扰动}; \\
   };
 \end{tikzpicture}
 \end{document}

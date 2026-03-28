@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,calc,positioning}
@@ -20,7 +26,7 @@
 
 \begin{document}
 \begin{tikzpicture}
-  \node[small, anchor=west] at (0,3.8) {Original DC motor structure};
+  \node[small, anchor=west] at (0,3.8) {原直流电动机结构};
   \node (ua) at (0.4,2.8) {$U_a(s)$};
   \node[sum] (sum1) at (1.7,2.8) {};
   \node[block] (r) at (3.4,2.8) {$\dfrac{1}{R}$};
@@ -37,7 +43,7 @@
   \draw[signal] (ce) -| node[pos=0.96, left] {$-$} (sum1.south);
   \node[font=\scriptsize] at ($(sum1)+(-0.35,0.35)$) {$+$};
 
-  \node[small, anchor=west] at (0,-0.2) {Equivalent reduced form};
+  \node[small, anchor=west] at (0,-0.2) {等效简化形式};
   \node (ua2) at (0.4,-1.2) {$U_a(s)$};
   \node[sum] (sum2) at (1.7,-1.2) {};
   \node[block] (g) at (5.0,-1.2) {$\dfrac{C_m}{R(J_ms+f_m)}$};

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -12,11 +18,11 @@
   stage/.style={rectangle, draw=blockblue, rounded corners=2pt, minimum width=2.9cm, minimum height=1.0cm, align=center, font=\small\bfseries},
   flow/.style={->, draw=linegray, line width=1.2pt}
 ]
-  \node[stage] (s1) at (0,0) {use $e_{ss}^\ast$\\to determine $K$};
-  \node[stage, right=1.1cm of s1] (s2) {read $\omega_{c0}$ and $\gamma_0$\\from the original Bode plot};
-  \node[stage, right=1.1cm of s2] (s3) {set $\psi_m=\gamma^\ast-\gamma_0+5^\circ\sim10^\circ$};
-  \node[stage, right=1.1cm of s3] (s4) {compute $a$, then choose $\omega_m$\\where $L_0(\omega_m)=-10\log a$};
-  \node[stage, below=1.2cm of s3] (s5) {solve $T$ from $\omega_m=1/(\sqrt{a}T)$\\and verify the compensated system};
+  \node[stage] (s1) at (0,0) {由 $e_{ss}^\ast$\\确定 $K$};
+  \node[stage, right=1.1cm of s1] (s2) {从原始伯德图读出\\$\omega_{c0}$ 与 $\gamma_0$};
+  \node[stage, right=1.1cm of s2] (s3) {令 $\psi_m=\gamma^\ast-\gamma_0+5^\circ\sim10^\circ$};
+  \node[stage, right=1.1cm of s3] (s4) {计算 $a$，再选取 $\omega_m$\\使 $L_0(\omega_m)=-10\log a$};
+  \node[stage, below=1.2cm of s3] (s5) {由 $\omega_m=1/(\sqrt{a}T)$ 求 $T$\\并校核校正后系统};
   \draw[flow] (s1) -- (s2);
   \draw[flow] (s2) -- (s3);
   \draw[flow] (s3) -- (s4);

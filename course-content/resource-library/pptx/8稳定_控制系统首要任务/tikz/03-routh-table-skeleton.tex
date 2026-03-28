@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{matrix,positioning}
@@ -14,6 +20,6 @@
     s^1 & c_1 & c_2 & 0 \\
     s^0 & d_1 & 0 & 0 \\
   };
-  \node[font=\small, align=left, right=1.0cm of m] {stability rule:\\first-column entries\\all positive};
+  \node[font=\small, align=left, right=1.0cm of m] {稳定判据：\\首列元素\\全部为正};
 \end{tikzpicture}
 \end{document}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 
 \definecolor{blockblue}{HTML}{4A90D9}
@@ -12,13 +18,13 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{3.2cm}p{7.8cm}}
-      \textbf{Question} & \textbf{Control-language answer} \\
-      what is the goal? & reference / desired output \\
-      what is controlled? & plant / process \\
-      who decides? & controller \\
-      who acts? & actuator \\
-      who measures? & sensor \\
-      what pushes the system away? & disturbance / noise \\
+      \textbf{问题} & \textbf{控制语言中的对应对象} \\
+      目标是什么？ & 给定量 / 期望输出 \\
+      被控制的是什么？ & 被控对象 / 过程 \\
+      谁负责决策？ & 控制器 \\
+      谁负责执行？ & 执行机构 \\
+      谁负责测量？ & 传感器 \\
+      什么会把系统推离目标？ & 扰动 / 噪声 \\
     \end{tabular}
   };
 \end{tikzpicture}

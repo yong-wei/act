@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,calc,positioning}
@@ -26,12 +32,12 @@
 \begin{document}
 \begin{tikzpicture}
   \draw[signal] (0,4.6) -- (2.8,4.6);
-  \node[note, anchor=west] at (3.2,4.6) {Signal line\\direction carried by arrow};
+  \node[note, anchor=west] at (3.2,4.6) {信号线\\箭头表示信号方向};
 
   \draw[signal] (0,2.9) -- (2.8,2.9);
   \node[tap] (tap1) at (1.45,2.9) {};
   \draw[signal] (tap1) -- ++(0,-0.9);
-  \node[note, anchor=west] at (3.2,2.9) {Tap point\\branched signal keeps the same value};
+  \node[note, anchor=west] at (3.2,2.9) {引出点\\分支信号保持同值};
 
   \node[sum] (sum1) at (1.45,1.0) {};
   \draw[signal] (0.05,1.0) -- (sum1);
@@ -39,11 +45,11 @@
   \draw[signal] (sum1) -- (2.8,1.0);
   \node[font=\scriptsize] at (1.02,1.28) {$+$};
   \node[font=\scriptsize] at (1.84,1.28) {$-$};
-  \node[note, anchor=west] at (3.2,1.0) {Summing junction\\algebraic combination of inputs};
+  \node[note, anchor=west] at (3.2,1.0) {综合点\\输入信号作代数运算};
 
   \node[block] (g) at (1.45,-1.0) {$G(s)$};
   \draw[signal] (0,-1.0) -- (g.west);
   \draw[signal] (g.east) -- (2.8,-1.0);
-  \node[note, anchor=west] at (3.2,-1.0) {Block\\transfer function of an element};
+  \node[note, anchor=west] at (3.2,-1.0) {方框\\表示环节传递函数};
 \end{tikzpicture}
 \end{document}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 
 \definecolor{blockblue}{HTML}{4A90D9}
@@ -12,11 +18,11 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{3.4cm}p{9.2cm}}
-      \textbf{Mid-band target} & cross $0\,\mathrm{dB}$ with about $-20\,\mathrm{dB/dec}$ and keep the band reasonably wide \\
-      \textbf{Why} & larger phase margin usually means smaller overshoot; larger $\omega_c$ usually means faster response \\
-      \textbf{Use case} & quick performance estimation for minimum-phase systems with dominant dynamics \\
-      \textbf{Boundary} & this is an engineering estimate, not an exact equality for every high-order system \\
-      \textbf{Required follow-up} & compare with numerical simulation or exact time-domain calculation \\
+      \textbf{中频段目标} & 在 $0\,\mathrm{分贝}$ 附近穿越，斜率约为 $-20\,\mathrm{分贝/十倍频程}$，且频带应保持适度宽度 \\
+      \textbf{原因} & 相角裕度越大，通常超调越小；$\omega_c$ 越大，通常响应越快 \\
+      \textbf{适用场景} & 用于对最小相位、主导动态明显的系统做快速性能估计 \\
+      \textbf{边界} & 这只是工程估计，不是对每个高阶系统都严格成立的精确等式 \\
+      \textbf{后续要求} & 需与数值仿真或精确时域计算结果对照 \\
     \end{tabular}
   };
 \end{tikzpicture}

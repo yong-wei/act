@@ -1,4 +1,4 @@
-# PPTX 提取总索引
+# 幻灯片提取总索引
 
 本目录保存 `course-content/slides-ref/*.pptx` 的正式提取产物。后续新的 `pptx` 提取包也统一放在这里。
 
@@ -18,36 +18,36 @@
 
 | 课件 | 状态 | 产物目录 |
 | --- | --- | --- |
-| 1反馈_控制原理的核心思想 | done | [1反馈_控制原理的核心思想](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/1反馈_控制原理的核心思想) |
-| 2.1微分方程_控制系统基础模型 | done | [2.1微分方程_控制系统基础模型](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/2.1微分方程_控制系统基础模型) |
-| 2.2传递函数_控制系统数学模型 | done | [2.2传递函数_控制系统数学模型](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/2.2传递函数_控制系统数学模型) |
-| 3方框图_控制系统结构 | done | [3方框图_控制系统结构](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/3方框图_控制系统结构) |
-| 4信号流图_控制系统拓扑结构 | done | [4信号流图_控制系统拓扑结构](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/4信号流图_控制系统拓扑结构) |
-| 5.1梅森公式_数圈圈与消消乐 | done | [5.1梅森公式_数圈圈与消消乐](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/5.1梅森公式_数圈圈与消消乐) |
-| 5.2系统建模综合 | done | [5.2系统建模综合](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/5.2系统建模综合) |
-| 6性能指标_控制效果评价 | done | [6性能指标_控制效果评价](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/6性能指标_控制效果评价) |
-| 7控制系统建模习题2025 | done | [7控制系统建模习题2025](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/7控制系统建模习题2025) |
-| 7.1衰减振荡_欠阻尼二阶系统 | done | [7.1衰减振荡_欠阻尼二阶系统](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/7.1衰减振荡_欠阻尼二阶系统) |
-| 7.2拉氏变换_工程直觉的数学实现 | done | [7.2拉氏变换_工程直觉的数学实现](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/7.2拉氏变换_工程直觉的数学实现) |
-| 8稳定_控制系统首要任务 | done | [8稳定_控制系统首要任务](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/8稳定_控制系统首要任务) |
-| 9稳态误差_准确性的度量 | done | [9稳态误差_准确性的度量](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/9稳态误差_准确性的度量) |
-| 10.1校正_实现控制的手段 | done | [10.1校正_实现控制的手段](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/10.1校正_实现控制的手段) |
-| 10.2时域分析综合 | done | [10.2时域分析综合](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/10.2时域分析综合) |
-| 11放眼大局_根轨迹法 | done | [11放眼大局_根轨迹法](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/11放眼大局_根轨迹法) |
-| 12根轨迹_基本形态 | done | [12根轨迹_基本形态](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/12根轨迹_基本形态) |
-| 13根轨迹_细节修正 | done | [13根轨迹_细节修正](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/13根轨迹_细节修正) |
-| 13时域分析习题2025 | done | [13时域分析习题2025](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/13时域分析习题2025) |
-| 14参数根轨迹_广义定义 | done | [14参数根轨迹_广义定义](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/14参数根轨迹_广义定义) |
-| 15.1根轨迹法_图形化思考 | done | [15.1根轨迹法_图形化思考](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/15.1根轨迹法_图形化思考) |
-| 15.2根轨迹分析综合 | done | [15.2根轨迹分析综合](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/15.2根轨迹分析综合) |
-| 16频率特性_换个角度看控制 | done | [16频率特性_换个角度看控制](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/16频率特性_换个角度看控制) |
-| 17近似叠加_绘制伯德图 | done | [17近似叠加_绘制伯德图](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/17近似叠加_绘制伯德图) |
-| 18幅相特性_换个角度看频域 | done | [18幅相特性_换个角度看频域](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/18幅相特性_换个角度看频域) |
-| 19稳定判据_频域的启示 | done | [19稳定判据_频域的启示](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/19稳定判据_频域的启示) |
-| 20宽备窄用_稳定裕度 | done | [20宽备窄用_稳定裕度](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/20宽备窄用_稳定裕度) |
-| 21三频段_各司其职 | done | [21三频段_各司其职](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/21三频段_各司其职) |
-| 22串联校正 | done | [22串联校正](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/22串联校正) |
-| 23滞后超前 | done | [23滞后超前](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/23滞后超前) |
+| 1反馈_控制原理的核心思想 | 已完成 | [1反馈_控制原理的核心思想](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/1反馈_控制原理的核心思想) |
+| 2.1微分方程_控制系统基础模型 | 已完成 | [2.1微分方程_控制系统基础模型](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/2.1微分方程_控制系统基础模型) |
+| 2.2传递函数_控制系统数学模型 | 已完成 | [2.2传递函数_控制系统数学模型](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/2.2传递函数_控制系统数学模型) |
+| 3方框图_控制系统结构 | 已完成 | [3方框图_控制系统结构](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/3方框图_控制系统结构) |
+| 4信号流图_控制系统拓扑结构 | 已完成 | [4信号流图_控制系统拓扑结构](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/4信号流图_控制系统拓扑结构) |
+| 5.1梅森公式_数圈圈与消消乐 | 已完成 | [5.1梅森公式_数圈圈与消消乐](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/5.1梅森公式_数圈圈与消消乐) |
+| 5.2系统建模综合 | 已完成 | [5.2系统建模综合](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/5.2系统建模综合) |
+| 6性能指标_控制效果评价 | 已完成 | [6性能指标_控制效果评价](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/6性能指标_控制效果评价) |
+| 7控制系统建模习题2025 | 已完成 | [7控制系统建模习题2025](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/7控制系统建模习题2025) |
+| 7.1衰减振荡_欠阻尼二阶系统 | 已完成 | [7.1衰减振荡_欠阻尼二阶系统](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/7.1衰减振荡_欠阻尼二阶系统) |
+| 7.2拉氏变换_工程直觉的数学实现 | 已完成 | [7.2拉氏变换_工程直觉的数学实现](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/7.2拉氏变换_工程直觉的数学实现) |
+| 8稳定_控制系统首要任务 | 已完成 | [8稳定_控制系统首要任务](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/8稳定_控制系统首要任务) |
+| 9稳态误差_准确性的度量 | 已完成 | [9稳态误差_准确性的度量](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/9稳态误差_准确性的度量) |
+| 10.1校正_实现控制的手段 | 已完成 | [10.1校正_实现控制的手段](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/10.1校正_实现控制的手段) |
+| 10.2时域分析综合 | 已完成 | [10.2时域分析综合](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/10.2时域分析综合) |
+| 11放眼大局_根轨迹法 | 已完成 | [11放眼大局_根轨迹法](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/11放眼大局_根轨迹法) |
+| 12根轨迹_基本形态 | 已完成 | [12根轨迹_基本形态](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/12根轨迹_基本形态) |
+| 13根轨迹_细节修正 | 已完成 | [13根轨迹_细节修正](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/13根轨迹_细节修正) |
+| 13时域分析习题2025 | 已完成 | [13时域分析习题2025](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/13时域分析习题2025) |
+| 14参数根轨迹_广义定义 | 已完成 | [14参数根轨迹_广义定义](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/14参数根轨迹_广义定义) |
+| 15.1根轨迹法_图形化思考 | 已完成 | [15.1根轨迹法_图形化思考](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/15.1根轨迹法_图形化思考) |
+| 15.2根轨迹分析综合 | 已完成 | [15.2根轨迹分析综合](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/15.2根轨迹分析综合) |
+| 16频率特性_换个角度看控制 | 已完成 | [16频率特性_换个角度看控制](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/16频率特性_换个角度看控制) |
+| 17近似叠加_绘制伯德图 | 已完成 | [17近似叠加_绘制伯德图](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/17近似叠加_绘制伯德图) |
+| 18幅相特性_换个角度看频域 | 已完成 | [18幅相特性_换个角度看频域](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/18幅相特性_换个角度看频域) |
+| 19稳定判据_频域的启示 | 已完成 | [19稳定判据_频域的启示](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/19稳定判据_频域的启示) |
+| 20宽备窄用_稳定裕度 | 已完成 | [20宽备窄用_稳定裕度](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/20宽备窄用_稳定裕度) |
+| 21三频段_各司其职 | 已完成 | [21三频段_各司其职](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/21三频段_各司其职) |
+| 22串联校正 | 已完成 | [22串联校正](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/22串联校正) |
+| 23滞后超前 | 已完成 | [23滞后超前](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/pptx/23滞后超前) |
 
 ## 推荐批次
 

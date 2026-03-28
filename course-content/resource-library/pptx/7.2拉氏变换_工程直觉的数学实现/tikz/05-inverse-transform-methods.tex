@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -9,10 +15,10 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=0.9cm]
-  \node[box] (a) {proper rational\\function?};
-  \node[box, right=of a] (b) {yes: partial fractions\\no repeated roots};
-  \node[box, right=of b] (c) {repeated roots:\\higher-order terms};
-  \node[box, right=of c] (d) {undetermined\\coefficients};
+  \node[box] (a) {是否为真有理\\函数？};
+  \node[box, right=of a] (b) {若是：先做部分分式\\且无重根时最直接};
+  \node[box, right=of b] (c) {若有重根：\\需保留高阶项};
+  \node[box, right=of c] (d) {待定\\系数法};
   \draw[signal] (a) -- (b);
   \draw[signal] (b) -- (c);
   \draw[signal] (c) -- (d);

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,matrix}
 
@@ -55,15 +61,15 @@
     \node[below] at (2.6,0) {$19.7$};
     \node[below] at (5.1,0) {$35.7$};
     \node[below] at (7.0,0) {$+\infty$};
-    \node[above] at (1.7,0.22) {unstable};
-    \node[above] at (3.85,0.22) {stable};
-    \node[above] at (6.0,0.22) {unstable};
+    \node[above] at (1.7,0.22) {不稳定};
+    \node[above] at (3.85,0.22) {稳定};
+    \node[above] at (6.0,0.22) {不稳定};
 
     \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth, anchor=north west] at (0,-1.2) {
-      \node[head] {item}; & \node[head] {example 4}; \\
-      \node[left] {open-loop model}; & \node[cell] {$G(s)=K^\ast(s+1)/\!\left[s(s-1)(s^2+4s+16)\right]$, with $K=K^\ast/16$}; \\
-      \node[left] {imaginary-axis crossings}; & \node[cell] {$\omega_1=1.46$, $K_1^\ast=19.7$ and $\omega_2=2.56$, $K_2^\ast=35.7$}; \\
-      \node[left] {design conclusion}; & \node[cell] {the stable window is $19.7<K^\ast<35.7$, equivalently $1.234<K<2.23$}; \\
+      \node[head] {项目}; & \node[head] {例 4}; \\
+      \node[left] {开环模型}; & \node[cell] {$G(s)=K^\ast(s+1)/\!\left[s(s-1)(s^2+4s+16)\right]$，其中 $K=K^\ast/16$}; \\
+      \node[left] {虚轴交点}; & \node[cell] {$\omega_1=1.46$、$K_1^\ast=19.7$；$\omega_2=2.56$、$K_2^\ast=35.7$}; \\
+      \node[left] {设计结论}; & \node[cell] {稳定区间为 $19.7<K^\ast<35.7$，等价于 $1.234<K<2.23$}; \\
     };
   \end{scope}
 \end{tikzpicture}

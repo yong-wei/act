@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -10,11 +16,11 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {input type}; &
-    \node[head] {sufficient condition for zero steady-state error}; \\
-    \node[cell] {step input}; &
+    \node[head] {输入类型}; &
+    \node[head] {稳态误差为零的充分条件}; \\
+    \node[cell] {阶跃输入}; &
     \node[cell] {$b_0=a_0,\ b_i=0\ (i=1,2,\dots,m)$}; \\
-    \node[cell] {ramp input}; &
+    \node[cell] {斜坡输入}; &
     \node[cell] {$b_0=a_0,\ b_1=a_1,\ b_i=0\ (i=2,3,\dots,m)$}; \\
   };
 \end{tikzpicture}

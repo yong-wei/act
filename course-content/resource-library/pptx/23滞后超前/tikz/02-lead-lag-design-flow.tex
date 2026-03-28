@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -12,12 +18,12 @@
   stage/.style={rectangle, draw=blockblue, rounded corners=2pt, minimum width=3.0cm, minimum height=1.0cm, align=center, font=\small\bfseries},
   flow/.style={->, draw=linegray, line width=1.2pt}
 ]
-  \node[stage] (s1) at (0,0) {use $e_{ss}^\ast$\\to determine $K$};
-  \node[stage, right=1.1cm of s1] (s2) {confirm single lead or lag\\cannot satisfy the full target};
-  \node[stage, right=1.1cm of s2] (s3) {design the lead part first\\to supply the missing phase};
-  \node[stage, below=1.2cm of s2] (s4) {read the remaining amplitude\\at the target crossover};
-  \node[stage, right=1.1cm of s4] (s5) {design the lag part\\to reshape low-frequency / crossover gain};
-  \node[stage, left=1.1cm of s4] (s6) {verify $\omega_c$, $\gamma$, $h$\\and steady-state error};
+  \node[stage] (s1) at (0,0) {由 $e_{ss}^\ast$\\确定 $K$};
+  \node[stage, right=1.1cm of s1] (s2) {确认单独超前或滞后\\都无法满足完整指标};
+  \node[stage, right=1.1cm of s2] (s3) {先设计超前部分\\补足缺失相位};
+  \node[stage, below=1.2cm of s2] (s4) {读取目标穿越频率处\\剩余的幅值需求};
+  \node[stage, right=1.1cm of s4] (s5) {再设计滞后部分\\重塑低频与穿越频率增益};
+  \node[stage, left=1.1cm of s4] (s6) {校核 $\omega_c$、$\gamma$、$h$\\以及稳态误差};
   \draw[flow] (s1) -- (s2);
   \draw[flow] (s2) -- (s3);
   \draw[flow] (s2) -- (s4);

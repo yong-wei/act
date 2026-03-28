@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 
@@ -13,12 +19,12 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{3.4cm}p{4.2cm}p{4.5cm}}
-      \textbf{Quantity} & \textbf{Bode estimate} & \textbf{Comment} \\
-      $\omega_c$ & $\sqrt{10}=3.16$ & larger than the exact value $2.8$ \\
-      $\gamma$ & $14.8^\circ$ & lower than the exact value $19.9^\circ$ \\
-      $\omega_g$ & $\sqrt{20}=4.47$ & coincides with the exact value \\
-      $h$ & $2.4$ & also matches the exact value well \\
-      workflow & hand sketch $\rightarrow$ read $\rightarrow$ `margin(G)` & use software to verify the approximation error \\
+      \textbf{量} & \textbf{伯德图近似值} & \textbf{说明} \\
+      $\omega_c$ & $\sqrt{10}=3.16$ & 比精确值 $2.8$ 略大 \\
+      $\gamma$ & $14.8^\circ$ & 比精确值 $19.9^\circ$ 略小 \\
+      $\omega_g$ & $\sqrt{20}=4.47$ & 与精确值一致 \\
+      $h$ & $2.4$ & 与精确值也比较接近 \\
+      流程 & 手工草绘 $\rightarrow$ 读图 $\rightarrow$ 原生裕度函数核验 & 用软件核验近似误差 \\
     \end{tabular}
   };
 \end{tikzpicture}

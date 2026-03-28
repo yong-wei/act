@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{positioning}
 
@@ -8,8 +14,8 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=0.9cm]
-  \node[card] (a) {\textbf{stable}\\return to equilibrium\\after disturbance};
-  \node[card, right=of a] (b) {\textbf{critical}\\sustained oscillation\\or boundary case};
-  \node[card, right=of b] (c) {\textbf{unstable}\\diverge from\\equilibrium};
+  \node[card] (a) {\textbf{稳定}\\回到平衡\\受扰之后};
+  \node[card, right=of a] (b) {\textbf{临界稳定}\\持续振荡\\或边界情形};
+  \node[card, right=of b] (c) {\textbf{不稳定}\\偏离\\平衡点};
 \end{tikzpicture}
 \end{document}

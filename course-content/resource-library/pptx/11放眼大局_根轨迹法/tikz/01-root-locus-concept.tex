@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -10,10 +16,10 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=1.0cm and 1.3cm]
-  \node[card] (a) {single point query\\one price / one root};
-  \node[center, right=2.0cm of a] (b) {parameter changes\\from $0$ to $+\infty$};
-  \node[card, right=2.0cm of b] (c) {closed-loop poles move\\in the $s$-plane};
-  \node[card, below=1.6cm of b] (d) {root locus = trajectory of closed-loop roots};
+  \node[card] (a) {单点判断\\一个增益对应一个根分布};
+  \node[center, right=2.0cm of a] (b) {参数连续变化\\从 $0$ 到 $+\infty$};
+  \node[card, right=2.0cm of b] (c) {闭环极点在\\$s$ 平面中移动};
+  \node[card, below=1.6cm of b] (d) {根轨迹 = 闭环根的轨迹};
 
   \draw[flow] (a) -- (b);
   \draw[flow] (b) -- (c);

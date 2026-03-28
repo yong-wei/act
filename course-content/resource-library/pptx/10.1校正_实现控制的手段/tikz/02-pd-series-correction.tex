@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -24,8 +30,8 @@
   \draw[signal] (y) |- ++(0,-1.6) -| node[pos=0.95,left] {$-$} (sum1.south);
 
   \node[card, below=2.0cm of gc, xshift=-3.9cm] (c1) {$\zeta_t = \zeta + \frac{1}{2} T_d \omega_n$};
-  \node[card, right=0.6cm of c1] (c2) {overshoot down};
-  \node[card, right=0.6cm of c2] (c3) {$\omega_n$ unchanged};
-  \node[card, right=0.6cm of c3] (c4) {adds one zero};
+  \node[card, right=0.6cm of c1] (c2) {超调减小};
+  \node[card, right=0.6cm of c2] (c3) {$\omega_n$ 不变};
+  \node[card, right=0.6cm of c3] (c4) {增加一个零点};
 \end{tikzpicture}
 \end{document}

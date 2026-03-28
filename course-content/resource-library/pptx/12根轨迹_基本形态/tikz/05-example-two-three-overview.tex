@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -11,21 +17,21 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {item}; &
-    \node[head] {example 2}; &
-    \node[head] {example 3}; \\
-    \node[left] {open-loop form}; &
+    \node[head] {项目}; &
+    \node[head] {例 2}; &
+    \node[head] {例 3}; \\
+    \node[left] {开环形式}; &
     \node[cell] {$\frac{K^\ast}{s(s+1)(s+2)}$}; &
     \node[cell] {$K^\ast\frac{s+2}{s(s+1)(s+4)}$}; \\
-    \node[left] {real-axis locus}; &
+    \node[left] {实轴根轨迹}; &
     \node[cell] {$(-\infty,-2]\cup[-1,0]$}; &
     \node[cell] {$[-4,-2]\cup[-1,0]$}; \\
-    \node[left] {asymptotes}; &
+    \node[left] {渐近线}; &
     \node[cell] {$\sigma_a=-1$, $\psi_a=\pm60^\circ,180^\circ$}; &
     \node[cell] {$\sigma_a=-\frac{3}{2}$, $\psi_a=\pm90^\circ$}; \\
-    \node[left] {next step}; &
-    \node[cell] {find breakaway point}; &
-    \node[cell] {find breakaway and imaginary-axis crossing}; \\
+    \node[left] {下一步}; &
+    \node[cell] {求分离点}; &
+    \node[cell] {求分离点与虚轴交点}; \\
   };
 \end{tikzpicture}
 \end{document}

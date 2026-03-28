@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 
 \definecolor{blockblue}{HTML}{4A90D9}
@@ -12,11 +18,11 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{3.7cm}p{4.0cm}p{5.0cm}}
-      \textbf{Observed limitation} & \textbf{Preferred network} & \textbf{Main mechanism} \\
-      low-frequency gain is too small & raise low-frequency gain first & reduce steady-state error while preserving the existing mid/high band if possible \\
-      $\omega_c$ and phase margin are both too small & lead compensation & add phase lead and raise the useful mid-band gain \\
-      $\omega_c$ is too high but phase margin is too small & lag compensation & attenuate high frequency, move the crossover left, use the plant's own phase reserve \\
-      steady-state and transient requirements both fail & combined compensation & coordinate low / mid / high frequency changes together \\
+      \textbf{当前限制} & \textbf{优先网络} & \textbf{主要机理} \\
+      低频增益偏小 & 先抬高低频增益 & 在尽量保留原中高频的前提下降低稳态误差 \\
+      $\omega_c$ 与相角裕度都偏小 & 超前校正 & 增加相位超前，并抬高中频有效增益 \\
+      $\omega_c$ 过高，但相角裕度偏小 & 滞后校正 & 衰减高频，把穿越频率左移，利用对象自身的相位储备 \\
+      稳态与动态要求都未满足 & 组合校正 & 统筹调整低频 / 中频 / 高频变化 \\
     \end{tabular}
   };
 \end{tikzpicture}

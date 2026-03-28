@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,calc,positioning}
@@ -17,13 +23,13 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=1.0cm]
-  \node[block] (ref) {reference\\$\theta_r$};
+  \node[block] (ref) {给定角度\\$\theta_r$};
   \node[sum, right=of ref] (sum1) {};
   \node[block, right=of sum1] (k1) {$K_1$};
   \node[block, right=of k1] (k2) {$K_2$};
   \node[sum, right=of k2] (sum2) {};
   \node[block, right=of sum2, minimum width=2.8cm] (motor) {$\dfrac{K_m}{s(T_m s+1)}$};
-  \node[block, right=of motor] (out) {output\\$\theta_o$};
+  \node[block, right=of motor] (out) {输出角度\\$\theta_o$};
   \node[block, below=1.4cm of out] (kp) {$K_p$};
   \node[block, below=1.4cm of motor] (kt) {$K_t s$};
 
@@ -44,7 +50,7 @@
   \node[font=\scriptsize] at ($(sum2.north west)+(-0.10,0.12)$) {$+$};
   \node[font=\scriptsize] at ($(sum2.south west)+(-0.10,-0.12)$) {$-$};
 
-  \node[note, below=0.85cm of k1] {outer position loop};
-  \node[note, below=0.85cm of sum2] {inner speed feedback};
+  \node[note, below=0.85cm of k1] {外位置环};
+  \node[note, below=0.85cm of sum2] {内速度反馈};
 \end{tikzpicture}
 \end{document}

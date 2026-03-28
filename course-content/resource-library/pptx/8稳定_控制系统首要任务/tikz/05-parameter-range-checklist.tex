@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -9,10 +15,10 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=1.0cm]
-  \node[box] (a) {keep parameter\\in characteristic polynomial};
-  \node[box, right=of a] (b) {build parameterized\\Routh table};
-  \node[box, right=of b] (c) {solve first-column\\inequalities};
-  \node[box, right=of c] (d) {if region shifted:\\apply variable translation};
+  \node[box] (a) {将参数保留在\\特征多项式中};
+  \node[box, right=of a] (b) {建立含参数的\\劳斯表};
+  \node[box, right=of b] (c) {求解首列元素\\不等式};
+  \node[box, right=of c] (d) {若区间整体偏移：\\再做变量平移};
   \draw[signal] (a) -- (b);
   \draw[signal] (b) -- (c);
   \draw[signal] (c) -- (d);

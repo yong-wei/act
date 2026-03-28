@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 
 \definecolor{blockblue}{HTML}{4A90D9}
@@ -12,11 +18,11 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{3.8cm}p{9.0cm}}
-      \textbf{Given by frequency-response tuning} & $K_c=0.7,\quad T_c=0.2566$ \\
-      P controller & $K_P=0.5K_c=0.35$ \\
-      PI controller & $K_P=0.4K_c=0.28,\quad T_I=0.8T_c\approx0.21$ \\
-      PID controller & $K_P=0.6K_c=0.42,\quad T_I=0.5T_c\approx0.13,\quad T_D=0.125T_c\approx0.03$ \\
-      message & when the closed loop is unstable, frequency-response tuning is still usable even though the step-response method is not \\
+      \textbf{由频率响应整定得到} & $K_c=0.7,\quad T_c=0.2566$ \\
+      比例控制器 & $K_P=0.5K_c=0.35$ \\
+      比例积分控制器 & $K_P=0.4K_c=0.28,\quad T_I=0.8T_c\approx0.21$ \\
+      比例积分微分控制器 & $K_P=0.6K_c=0.42,\quad T_I=0.5T_c\approx0.13,\quad T_D=0.125T_c\approx0.03$ \\
+      说明 & 当闭环不稳定时，虽然阶跃响应法不可用，但频率响应整定仍然可用 \\
     \end{tabular}
   };
 \end{tikzpicture}

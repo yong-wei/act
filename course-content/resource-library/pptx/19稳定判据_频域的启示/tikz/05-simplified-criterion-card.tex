@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 
@@ -13,13 +19,13 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{3.4cm}p{9.6cm}}
-      \textbf{Rule} & \textbf{Meaning} \\
-      $N=P/2$ & half Nyquist curve gives a stable closed loop \\
-      $Z=P-2N$ & number of unstable closed-loop poles \\
-      count only $(-\infty,-1)$ & other real-axis intersections do not matter \\
-      half crossing allowed & start/end on $(-\infty,-1)$ counts as $\pm 0.5$ \\
-      detour around imaginary-axis poles & the small contour in the $s$ plane becomes a large arc in the image plane \\
-      if $Z<0$ & the sign or crossing count is wrong; recompute the direction \\
+      \textbf{规则} & \textbf{含义} \\
+      $N=P/2$ & 半幅奈奎斯特曲线对应稳定闭环的条件 \\
+      $Z=P-2N$ & 闭环不稳定极点数 \\
+      只统计 $(-\infty,-1)$ & 其余实轴交点不计 \\
+      允许半次穿越 & 起点或终点落在 $(-\infty,-1)$ 上时按 $\pm 0.5$ 次计 \\
+      绕过虚轴极点 & $s$ 平面中的小圆弧在像平面中会变成大圆弧 \\
+      若 $Z<0$ & 说明符号或穿越计数有误，应重新判断方向 \\
     \end{tabular}
   };
 \end{tikzpicture}

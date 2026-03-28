@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -11,16 +17,16 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {item}; &
-    \node[head] {$T_a$ example}; \\
-    \node[left] {equivalent form}; &
+    \node[head] {项目}; &
+    \node[head] {$T_a$ 例题}; \\
+    \node[left] {等效形式}; &
     \node[cell] {$1+T_a\frac{s}{s^2+0.2s+1}=0$}; \\
-    \node[left] {equivalent open loop}; &
+    \node[left] {等效开环}; &
     \node[cell] {$G_e(s)H_e(s)=\frac{s}{s^2+0.2s+1}$}; \\
-    \node[left] {key points}; &
+    \node[left] {关键点}; &
     \node[cell] {$z=0,\ p_{1,2}=-0.1\pm j0.99,\ d=-1$}; \\
-    \node[left] {shape info}; &
-    \node[cell] {real-axis locus $[-\infty,0]$, departure angle about $185.7^\circ$}; \\
+    \node[left] {图形信息}; &
+    \node[cell] {实轴根轨迹为 $[-\infty,0]$，出射角约为 $185.7^\circ$}; \\
   };
 \end{tikzpicture}
 \end{document}

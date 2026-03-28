@@ -1,11 +1,17 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta}
 
 \begin{document}
 \begin{tikzpicture}[>=Stealth, line width=1.2pt]
-  \draw[->] (-3.2,0) -- (1.5,0) node[right] {$\mathrm{Re}(s)$};
-  \draw[->] (0,-3.0) -- (0,3.0) node[above] {$\mathrm{Im}(s)$};
+  \draw[->] (-3.2,0) -- (1.5,0) node[right] {$\mathrm{实部}(s)$};
+  \draw[->] (0,-3.0) -- (0,3.0) node[above] {$\mathrm{虚部}(s)$};
 
   \draw[blue!70!black] (-2,0) -- (-1,0);
   \draw[blue!70!black] (0,0) -- (-1,0);

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
@@ -15,7 +21,7 @@
     ymin=-30, ymax=25,
     axis lines=left,
     xlabel={$\omega$},
-    ylabel={amplitude / dB},
+    ylabel={幅值 / dB},
     xtick={0.1,1,10,100},
     xticklabels={$10^{-1}$,$10^0$,$10^1$,$10^2$},
     ytick={-20,0,20},

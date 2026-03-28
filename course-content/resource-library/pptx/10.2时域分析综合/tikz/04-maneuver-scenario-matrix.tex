@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -11,26 +17,26 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {scenario}; &
+    \node[head] {场景}; &
     \node[head] {$K=28$}; &
     \node[head] {$K=10$}; &
     \node[head] {$K=5$}; &
     \node[head] {$K=1$}; \\
-    \node[left] {right-angle turn}; &
-    \node[cell] {slides 17 / 21}; &
-    \node[cell] {slides 18 / 23}; &
-    \node[cell] {slides 19 / 24}; &
-    \node[cell] {slides 20 / 25}; \\
-    \node[left] {turning}; &
-    \node[cell] {slide 22}; &
-    \node[cell] {slide 23}; &
-    \node[cell] {slide 24}; &
-    \node[cell] {slide 25}; \\
-    \node[left] {obstacle avoidance}; &
-    \node[cell] {slide 27}; &
-    \node[cell] {slide 28}; &
-    \node[cell] {slide 29}; &
-    \node[cell] {slide 30}; \\
+    \node[left] {直角转向}; &
+    \node[cell] {第 17 / 21 页}; &
+    \node[cell] {第 18 / 23 页}; &
+    \node[cell] {第 19 / 24 页}; &
+    \node[cell] {第 20 / 25 页}; \\
+    \node[left] {回转}; &
+    \node[cell] {第 22 页}; &
+    \node[cell] {第 23 页}; &
+    \node[cell] {第 24 页}; &
+    \node[cell] {第 25 页}; \\
+    \node[left] {避障}; &
+    \node[cell] {第 27 页}; &
+    \node[cell] {第 28 页}; &
+    \node[cell] {第 29 页}; &
+    \node[cell] {第 30 页}; \\
   };
 \end{tikzpicture}
 \end{document}

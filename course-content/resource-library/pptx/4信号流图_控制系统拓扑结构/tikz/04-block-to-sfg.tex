@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,calc}
@@ -26,7 +32,7 @@
 \begin{document}
 \begin{tikzpicture}
   % block diagram
-  \node[note, anchor=west] at (0,2.9) {Block diagram};
+  \node[note, anchor=west] at (0,2.9) {方框图};
   \node (r) at (0.2,1.8) {$R$};
   \node[sum] (s1) at (1.3,1.8) {};
   \node[block] (g1) at (3.2,1.8) {$G_1$};
@@ -42,7 +48,7 @@
   \node[font=\Large] at (9.8,1.6) {$\Longrightarrow$};
 
   % sfg
-  \node[note, anchor=west] at (11.0,2.9) {Signal flow graph};
+  \node[note, anchor=west] at (11.0,2.9) {信号流图};
   \node[sfgsource] (rr) at (11.2,1.8) {$R$};
   \node[sfgnode] (e) at (13.2,1.8) {$E$};
   \node[sfgnode] (x) at (15.3,1.8) {$X$};

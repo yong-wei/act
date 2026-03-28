@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{positioning}
@@ -11,7 +17,7 @@
 \begin{tikzpicture}[node distance=1.0cm]
   \node[card] (left) {
     \begin{minipage}{5.2cm}
-      \textbf{core rules}\\[4pt]
+      \textbf{核心规则}\\[4pt]
       $\mathcal{L}\{af+bg\}=aF+bG$\\[6pt]
       $\mathcal{L}\{f'\}=sF-f(0^+)$\\[6pt]
       $\mathcal{L}\{\int_0^t f(\tau)\,\mathrm{d}\tau\}=F(s)/s$
@@ -19,7 +25,7 @@
   };
   \node[card, right=1.0cm of left] (right) {
     \begin{minipage}{5.2cm}
-      \textbf{useful limits and shifts}\\[4pt]
+      \textbf{常用极限与位移}\\[4pt]
       $f(0^+)=\lim_{s\to\infty}sF(s)$\\[6pt]
       $f(\infty)=\lim_{s\to 0}sF(s)$\\[6pt]
       $\mathcal{L}\{f(t-a)u(t-a)\}=e^{-as}F(s)$\\[6pt]

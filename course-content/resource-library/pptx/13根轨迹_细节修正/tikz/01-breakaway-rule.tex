@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -11,10 +17,10 @@
 \begin{document}
 \begin{tikzpicture}[node distance=0.9cm]
   \node[card] (a) {$\sum \frac{1}{d-p_i}=\sum \frac{1}{d-z_j}$};
-  \node[note, below=of a] (b) {necessary condition only};
-  \node[note, below=of b] (c) {candidate point must also lie on root locus};
-  \node[note, below=of c] (d) {there may be several breakaway points};
-  \node[note, below=of d] (e) {breakaway point is not always on the real axis};
+  \node[note, below=of a] (b) {这只是必要条件};
+  \node[note, below=of b] (c) {候选点还必须满足根轨迹条件};
+  \node[note, below=of c] (d) {可能存在多个分离点};
+  \node[note, below=of d] (e) {分离点不一定在实轴上};
 
   \draw[flow] (a) -- (b);
   \draw[flow] (b) -- (c);

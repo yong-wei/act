@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -12,9 +18,9 @@
   stage/.style={rectangle, draw=blockblue, rounded corners=2pt, minimum width=3.3cm, minimum height=1.0cm, align=center, font=\small\bfseries},
   flow/.style={->, draw=linegray, line width=1.2pt}
 ]
-  \node[stage] (s1) at (0,0) {Bode plot\\breaks / slopes / crossover};
-  \node[stage, right=1.5cm of s1] (s2) {same frequency\\points};
-  \node[stage, right=1.5cm of s2] (s3) {Nyquist plot\\start / crossing / end};
+  \node[stage] (s1) at (0,0) {伯德图\\转折 / 斜率 / 穿越频率};
+  \node[stage, right=1.5cm of s1] (s2) {同一组频率\\特征点};
+  \node[stage, right=1.5cm of s2] (s3) {奈奎斯特图\\起点 / 穿越 / 终点};
   \draw[flow] (s1) -- (s2);
   \draw[flow] (s2) -- (s3);
 \end{tikzpicture}

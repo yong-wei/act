@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -10,11 +16,11 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=0.9cm]
-  \node[card] (a) {example poles: $0$, $-2$};
-  \node[card, below=of a] (b) {angle test: $-\angle s-\angle(s+2)=(2k+1)\pi$};
-  \node[result, below=of b] (c) {if false: point is not on root locus};
-  \node[card, below=of c] (d) {if true: $K^\ast=|s|\,|s+2|$};
-  \node[result, below=of d] (e) {examples: $-0.4 \mapsto 0.64$, $-1 \mapsto 1$, $-1+2j \mapsto 5$};
+  \node[card] (a) {例中极点：$0$、$-2$};
+  \node[card, below=of a] (b) {相角检验：$-\angle s-\angle(s+2)=(2k+1)\pi$};
+  \node[result, below=of b] (c) {若不满足：该点不在根轨迹上};
+  \node[card, below=of c] (d) {若满足：$K^\ast=|s|\,|s+2|$};
+  \node[result, below=of d] (e) {例：$-0.4 \mapsto 0.64$，$-1 \mapsto 1$，$-1+2j \mapsto 5$};
 
   \draw[flow] (a) -- (b);
   \draw[flow] (b) -- (c);

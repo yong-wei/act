@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta}
@@ -24,8 +30,8 @@
   \node[align=left, anchor=west] at (3.8,1.2) {
     $\displaystyle \Phi(j\omega)=\frac{G(j\omega)}{1+G(j\omega)}$\\[4pt]
     $\displaystyle M(\omega)=\frac{|OA|}{|BA|}$\\[4pt]
-    closed-loop gain comes from\\
-    the geometry of the open-loop vector
+    闭环增益来自\\
+    开环向量的几何关系
   };
 \end{tikzpicture}
 \end{document}

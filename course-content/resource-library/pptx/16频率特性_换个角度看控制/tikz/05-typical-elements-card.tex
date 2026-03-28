@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 
@@ -13,13 +19,13 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{3.5cm}p{4.2cm}p{4.0cm}}
-      \textbf{Element} & \textbf{Transfer Function} & \textbf{Bode Feature} \\
-      proportional & $G(s)=K$ & $L(\omega)=20\log_{10}K,\ \varphi=0^\circ$ \\
-      integrator & $G(s)=1/s$ & slope $-20\,\mathrm{dB/dec},\ \varphi=-90^\circ$ \\
-      differentiator & $G(s)=s$ & slope $+20\,\mathrm{dB/dec},\ \varphi=+90^\circ$ \\
-      inertia & $G(s)=1/(Ts+1)$ & break at $\omega=1/T$, then $-20\,\mathrm{dB/dec}$ \\
-      lead / first-order diff. & $G(s)=1+\tau s$ & break at $\omega=1/\tau$, then $+20\,\mathrm{dB/dec}$ \\
-      oscillatory & $\dfrac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}$ & high-frequency slope $-40\,\mathrm{dB/dec}$, phase $0^\circ \to -180^\circ$ \\
+      \textbf{环节} & \textbf{传递函数} & \textbf{伯德图特征} \\
+      比例环节 & $G(s)=K$ & $L(\omega)=20\log_{10}K,\ \varphi=0^\circ$ \\
+      积分环节 & $G(s)=1/s$ & 斜率为 $-20\,\mathrm{分贝/十倍频程},\ \varphi=-90^\circ$ \\
+      微分环节 & $G(s)=s$ & 斜率为 $+20\,\mathrm{分贝/十倍频程},\ \varphi=+90^\circ$ \\
+      惯性环节 & $G(s)=1/(Ts+1)$ & 在 $\omega=1/T$ 处转折，随后斜率为 $-20\,\mathrm{分贝/十倍频程}$ \\
+      超前/一阶微分环节 & $G(s)=1+\tau s$ & 在 $\omega=1/\tau$ 处转折，随后斜率为 $+20\,\mathrm{分贝/十倍频程}$ \\
+      振荡环节 & $\dfrac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}$ & 高频斜率 $-40\,\mathrm{分贝/十倍频程}$，相角由 $0^\circ$ 过渡到 $-180^\circ$ \\
     \end{tabular}
   };
 \end{tikzpicture}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -10,18 +16,18 @@
 \begin{document}
 \begin{tikzpicture}[>=Stealth, line width=1.2pt, font=\small]
   \draw[axisgray, ->] (0,0) -- (10.6,0) node[right] {$\log \omega$};
-  \draw[axisgray, ->] (0,-3.2) -- (0,2.0) node[above] {$L(\omega)$ / dB};
+  \draw[axisgray, ->] (0,-3.2) -- (0,2.0) node[above] {$L(\omega)$ / 分贝};
   \draw[lineblue] (0.4,1.4) -- (3.0,1.4) -- (6.2,0.0) -- (10.0,-2.4);
   \draw[bandgreen] (0.6,1.75) -- (2.8,1.75);
-  \node[bandgreen, above] at (1.7,1.75) {low frequency};
+  \node[bandgreen, above] at (1.7,1.75) {低频段};
   \draw[bandgreen] (3.2,1.0) -- (6.0,1.0);
-  \node[bandgreen, above] at (4.6,1.0) {mid frequency};
+  \node[bandgreen, above] at (4.6,1.0) {中频段};
   \draw[bandgreen] (6.6,-0.4) -- (9.8,-0.4);
-  \node[bandgreen, above] at (8.2,-0.4) {high frequency};
+  \node[bandgreen, above] at (8.2,-0.4) {高频段};
   \draw[warnred, dashed] (5.4,0) -- (5.4,-2.8);
   \node[below] at (5.4,-2.8) {$\omega_c$};
-  \node[align=left] at (1.9,-1.4) {large low-frequency gain\\small steady-state error};
-  \node[align=left] at (4.8,-1.7) {near $-20\,\mathrm{dB/dec}$\\phase margin and speed};
-  \node[align=left] at (8.4,-2.7) {roll off quickly\\suppress noise};
+  \node[align=left] at (1.9,-1.4) {低频增益较大\\稳态误差较小};
+  \node[align=left] at (4.8,-1.7) {接近 $-20\,\mathrm{分贝/十倍频程}$\\兼顾相角裕度与速度};
+  \node[align=left] at (8.4,-2.7) {高频快速衰减\\抑制噪声};
 \end{tikzpicture}
 \end{document}

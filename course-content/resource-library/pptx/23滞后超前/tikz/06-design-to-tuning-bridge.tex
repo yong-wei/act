@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -12,9 +18,9 @@
   stage/.style={rectangle, draw=blockblue, rounded corners=2pt, minimum width=3.4cm, minimum height=1.0cm, align=center, font=\small\bfseries},
   flow/.style={->, draw=linegray, line width=1.2pt}
 ]
-  \node[stage] (s1) at (0,0) {model-based frequency design\\lead / lag / lead-lag compensation};
-  \node[stage, right=1.4cm of s1] (s2) {engineering controller form\\PID as a practical lead-lag compensator};
-  \node[stage, right=1.4cm of s2] (s3) {experiment-driven tuning\\step response / frequency response};
+  \node[stage] (s1) at (0,0) {基于模型的频域设计\\超前 / 滞后 / 超前滞后校正};
+  \node[stage, right=1.4cm of s1] (s2) {工程控制器形式\\将比例积分微分控制器看作实用的超前滞后补偿器};
+  \node[stage, right=1.4cm of s2] (s3) {实验驱动整定\\阶跃响应法 / 频率响应法};
   \draw[flow] (s1) -- (s2);
   \draw[flow] (s2) -- (s3);
 \end{tikzpicture}

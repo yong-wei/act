@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -9,9 +15,9 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=1.0cm]
-  \node[box] (a) {check closed-loop\\stability};
-  \node[box, right=of a] (b) {derive error transfer\\function $E(s)$};
-  \node[box, right=of b] (c) {apply final\\value theorem};
+  \node[box] (a) {先检查闭环\\稳定性};
+  \node[box, right=of a] (b) {写出误差传递\\函数 $E(s)$};
+  \node[box, right=of b] (c) {应用终值\\定理};
   \node[box, right=of c] (d) {$e_{ss}=\lim_{s\to 0}sE(s)$};
   \draw[signal] (a) -- (b);
   \draw[signal] (b) -- (c);

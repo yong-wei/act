@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -12,9 +18,9 @@
 \begin{tikzpicture}[node distance=0.9cm]
   \node[card] (a) {$D(s)=s^3+3s^2+2s+K^\ast$};
   \node[card, below=of a] (b) {$D(j\omega)=-j\omega^3-3\omega^2+j2\omega+K^\ast$};
-  \node[card, below=of b] (c) {$\mathrm{Re}D(j\omega)=-3\omega^2+K^\ast,\ \mathrm{Im}D(j\omega)=-\omega^3+2\omega$};
+  \node[card, below=of b] (c) {$\mathrm{实部}D(j\omega)=-3\omega^2+K^\ast,\ \mathrm{虚部}D(j\omega)=-\omega^3+2\omega$};
   \node[result, below=of c] (d) {$\omega=\pm\sqrt{2},\ K^\ast=6$};
-  \node[result, below=of d] (e) {imaginary-axis crossing: $s=\pm j\sqrt{2}$};
+  \node[result, below=of d] (e) {虚轴交点：$s=\pm j\sqrt{2}$};
 
   \draw[flow] (a) -- (b);
   \draw[flow] (b) -- (c);

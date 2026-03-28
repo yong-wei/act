@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{pgfplots}
 \usepackage{xcolor}
 \pgfplotsset{compat=1.18}
@@ -21,7 +27,7 @@
     \addplot[lineblue, line width=1.2pt, domain=-2:2, samples=200] {x^2 + 0.8*x + 1};
     \addplot[linered, dashed, line width=1.2pt, domain=-0.5:1.5] {2.8*x + 1};
     \addplot[only marks, mark=*, color=linered] coordinates {(0,1)};
-    \node at (axis cs:0.35,1.45) {\small work point};
+    \node at (axis cs:0.35,1.45) {\small 工作点};
   \end{axis}
 \end{tikzpicture}
 \end{document}

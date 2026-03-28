@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta}
@@ -38,7 +44,7 @@
     \node[below] at (3.1,-2.35) {$\omega_c$};
     \draw[linered, dashed] (5.4,-1.8) -- (5.4,-0.8);
     \node[below] at (5.4,-2.35) {$\omega_g$};
-    \node[align=left, anchor=west] at (6.9,1.2) {$\gamma$: phase reserve at $\omega_c$\\$h$: gain reserve at $\omega_g$};
+    \node[align=left, anchor=west] at (6.9,1.2) {$\gamma$：$\omega_c$ 处的相角裕度\\$h$：$\omega_g$ 处的幅值裕度};
   \end{scope}
 \end{tikzpicture}
 \end{document}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
@@ -13,9 +19,9 @@
   block/.style={rectangle, draw=blockblue, rounded corners=3pt, minimum width=2.8cm, minimum height=1.0cm, align=center},
   flow/.style={->, draw=linegray, line width=1.2pt}
 ]
-  \node[block] (arm) at (0,0) {armature\\circuit};
-  \node[block, right=1.8cm of arm] (torque) {electromagnetic\\torque};
-  \node[block, right=1.8cm of torque] (mech) {mechanical\\dynamics};
+  \node[block] (arm) at (0,0) {电枢\\回路};
+  \node[block, right=1.8cm of arm] (torque) {电磁\\转矩};
+  \node[block, right=1.8cm of torque] (mech) {机械\\动力学};
   \draw[flow] (-1.6,0) -- (arm) node[left] at (-1.6,0) {$u_r(t)$};
   \draw[flow] (arm) -- node[above] {$i$} (torque);
   \draw[flow] (torque) -- node[above] {$T_m$} (mech);

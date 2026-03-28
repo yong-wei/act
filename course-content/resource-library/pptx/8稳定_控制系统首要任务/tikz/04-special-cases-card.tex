@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{positioning}
 
@@ -10,14 +16,14 @@
 \begin{tikzpicture}[node distance=1.0cm]
   \node[card] (left) {
     \begin{minipage}{4.9cm}
-      \textbf{case 1: first element is zero}\\[4pt]
+      \textbf{情形 1：首项为零}\\[4pt]
       replace the zero by\\a very small positive value\\and continue the table
     \end{minipage}
   };
   \node[card, right=1.0cm of left] (right) {
     \begin{minipage}{4.9cm}
-      \textbf{case 2: entire row is zero}\\[4pt]
-      build auxiliary equation\\from previous row,\\differentiate it, then replace\\the zero row by new coefficients
+      \textbf{情形 2：整行为零}\\[4pt]
+      由上一行构造辅助方程\\求导后替换零行\\得到新的系数
     \end{minipage}
   };
 \end{tikzpicture}

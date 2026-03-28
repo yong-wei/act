@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta}
 
@@ -22,7 +28,7 @@
     \draw[axisgray, ->] (0,-2.4) -- (0,1.2) node[above] {$\psi(\omega)$};
     \draw[linered] (0.6,0.0) .. controls (2.3,-0.2) and (3.1,-1.5) .. (4.1,-1.8)
       .. controls (5.2,-1.6) and (6.0,-0.5) .. (7.4,0.0);
-    \node[align=left, anchor=west] at (8.5,-0.7) {gain attenuation helps\\phase lag must be kept\\away from the new crossover};
+    \node[align=left, anchor=west] at (8.5,-0.7) {幅值衰减有助于降交越频率\\相位滞后必须尽量避开\\新的穿越频率附近};
   \end{scope}
 \end{tikzpicture}
 \end{document}

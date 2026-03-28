@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
@@ -16,7 +22,7 @@
 ]
   \node[box] (p) at (0,2.2) {$\displaystyle P=\frac{1}{\Delta}\sum_{k=1}^{n} p_k\Delta_k$};
   \node[box] (d) at (0,0) {$\displaystyle \Delta=1-\sum_a L_a+\sum_{bc}L_bL_c-\sum_{def}L_dL_eL_f+\cdots$};
-  \node[hint] (h) at (0,-2.1) {$p_k$: forward-path gain \qquad $L_a$: loop gain \qquad $\Delta_k$: cofactor of the $k$th forward path};
+  \node[hint] (h) at (0,-2.1) {$p_k$：第 $k$ 条前向通路增益 \qquad $L_a$：回路增益 \qquad $\Delta_k$：第 $k$ 条前向通路余因子};
   \draw[-{Stealth[length=3mm]}] (p.south) -- (d.north);
   \draw[-{Stealth[length=3mm]}] (d.south) -- (h.north);
 \end{tikzpicture}

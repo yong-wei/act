@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -9,13 +15,13 @@
 
 \begin{document}
 \begin{tikzpicture}[>=Stealth, line width=1.2pt]
-  \node[rulebox] at (0,2.4) {real-axis point $s$ is on root locus if the number of real poles and zeros to its right is odd};
-  \draw[->] (-4.5,0) -- (4.5,0) node[right] {$\mathrm{Re}(s)$};
+  \node[rulebox] at (0,2.4) {实轴上的点 $s$ 若其右侧实极点与实零点总数为奇数，则该点在根轨迹上};
+  \draw[->] (-4.5,0) -- (4.5,0) node[right] {$\mathrm{实部}(s)$};
   \draw[fill=black] (-3,0) circle (2pt) node[below] {$p_1$};
   \draw[fill=black] (-1,0) circle (2pt) node[below] {$p_2$};
   \draw[draw=black, fill=white, line width=1.2pt] (2,0) circle (2pt) node[below] {$z_1$};
   \draw[fill=blue!70!black] (0.5,0) circle (2.2pt) node[above] {$s$};
   \draw[very thick, orange!80!black] (-1,0) -- (2,0);
-  \node[note] at (0,-1.6) {count objects to the right of $s$\\odd $\Rightarrow$ on root locus};
+  \node[note] at (0,-1.6) {统计 $s$ 右侧对象个数\\奇数则在根轨迹上};
 \end{tikzpicture}
 \end{document}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{positioning}
@@ -12,19 +18,19 @@
 \begin{tikzpicture}[node distance=0.9cm]
   \node[card] (left) {
     \begin{minipage}{5.0cm}
-      \textbf{standard form}\\[4pt]
+      \textbf{标准形式}\\[4pt]
       $\Phi(s)=\dfrac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}$\\[6pt]
-      characteristic equation:\\
+      特征方程：\\
       $s^2+2\zeta\omega_n s+\omega_n^2=0$
     \end{minipage}
   };
   \node[card, right=1.0cm of left] (right) {
     \begin{minipage}{5.0cm}
-      \textbf{damping classes}\\[4pt]
-      $\zeta=0$: undamped\\
-      $0<\zeta<1$: underdamped\\
-      $\zeta=1$: critical damping\\
-      $\zeta>1$: overdamped
+      \textbf{阻尼分类}\\[4pt]
+      $\zeta=0$：无阻尼\\
+      $0<\zeta<1$：欠阻尼\\
+      $\zeta=1$：临界阻尼\\
+      $\zeta>1$：过阻尼
     \end{minipage}
   };
 \end{tikzpicture}

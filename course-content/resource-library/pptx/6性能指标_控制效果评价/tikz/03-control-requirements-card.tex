@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -9,13 +15,13 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=0.7cm]
-  \node[box] (stab) {\textbf{Stability}\\[4pt]return to equilibrium\\after disturbance};
-  \node[box, right=0.95cm of stab] (acc) {\textbf{Accuracy}\\[4pt]small steady-state\\tracking error};
-  \node[box, right=0.95cm of acc] (speed) {\textbf{Speed}\\[4pt]fast and smooth\\transient process};
+  \node[box] (stab) {\textbf{稳定性}\\[4pt]受扰之后\\仍能回到平衡};
+  \node[box, right=0.95cm of stab] (acc) {\textbf{准确性}\\[4pt]稳态\\跟踪误差要小};
+  \node[box, right=0.95cm of acc] (speed) {\textbf{快速性}\\[4pt]过渡过程\\又快又平稳};
 
   \draw[signal] (stab) -- (acc);
   \draw[signal] (acc) -- (speed);
 
-  \node[font=\small, align=center, below=0.8cm of acc] {basic control requirements recovered from slides 8--10};
+  \node[font=\small, align=center, below=0.8cm of acc] {课件第 8--10 页归纳出的三项基本要求};
 \end{tikzpicture}
 \end{document}

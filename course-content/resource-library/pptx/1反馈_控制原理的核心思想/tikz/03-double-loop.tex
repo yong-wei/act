@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -15,12 +21,12 @@
   sum/.style={circle, draw=sumgreen, minimum size=6mm, inner sep=0pt}
 ]
   \node[sum] (s1) at (0.8,0) {}; \node at (0.8,0) {\small $\times$};
-  \node[block] (c1) at (2.5,0) {outer\\controller};
+  \node[block] (c1) at (2.5,0) {外环\\控制器};
   \node[sum] (s2) at (4.6,0) {}; \node at (4.6,0) {\small $\times$};
-  \node[block] (c2) at (6.3,0) {inner\\controller};
-  \node[block] (p) at (8.8,0) {plant};
-  \node[block] (sen1) at (8.8,-1.5) {sensor 1};
-  \node[block] (sen2) at (6.3,-2.7) {sensor 2};
+  \node[block] (c2) at (6.3,0) {内环\\控制器};
+  \node[block] (p) at (8.8,0) {被控对象};
+  \node[block] (sen1) at (8.8,-1.5) {传感器 1};
+  \node[block] (sen2) at (6.3,-2.7) {传感器 2};
   \draw[flow] (-0.5,0) -- (s1);
   \draw[flow] (s1) -- (c1) -- (s2) -- (c2) -- (p) -- (10.4,0);
   \draw[flow] (p) |- (sen1);

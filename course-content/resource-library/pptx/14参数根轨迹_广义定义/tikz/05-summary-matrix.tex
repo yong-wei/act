@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -11,16 +17,16 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {step}; &
-    \node[head] {meaning}; \\
-    \node[left] {identify parameter}; &
-    \node[cell] {choose the non-gain parameter that varies from $0$ to $+\infty$}; \\
-    \node[left] {rewrite characteristic equation}; &
-    \node[cell] {convert $B(s)+aA(s)=0$ into $1+aA(s)/B(s)=0$}; \\
-    \node[left] {build equivalent open loop}; &
-    \node[cell] {treat $a$ as the equivalent root-locus gain}; \\
-    \node[left] {reuse root-locus rules}; &
-    \node[cell] {analyze real-axis locus, asymptotes, breakaway, and imaginary-axis crossing}; \\
+    \node[head] {步骤}; &
+    \node[head] {含义}; \\
+    \node[left] {识别参数}; &
+    \node[cell] {选出从 $0$ 变化到 $+\infty$ 的非增益参数}; \\
+    \node[left] {改写特征方程}; &
+    \node[cell] {把 $B(s)+aA(s)=0$ 化为 $1+aA(s)/B(s)=0$}; \\
+    \node[left] {建立等效开环}; &
+    \node[cell] {把 $a$ 视为等效根轨迹增益}; \\
+    \node[left] {复用根轨迹规则}; &
+    \node[cell] {分析实轴根轨迹、渐近线、分离点与虚轴交点}; \\
   };
 \end{tikzpicture}
 \end{document}

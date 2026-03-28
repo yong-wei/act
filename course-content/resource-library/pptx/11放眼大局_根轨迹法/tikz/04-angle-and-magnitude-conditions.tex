@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -10,10 +16,10 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {angle condition}; &
-    \node[head] {magnitude condition}; \\
-    \node[cell] {$\angle G(s)H(s)=\sum \angle (s-z_i)-\sum \angle (s-p_i)=(2k+1)\pi$\\point belongs to root locus}; &
-    \node[cell] {$|G(s)H(s)|=1$\\determine the corresponding $K^\ast$}; \\
+    \node[head] {相角条件}; &
+    \node[head] {模值条件}; \\
+    \node[cell] {$\angle G(s)H(s)=\sum \angle (s-z_i)-\sum \angle (s-p_i)=(2k+1)\pi$\\该点在根轨迹上}; &
+    \node[cell] {$|G(s)H(s)|=1$\\确定对应的 $K^\ast$}; \\
   };
 \end{tikzpicture}
 \end{document}

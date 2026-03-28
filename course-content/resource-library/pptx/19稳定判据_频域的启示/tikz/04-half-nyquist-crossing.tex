@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta}
@@ -31,7 +37,7 @@
     $\displaystyle Z=P-2N$
   };
   \node[align=left, anchor=west] at (2.9,-0.8) {
-    stable $\Longleftrightarrow Z=0$\\[3pt]
+    稳定 $\Longleftrightarrow Z=0$\\[3pt]
     $\Longleftrightarrow N=P/2$
   };
 \end{tikzpicture}

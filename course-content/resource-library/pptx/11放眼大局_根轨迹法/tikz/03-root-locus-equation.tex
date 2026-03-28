@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -13,7 +19,7 @@
   \node[card, below=of a] (b) {$1+G(s)H(s)=0$};
   \node[card, below=of b] (c) {$G(s)H(s)=-1$};
   \node[card, below=of c] (d) {$G(s)H(s)=K^\ast \frac{\prod(s-z_i)}{\prod(s-p_i)}$};
-  \node[card, below=of d] (e) {ordinary: vary $K^\ast$\\generalized: vary another parameter};
+  \node[card, below=of d] (e) {普通根轨迹：变化 $K^\ast$\\广义根轨迹：变化其他参数};
 
   \draw[flow] (a) -- (b);
   \draw[flow] (b) -- (c);

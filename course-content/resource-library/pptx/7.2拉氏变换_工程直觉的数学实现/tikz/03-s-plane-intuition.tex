@@ -1,4 +1,10 @@
 \documentclass[tikz,border=8pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{pgfplots}
 \usepackage{xcolor}
@@ -21,10 +27,10 @@
     ytick={-3,0,3},
     clip=false
   ]
-    \node[font=\small, align=center] at (axis cs:-2.3,2.7) {decay\\+ oscillation};
-    \node[font=\small, align=center] at (axis cs:2.3,2.7) {growth\\+ oscillation};
-    \node[font=\small, align=center] at (axis cs:-2.3,0.8) {left half-plane:\\stable decay};
-    \node[font=\small, align=center] at (axis cs:2.3,0.8) {right half-plane:\\growth};
+    \node[font=\small, align=center] at (axis cs:-2.3,2.7) {衰减\\+ 振荡};
+    \node[font=\small, align=center] at (axis cs:2.3,2.7) {增长\\+ 振荡};
+    \node[font=\small, align=center] at (axis cs:-2.3,0.8) {左半平面：\\稳定衰减};
+    \node[font=\small, align=center] at (axis cs:2.3,0.8) {右半平面：\\增长};
     \addplot[only marks, mark=*, mark size=2pt, color=lineblue] coordinates {(-2,2.2)};
     \node[font=\small, anchor=south west] at (axis cs:-2,2.2) {$s=\sigma+j\omega$};
   \end{axis}

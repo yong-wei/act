@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -10,9 +16,9 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {number of asymptotes}; &
-    \node[head] {centroid and angle}; \\
-    \node[cell] {$n-m$ branches go to infinity when $n>m$}; &
+    \node[head] {渐近线条数}; &
+    \node[head] {交点与角度}; \\
+    \node[cell] {当 $n>m$ 时，有 $n-m$ 条分支走向无穷远}; &
     \node[cell] {$\sigma_a=\frac{\sum p_i-\sum z_i}{n-m}$\\$\psi_a=\frac{(2k+1)\pi}{n-m}$}; \\
   };
 \end{tikzpicture}

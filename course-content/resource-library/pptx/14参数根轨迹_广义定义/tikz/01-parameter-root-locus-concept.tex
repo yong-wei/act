@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -10,12 +16,12 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {ordinary root locus}; &
-    \node[head] {parameter root locus}; \\
-    \node[cell] {vary gain $K^\ast$ from $0$ to $+\infty$}; &
-    \node[cell] {vary another parameter such as $T_a$, $a$, or $T$}; \\
-    \node[cell] {already in standard form}; &
-    \node[cell] {must first convert to an equivalent standard form}; \\
+    \node[head] {普通根轨迹}; &
+    \node[head] {参数根轨迹}; \\
+    \node[cell] {令增益 $K^\ast$ 从 $0$ 变化到 $+\infty$}; &
+    \node[cell] {变化量不是增益，而是 $T_a$、$a$ 或 $T$ 等参数}; \\
+    \node[cell] {已在标准形式下}; &
+    \node[cell] {需先化成等效标准形式}; \\
   };
 \end{tikzpicture}
 \end{document}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -9,10 +15,10 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=1.0cm]
-  \node[box] (a) {physical law\\Kirchhoff equations};
-  \node[box, right=of a] (b) {differential equation\\for RLC response};
-  \node[box, right=of b] (c) {direct solving\\is expensive};
-  \node[box, right=of c] (d) {need a transform\\shortcut};
+  \node[box] (a) {物理规律\\基尔霍夫方程};
+  \node[box, right=of a] (b) {描述电阻电感电容电路响应的\\微分方程};
+  \node[box, right=of b] (c) {直接求解\\代价较高};
+  \node[box, right=of c] (d) {需要变换域\\捷径};
   \draw[signal] (a) -- (b);
   \draw[signal] (b) -- (c);
   \draw[signal] (c) -- (d);

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 
 \definecolor{blockblue}{HTML}{4A90D9}
@@ -12,12 +18,12 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{3.1cm}p{4.3cm}p{5.2cm}}
-      \textbf{Closed-loop feature} & \textbf{Meaning} & \textbf{Typical use} \\
-      zero-frequency value & low-frequency following ability & estimate low-frequency accuracy \\
-      resonant peak $M_r$ & resonance intensity & infer damping / overshoot tendency \\
-      resonant frequency $\omega_r$ & where the peak occurs & locate dominant oscillatory band \\
-      bandwidth & effective passband of the closed loop & infer speed and signal-tracking range \\
-      measured closed-loop curve & directly obtainable in experiments & recover performance without knowing the full model \\
+      \textbf{闭环特征} & \textbf{含义} & \textbf{典型用途} \\
+      零频值 & 低频跟随能力 & 估计低频精度 \\
+      谐振峰 $M_r$ & 谐振强度 & 推断阻尼 / 超调趋势 \\
+      谐振频率 $\omega_r$ & 峰值出现位置 & 定位主导振荡频段 \\
+      带宽 & 闭环有效通频带 & 推断响应速度与跟踪频段 \\
+      实测闭环曲线 & 可由实验直接获得 & 在未知完整模型时反推性能 \\
     \end{tabular}
   };
 \end{tikzpicture}

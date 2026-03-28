@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{matrix}
 
@@ -11,18 +17,18 @@
 \begin{document}
 \begin{tikzpicture}
   \matrix[matrix of nodes, nodes in empty cells, row sep=-\pgflinewidth, column sep=-\pgflinewidth] {
-    \node[head] {case}; &
-    \node[head] {steady-state result}; &
-    \node[head] {design implication}; \\
+    \node[head] {情形}; &
+    \node[head] {稳态结论}; &
+    \node[head] {设计启示}; \\
     \node[left] {$R=0,\ N=1/s$}; &
     \node[cell] {$e_{ssn}=\frac{1}{K_1K_3}$}; &
-    \node[cell] {increase $K_1$ and $K_3$ to reduce load disturbance effect}; \\
-    \node[left] {$N=0,\ R=1/s$\\input-side error}; &
+    \node[cell] {增大 $K_1$ 与 $K_3$，可减小负载扰动影响}; \\
+    \node[left] {$N=0,\ R=1/s$\\输入侧误差}; &
     \node[cell] {$e_{ss}=0$}; &
-    \node[cell] {no input-side steady-state error}; \\
-    \node[left] {$N=0,\ R=1/s$\\output-side error}; &
+    \node[cell] {输入侧稳态误差为零}; \\
+    \node[left] {$N=0,\ R=1/s$\\输出侧误差}; &
     \node[cell] {$e_{ssr}=1-\frac{1}{K_3}$}; &
-    \node[cell] {$K_3=1$ makes output-side steady-state error zero}; \\
+    \node[cell] {令 $K_3=1$ 可使输出侧稳态误差为零}; \\
   };
 \end{tikzpicture}
 \end{document}

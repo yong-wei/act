@@ -1,4 +1,10 @@
 \documentclass[tikz,border=8pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{pgfplots}
 \usepackage{xcolor}
@@ -35,7 +41,7 @@
     \node[font=\small, anchor=north] at (axis cs:0.63,-0.02) {$t_d$};
     \node[font=\small, anchor=north] at (axis cs:0.92,-0.02) {$t_r$};
     \node[font=\small, anchor=south west] at (axis cs:1.28,1.14) {$t_p$};
-    \node[font=\small, anchor=west] at (axis cs:3.35,1.02) {final value};
+    \node[font=\small, anchor=west] at (axis cs:3.35,1.02) {终值};
   \end{axis}
 \end{tikzpicture}
 \end{document}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 
@@ -13,11 +19,11 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{2.3cm}p{3.3cm}p{4.1cm}p{3.8cm}}
-      \textbf{Type} & \textbf{Low-frequency start} & \textbf{Origin detour image} & \textbf{What to watch} \\
-      type 0 & finite point on real axis & no extra large arc & whether the curve surrounds $(-1,0)$ \\
-      type I & $|G(j0)H(j0)|\to\infty$ & one $90^\circ$ turn after completing the small contour & crossing direction near the negative real axis \\
-      type II & stronger singularity at the origin & larger turn, easier to swing to the left of $-1$ & full-loop direction can change even when $P=0$ \\
-      type III and above & curve starts from infinity with more severe phase lag & multiple $90^\circ$ turns accumulated & unstable examples appear even without RHP open-loop poles \\
+      \textbf{类型} & \textbf{低频起点} & \textbf{原点绕行对应像} & \textbf{关注点} \\
+      0 型 & 实轴有限点 & 没有额外大圆弧 & 曲线是否包围 $(-1,0)$ \\
+      I 型 & $|G(j0)H(j0)|\to\infty$ & 小圆弧完成后再转过 $90^\circ$ & 负实轴附近的穿越方向 \\
+      I 型I & 原点奇性更强 & 转角更大，更容易摆到 $-1$ 左侧 & 即使 $P=0$，整圈方向也可能变化 \\
+      I 型II and above & 曲线从无穷远起步，且相位滞后更重 & 会累计多个 $90^\circ$ 转角 & 即使开环没有右半平面极点，也可能出现不稳定例子 \\
     \end{tabular}
   };
 \end{tikzpicture}

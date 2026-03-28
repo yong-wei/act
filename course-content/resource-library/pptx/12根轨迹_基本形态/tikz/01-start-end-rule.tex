@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -11,9 +17,9 @@
 \begin{document}
 \begin{tikzpicture}[node distance=0.9cm and 1.0cm]
   \node[card] (eq) {$G(s)H(s)=K^\ast \frac{\prod(s-z_i)}{\prod(s-p_i)}$};
-  \node[result, below left=1.6cm and 1.8cm of eq] (start) {$K^\ast \to 0$\\start at open-loop poles};
-  \node[result, below right=1.6cm and 1.8cm of eq] (end) {$K^\ast \to \infty$\\end at zeros or infinity};
-  \node[card, below=1.8cm of eq] (infz) {if $n>m$, there are $n-m$ zeros at infinity};
+  \node[result, below left=1.6cm and 1.8cm of eq] (start) {$K^\ast \to 0$\\从开环极点出发};
+  \node[result, below right=1.6cm and 1.8cm of eq] (end) {$K^\ast \to \infty$\\终止于零点或无穷远};
+  \node[card, below=1.8cm of eq] (infz) {若 $n>m$，则有 $n-m$ 个无穷远零点};
 
   \draw[flow] (eq) -- (start);
   \draw[flow] (eq) -- (end);

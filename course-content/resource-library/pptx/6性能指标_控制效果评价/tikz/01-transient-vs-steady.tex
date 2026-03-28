@@ -1,4 +1,10 @@
 \documentclass[tikz,border=8pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{pgfplots}
 \usepackage{xcolor}
@@ -26,8 +32,8 @@
     \addplot[samples=180, domain=0:8] {1 - exp(-0.85*x)*(cos(deg(2.7*x)) + 0.18*sin(deg(2.7*x)))};
     \addplot[dashed, color=linedark] coordinates {(0,1) (8,1)};
     \draw[dashed, color=linedark] (axis cs:3.3,0) -- (axis cs:3.3,1.08);
-    \node[font=\small, align=center] at (axis cs:1.55,0.17) {transient\\response};
-    \node[font=\small, align=center] at (axis cs:5.7,0.17) {steady-state\\response};
+    \node[font=\small, align=center] at (axis cs:1.55,0.17) {暂态\\响应};
+    \node[font=\small, align=center] at (axis cs:5.7,0.17) {稳态\\响应};
   \end{axis}
 \end{tikzpicture}
 \end{document}

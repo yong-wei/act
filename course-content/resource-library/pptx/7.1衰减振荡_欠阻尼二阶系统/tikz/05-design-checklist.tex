@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -9,10 +15,10 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=1.0cm]
-  \node[stepbox] (a) {write closed-loop form};
-  \node[stepbox, right=of a] (b) {match\\$\zeta,\omega_n$};
-  \node[stepbox, right=of b] (c) {use specs to get\\gain / pole region};
-  \node[stepbox, right=of c] (d) {recover\\$t_p,\sigma,t_s,\omega_d$};
+  \node[stepbox] (a) {写出闭环标准式};
+  \node[stepbox, right=of a] (b) {匹配\\$\zeta,\omega_n$};
+  \node[stepbox, right=of b] (c) {由指标确定\\增益 / 极点区域};
+  \node[stepbox, right=of c] (d) {回推出\\$t_p,\sigma,t_s,\omega_d$};
   \draw[signal] (a) -- (b);
   \draw[signal] (b) -- (c);
   \draw[signal] (c) -- (d);

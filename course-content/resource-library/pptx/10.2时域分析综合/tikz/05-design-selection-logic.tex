@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -10,11 +16,11 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=0.9cm and 1.0cm]
-  \node[card] (a) {choose $K$ in stable range};
-  \node[card, right=of a] (b) {check ramp accuracy};
-  \node[card, right=of b] (c) {check disturbance rejection};
-  \node[card, below=1.3cm of b] (d) {compare turning / turning circle / avoidance};
-  \node[result, below=1.3cm of d] (e) {final gain must balance stability, accuracy, and maneuver quality};
+  \node[card] (a) {先在稳定范围内选择 $K$};
+  \node[card, right=of a] (b) {检查斜坡跟踪精度};
+  \node[card, right=of b] (c) {检查扰动抑制能力};
+  \node[card, below=1.3cm of b] (d) {比较转向 / 回转圈 / 避障表现};
+  \node[result, below=1.3cm of d] (e) {最终增益必须兼顾稳定性、精度与操纵品质};
 
   \draw[flow] (a) -- (b);
   \draw[flow] (b) -- (c);

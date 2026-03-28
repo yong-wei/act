@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -11,20 +17,20 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=1.25cm]
-  \node[block] (ref) {desired level\\$c_r$};
-  \node[block, right=of ref] (cmp) {error\\detector};
-  \node[block, right=of cmp] (act) {motor + reducer\\+ valve};
+  \node[block] (ref) {给定液位\\$c_r$};
+  \node[block, right=of ref] (cmp) {误差\\检测环节};
+  \node[block, right=of cmp] (act) {电机 + 减速器\\+ 阀门};
   \draw[tank] (8.2,-0.8) rectangle (9.8,1.2);
   \draw[tank] (8.2,0.25) -- (9.35,0.25);
   \draw[signal] (act.east) -- (8.2,0.2);
   \draw[signal] (9.0,1.2) -- ++(0,0.7) -| (cmp.south);
-  \node[note, above=0.05cm of cmp] {float + potentiometer};
-  \node[note, below=0.1cm of act] {adjust inlet flow};
-  \node[note, below=0.0cm of ref] {set-point};
+  \node[note, above=0.05cm of cmp] {浮子+电位器};
+  \node[note, below=0.1cm of act] {调节进液流量};
+  \node[note, below=0.0cm of ref] {给定值};
   \node[note, above=0.0cm of cmp] {};
   \draw[signal] (ref) -- (cmp);
   \draw[signal] (cmp) -- (act);
-  \node[note, right=0.35cm of act] {tank};
-  \node[note] at (9.0,-1.3) {liquid level $c$};
+  \node[note, right=0.35cm of act] {水箱};
+  \node[note] at (9.0,-1.3) {液位 $c$};
 \end{tikzpicture}
 \end{document}

@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -24,9 +30,9 @@
   \draw[signal] (r) |- (gc);
   \draw[signal] (gc) -| (s2);
 
-  \node[card] (c1) at (2.5,-2.1) {$G_c(s) G_2(s)=1$ full compensation};
+  \node[card] (c1) at (2.5,-2.1) {$G_c(s) G_2(s)=1$\\完全补偿};
   \node[card] (c2) at (7.2,-2.1) {$e_{ss}=\frac{A(1-\tau K_2)}{K_1 K_2}$};
-  \node[card] (c3) at (2.5,-3.4) {raise system type by one};
-  \node[card] (c4) at (7.2,-3.4) {too large $\tau$ may over-compensate};
+  \node[card] (c3) at (2.5,-3.4) {系统型别提高一阶};
+  \node[card] (c4) at (7.2,-3.4) {$\tau$ 过大时可能过补偿};
 \end{tikzpicture}
 \end{document}

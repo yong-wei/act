@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{positioning}
 
@@ -8,8 +14,8 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=0.9cm]
-  \node[card] (a) {structure\\system architecture};
-  \node[card, right=of a] (b) {input signal\\reference type};
-  \node[card, right=of b] (c) {external disturbance\\load / noise};
+  \node[card] (a) {系统结构\\与类型};
+  \node[card, right=of a] (b) {输入信号\\与给定类型};
+  \node[card, right=of b] (c) {外部扰动\\负载 / 噪声};
 \end{tikzpicture}
 \end{document}

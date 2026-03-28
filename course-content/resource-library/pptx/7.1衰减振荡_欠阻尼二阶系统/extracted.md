@@ -321,8 +321,8 @@ $$
 
 第 21 页对象层保留了两条参考文献：
 
-1. Rake, H. (1979). *Step response and frequency response methods*. IFAC Proceedings Volumes, 12(8), 519-526.
-2. Liu, Q., Shang, C., & Huang, D. (2021). *Efficient low-order system identification from low-quality step response data with rank-constrained optimization*. Control Engineering Practice, 107, 104671.
+1. 雷克（1979）：《阶跃响应与频率响应方法》。
+2. 刘、尚、黄（2021）：《利用秩约束优化从低质量阶跃响应数据中高效辨识低阶系统》。
 
 同时还保留了一个视频资源关键词：
 

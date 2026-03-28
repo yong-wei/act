@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -12,9 +18,9 @@
 \begin{tikzpicture}[node distance=1.0cm]
   \node[card] (a) {$\Phi(s)=\frac{K G_1(s) G_2(s)}{1 + K G_1(s) G_2(s)}$};
   \node[card, below=of a] (b) {$D(s)=s^3 + 2.24375 s^2 + 0.214375 s + 0.01715 K$};
-  \node[result, below=of b] (c) {Routh condition: $0 < K < 28.046875$};
+  \node[result, below=of b] (c) {劳斯判据条件：$0 < K < 28.046875$};
   \node[card, below=of c] (d) {$K_v = 0.08 K$};
-  \node[result, below=of d] (e) {$e_{ss} = \frac{R}{0.08 K}$ for ramp input};
+  \node[result, below=of d] (e) {对斜坡输入，$e_{ss} = \frac{R}{0.08 K}$};
 
   \draw[flow] (a) -- (b);
   \draw[flow] (b) -- (c);

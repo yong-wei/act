@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -12,10 +18,10 @@
   stage/.style={rectangle, draw=blockblue, rounded corners=2pt, minimum width=3.1cm, minimum height=1.0cm, align=center, font=\small\bfseries},
   flow/.style={->, draw=linegray, line width=1.2pt}
 ]
-  \node[stage] (s1) at (0,0) {step-response method\\use delay $\tau$ and slope};
-  \node[stage, right=1.5cm of s1] (s2) {lookup table\\P / PI / PID};
-  \node[stage, below=1.3cm of s1] (s3) {frequency-response method\\use $K_c$ and $T_c$};
-  \node[stage, below=1.3cm of s2] (s4) {controller parameters\\$K_P$, $K_I$, $K_D$};
+  \node[stage] (s1) at (0,0) {阶跃响应法\\利用延迟 $\tau$ 与斜率};
+  \node[stage, right=1.5cm of s1] (s2) {整定对照表\\比例 / 比例积分 / 比例积分微分};
+  \node[stage, below=1.3cm of s1] (s3) {频率响应法\\利用 $K_c$ 与 $T_c$};
+  \node[stage, below=1.3cm of s2] (s4) {控制器参数\\$K_P$、$K_I$、$K_D$};
   \draw[flow] (s1) -- (s2);
   \draw[flow] (s3) -- (s4);
   \draw[flow] (s2) -- (s4);

@@ -282,7 +282,7 @@ $$
 
 第 35 页给出：
 
-- DR_CAN：开环系统和闭环系统
+- 开环系统和闭环系统讲解视频
 - Otto Mayr, *The Origins of Feedback Control*
 
 第 36 页为附加拓展页，文本较少，可视作延续资源页。

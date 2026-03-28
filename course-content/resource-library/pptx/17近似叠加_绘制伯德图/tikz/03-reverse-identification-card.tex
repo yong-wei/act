@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{xcolor}
 
 \definecolor{blockblue}{HTML}{4A90D9}
@@ -12,13 +18,13 @@
     align=left
   ] at (0,0) {
     \begin{tabular}{p{4.0cm}p{7.6cm}}
-      \textbf{Bode clue} & \textbf{Likely meaning} \\
-      low-frequency slope $0$ & no integrator dominates the low-frequency range \\
-      low-frequency slope $-20$ dB/dec & one integrator is likely present \\
-      slope decreases after a break & one more pole starts to work \\
-      slope increases after a break & one zero / lead term starts to work \\
-      obvious resonant peak & second-order oscillatory element with small damping \\
-      equal-distance breaks on log axis & candidate equally spaced time constants \\
+      \textbf{伯德图线索} & \textbf{可能含义} \\
+      低频斜率为 $0$ & 低频段没有积分环节主导 \\
+      低频斜率为 $-20$ 分贝/十倍频程 & 大概率含 1 个积分环节 \\
+      过转折频率后斜率下降 & 多了一个极点开始起作用 \\
+      过转折频率后斜率上升 & 多了一个零点或超前项开始起作用 \\
+      出现明显谐振峰 & 小阻尼二阶振荡环节 \\
+      对数坐标上转折点等间距 & 可能对应等比时间常数 \\
     \end{tabular}
   };
 \end{tikzpicture}

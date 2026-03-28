@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{positioning}
@@ -11,7 +17,7 @@
 \begin{tikzpicture}[node distance=1.0cm]
   \node[card] (left) {
     \begin{minipage}{5.2cm}
-      \textbf{static error constants}\\[4pt]
+      \textbf{静态误差系数}\\[4pt]
       $K_p=\lim_{s\to 0}G(s)H(s)$\\[6pt]
       $K_v=\lim_{s\to 0}sG(s)H(s)$\\[6pt]
       $K_a=\lim_{s\to 0}s^2G(s)H(s)$
@@ -19,7 +25,7 @@
   };
   \node[card, right=1.0cm of left] (right) {
     \begin{minipage}{5.2cm}
-      \textbf{unit-input errors}\\[4pt]
+      \textbf{单位输入误差}\\[4pt]
       step: $e_{ss}=1/(1+K_p)$\\[6pt]
       ramp: $e_{ss}=1/K_v$\\[6pt]
       acceleration: $e_{ss}=1/K_a$

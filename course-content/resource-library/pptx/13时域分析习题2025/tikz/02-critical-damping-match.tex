@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -11,7 +17,7 @@
 \begin{document}
 \begin{tikzpicture}[node distance=0.9cm]
   \node[card] (a) {$\Phi(s)=\frac{25K_1}{s^2+(0.8+25K_1K_t)s+25K_1}$};
-  \node[card, below=of a] (b) {target: $\omega_n=6,\ \zeta=1$};
+  \node[card, below=of a] (b) {目标：$\omega_n=6,\ \zeta=1$};
   \node[card, below=of b] (c) {$25K_1=\omega_n^2,\ 0.8+25K_1K_t=2\zeta\omega_n$};
   \node[result, below=of c] (d) {$K_1=1.44,\ K_t=0.31$};
 

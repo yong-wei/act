@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -10,15 +16,15 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=1.35cm]
-  \node[block] (system) {control system\\(differential equation)};
-  \node[block, right=of system] (input) {typical\\input};
-  \node[block, right=of input] (output) {output\\response};
-  \node[block, right=of output, minimum width=3.4cm] (judge) {performance judgement\\stability / accuracy / speed};
+  \node[block] (system) {控制系统\\（微分方程）};
+  \node[block, right=of system] (input) {典型\\输入};
+  \node[block, right=of input] (output) {输出\\响应};
+  \node[block, right=of output, minimum width=3.4cm] (judge) {性能判定\\稳定 / 准确 / 快速};
 
   \draw[signal] (system) -- (input);
   \draw[signal] (input) -- (output);
   \draw[signal] (output) -- (judge);
 
-  \node[note, below=0.8cm of input] {time-domain method:\\solve response first,\\evaluate performance next};
+  \node[note, below=0.8cm of input] {时域分析法：\\先求响应，\\再评估性能};
 \end{tikzpicture}
 \end{document}

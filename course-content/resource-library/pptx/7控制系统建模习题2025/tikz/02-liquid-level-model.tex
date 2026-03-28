@@ -1,4 +1,10 @@
 \documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,calc,positioning}
@@ -11,10 +17,10 @@
 
 \begin{document}
 \begin{tikzpicture}[node distance=1.4cm]
-  \node[block] (qin) {inflow\\$q_i(t)$};
-  \node[block, right=of qin] (sum) {net flow\\$q_i-q_o$};
-  \node[block, right=of sum] (tank) {tank dynamics\\$\dfrac{1}{A s}$};
-  \node[block, right=of tank] (level) {level\\$c(t)$};
+  \node[block] (qin) {输入流量\\$q_i(t)$};
+  \node[block, right=of qin] (sum) {净流量\\$q_i-q_o$};
+  \node[block, right=of sum] (tank) {水箱动力学\\$\dfrac{1}{A s}$};
+  \node[block, right=of tank] (level) {液位\\$c(t)$};
   \draw[signal] (qin) -- (sum);
   \draw[signal] (sum) -- (tank);
   \draw[signal] (tank) -- (level);

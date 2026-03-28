@@ -1,4 +1,10 @@
 \documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usetikzlibrary{arrows.meta,positioning}
@@ -13,10 +19,10 @@
   stage/.style={rectangle, draw=blockblue, rounded corners=2pt, minimum width=2.7cm, minimum height=1.1cm, align=center, font=\small\bfseries},
   flow/.style={->, draw=linegray, line width=1.2pt}
 ]
-  \node[stage] (s1) at (0,0) {signal-flow graph\\or block diagram};
-  \node[stage, right=1.4cm of s1] (s2) {Simulink model\\or graph data};
-  \node[stage, right=1.4cm of s2] (s3) {`linmod`\\state-space};
-  \node[stage, right=1.4cm of s3] (s4) {ss2tf\\numerator/denominator};
+  \node[stage] (s1) at (0,0) {信号流图\\或结构图};
+  \node[stage, right=1.4cm of s1] (s2) {仿真模型\\或图数据};
+  \node[stage, right=1.4cm of s2] (s3) {线性化\\状态空间};
+  \node[stage, right=1.4cm of s3] (s4) {传函提取\\分子 / 分母};
   \node[stage, right=1.4cm of s4] (s5) {$\frac{C(s)}{R(s)}$};
 
   \draw[flow] (s1) -- (s2);
