@@ -22,7 +22,7 @@ def test_extract_expected_code_media_reads_storage_lines():
         Path(__file__).resolve().parents[1]
         / 'authoring'
         / 'lessons'
-        / '1-3'
+        / '2-2'
         / 'design'
         / 'multimedia.md'
     )
@@ -30,10 +30,10 @@ def test_extract_expected_code_media_reads_storage_lines():
     expected_media = review_lesson_content.extract_expected_code_media(multimedia_path)
 
     assert [item['output'] for item in expected_media] == [
-        'td-01-time-domain-input-response-overview.svg',
-        'td-02-first-order-step-time-constant.svg',
-        'td-03-second-order-response-families.svg',
-        'td-04-time-domain-indices-annotated.svg',
-        'td-05-example-response-with-indices.svg',
-        'td-06-time-spec-to-pole-region.svg',
+        '2-2-td-01-time-domain-input-response-overview.svg',
+        '2-2-td-02-first-order-step-time-constant.svg',
+        '2-2-td-03-second-order-response-families.svg',
+        '2-2-td-04-time-domain-indices-annotated.svg',
+        '2-2-td-05-example-response-with-indices.svg',
+        '2-2-td-06-time-spec-to-pole-region.svg',
     ]

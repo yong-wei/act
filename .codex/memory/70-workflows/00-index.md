@@ -1,8 +1,8 @@
 # 工作流索引
 
 状态: active
-最后更新: 2026-03-26
-摘要: 保存高频操作流程，减少每次都重新组织排障或发布步骤；当前除课程内容审查与本地 Octave/Qt 修复闭环外，又补充了 `slides-ref` 的 `pptx -> Markdown + TikZ` 教学资源库提取流程。
+最后更新: 2026-03-28
+摘要: 保存高频操作流程，减少每次都重新组织排障或发布步骤；当前除课程内容审查、本地 Octave/Qt 修复闭环与 `slides-ref` 的 `pptx -> Markdown + TikZ` 提取流程外，又补充了“资源库正式融入大纲与课程制作”的统一选材流程，以及 `iCourse163` 客观题落到 `objective-bank` 的稳定链路。
 上游:
 - [../00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
 下游:
@@ -13,6 +13,8 @@
 - [40-remote-db-sync.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/40-remote-db-sync.md)
 - [45-local-octave-homebrew-qt.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/45-local-octave-homebrew-qt.md)
 - [50-pptx-slides-ref-extraction.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/50-pptx-slides-ref-extraction.md)
+- [55-resource-library-integration.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/55-resource-library-integration.md)
+- [60-icourse-objective-bank-flow.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/60-icourse-objective-bank-flow.md)
 相关:
 - [../30-operations/00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/30-operations/00-index.md)
 

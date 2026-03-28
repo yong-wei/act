@@ -25,6 +25,11 @@ description: Use when restructuring an engineering course at whole-course level 
 
 - `course-content/syllabus-refactor/unit-design-details/`
 - `course-content/syllabus-refactor/homework-framework.md`
+- `course-content/resource-library/integration-framework.md`
+- `course-content/resource-library/pptx/README.md`
+- `course-content/resource-library/civics-cases/integration-points.md`
+- `course-content/resource-library/civics-cases/indexes/unit-mapping.md`
+- `course-content/resource-library/ship-control-cases/indexes/section-map.md`
 - `references/course-quality-lens.md`
 - `references/source-map.md`
 - `.claude/jiaochuang/scoring-rubric.md`
@@ -38,6 +43,17 @@ description: Use when restructuring an engineering course at whole-course level 
 - 把整门课程视为一个系统，任何局部修改都要回看能力链、内容链、课时链与资源链。
 - 把用户当作共同设计者，不当作单向被评审对象。
 - 把外部资源当作候选证据与候选方案，不盲目照搬。
+
+## Resource Library as Formal Input
+
+`course-content/resource-library/` 现在是本技能的正式候选输入源，不再只是“有空可以翻一下”的资料夹。默认按以下角色理解：
+
+- `pptx/`：表达参考源，用于概念讲解顺序、图示骨架、例题组织与旧课件中的可复用图。
+- `civics-cases/`：价值引导源，用于课程思政的专业嵌入点，而不是独立贴标签。
+- `ship-control-cases/`：工程场景源，用于船舶特色建模、分析、校正、边界与迁移实例。
+- 习题资源：训练校准源，用于校准当前单元的训练强度和题型边界。
+
+资源进入大纲前，必须先经过边界审查；没有合适资源时，应明确写出“本轮不强行接入”。
 
 ## Non-Negotiable Rules
 
@@ -60,6 +76,8 @@ description: Use when restructuring an engineering course at whole-course level 
 13. “互动课程设计”在本项目中默认指页面化课堂主载体，不是从传统 `PPT` 中切出的零散互动片段。
 14. “教案”默认指课堂后台控制文稿，不承担前台页面展示稿职责。
 15. “媒体清单”默认同时服务静态页面呈现与互动状态切换，不只记录插图。
+16. 当任务进入模块、单元或 2 学时课堂层级时，必须显式形成“资源融入评审单”，至少说明候选资源、采用级别、落点与排除理由。
+17. 不得为了“看起来资源丰富”而强行把 `pptx`、思政、船舶、习题四类资源全部塞进同一单元；资源选择必须服从当前能力边界。
 
 ## Default Scope Order
 
@@ -110,6 +128,24 @@ description: Use when restructuring an engineering course at whole-course level 
 - 这道题的题目边界、禁止越界知识、允许方法与评分锚点是否已经清楚到足以稳定出题？
 - 这是在补基本计算训练、补跨域分析、推进开放主线，还是在无意中提前引入后续内容？
 
+### 2.5 构建资源候选清单
+
+若本轮任务已进入模块、单元、2 学时课堂、作业边界或资源安排层面，必须读取 `course-content/resource-library/integration-framework.md`，并按任务性质选择性读取以下索引：
+
+- 表达参考：`course-content/resource-library/pptx/README.md`
+- 思政融入：`course-content/resource-library/civics-cases/integration-points.md`
+- 思政映射：`course-content/resource-library/civics-cases/indexes/unit-mapping.md`
+- 船舶案例映射：`course-content/resource-library/ship-control-cases/indexes/section-map.md`
+
+然后先形成候选清单，再决定是否下钻到具体资源正文。候选清单至少包含：
+
+- 资源来源路径
+- 资源类型（`pptx / civics / ship-case / exercise`）
+- 拟服务的能力或边界
+- 计划落点（导入 / 正文 / 例题 / 互动 / 总结 / 练习）
+- 采用级别（`必融入 / 可选融入 / 排除`）
+- 边界说明（为什么适合，或为什么暂不采用）
+
 ### 3. 执行全局审查
 
 至少检查以下 8 项：
@@ -137,6 +173,17 @@ description: Use when restructuring an engineering course at whole-course level 
 - 2-3 个替代方案
 - 推荐方案与理由
 - 需要补充的材料、数据或外部资源
+
+#### 资源融入评审单
+
+至少包含：
+
+- 候选资源清单（带路径）
+- 每项资源的计划落点
+- 采用方式：`改写吸收 / 直接复用图片 / 仅作灵感 / 排除`
+- 采用级别：`必融入 / 可选融入 / 排除`
+- 不采用的理由
+- 对后续讲义 / 教案 / 互动课程设计 / 媒体清单 / 习题资源的影响
 
 #### 重构草案块
 
