@@ -1,5 +1,48 @@
 # 决策日志
 
+## 2026-03-28 | 资源库按转译层正式并入新课程框架
+
+### 已确认决策
+
+- `course-content/resource-library/` 中现有 `pptx`、思政案例、船舶特色案例不再只是松散参考附件，而是通过统一转译层正式进入课程重构流程。
+- 资源库与当前课程框架的关系固定为“转译关系”，不是“替代关系”：
+  - 先服从现有 `5` 模块主线；
+  - 再判断资源能否服务当前模块/单元；
+  - 不能因为 legacy 资源充足就反向改写总骨架。
+- 模块层处理原则固定为：
+  - 模块 `1-3` 主要补资源锚点，不改主线骨架；
+  - 模块 `4` 正式建立 legacy 频域校正资源转译线；
+  - 模块 `5` 保持“边界识别 -> 方法迁移 -> 前沿比较”主线，资源只作边界案例，不反向压回传统专题。
+- 模块4中以下资源的合法地位已固定：
+  - `20宽备窄用_稳定裕度`
+  - `21三频段_各司其职`
+  - `22串联校正`
+  - `23滞后超前`
+  - 船舶 `6.1-6.3`
+  - 它们必须被转写成选型解释、初始方案形成、优化修正和场景迁移比较的资源，而不能重新组织出一章旧式“频域校正”。
+- 模块5中船舶 `7.x/8.x` 的定位也已固定：
+  - 只服务 `5-1/5-2` 的边界案例；
+  - 不承担 `5-3/5-4/5-5` 的主骨架；
+  - 不因资源现状把模块5退回“非线性/离散系统补充章”。
+
+### 影响范围
+
+- `course-content/resource-library/integration-framework.md`
+- `course-content/resource-library/indexes/syllabus-fusion-map.md`
+- `course-content/resource-library/civics-cases/indexes/unit-mapping.md`
+- `course-content/resource-library/ship-control-cases/indexes/section-map.md`
+- `course-content/syllabus-refactor/unit-design-details/module1.md`
+- `course-content/syllabus-refactor/unit-design-details/module4.md`
+- `course-content/syllabus-refactor/unit-design-details/module5.md`
+- `course-content/syllabus-refactor/main.md`
+
+### 主要理由
+
+- 若不建立统一转译层，后续每次做单元都要重新判断资源落点，容易再次滑回“按旧课件章节找材料”的工作方式。
+- 模块 `1-3` 与资源库总体相容，核心问题不是改骨架，而是把资源使用边界正式写清。
+- 模块 `4` 是资源与新框架之间张力最大的地方，若不明确转译规则，最容易被 legacy 频域校正资源反向拉回旧章结构。
+- 模块 `5` 的合法主线已经确认，不能因为旧资源主要集中在非线性与离散部分，就削弱其方法迁移与前沿比较定位。
+
 ## 2026-03-26 | 单元 `2-3/2-4` 重新分工为“Bode 首轮进入前移，Nyquist 与频域指标入口后收”
 
 ### 已确认决策

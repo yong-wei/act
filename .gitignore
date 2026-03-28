@@ -26,6 +26,7 @@ deploy/
 data/
 .cache/
 .tmp/
+tmp/
 
 # Node/JS
 **/node_modules/
