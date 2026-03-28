@@ -1,0 +1,91 @@
+{
+  "bank_slug": "icourse-bank-bankType4",
+  "question_count": 226,
+  "by_kind": {
+    "fill_blank": 1,
+    "multiple": 129,
+    "single": 96
+  },
+  "by_choice_mode": {
+    "single": 96,
+    "multiple": 129
+  },
+  "top_tags": [
+    {
+      "tag": "多选题",
+      "count": 129
+    },
+    {
+      "tag": "传递函数",
+      "count": 101
+    },
+    {
+      "tag": "单选题",
+      "count": 96
+    },
+    {
+      "tag": "自动控制原理",
+      "count": 78
+    },
+    {
+      "tag": "频域分析",
+      "count": 30
+    },
+    {
+      "tag": "复数基础",
+      "count": 28
+    },
+    {
+      "tag": "相角计算",
+      "count": 28
+    },
+    {
+      "tag": "线性系统的时域分析法",
+      "count": 21
+    },
+    {
+      "tag": "Bode图",
+      "count": 18
+    },
+    {
+      "tag": "对数幅频渐近线",
+      "count": 18
+    },
+    {
+      "tag": "Z变换",
+      "count": 15
+    },
+    {
+      "tag": "离散系统分析",
+      "count": 15
+    },
+    {
+      "tag": "阻尼比",
+      "count": 15
+    },
+    {
+      "tag": "Nyquist稳定判据",
+      "count": 14
+    },
+    {
+      "tag": "终值定理",
+      "count": 9
+    },
+    {
+      "tag": "调节时间",
+      "count": 9
+    },
+    {
+      "tag": "阻尼振荡频率",
+      "count": 5
+    },
+    {
+      "tag": "Z反变换",
+      "count": 3
+    },
+    {
+      "tag": "填空题",
+      "count": 1
+    }
+  ]
+}

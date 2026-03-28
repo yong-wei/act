@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ObjectiveBankQuestion",
+  "type": "object",
+  "required": [
+    "question_id",
+    "source_question_id",
+    "source_platform",
+    "source_bank_type",
+    "question_kind",
+    "correct_answers",
+    "correct_answer_count",
+    "knowledge_tags",
+    "source_bundle",
+    "adaptive_metadata",
+    "search_text"
+  ],
+  "properties": {
+    "question_id": { "type": "string" },
+    "source_question_id": { "type": ["string", "integer"] },
+    "source_platform": { "type": "string" },
+    "source_bank_type": { "type": ["string", "integer"] },
+    "question_kind": {
+      "type": "string",
+      "enum": ["single", "multiple", "fill_blank"]
+    },
+    "choice_mode": {
+      "type": ["string", "null"],
+      "enum": ["single", "multiple", null]
+    },
+    "stem": { "type": "string" },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "text", "is_correct"],
+        "properties": {
+          "key": { "type": "string" },
+          "text": { "type": "string" },
+          "is_correct": { "type": "boolean" }
+        }
+      }
+    },
+    "correct_answers": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "correct_answer_count": { "type": "integer", "minimum": 0 },
+    "knowledge_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "source_bundle": { "type": "object" },
+    "formula_hashes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "adaptive_metadata": { "type": "object" },
+    "search_text": { "type": "string" }
+  }
+}

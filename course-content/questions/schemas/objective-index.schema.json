@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ObjectiveBankIndex",
+  "type": "object",
+  "required": [
+    "bank_slug",
+    "question_count",
+    "by_kind",
+    "by_choice_mode",
+    "top_tags"
+  ],
+  "properties": {
+    "bank_slug": { "type": "string" },
+    "question_count": { "type": "integer", "minimum": 0 },
+    "by_kind": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "by_choice_mode": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "top_tags": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tag", "count"],
+        "properties": {
+          "tag": { "type": "string" },
+          "count": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

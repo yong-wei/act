@@ -7,7 +7,8 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-03-25
+📅 **最后更新**：2026-03-28
+🧩 **iCourse163 客观题自适应题库落库（2026-03-28）**：已将 `iCourse163 bankType=4` 导出的 `279` 道题整理为独立于解析题库的纯文本 objective-bank 流程，形成 `tmp/icourse-question-bank-repair/ -> tmp/icourse-formula-map.complete.json -> course-content/questions/objective-bank/icourse-bank-bankType4.{jsonl,index.json,overview.md,errors.json}` 的稳定链路；最终仅纳入 `226` 道客观题（单选 `96`、多选 `129`、填空 `1`），主观题全部排除，公式图片均已人工修正为纯文本/LaTeX 形式，并为每题补齐 `question_kind`、`choice_mode`、`correct_answers`、`knowledge_tags`、`source_bundle`、`adaptive_metadata` 等字段，作为后续数据库驱动自适应题库的原生基础制品。
 🧭 **自动控制原理主线课 2-1 / 2-2 / 2-3 内容制作收口（2026-03-25）**：本轮完成主线 `2-1`《建模与变换语言——从真实对象到统一分析对象》学生版讲义、多媒体清单、TikZ 结构图组、导入视频提示词与 PDF 导出；同步修订 `2-2` 讲义的图片占位与版式后重新导出学生版 PDF；落地 `2-3` 讲义、配套频域代码直出图、封面漫画/信息图/视频等媒体包，并把知识图基础文件同步到最新状态。同时更新 `lesson` 技能与多媒体参考：导入视频提示词默认显式调用 `seedance`，用户未指定时允许随机选定一个最合适的单一风格，电影感方案默认弱化公式与板书；PDF 模板补充 `needspace` 以避免大图在页底被截断。
 🧯 **数据治理 worker 故障收敛与低压调度改造（2026-03-25）**：针对远端 `act-obe-worker` 在 Redis `maxmemory` 命中后反复报错刷满 `ctr.log` 的事故，本轮已把 `scripts/workers/data-governance-worker.ts` 重构为“延迟启动 + 基础设施错误识别 + 日志节流聚合 + 冷却文件熔断 + 进程级未捕获异常收敛”的模式；`scripts/workers/scheduler.ts` 不再对白天每 5/10/15 分钟高频注册重复任务，而是改为“凌晨二次事件批处理 + 每小时活跃学生快照 + 每日班级快照”的 coordinator 调度；`src/lib/data-governance/worker-client.ts` 与 scheduler 注册逻辑统一补齐 `removeOnComplete/removeOnFail`，避免 BullMQ 历史任务在 Redis 中持续堆积；`deploy/podman/deploy.sh` 的默认 `REDIS_MAXMEMORY` 已提升到 `512mb` 并继续保持 `noeviction`。本轮明确只处理运行可靠性，`runtime` 课程资源映射仍暂缓，待资源补齐后再单独收口。
 🧭 **lesson 技能切换到新课纲与主线/归档双轨资源（2026-03-23）**：`lesson` 技能与其参考脚本现统一以 `course-content/syllabus-refactor/module-skeletons.md`、`unit-design-details/` 和 `course-content/authoring/shared/lesson-id-map.json` 为真值来源，不再依赖旧 `docs/SyllabusRefactor.md` 或根目录 `note/`；`course-content/authoring` 与 `course-content/runtime` 已落地“主线 + legacy 归档”结构，其中旧 `1-1`、`1-2`、`L-2a/L-2b/L-2c/L-2d/L-sum` 统一迁入 `legacy/*`，主线 `2-2` 的 `manifest`、`sequence`、`review/*`、`lesson.json`、`graph-overlay.json` 与 handout 口径已全部改为新编号；同时补齐 `course-runtime` 读取映射、`kg_query.py`/`sync_overlays.py`/`export_runtime.py`/`review_lesson_content.py` 的新路径与无界面 Matplotlib 导出环境，互动课程总览页也改为“精品课程 + 归档课程”分组，避免 legacy 课次继续占据主线展示。
@@ -303,6 +304,17 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
   - `POST /api/assessment/submit-answer`
   - `GET /api/assessment/ability-report/:userId`
 - **题库能力**：内置 50 道跨域题，支持按薄弱知识点生成新题
+- **结构化题库底座（2026-03-27）**：
+  - 新增 `course-content/questions/` 作为自动控制习题结构化题库根目录
+  - 原始总题库 DOCX 固定存放在 `course-content/questions/source/自动控制原理习题解析.docx`
+  - 通过 `course-content/questions/scripts/extract_docx_question_bank.py` 将 DOCX 抽取为“每题一份 Markdown + 一份 JSON + 独立配图资产”
+  - 单题 Markdown 固定分为 `题面 / 答案解析 / 行内得分点 / 评分指南 / 元数据`，便于课程制作时单独提取题面
+  - 当前全量抽取稳定产出 `167` 道题，并已修复 `2-16不完整` 这类无空格题头切题失败问题
+  - 抽取器现已支持提取题号后 `w:tbl` 表格中的内嵌图片，`AC-Q-0012/0013/0014` 不再被误报为“缺图需手工重绘”
+  - 抽取器会保留已有 `usage_status != raw` 的人工精修内容，避免全量重建覆盖 `cleaned` 题目
+  - `course-content/questions/indexes/questions.jsonl` 与 `course-content/questions/indexes/questions.sqlite` 用于快速检索
+  - `course-content/questions/reports/` 记录裸 LaTeX 残留、仅标题无配图等异常，支持后续逐步精修
+  - 命题技能 `homework-problem-authoring` 已扩展 `inline_score_points` 字段，并与 `rubric` 并存，保留题解中的行内标分方式
 
 ### 3.16 工程场景扩展（邮轮舒适度 / 破冰船鲁棒） ✅
 - **页面路径**：

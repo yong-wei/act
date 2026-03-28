@@ -63,6 +63,8 @@ Markdown 文件固定包含以下结构：
 
 `objective-bank/` 用于保存不依赖外挂图片、适合检索与自适应推荐的客观题制品。目前 `icourse-bank-bankType4.*` 为来自 `iCourse163` 的选择/填空题纯文本导出，固定包含：
 
+- 当前正式落库版本共 `226` 题：单选 `96`、多选 `129`、填空 `1`
+
 - `*.jsonl`
   - 每行一题，保留 `question_kind`、`choice_mode`、`correct_answers`、`knowledge_tags`、`source_bundle`、`adaptive_metadata`
 - `*.index.json`
@@ -71,6 +73,10 @@ Markdown 文件固定包含以下结构：
   - 便于人工抽查的全量题目总览
 - `*.errors.json`
   - 排除题与未解析项报告
+- `schemas/objective-question.schema.json`
+  - 客观题单题契约
+- `schemas/objective-index.schema.json`
+  - 客观题索引契约
 
 这些客观题与 `questions/AC-Q-*.json` 解析题并列存在，前者优先服务自适应题库与推荐，后者优先服务课程设计、讲义和作业制作。
 

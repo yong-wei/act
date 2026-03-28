@@ -1,0 +1,217 @@
+{
+  "excluded_questions": [
+    {
+      "question_id": "IC-B4-0081",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0082",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0083",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0085",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0102",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0103",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0104",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0105",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0111",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0112",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0113",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0114",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0132",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0133",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0134",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0135",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0136",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0137",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0154",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0155",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0156",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0157",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0158",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0159",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0160",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0161",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0162",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0163",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0164",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0167",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0180",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0181",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0182",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0183",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0184",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0185",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0186",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0202",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0203",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0204",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0205",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0244",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0245",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0246",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0247",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0248",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0249",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0252",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0257",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0258",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0264",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0265",
+      "question_kind": "essay"
+    },
+    {
+      "question_id": "IC-B4-0279",
+      "question_kind": "essay"
+    }
+  ],
+  "unresolved_formulas": []
+}

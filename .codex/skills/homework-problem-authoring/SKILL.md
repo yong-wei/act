@@ -12,9 +12,14 @@ description: Use when the user asks to create homework or exam problems by quest
 把这个技能当作“出题编排器”，不是单次直接写题。默认产物必须包含：
 - 题面
 - 标准答案
+- 行内得分点
 - 分步评分标准
 - 参考作答
 - 裁判结论与一致性记录
+
+其中：
+- `inline_score_points` 用于把答案内部逐步标分显式结构化保存，保留“行内得分点”命题方式；
+- `rubric` 用于独立评分指南，与 `inline_score_points` 并存，不互相替代。
 
 ## Quick Start
 
@@ -92,6 +97,7 @@ description: Use when the user asks to create homework or exam problems by quest
 主代理分别向 3 个出题智能体发送同一份 `task-package.json`，但不得让它们读取彼此结果。每个出题智能体必须输出：
 - 完整题面
 - 标准答案
+- 行内得分点
 - 分步评分标准
 - 关键易错点
 - 自检结论：题面是否自包含、是否可判分、是否满足题型
@@ -174,6 +180,7 @@ description: Use when the user asks to create homework or exam problems by quest
 - 题号与题型
 - 最终题面
 - 标准答案
+- 行内得分点
 - 分步评分标准
 - 参考作答
 - 裁判为何选择该题
