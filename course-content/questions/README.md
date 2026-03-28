@@ -8,6 +8,8 @@
   - 原始题库 DOCX，只读主源
 - `questions/`
   - 每题一份 Markdown 与一份 JSON
+- `objective-bank/`
+  - 面向自适应推荐的纯文本客观题题库制品（JSONL、索引、总览）
 - `assets/`
   - 每题配图，按题号分目录归档
 - `indexes/`
@@ -57,6 +59,21 @@ Markdown 文件固定包含以下结构：
 
 兼容旧脚本时仍会保留 `title_only_figures` 字段，但应优先读取上述新字段。
 
+## 客观题题库约定
+
+`objective-bank/` 用于保存不依赖外挂图片、适合检索与自适应推荐的客观题制品。目前 `icourse-bank-bankType4.*` 为来自 `iCourse163` 的选择/填空题纯文本导出，固定包含：
+
+- `*.jsonl`
+  - 每行一题，保留 `question_kind`、`choice_mode`、`correct_answers`、`knowledge_tags`、`source_bundle`、`adaptive_metadata`
+- `*.index.json`
+  - 题量、题型分布、标签统计
+- `*.overview.md`
+  - 便于人工抽查的全量题目总览
+- `*.errors.json`
+  - 排除题与未解析项报告
+
+这些客观题与 `questions/AC-Q-*.json` 解析题并列存在，前者优先服务自适应题库与推荐，后者优先服务课程设计、讲义和作业制作。
+
 ## 脚本
 
 抽取：
@@ -69,6 +86,16 @@ python3 course-content/questions/scripts/extract_docx_question_bank.py
 
 ```bash
 python3 course-content/questions/scripts/build_question_indexes.py
+```
+
+客观题纯文本导出：
+
+```bash
+python3 course-content/questions/scripts/build_icourse_objective_bank.py \
+  --repair-root tmp/icourse-question-bank-repair \
+  --formula-map tmp/icourse-formula-map.complete.json \
+  --output-root course-content/questions/objective-bank \
+  --bank-slug icourse-bank-bankType4
 ```
 
 查询：
