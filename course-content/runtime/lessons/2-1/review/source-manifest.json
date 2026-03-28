@@ -1,0 +1,11 @@
+{
+  "lesson_id": "2-1",
+  "unit_type": "理论",
+  "generated_at": "2026-03-27T13:32:02.897951+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/2-1/design/handout.md"
+  ],
+  "boppps_source": "course-content/authoring/lessons/2-1/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/2-1/sequence.json",
+  "expected_code_media": []
+}

@@ -1,0 +1,1485 @@
+{
+  "lesson_id": "2-1",
+  "title": "建模与变换语言——从真实对象到统一分析对象",
+  "focus_node_ids": [
+    "拉氏变换工程动机_2_11001",
+    "零初值传递函数_2_21001",
+    "传递函数_1_5b0faf8b",
+    "典型环节对象库_2_21002",
+    "结构图_2_3f312ccc",
+    "闭环传递函数_2_5399c369",
+    "信号流图_2_372d4084",
+    "梅森增益公式_2_419eab0c",
+    "余子式接触判定_2_21003"
+  ],
+  "reuse_node_ids": [
+    "微分方程_2_775c96a3",
+    "比例环节_2_11004",
+    "积分环节_2_11005",
+    "微分环节_2_11006",
+    "惯性环节_2_11007",
+    "振荡环节_5_d677d1e6",
+    "前向通路_1_7d1c792e",
+    "回路_2_e1adbdfa",
+    "余因子式_2_1da0d7e8"
+  ],
+  "entry_nodes": [
+    "拉氏变换工程动机_2_11001"
+  ],
+  "summary_nodes": [
+    "闭环传递函数_2_5399c369",
+    "余子式接触判定_2_21003"
+  ],
+  "card_order": [
+    "微分方程_2_775c96a3",
+    "拉氏变换工程动机_2_11001",
+    "零初值传递函数_2_21001",
+    "传递函数_1_5b0faf8b",
+    "典型环节对象库_2_21002",
+    "比例环节_2_11004",
+    "积分环节_2_11005",
+    "微分环节_2_11006",
+    "惯性环节_2_11007",
+    "振荡环节_5_d677d1e6",
+    "结构图_2_3f312ccc",
+    "闭环传递函数_2_5399c369",
+    "信号流图_2_372d4084",
+    "前向通路_1_7d1c792e",
+    "回路_2_e1adbdfa",
+    "余因子式_2_1da0d7e8",
+    "梅森增益公式_2_419eab0c",
+    "余子式接触判定_2_21003"
+  ],
+  "groups": [
+    {
+      "group_name": "问题引入与语言切换",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04",
+        "step-05"
+      ],
+      "node_ids": [
+        "微分方程_2_775c96a3",
+        "拉氏变换工程动机_2_11001"
+      ]
+    },
+    {
+      "group_name": "传递函数与对象识别",
+      "step_ids": [
+        "step-06",
+        "step-07",
+        "step-08"
+      ],
+      "node_ids": [
+        "零初值传递函数_2_21001",
+        "传递函数_1_5b0faf8b",
+        "典型环节对象库_2_21002",
+        "比例环节_2_11004",
+        "积分环节_2_11005",
+        "微分环节_2_11006",
+        "惯性环节_2_11007",
+        "振荡环节_5_d677d1e6"
+      ]
+    },
+    {
+      "group_name": "结构图与闭环对象",
+      "step_ids": [
+        "step-09",
+        "step-10"
+      ],
+      "node_ids": [
+        "结构图_2_3f312ccc",
+        "闭环传递函数_2_5399c369"
+      ]
+    },
+    {
+      "group_name": "信号流图与梅森公式",
+      "step_ids": [
+        "step-11",
+        "step-12",
+        "step-13",
+        "step-14"
+      ],
+      "node_ids": [
+        "信号流图_2_372d4084",
+        "前向通路_1_7d1c792e",
+        "回路_2_e1adbdfa",
+        "余因子式_2_1da0d7e8",
+        "梅森增益公式_2_419eab0c",
+        "余子式接触判定_2_21003"
+      ]
+    },
+    {
+      "group_name": "后测与收束",
+      "step_ids": [
+        "step-15",
+        "step-16"
+      ],
+      "node_ids": []
+    }
+  ],
+  "nodes": [
+    {
+      "id": "传递函数_1_5b0faf8b",
+      "name": "传递函数",
+      "nodeType": "THEORY",
+      "description": "线性定常系统在零初始条件下，输出拉普拉斯变换与输入拉普拉斯变换之比。",
+      "positionX": 12.1,
+      "positionY": 7.0,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "线性定常系统在零初始条件下，输出拉普拉斯变换与输入拉普拉斯变换之比。",
+        "examples": [
+          "用于分析系统的频率响应、稳定性和动态特性。"
+        ],
+        "formulas": [
+          "G(s) = \\frac{Y(s)}{U(s)}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "拉普拉斯变换",
+          "零初始条件",
+          "线性系统"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627008",
+        "updatedAt": "2026-02-04T17:54:16.627008",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/传递函数_1_5b0faf8b.md"
+      ],
+      "tags": [
+        "拉普拉斯变换",
+        "零初始条件",
+        "线性系统",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "前向通路_1_7d1c792e",
+      "name": "前向通路",
+      "nodeType": "THEORY",
+      "description": "在方块图中，信号从输入端沿箭头方向到达输出端的传输通路。",
+      "positionX": 3.6,
+      "positionY": 13.5,
+      "positionZ": 1,
+      "bloomLevel": "REMEMBER",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "bloom_level": "记忆",
+        "definition": "在方块图中，信号从输入端沿箭头方向到达输出端的传输通路。",
+        "examples": [
+          "在反馈控制系统中，前向通路与主反馈通路共同构成主回路。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 3,
+        "keywords": [
+          "信号传输",
+          "输入端到输出端",
+          "通路"
+        ],
+        "createdAt": "2026-02-04T17:54:16.626775",
+        "updatedAt": "2026-02-04T17:54:16.626775",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/前向通路_1_7d1c792e.md"
+      ],
+      "tags": [
+        "信号传输",
+        "输入端到输出端",
+        "通路",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "余因子式_2_1da0d7e8",
+      "name": "余因子式",
+      "nodeType": "THEORY",
+      "description": "梅森增益公式中与第k条前向通路对应的Δk，等于特征式Δ中去除与该通路接触的所有回路后的余项。",
+      "positionX": 10.4,
+      "positionY": -38.6,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "梅森增益公式中与第k条前向通路对应的Δk，等于特征式Δ中去除与该通路接触的所有回路后的余项。",
+        "examples": [
+          "例2-16中，对于前向通路P1，Δ1 = 1 - L3"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "Δk",
+          "前向通路",
+          "不接触",
+          "余项"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627683",
+        "updatedAt": "2026-02-04T17:54:16.627683",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/余因子式_2_1da0d7e8.md"
+      ],
+      "tags": [
+        "Δk",
+        "前向通路",
+        "不接触",
+        "余项",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "余子式接触判定_2_21003",
+      "name": "余子式接触判定",
+      "nodeType": "THEORY",
+      "description": "在梅森公式中判断某条前向通路对应余子式Δ_k的操作规则：删除所有与该前向通路接触的回路后，对剩余回路写特征式；若仍有不接触回路保留，则Δ_k不等于1。",
+      "positionX": 13.0,
+      "positionY": -22.5,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "在梅森公式中判断某条前向通路对应余子式Δ_k的操作规则：删除所有与该前向通路接触的回路后，对剩余回路写特征式；若仍有不接触回路保留，则Δ_k不等于1。",
+        "examples": [
+          "例题二中第二条前向通路不经过局部回路L_1，因此\\Delta_2=1-L_1，而不是1。",
+          "若某条前向通路与所有回路都接触，则删去后图中无剩余回路，此时对应余子式等于1。"
+        ],
+        "formulas": [
+          "\\Delta_k=1-\\sum L_i+\\sum L_iL_j-\\cdots\\quad(\\text{仅保留与}P_k\\text{不接触的回路})"
+        ],
+        "prerequisites": [
+          "信号流图_2_372d4084",
+          "前向通路_1_7d1c792e",
+          "回路_2_e1adbdfa",
+          "余因子式_2_1da0d7e8",
+          "梅森增益公式_2_419eab0c"
+        ],
+        "relatedConcepts": [
+          "闭环传递函数_2_5399c369"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "余子式",
+          "接触",
+          "不接触",
+          "梅森公式",
+          "Δk"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/余子式接触判定_2_21003.md"
+      ],
+      "tags": [
+        "余子式",
+        "接触",
+        "不接触",
+        "梅森公式",
+        "Δk",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "信号流图_2_372d4084",
+      "name": "信号流图",
+      "nodeType": "THEORY",
+      "description": "一种用节点和支路表示系统变量和传递关系的图形化数学模型，用于描述线性系统的结构和信号流向。",
+      "positionX": 28.3,
+      "positionY": -28.3,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "一种用节点和支路表示系统变量和传递关系的图形化数学模型，用于描述线性系统的结构和信号流向。",
+        "examples": [
+          "用于系统计算机模拟仿真和状态空间法分析设计。",
+          "图2-31(a)表示欧姆定律U=IR的信号流图；图2-32表示一组代数方程式的信号流图。",
+          "图2-36(b)所示的系统信号流图",
+          "图2-44(d)给出的信号流图，以及习题2-19要求绘制的结构图对应的信号流图。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "线性系统",
+          "图形表示",
+          "仿真",
+          "节点",
+          "支路",
+          "支路增益",
+          "因果关系",
+          "增益",
+          "图形化模型",
+          "梅森公式"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627608",
+        "updatedAt": "2026-02-04T17:54:16.627608",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/信号流图_2_372d4084.md"
+      ],
+      "tags": [
+        "线性系统",
+        "图形表示",
+        "仿真",
+        "节点",
+        "支路",
+        "支路增益",
+        "因果关系",
+        "增益",
+        "图形化模型",
+        "梅森公式",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "典型环节对象库_2_21002",
+      "name": "典型环节对象库",
+      "nodeType": "THEORY",
+      "description": "把复杂传递函数优先拆解为比例、积分、微分、惯性、振荡等标准环节的识别框架，用于在对象层面先看清系统由哪些基础动态部件组成。",
+      "positionX": 25.1,
+      "positionY": -6.7,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "把复杂传递函数优先拆解为比例、积分、微分、惯性、振荡等标准环节的识别框架，用于在对象层面先看清系统由哪些基础动态部件组成。",
+        "examples": [
+          "G(s)=K_p/[s(Ts+1)] 可以先识别为比例环节、积分环节和惯性环节的组合，而不是直接把它当成难记的长分式。",
+          "航向控制系统中的控制器、舵机和船体对象都可以先还原为典型环节，再讨论它们怎样连接成闭环系统。"
+        ],
+        "formulas": [
+          "G(s)=K\\cdot G_1(s)\\cdot G_2(s)\\cdots G_r(s)",
+          "G(s)=K,\\;\\frac{1}{s},\\;s,\\;\\frac{1}{Ts+1},\\;\\frac{\\omega_n^2}{s^2+2\\zeta\\omega_n s+\\omega_n^2}"
+        ],
+        "prerequisites": [
+          "传递函数_1_5b0faf8b"
+        ],
+        "relatedConcepts": [
+          "比例环节_2_11004",
+          "积分环节_2_11005",
+          "微分环节_2_11006",
+          "惯性环节_2_11007",
+          "振荡环节_5_d677d1e6"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "典型环节",
+          "对象识别",
+          "标准对象库",
+          "系统分解"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/典型环节对象库_2_21002.md"
+      ],
+      "tags": [
+        "典型环节",
+        "对象识别",
+        "标准对象库",
+        "系统分解",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "回路_2_e1adbdfa",
+      "name": "回路",
+      "nodeType": "THEORY",
+      "description": "信号流图中起点和终点为同一节点，且不经过其他节点超过一次的闭合路径。",
+      "positionX": -32.5,
+      "positionY": 32.5,
+      "positionZ": 2,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "信号流图中起点和终点为同一节点，且不经过其他节点超过一次的闭合路径。",
+        "examples": [
+          "图2-32中有三个回路，如起于节点x2，经x3回到x2的回路，其增益为bc。",
+          "图2-37中的三个单独回路"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 3,
+        "keywords": [
+          "闭合通路",
+          "回路增益",
+          "自回路",
+          "闭合路径",
+          "单独回路",
+          "不接触回路"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627667",
+        "updatedAt": "2026-02-04T17:54:16.627667",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/回路_2_e1adbdfa.md"
+      ],
+      "tags": [
+        "闭合通路",
+        "回路增益",
+        "自回路",
+        "闭合路径",
+        "单独回路",
+        "不接触回路",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "微分方程_2_775c96a3",
+      "name": "微分方程",
+      "nodeType": "THEORY",
+      "description": "时域中描述系统动态特性的数学模型，表示未知函数及其导数与自变量之间的关系。",
+      "positionX": -11.9,
+      "positionY": -44.4,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "时域中描述系统动态特性的数学模型，表示未知函数及其导数与自变量之间的关系。",
+        "examples": [
+          "RLC网络方程 $LC\\frac{d^2u_c}{dt^2}+RC\\frac{du_c}{dt}+u_c=u_r$",
+          "例2-1中的RLC网络微分方程，例2-7中的铁心线圈非线性微分方程。",
+          "习题2-1中列写以液位为输出量的微分方程式。"
+        ],
+        "formulas": [
+          "a_n\\frac{d^n c(t)}{dt^n} + \\cdots + a_1\\frac{dc(t)}{dt} + a_0 c(t) = b_m\\frac{d^m r(t)}{dt^m} + \\cdots + b_1\\frac{dr(t)}{dt} + b_0 r(t)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "时域",
+          "动态特性",
+          "导数",
+          "动态系统",
+          "解",
+          "建模",
+          "输入输出"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627432",
+        "updatedAt": "2026-02-04T17:54:16.627432",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/微分方程_2_775c96a3.md"
+      ],
+      "tags": [
+        "时域",
+        "动态特性",
+        "导数",
+        "动态系统",
+        "解",
+        "建模",
+        "输入输出",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "微分环节_2_11006",
+      "name": "微分环节",
+      "nodeType": "THEORY",
+      "description": "传递函数为G(s)=s的环节，输出反映输入的变化率。有零点在原点，无极点。纯微分环节不可物理实现，实际使用不完全微分。",
+      "positionX": -0.0,
+      "positionY": -32.0,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "典型环节",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "典型环节",
+        "bloom_level": "理解",
+        "definition": "传递函数为G(s)=s的环节，输出反映输入的变化率。有零点在原点，无极点。纯微分环节不可物理实现，实际使用不完全微分。",
+        "examples": [
+          "测速发电机：角度→角速度"
+        ],
+        "formulas": [
+          "G(s) = s",
+          "y(t) = du(t)/dt"
+        ],
+        "prerequisites": [
+          "传递函数_2_2c5e2589",
+          "微分定理_2_11002"
+        ],
+        "relatedConcepts": [
+          "比例环节_2_11004",
+          "零点_2_c29600a1"
+        ],
+        "difficulty": 2,
+        "importance": 3,
+        "keywords": [
+          "微分",
+          "变化率",
+          "不可实现",
+          "原点零点"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/微分环节_2_11006.md"
+      ],
+      "tags": [
+        "微分",
+        "变化率",
+        "不可实现",
+        "原点零点",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "惯性环节_2_11007",
+      "name": "惯性环节",
+      "nodeType": "THEORY",
+      "description": "传递函数为G(s)=1/(Ts+1)的一阶环节，具有一个负实极点s=-1/T。时间常数T越大响应越慢。物理原型包括RC低通电路、温度计热惯性。",
+      "positionX": 8.3,
+      "positionY": -30.9,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "典型环节",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "典型环节",
+        "bloom_level": "理解",
+        "definition": "传递函数为G(s)=1/(Ts+1)的一阶环节，具有一个负实极点s=-1/T。时间常数T越大响应越慢。物理原型包括RC低通电路、温度计热惯性。",
+        "examples": [
+          "RC电路：G(s)=1/(RCs+1)",
+          "温度计：T为热时间常数"
+        ],
+        "formulas": [
+          "G(s) = 1/(Ts+1)",
+          "极点 s = -1/T"
+        ],
+        "prerequisites": [
+          "传递函数_2_2c5e2589",
+          "极点_2_cc79a4c5"
+        ],
+        "relatedConcepts": [
+          "振荡环节_5_d677d1e6",
+          "比例环节_2_11004"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "惯性",
+          "一阶",
+          "时间常数",
+          "负实极点",
+          "RC电路"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/惯性环节_2_11007.md"
+      ],
+      "tags": [
+        "惯性",
+        "一阶",
+        "时间常数",
+        "负实极点",
+        "RC电路",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "拉氏变换工程动机_2_11001",
+      "name": "拉氏变换工程动机",
+      "nodeType": "THEORY",
+      "description": "拉氏变换将时域微分运算映射为s域乘法运算，从而将常系数线性微分方程降维为代数方程，是控制系统分析的基础数学工具。",
+      "positionX": 30.9,
+      "positionY": -8.3,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "系统建模",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "系统建模",
+        "bloom_level": "理解",
+        "definition": "拉氏变换将时域微分运算映射为s域乘法运算，从而将常系数线性微分方程降维为代数方程，是控制系统分析的基础数学工具。",
+        "examples": [
+          "船舶航向微分方程经拉氏变换后变为关于s的代数方程",
+          "RC电路微分方程变换为传递函数"
+        ],
+        "formulas": [
+          "F(s) = L[f(t)] = ∫₀^∞ f(t)e^{-st}dt"
+        ],
+        "prerequisites": [
+          "微分方程_2_775c96a3"
+        ],
+        "relatedConcepts": [
+          "拉氏变换_2_243496d4",
+          "传递函数_2_2c5e2589"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "拉氏变换",
+          "降维",
+          "微分变乘法",
+          "s域"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/拉氏变换工程动机_2_11001.md"
+      ],
+      "tags": [
+        "拉氏变换",
+        "降维",
+        "微分变乘法",
+        "s域",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "梅森增益公式_2_419eab0c",
+      "name": "梅森增益公式",
+      "nodeType": "THEORY",
+      "description": "一种用于直接从信号流图或系统结构图中求取从源节点到阱节点传递函数的公式，无需简化图形。",
+      "positionX": 0.0,
+      "positionY": 52.0,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "一种用于直接从信号流图或系统结构图中求取从源节点到阱节点传递函数的公式，无需简化图形。",
+        "examples": [
+          "用于直接求解例2-13等复杂系统的传递函数，避免了繁琐的图简化过程。",
+          "例2-14、例2-15、例2-16、例2-17中应用梅森公式求传递函数",
+          "利用图2-44(d)的信号流图和梅森增益公式求取系统闭环传递函数。"
+        ],
+        "formulas": [
+          "\\Delta = 1 - \\sum L_a + \\sum L_bL_c - \\sum L_dL_eL_f + \\cdots",
+          "P = \\frac{1}{\\Delta} \\sum_{k=1}^{n} P_k \\Delta_k",
+          "P = \\frac{1}{\\Delta} \\sum_k P_k \\Delta_k"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 5,
+        "importance": 5,
+        "keywords": [
+          "直接求取",
+          "传递函数",
+          "信号流图",
+          "结构图",
+          "前向通路",
+          "回路增益",
+          "特征式",
+          "余因子式",
+          "回路"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627672",
+        "updatedAt": "2026-02-04T17:54:16.627672",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/梅森增益公式_2_419eab0c.md"
+      ],
+      "tags": [
+        "直接求取",
+        "传递函数",
+        "信号流图",
+        "结构图",
+        "前向通路",
+        "回路增益",
+        "特征式",
+        "余因子式",
+        "回路",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "比例环节_2_11004",
+      "name": "比例环节",
+      "nodeType": "THEORY",
+      "description": "传递函数为常数G(s)=K的环节，输出与输入成正比，无动态过程。物理原型包括杠杆、齿轮变比、放大器等。",
+      "positionX": -19.0,
+      "positionY": 32.9,
+      "positionZ": 0,
+      "bloomLevel": "REMEMBER",
+      "knowledgeDim": "典型环节",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "典型环节",
+        "bloom_level": "记忆",
+        "definition": "传递函数为常数G(s)=K的环节，输出与输入成正比，无动态过程。物理原型包括杠杆、齿轮变比、放大器等。",
+        "examples": [
+          "放大器增益K=10",
+          "齿轮变比"
+        ],
+        "formulas": [
+          "G(s) = K"
+        ],
+        "prerequisites": [
+          "传递函数_2_2c5e2589"
+        ],
+        "relatedConcepts": [
+          "积分环节_2_11005",
+          "微分环节_2_11006"
+        ],
+        "difficulty": 1,
+        "importance": 3,
+        "keywords": [
+          "比例",
+          "增益",
+          "无动态"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/比例环节_2_11004.md"
+      ],
+      "tags": [
+        "比例",
+        "增益",
+        "无动态",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "积分环节_2_11005",
+      "name": "积分环节",
+      "nodeType": "THEORY",
+      "description": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
+      "positionX": -0.0,
+      "positionY": -38.0,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "典型环节",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "典型环节",
+        "bloom_level": "理解",
+        "definition": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
+        "examples": [
+          "水箱：流量输入→液位输出",
+          "船舶：角速度→航向角"
+        ],
+        "formulas": [
+          "G(s) = 1/s",
+          "y(t) = ∫₀ᵗ u(τ)dτ"
+        ],
+        "prerequisites": [
+          "传递函数_2_2c5e2589"
+        ],
+        "relatedConcepts": [
+          "比例环节_2_11004",
+          "极点_2_cc79a4c5"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "积分",
+          "原点极点",
+          "累积效应"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/积分环节_2_11005.md"
+      ],
+      "tags": [
+        "积分",
+        "原点极点",
+        "累积效应",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "结构图_2_3f312ccc",
+      "name": "结构图",
+      "nodeType": "THEORY",
+      "description": "用方框、信号线和求和点等图形符号表示系统各元件功能和信号传递关系的框图。",
+      "positionX": 45.0,
+      "positionY": -26.0,
+      "positionZ": 2,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "用方框、信号线和求和点等图形符号表示系统各元件功能和信号传递关系的框图。",
+        "examples": [
+          "图2-44(c)所示的控制系统结构图，以及习题2-14中要求画出的直流电动机结构图。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "图形符号",
+          "信号传递",
+          "元件功能",
+          "方框图",
+          "系统表示"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627442",
+        "updatedAt": "2026-02-04T17:54:16.627442",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/结构图_2_3f312ccc.md"
+      ],
+      "tags": [
+        "图形符号",
+        "信号传递",
+        "元件功能",
+        "方框图",
+        "系统表示",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "闭环传递函数_2_5399c369",
+      "name": "闭环传递函数",
+      "nodeType": "THEORY",
+      "description": "在反馈连接中，系统输出与输入之间的传递函数，是反馈连接的等效传递函数。",
+      "positionX": 0.0,
+      "positionY": 58.0,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "在反馈连接中，系统输出与输入之间的传递函数，是反馈连接的等效传递函数。",
+        "examples": [
+          "图2-26(b)所示的等效方框，表示反馈连接简化后的闭环传递函数。",
+          "图2-42典型反馈控制系统中，输入R(s)作用下的闭环传递函数C(s)/R(s)",
+          "例2-19中磁盘驱动读取系统的闭环传递函数计算。"
+        ],
+        "formulas": [
+          "\\Phi(s) = \\frac{G(s)}{1 \\mp G(s)H(s)}",
+          "\\frac{C(s)}{R(s)} = \\frac{G(s)}{1 + G(s)H(s)}",
+          "\\frac{C(s)}{N(s)} = \\frac{G_2(s)}{1 + G_1(s)G_2(s)H(s)}",
+          "\\Phi(s) = \\frac{G(s)}{1 + G(s)H(s)}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "反馈连接",
+          "等效传递函数",
+          "正负号对应",
+          "反馈系统",
+          "输出",
+          "输入",
+          "扰动",
+          "反馈",
+          "系统性能",
+          "稳定性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627641",
+        "updatedAt": "2026-02-04T17:54:16.627641",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环传递函数_2_5399c369.md"
+      ],
+      "tags": [
+        "反馈连接",
+        "等效传递函数",
+        "正负号对应",
+        "反馈系统",
+        "输出",
+        "输入",
+        "扰动",
+        "反馈",
+        "系统性能",
+        "稳定性",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "零初值传递函数_2_21001",
+      "name": "零初值传递函数",
+      "nodeType": "THEORY",
+      "description": "把传递函数理解为零初值语境下的输入输出固有关系：系统对象由传递函数给出，而初始状态带来的附加项必须与该对象分开处理。",
+      "positionX": -22.0,
+      "positionY": 38.1,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "把传递函数理解为零初值语境下的输入输出固有关系：系统对象由传递函数给出，而初始状态带来的附加项必须与该对象分开处理。",
+        "examples": [
+          "一阶系统若初值不为零，则输出像中会额外出现由初始状态决定的项，因此不能只看Y(s)/U(s)。",
+          "船舶航向动力学对象在零初值下可被稳定抽象为统一的传递函数对象，用于后续时域与频域分析。"
+        ],
+        "formulas": [
+          "G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}",
+          "Y(s)=G(s)U(s)+Y_{ic}(s)"
+        ],
+        "prerequisites": [
+          "微分方程_2_775c96a3",
+          "拉氏变换工程动机_2_11001"
+        ],
+        "relatedConcepts": [
+          "传递函数_1_5b0faf8b",
+          "闭环传递函数_2_5399c369"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "零初值",
+          "系统对象",
+          "初始状态",
+          "传递函数"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/零初值传递函数_2_21001.md"
+      ],
+      "tags": [
+        "零初值",
+        "系统对象",
+        "初始状态",
+        "传递函数",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "振荡环节_5_d677d1e6",
+      "name": "振荡环节",
+      "nodeType": "THEORY",
+      "description": "传递函数具有一对共轭复数极点的典型环节，其响应呈现振荡特性。",
+      "positionX": -123.0,
+      "positionY": -71.0,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "传递函数具有一对共轭复数极点的典型环节，其响应呈现振荡特性。",
+        "examples": [
+          "二阶系统的标准形式"
+        ],
+        "formulas": [
+          "G(s) = ω_n^2 / (s^2 + 2ζω_n s + ω_n^2)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "振荡环节",
+          "阻尼比",
+          "自然频率"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628458",
+        "updatedAt": "2026-02-04T17:54:16.628458",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/振荡环节_5_d677d1e6.md"
+      ],
+      "tags": [
+        "振荡环节",
+        "阻尼比",
+        "自然频率",
+        "chapter-5"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "前向通路|传递函数|1",
+      "sourceId": "前向通路_1_7d1c792e",
+      "targetId": "传递函数_1_5b0faf8b",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.7
+    },
+    {
+      "id": "传递函数|信号流图|1-2",
+      "sourceId": "传递函数_1_5b0faf8b",
+      "targetId": "信号流图_2_372d4084",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "rt-16224",
+      "sourceId": "结构图_2_3f312ccc",
+      "targetId": "信号流图_2_372d4084",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "结构图|闭环传递函数|2",
+      "sourceId": "结构图_2_3f312ccc",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "结构图|回路|2",
+      "sourceId": "结构图_2_3f312ccc",
+      "targetId": "回路_2_e1adbdfa",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "结构图|梅森增益公式|2",
+      "sourceId": "结构图_2_3f312ccc",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "结构图|余因子式|2",
+      "sourceId": "结构图_2_3f312ccc",
+      "targetId": "余因子式_2_1da0d7e8",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.5
+    },
+    {
+      "id": "信号流图|闭环传递函数|2",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "信号流图|回路|2",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "回路_2_e1adbdfa",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "信号流图|梅森增益公式|2",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "信号流图|余因子式|2",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "余因子式_2_1da0d7e8",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.8
+    },
+    {
+      "id": "闭环传递函数|回路|2",
+      "sourceId": "闭环传递函数_2_5399c369",
+      "targetId": "回路_2_e1adbdfa",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.7
+    },
+    {
+      "id": "闭环传递函数|梅森增益公式|2",
+      "sourceId": "闭环传递函数_2_5399c369",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "闭环传递函数|余因子式|2",
+      "sourceId": "闭环传递函数_2_5399c369",
+      "targetId": "余因子式_2_1da0d7e8",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "回路|梅森增益公式|2",
+      "sourceId": "回路_2_e1adbdfa",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.9
+    },
+    {
+      "id": "回路|余因子式|2",
+      "sourceId": "回路_2_e1adbdfa",
+      "targetId": "余因子式_2_1da0d7e8",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "梅森增益公式|余因子式|2",
+      "sourceId": "梅森增益公式_2_419eab0c",
+      "targetId": "余因子式_2_1da0d7e8",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "微分方程|结构图|2",
+      "sourceId": "微分方程_2_775c96a3",
+      "targetId": "结构图_2_3f312ccc",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "微分方程|信号流图|2",
+      "sourceId": "微分方程_2_775c96a3",
+      "targetId": "信号流图_2_372d4084",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "微分方程|闭环传递函数|2",
+      "sourceId": "微分方程_2_775c96a3",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "id": "微分方程|梅森增益公式|2",
+      "sourceId": "微分方程_2_775c96a3",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "id": "微分方程|余因子式|2",
+      "sourceId": "微分方程_2_775c96a3",
+      "targetId": "余因子式_2_1da0d7e8",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "前向通路|梅森增益公式|1-2",
+      "sourceId": "前向通路_1_7d1c792e",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "前向通路|余因子式|1-2",
+      "sourceId": "前向通路_1_7d1c792e",
+      "targetId": "余因子式_2_1da0d7e8",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.8
+    },
+    {
+      "id": "rt-16214",
+      "sourceId": "微分方程_2_775c96a3",
+      "targetId": "拉氏变换工程动机_2_11001",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16234",
+      "sourceId": "拉氏变换工程动机_2_11001",
+      "targetId": "传递函数_1_5b0faf8b",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.85
+    },
+    {
+      "id": "rt-16244",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16246",
+      "sourceId": "梅森增益公式_2_419eab0c",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16215",
+      "sourceId": "拉氏变换工程动机_2_11001",
+      "targetId": "零初值传递函数_2_21001",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16216",
+      "sourceId": "零初值传递函数_2_21001",
+      "targetId": "传递函数_1_5b0faf8b",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.88
+    },
+    {
+      "id": "rt-16217",
+      "sourceId": "传递函数_1_5b0faf8b",
+      "targetId": "典型环节对象库_2_21002",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16218",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "比例环节_2_11004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16219",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "积分环节_2_11005",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16220",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "微分环节_2_11006",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16221",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "惯性环节_2_11007",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16222",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "振荡环节_5_d677d1e6",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16223",
+      "sourceId": "结构图_2_3f312ccc",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.92
+    },
+    {
+      "id": "rt-16225",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "前向通路_1_7d1c792e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16226",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "回路_2_e1adbdfa",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16228",
+      "sourceId": "前向通路_1_7d1c792e",
+      "targetId": "余子式接触判定_2_21003",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16229",
+      "sourceId": "回路_2_e1adbdfa",
+      "targetId": "余子式接触判定_2_21003",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16230",
+      "sourceId": "余因子式_2_1da0d7e8",
+      "targetId": "余子式接触判定_2_21003",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rt-16231",
+      "sourceId": "梅森增益公式_2_419eab0c",
+      "targetId": "余子式接触判定_2_21003",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.92
+    },
+    {
+      "id": "rt-16232",
+      "sourceId": "余子式接触判定_2_21003",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.86
+    }
+  ]
+}

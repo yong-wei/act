@@ -329,6 +329,7 @@ def copy_media_assets(source_dir: Path, destination_dir: Path) -> list[str]:
         '.mp4',
         '.webm',
         '.mp3',
+        '.m4a',
         '.wav',
         '.pdf',
     }
@@ -371,6 +372,7 @@ def generate_runtime_media(lesson_id: str) -> None:
         '.mp4',
         '.webm',
         '.mp3',
+        '.m4a',
         '.wav',
         '.pdf',
     }

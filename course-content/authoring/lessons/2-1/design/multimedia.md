@@ -18,12 +18,12 @@
 | h-06 | `2-1-md-06-block-vs-sfg.png` | 讲义 | TikZ 对照图 | `handout.md` §2.5.1 | 已生成 |
 | h-07 | `2-1-md-07-example-ship-loop.png` | 讲义 | TikZ 方框图 | `handout.md` 例题1题面后 | 已生成 |
 | h-08 | `2-1-md-08-example-ship-sfg.png` | 讲义 | TikZ 信号流图 | `handout.md` §3.1 Step 4 | 已生成 |
-| h-09 | `2-1-md-09-example2-original.png` | 讲义 | TikZ 方框图 | `handout.md` §3.2 题目 | 已生成 |
-| h-10 | `2-1-md-10-example2-step1.png` | 讲义 | TikZ 方框图 | `handout.md` §3.2 Step 2 | 已生成 |
-| h-11 | `2-1-md-11-example2-step2.png` | 讲义 | TikZ 方框图 | `handout.md` §3.2 Step 3 | 已生成 |
-| h-12 | `2-1-md-12-example2-step3.png` | 讲义 | TikZ 方框图 | `handout.md` §3.2 Step 4 | 已生成 |
-| h-13 | `2-1-md-13-example2-labeled-block.png` | 讲义 | TikZ 方框图 | `handout.md` §3.2 Step 5 前 | 已生成 |
-| h-14 | `2-1-md-14-example2-sfg.png` | 讲义 | TikZ 信号流图 | `handout.md` §3.2 Step 5 | 已生成 |
+| h-09 | `2-1-md-09-example2-original.png` | 备选拓展素材 | TikZ 方框图 | 当前主线未直接使用；供后续教师拓展或互动升级参考 | 已生成 |
+| h-10 | `2-1-md-10-example2-step1.png` | 备选拓展素材 | TikZ 方框图 | 当前主线未直接使用；供后续教师拓展或互动升级参考 | 已生成 |
+| h-11 | `2-1-md-11-example2-step2.png` | 备选拓展素材 | TikZ 方框图 | 当前主线未直接使用；供后续教师拓展或互动升级参考 | 已生成 |
+| h-12 | `2-1-md-12-example2-step3.png` | 备选拓展素材 | TikZ 方框图 | 当前主线未直接使用；供后续教师拓展或互动升级参考 | 已生成 |
+| h-13 | `2-1-md-13-example2-labeled-block.png` | 备选拓展素材 | TikZ 方框图 | 当前主线未直接使用；供后续教师拓展或互动升级参考 | 已生成 |
+| h-14 | `2-1-md-14-example2-sfg.png` | 教师补充 / 互动课 | TikZ 信号流图 | `boppps.md` 第五段补充辨析、`teacher-handout.md` §4.2、`interactive-page.md` step-14 | 已生成 |
 | h-info | `2-1-info.png` | 讲义末尾信息图 | 位图 | `handout.md` 总结后、附录前 | 已生成 |
 | ic-01 | `2-1-intro-video.mp4` | 课堂 / 互动课导入 | 中文视频提示词 | 后续互动课首页或课堂开场 | 已生成 |
 | sh-slides | `2-1-slides.pdf` | 生成式课件 | PDF | 课件导出配套 | 已生成 |
