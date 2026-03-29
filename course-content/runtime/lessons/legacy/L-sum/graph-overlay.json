@@ -1,5 +1,5 @@
 {
-  "lesson_id": "L-sum",
+  "lesson_id": "4-1",
   "title": "设计可行域——让约束成为指南针",
   "focus_node_ids": [
     "复平面可行域_4_Lsum001",
@@ -101,8 +101,8 @@
       "name": "动态性能指标",
       "nodeType": "THEORY",
       "description": "描述稳定系统在单位阶跃函数作用下，动态过程随时间变化状况的指标，用于评价系统响应特性。",
-      "positionX": -18.6,
-      "positionY": -69.5,
+      "positionX": 20.2,
+      "positionY": 75.3,
       "positionZ": 3,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -154,8 +154,8 @@
       "name": "开环增益",
       "nodeType": "THEORY",
       "description": "系统开环传递函数中的增益参数，影响系统的稳态误差和动态性能。",
-      "positionX": -55.2,
-      "positionY": 55.2,
+      "positionX": 55.2,
+      "positionY": -55.2,
       "positionZ": 3,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -201,8 +201,8 @@
       "name": "时域响应包络",
       "nodeType": "THEORY",
       "description": "以K_min和K_max对应的阶跃响应曲线为边界围成的管道；满足性能约束的所有系统响应均落在此包络内，是复平面可行域在时域上的投影。",
-      "positionX": -78.0,
-      "positionY": 0.0,
+      "positionX": 81.1,
+      "positionY": 21.7,
       "positionZ": 3,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -258,8 +258,8 @@
       "name": "最佳阻尼比",
       "nodeType": "THEORY",
       "description": "ζ=0.707时，系统在快速响应与最小超调（约4.3%）之间取得最优平衡，对应根轨迹图上与负实轴成45°的射线。",
-      "positionX": -67.5,
-      "positionY": -39.0,
+      "positionX": 42.0,
+      "positionY": 72.7,
       "positionZ": 3,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -318,8 +318,8 @@
       "name": "超调量",
       "nodeType": "THEORY",
       "description": "系统单位阶跃响应中最大超出稳态值的部分与稳态值之比的百分数，仅与阻尼比有关。",
-      "positionX": -72.7,
-      "positionY": -42.0,
+      "positionX": 45.0,
+      "positionY": 77.9,
       "positionZ": 3,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -391,8 +391,8 @@
       "name": "阻尼比",
       "nodeType": "THEORY",
       "description": "阻尼比是描述二阶系统阻尼程度的无量纲参数，其值等于负实轴夹角的余弦。",
-      "positionX": 90.0,
-      "positionY": 0.0,
+      "positionX": -63.6,
+      "positionY": -63.6,
       "positionZ": 3,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -464,8 +464,8 @@
       "name": "复平面可行域",
       "nodeType": "THEORY",
       "description": "在复平面上，同时满足超调量约束（阻尼比射线下方）和调节时间约束（实部垂线左侧）的极点允许区域；是三域设计可行域的几何枢纽。",
-      "positionX": -52.0,
-      "positionY": -90.1,
+      "positionX": -28.5,
+      "positionY": 106.3,
       "positionZ": 4,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -523,8 +523,8 @@
       "name": "极点迁移",
       "nodeType": "THEORY",
       "description": "当系统参数（如开环增益K）变化时，闭环极点在复平面上发生位移的现象；根轨迹描述了极点迁移的完整路径。",
-      "positionX": 100.5,
-      "positionY": -26.9,
+      "positionX": -95.3,
+      "positionY": -55.0,
       "positionZ": 4,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -583,8 +583,8 @@
       "name": "根轨迹",
       "nodeType": "THEORY",
       "description": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
-      "positionX": 110.0,
-      "positionY": 0.0,
+      "positionX": -77.8,
+      "positionY": -77.8,
       "positionZ": 4,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -641,8 +641,8 @@
       "name": "根轨迹图",
       "nodeType": "THEORY",
       "description": "在复平面上描绘系统闭环极点随开环增益变化而移动的轨迹图。",
-      "positionX": 28.5,
-      "positionY": 106.3,
+      "positionX": 55.0,
+      "positionY": -95.3,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -687,8 +687,8 @@
       "name": "设计可行域",
       "nodeType": "THEORY",
       "description": "在参数空间（如开环增益K）中，同时满足所有性能约束的参数允许范围；在三域各有对应投影：复平面上为扇形可行区域，时域上为响应包络，频域上为Bode幅频可行带。",
-      "positionX": 77.8,
-      "positionY": -77.8,
+      "positionX": -116.0,
+      "positionY": 0.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -746,8 +746,8 @@
       "name": "三域直觉联动",
       "nodeType": "THEORY",
       "description": "时域（Mp, ts）、复平面（极点位置, ζ, ωn）、频域（γ, ωc）三种表征通过阻尼比ζ和自然频率ωn相互连通，改变一个参数三个面孔同时变化。",
-      "positionX": -112.6,
-      "positionY": -65.0,
+      "positionX": 0.0,
+      "positionY": 136.0,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -808,8 +808,8 @@
       "name": "三域联动操作体验",
       "nodeType": "THEORY",
       "description": "通过在三面板工具（根轨迹+时域+Bode图）中同时操作单一参数K，亲身感知增益变化如何同步改变三域指标，建立“一拨全动”的操作直觉。",
-      "positionX": -91.9,
-      "positionY": -91.9,
+      "positionX": -35.2,
+      "positionY": 131.4,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -869,8 +869,8 @@
       "name": "临界增益体验",
       "nodeType": "THEORY",
       "description": "通过操作实验发现系统从稳定变为不稳定的临界增益K_cr，体验“极点越过虚轴→时域等幅振荡→相位裕度归零”三域同步失稳现象，为劳斯判据的精确推导建立直觉锚点。",
-      "positionX": -65.0,
-      "positionY": -112.6,
+      "positionX": -68.0,
+      "positionY": 117.8,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -930,8 +930,8 @@
       "name": "频域可行带",
       "nodeType": "THEORY",
       "description": "以K_min和K_max对应的Bode幅频特性曲线为上下边界形成的可行带；K增大幅频曲线上移、穿越频率增大、相位裕度减小，可行带刻画了同时满足带宽和稳定裕度约束的频域范围。",
-      "positionX": 143.0,
-      "positionY": 38.3,
+      "positionX": 38.3,
+      "positionY": -143.0,
       "positionZ": 5,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -989,8 +989,8 @@
       "name": "调节时间",
       "nodeType": "THEORY",
       "description": "系统阶跃响应达到并保持在稳态值允许误差范围内所需的时间。",
-      "positionX": -0.0,
-      "positionY": -290.0,
+      "positionX": -285.9,
+      "positionY": -76.6,
       "positionZ": 10,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -1113,20 +1113,52 @@
       "strength": 1.0
     },
     {
-      "id": "阻尼比|超调量|new",
-      "sourceId": "阻尼比_3_b849784e",
-      "targetId": "超调量_3_fc3f5b17",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.95
+      "id": "rt-16282",
+      "sourceId": "三域联动操作体验_5_L2d001",
+      "targetId": "三域直觉联动_5_L2c005",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
     },
     {
-      "id": "阻尼比|调节时间|new",
-      "sourceId": "阻尼比_3_b849784e",
-      "targetId": "调节时间_10_fcbccf4e",
+      "id": "rt-16283",
+      "sourceId": "临界增益体验_5_L2d002",
+      "targetId": "三域联动操作体验_5_L2d001",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
+    },
+    {
+      "id": "rt-16284",
+      "sourceId": "三域联动操作体验_5_L2d001",
+      "targetId": "临界增益体验_5_L2d002",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
+    },
+    {
+      "id": "三域直觉联动|极点迁移|new",
+      "sourceId": "三域直觉联动_5_L2c005",
+      "targetId": "极点迁移_4_L2b001",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "三域直觉联动|设计可行域|new",
+      "sourceId": "三域直觉联动_5_L2c005",
+      "targetId": "设计可行域_4_Lsum004",
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.85
+    },
+    {
+      "id": "动态性能指标|复平面可行域|new",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
     },
     {
       "id": "动态性能指标|调节时间|new",
@@ -1137,12 +1169,52 @@
       "strength": 0.95
     },
     {
+      "id": "复平面可行域|时域响应包络|new",
+      "sourceId": "复平面可行域_4_Lsum001",
+      "targetId": "时域响应包络_3_Lsum002",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "复平面可行域|设计可行域|new",
+      "sourceId": "复平面可行域_4_Lsum001",
+      "targetId": "设计可行域_4_Lsum004",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "复平面可行域|频域可行带|new",
+      "sourceId": "复平面可行域_4_Lsum001",
+      "targetId": "频域可行带_5_Lsum003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.88
+    },
+    {
       "id": "开环增益|极点迁移|new",
       "sourceId": "开环增益_3_d73dc120",
       "targetId": "极点迁移_4_L2b001",
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.95
+    },
+    {
+      "id": "最佳阻尼比|开环增益|new",
+      "sourceId": "最佳阻尼比_3_L2b002",
+      "targetId": "开环增益_3_d73dc120",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.85
+    },
+    {
+      "id": "极点迁移|复平面可行域|new",
+      "sourceId": "极点迁移_4_L2b001",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.88
     },
     {
       "id": "极点迁移|根轨迹|new",
@@ -1161,60 +1233,12 @@
       "strength": 0.9
     },
     {
-      "id": "阻尼比|最佳阻尼比|new",
-      "sourceId": "阻尼比_3_b849784e",
-      "targetId": "最佳阻尼比_3_L2b002",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.9
-    },
-    {
-      "id": "最佳阻尼比|开环增益|new",
-      "sourceId": "最佳阻尼比_3_L2b002",
-      "targetId": "开环增益_3_d73dc120",
+      "id": "调节时间|复平面可行域|new",
+      "sourceId": "调节时间_10_fcbccf4e",
+      "targetId": "复平面可行域_4_Lsum001",
       "relation": "cross_domain",
       "relationType": "cross_domain",
-      "strength": 0.85
-    },
-    {
-      "id": "三域直觉联动|极点迁移|new",
-      "sourceId": "三域直觉联动_5_L2c005",
-      "targetId": "极点迁移_4_L2b001",
-      "relation": "contains",
-      "relationType": "contains",
-      "strength": 0.9
-    },
-    {
-      "id": "rt-16250",
-      "sourceId": "三域联动操作体验_5_L2d001",
-      "targetId": "三域直觉联动_5_L2c005",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 1.0
-    },
-    {
-      "id": "rt-16251",
-      "sourceId": "临界增益体验_5_L2d002",
-      "targetId": "三域联动操作体验_5_L2d001",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 1.0
-    },
-    {
-      "id": "rt-16252",
-      "sourceId": "三域联动操作体验_5_L2d001",
-      "targetId": "临界增益体验_5_L2d002",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 1.0
-    },
-    {
-      "id": "动态性能指标|复平面可行域|new",
-      "sourceId": "动态性能指标_3_a10733c1",
-      "targetId": "复平面可行域_4_Lsum001",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.9
+      "strength": 0.92
     },
     {
       "id": "阻尼比|复平面可行域|new",
@@ -1225,52 +1249,84 @@
       "strength": 0.92
     },
     {
-      "id": "调节时间|复平面可行域|new",
-      "sourceId": "调节时间_10_fcbccf4e",
-      "targetId": "复平面可行域_4_Lsum001",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.92
-    },
-    {
-      "id": "极点迁移|复平面可行域|new",
-      "sourceId": "极点迁移_4_L2b001",
-      "targetId": "复平面可行域_4_Lsum001",
+      "id": "阻尼比|最佳阻尼比|new",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "最佳阻尼比_3_L2b002",
       "relation": "leads_to",
       "relationType": "leads_to",
-      "strength": 0.88
-    },
-    {
-      "id": "复平面可行域|时域响应包络|new",
-      "sourceId": "复平面可行域_4_Lsum001",
-      "targetId": "时域响应包络_3_Lsum002",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
       "strength": 0.9
     },
     {
-      "id": "复平面可行域|频域可行带|new",
-      "sourceId": "复平面可行域_4_Lsum001",
-      "targetId": "频域可行带_5_Lsum003",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.88
+      "id": "rel-66570c2ff086f209",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.86
     },
     {
-      "id": "复平面可行域|设计可行域|new",
-      "sourceId": "复平面可行域_4_Lsum001",
-      "targetId": "设计可行域_4_Lsum004",
-      "relation": "contains",
-      "relationType": "contains",
+      "id": "rel-8b2033d899c32f9f",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.98
+    },
+    {
+      "id": "rt-16202",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "related",
+      "relationType": "related",
       "strength": 0.95
     },
     {
-      "id": "三域直觉联动|设计可行域|new",
-      "sourceId": "三域直觉联动_5_L2c005",
-      "targetId": "设计可行域_4_Lsum004",
+      "id": "rt-16203",
+      "sourceId": "动态性能指标_3_a10733c1",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16206",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.98
+    },
+    {
+      "id": "rt-16207",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-3a0ff5c8e41f2412",
+      "sourceId": "三域联动操作体验_5_L2d001",
+      "targetId": "三域直觉联动_5_L2c005",
       "relation": "leads_to",
       "relationType": "leads_to",
-      "strength": 0.85
+      "strength": 1.0
+    },
+    {
+      "id": "rel-bc2668e8e656fd0f",
+      "sourceId": "临界增益体验_5_L2d002",
+      "targetId": "三域联动操作体验_5_L2d001",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "rel-884deb267e552ae6",
+      "sourceId": "三域联动操作体验_5_L2d001",
+      "targetId": "临界增益体验_5_L2d002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 1.0
     }
   ]
 }

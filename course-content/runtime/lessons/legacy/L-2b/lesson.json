@@ -1,5 +1,5 @@
 {
-  "lesson_id": "L-2b",
+  "lesson_id": "1-3",
   "title": "根轨迹直觉速通——极点迁移的几何感知",
   "layer": "层0",
   "unit_type": "理论",
@@ -38,7 +38,7 @@
     "2-3"
   ],
   "sequence": {
-    "lesson_id": "L-2b",
+    "lesson_id": "1-3",
     "groups": [
       {
         "group_name": "引入",
@@ -104,5 +104,9 @@
   "handout_path": "/course-runtime/lessons/legacy/L-2b/handout.md",
   "handout_source_path": "course-content/runtime/lessons/legacy/L-2b/handout.md",
   "graph_overlay_path": "/course-runtime/lessons/legacy/L-2b/graph-overlay.json",
-  "media_base_path": "/course-runtime/lessons/legacy/L-2b/media"
+  "media_base_path": "/course-runtime/lessons/legacy/L-2b/media",
+  "review": {
+    "status": "pending",
+    "boppps_path": "/course-runtime/lessons/legacy/L-2b/review/boppps.md"
+  }
 }

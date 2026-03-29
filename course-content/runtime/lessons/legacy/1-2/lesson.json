@@ -1,5 +1,5 @@
 {
-  "lesson_id": "1-2",
+  "lesson_id": "2-1",
   "title": "系统结构图与化简——从积木块到系统蓝图",
   "layer": "层1",
   "unit_type": "理论",
@@ -48,7 +48,7 @@
   "refinement_units": [],
   "ideological_point": "梅森增益公式——全局观与工程认知",
   "sequence": {
-    "lesson_id": "1-2",
+    "lesson_id": "2-1",
     "groups": [
       {
         "group_name": "引入与基本元素",

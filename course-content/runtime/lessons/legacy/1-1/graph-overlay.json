@@ -225,8 +225,8 @@
       "name": "微分定理",
       "nodeType": "THEORY",
       "description": "拉氏变换的微分定理：L[f'(t)] = sF(s) - f(0⁻)，将时域微分运算转化为s域的乘s运算（附加初始条件修正项），是从微分方程推导传递函数的核心工具。",
-      "positionX": -27.7,
-      "positionY": -16.0,
+      "positionX": -16.0,
+      "positionY": -27.7,
       "positionZ": 0,
       "bloomLevel": "APPLY",
       "knowledgeDim": "数学工具",
@@ -279,8 +279,8 @@
       "name": "微分方程",
       "nodeType": "THEORY",
       "description": "时域中描述系统动态特性的数学模型，表示未知函数及其导数与自变量之间的关系。",
-      "positionX": -32.5,
-      "positionY": -32.5,
+      "positionX": -11.9,
+      "positionY": -44.4,
       "positionZ": 2,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -318,7 +318,9 @@
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
-      "resources": [],
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/微分方程_2_775c96a3.md"
+      ],
       "tags": [
         "时域",
         "动态特性",
@@ -335,8 +337,8 @@
       "name": "微分环节",
       "nodeType": "THEORY",
       "description": "传递函数为G(s)=s的环节，输出反映输入的变化率。有零点在原点，无极点。纯微分环节不可物理实现，实际使用不完全微分。",
-      "positionX": -16.0,
-      "positionY": -27.7,
+      "positionX": -0.0,
+      "positionY": -32.0,
       "positionZ": 0,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "典型环节",
@@ -376,7 +378,9 @@
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
-      "resources": [],
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/微分环节_2_11006.md"
+      ],
       "tags": [
         "微分",
         "变化率",
@@ -390,7 +394,7 @@
       "name": "惯性环节",
       "nodeType": "THEORY",
       "description": "传递函数为G(s)=1/(Ts+1)的一阶环节，具有一个负实极点s=-1/T。时间常数T越大响应越慢。物理原型包括RC低通电路、温度计热惯性。",
-      "positionX": -8.3,
+      "positionX": 8.3,
       "positionY": -30.9,
       "positionZ": 0,
       "bloomLevel": "UNDERSTAND",
@@ -433,7 +437,9 @@
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
-      "resources": [],
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/惯性环节_2_11007.md"
+      ],
       "tags": [
         "惯性",
         "一阶",
@@ -448,8 +454,8 @@
       "name": "拉氏变换",
       "nodeType": "THEORY",
       "description": "一种将时域函数转换为复频域（s域）函数的积分变换，用于简化微分方程的求解。",
-      "positionX": 23.0,
-      "positionY": -39.8,
+      "positionX": 39.8,
+      "positionY": -23.0,
       "positionZ": 2,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -494,8 +500,8 @@
       "name": "拉氏变换工程动机",
       "nodeType": "THEORY",
       "description": "拉氏变换将时域微分运算映射为s域乘法运算，从而将常系数线性微分方程降维为代数方程，是控制系统分析的基础数学工具。",
-      "positionX": 22.6,
-      "positionY": -22.6,
+      "positionX": 30.9,
+      "positionY": -8.3,
       "positionZ": 0,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "系统建模",
@@ -534,7 +540,9 @@
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
-      "resources": [],
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/拉氏变换工程动机_2_11001.md"
+      ],
       "tags": [
         "拉氏变换",
         "降维",
@@ -548,8 +556,8 @@
       "name": "极点",
       "nodeType": "THEORY",
       "description": "传递函数分母多项式的根，即系统微分方程的特征根，决定了系统自由运动的模态，在复平面上用“x”表示。",
-      "positionX": 36.8,
-      "positionY": 36.8,
+      "positionX": 13.5,
+      "positionY": 50.2,
       "positionZ": 2,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -595,8 +603,8 @@
       "name": "比例环节",
       "nodeType": "THEORY",
       "description": "传递函数为常数G(s)=K的环节，输出与输入成正比，无动态过程。物理原型包括杠杆、齿轮变比、放大器等。",
-      "positionX": 0.0,
-      "positionY": 38.0,
+      "positionX": -19.0,
+      "positionY": 32.9,
       "positionZ": 0,
       "bloomLevel": "REMEMBER",
       "knowledgeDim": "典型环节",
@@ -634,7 +642,9 @@
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
-      "resources": [],
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/比例环节_2_11004.md"
+      ],
       "tags": [
         "比例",
         "增益",
@@ -647,8 +657,8 @@
       "name": "积分环节",
       "nodeType": "THEORY",
       "description": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
-      "positionX": -19.0,
-      "positionY": -32.9,
+      "positionX": -0.0,
+      "positionY": -38.0,
       "positionZ": 0,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "典型环节",
@@ -687,7 +697,9 @@
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
-      "resources": [],
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/积分环节_2_11005.md"
+      ],
       "tags": [
         "积分",
         "原点极点",
@@ -700,8 +712,8 @@
       "name": "零点",
       "nodeType": "THEORY",
       "description": "传递函数分子多项式的根，在复平面上用“o”表示，影响系统响应中各模态的比重和响应曲线形状。",
-      "positionX": -29.0,
-      "positionY": 50.2,
+      "positionX": -56.0,
+      "positionY": 15.0,
       "positionZ": 2,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -747,8 +759,8 @@
       "name": "闭环特征方程",
       "nodeType": "THEORY",
       "description": "描述闭环控制系统动态特性的特征多项式方程，其根决定了系统的稳定性。",
-      "positionX": -63.6,
-      "positionY": 63.6,
+      "positionX": -90.0,
+      "positionY": 0.0,
       "positionZ": 3,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -780,7 +792,9 @@
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
-      "resources": [],
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环特征方程_3_87c88e19.md"
+      ],
       "tags": [
         "特征方程",
         "闭环系统",
@@ -793,8 +807,8 @@
       "name": "振荡环节",
       "nodeType": "THEORY",
       "description": "传递函数具有一对共轭复数极点的典型环节，其响应呈现振荡特性。",
-      "positionX": -137.2,
-      "positionY": 36.8,
+      "positionX": -71.0,
+      "positionY": -123.0,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -826,7 +840,9 @@
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
-      "resources": [],
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/振荡环节_5_d677d1e6.md"
+      ],
       "tags": [
         "振荡环节",
         "阻尼比",
@@ -1010,6 +1026,102 @@
       "targetId": "振荡环节_5_d677d1e6",
       "relation": "related",
       "relationType": "related",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-b572a21eab915b74",
+      "sourceId": "微分方程_2_775c96a3",
+      "targetId": "拉氏变换工程动机_2_11001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-766bf121ad564a65",
+      "sourceId": "拉氏变换工程动机_2_11001",
+      "targetId": "拉氏变换_2_243496d4",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-f290a873adb1586e",
+      "sourceId": "拉氏变换_2_243496d4",
+      "targetId": "微分定理_2_11002",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-3c0c29dc86b1769a",
+      "sourceId": "微分定理_2_11002",
+      "targetId": "传递函数_2_2c5e2589",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-5cf6847278f02eca",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "传递函数标准形式_2_11003",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-37856402977d364e",
+      "sourceId": "传递函数标准形式_2_11003",
+      "targetId": "零点_2_c29600a1",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-39cff4ed67f55dfd",
+      "sourceId": "传递函数标准形式_2_11003",
+      "targetId": "极点_2_cc79a4c5",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-351e3cf559164299",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "比例环节_2_11004",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "rel-f2b695e8e425f4ed",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "积分环节_2_11005",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "rel-80d5b3bb9c73dc7d",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "微分环节_2_11006",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "rel-c0322d2b6fe9ba27",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "惯性环节_2_11007",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-f36af14bdfbe39c8",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "振荡环节_5_d677d1e6",
+      "relation": "contains",
+      "relationType": "contains",
       "strength": 0.85
     }
   ]

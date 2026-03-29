@@ -1,5 +1,5 @@
 {
-  "lesson_id": "L-2d",
+  "lesson_id": "1-5",
   "title": "三域联动探索——平台操作初体验",
   "focus_node_ids": [
     "三域联动操作体验_5_L2d001",
@@ -79,8 +79,8 @@
       "name": "超调量",
       "nodeType": "THEORY",
       "description": "系统单位阶跃响应中最大超出稳态值的部分与稳态值之比的百分数，仅与阻尼比有关。",
-      "positionX": -72.7,
-      "positionY": -42.0,
+      "positionX": 45.0,
+      "positionY": 77.9,
       "positionZ": 3,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -152,8 +152,8 @@
       "name": "阻尼比",
       "nodeType": "THEORY",
       "description": "阻尼比是描述二阶系统阻尼程度的无量纲参数，其值等于负实轴夹角的余弦。",
-      "positionX": 90.0,
-      "positionY": 0.0,
+      "positionX": -63.6,
+      "positionY": -63.6,
       "positionZ": 3,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -225,8 +225,8 @@
       "name": "三域直觉联动",
       "nodeType": "THEORY",
       "description": "时域（Mp, ts）、复平面（极点位置, ζ, ωn）、频域（γ, ωc）三种表征通过阻尼比ζ和自然频率ωn相互连通，改变一个参数三个面孔同时变化。",
-      "positionX": -112.6,
-      "positionY": -65.0,
+      "positionX": 0.0,
+      "positionY": 136.0,
       "positionZ": 5,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -287,8 +287,8 @@
       "name": "三域联动操作体验",
       "nodeType": "THEORY",
       "description": "通过在三面板工具（根轨迹+时域+Bode图）中同时操作单一参数K，亲身感知增益变化如何同步改变三域指标，建立“一拨全动”的操作直觉。",
-      "positionX": -91.9,
-      "positionY": -91.9,
+      "positionX": -35.2,
+      "positionY": 131.4,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -348,8 +348,8 @@
       "name": "临界增益体验",
       "nodeType": "THEORY",
       "description": "通过操作实验发现系统从稳定变为不稳定的临界增益K_cr，体验“极点越过虚轴→时域等幅振荡→相位裕度归零”三域同步失稳现象，为劳斯判据的精确推导建立直觉锚点。",
-      "positionX": -65.0,
-      "positionY": -112.6,
+      "positionX": -68.0,
+      "positionY": 117.8,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -409,8 +409,8 @@
       "name": "相位裕度直觉",
       "nodeType": "THEORY",
       "description": "在截止频率ωc处（幅值恰好为0dB时），系统相角与-180°之间的差值γ；γ越大，系统离振荡失稳越远，超调越小。",
-      "positionX": 36.8,
-      "positionY": 137.2,
+      "positionX": 137.2,
+      "positionY": -36.8,
       "positionZ": 5,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -470,8 +470,8 @@
       "name": "频率响应直觉",
       "nodeType": "THEORY",
       "description": "系统对不同频率正弦信号的放大与延迟特性的直觉理解：低频信号被忠实跟踪，高频信号被过滤衰减，中间存在一个速度门槛截止频率ωc。",
-      "positionX": 0.0,
-      "positionY": 148.0,
+      "positionX": 148.8,
+      "positionY": 39.9,
       "positionZ": 5,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -527,8 +527,8 @@
       "name": "调节时间",
       "nodeType": "THEORY",
       "description": "系统阶跃响应达到并保持在稳态值允许误差范围内所需的时间。",
-      "positionX": -0.0,
-      "positionY": -290.0,
+      "positionX": -285.9,
+      "positionY": -76.6,
       "positionZ": 10,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -587,44 +587,44 @@
       "strength": 0.8
     },
     {
-      "id": "阻尼比|超调量|new",
-      "sourceId": "阻尼比_3_b849784e",
-      "targetId": "超调量_3_fc3f5b17",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.95
+      "id": "rt-16282",
+      "sourceId": "三域联动操作体验_5_L2d001",
+      "targetId": "三域直觉联动_5_L2c005",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
     },
     {
-      "id": "阻尼比|调节时间|new",
-      "sourceId": "阻尼比_3_b849784e",
-      "targetId": "调节时间_10_fcbccf4e",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.85
+      "id": "rt-16283",
+      "sourceId": "临界增益体验_5_L2d002",
+      "targetId": "三域联动操作体验_5_L2d001",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
     },
     {
-      "id": "相位裕度直觉|阻尼比|new",
-      "sourceId": "相位裕度直觉_5_L2c003",
-      "targetId": "阻尼比_3_b849784e",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.95
+      "id": "rt-16284",
+      "sourceId": "三域联动操作体验_5_L2d001",
+      "targetId": "临界增益体验_5_L2d002",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
     },
     {
-      "id": "相位裕度直觉|超调量|new",
-      "sourceId": "相位裕度直觉_5_L2c003",
-      "targetId": "超调量_3_fc3f5b17",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.9
+      "id": "rt-16285",
+      "sourceId": "临界增益体验_5_L2d002",
+      "targetId": "相位裕度直觉_5_L2c003",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
     },
     {
-      "id": "三域直觉联动|频率响应直觉|new",
-      "sourceId": "三域直觉联动_5_L2c005",
+      "id": "rt-16287",
+      "sourceId": "三域联动操作体验_5_L2d001",
       "targetId": "频率响应直觉_5_L2c001",
-      "relation": "contains",
-      "relationType": "contains",
-      "strength": 0.9
+      "relation": "related",
+      "relationType": "related",
+      "strength": 1.0
     },
     {
       "id": "三域直觉联动|相位裕度直觉|new",
@@ -635,43 +635,83 @@
       "strength": 0.95
     },
     {
-      "id": "rt-16250",
+      "id": "三域直觉联动|频率响应直觉|new",
+      "sourceId": "三域直觉联动_5_L2c005",
+      "targetId": "频率响应直觉_5_L2c001",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "相位裕度直觉|超调量|new",
+      "sourceId": "相位裕度直觉_5_L2c003",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "相位裕度直觉|阻尼比|new",
+      "sourceId": "相位裕度直觉_5_L2c003",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-66570c2ff086f209",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-8b2033d899c32f9f",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.98
+    },
+    {
+      "id": "rt-16206",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "超调量_3_fc3f5b17",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.98
+    },
+    {
+      "id": "rt-16207",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "调节时间_10_fcbccf4e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-3a0ff5c8e41f2412",
       "sourceId": "三域联动操作体验_5_L2d001",
       "targetId": "三域直觉联动_5_L2c005",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "leads_to",
+      "relationType": "leads_to",
       "strength": 1.0
     },
     {
-      "id": "rt-16251",
+      "id": "rel-bc2668e8e656fd0f",
       "sourceId": "临界增益体验_5_L2d002",
       "targetId": "三域联动操作体验_5_L2d001",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "contains",
+      "relationType": "contains",
       "strength": 1.0
     },
     {
-      "id": "rt-16252",
+      "id": "rel-884deb267e552ae6",
       "sourceId": "三域联动操作体验_5_L2d001",
       "targetId": "临界增益体验_5_L2d002",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 1.0
-    },
-    {
-      "id": "rt-16253",
-      "sourceId": "临界增益体验_5_L2d002",
-      "targetId": "相位裕度直觉_5_L2c003",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 1.0
-    },
-    {
-      "id": "rt-16255",
-      "sourceId": "三域联动操作体验_5_L2d001",
-      "targetId": "频率响应直觉_5_L2c001",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "leads_to",
+      "relationType": "leads_to",
       "strength": 1.0
     }
   ]

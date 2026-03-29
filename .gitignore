@@ -66,6 +66,7 @@ scripts/**/__pycache__/
 scripts/**/*.pyc
 **/__pycache__/
 **/*.pyc
+**/.matplotlib/
 .worktrees/
 chroma/
 course-content/slides-ref

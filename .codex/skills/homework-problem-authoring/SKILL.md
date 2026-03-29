@@ -1,6 +1,6 @@
 ---
 name: homework-problem-authoring
-description: Use when the user asks to create homework or exam problems by question ID such as `T1-1` from `course-content/syllabus-refactor/homework-framework.md`, especially when another Codex instance must run a multi-agent draft-judge-solve workflow with anti-cheating file-access limits and produce the final stem, answer, scoring rubric, and reference solution.
+description: Use when the user asks to create homework or exam problems by question ID such as `T1-1` from `course-content/syllabus-refactor/homework-framework.md`, especially when another Codex instance must run a multi-agent draft-judge-solve workflow with anti-cheating file-access limits and produce the final stem, standard answer, scoring rubric, and consistency record.
 ---
 
 # Homework Problem Authoring
@@ -11,15 +11,15 @@ description: Use when the user asks to create homework or exam problems by quest
 
 把这个技能当作“出题编排器”，不是单次直接写题。默认产物必须包含：
 - 题面
-- 标准答案
-- 行内得分点
+- 标准答案（答案正文内嵌行内得分点）
+- 行内得分点的结构化提取
 - 分步评分标准
-- 参考作答
 - 裁判结论与一致性记录
 
 其中：
-- `inline_score_points` 用于把答案内部逐步标分显式结构化保存，保留“行内得分点”命题方式；
+- `inline_score_points` 用于把答案内部逐步标分显式结构化保存；其本质不是额外写一份摘要，而是要求在标准答案的关键步骤或关键公式后直接标出分值。
 - `rubric` 用于独立评分指南，与 `inline_score_points` 并存，不互相替代。
+- 独立作答智能体仍然需要保留，用于一致性判定和稳定性验证；但在已经给定标准答案的情况下，最终交付不再重复输出“参考作答”。
 
 ## Quick Start
 
@@ -29,7 +29,7 @@ description: Use when the user asks to create homework or exam problems by quest
 4. 让裁判智能体只读取任务包和 3 份候选稿，选出一个备选题面。
 5. 把备选题面发给 3 个独立的作答智能体，分别写 `solver-1.json`、`solver-2.json`、`solver-3.json`。
 6. 按题型执行一致性判定；不一致时，再次启动三个智能体独立作答。
-7. 在答案大体一致且比例占优的答案中，选择步骤最清晰的一份，连同题面一起输出最终产物。
+7. 在答案大体一致且比例占优后，记录一致性结论，并输出最终产物。
 
 如果用户一次给出多个题号，对每个题号分别跑完整流程，不要把多题混在同一个临时目录里。
 
@@ -73,6 +73,7 @@ description: Use when the user asks to create homework or exam problems by quest
 - 评分锚点
 - 输出格式要求
 - 本技能规定的一致性标准
+- 行内得分点的正文嵌入格式
 
 不要把整个项目目录、其他题号内容、已有答案、仓库源码路径一并塞给子代理。
 
@@ -96,7 +97,7 @@ description: Use when the user asks to create homework or exam problems by quest
 
 主代理分别向 3 个出题智能体发送同一份 `task-package.json`，但不得让它们读取彼此结果。每个出题智能体必须输出：
 - 完整题面
-- 标准答案
+- 标准答案（答案正文内直接标出分值）
 - 行内得分点
 - 分步评分标准
 - 关键易错点
@@ -105,9 +106,40 @@ description: Use when the user asks to create homework or exam problems by quest
 出题阶段要求：
 - 题面必须自包含，不能写“参考讲义”“见课程代码”“见项目文件”。
 - 评分标准必须逐步、可执行、可判分；避免“酌情给分”。
+- 标准答案中的“行内得分点”必须直接嵌入答案正文，而不是只在答案外再列一份摘要。
+- 分值可以写在关键公式后，也可以写在关键步骤文字后；必须做到“看到标准答案正文就能直接知道这一步值多少分”。
 - 若是计算题，可以有不同推导路径，但数值结果必须可验证。
 - 若是跨域题，题干中列出的分析项目必须都能落到答案里。
 - 若是设计题，必须明确设计目标、允许的自由度和验收口径。
+
+行内得分点样式样本：
+
+```markdown
+由受力平衡可得
+
+$$
+m\ddot{x}(t)+c\dot{x}(t)+kx(t)=f(t).\tag{2分}
+$$
+
+代入参数，得到
+
+$$
+\ddot{x}(t)+2\dot{x}(t)+4x(t)=f(t).\tag{1分}
+$$
+
+在零初始条件下作拉普拉斯变换，可得
+
+$$
+s^2X(s)+2sX(s)+4X(s)=F(s).\tag{1分}
+$$
+```
+
+若不适合写在公式后，也可以直接写在文本步骤后：
+
+```markdown
+根据梅森公式完成结构化简，得到闭环传递函数。（2分）
+与标准型比较，读出 $\omega_n=4,\ \zeta=0.5$。（2分）
+```
 
 ### 4. 让裁判智能体选出备选题
 
@@ -158,7 +190,7 @@ description: Use when the user asks to create homework or exam problems by quest
 第二轮后：
 - 只在答案大体一致的候选中做选择
 - 选择比例占优的一组答案
-- 在该组中挑选步骤最清晰的一份作为参考作答
+- 在该组中挑选步骤最清晰的一份，作为内部核查时优先引用的 solver 结果
 
 如果两轮作答后仍无法形成占优且大体一致的答案，判该题为“不稳定题”，不要输出为正式题目。
 
@@ -170,6 +202,7 @@ description: Use when the user asks to create homework or exam problems by quest
 你只能读取当前任务提供的临时目录文件，禁止读取任何项目文件、仓库源码、已有题库、讲义、设计文档或其他临时目录。
 你可以编写和运行脚本，但脚本输入只能来自当前临时目录。
 如果你发现题面信息不足，只能在当前任务包范围内做最小合理假设，并在输出中显式写出假设。
+若你在编写标准答案，必须把分值直接嵌入关键步骤或关键公式中，例如“$$ ... \tag{2分} $$”或“完成结构化简。（2分）”；不要只在答案外另写一份分值摘要。
 ```
 
 如果子代理违反以上限制，丢弃输出并重试，不要“带着污染结果继续往下走”。
@@ -179,15 +212,13 @@ description: Use when the user asks to create homework or exam problems by quest
 最终交付必须包含：
 - 题号与题型
 - 最终题面
-- 标准答案
-- 行内得分点
+- 标准答案（答案正文内已嵌入行内得分点）
 - 分步评分标准
-- 参考作答
 - 裁判为何选择该题
 - 一致性判定记录
 - 是否经历第二轮作答
 
-推荐把最终交付写成 `final-package.md`，同时保留机器可读的 JSON 产物。
+推荐把最终交付写成 `final-package.md`，同时保留机器可读的 JSON 产物；其中 JSON 仍保留 `inline_score_points` 结构，供后续程序化处理使用。
 
 ## Common Mistakes
 
@@ -197,7 +228,8 @@ description: Use when the user asks to create homework or exam problems by quest
 | 裁判自己改题 | 裁判只能选题或判废，不能代写 |
 | 第一轮作答不一致就直接挑一个喜欢的答案 | 必须再开第二轮 |
 | 用“措辞相近”判断一致 | 按 `C/X/D` 的规则判，不按文风判 |
-| 参考作答直接复用标准答案文本 | 参考作答要来自独立作答智能体 |
+| 行内得分点只写在答案外的摘要区 | 必须在标准答案正文内直接标分，摘要结构只作为机器可读补充 |
+| 在已有标准答案后再重复输出“参考作答” | 最终交付不再单列参考作答，solver 结果只用于一致性判定与内部核查 |
 
 ## Resources
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -143,7 +144,7 @@ def resolve_node_id(
     if node_id:
         return str(node_id)
 
-    name = record.get(endpoint)
+    name = record.get(endpoint) or record.get(f'{endpoint}_name')
     if not name:
         return None
 
@@ -159,38 +160,64 @@ def resolve_node_id(
     return None
 
 
+def build_generated_relation_id(source_id: str, target_id: str, relation_type: str) -> str:
+    digest = hashlib.sha1(f'{source_id}::{target_id}::{relation_type}'.encode('utf-8')).hexdigest()[:16]
+    return f'rel-{digest}'
+
+
+def normalize_relation_record(
+    record: dict[str, Any],
+    nodes_by_id: dict[str, dict[str, Any]],
+    by_name_chapter: dict[str, str],
+    by_name: dict[str, list[str]],
+) -> tuple[str, dict[str, Any]] | None:
+    source_id = resolve_node_id(record, 'source', by_name_chapter, by_name)
+    target_id = resolve_node_id(record, 'target', by_name_chapter, by_name)
+    if not source_id or not target_id or source_id == target_id:
+        return None
+
+    source_node = nodes_by_id.get(source_id)
+    target_node = nodes_by_id.get(target_id)
+    if not source_node or not target_node:
+        return None
+
+    relation_type = str(record.get('relation_type') or record.get('relation') or 'related')
+    relation_id = str(record.get('relation_id') or build_generated_relation_id(source_id, target_id, relation_type))
+    strength = float(record.get('strength') or 1)
+    key = f'{source_id}::{target_id}::{relation_type}'
+
+    relation = {
+        'id': relation_id,
+        'relation_id': relation_id,
+        'source_id': source_id,
+        'source': source_node['name'],
+        'target_id': target_id,
+        'target': target_node['name'],
+        'source_chapter': source_node.get('chapter'),
+        'target_chapter': target_node.get('chapter'),
+        'relation_type': relation_type,
+        'strength': max(0.0, min(1.0, strength)),
+    }
+    return key, relation
+
+
 def build_runtime_relations(nodes_by_id: dict[str, dict[str, Any]], relation_records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     by_name_chapter, by_name = build_name_maps(nodes_by_id)
     deduped: dict[str, dict[str, Any]] = {}
+    relation_id_to_key: dict[str, str] = {}
 
-    for index, record in enumerate(relation_records):
-        source_id = resolve_node_id(record, 'source', by_name_chapter, by_name)
-        target_id = resolve_node_id(record, 'target', by_name_chapter, by_name)
-        if not source_id or not target_id or source_id == target_id:
+    for record in relation_records:
+        normalized = normalize_relation_record(record, nodes_by_id, by_name_chapter, by_name)
+        if normalized is None:
             continue
-
-        source_node = nodes_by_id.get(source_id)
-        target_node = nodes_by_id.get(target_id)
-        if not source_node or not target_node:
-            continue
-
-        relation_type = str(record.get('relation_type') or 'related')
-        relation_id = str(record.get('relation_id') or f'rt-{index}')
-        strength = float(record.get('strength') or 1)
-        key = f'{source_id}::{target_id}::{relation_type}'
-
-        relation = {
-            'id': relation_id,
-            'relation_id': relation_id,
-            'source_id': source_id,
-            'source': source_node['name'],
-            'target_id': target_id,
-            'target': target_node['name'],
-            'source_chapter': source_node.get('chapter'),
-            'target_chapter': target_node.get('chapter'),
-            'relation_type': relation_type,
-            'strength': max(0.0, min(1.0, strength)),
-        }
+        key, relation = normalized
+        existing_key = relation_id_to_key.get(relation['relation_id'])
+        if existing_key is not None and existing_key != key:
+            raise ValueError(
+                f"duplicate relation_id {relation['relation_id']} maps to multiple relations: "
+                f'{existing_key} and {key}'
+            )
+        relation_id_to_key[relation['relation_id']] = key
 
         existing = deduped.get(key)
         if existing is None or relation['strength'] > existing['strength']:

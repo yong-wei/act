@@ -1,5 +1,5 @@
 {
-  "lesson_id": "L-2b",
+  "lesson_id": "1-3",
   "title": "根轨迹直觉速通——极点迁移的几何感知",
   "focus_node_ids": [
     "根轨迹_4_c19f8854",
@@ -85,8 +85,8 @@
       "name": "开环增益",
       "nodeType": "THEORY",
       "description": "系统开环传递函数中的增益参数，影响系统的稳态误差和动态性能。",
-      "positionX": -55.2,
-      "positionY": 55.2,
+      "positionX": 55.2,
+      "positionY": -55.2,
       "positionZ": 3,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -132,8 +132,8 @@
       "name": "最佳阻尼比",
       "nodeType": "THEORY",
       "description": "ζ=0.707时，系统在快速响应与最小超调（约4.3%）之间取得最优平衡，对应根轨迹图上与负实轴成45°的射线。",
-      "positionX": -75.3,
-      "positionY": -20.2,
+      "positionX": 42.0,
+      "positionY": 72.7,
       "positionZ": 3,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -192,8 +192,8 @@
       "name": "阻尼比",
       "nodeType": "THEORY",
       "description": "阻尼比是描述二阶系统阻尼程度的无量纲参数，其值等于负实轴夹角的余弦。",
-      "positionX": 81.1,
-      "positionY": -21.7,
+      "positionX": -63.6,
+      "positionY": -63.6,
       "positionZ": 3,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -265,8 +265,8 @@
       "name": "极点迁移",
       "nodeType": "THEORY",
       "description": "当系统参数（如开环增益K）变化时，闭环极点在复平面上发生位移的现象；根轨迹描述了极点迁移的完整路径。",
-      "positionX": 73.5,
-      "positionY": -73.5,
+      "positionX": -95.3,
+      "positionY": -55.0,
       "positionZ": 4,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -325,8 +325,8 @@
       "name": "根轨迹",
       "nodeType": "THEORY",
       "description": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
-      "positionX": 90.1,
-      "positionY": -52.0,
+      "positionX": -77.8,
+      "positionY": -77.8,
       "positionZ": 4,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -383,8 +383,8 @@
       "name": "根轨迹法",
       "nodeType": "THEORY",
       "description": "分析和设计线性定常控制系统的图解方法，通过绘制开环参数变化时闭环极点在s平面上的轨迹来分析系统性能。",
-      "positionX": 0.0,
-      "positionY": 110.0,
+      "positionX": 106.3,
+      "positionY": -28.5,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -445,8 +445,8 @@
       "name": "稳定裕度",
       "nodeType": "THEORY",
       "description": "衡量控制系统相对稳定性的指标，包括相角裕度和幅值裕度，反映系统偏离临界稳定的程度。",
-      "positionX": 0.0,
-      "positionY": 142.0,
+      "positionX": 104.7,
+      "positionY": 104.7,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -533,12 +533,28 @@
       "strength": 0.95
     },
     {
+      "id": "最佳阻尼比|开环增益|new",
+      "sourceId": "最佳阻尼比_3_L2b002",
+      "targetId": "开环增益_3_d73dc120",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.85
+    },
+    {
       "id": "极点迁移|根轨迹|new",
       "sourceId": "极点迁移_4_L2b001",
       "targetId": "根轨迹_4_c19f8854",
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.95
+    },
+    {
+      "id": "根轨迹|稳定裕度|new",
+      "sourceId": "根轨迹_4_c19f8854",
+      "targetId": "稳定裕度_5_bfd54f1c",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.8
     },
     {
       "id": "根轨迹|阻尼比|new",
@@ -555,22 +571,6 @@
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.9
-    },
-    {
-      "id": "最佳阻尼比|开环增益|new",
-      "sourceId": "最佳阻尼比_3_L2b002",
-      "targetId": "开环增益_3_d73dc120",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.85
-    },
-    {
-      "id": "根轨迹|稳定裕度|new",
-      "sourceId": "根轨迹_4_c19f8854",
-      "targetId": "稳定裕度_5_bfd54f1c",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.8
     }
   ]
 }

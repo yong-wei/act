@@ -239,31 +239,31 @@ t_s≈4/(ζω_n)
 
 ### 图形调用：典型输入信号与输出响应对比
 
-![典型输入信号与输出响应对比](../media/processed/td-01-time-domain-input-response-overview.svg)
+![典型输入信号与输出响应对比](../media/processed/2-2-td-01-time-domain-input-response-overview.svg)
 
 用途：开场建立“时域分析就是直接看时间过程”的直觉。
 
 ### 图形调用：一阶系统时间常数变化对比
 
-![一阶系统时间常数变化对比](../media/processed/td-02-first-order-step-time-constant.svg)
+![一阶系统时间常数变化对比](../media/processed/2-2-td-02-first-order-step-time-constant.svg)
 
 用途：讲时间常数时调用，不建议黑板重画全图，只需在黑板上补一个简化阶跃曲线并标出 $T$。
 
 ### 图形调用：二阶系统四种典型响应形态
 
-![二阶系统四种典型响应形态](../media/processed/td-03-second-order-response-families.svg)
+![二阶系统四种典型响应形态](../media/processed/2-2-td-03-second-order-response-families.svg)
 
 用途：帮助学生把层0直觉与层1条件对应起来。教师口头点明“稳定不等于无超调”。
 
 ### 图形调用：动态性能指标标注图
 
-![动态性能指标标注图](../media/processed/td-04-time-domain-indices-annotated.svg)
+![动态性能指标标注图](../media/processed/2-2-td-04-time-domain-indices-annotated.svg)
 
 用途：讲 $t_r$、$t_p$、$M_p$、$t_s$ 时调用。若需要板书补图，只画一条欠阻尼曲线并标四个量的位置，不必重复画坐标细节。
 
 ### 图形调用：已知参数求指标示例图
 
-![已知参数求指标示例图](../media/processed/td-05-example-response-with-indices.svg)
+![已知参数求指标示例图](../media/processed/2-2-td-05-example-response-with-indices.svg)
 
 用途：例题一讲解时使用，帮助学生把“公式算出的量”和“曲线上看到的量”对应起来。
 

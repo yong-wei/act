@@ -1,5 +1,5 @@
 {
-  "lesson_id": "1-2",
+  "lesson_id": "2-1",
   "title": "系统结构图与化简——从积木块到系统蓝图",
   "focus_node_ids": [
     "系统结构图_2_5d3751f8",
@@ -222,8 +222,8 @@
       "name": "信号流图",
       "nodeType": "THEORY",
       "description": "一种用节点和支路表示系统变量和传递关系的图形化数学模型，用于描述线性系统的结构和信号流向。",
-      "positionX": 20.0,
-      "positionY": -34.6,
+      "positionX": 28.3,
+      "positionY": -28.3,
       "positionZ": 2,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -285,7 +285,7 @@
       "name": "反馈连接",
       "nodeType": "THEORY",
       "description": "两个传递函数方框以输出信号反馈到输入端的形式连接，分为正反馈和负反馈。",
-      "positionX": 11.9,
+      "positionX": -11.9,
       "positionY": 44.4,
       "positionZ": 2,
       "bloomLevel": "ANALYZE",
@@ -342,7 +342,7 @@
       "nodeType": "THEORY",
       "description": "多个方框有相同输入量，输出量为各方框输出量代数和的连接方式。",
       "positionX": -44.4,
-      "positionY": 11.9,
+      "positionY": -11.9,
       "positionZ": 2,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -389,8 +389,8 @@
       "name": "开环传递函数",
       "nodeType": "THEORY",
       "description": "主反馈断开时，从系统输入信号到反馈信号之间的传递函数，通常表示为G(s)H(s)。",
-      "positionX": -46.0,
-      "positionY": 0.0,
+      "positionX": -39.8,
+      "positionY": -23.0,
       "positionZ": 2,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -435,8 +435,8 @@
       "name": "开环传递函数（精化）",
       "nodeType": "THEORY",
       "description": "将反馈回路在比较点处断开后，从断点输入到断点输出的传递函数，记为G_o(s)=G(s)H(s)。开环传递函数是分析闭环系统稳定性和性能的关键中间量。",
-      "positionX": -30.9,
-      "positionY": -8.3,
+      "positionX": -22.6,
+      "positionY": -22.6,
       "positionZ": 0,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -493,7 +493,7 @@
       "name": "惯性环节",
       "nodeType": "THEORY",
       "description": "传递函数为G(s)=1/(Ts+1)的一阶环节，具有一个负实极点s=-1/T。时间常数T越大响应越慢。物理原型包括RC低通电路、温度计热惯性。",
-      "positionX": -8.3,
+      "positionX": 8.3,
       "positionY": -30.9,
       "positionZ": 0,
       "bloomLevel": "UNDERSTAND",
@@ -536,7 +536,9 @@
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
-      "resources": [],
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/惯性环节_2_11007.md"
+      ],
       "tags": [
         "惯性",
         "一阶",
@@ -551,8 +553,8 @@
       "name": "梅森增益公式",
       "nodeType": "THEORY",
       "description": "一种用于直接从信号流图或系统结构图中求取从源节点到阱节点传递函数的公式，无需简化图形。",
-      "positionX": 26.0,
-      "positionY": 45.0,
+      "positionX": 0.0,
+      "positionY": 52.0,
       "positionZ": 2,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -615,8 +617,8 @@
       "name": "比例环节",
       "nodeType": "THEORY",
       "description": "传递函数为常数G(s)=K的环节，输出与输入成正比，无动态过程。物理原型包括杠杆、齿轮变比、放大器等。",
-      "positionX": 0.0,
-      "positionY": 38.0,
+      "positionX": -19.0,
+      "positionY": 32.9,
       "positionZ": 0,
       "bloomLevel": "REMEMBER",
       "knowledgeDim": "典型环节",
@@ -654,7 +656,9 @@
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
-      "resources": [],
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/比例环节_2_11004.md"
+      ],
       "tags": [
         "比例",
         "增益",
@@ -667,8 +671,8 @@
       "name": "积分环节",
       "nodeType": "THEORY",
       "description": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
-      "positionX": -19.0,
-      "positionY": -32.9,
+      "positionX": -0.0,
+      "positionY": -38.0,
       "positionZ": 0,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "典型环节",
@@ -707,7 +711,9 @@
         "source": "course-content/runtime/knowledge/graph/nodes.json"
       },
       "content": {},
-      "resources": [],
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/积分环节_2_11005.md"
+      ],
       "tags": [
         "积分",
         "原点极点",
@@ -720,7 +726,7 @@
       "name": "系统结构图",
       "nodeType": "THEORY",
       "description": "描述系统各元部件之间信号传递关系的数学图形，由信号线、引出点、比较点和方框组成。",
-      "positionX": -13.5,
+      "positionX": 13.5,
       "positionY": -50.2,
       "positionZ": 2,
       "bloomLevel": "APPLY",
@@ -768,8 +774,8 @@
       "name": "结构图等效变换",
       "nodeType": "THEORY",
       "description": "在不改变系统输入-输出关系的前提下，通过移动引出点或比较点的位置来简化结构图的操作方法。核心规则：逆流补乘G，顺流补除G。",
-      "positionX": 26.9,
-      "positionY": -26.9,
+      "positionX": 36.7,
+      "positionY": -9.8,
       "positionZ": 0,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -830,8 +836,8 @@
       "name": "结构图简化",
       "nodeType": "THEORY",
       "description": "通过移动比较点或引出点，并运用等效变换规则，将复杂系统结构图简化为求取传递函数的过程。",
-      "positionX": 45.0,
-      "positionY": -26.0,
+      "positionX": 58.0,
+      "positionY": 0.0,
       "positionZ": 2,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -876,8 +882,8 @@
       "name": "闭环传递函数",
       "nodeType": "THEORY",
       "description": "在反馈连接中，系统输出与输入之间的传递函数，是反馈连接的等效传递函数。",
-      "positionX": 29.0,
-      "positionY": 50.2,
+      "positionX": 0.0,
+      "positionY": 58.0,
       "positionZ": 2,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -1037,12 +1043,12 @@
       "strength": 0.9
     },
     {
-      "id": "系统结构图|反馈连接|2",
+      "id": "rel-24ed9c8780c8a595",
       "sourceId": "系统结构图_2_5d3751f8",
       "targetId": "反馈连接_2_40a881cb",
       "relation": "contains",
       "relationType": "contains",
-      "strength": 0.9
+      "strength": 0.95
     },
     {
       "id": "系统结构图|闭环传递函数|2",
@@ -1213,12 +1219,12 @@
       "strength": 0.3
     },
     {
-      "id": "反馈连接|闭环传递函数|2",
+      "id": "rel-25eab498bc095d43",
       "sourceId": "反馈连接_2_40a881cb",
       "targetId": "闭环传递函数_2_5399c369",
       "relation": "leads_to",
       "relationType": "leads_to",
-      "strength": 0.9
+      "strength": 0.95
     },
     {
       "id": "反馈连接|结构图简化|2",
@@ -1434,6 +1440,118 @@
       "targetId": "开环传递函数_2_ee6bdacf",
       "relation": "related",
       "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-65114e902e921bbf",
+      "sourceId": "信号流图_2_372d4084",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-351e3cf559164299",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "比例环节_2_11004",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "rel-f2b695e8e425f4ed",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "积分环节_2_11005",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "rel-c0322d2b6fe9ba27",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "惯性环节_2_11007",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-9acdc0cf3190a93f",
+      "sourceId": "传递函数_2_2c5e2589",
+      "targetId": "系统结构图_2_5d3751f8",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-429c53526836651f",
+      "sourceId": "反馈连接_2_40a881cb",
+      "targetId": "开环传递函数定义_2_12002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-7413c9369168dab6",
+      "sourceId": "结构图等效变换_2_12001",
+      "targetId": "结构图简化_2_6d86a775",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-897e5745769c97e8",
+      "sourceId": "串联连接_2_98ee18bc",
+      "targetId": "结构图等效变换_2_12001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.8
+    },
+    {
+      "id": "rel-fb88ebfd2b19cdef",
+      "sourceId": "结构图简化_2_6d86a775",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-b5e8c09d5271588e",
+      "sourceId": "梅森增益公式_2_419eab0c",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-697b83c88a845805",
+      "sourceId": "比例环节_2_11004",
+      "targetId": "系统结构图_2_5d3751f8",
+      "relation": "instance_of",
+      "relationType": "instance_of",
+      "strength": 0.7
+    },
+    {
+      "id": "rel-0d75f49847f4c2c2",
+      "sourceId": "惯性环节_2_11007",
+      "targetId": "系统结构图_2_5d3751f8",
+      "relation": "instance_of",
+      "relationType": "instance_of",
+      "strength": 0.7
+    },
+    {
+      "id": "rel-4c6e07d796cc8c26",
+      "sourceId": "积分环节_2_11005",
+      "targetId": "系统结构图_2_5d3751f8",
+      "relation": "instance_of",
+      "relationType": "instance_of",
+      "strength": 0.7
+    },
+    {
+      "id": "rel-0f704dd7af4e0b2f",
+      "sourceId": "开环传递函数定义_2_12002",
+      "targetId": "开环传递函数_2_ee6bdacf",
+      "relation": "generalizes",
+      "relationType": "generalizes",
       "strength": 0.9
     }
   ]

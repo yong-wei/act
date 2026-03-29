@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="497.02125pt" height="424.570937pt" viewBox="0 0 497.02125 424.570937" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="496.981875pt" height="423.890312pt" viewBox="0 0 496.981875 423.890312" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-03-13T22:53:59.215884</dc:date>
+    <dc:date>2026-03-29T17:35:38.914250</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -21,19 +21,19 @@
  </defs>
  <g id="figure_1">
   <g id="patch_1">
-   <path d="M 0 424.570937 
-L 497.02125 424.570937 
-L 497.02125 0 
+   <path d="M 0 423.890312 
+L 496.981875 423.890312 
+L 496.981875 0 
 L 0 0 
 z
 " style="fill: #0f172a"/>
   </g>
   <g id="axes_1">
    <g id="patch_2">
-    <path d="M 40.026719 386.000937 
-L 486.536094 386.000937 
-L 486.536094 25.620312 
-L 40.026719 25.620312 
+    <path d="M 40.026719 385.320312 
+L 486.496719 385.320312 
+L 486.496719 25.620313 
+L 40.026719 25.620313 
 z
 " style="fill: #0f172a"/>
    </g>
@@ -46,12 +46,12 @@ L 0 3.5
 " style="stroke: #64748b; stroke-width: 0.8"/>
       </defs>
       <g>
-       <use xlink:href="#m04f8606dca" x="69.79401" y="386.000937" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m04f8606dca" x="69.791385" y="385.320312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_1">
       <!-- -6 -->
-      <g style="fill: #64748b" transform="translate(64.71901 400.660312) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(64.716385 399.979687) scale(0.1 -0.1)">
        <defs>
         <path id="HiraginoSansGB-W3-2d" d="M 179 1632 
 C 358 1658 506 1664 762 1664 
@@ -99,12 +99,12 @@ z
     <g id="xtick_2">
      <g id="line2d_2">
       <g>
-       <use xlink:href="#m04f8606dca" x="129.328594" y="386.000937" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m04f8606dca" x="129.320719" y="385.320312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_2">
       <!-- -5 -->
-      <g style="fill: #64748b" transform="translate(124.253594 400.660312) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(124.245719 399.979687) scale(0.1 -0.1)">
        <defs>
         <path id="HiraginoSansGB-W3-35" d="M 1261 4461 
 L 2765 4461 
@@ -144,12 +144,12 @@ z
     <g id="xtick_3">
      <g id="line2d_3">
       <g>
-       <use xlink:href="#m04f8606dca" x="188.863177" y="386.000937" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m04f8606dca" x="188.850052" y="385.320312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_3">
       <!-- -4 -->
-      <g style="fill: #64748b" transform="translate(183.768646 400.660312) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(183.755521 399.979687) scale(0.1 -0.1)">
        <defs>
         <path id="HiraginoSansGB-W3-34" d="M 198 1254 
 C 410 1274 602 1280 960 1280 
@@ -189,12 +189,12 @@ z
     <g id="xtick_4">
      <g id="line2d_4">
       <g>
-       <use xlink:href="#m04f8606dca" x="248.39776" y="386.000937" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m04f8606dca" x="248.379385" y="385.320312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_4">
       <!-- -3 -->
-      <g style="fill: #64748b" transform="translate(243.32276 400.660312) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(243.304385 399.979687) scale(0.1 -0.1)">
        <defs>
         <path id="HiraginoSansGB-W3-33" d="M 288 1088 
 C 403 762 480 621 614 467 
@@ -232,12 +232,12 @@ z
     <g id="xtick_5">
      <g id="line2d_5">
       <g>
-       <use xlink:href="#m04f8606dca" x="307.932344" y="386.000937" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m04f8606dca" x="307.908719" y="385.320312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_5">
       <!-- -2 -->
-      <g style="fill: #64748b" transform="translate(302.857344 400.660312) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(302.833719 399.979687) scale(0.1 -0.1)">
        <defs>
         <path id="HiraginoSansGB-W3-32" d="M 3027 38 
 C 3347 38 3558 26 3814 0 
@@ -272,12 +272,12 @@ z
     <g id="xtick_6">
      <g id="line2d_6">
       <g>
-       <use xlink:href="#m04f8606dca" x="367.466927" y="386.000937" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m04f8606dca" x="367.438052" y="385.320312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_6">
       <!-- -1 -->
-      <g style="fill: #64748b" transform="translate(362.391927 400.660312) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(362.363052 399.979687) scale(0.1 -0.1)">
        <defs>
         <path id="HiraginoSansGB-W3-31" d="M 1030 4429 
 C 1216 4454 1382 4467 1587 4467 
@@ -303,12 +303,12 @@ z
     <g id="xtick_7">
      <g id="line2d_7">
       <g>
-       <use xlink:href="#m04f8606dca" x="427.00151" y="386.000937" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m04f8606dca" x="426.967385" y="385.320312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_7">
       <!-- 0 -->
-      <g style="fill: #64748b" transform="translate(423.716354 400.660312) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(423.682229 399.979687) scale(0.1 -0.1)">
        <defs>
         <path id="HiraginoSansGB-W3-30" d="M 2099 -58 
 C 2688 -58 3136 166 3456 614 
@@ -343,19 +343,19 @@ z
     <g id="xtick_8">
      <g id="line2d_8">
       <g>
-       <use xlink:href="#m04f8606dca" x="486.536094" y="386.000937" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m04f8606dca" x="486.496719" y="385.320312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_8">
       <!-- 1 -->
-      <g style="fill: #64748b" transform="translate(483.250937 400.660312) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(483.211562 399.979687) scale(0.1 -0.1)">
        <use xlink:href="#HiraginoSansGB-W3-31"/>
       </g>
      </g>
     </g>
     <g id="text_9">
      <!-- 实部 σ -->
-     <g style="fill: #94a3b8" transform="translate(244.950078 415.12625) scale(0.11 -0.11)">
+     <g style="fill: #94a3b8" transform="translate(244.930391 414.445625) scale(0.11 -0.11)">
       <defs>
        <path id="HiraginoSansGB-W3-5b9e" d="M 3571 1760 
 C 3661 2157 3731 2861 3738 3418 
@@ -541,12 +541,12 @@ L -3.5 0
 " style="stroke: #64748b; stroke-width: 0.8"/>
       </defs>
       <g>
-       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="386.000937" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="385.320312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_10">
       <!-- -4 -->
-      <g style="fill: #64748b" transform="translate(22.837656 389.830625) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(22.837656 389.15) scale(0.1 -0.1)">
        <use xlink:href="#HiraginoSansGB-W3-2d"/>
        <use xlink:href="#HiraginoSansGB-W3-34" x="35.799988"/>
       </g>
@@ -555,12 +555,12 @@ L -3.5 0
     <g id="ytick_2">
      <g id="line2d_10">
       <g>
-       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="340.953359" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="340.357812" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_11">
       <!-- -3 -->
-      <g style="fill: #64748b" transform="translate(22.876719 344.783047) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(22.876719 344.1875) scale(0.1 -0.1)">
        <use xlink:href="#HiraginoSansGB-W3-2d"/>
        <use xlink:href="#HiraginoSansGB-W3-33" x="35.799988"/>
       </g>
@@ -569,12 +569,12 @@ L -3.5 0
     <g id="ytick_3">
      <g id="line2d_11">
       <g>
-       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="295.905781" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="295.395312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_12">
       <!-- -2 -->
-      <g style="fill: #64748b" transform="translate(22.876719 299.735469) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(22.876719 299.225) scale(0.1 -0.1)">
        <use xlink:href="#HiraginoSansGB-W3-2d"/>
        <use xlink:href="#HiraginoSansGB-W3-32" x="35.799988"/>
       </g>
@@ -583,12 +583,12 @@ L -3.5 0
     <g id="ytick_4">
      <g id="line2d_12">
       <g>
-       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="250.858203" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="250.432812" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_13">
       <!-- -1 -->
-      <g style="fill: #64748b" transform="translate(22.876719 254.687891) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(22.876719 254.2625) scale(0.1 -0.1)">
        <use xlink:href="#HiraginoSansGB-W3-2d"/>
        <use xlink:href="#HiraginoSansGB-W3-31" x="35.799988"/>
       </g>
@@ -597,12 +597,12 @@ L -3.5 0
     <g id="ytick_5">
      <g id="line2d_13">
       <g>
-       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="205.810625" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="205.470312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_14">
       <!-- 0 -->
-      <g style="fill: #64748b" transform="translate(26.456406 209.640312) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(26.456406 209.3) scale(0.1 -0.1)">
        <use xlink:href="#HiraginoSansGB-W3-30"/>
       </g>
      </g>
@@ -610,12 +610,12 @@ L -3.5 0
     <g id="ytick_6">
      <g id="line2d_14">
       <g>
-       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="160.763047" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="160.507812" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_15">
       <!-- 1 -->
-      <g style="fill: #64748b" transform="translate(26.456406 164.592734) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(26.456406 164.3375) scale(0.1 -0.1)">
        <use xlink:href="#HiraginoSansGB-W3-31"/>
       </g>
      </g>
@@ -623,12 +623,12 @@ L -3.5 0
     <g id="ytick_7">
      <g id="line2d_15">
       <g>
-       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="115.715469" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="115.545312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_16">
       <!-- 2 -->
-      <g style="fill: #64748b" transform="translate(26.456406 119.545156) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(26.456406 119.375) scale(0.1 -0.1)">
        <use xlink:href="#HiraginoSansGB-W3-32"/>
       </g>
      </g>
@@ -636,12 +636,12 @@ L -3.5 0
     <g id="ytick_8">
      <g id="line2d_16">
       <g>
-       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="70.667891" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="70.582812" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_17">
       <!-- 3 -->
-      <g style="fill: #64748b" transform="translate(26.456406 74.497578) scale(0.1 -0.1)">
+      <g style="fill: #64748b" transform="translate(26.456406 74.4125) scale(0.1 -0.1)">
        <use xlink:href="#HiraginoSansGB-W3-33"/>
       </g>
      </g>
@@ -649,7 +649,7 @@ L -3.5 0
     <g id="ytick_9">
      <g id="line2d_17">
       <g>
-       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="25.620312" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
+       <use xlink:href="#m8b0f5b24d3" x="40.026719" y="25.620313" style="fill: #64748b; stroke: #64748b; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_18">
@@ -661,7 +661,7 @@ L -3.5 0
     </g>
     <g id="text_19">
      <!-- 虚部 jω -->
-     <g style="fill: #94a3b8" transform="translate(16.517344 225.599453) rotate(-90) scale(0.11 -0.11)">
+     <g style="fill: #94a3b8" transform="translate(16.517344 225.259141) rotate(-90) scale(0.11 -0.11)">
       <defs>
        <path id="HiraginoSansGB-W3-865a" d="M 2086 3219 
 C 1933 3206 1856 3206 1766 3206 
@@ -809,16 +809,16 @@ z
     </g>
    </g>
    <g id="line2d_18">
-    <path d="M 427.00151 205.810625 
-L 255.669583 205.810625 
-L 255.669583 205.810625 
-" clip-path="url(#p42c223713f)" style="fill: none; stroke: #22d3ee; stroke-width: 2.5; stroke-linecap: square"/>
+    <path d="M 426.967385 205.470312 
+L 255.650566 205.470312 
+L 255.650566 205.470312 
+" clip-path="url(#p82ea435e06)" style="fill: none; stroke: #22d3ee; stroke-width: 2.5; stroke-linecap: square"/>
    </g>
    <g id="line2d_19">
-    <path d="M 129.328594 205.810625 
-L -1 205.810625 
-L -1 205.810625 
-" clip-path="url(#p42c223713f)" style="fill: none; stroke: #22d3ee; stroke-width: 2.5; stroke-linecap: square"/>
+    <path d="M 129.320719 205.470312 
+L -1 205.470312 
+L -1 205.470312 
+" clip-path="url(#p82ea435e06)" style="fill: none; stroke: #22d3ee; stroke-width: 2.5; stroke-linecap: square"/>
    </g>
    <g id="line2d_20">
     <defs>
@@ -828,13 +828,13 @@ M -6 -6
 L 6 6 
 " style="stroke: #f1f5f9; stroke-width: 2.5"/>
     </defs>
-    <g clip-path="url(#p42c223713f)">
-     <use xlink:href="#m702455706e" x="427.00151" y="205.810625" style="fill: #f1f5f9; stroke: #f1f5f9; stroke-width: 2.5"/>
+    <g clip-path="url(#p82ea435e06)">
+     <use xlink:href="#m702455706e" x="426.967385" y="205.470312" style="fill: #f1f5f9; stroke: #f1f5f9; stroke-width: 2.5"/>
     </g>
    </g>
    <g id="line2d_21">
-    <g clip-path="url(#p42c223713f)">
-     <use xlink:href="#m702455706e" x="129.328594" y="205.810625" style="fill: #f1f5f9; stroke: #f1f5f9; stroke-width: 2.5"/>
+    <g clip-path="url(#p82ea435e06)">
+     <use xlink:href="#m702455706e" x="129.320719" y="205.470312" style="fill: #f1f5f9; stroke: #f1f5f9; stroke-width: 2.5"/>
     </g>
    </g>
    <g id="line2d_22">
@@ -851,8 +851,8 @@ C -2.597899 4.473168 -1.326016 5 0 5
 z
 " style="stroke: #fbbf24; stroke-width: 2.5"/>
     </defs>
-    <g clip-path="url(#p42c223713f)">
-     <use xlink:href="#md9139052c0" x="248.39776" y="205.810625" style="fill-opacity: 0; stroke: #fbbf24; stroke-width: 2.5"/>
+    <g clip-path="url(#p82ea435e06)">
+     <use xlink:href="#md9139052c0" x="248.379385" y="205.470312" style="fill-opacity: 0; stroke: #fbbf24; stroke-width: 2.5"/>
     </g>
    </g>
    <g id="line2d_23">
@@ -864,43 +864,43 @@ L -5.656854 -0
 z
 " style="stroke: #f59e0b; stroke-linejoin: miter"/>
     </defs>
-    <g clip-path="url(#p42c223713f)">
-     <use xlink:href="#m9fb7a69066" x="278.165052" y="205.810625" style="fill: #f59e0b; stroke: #f59e0b; stroke-linejoin: miter"/>
+    <g clip-path="url(#p82ea435e06)">
+     <use xlink:href="#m9fb7a69066" x="278.144052" y="205.470312" style="fill: #f59e0b; stroke: #f59e0b; stroke-linejoin: miter"/>
     </g>
    </g>
    <g id="line2d_24">
-    <path d="M 427.00151 386.000937 
-L 427.00151 25.620312 
-" clip-path="url(#p42c223713f)" style="fill: none; stroke-dasharray: 3.7,1.6; stroke-dashoffset: 0; stroke: #f87171; stroke-opacity: 0.5"/>
+    <path d="M 426.967385 385.320312 
+L 426.967385 25.620313 
+" clip-path="url(#p82ea435e06)" style="fill: none; stroke-dasharray: 3.7,1.6; stroke-dashoffset: 0; stroke: #f87171; stroke-opacity: 0.5"/>
    </g>
    <g id="line2d_25">
-    <path d="M 40.026719 205.810625 
-L 486.536094 205.810625 
-" clip-path="url(#p42c223713f)" style="fill: none; stroke: #f1f5f9; stroke-opacity: 0.3; stroke-width: 0.5; stroke-linecap: square"/>
+    <path d="M 40.026719 205.470312 
+L 486.496719 205.470312 
+" clip-path="url(#p82ea435e06)" style="fill: none; stroke: #f1f5f9; stroke-opacity: 0.3; stroke-width: 0.5; stroke-linecap: square"/>
    </g>
    <g id="patch_3">
-    <path d="M 40.026719 386.000937 
-L 40.026719 25.620312 
+    <path d="M 40.026719 385.320312 
+L 40.026719 25.620313 
 " style="fill: none; stroke: #334155; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="patch_4">
-    <path d="M 486.536094 386.000937 
-L 486.536094 25.620312 
+    <path d="M 486.496719 385.320312 
+L 486.496719 25.620313 
 " style="fill: none; stroke: #334155; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="patch_5">
-    <path d="M 40.026719 386.000937 
-L 486.536094 386.000937 
+    <path d="M 40.026719 385.320312 
+L 486.496719 385.320312 
 " style="fill: none; stroke: #334155; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="patch_6">
-    <path d="M 40.026719 25.620312 
-L 486.536094 25.620312 
+    <path d="M 40.026719 25.620313 
+L 486.496719 25.620313 
 " style="fill: none; stroke: #334155; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="text_20">
     <!-- p1=(0,0) -->
-    <g style="fill: #f1f5f9" transform="translate(435.931698 187.791594) scale(0.09 -0.09)">
+    <g style="fill: #f1f5f9" transform="translate(435.896785 187.485312) scale(0.09 -0.09)">
      <defs>
       <path id="HiraginoSansGB-W3-70" d="M 1018 -1306 
 C 986 -1069 973 -883 973 -582 
@@ -988,7 +988,7 @@ z
    </g>
    <g id="text_21">
     <!-- p2=(-5,0) -->
-    <g style="fill: #f1f5f9" transform="translate(99.561302 187.791594) scale(0.09 -0.09)">
+    <g style="fill: #f1f5f9" transform="translate(99.556052 187.485312) scale(0.09 -0.09)">
      <use xlink:href="#HiraginoSansGB-W3-70"/>
      <use xlink:href="#HiraginoSansGB-W3-32" x="64.699997"/>
      <use xlink:href="#HiraginoSansGB-W3-3d" x="130.399994"/>
@@ -1002,7 +1002,7 @@ z
    </g>
    <g id="text_22">
     <!-- z=(-3,0) -->
-    <g style="fill: #fbbf24" transform="translate(218.630469 232.839172) scale(0.09 -0.09)">
+    <g style="fill: #fbbf24" transform="translate(218.614719 232.447812) scale(0.09 -0.09)">
      <defs>
       <path id="HiraginoSansGB-W3-7a" d="M 2861 3507 
 C 2682 3488 2579 3488 2182 3488 
@@ -1041,17 +1041,17 @@ z
     </g>
    </g>
    <g id="patch_7">
-    <path d="M 175.510609 263.667321 
-Q 225.965356 235.230706 275.446112 207.343037 
+    <path d="M 175.522065 263.20185 
+Q 225.960859 234.82675 275.42523 206.999827 
 " style="fill: none; stroke: #f59e0b; stroke-linecap: round"/>
-    <path d="M 271.649468 207.531436 
-L 275.446112 207.343037 
-L 273.318845 210.493392 
+    <path d="M 271.628438 207.185224 
+L 275.42523 206.999827 
+L 273.295472 210.148499 
 " style="fill: none; stroke: #f59e0b; stroke-linecap: round"/>
    </g>
    <g id="text_23">
     <!-- 分离点≈(-2.5, 0) -->
-    <g style="fill: #f59e0b" transform="translate(129.328594 273.381992) scale(0.085 -0.085)">
+    <g style="fill: #f59e0b" transform="translate(129.320719 272.914062) scale(0.085 -0.085)">
      <defs>
       <path id="HiraginoSansGB-W3-5206" d="M 4435 2637 
 C 4435 1530 4358 666 4224 275 
@@ -1285,7 +1285,7 @@ z
    </g>
    <g id="text_24">
     <!-- 例题1：根轨迹图（开环零点z=-3，极点p=0,-5） -->
-    <g style="fill: #f1f5f9" transform="translate(153.076719 15.620312) scale(0.1 -0.1)">
+    <g style="fill: #f1f5f9" transform="translate(153.057031 15.620313) scale(0.1 -0.1)">
      <defs>
       <path id="HiraginoSansGB-W3-4f8b" d="M 2701 3667 
 C 2790 4000 2816 4147 2880 4550 
@@ -2121,26 +2121,26 @@ z
    </g>
    <g id="legend_1">
     <g id="patch_8">
-     <path d="M 408.055859 57.410312 
-L 480.586094 57.410312 
-Q 482.286094 57.410312 482.286094 55.710312 
-L 482.286094 31.570312 
-Q 482.286094 29.870312 480.586094 29.870312 
-L 408.055859 29.870312 
-Q 406.355859 29.870312 406.355859 31.570312 
-L 406.355859 55.710312 
-Q 406.355859 57.410312 408.055859 57.410312 
+     <path d="M 408.016484 57.410313 
+L 480.546719 57.410313 
+Q 482.246719 57.410313 482.246719 55.710313 
+L 482.246719 31.570312 
+Q 482.246719 29.870313 480.546719 29.870313 
+L 408.016484 29.870313 
+Q 406.316484 29.870313 406.316484 31.570312 
+L 406.316484 55.710313 
+Q 406.316484 57.410313 408.016484 57.410313 
 z
 " style="fill: #1e293b; opacity: 0.8; stroke: #334155; stroke-linejoin: miter"/>
     </g>
     <g id="line2d_26">
      <g>
-      <use xlink:href="#m702455706e" x="418.255859" y="36.805781" style="fill: #f1f5f9; stroke: #f1f5f9; stroke-width: 2.5"/>
+      <use xlink:href="#m702455706e" x="418.216484" y="36.805781" style="fill: #f1f5f9; stroke: #f1f5f9; stroke-width: 2.5"/>
      </g>
     </g>
     <g id="text_25">
      <!-- 开环极点 × -->
-     <g style="fill: #94a3b8" transform="translate(433.555859 39.780781) scale(0.085 -0.085)">
+     <g style="fill: #94a3b8" transform="translate(433.516484 39.780781) scale(0.085 -0.085)">
       <defs>
        <path id="HiraginoSansGB-W3-d7" d="M 3520 2426 
 L 4992 3898 
@@ -2168,12 +2168,12 @@ z
     </g>
     <g id="line2d_27">
      <g>
-      <use xlink:href="#md9139052c0" x="418.255859" y="49.300781" style="fill-opacity: 0; stroke: #fbbf24; stroke-width: 2.5"/>
+      <use xlink:href="#md9139052c0" x="418.216484" y="49.300781" style="fill-opacity: 0; stroke: #fbbf24; stroke-width: 2.5"/>
      </g>
     </g>
     <g id="text_26">
      <!-- 开环零点 ○ -->
-     <g style="fill: #94a3b8" transform="translate(433.555859 52.275781) scale(0.085 -0.085)">
+     <g style="fill: #94a3b8" transform="translate(433.516484 52.275781) scale(0.085 -0.085)">
       <defs>
        <path id="HiraginoSansGB-W3-25cb" d="M 3200 5235 
 C 2509 5235 1818 4966 1318 4512 
@@ -2205,8 +2205,8 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="p42c223713f">
-   <rect x="40.026719" y="25.620312" width="446.509375" height="360.380625"/>
+  <clipPath id="p82ea435e06">
+   <rect x="40.026719" y="25.620313" width="446.47" height="359.7"/>
   </clipPath>
  </defs>
 </svg>

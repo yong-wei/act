@@ -1474,12 +1474,12 @@
       "strength": 0.8
     },
     {
-      "id": "动态性能指标|峰值时间|3",
+      "id": "rel-4b58d7c76af92983",
       "sourceId": "动态性能指标_3_a10733c1",
       "targetId": "峰值时间_3_adc7ea95",
       "relation": "contains",
       "relationType": "contains",
-      "strength": 0.9
+      "strength": 0.95
     },
     {
       "id": "动态性能指标|欠阻尼二阶系统|3",
@@ -1946,20 +1946,20 @@
       "strength": 0.92
     },
     {
-      "id": "阻尼比|调节时间|new",
+      "id": "rel-66570c2ff086f209",
       "sourceId": "阻尼比_3_b849784e",
       "targetId": "调节时间_10_fcbccf4e",
       "relation": "leads_to",
       "relationType": "leads_to",
-      "strength": 0.85
+      "strength": 0.86
     },
     {
-      "id": "阻尼比|超调量|new",
+      "id": "rel-8b2033d899c32f9f",
       "sourceId": "阻尼比_3_b849784e",
       "targetId": "超调量_3_fc3f5b17",
       "relation": "leads_to",
       "relationType": "leads_to",
-      "strength": 0.95
+      "strength": 0.98
     },
     {
       "id": "rt-16192",
@@ -2135,6 +2135,118 @@
       "targetId": "复平面可行域_4_Lsum001",
       "relation": "related",
       "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-2880fc15b70d5961",
+      "sourceId": "单位阶跃响应_2_6a2a83b9",
+      "targetId": "动态性能指标_3_a10733c1",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-30152f98531f4bb6",
+      "sourceId": "一阶系统_3_4f3b29ce",
+      "targetId": "时间常数_2_68356eae",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-bfb960d3c5e94589",
+      "sourceId": "二阶系统标准型_3_L2a",
+      "targetId": "无阻尼自然频率_3_13001",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-472911defa7da3cf",
+      "sourceId": "自然频率_10_51a8b7d0",
+      "targetId": "无阻尼自然频率_3_13001",
+      "relation": "generalizes",
+      "relationType": "generalizes",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-e4066bdc1261da18",
+      "sourceId": "无阻尼自然频率_3_13001",
+      "targetId": "阻尼振荡频率_3_13002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-1a472b3c126c275c",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "阻尼振荡频率_3_13002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-5e2dc588a0178624",
+      "sourceId": "无阻尼自然频率_3_13001",
+      "targetId": "上升时间_3_6fa0ec00",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-2468f5319b1503ac",
+      "sourceId": "阻尼振荡频率_3_13002",
+      "targetId": "峰值时间_3_adc7ea95",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-956c01e753a0f3a9",
+      "sourceId": "上升时间_3_6fa0ec00",
+      "targetId": "时域指标到极点参数映射_3_13003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-0fd24b2406a111dc",
+      "sourceId": "峰值时间_3_adc7ea95",
+      "targetId": "时域指标到极点参数映射_3_13003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-1a7ab41a342835de",
+      "sourceId": "超调量_3_fc3f5b17",
+      "targetId": "时域指标到极点参数映射_3_13003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-6ab4c0be5e41bb63",
+      "sourceId": "调节时间_10_fcbccf4e",
+      "targetId": "时域指标到极点参数映射_3_13003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-20f6eaf73a81c2d4",
+      "sourceId": "时域指标到极点参数映射_3_13003",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.98
+    },
+    {
+      "id": "rel-3d0da8e96e343443",
+      "sourceId": "时域指标到极点参数映射_3_13003",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
       "strength": 0.9
     }
   ]

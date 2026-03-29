@@ -1,5 +1,5 @@
 {
-  "lesson_id": "L-2c",
+  "lesson_id": "1-4",
   "title": "频域直觉速通——Bode图与相位裕度初识（先用，不推导）",
   "layer": "层0",
   "unit_type": "理论",
@@ -42,7 +42,7 @@
     "2-5"
   ],
   "sequence": {
-    "lesson_id": "L-2c",
+    "lesson_id": "1-4",
     "groups": [
       {
         "group_name": "引入",
@@ -108,5 +108,9 @@
   "handout_path": "/course-runtime/lessons/legacy/L-2c/handout.md",
   "handout_source_path": "course-content/runtime/lessons/legacy/L-2c/handout.md",
   "graph_overlay_path": "/course-runtime/lessons/legacy/L-2c/graph-overlay.json",
-  "media_base_path": "/course-runtime/lessons/legacy/L-2c/media"
+  "media_base_path": "/course-runtime/lessons/legacy/L-2c/media",
+  "review": {
+    "status": "pending",
+    "boppps_path": "/course-runtime/lessons/legacy/L-2c/review/boppps.md"
+  }
 }

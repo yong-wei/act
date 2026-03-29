@@ -1146,7 +1146,7 @@
       "strength": 0.8
     },
     {
-      "id": "rt-16228",
+      "id": "rel-eb50a2b196361e03",
       "sourceId": "结构图_2_3f312ccc",
       "targetId": "信号流图_2_372d4084",
       "relation": "related",
@@ -1194,12 +1194,12 @@
       "strength": 0.7
     },
     {
-      "id": "信号流图|回路|2",
+      "id": "rel-3cacf083f1cc253c",
       "sourceId": "信号流图_2_372d4084",
       "targetId": "回路_2_e1adbdfa",
       "relation": "contains",
       "relationType": "contains",
-      "strength": 0.9
+      "strength": 0.95
     },
     {
       "id": "信号流图|梅森增益公式|2",
@@ -1322,12 +1322,12 @@
       "strength": 0.8
     },
     {
-      "id": "rt-16218",
+      "id": "rt-16220",
       "sourceId": "微分方程_2_775c96a3",
       "targetId": "拉氏变换工程动机_2_11001",
       "relation": "related",
       "relationType": "related",
-      "strength": 0.95
+      "strength": 0.9
     },
     {
       "id": "rt-16234",
@@ -1386,100 +1386,156 @@
       "strength": 0.95
     },
     {
-      "id": "rt-16223",
+      "id": "rel-b572a21eab915b74",
+      "sourceId": "微分方程_2_775c96a3",
+      "targetId": "拉氏变换工程动机_2_11001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-fbfc9a5feee47ac5",
+      "sourceId": "拉氏变换工程动机_2_11001",
+      "targetId": "零初值传递函数_2_21001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-cd3b9a8beb18c331",
+      "sourceId": "零初值传递函数_2_21001",
+      "targetId": "传递函数_1_5b0faf8b",
+      "relation": "generalizes",
+      "relationType": "generalizes",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-89a9dccb1ebe9abe",
+      "sourceId": "传递函数_1_5b0faf8b",
+      "targetId": "典型环节对象库_2_21002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-606cf797e05daa31",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "比例环节_2_11004",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-8289322fc1d5efab",
       "sourceId": "典型环节对象库_2_21002",
       "targetId": "积分环节_2_11005",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "contains",
+      "relationType": "contains",
       "strength": 0.95
     },
     {
-      "id": "rt-16224",
+      "id": "rel-feb38c71e00471e6",
       "sourceId": "典型环节对象库_2_21002",
       "targetId": "微分环节_2_11006",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "contains",
+      "relationType": "contains",
       "strength": 0.95
     },
     {
-      "id": "rt-16225",
+      "id": "rel-a7e94ac9c55e3855",
       "sourceId": "典型环节对象库_2_21002",
       "targetId": "惯性环节_2_11007",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "contains",
+      "relationType": "contains",
       "strength": 0.95
     },
     {
-      "id": "rt-16226",
+      "id": "rel-a5f405c61f1bd4d6",
       "sourceId": "典型环节对象库_2_21002",
       "targetId": "振荡环节_5_d677d1e6",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "contains",
+      "relationType": "contains",
       "strength": 0.9
     },
     {
-      "id": "rt-16227",
+      "id": "rel-e7211ee1716426d0",
       "sourceId": "结构图_2_3f312ccc",
       "targetId": "闭环传递函数_2_5399c369",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "leads_to",
+      "relationType": "leads_to",
       "strength": 0.92
     },
     {
-      "id": "rt-16229",
+      "id": "rel-009518195a7c274a",
       "sourceId": "信号流图_2_372d4084",
       "targetId": "前向通路_1_7d1c792e",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "contains",
+      "relationType": "contains",
       "strength": 0.95
     },
     {
-      "id": "rt-16230",
+      "id": "rel-65114e902e921bbf",
       "sourceId": "信号流图_2_372d4084",
-      "targetId": "回路_2_e1adbdfa",
-      "relation": "related",
-      "relationType": "related",
+      "targetId": "梅森增益公式_2_419eab0c",
+      "relation": "leads_to",
+      "relationType": "leads_to",
       "strength": 0.95
     },
     {
-      "id": "rt-16232",
+      "id": "rel-46482f8d38235618",
       "sourceId": "前向通路_1_7d1c792e",
       "targetId": "余子式接触判定_2_21003",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
       "strength": 0.95
     },
     {
-      "id": "rt-16233",
+      "id": "rel-f8896dd0d6b25b59",
       "sourceId": "回路_2_e1adbdfa",
       "targetId": "余子式接触判定_2_21003",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
       "strength": 0.95
     },
     {
-      "id": "rt-16234",
+      "id": "rel-e21433afd4b4f669",
       "sourceId": "余因子式_2_1da0d7e8",
       "targetId": "余子式接触判定_2_21003",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "generalizes",
+      "relationType": "generalizes",
       "strength": 0.9
     },
     {
-      "id": "rt-16235",
+      "id": "rel-6054b1c998517f40",
       "sourceId": "梅森增益公式_2_419eab0c",
       "targetId": "余子式接触判定_2_21003",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "contains",
+      "relationType": "contains",
       "strength": 0.92
     },
     {
-      "id": "rt-16236",
+      "id": "rel-cfd4eb42d530cd87",
       "sourceId": "余子式接触判定_2_21003",
       "targetId": "闭环传递函数_2_5399c369",
-      "relation": "related",
-      "relationType": "related",
+      "relation": "leads_to",
+      "relationType": "leads_to",
       "strength": 0.86
+    },
+    {
+      "id": "rel-40b7839809041838",
+      "sourceId": "拉氏变换工程动机_2_11001",
+      "targetId": "传递函数_1_5b0faf8b",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-b5e8c09d5271588e",
+      "sourceId": "梅森增益公式_2_419eab0c",
+      "targetId": "闭环传递函数_2_5399c369",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
     }
   ]
 }
