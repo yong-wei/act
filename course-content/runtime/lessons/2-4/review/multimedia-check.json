@@ -1,0 +1,42 @@
+{
+  "lesson_id": "2-4",
+  "expected_assets": [
+    "2-4-slides.pdf",
+    "2-4-intro-video.mp4",
+    "2-4-course.mp4",
+    "2-4-audio.m4a",
+    "2-4-cover-comic.png",
+    "2-4-info.png",
+    "2-4-fd-01-bode-dual-view-overview.png",
+    "2-4-fd-02-log-frequency-db-intuition.png",
+    "2-4-fd-03-typical-elements-bode-comparison.svg",
+    "2-4-fd-04-first-order-exact-vs-asymptote.svg",
+    "2-4-fd-05-first-order-nyquist-track.svg",
+    "2-4-fd-06-pure-pole-nyquist-comparison.svg",
+    "2-4-fd-07-second-order-damping-bode.svg",
+    "2-4-fd-08-bode-nyquist-consistency-panel.svg",
+    "2-4-fd-09-bode-sketch-checklist.png",
+    "2-4-fd-10-nyquist-sketch-checklist.png"
+  ],
+  "generated_assets": [
+    "2-4-slides.pdf",
+    "2-4-intro-video.mp4",
+    "2-4-course.mp4",
+    "2-4-audio.m4a",
+    "2-4-cover-comic.png",
+    "2-4-info.png",
+    "2-4-fd-01-bode-dual-view-overview.png",
+    "2-4-fd-02-log-frequency-db-intuition.png",
+    "2-4-fd-03-typical-elements-bode-comparison.svg",
+    "2-4-fd-04-first-order-exact-vs-asymptote.svg",
+    "2-4-fd-05-first-order-nyquist-track.svg",
+    "2-4-fd-06-pure-pole-nyquist-comparison.svg",
+    "2-4-fd-07-second-order-damping-bode.svg",
+    "2-4-fd-08-bode-nyquist-consistency-panel.svg",
+    "2-4-fd-09-bode-sketch-checklist.png",
+    "2-4-fd-10-nyquist-sketch-checklist.png"
+  ],
+  "missing_assets": [],
+  "executed_scripts": [],
+  "processed_dir": "course-content/authoring/lessons/2-4/media/processed"
+}

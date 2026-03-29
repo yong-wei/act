@@ -54,7 +54,7 @@ P₂｜Participatory Learning 主体教学（63min）
     $$
     |T(j\omega_b)|=\frac{|T(0)|}{\sqrt{2}}
     $$
-  - 通过例题二说明各量该从哪张图上读，再用 `python3 + control` 验证数值
+  - 通过例题二说明各量该从哪张图上读，再用 `Octave + control` 验证数值
   - 学生反应预判：容易把截止频率 $\omega_c$、穿越频率 $\omega_g$ 和带宽频率 $\omega_b$ 混淆
   - 教师处理：用“开环读余量、闭环看带宽”这句口令做区分
 

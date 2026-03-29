@@ -1,0 +1,19 @@
+{
+  "lesson_id": "2-4",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/2-4/sequence.json",
+  "card_order": [
+    "频率特性_5_404adfdd",
+    "伯德图_6_1a069614",
+    "开环幅相特性曲线_5_fd86e289",
+    "截止频率_5_c7d09ff7",
+    "穿越频率_5_c4c2b93c",
+    "相角裕度_5_5a74b451",
+    "幅值裕度_5_73af26a5",
+    "带宽频率_5_6996a44a",
+    "交接频率_转折频率__5_8bca814b",
+    "典型环节对象库_2_21002"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

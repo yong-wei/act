@@ -1,0 +1,1176 @@
+{
+  "lesson_id": "2-4",
+  "title": "Nyquist图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别",
+  "focus_node_ids": [
+    "频率特性_5_404adfdd",
+    "伯德图_6_1a069614",
+    "开环幅相特性曲线_5_fd86e289",
+    "截止频率_5_c7d09ff7",
+    "穿越频率_5_c4c2b93c",
+    "相角裕度_5_5a74b451",
+    "幅值裕度_5_73af26a5",
+    "带宽频率_5_6996a44a"
+  ],
+  "reuse_node_ids": [
+    "交接频率_转折频率__5_8bca814b",
+    "典型环节对象库_2_21002",
+    "惯性环节_2_11007",
+    "积分环节_2_11005",
+    "振荡环节_5_d677d1e6",
+    "Bode首轮骨架_5_1e07d9da"
+  ],
+  "entry_nodes": [
+    "频率特性_5_404adfdd",
+    "伯德图_6_1a069614"
+  ],
+  "summary_nodes": [
+    "开环幅相特性曲线_5_fd86e289",
+    "相角裕度_5_5a74b451",
+    "带宽频率_5_6996a44a"
+  ],
+  "card_order": [
+    "频率特性_5_404adfdd",
+    "伯德图_6_1a069614",
+    "开环幅相特性曲线_5_fd86e289",
+    "截止频率_5_c7d09ff7",
+    "穿越频率_5_c4c2b93c",
+    "相角裕度_5_5a74b451",
+    "幅值裕度_5_73af26a5",
+    "带宽频率_5_6996a44a",
+    "交接频率_转折频率__5_8bca814b",
+    "典型环节对象库_2_21002"
+  ],
+  "groups": [
+    {
+      "group_name": "引入与双图统一",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03"
+      ],
+      "node_ids": [
+        "频率特性_5_404adfdd",
+        "伯德图_6_1a069614",
+        "开环幅相特性曲线_5_fd86e289"
+      ]
+    },
+    {
+      "group_name": "Nyquist读图入口",
+      "step_ids": [
+        "step-04",
+        "step-05",
+        "step-06"
+      ],
+      "node_ids": [
+        "开环幅相特性曲线_5_fd86e289",
+        "典型环节对象库_2_21002",
+        "惯性环节_2_11007",
+        "积分环节_2_11005",
+        "振荡环节_5_d677d1e6"
+      ]
+    },
+    {
+      "group_name": "频域指标入口",
+      "step_ids": [
+        "step-07",
+        "step-08"
+      ],
+      "node_ids": [
+        "截止频率_5_c7d09ff7",
+        "穿越频率_5_c4c2b93c",
+        "相角裕度_5_5a74b451",
+        "幅值裕度_5_73af26a5",
+        "带宽频率_5_6996a44a"
+      ]
+    },
+    {
+      "group_name": "手工绘图与最小反识别",
+      "step_ids": [
+        "step-09",
+        "step-10"
+      ],
+      "node_ids": [
+        "交接频率_转折频率__5_8bca814b",
+        "Bode首轮骨架_5_1e07d9da",
+        "典型环节对象库_2_21002"
+      ]
+    },
+    {
+      "group_name": "后测与收束",
+      "step_ids": [
+        "step-11",
+        "step-12",
+        "step-13"
+      ],
+      "node_ids": [
+        "开环幅相特性曲线_5_fd86e289",
+        "相角裕度_5_5a74b451",
+        "带宽频率_5_6996a44a"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "典型环节对象库_2_21002",
+      "name": "典型环节对象库",
+      "nodeType": "THEORY",
+      "description": "把复杂传递函数优先拆解为比例、积分、微分、惯性、振荡等标准环节的识别框架，用于在对象层面先看清系统由哪些基础动态部件组成。",
+      "positionX": 25.1,
+      "positionY": -6.7,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "把复杂传递函数优先拆解为比例、积分、微分、惯性、振荡等标准环节的识别框架，用于在对象层面先看清系统由哪些基础动态部件组成。",
+        "examples": [
+          "G(s)=K_p/[s(Ts+1)] 可以先识别为比例环节、积分环节和惯性环节的组合，而不是直接把它当成难记的长分式。",
+          "航向控制系统中的控制器、舵机和船体对象都可以先还原为典型环节，再讨论它们怎样连接成闭环系统。"
+        ],
+        "formulas": [
+          "G(s)=K\\cdot G_1(s)\\cdot G_2(s)\\cdots G_r(s)",
+          "G(s)=K,\\;\\frac{1}{s},\\;s,\\;\\frac{1}{Ts+1},\\;\\frac{\\omega_n^2}{s^2+2\\zeta\\omega_n s+\\omega_n^2}"
+        ],
+        "prerequisites": [
+          "传递函数_1_5b0faf8b"
+        ],
+        "relatedConcepts": [
+          "比例环节_2_11004",
+          "积分环节_2_11005",
+          "微分环节_2_11006",
+          "惯性环节_2_11007",
+          "振荡环节_5_d677d1e6"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "典型环节",
+          "对象识别",
+          "标准对象库",
+          "系统分解"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/典型环节对象库_2_21002.md"
+      ],
+      "tags": [
+        "典型环节",
+        "对象识别",
+        "标准对象库",
+        "系统分解",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "惯性环节_2_11007",
+      "name": "惯性环节",
+      "nodeType": "THEORY",
+      "description": "传递函数为G(s)=1/(Ts+1)的一阶环节，具有一个负实极点s=-1/T。时间常数T越大响应越慢。物理原型包括RC低通电路、温度计热惯性。",
+      "positionX": 8.3,
+      "positionY": -30.9,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "典型环节",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "典型环节",
+        "bloom_level": "理解",
+        "definition": "传递函数为G(s)=1/(Ts+1)的一阶环节，具有一个负实极点s=-1/T。时间常数T越大响应越慢。物理原型包括RC低通电路、温度计热惯性。",
+        "examples": [
+          "RC电路：G(s)=1/(RCs+1)",
+          "温度计：T为热时间常数"
+        ],
+        "formulas": [
+          "G(s) = 1/(Ts+1)",
+          "极点 s = -1/T"
+        ],
+        "prerequisites": [
+          "传递函数_2_2c5e2589",
+          "极点_2_cc79a4c5"
+        ],
+        "relatedConcepts": [
+          "振荡环节_5_d677d1e6",
+          "比例环节_2_11004"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "惯性",
+          "一阶",
+          "时间常数",
+          "负实极点",
+          "RC电路"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/惯性环节_2_11007.md"
+      ],
+      "tags": [
+        "惯性",
+        "一阶",
+        "时间常数",
+        "负实极点",
+        "RC电路",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "积分环节_2_11005",
+      "name": "积分环节",
+      "nodeType": "THEORY",
+      "description": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
+      "positionX": -0.0,
+      "positionY": -38.0,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "典型环节",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "典型环节",
+        "bloom_level": "理解",
+        "definition": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
+        "examples": [
+          "水箱：流量输入→液位输出",
+          "船舶：角速度→航向角"
+        ],
+        "formulas": [
+          "G(s) = 1/s",
+          "y(t) = ∫₀ᵗ u(τ)dτ"
+        ],
+        "prerequisites": [
+          "传递函数_2_2c5e2589"
+        ],
+        "relatedConcepts": [
+          "比例环节_2_11004",
+          "极点_2_cc79a4c5"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "积分",
+          "原点极点",
+          "累积效应"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/积分环节_2_11005.md"
+      ],
+      "tags": [
+        "积分",
+        "原点极点",
+        "累积效应",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "Bode首轮骨架_5_1e07d9da",
+      "name": "Bode首轮骨架",
+      "nodeType": "THEORY",
+      "description": "面对典型环节或简单标准型对象时，先写标准型、列转折频率、判低频起势，再按斜率变化画出第一层渐近趋势的手绘流程。",
+      "positionX": 68.0,
+      "positionY": 117.8,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "面对典型环节或简单标准型对象时，先写标准型、列转折频率、判低频起势，再按斜率变化画出第一层渐近趋势的手绘流程。",
+        "examples": [
+          "对一阶惯性环节先标出 1/T，再画 0 dB 起步、过转折后以 -20 dB/dec 下降的首轮骨架。"
+        ],
+        "formulas": [
+          "L(\\omega)=20\\log_{10}|G(j\\omega)|"
+        ],
+        "prerequisites": [
+          "对数频率特性曲线",
+          "交接频率（转折频率）"
+        ],
+        "relatedConcepts": [
+          "伯德图",
+          "对数幅频曲线"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "标准型",
+          "转折频率",
+          "渐近线",
+          "手绘"
+        ],
+        "createdAt": "2026-03-28T09:57:11.127527+00:00",
+        "updatedAt": "2026-03-28T09:57:11.127527+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/Bode首轮骨架_5_1e07d9da.md"
+      ],
+      "tags": [
+        "标准型",
+        "转折频率",
+        "渐近线",
+        "手绘",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "交接频率_转折频率__5_8bca814b",
+      "name": "交接频率（转折频率）",
+      "nodeType": "THEORY",
+      "description": "在对数幅频特性曲线上，相邻渐近线斜率发生变化的频率点。",
+      "positionX": -131.4,
+      "positionY": 35.2,
+      "positionZ": 5,
+      "bloomLevel": "REMEMBER",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "记忆",
+        "definition": "在对数幅频特性曲线上，相邻渐近线斜率发生变化的频率点。",
+        "examples": [
+          "一阶惯性环节的交接频率为1/T，二阶振荡环节的交接频率为ω_n。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "转折频率",
+          "交接频率",
+          "斜率变化"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628496",
+        "updatedAt": "2026-02-04T17:54:16.628496",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/交接频率_转折频率__5_8bca814b.md"
+      ],
+      "tags": [
+        "转折频率",
+        "交接频率",
+        "斜率变化",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "带宽频率_5_6996a44a",
+      "name": "带宽频率",
+      "nodeType": "THEORY",
+      "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
+      "positionX": 100.4,
+      "positionY": 100.4,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
+        "examples": [
+          "对于一阶系统，ω_b=1/T；对于二阶系统，ω_b与ω_n和ζ有关。",
+          "磁盘驱动读取系统：从图5-59确定闭环带宽频率ωb=2000 rad/s。",
+          "机械臂控制系统：需要计算闭环系统的带宽频率ωb。"
+        ],
+        "formulas": [
+          "20\\lg|\\Phi(j\\omega_b)| = 20\\lg|\\Phi(j0)| - 3"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "3dB点",
+          "闭环幅频特性",
+          "闭环频率特性",
+          "响应速度",
+          "截止频率"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628615",
+        "updatedAt": "2026-02-04T17:54:16.628615",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/带宽频率_5_6996a44a.md"
+      ],
+      "tags": [
+        "3dB点",
+        "闭环幅频特性",
+        "闭环频率特性",
+        "响应速度",
+        "截止频率",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "幅值裕度_5_73af26a5",
+      "name": "幅值裕度",
+      "nodeType": "THEORY",
+      "description": "在穿越频率处，使系统达到临界稳定所需开环幅频特性增大或减小的倍数，是稳定裕度的一种。",
+      "positionX": 71.0,
+      "positionY": 123.0,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "在穿越频率处，使系统达到临界稳定所需开环幅频特性增大或减小的倍数，是稳定裕度的一种。",
+        "examples": [
+          "例5-14计算不同开环增益下的幅值裕度。"
+        ],
+        "formulas": [
+          "h = \\frac{1}{|G(j\\omega_g)|}",
+          "h_{dB} = 20\\lg h"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "穿越频率",
+          "开环幅频特性",
+          "临界稳定"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628590",
+        "updatedAt": "2026-02-04T17:54:16.628591",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/幅值裕度_5_73af26a5.md"
+      ],
+      "tags": [
+        "穿越频率",
+        "开环幅频特性",
+        "临界稳定",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "开环幅相特性曲线_5_fd86e289",
+      "name": "开环幅相特性曲线",
+      "nodeType": "THEORY",
+      "description": "系统开环频率特性在复平面上随频率变化而形成的轨迹，又称奈奎斯特曲线。",
+      "positionX": -137.2,
+      "positionY": 36.8,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "系统开环频率特性在复平面上随频率变化而形成的轨迹，又称奈奎斯特曲线。",
+        "examples": [
+          "用于奈奎斯特稳定性判据"
+        ],
+        "formulas": [
+          "G(jω) = |G(jω)|e^(j∠G(jω))"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "幅相曲线",
+          "奈奎斯特",
+          "频率特性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628475",
+        "updatedAt": "2026-02-04T17:54:16.628475",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/开环幅相特性曲线_5_fd86e289.md"
+      ],
+      "tags": [
+        "幅相曲线",
+        "奈奎斯特",
+        "频率特性",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "截止频率_5_c7d09ff7",
+      "name": "截止频率",
+      "nodeType": "THEORY",
+      "description": "开环对数幅频特性曲线穿越0dB线时的频率，记为ω_c，是计算相角裕度的关键频率。",
+      "positionX": -137.2,
+      "positionY": -36.8,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "开环对数幅频特性曲线穿越0dB线时的频率，记为ω_c，是计算相角裕度的关键频率。",
+        "examples": [
+          "例5-13中，通过|G(jω_c)|=1求解典型二阶系统的截止频率。",
+          "例5-14中，从对数幅频渐近特性曲线确定截止频率。"
+        ],
+        "formulas": [
+          "L(\\omega_c) = 0 \\text{ dB}",
+          "|G(j\\omega_c)| = 1"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "0dB穿越",
+          "开环幅频特性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628599",
+        "updatedAt": "2026-02-04T17:54:16.628600",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/截止频率_5_c7d09ff7.md"
+      ],
+      "tags": [
+        "0dB穿越",
+        "开环幅频特性",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "振荡环节_5_d677d1e6",
+      "name": "振荡环节",
+      "nodeType": "THEORY",
+      "description": "传递函数具有一对共轭复数极点的典型环节，其响应呈现振荡特性。",
+      "positionX": -71.0,
+      "positionY": -123.0,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "传递函数具有一对共轭复数极点的典型环节，其响应呈现振荡特性。",
+        "examples": [
+          "二阶系统的标准形式"
+        ],
+        "formulas": [
+          "G(s) = ω_n^2 / (s^2 + 2ζω_n s + ω_n^2)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "振荡环节",
+          "阻尼比",
+          "自然频率"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628458",
+        "updatedAt": "2026-02-04T17:54:16.628458",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/振荡环节_5_d677d1e6.md"
+      ],
+      "tags": [
+        "振荡环节",
+        "阻尼比",
+        "自然频率",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "相角裕度_5_5a74b451",
+      "name": "相角裕度",
+      "nodeType": "THEORY",
+      "description": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
+      "positionX": 148.0,
+      "positionY": 0.0,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
+        "examples": [
+          "例5-13计算典型二阶系统的相角裕度与阻尼比的关系。",
+          "例5-14计算不同开环增益下的相角裕度。",
+          "雕刻机系统：相角裕度γ=53°，表明闭环系统稳定。",
+          "磁盘驱动读取系统：通过图5-58确定相角裕度γ=45°。"
+        ],
+        "formulas": [
+          "\\gamma = 180^\\circ + \\varphi(\\omega_c)",
+          "\\gamma = 180^\\circ + \\angle G(j\\omega_c)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "截止频率",
+          "相位滞后",
+          "临界稳定",
+          "稳定性",
+          "开环频率特性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628585",
+        "updatedAt": "2026-02-04T17:54:16.628586",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md"
+      ],
+      "tags": [
+        "截止频率",
+        "相位滞后",
+        "临界稳定",
+        "稳定性",
+        "开环频率特性",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "穿越频率_5_c4c2b93c",
+      "name": "穿越频率",
+      "nodeType": "THEORY",
+      "description": "开环相频特性曲线穿越-180°线时的频率，记为ω_g，是计算幅值裕度的关键频率。",
+      "positionX": 38.3,
+      "positionY": 143.0,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "开环相频特性曲线穿越-180°线时的频率，记为ω_g，是计算幅值裕度的关键频率。",
+        "examples": [
+          "幅值裕度h在穿越频率ω_g处定义。"
+        ],
+        "formulas": [
+          "\\varphi(\\omega_g) = -180^\\circ"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "-180°穿越",
+          "开环相频特性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628605",
+        "updatedAt": "2026-02-04T17:54:16.628605",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/穿越频率_5_c4c2b93c.md"
+      ],
+      "tags": [
+        "-180°穿越",
+        "开环相频特性",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "频率特性_5_404adfdd",
+      "name": "频率特性",
+      "nodeType": "THEORY",
+      "description": "线性系统在正弦信号作用下，输出稳态分量与输入信号的幅值比和相位差随频率变化的特性。",
+      "positionX": 133.4,
+      "positionY": 77.0,
+      "positionZ": 5,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "线性系统在正弦信号作用下，输出稳态分量与输入信号的幅值比和相位差随频率变化的特性。",
+        "examples": [
+          "RC网络的幅值比和相位差"
+        ],
+        "formulas": [
+          "G(j\\omega) = A(\\omega)e^{j\\varphi(\\omega)}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "幅频特性",
+          "相频特性",
+          "稳态响应"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628386",
+        "updatedAt": "2026-02-04T17:54:16.628386",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/频率特性_5_404adfdd.md"
+      ],
+      "tags": [
+        "幅频特性",
+        "相频特性",
+        "稳态响应",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "伯德图_6_1a069614",
+      "name": "伯德图",
+      "nodeType": "THEORY",
+      "description": "对数频率特性图，用于在频域内分析系统或控制器的频率响应特性。",
+      "positionX": -162.3,
+      "positionY": 43.5,
+      "positionZ": 6,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 6,
+      "chapterName": "系统校正",
+      "metadata": {
+        "chapter": 6,
+        "chapterName": "系统校正",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "对数频率特性图，用于在频域内分析系统或控制器的频率响应特性。",
+        "examples": [
+          "图6-18给出了PID控制器以ω为自变量的伯德图，显示其为带阻滤波器。",
+          "根据式(6-32)用叠加方法得到PID控制器的伯德图。"
+        ],
+        "formulas": [
+          "L(\\omega) = 20\\log|G(j\\omega)|",
+          "\\phi(\\omega) = \\arg G(j\\omega)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "对数幅频特性",
+          "相频特性",
+          "频率响应"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628800",
+        "updatedAt": "2026-02-04T17:54:16.628800",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/伯德图_6_1a069614.md"
+      ],
+      "tags": [
+        "对数幅频特性",
+        "相频特性",
+        "频率响应",
+        "chapter-6"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "频率特性|振荡环节|5",
+      "sourceId": "频率特性_5_404adfdd",
+      "targetId": "振荡环节_5_d677d1e6",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "频率特性|开环幅相特性曲线|5",
+      "sourceId": "频率特性_5_404adfdd",
+      "targetId": "开环幅相特性曲线_5_fd86e289",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "频率特性|交接频率（转折频率）|5",
+      "sourceId": "频率特性_5_404adfdd",
+      "targetId": "交接频率_转折频率__5_8bca814b",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "频率特性|相角裕度|5",
+      "sourceId": "频率特性_5_404adfdd",
+      "targetId": "相角裕度_5_5a74b451",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "频率特性|幅值裕度|5",
+      "sourceId": "频率特性_5_404adfdd",
+      "targetId": "幅值裕度_5_73af26a5",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "频率特性|截止频率|5",
+      "sourceId": "频率特性_5_404adfdd",
+      "targetId": "截止频率_5_c7d09ff7",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "频率特性|穿越频率|5",
+      "sourceId": "频率特性_5_404adfdd",
+      "targetId": "穿越频率_5_c4c2b93c",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "频率特性|带宽频率|5",
+      "sourceId": "频率特性_5_404adfdd",
+      "targetId": "带宽频率_5_6996a44a",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.8
+    },
+    {
+      "id": "频率特性|伯德图|5-6",
+      "sourceId": "频率特性_5_404adfdd",
+      "targetId": "伯德图_6_1a069614",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "振荡环节|开环幅相特性曲线|5",
+      "sourceId": "振荡环节_5_d677d1e6",
+      "targetId": "开环幅相特性曲线_5_fd86e289",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "振荡环节|交接频率（转折频率）|5",
+      "sourceId": "振荡环节_5_d677d1e6",
+      "targetId": "交接频率_转折频率__5_8bca814b",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.4
+    },
+    {
+      "id": "振荡环节|相角裕度|5",
+      "sourceId": "振荡环节_5_d677d1e6",
+      "targetId": "相角裕度_5_5a74b451",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "振荡环节|幅值裕度|5",
+      "sourceId": "振荡环节_5_d677d1e6",
+      "targetId": "幅值裕度_5_73af26a5",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "振荡环节|截止频率|5",
+      "sourceId": "振荡环节_5_d677d1e6",
+      "targetId": "截止频率_5_c7d09ff7",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.2
+    },
+    {
+      "id": "振荡环节|穿越频率|5",
+      "sourceId": "振荡环节_5_d677d1e6",
+      "targetId": "穿越频率_5_c4c2b93c",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "振荡环节|带宽频率|5",
+      "sourceId": "振荡环节_5_d677d1e6",
+      "targetId": "带宽频率_5_6996a44a",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.4
+    },
+    {
+      "id": "开环幅相特性曲线|交接频率（转折频率）|5",
+      "sourceId": "开环幅相特性曲线_5_fd86e289",
+      "targetId": "交接频率_转折频率__5_8bca814b",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.4
+    },
+    {
+      "id": "开环幅相特性曲线|相角裕度|5",
+      "sourceId": "开环幅相特性曲线_5_fd86e289",
+      "targetId": "相角裕度_5_5a74b451",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "开环幅相特性曲线|幅值裕度|5",
+      "sourceId": "开环幅相特性曲线_5_fd86e289",
+      "targetId": "幅值裕度_5_73af26a5",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.7
+    },
+    {
+      "id": "开环幅相特性曲线|截止频率|5",
+      "sourceId": "开环幅相特性曲线_5_fd86e289",
+      "targetId": "截止频率_5_c7d09ff7",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "开环幅相特性曲线|穿越频率|5",
+      "sourceId": "开环幅相特性曲线_5_fd86e289",
+      "targetId": "穿越频率_5_c4c2b93c",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "交接频率（转折频率）|相角裕度|5",
+      "sourceId": "交接频率_转折频率__5_8bca814b",
+      "targetId": "相角裕度_5_5a74b451",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "交接频率（转折频率）|幅值裕度|5",
+      "sourceId": "交接频率_转折频率__5_8bca814b",
+      "targetId": "幅值裕度_5_73af26a5",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "交接频率（转折频率）|截止频率|5",
+      "sourceId": "交接频率_转折频率__5_8bca814b",
+      "targetId": "截止频率_5_c7d09ff7",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.5
+    },
+    {
+      "id": "交接频率（转折频率）|穿越频率|5",
+      "sourceId": "交接频率_转折频率__5_8bca814b",
+      "targetId": "穿越频率_5_c4c2b93c",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "交接频率（转折频率）|带宽频率|5",
+      "sourceId": "交接频率_转折频率__5_8bca814b",
+      "targetId": "带宽频率_5_6996a44a",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.4
+    },
+    {
+      "id": "相角裕度|幅值裕度|5",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "幅值裕度_5_73af26a5",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "相角裕度|截止频率|5",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "截止频率_5_c7d09ff7",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 1.0
+    },
+    {
+      "id": "相角裕度|穿越频率|5",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "穿越频率_5_c4c2b93c",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.7
+    },
+    {
+      "id": "幅值裕度|截止频率|5",
+      "sourceId": "幅值裕度_5_73af26a5",
+      "targetId": "截止频率_5_c7d09ff7",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "幅值裕度|穿越频率|5",
+      "sourceId": "幅值裕度_5_73af26a5",
+      "targetId": "穿越频率_5_c4c2b93c",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "幅值裕度|带宽频率|5",
+      "sourceId": "幅值裕度_5_73af26a5",
+      "targetId": "带宽频率_5_6996a44a",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.2
+    },
+    {
+      "id": "截止频率|穿越频率|5",
+      "sourceId": "截止频率_5_c7d09ff7",
+      "targetId": "穿越频率_5_c4c2b93c",
+      "relation": "opposite",
+      "relationType": "opposite",
+      "strength": 0.8
+    },
+    {
+      "id": "截止频率|带宽频率|5",
+      "sourceId": "截止频率_5_c7d09ff7",
+      "targetId": "带宽频率_5_6996a44a",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "穿越频率|带宽频率|5",
+      "sourceId": "穿越频率_5_c4c2b93c",
+      "targetId": "带宽频率_5_6996a44a",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.2
+    },
+    {
+      "id": "rt-16271",
+      "sourceId": "交接频率_转折频率__5_8bca814b",
+      "targetId": "Bode首轮骨架_5_1e07d9da",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.95
+    },
+    {
+      "id": "rt-16272",
+      "sourceId": "伯德图_6_1a069614",
+      "targetId": "Bode首轮骨架_5_1e07d9da",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-8289322fc1d5efab",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "积分环节_2_11005",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-a7e94ac9c55e3855",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "惯性环节_2_11007",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-a5f405c61f1bd4d6",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "振荡环节_5_d677d1e6",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-48df1d0f4f0bf1f7",
+      "sourceId": "交接频率_转折频率__5_8bca814b",
+      "targetId": "Bode首轮骨架_5_1e07d9da",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-130eb3682404c75b",
+      "sourceId": "伯德图_6_1a069614",
+      "targetId": "Bode首轮骨架_5_1e07d9da",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    }
+  ]
+}

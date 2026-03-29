@@ -47,6 +47,21 @@
       "notes": "2-3 为模块2当前主线课次，对应频率响应基础与 Bode 图初步。"
     },
     {
+      "request_ids": ["2-4"],
+      "canonical_id": "2-4",
+      "display_id": "2-4",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "2-4",
+      "source_group": null,
+      "authoring_lesson_dir": "2-4",
+      "authoring_cards_dir": "2-4",
+      "authoring_overlays_dir": "2-4",
+      "runtime_lesson_dir": "2-4",
+      "legacy_source_ids": [],
+      "notes": "2-4 为模块2当前主线课次，对应 Nyquist 图与频域指标入口。"
+    },
+    {
       "request_ids": ["3-1"],
       "canonical_id": "3-1",
       "display_id": "3-1",

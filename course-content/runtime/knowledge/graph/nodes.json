@@ -14274,7 +14274,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/带宽频率_5_6996a44a.md"
+    ],
     "tags": [
       "3dB点",
       "闭环幅频特性",
@@ -14324,7 +14326,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/concepts/幅值裕度_5_73af26a5.mdx"
+      "course-content/runtime/knowledge/cards/nodes/幅值裕度_5_73af26a5.md"
     ],
     "tags": [
       "穿越频率",
@@ -14658,7 +14660,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/开环幅相特性曲线_5_fd86e289.md"
+    ],
     "tags": [
       "幅相曲线",
       "奈奎斯特",
@@ -14751,7 +14755,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/截止频率_5_c7d09ff7.md"
+    ],
     "tags": [
       "0dB穿越",
       "开环幅频特性",
@@ -15307,7 +15313,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/concepts/相角裕度_5_5a74b451.mdx"
+      "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md"
     ],
     "tags": [
       "截止频率",
@@ -15546,7 +15552,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/穿越频率_5_c4c2b93c.md"
+    ],
     "tags": [
       "-180°穿越",
       "开环相频特性",

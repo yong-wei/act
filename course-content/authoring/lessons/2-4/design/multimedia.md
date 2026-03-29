@@ -4,7 +4,7 @@
 > **当前完成**：12 项正式媒体（封面图、信息图、`fd-01` 至 `fd-10`）
 > **待补齐**：4 项课程级交付（`2-4-slides.pdf`、`2-4-intro-video.mp4`、`2-4-course.mp4`、`2-4-audio.m4a`）
 > **本轮重点**：按新骨架重排 `2-4` 的资源采用逻辑，使媒体真正服务 `Nyquist` 图入口、频域指标入口和最小反向识别，而不再回头重讲 `2-3` 已完成的 Bode 基础。
-> **验证约定**：讲义正文中新增的数值结论统一以 `python3 + control` 为真值来源；已有成图暂保留当前产物，后续如需重生，优先迁移到 `python3 + control` 链路。
+> **验证约定**：讲义正文中新增的数值结论统一以 `Octave + control` 为真值来源；已有成图暂保留当前产物，后续如需重生，优先迁移到 `Octave + control` 链路。
 
 ---
 
@@ -96,7 +96,7 @@
 | `fd-08` | `media/raw/2-4-fd-08-bode-nyquist-consistency-panel.m` | `media/processed/2-4-fd-08-bode-nyquist-consistency-panel.svg` | 既有代码直出图 | 同一对象的双图一致性 |
 | `fd-09` | `media/raw/2-4-fd-09-bode-sketch-checklist.tex` | `media/processed/2-4-fd-09-bode-sketch-checklist.png` | TikZ | Bode 手工绘图入口检查单 |
 | `fd-10` | `media/raw/2-4-fd-10-nyquist-sketch-checklist.tex` | `media/processed/2-4-fd-10-nyquist-sketch-checklist.png` | TikZ | Nyquist 手工绘图入口检查单 |
-| `fd-11` | `media/raw/2-4-fd-11-margin-entry.py` + `media/raw/2-4-fd-11-margin-entry.m` | 无独立成图 | `python3 + control` + `MATLAB / Octave` | 例题三中的 $\omega_c$、$\omega_g$、$\gamma$、$K_g$、$\omega_b$ 数值核对与学生复现 |
+| `fd-11` | `media/raw/2-4-fd-11-margin-entry.m` | 无独立成图 | `Octave + control` | 例题三中的 $\omega_c$、$\omega_g$、$\gamma$、$K_g$、$\omega_b$ 数值核对与学生复现 |
 
 ---
 
@@ -105,5 +105,5 @@
 - `handout.md` 与 `interactive-page.md` 中的正文主图优先使用 `fd-05`、`fd-06`、`fd-08`、`fd-09`、`fd-10`
 - `fd-03` 与 `fd-07` 主要服务“基础反识别”而非本讲主引入
 - `fd-01` 与 `fd-02` 当前降为教师补充或课后复盘备用图，避免重新挤占 `2-3` 的合法空间
-- 新增的频域指标数值例题，统一以 `2-4-fd-11-margin-entry.py` 为核对脚本
-- 若后续重生成 `fd-03` 至 `fd-08`，优先迁移到 `python3 + control` 链路，避免长期维持旧口径分叉
+- 新增的频域指标数值例题，统一以 `2-4-fd-11-margin-entry.m` 为核对脚本
+- 若后续重生成 `fd-03` 至 `fd-08`，优先迁移到 `Octave + control` 链路，避免长期维持旧口径分叉

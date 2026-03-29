@@ -105,7 +105,7 @@ $$
 
 ![同一对象的 Bode / Nyquist 一致性对照](../media/processed/2-4-fd-08-bode-nyquist-consistency-panel.svg)
 
-上图最重要的教学信息不是“多了一张图”，而是：
+这组对照图最重要的教学信息不是“多了一张图”，而是：
 
 > **同一组低频、高频、转折和拖后信息，在 Bode 图上是分开展示，在 Nyquist 图上是合成展示。**
 
