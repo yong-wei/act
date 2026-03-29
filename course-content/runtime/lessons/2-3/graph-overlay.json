@@ -1755,38 +1755,6 @@
       "strength": 0.95
     },
     {
-      "id": "rt-16223",
-      "sourceId": "典型环节对象库_2_21002",
-      "targetId": "积分环节_2_11005",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.95
-    },
-    {
-      "id": "rt-16224",
-      "sourceId": "典型环节对象库_2_21002",
-      "targetId": "微分环节_2_11006",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.95
-    },
-    {
-      "id": "rt-16225",
-      "sourceId": "典型环节对象库_2_21002",
-      "targetId": "惯性环节_2_11007",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.95
-    },
-    {
-      "id": "rt-16226",
-      "sourceId": "典型环节对象库_2_21002",
-      "targetId": "振荡环节_5_d677d1e6",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.9
-    },
-    {
       "id": "rt-16259",
       "sourceId": "周期信号频谱_5_2d1b006d",
       "targetId": "频率分量重构_5_42082c97",
@@ -1896,6 +1864,142 @@
       "targetId": "Bode首轮骨架_5_1e07d9da",
       "relation": "related",
       "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-89a9dccb1ebe9abe",
+      "sourceId": "传递函数_1_5b0faf8b",
+      "targetId": "典型环节对象库_2_21002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-606cf797e05daa31",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "比例环节_2_11004",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-8289322fc1d5efab",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "积分环节_2_11005",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-feb38c71e00471e6",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "微分环节_2_11006",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-a7e94ac9c55e3855",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "惯性环节_2_11007",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-a5f405c61f1bd4d6",
+      "sourceId": "典型环节对象库_2_21002",
+      "targetId": "振荡环节_5_d677d1e6",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-02cc983d698794b1",
+      "sourceId": "周期信号频谱_5_2d1b006d",
+      "targetId": "频率分量重构_5_42082c97",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-dda19e4ed511e8db",
+      "sourceId": "非周期信号频谱_5_e2fff926",
+      "targetId": "频率分量重构_5_42082c97",
+      "relation": "generalizes",
+      "relationType": "generalizes",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-925bf2acd0c6995b",
+      "sourceId": "正弦函数_1_98499ac0",
+      "targetId": "正弦稳态响应_5_b6dc1100",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-f64bed693f5c9b72",
+      "sourceId": "传递函数_1_5b0faf8b",
+      "targetId": "正弦稳态响应_5_b6dc1100",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-c06bd48ca3751e81",
+      "sourceId": "频率分量重构_5_42082c97",
+      "targetId": "正弦稳态响应_5_b6dc1100",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-23e7944ed75ee57f",
+      "sourceId": "正弦稳态响应_5_b6dc1100",
+      "targetId": "频率特性_5_404adfdd",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
+    },
+    {
+      "id": "rel-6cb70242ff621f38",
+      "sourceId": "传递函数_1_5b0faf8b",
+      "targetId": "频率特性_5_404adfdd",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-9c17939dca9a9afb",
+      "sourceId": "对数频率坐标_5_5e366881",
+      "targetId": "对数频率特性曲线_5_75c6945f",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-8171867e0ac98995",
+      "sourceId": "对数幅频曲线_5_f86ba11b",
+      "targetId": "交接频率_转折频率__5_8bca814b",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.93
+    },
+    {
+      "id": "rel-48df1d0f4f0bf1f7",
+      "sourceId": "交接频率_转折频率__5_8bca814b",
+      "targetId": "Bode首轮骨架_5_1e07d9da",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-130eb3682404c75b",
+      "sourceId": "伯德图_6_1a069614",
+      "targetId": "Bode首轮骨架_5_1e07d9da",
+      "relation": "applies_to",
+      "relationType": "applies_to",
       "strength": 0.9
     }
   ]

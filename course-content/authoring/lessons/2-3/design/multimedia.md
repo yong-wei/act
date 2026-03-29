@@ -1,8 +1,8 @@
 # 多模态资源设计 | 单元 2-3：频率响应基础与 Bode 图初步
 
 > **资源总数**：19 项
-> **生成方式分布**：已生成成品 9 项，新增规划媒体 10 项
-> **当前状态**：原有频率响应主图已落盘；本轮按最新边界新增 `Bode` 首轮进入所需媒体规格与资源采用单。
+> **生成方式分布**：已生成成品 12 项，新增规划媒体 7 项
+> **当前状态**：频率响应主图与 `Bode` 首轮进入所需静态媒体已落盘；剩余待实现项集中在互动页面前端绘制资源。
 
 ## 资源融入评审单
 
@@ -25,9 +25,9 @@
 | h-01 | `2-3-fr-01-command-vs-disturbance.svg` | 讲义 | 代码直出图 | `handout.md` §1 | 已生成 |
 | h-02 | `2-3-fr-02-square-wave-harmonics.svg` | 讲义 | 代码直出图 | `handout.md` §2 | 已生成 |
 | h-03 | `2-3-fr-03-sine-in-sine-out.svg` | 讲义 | 代码直出图 | `handout.md` §2.3 | 已生成 |
-| h-04 | `2-3-fr-04-linear-vs-log-frequency.svg` | 互动 / 教师讲解补图 | 代码直出图 | `interactive-page.md` step-11 / 后续教师讲义增补 | 待生成 |
-| h-05 | `2-3-fr-05-bode-axes-and-typical-cards.svg` | 互动 / 教师讲解补图 | 代码直出图 | `interactive-page.md` step-12 / 后续教师讲义增补 | 待生成 |
-| h-06 | `2-3-fr-06-bode-skeleton-workflow.svg` | 互动 / 教师讲解补图 | 代码直出图 | `interactive-page.md` step-13 / 后续教师讲义增补 | 待生成 |
+| h-04 | `2-3-fr-04-linear-vs-log-frequency.svg` | 互动 / 教师讲解补图 | 代码直出图 | `interactive-page.md` step-11 / 后续教师讲义增补 | 已生成 |
+| h-05 | `2-3-fr-05-bode-axes-and-typical-cards.svg` | 互动 / 教师讲解补图 | 代码直出图 | `interactive-page.md` step-12 / 后续教师讲义增补 | 已生成 |
+| h-06 | `2-3-fr-06-bode-skeleton-workflow.svg` | 互动 / 教师讲解补图 | 代码直出图 | `interactive-page.md` step-13 / 后续教师讲义增补 | 已生成 |
 | h-info | `2-3-info.png` | 讲义末尾信息图 | 位图 | `handout.md` 总结后、附录前 | 已生成 |
 | ic-01 | `2-3-intro-video.mp4` | 课堂 / 互动课导入 | 中文视频提示词 | 后续互动课首页或课堂开场 | 已生成 |
 | ic-02 | `ic-01-pretest-bars` | 互动前测统计 | 前端绘制 | `interactive-page.md` step-04 | 待实现 |
@@ -48,7 +48,7 @@
 - `media/raw/2-3-fr-01-command-vs-disturbance.py` -> `media/processed/2-3-fr-01-command-vs-disturbance.svg`
 - `media/raw/2-3-fr-02-square-wave-harmonics.py` -> `media/processed/2-3-fr-02-square-wave-harmonics.svg`
 - `media/raw/2-3-fr-03-sine-in-sine-out.py` -> `media/processed/2-3-fr-03-sine-in-sine-out.svg`
-- 计划补充：
+- 本轮补齐：
   - `media/raw/2-3-fr-04-linear-vs-log-frequency.py`
   - `media/raw/2-3-fr-05-bode-axes-and-typical-cards.py`
   - `media/raw/2-3-fr-06-bode-skeleton-workflow.py`
