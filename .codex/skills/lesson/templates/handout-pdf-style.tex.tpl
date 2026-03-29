@@ -72,9 +72,9 @@
 \fancyhead[L]{\small __HEADER_LEFT__}
 \fancyhead[C]{%
   \raisebox{0pt}[0pt][0pt]{%
-    \includegraphics[height=8.5mm]{../../../../../public/images/extracted/校徽校名组合-横版-提取.pdf}%
+    \includegraphics[height=8.5mm]{__HEADER_LOGO_LEFT__}%
     \hspace{1.4pt}%
-    \includegraphics[height=7.65mm]{../../../../../public/images/CAlogo128.png}%
+    \includegraphics[height=7.65mm]{__HEADER_LOGO_RIGHT__}%
   }%
 }
 \fancyhead[R]{\small __HEADER_RIGHT__}

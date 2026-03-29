@@ -87,19 +87,28 @@ def extract_expected_code_media(multimedia_path: Path) -> list[dict[str, str]]:
     if not multimedia_path.exists():
         return []
 
-    expected: list[dict[str, str]] = []
+    expected_by_output: dict[str, dict[str, str]] = {}
     text = multimedia_path.read_text(encoding='utf-8')
-    pattern = re.compile(
-        r'media/raw/(?P<script>[A-Za-z0-9_-]+)\.py`\s*->\s*`media/processed/(?P<output>[A-Za-z0-9_-]+)\.svg'
+    script_pattern = re.compile(
+        r'`media/raw/(?P<script>[^`]+\.(?:py|m))`\s*->\s*`media/processed/(?P<output>[^`]+\.(?:svg|png|pdf|mp4|m4a))`'
     )
-    for match in pattern.finditer(text):
-        script_stem = match.group('script')
-        output_stem = match.group('output')
-        expected.append({
-            'script': f'{script_stem}.py',
-            'output': f'{output_stem}.svg',
-        })
-    return expected
+    asset_pattern = re.compile(
+        r'(?<![A-Za-z0-9_./-])(?P<output>[A-Za-z0-9][A-Za-z0-9._-]+\.(?:svg|png|pdf|mp4|m4a))(?![A-Za-z0-9_./-])'
+    )
+
+    for match in script_pattern.finditer(text):
+        script_name = Path(match.group('script')).name
+        output_name = Path(match.group('output')).name
+        expected_by_output[output_name] = {
+            'script': script_name,
+            'output': output_name,
+        }
+
+    for match in asset_pattern.finditer(text):
+        output_name = Path(match.group('output')).name
+        expected_by_output.setdefault(output_name, {'output': output_name})
+
+    return list(expected_by_output.values())
 
 
 def build_primary_sources(lesson_id: str, unit_type: str) -> list[Path]:
@@ -135,19 +144,41 @@ def run_media_generation(lesson_id: str, expected_media: list[dict[str, str]]) -
     executed_scripts: list[str] = []
 
     for item in expected_media:
-        script_path = raw_dir / item['script']
         output_path = processed_dir / item['output']
+        script_name = item.get('script')
+
+        if output_path.exists():
+            generated_assets.append(item['output'])
+            continue
+
+        if not script_name:
+            missing_assets.append(item['output'])
+            continue
+
+        script_path = raw_dir / script_name
         if not script_path.exists():
             missing_assets.append(item['output'])
             continue
 
-        subprocess.run(
-            ['python3', script_path.name, '--output', str(output_path)],
-            cwd=str(raw_dir),
-            check=True,
-            env=matplotlib_env,
-        )
-        executed_scripts.append(item['script'])
+        if script_path.suffix == '.py':
+            subprocess.run(
+                ['python3', script_path.name, '--output', str(output_path)],
+                cwd=str(raw_dir),
+                check=True,
+                env=matplotlib_env,
+            )
+        elif script_path.suffix == '.m':
+            subprocess.run(
+                ['octave', '-qf', script_path.name],
+                cwd=str(raw_dir),
+                check=True,
+                env=matplotlib_env,
+            )
+        else:
+            missing_assets.append(item['output'])
+            continue
+
+        executed_scripts.append(script_name)
         if output_path.exists():
             generated_assets.append(item['output'])
         else:
@@ -256,9 +287,9 @@ def build_review_report(
     )
 
     multimedia_summary = (
-        f"- 代码直出媒体共生成 {len(multimedia_check['generated_assets'])} 项，未发现缺失。"
+        f"- 已识别并确认存在 {len(multimedia_check['generated_assets'])} 项正式媒体，未发现缺失。"
         if not multimedia_check['missing_assets']
-        else f"- 代码直出媒体仍缺失：{', '.join(multimedia_check['missing_assets'])}"
+        else f"- 正式媒体仍缺失：{', '.join(multimedia_check['missing_assets'])}"
     )
 
     return '\n'.join([

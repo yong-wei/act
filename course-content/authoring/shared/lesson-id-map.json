@@ -47,6 +47,21 @@
       "notes": "2-3 为模块2当前主线课次，对应频率响应基础与 Bode 图初步。"
     },
     {
+      "request_ids": ["3-1"],
+      "canonical_id": "3-1",
+      "display_id": "3-1",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "3-1",
+      "source_group": null,
+      "authoring_lesson_dir": "3-1",
+      "authoring_cards_dir": "3-1",
+      "authoring_overlays_dir": "3-1",
+      "runtime_lesson_dir": "3-1",
+      "legacy_source_ids": [],
+      "notes": "3-1 为模块3当前主线课次，对应纯极点视角下的稳定与动态基础。"
+    },
+    {
       "request_ids": ["4-1"],
       "canonical_id": "4-1",
       "display_id": "4-1",

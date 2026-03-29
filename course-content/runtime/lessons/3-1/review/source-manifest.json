@@ -1,0 +1,48 @@
+{
+  "lesson_id": "3-1",
+  "unit_type": "理论",
+  "generated_at": "2026-03-29T09:39:59.815123+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/3-1/design/handout.md"
+  ],
+  "boppps_source": "course-content/authoring/lessons/3-1/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/3-1/sequence.json",
+  "expected_code_media": [
+    {
+      "output": "3-1-cover-comic.png"
+    },
+    {
+      "output": "3-1-info.png"
+    },
+    {
+      "output": "3-1-slides.pdf"
+    },
+    {
+      "output": "3-1-intro-video.mp4"
+    },
+    {
+      "output": "3-1-course.mp4"
+    },
+    {
+      "output": "3-1-audio.m4a"
+    },
+    {
+      "output": "3-1-pp-01-stability-half-plane.svg"
+    },
+    {
+      "output": "3-1-pp-02-poles-and-modes.svg"
+    },
+    {
+      "output": "3-1-pp-03-dominant-pole-response-families.svg"
+    },
+    {
+      "output": "3-1-pp-04-modal-superposition-high-order.svg"
+    },
+    {
+      "output": "3-1-pp-05-bode-model-reduction.svg"
+    },
+    {
+      "output": "3-1-pp-06-convolution-step-from-impulse.svg"
+    }
+  ]
+}

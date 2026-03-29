@@ -1,0 +1,38 @@
+{
+  "lesson_id": "3-1",
+  "title": "纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解",
+  "layer": "层2",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "C+X",
+  "graph_version": "reuse-only",
+  "focus_node_ids": [
+    "闭环特征方程_3_87c88e19",
+    "稳定性_3_72d04fbd",
+    "闭环极点_3_f9432bf3",
+    "闭环主导极点_3_de941720"
+  ],
+  "reuse_node_ids": [
+    "模态_2_d586e1e6",
+    "系统稳定性_3_96818bd5",
+    "运动稳定性_3_df61e98d"
+  ],
+  "entry_nodes": [
+    "闭环特征方程_3_87c88e19",
+    "闭环极点_3_f9432bf3"
+  ],
+  "summary_nodes": [
+    "闭环主导极点_3_de941720"
+  ],
+  "card_order": [
+    "闭环特征方程_3_87c88e19",
+    "稳定性_3_72d04fbd",
+    "闭环极点_3_f9432bf3",
+    "模态_2_d586e1e6",
+    "闭环主导极点_3_de941720"
+  ],
+  "preceding_lesson": "2-4",
+  "following_lesson": "3-2",
+  "refinement_units": [],
+  "ideological_point": "先守住稳定底线，再讨论性能提升；工程判断首先回答系统会不会失控，然后才讨论它够不够快。"
+}

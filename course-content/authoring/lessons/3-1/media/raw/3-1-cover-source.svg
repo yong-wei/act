@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#eef6ff"/>
+      <stop offset="100%" stop-color="#f9fbff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect x="70" y="80" width="1460" height="740" rx="30" fill="#ffffff" stroke="#cbd5e1" stroke-width="4"/>
+  <rect x="120" y="140" width="720" height="520" rx="24" fill="#0f172a"/>
+  <text x="160" y="210" font-size="54" font-family="PingFang SC, Microsoft YaHei, sans-serif" fill="#f8fafc" font-weight="700">高阶系统为什么仍能由极点主导？</text>
+  <text x="160" y="280" font-size="28" font-family="PingFang SC, Microsoft YaHei, sans-serif" fill="#cbd5e1">从低阶响应直觉走向闭环极点、模态与主导动态</text>
+  <line x1="210" y1="560" x2="760" y2="560" stroke="#475569" stroke-width="3"/>
+  <line x1="420" y1="220" x2="420" y2="620" stroke="#475569" stroke-width="3"/>
+  <text x="725" y="548" font-size="30" font-family="Times New Roman" fill="#94a3b8">Re(s)</text>
+  <text x="435" y="240" font-size="30" font-family="Times New Roman" fill="#94a3b8">Im(s)</text>
+  <circle cx="300" cy="430" r="11" fill="#ef4444"/>
+  <circle cx="300" cy="690" r="11" fill="#ef4444"/>
+  <circle cx="200" cy="560" r="11" fill="#38bdf8"/>
+  <circle cx="325" cy="430" r="38" fill="none" stroke="#facc15" stroke-width="6"/>
+  <circle cx="325" cy="690" r="38" fill="none" stroke="#facc15" stroke-width="6"/>
+  <text x="500" y="450" font-size="28" font-family="PingFang SC, Microsoft YaHei, sans-serif" fill="#facc15">主导极点</text>
+  <path d="M910 590 C980 330, 1100 300, 1160 470 S1300 700, 1410 510" fill="none" stroke="#0ea5e9" stroke-width="8"/>
+  <path d="M910 590 C1000 540, 1090 470, 1180 470 S1340 500, 1410 510" fill="none" stroke="#94a3b8" stroke-dasharray="12 10" stroke-width="5"/>
+  <text x="935" y="350" font-size="28" font-family="PingFang SC, Microsoft YaHei, sans-serif" fill="#0f766e">多模态叠加后的总响应</text>
+  <text x="935" y="395" font-size="24" font-family="PingFang SC, Microsoft YaHei, sans-serif" fill="#475569">少数慢模态决定主要形态</text>
+  <rect x="910" y="160" width="480" height="120" rx="18" fill="#eff6ff" stroke="#bfdbfe" stroke-width="3"/>
+  <text x="945" y="225" font-size="30" font-family="PingFang SC, Microsoft YaHei, sans-serif" fill="#123a63" font-weight="700">单元 3-1 学生版讲义</text>
+  <text x="945" y="262" font-size="22" font-family="PingFang SC, Microsoft YaHei, sans-serif" fill="#334155">稳定底线 · 模态语言 · 主导极点 · 模态叠加</text>
+</svg>

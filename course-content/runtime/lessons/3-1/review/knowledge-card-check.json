@@ -1,0 +1,14 @@
+{
+  "lesson_id": "3-1",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/3-1/sequence.json",
+  "card_order": [
+    "闭环特征方程_3_87c88e19",
+    "稳定性_3_72d04fbd",
+    "闭环极点_3_f9432bf3",
+    "模态_2_d586e1e6",
+    "闭环主导极点_3_de941720"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

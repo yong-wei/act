@@ -4988,7 +4988,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/模态_2_d586e1e6.md"
+    ],
     "tags": [
       "特征根",
       "振型",
@@ -8910,7 +8912,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/稳定性_3_72d04fbd.md"
+    ],
     "tags": [
       "平衡状态",
       "扰动",
@@ -9882,7 +9886,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环主导极点_3_de941720.md"
+    ],
     "tags": [
       "主导作用",
       "近似分析",
@@ -9976,7 +9982,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/闭环特征方程_3_87c88e19.md"
+    ],
     "tags": [
       "特征方程",
       "闭环系统",

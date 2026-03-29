@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<svg height="700pt" viewBox="0 0 1100 700" width="1100pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <title>Figure 1</title>
+ <desc>
+Creator: GL2PS 1.4.2, (C) 1999-2020 C. Geuzaine
+For: Octave
+CreationDate: Sun Mar 29 11:31:01 2026
+</desc>
+ <defs/>
+ <polygon fill="#ffffff" points="0,0 1100,0 1100,700 0,700"/>
+ <g>
+  <polygon fill="#ffffff" points="0,700 1100,700 1100,0 0,0" shape-rendering="crispEdges"/>
+  <clipPath id="cp001100700">
+   <polygon points="0,700 1100,700 1100,0 0,0"/>
+  </clipPath>
+  <g clip-path="url(#cp001100700)">
+   <polygon fill="#ffffff" points="110,84 110,616 1012,616 1012,84" shape-rendering="crispEdges"/>
+   <polyline fill="none" points="110,616 110,84" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="0.5"/>
+   <polyline fill="none" points="260.333,616 260.333,84" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="0.5"/>
+   <polyline fill="none" points="410.667,616 410.667,84" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="0.5"/>
+   <polyline fill="none" points="561,616 561,84" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="0.5"/>
+   <polyline fill="none" points="711.333,616 711.333,84" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="0.5"/>
+   <polyline fill="none" points="861.667,616 861.667,84" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="0.5"/>
+   <polyline fill="none" points="1012,616 1012,84" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="0.5"/>
+   <polyline fill="none" points="110,616 110,606.98" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.5"/>
+   <polyline fill="none" points="260.333,616 260.333,606.98" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.5"/>
+   <polyline fill="none" points="410.667,616 410.667,606.98" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.5"/>
+   <polyline fill="none" points="561,616 561,606.98" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.5"/>
+   <polyline fill="none" points="711.333,616 711.333,606.98" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.5"/>
+   <polyline fill="none" points="861.667,616 861.667,606.98" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.5"/>
+   <polyline fill="none" points="1012,616 1012,606.98" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.5"/>
+   <g font-family="'Microsoft YaHei'" font-size="12" font-style="normal" font-weight="normal" transform="translate(104,635) rotate(-0,6,-10)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 5 " y="-0">-6</text>
+   </g>
+   <g font-family="'Microsoft YaHei'" font-size="12" font-style="normal" font-weight="normal" transform="translate(254.333,635) rotate(-0,6,-10)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 5 " y="-0">-4</text>
+   </g>
+   <g font-family="'Microsoft YaHei'" font-size="12" font-style="normal" font-weight="normal" transform="translate(404.667,635) rotate(-0,6,-10)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 5 " y="-0">-2</text>
+   </g>
+   <g font-family="'Microsoft YaHei'" font-size="12" font-style="normal" font-weight="normal" transform="translate(557.5,635) rotate(-0,3.5,-10)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">0</text>
+   </g>
+   <g font-family="'Microsoft YaHei'" font-size="12" font-style="normal" font-weight="normal" transform="translate(707.833,635) rotate(-0,3.5,-10)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">2</text>
+   </g>
+   <g font-family="'Microsoft YaHei'" font-size="12" font-style="normal" font-weight="normal" transform="translate(858.167,635) rotate(-0,3.5,-10)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">4</text>
+   </g>
+   <g font-family="'Microsoft YaHei'" font-size="12" font-style="normal" font-weight="normal" transform="translate(1008.5,635) rotate(-0,3.5,-10)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">6</text>
+   </g>
+   <polyline fill="none" points="110,616 1012,616" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="0.5"/>
+   <polyline fill="none" points="110,483 1012,483" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="0.5"/>
+   <polyline fill="none" points="110,350 1012,350" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="0.5"/>
+   <polyline fill="none" points="110,217 1012,217" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="0.5"/>
+   <polyline fill="none" points="110,84 1012,84" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="butt" stroke-linejoin="miter" stroke-opacity="0.15" stroke-width="0.5"/>
+   <polyline fill="none" points="110,616 119.02,616" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.5"/>
+   <polyline fill="none" points="110,483 119.02,483" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.5"/>
+   <polyline fill="none" points="110,350 119.02,350" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.5"/>
+   <polyline fill="none" points="110,217 119.02,217" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.5"/>
+   <polyline fill="none" points="110,84 119.02,84" stroke="#262626" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.5"/>
+   <g font-family="'Microsoft YaHei'" font-size="12" font-style="normal" font-weight="normal" transform="translate(92,621) rotate(-0,12,-5)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 5 " y="-0">-4</text>
+   </g>
+   <g font-family="'Microsoft YaHei'" font-size="12" font-style="normal" font-weight="normal" transform="translate(92,488) rotate(-0,12,-5)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 5 " y="-0">-2</text>
+   </g>
+   <g font-family="'Microsoft YaHei'" font-size="12" font-style="normal" font-weight="normal" transform="translate(97,355) rotate(-0,7,-5)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">0</text>
+   </g>
+   <g font-family="'Microsoft YaHei'" font-size="12" font-style="normal" font-weight="normal" transform="translate(97,222) rotate(-0,7,-5)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">2</text>
+   </g>
+   <g font-family="'Microsoft YaHei'" font-size="12" font-style="normal" font-weight="normal" transform="translate(97,89) rotate(-0,7,-5)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 " y="-0">4</text>
+   </g>
+   <polyline fill="none" points="110,616 1012,616" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="square" stroke-linejoin="miter" stroke-width="0.5"/>
+   <polyline fill="none" points="110,616 110,84" stroke="#262626" stroke-dasharray="16,0" stroke-linecap="square" stroke-linejoin="miter" stroke-width="0.5"/>
+   <g font-family="'Microsoft YaHei'" font-size="13.2" font-style="normal" font-weight="normal" transform="translate(546.5,653) rotate(-0,14.5,-13)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 8 15 19 25 " y="-2">Re(s)</text>
+   </g>
+   <g font-family="'Microsoft YaHei'" font-size="13.2" font-style="normal" font-weight="normal" transform="translate(72,350) rotate(-90,15,0)" xml:space="preserve">
+    <text fill="rgb(38,38,38)" x="0 4 16 20 26 " y="-2">Im(s)</text>
+   </g>
+   <g font-family="'Microsoft YaHei'" font-size="13.2" font-style="normal" font-weight="bold" transform="translate(437.5,74) rotate(-0,123.5,0)" xml:space="preserve">
+    <text fill="rgb(0,0,0)" x="0 13 26 39 52 65 78 91 104 117 130 143 156 169 182 195 208 221 234 " y="-2">闭环极点在复平面中的位置先决定稳定底线</text>
+   </g>
+   <polygon fill="#dbf4e5" points="110,84 561,84 561,616 110,616" shape-rendering="crispEdges"/>
+   <polygon fill="#ffe8e8" points="561,84 1012,84 1012,616 561,616" shape-rendering="crispEdges"/>
+   <polyline fill="none" points="110,350 1012,350" stroke="#475666" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.4"/>
+   <polyline fill="none" points="561,616 561,84" stroke="#475666" stroke-linecap="butt" stroke-linejoin="round" stroke-width="1.4"/>
+   <polyline fill="none" points="389.133,230.45 402.133,243.45" stroke="#0584c6" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.2"/>
+   <polyline fill="none" points="389.133,243.45 402.133,230.45" stroke="#0584c6" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.2"/>
+   <polyline fill="none" points="456.783,456.55 469.783,469.55" stroke="#0584c6" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.2"/>
+   <polyline fill="none" points="456.783,469.55 469.783,456.55" stroke="#0584c6" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.2"/>
+   <polyline fill="none" points="283.9,343.5 296.9,356.5" stroke="#0f756d" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.2"/>
+   <polyline fill="none" points="283.9,356.5 296.9,343.5" stroke="#0f756d" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.2"/>
+   <polyline fill="none" points="554.5,243.75 567.5,256.75" stroke="#ea5900" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.2"/>
+   <polyline fill="none" points="554.5,256.75 567.5,243.75" stroke="#ea5900" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.2"/>
+   <polyline fill="none" points="644.7,290.3 657.7,303.3" stroke="#db2626" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.2"/>
+   <polyline fill="none" points="644.7,303.3 657.7,290.3" stroke="#db2626" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.2"/>
+   <g font-family="FreeSans, 'Microsoft YaHei'" font-size="16" font-style="normal" font-weight="bold" transform="translate(192.683,152.35) rotate(-0,-0,-8.5)" xml:space="preserve">
+    <text fill="rgb(15,117,109)" x="0 16 32 48 64 80 96 112 128 144 160 164 173 177 " y="-2">稳定区：所有极点实部 &lt; 0</text>
+   </g>
+   <g font-family="FreeSans, 'Microsoft YaHei'" font-size="16" font-style="normal" font-weight="bold" transform="translate(643.683,152.35) rotate(-0,-0,-8.5)" xml:space="preserve">
+    <text fill="rgb(178,25,25)" x="0 16 32 48 64 80 96 112 128 144 160 176 192 208 " y="-2">失稳区：只要出现右半平面极点</text>
+   </g>
+   <g font-family="FreeSans, 'Microsoft YaHei'" font-size="14" font-style="normal" font-weight="normal" transform="translate(574.53,236.8) rotate(-0,-0,-6.5)" xml:space="preserve">
+    <text fill="rgb(234,89,0)" x="0 14 28 42 56 70 84 " y="-1">虚轴：临界边界</text>
+   </g>
+   <g font-family="FreeSans, 'Microsoft YaHei'" font-size="13" font-style="normal" font-weight="normal" transform="translate(410.667,211.2) rotate(-0,-0,-7.5)" xml:space="preserve">
+    <text fill="rgb(5,132,198)" x="0 13 26 39 52 65 68 72 80 83 96 109 122 " y="-3">共轭复极点 -> 振荡衰减</text>
+   </g>
+   <g font-family="FreeSans, 'Microsoft YaHei'" font-size="13" font-style="normal" font-weight="normal" transform="translate(222.75,323.75) rotate(-0,-0,-7)" xml:space="preserve">
+    <text fill="rgb(15,117,109)" x="0 13 26 39 52 55 59 67 70 83 96 109 " y="-2">负实极点 -> 单调衰减</text>
+   </g>
+   <g font-family="FreeSans, 'Microsoft YaHei'" font-size="13" font-style="normal" font-weight="normal" transform="translate(673.75,270.55) rotate(-0,-0,-7)" xml:space="preserve">
+    <text fill="rgb(219,38,38)" x="0 13 26 39 52 65 78 81 85 93 96 109 122 135 " y="-2">右半平面极点 -> 模态放大</text>
+   </g>
+  </g>
+ </g>
+</svg>

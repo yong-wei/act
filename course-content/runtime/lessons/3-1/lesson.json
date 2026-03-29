@@ -1,0 +1,122 @@
+{
+  "lesson_id": "3-1",
+  "title": "纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解",
+  "layer": "层2",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "C+X",
+  "graph_version": "reuse-only",
+  "focus_node_ids": [
+    "闭环特征方程_3_87c88e19",
+    "稳定性_3_72d04fbd",
+    "闭环极点_3_f9432bf3",
+    "闭环主导极点_3_de941720"
+  ],
+  "reuse_node_ids": [
+    "模态_2_d586e1e6",
+    "系统稳定性_3_96818bd5",
+    "运动稳定性_3_df61e98d"
+  ],
+  "entry_nodes": [
+    "闭环特征方程_3_87c88e19",
+    "闭环极点_3_f9432bf3"
+  ],
+  "summary_nodes": [
+    "闭环主导极点_3_de941720"
+  ],
+  "card_order": [
+    "闭环特征方程_3_87c88e19",
+    "稳定性_3_72d04fbd",
+    "闭环极点_3_f9432bf3",
+    "模态_2_d586e1e6",
+    "闭环主导极点_3_de941720"
+  ],
+  "preceding_lesson": "2-4",
+  "following_lesson": "3-2",
+  "refinement_units": [],
+  "ideological_point": "先守住稳定底线，再讨论性能提升；工程判断首先回答系统会不会失控，然后才讨论它够不够快。",
+  "sequence": {
+    "lesson_id": "3-1",
+    "groups": [
+      {
+        "group_name": "引入与稳定底线",
+        "step_ids": [
+          "step-01",
+          "step-02",
+          "step-03",
+          "step-04",
+          "step-05"
+        ],
+        "node_ids": [
+          "闭环特征方程_3_87c88e19",
+          "稳定性_3_72d04fbd"
+        ]
+      },
+      {
+        "group_name": "极点到模态",
+        "step_ids": [
+          "step-06",
+          "step-07"
+        ],
+        "node_ids": [
+          "闭环极点_3_f9432bf3",
+          "模态_2_d586e1e6"
+        ]
+      },
+      {
+        "group_name": "时域主导极点近似",
+        "step_ids": [
+          "step-08",
+          "step-09"
+        ],
+        "node_ids": [
+          "闭环主导极点_3_de941720",
+          "闭环极点_3_f9432bf3"
+        ]
+      },
+      {
+        "group_name": "频域主导极点近似",
+        "step_ids": [
+          "step-10",
+          "step-11",
+          "step-12"
+        ],
+        "node_ids": [
+          "闭环主导极点_3_de941720",
+          "闭环极点_3_f9432bf3"
+        ]
+      },
+      {
+        "group_name": "卷积、后测与收束",
+        "step_ids": [
+          "step-13",
+          "step-14",
+          "step-15"
+        ],
+        "node_ids": [
+          "模态_2_d586e1e6",
+          "闭环主导极点_3_de941720"
+        ]
+      }
+    ],
+    "card_order": [
+      "闭环特征方程_3_87c88e19",
+      "稳定性_3_72d04fbd",
+      "闭环极点_3_f9432bf3",
+      "模态_2_d586e1e6",
+      "闭环主导极点_3_de941720"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/3-1/handout.md",
+  "handout_source_path": "course-content/runtime/lessons/3-1/handout.md",
+  "graph_overlay_path": "/course-runtime/lessons/3-1/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/3-1/media",
+  "review": {
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/3-1/review/boppps.md",
+    "report_path": "/course-runtime/lessons/3-1/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/3-1/review/knowledge-card-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/3-1/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/3-1/review/source-manifest.json"
+  }
+}

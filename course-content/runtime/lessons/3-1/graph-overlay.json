@@ -1,0 +1,551 @@
+{
+  "lesson_id": "3-1",
+  "title": "纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解",
+  "focus_node_ids": [
+    "闭环特征方程_3_87c88e19",
+    "稳定性_3_72d04fbd",
+    "闭环极点_3_f9432bf3",
+    "闭环主导极点_3_de941720"
+  ],
+  "reuse_node_ids": [
+    "模态_2_d586e1e6",
+    "系统稳定性_3_96818bd5",
+    "运动稳定性_3_df61e98d"
+  ],
+  "entry_nodes": [
+    "闭环特征方程_3_87c88e19",
+    "闭环极点_3_f9432bf3"
+  ],
+  "summary_nodes": [
+    "闭环主导极点_3_de941720"
+  ],
+  "card_order": [
+    "闭环特征方程_3_87c88e19",
+    "稳定性_3_72d04fbd",
+    "闭环极点_3_f9432bf3",
+    "模态_2_d586e1e6",
+    "闭环主导极点_3_de941720"
+  ],
+  "groups": [
+    {
+      "group_name": "引入与稳定底线",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04",
+        "step-05"
+      ],
+      "node_ids": [
+        "闭环特征方程_3_87c88e19",
+        "稳定性_3_72d04fbd"
+      ]
+    },
+    {
+      "group_name": "极点到模态",
+      "step_ids": [
+        "step-06",
+        "step-07"
+      ],
+      "node_ids": [
+        "闭环极点_3_f9432bf3",
+        "模态_2_d586e1e6"
+      ]
+    },
+    {
+      "group_name": "时域主导极点近似",
+      "step_ids": [
+        "step-08",
+        "step-09"
+      ],
+      "node_ids": [
+        "闭环主导极点_3_de941720",
+        "闭环极点_3_f9432bf3"
+      ]
+    },
+    {
+      "group_name": "频域主导极点近似",
+      "step_ids": [
+        "step-10",
+        "step-11",
+        "step-12"
+      ],
+      "node_ids": [
+        "闭环主导极点_3_de941720",
+        "闭环极点_3_f9432bf3"
+      ]
+    },
+    {
+      "group_name": "卷积、后测与收束",
+      "step_ids": [
+        "step-13",
+        "step-14",
+        "step-15"
+      ],
+      "node_ids": [
+        "模态_2_d586e1e6",
+        "闭环主导极点_3_de941720"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "模态_2_d586e1e6",
+      "name": "模态",
+      "nodeType": "THEORY",
+      "description": "由微分方程特征根决定的函数，代表系统自由运动的一种基本形式。",
+      "positionX": -13.5,
+      "positionY": 50.2,
+      "positionZ": 2,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "由微分方程特征根决定的函数，代表系统自由运动的一种基本形式。",
+        "examples": [
+          "例2-6中特征根对应的共轭复模态。"
+        ],
+        "formulas": [
+          "e^{\\lambda_i t}, te^{\\lambda_i t}, e^{\\sigma t}\\cos(\\omega t), e^{\\sigma t}\\sin(\\omega t)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 3,
+        "keywords": [
+          "特征根",
+          "振型",
+          "自由运动"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627501",
+        "updatedAt": "2026-02-04T17:54:16.627501",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/模态_2_d586e1e6.md"
+      ],
+      "tags": [
+        "特征根",
+        "振型",
+        "自由运动",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "稳定性_3_72d04fbd",
+      "name": "稳定性",
+      "nodeType": "THEORY",
+      "description": "系统在扰动消失后，由初始偏差状态恢复到原平衡状态的性能。",
+      "positionX": -59.4,
+      "positionY": -59.4,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "系统在扰动消失后，由初始偏差状态恢复到原平衡状态的性能。",
+        "examples": [
+          "单摆的稳定平衡点与不稳定平衡点示例。",
+          "单摆在外界扰动后能回到原平衡点，称为稳定平衡点。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "平衡状态",
+          "扰动",
+          "恢复"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627914",
+        "updatedAt": "2026-02-04T17:54:16.627914",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/稳定性_3_72d04fbd.md"
+      ],
+      "tags": [
+        "平衡状态",
+        "扰动",
+        "恢复",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "系统稳定性_3_96818bd5",
+      "name": "系统稳定性",
+      "nodeType": "THEORY",
+      "description": "指控制系统在受到扰动后，其输出能够最终回到或保持在期望状态的能力。",
+      "positionX": 72.7,
+      "positionY": -42.0,
+      "positionZ": 3,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "指控制系统在受到扰动后，其输出能够最终回到或保持在期望状态的能力。",
+        "examples": [
+          "确定控制器增益K的取值范围以保证闭环系统稳定。"
+        ],
+        "formulas": [
+          "\\text{劳斯判据}",
+          "\\text{赫尔维茨判据}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "稳定性",
+          "劳斯判据",
+          "特征根"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628071",
+        "updatedAt": "2026-02-04T17:54:16.628072",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "稳定性",
+        "劳斯判据",
+        "特征根",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "运动稳定性_3_df61e98d",
+      "name": "运动稳定性",
+      "nodeType": "THEORY",
+      "description": "系统方程在不受任何外界输入作用下，其解在时间趋于无穷时的渐近行为。",
+      "positionX": -45.0,
+      "positionY": 77.9,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "系统方程在不受任何外界输入作用下，其解在时间趋于无穷时的渐近行为。",
+        "examples": [
+          "线性系统的运动稳定性与平衡状态稳定性是等价的。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "系统方程",
+          "渐近行为",
+          "齐次微分方程"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627942",
+        "updatedAt": "2026-02-04T17:54:16.627942",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "系统方程",
+        "渐近行为",
+        "齐次微分方程",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "闭环主导极点_3_de941720",
+      "name": "闭环主导极点",
+      "nodeType": "THEORY",
+      "description": "距虚轴最近且周围无闭环零点的极点，在系统响应中起主导作用。",
+      "positionX": -77.9,
+      "positionY": 45.0,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "距虚轴最近且周围无闭环零点的极点，在系统响应中起主导作用。",
+        "examples": [
+          "用于将高阶系统近似为二阶系统，以估算其动态性能。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "主导作用",
+          "近似分析",
+          "动态性能"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627907",
+        "updatedAt": "2026-02-04T17:54:16.627907",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环主导极点_3_de941720.md"
+      ],
+      "tags": [
+        "主导作用",
+        "近似分析",
+        "动态性能",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "闭环极点_3_f9432bf3",
+      "name": "闭环极点",
+      "nodeType": "THEORY",
+      "description": "闭环传递函数分母多项式的根，决定系统时间响应的类型。",
+      "positionX": -86.9,
+      "positionY": 23.3,
+      "positionZ": 3,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "闭环传递函数分母多项式的根，决定系统时间响应的类型。",
+        "examples": [
+          "主导极点、非主导极点对系统动态性能的不同影响。"
+        ],
+        "formulas": [
+          "s_i \\text{ 为 } D(s)=0 \\text{ 之根}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "响应类型",
+          "主导极点",
+          "系统特性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627920",
+        "updatedAt": "2026-02-04T17:54:16.627920",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环极点_3_f9432bf3.md"
+      ],
+      "tags": [
+        "响应类型",
+        "主导极点",
+        "系统特性",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "闭环特征方程_3_87c88e19",
+      "name": "闭环特征方程",
+      "nodeType": "THEORY",
+      "description": "描述闭环控制系统动态特性的特征多项式方程，其根决定了系统的稳定性。",
+      "positionX": -90.0,
+      "positionY": 0.0,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "描述闭环控制系统动态特性的特征多项式方程，其根决定了系统的稳定性。",
+        "examples": [
+          "火星漫游车转向控制系统的闭环特征方程为：1 + G(s)H(s) = 0，用于建立劳斯表。"
+        ],
+        "formulas": [
+          "1 + G(s)H(s) = 0"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "特征方程",
+          "闭环系统",
+          "稳定性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628066",
+        "updatedAt": "2026-02-04T17:54:16.628066",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环特征方程_3_87c88e19.md"
+      ],
+      "tags": [
+        "特征方程",
+        "闭环系统",
+        "稳定性",
+        "chapter-3"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "模态|系统稳定性|2-3",
+      "sourceId": "模态_2_d586e1e6",
+      "targetId": "系统稳定性_3_96818bd5",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.5
+    },
+    {
+      "id": "闭环主导极点|稳定性|3",
+      "sourceId": "闭环主导极点_3_de941720",
+      "targetId": "稳定性_3_72d04fbd",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "闭环主导极点|闭环极点|3",
+      "sourceId": "闭环主导极点_3_de941720",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "闭环主导极点|运动稳定性|3",
+      "sourceId": "闭环主导极点_3_de941720",
+      "targetId": "运动稳定性_3_df61e98d",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.2
+    },
+    {
+      "id": "闭环主导极点|闭环特征方程|3",
+      "sourceId": "闭环主导极点_3_de941720",
+      "targetId": "闭环特征方程_3_87c88e19",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "闭环主导极点|系统稳定性|3",
+      "sourceId": "闭环主导极点_3_de941720",
+      "targetId": "系统稳定性_3_96818bd5",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.7
+    },
+    {
+      "id": "稳定性|闭环极点|3",
+      "sourceId": "稳定性_3_72d04fbd",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "稳定性|运动稳定性|3",
+      "sourceId": "稳定性_3_72d04fbd",
+      "targetId": "运动稳定性_3_df61e98d",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "稳定性|闭环特征方程|3",
+      "sourceId": "稳定性_3_72d04fbd",
+      "targetId": "闭环特征方程_3_87c88e19",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "稳定性|系统稳定性|3",
+      "sourceId": "稳定性_3_72d04fbd",
+      "targetId": "系统稳定性_3_96818bd5",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "闭环极点|运动稳定性|3",
+      "sourceId": "闭环极点_3_f9432bf3",
+      "targetId": "运动稳定性_3_df61e98d",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.4
+    },
+    {
+      "id": "闭环极点|闭环特征方程|3",
+      "sourceId": "闭环极点_3_f9432bf3",
+      "targetId": "闭环特征方程_3_87c88e19",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "闭环极点|系统稳定性|3",
+      "sourceId": "闭环极点_3_f9432bf3",
+      "targetId": "系统稳定性_3_96818bd5",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.8
+    },
+    {
+      "id": "运动稳定性|闭环特征方程|3",
+      "sourceId": "运动稳定性_3_df61e98d",
+      "targetId": "闭环特征方程_3_87c88e19",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "运动稳定性|系统稳定性|3",
+      "sourceId": "运动稳定性_3_df61e98d",
+      "targetId": "系统稳定性_3_96818bd5",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "闭环特征方程|系统稳定性|3",
+      "sourceId": "闭环特征方程_3_87c88e19",
+      "targetId": "系统稳定性_3_96818bd5",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    }
+  ]
+}

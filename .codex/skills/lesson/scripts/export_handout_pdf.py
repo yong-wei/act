@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import subprocess
 import sys
@@ -53,24 +54,30 @@ def render_style(
     header_left: str,
     header_right: str,
     pdf_title: str,
+    header_logo_left: str,
+    header_logo_right: str,
 ) -> None:
     content = template_path.read_text(encoding="utf-8")
     content = content.replace("__HEADER_LEFT__", header_left)
     content = content.replace("__HEADER_RIGHT__", header_right)
     content = content.replace("__PDF_TITLE__", pdf_title)
+    content = content.replace("__HEADER_LOGO_LEFT__", header_logo_left)
+    content = content.replace("__HEADER_LOGO_RIGHT__", header_logo_right)
     output_path.write_text(content, encoding="utf-8")
 
 
-def run_pandoc(markdown_path: Path, style_path: Path, output_pdf: Path) -> None:
+def build_latex(markdown_path: Path, style_path: Path, output_tex: Path) -> None:
     cmd = [
         require_binary("pandoc"),
         markdown_path.name,
         "-o",
-        output_pdf.name,
+        output_tex.name,
+        "--standalone",
+        "--to",
+        "latex",
         "--from",
-        "markdown+tex_math_dollars",
-        "--pdf-engine",
-        require_binary("xelatex"),
+        "markdown+raw_tex+tex_math_dollars+pipe_tables",
+        "--citeproc",
         "-H",
         style_path.name,
         "-V",
@@ -79,6 +86,79 @@ def run_pandoc(markdown_path: Path, style_path: Path, output_pdf: Path) -> None:
         "classoption=11pt",
     ]
     subprocess.run(cmd, cwd=markdown_path.parent, check=True)
+
+
+def rewrite_svg_includes_to_pdf(tex_path: Path) -> None:
+    content = tex_path.read_text(encoding="utf-8")
+    matches = re.findall(r"\\includesvg(?:\[[^\]]*\])?{([^}]+)\.svg}", content)
+    if not matches:
+        return
+
+    rsvg_convert = require_binary("rsvg-convert")
+    for base in matches:
+        svg_path = (tex_path.parent / f"{base}.svg").resolve()
+        pdf_path = svg_path.with_suffix(".pdf")
+        if not pdf_path.exists():
+            subprocess.run(
+                [rsvg_convert, "-f", "pdf", "-o", str(pdf_path), str(svg_path)],
+                check=True,
+                cwd=tex_path.parent,
+            )
+
+    content = re.sub(
+        r"\\includesvg(?:\[[^\]]*\])?{([^}]+)\.svg}",
+        lambda m: rf"\includegraphics{{{m.group(1)}.pdf}}",
+        content,
+    )
+    tex_path.write_text(content, encoding="utf-8")
+
+
+def xelatex_log_has_unresolved_refs(log_text: str) -> bool:
+    patterns = [
+        r"undefined references",
+        r"Reference `[^`]+` .* undefined",
+        r"There were undefined references",
+        r"Label\(s\) may have changed",
+    ]
+    return any(re.search(pattern, log_text) for pattern in patterns)
+
+
+def compile_pdf_from_tex(tex_path: Path, output_pdf: Path) -> None:
+    xelatex = require_binary("xelatex")
+    cwd = tex_path.parent
+    log_path = tex_path.with_suffix(".log")
+
+    for _ in range(3):
+        cmd = [
+            xelatex,
+            "-interaction=nonstopmode",
+            "-halt-on-error",
+            "-shell-escape",
+            tex_path.name,
+        ]
+        try:
+            subprocess.run(cmd, cwd=cwd, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        except subprocess.CalledProcessError as exc:
+            log_excerpt = log_path.read_text(encoding="utf-8", errors="ignore")[-4000:] if log_path.exists() else exc.stdout[-4000:]
+            raise SystemExit(f"xelatex 编译失败，日志摘录：\n{log_excerpt}") from exc
+        log_text = log_path.read_text(encoding="utf-8", errors="ignore") if log_path.exists() else ""
+        if not xelatex_log_has_unresolved_refs(log_text):
+            break
+
+    generated_pdf = tex_path.with_suffix(".pdf")
+    if not generated_pdf.exists():
+        raise SystemExit(f"未生成 PDF：{generated_pdf}")
+    if generated_pdf.resolve() != output_pdf.resolve():
+        generated_pdf.replace(output_pdf)
+
+
+def cleanup_latex_artifacts(tex_path: Path) -> None:
+    for suffix in (".aux", ".log", ".out", ".toc"):
+        artifact = tex_path.with_suffix(suffix)
+        if artifact.exists():
+            artifact.unlink()
+    if tex_path.exists():
+        tex_path.unlink()
 
 
 def main() -> int:
@@ -108,11 +188,30 @@ def main() -> int:
     output_pdf = markdown_path.with_suffix(".pdf")
     style_path = markdown_path.with_name(f"{markdown_path.stem}-pdf-style.tex")
     template_path = Path(__file__).resolve().parent.parent / "templates" / "handout-pdf-style.tex.tpl"
+    repo_root = Path(__file__).resolve().parents[4]
+    header_logo_left = (repo_root / "public/images/extracted/校徽校名组合-横版-提取.pdf").as_posix()
+    header_logo_right = (repo_root / "public/images/CAlogo128.png").as_posix()
+    tex_path = markdown_path.with_name(f"{markdown_path.stem}-pandoc-export.tex")
 
     if args.refresh_style or not style_path.exists():
-        render_style(template_path, style_path, args.header_left, header_right, pdf_title)
+        render_style(
+            template_path,
+            style_path,
+            args.header_left,
+            header_right,
+            pdf_title,
+            header_logo_left,
+            header_logo_right,
+        )
 
-    run_pandoc(markdown_path, style_path, output_pdf)
+    build_latex(markdown_path, style_path, tex_path)
+    rewrite_svg_includes_to_pdf(tex_path)
+    try:
+        compile_pdf_from_tex(tex_path, output_pdf)
+    except Exception:
+        raise
+    else:
+        cleanup_latex_artifacts(tex_path)
 
     print(f"PDF 导出完成：{output_pdf}")
     print(f"样式文件：{style_path}")
