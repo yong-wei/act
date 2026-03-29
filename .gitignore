@@ -13,6 +13,9 @@ GEMINI.md
 !.codex/skills/lesson/references/
 .codex/skills/lesson/references/*
 !.codex/skills/lesson/references/step3-handout.md
+!.codex/skills/lesson/references/step7-multimedia.md
+!.codex/skills/lesson/references/step7-multimedia-codegen.md
+!.codex/skills/lesson/references/step7-multimedia-ai.md
 !.codex/skills/lesson/scripts/
 .codex/skills/lesson/scripts/*
 !.codex/skills/lesson/scripts/export_handout_pdf.py
