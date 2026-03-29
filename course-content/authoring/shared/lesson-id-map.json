@@ -1,5 +1,5 @@
 {
-  "version": "2026-03-23",
+  "version": "2026-03-29",
   "entries": [
     {
       "request_ids": ["2-1"],
@@ -75,6 +75,21 @@
       "runtime_lesson_dir": "3-1",
       "legacy_source_ids": [],
       "notes": "3-1 为模块3当前主线课次，对应纯极点视角下的稳定与动态基础。"
+    },
+    {
+      "request_ids": ["3-2"],
+      "canonical_id": "3-2",
+      "display_id": "3-2",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "3-2",
+      "source_group": null,
+      "authoring_lesson_dir": "3-2",
+      "authoring_cards_dir": "3-2",
+      "authoring_overlays_dir": "3-2",
+      "runtime_lesson_dir": "3-2",
+      "legacy_source_ids": [],
+      "notes": "3-2 为模块3当前主线课次，对应劳斯判据、特殊情况处理与参数可行域。"
     },
     {
       "request_ids": ["4-1"],
