@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
-import { LEGACY_LESSONS, PREMIUM_LESSONS } from '@/features/interactive/learning-catalog';
+import { INTERACTIVE_COURSE_MODULES } from '@/features/interactive/learning-catalog';
 
 export default function InteractiveCoursesPage() {
   return (
@@ -13,74 +13,53 @@ export default function InteractiveCoursesPage() {
         <header className="interactive-course-hub-hero">
           <h1 className="interactive-course-hub-title text-3xl font-semibold">互动课程</h1>
           <p className="interactive-course-hub-muted mt-2 text-sm">
-            按章节组织的互动课程入口，每节课均为独立路由页面。
+            按新课程模块组织互动课程入口，当前仅展示已经建成并可直接进入的单元。
           </p>
         </header>
 
-        <section className="mb-10">
-          <div className="mb-4 flex items-center justify-between">
-                <h2 className="interactive-course-hub-section-title text-xl font-semibold">精品课程</h2>
-            <span className="interactive-course-hub-chip">优先推荐</span>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            {PREMIUM_LESSONS.map((lesson) => (
-              <Link
-                key={lesson.id}
-                href={lesson.href}
-                className="interactive-course-hub-premium-card"
-              >
-                <div className="flex items-center justify-between text-xs">
-                  <span className="interactive-course-hub-premium-badge">{lesson.badge}</span>
-                  <span className="interactive-course-hub-premium-meta">{lesson.duration}</span>
+        <div className="space-y-8">
+          {INTERACTIVE_COURSE_MODULES.map((module) => (
+            <section key={module.id} className="interactive-course-hub-module-shell">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="interactive-course-hub-section-title text-xl font-semibold">{module.title}</h2>
+                  <p className="interactive-course-hub-muted mt-1 text-sm">{module.description}</p>
                 </div>
-                <h2 className="interactive-course-hub-premium-title mt-4 text-xl font-semibold">{lesson.title}</h2>
-                <p className="interactive-course-hub-premium-desc mt-2 text-sm">{lesson.description}</p>
-                <div className="interactive-course-hub-link mt-4 inline-flex items-center text-xs">
-                  进入课堂实录流程
-                  <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <details className="interactive-course-hub-legacy-shell group" open={false}>
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
-              <div>
-                <h2 className="interactive-course-hub-section-title text-xl font-semibold">归档课程</h2>
-                <p className="interactive-course-hub-muted mt-1 text-sm">
-                  `legacy` 来源课与旧版 `lessonXX` 系列默认收起，保留为归档入口。
-                </p>
+                <span className="interactive-course-hub-chip">{module.chipLabel}</span>
               </div>
-              <div className="interactive-course-hub-legacy-toggle">
-                展开归档课程
-                <ChevronDown className="h-3.5 w-3.5 transition group-open:rotate-180" />
-              </div>
-            </summary>
 
-            <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {LEGACY_LESSONS.map((lesson) => (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {module.lessons.map((lesson) => (
                 <Link
                   key={lesson.id}
                   href={lesson.href}
-                  className="interactive-course-hub-legacy-card"
+                  className="interactive-course-hub-module-card"
                 >
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="interactive-course-hub-legacy-badge">{lesson.badge}</span>
-                    <span className="interactive-course-hub-legacy-meta">{lesson.duration}</span>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="interactive-course-hub-unit-badge">{lesson.unitLabel}</span>
+                      <span className="interactive-course-hub-module-badge">{lesson.badge}</span>
+                    </div>
+                    <span className="interactive-course-hub-module-meta text-xs">{lesson.duration}</span>
                   </div>
-                  <h2 className="interactive-course-hub-legacy-title mt-4 text-lg font-semibold">{lesson.title}</h2>
-                  <p className="interactive-course-hub-legacy-desc mt-2 text-sm">{lesson.description}</p>
+
+                  <h2 className="interactive-course-hub-module-title mt-4 text-lg font-semibold">{lesson.title}</h2>
+                  <p className="interactive-course-hub-module-desc mt-2 text-sm">{lesson.description}</p>
+
+                  {lesson.legacySourceLabel ? (
+                    <p className="interactive-course-hub-module-note mt-3 text-xs">{lesson.legacySourceLabel}</p>
+                  ) : null}
+
                   <div className="interactive-course-hub-link mt-4 inline-flex items-center text-xs">
                     进入课程
                     <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                   </div>
                 </Link>
-              ))}
-            </div>
-          </details>
-        </section>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
       </main>
     </div>
   );

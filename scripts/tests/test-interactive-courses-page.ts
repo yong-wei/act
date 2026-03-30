@@ -3,8 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import {
-  LEGACY_LESSONS,
-  PREMIUM_LESSONS,
+  INTERACTIVE_COURSE_MODULES,
 } from '../../src/features/interactive/learning-catalog';
 
 const root = process.cwd();
@@ -12,47 +11,55 @@ const pagePath = path.join(root, 'src/app/interactive-learning/courses/page.tsx'
 const pageContent = fs.readFileSync(pagePath, 'utf8');
 
 assert.equal(
-  PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-1-3-time-domain-response'),
-  true,
-  '精品课程分组中应保留 2-2 主线课程入口',
+  INTERACTIVE_COURSE_MODULES.length,
+  2,
+  '互动课程页当前只应展示模块1和模块2两个分组',
 );
 
 assert.equal(
-  PREMIUM_LESSONS.some((lesson) => lesson.id === 'cruise-comfort-boppps'),
-  true,
-  '精品课程分组中应保留柔性之海课程入口',
+  INTERACTIVE_COURSE_MODULES[0]?.lessons.length,
+  5,
+  '模块1分组应展示 5 个单元入口',
 );
 
 assert.equal(
-  LEGACY_LESSONS.some((lesson) => lesson.id === 'l2d-three-domain-linkage-practice'),
+  INTERACTIVE_COURSE_MODULES[1]?.lessons.some((lesson) => lesson.id === 'unit-2-1-modeling-language'),
   true,
-  'legacy 来源课应归入归档课程分组',
+  '模块2分组应展示 2-1 入口',
 );
 
 assert.equal(
-  LEGACY_LESSONS.length >= 10,
-  true,
-  '旧 lessonXX 系列应独立归入 legacy lessons 分组',
+  INTERACTIVE_COURSE_MODULES.some((module) =>
+    module.lessons.some((lesson) => lesson.id === 'unit-1-3-time-domain-response')
+  ),
+  false,
+  'unit-1-3 现阶段不应出现在互动课程首页分组中',
 );
 
 assert.equal(
-  pageContent.includes('<details') || pageContent.includes('Accordion'),
-  true,
-  '互动课程页应提供默认折叠的旧课程下拉区',
+  INTERACTIVE_COURSE_MODULES.map((module) => module.title).join('|'),
+  '模块1|模块2',
+  '互动课程页数据分组应明确命名为模块1与模块2',
 );
 
 assert.equal(
-  pageContent.includes('默认收起') || pageContent.includes('展开归档课程') || pageContent.includes('归档课程'),
+  pageContent.includes('INTERACTIVE_COURSE_MODULES.map'),
   true,
-  '互动课程页应明确标识归档课程折叠区',
+  '互动课程页应基于模块分组数据渲染页面内容',
+);
+
+assert.equal(
+  pageContent.includes('<details') || pageContent.includes('归档课程') || pageContent.includes('展开归档课程'),
+  false,
+  '互动课程页不应继续保留归档课程折叠区',
 );
 
 assert.equal(
   pageContent.includes('interactive-course-hub-shell') &&
-    pageContent.includes('interactive-course-hub-premium-card') &&
-    pageContent.includes('interactive-course-hub-legacy-shell'),
+    pageContent.includes('interactive-course-hub-module-card') &&
+    pageContent.includes('interactive-course-hub-unit-badge'),
   true,
-  '互动课程入口页应改用全局语义样式类，而不是散落的局部颜色硬编码',
+  '互动课程入口页应继续使用全局语义样式类承载模块分组布局',
 );
 
 assert.equal(

@@ -372,8 +372,8 @@
     color: hsl(var(--interactive-course-hub-accent-text));
   }
 
-  .interactive-course-hub-legacy-shell {
-    @apply rounded-[28px] border p-4;
+  .interactive-course-hub-module-shell {
+    @apply rounded-[28px] border p-5;
     border-color: hsl(var(--interactive-course-hub-border) / 0.92);
     background: linear-gradient(
       180deg,
@@ -382,30 +382,45 @@
     );
   }
 
-  .interactive-course-hub-legacy-toggle {
-    @apply inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs;
-    border-color: hsl(var(--interactive-course-hub-border) / 0.92);
-    color: hsl(var(--interactive-course-hub-muted));
-    background: hsl(var(--interactive-course-hub-surface) / 0.55);
-  }
-
-  .interactive-course-hub-legacy-card {
+  .interactive-course-hub-module-card {
     @apply rounded-[22px] border p-5 transition;
     border-color: hsl(var(--interactive-course-hub-border) / 0.9);
     background: hsl(var(--interactive-course-hub-surface) / 0.9);
   }
 
-  .interactive-course-hub-legacy-card:hover {
+  .interactive-course-hub-module-card:hover {
     border-color: hsl(var(--interactive-course-hub-accent-border) / 0.36);
     transform: translateY(-2px);
   }
 
-  .interactive-course-hub-legacy-badge {
+  .interactive-course-hub-unit-badge,
+  .interactive-course-hub-module-badge {
+    @apply rounded-full px-3 py-1 text-xs;
+  }
+
+  .interactive-course-hub-unit-badge {
+    background: hsl(var(--interactive-course-hub-accent-bg) / 0.28);
+    color: hsl(var(--interactive-course-hub-accent-text));
+  }
+
+  .interactive-course-hub-module-badge {
     background: hsl(var(--interactive-course-hub-accent-bg-soft) / 0.48);
     color: hsl(var(--interactive-course-hub-accent-text));
   }
 
-  .interactive-course-hub-legacy-meta {
+  .interactive-course-hub-module-meta {
+    color: hsl(var(--interactive-course-hub-muted));
+  }
+
+  .interactive-course-hub-module-title {
+    color: hsl(var(--interactive-course-hub-foreground-strong));
+  }
+
+  .interactive-course-hub-module-desc {
+    color: hsl(var(--interactive-course-hub-foreground));
+  }
+
+  .interactive-course-hub-module-note {
     color: hsl(var(--interactive-course-hub-muted));
   }
 
@@ -443,7 +458,7 @@
     );
   }
 
-  .light .interactive-course-hub-legacy-shell {
+  .light .interactive-course-hub-module-shell {
     background: linear-gradient(
       180deg,
       hsl(var(--interactive-course-hub-surface)),

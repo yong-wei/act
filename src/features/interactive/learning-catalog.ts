@@ -29,6 +29,25 @@ export interface InteractiveResource {
   displayOrder: number;
 }
 
+export interface InteractiveCourseHubLesson {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  href: string;
+  badge: string;
+  unitLabel: string;
+  legacySourceLabel?: string;
+}
+
+export interface InteractiveCourseHubModule {
+  id: string;
+  title: string;
+  description: string;
+  chipLabel: string;
+  lessons: InteractiveCourseHubLesson[];
+}
+
 export type CategoryConfig = {
   label: string;
   icon: ElementType;
@@ -271,6 +290,49 @@ export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;
+
+function getFeaturedLessonById(id: string) {
+  const lesson = FEATURED_LESSONS.find((item) => item.id === id);
+
+  if (!lesson) {
+    throw new Error(`Unknown featured lesson: ${id}`);
+  }
+
+  return lesson;
+}
+
+function createModuleLesson(id: string, unitLabel: string, legacySourceLabel?: string): InteractiveCourseHubLesson {
+  const lesson = getFeaturedLessonById(id);
+
+  return {
+    ...lesson,
+    unitLabel,
+    ...(legacySourceLabel ? { legacySourceLabel } : {}),
+  };
+}
+
+export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
+  {
+    id: 'module-1',
+    title: '模块1',
+    description: '当前以历史 L 系列课程承接“先见森林”的五个入口，用于保留模块1的学习顺序与进入方式。',
+    chipLabel: '5 个单元入口',
+    lessons: [
+      createModuleLesson('l2a-time-domain-fasttrack', '1-1', '映射自 L-2a'),
+      createModuleLesson('l2b-root-locus-fasttrack', '1-2', '映射自 L-2b'),
+      createModuleLesson('l2c-frequency-bode-fasttrack', '1-3', '映射自 L-2c'),
+      createModuleLesson('l2d-three-domain-linkage-practice', '1-4', '映射自 L-2d'),
+      createModuleLesson('lsum-design-feasible-domain', '1-5', '映射自 L-sum'),
+    ],
+  },
+  {
+    id: 'module-2',
+    title: '模块2',
+    description: '模块2当前仅开放已完成的 2-1 新主线课程，其余单元待后续建设后再纳入入口页。',
+    chipLabel: '已开放单元',
+    lessons: [createModuleLesson('unit-2-1-modeling-language', '2-1')],
+  },
+] as const;
 
 export function findCategoryKeyBySlug(slug: string): string | null {
   for (const [categoryKey, config] of Object.entries(CATEGORY_CONFIG)) {
