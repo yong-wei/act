@@ -13,6 +13,10 @@
 
 import type { AIContextConfig } from '@/types/ai-context';
 import {
+  getUnit21StepAIContext as getUnit21StepAIContextLocal,
+  getUnit21StepQuickQuestions as getUnit21StepQuickQuestionsLocal,
+} from './unit-2-1-ai-contexts';
+import {
   getUnit13StepAIContext as getUnit13StepAIContextLocal,
   getUnit13StepQuickQuestions as getUnit13StepQuickQuestionsLocal,
 } from './unit-1-3-ai-contexts';
@@ -32,6 +36,16 @@ export {
   getLSUMStepAIContext,
   getLSUMStepQuickQuestions,
 } from './lsum-ai-contexts';
+
+// 2-1 课程 AI 上下文
+export {
+  UNIT_2_1_COURSE_META,
+  UNIT_2_1_STEP_AI_CONTEXTS,
+  getUNIT_2_1StepAIContext,
+  getUNIT_2_1StepQuickQuestions,
+  getUnit21StepAIContext,
+  getUnit21StepQuickQuestions,
+} from './unit-2-1-ai-contexts';
 
 // 1-1 课程 AI 上下文
 export {
@@ -115,20 +129,14 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
     },
   },
 
-  'unit-1-1-laplace-transfer-function-v1': {
-    getStepContext: (stepId: string) => {
-      const { getUnit11StepAIContext } = require('./unit-1-1-ai-contexts');
-      return getUnit11StepAIContext(stepId);
-    },
-    getQuickQuestions: (stepId: string) => {
-      const { getUnit11StepQuickQuestions } = require('./unit-1-1-ai-contexts');
-      return getUnit11StepQuickQuestions(stepId);
-    },
+  'unit-2-1-modeling-language-v1': {
+    getStepContext: (stepId: string) => getUnit21StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit21StepQuickQuestionsLocal(stepId),
     courseMeta: {
-      courseId: 'unit-1-1-laplace-transfer-function-v1',
-      courseTitle: '1-1：拉氏变换与传递函数——从微分方程到代数方程',
+      courseId: 'unit-2-1-modeling-language-v1',
+      courseTitle: '2-1：建模与变换语言——从真实对象到统一分析对象',
       courseDescription:
-        '围绕降维逻辑、微分定理、传递函数三步法、零极点判读和典型环节识别，建立层1的第一节数学精化课。',
+        '围绕拉氏变换工程动机、零初值传递函数、典型环节、结构图、信号流图与梅森公式，建立模块 2 的统一对象语言。',
     },
   },
 
@@ -143,22 +151,6 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
     },
   },
 
-  'unit-1-2-block-diagram-simplification-v1': {
-    getStepContext: (stepId: string) => {
-      const { getUnit12StepAIContext } = require('./unit-1-2-ai-contexts');
-      return getUnit12StepAIContext(stepId);
-    },
-    getQuickQuestions: (stepId: string) => {
-      const { getUnit12StepQuickQuestions } = require('./unit-1-2-ai-contexts');
-      return getUnit12StepQuickQuestions(stepId);
-    },
-    courseMeta: {
-      courseId: 'unit-1-2-block-diagram-simplification-v1',
-      courseTitle: '1-2：系统结构图与化简——从积木块到系统蓝图',
-      courseDescription:
-        '围绕结构图四元素、三种基本连接、等效变换、代数化简与梅森公式，建立从局部积木到系统蓝图的组装视角。',
-    },
-  },
 };
 
 /**
