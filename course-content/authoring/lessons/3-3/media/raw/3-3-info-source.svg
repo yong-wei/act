@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <rect width="1400" height="900" fill="#f8fafc"/>
+  <text x="700" y="82" text-anchor="middle" font-size="42" font-family="Arial Unicode MS" fill="#123a63" font-weight="700">3-3 核心主线总结</text>
+  <g font-family="Arial Unicode MS">
+    <rect x="90" y="150" width="240" height="150" rx="22" fill="#e0f2fe" stroke="#38bdf8" stroke-width="3"/>
+    <text x="210" y="208" text-anchor="middle" font-size="28" fill="#0f172a" font-weight="700">参数变化</text>
+    <text x="210" y="248" text-anchor="middle" font-size="21" fill="#334155">研究的起点</text>
+
+    <rect x="395" y="150" width="260" height="150" rx="22" fill="#dcfce7" stroke="#22c55e" stroke-width="3"/>
+    <text x="525" y="208" text-anchor="middle" font-size="28" fill="#0f172a" font-weight="700">闭环根集合</text>
+    <text x="525" y="248" text-anchor="middle" font-size="21" fill="#334155">$s=s(K)$ 的连续迁移</text>
+
+    <rect x="720" y="150" width="260" height="150" rx="22" fill="#fef3c7" stroke="#f59e0b" stroke-width="3"/>
+    <text x="850" y="208" text-anchor="middle" font-size="28" fill="#0f172a" font-weight="700">$GH=-1$</text>
+    <text x="850" y="248" text-anchor="middle" font-size="21" fill="#334155">从闭环方程到判别入口</text>
+
+    <rect x="1045" y="150" width="260" height="150" rx="22" fill="#ede9fe" stroke="#8b5cf6" stroke-width="3"/>
+    <text x="1175" y="208" text-anchor="middle" font-size="28" fill="#0f172a" font-weight="700">相角 + 幅值</text>
+    <text x="1175" y="248" text-anchor="middle" font-size="21" fill="#334155">判点位 + 回参数</text>
+
+    <line x1="330" y1="225" x2="395" y2="225" stroke="#94a3b8" stroke-width="4"/>
+    <line x1="655" y1="225" x2="720" y2="225" stroke="#94a3b8" stroke-width="4"/>
+    <line x1="980" y1="225" x2="1045" y2="225" stroke="#94a3b8" stroke-width="4"/>
+  </g>
+
+  <g font-family="Arial Unicode MS">
+    <rect x="140" y="390" width="360" height="220" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="3"/>
+    <text x="320" y="455" text-anchor="middle" font-size="30" fill="#123a63" font-weight="700">完整法则体系</text>
+    <text x="320" y="505" text-anchor="middle" font-size="22" fill="#334155">起点终点 · 实轴区段 · 渐近线</text>
+    <text x="320" y="545" text-anchor="middle" font-size="22" fill="#334155">分离点 · 虚轴交点 · 起始角</text>
+    <text x="320" y="585" text-anchor="middle" font-size="22" fill="#334155">先搭骨架，再修关键点</text>
+
+    <rect x="540" y="390" width="320" height="220" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="3"/>
+    <text x="700" y="455" text-anchor="middle" font-size="30" fill="#123a63" font-weight="700">广义根轨迹</text>
+    <text x="700" y="505" text-anchor="middle" font-size="22" fill="#334155">增益只是一个特例</text>
+    <text x="700" y="545" text-anchor="middle" font-size="22" fill="#334155">时间常数也能改写进标准形式</text>
+    <text x="700" y="585" text-anchor="middle" font-size="22" fill="#334155">$0^\circ$ / $180^\circ$ 都纳入同图景</text>
+
+    <rect x="900" y="390" width="360" height="220" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="3"/>
+    <text x="1080" y="455" text-anchor="middle" font-size="30" fill="#123a63" font-weight="700">动态翻译</text>
+    <text x="1080" y="505" text-anchor="middle" font-size="22" fill="#334155">看虚轴：稳定边界</text>
+    <text x="1080" y="545" text-anchor="middle" font-size="22" fill="#334155">看实部：快慢变化</text>
+    <text x="1080" y="585" text-anchor="middle" font-size="22" fill="#334155">看虚部：振荡和超调趋势</text>
+  </g>
+
+  <g font-family="Arial Unicode MS">
+    <rect x="200" y="690" width="1000" height="120" rx="26" fill="#123a63"/>
+    <text x="700" y="742" text-anchor="middle" font-size="30" fill="#f8fafc" font-weight="700">一句话收束</text>
+    <text x="700" y="786" text-anchor="middle" font-size="24" fill="#e2e8f0">根轨迹把参数变化、闭环极点迁移和系统动态后果连成了一张可读、可判断、可扩展的工程地图。</text>
+  </g>
+</svg>

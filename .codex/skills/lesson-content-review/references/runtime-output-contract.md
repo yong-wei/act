@@ -10,6 +10,7 @@ lesson 级运行时产物：
 其中 `review/` 至少包含：
 - `boppps.md`
 - `review-report.md`
+- `interactive-page-check.json`
 - `knowledge-card-check.json`
 - `multimedia-check.json`
 - `source-manifest.json`

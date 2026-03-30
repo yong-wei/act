@@ -1,0 +1,46 @@
+{
+  "lesson_id": "3-2",
+  "unit_type": "实践",
+  "generated_at": "2026-03-30T01:09:41.053738+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/3-2/design/handout.md",
+    "course-content/authoring/lessons/3-2/design/interactive-page.md"
+  ],
+  "boppps_source": "course-content/authoring/lessons/3-2/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/3-2/sequence.json",
+  "expected_code_media": [
+    {
+      "output": "3-2-pole-migration.png"
+    },
+    {
+      "output": "3-2-step-comparison.png"
+    },
+    {
+      "output": "3-2-bode-magnitude.png"
+    },
+    {
+      "output": "3-2-special-cases-card.png"
+    },
+    {
+      "output": "3-2-parameter-range-flow.png"
+    },
+    {
+      "output": "3-2-cover-comic.png"
+    },
+    {
+      "output": "3-2-info.png"
+    },
+    {
+      "output": "3-2-slides.pdf"
+    },
+    {
+      "output": "3-2-intro-video.mp4"
+    },
+    {
+      "output": "3-2-course.mp4"
+    },
+    {
+      "output": "3-2-audio.m4a"
+    }
+  ]
+}

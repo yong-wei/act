@@ -13,8 +13,9 @@
 - 已将 `design/boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
-- 已覆盖讲义中的核心公式与静态承载内容。
 - 已检测到 `2-1` 的 V2 互动契约，步骤字段完整。
+- 缺少“讲义核心内容映射”章节
+- 讲义核心内容映射缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。

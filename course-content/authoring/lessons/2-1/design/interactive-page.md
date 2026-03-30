@@ -3,208 +3,239 @@
 技术栈：Next.js 14 + TypeScript + Tailwind CSS + shadcn/ui
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-## 文档职责与真源边界（V2）
-- 本文件负责给人审稿：明确每一步的教学意图、页面布局、静态承载内容、互动升级点、教师端与学生端呈现。
-- 同目录 [`interactive-contract.yaml`](./interactive-contract.yaml) 负责给实现智能体与审查脚本消费：固定页面区域、模块、具体填充物、互动组件类型、埋点、教师洞察与 AI context 结构。
-- 后续互动课程实现默认只允许读取本文件与 `interactive-contract.yaml`，不再回读讲义自由发挥补内容。
-- 默认预览入口必须是学生演示页：
-  - `/interactive-learning/courses/unit-2-1-modeling-language/student/demo`
-  - 教师端“预览”弹窗只用于查看 BOPPPS 骨架，不得被当成真实页面预览。
+## 文档职责
+- 本文件是供人审阅的页面蓝图，只描述页面布局、固定内容、互动组件、数据采集与 AI 边界。
+- 同目录 [interactive-contract.yaml](./interactive-contract.yaml) 是机读契约；两者必须保持一一对应。
+- 本文件不是讲义摘要，不写“教师讲什么、学生做什么”的动作脚本，不写实现阶段自由发挥空间。
+- 页面默认预览口径固定为学生演示页，不以教师端模板弹窗替代真实页面。
 
-## V2 页面固定要求
-- 概念讲解页先承担“高质量课件页”职责，静态内容必须完整承载关键条目、关键公式、关键图像。
-- 一旦进入互动，不要求克制。允许采用明显游戏化的拖拽、配对、排序、路径高亮、拖槽等形式，但必须与当前知识任务严格绑定。
-- 所有互动必须在设计阶段写死组件形态，不允许实现时把拖拽题降级成选择题、文本题或“先做表单以后再补交互”。
-- 埋点采用“轻量高价值”策略：只记录步骤级结果摘要、错因标签、提示/AI 使用与耗时分段，不记录逐像素拖动轨迹。
-- 页内 AI 必须被限制在“当前步骤静态内容 + 当前互动任务”的范围内，不得跨页讲解或直接代答。
+## 表述规则
+- 页面描述只保留客观结构：区域、模块、文本、公式、图片、表格、互动组件、反馈规则。
+- 动作化表述禁用：`展示`、`完成一次`、`引导`、`跟随推导`、`让学生` 等。
+- 互动描述只写组件形态与交互规则，不写课堂口播。
+- 静态内容优先。互动组件只能升级练习方式，不能替代核心条目、公式、表格与图示。
 
-## 页面整体布局
-布局方式：纵向流式布局
-- 无互动步骤：全幅纯文本 / 静态图示
-- 有互动步骤：文本提示区在上 → 互动区在下
-- 本课以“对象语言完整呈现”为第一目标，互动只服务于对象识别、结构判断和路径判定
-共 16 步骤（按内容逻辑决定，不设固定上限）
-
-## 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | target_step | page_mode | interaction_upgrade | media_or_table_ref | acceptance_note |
-|----------------|----------------|---------------------|-------------|-----------|---------------------|--------------------|-----------------|
-| `## 一、引入：为什么光有微分方程还不够` | `concept/conclusion` | 模块 2 从“对象语言建立”开始，不再停留在现象观察 | `step-01` | `static` | 无，保持静态展示 | 无 | 页面显式说明模块 1 到模块 2 的过渡任务 |
-| `## 一、引入：为什么光有微分方程还不够` | `formula/conclusion` | 船舶航向动力学方程及“只有微分方程还不够”的三个追问 | `step-02` | `static+interactive` | 用判断题确认学生是否理解“还需统一对象语言” | `2-1-cover-comic.png` | 页面显式出现动力学方程和三条追问 |
-| `## 一、引入：为什么光有微分方程还不够` | `concept/figure/conclusion` | 微分方程到总体对象的六段对象链 | `step-03` | `static` | 无，保持静态展示 | 无 | 页面显式出现六段对象链公式/图示 |
-| `### 2.1 为什么课程需要从微分方程走向变换域` | `concept/example` | 对象、初值、结构三个常见误区 | `step-04` | `interactive` | 用轻量前测暴露误区 | `ic-01` | 三个误区题都能在页面上直接读到 |
-| `### 2.1 为什么课程需要从微分方程走向变换域` | `concept/table/conclusion` | “微分变代数”的工程动机与时域语言/变换域语言对比 | `step-05` | `static+interactive` | 用一句话填空收束变换价值 | `表1. 时域微分方程语言与变换域对象语言的区别` | 页面显式写出两种语言的区别与拉氏变换价值 |
-| `## 附录C｜本课最少要记住的拉氏对应关系` | `formula/table` | $F(s)=\\mathcal{L}\\{f(t)\\}$、$\\mathcal{L}\\{\\dot f(t)\\}=sF(s)$、$\\mathcal{L}\\{\\ddot f(t)\\}=s^2F(s)$ 与最小公式表 | `step-05` | `static+interactive` | 用填空或追问解释“微分怎样变成代数项” | `表6. 本课最少要记住的拉氏对应关系` | 页面显式出现最少公式组，不能只剩概念描述 |
-| `### 2.2 零初值下，传递函数是怎样形成的` | `formula/conclusion` | $G(s)=Y(s)/U(s)|_{\\text{零初值}}$ 及“对象与输入分离”的结论 | `step-06` | `static+interactive` | 用勾选题确认三个判断理由 | 无 | 页面显式出现公式与零初值前提 |
-| `## 附录A｜为什么传递函数一定要强调“零初值”` | `formula/example/conclusion` | 对象项与初值项不能混入同一对象定义 | `step-07` | `static+interactive` | 先自判，再看 AI 对照 | `附录A` | 页面静态层先给出对象项/初值项对照示例 |
-| `### 2.3 典型环节为什么是后续全课的“标准对象库”` | `table/concept/conclusion` | 比例、积分、微分、惯性、振荡五类典型环节及第一判断 | `step-08` | `static+interactive` | 用拖拽配对升级识别练习 | `表2. 五类典型环节及其第一判断` / `2-1-md-01-typical-elements-map.png` / `ic-03` | 页面显式出现五类环节表格 |
-| `### 2.4 方框图怎样把多个对象连接成系统` | `formula/figure/conclusion` | 串联、并联、反馈三条基础公式与结构图对应关系 | `step-09` | `static+interactive` | 用即时判断确认该用哪条规则 | `图2-图4` / `表3. 三种基本连接的等效规则` | 页面显式出现三条基础公式 |
-| `### 2.4 方框图怎样把多个对象连接成系统` | `figure/example/conclusion` | 控制器、舵机、船体、传感器怎样连成整体系统 | `step-10` | `static+interactive` | 在结构图中定位反馈信号 | `图5. 船舶航向闭环系统的物理对象标注方框图` | 页面显式说明四个模块各自作用 |
-| `### 2.5 为什么方框图还不够：信号流图与梅森公式的补充位置` | `figure/concept/conclusion` | 方框图看模块连接，信号流图看路径与回路 | `step-11` | `static+interactive` | 用对照任务强化两种图的分工 | `图6. 方框图与对应信号流图的对照示意` / `表4. 方框图与信号流图的任务分工` | 页面显式列出两种图的任务分工 |
-| `### 2.5 为什么方框图还不够：信号流图与梅森公式的补充位置` | `formula/concept` | 梅森公式与前向通路、回路、互不接触回路、余子式四个术语 | `step-12` | `static+interactive` | 用术语配对升级识别 | `表5. 梅森公式在本课中的定位` / `ic-04` | 页面显式出现梅森公式和四个术语 |
-| `## 附录B｜梅森公式速查：你真正要按什么顺序看` | `formula/concept` | 梅森公式本体与“四步使用顺序” | `step-12` | `static+interactive` | 用术语配对升级识别 | `附录B` | 页面显式出现公式本体与最小操作顺序 |
-| `### 3.1 例题一：把一个简化的航向控制系统完整写成总体对象` | `example/figure/conclusion` | 对象识别、前向通道、闭环对象、信号流图验证的完整例题链 | `step-13` | `static+interactive` | 用选择题确认前向通道与反馈通道 | `图7` / `图8` | 页面显式给出例题链条和闭环对象结论 |
-| `#### Step 2：写前向通道传递函数` | `formula/example` | $G(s)=\\dfrac{K_cK_p}{s(T_as+1)(T_ps+1)}$ | `step-13` | `static+interactive` | 用选择题确认前向通道与反馈通道 | `例题一 Step 2` | 页面显式写出前向通道总式 |
-| `#### Step 3：用方框图写出闭环对象` | `formula/example/conclusion` | $\\Phi(s)=\\dfrac{K_cK_p}{s(T_as+1)(T_ps+1)+K_cK_pK_h}$ | `step-13` | `static+interactive` | 用选择题确认闭环对象为何不是局部模块 | `例题一 Step 3` | 页面显式写出闭环总式 |
-| `#### Step 4：把同一结构换成信号流图视角` | `formula/example` | $P_1$、$L_1$、$\\Delta$、$\\Delta_1$ 与梅森代入链 | `step-14` | `static+interactive` | 用路径高亮和一句话解释升级辨析 | `例题一 Step 4` / `图8` | 页面显式说明 $\\Delta_k$ 判定理由与公式链 |
-| `## 附录B｜梅森公式速查：你真正要按什么顺序看` | `example/conclusion` | 附录补充情形下 $\\Delta_k=1-L_1$ 的判定理由，以及两类“不接触”差别 | `step-14` | `static+interactive` | 用路径高亮和一句话解释升级辨析 | `附录B` | 页面显式区分例题一本体与附录补充情形 |
-| `### 5.1 你应带走的五个结论` | `concept/conclusion` | 用 3 题检查对象建立链是否真的掌握 | `step-15` | `interactive` | 后测提交与统计反馈 | 无 | 三题都直接对应本课主线 |
-| `### 5.1 你应带走的五个结论 / ### 5.2 与前后课程的衔接` | `conclusion/formula` | 对象建立 -> 对象识别 -> 结构表达 -> 总体对象，并衔接到时域响应分析 | `step-16` | `static` | 无，保持静态展示 | `图9. 单元 2-1 信息图总结` | 页面显式出现本课收束链与下一课入口 |
-
-## 步骤列表
-| 步骤ID | 标题 | BOPPPS阶段 | 时长 |
-|--------|------|------------|------|
-| step-01 | 回到地图——为什么模块2先从建模语言开始 | bridge-in | 3min |
-| step-02 | 情境引入——为什么光有微分方程还不够 | bridge-in | 5min |
-| step-03 | 学习目标——今天要建哪条对象链 | objective | 2min |
-| step-04 | 前测——对象、初值与结构的三个误区 | pre-assessment | 4min |
-| step-05 | 拉氏变换的工程动机 | participatory | 6min |
-| step-06 | 零初值下传递函数怎样形成 | participatory | 8min |
-| step-07 | 非零初值为什么不能混进对象定义 | participatory | 6min |
-| step-08 | 典型环节对象库：先看清对象由什么组成 | participatory | 8min |
-| step-09 | 结构图三类基本连接 | participatory | 8min |
-| step-10 | 船舶航向系统：把对象真正连成系统 | participatory | 5min |
-| step-11 | 方框图为什么还不够：信号流图补位 | participatory | 5min |
-| step-12 | 梅森公式的最小使用集 | participatory | 6min |
-| step-13 | 例题一：单回路闭环对象如何收束 | participatory | 8min |
-| step-14 | 补充辨析：余子式为什么不一定等于 1 | participatory | 6min |
-| step-15 | 后测——会不会用对象语言复述本课 | post-assessment | 5min |
-| step-16 | 总结——对象语言已建立，下一课进入响应分析 | summary | 5min |
+## 全课总览
+| 步骤 | 标题 | 页面模板 | 主体布局 | 互动组件 | 学生页预览 |
+|------|------|----------|----------|----------|------------|
+| step-01 | 回到地图——为什么模块 2 先从建模语言开始 | `map_hero_slide` | 全幅地图 + 任务卡 | `none` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-01` |
+| step-02 | 情境引入——为什么光有微分方程还不够 | `formula_left_image_right` | 左公式右图像，下方判断区 | `binary_choice` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-02` |
+| step-03 | 学习目标——今天要建哪条对象链 | `center_chain_slide` | 主链居中 + 目标卡行 | `none` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-03` |
+| step-04 | 前测——对象、初值与结构的三个误区 | `question_stack` | 三题纵向堆叠 + 提交条 | `quiz_group` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-04` |
+| step-05 | 拉氏变换的工程动机 | `table_plus_formula_plus_short_response` | 对照表 + 公式条 + 短答栏 | `short_response` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-05` |
+| step-06 | 零初值下传递函数怎样形成 | `formula_explain_checklist` | 定义公式 + 结论卡 + 勾选区 | `multi_check` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-06` |
+| step-07 | 非零初值为什么不能混进对象定义 | `compare_then_ai` | 双列对照 + 自判框 + 页内 AI | `reflection_form` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-07` |
+| step-08 | 典型环节对象库：先看清对象由什么组成 | `courseware_top_game_stage_bottom` | 总表 + 总图 + 拖拽舞台 + 提交反馈条 | `drag_match` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-08` |
+| step-09 | 结构图三类基本连接 | `formula_strip_plus_rule_check` | 三公式条 + 规则卡 + 判断区 | `rule_judge` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-09` |
+| step-10 | 船舶航向系统：把对象真正连成系统 | `engineering_block_diagram` | 工程结构图 + 角色卡 + 热点标注区 | `hotspot_labeling` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-10` |
+| step-11 | 方框图为什么还不够：信号流图补位 | `comparison_slide` | 左右对照图 + 分工表 | `bucket_sort` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-11` |
+| step-12 | 梅森公式的最小使用集 | `formula_then_term_match` | 公式卡 + 术语卡 + 拖拽配对区 | `drag_match` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-12` |
+| step-13 | 例题一：单回路闭环对象如何收束 | `worked_example_three_stage` | 三步例题卡 + 图对 + 选择校验 | `choice_check` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-13` |
+| step-14 | 补充辨析：余子式为什么不一定等于 1 | `path_highlight_reasoning` | 公式链 + 路径高亮区 + 原因框 | `path_highlight` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-14` |
+| step-15 | 后测——会不会用对象语言复述本课 | `post_quiz_stack` | 三题后测堆叠 | `quiz_group` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-15` |
+| step-16 | 总结——对象语言已建立，下一课进入响应分析 | `summary_infographic` | 总结链 + 信息图 + 下一课入口 | `none` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-16` |
 
 ---
 
-## 步骤 01｜回到地图——为什么模块2先从建模语言开始（3min）
+## step-01｜回到地图——为什么模块 2 先从建模语言开始
 
-**页面类型**：纯展示页
+### 页面骨架
+- 模板：`map_hero_slide`
+- 区域：
+  - `header`：全宽，页标题区
+  - `lead`：全宽，模块地图主视觉
+  - `summary`：全宽，任务卡
 
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `导入｜模块2定位` | `concept/conclusion` | 模块 2 负责建立后续统一分析对象 | `static` |
+### 模块清单
+- `map-banner`：`stage-map`
+- `today-task`：`key-task-card`
 
-### 静态承载内容
-- 展示课程地图，高亮“模块1直觉层 -> 2-1 建模对象层 -> 2-2 时域对象层”。
-- 明确今天的任务不是继续看现象，而是建立后续所有分析共用的对象语言。
+### 固定内容
+- `map-banner`
+  - 标题：模块定位
+  - 正文：模块 1 停留在现象直觉层，2-1 要正式建立对象语言，2-2 才在这些对象上讨论时间响应。
+- `today-task`
+  - 标题：今天的任务
+  - 条目：
+    - 不是继续看快慢、稳不稳的表面现象。
+    - 而是把对象怎样被写出来、连起来、收束起来这条链真正立住。
 
-### 互动升级点
-无，保持静态展示。
+### 互动与反馈
+- 组件类型：`none`
+- 提交态：无
+- 答案揭示：无
 
-### 教师端
-展示课程地图，高亮“模块1直觉层 -> 2-1 建模对象层 -> 2-2 时域对象层”。强调今天不是继续看现象，而是建立后续所有分析共用的对象语言。
+### 埋点与教师数据
+- 埋点摘要：`viewed`、`timeOnStep`、`teacherFollowSync`
+- 教师聚合：`view_count`、`sync_status`
 
-### 学生端
-看到一条路径说明：
-- 模块1：先见森林，知道系统会有不同动态表现；
-- `2-1`：开始回答“这些对象怎样被写出来、连起来、收束起来”。
+### AI 边界
+- 页面目标：模块 2 入口定位
+- 允许范围：模块 1 现象直觉、模块 2 对象语言任务
+- 禁止范围：传递函数推导、2-2 时域指标
+
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-01`
+- 对齐要求：首屏直接出现地图与任务卡，无作答区占位。
 
 ---
 
-## 步骤 02｜情境引入——为什么光有微分方程还不够（5min）
+## step-02｜情境引入——为什么光有微分方程还不够
 
-**页面类型**：核心内容页
+### 页面骨架
+- 模板：`formula_left_image_right`
+- 区域：
+  - `equation`：`7/12`，公式卡与追问列表
+  - `comic`：`5/12`，情境图
+  - `interaction`：全宽，二选一判断区
 
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `2.1 动力学方程引入` | `formula/conclusion` | 船舶航向动力学方程与三个关键追问 | `static+interactive` |
+### 模块清单
+- `core-equation`：`formula-card`
+- `three-questions`：`question-list`
+- `cover-comic`：`image-card`
+- `binary-judge`：`binary-choice`
 
-### 静态承载内容
-展示船舶航向动力学方程：
+### 固定内容
+- 标题：船舶航向动力学方程
+- 公式：
 
 $$
 J\ddot{\theta}(t)+B\dot{\theta}(t)=Ku(t)
 $$
 
-并静态列出三个追问：
-- 能不能一眼判断它属于什么对象？
-- 它以后怎么接控制器和传感器？
-- 它进入反馈后，整体对象怎么写？
+- 列表标题：只拿着这条方程还不够的三件事
+- 列表条目：
+  - 能不能一眼判断它属于什么对象？
+  - 它以后怎么接控制器和传感器？
+  - 它进入反馈后，整体对象怎么写？
+- 图像资源：`2-1-cover-comic.png`
 
-### 互动升级点
-用一次二选一判断，确认学生是否意识到“微分方程只是起点，还需要统一对象语言”。
+### 互动与反馈
+- 组件类型：`binary_choice`
+- 选项结构：
+  - A：只要有微分方程，后面所有分析都能直接做
+  - B：微分方程只是起点，还需要统一对象语言
+- 正确项：`B`
+- 错误反馈：只给出“还缺少统一对象语言”线索，不展开三问答案
+- 答案揭示：`teacher_toggle`
 
-### 教师端
-展示船舶航向动力学方程，并追问上面三件事。
+### 埋点与教师数据
+- 埋点摘要：`selectedOption`、`resultState`、`teacherRevealSeen`、`timeOnStep`
+- 错因标签：`equation_is_enough`
+- 教师聚合：`option_distribution`、`reveal_correction_rate`
 
-### 学生端
-完成一次二选一判断：
-- A：只要有微分方程，后面所有分析都能直接做
-- B：微分方程是起点，但还需要翻译成统一对象语言
+### AI 边界
+- 页面目标：微分方程不是后续分析终点
+- 允许范围：微分方程物理意义、统一对象语言必要性
+- 禁止范围：完整拉氏推导、复杂反馈公式
 
-**资源**：`2-1-cover-comic.png`
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-02`
+- 对齐要求：公式、三问、图像、判断组件同屏。
 
 ---
 
-## 步骤 03｜学习目标——今天要建哪条对象链（2min）
+## step-03｜学习目标——今天要建哪条对象链
 
-**页面类型**：纯展示页
+### 页面骨架
+- 模板：`center_chain_slide`
+- 区域：
+  - `chain`：全宽，对象链主视觉
+  - `cards`：全宽，目标卡行
 
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `2.2 对象链总览` | `concept/conclusion` | 六段对象链 | `static` |
+### 模块清单
+- `object-chain`：`formula-chain`
+- `goal-cards`：`goal-card-row`
 
-### 静态承载内容
-给出本课主线：
+### 固定内容
+- 标题：本课主线
+- 主链公式：
 
 $$
 \text{微分方程} \rightarrow \text{拉氏变换} \rightarrow \text{传递函数} \rightarrow \text{典型环节} \rightarrow \text{结构表达} \rightarrow \text{总体对象}
 $$
 
-### 互动升级点
-无，保持静态展示。
+- 目标卡：与六段对象链逐段对应，不替代主链公式
 
-### 教师端
-给出本课主线，并说明每一段都会在后续页面逐步落地。
+### 互动与反馈
+- 组件类型：`none`
 
-### 学生端
-看到 6 个目标卡片，对应本课每一段的任务，不要求填写，只要求建立整体预期。
+### 埋点与教师数据
+- 埋点摘要：`viewed`、`timeOnStep`
+- 教师聚合：`view_count`
 
----
+### AI 边界
+- 页面目标：先建立六段对象链全景
+- 允许范围：六段对象链、对象建立顺序
+- 禁止范围：任一单段完整推导
 
-## 步骤 04｜前测——对象、初值与结构的三个误区（4min）
-
-**页面类型**：测验页
-
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `2.3 前置误区辨析` | `concept/example` | 三个常见误区题 | `interactive` |
-
-### 静态承载内容
-页面直接展示三道误区题的完整题干，确保学生在不操作组件时也能读到问题本身。
-
-### 互动升级点
-通过前测统计暴露对象定义、初值理解和结构表达的混淆点。
-
-### 教师端
-发布 3 题轻量前测，观察学生是否把“对象定义”“初始状态”“结构表达”混在一起。
-
-### 学生端
-完成三题：
-1. 传递函数中的零初值能不能在概念上省略？
-2. 看到一个传递函数，第一步更应该先算总式还是先识别典型环节？
-3. 信号流图是不是方框图的另一种叫法？
-
-**[前端绘制]**：`ic-01` 前测分布条形图组件。
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-03`
+- 对齐要求：六段对象链必须是主视觉，目标卡只作补充。
 
 ---
 
-## 步骤 05｜拉氏变换的工程动机（6min）
+## step-04｜前测——对象、初值与结构的三个误区
 
-**页面类型**：核心内容页
+### 页面骨架
+- 模板：`question_stack`
+- 区域：
+  - `question-stack`：全宽，三题纵向堆叠
+  - `submit-bar`：全宽，提交反馈条
 
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `### 2.1 为什么课程需要从微分方程走向变换域` | `concept/table/conclusion` | 时域语言与变换域语言的工程差异 | `static+interactive` |
-| `## 附录C｜本课最少要记住的拉氏对应关系` | `formula/table` | 最少拉氏公式组与对应关系表 | `static+interactive` |
+### 模块清单
+- `misconception-q1`：`single-choice-card`
+- `misconception-q2`：`single-choice-card`
+- `misconception-q3`：`single-choice-card`
 
-### 静态承载内容
-- 明确：控制课关心拉氏变换，不是因为积分技巧，而是因为它能把微分关系改写成统一代数对象。
-- 用简表对照：
-  - 时域语言：直接描述微分方程与初值演化；
-  - 变换域语言：把对象写成统一代数形式，便于识别、连接和收束。
-- 页面中直接给出最小公式组：
+### 固定内容
+- 三道题干全部明文落页，不折叠为摘要：
+  - 传递函数中的零初值能不能省略
+  - 复杂分式先认对象还是先化简
+  - 信号流图是不是方框图换个名字
+
+### 互动与反馈
+- 组件类型：`quiz_group`
+- 题目数量：3
+- 作答模型：允许重提一次；教师端区分首答与重提
+- 答案揭示：`teacher_toggle`
+
+### 埋点与教师数据
+- 埋点摘要：`attemptCount`、`resultState`、`errorBucket`、`teacherRevealSeen`
+- 错因标签：
+  - `omit_zero_initial_state`
+  - `calculate_before_identify`
+  - `block_equals_sfg`
+- 教师聚合：`question_distribution`、`top_misconceptions`
+
+### AI 边界
+- 本页无独立 AI 模块
+
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-04`
+- 对齐要求：三题题干在未作答状态下全部完整可见。
+
+---
+
+## step-05｜拉氏变换的工程动机
+
+### 页面骨架
+- 模板：`table_plus_formula_plus_short_response`
+- 区域：
+  - `contrast`：全宽，时域语言 / 变换域语言对照表
+  - `formula-strip`：全宽，最小公式条
+  - `reflection`：全宽，短答栏
+
+### 模块清单
+- `language-contrast`：`comparison-table`
+- `minimum-formulas`：`formula-strip`
+- `one-line-reflection`：`short-response`
+
+### 固定内容
+- 对照表：
+  - 时域语言：直接描述微分方程与初值演化
+  - 变换域语言：把对象写成统一代数形式，便于识别、连接和收束
+- 最小公式组：
 
 $$
 F(s)=\mathcal{L}\{f(t)\}
@@ -218,70 +249,95 @@ $$
 \mathcal{L}\{\ddot f(t)\}=s^2F(s)
 $$
 
-- 再用一张最小公式表收束：
+- 最小对应关系表：
   - $1(t) \leftrightarrow 1/s$
   - $\dot f(t) \leftrightarrow sF(s)-f(0^-)$
   - $\ddot f(t) \leftrightarrow s^2F(s)-sf(0^-)-\dot f(0^-)$
   - $\int_0^t f(\tau)\,d\tau \leftrightarrow F(s)/s$
 
-### 互动升级点
-用一句话填空，让学生主动说出“把什么改写成什么”。
+### 互动与反馈
+- 组件类型：`short_response`
+- 短答句式：拉氏变换在本课里的核心价值，是把 ________ 改写成 ________。
+- 答案揭示：`teacher_toggle`
 
-### 教师端
-用“微分变代数”的视角讲拉氏变换，不展开成积分技巧。重点强调：控制课关心的是为什么它能把对象写成统一代数形式。
+### 埋点与教师数据
+- 埋点摘要：`submitted`、`aiUsed`、`resultState`、`durationBand`
+- 错因标签：`laplace_as_integration_trick`
+- 教师聚合：`keyword_cloud`、`ai_usage_rate`
 
-### 学生端
-上方看解释，下方完成一句话填空：
-> 拉氏变换在本课里的核心价值，不是积分技巧，而是把 ________ 改写成 ________。
+### AI 边界
+- 页面目标：拉氏变换的工程动机
+- 允许范围：微分变代数、对象统一化
+- 禁止范围：积分技巧展开
+
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-05`
+- 对齐要求：对照表与最小公式组同屏，短答组件位于页面底部。
 
 ---
 
-## 步骤 06｜零初值下传递函数怎样形成（8min）
+## step-06｜零初值下传递函数怎样形成
 
-**页面类型**：核心内容页
+### 页面骨架
+- 模板：`formula_explain_checklist`
+- 区域：
+  - `formula-card`：全宽，定义公式
+  - `explain-cards`：全宽，对象分离结论卡
+  - `reason-checklist`：全宽，勾选区
 
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `2.5 零初值传递函数` | `formula/conclusion` | 传递函数定义式与对象/输入分离结论 | `static+interactive` |
+### 模块清单
+- `transfer-definition`：`formula-card`
+- `object-separation`：`conclusion-cards`
+- `checklist`：`multi-check`
 
-### 静态承载内容
-从一般线性定常系统方程推到：
+### 固定内容
+- 定义公式：
 
 $$
 G(s)=\frac{Y(s)}{U(s)}\bigg|_{\text{零初值}}
 $$
 
-并静态写清两点：
-- 这是系统对象，不是某次输入输出过程的偶然结果；
-- 零初值是对象定义成立的前提，不可省略。
+- 固定结论：
+  - 这是系统对象，不是某次输入输出过程的偶然结果
+  - 零初值是对象定义成立的前提，不能省略
 
-### 互动升级点
-用勾选题确认学生是否理解“对象与具体输入分离”的三条判断理由。
+### 互动与反馈
+- 组件类型：`multi_check`
+- 校验主题：对象与输入分离的三个理由
+- 答案揭示：`teacher_toggle`
 
-### 教师端
-从一般线性定常系统方程推到上式，并强调：这一步完成了“系统对象”与“具体输入”的分离。
+### 埋点与教师数据
+- 埋点摘要：`attemptCount`、`resultState`、`teacherRevealSeen`
+- 错因标签：`transfer_function_is_rewritten_equation`
+- 教师聚合：`checklist_accuracy`、`reveal_correction_rate`
 
-### 学生端
-跟随推导，并在下方勾选：
-- 为什么这已经不再是“原方程换个写法”；
-- 为什么它已经成为后续可复用的统一对象；
-- 为什么后面时域、频域和结构分析都会继续围绕它展开。
+### AI 边界
+- 页面目标：对象定义与零初值前提
+- 允许范围：对象 / 输入分离、统一分析对象
+- 禁止范围：非零初值辨析细节
+
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-06`
+- 对齐要求：公式与结论先出现，勾选组件后出现或位于下方同页区域。
 
 ---
 
-## 步骤 07｜非零初值为什么不能混进对象定义（6min）
+## step-07｜非零初值为什么不能混进对象定义
 
-**页面类型**：核心内容页
+### 页面骨架
+- 模板：`compare_then_ai`
+- 区域：
+  - `compare-table`：全宽，对象项 / 初值项对照
+  - `self-judgment`：全宽，三字段自判表单
+  - `ai-panel`：全宽，页内 AI 对照区
 
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `2.6 非零初值辨析` | `formula/example/conclusion` | 对象项 / 初值项对照与非零初值说明 | `static+interactive` |
+### 模块清单
+- `object-state-compare`：`two-column-compare`
+- `reflection-form`：`three-field-form`
+- `bounded-ai`：`ai-assistant`
 
-### 静态承载内容
-- 用一阶系统示例静态写出“对象项”和“初值项”的两列对照。
-- 页面先给出通用对象表达与含初值表达：
+### 固定内容
+- 公式组：
 
 $$
 Y(s)=G(s)U(s)
@@ -291,415 +347,503 @@ $$
 Y(s)=G(s)U(s)+\text{初值项}
 $$
 
-- 再给出一阶系统示例分解式：
+- 一阶系统示例：
 
 $$
 Y(s)=\frac{K}{Ts+1}U(s)+\frac{T\,y(0^-)}{Ts+1}
 $$
 
-- 明确结论：初始状态会带来额外项，因此不能把非零初值混入对象定义本体。
+- 固定结论：初始状态带来额外项，不能进入对象定义本体
 
-### 互动升级点
-先写一句自己的判断，再点开 AI 对照区核验“为什么会多出初值项”“为什么对象项与初值项不能混为同一件事”。
+### 互动与反馈
+- 组件类型：`reflection_form`
+- 结构：先写个人判断，再打开页内 AI 对照区
+- 答案揭示：`teacher_toggle`
 
-### 教师端
-用一阶系统展示非零初值会额外带出初始状态项，说明传递函数不能脱离零初值来理解。
+### 埋点与教师数据
+- 埋点摘要：`submitted`、`aiUsed`、`resultState`、`teacherRevealSeen`
+- 错因标签：`mix_object_and_state`
+- 教师聚合：`ai_usage_rate`、`misconception_tags`、`keyword_cloud`
 
-### 学生端
-先写一句自己的判断，再点开 AI 对照区核验。AI 输出必须回答两件事：
-- 为什么会多出初值项；
-- 为什么对象项与初值项不能混为同一件事。
+### AI 边界
+- 页面目标：对象项 / 初值项分离
+- 允许范围：额外初值项来源、对象定义边界
+- 禁止范围：代替学生直接生成完整答案
 
-**[前端绘制]**：`ic-02` “对象项 / 初值项”双列对照卡。
-
----
-
-## 步骤 08｜典型环节对象库：先看清对象由什么组成（8min）
-
-**页面类型**：知识整合页
-
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `2.7 典型环节对象库` | `table/concept/conclusion` | 五类典型环节及第一判断 | `static+interactive` |
-
-### 静态承载内容
-页面必须先以课件页方式完整展示五类典型环节总表，再进入互动舞台。
-
-固定布局如下：
-- 上半区：`表2. 五类典型环节及其第一判断`
-- 中间区：典型环节总图 `2-1-md-01-typical-elements-map.png`；若图片未补齐，只允许退回“保留总表 + 补文字说明”，不允许删成简版卡片
-- 下半区：真实拖拽舞台，学生把“公式卡 / 名称卡 / 第一眼工程判断卡”拖到 5 个对象槽位
-
-总表必须完整出现以下 5 行：
-- 比例环节：$G(s)=K$；第一眼判断“改变强弱，不改变动态阶次”
-- 积分环节：$G(s)=1/s$；第一眼判断“引入记忆，常使系统慢慢积累”
-- 微分环节：$G(s)=s$；第一眼判断“强调变化趋势，对快变化敏感”
-- 惯性环节：$G(s)=1/(Ts+1)$；第一眼判断“不振荡，主要体现快慢差异”
-- 振荡环节：$G(s)=\omega_n^2/(s^2+2\zeta\omega_n s+\omega_n^2)$；第一眼判断“可能超调、振荡、再稳定”
-
-### 互动升级点
-这里不是普通选择题，而是明显游戏化的拖拽配对练习。
-
-固定交互规则如下：
-- 舞台分为 5 个对象槽位，每个槽位接收 3 类卡片：公式、名称、第一眼工程判断
-- 允许加入干扰项，例如 `G(s)=1/(s(Ts+1))`、`先直接算总式`
-- 学生提交后，只允许提示“哪些槽位仍有错位”，不直接公布完整答案
-- 教师端可以逐行揭示正确对应关系
-- 演示模式必须直接显示同一套拖拽舞台，不允许退化成单选或文本表单
-
-### 教师端
-教师端除了逐项讲解比例、积分、微分、惯性、振荡环节之外，还需要：
-- 控制“释放拖拽舞台 / 逐行揭示答案”
-- 查看首过率、重试率、高错对象槽位
-- 只查看聚合结果，不查看逐拖拽轨迹
-
-### 学生端
-学生端固定动作链：
-1. 先看上方总表，完成第一次对象浏览
-2. 进入下方拖拽舞台，完成“公式 / 名称 / 第一眼工程判断”的三列配对
-3. 若提交错误，只收到错位槽位反馈，再返回上方总表核对
-4. 若教师揭示答案，则逐行看到正确映射被点亮
-
-**资源**：本步骤默认采用页面内卡片 + 表格展示；如后续补图，可落为 `2-1-md-01-typical-elements-map.png`。
-
-**[前端绘制]**：`ic-03` 典型环节卡片拖拽组件。
-
-### 埋点与教师分析
-- 学生侧埋点只记录：`attemptCount`、`resultState`、`durationBand`、`hintUsed`、`teacherRevealSeen`、`misconceptionTags`
-- 教师端展示：首过率、重试率、错因标签分布、高错槽位热区
-- 明确禁止：逐像素拖拽轨迹、每次 hover 记录、每次位置微调记录
-
-### 页内 AI context
-- 允许 AI 解释：典型环节第一眼识别、为什么先认对象再做运算、五类对象的最小判断
-- 禁止 AI 越界：提前展开 `2-2` 时域响应分析、直接替学生完成拖拽答案、讲复杂组合对象化简技巧
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-07`
+- 对齐要求：双列对照必须先于 AI 区出现，自判表单位于两者之间。
 
 ---
 
-## 步骤 09｜结构图三类基本连接（8min）
+## step-08｜典型环节对象库：先看清对象由什么组成
 
-**页面类型**：核心内容页
+### 页面骨架
+- 模板：`courseware_top_game_stage_bottom`
+- 区域：
+  - `table-zone`：全宽，五类典型环节总表
+  - `map-zone`：全宽，典型环节总图
+  - `game-stage`：全宽，三列拖拽配对舞台
+  - `submit-zone`：全宽，提交反馈条
 
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `2.8 三类基本连接` | `formula/figure/conclusion` | 串联、并联、反馈三条基础公式 | `static+interactive` |
+### 模块清单
+- `elements-table`：`table-card`
+- `elements-map`：`image-or-table-fallback`
+- `drag-board`：`drag-match-board`
+- `result-bar`：`submit-feedback-bar`
 
-### 静态承载内容
-页面静态层先给出三类连接的基础公式与图示：
+### 固定内容
+- 表题：五类典型环节及其第一判断
+- 表头：
+  - 典型环节
+  - 传递函数形式
+  - 你应先抓住的物理或工程含义
+  - 第一眼判断
+- 表格正文：
+  - 比例环节 | $G(s)=K$ | 只有比例放大或缩小，不引入动态记忆 | 改变强弱，不改变动态阶次
+  - 积分环节 | $G(s)=1/s$ | 输出是输入随时间的累积 | 引入记忆，常使系统慢慢积累
+  - 微分环节 | $G(s)=s$ | 输出更敏感于输入变化率 | 强调变化趋势，对快变化敏感
+  - 一阶惯性环节 | $G(s)=1/(Ts+1)$ | 存在滞后，响应不会立刻到位 | 不振荡，主要体现快慢差异
+  - 振荡环节 | $G(s)=\omega_n^2/(s^2+2\zeta\omega_n s+\omega_n^2)$ | 同时包含快慢与振荡特征 | 可能超调、振荡、再稳定
+- 图像资源：`2-1-md-01-typical-elements-map.png`
+- 图像缺席时的硬约束：保留完整总表，不得删成简化卡片
+- 规则说明文字：先看上方总表，再进入下方拖拽舞台。舞台中的卡片分为公式卡、名称卡、第一眼工程判断卡。
 
-$$
-G_{\text{series}}(s)=G_1(s)G_2(s)
-$$
+### 互动与反馈
+- 组件类型：`drag_match`
+- 舞台形态：三列拖拽配对舞台
+- 目标槽位：
+  - 比例对象槽位
+  - 积分对象槽位
+  - 微分对象槽位
+  - 惯性对象槽位
+  - 振荡对象槽位
+- 可拖拽卡片：
+  - `G(s)=K`
+  - `G(s)=1/s`
+  - `G(s)=s`
+  - `G(s)=1/(Ts+1)`
+  - `G(s)=\omega_n^2/(s^2+2\zeta\omega_n s+\omega_n^2)`
+  - 比例环节 / 积分环节 / 微分环节 / 惯性环节 / 振荡环节
+  - 改变强弱，不改变动态阶次
+  - 引入记忆，常使系统慢慢积累
+  - 强调变化趋势，对快变化敏感
+  - 不振荡，主要体现快慢差异
+  - 可能超调、振荡、再稳定
+- 干扰项：
+  - `G(s)=1/(s(Ts+1))`
+  - `先直接算总式`
+  - `所有对象都先看稳态误差`
+- 提交规则：允许重试；反馈只指出错位槽位数量和类型，不直接公布完整答案
+- 成功反馈：正确槽位锁定，高亮描边与亮牌反馈
+- 失败反馈：错位槽位高亮，提示“先回到上方对象总表核对”
+- 揭示方式：`teacher_toggle_stepwise`
 
-$$
-G_{\text{parallel}}(s)=G_1(s)+G_2(s)
-$$
+### 埋点与教师数据
+- 埋点摘要：`attemptCount`、`resultState`、`durationBand`、`hintUsed`、`teacherRevealSeen`、`misconceptionTags`
+- 高频事件禁用：`drag_pointer_trace`、`every_slot_hover`
+- 错因标签：
+  - `identify_after_calculation`
+  - `integral_meaning_missing`
+  - `inertia_vs_oscillation_confusion`
+- 教师聚合：
+  - `first_pass_rate`
+  - `retry_rate`
+  - `error_hotspots`
+  - `misconception_tag_distribution`
 
-$$
-G_{\text{feedback}}(s)=\frac{G(s)}{1\pm G(s)H(s)}
-$$
+### AI 边界
+- 页面目标：五类典型环节的第一眼识别
+- 允许范围：对象识别、先认对象再运算、五类对象最小判断
+- 禁止范围：2-2 时域响应分析、直接代答拖拽、复杂组合对象化简
 
-### 互动升级点
-看到三种结构图后，完成“这一步应该用哪条规则”的即时判断。
-
-### 教师端
-依次讲串联、并联、反馈，只保最基础的三条规则，不进入复杂结构图技巧。
-
-### 学生端
-看到三种结构图后，完成“这一步应该用哪条规则”的即时判断。
-
-**资源**：
-- `2-1-md-02-series-equivalent.png`
-- `2-1-md-03-parallel-equivalent.png`
-- `2-1-md-04-feedback-equivalent.png`
-
----
-
-## 步骤 10｜船舶航向系统：把对象真正连成系统（5min）
-
-**页面类型**：核心内容页
-
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `2.9 船舶航向系统结构表达` | `figure/example/conclusion` | 控制器、舵机、船体、传感器的整体结构表达 | `static+interactive` |
-
-### 静态承载内容
-- 页面静态写清控制器、舵机、船体、传感器在整体对象中的角色。
-- 配合结构图说明“哪个信号被反馈回来修正输入”。
-
-### 互动升级点
-在图下做一个小任务，要求学生指出反馈信号路径。
-
-### 教师端
-调用船舶航向系统结构图，明确控制器、舵机、船体、传感器分别在整体中承担什么作用。
-
-### 学生端
-在图下完成一个小任务：
-> 标出哪个信号是“被反馈回来修正输入”的。
-
-**资源**：`2-1-md-05-ship-heading-physical-blocks.png`
-
----
-
-## 步骤 11｜方框图为什么还不够：信号流图补位（5min）
-
-**页面类型**：核心内容页
-
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `2.10 方框图与信号流图` | `figure/concept/conclusion` | 两类图的任务分工 | `static+interactive` |
-
-### 静态承载内容
-静态列出两种图的任务分工：
-- 方框图：模块和连接；
-- 信号流图：节点和路径。
-
-### 互动升级点
-在同一系统的两张图中，让学生判断哪张更适合看模块组成、哪张更适合看路径和回路。
-
-### 教师端
-讲清两者任务分工：
-- 方框图：模块和连接；
-- 信号流图：节点和路径。
-
-### 学生端
-在同一系统的两张图中，分别指出：
-- 哪张更容易看模块组成；
-- 哪张更容易看路径和回路。
-
-**资源**：`2-1-md-06-block-vs-sfg.png`
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-08`
+- 对齐要求：
+  - 默认预览直接进入学生演示页
+  - 演示页直接出现真实拖拽舞台
+  - 不允许退化为单选、文本问答或占位卡
 
 ---
 
-## 步骤 12｜梅森公式的最小使用集（6min）
+## step-09｜结构图三类基本连接
 
-**页面类型**：知识整合页
+### 页面骨架
+- 模板：`formula_strip_plus_rule_check`
+- 区域：
+  - `formula-strip`：全宽，三条基础公式
+  - `rule-cards`：全宽，规则卡行
+  - `judge-zone`：全宽，判断区
 
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `2.11 梅森公式最小使用集` | `formula/concept` | 梅森公式与四个术语 | `static+interactive` |
+### 模块清单
+- `three-formulas`：`formula-strip`
+- `rule-cards`：`rule-card-row`
+- `judge-zone`：`judge-form`
 
-### 静态承载内容
-只讲四个术语和一个公式：
-- 前向通路；
-- 回路；
-- 互不接触回路；
-- 余子式；
+### 固定内容
+- 三条基础公式：
+
+$$
+G(s)=G_1(s)G_2(s)
+$$
+
+$$
+G(s)=G_1(s)+G_2(s)
+$$
+
+$$
+\frac{Y(s)}{R(s)}=\frac{G(s)}{1+G(s)H(s)}
+$$
+
+- 三类结构图资源：
+  - `2-1-md-02-series-equivalent.png`
+  - `2-1-md-03-parallel-equivalent.png`
+  - `2-1-md-04-feedback-equivalent.png`
+
+### 互动与反馈
+- 组件类型：`rule_judge`
+- 校验内容：串联、并联、反馈分别对应哪条规则；反馈为何关键
+- 答案揭示：`teacher_toggle`
+
+### 埋点与教师数据
+- 埋点摘要：`attemptCount`、`resultState`、`misconceptionTags`
+- 错因标签：`feedback_as_sum`、`parallel_as_product`
+- 教师聚合：`option_distribution`、`feedback_explanation_keywords`
+
+### AI 边界
+- 页面目标：三种基本连接与对应规则
+- 允许范围：串联、并联、反馈
+- 禁止范围：复杂结构化简技巧
+
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-09`
+- 对齐要求：三条公式在作答前完整可见。
+
+---
+
+## step-10｜船舶航向系统：把对象真正连成系统
+
+### 页面骨架
+- 模板：`engineering_block_diagram`
+- 区域：
+  - `diagram`：全宽，工程结构图
+  - `role-cards`：全宽，角色卡
+  - `feedback-task`：全宽，热点标注区
+
+### 模块清单
+- `ship-diagram`：`engineering-diagram`
+- `role-cards`：`role-card-row`
+- `feedback-task`：`short-response`
+
+### 固定内容
+- 结构图资源：`2-1-md-05-ship-heading-physical-blocks.png`
+- 固定角色卡：
+  - 控制器
+  - 舵机
+  - 船体
+  - 传感器
+- 固定说明：反馈信号在闭环中的回送位置与传感器作用
+
+### 互动与反馈
+- 组件类型：`hotspot_labeling`
+- 校验内容：反馈信号位置、传感器闭环作用
+- 答案揭示：`teacher_toggle`
+
+### 埋点与教师数据
+- 埋点摘要：`attemptCount`、`resultState`、`teacherRevealSeen`
+- 错因标签：`sensor_role_unclear`
+- 教师聚合：`hotspot_accuracy`、`common_feedback_errors`
+
+### AI 边界
+- 页面目标：把对象真正连接成系统
+- 允许范围：四个模块角色、反馈信号位置
+- 禁止范围：闭环总式推导展开
+
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-10`
+- 对齐要求：结构图与四个角色说明同屏。
+
+---
+
+## step-11｜方框图为什么还不够：信号流图补位
+
+### 页面骨架
+- 模板：`comparison_slide`
+- 区域：
+  - `left-diagram`：`1/2`，方框图
+  - `right-diagram`：`1/2`，信号流图
+  - `comparison-table`：全宽，任务分工表
+
+### 模块清单
+- `diagram-comparison`：`dual-diagram`
+- `task-table`：`comparison-table`
+
+### 固定内容
+- 对照图资源：`2-1-md-06-block-vs-sfg.png`
+- 分工表固定结论：
+  - 方框图：看模块与连接
+  - 信号流图：看路径与回路
+
+### 互动与反馈
+- 组件类型：`bucket_sort`
+- 任务卡：`看模块连接`、`看路径回路` 等任务拖入对应栏目
+- 答案揭示：`teacher_toggle`
+
+### 埋点与教师数据
+- 埋点摘要：`attemptCount`、`resultState`、`misconceptionTags`
+- 错因标签：`block_equals_sfg`
+- 教师聚合：`task_assignment_accuracy`
+
+### AI 边界
+- 页面目标：两类图的分工边界
+- 允许范围：模块 / 连接 / 路径 / 回路
+- 禁止范围：梅森公式细节
+
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-11`
+- 对齐要求：至少保留一张方框图 / 信号流图对照图。
+
+---
+
+## step-12｜梅森公式的最小使用集
+
+### 页面骨架
+- 模板：`formula_then_term_match`
+- 区域：
+  - `formula-zone`：全宽，梅森公式卡
+  - `term-cards`：全宽，术语定义卡
+  - `match-stage`：全宽，拖拽配对区
+
+### 模块清单
+- `mason-formula`：`formula-card`
+- `term-defs`：`definition-cards`
+- `term-match`：`drag-match-board`
+
+### 固定内容
+- 公式：
 
 $$
 \frac{Y(s)}{R(s)}=\frac{\sum P_k\Delta_k}{\Delta}
 $$
 
-### 互动升级点
-用“术语配对”练习，把概念和图中被高亮的结构对应起来。
+- 固定术语：
+  - 前向通路
+  - 回路
+  - 互不接触回路
+  - 余子式
 
-### 教师端
-只讲四个术语和一个公式。
+### 互动与反馈
+- 组件类型：`drag_match`
+- 配对内容：术语、定义、高亮区域
+- 干扰项：`局部模块`、`传感器噪声`
+- 揭示方式：`teacher_toggle_stepwise`
 
-### 学生端
-完成一个“术语配对”练习，把每个概念和图中被高亮的结构对应起来。
+### 埋点与教师数据
+- 埋点摘要：`attemptCount`、`resultState`、`misconceptionTags`、`teacherRevealSeen`
+- 错因标签：`delta_as_loop`、`touching_definition_blur`
+- 教师聚合：`term_accuracy`、`common_term_confusions`
 
-**[前端绘制]**：`ic-04` 信号流图术语高亮切换组件。
+### AI 边界
+- 页面目标：梅森公式最小术语集
+- 允许范围：公式本体、四个术语
+- 禁止范围：跨题复杂计算
 
----
-
-## 步骤 13｜例题一：单回路闭环对象如何收束（8min）
-
-**页面类型**：核心内容页
-
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `### 3.1 例题一：把一个简化的航向控制系统完整写成总体对象` | `example/figure/conclusion` | 对象识别到闭环对象收束的完整例题链 | `static+interactive` |
-| `#### Step 2：写前向通道传递函数` | `formula/example` | 前向通道总式 | `static+interactive` |
-| `#### Step 3：用方框图写出闭环对象` | `formula/example/conclusion` | 闭环对象总式 | `static+interactive` |
-
-### 静态承载内容
-展示例题一的完整链：
-- 对象识别
-- 前向通道
-- 闭环对象
-- 信号流图验证
-
-并把关键总式直接写在页面上：
-
-$$
-G(s)=\frac{K_cK_p}{s(T_a s+1)(T_p s+1)}
-$$
-
-$$
-\Phi(s)=\frac{Y(s)}{R(s)}=\frac{K_cK_p}{s(T_a s+1)(T_p s+1)+K_cK_pK_h}
-$$
-
-并静态写清最终真正要分析的是闭环对象，而不是局部模块。
-
-### 互动升级点
-用选择题确认前向通道、反馈通道和闭环对象的定位。
-
-### 教师端
-展示例题一的完整链：对象识别 -> 前向通道 -> 闭环对象 -> 信号流图验证。
-
-### 学生端
-在页面下方选择：
-- 哪一项是前向通道；
-- 哪一项是反馈通道；
-- 为什么最终真正要分析的是闭环对象而不是局部模块。
-
-**资源**：
-- `2-1-md-07-example-ship-loop.png`
-- `2-1-md-08-example-ship-sfg.png`
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-12`
+- 对齐要求：公式卡先于拖拽配对区出现；互动不退化为文本选择题。
 
 ---
 
-## 步骤 14｜补充辨析：余子式为什么不一定等于 1（6min）
+## step-13｜例题一：单回路闭环对象如何收束
 
-**页面类型**：辨析页
+### 页面骨架
+- 模板：`worked_example_three_stage`
+- 区域：
+  - `step-cards`：全宽，例题步骤卡
+  - `diagram-zone`：全宽，方框图 / 信号流图双图区
+  - `check-zone`：全宽，选择校验区
 
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `#### Step 4：把同一结构换成信号流图视角` | `formula/example` | $P_1$、$L_1$、$\\Delta$、$\\Delta_1$ 与梅森代入链 | `static+interactive` |
-| `## 附录B｜梅森公式速查：你真正要按什么顺序看` | `example/conclusion` | $\\Delta_k$ 判定理由与两类“不接触”区别 | `static+interactive` |
+### 模块清单
+- `example-steps`：`worked-example-cards`
+- `loop-diagram`：`diagram-pair`
+- `channel-check`：`choice-check`
 
-### 静态承载内容
-静态分成两层说明：
-- 第一层是例题一本体：哪条前向通路没有碰到局部回路，为什么这里要先区分全图特征式 $\Delta$ 与该前向通路对应的余子式 $\Delta_1$。
-- 第二层是附录补充情形：只有当存在“不接触该前向通路”的局部回路时，才会出现 $\Delta_k=1-L_1$。
-- 两层共同要说明：“回路之间互不接触”和“回路不接触某条前向通路”不是同一件事。
-
-并把公式链直接写在页面上：
-
-$$
-P_1=\frac{K_cK_p}{s(T_a s+1)(T_p s+1)}
-$$
+### 固定内容
+- 前向通道总式：
 
 $$
-L_1=-\frac{K_cK_pK_h}{s(T_a s+1)(T_p s+1)}
+G(s)=\frac{K_cK_p}{s(T_as+1)(T_ps+1)}
 $$
 
-$$
-\Delta=1-L_1=1+\frac{K_cK_pK_h}{s(T_a s+1)(T_p s+1)}
-$$
+- 闭环对象总式：
 
 $$
-\Delta_1=1,\qquad
-\frac{Y(s)}{R(s)}=\frac{P_1\Delta_1}{\Delta}
+\Phi(s)=\frac{K_cK_p}{s(T_as+1)(T_ps+1)+K_cK_pK_h}
 $$
 
-并在静态提示卡中单独写出附录补充情形：
+- 图像资源：
+  - `2-1-md-07-example-ship-loop.png`
+  - `2-1-md-08-example-ship-sfg.png`
+- 例题链固定分段：
+  - 对象识别
+  - 前向通道
+  - 闭环对象
+  - 信号流图验证
 
-$$
-\text{附录补充情形：}\quad \Delta_k=1-L_1
-$$
+### 互动与反馈
+- 组件类型：`choice_check`
+- 校验内容：前向通道、反馈通道、真正分析对象
+- 答案揭示：`teacher_toggle`
 
-### 互动升级点
-按“预测 -> 高亮 -> 对比 -> 记录”做路径辨析，并要求先分清“例题一本体里为什么是 $\Delta_1=1$”，再解释“附录补充情形下为什么会保留 $\\Delta_k=1-L_1$”。
+### 埋点与教师数据
+- 埋点摘要：`attemptCount`、`resultState`、`misconceptionTags`
+- 错因标签：`local_module_as_final_object`
+- 教师聚合：`choice_distribution`、`closed_loop_focus_rate`
 
-### 教师端
-不再展开第二道完整技巧题，只保留一个“本体 + 附录补充情形”的辨析任务。教师先让学生独立判断，再逐步揭示上述两层静态内容。
+### AI 边界
+- 页面目标：单回路闭环对象收束
+- 允许范围：前向通道、反馈通道、闭环对象
+- 禁止范围：复杂多回路推广
 
-### 学生端
-按“预测 -> 高亮 -> 对比 -> 记录”完成任务：
-1. 先猜哪条前向通路没有碰到局部回路；
-2. 点击高亮查看正确路径，并确认例题一本体里为何是 $\Delta_1=1$；
-3. 再填一句话解释附录补充情形下为什么会保留 $\\Delta_k=1-L_1$。
-
-**资源**：
-- `2-1-md-14-example2-sfg.png`
-
-**[前端绘制]**：`ic-05` 前向通路 / 回路 / 接触关系高亮组件。
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-13`
+- 对齐要求：前向通路总式与闭环总式同时明文出现。
 
 ---
 
-## 步骤 15｜后测——会不会用对象语言复述本课（5min）
+## step-14｜补充辨析：余子式为什么不一定等于 1
 
-**页面类型**：测验页
+### 页面骨架
+- 模板：`path_highlight_reasoning`
+- 区域：
+  - `formula-chain`：全宽，公式链
+  - `highlight-stage`：全宽，信号流图高亮区
+  - `explain-box`：全宽，原因填写框
 
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `2.14 后测回收` | `concept/conclusion` | 三道后测题对齐本课主线 | `interactive` |
+### 模块清单
+- `formula-chain`：`formula-strip`
+- `sfg-stage`：`path-highlight-stage`
+- `reason-box`：`single-reason-response`
 
-### 静态承载内容
-页面直接给出三道后测题，让学生不依赖交互也能读到本课回收点。
+### 固定内容
+- 公式链：
 
-### 互动升级点
-用后测提交、统计和教师汇总收回对象建立链是否真正掌握。
+$$
+P_1=\frac{K_cK_p}{s(T_as+1)(T_ps+1)}
+$$
 
-### 教师端
-发布 3 题后测，重点看学生是否真的掌握“对象建立链”，而不是只记住零散术语。
+$$
+L_1=-\frac{K_cK_pK_h}{s(T_as+1)(T_ps+1)}
+$$
 
-### 学生端
-完成三题：
-1. 为什么传递函数必须和零初值一起理解；
-2. 看到长分式时，第一步应该先做什么；
-3. 什么时候余子式不等于 1。
+$$
+\Delta=1-L_1
+$$
 
-**[前端绘制]**：`ic-06` 后测统计面板。
+$$
+\Delta_1=1
+$$
+
+- 图像资源：`2-1-md-14-example2-sfg.png`
+- 固定辨析点：
+  - 例题一本体中的 `\Delta_1=1`
+  - 附录补充情形中的 `\Delta_k=1-L_1`
+  - “回路之间互不接触”与“回路不接触某条前向通路”的区别
+
+### 互动与反馈
+- 组件类型：`path_highlight`
+- 校验内容：前向通路高亮、局部回路高亮、接触判定、原因说明
+- 揭示方式：`teacher_toggle_stepwise`
+
+### 埋点与教师数据
+- 埋点摘要：`attemptCount`、`resultState`、`misconceptionTags`、`teacherRevealSeen`
+- 错因标签：`non_touching_loops_vs_non_touching_path`
+- 教师聚合：`highlight_accuracy`、`common_contact_confusions`
+
+### AI 边界
+- 页面目标：余子式判定边界
+- 允许范围：前向通路、局部回路、接触关系
+- 禁止范围：无关的新例题拓展
+
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-14`
+- 对齐要求：前向通路、局部回路与接触判定必须具备可视化高亮，不得退化为纯文字辨析。
 
 ---
 
-## 步骤 16｜总结——对象语言已建立，下一课进入响应分析（5min）
+## step-15｜后测——会不会用对象语言复述本课
 
-**页面类型**：纯展示页
+### 页面骨架
+- 模板：`post_quiz_stack`
+- 区域：
+  - `quiz-stack`：全宽，三题后测
+  - `distribution`：全宽，教师端聚合分布区
 
-### 讲义核心内容映射
-| handout_anchor | core_item_type | must_appear_content | page_mode |
-|----------------|----------------|---------------------|-----------|
-| `2.15 本课总结与下节衔接` | `conclusion/formula` | 本课收束链与下一课入口 | `static` |
+### 模块清单
+- `post-quiz`：`quiz-group`
+- `distribution`：`teacher-only-distribution`
 
-### 静态承载内容
-用两条链收束：
+### 固定内容
+- 三题检查点：
+  - 零初值
+  - 典型环节识别
+  - 余子式判断
 
-$$
-\text{对象建立} \rightarrow \text{对象识别} \rightarrow \text{结构表达} \rightarrow \text{总体对象}
-$$
+### 互动与反馈
+- 组件类型：`quiz_group`
+- 题目数量：3
+- 答案揭示：`teacher_toggle`
 
-$$
-\text{总体对象} \rightarrow \text{单位阶跃响应} \rightarrow \text{动态性能指标}
-$$
+### 埋点与教师数据
+- 埋点摘要：`attemptCount`、`resultState`、`errorBucket`、`teacherRevealSeen`
+- 错因标签：`zero_initial_state`、`typical_element_identification`、`delta_k_judgment`
+- 教师聚合：`question_distribution`、`top_error_question`
+- 学生端显示限制：不显示全班分布，只显示个人提交态
 
-### 互动升级点
-无，保持静态展示。
+### AI 边界
+- 本页无独立 AI 模块
 
-### 教师端
-用五句结论收束本课，并明确：
-- 本课解决“对象怎么来”；
-- 下一课解决“对象在时间里怎么动”。
-
-### 学生端
-看到上述收束图，并明确本课与 `2-2` 的连接关系。
-
-**资源**：`2-1-info.png`
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-15`
+- 对齐要求：教师端聚合仅以班级分布方式出现，不下放到学生页。
 
 ---
 
-## 资源占位清单
-| 编号 | 资源名称 | 所在步骤 | 类型 | 优先级 |
-|------|----------|----------|------|--------|
-| R-01 | `2-1-cover-comic.png` | step-02 | 封面图 / 导入图 | 高 |
-| R-02 | `2-1-md-01-typical-elements-map.png`（待补） | step-08 | 典型环节总图 | 中 |
-| R-03 | `2-1-md-02-series-equivalent.png` | step-09 | 结构图 | 高 |
-| R-04 | `2-1-md-03-parallel-equivalent.png` | step-09 | 结构图 | 高 |
-| R-05 | `2-1-md-04-feedback-equivalent.png` | step-09 | 结构图 | 高 |
-| R-06 | `2-1-md-05-ship-heading-physical-blocks.png` | step-10 | 工程结构图 | 高 |
-| R-07 | `2-1-md-06-block-vs-sfg.png` | step-11 | 对照图 | 高 |
-| R-08 | `2-1-md-07-example-ship-loop.png` | step-13 | 例题结构图 | 高 |
-| R-09 | `2-1-md-08-example-ship-sfg.png` | step-13 | 信号流图 | 高 |
-| R-10 | `2-1-md-14-example2-sfg.png` | step-14 | 补充辨析信号流图 | 高 |
-| R-11 | `2-1-info.png` | step-16 | 总结图 | 中 |
+## step-16｜总结——对象语言已建立，下一课进入响应分析
 
-## 同步逻辑汇总
-| 教师操作 | 学生端变化 |
-|----------|------------|
-| 切换 `step-01` ~ `step-16` | 学生端同步切换到对应页面 |
-| 发布前测 / 后测 | 学生端解锁答题区 |
-| 点击“揭示路径 / 回路” | 学生端图中高亮对应结构 |
-| 打开 AI 对照区 | 学生端出现只读 AI 对照结果，不覆盖学生原始作答 |
-| demo 模式 | 学生可自由浏览全部步骤，无需教师同步 |
+### 页面骨架
+- 模板：`summary_infographic`
+- 区域：
+  - `summary-chain`：全宽，总结链
+  - `finished-steps`：全宽，信息图
+  - `next-lesson`：全宽，下一课入口
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+### 模块清单
+- `summary-chain`：`summary-chain`
+- `summary-image`：`summary-image`
+
+### 固定内容
+- 总结链：
+  - 对象建立
+  - 对象识别
+  - 结构表达
+  - 总体对象
+- 信息图资源：`2-1-info.png`
+- 下一课入口：2-2 时域响应分析
+
+### 互动与反馈
+- 组件类型：`none`
+
+### 埋点与教师数据
+- 埋点摘要：`viewed`、`timeOnStep`
+- 教师聚合：`session_finalize_ready`
+
+### AI 边界
+- 页面目标：全课收束与下一课入口
+- 允许范围：四段主线结论、2-2 入口
+- 禁止范围：提前展开 2-2 指标内容
+
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-16`
+- 对齐要求：总结链与信息图同屏，页面结尾直接指向下一课。
+

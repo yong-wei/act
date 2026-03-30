@@ -1,0 +1,19 @@
+{
+  "lesson_id": "3-2",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/3-2/sequence.json",
+  "card_order": [
+    "闭环特征方程_3_87c88e19",
+    "稳定性_3_72d04fbd",
+    "劳斯判据_3_e3500ac9",
+    "稳定可行域_3_7eed0929",
+    "劳斯表特殊情况_3_f787433f",
+    "辅助方程_3_ed86f1f0",
+    "闭环极点_3_f9432bf3",
+    "变量平移判稳_3_38e76ca0",
+    "复平面可行域_4_Lsum001",
+    "设计可行域_4_Lsum004"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

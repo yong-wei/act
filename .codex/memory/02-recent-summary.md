@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-03-28
-摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，还必须注意 `slides-ref` 已启动 `pptx -> Markdown + TikZ` 资源库长期转换任务、`resource-library` 已正式接入大纲重构与课程制作技能、新落地的 `course-content/questions/` 结构化习题库，以及数据治理 worker 故障收敛后的稳定运维边界。
+最后更新: 2026-03-30
+摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，还必须注意互动设计文档已进入“人读 `interactive-page.md` + 机读 `interactive-contract.yaml`”双轨真源阶段，`slides-ref` 已启动 `pptx -> Markdown + TikZ` 资源库长期转换任务、`resource-library` 已正式接入大纲重构与课程制作技能、新落地的 `course-content/questions/` 结构化习题库，以及数据治理 worker 故障收敛后的稳定运维边界。
 上游:
 - [00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
 - [README.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/README.md)
@@ -15,6 +15,7 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-03-30 已把 `2-1` 的互动设计升级为 V2 双轨真源：作者态 `interactive-page.md` 负责固定页面布局、文本/公式/图片填充和互动方式，`interactive-contract.yaml` 负责机读约束；`course-content/scripts/review_lesson_content.py` 现在会校验契约必需字段，并把 `contract_path`、`missing_contract_fields`、`step_contract_issues`、`interactive_contract_source` 导出到 `runtime/lessons/<lesson>/review/*`。同时，教师端预置教案预览已明确“默认打开学生演示页，所见即所得”，不再把教师模板弹窗当作真实页面预览；后续实现互动课时，若课次已提供契约，就不应再回读讲义自由发挥页面结构
 - 2026-03-28 已把 `course-content/questions/` 正式并入 [course-content/syllabus-refactor/homework-framework.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/syllabus-refactor/homework-framework.md)：`questions/AC-Q-*.json|md` 与 `indexes/` 现在是闭题设计的正式题源输入层，必须遵循“先定作业边界、再选题源”的规则；其中结构化解析题库当前共 `167` 题，适合做 `[C]` 题训练校准与 `[X]/[D]` 题的对象/图示/评分锚点候选，`objective-bank/icourse-bank-bankType4.*` 的 `226` 道客观题则明确只服务前测、补练与自适应推题，不直接占用 `20道闭题` 或 `O1-O7` 开放题名额
 - 2026-03-28 已把 [course-content/resource-library/integration-framework.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/resource-library/integration-framework.md) 作为资源库正式融入规范落地，并同步更新了 [.codex/skills/syllabus-refactor/SKILL.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/skills/syllabus-refactor/SKILL.md) 与 [.codex/skills/lesson/SKILL.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/skills/lesson/SKILL.md)：以后 `pptx`、思政案例、船舶案例和既有习题资源不再只是“可参考”，而必须按“先读蓝图边界 -> 再读资源索引 -> 形成资源融入评审单/本课资源采用单 -> 按讲义/教案/互动页/媒体转写”的流程使用；稳定工作流已沉淀到 [70-workflows/55-resource-library-integration.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/55-resource-library-integration.md)
 - 2026-03-28 已把 `iCourse163 bankType=4` 客观题正式落到 [course-content/questions/objective-bank](/Users/YW/Documents/Site/act.just.edu.cn/course-content/questions/objective-bank)；稳定链路是 `tmp/icourse-question-bank-repair -> tmp/icourse-formula-map.complete.json -> build_icourse_objective_bank.py -> objective-bank/icourse-bank-bankType4.*`，最终纳入 `226` 题（单选 `96`、多选 `129`、填空 `1`），并补齐了 `objective-bank/README.md` 与专用 schema；后续凡是处理同类网页导出客观题，优先复用 [70-workflows/60-icourse-objective-bank-flow.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/60-icourse-objective-bank-flow.md)

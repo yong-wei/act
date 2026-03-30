@@ -23,15 +23,19 @@
 
 除常规图表、结构图、代码直出图外，理论课默认还应规划：
 
-- 讲义封面漫画：`[单元编号]-cover-comic-prompt.md` / `[单元编号]-cover-comic.png`
-- 15 秒导入视频：`[单元编号]-intro-video.mp4`
-- 讲义信息图：`[单元编号]-info.png`
-- 课程级默认成套媒体：
+- 讲义封面漫画提示词：`[单元编号]-cover-comic-prompt.md`
+- 15 秒导入视频提示词：用于后续生成 `[单元编号]-intro-video.mp4`
+- 讲义信息图成品占位：`[单元编号]-info.png`
+- 课程级后续审查占位：
   - `[单元编号]-slides.pdf`
   - `[单元编号]-course.mp4`
   - `[单元编号]-audio.m4a`
 
-若某项不适合当前单元，需在 `multimedia.md` 中明确写出不采用原因，而不是默认省略。
+媒体制作阶段的硬交付边界如下：
+
+- 必做：代码直出图、TikZ 线框图、互动前端绘制需求、`cover-comic-prompt.md`、导入视频提示词。
+- 仅登记待审查占位：`cover-comic.png`、`intro-video.mp4`、`info.png`、`slides.pdf`、`audio.m4a`。
+- 上述待审查占位由用户后续完成成品后，在审查阶段确认可用性。
 
 ---
 
@@ -82,7 +86,7 @@
 **命名硬约束：**
 - 所有最终媒体文件都必须统一带单元前缀，即都以 `<unit>-` 开头。
 - `h` / `ic` / `sh` / `cd` 这类用途前缀仍保留，但位于单元前缀之后，作为第二层命名信息。
-- 默认新增媒体也必须遵守同一规则，例如：
+- 媒体阶段登记的待审查成品占位也必须遵守同一规则，例如：
   - `<unit>-cover-comic.png`
   - `<unit>-info.png`
   - `<unit>-slides.pdf`
@@ -114,10 +118,10 @@
 | ...  |          |          |          |        |        |
 ```
 
-扫描时，优先检查以下两个默认媒体位是否已经被规划：
+扫描时，优先检查以下两个提示词位是否已经被规划：
 
-- `h-cover`：学生版讲义封面漫画（引用于 `design/handout.md` 信息节后）
-- `ic-intro-video` 或 `sh-intro-video`：15 秒导入视频（引用于课堂开场或互动课首页）
+- `h-cover`：学生版讲义封面漫画提示词（对应后续成品 `cover-comic.png`）
+- `ic-intro-video` 或 `sh-intro-video`：15 秒导入视频提示词（对应后续成品 `intro-video.mp4`）
 
 ### 2. 逐项生成阶段
 

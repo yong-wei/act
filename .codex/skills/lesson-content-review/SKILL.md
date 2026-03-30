@@ -1,6 +1,6 @@
 ---
 name: lesson-content-review
-description: Use when reviewing a lesson under `course-content/authoring/lessons/` before interactive implementation, especially when handout or practice-guide correctness, `boppps.md` coverage, knowledge cards, factual claims, scientific reasoning, formulas, examples, or code-generated media must be checked, fixed in authoring, and exported to the corresponding runtime review directory.
+description: Use when reviewing a lesson under `course-content/authoring/lessons/` before interactive implementation, especially when handout correctness, `boppps.md` and `interactive-page.md` coverage, knowledge cards, factual claims, scientific reasoning, formulas, examples, or code-generated media must be checked, fixed in authoring, and exported to the corresponding runtime review directory.
 ---
 
 # Lesson Content Review
@@ -12,7 +12,9 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 核心原则：
 - 先修 `authoring` 源文件，再导出 runtime；不要只在 runtime 打补丁。
 - 以**正确性**为第一优先级：先查错，再谈完整性与可制作性；不主动润色文风。
-- 审查分四层进行：**结构正确性**、**事实正确性**、**科学合理性**、**确定性结论验证**。
+- 所有课型都必须审 `design/interactive-page.md`；互动页不是可有可无的附属稿，而是课堂 PPT 的互动延伸板。
+- 互动页覆盖审查必须确认：讲义核心概念、公式、图表、例题、结论已经落到页面；静态页合法且必要；关键知识不能只藏在互动组件里。
+- 审查结论分层输出，且每层都要给出 `通过 / 需修订 / 阻塞` 状态：**结构正确性**、**互动页覆盖**、**事实正确性**、**科学合理性**、**确定性结论验证**。
 - 代码直出媒体必须先落 `media/processed/` 审核，再进入 runtime。
 - `course-content/runtime/knowledge/cards/nodes/` 继续作为全局知识卡片运行时来源；lesson runtime 只保存审查索引与报告。
 - 对涉及任务、事迹、新闻、机构、标准、时间敏感数字等外部事实，必须联网核验。
@@ -22,12 +24,16 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 
 始终先读取：
 - `course-content/authoring/lessons/<lesson>/manifest.json`
-- 理论课：`design/handout.md`
-- 实践课：`design/practice-guide.md`、`design/assessment-spec.md`
+- `design/handout.md`
 - `course-content/authoring/lessons/<lesson>/design/boppps.md`
+- `course-content/authoring/lessons/<lesson>/design/interactive-page.md`
 - `course-content/authoring/lessons/<lesson>/design/multimedia.md`（如果存在）
 - `course-content/authoring/knowledge/cards/lessons/<lesson>/sequence.json`
 - `course-content/authoring/knowledge/cards/nodes/*.md` 中与本课相关的卡片
+
+若是 legacy 实践课且仍未迁移到讲义主线，可额外读取：
+- `design/practice-guide.md`
+- `design/assessment-spec.md`
 
 如正文、卡片、教案、媒体说明中出现以下类型事实，还必须额外准备核验证据：
 - 任务、工程项目、人物事迹、机构事件、新闻、政策、比赛、标准、年份/日期、统计数字
@@ -49,8 +55,8 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 
 ### 2. 审正文正确性（不是只审格式）
 
-- 理论课先审 `design/handout.md`
-- 实践课先审 `design/practice-guide.md` 与 `design/assessment-spec.md`
+- 理论课与实践课都必须先审 `design/handout.md` 与 `design/interactive-page.md`
+- 实践课额外强化核对 `design/boppps.md` 与 `design/interactive-page.md` 的学生参与/实践训练时长，确认学生参与并进行实践训练的时间不少于 45 分钟
 - 重点核对：
   - LaTeX 公式可渲染且符号正确
   - 事实表述、例题计算、评分逻辑正确
@@ -68,6 +74,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
   - 正文是否还残留“图示建议”“待制作”“占位说明”“脚本验证”等作者态过程文本
   - 设计阶段的 `Octave` + `control` 内置函数校验要求是否错误暴露成讲义正文内容
   - 若需要学生复现，正文是否仅点名 MATLAB/Octave 文件名，具体最简代码是否收在附录
+  - 若为实践课，讲义是否仍是一条完整可独立阅读的知识与能力主线，而不是退化成操作说明单
 - 不改文风，不做泛化重写
 
 ### 3. 审事实正确性
@@ -112,8 +119,31 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - 检查 BOPPPS 是否覆盖正文的核心知识点或实践任务
 - 检查各阶段中的公式、事实、工程结论是否正确
 - 对照正文找出缺漏、错位与阶段不匹配项
+- 若为实践课，必须额外确认：
+  - 学生参与并进行实践训练的时间累计不少于 45 分钟
+  - 这 45 分钟以上的实践训练被明确写进 BOPPPS 的参与式学习阶段，而不是只写成教师演示或口头讨论
+  - 实践训练任务与讲义主线一致，服务知识理解、判断迁移或工程诊断，而不是游离的“随便操作”
 
 详细核对项见 `references/boppps-coverage-review.md`。
+
+### 6.5 审 `design/interactive-page.md`（所有课型必查）
+
+- 不分理论课或实践课，都必须读取并审查 `design/interactive-page.md`
+- 先检查是否存在 `## 讲义核心内容映射`，并确认映射表使用 `handout_anchor / core_item_type / must_appear_content / target_step / page_mode / interaction_upgrade / media_or_table_ref / acceptance_note`
+- 再检查每一步是否同时写清：
+  - 静态承载内容
+  - 互动升级点
+- 互动页审查的目标不是“有没有互动”，而是“整门课是否已经先成为完整课件”
+- 重点检查：
+  - 关键知识是否已在页面中静态或“静态 + 互动升级”地承载，而不是只存在于互动组件内部
+  - 是否允许并合理使用纯静态页面来承担概念、公式、图示、表格、结论等基础教学职责
+  - 页面数量是否服从内容逻辑与覆盖需求，而不是为了控制页数牺牲知识承载
+  - 讲义主线中的核心概念、公式、图表、例题、结论是否都能在页面中找到明确落点
+  - 参与式步骤累计时长是否不少于 45 分钟
+  - 至少有一个或多个工作区/探索页/对照页承载学生实际操作、观察、记录、反馈
+  - 教师端与学生端描述是否都服务“学生在课上亲自参与并训练”
+  - 不得把实践课写成“教师演示 + 学生围观 + 末尾提交一句话感想”
+- 审查结果必须输出为 `course-content/runtime/lessons/<lesson>/review/interactive-page-check.json`
 
 ### 7. 审知识卡片
 
@@ -166,16 +196,19 @@ python3 course-content/scripts/review_lesson_content.py --lesson <lesson>
 - `course-content/runtime/lessons/<lesson>/media/*`
 - `course-content/runtime/lessons/<lesson>/review/boppps.md`
 - `course-content/runtime/lessons/<lesson>/review/review-report.md`
+- `course-content/runtime/lessons/<lesson>/review/interactive-page-check.json`
 - `course-content/runtime/lessons/<lesson>/review/knowledge-card-check.json`
 - `course-content/runtime/lessons/<lesson>/review/multimedia-check.json`
-- 实践课额外导出 `review/practice-guide.md`、`review/assessment-spec.md`
+
+legacy 实践课若仍保留 `practice-guide.md`、`assessment-spec.md`，可作为兼容性产物额外导出，但不再是新体系实践课的主合同。
 
 runtime 契约见 `references/runtime-output-contract.md`。
 
 ### 10. 输出审查结论时必须分层说明
 
-最终审查意见至少分成四段：
+最终审查意见至少分成五段，且每段都必须标注 `通过 / 需修订 / 阻塞`：
 - 结构正确性：文件、路径、引用、覆盖关系是否通过
+- 互动页覆盖：讲义核心内容是否已经页面化，哪些步骤仍缺静态承载或映射不完整
 - 事实正确性：哪些内容已联网核验，哪些内容只能保守表述
 - 科学合理性：哪些逻辑链成立，哪些结论需要删改或补条件
 - 确定性验证：哪些公式、图像、例题、指标已由 `Octave` + `control` 内置函数复现
@@ -185,16 +218,24 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 已确认课型（理论 / 实践）
 - [ ] 已先修 authoring，再导出 runtime
 - [ ] 已建立待审事实与结论清单
-- [ ] 已检查 design/handout.md 或 design/practice-guide.md / design/assessment-spec.md
+- [ ] 已检查 design/handout.md
+- [ ] 已检查 `design/interactive-page.md`
+- [ ] 已确认 `design/interactive-page.md` 含 `## 讲义核心内容映射`
+- [ ] 已确认每一步都写明“静态承载内容”“互动升级点”
+- [ ] 已确认讲义核心概念、公式、图表、例题、结论都有页面落点
+- [ ] 已确认关键知识没有只藏在互动组件里，必要静态页已保留
 - [ ] 已检查正式讲义中的图号/表号、图题/表题是否完整且连续
 - [ ] 已确认正文中没有“图示建议”“待制作”“脚本验证”等作者态过程文本
 - [ ] 已确认设计期 `Octave` + `control` 内置函数校验未被错误写入讲义正文
 - [ ] 已确认学生复现内容采用“正文点名 `.m` 文件 + 附录最简 MATLAB/Octave 代码”的成品形式（如适用）
+- [ ] 若为实践课，已确认讲义仍是主线正文，不是用 practice-guide 替代讲义
+- [ ] 若为实践课，已检查 `design/boppps.md` 与 `design/interactive-page.md` 中学生参与/实践训练累计不少于 45 分钟
 - [ ] 已检查关键媒体完整性：`<lesson>-cover-comic.png`、`<lesson>-info.png`、`<lesson>-slides.pdf`、`<lesson>-intro-video.mp4`、`<lesson>-course.mp4`、`<lesson>-audio.m4a`
 - [ ] 已完成外部事实的联网核验（如适用）
 - [ ] 已完成科学合理性分析
 - [ ] 已用 `Octave` + `control` 内置函数验证确定性结论（如适用）
 - [ ] 已检查 design/boppps.md 的覆盖与事实正确性
+- [ ] 已生成并检查 `review/interactive-page-check.json`
 - [ ] 已检查 lesson sequence 与知识卡片节点文件
 - [ ] 已生成 `media/processed/` 并核对图片正确性
 - [ ] 已检查所有媒体资源命名是否统一带单元前缀，包括代码直出图与线框图
@@ -206,6 +247,11 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - 只改 runtime，不回写 `authoring`
 - 只看 `sequence.json`，不检查 `knowledge/cards/nodes/*.md`
 - 让 `export_runtime.py` 直接从 `media/raw/` 出 runtime，跳过 `media/processed/` 审核
+- 把实践课继续写成 `practice-guide` 替代讲义，而不是回到讲义主线
+- 把“实践不少于 45 分钟”误写成教师演示、口头讨论或课后自学时间
+- 只在实践课审 `interactive-page.md`，默认理论课不需要做页面覆盖审查
+- 允许 `interactive-page.md` 没有“讲义核心内容映射”，导致讲义核心内容没有明确落点
+- 把核心概念、关键公式或例题结论只交给互动组件，页面静态部分只剩标题和提示
 - 看到公式能渲染就算通过，却没检查推导、数值或符号方向
 - 只审事实和公式，不审讲义是否仍带有“图示建议”“待制作”“脚本验证”等作者态痕迹
 - 把设计期验证过程直接保留在讲义正文，而不是转成审查记录或学生附录代码
@@ -222,6 +268,9 @@ runtime 契约见 `references/runtime-output-contract.md`。
 ## Red Flags
 
 - 只做格式审查，不做事实与结论审查
+- 实践课的讲义、BOPPPS、互动页三者对“45 分钟以上学生实践训练”说法不一致
+- 理论课的审查范围里没有 `interactive-page.md`
+- 互动页只有互动框架，没有核心概念、公式、表格、图示或例题的静态承载
 - 外部事实没有来源链接和核验日期
 - 计算结果、响应曲线、频域结论没有脚本支撑
 - 讲义里的图没有正式编号图题，或仍然出现作者态占位说明

@@ -1,0 +1,808 @@
+{
+  "lesson_id": "3-2",
+  "title": "劳斯判据：从高阶系统稳定判定到参数可行域",
+  "focus_node_ids": [
+    "劳斯判据_3_e3500ac9",
+    "劳斯表特殊情况_3_f787433f",
+    "辅助方程_3_ed86f1f0",
+    "稳定可行域_3_7eed0929",
+    "变量平移判稳_3_38e76ca0"
+  ],
+  "reuse_node_ids": [
+    "闭环特征方程_3_87c88e19",
+    "稳定性_3_72d04fbd",
+    "闭环极点_3_f9432bf3",
+    "复平面可行域_4_Lsum001",
+    "设计可行域_4_Lsum004"
+  ],
+  "entry_nodes": [
+    "劳斯判据_3_e3500ac9"
+  ],
+  "summary_nodes": [
+    "变量平移判稳_3_38e76ca0",
+    "设计可行域_4_Lsum004"
+  ],
+  "card_order": [
+    "闭环特征方程_3_87c88e19",
+    "稳定性_3_72d04fbd",
+    "劳斯判据_3_e3500ac9",
+    "稳定可行域_3_7eed0929",
+    "劳斯表特殊情况_3_f787433f",
+    "辅助方程_3_ed86f1f0",
+    "闭环极点_3_f9432bf3",
+    "变量平移判稳_3_38e76ca0",
+    "复平面可行域_4_Lsum001",
+    "设计可行域_4_Lsum004"
+  ],
+  "groups": [
+    {
+      "group_name": "引入与判稳入口",
+      "step_ids": [
+        "3-2-bridge-01",
+        "3-2-bridge-02",
+        "3-2-objective-01",
+        "3-2-pre-01"
+      ],
+      "node_ids": [
+        "闭环特征方程_3_87c88e19",
+        "稳定性_3_72d04fbd",
+        "劳斯判据_3_e3500ac9"
+      ]
+    },
+    {
+      "group_name": "带参数劳斯表与稳定区间",
+      "step_ids": [
+        "3-2-core-01",
+        "3-2-core-02",
+        "3-2-core-03"
+      ],
+      "node_ids": [
+        "劳斯判据_3_e3500ac9",
+        "稳定可行域_3_7eed0929",
+        "闭环极点_3_f9432bf3"
+      ]
+    },
+    {
+      "group_name": "特殊情况处理",
+      "step_ids": [
+        "3-2-core-04",
+        "3-2-core-05"
+      ],
+      "node_ids": [
+        "劳斯表特殊情况_3_f787433f",
+        "辅助方程_3_ed86f1f0"
+      ]
+    },
+    {
+      "group_name": "三域对应",
+      "step_ids": [
+        "3-2-core-06",
+        "3-2-core-07"
+      ],
+      "node_ids": [
+        "稳定性_3_72d04fbd",
+        "闭环极点_3_f9432bf3",
+        "稳定可行域_3_7eed0929"
+      ]
+    },
+    {
+      "group_name": "区域约束与设计入口",
+      "step_ids": [
+        "3-2-core-08",
+        "3-2-summary-01"
+      ],
+      "node_ids": [
+        "变量平移判稳_3_38e76ca0",
+        "复平面可行域_4_Lsum001",
+        "设计可行域_4_Lsum004"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "劳斯判据_3_e3500ac9",
+      "name": "劳斯判据",
+      "nodeType": "THEORY",
+      "description": "劳斯判据通过特征方程系数构造劳斯表，用第一列符号变化次数判断右半平面根数，并据此给出稳定性与稳定边界信息。",
+      "positionX": -35.4,
+      "positionY": 35.4,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "劳斯判据通过特征方程系数构造劳斯表，用第一列符号变化次数判断右半平面根数，并据此给出稳定性与稳定边界信息。",
+        "examples": [
+          "四阶特征方程不显式求根，也能由劳斯表判断系统是否稳定。",
+          "带参数特征方程可直接由第一列不等式读出参数稳定区间。"
+        ],
+        "formulas": [
+          "\\text{右半平面根数}=\\text{劳斯表第一列符号变化次数}",
+          "D(s)=a_ns^n+a_{n-1}s^{n-1}+\\cdots+a_0"
+        ],
+        "prerequisites": [
+          "闭环特征方程_3_87c88e19",
+          "稳定性_3_72d04fbd"
+        ],
+        "relatedConcepts": [
+          "劳斯表特殊情况_3_f787433f",
+          "稳定可行域_3_7eed0929",
+          "变量平移判稳_3_38e76ca0"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "劳斯表",
+          "判稳",
+          "右半平面根数",
+          "稳定边界"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/劳斯判据_3_e3500ac9.md"
+      ],
+      "tags": [
+        "劳斯表",
+        "判稳",
+        "右半平面根数",
+        "稳定边界",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "劳斯表特殊情况_3_f787433f",
+      "name": "劳斯表特殊情况",
+      "nodeType": "THEORY",
+      "description": "劳斯表递推中最常见的两类特殊情况是某行首位为零但该行不全为零，以及某一整行为零。两类现象对应不同的根结构线索和不同的处理规则。",
+      "positionX": -48.3,
+      "positionY": 12.9,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "劳斯表递推中最常见的两类特殊情况是某行首位为零但该行不全为零，以及某一整行为零。两类现象对应不同的根结构线索和不同的处理规则。",
+        "examples": [
+          "首位为零时用极小正数保持符号连续性，再继续递推。",
+          "全零行出现后，需先由上一行写出辅助方程，再由辅助方程恢复零行。"
+        ],
+        "formulas": [
+          "\\varepsilon \\to 0^+",
+          "A(s)=as^{m+1}+bs^{m-1}+cs^{m-3}+\\cdots"
+        ],
+        "prerequisites": [
+          "劳斯判据_3_e3500ac9"
+        ],
+        "relatedConcepts": [
+          "辅助方程_3_ed86f1f0",
+          "稳定性_3_72d04fbd"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "首位为零",
+          "全零行",
+          "特殊情况",
+          "辅助方程"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/劳斯表特殊情况_3_f787433f.md"
+      ],
+      "tags": [
+        "首位为零",
+        "全零行",
+        "特殊情况",
+        "辅助方程",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "变量平移判稳_3_38e76ca0",
+      "name": "变量平移判稳",
+      "nodeType": "THEORY",
+      "description": "将竖线左侧区域约束通过变量代换平移到虚轴左侧，再对新多项式列劳斯表的处理方法，称为变量平移判稳。它把稳定判定推广为区域约束判定。",
+      "positionX": -0.0,
+      "positionY": -50.0,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "将竖线左侧区域约束通过变量代换平移到虚轴左侧，再对新多项式列劳斯表的处理方法，称为变量平移判稳。它把稳定判定推广为区域约束判定。",
+        "examples": [
+          "要求全部极点满足 \\operatorname{Re}(s)<-0.5 时，可令 s=z-0.5，再对 \\tilde D(z) 列劳斯表。",
+          "区域约束越严格，得到的参数可行域越小。"
+        ],
+        "formulas": [
+          "s=z-\\sigma",
+          "\\tilde D(z)=D(z-\\sigma)"
+        ],
+        "prerequisites": [
+          "劳斯判据_3_e3500ac9",
+          "稳定可行域_3_7eed0929"
+        ],
+        "relatedConcepts": [
+          "复平面可行域_4_Lsum001",
+          "设计可行域_4_Lsum004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "变量平移",
+          "区域约束",
+          "竖线左侧",
+          "参数设计"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/变量平移判稳_3_38e76ca0.md"
+      ],
+      "tags": [
+        "变量平移",
+        "区域约束",
+        "竖线左侧",
+        "参数设计",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "稳定可行域_3_7eed0929",
+      "name": "稳定可行域",
+      "nodeType": "THEORY",
+      "description": "把劳斯表第一列条件联立后得到的参数范围称为稳定可行域。它给出系统全部闭环极点保持在稳定边界左侧的参数集合。",
+      "positionX": -0.0,
+      "positionY": -56.0,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "把劳斯表第一列条件联立后得到的参数范围称为稳定可行域。它给出系统全部闭环极点保持在稳定边界左侧的参数集合。",
+        "examples": [
+          "对 D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)，由劳斯表可得稳定可行域 -2<k<18。",
+          "参数落在稳定可行域端点时，系统进入原点根或纯虚根对应的临界边界。"
+        ],
+        "formulas": [
+          "-2<k<18",
+          "\\text{稳定可行域}=\\{\\theta\\mid \\text{劳斯表第一列全正}\\}"
+        ],
+        "prerequisites": [
+          "劳斯判据_3_e3500ac9",
+          "稳定性_3_72d04fbd"
+        ],
+        "relatedConcepts": [
+          "闭环极点_3_f9432bf3",
+          "复平面可行域_4_Lsum001",
+          "设计可行域_4_Lsum004"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "稳定区间",
+          "参数范围",
+          "临界边界",
+          "可行域"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/稳定可行域_3_7eed0929.md"
+      ],
+      "tags": [
+        "稳定区间",
+        "参数范围",
+        "临界边界",
+        "可行域",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "稳定性_3_72d04fbd",
+      "name": "稳定性",
+      "nodeType": "THEORY",
+      "description": "系统在扰动消失后，由初始偏差状态恢复到原平衡状态的性能。",
+      "positionX": 21.7,
+      "positionY": -81.1,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "系统在扰动消失后，由初始偏差状态恢复到原平衡状态的性能。",
+        "examples": [
+          "单摆的稳定平衡点与不稳定平衡点示例。",
+          "单摆在外界扰动后能回到原平衡点，称为稳定平衡点。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "平衡状态",
+          "扰动",
+          "恢复"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627914",
+        "updatedAt": "2026-02-04T17:54:16.627914",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/稳定性_3_72d04fbd.md"
+      ],
+      "tags": [
+        "平衡状态",
+        "扰动",
+        "恢复",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "辅助方程_3_ed86f1f0",
+      "name": "辅助方程",
+      "nodeType": "THEORY",
+      "description": "当劳斯表出现全零行时，由上一行系数按对应幂次写出的多项式称为辅助方程。它恢复了隐藏的对称根结构，并给出虚轴根或对称根的位置线索。",
+      "positionX": -53.7,
+      "positionY": 31.0,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "当劳斯表出现全零行时，由上一行系数按对应幂次写出的多项式称为辅助方程。它恢复了隐藏的对称根结构，并给出虚轴根或对称根的位置线索。",
+        "examples": [
+          "全零行出现在 s^1 行，上一行 s^2 行系数为 1,1,0 时，辅助方程写成 A(s)=s^2+1。",
+          "对辅助方程求导后，用导数系数替换全零行，劳斯表即可继续完成。"
+        ],
+        "formulas": [
+          "A(s)=as^{m+1}+bs^{m-1}+cs^{m-3}+\\cdots",
+          "A'(s)=\\frac{\\mathrm dA(s)}{\\mathrm ds}"
+        ],
+        "prerequisites": [
+          "劳斯表特殊情况_3_f787433f"
+        ],
+        "relatedConcepts": [
+          "闭环极点_3_f9432bf3",
+          "稳定性_3_72d04fbd"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "辅助方程",
+          "全零行",
+          "求导替换",
+          "虚轴根"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/辅助方程_3_ed86f1f0.md"
+      ],
+      "tags": [
+        "辅助方程",
+        "全零行",
+        "求导替换",
+        "虚轴根",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "闭环极点_3_f9432bf3",
+      "name": "闭环极点",
+      "nodeType": "THEORY",
+      "description": "闭环传递函数分母多项式的根，决定系统时间响应的类型。",
+      "positionX": -45.0,
+      "positionY": -77.9,
+      "positionZ": 3,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "闭环传递函数分母多项式的根，决定系统时间响应的类型。",
+        "examples": [
+          "主导极点、非主导极点对系统动态性能的不同影响。"
+        ],
+        "formulas": [
+          "s_i \\text{ 为 } D(s)=0 \\text{ 之根}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "响应类型",
+          "主导极点",
+          "系统特性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627920",
+        "updatedAt": "2026-02-04T17:54:16.627920",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环极点_3_f9432bf3.md"
+      ],
+      "tags": [
+        "响应类型",
+        "主导极点",
+        "系统特性",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "闭环特征方程_3_87c88e19",
+      "name": "闭环特征方程",
+      "nodeType": "THEORY",
+      "description": "描述闭环控制系统动态特性的特征多项式方程，其根决定了系统的稳定性。",
+      "positionX": -23.3,
+      "positionY": -86.9,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "描述闭环控制系统动态特性的特征多项式方程，其根决定了系统的稳定性。",
+        "examples": [
+          "火星漫游车转向控制系统的闭环特征方程为：1 + G(s)H(s) = 0，用于建立劳斯表。"
+        ],
+        "formulas": [
+          "1 + G(s)H(s) = 0"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "特征方程",
+          "闭环系统",
+          "稳定性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628066",
+        "updatedAt": "2026-02-04T17:54:16.628066",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环特征方程_3_87c88e19.md"
+      ],
+      "tags": [
+        "特征方程",
+        "闭环系统",
+        "稳定性",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "复平面可行域_4_Lsum001",
+      "name": "复平面可行域",
+      "nodeType": "THEORY",
+      "description": "在复平面上，同时满足超调量约束（阻尼比射线下方）和调节时间约束（实部垂线左侧）的极点允许区域；是三域设计可行域的几何枢纽。",
+      "positionX": -110.0,
+      "positionY": 0.0,
+      "positionZ": 4,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "在复平面上，同时满足超调量约束（阻尼比射线下方）和调节时间约束（实部垂线左侧）的极点允许区域；是三域设计可行域的几何枢纽。",
+        "examples": [
+          "Mp≤20%对应ζ≥0.45，阻尼比射线夹角63°，极点须在线下方；ts≤5s对应σ≥0.8，极点须在Re(s)=-0.8垂线左侧；两约束交集形成扇形可行区域"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "极点迁移_4_L2b001",
+          "阻尼比_3_b849784e",
+          "动态性能指标_3_a10733c1"
+        ],
+        "relatedConcepts": [
+          "根轨迹图",
+          "设计可行域",
+          "超调量",
+          "调节时间"
+        ],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "可行域",
+          "扇形区域",
+          "阻尼比射线",
+          "实部垂线",
+          "极点约束"
+        ],
+        "createdAt": "2026-03-14T00:44:08.244152+00:00",
+        "updatedAt": "2026-03-14T00:44:08.244152+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/复平面可行域_4_Lsum001.md"
+      ],
+      "tags": [
+        "可行域",
+        "扇形区域",
+        "阻尼比射线",
+        "实部垂线",
+        "极点约束",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "设计可行域_4_Lsum004",
+      "name": "设计可行域",
+      "nodeType": "THEORY",
+      "description": "在参数空间（如开环增益K）中，同时满足所有性能约束的参数允许范围；在三域各有对应投影：复平面上为扇形可行区域，时域上为响应包络，频域上为Bode幅频可行带。",
+      "positionX": -30.0,
+      "positionY": -112.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "在参数空间（如开环增益K）中，同时满足所有性能约束的参数允许范围；在三域各有对应投影：复平面上为扇形可行区域，时域上为响应包络，频域上为Bode幅频可行带。",
+        "examples": [
+          "Mp≤20%、ts≤5s的约束将开环增益限制在[K_min, K_max]；约束越严则可行域越小，有时约束过严导致原系统无解，需改变系统结构"
+        ],
+        "formulas": [],
+        "prerequisites": [
+          "复平面可行域_4_Lsum001",
+          "极点迁移_4_L2b001",
+          "三域直觉联动_5_L2c005"
+        ],
+        "relatedConcepts": [
+          "时域响应包络",
+          "频域可行带",
+          "最佳阻尼比_3_L2b002",
+          "开环增益"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "可行域",
+          "参数范围",
+          "约束映射",
+          "三域投影",
+          "设计决策"
+        ],
+        "createdAt": "2026-03-14T00:44:08.253171+00:00",
+        "updatedAt": "2026-03-14T00:44:08.253171+00:00",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/设计可行域_4_Lsum004.md"
+      ],
+      "tags": [
+        "可行域",
+        "参数范围",
+        "约束映射",
+        "三域投影",
+        "设计决策",
+        "chapter-4"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "稳定性|闭环极点|3",
+      "sourceId": "稳定性_3_72d04fbd",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "稳定性|辅助方程|3",
+      "sourceId": "稳定性_3_72d04fbd",
+      "targetId": "辅助方程_3_ed86f1f0",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.5
+    },
+    {
+      "id": "稳定性|闭环特征方程|3",
+      "sourceId": "稳定性_3_72d04fbd",
+      "targetId": "闭环特征方程_3_87c88e19",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "闭环极点|辅助方程|3",
+      "sourceId": "闭环极点_3_f9432bf3",
+      "targetId": "辅助方程_3_ed86f1f0",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "闭环极点|闭环特征方程|3",
+      "sourceId": "闭环极点_3_f9432bf3",
+      "targetId": "闭环特征方程_3_87c88e19",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "辅助方程|闭环特征方程|3",
+      "sourceId": "辅助方程_3_ed86f1f0",
+      "targetId": "闭环特征方程_3_87c88e19",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "复平面可行域|设计可行域|new",
+      "sourceId": "复平面可行域_4_Lsum001",
+      "targetId": "设计可行域_4_Lsum004",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-882dce7aa1c2a51e",
+      "sourceId": "闭环特征方程_3_87c88e19",
+      "targetId": "劳斯判据_3_e3500ac9",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-4a37a7cdc9a51a51",
+      "sourceId": "稳定性_3_72d04fbd",
+      "targetId": "劳斯判据_3_e3500ac9",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-b6aed56395b3f75a",
+      "sourceId": "劳斯判据_3_e3500ac9",
+      "targetId": "劳斯表特殊情况_3_f787433f",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-5f3853577e232586",
+      "sourceId": "劳斯表特殊情况_3_f787433f",
+      "targetId": "辅助方程_3_ed86f1f0",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-a033cecdf39fc0e5",
+      "sourceId": "劳斯判据_3_e3500ac9",
+      "targetId": "稳定可行域_3_7eed0929",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
+    },
+    {
+      "id": "rel-858f8bd1e7a055e0",
+      "sourceId": "劳斯判据_3_e3500ac9",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-53360d1622187999",
+      "sourceId": "辅助方程_3_ed86f1f0",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-8d9f9a56ea764bf5",
+      "sourceId": "稳定可行域_3_7eed0929",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-6b5f60e72c5c0f8f",
+      "sourceId": "劳斯判据_3_e3500ac9",
+      "targetId": "变量平移判稳_3_38e76ca0",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-7d141ffc20484187",
+      "sourceId": "变量平移判稳_3_38e76ca0",
+      "targetId": "复平面可行域_4_Lsum001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-2e8cd45b86e2cb4b",
+      "sourceId": "变量平移判稳_3_38e76ca0",
+      "targetId": "设计可行域_4_Lsum004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-c4631556906d4ddf",
+      "sourceId": "稳定可行域_3_7eed0929",
+      "targetId": "设计可行域_4_Lsum004",
+      "relation": "generalizes",
+      "relationType": "generalizes",
+      "strength": 0.88
+    }
+  ]
+}
