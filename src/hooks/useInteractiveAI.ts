@@ -1,7 +1,7 @@
 /**
  * 互动课程AI助手 Hook
  *
- * 为L-2d和L-sum等互动课程提供控灵AI助手集成
+ * 为当前互动课程提供控灵AI助手集成
  */
 
 'use client';
@@ -217,12 +217,7 @@ export function useInteractiveAI({
  * 获取课程标题
  */
 function getCourseTitle(courseId: string): string {
-  const titles: Record<string, string> = {
-    'L-2d': '三域联动控制设计',
-    'L-sum': '可行域设计方法',
-    'l2d-three-domain-linkage': '三域联动控制设计',
-    'lsum-design-feasible-domain': '可行域设计方法',
-  };
+  const titles: Record<string, string> = {};
   return titles[courseId] || courseId;
 }
 
@@ -233,14 +228,6 @@ function getQuickQuestions(
   courseId: string,
   keyConcepts?: string[]
 ): Array<{ label: string; question: string }> {
-  // 基于课程ID返回预设问题
-  if (courseId.includes('l2d') || courseId.includes('L-2d')) {
-    return [...KONLING_BRAND.quickQuestions.l2d];
-  }
-  if (courseId.includes('lsum') || courseId.includes('L-sum')) {
-    return [...KONLING_BRAND.quickQuestions.lsum];
-  }
-
   // 基于关键概念生成问题
   if (keyConcepts && keyConcepts.length > 0) {
     return keyConcepts.slice(0, 4).map((concept) => ({

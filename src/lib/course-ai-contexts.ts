@@ -17,25 +17,9 @@ import {
   getUnit21StepQuickQuestions as getUnit21StepQuickQuestionsLocal,
 } from './unit-2-1-ai-contexts';
 import {
-  getUnit13StepAIContext as getUnit13StepAIContextLocal,
-  getUnit13StepQuickQuestions as getUnit13StepQuickQuestionsLocal,
-} from './unit-1-3-ai-contexts';
-
-// L2D课程AI上下文
-export {
-  L2D_COURSE_META,
-  L2D_STEP_AI_CONTEXTS,
-  getL2DStepAIContext,
-  getL2DStepQuickQuestions,
-} from './l2d-ai-contexts';
-
-// LSUM课程AI上下文
-export {
-  LSUM_COURSE_META,
-  LSUM_STEP_AI_CONTEXTS,
-  getLSUMStepAIContext,
-  getLSUMStepQuickQuestions,
-} from './lsum-ai-contexts';
+  getUnit22StepAIContext as getUnit22StepAIContextLocal,
+  getUnit22StepQuickQuestions as getUnit22StepQuickQuestionsLocal,
+} from './unit-2-2-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -47,35 +31,15 @@ export {
   getUnit21StepQuickQuestions,
 } from './unit-2-1-ai-contexts';
 
-// 1-1 课程 AI 上下文
+// 2-2 课程 AI 上下文
 export {
-  UNIT_1_1_COURSE_META,
-  UNIT_1_1_STEP_AI_CONTEXTS,
-  getUNIT_1_1StepAIContext,
-  getUNIT_1_1StepQuickQuestions,
-  getUnit11StepAIContext,
-  getUnit11StepQuickQuestions,
-} from './unit-1-1-ai-contexts';
-
-// 1-2 课程 AI 上下文
-export {
-  UNIT_1_2_COURSE_META,
-  UNIT_1_2_STEP_AI_CONTEXTS,
-  getUNIT_1_2StepAIContext,
-  getUNIT_1_2StepQuickQuestions,
-  getUnit12StepAIContext,
-  getUnit12StepQuickQuestions,
-} from './unit-1-2-ai-contexts';
-
-// 1-3 课程 AI 上下文
-export {
-  UNIT_1_3_COURSE_META,
-  UNIT_1_3_STEP_AI_CONTEXTS,
-  getUNIT_1_3StepAIContext,
-  getUNIT_1_3StepQuickQuestions,
-  getUnit13StepAIContext,
-  getUnit13StepQuickQuestions,
-} from './unit-1-3-ai-contexts';
+  UNIT_2_2_COURSE_META,
+  UNIT_2_2_STEP_AI_CONTEXTS,
+  getUNIT_2_2StepAIContext,
+  getUNIT_2_2StepQuickQuestions,
+  getUnit22StepAIContext,
+  getUnit22StepQuickQuestions,
+} from './unit-2-2-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -93,42 +57,6 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
     };
   }
 > = {
-  // L2D课程
-  'l2d-three-domain-linkage-practice': {
-    getStepContext: (stepId: string) => {
-      const { getL2DStepAIContext } = require('./l2d-ai-contexts');
-      return getL2DStepAIContext(stepId);
-    },
-    getQuickQuestions: (stepId: string) => {
-      const { getL2DStepQuickQuestions } = require('./l2d-ai-contexts');
-      return getL2DStepQuickQuestions(stepId);
-    },
-    courseMeta: {
-      courseId: 'l2d-three-domain-linkage-practice',
-      courseTitle: 'L-2d：三域联动探索 · 平台操作初体验',
-      courseDescription:
-        '围绕固定三阶系统 G(s)=K/[s(s+1)(s+6)]，在根轨迹、时域和频域三张图中同步拨动增益 K，完成临界增益定位、三域对照表与反思写作。',
-    },
-  },
-
-  // LSUM课程
-  'lsum-design-feasible-domain-v1': {
-    getStepContext: (stepId: string) => {
-      const { getLSUMStepAIContext } = require('./lsum-ai-contexts');
-      return getLSUMStepAIContext(stepId);
-    },
-    getQuickQuestions: (stepId: string) => {
-      const { getLSUMStepQuickQuestions } = require('./lsum-ai-contexts');
-      return getLSUMStepQuickQuestions(stepId);
-    },
-    courseMeta: {
-      courseId: 'lsum-design-feasible-domain-v1',
-      courseTitle: 'L-sum：设计可行域——让约束成为指南针',
-      courseDescription:
-        '围绕复平面可行域、根轨迹可行弧段以及时域/频域投影，把"给性能找参数"的设计视角第一次完整搭起来。',
-    },
-  },
-
   'unit-2-1-modeling-language-v1': {
     getStepContext: (stepId: string) => getUnit21StepAIContextLocal(stepId),
     getQuickQuestions: (stepId: string) => getUnit21StepQuickQuestionsLocal(stepId),
@@ -140,17 +68,16 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
     },
   },
 
-  'unit-1-3-time-domain-response-v1': {
-    getStepContext: (stepId: string) => getUnit13StepAIContextLocal(stepId),
-    getQuickQuestions: (stepId: string) => getUnit13StepQuickQuestionsLocal(stepId),
+  'unit-2-2-time-domain-response-v1': {
+    getStepContext: (stepId: string) => getUnit22StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit22StepQuickQuestionsLocal(stepId),
     courseMeta: {
-      courseId: 'unit-1-3-time-domain-response-v1',
+      courseId: 'unit-2-2-time-domain-response-v1',
       courseTitle: '2-2：时域响应基础——从响应曲线到动态性能指标',
       courseDescription:
         '围绕单位阶跃响应、一阶与二阶系统标准型及四个关键时域指标，建立从响应曲线到动态品质判断的第一套语言。',
     },
   },
-
 };
 
 /**

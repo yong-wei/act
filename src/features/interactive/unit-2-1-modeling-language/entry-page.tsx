@@ -206,7 +206,7 @@ export function UNIT_2_1CourseEntryPage({
           <h2 className="premium-lesson-title mt-2 text-3xl font-semibold sm:text-4xl">{UNIT_2_1_COURSE_TITLE}</h2>
           <p className="premium-lesson-muted mt-3 max-w-3xl sm:text-base">{UNIT_2_1_COURSE_DESCRIPTION}</p>
           <p className="premium-lesson-muted mt-3 max-w-3xl">
-            本课将旧的 <strong>1-1 / 1-2</strong> 来源组收束成新的主线入口：先把真实对象翻译成统一分析对象，再把对象放进结构与反馈系统，最后为下一课的响应分析准备总体对象。
+            本课是当前正式主线的起点：先把真实对象翻译成统一分析对象，再把对象放进结构与反馈系统，最后为下一课的响应分析准备总体对象。
           </p>
           <div className="mt-4 flex flex-wrap gap-2 text-xs">
             {['拉氏变换', '零初值传递函数', '典型环节', '结构图', '信号流图', '梅森公式'].map((item) => (

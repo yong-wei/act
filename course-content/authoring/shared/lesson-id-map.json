@@ -17,7 +17,7 @@
       "notes": "2-1 为模块2当前主线课次，整合 legacy/1-1 与 legacy/1-2 的来源组内容。"
     },
     {
-      "request_ids": ["2-2", "1-3"],
+      "request_ids": ["2-2"],
       "canonical_id": "2-2",
       "display_id": "2-2",
       "status": "mainline",
@@ -28,8 +28,8 @@
       "authoring_cards_dir": "2-2",
       "authoring_overlays_dir": "2-2",
       "runtime_lesson_dir": "2-2",
-      "legacy_source_ids": ["1-3"],
-      "notes": "现有 1-3 直接迁移为新 2-2 主线课次。"
+      "legacy_source_ids": [],
+      "notes": "2-2 为模块2当前独立主线课次，统一承接时域响应基础与动态性能指标主线。"
     },
     {
       "request_ids": ["2-3"],

@@ -5,6 +5,19 @@ import type { StepAIContext } from '@/types/ai-context';
 
 export type UNIT_2_1StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
 export type UNIT_2_1PageType = 'display' | 'quiz' | 'form' | 'ai' | 'summary';
+export interface UNIT_2_1CoverageTable {
+  title: string;
+  headers: string[];
+  rows: string[][];
+}
+
+export interface UNIT_2_1StepCoverage {
+  requiredFormulas?: string[];
+  requiredTables?: UNIT_2_1CoverageTable[];
+  requiredTableTitles?: string[];
+  requiredConclusions?: string[];
+}
+
 export type Unit21WorkspaceKind =
   | 'object-chain'
   | 'initial-state'
@@ -21,6 +34,7 @@ export interface UNIT_2_1StepDefinition {
   hint: string;
   duration: string;
   pageType: UNIT_2_1PageType;
+  coverage: UNIT_2_1StepCoverage;
   workspaceKind?: Unit21WorkspaceKind;
   aiContext?: StepAIContext;
 }
@@ -97,6 +111,86 @@ export const UNIT_2_1_STAGE_MAP: Record<UNIT_2_1StageCode, BopppsStage> = {
   S: 'SUMMARY',
 };
 
+export const UNIT_2_1_STEP_CONTENT_CONTRACTS: Record<string, UNIT_2_1StepCoverage> = {
+  'step-02': {
+    requiredFormulas: ['J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)'],
+  },
+  'step-03': {
+    requiredConclusions: ['微分方程 -> 拉氏变换 -> 传递函数 -> 典型环节 -> 结构表达 -> 总体对象'],
+  },
+  'step-05': {
+    requiredFormulas: [
+      'F(s)=\\mathcal{L}\\{f(t)\\}',
+      '\\mathcal{L}\\{\\dot f(t)\\}=sF(s)',
+      '\\mathcal{L}\\{\\ddot f(t)\\}=s^2F(s)',
+    ],
+    requiredTableTitles: ['本课最少要记住的拉氏对应关系'],
+    requiredTables: [
+      {
+        title: '本课最少要记住的拉氏对应关系',
+        headers: ['时域表达', '变换域表达', '本课只抓的意义'],
+        rows: [
+          ['1(t)', '1/s', '常值输入在变换域里变成最简单的代数对象'],
+          ['\\dot f(t)', 'sF(s)-f(0^-)', '导数关系被改写为关于 s 的代数项'],
+          ['\\ddot f(t)', 's^2F(s)-sf(0^-)-\\dot f(0^-)', '二阶动态同样能被统一搬到变换域表达'],
+          ['\\int_0^t f(\\tau)\\,d\\tau', 'F(s)/s', '积分关系也能并入同一对象语言中'],
+        ],
+      },
+    ],
+  },
+  'step-06': {
+    requiredFormulas: ['G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}'],
+  },
+  'step-07': {
+    requiredFormulas: ['Y(s)=G(s)U(s)', 'Y(s)=G(s)U(s)+\\text{初值项}'],
+    requiredConclusions: ['初值项会影响输出，但不属于传递函数定义中的系统对象。'],
+  },
+  'step-08': {
+    requiredTableTitles: ['五类典型环节及其第一判断'],
+    requiredTables: [
+      {
+        title: '五类典型环节及其第一判断',
+        headers: ['典型环节', '传递函数形式', '你应先抓住的物理或工程含义', '第一眼判断'],
+        rows: [
+          ['比例环节', 'G(s)=K', '只有比例放大或缩小，不引入动态记忆', '改变强弱，不改变动态阶次'],
+          ['积分环节', 'G(s)=\\dfrac{1}{s}', '输出是输入随时间的累积', '引入“记忆”，常使系统更容易慢慢积累'],
+          ['微分环节', 'G(s)=s', '输出更敏感于输入变化率', '强调变化趋势，对快变化敏感'],
+          ['一阶惯性环节', 'G(s)=\\dfrac{1}{Ts+1}', '存在滞后，响应不会立刻到位', '不振荡，主要体现快慢差异'],
+          ['振荡环节', 'G(s)=\\dfrac{\\omega_n^2}{s^2+2\\zeta\\omega_n s+\\omega_n^2}', '同时包含快慢与振荡特征', '可能超调、振荡、再稳定'],
+        ],
+      },
+    ],
+  },
+  'step-09': {
+    requiredFormulas: ['G(s)=G_1(s)G_2(s)', 'G(s)=G_1(s)+G_2(s)', '\\frac{Y(s)}{R(s)}=\\frac{G(s)}{1+G(s)H(s)}'],
+  },
+  'step-12': {
+    requiredFormulas: [
+      '\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}',
+      '\\frac{Y(s)}{R(s)}=\\frac{\\sum_{k=1}^{N} P_k \\Delta_k}{\\Delta}',
+    ],
+  },
+  'step-13': {
+    requiredFormulas: [
+      '\\displaystyle G(s)=\\frac{K_cK_p}{s(T_as+1)(T_ps+1)}',
+      '\\displaystyle \\Phi(s)=\\frac{Y(s)}{R(s)}=\\frac{K_cK_p}{s(T_as+1)(T_ps+1)+K_cK_pK_h}',
+    ],
+    requiredConclusions: ['例题一最终真正要分析的是闭环对象，而不是局部模块。'],
+  },
+  'step-14': {
+    requiredFormulas: [
+      'P_1=\\frac{K_cK_p}{s(T_as+1)(T_ps+1)}',
+      'L_1=-\\frac{K_cK_pK_h}{s(T_as+1)(T_ps+1)}',
+      '\\Delta=1-L_1',
+      '\\Delta_1=1',
+    ],
+    requiredConclusions: ['附录补充情形下，只有存在不接触该前向通路的局部回路时，才会出现 \\Delta_k=1-L_1。'],
+  },
+  'step-16': {
+    requiredConclusions: ['对象建立 -> 对象识别 -> 结构表达 -> 总体对象'],
+  },
+};
+
 export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
   {
     id: 'step-01',
@@ -105,6 +199,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '从模块 1 的现象直觉，切换到模块 2 的对象语言。',
     duration: '3 min',
     pageType: 'display',
+    coverage: {},
     workspaceKind: 'object-chain',
   },
   {
@@ -114,6 +209,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '先判断：微分方程是终点，还是统一分析对象的起点。',
     duration: '5 min',
     pageType: 'quiz',
+    coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-02'] ?? {},
   },
   {
     id: 'step-03',
@@ -122,6 +218,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '把“微分方程 -> 传递函数 -> 结构表达 -> 总体对象”一次看清。',
     duration: '2 min',
     pageType: 'display',
+    coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-03'] ?? {},
     workspaceKind: 'object-chain',
   },
   {
@@ -131,6 +228,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '先暴露最容易混淆的三件事：对象定义、初始状态、结构表达。',
     duration: '4 min',
     pageType: 'quiz',
+    coverage: {},
   },
   {
     id: 'step-05',
@@ -139,6 +237,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '不讲积分技巧，讲清为什么它能把微分方程改写成统一代数对象。',
     duration: '6 min',
     pageType: 'form',
+    coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-05'] ?? {},
   },
   {
     id: 'step-06',
@@ -147,6 +246,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '明确传递函数为什么不是“原方程换个写法”。',
     duration: '8 min',
     pageType: 'form',
+    coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-06'] ?? {},
   },
   {
     id: 'step-07',
@@ -155,6 +255,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '先自己区分对象项和初值项，再让 AI 只对照推理链。',
     duration: '6 min',
     pageType: 'ai',
+    coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-07'] ?? {},
     workspaceKind: 'initial-state',
   },
   {
@@ -164,6 +265,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '先认对象，再做运算，把形式、名称和工程判断配起来。',
     duration: '8 min',
     pageType: 'form',
+    coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-08'] ?? {},
     workspaceKind: 'typical-elements',
   },
   {
@@ -173,6 +275,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '串联、并联、反馈三类规则先立住，不进入复杂变换技巧。',
     duration: '8 min',
     pageType: 'form',
+    coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-09'] ?? {},
     workspaceKind: 'connection-rules',
   },
   {
@@ -182,6 +285,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '把控制器、舵机、船体和传感器放进同一张结构图。',
     duration: '5 min',
     pageType: 'form',
+    coverage: {},
     workspaceKind: 'connection-rules',
   },
   {
@@ -191,6 +295,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '结构图看模块组成，信号流图看节点路径与回路。',
     duration: '5 min',
     pageType: 'display',
+    coverage: {},
   },
   {
     id: 'step-12',
@@ -199,6 +304,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '只抓四个术语和一个公式：前向通路、回路、互不接触回路、余子式。',
     duration: '6 min',
     pageType: 'form',
+    coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-12'] ?? {},
     workspaceKind: 'signal-flow-terms',
   },
   {
@@ -208,6 +314,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '从对象识别到信号流图验证，走完整个对象收束链。',
     duration: '8 min',
     pageType: 'form',
+    coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-13'] ?? {},
     workspaceKind: 'mason-highlight',
   },
   {
@@ -217,6 +324,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '重点分清：互不接触回路，与“不接触某条前向通路”不是一回事。',
     duration: '6 min',
     pageType: 'form',
+    coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-14'] ?? {},
     workspaceKind: 'mason-highlight',
   },
   {
@@ -226,6 +334,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '后测看的是对象建立链是否真正站稳，不只是术语记忆。',
     duration: '5 min',
     pageType: 'quiz',
+    coverage: {},
   },
   {
     id: 'step-16',
@@ -234,6 +343,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     hint: '把对象建立、对象识别、结构表达和总体对象四段主线收束起来。',
     duration: '5 min',
     pageType: 'summary',
+    coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-16'] ?? {},
   },
 ] as const;
 

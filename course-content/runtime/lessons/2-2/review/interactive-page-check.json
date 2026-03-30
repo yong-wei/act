@@ -1,0 +1,28 @@
+{
+  "lesson_id": "2-2",
+  "source_path": "course-content/authoring/lessons/2-2/design/interactive-page.md",
+  "included_in_primary_sources": true,
+  "has_core_mapping_section": true,
+  "mapping_columns_present": [
+    "handout_anchor",
+    "core_item_type",
+    "must_appear_content",
+    "target_step",
+    "page_mode",
+    "interaction_upgrade",
+    "media_or_table_ref",
+    "acceptance_note"
+  ],
+  "missing_mapping_columns": [],
+  "invalid_handout_anchors": [],
+  "missing_target_steps": [],
+  "formula_mapping_issues": [],
+  "step_static_blocks_missing": [],
+  "step_upgrade_blocks_missing": [],
+  "summary": [
+    "已覆盖讲义中的核心公式与静态承载内容。"
+  ],
+  "warnings": [],
+  "missing": [],
+  "issues": []
+}

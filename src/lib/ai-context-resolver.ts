@@ -45,29 +45,6 @@ const INFERENCE_RULES: InferenceRule[] = [
     tools: ['get_lesson_content', 'analyze_concept'],
   },
   {
-    pattern: /\/interactive-learning\/courses\/(l2d|lsum)/,
-    courseId: '$1',
-    courseTitle: '$1 === "l2d" ? "三域联动控制设计" : "可行域设计"',
-    pageType: 'practice',
-    getTopic: (pathname) =>
-      pathname.includes('l2d') ? '三域联动设计' : '可行域设计',
-    learningObjectives: [
-      '理解控制系统设计的三域联动关系',
-      '掌握稳定性、性能、鲁棒性的权衡',
-      '学会使用交互式工具进行设计探索'
-    ],
-    tools: ['get_workspace_status', 'analyze_design', 'get_hints'],
-  },
-  {
-    pattern: /\/classroom\/student\/(l2d|lsum)/,
-    courseId: '$1',
-    courseTitle: '$1 === "l2d" ? "三域联动控制设计" : "可行域设计"',
-    pageType: 'practice',
-    getTopic: (pathname) =>
-      pathname.includes('l2d') ? '三域联动设计' : '可行域设计',
-    tools: ['get_workspace_status', 'analyze_design', 'get_hints'],
-  },
-  {
     pattern: /\/simulations\//,
     courseId: 'simulation',
     courseTitle: '船舶控制仿真',
@@ -125,11 +102,6 @@ function inferPageContextFromPath(pathname: string): Partial<PageContext> | null
       for (let i = 1; i < match.length; i++) {
         courseId = courseId.replace(`\$${i}`, match[i]);
         courseTitle = courseTitle.replace(`\$${i}`, match[i]);
-      }
-
-      // 特殊处理条件表达式
-      if (courseTitle.includes('$1 ===')) {
-        courseTitle = match[1] === 'l2d' ? '三域联动控制设计' : '可行域设计';
       }
 
       return {
@@ -301,24 +273,6 @@ export function getDefaultQuickQuestions(
     return [
       { label: '平台介绍', question: '这个平台有哪些功能？' },
       { label: '学习建议', question: '有什么学习建议吗？' },
-    ];
-  }
-
-  if (courseId.includes('l2d') || courseId.includes('L-2d')) {
-    return [
-      { label: '三域联动', question: '什么是三域联动关系？' },
-      { label: '稳定性分析', question: '如何判断系统稳定性？' },
-      { label: '参数影响', question: '增益K对系统性能有什么影响？' },
-      { label: '设计方法', question: '如何根据性能指标设计控制器？' },
-    ];
-  }
-
-  if (courseId.includes('lsum') || courseId.includes('L-sum')) {
-    return [
-      { label: '可行域', question: '什么是可行域设计？' },
-      { label: '约束条件', question: '控制系统设计有哪些常见约束？' },
-      { label: '优化目标', question: '如何在多个目标间进行权衡？' },
-      { label: '设计步骤', question: '可行域设计的完整步骤是什么？' },
     ];
   }
 

@@ -3,13 +3,18 @@
 ## 审查范围
 - 课型：理论
 - `course-content/authoring/lessons/2-1/design/handout.md`
+- `course-content/authoring/lessons/2-1/design/interactive-page.md`
 - `course-content/authoring/lessons/2-1/design/boppps.md`
 
 ## 文本技术审查
-- 未发现阻塞导出的公式配对问题。
+- `course-content/authoring/lessons/2-1/design/interactive-page.md`：发现疑似缺少 \right 的公式
 
 ## BOPPPS 对照
 - 已将 `design/boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
+
+## 互动页覆盖审查
+- 已覆盖讲义中的核心公式与静态承载内容。
+- 已检测到 `2-1` 的 V2 互动契约，步骤字段完整。
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。

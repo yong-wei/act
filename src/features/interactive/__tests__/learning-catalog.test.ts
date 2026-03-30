@@ -3,29 +3,31 @@ import { describe, expect, it } from 'vitest';
 import { INTERACTIVE_COURSE_MODULES } from '../learning-catalog';
 
 describe('INTERACTIVE_COURSE_MODULES', () => {
-  it('only exposes module 1 and module 2 on the interactive course hub', () => {
-    expect(INTERACTIVE_COURSE_MODULES.map((module) => module.id)).toEqual(['module-1', 'module-2']);
+  it('only exposes module 2 on the interactive course hub', () => {
+    expect(INTERACTIVE_COURSE_MODULES.map((module) => module.id)).toEqual(['module-2']);
   });
 
-  it('maps the legacy L-series lessons into module 1 unit slots in order', () => {
+  it('does not surface retired module 1 lessons anywhere on the hub', () => {
+    const retiredLessonIds = [
+      'l2a-time-domain-fasttrack',
+      'l2b-root-locus-fasttrack',
+      'l2c-frequency-bode-fasttrack',
+      'l2d-three-domain-linkage-practice',
+      'lsum-design-feasible-domain',
+      'unit-1-1-laplace-transfer-function',
+      'unit-1-2-block-diagram-simplification',
+      'unit-1-3-time-domain-response',
+    ];
+
+    expect(
+      INTERACTIVE_COURSE_MODULES.some((module) =>
+        module.lessons.some((lesson) => retiredLessonIds.includes(lesson.id))
+      )
+    ).toBe(false);
+  });
+
+  it('exposes unit 2-1 and unit 2-2 in module 2', () => {
     expect(INTERACTIVE_COURSE_MODULES[0]?.lessons.map((lesson) => ({
-      id: lesson.id,
-      unitLabel: lesson.unitLabel,
-    }))).toEqual([
-      { id: 'l2a-time-domain-fasttrack', unitLabel: '1-1' },
-      { id: 'l2b-root-locus-fasttrack', unitLabel: '1-2' },
-      { id: 'l2c-frequency-bode-fasttrack', unitLabel: '1-3' },
-      { id: 'l2d-three-domain-linkage-practice', unitLabel: '1-4' },
-      { id: 'lsum-design-feasible-domain', unitLabel: '1-5' },
-    ]);
-  });
-
-  it('marks module 1 cards as legacy mappings', () => {
-    expect(INTERACTIVE_COURSE_MODULES[0]?.lessons.every((lesson) => lesson.legacySourceLabel)).toBe(true);
-  });
-
-  it('only exposes unit 2-1 in module 2', () => {
-    expect(INTERACTIVE_COURSE_MODULES[1]?.lessons.map((lesson) => ({
       id: lesson.id,
       unitLabel: lesson.unitLabel,
       legacySourceLabel: lesson.legacySourceLabel ?? null,
@@ -35,14 +37,15 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
         unitLabel: '2-1',
         legacySourceLabel: null,
       },
+      {
+        id: 'unit-2-2-time-domain-response',
+        unitLabel: '2-2',
+        legacySourceLabel: null,
+      },
     ]);
   });
 
-  it('does not surface unit 1-3 on the interactive course hub', () => {
-    expect(
-      INTERACTIVE_COURSE_MODULES.some((module) =>
-        module.lessons.some((lesson) => lesson.id === 'unit-1-3-time-domain-response')
-      )
-    ).toBe(false);
+  it('does not use legacy source labels on the current mainline units', () => {
+    expect(INTERACTIVE_COURSE_MODULES[0]?.lessons.every((lesson) => lesson.legacySourceLabel == null)).toBe(true);
   });
 });

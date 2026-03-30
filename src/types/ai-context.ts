@@ -41,7 +41,7 @@ export interface AbilityVector {
  * 页面上下文
  */
 export interface PageContext {
-  /** 课程ID (L-2d, L-sum等) */
+  /** 课程ID (如: unit-2-1-modeling-language-v1, lesson-02, simulation) */
   courseId: string;
   /** 课程标题 */
   courseTitle: string;
@@ -221,7 +221,7 @@ export interface PromptBuilderOptions {
 export interface AIContextConfig {
   /** 是否启用AI助手 (默认true) */
   enabled?: boolean;
-  /** 课程ID (如: lesson-02, L-2d, simulation) */
+  /** 课程ID (如: lesson-02, unit-2-1-modeling-language-v1, simulation) */
   courseId: string;
   /** 课程标题 */
   courseTitle: string;

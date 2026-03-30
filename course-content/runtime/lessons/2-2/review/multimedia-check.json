@@ -7,7 +7,6 @@
     "2-2-td-04-time-domain-indices-annotated.svg",
     "2-2-td-05-example-response-with-indices.svg",
     "2-2-td-06-time-spec-to-pole-region.svg",
-    "2-2-ship-01-three-case-time-response-gallery.png",
     "2-2-cover-comic.png",
     "2-2-intro-video.mp4",
     "2-2-info.png",
@@ -22,7 +21,6 @@
     "2-2-td-04-time-domain-indices-annotated.svg",
     "2-2-td-05-example-response-with-indices.svg",
     "2-2-td-06-time-spec-to-pole-region.svg",
-    "2-2-ship-01-three-case-time-response-gallery.png",
     "2-2-cover-comic.png",
     "2-2-intro-video.mp4",
     "2-2-info.png",
@@ -32,5 +30,17 @@
   ],
   "missing_assets": [],
   "executed_scripts": [],
-  "processed_dir": "course-content/authoring/lessons/2-2/media/processed"
+  "processed_dir": "course-content/authoring/lessons/2-2/media/processed",
+  "formula_contract_issues": [],
+  "formula_media": [
+    {
+      "script": "2-2-td-05-example-response-with-indices.py",
+      "output": "2-2-td-05-example-response-with-indices.svg",
+      "formula_mode": "svg-mathtext",
+      "page_formula_sources": [
+        "design/handout.md",
+        "design/interactive-page.md"
+      ]
+    }
+  ]
 }

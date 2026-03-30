@@ -86,12 +86,6 @@ export function usePageAIContext(options: UsePageAIContextOptions = {}): {
 function extractCourseIdFromPath(pathname: string | null): string {
   if (!pathname) return 'unknown';
 
-  if (pathname.includes('l2d') || pathname.includes('three-domain')) {
-    return 'L-2d';
-  }
-  if (pathname.includes('lsum') || pathname.includes('feasible-domain')) {
-    return 'L-sum';
-  }
   if (pathname.includes('simulation') || pathname.includes('destroyer')) {
     return 'simulation';
   }
@@ -107,8 +101,6 @@ function extractCourseIdFromPath(pathname: string | null): string {
  */
 function getCourseTitleFromId(courseId?: string): string {
   const titles: Record<string, string> = {
-    'L-2d': '三域联动控制设计',
-    'L-sum': '可行域设计方法',
     'simulation': '船舶控制仿真',
     'lesson-02': 'BOPPPS教学模块',
   };

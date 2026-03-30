@@ -1,57 +1,83 @@
 {
   "lesson_id": "2-2",
   "unit_type": "理论",
-  "generated_at": "2026-03-29T14:43:35.135011+00:00",
+  "generated_at": "2026-03-30T07:05:47.941795+00:00",
   "primary_sources": [
-    "course-content/authoring/lessons/2-2/design/handout.md"
+    "course-content/authoring/lessons/2-2/design/handout.md",
+    "course-content/authoring/lessons/2-2/design/interactive-page.md"
   ],
+  "interactive_page_source": "course-content/authoring/lessons/2-2/design/interactive-page.md",
   "boppps_source": "course-content/authoring/lessons/2-2/design/boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/2-2/sequence.json",
   "expected_code_media": [
     {
       "script": "2-2-td-01-time-domain-input-response-overview.py",
-      "output": "2-2-td-01-time-domain-input-response-overview.svg"
+      "output": "2-2-td-01-time-domain-input-response-overview.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
       "script": "2-2-td-02-first-order-step-time-constant.py",
-      "output": "2-2-td-02-first-order-step-time-constant.svg"
+      "output": "2-2-td-02-first-order-step-time-constant.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
       "script": "2-2-td-03-second-order-response-families.py",
-      "output": "2-2-td-03-second-order-response-families.svg"
+      "output": "2-2-td-03-second-order-response-families.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
       "script": "2-2-td-04-time-domain-indices-annotated.py",
-      "output": "2-2-td-04-time-domain-indices-annotated.svg"
+      "output": "2-2-td-04-time-domain-indices-annotated.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
       "script": "2-2-td-05-example-response-with-indices.py",
-      "output": "2-2-td-05-example-response-with-indices.svg"
+      "output": "2-2-td-05-example-response-with-indices.svg",
+      "formula_mode": "svg-mathtext",
+      "page_formula_sources": [
+        "design/handout.md",
+        "design/interactive-page.md"
+      ]
     },
     {
       "script": "2-2-td-06-time-spec-to-pole-region.py",
-      "output": "2-2-td-06-time-spec-to-pole-region.svg"
+      "output": "2-2-td-06-time-spec-to-pole-region.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-2-ship-01-three-case-time-response-gallery.png"
+      "output": "2-2-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-2-cover-comic.png"
+      "output": "2-2-intro-video.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-2-intro-video.mp4"
+      "output": "2-2-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-2-info.png"
+      "output": "2-2-slides.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-2-slides.pdf"
+      "output": "2-2-course.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-2-course.mp4"
-    },
-    {
-      "output": "2-2-audio.m4a"
+      "output": "2-2-audio.m4a",
+      "formula_mode": "none",
+      "page_formula_sources": []
     }
   ]
 }

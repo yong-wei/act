@@ -4,7 +4,7 @@ name: 调节时间
 name_en: Settling Time
 lesson_units:
   - L-2a
-  - 1-3
+  - 2-2
 category: 概念性
 knowledge_type: C
 chapter: 3

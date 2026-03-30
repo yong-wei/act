@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { Copy, Sparkles } from 'lucide-react';
+import { BlockMath } from 'react-katex';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
@@ -62,6 +63,13 @@ interface StepBlueprint {
   kicker: string;
   intro: string;
   sections: StepSection[];
+  formulas?: string[];
+  tables?: Array<{
+    title: string;
+    headers: string[];
+    rows: string[][];
+  }>;
+  conclusions?: string[];
   note?: string;
   prompts?: string[];
 }
@@ -93,6 +101,7 @@ function getStepBlueprint(step: UNIT_2_1StepDefinition): StepBlueprint {
       return {
         kicker: 'Engineering Scenario',
         intro: '给定船舶航向动力学方程，只能看到“物理来源”，却还看不清对象由哪些标准部件构成、如何和控制器接成系统，也看不清反馈之后的总体对象怎样写。',
+        formulas: [String.raw`J\ddot{\theta}(t)+B\dot{\theta}(t)=Ku(t)`],
         sections: [
           {
             title: '为什么单有微分方程还不够',
@@ -105,6 +114,7 @@ function getStepBlueprint(step: UNIT_2_1StepDefinition): StepBlueprint {
       return {
         kicker: 'Object Chain',
         intro: '今天的主线不是若干工具并列，而是一条严格的对象建立链。每一步都在回答一个更精确的问题：对象怎么来、怎样认、怎样连、怎样收束。',
+        conclusions: ['微分方程 -> 拉氏变换 -> 传递函数 -> 典型环节 -> 结构表达 -> 总体对象'],
         sections: [
           {
             title: '六段对象链',
@@ -129,6 +139,31 @@ function getStepBlueprint(step: UNIT_2_1StepDefinition): StepBlueprint {
       return {
         kicker: 'Laplace Motivation',
         intro: '控制课程里强调拉氏变换，不是为了训练积分技巧，而是为了把“含导数的微分关系”统一改写成“关于 s 的代数关系”，让对象可以被比较、组合和复用。',
+        formulas: [
+          String.raw`F(s)=\mathcal{L}\{f(t)\}`,
+          String.raw`\mathcal{L}\{\dot f(t)\}=sF(s)`,
+          String.raw`\mathcal{L}\{\ddot f(t)\}=s^2F(s)`,
+        ],
+        tables: [
+          {
+            title: '时域微分方程语言与变换域对象语言的区别',
+            headers: ['语言视角', '时域微分方程语言', '变换域对象语言'],
+            rows: [
+              ['描述重点', '直接描述微分关系与初值演化', '把系统写成关于 s 的统一代数对象'],
+              ['后续用途', '更接近物理来源，但不便于结构连接', '便于对象识别、连接、收束与复用'],
+            ],
+          },
+          {
+            title: '本课最少要记住的拉氏对应关系',
+            headers: ['时域表达', '变换域表达', '本课只抓的意义'],
+            rows: [
+              ['1(t)', '1/s', '常值输入在变换域里也能被统一表示'],
+              [String.raw`\dot f(t)`, String.raw`sF(s)-f(0^-)`, '微分关系被改写为代数项'],
+              [String.raw`\ddot f(t)`, String.raw`s^2F(s)-sf(0^-)-\dot f(0^-)`, '二阶动态也能继续按同一语言组织'],
+              [String.raw`\int_0^t f(\tau)\,d\tau`, String.raw`F(s)/s`, '积分关系也能并入统一对象表达'],
+            ],
+          },
+        ],
         sections: [
           {
             title: '工程意义',
@@ -142,6 +177,7 @@ function getStepBlueprint(step: UNIT_2_1StepDefinition): StepBlueprint {
       return {
         kicker: 'Transfer Function',
         intro: '零初值下，拉氏变换把系统对象与具体输入分开，于是传递函数不再只是“原方程换个写法”，而是后续反复复用的统一分析对象。',
+        formulas: [String.raw`G(s)=\frac{Y(s)}{U(s)}\bigg|_{\text{零初值}}`],
         sections: [
           {
             title: '这一步真正完成了什么',
@@ -158,6 +194,7 @@ function getStepBlueprint(step: UNIT_2_1StepDefinition): StepBlueprint {
       return {
         kicker: 'Initial Condition',
         intro: '非零初值会额外带出和初始状态有关的项。它们确实会影响输出，但不属于“对象本身”，因此不能混进传递函数定义里。',
+        formulas: [String.raw`Y(s)=G(s)U(s)`, String.raw`Y(s)=G(s)U(s)+\text{初值项}`],
         sections: [
           {
             title: '这一页只抓两件事',
@@ -178,6 +215,19 @@ function getStepBlueprint(step: UNIT_2_1StepDefinition): StepBlueprint {
       return {
         kicker: 'Typical Elements',
         intro: '典型环节对象库的价值，不在于背名字，而在于形成第一眼对象识别能力。看到传递函数后，先把它拆成标准部件，再决定后续怎么算、怎么连。',
+        tables: [
+          {
+            title: '五类典型环节及其第一判断',
+            headers: ['典型环节', '传递函数形式', '你应先抓住的物理或工程含义', '第一眼判断'],
+            rows: [
+              ['比例环节', 'G(s)=K', '只有比例放大或缩小，不引入动态记忆', '改变强弱，不改变动态阶次'],
+              ['积分环节', String.raw`G(s)=\dfrac{1}{s}`, '输出是输入随时间的累积', '引入“记忆”，常使系统更容易慢慢积累'],
+              ['微分环节', 'G(s)=s', '输出更敏感于输入变化率', '强调变化趋势，对快变化敏感'],
+              ['一阶惯性环节', String.raw`G(s)=\dfrac{1}{Ts+1}`, '存在滞后，响应不会立刻到位', '不振荡，主要体现快慢差异'],
+              ['振荡环节', String.raw`G(s)=\dfrac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}`, '同时包含快慢与振荡特征', '可能超调、振荡、再稳定'],
+            ],
+          },
+        ],
         sections: [
           {
             title: '先认对象，再做运算',
@@ -190,6 +240,7 @@ function getStepBlueprint(step: UNIT_2_1StepDefinition): StepBlueprint {
       return {
         kicker: 'Connection Rules',
         intro: '再复杂的结构图，最终都要回到串联、并联、反馈这三类基本连接。今天只把这三类规则立住，不进入复杂化简技巧。',
+        formulas: ['G(s)=G_1(s)G_2(s)', 'G(s)=G_1(s)+G_2(s)', String.raw`\frac{Y(s)}{R(s)}=\frac{G(s)}{1+G(s)H(s)}`],
         sections: [
           {
             title: '三类基本连接',
@@ -207,6 +258,11 @@ function getStepBlueprint(step: UNIT_2_1StepDefinition): StepBlueprint {
             title: '工程角色分工',
             tone: 'amber',
             bullets: ['控制器：根据偏差生成指令', '舵机：把指令变成实际舵角', '船体：把舵角转成航向变化', '传感器：把实际航向反馈回来修正输入'],
+          },
+          {
+            title: '本页必须看清的反馈信号',
+            tone: 'cyan',
+            bullets: ['被反馈回来修正输入的是“实际航向反馈信号”', '传感器把实际航向送回比较点，闭环正是在这里真正闭上'],
           },
         ],
       };
@@ -226,6 +282,10 @@ function getStepBlueprint(step: UNIT_2_1StepDefinition): StepBlueprint {
       return {
         kicker: 'Mason Basics',
         intro: '本课只讲梅森公式的最小使用集。目标不是公式炫技，而是理解它在回答什么问题：复杂结构怎样不靠层层等效变换，直接写出总体对象。',
+        formulas: [
+          String.raw`\frac{Y(s)}{R(s)}=\frac{\sum P_k\Delta_k}{\Delta}`,
+          String.raw`\frac{Y(s)}{R(s)}=\frac{\sum_{k=1}^{N} P_k \Delta_k}{\Delta}`,
+        ],
         sections: [
           {
             title: '四个关键词',
@@ -239,25 +299,52 @@ function getStepBlueprint(step: UNIT_2_1StepDefinition): StepBlueprint {
       return {
         kicker: 'Worked Example',
         intro: '例题一用最标准的单回路闭环对象，把对象识别、前向通路、反馈通道和信号流图验证放在同一条链上，帮助你看到“闭环对象”才是后续真正要分析的对象。',
+        formulas: [
+          String.raw`\displaystyle G(s)=\frac{K_cK_p}{s(T_as+1)(T_ps+1)}`,
+          String.raw`\displaystyle \Phi(s)=\frac{Y(s)}{R(s)}=\frac{K_cK_p}{s(T_as+1)(T_ps+1)+K_cK_pK_h}`,
+        ],
         sections: [
           {
             title: '解题组织顺序',
             tone: 'cyan',
             bullets: ['先认清前向通道与反馈通道', '再写出闭环对象关系', '最后用信号流图复核路径与回路识别'],
           },
+          {
+            title: '本页结论',
+            tone: 'amber',
+            bullets: ['前向通道负责把输入一路送到输出', '反馈通道改变了分母，因此真正进入后续分析的是闭环对象'],
+          },
         ],
+        conclusions: ['例题一最终真正要分析的是闭环对象，而不是局部模块。'],
       };
     case 'step-14':
       return {
         kicker: 'Delta-k Distinction',
         intro: '余子式不一定等于 1。真正要判断的是：某条前向通路是否接触所有相关回路。它和“回路之间是否互不接触”属于两个不同层次。',
+        formulas: [
+          String.raw`P_1=\frac{K_cK_p}{s(T_as+1)(T_ps+1)}`,
+          String.raw`L_1=-\frac{K_cK_pK_h}{s(T_as+1)(T_ps+1)}`,
+          String.raw`\Delta=1-L_1`,
+          String.raw`\Delta_1=1`,
+        ],
         sections: [
           {
-            title: '本页只辨析一个误区',
+            title: '例题一本体',
             tone: 'rose',
+            bullets: ['在这道单回路例题里，先算的是全图特征式 \\Delta=1-L_1', '对应这条前向通路的余子式是 \\Delta_1=1，不要和附录补充情形混写'],
+          },
+          {
+            title: '附录补充情形',
+            tone: 'amber',
+            bullets: ['只有当存在“不接触该前向通路”的局部回路时，才会出现 \\Delta_k=1-L_1', '这解释的是多前向通路补充情形，不是把例题一的 \\Delta_1=1 推翻'],
+          },
+          {
+            title: '本页只辨析一个误区',
+            tone: 'cyan',
             bullets: ['互不接触回路：看回路和回路之间', '对应前向通路的余子式：看回路是否接触这条前向通路', '只有后者，才能决定某条 Delta_k 是否保留下来'],
           },
         ],
+        conclusions: ['附录补充情形下，只有存在不接触该前向通路的局部回路时，才会出现 \\Delta_k=1-L_1。'],
       };
     case 'step-15':
       return {
@@ -275,6 +362,7 @@ function getStepBlueprint(step: UNIT_2_1StepDefinition): StepBlueprint {
       return {
         kicker: 'Wrap-Up',
         intro: '这一课真正建立的是对象语言：对象建立、对象识别、结构表达、总体对象。下一课 2-2 不再问“对象怎么来”，而会继续问“对象在时间里怎么动”。',
+        conclusions: ['对象建立 -> 对象识别 -> 结构表达 -> 总体对象'],
         sections: [
           {
             title: '从 2-1 走向 2-2',
@@ -735,6 +823,10 @@ function renderFieldValue(field: FormField | undefined, value: string) {
   return field.options?.find((option) => option.value === value)?.label ?? value ?? '未作答';
 }
 
+function looksLikeFormula(value: string) {
+  return /\\|G\(s\)|Y\(s\)|R\(s\)|\^|_/.test(value);
+}
+
 function ObjectChainMiniVisual({
   onParameterChange,
 }: {
@@ -764,14 +856,23 @@ function InitialStateContrastLab({
   onParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const [mode, setMode] = useState<'object' | 'initial'>('object');
-  const description =
-    mode === 'object'
-      ? '对象项只描述系统本身的输入输出关系，它应该能脱离具体历史状态被复用。'
-      : '初值项描述的是系统一开始带着什么历史状态进入分析，它会影响输出，但不属于传递函数定义。';
+  const cards = {
+    object: {
+      title: '对象项',
+      formula: String.raw`Y(s)=G(s)U(s)`,
+      description: '对象项只描述系统本身的输入输出关系，它应该能脱离具体历史状态被复用。',
+    },
+    initial: {
+      title: '初值项',
+      formula: String.raw`Y(s)=G(s)U(s)+\text{初值项}`,
+      description: '初值项描述的是系统一开始带着什么历史状态进入分析，它会影响输出，但不属于传递函数定义。',
+    },
+  } as const;
+  const activeCard = cards[mode];
 
   return (
     <section className="premium-lesson-panel-soft mt-4 px-4 py-4">
-      <div className="premium-lesson-title text-sm font-medium">对象项 / 初值项对照卡</div>
+      <div className="premium-lesson-title text-sm font-medium">对象项 / 初值项双列对照</div>
       <div className="premium-lesson-muted mt-2 text-sm">点选卡片，看当前页面更想强调哪一类信息。</div>
       <div className="mt-4 flex flex-wrap gap-2">
         {[
@@ -792,7 +893,26 @@ function InitialStateContrastLab({
           </button>
         ))}
       </div>
-      <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">{description}</div>
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="premium-lesson-surface-elevated px-4 py-4 text-sm">
+          <div className="premium-lesson-title text-sm font-medium">对象项</div>
+          <div className="mt-3">
+            <BlockMath math={cards.object.formula} />
+          </div>
+          <div className="premium-lesson-muted mt-3">{cards.object.description}</div>
+        </div>
+        <div className="premium-lesson-surface-elevated px-4 py-4 text-sm">
+          <div className="premium-lesson-title text-sm font-medium">初值项</div>
+          <div className="mt-3">
+            <BlockMath math={cards.initial.formula} />
+          </div>
+          <div className="premium-lesson-muted mt-3">{cards.initial.description}</div>
+        </div>
+      </div>
+      <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">
+        <div className="font-medium">{activeCard.title}</div>
+        <div className="mt-2">{activeCard.description}</div>
+      </div>
     </section>
   );
 }
@@ -1044,6 +1164,49 @@ export function UNIT_2_1StepContentPanel({
       <h2 className="premium-lesson-title mt-4 text-2xl font-semibold">{step.title}</h2>
       <p className="premium-lesson-muted mt-3 text-sm leading-7">{blueprint.intro}</p>
 
+      {blueprint.formulas?.length ? (
+        <div className="mt-5 grid gap-3">
+          {blueprint.formulas.map((formula) => (
+            <div key={formula} className="premium-lesson-panel-soft px-4 py-4">
+              <div className="premium-lesson-caption mb-2 text-xs">页面必须显式呈现的核心公式</div>
+              <BlockMath math={formula} />
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {blueprint.tables?.length ? (
+        <div className="mt-5 grid gap-4">
+          {blueprint.tables.map((table) => (
+            <div key={table.title} className="premium-lesson-panel-soft overflow-x-auto px-4 py-4">
+              <div className="premium-lesson-title text-sm font-medium">{table.title}</div>
+              <table className="mt-3 min-w-full border-collapse text-sm">
+                <thead>
+                  <tr>
+                    {table.headers.map((header) => (
+                      <th key={header} className="border border-border bg-muted/40 px-3 py-2 text-left font-medium">
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {table.rows.map((row) => (
+                    <tr key={row.join('|')}>
+                      {row.map((cell) => (
+                        <td key={cell} className="border border-border px-3 py-2 align-top">
+                          {looksLikeFormula(cell) ? <BlockMath math={cell} /> : cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
       <div className="mt-5 grid gap-4">
         {blueprint.sections.map((section) => (
           <div key={section.title} className={`premium-lesson-tone-block ${getToneClass(section.tone)}`}>
@@ -1061,6 +1224,16 @@ export function UNIT_2_1StepContentPanel({
           </div>
         ))}
       </div>
+
+      {blueprint.conclusions?.length ? (
+        <div className="mt-5 grid gap-3 md:grid-cols-2">
+          {blueprint.conclusions.map((conclusion) => (
+            <div key={conclusion} className="premium-lesson-tone-block premium-tone-emerald text-sm">
+              {conclusion}
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       <StepInlineVisual step={step} onParameterChange={onWorkspaceParameterChange} />
 

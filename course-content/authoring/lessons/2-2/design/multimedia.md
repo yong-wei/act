@@ -1,6 +1,6 @@
 # 多模态资源设计 | 单元 2-2：时域响应基础——从响应曲线到动态性能指标
 
-> **资源总数**：20 项
+> **资源总数**：19 项
 > **说明**：本课讲义与媒体命名已统一切换到 `2-2-...` 前缀；以下设计与 `handout.md`、`media/` 目录保持一致，避免后续回写再次改路径。
 
 ## 资源融入评审单
@@ -9,7 +9,6 @@
 | --- | --- | --- | --- | --- | --- |
 | `course-content/resource-library/pptx/6性能指标_控制效果评价/README.md` | `pptx` | handout 导入 / 指标总览 / summary | 改写吸收 | `必融入` | 只吸收“为什么稳定还不够”“典型输入”“指标标注骨架”，不照搬旧课件页序 |
 | `course-content/resource-library/pptx/7.1衰减振荡_欠阻尼二阶系统/README.md` | `pptx` | handout 二阶系统 / interactive step-07~12 | 改写吸收 + 直接复用图片 | `必融入` | 只服务标准二阶对象与欠阻尼响应家族，不把课堂主线扩张为设计约束推演 |
-| `course-content/resource-library/ship-control-cases/sections/3.1-3.3` | `ship-case` | interactive step-14 / handout 对照框 | 改写吸收 + 直接复用图片 | `可选融入` | 只服务同一时域语言在不同船舶对象上的对照观察，不提前进入稳态误差与控制器选型 |
 | 思政案例 | `civics` | 本轮不接入 | 暂不采用 | `排除` | `2-2` 当前没有必须接入的思政节点，避免让对象建立课失焦 |
 
 ---
@@ -24,20 +23,19 @@
 | 4 | 2-2-td-04-time-domain-indices-annotated.svg | 代码直出图 | handout §2.4 / interactive step-12 | P0 |
 | 5 | 2-2-td-05-example-response-with-indices.svg | 代码直出图 | handout §3.1 / interactive step-13 | P1 |
 | 6 | 2-2-td-06-time-spec-to-pole-region.svg | 代码直出图 | handout 附录 / teacher note | P2 |
-| 7 | 2-2-ship-01-three-case-time-response-gallery.png | 资源库二次编排图 | interactive step-14 / teacher-handout 对照讨论 | P1 |
-| 8 | 2-2-cover-comic.png | AI 生成位图 | handout 信息节后 / 讲义封面导入 | P0 |
-| 9 | 2-2-intro-video.mp4 | AI 生成视频 | 课堂开场 / interactive 首页导入 | P1 |
-| 10 | 2-2-info.png | 讲义信息图 | 位图 | handout 总结后 / 附录前 | P0 |
-| 11 | 2-2-slides.pdf | 生成式课件 | PDF | 课件导出配套 | P1 |
-| 12 | 2-2-course.mp4 | 课程内容视频 | 视频 | 课堂播放 / 课后复习 | P1 |
-| 13 | 2-2-audio.m4a | 课程音频播客 | 音频 | 课后复习 | P1 |
-| 14 | ic-01-pretest-distribution | 前端绘制 | interactive step-04 | P1 |
-| 15 | ic-02-first-order-time-slider | 前端绘制 | interactive step-06 | P0 |
-| 16 | ic-03-second-order-family-switcher | 前端绘制 | interactive step-08 | P0 |
-| 17 | ic-04-index-overlay | 前端绘制 | interactive step-12 | P0 |
-| 18 | ic-05-metric-calculator | 前端绘制 | interactive step-13 | P1 |
-| 19 | ic-06-ai-compare-workspace | 前端绘制 | interactive step-14 | P0 |
-| 20 | ic-07-metric-to-pole-plane | 前端绘制 | interactive step-15 | P0 |
+| 7 | 2-2-cover-comic.png | AI 生成位图 | handout 信息节后 / 讲义封面导入 | P0 |
+| 8 | 2-2-intro-video.mp4 | AI 生成视频 | 课堂开场 / interactive 首页导入 | P1 |
+| 9 | 2-2-info.png | 讲义信息图 | 位图 | handout 总结后 / 附录前 | P0 |
+| 10 | 2-2-slides.pdf | 生成式课件 | PDF | 课件导出配套 | P1 |
+| 11 | 2-2-course.mp4 | 课程内容视频 | 视频 | 课堂播放 / 课后复习 | P1 |
+| 12 | 2-2-audio.m4a | 课程音频播客 | 音频 | 课后复习 | P1 |
+| 13 | ic-01-pretest-distribution | 前端绘制 | interactive step-04 | P1 |
+| 14 | ic-02-first-order-time-slider | 前端绘制 | interactive step-06 | P0 |
+| 15 | ic-03-second-order-family-switcher | 前端绘制 | interactive step-08 | P0 |
+| 16 | ic-04-index-overlay | 前端绘制 | interactive step-09~12 | P0 |
+| 17 | ic-05-metric-calculator | 前端绘制 | interactive step-13 | P1 |
+| 18 | ic-06-ai-compare-workspace | 前端绘制 | interactive step-14 | P0 |
+| 19 | ic-07-metric-to-pole-plane | 前端绘制 | interactive step-15 | P0 |
 
 ---
 
@@ -108,26 +106,6 @@
   - “时域指标 -> 极点区域”说明框。
 - **绘制建议**：使用浅青色半透明填充阴影区，便于后续在 interactive 中复用视觉语言。
 
-### 资源 ship-01 | 三类船舶对象时域响应对照图组
-- **来源**：
-  - `course-content/resource-library/ship-control-cases/sections/3.1-船舶航向控制时域分析实例.md`
-  - `course-content/resource-library/ship-control-cases/sections/3.2-船舶横摇减摇鳍控制时域分析实例.md`
-  - `course-content/resource-library/ship-control-cases/sections/3.3-船载稳定平台控制系统时域分析实例.md`
-- **建议成品**：`media/processed/2-2-ship-01-three-case-time-response-gallery.png`
-- **内容**：把三类船舶对象各选 1 张最能体现“快慢 / 振荡 / 指标适用性差异”的时域曲线，重排成统一坐标风格的三栏对照图。
-- **引用位置**：`interactive-page.md` step-14、`teacher-handout.md` 例题二或总结前。
-- **重点标注**：
-  - 对象名称；
-  - 该图主要体现的动态特征；
-  - 是否适合直接用本课指标语言描述；
-  - 一句“为什么”的工程提示。
-- **制作原则**：
-  - 优先二次编排资源库现有图，不要求本轮重算模型；
-  - 若原图风格不统一，应改为重新裁切、统一标题、统一标注和统一留白；
-  - 该图组服务课堂比较，不服务稳态误差、控制器选择或设计优化讨论。
-
----
-
 ## 互动前端绘制需求
 
 ### 资源 ic-01 | 前测分布条形图
@@ -164,8 +142,8 @@
 
 ### 资源 ic-06 | AI 对照工作区
 - **引用位置**：`interactive-page.md` step-14
-- **组件类型**：三栏布局（我的判断 / 资源对照 / AI 核验）
-- **交互行为**：学生先写，再看船舶案例对照，最后请求 AI 只做“逻辑核验”
+- **组件类型**：三栏布局（我的判断 / 约束链条 / AI 核验）
+- **交互行为**：学生先写出“指标 -> 参数约束”的判断，再让 AI 只做“逻辑核验”
 - **实现要求**：保留提示词模板，避免 AI 直接泄露最终答案
 
 ### 资源 ic-07 | 指标到极点联动面板
@@ -180,6 +158,6 @@
 ## 后续执行建议
 
 1. 先生成 `2-2-td-01`~`2-2-td-04`，它们覆盖主讲内容与课堂展示主干；
-2. 再生成 `2-2-td-05`，补齐标准对象例题；`2-2-td-06` 保留为附录/教师补充资源，不再放入主讲优先级；
+2. 再生成 `2-2-td-05` 与 `2-2-td-06`，前者支撑例题一，后者支撑例题二与 step-15 的轻量桥接；
 3. `ic-02`、`ic-03`、`ic-04`、`ic-07` 是最有教学增益的互动组件，优先级高于一般答题面板；
 4. AI 对照工作区要严格限制提示词模式：先预测、再验证、再反思。

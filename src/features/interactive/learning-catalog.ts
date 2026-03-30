@@ -10,13 +10,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-import { L2A_PREMIUM_LESSON_CARD } from '@/lib/l2a-course';
-import { L2B_PREMIUM_LESSON_CARD } from '@/lib/l2b-course';
-import { L2C_PREMIUM_LESSON_CARD } from '@/lib/l2c-course';
-import { L2D_PREMIUM_LESSON_CARD } from '@/lib/l2d-course';
-import { LSUM_PREMIUM_LESSON_CARD } from '@/lib/lsum-course';
 import { UNIT_2_1_PREMIUM_LESSON_CARD } from '@/lib/unit-2-1-course';
-import { UNIT_1_3_PREMIUM_LESSON_CARD } from '@/lib/unit-1-3-course';
+import { UNIT_2_2_PREMIUM_LESSON_CARD } from '@/lib/unit-2-2-course';
 
 export interface InteractiveResource {
   id: string;
@@ -123,13 +118,8 @@ export const CHAPTER_COMPONENT_CATEGORIES = CATEGORY_ORDER.filter(
 );
 
 export const FEATURED_LESSONS = [
-  L2A_PREMIUM_LESSON_CARD,
-  L2B_PREMIUM_LESSON_CARD,
-  L2C_PREMIUM_LESSON_CARD,
-  L2D_PREMIUM_LESSON_CARD,
-  LSUM_PREMIUM_LESSON_CARD,
   UNIT_2_1_PREMIUM_LESSON_CARD,
-  UNIT_1_3_PREMIUM_LESSON_CARD,
+  UNIT_2_2_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -279,14 +269,14 @@ export const FEATURED_LESSONS = [
 export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
   lesson.id === 'cruise-comfort-boppps' ||
   lesson.id === 'unit-2-1-modeling-language' ||
-  lesson.id === 'unit-1-3-time-domain-response'
+  lesson.id === 'unit-2-2-time-domain-response'
 );
 
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
   (lesson) =>
     lesson.id !== 'cruise-comfort-boppps' &&
     lesson.id !== 'unit-2-1-modeling-language' &&
-    lesson.id !== 'unit-1-3-time-domain-response'
+    lesson.id !== 'unit-2-2-time-domain-response'
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;
@@ -313,24 +303,14 @@ function createModuleLesson(id: string, unitLabel: string, legacySourceLabel?: s
 
 export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
   {
-    id: 'module-1',
-    title: '模块1',
-    description: '当前以历史 L 系列课程承接“先见森林”的五个入口，用于保留模块1的学习顺序与进入方式。',
-    chipLabel: '5 个单元入口',
-    lessons: [
-      createModuleLesson('l2a-time-domain-fasttrack', '1-1', '映射自 L-2a'),
-      createModuleLesson('l2b-root-locus-fasttrack', '1-2', '映射自 L-2b'),
-      createModuleLesson('l2c-frequency-bode-fasttrack', '1-3', '映射自 L-2c'),
-      createModuleLesson('l2d-three-domain-linkage-practice', '1-4', '映射自 L-2d'),
-      createModuleLesson('lsum-design-feasible-domain', '1-5', '映射自 L-sum'),
-    ],
-  },
-  {
     id: 'module-2',
     title: '模块2',
-    description: '模块2当前仅开放已完成的 2-1 新主线课程，其余单元待后续建设后再纳入入口页。',
+    description: '模块2当前开放 2-1 与 2-2 两个新主线单元，分别承接统一对象语言与时域响应基础。',
     chipLabel: '已开放单元',
-    lessons: [createModuleLesson('unit-2-1-modeling-language', '2-1')],
+    lessons: [
+      createModuleLesson('unit-2-1-modeling-language', '2-1'),
+      createModuleLesson('unit-2-2-time-domain-response', '2-2'),
+    ],
   },
 ] as const;
 

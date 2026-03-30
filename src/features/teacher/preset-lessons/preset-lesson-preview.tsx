@@ -6,20 +6,20 @@
  * 显示预置教案的详细信息和 BOPPPS 教学流程
  */
 
-import { Fragment } from 'react';
+import Link from 'next/link';
 import {
   X,
   Clock,
-  Play,
   Copy,
-  ChevronRight,
   Tag,
   Ship,
   Layers,
+  MonitorPlay,
 } from 'lucide-react';
 import type { PresetLessonConfig, PresetLessonItem } from './types';
 import { BOPPPS_STAGES } from './types';
 import { BopppsStage } from '@prisma/client';
+import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
 
 interface PresetLessonPreviewProps {
   preset: PresetLessonConfig;
@@ -36,6 +36,10 @@ export function PresetLessonPreview({
 }: PresetLessonPreviewProps) {
   // 按 BOPPPS 阶段分组教案环节
   const groupedItems = groupItemsByStage(preset.items);
+  const { routeSegment } = resolveSessionRouteFromPlanTitle(preset.title);
+  const studentPreviewHref = routeSegment
+    ? `/interactive-learning/courses/${routeSegment}/student/demo`
+    : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
@@ -83,9 +87,34 @@ export function PresetLessonPreview({
           </div>
         </div>
 
+        {studentPreviewHref ? (
+          <div className="border-b border-slate-700 bg-cyan-500/10 px-6 py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="text-sm font-semibold text-cyan-200">学生页预览</div>
+                <p className="mt-1 text-sm text-slate-300">
+                  默认预览请直接打开学生演示页，所见即所得。当前弹窗只负责展示教案骨架和 BOPPPS 编排，不替代真实页面预览。
+                </p>
+              </div>
+              <Link
+                href={studentPreviewHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-500"
+              >
+                <MonitorPlay className="h-4 w-4" />
+                打开学生页预览
+              </Link>
+            </div>
+          </div>
+        ) : null}
+
         {/* 教学流程时间轴 */}
         <div className="overflow-y-auto p-6" style={{ maxHeight: 'calc(90vh - 280px)' }}>
-          <h3 className="mb-4 text-lg font-semibold text-white">BOPPPS 教学流程</h3>
+          <h3 className="mb-2 text-lg font-semibold text-white">教案骨架总览</h3>
+          <p className="mb-4 text-sm text-slate-400">
+            这里用于查看阶段顺序、时长和资源编排；真实学生预览以上方学生页入口为准。
+          </p>
           <div className="space-y-6">
             {Object.entries(groupedItems).map(([stage, items]) => (
               <StageSection key={stage} stage={stage as BopppsStage} items={items} />

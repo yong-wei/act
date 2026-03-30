@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import { PREMIUM_LESSONS } from '@/features/interactive/learning-catalog';
@@ -5,26 +8,45 @@ import { ALL_PRESETS } from '@/features/teacher/preset-lessons/presets';
 import { COURSE_AI_CONTEXT_REGISTRY } from '@/lib/course-ai-contexts';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
 
+const repoRoot = process.cwd();
+
 describe('2-1 mainline replacement', () => {
   it('registers the 2-1 AI context and removes 1-1/1-2 from the premium registry', () => {
     expect(COURSE_AI_CONTEXT_REGISTRY['unit-2-1-modeling-language-v1']).toBeDefined();
     expect(COURSE_AI_CONTEXT_REGISTRY['unit-1-1-laplace-transfer-function-v1']).toBeUndefined();
     expect(COURSE_AI_CONTEXT_REGISTRY['unit-1-2-block-diagram-simplification-v1']).toBeUndefined();
+    expect(COURSE_AI_CONTEXT_REGISTRY['l2a-time-domain-fasttrack']).toBeUndefined();
+    expect(COURSE_AI_CONTEXT_REGISTRY['l2b-root-locus-fasttrack']).toBeUndefined();
+    expect(COURSE_AI_CONTEXT_REGISTRY['l2c-frequency-bode-fasttrack']).toBeUndefined();
+    expect(COURSE_AI_CONTEXT_REGISTRY['l2d-three-domain-linkage-practice']).toBeUndefined();
+    expect(COURSE_AI_CONTEXT_REGISTRY['lsum-design-feasible-domain-v1']).toBeUndefined();
   });
 
-  it('exposes 2-1 in premium lessons and removes 1-1/1-2 premium entries', () => {
+  it('exposes only the current mainline premium lessons and removes retired module 1 entries', () => {
     expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-2-1-modeling-language')).toBe(true);
+    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-2-2-time-domain-response')).toBe(true);
     expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-1-1-laplace-transfer-function')).toBe(false);
     expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-1-2-block-diagram-simplification')).toBe(false);
+    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'l2a-time-domain-fasttrack')).toBe(false);
+    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'l2b-root-locus-fasttrack')).toBe(false);
+    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'l2c-frequency-bode-fasttrack')).toBe(false);
+    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'l2d-three-domain-linkage-practice')).toBe(false);
+    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'lsum-design-feasible-domain')).toBe(false);
   });
 
-  it('uses only the 2-1 preset for the modeling-language mainline course', () => {
+  it('keeps only current mainline presets and removes retired module 1 presets', () => {
     expect(ALL_PRESETS.some((preset) => preset.key === 'unit-2-1-modeling-language-v1')).toBe(true);
+    expect(ALL_PRESETS.some((preset) => preset.key === 'unit-2-2-time-domain-response-v1')).toBe(true);
     expect(ALL_PRESETS.some((preset) => preset.key === 'unit-1-1-laplace-transfer-function-v1')).toBe(false);
     expect(ALL_PRESETS.some((preset) => preset.key === 'unit-1-2-block-diagram-simplification-v1')).toBe(false);
+    expect(ALL_PRESETS.some((preset) => preset.key === 'l2a-time-domain-fasttrack-v1')).toBe(false);
+    expect(ALL_PRESETS.some((preset) => preset.key === 'l2b-root-locus-fasttrack-v1')).toBe(false);
+    expect(ALL_PRESETS.some((preset) => preset.key === 'l2c-frequency-bode-fasttrack-v1')).toBe(false);
+    expect(ALL_PRESETS.some((preset) => preset.key === 'l2d-three-domain-linkage-practice-v1')).toBe(false);
+    expect(ALL_PRESETS.some((preset) => preset.key === 'lsum-design-feasible-domain-v1')).toBe(false);
   });
 
-  it('routes new 2-1 titles to the premium course and stops treating 1-1/1-2 titles as premium aliases', () => {
+  it('routes current mainline titles and stops treating module 1 titles as premium aliases', () => {
     expect(resolveSessionRouteFromPlanTitle('2-1：建模与变换语言——从真实对象到统一分析对象')).toEqual({
       routeSegment: 'unit-2-1-modeling-language',
       isPremiumCourse: true,
@@ -39,5 +61,52 @@ describe('2-1 mainline replacement', () => {
       routeSegment: null,
       isPremiumCourse: false,
     });
+
+    expect(resolveSessionRouteFromPlanTitle('L-2a：时域响应分析——从曲线到性能')).toEqual({
+      routeSegment: null,
+      isPremiumCourse: false,
+    });
+
+    expect(resolveSessionRouteFromPlanTitle('L-2b：根轨迹——从极点迁移到设计调整')).toEqual({
+      routeSegment: null,
+      isPremiumCourse: false,
+    });
+
+    expect(resolveSessionRouteFromPlanTitle('L-2c：频率响应与 Bode 图')).toEqual({
+      routeSegment: null,
+      isPremiumCourse: false,
+    });
+
+    expect(resolveSessionRouteFromPlanTitle('L-2d：三域联动控制设计')).toEqual({
+      routeSegment: null,
+      isPremiumCourse: false,
+    });
+
+    expect(resolveSessionRouteFromPlanTitle('L-∑：设计可行域——让约束成为指南针')).toEqual({
+      routeSegment: null,
+      isPremiumCourse: false,
+    });
+  });
+
+  it('keeps the central AI context registry free of retired module 1 imports', () => {
+    const source = readFileSync(join(repoRoot, 'src/lib/course-ai-contexts.ts'), 'utf8');
+
+    expect(source).not.toContain("./unit-1-1-ai-contexts");
+    expect(source).not.toContain("./unit-1-2-ai-contexts");
+    expect(source).not.toContain("./unit-1-3-ai-contexts");
+    expect(source).not.toContain("./l2a-ai-contexts");
+    expect(source).not.toContain("./l2b-ai-contexts");
+    expect(source).not.toContain("./l2c-ai-contexts");
+    expect(source).not.toContain("./l2d-ai-contexts");
+    expect(source).not.toContain("./lsum-ai-contexts");
+    expect(source).not.toContain('UNIT_1_1_COURSE_META');
+    expect(source).not.toContain('UNIT_1_2_COURSE_META');
+    expect(source).not.toContain('getUnit11StepAIContext');
+    expect(source).not.toContain('getUnit12StepAIContext');
+    expect(source).not.toContain('L2A_COURSE_META');
+    expect(source).not.toContain('L2B_COURSE_META');
+    expect(source).not.toContain('L2C_COURSE_META');
+    expect(source).not.toContain('L2D_COURSE_META');
+    expect(source).not.toContain('LSUM_COURSE_META');
   });
 });

@@ -53,18 +53,6 @@ export const KONLING_BRAND = {
   },
 
   quickQuestions: {
-    l2d: [
-      { label: '三域联动', question: '什么是三域联动关系？' },
-      { label: '稳定性分析', question: '如何判断系统稳定性？' },
-      { label: '参数影响', question: '增益K对系统性能有什么影响？' },
-      { label: '设计方法', question: '如何根据性能指标设计控制器？' },
-    ],
-    lsum: [
-      { label: '可行域', question: '什么是可行域设计？' },
-      { label: '约束条件', question: '控制系统设计有哪些常见约束？' },
-      { label: '优化目标', question: '如何在多个目标间进行权衡？' },
-      { label: '设计步骤', question: '可行域设计的完整步骤是什么？' },
-    ],
     simulation: [
       { label: '仿真状态', question: '请获取当前的仿真状态' },
       { label: 'PID原理', question: '请解释PID控制器的工作原理' },
@@ -105,11 +93,5 @@ export function getWelcomeMessage(pageType: string, topic?: string): string {
  * 获取快捷问题
  */
 export function getQuickQuestions(courseId?: string): Array<{ label: string; question: string }> {
-  if (courseId?.includes('l2d')) {
-    return [...KONLING_BRAND.quickQuestions.l2d];
-  }
-  if (courseId?.includes('lsum')) {
-    return [...KONLING_BRAND.quickQuestions.lsum];
-  }
   return [...KONLING_BRAND.quickQuestions.simulation];
 }

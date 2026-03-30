@@ -161,6 +161,7 @@
     "boppps_path": "/course-runtime/lessons/2-1/review/boppps.md",
     "report_path": "/course-runtime/lessons/2-1/review/review-report.md",
     "knowledge_card_check_path": "/course-runtime/lessons/2-1/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/2-1/review/interactive-page-check.json",
     "multimedia_check_path": "/course-runtime/lessons/2-1/review/multimedia-check.json",
     "source_manifest_path": "/course-runtime/lessons/2-1/review/source-manifest.json"
   }

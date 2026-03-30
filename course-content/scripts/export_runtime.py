@@ -454,6 +454,7 @@ def export_review_bundle(lesson_id: str) -> dict[str, Any]:
 
     for filename, json_key in (
         ('knowledge-card-check.json', 'knowledge_card_check_path'),
+        ('interactive-page-check.json', 'interactive_page_check_path'),
         ('multimedia-check.json', 'multimedia_check_path'),
         ('source-manifest.json', 'source_manifest_path'),
     ):

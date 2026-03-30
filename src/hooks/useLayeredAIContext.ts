@@ -9,11 +9,11 @@
  * @example
  * ```tsx
  * const { context, refreshContext } = useLayeredAIContext({
- *   courseId: 'l2a-time-domain',
- *   stepId: 'participatory-families-2',
+ *   courseId: 'unit-2-1-modeling-language-v1',
+ *   stepId: 'step-07',
  *   getRuntimeState: async () => ({
  *     pageType: 'practice',
- *     state: { type: 'practice', currentTask: 'find-pole-region', attempts: 3 },
+ *     state: { type: 'practice', currentTask: 'compare-zero-initial-state', attempts: 3 },
  *     interactionHistory: [],
  *     timestamp: Date.now(),
  *   }),

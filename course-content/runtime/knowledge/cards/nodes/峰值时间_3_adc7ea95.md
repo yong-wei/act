@@ -3,7 +3,7 @@ node_id: 峰值时间_3_adc7ea95
 name: 峰值时间
 name_en: Peak Time
 lesson_units:
-  - 1-3
+  - 2-2
 category: 概念性
 knowledge_type: C
 chapter: 3

@@ -152,14 +152,6 @@ function inferInteractionHref(resourceKey: string | null, sessionId: string | nu
     return `/classroom/student/${sessionId}`;
   }
 
-  if (resourceKey?.includes('l2d')) {
-    return '/interactive-learning/courses/l2d-three-domain-linkage-practice';
-  }
-
-  if (resourceKey?.includes('lsum')) {
-    return '/interactive-learning/courses/lsum-design-feasible-domain';
-  }
-
   if (resourceKey?.includes('knowledge')) {
     return '/knowledge';
   }
