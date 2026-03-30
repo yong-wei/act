@@ -1,7 +1,7 @@
 # 多模态资源设计 | 单元 3-2：劳斯判据——从高阶系统稳定判定到参数可行域
 
-> **资源总数**：10 项正式媒体规划，其中 4 项已完成、6 项待补齐。
-> **当前完成**：`3-2-pole-migration.png`、`3-2-step-comparison.png`、`3-2-bode-magnitude.png`、`3-2-slides-source.m` 对应图像脚本。
+> **资源总数**：11 项正式媒体规划，另含 2 份提示词文件。
+> **当前完成**：`3-2-pole-migration.png`、`3-2-step-comparison.png`、`3-2-bode-magnitude.png`、`3-2-special-cases-card.svg`、`3-2-parameter-range-flow.svg`、`3-2-cover-comic.png`、`3-2-info.png`、`3-2-slides.pdf`、`3-2-intro-video.mp4`、`3-2-course.mp4`、`3-2-audio.m4a`、`3-2-cover-comic-prompt.md`、`3-2-intro-video-prompts.md`。
 > **本轮重点**：以统一高阶主对象支撑讲义、教师版讲义和互动页，不再新增同义图，避免图像口径分叉。
 > **验证约定**：本单元所有控制图统一以 `Octave + control` 为真值来源。
 
@@ -26,10 +26,19 @@
 - 成品目录：`media/processed/`
 - 当前已有脚本：
   - `media/raw/3-2-generate-plots.m`
+  - `media/raw/3-2-generate-reference-cards.py`
 - 当前已有成品：
   - `media/processed/3-2-pole-migration.png`
   - `media/processed/3-2-step-comparison.png`
   - `media/processed/3-2-bode-magnitude.png`
+  - `media/processed/3-2-special-cases-card.svg`
+  - `media/processed/3-2-parameter-range-flow.svg`
+  - `media/processed/3-2-cover-comic.png`
+  - `media/processed/3-2-info.png`
+  - `media/processed/3-2-slides.pdf`
+  - `media/processed/3-2-intro-video.mp4`
+  - `media/processed/3-2-course.mp4`
+  - `media/processed/3-2-audio.m4a`
 
 ---
 
@@ -40,13 +49,19 @@
 | 1 | `3-2-pole-migration.png` | 代码直出图 | 已完成 | `handout` §3、§6 / `boppps` 导入 / `interactive-page` 步骤 2、7 |
 | 2 | `3-2-step-comparison.png` | 代码直出图 | 已完成 | `handout` §5 / `boppps` 三域对应段 / `interactive-page` 步骤 10 |
 | 3 | `3-2-bode-magnitude.png` | 代码直出图 | 已完成 | `handout` §5 / `boppps` 三域对应段 / `interactive-page` 步骤 11 |
-| 4 | `3-2-special-cases-card.png` | 方法卡 | 待制作 | `interactive-page` 步骤 8、9 / `boppps` 特殊情况段 |
-| 5 | `3-2-parameter-range-flow.png` | 流程图 | 待制作 | `handout` §6 / `interactive-page` 步骤 12 |
-| 6 | `3-2-cover-comic.png` | 讲义封面图 | 待制作 | 讲义封面 / 互动课入口 |
-| 7 | `3-2-info.png` | 讲义信息图 | 待制作 | 讲义总结 / 互动课收束页 |
-| 8 | `3-2-slides.pdf` | 生成式课件 | 待制作 | 课堂投屏 / 课件归档 |
-| 9 | `3-2-intro-video.mp4` | 导入视频 | 待制作 | 课堂开场 / 互动课首页 |
-| 10 | `3-2-audio.m4a` | 音频播客 | 待制作 | 音频归档 |
+| 4 | `3-2-special-cases-card.svg` | 方法卡 | 已完成 | `handout` §4 / `interactive-page` 步骤 8、9 / `boppps` 特殊情况段 |
+| 5 | `3-2-parameter-range-flow.svg` | 流程图 | 已完成 | `handout` §6 / `interactive-page` 步骤 12 |
+| 6 | `3-2-cover-comic.png` | 讲义封面图 | 已完成 | 讲义封面 / 互动课入口 |
+| 7 | `3-2-info.png` | 讲义信息图 | 已完成 | 讲义总结 / 互动课收束页 |
+| 8 | `3-2-slides.pdf` | 生成式课件 | 已完成 | 课堂投屏 / 课件归档 |
+| 9 | `3-2-intro-video.mp4` | 导入视频 | 已完成 | 课堂开场 / 互动课首页 |
+| 10 | `3-2-course.mp4` | 课程视频 | 已完成 | 课程归档 / 回看入口 |
+| 11 | `3-2-audio.m4a` | 音频播客 | 已完成 | 音频归档 |
+
+提示词文件：
+
+- `media/raw/3-2-cover-comic-prompt.md`
+- `media/raw/3-2-intro-video-prompts.md`
 
 ---
 
@@ -57,6 +72,8 @@
 | `pp-01` | `media/raw/3-2-generate-plots.m` | `media/processed/3-2-pole-migration.png` | Octave | 展示统一对象在参数扫描下的极点迁移范围，支撑稳定区间和区域约束的几何解释 |
 | `pp-02` | `media/raw/3-2-generate-plots.m` | `media/processed/3-2-step-comparison.png` | Octave | 展示稳定、临界、失稳三种状态在时间响应中的差异 |
 | `pp-03` | `media/raw/3-2-generate-plots.m` | `media/processed/3-2-bode-magnitude.png` | Octave | 展示接近稳定边界时频域峰值抬高的趋势 |
+| `pp-04` | `media/raw/3-2-generate-reference-cards.py` | `media/processed/3-2-special-cases-card.svg` | Python + matplotlib mathtext | 用双栏方法卡固定区分“首位为 0”和“全零行”的处理流程 |
+| `pp-05` | `media/raw/3-2-generate-reference-cards.py` | `media/processed/3-2-parameter-range-flow.svg` | Python + matplotlib mathtext | 用流程图固定“写方程 → 列劳斯表 → 合并区间 → 区域约束先平移”的求解链 |
 
 说明：
 
@@ -68,18 +85,24 @@
 
 ## 5. 后续待制作媒体建议
 
-### 5.1 特殊情况方法卡
+### 资源 pp-04 | 特殊情况方法卡
 
-- 正式文件名：`3-2-special-cases-card.png`
-- 推荐内容：
-  - 左卡：`首位为0，非全零行` 的处理流程
+- **存放**：`media/raw/3-2-generate-reference-cards.py` -> `media/processed/3-2-special-cases-card.svg`
+- **公式模式**：`svg-mathtext`
+- **页面公式来源**：`design/handout.md`, `design/interactive-page.md`
+- 当前状态：已完成，采用左右双卡布局
+- 成品内容：
+  - 左卡：`首位为 0，非全零行` 的处理流程
   - 右卡：`全零行` 的辅助方程流程
-- 用途：互动页步骤 8-9 的固定说明板
+- 用途：讲义 §4 与互动页步骤 8-9 的固定说明板
 
-### 5.2 参数可行域流程图
+### 资源 pp-05 | 参数可行域流程图
 
-- 正式文件名：`3-2-parameter-range-flow.png`
-- 推荐内容：
+- **存放**：`media/raw/3-2-generate-reference-cards.py` -> `media/processed/3-2-parameter-range-flow.svg`
+- **公式模式**：`svg-mathtext`
+- **页面公式来源**：`design/handout.md`, `design/interactive-page.md`
+- 当前状态：已完成，采用横向流程图
+- 成品内容：
   - 写特征方程
   - 列带参数劳斯表
   - 取第一列条件
@@ -90,11 +113,12 @@
 
 | 资源 | 正式文件名 | 当前说明 |
 |---|---|---|
-| 封面图 | `3-2-cover-comic.png` | 建议围绕“高阶方程、虚轴边界、参数滑块”构图 |
-| 信息图 | `3-2-info.png` | 总结“普通判稳、特殊情况、三域对应、区域约束”四条主线 |
-| 课件 | `3-2-slides.pdf` | 待按 handout / teacher-handout 统一口径生成 |
-| 导入视频 | `3-2-intro-video.mp4` | 待围绕“参数推到边界会发生什么”制作 |
-| 音频播客 | `3-2-audio.m4a` | 待课程脚本稳定后再做 |
+| 封面图 | `3-2-cover-comic.png` | 已存在成品，提示词文件保留作追溯 |
+| 信息图 | `3-2-info.png` | 已存在成品，可直接进入讲义与 runtime |
+| 课件 | `3-2-slides.pdf` | 已存在成品，可直接归档与投屏 |
+| 导入视频 | `3-2-intro-video.mp4` | 已存在成品，提示词文件保留作追溯 |
+| 课程视频 | `3-2-course.mp4` | 已存在成品，可直接归档与回看 |
+| 音频播客 | `3-2-audio.m4a` | 已存在成品，可直接归档 |
 
 ---
 
@@ -113,17 +137,12 @@
 - `3-2-pole-migration.png`
 - `3-2-step-comparison.png`
 - `3-2-bode-magnitude.png`
+- `3-2-special-cases-card.svg`
+- `3-2-parameter-range-flow.svg`
 - `3-2-generate-plots.m`
-
-### P2：建议尽快补齐
-
-- `3-2-special-cases-card.png`
-- `3-2-parameter-range-flow.png`
-- `3-2-slides.pdf`
-
-### P3：课程脚本稳定后再做
-
 - `3-2-cover-comic.png`
 - `3-2-info.png`
+- `3-2-slides.pdf`
 - `3-2-intro-video.mp4`
+- `3-2-course.mp4`
 - `3-2-audio.m4a`

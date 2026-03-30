@@ -7,8 +7,8 @@ if ~exist(output_dir, 'dir')
 endif
 
 set(0, 'defaultfigurevisible', 'off');
-set(0, 'defaultaxesfontname', 'Helvetica');
-set(0, 'defaulttextfontname', 'Helvetica');
+set(0, 'defaultaxesfontname', 'PingFang SC');
+set(0, 'defaulttextfontname', 'PingFang SC');
 set(0, 'defaultaxesfontsize', 11);
 set(0, 'defaultlinelinewidth', 1.8);
 
@@ -59,14 +59,15 @@ axis equal;
 xlim([-4.6 0.8]);
 ylim([-3.0 3.0]);
 xlabel('Real axis');
-ylabel('Imag axis');
-title('Pole Migration of D(s,k) under Parameter Sweep');
+ylabel('虚轴 Im(s)');
+title('图1  参数扫描下 D(s,k) 的极点迁移范围');
+xlabel('实轴 Re(s)');
 legend({
-  'k in [-2, 18] poles',
-  'k in (18, 22] poles',
-  'boundary point k = -2',
-  'boundary point k = 18',
-  'unstable point k = 22'
+  'k ∈ [-2, 18] 稳定段极点',
+  'k ∈ (18, 22] 失稳段极点',
+  '边界点 k = -2',
+  '边界点 k = 18',
+  '代表失稳点 k = 22'
 }, 'location', 'southwest');
 print(fig, fullfile(output_dir, '3-2-pole-migration.png'), '-dpng', '-r220');
 close(fig);
@@ -83,13 +84,13 @@ hold on;
 plot(t18, y18, 'color', [0.93 0.69 0.13]);
 plot(t22, y22, 'color', [0.85 0.33 0.10]);
 grid on;
-xlabel('Time (s)');
-ylabel('Output');
-title('Step Responses for Typical Parameter Values');
+xlabel('时间 t / s');
+ylabel('输出 y(t)');
+title('图2  典型参数值的单位阶跃响应');
 legend({
-  'k = 12 (stable)',
-  'k = 18 (critical boundary)',
-  'k = 22 (unstable)'
+  'k = 12 稳定',
+  'k = 18 临界边界',
+  'k = 22 失稳'
 }, 'location', 'northwest');
 print(fig, fullfile(output_dir, '3-2-step-comparison.png'), '-dpng', '-r220');
 close(fig);
@@ -110,9 +111,9 @@ hold on;
 semilogx(w, mag12, 'color', [0 0.45 0.74]);
 semilogx(w, mag17d5, 'color', [0.85 0.33 0.10]);
 grid on;
-xlabel('Frequency (rad/s)');
-ylabel('Magnitude (dB)');
-title('Bode Magnitude near the Stability Boundary');
+xlabel('频率 \omega / rad/s');
+ylabel('幅值 / dB');
+title('图3  稳定边界附近的 Bode 幅频响应');
 legend({
   'k = 4',
   'k = 12',

@@ -17658,12 +17658,187 @@
       ],
       "created_at": "2026-03-28T09:57:11.113186+00:00",
       "updated_at": "2026-03-28T09:57:11.113186+00:00"
+    },
+    "劳斯判据_3_e3500ac9": {
+      "id": "劳斯判据_3_e3500ac9",
+      "name": "劳斯判据",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 0,
+      "chapter_name": "未分章",
+      "definition": "劳斯判据通过特征方程系数构造劳斯表，用第一列符号变化次数判断右半平面根数，并据此给出稳定性与稳定边界信息。",
+      "examples": [
+        "四阶特征方程不显式求根，也能由劳斯表判断系统是否稳定。",
+        "带参数特征方程可直接由第一列不等式读出参数稳定区间。"
+      ],
+      "formulas": [
+        "\\text{右半平面根数}=\\text{劳斯表第一列符号变化次数}",
+        "D(s)=a_ns^n+a_{n-1}s^{n-1}+\\cdots+a_0"
+      ],
+      "prerequisites": [
+        "闭环特征方程_3_87c88e19",
+        "稳定性_3_72d04fbd"
+      ],
+      "related_concepts": [
+        "劳斯表特殊情况_3_f787433f",
+        "稳定可行域_3_7eed0929",
+        "变量平移判稳_3_38e76ca0"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "劳斯表",
+        "判稳",
+        "右半平面根数",
+        "稳定边界"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "劳斯表特殊情况_3_f787433f": {
+      "id": "劳斯表特殊情况_3_f787433f",
+      "name": "劳斯表特殊情况",
+      "category": "程序性",
+      "bloom_level": "分析",
+      "chapter": 0,
+      "chapter_name": "未分章",
+      "definition": "劳斯表递推中最常见的两类特殊情况是某行首位为零但该行不全为零，以及某一整行为零。两类现象对应不同的根结构线索和不同的处理规则。",
+      "examples": [
+        "首位为零时用极小正数保持符号连续性，再继续递推。",
+        "全零行出现后，需先由上一行写出辅助方程，再由辅助方程恢复零行。"
+      ],
+      "formulas": [
+        "\\varepsilon \\to 0^+",
+        "A(s)=as^{m+1}+bs^{m-1}+cs^{m-3}+\\cdots"
+      ],
+      "prerequisites": [
+        "劳斯判据_3_e3500ac9"
+      ],
+      "related_concepts": [
+        "辅助方程_3_ed86f1f0",
+        "稳定性_3_72d04fbd"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "首位为零",
+        "全零行",
+        "特殊情况",
+        "辅助方程"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "变量平移判稳_3_38e76ca0": {
+      "id": "变量平移判稳_3_38e76ca0",
+      "name": "变量平移判稳",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 0,
+      "chapter_name": "未分章",
+      "definition": "将竖线左侧区域约束通过变量代换平移到虚轴左侧，再对新多项式列劳斯表的处理方法，称为变量平移判稳。它把稳定判定推广为区域约束判定。",
+      "examples": [
+        "要求全部极点满足 \\operatorname{Re}(s)<-0.5 时，可令 s=z-0.5，再对 \\tilde D(z) 列劳斯表。",
+        "区域约束越严格，得到的参数可行域越小。"
+      ],
+      "formulas": [
+        "s=z-\\sigma",
+        "\\tilde D(z)=D(z-\\sigma)"
+      ],
+      "prerequisites": [
+        "劳斯判据_3_e3500ac9",
+        "稳定可行域_3_7eed0929"
+      ],
+      "related_concepts": [
+        "复平面可行域_4_Lsum001",
+        "设计可行域_4_Lsum004"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "变量平移",
+        "区域约束",
+        "竖线左侧",
+        "参数设计"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "稳定可行域_3_7eed0929": {
+      "id": "稳定可行域_3_7eed0929",
+      "name": "稳定可行域",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 0,
+      "chapter_name": "未分章",
+      "definition": "把劳斯表第一列条件联立后得到的参数范围称为稳定可行域。它给出系统全部闭环极点保持在稳定边界左侧的参数集合。",
+      "examples": [
+        "对 D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)，由劳斯表可得稳定可行域 -2<k<18。",
+        "参数落在稳定可行域端点时，系统进入原点根或纯虚根对应的临界边界。"
+      ],
+      "formulas": [
+        "-2<k<18",
+        "\\text{稳定可行域}=\\{\\theta\\mid \\text{劳斯表第一列全正}\\}"
+      ],
+      "prerequisites": [
+        "劳斯判据_3_e3500ac9",
+        "稳定性_3_72d04fbd"
+      ],
+      "related_concepts": [
+        "闭环极点_3_f9432bf3",
+        "复平面可行域_4_Lsum001",
+        "设计可行域_4_Lsum004"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "稳定区间",
+        "参数范围",
+        "临界边界",
+        "可行域"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "辅助方程_3_ed86f1f0": {
+      "id": "辅助方程_3_ed86f1f0",
+      "name": "辅助方程",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 0,
+      "chapter_name": "未分章",
+      "definition": "当劳斯表出现全零行时，由上一行系数按对应幂次写出的多项式称为辅助方程。它恢复了隐藏的对称根结构，并给出虚轴根或对称根的位置线索。",
+      "examples": [
+        "全零行出现在 s^1 行，上一行 s^2 行系数为 1,1,0 时，辅助方程写成 A(s)=s^2+1。",
+        "对辅助方程求导后，用导数系数替换全零行，劳斯表即可继续完成。"
+      ],
+      "formulas": [
+        "A(s)=as^{m+1}+bs^{m-1}+cs^{m-3}+\\cdots",
+        "A'(s)=\\frac{\\mathrm dA(s)}{\\mathrm ds}"
+      ],
+      "prerequisites": [
+        "劳斯表特殊情况_3_f787433f"
+      ],
+      "related_concepts": [
+        "闭环极点_3_f9432bf3",
+        "稳定性_3_72d04fbd"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "辅助方程",
+        "全零行",
+        "求导替换",
+        "虚轴根"
+      ],
+      "created_at": null,
+      "updated_at": null
     }
   },
   "relations": [],
   "metadata": {
-    "merged_at": "2026-03-28T12:31:07.887954+00:00",
-    "total_nodes": 646,
-    "total_relations": 16232
+    "merged_at": "2026-03-30T02:34:18.776626+00:00",
+    "total_nodes": 651,
+    "total_relations": 16321
   }
 }

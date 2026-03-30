@@ -91,6 +91,8 @@
 
 ### 资源 td-05 | 例题一响应曲线与指标结果
 - **存放**：`media/raw/2-2-td-05-example-response-with-indices.py` -> `media/processed/2-2-td-05-example-response-with-indices.svg`
+- **公式模式**：`svg-mathtext`
+- **页面公式来源**：`design/handout.md`, `design/interactive-page.md`
 - **内容**：使用例题一参数 $\zeta=0.4, \omega_n=5$ 绘制曲线，并在图侧给出计算结果卡片。
 - **重点标注**：四指标数值与曲线上对应位置一一对应。
 - **绘制建议**：左图曲线、右图结果摘要，强化“数值不是漂浮的”。

@@ -92,6 +92,21 @@
       "notes": "3-2 为模块3当前主线课次，对应劳斯判据、特殊情况处理与参数可行域。"
     },
     {
+      "request_ids": ["3-3"],
+      "canonical_id": "3-3",
+      "display_id": "3-3",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "3-3",
+      "source_group": null,
+      "authoring_lesson_dir": "3-3",
+      "authoring_cards_dir": "3-3",
+      "authoring_overlays_dir": "3-3",
+      "runtime_lesson_dir": "3-3",
+      "legacy_source_ids": [],
+      "notes": "3-3 为模块3当前主线课次，对应根轨迹机制与完整法则，以及从开环增益根轨迹到广义根轨迹的总视角。"
+    },
+    {
       "request_ids": ["4-1"],
       "canonical_id": "4-1",
       "display_id": "4-1",

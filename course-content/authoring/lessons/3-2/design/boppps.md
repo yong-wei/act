@@ -56,7 +56,7 @@ P₂｜Participatory Learning 主体教学（63min）
 
 - 段 4（11min）：三域对应
   - 教师讲授：把劳斯结论翻译成极点结构、时域表现、频域线索。
-  - 使用 `3-2-step-comparison.png` 与 `3-2-bode-magnitude.png` 解释：
+  - 使用图 3 `3-2-step-comparison.png` 与图 4 `3-2-bode-magnitude.png` 解释：
     - 稳定、临界、失稳在时间响应中的差别；
     - 接近边界时的频域峰值抬高。
   - 学生反应预判：会把“虚轴根”和“原点根”混写成同一类临界状态。

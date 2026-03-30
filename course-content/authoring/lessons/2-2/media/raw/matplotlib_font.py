@@ -1,26 +1,12 @@
 from pathlib import Path
+import sys
 
-from matplotlib import font_manager, rcParams
+COURSE_CONTENT_ROOT = Path(__file__).resolve().parents[5]
+if str(COURSE_CONTENT_ROOT / 'scripts') not in sys.path:
+    sys.path.insert(0, str(COURSE_CONTENT_ROOT / 'scripts'))
 
-
-SYSTEM_CJK_FONT_PATHS = [
-    Path('/System/Library/Fonts/Hiragino Sans GB.ttc'),
-    Path('/System/Library/Fonts/STHeiti Light.ttc'),
-]
+from python_media_formula import configure_matplotlib_for_formula_svg  # noqa: E402
 
 
 def configure_matplotlib_for_cjk() -> str:
-    for font_path in SYSTEM_CJK_FONT_PATHS:
-        if not font_path.exists():
-            continue
-
-        font_manager.fontManager.addfont(str(font_path))
-        font_name = font_manager.FontProperties(fname=str(font_path)).get_name()
-        rcParams['font.family'] = [font_name]
-        rcParams['axes.unicode_minus'] = False
-        rcParams['svg.fonttype'] = 'path'
-        rcParams['svg.hashsalt'] = 'lesson-1-3-system-font'
-        return font_name
-
-    available_paths = ', '.join(str(path) for path in SYSTEM_CJK_FONT_PATHS)
-    raise FileNotFoundError(f'No system CJK font found. Tried: {available_paths}')
+    return configure_matplotlib_for_formula_svg(svg_hashsalt='lesson-2-2-system-font', use_tex=False)
