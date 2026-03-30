@@ -22,7 +22,7 @@
 建议页面级状态拆为以下几类：
 
 ```ts
-interface Lesson13InteractiveState {
+interface Lesson22InteractiveState {
   lessonId: '2-2';
   currentItemId: string;
   revealStageByStep: Record<string, number>;
@@ -79,9 +79,9 @@ interface Lesson13InteractiveState {
 
 **埋点建议**：
 
-- `lesson13_ic02_slider_changed`
-- `lesson13_ic02_prediction_submitted`
-- `lesson13_ic02_teacher_preset_applied`
+- `lesson22_ic02_slider_changed`
+- `lesson22_ic02_prediction_submitted`
+- `lesson22_ic02_teacher_preset_applied`
 
 ### ic-03 | 二阶响应家族切换器
 
@@ -112,8 +112,8 @@ interface Lesson13InteractiveState {
 
 **埋点建议**：
 
-- `lesson13_ic03_family_switched`
-- `lesson13_ic03_compare_view_toggled`
+- `lesson22_ic03_family_switched`
+- `lesson22_ic03_compare_view_toggled`
 
 ### ic-04 | 动态指标叠加标注器
 
@@ -146,9 +146,9 @@ interface Lesson13InteractiveState {
 
 **埋点建议**：
 
-- `lesson13_ic04_metric_toggled`
-- `lesson13_ic04_band_changed`
-- `lesson13_ic04_teacher_reveal_advanced`
+- `lesson22_ic04_metric_toggled`
+- `lesson22_ic04_band_changed`
+- `lesson22_ic04_teacher_reveal_advanced`
 
 ### ic-06 | AI 对照工作区
 
@@ -169,7 +169,7 @@ interface AiCompareState {
   draftSubmitted: boolean;
   aiEnabled: boolean;
   aiMode: 'logic-check' | 'reflection';
-  promptTemplateId: 'lesson13-reverse-spec-check';
+  promptTemplateId: 'lesson22-reverse-spec-check';
 }
 ```
 
@@ -182,10 +182,10 @@ interface AiCompareState {
 
 **埋点建议**：
 
-- `lesson13_ic06_draft_submitted`
-- `lesson13_ic06_ai_opened`
-- `lesson13_ic06_ai_round_completed`
-- `lesson13_ic06_revision_confirmed`
+- `lesson22_ic06_draft_submitted`
+- `lesson22_ic06_ai_opened`
+- `lesson22_ic06_ai_round_completed`
+- `lesson22_ic06_revision_confirmed`
 
 ### ic-07 | 指标到极点联动面板
 
@@ -221,9 +221,9 @@ interface AiCompareState {
 
 **埋点建议**：
 
-- `lesson13_ic07_constraint_changed`
-- `lesson13_ic07_layer_toggled`
-- `lesson13_ic07_hover_formula`
+- `lesson22_ic07_constraint_changed`
+- `lesson22_ic07_layer_toggled`
+- `lesson22_ic07_hover_formula`
 
 ## AI 面板统一约束
 

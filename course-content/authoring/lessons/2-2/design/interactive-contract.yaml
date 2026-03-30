@@ -1,0 +1,1232 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "2-2",
+  "course_title": "2-2：时域响应基础——从响应曲线到动态性能指标",
+  "course_route_segment": "unit-2-2-time-domain-response",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo",
+    "teacher_preview_panel_note": "教师端模板弹窗仅用于查看课堂骨架；默认页面预览必须打开学生演示页，保持所见即所得。"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "回到地图——从传函走向响应曲线",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          { "id": "header", "width": "full", "order": 1 },
+          { "id": "lead", "width": "full", "order": 2 },
+          { "id": "summary", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "stage-map", "region": "lead", "kind": "stage-map", "must_be_visible": true },
+        { "id": "today-task", "region": "summary", "kind": "key-task-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "stage-map",
+          "type": "plain_text",
+          "title": "路径定位",
+          "body": "固定高亮 2-1 -> 2-2 -> 3-3/4-1，明确本课位于对象语言与设计语言之间。"
+        },
+        {
+          "id": "today-task",
+          "type": "bullet_list",
+          "title": "本课任务",
+          "items": [
+            "从传函进入响应曲线。",
+            "建立描述快、冲、稳的指标语言。",
+            "把指标继续翻译到参数与极点趋势。"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": [
+        "推进到下一页",
+        "高亮课程路径中的当前节点"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep", "teacherFollowSync"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count", "sync_status"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "帮助学生理解 2-2 在模块 2 中的位置。",
+        "allowed_scope": ["课程路径", "对象语言到时间语言的切换"],
+        "forbidden_scope": ["提前展开指标公式", "提前进入例题计算"],
+        "canonical_facts": [
+          "2-1 解决对象怎么写。",
+          "2-2 解决对象如何在时间中表现。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-01",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "学生演示页首屏能看到路径图与任务卡。",
+        "本页没有作答区或简化占位卡。"
+      ]
+    },
+    "step-02": {
+      "title": "情境引入——稳定并不等于表现一样",
+      "layout": {
+        "template": "dual_response_vote",
+        "regions": [
+          { "id": "chart", "width": "full", "order": 1 },
+          { "id": "questions", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "response-compare", "region": "chart", "kind": "dual-chart", "must_be_visible": true },
+        { "id": "core-questions", "region": "questions", "kind": "question-list", "must_be_visible": true },
+        { "id": "binary-vote", "region": "interaction", "kind": "binary-choice", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "core-questions",
+          "type": "bullet_list",
+          "title": "本页要回答的三问",
+          "items": [
+            "谁更快？",
+            "谁更容易让操作者觉得不稳当？",
+            "为什么最终稳定还不够？"
+          ]
+        },
+        {
+          "id": "result-line",
+          "type": "plain_text",
+          "title": "本页结论",
+          "body": "稳定是底线，动态过程也是评价对象。"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "在“只看最终稳定”和“必须纳入动态过程”之间做判断。",
+        "correct_answer": "B",
+        "options": {
+          "A": "只要最终稳定，控制品质就足够好",
+          "B": "动态过程也必须纳入评价"
+        },
+        "failure_feedback": "只提示“动态过程本身也是品质信息”，不提前展开指标公式。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": [
+        "释放二选一判断",
+        "显示正确选项与一句点评"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["selectedOption", "resultState", "teacherRevealSeen", "timeOnStep"],
+        "misconception_tags": ["stability_equals_good_performance"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["option_distribution", "reveal_correction_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把稳定和动态品质区分开。",
+        "allowed_scope": ["稳定", "快慢", "超调", "平稳性"],
+        "forbidden_scope": ["完整指标公式", "极点解释"],
+        "canonical_facts": [
+          "最终收敛并不等于动态品质相同。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-02",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "双曲线与三问在未作答状态下完整可见。",
+        "学生页与演示页共用同一二选一组件。"
+      ]
+    },
+    "step-03": {
+      "title": "学习目标——本课要建立哪套语言",
+      "layout": {
+        "template": "goal_chain_slide",
+        "regions": [
+          { "id": "goals", "width": "full", "order": 1 },
+          { "id": "chain", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "goal-cards", "region": "goals", "kind": "goal-card-row", "must_be_visible": true },
+        { "id": "method-chain", "region": "chain", "kind": "formula-chain", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "goal-cards",
+          "type": "bullet_list",
+          "title": "三项目标",
+          "items": [
+            "会看曲线。",
+            "会算指标。",
+            "会连参数与极点趋势。"
+          ]
+        },
+        {
+          "id": "method-chain",
+          "type": "formula",
+          "title": "本课主链",
+          "value": "\\text{曲线} \\rightarrow \\text{指标} \\rightarrow \\text{参数} \\rightarrow \\text{极点趋势}"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只建立整体预期，不提交。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": [
+        "逐条强调三项目标",
+        "高亮主链中的当前学习层次"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立本课能力边界。",
+        "allowed_scope": ["三项目标", "曲线到极点趋势的主链"],
+        "forbidden_scope": ["提前解释具体公式"],
+        "canonical_facts": [
+          "本课不只会算公式，还要会把结果翻译成工程语言。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-03",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "目标卡与主链同页可见。",
+        "本页不出现新增公式推导。"
+      ]
+    },
+    "step-04": {
+      "title": "前测——快、稳、冲分别看什么",
+      "layout": {
+        "template": "question_stack",
+        "regions": [
+          { "id": "question-stack", "width": "full", "order": 1 },
+          { "id": "submit-bar", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "pretest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "misconception-note",
+          "type": "bullet_list",
+          "title": "三类常见混淆",
+          "items": [
+            "稳定不等于无超调",
+            "快不等于稳",
+            "指标名称不能混用"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三道客观题。",
+        "attempt_model": "允许重提一次，教师端区分首答与重提。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": [
+        "释放前测",
+        "显示统计",
+        "显示答案"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "errorBucket", "teacherRevealSeen"],
+        "misconception_tags": [
+          "time_constant_direction_confusion",
+          "overshoot_metric_confusion",
+          "stability_vs_no_overshoot"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["question_distribution", "top_misconceptions"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "暴露概念混淆。",
+        "allowed_scope": ["误区解释", "错因归类"],
+        "forbidden_scope": ["替代作答"],
+        "canonical_facts": [
+          "前测的作用是暴露混淆，不是拉开成绩差距。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-04",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "三题题干在未作答状态下全部可见。",
+        "教师端能看到首答与重提分布。"
+      ]
+    },
+    "step-05": {
+      "title": "时域分析对象与典型输入",
+      "layout": {
+        "template": "table_plus_formula_plus_short_response",
+        "regions": [
+          { "id": "formula-strip", "width": "full", "order": 1 },
+          { "id": "contrast-table", "width": "full", "order": 2 },
+          { "id": "reflection", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "entry-formulas", "region": "formula-strip", "kind": "formula-card", "must_be_visible": true },
+        { "id": "input-contrast", "region": "contrast-table", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "short-response", "region": "reflection", "kind": "short-response", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "entry-formulas",
+          "type": "formula_group",
+          "title": "时域分析的起点公式",
+          "values": [
+            "C(s)=G(s)R(s)",
+            "c(t)=\\mathcal{L}^{-1}\\{C(s)\\}"
+          ]
+        },
+        {
+          "id": "step-response-note",
+          "type": "plain_text",
+          "title": "本课默认输入",
+          "body": "本课默认围绕单位阶跃响应展开，因为它最接近命令值突然变化的工程场景。"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "short_response",
+        "student_task": "补全“本课默认用单位阶跃，是因为 ________”。",
+        "answer_reveal": "save_only"
+      },
+      "teacher_controls": [
+        "显示典型输入对照表",
+        "查看短答摘要"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["responseSubmitted", "responseLength", "timeOnStep"],
+        "result_policy": "text_capture_only"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["response_word_cloud", "common_reason_tags"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "从对象语言切到时间语言。",
+        "allowed_scope": ["时域分析任务", "典型输入的选择理由"],
+        "forbidden_scope": ["把短答改写成统一标准答案"],
+        "canonical_facts": [
+          "本课默认单位阶跃响应。",
+          "时域分析关心的是输出如何随时间展开。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-05",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "起点公式、输入对照表与短答栏同页可见。",
+        "静态区先完整出现，再开放短答栏。"
+      ]
+    },
+    "step-06": {
+      "title": "一阶系统阶跃响应与时间常数",
+      "layout": {
+        "template": "courseware_top_slider_bottom",
+        "regions": [
+          { "id": "formula-card", "width": "full", "order": 1 },
+          { "id": "media", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "first-order-formulas", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
+        { "id": "time-constant-figure", "region": "media", "kind": "image-card", "must_be_visible": true },
+        { "id": "time-constant-slider", "region": "workspace", "kind": "parameter-slider", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "first-order-formulas",
+          "type": "formula_group",
+          "title": "一阶系统公式组",
+          "values": [
+            "G(s)=\\frac{K}{Ts+1}",
+            "c(t)=K(1-e^{-t/T})",
+            "c(T)=K(1-e^{-1})\\approx0.632K",
+            "t_r\\approx2.2T,\\quad t_s\\approx4T"
+          ]
+        },
+        {
+          "id": "key-claim",
+          "type": "plain_text",
+          "title": "关键结论",
+          "body": "T 改变时间尺度，不改变最终高度。"
+        },
+        {
+          "id": "time-constant-figure",
+          "type": "media",
+          "asset": "2-2-td-02-first-order-step-time-constant.svg"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "拖动 T，观察曲线、63.2% 锚点和近似时域指标变化。",
+        "parameters": ["timeConstant"],
+        "answer_reveal": "no_single_correct_answer"
+      },
+      "teacher_controls": [
+        "应用 T 的预设值",
+        "锁定滑块",
+        "点亮 63.2% 锚点"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["sliderChanged", "anchorViewed", "predictionSubmitted"],
+        "result_policy": "trend_capture"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["time_constant_distribution", "prediction_summary"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把时间常数与整体拉长绑定。",
+        "allowed_scope": ["时间常数", "63.2% 锚点", "近似时域指标"],
+        "forbidden_scope": ["AI 直接替代趋势判断"],
+        "canonical_facts": [
+          "一个时间常数对应 63.2% 锚点。",
+          "时间常数增大，响应整体变慢。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-06",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "公式卡与滑块工作区同屏。",
+        "滑块不可替代公式卡。"
+      ]
+    },
+    "step-07": {
+      "title": "二阶系统标准型：ωn、ζ、ωd",
+      "layout": {
+        "template": "parameter_role_match",
+        "regions": [
+          { "id": "formula-card", "width": "full", "order": 1 },
+          { "id": "role-table", "width": "full", "order": 2 },
+          { "id": "match-zone", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "second-order-standard-form", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
+        { "id": "parameter-role-table", "region": "role-table", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "triple-match", "region": "match-zone", "kind": "triple-match", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "second-order-standard-form",
+          "type": "formula_group",
+          "title": "标准二阶系统公式组",
+          "values": [
+            "\\Phi(s)=\\frac{\\omega_n^2}{s^2+2\\zeta\\omega_n s+\\omega_n^2}",
+            "\\omega_d=\\omega_n\\sqrt{1-\\zeta^2}"
+          ]
+        },
+        {
+          "id": "parameter-role-table",
+          "type": "table",
+          "title": "三参数分工",
+          "rows": [
+            ["ωn", "时间尺度"],
+            ["ζ", "阻尼品质"],
+            ["ωd", "波峰节奏"]
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "triple_match",
+        "student_task": "把参数名、数学式、主控现象对应起来。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": [
+        "高亮当前参数",
+        "显示正确对应"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["matchAttempted", "matchCorrected", "timeOnStep"],
+        "result_policy": "score_with_retries"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["common_mismatch_pairs", "completion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "分清三个参数的职责。",
+        "allowed_scope": ["标准型结构", "参数角色说明"],
+        "forbidden_scope": ["提前进入指标公式"],
+        "canonical_facts": [
+          "ωn 管时间尺度。",
+          "ζ 管阻尼品质。",
+          "ωd 管真实波峰节奏。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-07",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "公式卡与三列表先落页。",
+        "对应区只强化角色，不替代静态内容。"
+      ]
+    },
+    "step-08": {
+      "title": "四种响应家族对比",
+      "layout": {
+        "template": "family_compare_switcher",
+        "regions": [
+          { "id": "family-summary", "width": "full", "order": 1 },
+          { "id": "shared-chart", "width": "full", "order": 2 },
+          { "id": "switcher", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "family-spectrum-card", "region": "family-summary", "kind": "summary-card", "must_be_visible": true },
+        { "id": "family-chart", "region": "shared-chart", "kind": "image-card", "must_be_visible": true },
+        { "id": "family-switcher", "region": "switcher", "kind": "tab-switch", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "family-spectrum-card",
+          "type": "bullet_list",
+          "title": "四类响应与阻尼比区间",
+          "items": [
+            "无阻尼：ζ = 0",
+            "欠阻尼：0 < ζ < 1",
+            "临界阻尼：ζ = 1",
+            "过阻尼：ζ > 1"
+          ]
+        },
+        {
+          "id": "family-spectrum-note",
+          "type": "plain_text",
+          "title": "连续谱提醒",
+          "body": "四类响应是阻尼比连续变化形成的一条谱，不是四张孤立图片。"
+        },
+        {
+          "id": "family-chart",
+          "type": "media",
+          "asset": "2-2-td-03-second-order-response-families.svg"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "tab_switch",
+        "student_task": "切换不同响应家族，观察曲线与工程语言的对应关系。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": [
+        "按顺序轮播四类响应",
+        "切换单图 / 总览模式"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["familySwitched", "compareViewToggled"],
+        "result_policy": "interaction_trace"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["family_focus_distribution"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把看图认形态升级为看阻尼比认家族。",
+        "allowed_scope": ["四类响应区间", "工程语言"],
+        "forbidden_scope": ["把临界阻尼绝对化为永远最好"],
+        "canonical_facts": [
+          "临界阻尼通常是“不振荡前提下最快”的情形。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-08",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "统一坐标图始终可见。",
+        "切换器不单独占一页。"
+      ]
+    },
+    "step-09": {
+      "title": "动态性能指标总览",
+      "layout": {
+        "template": "metric_overview_overlay",
+        "regions": [
+          { "id": "summary-table", "width": "full", "order": 1 },
+          { "id": "overlay-chart", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "metric-overview-table", "region": "summary-table", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "metric-overlay", "region": "overlay-chart", "kind": "metric-overlay", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "metric-overview-table",
+          "type": "table",
+          "title": "四指标总览",
+          "rows": [
+            ["tr", "系统起步快不快", "第一次到达终值有多快"],
+            ["tp", "第一个峰出现得多快", "什么时候第一次冲到最高点"],
+            ["Mp", "第一次冲过头多少", "峰值相对终值高出多少"],
+            ["ts", "多久真正稳定下来", "何时进入并保持在误差带内"]
+          ]
+        },
+        {
+          "id": "metric-chart",
+          "type": "media",
+          "asset": "2-2-td-04-time-domain-indices-annotated.svg"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "metric_overlay",
+        "student_task": "切换四个指标的标注层。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": [
+        "逐个揭示指标",
+        "隐藏全部标记，只留裸曲线"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["metricToggled", "timeOnStep"],
+        "result_policy": "interaction_trace"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["metric_attention_distribution"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "先建全景，再进入分项推导。",
+        "allowed_scope": ["四指标定义", "问题映射"],
+        "forbidden_scope": ["跳过总览直接引用单项公式"],
+        "canonical_facts": [
+          "四指标回答的是四个不同的问题。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-09",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "总览表完整落页。",
+        "叠加器只负责切换标注，不替代总览表。"
+      ]
+    },
+    "step-10": {
+      "title": "上升时间的定义与推导",
+      "layout": {
+        "template": "formula_explain_checklist",
+        "regions": [
+          { "id": "definition-card", "width": "full", "order": 1 },
+          { "id": "formula-card", "width": "full", "order": 2 },
+          { "id": "reason-check", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "rise-time-definition", "region": "definition-card", "kind": "definition-card", "must_be_visible": true },
+        { "id": "rise-time-formula", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
+        { "id": "rise-time-reason-check", "region": "reason-check", "kind": "reason-check", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "rise-time-definition",
+          "type": "plain_text",
+          "title": "定义",
+          "body": "欠阻尼标准二阶系统的 tr 取第一次达到终值的时刻。"
+        },
+        {
+          "id": "rise-time-formula",
+          "type": "formula",
+          "title": "上升时间公式",
+          "value": "t_r=\\frac{\\pi-\\arccos\\zeta}{\\omega_n\\sqrt{1-\\zeta^2}}"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "reason_check",
+        "student_task": "判断固定 ζ 时增大 ωn 对 tr 的影响，并提交一句理由。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": [
+        "显示参考解释",
+        "强调参数变化方向"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["predictionSubmitted", "reasonLength", "teacherRevealSeen"],
+        "result_policy": "prediction_with_reason"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["prediction_distribution", "reason_tag_cloud"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把公式读成参数趋势。",
+        "allowed_scope": ["定义", "公式", "参数变化方向"],
+        "forbidden_scope": ["只给对错，不要求解释"],
+        "canonical_facts": [
+          "ωn 和 ζ 都会影响 tr。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-10",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "定义、公式、判断区三者同屏。",
+        "判断区不能只收 A/B 选项，必须能记录理由。"
+      ]
+    },
+    "step-11": {
+      "title": "峰值时间与超调量",
+      "layout": {
+        "template": "dual_formula_reason_check",
+        "regions": [
+          { "id": "formula-pair", "width": "full", "order": 1 },
+          { "id": "key-claim", "width": "full", "order": 2 },
+          { "id": "check-zone", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "peak-time-formula", "region": "formula-pair", "kind": "formula-card", "must_be_visible": true },
+        { "id": "overshoot-formula", "region": "formula-pair", "kind": "formula-card", "must_be_visible": true },
+        { "id": "main-claim-card", "region": "key-claim", "kind": "key-claim-card", "must_be_visible": true },
+        { "id": "formula-pair-check", "region": "check-zone", "kind": "formula-pair-check", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "peak-time-formula",
+          "type": "formula",
+          "title": "峰值时间公式",
+          "value": "t_p=\\frac{\\pi}{\\omega_n\\sqrt{1-\\zeta^2}}"
+        },
+        {
+          "id": "overshoot-formula",
+          "type": "formula",
+          "title": "超调量公式",
+          "value": "M_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times100\\%"
+        },
+        {
+          "id": "main-claim-card",
+          "type": "plain_text",
+          "title": "本页最重要的一句话",
+          "body": "Mp 主要由 ζ 决定。"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "formula_pair_check",
+        "student_task": "区分“什么时候冲顶”和“冲了多少”。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": [
+        "显示正确配对",
+        "高亮主控结论"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["formulaMatched", "claimViewed"],
+        "result_policy": "score_with_retry"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["formula_confusion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "拆开两个常被混淆的指标。",
+        "allowed_scope": ["峰值时间", "超调量", "主控参数"],
+        "forbidden_scope": ["把 ωn 误写成 Mp 主控量"],
+        "canonical_facts": [
+          "tp 看什么时候冲顶。",
+          "Mp 看冲了多少。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-11",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "两条公式与主控结论必须先完整出现。",
+        "配对区只强化概念分工。"
+      ]
+    },
+    "step-12": {
+      "title": "调节时间与误差带",
+      "layout": {
+        "template": "error_band_workspace",
+        "regions": [
+          { "id": "definition-card", "width": "full", "order": 1 },
+          { "id": "formula-card", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 },
+          { "id": "summary", "width": "full", "order": 4 }
+        ]
+      },
+      "modules": [
+        { "id": "settling-definition", "region": "definition-card", "kind": "definition-card", "must_be_visible": true },
+        { "id": "settling-formulas", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
+        { "id": "settling-workspace", "region": "workspace", "kind": "parameter-workspace", "must_be_visible": true },
+        { "id": "settling-summary", "region": "summary", "kind": "summary-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "settling-definition",
+          "type": "plain_text",
+          "title": "定义",
+          "body": "调节时间是进入并保持在允许误差带内所需的最短时间。"
+        },
+        {
+          "id": "settling-formulas",
+          "type": "formula_group",
+          "title": "近似公式组",
+          "values": [
+            "t_s\\approx\\frac{4}{\\zeta\\omega_n}\\quad (2\\%\\text{误差带})",
+            "t_s\\approx\\frac{3}{\\zeta\\omega_n}\\quad (5\\%\\text{误差带})",
+            "t_s\\approx\\frac{4}{\\sigma},\\quad \\sigma=\\zeta\\omega_n"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_workspace",
+        "student_task": "切换误差带并调整参数，观察调节时间估算变化。",
+        "parameters": ["settleBand", "zeta", "omega_n"],
+        "answer_reveal": "no_single_correct_answer"
+      },
+      "teacher_controls": [
+        "切换 2% / 5% 误差带",
+        "隐藏全部标记，只留定义说明"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["bandChanged", "parameterChanged", "teacherRevealAdvanced"],
+        "result_policy": "interaction_trace"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["band_selection_distribution", "common_reason_tags"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把误差带定义与极点实部联系起来。",
+        "allowed_scope": ["2% / 5% 误差带", "sigma = zeta*omega_n"],
+        "forbidden_scope": ["把近似公式当作精确无条件结论"],
+        "canonical_facts": [
+          "误差带越严格，系统越晚满足稳定判定。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-12",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "定义卡与公式卡必须先落页。",
+        "工作区联动误差带与结果摘要。"
+      ]
+    },
+    "step-13": {
+      "title": "例题一——已知参数求指标",
+      "layout": {
+        "template": "worked_example_workspace",
+        "regions": [
+          { "id": "problem", "width": "full", "order": 1 },
+          { "id": "method", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 },
+          { "id": "chart", "width": "full", "order": 4 }
+        ]
+      },
+      "modules": [
+        { "id": "example-problem", "region": "problem", "kind": "formula-card", "must_be_visible": true },
+        { "id": "three-step-method", "region": "method", "kind": "step-card-list", "must_be_visible": true },
+        { "id": "metric-workspace", "region": "workspace", "kind": "worked-example-workspace", "must_be_visible": true },
+        { "id": "example-chart", "region": "chart", "kind": "image-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "example-problem",
+          "type": "formula",
+          "title": "题面",
+          "value": "\\Phi(s)=\\frac{25}{s^2+4s+25}"
+        },
+        {
+          "id": "three-step-method",
+          "type": "numbered_list",
+          "title": "推荐三步法",
+          "items": [
+            "读出 ωn 与 ζ",
+            "求 ωd",
+            "顺推四指标"
+          ]
+        },
+        {
+          "id": "example-chart",
+          "type": "media",
+          "asset": "2-2-td-05-example-response-with-indices.svg"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "worked_example_workspace",
+        "student_task": "先填写解题顺序，再填写中间量与结果。",
+        "answer_reveal": "stepwise_feedback"
+      },
+      "teacher_controls": [
+        "按三步法逐段释放",
+        "显示中间量参考值"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["methodCompleted", "intermediateValueEdited", "resultChecked"],
+        "result_policy": "score_with_intermediate_steps"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["wrong_step_distribution", "common_error_fields"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "固定四指标顺推流程。",
+        "allowed_scope": ["参数识别", "中间量", "曲线对应关系"],
+        "forbidden_scope": ["跳过三步法只给答案"],
+        "canonical_facts": [
+          "数值结果必须与曲线位置一一对应。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-13",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "题面、三步法、结果图同页并列。",
+        "工作区不能在没有三步法的情况下单独出现。"
+      ]
+    },
+    "step-14": {
+      "title": "例题二——由指标反推参数区域 + AI 对照",
+      "layout": {
+        "template": "compare_then_ai",
+        "regions": [
+          { "id": "method", "width": "full", "order": 1 },
+          { "id": "constraints", "width": "full", "order": 2 },
+          { "id": "ai-panel", "width": "full", "order": 3 },
+          { "id": "pole-region", "width": "full", "order": 4 }
+        ]
+      },
+      "modules": [
+        { "id": "reverse-design-method", "region": "method", "kind": "step-card-list", "must_be_visible": true },
+        { "id": "constraint-formulas", "region": "constraints", "kind": "formula-card", "must_be_visible": true },
+        { "id": "ai-compare-workspace", "region": "ai-panel", "kind": "ai-compare-workspace", "must_be_visible": true },
+        { "id": "pole-region-card", "region": "pole-region", "kind": "image-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "reverse-design-method",
+          "type": "numbered_list",
+          "title": "逆向设计三步法",
+          "items": [
+            "由超调量约束求阻尼比下界",
+            "由调节时间约束求 zeta*omega_n 下界",
+            "合并为参数范围并说明其在 s 平面中的意义"
+          ]
+        },
+        {
+          "id": "constraint-formulas",
+          "type": "formula_group",
+          "title": "两条约束与边界结论",
+          "values": [
+            "M_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\le0.1",
+            "t_s\\approx\\frac{4}{\\zeta\\omega_n}\\le2",
+            "\\zeta\\ge0.591,\\qquad \\zeta\\omega_n\\ge2"
+          ]
+        },
+        {
+          "id": "pole-region-card",
+          "type": "media",
+          "asset": "2-2-td-06-time-spec-to-pole-region.svg"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "ai_compare_workspace",
+        "student_task": "先提交自己的约束翻译，再开启 AI 对照。",
+        "draft_required_before_ai": true,
+        "answer_reveal": "draft_gate"
+      },
+      "teacher_controls": [
+        "释放 AI 对照区",
+        "切换 AI 为逻辑核验模式",
+        "切换 AI 为反思追问模式"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["draftSubmitted", "aiOpened", "aiRoundCompleted", "revisionConfirmed"],
+        "result_policy": "draft_plus_ai_trace"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["draft_completion_rate", "ai_usage_rate", "common_logic_gaps"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "坚持先做再问 AI，再根据提示修正。",
+        "allowed_scope": ["约束翻译", "方向判断", "漏项提醒"],
+        "forbidden_scope": ["直接返回完整数值解", "替代完成反推"],
+        "canonical_facts": [
+          "AI 第一轮只指出逻辑缺口，不给最终答案。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-14",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "三步法、公式区、AI 对照区与区域图在同一页结构内。",
+        "未提交草稿前 AI 面板不能直接开放。"
+      ]
+    },
+    "step-15": {
+      "title": "方法总结与轻量桥接——从时域指标走向参数与极点趋势",
+      "layout": {
+        "template": "mapping_table_with_plane",
+        "regions": [
+          { "id": "method-links", "width": "full", "order": 1 },
+          { "id": "mapping-table", "width": "full", "order": 2 },
+          { "id": "highlight-plane", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "method-links", "region": "method-links", "kind": "step-card-list", "must_be_visible": true },
+        { "id": "metric-parameter-pole-table", "region": "mapping-table", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "metric-to-pole-highlight", "region": "highlight-plane", "kind": "mapping-highlight", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "method-links",
+          "type": "bullet_list",
+          "title": "三条方法链",
+          "items": [
+            "正向分析：已知参数 -> 求指标",
+            "逆向设计：已知指标 -> 反推参数区域",
+            "跨域迁移：参数区域 -> 极点与后续设计语言"
+          ]
+        },
+        {
+          "id": "metric-parameter-pole-table",
+          "type": "table",
+          "title": "时域语言 / 参数语言 / 极点语言",
+          "rows": [
+            ["更快", "ωn 更大、sigma 更大", "极点整体更靠左"],
+            ["更小超调", "ζ 更大", "阻尼角度约束更强"],
+            ["更短调节时间", "ζωn 更大", "实部边界继续左移"]
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "mapping_highlight",
+        "student_task": "点击单行映射，观察对应的参数语和极点趋势。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": [
+        "逐行高亮映射关系",
+        "只显示单条映射"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["mappingRowSelected", "hoverFormula"],
+        "result_policy": "interaction_trace"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["mapping_focus_distribution"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把时域语言翻译到参数与极点趋势。",
+        "allowed_scope": ["映射关系", "趋势说明"],
+        "forbidden_scope": ["扩展成完整设计器", "扩展成完整根轨迹教学"],
+        "canonical_facts": [
+          "本页只做轻量桥接，不进入完整设计面板。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-15",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "映射表必须是主视觉。",
+        "高亮区只做单条翻译强化。"
+      ]
+    },
+    "step-16": {
+      "title": "后测——公式会算，更要会解释",
+      "layout": {
+        "template": "post_quiz_stack",
+        "regions": [
+          { "id": "quiz-stack", "width": "full", "order": 1 },
+          { "id": "submit-bar", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "posttest-q1", "region": "quiz-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "posttest-q2", "region": "quiz-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "posttest-q3", "region": "quiz-stack", "kind": "short-response-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "posttest-note",
+          "type": "plain_text",
+          "title": "后测关注点",
+          "body": "本页同时检查“会不会算”和“会不会解释”。"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成两题客观题和一题解释题。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": [
+        "释放后测",
+        "显示统计",
+        "显示答案与解释样例"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "teacherRevealSeen"],
+        "result_policy": "objective_plus_explanation"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["question_distribution", "explanation_tag_summary"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "检验是否能把结果说回工程语言。",
+        "allowed_scope": ["后测结果解释"],
+        "forbidden_scope": ["AI 代答解释题"],
+        "canonical_facts": [
+          "解释题用于检查是否理解了极点实部与调节时间的关系。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-16",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "两题客观题与一题解释题必须同页可见。",
+        "教师端能看到解释题标签汇总。"
+      ]
+    },
+    "step-17": {
+      "title": "总结与后续预告",
+      "layout": {
+        "template": "summary_infographic",
+        "regions": [
+          { "id": "takeaways", "width": "full", "order": 1 },
+          { "id": "cheatsheet", "width": "full", "order": 2 },
+          { "id": "next-links", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "five-takeaways", "region": "takeaways", "kind": "bullet-card", "must_be_visible": true },
+        { "id": "quick-reference-card", "region": "cheatsheet", "kind": "image-card", "must_be_visible": true },
+        { "id": "next-course-links", "region": "next-links", "kind": "link-card-row", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "five-takeaways",
+          "type": "numbered_list",
+          "title": "五条必须带走的结论",
+          "items": [
+            "一阶系统快慢首先看时间常数 T",
+            "标准二阶系统的核心参数是 ωn 与 ζ",
+            "四个动态指标共同描述快、冲、稳",
+            "指标要求可以转成参数约束",
+            "参数约束又可以继续转成极点与后续设计语言"
+          ]
+        },
+        {
+          "id": "quick-reference-card",
+          "type": "media",
+          "asset": "2-2-info.png"
+        },
+        {
+          "id": "next-course-links",
+          "type": "bullet_list",
+          "title": "后续去向",
+          "items": [
+            "2-3：频率响应基础",
+            "3-3：根轨迹机制与法则",
+            "4-1：性能指标与工程约束"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读与保存速查卡。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": [
+        "高亮任一结论",
+        "展开后续课程去向"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "quickReferenceOpened"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["quick_reference_open_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把本课收束成可复习结构。",
+        "allowed_scope": ["本课结论", "后续课程去向"],
+        "forbidden_scope": ["新增讲义未出现的新知识点"],
+        "canonical_facts": [
+          "本页负责收束，不负责新增内容。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo?step=step-17",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "五条结论、速查卡、后续去向卡同页完成收束。",
+        "本页不出现新的作答区。"
+      ]
+    }
+  }
+}

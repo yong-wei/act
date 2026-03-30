@@ -52,3 +52,4 @@
 - `interactive-lesson-implementation` 现在默认消费 `runtime/review` 审查产物，不再在实现阶段顺手修改正文或知识卡
 - `2-1` 暴露出“互动页未承接讲义核心内容、理论课未把 `interactive-page.md` 视为必审源”的链路失配；修订后，`interactive-page.md` 已提升为所有课型的主审对象之一
 - `2-1` 现已建立互动设计 V2 双轨真源：人读 `interactive-page.md`，机读 `interactive-contract.yaml`；`review_lesson_content.py` 会把契约路径、必需字段、缺失字段、步骤级契约问题和 `interactive_contract_source` 一并导出到 runtime `review/`，并要求默认预览与学生页对齐
+- `2-2` 现已作为第二个模块 2 主线样例完成 V2 双轨升级：`interactive-page.md` 既保留 `页面骨架 / 模块清单 / 埋点与教师数据 / AI 边界 / 预览口径`，也通过兼容性的 `步骤 xx / 静态承载内容 / 互动升级点` 标题满足当前审查脚本解析；`interactive-contract.yaml` 已被 runtime `review/` 正式识别，`missing_contract_fields`、`step_contract_issues`、`missing_target_steps` 均为 `0`
