@@ -93,10 +93,10 @@
     "step-02": {
       "title": "情境引入——为什么光有微分方程还不够",
       "layout": {
-        "template": "formula_left_image_right",
+        "template": "cover_top_formula_then_judge",
         "regions": [
-          { "id": "equation", "width": "7/12", "order": 1 },
-          { "id": "comic", "width": "5/12", "order": 2 },
+          { "id": "comic", "width": "full", "order": 1 },
+          { "id": "equation", "width": "full", "order": 2 },
           { "id": "interaction", "width": "full", "order": 3 }
         ]
       },
@@ -761,10 +761,10 @@
     "step-13": {
       "title": "例题一：单回路闭环对象如何收束",
       "layout": {
-        "template": "worked_example_three_stage",
+        "template": "prompt_image_then_worked_example",
         "regions": [
-          { "id": "step-cards", "width": "full", "order": 1 },
-          { "id": "diagram-zone", "width": "full", "order": 2 },
+          { "id": "diagram-zone", "width": "full", "order": 1 },
+          { "id": "step-cards", "width": "full", "order": 2 },
           { "id": "check-zone", "width": "full", "order": 3 }
         ]
       },
@@ -822,10 +822,10 @@
     "step-14": {
       "title": "补充辨析：余子式为什么不一定等于 1",
       "layout": {
-        "template": "path_highlight_reasoning",
+        "template": "prompt_image_then_path_reasoning",
         "regions": [
-          { "id": "formula-chain", "width": "full", "order": 1 },
-          { "id": "highlight-stage", "width": "full", "order": 2 },
+          { "id": "highlight-stage", "width": "full", "order": 1 },
+          { "id": "formula-chain", "width": "full", "order": 2 },
           { "id": "explain-box", "width": "full", "order": 3 }
         ]
       },

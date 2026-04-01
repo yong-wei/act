@@ -12,8 +12,10 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 核心原则：
 - 先修 `authoring` 源文件，再导出 runtime；不要只在 runtime 打补丁。
 - 以**正确性**为第一优先级：先查错，再谈完整性与可制作性；不主动润色文风。
-- 所有课型都必须审 `design/interactive-page.md`；互动页不是可有可无的附属稿，而是课堂 PPT 的互动延伸板。
+- 所有课型都必须审 `design/interactive-page.md` 与 `design/interactive-contract.yaml`（若已建立）；互动页不是可有可无的附属稿，而是课堂 PPT 的互动延伸板。
+- 互动设计默认采用双轨真源：人读 `interactive-page.md`，机读 `interactive-contract.yaml`；审查时不得只看其中一份。
 - 互动页覆盖审查必须确认：讲义核心概念、公式、图表、例题、结论已经落到页面；静态页合法且必要；关键知识不能只藏在互动组件里。
+- 审查还必须确认：人读稿的页面蓝图与机读稿的结构化契约逐步骤对齐，且默认预览口径固定为学生演示页。
 - 审查结论分层输出，且每层都要给出 `通过 / 需修订 / 阻塞` 状态：**结构正确性**、**互动页覆盖**、**事实正确性**、**科学合理性**、**确定性结论验证**。
 - 代码直出媒体必须先落 `media/processed/` 审核，再进入 runtime。
 - `course-content/runtime/knowledge/cards/nodes/` 继续作为全局知识卡片运行时来源；lesson runtime 只保存审查索引与报告。
@@ -27,6 +29,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - `design/handout.md`
 - `course-content/authoring/lessons/<lesson>/design/boppps.md`
 - `course-content/authoring/lessons/<lesson>/design/interactive-page.md`
+- `course-content/authoring/lessons/<lesson>/design/interactive-contract.yaml`（若存在）
 - `course-content/authoring/lessons/<lesson>/design/multimedia.md`（如果存在）
 - `course-content/authoring/knowledge/cards/lessons/<lesson>/sequence.json`
 - `course-content/authoring/knowledge/cards/nodes/*.md` 中与本课相关的卡片
@@ -129,19 +132,41 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 ### 6.5 审 `design/interactive-page.md`（所有课型必查）
 
 - 不分理论课或实践课，都必须读取并审查 `design/interactive-page.md`
-- 先检查是否存在 `## 讲义核心内容映射`，并确认映射表使用 `handout_anchor / core_item_type / must_appear_content / target_step / page_mode / interaction_upgrade / media_or_table_ref / acceptance_note`
-- 再检查每一步是否同时写清：
-  - 静态承载内容
-  - 互动升级点
+- 若课次已建立双轨设计，则必须同步读取并审查 `design/interactive-contract.yaml`
+- 先检查人读稿是否是“页面蓝图”而不是“讲课脚本”：
+  - 页面模板 / 区域布局
+  - 模块清单
+  - 固定文本 / 公式 / 图片 / 表格 / 例题 / 结论
+  - 互动组件机制
+  - 埋点摘要
+  - 教师聚合
+  - AI 边界
+  - 学生页预览路径
+- 再检查是否存在 `## 讲义核心内容映射`，并确认映射表使用 `handout_anchor / core_item_type / must_appear_content / target_step / page_mode / interaction_upgrade / media_or_table_ref / acceptance_note`
 - 互动页审查的目标不是“有没有互动”，而是“整门课是否已经先成为完整课件”
 - 重点检查：
   - 关键知识是否已在页面中静态或“静态 + 互动升级”地承载，而不是只存在于互动组件内部
   - 是否允许并合理使用纯静态页面来承担概念、公式、图示、表格、结论等基础教学职责
   - 页面数量是否服从内容逻辑与覆盖需求，而不是为了控制页数牺牲知识承载
   - 讲义主线中的核心概念、公式、图表、例题、结论是否都能在页面中找到明确落点
+  - `interactive-page.md` 与 `interactive-contract.yaml` 的步骤顺序、步骤标题、预览路径、互动类型是否逐项一致
+  - `interactive-contract.yaml` 是否具备至少这些步骤级字段：
+    - `layout`
+    - `modules`
+    - `content_blocks`
+    - `interaction_spec`
+    - `teacher_controls`
+    - `telemetry_spec`
+    - `teacher_insight_spec`
+    - `ai_context_spec`
+    - `preview_contract`
+    - `acceptance_checks`
+  - 人读稿是否存在动作化写法导致页面结构不清，例如“展示 / 引导 / 完成一次 / 跟随推导 / 让学生”
+  - 默认预览是否固定为学生演示页，而不是教师模板弹窗
+  - 对于拖拽、连线、排序、拖槽、路径高亮等设计，是否在审查中明确标记“不得降级实现”
   - 参与式步骤累计时长是否不少于 45 分钟
   - 至少有一个或多个工作区/探索页/对照页承载学生实际操作、观察、记录、反馈
-  - 教师端与学生端描述是否都服务“学生在课上亲自参与并训练”
+  - 教师端与学生端的页面差异是否清楚，且教师侧只要求聚合结果，不额外引入高频原始轨迹存储
   - 不得把实践课写成“教师演示 + 学生围观 + 末尾提交一句话感想”
 - 审查结果必须输出为 `course-content/runtime/lessons/<lesson>/review/interactive-page-check.json`
 
@@ -220,10 +245,16 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 已建立待审事实与结论清单
 - [ ] 已检查 design/handout.md
 - [ ] 已检查 `design/interactive-page.md`
+- [ ] 若课次已建立双轨设计，已检查 `design/interactive-contract.yaml`
+- [ ] 已确认 `design/interactive-page.md` 采用页面蓝图写法，而不是教师/学生动作脚本
 - [ ] 已确认 `design/interactive-page.md` 含 `## 讲义核心内容映射`
-- [ ] 已确认每一步都写明“静态承载内容”“互动升级点”
+- [ ] 已确认每一步都写明页面模板、区域布局、模块清单、固定内容、互动机制、教师聚合、AI 边界与学生页预览
 - [ ] 已确认讲义核心概念、公式、图表、例题、结论都有页面落点
 - [ ] 已确认关键知识没有只藏在互动组件里，必要静态页已保留
+- [ ] 已确认 `interactive-page.md` 与 `interactive-contract.yaml` 的步骤顺序、标题、互动类型、预览路径一致（如适用）
+- [ ] 已确认 `interactive-contract.yaml` 的步骤级字段完整（如适用）
+- [ ] 已确认默认预览口径是学生演示页，而不是教师模板弹窗（如适用）
+- [ ] 已确认拖拽 / 连线 / 排序 / 拖槽 / 路径高亮等互动未在设计审查中被默许降级
 - [ ] 已检查正式讲义中的图号/表号、图题/表题是否完整且连续
 - [ ] 已确认正文中没有“图示建议”“待制作”“脚本验证”等作者态过程文本
 - [ ] 已确认设计期 `Octave` + `control` 内置函数校验未被错误写入讲义正文
@@ -250,8 +281,12 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - 把实践课继续写成 `practice-guide` 替代讲义，而不是回到讲义主线
 - 把“实践不少于 45 分钟”误写成教师演示、口头讨论或课后自学时间
 - 只在实践课审 `interactive-page.md`，默认理论课不需要做页面覆盖审查
+- 只审 `interactive-page.md`，跳过 `interactive-contract.yaml`，导致机读契约与人读蓝图失配
 - 允许 `interactive-page.md` 没有“讲义核心内容映射”，导致讲义核心内容没有明确落点
+- 把 `interactive-page.md` 写成教师口播脚本、动作脚本，而不是固定页面蓝图
 - 把核心概念、关键公式或例题结论只交给互动组件，页面静态部分只剩标题和提示
+- 审查时默认接受“设计里写拖拽，最终实现成单选也行”的降级做法
+- 允许默认预览继续使用教师端模板弹窗，而不是学生演示页
 - 看到公式能渲染就算通过，却没检查推导、数值或符号方向
 - 只审事实和公式，不审讲义是否仍带有“图示建议”“待制作”“脚本验证”等作者态痕迹
 - 把设计期验证过程直接保留在讲义正文，而不是转成审查记录或学生附录代码
@@ -270,7 +305,10 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - 只做格式审查，不做事实与结论审查
 - 实践课的讲义、BOPPPS、互动页三者对“45 分钟以上学生实践训练”说法不一致
 - 理论课的审查范围里没有 `interactive-page.md`
+- 双轨课次的审查范围里没有 `interactive-contract.yaml`
 - 互动页只有互动框架，没有核心概念、公式、表格、图示或例题的静态承载
+- 人读稿与机读稿的步骤、互动类型或预览路径不一致
+- 设计稿里明确是拖拽 / 连线 / 排序，但审查意见默认允许实现阶段随意改成交互更弱的题型
 - 外部事实没有来源链接和核验日期
 - 计算结果、响应曲线、频域结论没有脚本支撑
 - 讲义里的图没有正式编号图题，或仍然出现作者态占位说明

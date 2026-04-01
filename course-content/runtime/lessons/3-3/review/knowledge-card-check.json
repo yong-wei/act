@@ -1,0 +1,20 @@
+{
+  "lesson_id": "3-3",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/3-3/sequence.json",
+  "card_order": [
+    "闭环特征方程_3_87c88e19",
+    "闭环极点_3_f9432bf3",
+    "根轨迹_4_c19f8854",
+    "相角条件_4_597a8cf7",
+    "幅值条件_3_2d5b92ac",
+    "根轨迹完整法则_3_0f2e7b11",
+    "稳定性_3_72d04fbd",
+    "闭环主导极点_3_de941720",
+    "广义根轨迹_4_30f5ea13",
+    "零度与一百八十度根轨迹_3_c1bb7dbe",
+    "稳定可行域_3_7eed0929"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

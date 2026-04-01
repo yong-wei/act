@@ -11,9 +11,11 @@ import { useInteractiveAI } from '@/features/interactive/hooks/useInteractiveAI'
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import type { InteractiveConfig } from '@/features/interactive/types';
 import {
+  getUNIT_2_1PageContract,
   UNIT_2_1_COURSE_TITLE,
   UNIT_2_1_LESSON_STEPS,
   UNIT_2_1_STAGE_LABEL,
+  type UNIT_2_1PageType,
   type UNIT_2_1StepDefinition,
   type UNIT_2_1StepResponse,
 } from '@/lib/unit-2-1-course';
@@ -44,19 +46,59 @@ interface QuizQuestion {
 interface FormField {
   key: string;
   label: string;
-  type: 'text' | 'textarea' | 'number' | 'radio';
+  type: 'text' | 'textarea' | 'number' | 'radio' | 'checkbox';
   placeholder?: string;
-  answer?: string;
+  answer?: string | string[];
   options?: ChoiceOption[];
 }
 
+interface DragMatchSlot {
+  id: string;
+  label: string;
+  expectedCardIds: string[];
+}
+
+interface DragMatchCard {
+  id: string;
+  label: string;
+  tone?: Tone;
+}
+
+interface HotspotTarget {
+  id: string;
+  label: string;
+  left: string;
+  top: string;
+  expected?: boolean;
+  description?: string;
+}
+
+interface BucketSortBucket {
+  id: string;
+  label: string;
+}
+
+interface BucketSortCard {
+  id: string;
+  label: string;
+  bucketId: string;
+}
+
 interface ActivitySpec {
-  kind: 'none' | 'quiz' | 'form';
+  kind: UNIT_2_1PageType | 'none';
   helper: string;
   submitLabel?: string;
   releaseLabel?: string;
   questions?: QuizQuestion[];
   fields?: FormField[];
+  dragSlots?: DragMatchSlot[];
+  dragCards?: DragMatchCard[];
+  hotspotTargets?: HotspotTarget[];
+  bucketBuckets?: BucketSortBucket[];
+  bucketCards?: BucketSortCard[];
+  highlightTargets?: HotspotTarget[];
+  successMessage?: string;
+  failureMessage?: string;
 }
 
 interface StepBlueprint {
@@ -384,7 +426,7 @@ function getStepActivity(step: UNIT_2_1StepDefinition): ActivitySpec {
   switch (step.id) {
     case 'step-02':
       return {
-        kind: 'quiz',
+        kind: 'binary_choice',
         helper: '先完成一次二选一判断，确认自己把“微分方程”和“统一对象语言”区分开。',
         submitLabel: '提交判断',
         releaseLabel: '释放判断',
@@ -403,7 +445,7 @@ function getStepActivity(step: UNIT_2_1StepDefinition): ActivitySpec {
       };
     case 'step-04':
       return {
-        kind: 'quiz',
+        kind: 'quiz_group',
         helper: '三道轻量前测，用来暴露对象定义、初值条件和结构表达的常见混淆。',
         submitLabel: '提交前测',
         releaseLabel: '释放前测',
@@ -442,7 +484,7 @@ function getStepActivity(step: UNIT_2_1StepDefinition): ActivitySpec {
       };
     case 'step-05':
       return {
-        kind: 'form',
+        kind: 'short_response',
         helper: '请用自己的语言完成一句话填空，确认你理解的不是纯数学技巧，而是工程上的语言切换。',
         submitLabel: '提交动机概括',
         releaseLabel: '释放练习',
@@ -471,38 +513,34 @@ function getStepActivity(step: UNIT_2_1StepDefinition): ActivitySpec {
       };
     case 'step-06':
       return {
-        kind: 'form',
-        helper: '请围绕“对象分离”和“统一复用”作答，不需要重新写完整推导。',
-        submitLabel: '提交对象理解',
+        kind: 'multi_check',
+        helper: '勾选区只检查本页最关键的对象边界，再用一句短答补全理由。',
+        submitLabel: '提交勾选',
         releaseLabel: '释放练习',
         fields: [
           {
-            key: 'separation',
-            label: '为什么说这一步完成了“系统对象”和“具体输入”的分离？',
-            type: 'textarea',
-            placeholder: '提示：对象被抽出来后，具体输入放在哪里？',
+            key: 'definitionChecklist',
+            label: '勾选传递函数定义必须同时满足的条件',
+            type: 'checkbox',
+            answer: ['separate-object', 'zero-initial', 'reusable'],
+            options: [
+              { value: 'separate-object', label: '系统对象与具体输入被分离出来' },
+              { value: 'zero-initial', label: '零初值条件被明确保留' },
+              { value: 'reusable', label: '同一对象可以进入后续连接与复用' },
+              { value: 'integral-skill', label: '核心价值是积分技巧更熟练' },
+            ],
           },
           {
             key: 'whyReusable',
-            label: '为什么传递函数已经不只是“原方程换个写法”？',
+            label: '用一句话说明：为什么传递函数不只是“原方程换个写法”？',
             type: 'textarea',
             placeholder: '提示：从后续可复用性解释',
-          },
-          {
-            key: 'focus',
-            label: '本页最关键的提醒是什么？',
-            type: 'radio',
-            options: [
-              { value: 'zero', label: '零初值必须明确，不能和对象定义分离' },
-              { value: 'calc', label: '这一步最重要的是积分计算技巧' },
-            ],
-            answer: 'zero',
           },
         ],
       };
     case 'step-07':
       return {
-        kind: 'form',
+        kind: 'reflection_form',
         helper: '先写自己的判断，再打开 AI 对照。请特别注意“对象项”和“初值项”的边界。',
         submitLabel: '提交对照记录',
         releaseLabel: '释放 AI 对照',
@@ -529,39 +567,43 @@ function getStepActivity(step: UNIT_2_1StepDefinition): ActivitySpec {
       };
     case 'step-08':
       return {
-        kind: 'form',
-        helper: '先在页面里点选对象卡片，再把“名称、公式、第一眼工程判断”写清楚。',
+        kind: 'drag_match',
+        helper: '拖拽三类卡片到五个对象槽位中；提交后只反馈错位数量，不直接公布完整答案。',
         submitLabel: '提交对象识别',
         releaseLabel: '释放配对',
-        fields: [
-          {
-            key: 'inertiaName',
-            label: '形如 K/(Ts+1) 的对象应首先识别成哪类典型环节？',
-            type: 'radio',
-            options: [
-              { value: 'inertia', label: '惯性环节' },
-              { value: 'integral', label: '积分环节' },
-              { value: 'oscillation', label: '振荡环节' },
-            ],
-            answer: 'inertia',
-          },
-          {
-            key: 'integralMeaning',
-            label: '看到 K/s 时，你第一眼会想到什么工程判断？',
-            type: 'textarea',
-            placeholder: '例如：会累积输入作用，常用于消除稳态偏差',
-          },
-          {
-            key: 'whyIdentifyFirst',
-            label: '为什么课程强调“先认对象，再做运算”？',
-            type: 'textarea',
-            placeholder: '提示：从后续连接和分析的角度说明',
-          },
+        dragSlots: [
+          { id: 'proportion-slot', label: '比例对象槽位', expectedCardIds: ['formula-proportion', 'name-proportion', 'meaning-proportion'] },
+          { id: 'integral-slot', label: '积分对象槽位', expectedCardIds: ['formula-integral', 'name-integral', 'meaning-integral'] },
+          { id: 'derivative-slot', label: '微分对象槽位', expectedCardIds: ['formula-derivative', 'name-derivative', 'meaning-derivative'] },
+          { id: 'inertia-slot', label: '惯性对象槽位', expectedCardIds: ['formula-inertia', 'name-inertia', 'meaning-inertia'] },
+          { id: 'oscillation-slot', label: '振荡对象槽位', expectedCardIds: ['formula-oscillation', 'name-oscillation', 'meaning-oscillation'] },
         ],
+        dragCards: [
+          { id: 'formula-proportion', label: 'G(s)=K', tone: 'cyan' },
+          { id: 'formula-integral', label: 'G(s)=1/s', tone: 'cyan' },
+          { id: 'formula-derivative', label: 'G(s)=s', tone: 'cyan' },
+          { id: 'formula-inertia', label: 'G(s)=1/(Ts+1)', tone: 'cyan' },
+          { id: 'formula-oscillation', label: 'G(s)=ω_n^2/(s^2+2ζω_ns+ω_n^2)', tone: 'cyan' },
+          { id: 'name-proportion', label: '比例环节', tone: 'emerald' },
+          { id: 'name-integral', label: '积分环节', tone: 'emerald' },
+          { id: 'name-derivative', label: '微分环节', tone: 'emerald' },
+          { id: 'name-inertia', label: '惯性环节', tone: 'emerald' },
+          { id: 'name-oscillation', label: '振荡环节', tone: 'emerald' },
+          { id: 'meaning-proportion', label: '改变强弱，不改变动态阶次', tone: 'amber' },
+          { id: 'meaning-integral', label: '引入记忆，常使系统慢慢积累', tone: 'amber' },
+          { id: 'meaning-derivative', label: '强调变化趋势，对快变化敏感', tone: 'amber' },
+          { id: 'meaning-inertia', label: '不振荡，主要体现快慢差异', tone: 'amber' },
+          { id: 'meaning-oscillation', label: '可能超调、振荡、再稳定', tone: 'amber' },
+          { id: 'distractor-combo', label: 'G(s)=1/(s(Ts+1))', tone: 'rose' },
+          { id: 'distractor-sum', label: '先直接算总式', tone: 'rose' },
+          { id: 'distractor-steady', label: '所有对象都先看稳态误差', tone: 'rose' },
+        ],
+        successMessage: '所有槽位都已正确配对。',
+        failureMessage: '还有错位槽位，先回到上方对象总表核对。',
       };
     case 'step-09':
       return {
-        kind: 'form',
+        kind: 'rule_judge',
         helper: '三类规则先立住，不做复杂技巧。请用最少的话把每类规则说清。',
         submitLabel: '提交连接判断',
         releaseLabel: '释放判断',
@@ -596,122 +638,113 @@ function getStepActivity(step: UNIT_2_1StepDefinition): ActivitySpec {
       };
     case 'step-10':
       return {
-        kind: 'form',
-        helper: '请在工程结构图语境下回答，不要退回抽象术语。',
+        kind: 'hotspot_labeling',
+        helper: '先在结构图上点出反馈信号回送位置，再补一句传感器在闭环中的作用。',
         submitLabel: '提交工程识别',
         releaseLabel: '释放工程任务',
+        hotspotTargets: [
+          { id: 'controller', label: '控制器', left: '15%', top: '45%' },
+          { id: 'rudder', label: '舵机', left: '38%', top: '45%' },
+          { id: 'ship-body', label: '船体', left: '62%', top: '45%' },
+          { id: 'sensor-feedback', label: '反馈信号回送位置', left: '78%', top: '26%', expected: true, description: '传感器把实际航向送回比较点，闭环在这里真正闭上。' },
+        ],
         fields: [
           {
-            key: 'feedbackSignal',
-            label: '哪个信号被反馈回来修正输入？',
-            type: 'textarea',
-            placeholder: '例如：由罗经测得的实际航向信号',
-            answer: '实际航向反馈信号',
-          },
-          {
             key: 'sensorRole',
-            label: '传感器在这张结构图里承担什么作用？',
+            label: '用一句话写出传感器在这张结构图里的闭环作用',
             type: 'textarea',
-            placeholder: '提示：它怎样把闭环“关上”？',
+            placeholder: '提示：它怎样把闭环真正闭上？',
           },
         ],
       };
     case 'step-12':
       return {
-        kind: 'form',
-        helper: '本页只要求把术语和拓扑对象配起来，不做复杂数题。',
+        kind: 'drag_match',
+        helper: '把术语卡拖到对应定义槽位；本页只处理四个最小术语，不进入复杂计算。',
         submitLabel: '提交术语配对',
         releaseLabel: '释放配对',
-        fields: [
-          {
-            key: 'path',
-            label: '前向通路最准确的理解是？',
-            type: 'radio',
-            options: [
-              { value: 'path', label: '从输入到输出、沿箭头前进且不重复节点的路径' },
-              { value: 'loop', label: '从某点出发再回到原点的闭合路径' },
-            ],
-            answer: 'path',
-          },
-          {
-            key: 'loop',
-            label: '回路最准确的理解是？',
-            type: 'radio',
-            options: [
-              { value: 'loop', label: '沿箭头方向走一圈又回到原节点的闭合路径' },
-              { value: 'delta', label: '把所有回路乘起来得到的总式' },
-            ],
-            answer: 'loop',
-          },
-          {
-            key: 'cofactorMeaning',
-            label: '余子式 Delta_k 在讲什么？',
-            type: 'textarea',
-            placeholder: '提示：从“与某条前向通路不接触的回路影响”解释',
-          },
+        dragSlots: [
+          { id: 'path-def', label: '前向通路定义', expectedCardIds: ['term-path'] },
+          { id: 'loop-def', label: '回路定义', expectedCardIds: ['term-loop'] },
+          { id: 'non-touching-def', label: '互不接触回路定义', expectedCardIds: ['term-non-touching'] },
+          { id: 'delta-def', label: '余子式定义', expectedCardIds: ['term-delta'] },
         ],
+        dragCards: [
+          { id: 'term-path', label: '从输入到输出、沿箭头前进且不重复节点的路径', tone: 'cyan' },
+          { id: 'term-loop', label: '沿箭头方向走一圈又回到原节点的闭合路径', tone: 'cyan' },
+          { id: 'term-non-touching', label: '彼此不共享节点的回路组', tone: 'cyan' },
+          { id: 'term-delta', label: '对某条前向通路而言，与它不接触的回路影响', tone: 'cyan' },
+          { id: 'term-distractor-module', label: '局部模块', tone: 'rose' },
+          { id: 'term-distractor-noise', label: '传感器噪声', tone: 'rose' },
+        ],
+        successMessage: '四个术语均已正确归位。',
+        failureMessage: '仍有术语归位错误，请回到上方术语卡核对。',
       };
     case 'step-13':
       return {
-        kind: 'form',
-        helper: '沿着“对象识别 -> 前向通路 -> 闭环对象 -> 信号流图验证”顺序作答。',
+        kind: 'choice_check',
+        helper: '围绕前向通道、反馈通道和真正分析对象做三道选择校验。',
         submitLabel: '提交例题链',
         releaseLabel: '释放例题',
-        fields: [
+        questions: [
           {
             key: 'forwardPath',
-            label: '这道单回路例题里，前向通道最核心的作用是什么？',
-            type: 'textarea',
-            placeholder: '提示：它怎样把输入一路传到输出？',
+            prompt: '例题一中，前向通道最核心的作用是什么？',
+            options: [
+              { value: 'carry', label: '把输入沿前向通道一路传到输出' },
+              { value: 'memory', label: '单独记录初始状态' },
+              { value: 'noise', label: '只负责传感器噪声' },
+            ],
+            answer: 'carry',
+            explanation: '前向通道负责把输入一路送到输出，是闭环对象收束的主体链。 ',
           },
           {
             key: 'feedbackPath',
-            label: '反馈通道为什么不能丢？',
-            type: 'textarea',
-            placeholder: '提示：它对闭环对象分母有什么影响？',
+            prompt: '反馈通道为什么不能丢？',
+            options: [
+              { value: 'denominator', label: '它改变闭环对象分母，决定真正进入后续分析的对象' },
+              { value: 'pretty', label: '只是为了让结构图更完整' },
+              { value: 'static', label: '只影响稳态误差，不影响对象表达' },
+            ],
+            answer: 'denominator',
+            explanation: '反馈通道进入后，真正要分析的是闭环对象，不再只是局部模块。 ',
           },
           {
             key: 'analysisFocus',
-            label: '为什么最终要分析闭环对象，而不是局部模块？',
-            type: 'textarea',
-            placeholder: '从后续时域/频域分析的视角回答',
+            prompt: '例题一最终真正要分析的对象是什么？',
+            options: [
+              { value: 'closed-loop', label: '闭环对象' },
+              { value: 'controller', label: '控制器模块' },
+              { value: 'sensor', label: '传感器模块' },
+            ],
+            answer: 'closed-loop',
+            explanation: '后续时域与频域分析都围绕闭环对象展开，而不是某个局部模块。 ',
           },
         ],
       };
     case 'step-14':
       return {
-        kind: 'form',
-        helper: '按“预测 -> 高亮 -> 对比 -> 记录”走完，不要只记结论。',
+        kind: 'path_highlight',
+        helper: '先高亮前向通路与局部回路，再用一句话写出为什么这里的余子式不一定等于 1。',
         submitLabel: '提交辨析',
         releaseLabel: '释放辨析',
+        highlightTargets: [
+          { id: 'path-upper', label: '上支路前向通路', left: '20%', top: '30%' },
+          { id: 'path-lower', label: '下支路前向通路', left: '22%', top: '66%', expected: true, description: '这条前向通路没有碰到局部回路，因此对应余子式会保留下来。' },
+          { id: 'loop-local', label: '局部回路', left: '70%', top: '40%', expected: true, description: '是否接触某条前向通路，决定对应余子式是否等于 1。' },
+        ],
         fields: [
           {
-            key: 'pathGuess',
-            label: '哪条前向通路没有碰到局部回路？',
-            type: 'radio',
-            options: [
-              { value: 'upper', label: '上支路前向通路' },
-              { value: 'lower', label: '下支路前向通路' },
-            ],
-            answer: 'lower',
-          },
-          {
-            key: 'deltaReason',
-            label: '为什么这里会保留 Delta_k = 1 - L1？',
-            type: 'textarea',
-            placeholder: '提示：从“这条前向通路是否接触局部回路”解释',
-          },
-          {
             key: 'difference',
-            label: '“互不接触回路”和“回路不接触某条前向通路”的区别是什么？',
+            label: '用一句话写出：“回路之间互不接触”和“回路不接触某条前向通路”有什么区别？',
             type: 'textarea',
-            placeholder: '用一句话分清这两个判断层次',
+            placeholder: '提示：前者看回路与回路，后者看回路与前向通路。',
           },
         ],
       };
     case 'step-15':
       return {
-        kind: 'quiz',
+        kind: 'quiz_group',
         helper: '后测看的是对象语言是否真正立住，尤其是零初值、对象识别和余子式判断。',
         submitLabel: '提交后测',
         releaseLabel: '释放后测',
@@ -784,14 +817,26 @@ function buildInteractiveAiConfig(step: UNIT_2_1StepDefinition): InteractiveConf
 
 function getDefaultDraft(activity: ActivitySpec, savedResponse?: UNIT_2_1StepResponse) {
   if (savedResponse) {
-    return savedResponse.answers;
+    return savedResponse.answers as Record<string, unknown>;
   }
-  const defaults: Record<string, string> = {};
+  const defaults: Record<string, unknown> = {};
   for (const field of activity.fields ?? []) {
-    defaults[field.key] = '';
+    defaults[field.key] = field.type === 'checkbox' ? [] : '';
   }
   for (const question of activity.questions ?? []) {
     defaults[question.key] = '';
+  }
+  if (activity.kind === 'drag_match') {
+    defaults.placements = {};
+  }
+  if (activity.kind === 'bucket_sort') {
+    defaults.assignments = {};
+  }
+  if (activity.kind === 'hotspot_labeling') {
+    defaults.selectedHotspotId = '';
+  }
+  if (activity.kind === 'path_highlight') {
+    defaults.selectedHighlightIds = [];
   }
   return defaults;
 }
@@ -800,6 +845,15 @@ function getWordCloudEntries(responses: UNIT_2_1TeacherResponseItem[]) {
   const counts = new Map<string, number>();
   for (const item of responses) {
     Object.values(item.response.answers)
+      .flatMap((value) => {
+        if (typeof value === 'string') {
+          return [value];
+        }
+        if (Array.isArray(value)) {
+          return value.filter((entry): entry is string => typeof entry === 'string');
+        }
+        return [];
+      })
       .join(' ')
       .split(/[\s,，。；;、/]+/)
       .map((value) => value.trim())
@@ -813,14 +867,40 @@ function getWordCloudEntries(responses: UNIT_2_1TeacherResponseItem[]) {
     .slice(0, 12);
 }
 
-function renderFieldValue(field: FormField | undefined, value: string) {
+function renderFieldValue(field: FormField | undefined, value: unknown) {
+  const stringValue = typeof value === 'string' ? value : '';
+  const arrayValue = Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
   if (!field) {
-    return value || '未作答';
+    if (stringValue) {
+      return stringValue;
+    }
+    return arrayValue.length ? arrayValue.join('、') : '未作答';
+  }
+  if (field.type === 'checkbox') {
+    if (!arrayValue.length) {
+      return '未作答';
+    }
+    return arrayValue
+      .map((item) => field.options?.find((option) => option.value === item)?.label ?? item)
+      .join('、');
   }
   if (field.type !== 'radio') {
-    return value || '未作答';
+    return stringValue || '未作答';
   }
-  return field.options?.find((option) => option.value === value)?.label ?? value ?? '未作答';
+  return field.options?.find((option) => option.value === stringValue)?.label ?? stringValue ?? '未作答';
+}
+
+function getAttemptCount(savedResponse?: UNIT_2_1StepResponse) {
+  const current = savedResponse?.summary?.attemptCount;
+  return typeof current === 'number' ? current + 1 : savedResponse ? 2 : 1;
+}
+
+function getStringArray(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function getRecordValue(value: unknown) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
 function looksLikeFormula(value: string) {
@@ -1153,61 +1233,70 @@ export function UNIT_2_1StepContentPanel({
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const blueprint = useMemo(() => getStepBlueprint(step), [step]);
+  const pageContract = useMemo(() => getUNIT_2_1PageContract(step.id), [step.id]);
 
-  return (
-    <section className="premium-lesson-panel px-4 py-5">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="premium-lesson-tone-pill premium-tone-slate">{UNIT_2_1_STAGE_LABEL[step.stage]}</span>
-        <span className="premium-lesson-tone-pill premium-tone-cyan">{blueprint.kicker}</span>
-        <span className="premium-lesson-tone-pill premium-tone-amber">⏱ {step.duration}</span>
+  const renderMediaFigure = (maxHeightClass = 'max-h-[420px]') =>
+    mediaSrc ? (
+      <figure className="premium-lesson-panel-soft overflow-hidden px-4 py-4">
+        <Image
+          src={mediaSrc}
+          alt={mediaAlt ?? step.title}
+          width={1200}
+          height={720}
+          unoptimized
+          className={`mx-auto w-full rounded-2xl object-contain ${maxHeightClass}`}
+        />
+      </figure>
+    ) : null;
+
+  const renderFormulaCards = () =>
+    blueprint.formulas?.length ? (
+      <div className="grid gap-3">
+        {blueprint.formulas.map((formula) => (
+          <div key={formula} className="premium-lesson-panel-soft px-4 py-4">
+            <div className="premium-lesson-caption mb-2 text-xs">页面必须显式呈现的核心公式</div>
+            <BlockMath math={formula} />
+          </div>
+        ))}
       </div>
-      <h2 className="premium-lesson-title mt-4 text-2xl font-semibold">{step.title}</h2>
-      <p className="premium-lesson-muted mt-3 text-sm leading-7">{blueprint.intro}</p>
+    ) : null;
 
-      {blueprint.formulas?.length ? (
-        <div className="mt-5 grid gap-3">
-          {blueprint.formulas.map((formula) => (
-            <div key={formula} className="premium-lesson-panel-soft px-4 py-4">
-              <div className="premium-lesson-caption mb-2 text-xs">页面必须显式呈现的核心公式</div>
-              <BlockMath math={formula} />
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      {blueprint.tables?.length ? (
-        <div className="mt-5 grid gap-4">
-          {blueprint.tables.map((table) => (
-            <div key={table.title} className="premium-lesson-panel-soft overflow-x-auto px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">{table.title}</div>
-              <table className="mt-3 min-w-full border-collapse text-sm">
-                <thead>
-                  <tr>
-                    {table.headers.map((header) => (
-                      <th key={header} className="border border-border bg-muted/40 px-3 py-2 text-left font-medium">
-                        {header}
-                      </th>
+  const renderTables = () =>
+    blueprint.tables?.length ? (
+      <div className="grid gap-4">
+        {blueprint.tables.map((table) => (
+          <div key={table.title} className="premium-lesson-panel-soft overflow-x-auto px-4 py-4">
+            <div className="premium-lesson-title text-sm font-medium">{table.title}</div>
+            <table className="mt-3 min-w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  {table.headers.map((header) => (
+                    <th key={header} className="border border-border bg-muted/40 px-3 py-2 text-left font-medium">
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {table.rows.map((row) => (
+                  <tr key={row.join('|')}>
+                    {row.map((cell) => (
+                      <td key={cell} className="border border-border px-3 py-2 align-top">
+                        {looksLikeFormula(cell) ? <BlockMath math={cell} /> : cell}
+                      </td>
                     ))}
                   </tr>
-                </thead>
-                <tbody>
-                  {table.rows.map((row) => (
-                    <tr key={row.join('|')}>
-                      {row.map((cell) => (
-                        <td key={cell} className="border border-border px-3 py-2 align-top">
-                          {looksLikeFormula(cell) ? <BlockMath math={cell} /> : cell}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ))}
-        </div>
-      ) : null}
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+    ) : null;
 
-      <div className="mt-5 grid gap-4">
+  const renderSections = () =>
+    blueprint.sections.length ? (
+      <div className="grid gap-4">
         {blueprint.sections.map((section) => (
           <div key={section.title} className={`premium-lesson-tone-block ${getToneClass(section.tone)}`}>
             <div className="premium-lesson-title text-sm font-medium">{section.title}</div>
@@ -1224,33 +1313,179 @@ export function UNIT_2_1StepContentPanel({
           </div>
         ))}
       </div>
+    ) : null;
 
-      {blueprint.conclusions?.length ? (
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {blueprint.conclusions.map((conclusion) => (
-            <div key={conclusion} className="premium-lesson-tone-block premium-tone-emerald text-sm">
-              {conclusion}
+  const renderConclusions = () =>
+    blueprint.conclusions?.length ? (
+      <div className="grid gap-3 md:grid-cols-2">
+        {blueprint.conclusions.map((conclusion) => (
+          <div key={conclusion} className="premium-lesson-tone-block premium-tone-emerald text-sm">
+            {conclusion}
+          </div>
+        ))}
+      </div>
+    ) : null;
+
+  const renderStepSpecificRegion = (regionId: string) => {
+    switch (regionId) {
+      case 'comic':
+      case 'map-zone':
+      case 'diagram':
+      case 'diagram-zone':
+      case 'highlight-stage':
+      case 'lead':
+      case 'infographic':
+        return renderMediaFigure();
+      case 'left-diagram':
+        return renderMediaFigure('max-h-[320px]');
+      case 'right-diagram':
+        if (step.id === 'step-11') {
+          return (
+            <div className="grid gap-3">
+              <div className="premium-lesson-surface-elevated px-4 py-4 text-sm">
+                <div className="premium-lesson-title text-sm font-semibold">方框图</div>
+                <div className="premium-lesson-muted mt-2">看模块与连接。</div>
+              </div>
+              <div className="premium-lesson-surface-elevated px-4 py-4 text-sm">
+                <div className="premium-lesson-title text-sm font-semibold">信号流图</div>
+                <div className="premium-lesson-muted mt-2">看路径与回路。</div>
+              </div>
             </div>
-          ))}
-        </div>
+          );
+        }
+        return renderMediaFigure('max-h-[320px]');
+      case 'equation':
+        return (
+          <div className="grid gap-4">
+            <p className="premium-lesson-muted text-sm leading-7">{blueprint.intro}</p>
+            {renderFormulaCards()}
+            {renderSections()}
+          </div>
+        );
+      case 'chain':
+      case 'summary-chain':
+        return (
+          <div className="grid gap-4">
+            <p className="premium-lesson-muted text-sm leading-7">{blueprint.intro}</p>
+            {renderConclusions()}
+          </div>
+        );
+      case 'cards':
+      case 'summary':
+      case 'conclusion-zone':
+      case 'comparison-table':
+      case 'rule-cards':
+        return renderSections();
+      case 'table-zone':
+        return renderTables();
+      case 'formula-zone':
+      case 'formula-chain':
+      case 'formula-strip':
+        return (
+          <div className="grid gap-4">
+            {renderFormulaCards()}
+            {step.id === 'step-14' ? renderSections() : null}
+            {step.id === 'step-12' && blueprint.note ? (
+              <div className="premium-lesson-tone-block premium-tone-amber text-sm">{blueprint.note}</div>
+            ) : null}
+          </div>
+        );
+      case 'compare-zone':
+        return (
+          <div className="grid gap-4">
+            {renderFormulaCards()}
+            <InitialStateContrastLab onParameterChange={onWorkspaceParameterChange} />
+          </div>
+        );
+      case 'reflection-zone':
+      case 'ai-zone':
+        return renderSections();
+      case 'role-cards':
+        return (
+          <div className="grid gap-3 md:grid-cols-4">
+            {['控制器', '舵机', '船体', '传感器'].map((item) => (
+              <div key={item} className="premium-lesson-surface-elevated px-4 py-4 text-sm">
+                <div className="premium-lesson-title text-sm font-semibold">{item}</div>
+              </div>
+            ))}
+            <div className="premium-lesson-tone-block premium-tone-cyan md:col-span-4 text-sm">
+              反馈信号在闭环中的回送位置与传感器作用需要与上方结构图一起理解。
+            </div>
+          </div>
+        );
+      case 'term-cards':
+        return (
+          <div className="grid gap-3 md:grid-cols-2">
+            {['前向通路', '回路', '互不接触回路', '余子式'].map((item) => (
+              <div key={item} className="premium-lesson-surface-elevated px-4 py-4 text-sm">
+                <div className="premium-lesson-title text-sm font-semibold">{item}</div>
+              </div>
+            ))}
+          </div>
+        );
+      case 'step-cards':
+        return (
+          <div className="grid gap-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              {['对象识别', '前向通道', '闭环对象', '信号流图验证'].map((item) => (
+                <div key={item} className="premium-lesson-surface-elevated px-4 py-4 text-sm">
+                  <div className="premium-lesson-title text-sm font-semibold">{item}</div>
+                </div>
+              ))}
+            </div>
+            {renderFormulaCards()}
+            {renderConclusions()}
+          </div>
+        );
+      case 'next-lesson':
+        return (
+          <div className="grid gap-4">
+            {renderSections()}
+            {renderConclusions()}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <section className="premium-lesson-panel px-4 py-5">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="premium-lesson-tone-pill premium-tone-slate">{UNIT_2_1_STAGE_LABEL[step.stage]}</span>
+        <span className="premium-lesson-tone-pill premium-tone-cyan">{blueprint.kicker}</span>
+        <span className="premium-lesson-tone-pill premium-tone-amber">⏱ {step.duration}</span>
+      </div>
+      <h2 className="premium-lesson-title mt-4 text-2xl font-semibold">{step.title}</h2>
+      {pageContract.layout.regions
+        .slice()
+        .sort((left, right) => left.order - right.order)
+        .map((region) => {
+          const regionBody = renderStepSpecificRegion(region.id);
+          if (!regionBody) {
+            return null;
+          }
+          return (
+            <div key={region.id} className="mt-5">
+              {regionBody}
+            </div>
+          );
+        })}
+
+      {!pageContract.layout.regions.some((region) => region.id === 'equation' || region.id === 'chain' || region.id === 'compare-zone') ? (
+        <p className="premium-lesson-muted mt-5 text-sm leading-7">{blueprint.intro}</p>
       ) : null}
 
-      <StepInlineVisual step={step} onParameterChange={onWorkspaceParameterChange} />
+      {!pageContract.layout.regions.some((region) => region.id === 'table-zone') ? renderTables() : null}
+      {!pageContract.layout.regions.some((region) => region.id === 'formula-zone' || region.id === 'equation' || region.id === 'formula-chain' || region.id === 'chain') ? renderFormulaCards() : null}
+      {!pageContract.layout.regions.some((region) => region.id === 'cards' || region.id === 'summary' || region.id === 'comparison-table' || region.id === 'rule-cards' || region.id === 'step-cards' || region.id === 'role-cards' || region.id === 'next-lesson' || region.id === 'compare-zone' || region.id === 'reflection-zone') ? (
+        <div className="mt-5">{renderSections()}</div>
+      ) : null}
+      {!pageContract.layout.regions.some((region) => region.id === 'summary-chain' || region.id === 'step-cards' || region.id === 'next-lesson') ? (
+        <div className="mt-5">{renderConclusions()}</div>
+      ) : null}
 
       {blueprint.note ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">{blueprint.note}</div> : null}
-
-      {mediaSrc ? (
-        <figure className="premium-lesson-panel-soft mt-5 overflow-hidden px-4 py-4">
-          <Image
-            src={mediaSrc}
-            alt={mediaAlt ?? step.title}
-            width={1200}
-            height={720}
-            unoptimized
-            className="mx-auto max-h-[420px] w-full rounded-2xl object-contain"
-          />
-        </figure>
-      ) : null}
     </section>
   );
 }
@@ -1269,7 +1504,8 @@ export function UNIT_2_1StudentActivityForm({
   onSubmit: (response: UNIT_2_1StepResponse) => void;
 }) {
   const activity = useMemo(() => getStepActivity(step), [step]);
-  const [draft, setDraft] = useState<Record<string, string>>(() => getDefaultDraft(activity, savedResponse));
+  const [draft, setDraft] = useState<Record<string, unknown>>(() => getDefaultDraft(activity, savedResponse));
+  const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
 
   useEffect(() => {
     setDraft(getDefaultDraft(activity, savedResponse));
@@ -1294,6 +1530,348 @@ export function UNIT_2_1StudentActivityForm({
   }
 
   const answerFields = (activity.fields ?? []).filter((field) => field.answer);
+  const attemptCount = getAttemptCount(savedResponse);
+  const dragPlacements = getRecordValue(draft.placements);
+  const bucketAssignments = getRecordValue(draft.assignments);
+  const selectedHighlightIds = getStringArray(draft.selectedHighlightIds);
+
+  const moveCardIntoSlot = (slotId: string, cardId: string) => {
+    setDraft((prev) => {
+      const previousPlacements = getRecordValue(prev.placements);
+      const nextPlacements = Object.fromEntries(
+        Object.entries(previousPlacements).map(([key, value]) => [
+          key,
+          getStringArray(value).filter((item) => item !== cardId),
+        ]),
+      );
+      nextPlacements[slotId] = [...getStringArray(nextPlacements[slotId]), cardId];
+      return { ...prev, placements: nextPlacements };
+    });
+  };
+
+  const moveCardIntoBucket = (bucketId: string, cardId: string) => {
+    setDraft((prev) => {
+      const previousAssignments = getRecordValue(prev.assignments);
+      const nextAssignments = Object.fromEntries(
+        Object.entries(previousAssignments).map(([key, value]) => [
+          key,
+          getStringArray(value).filter((item) => item !== cardId),
+        ]),
+      );
+      nextAssignments[bucketId] = [...getStringArray(nextAssignments[bucketId]), cardId];
+      return { ...prev, assignments: nextAssignments };
+    });
+  };
+
+  const buildResponse = (): UNIT_2_1StepResponse => {
+    const submittedAt = Date.now();
+    const baseResponse: UNIT_2_1StepResponse = {
+      stepId: step.id,
+      submittedAt,
+      answers: draft,
+      summary: {
+        attemptCount,
+        interactionKind: activity.kind,
+      },
+    };
+
+    if (activity.questions?.length) {
+      const correctCount = activity.questions.filter((question) => draft[question.key] === question.answer).length;
+      baseResponse.summary = {
+        ...baseResponse.summary,
+        resultState: correctCount === activity.questions.length ? 'correct' : 'incorrect',
+        correctCount,
+        totalCount: activity.questions.length,
+        selectedOption:
+          activity.questions.length === 1 && typeof draft[activity.questions[0]?.key ?? ''] === 'string'
+            ? draft[activity.questions[0]?.key ?? '']
+            : undefined,
+      };
+      return baseResponse;
+    }
+
+    switch (activity.kind) {
+      case 'multi_check': {
+        const selectedItems = getStringArray(draft.definitionChecklist);
+        const expectedItems = getStringArray(activity.fields?.find((field) => field.key === 'definitionChecklist')?.answer);
+        const isCorrect =
+          selectedItems.length === expectedItems.length && selectedItems.every((item) => expectedItems.includes(item));
+        baseResponse.summary = {
+          ...baseResponse.summary,
+          resultState: isCorrect ? 'correct' : 'incorrect',
+          selectedItems,
+        };
+        return baseResponse;
+      }
+      case 'drag_match': {
+        const slots = activity.dragSlots ?? [];
+        const slotSummaries = slots.map((slot) => {
+          const placed = getStringArray(dragPlacements[slot.id]);
+          const correct = placed.length === slot.expectedCardIds.length && slot.expectedCardIds.every((item) => placed.includes(item));
+          return {
+            slotId: slot.id,
+            placed,
+            correct,
+          };
+        });
+        const allCorrect = slotSummaries.every((item) => item.correct);
+        baseResponse.summary = {
+          ...baseResponse.summary,
+          resultState: allCorrect ? 'correct' : 'incorrect',
+          matchedPairs: slotSummaries,
+          errorCount: slotSummaries.filter((item) => !item.correct).length,
+        };
+        return baseResponse;
+      }
+      case 'hotspot_labeling': {
+        const correctId = activity.hotspotTargets?.find((target) => target.expected)?.id ?? '';
+        const selectedHotspotId = typeof draft.selectedHotspotId === 'string' ? draft.selectedHotspotId : '';
+        baseResponse.summary = {
+          ...baseResponse.summary,
+          resultState: selectedHotspotId === correctId ? 'correct' : 'incorrect',
+          hotspotTargetId: selectedHotspotId,
+        };
+        return baseResponse;
+      }
+      case 'bucket_sort': {
+        const cards = activity.bucketCards ?? [];
+        const assignmentsSummary = cards.map((card) => {
+          const bucketId =
+            Object.entries(bucketAssignments).find(([, value]) => getStringArray(value).includes(card.id))?.[0] ?? null;
+          return {
+            cardId: card.id,
+            bucketId,
+            correct: bucketId === card.bucketId,
+          };
+        });
+        baseResponse.summary = {
+          ...baseResponse.summary,
+          resultState: assignmentsSummary.every((item) => item.correct) ? 'correct' : 'incorrect',
+          bucketAssignments: assignmentsSummary,
+        };
+        return baseResponse;
+      }
+      case 'path_highlight': {
+        const expectedIds = (activity.highlightTargets ?? []).filter((target) => target.expected).map((target) => target.id);
+        const resultState =
+          selectedHighlightIds.length === expectedIds.length && selectedHighlightIds.every((item) => expectedIds.includes(item))
+            ? 'correct'
+            : 'incorrect';
+        baseResponse.summary = {
+          ...baseResponse.summary,
+          resultState,
+          highlightedPathIds: selectedHighlightIds,
+        };
+        return baseResponse;
+      }
+      default:
+        return baseResponse;
+    }
+  };
+
+  const renderDragMatchBoard = () => {
+    const placedIds = new Set(
+      Object.values(dragPlacements).flatMap((value) => getStringArray(value)),
+    );
+    const availableCards = (activity.dragCards ?? []).filter((card) => !placedIds.has(card.id));
+
+    return (
+      <div className="grid gap-4">
+        <div className="premium-lesson-surface-elevated px-4 py-4">
+          <div className="premium-lesson-title text-sm font-medium">可拖拽卡片池</div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {availableCards.map((card) => (
+              <button
+                key={card.id}
+                type="button"
+                draggable
+                onDragStart={() => setDraggingCardId(card.id)}
+                className={`premium-lesson-tone-pill ${getToneClass(card.tone ?? 'slate')}`}
+              >
+                {card.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {(activity.dragSlots ?? []).map((slot) => (
+            <div
+              key={slot.id}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault();
+                if (draggingCardId) {
+                  moveCardIntoSlot(slot.id, draggingCardId);
+                  setDraggingCardId(null);
+                }
+              }}
+              className="premium-lesson-surface-elevated min-h-36 border border-dashed border-border px-4 py-4"
+            >
+              <div className="premium-lesson-title text-sm font-medium">{slot.label}</div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {getStringArray(dragPlacements[slot.id]).map((cardId) => {
+                  const card = activity.dragCards?.find((item) => item.id === cardId);
+                  return (
+                    <button
+                      key={cardId}
+                      type="button"
+                      onClick={() =>
+                        setDraft((prev) => {
+                          const placements = getRecordValue(prev.placements);
+                          return {
+                            ...prev,
+                            placements: {
+                              ...placements,
+                              [slot.id]: getStringArray(placements[slot.id]).filter((item) => item !== cardId),
+                            },
+                          };
+                        })
+                      }
+                      className={`premium-lesson-tone-pill ${getToneClass(card?.tone ?? 'slate')}`}
+                    >
+                      {card?.label ?? cardId}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderHotspotPanel = () => {
+    const selectedHotspotId = typeof draft.selectedHotspotId === 'string' ? draft.selectedHotspotId : '';
+    return (
+      <div className="premium-lesson-surface-elevated px-4 py-4">
+        <div className="premium-lesson-title text-sm font-medium">热点标注区</div>
+        <div className="relative mt-4 h-60 rounded-2xl border border-dashed border-border bg-muted/20">
+          {(activity.hotspotTargets ?? []).map((target) => (
+            <button
+              key={target.id}
+              type="button"
+              onClick={() => setDraft((prev) => ({ ...prev, selectedHotspotId: target.id }))}
+              className={`absolute rounded-full border px-3 py-1 text-xs ${
+                selectedHotspotId === target.id ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700' : 'border-border bg-background'
+              }`}
+              style={{ left: target.left, top: target.top, transform: 'translate(-50%, -50%)' }}
+            >
+              {target.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderBucketBoard = () => {
+    const assignedIds = new Set(
+      Object.values(bucketAssignments).flatMap((value) => getStringArray(value)),
+    );
+    const availableCards = (activity.bucketCards ?? []).filter((card) => !assignedIds.has(card.id));
+
+    return (
+      <div className="grid gap-4">
+        <div className="premium-lesson-surface-elevated px-4 py-4">
+          <div className="premium-lesson-title text-sm font-medium">任务卡池</div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {availableCards.map((card) => (
+              <button
+                key={card.id}
+                type="button"
+                draggable
+                onDragStart={() => setDraggingCardId(card.id)}
+                className="premium-lesson-tone-pill premium-tone-slate"
+              >
+                {card.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {(activity.bucketBuckets ?? []).map((bucket) => (
+            <div
+              key={bucket.id}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault();
+                if (draggingCardId) {
+                  moveCardIntoBucket(bucket.id, draggingCardId);
+                  setDraggingCardId(null);
+                }
+              }}
+              className="premium-lesson-surface-elevated min-h-40 border border-dashed border-border px-4 py-4"
+            >
+              <div className="premium-lesson-title text-sm font-medium">{bucket.label}</div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {getStringArray(bucketAssignments[bucket.id]).map((cardId) => {
+                  const card = activity.bucketCards?.find((item) => item.id === cardId);
+                  return (
+                    <button
+                      key={cardId}
+                      type="button"
+                      onClick={() =>
+                        setDraft((prev) => {
+                          const assignments = getRecordValue(prev.assignments);
+                          return {
+                            ...prev,
+                            assignments: {
+                              ...assignments,
+                              [bucket.id]: getStringArray(assignments[bucket.id]).filter((item) => item !== cardId),
+                            },
+                          };
+                        })
+                      }
+                      className="premium-lesson-tone-pill premium-tone-cyan"
+                    >
+                      {card?.label ?? cardId}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderHighlightPanel = () => (
+    <div className="premium-lesson-surface-elevated px-4 py-4">
+      <div className="premium-lesson-title text-sm font-medium">路径高亮区</div>
+      <div className="relative mt-4 h-60 rounded-2xl border border-dashed border-border bg-muted/20">
+        {(activity.highlightTargets ?? []).map((target) => {
+          const selected = selectedHighlightIds.includes(target.id);
+          return (
+            <button
+              key={target.id}
+              type="button"
+              onClick={() =>
+                setDraft((prev) => {
+                  const current = getStringArray(prev.selectedHighlightIds);
+                  return {
+                    ...prev,
+                    selectedHighlightIds: current.includes(target.id)
+                      ? current.filter((item) => item !== target.id)
+                      : [...current, target.id],
+                  };
+                })
+              }
+              className={`absolute rounded-full border px-3 py-1 text-xs ${
+                selected ? 'border-rose-500 bg-rose-500/10 text-rose-700' : 'border-border bg-background'
+              }`}
+              style={{ left: target.left, top: target.top, transform: 'translate(-50%, -50%)' }}
+            >
+              {target.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <section className="premium-lesson-panel-soft px-4 py-4">
@@ -1320,16 +1898,44 @@ export function UNIT_2_1StudentActivityForm({
           </div>
         ))}
 
+        {activity.kind === 'drag_match' ? renderDragMatchBoard() : null}
+        {activity.kind === 'hotspot_labeling' ? renderHotspotPanel() : null}
+        {activity.kind === 'bucket_sort' ? renderBucketBoard() : null}
+        {activity.kind === 'path_highlight' ? renderHighlightPanel() : null}
+
         {activity.fields?.map((field) => (
           <label key={field.key} className="premium-lesson-caption block text-xs">
             {field.label}
             {field.type === 'textarea' ? (
               <textarea
-                value={draft[field.key] ?? ''}
+                value={typeof draft[field.key] === 'string' ? (draft[field.key] as string) : ''}
                 onChange={(event) => setDraft((prev) => ({ ...prev, [field.key]: event.target.value }))}
                 placeholder={field.placeholder}
                 className="premium-lesson-input mt-2 min-h-28"
               />
+            ) : field.type === 'checkbox' ? (
+              <div className="mt-2 grid gap-2">
+                {field.options?.map((option) => (
+                  <label key={option.value} className="premium-lesson-control flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={getStringArray(draft[field.key]).includes(option.value)}
+                      onChange={(event) =>
+                        setDraft((prev) => {
+                          const current = getStringArray(prev[field.key]);
+                          return {
+                            ...prev,
+                            [field.key]: event.target.checked
+                              ? [...current, option.value]
+                              : current.filter((item) => item !== option.value),
+                          };
+                        })
+                      }
+                    />
+                    <span className="text-sm">{option.label}</span>
+                  </label>
+                ))}
+              </div>
             ) : field.type === 'radio' ? (
               <div className="mt-2 grid gap-2">
                 {field.options?.map((option) => (
@@ -1347,7 +1953,7 @@ export function UNIT_2_1StudentActivityForm({
             ) : (
               <input
                 type={field.type}
-                value={draft[field.key] ?? ''}
+                value={typeof draft[field.key] === 'string' ? (draft[field.key] as string) : ''}
                 onChange={(event) => setDraft((prev) => ({ ...prev, [field.key]: event.target.value }))}
                 placeholder={field.placeholder}
                 className="premium-lesson-input mt-2"
@@ -1359,13 +1965,7 @@ export function UNIT_2_1StudentActivityForm({
 
       <button
         type="button"
-        onClick={() =>
-          onSubmit({
-            stepId: step.id,
-            submittedAt: Date.now(),
-            answers: draft,
-          })
-        }
+        onClick={() => onSubmit(buildResponse())}
         className="premium-lesson-action-primary mt-5"
       >
         {activity.submitLabel ?? '提交'}
@@ -1376,6 +1976,20 @@ export function UNIT_2_1StudentActivityForm({
         submittedText="提交成功，教师端已收到你的作答。"
         idleText="提交后会同步到教师端汇总。"
       />
+
+      {savedResponse?.summary?.resultState ? (
+        <div
+          className={`mt-4 text-sm ${
+            savedResponse.summary.resultState === 'correct'
+              ? 'premium-lesson-tone-block premium-tone-emerald'
+              : 'premium-lesson-tone-block premium-tone-amber'
+          }`}
+        >
+          {savedResponse.summary.resultState === 'correct'
+            ? activity.successMessage ?? '本次提交判断正确。'
+            : activity.failureMessage ?? '本次提交仍有待纠正内容，请根据页面固定内容继续核对。'}
+        </div>
+      ) : null}
 
       {answerVisible && activity.questions?.length ? (
         <div className="premium-lesson-tone-block premium-tone-emerald mt-4">
@@ -1392,6 +2006,75 @@ export function UNIT_2_1StudentActivityForm({
         </div>
       ) : null}
 
+      {answerVisible && activity.kind === 'drag_match' && activity.dragSlots?.length ? (
+        <div className="premium-lesson-tone-block premium-tone-cyan mt-4 text-sm">
+          <div className="premium-lesson-title text-sm font-medium">标准配对</div>
+          <div className="mt-3 grid gap-2">
+            {activity.dragSlots.map((slot) => (
+              <div key={slot.id}>
+                <span className="font-medium">{slot.label}：</span>
+                <span>
+                  {slot.expectedCardIds
+                    .map((cardId) => activity.dragCards?.find((card) => card.id === cardId)?.label ?? cardId)
+                    .join(' / ')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {answerVisible && activity.kind === 'hotspot_labeling' ? (
+        <div className="premium-lesson-tone-block premium-tone-cyan mt-4 text-sm">
+          <div className="premium-lesson-title text-sm font-medium">参考答案</div>
+          <div className="mt-3">
+            {(activity.hotspotTargets ?? [])
+              .filter((target) => target.expected)
+              .map((target) => (
+                <div key={target.id}>
+                  <span className="font-medium">{target.label}：</span>
+                  <span>{target.description}</span>
+                </div>
+              ))}
+          </div>
+        </div>
+      ) : null}
+
+      {answerVisible && activity.kind === 'bucket_sort' ? (
+        <div className="premium-lesson-tone-block premium-tone-cyan mt-4 text-sm">
+          <div className="premium-lesson-title text-sm font-medium">标准分类</div>
+          <div className="mt-3 grid gap-2">
+            {(activity.bucketBuckets ?? []).map((bucket) => (
+              <div key={bucket.id}>
+                <span className="font-medium">{bucket.label}：</span>
+                <span>
+                  {(activity.bucketCards ?? [])
+                    .filter((card) => card.bucketId === bucket.id)
+                    .map((card) => card.label)
+                    .join('、')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {answerVisible && activity.kind === 'path_highlight' ? (
+        <div className="premium-lesson-tone-block premium-tone-cyan mt-4 text-sm">
+          <div className="premium-lesson-title text-sm font-medium">标准高亮</div>
+          <div className="mt-3 grid gap-2">
+            {(activity.highlightTargets ?? [])
+              .filter((target) => target.expected)
+              .map((target) => (
+                <div key={target.id}>
+                  <span className="font-medium">{target.label}：</span>
+                  <span>{target.description}</span>
+                </div>
+              ))}
+          </div>
+        </div>
+      ) : null}
+
       {answerVisible && answerFields.length ? (
         <div className="premium-lesson-tone-block premium-tone-cyan mt-4">
           <div className="premium-lesson-title text-sm font-medium">参考答案</div>
@@ -1399,7 +2082,7 @@ export function UNIT_2_1StudentActivityForm({
             {answerFields.map((field) => (
               <div key={field.key}>
                 <span className="font-medium">{field.label}：</span>
-                <span>{renderFieldValue(field, field.answer ?? '')}</span>
+                <span>{renderFieldValue(field, field.answer)}</span>
               </div>
             ))}
           </div>
@@ -1427,6 +2110,53 @@ export function UNIT_2_1TeacherActivitySummary({
   const activity = getStepActivity(step);
   const wordCloud = getWordCloudEntries(responses);
   const answerFields = (activity.fields ?? []).filter((field) => field.answer);
+  const correctCount = responses.filter((item) => item.response.summary?.resultState === 'correct').length;
+  const incorrectCount = responses.length - correctCount;
+
+  const summaryCounts = (values: Array<string | null | undefined>) => {
+    const counts = new Map<string, number>();
+    values
+      .filter((value): value is string => Boolean(value))
+      .forEach((value) => counts.set(value, (counts.get(value) ?? 0) + 1));
+    return Array.from(counts.entries()).sort((left, right) => right[1] - left[1]);
+  };
+
+  const dragSlotErrors = summaryCounts(
+    responses.flatMap((item) => {
+      const matchedPairs = item.response.summary?.matchedPairs;
+      if (!Array.isArray(matchedPairs)) {
+        return [];
+      }
+      return matchedPairs
+        .filter((entry): entry is { slotId: string; correct: boolean } => Boolean(entry) && typeof entry === 'object' && 'slotId' in entry)
+        .filter((entry) => !entry.correct)
+        .map((entry) => entry.slotId);
+    }),
+  );
+
+  const hotspotCounts = summaryCounts(
+    responses.map((item) => (typeof item.response.summary?.hotspotTargetId === 'string' ? item.response.summary.hotspotTargetId : null)),
+  );
+
+  const bucketErrorCounts = summaryCounts(
+    responses.flatMap((item) => {
+      const assignments = item.response.summary?.bucketAssignments;
+      if (!Array.isArray(assignments)) {
+        return [];
+      }
+      return assignments
+        .filter((entry): entry is { cardId: string; correct: boolean } => Boolean(entry) && typeof entry === 'object' && 'cardId' in entry)
+        .filter((entry) => !entry.correct)
+        .map((entry) => entry.cardId);
+    }),
+  );
+
+  const highlightCounts = summaryCounts(
+    responses.flatMap((item) => {
+      const highlights = item.response.summary?.highlightedPathIds;
+      return Array.isArray(highlights) ? highlights.filter((entry): entry is string => typeof entry === 'string') : [];
+    }),
+  );
 
   return (
     <section className="premium-lesson-panel-soft px-4 py-4">
@@ -1448,6 +2178,23 @@ export function UNIT_2_1TeacherActivitySummary({
           </div>
         ) : null}
       </div>
+
+      {activity.kind !== 'none' ? (
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="premium-lesson-surface-elevated px-4 py-4 text-sm">
+            <div className="premium-lesson-title text-sm font-medium">正确提交</div>
+            <div className="mt-2 text-2xl font-semibold">{correctCount}</div>
+          </div>
+          <div className="premium-lesson-surface-elevated px-4 py-4 text-sm">
+            <div className="premium-lesson-title text-sm font-medium">待纠正提交</div>
+            <div className="mt-2 text-2xl font-semibold">{incorrectCount}</div>
+          </div>
+          <div className="premium-lesson-surface-elevated px-4 py-4 text-sm">
+            <div className="premium-lesson-title text-sm font-medium">总提交数</div>
+            <div className="mt-2 text-2xl font-semibold">{responses.length}</div>
+          </div>
+        </div>
+      ) : null}
 
       {activity.questions?.length ? (
         <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -1521,6 +2268,90 @@ export function UNIT_2_1TeacherActivitySummary({
         </div>
       ) : null}
 
+      {activity.kind === 'drag_match' ? (
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="premium-lesson-surface-elevated px-4 py-4">
+            <div className="premium-lesson-title text-sm font-medium">错位槽位热点</div>
+            <div className="mt-3 grid gap-2 text-sm">
+              {dragSlotErrors.length ? (
+                dragSlotErrors.map(([slotId, count]) => (
+                  <div key={slotId} className="flex items-center justify-between">
+                    <span>{activity.dragSlots?.find((slot) => slot.id === slotId)?.label ?? slotId}</span>
+                    <span>{count} 次</span>
+                  </div>
+                ))
+              ) : (
+                <div className="premium-lesson-muted">暂无错位槽位。</div>
+              )}
+            </div>
+          </div>
+          <div className="premium-lesson-surface-elevated px-4 py-4">
+            <div className="premium-lesson-title text-sm font-medium">常见错因标签</div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(getUNIT_2_1PageContract(step.id).misconceptionTags ?? []).map((tag) => (
+                <span key={tag} className="premium-lesson-tone-pill premium-tone-amber">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {activity.kind === 'hotspot_labeling' ? (
+        <div className="mt-4 premium-lesson-surface-elevated px-4 py-4">
+          <div className="premium-lesson-title text-sm font-medium">热点命中分布</div>
+          <div className="mt-3 grid gap-2 text-sm">
+            {hotspotCounts.length ? (
+              hotspotCounts.map(([targetId, count]) => (
+                <div key={targetId} className="flex items-center justify-between">
+                  <span>{activity.hotspotTargets?.find((target) => target.id === targetId)?.label ?? targetId}</span>
+                  <span>{count} 次</span>
+                </div>
+              ))
+            ) : (
+              <div className="premium-lesson-muted">暂无热点标注提交。</div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {activity.kind === 'bucket_sort' ? (
+        <div className="mt-4 premium-lesson-surface-elevated px-4 py-4">
+          <div className="premium-lesson-title text-sm font-medium">错误任务分配</div>
+          <div className="mt-3 grid gap-2 text-sm">
+            {bucketErrorCounts.length ? (
+              bucketErrorCounts.map(([cardId, count]) => (
+                <div key={cardId} className="flex items-center justify-between">
+                  <span>{activity.bucketCards?.find((card) => card.id === cardId)?.label ?? cardId}</span>
+                  <span>{count} 次</span>
+                </div>
+              ))
+            ) : (
+              <div className="premium-lesson-muted">暂无错误分配。</div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {activity.kind === 'path_highlight' ? (
+        <div className="mt-4 premium-lesson-surface-elevated px-4 py-4">
+          <div className="premium-lesson-title text-sm font-medium">路径高亮分布</div>
+          <div className="mt-3 grid gap-2 text-sm">
+            {highlightCounts.length ? (
+              highlightCounts.map(([targetId, count]) => (
+                <div key={targetId} className="flex items-center justify-between">
+                  <span>{activity.highlightTargets?.find((target) => target.id === targetId)?.label ?? targetId}</span>
+                  <span>{count} 次</span>
+                </div>
+              ))
+            ) : (
+              <div className="premium-lesson-muted">暂无路径高亮提交。</div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
       {answerVisible && answerFields.length ? (
         <div className="premium-lesson-tone-block premium-tone-cyan mt-4 text-sm">
           <div className="premium-lesson-title text-sm font-medium">参考答案</div>
@@ -1528,7 +2359,7 @@ export function UNIT_2_1TeacherActivitySummary({
             {answerFields.map((field) => (
               <div key={field.key}>
                 <span className="font-medium">{field.label}：</span>
-                <span>{renderFieldValue(field, field.answer ?? '')}</span>
+                <span>{renderFieldValue(field, field.answer)}</span>
               </div>
             ))}
           </div>

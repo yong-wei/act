@@ -293,7 +293,7 @@ export function UNIT_2_1TeacherPage({
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 
-        {step.pageType === 'ai' ? (
+        {step.id === 'step-07' ? (
           <div className="mt-4">
             <UNIT_2_1StepAiAssistant step={step} onAiEvent={handleAiEvent} />
           </div>

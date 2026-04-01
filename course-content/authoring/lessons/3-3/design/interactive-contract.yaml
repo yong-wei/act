@@ -1,0 +1,811 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "3-3",
+  "course_title": "3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移",
+  "course_route_segment": "unit-3-3-root-locus-rules",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo",
+    "teacher_preview_panel_note": "教师端模板弹窗仅用于查看课堂骨架；默认页面预览必须打开学生演示页，保持所见即所得。"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "回到地图：从稳定边界走向迁移机制",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          { "id": "header", "width": "full", "order": 1 },
+          { "id": "lead", "width": "full", "order": 2 },
+          { "id": "summary", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "stage-map", "region": "lead", "kind": "stage-map", "must_be_visible": true },
+        { "id": "today-task", "region": "summary", "kind": "key-task-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "stage-map",
+          "type": "plain_text",
+          "title": "模块定位",
+          "body": "固定高亮 3-2 -> 3-3 -> 3-4，明确本课位于稳定边界与读图窗口之间。"
+        },
+        {
+          "id": "today-task",
+          "type": "bullet_list",
+          "title": "本课任务",
+          "items": [
+            "把边界语言推进成迁移机制。",
+            "建立根轨迹的条件入口与完整法则。",
+            "把轨迹翻译回稳定性、快慢和振荡。"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": [
+        "推进页面",
+        "高亮当前节点"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep", "teacherFollowSync"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count", "sync_status"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "标定 3-3 在模块3中的位置。",
+        "allowed_scope": ["稳定边界", "迁移机制", "读图窗口"],
+        "forbidden_scope": ["提前进入具体法则和例题运算"],
+        "canonical_facts": [
+          "3-2 负责边界。",
+          "3-3 负责迁移机制。",
+          "3-4 负责按图判断窗口。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-01",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "首屏能看到路径图与任务卡。",
+        "本页无作答区。"
+      ]
+    },
+    "step-02": {
+      "title": "问题引入：知道 K=6 还不够",
+      "layout": {
+        "template": "figure_question_vote",
+        "regions": [
+          { "id": "figure", "width": "full", "order": 1 },
+          { "id": "questions", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "main-figure", "region": "figure", "kind": "image-card", "must_be_visible": true },
+        { "id": "three-questions", "region": "questions", "kind": "question-list", "must_be_visible": true },
+        { "id": "binary-vote", "region": "interaction", "kind": "binary-choice", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "main-figure",
+          "type": "media",
+          "asset": "3-3-pp-04-complete-rules-example.svg"
+        },
+        {
+          "id": "three-questions",
+          "type": "bullet_list",
+          "title": "本页三问",
+          "items": [
+            "极点先往哪走？",
+            "什么时候开始更振荡？",
+            "边界点之前发生了什么？"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "判断“知道边界点是否已经足够”。",
+        "correct_answer": "B",
+        "options": {
+          "A": "知道 K=6 就已经足够分析整段变化",
+          "B": "还需要整条迁移路径"
+        },
+        "failure_feedback": "只提示“边界判断不能替代迁移机制”。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": [
+        "释放判断题",
+        "揭示答案"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["selectedOption", "resultState", "teacherRevealSeen", "timeOnStep"],
+        "misconception_tags": ["boundary_is_enough"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["option_distribution", "reveal_correction_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "暴露“边界点已足够”的误判。",
+        "allowed_scope": ["边界", "趋势", "振荡变化"],
+        "forbidden_scope": ["直接展开完整法则"],
+        "canonical_facts": ["根轨迹研究的是整条变化路径。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-02",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "主图、三问与二选一同页可见。",
+        "错误反馈不提前泄露后续法则。"
+      ]
+    },
+    "step-03": {
+      "title": "本课目标与边界",
+      "layout": {
+        "template": "goal_boundary_slide",
+        "regions": [
+          { "id": "goals", "width": "full", "order": 1 },
+          { "id": "chain", "width": "full", "order": 2 },
+          { "id": "boundary", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "goal-cards", "region": "goals", "kind": "goal-card-row", "must_be_visible": true },
+        { "id": "main-chain", "region": "chain", "kind": "formula-chain", "must_be_visible": true },
+        { "id": "scope-table", "region": "boundary", "kind": "compare-table", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "main-chain",
+          "type": "formula",
+          "title": "本课主线",
+          "value": "\\text{参数变化} \\rightarrow \\text{闭环极点迁移} \\rightarrow \\text{轨迹条件} \\rightarrow \\text{完整法则} \\rightarrow \\text{动态翻译}"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只建立整体预期。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["高亮主线中的当前层次"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立本课能力边界。",
+        "allowed_scope": ["目标", "主线", "本课负责/不负责"],
+        "forbidden_scope": ["提前进入解题细节"],
+        "canonical_facts": ["本课先搭机制，不做控制器设计。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-03",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "目标卡、主线链、边界表必须同页。",
+        "本页无互动控件。"
+      ]
+    },
+    "step-04": {
+      "title": "根轨迹定义：参数变化下的闭环根集合",
+      "layout": {
+        "template": "definition_formula_figure",
+        "regions": [
+          { "id": "definition", "width": "full", "order": 1 },
+          { "id": "example", "width": "full", "order": 2 },
+          { "id": "reflection", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "definition-card", "region": "definition", "kind": "definition-card", "must_be_visible": true },
+        { "id": "second-order-example", "region": "example", "kind": "formula-card", "must_be_visible": true },
+        { "id": "short-response", "region": "reflection", "kind": "short-response", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "definition-card",
+          "type": "plain_text",
+          "title": "根轨迹定义",
+          "body": "某个参数连续变化时，所有可能闭环极点在 s 平面上形成的点集。"
+        },
+        {
+          "id": "second-order-example",
+          "type": "formula_group",
+          "title": "二阶对象",
+          "items": [
+            "G(s)=\\frac{K^\\ast}{s(s+2)}",
+            "\\lambda_{1,2}=-1\\pm\\sqrt{1-K^\\ast}"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "short_response",
+        "student_task": "补写一句“为什么单点求根不够”。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["查看短答关键词聚合"],
+      "telemetry_spec": {
+        "summary_fields": ["responseSubmitted", "responseLength", "timeOnStep"],
+        "result_policy": "open_response"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["response_word_cloud", "common_reason_tags"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立“集合而不是单点”的视角。",
+        "allowed_scope": ["趋势判断", "高阶系统", "单点求根局限"],
+        "forbidden_scope": ["替学生生成标准短答"],
+        "canonical_facts": ["根轨迹首先研究的是闭环根的连续迁移。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-04",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "定义卡先于短答区落页。",
+        "二阶对象公式完整可见。"
+      ]
+    },
+    "step-05": {
+      "title": "从闭环特征方程到 GH=-1",
+      "layout": {
+        "template": "equation_to_condition_chain",
+        "regions": [
+          { "id": "equation-chain", "width": "full", "order": 1 },
+          { "id": "condition-intro", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "equation-chain", "region": "equation-chain", "kind": "formula-chain", "must_be_visible": true },
+        { "id": "condition-intro", "region": "condition-intro", "kind": "concept-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "equation-chain",
+          "type": "formula_group",
+          "title": "方程链",
+          "items": [
+            "1+G(s)H(s)=0",
+            "G(s)H(s)=-1"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["高亮等价改写关系"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立条件来源。",
+        "allowed_scope": ["闭环特征方程", "等价改写"],
+        "forbidden_scope": ["跳过方程链直接背条件"],
+        "canonical_facts": ["后续相角条件和幅值条件都从 GH=-1 分出。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-05",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "方程链为页面主视觉。",
+        "本页无伪互动。"
+      ]
+    },
+    "step-06": {
+      "title": "相角条件与幅值条件",
+      "layout": {
+        "template": "geometry_check_workspace",
+        "regions": [
+          { "id": "figure", "width": "full", "order": 1 },
+          { "id": "conditions", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "geometry-figure", "region": "figure", "kind": "image-card", "must_be_visible": true },
+        { "id": "condition-cards", "region": "conditions", "kind": "formula-card-group", "must_be_visible": true },
+        { "id": "reason-check", "region": "interaction", "kind": "reason-check", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "geometry-figure",
+          "type": "media",
+          "asset": "3-3-pp-03-angle-and-magnitude-geometry.svg"
+        },
+        {
+          "id": "condition-cards",
+          "type": "formula_group",
+          "title": "两大条件",
+          "items": [
+            "\\angle G(s)H(s)=(2k+1)\\pi",
+            "|G(s)H(s)|=1"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "reason_check",
+        "student_task": "判断“先资格、后参数”的使用顺序。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": [
+        "释放判断区",
+        "揭示顺序说明"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["selectedReason", "attemptCount", "teacherRevealSeen"],
+        "misconception_tags": ["magnitude_before_angle"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["reason_distribution"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "稳住两大条件的使用顺序。",
+        "allowed_scope": ["角度", "距离", "资格判断", "参数大小"],
+        "forbidden_scope": ["替学生先做判断"],
+        "canonical_facts": ["相角条件先判断某点能不能在轨迹上。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-06",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "几何图、两条条件、互动区同屏。",
+        "学生演示页不能退化为纯文字问答。"
+      ]
+    },
+    "step-07": {
+      "title": "骨架法则：起点终点、实轴区段、渐近线",
+      "layout": {
+        "template": "rules_overview_board",
+        "regions": [
+          { "id": "main-figure", "width": "full", "order": 1 },
+          { "id": "rule-cards", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "main-figure", "region": "main-figure", "kind": "image-card", "must_be_visible": true },
+        { "id": "skeleton-rule-cards", "region": "rule-cards", "kind": "rule-card-row", "must_be_visible": true },
+        { "id": "region-highlight", "region": "interaction", "kind": "region-highlight", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "main-figure",
+          "type": "media",
+          "asset": "3-3-pp-04-complete-rules-example.svg"
+        },
+        {
+          "id": "real-axis-figure",
+          "type": "media",
+          "asset": "3-3-pp-05-real-axis-parity.svg"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "region_highlight",
+        "student_task": "点选属于骨架法则的图上区域。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": [
+        "切换骨架法则高亮层",
+        "揭示答案"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["highlightChoice", "resultState", "teacherRevealSeen"],
+        "misconception_tags": ["jump_to_keypoints_too_early"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["rule_confusion_heatmap"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "先搭整张图的大骨架。",
+        "allowed_scope": ["起点终点", "实轴区段", "渐近线"],
+        "forbidden_scope": ["跳过骨架直接求细节点"],
+        "canonical_facts": ["骨架法则先回答图像大势。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-07",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "主图与规则卡同屏。",
+        "实轴判段图可直接被学生页看到。"
+      ]
+    },
+    "step-08": {
+      "title": "关键节点：分离点、虚轴交点、起始角终止角",
+      "layout": {
+        "template": "keypoint_compare_board",
+        "regions": [
+          { "id": "main-figure", "width": "full", "order": 1 },
+          { "id": "keypoint-cards", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "main-figure", "region": "main-figure", "kind": "image-card", "must_be_visible": true },
+        { "id": "keypoint-cards", "region": "keypoint-cards", "kind": "rule-card-row", "must_be_visible": true },
+        { "id": "triple-match", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "main-figure",
+          "type": "media",
+          "asset": "3-3-pp-04-complete-rules-example.svg"
+        },
+        {
+          "id": "departure-angle-figure",
+          "type": "media",
+          "asset": "3-3-pp-06-departure-arrival-angle.svg"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "triple_match",
+        "student_task": "把三类关键节点与其回答的问题配对。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示三类节点对应关系"],
+      "telemetry_spec": {
+        "summary_fields": ["matchAttempted", "matchCorrected", "teacherRevealSeen"],
+        "misconception_tags": ["keypoint_role_confusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["keypoint_mismatch_pairs"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把关键节点职责分清。",
+        "allowed_scope": ["分离点", "虚轴交点", "起始角终止角"],
+        "forbidden_scope": ["把所有细节点混成一类"],
+        "canonical_facts": ["关键点是在骨架之后做修正。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-08",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "三类节点卡都能直接看到。",
+        "互动组件为真实配对组件，不退化为单选。"
+      ]
+    },
+    "step-09": {
+      "title": "完整例题：三阶对象的根轨迹骨架与稳定范围",
+      "layout": {
+        "template": "worked_example_workspace",
+        "regions": [
+          { "id": "problem", "width": "full", "order": 1 },
+          { "id": "method", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "problem-card", "region": "problem", "kind": "problem-card", "must_be_visible": true },
+        { "id": "three-step-method", "region": "method", "kind": "method-card", "must_be_visible": true },
+        { "id": "example-workspace", "region": "workspace", "kind": "worked-example-workspace", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "problem-card",
+          "type": "formula_group",
+          "title": "题面",
+          "items": [
+            "G(s)H(s)=\\frac{K}{s(s+1)(s+2)}",
+            "0<K<6"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "worked_example_workspace",
+        "student_task": "按“骨架 -> 关键点 -> 稳定范围”补全例题。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["分步揭示例题答案"],
+      "telemetry_spec": {
+        "summary_fields": ["stepCompletion", "attemptCount", "errorBucket"],
+        "misconception_tags": ["worked_example_order_confusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["example_bottlenecks"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把完整机制串到一道题里。",
+        "allowed_scope": ["三步法", "中间量核对", "稳定范围"],
+        "forbidden_scope": ["AI 一次性给出全题答案"],
+        "canonical_facts": ["完整例题服务方法顺序，而不是服务手工技巧堆砌。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-09",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "题面和方法卡在未作答状态下可见。",
+        "结果区最终能显示 0<K<6。"
+      ]
+    },
+    "step-10": {
+      "title": "广义根轨迹：一般参数怎样转回普通根轨迹",
+      "layout": {
+        "template": "equivalent_open_loop_chain",
+        "regions": [
+          { "id": "rewrite-chain", "width": "full", "order": 1 },
+          { "id": "equivalent-card", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "rewrite-chain", "region": "rewrite-chain", "kind": "formula-chain", "must_be_visible": true },
+        { "id": "equivalent-open-loop-card", "region": "equivalent-card", "kind": "concept-card", "must_be_visible": true },
+        { "id": "formula-ordering", "region": "interaction", "kind": "formula-ordering", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "rewrite-chain",
+          "type": "formula_group",
+          "title": "改写链",
+          "items": [
+            "B(s)+aA(s)=0",
+            "1+a\\frac{A(s)}{B(s)}=0"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "formula_ordering",
+        "student_task": "给改写步骤排序。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": [
+        "揭示正确排序",
+        "强调“没有新法则，只有新改写”"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["orderAttempted", "resultState", "teacherRevealSeen"],
+        "misconception_tags": ["generalized_is_new_tool"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["ordering_error_patterns"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立广义视角的最小骨架。",
+        "allowed_scope": ["等效开环", "普通工具复用"],
+        "forbidden_scope": ["新增复杂算例"],
+        "canonical_facts": ["广义根轨迹把一般参数问题重新转写成普通根轨迹问题。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-10",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "改写链完整可见。",
+        "排序区为真实排序组件。"
+      ]
+    },
+    "step-11": {
+      "title": "时间常数例子与 0°/180° 根轨迹",
+      "layout": {
+        "template": "compare_dual_root_locus",
+        "regions": [
+          { "id": "example", "width": "full", "order": 1 },
+          { "id": "compare-table", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "time-constant-example", "region": "example", "kind": "image-card", "must_be_visible": true },
+        { "id": "zero-vs-oneeighty-table", "region": "compare-table", "kind": "compare-table", "must_be_visible": true },
+        { "id": "tab-switch", "region": "interaction", "kind": "tab-switch", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "time-constant-example",
+          "type": "media",
+          "asset": "3-3-pp-07-generalized-time-constant-example.svg"
+        },
+        {
+          "id": "general-map",
+          "type": "media",
+          "asset": "3-3-pp-02-generalized-root-locus-map.svg"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "tab_switch",
+        "student_task": "在“时间常数例子”和“0°/180° 对照”两个视图间切换。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": [
+        "切换标签",
+        "固定当前标签供全班同步"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["tabVisited", "timeOnTab"],
+        "result_policy": "view_interaction"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["tab_attention_distribution"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把非增益参数与方向差异放回统一视角。",
+        "allowed_scope": ["时间常数改写", "0°/180° 对照"],
+        "forbidden_scope": ["新增复杂计算"],
+        "canonical_facts": ["普通根轨迹与参数根轨迹属于同一总视角。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-11",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "时间常数例图和对照表都可见。",
+        "切换组件不退化为下拉框文本。"
+      ]
+    },
+    "step-12": {
+      "title": "动态翻译：从极点迁移到快慢和振荡",
+      "layout": {
+        "template": "dynamic_translation_panel",
+        "regions": [
+          { "id": "translation-table", "width": "full", "order": 1 },
+          { "id": "figure", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "translation-table", "region": "translation-table", "kind": "summary-table", "must_be_visible": true },
+        { "id": "dynamic-figure", "region": "figure", "kind": "image-card", "must_be_visible": true },
+        { "id": "mapping-highlight", "region": "interaction", "kind": "mapping-highlight", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "dynamic-figure",
+          "type": "media",
+          "asset": "3-3-pp-08-dynamics-translation.svg"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "mapping_highlight",
+        "student_task": "把图上位置变化映射到稳定性、快慢与振荡结论。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["揭示翻译表高亮路径"],
+      "telemetry_spec": {
+        "summary_fields": ["mappingChoice", "resultState", "teacherRevealSeen"],
+        "misconception_tags": ["dynamic_translation_confusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["translation_error_map"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把根轨迹重新翻译回系统行为。",
+        "allowed_scope": ["稳定性", "快慢", "拖尾", "振荡"],
+        "forbidden_scope": ["直接进入下一课的参数窗口设计"],
+        "canonical_facts": ["轨迹最终要落回系统动态解释。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-12",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "翻译表与动态图同屏。",
+        "互动区为真实高亮映射组件。"
+      ]
+    },
+    "step-13": {
+      "title": "后测与收束：从法则走向读图窗口",
+      "layout": {
+        "template": "postcheck_quiz",
+        "regions": [
+          { "id": "quiz", "width": "full", "order": 1 },
+          { "id": "summary", "width": "full", "order": 2 },
+          { "id": "next-step", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "post-quiz", "region": "quiz", "kind": "quiz-group", "must_be_visible": true },
+        { "id": "summary-cards", "region": "summary", "kind": "summary-card-row", "must_be_visible": true },
+        { "id": "next-lesson-card", "region": "next-step", "kind": "next-step-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        {
+          "id": "summary-cards",
+          "type": "bullet_list",
+          "title": "五条收束结论",
+          "items": [
+            "根轨迹研究参数变化下的闭环根集合。",
+            "两大条件给出进入轨迹的判别入口。",
+            "法则必须分层使用。",
+            "广义根轨迹只是更一般的改写视角。",
+            "下一课进入读图判断和参数窗口验证。"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三道后测题。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": [
+        "释放后测",
+        "显示统计",
+        "揭示答案"
+      ],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "errorBucket", "teacherRevealSeen"],
+        "misconception_tags": [
+          "angle_magnitude_order_confusion",
+          "skeleton_vs_keypoint_confusion",
+          "generalized_rewrite_confusion"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["post_quiz_distribution", "ready_for_next_lesson_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "检查能否从条件和法则走到整体判断。",
+        "allowed_scope": ["条件", "骨架", "广义改写", "动态翻译"],
+        "forbidden_scope": ["直接把答案写给学生"],
+        "canonical_facts": ["3-4 将把今天的法则转成读图与窗口判断。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-13",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "三道后测题、总结卡和下节预告卡同页可见。",
+        "教师端能看到错因分布。"
+      ]
+    }
+  }
+}

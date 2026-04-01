@@ -13,6 +13,7 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import {
   getUNIT_2_1MediaSrc,
+  isUNIT_2_1InteractivePageType,
   UNIT_2_1_LESSON_KEY,
   UNIT_2_1_LESSON_STEPS,
   UNIT_2_1_RESOURCE_KEY,
@@ -111,7 +112,7 @@ export function UNIT_2_1StudentPage({
       ? Boolean((teacherSyncState as { revealedAnswers?: Record<string, boolean> })?.revealedAnswers?.[step.id])
       : false;
   const released =
-    isDemo || step.pageType !== 'quiz'
+    isDemo || !isUNIT_2_1InteractivePageType(step.pageType)
       ? true
       : teacherSyncState?.activeStepId === step.id
         ? Boolean((teacherSyncState as { releasedActivities?: Record<string, boolean> })?.releasedActivities?.[step.id])
@@ -158,7 +159,14 @@ export function UNIT_2_1StudentPage({
           [step.id]: response,
         },
       };
-      trackSubmission({ stepId: step.id, isResubmit, data: { stepId: step.id } });
+      trackSubmission({
+        stepId: step.id,
+        isResubmit,
+        data: {
+          stepId: step.id,
+          summary: response.summary ?? null,
+        },
+      });
       return nextState;
     });
   };
@@ -268,7 +276,7 @@ export function UNIT_2_1StudentPage({
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 
-        {step.pageType === 'ai' ? (
+        {step.id === 'step-07' ? (
           <div className="mt-4">
             <UNIT_2_1StepAiAssistant step={step} onAiEvent={handleAiEvent} />
           </div>

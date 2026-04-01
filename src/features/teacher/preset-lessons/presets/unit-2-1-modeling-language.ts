@@ -1,7 +1,13 @@
 import { ResourceType } from '@prisma/client';
 
 import type { PresetLessonConfig } from '../types';
-import { UNIT_2_1_COURSE_TITLE, UNIT_2_1_LESSON_STEPS, UNIT_2_1_PRESET_KEY, UNIT_2_1_STAGE_MAP } from '@/lib/unit-2-1-course';
+import {
+  isUNIT_2_1InteractivePageType,
+  UNIT_2_1_COURSE_TITLE,
+  UNIT_2_1_LESSON_STEPS,
+  UNIT_2_1_PRESET_KEY,
+  UNIT_2_1_STAGE_MAP,
+} from '@/lib/unit-2-1-course';
 
 export const UNIT_2_1_MODELING_LANGUAGE_PRESET: PresetLessonConfig = {
   key: UNIT_2_1_PRESET_KEY,
@@ -15,7 +21,7 @@ export const UNIT_2_1_MODELING_LANGUAGE_PRESET: PresetLessonConfig = {
     registryId:
       step.pageType === 'summary'
         ? 'classroom-ai-report'
-        : step.pageType === 'quiz' || step.pageType === 'form' || step.pageType === 'ai'
+        : isUNIT_2_1InteractivePageType(step.pageType)
           ? 'classroom-assessment'
           : 'classroom-objective',
     resourceType: ResourceType.INTERACTIVE_COMP,

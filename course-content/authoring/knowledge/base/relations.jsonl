@@ -16319,3 +16319,13 @@
 {"relation_id": "rel-fb88ebfd2b19cdef", "source": "结构图简化", "target": "闭环传递函数", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "rel-fbfc9a5feee47ac5", "source": "拉氏变换工程动机", "target": "零初值传递函数", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95}
 {"relation_id": "rel-feb38c71e00471e6", "source": "典型环节对象库", "target": "微分环节", "source_chapter": 2, "target_chapter": 2, "relation_type": "contains", "strength": 0.95}
+{"relation_id": "rel-0978a7e03d4f022e", "source": "根轨迹完整法则", "target": "闭环主导极点", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "rel-0bf94db2c58727af", "source": "根轨迹", "target": "相角条件", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.97}
+{"relation_id": "rel-19bdd73142cc414f", "source": "根轨迹", "target": "幅值条件", "source_chapter": 4, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.94}
+{"relation_id": "rel-1b122941fa7aa5d2", "source": "幅值条件", "target": "根轨迹完整法则", "source_chapter": 3, "target_chapter": 3, "relation_type": "related", "strength": 0.86}
+{"relation_id": "rel-3512c975ccd4977c", "source": "广义根轨迹", "target": "零度与一百八十度根轨迹", "source_chapter": 4, "target_chapter": 3, "relation_type": "contains", "strength": 0.94}
+{"relation_id": "rel-4602434fa2c95d94", "source": "根轨迹完整法则", "target": "稳定性", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.93}
+{"relation_id": "rel-77592e41566fa794", "source": "闭环特征方程", "target": "根轨迹", "source_chapter": 3, "target_chapter": 4, "relation_type": "prerequisite", "strength": 0.96}
+{"relation_id": "rel-8b59241cedf2bc23", "source": "相角条件", "target": "根轨迹完整法则", "source_chapter": 4, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.92}
+{"relation_id": "rel-b291aabdb012b5b0", "source": "稳定可行域", "target": "根轨迹完整法则", "source_chapter": 3, "target_chapter": 3, "relation_type": "related", "strength": 0.85}
+{"relation_id": "rel-e317edb9df7b4d90", "source": "广义根轨迹", "target": "根轨迹", "source_chapter": 4, "target_chapter": 4, "relation_type": "generalizes", "strength": 0.95}

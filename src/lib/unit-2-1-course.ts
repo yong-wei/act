@@ -4,7 +4,6 @@ import type { LessonSessionAdapter } from '@/features/interactive/session-framew
 import type { StepAIContext } from '@/types/ai-context';
 
 export type UNIT_2_1StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
-export type UNIT_2_1PageType = 'display' | 'quiz' | 'form' | 'ai' | 'summary';
 export interface UNIT_2_1CoverageTable {
   title: string;
   headers: string[];
@@ -16,6 +15,39 @@ export interface UNIT_2_1StepCoverage {
   requiredTables?: UNIT_2_1CoverageTable[];
   requiredTableTitles?: string[];
   requiredConclusions?: string[];
+}
+
+export type UNIT_2_1PageType =
+  | 'display'
+  | 'summary'
+  | 'binary_choice'
+  | 'quiz_group'
+  | 'short_response'
+  | 'multi_check'
+  | 'reflection_form'
+  | 'drag_match'
+  | 'rule_judge'
+  | 'hotspot_labeling'
+  | 'bucket_sort'
+  | 'choice_check'
+  | 'path_highlight';
+
+export interface UNIT_2_1PageRegionContract {
+  id: string;
+  width: 'full' | '1/2';
+  order: number;
+}
+
+export interface UNIT_2_1PageContract {
+  layout: {
+    template: string;
+    regions: UNIT_2_1PageRegionContract[];
+  };
+  interactionKind: UNIT_2_1PageType | 'none';
+  teacherInsightWidgets: string[];
+  telemetrySummaryFields: string[];
+  misconceptionTags?: string[];
+  previewDemoPath: string;
 }
 
 export type Unit21WorkspaceKind =
@@ -42,7 +74,8 @@ export interface UNIT_2_1StepDefinition {
 export interface UNIT_2_1StepResponse {
   stepId: string;
   submittedAt: number;
-  answers: Record<string, string>;
+  answers: Record<string, unknown>;
+  summary?: Record<string, unknown>;
 }
 
 export interface UNIT_2_1StudentCourseState {
@@ -110,6 +143,254 @@ export const UNIT_2_1_STAGE_MAP: Record<UNIT_2_1StageCode, BopppsStage> = {
   P3: 'POST_ASSESSMENT',
   S: 'SUMMARY',
 };
+
+export const UNIT_2_1_PAGE_CONTRACTS: Record<string, UNIT_2_1PageContract> = {
+  'step-01': {
+    layout: {
+      template: 'map_hero_slide',
+      regions: [
+        { id: 'header', width: 'full', order: 1 },
+        { id: 'lead', width: 'full', order: 2 },
+        { id: 'summary', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'none',
+    teacherInsightWidgets: ['view_count', 'sync_status'],
+    telemetrySummaryFields: ['viewed', 'timeOnStep', 'teacherFollowSync'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-01',
+  },
+  'step-02': {
+    layout: {
+      template: 'cover_top_formula_then_judge',
+      regions: [
+        { id: 'comic', width: 'full', order: 1 },
+        { id: 'equation', width: 'full', order: 2 },
+        { id: 'interaction', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'binary_choice',
+    teacherInsightWidgets: ['option_distribution', 'reveal_correction_rate'],
+    telemetrySummaryFields: ['selectedOption', 'resultState', 'teacherRevealSeen', 'timeOnStep'],
+    misconceptionTags: ['equation_is_enough'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-02',
+  },
+  'step-03': {
+    layout: {
+      template: 'center_chain_slide',
+      regions: [
+        { id: 'chain', width: 'full', order: 1 },
+        { id: 'cards', width: 'full', order: 2 },
+      ],
+    },
+    interactionKind: 'none',
+    teacherInsightWidgets: ['view_count'],
+    telemetrySummaryFields: ['viewed', 'timeOnStep'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-03',
+  },
+  'step-04': {
+    layout: {
+      template: 'question_stack',
+      regions: [
+        { id: 'question-stack', width: 'full', order: 1 },
+        { id: 'submit-bar', width: 'full', order: 2 },
+      ],
+    },
+    interactionKind: 'quiz_group',
+    teacherInsightWidgets: ['question_distribution', 'top_misconceptions'],
+    telemetrySummaryFields: ['attemptCount', 'resultState', 'errorBucket', 'teacherRevealSeen'],
+    misconceptionTags: ['omit_zero_initial_state', 'calculate_before_identify', 'block_equals_sfg'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-04',
+  },
+  'step-05': {
+    layout: {
+      template: 'table_plus_formula_plus_short_response',
+      regions: [
+        { id: 'table-zone', width: 'full', order: 1 },
+        { id: 'formula-zone', width: 'full', order: 2 },
+        { id: 'response-zone', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'short_response',
+    teacherInsightWidgets: ['word_cloud', 'response_list'],
+    telemetrySummaryFields: ['submitted', 'timeOnStep'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-05',
+  },
+  'step-06': {
+    layout: {
+      template: 'formula_explain_checklist',
+      regions: [
+        { id: 'formula-zone', width: 'full', order: 1 },
+        { id: 'conclusion-zone', width: 'full', order: 2 },
+        { id: 'check-zone', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'multi_check',
+    teacherInsightWidgets: ['check_accuracy', 'choice_distribution'],
+    telemetrySummaryFields: ['attemptCount', 'selectedItems', 'resultState', 'teacherRevealSeen'],
+    misconceptionTags: ['zero_initial_required'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-06',
+  },
+  'step-07': {
+    layout: {
+      template: 'compare_then_ai',
+      regions: [
+        { id: 'compare-zone', width: 'full', order: 1 },
+        { id: 'reflection-zone', width: 'full', order: 2 },
+        { id: 'ai-zone', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'reflection_form',
+    teacherInsightWidgets: ['word_cloud', 'response_list'],
+    telemetrySummaryFields: ['submitted', 'aiPanelOpened', 'timeOnStep'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-07',
+  },
+  'step-08': {
+    layout: {
+      template: 'courseware_top_game_stage_bottom',
+      regions: [
+        { id: 'table-zone', width: 'full', order: 1 },
+        { id: 'map-zone', width: 'full', order: 2 },
+        { id: 'game-stage', width: 'full', order: 3 },
+        { id: 'submit-zone', width: 'full', order: 4 },
+      ],
+    },
+    interactionKind: 'drag_match',
+    teacherInsightWidgets: ['first_pass_rate', 'retry_rate', 'error_hotspots', 'misconception_tag_distribution'],
+    telemetrySummaryFields: ['attemptCount', 'resultState', 'durationBand', 'hintUsed', 'teacherRevealSeen', 'misconceptionTags'],
+    misconceptionTags: ['identify_after_calculation', 'integral_meaning_missing', 'inertia_vs_oscillation_confusion'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-08',
+  },
+  'step-09': {
+    layout: {
+      template: 'formula_strip_plus_rule_check',
+      regions: [
+        { id: 'formula-strip', width: 'full', order: 1 },
+        { id: 'rule-cards', width: 'full', order: 2 },
+        { id: 'judge-zone', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'rule_judge',
+    teacherInsightWidgets: ['rule_accuracy', 'choice_distribution'],
+    telemetrySummaryFields: ['attemptCount', 'resultState', 'teacherRevealSeen'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-09',
+  },
+  'step-10': {
+    layout: {
+      template: 'engineering_block_diagram',
+      regions: [
+        { id: 'diagram', width: 'full', order: 1 },
+        { id: 'role-cards', width: 'full', order: 2 },
+        { id: 'feedback-task', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'hotspot_labeling',
+    teacherInsightWidgets: ['hotspot_accuracy', 'common_feedback_errors'],
+    telemetrySummaryFields: ['attemptCount', 'resultState', 'teacherRevealSeen'],
+    misconceptionTags: ['sensor_role_unclear'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-10',
+  },
+  'step-11': {
+    layout: {
+      template: 'comparison_slide',
+      regions: [
+        { id: 'left-diagram', width: '1/2', order: 1 },
+        { id: 'right-diagram', width: '1/2', order: 2 },
+        { id: 'comparison-table', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'bucket_sort',
+    teacherInsightWidgets: ['task_assignment_accuracy'],
+    telemetrySummaryFields: ['attemptCount', 'resultState', 'misconceptionTags'],
+    misconceptionTags: ['block_equals_sfg'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-11',
+  },
+  'step-12': {
+    layout: {
+      template: 'formula_then_term_match',
+      regions: [
+        { id: 'formula-zone', width: 'full', order: 1 },
+        { id: 'term-cards', width: 'full', order: 2 },
+        { id: 'match-stage', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'drag_match',
+    teacherInsightWidgets: ['term_accuracy', 'common_term_confusions'],
+    telemetrySummaryFields: ['attemptCount', 'resultState', 'misconceptionTags', 'teacherRevealSeen'],
+    misconceptionTags: ['delta_as_loop', 'touching_definition_blur'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-12',
+  },
+  'step-13': {
+    layout: {
+      template: 'prompt_image_then_worked_example',
+      regions: [
+        { id: 'diagram-zone', width: 'full', order: 1 },
+        { id: 'step-cards', width: 'full', order: 2 },
+        { id: 'check-zone', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'choice_check',
+    teacherInsightWidgets: ['choice_distribution', 'closed_loop_focus_rate'],
+    telemetrySummaryFields: ['attemptCount', 'resultState', 'misconceptionTags'],
+    misconceptionTags: ['local_module_as_final_object'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-13',
+  },
+  'step-14': {
+    layout: {
+      template: 'prompt_image_then_path_reasoning',
+      regions: [
+        { id: 'highlight-stage', width: 'full', order: 1 },
+        { id: 'formula-chain', width: 'full', order: 2 },
+        { id: 'explain-box', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'path_highlight',
+    teacherInsightWidgets: ['highlight_accuracy', 'common_contact_confusions'],
+    telemetrySummaryFields: ['attemptCount', 'resultState', 'misconceptionTags', 'teacherRevealSeen'],
+    misconceptionTags: ['non_touching_loops_vs_non_touching_path'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-14',
+  },
+  'step-15': {
+    layout: {
+      template: 'post_quiz_stack',
+      regions: [
+        { id: 'question-stack', width: 'full', order: 1 },
+        { id: 'submit-bar', width: 'full', order: 2 },
+      ],
+    },
+    interactionKind: 'quiz_group',
+    teacherInsightWidgets: ['question_distribution', 'closed_loop_focus_rate'],
+    telemetrySummaryFields: ['attemptCount', 'resultState', 'teacherRevealSeen'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-15',
+  },
+  'step-16': {
+    layout: {
+      template: 'summary_infographic',
+      regions: [
+        { id: 'summary-chain', width: 'full', order: 1 },
+        { id: 'infographic', width: 'full', order: 2 },
+        { id: 'next-lesson', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'none',
+    teacherInsightWidgets: ['view_count'],
+    telemetrySummaryFields: ['viewed', 'timeOnStep'],
+    previewDemoPath: '/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-16',
+  },
+};
+
+export const UNIT_2_1_INTERACTIVE_PAGE_TYPES = new Set<UNIT_2_1PageType>([
+  'binary_choice',
+  'quiz_group',
+  'short_response',
+  'multi_check',
+  'reflection_form',
+  'drag_match',
+  'rule_judge',
+  'hotspot_labeling',
+  'bucket_sort',
+  'choice_check',
+  'path_highlight',
+]);
 
 export const UNIT_2_1_STEP_CONTENT_CONTRACTS: Record<string, UNIT_2_1StepCoverage> = {
   'step-02': {
@@ -208,7 +489,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '情境引入——为什么光有微分方程还不够',
     hint: '先判断：微分方程是终点，还是统一分析对象的起点。',
     duration: '5 min',
-    pageType: 'quiz',
+    pageType: 'binary_choice',
     coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-02'] ?? {},
   },
   {
@@ -227,7 +508,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '前测——对象、初值与结构的三个误区',
     hint: '先暴露最容易混淆的三件事：对象定义、初始状态、结构表达。',
     duration: '4 min',
-    pageType: 'quiz',
+    pageType: 'quiz_group',
     coverage: {},
   },
   {
@@ -236,7 +517,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '拉氏变换的工程动机',
     hint: '不讲积分技巧，讲清为什么它能把微分方程改写成统一代数对象。',
     duration: '6 min',
-    pageType: 'form',
+    pageType: 'short_response',
     coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-05'] ?? {},
   },
   {
@@ -245,7 +526,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '零初值下传递函数怎样形成',
     hint: '明确传递函数为什么不是“原方程换个写法”。',
     duration: '8 min',
-    pageType: 'form',
+    pageType: 'multi_check',
     coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-06'] ?? {},
   },
   {
@@ -254,7 +535,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '非零初值为什么不能混进对象定义',
     hint: '先自己区分对象项和初值项，再让 AI 只对照推理链。',
     duration: '6 min',
-    pageType: 'ai',
+    pageType: 'reflection_form',
     coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-07'] ?? {},
     workspaceKind: 'initial-state',
   },
@@ -264,7 +545,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '典型环节对象库：先看清对象由什么组成',
     hint: '先认对象，再做运算，把形式、名称和工程判断配起来。',
     duration: '8 min',
-    pageType: 'form',
+    pageType: 'drag_match',
     coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-08'] ?? {},
     workspaceKind: 'typical-elements',
   },
@@ -274,7 +555,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '结构图三类基本连接',
     hint: '串联、并联、反馈三类规则先立住，不进入复杂变换技巧。',
     duration: '8 min',
-    pageType: 'form',
+    pageType: 'rule_judge',
     coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-09'] ?? {},
     workspaceKind: 'connection-rules',
   },
@@ -284,7 +565,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '船舶航向系统：把对象真正连成系统',
     hint: '把控制器、舵机、船体和传感器放进同一张结构图。',
     duration: '5 min',
-    pageType: 'form',
+    pageType: 'hotspot_labeling',
     coverage: {},
     workspaceKind: 'connection-rules',
   },
@@ -294,7 +575,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '方框图为什么还不够：信号流图补位',
     hint: '结构图看模块组成，信号流图看节点路径与回路。',
     duration: '5 min',
-    pageType: 'display',
+    pageType: 'bucket_sort',
     coverage: {},
   },
   {
@@ -303,7 +584,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '梅森公式的最小使用集',
     hint: '只抓四个术语和一个公式：前向通路、回路、互不接触回路、余子式。',
     duration: '6 min',
-    pageType: 'form',
+    pageType: 'drag_match',
     coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-12'] ?? {},
     workspaceKind: 'signal-flow-terms',
   },
@@ -313,7 +594,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '例题一：单回路闭环对象如何收束',
     hint: '从对象识别到信号流图验证，走完整个对象收束链。',
     duration: '8 min',
-    pageType: 'form',
+    pageType: 'choice_check',
     coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-13'] ?? {},
     workspaceKind: 'mason-highlight',
   },
@@ -323,7 +604,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '补充辨析：余子式为什么不一定等于 1',
     hint: '重点分清：互不接触回路，与“不接触某条前向通路”不是一回事。',
     duration: '6 min',
-    pageType: 'form',
+    pageType: 'path_highlight',
     coverage: UNIT_2_1_STEP_CONTENT_CONTRACTS['step-14'] ?? {},
     workspaceKind: 'mason-highlight',
   },
@@ -333,7 +614,7 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
     title: '后测——会不会用对象语言复述本课',
     hint: '后测看的是对象建立链是否真正站稳，不只是术语记忆。',
     duration: '5 min',
-    pageType: 'quiz',
+    pageType: 'quiz_group',
     coverage: {},
   },
   {
@@ -349,6 +630,14 @@ export const UNIT_2_1_LESSON_STEPS: UNIT_2_1StepDefinition[] = [
 
 export function getUNIT_2_1Step(stepId: string) {
   return UNIT_2_1_LESSON_STEPS.find((step) => step.id === stepId) ?? UNIT_2_1_LESSON_STEPS[0];
+}
+
+export function getUNIT_2_1PageContract(stepId: string) {
+  return UNIT_2_1_PAGE_CONTRACTS[stepId] ?? UNIT_2_1_PAGE_CONTRACTS['step-01'];
+}
+
+export function isUNIT_2_1InteractivePageType(pageType: UNIT_2_1PageType) {
+  return UNIT_2_1_INTERACTIVE_PAGE_TYPES.has(pageType);
 }
 
 export function createEmptyUNIT_2_1StudentState(studentName: string): UNIT_2_1StudentCourseState {

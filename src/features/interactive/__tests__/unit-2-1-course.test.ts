@@ -5,7 +5,11 @@ import { describe, expect, it } from 'vitest';
 
 import { getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import * as unit21Course from '@/lib/unit-2-1-course';
-import { getUNIT_2_1MediaSrc, UNIT_2_1_LESSON_STEPS } from '@/lib/unit-2-1-course';
+import {
+  getUNIT_2_1MediaSrc,
+  UNIT_2_1_LESSON_STEPS,
+  UNIT_2_1_PAGE_CONTRACTS,
+} from '@/lib/unit-2-1-course';
 
 const repoRoot = process.cwd();
 
@@ -205,5 +209,54 @@ describe('unit 2-1 interactive course', () => {
     expect(source).toContain('学生页预览');
     expect(source).toContain('/student/demo');
     expect(source).toContain('所见即所得');
+  });
+
+  it('keeps local page contracts aligned with the key layout order from the authoring contract', () => {
+    expect(UNIT_2_1_PAGE_CONTRACTS['step-02']).toMatchObject({
+      layout: {
+        template: 'cover_top_formula_then_judge',
+        regions: [
+          { id: 'comic', order: 1 },
+          { id: 'equation', order: 2 },
+          { id: 'interaction', order: 3 },
+        ],
+      },
+      interactionKind: 'binary_choice',
+    });
+
+    expect(UNIT_2_1_PAGE_CONTRACTS['step-13']).toMatchObject({
+      layout: {
+        template: 'prompt_image_then_worked_example',
+        regions: [
+          { id: 'diagram-zone', order: 1 },
+          { id: 'step-cards', order: 2 },
+          { id: 'check-zone', order: 3 },
+        ],
+      },
+      interactionKind: 'choice_check',
+    });
+
+    expect(UNIT_2_1_PAGE_CONTRACTS['step-14']).toMatchObject({
+      layout: {
+        template: 'prompt_image_then_path_reasoning',
+        regions: [
+          { id: 'highlight-stage', order: 1 },
+          { id: 'formula-chain', order: 2 },
+          { id: 'explain-box', order: 3 },
+        ],
+      },
+      interactionKind: 'path_highlight',
+    });
+  });
+
+  it('promotes the redesigned participatory steps to their real interaction page types instead of form fallbacks', () => {
+    const pageTypes = new Map(UNIT_2_1_LESSON_STEPS.map((step) => [step.id, step.pageType]));
+
+    expect(pageTypes.get('step-08')).toBe('drag_match');
+    expect(pageTypes.get('step-10')).toBe('hotspot_labeling');
+    expect(pageTypes.get('step-11')).toBe('bucket_sort');
+    expect(pageTypes.get('step-12')).toBe('drag_match');
+    expect(pageTypes.get('step-13')).toBe('choice_check');
+    expect(pageTypes.get('step-14')).toBe('path_highlight');
   });
 });

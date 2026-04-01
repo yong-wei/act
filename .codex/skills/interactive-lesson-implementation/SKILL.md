@@ -7,7 +7,7 @@ description: Use when implementing or upgrading this repository's interactive le
 
 ## Overview
 
-按当前仓库的新体系实现或优化互动课程。把 `course-content/authoring/lessons/.../design/interactive-page.md` 视为设计源，把 `course-content/runtime/lessons/...` 下经过 `lesson-content-review` 的产物视为已审查输入，把仓库中的课程代码视为待对齐对象。
+按当前仓库的新体系实现或优化互动课程。把 `course-content/authoring/lessons/.../design/interactive-page.md` 与 `interactive-contract.yaml` 视为双轨设计真源，把 `course-content/runtime/lessons/...` 下经过 `lesson-content-review` 的产物视为已审查输入，把仓库中的课程代码视为待对齐对象。
 
 当前默认基线不再是单一 `L-2c`，而是综合以下已落地课程能力：
 - `1-1`：理论型精品互动课的第一页入口、教师/学生双端、提交闭环、教师统计与答案揭示、统一事件链。
@@ -18,6 +18,10 @@ description: Use when implementing or upgrading this repository's interactive le
 - 互动课程首先是完整课件，其次才是互动体验。页面必须先承载标题层级、公式、表格、图示、例题、结论，再把最值得升级的位置做成交互。
 - 静态页合法且必要；不是每一步都必须互动，页面总数按教学逻辑与覆盖需求决定，不设硬上限。
 - 关键知识不得转嫁给互动组件。即使关闭互动，页面也必须保留核心概念、公式、图示、表格、例题和结论。
+- 双轨设计真源具有最高优先级：人读 `interactive-page.md`，机读 `interactive-contract.yaml`。实现时必须同时服从二者，不得跳过其一。
+- **严格按结构化文档实现。禁止降级实现、禁止偷懒替换、禁止自由发挥补设计。**
+- 设计稿中若已明确拖拽、连线、排序、拖槽、路径高亮、热点标注等组件形态，实施阶段不得改成选择题、填空题、文本问答或“先放占位以后再补”。
+- 设计稿中若已固定页面模板、区域、模块、文本、公式、图片、表格、教师聚合、AI 边界与学生页预览，实施阶段不得擅自删改、合并、改写或重排。
 - 运行时页面必须 `runtime-first`，不能偷偷回读 `authoring` 或历史 `content`。
 - 课程页面必须同步接入步骤级 AI 上下文、提交反馈、教师端汇总、统一课程事件与数据治理语义。
 - 所有图像都必须是真实媒体：代码直出图、前端真实绘图或 AI 生成图；禁止 ASCII 图。
@@ -38,6 +42,22 @@ description: Use when implementing or upgrading this repository's interactive le
 
 实现前先确认这两个目录是否一一对应，再继续。
 
+### 1.5 双轨设计源
+
+若课次已建立双轨设计，作者态设计源默认包括：
+
+- `design/interactive-page.md`
+- `design/interactive-contract.yaml`
+
+实现前必须确认：
+- 两者都存在
+- 步骤顺序一致
+- 步骤标题一致
+- 互动类型一致
+- 学生页预览路径一致
+
+若两者不一致，先回到设计/审查阶段修正，不得带着冲突进入实现。
+
 ### 2. 运行时知识与卡片路径
 
 当前正确路径如下：
@@ -57,13 +77,16 @@ description: Use when implementing or upgrading this repository's interactive le
 默认需要读取：
 
 - `design/interactive-page.md`
+- `design/interactive-contract.yaml`（若存在则必读）
 - `runtime/.../lesson.json`
 - `runtime/.../graph-overlay.json`
 - `runtime/.../handout.md`
 - `runtime/.../review/boppps.md`
 - `runtime/.../review/review-report.md`
+- `runtime/.../review/interactive-page-check.json`
 - `runtime/.../review/knowledge-card-check.json`
 - `runtime/.../review/multimedia-check.json`
+- `runtime/.../review/source-manifest.json`
 
 如果这些 runtime/review 产物不存在，先回到 `lesson-content-review`，不要在本技能里顺手补审正文或知识卡。
 
@@ -86,45 +109,38 @@ description: Use when implementing or upgrading this repository's interactive le
 
 ## 工作流
 
-### 1. 先做“课件骨架”设计，而不是直接堆互动
+### 1. 先读双轨设计，不得边实现边补设计
 
-对每一个步骤先回答：
+实现前先逐步核对双轨设计中已经固定的结构，不得在实现阶段重新发明页面：
 
-- 这一页的标题、分级标题、公式、表格、图示、例题、结论分别是什么？
-- 如果完全关闭互动，这一页是否仍然是一张能讲课的页面？
-- 哪一部分必须静态完整呈现，哪一部分适合升级成互动？
-- 这一页是否更适合保持纯静态，用来承担概念、公式、图表、结论等基础教学职责？
+- 页面模板、区域布局、模块清单是否已明确
+- 固定文本、公式、图片、表格、例题、结论是否已明确
+- 互动组件类型、交互规则、干扰项、揭示规则是否已明确
+- 埋点摘要、教师聚合、AI 边界、学生页预览路径是否已明确
 
-只有当页面已经能承担传统 PPT / 课件功能后，才去设计以下升级：
-- 预测
-- 拖动/调参
-- 对比
-- 即时反馈
-- 前测/后测
-- AI 对照
-- 课堂工作区
+若这些内容未写明，先回到 `interactive-page.md` / `interactive-contract.yaml` 补设计，不得在实现阶段自由发挥补齐。
 
-禁止把页面写成“几句提示 + 一个互动组件 + 一段提交按钮”。
+禁止把设计稿中已经结构化写死的内容，在实现阶段再“合理化调整”为更简单、更省事的版本。
 
 ### 2. 开工前必须建立“设计稿到实现稿对照表”
 
 实现前先在 `notes/<lesson>.md` 写出对照表，再开始改代码。对照表至少包含：
 
 - 设计稿步骤 / 标题
-- 讲义核心锚点（概念、公式、图表、例题、结论）
-- 设计稿要求的静态承载内容
-- 设计稿要求的互动升级点
+- 人读稿页面模板 / 区域 / 模块 / 固定内容
+- 机读稿互动类型 / 交互规则 / 埋点 / 教师聚合 / AI 边界 / 预览路径
 - 当前实现位置或缺口
-- 本轮处理状态（保留 / 新增 / 回补 / 待补）
+- 本轮处理状态（严格实现 / 缺实现 / 设计冲突待回修）
 - 验证方式或证据
 
 建立对照表后，至少核对：
 
 - 步骤数量、标题、顺序、时长
-- 每一步的主任务类型：讲授 / 静态图 / 视频 / 测验 / 工作区 / AI 对照 / 总结
-- 每一步哪些内容必须由静态区域先承载，哪些只是互动升级
+- 每一步的页面模板、区域、模块、静态承载内容是否已实现
+- 每一步的互动类型是否与机读契约一致
+- 每一步是否发生了降级实现、删减实现或擅自新增设计
 - 教师端控制流：释放、揭示、汇总、结束课堂
-- 学生端认知链：预测 -> 操作/作答 -> 提交 -> 反馈 -> 回看/修正
+- 学生页默认预览是否与真实学生页一致
 - 首页是否正确消费 runtime 导学、知识图谱、卡片预览与讲义入口
 - 媒体是否真的存在，而不是还停留在设计说明
 
@@ -170,6 +186,8 @@ description: Use when implementing or upgrading this repository's interactive le
 - 显示词云
 - 默认折叠学生回复列表
 - 回复按时间排序
+
+若设计稿已明确教师汇聚组件或禁止记录的高频事件，实现时必须原样遵守，不得擅自增加原始轨迹采集。
 
 #### 课程事件与治理
 
@@ -251,6 +269,24 @@ description: Use when implementing or upgrading this repository's interactive le
 - 当前在线学生列表默认折叠
 - 学生端首次跟教师，之后不同步时给出提示并允许手动跳转，不强制追页
 - 教师页必须可结束课堂
+- 默认预览口径与学生页一致；教师端模板弹窗不是实现验收标准
+
+### 5.5 禁止降级与自由发挥
+
+以下行为一律视为实现不合格：
+
+- 设计稿写的是拖拽配对，实际做成单选题
+- 设计稿写的是路径高亮，实际做成文字解释题
+- 设计稿写的是三列配对舞台，实际只保留一个下拉框
+- 设计稿写了完整表格、公式条、图示，实际删成几行摘要
+- 设计稿写明学生演示页预览，实际仍以教师模板弹窗作为验收替代
+- 设计稿未要求新增内容，实际擅自加入新问题、新结论、新例题或新交互
+- 设计稿信息不全时，实施阶段自行补设计而不回写设计源
+
+正确做法只有两种：
+
+1. 严格实现现有结构化设计
+2. 发现设计冲突或缺口时，先回写 `interactive-page.md` 与 `interactive-contract.yaml`，经审查后再实现
 
 ### 6. 会话同步与性能约束
 

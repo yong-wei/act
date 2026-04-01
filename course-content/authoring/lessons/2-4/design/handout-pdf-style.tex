@@ -12,6 +12,7 @@
 \usepackage{needspace}
 \usepackage{enumitem}
 \usepackage{fvextra}
+\usepackage[most]{tcolorbox}
 \usepackage[svgnames]{xcolor}
 \usepackage{hyperref}
 
@@ -67,14 +68,33 @@
   framesep=4pt
 }
 
+\newtcolorbox{HandoutQuoteBox}{
+  enhanced,
+  breakable,
+  colback=TitleBlue!6!white,
+  colframe=TitleBlue!18!white,
+  boxrule=0.4pt,
+  arc=1.2mm,
+  left=8pt,
+  right=8pt,
+  top=6pt,
+  bottom=6pt,
+  borderline west={1.8pt}{0pt}{TitleBlue!55!black},
+  before skip=0.8em,
+  after skip=0.8em
+}
+\renewenvironment{quote}
+  {\begin{HandoutQuoteBox}\small\color{TitleBlue}\noindent\ignorespaces}
+  {\end{HandoutQuoteBox}}
+
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\small 自动控制原理}
 \fancyhead[C]{%
   \raisebox{0pt}[0pt][0pt]{%
-    \includegraphics[height=8.5mm]{../../../../../public/images/extracted/校徽校名组合-横版-提取.pdf}%
+    \includegraphics[height=8.5mm]{/Users/YW/Documents/Site/act.just.edu.cn/public/images/extracted/校徽校名组合-横版-提取.pdf}%
     \hspace{1.4pt}%
-    \includegraphics[height=7.65mm]{../../../../../public/images/CAlogo128.png}%
+    \includegraphics[height=7.65mm]{/Users/YW/Documents/Site/act.just.edu.cn/public/images/CAlogo128.png}%
   }%
 }
 \fancyhead[R]{\small 单元 2-4 讲义}
@@ -88,5 +108,5 @@
   linkcolor=TitleBlue,
   urlcolor=DarkSlateBlue,
   citecolor=TitleBlue,
-  pdftitle={单元 2-4 | Nyquist图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别}
+  pdftitle={单元 2-4 | Nyquist 图与频域指标——将 Bode 图收敛为轨迹、裕度与反向识别}
 }

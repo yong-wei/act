@@ -97,6 +97,10 @@ description: 面向“自动控制原理”课程创作完整教学内容包—�
    - 学生版讲义与教师版课堂讲义在各自 Markdown 定稿后，都必须继续导出同目录 PDF，不接受“只交 Markdown”作为最终讲义完成态。
    - 默认使用 `.codex/skills/lesson/scripts/export_handout_pdf.py` 与技能统一样式模板，不得每课临时手拼不同导出命令和样式。
    - `handout.pdf` 与 `teacher-handout.pdf` 必须共用同一套技能模板，只允许通过页眉右侧文字和 PDF 标题做最小差异化。
+   - 封面图与课末信息图默认按正文版心全宽导出；除这两类总览图外，其余图片应按内容复杂度单独设置 `width=...`，目标是图中文字视觉字号与正文基本一致。
+   - 线框图、结构图、方框图若图中文字偏大，优先通过减小版面宽度（如 `width=40%`、`60%`、`80%`）修正；数据图、响应图若已全宽仍显得图中文字偏小，应回到成图脚本调整原图字号，不得只靠 PDF 强行放大。
+   - 正式图题由导出模板自动生成；Markdown 正文中不得在图片后手写重复的“图1.”“图2.”段落。
+   - 使用 `>` 写出的引入语、提问句与核心提醒，PDF 中必须渲染为与正文协调的浅底色提示块，而不是普通缩进引用。
 13. **PDF 版面必须抽样复核**
    - 学生版和教师版 PDF 导出后，都至少抽查首页、图表页、公式密集页、附录代码页四类页面；若教师版无附录代码页，则改查一页板书/课堂组织页。
    - 若发现字体缺失、图形裁切、标注遮挡、代码块越界、页眉页脚错位、页码异常，则讲义仍视为未完成。
@@ -312,15 +316,8 @@ Step 5 在流程中的角色固定为“讲义完成后的第一个下游步骤�
 
 执行 Step 7 时，额外强制要求：
 
-1. 互动页面首先是完整课件，其次才是互动体验；不得为了“网页感”删掉传统课件必需的公式、表格、分级标题、例题、图示与结论。
-2. Step 7 开始前，先从 `design/handout.md` 抽取“讲义核心内容映射”总表，至少覆盖核心概念、核心公式、关键图表、关键例题、关键结论。
-3. 该总表默认使用以下列名：`handout_anchor | core_item_type | must_appear_content | target_step | page_mode | interaction_upgrade | media_or_table_ref | acceptance_note`。其中逐步正文仍需额外写清“静态承载内容”“互动升级点”。
-4. “讲义核心内容映射”中的每一项都必须在 `interactive-page.md` 中找到对应页面；若该项无需互动升级，`interaction_upgrade` 明确写“无，保持静态展示”，不得因无互动而缺页。
-5. 互动升级应选择真正值得交互的位置，例如预测前后差异、参数变化导致的现象变化、结构改动导致的系统差异，避免把所有内容都做成交互控件。
-6. 页面文案必须能脱离教师口述单独阅读，不能写成只剩提示词和按钮标签的空心页面。
-7. 全部公式必须写成 LaTeX，并遵守 `$` / `$$` 规范。
-8. `pptx` 图示与船舶案例若被接入互动页，必须转写成“预测、比较、读图、验证、诊断”之一，避免静态堆叠素材卡。
-9. Step 7 开始前，先读取 Step 5 产出的 `course-content/authoring/lessons/[单元]/manifest.json` 与 `course-content/authoring/knowledge/cards/lessons/[单元]/sequence.json`。互动页步骤分组、焦点节点、卡片顺序与课堂收束节点直接引用这些文件，不再额外发明一套节点编排。
+1. 互动页面设计的详细规则、双轨真源约束、页面蓝图写法、学生页预览口径、机读契约字段与输出模板，统一以 `references/step6-interactive-page.md` 为准。
+2. Step 7 开始前，先读取 Step 5 产出的 `course-content/authoring/lessons/[单元]/manifest.json` 与 `course-content/authoring/knowledge/cards/lessons/[单元]/sequence.json`。互动页步骤分组、焦点节点、卡片顺序与课堂收束节点直接引用这些文件，不再额外发明一套节点编排。
 
 文档写入 `course-content/authoring/lessons/[单元]/design/interactive-page.md`。
 

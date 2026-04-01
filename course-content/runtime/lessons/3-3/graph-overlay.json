@@ -1,0 +1,855 @@
+{
+  "lesson_id": "3-3",
+  "title": "根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移",
+  "focus_node_ids": [
+    "根轨迹_4_c19f8854",
+    "相角条件_4_597a8cf7",
+    "幅值条件_3_2d5b92ac",
+    "根轨迹完整法则_3_0f2e7b11",
+    "广义根轨迹_4_30f5ea13",
+    "零度与一百八十度根轨迹_3_c1bb7dbe"
+  ],
+  "reuse_node_ids": [
+    "闭环特征方程_3_87c88e19",
+    "闭环极点_3_f9432bf3",
+    "稳定性_3_72d04fbd",
+    "稳定可行域_3_7eed0929",
+    "闭环主导极点_3_de941720"
+  ],
+  "entry_nodes": [
+    "根轨迹_4_c19f8854",
+    "相角条件_4_597a8cf7"
+  ],
+  "summary_nodes": [
+    "广义根轨迹_4_30f5ea13",
+    "零度与一百八十度根轨迹_3_c1bb7dbe"
+  ],
+  "card_order": [
+    "闭环特征方程_3_87c88e19",
+    "闭环极点_3_f9432bf3",
+    "根轨迹_4_c19f8854",
+    "相角条件_4_597a8cf7",
+    "幅值条件_3_2d5b92ac",
+    "根轨迹完整法则_3_0f2e7b11",
+    "稳定性_3_72d04fbd",
+    "闭环主导极点_3_de941720",
+    "广义根轨迹_4_30f5ea13",
+    "零度与一百八十度根轨迹_3_c1bb7dbe",
+    "稳定可行域_3_7eed0929"
+  ],
+  "groups": [
+    {
+      "group_name": "引入与研究对象",
+      "step_ids": [
+        "3-3-bridge-01",
+        "3-3-bridge-02",
+        "3-3-objective-01"
+      ],
+      "node_ids": [
+        "闭环特征方程_3_87c88e19",
+        "闭环极点_3_f9432bf3",
+        "根轨迹_4_c19f8854"
+      ]
+    },
+    {
+      "group_name": "判别入口",
+      "step_ids": [
+        "3-3-core-01",
+        "3-3-core-02",
+        "3-3-core-03"
+      ],
+      "node_ids": [
+        "根轨迹_4_c19f8854",
+        "相角条件_4_597a8cf7",
+        "幅值条件_3_2d5b92ac"
+      ]
+    },
+    {
+      "group_name": "完整法则体系",
+      "step_ids": [
+        "3-3-core-04",
+        "3-3-core-05",
+        "3-3-core-06"
+      ],
+      "node_ids": [
+        "根轨迹完整法则_3_0f2e7b11",
+        "稳定性_3_72d04fbd",
+        "闭环主导极点_3_de941720"
+      ]
+    },
+    {
+      "group_name": "广义视角与参数扩展",
+      "step_ids": [
+        "3-3-core-07",
+        "3-3-core-08"
+      ],
+      "node_ids": [
+        "广义根轨迹_4_30f5ea13",
+        "零度与一百八十度根轨迹_3_c1bb7dbe",
+        "稳定可行域_3_7eed0929"
+      ]
+    },
+    {
+      "group_name": "动态解释与收束",
+      "step_ids": [
+        "3-3-summary-01",
+        "3-3-summary-02"
+      ],
+      "node_ids": [
+        "闭环极点_3_f9432bf3",
+        "闭环主导极点_3_de941720",
+        "广义根轨迹_4_30f5ea13"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "幅值条件_3_2d5b92ac",
+      "name": "幅值条件",
+      "nodeType": "THEORY",
+      "description": "在根轨迹上，若一点已经满足相角条件，则幅值条件用于计算这一点对应的参数值，从而把点位判断转化为参数回算。",
+      "positionX": 56.0,
+      "positionY": 0.0,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "在根轨迹上，若一点已经满足相角条件，则幅值条件用于计算这一点对应的参数值，从而把点位判断转化为参数回算。",
+        "examples": [
+          "已知某点位于根轨迹上，可由 |G(s)H(s)|=1 求得对应的根轨迹增益。",
+          "在广义根轨迹中，幅值条件同样用于回算等效参数。"
+        ],
+        "formulas": [
+          "|G(s)H(s)|=1",
+          "K^*=\\frac{\\prod_j |s-p_j|}{\\prod_i |s-z_i|}"
+        ],
+        "prerequisites": [
+          "根轨迹_4_c19f8854",
+          "相角条件_4_597a8cf7"
+        ],
+        "relatedConcepts": [
+          "广义根轨迹_4_30f5ea13",
+          "闭环极点_3_f9432bf3"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "参数回算",
+          "模值",
+          "增益",
+          "点位验证"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/幅值条件_3_2d5b92ac.md"
+      ],
+      "tags": [
+        "参数回算",
+        "模值",
+        "增益",
+        "点位验证",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "根轨迹完整法则_3_0f2e7b11",
+      "name": "根轨迹完整法则",
+      "nodeType": "THEORY",
+      "description": "起点终点、分支数、对称性、实轴区段、渐近线、分离点、虚轴交点、起始角和终止角共同构成完整根轨迹法则，用于解释轨迹为什么呈现出当前形状。",
+      "positionX": -48.5,
+      "positionY": 28.0,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "起点终点、分支数、对称性、实轴区段、渐近线、分离点、虚轴交点、起始角和终止角共同构成完整根轨迹法则，用于解释轨迹为什么呈现出当前形状。",
+        "examples": [
+          "用起点终点和渐近线先搭出整图骨架，再用分离点和虚轴交点修正关键位置。",
+          "在复极点系统中，起始角和终止角帮助判断局部切线方向。"
+        ],
+        "formulas": [
+          "\\sigma_a=\\frac{\\sum p_i-\\sum z_j}{n-m}",
+          "\\psi_a=\\frac{(2k+1)\\pi}{n-m}"
+        ],
+        "prerequisites": [
+          "根轨迹_4_c19f8854",
+          "相角条件_4_597a8cf7",
+          "幅值条件_3_2d5b92ac"
+        ],
+        "relatedConcepts": [
+          "稳定性_3_72d04fbd",
+          "闭环极点_3_f9432bf3",
+          "闭环主导极点_3_de941720"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "实轴区段",
+          "渐近线",
+          "分离点",
+          "虚轴交点"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/根轨迹完整法则_3_0f2e7b11.md"
+      ],
+      "tags": [
+        "实轴区段",
+        "渐近线",
+        "分离点",
+        "虚轴交点",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "稳定可行域_3_7eed0929",
+      "name": "稳定可行域",
+      "nodeType": "THEORY",
+      "description": "把劳斯表第一列条件联立后得到的参数范围称为稳定可行域。它给出系统全部闭环极点保持在稳定边界左侧的参数集合。",
+      "positionX": 28.0,
+      "positionY": -48.5,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "把劳斯表第一列条件联立后得到的参数范围称为稳定可行域。它给出系统全部闭环极点保持在稳定边界左侧的参数集合。",
+        "examples": [
+          "对 D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)，由劳斯表可得稳定可行域 -2<k<18。",
+          "参数落在稳定可行域端点时，系统进入原点根或纯虚根对应的临界边界。"
+        ],
+        "formulas": [
+          "-2<k<18",
+          "\\text{稳定可行域}=\\{\\theta\\mid \\text{劳斯表第一列全正}\\}"
+        ],
+        "prerequisites": [
+          "劳斯判据_3_e3500ac9",
+          "稳定性_3_72d04fbd"
+        ],
+        "relatedConcepts": [
+          "闭环极点_3_f9432bf3",
+          "复平面可行域_4_Lsum001",
+          "设计可行域_4_Lsum004"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "稳定区间",
+          "参数范围",
+          "临界边界",
+          "可行域"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/稳定可行域_3_7eed0929.md"
+      ],
+      "tags": [
+        "稳定区间",
+        "参数范围",
+        "临界边界",
+        "可行域",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "稳定性_3_72d04fbd",
+      "name": "稳定性",
+      "nodeType": "THEORY",
+      "description": "系统在扰动消失后，由初始偏差状态恢复到原平衡状态的性能。",
+      "positionX": 59.4,
+      "positionY": -59.4,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "系统在扰动消失后，由初始偏差状态恢复到原平衡状态的性能。",
+        "examples": [
+          "单摆的稳定平衡点与不稳定平衡点示例。",
+          "单摆在外界扰动后能回到原平衡点，称为稳定平衡点。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "平衡状态",
+          "扰动",
+          "恢复"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627914",
+        "updatedAt": "2026-02-04T17:54:16.627914",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/稳定性_3_72d04fbd.md"
+      ],
+      "tags": [
+        "平衡状态",
+        "扰动",
+        "恢复",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "闭环主导极点_3_de941720",
+      "name": "闭环主导极点",
+      "nodeType": "THEORY",
+      "description": "距虚轴最近且周围无闭环零点的极点，在系统响应中起主导作用。",
+      "positionX": -23.3,
+      "positionY": -86.9,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "距虚轴最近且周围无闭环零点的极点，在系统响应中起主导作用。",
+        "examples": [
+          "用于将高阶系统近似为二阶系统，以估算其动态性能。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "主导作用",
+          "近似分析",
+          "动态性能"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627907",
+        "updatedAt": "2026-02-04T17:54:16.627907",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环主导极点_3_de941720.md"
+      ],
+      "tags": [
+        "主导作用",
+        "近似分析",
+        "动态性能",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "闭环极点_3_f9432bf3",
+      "name": "闭环极点",
+      "nodeType": "THEORY",
+      "description": "闭环传递函数分母多项式的根，决定系统时间响应的类型。",
+      "positionX": -0.0,
+      "positionY": -90.0,
+      "positionZ": 3,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "闭环传递函数分母多项式的根，决定系统时间响应的类型。",
+        "examples": [
+          "主导极点、非主导极点对系统动态性能的不同影响。"
+        ],
+        "formulas": [
+          "s_i \\text{ 为 } D(s)=0 \\text{ 之根}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "响应类型",
+          "主导极点",
+          "系统特性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627920",
+        "updatedAt": "2026-02-04T17:54:16.627920",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环极点_3_f9432bf3.md"
+      ],
+      "tags": [
+        "响应类型",
+        "主导极点",
+        "系统特性",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "闭环特征方程_3_87c88e19",
+      "name": "闭环特征方程",
+      "nodeType": "THEORY",
+      "description": "描述闭环控制系统动态特性的特征多项式方程，其根决定了系统的稳定性。",
+      "positionX": 23.3,
+      "positionY": -86.9,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "描述闭环控制系统动态特性的特征多项式方程，其根决定了系统的稳定性。",
+        "examples": [
+          "火星漫游车转向控制系统的闭环特征方程为：1 + G(s)H(s) = 0，用于建立劳斯表。"
+        ],
+        "formulas": [
+          "1 + G(s)H(s) = 0"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "特征方程",
+          "闭环系统",
+          "稳定性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628066",
+        "updatedAt": "2026-02-04T17:54:16.628066",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环特征方程_3_87c88e19.md"
+      ],
+      "tags": [
+        "特征方程",
+        "闭环系统",
+        "稳定性",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "零度与一百八十度根轨迹_3_c1bb7dbe",
+      "name": "零度与一百八十度根轨迹",
+      "nodeType": "THEORY",
+      "description": "当闭环特征方程写成 1+KG(s)H(s)=0 或 1-KG(s)H(s)=0 时，相角条件分别落在奇数倍 π 和偶数倍 π，对应一百八十度根轨迹与零度根轨迹两种典型情形。",
+      "positionX": 68.0,
+      "positionY": 0.0,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "当闭环特征方程写成 1+KG(s)H(s)=0 或 1-KG(s)H(s)=0 时，相角条件分别落在奇数倍 π 和偶数倍 π，对应一百八十度根轨迹与零度根轨迹两种典型情形。",
+        "examples": [
+          "标准负反馈增益根轨迹通常满足一百八十度根轨迹条件。",
+          "参数方向改变后，系统可转化为零度根轨迹问题。"
+        ],
+        "formulas": [
+          "\\angle G(s)H(s)=(2k+1)\\pi",
+          "\\angle G(s)H(s)=2k\\pi"
+        ],
+        "prerequisites": [
+          "广义根轨迹_4_30f5ea13",
+          "相角条件_4_597a8cf7"
+        ],
+        "relatedConcepts": [
+          "根轨迹完整法则_3_0f2e7b11",
+          "稳定性_3_72d04fbd"
+        ],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "零度根轨迹",
+          "一百八十度根轨迹",
+          "相角条件",
+          "参数方向"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/零度与一百八十度根轨迹_3_c1bb7dbe.md"
+      ],
+      "tags": [
+        "零度根轨迹",
+        "一百八十度根轨迹",
+        "相角条件",
+        "参数方向",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "广义根轨迹_4_30f5ea13",
+      "name": "广义根轨迹",
+      "nodeType": "THEORY",
+      "description": "除根轨迹增益K为变化参数以外的根轨迹，包括参数根轨迹、零度根轨迹等。",
+      "positionX": -28.5,
+      "positionY": -106.3,
+      "positionZ": 4,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "除根轨迹增益K为变化参数以外的根轨迹，包括参数根轨迹、零度根轨迹等。",
+        "examples": [
+          "以非开环增益为可变参数绘制的根轨迹，如例4-5中τ变化的参数根轨迹。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 3,
+        "keywords": [
+          "参数根轨迹",
+          "常规根轨迹",
+          "等效传递函数"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628220",
+        "updatedAt": "2026-02-04T17:54:16.628220",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/广义根轨迹_4_30f5ea13.md"
+      ],
+      "tags": [
+        "参数根轨迹",
+        "常规根轨迹",
+        "等效传递函数",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "根轨迹_4_c19f8854",
+      "name": "根轨迹",
+      "nodeType": "THEORY",
+      "description": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
+      "positionX": 106.3,
+      "positionY": -28.5,
+      "positionZ": 4,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
+        "examples": [
+          "图4-2所示，开环增益K变化时，二阶系统闭环极点在s平面上沿实轴和复平面变化的轨迹。",
+          "用于分析开环增益变化对闭环系统稳定性和动态性能的影响。"
+        ],
+        "formulas": [
+          "1 + G(s)H(s) = 0",
+          "\\prod_{j=1}^{n}(s - p_j) + K^* \\prod_{i=1}^{m}(s - z_i) = 0",
+          "1+KG(s)H(s)=0",
+          "\\sum_{i=1}^{m}\\angle(s-z_i)-\\sum_{j=1}^{n}\\angle(s-p_j)=(2k+1)\\pi"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "闭环极点",
+          "s平面",
+          "轨迹",
+          "特征方程",
+          "闭环特征根",
+          "开环增益",
+          "复平面"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628098",
+        "updatedAt": "2026-02-04T17:54:16.628099",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/根轨迹_4_c19f8854.md"
+      ],
+      "tags": [
+        "闭环极点",
+        "s平面",
+        "轨迹",
+        "特征方程",
+        "闭环特征根",
+        "开环增益",
+        "复平面",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "相角条件_4_597a8cf7",
+      "name": "相角条件",
+      "nodeType": "THEORY",
+      "description": "根轨迹上任意一点s应满足的关于开环零极点向量的相角之和的条件。",
+      "positionX": -58.0,
+      "positionY": -100.5,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "根轨迹上任意一点s应满足的关于开环零极点向量的相角之和的条件。",
+        "examples": [
+          "用于判断s平面上某一点是否在根轨迹上，是绘制根轨迹的充分必要条件。"
+        ],
+        "formulas": [
+          "\\sum_{i=1}^{m} \\angle(s - z_i) - \\sum_{j=1}^{n} \\angle(s - p_j) = (2k+1)\\pi, \\quad k = 0, \\pm1, \\pm2, \\dots"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "根轨迹绘制",
+          "充分必要条件",
+          "向量相角"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628142",
+        "updatedAt": "2026-02-04T17:54:16.628142",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/相角条件_4_597a8cf7.md"
+      ],
+      "tags": [
+        "根轨迹绘制",
+        "充分必要条件",
+        "向量相角",
+        "chapter-4"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "闭环主导极点|稳定性|3",
+      "sourceId": "闭环主导极点_3_de941720",
+      "targetId": "稳定性_3_72d04fbd",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "闭环主导极点|闭环极点|3",
+      "sourceId": "闭环主导极点_3_de941720",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "闭环主导极点|闭环特征方程|3",
+      "sourceId": "闭环主导极点_3_de941720",
+      "targetId": "闭环特征方程_3_87c88e19",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "稳定性|闭环极点|3",
+      "sourceId": "稳定性_3_72d04fbd",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "稳定性|闭环特征方程|3",
+      "sourceId": "稳定性_3_72d04fbd",
+      "targetId": "闭环特征方程_3_87c88e19",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "闭环极点|闭环特征方程|3",
+      "sourceId": "闭环极点_3_f9432bf3",
+      "targetId": "闭环特征方程_3_87c88e19",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "闭环极点|根轨迹|3-4",
+      "sourceId": "闭环极点_3_f9432bf3",
+      "targetId": "根轨迹_4_c19f8854",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "闭环特征方程|根轨迹|3-4",
+      "sourceId": "闭环特征方程_3_87c88e19",
+      "targetId": "根轨迹_4_c19f8854",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "根轨迹|相角条件|4",
+      "sourceId": "根轨迹_4_c19f8854",
+      "targetId": "相角条件_4_597a8cf7",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "根轨迹|广义根轨迹|4",
+      "sourceId": "根轨迹_4_c19f8854",
+      "targetId": "广义根轨迹_4_30f5ea13",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.8
+    },
+    {
+      "id": "相角条件|广义根轨迹|4",
+      "sourceId": "相角条件_4_597a8cf7",
+      "targetId": "广义根轨迹_4_30f5ea13",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.6
+    },
+    {
+      "id": "rel-0978a7e03d4f022e",
+      "sourceId": "根轨迹完整法则_3_0f2e7b11",
+      "targetId": "闭环主导极点_3_de941720",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-0bf94db2c58727af",
+      "sourceId": "根轨迹_4_c19f8854",
+      "targetId": "相角条件_4_597a8cf7",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
+    },
+    {
+      "id": "rel-19bdd73142cc414f",
+      "sourceId": "根轨迹_4_c19f8854",
+      "targetId": "幅值条件_3_2d5b92ac",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-1b122941fa7aa5d2",
+      "sourceId": "幅值条件_3_2d5b92ac",
+      "targetId": "根轨迹完整法则_3_0f2e7b11",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-3512c975ccd4977c",
+      "sourceId": "广义根轨迹_4_30f5ea13",
+      "targetId": "零度与一百八十度根轨迹_3_c1bb7dbe",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-4602434fa2c95d94",
+      "sourceId": "根轨迹完整法则_3_0f2e7b11",
+      "targetId": "稳定性_3_72d04fbd",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.93
+    },
+    {
+      "id": "rel-77592e41566fa794",
+      "sourceId": "闭环特征方程_3_87c88e19",
+      "targetId": "根轨迹_4_c19f8854",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-8b59241cedf2bc23",
+      "sourceId": "相角条件_4_597a8cf7",
+      "targetId": "根轨迹完整法则_3_0f2e7b11",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-b291aabdb012b5b0",
+      "sourceId": "稳定可行域_3_7eed0929",
+      "targetId": "根轨迹完整法则_3_0f2e7b11",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-e317edb9df7b4d90",
+      "sourceId": "广义根轨迹_4_30f5ea13",
+      "targetId": "根轨迹_4_c19f8854",
+      "relation": "generalizes",
+      "relationType": "generalizes",
+      "strength": 0.95
+    }
+  ]
+}

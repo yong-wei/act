@@ -19,7 +19,7 @@
 | 步骤 | 标题 | 页面模板 | 主体布局 | 互动组件 | 学生页预览 |
 |------|------|----------|----------|----------|------------|
 | step-01 | 回到地图——为什么模块 2 先从建模语言开始 | `map_hero_slide` | 全幅地图 + 任务卡 | `none` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-01` |
-| step-02 | 情境引入——为什么光有微分方程还不够 | `formula_left_image_right` | 左公式右图像，下方判断区 | `binary_choice` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-02` |
+| step-02 | 情境引入——为什么光有微分方程还不够 | `cover_top_formula_then_judge` | 封面图在上，公式与追问在中，判断区在下 | `binary_choice` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-02` |
 | step-03 | 学习目标——今天要建哪条对象链 | `center_chain_slide` | 主链居中 + 目标卡行 | `none` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-03` |
 | step-04 | 前测——对象、初值与结构的三个误区 | `question_stack` | 三题纵向堆叠 + 提交条 | `quiz_group` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-04` |
 | step-05 | 拉氏变换的工程动机 | `table_plus_formula_plus_short_response` | 对照表 + 公式条 + 短答栏 | `short_response` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-05` |
@@ -30,8 +30,8 @@
 | step-10 | 船舶航向系统：把对象真正连成系统 | `engineering_block_diagram` | 工程结构图 + 角色卡 + 热点标注区 | `hotspot_labeling` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-10` |
 | step-11 | 方框图为什么还不够：信号流图补位 | `comparison_slide` | 左右对照图 + 分工表 | `bucket_sort` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-11` |
 | step-12 | 梅森公式的最小使用集 | `formula_then_term_match` | 公式卡 + 术语卡 + 拖拽配对区 | `drag_match` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-12` |
-| step-13 | 例题一：单回路闭环对象如何收束 | `worked_example_three_stage` | 三步例题卡 + 图对 + 选择校验 | `choice_check` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-13` |
-| step-14 | 补充辨析：余子式为什么不一定等于 1 | `path_highlight_reasoning` | 公式链 + 路径高亮区 + 原因框 | `path_highlight` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-14` |
+| step-13 | 例题一：单回路闭环对象如何收束 | `prompt_image_then_worked_example` | 题面图在上，例题三步卡在中，选择校验在下 | `choice_check` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-13` |
+| step-14 | 补充辨析：余子式为什么不一定等于 1 | `prompt_image_then_path_reasoning` | 题面信号流图在上，公式链在中，原因框在下 | `path_highlight` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-14` |
 | step-15 | 后测——会不会用对象语言复述本课 | `post_quiz_stack` | 三题后测堆叠 | `quiz_group` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-15` |
 | step-16 | 总结——对象语言已建立，下一课进入响应分析 | `summary_infographic` | 总结链 + 信息图 + 下一课入口 | `none` | `/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-16` |
 
@@ -83,10 +83,10 @@
 ## step-02｜情境引入——为什么光有微分方程还不够
 
 ### 页面骨架
-- 模板：`formula_left_image_right`
+- 模板：`cover_top_formula_then_judge`
 - 区域：
-  - `equation`：`7/12`，公式卡与追问列表
-  - `comic`：`5/12`，情境图
+  - `comic`：全宽，课程封面图
+  - `equation`：全宽，公式卡与追问列表
   - `interaction`：全宽，二选一判断区
 
 ### 模块清单
@@ -96,6 +96,7 @@
 - `binary-judge`：`binary-choice`
 
 ### 固定内容
+- 图像资源：`2-1-cover-comic.png`
 - 标题：船舶航向动力学方程
 - 公式：
 
@@ -108,7 +109,6 @@ $$
   - 能不能一眼判断它属于什么对象？
   - 它以后怎么接控制器和传感器？
   - 它进入反馈后，整体对象怎么写？
-- 图像资源：`2-1-cover-comic.png`
 
 ### 互动与反馈
 - 组件类型：`binary_choice`
@@ -131,7 +131,7 @@ $$
 
 ### 预览口径
 - 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-02`
-- 对齐要求：公式、三问、图像、判断组件同屏。
+- 对齐要求：首屏先出现课程封面图，其后才是公式、三问和判断组件。
 
 ---
 
@@ -657,10 +657,10 @@ $$
 ## step-13｜例题一：单回路闭环对象如何收束
 
 ### 页面骨架
-- 模板：`worked_example_three_stage`
+- 模板：`prompt_image_then_worked_example`
 - 区域：
+  - `diagram-zone`：全宽，题面图像区
   - `step-cards`：全宽，例题步骤卡
-  - `diagram-zone`：全宽，方框图 / 信号流图双图区
   - `check-zone`：全宽，选择校验区
 
 ### 模块清单
@@ -669,6 +669,9 @@ $$
 - `channel-check`：`choice-check`
 
 ### 固定内容
+- 图像资源：
+  - `2-1-md-07-example-ship-loop.png`
+  - `2-1-md-08-example-ship-sfg.png`
 - 前向通道总式：
 
 $$
@@ -680,10 +683,6 @@ $$
 $$
 \Phi(s)=\frac{K_cK_p}{s(T_as+1)(T_ps+1)+K_cK_pK_h}
 $$
-
-- 图像资源：
-  - `2-1-md-07-example-ship-loop.png`
-  - `2-1-md-08-example-ship-sfg.png`
 - 例题链固定分段：
   - 对象识别
   - 前向通道
@@ -707,17 +706,17 @@ $$
 
 ### 预览口径
 - 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-13`
-- 对齐要求：前向通路总式与闭环总式同时明文出现。
+- 对齐要求：首屏先出现题面图像，其后才进入前向通路总式、闭环总式和选择校验区。
 
 ---
 
 ## step-14｜补充辨析：余子式为什么不一定等于 1
 
 ### 页面骨架
-- 模板：`path_highlight_reasoning`
+- 模板：`prompt_image_then_path_reasoning`
 - 区域：
+  - `highlight-stage`：全宽，题面信号流图区
   - `formula-chain`：全宽，公式链
-  - `highlight-stage`：全宽，信号流图高亮区
   - `explain-box`：全宽，原因填写框
 
 ### 模块清单
@@ -726,6 +725,7 @@ $$
 - `reason-box`：`single-reason-response`
 
 ### 固定内容
+- 图像资源：`2-1-md-14-example2-sfg.png`
 - 公式链：
 
 $$
@@ -743,8 +743,6 @@ $$
 $$
 \Delta_1=1
 $$
-
-- 图像资源：`2-1-md-14-example2-sfg.png`
 - 固定辨析点：
   - 例题一本体中的 `\Delta_1=1`
   - 附录补充情形中的 `\Delta_k=1-L_1`
@@ -767,7 +765,7 @@ $$
 
 ### 预览口径
 - 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-14`
-- 对齐要求：前向通路、局部回路与接触判定必须具备可视化高亮，不得退化为纯文字辨析。
+- 对齐要求：首屏先出现题面信号流图，其后才出现公式链、路径高亮与原因填写区。
 
 ---
 
@@ -846,4 +844,3 @@ $$
 ### 预览口径
 - 学生页预览：`/interactive-learning/courses/unit-2-1-modeling-language/student/demo?step=step-16`
 - 对齐要求：总结链与信息图同屏，页面结尾直接指向下一课。
-
