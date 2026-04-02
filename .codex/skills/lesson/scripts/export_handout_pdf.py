@@ -389,6 +389,8 @@ def rewrite_latex_for_pdf_layout(
             normalized_options = width_overrides.get(target, "")
         if not normalized_options and should_use_full_width_for_image(target):
             normalized_options = r"width=\textwidth"
+        if not normalized_options:
+            normalized_options = r"width=\textwidth"
         if normalized_options:
             return rf"\includegraphics[{normalized_options}]{{{target}}}"
         return rf"\includegraphics{{{target}}}"

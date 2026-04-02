@@ -1,0 +1,821 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "2-3",
+  "course_title": "2-3：频率响应基础与 Bode 图初步",
+  "course_route_segment": "unit-2-3-frequency-response-bode-intro",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo",
+    "teacher_preview_panel_note": "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "回到地图——从时域对象走向频域对象",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          { "id": "header", "width": "full", "order": 1 },
+          { "id": "lead", "width": "full", "order": 2 },
+          { "id": "summary", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "stage-map", "region": "lead", "kind": "stage-map", "must_be_visible": true },
+        { "id": "today-task", "region": "summary", "kind": "key-task-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "stage-map", "type": "plain_text", "title": "路径定位", "body": "固定高亮 2-2 -> 2-3 -> 2-4。" },
+        { "id": "today-task", "type": "bullet_list", "title": "本课任务", "items": ["理解频率分量思想。", "建立正弦稳态响应语言。", "第一次画出 Bode 首轮骨架。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["推进到下一页", "高亮当前节点"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep", "teacherFollowSync"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count", "sync_status"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "标定本课位于模块 2 的位置。",
+        "allowed_scope": ["课程路径", "时域到频域的切换"],
+        "forbidden_scope": ["提前解释公式", "提前进入例题"],
+        "canonical_facts": ["2-2 解决时间里的响应。", "2-3 解决不同频率如何被处理。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-01",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["首屏能看到路径图与任务卡。", "本页没有作答区。"]
+    },
+    "step-02": {
+      "title": "情境引入——系统为什么会挑节奏",
+      "layout": {
+        "template": "binary_choice_illustration",
+        "regions": [
+          { "id": "media", "width": "full", "order": 1 },
+          { "id": "questions", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "command-disturbance-media", "region": "media", "kind": "illustration", "must_be_visible": true },
+        { "id": "core-questions", "region": "questions", "kind": "question-list", "must_be_visible": true },
+        { "id": "binary-vote", "region": "interaction", "kind": "binary-choice", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "questions", "type": "bullet_list", "title": "两问", "items": ["哪种节奏更容易通过？", "为什么系统不应追每一次抖动？"] },
+        { "id": "conclusion", "type": "plain_text", "title": "结论", "body": "系统对不同频率成分具有选择性。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "在两种判断之间二选一。",
+        "correct_answer": "B",
+        "options": {
+          "A": "系统应对所有变化都同样敏感",
+          "B": "系统应对不同节奏有选择"
+        },
+        "failure_feedback": "只提示“频率选择性是本课真正入口”。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放二选一判断", "显示正确项与一句点评"],
+      "telemetry_spec": {
+        "summary_fields": ["selectedOption", "resultState", "teacherRevealSeen"],
+        "misconception_tags": ["same_sensitivity_for_all_frequencies"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["option_distribution", "misconception_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立低频命令与高频扰动的分流直觉。",
+        "allowed_scope": ["跟随", "抑制", "节奏", "选择性"],
+        "forbidden_scope": ["频率特性公式"],
+        "canonical_facts": ["系统不是对所有变化一视同仁。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-02",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["场景图、问题清单和判断按钮在未作答状态下同时可见。", "错误反馈不提前给公式。"]
+    },
+    "step-03": {
+      "title": "学习目标——这节课要建立哪套频域语言",
+      "layout": {
+        "template": "goal_chain_slide",
+        "regions": [
+          { "id": "goals", "width": "full", "order": 1 },
+          { "id": "chain", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "goal-cards", "region": "goals", "kind": "goal-card-row", "must_be_visible": true },
+        { "id": "method-chain", "region": "chain", "kind": "formula-chain", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "goals", "type": "bullet_list", "title": "三项目标", "items": ["会拆频率成分。", "会读单频响应。", "会画 Bode 首轮骨架。"] },
+        { "id": "chain", "type": "plain_text", "title": "本课主线", "body": "阶跃/方波 -> 频率分量 -> 正弦响应 -> G(jω) -> Bode 骨架" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只建立整体预期。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["逐条强调目标", "高亮主线中的当前层次"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "明确本课边界。",
+        "allowed_scope": ["三项目标", "主线链"],
+        "forbidden_scope": ["提前解释公式"],
+        "canonical_facts": ["本课重点不是傅里叶长推导，而是对象语言建立。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-03",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["目标卡与主线链同屏。", "本页无新公式推导。"]
+    },
+    "step-04": {
+      "title": "前测——低频、高频与正弦输入判断",
+      "layout": {
+        "template": "question_stack",
+        "regions": [
+          { "id": "question-stack", "width": "full", "order": 1 },
+          { "id": "submit-bar", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "pretest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "misconception-note", "type": "bullet_list", "title": "常见混淆", "items": ["系统不是所有频率都一样。", "同频不等于同幅。", "高频压制后波形更平滑。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三道前测题。",
+        "attempt_model": "允许重提一次，教师端区分首答与重提。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放前测", "显示统计", "显示答案"],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "errorBucket"],
+        "misconception_tags": ["same_response_to_low_and_high_frequency", "same_frequency_same_amplitude", "waveform_smoothing_confusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["question_distribution", "top_misconceptions"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "暴露起点误区。",
+        "allowed_scope": ["错因归类", "术语纠偏"],
+        "forbidden_scope": ["代替作答"],
+        "canonical_facts": ["前测用于暴露混淆，而不是拉开成绩差距。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-04",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["三题在未作答状态下全部可见。", "教师端可看到错误分布。"]
+    },
+    "step-05": {
+      "title": "从时域问题走向频域问题",
+      "layout": {
+        "template": "table_plus_prompt",
+        "regions": [
+          { "id": "table", "width": "full", "order": 1 },
+          { "id": "prompt", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "time-vs-frequency-table", "region": "table", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "transition-card", "region": "prompt", "kind": "bridge-card", "must_be_visible": true },
+        { "id": "short-response", "region": "interaction", "kind": "short-response", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "table", "type": "table", "title": "两种观察视角", "body": "时域看整体曲线，频域看不同节奏如何被处理。" },
+        { "id": "bridge", "type": "plain_text", "title": "过渡句", "body": "时域描述整体，频域揭示规则。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "short_response",
+        "student_task": "用一句话补全“频域分析不是替代时域分析，而是……”",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["收集短答", "显示词云"],
+      "telemetry_spec": {
+        "summary_fields": ["responseSubmitted", "responseLength", "timeOnStep"],
+        "result_policy": "store_text_only"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["response_word_cloud", "common_reason_tags"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "完成观察视角切换。",
+        "allowed_scope": ["时域整体", "频域规则", "观察对象"],
+        "forbidden_scope": ["直接给标准短答模板"],
+        "canonical_facts": ["频域不是替代，而是拆分观察。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-05",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["对照表、过渡卡和短答栏同屏。", "短答区不遮挡对照表。"]
+    },
+    "step-06": {
+      "title": "方波、频率分量与重构直觉",
+      "layout": {
+        "template": "media_plus_reconstruction_lab",
+        "regions": [
+          { "id": "media", "width": "full", "order": 1 },
+          { "id": "logic", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "harmonic-media", "region": "media", "kind": "illustration", "must_be_visible": true },
+        { "id": "logic-chain", "region": "logic", "kind": "bullet-chain", "must_be_visible": true },
+        { "id": "reconstruction-lab", "region": "workspace", "kind": "slider-workspace", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "logic-chain", "type": "bullet_list", "title": "三段主链", "items": ["复杂信号可分解为不同频率分量。", "系统对每个频率分量分别响应。", "各分量叠加后重构为最终时域输出。"] },
+        { "id": "result-line", "type": "plain_text", "title": "现象提示", "body": "高频分量被压制后，波形会从尖锐转向平滑。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "拖动谐波个数与高频衰减强度，观察重构波形。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["重置参数", "广播一个代表性状态"],
+      "telemetry_spec": {
+        "summary_fields": ["sliderChanged", "stateSnapshot", "timeOnStep"],
+        "result_policy": "store_final_state"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["parameter_distribution", "final_shape_tags"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立频率分量重构直觉。",
+        "allowed_scope": ["谐波", "重构", "平滑", "边缘"],
+        "forbidden_scope": ["代做傅里叶长推导"],
+        "canonical_facts": ["频域分析之所以能解释时域现象，是因为频率分量最终会重构。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-06",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["主链卡在工作区上方静态呈现。", "工作区改变时波形与提示语同步更新。"]
+    },
+    "step-07": {
+      "title": "正弦输入为什么会导向同频输出",
+      "layout": {
+        "template": "formula_walkthrough_with_check",
+        "regions": [
+          { "id": "formula-card", "width": "full", "order": 1 },
+          { "id": "explain-strip", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "entry-formula", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
+        { "id": "steady-output-formula", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
+        { "id": "three-conclusions", "region": "explain-strip", "kind": "bullet-strip", "must_be_visible": true },
+        { "id": "reason-check", "region": "interaction", "kind": "reason-check", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "entry-formula", "type": "formula", "title": "输入公式", "value": "r(t)=A\\sin(\\omega t)" },
+        { "id": "steady-output-formula", "type": "formula", "title": "稳态输出公式", "value": "c_{ss}(t)=A|G(j\\omega)|\\sin\\bigl(\\omega t+\\angle G(j\\omega)\\bigr)" },
+        { "id": "three-conclusions", "type": "bullet_list", "title": "三条结论", "items": ["频率不变。", "幅值改变。", "相位改变。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "reason_check",
+        "student_task": "判断哪些量变化，哪些量不变。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放判断", "显示答案与三条结论"],
+      "telemetry_spec": {
+        "summary_fields": ["selectionState", "resultState", "teacherRevealSeen"],
+        "misconception_tags": ["frequency_changes_with_output", "amplitude_phase_not_distinguished"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["confusion_matrix", "correction_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "立住同频输出规律。",
+        "allowed_scope": ["同频", "幅值缩放", "相位偏移"],
+        "forbidden_scope": ["复分析长证明"],
+        "canonical_facts": ["频率不变是频率响应成立的根基。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-07",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["两条公式与三条结论在未作答状态下完整可见。", "互动区不遮挡公式卡。"]
+    },
+    "step-08": {
+      "title": "幅值变化与相位变化的物理意义",
+      "layout": {
+        "template": "dual_wave_inspector",
+        "regions": [
+          { "id": "media", "width": "full", "order": 1 },
+          { "id": "meaning-table", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "sine-compare-media", "region": "media", "kind": "wave-compare", "must_be_visible": true },
+        { "id": "meaning-table", "region": "meaning-table", "kind": "meaning-table", "must_be_visible": true },
+        { "id": "wave-switcher", "region": "interaction", "kind": "tab-switch", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "meaning-table", "type": "bullet_list", "title": "物理意义", "items": ["幅值变化对应放大/衰减。", "相位变化对应提前/滞后。", "命令更应被保留，扰动更应被抑制。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "tab_switch",
+        "student_task": "在三组现象标签之间切换查看对应解释。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["切换示例标签", "暂停在当前标签"],
+      "telemetry_spec": {
+        "summary_fields": ["tabVisited", "viewDuration"],
+        "result_policy": "track_visits"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["tab_heatmap"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把数学量翻译成工程语言。",
+        "allowed_scope": ["放大", "衰减", "提前", "滞后", "命令", "扰动"],
+        "forbidden_scope": ["替学生写完整工程解释"],
+        "canonical_facts": ["幅值与相位的意义必须落在工程语境里。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-08",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["波形图、意义表和切换区同屏。", "切换时高亮对应说明句。"]
+    },
+    "step-09": {
+      "title": "频率特性：G(jω)、幅频与相频",
+      "layout": {
+        "template": "formula_table_match",
+        "regions": [
+          { "id": "formula-strip", "width": "full", "order": 1 },
+          { "id": "definition-matrix", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "frequency-characteristic-card", "region": "formula-strip", "kind": "formula-card", "must_be_visible": true },
+        { "id": "definition-matrix", "region": "definition-matrix", "kind": "matrix-table", "must_be_visible": true },
+        { "id": "triple-match", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "formula-1", "type": "formula", "title": "频率特性", "value": "G(j\\omega)" },
+        { "id": "formula-2", "type": "formula", "title": "幅频特性", "value": "M(\\omega)=|G(j\\omega)|" },
+        { "id": "formula-3", "type": "formula", "title": "相频特性", "value": "\\varphi(\\omega)=\\angle G(j\\omega)" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "triple_match",
+        "student_task": "把三种对象与其含义、问题类型对应。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": ["重置配对", "显示全班常错对应"],
+      "telemetry_spec": {
+        "summary_fields": ["matchAttempted", "matchCorrected", "timeOnStep"],
+        "misconception_tags": ["frequency_vs_amplitude_vs_phase_confusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["common_mismatch_pairs", "completion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "区分频率特性、幅频特性、相频特性的职责。",
+        "allowed_scope": ["定义", "用途", "频率索引"],
+        "forbidden_scope": ["Nyquist", "判稳", "裕度"],
+        "canonical_facts": ["频率特性是一张按频率索引的规则表。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-09",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["三条公式与三列表在未交互状态下均完整可见。", "配对失败时只提示类别，不直接给整表。"]
+    },
+    "step-10": {
+      "title": "为什么可以令 s=jω",
+      "layout": {
+        "template": "concept_bridge_card",
+        "regions": [
+          { "id": "formula", "width": "full", "order": 1 },
+          { "id": "bridge", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "complex-plane-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
+        { "id": "bridge-sentence", "region": "bridge", "kind": "concept-card", "must_be_visible": true },
+        { "id": "single-choice", "region": "interaction", "kind": "single-choice", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "formula", "type": "formula", "title": "复变量分解", "value": "s=\\sigma+j\\omega" },
+        { "id": "bridge", "type": "plain_text", "title": "课程级解释", "body": "写成 G(jω) 不是抛弃拉氏变量，而是把注意力限制到正弦稳态响应对应的虚轴观察线上。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "student_task": "判断“写 G(jω) 是否等于把拉氏方法完全丢掉”。",
+        "correct_answer": "否",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示正确项", "提醒虚轴观察线"],
+      "telemetry_spec": {
+        "summary_fields": ["selectedOption", "resultState"],
+        "misconception_tags": ["abandon_laplace_method"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["misconception_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "修正“s=jω 是纯技巧记忆”的误解。",
+        "allowed_scope": ["复变量分解", "虚轴", "正弦稳态响应"],
+        "forbidden_scope": ["严格复分析证明"],
+        "canonical_facts": ["不是抛弃拉氏变量，而是限制观察线。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-10",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["公式卡与解释卡先于单选题出现。", "错误反馈不扩张成长推导。"]
+    },
+    "step-11": {
+      "title": "为什么要画 Bode 图",
+      "layout": {
+        "template": "axis_compare_slide",
+        "regions": [
+          { "id": "media", "width": "full", "order": 1 },
+          { "id": "reasons", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "axis-compare-media", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "reason-cards", "region": "reasons", "kind": "reason-card-row", "must_be_visible": true },
+        { "id": "highlight-toggle", "region": "interaction", "kind": "highlight-toggle", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "db-formula", "type": "formula", "title": "分贝表达", "value": "L(\\omega)=20\\log_{10}|G(j\\omega)|" },
+        { "id": "reasons", "type": "bullet_list", "title": "三条理由", "items": ["频率范围常跨越多个数量级。", "对数坐标更易识别转折频率。", "分贝表示让串联环节乘法变加法。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "highlight_toggle",
+        "student_task": "切换查看线性坐标拥挤区、对数坐标均匀区与分贝叠加便利。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["切换高亮", "固定某一对比点"],
+      "telemetry_spec": {
+        "summary_fields": ["toggleVisited", "timeOnStep"],
+        "result_policy": "track_visits"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["reason_focus_heatmap"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "说明 Bode 图为何成为频域对象的第一可视化入口。",
+        "allowed_scope": ["对数坐标", "分贝", "转折频率"],
+        "forbidden_scope": ["复杂手绘技巧"],
+        "canonical_facts": ["Bode 图不是附属插图，而是频率特性第一次稳定可见的入口。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-11",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["公式、三条理由和主图同屏。", "高亮切换只做比较，不引入评分。"]
+    },
+    "step-12": {
+      "title": "典型环节 Bode 第一判断",
+      "layout": {
+        "template": "card_sort_with_reference",
+        "regions": [
+          { "id": "reference", "width": "full", "order": 1 },
+          { "id": "cards", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "first-order-reference", "region": "reference", "kind": "formula-card", "must_be_visible": true },
+        { "id": "typical-element-cards", "region": "cards", "kind": "element-card-grid", "must_be_visible": true },
+        { "id": "card-sorter", "region": "interaction", "kind": "card-sort", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "formula-1", "type": "formula", "title": "对象表达", "value": "G(s)=\\frac{1}{Ts+1}" },
+        { "id": "formula-2", "type": "formula", "title": "频率特性", "value": "G(j\\omega)=\\frac{1}{1+j\\omega T}" },
+        { "id": "three-zones", "type": "bullet_list", "title": "三段判断", "items": ["ωT << 1：低频基本通过。", "ωT ≈ 1：转折附近出现明显衰减与滞后。", "ωT >> 1：高频显著被抑制。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "card_sort",
+        "student_task": "按“谁偏低频 / 谁偏高频 / 谁会明显滞后”完成首轮分类。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": ["重置分类", "显示常见错分对"],
+      "telemetry_spec": {
+        "summary_fields": ["sortAttempted", "sortCorrected", "timeOnStep"],
+        "misconception_tags": ["typical_element_first_judgment_confusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["common_sort_errors"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立典型环节的第一层频域直觉。",
+        "allowed_scope": ["低频通过", "高频抑制", "滞后", "超前", "敏感频段"],
+        "forbidden_scope": ["复杂组合对象读图"],
+        "canonical_facts": ["先会做第一判断，再谈细化修正。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-12",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["参考卡静态可见。", "卡组不能脱离静态解释单独存在。"]
+    },
+    "step-13": {
+      "title": "基础手绘骨架：标准型、转折频率与趋势",
+      "layout": {
+        "template": "sketch_workflow_workspace",
+        "regions": [
+          { "id": "workflow", "width": "full", "order": 1 },
+          { "id": "media", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "workflow-cards", "region": "workflow", "kind": "workflow-card-row", "must_be_visible": true },
+        { "id": "skeleton-media", "region": "media", "kind": "workflow-graphic", "must_be_visible": true },
+        { "id": "builder-workspace", "region": "workspace", "kind": "builder-workspace", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "workflow", "type": "ordered_list", "title": "四步法", "items": ["写标准型。", "列转折频率。", "判最低频段。", "依次画趋势变化。"] },
+        { "id": "boundary", "type": "plain_text", "title": "边界", "body": "本页只完成首轮渐近骨架，不追求精细修正。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "workspace_builder",
+        "student_task": "放置转折频率标记并连接斜率趋势。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示标准骨架", "高亮某一步常见错误"],
+      "telemetry_spec": {
+        "summary_fields": ["checkpointSaved", "errorBucket", "teacherRevealSeen"],
+        "misconception_tags": ["missing_break_frequency", "wrong_slope_direction"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["missing_break_frequency_rate", "slope_error_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生把频率特性第一次画成图形对象。",
+        "allowed_scope": ["转折频率", "斜率方向", "四步法"],
+        "forbidden_scope": ["AI 直接生成最终答案图"],
+        "canonical_facts": ["先会画骨架，再追求精细。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-13",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["流程卡和工作区同屏。", "教师端能查看常见错误分布。"]
+    },
+    "step-14": {
+      "title": "例题一——单一正弦输入下的稳态输出",
+      "layout": {
+        "template": "worked_example_workspace",
+        "regions": [
+          { "id": "problem", "width": "full", "order": 1 },
+          { "id": "method", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 },
+          { "id": "result", "width": "full", "order": 4 }
+        ]
+      },
+      "modules": [
+        { "id": "example-problem-card", "region": "problem", "kind": "problem-card", "must_be_visible": true },
+        { "id": "four-step-method", "region": "method", "kind": "workflow-card-row", "must_be_visible": true },
+        { "id": "calculation-workspace", "region": "workspace", "kind": "worked-example-workspace", "must_be_visible": true },
+        { "id": "result-card", "region": "result", "kind": "result-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "problem-1", "type": "formula", "title": "对象", "value": "G(s)=\\frac{1}{0.5s+1}" },
+        { "id": "problem-2", "type": "formula", "title": "输入", "value": "r(t)=2\\sin(4t)" },
+        { "id": "result", "type": "formula", "title": "稳态输出", "value": "c_{ss}(t)=0.894\\sin(4t-63.4^\\circ)" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "worked_example_workspace",
+        "student_task": "逐格填写 ω、|G(jω)|、∠G(jω) 与输出振幅。",
+        "answer_reveal": "stepwise_reveal"
+      },
+      "teacher_controls": ["按步骤揭示", "切换查看卡点位置"],
+      "telemetry_spec": {
+        "summary_fields": ["stepCompletion", "errorBucket", "timeOnStep"],
+        "misconception_tags": ["modulus_phase_calculation_confusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["stuck_step_distribution"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "跑通“代入 jω -> 模与相位 -> 稳态输出”链条。",
+        "allowed_scope": ["中间量核对", "错因提示", "工程解释复核"],
+        "forbidden_scope": ["直接代写整题答案"],
+        "canonical_facts": ["结果必须同时说明频率未变、振幅缩小、相位滞后。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-14",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["题面、四步法和结果卡同页可见。", "工作区不能遮住最终表达式。"]
+    },
+    "step-15": {
+      "title": "例题二——多频输入的重塑过程与 AI 对照",
+      "layout": {
+        "template": "compare_then_ai",
+        "regions": [
+          { "id": "problem", "width": "full", "order": 1 },
+          { "id": "method", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 },
+          { "id": "ai-panel", "width": "full", "order": 4 }
+        ]
+      },
+      "modules": [
+        { "id": "multi-frequency-problem", "region": "problem", "kind": "problem-card", "must_be_visible": true },
+        { "id": "rebuild-chain", "region": "method", "kind": "workflow-card-row", "must_be_visible": true },
+        { "id": "component-workspace", "region": "workspace", "kind": "component-workspace", "must_be_visible": true },
+        { "id": "ai-compare-panel", "region": "ai-panel", "kind": "ai-compare-panel", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "problem-1", "type": "formula", "title": "对象", "value": "G(s)=\\frac{1}{s+1}" },
+        { "id": "problem-2", "type": "formula", "title": "输入", "value": "r(t)=\\sin(0.2t)+0.5\\sin(5t)" },
+        { "id": "method", "type": "bullet_list", "title": "方法链", "items": ["分量独立处理。", "输出重构。", "低频保留更明显。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "ai_compare_workspace",
+        "student_task": "先写出两条分量处理判断，再请求 AI 仅做链条核验。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["查看 AI 使用率", "显示代表性修订前后对比"],
+      "telemetry_spec": {
+        "summary_fields": ["workspaceSubmitted", "aiCheckRequested", "revisionCount"],
+        "result_policy": "store_before_after_summary"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["ai_usage_rate", "common_reason_gaps"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把单频规则升级到多频重塑。",
+        "allowed_scope": ["分量独立处理", "重构", "低频保留", "高频压制"],
+        "forbidden_scope": ["AI 直接代写结论"],
+        "canonical_facts": ["AI 只能核验链条，不能跳过学生先判断。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-15",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["题面、方法链与 AI 边界同屏。", "AI 面板默认不直接显示标准答案。"]
+    },
+    "step-16": {
+      "title": "后测——对象会读，更要会画",
+      "layout": {
+        "template": "post_quiz_stack",
+        "regions": [
+          { "id": "question-stack", "width": "full", "order": 1 },
+          { "id": "explain-box", "width": "full", "order": 2 },
+          { "id": "submit-bar", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "post-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "post-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "post-q3", "region": "question-stack", "kind": "short-explain-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "hint", "type": "plain_text", "title": "后测提示", "body": "既要会说出对象对什么频率更敏感，也要会把这种敏感性画成首轮骨架。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成两道客观题和一道解释题。",
+        "attempt_model": "允许一次重提。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示答案", "按错因分组回看"],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "explainQualityTag"],
+        "misconception_tags": ["post_assessment_transfer_gap"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["question_distribution", "concept_transfer_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "检验本课是否真正从“会说”推进到“会画”。",
+        "allowed_scope": ["错因归类", "关键词提醒"],
+        "forbidden_scope": ["AI 代答解释题"],
+        "canonical_facts": ["后测应检验概念迁移，而不是纯记忆。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-16",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["三题在未提交状态下全部可见。", "教师端可查看解释题质量标签。"]
+    },
+    "step-17": {
+      "title": "总结与后续预告——走向 Nyquist 与频域指标",
+      "layout": {
+        "template": "summary_infographic",
+        "regions": [
+          { "id": "summary", "width": "full", "order": 1 },
+          { "id": "bridge", "width": "full", "order": 2 },
+          { "id": "resources", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "five-takeaways", "region": "summary", "kind": "summary-card-grid", "must_be_visible": true },
+        { "id": "next-course-card", "region": "bridge", "kind": "bridge-card", "must_be_visible": true },
+        { "id": "quick-reference-entry", "region": "resources", "kind": "resource-entry", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "takeaways", "type": "bullet_list", "title": "五条结论", "items": ["频域分析研究系统如何处理不同频率成分。", "正弦输入稳态后仍是同频输出。", "G(jω) 把传递函数对象翻译成频域对象。", "Bode 图是频率特性第一次稳定可见的入口。", "下节课推进到 Nyquist 与频域指标。"] },
+        { "id": "bridge", "type": "plain_text", "title": "去向", "body": "由 2-3 进入 2-4，再向 3-5 与 3-8 扩展。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读与点击资源入口。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["高亮下一课节点", "提示课后复习资源"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "resourceClicked"],
+        "result_policy": "resource_click_only"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["resource_click_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "完成收束与桥接。",
+        "allowed_scope": ["五条结论", "后续课程关系", "复习建议"],
+        "forbidden_scope": ["新加未讲过的判稳内容"],
+        "canonical_facts": ["结尾必须能独立复习，不依赖教师补充。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo?step=step-17",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["五条结论与去向卡是主视觉。", "资源入口不盖过总结内容。"]
+    }
+  }
+}

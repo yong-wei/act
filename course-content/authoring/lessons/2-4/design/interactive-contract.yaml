@@ -1,0 +1,823 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "2-4",
+  "course_title": "2-4：Nyquist 图与频域指标入口",
+  "course_route_segment": "unit-2-4-nyquist-margin-entry",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo",
+    "teacher_preview_panel_note": "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "回到地图——从 Bode 骨架走向图形对象",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          { "id": "header", "width": "full", "order": 1 },
+          { "id": "lead", "width": "full", "order": 2 },
+          { "id": "summary", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "stage-map", "region": "lead", "kind": "stage-map", "must_be_visible": true },
+        { "id": "today-task", "region": "summary", "kind": "key-task-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "stage-map", "type": "plain_text", "title": "路径定位", "body": "固定高亮 2-3 -> 2-4 -> 3-1。" },
+        { "id": "today-task", "type": "bullet_list", "title": "本课任务", "items": ["把 Bode 对象推进成图形对象。", "建立频域指标的第一入口。", "保持本课边界，不提前进入判据。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["推进到下一页", "高亮当前节点"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep", "teacherFollowSync"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count", "sync_status"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "标定本课位于模块 2 的出口位置。",
+        "allowed_scope": ["课程路径", "2-3 到 2-4 的衔接"],
+        "forbidden_scope": ["提前解释公式", "提前进入判据"],
+        "canonical_facts": ["2-3 首次把频域对象画成 Bode 图。", "2-4 继续把对象收束为图形对象。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-01",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["首屏能看到路径图与任务卡。", "本页没有作答区。"]
+    },
+    "step-02": {
+      "title": "情境引入——为什么同一条频率特性还要换一张图",
+      "layout": {
+        "template": "dual_view_question_slide",
+        "regions": [
+          { "id": "media", "width": "full", "order": 1 },
+          { "id": "questions", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "dual-view-media", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "core-questions", "region": "questions", "kind": "question-list", "must_be_visible": true },
+        { "id": "binary-vote", "region": "interaction", "kind": "binary-choice", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "questions", "type": "bullet_list", "title": "两问", "items": ["为什么已有 Bode 图，还要再画 Nyquist 图？", "两张图是不是在讲两套不同对象？"] },
+        { "id": "conclusion", "type": "plain_text", "title": "结论", "body": "Nyquist 不是新对象，而是同一频率特性的另一种图形语言。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "在两种判断之间二选一。",
+        "correct_answer": "B",
+        "options": {
+          "A": "Nyquist 图是在 Bode 图之外额外引入的新系统对象",
+          "B": "Nyquist 图与 Bode 图观察的是同一个 G(jω)"
+        },
+        "failure_feedback": "只提示“同一个对象，不同图形语言”。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放二选一判断", "显示正确项与一句点评"],
+      "telemetry_spec": {
+        "summary_fields": ["selectedOption", "resultState", "teacherRevealSeen"],
+        "misconception_tags": ["nyquist_is_new_object"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["option_distribution", "misconception_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "修正“Nyquist 是新对象”的起点误区。",
+        "allowed_scope": ["同一对象", "双图表达", "问题类型切换"],
+        "forbidden_scope": ["判据", "裕度"],
+        "canonical_facts": ["Bode 与 Nyquist 共享同一个 G(jω)。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-02",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["双图主视觉和两问清单在未作答状态下完整可见。", "错误反馈不提前进入判据。"]
+    },
+    "step-03": {
+      "title": "学习目标与边界——本课负责什么、不负责什么",
+      "layout": {
+        "template": "goal_boundary_slide",
+        "regions": [
+          { "id": "goals", "width": "full", "order": 1 },
+          { "id": "boundary", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "goal-cards", "region": "goals", "kind": "goal-card-row", "must_be_visible": true },
+        { "id": "boundary-table", "region": "boundary", "kind": "comparison-table", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "goals", "type": "bullet_list", "title": "四项目标", "items": ["会解释双图表达。", "会按四步读纯极点 Nyquist。", "会读频域指标。", "会做最小反向识别。"] },
+        { "id": "boundary", "type": "table", "title": "本课边界", "body": "负责 Nyquist 入口、指标读取、绘图入口与最小反识别；不负责判据、判稳、闭环结论和校正设计。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只建立课程边界。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["逐条强调目标", "高亮边界表某一行"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立明确的课程边界。",
+        "allowed_scope": ["目标卡", "本课负责", "本课不负责"],
+        "forbidden_scope": ["偷渡后续模块内容"],
+        "canonical_facts": ["本课不进入 Nyquist 判据。", "本课不把裕度升级成闭环结论。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-03",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["目标卡和边界表必须同屏。", "本页无作答区。"]
+    },
+    "step-04": {
+      "title": "前测——起点、对象与指标三类误区",
+      "layout": {
+        "template": "question_stack",
+        "regions": [
+          { "id": "question-stack", "width": "full", "order": 1 },
+          { "id": "submit-bar", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "pretest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "misconception-note", "type": "bullet_list", "title": "常见混淆", "items": ["Nyquist 不是新对象。", "起点和低频信息相连。", "裕度不等于本节就能下闭环结论。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三道前测题。",
+        "attempt_model": "允许重提一次，教师端区分首答与重提。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放前测", "显示统计", "显示答案"],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "errorBucket"],
+        "misconception_tags": ["nyquist_is_new_object", "wrong_start_point_reasoning", "margin_means_closed_loop_conclusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["question_distribution", "top_misconceptions"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "暴露起点误区。",
+        "allowed_scope": ["错因归类", "术语纠偏"],
+        "forbidden_scope": ["代替作答"],
+        "canonical_facts": ["前测只用来暴露误区，不用来拉开成绩差距。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-04",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["三题在未作答状态下全部可见。", "教师端可看到错误分布。"]
+    },
+    "step-05": {
+      "title": "同一个 G(jω)：Bode 拆开看，Nyquist 合起来看",
+      "layout": {
+        "template": "formula_media_compare",
+        "regions": [
+          { "id": "formula", "width": "full", "order": 1 },
+          { "id": "media", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "polar-formula-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
+        { "id": "cartesian-formula-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
+        { "id": "consistency-panel", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "triple-match", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "formula-1", "type": "formula", "title": "极坐标形式", "value": "G(j\\omega)=|G(j\\omega)|e^{j\\phi(\\omega)}" },
+        { "id": "formula-2", "type": "formula", "title": "直角坐标形式", "value": "G(j\\omega)=\\operatorname{Re}\\{G(j\\omega)\\}+j\\operatorname{Im}\\{G(j\\omega)\\}" },
+        { "id": "comparison", "type": "bullet_list", "title": "两种表达", "items": ["Bode 把幅值与相位拆开看。", "Nyquist 把复数点合成轨迹看。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "triple_match",
+        "student_task": "把图形语言、观察对象和问题类型对应起来。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": ["重置配对", "显示常见错分对"],
+      "telemetry_spec": {
+        "summary_fields": ["matchAttempted", "matchCorrected", "timeOnStep"],
+        "misconception_tags": ["dual_graph_role_confusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["common_mismatch_pairs", "completion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把同一对象、两种图形表达立住。",
+        "allowed_scope": ["幅值", "相位", "复平面轨迹", "双图职责"],
+        "forbidden_scope": ["判据", "校正设计"],
+        "canonical_facts": ["Bode 与 Nyquist 共享同一个 G(jω)。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-05",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["两条公式与双图主视觉在未交互状态下完整可见。", "配对失败时只提示类别，不提前进入判据。"]
+    },
+    "step-06": {
+      "title": "Nyquist 四步读法——起点、终点、方向、总转角",
+      "layout": {
+        "template": "workflow_card_with_reason_check",
+        "regions": [
+          { "id": "workflow", "width": "full", "order": 1 },
+          { "id": "meaning", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "four-step-workflow", "region": "workflow", "kind": "workflow-card-row", "must_be_visible": true },
+        { "id": "question-matrix", "region": "meaning", "kind": "matrix-table", "must_be_visible": true },
+        { "id": "reason-check", "region": "interaction", "kind": "reason-check", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "workflow", "type": "ordered_list", "title": "四步法", "items": ["起点。", "终点。", "方向。", "总转角。"] },
+        { "id": "meaning", "type": "bullet_list", "title": "对应问题", "items": ["起点对应低频如何通过。", "终点对应高频极限。", "方向对应相位趋势。", "总转角对应累计拖后。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "reason_check",
+        "student_task": "判断四步法的正确顺序及其对应问题。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放判断", "显示正确顺序"],
+      "telemetry_spec": {
+        "summary_fields": ["selectionState", "resultState", "teacherRevealSeen"],
+        "misconception_tags": ["skip_endpoint_before_direction"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["confusion_matrix", "correction_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立固定读图顺序。",
+        "allowed_scope": ["起点", "终点", "方向", "总转角"],
+        "forbidden_scope": ["稳定性判据"],
+        "canonical_facts": ["四步法先看端点，再看运动趋势。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-06",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["流程卡与对应问题表同屏。", "互动区不遮挡四步法。"]
+    },
+    "step-07": {
+      "title": "一阶惯性轨迹——从正实轴出发，向下收敛至原点",
+      "layout": {
+        "template": "courseware_top_slider_bottom",
+        "regions": [
+          { "id": "formula-card", "width": "full", "order": 1 },
+          { "id": "media", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "first-order-formulas", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
+        { "id": "nyquist-track-figure", "region": "media", "kind": "response-graphic", "must_be_visible": true },
+        { "id": "parameter-slider", "region": "workspace", "kind": "slider-workspace", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "formula-1", "type": "formula", "title": "对象表达", "value": "G(s)=\\frac{1}{Ts+1}" },
+        { "id": "formula-2", "type": "formula", "title": "频率特性", "value": "G(j\\omega)=\\frac{1}{1+j\\omega T}=\\frac{1-j\\omega T}{1+(\\omega T)^2}" },
+        { "id": "conclusions", "type": "bullet_list", "title": "三条读图结论", "items": ["起点在正实轴单位附近。", "终点收向原点。", "轨迹向下弯曲。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_slider",
+        "student_task": "拖动 T，观察轨迹标签变化。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["重置参数", "广播一个代表性状态"],
+      "telemetry_spec": {
+        "summary_fields": ["sliderChanged", "stateSnapshot", "timeOnStep"],
+        "result_policy": "store_final_state"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["parameter_distribution", "final_shape_tags"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把一阶惯性 Nyquist 轨迹与 Bode 直觉绑在一起。",
+        "allowed_scope": ["低频通过", "高频衰减", "相位拖后"],
+        "forbidden_scope": ["判稳结论", "零点系统"],
+        "canonical_facts": ["一阶惯性的 Nyquist 轨迹从右侧出发，向下收向原点。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-07",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["公式卡、轨迹图和工作区同屏。", "工作区不能替代静态公式卡。"]
+    },
+    "step-08": {
+      "title": "纯极点系统比较——极点越多，轨迹通常转得更深",
+      "layout": {
+        "template": "comparison_panel_with_sort",
+        "regions": [
+          { "id": "media", "width": "full", "order": 1 },
+          { "id": "table", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "pure-pole-comparison", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "comparison-table", "region": "table", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "card-sorter", "region": "interaction", "kind": "card-sort", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "table", "type": "table", "title": "对象对照", "body": "一阶惯性、积分环节与两个实极点对象的起点、高频极限与总体趋势对照。" },
+        { "id": "rule", "type": "plain_text", "title": "规律", "body": "极点越多，累计拖后越大，轨迹通常也转得更深；Bode 与 Nyquist 必须彼此印证。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "card_sort",
+        "student_task": "完成“谁转得更深 / 谁沿负虚轴 / 谁仍从正实轴出发”的排序或分组。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": ["重置排序", "显示常见错分对"],
+      "telemetry_spec": {
+        "summary_fields": ["sortAttempted", "sortCorrected", "timeOnStep"],
+        "misconception_tags": ["pure_pole_track_confusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["common_sort_errors", "misconception_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立纯极点对象之间的比较语言。",
+        "allowed_scope": ["起点", "终点", "方向", "累计拖后"],
+        "forbidden_scope": ["零点系统", "判据"],
+        "canonical_facts": ["纯极点系统的 Nyquist 轨迹可用起点、终点、方向和总转角比较。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-08",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["比较图与对象表必须先于排序区出现。", "本页不出现判稳结论。"]
+    },
+    "step-09": {
+      "title": "频域指标入口——ωc、ωg、γ、Kg、ωb",
+      "layout": {
+        "template": "formula_table_match",
+        "regions": [
+          { "id": "formula-strip", "width": "full", "order": 1 },
+          { "id": "definition-matrix", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "indicator-formulas", "region": "formula-strip", "kind": "formula-card-group", "must_be_visible": true },
+        { "id": "indicator-matrix", "region": "definition-matrix", "kind": "matrix-table", "must_be_visible": true },
+        { "id": "triple-match", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "formula-1", "type": "formula", "title": "截止与穿越", "value": "|G(j\\omega_c)|=1,\\qquad \\angle G(j\\omega_g)=-180^\\circ" },
+        { "id": "formula-2", "type": "formula", "title": "裕度定义", "value": "\\gamma = 180^\\circ + \\angle G(j\\omega_c),\\qquad K_g = \\frac{1}{|G(j\\omega_g)|}" },
+        { "id": "formula-3", "type": "formula", "title": "带宽入口", "value": "|T(j\\omega_b)|=\\frac{|T(0)|}{\\sqrt{2}}" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "triple_match",
+        "student_task": "把指标名称、图上定义和回答的问题对应起来。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": ["重置配对", "显示常见错配"],
+      "telemetry_spec": {
+        "summary_fields": ["matchAttempted", "matchCorrected", "timeOnStep"],
+        "misconception_tags": ["indicator_definition_confusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["common_mismatch_pairs", "completion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把五个指标先作为定义与读图锚点建立起来。",
+        "allowed_scope": ["定义", "读图", "基础计算"],
+        "forbidden_scope": ["闭环稳定性结论"],
+        "canonical_facts": ["本课先把指标当成离边界还有多远的第一语言。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-09",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["五个公式在未交互状态下完整可见。", "对照区不遮挡指标表。"]
+    },
+    "step-10": {
+      "title": "双图对照——同一指标在 Bode 和 Nyquist 上怎样找",
+      "layout": {
+        "template": "dual_graph_indicator_locator",
+        "regions": [
+          { "id": "table", "width": "full", "order": 1 },
+          { "id": "media", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "dual-graph-table", "region": "table", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "consistency-panel", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "hotspot-labeling", "region": "interaction", "kind": "hotspot-labeling", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "table", "type": "table", "title": "双图对照", "body": "ωc 对应 0 dB 与单位圆，ωg 对应 -180° 与负实轴，γ 与 Kg 分别对应危险方向和 (-1,0) 余量。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "hotspot_labeling",
+        "student_task": "把单位圆、负实轴、危险方向与指标名称连起来。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": ["重置定位", "显示错点热区"],
+      "telemetry_spec": {
+        "summary_fields": ["hotspotPlaced", "resultState", "timeOnStep"],
+        "misconception_tags": ["indicator_anchor_confusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["hotspot_error_heatmap", "completion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把同一指标在双图中的对应关系钉牢。",
+        "allowed_scope": ["单位圆", "负实轴", "危险方向", "(-1,0)"],
+        "forbidden_scope": ["用余量直接下闭环结论"],
+        "canonical_facts": ["同一指标能在 Bode 和 Nyquist 两张图上找到对应。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-10",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["双图对照表先于图上定位区出现。", "图上定位区不替代表格。"]
+    },
+    "step-11": {
+      "title": "手工绘图入口一——Bode 基线、折点与斜率",
+      "layout": {
+        "template": "sketch_workflow_workspace",
+        "regions": [
+          { "id": "workflow", "width": "full", "order": 1 },
+          { "id": "media", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "workflow-cards", "region": "workflow", "kind": "workflow-card-row", "must_be_visible": true },
+        { "id": "checklist-media", "region": "media", "kind": "workflow-graphic", "must_be_visible": true },
+        { "id": "builder-workspace", "region": "workspace", "kind": "builder-workspace", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "formula", "type": "formula", "title": "基线公式", "value": "L(\\omega)=20\\log_{10}K-20r\\log_{10}\\omega" },
+        { "id": "workflow", "type": "ordered_list", "title": "课堂口令", "items": ["先定基线。", "再排折点。", "后改斜率。"] },
+        { "id": "boundary", "type": "plain_text", "title": "边界", "body": "本页只做到简单组合对象首轮骨架，不追求精细修正。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "workspace_builder",
+        "student_task": "放置基线、折点与斜率变化标记。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["重置工作区", "显示参考骨架"],
+      "telemetry_spec": {
+        "summary_fields": ["checkpointSaved", "errorBucket", "teacherRevealSeen"],
+        "misconception_tags": ["wrong_baseline_with_integrator", "missing_break_frequency"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["baseline_error_rate", "missing_break_frequency_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生知道第一笔该从哪里下。",
+        "allowed_scope": ["基线", "折点", "斜率方向", "积分环节"],
+        "forbidden_scope": ["AI 直接生成最终答案图"],
+        "canonical_facts": ["含积分环节时，Bode 第一笔不是凭感觉画水平线。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-11",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["流程卡、检查单和工作区同屏。", "工作区不可替代流程卡。"]
+    },
+    "step-12": {
+      "title": "手工绘图入口二——Nyquist 端点、过轴点与渐近线",
+      "layout": {
+        "template": "workflow_graph_workspace",
+        "regions": [
+          { "id": "workflow", "width": "full", "order": 1 },
+          { "id": "rules", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "nyquist-checklist", "region": "workflow", "kind": "workflow-graphic", "must_be_visible": true },
+        { "id": "key-point-rules", "region": "rules", "kind": "formula-card-group", "must_be_visible": true },
+        { "id": "path-highlighter", "region": "interaction", "kind": "path-highlight", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "formula-1", "type": "formula", "title": "过实轴条件", "value": "\\operatorname{Im}\\{G(j\\omega)\\}=0" },
+        { "id": "formula-2", "type": "formula", "title": "过虚轴条件", "value": "\\operatorname{Re}\\{G(j\\omega)\\}=0" },
+        { "id": "rule", "type": "plain_text", "title": "规则", "body": "过实轴解虚部为零，过虚轴解实部为零；若有积分环节，先判渐近线。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "path_highlight",
+        "student_task": "按顺序高亮端点、过轴点、渐近线和方向箭头。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": ["重置高亮", "显示标准锚点顺序"],
+      "telemetry_spec": {
+        "summary_fields": ["highlightVisited", "resultState", "timeOnStep"],
+        "misconception_tags": ["skip_asymptote_for_integrator"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["rule_focus_heatmap", "common_missed_anchor"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生先按规则找关键点，再谈连轨迹。",
+        "allowed_scope": ["端点", "过轴点", "渐近线", "方向"],
+        "forbidden_scope": ["凭感觉连轨迹"],
+        "canonical_facts": ["Nyquist 关键点必须通过端点、过轴点和渐近线来确定。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-12",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["检查单与规则卡先于标注区出现。", "两条求交规则完整可见。"]
+    },
+    "step-13": {
+      "title": "例题一——含积分环节对象从 Bode 基线到 Nyquist 轨迹",
+      "layout": {
+        "template": "worked_example_workspace",
+        "regions": [
+          { "id": "problem", "width": "full", "order": 1 },
+          { "id": "method", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 },
+          { "id": "result", "width": "full", "order": 4 }
+        ]
+      },
+      "modules": [
+        { "id": "example-problem-card", "region": "problem", "kind": "problem-card", "must_be_visible": true },
+        { "id": "three-step-method", "region": "method", "kind": "workflow-card-row", "must_be_visible": true },
+        { "id": "calculation-workspace", "region": "workspace", "kind": "worked-example-workspace", "must_be_visible": true },
+        { "id": "result-summary-card", "region": "result", "kind": "result-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "problem", "type": "formula", "title": "题面", "value": "G_1(s)=\\frac{5}{s(0.5s+1)}" },
+        { "id": "method", "type": "ordered_list", "title": "三步法", "items": ["用 K/s 定基线。", "找转折频率 \\omega_p=2\\ \\text{rad/s} 并改斜率。", "再翻译成 Nyquist 的端点与方向语言。"] },
+        { "id": "result", "type": "plain_text", "title": "结果摘要", "body": "含积分环节时，Bode 第一笔不是水平线；Nyquist 也不能跳过端点与渐近线判断。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "worked_example_workspace",
+        "student_task": "逐格填写基线值、转折频率和轨迹锚点。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["按步骤揭示", "显示结果摘要"],
+      "telemetry_spec": {
+        "summary_fields": ["stepCompletion", "errorBucket", "timeOnStep"],
+        "misconception_tags": ["draw_horizontal_first", "skip_nyquist_anchor"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["stuck_step_distribution"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把 Bode 下笔顺序和 Nyquist 锚点意识串起来。",
+        "allowed_scope": ["基线", "转折频率", "端点", "方向"],
+        "forbidden_scope": ["直接代写完整解答"],
+        "canonical_facts": ["一个例题里同时稳住 Bode 和 Nyquist 的首轮骨架。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-13",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["题面、三步法和结果摘要必须同页可见。", "工作区不能独占整页。"]
+    },
+    "step-14": {
+      "title": "例题二——读取频域指标，暂不作闭环结论",
+      "layout": {
+        "template": "worked_example_metric_panel",
+        "regions": [
+          { "id": "problem", "width": "full", "order": 1 },
+          { "id": "definition", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 },
+          { "id": "result", "width": "full", "order": 4 }
+        ]
+      },
+      "modules": [
+        { "id": "metric-problem-card", "region": "problem", "kind": "problem-card", "must_be_visible": true },
+        { "id": "definition-anchor-cards", "region": "definition", "kind": "formula-card-group", "must_be_visible": true },
+        { "id": "metric-overlay", "region": "workspace", "kind": "metric-overlay", "must_be_visible": true },
+        { "id": "result-card", "region": "result", "kind": "result-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "problem", "type": "formula", "title": "题面", "value": "G_3(s)=\\frac{4}{s(0.5s+1)(0.2s+1)}" },
+        { "id": "result-1", "type": "formula", "title": "数值结果一", "value": "\\omega_c \\approx 2.35\\ \\text{rad/s},\\quad \\omega_g \\approx 3.16\\ \\text{rad/s}" },
+        { "id": "result-2", "type": "formula", "title": "数值结果二", "value": "\\gamma \\approx 15.3^\\circ,\\quad K_g \\approx 1.75,\\quad \\omega_b \\approx 3.68\\ \\text{rad/s}" },
+        { "id": "boundary", "type": "plain_text", "title": "边界提醒", "body": "这些量在本课只服务定义、读图和基础计算，不直接升级成闭环结论。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "metric_overlay",
+        "student_task": "把各指标锚点叠加到对应图形位置。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": ["切换指标高亮", "显示边界提醒"],
+      "telemetry_spec": {
+        "summary_fields": ["indicatorLocated", "resultState", "timeOnStep"],
+        "misconception_tags": ["jump_to_closed_loop_conclusion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["indicator_error_rate", "completion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生知道每个数值来自哪里。",
+        "allowed_scope": ["定义锚点", "数值核对", "边界提醒"],
+        "forbidden_scope": ["稳定性裁决"],
+        "canonical_facts": ["例题二只做到读图与基础计算，不下闭环结论。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-14",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["题面、数值结果和边界提醒在未交互状态下可见。", "叠加区不遮挡结果卡。"]
+    },
+    "step-15": {
+      "title": "基础反向识别——先认对象轮廓，再估参数量级",
+      "layout": {
+        "template": "compare_then_ai",
+        "regions": [
+          { "id": "media", "width": "full", "order": 1 },
+          { "id": "logic", "width": "full", "order": 2 },
+          { "id": "ai-panel", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "feature-figure", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "clue-table", "region": "logic", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "ai-compare-workspace", "region": "ai-panel", "kind": "ai-compare-workspace", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "clues", "type": "bullet_list", "title": "四条线索", "items": ["低频平直且约 +6 dB。", "在 \\omega \\approx 2\\ \\text{rad/s} 左右开始下降。", "相位逐步拖后。", "无显著峰起。"] },
+        { "id": "result", "type": "formula", "title": "最小反识别结果", "value": "G(s)\\approx \\frac{K}{Ts+1},\\qquad K \\approx 2,\\quad T \\approx 0.5\\ \\text{s}" },
+        { "id": "boundary", "type": "plain_text", "title": "边界", "body": "本课只做到对象轮廓与参数量级，不做完整系统辨识。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "ai_compare_workspace",
+        "student_task": "先写自己的判断，再与 AI 输出逐条对照。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["开放 AI 对照区", "显示线索表"],
+      "telemetry_spec": {
+        "summary_fields": ["selfAnswerSubmitted", "aiUsed", "compareCompleted"],
+        "result_policy": "store_text_only"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["ai_usage_rate", "common_reason_tags"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立“先认轮廓，再估量级”的对象化判断。",
+        "allowed_scope": ["对象轮廓", "低频", "高频", "转折", "峰起", "参数量级"],
+        "forbidden_scope": ["完整辨识模型", "设计建议"],
+        "canonical_facts": ["AI 只核对线索链，不替学生完成完整辨识。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-15",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["特征图、线索表和 AI 对照区同屏。", "AI 提示词边界写清。"]
+    },
+    "step-16": {
+      "title": "后测——图会看，更要会守边界",
+      "layout": {
+        "template": "post_quiz_stack",
+        "regions": [
+          { "id": "question-stack", "width": "full", "order": 1 },
+          { "id": "submit-bar", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "post-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "post-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "post-q3", "region": "question-stack", "kind": "short-response-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "boundary-reminder", "type": "bullet_list", "title": "后测覆盖", "items": ["双图一致性。", "相位裕度基础计算。", "为什么本课不能直接下闭环结论。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成两题客观题和一题解释题。",
+        "attempt_model": "客观题即时反馈，解释题保存文本。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放后测", "显示统计", "显示参考答案"],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "errorBucket"],
+        "misconception_tags": ["jump_to_closed_loop_conclusion", "wrong_phase_margin_calc"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["question_distribution", "top_misconceptions"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "检查学生是否既会读图，也会守住本课位阶。",
+        "allowed_scope": ["错因纠偏", "术语复核"],
+        "forbidden_scope": ["AI 直接代答解释题"],
+        "canonical_facts": ["本课最大的错误之一，是把指标入口误用成闭环裁决。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-16",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["三题在未作答状态下全部可见。", "解释题不折叠。"]
+    },
+    "step-17": {
+      "title": "总结与后续预告——从图形对象走向结构机理",
+      "layout": {
+        "template": "summary_infographic",
+        "regions": [
+          { "id": "summary", "width": "full", "order": 1 },
+          { "id": "bridge", "width": "full", "order": 2 },
+          { "id": "resources", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "five-takeaways", "region": "summary", "kind": "summary-card-row", "must_be_visible": true },
+        { "id": "next-course-card", "region": "bridge", "kind": "next-step-card", "must_be_visible": true },
+        { "id": "quick-reference-entry", "region": "resources", "kind": "quick-reference-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "takeaways", "type": "bullet_list", "title": "五条结论", "items": ["Bode 图与 Nyquist 图看的是同一个 G(jω)。", "Nyquist 图先按四步法读。", "频域指标本课只做到定义、读图和基础计算。", "手工绘图入口重在下笔顺序与关键锚点。", "基础反向识别先认对象轮廓，再估参数量级。"] },
+        { "id": "next-course", "type": "plain_text", "title": "后续去向", "body": "模块 3 将继续解释极点、零点与型别为何会让图这样变化。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["逐条显示结论", "显示 3-1 去向卡"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把本课收束成可复习的结构化提要。",
+        "allowed_scope": ["结论复核", "课程衔接"],
+        "forbidden_scope": ["新增判据或设计内容"],
+        "canonical_facts": ["2-4 是模块 2 的图形对象出口，3-1 开始转入结构机理层。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo?step=step-17",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["五条结论、速查卡和去向卡必须同屏。", "本页没有作答区。"]
+    }
+  }
+}

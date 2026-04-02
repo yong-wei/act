@@ -1,46 +1,78 @@
 {
   "lesson_id": "3-2",
   "unit_type": "实践",
-  "generated_at": "2026-03-30T01:09:41.053738+00:00",
+  "generated_at": "2026-04-01T14:08:45.288344+00:00",
   "primary_sources": [
     "course-content/authoring/lessons/3-2/design/handout.md",
     "course-content/authoring/lessons/3-2/design/interactive-page.md"
   ],
+  "interactive_page_source": "course-content/authoring/lessons/3-2/design/interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/3-2/design/interactive-contract.yaml",
   "boppps_source": "course-content/authoring/lessons/3-2/design/boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/3-2/sequence.json",
   "expected_code_media": [
     {
-      "output": "3-2-pole-migration.png"
+      "script": "3-2-generate-reference-cards.py",
+      "output": "3-2-special-cases-card.svg",
+      "formula_mode": "svg-mathtext",
+      "page_formula_sources": [
+        "design/handout.md",
+        "design/interactive-page.md"
+      ]
     },
     {
-      "output": "3-2-step-comparison.png"
+      "script": "3-2-generate-reference-cards.py",
+      "output": "3-2-parameter-range-flow.svg",
+      "formula_mode": "svg-mathtext",
+      "page_formula_sources": [
+        "design/handout.md",
+        "design/interactive-page.md"
+      ]
     },
     {
-      "output": "3-2-bode-magnitude.png"
+      "output": "3-2-pole-migration.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "3-2-special-cases-card.png"
+      "output": "3-2-step-comparison.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "3-2-parameter-range-flow.png"
+      "output": "3-2-bode-magnitude.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "3-2-cover-comic.png"
+      "output": "3-2-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "3-2-info.png"
+      "output": "3-2-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "3-2-slides.pdf"
+      "output": "3-2-slides.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "3-2-intro-video.mp4"
+      "output": "3-2-intro-video.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "3-2-course.mp4"
+      "output": "3-2-course.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "3-2-audio.m4a"
+      "output": "3-2-audio.m4a",
+      "formula_mode": "none",
+      "page_formula_sources": []
     }
   ]
 }

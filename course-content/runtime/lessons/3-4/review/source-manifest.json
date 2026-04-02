@@ -1,0 +1,80 @@
+{
+  "lesson_id": "3-4",
+  "unit_type": "实践",
+  "generated_at": "2026-04-01T14:53:23.191503+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/3-4/design/handout.md",
+    "course-content/authoring/lessons/3-4/design/interactive-page.md"
+  ],
+  "interactive_page_source": "course-content/authoring/lessons/3-4/design/interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/3-4/design/interactive-contract.yaml",
+  "boppps_source": "course-content/authoring/lessons/3-4/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/3-4/sequence.json",
+  "expected_code_media": [
+    {
+      "output": "3-4-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-4-intro-video.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-4-root-locus-summary.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-4-root-locus-keynodes.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-4-root-locus-reference-b.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-4-conditional-stability-window.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-4-step-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-4-bode-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-4-dominant-pole-selection.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-4-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-4-gain-conversion-card.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-4-turning-track-k06064.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-4-turning-track-k20.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    }
+  ]
+}

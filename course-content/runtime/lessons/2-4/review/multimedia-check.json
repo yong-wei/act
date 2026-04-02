@@ -38,5 +38,7 @@
   ],
   "missing_assets": [],
   "executed_scripts": [],
-  "processed_dir": "course-content/authoring/lessons/2-4/media/processed"
+  "processed_dir": "course-content/authoring/lessons/2-4/media/processed",
+  "formula_contract_issues": [],
+  "formula_media": []
 }

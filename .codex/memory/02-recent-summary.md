@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-03-30
-摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，还必须注意互动设计文档已进入“人读 `interactive-page.md` + 机读 `interactive-contract.yaml`”双轨真源阶段，`slides-ref` 已启动 `pptx -> Markdown + TikZ` 资源库长期转换任务、`resource-library` 已正式接入大纲重构与课程制作技能、新落地的 `course-content/questions/` 结构化习题库，以及数据治理 worker 故障收敛后的稳定运维边界。
+最后更新: 2026-04-01
+摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，还必须注意互动设计文档已进入“人读 `interactive-page.md` + 机读 `interactive-contract.yaml`”双轨真源阶段，`slides-ref` 已启动 `pptx -> Markdown + TikZ` 资源库长期转换任务、`resource-library` 已正式接入大纲重构与课程制作技能并出现了 `3-8` 频域课的稳定选材样例、新落地的 `course-content/questions/` 结构化习题库，以及数据治理 worker 故障收敛后的稳定运维边界。
 上游:
 - [00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
 - [README.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/README.md)
@@ -15,6 +15,8 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-04-01 已把 `2-3` 的互动设计升级为 V2 双轨真源：作者态 [course-content/authoring/lessons/2-3/design/interactive-page.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/authoring/lessons/2-3/design/interactive-page.md) 现已补齐 `文档职责 / 表述规则 / 全课总览 / 讲义核心内容映射 / 步骤级静态承载内容 / 互动升级点`，并新增 [course-content/authoring/lessons/2-3/design/interactive-contract.yaml](/Users/YW/Documents/Site/act.just.edu.cn/course-content/authoring/lessons/2-3/design/interactive-contract.yaml)；`python3 course-content/scripts/review_lesson_content.py --lesson 2-3` 现已导出 `interactive-page-check.json`，其中 `missing_contract_fields`、`step_contract_issues`、`missing_target_steps` 与 `formula_mapping_issues` 均为 `0`，后续实现 `unit-2-3-frequency-response-bode-intro` 时应直接消费这组双轨真源，不再把 2-3 当成旧版动作脚本稿
+- 2026-04-01 已把 `3-8（理论） 频域判别与跨域综合语言` 的资源库融入口径固定为一条可复用判断链：`pptx/16 -> pptx/19 -> pptx/21 -> 船舶 5.1/5.3` 分别承担“频域入口 -> 判稳主体 -> 三频段与性能读回 -> 工程案例落地”，并明确排除 `pptx/17` 与 `pptx/18`，防止 `3-8` 回退到模块2的作图/读图基础重讲；该样例已沉淀到 [70-workflows/55-resource-library-integration.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/55-resource-library-integration.md)，后续若继续做模块3后段频域课重构，可直接复用这条边界
 - 2026-03-30 已把 `2-2` 的互动设计升级为 V2 双轨真源：作者态 [course-content/authoring/lessons/2-2/design/interactive-page.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/authoring/lessons/2-2/design/interactive-page.md) 现已补齐 `文档职责 / 表述规则 / 全课总览 / 学生演示预览口径`，并新增 [course-content/authoring/lessons/2-2/design/interactive-contract.yaml](/Users/YW/Documents/Site/act.just.edu.cn/course-content/authoring/lessons/2-2/design/interactive-contract.yaml)；`review_lesson_content.py --lesson 2-2` 现会在 runtime `review/` 中导出 `contract_path`、完整的 `contract_required_fields` 和 `interactive_contract_source`，且 `missing_contract_fields`、`step_contract_issues`、`missing_target_steps` 均为 `0`。后续实现 `unit-2-2-time-domain-response` 时应直接消费这组双轨真源，不再把 2-2 当成旧版单稿互动设计
 - 2026-03-30 已把 `2-1` 的互动设计升级为 V2 双轨真源：作者态 `interactive-page.md` 负责固定页面布局、文本/公式/图片填充和互动方式，`interactive-contract.yaml` 负责机读约束；`course-content/scripts/review_lesson_content.py` 现在会校验契约必需字段，并把 `contract_path`、`missing_contract_fields`、`step_contract_issues`、`interactive_contract_source` 导出到 `runtime/lessons/<lesson>/review/*`。同时，教师端预置教案预览已明确“默认打开学生演示页，所见即所得”，不再把教师模板弹窗当作真实页面预览；后续实现互动课时，若课次已提供契约，就不应再回读讲义自由发挥页面结构
 - 2026-03-28 已把 `course-content/questions/` 正式并入 [course-content/syllabus-refactor/homework-framework.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/syllabus-refactor/homework-framework.md)：`questions/AC-Q-*.json|md` 与 `indexes/` 现在是闭题设计的正式题源输入层，必须遵循“先定作业边界、再选题源”的规则；其中结构化解析题库当前共 `167` 题，适合做 `[C]` 题训练校准与 `[X]/[D]` 题的对象/图示/评分锚点候选，`objective-bank/icourse-bank-bankType4.*` 的 `226` 道客观题则明确只服务前测、补练与自适应推题，不直接占用 `20道闭题` 或 `O1-O7` 开放题名额

@@ -1,51 +1,78 @@
 {
   "lesson_id": "2-3",
   "unit_type": "理论",
-  "generated_at": "2026-03-29T13:54:30.231904+00:00",
+  "generated_at": "2026-04-01T11:37:15.249470+00:00",
   "primary_sources": [
-    "course-content/authoring/lessons/2-3/design/handout.md"
+    "course-content/authoring/lessons/2-3/design/handout.md",
+    "course-content/authoring/lessons/2-3/design/interactive-page.md"
   ],
+  "interactive_page_source": "course-content/authoring/lessons/2-3/design/interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/2-3/design/interactive-contract.yaml",
   "boppps_source": "course-content/authoring/lessons/2-3/design/boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/2-3/sequence.json",
   "expected_code_media": [
     {
       "script": "2-3-fr-01-command-vs-disturbance.py",
-      "output": "2-3-fr-01-command-vs-disturbance.svg"
+      "output": "2-3-fr-01-command-vs-disturbance.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
       "script": "2-3-fr-02-square-wave-harmonics.py",
-      "output": "2-3-fr-02-square-wave-harmonics.svg"
+      "output": "2-3-fr-02-square-wave-harmonics.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
       "script": "2-3-fr-03-sine-in-sine-out.py",
-      "output": "2-3-fr-03-sine-in-sine-out.svg"
+      "output": "2-3-fr-03-sine-in-sine-out.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-3-cover-comic.png"
+      "output": "2-3-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-3-fr-04-linear-vs-log-frequency.svg"
+      "output": "2-3-fr-04-linear-vs-log-frequency.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-3-fr-05-bode-axes-and-typical-cards.svg"
+      "output": "2-3-fr-05-bode-axes-and-typical-cards.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-3-fr-06-bode-skeleton-workflow.svg"
+      "output": "2-3-fr-06-bode-skeleton-workflow.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-3-info.png"
+      "output": "2-3-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-3-intro-video.mp4"
+      "output": "2-3-intro-video.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-3-slides.pdf"
+      "output": "2-3-slides.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-3-course.mp4"
+      "output": "2-3-course.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-3-audio.m4a"
+      "output": "2-3-audio.m4a",
+      "formula_mode": "none",
+      "page_formula_sources": []
     }
   ]
 }

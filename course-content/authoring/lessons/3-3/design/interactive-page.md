@@ -36,16 +36,16 @@
 | handout_anchor | core_item_type | must_appear_content | target_step | page_mode | interaction_upgrade | media_or_table_ref | acceptance_note |
 |---|---|---|---|---|---|---|---|
 | ## 一、引入：为什么知道稳定区间还不够 | concept | “知道边界在哪里”与“看清极点怎样走到边界”这两件事的区分。 | `step-02` | `static+interactive` | 二选一判断只负责暴露“边界已足够”的误判。 | `3-3-pp-04-complete-rules-example.svg` | 主图和三问同页出现。 |
-| ### 2.1 从闭环特征方程出发：轨迹研究的是“参数变化下的闭环根集合” | concept+formula | `$$1+G(s)H(s)=0$$` 与“参数变化下的闭环根集合”的定义。 | `step-04` | `static+interactive` | 短答区只补一句“为什么单点求根不够”。 | `无` | 定义卡必须先于互动区出现。 |
+| ### 2.1 从闭环特征方程出发：轨迹研究的是"参数变化下的闭环根集合" | concept+formula | `$$1+G(s)H(s)=0$$` 与“参数变化下的闭环根集合”的定义。 | `step-04` | `static+interactive` | 短答区只补一句“为什么单点求根不够”。 | `无` | 定义卡必须先于互动区出现。 |
 | ### 2.3 从闭环特征方程到 GH=-1 | formula | `$$G(s)H(s)=-1$$` 的方程链与“后续条件从这里分出”的说明。 | `step-05` | `static` | 无，保持静态展示。 | `无` | 方程链完整落页。 |
 | ### 2.4 相角条件：先判断“这个点能不能在轨迹上” / ### 2.5 幅值条件：再判断“若在轨迹上，它对应多大参数” | formula+figure | `$$\angle G(s)H(s)=(2k+1)\pi$$`、`$$|G(s)H(s)|=1$$`，以及“先资格、后参数”的顺序。 | `step-06` | `static+interactive` | 判断区只检查顺序和理由。 | `3-3-pp-03-angle-and-magnitude-geometry.svg` | 几何图和两条条件同时可见。 |
 | ### 3.1 起点与终点：轨迹从哪里来，到哪里去 / ### 3.2 分支数、对称性与连续性：先把整张图的骨架搭起来 / ### 3.3 实轴区段法则：哪些实轴段真正属于根轨迹 / ### 3.4 渐近线：当分支走向无穷远时，整体朝哪几个方向展开 | concept+figure | 起点终点、实轴区段、渐近线中心与夹角。 | `step-07` | `static+interactive` | 高亮区只负责法则落点，不省略法则卡。 | `3-3-pp-04-complete-rules-example.svg` / `3-3-pp-05-real-axis-parity.svg` | 骨架法则至少三条同页出现。 |
 | ### 3.5 分离点与汇合点：分支什么时候离开实轴，什么时候重新并回 / ### 3.6 虚轴交点：根轨迹何时真正触碰稳定边界 / ### 3.7 起始角与终止角：复极点和复零点附近的切线方向 | concept+figure | 分离点、虚轴交点、起始角终止角的角色区分。 | `step-08` | `static+interactive` | 配对区只负责“哪个节点回答什么问题”。 | `3-3-pp-06-departure-arrival-angle.svg` | 三类关键节点都要明确写出用途。 |
 | ### 3.9 完整例题：为 $G(s)=K/[s(s+1)(s+2)]$ 绘制根轨迹骨架并判断稳定范围 | example | 对 `G(s)H(s)=K/[s(s+1)(s+2)]` 依次完成骨架和稳定范围 `0<K<6`。 | `step-09` | `static+interactive` | 工作区只承接三步法和中间量。 | `3-3-pp-04-complete-rules-example.svg` | 题面、三步法、最终稳定范围显式出现。 |
-| ### 4.1 为什么要把视角从“增益根轨迹”扩大到“广义根轨迹” / ### 4.2 一般参数怎样转回普通根轨迹问题 | concept+formula | `$$B(s)+aA(s)=0$$` 改写到 `$$1+aA(s)/B(s)=0$$` 的总逻辑。 | `step-10` | `static+interactive` | 排序区只检查改写顺序。 | `3-3-pp-01-root-locus-roadmap.svg` | 改写链完整出现。 |
+| ### 4.1 为什么要把视角从"增益根轨迹"扩大到"广义根轨迹" | concept+formula | `$$B(s)+aA(s)=0$$` 改写到 `$$1+aA(s)/B(s)=0$$` 的总逻辑。 | `step-10` | `static+interactive` | 排序区只检查改写顺序。 | `3-3-pp-01-root-locus-roadmap.svg` | 改写链完整出现。 |
 | ### 4.3 一个非增益参数的例子：以时间常数 $T_a$ 为参数 | example+figure | 时间常数 `T_a` 例子及等效开环 `$$s(s+1)/(s+2)$$`。 | `step-11` | `static+interactive` | 切换区只对照“原方程 / 等效开环 / 轨迹结果”。 | `3-3-pp-07-generalized-time-constant-example.svg` | 等效开环与轨迹图同页。 |
 | ### 4.4 $0^\circ$ 根轨迹与 $180^\circ$ 根轨迹：参数方向变化时图形怎样改变 | concept+figure | 两类根轨迹的相角条件差异与同属广义视角的关系。 | `step-11` | `static+interactive` | 标签切换只负责比较，不新增算例。 | `3-3-pp-02-generalized-root-locus-map.svg` | 对照表必须明确“相同研究对象、不同相角条件”。 |
-| ## 五、根轨迹如何翻译稳定性与动态变化 / ### 5.1 先看左半平面、虚轴与右半平面 / ### 5.2 再看极点离虚轴有多远 / ### 5.3 还要看极点是沿实轴移动，还是进入复平面 / ### 5.4 两类对象的读图方式 / ### 5.5 从“解释轨迹”走向“读图判断窗口” | conclusion+figure | 看左右半平面、离虚轴距离、实轴/复平面主导三条翻译线。 | `step-12` | `static+interactive` | 高亮区只负责把图上位置映射到结论。 | `3-3-pp-08-dynamics-translation.svg` | 三条翻译线必须成表落页。 |
+| ## 五、根轨迹如何翻译稳定性与动态变化 | conclusion+figure | 看左右半平面、离虚轴距离、实轴/复平面主导三条翻译线。 | `step-12` | `static+interactive` | 高亮区只负责把图上位置映射到结论。 | `3-3-pp-08-dynamics-translation.svg` | 三条翻译线必须成表落页。 |
 | ## 六、本讲小结与前后衔接 | summary | 五条收束结论与“下一课进入读图窗口”的铺垫语。 | `step-13` | `static+interactive` | 后测只检查核心判断，不替代总结卡。 | `3-3-info.png` | 后测题与总结卡同时出现。 |
 
 ## 步骤 01｜回到地图：从稳定边界走向迁移机制

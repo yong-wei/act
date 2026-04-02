@@ -12,6 +12,7 @@
 \usepackage{needspace}
 \usepackage{enumitem}
 \usepackage{fvextra}
+\usepackage[most]{tcolorbox}
 \usepackage[svgnames]{xcolor}
 \usepackage{hyperref}
 
@@ -66,6 +67,25 @@
   rulecolor=\color{RuleGray},
   framesep=4pt
 }
+
+\newtcolorbox{HandoutQuoteBox}{
+  enhanced,
+  breakable,
+  colback=TitleBlue!6!white,
+  colframe=TitleBlue!18!white,
+  boxrule=0.4pt,
+  arc=1.2mm,
+  left=8pt,
+  right=8pt,
+  top=6pt,
+  bottom=6pt,
+  borderline west={1.8pt}{0pt}{TitleBlue!55!black},
+  before skip=0.8em,
+  after skip=0.8em
+}
+\renewenvironment{quote}
+  {\begin{HandoutQuoteBox}\small\color{TitleBlue}\noindent\ignorespaces}
+  {\end{HandoutQuoteBox}}
 
 \pagestyle{fancy}
 \fancyhf{}

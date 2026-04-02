@@ -1,60 +1,95 @@
 {
   "lesson_id": "2-4",
   "unit_type": "理论",
-  "generated_at": "2026-03-29T11:35:41.463507+00:00",
+  "generated_at": "2026-04-01T12:26:45.744874+00:00",
   "primary_sources": [
-    "course-content/authoring/lessons/2-4/design/handout.md"
+    "course-content/authoring/lessons/2-4/design/handout.md",
+    "course-content/authoring/lessons/2-4/design/interactive-page.md"
   ],
+  "interactive_page_source": "course-content/authoring/lessons/2-4/design/interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/2-4/design/interactive-contract.yaml",
   "boppps_source": "course-content/authoring/lessons/2-4/design/boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/2-4/sequence.json",
   "expected_code_media": [
     {
-      "output": "2-4-slides.pdf"
+      "output": "2-4-slides.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-intro-video.mp4"
+      "output": "2-4-intro-video.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-course.mp4"
+      "output": "2-4-course.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-audio.m4a"
+      "output": "2-4-audio.m4a",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-cover-comic.png"
+      "output": "2-4-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-info.png"
+      "output": "2-4-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-fd-01-bode-dual-view-overview.png"
+      "output": "2-4-fd-01-bode-dual-view-overview.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-fd-02-log-frequency-db-intuition.png"
+      "output": "2-4-fd-02-log-frequency-db-intuition.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-fd-03-typical-elements-bode-comparison.svg"
+      "output": "2-4-fd-03-typical-elements-bode-comparison.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-fd-04-first-order-exact-vs-asymptote.svg"
+      "output": "2-4-fd-04-first-order-exact-vs-asymptote.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-fd-05-first-order-nyquist-track.svg"
+      "output": "2-4-fd-05-first-order-nyquist-track.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-fd-06-pure-pole-nyquist-comparison.svg"
+      "output": "2-4-fd-06-pure-pole-nyquist-comparison.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-fd-07-second-order-damping-bode.svg"
+      "output": "2-4-fd-07-second-order-damping-bode.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-fd-08-bode-nyquist-consistency-panel.svg"
+      "output": "2-4-fd-08-bode-nyquist-consistency-panel.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-fd-09-bode-sketch-checklist.png"
+      "output": "2-4-fd-09-bode-sketch-checklist.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     },
     {
-      "output": "2-4-fd-10-nyquist-sketch-checklist.png"
+      "output": "2-4-fd-10-nyquist-sketch-checklist.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
     }
   ]
 }

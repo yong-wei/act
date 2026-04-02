@@ -1,0 +1,18 @@
+{
+  "lesson_id": "3-4",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/3-4/sequence.json",
+  "card_order": [
+    "根轨迹_4_c19f8854",
+    "根轨迹完整法则_3_0f2e7b11",
+    "关键节点读图_3_8b2f0d12",
+    "稳定可行域_3_7eed0929",
+    "参数窗口判断_3_7c3e318f",
+    "幅值条件_3_2d5b92ac",
+    "根轨迹增益换算_3_4b1d9e6c",
+    "闭环主导极点_3_de941720",
+    "对象化三域验证_3_56cb3a4e"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

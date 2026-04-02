@@ -107,6 +107,21 @@
       "notes": "3-3 为模块3当前主线课次，对应根轨迹机制与完整法则，以及从开环增益根轨迹到广义根轨迹的总视角。"
     },
     {
+      "request_ids": ["3-4"],
+      "canonical_id": "3-4",
+      "display_id": "3-4",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "3-4",
+      "source_group": null,
+      "authoring_lesson_dir": "3-4",
+      "authoring_cards_dir": "3-4",
+      "authoring_overlays_dir": "3-4",
+      "runtime_lesson_dir": "3-4",
+      "legacy_source_ids": [],
+      "notes": "3-4 为模块3当前主线实践课次，对应根轨迹读图、参数窗口判断、增益换算与对象化三域验证。"
+    },
+    {
       "request_ids": ["4-1"],
       "canonical_id": "4-1",
       "display_id": "4-1",

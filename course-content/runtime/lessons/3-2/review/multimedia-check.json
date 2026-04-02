@@ -1,11 +1,11 @@
 {
   "lesson_id": "3-2",
   "expected_assets": [
+    "3-2-special-cases-card.svg",
+    "3-2-parameter-range-flow.svg",
     "3-2-pole-migration.png",
     "3-2-step-comparison.png",
     "3-2-bode-magnitude.png",
-    "3-2-special-cases-card.png",
-    "3-2-parameter-range-flow.png",
     "3-2-cover-comic.png",
     "3-2-info.png",
     "3-2-slides.pdf",
@@ -14,11 +14,11 @@
     "3-2-audio.m4a"
   ],
   "generated_assets": [
+    "3-2-special-cases-card.svg",
+    "3-2-parameter-range-flow.svg",
     "3-2-pole-migration.png",
     "3-2-step-comparison.png",
     "3-2-bode-magnitude.png",
-    "3-2-special-cases-card.png",
-    "3-2-parameter-range-flow.png",
     "3-2-cover-comic.png",
     "3-2-info.png",
     "3-2-slides.pdf",
@@ -28,5 +28,26 @@
   ],
   "missing_assets": [],
   "executed_scripts": [],
-  "processed_dir": "course-content/authoring/lessons/3-2/media/processed"
+  "processed_dir": "course-content/authoring/lessons/3-2/media/processed",
+  "formula_contract_issues": [],
+  "formula_media": [
+    {
+      "script": "3-2-generate-reference-cards.py",
+      "output": "3-2-special-cases-card.svg",
+      "formula_mode": "svg-mathtext",
+      "page_formula_sources": [
+        "design/handout.md",
+        "design/interactive-page.md"
+      ]
+    },
+    {
+      "script": "3-2-generate-reference-cards.py",
+      "output": "3-2-parameter-range-flow.svg",
+      "formula_mode": "svg-mathtext",
+      "page_formula_sources": [
+        "design/handout.md",
+        "design/interactive-page.md"
+      ]
+    }
+  ]
 }

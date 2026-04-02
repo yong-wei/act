@@ -1,0 +1,676 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "3-2",
+  "course_title": "3-2：劳斯判据——从高阶系统稳定判定到参数可行域",
+  "course_route_segment": "unit-3-2-routh-stability-boundary",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo",
+    "teacher_preview_panel_note": "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "回到地图——从纯极点语言走向稳定边界",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          { "id": "header", "width": "full", "order": 1 },
+          { "id": "lead", "width": "full", "order": 2 },
+          { "id": "summary", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "stage-map", "region": "lead", "kind": "stage-map", "must_be_visible": true },
+        { "id": "today-task", "region": "summary", "kind": "key-task-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "stage-map", "type": "plain_text", "title": "路径定位", "body": "固定高亮 3-1 -> 3-2 -> 3-3/4-1。" },
+        { "id": "today-task", "type": "bullet_list", "title": "本课任务", "items": ["建立高阶系统稳定边界语言。", "学会两类特殊情况处理。", "把判稳推进到参数可行域。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["推进到下一页", "高亮当前节点"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep", "teacherFollowSync"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count", "sync_status"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "标定本课位于模块 3 的位置。",
+        "allowed_scope": ["稳定边界", "参数可行域", "课程路径"],
+        "forbidden_scope": ["提前展开劳斯表递推", "根轨迹法则"],
+        "canonical_facts": ["3-1 建立纯极点语言。", "3-2 建立稳定边界与参数可行域语言。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-01",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["首屏能看到路径图与任务卡。", "本页没有作答区。"]
+    },
+    "step-02": {
+      "title": "情境引入——看到极点逼近边界还不够吗",
+      "layout": {
+        "template": "figure_question_vote",
+        "regions": [
+          { "id": "figure", "width": "full", "order": 1 },
+          { "id": "questions", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "pole-migration-figure", "region": "figure", "kind": "illustration", "must_be_visible": true },
+        { "id": "three-questions", "region": "questions", "kind": "question-list", "must_be_visible": true },
+        { "id": "binary-vote", "region": "interaction", "kind": "binary-choice", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "questions", "type": "bullet_list", "title": "三问", "items": ["哪一段参数仍稳定？", "边界点之后发生了什么？", "没有显式根表达式时怎样快速判稳？"] },
+        { "id": "conclusion", "type": "plain_text", "title": "结论", "body": "图像直觉需要代数规则支撑。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "在“只看图已足够”和“还需要系数规则”之间做判断。",
+        "correct_answer": "B",
+        "options": {
+          "A": "只要图上能看见边界点，就足够判断参数",
+          "B": "还需要一套能从特征方程系数直接判稳的方法"
+        },
+        "failure_feedback": "只提示“图像直觉不能替代代数规则”。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放二选一判断", "显示正确项与一句点评"],
+      "telemetry_spec": {
+        "summary_fields": ["selectedOption", "resultState", "teacherRevealSeen"],
+        "misconception_tags": ["visual_boundary_is_enough"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["option_distribution", "misconception_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "暴露“看见边界点就够了”的误判。",
+        "allowed_scope": ["稳定区", "边界点", "参数筛选"],
+        "forbidden_scope": ["直接给出劳斯区间结果"],
+        "canonical_facts": ["图像直觉只是入口。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-02",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["主图、三问和按钮在未作答状态下同时可见。", "错误反馈不提前给最终区间。"]
+    },
+    "step-03": {
+      "title": "学习目标——本课要建立哪套边界语言",
+      "layout": {
+        "template": "goal_boundary_slide",
+        "regions": [
+          { "id": "goals", "width": "full", "order": 1 },
+          { "id": "chain", "width": "full", "order": 2 },
+          { "id": "boundary", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "goal-cards", "region": "goals", "kind": "goal-card-row", "must_be_visible": true },
+        { "id": "method-chain", "region": "chain", "kind": "formula-chain", "must_be_visible": true },
+        { "id": "scope-table", "region": "boundary", "kind": "scope-table", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "goals", "type": "bullet_list", "title": "四项目标", "items": ["会判稳。", "会分辨两类特殊情况。", "会做三域翻译。", "会表达参数可行域。"] },
+        { "id": "chain", "type": "plain_text", "title": "本课主线", "body": "普通判稳 -> 参数区间 -> 特殊情况 -> 三域翻译 -> 区域约束" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只建立整体预期。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["逐条强调目标", "高亮主线中的当前层次"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "明确本课能力边界。",
+        "allowed_scope": ["目标卡", "主线链", "边界表"],
+        "forbidden_scope": ["提前展开例题计算"],
+        "canonical_facts": ["本课不进入根轨迹法则。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-03",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["目标卡、主线链和边界表同屏。", "本页无新例题推导。"]
+    },
+    "step-04": {
+      "title": "前测——高阶系统不求根也能判稳吗",
+      "layout": {
+        "template": "question_stack",
+        "regions": [
+          { "id": "question-stack", "width": "full", "order": 1 },
+          { "id": "submit-bar", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "pretest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "misconception-note", "type": "bullet_list", "title": "常见混淆", "items": ["劳斯不是另一种求根法。", "首位为 0 不等于全零行。", "参数优化前要先给稳定可行域。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三道前测题。",
+        "attempt_model": "允许重提一次，教师端区分首答与重提。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放前测", "显示统计", "显示答案"],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "errorBucket"],
+        "misconception_tags": ["routh_equals_root_solving", "zero_head_equals_zero_row", "stable_equals_ready_for_optimization"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["question_distribution", "top_misconceptions"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "暴露本课起点误区。",
+        "allowed_scope": ["错因归类", "术语纠偏"],
+        "forbidden_scope": ["代替学生作答"],
+        "canonical_facts": ["前测用于暴露混淆，而不是拉开成绩。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-04",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["三题在未作答状态下全部可见。", "教师端能看到错误分布。"]
+    },
+    "step-05": {
+      "title": "普通劳斯表：第一列为何足以回答稳定性",
+      "layout": {
+        "template": "table_construction_workspace",
+        "regions": [
+          { "id": "object", "width": "full", "order": 1 },
+          { "id": "table", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "main-object-card", "region": "object", "kind": "formula-card", "must_be_visible": true },
+        { "id": "routh-table-board", "region": "table", "kind": "table-board", "must_be_visible": true },
+        { "id": "conclusion-card", "region": "table", "kind": "summary-card", "must_be_visible": true },
+        { "id": "short-response", "region": "interaction", "kind": "short-response", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "object", "type": "formula", "title": "固定参数对象", "value": "D(s)=s^4+5s^3+9s^2+11s+6" },
+        { "id": "conclusion", "type": "plain_text", "title": "核心规则", "body": "第一列符号变化次数等于右半平面根数。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "short_response",
+        "student_task": "用一句话说明为什么本页已能判稳但还没有显式求根。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["收集短答", "显示词云"],
+      "telemetry_spec": {
+        "summary_fields": ["responseSubmitted", "responseLength", "timeOnStep"],
+        "result_policy": "store_text_only"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["response_word_cloud", "common_reason_tags"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立“判稳不等于求根”的分工意识。",
+        "allowed_scope": ["第一列", "符号变化", "右半平面根数"],
+        "forbidden_scope": ["把短答自动改写成标准答案"],
+        "canonical_facts": ["本页先建立规则，再保留求根验证为辅助环节。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-05",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["对象卡、劳斯表骨架和结论卡先于短答区出现。", "短答区不遮挡表格。"]
+    },
+    "step-06": {
+      "title": "带参数劳斯表：稳定区间怎样直接读出",
+      "layout": {
+        "template": "interval_workflow_workspace",
+        "regions": [
+          { "id": "equation", "width": "full", "order": 1 },
+          { "id": "conditions", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "parameter-object-card", "region": "equation", "kind": "formula-card", "must_be_visible": true },
+        { "id": "condition-chain", "region": "conditions", "kind": "workflow-card", "must_be_visible": true },
+        { "id": "interval-summary", "region": "conditions", "kind": "summary-card", "must_be_visible": true },
+        { "id": "interval-input", "region": "interaction", "kind": "interval-input", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "equation", "type": "formula", "title": "带参数对象", "value": "D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)" },
+        { "id": "summary", "type": "formula", "title": "稳定区间", "value": "-2<k<18" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "interval_input",
+        "student_task": "输入稳定区间，并选择最容易漏掉的第一列条件。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示条件链", "显示最终区间与典型错因"],
+      "telemetry_spec": {
+        "summary_fields": ["submittedRange", "resultState", "errorBucket"],
+        "misconception_tags": ["missing_s0_condition", "fraction_chain_error", "treating_routh_as_root_solver"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["range_distribution", "missing_condition_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立第一列条件链完整性意识。",
+        "allowed_scope": ["区间合并", "漏条件诊断"],
+        "forbidden_scope": ["把条件链压成黑箱按钮"],
+        "canonical_facts": ["漏掉 s^0 行会导致区间变宽。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-06",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["对象卡、条件链和结果卡先于输入区出现。", "教师端能看到典型错因分布。"]
+    },
+    "step-07": {
+      "title": "边界回看：代数区间怎样落到极点迁移图",
+      "layout": {
+        "template": "boundary_mapping_board",
+        "regions": [
+          { "id": "figure", "width": "full", "order": 1 },
+          { "id": "cards", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "pole-migration-figure", "region": "figure", "kind": "illustration", "must_be_visible": true },
+        { "id": "boundary-cards", "region": "cards", "kind": "boundary-card-set", "must_be_visible": true },
+        { "id": "mapping-zone", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "boundary", "type": "formula", "title": "边界参数", "value": "k=-2,\\qquad k=18" },
+        { "id": "note", "type": "plain_text", "title": "边界类型", "body": "原点根边界与纯虚根边界不是同一种临界结构。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "triple_match",
+        "student_task": "把边界参数、图上位置和根结构描述对应起来。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["高亮边界点", "显示对应关系"],
+      "telemetry_spec": {
+        "summary_fields": ["matchAttempts", "resultState", "timeOnStep"],
+        "misconception_tags": ["origin_root_equals_pure_imaginary_pair"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["match_accuracy", "boundary_confusion_tags"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把代数边界翻译成几何边界。",
+        "allowed_scope": ["边界参数", "原点根", "纯虚根", "越轴"],
+        "forbidden_scope": ["完整根轨迹法则解释"],
+        "canonical_facts": ["不同边界参数对应不同根结构。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-07",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["图、边界参数卡和根结构说明同页。", "匹配区不遮挡主图。"]
+    },
+    "step-08": {
+      "title": "特殊情况辨识：先分清首位为 0 还是全零行",
+      "layout": {
+        "template": "case_split_match",
+        "regions": [
+          { "id": "examples", "width": "full", "order": 1 },
+          { "id": "method-card", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "example-a-card", "region": "examples", "kind": "formula-card", "must_be_visible": true },
+        { "id": "example-b-card", "region": "examples", "kind": "formula-card", "must_be_visible": true },
+        { "id": "special-case-card", "region": "method-card", "kind": "reference-card", "must_be_visible": true },
+        { "id": "classification-drag", "region": "interaction", "kind": "classification-drag", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "example-a", "type": "formula", "title": "短例 A", "value": "D_1(s)=s^4+2s^3+3s^2+6s+5" },
+        { "id": "example-b", "type": "formula", "title": "短例 B", "value": "D_2(s)=s^4+2s^3+2s^2+2s+1" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "classification_drag",
+        "student_task": "把两个短例拖入“首位为 0”或“全零行”区域。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示分类结果", "锁定正确分类后进入下一步"],
+      "telemetry_spec": {
+        "summary_fields": ["selectedBucket", "resultState", "retryCount"],
+        "misconception_tags": ["zero_head_equals_zero_row"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["case_split_distribution", "confusion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立“先辨识，再处理”的动作顺序。",
+        "allowed_scope": ["两类现象名称", "处理入口"],
+        "forbidden_scope": ["把全零行并入 epsilon 处理"],
+        "canonical_facts": ["辨识错误会导致后续处理动作整体跑偏。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-08",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["双短例、方法卡和分类区同屏。", "分类正确后才可继续。"]
+    },
+    "step-09": {
+      "title": "处理动作：ε 延拓与辅助方程",
+      "layout": {
+        "template": "method_card_with_completion",
+        "regions": [
+          { "id": "formula", "width": "full", "order": 1 },
+          { "id": "workflow", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "epsilon-chain", "region": "workflow", "kind": "workflow-card", "must_be_visible": true },
+        { "id": "auxiliary-equation-chain", "region": "workflow", "kind": "workflow-card", "must_be_visible": true },
+        { "id": "formula-completion", "region": "interaction", "kind": "formula-completion", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "auxiliary-equation", "type": "formula", "title": "辅助方程", "value": "A(s)=s^2+1" },
+        { "id": "derivative", "type": "formula", "title": "导数替换", "value": "A'(s)=2s" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "formula_completion",
+        "student_task": "补全“上一行 -> 辅助方程 -> 导数替换”链条中的空项。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示处理链", "显示关键缺失项"],
+      "telemetry_spec": {
+        "summary_fields": ["completionState", "resultState", "timeOnStep"],
+        "misconception_tags": ["missing_upper_row_source", "forget_derivative_replace"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["formula_error_hotspots", "method_completion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把处理动作与根结构含义绑定起来。",
+        "allowed_scope": ["epsilon", "辅助方程", "导数替换", "对称根"],
+        "forbidden_scope": ["把本页变成完整递推刷题器"],
+        "canonical_facts": ["全零行保留了根结构信息。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-09",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["公式卡、处理链和填空区同时可见。", "教师端能看到缺失项热点。"]
+    },
+    "step-10": {
+      "title": "三域对照一：稳定、临界、失稳的时域差异",
+      "layout": {
+        "template": "response_compare_board",
+        "regions": [
+          { "id": "figure", "width": "full", "order": 1 },
+          { "id": "translation", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "step-response-figure", "region": "figure", "kind": "illustration", "must_be_visible": true },
+        { "id": "translation-table", "region": "translation", "kind": "translation-table", "must_be_visible": true },
+        { "id": "state-match", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "translation", "type": "bullet_list", "title": "三域翻译", "items": ["稳定 -> 衰减收敛 -> 左半平面极点", "临界 -> 等幅振荡或边界停留 -> 虚轴或原点根", "失稳 -> 发散 -> 右半平面根"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "triple_match",
+        "student_task": "把响应曲线、极点结构和稳定状态标签对应起来。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示正确配对", "高亮临界状态"],
+      "telemetry_spec": {
+        "summary_fields": ["matchAttempts", "resultState", "timeOnStep"],
+        "misconception_tags": ["critical_equals_slow"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["state_match_accuracy", "critical_state_confusion"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "形成第一轮三域翻译。",
+        "allowed_scope": ["收敛", "等幅", "发散", "左半平面", "虚轴", "右半平面"],
+        "forbidden_scope": ["根轨迹法则"],
+        "canonical_facts": ["边界不是“更慢一点”，而是触碰稳定底线。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-10",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["主图、翻译表和配对区同页。", "临界状态说明不被压缩成单一句子。"]
+    },
+    "step-11": {
+      "title": "三域对照二：边界附近为何先出现频域峰值",
+      "layout": {
+        "template": "frequency_warning_board",
+        "regions": [
+          { "id": "figure", "width": "full", "order": 1 },
+          { "id": "conclusion", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "bode-figure", "region": "figure", "kind": "illustration", "must_be_visible": true },
+        { "id": "warning-cards", "region": "conclusion", "kind": "summary-card-set", "must_be_visible": true },
+        { "id": "reason-check", "region": "interaction", "kind": "reason-check", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "conclusion", "type": "bullet_list", "title": "两条结论", "items": ["接近稳定边界时，相关频段峰值会抬高。", "频域在本课只承担辅助观察，不升级为判据。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "reason_check",
+        "student_task": "判断“峰值抬高”和“更接近稳定边界”是否对应。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示正确对应", "重申本课边界"],
+      "telemetry_spec": {
+        "summary_fields": ["selectionState", "resultState", "teacherRevealSeen"],
+        "misconception_tags": ["frequency_view_becomes_stability_criterion"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["reason_accuracy", "boundary_to_frequency_confusion"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "补上跨域线索，但不越界成频域判据课。",
+        "allowed_scope": ["峰值抬高", "边界接近", "辅助观察"],
+        "forbidden_scope": ["Nyquist 判稳", "裕度计算"],
+        "canonical_facts": ["频域在本课不是主判据。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-11",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["Bode 图、结论卡和判断区同页。", "页面不出现裕度或 Nyquist 术语。"]
+    },
+    "step-12": {
+      "title": "区域约束：变量平移如何把竖线约束转成普通判稳",
+      "layout": {
+        "template": "constraint_transform_workspace",
+        "regions": [
+          { "id": "constraint", "width": "full", "order": 1 },
+          { "id": "workflow", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "constraint-chain", "region": "constraint", "kind": "formula-chain", "must_be_visible": true },
+        { "id": "flowchart-card", "region": "workflow", "kind": "workflow-card", "must_be_visible": true },
+        { "id": "parameter-workspace", "region": "interaction", "kind": "interval-input", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "constraint", "type": "formula", "title": "竖线约束", "value": "\\operatorname{Re}(s)<-0.5" },
+        { "id": "shift", "type": "formula", "title": "变量平移", "value": "s=z-\\frac{1}{2}" },
+        { "id": "summary", "type": "formula", "title": "新区间", "value": "-\\frac{3}{8}<k<4" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "parameter_workspace",
+        "student_task": "输入平移后的可行区间，并标记“为什么新区间更窄”。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示平移链", "显示新区间与原因标签"],
+      "telemetry_spec": {
+        "summary_fields": ["submittedRange", "reasonTag", "resultState"],
+        "misconception_tags": ["constraint_shift_is_new_topic", "forget_interval_shrink_reason"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["range_accuracy", "constraint_reason_distribution"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把判稳提升为参数设计入口。",
+        "allowed_scope": ["变量平移", "区域约束", "可行域收缩"],
+        "forbidden_scope": ["控制器结构选型"],
+        "canonical_facts": ["更强约束会收缩可行域。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-12",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["约束链、流程图和新区间结果先于输入区出现。", "流程图完整保留平移步骤。"]
+    },
+    "step-13": {
+      "title": "后测——会算表，更要会解释边界语言",
+      "layout": {
+        "template": "post_quiz_stack",
+        "regions": [
+          { "id": "question-stack", "width": "full", "order": 1 },
+          { "id": "submit-bar", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "post-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "post-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "post-q3", "region": "question-stack", "kind": "short-response-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "note", "type": "plain_text", "title": "检查口径", "body": "本页检查的是边界语言会不会说，而不是再刷算表速度。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成两道客观题和一道解释题。",
+        "attempt_model": "解释题允许一次修正，教师端保留首答与修正稿。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放后测", "显示正确项", "查看解释关键词"],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "revisionCount"],
+        "misconception_tags": ["can_compute_but_cannot_explain_boundary"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["question_accuracy", "explanation_keywords"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "检查学生是否真正建立边界语言。",
+        "allowed_scope": ["关键词检查", "错因归类"],
+        "forbidden_scope": ["直接代写解释题完整答案"],
+        "canonical_facts": ["会算表不等于会解释边界。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-13",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["三题在未作答状态下全部可见。", "解释题不折叠且保留修正入口。"]
+    },
+    "step-14": {
+      "title": "总结与后续预告——从判稳走向迁移机制",
+      "layout": {
+        "template": "summary_infographic",
+        "regions": [
+          { "id": "summary", "width": "full", "order": 1 },
+          { "id": "cheatsheet", "width": "full", "order": 2 },
+          { "id": "next-step", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "five-takeaways", "region": "summary", "kind": "summary-card-set", "must_be_visible": true },
+        { "id": "info-card", "region": "cheatsheet", "kind": "illustration", "must_be_visible": true },
+        { "id": "bridge-card", "region": "next-step", "kind": "bridge-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "takeaways", "type": "bullet_list", "title": "五条结论", "items": ["劳斯首先回答高阶系统的稳定底线。", "第一列符号变化次数对应右半平面根数。", "两类特殊情况对应两种不同处理动作。", "劳斯结论要翻译到极点、时域和频域线索。", "先有稳定可行域，后谈性能优化。"] },
+        { "id": "bridge", "type": "plain_text", "title": "去向卡", "body": "3-3 解释极点为何沿边界附近那条路径迁移，4-1 再把可行域语言推进到参数设计。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读并完成回顾。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["逐条回顾结论", "切换到下一课去向卡"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把判稳工具收束成参数可行域语言。",
+        "allowed_scope": ["总结", "回顾", "后续去向"],
+        "forbidden_scope": ["新增未讲过的设计细节"],
+        "canonical_facts": ["3-2 的出口是边界语言，不是根轨迹法则本身。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-14",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["五条结论、信息图和去向卡同页。", "结尾可独立复习，不依赖教师口头补充。"]
+    }
+  }
+}

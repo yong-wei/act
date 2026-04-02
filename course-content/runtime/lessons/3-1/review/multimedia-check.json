@@ -18,6 +18,7 @@
     "3-1-cover-comic.png",
     "3-1-info.png",
     "3-1-slides.pdf",
+    "3-1-intro-video.mp4",
     "3-1-course.mp4",
     "3-1-audio.m4a",
     "3-1-pp-01-stability-half-plane.svg",
@@ -27,9 +28,9 @@
     "3-1-pp-05-bode-model-reduction.svg",
     "3-1-pp-06-convolution-step-from-impulse.svg"
   ],
-  "missing_assets": [
-    "3-1-intro-video.mp4"
-  ],
+  "missing_assets": [],
   "executed_scripts": [],
-  "processed_dir": "course-content/authoring/lessons/3-1/media/processed"
+  "processed_dir": "course-content/authoring/lessons/3-1/media/processed",
+  "formula_contract_issues": [],
+  "formula_media": []
 }
