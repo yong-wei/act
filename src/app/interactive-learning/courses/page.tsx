@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
 import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
-import { INTERACTIVE_COURSE_MODULES } from '@/features/interactive/learning-catalog';
+import { INTERACTIVE_COURSE_MODULES, PREMIUM_LESSONS } from '@/features/interactive/learning-catalog';
 
 export default function InteractiveCoursesPage() {
   return (
@@ -18,6 +18,41 @@ export default function InteractiveCoursesPage() {
         </header>
 
         <div className="space-y-8">
+          <section className="interactive-course-hub-module-shell">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="interactive-course-hub-section-title text-xl font-semibold">精品课程</h2>
+                <p className="interactive-course-hub-muted mt-1 text-sm">优先开放完整教师端/学生端链路的精品互动课。</p>
+              </div>
+              <span className="interactive-course-hub-chip">优先推荐</span>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {PREMIUM_LESSONS.map((lesson) => (
+                <Link
+                  key={lesson.id}
+                  href={lesson.href}
+                  className="interactive-course-hub-module-card"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="interactive-course-hub-module-badge">{lesson.badge}</span>
+                    </div>
+                    <span className="interactive-course-hub-module-meta text-xs">{lesson.duration}</span>
+                  </div>
+
+                  <h2 className="interactive-course-hub-module-title mt-4 text-lg font-semibold">{lesson.title}</h2>
+                  <p className="interactive-course-hub-module-desc mt-2 text-sm">{lesson.description}</p>
+
+                  <div className="interactive-course-hub-link mt-4 inline-flex items-center text-xs">
+                    进入课程
+                    <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+
           {INTERACTIVE_COURSE_MODULES.map((module) => (
             <section key={module.id} className="interactive-course-hub-module-shell">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

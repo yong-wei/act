@@ -40,6 +40,7 @@
 
 - **文件**：`media/processed/3-5-cover-comic.png`
 - **来源**：`media/raw/generate_static_assets.py`
+- **提示词**：`media/raw/3-5-cover-comic-prompt.md`
 - **用途**：讲义首页导入，强调“只调增益”与“引入零点”的对照。
 
 ### 3.2 课末信息图

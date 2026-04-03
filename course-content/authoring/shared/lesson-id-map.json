@@ -122,6 +122,21 @@
       "notes": "3-4 为模块3当前主线实践课次，对应根轨迹读图、参数窗口判断、增益换算与对象化三域验证。"
     },
     {
+      "request_ids": ["3-7"],
+      "canonical_id": "3-7",
+      "display_id": "3-7",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "3-7",
+      "source_group": null,
+      "authoring_lesson_dir": "3-7",
+      "authoring_cards_dir": "3-7",
+      "authoring_overlays_dir": "3-7",
+      "runtime_lesson_dir": "3-7",
+      "legacy_source_ids": [],
+      "notes": "3-7 为模块3当前主线课次，对应误差两类来源、双通道闭环/误差传函、终值定理、型别与低频补偿路径。"
+    },
+    {
       "request_ids": ["4-1"],
       "canonical_id": "4-1",
       "display_id": "4-1",

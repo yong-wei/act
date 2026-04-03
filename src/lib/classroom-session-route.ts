@@ -1,4 +1,5 @@
 import { CRUISE_COURSE_TITLE } from '@/lib/cruise-course';
+import { LSUM_COURSE_TITLE, LSUM_ROUTE_SEGMENT } from '@/lib/lsum-course';
 import { UNIT_2_1_COURSE_TITLE, UNIT_2_1_ROUTE_SEGMENT } from '@/lib/unit-2-1-course';
 import { UNIT_2_2_COURSE_TITLE, UNIT_2_2_ROUTE_SEGMENT } from '@/lib/unit-2-2-course';
 
@@ -17,6 +18,14 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
     aliases: [
       CRUISE_COURSE_TITLE,
       '柔性之海——豪华邮轮的舒适度控制',
+    ],
+  },
+  {
+    routeSegment: LSUM_ROUTE_SEGMENT,
+    aliases: [
+      LSUM_COURSE_TITLE,
+      'L-∑：设计可行域——让约束成为指南针',
+      '设计可行域——让约束成为指南针',
     ],
   },
   {

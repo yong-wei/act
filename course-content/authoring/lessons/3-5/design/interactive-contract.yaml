@@ -1,0 +1,777 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "3-5",
+  "course_title": "3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变",
+  "course_route_segment": "unit-3-5-zero-dynamic-improvement",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo",
+    "teacher_preview_panel_note": "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "回到地图：为什么只调增益很快不够",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          { "id": "header", "width": "full", "order": 1 },
+          { "id": "lead", "width": "full", "order": 2 },
+          { "id": "summary", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "stage-map", "region": "header", "kind": "stage-map", "must_be_visible": true },
+        { "id": "core-question-card", "region": "lead", "kind": "question-card", "must_be_visible": true },
+        { "id": "boundary-card", "region": "summary", "kind": "boundary-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "stage-map", "type": "plain_text", "title": "路径定位", "body": "固定高亮 3-4 -> 3-5 -> 3-6。" },
+        { "id": "core-question-card", "type": "bullet_list", "title": "三个主问题", "items": ["零点为什么不是更大增益。", "PD 与测速反馈为什么不能混同。", "右半平面零点为什么构成边界。"] },
+        { "id": "boundary-card", "type": "plain_text", "title": "本课边界", "body": "不进入模块4完整超前校正整定流程。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["推进到下一页", "高亮当前节点"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep", "teacherFollowSync"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count", "sync_status"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "标定本课在模块3中的位置。",
+        "allowed_scope": ["课程路径", "从读图判断走向结构改变的转折"],
+        "forbidden_scope": ["提前给出实例结论", "提前给出数值结果"],
+        "canonical_facts": ["3-4 负责沿既有轨迹判断。", "3-5 负责结构改变与零点边界。", "3-6 将进入统一对象实验。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-01",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["首屏能看到路径图、主问题卡和边界卡。", "本页没有作答区。"]
+    },
+    "step-02": {
+      "title": "统一对象、四个版本与三项固定产出",
+      "layout": {
+        "template": "goal_chain_slide",
+        "regions": [
+          { "id": "objects", "width": "full", "order": 1 },
+          { "id": "outputs", "width": "full", "order": 2 },
+          { "id": "boundaries", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "object-card", "region": "objects", "kind": "object-card", "must_be_visible": true },
+        { "id": "version-card-row", "region": "objects", "kind": "comparison-card-row", "must_be_visible": true },
+        { "id": "deliverable-card-row", "region": "outputs", "kind": "deliverable-card-row", "must_be_visible": true },
+        { "id": "scope-card", "region": "boundaries", "kind": "boundary-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "object-card", "type": "plain_text", "title": "统一对象约束", "body": "后续比较优先在同一对象上进行，不靠更换对象偷换结论。" },
+        { "id": "version-card-row", "type": "bullet_list", "title": "四个比较版本", "items": ["纯极点基准", "左半平面零点改善", "PD/测速反馈动态改善", "右半平面零点边界"] },
+        { "id": "deliverable-card-row", "type": "bullet_list", "title": "三项固定产出", "items": ["零点作用判断表", "结构对比解释", "风险边界卡"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只建立比较框架，不提交。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["高亮统一对象", "逐项强调产出"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "压实比较边界与固定产出。",
+        "allowed_scope": ["对象", "版本", "产出", "边界"],
+        "forbidden_scope": ["把本课简化成图像浏览"],
+        "canonical_facts": ["比较必须优先在同一对象上进行。", "三项固定产出贯穿全课。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-02",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["对象卡、版本卡与产出卡同屏。", "本页无提交组件。"]
+    },
+    "step-03": {
+      "title": "前测：先写下直觉，不让 AI 代替判断",
+      "layout": {
+        "template": "question_stack",
+        "regions": [
+          { "id": "question-stack", "width": "full", "order": 1 },
+          { "id": "record", "width": "full", "order": 2 },
+          { "id": "feedback", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "pretest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "intuition-record", "region": "record", "kind": "short-response", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "ai-gate-note", "type": "plain_text", "title": "AI 顺序约束", "body": "先提交自己的直觉，再允许打开 AI 对照；AI 不代答。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三道前测，并提交一句自己的直觉判断。",
+        "attempt_model": "允许重提一次；教师端区分首答与重提。",
+        "answer_reveal": "teacher_toggle",
+        "ai_unlock_rule": "只有前测与直觉提交完成后才可打开 AI 对照。"
+      },
+      "teacher_controls": ["释放前测", "显示误区分布", "控制答案揭示"],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "errorBucket", "intuitionTextSubmitted"],
+        "misconception_tags": ["zero_equals_gain", "pd_equals_rate_feedback", "rhp_zero_still_helpful"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["question_distribution", "top_misconceptions"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "暴露起点误区并保住先独立判断的顺序。",
+        "allowed_scope": ["错因归类", "术语纠偏", "误判对照"],
+        "forbidden_scope": ["直接生成前测答案", "替学生写直觉句"],
+        "canonical_facts": ["AI 只用于对照和纠错。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-03",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["未作答状态下三题和直觉栏同时可见。", "AI 入口默认锁定。"]
+    },
+    "step-04": {
+      "title": "二阶纯极点对象接入零点：第一眼先看哪条分支被拉走",
+      "layout": {
+        "template": "figure_annotation_workspace",
+        "regions": [
+          { "id": "figure", "width": "full", "order": 1 },
+          { "id": "legend", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "low-order-compare-figure", "region": "figure", "kind": "figure", "must_be_visible": true },
+        { "id": "object-formula-card", "region": "legend", "kind": "formula-card", "must_be_visible": true },
+        { "id": "branch-annotation-layer", "region": "workspace", "kind": "annotation-choice", "must_be_visible": true },
+        { "id": "judgement-table", "region": "workspace", "kind": "record-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "figure-ref", "type": "plain_text", "title": "图示", "body": "固定使用 3-5-rl-01-low-order-zero-compare.png。" },
+        { "id": "prompt", "type": "bullet_list", "title": "判断顺序", "items": ["先看哪条分支被零点拉走。", "再看实轴区段如何重排。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "annotation_choice",
+        "student_task": "标记被零点拉走的分支，并勾选被重排的实轴区段。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["控制标注层显示", "揭示正确区域"],
+      "telemetry_spec": {
+        "summary_fields": ["selectedBranchRegion", "selectedRealAxisSegment", "attemptCount"],
+        "result_policy": "store_best_attempt"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["branch_choice_distribution", "real_axis_confusion_map"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立“零点改变轨迹骨架”的第一印象。",
+        "allowed_scope": ["分支终点", "实轴区段", "轨迹重排"],
+        "forbidden_scope": ["只说更快而不指出轨迹哪里变了"],
+        "canonical_facts": ["零点出现后，根轨迹骨架会改写。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-04",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["图、对象式和标注区同屏。", "判断表与图示在同一滚屏内可见。"]
+    },
+    "step-05": {
+      "title": "三阶对象接入零点：主导分支怎样被重新分配",
+      "layout": {
+        "template": "dual_figure_compare_workspace",
+        "regions": [
+          { "id": "figure", "width": "full", "order": 1 },
+          { "id": "compare", "width": "full", "order": 2 },
+          { "id": "record", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "high-order-compare-figure", "region": "figure", "kind": "figure", "must_be_visible": true },
+        { "id": "zero-position-card", "region": "compare", "kind": "comparison-card", "must_be_visible": true },
+        { "id": "compare-note", "region": "record", "kind": "short-response", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "figure-ref", "type": "plain_text", "title": "图示", "body": "固定使用 3-5-rl-02-high-order-zero-compare.png。" },
+        { "id": "sentence-frame", "type": "plain_text", "title": "句式", "body": "我认为 ________ 被重排得更明显，因为 ________。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "compare_note",
+        "student_task": "完成一句比较判断。",
+        "answer_reveal": "teacher_toggle",
+        "quality_gate": "是否同时提到零点位置与主导分支。"
+      },
+      "teacher_controls": ["显示关键词提示", "揭示参考表述"],
+      "telemetry_spec": {
+        "summary_fields": ["compareNoteSubmitted", "usedKeywords", "attemptCount"],
+        "result_policy": "store_latest_attempt"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["keyword_coverage", "top_missing_reasoning_fields"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把零点位置差异压成可回查的主导分支判断。",
+        "allowed_scope": ["零点位置", "主导分支", "重排位置"],
+        "forbidden_scope": ["泛化成零点都会改善动态"],
+        "canonical_facts": ["零点位置不同，主导分支被拉走的方式也不同。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-05",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["对照图和一句判断栏同屏。", "句式提示在输入框上方可见。"]
+    },
+    "step-06": {
+      "title": "第一组结论：左半平面改善动态，右半平面先留下问号",
+      "layout": {
+        "template": "contrast_summary_board",
+        "regions": [
+          { "id": "summary", "width": "full", "order": 1 },
+          { "id": "risk-prompt", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "contrast-table", "region": "summary", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "rhp-question-card", "region": "risk-prompt", "kind": "question-card", "must_be_visible": true },
+        { "id": "risk-prediction", "region": "interaction", "kind": "prediction-submit", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "contrast-table", "type": "bullet_list", "title": "第一组对照", "items": ["左半平面零点常使主导极点有机会进入更有利区域。", "右半平面零点不能直接套用同一套改善语言。"] },
+        { "id": "rhp-question-card", "type": "bullet_list", "title": "三连问", "items": ["轨迹还会继续朝更有利区域移动吗。", "输出会不会继续朝目标方向起步。", "相位会不会继续帮忙。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "risk_prediction_submit",
+        "student_task": "在风险边界卡上写出对右半平面零点的第一判断。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["显示风险预测分布"],
+      "telemetry_spec": {
+        "summary_fields": ["riskPredictionSubmitted", "riskTag", "submitTime"],
+        "result_policy": "store_latest_attempt"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["risk_prediction_distribution", "optimistic_bias_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "保留认知张力，把右半平面零点的危险留到后段用证据揭示。",
+        "allowed_scope": ["风险预测", "问题保留"],
+        "forbidden_scope": ["提前给出非最小相完整答案"],
+        "canonical_facts": ["右半平面零点需要单独判断。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-06",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["第一组结论表和风险预测卡同屏。", "本页不直接泄露右半平面零点答案。"]
+    },
+    "step-07": {
+      "title": "结构辨认：PD 与测速反馈为什么不能混成一个名字",
+      "layout": {
+        "template": "structure_compare_slide",
+        "regions": [
+          { "id": "figure", "width": "full", "order": 1 },
+          { "id": "notes", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "pd-rate-structure-figure", "region": "figure", "kind": "figure", "must_be_visible": true },
+        { "id": "structure-note-card", "region": "notes", "kind": "note-card", "must_be_visible": true },
+        { "id": "binary-check", "region": "interaction", "kind": "binary-choice", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "figure-ref", "type": "plain_text", "title": "图示", "body": "固定使用 3-5-md-01-pd-rate-structure.png。" },
+        { "id": "structure-note-card", "type": "plain_text", "title": "结构提醒", "body": "测速反馈不在前向通道显式增加零点。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "判断测速反馈是否在前向通道显式增加零点。",
+        "correct_answer": "否",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放判断题", "揭示正确项"],
+      "telemetry_spec": {
+        "summary_fields": ["selectedOption", "resultState", "teacherRevealSeen"],
+        "misconception_tags": ["rate_feedback_adds_forward_zero"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["structure_misread_rate", "option_distribution"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "先把结构辨认压实，再进入公式与结果比较。",
+        "allowed_scope": ["前向通道", "局部反馈", "显式零点"],
+        "forbidden_scope": ["效果相似即结构相同"],
+        "canonical_facts": ["测速反馈不显式增加前向零点。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-07",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["结构图和判断题同屏。", "错误反馈不跳过结构图。"]
+    },
+    "step-08": {
+      "title": "阻尼公式工作区：由目标阻尼反求 $K_d$ 与 $K_t$",
+      "layout": {
+        "template": "formula_workspace",
+        "regions": [
+          { "id": "formula", "width": "full", "order": 1 },
+          { "id": "example", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "damping-formula-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
+        { "id": "parameter-card", "region": "example", "kind": "parameter-card", "must_be_visible": true },
+        { "id": "worked-example-input", "region": "workspace", "kind": "formula-workspace", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "damping-formula-card", "type": "plain_text", "title": "核心公式", "body": "完整显示 PD 与测速反馈的等效阻尼公式。" },
+        { "id": "parameter-card", "type": "plain_text", "title": "固定例子", "body": "使用 ω_n=2, ζ=0.2, ζ*=0.5 进行反求。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "worked_example_workspace",
+        "student_task": "填写 Kd、Kt 与代入链。",
+        "answer_reveal": "teacher_toggle",
+        "validation_order": ["先校验代入链完整性", "再校验数值"]
+      },
+      "teacher_controls": ["显示参考代入链", "显示正确数值"],
+      "telemetry_spec": {
+        "summary_fields": ["submittedKd", "submittedKt", "derivationCompleteness", "attemptCount"],
+        "result_policy": "store_best_attempt"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["numeric_accuracy_rate", "missing_derivation_fields"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把公式变成可执行的求参动作。",
+        "allowed_scope": ["公式校验", "变量含义检查"],
+        "forbidden_scope": ["直接代做代入过程"],
+        "canonical_facts": ["本例最终应满足 Kd=Kt=0.3。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-08",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["两条公式、参数卡和填写区同屏。", "反馈先检查过程再检查结果。"]
+    },
+    "step-09": {
+      "title": "PD 与测速反馈的三域对照：共同点与不同点分别落在哪里",
+      "layout": {
+        "template": "tri_domain_compare_workspace",
+        "regions": [
+          { "id": "figure", "width": "full", "order": 1 },
+          { "id": "guide", "width": "full", "order": 2 },
+          { "id": "record", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "pd-rate-compare-figure", "region": "figure", "kind": "tri-domain-figure", "must_be_visible": true },
+        { "id": "compare-guide-card", "region": "guide", "kind": "guide-card", "must_be_visible": true },
+        { "id": "structured-compare-form", "region": "record", "kind": "structured-form", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "figure-ref", "type": "plain_text", "title": "图示", "body": "固定使用 3-5-rl-03-pd-rate-compare.png。" },
+        { "id": "compare-guide-card", "type": "bullet_list", "title": "填写提示", "items": ["共同点：都能提高阻尼，振荡显著减弱。", "不同点：PD 显式引入前向零点，测速反馈没有。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "structured_compare",
+        "student_task": "分别填写共同点和不同点。",
+        "answer_reveal": "teacher_toggle",
+        "quality_gate": "答案至少涉及两个域的证据。"
+      },
+      "teacher_controls": ["显示三域对照重点", "揭示参考表述"],
+      "telemetry_spec": {
+        "summary_fields": ["compareFieldsCompleted", "evidenceDomainCount", "attemptCount"],
+        "result_policy": "store_latest_attempt"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["single_domain_response_rate", "difference_field_quality"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把结果相似与结构不同同时写出来。",
+        "allowed_scope": ["阻尼", "零点", "根轨迹", "时域", "频域"],
+        "forbidden_scope": ["只凭名字归类结构"],
+        "canonical_facts": ["PD 与测速反馈都能提高阻尼，但结构不同。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-09",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["三域图与结构化填写区同屏。", "三域图不能被切换成单域标签页。"]
+    },
+    "step-10": {
+      "title": "这一组实例真正该留下什么：提高阻尼不等于结构相同",
+      "layout": {
+        "template": "knowledge_integration_board",
+        "regions": [
+          { "id": "summary", "width": "full", "order": 1 },
+          { "id": "interaction", "width": "full", "order": 2 },
+          { "id": "teacher-panel", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "three-conclusion-cards", "region": "summary", "kind": "conclusion-card-row", "must_be_visible": true },
+        { "id": "sentence-rebuild-board", "region": "interaction", "kind": "sentence-rebuild", "must_be_visible": true },
+        { "id": "misconception-strip", "region": "teacher-panel", "kind": "feedback-strip", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "three-conclusion-cards", "type": "bullet_list", "title": "三句结论", "items": ["PD 和测速反馈都可把阻尼比从 ζ=0.2 提高到目标值。", "PD 显式引入前向零点，因此前段响应更积极。", "测速反馈更适合被理解为在不显式增加前向零点的前提下，提高等效阻尼。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "sentence_rebuild",
+        "student_task": "把打散的关键词重组为一句完整结论。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示缺失关键词提示", "揭示标准句"],
+      "telemetry_spec": {
+        "summary_fields": ["tokenOrder", "missingKeywords", "attemptCount"],
+        "result_policy": "store_best_attempt"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["keyword_missing_rate", "completion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把 PD/测速反馈比较压成稳定判断语言。",
+        "allowed_scope": ["关键词补全", "句子重组"],
+        "forbidden_scope": ["扩展到 PD/超前或非最小相"],
+        "canonical_facts": ["提高阻尼不等于结构相同。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-10",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["三句结论卡先完整可读。", "句子重组区在结论卡下方。"]
+    },
+    "step-11": {
+      "title": "PD 单独装置的频域原理：抬中高频、推交叉、代价是高频放大",
+      "layout": {
+        "template": "frequency_principle_workspace",
+        "regions": [
+          { "id": "formula", "width": "full", "order": 1 },
+          { "id": "principle", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "pd-formula-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
+        { "id": "chain-card", "region": "principle", "kind": "logic-chain-card", "must_be_visible": true },
+        { "id": "band-labeling", "region": "interaction", "kind": "frequency-band-labeling", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "pd-formula-card", "type": "plain_text", "title": "幅频与相频", "body": "完整显示 PD 的幅频与相频公式。" },
+        { "id": "chain-card", "type": "bullet_list", "title": "频域链条", "items": ["低频基本不动。", "越过拐点后中高频幅值抬升。", "交叉频率右移，截止频率增大。", "高频代价是噪声放大。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "frequency_band_labeling",
+        "student_task": "给低频、拐点后中高频和高频代价区打标签。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示频带正确标注", "强调高频代价"],
+      "telemetry_spec": {
+        "summary_fields": ["bandLabels", "attemptCount", "confusionTag"],
+        "result_policy": "store_best_attempt"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["band_confusion_distribution", "noise_risk_blind_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生先从频域原理理解 PD 为什么会让系统更快。",
+        "allowed_scope": ["幅频斜率", "交叉频率", "截止频率", "高频代价"],
+        "forbidden_scope": ["因为有零点所以会补角的抽象说法"],
+        "canonical_facts": ["PD 的频域本质是抬升中高频幅值并推动截止频率右移。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-11",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["公式、链条和标注区同屏。", "高频代价不能被省略。"]
+    },
+    "step-12": {
+      "title": "超前单独装置的频域原理：相位峰、补相角、作用集中在关键频带",
+      "layout": {
+        "template": "lead_phase_peak_workspace",
+        "regions": [
+          { "id": "formula", "width": "full", "order": 1 },
+          { "id": "principle", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "lead-standard-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
+        { "id": "phase-peak-card", "region": "principle", "kind": "highlight-card", "must_be_visible": true },
+        { "id": "phase-peak-locator", "region": "interaction", "kind": "phase-peak-locator", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "lead-standard-card", "type": "plain_text", "title": "标准式", "body": "完整显示超前标准式、ωm 与 φm。" },
+        { "id": "phase-peak-card", "type": "bullet_list", "title": "关键解释", "items": ["超前不是把高频一路抬上去。", "它在目标频带制造相位峰。", "真正改善的是截止频率附近的相角裕度。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "phase_peak_locator",
+        "student_task": "定位相位峰所在频带，并判断改善的核心指标是相角裕度。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示相位峰区域", "强调相角裕度改善"],
+      "telemetry_spec": {
+        "summary_fields": ["peakBandChoice", "improvedMetricChoice", "attemptCount"],
+        "result_policy": "store_best_attempt"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["peak_band_accuracy", "margin_metric_confusion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把超前理解成关键频带补相角。",
+        "allowed_scope": ["标准式", "相位峰", "相角裕度", "有限频带整形"],
+        "forbidden_scope": ["把超前说成更强的 PD"],
+        "canonical_facts": ["超前的频域本质是在截止频率附近主动补相角。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-12",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["标准式、峰值公式和定位区同屏。", "页面明确指出改善的是相角裕度。"]
+    },
+    "step-13": {
+      "title": "频域设计原则：什么时候优先想 PD，什么时候优先想超前",
+      "layout": {
+        "template": "design_rule_matrix",
+        "regions": [
+          { "id": "rules", "width": "full", "order": 1 },
+          { "id": "matrix", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "pd-rule-card", "region": "rules", "kind": "rule-card", "must_be_visible": true },
+        { "id": "lead-step-card", "region": "rules", "kind": "procedure-card", "must_be_visible": true },
+        { "id": "scenario-matrix", "region": "matrix", "kind": "matrix-table", "must_be_visible": true },
+        { "id": "scenario-sorter", "region": "interaction", "kind": "scenario-sort", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "pd-rule-card", "type": "bullet_list", "title": "PD 原则", "items": ["主要矛盾是响应慢、带宽不足或阻尼不够。", "高频噪声约束需先检查。"] },
+        { "id": "lead-step-card", "type": "bullet_list", "title": "超前步骤", "items": ["先读截止频率与相角裕度。", "估算所需附加超前角并预留余量。", "由所需最大超前角确定 α。", "让 ωm 落在期望新截止频率附近。", "重新验算相角裕度与高频放大。"] },
+        { "id": "scenario-matrix", "type": "plain_text", "title": "适用规律", "body": "PD 适合高频噪声要求不太强、主要想提速；超前适合相角裕度不足、希望有限频带补角。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "scenario_sort_matrix",
+        "student_task": "把工程情境拖到优先想 PD、优先想超前或两者都不够三列。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示场景标准归类", "显示忽略约束提示"],
+      "telemetry_spec": {
+        "summary_fields": ["scenarioPlacements", "attemptCount", "missedConstraintTag"],
+        "result_policy": "store_best_attempt"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["scenario_confusion_matrix", "top_missed_constraints"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把频域原则变成可迁移的设计判断。",
+        "allowed_scope": ["截止频率", "相角裕度", "噪声约束", "适用边界"],
+        "forbidden_scope": ["进入模块4完整整定计算"],
+        "canonical_facts": ["PD 主打抬交叉。", "超前主打补相角。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-13",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["规则卡、步骤卡和矩阵同屏。", "情境排序反馈会指出被忽略的约束。"]
+    },
+    "step-14": {
+      "title": "非最小相：镜像对象、逆响应与额外相位滞后",
+      "layout": {
+        "template": "nonminimum_phase_compare",
+        "regions": [
+          { "id": "objects", "width": "full", "order": 1 },
+          { "id": "figure", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "mirror-object-card", "region": "objects", "kind": "formula-card", "must_be_visible": true },
+        { "id": "nmp-compare-figure", "region": "figure", "kind": "comparison-figure", "must_be_visible": true },
+        { "id": "term-explainer", "region": "interaction", "kind": "short-response", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "mirror-object-card", "type": "plain_text", "title": "镜像对象", "body": "完整显示最小相与非最小相的镜像对象式。" },
+        { "id": "definition-card", "type": "bullet_list", "title": "定义与现象", "items": ["右半平面零点对应非最小相。", "最典型时域现象是逆响应。", "频域后果是额外相位滞后。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "term_explainer",
+        "student_task": "补全一句话“非最小相这个名字的来源是 ________”。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["显示参考定义", "强调相位最小性"],
+      "telemetry_spec": {
+        "summary_fields": ["termExplanationSubmitted", "usedKeywords", "attemptCount"],
+        "result_policy": "store_latest_attempt"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["definition_quality", "missing_phase_reasoning_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把名称来源、时域现象和频域后果同时压实。",
+        "allowed_scope": ["镜像零点", "逆响应", "相位滞后"],
+        "forbidden_scope": ["只背定义而不解释原因"],
+        "canonical_facts": ["非最小相的命名来自相位不再最小。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-14",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["对象式、对照图和术语解释区同屏。", "页面同时出现逆响应与额外相位滞后。"]
+    },
+    "step-15": {
+      "title": "非最小相控制边界与课后纠错：先保守带宽，再纠正危险误判",
+      "layout": {
+        "template": "boundary_decision_workspace",
+        "regions": [
+          { "id": "table", "width": "full", "order": 1 },
+          { "id": "quiz", "width": "full", "order": 2 },
+          { "id": "ai-compare", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "gain-risk-table", "region": "table", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "post-quiz", "region": "quiz", "kind": "quiz-group", "must_be_visible": true },
+        { "id": "ai-compare-card", "region": "ai-compare", "kind": "ai-compare-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "gain-risk-table", "type": "bullet_list", "title": "风险表", "items": ["K=0.6：较保守，逆响应较轻。", "K=1.0：能跟踪但代价已显现。", "K=2.0：过激，逆响应和峰值同时恶化。"] },
+        { "id": "core-action", "type": "plain_text", "title": "核心控制动作", "body": "对非最小相对象，第一反应通常不是继续把带宽往上推，而是先保守交叉频率。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成后测；后测提交后再输入一句自己最容易说错的误判。",
+        "answer_reveal": "teacher_toggle",
+        "ai_unlock_rule": "只有后测提交后才解锁 AI 对照区。"
+      },
+      "teacher_controls": ["显示后测统计", "显示参考纠正句"],
+      "telemetry_spec": {
+        "summary_fields": ["postQuizScore", "errorBucket", "aiCompareUsed", "dangerousMisjudgementTag"],
+        "misconception_tags": ["zero_equals_gain", "pd_equals_rate_feedback", "lead_stronger_than_pd", "keep_pushing_bandwidth_for_nmp"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["post_quiz_distribution", "most_dangerous_misjudgement"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "用后测和纠错把最危险的误判压下去。",
+        "allowed_scope": ["误判句", "纠正句", "缺失关键词", "证据域提醒"],
+        "forbidden_scope": ["替学生完成后测", "代写整段总结"],
+        "canonical_facts": ["AI 只做危险误判对照。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-15",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["风险表、后测题和 AI 对照区同页。", "AI 对照区默认锁定到后测之后。"]
+    },
+    "step-16": {
+      "title": "收束：四个观察量、信息图与 3-6 统一对象实验预告",
+      "layout": {
+        "template": "summary_infographic",
+        "regions": [
+          { "id": "infographic", "width": "full", "order": 1 },
+          { "id": "checklist", "width": "full", "order": 2 },
+          { "id": "next-step", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "lesson-infographic", "region": "infographic", "kind": "infographic", "must_be_visible": true },
+        { "id": "observation-checklist", "region": "checklist", "kind": "checklist-card", "must_be_visible": true },
+        { "id": "next-lesson-card", "region": "next-step", "kind": "next-step-card", "must_be_visible": true },
+        { "id": "exit-reflection", "region": "next-step", "kind": "exit-reflection", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "lesson-infographic", "type": "plain_text", "title": "信息图", "body": "固定使用 3-5-info.png。" },
+        { "id": "observation-checklist", "type": "bullet_list", "title": "四个观察量", "items": ["根轨迹观察量", "时域观察量", "频域观察量", "结构判断量"] },
+        { "id": "next-lesson-card", "type": "plain_text", "title": "3-6 去向", "body": "下一课把基准、PD、测速反馈、简单超前放入统一对象实验台做三域联动对照。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "exit_reflection",
+        "student_task": "写一句“我以后先看哪一个观察量”。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["显示观察量分布", "结束课堂"],
+      "telemetry_spec": {
+        "summary_fields": ["selectedObservationFocus", "exitReflectionSubmitted"],
+        "result_policy": "store_latest_attempt"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["observation_focus_distribution", "exit_completion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生带着稳定判断语言离开本课。",
+        "allowed_scope": ["观察量", "主线回顾", "下一课去向"],
+        "forbidden_scope": ["引入新例题", "引入新设计流程"],
+        "canonical_facts": ["本课建立的是判断语言，不是完整设计流程。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-16",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["信息图、四个观察量和下一课去向同屏。", "退出反思区在页面底部。"]
+    }
+  }
+}
