@@ -307,11 +307,9 @@ $$
 2. 再数 Nyquist 曲线对临界点的包围数 $N$；
 3. 最后用 $Z=P-N$ 判断闭环右半平面极点数。
 
-![Nyquist 快速判稳：四种典型图形](../media/processed/3-8-nyquist-quickcheck.png)
-
 #### 例题 2：第一组快速判稳题
 
-观察上图四条 Nyquist 曲线，分别完成下列判断：
+观察四条典型 Nyquist 曲线，分别完成下列判断：
 
 1. 哪一条属于开环稳定且闭环稳定？
 2. 哪一条属于开环含一个右半平面极点，但闭环仍稳定？
@@ -331,7 +329,7 @@ $$
 
 这组题训练的是读图判稳的基本动作。你不需要先解高阶方程，只要 $P$、$N$、$Z$ 这三个量数清楚，稳定性就已经明了。
 
-![Nyquist 增益对比：不同增益下对临界点的包围关系](../media/processed/3-8-nyquist-example.png)
+![Nyquist 快速判稳：四种典型图形](../media/processed/3-8-nyquist-quickcheck.png)
 
 #### 例题 3：第二组设计型例题
 
@@ -341,19 +339,21 @@ $$
 L(s)=\frac{K}{(s+1)(s+2)(s+4)}
 $$
 
-图中给出了 $K=6$ 与 $K=110$ 两种增益对应的 Nyquist 曲线。问：
+图中给出了 $K=80$ 与 $K=110$ 两种增益对应的 Nyquist 曲线。问：
 
-1. 哪一条曲线没有包围临界点？
+1. 哪一条曲线没有包围临界点，但已经明显逼近稳定边界？
 2. 哪一条曲线已经发生包围，说明闭环越过了稳定边界？
 3. 如果工程目标是“既要提高速度，又不能丢掉稳定余量”，你会优先保留哪一个增益区间？
 
 **解**
 
-- $K=6$ 的曲线没有包围临界点，闭环仍保持稳定；
+- $K=80$ 的曲线没有包围临界点，闭环仍保持稳定，但它已经比低增益情况更接近稳定边界；
 - $K=110$ 的曲线已经对临界点形成包围，说明闭环极点进入了右半平面；
-- 对需要保留稳定余量的设计任务，$K=6$ 这一类“靠近临界点但尚未包围”的区间更适合作为继续整定的起点。
+- 对需要保留稳定余量的设计任务，$K=80$ 这一类“靠近临界点但尚未包围”的区间更适合作为继续整定的起点。
 
 这组题训练的是“从判稳走向设计”。Nyquist 图不仅能告诉你稳不稳，还能告诉你还有没有继续提速的余地。
+
+![Nyquist 增益对比：不同增益下对临界点的包围关系](../media/processed/3-8-nyquist-example.png)
 
 ### 2.4 Bode 判稳与稳定裕度
 
@@ -477,19 +477,47 @@ $$
 L_h(s)=\frac{0.01715\times 2.25}{s(s+0.1)(s+2.14375)}
 $$
 
-先看基线方案，再引入超前校正
+基线方案的频域与时域表现为：
+
+- 相角裕度约为 $37.43^\circ$；
+- 截止频率约为 $0.1169$ rad/s；
+- 超调量约为 $31.95\%$；
+- 调节时间约为 $83.10$ s。
+
+这说明它虽然稳定，但“速度偏慢、超调偏大”同时存在。若继续单纯提高增益，截止频率会右移，但相角裕度会进一步下降，因此设计目标需要先明确写出来：
+
+1. 把超调压到 $15\%$ 左右；
+2. 把调节时间压缩到 $45$ s 量级；
+3. 保持低频增益基本不变，不用牺牲稳态精度换速度。
+
+把这三个性能指标翻译成频域目标，可以得到一组更合适的设计要求：
+
+1. 相角裕度提高到约 $50^\circ$；
+2. 截止频率提高到约 $0.25$ rad/s；
+3. 中频段需要同时获得“补角”和“抬升幅值”两种作用。
+
+在目标频率 $\omega^\*=0.25$ rad/s 处，原系统满足：
+
+$$
+|L_h(j\omega^\*)| \approx -11.5\ \text{dB}, \qquad \angle L_h(j\omega^\*) \approx -164.9^\circ
+$$
+
+这意味着若只靠增益把幅值抬到 $0$ dB，新的相角裕度仍只有约 $15^\circ$，显然不能满足设计目标。因此需要引入一个在中频段提供相位提前的超前网络。选取
 
 $$
 C_h(s)=\frac{1+s/0.05}{1+s/0.3}
 $$
+
+有两层考虑：
+
+1. 零点与极点落在 $0.05$ 到 $0.3$ rad/s 之间，作用频带覆盖原截止频率与目标截止频率之间的中频区域；
+2. 该网络在目标频带既能提供明显的相位提前，又不会改变直流增益，因此适合做“速度提升 + 余量恢复”的中频校正。
 
 校正后开环模型为
 
 $$
 L_{h,\text{new}}(s)=C_h(s)L_h(s)
 $$
-
-设计意图很明确：不再单纯提高增益，而是在中频增加相位提前，把截止频率提高的同时，把相角裕度抬到更合理的范围。
 
 | 指标 | 基线方案 | 超前校正后 | 读回结论 |
 | --- | --- | --- | --- |
@@ -513,7 +541,20 @@ $$
 
 #### 2.6.2 稳定平台：单纯降增益不够，超前校正更能兼顾速度与平稳
 
-对稳定平台对象，先看一个激进基线方案
+对稳定平台，先取名义开环模型
+
+$$
+L_p(s)=\frac{2960(1+s/15)}{s(1+s/3)\left[(1+1.7s)(1+0.005s)(1+0.001s)+100\right]}
+$$
+
+其中：
+
+- $L_p(s)$ 表示平台在单位增益下的名义开环模型；
+- $5L_p(s)$ 表示激进基线方案；
+- $0.2L_p(s)$ 表示仅靠降增益得到的保守方案；
+- $C_p(s)L_p(s)$ 表示引入超前校正后的方案。
+
+先看一个激进基线方案
 
 $$
 L_{p,\text{fast}}(s)=5L_p(s)
@@ -525,7 +566,37 @@ $$
 L_{p,\text{slow}}(s)=0.2L_p(s)
 $$
 
-虽然余量更大，超调更小，但速度损失过于明显。于是进一步采用超前校正
+虽然余量更大，超调更小，但速度损失过于明显。于是设计目标写成：
+
+1. 把超调压到 $10\%$ 左右；
+2. 保持 $0.2$ s 量级的快速收敛；
+3. 不让截止频率掉到个位数 rad/s。
+
+对应的频域目标可表述为：
+
+1. 相角裕度提高到约 $60^\circ$；
+2. 截止频率保持在 $20$ 到 $25$ rad/s；
+3. 中频段既要补角，也要保持足够幅值。
+
+在目标频率 $\omega^\*=24$ rad/s 处，名义对象满足
+
+$$
+|L_p(j\omega^\*)| \approx -11.1\ \text{dB}, \qquad \angle L_p(j\omega^\*) \approx -138.1^\circ
+$$
+
+这说明若只靠增益把幅值抬到 $0$ dB，截止频率虽然能到目标附近，但相角裕度仍只有约 $42^\circ$，不足以把超调压到设计要求。因此需要在该频带同时补大约 $11$ dB 的幅值和约 $20^\circ$ 的相位提前，于是选取
+
+$$
+C_p(s)=\frac{1+s/3}{1+s/12}
+$$
+
+该网络的设计意图是：
+
+1. 零点与极点都落在平台的中频工作带内；
+2. 在 $\omega^\*=24$ rad/s 附近既提供足够的幅值抬升，又提供所需的相位提前；
+3. 相比“仅降增益”，它不会把速度整体压得过低。
+
+于是进一步采用超前校正
 
 $$
 C_p(s)=\frac{1+s/3}{1+s/12}, \qquad L_{p,\text{new}}(s)=C_p(s)L_p(s)
@@ -565,142 +636,3 @@ $$
 下一课 3-9 会把这些语言真正用于同一对象的多版本比较，你会看到“哪条机制线更适合先承担哪类任务”。
 
 ![3-8 信息图总结](../media/processed/3-8-info.png)
-
----
-
-## 附录 A：讲义插图的复现代码
-
-文中的技术图片采用“两段式流程”生成：Octave 负责导出控制计算数据，Python 负责按 3-6 单元基线统一排版并输出白底 PNG。运行方式如下：
-
-```bash
-octave -qf generate_design_data.m
-python3 render_figures.py
-```
-
-数据脚本与排版脚本的主入口如下，完整文件名分别为 `generate_design_data.m` 与 `render_figures.py`：
-
-```octave
-pkg load control;
-
-s = tf('s');
-w = logspace(-2, 2, 1200);
-t = 0:0.02:20;
-L0 = 1 / ((s + 0.3) * (s + 1) * (s + 3));
-
-payload.effects.gain = effect_payload(
-  L0, 4 * L0, w, t,
-  '基准', '4倍增益',
-  '主要改写中频穿越位置',
-  '截止频率右移，速度提高',
-  '相角裕度下降，更靠近稳定边界'
-);
-
-payload.nyquist_compare.small = nyquist_to_struct(6 / ((s + 1) * (s + 2) * (s + 4)), logspace(-3, 3, 1200));
-payload.nyquist_compare.large = nyquist_to_struct(110 / ((s + 1) * (s + 2) * (s + 4)), logspace(-3, 3, 1200));
-
-fid = fopen(fullfile('generated-data', '3-8-design-data.json'), 'w');
-fputs(fid, jsonencode(payload));
-fclose(fid);
-```
-
-```python
-def render_effect_figure(effect, filename, suptitle, summary_title):
-    fig = plt.figure(figsize=(12.8, 8.8), dpi=220)
-    gs = fig.add_gridspec(2, 2, height_ratios=[1, 1], hspace=0.32, wspace=0.24)
-    ax1 = fig.add_subplot(gs[0, 0])
-    ax2 = fig.add_subplot(gs[0, 1])
-    ax3 = fig.add_subplot(gs[1, 0])
-    ax4 = fig.add_subplot(gs[1, 1])
-
-    style_bode_axes(ax1, ax2)
-    ax1.semilogx(arr(effect['bode_base'], 'w'), arr(effect['bode_base'], 'mag_db'), label=effect['base_label'])
-    ax1.semilogx(arr(effect['bode_new'], 'w'), arr(effect['bode_new'], 'mag_db'), label=effect['new_label'])
-    style_step_axis(ax3)
-    ax3.plot(arr(effect['step_base'], 't'), arr(effect['step_base'], 'y'))
-    ax3.plot(arr(effect['step_new'], 't'), arr(effect['step_new'], 'y'))
-    summary_box(ax4, summary_title, [
-        f"观察重点：{effect['focus_text']}",
-        f"主要收益：{effect['gain_text']}",
-        f"主要代价：{effect['cost_text']}",
-    ])
-    fig.suptitle(suptitle, fontsize=14, fontweight='bold')
-    save(fig, filename)
-```
-
-如果你希望继续修改某一张图，优先修改 `generate_design_data.m` 中的模型与指标，再修改 `render_figures.py` 中的版式和摘要框，而不是回到旧的单段式 Octave 出图。
-
-## 附录 B：案例数值核验的复现代码
-
-案例中的裕度、带宽、谐振峰值、超调量和调节时间均由 Octave 计算。运行方式如下：
-
-```bash
-octave -qf 3-8-frequency-translation-validation.m
-```
-
-核验脚本的主体如下，完整文件名为 `3-8-frequency-translation-validation.m`：
-
-```octave
-pkg load control;
-s = tf('s');
-
-function bw = estimate_bandwidth(w, mag)
-  threshold = mag(1) / sqrt(2);
-  idx = find(mag <= threshold, 1, 'first');
-  if isempty(idx)
-    bw = NaN;
-  else
-    bw = w(idx);
-  endif
-end
-
-function metrics = step_metrics(t, y, tol)
-  final_value = y(end);
-  overshoot = max(0, (max(y) - final_value) / abs(final_value) * 100);
-  [~, peak_idx] = max(y);
-  out_of_band = find(abs(y - final_value) > tol * max(abs(final_value), 1e-12));
-  if isempty(out_of_band)
-    settling_time = t(1);
-  else
-    settling_time = t(out_of_band(end) + 1);
-  endif
-  metrics = struct('overshoot', overshoot, 'peak_time', t(peak_idx), 'settling_time', settling_time);
-end
-
-function analyze_case(L, t_grid, w_grid_open, w_grid_closed, label)
-  T = feedback(L, 1);
-  [gm, pm, wg, wc] = margin(L);
-  [mag_cl, ~] = bode(T, w_grid_closed);
-  mag_cl = squeeze(mag_cl);
-  [mr, idx] = max(mag_cl);
-  wr = w_grid_closed(idx);
-  bw = estimate_bandwidth(w_grid_closed, mag_cl);
-  [y, t] = step(T, t_grid);
-  metrics = step_metrics(t, y, 0.02);
-
-  printf('\n[%s]\n', label);
-  printf('增益裕度: %.4f dB\n', 20 * log10(gm));
-  printf('相角裕度: %.4f deg\n', pm);
-  printf('相位穿越频率: %.4f rad/s\n', wg);
-  printf('截止频率: %.4f rad/s\n', wc);
-  printf('谐振峰值 Mr: %.4f (%.4f dB)\n', mr, 20 * log10(mr));
-  printf('谐振频率 wr: %.4f rad/s\n', wr);
-  printf('闭环带宽: %.4f rad/s\n', bw);
-  printf('超调量: %.2f %%\n', metrics.overshoot);
-  printf('峰值时间: %.4f s\n', metrics.peak_time);
-  printf('调节时间: %.4f s\n', metrics.settling_time);
-end
-
-L_heading_base = 0.01715 * 2.25 / (s * (s + 0.1) * (s + 2.14375));
-C_heading = (1 + s / 0.05) / (1 + s / 0.3);
-analyze_case(L_heading_base, 0:0.1:250, logspace(-3, 1, 6000), logspace(-3, 1, 6000), '航向控制：基线');
-analyze_case(C_heading * L_heading_base, 0:0.1:250, logspace(-3, 1, 6000), logspace(-3, 1, 6000), '航向控制：超前校正后');
-
-L_platform_base = 2960 * (s / 15 + 1) / ...
-  (s * (s / 3 + 1) * (((1.7 * s + 1) * (0.005 * s + 1) * (0.001 * s + 1)) + 100));
-C_platform = (1 + s / 3) / (1 + s / 12);
-analyze_case(5.0 * L_platform_base, 0:0.001:2.5, logspace(-1, 3, 8000), logspace(-1, 3, 8000), '稳定平台：激进基线 K=5');
-analyze_case(0.2 * L_platform_base, 0:0.002:8.0, logspace(-1, 3, 8000), logspace(-1, 3, 8000), '稳定平台：仅降增益 K=0.2');
-analyze_case(C_platform * L_platform_base, 0:0.001:2.5, logspace(-1, 3, 8000), logspace(-1, 3, 8000), '稳定平台：超前校正 K=1');
-```
-
-这份脚本输出的数值与正文表格一一对应，可直接作为课堂核验与课后复现的基线。
