@@ -57,6 +57,10 @@ def arr(block: dict, key: str) -> np.ndarray:
   return np.asarray(block[key], dtype=float)
 
 
+def interp_logx(x: np.ndarray, y: np.ndarray, x0: float) -> float:
+  return float(np.interp(np.log10(x0), np.log10(x), y))
+
+
 def style_bode_axes(ax_mag: plt.Axes, ax_phase: plt.Axes) -> None:
   ax_mag.set_xscale('log')
   ax_phase.set_xscale('log')
@@ -186,8 +190,8 @@ def render_nyquist_compare(payload: dict) -> None:
     ax1.plot(x, -y, color=color, linewidth=1.0, linestyle='--')
   ax1.scatter([-1], [0], color='black', s=35, zorder=6)
   ax1.text(-0.92, 0.12, '临界点 (-1,0)', fontsize=10)
-  ax1.set_xlim(-3.1, 1.0)
-  ax1.set_ylim(-2.3, 2.3)
+  ax1.set_xlim(-3.6, 1.6)
+  ax1.set_ylim(-2.6, 2.6)
   ax1.legend(frameon=False, fontsize=9, loc='lower right')
   ax1.set_title('同一对象、不同增益下的 Nyquist 曲线')
 
@@ -293,18 +297,42 @@ def render_heading_case(payload: dict) -> None:
   ax4 = fig.add_subplot(gs[1, 1])
 
   style_bode_axes(ax1, ax2)
-  ax1.semilogx(arr(payload['heading_case']['open_base'], 'w'), arr(payload['heading_case']['open_base'], 'mag_db'),
+  w_base = arr(payload['heading_case']['open_base'], 'w')
+  mag_base = arr(payload['heading_case']['open_base'], 'mag_db')
+  phase_base = arr(payload['heading_case']['open_base'], 'phase_deg')
+  w_comp = arr(payload['heading_case']['open_comp'], 'w')
+  mag_comp = arr(payload['heading_case']['open_comp'], 'mag_db')
+  phase_comp = arr(payload['heading_case']['open_comp'], 'phase_deg')
+  wc_base = payload['heading_case']['margin_base']['wc']
+  wc_comp = payload['heading_case']['margin_comp']['wc']
+  phase_at_wc_base = interp_logx(w_base, phase_base, wc_base)
+  phase_at_wc_comp = interp_logx(w_comp, phase_comp, wc_comp)
+
+  ax1.semilogx(w_base, mag_base,
                color=COLORS['base'], linewidth=1.8, label='基线')
-  ax1.semilogx(arr(payload['heading_case']['open_comp'], 'w'), arr(payload['heading_case']['open_comp'], 'mag_db'),
+  ax1.semilogx(w_comp, mag_comp,
                color=COLORS['accent'], linewidth=1.8, label='超前校正后')
+  ax1.axhline(0, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  ax1.axvline(wc_base, color=COLORS['base'], linewidth=1.1, linestyle='--')
+  ax1.axvline(wc_comp, color=COLORS['accent'], linewidth=1.1, linestyle='--')
+  ax1.text(wc_base * 1.05, 0.85 * ax1.get_ylim()[1], rf'基线 $\omega_c={wc_base:.3f}$', fontsize=9, color=COLORS['base'])
+  ax1.text(wc_comp * 1.05, 0.72 * ax1.get_ylim()[1], rf'校正后 $\omega_c={wc_comp:.3f}$', fontsize=9, color=COLORS['accent'])
   ax1.set_title('开环幅频：超前校正把截止频率向右推')
   ax1.legend(frameon=False, fontsize=9, loc='best')
 
-  ax2.semilogx(arr(payload['heading_case']['open_base'], 'w'), arr(payload['heading_case']['open_base'], 'phase_deg'),
+  ax2.semilogx(w_base, phase_base,
                color=COLORS['base'], linewidth=1.8)
-  ax2.semilogx(arr(payload['heading_case']['open_comp'], 'w'), arr(payload['heading_case']['open_comp'], 'phase_deg'),
+  ax2.semilogx(w_comp, phase_comp,
                color=COLORS['accent'], linewidth=1.8)
   ax2.axhline(-180, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  ax2.axvline(wc_base, color=COLORS['base'], linewidth=1.1, linestyle='--')
+  ax2.axvline(wc_comp, color=COLORS['accent'], linewidth=1.1, linestyle='--')
+  ax2.plot([wc_base, wc_base], [phase_at_wc_base, -180], color=COLORS['base'], linewidth=2.0)
+  ax2.plot([wc_comp, wc_comp], [phase_at_wc_comp, -180], color=COLORS['accent'], linewidth=2.0)
+  ax2.scatter([wc_base], [phase_at_wc_base], color=COLORS['base'], s=32, zorder=5)
+  ax2.scatter([wc_comp], [phase_at_wc_comp], color=COLORS['accent'], s=32, zorder=5)
+  ax2.text(wc_base * 1.08, (phase_at_wc_base - 180) / 2 - 90, f'PM={payload["heading_case"]["margin_base"]["pm"]:.1f}°', fontsize=9, color=COLORS['base'])
+  ax2.text(wc_comp * 1.08, (phase_at_wc_comp - 180) / 2 - 90, f'PM={payload["heading_case"]["margin_comp"]["pm"]:.1f}°', fontsize=9, color=COLORS['accent'])
   ax2.set_title('开环相频：超前校正在中频补角')
 
   style_step_axis(ax3)
@@ -316,11 +344,15 @@ def render_heading_case(payload: dict) -> None:
   ax3.set_title('闭环阶跃：更快收敛，同时明显压低超调')
 
   lines = [
+    '性能指标：将超调压到 15% 左右，同时把调节时间压缩到 45 s 量级',
+    '频域目标：取 PM ≈ 50°，并把截止频率推到 0.25 rad/s 左右',
+    '在 ω*=0.25 rad/s 处，原系统幅值约为 -11.5 dB，相位约为 -164.9°',
+    '因此不能只加增益，必须同时补足约 35° 相位并抬升该频带幅值',
+    '选取 C_h(s)=(1+s/0.05)/(1+s/0.3)，让补角集中在 0.1~0.3 rad/s 附近',
     f"基线 PM = {payload['heading_case']['margin_base']['pm']:.2f}°，校正后 PM = {payload['heading_case']['margin_comp']['pm']:.2f}°",
     f"基线 wc = {payload['heading_case']['margin_base']['wc']:.4f}，校正后 wc = {payload['heading_case']['margin_comp']['wc']:.4f}",
-    f"基线超调 = {payload['heading_case']['metrics_base']['overshoot']:.2f}% ，校正后 = {payload['heading_case']['metrics_comp']['overshoot']:.2f}%",
-    f"基线 ts = {payload['heading_case']['metrics_base']['settling_time']:.2f}s ，校正后 = {payload['heading_case']['metrics_comp']['settling_time']:.2f}s",
-    f"基线 Mr = {payload['heading_case']['peak_base']['mr']:.3f}，校正后 Mr = {payload['heading_case']['peak_comp']['mr']:.3f}",
+    f"超调：{payload['heading_case']['metrics_base']['overshoot']:.2f}% → {payload['heading_case']['metrics_comp']['overshoot']:.2f}%",
+    f"调节时间：{payload['heading_case']['metrics_base']['settling_time']:.2f}s → {payload['heading_case']['metrics_comp']['settling_time']:.2f}s",
   ]
   summary_box(ax4, '航向控制设计结论', lines, facecolor='#eef6fb', edgecolor='#bfd7e7')
   fig.suptitle('航向控制案例：问题在中频余量偏小，超前校正把“更快”和“更稳”同时拉回可接受区间', fontsize=14, fontweight='bold')
@@ -336,40 +368,62 @@ def render_platform_case(payload: dict) -> None:
   ax4 = fig.add_subplot(gs[1, 1])
 
   style_bode_axes(ax1, ax2)
-  ax1.semilogx(arr(payload['platform_case']['open_fast'], 'w'), arr(payload['platform_case']['open_fast'], 'mag_db'),
+  w_fast = arr(payload['platform_case']['open_fast'], 'w')
+  mag_fast = arr(payload['platform_case']['open_fast'], 'mag_db')
+  phase_fast = arr(payload['platform_case']['open_fast'], 'phase_deg')
+  w_comp = arr(payload['platform_case']['open_comp'], 'w')
+  mag_comp = arr(payload['platform_case']['open_comp'], 'mag_db')
+  phase_comp = arr(payload['platform_case']['open_comp'], 'phase_deg')
+  wc_fast = payload['platform_case']['margin_fast']['wc']
+  wc_comp = payload['platform_case']['margin_comp']['wc']
+  phase_at_wc_fast = interp_logx(w_fast, phase_fast, wc_fast)
+  phase_at_wc_comp = interp_logx(w_comp, phase_comp, wc_comp)
+
+  ax1.semilogx(w_fast, mag_fast,
                color=COLORS['warning'], linewidth=1.8, label=payload['platform_case']['fast_label'])
-  ax1.semilogx(arr(payload['platform_case']['open_slow'], 'w'), arr(payload['platform_case']['open_slow'], 'mag_db'),
-               color=COLORS['soft'], linewidth=1.8, linestyle='--', label=payload['platform_case']['slow_label'])
-  ax1.semilogx(arr(payload['platform_case']['open_comp'], 'w'), arr(payload['platform_case']['open_comp'], 'mag_db'),
+  ax1.semilogx(w_comp, mag_comp,
                color=COLORS['lead'], linewidth=1.8, label=payload['platform_case']['comp_label'])
+  ax1.axhline(0, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  ax1.axvline(wc_fast, color=COLORS['warning'], linewidth=1.1, linestyle='--')
+  ax1.axvline(wc_comp, color=COLORS['lead'], linewidth=1.1, linestyle='--')
+  ax1.text(wc_fast * 1.04, 0.82 * ax1.get_ylim()[1], rf'基线 $\omega_c={wc_fast:.2f}$', fontsize=9, color=COLORS['warning'])
+  ax1.text(wc_comp * 1.04, 0.68 * ax1.get_ylim()[1], rf'校正后 $\omega_c={wc_comp:.2f}$', fontsize=9, color=COLORS['lead'])
   ax1.set_title('开环幅频：仅降增益会把速度压得过低')
   ax1.legend(frameon=False, fontsize=8.5, loc='best')
 
-  ax2.semilogx(arr(payload['platform_case']['open_fast'], 'w'), arr(payload['platform_case']['open_fast'], 'phase_deg'),
+  ax2.semilogx(w_fast, phase_fast,
                color=COLORS['warning'], linewidth=1.8)
-  ax2.semilogx(arr(payload['platform_case']['open_slow'], 'w'), arr(payload['platform_case']['open_slow'], 'phase_deg'),
-               color=COLORS['soft'], linewidth=1.8, linestyle='--')
-  ax2.semilogx(arr(payload['platform_case']['open_comp'], 'w'), arr(payload['platform_case']['open_comp'], 'phase_deg'),
+  ax2.semilogx(w_comp, phase_comp,
                color=COLORS['lead'], linewidth=1.8)
   ax2.axhline(-180, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  ax2.axvline(wc_fast, color=COLORS['warning'], linewidth=1.1, linestyle='--')
+  ax2.axvline(wc_comp, color=COLORS['lead'], linewidth=1.1, linestyle='--')
+  ax2.plot([wc_fast, wc_fast], [phase_at_wc_fast, -180], color=COLORS['warning'], linewidth=2.0)
+  ax2.plot([wc_comp, wc_comp], [phase_at_wc_comp, -180], color=COLORS['lead'], linewidth=2.0)
+  ax2.scatter([wc_fast], [phase_at_wc_fast], color=COLORS['warning'], s=32, zorder=5)
+  ax2.scatter([wc_comp], [phase_at_wc_comp], color=COLORS['lead'], s=32, zorder=5)
+  ax2.text(wc_fast * 1.05, (phase_at_wc_fast - 180) / 2 - 90, f'PM={payload["platform_case"]["margin_fast"]["pm"]:.1f}°', fontsize=9, color=COLORS['warning'])
+  ax2.text(wc_comp * 1.05, (phase_at_wc_comp - 180) / 2 - 90, f'PM={payload["platform_case"]["margin_comp"]["pm"]:.1f}°', fontsize=9, color=COLORS['lead'])
   ax2.set_title('开环相频：超前校正把中频相位余量拉高')
 
   style_step_axis(ax3)
   ax3.plot(arr(payload['platform_case']['step_fast'], 't'), arr(payload['platform_case']['step_fast'], 'y'),
            color=COLORS['warning'], linewidth=1.8, label=payload['platform_case']['fast_label'])
-  ax3.plot(arr(payload['platform_case']['step_slow'], 't'), arr(payload['platform_case']['step_slow'], 'y'),
-           color=COLORS['soft'], linewidth=1.8, linestyle='--', label=payload['platform_case']['slow_label'])
   ax3.plot(arr(payload['platform_case']['step_comp'], 't'), arr(payload['platform_case']['step_comp'], 'y'),
            color=COLORS['lead'], linewidth=1.8, label=payload['platform_case']['comp_label'])
   ax3.legend(frameon=False, fontsize=8.5, loc='best')
   ax3.set_title('闭环阶跃：校正方案兼顾速度与平稳')
 
   lines = [
-    f"K=5: PM {payload['platform_case']['margin_fast']['pm']:.2f}°，Mp {payload['platform_case']['metrics_fast']['overshoot']:.2f}%，ts {payload['platform_case']['metrics_fast']['settling_time']:.3f}s",
-    f"K=0.2: PM {payload['platform_case']['margin_slow']['pm']:.2f}°，Mp {payload['platform_case']['metrics_slow']['overshoot']:.2f}%，ts {payload['platform_case']['metrics_slow']['settling_time']:.3f}s",
-    f"超前校正: PM {payload['platform_case']['margin_comp']['pm']:.2f}°，Mp {payload['platform_case']['metrics_comp']['overshoot']:.2f}%，ts {payload['platform_case']['metrics_comp']['settling_time']:.3f}s",
-    f"仅降增益时 wc 降到 {payload['platform_case']['margin_slow']['wc']:.2f} rad/s，速度损失过大",
-    f"超前校正把 Mr 压到 {payload['platform_case']['peak_comp']['mr']:.3f}，峰化最轻",
+    r"对象模型：$L_p(s)$ 表示平台名义开环模型，$5L_p(s)$ 为激进基线",
+    '性能指标：希望超调压到 10% 左右，同时保持 0.2 s 量级收敛速度',
+    '频域目标：取 PM ≈ 60°，并保持截止频率在 20~25 rad/s',
+    '在 ω*=24 rad/s 处，原系统幅值约 -11.1 dB、相位约 -138.1°',
+    '因此需要同时补约 11 dB 幅值和约 20° 相位，单纯减小增益无法满足',
+    r'选取 $C_p(s)=(1+s/3)/(1+s/12)$，把补角集中在目标频带',
+    f"基线 → 校正后：PM {payload['platform_case']['margin_fast']['pm']:.2f}° → {payload['platform_case']['margin_comp']['pm']:.2f}°",
+    f"基线 → 校正后：Mp {payload['platform_case']['metrics_fast']['overshoot']:.2f}% → {payload['platform_case']['metrics_comp']['overshoot']:.2f}%",
+    f"仅降增益方案 wc 仅 {payload['platform_case']['margin_slow']['wc']:.2f} rad/s，速度损失过大",
   ]
   summary_box(ax4, '稳定平台设计结论', lines, facecolor='#eef8ee', edgecolor='#c4dec4')
   fig.suptitle('稳定平台案例：单纯降增益不够，超前校正更能同时兼顾速度、余量与峰化', fontsize=14, fontweight='bold')
