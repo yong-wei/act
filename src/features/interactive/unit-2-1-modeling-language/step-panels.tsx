@@ -1335,6 +1335,7 @@ export function UNIT_2_1StepContentPanel({
       case 'highlight-stage':
       case 'lead':
       case 'infographic':
+      case 'finished-steps':
         return renderMediaFigure();
       case 'left-diagram':
         return renderMediaFigure('max-h-[320px]');
@@ -1377,8 +1378,10 @@ export function UNIT_2_1StepContentPanel({
       case 'rule-cards':
         return renderSections();
       case 'table-zone':
+      case 'contrast':
         return renderTables();
       case 'formula-zone':
+      case 'formula-card':
       case 'formula-chain':
       case 'formula-strip':
         return (
@@ -1391,6 +1394,7 @@ export function UNIT_2_1StepContentPanel({
           </div>
         );
       case 'compare-zone':
+      case 'compare-table':
         return (
           <div className="grid gap-4">
             {renderFormulaCards()}
@@ -1399,7 +1403,15 @@ export function UNIT_2_1StepContentPanel({
         );
       case 'reflection-zone':
       case 'ai-zone':
+      case 'reflection':
+      case 'self-judgment':
+      case 'ai-panel':
+      case 'explain-cards':
         return renderSections();
+      case 'reason-checklist':
+      case 'quiz-stack':
+      case 'distribution':
+        return null;
       case 'role-cards':
         return (
           <div className="grid gap-3 md:grid-cols-4">
@@ -1472,13 +1484,13 @@ export function UNIT_2_1StepContentPanel({
           );
         })}
 
-      {!pageContract.layout.regions.some((region) => region.id === 'equation' || region.id === 'chain' || region.id === 'compare-zone') ? (
+      {!pageContract.layout.regions.some((region) => region.id === 'equation' || region.id === 'chain' || region.id === 'compare-zone' || region.id === 'compare-table') ? (
         <p className="premium-lesson-muted mt-5 text-sm leading-7">{blueprint.intro}</p>
       ) : null}
 
-      {!pageContract.layout.regions.some((region) => region.id === 'table-zone') ? renderTables() : null}
-      {!pageContract.layout.regions.some((region) => region.id === 'formula-zone' || region.id === 'equation' || region.id === 'formula-chain' || region.id === 'chain') ? renderFormulaCards() : null}
-      {!pageContract.layout.regions.some((region) => region.id === 'cards' || region.id === 'summary' || region.id === 'comparison-table' || region.id === 'rule-cards' || region.id === 'step-cards' || region.id === 'role-cards' || region.id === 'next-lesson' || region.id === 'compare-zone' || region.id === 'reflection-zone') ? (
+      {!pageContract.layout.regions.some((region) => region.id === 'table-zone' || region.id === 'contrast') ? renderTables() : null}
+      {!pageContract.layout.regions.some((region) => region.id === 'formula-zone' || region.id === 'formula-card' || region.id === 'equation' || region.id === 'formula-chain' || region.id === 'formula-strip' || region.id === 'chain') ? renderFormulaCards() : null}
+      {!pageContract.layout.regions.some((region) => region.id === 'cards' || region.id === 'summary' || region.id === 'comparison-table' || region.id === 'reflection' || region.id === 'explain-cards' || region.id === 'self-judgment' || region.id === 'rule-cards' || region.id === 'step-cards' || region.id === 'role-cards' || region.id === 'next-lesson' || region.id === 'compare-zone' || region.id === 'compare-table' || region.id === 'reflection-zone' || region.id === 'ai-zone' || region.id === 'ai-panel' || region.id === 'quiz-stack') ? (
         <div className="mt-5">{renderSections()}</div>
       ) : null}
       {!pageContract.layout.regions.some((region) => region.id === 'summary-chain' || region.id === 'step-cards' || region.id === 'next-lesson') ? (

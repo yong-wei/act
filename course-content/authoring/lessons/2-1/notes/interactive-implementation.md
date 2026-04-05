@@ -1,6 +1,21 @@
 # 2-1 互动课程实现记录
 
-更新时间：2026-03-30
+更新时间：2026-04-05
+
+## 设计稿到实现稿对照表（2026-04-05）
+
+| step | 设计稿关键约束 | 当前实现位置 | 本轮状态 | 验证方式 |
+|---|---|---|---|---|
+| step-05 | `contrast / formula-strip / reflection`，`keyword_cloud / ai_usage_rate`，埋点含 `aiUsed` | `src/lib/unit-2-1-course.ts` + `step-panels.tsx` | 待对齐 | 契约单测 + review 脚本 |
+| step-06 | `formula-card / explain-cards / reason-checklist`，错因 `transfer_function_is_rewritten_equation` | `src/lib/unit-2-1-course.ts` + `step-panels.tsx` | 待对齐 | 契约单测 + review 脚本 |
+| step-07 | `compare-table / self-judgment / ai-panel`，教师洞察含 `ai_usage_rate` | `src/lib/unit-2-1-course.ts` + `step-panels.tsx` | 待对齐 | 契约单测 + review 脚本 |
+| step-09 | 教师洞察 `option_distribution / feedback_explanation_keywords`，埋点含 `misconceptionTags` | `src/lib/unit-2-1-course.ts` | 待对齐 | 契约单测 + review 脚本 |
+| step-15 | `quiz-stack / distribution`，教师洞察 `top_error_question` | `src/lib/unit-2-1-course.ts` + `step-panels.tsx` | 待对齐 | 契约单测 + review 脚本 |
+| step-16 | `finished-steps` 区域，教师洞察 `session_finalize_ready` | `src/lib/unit-2-1-course.ts` + `step-panels.tsx` | 待对齐 | 契约单测 + review 脚本 |
+
+说明：
+- 本轮不再接受“本地平行契约近似等价”口径，目标是按 `interactive-contract.yaml` 严格回对齐。
+- 对齐完成后必须通过 `python3 course-content/scripts/review_lesson_content.py --lesson 2-1 --strict-implementation-contract`。
 
 ## 本轮实现范围
 
@@ -85,10 +100,33 @@
 - `step-14` 已明确拆成两层语义：
   - 例题一本体：`Δ=1-L_1`、`Δ_1=1`
   - 附录补充情形：仅在存在不接触该前向通路的局部回路时，才讨论 `Δ_k=1-L_1`
-- `course-content/runtime/lessons/2-1/review/interactive-page-check.json` 已收敛为无缺项状态。
+- `course-content/runtime/lessons/2-1/review/interactive-page-check.json` 当前已确认 V2 契约字段完整，但仍提示缺少“讲义核心内容映射”章节与映射列，不能再写成“无缺项状态”。
 - `review_lesson_content.py` 已开始识别 V2 互动契约；对已迁移课次会校验步骤字段完整性，同时对未迁移课次保留兼容路径。
+
+### 2026-04-05 契约对齐补记
+
+- `src/lib/unit-2-1-course.ts` 已把 `step-05/06/07/09/15/16` 的页面区域、教师洞察、telemetry 字段、错因标签与学生演示页预览路径重新对齐到 `design/interactive-contract.yaml`。
+- `src/features/interactive/unit-2-1-modeling-language/step-panels.tsx` 已补齐新区域 ID 的渲染映射，避免本地平行契约回对齐后丢失静态内容。
+- 新增实现侧一致性测试脚本：
+  - `scripts/tests/test-interactive-contract-implementation-alignment.mjs`
+  - `.codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py`
+- 互动课程实现技能现已要求：实现完成后必须运行
+  - `python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 2-1`
+  - 该脚本会校验作者态契约与本地实现平行契约在步骤标题、互动类型、模板/区域、教师洞察、telemetry、错因标签与学生演示页预览路径上的一致性。
+
+### 2026-04-05 验证记录
+
+- `npx vitest run src/features/interactive/__tests__/unit-2-1-course.test.ts`
+  - 已通过，覆盖 `2-1` 课程定义、静态承载与作者态契约对齐断言。
+- `node scripts/tests/test-interactive-contract-alignment-skill.mjs`
+  - 已通过，确认技能文档与技能脚本已显式纳入一致性校验要求。
+- `python3 -m pytest course-content/tests/test_interactive_contract_alignment_script.py -q`
+  - 已通过，确认技能脚本可对 `2-1` 执行一致性校验。
+- `python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 2-1`
+  - 已通过，16 步契约对齐检查全部通过。
 
 ### 当前仍需关注的非阻塞项
 
 - `review-report.md` 仍提示 `interactive-page.md` 中存在“疑似缺少 \right 的公式”，后续如继续精修 LaTeX 版式，可再单独收口。
+- `interactive-page-check.json` 仍提示缺少“讲义核心内容映射”章节与映射列，这属于作者态设计真源缺口，不应再被误判为实现已完全闭合。
 - 浏览器闭环验收尚需在教师端 / 学生端真实页面上再做一次人工走查，重点核对学生演示页预览口径，以及 `step-05/07/08/12/14` 的静态承载与互动叠加关系。

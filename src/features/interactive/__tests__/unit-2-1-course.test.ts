@@ -249,6 +249,42 @@ describe('unit 2-1 interactive course', () => {
     });
   });
 
+  it('keeps the local page contracts aligned with the authoring interactive contract for redesigned steps', () => {
+    const contract = JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/authoring/lessons/2-1/design/interactive-contract.yaml'),
+        'utf8',
+      ),
+    ) as {
+      steps: Record<string, {
+        title: string;
+        layout: { template: string; regions: Array<{ id: string; width: string; order: number }> };
+        interaction_spec: { interaction_kind: string };
+        teacher_insight_spec: { widgets: string[] };
+        telemetry_spec: { summary_fields: string[]; misconception_tags?: string[] };
+        preview_contract: { demo_path: string };
+      }>;
+    };
+
+    const interactiveSteps = new Map(UNIT_2_1_LESSON_STEPS.map((step) => [step.id, step]));
+    const expectedStepIds = ['step-05', 'step-06', 'step-07', 'step-09', 'step-15', 'step-16'] as const;
+
+    for (const stepId of expectedStepIds) {
+      const authoringStep = contract.steps[stepId];
+      const localStep = interactiveSteps.get(stepId);
+      const localPageContract = UNIT_2_1_PAGE_CONTRACTS[stepId];
+
+      expect(localStep?.title).toBe(authoringStep.title);
+      expect(localPageContract?.layout.template).toBe(authoringStep.layout.template);
+      expect(localPageContract?.layout.regions).toEqual(authoringStep.layout.regions);
+      expect(localPageContract?.interactionKind).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(localPageContract?.teacherInsightWidgets).toEqual(authoringStep.teacher_insight_spec.widgets);
+      expect(localPageContract?.telemetrySummaryFields).toEqual(authoringStep.telemetry_spec.summary_fields);
+      expect(localPageContract?.misconceptionTags ?? []).toEqual(authoringStep.telemetry_spec.misconception_tags ?? []);
+      expect(localPageContract?.previewDemoPath).toBe(authoringStep.preview_contract.demo_path);
+    }
+  });
+
   it('promotes the redesigned participatory steps to their real interaction page types instead of form fallbacks', () => {
     const pageTypes = new Map(UNIT_2_1_LESSON_STEPS.map((step) => [step.id, step.pageType]));
 

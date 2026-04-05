@@ -359,6 +359,35 @@ description: Use when implementing or upgrading this repository's interactive le
 - 浏览器验收或测试证据
 - 仍待回补的页面覆盖缺口
 
+若课次已建立 `interactive-contract.yaml` 且仓库内已存在对应互动课程实现，收工前还必须执行：
+
+```bash
+python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --strict-implementation-contract
+```
+
+要求：
+- 该命令必须通过，不能只生成 `interactive-page-check.json` 而忽略实现契约漂移
+- 重点检查作者态 `interactive-contract.yaml` 与本地页面契约、步骤定义是否一致
+- 若失败，先修实现或修双轨真源，再继续浏览器验收
+
+实现完成后必须通过该脚本测试：
+
+```bash
+python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 2-1
+```
+
+若当前课次还没有预设，可改用显式参数：
+
+```bash
+python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py \
+  --contract course-content/authoring/lessons/<lesson>/design/interactive-contract.yaml \
+  --implementation src/lib/<lesson>-course.ts \
+  --page-contract-const <PAGE_CONTRACT_CONST> \
+  --step-const <STEP_CONST>
+```
+
+这条脚本会调用实现侧一致性测试，校验作者态 `interactive-contract.yaml` 与本地平行契约在步骤标题、互动类型、模板/区域、教师洞察、telemetry、错因标签和学生演示页预览路径上的一致性。未通过时，不得宣称互动页面已经按契约实现。
+
 推荐至少补一类守卫测试：
 - 检查页内 AI 弹窗而非跳转
 - 检查提交反馈与教师汇聚存在
@@ -394,6 +423,10 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
 - `scripts/init_course_note.py`
   - 初始化课程笔记
   - 使用 `python3` 运行
+- `scripts/check_contract_alignment.py`
+  - 校验作者态 `interactive-contract.yaml` 与本地实现平行契约的一致性
+  - 默认支持 `2-1` 预设；其他课次可显式传路径和常量名
+  - 使用 `python3` 运行
 
 ### references/
 
@@ -425,4 +458,5 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
 - [ ] 已优先复用统一 session / Redis / SSE / rate limit 能力
 - [ ] 已在课程目录、预置教案、课堂码解析和 AI 注册表中完成接线
 - [ ] 已完成设计稿对照验证与浏览器闭环验收
+- [ ] 已通过 `python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --strict-implementation-contract`
 - [ ] 已更新 `notes/<lesson>.md`
