@@ -1,5 +1,5 @@
 {
-  "version": "2026-03-29",
+  "version": "2026-04-04",
   "entries": [
     {
       "request_ids": ["2-1"],
@@ -122,6 +122,36 @@
       "notes": "3-4 为模块3当前主线实践课次，对应根轨迹读图、参数窗口判断、增益换算与对象化三域验证。"
     },
     {
+      "request_ids": ["3-5"],
+      "canonical_id": "3-5",
+      "display_id": "3-5",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "3-5",
+      "source_group": null,
+      "authoring_lesson_dir": "3-5",
+      "authoring_cards_dir": "3-5",
+      "authoring_overlays_dir": "3-5",
+      "runtime_lesson_dir": "3-5",
+      "legacy_source_ids": [],
+      "notes": "3-5 为模块3当前主线课次，对应零点引入、动态改善与非最小相代价表达。"
+    },
+    {
+      "request_ids": ["3-6"],
+      "canonical_id": "3-6",
+      "display_id": "3-6",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "3-6",
+      "source_group": null,
+      "authoring_lesson_dir": "3-6",
+      "authoring_cards_dir": "3-6",
+      "authoring_overlays_dir": "3-6",
+      "runtime_lesson_dir": "3-6",
+      "legacy_source_ids": [],
+      "notes": "3-6 为模块3当前主线实践课次，对应零点作用、动态改善与跨域实验验证。"
+    },
+    {
       "request_ids": ["3-7"],
       "canonical_id": "3-7",
       "display_id": "3-7",
@@ -135,6 +165,36 @@
       "runtime_lesson_dir": "3-7",
       "legacy_source_ids": [],
       "notes": "3-7 为模块3当前主线课次，对应误差两类来源、双通道闭环/误差传函、终值定理、型别与低频补偿路径。"
+    },
+    {
+      "request_ids": ["3-8"],
+      "canonical_id": "3-8",
+      "display_id": "3-8",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "3-8",
+      "source_group": null,
+      "authoring_lesson_dir": "3-8",
+      "authoring_cards_dir": "3-8",
+      "authoring_overlays_dir": "3-8",
+      "runtime_lesson_dir": "3-8",
+      "legacy_source_ids": [],
+      "notes": "3-8 为模块3当前主线课次，对应频域判别、三频段分工与跨域综合语言。"
+    },
+    {
+      "request_ids": ["3-9"],
+      "canonical_id": "3-9",
+      "display_id": "3-9",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "3-9",
+      "source_group": null,
+      "authoring_lesson_dir": "3-9",
+      "authoring_cards_dir": "3-9",
+      "authoring_overlays_dir": "3-9",
+      "runtime_lesson_dir": "3-9",
+      "legacy_source_ids": [],
+      "notes": "3-9 为模块3当前主线实践课次，对应稳定、动态与稳态综合映射实验。"
     },
     {
       "request_ids": ["4-1"],

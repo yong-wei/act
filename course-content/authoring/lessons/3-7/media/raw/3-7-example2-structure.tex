@@ -1,0 +1,52 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+\setmainfont{Arial Unicode MS}
+\setCJKmainfont{Hiragino Sans GB}
+
+\definecolor{BlockBlue}{HTML}{3E7CB1}
+\definecolor{SumGreen}{HTML}{4F9D69}
+\definecolor{TapOrange}{HTML}{D98841}
+\definecolor{LineGray}{HTML}{2F2F2F}
+
+\tikzset{
+  signal/.style={-{Stealth[length=2.6mm]}, line width=1.2pt, draw=LineGray},
+  block/.style={rectangle, draw=BlockBlue, rounded corners=1pt, minimum width=2.15cm, minimum height=0.92cm, line width=1.2pt, fill=none, align=center, font=\footnotesize\bfseries},
+  sum/.style={circle, draw=SumGreen, minimum size=5.8mm, inner sep=0pt, line width=1.2pt, fill=none},
+  tap/.style={circle, draw=TapOrange, fill=TapOrange, minimum size=4.2pt, inner sep=0pt},
+  labelbox/.style={font=\footnotesize, fill=white, inner sep=1.2pt}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=1.05cm]
+  \node (r) at (0,0) {$R(s)$};
+  \node[sum, right=1.0cm of r] (sum1) {};
+  \node[block, right=1.1cm of sum1] (g1) {$G_1(s)$};
+  \node[sum, right=1.0cm of g1] (sum2) {};
+  \node[block, right=1.0cm of sum2] (g2) {$G_2(s)$};
+  \node[tap, right=1.0cm of g2] (tap) {};
+  \node[right=0.72cm of tap] (c) {$C(s)$};
+  \node[above=1.0cm of sum2] (d) {$D(s)$};
+
+  \draw[signal] (r) -- (sum1);
+  \draw[signal] (sum1) -- node[labelbox, above] {$e(s)$} (g1);
+  \draw[signal] (g1) -- node[labelbox, above] {$u_1(s)$} (sum2);
+  \draw[signal] (sum2) -- node[labelbox, above] {$u_1(s)+D(s)$} (g2);
+  \draw[signal] (g2) -- (tap) -- node[labelbox, above] {$C(s)$} (c);
+  \draw[signal] (d) -- (sum2);
+  \draw[signal] (tap) |- ($(tap)+(0,-1.45)$) -| (sum1);
+
+  \node[labelbox] at ($(sum1)+(-0.18,0.34)$) {$+$};
+  \node[labelbox] at ($(sum1)+(-0.18,-0.34)$) {$-$};
+  \node[labelbox] at ($(sum2)+(-0.18,0.34)$) {$+$};
+  \node[labelbox] at ($(sum2)+(-0.18,-0.34)$) {$+$};
+
+  \draw[densely dashed, line width=0.95pt, draw=BlockBlue]
+    ($(g1.north west)+(-0.24,0.42)$) rectangle ($(g2.south east)+(0.24,-0.42)$);
+  \node[labelbox, text=BlockBlue] at ($(g1.north)!0.5!(g2.north)+(0,0.76)$)
+    {前向通道：执行器 $G_1(s)$ + 对象 $G_2(s)$};
+\end{tikzpicture}
+\end{document}

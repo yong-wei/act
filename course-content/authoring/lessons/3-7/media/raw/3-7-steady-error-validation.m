@@ -1,79 +1,114 @@
+1;
 pkg load control;
 more off;
 clear;
 clc;
 
-fprintf('=== 3-7 稳态误差与低频补偿核验 ===\n');
+set(0, 'defaultaxesfontname', 'Hiragino Sans GB');
+set(0, 'defaulttextfontname', 'Hiragino Sans GB');
+set(0, 'defaultaxesfontsize', 11);
+set(0, 'defaultlinelinewidth', 1.6);
+
+function [settling_time, overshoot, final_value] = step_metrics(sys, t_end)
+  t = linspace(0, t_end, t_end * 120 + 1);
+  [y, t] = step(sys, t);
+  final_value = y(end);
+  overshoot = max((max(y) - final_value) / final_value * 100, 0);
+  band = 0.02 * abs(final_value);
+  idx = find(abs(y - final_value) > band);
+  if isempty(idx)
+    settling_time = 0;
+  elseif idx(end) == numel(t)
+    settling_time = NaN;
+  else
+    settling_time = t(idx(end) + 1);
+  endif
+endfunction
+
+function ess = ramp_error(sys, t_end)
+  t = linspace(0, t_end, t_end * 120 + 1);
+  r = t;
+  y = lsim(sys, r, t);
+  ess = r(end) - y(end);
+endfunction
 
 s = tf('s');
-T = 2;
-K = 5;
-G = K/(s*(T*s + 1));
-Gd = 1/(s*(T*s + 1));
 
-fprintf('\n[1] 双通道稳态误差核验\n');
-Er_tf = minreal(1/(1 + G));
-Ed_tf = minreal(-Gd/(1 + G));
-err_ref_ss = dcgain(Er_tf);
-err_dist_ss = dcgain(Ed_tf);
-fprintf('给定单位阶跃稳态误差 e_ss^(r) = %.6f\n', err_ref_ss);
-fprintf('扰动单位阶跃稳态误差 e_ss^(d) = %.6f\n', err_dist_ss);
-fprintf('理论值分别应接近 0 与 -1/K = %.6f\n', -1 / K);
+fprintf('=== 3-7 稳态误差与低频补偿核验 ===\n');
 
-fprintf('\n[2] 型别与静差对照\n');
-G0 = 4/(3*s + 1);
-G1 = 4/(s*(3*s + 1));
-G2 = 4/(s^2*(3*s + 1));
+% ---------------------------------------------------------------------------
+% 1) 多项式输入稳态误差
+% ---------------------------------------------------------------------------
+K = 1;
+G_poly = K / (s^2 * (0.5 * s + 1));
+R_poly = 3 / s + 2 / s^2 + 1 / s^3;
+E_poly = minreal((1 / (1 + G_poly)) * R_poly);
+e_poly = dcgain(minreal(s * E_poly));
+Ka_poly = dcgain(minreal(s^2 * G_poly));
 
-Kp0 = dcgain(G0);
-Kv1 = dcgain(minreal(s * G1));
-Ka2 = dcgain(minreal(s^2 * G2));
+fprintf('\n[1] 多项式输入稳态误差\n');
+fprintf('终值定理结果 e_ss = %.6f\n', e_poly);
+fprintf('静态误差系数结果 e_ss = %.6f\n', 1 / Ka_poly);
 
-fprintf('0型系统阶跃稳态误差 = %.6f\n', 1/(1 + Kp0));
-fprintf('I型系统斜坡稳态误差 = %.6f\n', 1/Kv1);
-fprintf('II型系统抛物线稳态误差 = %.6f\n', 1/Ka2);
+% ---------------------------------------------------------------------------
+% 2) 给定与扰动共同作用（中间扰动）
+% ---------------------------------------------------------------------------
+G1_mix = 5 / (s + 5);
+G2_mix = 2 / (s + 2);
+L_mix = minreal(G1_mix * G2_mix);
+Phi_r = minreal(L_mix / (1 + L_mix));
+Phi_d = minreal(G2_mix / (1 + L_mix));
+R_mix = 1 / s;
+D_mix = 0.2 / s;
+C_mix = minreal(Phi_r * R_mix + Phi_d * D_mix);
+E_mix = minreal(R_mix - C_mix);
+e_mix = dcgain(minreal(s * E_mix));
 
-fprintf('\n[3] 增益增大 vs 积分补偿\n');
-G_base = 2/(3*s + 1);
-G_gain = 8/(3*s + 1);
-G_int = 2*(1 + 1/(2*s))/(3*s + 1);
-Kp_base = dcgain(G_base);
-Kp_gain = dcgain(G_gain);
-base_step_err = 1/(1 + Kp_base);
-gain_step_err = 1/(1 + Kp_gain);
-int_step_err = dcgain(minreal(s * (1/(1 + G_int) * (1/s))));
-fprintf('原0型系统阶跃稳态误差 = %.6f\n', base_step_err);
-fprintf('调大增益后阶跃稳态误差 = %.6f\n', gain_step_err);
-fprintf('加入PI后阶跃稳态误差 = %.6f\n', int_step_err);
+fprintf('\n[2] 给定与扰动共同作用\n');
+fprintf('总稳态误差 e_ss = %.6f\n', e_mix);
 
-fprintf('\n[4] PI 与滞后补偿趋势比较\n');
-Gp = 1/((2*s + 1)*(s + 1));
-Gc_pi = 2*(1 + 1/(3*s));
-Gc_lag = 4*(4*s + 1)/(16*s + 1);
-L_pi = minreal(Gc_pi * Gp);
-L_lag = minreal(Gc_lag * Gp);
+% ---------------------------------------------------------------------------
+% 3) 纯增益与 PI 的时域设计
+% ---------------------------------------------------------------------------
+G_mix = 4 / (s * (s + 4));
+T_pure = feedback(G_mix, 1);
+T_pure_k10 = feedback(10 * G_mix, 1);
+T_pi = feedback((s + 0.3) / s * G_mix, 1);
+[ts_pure, os_pure, ~] = step_metrics(T_pure, 18);
+[ts_pure_k10, os_pure_k10, ~] = step_metrics(T_pure_k10, 18);
+[ts_pi, os_pi, ~] = step_metrics(T_pi, 18);
 
-Kp_orig = dcgain(Gp);
-Kp_lag = dcgain(Gc_lag * Gp);
-pi_ramp_err = dcgain(minreal(s * (1/(1 + L_pi) * (1/s^2))));
-orig_step_err = 1/(1 + Kp_orig);
-lag_step_err = 1/(1 + Kp_lag);
+fprintf('\n[3] 纯增益与 PI 的时域设计\n');
+fprintf('纯增益 K=1: M_p = %.2f%%, t_s = %.2f s, e_ramp(18) = %.4f\n', os_pure, ts_pure, ramp_error(T_pure, 18));
+fprintf('纯增益 K=10: M_p = %.2f%%, t_s = %.2f s, e_ramp(18) = %.4f\n', os_pure_k10, ts_pure_k10, ramp_error(T_pure_k10, 18));
+fprintf('PI: M_p = %.2f%%, t_s = %.2f s, e_ramp(18) = %.4f\n', os_pi, ts_pi, ramp_error(T_pi, 18));
 
-fprintf('原系统阶跃稳态误差 = %.6f\n', orig_step_err);
-fprintf('滞后补偿并重整增益后阶跃稳态误差 = %.6f\n', lag_step_err);
-fprintf('PI补偿后斜坡稳态误差 = %.6f\n', pi_ramp_err);
+% ---------------------------------------------------------------------------
+% 4) 滞后校正的时域设计
+% ---------------------------------------------------------------------------
+T_lag = feedback((s + 0.2) / (s + 0.02) * G_mix, 1);
+[ts_lag, os_lag, ~] = step_metrics(T_lag, 18);
 
-fprintf('\n[5] 阶跃响应抽样（只做趋势验证）\n');
-t = 0:0.05:30;
-T_orig = feedback(Gp, 1);
-T_pi = feedback(L_pi, 1);
-T_lag = feedback(L_lag, 1);
-y_orig = step(T_orig, t);
-y_pi = step(T_pi, t);
-y_lag = step(T_lag, t);
+fprintf('\n[4] 滞后校正的时域设计\n');
+fprintf('滞后: M_p = %.2f%%, t_s = %.2f s, e_ramp(18) = %.4f\n', os_lag, ts_lag, ramp_error(T_lag, 18));
 
-fprintf('原系统末值近似 = %.6f\n', y_orig(end));
-fprintf('PI补偿后末值近似 = %.6f\n', y_pi(end));
-fprintf('滞后补偿后末值近似 = %.6f\n', y_lag(end));
+% ---------------------------------------------------------------------------
+% 5) 频域设计下的 PI 与 PD
+% ---------------------------------------------------------------------------
+L_pi = 3 * (s + 0.125) / s * G_mix;
+L_pd = 8 * (1 + 0.1 * s) * G_mix;
+[~, pm_pi, ~, wcp_pi] = margin(L_pi);
+[~, pm_pd, ~, wcp_pd] = margin(L_pd);
+T_pi_f = feedback(L_pi, 1);
+T_pd_f = feedback(L_pd, 1);
+[ts_pi_f, os_pi_f, ~] = step_metrics(T_pi_f, 30);
+[ts_pd_f, os_pd_f, ~] = step_metrics(T_pd_f, 8);
 
-fprintf('\n核验完成。\n');
+fprintf('\n[5] 频域设计下的 PI 与 PD\n');
+fprintf('PI: PM = %.2f deg, wc = %.2f rad/s, M_p = %.2f%%, t_s = %.2f s, e_ramp(30) = %.4f\n', ...
+  pm_pi, wcp_pi, os_pi_f, ts_pi_f, ramp_error(T_pi_f, 30));
+fprintf('PD: PM = %.2f deg, wc = %.2f rad/s, M_p = %.2f%%, t_s = %.2f s, e_ramp(15) = %.4f\n', ...
+  pm_pd, wcp_pd, os_pd_f, ts_pd_f, ramp_error(T_pd_f, 15));
+
+fprintf('\n说明：本脚本只负责数值核验；图形输出由 3-7-generate-plots.m 完成。\n');
+exit(0);

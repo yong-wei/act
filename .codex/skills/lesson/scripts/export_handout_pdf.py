@@ -371,6 +371,7 @@ def rewrite_latex_for_pdf_layout(
     width_overrides: dict[str, str] | None = None,
 ) -> str:
     tex_content = normalize_ascii_quotes_for_latex(tex_content)
+    tex_content = re.sub(r"\\begin{figure}(?:\[[^\]]*\])?", r"\\begin{figure}[H]", tex_content)
     tex_content = re.sub(
         r"^\s*\\setkeys{Gin}{width=\\maxwidth,height=\\maxheight,keepaspectratio}\s*$",
         "",

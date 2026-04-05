@@ -219,3 +219,23 @@ def test_rewrite_latex_for_pdf_layout_applies_markdown_width_override_when_pando
     )
 
     assert r'\includegraphics[width=\textwidth]{../media/processed/fig-a.pdf}' in rewritten
+
+
+def test_rewrite_latex_for_pdf_layout_forces_figures_to_use_H_placement():
+    tex = r"""
+\begin{figure}
+\centering
+\includegraphics{../media/processed/fig-a.pdf}
+\caption{示意图A}
+\end{figure}
+\begin{figure}[htbp]
+\centering
+\includegraphics{../media/processed/fig-b.pdf}
+\caption{示意图B}
+\end{figure}
+"""
+
+    rewritten = exporter.rewrite_latex_for_pdf_layout(tex)
+
+    assert r'\begin{figure}[H]' in rewritten
+    assert r'\begin{figure}[htbp]' not in rewritten

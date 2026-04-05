@@ -1,0 +1,60 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+\setmainfont{Arial Unicode MS}
+\setCJKmainfont{Hiragino Sans GB}
+
+\definecolor{BlockBlue}{HTML}{3E7CB1}
+\definecolor{SumGreen}{HTML}{4F9D69}
+\definecolor{TapOrange}{HTML}{D98841}
+\definecolor{LineGray}{HTML}{2F2F2F}
+
+\tikzset{
+  signal/.style={-{Stealth[length=2.6mm]}, line width=1.2pt, draw=LineGray},
+  block/.style={rectangle, draw=BlockBlue, rounded corners=1pt, minimum width=2.2cm, minimum height=0.92cm, line width=1.2pt, fill=none, align=center, font=\footnotesize\bfseries},
+  sum/.style={circle, draw=SumGreen, minimum size=5.8mm, inner sep=0pt, line width=1.2pt, fill=none},
+  tap/.style={circle, draw=TapOrange, fill=TapOrange, minimum size=4.2pt, inner sep=0pt},
+  labelbox/.style={font=\footnotesize, fill=white, inner sep=1.2pt},
+  sign/.style={font=\scriptsize\bfseries}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=1.05cm]
+  \node (r) at (0,0) {$R(s)$};
+  \node[sum, right=1.0cm of r] (sum1) {};
+  \node[block, right=1.15cm of sum1] (gc) {$G_c(s)$};
+  \node[sum, right=1.0cm of gc] (sum2) {};
+  \node[block, right=1.0cm of sum2] (gp) {$G_p(s)$};
+  \node[tap, right=1.0cm of gp] (tap) {};
+  \node[right=0.72cm of tap] (c) {$C(s)$};
+  \node[block, below=1.2cm of $(gc)!0.55!(gp)$] (h) {$H(s)$};
+  \node[above=0.95cm of sum2] (d) {$D(s)$};
+
+  \draw[signal] (r) -- (sum1);
+  \draw[signal] (sum1) -- node[labelbox, above] {$E(s)$} (gc);
+  \draw[signal] (gc) -- node[labelbox, above] {$u(s)$} (sum2);
+  \draw[signal] (sum2) -- node[labelbox, above] {$u(s)+D(s)$} (gp);
+  \draw[signal] (gp) -- (tap) -- node[labelbox, above] {$C(s)$} (c);
+  \draw[signal] (d) -- (sum2);
+  \draw[signal] (tap) |- (h);
+  \draw[signal] (h) -| (sum1);
+
+  \node[labelbox] at ($(sum1)+(-0.18,0.34)$) {$+$};
+  \node[labelbox] at ($(sum1)+(-0.18,-0.34)$) {$-$};
+  \node[labelbox] at ($(sum2)+(-0.18,0.34)$) {$+$};
+  \node[labelbox] at ($(sum2)+(-0.18,-0.34)$) {$+$};
+
+  \draw[densely dashed, line width=0.95pt, draw=BlockBlue]
+    ($(gc.north west)+(-0.26,0.42)$) rectangle ($(gp.south east)+(0.26,-0.42)$);
+  \node[labelbox, text=BlockBlue] at ($(gc.north)!0.5!(gp.north)+(0,0.78)$)
+    {给定通道前向环节：$G_c(s)G_p(s)$};
+
+  \draw[densely dashed, line width=0.95pt, draw=TapOrange]
+    ($(gp.north west)+(-0.24,0.56)$) rectangle ($(gp.south east)+(0.24,-0.56)$);
+  \node[labelbox, text=TapOrange] at ($(gp.north)+(0,1.02)$)
+    {扰动通道前向环节：$G_p(s)$};
+\end{tikzpicture}
+\end{document}

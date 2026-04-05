@@ -16,27 +16,36 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 资源 {用途前缀}-{序号} | {简短描述}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-文件名：{单元编号}-{前缀}-{序号}-{描述}.m / .svg
-存放：raw/{单元编号}-{前缀}-{序号}-{描述}.m → processed/{单元编号}-{前缀}-{序号}-{描述}.svg
+文件名：`generate_design_data.m` / `generated-data/{单元编号}-design-data.json` / `render_figures.py` / `processed/{单元编号}-{资源名}.png`
+存放：`raw/generate_design_data.m` → `raw/generated-data/{单元编号}-design-data.json` → `raw/render_figures.py` → `processed/{单元编号}-{资源名}.png`
 引用于：{文档名} § {章节/步骤}
 
 【图片内容描述】
 {说明图片要呈现的内容、坐标轴、曲线含义、标注要求等}
 
-【示例代码（MATLAB/Octave）】
-```matlab
-{可直接运行的示例代码}
-```
+【实现约定】
+- `Octave` 脚本负责建模、调用 control 包原生函数并导出 JSON 数据
+- `Python/matplotlib` 脚本负责统一排版、字体、线型、网格、留白、摘要框和导出 PNG
+- 默认直接从 `templates/octave-design-data-template.m.tpl` 与 `templates/matplotlib-render-template.py.tpl` 复制脚手架
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 **硬约束：**
 
 - 时域响应、频域响应、根轨迹、Nyquist/Bode、极点零点、稳定域、参数扫描等控制系统图，默认必须使用 `Octave` 完成计算、仿真与出图。
+- 数值图像的最终成图不再直接由 `Octave` / `gnuplot` 输出；统一采用“`Octave` 导出数据 + `Python/matplotlib` 最终排版”的两段式流程。
+- 默认字体、线型、网格、颜色、留白和摘要框风格必须与 3-6 单元保持同一套基线，不得为单个课次单独发明新的图面语言。
 - 默认优先使用 `Octave` / control 包的原生高层函数完成出图和核验，例如 `step()`、`bode()`、`nyquist()`、`rlocus()`、`lsim()`、`margin()`；除非原生函数确实无法覆盖，否则不得手写底层数值积分、频率扫描或同类替代函数。
 - 不得为阶跃响应、频率响应或性能指标等基础能力自造底层数值计算函数。
 - 若讲义、互动课或信息图引用同一张控制图，优先复用同一产物，不要重复出图。
 - 讲义正文或附录若提供参考代码，默认也应与这里保持一致，统一使用 MATLAB/Octave 形式的 `.m` 文件。
+- 默认模板位置：
+  - `templates/octave-design-data-template.m.tpl`
+  - `templates/matplotlib-render-template.py.tpl`
+- 数值图的多子图布局应按图数自适应，不固定成单一 `2x2` 模板。
+- 若只有 2 幅图，默认左右并排展示，不额外添加说明文本块。
+- 若有 3 幅图，可沿用 3-6 单元常用的 `2x2` 教学图布局：前三格放图，右下角放摘要说明文本块。
+- 若图数更多，再按教学逻辑扩展布局，但仍要保持与 `3-6` 单元一致的字体、线型、网格、留白和摘要框风格。
 
 ### TikZ 线框图
 

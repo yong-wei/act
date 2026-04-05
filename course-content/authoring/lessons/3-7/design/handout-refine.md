@@ -19,7 +19,7 @@
 1. **系统结构来源**：开环低频结构决定某类误差是否可以从结构上被消除；
 2. **信号通道来源**：给定输入与外加扰动进入闭环的位置不同，最终影响输出和误差的方式也不同。
 
-因此，本讲先解决“误差怎样列式、怎样求”，再进入“为什么必须用积分、`PI` 或滞后去改结构，而不是只会调增益”。
+因此，本讲先厘清“误差怎样列式、怎样求”，再理解“为什么必须用积分、`PI` 或滞后去改结构，而不是只会调增益”。
 
 > 动态改善线回答“怎样更快、更有阻尼”；  
 > 稳态改善线回答“为什么更准，以及代价落在哪个频段”。
@@ -50,7 +50,7 @@
 
 \begin{equation}
 E(s)=R(s)-B(s)=R(s)-H(s)C(s)
-\tag{3-7-1}\label{eq:3-7-error-definition}
+\tag{3-7-1}\lable{eq:3-7-error-definition}
 \end{equation}
 
 统一结构如图~\ref{fig:3-7-channels} 所示。
@@ -628,12 +628,12 @@ G_{PI}(s)=3\frac{s+0.125}{s}
 
 设计结果约为：
 
-\begin{equation}
+$$
 PM \approx 54.8^\circ, \qquad
 \omega_c \approx 2.54\ \mathrm{rad/s}, \qquad
 K_v = \infty
 \tag{3-7-46}\label{eq:3-7-pi-frequency-result}
-\end{equation}
+$$
 
 对应闭环时域指标约为
 
