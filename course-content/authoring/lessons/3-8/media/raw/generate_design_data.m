@@ -179,15 +179,15 @@ for k = 1:numel(quick_systems)
   payload.nyquist_quickcheck.cases{end + 1} = entry;
 endfor
 
-L_small = 6 / ((s + 1) * (s + 2) * (s + 4));
+L_small = 80 / ((s + 1) * (s + 2) * (s + 4));
 L_large = 110 / ((s + 1) * (s + 2) * (s + 4));
 payload.nyquist_compare = struct();
 payload.nyquist_compare.small = nyquist_to_struct(L_small, w_mid);
 payload.nyquist_compare.large = nyquist_to_struct(L_large, w_mid);
-payload.nyquist_compare.small_label = "K=6";
+payload.nyquist_compare.small_label = "K=80";
 payload.nyquist_compare.large_label = "K=110";
 payload.nyquist_compare.summary = {
-  "K=6 未包围临界点，闭环仍稳定",
+  "K=80 仍未包围临界点，但已明显逼近稳定边界",
   "K=110 已发生包围，闭环越过稳定边界",
   "设计时应在提速与稳定余量之间留出缓冲"
 };
