@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
@@ -14,7 +15,10 @@ import numpy as np
 from PIL import Image
 
 DATA_PATH = Path(__file__).resolve().parent / 'generated-data' / '3-8-design-data.json'
-OUT_DIR = Path(__file__).resolve().parent.parent / 'processed'
+RAW_DIR = Path(__file__).resolve().parent
+OUT_DIR = RAW_DIR.parent / 'processed'
+TIKZ_COMPILER = Path.home() / '.cc-switch' / 'skills' / 'tikz-control-draw' / 'scripts' / 'compile_to_png.py'
+PLATFORM_BLOCK_TEX = RAW_DIR / '3-8-platform-block-diagram.tex'
 
 matplotlib.rcParams['font.family'] = 'sans-serif'
 matplotlib.rcParams['font.sans-serif'] = ['Hiragino Sans GB', 'STHeiti', 'Arial Unicode MS', 'Arial Unicode', 'DejaVu Sans']
@@ -31,6 +35,8 @@ COLORS = {
   'target': '#7a1f5c',
   'phase': '#6c757d',
   'fill': '#eef6fb',
+  'slow': '#756bb1',
+  'grid': '#dddddd',
 }
 
 
@@ -57,6 +63,14 @@ def arr(block: dict, key: str) -> np.ndarray:
   return np.asarray(block[key], dtype=float)
 
 
+def complex_points(block: dict) -> np.ndarray:
+  return arr(block, 'real') + 1j * arr(block, 'imag')
+
+
+def locus_points(block: dict) -> np.ndarray:
+  return np.asarray(block['real'], dtype=float) + 1j * np.asarray(block['imag'], dtype=float)
+
+
 def interp_logx(x: np.ndarray, y: np.ndarray, x0: float) -> float:
   return float(np.interp(np.log10(x0), np.log10(x), y))
 
@@ -65,7 +79,7 @@ def style_bode_axes(ax_mag: plt.Axes, ax_phase: plt.Axes) -> None:
   ax_mag.set_xscale('log')
   ax_phase.set_xscale('log')
   for ax in (ax_mag, ax_phase):
-    ax.grid(True, which='both', color='#dddddd', linewidth=0.7)
+    ax.grid(True, which='both', color=COLORS['grid'], linewidth=0.7)
     ax.set_facecolor('white')
   ax_mag.set_ylabel('幅值 / dB')
   ax_phase.set_ylabel('相位 / deg')
@@ -73,7 +87,7 @@ def style_bode_axes(ax_mag: plt.Axes, ax_phase: plt.Axes) -> None:
 
 
 def style_step_axis(ax: plt.Axes) -> None:
-  ax.grid(True, color='#dddddd', linewidth=0.7)
+  ax.grid(True, color=COLORS['grid'], linewidth=0.7)
   ax.set_facecolor('white')
   ax.set_xlabel('时间 / s')
   ax.set_ylabel('单位阶跃响应')
@@ -82,11 +96,20 @@ def style_step_axis(ax: plt.Axes) -> None:
 def style_nyquist_axis(ax: plt.Axes) -> None:
   ax.axhline(0, color='#999999', linewidth=0.8)
   ax.axvline(0, color='#999999', linewidth=0.8, linestyle='--')
-  ax.grid(True, color='#dddddd', linewidth=0.7)
+  ax.grid(True, color=COLORS['grid'], linewidth=0.7)
   ax.set_facecolor('white')
   ax.set_xlabel('实部')
   ax.set_ylabel('虚部')
   ax.set_aspect('equal', adjustable='box')
+
+
+def style_root_axis(ax: plt.Axes) -> None:
+  ax.axhline(0, color='#999999', linewidth=0.8)
+  ax.axvline(0, color='#999999', linewidth=0.8, linestyle='--')
+  ax.grid(True, color=COLORS['grid'], linewidth=0.7)
+  ax.set_facecolor('white')
+  ax.set_xlabel('实部')
+  ax.set_ylabel('虚部')
 
 
 def summary_box(ax: plt.Axes, title: str, lines: list[str], facecolor: str = '#f7f4ef', edgecolor: str = '#d0c6b4') -> None:
@@ -98,10 +121,53 @@ def summary_box(ax: plt.Axes, title: str, lines: list[str], facecolor: str = '#f
     text,
     va='top',
     ha='left',
-    fontsize=10.1,
-    linespacing=1.55,
-    bbox=dict(boxstyle='round,pad=0.6', facecolor=facecolor, edgecolor=edgecolor),
+    fontsize=10.0,
+    linespacing=1.52,
+    bbox=dict(boxstyle='round,pad=0.55', facecolor=facecolor, edgecolor=edgecolor),
   )
+
+
+def dedupe_legend(ax: plt.Axes, **kwargs) -> None:
+  handles, labels = ax.get_legend_handles_labels()
+  unique: dict[str, object] = {}
+  for handle, label in zip(handles, labels):
+    if label and label not in unique:
+      unique[label] = handle
+  if unique:
+    ax.legend(unique.values(), unique.keys(), **kwargs)
+
+
+def set_xy_limits(ax: plt.Axes, x: np.ndarray, y: np.ndarray, pad: float = 0.14, min_span_x: float = 0.8, min_span_y: float = 0.8) -> None:
+  x = np.asarray(x, dtype=float)
+  y = np.asarray(y, dtype=float)
+  mask = np.isfinite(x) & np.isfinite(y)
+  x = x[mask]
+  y = y[mask]
+  if x.size == 0:
+    return
+  x_min = float(np.min(x))
+  x_max = float(np.max(x))
+  y_min = float(np.min(y))
+  y_max = float(np.max(y))
+  span_x = max(x_max - x_min, min_span_x)
+  span_y = max(y_max - y_min, min_span_y)
+  ax.set_xlim(x_min - pad * span_x, x_max + pad * span_x)
+  ax.set_ylim(y_min - pad * span_y, y_max + pad * span_y)
+
+
+def apply_nyquist_limits(ax: plt.Axes, curve: dict) -> None:
+  x = arr(curve, 'real')
+  y = arr(curve, 'imag')
+  full_x = np.concatenate([x, x, [-1.0, 0.0]])
+  full_y = np.concatenate([y, -y, [0.0, 0.0]])
+  set_xy_limits(ax, full_x, full_y, pad=0.18, min_span_x=1.4, min_span_y=1.0)
+
+
+def apply_root_limits(ax: plt.Axes, point_sets: list[np.ndarray]) -> None:
+  points = np.concatenate([pts.reshape(-1) for pts in point_sets if pts.size], axis=0)
+  x = np.real(points)
+  y = np.imag(points)
+  set_xy_limits(ax, x, y, pad=0.15, min_span_x=0.4, min_span_y=0.6)
 
 
 def plot_effect_figure(effect: dict, filename: str, suptitle: str, summary_title: str) -> None:
@@ -155,20 +221,28 @@ def render_effects(payload: dict) -> None:
 
 def render_nyquist_quickcheck(payload: dict) -> None:
   fig = plt.figure(figsize=(11.8, 9.0), dpi=220)
-  gs = fig.add_gridspec(2, 2, hspace=0.26, wspace=0.20)
+  gs = fig.add_gridspec(2, 2, hspace=0.26, wspace=0.22)
   for idx, item in enumerate(payload['nyquist_quickcheck']['cases']):
     ax = fig.add_subplot(gs[idx // 2, idx % 2])
     style_nyquist_axis(ax)
     x = arr(item['curve'], 'real')
     y = arr(item['curve'], 'imag')
-    ax.plot(x, y, color=COLORS['base'], linewidth=1.6)
+    ax.plot(x, y, color=COLORS['base'], linewidth=1.8)
     ax.plot(x, -y, color=COLORS['base'], linewidth=1.0, linestyle='--')
     ax.scatter([-1], [0], color='black', s=30, zorder=5)
-    ax.set_xlim(-2.6, 1.2)
-    ax.set_ylim(-2.2, 2.2)
+    ax.text(-0.97, 0.05, '(-1, 0)', fontsize=8.8)
+    apply_nyquist_limits(ax, item['curve'])
     ax.set_title(f"{item['label']} | P={item['P']}  N={item['N']}  Z={item['Z']}", fontsize=11)
-    ax.text(0.03, 0.97, item['title'], transform=ax.transAxes, ha='left', va='top', fontsize=9,
-            bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='#d9d9d9'))
+    ax.text(
+      0.03,
+      0.97,
+      item['title'],
+      transform=ax.transAxes,
+      ha='left',
+      va='top',
+      fontsize=9,
+      bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='#d9d9d9'),
+    )
   fig.suptitle('Nyquist 快速判稳：先数 P，再数 N，最后由 Z=P-N 判断闭环稳定性', fontsize=14, fontweight='bold')
   save(fig, '3-8-nyquist-quickcheck.png')
 
@@ -180,18 +254,17 @@ def render_nyquist_compare(payload: dict) -> None:
   ax2 = fig.add_subplot(gs[0, 1])
   style_nyquist_axis(ax1)
 
-  for block, color, linestyle, label in [
-    (payload['nyquist_compare']['small'], COLORS['base'], '-', payload['nyquist_compare']['small_label']),
-    (payload['nyquist_compare']['large'], COLORS['accent'], '-', payload['nyquist_compare']['large_label']),
+  for block, color, label in [
+    (payload['nyquist_compare']['small'], COLORS['base'], payload['nyquist_compare']['small_label']),
+    (payload['nyquist_compare']['large'], COLORS['accent'], payload['nyquist_compare']['large_label']),
   ]:
     x = arr(block, 'real')
     y = arr(block, 'imag')
-    ax1.plot(x, y, color=color, linewidth=1.8, linestyle=linestyle, label=label)
+    ax1.plot(x, y, color=color, linewidth=1.8, label=label)
     ax1.plot(x, -y, color=color, linewidth=1.0, linestyle='--')
   ax1.scatter([-1], [0], color='black', s=35, zorder=6)
   ax1.text(-0.92, 0.12, '临界点 (-1,0)', fontsize=10)
-  ax1.set_xlim(-3.6, 1.6)
-  ax1.set_ylim(-2.6, 2.6)
+  apply_nyquist_limits(ax1, payload['nyquist_compare']['large'])
   ax1.legend(frameon=False, fontsize=9, loc='lower right')
   ax1.set_title('同一对象、不同增益下的 Nyquist 曲线')
 
@@ -248,7 +321,7 @@ def render_bode(payload: dict) -> None:
     f"相位穿越频率 wπ = {wg:.2f} rad/s",
     f"相角裕度 PM = {pm:.1f}°",
     f"增益裕度 GM = {gm_db:.1f} dB",
-    f"闭环超调 = {payload['bode']['metrics']['overshoot']:.1f}%"
+    f"闭环超调 = {payload['bode']['metrics']['overshoot']:.1f}%",
   ]
   summary_box(ax4, '读图顺序', lines, facecolor='#eef8ee', edgecolor='#c4dec4')
   fig.suptitle('Bode 判稳：频率线与裕度线必须同时出现，才有完整判读信息', fontsize=14, fontweight='bold')
@@ -256,178 +329,281 @@ def render_bode(payload: dict) -> None:
 
 
 def render_three_band(payload: dict) -> None:
-  fig = plt.figure(figsize=(12.8, 5.8), dpi=220)
-  gs = fig.add_gridspec(1, 2, width_ratios=[1.7, 1.0], wspace=0.18)
-  ax1 = fig.add_subplot(gs[0, 0])
-  ax2 = fig.add_subplot(gs[0, 1])
-
+  fig, ax = plt.subplots(figsize=(13.6, 5.1), dpi=220)
   w = np.asarray(payload['three_band']['w'], dtype=float)
   mag_db = np.asarray(payload['three_band']['mag_db'], dtype=float)
   b1, b2 = payload['three_band']['boundaries']
-  ax1.set_xscale('log')
-  ax1.axvspan(w.min(), b1, color='#eef6fb', alpha=0.9)
-  ax1.axvspan(b1, b2, color='#f8f3ea', alpha=0.9)
-  ax1.axvspan(b2, w.max(), color='#f7eef3', alpha=0.9)
-  ax1.semilogx(w, mag_db, color=COLORS['base'], linewidth=1.9)
-  ax1.grid(True, which='both', color='#dddddd', linewidth=0.7)
-  ax1.set_facecolor('white')
-  ax1.set_xlabel(r'$\omega$ / rad/s')
-  ax1.set_ylabel('幅值 / dB')
-  ax1.set_title('三频段分工：精度、速度与代价各落在不同频带')
-  ylim = ax1.get_ylim()
-  ax1.text(0.025, ylim[1] - 5, '低频：精度与抗扰', fontsize=10)
-  ax1.text(0.24, ylim[1] - 5, '中频：截止频率与稳定裕度', fontsize=10)
-  ax1.text(9.0, ylim[1] - 5, '高频：噪声与执行器代价', fontsize=10)
 
-  lines = [
-    '低频段先回答：稳态误差能不能压下去',
-    '中频段再回答：速度与超调是否平衡',
-    '高频段最后回答：为这些收益付出了多大代价',
-  ]
-  summary_box(ax2, '如何使用这张图', lines, facecolor='#fbf0ea', edgecolor='#e6c3b2')
+  ax.set_xscale('log')
+  ax.axvspan(w.min(), b1, color='#eef6fb', alpha=0.96)
+  ax.axvspan(b1, b2, color='#f8f3ea', alpha=0.96)
+  ax.axvspan(b2, w.max(), color='#f7eef3', alpha=0.96)
+  ax.semilogx(w, mag_db, color=COLORS['base'], linewidth=2.1)
+  ax.grid(True, which='both', color=COLORS['grid'], linewidth=0.7)
+  ax.set_facecolor('white')
+  ax.set_xlabel(r'$\omega$ / rad/s')
+  ax.set_ylabel('幅值 / dB')
+  ax.set_title('三频段分工：低频保精度，中频定速度与裕度，高频承担代价')
+  y_top = ax.get_ylim()[1]
+  ax.text(0.028, y_top - 4.6, '低频：稳态精度、抗缓变扰动', fontsize=10.5, color=COLORS['base'])
+  ax.text(0.22, y_top - 4.6, '中频：截止频率、相角裕度、超调', fontsize=10.5, color=COLORS['accent'])
+  ax.text(7.5, y_top - 4.6, '高频：噪声敏感性、执行器负担', fontsize=10.5, color=COLORS['warning'])
   save(fig, '3-8-three-band-overview.png')
 
 
-def render_heading_case(payload: dict) -> None:
-  fig = plt.figure(figsize=(12.8, 8.8), dpi=220)
-  gs = fig.add_gridspec(2, 2, hspace=0.32, wspace=0.24)
-  ax1 = fig.add_subplot(gs[0, 0])
-  ax2 = fig.add_subplot(gs[0, 1])
-  ax3 = fig.add_subplot(gs[1, 0])
-  ax4 = fig.add_subplot(gs[1, 1])
+def plot_root_locus(ax: plt.Axes, locus: dict, color: str, label: str, linewidth: float = 1.3, alpha: float = 0.9) -> None:
+  points = locus_points(locus)
+  for idx, branch in enumerate(points):
+    ax.plot(np.real(branch), np.imag(branch), color=color, linewidth=linewidth, alpha=alpha, label=label if idx == 0 else None)
 
-  style_bode_axes(ax1, ax2)
+
+def mark_open_loop_points(ax: plt.Axes, poles: dict, zeros: dict, color: str, prefix: str | None = None, alpha: float = 1.0) -> None:
+  pole_label = '开环极点' if prefix is None else f'{prefix}开环极点'
+  zero_label = '开环零点' if prefix is None else f'{prefix}开环零点'
+  pole_points = complex_points(poles)
+  if pole_points.size:
+    ax.scatter(np.real(pole_points), np.imag(pole_points), marker='x', color=color, s=58, linewidths=1.6, alpha=alpha, label=pole_label, zorder=6)
+  zero_points = complex_points(zeros)
+  if zero_points.size:
+    ax.scatter(np.real(zero_points), np.imag(zero_points), marker='o', facecolors='none', edgecolors=color, s=58, linewidths=1.6, alpha=alpha, label=zero_label, zorder=6)
+
+
+def mark_closed_loop_points(ax: plt.Axes, poles: dict, color: str, label: str, marker: str = 'o', size: float = 54) -> None:
+  points = complex_points(poles)
+  if points.size:
+    ax.scatter(np.real(points), np.imag(points), marker=marker, color=color, s=size, label=label, zorder=7)
+
+
+def add_pm_marker(ax: plt.Axes, w: np.ndarray, phase_deg: np.ndarray, wc: float, pm: float, color: str, text_scale: float = 1.06) -> None:
+  phase_at_wc = interp_logx(w, phase_deg, wc)
+  ax.axvline(wc, color=color, linewidth=1.0, linestyle='--')
+  ax.plot([wc, wc], [phase_at_wc, -180], color=color, linewidth=1.9)
+  ax.scatter([wc], [phase_at_wc], color=color, s=30, zorder=6)
+  ax.text(wc * text_scale, (phase_at_wc - 180) / 2 - 90, f'PM={pm:.1f}°', fontsize=8.8, color=color)
+
+
+def render_heading_baseline(payload: dict) -> None:
+  fig = plt.figure(figsize=(12.6, 8.6), dpi=220)
+  gs = fig.add_gridspec(2, 2, hspace=0.32, wspace=0.26)
+  ax_step = fig.add_subplot(gs[0, 0])
+  ax_root = fig.add_subplot(gs[1, 0])
+  ax_mag = fig.add_subplot(gs[0, 1])
+  ax_phase = fig.add_subplot(gs[1, 1])
+
+  style_step_axis(ax_step)
+  ax_step.plot(arr(payload['heading_case']['step_base'], 't'), arr(payload['heading_case']['step_base'], 'y'), color=COLORS['base'], linewidth=2.0, label='基线闭环')
+  ax_step.set_title('闭环时域：基线方案的超调与收敛速度')
+  ax_step.text(0.03, 0.95, f"超调 {payload['heading_case']['metrics_base']['overshoot']:.2f}%\n调节时间 {payload['heading_case']['metrics_base']['settling_time']:.2f} s",
+               transform=ax_step.transAxes, va='top', ha='left', fontsize=9.5,
+               bbox=dict(boxstyle='round,pad=0.22', facecolor='white', edgecolor='#d9d9d9'))
+
+  style_root_axis(ax_root)
+  plot_root_locus(ax_root, payload['heading_case']['root_base'], COLORS['base'], '基线根轨迹', linewidth=1.4)
+  mark_open_loop_points(ax_root, payload['heading_case']['open_poles_base'], payload['heading_case']['open_zeros_base'], COLORS['base'])
+  mark_closed_loop_points(ax_root, payload['heading_case']['closed_poles_base'], COLORS['accent'], '当前闭环极点', marker='o', size=48)
+  apply_root_limits(ax_root, [
+    locus_points(payload['heading_case']['root_base']),
+    complex_points(payload['heading_case']['open_poles_base']),
+    complex_points(payload['heading_case']['closed_poles_base']),
+  ])
+  ax_root.set_title('复数域：根轨迹与当前闭环极点')
+  dedupe_legend(ax_root, frameon=False, fontsize=8.6, loc='best')
+
+  style_bode_axes(ax_mag, ax_phase)
+  w = arr(payload['heading_case']['open_base'], 'w')
+  mag_db = arr(payload['heading_case']['open_base'], 'mag_db')
+  phase_deg = arr(payload['heading_case']['open_base'], 'phase_deg')
+  wc = payload['heading_case']['margin_base']['wc']
+  ax_mag.semilogx(w, mag_db, color=COLORS['base'], linewidth=2.0)
+  ax_mag.axhline(0, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  ax_mag.axvline(wc, color=COLORS['accent'], linewidth=1.0, linestyle='--')
+  ax_mag.text(wc * 1.06, 0.78 * ax_mag.get_ylim()[1], rf'$\omega_c={wc:.4f}$', fontsize=9, color=COLORS['accent'])
+  ax_mag.set_title('开环幅频：基线截止频率')
+
+  ax_phase.semilogx(w, phase_deg, color=COLORS['base'], linewidth=2.0)
+  ax_phase.axhline(-180, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  add_pm_marker(ax_phase, w, phase_deg, wc, payload['heading_case']['margin_base']['pm'], COLORS['lead'])
+  ax_phase.set_title('开环相频：基线相角裕度')
+
+  fig.suptitle('航向控制基线方案：先看原始单位负反馈闭环到底慢在何处、险在何处', fontsize=14, fontweight='bold')
+  save(fig, '3-8-heading-baseline.png')
+
+
+def render_heading_case(payload: dict) -> None:
+  fig = plt.figure(figsize=(12.6, 8.6), dpi=220)
+  gs = fig.add_gridspec(2, 2, hspace=0.32, wspace=0.26)
+  ax_step = fig.add_subplot(gs[0, 0])
+  ax_root = fig.add_subplot(gs[1, 0])
+  ax_mag = fig.add_subplot(gs[0, 1])
+  ax_phase = fig.add_subplot(gs[1, 1])
+
+  style_step_axis(ax_step)
+  ax_step.plot(arr(payload['heading_case']['step_base'], 't'), arr(payload['heading_case']['step_base'], 'y'), color=COLORS['base'], linewidth=1.9, label='基线')
+  ax_step.plot(arr(payload['heading_case']['step_comp'], 't'), arr(payload['heading_case']['step_comp'], 'y'), color=COLORS['accent'], linewidth=1.9, label='超前校正后')
+  ax_step.set_title('闭环时域：校正后更快收敛，且超调明显下降')
+  dedupe_legend(ax_step, frameon=False, fontsize=9, loc='best')
+
+  style_root_axis(ax_root)
+  plot_root_locus(ax_root, payload['heading_case']['root_base'], COLORS['soft'], '未校正根轨迹', linewidth=1.15, alpha=0.85)
+  plot_root_locus(ax_root, payload['heading_case']['root_comp'], COLORS['accent'], '校正后根轨迹', linewidth=1.35, alpha=0.9)
+  mark_open_loop_points(ax_root, payload['heading_case']['open_poles_base'], payload['heading_case']['open_zeros_base'], COLORS['soft'], prefix='未校正')
+  mark_open_loop_points(ax_root, payload['heading_case']['open_poles_comp'], payload['heading_case']['open_zeros_comp'], COLORS['accent'], prefix='校正后')
+  mark_closed_loop_points(ax_root, payload['heading_case']['closed_poles_base'], COLORS['base'], '基线闭环极点', marker='o', size=44)
+  mark_closed_loop_points(ax_root, payload['heading_case']['closed_poles_comp'], COLORS['accent'], '校正后闭环极点', marker='D', size=44)
+  apply_root_limits(ax_root, [
+    locus_points(payload['heading_case']['root_base']),
+    locus_points(payload['heading_case']['root_comp']),
+    complex_points(payload['heading_case']['closed_poles_base']),
+    complex_points(payload['heading_case']['closed_poles_comp']),
+  ])
+  ax_root.set_title('复数域：闭环极点左移并获得更有利阻尼')
+  dedupe_legend(ax_root, frameon=False, fontsize=8.2, loc='best')
+
+  style_bode_axes(ax_mag, ax_phase)
   w_base = arr(payload['heading_case']['open_base'], 'w')
-  mag_base = arr(payload['heading_case']['open_base'], 'mag_db')
-  phase_base = arr(payload['heading_case']['open_base'], 'phase_deg')
   w_comp = arr(payload['heading_case']['open_comp'], 'w')
+  mag_base = arr(payload['heading_case']['open_base'], 'mag_db')
   mag_comp = arr(payload['heading_case']['open_comp'], 'mag_db')
+  phase_base = arr(payload['heading_case']['open_base'], 'phase_deg')
   phase_comp = arr(payload['heading_case']['open_comp'], 'phase_deg')
   wc_base = payload['heading_case']['margin_base']['wc']
   wc_comp = payload['heading_case']['margin_comp']['wc']
-  phase_at_wc_base = interp_logx(w_base, phase_base, wc_base)
-  phase_at_wc_comp = interp_logx(w_comp, phase_comp, wc_comp)
 
-  ax1.semilogx(w_base, mag_base,
-               color=COLORS['base'], linewidth=1.8, label='基线')
-  ax1.semilogx(w_comp, mag_comp,
-               color=COLORS['accent'], linewidth=1.8, label='超前校正后')
-  ax1.axhline(0, color='#aaaaaa', linewidth=0.8, linestyle='--')
-  ax1.axvline(wc_base, color=COLORS['base'], linewidth=1.1, linestyle='--')
-  ax1.axvline(wc_comp, color=COLORS['accent'], linewidth=1.1, linestyle='--')
-  ax1.text(wc_base * 1.05, 0.85 * ax1.get_ylim()[1], rf'基线 $\omega_c={wc_base:.3f}$', fontsize=9, color=COLORS['base'])
-  ax1.text(wc_comp * 1.05, 0.72 * ax1.get_ylim()[1], rf'校正后 $\omega_c={wc_comp:.3f}$', fontsize=9, color=COLORS['accent'])
-  ax1.set_title('开环幅频：超前校正把截止频率向右推')
-  ax1.legend(frameon=False, fontsize=9, loc='best')
+  ax_mag.semilogx(w_base, mag_base, color=COLORS['base'], linewidth=1.9, label='基线')
+  ax_mag.semilogx(w_comp, mag_comp, color=COLORS['accent'], linewidth=1.9, label='超前校正后')
+  ax_mag.axhline(0, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  ax_mag.axvline(wc_base, color=COLORS['base'], linewidth=1.0, linestyle='--')
+  ax_mag.axvline(wc_comp, color=COLORS['accent'], linewidth=1.0, linestyle='--')
+  ax_mag.text(wc_base * 1.05, 0.83 * ax_mag.get_ylim()[1], rf'$\omega_c={wc_base:.4f}$', fontsize=8.8, color=COLORS['base'])
+  ax_mag.text(wc_comp * 1.05, 0.69 * ax_mag.get_ylim()[1], rf'$\omega_c={wc_comp:.4f}$', fontsize=8.8, color=COLORS['accent'])
+  ax_mag.set_title('开环幅频：截止频率右移，带宽同步提高')
+  dedupe_legend(ax_mag, frameon=False, fontsize=9, loc='best')
 
-  ax2.semilogx(w_base, phase_base,
-               color=COLORS['base'], linewidth=1.8)
-  ax2.semilogx(w_comp, phase_comp,
-               color=COLORS['accent'], linewidth=1.8)
-  ax2.axhline(-180, color='#aaaaaa', linewidth=0.8, linestyle='--')
-  ax2.axvline(wc_base, color=COLORS['base'], linewidth=1.1, linestyle='--')
-  ax2.axvline(wc_comp, color=COLORS['accent'], linewidth=1.1, linestyle='--')
-  ax2.plot([wc_base, wc_base], [phase_at_wc_base, -180], color=COLORS['base'], linewidth=2.0)
-  ax2.plot([wc_comp, wc_comp], [phase_at_wc_comp, -180], color=COLORS['accent'], linewidth=2.0)
-  ax2.scatter([wc_base], [phase_at_wc_base], color=COLORS['base'], s=32, zorder=5)
-  ax2.scatter([wc_comp], [phase_at_wc_comp], color=COLORS['accent'], s=32, zorder=5)
-  ax2.text(wc_base * 1.08, (phase_at_wc_base - 180) / 2 - 90, f'PM={payload["heading_case"]["margin_base"]["pm"]:.1f}°', fontsize=9, color=COLORS['base'])
-  ax2.text(wc_comp * 1.08, (phase_at_wc_comp - 180) / 2 - 90, f'PM={payload["heading_case"]["margin_comp"]["pm"]:.1f}°', fontsize=9, color=COLORS['accent'])
-  ax2.set_title('开环相频：超前校正在中频补角')
+  ax_phase.semilogx(w_base, phase_base, color=COLORS['base'], linewidth=1.9, label='基线')
+  ax_phase.semilogx(w_comp, phase_comp, color=COLORS['accent'], linewidth=1.9, label='超前校正后')
+  ax_phase.axhline(-180, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  add_pm_marker(ax_phase, w_base, phase_base, wc_base, payload['heading_case']['margin_base']['pm'], COLORS['base'])
+  add_pm_marker(ax_phase, w_comp, phase_comp, wc_comp, payload['heading_case']['margin_comp']['pm'], COLORS['accent'])
+  ax_phase.set_title('开环相频：目标频带补角后，相角裕度明显抬高')
 
-  style_step_axis(ax3)
-  ax3.plot(arr(payload['heading_case']['step_base'], 't'), arr(payload['heading_case']['step_base'], 'y'),
-           color=COLORS['base'], linewidth=1.8, label='基线')
-  ax3.plot(arr(payload['heading_case']['step_comp'], 't'), arr(payload['heading_case']['step_comp'], 'y'),
-           color=COLORS['accent'], linewidth=1.8, label='超前校正后')
-  ax3.legend(frameon=False, fontsize=9, loc='best')
-  ax3.set_title('闭环阶跃：更快收敛，同时明显压低超调')
-
-  lines = [
-    '性能指标：将超调压到 15% 左右，同时把调节时间压缩到 45 s 量级',
-    '频域目标：取 PM ≈ 50°，并把截止频率推到 0.25 rad/s 左右',
-    '在 ω*=0.25 rad/s 处，原系统幅值约为 -11.5 dB，相位约为 -164.9°',
-    '因此不能只加增益，必须同时补足约 35° 相位并抬升该频带幅值',
-    '选取 C_h(s)=(1+s/0.05)/(1+s/0.3)，让补角集中在 0.1~0.3 rad/s 附近',
-    f"基线 PM = {payload['heading_case']['margin_base']['pm']:.2f}°，校正后 PM = {payload['heading_case']['margin_comp']['pm']:.2f}°",
-    f"基线 wc = {payload['heading_case']['margin_base']['wc']:.4f}，校正后 wc = {payload['heading_case']['margin_comp']['wc']:.4f}",
-    f"超调：{payload['heading_case']['metrics_base']['overshoot']:.2f}% → {payload['heading_case']['metrics_comp']['overshoot']:.2f}%",
-    f"调节时间：{payload['heading_case']['metrics_base']['settling_time']:.2f}s → {payload['heading_case']['metrics_comp']['settling_time']:.2f}s",
-  ]
-  summary_box(ax4, '航向控制设计结论', lines, facecolor='#eef6fb', edgecolor='#bfd7e7')
-  fig.suptitle('航向控制案例：问题在中频余量偏小，超前校正把“更快”和“更稳”同时拉回可接受区间', fontsize=14, fontweight='bold')
+  fig.suptitle('航向控制：基线方案与超前校正方案的 2×2 对照', fontsize=14, fontweight='bold')
   save(fig, '3-8-heading-case.png')
+
+
+def render_platform_baseline(payload: dict) -> None:
+  fig = plt.figure(figsize=(12.6, 8.6), dpi=220)
+  gs = fig.add_gridspec(2, 2, hspace=0.32, wspace=0.26)
+  ax_step = fig.add_subplot(gs[0, 0])
+  ax_root = fig.add_subplot(gs[1, 0])
+  ax_mag = fig.add_subplot(gs[0, 1])
+  ax_phase = fig.add_subplot(gs[1, 1])
+
+  style_step_axis(ax_step)
+  ax_step.plot(arr(payload['platform_case']['step_fast'], 't'), arr(payload['platform_case']['step_fast'], 'y'), color=COLORS['warning'], linewidth=2.0, label=payload['platform_case']['fast_label'])
+  ax_step.set_title('闭环时域：激进增益方案虽然快，但峰化与超调偏大')
+  ax_step.text(0.03, 0.95, f"超调 {payload['platform_case']['metrics_fast']['overshoot']:.2f}%\n调节时间 {payload['platform_case']['metrics_fast']['settling_time']:.3f} s",
+               transform=ax_step.transAxes, va='top', ha='left', fontsize=9.5,
+               bbox=dict(boxstyle='round,pad=0.22', facecolor='white', edgecolor='#d9d9d9'))
+
+  style_root_axis(ax_root)
+  plot_root_locus(ax_root, payload['platform_case']['root_base'], COLORS['warning'], '名义对象根轨迹', linewidth=1.3)
+  mark_open_loop_points(ax_root, payload['platform_case']['open_poles_base'], payload['platform_case']['open_zeros_base'], COLORS['warning'])
+  mark_closed_loop_points(ax_root, payload['platform_case']['closed_poles_fast'], COLORS['accent'], 'K=5 闭环极点', marker='o', size=44)
+  apply_root_limits(ax_root, [
+    locus_points(payload['platform_case']['root_base']),
+    complex_points(payload['platform_case']['closed_poles_fast']),
+    complex_points(payload['platform_case']['open_poles_base']),
+  ])
+  ax_root.set_title('复数域：激进增益对应的闭环极点已逼近低阻尼区域')
+  dedupe_legend(ax_root, frameon=False, fontsize=8.5, loc='best')
+
+  style_bode_axes(ax_mag, ax_phase)
+  w = arr(payload['platform_case']['open_fast'], 'w')
+  mag_db = arr(payload['platform_case']['open_fast'], 'mag_db')
+  phase_deg = arr(payload['platform_case']['open_fast'], 'phase_deg')
+  wc = payload['platform_case']['margin_fast']['wc']
+  ax_mag.semilogx(w, mag_db, color=COLORS['warning'], linewidth=2.0)
+  ax_mag.axhline(0, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  ax_mag.axvline(wc, color=COLORS['accent'], linewidth=1.0, linestyle='--')
+  ax_mag.text(wc * 1.04, 0.8 * ax_mag.get_ylim()[1], rf'$\omega_c={wc:.2f}$', fontsize=8.8, color=COLORS['accent'])
+  ax_mag.set_title('开环幅频：激进增益把截止频率推得很高')
+
+  ax_phase.semilogx(w, phase_deg, color=COLORS['warning'], linewidth=2.0)
+  ax_phase.axhline(-180, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  add_pm_marker(ax_phase, w, phase_deg, wc, payload['platform_case']['margin_fast']['pm'], COLORS['lead'])
+  ax_phase.set_title('开环相频：速度是有了，但相角裕度并不充足')
+
+  fig.suptitle('稳定平台激进基线：只靠提高增益能提速，但代价先落在中频余量上', fontsize=14, fontweight='bold')
+  save(fig, '3-8-platform-baseline.png')
 
 
 def render_platform_case(payload: dict) -> None:
   fig = plt.figure(figsize=(12.8, 8.8), dpi=220)
-  gs = fig.add_gridspec(2, 2, hspace=0.32, wspace=0.24)
-  ax1 = fig.add_subplot(gs[0, 0])
-  ax2 = fig.add_subplot(gs[0, 1])
-  ax3 = fig.add_subplot(gs[1, 0])
-  ax4 = fig.add_subplot(gs[1, 1])
+  gs = fig.add_gridspec(2, 2, hspace=0.32, wspace=0.26)
+  ax_step = fig.add_subplot(gs[0, 0])
+  ax_root = fig.add_subplot(gs[1, 0])
+  ax_mag = fig.add_subplot(gs[0, 1])
+  ax_phase = fig.add_subplot(gs[1, 1])
 
-  style_bode_axes(ax1, ax2)
-  w_fast = arr(payload['platform_case']['open_fast'], 'w')
-  mag_fast = arr(payload['platform_case']['open_fast'], 'mag_db')
-  phase_fast = arr(payload['platform_case']['open_fast'], 'phase_deg')
-  w_comp = arr(payload['platform_case']['open_comp'], 'w')
-  mag_comp = arr(payload['platform_case']['open_comp'], 'mag_db')
-  phase_comp = arr(payload['platform_case']['open_comp'], 'phase_deg')
-  wc_fast = payload['platform_case']['margin_fast']['wc']
-  wc_comp = payload['platform_case']['margin_comp']['wc']
-  phase_at_wc_fast = interp_logx(w_fast, phase_fast, wc_fast)
-  phase_at_wc_comp = interp_logx(w_comp, phase_comp, wc_comp)
+  style_step_axis(ax_step)
+  ax_step.plot(arr(payload['platform_case']['step_fast'], 't'), arr(payload['platform_case']['step_fast'], 'y'),
+               color=COLORS['warning'], linewidth=1.9, label=payload['platform_case']['fast_label'])
+  ax_step.plot(arr(payload['platform_case']['step_slow'], 't'), arr(payload['platform_case']['step_slow'], 'y'),
+               color=COLORS['slow'], linewidth=1.9, label=payload['platform_case']['slow_label'])
+  ax_step.plot(arr(payload['platform_case']['step_comp'], 't'), arr(payload['platform_case']['step_comp'], 'y'),
+               color=COLORS['lead'], linewidth=1.9, label=payload['platform_case']['comp_label'])
+  ax_step.set_title('闭环时域：降增益能减超调，但速度损失明显；校正方案兼顾两者')
+  dedupe_legend(ax_step, frameon=False, fontsize=8.7, loc='best')
 
-  ax1.semilogx(w_fast, mag_fast,
-               color=COLORS['warning'], linewidth=1.8, label=payload['platform_case']['fast_label'])
-  ax1.semilogx(w_comp, mag_comp,
-               color=COLORS['lead'], linewidth=1.8, label=payload['platform_case']['comp_label'])
-  ax1.axhline(0, color='#aaaaaa', linewidth=0.8, linestyle='--')
-  ax1.axvline(wc_fast, color=COLORS['warning'], linewidth=1.1, linestyle='--')
-  ax1.axvline(wc_comp, color=COLORS['lead'], linewidth=1.1, linestyle='--')
-  ax1.text(wc_fast * 1.04, 0.82 * ax1.get_ylim()[1], rf'基线 $\omega_c={wc_fast:.2f}$', fontsize=9, color=COLORS['warning'])
-  ax1.text(wc_comp * 1.04, 0.68 * ax1.get_ylim()[1], rf'校正后 $\omega_c={wc_comp:.2f}$', fontsize=9, color=COLORS['lead'])
-  ax1.set_title('开环幅频：仅降增益会把速度压得过低')
-  ax1.legend(frameon=False, fontsize=8.5, loc='best')
+  style_root_axis(ax_root)
+  plot_root_locus(ax_root, payload['platform_case']['root_base'], COLORS['soft'], '名义对象根轨迹', linewidth=1.1, alpha=0.85)
+  plot_root_locus(ax_root, payload['platform_case']['root_comp'], COLORS['lead'], '校正后根轨迹', linewidth=1.25, alpha=0.9)
+  mark_open_loop_points(ax_root, payload['platform_case']['open_poles_base'], payload['platform_case']['open_zeros_base'], COLORS['soft'], prefix='名义')
+  mark_open_loop_points(ax_root, payload['platform_case']['open_poles_comp'], payload['platform_case']['open_zeros_comp'], COLORS['lead'], prefix='校正后')
+  mark_closed_loop_points(ax_root, payload['platform_case']['closed_poles_fast'], COLORS['warning'], 'K=5 闭环极点', marker='o', size=40)
+  mark_closed_loop_points(ax_root, payload['platform_case']['closed_poles_slow'], COLORS['slow'], 'K=0.2 闭环极点', marker='s', size=40)
+  mark_closed_loop_points(ax_root, payload['platform_case']['closed_poles_comp'], COLORS['lead'], '超前校正闭环极点', marker='D', size=40)
+  apply_root_limits(ax_root, [
+    locus_points(payload['platform_case']['root_base']),
+    locus_points(payload['platform_case']['root_comp']),
+    complex_points(payload['platform_case']['closed_poles_fast']),
+    complex_points(payload['platform_case']['closed_poles_slow']),
+    complex_points(payload['platform_case']['closed_poles_comp']),
+  ])
+  ax_root.set_title('复数域：校正不是简单左移，而是把极点重新布到更有利阻尼区')
+  dedupe_legend(ax_root, frameon=False, fontsize=7.8, loc='best')
 
-  ax2.semilogx(w_fast, phase_fast,
-               color=COLORS['warning'], linewidth=1.8)
-  ax2.semilogx(w_comp, phase_comp,
-               color=COLORS['lead'], linewidth=1.8)
-  ax2.axhline(-180, color='#aaaaaa', linewidth=0.8, linestyle='--')
-  ax2.axvline(wc_fast, color=COLORS['warning'], linewidth=1.1, linestyle='--')
-  ax2.axvline(wc_comp, color=COLORS['lead'], linewidth=1.1, linestyle='--')
-  ax2.plot([wc_fast, wc_fast], [phase_at_wc_fast, -180], color=COLORS['warning'], linewidth=2.0)
-  ax2.plot([wc_comp, wc_comp], [phase_at_wc_comp, -180], color=COLORS['lead'], linewidth=2.0)
-  ax2.scatter([wc_fast], [phase_at_wc_fast], color=COLORS['warning'], s=32, zorder=5)
-  ax2.scatter([wc_comp], [phase_at_wc_comp], color=COLORS['lead'], s=32, zorder=5)
-  ax2.text(wc_fast * 1.05, (phase_at_wc_fast - 180) / 2 - 90, f'PM={payload["platform_case"]["margin_fast"]["pm"]:.1f}°', fontsize=9, color=COLORS['warning'])
-  ax2.text(wc_comp * 1.05, (phase_at_wc_comp - 180) / 2 - 90, f'PM={payload["platform_case"]["margin_comp"]["pm"]:.1f}°', fontsize=9, color=COLORS['lead'])
-  ax2.set_title('开环相频：超前校正把中频相位余量拉高')
+  style_bode_axes(ax_mag, ax_phase)
+  for block, color, label, margin in [
+    ('open_fast', COLORS['warning'], payload['platform_case']['fast_label'], payload['platform_case']['margin_fast']),
+    ('open_slow', COLORS['slow'], payload['platform_case']['slow_label'], payload['platform_case']['margin_slow']),
+    ('open_comp', COLORS['lead'], payload['platform_case']['comp_label'], payload['platform_case']['margin_comp']),
+  ]:
+    w = arr(payload['platform_case'][block], 'w')
+    mag_db = arr(payload['platform_case'][block], 'mag_db')
+    phase_deg = arr(payload['platform_case'][block], 'phase_deg')
+    ax_mag.semilogx(w, mag_db, color=color, linewidth=1.8, label=label)
+    ax_phase.semilogx(w, phase_deg, color=color, linewidth=1.8, label=label)
+    ax_mag.axvline(margin['wc'], color=color, linewidth=0.9, linestyle='--', alpha=0.7)
+    add_pm_marker(ax_phase, w, phase_deg, margin['wc'], margin['pm'], color, text_scale=1.03)
+  ax_mag.axhline(0, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  ax_phase.axhline(-180, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  ax_mag.set_title('开环幅频：仅降增益会把截止频率压得过低，校正方案保持较高速度')
+  ax_phase.set_title('开环相频：校正方案在保持截止频率的同时抬高相角裕度')
+  dedupe_legend(ax_mag, frameon=False, fontsize=8.6, loc='best')
 
-  style_step_axis(ax3)
-  ax3.plot(arr(payload['platform_case']['step_fast'], 't'), arr(payload['platform_case']['step_fast'], 'y'),
-           color=COLORS['warning'], linewidth=1.8, label=payload['platform_case']['fast_label'])
-  ax3.plot(arr(payload['platform_case']['step_comp'], 't'), arr(payload['platform_case']['step_comp'], 'y'),
-           color=COLORS['lead'], linewidth=1.8, label=payload['platform_case']['comp_label'])
-  ax3.legend(frameon=False, fontsize=8.5, loc='best')
-  ax3.set_title('闭环阶跃：校正方案兼顾速度与平稳')
-
-  lines = [
-    r"对象模型：$L_p(s)$ 表示平台名义开环模型，$5L_p(s)$ 为激进基线",
-    '性能指标：希望超调压到 10% 左右，同时保持 0.2 s 量级收敛速度',
-    '频域目标：取 PM ≈ 60°，并保持截止频率在 20~25 rad/s',
-    '在 ω*=24 rad/s 处，原系统幅值约 -11.1 dB、相位约 -138.1°',
-    '因此需要同时补约 11 dB 幅值和约 20° 相位，单纯减小增益无法满足',
-    r'选取 $C_p(s)=(1+s/3)/(1+s/12)$，把补角集中在目标频带',
-    f"基线 → 校正后：PM {payload['platform_case']['margin_fast']['pm']:.2f}° → {payload['platform_case']['margin_comp']['pm']:.2f}°",
-    f"基线 → 校正后：Mp {payload['platform_case']['metrics_fast']['overshoot']:.2f}% → {payload['platform_case']['metrics_comp']['overshoot']:.2f}%",
-    f"仅降增益方案 wc 仅 {payload['platform_case']['margin_slow']['wc']:.2f} rad/s，速度损失过大",
-  ]
-  summary_box(ax4, '稳定平台设计结论', lines, facecolor='#eef8ee', edgecolor='#c4dec4')
-  fig.suptitle('稳定平台案例：单纯降增益不够，超前校正更能同时兼顾速度、余量与峰化', fontsize=14, fontweight='bold')
+  fig.suptitle('稳定平台：激进基线、仅降增益与超前校正的 2×2 对照', fontsize=14, fontweight='bold')
   save(fig, '3-8-platform-case.png')
+
+
+def render_platform_block_diagram() -> None:
+  OUT_DIR.mkdir(parents=True, exist_ok=True)
+  output = OUT_DIR / '3-8-platform-block-diagram.png'
+  subprocess.run(
+    ['python3', str(TIKZ_COMPILER), str(PLATFORM_BLOCK_TEX), str(output), '300'],
+    check=True,
+  )
+  flatten_to_white(output).save(output)
 
 
 def main() -> None:
@@ -437,7 +613,10 @@ def main() -> None:
   render_nyquist_compare(payload)
   render_bode(payload)
   render_three_band(payload)
+  render_heading_baseline(payload)
   render_heading_case(payload)
+  render_platform_block_diagram()
+  render_platform_baseline(payload)
   render_platform_case(payload)
 
 

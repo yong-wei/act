@@ -1,0 +1,24 @@
+\documentclass[tikz,border=6pt]{standalone}
+\input{styles/block_styles.tex}
+
+\begin{document}
+\begin{tikzpicture}[auto]
+  \node (r) at (0,0) {$\theta_r$};
+  \node[sum] (sum1) at (1.5,0) {};
+  \node[block large] (gain) at (3.3,0) {Gain\\$K$};
+  \node[block large] (actuator) at (5.9,0) {Actuator\\$G_a(s)$};
+  \node[block large, minimum width=2.4cm] (platform) at (9.1,0) {Platform dynamics\\$G_p(s)$};
+  \node[tap] (tap1) at (10.9,0) {};
+  \node (y) at (12.2,0) {$\theta$};
+
+  \draw[signal] (r) -- node[label above] {reference} (sum1);
+  \draw[signal] (sum1) -- node[label above] {error} (gain);
+  \draw[signal] (gain) -- node[label above] {control} (actuator);
+  \draw[signal] (actuator) -- node[label above] {actuation} (platform);
+  \draw[signal] (platform) -- (tap1) -- node[label above] {output angle} (y);
+
+  \node[block large, minimum width=2.3cm] (feedback) at (6.2,-2.6) {Unity feedback\\$H(s)=1$};
+  \draw[signal] (tap1) |- (feedback);
+  \draw[signal] (feedback) -| node[neg sign, left] {$-$} (sum1.south);
+\end{tikzpicture}
+\end{document}

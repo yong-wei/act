@@ -30,6 +30,38 @@ function out = nyquist_to_struct(sys, omega)
   out.imag = squeeze(im(:))';
 endfunction
 
+function out = complex_vector_to_struct(values)
+  values = values(:);
+  out = struct();
+  out.real = real(values)';
+  out.imag = imag(values)';
+endfunction
+
+function out = root_locus_to_struct(sys, k_values)
+  [num, den] = tfdata(sys, "vector");
+  num = num(:)';
+  den = den(:)';
+
+  if length(num) < length(den)
+    num = [zeros(1, length(den) - length(num)), num];
+  elseif length(den) < length(num)
+    den = [zeros(1, length(num) - length(den)), den];
+  endif
+
+  root_count = length(den) - 1;
+  roots_matrix = zeros(root_count, length(k_values));
+
+  for idx = 1:length(k_values)
+    coeffs = den + k_values(idx) * num;
+    roots_matrix(:, idx) = roots(coeffs);
+  endfor
+
+  out = struct();
+  out.k = k_values(:)';
+  out.real = real(roots_matrix);
+  out.imag = imag(roots_matrix);
+endfunction
+
 function metrics = step_metrics(sys, t, tol)
   [y, t_out] = step(sys, t);
   y = y(:);
@@ -226,6 +258,14 @@ payload.heading_case.peak_base = closed_loop_peak_to_struct(feedback(L_heading_b
 payload.heading_case.peak_comp = closed_loop_peak_to_struct(feedback(L_heading_comp, 1), w_heading);
 payload.heading_case.bandwidth_base = estimate_bandwidth(feedback(L_heading_base, 1), w_heading);
 payload.heading_case.bandwidth_comp = estimate_bandwidth(feedback(L_heading_comp, 1), w_heading);
+payload.heading_case.root_base = root_locus_to_struct(L_heading_base, linspace(0, 12, 320));
+payload.heading_case.root_comp = root_locus_to_struct(L_heading_comp, linspace(0, 4, 320));
+payload.heading_case.open_poles_base = complex_vector_to_struct(pole(L_heading_base));
+payload.heading_case.open_zeros_base = complex_vector_to_struct(zero(L_heading_base));
+payload.heading_case.open_poles_comp = complex_vector_to_struct(pole(L_heading_comp));
+payload.heading_case.open_zeros_comp = complex_vector_to_struct(zero(L_heading_comp));
+payload.heading_case.closed_poles_base = complex_vector_to_struct(pole(feedback(L_heading_base, 1)));
+payload.heading_case.closed_poles_comp = complex_vector_to_struct(pole(feedback(L_heading_comp, 1)));
 
 L_platform_base = 2960 * (s / 15 + 1) / ...
   (s * (s / 3 + 1) * (((1.7 * s + 1) * (0.005 * s + 1) * (0.001 * s + 1)) + 100));
@@ -258,6 +298,15 @@ payload.platform_case.peak_comp = closed_loop_peak_to_struct(feedback(L_platform
 payload.platform_case.bandwidth_fast = estimate_bandwidth(feedback(L_platform_fast, 1), w_platform);
 payload.platform_case.bandwidth_slow = estimate_bandwidth(feedback(L_platform_slow, 1), w_platform);
 payload.platform_case.bandwidth_comp = estimate_bandwidth(feedback(L_platform_comp, 1), w_platform);
+payload.platform_case.root_base = root_locus_to_struct(L_platform_base, linspace(0, 25, 360));
+payload.platform_case.root_comp = root_locus_to_struct(L_platform_comp, linspace(0, 5, 320));
+payload.platform_case.open_poles_base = complex_vector_to_struct(pole(L_platform_base));
+payload.platform_case.open_zeros_base = complex_vector_to_struct(zero(L_platform_base));
+payload.platform_case.open_poles_comp = complex_vector_to_struct(pole(L_platform_comp));
+payload.platform_case.open_zeros_comp = complex_vector_to_struct(zero(L_platform_comp));
+payload.platform_case.closed_poles_fast = complex_vector_to_struct(pole(feedback(L_platform_fast, 1)));
+payload.platform_case.closed_poles_slow = complex_vector_to_struct(pole(feedback(L_platform_slow, 1)));
+payload.platform_case.closed_poles_comp = complex_vector_to_struct(pole(feedback(L_platform_comp, 1)));
 
 fid = fopen(out_file, "w");
 if fid < 0
