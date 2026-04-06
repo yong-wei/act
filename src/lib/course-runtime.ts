@@ -38,6 +38,10 @@ type RuntimeLessonJson = {
   summary_nodes?: string[];
   handout_path?: string;
   handout_source_path?: string;
+  handout_pdf_path?: string;
+  handout_pdf_source_path?: string;
+  media_index_path?: string;
+  media_index_source_path?: string;
   sequence?: {
     groups?: Array<{ group_name: string; step_ids: string[]; node_ids: string[] }>;
     card_order?: string[];
@@ -59,6 +63,28 @@ export interface RuntimeLessonEntryNode extends RuntimeNode {
   frontContent: string;
 }
 
+export type RuntimeLessonMediaKind = 'video' | 'audio' | 'pdf' | 'other';
+export type RuntimeLessonMediaAccessMode = 'dialog' | 'new_tab';
+export type RuntimeLessonMediaEmbedMode = 'iframe' | 'none';
+export type RuntimeLessonMediaStatus = 'ready' | 'pending';
+
+export interface RuntimeLessonMediaResource {
+  id: string;
+  title: string;
+  filename: string;
+  kind: RuntimeLessonMediaKind;
+  url: string | null;
+  accessMode: RuntimeLessonMediaAccessMode;
+  embedMode: RuntimeLessonMediaEmbedMode;
+  status: RuntimeLessonMediaStatus;
+  featured: boolean;
+}
+
+export interface RuntimeLessonMediaDocument {
+  handoutSummary: string | null;
+  mediaResources: RuntimeLessonMediaResource[];
+}
+
 export interface RuntimeLessonEntryBundle {
   lesson: RuntimeLessonJson;
   graphOverlay: {
@@ -73,8 +99,10 @@ export interface RuntimeLessonEntryBundle {
   };
   handoutPath: string;
   handoutSourcePath: string;
+  handoutPdfPath: string | null;
   handoutPreview: string;
   handoutSummary: string;
+  mediaResources: RuntimeLessonMediaResource[];
 }
 
 const RUNTIME_ROOT = path.join(process.cwd(), 'course-content', 'runtime');
@@ -95,6 +123,15 @@ async function readJson<T>(absolutePath: string): Promise<T> {
 
 async function readText(absolutePath: string): Promise<string> {
   return fs.readFile(absolutePath, 'utf8');
+}
+
+async function fileExists(absolutePath: string): Promise<boolean> {
+  try {
+    await fs.access(absolutePath);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function loadRuntimeLessonDirIndex() {
@@ -163,6 +200,85 @@ function createHandoutSummary({
   return `围绕${summaryTopics}展开的配套讲义，适合在课前快速建立概念、图像与计算线索。`;
 }
 
+function inferRuntimeMediaKind(filename: string): RuntimeLessonMediaKind {
+  const ext = path.extname(filename).toLowerCase();
+  if (ext === '.mp4' || ext === '.webm') return 'video';
+  if (ext === '.m4a' || ext === '.mp3' || ext === '.wav') return 'audio';
+  if (ext === '.pdf') return 'pdf';
+  return 'other';
+}
+
+function normalizeRuntimeMediaId(filename: string) {
+  return filename.replace(/\.[^.]+$/, '');
+}
+
+export function parseRuntimeLessonMediaIndex(markdown: string): RuntimeLessonMediaResource[] {
+  return parseRuntimeLessonMediaDocument(markdown).mediaResources;
+}
+
+export function parseRuntimeLessonMediaDocument(markdown: string): RuntimeLessonMediaDocument {
+  const resources: RuntimeLessonMediaResource[] = [];
+  const lines = markdown.split(/\r?\n/);
+  let currentFilename: string | null = null;
+  let currentTitle: string | null = null;
+  let currentUrl: string | null = null;
+  let handoutSummary: string | null = null;
+  let inHandoutSection = false;
+
+  const flushCurrent = () => {
+    if (!currentFilename) return;
+    const kind = inferRuntimeMediaKind(currentFilename);
+    if (currentFilename === 'handout.md') {
+      currentFilename = null;
+      currentTitle = null;
+      currentUrl = null;
+      return;
+    }
+    resources.push({
+      id: normalizeRuntimeMediaId(currentFilename),
+      title: currentTitle ?? currentFilename,
+      filename: currentFilename,
+      kind,
+      url: currentUrl,
+      accessMode: kind === 'pdf' ? 'new_tab' : 'dialog',
+      embedMode: kind === 'pdf' ? 'none' : 'iframe',
+      status: currentUrl ? 'ready' : 'pending',
+      featured: currentFilename.includes('-course.'),
+    });
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (line.startsWith('# ')) {
+      flushCurrent();
+      currentFilename = line.slice(2).trim();
+      currentTitle = null;
+      currentUrl = null;
+      inHandoutSection = currentFilename === 'handout.md';
+      continue;
+    }
+    if (inHandoutSection) {
+      if (line) {
+        handoutSummary = handoutSummary ? `${handoutSummary} ${line}` : line;
+      }
+      continue;
+    }
+    if (currentFilename && !currentTitle && line.startsWith('- ')) {
+      currentTitle = line.slice(2).trim();
+      continue;
+    }
+    if (currentFilename && !currentUrl && /^https?:\/\//i.test(line)) {
+      currentUrl = line;
+    }
+  }
+
+  flushCurrent();
+  return {
+    handoutSummary,
+    mediaResources: resources,
+  };
+}
+
 async function loadFrontContentForNode(node: RuntimeNode): Promise<string> {
   const resourcePath = (node.resources ?? []).find((item) => item.endsWith('.md') || item.endsWith('.mdx'));
   if (!resourcePath) {
@@ -188,8 +304,22 @@ export async function loadLessonRuntimeEntry(lessonId: string): Promise<RuntimeL
   const handoutSourcePath =
     lesson.handout_source_path ?? `course-content/runtime/lessons/${runtimeLessonFragment}/handout.md`;
   const handoutPath = lesson.handout_path ?? `/course-runtime/lessons/${runtimeLessonFragment}/handout.md`;
+  const handoutPdfSourcePath =
+    lesson.handout_pdf_source_path ?? `course-content/runtime/lessons/${runtimeLessonFragment}/handout.pdf`;
+  const handoutPdfPathCandidate =
+    lesson.handout_pdf_path ?? `/course-runtime/lessons/${runtimeLessonFragment}/handout.pdf`;
+  const mediaIndexSourcePath =
+    lesson.media_index_source_path ?? `course-content/runtime/lessons/${runtimeLessonFragment}/media/${lessonId}-media.md`;
   const handoutMarkdown = await readText(path.join(process.cwd(), handoutSourcePath));
   const handoutPreview = createHandoutPreview(handoutMarkdown);
+  const [handoutPdfExists, mediaIndexExists] = await Promise.all([
+    fileExists(path.join(process.cwd(), handoutPdfSourcePath)),
+    fileExists(path.join(process.cwd(), mediaIndexSourcePath)),
+  ]);
+  const mediaDocument = mediaIndexExists
+    ? parseRuntimeLessonMediaDocument(await readText(path.join(process.cwd(), mediaIndexSourcePath)))
+    : { handoutSummary: null, mediaResources: [] };
+  const mediaResources = mediaDocument.mediaResources;
 
   const nodesWithFront = await Promise.all(
     graphOverlay.nodes.map(async (node) => ({
@@ -212,17 +342,21 @@ export async function loadLessonRuntimeEntry(lessonId: string): Promise<RuntimeL
     },
     handoutPath,
     handoutSourcePath,
+    handoutPdfPath: handoutPdfExists ? handoutPdfPathCandidate : null,
     handoutPreview,
-    handoutSummary: createHandoutSummary({
-      lessonTitle: lesson.title,
-      nodeNames: nodesWithFront
-        .filter((node) => (graphOverlay.card_order ?? lesson.card_order ?? []).includes(node.id))
-        .sort(
-          (left, right) =>
-            (graphOverlay.card_order ?? lesson.card_order ?? []).indexOf(left.id)
-            - (graphOverlay.card_order ?? lesson.card_order ?? []).indexOf(right.id),
-        )
-        .map((node) => node.name),
-    }),
+    handoutSummary:
+      mediaDocument.handoutSummary
+      ?? createHandoutSummary({
+        lessonTitle: lesson.title,
+        nodeNames: nodesWithFront
+          .filter((node) => (graphOverlay.card_order ?? lesson.card_order ?? []).includes(node.id))
+          .sort(
+            (left, right) =>
+              (graphOverlay.card_order ?? lesson.card_order ?? []).indexOf(left.id)
+              - (graphOverlay.card_order ?? lesson.card_order ?? []).indexOf(right.id),
+          )
+          .map((node) => node.name),
+      }),
+    mediaResources,
   };
 }

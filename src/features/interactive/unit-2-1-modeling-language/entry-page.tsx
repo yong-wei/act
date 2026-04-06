@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   ArrowLeft,
   BookOpen,
@@ -49,31 +51,26 @@ function normalizeRole(raw: string | null | undefined): NormalizedRole {
 const RESOURCE_COPY: Record<string, {
   kicker: string;
   title: string;
-  summary: string;
   tone: string;
 }> = {
   '2-1-course.mp4': {
     kicker: '完整预习',
     title: '完整课程视频',
-    summary: '适合在正式进入课堂前先建立全课节奏、概念线索和例题位置，作为课前主资源。',
     tone: 'premium-tone-cyan',
   },
   '2-1-intro-video.mp4': {
     kicker: '课前导入',
     title: '预习导入视频',
-    summary: '先用一段短视频快速进入本课情境，抓住对象建模、结构表达和后续分析之间的关系。',
     tone: 'premium-tone-amber',
   },
   '2-1-audio.m4a': {
     kicker: '随听预习',
-    title: '课程音频',
-    summary: '适合通勤或碎片时间先听主线，把课程的关键词和逻辑链先过一遍。',
+    title: '《闲聊自控》播客',
     tone: 'premium-tone-rose',
   },
   '2-1-slides.pdf': {
     kicker: '图文提纲',
     title: '课件讲义',
-    summary: '适合先看结构图、公式与例题位置，建立本课的提纲式认知框架。',
     tone: 'premium-tone-slate',
   },
 };
@@ -88,8 +85,7 @@ function getResourceIcon(resource: RuntimeLessonMediaResource) {
 function getResourceCopy(resource: RuntimeLessonMediaResource) {
   return RESOURCE_COPY[resource.filename] ?? {
     kicker: '预习资源',
-    title: resource.filename,
-    summary: '本课预习资源。',
+    title: resource.title,
     tone: 'premium-tone-slate',
   };
 }
@@ -203,10 +199,8 @@ function InlineMediaPreview({
 
 function ResolvedAudioExperiment({
   resource,
-  wrapperClassName,
 }: {
   resource: RuntimeLessonMediaResource | null;
-  wrapperClassName: string;
 }) {
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
@@ -260,16 +254,9 @@ function ResolvedAudioExperiment({
   }, [resource]);
 
   return (
-    <div className={`${wrapperClassName} rounded-[24px] border border-border/60 bg-[linear-gradient(135deg,rgba(244,114,182,0.1),rgba(15,23,42,0.05))] p-4 sm:p-5`}>
-      <div className="flex h-full flex-col">
-        <div>
-          <div className="premium-lesson-kicker">解析实验版</div>
-          <p className="premium-lesson-muted mt-2 text-sm">
-            临时加入一个备用播放器，用来验证是否能以更直接的页内播放方式稳定承载音频内容。
-          </p>
-        </div>
-
-        <div className="mt-4 flex min-h-0 flex-1 items-center justify-center">
+    <div className="rounded-[24px] border border-border/60 bg-[linear-gradient(135deg,rgba(244,114,182,0.1),rgba(15,23,42,0.05))] p-4 sm:p-5">
+      <div className="flex flex-col">
+        <div className="flex items-center justify-center">
           {status === 'ready' && resolvedUrl ? (
             <audio controls preload="none" src={resolvedUrl} className="w-full max-w-full" />
           ) : null}
@@ -534,7 +521,7 @@ export function UNIT_2_1CourseEntryPage({
                         {copy?.title ?? '预习视频待补充'}
                       </h3>
                       <p className="premium-lesson-muted mt-3 max-w-3xl text-sm sm:text-base">
-                        {copy?.summary ?? '当前视频链接尚未填写。'}
+                        {resource?.title ?? '当前视频链接尚未填写。'}
                       </p>
                     </div>
                     <span className={`premium-lesson-tone-pill ${copy?.tone ?? 'premium-tone-slate'}`}>
@@ -573,18 +560,14 @@ export function UNIT_2_1CourseEntryPage({
                         {resource?.status === 'ready' ? '可访问' : '待补充'}
                       </span>
                     </div>
-                    <p className="premium-lesson-muted mt-3 text-sm">{copy?.summary ?? '当前资源链接尚未填写。'}</p>
+                    <p className="premium-lesson-muted mt-3 text-sm">
+                      {isAudio
+                        ? `听主持人洛嘉和思稳带来的新一期节目：${resource?.title ?? '当前资源链接尚未填写。'}`
+                        : (resource?.title ?? '当前资源链接尚未填写。')}
+                    </p>
                     {isAudio ? (
-                      <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                        <InlineMediaPreview
-                          resource={resource}
-                          wrapperClassName={resource.kind === 'audio' ? 'h-[188px] sm:h-[220px]' : 'aspect-[16/9] min-h-[240px] sm:min-h-[320px] lg:min-h-[420px]'}
-                          innerClassName="mx-auto w-full max-w-[520px]"
-                        />
-                        <ResolvedAudioExperiment
-                          resource={resource}
-                          wrapperClassName="h-[188px] sm:h-[220px]"
-                        />
+                      <div className="mt-4">
+                        <ResolvedAudioExperiment resource={resource} />
                       </div>
                     ) : (
                       <div className="mt-4 flex flex-wrap gap-2">
@@ -628,8 +611,11 @@ export function UNIT_2_1CourseEntryPage({
                     {lessonRuntime.handoutPdfPath ? '已备好' : '在线阅读'}
                   </span>
                 </div>
-                <p className="premium-lesson-muted mt-3 text-sm">{lessonRuntime.handoutSummary}</p>
-                <div className="mt-3 line-clamp-4 text-sm text-muted-foreground">{lessonRuntime.handoutPreview}</div>
+                <div className="prose prose-sm mt-3 max-w-none text-muted-foreground prose-p:my-0 prose-strong:text-foreground prose-ul:my-2">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {lessonRuntime.handoutSummary}
+                  </ReactMarkdown>
+                </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button
                     type="button"
