@@ -6636,7 +6636,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/PD与测速反馈的等效阻尼对比_3_35003.md"
+    ],
     "tags": [
       "PD",
       "测速反馈",
@@ -6695,7 +6697,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/PD与超前的频域整形差异_3_35004.md"
+    ],
     "tags": [
       "超前校正",
       "PD",
@@ -8169,7 +8173,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/右半平面零点可行性边界_3_36005.md"
+    ],
     "tags": [
       "右半平面零点",
       "可行性",
@@ -8536,7 +8542,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/左半平面零点的动态改善机理_3_35002.md"
+    ],
     "tags": [
       "左半平面零点",
       "动态改善",
@@ -8971,7 +8979,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md"
+    ],
     "tags": [
       "超调量",
       "调节时间",
@@ -9732,7 +9742,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/目标驱动PD校正_3_36002.md"
+    ],
     "tags": [
       "PD",
       "目标区域",
@@ -9788,7 +9800,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/目标驱动测速反馈校正_3_36003.md"
+    ],
     "tags": [
       "测速反馈",
       "拉普拉斯域",
@@ -9846,7 +9860,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/目标驱动超前校正_3_36004.md"
+    ],
     "tags": [
       "超前校正",
       "相角裕度",
@@ -11428,7 +11444,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/零点引入与根轨迹重排_3_35001.md"
+    ],
     "tags": [
       "零点",
       "根轨迹",
@@ -11687,7 +11705,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/非最小相与右半平面零点_3_35005.md"
+    ],
     "tags": [
       "非最小相",
       "右半平面零点",

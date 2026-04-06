@@ -1,0 +1,22 @@
+{
+  "lesson_id": "3-6",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/3-6/sequence.json",
+  "card_order": [
+    "零点引入与根轨迹重排_3_35001",
+    "左半平面零点的动态改善机理_3_35002",
+    "主导极点_3_4c4c6bbd",
+    "时域指标到目标极点区域_3_36001",
+    "目标驱动PD校正_3_36002",
+    "PD与测速反馈的等效阻尼对比_3_35003",
+    "目标驱动测速反馈校正_3_36003",
+    "PD与超前的频域整形差异_3_35004",
+    "相角裕度_5_0a9c6e90",
+    "带宽_5_6730fda4",
+    "目标驱动超前校正_3_36004",
+    "非最小相与右半平面零点_3_35005",
+    "右半平面零点可行性边界_3_36005"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

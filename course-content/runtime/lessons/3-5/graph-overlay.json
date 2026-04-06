@@ -1,0 +1,668 @@
+{
+  "lesson_id": "3-5",
+  "title": "零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变",
+  "focus_node_ids": [
+    "零点引入与根轨迹重排_3_35001",
+    "左半平面零点的动态改善机理_3_35002",
+    "PD与测速反馈的等效阻尼对比_3_35003",
+    "PD与超前的频域整形差异_3_35004",
+    "非最小相与右半平面零点_3_35005"
+  ],
+  "reuse_node_ids": [
+    "根轨迹法_2_e3f6c0c1",
+    "根轨迹绘制规则_3_2f9e8cb3",
+    "闭环极点_3_f9432bf3",
+    "主导极点_3_4c4c6bbd",
+    "阻尼比_3_b849784e",
+    "自然频率_10_51a8b7d0",
+    "相角裕度_5_0a9c6e90",
+    "带宽_5_6730fda4"
+  ],
+  "entry_nodes": [
+    "根轨迹法_2_e3f6c0c1",
+    "根轨迹绘制规则_3_2f9e8cb3"
+  ],
+  "summary_nodes": [
+    "非最小相与右半平面零点_3_35005"
+  ],
+  "card_order": [
+    "根轨迹法_2_e3f6c0c1",
+    "根轨迹绘制规则_3_2f9e8cb3",
+    "闭环极点_3_f9432bf3",
+    "主导极点_3_4c4c6bbd",
+    "零点引入与根轨迹重排_3_35001",
+    "左半平面零点的动态改善机理_3_35002",
+    "阻尼比_3_b849784e",
+    "自然频率_10_51a8b7d0",
+    "PD与测速反馈的等效阻尼对比_3_35003",
+    "PD与超前的频域整形差异_3_35004",
+    "相角裕度_5_0a9c6e90",
+    "带宽_5_6730fda4",
+    "非最小相与右半平面零点_3_35005"
+  ],
+  "groups": [
+    {
+      "group_name": "从 3-4 的边界进入零点问题",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03"
+      ],
+      "node_ids": [
+        "根轨迹法_2_e3f6c0c1",
+        "根轨迹绘制规则_3_2f9e8cb3",
+        "闭环极点_3_f9432bf3",
+        "主导极点_3_4c4c6bbd"
+      ]
+    },
+    {
+      "group_name": "零点引入与根轨迹重排",
+      "step_ids": [
+        "step-04",
+        "step-05",
+        "step-06"
+      ],
+      "node_ids": [
+        "零点引入与根轨迹重排_3_35001",
+        "左半平面零点的动态改善机理_3_35002"
+      ]
+    },
+    {
+      "group_name": "PD 与测速反馈：同样增阻尼，不同零点副作用",
+      "step_ids": [
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10"
+      ],
+      "node_ids": [
+        "PD与测速反馈的等效阻尼对比_3_35003",
+        "阻尼比_3_b849784e",
+        "自然频率_10_51a8b7d0"
+      ]
+    },
+    {
+      "group_name": "PD 与超前：从时域改善走向频域整形",
+      "step_ids": [
+        "step-11",
+        "step-12",
+        "step-13"
+      ],
+      "node_ids": [
+        "PD与超前的频域整形差异_3_35004",
+        "相角裕度_5_0a9c6e90",
+        "带宽_5_6730fda4"
+      ]
+    },
+    {
+      "group_name": "非最小相边界与课末收束",
+      "step_ids": [
+        "step-14",
+        "step-15",
+        "step-16"
+      ],
+      "node_ids": [
+        "非最小相与右半平面零点_3_35005"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "PD与测速反馈的等效阻尼对比_3_35003",
+      "name": "PD与测速反馈的等效阻尼对比",
+      "nodeType": "THEORY",
+      "description": "PD 校正和测速反馈都能通过微分比例系数提高二阶系统等效阻尼，但 PD 会在前向通道显式增加零点，测速反馈则通过外环单位负反馈与内部速度项反馈提高阻尼而不引入前向零点。",
+      "positionX": -11.4,
+      "positionY": -42.5,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "方法性",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "方法性",
+        "bloom_level": "应用",
+        "definition": "PD 校正和测速反馈都能通过微分比例系数提高二阶系统等效阻尼，但 PD 会在前向通道显式增加零点，测速反馈则通过外环单位负反馈与内部速度项反馈提高阻尼而不引入前向零点。",
+        "examples": [
+          "对于G_p(s)=4/[s(s+0.8)]，当K_d=K_t=0.3时，二者都把阻尼比从0.2提升到0.5，但PD响应更积极、超调略大。",
+          "测速反馈根轨迹仍由两个实开环极点构成，不会额外出现零点终点。"
+        ],
+        "formulas": [
+          "G_{PD}(s)=1+K_d s",
+          "\\zeta_{PD}=\\zeta+\\frac{1}{2}K_d\\omega_n",
+          "\\zeta_v=\\zeta+\\frac{1}{2}K_t\\omega_n",
+          "K_d=K_t=\\frac{2(\\zeta^\\star-\\zeta)}{\\omega_n}"
+        ],
+        "prerequisites": [
+          "左半平面零点的动态改善机理_3_35002",
+          "阻尼比_3_b849784e",
+          "自然频率_10_51a8b7d0"
+        ],
+        "relatedConcepts": [
+          "PD与超前的频域整形差异_3_35004",
+          "非最小相与右半平面零点_3_35005"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "PD",
+          "测速反馈",
+          "输出微分反馈",
+          "等效阻尼",
+          "零点副作用"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/PD与测速反馈的等效阻尼对比_3_35003.md"
+      ],
+      "tags": [
+        "PD",
+        "测速反馈",
+        "输出微分反馈",
+        "等效阻尼",
+        "零点副作用",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "PD与超前的频域整形差异_3_35004",
+      "name": "PD与超前的频域整形差异",
+      "nodeType": "THEORY",
+      "description": "PD 与超前网络都可利用相近的左半平面零点改善动态，但超前网络额外增加一个更靠左的极点，把改善限制在指定频带内，因此相位提前、交叉频率和高频放大量的分布方式与纯 PD 不同。",
+      "positionX": -0.0,
+      "positionY": -44.0,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "方法性",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "方法性",
+        "bloom_level": "分析",
+        "definition": "PD 与超前网络都可利用相近的左半平面零点改善动态，但超前网络额外增加一个更靠左的极点，把改善限制在指定频带内，因此相位提前、交叉频率和高频放大量的分布方式与纯 PD 不同。",
+        "examples": [
+          "当PD零点与超前零点都在-3.33附近时，PD的相角裕度提升更直接，但高频放大更强。",
+          "超前网络通过附加极点约束高频代价，更接近后续模块4的频域设计语言。"
+        ],
+        "formulas": [
+          "G_{PD}(s)=1+0.3s",
+          "G_{lead}(s)=\\frac{0.3s+1}{0.06s+1}"
+        ],
+        "prerequisites": [
+          "左半平面零点的动态改善机理_3_35002",
+          "PD与测速反馈的等效阻尼对比_3_35003",
+          "相角裕度_5_0a9c6e90",
+          "带宽_5_6730fda4"
+        ],
+        "relatedConcepts": [
+          "非最小相与右半平面零点_3_35005"
+        ],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "超前校正",
+          "PD",
+          "相角裕度",
+          "带宽",
+          "高频约束"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/PD与超前的频域整形差异_3_35004.md"
+      ],
+      "tags": [
+        "超前校正",
+        "PD",
+        "相角裕度",
+        "带宽",
+        "高频约束",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "左半平面零点的动态改善机理_3_35002",
+      "name": "左半平面零点的动态改善机理",
+      "nodeType": "THEORY",
+      "description": "左半平面零点通过改变相角平衡与根轨迹骨架，使主导极点更有机会进入阻尼更合适、实部更靠左的区域，因此常常带来更快、更稳的动态趋势；但这种改善会伴随高频放大或结构副作用。",
+      "positionX": 0.0,
+      "positionY": 56.0,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "左半平面零点通过改变相角平衡与根轨迹骨架，使主导极点更有机会进入阻尼更合适、实部更靠左的区域，因此常常带来更快、更稳的动态趋势；但这种改善会伴随高频放大或结构副作用。",
+        "examples": [
+          "在同一纯极点对象上加入左半平面零点后，阶跃响应常表现为超调下降、调节时间缩短，但不是简单等价于增益增大。",
+          "PD 与超前都利用左半平面零点改善动态，只是对高频代价的处理方式不同。"
+        ],
+        "formulas": [
+          "M_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times100\\%",
+          "t_s\\approx\\frac{4}{\\zeta\\omega_n}"
+        ],
+        "prerequisites": [
+          "零点引入与根轨迹重排_3_35001",
+          "阻尼比_3_b849784e",
+          "自然频率_10_51a8b7d0"
+        ],
+        "relatedConcepts": [
+          "PD与测速反馈的等效阻尼对比_3_35003",
+          "PD与超前的频域整形差异_3_35004"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "左半平面零点",
+          "动态改善",
+          "阻尼",
+          "超调",
+          "高频代价"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/左半平面零点的动态改善机理_3_35002.md"
+      ],
+      "tags": [
+        "左半平面零点",
+        "动态改善",
+        "阻尼",
+        "超调",
+        "高频代价",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "闭环极点_3_f9432bf3",
+      "name": "闭环极点",
+      "nodeType": "THEORY",
+      "description": "闭环传递函数分母多项式的根，决定系统时间响应的类型。",
+      "positionX": 0.0,
+      "positionY": 96.0,
+      "positionZ": 3,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "闭环传递函数分母多项式的根，决定系统时间响应的类型。",
+        "examples": [
+          "主导极点、非主导极点对系统动态性能的不同影响。"
+        ],
+        "formulas": [
+          "s_i \\text{ 为 } D(s)=0 \\text{ 之根}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "响应类型",
+          "主导极点",
+          "系统特性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627920",
+        "updatedAt": "2026-02-04T17:54:16.627920",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/闭环极点_3_f9432bf3.md"
+      ],
+      "tags": [
+        "响应类型",
+        "主导极点",
+        "系统特性",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "阻尼比_3_b849784e",
+      "name": "阻尼比",
+      "nodeType": "THEORY",
+      "description": "阻尼比是描述二阶系统阻尼程度的无量纲参数，其值等于负实轴夹角的余弦。",
+      "positionX": -83.1,
+      "positionY": 48.0,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "阻尼比是描述二阶系统阻尼程度的无量纲参数，其值等于负实轴夹角的余弦。",
+        "examples": [
+          "ζ<1为欠阻尼（振荡），ζ=1为临界阻尼，ζ>1为过阻尼。",
+          "用于计算欠阻尼二阶系统的超调量、峰值时间等动态性能指标。",
+          "比例-微分控制和测速反馈控制均可增大系统的阻尼比。",
+          "例3-5中要求使系统阻尼比为0.5。",
+          "ζ值越大，振荡性越弱；ζ值越小，振荡性越强。",
+          "习题3-6中要求根据单位阶跃响应确定系统的阻尼比和自然频率。"
+        ],
+        "formulas": [
+          "\\zeta = \\frac{\\text{实际阻尼系数}}{\\text{临界阻尼系数}}",
+          "\\zeta = \\cos\\beta",
+          "\\zeta",
+          "\\zeta_d",
+          "\\zeta_t"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "阻尼比",
+          "ζ",
+          "阻尼程度",
+          "阻尼角",
+          "二阶系统",
+          "阻尼",
+          "振荡",
+          "超调量",
+          "振荡性",
+          "系统特性",
+          "稳定性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627825",
+        "updatedAt": "2026-02-04T17:54:16.627825",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/阻尼比_3_b849784e.md"
+      ],
+      "tags": [
+        "阻尼比",
+        "ζ",
+        "阻尼程度",
+        "阻尼角",
+        "二阶系统",
+        "阻尼",
+        "振荡",
+        "超调量",
+        "振荡性",
+        "系统特性",
+        "稳定性",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "零点引入与根轨迹重排_3_35001",
+      "name": "零点引入与根轨迹重排",
+      "nodeType": "THEORY",
+      "description": "在既有对象中加入零点，会改变开环零极点结构、实轴区段与分支终点分配，因此闭环极点可达区域不再只是沿原根轨迹平移，而会发生骨架级重排。",
+      "positionX": -65.7,
+      "positionY": -17.6,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "在既有对象中加入零点，会改变开环零极点结构、实轴区段与分支终点分配，因此闭环极点可达区域不再只是沿原根轨迹平移，而会发生骨架级重排。",
+        "examples": [
+          "二阶纯极点对象从L_0(s)=K/[s(s+1)]变为L_1(s)=K(s+2)/[s(s+1)]后，一条分支被左半平面零点吸引，终点分配立刻改变。",
+          "三阶对象在-0.4与-2.5接入零点时，主导分支被拉走的区域不同，说明零点位置会重写读图语言。"
+        ],
+        "formulas": [
+          "L_0(s)=\\frac{K}{s(s+1)}",
+          "L_1(s)=\\frac{K(s+2)}{s(s+1)}",
+          "L_2(s)=\\frac{K(s+0.5)}{s(s+1)}"
+        ],
+        "prerequisites": [
+          "根轨迹法_2_e3f6c0c1",
+          "根轨迹绘制规则_3_2f9e8cb3",
+          "闭环极点_3_f9432bf3"
+        ],
+        "relatedConcepts": [
+          "左半平面零点的动态改善机理_3_35002",
+          "主导极点_3_4c4c6bbd"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "零点",
+          "根轨迹",
+          "实轴区段",
+          "终点分配",
+          "主导分支"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/零点引入与根轨迹重排_3_35001.md"
+      ],
+      "tags": [
+        "零点",
+        "根轨迹",
+        "实轴区段",
+        "终点分配",
+        "主导分支",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "非最小相与右半平面零点_3_35005",
+      "name": "非最小相与右半平面零点",
+      "nodeType": "THEORY",
+      "description": "稳定对象只要含有右半平面零点，就属于非最小相系统。与对应的左半平面零点对象相比，它在相同幅频特性下会带来额外相位滞后，时域上可能出现逆响应，因此动态改善存在更严格的速度上限。",
+      "positionX": -0.0,
+      "positionY": -68.0,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "稳定对象只要含有右半平面零点，就属于非最小相系统。与对应的左半平面零点对象相比，它在相同幅频特性下会带来额外相位滞后，时域上可能出现逆响应，因此动态改善存在更严格的速度上限。",
+        "examples": [
+          "镜像零点对象中，z=-1 的最小相版本可单调跟踪，而 z=+1 的非最小相版本会先向反方向运动。",
+          "非最小相对象提高增益时，逆响应和峰值可能同时恶化，因此第一策略通常是保守交叉频率。"
+        ],
+        "formulas": [
+          "L_{mp}(s)=K\\frac{4(s+1)}{s(s+2)(s+5)}",
+          "L_{nmp}(s)=K\\frac{4(1-s)}{s(s+2)(s+5)}"
+        ],
+        "prerequisites": [
+          "零点引入与根轨迹重排_3_35001",
+          "左半平面零点的动态改善机理_3_35002",
+          "相角裕度_5_0a9c6e90",
+          "带宽_5_6730fda4"
+        ],
+        "relatedConcepts": [
+          "PD与超前的频域整形差异_3_35004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "非最小相",
+          "右半平面零点",
+          "逆响应",
+          "额外相位滞后",
+          "带宽上限"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/非最小相与右半平面零点_3_35005.md"
+      ],
+      "tags": [
+        "非最小相",
+        "右半平面零点",
+        "逆响应",
+        "额外相位滞后",
+        "带宽上限",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "自然频率_10_51a8b7d0",
+      "name": "自然频率",
+      "nodeType": "THEORY",
+      "description": "二阶系统无阻尼振荡时的频率，是影响系统响应速度的重要参数。",
+      "positionX": -261.5,
+      "positionY": 151.0,
+      "positionZ": 10,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 10,
+      "chapterName": "状态空间",
+      "metadata": {
+        "chapter": 10,
+        "chapterName": "状态空间",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "二阶系统无阻尼振荡时的频率，是影响系统响应速度的重要参数。",
+        "examples": [
+          "文本中指出，控制器输出受限会约束系统自然频率的可选值，从而限制最小调节时间。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 3,
+        "keywords": [
+          "二阶系统",
+          "响应速度",
+          "系统带宽"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627398",
+        "updatedAt": "2026-02-04T17:54:16.627399",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/自然频率_10_51a8b7d0.md"
+      ],
+      "tags": [
+        "二阶系统",
+        "响应速度",
+        "系统带宽",
+        "chapter-10"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "阻尼比|闭环极点|3",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "闭环极点_3_f9432bf3",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "自然频率|阻尼比|10-3",
+      "sourceId": "自然频率_10_51a8b7d0",
+      "targetId": "阻尼比_3_b849784e",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-58dd7c923005ebe7",
+      "sourceId": "左半平面零点的动态改善机理_3_35002",
+      "targetId": "PD与测速反馈的等效阻尼对比_3_35003",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-60d9aa97410ab40a",
+      "sourceId": "阻尼比_3_b849784e",
+      "targetId": "PD与测速反馈的等效阻尼对比_3_35003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
+    },
+    {
+      "id": "rel-828568ed80c52a70",
+      "sourceId": "PD与超前的频域整形差异_3_35004",
+      "targetId": "非最小相与右半平面零点_3_35005",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-9f001521b9eb0cfb",
+      "sourceId": "PD与测速反馈的等效阻尼对比_3_35003",
+      "targetId": "PD与超前的频域整形差异_3_35004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-a1bf885c09e6e3cd",
+      "sourceId": "零点引入与根轨迹重排_3_35001",
+      "targetId": "左半平面零点的动态改善机理_3_35002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-c8fcc7daa46c4988",
+      "sourceId": "左半平面零点的动态改善机理_3_35002",
+      "targetId": "非最小相与右半平面零点_3_35005",
+      "relation": "generalizes",
+      "relationType": "generalizes",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-e642a4cbcd5ece15",
+      "sourceId": "闭环极点_3_f9432bf3",
+      "targetId": "零点引入与根轨迹重排_3_35001",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-ff2bbb6793147e14",
+      "sourceId": "自然频率_10_51a8b7d0",
+      "targetId": "PD与测速反馈的等效阻尼对比_3_35003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.86
+    }
+  ]
+}

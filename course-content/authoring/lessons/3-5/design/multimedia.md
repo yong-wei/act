@@ -7,9 +7,9 @@
 
 | 候选资源路径 | 资源类型 | 计划落点 | 采用方式 | 采用级别 | 边界说明 |
 | --- | --- | --- | --- | --- | --- |
-| `course-content/resource-library/pptx/10.1校正_实现控制的手段/extracted.md` | `pptx` | handout §3 / teacher-handout / interactive step-08~10 | 改写吸收 + 结构图参照 | 必融入 | 服务 `PD`、测速反馈的结构与阻尼公式，不直接照搬原图 |
-| `course-content/resource-library/pptx/22串联校正/extracted.md` | `pptx` | handout §4 / interactive step-11 | 改写吸收 | 必融入 | 只吸收超前网络的频域整形主线，不前置完整设计流程 |
-| `course-content/resource-library/pdf/16频率特性_换个角度看控制.md` | `pdf` | handout §5 / teacher-handout / interactive step-12~13 | 改写吸收 | 必融入 | 用于解释非最小相的名称来源和额外相位滞后 |
+| `course-content/resource-library/pptx/10.1校正_实现控制的手段/extracted.md` | `pptx` | handout §3 / teacher-handout / interactive step-07~10 | 改写吸收 + 结构图参照 | 必融入 | 服务 `PD`、测速反馈的结构、阻尼公式与三域对照，不直接照搬原图 |
+| `course-content/resource-library/pptx/22串联校正/extracted.md` | `pptx` | handout §4 / interactive step-11~13 | 改写吸收 | 必融入 | 吸收 `PD` 与超前的频域整形主线，不前置完整设计流程 |
+| `course-content/resource-library/pdf/16频率特性_换个角度看控制.md` | `pdf` | handout §5 / teacher-handout / interactive step-14~15 | 改写吸收 | 必融入 | 用于解释非最小相的名称来源、额外相位滞后与保守带宽边界 |
 | `course-content/resource-library/tex/Cpt6.md` | `tex` | handout §3 / 结构核验 | 改写吸收 | 必融入 | 只用于测速反馈定义与等效口径校核 |
 | 思政案例 | `civics` | 本轮不接入 | 排除 | 排除 | 本课结构密度高，不强行拼接思政材料 |
 | 船舶案例 | `ship-case` | 本轮不接入正文 | 仅作灵感 | 可选融入 | 本课聚焦结构与机理，暂不引入额外对象复杂度 |
@@ -21,13 +21,13 @@
 | 编号 | 文件名 / 标识 | 生成方式 | 引用于 | 优先级 |
 |:---:|---------------|----------|--------|:---:|
 | 1 | `3-5-cover-comic.png` | 代码直出位图 | `handout.md` 首页 / interactive step-01 | P0 |
-| 2 | `3-5-info.png` | 代码直出信息图 | `handout.md` 课末 / interactive step-15 | P0 |
-| 3 | `3-5-md-01-pd-rate-structure.png` | TikZ 结构图 | handout §3.1 / teacher-handout / interactive step-08 | P0 |
-| 4 | `3-5-rl-01-low-order-zero-compare.png` | Octave + Python | handout §2.1 / interactive step-05 | P0 |
-| 5 | `3-5-rl-02-high-order-zero-compare.png` | Octave + Python | handout §2.2 / interactive step-06 | P0 |
-| 6 | `3-5-rl-03-pd-rate-compare.png` | Octave + Python | handout §3.2 / teacher-handout / interactive step-10 | P0 |
-| 7 | `3-5-rl-04-pd-lead-compare.png` | Octave + Python | handout §4.2 / interactive step-11 | P0 |
-| 8 | `3-5-rl-05-nmp-compare.png` | Octave + Python | handout §5.2 / interactive step-12~13 | P0 |
+| 2 | `3-5-info.png` | 代码直出信息图 | `handout.md` 课末 / interactive step-16 | P0 |
+| 3 | `3-5-md-01-pd-rate-structure.png` | TikZ 结构图 | handout §3.1 / teacher-handout / interactive step-07 | P0 |
+| 4 | `3-5-rl-01-low-order-zero-compare.png` | Octave + Python | handout §2.1 / interactive step-04 | P0 |
+| 5 | `3-5-rl-02-high-order-zero-compare.png` | Octave + Python | handout §2.2 / interactive step-05 | P0 |
+| 6 | `3-5-rl-03-pd-rate-compare.png` | Octave + Python | handout §3.2 / teacher-handout / interactive step-09~10 | P0 |
+| 7 | `3-5-rl-04-pd-lead-compare.png` | Octave + Python | handout §4.3 / interactive step-13 | P0 |
+| 8 | `3-5-rl-05-nmp-compare.png` | Octave + Python | handout §5.2 / interactive step-14~15 | P0 |
 | 9 | `3-5-intro-video.mp4` | AI 视频 | 开场导入 / interactive step-01 可选 | P1 |
 | 10 | `ic-35-zero-structure-compare` | 前端绘制 | interactive step-09~10 | P1 |
 | 11 | `ic-35-nmp-risk-card` | 前端绘制 | interactive step-12~13 | P1 |
