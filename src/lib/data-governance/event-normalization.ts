@@ -41,6 +41,7 @@ export function mapActionTypeToFactType(actionType: string): string {
     assessment_complete: 'question',
     lesson_submit: 'question',
     lesson_resubmit: 'question',
+    resource_complete: 'resource',
     simulation_finish: 'simulation',
     ai_intervention_complete: 'ai_intervention',
     prompt_assessed: 'prompt_design',
@@ -108,7 +109,8 @@ export function deriveFactOutcome(
     actionType === 'ethical_resolved' ||
     actionType === 'lesson_submit' ||
     actionType === 'lesson_resubmit' ||
-    actionType === 'session_finalize'
+    actionType === 'session_finalize' ||
+    actionType === 'resource_complete'
   ) {
     return 'success';
   }

@@ -13,6 +13,8 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import {
   getUNIT_2_2MediaSrc,
+  isUNIT_2_2AiPageType,
+  isUNIT_2_2InteractivePageType,
   UNIT_2_2_LESSON_STEPS,
   UNIT_2_2_SESSION_ADAPTER,
   UNIT_2_2_RESOURCE_KEY,
@@ -116,7 +118,7 @@ export function UNIT_2_2StudentPage({
       ? Boolean((teacherSyncState as { revealedAnswers?: Record<string, boolean> })?.revealedAnswers?.[step.id])
       : false;
   const released =
-    isDemo || step.pageType !== 'quiz'
+    isDemo || !isUNIT_2_2InteractivePageType(step.pageType)
       ? true
       : teacherSyncState?.activeStepId === step.id
         ? Boolean((teacherSyncState as { releasedActivities?: Record<string, boolean> })?.releasedActivities?.[step.id])
@@ -279,7 +281,7 @@ export function UNIT_2_2StudentPage({
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 
-        {step.pageType === 'ai' ? (
+        {isUNIT_2_2AiPageType(step.pageType) ? (
           <div className="mt-4">
             <UNIT_2_2StepAiAssistant step={step} onAiEvent={handleAiEvent} />
           </div>

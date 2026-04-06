@@ -87,4 +87,26 @@ describe('unit 2-3 interactive course', () => {
     expect(pageTypes.get('step-15')).toBe('ai_compare_workspace');
     expect(pageTypes.get('step-16')).toBe('quiz_group');
   });
+
+  it('renders the runtime entry page with the shared pre-study media hub instead of hardcoded media links', () => {
+    const entrySource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-2-3-frequency-response/entry-page.tsx'),
+      'utf8',
+    );
+    const sharedMediaHubSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/lesson-entry-media-hub.tsx'),
+      'utf8',
+    );
+
+    expect(entrySource).toContain('LessonEntryMediaHub');
+    expect(entrySource).toContain('<LessonEntryMediaHub');
+    expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
+    expect(entrySource).toContain('courseLabel="2-3 · Pre-study"');
+    expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(entrySource).not.toContain('2-3-media.md');
+    expect(entrySource).not.toContain('objectshowpreview');
+    expect(sharedMediaHubSource).toContain('lessonRuntime.mediaResources');
+    expect(sharedMediaHubSource).toContain('lessonRuntime.handoutPdfPath');
+    expect(sharedMediaHubSource).toContain('useResourceInteractionTracking');
+  });
 });

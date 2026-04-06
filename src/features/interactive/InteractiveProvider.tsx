@@ -8,6 +8,7 @@ import { InteractiveAIPanel } from './InteractiveAIPanel';
 import { useInteractiveTracking } from './hooks/useInteractiveTracking';
 import { useInteractiveProgress } from './hooks/useInteractiveProgress';
 import { useInteractiveAI } from './hooks/useInteractiveAI';
+import { inferStandaloneCompletionEventType } from './hooks/resource-interaction-utils';
 import type {
   InteractiveProviderProps,
   InteractiveContextValue,
@@ -45,6 +46,7 @@ export function InteractiveProvider({
   const showHeader = showHeaderProp ?? layoutConfig?.showHeader ?? !embedded;
   const showAIPanel = showAIPanelProp ?? layoutConfig?.showAIPanel ?? true;
   const aiPanelPosition = layoutConfig?.aiPanelPosition ?? 'right';
+  const isStandaloneResource = !embedded && !sessionId;
 
   // 初始化追踪钩子
   const tracking = useInteractiveTracking({
@@ -52,13 +54,32 @@ export function InteractiveProvider({
     resourceKey: config.resourceId,
     userId,
     sessionId,
+    persistWithoutSession: isStandaloneResource,
     syncInterval: config.config.tracking?.syncInterval,
   });
+
+  const completionEventType = useMemo(
+    () =>
+      inferStandaloneCompletionEventType({
+        registryId: config.registryId,
+        resourceType: config.registryId,
+        surface: 'interactive_resource',
+      }),
+    [config.registryId],
+  );
 
   // 初始化进度钩子
   const progress = useInteractiveProgress({
     onComplete: (result) => {
-      tracking.emit('complete', { result });
+      tracking.emit('complete', {
+        result,
+        pageType: isStandaloneResource ? 'resource' : 'classroom',
+        surface: isStandaloneResource ? 'interactive_resource' : 'classroom_resource',
+        targetType: 'interactive_resource',
+        targetId: config.registryId,
+        targetLabel: config.title,
+        eventType: isStandaloneResource ? completionEventType : 'assessment_complete',
+      });
       onComplete?.(result);
     },
     onProgressChange: (value) => {
@@ -84,6 +105,11 @@ export function InteractiveProvider({
         tracking.emit('interact', {
           eventType: 'ai_panel_open',
           resourceKey: config.resourceId,
+          pageType: isStandaloneResource ? 'resource' : 'classroom',
+          surface: isStandaloneResource ? 'interactive_resource' : 'classroom_resource',
+          targetType: 'interactive_resource',
+          targetId: config.registryId,
+          targetLabel: config.title,
           ...data,
         });
       }
@@ -92,6 +118,11 @@ export function InteractiveProvider({
         tracking.emit('ai_query', {
           eventType: 'ai_query_submit',
           resourceKey: config.resourceId,
+          pageType: isStandaloneResource ? 'resource' : 'classroom',
+          surface: isStandaloneResource ? 'interactive_resource' : 'classroom_resource',
+          targetType: 'interactive_resource',
+          targetId: config.registryId,
+          targetLabel: config.title,
           ...data,
         });
       }
@@ -139,6 +170,12 @@ export function InteractiveProvider({
       title: config.title,
       registryId: config.registryId,
       embedded,
+      pageType: isStandaloneResource ? 'resource' : 'classroom',
+      surface: isStandaloneResource ? 'interactive_resource' : 'classroom_resource',
+      targetType: 'interactive_resource',
+      targetId: config.registryId,
+      targetLabel: config.title,
+      eventType: isStandaloneResource ? 'resource_view' : 'page_view',
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

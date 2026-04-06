@@ -121,6 +121,13 @@ describe('unit 2-1 entry media runtime', () => {
     expect(sharedSource).toContain('lessonRuntime.handoutPdfPath');
     expect(sharedSource).toContain('lessonId: lessonRuntime.lesson.lesson_id');
     expect(sharedSource).toContain('下载 PDF 讲义');
+    expect(sharedSource).toContain('useResourceInteractionTracking');
+    expect(sharedSource).toContain('trackResourceView');
+    expect(sharedSource).toContain('trackResourceOpen');
+    expect(sharedSource).toContain('trackResourcePlay');
+    expect(sharedSource).toContain('trackResourceProgress');
+    expect(sharedSource).toContain('trackResourceComplete');
+    expect(sharedSource).toContain('trackResourceDownload');
     expect(sharedSource).toContain('overflow-hidden rounded-[24px]');
     expect(sharedSource).toContain('block h-full w-full border-0');
     expect(sharedSource).toContain("isAudio ? 'lg:col-span-2' : ''");
@@ -142,6 +149,9 @@ describe('unit 2-1 entry media runtime', () => {
     expect(runtimeSectionsSource).toContain('hideHandoutEntry?: boolean');
     expect(runtimeSectionsSource).toContain('export function LessonEntryHandoutDialog');
     expect(runtimeSectionsSource).toContain('handoutPdfPath: runtime.handoutPdfPath');
+    expect(runtimeSectionsSource).toContain('trackKnowledgeNodeFocus');
+    expect(runtimeSectionsSource).toContain('trackResourceOpen');
+    expect(runtimeSectionsSource).toContain('trackResourceDownload');
     expect(unit22Source).toContain('LessonEntryMediaHub');
     expect(unit22Source).toContain('hideHandoutEntry');
   });

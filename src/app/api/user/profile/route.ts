@@ -119,6 +119,29 @@ function inferInteractionTitle(event: {
     return embeddedTitle;
   }
 
+  const targetLabel = typeof eventData.targetLabel === 'string' ? eventData.targetLabel : null;
+  if (targetLabel) {
+    switch (event.eventType) {
+      case 'knowledge_card_open':
+        return `知识卡片：${targetLabel}`;
+      case 'knowledge_graph_node_focus':
+        return `知识节点：${targetLabel}`;
+      case 'resource_download':
+        return `下载资料：${targetLabel}`;
+      case 'resource_complete':
+        return `完成资源学习：${targetLabel}`;
+      case 'resource_play':
+        return `播放资源：${targetLabel}`;
+      case 'resource_open':
+      case 'resource_view':
+        return `查看资源：${targetLabel}`;
+      case 'external_module_open':
+        return `打开跨域模块：${targetLabel}`;
+      default:
+        return targetLabel;
+    }
+  }
+
   if (event.eventType === 'knowledge_card_open') {
     return `知识卡片：${event.resourceKey ?? '未命名资源'}`;
   }
@@ -138,6 +161,22 @@ function inferInteractionDescription(eventType: string) {
   switch (eventType) {
     case 'knowledge_card_open':
       return '打开知识卡片进行补充学习';
+    case 'knowledge_graph_node_focus':
+      return '聚焦知识图谱节点并查看关联说明';
+    case 'resource_open':
+      return '打开了一项课堂外学习资源';
+    case 'resource_play':
+      return '开始播放课堂外媒体资源';
+    case 'resource_progress':
+      return '推进了一项课堂外媒体学习进度';
+    case 'resource_download':
+      return '下载了一份课堂外学习资料';
+    case 'resource_complete':
+      return '完成了一项课堂外资源学习';
+    case 'resource_view':
+      return '查看了一项课堂外资源';
+    case 'external_module_open':
+      return '进入跨域互动模块继续探索';
     case 'lesson_step_view':
       return '进入课堂互动环节';
     case 'ai_query_submit':
@@ -147,7 +186,20 @@ function inferInteractionDescription(eventType: string) {
   }
 }
 
-function inferInteractionHref(resourceKey: string | null, sessionId: string | null) {
+function inferInteractionHref(
+  resourceKey: string | null,
+  sessionId: string | null,
+  eventData?: unknown,
+) {
+  const payload = eventData && typeof eventData === 'object'
+    ? eventData as Record<string, unknown>
+    : null;
+
+  const originPath = payload && typeof payload.originPath === 'string' ? payload.originPath : null;
+  if (originPath) {
+    return originPath;
+  }
+
   if (sessionId) {
     return `/classroom/student/${sessionId}`;
   }
@@ -362,8 +414,19 @@ export async function GET() {
       title: inferInteractionTitle(event),
       description: inferInteractionDescription(event.eventType),
       timestamp: event.createdAt.toISOString(),
-      href: inferInteractionHref(event.resourceKey, event.sessionId),
-      badge: event.eventType === 'knowledge_card_open' ? '知识卡片' : '互动',
+      href: inferInteractionHref(event.resourceKey, event.sessionId, event.eventData),
+      badge:
+        event.eventType === 'knowledge_card_open'
+          ? '知识卡片'
+          : event.eventType === 'knowledge_graph_node_focus'
+            ? '知识图谱'
+            : event.eventType === 'resource_complete'
+              ? '资源完成'
+              : event.eventType.startsWith('resource_')
+                ? '资源'
+                : event.eventType === 'external_module_open'
+                  ? '跨域模块'
+                  : '互动',
       dedupeKey: `${event.eventType}|${event.resourceKey ?? ''}|${event.sessionId ?? ''}|${event.lessonKey ?? ''}`,
     }));
 

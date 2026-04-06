@@ -5,11 +5,26 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
 import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
+import { useResourceInteractionTracking } from '@/features/interactive/hooks/useResourceInteractionTracking';
 import type { InteractiveResource } from '@/features/interactive/learning-catalog';
 
 export default function CrossDomainExplorationPage() {
   const [resources, setResources] = useState<InteractiveResource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const tracker = useResourceInteractionTracking({
+    resourceKey: 'cross-domain:catalog',
+    surface: 'cross_domain',
+    pageType: 'resource',
+    targetType: 'cross_domain_catalog',
+    targetId: 'cross-domain-catalog',
+    targetLabel: '跨域探索',
+    provider: 'cross-domain-exploration-page',
+  });
+
+  useEffect(() => {
+    tracker.trackResourceView();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -75,6 +90,15 @@ export default function CrossDomainExplorationPage() {
               <Link
                 key={entry.key}
                 href={entry.href}
+                onClick={() => {
+                  tracker.trackExternalModuleOpen({
+                    resourceKey: `cross-domain:${entry.key}`,
+                    targetType: 'external_module',
+                    targetId: entry.key,
+                    targetLabel: entry.title,
+                    openMode: 'route',
+                  });
+                }}
                 className="surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50"
               >
                 <div className="flex items-center justify-between text-xs">

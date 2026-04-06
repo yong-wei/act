@@ -19,6 +19,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { MdxSlide } from '@/components/shared/mdx-slide';
+import { useResourceInteractionTracking } from '@/features/interactive/hooks/useResourceInteractionTracking';
+import { slugifyTrackingTarget } from '@/features/interactive/hooks/resource-interaction-utils';
 import { getBloomLabel, getKnowledgeDimLabel, getNodeTypeLabel } from '@/lib/knowledge-labels';
 import { useMdxContent } from '@/hooks/use-mdx-content';
 
@@ -37,6 +39,7 @@ export interface KnowledgeMetadata {
 }
 
 export interface KnowledgeCardSource {
+  id?: string;
   name: string;
   description: string;
   nodeType: string;
@@ -110,6 +113,17 @@ interface KnowledgeCardProps {
   knowledgeDim?: string;
   metadata: KnowledgeMetadata;
   resources?: unknown[];
+  trackingContext?: {
+    resourceKey: string;
+    lessonKey?: string | null;
+    surface?: string;
+    pageType?: string;
+    targetType?: string;
+    targetId?: string | null;
+    targetLabel?: string | null;
+    moduleId?: string | null;
+    provider?: string | null;
+  };
   /** 显示模式：full（完整）或 compact（紧凑） */
   variant?: 'full' | 'compact';
   className?: string;
@@ -142,10 +156,12 @@ function RuntimeNodeCardSections({
   path,
   title,
   isLightTheme,
+  onDetailOpen,
 }: {
   path: string;
   title: string;
   isLightTheme: boolean;
+  onDetailOpen?: () => void;
 }) {
   const { content, isLoading, error } = useMdxContent(path);
   const [view, setView] = useState<'overview' | 'detail'>('overview');
@@ -182,7 +198,15 @@ function RuntimeNodeCardSections({
         {sections.hasDetail ? (
           <button
             type="button"
-            onClick={() => setView((prev) => (prev === 'overview' ? 'detail' : 'overview'))}
+            onClick={() => {
+              setView((prev) => {
+                const next = prev === 'overview' ? 'detail' : 'overview';
+                if (next === 'detail') {
+                  onDetailOpen?.();
+                }
+                return next;
+              });
+            }}
             className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-accent"
           >
             <ArrowLeftRight className="h-3.5 w-3.5" />
@@ -213,6 +237,7 @@ export function KnowledgeCard({
   knowledgeDim,
   metadata,
   resources,
+  trackingContext,
   variant = 'compact',
   className,
   onClose,
@@ -226,6 +251,17 @@ export function KnowledgeCard({
   const mdxPaths = extractMdxPaths(resources);
   const runtimeNodeCardPath = mdxPaths.find((path) => isRuntimeNodeCardPath(path)) ?? null;
   const isCompact = variant === 'compact';
+  const detailTracker = useResourceInteractionTracking({
+    resourceKey: trackingContext?.resourceKey ?? `knowledge-card:${slugifyTrackingTarget(name)}`,
+    lessonKey: trackingContext?.lessonKey ?? metadata.lessonId ?? null,
+    surface: trackingContext?.surface ?? 'knowledge_card',
+    pageType: trackingContext?.pageType ?? 'knowledge',
+    targetType: trackingContext?.targetType ?? 'knowledge_card',
+    targetId: trackingContext?.targetId ?? slugifyTrackingTarget(name),
+    targetLabel: trackingContext?.targetLabel ?? name,
+    moduleId: trackingContext?.moduleId ?? null,
+    provider: trackingContext?.provider ?? 'knowledge-card',
+  });
 
   // Helper to render type badge with Chinese label
   const renderTypeBadge = () => {
@@ -312,6 +348,12 @@ export function KnowledgeCard({
             path={runtimeNodeCardPath}
             title={name}
             isLightTheme={isLightTheme}
+            onDetailOpen={() => {
+              if (!trackingContext) {
+                return;
+              }
+              detailTracker.trackKnowledgeCardOpen();
+            }}
           />
         ) : null}
 
@@ -378,11 +420,32 @@ export function KnowledgeCardDialog({
   onOpenChange,
   node,
 }: KnowledgeCardDialogProps) {
+  const tracker = useResourceInteractionTracking({
+    resourceKey: `knowledge-card:${node.id ?? slugifyTrackingTarget(node.name)}`,
+    lessonKey:
+      typeof node.metadata?.lessonId === 'string'
+        ? node.metadata.lessonId
+        : null,
+    surface: 'knowledge_card',
+    pageType: 'knowledge',
+    targetType: 'knowledge_card',
+    targetId: node.id ?? slugifyTrackingTarget(node.name),
+    targetLabel: node.name,
+    provider: 'knowledge-card-dialog',
+  });
   const metadata = normalizeKnowledgeMetadata({
     metadata: node.metadata,
     content: node.content,
     description: node.description,
   });
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    tracker.trackKnowledgeCardOpen();
+  }, [open, tracker]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

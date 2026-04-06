@@ -13,6 +13,7 @@ import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import {
   getUNIT_2_2MediaSrc,
+  isUNIT_2_2AiPageType,
   UNIT_2_2_LESSON_STEPS,
   UNIT_2_2_STAGE_MAP,
   UNIT_2_2_SESSION_ADAPTER,
@@ -304,7 +305,7 @@ export function UNIT_2_2TeacherPage({
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 
-        {step.pageType === 'ai' ? (
+        {isUNIT_2_2AiPageType(step.pageType) ? (
           <div className="mt-4">
             <UNIT_2_2StepAiAssistant step={step} onAiEvent={handleAiEvent} />
           </div>

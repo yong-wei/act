@@ -20,6 +20,10 @@ export function buildLessonHandoutPdfApiPath(lessonId: string) {
   return `/api/course-runtime/lessons/${lessonId}/handout-pdf`;
 }
 
+export function buildLessonHandoutPdfAssetPath(lessonId: string) {
+  return `/course-runtime/lessons/${lessonId}/handout.pdf`;
+}
+
 export function resolveHandoutAssetUrl(
   source: string,
   {

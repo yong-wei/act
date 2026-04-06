@@ -18,6 +18,8 @@ export type PageType =
   | 'quiz'
   | 'reflection'
   | 'simulation'
+  | 'resource'
+  | 'knowledge'
   | 'dashboard'
   | 'classroom';
 

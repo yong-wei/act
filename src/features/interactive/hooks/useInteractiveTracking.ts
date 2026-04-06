@@ -8,11 +8,12 @@ const SYNC_INTERVAL = 30000; // 30 秒同步一次
 const DEBOUNCE_DELAY = 1000; // 1 秒防抖
 
 interface UseInteractiveTrackingOptions {
-  resourceId: string;
+  resourceId?: string;
   resourceKey?: string;
   userId?: string;
   sessionId?: string;
   syncInterval?: number;
+  persistWithoutSession?: boolean;
   onSync?: (events: InteractiveEvent[]) => Promise<void>;
 }
 
@@ -24,7 +25,15 @@ interface UseInteractiveTrackingOptions {
 export function useInteractiveTracking(
   options: UseInteractiveTrackingOptions
 ): InteractiveTrackingContextValue {
-  const { resourceId, resourceKey, userId, sessionId, syncInterval = SYNC_INTERVAL, onSync } = options;
+  const {
+    resourceId,
+    resourceKey,
+    userId,
+    sessionId,
+    syncInterval = SYNC_INTERVAL,
+    persistWithoutSession = false,
+    onSync,
+  } = options;
 
   type TrackingEvent = InteractiveEvent & {
     resourceKey: string;
@@ -38,7 +47,7 @@ export function useInteractiveTracking(
   const eventsRef = useRef<TrackingEvent[]>([]);
   const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const resolvedResourceKey = resourceKey ?? resourceId;
+  const resolvedResourceKey = resourceKey ?? resourceId ?? '';
   const storageKey = `${STORAGE_KEY_PREFIX}${resolvedResourceKey}:${sessionId ?? 'no-session'}:${userId ?? 'no-user'}`;
 
   // 从 localStorage 恢复事件
@@ -75,7 +84,7 @@ export function useInteractiveTracking(
     if (events.length === 0) return;
 
     // Skip server sync in demo mode (no sessionId)
-    if (!sessionId) {
+    if (!sessionId && (!persistWithoutSession || !userId)) {
       // Just clear events from memory after saving to storage
       saveToStorage();
       return;
@@ -106,7 +115,7 @@ export function useInteractiveTracking(
         console.error('[InteractiveTracking] API sync failed:', e);
       }
     }
-  }, [onSync, saveToStorage, sessionId]);
+  }, [onSync, persistWithoutSession, saveToStorage, sessionId, userId]);
 
   // 设置定时同步
   useEffect(() => {
@@ -126,11 +135,20 @@ export function useInteractiveTracking(
     type: InteractiveEventType,
     data: Record<string, unknown> = {}
   ) => {
+    const resolvedEventResourceId =
+      typeof data.resourceId === 'string' && data.resourceId.trim().length > 0
+        ? data.resourceId
+        : resourceId;
+    const resolvedEventResourceKey =
+      typeof data.resourceKey === 'string' && data.resourceKey.trim().length > 0
+        ? data.resourceKey
+        : resolvedResourceKey;
+
     const event: TrackingEvent = {
       id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type,
-      resourceId,
-      resourceKey: resourceKey ?? resourceId,
+      resourceId: resolvedEventResourceId,
+      resourceKey: resolvedEventResourceKey,
       userId,
       sessionId,
       timestamp: Date.now(),
@@ -157,7 +175,7 @@ export function useInteractiveTracking(
     if (type === 'complete' || type === 'submit' || type === 'error') {
       syncEvents();
     }
-  }, [resourceId, resourceKey, userId, sessionId, saveToStorage, syncEvents]);
+  }, [resourceId, resolvedResourceKey, userId, sessionId, saveToStorage, syncEvents]);
 
   // 获取历史事件
   const getHistory = useCallback((): InteractiveEvent[] => {

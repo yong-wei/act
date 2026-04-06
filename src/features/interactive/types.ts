@@ -22,7 +22,7 @@ export type InteractiveEventType =
 export interface InteractiveEvent {
   id: string;
   type: InteractiveEventType;
-  resourceId: string;
+  resourceId?: string;
   userId?: string;
   sessionId?: string;
   timestamp: number;

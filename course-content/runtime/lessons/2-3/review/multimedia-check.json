@@ -1,36 +1,18 @@
 {
   "lesson_id": "2-3",
   "expected_assets": [
-    "2-3-fr-01-command-vs-disturbance.svg",
-    "2-3-fr-02-square-wave-harmonics.svg",
-    "2-3-fr-03-sine-in-sine-out.svg",
-    "2-3-cover-comic.png",
-    "2-3-fr-04-linear-vs-log-frequency.svg",
-    "2-3-fr-05-bode-axes-and-typical-cards.svg",
-    "2-3-fr-06-bode-skeleton-workflow.svg",
-    "2-3-info.png",
-    "2-3-intro-video.mp4",
-    "2-3-slides.pdf",
-    "2-3-course.mp4",
-    "2-3-audio.m4a"
+    "handout.pdf",
+    "2-3-media.md"
   ],
   "generated_assets": [
-    "2-3-fr-01-command-vs-disturbance.svg",
-    "2-3-fr-02-square-wave-harmonics.svg",
-    "2-3-fr-03-sine-in-sine-out.svg",
-    "2-3-cover-comic.png",
-    "2-3-fr-04-linear-vs-log-frequency.svg",
-    "2-3-fr-05-bode-axes-and-typical-cards.svg",
-    "2-3-fr-06-bode-skeleton-workflow.svg",
-    "2-3-info.png",
-    "2-3-intro-video.mp4",
-    "2-3-slides.pdf",
-    "2-3-course.mp4",
-    "2-3-audio.m4a"
+    "handout.pdf",
+    "2-3-media.md"
   ],
   "missing_assets": [],
   "executed_scripts": [],
   "processed_dir": "course-content/authoring/lessons/2-3/media/processed",
+  "media_index_path": "course-content/runtime/lessons/2-3/media/2-3-media.md",
+  "handout_pdf_source": "course-content/authoring/lessons/2-3/design/handout.pdf",
   "formula_contract_issues": [],
   "formula_media": []
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { buildLessonHandoutPdfApiPath } from '@/lib/handout-pdf';
+import { buildLessonHandoutPdfApiPath, buildLessonHandoutPdfAssetPath } from '@/lib/handout-pdf';
 
 function extractDownloadFilename(headerValue: string | null, fallback: string) {
   if (!headerValue) return fallback;
@@ -17,16 +17,19 @@ function extractDownloadFilename(headerValue: string | null, fallback: string) {
 export async function downloadLessonHandoutPdf({
   lessonId,
   lessonTitle,
+  handoutPdfPath,
 }: {
   lessonId: string;
   lessonTitle: string;
+  handoutPdfPath?: string | null;
 }) {
-  const response = await fetch(buildLessonHandoutPdfApiPath(lessonId));
-  if (!response.ok) {
+  const response = await fetch(handoutPdfPath ?? buildLessonHandoutPdfAssetPath(lessonId));
+  const finalResponse = !response.ok ? await fetch(buildLessonHandoutPdfApiPath(lessonId)) : response;
+  if (!finalResponse.ok) {
     let message = '讲义 PDF 导出失败，请稍后重试。';
 
     try {
-      const data = (await response.json()) as { error?: string };
+      const data = (await finalResponse.json()) as { error?: string };
       if (data.error) {
         message = data.error;
       }
@@ -37,12 +40,12 @@ export async function downloadLessonHandoutPdf({
     throw new Error(message);
   }
 
-  const blob = await response.blob();
+  const blob = await finalResponse.blob();
   const downloadUrl = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = downloadUrl;
   anchor.download = extractDownloadFilename(
-    response.headers.get('content-disposition'),
+    finalResponse.headers.get('content-disposition'),
     `${lessonTitle}-讲义.pdf`,
   );
   document.body.appendChild(anchor);

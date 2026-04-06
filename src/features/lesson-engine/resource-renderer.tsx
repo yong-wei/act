@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import 'katex/dist/katex.min.css';
 import { BlockMath } from 'react-katex';
 import Image from 'next/image';
@@ -12,6 +12,7 @@ import { InteractiveProvider } from '@/features/interactive';
 import type { InteractiveConfig, InteractiveResourceConfig } from '@/features/interactive';
 import type { WidgetState, WidgetResult } from '@/resources/widgets/widget-props';
 import { KnowledgeCard } from '@/features/knowledge/knowledge-card';
+import { useResourceInteractionTracking } from '@/features/interactive/hooks/useResourceInteractionTracking';
 
 interface ResourceRendererProps {
   resource?: TeachingResource | null;
@@ -73,6 +74,18 @@ export function ResourceRenderer({
 }: ResourceRendererProps) {
   // Get lesson context for AI integration
   const lessonContext = useLessonContext();
+  const knowledgeTracker = useResourceInteractionTracking({
+    resourceKey: knowledgeNode ? `knowledge-card:${knowledgeNode.id}` : 'resource-renderer',
+    lessonKey: null,
+    surface: knowledgeNode ? 'knowledge_card' : 'interactive_resource',
+    pageType: knowledgeNode ? 'knowledge' : 'resource',
+    targetType: knowledgeNode ? 'knowledge_card' : 'interactive_resource',
+    targetId: knowledgeNode?.id ?? resource?.id ?? null,
+    targetLabel: knowledgeNode?.name ?? resource?.title ?? null,
+    resourceId: resource?.id ?? null,
+    registryId: resource?.registryId ?? null,
+    provider: 'resource-renderer',
+  });
 
   // Handle state changes from widgets
   const handleStateChange = useCallback((state: WidgetState) => {
@@ -86,6 +99,18 @@ export function ResourceRenderer({
     console.log('[ResourceRenderer] Widget complete:', result);
     onComplete?.(result);
   }, [onComplete]);
+
+  useEffect(() => {
+    if (!knowledgeNode) {
+      return;
+    }
+    knowledgeTracker.trackKnowledgeCardOpen({
+      resourceKey: `knowledge-card:${knowledgeNode.id}`,
+      targetType: 'knowledge_card',
+      targetId: knowledgeNode.id,
+      targetLabel: knowledgeNode.name,
+    });
+  }, [knowledgeNode, knowledgeTracker]);
 
   if (knowledgeNode) {
     const rawResources = knowledgeNode.resources ?? [];

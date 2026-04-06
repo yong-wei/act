@@ -1,7 +1,12 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
-import { UNIT_2_2_LESSON_STEPS, getUNIT_2_2MediaSrc } from '@/lib/unit-2-2-course';
+import { UNIT_2_2_LESSON_STEPS, UNIT_2_2_PAGE_CONTRACTS, getUNIT_2_2MediaSrc } from '@/lib/unit-2-2-course';
+
+const repoRoot = process.cwd();
 
 describe('unit 2-2 interactive course', () => {
   it('registers the 2-2 AI context registry entry', () => {
@@ -45,6 +50,84 @@ describe('unit 2-2 interactive course', () => {
   it('keeps step-14 and step-15 aligned with the handout examples and method bridge', () => {
     expect(UNIT_2_2_LESSON_STEPS.find((step) => step.id === 'step-14')?.title).toContain('例题二');
     expect(UNIT_2_2_LESSON_STEPS.find((step) => step.id === 'step-15')?.title).toContain('方法');
+  });
+
+  it('keeps local page contracts aligned with the authoring interactive contract for representative steps', () => {
+    const contract = JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/authoring/lessons/2-2/design/interactive-contract.yaml'),
+        'utf8',
+      ),
+    ) as {
+      steps: Record<string, {
+        title: string;
+        layout: { template: string; regions: Array<{ id: string; width: string; order: number }> };
+        interaction_spec: { interaction_kind: string };
+        teacher_insight_spec: { widgets: string[] };
+        telemetry_spec: { summary_fields: string[]; misconception_tags?: string[] };
+        preview_contract: { demo_path: string };
+      }>;
+    };
+
+    const interactiveSteps = new Map(UNIT_2_2_LESSON_STEPS.map((step) => [step.id, step]));
+    const expectedStepIds = ['step-06', 'step-07', 'step-09', 'step-14', 'step-15', 'step-16'] as const;
+
+    for (const stepId of expectedStepIds) {
+      const authoringStep = contract.steps[stepId];
+      const localStep = interactiveSteps.get(stepId);
+      const localPageContract = UNIT_2_2_PAGE_CONTRACTS[stepId];
+
+      expect(localStep?.title).toBe(authoringStep.title);
+      expect(localStep?.pageType).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(localPageContract?.layout.template).toBe(authoringStep.layout.template);
+      expect(localPageContract?.layout.regions).toEqual(authoringStep.layout.regions);
+      expect(localPageContract?.interactionKind).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(localPageContract?.teacherInsightWidgets).toEqual(authoringStep.teacher_insight_spec.widgets);
+      expect(localPageContract?.telemetrySummaryFields).toEqual(authoringStep.telemetry_spec.summary_fields);
+      expect(localPageContract?.misconceptionTags ?? []).toEqual(authoringStep.telemetry_spec.misconception_tags ?? []);
+      expect(localPageContract?.previewDemoPath).toBe(authoringStep.preview_contract.demo_path);
+    }
+  });
+
+  it('promotes participatory steps to contract-level interaction page types instead of form and ai fallbacks', () => {
+    const pageTypes = new Map(UNIT_2_2_LESSON_STEPS.map((step) => [step.id, step.pageType]));
+
+    expect(pageTypes.get('step-06')).toBe('parameter_slider');
+    expect(pageTypes.get('step-07')).toBe('triple_match');
+    expect(pageTypes.get('step-08')).toBe('tab_switch');
+    expect(pageTypes.get('step-09')).toBe('metric_overlay');
+    expect(pageTypes.get('step-10')).toBe('reason_check');
+    expect(pageTypes.get('step-11')).toBe('formula_pair_check');
+    expect(pageTypes.get('step-12')).toBe('parameter_workspace');
+    expect(pageTypes.get('step-13')).toBe('worked_example_workspace');
+    expect(pageTypes.get('step-14')).toBe('ai_compare_workspace');
+    expect(pageTypes.get('step-15')).toBe('mapping_highlight');
+    expect(pageTypes.get('step-16')).toBe('quiz_group');
+  });
+
+  it('keeps the 2-2 entry page runtime-first and wires knowledge interactions into lesson-entry tracking', () => {
+    const unit22EntrySource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-2-2-time-response/entry-page.tsx'),
+      'utf8',
+    );
+    const runtimeSectionsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/lesson-entry-runtime-sections.tsx'),
+      'utf8',
+    );
+    const knowledgeCardSource = readFileSync(
+      join(repoRoot, 'src/features/knowledge/knowledge-card.tsx'),
+      'utf8',
+    );
+
+    expect(unit22EntrySource).toContain('LessonEntryMediaHub');
+    expect(unit22EntrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(unit22EntrySource).not.toContain('2-2-media.md');
+    expect(runtimeSectionsSource).toContain("surface: 'lesson_entry'");
+    expect(runtimeSectionsSource).toContain('trackKnowledgeNodeFocus');
+    expect(runtimeSectionsSource).toContain('trackingContext');
+    expect(knowledgeCardSource).toContain('trackingContext');
+    expect(knowledgeCardSource).toContain('onDetailOpen');
+    expect(knowledgeCardSource).toContain('trackKnowledgeCardOpen');
   });
 
   it('defines the second-order parameter mapping cards and metric callouts', async () => {

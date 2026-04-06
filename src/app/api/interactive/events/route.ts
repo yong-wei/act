@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { eventQueue } from '@/lib/event-queue';
 import { eventRateLimiter } from '@/lib/rate-limiter';
 import type { ClassroomInteractionEventInput } from '@/lib/classroom-analytics/types';
-import { toLearningEvent, validateEvent, type LearningEvent } from '@/lib/data-governance/event-protocol';
+import { toLearningEvent } from '@/lib/data-governance/event-protocol';
 import { routeEvent } from '@/lib/data-governance/event-buffer';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
@@ -60,6 +60,31 @@ function logDegradedEvent(
     resourceKey: event.resourceKey,
     timestamp: event.timestamp,
   });
+}
+
+function resolvePagePath(payload: Record<string, unknown>) {
+  return typeof payload.originPath === 'string' && payload.originPath.trim().length > 0
+    ? payload.originPath
+    : '/unknown';
+}
+
+function resolvePageType(payload: Record<string, unknown>): PageType {
+  const pageType = typeof payload.pageType === 'string' ? payload.pageType : null;
+  if (
+    pageType === 'theory'
+    || pageType === 'practice'
+    || pageType === 'workspace'
+    || pageType === 'quiz'
+    || pageType === 'reflection'
+    || pageType === 'simulation'
+    || pageType === 'resource'
+    || pageType === 'knowledge'
+    || pageType === 'dashboard'
+    || pageType === 'classroom'
+  ) {
+    return pageType;
+  }
+  return 'dashboard';
 }
 
 /**
@@ -137,8 +162,25 @@ export async function POST(request: NextRequest) {
       logDegradedEvent(session.user.id, event, reason);
     }
 
+    // Always persist valid events into InteractionLog for activity feed and behavior analytics.
+    const queueEvents = validEvents.map(({ event, resourceId }) => ({
+      userId: session.user.id,
+      resourceId,
+      resourceKey: event.resourceKey,
+      sessionId: event.sessionId ?? null,
+      lessonKey: event.lessonKey ?? null,
+      stepId: event.stepId ?? null,
+      actorRole: event.actorRole ?? null,
+      attemptKey: event.attemptKey ?? null,
+      eventType: event.type,
+      eventData: event.data ?? {},
+      clientEventAt: toDateTime(event.clientEventAt ?? event.timestamp),
+    }));
+    if (queueEvents.length > 0) {
+      eventQueue.enqueueBatch(queueEvents);
+    }
+
     // Route events based on priority
-    const coreEvents: LearningEvent[] = [];
     const routingResults: Array<{ eventType: string; destination: string; reason?: string }> = [];
 
     for (const eventData of validEvents) {
@@ -160,8 +202,8 @@ export async function POST(request: NextRequest) {
         {
           userId: session.user.id,
           role: (session.user.role?.toLowerCase() as 'student' | 'teacher' | 'admin') || 'student',
-          pagePath: '/unknown',
-          pageType: 'dashboard',
+          pagePath: resolvePagePath(payload),
+          pageType: resolvePageType(payload),
         }
       );
 
@@ -169,30 +211,7 @@ export async function POST(request: NextRequest) {
       routingResults.push({ eventType: learningEvent.actionType, ...result });
 
       // Core events still go through existing EventQueue for now
-      if (result.destination === 'postgresql') {
-        coreEvents.push(learningEvent);
-      }
     }
-
-    // Existing queue for core events (will be migrated later)
-    if (coreEvents.length > 0) {
-      const queueEvents = coreEvents.map(event => ({
-        userId: event.userId,
-        resourceId: null as string | null,
-        resourceKey: event.moduleId || event.actionType,
-        sessionId: event.sessionId || null,
-        lessonKey: event.lessonId || null,
-        stepId: event.targetId || null,
-        actorRole: event.role,
-        attemptKey: null as string | null,
-        eventType: event.actionType,
-        eventData: event.payload,
-        clientEventAt: new Date(event.occurredAt),
-      }));
-
-      eventQueue.enqueueBatch(queueEvents);
-    }
-
     // Update response
     return NextResponse.json({
       success: true,

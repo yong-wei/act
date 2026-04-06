@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { downloadLessonHandoutPdf } from '@/features/interactive/shared/download-handout-pdf';
+import { useResourceInteractionTracking } from '@/features/interactive/hooks/useResourceInteractionTracking';
 import { LessonEntryHandoutDialog } from '@/features/interactive/shared/lesson-entry-runtime-sections';
 import type { RuntimeLessonEntryBundle, RuntimeLessonMediaResource } from '@/lib/course-runtime';
 
@@ -34,6 +35,7 @@ const DEFAULT_DESCRIPTION =
 const DEFAULT_RECOMMENDATION =
   '建议顺序：先看导入视频，再看完整课程视频；通勤时可以改听音频，最后结合课件和讲义回看关键图表与公式。';
 const DEFAULT_AUDIO_CARD_TITLE = '《闲聊自控》播客';
+const MEDIA_PROGRESS_THRESHOLDS = [25, 50, 75, 90] as const;
 
 const SLOT_COPY = {
   introVideo: {
@@ -64,6 +66,10 @@ const SLOT_NARRATIVE_FALLBACK: Record<LessonEntryMediaSlot, string> = {
   slides: '结合结构图、公式和例题位置，快速建立本课提纲。',
 };
 
+function buildLessonEntryResourceKey(lessonId: string, targetId: string) {
+  return `lesson-entry:${lessonId}:${targetId}`;
+}
+
 function getResourceIcon(resource: RuntimeLessonMediaResource) {
   if (resource.kind === 'video') return Video;
   if (resource.kind === 'audio') return FileAudio2;
@@ -88,14 +94,126 @@ function getResourceNarrative(resource: RuntimeLessonMediaResource | null, slot:
   return SLOT_NARRATIVE_FALLBACK[slot];
 }
 
+function TrackedMediaElement({
+  resource,
+  mediaType,
+  src,
+  className,
+  onPlay,
+  onProgress,
+  onComplete,
+}: {
+  resource: RuntimeLessonMediaResource;
+  mediaType: 'video' | 'audio';
+  src: string;
+  className: string;
+  onPlay: (resource: RuntimeLessonMediaResource) => void;
+  onProgress: (resource: RuntimeLessonMediaResource, progressPercent: number, durationMs: number) => void;
+  onComplete: (resource: RuntimeLessonMediaResource, durationMs: number) => void;
+}) {
+  const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
+  const emittedThresholdsRef = useRef<Set<number>>(new Set());
+  const hasCompletedRef = useRef(false);
+
+  useEffect(() => {
+    emittedThresholdsRef.current.clear();
+    hasCompletedRef.current = false;
+  }, [resource.id, src]);
+
+  useEffect(() => {
+    const element = mediaRef.current;
+    if (!element) {
+      return;
+    }
+
+    const handlePlay = () => {
+      onPlay(resource);
+    };
+
+    const handleTimeUpdate = () => {
+      if (!element.duration || !Number.isFinite(element.duration) || element.duration <= 0) {
+        return;
+      }
+
+      const progressPercent = Math.min(100, Math.round((element.currentTime / element.duration) * 100));
+      const durationMs = Math.round(element.currentTime * 1000);
+
+      for (const threshold of MEDIA_PROGRESS_THRESHOLDS) {
+        if (progressPercent >= threshold && !emittedThresholdsRef.current.has(threshold)) {
+          emittedThresholdsRef.current.add(threshold);
+          onProgress(resource, threshold, durationMs);
+        }
+      }
+
+      if (
+        !hasCompletedRef.current
+        && progressPercent >= 90
+        && element.currentTime >= 30
+      ) {
+        hasCompletedRef.current = true;
+        onComplete(resource, durationMs);
+      }
+    };
+
+    const handleEnded = () => {
+      if (hasCompletedRef.current) {
+        return;
+      }
+      hasCompletedRef.current = true;
+      onComplete(resource, Math.round(element.duration * 1000));
+    };
+
+    element.addEventListener('play', handlePlay);
+    element.addEventListener('timeupdate', handleTimeUpdate);
+    element.addEventListener('ended', handleEnded);
+
+    return () => {
+      element.removeEventListener('play', handlePlay);
+      element.removeEventListener('timeupdate', handleTimeUpdate);
+      element.removeEventListener('ended', handleEnded);
+    };
+  }, [onComplete, onPlay, onProgress, resource, src]);
+
+  if (mediaType === 'video') {
+    return (
+      <video
+        ref={mediaRef as never}
+        controls
+        preload="metadata"
+        playsInline
+        src={src}
+        className={className}
+      />
+    );
+  }
+
+  return (
+    <audio
+      ref={mediaRef as never}
+      controls
+      preload="none"
+      src={src}
+      className={className}
+    />
+  );
+}
+
 function InlineMediaPreview({
   resource,
   wrapperClassName,
   innerClassName,
+  onOpen,
+  onPlay,
+  onProgress,
+  onComplete,
 }: {
   resource: RuntimeLessonMediaResource | null;
   wrapperClassName: string;
   innerClassName?: string;
+  onOpen: (resource: RuntimeLessonMediaResource) => void;
+  onPlay: (resource: RuntimeLessonMediaResource) => void;
+  onProgress: (resource: RuntimeLessonMediaResource, progressPercent: number, durationMs: number) => void;
+  onComplete: (resource: RuntimeLessonMediaResource, durationMs: number) => void;
 }) {
   const frameClassName = 'block h-full w-full border-0';
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -154,12 +272,14 @@ function InlineMediaPreview({
   if (resource.kind === 'video' && isDirectPlayableUrl(resource.url, resource.kind)) {
     return (
       <div ref={wrapperRef} className={`${wrapperClassName} overflow-hidden rounded-[24px] border border-border/60 bg-black`}>
-        <video
-          controls
-          preload="metadata"
-          playsInline
+        <TrackedMediaElement
+          resource={resource}
+          mediaType="video"
           src={resource.url}
           className={`${frameClassName} ${innerClassName ?? ''}`}
+          onPlay={onPlay}
+          onProgress={onProgress}
+          onComplete={onComplete}
         />
       </div>
     );
@@ -169,14 +289,26 @@ function InlineMediaPreview({
     return (
       <div ref={wrapperRef} className={`${wrapperClassName} overflow-hidden rounded-[24px] border border-border/60 bg-[linear-gradient(135deg,rgba(244,114,182,0.14),rgba(15,23,42,0.04))] px-4 sm:px-5`}>
         <div className={`flex h-full w-full items-center justify-center ${innerClassName ?? ''}`}>
-          <audio controls preload="none" src={resource.url} className="w-full max-w-full" />
+          <TrackedMediaElement
+            resource={resource}
+            mediaType="audio"
+            src={resource.url}
+            className="w-full max-w-full"
+            onPlay={onPlay}
+            onProgress={onProgress}
+            onComplete={onComplete}
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div ref={wrapperRef} className={`${wrapperClassName} overflow-hidden rounded-[24px] border border-border/60 bg-black`}>
+    <div
+      ref={wrapperRef}
+      onPointerDown={() => onOpen(resource)}
+      className={`${wrapperClassName} overflow-hidden rounded-[24px] border border-border/60 bg-black`}
+    >
       <iframe
         key={`${resource.id}-${embedVersion}`}
         src={resource.url}
@@ -190,8 +322,14 @@ function InlineMediaPreview({
 
 function ResolvedAudioPlayer({
   resource,
+  onPlay,
+  onProgress,
+  onComplete,
 }: {
   resource: RuntimeLessonMediaResource | null;
+  onPlay: (resource: RuntimeLessonMediaResource) => void;
+  onProgress: (resource: RuntimeLessonMediaResource, progressPercent: number, durationMs: number) => void;
+  onComplete: (resource: RuntimeLessonMediaResource, durationMs: number) => void;
 }) {
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
@@ -244,12 +382,24 @@ function ResolvedAudioPlayer({
     };
   }, [resource]);
 
+  const playableResource = status === 'ready' && resolvedUrl && resource
+    ? resource
+    : null;
+
   return (
     <div className="rounded-[24px] border border-border/60 bg-[linear-gradient(135deg,rgba(244,114,182,0.1),rgba(15,23,42,0.05))] p-4 sm:p-5">
       <div className="flex flex-col">
         <div className="flex items-center justify-center">
-          {status === 'ready' && resolvedUrl ? (
-            <audio controls preload="none" src={resolvedUrl} className="w-full max-w-full" />
+          {playableResource && resolvedUrl ? (
+            <TrackedMediaElement
+              resource={playableResource}
+              mediaType="audio"
+              src={resolvedUrl}
+              className="w-full max-w-full"
+              onPlay={onPlay}
+              onProgress={onProgress}
+              onComplete={onComplete}
+            />
           ) : null}
           {status === 'loading' ? (
             <div className="premium-lesson-muted inline-flex items-center gap-2 text-sm">
@@ -283,7 +433,19 @@ export function LessonEntryMediaHub({
 }: LessonEntryMediaHubProps) {
   const [isDownloadingHandout, setIsDownloadingHandout] = useState(false);
   const [isHandoutOpen, setIsHandoutOpen] = useState(false);
+  const handoutCompletionTrackedRef = useRef(false);
   const lessonId = lessonRuntime.lesson.lesson_id;
+  const resourceTracker = useResourceInteractionTracking({
+    resourceKey: buildLessonEntryResourceKey(lessonId, 'hub'),
+    lessonKey: lessonId,
+    surface: 'lesson_entry',
+    pageType: 'resource',
+    targetType: 'lesson_entry',
+    targetId: lessonId,
+    targetLabel: lessonRuntime.lesson.title,
+    moduleId: lessonId,
+    provider: 'lesson-entry-media-hub',
+  });
   const mediaByFilename = useMemo(
     () => new Map(lessonRuntime.mediaResources.map((resource) => [resource.filename, resource])),
     [lessonRuntime.mediaResources],
@@ -293,9 +455,89 @@ export function LessonEntryMediaHub({
   const audioResource = mediaByFilename.get(`${lessonId}-audio.m4a`) ?? null;
   const slidesResource = mediaByFilename.get(`${lessonId}-slides.pdf`) ?? null;
 
+  useEffect(() => {
+    resourceTracker.trackResourceView();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!isHandoutOpen) {
+      handoutCompletionTrackedRef.current = false;
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      if (handoutCompletionTrackedRef.current) {
+        return;
+      }
+      handoutCompletionTrackedRef.current = true;
+      resourceTracker.trackResourceComplete({
+        resourceKey: buildLessonEntryResourceKey(lessonId, 'handout'),
+        targetType: 'handout',
+        targetId: 'handout',
+        targetLabel: '讲义阅读与下载',
+        completionMode: 'dialog_dwell',
+        durationMs: 45000,
+      });
+    }, 45000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [isHandoutOpen, lessonId, resourceTracker]);
+
+  const trackMediaOpen = (resource: RuntimeLessonMediaResource) => {
+    resourceTracker.trackResourceOpen({
+      resourceKey: buildLessonEntryResourceKey(lessonId, resource.id),
+      targetType: resource.kind,
+      targetId: resource.id,
+      targetLabel: resource.title,
+      openMode: resource.embedMode === 'iframe' ? 'iframe' : 'inline',
+      isCrossOrigin: resource.embedMode === 'iframe',
+    });
+  };
+
+  const trackMediaPlay = (resource: RuntimeLessonMediaResource) => {
+    resourceTracker.trackResourcePlay({
+      resourceKey: buildLessonEntryResourceKey(lessonId, resource.id),
+      targetType: resource.kind,
+      targetId: resource.id,
+      targetLabel: resource.title,
+    });
+  };
+
+  const trackMediaProgress = (resource: RuntimeLessonMediaResource, progressPercent: number, durationMs: number) => {
+    resourceTracker.trackResourceProgress({
+      resourceKey: buildLessonEntryResourceKey(lessonId, resource.id),
+      targetType: resource.kind,
+      targetId: resource.id,
+      targetLabel: resource.title,
+      progressPercent,
+      durationMs,
+    });
+  };
+
+  const trackMediaComplete = (resource: RuntimeLessonMediaResource, durationMs: number) => {
+    resourceTracker.trackResourceComplete({
+      resourceKey: buildLessonEntryResourceKey(lessonId, resource.id),
+      targetType: resource.kind,
+      targetId: resource.id,
+      targetLabel: resource.title,
+      durationMs,
+      progressPercent: 100,
+      completionMode: 'playback',
+    });
+  };
+
   const handleHandoutDownload = async () => {
     setIsDownloadingHandout(true);
     try {
+      resourceTracker.trackResourceDownload({
+        resourceKey: buildLessonEntryResourceKey(lessonId, 'handout'),
+        targetType: 'handout',
+        targetId: 'handout',
+        targetLabel: '讲义阅读与下载',
+      });
       await downloadLessonHandoutPdf({
         lessonId: lessonRuntime.lesson.lesson_id,
         lessonTitle: lessonRuntime.lesson.title,
@@ -347,6 +589,10 @@ export function LessonEntryMediaHub({
                 <InlineMediaPreview
                   resource={resource}
                   wrapperClassName="aspect-[16/9] min-h-[240px] w-full sm:min-h-[320px] lg:min-h-[420px]"
+                  onOpen={trackMediaOpen}
+                  onPlay={trackMediaPlay}
+                  onProgress={trackMediaProgress}
+                  onComplete={trackMediaComplete}
                 />
               </section>
             );
@@ -388,7 +634,12 @@ export function LessonEntryMediaHub({
                   </p>
                   {isAudio ? (
                     <div className="mt-4">
-                      <ResolvedAudioPlayer resource={resource} />
+                      <ResolvedAudioPlayer
+                        resource={resource}
+                        onPlay={trackMediaPlay}
+                        onProgress={trackMediaProgress}
+                        onComplete={trackMediaComplete}
+                      />
                     </div>
                   ) : (
                     <div className="mt-4 flex flex-wrap gap-2">
@@ -397,6 +648,15 @@ export function LessonEntryMediaHub({
                           href={resource.url ?? '#'}
                           target="_blank"
                           rel="noreferrer"
+                          onClick={() => {
+                            resourceTracker.trackResourceOpen({
+                              resourceKey: buildLessonEntryResourceKey(lessonId, resource.id),
+                              targetType: resource.kind,
+                              targetId: resource.id,
+                              targetLabel: resource.title,
+                              openMode: 'new_tab',
+                            });
+                          }}
                           className="premium-lesson-action-secondary flex"
                         >
                           <ExternalLink className="h-4 w-4" />
@@ -440,7 +700,16 @@ export function LessonEntryMediaHub({
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsHandoutOpen(true)}
+                  onClick={() => {
+                    resourceTracker.trackResourceOpen({
+                      resourceKey: buildLessonEntryResourceKey(lessonId, 'handout'),
+                      targetType: 'handout',
+                      targetId: 'handout',
+                      targetLabel: '讲义阅读与下载',
+                      openMode: 'dialog',
+                    });
+                    setIsHandoutOpen(true);
+                  }}
                   className="premium-lesson-action-secondary flex"
                 >
                   <BookOpen className="h-4 w-4" />

@@ -218,6 +218,15 @@ export const CORE_EVENTS: EventTypeMetadata[] = [
       selfDirectedLearning: 0.4,
     },
   },
+  {
+    eventType: 'resource_complete',
+    category: 'interaction',
+    priority: 'core',
+    description: '完成课堂外资源学习',
+    competencyMapping: {
+      selfDirectedLearning: 0.2,
+    },
+  },
 ];
 
 // ============================================
@@ -303,6 +312,36 @@ export const SECONDARY_EVENTS: EventTypeMetadata[] = [
     description: '离开课堂步骤',
   },
   {
+    eventType: 'resource_view',
+    category: 'navigation',
+    priority: 'secondary',
+    description: '查看课堂外资源',
+  },
+  {
+    eventType: 'resource_open',
+    category: 'interaction',
+    priority: 'secondary',
+    description: '打开课堂外资源',
+  },
+  {
+    eventType: 'resource_play',
+    category: 'interaction',
+    priority: 'secondary',
+    description: '开始播放课堂外媒体资源',
+  },
+  {
+    eventType: 'resource_progress',
+    category: 'interaction',
+    priority: 'secondary',
+    description: '课堂外媒体学习进度',
+  },
+  {
+    eventType: 'resource_download',
+    category: 'interaction',
+    priority: 'secondary',
+    description: '下载课堂外资源',
+  },
+  {
     eventType: 'workspace_param_change',
     category: 'interaction',
     priority: 'secondary',
@@ -325,6 +364,18 @@ export const SECONDARY_EVENTS: EventTypeMetadata[] = [
     category: 'interaction',
     priority: 'secondary',
     description: '课堂同步错误',
+  },
+  {
+    eventType: 'knowledge_graph_node_focus',
+    category: 'interaction',
+    priority: 'secondary',
+    description: '聚焦知识图谱节点',
+  },
+  {
+    eventType: 'external_module_open',
+    category: 'interaction',
+    priority: 'secondary',
+    description: '打开跨域互动模块',
   },
 ];
 

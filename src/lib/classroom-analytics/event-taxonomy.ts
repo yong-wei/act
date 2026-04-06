@@ -8,6 +8,14 @@ export const COURSE_EVENT_TYPES = {
   AI_QUERY_SUBMIT: 'ai_query_submit',
   SYNC_ERROR: 'sync_error',
   SESSION_FINALIZE: 'session_finalize',
+  RESOURCE_VIEW: 'resource_view',
+  RESOURCE_OPEN: 'resource_open',
+  RESOURCE_PLAY: 'resource_play',
+  RESOURCE_PROGRESS: 'resource_progress',
+  RESOURCE_DOWNLOAD: 'resource_download',
+  RESOURCE_COMPLETE: 'resource_complete',
+  KNOWLEDGE_GRAPH_NODE_FOCUS: 'knowledge_graph_node_focus',
+  EXTERNAL_MODULE_OPEN: 'external_module_open',
 } as const;
 
 export type CourseEventType = typeof COURSE_EVENT_TYPES[keyof typeof COURSE_EVENT_TYPES];

@@ -179,6 +179,18 @@ describe('GET /api/user/profile', () => {
 
     mocks.prisma.interactionLog.findMany.mockResolvedValue([
       {
+        id: 'evt-0',
+        eventType: 'resource_complete',
+        resourceKey: 'lesson-entry:unit-2-1-modeling-language:course-video',
+        sessionId: null,
+        lessonKey: 'unit-2-1-modeling-language',
+        createdAt: new Date('2026-03-19T10:05:00.000Z'),
+        eventData: {
+          targetLabel: '完整课程视频',
+          originPath: '/interactive-learning/courses/unit-2-1-modeling-language',
+        },
+      },
+      {
         id: 'evt-1',
         eventType: 'knowledge_card_open',
         resourceKey: 'knowledge-card-bode',
@@ -300,6 +312,16 @@ describe('GET /api/user/profile', () => {
     expect(body.recentActivity.preview).toHaveLength(3);
     expect(body.recentActivity.grouped.map((group: { category: string }) => group.category)).toEqual(
       expect.arrayContaining(['classroom', 'interactive', 'simulation', 'assessment'])
+    );
+    expect(body.recentActivity.preview).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: '完成资源学习：完整课程视频',
+          description: '完成了一项课堂外资源学习',
+          href: '/interactive-learning/courses/unit-2-1-modeling-language',
+          badge: '资源完成',
+        }),
+      ])
     );
     expect(body.personalizedReinforcement.resources).toHaveLength(2);
     expect(body.personalizedReinforcement.adaptivePractice).toMatchObject({

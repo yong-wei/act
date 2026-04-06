@@ -75,6 +75,18 @@ describe('routeEvent', () => {
     expect(mockLpush).not.toHaveBeenCalled();
   });
 
+  it('should route resource_complete to postgresql as a high-value extracurricular event', async () => {
+    const event = createMockEvent({
+      actionType: 'resource_complete',
+      priority: 'core',
+    });
+
+    const result = await routeEvent(event);
+
+    expect(result.destination).toBe('postgresql');
+    expect(mockLpush).not.toHaveBeenCalled();
+  });
+
   it('should route secondary events to redis', async () => {
     const event = createMockEvent({
       actionType: 'page_view',

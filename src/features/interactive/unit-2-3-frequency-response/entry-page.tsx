@@ -13,6 +13,7 @@ import {
   UNIT_2_3_PRESET_KEY,
   UNIT_2_3_ROUTE_SEGMENT,
 } from '@/lib/unit-2-3-course';
+import { LessonEntryMediaHub } from '@/features/interactive/shared/lesson-entry-media-hub';
 import { LessonEntryRuntimeSections } from '@/features/interactive/shared/lesson-entry-runtime-sections';
 
 interface JoinSessionResponse {
@@ -214,7 +215,11 @@ export function UNIT_2_3CourseEntryPage({
           </div>
         </section>
 
-        <LessonEntryRuntimeSections runtime={lessonRuntime} />
+        <LessonEntryMediaHub
+          lessonRuntime={lessonRuntime}
+          courseLabel="2-3 · Pre-study"
+        />
+        <LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mt-4">{error}</div> : null}
       </main>

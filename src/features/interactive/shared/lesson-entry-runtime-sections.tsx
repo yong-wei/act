@@ -7,6 +7,7 @@ import 'katex/dist/katex.min.css';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MdxSlide } from '@/components/shared/mdx-slide';
+import { useResourceInteractionTracking } from '@/features/interactive/hooks/useResourceInteractionTracking';
 import { KnowledgeCard, normalizeKnowledgeMetadata } from '@/features/knowledge/knowledge-card';
 import { downloadLessonHandoutPdf } from '@/features/interactive/shared/download-handout-pdf';
 import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-runtime';
@@ -106,9 +107,23 @@ function getEdgeLinePoints({
 
 export function LessonEntryRuntimeSections({
   runtime,
+  hideHandoutEntry = false,
 }: {
   runtime: RuntimeLessonEntryBundle;
+  hideHandoutEntry?: boolean;
 }) {
+  const lessonId = runtime.lesson.lesson_id;
+  const tracker = useResourceInteractionTracking({
+    resourceKey: `lesson-entry:${lessonId}:knowledge-graph`,
+    lessonKey: lessonId,
+    surface: 'lesson_entry',
+    pageType: 'knowledge',
+    targetType: 'knowledge_hub',
+    targetId: lessonId,
+    targetLabel: runtime.lesson.title,
+    moduleId: lessonId,
+    provider: 'lesson-entry-runtime-sections',
+  });
   const isLightTheme = useIsLightTheme();
   const positionedNodes = useGraphLayout(runtime.graphOverlay.nodes);
   const nodeById = useMemo(
@@ -146,6 +161,7 @@ export function LessonEntryRuntimeSections({
       await downloadLessonHandoutPdf({
         lessonId: runtime.lesson.lesson_id,
         lessonTitle: runtime.lesson.title,
+        handoutPdfPath: runtime.handoutPdfPath,
       });
     } catch (error) {
       window.alert(error instanceof Error ? error.message : '讲义 PDF 导出失败，请稍后重试。');
@@ -235,7 +251,15 @@ export function LessonEntryRuntimeSections({
                     key={node.id}
                     transform={`translate(${node.svgX}, ${node.svgY})`}
                     className="cursor-pointer"
-                    onClick={() => setSelectedNodeId(node.id)}
+                    onClick={() => {
+                      tracker.trackKnowledgeNodeFocus({
+                        resourceKey: `knowledge-node:${node.id}`,
+                        targetType: 'knowledge_node',
+                        targetId: node.id,
+                        targetLabel: node.name,
+                      });
+                      setSelectedNodeId(node.id);
+                    }}
                   >
                     <circle
                       r={active ? 18 : 14}
@@ -270,6 +294,17 @@ export function LessonEntryRuntimeSections({
           {selectedNode ? (
             <div className="mt-3">
               <KnowledgeCard
+                trackingContext={{
+                  resourceKey: `lesson-entry:${lessonId}:knowledge-card:${selectedNode.id}`,
+                  lessonKey: lessonId,
+                  surface: 'lesson_entry',
+                  pageType: 'knowledge',
+                  targetType: 'knowledge_card',
+                  targetId: selectedNode.id,
+                  targetLabel: selectedNode.name,
+                  moduleId: lessonId,
+                  provider: 'lesson-entry-runtime-sections',
+                }}
                 name={selectedNode.name}
                 description={selectedNode.description}
                 nodeType={selectedNode.nodeType}
@@ -304,7 +339,15 @@ export function LessonEntryRuntimeSections({
             <button
               key={node.id}
               type="button"
-              onClick={() => setSelectedNodeId(node.id)}
+              onClick={() => {
+                tracker.trackKnowledgeNodeFocus({
+                  resourceKey: `knowledge-node:${node.id}`,
+                  targetType: 'knowledge_node',
+                  targetId: node.id,
+                  targetLabel: node.name,
+                });
+                setSelectedNodeId(node.id);
+              }}
               className={`rounded-[20px] px-4 py-4 text-left ${
                 node.id === selectedNodeId
                   ? 'premium-lesson-selectable-card premium-lesson-selectable-card-active'
@@ -319,61 +362,108 @@ export function LessonEntryRuntimeSections({
         </div>
       </section>
 
-      <section className={`mt-4 ${surfaceClassName}`}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="premium-lesson-title flex items-center gap-2 text-sm font-medium">
-              <PanelTopOpen className="h-4 w-4" />
-              讲义入口
-            </div>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              {runtime.handoutSummary}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => void handleHandoutExport()}
-              disabled={isExportingHandout}
-              className="premium-lesson-action-secondary"
-            >
-              <Download className="h-4 w-4" />
-              {isExportingHandout ? '导出中...' : '导出 PDF'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsHandoutOpen(true)}
-              className="premium-lesson-action-primary"
-            >
-              查看讲义
-            </button>
-          </div>
-        </div>
-      </section>
-      <Dialog open={isHandoutOpen} onOpenChange={setIsHandoutOpen}>
-        <DialogContent className="max-w-5xl border-border bg-background p-0 text-foreground">
-          <DialogHeader className="border-b border-border px-6 py-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 pr-10">
-              <DialogTitle className="text-foreground">{runtime.lesson.lesson_id} 讲义</DialogTitle>
-              <DialogDescription className="sr-only">
+      {hideHandoutEntry ? null : (
+        <section className={`mt-4 ${surfaceClassName}`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="premium-lesson-title flex items-center gap-2 text-sm font-medium">
+                <PanelTopOpen className="h-4 w-4" />
+                讲义入口
+              </div>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
                 {runtime.handoutSummary}
-              </DialogDescription>
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => void handleHandoutExport()}
+                onClick={() => {
+                  tracker.trackResourceDownload({
+                    resourceKey: `lesson-entry:${lessonId}:handout`,
+                    targetType: 'handout',
+                    targetId: 'handout',
+                    targetLabel: '讲义',
+                  });
+                  void handleHandoutExport();
+                }}
                 disabled={isExportingHandout}
                 className="premium-lesson-action-secondary"
               >
                 <Download className="h-4 w-4" />
                 {isExportingHandout ? '导出中...' : '导出 PDF'}
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  tracker.trackResourceOpen({
+                    resourceKey: `lesson-entry:${lessonId}:handout`,
+                    targetType: 'handout',
+                    targetId: 'handout',
+                    targetLabel: '讲义',
+                    openMode: 'dialog',
+                  });
+                  setIsHandoutOpen(true);
+                }}
+                className="premium-lesson-action-primary"
+              >
+                查看讲义
+              </button>
             </div>
-          </DialogHeader>
-          <div className="max-h-[75vh] overflow-y-auto p-6">
-            <MdxSlide path={runtime.handoutSourcePath} theme={isLightTheme ? 'light' : 'dark'} size="adaptive" />
           </div>
-        </DialogContent>
-      </Dialog>
+        </section>
+      )}
+      {hideHandoutEntry ? null : (
+        <LessonEntryHandoutDialog
+          runtime={runtime}
+          open={isHandoutOpen}
+          onOpenChange={setIsHandoutOpen}
+          isExportingHandout={isExportingHandout}
+          onHandoutExport={() => void handleHandoutExport()}
+        />
+      )}
     </>
+  );
+}
+
+export function LessonEntryHandoutDialog({
+  runtime,
+  open,
+  onOpenChange,
+  isExportingHandout,
+  onHandoutExport,
+}: {
+  runtime: RuntimeLessonEntryBundle;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  isExportingHandout: boolean;
+  onHandoutExport: () => void;
+}) {
+  const isLightTheme = useIsLightTheme();
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-5xl border-border bg-background p-0 text-foreground">
+        <DialogHeader className="border-b border-border px-6 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 pr-10">
+            <DialogTitle className="text-foreground">{runtime.lesson.lesson_id} 讲义</DialogTitle>
+            <DialogDescription className="sr-only">
+              {runtime.handoutSummary}
+            </DialogDescription>
+            <button
+              type="button"
+              onClick={onHandoutExport}
+              disabled={isExportingHandout}
+              className="premium-lesson-action-secondary"
+            >
+              <Download className="h-4 w-4" />
+              {isExportingHandout ? '导出中...' : '导出 PDF'}
+            </button>
+          </div>
+        </DialogHeader>
+        <div className="max-h-[75vh] overflow-y-auto p-6">
+          <MdxSlide path={runtime.handoutSourcePath} theme={isLightTheme ? 'light' : 'dark'} size="adaptive" />
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
