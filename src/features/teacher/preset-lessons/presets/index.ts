@@ -25,6 +25,7 @@ import { LSUM_DESIGN_FEASIBLE_DOMAIN_PRESET } from './lsum-design-feasible-domai
 import { UNIT_2_1_MODELING_LANGUAGE_PRESET } from './unit-2-1-modeling-language';
 import { UNIT_2_2_TIME_DOMAIN_RESPONSE_PRESET } from './unit-2-2-time-domain-response';
 import { UNIT_2_3_FREQUENCY_RESPONSE_BODE_INTRO_PRESET } from './unit-2-3-frequency-response-bode-intro';
+import { UNIT_2_4_NYQUIST_MARGIN_ENTRY_PRESET } from './unit-2-4-nyquist-margin-entry';
 
 export {
   LESSON_01_FEEDBACK_PRESET,
@@ -50,6 +51,7 @@ export {
   UNIT_2_1_MODELING_LANGUAGE_PRESET,
   UNIT_2_2_TIME_DOMAIN_RESPONSE_PRESET,
   UNIT_2_3_FREQUENCY_RESPONSE_BODE_INTRO_PRESET,
+  UNIT_2_4_NYQUIST_MARGIN_ENTRY_PRESET,
 };
 
 export const ALL_PRESETS = [
@@ -76,4 +78,5 @@ export const ALL_PRESETS = [
   UNIT_2_1_MODELING_LANGUAGE_PRESET,
   UNIT_2_2_TIME_DOMAIN_RESPONSE_PRESET,
   UNIT_2_3_FREQUENCY_RESPONSE_BODE_INTRO_PRESET,
+  UNIT_2_4_NYQUIST_MARGIN_ENTRY_PRESET,
 ];

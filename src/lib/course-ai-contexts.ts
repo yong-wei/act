@@ -24,6 +24,10 @@ import {
   getUnit23StepAIContext as getUnit23StepAIContextLocal,
   getUnit23StepQuickQuestions as getUnit23StepQuickQuestionsLocal,
 } from './unit-2-3-ai-contexts';
+import {
+  getUnit24StepAIContext as getUnit24StepAIContextLocal,
+  getUnit24StepQuickQuestions as getUnit24StepQuickQuestionsLocal,
+} from './unit-2-4-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -54,6 +58,16 @@ export {
   getUnit23StepAIContext,
   getUnit23StepQuickQuestions,
 } from './unit-2-3-ai-contexts';
+
+// 2-4 课程 AI 上下文
+export {
+  UNIT_2_4_COURSE_META,
+  UNIT_2_4_STEP_AI_CONTEXTS,
+  getUNIT_2_4StepAIContext,
+  getUNIT_2_4StepQuickQuestions,
+  getUnit24StepAIContext,
+  getUnit24StepQuickQuestions,
+} from './unit-2-4-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -101,6 +115,17 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '2-3：频率响应基础与 Bode 图初步——从时域现象到频域图形入口',
       courseDescription:
         '围绕频率分量思想、正弦稳态响应、G(jω)、幅频/相频语言与 Bode 首轮骨架，完成从时域现象到频域图形对象的第一轮切换。',
+    },
+  },
+
+  'unit-2-4-nyquist-margin-entry-v1': {
+    getStepContext: (stepId: string) => getUnit24StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit24StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-2-4-nyquist-margin-entry-v1',
+      courseTitle: '2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别',
+      courseDescription:
+        '围绕同一个 G(jω) 的双图表达、纯极点系统 Nyquist 读图、频域指标入口、手工绘图入口与最小反向识别，完成模块 2 的图形对象收束。',
     },
   },
 };

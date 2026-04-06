@@ -3,6 +3,7 @@ import { LSUM_COURSE_TITLE, LSUM_ROUTE_SEGMENT } from '@/lib/lsum-course';
 import { UNIT_2_1_COURSE_TITLE, UNIT_2_1_ROUTE_SEGMENT } from '@/lib/unit-2-1-course';
 import { UNIT_2_2_COURSE_TITLE, UNIT_2_2_ROUTE_SEGMENT } from '@/lib/unit-2-2-course';
 import { UNIT_2_3_COURSE_TITLE, UNIT_2_3_ROUTE_SEGMENT } from '@/lib/unit-2-3-course';
+import { UNIT_2_4_COURSE_TITLE, UNIT_2_4_ROUTE_SEGMENT } from '@/lib/unit-2-4-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -53,6 +54,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '2-3：频率响应基础与 Bode 图初步——从时域现象到频域图形入口',
       '频率响应基础与 Bode 图初步——从时域现象到频域图形入口',
       '频率响应基础与 Bode 图初步',
+    ],
+  },
+  {
+    routeSegment: UNIT_2_4_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_2_4_COURSE_TITLE,
+      '2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别',
+      'Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别',
+      'Nyquist 图与频域指标入口',
     ],
   },
 ];

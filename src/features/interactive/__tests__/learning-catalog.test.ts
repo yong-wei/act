@@ -26,7 +26,7 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
     ).toBe(false);
   });
 
-  it('exposes unit 2-1, unit 2-2, and unit 2-3 in module 2', () => {
+  it('exposes unit 2-1, unit 2-2, unit 2-3, and unit 2-4 in module 2', () => {
     expect(INTERACTIVE_COURSE_MODULES[0]?.lessons.map((lesson) => ({
       id: lesson.id,
       unitLabel: lesson.unitLabel,
@@ -45,6 +45,11 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
       {
         id: 'unit-2-3-frequency-response-bode-intro',
         unitLabel: '2-3',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-2-4-nyquist-margin-entry',
+        unitLabel: '2-4',
         legacySourceLabel: null,
       },
     ]);
