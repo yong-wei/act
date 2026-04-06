@@ -13,6 +13,7 @@ import {
 import { LSUM_PREMIUM_LESSON_CARD } from '@/lib/lsum-course';
 import { UNIT_2_1_PREMIUM_LESSON_CARD } from '@/lib/unit-2-1-course';
 import { UNIT_2_2_PREMIUM_LESSON_CARD } from '@/lib/unit-2-2-course';
+import { UNIT_2_3_PREMIUM_LESSON_CARD } from '@/lib/unit-2-3-course';
 
 export interface InteractiveResource {
   id: string;
@@ -122,6 +123,7 @@ export const FEATURED_LESSONS = [
   LSUM_PREMIUM_LESSON_CARD,
   UNIT_2_1_PREMIUM_LESSON_CARD,
   UNIT_2_2_PREMIUM_LESSON_CARD,
+  UNIT_2_3_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -272,7 +274,8 @@ export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
   lesson.id === 'lsum-design-feasible-domain' ||
   lesson.id === 'cruise-comfort-boppps' ||
   lesson.id === 'unit-2-1-modeling-language' ||
-  lesson.id === 'unit-2-2-time-domain-response'
+  lesson.id === 'unit-2-2-time-domain-response' ||
+  lesson.id === 'unit-2-3-frequency-response-bode-intro'
 );
 
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
@@ -280,7 +283,8 @@ export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
     lesson.id !== 'lsum-design-feasible-domain' &&
     lesson.id !== 'cruise-comfort-boppps' &&
     lesson.id !== 'unit-2-1-modeling-language' &&
-    lesson.id !== 'unit-2-2-time-domain-response'
+    lesson.id !== 'unit-2-2-time-domain-response' &&
+    lesson.id !== 'unit-2-3-frequency-response-bode-intro'
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;
@@ -309,11 +313,12 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
   {
     id: 'module-2',
     title: '模块2',
-    description: '模块2当前开放 2-1 与 2-2 两个新主线单元，分别承接统一对象语言与时域响应基础。',
+    description: '模块2当前开放 2-1、2-2、2-3 三个新主线单元，分别承接统一对象语言、时域响应基础与频域对象入口。',
     chipLabel: '已开放单元',
     lessons: [
       createModuleLesson('unit-2-1-modeling-language', '2-1'),
       createModuleLesson('unit-2-2-time-domain-response', '2-2'),
+      createModuleLesson('unit-2-3-frequency-response-bode-intro', '2-3'),
     ],
   },
 ] as const;

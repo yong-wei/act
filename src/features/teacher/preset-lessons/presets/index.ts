@@ -24,6 +24,7 @@ import { CRUISE_COMFORT_PRESET } from './cruise-comfort';
 import { LSUM_DESIGN_FEASIBLE_DOMAIN_PRESET } from './lsum-design-feasible-domain';
 import { UNIT_2_1_MODELING_LANGUAGE_PRESET } from './unit-2-1-modeling-language';
 import { UNIT_2_2_TIME_DOMAIN_RESPONSE_PRESET } from './unit-2-2-time-domain-response';
+import { UNIT_2_3_FREQUENCY_RESPONSE_BODE_INTRO_PRESET } from './unit-2-3-frequency-response-bode-intro';
 
 export {
   LESSON_01_FEEDBACK_PRESET,
@@ -48,6 +49,7 @@ export {
   LSUM_DESIGN_FEASIBLE_DOMAIN_PRESET,
   UNIT_2_1_MODELING_LANGUAGE_PRESET,
   UNIT_2_2_TIME_DOMAIN_RESPONSE_PRESET,
+  UNIT_2_3_FREQUENCY_RESPONSE_BODE_INTRO_PRESET,
 };
 
 export const ALL_PRESETS = [
@@ -73,4 +75,5 @@ export const ALL_PRESETS = [
   LSUM_DESIGN_FEASIBLE_DOMAIN_PRESET,
   UNIT_2_1_MODELING_LANGUAGE_PRESET,
   UNIT_2_2_TIME_DOMAIN_RESPONSE_PRESET,
+  UNIT_2_3_FREQUENCY_RESPONSE_BODE_INTRO_PRESET,
 ];

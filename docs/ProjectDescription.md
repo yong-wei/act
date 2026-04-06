@@ -8,6 +8,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
 📅 **最后更新**：2026-04-05
+🧩 **`2-3` 精品互动课落地（2026-04-05）**：本轮基于作者态双轨真源 [course-content/authoring/lessons/2-3/design/interactive-page.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/authoring/lessons/2-3/design/interactive-page.md) 与 [course-content/authoring/lessons/2-3/design/interactive-contract.yaml](/Users/YW/Documents/Site/act.just.edu.cn/course-content/authoring/lessons/2-3/design/interactive-contract.yaml)，完成 `unit-2-3-frequency-response-bode-intro` 的 runtime-first 互动课程实现：新增独立入口页、教师页、学生页、步骤静态内容面板与学生活动/教师聚合工作台，将 `2-3` 频率响应与 Bode 图初识课正式接入课堂会话路由、课程级 AI 上下文、精品课程总览与教师预置教案；模块 2 精品课主线现已从 `2-1 / 2-2` 扩展到 `2-1 / 2-2 / 2-3`。同时补齐 `unit-2-3-course.test.ts` 与目录测试，并已通过 `vitest` 定向测试、`npm run lint`、`npm run test` 与 `npm run build` 验证，构建产物中已出现 `/interactive-learning/courses/unit-2-3-frequency-response-bode-intro` 及其师生端动态路由。
 🧩 **`2-1` 双轨契约实现一致性校验落地（2026-04-05）**：本轮将 `2-1` 精品互动课实现重新收紧到作者态双轨真源，重点把 `step-05 / 06 / 07 / 09 / 15 / 16` 在本地 `UNIT_2_1_PAGE_CONTRACTS` 中漂移的页面区域、教师洞察、telemetry 字段、错因标签与学生演示页预览路径校回 [course-content/authoring/lessons/2-1/design/interactive-contract.yaml](/Users/YW/Documents/Site/act.just.edu.cn/course-content/authoring/lessons/2-1/design/interactive-contract.yaml)，并同步补齐 `step-panels.tsx` 对新区域 ID 的静态渲染映射，避免“字段对齐后页面丢内容”。同时为互动课程实现技能新增实现侧一致性校验链路：新增 [scripts/tests/test-interactive-contract-implementation-alignment.mjs](/Users/YW/Documents/Site/act.just.edu.cn/scripts/tests/test-interactive-contract-implementation-alignment.mjs) 负责读取作者态契约并比对本地课程定义；新增 [check_contract_alignment.py](/Users/YW/Documents/Site/act.just.edu.cn/.codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py) 作为技能固定调用入口；并在 [interactive-lesson-implementation/SKILL.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/skills/interactive-lesson-implementation/SKILL.md) 中明确“实现完成后必须通过该脚本测试”。当前已通过 `vitest` 定向测试、技能脚本测试、`python3` 包装脚本实跑、`npm run lint` 与 `npm run build` 验证，后续继续实现新课时可以直接复用这条“作者态契约 -> 本地实现 -> 技能脚本”闭环。
 🧭 **模块3理论课 `3-7` 讲义与媒体定稿修订（2026-04-04）**：本轮直接落到作者态 [course-content/authoring/lessons/3-7/design/handout.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/authoring/lessons/3-7/design/handout.md) 与 [course-content/authoring/lessons/3-7/design/multimedia.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/authoring/lessons/3-7/design/multimedia.md)，把 `3-7` 正式写成“误差分析总入口课”：修正双通道框图，统一改成正式 LaTeX 公式编号，纠正输入作用下闭环传函应写为 `C(s)/R(s)`，补齐非单位反馈下的输入/扰动误差传函与“同分母、异分子”说明；在型别部分新增 `v` 与系统型别关系、静态误差系数表与稳态误差表及适用条件；新增“给定与扰动共同作用”例题；把 `2.6` 改写为“纯增益不改结构，因此必须引入 `PI/滞后`”的过渡逻辑；第三章则统一为“纯增益局限 -> `PI` 时域设计 -> 滞后时域设计 -> `PI` 频域设计 -> `PI`/`PD` 对比”的设计链。媒体侧新增根轨迹/时域/频域对比图，数值复现脚本统一收敛到 MATLAB/Octave `.m` 文件，附录不再把框图或 Python 脚本当作复现脚本。
 🧭 **模块3理论课 `3-7` 边界再增强（2026-04-02）**：本轮继续在 `course-content/syllabus-refactor/unit-design-details/module3.md` 上收紧 `3-7`《型别、积分环节与稳态改善》的正式职责，把它从“稳态改善线入口课”进一步升级为“误差分析总入口课”：除原有型别、`Kp/Kv/Ka`、`PI/滞后` 外，现已明确将“系统结构来源 vs 输入信号来源”的两类误差来源、给定输入与扰动作用下的闭环传递函数、系统总输出/总误差、输入/扰动作用下的误差传递函数、终值定理与静态误差系数法统一纳入本课，并把 `pptx/3方框图_控制系统结构` 从可选补强提升为必融入资源，用于梳理比较点、双通道与总误差对象；同时进一步明确 `2-1` 只保留闭环对象求等效的结构表达入口，不再承担这组内容的正式分析主线，从而为后续作者态把 `3-7` 写成真正“讲透误差而非只给表”的课程提供稳定边界。
@@ -685,8 +686,15 @@ npm test               # 运行测试
 - 新增/更新媒体与脚本：`3-7-error-dual-channel.tex`、`3-7-example2-structure.tex`、`3-7-generate-plots.m`、`3-7-steady-error-validation.m`、`3-7-render-block-diagram.py`，统一由 MATLAB/Octave/TikZ 生成最终图片。
 - 讲义附录改为直接嵌入 `MATLAB/Octave` 复现代码，不再给出仅对本机有效的脚本路径；新增回归测试 `course-content/tests/test_3_7_handout_revision.py` 继续覆盖误差口径、图题、例题结构、附录代码与多媒体清单。
 
+## 15. 近期更新（2026-04-05）
+
+- 完成 `2-2` 互动课的实现契约对齐：`src/lib/unit-2-2-course.ts` 新增 `UNIT_2_2_PAGE_CONTRACTS`，并将 `UNIT_2_2_LESSON_STEPS` 的 `pageType` 升级为与作者态 `interactive-contract.yaml` 一致的契约粒度。
+- 互动课程实现技能脚本 `.codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py` 已新增 `2-2` 预设，支持直接执行 `python3 ... --lesson 2-2`。
+- `course-content/scripts/review_lesson_content.py` 已把 `2-2` 纳入严格实现契约注册表，并修复 TypeScript 导出提取器在 `node -e` 模式下的参数偏移问题，`--strict-implementation-contract` 可用于正式校验 `2-2`。
+- 复核互动课程入口页后确认：`2-2` 继续与 `2-1` 一样保留在 `/interactive-learning/courses` 的精品课程和模块 2 单元入口中，并新增测试守卫其契约对齐状态。
+
 ---
 
-**最后更新日期**：2026-04-04
+**最后更新日期**：2026-04-05
 **版本**：v1.1.1
 **状态**：开发完成，可用于教学实践

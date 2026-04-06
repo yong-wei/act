@@ -20,6 +20,10 @@ import {
   getUnit22StepAIContext as getUnit22StepAIContextLocal,
   getUnit22StepQuickQuestions as getUnit22StepQuickQuestionsLocal,
 } from './unit-2-2-ai-contexts';
+import {
+  getUnit23StepAIContext as getUnit23StepAIContextLocal,
+  getUnit23StepQuickQuestions as getUnit23StepQuickQuestionsLocal,
+} from './unit-2-3-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -40,6 +44,16 @@ export {
   getUnit22StepAIContext,
   getUnit22StepQuickQuestions,
 } from './unit-2-2-ai-contexts';
+
+// 2-3 课程 AI 上下文
+export {
+  UNIT_2_3_COURSE_META,
+  UNIT_2_3_STEP_AI_CONTEXTS,
+  getUNIT_2_3StepAIContext,
+  getUNIT_2_3StepQuickQuestions,
+  getUnit23StepAIContext,
+  getUnit23StepQuickQuestions,
+} from './unit-2-3-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -76,6 +90,17 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '2-2：时域响应基础——从响应曲线到动态性能指标',
       courseDescription:
         '围绕单位阶跃响应、一阶与二阶系统标准型及四个关键时域指标，建立从响应曲线到动态品质判断的第一套语言。',
+    },
+  },
+
+  'unit-2-3-frequency-response-bode-intro-v1': {
+    getStepContext: (stepId: string) => getUnit23StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit23StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-2-3-frequency-response-bode-intro-v1',
+      courseTitle: '2-3：频率响应基础与 Bode 图初步——从时域现象到频域图形入口',
+      courseDescription:
+        '围绕频率分量思想、正弦稳态响应、G(jω)、幅频/相频语言与 Bode 首轮骨架，完成从时域现象到频域图形对象的第一轮切换。',
     },
   },
 };
