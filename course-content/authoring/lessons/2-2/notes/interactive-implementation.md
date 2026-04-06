@@ -259,3 +259,16 @@ interface AiCompareState {
 3. 能与 `currentItemId` 和揭示状态联动；
 4. 静态素材命名与交互引用完全对齐；
 5. 就算互动失效，教师仍能退回静态图 + 口头推进课堂。
+
+## 2026-04-05 契约对齐与入口复核
+
+- 已补齐 `src/lib/unit-2-2-course.ts` 的实现侧平行契约：`UNIT_2_2_PAGE_CONTRACTS` 现与作者态 `interactive-contract.yaml` 对齐，覆盖模板、区域、互动类型、教师洞察、telemetry 与学生演示页预览路径。
+- `UNIT_2_2_LESSON_STEPS` 的 `pageType` 已从旧的 `display/quiz/form/ai/summary` 粗粒度值升级为契约粒度值，便于严格实现校验。
+- `.codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py` 已新增 `2-2` 预设，可直接运行：
+
+```bash
+python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 2-2
+```
+
+- `course-content/scripts/review_lesson_content.py --lesson 2-2 --strict-implementation-contract` 已纳入 `2-2` 的实现契约注册表，可作为正式回归命令。
+- 互动课程入口复核结果：`2-2` 与 `2-1` 一样，已存在于 `src/features/interactive/learning-catalog.ts` 的 `PREMIUM_LESSONS` 与 `INTERACTIVE_COURSE_MODULES` 中，并继续通过 `/interactive-learning/courses` 页面暴露入口。

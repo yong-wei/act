@@ -18267,12 +18267,185 @@
       ],
       "created_at": null,
       "updated_at": null
+    },
+    "右半平面零点可行性边界_3_36005": {
+      "id": "右半平面零点可行性边界_3_36005",
+      "name": "右半平面零点可行性边界",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 0,
+      "chapter_name": "结构机理层",
+      "definition": "当系统含有右半平面零点时，设计者需要先审查原有速度目标和带宽目标是否仍然可行，因为逆响应和额外相位滞后会压缩可以接受的设计空间。",
+      "examples": [
+        "即使沿用前面左半平面零点设计得到的目标，也应先检查是否因为右半平面零点而出现逆响应和相位恶化。",
+        "对右半平面零点对象，第一动作往往不是继续提速，而是下调目标并重新评估边界。"
+      ],
+      "formulas": [
+        "G_{rhp}(s)=1-T_d s"
+      ],
+      "prerequisites": [
+        "非最小相与右半平面零点_3_35005",
+        "目标驱动超前校正_3_36004"
+      ],
+      "related_concepts": [
+        "目标驱动PD校正_3_36002"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "右半平面零点",
+        "可行性",
+        "逆响应",
+        "边界审查"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "时域指标到目标极点区域_3_36001": {
+      "id": "时域指标到目标极点区域_3_36001",
+      "name": "时域指标到目标极点区域",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 0,
+      "chapter_name": "结构机理层",
+      "definition": "把超调量和调节时间等时域指标翻译为阻尼比、自然频率和主导极点区域，从而把“更快更稳”的模糊表述转成可用于根轨迹设计的目标区域。",
+      "examples": [
+        "对任务 M_p<=20%, t_s<=4s，先用二阶近似关系写出对 \\zeta 和 \\omega_n 的要求，再画出目标极点区域。",
+        "在 PD 设计前先检查原系统根轨迹能否进入目标区域，不能直接跳到调参。"
+      ],
+      "formulas": [
+        "M_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times100\\%",
+        "t_s\\approx\\frac{4}{\\zeta\\omega_n}"
+      ],
+      "prerequisites": [
+        "主导极点_3_4c4c6bbd"
+      ],
+      "related_concepts": [
+        "目标驱动PD校正_3_36002",
+        "目标驱动测速反馈校正_3_36003"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "超调量",
+        "调节时间",
+        "阻尼比",
+        "目标极点区域"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "目标驱动PD校正_3_36002": {
+      "id": "目标驱动PD校正_3_36002",
+      "name": "目标驱动PD校正",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 0,
+      "chapter_name": "结构机理层",
+      "definition": "围绕给定的时域指标，先建立目标极点区域，再通过调整 PD 的零点位置和增益，使补偿后根轨迹能够穿过该区域，并最终用阶跃响应验收设计是否达标。",
+      "examples": [
+        "先调 T_d 让零点位置有利于根轨迹进入目标区域，再调 K 让主导极点落入该区域。",
+        "若补偿后根轨迹虽然更靠左但阶跃响应仍未满足 t_s 约束，则设计不能算完成。"
+      ],
+      "formulas": [
+        "G_{PD}(s)=K(1+T_d s)",
+        "z=-\\frac{1}{T_d}"
+      ],
+      "prerequisites": [
+        "时域指标到目标极点区域_3_36001",
+        "零点引入与根轨迹重排_3_35001"
+      ],
+      "related_concepts": [
+        "目标驱动测速反馈校正_3_36003"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "PD",
+        "目标区域",
+        "根轨迹",
+        "阶跃验收"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "目标驱动测速反馈校正_3_36003": {
+      "id": "目标驱动测速反馈校正_3_36003",
+      "name": "目标驱动测速反馈校正",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 0,
+      "chapter_name": "结构机理层",
+      "definition": "使用拉普拉斯域控制量表达式 U(s)=K E(s)-K_t sY(s) 描述测速反馈，并通过调整反馈系数 K_t 和增益 K 来实现给定的时域目标，强调其设计抓手在闭环分母系数和闭环极点，而不在前向零点位置。",
+      "examples": [
+        "先用 K_t 改变闭环分母一次项以改善阻尼，再调 K 调整速度，最后用阶跃响应验收。",
+        "即使达到与 PD 相近的超调目标，也不能把测速反馈写成“显式增零点”的结构。"
+      ],
+      "formulas": [
+        "U(s)=K E(s)-K_t sY(s)",
+        "T_v(s)=\\frac{4K}{s^2+(0.8+4K_t)s+4K}"
+      ],
+      "prerequisites": [
+        "时域指标到目标极点区域_3_36001",
+        "PD与测速反馈的等效阻尼对比_3_35003"
+      ],
+      "related_concepts": [
+        "目标驱动PD校正_3_36002",
+        "目标驱动超前校正_3_36004"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "测速反馈",
+        "拉普拉斯域",
+        "闭环分母",
+        "阻尼设计"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "目标驱动超前校正_3_36004": {
+      "id": "目标驱动超前校正_3_36004",
+      "name": "目标驱动超前校正",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 0,
+      "chapter_name": "结构机理层",
+      "definition": "围绕相角裕度和截止频率等频域目标，通过 Bode 图读取当前裕度和工作频段，计算所需补角并反推出超前网络参数 a、T，再回到闭环时域响应验收设计副作用。",
+      "examples": [
+        "先由目标相角裕度求补角，再由补角反算 a，并把最大补角频率对准新截止频率。",
+        "补偿后即便相角裕度达标，也仍要回到阶跃响应检查时域代价。"
+      ],
+      "formulas": [
+        "G_{lead}(s)=K_c\\frac{aTs+1}{Ts+1}",
+        "\\omega_m=\\frac{1}{\\sqrt{a}T}",
+        "\\psi_m=\\arcsin\\frac{a-1}{a+1}"
+      ],
+      "prerequisites": [
+        "PD与超前的频域整形差异_3_35004",
+        "相角裕度_5_0a9c6e90",
+        "带宽_5_6730fda4"
+      ],
+      "related_concepts": [
+        "目标驱动测速反馈校正_3_36003",
+        "右半平面零点可行性边界_3_36005"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "超前校正",
+        "相角裕度",
+        "截止频率",
+        "Bode设计"
+      ],
+      "created_at": null,
+      "updated_at": null
     }
   },
   "relations": [],
   "metadata": {
-    "merged_at": "2026-04-01T13:47:40.102953+00:00",
-    "total_nodes": 663,
-    "total_relations": 16346
+    "merged_at": "2026-04-05T15:15:46.018971+00:00",
+    "total_nodes": 668,
+    "total_relations": 16354
   }
 }

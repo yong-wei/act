@@ -1,0 +1,113 @@
+\usepackage{xeCJK}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{needspace}
+\usepackage{enumitem}
+\usepackage{fvextra}
+\usepackage[most]{tcolorbox}
+\usepackage[svgnames]{xcolor}
+\usepackage{hyperref}
+
+\geometry{a4paper, top=24mm, bottom=24mm, left=22mm, right=22mm, headsep=8mm, footskip=10mm}
+\raggedbottom
+
+\setmainfont{Times New Roman}
+\setmonofont{Menlo}
+\setCJKmainfont{Hiragino Sans GB}
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{STSong}
+
+\setstretch{1.22}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0.35em}
+\setlist[itemize]{itemsep=0.25em, topsep=0.35em}
+\setlist[enumerate]{itemsep=0.25em, topsep=0.35em}
+
+\definecolor{TitleBlue}{HTML}{123A63}
+\definecolor{RuleGray}{HTML}{B8C4D6}
+
+\titleformat{\section}
+  {\Large\bfseries\color{TitleBlue}}
+  {\thesection}{0.6em}{}
+\titleformat{\subsection}
+  {\large\bfseries\color{TitleBlue}}
+  {\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{TitleBlue}}
+  {\thesubsubsection}{0.6em}{}
+
+\titlespacing*{\section}{0pt}{1.2em}{0.5em}
+\titlespacing*{\subsection}{0pt}{1em}{0.35em}
+\titlespacing*{\subsubsection}{0pt}{0.8em}{0.25em}
+
+\captionsetup{
+  font=small,
+  labelfont=bf,
+  labelsep=period,
+  justification=centering
+}
+\DeclareCaptionLabelFormat{zhfigure}{图#2}
+\DeclareCaptionLabelFormat{zhtable}{表#2}
+\captionsetup[figure]{labelformat=zhfigure}
+\captionsetup[table]{labelformat=zhtable}
+
+\fvset{
+  breaklines=true,
+  breakanywhere=true,
+  fontsize=\small,
+  frame=single,
+  framerule=0.3pt,
+  rulecolor=\color{RuleGray},
+  framesep=4pt
+}
+
+\newtcolorbox{HandoutQuoteBox}{
+  enhanced,
+  breakable,
+  colback=TitleBlue!6!white,
+  colframe=TitleBlue!18!white,
+  boxrule=0.4pt,
+  arc=1.2mm,
+  left=8pt,
+  right=8pt,
+  top=6pt,
+  bottom=6pt,
+  borderline west={1.8pt}{0pt}{TitleBlue!55!black},
+  before skip=0.8em,
+  after skip=0.8em
+}
+\renewenvironment{quote}
+  {\begin{HandoutQuoteBox}\small\color{TitleBlue}\noindent\ignorespaces}
+  {\end{HandoutQuoteBox}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small 自动控制原理}
+\fancyhead[C]{%
+  \raisebox{0pt}[0pt][0pt]{%
+    \includegraphics[height=8.5mm]{/Users/YW/Documents/Site/act.just.edu.cn/public/images/extracted/校徽校名组合-横版-提取.pdf}%
+    \hspace{1.4pt}%
+    \includegraphics[height=7.65mm]{/Users/YW/Documents/Site/act.just.edu.cn/public/images/CAlogo128.png}%
+  }%
+}
+\fancyhead[R]{\small 单元 3-9 讲义}
+\fancyfoot[C]{\small \thepage}
+\setlength{\headheight}{34pt}
+\renewcommand{\headrulewidth}{0.35pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=TitleBlue,
+  urlcolor=DarkSlateBlue,
+  citecolor=TitleBlue,
+  pdftitle={单元 3-9 | 稳定、动态与稳态的综合映射}
+}

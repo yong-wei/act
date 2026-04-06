@@ -23,6 +23,7 @@ from lesson_id_map import (  # noqa: E402
     get_authoring_lesson_dir,
     get_runtime_lesson_dir,
 )
+from runtime_media_index import ensure_runtime_media_index  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -32,6 +33,11 @@ def parse_args() -> argparse.Namespace:
         '--skip-export',
         action='store_true',
         help='Only run review checks and generate intermediate outputs, do not invoke export_runtime.py',
+    )
+    parser.add_argument(
+        '--strict-implementation-contract',
+        action='store_true',
+        help='Exit with non-zero status when authoring interactive contract and local implementation contract drift.',
     )
     return parser.parse_args()
 
@@ -280,6 +286,103 @@ INTERACTIVE_CONTRACT_REQUIRED_STEP_FIELDS = [
     'acceptance_checks',
 ]
 
+IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
+    '2-1': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-2-1-course.ts',
+        'page_contracts_const': 'UNIT_2_1_PAGE_CONTRACTS',
+        'lesson_steps_const': 'UNIT_2_1_LESSON_STEPS',
+        'source_path': 'src/lib/unit-2-1-course.ts',
+    },
+    '2-2': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-2-2-course.ts',
+        'page_contracts_const': 'UNIT_2_2_PAGE_CONTRACTS',
+        'lesson_steps_const': 'UNIT_2_2_LESSON_STEPS',
+        'source_path': 'src/lib/unit-2-2-course.ts',
+    },
+}
+
+TYPESCRIPT_EXPORT_EXTRACTOR = r"""
+const fs = require('node:fs');
+const ts = require('typescript');
+
+const [filePath, exportName] = process.argv.slice(1);
+const sourceText = fs.readFileSync(filePath, 'utf8');
+const sourceFile = ts.createSourceFile(filePath, sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+
+function unwrap(node) {
+  while (
+    ts.isAsExpression(node) ||
+    (typeof ts.isSatisfiesExpression === 'function' && ts.isSatisfiesExpression(node)) ||
+    ts.isParenthesizedExpression(node)
+  ) {
+    node = node.expression;
+  }
+  return node;
+}
+
+function evaluate(node) {
+  node = unwrap(node);
+  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+    return node.text;
+  }
+  if (ts.isNumericLiteral(node)) {
+    return Number(node.text);
+  }
+  if (node.kind === ts.SyntaxKind.TrueKeyword) {
+    return true;
+  }
+  if (node.kind === ts.SyntaxKind.FalseKeyword) {
+    return false;
+  }
+  if (node.kind === ts.SyntaxKind.NullKeyword) {
+    return null;
+  }
+  if (ts.isArrayLiteralExpression(node)) {
+    return node.elements.map(evaluate);
+  }
+  if (ts.isObjectLiteralExpression(node)) {
+    const out = {};
+    for (const prop of node.properties) {
+      if (ts.isPropertyAssignment(prop)) {
+        const name = prop.name;
+        const key = ts.isIdentifier(name) ? name.text : ts.isStringLiteral(name) ? name.text : name.getText(sourceFile);
+        out[key] = evaluate(prop.initializer);
+      } else if (ts.isShorthandPropertyAssignment(prop)) {
+        out[prop.name.text] = `__SHORTHAND__:${prop.name.text}`;
+      } else if (ts.isSpreadAssignment(prop)) {
+        out[`__SPREAD__${Object.keys(out).length}`] = `__EXPR__:${prop.expression.getText(sourceFile)}`;
+      }
+    }
+    return out;
+  }
+  if (ts.isPrefixUnaryExpression(node)) {
+    const value = evaluate(node.operand);
+    if (node.operator === ts.SyntaxKind.MinusToken && typeof value === 'number') {
+      return -value;
+    }
+    return value;
+  }
+  return `__EXPR__:${node.getText(sourceFile)}`;
+}
+
+let result = null;
+function visit(node) {
+  if (ts.isVariableDeclaration(node) && node.name.getText(sourceFile) === exportName && node.initializer) {
+    result = evaluate(node.initializer);
+  }
+  ts.forEachChild(node, visit);
+}
+
+visit(sourceFile);
+
+if (result === null) {
+  console.error(`EXPORT_NOT_FOUND:${exportName}`);
+  process.exit(2);
+}
+
+process.stdout.write(JSON.stringify(result));
+"""
+
 
 def load_interactive_contract(contract_path: Path) -> tuple[dict[str, Any] | None, list[str]]:
     if not contract_path.exists():
@@ -350,6 +453,192 @@ def validate_interactive_contract(
     return issues, warnings, summary, normalized_required_fields
 
 
+def load_typescript_export_value(ts_path: Path, export_name: str) -> tuple[Any | None, list[str]]:
+    if not ts_path.exists():
+        return None, [f'本地实现契约源码不存在：{format_repo_path(ts_path)}']
+
+    completed = subprocess.run(
+        ['node', '-e', TYPESCRIPT_EXPORT_EXTRACTOR, str(ts_path), export_name],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        stderr = completed.stderr.strip()
+        message = stderr or completed.stdout.strip() or 'unknown error'
+        if message.startswith('EXPORT_NOT_FOUND:'):
+            missing_export = message.split(':', 1)[-1]
+            return None, [f'本地实现契约源码缺少导出：{missing_export}']
+        return None, [f'解析本地实现契约失败：{message}']
+
+    try:
+        return json.loads(completed.stdout), []
+    except json.JSONDecodeError as exc:
+        return None, [f'本地实现契约导出不是合法 JSON：{exc.msg}']
+
+
+def compare_contract_field(
+    issues: list[str],
+    step_id: str,
+    field_name: str,
+    expected: Any,
+    actual: Any,
+) -> None:
+    if expected == actual:
+        return
+    issues.append(
+        '步骤 `{step}` 的实现契约字段 `{field}` 与作者态不一致：expected={expected} actual={actual}'.format(
+            step=step_id,
+            field=field_name,
+            expected=json.dumps(expected, ensure_ascii=False),
+            actual=json.dumps(actual, ensure_ascii=False),
+        )
+    )
+
+
+def build_implementation_contract_check(lesson_id: str, contract_path: Path) -> tuple[str | None, list[str], list[str]]:
+    config = IMPLEMENTATION_CONTRACT_REGISTRY.get(lesson_id)
+    if not config:
+        return None, [], []
+
+    payload, contract_load_issues = load_interactive_contract(contract_path)
+    if contract_load_issues:
+        return config.get('source_path'), contract_load_issues, []
+    if payload is None:
+        return config.get('source_path'), [], []
+
+    steps = payload.get('steps')
+    if not isinstance(steps, dict):
+        return config.get('source_path'), ['interactive-contract.yaml 缺少 `steps` 对象'], []
+
+    page_contracts, page_contract_load_issues = load_typescript_export_value(
+        Path(config['course_lib_path']),
+        str(config['page_contracts_const']),
+    )
+    lesson_steps, lesson_steps_load_issues = load_typescript_export_value(
+        Path(config['course_lib_path']),
+        str(config['lesson_steps_const']),
+    )
+    load_issues = page_contract_load_issues + lesson_steps_load_issues
+    if load_issues:
+        return config.get('source_path'), load_issues, []
+
+    if not isinstance(page_contracts, dict):
+        return config.get('source_path'), ['本地实现契约导出的页面契约不是对象'], []
+    if not isinstance(lesson_steps, list):
+        return config.get('source_path'), ['本地实现契约导出的步骤定义不是数组'], []
+
+    issues: list[str] = []
+    step_by_id = {
+        step.get('id'): step for step in lesson_steps
+        if isinstance(step, dict) and isinstance(step.get('id'), str)
+    }
+
+    for step_id, step_payload in steps.items():
+        if not isinstance(step_payload, dict):
+            continue
+
+        local_step = step_by_id.get(step_id)
+        local_page_contract = page_contracts.get(step_id)
+
+        if local_step is None:
+            issues.append(f'本地实现缺少步骤定义：{step_id}')
+            continue
+        if not isinstance(local_page_contract, dict):
+            issues.append(f'本地实现缺少页面契约：{step_id}')
+            continue
+
+        interaction_spec = step_payload.get('interaction_spec')
+        layout = step_payload.get('layout')
+        preview_contract = step_payload.get('preview_contract')
+        teacher_insight_spec = step_payload.get('teacher_insight_spec')
+        telemetry_spec = step_payload.get('telemetry_spec')
+
+        interaction_kind = (
+            interaction_spec.get('interaction_kind')
+            if isinstance(interaction_spec, dict)
+            else None
+        )
+        compare_contract_field(issues, step_id, 'title', step_payload.get('title'), local_step.get('title'))
+        local_page_type = local_step.get('pageType')
+        if interaction_kind == 'none':
+            if local_page_type not in {'display', 'summary'}:
+                issues.append(
+                    '步骤 `{step}` 的实现契约字段 `pageType` 与作者态不一致：expected="display|summary" actual={actual}'.format(
+                        step=step_id,
+                        actual=json.dumps(local_page_type, ensure_ascii=False),
+                    )
+                )
+        else:
+            compare_contract_field(
+                issues,
+                step_id,
+                'pageType',
+                interaction_kind,
+                local_page_type,
+            )
+        compare_contract_field(
+            issues,
+            step_id,
+            'interactionKind',
+            interaction_kind,
+            local_page_contract.get('interactionKind'),
+        )
+        if isinstance(layout, dict):
+            compare_contract_field(
+                issues,
+                step_id,
+                'layout.template',
+                layout.get('template'),
+                (local_page_contract.get('layout') or {}).get('template'),
+            )
+            compare_contract_field(
+                issues,
+                step_id,
+                'layout.regions',
+                layout.get('regions', []),
+                (local_page_contract.get('layout') or {}).get('regions', []),
+            )
+        if isinstance(preview_contract, dict):
+            compare_contract_field(
+                issues,
+                step_id,
+                'previewDemoPath',
+                preview_contract.get('demo_path'),
+                local_page_contract.get('previewDemoPath'),
+            )
+        if isinstance(teacher_insight_spec, dict):
+            compare_contract_field(
+                issues,
+                step_id,
+                'teacherInsightWidgets',
+                teacher_insight_spec.get('widgets', []),
+                local_page_contract.get('teacherInsightWidgets', []),
+            )
+        if isinstance(telemetry_spec, dict):
+            compare_contract_field(
+                issues,
+                step_id,
+                'telemetrySummaryFields',
+                telemetry_spec.get('summary_fields', []),
+                local_page_contract.get('telemetrySummaryFields', []),
+            )
+            compare_contract_field(
+                issues,
+                step_id,
+                'misconceptionTags',
+                telemetry_spec.get('misconception_tags', []),
+                local_page_contract.get('misconceptionTags', []),
+            )
+
+    summary = []
+    if not issues:
+        summary.append(f'已检测到 `{lesson_id}` 的本地实现契约与作者态互动契约一致。')
+
+    return config.get('source_path'), issues, summary
+
+
 def parse_markdown_table(rows: list[str]) -> list[dict[str, str]]:
     if len(rows) < 3:
         return []
@@ -399,6 +688,7 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
             'lesson_id': lesson_id,
             'source_path': None,
             'contract_path': format_repo_path(interactive_contract),
+            'implementation_contract_source': None,
             'contract_required_fields': INTERACTIVE_CONTRACT_REQUIRED_STEP_FIELDS,
             'included_in_primary_sources': False,
             'has_core_mapping_section': False,
@@ -411,6 +701,8 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
             'step_upgrade_blocks_missing': [],
             'missing_contract_fields': [],
             'step_contract_issues': [],
+            'implementation_contract_summary': [],
+            'implementation_contract_issues': [],
             'summary': [],
             'warnings': [],
             'missing': ['缺少 design/interactive-page.md'],
@@ -523,6 +815,11 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         interactive_contract,
     )
     issues.extend(contract_issues)
+    implementation_contract_source, implementation_contract_issues, implementation_contract_summary = build_implementation_contract_check(
+        lesson_id,
+        interactive_contract,
+    )
+    issues.extend(implementation_contract_issues)
 
     summary = []
     warnings: list[str] = []
@@ -531,12 +828,14 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
     else:
         warnings.extend(issues)
     summary.extend(contract_summary)
+    summary.extend(implementation_contract_summary)
     warnings.extend(contract_warnings)
 
     return {
         'lesson_id': lesson_id,
         'source_path': format_repo_path(interactive_page),
         'contract_path': format_repo_path(interactive_contract),
+        'implementation_contract_source': implementation_contract_source,
         'contract_required_fields': contract_required_fields,
         'included_in_primary_sources': interactive_page in primary_sources,
         'has_core_mapping_section': bool(mapping_match),
@@ -549,6 +848,8 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         'step_upgrade_blocks_missing': step_upgrade_blocks_missing,
         'missing_contract_fields': [],
         'step_contract_issues': contract_issues,
+        'implementation_contract_summary': implementation_contract_summary,
+        'implementation_contract_issues': implementation_contract_issues,
         'summary': summary,
         'warnings': warnings,
         'missing': issues,
@@ -618,6 +919,36 @@ def run_media_generation(lesson_id: str, expected_media: list[dict[str, str]]) -
         'missing_assets': missing_assets,
         'executed_scripts': executed_scripts,
         'processed_dir': str(processed_dir.relative_to(REPO_ROOT)).replace('\\', '/'),
+    }
+
+
+def build_runtime_asset_check(lesson_id: str, lesson_dir: Path) -> dict[str, Any]:
+    runtime_dir = get_runtime_lesson_dir(lesson_id)
+    media_index_filename = f'{lesson_id}-media.md'
+    media_index_path = runtime_dir / 'media' / media_index_filename
+    ensure_runtime_media_index(media_index_path, lesson_id)
+
+    handout_pdf_source = lesson_dir / 'design' / 'handout.pdf'
+    expected_assets = ['handout.pdf', media_index_filename]
+    generated_assets: list[str] = []
+    missing_assets: list[str] = []
+
+    if handout_pdf_source.exists():
+        generated_assets.append('handout.pdf')
+    else:
+        missing_assets.append('handout.pdf')
+
+    if media_index_path.exists():
+        generated_assets.append(media_index_filename)
+    else:
+        missing_assets.append(media_index_filename)
+
+    return {
+        'expected_assets': expected_assets,
+        'generated_assets': generated_assets,
+        'missing_assets': missing_assets,
+        'media_index_path': format_repo_path(media_index_path),
+        'handout_pdf_source': format_repo_path(handout_pdf_source) if handout_pdf_source.exists() else None,
     }
 
 
@@ -767,6 +1098,7 @@ def build_source_manifest(
 ) -> dict[str, Any]:
     interactive_page = get_authoring_lesson_dir(lesson_id) / 'design' / 'interactive-page.md'
     interactive_contract = get_authoring_lesson_dir(lesson_id) / 'design' / 'interactive-contract.yaml'
+    handout_pdf = get_authoring_lesson_dir(lesson_id) / 'design' / 'handout.pdf'
     return {
         'lesson_id': lesson_id,
         'unit_type': unit_type,
@@ -785,6 +1117,7 @@ def build_source_manifest(
             if interactive_contract.exists()
             else format_repo_path(interactive_contract)
         ),
+        'handout_pdf_source': format_repo_path(handout_pdf) if handout_pdf.exists() else None,
         'boppps_source': format_repo_path(get_authoring_lesson_dir(lesson_id) / 'design' / 'boppps.md'),
         'sequence_source': format_repo_path(get_authoring_cards_dir(lesson_id) / 'sequence.json'),
         'expected_code_media': expected_media,
@@ -808,6 +1141,7 @@ def main() -> None:
 
     expected_media = extract_expected_code_media(multimedia_path)
     multimedia_check = run_media_generation(lesson_id, expected_media)
+    multimedia_check.update(build_runtime_asset_check(lesson_id, lesson_dir))
     multimedia_check['formula_contract_issues'] = validate_formula_media_contract(expected_media, lesson_dir)
     multimedia_check['formula_media'] = [
         item for item in expected_media
@@ -837,6 +1171,12 @@ def main() -> None:
             interactive_page_check,
         ),
     )
+
+    if args.strict_implementation_contract and interactive_page_check.get('implementation_contract_issues'):
+        raise SystemExit(
+            'interactive implementation contract drift detected:\n- '
+            + '\n- '.join(interactive_page_check['implementation_contract_issues'])
+        )
 
     if not args.skip_export:
         subprocess.run(

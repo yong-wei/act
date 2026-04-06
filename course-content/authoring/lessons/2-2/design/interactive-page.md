@@ -50,7 +50,7 @@
 | `### 3.1 例题一：已知二阶系统参数，求动态性能指标` | worked-example | `$$\Phi(s)=\frac{25}{s^2+4s+25}$$`，按“读 $\omega_n,\zeta$ -> 求 $\omega_d$ -> 顺推四指标”的三步法组织。 | `step-13` | `static+workspace` | 工作区只能在三步法和中间量骨架之后开启。 | `2-2-td-05-example-response-with-indices.svg / ic-05-metric-calculator` | 静态区不能只放答案，必须显式给出三步法。 |
 | `### 3.2 例题二：已知性能指标要求，反推参数范围 / #### 第一步：由超调量要求求阻尼比范围 / #### 第二步：由调节时间要求求自然频率下界` | reverse-spec+formula | `$$M_p=e^{-\frac{\zeta\pi}{\sqrt{1-\zeta^2}}}\le0.1$$`，`$$t_s\approx\frac{4}{\zeta\omega_n}\le2$$`，`$$\zeta\ge0.591,\qquad \zeta\omega_n\ge2$$`。 | `step-14` | `static+ai` | AI 只核对推理链，不直接给最终数值答案。 | `2-2-td-06-time-spec-to-pole-region.svg / ic-06-ai-compare-workspace` | 静态区必须先交代逆向设计三步法和两条边界，再开放 AI 对照。 |
 | `### 3.3 例题后的方法总结 / ### 2.5 从时域指标到参数与极点趋势：本课的轻量桥接` | method-summary | 正向分析、逆向设计、跨域迁移三条方法链，以及“曲线 -> 指标 -> 参数 -> 极点”的桥接表。 | `step-15` | `static+workspace` | 联动区只高亮单条翻译，不扩展为完整设计面板。 | `2-2-td-06-time-spec-to-pole-region.svg / ic-07-metric-to-pole-plane` | 静态区必须先把方法总结说清，再做轻量可视化桥接。 |
-| `### 5.1 本节必须带走的五个结论 / ### 5.2 与后续课程的衔接` | summary | 五条必须带走的结论，以及与 `2-3`、`3-3`、`4-1` 的衔接语。 | `step-17` | `static` | 速查卡只做结构化收束，不新增互动负担。 | `附录A 速查表 / 2-2-info.png` | 结尾必须收束成可复习的结构化提要。 |
+| `### 5.1 本节必须掌握的五个结论 / ### 5.2 与后续课程的衔接` | summary | 五条必须带走的结论，以及与 `2-3`、`3-3`、`4-1` 的衔接语。 | `step-17` | `static` | 速查卡只做结构化收束，不新增互动负担。 | `附录A 速查表 / 2-2-info.png` | 结尾必须收束成可复习的结构化提要。 |
 
 ---
 

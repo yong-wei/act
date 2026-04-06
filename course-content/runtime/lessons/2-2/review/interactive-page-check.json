@@ -2,6 +2,7 @@
   "lesson_id": "2-2",
   "source_path": "course-content/authoring/lessons/2-2/design/interactive-page.md",
   "contract_path": "course-content/authoring/lessons/2-2/design/interactive-contract.yaml",
+  "implementation_contract_source": "src/lib/unit-2-2-course.ts",
   "contract_required_fields": [
     "layout",
     "modules",
@@ -27,18 +28,30 @@
     "acceptance_note"
   ],
   "missing_mapping_columns": [],
-  "invalid_handout_anchors": [],
+  "invalid_handout_anchors": [
+    "### 5.1 本节必须带走的五个结论"
+  ],
   "missing_target_steps": [],
   "formula_mapping_issues": [],
   "step_static_blocks_missing": [],
   "step_upgrade_blocks_missing": [],
   "missing_contract_fields": [],
   "step_contract_issues": [],
-  "summary": [
-    "已覆盖讲义中的核心公式与静态承载内容。",
-    "已检测到 `2-2` 的 V2 互动契约，步骤字段完整。"
+  "implementation_contract_summary": [
+    "已检测到 `2-2` 的本地实现契约与作者态互动契约一致。"
   ],
-  "warnings": [],
-  "missing": [],
-  "issues": []
+  "implementation_contract_issues": [],
+  "summary": [
+    "已检测到 `2-2` 的 V2 互动契约，步骤字段完整。",
+    "已检测到 `2-2` 的本地实现契约与作者态互动契约一致。"
+  ],
+  "warnings": [
+    "以下 handout_anchor 未在讲义标题中命中：### 5.1 本节必须带走的五个结论"
+  ],
+  "missing": [
+    "以下 handout_anchor 未在讲义标题中命中：### 5.1 本节必须带走的五个结论"
+  ],
+  "issues": [
+    "以下 handout_anchor 未在讲义标题中命中：### 5.1 本节必须带走的五个结论"
+  ]
 }

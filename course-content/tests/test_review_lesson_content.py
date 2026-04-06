@@ -305,7 +305,11 @@ def test_2_2_interactive_page_contract_passes_review():
         'acceptance_checks',
     ]
     assert check['issues'] == []
-    assert check['summary'] == ['已覆盖讲义中的核心公式与静态承载内容。']
+    assert check['summary'] == [
+        '已覆盖讲义中的核心公式与静态承载内容。',
+        '已检测到 `2-2` 的 V2 互动契约，步骤字段完整。',
+        '已检测到 `2-2` 的本地实现契约与作者态互动契约一致。',
+    ]
 
 def test_theory_review_contract_includes_interactive_page_source_and_section():
     primary_sources = review_lesson_content.build_primary_sources('2-1', '理论')
@@ -387,11 +391,15 @@ def test_build_interactive_page_check_flags_unknown_handout_anchor(tmp_path):
         encoding='utf-8',
     )
 
-    review_lesson_content.get_authoring_lesson_dir = lambda _: lesson_dir
-    check = review_lesson_content.build_interactive_page_check(
-        'demo-1',
-        [handout_path, interactive_page_path],
-    )
+    original_get_lesson_dir = review_lesson_content.get_authoring_lesson_dir
+    try:
+        review_lesson_content.get_authoring_lesson_dir = lambda _: lesson_dir
+        check = review_lesson_content.build_interactive_page_check(
+            'demo-1',
+            [handout_path, interactive_page_path],
+        )
+    finally:
+        review_lesson_content.get_authoring_lesson_dir = original_get_lesson_dir
 
     assert '以下 handout_anchor 未在讲义标题中命中：## 不存在的标题' in check['issues']
 
@@ -433,11 +441,15 @@ def test_build_interactive_page_check_flags_formula_mapping_without_static_formu
         encoding='utf-8',
     )
 
-    review_lesson_content.get_authoring_lesson_dir = lambda _: lesson_dir
-    check = review_lesson_content.build_interactive_page_check(
-        'demo-2',
-        [handout_path, interactive_page_path],
-    )
+    original_get_lesson_dir = review_lesson_content.get_authoring_lesson_dir
+    try:
+        review_lesson_content.get_authoring_lesson_dir = lambda _: lesson_dir
+        check = review_lesson_content.build_interactive_page_check(
+            'demo-2',
+            [handout_path, interactive_page_path],
+        )
+    finally:
+        review_lesson_content.get_authoring_lesson_dir = original_get_lesson_dir
 
     assert (
         '步骤 `step-01` 的“静态承载内容”未显式覆盖公式型映射：G(s)=\\frac{1}{Ts+1}'
@@ -495,11 +507,185 @@ def test_build_interactive_page_check_flags_missing_v2_contract_fields(tmp_path)
         encoding='utf-8',
     )
 
-    review_lesson_content.get_authoring_lesson_dir = lambda _: lesson_dir
-    check = review_lesson_content.build_interactive_page_check(
-        'demo-3',
-        [handout_path, interactive_page_path],
-    )
+    original_get_lesson_dir = review_lesson_content.get_authoring_lesson_dir
+    try:
+        review_lesson_content.get_authoring_lesson_dir = lambda _: lesson_dir
+        check = review_lesson_content.build_interactive_page_check(
+            'demo-3',
+            [handout_path, interactive_page_path],
+        )
+    finally:
+        review_lesson_content.get_authoring_lesson_dir = original_get_lesson_dir
 
     assert check['contract_path'].endswith('interactive-contract.yaml')
     assert '步骤 `step-01` 的互动契约缺少字段：modules, content_blocks, interaction_spec, teacher_controls, telemetry_spec, teacher_insight_spec, ai_context_spec, preview_contract, acceptance_checks' in check['issues']
+
+
+def test_build_interactive_page_check_reports_clean_implementation_contract_for_2_1():
+    primary_sources = review_lesson_content.build_primary_sources('2-1', '理论')
+
+    check = review_lesson_content.build_interactive_page_check('2-1', primary_sources)
+
+    assert check['implementation_contract_source'] == 'src/lib/unit-2-1-course.ts'
+    assert check['implementation_contract_issues'] == []
+
+
+def test_build_interactive_page_check_flags_implementation_contract_drift(tmp_path):
+    lesson_dir = tmp_path / 'authoring' / 'lessons' / 'demo-4'
+    design_dir = lesson_dir / 'design'
+    design_dir.mkdir(parents=True)
+
+    handout_path = design_dir / 'handout.md'
+    interactive_page_path = design_dir / 'interactive-page.md'
+    interactive_contract_path = design_dir / 'interactive-contract.yaml'
+    impl_path = tmp_path / 'src' / 'lib' / 'demo-course.ts'
+    impl_path.parent.mkdir(parents=True)
+
+    handout_path.write_text('# demo\n\n## 示例标题\n\n$$G(s)=K$$\n', encoding='utf-8')
+    interactive_page_path.write_text(
+        '\n'.join(
+            [
+                '## 讲义核心内容映射',
+                '| handout_anchor | core_item_type | must_appear_content | target_step | page_mode | interaction_upgrade | media_or_table_ref | acceptance_note |',
+                '|---|---|---|---|---|---|---|---|',
+                '| `## 示例标题` | `formula/conclusion` | $G(s)=K$ | `step-01` | `static` | 无 | 无 | 页面显式出现公式 |',
+                '',
+                '## 步骤 01｜示例',
+                '### 静态承载内容',
+                '$$G(s)=K$$',
+                '### 互动升级点',
+                '无。',
+            ]
+        ),
+        encoding='utf-8',
+    )
+    interactive_contract_path.write_text(
+        '{\n'
+        '  "lesson_id": "demo-4",\n'
+        '  "steps": {\n'
+        '    "step-01": {\n'
+        '      "title": "示例",\n'
+        '      "layout": {"template": "concept-slide", "regions": [{"id": "header", "width": "full", "order": 1}]},\n'
+        '      "modules": [],\n'
+        '      "content_blocks": [],\n'
+        '      "interaction_spec": {"interaction_kind": "none"},\n'
+        '      "teacher_controls": [],\n'
+        '      "telemetry_spec": {"summary_fields": ["viewed"], "misconception_tags": ["contract-tag"]},\n'
+        '      "teacher_insight_spec": {"widgets": ["view_count"]},\n'
+        '      "ai_context_spec": {},\n'
+        '      "preview_contract": {"route_kind": "student_demo", "demo_path": "/demo?step=step-01"},\n'
+        '      "acceptance_checks": []\n'
+        '    }\n'
+        '  }\n'
+        '}\n',
+        encoding='utf-8',
+    )
+    impl_path.write_text(
+        '\n'.join(
+            [
+                "export const DEMO_PAGE_CONTRACTS = {",
+                "  'step-01': {",
+                "    layout: { template: 'other-template', regions: [{ id: 'lead', width: 'full', order: 1 }] },",
+                "    interactionKind: 'none',",
+                "    teacherInsightWidgets: ['other_widget'],",
+                "    telemetrySummaryFields: ['other_field'],",
+                "    misconceptionTags: ['other_tag'],",
+                "    previewDemoPath: '/other?step=step-01',",
+                '  },',
+                '};',
+                '',
+                'export const DEMO_LESSON_STEPS = [',
+                "  { id: 'step-01', title: '示例', pageType: 'display' },",
+                '];',
+            ]
+        ),
+        encoding='utf-8',
+    )
+
+    original_registry = getattr(review_lesson_content, 'IMPLEMENTATION_CONTRACT_REGISTRY', {}).copy()
+    original_get_lesson_dir = review_lesson_content.get_authoring_lesson_dir
+    review_lesson_content.get_authoring_lesson_dir = lambda _: lesson_dir
+    review_lesson_content.IMPLEMENTATION_CONTRACT_REGISTRY = {
+        'demo-4': {
+            'course_lib_path': impl_path,
+            'page_contracts_const': 'DEMO_PAGE_CONTRACTS',
+            'lesson_steps_const': 'DEMO_LESSON_STEPS',
+            'source_path': 'src/lib/demo-course.ts',
+        }
+    }
+
+    try:
+        check = review_lesson_content.build_interactive_page_check(
+            'demo-4',
+            [handout_path, interactive_page_path],
+        )
+    finally:
+        review_lesson_content.IMPLEMENTATION_CONTRACT_REGISTRY = original_registry
+        review_lesson_content.get_authoring_lesson_dir = original_get_lesson_dir
+
+    assert check['implementation_contract_source'] == 'src/lib/demo-course.ts'
+    assert any('layout.template' in issue for issue in check['implementation_contract_issues'])
+
+
+def test_ensure_runtime_media_index_creates_standard_sections(tmp_path):
+    media_index_path = tmp_path / 'runtime' / 'lessons' / '2-1' / 'media' / '2-1-media.md'
+
+    review_lesson_content.ensure_runtime_media_index(media_index_path, '2-1')
+
+    assert media_index_path.read_text(encoding='utf-8') == '\n'.join(
+        [
+            '# 2-1-intro-video.mp4',
+            '',
+            '',
+            '# 2-1-audio.m4a',
+            '',
+            '',
+            '# 2-1-slides.pdf',
+            '',
+            '',
+            '# 2-1-course.mp4',
+            '',
+            '',
+        ]
+    )
+
+
+def test_ensure_runtime_media_index_preserves_existing_links_and_order(tmp_path):
+    media_index_path = tmp_path / 'runtime' / 'lessons' / '2-1' / 'media' / '2-1-media.md'
+    media_index_path.parent.mkdir(parents=True, exist_ok=True)
+    media_index_path.write_text(
+        '\n'.join(
+            [
+                '# 2-1-course.mp4',
+                '',
+                'https://example.com/course',
+                '',
+                '# 2-1-intro-video.mp4',
+                '',
+                'https://example.com/intro',
+                '',
+            ]
+        ),
+        encoding='utf-8',
+    )
+
+    review_lesson_content.ensure_runtime_media_index(media_index_path, '2-1')
+
+    assert media_index_path.read_text(encoding='utf-8') == '\n'.join(
+        [
+            '# 2-1-intro-video.mp4',
+            '',
+            'https://example.com/intro',
+            '',
+            '# 2-1-audio.m4a',
+            '',
+            '',
+            '# 2-1-slides.pdf',
+            '',
+            '',
+            '# 2-1-course.mp4',
+            '',
+            'https://example.com/course',
+            '',
+        ]
+    )

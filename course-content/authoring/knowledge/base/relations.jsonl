@@ -16344,3 +16344,11 @@
 {"relation_id": "rel-c8fcc7daa46c4988", "source": "左半平面零点的动态改善机理", "target": "非最小相与右半平面零点", "source_chapter": 3, "target_chapter": 3, "relation_type": "generalizes", "strength": 0.9}
 {"relation_id": "rel-e642a4cbcd5ece15", "source": "闭环极点", "target": "零点引入与根轨迹重排", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
 {"relation_id": "rel-ff2bbb6793147e14", "source": "自然频率", "target": "PD与测速反馈的等效阻尼对比", "source_chapter": 10, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.86}
+{"relation_id": "rel-09daf5dec4b37c27", "source": "时域指标到目标极点区域", "target": "目标驱动测速反馈校正", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.93}
+{"relation_id": "rel-10c7f01d47c66d6f", "source": "非最小相与右半平面零点", "target": "右半平面零点可行性边界", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.97}
+{"relation_id": "rel-3581d012eb0e0d84", "source": "PD与超前的频域整形差异", "target": "目标驱动超前校正", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "rel-398bbbdfd0dd1ebe", "source": "目标驱动超前校正", "target": "右半平面零点可行性边界", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "rel-5a5d4690ad982148", "source": "目标驱动PD校正", "target": "目标驱动测速反馈校正", "source_chapter": 3, "target_chapter": 3, "relation_type": "related", "strength": 0.84}
+{"relation_id": "rel-6e3a64b3a389f37a", "source": "零点引入与根轨迹重排", "target": "目标驱动PD校正", "source_chapter": 3, "target_chapter": 3, "relation_type": "contains", "strength": 0.9}
+{"relation_id": "rel-76f64af7ec16ddef", "source": "PD与测速反馈的等效阻尼对比", "target": "目标驱动测速反馈校正", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.96}
+{"relation_id": "rel-abf8b7cfcf2b4139", "source": "时域指标到目标极点区域", "target": "目标驱动PD校正", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.97}

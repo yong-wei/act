@@ -5,26 +5,25 @@
 \begin{document}
 \begin{CJK*}{UTF8}{gbsn}
 \begin{tikzpicture}[auto]
-  \node (r) at (0,0) {$\theta_r$};
-  \node[sum] (sum1) at (1.5,0) {};
-  \node[block large] (gain) at (3.3,0) {$K$};
-  \node[block large] (actuator) at (5.9,0) {$G_a(s)$};
-  \node[block large, minimum width=2.4cm] (platform) at (9.1,0) {$G_p(s)$};
-  \node[tap] (tap1) at (10.9,0) {};
-  \node (y) at (12.2,0) {$\theta$};
+  \coordinate (r) at (0,0);
+  \node[sum] (sum1) at (1.8,0) {};
+  \node[block large] (gain) at (4.0,0) {$K$};
+  \node[block large] (actuator) at (7.0,0) {$G_a(s)$};
+  \node[block large, minimum width=2.6cm] (platform) at (10.6,0) {$G_p(s)$};
+  \node[tap] (tap1) at (12.7,0) {};
+  \coordinate (y) at (14.2,0);
 
-  \node[label above, align=center] at ($(gain.north)+(0,0.55)$) {比例\\放大环节};
-  \node[label above, align=center] at ($(actuator.north)+(0,0.55)$) {执行\\机构};
-  \node[label above, align=center] at ($(platform.north)+(0,0.55)$) {平台\\动力学};
+  \node[font=\small, text=labelcolor, align=center] at ($(gain.north)+(0,0.55)$) {控制\\增益};
+  \node[font=\small, text=labelcolor, align=center] at ($(actuator.north)+(0,0.55)$) {执行\\机构};
+  \node[font=\small, text=labelcolor, align=center] at ($(platform.north)+(0,0.55)$) {平台\\动力学};
 
-  \draw[signal] (r) -- node[label above, align=center] {给定角} (sum1);
-  \draw[signal] (sum1) -- node[label above, align=center] {偏差\\信号} (gain);
-  \draw[signal] (gain) -- node[label above, align=center] {控制量} (actuator);
-  \draw[signal] (actuator) -- node[label above, align=center] {执行机构\\输出} (platform);
-  \draw[signal] (platform) -- (tap1) -- node[label above, align=center] {平台\\输出角} (y);
+  \draw[signal] (r) -- node[label above] {$\theta_r$} (sum1);
+  \draw[signal] (sum1) -- node[label above] {$e$} (gain);
+  \draw[signal] (gain) -- node[label above] {$u$} (actuator);
+  \draw[signal] (actuator) -- node[label above] {$u_a$} (platform);
+  \draw[signal] (platform) -- (tap1) -- node[label above] {$\theta$} (y);
 
-  \node[block large, minimum width=2.3cm] (feedback) at (6.2,-2.6) {$H(s)=1$};
-  \node[label below, align=center] at ($(feedback.south)+(0,-0.55)$) {单位\\反馈环节};
+  \node[block large, minimum width=2.3cm] (feedback) at (7.2,-2.6) {$H(s)=1$};
   \draw[signal] (tap1) |- (feedback);
   \draw[signal] (feedback) -| node[neg sign, left] {$-$} (sum1.south);
 \end{tikzpicture}

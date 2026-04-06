@@ -30,6 +30,7 @@ from lesson_id_map import (  # noqa: E402
     get_runtime_lesson_dir,
     load_lesson_id_map,
 )
+from runtime_media_index import ensure_runtime_media_index  # noqa: E402
 
 CHAPTER_NAME_BY_NUMBER = {
     1: '基本概念',
@@ -343,6 +344,13 @@ def export_handout(lesson_id: str) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(rewrite_markdown_media(content, runtime_fragment), encoding='utf-8')
 
+    pdf_source = design_dir / 'handout.pdf'
+    pdf_destination = runtime_dir / 'handout.pdf'
+    if pdf_source.exists():
+        shutil.copy2(pdf_source, pdf_destination)
+    elif pdf_destination.exists():
+        pdf_destination.unlink()
+
 
 def copy_media_assets(source_dir: Path, destination_dir: Path) -> list[str]:
     copied: list[str] = []
@@ -374,14 +382,18 @@ def generate_runtime_media(lesson_id: str) -> None:
     lesson_dir = get_authoring_lesson_dir(lesson_id)
     raw_dir = lesson_dir / 'media' / 'raw'
     output_dir = get_runtime_lesson_dir(lesson_id) / 'media'
+    media_index_path = output_dir / f'{lesson_id}-media.md'
+    existing_media_index = media_index_path.read_text(encoding='utf-8') if media_index_path.exists() else None
     reset_directory(output_dir)
 
     processed_dir = lesson_dir / 'media' / 'processed'
     if processed_dir.exists() and any(path.is_file() for path in processed_dir.iterdir()):
         copy_media_assets(processed_dir, output_dir)
+        ensure_runtime_media_index(media_index_path, lesson_id, existing_media_index)
         return
 
     if not raw_dir.exists():
+        ensure_runtime_media_index(media_index_path, lesson_id, existing_media_index)
         return
 
     matplotlib_env = os.environ.copy()
@@ -421,6 +433,8 @@ def generate_runtime_media(lesson_id: str) -> None:
             check=True,
             env=matplotlib_env,
         )
+
+    ensure_runtime_media_index(media_index_path, lesson_id, existing_media_index)
 
 
 def export_review_bundle(lesson_id: str) -> dict[str, Any]:
@@ -543,8 +557,12 @@ def export_lesson_runtime(
         'sequence': runtime_sequence,
         'handout_path': f'/course-runtime/lessons/{runtime_fragment}/handout.md',
         'handout_source_path': f'course-content/runtime/lessons/{runtime_fragment}/handout.md',
+        'handout_pdf_path': f'/course-runtime/lessons/{runtime_fragment}/handout.pdf',
+        'handout_pdf_source_path': f'course-content/runtime/lessons/{runtime_fragment}/handout.pdf',
         'graph_overlay_path': f'/course-runtime/lessons/{runtime_fragment}/graph-overlay.json',
         'media_base_path': f'/course-runtime/lessons/{runtime_fragment}/media',
+        'media_index_path': f'/course-runtime/lessons/{runtime_fragment}/media/{lesson_id}-media.md',
+        'media_index_source_path': f'course-content/runtime/lessons/{runtime_fragment}/media/{lesson_id}-media.md',
         'review': review_paths,
     }
     write_json(runtime_dir / 'lesson.json', lesson_json)
