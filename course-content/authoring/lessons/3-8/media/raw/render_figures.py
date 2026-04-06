@@ -100,7 +100,8 @@ def style_nyquist_axis(ax: plt.Axes) -> None:
   ax.set_facecolor('white')
   ax.set_xlabel('实部')
   ax.set_ylabel('虚部')
-  ax.set_aspect('equal', adjustable='box')
+  ax.set_box_aspect(0.78)
+  ax.set_aspect('equal', adjustable='datalim')
 
 
 def style_root_axis(ax: plt.Axes) -> None:
@@ -124,6 +125,31 @@ def summary_box(ax: plt.Axes, title: str, lines: list[str], facecolor: str = '#f
     fontsize=10.0,
     linespacing=1.52,
     bbox=dict(boxstyle='round,pad=0.55', facecolor=facecolor, edgecolor=edgecolor),
+  )
+
+
+def root_limits_from_sets(point_sets: list[np.ndarray]) -> tuple[float, float, float, float]:
+  points = np.concatenate([pts.reshape(-1) for pts in point_sets if pts.size], axis=0)
+  x = np.real(points)
+  y = np.imag(points)
+  x = np.asarray(x, dtype=float)
+  y = np.asarray(y, dtype=float)
+  mask = np.isfinite(x) & np.isfinite(y)
+  x = x[mask]
+  y = y[mask]
+  if x.size == 0:
+    return (-1.0, 1.0, -1.0, 1.0)
+  x_min = float(np.min(x))
+  x_max = float(np.max(x))
+  y_min = float(np.min(y))
+  y_max = float(np.max(y))
+  span_x = max(x_max - x_min, 0.4)
+  span_y = max(y_max - y_min, 0.6)
+  return (
+    x_min - 0.15 * span_x,
+    x_max + 0.15 * span_x,
+    y_min - 0.15 * span_y,
+    y_max + 0.15 * span_y,
   )
 
 
@@ -170,53 +196,78 @@ def apply_root_limits(ax: plt.Axes, point_sets: list[np.ndarray]) -> None:
   set_xy_limits(ax, x, y, pad=0.15, min_span_x=0.4, min_span_y=0.6)
 
 
-def plot_effect_figure(effect: dict, filename: str, suptitle: str, summary_title: str) -> None:
+def add_gm_marker(ax: plt.Axes, w: np.ndarray, mag_db: np.ndarray, wg: float, gm_db: float, color: str, text_scale: float = 1.05) -> None:
+  mag_at_wg = interp_logx(w, mag_db, wg)
+  ax.axvline(wg, color=color, linewidth=1.0, linestyle=':')
+  ax.plot([wg, wg], [mag_at_wg, 0], color=color, linewidth=1.8)
+  ax.scatter([wg], [mag_at_wg], color=color, s=26, zorder=6)
+  ax.text(wg * text_scale, mag_at_wg / 2, f'GM={gm_db:.1f} dB', fontsize=8.6, color=color)
+
+
+def plot_effect_figure(effect: dict, filename: str, suptitle: str) -> None:
   fig = plt.figure(figsize=(12.8, 8.8), dpi=220)
-  gs = fig.add_gridspec(2, 2, height_ratios=[1, 1], hspace=0.32, wspace=0.24)
-  ax1 = fig.add_subplot(gs[0, 0])
-  ax2 = fig.add_subplot(gs[0, 1])
-  ax3 = fig.add_subplot(gs[1, 0])
-  ax4 = fig.add_subplot(gs[1, 1])
+  gs = fig.add_gridspec(2, 2, hspace=0.32, wspace=0.26)
+  ax_step = fig.add_subplot(gs[0, 0])
+  ax_root = fig.add_subplot(gs[1, 0])
+  ax_mag = fig.add_subplot(gs[0, 1])
+  ax_phase = fig.add_subplot(gs[1, 1])
 
-  style_bode_axes(ax1, ax2)
-  ax1.semilogx(arr(effect['bode_base'], 'w'), arr(effect['bode_base'], 'mag_db'), color=COLORS['base'], linewidth=1.8, label=effect['base_label'])
-  ax1.semilogx(arr(effect['bode_new'], 'w'), arr(effect['bode_new'], 'mag_db'), color=COLORS['accent'], linewidth=1.8, label=effect['new_label'])
-  ax1.axhline(0, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  style_step_axis(ax_step)
+  ax_step.plot(arr(effect['step_base'], 't'), arr(effect['step_base'], 'y'), color=COLORS['base'], linewidth=1.8, label=effect['base_label'])
+  ax_step.plot(arr(effect['step_new'], 't'), arr(effect['step_new'], 'y'), color=COLORS['accent'], linewidth=1.8, label=effect['new_label'])
+  ax_step.set_title('时域：闭环响应对照')
+  dedupe_legend(ax_step, frameon=False, fontsize=8.8, loc='best')
+
+  style_root_axis(ax_root)
+  plot_root_locus(ax_root, effect['root_base'], COLORS['soft'], f"{effect['base_label']}根轨迹", linewidth=1.15, alpha=0.85)
+  plot_root_locus(ax_root, effect['root_new'], COLORS['accent'], f"{effect['new_label']}根轨迹", linewidth=1.25, alpha=0.9)
+  mark_open_loop_points(ax_root, effect['open_poles_base'], effect['open_zeros_base'], COLORS['soft'], prefix=effect['base_label'])
+  mark_open_loop_points(ax_root, effect['open_poles_new'], effect['open_zeros_new'], COLORS['accent'], prefix=effect['new_label'])
+  mark_closed_loop_points(ax_root, effect['closed_poles_base'], COLORS['base'], f"{effect['base_label']}闭环极点", marker='o', size=42)
+  mark_closed_loop_points(ax_root, effect['closed_poles_new'], COLORS['accent'], f"{effect['new_label']}闭环极点", marker='D', size=42)
+  x0, x1, y0, y1 = root_limits_from_sets([
+    locus_points(effect['root_base']),
+    locus_points(effect['root_new']),
+    complex_points(effect['closed_poles_base']),
+    complex_points(effect['closed_poles_new']),
+  ])
+  ax_root.set_xlim(x0, x1)
+  ax_root.set_ylim(y0, y1)
+  ax_root.set_title('根轨迹：主导极点落点对照')
+  dedupe_legend(ax_root, frameon=False, fontsize=7.8, loc='best')
+
+  style_bode_axes(ax_mag, ax_phase)
+  w_base = arr(effect['bode_base'], 'w')
+  mag_base = arr(effect['bode_base'], 'mag_db')
+  phase_base = arr(effect['bode_base'], 'phase_deg')
+  w_new = arr(effect['bode_new'], 'w')
+  mag_new = arr(effect['bode_new'], 'mag_db')
+  phase_new = arr(effect['bode_new'], 'phase_deg')
+  ax_mag.semilogx(w_base, mag_base, color=COLORS['base'], linewidth=1.8, label=effect['base_label'])
+  ax_mag.semilogx(w_new, mag_new, color=COLORS['accent'], linewidth=1.8, label=effect['new_label'])
+  ax_mag.axhline(0, color='#aaaaaa', linewidth=0.8, linestyle='--')
   if np.isfinite(effect['margin_base']['wc']):
-    ax1.axvline(effect['margin_base']['wc'], color=COLORS['base'], linewidth=1.0, linestyle='--')
+    ax_mag.axvline(effect['margin_base']['wc'], color=COLORS['base'], linewidth=1.0, linestyle='--')
   if np.isfinite(effect['margin_new']['wc']):
-    ax1.axvline(effect['margin_new']['wc'], color=COLORS['accent'], linewidth=1.0, linestyle='--')
-  ax1.set_title('幅频：先看改写主要落在哪一段频带')
-  ax1.legend(frameon=False, fontsize=9, loc='best')
+    ax_mag.axvline(effect['margin_new']['wc'], color=COLORS['accent'], linewidth=1.0, linestyle='--')
+  ax_mag.set_title('幅频：截止频率与增益裕度')
+  dedupe_legend(ax_mag, frameon=False, fontsize=8.8, loc='best')
 
-  ax2.semilogx(arr(effect['bode_base'], 'w'), arr(effect['bode_base'], 'phase_deg'), color=COLORS['base'], linewidth=1.8)
-  ax2.semilogx(arr(effect['bode_new'], 'w'), arr(effect['bode_new'], 'phase_deg'), color=COLORS['accent'], linewidth=1.8)
-  ax2.axhline(-180, color='#aaaaaa', linewidth=0.8, linestyle='--')
-  ax2.set_title('相频：再看中频相位余量是否被压缩')
-
-  style_step_axis(ax3)
-  ax3.plot(arr(effect['step_base'], 't'), arr(effect['step_base'], 'y'), color=COLORS['base'], linewidth=1.8, label=effect['base_label'])
-  ax3.plot(arr(effect['step_new'], 't'), arr(effect['step_new'], 'y'), color=COLORS['accent'], linewidth=1.8, label=effect['new_label'])
-  ax3.legend(frameon=False, fontsize=9, loc='best')
-  ax3.set_title('闭环阶跃：最后把频域变化读回时域后果')
-
-  lines = [
-    f"观察重点：{effect['focus_text']}",
-    f"主要收益：{effect['gain_text']}",
-    f"主要代价：{effect['cost_text']}",
-    f"基线 PM = {effect['margin_base']['pm']:.1f}°，新方案 PM = {effect['margin_new']['pm']:.1f}°",
-    f"基线超调 = {effect['metrics_base']['overshoot']:.1f}% ，新方案超调 = {effect['metrics_new']['overshoot']:.1f}%",
-  ]
-  summary_box(ax4, summary_title, lines)
+  ax_phase.semilogx(w_base, phase_base, color=COLORS['base'], linewidth=1.8)
+  ax_phase.semilogx(w_new, phase_new, color=COLORS['accent'], linewidth=1.8)
+  ax_phase.axhline(-180, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  add_pm_marker(ax_phase, w_base, phase_base, effect['margin_base']['wc'], effect['margin_base']['pm'], COLORS['base'])
+  add_pm_marker(ax_phase, w_new, phase_new, effect['margin_new']['wc'], effect['margin_new']['pm'], COLORS['accent'])
+  ax_phase.set_title('相频：相角裕度对照')
   fig.suptitle(suptitle, fontsize=14, fontweight='bold')
   save(fig, filename)
 
 
 def render_effects(payload: dict) -> None:
-  plot_effect_figure(payload['effects']['gain'], '3-8-gain-effect.png', '增益提升：整体上移，但中频余量会先变紧', '图像摘要')
-  plot_effect_figure(payload['effects']['zero'], '3-8-zero-effect.png', '左半平面零点：重点改写中频，相位提前与高频代价同时出现', '图像摘要')
-  plot_effect_figure(payload['effects']['pole'], '3-8-pole-effect.png', '积分极点：先增强低频精度，再压缩中频相位余量', '图像摘要')
-  plot_effect_figure(payload['effects']['rhp_zero'], '3-8-rhp-zero-effect.png', '右半平面零点：只看幅值会误判，必须连同相位一起判断', '图像摘要')
+  plot_effect_figure(payload['effects']['gain'], '3-8-gain-effect.png', '增益提升：整体上移，但中频余量会先变紧')
+  plot_effect_figure(payload['effects']['zero'], '3-8-zero-effect.png', '左半平面零点：重点改写中频，相位提前与高频代价同时出现')
+  plot_effect_figure(payload['effects']['pole'], '3-8-pole-effect.png', '积分极点：先增强低频精度，再压缩中频相位余量')
+  plot_effect_figure(payload['effects']['rhp_zero'], '3-8-rhp-zero-effect.png', '右半平面零点：只看幅值会误判，必须连同相位一起判断')
 
 
 def render_nyquist_quickcheck(payload: dict) -> None:
@@ -230,7 +281,6 @@ def render_nyquist_quickcheck(payload: dict) -> None:
     ax.plot(x, y, color=COLORS['base'], linewidth=1.8)
     ax.plot(x, -y, color=COLORS['base'], linewidth=1.0, linestyle='--')
     ax.scatter([-1], [0], color='black', s=30, zorder=5)
-    ax.text(-0.97, 0.05, '(-1, 0)', fontsize=8.8)
     apply_nyquist_limits(ax, item['curve'])
     ax.set_title(f"{item['label']} | P={item['P']}  N={item['N']}  Z={item['Z']}", fontsize=11)
     ax.text(
@@ -248,28 +298,21 @@ def render_nyquist_quickcheck(payload: dict) -> None:
 
 
 def render_nyquist_compare(payload: dict) -> None:
-  fig = plt.figure(figsize=(12.8, 6.8), dpi=220)
-  gs = fig.add_gridspec(1, 2, width_ratios=[1.6, 1.0], wspace=0.18)
-  ax1 = fig.add_subplot(gs[0, 0])
-  ax2 = fig.add_subplot(gs[0, 1])
+  fig = plt.figure(figsize=(8.0, 6.1), dpi=220)
+  ax1 = fig.add_subplot(1, 1, 1)
   style_nyquist_axis(ax1)
 
-  for block, color, label in [
-    (payload['nyquist_compare']['small'], COLORS['base'], payload['nyquist_compare']['small_label']),
-    (payload['nyquist_compare']['large'], COLORS['accent'], payload['nyquist_compare']['large_label']),
+  for block, color in [
+    (payload['nyquist_compare']['small'], COLORS['base']),
+    (payload['nyquist_compare']['large'], COLORS['accent']),
   ]:
     x = arr(block, 'real')
     y = arr(block, 'imag')
-    ax1.plot(x, y, color=color, linewidth=1.8, label=label)
+    ax1.plot(x, y, color=color, linewidth=1.8)
     ax1.plot(x, -y, color=color, linewidth=1.0, linestyle='--')
   ax1.scatter([-1], [0], color='black', s=35, zorder=6)
-  ax1.text(-0.92, 0.12, '临界点 (-1,0)', fontsize=10)
-  apply_nyquist_limits(ax1, payload['nyquist_compare']['large'])
-  ax1.legend(frameon=False, fontsize=9, loc='lower right')
-  ax1.set_title('同一对象、不同增益下的 Nyquist 曲线')
-
-  summary_box(ax2, '判读摘要', payload['nyquist_compare']['summary'], facecolor='#eef6fb', edgecolor='#bfd7e7')
-  fig.suptitle('Nyquist 增益对比：真正要看的是对临界点的包围关系，而不是曲线大小', fontsize=14, fontweight='bold')
+  ax1.set_xlim(-1.8, 0.8)
+  ax1.set_ylim(-1.4, 1.4)
   save(fig, '3-8-nyquist-example.png')
 
 
@@ -414,14 +457,18 @@ def render_heading_baseline(payload: dict) -> None:
   mag_db = arr(payload['heading_case']['open_base'], 'mag_db')
   phase_deg = arr(payload['heading_case']['open_base'], 'phase_deg')
   wc = payload['heading_case']['margin_base']['wc']
+  wg = payload['heading_case']['margin_base']['wg']
   ax_mag.semilogx(w, mag_db, color=COLORS['base'], linewidth=2.0)
   ax_mag.axhline(0, color='#aaaaaa', linewidth=0.8, linestyle='--')
   ax_mag.axvline(wc, color=COLORS['accent'], linewidth=1.0, linestyle='--')
+  add_gm_marker(ax_mag, w, mag_db, wg, payload['heading_case']['margin_base']['gm_db'], COLORS['target'])
   ax_mag.text(wc * 1.06, 0.78 * ax_mag.get_ylim()[1], rf'$\omega_c={wc:.4f}$', fontsize=9, color=COLORS['accent'])
-  ax_mag.set_title('开环幅频：基线截止频率')
+  ax_mag.text(wg * 1.05, 0.55 * ax_mag.get_ylim()[1], rf'$\omega_\pi={wg:.4f}$', fontsize=8.7, color=COLORS['target'])
+  ax_mag.set_title('开环幅频：截止频率与增益裕度')
 
   ax_phase.semilogx(w, phase_deg, color=COLORS['base'], linewidth=2.0)
   ax_phase.axhline(-180, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  ax_phase.axvline(wg, color=COLORS['target'], linewidth=1.0, linestyle=':')
   add_pm_marker(ax_phase, w, phase_deg, wc, payload['heading_case']['margin_base']['pm'], COLORS['lead'])
   ax_phase.set_title('开环相频：基线相角裕度')
 
@@ -468,20 +515,26 @@ def render_heading_case(payload: dict) -> None:
   phase_comp = arr(payload['heading_case']['open_comp'], 'phase_deg')
   wc_base = payload['heading_case']['margin_base']['wc']
   wc_comp = payload['heading_case']['margin_comp']['wc']
+  wg_base = payload['heading_case']['margin_base']['wg']
+  wg_comp = payload['heading_case']['margin_comp']['wg']
 
   ax_mag.semilogx(w_base, mag_base, color=COLORS['base'], linewidth=1.9, label='基线')
   ax_mag.semilogx(w_comp, mag_comp, color=COLORS['accent'], linewidth=1.9, label='超前校正后')
   ax_mag.axhline(0, color='#aaaaaa', linewidth=0.8, linestyle='--')
   ax_mag.axvline(wc_base, color=COLORS['base'], linewidth=1.0, linestyle='--')
   ax_mag.axvline(wc_comp, color=COLORS['accent'], linewidth=1.0, linestyle='--')
+  add_gm_marker(ax_mag, w_base, mag_base, wg_base, payload['heading_case']['margin_base']['gm_db'], COLORS['base'], text_scale=1.03)
+  add_gm_marker(ax_mag, w_comp, mag_comp, wg_comp, payload['heading_case']['margin_comp']['gm_db'], COLORS['accent'], text_scale=1.03)
   ax_mag.text(wc_base * 1.05, 0.83 * ax_mag.get_ylim()[1], rf'$\omega_c={wc_base:.4f}$', fontsize=8.8, color=COLORS['base'])
   ax_mag.text(wc_comp * 1.05, 0.69 * ax_mag.get_ylim()[1], rf'$\omega_c={wc_comp:.4f}$', fontsize=8.8, color=COLORS['accent'])
-  ax_mag.set_title('开环幅频：截止频率右移，带宽同步提高')
+  ax_mag.set_title('开环幅频：截止频率、相位穿越频率与增益裕度')
   dedupe_legend(ax_mag, frameon=False, fontsize=9, loc='best')
 
   ax_phase.semilogx(w_base, phase_base, color=COLORS['base'], linewidth=1.9, label='基线')
   ax_phase.semilogx(w_comp, phase_comp, color=COLORS['accent'], linewidth=1.9, label='超前校正后')
   ax_phase.axhline(-180, color='#aaaaaa', linewidth=0.8, linestyle='--')
+  ax_phase.axvline(wg_base, color=COLORS['base'], linewidth=1.0, linestyle=':')
+  ax_phase.axvline(wg_comp, color=COLORS['accent'], linewidth=1.0, linestyle=':')
   add_pm_marker(ax_phase, w_base, phase_base, wc_base, payload['heading_case']['margin_base']['pm'], COLORS['base'])
   add_pm_marker(ax_phase, w_comp, phase_comp, wc_comp, payload['heading_case']['margin_comp']['pm'], COLORS['accent'])
   ax_phase.set_title('开环相频：目标频带补角后，相角裕度明显抬高')
