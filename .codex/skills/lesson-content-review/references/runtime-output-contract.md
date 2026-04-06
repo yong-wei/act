@@ -2,9 +2,11 @@
 
 lesson 级运行时产物：
 - `course-content/runtime/lessons/<lesson>/handout.md`
+- `course-content/runtime/lessons/<lesson>/handout.pdf`
 - `course-content/runtime/lessons/<lesson>/graph-overlay.json`
 - `course-content/runtime/lessons/<lesson>/lesson.json`
 - `course-content/runtime/lessons/<lesson>/media/*`
+- `course-content/runtime/lessons/<lesson>/media/<lesson>-media.md`
 - `course-content/runtime/lessons/<lesson>/review/*`
 
 其中 `review/` 至少包含：

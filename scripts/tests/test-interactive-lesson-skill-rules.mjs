@@ -17,6 +17,10 @@ const teacherSpecPath =
   '.codex/skills/interactive-lesson-implementation/references/browser-validation-teacher-subagent.md';
 const studentSpecPath =
   '.codex/skills/interactive-lesson-implementation/references/browser-validation-student-subagent.md';
+const entryPatternPath =
+  '.codex/skills/interactive-lesson-implementation/references/runtime-entry-page-pattern.md';
+const mediaIndexContractPath =
+  '.codex/skills/interactive-lesson-implementation/references/runtime-media-index-contract.md';
 
 const skill = read(skillPath);
 
@@ -27,10 +31,24 @@ assert.equal(
 );
 
 assert.equal(
+  skill.includes('review_lesson_content.py') &&
+    skill.includes('--strict-implementation-contract'),
+  true,
+  '技能主文件应要求通过严格实现契约校验脚本，不能忽略作者态契约与本地实现漂移',
+);
+
+assert.equal(
   skill.includes('browser-validation-teacher-subagent.md') &&
     skill.includes('browser-validation-student-subagent.md'),
   true,
   '技能主文件应显式指向教师端/学生端子代理规范文件',
+);
+
+assert.equal(
+  skill.includes('runtime-entry-page-pattern.md') &&
+    skill.includes('runtime-media-index-contract.md'),
+  true,
+  '技能主文件应显式指向入口页模式与 runtime 媒体索引契约参考文件',
 );
 
 assert.equal(
@@ -41,9 +59,13 @@ assert.equal(
 
 assert.equal(exists(teacherSpecPath), true, '应新增教师端浏览器验收子代理规范文件');
 assert.equal(exists(studentSpecPath), true, '应新增学生端浏览器验收子代理规范文件');
+assert.equal(exists(entryPatternPath), true, '应新增入口页样式基线参考文件');
+assert.equal(exists(mediaIndexContractPath), true, '应新增 runtime 媒体索引契约参考文件');
 
 const teacherSpec = read(teacherSpecPath);
 const studentSpec = read(studentSpecPath);
+const entryPattern = read(entryPatternPath);
+const mediaIndexContract = read(mediaIndexContractPath);
 
 assert.equal(
   teacherSpec.includes('npm run startup') && studentSpec.includes('npm run startup'),
@@ -64,6 +86,24 @@ assert.equal(
     studentSpec.includes('保存密码'),
   true,
   '子代理规范应覆盖结束课堂确认框与浏览器密码弹窗的处理要求',
+);
+
+assert.equal(
+  entryPattern.includes('2-1') &&
+    entryPattern.includes('《闲聊自控》播客') &&
+    entryPattern.includes('课前预习台') &&
+    entryPattern.includes('不要在页面里硬编码媒体说明文案'),
+  true,
+  '入口页参考文件应固定 2-1 当前模式，并明确运行态文案与音频播客口径',
+);
+
+assert.equal(
+  mediaIndexContract.includes('# handout.md') &&
+    mediaIndexContract.includes('runtime/lessons/<lesson>/media/<lesson>-media.md') &&
+    mediaIndexContract.includes('第一条 `- ` 行作为用户可见标题') &&
+    mediaIndexContract.includes('页面真值必须是 runtime `media/<lesson>-media.md`'),
+  true,
+  'runtime 媒体索引契约参考文件应明确文档格式、标题解析和 runtime-first 真值规则',
 );
 
 console.log('interactive lesson skill rules test passed');

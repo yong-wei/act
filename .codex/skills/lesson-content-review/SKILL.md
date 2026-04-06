@@ -27,6 +27,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 始终先读取：
 - `course-content/authoring/lessons/<lesson>/manifest.json`
 - `design/handout.md`
+- `design/handout.pdf`（若已生成）
 - `course-content/authoring/lessons/<lesson>/design/boppps.md`
 - `course-content/authoring/lessons/<lesson>/design/interactive-page.md`
 - `course-content/authoring/lessons/<lesson>/design/interactive-contract.yaml`（若存在）
@@ -72,6 +73,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
     - `[单元编号]-intro-video.mp4`
     - `[单元编号]-course.mp4`
     - `[单元编号]-audio.m4a`
+  - 作者态是否已生成 `design/handout.pdf`，供 runtime 直接下载而不是浏览器现场渲染
   - 正文是否围绕单元主线组织，而不是零散堆砌
   - 正式讲义中的图片、表格是否按出现顺序编号，并以“图1. …”“表1. …”等成品图题/表题呈现
   - 正文是否还残留“图示建议”“待制作”“占位说明”“脚本验证”等作者态过程文本
@@ -195,6 +197,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
   - `course-content/authoring/lessons/<lesson>/media/processed/<lesson>-intro-video.mp4`
   - `course-content/authoring/lessons/<lesson>/media/processed/<lesson>-course.mp4`
   - `course-content/authoring/lessons/<lesson>/media/processed/<lesson>-audio.m4a`
+  - `course-content/authoring/lessons/<lesson>/design/handout.pdf`
 - 检查所有媒体命名是否统一采用单元前缀：
   - AI 媒体、代码直出图、线框图、信息图、课件 PDF、音视频都必须以 `<lesson>-` 开头
   - 例如 `2-1-cover-comic.png`、`2-1-info.png`、`2-1-fd-01-bode-overview.svg`
@@ -204,6 +207,12 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - 若是线框图，检查其来源是否符合真实绘图流程，而不是 ASCII 或截图占位
 - 审查标准不是“能看懂就行”，而是“是否已经达到规范、清晰、可直接进讲义或页面的出版级配图水准”
 - 审核通过后，再导出到 `course-content/runtime/lessons/<lesson>/media/`
+- 导出 runtime 时，还必须在 `course-content/runtime/lessons/<lesson>/media/<lesson>-media.md` 生成标准标题骨架：
+  - `# <lesson>-intro-video.mp4`
+  - `# <lesson>-audio.m4a`
+  - `# <lesson>-slides.pdf`
+  - `# <lesson>-course.mp4`
+- 若该文件已存在且用户已填写链接，只允许规范标题顺序并保留既有链接，不得覆盖链接内容
 
 详细规则见 `references/multimedia-review.md`。
 
@@ -216,9 +225,11 @@ python3 course-content/scripts/review_lesson_content.py --lesson <lesson>
 
 预期产物：
 - `course-content/runtime/lessons/<lesson>/handout.md`
+- `course-content/runtime/lessons/<lesson>/handout.pdf`
 - `course-content/runtime/lessons/<lesson>/graph-overlay.json`
 - `course-content/runtime/lessons/<lesson>/lesson.json`
 - `course-content/runtime/lessons/<lesson>/media/*`
+- `course-content/runtime/lessons/<lesson>/media/<lesson>-media.md`
 - `course-content/runtime/lessons/<lesson>/review/boppps.md`
 - `course-content/runtime/lessons/<lesson>/review/review-report.md`
 - `course-content/runtime/lessons/<lesson>/review/interactive-page-check.json`
@@ -258,10 +269,12 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 已检查正式讲义中的图号/表号、图题/表题是否完整且连续
 - [ ] 已确认正文中没有“图示建议”“待制作”“脚本验证”等作者态过程文本
 - [ ] 已确认设计期 `Octave` + `control` 内置函数校验未被错误写入讲义正文
+- [ ] 已确认作者态 `design/handout.pdf` 已生成，供 runtime 静态下载
 - [ ] 已确认学生复现内容采用“正文点名 `.m` 文件 + 附录最简 MATLAB/Octave 代码”的成品形式（如适用）
 - [ ] 若为实践课，已确认讲义仍是主线正文，不是用 practice-guide 替代讲义
 - [ ] 若为实践课，已检查 `design/boppps.md` 与 `design/interactive-page.md` 中学生参与/实践训练累计不少于 45 分钟
 - [ ] 已检查关键媒体完整性：`<lesson>-cover-comic.png`、`<lesson>-info.png`、`<lesson>-slides.pdf`、`<lesson>-intro-video.mp4`、`<lesson>-course.mp4`、`<lesson>-audio.m4a`
+- [ ] 已确认 runtime 会生成并保留 `media/<lesson>-media.md` 标题骨架，不覆盖用户已填写链接
 - [ ] 已完成外部事实的联网核验（如适用）
 - [ ] 已完成科学合理性分析
 - [ ] 已用 `Octave` + `control` 内置函数验证确定性结论（如适用）

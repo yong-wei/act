@@ -16,6 +16,12 @@ LESSON_PRESETS = {
         'page_contract_const': 'UNIT_2_1_PAGE_CONTRACTS',
         'step_const': 'UNIT_2_1_LESSON_STEPS',
     },
+    '2-2': {
+        'contract': 'course-content/authoring/lessons/2-2/design/interactive-contract.yaml',
+        'implementation': 'src/lib/unit-2-2-course.ts',
+        'page_contract_const': 'UNIT_2_2_PAGE_CONTRACTS',
+        'step_const': 'UNIT_2_2_LESSON_STEPS',
+    },
 }
 
 

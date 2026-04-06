@@ -9,6 +9,8 @@ description: Use when implementing or upgrading this repository's interactive le
 
 按当前仓库的新体系实现或优化互动课程。把 `course-content/authoring/lessons/.../design/interactive-page.md` 与 `interactive-contract.yaml` 视为双轨设计真源，把 `course-content/runtime/lessons/...` 下经过 `lesson-content-review` 的产物视为已审查输入，把仓库中的课程代码视为待对齐对象。
 
+本技能主文件只保留总流程、触发条件和参考文件入口。凡是页面布局、入口页文案装配、runtime 媒体文档格式、视频/音频容器、讲义摘要渲染这类可复用细节，一律下沉到 `references/`，不要继续把所有设计细节堆回主技能正文。
+
 当前默认基线不再是单一 `L-2c`，而是综合以下已落地课程能力：
 - `1-1`：理论型精品互动课的第一页入口、教师/学生双端、提交闭环、教师统计与答案揭示、统一事件链。
 - `1-2`：17 步课堂蓝图、页内 AI 弹窗、词云/回复列表、runtime 首页与课堂双线协同。
@@ -81,6 +83,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - `runtime/.../lesson.json`
 - `runtime/.../graph-overlay.json`
 - `runtime/.../handout.md`
+- `runtime/.../media/<lesson>-media.md`（若课程入口页、预习台或外部媒体入口存在，则必读）
 - `runtime/.../review/boppps.md`
 - `runtime/.../review/review-report.md`
 - `runtime/.../review/interactive-page-check.json`
@@ -89,6 +92,11 @@ description: Use when implementing or upgrading this repository's interactive le
 - `runtime/.../review/source-manifest.json`
 
 如果这些 runtime/review 产物不存在，先回到 `lesson-content-review`，不要在本技能里顺手补审正文或知识卡。
+
+若课程包含入口页预习台、媒体入口卡或讲义下载/在线阅读卡，还必须额外读取：
+
+- [references/runtime-entry-page-pattern.md](references/runtime-entry-page-pattern.md)
+- [references/runtime-media-index-contract.md](references/runtime-media-index-contract.md)
 
 ## 启动方式
 
@@ -243,9 +251,10 @@ description: Use when implementing or upgrading this repository's interactive le
 
 ### 5. 入口页与课堂页约束
 
-#### 首页
+#### 首页与入口页
 
-首页默认顺序：
+首页通用约束仍然成立：
+
 1. 教师入口 / 自由浏览 / 学生入口
 2. 课程概览与导学
 3. runtime 知识点网络
@@ -257,7 +266,11 @@ description: Use when implementing or upgrading this repository's interactive le
 - 关系要有方向，不是无向线
 - 讲义必须正确渲染 LaTeX 公式
 - 讲义入口与详情区都要支持导出 PDF
-- 讲义不能机械截断，要有课程级摘要
+
+若课程入口页还包含“课前预习台”或运行态媒体入口，不要在主技能正文里自行发挥布局和文案，必须转读：
+
+- [references/runtime-entry-page-pattern.md](references/runtime-entry-page-pattern.md)
+- [references/runtime-media-index-contract.md](references/runtime-media-index-contract.md)
 
 #### 课堂页
 
@@ -330,6 +343,7 @@ description: Use when implementing or upgrading this repository's interactive le
 ## 实现约束
 
 - 优先复用现有课程框架、路由解析、预置教案、课程目录注册与资源注册。
+- 课程实现后，必须在互动课程总入口页注册精品课程入口。
 - 新课实现后，必须在 `src/features/interactive/learning-catalog.ts` 注册入口。
 - 不把 AI 文案、快捷问题、步骤目标散落在多个组件里。
 - 不把大块课程正文硬编码成难以复用的 JSX 常量堆；优先整理为步骤配置、内容块、媒体清单、工作区配置。
@@ -397,6 +411,10 @@ python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_a
 详细规则见：
 - [references/verification-and-note-update.md](references/verification-and-note-update.md)
 - [references/closed-loop-browser-validation.md](references/closed-loop-browser-validation.md)
+- [references/browser-validation-teacher-subagent.md](references/browser-validation-teacher-subagent.md)
+- [references/browser-validation-student-subagent.md](references/browser-validation-student-subagent.md)
+
+主代理不需要读取这两个子代理规范文件；只有在明确分派教师端/学生端浏览器验收任务时，才把对应规范交给子代理执行。
 
 ## 课程笔记机制
 
@@ -432,6 +450,10 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
 
 - `references/media-and-path-rules.md`
   - 外部媒体、AI 图与处理后产物的目录、命名、导出规则
+- `references/runtime-entry-page-pattern.md`
+  - `2-1` 当前入口页模式的布局、文案装配、音视频/讲义容器与禁止项
+- `references/runtime-media-index-contract.md`
+  - `runtime/lessons/<lesson>/media/<lesson>-media.md` 的文档结构、解析约束与前端装配规则
 - `references/runtime-code-generated-media.md`
   - 代码直出图、`python3 + control`、`tikz-control-draw` 与 runtime 导出规范
 - `references/verification-and-note-update.md`
@@ -448,6 +470,8 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
 - [ ] 已解析真实 authoring/runtime 课次路径，而不是想当然写 `legacy` 或非 `legacy`
 - [ ] 已确认课程产物已经过 `lesson-content-review`
 - [ ] 已读取 `interactive-page.md`、runtime handout、review 产物与 graph overlay
+- [ ] 若课程入口页含预习台/媒体卡，已读取 `references/runtime-entry-page-pattern.md`
+- [ ] 若课程入口页含 runtime 媒体文档，已读取 `references/runtime-media-index-contract.md`
 - [ ] 已先设计完整课件骨架，再设计互动升级位
 - [ ] 已确认首页与课堂页都 `runtime-first`
 - [ ] 已为步骤级 AI、提交反馈、教师汇聚、课程事件与治理链路写出方案
