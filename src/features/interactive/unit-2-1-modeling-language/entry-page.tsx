@@ -1,37 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import {
-  ArrowLeft,
-  BookOpen,
-  Download,
-  ExternalLink,
-  FileAudio2,
-  FileText,
-  Loader2,
-  LogIn,
-  Presentation,
-  Users,
-  Video,
-} from 'lucide-react';
+import { ArrowLeft, Loader2, LogIn, Presentation, Users } from 'lucide-react';
 
-import { downloadLessonHandoutPdf } from '@/features/interactive/shared/download-handout-pdf';
-import type { RuntimeLessonEntryBundle, RuntimeLessonMediaResource } from '@/lib/course-runtime';
+import { LessonEntryMediaHub } from '@/features/interactive/shared/lesson-entry-media-hub';
+import { LessonEntryRuntimeSections } from '@/features/interactive/shared/lesson-entry-runtime-sections';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   UNIT_2_1_COURSE_DESCRIPTION,
   UNIT_2_1_COURSE_TITLE,
   UNIT_2_1_PRESET_KEY,
   UNIT_2_1_ROUTE_SEGMENT,
 } from '@/lib/unit-2-1-course';
-import {
-  LessonEntryHandoutDialog,
-  LessonEntryRuntimeSections,
-} from '@/features/interactive/shared/lesson-entry-runtime-sections';
 
 interface JoinSessionResponse {
   id: string;
@@ -48,240 +31,6 @@ function normalizeRole(raw: string | null | undefined): NormalizedRole {
   return null;
 }
 
-const RESOURCE_COPY: Record<string, {
-  kicker: string;
-  title: string;
-  tone: string;
-}> = {
-  '2-1-course.mp4': {
-    kicker: '完整预习',
-    title: '完整课程视频',
-    tone: 'premium-tone-cyan',
-  },
-  '2-1-intro-video.mp4': {
-    kicker: '课前导入',
-    title: '预习导入视频',
-    tone: 'premium-tone-amber',
-  },
-  '2-1-audio.m4a': {
-    kicker: '随听预习',
-    title: '《闲聊自控》播客',
-    tone: 'premium-tone-rose',
-  },
-  '2-1-slides.pdf': {
-    kicker: '图文提纲',
-    title: '课件讲义',
-    tone: 'premium-tone-slate',
-  },
-};
-
-function getResourceIcon(resource: RuntimeLessonMediaResource) {
-  if (resource.kind === 'video') return Video;
-  if (resource.kind === 'audio') return FileAudio2;
-  if (resource.kind === 'pdf') return FileText;
-  return Video;
-}
-
-function getResourceCopy(resource: RuntimeLessonMediaResource) {
-  return RESOURCE_COPY[resource.filename] ?? {
-    kicker: '预习资源',
-    title: resource.title,
-    tone: 'premium-tone-slate',
-  };
-}
-
-function isDirectPlayableUrl(url: string, kind: RuntimeLessonMediaResource['kind']) {
-  if (!url) return false;
-  if (kind === 'video') return /\.(mp4|webm)(?:$|\?)/i.test(url);
-  if (kind === 'audio') return /\.(m4a|mp3|wav)(?:$|\?)/i.test(url);
-  return false;
-}
-
-function InlineMediaPreview({
-  resource,
-  wrapperClassName,
-  innerClassName,
-}: {
-  resource: RuntimeLessonMediaResource | null;
-  wrapperClassName: string;
-  innerClassName?: string;
-}) {
-  const frameClassName = 'block h-full w-full border-0';
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const [embedVersion, setEmbedVersion] = useState(0);
-  const isDirectVideo = Boolean(resource?.kind === 'video' && resource.url && isDirectPlayableUrl(resource.url, resource.kind));
-  const isDirectAudio = Boolean(resource?.kind === 'audio' && resource.url && isDirectPlayableUrl(resource.url, resource.kind));
-  const needsResponsiveIframeReload = Boolean(resource?.url && !isDirectVideo && !isDirectAudio);
-
-  useEffect(() => {
-    if (!needsResponsiveIframeReload || !wrapperRef.current || typeof ResizeObserver === 'undefined') {
-      return;
-    }
-
-    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-    let lastWidth = 0;
-    let lastHeight = 0;
-    const observer = new ResizeObserver(([entry]) => {
-      const width = Math.round(entry.contentRect.width);
-      const height = Math.round(entry.contentRect.height);
-      if (Math.abs(width - lastWidth) < 24 && Math.abs(height - lastHeight) < 24) {
-        return;
-      }
-
-      lastWidth = width;
-      lastHeight = height;
-
-      if (resizeTimer) {
-        clearTimeout(resizeTimer);
-      }
-
-      resizeTimer = setTimeout(() => {
-        setEmbedVersion((current) => current + 1);
-      }, 120);
-    });
-
-    observer.observe(wrapperRef.current);
-
-    return () => {
-      observer.disconnect();
-      if (resizeTimer) {
-        clearTimeout(resizeTimer);
-      }
-    };
-  }, [needsResponsiveIframeReload]);
-
-  if (!resource || resource.status !== 'ready' || !resource.url) {
-    return (
-      <div ref={wrapperRef} className={`${wrapperClassName} overflow-hidden rounded-[24px] border border-border/60`}>
-        <div className={`flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,rgba(148,163,184,0.18),rgba(15,23,42,0.08))] px-4 text-sm text-muted-foreground ${innerClassName ?? ''}`}>
-          当前资源暂未就绪。
-        </div>
-      </div>
-    );
-  }
-
-  if (resource.kind === 'video' && isDirectPlayableUrl(resource.url, resource.kind)) {
-    return (
-      <div ref={wrapperRef} className={`${wrapperClassName} overflow-hidden rounded-[24px] border border-border/60 bg-black`}>
-        <video
-          controls
-          preload="metadata"
-          playsInline
-          src={resource.url}
-          className={`${frameClassName} ${innerClassName ?? ''}`}
-        />
-      </div>
-    );
-  }
-
-  if (resource.kind === 'audio' && isDirectPlayableUrl(resource.url, resource.kind)) {
-    return (
-      <div ref={wrapperRef} className={`${wrapperClassName} overflow-hidden rounded-[24px] border border-border/60 bg-[linear-gradient(135deg,rgba(244,114,182,0.14),rgba(15,23,42,0.04))] px-4 sm:px-5`}>
-        <div className={`flex h-full w-full items-center justify-center ${innerClassName ?? ''}`}>
-          <audio controls preload="none" src={resource.url} className="w-full max-w-full" />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div ref={wrapperRef} className={`${wrapperClassName} overflow-hidden rounded-[24px] border border-border/60 bg-black`}>
-      <iframe
-        key={`${resource.id}-${embedVersion}`}
-        src={resource.url}
-        title={resource.title}
-        className={`${frameClassName} ${innerClassName ?? ''}`}
-        allow="autoplay; fullscreen"
-      />
-    </div>
-  );
-}
-
-function ResolvedAudioExperiment({
-  resource,
-}: {
-  resource: RuntimeLessonMediaResource | null;
-}) {
-  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
-
-  useEffect(() => {
-    if (!resource || resource.kind !== 'audio' || resource.status !== 'ready' || !resource.url) {
-      setResolvedUrl(null);
-      setStatus('idle');
-      return;
-    }
-
-    if (isDirectPlayableUrl(resource.url, resource.kind)) {
-      setResolvedUrl(resource.url);
-      setStatus('ready');
-      return;
-    }
-
-    let cancelled = false;
-    setResolvedUrl(null);
-    setStatus('loading');
-
-    void fetch(`/api/course-runtime/audio-preview-source?previewUrl=${encodeURIComponent(resource.url)}`, {
-      cache: 'no-store',
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error('resolve-audio-preview-failed');
-        }
-        return response.json() as Promise<{ sourceUrl?: string }>;
-      })
-      .then((payload) => {
-        if (cancelled || !payload.sourceUrl) {
-          if (!cancelled) {
-            setStatus('error');
-          }
-          return;
-        }
-
-        setResolvedUrl(payload.sourceUrl);
-        setStatus('ready');
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setStatus('error');
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [resource]);
-
-  return (
-    <div className="rounded-[24px] border border-border/60 bg-[linear-gradient(135deg,rgba(244,114,182,0.1),rgba(15,23,42,0.05))] p-4 sm:p-5">
-      <div className="flex flex-col">
-        <div className="flex items-center justify-center">
-          {status === 'ready' && resolvedUrl ? (
-            <audio controls preload="none" src={resolvedUrl} className="w-full max-w-full" />
-          ) : null}
-          {status === 'loading' ? (
-            <div className="premium-lesson-muted inline-flex items-center gap-2 text-sm">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              正在准备播放器
-            </div>
-          ) : null}
-          {status === 'error' ? (
-            <div className="premium-lesson-muted text-sm">
-              当前实验播放器暂未取到可播放音源。
-            </div>
-          ) : null}
-          {status === 'idle' ? (
-            <div className="premium-lesson-muted text-sm">
-              当前音频资源暂未就绪。
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function UNIT_2_1CourseEntryPage({
   initialRole,
   lessonRuntime,
@@ -294,8 +43,6 @@ export function UNIT_2_1CourseEntryPage({
   const [joinCode, setJoinCode] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-  const [isDownloadingHandout, setIsDownloadingHandout] = useState(false);
-  const [isHandoutOpen, setIsHandoutOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const userRole = useMemo(
@@ -305,14 +52,6 @@ export function UNIT_2_1CourseEntryPage({
   const canCreateAsTeacher = userRole === 'TEACHER' || userRole === 'ADMIN';
   const canJoinAsStudent = userRole === 'STUDENT';
   const roleResolved = Boolean(userRole);
-  const mediaByFilename = useMemo(
-    () => new Map(lessonRuntime.mediaResources.map((resource) => [resource.filename, resource])),
-    [lessonRuntime.mediaResources],
-  );
-  const introVideoResource = mediaByFilename.get('2-1-intro-video.mp4') ?? null;
-  const courseVideoResource = mediaByFilename.get('2-1-course.mp4') ?? null;
-  const audioResource = mediaByFilename.get('2-1-audio.m4a') ?? null;
-  const slidesResource = mediaByFilename.get('2-1-slides.pdf') ?? null;
 
   const createClassroom = async () => {
     setError(null);
@@ -370,22 +109,6 @@ export function UNIT_2_1CourseEntryPage({
       setError(requestError instanceof Error ? requestError.message : '加入失败，请稍后重试');
     } finally {
       setIsJoining(false);
-    }
-  };
-
-  const handleHandoutDownload = async () => {
-    setError(null);
-    setIsDownloadingHandout(true);
-    try {
-      await downloadLessonHandoutPdf({
-        lessonId: lessonRuntime.lesson.lesson_id,
-        lessonTitle: UNIT_2_1_COURSE_TITLE,
-        handoutPdfPath: lessonRuntime.handoutPdfPath,
-      });
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : '讲义下载失败，请稍后重试');
-    } finally {
-      setIsDownloadingHandout(false);
     }
   };
 
@@ -495,159 +218,11 @@ export function UNIT_2_1CourseEntryPage({
           </div>
         </section>
 
-        <section className="premium-lesson-panel mt-4 px-5 py-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <div className="premium-lesson-kicker">2-1 · Pre-study</div>
-              <h2 className="premium-lesson-title mt-2 text-2xl font-semibold sm:text-3xl">课前预习台</h2>
-              <p className="premium-lesson-muted mt-3 max-w-3xl">
-                先用导入视频进入问题情境，再用完整课程视频建立全课主线；如果时间紧张，可以搭配音频、课件和讲义完成一轮轻量预习。
-              </p>
-            </div>
-            <div className="premium-lesson-tone-block premium-tone-slate max-w-sm text-sm">
-              建议顺序：先看导入视频，再看完整课程视频；通勤时可以改听音频，最后结合课件和讲义回看关键图表与公式。
-            </div>
-          </div>
-
-          <div className="mt-6 space-y-4">
-            {[introVideoResource, courseVideoResource].map((resource) => {
-              const copy = resource ? getResourceCopy(resource) : null;
-              return (
-                <section key={resource?.filename ?? copy?.title ?? 'pending-video'} className="premium-lesson-panel-soft rounded-[28px] border border-border/70 p-4 sm:p-5">
-                  <div className="mb-4 flex items-start justify-between gap-3">
-                    <div>
-                      <div className="premium-lesson-kicker">{copy?.kicker ?? '视频预习'}</div>
-                      <h3 className="premium-lesson-title mt-2 text-xl font-semibold sm:text-2xl">
-                        {copy?.title ?? '预习视频待补充'}
-                      </h3>
-                      <p className="premium-lesson-muted mt-3 max-w-3xl text-sm sm:text-base">
-                        {resource?.title ?? '当前视频链接尚未填写。'}
-                      </p>
-                    </div>
-                    <span className={`premium-lesson-tone-pill ${copy?.tone ?? 'premium-tone-slate'}`}>
-                      {resource?.status === 'ready' ? '可播放' : '待补充'}
-                    </span>
-                  </div>
-                  <InlineMediaPreview
-                    resource={resource}
-                    wrapperClassName="aspect-[16/9] min-h-[240px] w-full sm:min-h-[320px] lg:min-h-[420px]"
-                  />
-                </section>
-              );
-            })}
-
-            <div className="grid gap-4 lg:grid-cols-3">
-              {[audioResource, slidesResource].map((resource) => {
-                const copy = resource ? getResourceCopy(resource) : null;
-                const Icon = getResourceIcon(resource ?? { kind: 'other' } as RuntimeLessonMediaResource);
-                const isAudio = resource?.kind === 'audio';
-                return (
-                  <section
-                    key={resource?.filename ?? copy?.title ?? 'pending-card'}
-                    className={`premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 ${isAudio ? 'lg:col-span-2' : ''}`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="inline-flex items-center gap-2">
-                        <span className="premium-lesson-control inline-flex items-center justify-center">
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <div>
-                          <div className="premium-lesson-kicker">{copy?.kicker ?? '预习资源'}</div>
-                          <h3 className="premium-lesson-title mt-1 text-lg font-semibold">{copy?.title ?? '资源待补充'}</h3>
-                        </div>
-                      </div>
-                      <span className={`premium-lesson-tone-pill ${copy?.tone ?? 'premium-tone-slate'}`}>
-                        {resource?.status === 'ready' ? '可访问' : '待补充'}
-                      </span>
-                    </div>
-                    <p className="premium-lesson-muted mt-3 text-sm">
-                      {isAudio
-                        ? `听主持人洛嘉和思稳带来的新一期节目：${resource?.title ?? '当前资源链接尚未填写。'}`
-                        : (resource?.title ?? '当前资源链接尚未填写。')}
-                    </p>
-                    {isAudio ? (
-                      <div className="mt-4">
-                        <ResolvedAudioExperiment resource={resource} />
-                      </div>
-                    ) : (
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {resource?.status === 'ready' ? (
-                          <a
-                            href={resource.url ?? '#'}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="premium-lesson-action-secondary flex"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            打开课件
-                          </a>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled
-                            className="premium-lesson-action-secondary flex cursor-not-allowed opacity-50"
-                          >
-                            链接待补充
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </section>
-                );
-              })}
-
-              <section className="premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="inline-flex items-center gap-2">
-                    <span className="premium-lesson-control inline-flex items-center justify-center">
-                      <BookOpen className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <div className="premium-lesson-kicker">课前讲义</div>
-                      <h3 className="premium-lesson-title mt-1 text-lg font-semibold">讲义阅读与下载</h3>
-                    </div>
-                  </div>
-                  <span className="premium-lesson-tone-pill premium-tone-cyan">
-                    {lessonRuntime.handoutPdfPath ? '已备好' : '在线阅读'}
-                  </span>
-                </div>
-                <div className="prose prose-sm mt-3 max-w-none text-muted-foreground prose-p:my-0 prose-strong:text-foreground prose-ul:my-2">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {lessonRuntime.handoutSummary}
-                  </ReactMarkdown>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsHandoutOpen(true)}
-                    className="premium-lesson-action-secondary flex"
-                  >
-                    <BookOpen className="h-4 w-4" />
-                    在线阅读讲义
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleHandoutDownload()}
-                    disabled={!lessonRuntime.handoutPdfPath || isDownloadingHandout}
-                    className="premium-lesson-action-secondary flex disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {isDownloadingHandout ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                    下载 PDF 讲义
-                  </button>
-                </div>
-              </section>
-            </div>
-          </div>
-        </section>
-
-        <LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />
-        <LessonEntryHandoutDialog
-          runtime={lessonRuntime}
-          open={isHandoutOpen}
-          onOpenChange={setIsHandoutOpen}
-          isExportingHandout={isDownloadingHandout}
-          onHandoutExport={() => void handleHandoutDownload()}
+        <LessonEntryMediaHub
+          lessonRuntime={lessonRuntime}
+          courseLabel="2-1 · Pre-study"
         />
+        <LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mt-4">{error}</div> : null}
       </main>

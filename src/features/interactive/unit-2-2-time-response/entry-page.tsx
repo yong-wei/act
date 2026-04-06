@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, Loader2, LogIn, Presentation, Users } from 'lucide-react';
 
+import { LessonEntryMediaHub } from '@/features/interactive/shared/lesson-entry-media-hub';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   UNIT_2_2_COURSE_DESCRIPTION,
@@ -217,7 +218,11 @@ export function UNIT_2_2CourseEntryPage({
           </div>
         </section>
 
-        <LessonEntryRuntimeSections runtime={lessonRuntime} />
+        <LessonEntryMediaHub
+          lessonRuntime={lessonRuntime}
+          courseLabel="2-2 · Pre-study"
+        />
+        <LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mt-4">{error}</div> : null}
       </main>

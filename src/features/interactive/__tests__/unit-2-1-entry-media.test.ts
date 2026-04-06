@@ -90,47 +90,59 @@ describe('unit 2-1 entry media runtime', () => {
       'utf8',
     );
     const sharedSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/lesson-entry-media-hub.tsx'),
+      'utf8',
+    );
+    const runtimeSectionsSource = readFileSync(
       join(repoRoot, 'src/features/interactive/shared/lesson-entry-runtime-sections.tsx'),
       'utf8',
     );
+    const unit22Source = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-2-2-time-response/entry-page.tsx'),
+      'utf8',
+    );
 
-    expect(source).toContain('课前预习台');
-    expect(source).toContain('预习导入视频');
-    expect(source).toContain('完整课程视频');
-    expect(source).toContain('[introVideoResource, courseVideoResource].map');
-    expect(source).toContain('lessonRuntime.mediaResources');
+    expect(source).toContain('LessonEntryMediaHub');
+    expect(sharedSource).toContain('课前预习台');
+    expect(sharedSource).toContain('预习导入视频');
+    expect(sharedSource).toContain('完整课程视频');
+    expect(sharedSource).toContain('[introVideoResource, courseVideoResource].map');
+    expect(sharedSource).toContain('lessonRuntime.mediaResources');
     expect(source).not.toContain('运行态媒体索引');
     expect(source).not.toContain('2-1-media.md');
     expect(source).not.toContain('讲义入口');
     expect(source).not.toContain('<Dialog open={Boolean(activeMedia)}');
-    expect(source).toContain('在线阅读讲义');
-    expect(source).toContain('setIsHandoutOpen(true)');
-    expect(source).toContain('LessonEntryHandoutDialog');
+    expect(sharedSource).toContain('在线阅读讲义');
+    expect(sharedSource).toContain('setIsHandoutOpen(true)');
+    expect(sharedSource).toContain('LessonEntryHandoutDialog');
     expect(source).not.toContain('href={lessonRuntime.handoutPath}');
+    expect(source).toContain('<LessonEntryMediaHub');
     expect(source).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
-    expect(source).toContain('lessonRuntime.handoutPdfPath');
-    expect(source).toContain('lessonId: lessonRuntime.lesson.lesson_id');
-    expect(source).toContain('下载 PDF 讲义');
-    expect(source).toContain('overflow-hidden rounded-[24px]');
-    expect(source).toContain('block h-full w-full border-0');
-    expect(source).toContain("isAudio ? 'lg:col-span-2' : ''");
-    expect(source).toContain('key={`${resource.id}-${embedVersion}`}');
-    expect(source).not.toContain('解析实验版');
-    expect(source).toContain('/api/course-runtime/audio-preview-source');
-    expect(source).toContain('resource.title');
-    expect(source).toContain('《闲聊自控》播客');
-    expect(source).toContain('听主持人洛嘉和思稳带来的新一期节目');
-    expect(source).not.toContain('wrapperClassName="h-[188px] sm:h-[220px]"');
-    expect(source).not.toContain('h-[188px] sm:h-[220px]');
-    expect(source).not.toContain('适合通勤或碎片时间先听主线');
-    expect(source).not.toContain('适合先看结构图、公式与例题位置');
-    expect(source).not.toContain('先用一段短视频快速进入本课情境');
-    expect(source).not.toContain('适合在正式进入课堂前先建立全课节奏');
-    expect(source).not.toContain('lessonRuntime.handoutPreview');
-    expect(source).toContain('<ReactMarkdown');
-    expect(source).toContain('remarkPlugins={[remarkGfm]}');
-    expect(sharedSource).toContain('hideHandoutEntry?: boolean');
-    expect(sharedSource).toContain('export function LessonEntryHandoutDialog');
-    expect(sharedSource).toContain('handoutPdfPath: runtime.handoutPdfPath');
+    expect(sharedSource).toContain('lessonRuntime.handoutPdfPath');
+    expect(sharedSource).toContain('lessonId: lessonRuntime.lesson.lesson_id');
+    expect(sharedSource).toContain('下载 PDF 讲义');
+    expect(sharedSource).toContain('overflow-hidden rounded-[24px]');
+    expect(sharedSource).toContain('block h-full w-full border-0');
+    expect(sharedSource).toContain("isAudio ? 'lg:col-span-2' : ''");
+    expect(sharedSource).toContain('key={`${resource.id}-${embedVersion}`}');
+    expect(sharedSource).not.toContain('解析实验版');
+    expect(sharedSource).toContain('/api/course-runtime/audio-preview-source');
+    expect(sharedSource).toContain('resource.title');
+    expect(sharedSource).toContain('《闲聊自控》播客');
+    expect(sharedSource).toContain('听主持人洛嘉和思稳带来的新一期节目');
+    expect(sharedSource).not.toContain('wrapperClassName="h-[188px] sm:h-[220px]"');
+    expect(sharedSource).not.toContain('h-[188px] sm:h-[220px]');
+    expect(sharedSource).not.toContain('适合通勤或碎片时间先听主线');
+    expect(sharedSource).not.toContain('适合先看结构图、公式与例题位置');
+    expect(sharedSource).not.toContain('先用一段短视频快速进入本课情境');
+    expect(sharedSource).not.toContain('适合在正式进入课堂前先建立全课节奏');
+    expect(sharedSource).not.toContain('lessonRuntime.handoutPreview');
+    expect(sharedSource).toContain('<ReactMarkdown');
+    expect(sharedSource).toContain('remarkPlugins={[remarkGfm]}');
+    expect(runtimeSectionsSource).toContain('hideHandoutEntry?: boolean');
+    expect(runtimeSectionsSource).toContain('export function LessonEntryHandoutDialog');
+    expect(runtimeSectionsSource).toContain('handoutPdfPath: runtime.handoutPdfPath');
+    expect(unit22Source).toContain('LessonEntryMediaHub');
+    expect(unit22Source).toContain('hideHandoutEntry');
   });
 });
