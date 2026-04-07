@@ -115,13 +115,16 @@ def draw_feasible_region(ax: plt.Axes, case: dict) -> None:
     ax.plot(xs, ys, color=COLORS['region_edge'], linewidth=1.0, linestyle='--')
     ax.plot(xs, -ys, color=COLORS['region_edge'], linewidth=1.0, linestyle='--')
     ax.axvline(-sigma, color=COLORS['region_edge'], linewidth=1.0, linestyle=':')
+    anchor = case.get('root_note_anchor', 'upper_left')
+    x = 0.98 if anchor == 'upper_right' else 0.02
+    ha = 'right' if anchor == 'upper_right' else 'left'
     ax.text(
-        0.02,
+        x,
         0.96,
         rf'$M_p\leq {case["feasible_region"]["mp_ratio"]*100:.0f}\%$' '\n'
         rf'$t_s\leq {case["feasible_region"]["settling_time"]:.2f}\,\mathrm{{s}}$',
         transform=ax.transAxes,
-        ha='left',
+        ha=ha,
         va='top',
         fontsize=8.8,
         bbox=dict(boxstyle='round,pad=0.25', facecolor='white', edgecolor='#d9d9d9'),
@@ -194,7 +197,7 @@ def plot_case_quad(case: dict, filename: str) -> None:
     ax2.scatter(arr(case['closed_loop_poles'], 'real'), arr(case['closed_loop_poles'], 'imag'), marker='o', s=42, facecolors=COLORS['curve'], edgecolors='white', linewidths=0.8, zorder=7, label='当前闭环极点')
     set_root_limits(ax2, case)
     ax2.set_title('左下：根轨迹与设计可行域')
-    ax2.legend(frameon=False, fontsize=8.6, loc='best')
+    ax2.legend(frameon=False, fontsize=8.6, loc=case.get('root_legend_loc', 'best'))
 
     style_bode_axes(ax3, ax4)
     w = arr(case['bode'], 'w')

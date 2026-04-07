@@ -110,7 +110,7 @@ function out = feasible_region_to_struct(mp_ratio, settling_time)
   out.settling_time = settling_time;
 endfunction
 
-function out = case_payload(id, title, task_tag, plant, k_ref, omega, t_step, k_values, feasible_region, root_xlim, root_ylim)
+function out = case_payload(id, title, task_tag, plant, k_ref, omega, t_step, k_values, feasible_region, root_xlim, root_ylim, root_note_anchor, root_legend_loc)
   loop = k_ref * plant;
   closed = feedback(loop, 1);
   [step_y, step_t] = step(closed, t_step);
@@ -133,6 +133,8 @@ function out = case_payload(id, title, task_tag, plant, k_ref, omega, t_step, k_
   entry.feasible_region = feasible_region;
   entry.root_xlim = root_xlim;
   entry.root_ylim = root_ylim;
+  entry.root_note_anchor = root_note_anchor;
+  entry.root_legend_loc = root_legend_loc;
   out = entry;
 endfunction
 
@@ -165,7 +167,9 @@ payload.cases.ship_heading = case_payload(
   k_ship,
   feasible_ship,
   [-3.2, 0.4],
-  [-0.8, 0.8]
+  [-0.8, 0.8],
+  "upper_right",
+  "upper left"
 );
 
 payload.cases.platform_pitch = case_payload(
@@ -178,8 +182,10 @@ payload.cases.platform_pitch = case_payload(
   t_platform,
   k_platform,
   feasible_platform,
-  [-60, 5],
-  [-45, 45]
+  [-140, 5],
+  [-80, 80],
+  "upper_right",
+  "upper left"
 );
 
 fid = fopen(out_file, "w");
