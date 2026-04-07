@@ -1,6 +1,6 @@
 # 2-3-intro-video.mp4
 
-- 用导入情境引出“频率响应研究的就是系统为什么会对不同节奏的输入做出不同反应”这一问题。
+- 仓库通道里，云台摄像机稳稳跟踪慢速红色小车，却不去追警示灯频闪和叉车掠过的快变化，直观展示了系统会保留慢变化、压低快变化。
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=6d9f8cb8c6e4ee7857550460bb01c055&v=1775460404102&puid=26652392&enc=3f91186e51b5ec58dbb942232fa5b570&wps=dab62bb18827b96e4ebf52a46fdd65b1d70d687fb84ea7b5
 

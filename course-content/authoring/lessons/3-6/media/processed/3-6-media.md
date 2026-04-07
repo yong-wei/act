@@ -1,6 +1,6 @@
 # 3-6-intro-video.mp4
 
-- 用导入情境引出“同样是加零点，为什么结果差这么多”这一问题。
+- 实验车间里，基准对象、PD、测速反馈和简单超前四个伺服滑台并排启动，根轨迹、时间响应和频率特性很快拉开差距，右半平面零点版本还会先反向抽动一下，直观比较不同加零点方案的结果。
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=1b0f33577d86c92e9662263a5223be01&v=1775535826423&puid=26652392&enc=2057b5b720b6c521003e7a98e3cb4933&wps=0857deed225a308383efe1d56a41f26fd70d687fb84ea7b5
 

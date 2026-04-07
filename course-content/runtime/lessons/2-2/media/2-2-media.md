@@ -1,6 +1,6 @@
 # 2-2-intro-video.mp4
 
-- 用导入情境引出“时域响应不仅看有没有到达目标，更要看过程中的快慢、超调和稳定时间”这一主题。
+- 两台同型号投递车同时接到任务，一台冲过头又猛地回拉，另一台始终平稳接近目标，直观展示了快慢、超调和稳定时间的差别。
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=3472f533ac3022e1a7465d95a6c775c4&v=1775460223291&puid=26652392&enc=37cf5f238b480e7db9c9c3d4c665399f&wps=dc32c985969dea1d474653442eed5692d70d687fb84ea7b5
 

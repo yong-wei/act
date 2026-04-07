@@ -19,19 +19,19 @@
 ## 全课总览
 | 步骤 | 标题 | 页面模板 | 主体布局 | 互动组件 | 学生实践分钟 | 学生页预览 |
 |------|------|----------|----------|----------|--------------|------------|
-| step-01 | 回到地图——从纯极点语言走向稳定边界 | `map_hero_slide` | 路径图 + 任务卡 | `none` | 0 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-01` |
-| step-02 | 先看主图——参数变化下极点怎样逼近边界 | `pole-region-vote` | 主图 + 图例 + 点选区 | `region_click` | 3 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-02` |
-| step-03 | 学习目标与边界——本课负责什么，不负责什么 | `goal_boundary_split` | 目标卡 + 边界表 | `none` | 0 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-03` |
-| step-04 | 前测——高阶系统不求根也能判稳吗 | `single_concept_vote` | 问题卡 + 三选一 | `single_choice` | 4 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-04` |
-| step-05 | 普通劳斯表：第一列为什么是主轴 | `routh_table_workspace` | 固定对象公式 + 劳斯表 + 填空区 | `short_response` | 6 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-05` |
-| step-06 | 带参数劳斯表：稳定区间怎样直接读出 | `parametric_routh_workspace` | 带参数劳斯表 + 不等式链 + 区间输入区 | `interval_input` | 8 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-06` |
-| step-07 | 图 1 回看：代数区间怎样对应极点迁移范围 | `pole_region_linker` | 主图回看 + 参数卡 + 对应区 | `pair_match` | 5 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-07` |
-| step-08 | 特殊情况辨识：首位为 0 还是全零行 | `special_case_sorter` | 方法卡 + 双案例 + 分类区 | `card_sort` | 7 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-08` |
-| step-09 | 辅助方程：全零行为何暴露边界根结构 | `auxiliary_equation_builder` | 规则卡 + 本例公式区 + 填空区 | `formula_fill` | 7 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-09` |
-| step-10 | 图 2：稳定、临界、失稳的时间响应对照 | `time_response_match` | 三曲线图 + 三标签 + 配对区 | `triple_match` | 5 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-10` |
-| step-11 | 图 3：边界附近为什么更容易出现频域峰值 | `bode_trend_judge` | 幅频图 + 结论卡 + 判断区 | `binary_choice` | 4 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-11` |
-| step-12 | 变量平移：从稳定到区域约束 | `shifted_region_workspace` | 平移公式链 + 流程图 + 区间输入区 | `interval_input` | 7 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-12` |
-| step-13 | 收束——从劳斯判稳走向设计可行域入口 | `summary_infographic` | 四列表 + 出口短答 + 信息图 | `short_response` | 3 | `/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-13` |
+| step-01 | 回到地图——从纯极点语言走向稳定边界 | `map_hero_slide` | 路径图 + 任务卡 | `none` | 0 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-01` |
+| step-02 | 先看主图——参数变化下极点怎样逼近边界 | `pole-region-vote` | 主图 + 图例 + 点选区 | `region_click` | 3 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-02` |
+| step-03 | 学习目标与边界——本课负责什么，不负责什么 | `goal_boundary_split` | 目标卡 + 边界表 | `none` | 0 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-03` |
+| step-04 | 前测——高阶系统不求根也能判稳吗 | `single_concept_vote` | 问题卡 + 三选一 | `single_choice` | 4 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-04` |
+| step-05 | 普通劳斯表：第一列为什么是主轴 | `routh_table_workspace` | 固定对象公式 + 劳斯表 + 填空区 | `short_response` | 6 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-05` |
+| step-06 | 带参数劳斯表：稳定区间怎样直接读出 | `parametric_routh_workspace` | 带参数劳斯表 + 不等式链 + 区间输入区 | `interval_input` | 8 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-06` |
+| step-07 | 图 1 回看：代数区间怎样对应极点迁移范围 | `pole_region_linker` | 主图回看 + 参数卡 + 对应区 | `pair_match` | 5 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-07` |
+| step-08 | 特殊情况辨识：首位为 0 还是全零行 | `special_case_sorter` | 方法卡 + 双案例 + 分类区 | `card_sort` | 7 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-08` |
+| step-09 | 辅助方程：全零行为何暴露边界根结构 | `auxiliary_equation_builder` | 规则卡 + 本例公式区 + 填空区 | `formula_fill` | 7 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-09` |
+| step-10 | 图 2：稳定、临界、失稳的时间响应对照 | `time_response_match` | 三曲线图 + 三标签 + 配对区 | `triple_match` | 5 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-10` |
+| step-11 | 图 3：边界附近为什么更容易出现频域峰值 | `bode_trend_judge` | 幅频图 + 结论卡 + 判断区 | `binary_choice` | 4 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-11` |
+| step-12 | 变量平移：从稳定到区域约束 | `shifted_region_workspace` | 平移公式链 + 流程图 + 区间输入区 | `interval_input` | 7 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-12` |
+| step-13 | 收束——从劳斯判稳走向设计可行域入口 | `summary_infographic` | 四列表 + 出口短答 + 信息图 | `short_response` | 3 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-13` |
 
 > 可追踪学生实践合计：`59` 分钟。
 
@@ -80,7 +80,7 @@
 - 禁止范围：根轨迹法则、控制器整定
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-01`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-01`
 - 对齐要求：首屏直接出现路径图与任务卡，无作答区
 
 ## 步骤 02｜先看主图——参数变化下极点怎样逼近边界
@@ -114,7 +114,7 @@
 - 禁止范围：劳斯表细节、根轨迹法则
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-02`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-02`
 - 对齐要求：主图、图例卡和点选区在未作答状态下同屏
 
 ## 步骤 03｜学习目标与边界——本课负责什么，不负责什么
@@ -146,7 +146,7 @@
 - 禁止范围：模块 4 设计任务
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-03`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-03`
 - 对齐要求：目标卡和边界表同屏
 
 ## 步骤 04｜前测——高阶系统不求根也能判稳吗
@@ -184,7 +184,7 @@
 - 禁止范围：完整劳斯表推导
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-04`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-04`
 - 对齐要求：问题卡、三选一和误区卡同屏
 
 ## 步骤 05｜普通劳斯表：第一列为什么是主轴
@@ -245,7 +245,7 @@ $$
 - 禁止范围：跳过表格直接报答案
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-05`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-05`
 - 对齐要求：对象方程、劳斯表和填空区同屏
 
 ## 步骤 06｜带参数劳斯表：稳定区间怎样直接读出
@@ -308,7 +308,7 @@ $$
 - 禁止范围：AI 直接代替学生给出最终区间
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-06`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-06`
 - 对齐要求：公式卡、劳斯表、不等式链和区间输入区同屏
 
 ## 步骤 07｜图 1 回看：代数区间怎样对应极点迁移范围
@@ -344,7 +344,7 @@ $$
 - 禁止范围：提前展开根轨迹法则
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-07`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-07`
 - 对齐要求：主图、参数卡和匹配区必须同屏
 
 ## 步骤 08｜特殊情况辨识：首位为 0 还是全零行
@@ -383,7 +383,7 @@ $$
 - 禁止范围：把两类情况混成同一套算法
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-08`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-08`
 - 对齐要求：方法卡、双案例和分类区必须同屏
 
 ## 步骤 09｜辅助方程：全零行为何暴露边界根结构
@@ -434,7 +434,7 @@ $$
 - 禁止范围：跳过规则卡直接给最终根
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-09`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-09`
 - 对齐要求：一般规则、本例公式和填空区同屏
 
 ## 步骤 10｜图 2：稳定、临界、失稳的时间响应对照
@@ -470,7 +470,7 @@ $$
 - 禁止范围：新增时域指标计算题
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-10`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-10`
 - 对齐要求：三曲线图和三标签配对区同屏
 
 ## 步骤 11｜图 3：边界附近为什么更容易出现频域峰值
@@ -513,7 +513,7 @@ $$
 - 禁止范围：Nyquist、裕度语言
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-11`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-11`
 - 对齐要求：幅频图、结论卡和二选一判断区同屏
 
 ## 步骤 12｜变量平移：从稳定到区域约束
@@ -566,7 +566,7 @@ $$
 - 禁止范围：完整控制器设计面板
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-12`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-12`
 - 对齐要求：公式链、流程图和区间输入区同屏
 
 ## 步骤 13｜收束——从劳斯判稳走向设计可行域入口
@@ -601,7 +601,7 @@ $$
 - 禁止范围：模块 4 整定方案
 
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-feasible-region/student/demo?step=step-13`
+- 学生页预览：`/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-13`
 - 对齐要求：四列表、出口短答与信息图同屏
 
 ## 资源占位清单

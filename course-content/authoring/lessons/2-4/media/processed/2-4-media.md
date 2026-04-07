@@ -1,6 +1,6 @@
 # 2-4-intro-video.mp4
 
-- 先用一个短场景说明：同一个 G(jω) 为什么既要看 Bode，也要看 Nyquist
+- 一辆旧自动叉车擦着仓库拐角前进，监控室先给出分散曲线与指针，再切到完整轨迹图，让人直观看到同一频率对象换一种图就更容易判断风险边界。
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=6f944597c1bc96903ae733fdba8be76c&v=1775441123459&puid=26652392&enc=93c945dddf969644aad33c03d7c1ef34&wps=c5d9d56b07c2b278fdf1054ddaf0a3bcd70d687fb84ea7b5
 
