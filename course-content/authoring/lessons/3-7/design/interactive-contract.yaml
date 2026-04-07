@@ -263,10 +263,12 @@
       "modules": [
         { "id": "type-definition-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
         { "id": "static-coefficient-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
+        { "id": "type-coefficient-table", "region": "tables", "kind": "comparison-table", "must_be_visible": true },
         { "id": "type-error-table", "region": "tables", "kind": "comparison-table", "must_be_visible": true },
         { "id": "match-zone", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
       ],
       "content_blocks": [
+        { "id": "coefficient-table-note", "type": "plain_text", "title": "表 2", "body": "本页必须同时静态承载“型别与误差系数关系表”和“型别与典型输入误差表”，不得只保留其中一张表。" },
         { "id": "boundary-note", "type": "plain_text", "title": "适用边界", "body": "显式扰动问题不能拿表直接替代列式。" }
       ],
       "interaction_spec": {
@@ -309,9 +311,12 @@
       "modules": [
         { "id": "example-two-card", "region": "problem", "kind": "worked-example-card", "must_be_visible": true },
         { "id": "example-two-figure", "region": "figure", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "total-error-formula-card", "region": "figure", "kind": "formula-card", "must_be_visible": true },
         { "id": "total-error-workspace", "region": "workspace", "kind": "worked-example-workspace", "must_be_visible": true }
       ],
       "content_blocks": [
+        { "id": "total-error-formula", "type": "formula", "title": "总误差表达式", "body": "E(s)=\\frac{1}{1+G_1(s)G_2(s)}R(s)-\\frac{G_2(s)}{1+G_1(s)G_2(s)}D(s)" },
+        { "id": "total-error-expanded", "type": "formula", "title": "代入后的总误差式", "body": "E(s)=\\frac{s^2+7s+10}{s^2+7s+20}\\cdot \\frac{1}{s}-\\frac{2(s+5)}{s^2+7s+20}\\cdot \\frac{0.2}{s}" },
         { "id": "result", "type": "plain_text", "title": "结果锚点", "body": "本题最终总稳态误差为 0.4，原因不是套表，而是先分通道再求极限。" }
       ],
       "interaction_spec": {
@@ -339,7 +344,7 @@
         "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-07",
         "must_match_student_page": true
       },
-      "acceptance_checks": ["结构图、题面与结果栏必须同页可见。", "工作区不能掩盖题面。"]
+      "acceptance_checks": ["结构图、题面、总误差式与结果栏必须同页可见。", "工作区不能掩盖题面。"]
     },
     "step-08": {
       "title": "增益变大 vs 型别提高：哪一种才会改变误差阶次",
@@ -495,10 +500,13 @@
       "modules": [
         { "id": "pi-frequency-figure", "region": "media", "kind": "design-graphic", "must_be_visible": true },
         { "id": "pi-pd-compare-figure", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "frequency-design-order-card", "region": "table", "kind": "process-card", "must_be_visible": true },
         { "id": "pi-pd-table", "region": "table", "kind": "comparison-table", "must_be_visible": true },
         { "id": "cause-match", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
       ],
       "content_blocks": [
+        { "id": "pure-gain-limit", "type": "plain_text", "title": "纯增益限制", "body": "纯增益若取 K>=10 才能满足 K_v>=10，但相位裕度不足，无法同时兼顾低频精度与稳定裕量。" },
+        { "id": "pi-design-sequence", "type": "bullet_list", "title": "PI 频域设计顺序", "items": ["先定目标截止频率 ω_c*=2.5 rad/s。", "再把 PI 零点放到 ω_z=0.125 rad/s。", "再由幅值条件求 G_PI(s)=3(s+0.125)/s。", "最后回查 PM、ω_c 与时域响应。"] },
         { "id": "summary", "type": "bullet_list", "title": "核心结论", "items": ["PI 更偏低频精度优先。", "PD 更偏动态速度优先。"] }
       ],
       "interaction_spec": {
@@ -526,7 +534,7 @@
         "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-11",
         "must_match_student_page": true
       },
-      "acceptance_checks": ["两张图与比较表必须完整可见。", "配对失败时不提前进入判据。"]
+      "acceptance_checks": ["两张图、设计顺序卡与比较表必须完整可见。", "配对失败时不提前进入判据。"]
     },
     "step-12": {
       "title": "后测与收束：先选路径，再认代价，最后接到 3-8",
@@ -541,9 +549,12 @@
       "modules": [
         { "id": "post-quiz", "region": "quiz", "kind": "quiz-group", "must_be_visible": true },
         { "id": "summary-card", "region": "summary", "kind": "summary-card", "must_be_visible": true },
+        { "id": "path-selection-table", "region": "summary", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "info-graphic", "region": "summary", "kind": "summary-graphic", "must_be_visible": true },
         { "id": "next-lesson-card", "region": "next", "kind": "next-step-card", "must_be_visible": true }
       ],
       "content_blocks": [
+        { "id": "path-selection-summary", "type": "bullet_list", "title": "直接求 / 快速判规则", "items": ["标准负反馈、只问典型给定输入稳态误差：优先快速判。", "输入与扰动共同存在：优先直接求。", "输入是多项式叠加：直接求与快速判均可。", "目标是判断是否必须引入积分：先看型别。"] },
         { "id": "summary", "type": "bullet_list", "title": "六条小结", "items": ["稳态误差先分通道。", "终值定理是通用路径。", "型别与误差系数是标准快判。", "增益变大不等于型别提高。", "PI 与滞后都不是免费午餐。", "3-8 将进入频域判别语言。"] }
       ],
       "interaction_spec": {
@@ -572,7 +583,7 @@
         "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-12",
         "must_match_student_page": true
       },
-      "acceptance_checks": ["后测题、小结卡与去向卡必须同页可见。", "本页既能完成测验也能独立复习。"]
+      "acceptance_checks": ["后测题、小结卡、规则表、信息图与去向卡必须同页可见。", "本页既能完成测验也能独立复习。"]
     }
   }
 }

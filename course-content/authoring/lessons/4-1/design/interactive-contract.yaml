@@ -1,0 +1,569 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "4-1",
+  "course_title": "4-1：设计起点：性能指标体系、工程约束与可行域表达",
+  "course_route_segment": "unit-4-1-design-task-expression",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo",
+    "teacher_preview_panel_note": "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "回到地图：为什么稳定还不等于任务可接受",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          { "id": "header", "width": "full", "order": 1 },
+          { "id": "lead", "width": "full", "order": 2 },
+          { "id": "summary", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "stage-map", "region": "lead", "kind": "stage-map", "must_be_visible": true },
+        { "id": "core-question-card", "region": "lead", "kind": "question-card", "must_be_visible": true },
+        { "id": "boundary-card", "region": "summary", "kind": "boundary-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "path", "type": "plain_text", "title": "路径定位", "body": "固定高亮 3-9 -> 4-1 -> 4-2 -> 4-3。" },
+        { "id": "question", "type": "bullet_list", "title": "主问题", "items": ["系统已经稳定，为什么还不能直接谈方法？", "同一组分析证据，为什么会写出不同任务排序？"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["推进到下一页", "高亮当前节点"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep", "teacherFollowSync"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count", "sync_status"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "标定 4-1 是模块 4 的任务表达入口。",
+        "allowed_scope": ["课程路径", "分析证据与设计任务的区别"],
+        "forbidden_scope": ["控制器推荐", "参数整定"],
+        "canonical_facts": ["稳定不是任务完成。", "4-1 先写任务，再谈方法。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-01",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["首屏必须看到地图、主问题卡和边界卡。", "本页无作答区。"]
+    },
+    "step-02": {
+      "title": "学习目标与边界：4-1 只负责写任务书",
+      "layout": {
+        "template": "goal_boundary_slide",
+        "regions": [
+          { "id": "goals", "width": "full", "order": 1 },
+          { "id": "boundary", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "goal-cards", "region": "goals", "kind": "goal-card-row", "must_be_visible": true },
+        { "id": "boundary-table", "region": "boundary", "kind": "comparison-table", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "goals", "type": "bullet_list", "title": "四项目标", "items": ["会重组指标。", "会分角色。", "会讲区域分层。", "会写任务表达卡。"] },
+        { "id": "boundary", "type": "table", "title": "本课边界", "body": "负责任务语言、优先级与可行域表达；不负责控制结构选择、参数整定和最优搜索。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "建立目标与边界。",
+        "answer_reveal": "none"
+      },
+      "teacher_controls": ["逐条强调目标", "高亮边界表某一行"],
+      "telemetry_spec": {
+        "summary_fields": ["viewed", "timeOnStep"],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": ["view_count"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立 4-1 与 4-2/4-3 的边界。",
+        "allowed_scope": ["目标卡", "边界表"],
+        "forbidden_scope": ["后续单元内容"],
+        "canonical_facts": ["4-1 不做选型。", "4-1 不做整定。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-02",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["目标卡和边界表必须同屏。", "本页无提交区。"]
+    },
+    "step-03": {
+      "title": "前测：为什么“所有指标都重要”不是合格任务书",
+      "layout": {
+        "template": "question_stack",
+        "regions": [
+          { "id": "question-stack", "width": "full", "order": 1 },
+          { "id": "submit-bar", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "pretest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "misconception-note", "type": "bullet_list", "title": "常见误区", "items": ["稳定不是任务完成。", "更大带宽未必无条件更优。", "没有排序的任务卡不合格。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三道前测题。",
+        "attempt_model": "允许重提一次，教师端区分首答与重提。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放前测", "显示统计", "显示答案"],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "errorBucket"],
+        "misconception_tags": ["stable_equals_done", "bandwidth_always_better", "all_metrics_same_priority"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["question_distribution", "top_misconceptions"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "暴露入口误区。",
+        "allowed_scope": ["术语纠偏", "错因标签"],
+        "forbidden_scope": ["代替作答"],
+        "canonical_facts": ["前测只暴露误区，不拉开成绩差距。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-03",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["三题在未作答状态下全部可见。", "教师端可看到误区分布。"]
+    },
+    "step-04": {
+      "title": "指标角色重组：时域、频域、积分误差分别回答什么",
+      "layout": {
+        "template": "formula_table_match",
+        "regions": [
+          { "id": "formula", "width": "full", "order": 1 },
+          { "id": "tables", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "role-question-cards", "region": "tables", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "integral-index-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
+        { "id": "role-match-zone", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "questions", "type": "bullet_list", "title": "三类问题", "items": ["过程是否可接受。", "离风险边界还有多远。", "全过程累计代价有多大。"] },
+        { "id": "integral", "type": "plain_text", "title": "积分误差类指标", "body": "保留 ISE、IAE、ITAE 三式，不扩展为优化算法。"}
+      ],
+      "interaction_spec": {
+        "interaction_kind": "triple_match",
+        "student_task": "把典型指标拖到三类问题区。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": ["重置配对", "显示常见错配"],
+      "telemetry_spec": {
+        "summary_fields": ["matchAttempted", "matchCorrected", "timeOnStep"],
+        "misconception_tags": ["integral_index_as_hard_constraint", "time_freq_mixup"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["common_mismatch_pairs", "completion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把三类指标的功能差异说清。",
+        "allowed_scope": ["时域指标", "频域指标", "积分误差类指标"],
+        "forbidden_scope": ["优化算法", "控制器建议"],
+        "canonical_facts": ["时域回答过程接受度。", "频域回答储备边界。", "积分误差回答累计代价。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-04",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["三类问题卡必须先于互动区出现。", "积分误差卡片不可扩展成优化器入口。"]
+    },
+    "step-05": {
+      "title": "任务分类：硬约束、软目标、观察指标",
+      "layout": {
+        "template": "comparison_panel_with_sort",
+        "regions": [
+          { "id": "rules", "width": "full", "order": 1 },
+          { "id": "card-bank", "width": "full", "order": 2 },
+          { "id": "sort-area", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "classification-rules", "region": "rules", "kind": "rule-card-row", "must_be_visible": true },
+        { "id": "metric-card-bank", "region": "card-bank", "kind": "card-bank", "must_be_visible": true },
+        { "id": "classification-sort", "region": "sort-area", "kind": "card-sort", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "rules", "type": "bullet_list", "title": "分类规则", "items": ["硬约束：不能破。", "软目标：守住底线后继续争取。", "观察指标：用来解释代价与后果。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "card_sort",
+        "student_task": "把两组场景条目拖到三类角色区。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放分类题", "显示统计", "揭示参考分组"],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "sortBucket", "timeOnStep"],
+        "misconception_tags": ["observation_as_constraint", "soft_target_as_hard_constraint"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["bucket_distribution", "common_sort_errors"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把指标名称变成任务角色。",
+        "allowed_scope": ["分类规则", "错因说明"],
+        "forbidden_scope": ["从分类直接给控制器建议"],
+        "canonical_facts": ["角色由任务决定，不由名词决定。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-05",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["规则卡必须先于拖拽区出现。", "教师端能看到错分布。"]
+    },
+    "step-06": {
+      "title": "区域分层：可行域、满意域、最优域不是一步",
+      "layout": {
+        "template": "layered_region_board",
+        "regions": [
+          { "id": "formula", "width": "full", "order": 1 },
+          { "id": "diagram", "width": "full", "order": 2 },
+          { "id": "decision", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "layer-formula-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
+        { "id": "layer-diagram", "region": "diagram", "kind": "layer-diagram", "must_be_visible": true },
+        { "id": "layer-judgement", "region": "decision", "kind": "binary-choice", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "layering", "type": "plain_text", "title": "三层关系", "body": "O 属于 S，S 属于 F；入口课先讲可行和满意，不求最优。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "判断给定说法属于哪一层误判。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": ["切换案例说法", "显示错因标签"],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "errorBucket"],
+        "misconception_tags": ["feasible_equals_optimal", "stable_equals_satisficing"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["error_bucket_distribution"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "固定 4-1 的边界：先筛边界，不求最优。",
+        "allowed_scope": ["可行域", "满意域", "最优域"],
+        "forbidden_scope": ["参数搜索", "最优整定"],
+        "canonical_facts": ["可行域不等于最优域。", "稳定域不等于任务可接受域。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-06",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["公式卡和分层图必须先于判断区出现。", "本页不能出现求最优交互。"]
+    },
+    "step-07": {
+      "title": "主场景 A：客船航向控制的跨域联读",
+      "layout": {
+        "template": "case_study_dashboard",
+        "regions": [
+          { "id": "object", "width": "full", "order": 1 },
+          { "id": "evidence", "width": "full", "order": 2 },
+          { "id": "analysis", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "ship-object-block", "region": "object", "kind": "graphic", "must_be_visible": true },
+        { "id": "ship-quad-figure", "region": "evidence", "kind": "graphic", "must_be_visible": true },
+        { "id": "ship-reading-card", "region": "analysis", "kind": "structured-compare", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "transfer-function", "type": "plain_text", "title": "开环传函", "body": "L_h(s)=0.0385875/[s(s+0.1)(s+2.14375)]" },
+        { "id": "constraint", "type": "plain_text", "title": "入口边界", "body": "Mp <= 15%，ts <= 45 s" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "structured_compare",
+        "student_task": "填写当前主要矛盾、必守边界和当前证据。",
+        "answer_reveal": "field_feedback_only"
+      },
+      "teacher_controls": ["显示参考读图顺序", "公布参考答案"],
+      "telemetry_spec": {
+        "summary_fields": ["fieldCompletion", "errorBucket", "timeOnStep"],
+        "misconception_tags": ["ship_speed_first", "ignored_margin_boundary"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["field_completion_rate", "top_error_buckets"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把主场景 A 的排序压实为平顺与储备优先。",
+        "allowed_scope": ["对象框图", "四联图证据", "任务排序"],
+        "forbidden_scope": ["控制器名称", "参数建议"],
+        "canonical_facts": ["客船场景先让过程进入可接受区域，再谈提速。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-07",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["对象框图与四联图必须同页可见。", "反馈只提示缺项，不直接给控制器答案。"]
+    },
+    "step-08": {
+      "title": "对照案例 B：稳定平台为什么把速度排得更前",
+      "layout": {
+        "template": "case_study_dashboard",
+        "regions": [
+          { "id": "object", "width": "full", "order": 1 },
+          { "id": "evidence", "width": "full", "order": 2 },
+          { "id": "analysis", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "platform-object-block", "region": "object", "kind": "graphic", "must_be_visible": true },
+        { "id": "platform-quad-figure", "region": "evidence", "kind": "graphic", "must_be_visible": true },
+        { "id": "platform-reading-card", "region": "analysis", "kind": "structured-compare", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "layout-note", "type": "plain_text", "title": "特殊布局说明", "body": "案例 B 保留双根轨迹和右上双窄图，以同时呈现快速极点和工作区。" }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "structured_compare",
+        "student_task": "填写速度优势、当前代价和不能放松的边界。",
+        "answer_reveal": "field_feedback_only"
+      },
+      "teacher_controls": ["切换到全范围根轨迹说明", "公布参考答案"],
+      "telemetry_spec": {
+        "summary_fields": ["fieldCompletion", "errorBucket", "timeOnStep"],
+        "misconception_tags": ["platform_can_relax_margin", "speed_only_no_boundary"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["field_completion_rate", "top_error_buckets"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生区分排序前移和边界失效不是一回事。",
+        "allowed_scope": ["双根轨迹布局", "高带宽与储备代价"],
+        "forbidden_scope": ["整定建议"],
+        "canonical_facts": ["案例 B 速度前移，但储备边界不能放松。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-08",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["必须完整保留案例 B 的特殊布局说明。", "分析区要同时提到速度优势与边界代价。"]
+    },
+    "step-09": {
+      "title": "双案例对照：同一套图，为什么会读出两种排序",
+      "layout": {
+        "template": "contrast_summary_board",
+        "regions": [
+          { "id": "matrix", "width": "full", "order": 1 },
+          { "id": "sorting", "width": "full", "order": 2 },
+          { "id": "summary", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "case-compare-matrix", "region": "matrix", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "sorting-cards", "region": "sorting", "kind": "card-sort", "must_be_visible": true },
+        { "id": "summary-card", "region": "summary", "kind": "summary-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "core_fact", "type": "plain_text", "title": "核心判断", "body": "语言相同，排序不同；变的是任务优先级，不是基础证据。"}
+      ],
+      "interaction_spec": {
+        "interaction_kind": "card_sort",
+        "student_task": "把结论条目拖到客船排序或平台排序。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": ["重置排序", "显示参考排序"],
+      "telemetry_spec": {
+        "summary_fields": ["sortAttempted", "sortCorrected", "timeOnStep"],
+        "misconception_tags": ["same_sort_for_all_scenarios"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["sorting_distribution", "completion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "压实“场景变了，排序就会重排”。",
+        "allowed_scope": ["双案例排序差异"],
+        "forbidden_scope": ["跨案例直接给统一方案"],
+        "canonical_facts": ["客船优先平顺与储备。", "平台优先速度与带宽，同时补足储备。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-09",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["对照矩阵和排序区必须同屏。", "总结卡必须明确“语言相同，排序不同”。"]
+    },
+    "step-10": {
+      "title": "任务表达卡工作区：把后续设计输入写全",
+      "layout": {
+        "template": "task_card_workspace",
+        "regions": [
+          { "id": "template", "width": "full", "order": 1 },
+          { "id": "evidence", "width": "full", "order": 2 },
+          { "id": "workspace", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "task-card-template", "region": "template", "kind": "template-card", "must_be_visible": true },
+        { "id": "evidence-bank", "region": "evidence", "kind": "evidence-bank", "must_be_visible": true },
+        { "id": "task-card-form", "region": "workspace", "kind": "task-card-workspace", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "fields", "type": "bullet_list", "title": "六字段", "items": ["对象", "目标", "硬约束", "软目标", "观察指标", "证据来源"] },
+        { "id": "checklist", "type": "bullet_list", "title": "五步判断清单", "items": ["最不能接受的后果是什么。", "先落在哪些指标上。", "当前是否进入可行域。", "继续改善会先碰到什么代价。", "最后再写排序。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "task_card_workspace",
+        "student_task": "选择一个案例，完整填写任务表达卡。",
+        "answer_reveal": "field_feedback_only"
+      },
+      "teacher_controls": ["切换案例", "查看字段完成率", "公布参考任务卡"],
+      "telemetry_spec": {
+        "summary_fields": ["fieldCompletion", "submissionState", "timeOnStep"],
+        "misconception_tags": ["missing_priority", "missing_evidence_source"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["field_completion_rate", "submission_overview", "top_missing_fields"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "形成可交给 4-2/4-3 的统一输入卡。",
+        "allowed_scope": ["字段完整性检查", "误判检查"],
+        "forbidden_scope": ["直接生成控制器方案"],
+        "canonical_facts": ["任务卡必须写出优先级和证据来源。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-10",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["模板卡与证据区必须同屏。", "工作区缺项时应提示优先级和证据来源。"]
+    },
+    "step-11": {
+      "title": "误判检查：稳定不等于完成，可行不等于最优",
+      "layout": {
+        "template": "misconception_board",
+        "regions": [
+          { "id": "cards", "width": "full", "order": 1 },
+          { "id": "decision", "width": "full", "order": 2 }
+        ]
+      },
+      "modules": [
+        { "id": "misconception-cards", "region": "cards", "kind": "card-row", "must_be_visible": true },
+        { "id": "misconception-judge", "region": "decision", "kind": "binary-choice", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "misconceptions", "type": "bullet_list", "title": "三类误判", "items": ["稳定等于任务完成。", "所有指标同等重要。", "单看一张图就能写结论。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "binary_choice",
+        "student_task": "判断给定说法属于哪类误判。",
+        "answer_reveal": "instant_feedback"
+      },
+      "teacher_controls": ["切换误判说法", "显示错因说明"],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "errorBucket"],
+        "misconception_tags": ["stable_equals_done", "all_metrics_equal", "single_plot_decision"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["error_bucket_distribution"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "在进入 4-2 之前清理入口误判。",
+        "allowed_scope": ["错因纠偏"],
+        "forbidden_scope": ["扩展到结构选择"],
+        "canonical_facts": ["稳定不等于完成。", "可行不等于最优。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-11",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["三类误判卡必须完整落页。", "判断区只能做误判纠偏。"]
+    },
+    "step-12": {
+      "title": "后测与收束：先写任务，再谈方法",
+      "layout": {
+        "template": "summary_quiz_board",
+        "regions": [
+          { "id": "quiz", "width": "full", "order": 1 },
+          { "id": "summary", "width": "full", "order": 2 },
+          { "id": "next-step", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "posttest", "region": "quiz", "kind": "quiz-group", "must_be_visible": true },
+        { "id": "summary-card", "region": "summary", "kind": "summary-card", "must_be_visible": true },
+        { "id": "next-step-card", "region": "next-step", "kind": "next-step-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "summary", "type": "bullet_list", "title": "三句带走", "items": ["稳定只是起点，不是终点。", "变的是排序，不是基础语言。", "四联图联读的出口是任务表达卡。"] },
+        { "id": "next", "type": "bullet_list", "title": "后续去向", "items": ["4-2：根据任务排序筛结构。", "4-3：根据任务卡写初始方案方向。"] }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成四道后测题。",
+        "answer_reveal": "teacher_toggle"
+      },
+      "teacher_controls": ["释放后测", "显示统计", "显示答案"],
+      "telemetry_spec": {
+        "summary_fields": ["attemptCount", "resultState", "timeOnStep"],
+        "misconception_tags": ["still_missing_priority", "still_confusing_feasible_optimal"]
+      },
+      "teacher_insight_spec": {
+        "widgets": ["question_distribution", "completion_rate"],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "完成本课收束并接到 4-2/4-3。",
+        "allowed_scope": ["本课小结", "后续去向"],
+        "forbidden_scope": ["提前给出结构结论"],
+        "canonical_facts": ["4-1 输出的是任务卡，不是控制器。"]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-12",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": ["小结卡、去向卡和后测题必须同页。", "去向卡必须明确 4-2 和 4-3 的输入关系。"]
+    }
+  }
+}

@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-ROOT = Path('/Users/YW/Documents/Site/act.just.edu.cn')
+ROOT = Path(__file__).resolve().parents[5]
 os.environ.setdefault('MPLCONFIGDIR', str(ROOT / '.cache' / 'matplotlib'))
 
 import matplotlib

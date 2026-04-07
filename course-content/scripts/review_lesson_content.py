@@ -655,18 +655,21 @@ def parse_markdown_table(rows: list[str]) -> list[dict[str, str]]:
 
 def extract_step_sections(markdown: str) -> dict[str, dict[str, str]]:
     step_sections: dict[str, dict[str, str]] = {}
-    step_pattern = re.compile(r'^##\s+步骤\s+([0-9]+)｜.*?(?=^##\s+步骤\s+[0-9]+｜|\Z)', re.MULTILINE | re.DOTALL)
+    step_pattern = re.compile(
+        r'^##\s+(?:步骤\s+|step-)([0-9]+)｜.*?(?=^##\s+(?:步骤\s+|step-)[0-9]+｜|\Z)',
+        re.MULTILINE | re.DOTALL,
+    )
     for match in step_pattern.finditer(markdown):
         step_num = match.group(1)
         step_id = f'step-{int(step_num):02d}'
         block = match.group(0)
         static_match = re.search(
-            r'###\s+静态承载内容\s*\n(?P<body>.*?)(?=\n###\s+互动升级点|\Z)',
+            r'###\s+(?:静态承载内容|固定内容)\s*\n(?P<body>.*?)(?=\n###\s+(?:互动升级点|互动与反馈)|\Z)',
             block,
             re.DOTALL,
         )
         upgrade_match = re.search(
-            r'###\s+互动升级点\s*\n(?P<body>.*?)(?=\n###\s+|\Z)',
+            r'###\s+(?:互动升级点|互动与反馈)\s*\n(?P<body>.*?)(?=\n###\s+|\Z)',
             block,
             re.DOTALL,
         )
@@ -744,15 +747,18 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
     if missing_mapping_columns:
         issues.append(f'讲义核心内容映射缺少列：{", ".join(missing_mapping_columns)}')
 
-    step_pattern = re.compile(r'^##\s+步骤\s+[0-9]+｜.*?(?=^##\s+步骤\s+[0-9]+｜|\Z)', re.MULTILINE | re.DOTALL)
+    step_pattern = re.compile(
+        r'^##\s+(?:步骤\s+|step-)[0-9]+｜.*?(?=^##\s+(?:步骤\s+|step-)[0-9]+｜|\Z)',
+        re.MULTILINE | re.DOTALL,
+    )
     step_static_blocks_missing: list[str] = []
     step_upgrade_blocks_missing: list[str] = []
     for step_block in step_pattern.finditer(text):
         block = step_block.group(0)
         title_line = block.splitlines()[0].strip()
-        if '静态承载内容' not in block:
+        if '静态承载内容' not in block and '固定内容' not in block:
             step_static_blocks_missing.append(title_line)
-        if '互动升级点' not in block:
+        if '互动升级点' not in block and '互动与反馈' not in block:
             step_upgrade_blocks_missing.append(title_line)
 
     if step_static_blocks_missing:

@@ -16365,3 +16365,15 @@
 {"relation_id": "rel-ce039312a7ac25fc", "source": "静态误差系数", "target": "稳态误差双路径判断", "source_chapter": 3, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.95}
 {"relation_id": "rel-d0e467ac0f79fd8b", "source": "扰动作用下的稳态误差", "target": "给定-扰动双通道误差分析", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
 {"relation_id": "rel-f75a95e73e2f5348", "source": "系统型别", "target": "稳态误差双路径判断", "source_chapter": 3, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.95}
+{"relation_id": "rel-17489e9818161bbc", "source": "截止频率", "target": "奈奎斯特与 Bode 统一判稳链", "source_chapter": 5, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.92}
+{"relation_id": "rel-501ff32dc197dffd", "source": "幅角原理", "target": "奈奎斯特与 Bode 统一判稳链", "source_chapter": 5, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.97}
+{"relation_id": "rel-716f122a874561db", "source": "结构变化的频域指纹", "target": "奈奎斯特与 Bode 统一判稳链", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "rel-82bf0bfa3368273f", "source": "左半平面零点的动态改善机理", "target": "结构变化的频域指纹", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.93}
+{"relation_id": "rel-8c8a32f8b2052561", "source": "目标驱动超前校正", "target": "频域综合判断与工程读回", "source_chapter": 3, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-8d59391857d790ae", "source": "奈奎斯特稳定判据", "target": "奈奎斯特与 Bode 统一判稳链", "source_chapter": 5, "target_chapter": 3, "relation_type": "contains", "strength": 0.96}
+{"relation_id": "rel-d708d143eaa7268d", "source": "非最小相与右半平面零点", "target": "结构变化的频域指纹", "source_chapter": 3, "target_chapter": 3, "relation_type": "contains", "strength": 0.9}
+{"relation_id": "rel-d9836a78991e3f00", "source": "三频段闭环性能回读", "target": "频域综合判断与工程读回", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "rel-dc5c22ca7c2daae2", "source": "非最小相与右半平面零点", "target": "三频段闭环性能回读", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "rel-e9aff57729cbe55d", "source": "奈奎斯特与 Bode 统一判稳链", "target": "三频段闭环性能回读", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.94}
+{"relation_id": "rel-feb232a6dad19f2d", "source": "幅值裕度", "target": "奈奎斯特与 Bode 统一判稳链", "source_chapter": 5, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-ffd47cd0324ec6ec", "source": "低频补偿稳态改善路径", "target": "结构变化的频域指纹", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}

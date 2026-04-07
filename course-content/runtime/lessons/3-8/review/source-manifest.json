@@ -1,0 +1,36 @@
+{
+  "lesson_id": "3-8",
+  "unit_type": "理论",
+  "generated_at": "2026-04-07T14:27:24.793712+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/3-8/design/handout.md",
+    "course-content/authoring/lessons/3-8/design/interactive-page.md"
+  ],
+  "interactive_page_source": "course-content/authoring/lessons/3-8/design/interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/3-8/design/interactive-contract.yaml",
+  "handout_pdf_source": "course-content/authoring/lessons/3-8/design/handout.pdf",
+  "boppps_source": "course-content/authoring/lessons/3-8/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/3-8/sequence.json",
+  "expected_code_media": [
+    {
+      "output": "3-8-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-intro-video.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-three-band-overview.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-double-ship-frequency-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    }
+  ]
+}

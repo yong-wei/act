@@ -1,0 +1,152 @@
+{
+  "lesson_id": "3-7",
+  "title": "型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理",
+  "layer": "层3",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "C+X",
+  "graph_version": "3-7-v1",
+  "focus_node_ids": [
+    "给定-扰动双通道误差分析_3_37001",
+    "稳态误差双路径判断_3_37002",
+    "低频补偿稳态改善路径_3_37003",
+    "终值定理_3_be8fe1ad",
+    "系统型别_3_5573c2c3",
+    "静态误差系数_3_7080d9f8",
+    "扰动作用下的稳态误差_3_5c9fcfe1",
+    "比例-积分控制器_3_2d540516"
+  ],
+  "reuse_node_ids": [
+    "误差传递函数_2_1d55824d",
+    "静态速度误差系数_3_ba8e28bb",
+    "积分环节_2_11005",
+    "串联无源滞后校正_6_2a52e865",
+    "频率特性_5_404adfdd",
+    "相角裕度_5_0a9c6e90",
+    "带宽_5_6730fda4"
+  ],
+  "entry_nodes": [
+    "给定-扰动双通道误差分析_3_37001",
+    "终值定理_3_be8fe1ad"
+  ],
+  "summary_nodes": [
+    "低频补偿稳态改善路径_3_37003",
+    "比例-积分控制器_3_2d540516"
+  ],
+  "card_order": [
+    "误差传递函数_2_1d55824d",
+    "给定-扰动双通道误差分析_3_37001",
+    "终值定理_3_be8fe1ad",
+    "扰动作用下的稳态误差_3_5c9fcfe1",
+    "系统型别_3_5573c2c3",
+    "静态误差系数_3_7080d9f8",
+    "静态速度误差系数_3_ba8e28bb",
+    "稳态误差双路径判断_3_37002",
+    "积分环节_2_11005",
+    "比例-积分控制器_3_2d540516",
+    "串联无源滞后校正_6_2a52e865",
+    "低频补偿稳态改善路径_3_37003",
+    "频率特性_5_404adfdd",
+    "相角裕度_5_0a9c6e90",
+    "带宽_5_6730fda4"
+  ],
+  "preceding_lesson": "3-6",
+  "following_lesson": "3-8",
+  "refinement_units": [],
+  "ideological_point": "工程精度从来不是免费午餐。判断“更准”的同时，必须同步识别它会把速度、裕量和实现复杂度推向哪里。",
+  "sequence": {
+    "lesson_id": "3-7",
+    "groups": [
+      {
+        "group_name": "从动态改善切到误差通道",
+        "step_ids": [
+          "step-01",
+          "step-02",
+          "step-03",
+          "step-04"
+        ],
+        "node_ids": [
+          "误差传递函数_2_1d55824d",
+          "给定-扰动双通道误差分析_3_37001",
+          "扰动作用下的稳态误差_3_5c9fcfe1"
+        ]
+      },
+      {
+        "group_name": "直接求与快速判",
+        "step_ids": [
+          "step-05",
+          "step-06",
+          "step-07",
+          "step-08"
+        ],
+        "node_ids": [
+          "终值定理_3_be8fe1ad",
+          "系统型别_3_5573c2c3",
+          "静态误差系数_3_7080d9f8",
+          "静态速度误差系数_3_ba8e28bb",
+          "稳态误差双路径判断_3_37002"
+        ]
+      },
+      {
+        "group_name": "低频补偿与稳态改善路径",
+        "step_ids": [
+          "step-09",
+          "step-10",
+          "step-11"
+        ],
+        "node_ids": [
+          "积分环节_2_11005",
+          "比例-积分控制器_3_2d540516",
+          "串联无源滞后校正_6_2a52e865",
+          "低频补偿稳态改善路径_3_37003"
+        ]
+      },
+      {
+        "group_name": "后测与频域收束",
+        "step_ids": [
+          "step-12"
+        ],
+        "node_ids": [
+          "频率特性_5_404adfdd",
+          "相角裕度_5_0a9c6e90",
+          "带宽_5_6730fda4",
+          "低频补偿稳态改善路径_3_37003"
+        ]
+      }
+    ],
+    "card_order": [
+      "误差传递函数_2_1d55824d",
+      "给定-扰动双通道误差分析_3_37001",
+      "终值定理_3_be8fe1ad",
+      "扰动作用下的稳态误差_3_5c9fcfe1",
+      "系统型别_3_5573c2c3",
+      "静态误差系数_3_7080d9f8",
+      "静态速度误差系数_3_ba8e28bb",
+      "稳态误差双路径判断_3_37002",
+      "积分环节_2_11005",
+      "比例-积分控制器_3_2d540516",
+      "串联无源滞后校正_6_2a52e865",
+      "低频补偿稳态改善路径_3_37003",
+      "频率特性_5_404adfdd",
+      "相角裕度_5_0a9c6e90",
+      "带宽_5_6730fda4"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/3-7/handout.md",
+  "handout_source_path": "course-content/runtime/lessons/3-7/handout.md",
+  "handout_pdf_path": "/course-runtime/lessons/3-7/handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/3-7/handout.pdf",
+  "graph_overlay_path": "/course-runtime/lessons/3-7/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/3-7/media",
+  "media_index_path": "/course-runtime/lessons/3-7/media/3-7-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/3-7/media/3-7-media.md",
+  "review": {
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/3-7/review/boppps.md",
+    "report_path": "/course-runtime/lessons/3-7/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/3-7/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/3-7/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/3-7/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/3-7/review/source-manifest.json"
+  }
+}

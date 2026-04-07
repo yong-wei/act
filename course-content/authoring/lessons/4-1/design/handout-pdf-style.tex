@@ -7,6 +7,7 @@
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
+\usepackage{ltcaption}
 \usepackage{caption}
 \usepackage{float}
 \usepackage{needspace}
@@ -28,6 +29,11 @@
 \setstretch{1.22}
 \setlength{\parindent}{2em}
 \setlength{\parskip}{0.35em}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\setlength{\LTcapwidth}{\textwidth}
 \setlist[itemize]{itemsep=0.25em, topsep=0.35em}
 \setlist[enumerate]{itemsep=0.25em, topsep=0.35em}
 

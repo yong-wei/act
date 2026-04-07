@@ -14,7 +14,7 @@
 
 ---
 
-## 2. 本课正式媒体总表
+## 2. 讲义正文正式媒体总表
 
 | 编号 | 文件名 | 类型 | 用途 |
 | :---: | --- | --- | --- |
@@ -27,6 +27,19 @@
 | 7 | `3-7-pi-frequency-design.png` | Octave Bode 图 | PI 频域设计步骤化结果 |
 | 8 | `3-7-pi-pd-comparison.png` | Octave 对比图 | PI 与 PD 性能对比 |
 | 9 | `3-7-info.png` | 代码直出信息图 | 讲义末尾总结 |
+
+## 2.1 标准必需交付件
+
+以下文件不一定都在讲义正文直接引用，但属于本课 runtime-first 审查链的标准交付件，必须与上表一起核对完整性：
+
+| 文件名 | 类型 | 当前角色 | 来源链路 |
+| --- | --- | --- | --- |
+| `design/handout.pdf` | 讲义 PDF | runtime 下载版讲义源 | `design/handout.md` 导出 |
+| `media/processed/3-7-intro-video.mp4` | 导入视频 | 课前导入与预习资源 | 外部生成后纳入媒体索引 |
+| `media/processed/3-7-audio.m4a` | 音频 | 配套音频资源 | 外部生成后纳入媒体索引 |
+| `media/processed/3-7-slides.pdf` | 课件 PDF | 课堂/预习配套课件 | 外部导出后纳入媒体索引 |
+| `media/processed/3-7-course.mp4` | 课程视频 | 课程主视频资源 | 外部生成后纳入媒体索引 |
+| `media/processed/3-7-media.md` | 媒体索引 | runtime 媒体入口清单 | 由审查/导出链维护 |
 
 ---
 
@@ -54,8 +67,11 @@
 
 ### 3.3 数值曲线与设计验证
 
-- **绘图脚本**：`media/raw/3-7-generate-plots.m`
-- **数值核验脚本**：`media/raw/3-7-steady-error-validation.m`
+- **权威绘图入口**：`media/raw/3-7-generate-plots.m`
+- **权威数值核验入口**：`media/raw/3-7-steady-error-validation.m`
+- **辅助数据脚本**：`media/raw/generate_design_data.m`
+- **辅助渲染脚本**：`media/raw/render_figures.py`
+- **兼容性重绘脚本**：`media/raw/3-7-generate-plots.py`
 - **输出内容**：
   - 纯增益与 PI 的根轨迹/阶跃/斜坡对比；
   - PI、滞后、超前在转折频率上的三子图比较；
@@ -64,7 +80,8 @@
   - PI 与 PD 性能对比图。
 - **约束**：
   - 所有时域、根轨迹、频域数值曲线均由 MATLAB/Octave 脚本生成；
-  - 复现脚本只保留 `.m` 文件，不把框图脚本记作复现脚本；
+  - 本课正式数值图的审查口径以 `.m` 脚本为准；若使用 `.py` 辅助渲染，输入必须来自 `.m` 生成的数据，不得另行改写结论；
+  - `generate_design_data.m` + `render_figures.py` 与 `3-7-generate-plots.py` 仅作为辅助重绘链路，不单独作为正式结果的权威依据；
   - 图中标注的参数、性能指标和正文结论必须一一对应。
 
 ### 3.4 封面与信息图
@@ -93,3 +110,18 @@
 
 - `3-7-cover-comic-prompt.md`
 - `3-7-intro-video-prompts.md`
+
+## 6. 额外产物与归属说明
+
+以下文件保留在 `media/processed/`，但不计入“讲义正文直接引用的正式媒体总表”；保留目的是复查、打印检查或下游实现复用：
+
+| 文件名 | 归属 | 保留原因 |
+| --- | --- | --- |
+| `3-7-error-dual-channel.pdf` | TikZ 框图中间产物 | 保留矢量版，便于二次排版与打印检查 |
+| `3-7-example2-structure.pdf` | TikZ 框图中间产物 | 保留矢量版，便于二次排版与打印检查 |
+| `3-7-lag-frequency-bode.png` | 辅助分析图 | 用于校对滞后低频补偿的频域效果，不作为正文主图 |
+| `3-7-lag-time-domain-step.png` | 辅助分析图 | 用于补充查看滞后时域响应细节 |
+| `3-7-pi-frequency-bode.png` | 辅助分析图 | 用于补充查看 PI 频域核验细节 |
+| `3-7-pi-time-domain-step.png` | 辅助分析图 | 用于补充查看 PI 时域响应细节 |
+
+这些额外产物可以保留，但不应替代第 2 节列出的正式媒体，也不应让下游无法判断哪一份是本课的正式交付图。

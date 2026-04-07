@@ -1,0 +1,91 @@
+{
+  "lesson_id": "3-7",
+  "unit_type": "理论",
+  "generated_at": "2026-04-07T13:05:49.870824+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/3-7/design/handout.md",
+    "course-content/authoring/lessons/3-7/design/interactive-page.md"
+  ],
+  "interactive_page_source": "course-content/authoring/lessons/3-7/design/interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/3-7/design/interactive-contract.yaml",
+  "handout_pdf_source": "course-content/authoring/lessons/3-7/design/handout.pdf",
+  "boppps_source": "course-content/authoring/lessons/3-7/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/3-7/sequence.json",
+  "expected_code_media": [
+    {
+      "output": "3-7-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-error-dual-channel.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-example2-structure.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-low-frequency-compensators.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-pi-time-domain-design.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-lag-time-domain-design.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-pi-frequency-design.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-pi-pd-comparison.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-error-dual-channel.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-example2-structure.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-lag-frequency-bode.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-lag-time-domain-step.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-pi-frequency-bode.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-7-pi-time-domain-step.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    }
+  ]
+}

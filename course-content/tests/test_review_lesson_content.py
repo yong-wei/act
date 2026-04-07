@@ -521,6 +521,60 @@ def test_build_interactive_page_check_flags_missing_v2_contract_fields(tmp_path)
     assert '步骤 `step-01` 的互动契约缺少字段：modules, content_blocks, interaction_spec, teacher_controls, telemetry_spec, teacher_insight_spec, ai_context_spec, preview_contract, acceptance_checks' in check['issues']
 
 
+def test_build_interactive_page_check_supports_step_prefix_and_fixed_content_sections(tmp_path):
+    lesson_dir = tmp_path / 'authoring' / 'lessons' / 'demo-5'
+    design_dir = lesson_dir / 'design'
+    design_dir.mkdir(parents=True)
+
+    handout_path = design_dir / 'handout.md'
+    interactive_page_path = design_dir / 'interactive-page.md'
+
+    handout_path.write_text(
+        '\n'.join(
+            [
+                '# demo',
+                '',
+                '## 示例标题',
+                '',
+                '$$G(s)=K$$',
+            ]
+        ),
+        encoding='utf-8',
+    )
+    interactive_page_path.write_text(
+        '\n'.join(
+            [
+                '## 讲义核心内容映射',
+                '| handout_anchor | core_item_type | must_appear_content | target_step | page_mode | interaction_upgrade | media_or_table_ref | acceptance_note |',
+                '|---|---|---|---|---|---|---|---|',
+                '| `## 示例标题` | `formula/conclusion` | $G(s)=K$ | `step-01` | `static+interactive` | 用判断题核对对象含义 | 无 | 页面显式出现公式 |',
+                '',
+                '## step-01｜示例',
+                '### 固定内容',
+                '$$G(s)=K$$',
+                '### 互动与反馈',
+                '用判断题核对对象含义。',
+            ]
+        ),
+        encoding='utf-8',
+    )
+
+    original_get_lesson_dir = review_lesson_content.get_authoring_lesson_dir
+    try:
+        review_lesson_content.get_authoring_lesson_dir = lambda _: lesson_dir
+        check = review_lesson_content.build_interactive_page_check(
+            'demo-5',
+            [handout_path, interactive_page_path],
+        )
+    finally:
+        review_lesson_content.get_authoring_lesson_dir = original_get_lesson_dir
+
+    assert check['missing_target_steps'] == []
+    assert check['step_static_blocks_missing'] == []
+    assert check['step_upgrade_blocks_missing'] == []
+    assert check['formula_mapping_issues'] == []
+
+
 def test_build_interactive_page_check_reports_clean_implementation_contract_for_2_1():
     primary_sources = review_lesson_content.build_primary_sources('2-1', '理论')
 

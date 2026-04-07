@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path('/Users/YW/Documents/Site/act.just.edu.cn')
+ROOT = Path(__file__).resolve().parents[5]
 RAW_DIR = ROOT / 'course-content/authoring/lessons/3-7/media/raw'
 OUT_DIR = ROOT / 'course-content/authoring/lessons/3-7/media/processed'
 TEX_FILES = [

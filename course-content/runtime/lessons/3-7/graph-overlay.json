@@ -1,0 +1,1036 @@
+{
+  "lesson_id": "3-7",
+  "title": "型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理",
+  "focus_node_ids": [
+    "给定-扰动双通道误差分析_3_37001",
+    "稳态误差双路径判断_3_37002",
+    "低频补偿稳态改善路径_3_37003",
+    "终值定理_3_be8fe1ad",
+    "系统型别_3_5573c2c3",
+    "静态误差系数_3_7080d9f8",
+    "扰动作用下的稳态误差_3_5c9fcfe1",
+    "比例-积分控制器_3_2d540516"
+  ],
+  "reuse_node_ids": [
+    "误差传递函数_2_1d55824d",
+    "静态速度误差系数_3_ba8e28bb",
+    "积分环节_2_11005",
+    "串联无源滞后校正_6_2a52e865",
+    "频率特性_5_404adfdd",
+    "相角裕度_5_0a9c6e90",
+    "带宽_5_6730fda4"
+  ],
+  "entry_nodes": [
+    "给定-扰动双通道误差分析_3_37001",
+    "终值定理_3_be8fe1ad"
+  ],
+  "summary_nodes": [
+    "低频补偿稳态改善路径_3_37003",
+    "比例-积分控制器_3_2d540516"
+  ],
+  "card_order": [
+    "误差传递函数_2_1d55824d",
+    "给定-扰动双通道误差分析_3_37001",
+    "终值定理_3_be8fe1ad",
+    "扰动作用下的稳态误差_3_5c9fcfe1",
+    "系统型别_3_5573c2c3",
+    "静态误差系数_3_7080d9f8",
+    "静态速度误差系数_3_ba8e28bb",
+    "稳态误差双路径判断_3_37002",
+    "积分环节_2_11005",
+    "比例-积分控制器_3_2d540516",
+    "串联无源滞后校正_6_2a52e865",
+    "低频补偿稳态改善路径_3_37003",
+    "频率特性_5_404adfdd",
+    "相角裕度_5_0a9c6e90",
+    "带宽_5_6730fda4"
+  ],
+  "groups": [
+    {
+      "group_name": "从动态改善切到误差通道",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04"
+      ],
+      "node_ids": [
+        "误差传递函数_2_1d55824d",
+        "给定-扰动双通道误差分析_3_37001",
+        "扰动作用下的稳态误差_3_5c9fcfe1"
+      ]
+    },
+    {
+      "group_name": "直接求与快速判",
+      "step_ids": [
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08"
+      ],
+      "node_ids": [
+        "终值定理_3_be8fe1ad",
+        "系统型别_3_5573c2c3",
+        "静态误差系数_3_7080d9f8",
+        "静态速度误差系数_3_ba8e28bb",
+        "稳态误差双路径判断_3_37002"
+      ]
+    },
+    {
+      "group_name": "低频补偿与稳态改善路径",
+      "step_ids": [
+        "step-09",
+        "step-10",
+        "step-11"
+      ],
+      "node_ids": [
+        "积分环节_2_11005",
+        "比例-积分控制器_3_2d540516",
+        "串联无源滞后校正_6_2a52e865",
+        "低频补偿稳态改善路径_3_37003"
+      ]
+    },
+    {
+      "group_name": "后测与频域收束",
+      "step_ids": [
+        "step-12"
+      ],
+      "node_ids": [
+        "频率特性_5_404adfdd",
+        "相角裕度_5_0a9c6e90",
+        "带宽_5_6730fda4",
+        "低频补偿稳态改善路径_3_37003"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "积分环节_2_11005",
+      "name": "积分环节",
+      "nodeType": "THEORY",
+      "description": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
+      "positionX": -0.0,
+      "positionY": -38.0,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "典型环节",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "典型环节",
+        "bloom_level": "理解",
+        "definition": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
+        "examples": [
+          "水箱：流量输入→液位输出",
+          "船舶：角速度→航向角"
+        ],
+        "formulas": [
+          "G(s) = 1/s",
+          "y(t) = ∫₀ᵗ u(τ)dτ"
+        ],
+        "prerequisites": [
+          "传递函数_2_2c5e2589"
+        ],
+        "relatedConcepts": [
+          "比例环节_2_11004",
+          "极点_2_cc79a4c5"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "积分",
+          "原点极点",
+          "累积效应"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/积分环节_2_11005.md"
+      ],
+      "tags": [
+        "积分",
+        "原点极点",
+        "累积效应",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "误差传递函数_2_1d55824d",
+      "name": "误差传递函数",
+      "nodeType": "THEORY",
+      "description": "反馈控制系统中，以误差信号E(s)作为输出量，与输入信号R(s)或扰动信号N(s)之间的传递函数。",
+      "positionX": 50.2,
+      "positionY": 29.0,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "反馈控制系统中，以误差信号E(s)作为输出量，与输入信号R(s)或扰动信号N(s)之间的传递函数。",
+        "examples": [
+          "图2-42系统中，输入作用下的误差传递函数E(s)/R(s)"
+        ],
+        "formulas": [
+          "\\frac{E(s)}{R(s)} = \\frac{1}{1 + G(s)H(s)}",
+          "\\frac{E(s)}{N(s)} = \\frac{-G_2(s)H(s)}{1 + G_1(s)G_2(s)H(s)}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "误差信号",
+          "E(s)",
+          "反馈系统"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627693",
+        "updatedAt": "2026-02-04T17:54:16.627694",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/误差传递函数_2_1d55824d.md"
+      ],
+      "tags": [
+        "误差信号",
+        "E(s)",
+        "反馈系统",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "低频补偿稳态改善路径_3_37003",
+      "name": "低频补偿稳态改善路径",
+      "nodeType": "THEORY",
+      "description": "把 PI 与滞后都理解为低频补偿：前者通过积分提高型别，后者通过低频增益重分配压小有限误差，并且二者都会把动态速度与频域裕量代价转移到其他频段。",
+      "positionX": 12.9,
+      "positionY": 48.3,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "把 PI 与滞后都理解为低频补偿：前者通过积分提高型别，后者通过低频增益重分配压小有限误差，并且二者都会把动态速度与频域裕量代价转移到其他频段。",
+        "examples": [
+          "PI 通过在原点增加积分极点，使 I 型系统提升为 II 型，从结构上消除斜坡稳态误差。",
+          "滞后校正通过“零点在左、极点在右”的附加零极点对抬高低频增益，在型别不变时改善速度误差系数。"
+        ],
+        "formulas": [
+          "G_{PI}(s)=K\\frac{T_i s+1}{T_i s}",
+          "G_{lag}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1"
+        ],
+        "prerequisites": [
+          "稳态误差双路径判断_3_37002",
+          "积分环节_2_11005",
+          "比例-积分控制器_3_2d540516",
+          "串联无源滞后校正_6_2a52e865"
+        ],
+        "relatedConcepts": [
+          "频率特性_5_404adfdd",
+          "相角裕度_5_0a9c6e90",
+          "带宽_5_6730fda4"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "低频补偿",
+          "PI",
+          "滞后校正",
+          "型别提高",
+          "低频增益",
+          "代价"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/低频补偿稳态改善路径_3_37003.md"
+      ],
+      "tags": [
+        "低频补偿",
+        "PI",
+        "滞后校正",
+        "型别提高",
+        "低频增益",
+        "代价",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "扰动作用下的稳态误差_3_5c9fcfe1",
+      "name": "扰动作用下的稳态误差",
+      "nodeType": "THEORY",
+      "description": "控制系统在各种扰动信号（如负载变动、噪声）作用下产生的稳态误差，反映系统的抗干扰能力。",
+      "positionX": -84.0,
+      "positionY": 0.0,
+      "positionZ": 3,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "控制系统在各种扰动信号（如负载变动、噪声）作用下产生的稳态误差，反映系统的抗干扰能力。",
+        "examples": [
+          "例3-16，比例控制系统在阶跃扰动转矩作用下的稳态误差分析。"
+        ],
+        "formulas": [
+          "E_n(s) = -\\Phi_{en}(s)N(s)",
+          "\\Phi_{en}(s) = \\frac{-G_2(s)}{1 + G_1(s)G_2(s)H(s)}",
+          "e_{ssn}(t) = \\sum_{k=0}^{\\infty} C_{nk} n^{(k)}(t)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "抗干扰能力",
+          "扰动信号",
+          "误差传递函数"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628020",
+        "updatedAt": "2026-02-04T17:54:16.628020",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/扰动作用下的稳态误差_3_5c9fcfe1.md"
+      ],
+      "tags": [
+        "抗干扰能力",
+        "扰动信号",
+        "误差传递函数",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "比例-积分控制器_3_2d540516",
+      "name": "比例-积分控制器",
+      "nodeType": "THEORY",
+      "description": "一种结合比例控制和积分控制的控制器，用于消除稳态误差。",
+      "positionX": 45.0,
+      "positionY": 77.9,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "一种结合比例控制和积分控制的控制器，用于消除稳态误差。",
+        "examples": [
+          "例3-17中用于控制系统，消除阶跃转矩扰动下的稳态误差。"
+        ],
+        "formulas": [
+          "G_c(s) = K_p + \\frac{K_i}{s}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "PI控制器",
+          "稳态误差",
+          "积分控制"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628043",
+        "updatedAt": "2026-02-04T17:54:16.628044",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/比例-积分控制器_3_2d540516.md"
+      ],
+      "tags": [
+        "PI控制器",
+        "稳态误差",
+        "积分控制",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "稳态误差双路径判断_3_37002",
+      "name": "稳态误差双路径判断",
+      "nodeType": "THEORY",
+      "description": "面对稳态误差问题时，先判闭环稳定与信号通道，再在“终值定理直接求”和“型别/静态误差系数快速判”之间选择合适求解路径的判断框架。",
+      "positionX": -53.7,
+      "positionY": -31.0,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "面对稳态误差问题时，先判闭环稳定与信号通道，再在“终值定理直接求”和“型别/静态误差系数快速判”之间选择合适求解路径的判断框架。",
+        "examples": [
+          "标准负反馈、只问典型给定输入时，可先用型别和 K_p/K_v/K_a 快判；输入与扰动共同存在时，应优先完整列式。",
+          "多项式输入叠加问题既可用终值定理全式求，也可按保留分量用快判复算。"
+        ],
+        "formulas": [
+          "e_{ss}=\\lim_{s\\to0}sE(s)",
+          "K_p=\\lim_{s\\to0}G(s)H(s),\\quad K_v=\\lim_{s\\to0}sG(s)H(s),\\quad K_a=\\lim_{s\\to0}s^2G(s)H(s)"
+        ],
+        "prerequisites": [
+          "给定-扰动双通道误差分析_3_37001",
+          "终值定理_3_be8fe1ad",
+          "系统型别_3_5573c2c3",
+          "静态误差系数_3_7080d9f8"
+        ],
+        "relatedConcepts": [
+          "低频补偿稳态改善路径_3_37003"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "终值定理",
+          "型别",
+          "静态误差系数",
+          "路径选择",
+          "适用边界"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/稳态误差双路径判断_3_37002.md"
+      ],
+      "tags": [
+        "终值定理",
+        "型别",
+        "静态误差系数",
+        "路径选择",
+        "适用边界",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "系统型别_3_5573c2c3",
+      "name": "系统型别",
+      "nodeType": "THEORY",
+      "description": "根据系统开环传递函数所含积分环节的个数（v）对系统进行的分类，决定了系统跟踪不同输入信号的能力。",
+      "positionX": -23.3,
+      "positionY": -86.9,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "根据系统开环传递函数所含积分环节的个数（v）对系统进行的分类，决定了系统跟踪不同输入信号的能力。",
+        "examples": [
+          "v=0为0型系统，v=1为I型系统，v=2为II型系统。0型系统在阶跃输入下有稳态误差，I型系统在阶跃输入下无稳态误差但在斜坡输入下有误差。",
+          "0型系统（有静差系统）、I型系统（一阶无差度系统）、II型系统（二阶无差度系统）",
+          "0型系统对阶跃输入有稳态误差，I型系统对阶跃输入无稳态误差但对斜坡输入有稳态误差。"
+        ],
+        "formulas": [
+          "G(s)H(s) = \\frac{K \\prod (\\tau_i s + 1)}{s^v \\prod (T_j s + 1)}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "开环增益",
+          "跟踪能力",
+          "无差系统",
+          "型别",
+          "积分环节",
+          "无差度",
+          "0型系统",
+          "I型系统",
+          "II型系统"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627981",
+        "updatedAt": "2026-02-04T17:54:16.627981",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/系统型别_3_5573c2c3.md"
+      ],
+      "tags": [
+        "开环增益",
+        "跟踪能力",
+        "无差系统",
+        "型别",
+        "积分环节",
+        "无差度",
+        "0型系统",
+        "I型系统",
+        "II型系统",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "终值定理_3_be8fe1ad",
+      "name": "终值定理",
+      "nodeType": "THEORY",
+      "description": "拉普拉斯变换中的一个定理，用于由象函数直接求取原函数在时间趋于无穷时的极限值。",
+      "positionX": 86.9,
+      "positionY": -23.3,
+      "positionZ": 3,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "拉普拉斯变换中的一个定理，用于由象函数直接求取原函数在时间趋于无穷时的极限值。",
+        "examples": [
+          "计算稳态误差的基本工具"
+        ],
+        "formulas": [
+          "\\lim_{t \\to \\infty} f(t) = \\lim_{s \\to 0} sF(s)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "终值",
+          "拉普拉斯变换",
+          "极限"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628009",
+        "updatedAt": "2026-02-04T17:54:16.628009",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/终值定理_3_be8fe1ad.md"
+      ],
+      "tags": [
+        "终值",
+        "拉普拉斯变换",
+        "极限",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "给定-扰动双通道误差分析_3_37001",
+      "name": "给定-扰动双通道误差分析",
+      "nodeType": "THEORY",
+      "description": "在单回路负反馈系统中，把给定输入与扰动分别沿输出通道和误差通道列式，再用总输出与总误差叠加统一理解稳态问题的分析框架。",
+      "positionX": 65.7,
+      "positionY": 17.6,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "在单回路负反馈系统中，把给定输入与扰动分别沿输出通道和误差通道列式，再用总输出与总误差叠加统一理解稳态问题的分析框架。",
+        "examples": [
+          "例题 2 中，单位阶跃给定和对象入口常值扰动同时存在时，必须先写出 \\Phi_r(s)、\\Phi_d(s) 与总误差 E(s)，再做终值极限。",
+          "同一闭环结构下，四类传递函数分母相同但分子不同，说明结构不变而通道不同。"
+        ],
+        "formulas": [
+          "C(s)=\\Phi_r(s)R(s)+\\Phi_d(s)D(s)",
+          "E(s)=\\frac{1}{1+G_c(s)G_p(s)H(s)}R(s)-\\frac{G_p(s)H(s)}{1+G_c(s)G_p(s)H(s)}D(s)"
+        ],
+        "prerequisites": [
+          "误差传递函数_2_1d55824d",
+          "扰动作用下的稳态误差_3_5c9fcfe1"
+        ],
+        "relatedConcepts": [
+          "稳态误差双路径判断_3_37002"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "给定输入",
+          "扰动通道",
+          "总输出",
+          "总误差",
+          "分母相同"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/给定-扰动双通道误差分析_3_37001.md"
+      ],
+      "tags": [
+        "给定输入",
+        "扰动通道",
+        "总输出",
+        "总误差",
+        "分母相同",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "静态误差系数_3_7080d9f8",
+      "name": "静态误差系数",
+      "nodeType": "THEORY",
+      "description": "控制系统在特定典型输入（阶跃、斜坡、加速度）下定义的稳态误差性能指标，包括位置、速度、加速度误差系数。",
+      "positionX": 83.1,
+      "positionY": -48.0,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "控制系统在特定典型输入（阶跃、斜坡、加速度）下定义的稳态误差性能指标，包括位置、速度、加速度误差系数。",
+        "examples": [
+          "用于快速判断系统对阶跃、斜坡等输入信号的稳态误差。"
+        ],
+        "formulas": [
+          "K_p = \\lim_{s \\to 0} G(s)H(s)",
+          "K_v = \\lim_{s \\to 0} sG(s)H(s)",
+          "K_a = \\lim_{s \\to 0} s^2 G(s)H(s)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "位置误差系数",
+          "速度误差系数",
+          "加速度误差系数"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628014",
+        "updatedAt": "2026-02-04T17:54:16.628014",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/静态误差系数_3_7080d9f8.md"
+      ],
+      "tags": [
+        "位置误差系数",
+        "速度误差系数",
+        "加速度误差系数",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "静态速度误差系数_3_ba8e28bb",
+      "name": "静态速度误差系数",
+      "nodeType": "THEORY",
+      "description": "系统对斜坡输入信号的跟踪能力度量，定义为开环传递函数在s趋于0时的极限值。",
+      "positionX": 92.7,
+      "positionY": -24.8,
+      "positionZ": 3,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 3,
+      "chapterName": "时域分析",
+      "metadata": {
+        "chapter": 3,
+        "chapterName": "时域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "系统对斜坡输入信号的跟踪能力度量，定义为开环传递函数在s趋于0时的极限值。",
+        "examples": [
+          "0型系统K_v=0，I型系统K_v为常数，II型及以上系统K_v为无穷大",
+          "在火星漫游车设计中，用于计算斜坡输入下的稳态误差，并约束参数选择。"
+        ],
+        "formulas": [
+          "K_v = \\lim_{s \\to 0} sG(s)H(s)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "速度",
+          "误差系数",
+          "斜坡",
+          "速度误差",
+          "斜坡输入",
+          "稳态精度"
+        ],
+        "createdAt": "2026-02-04T17:54:16.627992",
+        "updatedAt": "2026-02-04T17:54:16.627992",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/静态速度误差系数_3_ba8e28bb.md"
+      ],
+      "tags": [
+        "速度",
+        "误差系数",
+        "斜坡",
+        "速度误差",
+        "斜坡输入",
+        "稳态精度",
+        "chapter-3"
+      ]
+    },
+    {
+      "id": "频率特性_5_404adfdd",
+      "name": "频率特性",
+      "nodeType": "THEORY",
+      "description": "线性系统在正弦信号作用下，输出稳态分量与输入信号的幅值比和相位差随频率变化的特性。",
+      "positionX": -160.0,
+      "positionY": 0.0,
+      "positionZ": 5,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "线性系统在正弦信号作用下，输出稳态分量与输入信号的幅值比和相位差随频率变化的特性。",
+        "examples": [
+          "RC网络的幅值比和相位差"
+        ],
+        "formulas": [
+          "G(j\\omega) = A(\\omega)e^{j\\varphi(\\omega)}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "幅频特性",
+          "相频特性",
+          "稳态响应"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628386",
+        "updatedAt": "2026-02-04T17:54:16.628386",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/频率特性_5_404adfdd.md"
+      ],
+      "tags": [
+        "幅频特性",
+        "相频特性",
+        "稳态响应",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "串联无源滞后校正_6_2a52e865",
+      "name": "串联无源滞后校正",
+      "nodeType": "THEORY",
+      "description": "一种通过串联滞后网络来改善系统稳态精度和动态性能的校正方法。",
+      "positionX": -0.0,
+      "positionY": -174.0,
+      "positionZ": 6,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 6,
+      "chapterName": "系统校正",
+      "metadata": {
+        "chapter": 6,
+        "chapterName": "系统校正",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "一种通过串联滞后网络来改善系统稳态精度和动态性能的校正方法。",
+        "examples": [
+          "例6-4中，为满足静态速度误差系数、相角裕度、幅值裕度和截止频率要求，设计串联滞后校正装置。"
+        ],
+        "formulas": [
+          "\\phi_m = \\gamma'' - \\gamma' + \\Delta",
+          "L'(\\omega_c'') = 20\\lg b",
+          "bT = \\frac{1}{\\omega_c''}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "滞后网络",
+          "相角裕度",
+          "截止频率",
+          "稳态误差"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628826",
+        "updatedAt": "2026-02-04T17:54:16.628826",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/串联无源滞后校正_6_2a52e865.md"
+      ],
+      "tags": [
+        "滞后网络",
+        "相角裕度",
+        "截止频率",
+        "稳态误差",
+        "chapter-6"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "误差传递函数|扰动作用下的稳态误差|2-3",
+      "sourceId": "误差传递函数_2_1d55824d",
+      "targetId": "扰动作用下的稳态误差_3_5c9fcfe1",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "系统型别|静态速度误差系数|3",
+      "sourceId": "系统型别_3_5573c2c3",
+      "targetId": "静态速度误差系数_3_ba8e28bb",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.8
+    },
+    {
+      "id": "系统型别|终值定理|3",
+      "sourceId": "系统型别_3_5573c2c3",
+      "targetId": "终值定理_3_be8fe1ad",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "系统型别|静态误差系数|3",
+      "sourceId": "系统型别_3_5573c2c3",
+      "targetId": "静态误差系数_3_7080d9f8",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "系统型别|扰动作用下的稳态误差|3",
+      "sourceId": "系统型别_3_5573c2c3",
+      "targetId": "扰动作用下的稳态误差_3_5c9fcfe1",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "系统型别|比例-积分控制器|3",
+      "sourceId": "系统型别_3_5573c2c3",
+      "targetId": "比例-积分控制器_3_2d540516",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.4
+    },
+    {
+      "id": "静态速度误差系数|终值定理|3",
+      "sourceId": "静态速度误差系数_3_ba8e28bb",
+      "targetId": "终值定理_3_be8fe1ad",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "静态速度误差系数|静态误差系数|3",
+      "sourceId": "静态速度误差系数_3_ba8e28bb",
+      "targetId": "静态误差系数_3_7080d9f8",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 1.0
+    },
+    {
+      "id": "静态速度误差系数|扰动作用下的稳态误差|3",
+      "sourceId": "静态速度误差系数_3_ba8e28bb",
+      "targetId": "扰动作用下的稳态误差_3_5c9fcfe1",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.4
+    },
+    {
+      "id": "静态速度误差系数|比例-积分控制器|3",
+      "sourceId": "静态速度误差系数_3_ba8e28bb",
+      "targetId": "比例-积分控制器_3_2d540516",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "终值定理|静态误差系数|3",
+      "sourceId": "终值定理_3_be8fe1ad",
+      "targetId": "静态误差系数_3_7080d9f8",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "终值定理|扰动作用下的稳态误差|3",
+      "sourceId": "终值定理_3_be8fe1ad",
+      "targetId": "扰动作用下的稳态误差_3_5c9fcfe1",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.6
+    },
+    {
+      "id": "终值定理|比例-积分控制器|3",
+      "sourceId": "终值定理_3_be8fe1ad",
+      "targetId": "比例-积分控制器_3_2d540516",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "静态误差系数|扰动作用下的稳态误差|3",
+      "sourceId": "静态误差系数_3_7080d9f8",
+      "targetId": "扰动作用下的稳态误差_3_5c9fcfe1",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.5
+    },
+    {
+      "id": "静态误差系数|比例-积分控制器|3",
+      "sourceId": "静态误差系数_3_7080d9f8",
+      "targetId": "比例-积分控制器_3_2d540516",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.6
+    },
+    {
+      "id": "扰动作用下的稳态误差|比例-积分控制器|3",
+      "sourceId": "扰动作用下的稳态误差_3_5c9fcfe1",
+      "targetId": "比例-积分控制器_3_2d540516",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-0218889e50a15e9c",
+      "sourceId": "频率特性_5_404adfdd",
+      "targetId": "低频补偿稳态改善路径_3_37003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-1ed81dabf5aec97e",
+      "sourceId": "终值定理_3_be8fe1ad",
+      "targetId": "稳态误差双路径判断_3_37002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.97
+    },
+    {
+      "id": "rel-2d5eea0005b1d084",
+      "sourceId": "稳态误差双路径判断_3_37002",
+      "targetId": "低频补偿稳态改善路径_3_37003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-38c77ca18636c5f2",
+      "sourceId": "静态速度误差系数_3_ba8e28bb",
+      "targetId": "低频补偿稳态改善路径_3_37003",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-6147a60410b8e0a4",
+      "sourceId": "积分环节_2_11005",
+      "targetId": "低频补偿稳态改善路径_3_37003",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-84fa5b17f4a4cd72",
+      "sourceId": "低频补偿稳态改善路径_3_37003",
+      "targetId": "串联无源滞后校正_6_2a52e865",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-9e62fa1c07936fed",
+      "sourceId": "误差传递函数_2_1d55824d",
+      "targetId": "给定-扰动双通道误差分析_3_37001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-a0900920c908e159",
+      "sourceId": "给定-扰动双通道误差分析_3_37001",
+      "targetId": "稳态误差双路径判断_3_37002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-a0f1dd7d45de7728",
+      "sourceId": "低频补偿稳态改善路径_3_37003",
+      "targetId": "比例-积分控制器_3_2d540516",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-ce039312a7ac25fc",
+      "sourceId": "静态误差系数_3_7080d9f8",
+      "targetId": "稳态误差双路径判断_3_37002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-d0e467ac0f79fd8b",
+      "sourceId": "扰动作用下的稳态误差_3_5c9fcfe1",
+      "targetId": "给定-扰动双通道误差分析_3_37001",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-f75a95e73e2f5348",
+      "sourceId": "系统型别_3_5573c2c3",
+      "targetId": "稳态误差双路径判断_3_37002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.95
+    }
+  ]
+}

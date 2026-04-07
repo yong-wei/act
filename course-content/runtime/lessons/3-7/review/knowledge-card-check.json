@@ -1,0 +1,24 @@
+{
+  "lesson_id": "3-7",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/3-7/sequence.json",
+  "card_order": [
+    "误差传递函数_2_1d55824d",
+    "给定-扰动双通道误差分析_3_37001",
+    "终值定理_3_be8fe1ad",
+    "扰动作用下的稳态误差_3_5c9fcfe1",
+    "系统型别_3_5573c2c3",
+    "静态误差系数_3_7080d9f8",
+    "静态速度误差系数_3_ba8e28bb",
+    "稳态误差双路径判断_3_37002",
+    "积分环节_2_11005",
+    "比例-积分控制器_3_2d540516",
+    "串联无源滞后校正_6_2a52e865",
+    "低频补偿稳态改善路径_3_37003",
+    "频率特性_5_404adfdd",
+    "相角裕度_5_0a9c6e90",
+    "带宽_5_6730fda4"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}
