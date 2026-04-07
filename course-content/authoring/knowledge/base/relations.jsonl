@@ -16352,3 +16352,16 @@
 {"relation_id": "rel-6e3a64b3a389f37a", "source": "零点引入与根轨迹重排", "target": "目标驱动PD校正", "source_chapter": 3, "target_chapter": 3, "relation_type": "contains", "strength": 0.9}
 {"relation_id": "rel-76f64af7ec16ddef", "source": "PD与测速反馈的等效阻尼对比", "target": "目标驱动测速反馈校正", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.96}
 {"relation_id": "rel-abf8b7cfcf2b4139", "source": "时域指标到目标极点区域", "target": "目标驱动PD校正", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.97}
+{"relation_id": "rel-0218889e50a15e9c", "source": "频率特性", "target": "低频补偿稳态改善路径", "source_chapter": 5, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "rel-1ed81dabf5aec97e", "source": "终值定理", "target": "稳态误差双路径判断", "source_chapter": 3, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.97}
+{"relation_id": "rel-2d5eea0005b1d084", "source": "稳态误差双路径判断", "target": "低频补偿稳态改善路径", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.94}
+{"relation_id": "rel-38c77ca18636c5f2", "source": "静态速度误差系数", "target": "低频补偿稳态改善路径", "source_chapter": 3, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.88}
+{"relation_id": "rel-6147a60410b8e0a4", "source": "积分环节", "target": "低频补偿稳态改善路径", "source_chapter": 2, "target_chapter": 3, "relation_type": "prerequisite", "strength": 0.9}
+{"relation_id": "rel-84fa5b17f4a4cd72", "source": "低频补偿稳态改善路径", "target": "串联无源滞后校正", "source_chapter": 3, "target_chapter": 6, "relation_type": "contains", "strength": 0.92}
+{"relation_id": "rel-9e62fa1c07936fed", "source": "误差传递函数", "target": "给定-扰动双通道误差分析", "source_chapter": 2, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "rel-a0900920c908e159", "source": "给定-扰动双通道误差分析", "target": "稳态误差双路径判断", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.96}
+{"relation_id": "rel-a0f1dd7d45de7728", "source": "低频补偿稳态改善路径", "target": "比例-积分控制器", "source_chapter": 3, "target_chapter": 3, "relation_type": "contains", "strength": 0.95}
+{"relation_id": "rel-cd7f1c541c7ec658", "source": "减小或消除稳态误差的措施", "target": "低频补偿稳态改善路径", "source_chapter": 3, "target_chapter": 3, "relation_type": "contains", "strength": 0.9}
+{"relation_id": "rel-ce039312a7ac25fc", "source": "静态误差系数", "target": "稳态误差双路径判断", "source_chapter": 3, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.95}
+{"relation_id": "rel-d0e467ac0f79fd8b", "source": "扰动作用下的稳态误差", "target": "给定-扰动双通道误差分析", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "rel-f75a95e73e2f5348", "source": "系统型别", "target": "稳态误差双路径判断", "source_chapter": 3, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.95}

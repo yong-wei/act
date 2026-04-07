@@ -120,13 +120,13 @@ def draw_feasible_region(ax: plt.Axes, case: dict) -> None:
     ha = 'right' if anchor == 'upper_right' else 'left'
     ax.text(
         x,
-        0.96,
+        0.975,
         rf'$M_p\leq {case["feasible_region"]["mp_ratio"]*100:.0f}\%$' '\n'
         rf'$t_s\leq {case["feasible_region"]["settling_time"]:.2f}\,\mathrm{{s}}$',
         transform=ax.transAxes,
         ha=ha,
         va='top',
-        fontsize=8.8,
+        fontsize=8.2,
         bbox=dict(boxstyle='round,pad=0.25', facecolor='white', edgecolor='#d9d9d9'),
     )
 
@@ -153,7 +153,107 @@ def set_root_limits(ax: plt.Axes, case: dict) -> None:
     ax.set_ylim(case['root_ylim'])
 
 
+def get_full_root_limits(case: dict, locus_key: str = 'root_locus') -> tuple[tuple[float, float], tuple[float, float]]:
+    rl_real = np.asarray(case[locus_key]['real'], dtype=float).reshape(-1)
+    rl_imag = np.asarray(case[locus_key]['imag'], dtype=float).reshape(-1)
+    all_real = [rl_real, arr(case['open_loop_poles'], 'real'), arr(case['closed_loop_poles'], 'real')]
+    all_imag = [rl_imag, arr(case['open_loop_poles'], 'imag'), arr(case['closed_loop_poles'], 'imag')]
+
+    zeros_real = arr(case['open_loop_zeros'], 'real').reshape(-1)
+    zeros_imag = arr(case['open_loop_zeros'], 'imag').reshape(-1)
+    if zeros_real.size:
+        all_real.append(zeros_real)
+        all_imag.append(zeros_imag)
+
+    x = np.concatenate(all_real)
+    y = np.concatenate(all_imag)
+    x = x[np.isfinite(x)]
+    y = y[np.isfinite(y)]
+
+    x_min = float(np.min(x))
+    x_max = float(np.max(x))
+    y_max = float(np.max(np.abs(y)))
+
+    span_x = max(x_max - x_min, 1.0)
+    span_y = max(2 * y_max, 1.0)
+    return (x_min - 0.04 * span_x, x_max + 0.06 * span_x), (-0.6 * span_y, 0.6 * span_y)
+
+
+def draw_root_locus(
+    ax: plt.Axes,
+    case: dict,
+    *,
+    locus_key: str = 'root_locus',
+    title: str,
+    xlim: tuple[float, float] | list[float],
+    ylim: tuple[float, float] | list[float],
+    show_feasible: bool,
+    show_legend: bool,
+    legend_loc: str | None = None,
+) -> None:
+    style_root_axis(ax)
+    if show_feasible:
+        draw_feasible_region(ax, case)
+
+    rl_real = np.asarray(case[locus_key]['real'], dtype=float)
+    rl_imag = np.asarray(case[locus_key]['imag'], dtype=float)
+    for row in range(rl_real.shape[0]):
+        ax.plot(rl_real[row], rl_imag[row], color=COLORS['curve'], linewidth=1.2, alpha=0.85)
+
+    ax.scatter(
+        arr(case['open_loop_poles'], 'real'),
+        arr(case['open_loop_poles'], 'imag'),
+        marker='x',
+        s=58,
+        linewidths=1.5,
+        color=COLORS['pole'],
+        zorder=6,
+        label='开环极点',
+    )
+    zeros_real = arr(case['open_loop_zeros'], 'real')
+    zeros_imag = arr(case['open_loop_zeros'], 'imag')
+    if zeros_real.size:
+        ax.scatter(
+            zeros_real,
+            zeros_imag,
+            marker='o',
+            s=42,
+            facecolors='white',
+            edgecolors=COLORS['zero'],
+            linewidths=1.5,
+            zorder=6,
+            label='开环零点',
+        )
+    ax.scatter(
+        arr(case['closed_loop_poles'], 'real'),
+        arr(case['closed_loop_poles'], 'imag'),
+        marker='o',
+        s=42,
+        facecolors=COLORS['curve'],
+        edgecolors='white',
+        linewidths=0.8,
+        zorder=7,
+        label='当前闭环极点',
+    )
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+    ax.set_title(title)
+    if show_legend:
+        ax.legend(
+            frameon=False,
+            fontsize=7.8,
+            loc=legend_loc or case.get('root_legend_loc', 'best'),
+            handlelength=1.5,
+            labelspacing=0.25,
+            borderaxespad=0.2,
+        )
+
+
 def plot_case_quad(case: dict, filename: str) -> None:
+    if case['id'] == 'platform_pitch':
+        plot_platform_case(case, filename)
+        return
+
     fig = plt.figure(figsize=(12.8, 8.8), dpi=220)
     gs = fig.add_gridspec(2, 2, hspace=0.32, wspace=0.24)
     ax1 = fig.add_subplot(gs[0, 0])
@@ -166,7 +266,7 @@ def plot_case_quad(case: dict, filename: str) -> None:
     y = arr(case['step'], 'y')
     ax1.plot(t, y, color=COLORS['curve'], linewidth=1.9)
     ax1.axhline(1.0, color=COLORS['limit'], linewidth=0.9, linestyle=':')
-    ax1.set_title('左上：闭环时域响应')
+    ax1.set_title('闭环时域响应')
     metrics = case['step_metrics']
     ax1.text(
         0.02,
@@ -183,21 +283,15 @@ def plot_case_quad(case: dict, filename: str) -> None:
         bbox=dict(boxstyle='round,pad=0.25', facecolor='white', edgecolor='#d9d9d9'),
     )
 
-    style_root_axis(ax2)
-    draw_feasible_region(ax2, case)
-    rl_real = np.asarray(case['root_locus']['real'], dtype=float)
-    rl_imag = np.asarray(case['root_locus']['imag'], dtype=float)
-    for row in range(rl_real.shape[0]):
-        ax2.plot(rl_real[row], rl_imag[row], color=COLORS['curve'], linewidth=1.2, alpha=0.85)
-    ax2.scatter(arr(case['open_loop_poles'], 'real'), arr(case['open_loop_poles'], 'imag'), marker='x', s=58, linewidths=1.5, color=COLORS['pole'], zorder=6, label='开环极点')
-    zeros_real = arr(case['open_loop_zeros'], 'real')
-    zeros_imag = arr(case['open_loop_zeros'], 'imag')
-    if zeros_real.size:
-        ax2.scatter(zeros_real, zeros_imag, marker='o', s=42, facecolors='white', edgecolors=COLORS['zero'], linewidths=1.5, zorder=6, label='开环零点')
-    ax2.scatter(arr(case['closed_loop_poles'], 'real'), arr(case['closed_loop_poles'], 'imag'), marker='o', s=42, facecolors=COLORS['curve'], edgecolors='white', linewidths=0.8, zorder=7, label='当前闭环极点')
-    set_root_limits(ax2, case)
-    ax2.set_title('左下：根轨迹与设计可行域')
-    ax2.legend(frameon=False, fontsize=8.6, loc=case.get('root_legend_loc', 'best'))
+    draw_root_locus(
+        ax2,
+        case,
+        title='根轨迹与设计可行域',
+        xlim=case['root_xlim'],
+        ylim=case['root_ylim'],
+        show_feasible=True,
+        show_legend=True,
+    )
 
     style_bode_axes(ax3, ax4)
     w = arr(case['bode'], 'w')
@@ -205,11 +299,11 @@ def plot_case_quad(case: dict, filename: str) -> None:
     phase = arr(case['bode'], 'phase_deg')
     ax3.semilogx(w, mag, color=COLORS['curve'], linewidth=1.8)
     draw_margin_lines_on_mag(ax3, w, mag, case['margins'])
-    ax3.set_title('右上：开环 Bode 幅频')
+    ax3.set_title('开环 Bode 幅频')
 
     ax4.semilogx(w, phase, color=COLORS['curve'], linewidth=1.8)
     draw_margin_lines_on_phase(ax4, w, phase, case['margins'])
-    ax4.set_title('右下：开环相频与裕度')
+    ax4.set_title('开环相频与裕度')
     ax4.text(
         0.02,
         0.03,
@@ -223,6 +317,93 @@ def plot_case_quad(case: dict, filename: str) -> None:
         va='bottom',
         fontsize=8.8,
         bbox=dict(boxstyle='round,pad=0.25', facecolor='white', edgecolor='#d9d9d9'),
+    )
+
+    fig.suptitle(f"{case['title']} | {case['task_tag']}", fontsize=14, fontweight='bold')
+    save(fig, filename)
+
+
+def plot_platform_case(case: dict, filename: str) -> None:
+    fig = plt.figure(figsize=(13.2, 9.2), dpi=220)
+    outer = fig.add_gridspec(2, 2, hspace=0.34, wspace=0.26, height_ratios=[1.0, 1.08])
+    ax_time = fig.add_subplot(outer[0, 0])
+    bode_grid = outer[0, 1].subgridspec(2, 1, hspace=0.16, height_ratios=[1, 1])
+    ax_mag = fig.add_subplot(bode_grid[0, 0])
+    ax_phase = fig.add_subplot(bode_grid[1, 0], sharex=ax_mag)
+    ax_root_full = fig.add_subplot(outer[1, 0])
+    ax_root_zoom = fig.add_subplot(outer[1, 1])
+
+    style_time_axis(ax_time)
+    t = arr(case['step'], 't')
+    y = arr(case['step'], 'y')
+    ax_time.plot(t, y, color=COLORS['curve'], linewidth=1.9)
+    ax_time.axhline(1.0, color=COLORS['limit'], linewidth=0.9, linestyle=':')
+    ax_time.set_title('闭环时域响应')
+    metrics = case['step_metrics']
+    ax_time.text(
+        0.02,
+        0.96,
+        (
+            f"M_p = {metrics['overshoot']:.2f}%\n"
+            f"t_s = {metrics['settling_time']:.2f} s\n"
+            f"t_r = {metrics['rise_time']:.2f} s"
+        ),
+        transform=ax_time.transAxes,
+        ha='left',
+        va='top',
+        fontsize=8.8,
+        bbox=dict(boxstyle='round,pad=0.25', facecolor='white', edgecolor='#d9d9d9'),
+    )
+
+    style_bode_axes(ax_mag, ax_phase)
+    w = arr(case['bode'], 'w')
+    mag = arr(case['bode'], 'mag_db')
+    phase = arr(case['bode'], 'phase_deg')
+    ax_mag.semilogx(w, mag, color=COLORS['curve'], linewidth=1.8)
+    draw_margin_lines_on_mag(ax_mag, w, mag, case['margins'])
+    ax_mag.set_title('开环 Bode 幅频')
+    ax_mag.tick_params(labelbottom=False)
+
+    ax_phase.semilogx(w, phase, color=COLORS['curve'], linewidth=1.8)
+    draw_margin_lines_on_phase(ax_phase, w, phase, case['margins'])
+    ax_phase.set_title('开环相频与裕度')
+    ax_phase.text(
+        0.02,
+        0.05,
+        (
+            f"PM = {case['margins']['pm']:.2f}°\n"
+            f"GM = {case['margins']['gm_db']:.2f} dB\n"
+            f"ωc = {case['margins']['wc']:.4g} rad/s"
+        ),
+        transform=ax_phase.transAxes,
+        ha='left',
+        va='bottom',
+        fontsize=8.2,
+        bbox=dict(boxstyle='round,pad=0.25', facecolor='white', edgecolor='#d9d9d9'),
+    )
+
+    full_xlim = (-1100, 50)
+    full_ylim = (-80, 80)
+    draw_root_locus(
+        ax_root_full,
+        case,
+        locus_key='root_locus_full',
+        title='全范围根轨迹',
+        xlim=full_xlim,
+        ylim=full_ylim,
+        show_feasible=False,
+        show_legend=True,
+        legend_loc='upper right',
+    )
+
+    draw_root_locus(
+        ax_root_zoom,
+        case,
+        title='关键区域根轨迹与设计可行域',
+        xlim=case['root_xlim'],
+        ylim=case['root_ylim'],
+        show_feasible=True,
+        show_legend=False,
     )
 
     fig.suptitle(f"{case['title']} | {case['task_tag']}", fontsize=14, fontweight='bold')

@@ -5,6 +5,7 @@ name_en: Frequency Characteristic
 lesson_units:
   - 2-3
   - 2-4
+  - 3-7
 category: 概念性
 knowledge_type: X
 chapter: 5
@@ -16,6 +17,7 @@ card_version: 2
 source_docs:
   - authoring/lessons/2-3/design/handout.md
   - authoring/lessons/2-4/design/handout.md
+  - authoring/lessons/3-7/design/handout.md
 asset_refs:
   - 2-3-info.png
   - 2-4-fd-08-bode-nyquist-consistency-panel.svg
