@@ -28,6 +28,14 @@ import {
   getUnit24StepAIContext as getUnit24StepAIContextLocal,
   getUnit24StepQuickQuestions as getUnit24StepQuickQuestionsLocal,
 } from './unit-2-4-ai-contexts';
+import {
+  getUnit31StepAIContext as getUnit31StepAIContextLocal,
+  getUnit31StepQuickQuestions as getUnit31StepQuickQuestionsLocal,
+} from './unit-3-1-ai-contexts';
+import {
+  getUnit32StepAIContext as getUnit32StepAIContextLocal,
+  getUnit32StepQuickQuestions as getUnit32StepQuickQuestionsLocal,
+} from './unit-3-2-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -68,6 +76,26 @@ export {
   getUnit24StepAIContext,
   getUnit24StepQuickQuestions,
 } from './unit-2-4-ai-contexts';
+
+// 3-1 课程 AI 上下文
+export {
+  UNIT_3_1_COURSE_META,
+  UNIT_3_1_STEP_AI_CONTEXTS,
+  getUNIT_3_1StepAIContext,
+  getUNIT_3_1StepQuickQuestions,
+  getUnit31StepAIContext,
+  getUnit31StepQuickQuestions,
+} from './unit-3-1-ai-contexts';
+
+// 3-2 课程 AI 上下文
+export {
+  UNIT_3_2_COURSE_META,
+  UNIT_3_2_STEP_AI_CONTEXTS,
+  getUNIT_3_2StepAIContext,
+  getUNIT_3_2StepQuickQuestions,
+  getUnit32StepAIContext,
+  getUnit32StepQuickQuestions,
+} from './unit-3-2-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -126,6 +154,28 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别',
       courseDescription:
         '围绕同一个 G(jω) 的双图表达、纯极点系统 Nyquist 读图、频域指标入口、手工绘图入口与最小反向识别，完成模块 2 的图形对象收束。',
+    },
+  },
+
+  'unit-3-1-pure-pole-stability-and-dynamics-v1': {
+    getStepContext: (stepId: string) => getUnit31StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit31StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-3-1-pure-pole-stability-and-dynamics-v1',
+      courseTitle: '3-1：纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解',
+      courseDescription:
+        '围绕稳定底线、极点到模态、主导极点近似、Bode 证据与卷积收束，建立模块 3 的第一堂结构机理精品互动课。',
+    },
+  },
+
+  'unit-3-2-routh-stability-boundary-v1': {
+    getStepContext: (stepId: string) => getUnit32StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit32StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-3-2-routh-stability-boundary-v1',
+      courseTitle: '3-2：劳斯判据——从高阶系统稳定判定到参数可行域',
+      courseDescription:
+        '围绕普通劳斯判稳、参数区间、两类特殊情况、三域翻译与变量平移，把高阶系统的稳定底线推进到参数可行域语言。',
     },
   },
 };

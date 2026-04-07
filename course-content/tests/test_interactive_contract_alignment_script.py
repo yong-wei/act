@@ -32,3 +32,16 @@ def test_skill_contract_alignment_script_passes_for_2_2() -> None:
         cwd=str(REPO_ROOT),
         check=True,
     )
+
+
+def test_skill_contract_alignment_script_passes_for_3_2() -> None:
+    subprocess.run(
+        [
+            'python3',
+            str(SCRIPT_PATH),
+            '--lesson',
+            '3-2',
+        ],
+        cwd=str(REPO_ROOT),
+        check=True,
+    )

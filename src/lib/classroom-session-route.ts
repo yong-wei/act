@@ -4,6 +4,8 @@ import { UNIT_2_1_COURSE_TITLE, UNIT_2_1_ROUTE_SEGMENT } from '@/lib/unit-2-1-co
 import { UNIT_2_2_COURSE_TITLE, UNIT_2_2_ROUTE_SEGMENT } from '@/lib/unit-2-2-course';
 import { UNIT_2_3_COURSE_TITLE, UNIT_2_3_ROUTE_SEGMENT } from '@/lib/unit-2-3-course';
 import { UNIT_2_4_COURSE_TITLE, UNIT_2_4_ROUTE_SEGMENT } from '@/lib/unit-2-4-course';
+import { UNIT_3_1_COURSE_TITLE, UNIT_3_1_ROUTE_SEGMENT } from '@/lib/unit-3-1-course';
+import { UNIT_3_2_COURSE_TITLE, UNIT_3_2_ROUTE_SEGMENT } from '@/lib/unit-3-2-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -63,6 +65,24 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别',
       'Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别',
       'Nyquist 图与频域指标入口',
+    ],
+  },
+  {
+    routeSegment: UNIT_3_1_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_3_1_COURSE_TITLE,
+      '3-1：纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解',
+      '纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解',
+      '纯极点视角下的稳定、模态与双域近似',
+    ],
+  },
+  {
+    routeSegment: UNIT_3_2_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_3_2_COURSE_TITLE,
+      '3-2：劳斯判据——从高阶系统稳定判定到参数可行域',
+      '劳斯判据——从高阶系统稳定判定到参数可行域',
+      '劳斯判据',
     ],
   },
 ];

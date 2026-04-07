@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { INTERACTIVE_COURSE_MODULES } from '../learning-catalog';
 
 describe('INTERACTIVE_COURSE_MODULES', () => {
-  it('only exposes module 2 on the interactive course hub', () => {
-    expect(INTERACTIVE_COURSE_MODULES.map((module) => module.id)).toEqual(['module-2']);
+  it('exposes module 2 and module 3 on the interactive course hub', () => {
+    expect(INTERACTIVE_COURSE_MODULES.map((module) => module.id)).toEqual(['module-2', 'module-3']);
   });
 
   it('does not surface retired module 1 lessons anywhere on the hub', () => {
@@ -50,6 +50,25 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
       {
         id: 'unit-2-4-nyquist-margin-entry',
         unitLabel: '2-4',
+        legacySourceLabel: null,
+      },
+    ]);
+  });
+
+  it('exposes unit 3-1 and unit 3-2 as premium lessons in module 3', () => {
+    expect(INTERACTIVE_COURSE_MODULES[1]?.lessons.map((lesson) => ({
+      id: lesson.id,
+      unitLabel: lesson.unitLabel,
+      legacySourceLabel: lesson.legacySourceLabel ?? null,
+    }))).toEqual([
+      {
+        id: 'unit-3-1-pure-pole-stability-and-dynamics',
+        unitLabel: '3-1',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-3-2-routh-stability-boundary',
+        unitLabel: '3-2',
         legacySourceLabel: null,
       },
     ]);
