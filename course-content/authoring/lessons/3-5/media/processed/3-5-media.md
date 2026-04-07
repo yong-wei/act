@@ -1,6 +1,7 @@
 # 3-5-intro-video.mp4
 
 - 洁净车间里，高速机械臂单靠加大驱动力已接近极限；插入零点模块后，根轨迹弯折、动作更利落，但右半平面零点版本又出现起始反向抽动，说明零点既能改善动态也可能带来代价。
+- 用导入情境引出“零点能改善动态，也可能带来代价”这一主题。
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=83bbc25e250c95cc05d9016a894c0cda&v=1775535631403&puid=26652392&enc=f1b6b392277fecefc1ac1c16efb25eb7&wps=0d1890266e94c7ffe70b3fba9977f998d70d687fb84ea7b5
 

@@ -40,6 +40,14 @@ import {
   getUnit33StepAIContext as getUnit33StepAIContextLocal,
   getUnit33StepQuickQuestions as getUnit33StepQuickQuestionsLocal,
 } from './unit-3-3-ai-contexts';
+import {
+  getUnit34StepAIContext as getUnit34StepAIContextLocal,
+  getUnit34StepQuickQuestions as getUnit34StepQuickQuestionsLocal,
+} from './unit-3-4-ai-contexts';
+import {
+  getUnit35StepAIContext as getUnit35StepAIContextLocal,
+  getUnit35StepQuickQuestions as getUnit35StepQuickQuestionsLocal,
+} from './unit-3-5-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -110,6 +118,24 @@ export {
   getUnit33StepAIContext,
   getUnit33StepQuickQuestions,
 } from './unit-3-3-ai-contexts';
+
+// 3-4 课程 AI 上下文
+export {
+  UNIT_3_4_COURSE_META,
+  UNIT_3_4_STEP_AI_CONTEXTS,
+  getUNIT_3_4StepAIContext,
+  getUNIT_3_4StepQuickQuestions,
+  getUnit34StepAIContext,
+  getUnit34StepQuickQuestions,
+} from './unit-3-4-ai-contexts';
+
+// 3-5 课程 AI 上下文
+export {
+  UNIT_3_5_COURSE_META,
+  UNIT_3_5_STEP_AI_CONTEXTS,
+  getUnit35StepAIContext,
+  getUnit35StepQuickQuestions,
+} from './unit-3-5-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -201,6 +227,28 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移',
       courseDescription:
         '围绕 GH=-1、相角/幅值条件、完整法则、广义根轨迹与动态翻译，建立模块 3 的极点迁移机制主线。',
+    },
+  },
+
+  'unit-3-4-root-locus-reading-validation-v1': {
+    getStepContext: (stepId: string) => getUnit34StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit34StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-3-4-root-locus-reading-validation-v1',
+      courseTitle: '3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上',
+      courseDescription:
+        '围绕关键节点读图、参数窗口判断、根轨迹增益换算与对象化三域验证，把根轨迹法则压成可执行的工程判断动作。',
+    },
+  },
+
+  'unit-3-5-zero-dynamic-improvement-v1': {
+    getStepContext: (stepId: string) => getUnit35StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit35StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-3-5-zero-dynamic-improvement-v1',
+      courseTitle: '3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变',
+      courseDescription:
+        '围绕零点重排、PD/测速反馈、超前频域整形与非最小相边界，把“结构改变为什么会改写三域表现”讲成一条可执行判断链。',
     },
   },
 };

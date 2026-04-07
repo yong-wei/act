@@ -7,6 +7,8 @@ import { UNIT_2_4_COURSE_TITLE, UNIT_2_4_ROUTE_SEGMENT } from '@/lib/unit-2-4-co
 import { UNIT_3_1_COURSE_TITLE, UNIT_3_1_ROUTE_SEGMENT } from '@/lib/unit-3-1-course';
 import { UNIT_3_2_COURSE_TITLE, UNIT_3_2_ROUTE_SEGMENT } from '@/lib/unit-3-2-course';
 import { UNIT_3_3_COURSE_TITLE, UNIT_3_3_ROUTE_SEGMENT } from '@/lib/unit-3-3-course';
+import { UNIT_3_4_COURSE_TITLE, UNIT_3_4_ROUTE_SEGMENT } from '@/lib/unit-3-4-course';
+import { UNIT_3_5_COURSE_TITLE, UNIT_3_5_ROUTE_SEGMENT } from '@/lib/unit-3-5-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -93,6 +95,24 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移',
       '根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移',
       '根轨迹机制与完整法则',
+    ],
+  },
+  {
+    routeSegment: UNIT_3_4_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_3_4_COURSE_TITLE,
+      '3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上',
+      '根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上',
+      '根轨迹读图与对象化验证',
+    ],
+  },
+  {
+    routeSegment: UNIT_3_5_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_3_5_COURSE_TITLE,
+      '3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变',
+      '零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变',
+      '零点引入与动态改善',
     ],
   },
 ];
