@@ -2,6 +2,7 @@
   "lesson_id": "3-1",
   "source_path": "course-content/authoring/lessons/3-1/design/interactive-page.md",
   "contract_path": "course-content/authoring/lessons/3-1/design/interactive-contract.yaml",
+  "implementation_contract_source": null,
   "contract_required_fields": [
     "layout",
     "modules",
@@ -34,6 +35,8 @@
   "step_upgrade_blocks_missing": [],
   "missing_contract_fields": [],
   "step_contract_issues": [],
+  "implementation_contract_summary": [],
+  "implementation_contract_issues": [],
   "summary": [
     "已覆盖讲义中的核心公式与静态承载内容。",
     "已检测到 `3-1` 的 V2 互动契约，步骤字段完整。"

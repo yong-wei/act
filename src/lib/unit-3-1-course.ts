@@ -179,6 +179,7 @@ export const UNIT_3_1_PAGE_CONTRACTS: Record<string, UNIT_3_1PageContract> = {
     interactionKind: 'quiz_group',
     teacherInsightWidgets: ['question_distribution', 'top_misconceptions'],
     telemetrySummaryFields: ['attemptCount', 'resultState', 'errorBucket'],
+    misconceptionTags: ['stable_not_equal_good', 'dominant_not_only', 'left_more_not_absolute'],
     previewDemoPath: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-04',
   },
   'step-05': {

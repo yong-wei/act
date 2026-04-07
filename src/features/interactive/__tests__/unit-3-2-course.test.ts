@@ -116,6 +116,21 @@ describe('unit 3-2 interactive course', () => {
     expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
   });
 
+  it('keeps runtime lesson metadata for handout pdf and media index in lesson.json', () => {
+    const lessonJson = JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/runtime/lessons/3-2/lesson.json'),
+        'utf8',
+      ),
+    ) as {
+      handout_pdf_path?: string;
+      media_index_path?: string;
+    };
+
+    expect(lessonJson.handout_pdf_path).toBe('/course-runtime/lessons/3-2/handout.pdf');
+    expect(lessonJson.media_index_path).toBe('/course-runtime/lessons/3-2/media/3-2-media.md');
+  });
+
   it('parses the 3-2 runtime media index into typed pre-study resources', () => {
     const mediaDocument = readFileSync(
       join(repoRoot, 'course-content/runtime/lessons/3-2/media/3-2-media.md'),

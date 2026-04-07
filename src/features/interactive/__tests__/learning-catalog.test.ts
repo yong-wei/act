@@ -55,7 +55,7 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
     ]);
   });
 
-  it('exposes unit 3-1 and unit 3-2 as premium lessons in module 3', () => {
+  it('exposes unit 3-1, unit 3-2 and unit 3-3 as premium lessons in module 3', () => {
     expect(INTERACTIVE_COURSE_MODULES[1]?.lessons.map((lesson) => ({
       id: lesson.id,
       unitLabel: lesson.unitLabel,
@@ -69,6 +69,11 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
       {
         id: 'unit-3-2-routh-stability-boundary',
         unitLabel: '3-2',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-3-3-root-locus-rules',
+        unitLabel: '3-3',
         legacySourceLabel: null,
       },
     ]);
