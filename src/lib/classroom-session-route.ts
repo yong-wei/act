@@ -9,6 +9,7 @@ import { UNIT_3_2_COURSE_TITLE, UNIT_3_2_ROUTE_SEGMENT } from '@/lib/unit-3-2-co
 import { UNIT_3_3_COURSE_TITLE, UNIT_3_3_ROUTE_SEGMENT } from '@/lib/unit-3-3-course';
 import { UNIT_3_4_COURSE_TITLE, UNIT_3_4_ROUTE_SEGMENT } from '@/lib/unit-3-4-course';
 import { UNIT_3_5_COURSE_TITLE, UNIT_3_5_ROUTE_SEGMENT } from '@/lib/unit-3-5-course';
+import { UNIT_3_6_COURSE_TITLE, UNIT_3_6_ROUTE_SEGMENT } from '@/lib/unit-3-6-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -113,6 +114,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变',
       '零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变',
       '零点引入与动态改善',
+    ],
+  },
+  {
+    routeSegment: UNIT_3_6_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_3_6_COURSE_TITLE,
+      '3-6：零点作用与动态改善实验——从性能目标到校正设计',
+      '零点作用与动态改善实验——从性能目标到校正设计',
+      '零点作用与动态改善实验',
     ],
   },
 ];

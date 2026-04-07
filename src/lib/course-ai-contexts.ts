@@ -48,6 +48,10 @@ import {
   getUnit35StepAIContext as getUnit35StepAIContextLocal,
   getUnit35StepQuickQuestions as getUnit35StepQuickQuestionsLocal,
 } from './unit-3-5-ai-contexts';
+import {
+  getUnit36StepAIContext as getUnit36StepAIContextLocal,
+  getUnit36StepQuickQuestions as getUnit36StepQuickQuestionsLocal,
+} from './unit-3-6-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -136,6 +140,14 @@ export {
   getUnit35StepAIContext,
   getUnit35StepQuickQuestions,
 } from './unit-3-5-ai-contexts';
+
+// 3-6 课程 AI 上下文
+export {
+  UNIT_3_6_COURSE_META,
+  UNIT_3_6_STEP_AI_CONTEXTS,
+  getUnit36StepAIContext,
+  getUnit36StepQuickQuestions,
+} from './unit-3-6-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -249,6 +261,17 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变',
       courseDescription:
         '围绕零点重排、PD/测速反馈、超前频域整形与非最小相边界，把“结构改变为什么会改写三域表现”讲成一条可执行判断链。',
+    },
+  },
+
+  'unit-3-6-zero-design-workshop-v1': {
+    getStepContext: (stepId: string) => getUnit36StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit36StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-3-6-zero-design-workshop-v1',
+      courseTitle: '3-6：零点作用与动态改善实验——从性能目标到校正设计',
+      courseDescription:
+        '围绕目标分类、时域 / 频域指标翻译、PD / 测速反馈 / 超前设计与非最小相边界选择，把“会判断”推进到“会按目标进入设计链”。',
     },
   },
 };
