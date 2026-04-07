@@ -1,8 +1,6 @@
 # 3-1-intro-video.mp4
 
-- 同主导极点，响应为什么不一样？
-
-用导入情境引出“为什么高阶系统仍能用低阶模型理解？”这一问题。
+- 同主导极点，响应为什么不一样？用导入情境引出“为什么高阶系统仍能用低阶模型理解？”这一问题。
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=56af43e541e0bb358ac7c356d0f976dc&v=1775486113707&puid=26652392&enc=efba5e2b90d9eda2cd8a911da9b14839&wps=aaacadb7c307844b9b5cf38f44b50109d70d687fb84ea7b5
 
