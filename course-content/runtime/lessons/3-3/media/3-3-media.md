@@ -1,6 +1,7 @@
 # 3-3-intro-video.mp4
 
 - 智能分拣工厂里的物流舱随着旋钮 K 调大沿规律轨道迁移，监控屏同步亮出实轴区段、分离点、虚轴交点和渐近线，随后切换另一参数后又换成另一套轨迹规则。
+- 用导入情境引出“为什么开环增益根轨迹只是广义根轨迹的一个特例”这一问题。
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=6f3769aa6545e86a6e92faaf4f3642fc&v=1775530673503&puid=26652392&enc=d1b87cf076b4388973e4ce2eea244be7&wps=4eb22745e5138f694994e89b02738d59d70d687fb84ea7b5
 

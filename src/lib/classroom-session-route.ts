@@ -6,6 +6,7 @@ import { UNIT_2_3_COURSE_TITLE, UNIT_2_3_ROUTE_SEGMENT } from '@/lib/unit-2-3-co
 import { UNIT_2_4_COURSE_TITLE, UNIT_2_4_ROUTE_SEGMENT } from '@/lib/unit-2-4-course';
 import { UNIT_3_1_COURSE_TITLE, UNIT_3_1_ROUTE_SEGMENT } from '@/lib/unit-3-1-course';
 import { UNIT_3_2_COURSE_TITLE, UNIT_3_2_ROUTE_SEGMENT } from '@/lib/unit-3-2-course';
+import { UNIT_3_3_COURSE_TITLE, UNIT_3_3_ROUTE_SEGMENT } from '@/lib/unit-3-3-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -83,6 +84,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '3-2：劳斯判据——从高阶系统稳定判定到参数可行域',
       '劳斯判据——从高阶系统稳定判定到参数可行域',
       '劳斯判据',
+    ],
+  },
+  {
+    routeSegment: UNIT_3_3_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_3_3_COURSE_TITLE,
+      '3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移',
+      '根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移',
+      '根轨迹机制与完整法则',
     ],
   },
 ];

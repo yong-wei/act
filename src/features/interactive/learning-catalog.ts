@@ -17,6 +17,7 @@ import { UNIT_2_3_PREMIUM_LESSON_CARD } from '@/lib/unit-2-3-course';
 import { UNIT_2_4_PREMIUM_LESSON_CARD } from '@/lib/unit-2-4-course';
 import { UNIT_3_1_PREMIUM_LESSON_CARD } from '@/lib/unit-3-1-course';
 import { UNIT_3_2_PREMIUM_LESSON_CARD } from '@/lib/unit-3-2-course';
+import { UNIT_3_3_PREMIUM_LESSON_CARD } from '@/lib/unit-3-3-course';
 
 export interface InteractiveResource {
   id: string;
@@ -130,6 +131,7 @@ export const FEATURED_LESSONS = [
   UNIT_2_4_PREMIUM_LESSON_CARD,
   UNIT_3_1_PREMIUM_LESSON_CARD,
   UNIT_3_2_PREMIUM_LESSON_CARD,
+  UNIT_3_3_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -284,7 +286,8 @@ export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
   lesson.id === 'unit-2-3-frequency-response-bode-intro' ||
   lesson.id === 'unit-2-4-nyquist-margin-entry' ||
   lesson.id === 'unit-3-1-pure-pole-stability-and-dynamics' ||
-  lesson.id === 'unit-3-2-routh-stability-boundary'
+  lesson.id === 'unit-3-2-routh-stability-boundary' ||
+  lesson.id === 'unit-3-3-root-locus-rules'
 );
 
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
@@ -296,7 +299,8 @@ export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
     lesson.id !== 'unit-2-3-frequency-response-bode-intro' &&
     lesson.id !== 'unit-2-4-nyquist-margin-entry' &&
     lesson.id !== 'unit-3-1-pure-pole-stability-and-dynamics' &&
-    lesson.id !== 'unit-3-2-routh-stability-boundary'
+    lesson.id !== 'unit-3-2-routh-stability-boundary' &&
+    lesson.id !== 'unit-3-3-root-locus-rules'
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;
@@ -337,11 +341,12 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
   {
     id: 'module-3',
     title: '模块3',
-    description: '模块3当前开放 3-1、3-2 两个新主线单元，先用纯极点语言压实稳定底线，再把高阶系统判稳推进到劳斯边界与参数可行域表达。',
+    description: '模块3当前开放 3-1、3-2、3-3 三个新主线单元，先用纯极点语言压实稳定底线，再推进到劳斯边界与参数可行域，最后建立极点迁移机制与根轨迹完整法则。',
     chipLabel: '结构机理主线',
     lessons: [
       createModuleLesson('unit-3-1-pure-pole-stability-and-dynamics', '3-1'),
       createModuleLesson('unit-3-2-routh-stability-boundary', '3-2'),
+      createModuleLesson('unit-3-3-root-locus-rules', '3-3'),
     ],
   },
 ] as const;

@@ -1,32 +1,18 @@
 {
   "lesson_id": "3-3",
   "expected_assets": [
-    "3-3-cover-comic.png",
-    "3-3-info.png",
-    "3-3-pp-01-root-locus-roadmap.svg",
-    "3-3-pp-02-generalized-root-locus-map.svg",
-    "3-3-pp-03-angle-and-magnitude-geometry.svg",
-    "3-3-pp-04-complete-rules-example.svg",
-    "3-3-pp-05-real-axis-parity.svg",
-    "3-3-pp-06-departure-arrival-angle.svg",
-    "3-3-pp-07-generalized-time-constant-example.svg",
-    "3-3-pp-08-dynamics-translation.svg"
+    "handout.pdf",
+    "3-3-media.md"
   ],
   "generated_assets": [
-    "3-3-cover-comic.png",
-    "3-3-info.png",
-    "3-3-pp-01-root-locus-roadmap.svg",
-    "3-3-pp-02-generalized-root-locus-map.svg",
-    "3-3-pp-03-angle-and-magnitude-geometry.svg",
-    "3-3-pp-04-complete-rules-example.svg",
-    "3-3-pp-05-real-axis-parity.svg",
-    "3-3-pp-06-departure-arrival-angle.svg",
-    "3-3-pp-07-generalized-time-constant-example.svg",
-    "3-3-pp-08-dynamics-translation.svg"
+    "handout.pdf",
+    "3-3-media.md"
   ],
   "missing_assets": [],
   "executed_scripts": [],
   "processed_dir": "course-content/authoring/lessons/3-3/media/processed",
+  "media_index_path": "course-content/runtime/lessons/3-3/media/3-3-media.md",
+  "handout_pdf_source": "course-content/authoring/lessons/3-3/design/handout.pdf",
   "formula_contract_issues": [],
   "formula_media": []
 }

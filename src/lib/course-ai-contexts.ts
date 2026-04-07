@@ -36,6 +36,10 @@ import {
   getUnit32StepAIContext as getUnit32StepAIContextLocal,
   getUnit32StepQuickQuestions as getUnit32StepQuickQuestionsLocal,
 } from './unit-3-2-ai-contexts';
+import {
+  getUnit33StepAIContext as getUnit33StepAIContextLocal,
+  getUnit33StepQuickQuestions as getUnit33StepQuickQuestionsLocal,
+} from './unit-3-3-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -96,6 +100,16 @@ export {
   getUnit32StepAIContext,
   getUnit32StepQuickQuestions,
 } from './unit-3-2-ai-contexts';
+
+// 3-3 课程 AI 上下文
+export {
+  UNIT_3_3_COURSE_META,
+  UNIT_3_3_STEP_AI_CONTEXTS,
+  getUNIT_3_3StepAIContext,
+  getUNIT_3_3StepQuickQuestions,
+  getUnit33StepAIContext,
+  getUnit33StepQuickQuestions,
+} from './unit-3-3-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -176,6 +190,17 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '3-2：劳斯判据——从高阶系统稳定判定到参数可行域',
       courseDescription:
         '围绕普通劳斯判稳、参数区间、两类特殊情况、三域翻译与变量平移，把高阶系统的稳定底线推进到参数可行域语言。',
+    },
+  },
+
+  'unit-3-3-root-locus-rules-v1': {
+    getStepContext: (stepId: string) => getUnit33StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit33StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-3-3-root-locus-rules-v1',
+      courseTitle: '3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移',
+      courseDescription:
+        '围绕 GH=-1、相角/幅值条件、完整法则、广义根轨迹与动态翻译，建立模块 3 的极点迁移机制主线。',
     },
   },
 };
