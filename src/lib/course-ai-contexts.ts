@@ -52,6 +52,10 @@ import {
   getUnit36StepAIContext as getUnit36StepAIContextLocal,
   getUnit36StepQuickQuestions as getUnit36StepQuickQuestionsLocal,
 } from './unit-3-6-ai-contexts';
+import {
+  getUnit37StepAIContext as getUnit37StepAIContextLocal,
+  getUnit37StepQuickQuestions as getUnit37StepQuickQuestionsLocal,
+} from './unit-3-7-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -148,6 +152,15 @@ export {
   getUnit36StepAIContext,
   getUnit36StepQuickQuestions,
 } from './unit-3-6-ai-contexts';
+
+export {
+  UNIT_3_7_COURSE_META,
+  UNIT_3_7_STEP_AI_CONTEXTS,
+  getUNIT_3_7StepAIContext,
+  getUNIT_3_7StepQuickQuestions,
+  getUnit37StepAIContext,
+  getUnit37StepQuickQuestions,
+} from './unit-3-7-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -272,6 +285,17 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '3-6：零点作用与动态改善实验——从性能目标到校正设计',
       courseDescription:
         '围绕目标分类、时域 / 频域指标翻译、PD / 测速反馈 / 超前设计与非最小相边界选择，把“会判断”推进到“会按目标进入设计链”。',
+    },
+  },
+
+  'unit-3-7-steady-error-low-frequency-compensation-v1': {
+    getStepContext: (stepId: string) => getUnit37StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit37StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-3-7-steady-error-low-frequency-compensation-v1',
+      courseTitle: '3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理',
+      courseDescription:
+        '围绕给定/扰动双通道、终值定理与型别快判、PI/滞后低频补偿比较，把“为什么更准”推进成可执行的误差分析与补偿路径。',
     },
   },
 };

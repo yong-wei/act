@@ -10,6 +10,7 @@ import { UNIT_3_3_COURSE_TITLE, UNIT_3_3_ROUTE_SEGMENT } from '@/lib/unit-3-3-co
 import { UNIT_3_4_COURSE_TITLE, UNIT_3_4_ROUTE_SEGMENT } from '@/lib/unit-3-4-course';
 import { UNIT_3_5_COURSE_TITLE, UNIT_3_5_ROUTE_SEGMENT } from '@/lib/unit-3-5-course';
 import { UNIT_3_6_COURSE_TITLE, UNIT_3_6_ROUTE_SEGMENT } from '@/lib/unit-3-6-course';
+import { UNIT_3_7_COURSE_TITLE, UNIT_3_7_ROUTE_SEGMENT } from '@/lib/unit-3-7-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -123,6 +124,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '3-6：零点作用与动态改善实验——从性能目标到校正设计',
       '零点作用与动态改善实验——从性能目标到校正设计',
       '零点作用与动态改善实验',
+    ],
+  },
+  {
+    routeSegment: UNIT_3_7_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_3_7_COURSE_TITLE,
+      '3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理',
+      '型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理',
+      '型别、积分环节与稳态改善',
     ],
   },
 ];
