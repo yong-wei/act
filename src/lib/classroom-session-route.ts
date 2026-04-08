@@ -11,6 +11,7 @@ import { UNIT_3_4_COURSE_TITLE, UNIT_3_4_ROUTE_SEGMENT } from '@/lib/unit-3-4-co
 import { UNIT_3_5_COURSE_TITLE, UNIT_3_5_ROUTE_SEGMENT } from '@/lib/unit-3-5-course';
 import { UNIT_3_6_COURSE_TITLE, UNIT_3_6_ROUTE_SEGMENT } from '@/lib/unit-3-6-course';
 import { UNIT_3_7_COURSE_TITLE, UNIT_3_7_ROUTE_SEGMENT } from '@/lib/unit-3-7-course';
+import { UNIT_3_8_COURSE_TITLE, UNIT_3_8_ROUTE_SEGMENT } from '@/lib/unit-3-8-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -133,6 +134,14 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理',
       '型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理',
       '型别、积分环节与稳态改善',
+    ],
+  },
+  {
+    routeSegment: UNIT_3_8_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_3_8_COURSE_TITLE,
+      '3-8：频域判别与跨域综合语言',
+      '频域判别与跨域综合语言',
     ],
   },
 ];

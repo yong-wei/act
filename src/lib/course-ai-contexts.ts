@@ -56,6 +56,10 @@ import {
   getUnit37StepAIContext as getUnit37StepAIContextLocal,
   getUnit37StepQuickQuestions as getUnit37StepQuickQuestionsLocal,
 } from './unit-3-7-ai-contexts';
+import {
+  getUnit38StepAIContext as getUnit38StepAIContextLocal,
+  getUnit38StepQuickQuestions as getUnit38StepQuickQuestionsLocal,
+} from './unit-3-8-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -161,6 +165,15 @@ export {
   getUnit37StepAIContext,
   getUnit37StepQuickQuestions,
 } from './unit-3-7-ai-contexts';
+
+export {
+  UNIT_3_8_COURSE_META,
+  UNIT_3_8_STEP_AI_CONTEXTS,
+  getUNIT_3_8StepAIContext,
+  getUNIT_3_8StepQuickQuestions,
+  getUnit38StepAIContext,
+  getUnit38StepQuickQuestions,
+} from './unit-3-8-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -296,6 +309,17 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理',
       courseDescription:
         '围绕给定/扰动双通道、终值定理与型别快判、PI/滞后低频补偿比较，把“为什么更准”推进成可执行的误差分析与补偿路径。',
+    },
+  },
+
+  'unit-3-8-frequency-domain-translation-judgment-v1': {
+    getStepContext: (stepId: string) => getUnit38StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit38StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-3-8-frequency-domain-translation-judgment-v1',
+      courseTitle: '3-8：频域判别与跨域综合语言',
+      courseDescription:
+        '围绕结构变化的频域指纹、Nyquist/Bode 统一判稳链、三频段分工与工程案例读回，把模块 3 理论主线收束为一张频域判断地图。',
     },
   },
 };
