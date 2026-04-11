@@ -16392,3 +16392,13 @@
 {"relation_id": "rel-e0143c7c08696ac6", "source": "跨域联读任务重排", "target": "设计任务表达卡", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.97}
 {"relation_id": "rel-efb7585642af3c14", "source": "调节时间", "target": "指标角色重组", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.95}
 {"relation_id": "rel-f7eebed8d51a8cd8", "source": "谐振峰值Mr", "target": "跨域联读任务重排", "source_chapter": 5, "target_chapter": 4, "relation_type": "related", "strength": 0.76}
+{"relation_id": "rel-14c1cb06e92f07fa", "source": "积分环节", "target": "积分与滞后的稳态改善分工", "source_chapter": 2, "target_chapter": 3, "relation_type": "prerequisite", "strength": 0.9}
+{"relation_id": "rel-59d35b5f11c6a53e", "source": "低频补偿稳态改善路径", "target": "积分与滞后的稳态改善分工", "source_chapter": 3, "target_chapter": 3, "relation_type": "contains", "strength": 0.95}
+{"relation_id": "rel-678492a685ecbf06", "source": "统一对象多版本综合映射框架", "target": "任务标签与机制标签匹配", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.94}
+{"relation_id": "rel-6f33f1c7f33ddfcf", "source": "根轨迹", "target": "统一对象多版本综合映射框架", "source_chapter": 4, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-79f78d5522a4d68d", "source": "频域综合判断与工程读回", "target": "统一对象多版本综合映射框架", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "rel-8189abce8b953e80", "source": "积分与滞后的稳态改善分工", "target": "任务标签与机制标签匹配", "source_chapter": 3, "target_chapter": 3, "relation_type": "supports", "strength": 0.91}
+{"relation_id": "rel-9c1104cbe550d4a9", "source": "三频段闭环性能回读", "target": "任务标签与机制标签匹配", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "rel-c71456d4c47aac46", "source": "串联无源滞后校正", "target": "积分与滞后的稳态改善分工", "source_chapter": 6, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-d8f2e7b5ae82bda6", "source": "左半平面零点的动态改善机理", "target": "任务标签与机制标签匹配", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "rel-e23eeb5941551d65", "source": "任务标签与机制标签匹配", "target": "模块4入口的首轮任务判断", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.96}
