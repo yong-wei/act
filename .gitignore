@@ -6,6 +6,7 @@ AGENTS.md
 GEMINI.md
 .codex/
 !.codex/
+.codex/plans/
 !.codex/skills/
 !.codex/skills/lesson/
 .codex/skills/lesson/*

@@ -17,6 +17,9 @@ MARKDOWN_IMAGE_LINE_RE = re.compile(
     r'^(?P<indent>\s*)!\[(?P<alt>.*?)\]\((?P<src>[^)]+)\)(?P<attrs>\{[^}]*\})?\s*$'
 )
 MANUAL_FIGURE_CAPTION_RE = re.compile(r'^图\s*[0-9０-９]+\s*[.．、]\s*')
+MANUAL_TABLE_CAPTION_RE = re.compile(
+    r'^表\s*(?P<number>[0-9０-９]+)\s*[.．、]\s*(?P<title>.*?)(?:\s*(?:\\\{|\{)(?P<attrs>[^}]*)(?:\\\}|\}))?\s*$'
+)
 FENCED_BLOCK_LINE_RE = re.compile(r'^\s*(?P<fence>`{3,}|~{3,})')
 INLINE_CODE_RE = re.compile(r'`[^`\n]*`')
 INLINE_MATH_RE = re.compile(r'(?<!\\)\$[^$\n]+\$')
@@ -366,11 +369,146 @@ def normalize_ascii_quotes_for_latex(tex_content: str) -> str:
     return normalized
 
 
+def build_longtable_spec_from_ratios(ratios: list[float]) -> str | None:
+    if not ratios:
+        return None
+    column_count = len(ratios)
+    horizontal_padding = 2 * (column_count - 1)
+    columns = [
+        (
+            r"  >{\raggedright\arraybackslash}p{(\columnwidth - "
+            + f"{horizontal_padding}"
+            + r"\tabcolsep) * \real{"
+            + f"{ratio:.4f}"
+            + r"}}"
+        )
+        for ratio in ratios
+    ]
+    return "@{}\n" + "\n".join(columns) + "@{}"
+
+
+def build_rebalanced_longtable_spec(column_count: int) -> str | None:
+    if column_count <= 1:
+        return None
+
+    if column_count == 2:
+        first_ratio = 0.30
+    elif column_count == 3:
+        first_ratio = 0.22
+    elif column_count == 4:
+        first_ratio = 0.18
+    else:
+        first_ratio = 0.14
+
+    usable_ratio = 0.96
+    first_ratio = min(first_ratio, usable_ratio - 0.12 * (column_count - 1))
+    remaining_ratio = (usable_ratio - first_ratio) / (column_count - 1)
+    ratios = [first_ratio] + [remaining_ratio] * (column_count - 1)
+    return build_longtable_spec_from_ratios(ratios)
+
+
+def count_longtable_columns(spec: str) -> int:
+    begin_match = re.search(
+        r'\\begin\{longtable\}\[\]\{(?P<inner>[\s\S]*?)\}\s*$',
+        spec.strip(),
+    )
+    if begin_match:
+        spec = begin_match.group("inner")
+
+    p_count = spec.count("p{")
+    if p_count:
+        return p_count
+
+    cleaned = re.sub(r'@{[^}]*}', '', spec)
+    cleaned = re.sub(r'>\{[^}]*\}', '', cleaned)
+    cleaned = re.sub(r'<\{[^}]*\}', '', cleaned)
+    return len(re.findall(r'[lcr]', cleaned))
+
+
+def parse_table_caption_attrs(attrs_text: str | None) -> tuple[str | None, list[float] | None]:
+    if not attrs_text:
+        return None, None
+
+    label_match = re.search(r'#(tbl:[^\s}]+)', attrs_text)
+    label = label_match.group(1) if label_match else None
+
+    cols_match = re.search(r'cols\s*=\s*([0-9.,\s]+)', attrs_text)
+    if not cols_match:
+        return label, None
+
+    raw_parts = [part.strip() for part in cols_match.group(1).split(",") if part.strip()]
+    try:
+        ratios = [float(part) for part in raw_parts]
+    except ValueError:
+        return label, None
+    if not ratios or any(ratio <= 0 for ratio in ratios):
+        return label, None
+    return label, ratios
+
+
+def rewrite_longtable_preambles(tex_content: str) -> str:
+    lines = tex_content.splitlines(keepends=True)
+    rewritten: list[str] = []
+    auto_index = 0
+    index = 0
+    pending_caption: tuple[str, str, list[float] | None] | None = None
+
+    while index < len(lines):
+        match = MANUAL_TABLE_CAPTION_RE.match(lines[index].strip())
+        if match:
+            next_index = index + 1
+            while next_index < len(lines) and not lines[next_index].strip():
+                next_index += 1
+
+            if next_index < len(lines) and lines[next_index].lstrip().startswith(r"\begin{longtable}"):
+                auto_index += 1
+                title = re.sub(r"\s*\\\s*$", "", match.group("title").strip())
+                label, ratios = parse_table_caption_attrs(match.group("attrs"))
+                label = label or f"tbl:auto-{auto_index}"
+                pending_caption = (title, label, ratios)
+                index = next_index
+                continue
+
+        if not lines[index].lstrip().startswith(r"\begin{longtable}"):
+            rewritten.append(lines[index])
+            index += 1
+            continue
+
+        preamble_lines = [lines[index]]
+        index += 1
+        while index < len(lines) and r"\toprule" not in lines[index]:
+            preamble_lines.append(lines[index])
+            index += 1
+
+        column_count = count_longtable_columns("".join(preamble_lines))
+        custom_ratios = pending_caption[2] if pending_caption else None
+        if custom_ratios and len(custom_ratios) == column_count:
+            new_spec = build_longtable_spec_from_ratios(custom_ratios)
+        else:
+            new_spec = build_rebalanced_longtable_spec(column_count)
+        if new_spec:
+            rewritten.append(rf"\begin{{longtable}}[]{{{new_spec}}}" + "\n")
+        else:
+            rewritten.extend(preamble_lines)
+
+        if pending_caption:
+            title, label, _ = pending_caption
+            rewritten.append(rf"\caption{{{title}}}\label{{{label}}}\\" + "\n")
+            pending_caption = None
+
+        if index < len(lines):
+            rewritten.append(lines[index])
+            index += 1
+
+    return "".join(rewritten)
+
+
 def rewrite_latex_for_pdf_layout(
     tex_content: str,
     width_overrides: dict[str, str] | None = None,
 ) -> str:
     tex_content = normalize_ascii_quotes_for_latex(tex_content)
+    tex_content = rewrite_longtable_preambles(tex_content)
     tex_content = re.sub(r"\\begin{figure}(?:\[[^\]]*\])?", r"\\begin{figure}[H]", tex_content)
     tex_content = re.sub(
         r"^\s*\\setkeys{Gin}{width=\\maxwidth,height=\\maxheight,keepaspectratio}\s*$",

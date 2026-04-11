@@ -1,8 +1,8 @@
 # 当前状态
 
 状态: active
-最后更新: 2026-03-20
-摘要: 记录项目当前的重要现状，帮助跨会话快速回答“现在做到哪里了、最近重点在哪”；当前除教师端学情入口、学生端个人中心六维画像外，还应优先记住课程内容审查已从互动课实现技能中拆分，并已在 `1-2` 形成“审查 -> runtime -> 精品互动课”闭环。
+最后更新: 2026-04-06
+摘要: 记录项目当前的重要现状，帮助跨会话快速回答“现在做到哪里了、最近重点在哪”；当前除教师端学情入口、学生端个人中心六维画像外，还应优先记住模块 2 精品互动课与课堂外资源互动追踪都已进入可复用模板阶段。
 上游:
 - [00-overview.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/10-project/00-overview.md)
 下游:
@@ -29,6 +29,7 @@
 - `1-1` 精品互动课已经落地到 `/interactive-learning/courses/unit-1-1-laplace-transfer-function`，并补齐教师端 `/teacher/[sessionId]`、学生端 `/student/[sessionId]`、预置教案、课堂码路由解析与步骤级 AI 上下文注册
 - `1-1` 首页与课堂内页已经统一改为 runtime-first：课程入口从 `course-content/runtime/lessons/legacy/1-1` 读取知识图、讲义、媒体和卡片编排，不再直接消费 `authoring`
 - `1-1` 课次已经形成一套稳定媒体流程：代码直出图先生成到 `course-content/authoring/lessons/legacy/1-1/media/processed` 审核，再导出到 `course-content/runtime/lessons/legacy/1-1/media`
+- 课堂外资源互动追踪已经形成统一分层方案：入口页媒体、知识卡片、知识图谱节点、跨域探索模块、standalone 互动资源与自适应练习等行为，先统一进入 `InteractionLog` 与个人中心活动流，再由高价值事件升格为 `LearningFact`/能力贡献；对应实现入口是 `useResourceInteractionTracking`、`/api/interactive/events` 的“先落 InteractionLog 再治理路由”策略，以及 `/api/user/profile` 的新事件映射
 - 学生个人中心 `/profile` 已不再使用旧的五维仿真雷达或课外展示补强卡口径，而是统一消费数据治理六维能力快照；姓名下显示学号，页面只保留学生态信息，不再显示“学生”角色文案
 - 学生个人中心的最近活动已经改为真实聚合：来源包括 `StudentState/ClassSession` 的课堂加入记录、`InteractionLog` 的互动/知识卡/跨域探索行为、`SimulationLog` 的仿真记录，以及 `LearningFact(question)` 的题目与自适应练习记录
 - 个性化补强路径已接入 `generateRecommendations(userId)` 与自适应习题诊断摘要；个人中心现在直接展示资源推荐卡和 `/assessment/adaptive-practice` 的继续练习入口

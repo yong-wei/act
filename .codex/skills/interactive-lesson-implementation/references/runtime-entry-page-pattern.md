@@ -7,6 +7,8 @@
 默认参考实现：
 
 - `src/features/interactive/unit-2-1-modeling-language/entry-page.tsx`
+- `src/features/interactive/shared/lesson-entry-media-hub.tsx`
+- `src/features/interactive/shared/lesson-entry-runtime-sections.tsx`
 - `src/lib/course-runtime.ts`
 - `course-content/runtime/lessons/2-1/media/2-1-media.md`
 
@@ -57,6 +59,7 @@
 - 不再在页面底部另做一份重复的讲义入口模块。
 - 讲义在线阅读必须复用现有 `LessonEntryHandoutDialog` / `MdxSlide` 渲染链路。
 - 讲义下载继续复用 runtime `handout.pdf` 直下链路。
+- 若已有共享入口组件，优先复用，不要为了单课样式再复制出一套新的入口结构。
 
 ## 文案来源与拼装
 
@@ -69,8 +72,8 @@
 ## 视频/音频/课件文案
 
 - 视频、音频、课件卡片正文说明统一读取 `lessonRuntime.mediaResources[*].title`。
-- `title` 的来源是 runtime 媒体索引中标题后的说明行，不是文件名。
-- 如果某条媒体在 runtime 文档中没有说明行，可回退为文件名，但后续应优先补到 runtime 文档。
+- `title` 的来源是 runtime 媒体索引中该节第一条说明行；若说明行缺省，则回退为文件名。
+- 当前审查导出会保留已有人工标题；导入视频还可能在原标题后追加一条主题文案，但页面标题仍以第一条人工说明行为准。
 
 ### 音频特例
 
@@ -85,8 +88,8 @@
 
 ## 讲义文案
 
-- 讲义卡片摘要必须读取 runtime 媒体文档中 `# handout.md` 后的说明块。
-- 讲义摘要按 Markdown 正确渲染。
+- 讲义卡片摘要优先读取 runtime 媒体文档中 `# handout.md` 后的说明块，并通过 `lessonRuntime.handoutSummary` 进入页面。
+- 若 runtime `media/<lesson>-media.md` 的 `# handout.md` 节为空，运行时 bundle 可回退到兜底摘要，但不要主动清空已有的人工摘要。
 - 删除纯文本截断预览，不再把 `handoutPreview` 当作用户可见摘要区。
 
 ## 媒体容器规则
@@ -118,12 +121,45 @@
 - 下载按钮直连 runtime `handout.pdf`。
 - 不要重新发明第二套 Markdown 渲染或导出逻辑。
 
+## 课堂外资源埋点
+
+入口页预习台、知识图谱、知识卡片和跨域入口默认都属于课堂外资源行为，不纳入课堂步骤事件语义。实现时遵守以下规则：
+
+- 优先复用现有共享组件；如果页面直接使用 `LessonEntryMediaHub`、`LessonEntryRuntimeSections`、知识卡弹窗链路，就不要把它们已有的资源追踪逻辑删掉或绕开。
+- 若必须自定义入口页结构，默认接入 `useResourceInteractionTracking`，不要把资源行为记成 `lesson_step_view`、`lesson_submit` 之类课堂事件。
+- 入口页预习区至少覆盖这些事件：
+  - 整体曝光：`resource_view`
+  - 视频/音频开始播放：`resource_play`
+  - 视频/音频关键进度：`resource_progress`
+  - 视频/音频完成：`resource_complete`
+  - 课件、新标签资源或 iframe 资源打开：`resource_open`
+  - 讲义 PDF 下载：`resource_download`
+  - 在线阅读讲义弹窗打开：`resource_open`
+- 入口页知识区至少覆盖这些事件：
+  - 知识图谱节点点击：`knowledge_graph_node_focus`
+  - 知识卡片打开：`knowledge_card_open`
+- 若入口页还有跨域模块卡片或外部互动模块入口，至少覆盖：`external_module_open`
+
+默认 payload 语义不要丢：
+
+- `surface`：建议沿用 `lesson_entry`
+- `pageType`：建议沿用 `resource` 或 `knowledge`
+- `targetType`：如 `video` / `audio` / `pdf` / `handout` / `knowledge-node` / `knowledge-card` / `external-module`
+- `targetId` / `targetLabel`
+- `originPath`
+
+实现目标不只是“控制台里有请求”，还要保证这些事件后续能进入：
+
+- `InteractionLog`
+- 个人中心最近活动
+- 高价值行为的治理升格链路
+
 ## Runtime-first 约束
 
 入口页必须满足：
 
 - 媒体链接来自 `course-content/runtime/lessons/<lesson>/media/<lesson>-media.md`
-- 讲义摘要来自同一 runtime 媒体文档中的 `# handout.md`
+- 讲义摘要来自同一 runtime 媒体文档中的 `# handout.md`，并经 `lessonRuntime.handoutSummary` 提供给页面
 - 讲义下载来自 runtime `handout.pdf`
 - 在线讲义正文来自 runtime `handout.md`
 
@@ -139,7 +175,11 @@
 - [ ] 课前预习台顺序为“导入视频 -> 完整课程视频 -> 音频/课件/讲义”
 - [ ] 视频说明来自 `resource.title`
 - [ ] 音频说明按固定壳 + `resource.title` 动态拼接
-- [ ] 讲义摘要来自 `# handout.md` 后的 Markdown 文案
-- [ ] 讲义摘要以 Markdown 正确渲染
+- [ ] 讲义摘要来自 `lessonRuntime.handoutSummary`
+- [ ] 若 runtime 原文件已有人工摘要，页面没有把它覆盖或忽略
 - [ ] 音频只保留正式播放器，不保留旧嵌入或实验字样
+- [ ] 已复用共享入口组件，或在自定义结构中显式补齐课堂外资源埋点
+- [ ] 入口媒体至少已覆盖 `resource_view/open/play/progress/download/complete`
+- [ ] 知识图谱、知识卡片、跨域入口已覆盖各自的课堂外资源事件
+- [ ] 未把入口页资源行为误记成课堂步骤事件
 - [ ] 页面无工程实现文案泄漏

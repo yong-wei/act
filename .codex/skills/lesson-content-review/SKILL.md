@@ -207,12 +207,16 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - 若是线框图，检查其来源是否符合真实绘图流程，而不是 ASCII 或截图占位
 - 审查标准不是“能看懂就行”，而是“是否已经达到规范、清晰、可直接进讲义或页面的出版级配图水准”
 - 审核通过后，再导出到 `course-content/runtime/lessons/<lesson>/media/`
-- 导出 runtime 时，还必须在 `course-content/runtime/lessons/<lesson>/media/<lesson>-media.md` 生成标准标题骨架：
+- 导出 runtime 时，还必须在 `course-content/runtime/lessons/<lesson>/media/<lesson>-media.md` 生成 5 项标准骨架，并同步回作者态 `media/processed/<lesson>-media.md`：
   - `# <lesson>-intro-video.mp4`
   - `# <lesson>-audio.m4a`
   - `# <lesson>-slides.pdf`
   - `# <lesson>-course.mp4`
-- 若该文件已存在且用户已填写链接，只允许规范标题顺序并保留既有链接，不得覆盖链接内容
+  - `# handout.md`
+- 其中导入视频节若能在作者态 `media/raw/*intro-video-prompt*.md` 中找到 `Agent 模式视频生成提示词`，应自动生成一句“视频主题文案”追加到 `# <lesson>-intro-video.mp4` 节内；若原节已有人工标题，应保留原标题并把主题句附在后面
+- `audio.m4a`、`slides.pdf`、`course.mp4` 若原文件中已有人工标题或备注，必须原样保留；不要因为生成骨架而覆盖
+- `# handout.md` 若原文件中已有人工录入的讲义摘要，必须原样保留；仅在缺失该节时补一个空节
+- 若该文件已存在且用户已填写链接、标题或摘要，只允许规范标题顺序、补导入视频主题句并保留既有内容，不得覆盖人工录入内容
 
 详细规则见 `references/multimedia-review.md`。
 

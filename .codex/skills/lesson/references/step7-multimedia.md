@@ -6,6 +6,8 @@
 
 **数值图像统一约束**：响应曲线、Bode/Nyquist、根轨迹、稳定域、参数扫描等数值图像统一采用“Octave 导出数据 + Python/matplotlib 最终排版”两段式流程；`3-6` 单元的数值图风格是默认基线，后续单元不得各自发明新风格。
 
+**媒体链接文档约束**：每个单元在多媒体阶段都必须于 `course-content/authoring/lessons/<unit>/media/processed/` 下生成 `<unit>-media.md`。该文档固定只保留 5 个课程级资源名称：`<unit>-intro-video.mp4`、`<unit>-slides.pdf`、`<unit>-course.mp4`、`<unit>-audio.m4a`、`handout.md`；其中只有导入视频文案由智能体填写，且必须直接描述视频内容，不能写成“用导入情境引出……”这类泛化句式，其余资源说明和全部链接由用户手工填写。
+
 ## 本文件负责什么
 
 - 统一说明多媒体阶段的总工作流
@@ -32,10 +34,13 @@
   - `[单元编号]-slides.pdf`
   - `[单元编号]-course.mp4`
   - `[单元编号]-audio.m4a`
+- 媒体链接文档：
+  - `[单元编号]-media.md`
 
 媒体制作阶段的硬交付边界如下：
 
 - 必做：代码直出图、TikZ 线框图、互动前端绘制需求、`cover-comic-prompt.md`、导入视频提示词。
+- 必做：在 `media/processed/` 下建立 `[单元编号]-media.md`，先写入 5 个课程级资源名称，并只为导入视频补 1 句内容文案。
 - 仅登记待审查占位：`cover-comic.png`、`intro-video.mp4`、`info.png`、`slides.pdf`、`audio.m4a`。
 - 上述待审查占位由用户后续完成成品后，在审查阶段确认可用性。
 
@@ -134,6 +139,20 @@
 所有资源规格输出完毕后，将引用路径插入对应文档的对应位置：
 - 格式：`![图注](../media/processed/{文件名})`（Markdown 图片引用）
 - 互动前端绘制需求：在 interactive-page.md 对应步骤的「资源」栏补充 `[前端绘制]` 标注
+
+同时在 `media/processed/{unit}-media.md` 中建立媒体链接文档，固定使用以下 5 个条目顺序：
+
+1. `{unit}-intro-video.mp4`
+2. `{unit}-slides.pdf`
+3. `{unit}-course.mp4`
+4. `{unit}-audio.m4a`
+5. `handout.md`
+
+回写该文档时遵守以下边界：
+- 智能体只写资源名称，以及导入视频下方的 1 句中文文案。
+- 导入视频文案必须压缩自导入视频提示词的主线情节，直接描述视频中的对象、动作、冲突或对比结果。
+- 禁止写“用导入情境引出……”“围绕……展开”这类抽象句式。
+- `slides.pdf`、`course.mp4`、`audio.m4a`、`handout.md` 的说明文字与全部 URL 链接均留空，由用户后续手工填写。
 
 ---
 

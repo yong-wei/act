@@ -15,6 +15,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - `1-1`：理论型精品互动课的第一页入口、教师/学生双端、提交闭环、教师统计与答案揭示、统一事件链。
 - `1-2`：17 步课堂蓝图、页内 AI 弹窗、词云/回复列表、runtime 首页与课堂双线协同。
 - `1-3`：增强型工作区、步骤级 AI 上下文、知识卡抽屉、浏览器验收、review/runtime 联动。
+- `2-1`：课前预习台统一入口模板、runtime 媒体文案装配、页内音视频容器、讲义在线阅读/下载，以及课堂外资源互动追踪链路。
 
 **核心原则：**
 - 互动课程首先是完整课件，其次才是互动体验。页面必须先承载标题层级、公式、表格、图示、例题、结论，再把最值得升级的位置做成交互。
@@ -26,6 +27,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - 设计稿中若已固定页面模板、区域、模块、文本、公式、图片、表格、教师聚合、AI 边界与学生页预览，实施阶段不得擅自删改、合并、改写或重排。
 - 运行时页面必须 `runtime-first`，不能偷偷回读 `authoring` 或历史 `content`。
 - 课程页面必须同步接入步骤级 AI 上下文、提交反馈、教师端汇总、统一课程事件与数据治理语义。
+- 课程入口页、预习台、知识图谱、知识卡片、跨域模块和 standalone 互动资源的课堂外行为，也必须进入统一追踪链路；不要只顾课堂内事件。
 - 所有图像都必须是真实媒体：代码直出图、前端真实绘图或 AI 生成图；禁止 ASCII 图。
 - 媒体不足时，优先补作者态 `media/raw` / `media/processed`，再导出 runtime；不要把“后续补图”当默认答案。
 
@@ -219,6 +221,35 @@ description: Use when implementing or upgrading this repository's interactive le
 
 实现目标不是“埋点能发出去”，而是后续可以沉淀 `LearningFact`。
 
+#### 课堂外资源事件
+
+如果页面上存在“不进入课堂会话也能访问”的资源或互动区，必须显式判断其是否属于课堂外资源追踪范围。典型包括：
+
+- 课程入口页预习台中的视频、音频、课件、讲义
+- 入口页 runtime 知识图谱节点与知识卡片
+- 独立跨域探索入口或模块卡片
+- standalone 互动资源页中的非课堂态交互
+
+这类行为不要借用 `lesson_step_view`、`lesson_submit` 等课堂事件语义，也不要因为“不是课堂内”就不接埋点。默认要求：
+
+- 优先复用 `useResourceInteractionTracking`
+- 入口媒体至少覆盖：`resource_view`、`resource_open`、`resource_play`、`resource_progress`、`resource_download`、`resource_complete`
+- 知识图谱节点点击至少覆盖：`knowledge_graph_node_focus`
+- 知识卡片打开至少覆盖：`knowledge_card_open`
+- 跨域或外部互动模块入口至少覆盖：`external_module_open`
+- payload 至少能回收到 `surface`、`pageType`、`targetType`、`targetId`、`targetLabel`、`originPath`
+
+新增或改造入口页时，目标不只是“前端能发事件”，而是：
+
+- `InteractionLog` 能记录这些行为
+- 个人中心活动流能正确展示标题、说明、链接与徽标
+- 高价值事件后续可升格为 `LearningFact` 或能力贡献
+
+若本轮课次包含预习台、媒体卡、入口知识图谱、知识卡或跨域入口，必须同时转读：
+
+- [references/runtime-entry-page-pattern.md](references/runtime-entry-page-pattern.md)
+- [references/runtime-media-index-contract.md](references/runtime-media-index-contract.md)
+
 ### 4. 媒体策略
 
 #### 代码直出和线框图优先
@@ -266,6 +297,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - 关系要有方向，不是无向线
 - 讲义必须正确渲染 LaTeX 公式
 - 讲义入口与详情区都要支持导出 PDF
+- 如果入口页包含预习台或课外媒体卡，默认复用 `2-1` 当前入口模板或其共享组件，不要各课重新发明结构、容器和事件链。
 
 若课程入口页还包含“课前预习台”或运行态媒体入口，不要在主技能正文里自行发挥布局和文案，必须转读：
 
@@ -365,6 +397,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - 学生提交后有明确提交态、等待态、答案反馈或修正反馈
 - 教师端统计、词云、答案揭示、结束课堂都可用
 - 课程事件与治理映射没有脱节
+- 课堂外资源行为没有漏掉；入口页媒体、讲义、知识图谱、知识卡片与跨域入口均已进入统一追踪链
 - 课程使用统一 session / Redis / SSE 能力，没有单课私有同步方案
 
 验证结果必须写回 `notes/<lesson>.md`，至少留下：
@@ -451,7 +484,7 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
 - `references/media-and-path-rules.md`
   - 外部媒体、AI 图与处理后产物的目录、命名、导出规则
 - `references/runtime-entry-page-pattern.md`
-  - `2-1` 当前入口页模式的布局、文案装配、音视频/讲义容器与禁止项
+  - `2-1` 当前入口页模式的布局、文案装配、音视频/讲义容器、课堂外资源埋点与禁止项
 - `references/runtime-media-index-contract.md`
   - `runtime/lessons/<lesson>/media/<lesson>-media.md` 的文档结构、解析约束与前端装配规则
 - `references/runtime-code-generated-media.md`
@@ -475,8 +508,10 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
 - [ ] 已先设计完整课件骨架，再设计互动升级位
 - [ ] 已确认首页与课堂页都 `runtime-first`
 - [ ] 已为步骤级 AI、提交反馈、教师汇聚、课程事件与治理链路写出方案
+- [ ] 已区分课堂内事件与课堂外资源事件，未把入口资源误记成课堂步骤事件
 - [ ] 已确认是否需要 `SubmissionStatus`、等待释放态和防连续提交策略
 - [ ] 已确认教师端统计、词云、答案揭示和结束课堂链路
+- [ ] 若课程入口页含预习台/媒体卡/知识图谱/知识卡/跨域入口，已设计并保留统一课堂外资源追踪链
 - [ ] 已判断媒体缺口应通过 `media/raw` / `media/processed` 补齐，而不是继续 ASCII 或长期占位
 - [ ] 已对控制图使用 `python3 + control`，对线框图使用 `tikz-control-draw`
 - [ ] 已优先复用统一 session / Redis / SSE / rate limit 能力
