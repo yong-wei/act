@@ -23,6 +23,7 @@ import { UNIT_3_5_PREMIUM_LESSON_CARD } from '@/lib/unit-3-5-course';
 import { UNIT_3_6_PREMIUM_LESSON_CARD } from '@/lib/unit-3-6-course';
 import { UNIT_3_7_PREMIUM_LESSON_CARD } from '@/lib/unit-3-7-course';
 import { UNIT_3_8_PREMIUM_LESSON_CARD } from '@/lib/unit-3-8-course';
+import { UNIT_3_9_PREMIUM_LESSON_CARD } from '@/lib/unit-3-9-course';
 
 export interface InteractiveResource {
   id: string;
@@ -142,6 +143,7 @@ export const FEATURED_LESSONS = [
   UNIT_3_6_PREMIUM_LESSON_CARD,
   UNIT_3_7_PREMIUM_LESSON_CARD,
   UNIT_3_8_PREMIUM_LESSON_CARD,
+  UNIT_3_9_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -302,7 +304,8 @@ export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
   lesson.id === 'unit-3-5-zero-dynamic-improvement' ||
   lesson.id === 'unit-3-6-zero-design-workshop' ||
   lesson.id === 'unit-3-7-steady-error-low-frequency-compensation' ||
-  lesson.id === 'unit-3-8-frequency-domain-translation-judgment'
+  lesson.id === 'unit-3-8-frequency-domain-translation-judgment' ||
+  lesson.id === 'unit-3-9-cross-domain-mapping-lab'
 );
 
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
@@ -320,7 +323,8 @@ export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
     lesson.id !== 'unit-3-5-zero-dynamic-improvement' &&
     lesson.id !== 'unit-3-6-zero-design-workshop' &&
     lesson.id !== 'unit-3-7-steady-error-low-frequency-compensation' &&
-    lesson.id !== 'unit-3-8-frequency-domain-translation-judgment'
+    lesson.id !== 'unit-3-8-frequency-domain-translation-judgment' &&
+    lesson.id !== 'unit-3-9-cross-domain-mapping-lab'
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;
@@ -362,7 +366,7 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
     id: 'module-3',
     title: '模块3',
     description:
-      '模块3当前开放 3-1、3-2、3-3、3-4、3-5、3-6、3-7、3-8 八个新主线单元，先用纯极点语言压实稳定底线，再推进到劳斯边界、根轨迹法则、读图验证、零点机理、目标驱动设计、稳态误差与低频补偿入口，最终把结构变化与稳态改善统一收成频域判断地图。',
+      '模块3当前开放 3-1、3-2、3-3、3-4、3-5、3-6、3-7、3-8、3-9 九个新主线单元，先用纯极点语言压实稳定底线，再推进到劳斯边界、根轨迹法则、读图验证、零点机理、目标驱动设计、稳态误差与低频补偿入口，把结构变化与稳态改善统一收成判断地图，最后在 3-9 做模块出口综合映射。',
     chipLabel: '结构机理主线',
     lessons: [
       createModuleLesson('unit-3-1-pure-pole-stability-and-dynamics', '3-1'),
@@ -373,6 +377,7 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
       createModuleLesson('unit-3-6-zero-design-workshop', '3-6'),
       createModuleLesson('unit-3-7-steady-error-low-frequency-compensation', '3-7'),
       createModuleLesson('unit-3-8-frequency-domain-translation-judgment', '3-8'),
+      createModuleLesson('unit-3-9-cross-domain-mapping-lab', '3-9'),
     ],
   },
 ] as const;

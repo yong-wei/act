@@ -60,6 +60,10 @@ import {
   getUnit38StepAIContext as getUnit38StepAIContextLocal,
   getUnit38StepQuickQuestions as getUnit38StepQuickQuestionsLocal,
 } from './unit-3-8-ai-contexts';
+import {
+  getUnit39StepAIContext as getUnit39StepAIContextLocal,
+  getUnit39StepQuickQuestions as getUnit39StepQuickQuestionsLocal,
+} from './unit-3-9-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -174,6 +178,15 @@ export {
   getUnit38StepAIContext,
   getUnit38StepQuickQuestions,
 } from './unit-3-8-ai-contexts';
+
+export {
+  UNIT_3_9_COURSE_META,
+  UNIT_3_9_STEP_AI_CONTEXTS,
+  getUNIT_3_9StepAIContext,
+  getUNIT_3_9StepQuickQuestions,
+  getUnit39StepAIContext,
+  getUnit39StepQuickQuestions,
+} from './unit-3-9-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -320,6 +333,17 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '3-8：频域判别与跨域综合语言',
       courseDescription:
         '围绕结构变化的频域指纹、Nyquist/Bode 统一判稳链、三频段分工与工程案例读回，把模块 3 理论主线收束为一张频域判断地图。',
+    },
+  },
+
+  'unit-3-9-cross-domain-mapping-lab-v1': {
+    getStepContext: (stepId: string) => getUnit39StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit39StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-3-9-cross-domain-mapping-lab-v1',
+      courseTitle: '3-9：稳定—动态—稳态综合映射实验',
+      courseDescription:
+        '围绕同一航向控制对象，把基准、零点线补强、积分家族与滞后对照收束为一张稳定—动态—稳态综合映射表，并把模块 3 的出口判断接到 4-1。',
     },
   },
 };
