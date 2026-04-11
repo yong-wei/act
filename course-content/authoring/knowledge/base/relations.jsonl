@@ -16377,3 +16377,18 @@
 {"relation_id": "rel-e9aff57729cbe55d", "source": "奈奎斯特与 Bode 统一判稳链", "target": "三频段闭环性能回读", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.94}
 {"relation_id": "rel-feb232a6dad19f2d", "source": "幅值裕度", "target": "奈奎斯特与 Bode 统一判稳链", "source_chapter": 5, "target_chapter": 3, "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "rel-ffd47cd0324ec6ec", "source": "低频补偿稳态改善路径", "target": "结构变化的频域指纹", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
+{"relation_id": "rel-0bc7975889042521", "source": "相角裕度", "target": "指标角色重组", "source_chapter": 5, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.92}
+{"relation_id": "rel-17c4e272fb543cdf", "source": "可行域-满意域-最优域分层", "target": "跨域联读任务重排", "source_chapter": 4, "target_chapter": 4, "relation_type": "prerequisite", "strength": 0.92}
+{"relation_id": "rel-1b563bd88a0fccc8", "source": "超调量", "target": "指标角色重组", "source_chapter": 5, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.95}
+{"relation_id": "rel-338514799c509ff5", "source": "带宽频率", "target": "跨域联读任务重排", "source_chapter": 5, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "rel-365f331a352a09d2", "source": "硬约束-软目标-观察指标分类", "target": "设计任务表达卡", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.95}
+{"relation_id": "rel-48fe9e510492e7d6", "source": "指标角色重组", "target": "硬约束-软目标-观察指标分类", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.97}
+{"relation_id": "rel-5752a3adbdebe714", "source": "带宽频率", "target": "指标角色重组", "source_chapter": 5, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "rel-672e4169328363e5", "source": "硬约束-软目标-观察指标分类", "target": "可行域-满意域-最优域分层", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.96}
+{"relation_id": "rel-9c909ac746e8a74a", "source": "稳定可行域", "target": "可行域-满意域-最优域分层", "source_chapter": 3, "target_chapter": 4, "relation_type": "prerequisite", "strength": 0.88}
+{"relation_id": "rel-ca26700522b4b63e", "source": "相角裕度", "target": "跨域联读任务重排", "source_chapter": 5, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.91}
+{"relation_id": "rel-cdfb5c4290461cc4", "source": "复平面可行域", "target": "可行域-满意域-最优域分层", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.93}
+{"relation_id": "rel-dea885a3b8c2a71e", "source": "设计可行域", "target": "可行域-满意域-最优域分层", "source_chapter": 4, "target_chapter": 4, "relation_type": "contains", "strength": 0.94}
+{"relation_id": "rel-e0143c7c08696ac6", "source": "跨域联读任务重排", "target": "设计任务表达卡", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.97}
+{"relation_id": "rel-efb7585642af3c14", "source": "调节时间", "target": "指标角色重组", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.95}
+{"relation_id": "rel-f7eebed8d51a8cd8", "source": "谐振峰值Mr", "target": "跨域联读任务重排", "source_chapter": 5, "target_chapter": 4, "relation_type": "related", "strength": 0.76}

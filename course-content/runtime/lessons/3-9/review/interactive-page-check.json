@@ -1,0 +1,47 @@
+{
+  "lesson_id": "3-9",
+  "source_path": "course-content/authoring/lessons/3-9/design/interactive-page.md",
+  "contract_path": "course-content/authoring/lessons/3-9/design/interactive-contract.yaml",
+  "implementation_contract_source": null,
+  "contract_required_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "included_in_primary_sources": true,
+  "has_core_mapping_section": true,
+  "mapping_columns_present": [
+    "handout_anchor",
+    "core_item_type",
+    "must_appear_content",
+    "target_step",
+    "page_mode",
+    "interaction_upgrade",
+    "media_or_table_ref",
+    "acceptance_note"
+  ],
+  "missing_mapping_columns": [],
+  "invalid_handout_anchors": [],
+  "missing_target_steps": [],
+  "formula_mapping_issues": [],
+  "step_static_blocks_missing": [],
+  "step_upgrade_blocks_missing": [],
+  "missing_contract_fields": [],
+  "step_contract_issues": [],
+  "implementation_contract_summary": [],
+  "implementation_contract_issues": [],
+  "summary": [
+    "已覆盖讲义中的核心公式与静态承载内容。",
+    "已检测到 `3-9` 的 V2 互动契约，步骤字段完整。"
+  ],
+  "warnings": [],
+  "missing": [],
+  "issues": []
+}

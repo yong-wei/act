@@ -1,0 +1,141 @@
+{
+  "lesson_id": "3-9",
+  "title": "稳定—动态—稳态综合映射实验",
+  "layer": "层3",
+  "unit_type": "实践",
+  "hours": 2,
+  "knowledge_type": "X",
+  "graph_version": "3-9-v1",
+  "focus_node_ids": [
+    "稳定_动态_稳态综合映射框架_3_39001",
+    "任务标签与机制标签匹配_3_39002",
+    "积分与滞后的稳态改善分工_3_39003",
+    "模块4入口的首轮任务判断_3_39004"
+  ],
+  "reuse_node_ids": [
+    "结构变化的频域指纹_3_38001",
+    "三频段闭环性能回读_3_38003",
+    "频域综合判断与工程读回_3_38004",
+    "左半平面零点的动态改善机理_3_35002",
+    "低频补偿稳态改善路径_3_37003",
+    "根轨迹_4_c19f8854",
+    "主导极点_3_4c4c6bbd",
+    "积分环节_2_11005",
+    "串联无源滞后校正_6_2a52e865",
+    "相角裕度_5_0a9c6e90",
+    "带宽_5_6730fda4"
+  ],
+  "entry_nodes": [
+    "结构变化的频域指纹_3_38001",
+    "稳定_动态_稳态综合映射框架_3_39001"
+  ],
+  "summary_nodes": [
+    "积分与滞后的稳态改善分工_3_39003",
+    "任务标签与机制标签匹配_3_39002",
+    "模块4入口的首轮任务判断_3_39004"
+  ],
+  "card_order": [
+    "结构变化的频域指纹_3_38001",
+    "频域综合判断与工程读回_3_38004",
+    "根轨迹_4_c19f8854",
+    "主导极点_3_4c4c6bbd",
+    "稳定_动态_稳态综合映射框架_3_39001",
+    "左半平面零点的动态改善机理_3_35002",
+    "低频补偿稳态改善路径_3_37003",
+    "积分环节_2_11005",
+    "串联无源滞后校正_6_2a52e865",
+    "积分与滞后的稳态改善分工_3_39003",
+    "三频段闭环性能回读_3_38003",
+    "相角裕度_5_0a9c6e90",
+    "带宽_5_6730fda4",
+    "任务标签与机制标签匹配_3_39002",
+    "模块4入口的首轮任务判断_3_39004"
+  ],
+  "preceding_lesson": "3-8",
+  "following_lesson": "4-1",
+  "refinement_units": [],
+  "ideological_point": "工程判断不能靠“想要更快”或“想要更准”的口号直接跳结论，必须先识别哪条机制线优先承担任务、哪一域最先暴露代价，再进入后续设计。",
+  "sequence": {
+    "lesson_id": "3-9",
+    "groups": [
+      {
+        "group_name": "统一对象与多版本映射入口",
+        "step_ids": [
+          "step-01",
+          "step-02",
+          "step-03"
+        ],
+        "node_ids": [
+          "结构变化的频域指纹_3_38001",
+          "频域综合判断与工程读回_3_38004",
+          "根轨迹_4_c19f8854",
+          "主导极点_3_4c4c6bbd",
+          "稳定_动态_稳态综合映射框架_3_39001"
+        ]
+      },
+      {
+        "group_name": "动态改善线与稳态改善线对照",
+        "step_ids": [
+          "step-04",
+          "step-05",
+          "step-06"
+        ],
+        "node_ids": [
+          "左半平面零点的动态改善机理_3_35002",
+          "低频补偿稳态改善路径_3_37003",
+          "积分环节_2_11005",
+          "串联无源滞后校正_6_2a52e865",
+          "积分与滞后的稳态改善分工_3_39003"
+        ]
+      },
+      {
+        "group_name": "任务标签、频域复核与模块4入口",
+        "step_ids": [
+          "step-07",
+          "step-08"
+        ],
+        "node_ids": [
+          "三频段闭环性能回读_3_38003",
+          "相角裕度_5_0a9c6e90",
+          "带宽_5_6730fda4",
+          "任务标签与机制标签匹配_3_39002",
+          "模块4入口的首轮任务判断_3_39004"
+        ]
+      }
+    ],
+    "card_order": [
+      "结构变化的频域指纹_3_38001",
+      "频域综合判断与工程读回_3_38004",
+      "根轨迹_4_c19f8854",
+      "主导极点_3_4c4c6bbd",
+      "稳定_动态_稳态综合映射框架_3_39001",
+      "左半平面零点的动态改善机理_3_35002",
+      "低频补偿稳态改善路径_3_37003",
+      "积分环节_2_11005",
+      "串联无源滞后校正_6_2a52e865",
+      "积分与滞后的稳态改善分工_3_39003",
+      "三频段闭环性能回读_3_38003",
+      "相角裕度_5_0a9c6e90",
+      "带宽_5_6730fda4",
+      "任务标签与机制标签匹配_3_39002",
+      "模块4入口的首轮任务判断_3_39004"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/3-9/handout.md",
+  "handout_source_path": "course-content/runtime/lessons/3-9/handout.md",
+  "handout_pdf_path": "/course-runtime/lessons/3-9/handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/3-9/handout.pdf",
+  "graph_overlay_path": "/course-runtime/lessons/3-9/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/3-9/media",
+  "media_index_path": "/course-runtime/lessons/3-9/media/3-9-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/3-9/media/3-9-media.md",
+  "review": {
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/3-9/review/boppps.md",
+    "report_path": "/course-runtime/lessons/3-9/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/3-9/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/3-9/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/3-9/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/3-9/review/source-manifest.json"
+  }
+}

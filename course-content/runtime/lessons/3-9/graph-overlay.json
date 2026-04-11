@@ -1,0 +1,944 @@
+{
+  "lesson_id": "3-9",
+  "title": "稳定—动态—稳态综合映射实验",
+  "focus_node_ids": [
+    "稳定_动态_稳态综合映射框架_3_39001",
+    "任务标签与机制标签匹配_3_39002",
+    "积分与滞后的稳态改善分工_3_39003",
+    "模块4入口的首轮任务判断_3_39004"
+  ],
+  "reuse_node_ids": [
+    "结构变化的频域指纹_3_38001",
+    "三频段闭环性能回读_3_38003",
+    "频域综合判断与工程读回_3_38004",
+    "左半平面零点的动态改善机理_3_35002",
+    "低频补偿稳态改善路径_3_37003",
+    "根轨迹_4_c19f8854",
+    "主导极点_3_4c4c6bbd",
+    "积分环节_2_11005",
+    "串联无源滞后校正_6_2a52e865",
+    "相角裕度_5_0a9c6e90",
+    "带宽_5_6730fda4"
+  ],
+  "entry_nodes": [
+    "结构变化的频域指纹_3_38001",
+    "稳定_动态_稳态综合映射框架_3_39001"
+  ],
+  "summary_nodes": [
+    "积分与滞后的稳态改善分工_3_39003",
+    "任务标签与机制标签匹配_3_39002",
+    "模块4入口的首轮任务判断_3_39004"
+  ],
+  "card_order": [
+    "结构变化的频域指纹_3_38001",
+    "频域综合判断与工程读回_3_38004",
+    "根轨迹_4_c19f8854",
+    "主导极点_3_4c4c6bbd",
+    "稳定_动态_稳态综合映射框架_3_39001",
+    "左半平面零点的动态改善机理_3_35002",
+    "低频补偿稳态改善路径_3_37003",
+    "积分环节_2_11005",
+    "串联无源滞后校正_6_2a52e865",
+    "积分与滞后的稳态改善分工_3_39003",
+    "三频段闭环性能回读_3_38003",
+    "相角裕度_5_0a9c6e90",
+    "带宽_5_6730fda4",
+    "任务标签与机制标签匹配_3_39002",
+    "模块4入口的首轮任务判断_3_39004"
+  ],
+  "groups": [
+    {
+      "group_name": "统一对象与多版本映射入口",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03"
+      ],
+      "node_ids": [
+        "结构变化的频域指纹_3_38001",
+        "频域综合判断与工程读回_3_38004",
+        "根轨迹_4_c19f8854",
+        "主导极点_3_4c4c6bbd",
+        "稳定_动态_稳态综合映射框架_3_39001"
+      ]
+    },
+    {
+      "group_name": "动态改善线与稳态改善线对照",
+      "step_ids": [
+        "step-04",
+        "step-05",
+        "step-06"
+      ],
+      "node_ids": [
+        "左半平面零点的动态改善机理_3_35002",
+        "低频补偿稳态改善路径_3_37003",
+        "积分环节_2_11005",
+        "串联无源滞后校正_6_2a52e865",
+        "积分与滞后的稳态改善分工_3_39003"
+      ]
+    },
+    {
+      "group_name": "任务标签、频域复核与模块4入口",
+      "step_ids": [
+        "step-07",
+        "step-08"
+      ],
+      "node_ids": [
+        "三频段闭环性能回读_3_38003",
+        "相角裕度_5_0a9c6e90",
+        "带宽_5_6730fda4",
+        "任务标签与机制标签匹配_3_39002",
+        "模块4入口的首轮任务判断_3_39004"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "积分环节_2_11005",
+      "name": "积分环节",
+      "nodeType": "THEORY",
+      "description": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
+      "positionX": -0.0,
+      "positionY": -38.0,
+      "positionZ": 0,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "典型环节",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "典型环节",
+        "bloom_level": "理解",
+        "definition": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
+        "examples": [
+          "水箱：流量输入→液位输出",
+          "船舶：角速度→航向角"
+        ],
+        "formulas": [
+          "G(s) = 1/s",
+          "y(t) = ∫₀ᵗ u(τ)dτ"
+        ],
+        "prerequisites": [
+          "传递函数_2_2c5e2589"
+        ],
+        "relatedConcepts": [
+          "比例环节_2_11004",
+          "极点_2_cc79a4c5"
+        ],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "积分",
+          "原点极点",
+          "累积效应"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/积分环节_2_11005.md"
+      ],
+      "tags": [
+        "积分",
+        "原点极点",
+        "累积效应",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "三频段闭环性能回读_3_38003",
+      "name": "三频段闭环性能回读",
+      "nodeType": "THEORY",
+      "description": "按低频、中频、高频三段分工，把开环图上读到的低频增益、截止频率、相角裕度、带宽和谐振峰值重新翻译成稳态精度、速度、超调、噪声与执行器负担等闭环后果。",
+      "positionX": 31.1,
+      "positionY": -31.1,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "按低频、中频、高频三段分工，把开环图上读到的低频增益、截止频率、相角裕度、带宽和谐振峰值重新翻译成稳态精度、速度、超调、噪声与执行器负担等闭环后果。",
+        "examples": [
+          "若任务从“尽快跟踪”切换为“减小超调并减轻执行器波动”，则应优先提高中频余量并压低谐振峰值，而不是继续右推截止频率。",
+          "同样是提高带宽，最小相对象和非最小相对象读回的风险不同：后者更容易被额外相位滞后压缩裕量。"
+        ],
+        "formulas": [
+          "|\\Phi(j\\omega_b)|=\\frac{|\\Phi(j0)|}{\\sqrt{2}}",
+          "M_r=\\max_{\\omega}|\\Phi(j\\omega)|"
+        ],
+        "prerequisites": [
+          "奈奎斯特与Bode统一判稳链_3_38002",
+          "相角裕度_5_0a9c6e90",
+          "带宽_5_6730fda4",
+          "非最小相与右半平面零点_3_35005"
+        ],
+        "relatedConcepts": [
+          "频域综合判断与工程读回_3_38004",
+          "谐振峰值_5_e5918c55"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "三频段",
+          "带宽",
+          "谐振峰值",
+          "稳态精度",
+          "速度",
+          "高频代价"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/三频段闭环性能回读_3_38003.md"
+      ],
+      "tags": [
+        "三频段",
+        "带宽",
+        "谐振峰值",
+        "稳态精度",
+        "速度",
+        "高频代价",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "任务标签与机制标签匹配_3_39002",
+      "name": "任务标签与机制标签匹配",
+      "nodeType": "THEORY",
+      "description": "把“更快、更准、更稳”等口头需求先翻译成动态改善、稳态改善或综合折中的任务标签，再对应回零点线、积分线、滞后线等机制标签，避免直接从口头目标跳到控制器名称或参数答案。",
+      "positionX": 25.0,
+      "positionY": 43.3,
+      "positionZ": 0,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "方法性",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "方法性",
+        "bloom_level": "评价",
+        "definition": "把“更快、更准、更稳”等口头需求先翻译成动态改善、稳态改善或综合折中的任务标签，再对应回零点线、积分线、滞后线等机制标签，避免直接从口头目标跳到控制器名称或参数答案。",
+        "examples": [
+          "当目标是“更快且别太冒进”时，优先想到的是中频整理和动态改善线，而不是一上来继续堆低频。",
+          "当目标是“更准但不希望尾部长很多”时，要先分辨是否必须改型别，再决定积分还是滞后。"
+        ],
+        "formulas": [
+          "\\text{任务标签} \\neq \\text{控制器名称}",
+          "\\text{目标表达} \\rightarrow \\text{任务标签} \\rightarrow \\text{机制线选择}"
+        ],
+        "prerequisites": [
+          "稳定_动态_稳态综合映射框架_3_39001",
+          "三频段闭环性能回读_3_38003"
+        ],
+        "relatedConcepts": [
+          "积分与滞后的稳态改善分工_3_39003",
+          "模块4入口的首轮任务判断_3_39004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "任务标签",
+          "机制标签",
+          "动态改善",
+          "稳态改善",
+          "综合折中"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/任务标签与机制标签匹配_3_39002.md"
+      ],
+      "tags": [
+        "任务标签",
+        "机制标签",
+        "动态改善",
+        "稳态改善",
+        "综合折中",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "低频补偿稳态改善路径_3_37003",
+      "name": "低频补偿稳态改善路径",
+      "nodeType": "THEORY",
+      "description": "把 PI 与滞后都理解为低频补偿：前者通过积分提高型别，后者通过低频增益重分配压小有限误差，并且二者都会把动态速度与频域裕量代价转移到其他频段。",
+      "positionX": 0.0,
+      "positionY": 50.0,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "把 PI 与滞后都理解为低频补偿：前者通过积分提高型别，后者通过低频增益重分配压小有限误差，并且二者都会把动态速度与频域裕量代价转移到其他频段。",
+        "examples": [
+          "PI 通过在原点增加积分极点，使 I 型系统提升为 II 型，从结构上消除斜坡稳态误差。",
+          "滞后校正通过“零点在左、极点在右”的附加零极点对抬高低频增益，在型别不变时改善速度误差系数。"
+        ],
+        "formulas": [
+          "G_{PI}(s)=K\\frac{T_i s+1}{T_i s}",
+          "G_{lag}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1"
+        ],
+        "prerequisites": [
+          "稳态误差双路径判断_3_37002",
+          "积分环节_2_11005",
+          "比例-积分控制器_3_2d540516",
+          "串联无源滞后校正_6_2a52e865"
+        ],
+        "relatedConcepts": [
+          "频率特性_5_404adfdd",
+          "相角裕度_5_0a9c6e90",
+          "带宽_5_6730fda4"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "低频补偿",
+          "PI",
+          "滞后校正",
+          "型别提高",
+          "低频增益",
+          "代价"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/低频补偿稳态改善路径_3_37003.md"
+      ],
+      "tags": [
+        "低频补偿",
+        "PI",
+        "滞后校正",
+        "型别提高",
+        "低频增益",
+        "代价",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "左半平面零点的动态改善机理_3_35002",
+      "name": "左半平面零点的动态改善机理",
+      "nodeType": "THEORY",
+      "description": "左半平面零点通过改变相角平衡与根轨迹骨架，使主导极点更有机会进入阻尼更合适、实部更靠左的区域，因此常常带来更快、更稳的动态趋势；但这种改善会伴随高频放大或结构副作用。",
+      "positionX": -48.5,
+      "positionY": 28.0,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "未分章",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "未分章",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "左半平面零点通过改变相角平衡与根轨迹骨架，使主导极点更有机会进入阻尼更合适、实部更靠左的区域，因此常常带来更快、更稳的动态趋势；但这种改善会伴随高频放大或结构副作用。",
+        "examples": [
+          "在同一纯极点对象上加入左半平面零点后，阶跃响应常表现为超调下降、调节时间缩短，但不是简单等价于增益增大。",
+          "PD 与超前都利用左半平面零点改善动态，只是对高频代价的处理方式不同。"
+        ],
+        "formulas": [
+          "M_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times100\\%",
+          "t_s\\approx\\frac{4}{\\zeta\\omega_n}"
+        ],
+        "prerequisites": [
+          "零点引入与根轨迹重排_3_35001",
+          "阻尼比_3_b849784e",
+          "自然频率_10_51a8b7d0"
+        ],
+        "relatedConcepts": [
+          "PD与测速反馈的等效阻尼对比_3_35003",
+          "PD与超前的频域整形差异_3_35004"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "左半平面零点",
+          "动态改善",
+          "阻尼",
+          "超调",
+          "高频代价"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/左半平面零点的动态改善机理_3_35002.md"
+      ],
+      "tags": [
+        "左半平面零点",
+        "动态改善",
+        "阻尼",
+        "超调",
+        "高频代价",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "模块4入口的首轮任务判断_3_39004",
+      "name": "模块4入口的首轮任务判断",
+      "nodeType": "THEORY",
+      "description": "在进入模块4之前，先把“更快”“更准”“兼顾稳与快”等口头需求翻译成需要优先回看的机制线与风险边界，明确当前只能做首轮任务判断，不能越级给出完整选型与整定结论。",
+      "positionX": 59.9,
+      "positionY": 16.0,
+      "positionZ": 0,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "方法性",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "方法性",
+        "bloom_level": "评价",
+        "definition": "在进入模块4之前，先把“更快”“更准”“兼顾稳与快”等口头需求翻译成需要优先回看的机制线与风险边界，明确当前只能做首轮任务判断，不能越级给出完整选型与整定结论。",
+        "examples": [
+          "若目标先是更快，应优先回看零点线或其他中频整理动作，以及相角裕度是否还够。",
+          "若目标先是更准，应先问是否必须改型别，以及愿不愿意承担更长尾部和更紧余量。"
+        ],
+        "formulas": [
+          "\\text{口头需求} \\rightarrow \\text{首轮任务判断} \\rightarrow \\text{后续设计问题}"
+        ],
+        "prerequisites": [
+          "任务标签与机制标签匹配_3_39002",
+          "相角裕度_5_0a9c6e90",
+          "带宽_5_6730fda4"
+        ],
+        "relatedConcepts": [
+          "积分与滞后的稳态改善分工_3_39003",
+          "性能指标体系_4_41001"
+        ],
+        "difficulty": 5,
+        "importance": 5,
+        "keywords": [
+          "模块4入口",
+          "任务判断",
+          "约束表达",
+          "设计起点"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/模块4入口的首轮任务判断_3_39004.md"
+      ],
+      "tags": [
+        "模块4入口",
+        "任务判断",
+        "约束表达",
+        "设计起点",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "积分与滞后的稳态改善分工_3_39003",
+      "name": "积分与滞后的稳态改善分工",
+      "nodeType": "THEORY",
+      "description": "积分和滞后都服务于稳态改善，但积分更直接改变型别与误差阶次，滞后更偏向温和提高低频能力，因此二者在低频收益、中频代价和可达到的稳态改善程度上并不相同。",
+      "positionX": -59.9,
+      "positionY": -16.0,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "积分和滞后都服务于稳态改善，但积分更直接改变型别与误差阶次，滞后更偏向温和提高低频能力，因此二者在低频收益、中频代价和可达到的稳态改善程度上并不相同。",
+        "examples": [
+          "积分可把单位斜坡误差继续压向零，但常常更早把相位余量和超调推向紧张区。",
+          "滞后能把误差压小而不改型别，代价通常比强积分温和，但改善程度也有限。"
+        ],
+        "formulas": [
+          "C_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right)",
+          "C_{\\mathrm{lag}}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1"
+        ],
+        "prerequisites": [
+          "积分环节_2_11005",
+          "低频补偿稳态改善路径_3_37003",
+          "串联无源滞后校正_6_2a52e865"
+        ],
+        "relatedConcepts": [
+          "任务标签与机制标签匹配_3_39002",
+          "模块4入口的首轮任务判断_3_39004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "积分",
+          "滞后",
+          "稳态改善",
+          "型别",
+          "低频补偿"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/积分与滞后的稳态改善分工_3_39003.md"
+      ],
+      "tags": [
+        "积分",
+        "滞后",
+        "稳态改善",
+        "型别",
+        "低频补偿",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "结构变化的频域指纹_3_38001",
+      "name": "结构变化的频域指纹",
+      "nodeType": "THEORY",
+      "description": "把增益提升、左半平面零点、积分/滞后补偿和右半平面零点统一放进频域里比较，关注它们优先改写哪一段频率、主要改写幅值还是相位，以及收益与代价分别落在哪一类闭环后果上。",
+      "positionX": 48.1,
+      "positionY": 48.1,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "把增益提升、左半平面零点、积分/滞后补偿和右半平面零点统一放进频域里比较，关注它们优先改写哪一段频率、主要改写幅值还是相位，以及收益与代价分别落在哪一类闭环后果上。",
+        "examples": [
+          "增益提升主要表现为开环幅频曲线整体上移，相位近似不变，因此首先改变截止频率与稳定余量。",
+          "积分或滞后优先强化低频精度，但会更早压缩中频相位余量；右半平面零点可能抬高幅值，却同时带来更重的相位代价。"
+        ],
+        "formulas": [
+          "L_{new}(j\\omega)=\\alpha L(j\\omega)",
+          "G_i(s)=\\frac{1}{s}",
+          "G_z(s)=1+\\frac{s}{z}",
+          "G_{nmp}(s)=1-\\frac{s}{z}"
+        ],
+        "prerequisites": [
+          "左半平面零点的动态改善机理_3_35002",
+          "低频补偿稳态改善路径_3_37003",
+          "非最小相与右半平面零点_3_35005"
+        ],
+        "relatedConcepts": [
+          "奈奎斯特与Bode统一判稳链_3_38002",
+          "三频段闭环性能回读_3_38003"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "结构变化",
+          "频域指纹",
+          "增益提升",
+          "零点",
+          "积分补偿",
+          "非最小相"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/结构变化的频域指纹_3_38001.md"
+      ],
+      "tags": [
+        "结构变化",
+        "频域指纹",
+        "增益提升",
+        "零点",
+        "积分补偿",
+        "非最小相",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "稳定_动态_稳态综合映射框架_3_39001",
+      "name": "统一对象多版本综合映射框架",
+      "nodeType": "THEORY",
+      "description": "围绕同一船舶航向控制对象，把基准、积分和自选补强等多个版本放进同一张比较表，统一记录结构变化、根轨迹第一信号、时域后果、频域后果与任务标签，形成模块3出口的跨域机制地图。",
+      "positionX": 17.6,
+      "positionY": 65.7,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "围绕同一船舶航向控制对象，把基准、积分和自选补强等多个版本放进同一张比较表，统一记录结构变化、根轨迹第一信号、时域后果、频域后果与任务标签，形成模块3出口的跨域机制地图。",
+        "examples": [
+          "基准版本作为统一锚点，只说明系统当前处在怎样的折中位置。",
+          "零点线补强、积分校正和滞后对照不再各看各的图，而是回到同一对象的多版本映射上比较收益与代价。"
+        ],
+        "formulas": [
+          "\\text{统一对象} + \\text{多版本} \\rightarrow \\text{可比映射}",
+          "\\text{结构变化} \\rightarrow \\text{根轨迹第一信号} \\rightarrow \\text{时域结果} \\rightarrow \\text{频域解释} \\rightarrow \\text{任务标签}"
+        ],
+        "prerequisites": [
+          "结构变化的频域指纹_3_38001",
+          "频域综合判断与工程读回_3_38004",
+          "根轨迹_4_c19f8854",
+          "主导极点_3_4c4c6bbd"
+        ],
+        "relatedConcepts": [
+          "任务标签与机制标签匹配_3_39002",
+          "积分与滞后的稳态改善分工_3_39003",
+          "模块4入口的首轮任务判断_3_39004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "统一对象",
+          "多版本映射",
+          "跨域比较",
+          "模块3出口",
+          "综合映射"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/稳定_动态_稳态综合映射框架_3_39001.md"
+      ],
+      "tags": [
+        "统一对象",
+        "多版本映射",
+        "跨域比较",
+        "模块3出口",
+        "综合映射",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "频域综合判断与工程读回_3_38004",
+      "name": "频域综合判断与工程读回",
+      "nodeType": "THEORY",
+      "description": "在同一工程对象上，用“频域指纹 -> 判稳余量 -> 三频段任务 -> 闭环读回”的顺序比较基线方案与校正方案，判断应优先改写哪一段频率，哪些收益值得保留，哪些代价必须控制。",
+      "positionX": 19.2,
+      "positionY": 71.5,
+      "positionZ": 0,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "方法性",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "方法性",
+        "bloom_level": "评价",
+        "definition": "在同一工程对象上，用“频域指纹 -> 判稳余量 -> 三频段任务 -> 闭环读回”的顺序比较基线方案与校正方案，判断应优先改写哪一段频率，哪些收益值得保留，哪些代价必须控制。",
+        "examples": [
+          "船舶航向控制中，超前校正主要改写中频，因此既提升相角裕度，又把截止频率推到更合适位置，最终得到更快且更稳的闭环表现。",
+          "稳定平台中，单纯降增益虽能增大余量，但会显著拖慢速度；中频超前校正更能兼顾快速收敛与较小超调。"
+        ],
+        "formulas": [
+          "\\Phi(s)=\\frac{L(s)}{1+L(s)}",
+          "t_s\\approx\\frac{4}{\\zeta\\omega_n}"
+        ],
+        "prerequisites": [
+          "三频段闭环性能回读_3_38003",
+          "目标驱动超前校正_3_36004"
+        ],
+        "relatedConcepts": [
+          "稳定—动态—稳态综合映射实验_3_39001"
+        ],
+        "difficulty": 5,
+        "importance": 5,
+        "keywords": [
+          "工程读回",
+          "航向控制",
+          "稳定平台",
+          "超前校正",
+          "综合判断",
+          "频域设计入口"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/频域综合判断与工程读回_3_38004.md"
+      ],
+      "tags": [
+        "工程读回",
+        "航向控制",
+        "稳定平台",
+        "超前校正",
+        "综合判断",
+        "频域设计入口",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "根轨迹_4_c19f8854",
+      "name": "根轨迹",
+      "nodeType": "THEORY",
+      "description": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
+      "positionX": 105.7,
+      "positionY": 61.0,
+      "positionZ": 4,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
+        "examples": [
+          "图4-2所示，开环增益K变化时，二阶系统闭环极点在s平面上沿实轴和复平面变化的轨迹。",
+          "用于分析开环增益变化对闭环系统稳定性和动态性能的影响。"
+        ],
+        "formulas": [
+          "1 + G(s)H(s) = 0",
+          "\\prod_{j=1}^{n}(s - p_j) + K^* \\prod_{i=1}^{m}(s - z_i) = 0",
+          "1+KG(s)H(s)=0",
+          "\\sum_{i=1}^{m}\\angle(s-z_i)-\\sum_{j=1}^{n}\\angle(s-p_j)=(2k+1)\\pi"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 5,
+        "keywords": [
+          "闭环极点",
+          "s平面",
+          "轨迹",
+          "特征方程",
+          "闭环特征根",
+          "开环增益",
+          "复平面"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628098",
+        "updatedAt": "2026-02-04T17:54:16.628099",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/根轨迹_4_c19f8854.md"
+      ],
+      "tags": [
+        "闭环极点",
+        "s平面",
+        "轨迹",
+        "特征方程",
+        "闭环特征根",
+        "开环增益",
+        "复平面",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "串联无源滞后校正_6_2a52e865",
+      "name": "串联无源滞后校正",
+      "nodeType": "THEORY",
+      "description": "一种通过串联滞后网络来改善系统稳态精度和动态性能的校正方法。",
+      "positionX": 150.7,
+      "positionY": -87.0,
+      "positionZ": 6,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 6,
+      "chapterName": "系统校正",
+      "metadata": {
+        "chapter": 6,
+        "chapterName": "系统校正",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "一种通过串联滞后网络来改善系统稳态精度和动态性能的校正方法。",
+        "examples": [
+          "例6-4中，为满足静态速度误差系数、相角裕度、幅值裕度和截止频率要求，设计串联滞后校正装置。"
+        ],
+        "formulas": [
+          "\\phi_m = \\gamma'' - \\gamma' + \\Delta",
+          "L'(\\omega_c'') = 20\\lg b",
+          "bT = \\frac{1}{\\omega_c''}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "滞后网络",
+          "相角裕度",
+          "截止频率",
+          "稳态误差"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628826",
+        "updatedAt": "2026-02-04T17:54:16.628826",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/串联无源滞后校正_6_2a52e865.md"
+      ],
+      "tags": [
+        "滞后网络",
+        "相角裕度",
+        "截止频率",
+        "稳态误差",
+        "chapter-6"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "rel-6147a60410b8e0a4",
+      "sourceId": "积分环节_2_11005",
+      "targetId": "低频补偿稳态改善路径_3_37003",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-84fa5b17f4a4cd72",
+      "sourceId": "低频补偿稳态改善路径_3_37003",
+      "targetId": "串联无源滞后校正_6_2a52e865",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-82bf0bfa3368273f",
+      "sourceId": "左半平面零点的动态改善机理_3_35002",
+      "targetId": "结构变化的频域指纹_3_38001",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.93
+    },
+    {
+      "id": "rel-d9836a78991e3f00",
+      "sourceId": "三频段闭环性能回读_3_38003",
+      "targetId": "频域综合判断与工程读回_3_38004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-ffd47cd0324ec6ec",
+      "sourceId": "低频补偿稳态改善路径_3_37003",
+      "targetId": "结构变化的频域指纹_3_38001",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-79f78d5522a4d68d",
+      "sourceId": "频域综合判断与工程读回_3_38004",
+      "targetId": "稳定_动态_稳态综合映射框架_3_39001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-6f33f1c7f33ddfcf",
+      "sourceId": "根轨迹_4_c19f8854",
+      "targetId": "稳定_动态_稳态综合映射框架_3_39001",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-678492a685ecbf06",
+      "sourceId": "稳定_动态_稳态综合映射框架_3_39001",
+      "targetId": "任务标签与机制标签匹配_3_39002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-d8f2e7b5ae82bda6",
+      "sourceId": "左半平面零点的动态改善机理_3_35002",
+      "targetId": "任务标签与机制标签匹配_3_39002",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-59d35b5f11c6a53e",
+      "sourceId": "低频补偿稳态改善路径_3_37003",
+      "targetId": "积分与滞后的稳态改善分工_3_39003",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-14c1cb06e92f07fa",
+      "sourceId": "积分环节_2_11005",
+      "targetId": "积分与滞后的稳态改善分工_3_39003",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-c71456d4c47aac46",
+      "sourceId": "串联无源滞后校正_6_2a52e865",
+      "targetId": "积分与滞后的稳态改善分工_3_39003",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-8189abce8b953e80",
+      "sourceId": "积分与滞后的稳态改善分工_3_39003",
+      "targetId": "任务标签与机制标签匹配_3_39002",
+      "relation": "supports",
+      "relationType": "supports",
+      "strength": 0.91
+    },
+    {
+      "id": "rel-9c1104cbe550d4a9",
+      "sourceId": "三频段闭环性能回读_3_38003",
+      "targetId": "任务标签与机制标签匹配_3_39002",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-e23eeb5941551d65",
+      "sourceId": "任务标签与机制标签匹配_3_39002",
+      "targetId": "模块4入口的首轮任务判断_3_39004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    }
+  ]
+}

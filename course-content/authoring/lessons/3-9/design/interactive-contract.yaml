@@ -1,0 +1,283 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "3-9",
+  "course_title": "3-9：稳定—动态—稳态综合映射实验",
+  "course_route_segment": "unit-3-9-cross-domain-mapping-lab",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo",
+    "teacher_preview_panel_note": "教师端只查看步骤骨架和聚合结果；默认预览必须打开学生演示页。"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "回到地图：固定统一对象与比较顺序",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          { "id": "header", "width": "full", "order": 1 },
+          { "id": "lead", "width": "full", "order": 2 },
+          { "id": "summary", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "stage-map", "region": "lead", "kind": "stage-map", "must_be_visible": true },
+        { "id": "object-card", "region": "lead", "kind": "formula-card", "must_be_visible": true },
+        { "id": "formula-chain-card", "region": "summary", "kind": "formula-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "object", "type": "formula_list", "title": "统一对象", "items": ["P(s)=0.01715/[s(s+0.1)(s+2.14375)]", "C_0(s)=2.25", "L_0(s)=C_0(s)P(s)"] },
+        { "id": "chain", "type": "formula_list", "title": "比较顺序", "items": ["结构变化→根轨迹第一信号→时域结果→频域解释→任务标签"] }
+      ],
+      "interaction_spec": { "interaction_kind": "none", "student_task": "只阅读对象和比较链。", "answer_reveal": "none" },
+      "teacher_controls": ["推进到下一页", "高亮当前路径"],
+      "telemetry_spec": { "summary_fields": ["viewed", "timeOnStep", "teacherFollowSync"], "result_policy": "no_submission" },
+      "teacher_insight_spec": { "widgets": ["view_count", "sync_status"], "aggregation": "step_level" },
+      "ai_context_spec": {
+        "page_goal": "固定统一对象与比较顺序。",
+        "allowed_scope": ["统一对象", "比较链", "3-8/3-9/4-1 衔接"],
+        "forbidden_scope": ["直接给版本优劣排名"],
+        "canonical_facts": ["3-9 只做首轮任务判断。"]
+      },
+      "preview_contract": { "route_kind": "student_demo", "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-01", "must_match_student_page": true },
+      "acceptance_checks": ["对象公式与比较链必须首屏可见。", "本页无作答区。"]
+    },
+    "step-02": {
+      "title": "前测：先贴任务标签，不先报控制器名称",
+      "layout": {
+        "template": "question_stack",
+        "regions": [
+          { "id": "question-stack", "width": "full", "order": 1 },
+          { "id": "tag-card", "width": "full", "order": 2 },
+          { "id": "submit-bar", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "pretest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "pretest-q4", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
+        { "id": "task-label-reminder", "region": "tag-card", "kind": "summary-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "labels", "type": "bullet_list", "title": "任务标签", "items": ["更偏动态改善", "更偏稳态改善", "更偏综合折中"] }
+      ],
+      "interaction_spec": { "interaction_kind": "quiz_group", "student_task": "完成四道前测题并首贴任务标签。", "attempt_model": "允许重提一次", "answer_reveal": "teacher_toggle" },
+      "teacher_controls": ["释放前测", "显示统计", "显示答案"],
+      "telemetry_spec": { "summary_fields": ["attemptCount", "resultState", "errorBucket"], "misconception_tags": ["name_controller_first", "ignore_task_label", "bandwidth_equals_better"] },
+      "teacher_insight_spec": { "widgets": ["question_distribution", "task_label_confusion"], "aggregation": "step_level" },
+      "ai_context_spec": {
+        "page_goal": "暴露先报控制器名称的误区。",
+        "allowed_scope": ["任务标签", "首轮判断顺序", "错因标签"],
+        "forbidden_scope": ["AI 直接代答"],
+        "canonical_facts": ["任务标签先于机制标签。"]
+      },
+      "preview_contract": { "route_kind": "student_demo", "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-02", "must_match_student_page": true },
+      "acceptance_checks": ["四题和任务标签提醒卡必须同页。", "教师端可看错因分布。"]
+    },
+    "step-03": {
+      "title": "基准版本：把它判成什么标签",
+      "layout": {
+        "template": "design_compare_workspace",
+        "regions": [
+          { "id": "media", "width": "full", "order": 1 },
+          { "id": "table", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "baseline-quad", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "baseline-metrics", "region": "table", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "baseline-tag-zone", "region": "interaction", "kind": "structured-compare", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "summary", "type": "plain_text", "title": "基线结论", "body": "基准版本是统一锚点，更像综合折中基线。" }
+      ],
+      "interaction_spec": { "interaction_kind": "structured_compare", "student_task": "填写任务标签、第一风险点与首先观察的域。", "answer_reveal": "teacher_toggle" },
+      "teacher_controls": ["显示标签分布", "显示参考答案"],
+      "telemetry_spec": { "summary_fields": ["draftSubmitted", "tagChoice", "riskChoice"], "misconception_tags": ["skip_baseline_anchor"] },
+      "teacher_insight_spec": { "widgets": ["tag_distribution", "risk_distribution"], "aggregation": "step_level" },
+      "ai_context_spec": {
+        "page_goal": "让学生先用统一顺序读基准对象。",
+        "allowed_scope": ["基准图", "指标表", "综合折中标签"],
+        "forbidden_scope": ["跳过基准直接比较补强版本"],
+        "canonical_facts": ["基准版是统一锚点。"]
+      },
+      "preview_contract": { "route_kind": "student_demo", "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-03", "must_match_student_page": true },
+      "acceptance_checks": ["图、指标表和标签区必须同屏。", "学生端不能先看到标准答案。"]
+    },
+    "step-04": {
+      "title": "零点线补强：更偏动态改善的样例",
+      "layout": {
+        "template": "design_compare_workspace",
+        "regions": [
+          { "id": "media", "width": "full", "order": 1 },
+          { "id": "table", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "zero-line-quad", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "zero-line-metrics", "region": "table", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "zero-line-compare-zone", "region": "interaction", "kind": "structured-compare", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "controller", "type": "formula_list", "title": "控制器", "items": ["C_z(s)=2.25(12.5s+1)/(2s+1)"] },
+        { "id": "summary", "type": "plain_text", "title": "动态改善标签", "body": "这一版优先回答更快一些该怎么办。" }
+      ],
+      "interaction_spec": { "interaction_kind": "structured_compare", "student_task": "填写主要收益域、主要代价域、任务标签和最显著变化。", "answer_reveal": "teacher_toggle" },
+      "teacher_controls": ["显示收益域分布", "显示代价域分布"],
+      "telemetry_spec": { "summary_fields": ["draftSubmitted", "benefitDomain", "costDomain"], "misconception_tags": ["dynamic_without_cost"] },
+      "teacher_insight_spec": { "widgets": ["benefit_domain_distribution", "cost_domain_distribution"], "aggregation": "step_level" },
+      "ai_context_spec": {
+        "page_goal": "压实零点线更偏动态改善。",
+        "allowed_scope": ["中频整理", "超调变化", "裕度变化"],
+        "forbidden_scope": ["直接宣布最优"],
+        "canonical_facts": ["零点线不直接承担更准任务。"]
+      },
+      "preview_contract": { "route_kind": "student_demo", "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-04", "must_match_student_page": true },
+      "acceptance_checks": ["公式、图和比较区必须同页。", "学生端只能写判断，不直接得答案。"]
+    },
+    "step-05": {
+      "title": "积分家族：低频收益与中频代价如何一起暴露",
+      "layout": {
+        "template": "matrix_lab_board",
+        "regions": [
+          { "id": "media", "width": "full", "order": 1 },
+          { "id": "table", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "integral-weak-quad", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "integral-strong-quad", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "integral-corrected-quad", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "integral-matrix", "region": "interaction", "kind": "matrix-workspace", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "controllers", "type": "formula_list", "title": "三组控制器", "items": ["C_{i1}(s)=2.25(1+1/(200s))", "C_{i2}(s)=2.25(1+1/(40s))", "C_{ic}(s)=2.25(1+1/(40s))(20s+1)/(2s+1)"] },
+        { "id": "matrix_columns", "type": "bullet_list", "title": "矩阵列", "items": ["低频收益先出现在哪", "代价先暴露在哪", "是否已把中频整理拉回", "任务标签"] }
+      ],
+      "interaction_spec": { "interaction_kind": "matrix_workspace", "student_task": "完成三版本比较矩阵。", "answer_reveal": "save_only" },
+      "teacher_controls": ["查看完成率", "显示常见误判"],
+      "telemetry_spec": { "summary_fields": ["matrixUpdated", "versionCompared", "submissionState"], "misconception_tags": ["only_watch_low_frequency", "ignore_mid_frequency_cost"] },
+      "teacher_insight_spec": { "widgets": ["completion_rate", "common_misjudgments"], "aggregation": "step_level" },
+      "ai_context_spec": {
+        "page_goal": "让学生看见低频收益越强，越要回看中频代价。",
+        "allowed_scope": ["积分强弱", "型别改善", "相位余量", "长尾"],
+        "forbidden_scope": ["把积分路线说成唯一答案"],
+        "canonical_facts": ["积分校正说明积分路线也要配合中频整理。"]
+      },
+      "preview_contract": { "route_kind": "student_demo", "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-05", "must_match_student_page": true },
+      "acceptance_checks": ["三公式、三图和矩阵表头必须同页。", "页面不能只剩可编辑空表。"]
+    },
+    "step-06": {
+      "title": "滞后对照：稳态改善的另一条路径",
+      "layout": {
+        "template": "comparison_panel_with_reason",
+        "regions": [
+          { "id": "media", "width": "full", "order": 1 },
+          { "id": "table", "width": "full", "order": 2 },
+          { "id": "interaction", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "lag-quad", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
+        { "id": "lag-compare-card", "region": "table", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "lag-reason-zone", "region": "interaction", "kind": "reason-check", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "controller", "type": "formula_list", "title": "控制器", "items": ["C_{lag}(s)=4.5(40s+1)/(80s+1)"] },
+        { "id": "summary", "type": "plain_text", "title": "结论", "body": "滞后能压小误差，但不等于像积分那样直接把某类误差压到零。" }
+      ],
+      "interaction_spec": { "interaction_kind": "reason_check", "student_task": "判断压小误差与压到零分别更对应哪条稳态改善路径。", "answer_reveal": "teacher_toggle" },
+      "teacher_controls": ["显示选项分布", "显示标准判断"],
+      "telemetry_spec": { "summary_fields": ["selectedOption", "resultState"], "misconception_tags": ["lag_equals_integral"] },
+      "teacher_insight_spec": { "widgets": ["option_distribution", "integral_lag_confusion"], "aggregation": "step_level" },
+      "ai_context_spec": {
+        "page_goal": "压实积分与滞后的分工差异。",
+        "allowed_scope": ["型别", "低频收益", "中频代价", "动态影响"],
+        "forbidden_scope": ["展开联合校正设计"],
+        "canonical_facts": ["稳态改善不只一条路。"]
+      },
+      "preview_contract": { "route_kind": "student_demo", "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-06", "must_match_student_page": true },
+      "acceptance_checks": ["公式、对照卡和判断区必须同页。", "必须保留“压小”与“压到零”的差别。"]
+    },
+    "step-07": {
+      "title": "综合映射工作区：把收益和代价写回同一张表",
+      "layout": {
+        "template": "mapping_workspace",
+        "regions": [
+          { "id": "table", "width": "full", "order": 1 },
+          { "id": "risk", "width": "full", "order": 2 },
+          { "id": "submit", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "mapping-template", "region": "table", "kind": "comparison-table", "must_be_visible": true },
+        { "id": "risk-note-card", "region": "risk", "kind": "summary-card", "must_be_visible": true },
+        { "id": "submit-zone", "region": "submit", "kind": "table-builder", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "headers", "type": "bullet_list", "title": "综合映射表头", "items": ["结构变化", "根轨迹第一信号", "时域结果", "频域解释", "任务标签", "主要风险"] }
+      ],
+      "interaction_spec": { "interaction_kind": "table_builder", "student_task": "完成四个版本的综合映射表并提交。", "answer_reveal": "save_only" },
+      "teacher_controls": ["查看完成率", "查看漏项统计"],
+      "telemetry_spec": { "summary_fields": ["rowCompleted", "submissionState", "revisionCount"], "misconception_tags": ["write_benefit_without_cost", "single_domain_judgment"] },
+      "teacher_insight_spec": { "widgets": ["row_completion_heatmap", "missing_field_toplist"], "aggregation": "step_level" },
+      "ai_context_spec": {
+        "page_goal": "把分散观察压成统一输出格式。",
+        "allowed_scope": ["收益域", "代价域", "任务标签", "机制线"],
+        "forbidden_scope": ["AI 代填整张表"],
+        "canonical_facts": ["每个版本都要写最先暴露收益和代价的域。"]
+      },
+      "preview_contract": { "route_kind": "student_demo", "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-07", "must_match_student_page": true },
+      "acceptance_checks": ["表头必须先于输入区出现。", "教师端能看到各列漏填热力图。"]
+    },
+    "step-08": {
+      "title": "模块 4 入口：只做首轮任务判断",
+      "layout": {
+        "template": "summary_quiz_board",
+        "regions": [
+          { "id": "summary", "width": "full", "order": 1 },
+          { "id": "quiz", "width": "full", "order": 2 },
+          { "id": "next-step", "width": "full", "order": 3 }
+        ]
+      },
+      "modules": [
+        { "id": "entry-judgment-card", "region": "summary", "kind": "summary-card", "must_be_visible": true },
+        { "id": "posttest-quiz", "region": "quiz", "kind": "quiz-group", "must_be_visible": true },
+        { "id": "next-step-card", "region": "next-step", "kind": "summary-card", "must_be_visible": true }
+      ],
+      "content_blocks": [
+        { "id": "routes", "type": "bullet_list", "title": "三类入口判断", "items": ["更快", "更准", "兼顾稳与快"] },
+        { "id": "next", "type": "plain_text", "title": "去向", "body": "3-9 输出首轮任务判断；4-1 才进入性能指标、约束与可行域。" }
+      ],
+      "interaction_spec": { "interaction_kind": "quiz_group", "student_task": "完成模块4入口后测。", "attempt_model": "允许重提一次", "answer_reveal": "teacher_toggle" },
+      "teacher_controls": ["显示后测统计", "显示模块4准备度"],
+      "telemetry_spec": { "summary_fields": ["attemptCount", "resultState", "errorBucket"], "misconception_tags": ["jump_to_final_design", "bandwidth_is_everything"] },
+      "teacher_insight_spec": { "widgets": ["posttest_distribution", "module4_ready_rate"], "aggregation": "step_level" },
+      "ai_context_spec": {
+        "page_goal": "把模块3出口定位为先问对问题。",
+        "allowed_scope": ["入口判断", "风险边界", "模块去向"],
+        "forbidden_scope": ["越级给完整整定"],
+        "canonical_facts": ["3-9 不是完整设计流程。"]
+      },
+      "preview_contract": { "route_kind": "student_demo", "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-08", "must_match_student_page": true },
+      "acceptance_checks": ["入口判断卡、后测题和去向卡必须同页。", "本页必须明确只做首轮判断。"]
+    }
+  }
+}

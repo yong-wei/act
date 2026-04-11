@@ -1,7 +1,7 @@
 # 单元 3-9 多模态资源设计与采用清单
 
-> **当前阶段目标**：先落 `3-9` 导入视频提示词，服务模块3出口实践开场。
-> **资源总数**：6 项
+> **当前阶段目标**：围绕同一船舶航向控制对象，保证 `3-9` 讲义、导入资源与跨域比较成图完全对齐。
+> **资源总数**：12 项
 > **命名前缀**：全部统一使用 `3-9-...`
 
 ## 1. 资源融入评审单
@@ -25,8 +25,14 @@
 | 2 | `3-9-cover-comic-prompt.md` | 提示词文稿 | 封面图生成依据 | 已有 |
 | 3 | `3-9-intro-video.mp4` | AI 视频 | Bridge-in / interactive step-01 | P0 |
 | 4 | `3-9-intro-video-prompts.md` | 提示词文稿 | 视频生成依据 | 已有 |
-| 5 | `3-9-compare-matrix.png` | 代码直出图 | handout 对照区 / interactive 主体 | P1 |
-| 6 | `3-9-mechanism-map-poster.png` | 代码直出图 | handout 收束 / interactive 结尾 | P1 |
+| 5 | `3-9-baseline-quad.png` | `Octave` 数据 + Python 成图 | handout 基准版本 / interactive step-03 | P1 |
+| 6 | `3-9-zero-line-quad.png` | `Octave` 数据 + Python 成图 | handout 零点线补强 / interactive step-04 | P1 |
+| 7 | `3-9-integral-weak-quad.png` | `Octave` 数据 + Python 成图 | handout 弱积分 / interactive step-05 | P1 |
+| 8 | `3-9-integral-strong-quad.png` | `Octave` 数据 + Python 成图 | handout 强积分 / interactive step-05 | P1 |
+| 9 | `3-9-integral-corrected-quad.png` | `Octave` 数据 + Python 成图 | handout 积分校正 / interactive step-05 | P1 |
+| 10 | `3-9-lag-quad.png` | `Octave` 数据 + Python 成图 | handout 滞后对照 / interactive step-06 | P1 |
+| 11 | `3-9-info.png` | 信息图 | handout 小结 / interactive step-08 | P0 |
+| 12 | `3-9-slides.pdf` | 课件导出 | 课前预习 / runtime 媒体索引 | P0 |
 
 ---
 
@@ -49,14 +55,23 @@
 - 学生自选补强版本，默认拍成“零点线补强版”，因为视觉差异比极点线更直接。
 - 若后续要切为“极点线补强版”，保持同一对象、同一分镜，只替换第三段模块与曲线后果，不重写整支视频。
 
-### 3.4 待补代码直出图
+### 3.4 已有代码直出图
 
-- **`3-9-compare-matrix.png`**
-  - 内容：基准、积分、自选补强、滞后四版本的三域对照矩阵
-  - 作用：配合视频中的四版本同屏比较
-- **`3-9-mechanism-map-poster.png`**
-  - 内容：稳定、动态、稳态三类任务标签与机制线映射海报
-  - 作用：支撑本课“进入模块4前先会贴任务标签”的收束
+- **`3-9-baseline-quad.png`**
+  - 内容：基准版本的 `2×2` 跨域图
+  - 作用：给后续所有版本提供统一锚点
+- **`3-9-zero-line-quad.png`**
+  - 内容：零点线补强版的 `2×2` 跨域图
+  - 作用：支撑“更偏动态改善”的任务标签判断
+- **`3-9-integral-weak-quad.png` / `3-9-integral-strong-quad.png` / `3-9-integral-corrected-quad.png`**
+  - 内容：积分家族三版本跨域比较
+  - 作用：支撑“低频收益与中频代价同时暴露”的主线
+- **`3-9-lag-quad.png`**
+  - 内容：滞后对照版本的 `2×2` 跨域图
+  - 作用：补上“稳态改善的另一条路径”
+- **`3-9-info.png`**
+  - 内容：本课综合映射总结信息图
+  - 作用：支撑模块 4 入口判断收束
 
 ---
 
@@ -72,6 +87,6 @@
 
 ## 5. 后续执行建议
 
-1. 先用 `media/raw/3-9-intro-video-prompts.md` 生成 15 秒导入视频，优先检查“四版本同对象同风格”是否稳定保持。
-2. 若即梦对多屏对照稳定性不足，可先生成主版本，再用视频延长或剪辑拼接方式补齐教师演示滞后段。
-3. 后续补 `interactive-page.md` 时，第一步应直接承接这段视频后的“贴任务标签”动作，不再另起一套脱节导语。
+1. `interactive-page.md` 的入口步骤应直接承接导入视频后的“先贴任务标签，再做跨域验证”。
+2. 后续若重生成数值图，继续沿用 `media/raw/generate_design_data.m` 与 `media/raw/render_figures.py` 的两段式流程，不另起新命名。
+3. 本文件后续只维护已经落盘、且会被讲义或互动页直接引用的媒体；不再保留未生成的占位资源名。
