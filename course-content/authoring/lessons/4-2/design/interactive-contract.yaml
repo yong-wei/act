@@ -1,0 +1,573 @@
+contract_version: "2.0"
+lesson_id: "4-2"
+course_title: "4-2：控制器选型原理：不同控制结构为何适合不同任务"
+course_route_segment: "unit-4-2-controller-selection-first-start"
+preview_mode:
+  default_entry: "student_demo"
+  student_demo_base_path: "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo"
+  teacher_preview_panel_note: "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
+telemetry_strategy: "lightweight_high_value"
+teacher_insight_strategy: "step_level_aggregation_only"
+required_step_fields:
+  - layout
+  - modules
+  - content_blocks
+  - interaction_spec
+  - teacher_controls
+  - telemetry_spec
+  - teacher_insight_spec
+  - ai_context_spec
+  - preview_contract
+  - acceptance_checks
+steps:
+  step-01:
+    title: "回到地图：为什么任务写清后还不能直接喊 PID"
+    layout:
+      template: "map_hero_slide"
+      regions:
+        - { id: "header", width: "full", order: 1 }
+        - { id: "lead", width: "full", order: 2 }
+        - { id: "summary", width: "full", order: 3 }
+    modules:
+      - { id: "stage-map", region: "lead", kind: "stage-map", must_be_visible: true }
+      - { id: "core-question-card", region: "lead", kind: "question-card", must_be_visible: true }
+      - { id: "boundary-card", region: "summary", kind: "boundary-card", must_be_visible: true }
+    content_blocks:
+      - id: "path"
+        type: "plain_text"
+        title: "路径定位"
+        body: "固定高亮 4-1 -> 4-2 -> 4-3 -> 4-4。"
+      - id: "question"
+        type: "bullet_list"
+        title: "主问题"
+        items:
+          - "任务已经写清，为什么还不能直接喊出结构名字？"
+          - "结构名字为什么不是设计答案，而只是判断链的中间结果？"
+    interaction_spec:
+      interaction_kind: "none"
+      student_task: "只阅读，不提交。"
+      answer_reveal: "none"
+    teacher_controls:
+      - "推进到下一页"
+      - "高亮当前节点"
+    telemetry_spec:
+      summary_fields: ["viewed", "timeOnStep", "teacherFollowSync"]
+      result_policy: "no_submission"
+    teacher_insight_spec:
+      widgets: ["view_count", "sync_status"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "标定 4-2 是单结构首轮起步课。"
+      allowed_scope: ["课程路径", "任务表达卡与结构筛选的关系"]
+      forbidden_scope: ["参数整定", "复合结构方案"]
+      canonical_facts:
+        - "4-2 先做单结构起步。"
+        - "结构名字不是最终答案。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-01"
+      must_match_student_page: true
+    acceptance_checks:
+      - "首屏必须同时看到路径图、主问题卡和边界卡。"
+      - "本页无作答区。"
+  step-02:
+    title: "学习目标与边界：4-2 只负责单结构首轮起步"
+    layout:
+      template: "goal_boundary_slide"
+      regions:
+        - { id: "goals", width: "full", order: 1 }
+        - { id: "boundary", width: "full", order: 2 }
+    modules:
+      - { id: "goal-cards", region: "goals", kind: "goal-card-row", must_be_visible: true }
+      - { id: "boundary-table", region: "boundary", kind: "comparison-table", must_be_visible: true }
+    content_blocks:
+      - id: "goals"
+        type: "bullet_list"
+        title: "四项目标"
+        items:
+          - "会重组结构工具箱。"
+          - "会判断主矛盾与频段职责。"
+          - "会写单结构首轮起步卡。"
+          - "会说明前馈边界。"
+      - id: "boundary"
+        type: "table"
+        title: "本课边界"
+        body: "负责主矛盾、结构筛选、参数方向与代价检查；不负责完整整定、复合结构骨架与多目标优化。"
+    interaction_spec:
+      interaction_kind: "none"
+      student_task: "建立目标与边界。"
+      answer_reveal: "none"
+    teacher_controls:
+      - "逐条强调目标"
+      - "高亮边界表某一行"
+    telemetry_spec:
+      summary_fields: ["viewed", "timeOnStep"]
+      result_policy: "no_submission"
+    teacher_insight_spec:
+      widgets: ["view_count"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "建立 4-2 与 4-3/4-5 的边界。"
+      allowed_scope: ["目标卡", "边界表"]
+      forbidden_scope: ["后续单元内容"]
+      canonical_facts:
+        - "4-2 不做复合结构骨架。"
+        - "4-2 不做完整参数整定。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-02"
+      must_match_student_page: true
+    acceptance_checks:
+      - "目标卡和边界表必须同屏。"
+      - "本页无提交区。"
+  step-03:
+    title: "前测：结构名称为什么不是答案"
+    layout:
+      template: "question_stack"
+      regions:
+        - { id: "question-stack", width: "full", order: 1 }
+        - { id: "submit-bar", width: "full", order: 2 }
+    modules:
+      - { id: "pretest-q1", region: "question-stack", kind: "single-choice-card", must_be_visible: true }
+      - { id: "pretest-q2", region: "question-stack", kind: "single-choice-card", must_be_visible: true }
+      - { id: "pretest-q3", region: "question-stack", kind: "single-choice-card", must_be_visible: true }
+    content_blocks:
+      - id: "misconception-note"
+        type: "bullet_list"
+        title: "常见误区"
+        items:
+          - "结构名字不是答案。"
+          - "前馈不是反馈替代品。"
+          - "更快不等于更适合当前任务。"
+    interaction_spec:
+      interaction_kind: "quiz_group"
+      student_task: "完成三道前测题。"
+      attempt_model: "允许重提一次，教师端区分首答与重提。"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      - "释放前测"
+      - "显示统计"
+      - "显示答案"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "resultState", "errorBucket"]
+      misconception_tags: ["pid_as_default", "feedforward_replaces_feedback", "faster_always_better"]
+    teacher_insight_spec:
+      widgets: ["question_distribution", "top_misconceptions"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "暴露入口误区。"
+      allowed_scope: ["术语纠偏", "错因标签"]
+      forbidden_scope: ["代替作答"]
+      canonical_facts:
+        - "前测只暴露误区，不拉开成绩差距。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-03"
+      must_match_student_page: true
+    acceptance_checks:
+      - "三题在未作答状态下全部可见。"
+      - "教师端可看到误区分布。"
+  step-04:
+    title: "控制结构工具箱：先按作用机制重组，而不是按名字平铺"
+    layout:
+      template: "formula_table_match"
+      regions:
+        - { id: "formula", width: "full", order: 1 }
+        - { id: "tables", width: "full", order: 2 }
+        - { id: "interaction", width: "full", order: 3 }
+    modules:
+      - { id: "loop-formula-card", region: "formula", kind: "formula-card", must_be_visible: true }
+      - { id: "toolbox-table", region: "tables", kind: "comparison-table", must_be_visible: true }
+      - { id: "toolbox-match-zone", region: "interaction", kind: "triple-match", must_be_visible: true }
+    content_blocks:
+      - id: "formula"
+        type: "plain_text"
+        title: "开环表达"
+        body: "保留 L(s)=C(s)P(s)，只用于说明结构会怎样改写开环行为。"
+      - id: "toolbox"
+        type: "bullet_list"
+        title: "工具箱总表必须包含"
+        items:
+          - "主要机制"
+          - "优先改善什么"
+          - "常见代价"
+          - "不宜优先用于什么"
+    interaction_spec:
+      interaction_kind: "triple_match"
+      student_task: "把结构卡拖到建立闭环 / 补低频 / 改中频 / 补通道对应区。"
+      answer_reveal: "instant_feedback"
+    teacher_controls:
+      - "重置配对"
+      - "显示常见错配"
+    telemetry_spec:
+      summary_fields: ["matchAttempted", "matchCorrected", "timeOnStep"]
+      misconception_tags: ["toolbox_by_name_only", "pid_everywhere"]
+    teacher_insight_spec:
+      widgets: ["common_mismatch_pairs", "completion_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把结构重组为作用机制表。"
+      allowed_scope: ["结构总表", "最小语义"]
+      forbidden_scope: ["直接输出起步卡"]
+      canonical_facts:
+        - "结构先按作用机制重组。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-04"
+      must_match_student_page: true
+    acceptance_checks:
+      - "静态表必须先于互动区出现。"
+      - "本页不得只剩结构名字卡。"
+  step-05:
+    title: "四类最小语义：建立闭环、补低频、改中频、补通道"
+    layout:
+      template: "comparison_panel_with_sort"
+      regions:
+        - { id: "rules", width: "full", order: 1 }
+        - { id: "card-bank", width: "full", order: 2 }
+        - { id: "sort-area", width: "full", order: 3 }
+    modules:
+      - { id: "semantic-rule-cards", region: "rules", kind: "rule-card-row", must_be_visible: true }
+      - { id: "structure-card-bank", region: "card-bank", kind: "card-bank", must_be_visible: true }
+      - { id: "semantic-sort", region: "sort-area", kind: "card-sort", must_be_visible: true }
+    content_blocks:
+      - id: "semantic-rules"
+        type: "bullet_list"
+        title: "四类最小语义"
+        items:
+          - "建立基本闭环"
+          - "补低频能力"
+          - "改中频动态品质"
+          - "隔离给定/扰动通道"
+      - id: "boundary"
+        type: "plain_text"
+        title: "压后原则"
+        body: "PID/复合校正只在单一结构不足时进入候选，不是默认起点。"
+    interaction_spec:
+      interaction_kind: "card_sort"
+      student_task: "把典型任务条目拖入四类语义区，并指出是否应压后到 4-3。"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      - "释放排序题"
+      - "显示统计"
+      - "揭示参考排序"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "sortBucket", "timeOnStep"]
+      misconception_tags: ["pid_as_default", "no_semantic_layer"]
+    teacher_insight_spec:
+      widgets: ["bucket_distribution", "common_sort_errors"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "固定先选语义再选结构。"
+      allowed_scope: ["四类语义", "压后原则"]
+      forbidden_scope: ["把 PID 自动升级成最佳选项"]
+      canonical_facts:
+        - "先选语义，再选结构。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-05"
+      must_match_student_page: true
+    acceptance_checks:
+      - "必须明确写出 PID/复合结构不是默认起点。"
+      - "规则卡必须先于排序区出现。"
+  step-06:
+    title: "收益与代价链：结构先动哪里，代价就先从哪里冒出来"
+    layout:
+      template: "formula_media_compare"
+      regions:
+        - { id: "media", width: "full", order: 1 }
+        - { id: "summary", width: "full", order: 2 }
+        - { id: "interaction", width: "full", order: 3 }
+    modules:
+      - { id: "info-graphic", region: "media", kind: "comparison-graphic", must_be_visible: true }
+      - { id: "band-duty-cards", region: "summary", kind: "rule-card-row", must_be_visible: true }
+      - { id: "cost-reasoning-zone", region: "interaction", kind: "structured-compare", must_be_visible: true }
+    content_blocks:
+      - id: "bands"
+        type: "bullet_list"
+        title: "三频段职责"
+        items:
+          - "低频：精度与慢扰动抑制"
+          - "中频：截止频率、相角裕度、动态品质"
+          - "高频：噪声放大与执行机构负担"
+      - id: "rule"
+        type: "plain_text"
+        title: "核心判断"
+        body: "结构先动哪里，代价就先从哪里冒出来。"
+    interaction_spec:
+      interaction_kind: "structured_compare"
+      student_task: "给三条只有收益没有代价的句子补出缺失代价。"
+      answer_reveal: "instant_feedback"
+    teacher_controls:
+      - "显示错因标签"
+      - "高亮对应频段"
+    telemetry_spec:
+      summary_fields: ["submissionCount", "errorBucket", "timeOnStep"]
+      misconception_tags: ["benefit_without_cost", "band_duty_mixup"]
+    teacher_insight_spec:
+      widgets: ["error_bucket_distribution", "completion_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把收益与代价写成一条链。"
+      allowed_scope: ["三频段职责", "代价来源"]
+      forbidden_scope: ["单向度口号式推荐"]
+      canonical_facts:
+        - "收益句后必须补代价句。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-06"
+      must_match_student_page: true
+    acceptance_checks:
+      - "4-2-info.png 与三频段职责卡必须同屏。"
+      - "代价链不可只靠互动脑补。"
+  step-07:
+    title: "案例 A：客船航向保持为什么首轮更像 PI/滞后"
+    layout:
+      template: "case_study_dashboard"
+      regions:
+        - { id: "case", width: "full", order: 1 }
+        - { id: "evidence", width: "full", order: 2 }
+        - { id: "decision", width: "full", order: 3 }
+    modules:
+      - { id: "case-a-task-card", region: "case", kind: "task-card", must_be_visible: true }
+      - { id: "case-a-evidence-board", region: "evidence", kind: "comparison-table", must_be_visible: true }
+      - { id: "case-a-decision-zone", region: "decision", kind: "structured-compare", must_be_visible: true }
+    content_blocks:
+      - id: "case-a"
+        type: "bullet_list"
+        title: "案例 A 固定结论"
+        items:
+          - "主矛盾：低频能力不足与慢扰动抑制"
+          - "首选单结构：PI/滞后"
+          - "参数方向：先增强低频补偿"
+          - "代价：相位滞后、速度与储备压力"
+    interaction_spec:
+      interaction_kind: "structured_compare"
+      student_task: "补全案例 A 的首选结构、参数方向与代价说明。"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      - "显示参考理由链"
+      - "高亮主矛盾"
+    telemetry_spec:
+      summary_fields: ["submissionCount", "errorBucket", "timeOnStep"]
+      misconception_tags: ["wrong_main_contradiction", "cost_missing", "pid_rush"]
+    teacher_insight_spec:
+      widgets: ["error_bucket_distribution", "completion_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把低频先站稳写成完整理由链。"
+      allowed_scope: ["案例 A 任务卡", "代价说明"]
+      forbidden_scope: ["复合结构", "整定结果"]
+      canonical_facts:
+        - "客船案例更像先补低频。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-07"
+      must_match_student_page: true
+    acceptance_checks:
+      - "必须保留低频能力先站稳的结论。"
+      - "代价句必须和首选结构同页出现。"
+  step-08:
+    title: "案例 B：稳定平台为什么首轮更像 PD/超前"
+    layout:
+      template: "case_study_dashboard"
+      regions:
+        - { id: "case", width: "full", order: 1 }
+        - { id: "evidence", width: "full", order: 2 }
+        - { id: "decision", width: "full", order: 3 }
+    modules:
+      - { id: "case-b-task-card", region: "case", kind: "task-card", must_be_visible: true }
+      - { id: "case-b-evidence-board", region: "evidence", kind: "comparison-table", must_be_visible: true }
+      - { id: "case-b-decision-zone", region: "decision", kind: "structured-compare", must_be_visible: true }
+    content_blocks:
+      - id: "case-b"
+        type: "bullet_list"
+        title: "案例 B 固定结论"
+        items:
+          - "主矛盾：中频动态品质与储备整理"
+          - "首选单结构：PD/超前"
+          - "参数方向：先增强中频相位改善"
+          - "代价：高频敏感性与实现复杂度上升"
+    interaction_spec:
+      interaction_kind: "structured_compare"
+      student_task: "比较案例 A / B 的主矛盾为什么不同。"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      - "显示对照表"
+      - "高亮代价来源"
+    telemetry_spec:
+      summary_fields: ["submissionCount", "errorBucket", "timeOnStep"]
+      misconception_tags: ["faster_only", "wrong_cost_bucket"]
+    teacher_insight_spec:
+      widgets: ["error_bucket_distribution", "completion_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把中频先整理写清，不把更快误写成唯一目标。"
+      allowed_scope: ["案例 B 任务卡", "代价说明"]
+      forbidden_scope: ["无条件更先进"]
+      canonical_facts:
+        - "稳定平台案例更像先整理中频动态品质。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-08"
+      must_match_student_page: true
+    acceptance_checks:
+      - "必须保留储备整理而非只写更快。"
+      - "案例 A/B 对照必须可追溯到主矛盾差异。"
+  step-09:
+    title: "通道边界：前馈为什么值得进入候选，但不能抢走反馈主线"
+    layout:
+      template: "formula_media_compare"
+      regions:
+        - { id: "media", width: "full", order: 1 }
+        - { id: "formula", width: "full", order: 2 }
+        - { id: "interaction", width: "full", order: 3 }
+    modules:
+      - { id: "feedforward-diagram", region: "media", kind: "comparison-graphic", must_be_visible: true }
+      - { id: "feedforward-rule-card", region: "formula", kind: "formula-card", must_be_visible: true }
+      - { id: "boundary-choice", region: "interaction", kind: "binary-choice", must_be_visible: true }
+    content_blocks:
+      - id: "formula"
+        type: "plain_text"
+        title: "前馈表达"
+        body: "保留 u(s)=u_fb(s)+u_ff(s)，u_ff(s)=-G_ff(s)d_m(s)。"
+      - id: "boundary"
+        type: "bullet_list"
+        title: "边界卡"
+        items:
+          - "前馈负责通道定向补偿"
+          - "反馈负责稳定性与鲁棒性保底"
+    interaction_spec:
+      interaction_kind: "binary_choice"
+      student_task: "判断给定说法属于前馈边界内，还是抢走反馈主线。"
+      answer_reveal: "instant_feedback"
+    teacher_controls:
+      - "显示错因标签"
+      - "切换边界提示"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "resultState", "timeOnStep"]
+      misconception_tags: ["feedforward_as_superior", "feedback_removed"]
+    teacher_insight_spec:
+      widgets: ["question_distribution", "top_misconceptions"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把前馈压回通道补偿语义。"
+      allowed_scope: ["结构图", "边界卡"]
+      forbidden_scope: ["前馈更高级的总方案叙述"]
+      canonical_facts:
+        - "前馈是补偿，不是保底。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-09"
+      must_match_student_page: true
+    acceptance_checks:
+      - "4-2-feedforward-block-diagram.png 和边界卡必须同屏。"
+      - "结构图不可被判断题替代。"
+  step-10:
+    title: "单结构首轮起步卡工作区：把理由、方向、代价写全"
+    layout:
+      template: "task_card_workspace"
+      regions:
+        - { id: "template", width: "full", order: 1 }
+        - { id: "evidence", width: "full", order: 2 }
+        - { id: "workspace", width: "full", order: 3 }
+    modules:
+      - { id: "start-card-template", region: "template", kind: "task-card", must_be_visible: true }
+      - { id: "evidence-reminder", region: "evidence", kind: "rule-card-row", must_be_visible: true }
+      - { id: "start-card-workspace", region: "workspace", kind: "task-card-workspace", must_be_visible: true }
+    content_blocks:
+      - id: "template"
+        type: "bullet_list"
+        title: "起步卡七字段"
+        items:
+          - "当前任务"
+          - "最紧矛盾"
+          - "首选单结构"
+          - "参数起步方向"
+          - "预期先改善什么"
+          - "预计先透支什么"
+          - "留给 4-3 的未决项"
+      - id: "bad-patterns"
+        type: "bullet_list"
+        title: "三类错误写法"
+        items:
+          - "只写结构名字"
+          - "只写收益不写代价"
+          - "直接把 PID/复合结构写成默认答案"
+    interaction_spec:
+      interaction_kind: "task_card_workspace"
+      student_task: "基于给定案例完成最小起步卡。"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      - "查看字段完整性"
+      - "显示理由链错误标签"
+    telemetry_spec:
+      summary_fields: ["fieldCompletion", "errorBucket", "timeOnStep"]
+      misconception_tags: ["missing_cost", "missing_direction", "pid_as_default"]
+    teacher_insight_spec:
+      widgets: ["field_completion_rate", "error_bucket_distribution"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "输出一张可交给 4-3/4-4 的首轮输入卡。"
+      allowed_scope: ["字段完整性", "理由链自洽"]
+      forbidden_scope: ["自动生成完整参数表"]
+      canonical_facts:
+        - "起步卡不是参数结果表。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-10"
+      must_match_student_page: true
+    acceptance_checks:
+      - "模板卡和证据区必须同屏。"
+      - "不得出现自动整定结果栏。"
+  step-11:
+    title: "后测与收束：先说理由，再谈结构，最后交给 4-3"
+    layout:
+      template: "summary_quiz_board"
+      regions:
+        - { id: "quiz", width: "full", order: 1 }
+        - { id: "summary", width: "full", order: 2 }
+        - { id: "next-step", width: "full", order: 3 }
+    modules:
+      - { id: "posttest-quiz", region: "quiz", kind: "quiz-group", must_be_visible: true }
+      - { id: "summary-cards", region: "summary", kind: "summary-card-row", must_be_visible: true }
+      - { id: "next-lesson-card", region: "next-step", kind: "next-step-card", must_be_visible: true }
+    content_blocks:
+      - id: "summary"
+        type: "bullet_list"
+        title: "四句带走"
+        items:
+          - "先定主矛盾，再选结构。"
+          - "单结构起步优先于复合结构抢跑。"
+          - "收益与代价必须同卡落地。"
+          - "前馈是补偿，不是保底。"
+      - id: "next"
+        type: "plain_text"
+        title: "后续去向"
+        body: "4-3 将继续回答：单结构不够时，怎样长成复合结构骨架与可验证方案。"
+    interaction_spec:
+      interaction_kind: "quiz_group"
+      student_task: "完成三道后测题，只检验理由链与边界判断。"
+      answer_reveal: "instant_feedback"
+    teacher_controls:
+      - "显示后测统计"
+      - "切换去向卡"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "resultState", "timeOnStep"]
+      misconception_tags: ["reason_chain_broken", "cost_missing", "feedforward_boundary_confusion"]
+    teacher_insight_spec:
+      widgets: ["question_distribution", "top_misconceptions"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "完成本课收束并把学生送到 4-3。"
+      allowed_scope: ["小结卡", "去向卡", "后测纠偏"]
+      forbidden_scope: ["提前展开 4-3 完整内容"]
+      canonical_facts:
+        - "4-3 才进入复合结构骨架。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-11"
+      must_match_student_page: true
+    acceptance_checks:
+      - "去向卡与后测题必须同页。"
+      - "后测只检验理由链，不引入完整整定题。"

@@ -1,0 +1,67 @@
+{
+  "lesson_id": "4-2",
+  "source_path": "course-content/authoring/lessons/4-2/design/interactive-page.md",
+  "contract_path": "course-content/authoring/lessons/4-2/design/interactive-contract.yaml",
+  "implementation_contract_source": null,
+  "contract_required_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "included_in_primary_sources": true,
+  "has_core_mapping_section": true,
+  "mapping_columns_present": [
+    "handout_anchor",
+    "core_item_type",
+    "must_appear_content",
+    "target_step",
+    "page_mode",
+    "interaction_upgrade",
+    "media_or_table_ref",
+    "acceptance_note"
+  ],
+  "missing_mapping_columns": [],
+  "invalid_handout_anchors": [
+    "### 1.1 从 4-1 接过来的是一张矛盾清单",
+    "表2. 结构工具箱总表",
+    "### 2.3 PID 为什么不是默认起点",
+    "### 3.1~3.5",
+    "### 4.1 客船案例",
+    "### 4.2 稳定平台案例"
+  ],
+  "missing_target_steps": [
+    "step-06, step-09"
+  ],
+  "formula_mapping_issues": [],
+  "step_static_blocks_missing": [],
+  "step_upgrade_blocks_missing": [],
+  "missing_contract_fields": [],
+  "step_contract_issues": [
+    "interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value"
+  ],
+  "implementation_contract_summary": [],
+  "implementation_contract_issues": [],
+  "summary": [],
+  "warnings": [
+    "以下 handout_anchor 未在讲义标题中命中：### 1.1 从 4-1 接过来的是一张矛盾清单, 表2. 结构工具箱总表, ### 2.3 PID 为什么不是默认起点, ### 3.1~3.5, ### 4.1 客船案例, ### 4.2 稳定平台案例",
+    "以下 target_step 未在步骤正文中命中：step-06, step-09",
+    "interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value"
+  ],
+  "missing": [
+    "以下 handout_anchor 未在讲义标题中命中：### 1.1 从 4-1 接过来的是一张矛盾清单, 表2. 结构工具箱总表, ### 2.3 PID 为什么不是默认起点, ### 3.1~3.5, ### 4.1 客船案例, ### 4.2 稳定平台案例",
+    "以下 target_step 未在步骤正文中命中：step-06, step-09",
+    "interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value"
+  ],
+  "issues": [
+    "以下 handout_anchor 未在讲义标题中命中：### 1.1 从 4-1 接过来的是一张矛盾清单, 表2. 结构工具箱总表, ### 2.3 PID 为什么不是默认起点, ### 3.1~3.5, ### 4.1 客船案例, ### 4.2 稳定平台案例",
+    "以下 target_step 未在步骤正文中命中：step-06, step-09",
+    "interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value"
+  ]
+}

@@ -212,6 +212,21 @@
       "notes": "4-1 允许生成，但当前可引用 legacy/L-sum 作为临时来源。"
     },
     {
+      "request_ids": ["4-2"],
+      "canonical_id": "4-2",
+      "display_id": "4-2",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "4-2",
+      "source_group": null,
+      "authoring_lesson_dir": "4-2",
+      "authoring_cards_dir": "4-2",
+      "authoring_overlays_dir": "4-2",
+      "runtime_lesson_dir": "4-2",
+      "legacy_source_ids": [],
+      "notes": "4-2 为模块4当前主线课次，对应控制器选型原理与单结构首轮起步。"
+    },
+    {
       "request_ids": ["legacy/1-1", "1-1"],
       "canonical_id": "legacy/1-1",
       "display_id": "1-1",

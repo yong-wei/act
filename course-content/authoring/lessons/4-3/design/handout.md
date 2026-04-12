@@ -364,7 +364,7 @@ $$
 
 ### 3.7 再看频域证据
 
-![减摇鳍控制系统频率特性曲线](../../../../resource-library/ship-control-cases/assets/processed/6.2-船舶横摇减摇鳍控制频域校正-figure-03.png){width=100%}
+![减摇鳍控制系统频率特性曲线](../media/processed/4-3-roll-damping-bode-cropped.png){width=100%}
 
 这张图揭示的是另一个关键信息：横摇对象面对扰动时，会在接近固有谐振频率附近表现出更强的峰值响应。如果控制器对这段频带没有安排好，抗扰效果就会在最敏感的区域失手。
 
