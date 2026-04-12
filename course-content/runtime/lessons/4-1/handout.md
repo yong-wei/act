@@ -7,7 +7,7 @@
 - **后续**：4-2（控制器选型原理：不同控制结构为何适合不同任务）、4-3（基于结构机理的初始方案形成：从选型判断到关键参数方向）、4-4（初始方案验证与失败诊断）
 - **讲义定位**：这份讲义带我们把同一套跨域证据整理成设计任务语言，先写清任务排序、约束边界和证据来源，再进入后续的结构选择与方案起步。
 
-![封面漫画：单元导入](../media/processed/4-1-cover-comic.png)
+![封面漫画：单元导入](/course-runtime/lessons/4-1/media/4-1-cover-comic.png)
 
 ---
 
@@ -68,7 +68,7 @@
 
 #### 2.1.1 控制对象框图
 
-![客船航向控制对象框图](../media/processed/4-1-ship-heading-block.png){width=70%}
+![客船航向控制对象框图](/course-runtime/lessons/4-1/media/4-1-ship-heading-block.png){width=70%}
 
 图中 $R(s)$ 表示给定航向，$C(s)$ 表示实际航向，$N(s)$ 表示风浪等扰动因素。我们把这个对象作为主场景，因为它能把“系统稳定”和“任务可接受”明确分开。
 
@@ -86,7 +86,7 @@ $$
 
 #### 2.1.2 跨域 `2 \times 2` 图
 
-![客船航向控制 2x2 跨域图](../media/processed/4-1-ship-heading-quad.png){width=100%}
+![客船航向控制 2x2 跨域图](/course-runtime/lessons/4-1/media/4-1-ship-heading-quad.png){width=100%}
 
 #### 2.1.3 四格联读：这组证据先把什么暴露出来
 
@@ -148,7 +148,7 @@ $$
 
 #### 2.2.1 控制对象框图
 
-![船载稳定平台对象框图](../media/processed/4-1-platform-pitch-block.png){width=70%}
+![船载稳定平台对象框图](/course-runtime/lessons/4-1/media/4-1-platform-pitch-block.png){width=70%}
 
 这个对象不是主场景，但必须作为对照案例保留下来，因为它最能说明：
 
@@ -168,7 +168,7 @@ $$
 
 #### 2.2.2 综合图与排序变化
 
-![船载稳定平台跨域综合图](../media/processed/4-1-platform-pitch-quad.png){width=100%}
+![船载稳定平台跨域综合图](/course-runtime/lessons/4-1/media/4-1-platform-pitch-quad.png){width=100%}
 
 这个场景的四格联读不用像主场景那样铺得很开，我们只保留最能说明“排序重排”的部分：
 
@@ -209,7 +209,7 @@ $$
 | 相频与裕度首先提示的问题 | 中频余量偏紧，提速不能冒进 | 储备不足以支撑“高速度 + 低超调”同时成立 |
 | 因此形成的入口排序 | 平顺与储备优先，再谈提速 | 速度与带宽前移，同时补足阻尼与储备 |
 
-![双案例任务排序对照信息图](../media/processed/4-1-case-compare-summary.png){width=100%}
+![双案例任务排序对照信息图](/course-runtime/lessons/4-1/media/4-1-case-compare-summary.png){width=100%}
 
 这张表说明：
 
@@ -286,7 +286,7 @@ $$
 | 软目标 | 守住底线后还希望争取什么 | “希望调节时间更短”“希望累计误差更小”“希望恢复更快” | 在可行方案中继续排序 |
 | 观察指标 | 用什么来解释代价和后果 | “记录带宽变化”“跟踪谐振峰值”“观察摆舵频繁程度” | 帮助说明为什么某方向值得或不值得继续试 |
 
-![指标角色矩阵信息图](../media/processed/4-1-indicator-role-matrix.png){width=100%}
+![指标角色矩阵信息图](/course-runtime/lessons/4-1/media/4-1-indicator-role-matrix.png){width=100%}
 
 这张表要配合前一章一起理解。比如：
 
@@ -352,7 +352,7 @@ $$
 | 观察指标 | 用什么量来跟踪方案变化 | 裕度、带宽、谐振峰值、摆舵频繁程度 |
 | 证据来源 | 当前判断来自哪张图、哪个边界 | 四联图、根轨迹叠加图、频域图、任务背景 |
 
-![任务表达卡模板信息图](../media/processed/4-1-task-card-template.png){width=100%}
+![任务表达卡模板信息图](/course-runtime/lessons/4-1/media/4-1-task-card-template.png){width=100%}
 
 其中最容易漏掉的是“最紧矛盾”和“证据来源”：
 
@@ -499,7 +499,7 @@ $$
 | 可接受 | 系统已经进入当前任务愿意接受的区域 | 以为只要可接受就说明没有继续改进空间 |
 | 最优 | 在当前评价口径下，方案进一步表现更优 | 以为这时候就能直接得到最优参数 |
 
-![可行域、满意域与最优域分层示意图](../media/processed/4-1-region-layering.png){width=92%}
+![可行域、满意域与最优域分层示意图](/course-runtime/lessons/4-1/media/4-1-region-layering.png){width=92%}
 
 对模块4来说，正确的顺序必须是：
 

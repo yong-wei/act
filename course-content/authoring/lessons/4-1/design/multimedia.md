@@ -26,10 +26,10 @@
 | 4 | `4-1-platform-pitch-block.png` | 线框方框图 | 已有 | 对照案例 B 控制对象框图 |
 | 5 | `4-1-platform-pitch-quad.png` | 案例 B 综合图 | 已有 | 对照案例 B 的“Bode 双窄图 + 双根轨迹”联读 |
 | 6 | `4-1-platform-pitch-rlocus-octave.png` | Octave 校核图 | 已有 | 根轨迹正确性核验参考，不直接上首页 |
-| 7 | `4-1-indicator-role-matrix.png` | 信息图 | 待补 | 指标三分法：时域/频域/积分误差与角色对应 |
-| 8 | `4-1-task-card-template.png` | 信息图 | 待补 | 页面与板书统一使用的任务表达卡模板 |
-| 9 | `4-1-region-layering.png` | 信息图 | 待补 | `可行域 -> 满意域 -> 最优域` 分层示意 |
-| 10 | `4-1-case-compare-summary.png` | 对照信息图 | 待补 | 客船与稳定平台的任务排序对照 |
+| 7 | `4-1-indicator-role-matrix.png` | 信息图 | 已补 | 指标三分法：时域/频域/积分误差与角色对应 |
+| 8 | `4-1-task-card-template.png` | 信息图 | 已补 | 页面与板书统一使用的任务表达卡模板 |
+| 9 | `4-1-region-layering.png` | 信息图 | 已补 | `可行域 -> 满意域 -> 最优域` 分层示意 |
+| 10 | `4-1-case-compare-summary.png` | 对照信息图 | 已补 | 客船与稳定平台的任务排序对照 |
 
 ---
 
@@ -55,6 +55,13 @@
 - **用途**：
   - 检查根轨迹文本遮挡、分支连接和子图布局；
   - 复核案例 B 的根轨迹与原生 Octave 输出是否一致。
+
+### 3.4 信息图补制
+
+- **Python 脚本**：`media/raw/render_summary_infographics.py`
+- **用途**：
+  - 生成指标角色矩阵、任务表达卡模板、区域分层图、双案例排序对照图；
+  - 统一 `4-1` 的任务表达口径，供讲义、互动页与知识卡复用。
 
 ---
 

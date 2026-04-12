@@ -38,16 +38,16 @@
 
 | handout_anchor | core_item_type | must_appear_content | target_step | page_mode | interaction_upgrade | media_or_table_ref | acceptance_note |
 |---|---|---|---|---|---|---|---|
-| `## 一、引入：系统已经稳定，为什么还不能直接开始选控制器` | concept+question | “稳定不等于任务完成”“先写任务，再谈方法”两条开场判断。 | step-01 | static | 无。 | 主问题卡 | 首屏必须出现地图、问题和边界。 |
-| `### 2.2 三组常用指标，各自回答不同问题` | concept+table | 时域、频域、积分误差三类指标分别回答什么。 | step-04 | static+interactive | 仅把指标和问题做配对，不增加新推导。 | 表 2 / 表 3 提炼版 | 分类说明必须先静态出现。 |
-| `### 2.3 指标的真正角色：硬约束、软目标与观察指标` | concept+table | 三类角色定义、常见写法、在设计中的作用。 | step-05 | static+interactive | 拖拽分类只负责暴露排序误判。 | 表 3 | 分类规则必须先于拖拽区出现。 |
-| `### 2.4 可行域：先圈出不能碰的区域，再谈更优方案` 与 `### 3.4 满意域和最优域，还需要再分开一次` | concept+formula | $\mathcal{O}\subseteq\mathcal{S}\subseteq\mathcal{F}$ 与三层分工。 | step-06 | static+interactive | 只判断当前结论属于哪一层，不求参数。 | 公式卡 + 分层图 | 必须明确“4-1 不求最优”。 |
-| `### 4.1 案例 A` | case+figure | 客船航向控制对象框图、传递函数、四联图和任务卡。 | step-07 | static+interactive | 结构化比较只负责归纳主矛盾、边界和证据。 | `4-1-ship-heading-block.png` / `4-1-ship-heading-quad.png` | 对象框图与四联图必须同页可见。 |
-| `### 4.2 案例 B` | case+figure | 稳定平台对象框图、特殊布局综合图和任务卡。 | step-08 | static+interactive | 结构化比较只负责指出排序为何重排。 | `4-1-platform-pitch-block.png` / `4-1-platform-pitch-quad.png` | 必须保留案例 B 的双根轨迹特征。 |
-| `### 4.3 双案例对照` | comparison+table | 同一套图如何读出不同任务排序。 | step-09 | static+interactive | 排序卡只强化对照，不替代表格本体。 | 表 11 | 对照矩阵和排序结果必须同屏。 |
-| `### 3.5 从任务表达卡到后续设计输入` 与 `### 5.4 工程判断清单` | procedure+template | 任务表达卡六字段、五步判断清单。 | step-10 | static+interactive | 工作区只填写对象、目标、约束、软目标、证据。 | 表 5 / 表 12 | 模板卡和证据区必须同屏。 |
-| `### 5.1-5.3 常见误判` | misconception | 稳定不等于完成；所有指标不等同；单图不能直接下结论。 | step-11 | static+interactive | 二选一判断只用于暴露误区。 | 误判卡 | 三类误判必须完整落页。 |
-| `## 六、第五章：本节小结与前后衔接` | summary+quiz | 三句带走 + `4-2/4-3` 去向。 | step-12 | static+quiz | 后测只检验表达能力，不引入选型题。 | 小结卡 | 去向卡与后测题同页。 |
+| `## 一、回到地图：同一套跨域证据，为什么会写出两张不同任务书` | concept+question | “稳定不等于任务完成”“先写任务，再谈方法”两条开场判断。 | step-01 | static | 无。 | 主问题卡 | 首屏必须出现地图、问题和边界。 |
+| `### 3.1 三类常用指标，各自回答不同问题` | concept+table | 时域、频域、积分误差三类指标分别回答什么。 | step-04 | static+interactive | 仅把指标和问题做配对，不增加新推导。 | 表 5 / 指标角色矩阵 | 分类说明必须先静态出现。 |
+| `### 3.2 指标真正进入设计时，会变成三种角色` | concept+table | 三类角色定义、常见写法、在设计中的作用。 | step-05 | static+interactive | 拖拽分类只负责暴露排序误判。 | 表 5 / `4-1-indicator-role-matrix.png` | 分类规则必须先于拖拽区出现。 |
+| `## 五、可行域、满意域与最优域必须分层 / ### 5.3 “稳定”为什么不等于“可接受”，“可接受”又为什么不等于“最优”` | concept+formula | $\mathcal{O}\subseteq\mathcal{S}\subseteq\mathcal{F}$ 与三层分工。 | step-06 | static+interactive | 只判断当前结论属于哪一层，不求参数。 | 表 10 / `4-1-region-layering.png` | 必须明确“4-1 不求最优”。 |
+| `### 2.1 主场景 A：客船航向控制为什么先保平顺与储备` | case+figure | 客船航向控制对象框图、传递函数、四联图和任务卡。 | step-07 | static+interactive | 结构化比较只负责归纳主矛盾、边界和证据。 | `4-1-ship-heading-block.png` / `4-1-ship-heading-quad.png` | 对象框图与四联图必须同页可见。 |
+| `### 2.2 对照案例 B：为什么稳定平台会把速度与带宽排得更前` | case+figure | 稳定平台对象框图、特殊布局综合图和任务卡。 | step-08 | static+interactive | 结构化比较只负责指出排序为何重排。 | `4-1-platform-pitch-block.png` / `4-1-platform-pitch-quad.png` | 必须保留案例 B 的双根轨迹特征。 |
+| `### 2.3 为什么同一套图，会读出两种任务排序` | comparison+table | 同一套图如何读出不同任务排序。 | step-09 | static+interactive | 排序卡只强化对照，不替代表格本体。 | 表 4 / `4-1-case-compare-summary.png` | 对照矩阵和排序结果必须同屏。 |
+| `### 4.1 一张合格的任务表达卡，至少要写清七项内容 / ### 6.4 工程判断清单：从跨域读图走到任务书` | procedure+template | 任务表达卡六字段、五步判断清单。 | step-10 | static+interactive | 工作区只填写对象、目标、约束、软目标、证据。 | 表 6 / `4-1-task-card-template.png` | 模板卡和证据区必须同屏。 |
+| `## 六、常见误判与工程判断清单` | misconception | 稳定不等于完成；所有指标不等同；单图不能直接下结论。 | step-11 | static+interactive | 二选一判断只用于暴露误区。 | 误判卡 / 表 10 | 三类误判必须完整落页。 |
+| `## 七、本节小结与前后衔接` | summary+quiz | 三句带走 + `4-2/4-3` 去向。 | step-12 | static+quiz | 后测只检验表达能力，不引入选型题。 | 小结卡 | 去向卡与后测题同页。 |
 
 ## 步骤 01｜回到地图：为什么稳定还不等于任务可接受
 

@@ -12925,7 +12925,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/可行域-满意域-最优域分层_4_41004.md"
+    ],
     "tags": [
       "可行域",
       "满意域",
@@ -13270,7 +13272,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/指标角色重组_4_41002.md"
+    ],
     "tags": [
       "时域指标",
       "频域指标",
@@ -14306,7 +14310,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/硬约束-软目标-观察指标分类_4_41003.md"
+    ],
     "tags": [
       "硬约束",
       "软目标",
@@ -14501,7 +14507,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/设计任务表达卡_4_41001.md"
+    ],
     "tags": [
       "任务表达卡",
       "目标-约束-优先级",
@@ -14615,7 +14623,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/调节时间_4_d3f3314b.md"
+    ],
     "tags": [
       "稳态误差带",
       "极点实部",
@@ -14822,7 +14832,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/跨域联读任务重排_4_41005.md"
+    ],
     "tags": [
       "跨域联读",
       "四联图",
@@ -18108,7 +18120,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/谐振峰值Mr_5_b3a87785.md"
+    ],
     "tags": [
       "相对稳定性",
       "阻尼比",
@@ -18156,7 +18170,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/超调量_5_3d015714.md"
+    ],
     "tags": [
       "阶跃响应",
       "阻尼比",

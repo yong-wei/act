@@ -2,7 +2,7 @@
 
 - 两台同型号投递车同时接到任务，一台冲过头又猛地回拉，另一台始终平稳接近目标，直观展示了快慢、超调和稳定时间的差别。
 
-https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=3472f533ac3022e1a7465d95a6c775c4&v=1775460223291&puid=26652392&enc=37cf5f238b480e7db9c9c3d4c665399f&wps=dc32c985969dea1d474653442eed5692d70d687fb84ea7b5
+https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=89682a1cf76ecbe85bf9ffcdded8eb16&v=1775984224823&puid=26652392&enc=b2357b940118aefe2bb6ea37b6fb7af9&wps=7b71e64240e1a5f469925295d7f2c01bd70d687fb84ea7b5
 
 # 2-2-audio.m4a
 
