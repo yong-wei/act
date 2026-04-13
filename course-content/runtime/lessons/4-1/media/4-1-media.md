@@ -2,6 +2,8 @@
 
 - 用导入情境聚焦“在同一间自动控制实验教室里，客船航向控制沙盘和船载稳定平台姿态演示架同时运行”。
 
+https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=666a45a0389a8e6cf6b370b104d0e59a&v=1776040982464&puid=26652392&enc=c1b6799a834183df19f57f7336b56a43&wps=2608fa917452405667b9d4ff7489867fd70d687fb84ea7b5
+
 # 4-1-audio.m4a
 
 - 别再盲目修改K值了
