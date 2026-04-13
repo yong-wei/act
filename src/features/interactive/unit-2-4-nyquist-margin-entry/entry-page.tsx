@@ -13,6 +13,7 @@ import {
   UNIT_2_4_PRESET_KEY,
   UNIT_2_4_ROUTE_SEGMENT,
 } from '@/lib/unit-2-4-course';
+import { LessonEntryMediaHub } from '@/features/interactive/shared/lesson-entry-media-hub';
 import { LessonEntryRuntimeSections } from '@/features/interactive/shared/lesson-entry-runtime-sections';
 
 interface JoinSessionResponse {
@@ -156,7 +157,7 @@ export function UNIT_2_4CourseEntryPage({
 
           <section className="premium-lesson-panel p-5">
             <h3 className="premium-lesson-title text-xl font-semibold">自由浏览</h3>
-            <p className="premium-lesson-muted mt-2">以演示模式进入学生端，先预览 17 个课堂环节与 runtime 导学内容。</p>
+            <p className="premium-lesson-muted mt-2">以演示模式进入学生端，先预览 17 个课堂环节与导学资料。</p>
             <Link
               href={`/interactive-learning/courses/${UNIT_2_4_ROUTE_SEGMENT}/student/demo`}
               className="premium-lesson-action-secondary mt-5 flex w-full"
@@ -214,7 +215,11 @@ export function UNIT_2_4CourseEntryPage({
           </div>
         </section>
 
-        <LessonEntryRuntimeSections runtime={lessonRuntime} />
+        <LessonEntryMediaHub
+          lessonRuntime={lessonRuntime}
+          courseLabel="2-4 · Pre-study"
+        />
+        <LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mt-4">{error}</div> : null}
       </main>

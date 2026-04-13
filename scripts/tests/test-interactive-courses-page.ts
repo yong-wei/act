@@ -12,20 +12,38 @@ const pageContent = fs.readFileSync(pagePath, 'utf8');
 
 assert.equal(
   INTERACTIVE_COURSE_MODULES.length,
-  2,
-  '互动课程页当前只应展示模块1和模块2两个分组',
+  3,
+  '互动课程页当前应展示模块2、模块3和模块4三个分组',
 );
 
 assert.equal(
   INTERACTIVE_COURSE_MODULES[0]?.lessons.length,
-  5,
-  '模块1分组应展示 5 个单元入口',
+  4,
+  '模块2分组应展示 4 个单元入口',
 );
 
 assert.equal(
   INTERACTIVE_COURSE_MODULES[1]?.lessons.some((lesson) => lesson.id === 'unit-2-1-modeling-language'),
+  false,
+  '模块3分组不应展示 2-1 入口',
+);
+
+assert.equal(
+  INTERACTIVE_COURSE_MODULES[0]?.lessons.some((lesson) => lesson.id === 'unit-2-1-modeling-language'),
   true,
   '模块2分组应展示 2-1 入口',
+);
+
+assert.equal(
+  INTERACTIVE_COURSE_MODULES[1]?.lessons.some((lesson) => lesson.id === 'unit-3-9-cross-domain-mapping-lab'),
+  true,
+  '模块3分组应展示 3-9 入口',
+);
+
+assert.equal(
+  INTERACTIVE_COURSE_MODULES[2]?.lessons.some((lesson) => lesson.id === 'unit-4-1-design-task-expression'),
+  true,
+  '模块4分组应展示 4-1 入口',
 );
 
 assert.equal(
@@ -38,8 +56,8 @@ assert.equal(
 
 assert.equal(
   INTERACTIVE_COURSE_MODULES.map((module) => module.title).join('|'),
-  '模块1|模块2',
-  '互动课程页数据分组应明确命名为模块1与模块2',
+  '模块2|模块3|模块4',
+  '互动课程页数据分组应明确命名为模块2、模块3与模块4',
 );
 
 assert.equal(

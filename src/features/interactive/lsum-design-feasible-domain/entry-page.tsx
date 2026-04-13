@@ -156,7 +156,7 @@ export function LSUMCourseEntryPage({
 
           <section className="premium-lesson-panel p-5">
             <h3 className="premium-lesson-title text-xl font-semibold">自由浏览</h3>
-            <p className="premium-lesson-muted mt-2">以演示模式进入学生端，先预览 15 个环节的课程骨架和 runtime 导学内容。</p>
+            <p className="premium-lesson-muted mt-2">以演示模式进入学生端，先预览 15 个环节的课程骨架和导学资料。</p>
             <Link
               href={`/interactive-learning/courses/${LSUM_ROUTE_SEGMENT}/student/demo`}
               className="premium-lesson-action-secondary mt-5 flex w-full"
@@ -202,7 +202,7 @@ export function LSUMCourseEntryPage({
           <h2 className="premium-lesson-title mt-2 text-3xl font-semibold sm:text-4xl">{LSUM_COURSE_TITLE}</h2>
           <p className="premium-lesson-muted mt-3 max-w-3xl sm:text-base">{LSUM_COURSE_DESCRIPTION}</p>
           <p className="premium-lesson-muted mt-3 max-w-3xl">
-            当前已接通 runtime 知识点网络、知识卡片预览与讲义入口。下一步会继续补齐教师端控制流、学生端测验与页内 AI。
+            可在这里查看知识点网络、知识卡片预览与讲义入口。
           </p>
         </section>
 

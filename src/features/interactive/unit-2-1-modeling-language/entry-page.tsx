@@ -160,7 +160,7 @@ export function UNIT_2_1CourseEntryPage({
           <section className="premium-lesson-panel p-5">
             <h3 className="premium-lesson-title text-xl font-semibold">自由浏览</h3>
             <p className="premium-lesson-muted mt-2">
-              以演示模式进入学生端，先预览 16 个课堂环节与 runtime 导学内容。
+              以演示模式进入学生端，先预览 16 个课堂环节与导学资料。
             </p>
             <Link
               href={`/interactive-learning/courses/${UNIT_2_1_ROUTE_SEGMENT}/student/demo`}

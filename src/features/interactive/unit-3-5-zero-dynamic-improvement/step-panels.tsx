@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { Copy, Sparkles } from 'lucide-react';
+import { BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
@@ -16,6 +18,7 @@ import {
   type UNIT_3_5StepDefinition,
   type UNIT_3_5StepResponse,
 } from '@/lib/unit-3-5-course';
+import { getUNIT_3_5PlainText, UNIT_3_5InlineRichText } from './rich-text';
 import {
   BAND_LABEL_OPTIONS,
   BRANCH_REGION_OPTIONS,
@@ -319,8 +322,8 @@ function buildInteractiveAiConfig(step: UNIT_3_5StepDefinition): InteractiveConf
   return {
     resourceId: `unit-3-5:${step.id}`,
     registryId: `unit-3-5:${step.id}`,
-    title: `${UNIT_3_5_COURSE_TITLE} · ${step.title}`,
-    aiHints: `当前只围绕 ${step.title} 提供解释和检查，不替代学生完成最终判断。`,
+    title: `${UNIT_3_5_COURSE_TITLE} · ${getUNIT_3_5PlainText(step.title)}`,
+    aiHints: `当前只围绕 ${getUNIT_3_5PlainText(step.title)} 提供解释和检查，不替代学生完成最终判断。`,
     config: {
       ai: {
         enabled: true,
@@ -536,7 +539,9 @@ export function UNIT_3_5StepContentPanel({
       <div className="premium-lesson-kicker">
         {blueprint.kicker} · {UNIT_3_5_STAGE_LABEL[step.stage]}
       </div>
-      <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
+      <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">
+        <UNIT_3_5InlineRichText text={step.title} />
+      </h2>
       <p className="premium-lesson-muted mt-3 text-sm sm:text-base">{blueprint.intro}</p>
 
       {mediaSrc ? (
@@ -544,7 +549,6 @@ export function UNIT_3_5StepContentPanel({
           <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border/60 bg-background/60">
             <Image src={mediaSrc} alt={mediaAlt ?? step.title} fill className="object-contain" />
           </div>
-          <figcaption className="premium-lesson-muted mt-2 text-xs">本页图示统一来自 runtime 正式课包，不回读 authoring 作为页面真值。</figcaption>
         </figure>
       ) : null}
 
@@ -553,7 +557,11 @@ export function UNIT_3_5StepContentPanel({
           <div key={section.title} className={`premium-lesson-tone-block ${getToneClass(section.tone)}`}>
             <div className="font-medium">{section.title}</div>
             {section.body ? <div className="mt-2 text-sm leading-7">{section.body}</div> : null}
-            {section.formula ? <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 font-mono text-sm">{section.formula}</div> : null}
+            {section.formula ? (
+              <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <BlockMath math={section.formula} />
+              </div>
+            ) : null}
             {section.bullets?.length ? (
               <ul className="mt-3 grid gap-2 text-sm leading-7">
                 {section.bullets.map((item) => (
@@ -1175,7 +1183,7 @@ export function UNIT_3_5StepAiAssistant({
         页内 AI 助手
       </div>
       <p className="premium-lesson-muted mt-2 text-sm">
-        当前只围绕 {step.title} 回答问题，帮助你检查概念、推导链和误判纠偏，不替你直接下最终结论。
+        当前只围绕 <UNIT_3_5InlineRichText text={step.title} className="inline" /> 学习，帮助你检查概念、推导链和误判纠偏，不替你直接下最终结论。
       </p>
       <div className="mt-4 grid gap-3">
         {prompts.map((prompt) => (
@@ -1205,10 +1213,10 @@ export function UNIT_3_5StepAiAssistant({
       <Dialog open={ai.isPanelOpen} onOpenChange={ai.togglePanel}>
         <DialogContent className="max-w-5xl border-none bg-transparent p-0 shadow-none">
           <DialogHeader className="sr-only">
-            <DialogTitle>{step.title} AI 助手</DialogTitle>
+            <DialogTitle>{getUNIT_3_5PlainText(step.title)} AI 助手</DialogTitle>
             <DialogDescription>用于概念解释、推导链核对和误判纠偏。</DialogDescription>
           </DialogHeader>
-          <InteractiveAIPanel ai={ai} title={`${step.title} · AI 助手`} position="floating" onClose={ai.togglePanel} />
+          <InteractiveAIPanel ai={ai} title={`${getUNIT_3_5PlainText(step.title)} · AI 助手`} position="floating" onClose={ai.togglePanel} />
         </DialogContent>
       </Dialog>
     </section>

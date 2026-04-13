@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Copy, Sparkles } from 'lucide-react';
+import { BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
@@ -794,7 +796,7 @@ export function UNIT_3_2StepContentPanel({
           <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border/60 bg-background/60">
             <Image src={mediaSrc} alt={mediaAlt ?? step.title} fill className="object-contain" />
           </div>
-          <figcaption className="premium-lesson-muted mt-2 text-xs">{step.title} 对应的 runtime 正式媒体。</figcaption>
+          <figcaption className="premium-lesson-muted mt-2 text-xs">图示用于支撑当前环节的判断与比较。</figcaption>
         </figure>
       ) : null}
 
@@ -803,7 +805,11 @@ export function UNIT_3_2StepContentPanel({
           <div key={section.title} className={`premium-lesson-tone-block ${getToneClass(section.tone)}`}>
             <div className="font-medium">{section.title}</div>
             {section.body ? <div className="mt-2 text-sm leading-7">{section.body}</div> : null}
-            {section.formula ? <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 font-mono text-sm">{section.formula}</div> : null}
+            {section.formula ? (
+              <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <BlockMath math={section.formula} />
+              </div>
+            ) : null}
             {section.bullets?.length ? (
               <ul className="mt-3 grid gap-2 text-sm leading-7">
                 {section.bullets.map((item) => (

@@ -11,6 +11,7 @@ import {
   UNIT_3_5_STAGE_LABEL,
   type UNIT_3_5StepDefinition,
 } from '@/lib/unit-3-5-course';
+import { getUNIT_3_5PlainText } from './rich-text';
 
 export function UNIT_3_5CourseHeader({
   steps,
@@ -75,7 +76,7 @@ export function UNIT_3_5CourseHeader({
               >
                 {steps.map((step) => (
                   <option key={step.id} value={step.id}>
-                    {step.title}
+                    {getUNIT_3_5PlainText(step.title)}
                   </option>
                 ))}
               </select>

@@ -25,6 +25,7 @@ import {
   type UNIT_3_5StepResponse,
 } from '@/lib/unit-3-5-course';
 import { UNIT_3_5CourseHeader } from './course-header';
+import { getUNIT_3_5PlainText } from './rich-text';
 import {
   UNIT_3_5KnowledgeMapVisual,
   UNIT_3_5StepAiAssistant,
@@ -261,12 +262,12 @@ export function UNIT_3_5StudentPage({
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
         <div className="premium-lesson-panel-soft mb-4 px-4 py-4">
-          <div className="premium-lesson-kicker">学生课堂台</div>
+          <div className="premium-lesson-kicker">课堂学习</div>
           <div className="premium-lesson-title mt-2 text-lg font-semibold">
             {isDemo ? '演示模式已开启' : `已加入课堂 ${sessionId}`}
           </div>
           <div className="premium-lesson-muted mt-1 text-sm">
-            {isDemo ? '演示模式不会写入课堂状态。' : '学生端会随课堂同步步骤，并把个人作答持久化到课堂状态。'}
+            {isDemo ? '演示模式不会保存作答记录。' : '页面会随课堂同步进度，并保留你的作答记录。'}
           </div>
         </div>
 
@@ -275,7 +276,7 @@ export function UNIT_3_5StudentPage({
         <UNIT_3_5StepContentPanel
           step={step}
           mediaSrc={getUNIT_3_5MediaSrc(step.id)}
-          mediaAlt={step.title}
+          mediaAlt={getUNIT_3_5PlainText(step.title)}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 

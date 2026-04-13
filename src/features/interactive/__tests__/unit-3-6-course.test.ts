@@ -178,6 +178,20 @@ describe('unit 3-6 interactive course', () => {
     expect(workspaceSource).not.toContain('SENTENCE_REBUILD_TOKENS');
   });
 
+  it('renders inline math inside step-06 and step-07 conclusion bullets instead of raw LaTeX text', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-6-zero-design-workshop/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain("import ReactMarkdown from 'react-markdown';");
+    expect(stepPanelsSource).toContain("import rehypeKatex from 'rehype-katex';");
+    expect(stepPanelsSource).toContain("import remarkMath from 'remark-math';");
+    expect(stepPanelsSource).toContain('<ReactMarkdown');
+    expect(stepPanelsSource).toContain('阻尼比约束：$\\\\zeta \\\\ge 0.456$');
+    expect(stepPanelsSource).toContain('先选设计点 $s_d=-1.1\\\\pm j1.67$');
+  });
+
   it('uses the 3-6 step AI context inside the student page', () => {
     const studentPageSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-3-6-zero-design-workshop/student-page.tsx'),

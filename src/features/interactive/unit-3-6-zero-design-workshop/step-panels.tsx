@@ -3,6 +3,11 @@
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { Copy, Sparkles } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import rehypeKatex from 'rehype-katex';
+import { BlockMath } from 'react-katex';
+import remarkMath from 'remark-math';
+import 'katex/dist/katex.min.css';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
@@ -57,6 +62,20 @@ export interface UNIT_3_6TeacherResponseItem {
 
 function getToneClass(tone: Tone = 'slate') {
   return `premium-tone-${tone}`;
+}
+
+function renderInlineMathText(text: string) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkMath]}
+      rehypePlugins={[rehypeKatex]}
+      components={{
+        p: ({ children }) => <span>{children}</span>,
+      }}
+    >
+      {text}
+    </ReactMarkdown>
+  );
 }
 
 function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
@@ -154,7 +173,7 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
           {
             title: '要落到的结论',
             tone: 'emerald',
-            bullets: ['阻尼比约束：\\zeta \\ge 0.456', '实部边界：Re(s) \\le -1', '纯增益不能直接同时通过两个约束'],
+            bullets: ['阻尼比约束：$\\zeta \\ge 0.456$', '实部边界：$\\operatorname{Re}(s) \\le -1$', '纯增益不能直接同时通过两个约束'],
           },
         ],
       };
@@ -166,7 +185,7 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
           {
             title: '设计链',
             tone: 'cyan',
-            bullets: ['先选设计点 s_d=-1.1\\pm j1.67', '再由相角条件反求零点位置', '最后用模值条件求增益并验收阶跃'],
+            bullets: ['先选设计点 $s_d=-1.1\\pm j1.67$', '再由相角条件反求零点位置', '最后用模值条件求增益并验收阶跃'],
           },
           {
             title: '控制器形式',
@@ -501,7 +520,7 @@ export function UNIT_3_6StepContentPanel({
           <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border/60 bg-background/60">
             <Image src={mediaSrc} alt={mediaAlt ?? step.title} fill className="object-contain" />
           </div>
-          <figcaption className="premium-lesson-muted mt-2 text-xs">本页图示统一来自 runtime 正式课包，不回读 authoring 作为页面真值。</figcaption>
+          <figcaption className="premium-lesson-muted mt-2 text-xs">图示用于支撑当前环节的设计判断。</figcaption>
         </figure>
       ) : null}
 
@@ -510,12 +529,16 @@ export function UNIT_3_6StepContentPanel({
           <div key={section.title} className={`premium-lesson-tone-block ${getToneClass(section.tone)}`}>
             <div className="font-medium">{section.title}</div>
             {section.body ? <div className="mt-2 text-sm leading-7">{section.body}</div> : null}
-            {section.formula ? <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 font-mono text-sm">{section.formula}</div> : null}
+            {section.formula ? (
+              <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <BlockMath math={section.formula} />
+              </div>
+            ) : null}
             {section.bullets?.length ? (
               <ul className="mt-3 grid gap-2 text-sm leading-7">
                 {section.bullets.map((item) => (
                   <li key={item} className="ml-4 list-disc">
-                    {item}
+                    {renderInlineMathText(item)}
                   </li>
                 ))}
               </ul>

@@ -1,0 +1,45 @@
+\documentclass[tikz,border=10pt]{standalone}
+
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,fit}
+\input{styles/block_styles}
+
+\begin{document}
+
+\begin{tikzpicture}[auto, >=stealth]
+  \node at (0,0) (Mf) {$M_f$};
+  \node[sum] (sum_in) at (1.3,0) {};
+  \node[block large, minimum width=3.8cm] (plant) at (4.1,0) {$\dfrac{1}{2.052s^2+0.3929s+1}$};
+  \node[tap] (tap_phi) at (6.35,0) {};
+  \node at (7.35,0) (phi) {$\varphi$};
+
+  \node[block] (gyro) at (6.35,-1.7) {$s$};
+  \node[tap] (tap_rate) at (7.55,-1.7) {};
+  \node[block] (int_branch) at (9.7,-0.4) {$1/s$};
+  \node[block] (prop_branch) at (9.7,-1.7) {$0.3929$};
+  \node[block] (diff_branch) at (9.7,-3.0) {$2.052s$};
+  \node[sum] (sum_mk) at (12.0,-1.7) {};
+  \node[tap] (tap_mk) at (13.0,-1.7) {};
+  \node at (14.0,-1.7) (mk) {$M_k$};
+  \coordinate (fb_down) at (13.0,-4.2);
+  \coordinate (fb_left) at (0.95,-4.2);
+
+  \draw[signal] (Mf) -- (sum_in);
+  \draw[signal] (sum_in) -- (plant) -- (tap_phi) -- (phi);
+  \draw[signal] (tap_phi) -- ++(0,-0.55) -| (gyro);
+  \draw[signal] (gyro) -- node[label below] {$\dot{\varphi}$} (tap_rate);
+
+  \draw[signal] (tap_rate) |- (int_branch);
+  \draw[signal] (tap_rate) -- (prop_branch);
+  \draw[signal] (tap_rate) |- (diff_branch);
+
+  \draw[signal] (int_branch) -| (sum_mk);
+  \draw[signal] (prop_branch) -- (sum_mk);
+  \draw[signal] (diff_branch) -| (sum_mk);
+
+  \draw[signal] (sum_mk) -- (tap_mk) -- (mk);
+  \draw[signal] (tap_mk) |- (fb_down) -- (fb_left) |- node[neg sign, left] {$-$} (sum_in.south);
+\end{tikzpicture}
+
+\end{document}

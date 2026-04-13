@@ -1,13 +1,21 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
 
+vi.mock('server-only', () => ({}));
+
 const repoRoot = process.cwd();
+let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaDocument;
+let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaIndex;
+
+beforeAll(async () => {
+  ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-runtime'));
+});
 
 describe('unit 2-4 interactive course', () => {
   it('registers the 2-4 AI context registry entry', () => {
@@ -87,5 +95,73 @@ describe('unit 2-4 interactive course', () => {
       routeSegment: 'unit-2-4-nyquist-margin-entry',
       isPremiumCourse: true,
     });
+  });
+
+  it('renders the runtime entry page with the shared pre-study media hub instead of only runtime sections', () => {
+    const entrySource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-2-4-nyquist-margin-entry/entry-page.tsx'),
+      'utf8',
+    );
+
+    expect(entrySource).toContain('LessonEntryMediaHub');
+    expect(entrySource).toContain('<LessonEntryMediaHub');
+    expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
+    expect(entrySource).toContain('courseLabel="2-4 · Pre-study"');
+    expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+  });
+
+  it('parses the 2-4 runtime media index into typed pre-study resources', () => {
+    const mediaDocument = readFileSync(
+      join(repoRoot, 'course-content/runtime/lessons/2-4/media/2-4-media.md'),
+      'utf8',
+    );
+    const resources = parseRuntimeLessonMediaIndex(mediaDocument);
+
+    expect(resources.map((item) => item.filename)).toEqual([
+      '2-4-intro-video.mp4',
+      '2-4-audio.m4a',
+      '2-4-slides.pdf',
+      '2-4-course.mp4',
+    ]);
+    expect(resources[0]).toMatchObject({
+      kind: 'video',
+      accessMode: 'dialog',
+      embedMode: 'iframe',
+      status: 'ready',
+      title: '先用一个短场景说明：同一个 G(jω) 为什么既要看 Bode，也要看 Nyquist',
+    });
+    expect(resources[1]).toMatchObject({
+      kind: 'audio',
+      accessMode: 'dialog',
+      embedMode: 'iframe',
+      status: 'ready',
+      title: '伯德图与奈奎斯特图的物理直觉',
+    });
+    expect(resources[2]).toMatchObject({
+      kind: 'pdf',
+      accessMode: 'new_tab',
+      embedMode: 'none',
+      status: 'ready',
+      title: '频域探险家指南：Bode图与Nyquist图通关秘籍',
+    });
+    expect(resources[3]).toMatchObject({
+      kind: 'video',
+      accessMode: 'dialog',
+      embedMode: 'iframe',
+      status: 'ready',
+      title: '揭秘伯德图与奈奎斯特图：从点到图的蜕变',
+    });
+  });
+
+  it('keeps handout summary outside mediaResources when parsing 2-4 runtime media document', () => {
+    const mediaDocument = readFileSync(
+      join(repoRoot, 'course-content/runtime/lessons/2-4/media/2-4-media.md'),
+      'utf8',
+    );
+    const parsed = parseRuntimeLessonMediaDocument(mediaDocument);
+
+    expect(parsed.mediaResources.some((resource) => resource.filename === 'handout.md')).toBe(false);
+    expect(parsed.handoutSummary).toContain('Bode图');
+    expect(parsed.handoutSummary).toContain('Nyquist图');
   });
 });

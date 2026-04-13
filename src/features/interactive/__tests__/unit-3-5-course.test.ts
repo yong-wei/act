@@ -177,6 +177,23 @@ describe('unit 3-5 interactive course', () => {
     expect(workspaceSource).not.toContain('WINDOW_TAG_OPTIONS');
   });
 
+  it('renders step-08, step-11 and step-12 formulas through KaTeX instead of raw LaTeX text', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-5-zero-dynamic-improvement/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain("import 'katex/dist/katex.min.css';");
+    expect(stepPanelsSource).toContain("import { BlockMath } from 'react-katex';");
+    expect(stepPanelsSource).toContain('<BlockMath math={section.formula} />');
+    expect(stepPanelsSource).not.toContain(
+      "{section.formula ? <div className=\"mt-3 rounded-2xl bg-background/70 px-3 py-3 font-mono text-sm\">{section.formula}</div> : null}",
+    );
+    expect(stepPanelsSource).toContain("case 'step-08':");
+    expect(stepPanelsSource).toContain("case 'step-11':");
+    expect(stepPanelsSource).toContain("case 'step-12':");
+  });
+
   it('uses the 3-5 step AI context inside the student page', () => {
     const studentPageSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-3-5-zero-dynamic-improvement/student-page.tsx'),

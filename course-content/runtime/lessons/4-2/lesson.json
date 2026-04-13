@@ -1,0 +1,160 @@
+{
+  "lesson_id": "4-2",
+  "title": "控制器选型原理：不同控制结构为何适合不同任务",
+  "layer": "层4",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "D",
+  "graph_version": "4-2-v1",
+  "focus_node_ids": [
+    "单结构首轮起步卡_4_42001",
+    "结构工具箱最小语义_4_42002",
+    "主矛盾到频段职责映射_4_42003",
+    "结构作用点与代价来源对照_4_42004",
+    "反馈保底与前馈补偿边界_4_42005"
+  ],
+  "reuse_node_ids": [
+    "设计任务表达卡_4_41001",
+    "低频补偿稳态改善路径_3_37003",
+    "积分与滞后的稳态改善分工_3_39003",
+    "目标驱动PD校正_3_36002",
+    "目标驱动超前校正_3_36004",
+    "三频段闭环性能回读_3_38003",
+    "相角裕度_5_5a74b451",
+    "带宽频率_5_6996a44a",
+    "幅值裕度_5_73af26a5"
+  ],
+  "entry_nodes": [
+    "结构工具箱最小语义_4_42002",
+    "主矛盾到频段职责映射_4_42003"
+  ],
+  "summary_nodes": [
+    "单结构首轮起步卡_4_42001",
+    "反馈保底与前馈补偿边界_4_42005"
+  ],
+  "card_order": [
+    "设计任务表达卡_4_41001",
+    "低频补偿稳态改善路径_3_37003",
+    "积分与滞后的稳态改善分工_3_39003",
+    "目标驱动PD校正_3_36002",
+    "目标驱动超前校正_3_36004",
+    "三频段闭环性能回读_3_38003",
+    "相角裕度_5_5a74b451",
+    "带宽频率_5_6996a44a",
+    "幅值裕度_5_73af26a5",
+    "结构工具箱最小语义_4_42002",
+    "主矛盾到频段职责映射_4_42003",
+    "结构作用点与代价来源对照_4_42004",
+    "反馈保底与前馈补偿边界_4_42005",
+    "单结构首轮起步卡_4_42001"
+  ],
+  "preceding_lesson": "4-1",
+  "following_lesson": "4-3",
+  "refinement_units": [],
+  "ideological_point": "工程设计不是抢先堆最复杂结构，而是先根据主矛盾安排职责、留足储备、说明代价。先把理由讲清，再把结构加上去，才是负责任的工程判断。",
+  "sequence": {
+    "lesson_id": "4-2",
+    "groups": [
+      {
+        "group_name": "入口边界与工具箱重组",
+        "step_ids": [
+          "step-01",
+          "step-02",
+          "step-03",
+          "step-04"
+        ],
+        "node_ids": [
+          "设计任务表达卡_4_41001",
+          "结构工具箱最小语义_4_42002"
+        ]
+      },
+      {
+        "group_name": "主矛盾与四类最小语义",
+        "step_ids": [
+          "step-05"
+        ],
+        "node_ids": [
+          "低频补偿稳态改善路径_3_37003",
+          "目标驱动PD校正_3_36002",
+          "目标驱动超前校正_3_36004",
+          "主矛盾到频段职责映射_4_42003"
+        ]
+      },
+      {
+        "group_name": "收益与代价链",
+        "step_ids": [
+          "step-06"
+        ],
+        "node_ids": [
+          "三频段闭环性能回读_3_38003",
+          "相角裕度_5_5a74b451",
+          "带宽频率_5_6996a44a",
+          "幅值裕度_5_73af26a5",
+          "结构作用点与代价来源对照_4_42004"
+        ]
+      },
+      {
+        "group_name": "案例对照与通道边界",
+        "step_ids": [
+          "step-07",
+          "step-08",
+          "step-09"
+        ],
+        "node_ids": [
+          "低频补偿稳态改善路径_3_37003",
+          "积分与滞后的稳态改善分工_3_39003",
+          "目标驱动PD校正_3_36002",
+          "目标驱动超前校正_3_36004",
+          "反馈保底与前馈补偿边界_4_42005"
+        ]
+      },
+      {
+        "group_name": "起步卡与收束",
+        "step_ids": [
+          "step-10",
+          "step-11"
+        ],
+        "node_ids": [
+          "结构工具箱最小语义_4_42002",
+          "主矛盾到频段职责映射_4_42003",
+          "结构作用点与代价来源对照_4_42004",
+          "反馈保底与前馈补偿边界_4_42005",
+          "单结构首轮起步卡_4_42001"
+        ]
+      }
+    ],
+    "card_order": [
+      "设计任务表达卡_4_41001",
+      "低频补偿稳态改善路径_3_37003",
+      "积分与滞后的稳态改善分工_3_39003",
+      "目标驱动PD校正_3_36002",
+      "目标驱动超前校正_3_36004",
+      "三频段闭环性能回读_3_38003",
+      "相角裕度_5_5a74b451",
+      "带宽频率_5_6996a44a",
+      "幅值裕度_5_73af26a5",
+      "结构工具箱最小语义_4_42002",
+      "主矛盾到频段职责映射_4_42003",
+      "结构作用点与代价来源对照_4_42004",
+      "反馈保底与前馈补偿边界_4_42005",
+      "单结构首轮起步卡_4_42001"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/4-2/handout.md",
+  "handout_source_path": "course-content/runtime/lessons/4-2/handout.md",
+  "handout_pdf_path": "/course-runtime/lessons/4-2/handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/4-2/handout.pdf",
+  "graph_overlay_path": "/course-runtime/lessons/4-2/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/4-2/media",
+  "media_index_path": "/course-runtime/lessons/4-2/media/4-2-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/4-2/media/4-2-media.md",
+  "review": {
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/4-2/review/boppps.md",
+    "report_path": "/course-runtime/lessons/4-2/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/4-2/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/4-2/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/4-2/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/4-2/review/source-manifest.json"
+  }
+}
