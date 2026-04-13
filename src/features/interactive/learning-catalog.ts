@@ -24,6 +24,7 @@ import { UNIT_3_6_PREMIUM_LESSON_CARD } from '@/lib/unit-3-6-course';
 import { UNIT_3_7_PREMIUM_LESSON_CARD } from '@/lib/unit-3-7-course';
 import { UNIT_3_8_PREMIUM_LESSON_CARD } from '@/lib/unit-3-8-course';
 import { UNIT_3_9_PREMIUM_LESSON_CARD } from '@/lib/unit-3-9-course';
+import { UNIT_4_1_PREMIUM_LESSON_CARD } from '@/lib/unit-4-1-course';
 
 export interface InteractiveResource {
   id: string;
@@ -144,6 +145,7 @@ export const FEATURED_LESSONS = [
   UNIT_3_7_PREMIUM_LESSON_CARD,
   UNIT_3_8_PREMIUM_LESSON_CARD,
   UNIT_3_9_PREMIUM_LESSON_CARD,
+  UNIT_4_1_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -305,7 +307,8 @@ export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
   lesson.id === 'unit-3-6-zero-design-workshop' ||
   lesson.id === 'unit-3-7-steady-error-low-frequency-compensation' ||
   lesson.id === 'unit-3-8-frequency-domain-translation-judgment' ||
-  lesson.id === 'unit-3-9-cross-domain-mapping-lab'
+  lesson.id === 'unit-3-9-cross-domain-mapping-lab' ||
+  lesson.id === 'unit-4-1-design-task-expression'
 );
 
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
@@ -324,7 +327,8 @@ export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
     lesson.id !== 'unit-3-6-zero-design-workshop' &&
     lesson.id !== 'unit-3-7-steady-error-low-frequency-compensation' &&
     lesson.id !== 'unit-3-8-frequency-domain-translation-judgment' &&
-    lesson.id !== 'unit-3-9-cross-domain-mapping-lab'
+    lesson.id !== 'unit-3-9-cross-domain-mapping-lab' &&
+    lesson.id !== 'unit-4-1-design-task-expression'
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;
@@ -378,6 +382,16 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
       createModuleLesson('unit-3-7-steady-error-low-frequency-compensation', '3-7'),
       createModuleLesson('unit-3-8-frequency-domain-translation-judgment', '3-8'),
       createModuleLesson('unit-3-9-cross-domain-mapping-lab', '3-9'),
+    ],
+  },
+  {
+    id: 'module-4',
+    title: '模块4',
+    description:
+      '模块4 当前先开放 4-1 入口课，把模块 3 的稳定、动态、稳态证据统一改写成“目标—约束—优先级—证据来源”的任务表达卡，为 4-2 的结构筛选与 4-3 的初始方案方向做输入准备。',
+    chipLabel: '设计入口主线',
+    lessons: [
+      createModuleLesson('unit-4-1-design-task-expression', '4-1'),
     ],
   },
 ] as const;

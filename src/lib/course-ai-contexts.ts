@@ -64,6 +64,10 @@ import {
   getUnit39StepAIContext as getUnit39StepAIContextLocal,
   getUnit39StepQuickQuestions as getUnit39StepQuickQuestionsLocal,
 } from './unit-3-9-ai-contexts';
+import {
+  getUnit41StepAIContext as getUnit41StepAIContextLocal,
+  getUnit41StepQuickQuestions as getUnit41StepQuickQuestionsLocal,
+} from './unit-4-1-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -187,6 +191,15 @@ export {
   getUnit39StepAIContext,
   getUnit39StepQuickQuestions,
 } from './unit-3-9-ai-contexts';
+
+export {
+  UNIT_4_1_COURSE_META,
+  UNIT_4_1_STEP_AI_CONTEXTS,
+  getUNIT_4_1StepAIContext,
+  getUNIT_4_1StepQuickQuestions,
+  getUnit41StepAIContext,
+  getUnit41StepQuickQuestions,
+} from './unit-4-1-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -344,6 +357,17 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '3-9：稳定—动态—稳态综合映射实验',
       courseDescription:
         '围绕同一航向控制对象，把基准、零点线补强、积分家族与滞后对照收束为一张稳定—动态—稳态综合映射表，并把模块 3 的出口判断接到 4-1。',
+    },
+  },
+
+  'unit-4-1-design-task-expression-v1': {
+    getStepContext: (stepId: string) => getUnit41StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit41StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-4-1-design-task-expression-v1',
+      courseTitle: '4-1：设计起点：性能指标体系、工程约束与可行域表达',
+      courseDescription:
+        '围绕指标角色重组、硬约束/软目标/观察指标分类、可行域分层和双案例联读，把已有分析证据收束成任务表达卡。',
     },
   },
 };

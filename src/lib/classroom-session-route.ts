@@ -13,6 +13,7 @@ import { UNIT_3_6_COURSE_TITLE, UNIT_3_6_ROUTE_SEGMENT } from '@/lib/unit-3-6-co
 import { UNIT_3_7_COURSE_TITLE, UNIT_3_7_ROUTE_SEGMENT } from '@/lib/unit-3-7-course';
 import { UNIT_3_8_COURSE_TITLE, UNIT_3_8_ROUTE_SEGMENT } from '@/lib/unit-3-8-course';
 import { UNIT_3_9_COURSE_TITLE, UNIT_3_9_ROUTE_SEGMENT } from '@/lib/unit-3-9-course';
+import { UNIT_4_1_COURSE_TITLE, UNIT_4_1_ROUTE_SEGMENT } from '@/lib/unit-4-1-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -151,6 +152,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       UNIT_3_9_COURSE_TITLE,
       '3-9：稳定—动态—稳态综合映射实验',
       '稳定—动态—稳态综合映射实验',
+    ],
+  },
+  {
+    routeSegment: UNIT_4_1_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_4_1_COURSE_TITLE,
+      '4-1：设计起点：性能指标体系、工程约束与可行域表达',
+      '设计起点：性能指标体系、工程约束与可行域表达',
+      '设计起点',
     ],
   },
 ];

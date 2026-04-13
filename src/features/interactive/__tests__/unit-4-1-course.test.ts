@@ -1,0 +1,168 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { beforeAll, describe, expect, it, vi } from 'vitest';
+
+import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
+import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
+import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
+
+vi.mock('server-only', () => ({}));
+
+const repoRoot = process.cwd();
+let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaDocument;
+let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaIndex;
+
+beforeAll(async () => {
+  ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-runtime'));
+});
+
+describe('unit 4-1 interactive course', () => {
+  it('registers the 4-1 AI context registry entry', () => {
+    const registry = COURSE_AI_CONTEXT_REGISTRY['unit-4-1-design-task-expression-v1'];
+
+    expect(registry).toBeDefined();
+    expect(registry?.courseMeta.courseTitle).toContain('设计起点');
+  });
+
+  it('defines the full 12-step lesson flow', async () => {
+    const courseModule = await import('@/lib/unit-4-1-course');
+
+    expect(courseModule.UNIT_4_1_LESSON_STEPS).toHaveLength(12);
+    expect(courseModule.UNIT_4_1_LESSON_STEPS[0]?.id).toBe('step-01');
+    expect(courseModule.UNIT_4_1_LESSON_STEPS[11]?.id).toBe('step-12');
+    expect(courseModule.UNIT_4_1_LESSON_STEPS[9]?.pageType).toBe('task_card_workspace');
+  });
+
+  it('exposes AI quick questions for the task-card step', () => {
+    const quickQuestions = getStepQuickQuestions('unit-4-1-design-task-expression-v1', 'step-10');
+
+    expect(quickQuestions).toHaveLength(2);
+    expect(quickQuestions[0]?.question).toContain('任务');
+  });
+
+  it('maps runtime media using the real 4-1 prefixed asset names', async () => {
+    const courseModule = await import('@/lib/unit-4-1-course');
+
+    expect(courseModule.getUNIT_4_1MediaSrc('step-07')).toContain('4-1-ship-heading-quad');
+    expect(courseModule.getUNIT_4_1MediaSrc('step-08')).toContain('4-1-platform-pitch-quad');
+    expect(courseModule.getUNIT_4_1MediaSrc('step-12')).toContain('4-1-info.png');
+  });
+
+  it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
+    const contract = JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/authoring/lessons/4-1/design/interactive-contract.yaml'),
+        'utf8',
+      ),
+    ) as {
+      steps: Record<string, {
+        title: string;
+        layout: { template: string; regions: Array<{ id: string; width: string; order: number }> };
+        interaction_spec: { interaction_kind: string };
+        teacher_insight_spec: { widgets: string[] };
+        telemetry_spec: { summary_fields: string[]; misconception_tags?: string[] };
+        preview_contract: { demo_path: string };
+      }>;
+    };
+
+    const courseModule = await import('@/lib/unit-4-1-course');
+    const interactiveSteps = new Map(courseModule.UNIT_4_1_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
+    const expectedStepIds = ['step-04', 'step-05', 'step-07', 'step-08', 'step-10', 'step-12'] as const;
+
+    for (const stepId of expectedStepIds) {
+      const authoringStep = contract.steps[stepId];
+      const localStep = interactiveSteps.get(stepId);
+      const localPageContract = courseModule.UNIT_4_1_PAGE_CONTRACTS[stepId];
+
+      expect(localStep?.title).toBe(authoringStep.title);
+      expect(localStep?.pageType).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(localPageContract?.layout.template).toBe(authoringStep.layout.template);
+      expect(localPageContract?.layout.regions).toEqual(authoringStep.layout.regions);
+      expect(localPageContract?.interactionKind).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(localPageContract?.teacherInsightWidgets).toEqual(authoringStep.teacher_insight_spec.widgets);
+      expect(localPageContract?.telemetrySummaryFields).toEqual(authoringStep.telemetry_spec.summary_fields);
+      expect(localPageContract?.misconceptionTags ?? []).toEqual(authoringStep.telemetry_spec.misconception_tags ?? []);
+      expect(localPageContract?.previewDemoPath).toBe(authoringStep.preview_contract.demo_path);
+    }
+  });
+
+  it('registers the course in the learning catalog and classroom route resolver', () => {
+    expect(FEATURED_LESSONS.some((lesson) => lesson.id === 'unit-4-1-design-task-expression')).toBe(true);
+
+    expect(
+      resolveSessionRouteFromPlanTitle('4-1：设计起点：性能指标体系、工程约束与可行域表达'),
+    ).toEqual({
+      routeSegment: 'unit-4-1-design-task-expression',
+      isPremiumCourse: true,
+    });
+  });
+
+  it('renders the runtime entry page with the shared pre-study media hub and runtime sections', () => {
+    const entrySource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-1-design-task-expression/entry-page.tsx'),
+      'utf8',
+    );
+
+    expect(entrySource).toContain('LessonEntryMediaHub');
+    expect(entrySource).toContain('<LessonEntryMediaHub');
+    expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
+    expect(entrySource).toContain('courseLabel="4-1 · Pre-study"');
+    expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+  });
+
+  it('parses the 4-1 runtime media index into typed pre-study resources', () => {
+    const mediaDocument = readFileSync(
+      join(repoRoot, 'course-content/runtime/lessons/4-1/media/4-1-media.md'),
+      'utf8',
+    );
+    const resources = parseRuntimeLessonMediaIndex(mediaDocument);
+
+    expect(resources.map((item) => item.filename)).toEqual([
+      '4-1-intro-video.mp4',
+      '4-1-audio.m4a',
+      '4-1-slides.pdf',
+      '4-1-course.mp4',
+    ]);
+    expect(resources[0]).toMatchObject({
+      kind: 'video',
+      accessMode: 'dialog',
+      embedMode: 'iframe',
+      status: 'pending',
+      title: '用导入情境聚焦“在同一间自动控制实验教室里，客船航向控制沙盘和船载稳定平台姿态演示架同时运行”。',
+    });
+    expect(resources[1]).toMatchObject({
+      kind: 'audio',
+      accessMode: 'dialog',
+      embedMode: 'iframe',
+      status: 'ready',
+      title: '别再盲目修改K值了',
+    });
+    expect(resources[2]).toMatchObject({
+      kind: 'pdf',
+      accessMode: 'new_tab',
+      embedMode: 'none',
+      status: 'ready',
+      title: '控制工程：从理论到通关的“任务表达”指南',
+    });
+    expect(resources[3]).toMatchObject({
+      kind: 'video',
+      accessMode: 'dialog',
+      embedMode: 'iframe',
+      status: 'ready',
+      title: '控制系统的“翻译”艺术',
+    });
+  });
+
+  it('keeps handout summary outside mediaResources when parsing 4-1 runtime media document', () => {
+    const mediaDocument = readFileSync(
+      join(repoRoot, 'course-content/runtime/lessons/4-1/media/4-1-media.md'),
+      'utf8',
+    );
+    const parsed = parseRuntimeLessonMediaDocument(mediaDocument);
+
+    expect(parsed.mediaResources.some((resource) => resource.filename === 'handout.md')).toBe(false);
+    expect(parsed.handoutSummary).toContain('客船航向控制');
+    expect(parsed.handoutSummary).toContain('船载稳定平台');
+  });
+});
