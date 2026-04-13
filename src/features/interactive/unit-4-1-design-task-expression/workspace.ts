@@ -88,7 +88,7 @@ export const POSTTEST_QUESTIONS = [
 ] as const;
 
 export const BINARY_CHOICE_PROMPTS = {
-  'step-06': {
+  'step-10': {
     prompt: '“当前指标都满足，所以这已经是最优解。”这句话最准确的判断是：',
     options: [
       { value: 'feasible', label: '只说明进入可行域，还不能直接说满意或最优' },
@@ -102,10 +102,10 @@ export const BINARY_CHOICE_PROMPTS = {
     prompt: '“单看一张图就足够写结论。”这类说法最准确的归类是：',
     options: [
       { value: 'stable_equals_done', label: '把稳定误当成任务完成' },
-      { value: 'all_metrics_equal', label: '把所有指标看成同等重要' },
-      { value: 'single_plot_decision', label: '把单图线索误当成完整任务结论' },
+      { value: 'all_metrics_same_priority', label: '把所有指标看成同等重要' },
+      { value: 'single_plot_conclusion', label: '把单图线索误当成完整任务结论' },
     ],
-    answer: 'single_plot_decision',
+    answer: 'single_plot_conclusion',
     explanation: '4-1 要求把多图证据、约束和排序一起写回任务卡，不能单图直接定结论。',
   },
 } as const;
@@ -144,7 +144,19 @@ export const TRIPLE_MATCH_FIELDS = [
 ] as const;
 
 export const CARD_SORT_FIELDS = {
-  'step-05': {
+  'step-06': {
+    options: [
+      { value: 'ship', label: '归到客船排序' },
+      { value: 'platform', label: '归到平台排序' },
+    ],
+    items: [
+      { key: 'ship_priority', label: '先保过程平顺与储备，再谈提速' },
+      { key: 'platform_priority', label: '速度与带宽前移，但不能放松储备底线' },
+      { key: 'ship_boundary', label: '乘坐舒适和边界冗余优先压实' },
+      { key: 'platform_response', label: '更快跟踪和更高工作带宽优先抬上来' },
+    ],
+  },
+  'step-08': {
     options: [
       { value: 'hard_constraint', label: '硬约束' },
       { value: 'soft_target', label: '软目标' },
@@ -157,27 +169,15 @@ export const CARD_SORT_FIELDS = {
       { key: 'bandwidth', label: '平台：带宽更靠前，但仍要守住储备边界' },
     ],
   },
-  'step-09': {
-    options: [
-      { value: 'ship', label: '归到客船排序' },
-      { value: 'platform', label: '归到平台排序' },
-    ],
-    items: [
-      { key: 'ship_priority', label: '先保过程平顺与储备，再谈提速' },
-      { key: 'platform_priority', label: '速度与带宽前移，但不能放松储备底线' },
-      { key: 'ship_boundary', label: '乘坐舒适和边界冗余优先压实' },
-      { key: 'platform_response', label: '更快跟踪和更高工作带宽优先抬上来' },
-    ],
-  },
 } as const;
 
-export const STRUCTURED_COMPARE_FIELDS = {
-  'step-07': [
+export const PARAMETER_SLIDER_FIELDS = {
+  'step-04': [
     { key: 'conflict', label: '当前主要矛盾' },
     { key: 'boundary', label: '必守边界' },
     { key: 'evidence', label: '当前证据' },
   ],
-  'step-08': [
+  'step-05': [
     { key: 'speed_advantage', label: '速度前移的原因' },
     { key: 'boundary_cost', label: '不能放松的边界' },
     { key: 'evidence', label: '当前证据' },

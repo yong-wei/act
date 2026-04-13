@@ -22,9 +22,9 @@ import {
 import {
   BINARY_CHOICE_PROMPTS,
   CARD_SORT_FIELDS,
+  PARAMETER_SLIDER_FIELDS,
   POSTTEST_QUESTIONS,
   PRETEST_QUESTIONS,
-  STRUCTURED_COMPARE_FIELDS,
   TASK_CARD_CASE_OPTIONS,
   TASK_CARD_EVIDENCE_BANK,
   TASK_CARD_FIELDS,
@@ -148,66 +148,6 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
     ],
   },
   'step-04': {
-    kicker: 'Role Matching',
-    intro: '指标名称本身不等于任务角色。先问问题属于哪一类，再看最合适的指标。时域更偏过程接受度，频域更偏储备边界，积分误差更偏累计代价。',
-    sections: [
-      {
-        title: '三类问题',
-        tone: 'cyan',
-        bullets: ['过程是否可接受。', '离风险边界还有多远。', '全过程累计代价有多大。'],
-      },
-      {
-        title: '积分误差类指标',
-        tone: 'violet',
-        markdown: '$$J_{\\mathrm{ISE}},\\quad J_{\\mathrm{IAE}},\\quad J_{\\mathrm{ITAE}}$$',
-      },
-    ],
-    prompts: [
-      '为什么相角裕度更适合回答“离风险边界还有多远”，而不是直接回答“过程是否舒服”？',
-      '为什么不能把积分误差直接改写成“硬约束”用语？',
-    ],
-  },
-  'step-05': {
-    kicker: 'Task Roles',
-    intro: '进入设计任务时，指标会变成三种角色：硬约束、软目标、观察指标。角色由任务决定，而不是由名词决定；同一个指标在不同场景里可能承担不同角色。',
-    sections: [
-      {
-        title: '三种角色',
-        tone: 'emerald',
-        bullets: ['硬约束：不能破。', '软目标：守住底线后继续争取。', '观察指标：用来解释方案后果。'],
-      },
-      {
-        title: '判断提醒',
-        tone: 'amber',
-        body: '遇到一个指标时，先问“它是不是不能破的底线”，再问“它是不是当前继续争取的方向”。',
-      },
-    ],
-    prompts: [
-      '为什么“超调量”在客船里更像硬约束，而“带宽”在平台里更像靠前的软目标？',
-      '面对一个指标时，先分角色而不是先背定义，有什么好处？',
-    ],
-  },
-  'step-06': {
-    kicker: 'Layered Regions',
-    intro: '稳定域、可行域、满意域、最优域不是一句话。4-1 的职责是先把“能做”和“已经可接受”写清楚，而不是在入口页里直接宣布最优。',
-    sections: [
-      {
-        title: '分层关系',
-        tone: 'violet',
-        markdown: '$$\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}$$',
-      },
-      {
-        title: '当前口径',
-        tone: 'amber',
-        bullets: ['可行域：先排除不能做。', '满意域：当前已经可接受。', '最优域：后续再比较。'],
-      },
-    ],
-    prompts: [
-      '为什么 4-1 只能先写到可行域和满意域，而不能直接宣布“最优”？',
-      '稳定域和任务可接受域之间，最容易被忽略的差别是什么？',
-    ],
-  },
-  'step-07': {
     kicker: 'Case A',
     intro: '客船航向控制的任务语言强调“平顺与储备优先，再谈提速”。对象框图、根轨迹、幅频和相频信息必须同页并读，不能只盯其中一张图。',
     sections: [
@@ -228,7 +168,7 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
       '哪些图上证据共同支持了“先守边界，再谈提速”的判断？',
     ],
   },
-  'step-08': {
+  'step-05': {
     kicker: 'Case B',
     intro: '稳定平台案例会把速度和带宽排得更前，但这不代表储备边界失效。它只是说明当前主任务重排了，证据语言和边界意识并没有消失。',
     sections: [
@@ -248,7 +188,7 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
       '为什么速度前移不代表储备边界已经可以不看？',
     ],
   },
-  'step-09': {
+  'step-06': {
     kicker: 'Contrast Summary',
     intro: '双案例对照不是为了证明“哪一个更正确”，而是为了压实一句话：语言相同，排序不同。主矛盾不同，任务优先级就会重排。',
     sections: [
@@ -268,7 +208,47 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
       '排序重排时，什么东西没有变？',
     ],
   },
-  'step-10': {
+  'step-07': {
+    kicker: 'Role Matching',
+    intro: '指标名称本身不等于任务角色。先问问题属于哪一类，再看最合适的指标。时域更偏过程接受度，频域更偏储备边界，积分误差更偏累计代价。',
+    sections: [
+      {
+        title: '三类问题',
+        tone: 'cyan',
+        bullets: ['过程是否可接受。', '离风险边界还有多远。', '全过程累计代价有多大。'],
+      },
+      {
+        title: '积分误差类指标',
+        tone: 'violet',
+        markdown: '$$J_{\\mathrm{ISE}},\\quad J_{\\mathrm{IAE}},\\quad J_{\\mathrm{ITAE}}$$',
+      },
+    ],
+    prompts: [
+      '为什么相角裕度更适合回答“离风险边界还有多远”，而不是直接回答“过程是否舒服”？',
+      '为什么不能把积分误差直接改写成“硬约束”用语？',
+    ],
+  },
+  'step-08': {
+    kicker: 'Task Roles',
+    intro: '进入设计任务时，指标会变成三种角色：硬约束、软目标、观察指标。角色由任务决定，而不是由名词决定；同一个指标在不同场景里可能承担不同角色。',
+    sections: [
+      {
+        title: '三种角色',
+        tone: 'emerald',
+        bullets: ['硬约束：不能破。', '软目标：守住底线后继续争取。', '观察指标：用来解释方案后果。'],
+      },
+      {
+        title: '判断提醒',
+        tone: 'amber',
+        body: '遇到一个指标时，先问“它是不是不能破的底线”，再问“它是不是当前继续争取的方向”。',
+      },
+    ],
+    prompts: [
+      '为什么“超调量”在客船里更像硬约束，而“带宽”在平台里更像靠前的软目标？',
+      '面对一个指标时，先分角色而不是先背定义，有什么好处？',
+    ],
+  },
+  'step-09': {
     kicker: 'Task Card Workspace',
     intro: '任务表达卡不是总结作文，而是给 4-2/4-3 的输入卡。对象、目标、硬约束、软目标、观察指标、证据来源都要落地，优先级也必须写清楚。',
     sections: [
@@ -293,6 +273,26 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
     prompts: [
       '为什么一张任务表达卡如果没写优先级和证据来源，就不能作为 4-2/4-3 的输入？',
       '从图上证据改写成任务语言时，最容易漏掉哪两个字段？',
+    ],
+  },
+  'step-10': {
+    kicker: 'Layered Regions',
+    intro: '稳定域、可行域、满意域、最优域不是一句话。4-1 的职责是先把“能做”和“已经可接受”写清楚，而不是在入口页里直接宣布最优。',
+    sections: [
+      {
+        title: '分层关系',
+        tone: 'violet',
+        markdown: '$$\\mathcal{O}\\subseteq\\mathcal{S}\\subseteq\\mathcal{F}$$',
+      },
+      {
+        title: '当前口径',
+        tone: 'amber',
+        bullets: ['可行域：先排除不能做。', '满意域：当前已经可接受。', '最优域：后续再比较。'],
+      },
+    ],
+    prompts: [
+      '为什么 4-1 只能先写到可行域和满意域，而不能直接宣布“最优”？',
+      '稳定域和任务可接受域之间，最容易被忽略的差别是什么？',
     ],
   },
   'step-11': {
@@ -338,11 +338,11 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
 };
 
 const EXTRA_MEDIA_BY_STEP: Partial<Record<string, Array<{ src: string; alt: string }>>> = {
-  'step-07': [
+  'step-04': [
     { src: '/course-runtime/lessons/4-1/media/4-1-ship-heading-block.png', alt: '客船航向控制对象框图' },
     { src: '/course-runtime/lessons/4-1/media/4-1-ship-heading-quad.png', alt: '客船航向控制四联图' },
   ],
-  'step-08': [
+  'step-05': [
     { src: '/course-runtime/lessons/4-1/media/4-1-platform-pitch-block.png', alt: '稳定平台对象框图' },
     { src: '/course-runtime/lessons/4-1/media/4-1-platform-pitch-quad.png', alt: '稳定平台综合图' },
   ],
@@ -487,6 +487,145 @@ function SelectField({
   );
 }
 
+interface CaseParameterConfig {
+  key: 'K_h' | 'K_p';
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  baseline: number;
+  unitLabel: string;
+  summaryTitle: string;
+  baselineHint: string;
+  lowHint: string;
+  highHint: string;
+  figureNote: string;
+}
+
+const CASE_PARAMETER_CONFIG: Record<'step-04' | 'step-05', CaseParameterConfig> = {
+  'step-04': {
+    key: 'K_h',
+    label: '共享增益 K_h',
+    min: 1.4,
+    max: 3.2,
+    step: 0.05,
+    baseline: 2.25,
+    unitLabel: '',
+    summaryTitle: '客船四联图镜像',
+    baselineHint: '基线状态下，平顺与储备较为均衡，默认曲线位置与讲义静态图一致。',
+    lowHint: '降低增益后，响应更稳妥，但速度与穿越频率会一起回落。',
+    highHint: '继续抬高增益会换来更快的趋势，但超调和储备压力会同步上升。',
+    figureNote: '图像模块保持 2×2 阅读语义；控件栏默认折叠在图像下方。',
+  },
+  'step-05': {
+    key: 'K_p',
+    label: '共享增益 K_p',
+    min: 3.2,
+    max: 6.8,
+    step: 0.1,
+    baseline: 5,
+    unitLabel: '',
+    summaryTitle: '平台综合图镜像',
+    baselineHint: '基线状态下，速度优势已经可见，但储备与超调仍需整理。',
+    lowHint: '减小增益会缓和代价，但速度优势会一并回落。',
+    highHint: '继续抬高增益能进一步推高速度与带宽，但储备代价会更快显现。',
+    figureNote: '保留“双根轨迹 + 右上双窄图”的综合布局语义，不压缩成普通单图。',
+  },
+};
+
+function describeParameterState(stepId: 'step-04' | 'step-05', value: number) {
+  const config = CASE_PARAMETER_CONFIG[stepId];
+  const delta = value - config.baseline;
+
+  if (delta < -0.2) {
+    return {
+      headline: '偏保守',
+      body: config.lowHint,
+      cards:
+        stepId === 'step-04'
+          ? ['时域：超调趋缓', '根轨迹：离边界更远', '幅频：带宽回落', '相频：储备略放松']
+          : ['速度：优势回落', '主根轨迹：更保守', '紧凑 Bode：穿越频率下降', '储备：压力有所减轻'],
+    };
+  }
+
+  if (delta > 0.2) {
+    return {
+      headline: '偏激进',
+      body: config.highHint,
+      cards:
+        stepId === 'step-04'
+          ? ['时域：提速更明显', '根轨迹：更接近边界', '幅频：带宽上移', '相频：储备被压紧']
+          : ['速度：继续前移', '主根轨迹：更靠近边界', '紧凑 Bode：带宽继续上抬', '储备：代价更明显'],
+    };
+  }
+
+  return {
+    headline: '基线状态',
+    body: config.baselineHint,
+    cards:
+      stepId === 'step-04'
+        ? ['时域：平顺与速度折中', '根轨迹：位于可接受区入口', '幅频：工作带宽适中', '相频：储备仍需重点关注']
+        : ['速度：优势已建立', '主根轨迹：仍需谨慎整理', '紧凑 Bode：工作带宽较高', '储备：不能放松'],
+  };
+}
+
+function ParameterMirrorPanel({
+  stepId,
+  onWorkspaceParameterChange,
+}: {
+  stepId: 'step-04' | 'step-05';
+  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+}) {
+  const config = CASE_PARAMETER_CONFIG[stepId];
+  const [value, setValue] = useState(config.baseline);
+  const state = describeParameterState(stepId, value);
+
+  return (
+    <div className="premium-lesson-surface-elevated mt-4 rounded-3xl px-4 py-4">
+      <div className="premium-lesson-title text-sm font-semibold">{config.summaryTitle}</div>
+      <div className="premium-lesson-muted mt-2 text-sm">{config.figureNote}</div>
+      <details className="mt-4 rounded-2xl border border-border/50 bg-background/60 px-4 py-3">
+        <summary className="cursor-pointer list-none text-sm font-medium text-foreground">
+          控件栏
+        </summary>
+        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div>
+            <label className="premium-lesson-title text-sm font-medium">{config.label}</label>
+            <input
+              type="range"
+              min={config.min}
+              max={config.max}
+              step={config.step}
+              value={value}
+              onChange={(event) => {
+                const nextValue = Number(event.target.value);
+                setValue(nextValue);
+                onWorkspaceParameterChange?.({ key: config.key, value: nextValue, source: 'slider' });
+              }}
+              className="mt-3 w-full"
+            />
+            <div className="premium-lesson-caption mt-2 text-xs">
+              当前值：{value.toFixed(stepId === 'step-04' ? 2 : 1)}
+              {config.unitLabel}
+            </div>
+          </div>
+          <div className="premium-lesson-tone-block premium-tone-cyan text-sm">
+            <div className="premium-lesson-title text-sm font-semibold">{state.headline}</div>
+            <div className="mt-2">{state.body}</div>
+          </div>
+        </div>
+      </details>
+      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {state.cards.map((item) => (
+          <div key={item} className="premium-lesson-tone-block premium-tone-slate text-sm">
+            {item}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function getDefaultDraft(step: UNIT_4_1StepDefinition, savedResponse?: UNIT_4_1StepResponse) {
   if (savedResponse) {
     return savedResponse.answers;
@@ -497,14 +636,14 @@ function getDefaultDraft(step: UNIT_4_1StepDefinition, savedResponse?: UNIT_4_1S
       return { choice: '' };
     case 'quiz_group':
       return step.id === 'step-03' ? { q1: '', q2: '', q3: '' } : { q1: '', q2: '', q3: '', q4: '' };
+    case 'parameter_slider':
+      return Object.fromEntries(
+        PARAMETER_SLIDER_FIELDS[step.id as 'step-04' | 'step-05'].map((field) => [field.key, '']),
+      );
     case 'triple_match':
       return Object.fromEntries(TRIPLE_MATCH_FIELDS.map((field) => [field.key, '']));
     case 'card_sort':
-      return Object.fromEntries(CARD_SORT_FIELDS[step.id as 'step-05' | 'step-09'].items.map((item) => [item.key, '']));
-    case 'structured_compare':
-      return Object.fromEntries(
-        STRUCTURED_COMPARE_FIELDS[step.id as 'step-07' | 'step-08'].map((field) => [field.key, '']),
-      );
+      return Object.fromEntries(CARD_SORT_FIELDS[step.id as 'step-06' | 'step-08'].items.map((item) => [item.key, '']));
     case 'task_card_workspace':
       return Object.fromEntries([
         ['caseId', ''],
@@ -537,19 +676,19 @@ function getRevealMarkdown(step: UNIT_4_1StepDefinition) {
     case 'step-03':
       return PRETEST_QUESTIONS.map((item, index) => `${index + 1}. ${item.explanation}`).join('\n\n');
     case 'step-04':
-      return '一条最稳定的记忆链是：**时域看过程可接受，频域看边界储备，积分误差看累计代价。**';
+      return '客船案例的入口判断是：**先进入可接受区域，再谈提速；平顺与储备优先，速度后移。**';
     case 'step-05':
-      return '先分角色：**不能破的是硬约束，继续争取的是软目标，用来解释后果的是观察指标。**';
+      return '平台案例的入口判断是：**速度与带宽可以前移，但储备边界不能放松。**';
     case 'step-06':
-      return BINARY_CHOICE_PROMPTS['step-06'].explanation;
-    case 'step-07':
-      return '客船案例要压实三件事：**主要矛盾是平顺和舒适，必守边界是 Mp / ts 与储备，证据来自对象框图与四联图联读。**';
-    case 'step-08':
-      return '平台案例要同时写到：**速度和带宽前移，但储备边界不能放松；特殊布局是为了同时保留快速极点信息和代价线索。**';
-    case 'step-09':
       return '双案例对照的关键句是：**语言相同，排序不同；变的是任务优先级，不是基础证据。**';
-    case 'step-10':
+    case 'step-07':
+      return '一条最稳定的记忆链是：**时域看过程可接受，频域看边界储备，积分误差看累计代价。**';
+    case 'step-08':
+      return '先分角色：**不能破的是硬约束，继续争取的是软目标，用来解释后果的是观察指标。**';
+    case 'step-09':
       return '合格任务卡至少补齐：**对象、目标、硬约束、软目标、观察指标、证据来源、优先级。**';
+    case 'step-10':
+      return BINARY_CHOICE_PROMPTS['step-10'].explanation;
     case 'step-11':
       return BINARY_CHOICE_PROMPTS['step-11'].explanation;
     case 'step-12':
@@ -571,6 +710,8 @@ function summarizeResponses(step: UNIT_4_1StepDefinition, responses: UNIT_4_1Tea
             .map(([key, value]) => `${key}:${trimText(value)}`),
         ),
       );
+    case 'parameter_slider':
+      return responses.map((item) => [item.studentName, trimText(Object.values(item.response.answers).join(' / '))]);
     case 'task_card_workspace':
       return responses.map((item) => {
         const filled = Object.values(item.response.answers).filter(Boolean).length;
@@ -578,7 +719,6 @@ function summarizeResponses(step: UNIT_4_1StepDefinition, responses: UNIT_4_1Tea
       });
     case 'triple_match':
     case 'card_sort':
-    case 'structured_compare':
       return responses.map((item) => [item.studentName, trimText(Object.values(item.response.answers).join(' / '))]);
     default:
       return [];
@@ -611,6 +751,7 @@ export function UNIT_4_1KnowledgeMapVisual() {
 export function UNIT_4_1StepContentPanel({
   step,
   mediaSrc,
+  onWorkspaceParameterChange,
 }: {
   step: UNIT_4_1StepDefinition;
   mediaSrc?: string | null;
@@ -626,7 +767,7 @@ export function UNIT_4_1StepContentPanel({
       <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
       <p className="premium-lesson-muted mt-3 text-sm leading-7 sm:text-base">{blueprint.intro}</p>
 
-      {mediaSrc ? (
+      {mediaSrc && !extraMedia.length ? (
         <div className="mt-4">
           <MediaPanel src={mediaSrc} alt={step.title} />
         </div>
@@ -640,7 +781,14 @@ export function UNIT_4_1StepContentPanel({
         </div>
       ) : null}
 
-      {step.id === 'step-10' ? (
+      {(step.id === 'step-04' || step.id === 'step-05') ? (
+        <ParameterMirrorPanel
+          stepId={step.id}
+          onWorkspaceParameterChange={onWorkspaceParameterChange}
+        />
+      ) : null}
+
+      {step.id === 'step-09' ? (
         <div className="mt-4">
           <div className="premium-lesson-tone-block premium-tone-cyan text-sm">
             任务表达卡工作区要求把模板图、证据库和填写区同时摆在眼前，先选案例，再补优先级和证据来源。
@@ -717,10 +865,10 @@ export function UNIT_4_1StudentActivityForm({
         <div className="mt-4 grid gap-4">
           {step.pageType === 'binary_choice' ? (
             <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">{BINARY_CHOICE_PROMPTS[step.id as 'step-06' | 'step-11'].prompt}</div>
+              <div className="premium-lesson-title text-sm font-medium">{BINARY_CHOICE_PROMPTS[step.id as 'step-10' | 'step-11'].prompt}</div>
               <div className="mt-3">
                 <ChoiceGroup
-                  options={BINARY_CHOICE_PROMPTS[step.id as 'step-06' | 'step-11'].options}
+                  options={BINARY_CHOICE_PROMPTS[step.id as 'step-10' | 'step-11'].options}
                   value={draft.choice ?? ''}
                   onChange={(value) => updateDraft('choice', value)}
                 />
@@ -739,6 +887,19 @@ export function UNIT_4_1StudentActivityForm({
             ))
           ) : null}
 
+          {step.pageType === 'parameter_slider' ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              {PARAMETER_SLIDER_FIELDS[step.id as 'step-04' | 'step-05'].map((field) => (
+                <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+                  <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
+                  <div className="mt-3">
+                    <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={field.label} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
           {step.pageType === 'triple_match' ? (
             <div className="grid gap-4 md:grid-cols-3">
               {TRIPLE_MATCH_FIELDS.map((field) => (
@@ -754,30 +915,19 @@ export function UNIT_4_1StudentActivityForm({
 
           {step.pageType === 'card_sort' ? (
             <div className="grid gap-4 md:grid-cols-2">
-              {CARD_SORT_FIELDS[step.id as 'step-05' | 'step-09'].items.map((item) => (
+              {CARD_SORT_FIELDS[step.id as 'step-06' | 'step-08'].items.map((item) => (
                 <label key={item.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
                   <span className="premium-lesson-title text-sm font-medium">{item.label}</span>
                   <div className="mt-3">
                     <SelectField
                       value={draft[item.key] ?? ''}
                       onChange={(value) => updateDraft(item.key, value, 'select')}
-                      options={CARD_SORT_FIELDS[step.id as 'step-05' | 'step-09'].options}
+                      options={CARD_SORT_FIELDS[step.id as 'step-06' | 'step-08'].options}
                     />
                   </div>
                 </label>
               ))}
             </div>
-          ) : null}
-
-          {step.pageType === 'structured_compare' ? (
-            STRUCTURED_COMPARE_FIELDS[step.id as 'step-07' | 'step-08'].map((field) => (
-              <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                <div className="mt-3">
-                  <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={field.label} />
-                </div>
-              </div>
-            ))
           ) : null}
 
           {step.pageType === 'task_card_workspace' ? (

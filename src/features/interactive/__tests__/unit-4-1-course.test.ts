@@ -6,6 +6,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
+import { isUNIT_4_1AiPageType } from '@/lib/unit-4-1-course';
 
 vi.mock('server-only', () => ({}));
 
@@ -31,11 +32,13 @@ describe('unit 4-1 interactive course', () => {
     expect(courseModule.UNIT_4_1_LESSON_STEPS).toHaveLength(12);
     expect(courseModule.UNIT_4_1_LESSON_STEPS[0]?.id).toBe('step-01');
     expect(courseModule.UNIT_4_1_LESSON_STEPS[11]?.id).toBe('step-12');
-    expect(courseModule.UNIT_4_1_LESSON_STEPS[9]?.pageType).toBe('task_card_workspace');
+    expect(courseModule.UNIT_4_1_LESSON_STEPS[3]?.pageType).toBe('parameter_slider');
+    expect(courseModule.UNIT_4_1_LESSON_STEPS[4]?.pageType).toBe('parameter_slider');
+    expect(courseModule.UNIT_4_1_LESSON_STEPS[8]?.pageType).toBe('task_card_workspace');
   });
 
   it('exposes AI quick questions for the task-card step', () => {
-    const quickQuestions = getStepQuickQuestions('unit-4-1-design-task-expression-v1', 'step-10');
+    const quickQuestions = getStepQuickQuestions('unit-4-1-design-task-expression-v1', 'step-09');
 
     expect(quickQuestions).toHaveLength(2);
     expect(quickQuestions[0]?.question).toContain('任务');
@@ -44,12 +47,12 @@ describe('unit 4-1 interactive course', () => {
   it('maps runtime media using the real 4-1 prefixed asset names', async () => {
     const courseModule = await import('@/lib/unit-4-1-course');
 
-    expect(courseModule.getUNIT_4_1MediaSrc('step-07')).toContain('4-1-ship-heading-quad');
-    expect(courseModule.getUNIT_4_1MediaSrc('step-08')).toContain('4-1-platform-pitch-quad');
+    expect(courseModule.getUNIT_4_1MediaSrc('step-04')).toContain('4-1-ship-heading-quad');
+    expect(courseModule.getUNIT_4_1MediaSrc('step-05')).toContain('4-1-platform-pitch-quad');
     expect(courseModule.getUNIT_4_1MediaSrc('step-12')).toContain('4-1-info.png');
   });
 
-  it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
+  it('keeps the local page contracts aligned with the authoring interactive contract for all 12 steps', async () => {
     const contract = JSON.parse(
       readFileSync(
         join(repoRoot, 'course-content/authoring/lessons/4-1/design/interactive-contract.yaml'),
@@ -58,17 +61,26 @@ describe('unit 4-1 interactive course', () => {
     ) as {
       steps: Record<string, {
         title: string;
-        layout: { template: string; regions: Array<{ id: string; width: string; order: number }> };
-        interaction_spec: { interaction_kind: string };
+        layout: {
+          template: string;
+          regions: Array<{ id: string; width: string; order: number }>;
+          reading_order: string[];
+        };
+        interaction_spec: { interaction_kind: string; interaction_archetype: string };
         teacher_insight_spec: { widgets: string[] };
         telemetry_spec: { summary_fields: string[]; misconception_tags?: string[] };
+        ai_context_spec: { delivery_mode: string };
         preview_contract: { demo_path: string };
+        interactive_figure_spec?: {
+          layout_mirror: string;
+          controls: { placement: string; collapsed_by_default: boolean };
+        };
       }>;
     };
 
     const courseModule = await import('@/lib/unit-4-1-course');
     const interactiveSteps = new Map(courseModule.UNIT_4_1_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
-    const expectedStepIds = ['step-04', 'step-05', 'step-07', 'step-08', 'step-10', 'step-12'] as const;
+    const expectedStepIds = Object.keys(contract.steps);
 
     for (const stepId of expectedStepIds) {
       const authoringStep = contract.steps[stepId];
@@ -76,15 +88,36 @@ describe('unit 4-1 interactive course', () => {
       const localPageContract = courseModule.UNIT_4_1_PAGE_CONTRACTS[stepId];
 
       expect(localStep?.title).toBe(authoringStep.title);
-      expect(localStep?.pageType).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(localStep?.pageType).toBe(
+        authoringStep.interaction_spec.interaction_kind === 'none'
+          ? 'display'
+          : authoringStep.interaction_spec.interaction_kind,
+      );
       expect(localPageContract?.layout.template).toBe(authoringStep.layout.template);
       expect(localPageContract?.layout.regions).toEqual(authoringStep.layout.regions);
+      expect(localPageContract?.layout.readingOrder).toEqual(authoringStep.layout.reading_order);
       expect(localPageContract?.interactionKind).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(localPageContract?.interactionArchetype).toBe(authoringStep.interaction_spec.interaction_archetype);
       expect(localPageContract?.teacherInsightWidgets).toEqual(authoringStep.teacher_insight_spec.widgets);
       expect(localPageContract?.telemetrySummaryFields).toEqual(authoringStep.telemetry_spec.summary_fields);
       expect(localPageContract?.misconceptionTags ?? []).toEqual(authoringStep.telemetry_spec.misconception_tags ?? []);
+      expect(localPageContract?.aiDeliveryMode).toBe(authoringStep.ai_context_spec.delivery_mode);
       expect(localPageContract?.previewDemoPath).toBe(authoringStep.preview_contract.demo_path);
+
+      if (authoringStep.interactive_figure_spec) {
+        expect(localPageContract?.figureLayoutMirror).toBe(authoringStep.interactive_figure_spec.layout_mirror);
+        expect(localPageContract?.controlsPlacement).toBe(authoringStep.interactive_figure_spec.controls.placement);
+        expect(localPageContract?.controlsCollapsedByDefault).toBe(
+          authoringStep.interactive_figure_spec.controls.collapsed_by_default,
+        );
+      }
     }
+  });
+
+  it('keeps AI as hidden page context instead of rendering a visible page-level assistant', () => {
+    expect(isUNIT_4_1AiPageType('display')).toBe(false);
+    expect(isUNIT_4_1AiPageType('parameter_slider')).toBe(false);
+    expect(isUNIT_4_1AiPageType('task_card_workspace')).toBe(false);
   });
 
   it('registers the course in the learning catalog and classroom route resolver', () => {
@@ -128,7 +161,7 @@ describe('unit 4-1 interactive course', () => {
       kind: 'video',
       accessMode: 'dialog',
       embedMode: 'iframe',
-      status: 'pending',
+      status: 'ready',
       title: '用导入情境聚焦“在同一间自动控制实验教室里，客船航向控制沙盘和船载稳定平台姿态演示架同时运行”。',
     });
     expect(resources[1]).toMatchObject({
