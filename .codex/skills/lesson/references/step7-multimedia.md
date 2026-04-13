@@ -170,5 +170,5 @@
 | 响应曲线、Bode图、根轨迹、参数曲线 | `Octave` + `Python/matplotlib` | `Octave` 负责数据导出，`Python/matplotlib` 负责最终排版；字体、线型、网格、颜色、留白和摘要框风格都以 `3-6` 单元为统一基线 |
 | 框图、信号流图、电路图、机械结构图 | `tikz-control-draw` | 专用线框图流程 |
 | 工程场景图、设备实物图、封面漫画 | 即梦 / Midjourney / DALL-E | 位图，需提示词 |
-| 动态演示视频 | `seedance` / Sora | 即梦导入视频提示词默认走 `seedance` 技能；Sora 可作备选 |
+| 动态演示视频 | `seedance` | lesson 技能中的课程视频与导入视频默认统一走 `seedance` Agent 模式 |
 | 实时交互图表 | Recharts / Canvas / D3 | 前端绘制，无媒体文件 |
