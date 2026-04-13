@@ -13,7 +13,7 @@ export const UNIT_3_1_PURE_POLE_STABILITY_AND_DYNAMICS_PRESET: PresetLessonConfi
   key: UNIT_3_1_PRESET_KEY,
   title: UNIT_3_1_COURSE_TITLE,
   description: '围绕稳定底线、模态语言、主导极点近似与双域证据的精品互动课堂。',
-  totalDuration: 100,
+  totalDuration: 90,
   tags: ['精品课程', '稳定性', '模态', '主导极点', 'Bode 对照'],
   items: UNIT_3_1_LESSON_STEPS.map((step, index) => ({
     stage: UNIT_3_1_STAGE_MAP[step.stage],

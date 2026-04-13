@@ -13,7 +13,7 @@ export const UNIT_2_4_NYQUIST_MARGIN_ENTRY_PRESET: PresetLessonConfig = {
   key: UNIT_2_4_PRESET_KEY,
   title: UNIT_2_4_COURSE_TITLE,
   description: '围绕 Nyquist 图、频域指标入口、手工绘图入口与最小反向识别的精品互动课堂。',
-  totalDuration: 100,
+  totalDuration: 90,
   tags: ['精品课程', '频域分析', 'Nyquist 图', '相位裕度', '增益裕度'],
   items: UNIT_2_4_LESSON_STEPS.map((step, index) => ({
     stage: UNIT_2_4_STAGE_MAP[step.stage],

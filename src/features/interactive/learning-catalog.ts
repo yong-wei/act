@@ -293,22 +293,7 @@ export const FEATURED_LESSONS = [
 ] as const;
 
 export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
-  lesson.id === 'lsum-design-feasible-domain' ||
-  lesson.id === 'cruise-comfort-boppps' ||
-  lesson.id === 'unit-2-1-modeling-language' ||
-  lesson.id === 'unit-2-2-time-domain-response' ||
-  lesson.id === 'unit-2-3-frequency-response-bode-intro' ||
-  lesson.id === 'unit-2-4-nyquist-margin-entry' ||
-  lesson.id === 'unit-3-1-pure-pole-stability-and-dynamics' ||
-  lesson.id === 'unit-3-2-routh-stability-boundary' ||
-  lesson.id === 'unit-3-3-root-locus-rules' ||
-  lesson.id === 'unit-3-4-root-locus-reading-validation' ||
-  lesson.id === 'unit-3-5-zero-dynamic-improvement' ||
-  lesson.id === 'unit-3-6-zero-design-workshop' ||
-  lesson.id === 'unit-3-7-steady-error-low-frequency-compensation' ||
-  lesson.id === 'unit-3-8-frequency-domain-translation-judgment' ||
-  lesson.id === 'unit-3-9-cross-domain-mapping-lab' ||
-  lesson.id === 'unit-4-1-design-task-expression'
+  lesson.id === 'cruise-comfort-boppps'
 );
 
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(

@@ -13,7 +13,7 @@ export const UNIT_2_3_FREQUENCY_RESPONSE_BODE_INTRO_PRESET: PresetLessonConfig =
   key: UNIT_2_3_PRESET_KEY,
   title: UNIT_2_3_COURSE_TITLE,
   description: '围绕频率分量、正弦稳态响应、G(jω) 与 Bode 首轮骨架的精品互动课堂。',
-  totalDuration: 100,
+  totalDuration: 90,
   tags: ['精品课程', '频域分析', 'Bode 图', '频率响应', '正弦稳态'],
   items: UNIT_2_3_LESSON_STEPS.map((step, index) => ({
     stage: UNIT_2_3_STAGE_MAP[step.stage],

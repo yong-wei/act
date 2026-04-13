@@ -507,7 +507,7 @@ export const UNIT_3_1_PREMIUM_LESSON_CARD = {
   id: 'unit-3-1-pure-pole-stability-and-dynamics',
   title: UNIT_3_1_COURSE_TITLE,
   description: '精品互动课：从稳定底线、模态与双域证据建立高阶系统低阶近似的第一轮机理语言。',
-  duration: '100 分钟',
+  duration: '90 分钟',
   href: `/interactive-learning/courses/${UNIT_3_1_ROUTE_SEGMENT}`,
   badge: '精品课程',
 } as const;

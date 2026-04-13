@@ -13,7 +13,7 @@ export const UNIT_2_2_TIME_DOMAIN_RESPONSE_PRESET: PresetLessonConfig = {
   key: UNIT_2_2_PRESET_KEY,
   title: UNIT_2_2_COURSE_TITLE,
   description: '围绕单位阶跃响应、一阶与二阶系统标准型以及动态性能指标的精品互动课堂。',
-  totalDuration: 100,
+  totalDuration: 90,
   tags: ['精品课程', '时域分析', '动态性能指标', '二阶系统', '极点桥接'],
   items: UNIT_2_2_LESSON_STEPS.map((step, index) => ({
     stage: UNIT_2_2_STAGE_MAP[step.stage],

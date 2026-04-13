@@ -576,7 +576,7 @@ export const UNIT_2_3_PREMIUM_LESSON_CARD = {
   id: 'unit-2-3-frequency-response-bode-intro',
   title: UNIT_2_3_COURSE_TITLE,
   description: '精品互动课：把时域现象翻译成频率响应、幅相语言与 Bode 首轮骨架。',
-  duration: '100 分钟',
+  duration: '90 分钟',
   href: `/interactive-learning/courses/${UNIT_2_3_ROUTE_SEGMENT}`,
   badge: '精品课程',
 } as const;

@@ -23,8 +23,9 @@ describe('2-1 mainline replacement', () => {
   });
 
   it('exposes only the current mainline premium lessons and removes retired module 1 entries', () => {
-    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-2-1-modeling-language')).toBe(true);
-    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-2-2-time-domain-response')).toBe(true);
+    expect(PREMIUM_LESSONS.map((lesson) => lesson.id)).toEqual(['cruise-comfort-boppps']);
+    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-2-1-modeling-language')).toBe(false);
+    expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-2-2-time-domain-response')).toBe(false);
     expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-1-1-laplace-transfer-function')).toBe(false);
     expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'unit-1-2-block-diagram-simplification')).toBe(false);
     expect(PREMIUM_LESSONS.some((lesson) => lesson.id === 'l2a-time-domain-fasttrack')).toBe(false);
@@ -43,7 +44,7 @@ describe('2-1 mainline replacement', () => {
     expect(ALL_PRESETS.some((preset) => preset.key === 'l2b-root-locus-fasttrack-v1')).toBe(false);
     expect(ALL_PRESETS.some((preset) => preset.key === 'l2c-frequency-bode-fasttrack-v1')).toBe(false);
     expect(ALL_PRESETS.some((preset) => preset.key === 'l2d-three-domain-linkage-practice-v1')).toBe(false);
-    expect(ALL_PRESETS.some((preset) => preset.key === 'lsum-design-feasible-domain-v1')).toBe(false);
+    expect(ALL_PRESETS.some((preset) => preset.key === 'lsum-design-feasible-domain-v1')).toBe(true);
   });
 
   it('routes current mainline titles and stops treating module 1 titles as premium aliases', () => {
@@ -83,8 +84,8 @@ describe('2-1 mainline replacement', () => {
     });
 
     expect(resolveSessionRouteFromPlanTitle('L-∑：设计可行域——让约束成为指南针')).toEqual({
-      routeSegment: null,
-      isPremiumCourse: false,
+      routeSegment: 'lsum-design-feasible-domain',
+      isPremiumCourse: true,
     });
   });
 

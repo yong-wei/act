@@ -581,7 +581,7 @@ export const UNIT_2_4_PREMIUM_LESSON_CARD = {
   id: 'unit-2-4-nyquist-margin-entry',
   title: UNIT_2_4_COURSE_TITLE,
   description: '精品互动课：把 Bode 图收束为 Nyquist 轨迹、频域指标入口与最小反向识别。',
-  duration: '100 分钟',
+  duration: '90 分钟',
   href: `/interactive-learning/courses/${UNIT_2_4_ROUTE_SEGMENT}`,
   badge: '精品课程',
 } as const;

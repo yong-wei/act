@@ -565,7 +565,7 @@ export const UNIT_2_2_PREMIUM_LESSON_CARD = {
   id: 'unit-2-2-time-domain-response',
   title: UNIT_2_2_COURSE_TITLE,
   description: '精品互动课：把闭环传递函数翻译成响应曲线与动态性能指标。',
-  duration: '100 分钟',
+  duration: '90 分钟',
   href: `/interactive-learning/courses/${UNIT_2_2_ROUTE_SEGMENT}`,
   badge: '精品课程',
 } as const;
