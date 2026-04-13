@@ -294,6 +294,6 @@
 - `course-content/syllabus-refactor/blueprint.md`：只保留总蓝图级、确定性内容。
 - `course-content/syllabus-refactor/module-skeletons.md`：记录各模块完整单元骨架。
 - `course-content/syllabus-refactor/unit-design-details.md`：单元细节入口页。
-- `course-content/syllabus-refactor/unit-design-details/`：按模块拆分记录单元级知识清单、能力清单、边界与接口，并作为后续讲义、教案、互动课程设计、媒体清单的模块级总体设计文稿。
-- `course-content/syllabus-refactor/homework-framework.md`：记录课程作业体系、20道闭题题库、7段开放主线与期末复习接口。
+- `course-content/syllabus-refactor/unit-design-details/`：按模块拆分记录单元级知识清单、能力清单、学生版讲义主线边界，以及教案、互动课程设计、媒体清单的派生约束。
+- `course-content/syllabus-refactor/homework-framework.md`：记录课程作业体系、20道闭题题库、7段开放主线与期末复习承接关系。
 - `course-content/syllabus-refactor/decisions.md`：记录关键决策、理由与影响范围。

@@ -725,8 +725,14 @@ npm test               # 运行测试
 - 新增 `src/lib/unit-4-1-course.ts`、`src/lib/unit-4-1-ai-contexts.ts` 与 `src/features/interactive/unit-4-1-design-task-expression/` 整套课堂壳、步骤面板和任务卡工作区，并在 `src/features/interactive/__tests__/unit-4-1-course.test.ts` 中补齐课程注册、契约对齐、入口页模板、runtime 媒体索引和 AI 上下文守卫。
 - `4-1` 已同步接入 `src/features/interactive/learning-catalog.ts`、`src/lib/classroom-session-route.ts`、`src/lib/course-ai-contexts.ts` 与 `src/features/teacher/preset-lessons/presets/`，课堂入口、师生端动态路由、课程级 AI 上下文和教师预置教案现已全部贯通。
 
+## 19. 近期更新（2026-04-13）
+
+- 完成讲义生成技能与大纲重构真值文档的一轮联动修订：学生版讲义默认改为“问题/任务引入 -> 前置缺口 -> 能力产出 -> 原理主线 -> 锚点案例 -> 最小例题 -> 分层练习 -> 特殊情况 -> 总结扩展”结构，不再鼓励大段上一课回顾与下一课铺垫。
+- `.codex/skills/lesson/SKILL.md`、`.codex/skills/lesson/references/step3-handout.md`、`.codex/skills/refine/SKILL.md` 与 `.codex/skills/syllabus-refactor/SKILL.md` 已统一口径：学生版正文去接口化，AI 练习默认移出正文主线，缺少问题引入/锚点案例/最小例题/分层练习将被视为生成阶段缺陷。
+- `course-content/syllabus-refactor/unit-design-details.md`、`module-skeletons.md`、`main.md`、`blueprint.md` 与 `unit-design-details/module1-5.md` 已清理会污染生成器的“接口语言”，将单元边界改写为以学生版讲义优先的真值输入，统一使用“核心问题 / 前置缺口 / 能力产出 / 锚点案例 / 关键证据 / 边界情况”口径。
+
 ---
 
-**最后更新日期**：2026-04-12
+**最后更新日期**：2026-04-13
 **版本**：v1.1.3
 **状态**：开发完成，可用于教学实践

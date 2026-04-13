@@ -6,7 +6,7 @@
 
 - 本文件记录各模块的完整单元骨架，用于查看模块级结构、课时分布、单元链条和设计约束。
 - `course-content/syllabus-refactor/blueprint.md` 只保留总蓝图级、确定性内容，不再承载重型单元细节。
-- 单元级知识清单、能力清单与边界，详见 `course-content/syllabus-refactor/unit-design-details.md` 入口页及其模块分文件。
+- 单元级知识清单、能力清单与边界，详见 `course-content/syllabus-refactor/unit-design-details.md` 入口页及其模块分文件；后者默认先服务学生版讲义成文，再派生教案、互动页和媒体准备。
 - 若三者表述出现冲突，优先级为：
   - `course-content/syllabus-refactor/decisions.md`
   - `course-content/syllabus-refactor/blueprint.md`
@@ -33,6 +33,7 @@
 ### 模块定位
 
 - 用前4次理论课完成第二轮“速通”，建立整门课的结构地图。
+- 允许保留课程总图与“先见森林”作用，但不把上一课/下一课的串联说明写成学生版讲义主线。
 - 不再在模块1中安排“设计可行域初探”，该内容后移到模块4链条。
 
 ### 当前单元骨架
@@ -82,6 +83,7 @@
   - `2-2` 时域对象；
   - `2-3` 频域对象；
   - `2-4` 图形对象。
+- 模块2及后续模块的单元摘要，默认按“核心问题 / 前置缺口 / 能力产出 / 锚点案例 / 边界情况”组织，不再按“前后课串联关系”组织。
 
 ## 模块3：结构机理层（18学时）
 
