@@ -299,6 +299,12 @@ IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
         'lesson_steps_const': 'UNIT_2_2_LESSON_STEPS',
         'source_path': 'src/lib/unit-2-2-course.ts',
     },
+    '4-1': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-4-1-course.ts',
+        'page_contracts_const': 'UNIT_4_1_PAGE_CONTRACTS',
+        'lesson_steps_const': 'UNIT_4_1_LESSON_STEPS',
+        'source_path': 'src/lib/unit-4-1-course.ts',
+    },
 }
 
 TYPESCRIPT_EXPORT_EXTRACTOR = r"""
@@ -554,6 +560,8 @@ def build_implementation_contract_check(lesson_id: str, contract_path: Path) -> 
         preview_contract = step_payload.get('preview_contract')
         teacher_insight_spec = step_payload.get('teacher_insight_spec')
         telemetry_spec = step_payload.get('telemetry_spec')
+        ai_context_spec = step_payload.get('ai_context_spec')
+        interactive_figure_spec = step_payload.get('interactive_figure_spec')
 
         interaction_kind = (
             interaction_spec.get('interaction_kind')
@@ -600,6 +608,22 @@ def build_implementation_contract_check(lesson_id: str, contract_path: Path) -> 
                 layout.get('regions', []),
                 (local_page_contract.get('layout') or {}).get('regions', []),
             )
+            if 'reading_order' in layout:
+                compare_contract_field(
+                    issues,
+                    step_id,
+                    'layout.reading_order',
+                    layout.get('reading_order', []),
+                    (local_page_contract.get('layout') or {}).get('readingOrder', []),
+                )
+        if isinstance(interaction_spec, dict) and 'interaction_archetype' in interaction_spec:
+            compare_contract_field(
+                issues,
+                step_id,
+                'interaction_archetype',
+                interaction_spec.get('interaction_archetype'),
+                local_page_contract.get('interactionArchetype'),
+            )
         if isinstance(preview_contract, dict):
             compare_contract_field(
                 issues,
@@ -631,6 +655,42 @@ def build_implementation_contract_check(lesson_id: str, contract_path: Path) -> 
                 telemetry_spec.get('misconception_tags', []),
                 local_page_contract.get('misconceptionTags', []),
             )
+        if isinstance(ai_context_spec, dict) and 'delivery_mode' in ai_context_spec:
+            local_ai_context = local_step.get('aiContext') if isinstance(local_step.get('aiContext'), dict) else {}
+            compare_contract_field(
+                issues,
+                step_id,
+                'ai_context_spec.delivery_mode',
+                ai_context_spec.get('delivery_mode'),
+                local_ai_context.get('deliveryMode') or local_page_contract.get('aiDeliveryMode'),
+            )
+        if isinstance(interactive_figure_spec, dict):
+            if 'layout_mirror' in interactive_figure_spec:
+                compare_contract_field(
+                    issues,
+                    step_id,
+                    'interactive_figure_spec.layout_mirror',
+                    interactive_figure_spec.get('layout_mirror'),
+                    local_page_contract.get('figureLayoutMirror'),
+                )
+            controls = interactive_figure_spec.get('controls')
+            if isinstance(controls, dict):
+                if 'placement' in controls:
+                    compare_contract_field(
+                        issues,
+                        step_id,
+                        'interactive_figure_spec.controls.placement',
+                        controls.get('placement'),
+                        local_page_contract.get('controlsPlacement'),
+                    )
+                if 'collapsed_by_default' in controls:
+                    compare_contract_field(
+                        issues,
+                        step_id,
+                        'interactive_figure_spec.controls.collapsed_by_default',
+                        controls.get('collapsed_by_default'),
+                        local_page_contract.get('controlsCollapsedByDefault'),
+                    )
 
     summary = []
     if not issues:
@@ -677,6 +737,8 @@ def extract_step_sections(markdown: str) -> dict[str, dict[str, str]]:
             'block': block,
             'static': static_match.group('body').strip() if static_match else '',
             'upgrade': upgrade_match.group('body').strip() if upgrade_match else '',
+            'has_reading_order': '主阅读顺序' in block,
+            'has_curve_figure_mirror': '曲线互动镜像说明' in block,
         }
     return step_sections
 
@@ -694,6 +756,7 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
             'implementation_contract_source': None,
             'contract_required_fields': INTERACTIVE_CONTRACT_REQUIRED_STEP_FIELDS,
             'included_in_primary_sources': False,
+            'mapping_contract_mode': 'core_items',
             'has_core_mapping_section': False,
             'mapping_columns_present': [],
             'missing_mapping_columns': [],
@@ -702,6 +765,9 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
             'formula_mapping_issues': [],
             'step_static_blocks_missing': [],
             'step_upgrade_blocks_missing': [],
+            'step_reading_order_missing': [],
+            'curve_figure_steps_missing_mirror': [],
+            'curve_figure_steps_missing_contract': [],
             'missing_contract_fields': [],
             'step_contract_issues': [],
             'implementation_contract_summary': [],
@@ -714,7 +780,7 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
 
     text = interactive_page.read_text(encoding='utf-8')
     issues: list[str] = []
-    required_mapping_columns = [
+    core_mapping_columns = [
         'handout_anchor',
         'core_item_type',
         'must_appear_content',
@@ -724,28 +790,46 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         'media_or_table_ref',
         'acceptance_note',
     ]
+    evidence_mapping_columns = [
+        'handout_anchor',
+        'evidence_unit_id',
+        'evidence_kind',
+        'must_appear_content',
+        'target_step',
+        'page_mode',
+        'interaction_archetype',
+        'media_or_table_ref',
+        'acceptance_note',
+    ]
     mapping_match = re.search(
-        r'##\s+讲义核心内容映射\s*\n(?P<body>.*?)(?=\n##\s+|\Z)',
+        r'##\s+(?P<title>讲义核心内容映射|讲义证据单元映射)\s*\n(?P<body>.*?)(?=\n##\s+|\Z)',
         text,
         re.DOTALL,
     )
     mapping_columns_present: list[str] = []
     mapping_rows: list[dict[str, str]] = []
+    mapping_contract_mode = 'core_items'
     if mapping_match:
+        mapping_contract_mode = (
+            'evidence_units' if mapping_match.group('title') == '讲义证据单元映射' else 'core_items'
+        )
         rows = [line.strip() for line in mapping_match.group('body').splitlines() if line.strip().startswith('|')]
         if len(rows) >= 2:
             mapping_columns_present = [cell.strip() for cell in rows[0].strip('|').split('|')]
             mapping_rows = parse_markdown_table(rows)
         else:
-            issues.append('讲义核心内容映射存在，但缺少表头或数据行')
+            issues.append(f'{mapping_match.group("title")}存在，但缺少表头或数据行')
     else:
-        issues.append('缺少“讲义核心内容映射”章节')
+        issues.append('缺少“讲义核心内容映射”或“讲义证据单元映射”章节')
 
+    required_mapping_columns = (
+        evidence_mapping_columns if mapping_contract_mode == 'evidence_units' else core_mapping_columns
+    )
     missing_mapping_columns = [
         column for column in required_mapping_columns if column not in mapping_columns_present
     ]
     if missing_mapping_columns:
-        issues.append(f'讲义核心内容映射缺少列：{", ".join(missing_mapping_columns)}')
+        issues.append(f'讲义映射合同缺少列：{", ".join(missing_mapping_columns)}')
 
     step_pattern = re.compile(
         r'^##\s+(?:步骤\s+|step-)[0-9]+｜.*?(?=^##\s+(?:步骤\s+|step-)[0-9]+｜|\Z)',
@@ -753,6 +837,7 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
     )
     step_static_blocks_missing: list[str] = []
     step_upgrade_blocks_missing: list[str] = []
+    step_reading_order_missing: list[str] = []
     for step_block in step_pattern.finditer(text):
         block = step_block.group(0)
         title_line = block.splitlines()[0].strip()
@@ -760,23 +845,30 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
             step_static_blocks_missing.append(title_line)
         if '互动升级点' not in block and '互动与反馈' not in block:
             step_upgrade_blocks_missing.append(title_line)
+        if mapping_contract_mode == 'evidence_units' and '主阅读顺序' not in block:
+            step_reading_order_missing.append(title_line)
 
     if step_static_blocks_missing:
         issues.append(f'以下步骤缺少“静态承载内容”：{", ".join(step_static_blocks_missing)}')
     if step_upgrade_blocks_missing:
         issues.append(f'以下步骤缺少“互动升级点”：{", ".join(step_upgrade_blocks_missing)}')
+    if step_reading_order_missing:
+        issues.append(f'以下步骤缺少“主阅读顺序”：{", ".join(step_reading_order_missing)}')
 
     handout_headings = extract_markdown_headings(handout_path.read_text(encoding='utf-8')) if handout_path.exists() else set()
     step_sections = extract_step_sections(text)
     invalid_handout_anchors: list[str] = []
     missing_target_steps: list[str] = []
     formula_mapping_issues: list[str] = []
+    curve_figure_steps_missing_mirror: list[str] = []
 
     for row in mapping_rows:
         handout_anchor = row.get('handout_anchor', '').strip()
         target_step = row.get('target_step', '').strip().strip('`')
         core_item_type = row.get('core_item_type', '').strip()
+        evidence_kind = row.get('evidence_kind', '').strip()
         must_appear_content = row.get('must_appear_content', '').strip()
+        kind_text = '/'.join(part for part in [core_item_type, evidence_kind] if part)
 
         for anchor in split_handout_anchor(handout_anchor):
             if handout_headings and anchor not in handout_headings and anchor not in invalid_handout_anchors:
@@ -786,7 +878,11 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
             missing_target_steps.append(target_step)
             continue
 
-        if 'formula' not in core_item_type or not target_step or target_step not in step_sections:
+        if 'curve_figure' in kind_text and target_step and target_step in step_sections:
+            if not step_sections[target_step]['has_curve_figure_mirror'] and target_step not in curve_figure_steps_missing_mirror:
+                curve_figure_steps_missing_mirror.append(target_step)
+
+        if 'formula' not in kind_text or not target_step or target_step not in step_sections:
             continue
 
         static_content = step_sections[target_step]['static']
@@ -814,6 +910,8 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         issues.append(f'以下 target_step 未在步骤正文中命中：{", ".join(missing_target_steps)}')
     if formula_mapping_issues:
         issues.extend(formula_mapping_issues)
+    if curve_figure_steps_missing_mirror:
+        issues.append(f'以下曲线图步骤缺少“曲线互动镜像说明”：{", ".join(curve_figure_steps_missing_mirror)}')
 
     contract_issues, contract_warnings, contract_summary, contract_required_fields = validate_interactive_contract(
         lesson_id,
@@ -827,10 +925,34 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
     )
     issues.extend(implementation_contract_issues)
 
+    curve_figure_steps_missing_contract: list[str] = []
+    payload, _ = load_interactive_contract(interactive_contract)
+    if isinstance(payload, dict):
+        contract_steps = payload.get('steps')
+        if isinstance(contract_steps, dict):
+            for row in mapping_rows:
+                target_step = row.get('target_step', '').strip().strip('`')
+                evidence_kind = row.get('evidence_kind', '').strip()
+                core_item_type = row.get('core_item_type', '').strip()
+                kind_text = '/'.join(part for part in [core_item_type, evidence_kind] if part)
+                if 'curve_figure' not in kind_text or not target_step:
+                    continue
+                step_payload = contract_steps.get(target_step)
+                if not isinstance(step_payload, dict):
+                    continue
+                if 'interactive_figure_spec' not in step_payload and target_step not in curve_figure_steps_missing_contract:
+                    curve_figure_steps_missing_contract.append(target_step)
+
+    if curve_figure_steps_missing_contract:
+        issues.append(f'以下曲线图步骤的互动契约缺少 `interactive_figure_spec`：{", ".join(curve_figure_steps_missing_contract)}')
+
     summary = []
     warnings: list[str] = []
     if not issues:
-        summary.append('已覆盖讲义中的核心公式与静态承载内容。')
+        if mapping_contract_mode == 'evidence_units':
+            summary.append('已覆盖讲义中的核心证据单元、主阅读顺序与曲线图镜像要求。')
+        else:
+            summary.append('已覆盖讲义中的核心公式与静态承载内容。')
     else:
         warnings.extend(issues)
     summary.extend(contract_summary)
@@ -844,6 +966,7 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         'implementation_contract_source': implementation_contract_source,
         'contract_required_fields': contract_required_fields,
         'included_in_primary_sources': interactive_page in primary_sources,
+        'mapping_contract_mode': mapping_contract_mode,
         'has_core_mapping_section': bool(mapping_match),
         'mapping_columns_present': mapping_columns_present,
         'missing_mapping_columns': missing_mapping_columns,
@@ -852,6 +975,9 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         'formula_mapping_issues': formula_mapping_issues,
         'step_static_blocks_missing': step_static_blocks_missing,
         'step_upgrade_blocks_missing': step_upgrade_blocks_missing,
+        'step_reading_order_missing': step_reading_order_missing,
+        'curve_figure_steps_missing_mirror': curve_figure_steps_missing_mirror,
+        'curve_figure_steps_missing_contract': curve_figure_steps_missing_contract,
         'missing_contract_fields': [],
         'step_contract_issues': contract_issues,
         'implementation_contract_summary': implementation_contract_summary,

@@ -681,6 +681,217 @@ def test_build_interactive_page_check_flags_implementation_contract_drift(tmp_pa
     assert any('layout.template' in issue for issue in check['implementation_contract_issues'])
 
 
+def test_build_interactive_page_check_flags_missing_evidence_review_fields_for_curve_figures(tmp_path):
+    lesson_dir = tmp_path / 'authoring' / 'lessons' / 'demo-6'
+    design_dir = lesson_dir / 'design'
+    design_dir.mkdir(parents=True)
+
+    handout_path = design_dir / 'handout.md'
+    interactive_page_path = design_dir / 'interactive-page.md'
+
+    handout_path.write_text(
+        '\n'.join(
+            [
+                '# demo',
+                '',
+                '## 示例标题',
+                '',
+                '![示例图](../media/processed/demo-6-quad.png)',
+            ]
+        ),
+        encoding='utf-8',
+    )
+    interactive_page_path.write_text(
+        '\n'.join(
+            [
+                '## 讲义证据单元映射',
+                '| handout_anchor | evidence_unit_id | evidence_kind | must_appear_content | target_step | page_mode | interaction_archetype | media_or_table_ref | acceptance_note |',
+                '|---|---|---|---|---|---|---|---|---|',
+                '| `## 示例标题` | `eu-01` | `curve_figure` | 基线图组与关键曲线 | `step-01` | `static+interactive` | `parametric_sim` | `demo-6-quad.png` | 默认状态复现基线图组 |',
+                '',
+                '## step-01｜示例',
+                '### 页面骨架',
+                '- 模板：`curve_board`',
+                '### 固定内容',
+                '- 保留基线图组。',
+                '### 互动与反馈',
+                '- 主类型：`parametric_sim`',
+            ]
+        ),
+        encoding='utf-8',
+    )
+
+    original_get_lesson_dir = review_lesson_content.get_authoring_lesson_dir
+    try:
+        review_lesson_content.get_authoring_lesson_dir = lambda _: lesson_dir
+        check = review_lesson_content.build_interactive_page_check(
+            'demo-6',
+            [handout_path, interactive_page_path],
+        )
+    finally:
+        review_lesson_content.get_authoring_lesson_dir = original_get_lesson_dir
+
+    assert check['mapping_contract_mode'] == 'evidence_units'
+    assert '## step-01｜示例' in check['step_reading_order_missing']
+    assert 'step-01' in check['curve_figure_steps_missing_mirror']
+
+
+def test_build_interactive_page_check_flags_component_level_implementation_drift_for_new_fields(tmp_path):
+    lesson_dir = tmp_path / 'authoring' / 'lessons' / 'demo-7'
+    design_dir = lesson_dir / 'design'
+    design_dir.mkdir(parents=True)
+
+    handout_path = design_dir / 'handout.md'
+    interactive_page_path = design_dir / 'interactive-page.md'
+    interactive_contract_path = design_dir / 'interactive-contract.yaml'
+    impl_path = tmp_path / 'src' / 'lib' / 'demo-course-7.ts'
+    impl_path.parent.mkdir(parents=True)
+
+    handout_path.write_text('# demo\n\n## 示例标题\n\n![图](../media/processed/demo-7-quad.png)\n', encoding='utf-8')
+    interactive_page_path.write_text(
+        '\n'.join(
+            [
+                '## 讲义证据单元映射',
+                '| handout_anchor | evidence_unit_id | evidence_kind | must_appear_content | target_step | page_mode | interaction_archetype | media_or_table_ref | acceptance_note |',
+                '|---|---|---|---|---|---|---|---|---|',
+                '| `## 示例标题` | `eu-01` | `curve_figure` | 基线图组与关键曲线 | `step-01` | `static+interactive` | `parametric_sim` | `demo-7-quad.png` | 默认状态复现基线图组 |',
+                '',
+                '## step-01｜示例',
+                '### 页面骨架',
+                '- 模板：`curve_board`',
+                '- 主阅读顺序：',
+                '  - `对象/背景`',
+                '  - `图像与曲线`',
+                '### 固定内容',
+                '- 保留基线图组。',
+                '### 互动与反馈',
+                '- 主类型：`parametric_sim`',
+                '### 曲线互动镜像说明',
+                '- 对应静态图：`demo-7-quad.png`',
+                '- 基线状态：`K=1`',
+                '- 图组排布：`2x2`',
+                '- 控件策略：`单滑块`',
+                '- 折叠策略：`图下折叠控件栏`',
+            ]
+        ),
+        encoding='utf-8',
+    )
+    interactive_contract_path.write_text(
+        '{\n'
+        '  "lesson_id": "demo-7",\n'
+        '  "steps": {\n'
+        '    "step-01": {\n'
+        '      "title": "示例",\n'
+        '      "layout": {\n'
+        '        "template": "curve_board",\n'
+        '        "regions": [{"id": "figure", "width": "full", "order": 1}],\n'
+        '        "reading_order": ["对象/背景", "图像与曲线"]\n'
+        '      },\n'
+        '      "modules": [],\n'
+        '      "evidence_units": [{"id": "eu-01", "kind": "curve_figure"}],\n'
+        '      "content_blocks": [],\n'
+        '      "interaction_spec": {"interaction_kind": "parameter_slider", "interaction_archetype": "parametric_sim"},\n'
+        '      "teacher_controls": [],\n'
+        '      "telemetry_spec": {"summary_fields": ["viewed"], "misconception_tags": []},\n'
+        '      "teacher_insight_spec": {"widgets": ["view_count"]},\n'
+        '      "ai_context_spec": {"delivery_mode": "hidden_page_context"},\n'
+        '      "interactive_figure_spec": {\n'
+        '        "layout_mirror": "2x2",\n'
+        '        "controls": {"placement": "below_figure", "collapsed_by_default": true}\n'
+        '      },\n'
+        '      "preview_contract": {"route_kind": "student_demo", "demo_path": "/demo?step=step-01"},\n'
+        '      "acceptance_checks": []\n'
+        '    }\n'
+        '  }\n'
+        '}\n',
+        encoding='utf-8',
+    )
+    impl_path.write_text(
+        '\n'.join(
+            [
+                "export const DEMO_7_PAGE_CONTRACTS = {",
+                "  'step-01': {",
+                "    layout: { template: 'curve_board', regions: [{ id: 'figure', width: 'full', order: 1 }], readingOrder: ['图像与曲线', '对象/背景'] },",
+                "    interactionKind: 'parameter_slider',",
+                "    interactionArchetype: 'evidence_board',",
+                "    teacherInsightWidgets: ['view_count'],",
+                "    telemetrySummaryFields: ['viewed'],",
+                "    previewDemoPath: '/demo?step=step-01',",
+                "    figureLayoutMirror: 'single',",
+                "    controlsPlacement: 'side_panel',",
+                "    controlsCollapsedByDefault: false,",
+                '  },',
+                '};',
+                '',
+                'export const DEMO_7_LESSON_STEPS = [',
+                "  { id: 'step-01', title: '示例', pageType: 'parameter_slider', aiContext: { deliveryMode: 'visible_panel' } },",
+                '];',
+            ]
+        ),
+        encoding='utf-8',
+    )
+
+    original_registry = getattr(review_lesson_content, 'IMPLEMENTATION_CONTRACT_REGISTRY', {}).copy()
+    original_get_lesson_dir = review_lesson_content.get_authoring_lesson_dir
+    review_lesson_content.get_authoring_lesson_dir = lambda _: lesson_dir
+    review_lesson_content.IMPLEMENTATION_CONTRACT_REGISTRY = {
+        'demo-7': {
+            'course_lib_path': impl_path,
+            'page_contracts_const': 'DEMO_7_PAGE_CONTRACTS',
+            'lesson_steps_const': 'DEMO_7_LESSON_STEPS',
+            'source_path': 'src/lib/demo-course-7.ts',
+        }
+    }
+
+    try:
+        check = review_lesson_content.build_interactive_page_check(
+            'demo-7',
+            [handout_path, interactive_page_path],
+        )
+    finally:
+        review_lesson_content.IMPLEMENTATION_CONTRACT_REGISTRY = original_registry
+        review_lesson_content.get_authoring_lesson_dir = original_get_lesson_dir
+
+    assert check['implementation_contract_source'] == 'src/lib/demo-course-7.ts'
+    assert any('layout.reading_order' in issue for issue in check['implementation_contract_issues'])
+    assert any('interaction_archetype' in issue for issue in check['implementation_contract_issues'])
+    assert any('ai_context_spec.delivery_mode' in issue for issue in check['implementation_contract_issues'])
+    assert any('interactive_figure_spec.layout_mirror' in issue for issue in check['implementation_contract_issues'])
+    assert any('interactive_figure_spec.controls.placement' in issue for issue in check['implementation_contract_issues'])
+
+
+def test_build_implementation_contract_check_registers_unit_4_1():
+    contract_path = (
+        Path(__file__).resolve().parents[1]
+        / 'authoring'
+        / 'lessons'
+        / '4-1'
+        / 'design'
+        / 'interactive-contract.yaml'
+    )
+
+    source_path, issues, summary = review_lesson_content.build_implementation_contract_check('4-1', contract_path)
+
+    assert source_path == 'src/lib/unit-4-1-course.ts'
+    assert summary == []
+    assert issues
+    assert any('step-04' in issue for issue in issues)
+
+
+def test_build_interactive_page_check_reads_unit_4_1_evidence_contract():
+    primary_sources = review_lesson_content.build_primary_sources('4-1', '理论')
+
+    check = review_lesson_content.build_interactive_page_check('4-1', primary_sources)
+
+    assert check['mapping_contract_mode'] == 'evidence_units'
+    assert check['missing_mapping_columns'] == []
+    assert check['step_reading_order_missing'] == []
+    assert check['curve_figure_steps_missing_mirror'] == []
+    assert check['curve_figure_steps_missing_contract'] == []
+    assert check['implementation_contract_source'] == 'src/lib/unit-4-1-course.ts'
+    assert check['implementation_contract_issues']
+
+
 def test_ensure_runtime_media_index_creates_standard_sections(tmp_path):
     media_index_path = tmp_path / 'runtime' / 'lessons' / '2-1' / 'media' / '2-1-media.md'
     prompt_path = tmp_path / 'authoring' / 'lessons' / '2-1' / 'media' / 'raw' / '2-1-intro-video-prompt.md'
