@@ -36,4 +36,28 @@ describe('control analysis core foundation', () => {
     expect(source).toContain('fallback');
     expect(source).toContain('isFallback');
   });
+
+  it('uses metric headers instead of subtitle copy and fixes chart formatting constraints in source', () => {
+    const panelShell = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-chart-panel.tsx'),
+      'utf8',
+    );
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+    const workspaceSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-figure-workspace.tsx'),
+      'utf8',
+    );
+
+    expect(panelShell).not.toContain('subtitle:');
+    expect(panelSource).toContain('phaseMarginDeg');
+    expect(panelSource).toContain('gainMarginDb');
+    expect(panelSource).toContain('toFixed(2)');
+    expect(panelSource).toContain('ship_heading');
+    expect(panelSource).toContain('platform_pitch');
+    expect(workspaceSource).not.toContain('正在计算控制分析曲线');
+    expect(workspaceSource).toContain('xl:grid-cols-[minmax(0,1.18fr)_minmax(0,1fr)]');
+  });
 });

@@ -20,7 +20,7 @@ export function ControlFigureWorkspace({
   fallbackResult?: ControlAnalysisResult;
   layout: 'quad' | 'platform';
 }) {
-  const { result, isLoading, error } = useControlEngine(request, fallbackResult);
+  const { result, error } = useControlEngine(request, fallbackResult);
 
   if (!result) {
     return (
@@ -32,9 +32,6 @@ export function ControlFigureWorkspace({
 
   return (
     <div className="mt-4">
-      {isLoading ? (
-        <div className="premium-lesson-tone-block premium-tone-cyan mb-4 text-sm">正在计算控制分析曲线…</div>
-      ) : null}
       {error ? (
         <div className="premium-lesson-tone-block premium-tone-amber mb-4 text-sm">
           {result.isFallback ? `${error} 当前已切换到离线基线图。` : error}
@@ -42,19 +39,25 @@ export function ControlFigureWorkspace({
       ) : null}
 
       {layout === 'quad' ? (
-        <div className="grid gap-4 xl:grid-cols-2">
-          <StepResponsePanel result={result} />
-          <RootLocusPanel result={result} />
-          <MagnitudePanel result={result} />
-          <PhasePanel result={result} />
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.18fr)_minmax(0,1fr)]">
+          <div className="grid gap-4">
+            <StepResponsePanel result={result} caseId={request.caseId} />
+            <RootLocusPanel result={result} caseId={request.caseId} />
+          </div>
+          <div className="grid gap-4">
+            <MagnitudePanel result={result} caseId={request.caseId} />
+            <PhasePanel result={result} caseId={request.caseId} />
+          </div>
         </div>
       ) : (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)]">
-          <RootLocusPanel result={result} />
-          <MagnitudePanel result={result} />
-          <PhasePanel result={result} />
+          <RootLocusPanel result={result} caseId={request.caseId} />
+          <div className="grid gap-4">
+            <MagnitudePanel result={result} caseId={request.caseId} />
+            <PhasePanel result={result} caseId={request.caseId} />
+          </div>
           <div className="xl:col-span-2">
-            <StepResponsePanel result={result} />
+            <StepResponsePanel result={result} caseId={request.caseId} />
           </div>
         </div>
       )}

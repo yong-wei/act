@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Copy, Sparkles } from 'lucide-react';
 import { BlockMath, InlineMath } from 'react-katex';
 import ReactMarkdown from 'react-markdown';
@@ -606,14 +606,15 @@ function ParameterMirrorPanel({
 }) {
   const config = CASE_PARAMETER_CONFIG[stepId];
   const [value, setValue] = useState(config.baseline);
+  const deferredValue = useDeferredValue(value);
   const state = describeParameterState(stepId, value);
   const request = useMemo(
     () =>
       buildUnit41AnalysisRequest(stepId, {
-        gain: value,
-        structures: [{ kind: 'gain', enabled: true, params: { k: value }, label: config.label }],
+        gain: deferredValue,
+        structures: [{ kind: 'gain', enabled: true, params: { k: deferredValue }, label: config.label }],
       }),
-    [config.label, stepId, value],
+    [config.label, deferredValue, stepId],
   );
   const fallbackResult = useMemo(() => getUnit41FallbackResult(stepId), [stepId]);
 

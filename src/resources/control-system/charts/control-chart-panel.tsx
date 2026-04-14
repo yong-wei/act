@@ -7,6 +7,7 @@ import {
   CanvasRenderer,
 } from 'echarts/renderers';
 import {
+  MarkAreaComponent,
   GridComponent,
   LegendComponent,
   MarkLineComponent,
@@ -18,11 +19,11 @@ import {
 } from 'echarts/charts';
 import { init, use, type ECharts, type EChartsCoreOption } from 'echarts/core';
 
-use([CanvasRenderer, GridComponent, TooltipComponent, LegendComponent, LineChart, ScatterChart, MarkLineComponent]);
+use([CanvasRenderer, GridComponent, TooltipComponent, LegendComponent, LineChart, ScatterChart, MarkLineComponent, MarkAreaComponent]);
 
 export interface ControlChartPanelProps {
   title: string;
-  subtitle: string;
+  meta?: ReactNode;
   option: EChartsCoreOption;
   overlay?: ReactNode;
   fallback?: ReactNode;
@@ -32,7 +33,7 @@ export interface ControlChartPanelProps {
 
 export function ControlChartPanel({
   title,
-  subtitle,
+  meta,
   option,
   overlay,
   fallback,
@@ -61,16 +62,14 @@ export function ControlChartPanel({
   }, []);
 
   useEffect(() => {
-    chartRef.current?.setOption(option, true);
+    chartRef.current?.setOption(option, { notMerge: false, lazyUpdate: true });
   }, [option]);
 
   return (
     <div className={`premium-lesson-tone-block premium-tone-slate ${className}`}>
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="premium-lesson-title text-sm font-semibold">{title}</div>
-          <div className="premium-lesson-muted mt-1 text-xs">{subtitle}</div>
-        </div>
+        <div className="premium-lesson-title text-sm font-semibold">{title}</div>
+        {meta ? <div className="premium-lesson-caption max-w-[72%] text-right text-[11px]">{meta}</div> : null}
         {isFallback ? <div className="premium-lesson-caption text-[11px]">fixture fallback</div> : null}
       </div>
       <div className="relative mt-3 overflow-hidden rounded-2xl border border-border/50 bg-background/55">

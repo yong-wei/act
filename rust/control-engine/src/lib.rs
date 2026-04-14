@@ -1,6 +1,7 @@
 use num_complex::Complex64;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::cmp::Ordering;
 use wasm_bindgen::prelude::*;
 
 #[derive(Debug, Deserialize)]
@@ -197,6 +198,30 @@ fn eval_poly_complex(coeffs: &[f64], x: Complex64) -> Complex64 {
     coeffs.iter().fold(Complex64::new(0.0, 0.0), |acc, coeff| acc * x + Complex64::new(*coeff, 0.0))
 }
 
+fn compare_f64(left: f64, right: f64) -> Ordering {
+    left.total_cmp(&right)
+}
+
+fn sort_complex_points(points: &mut [Complex64]) {
+    points.sort_by(|left, right| {
+        compare_f64(left.re, right.re)
+            .then(compare_f64(left.im, right.im))
+    });
+}
+
+fn poly_derivative(coeffs: &[f64]) -> Vec<f64> {
+    if coeffs.len() <= 1 {
+        return vec![0.0];
+    }
+    let degree = coeffs.len() - 1;
+    coeffs
+        .iter()
+        .enumerate()
+        .take(degree)
+        .map(|(index, coeff)| coeff * (degree - index) as f64)
+        .collect()
+}
+
 fn logspace(min: f64, max: f64, samples: usize) -> Vec<f64> {
     let start = min.log10();
     let end = max.log10();
@@ -286,111 +311,140 @@ fn extract_primary_gain(structures: &[StructureSpec], fallback: f64) -> f64 {
         .unwrap_or(fallback)
 }
 
-fn descending_to_ascending(values: &[f64], length: usize) -> Vec<f64> {
-    let mut ascending: Vec<f64> = values.iter().rev().copied().collect();
-    while ascending.len() < length {
-        ascending.push(0.0);
-    }
-    ascending
-}
-
-fn step_response(tf: &TransferFunction, config: &TimeRangeConfig) -> (Vec<CurvePoint>, ControlMetrics) {
-    let tf = normalize_tf(tf.clone());
-    let n = tf.denominator.len().saturating_sub(1);
-    let times = linspace(config.start, config.end, config.samples.max(2));
-    if n == 0 {
-        let gain = tf.numerator[0] / tf.denominator[0];
-        let points = times.iter().map(|t| CurvePoint { x: *t, y: gain }).collect();
-        return (
-            points,
-            ControlMetrics {
-                overshoot_pct: 0.0,
-                rise_time_sec: Some(0.0),
-                settling_time_sec: Some(0.0),
-                peak_time_sec: Some(0.0),
-                final_value: gain,
-                phase_margin_deg: None,
-                gain_margin_db: None,
-                gain_crossover_rad_per_sec: None,
-                phase_crossover_rad_per_sec: None,
-                bandwidth_rad_per_sec: None,
-            },
-        );
-    }
-
-    let a = descending_to_ascending(&tf.denominator[1..], n);
-    let b = descending_to_ascending(&tf.numerator, n);
-    let mut state = vec![0.0; n];
-    let mut points = Vec::with_capacity(times.len());
-    let dt = if times.len() > 1 { times[1] - times[0] } else { 0.01 };
-
-    let derivative = |x: &[f64]| -> Vec<f64> {
-        let mut dx = vec![0.0; n];
-        for i in 0..n.saturating_sub(1) {
-            dx[i] = x[i + 1];
-        }
-        let feedback = a
-            .iter()
-            .enumerate()
-            .fold(0.0, |acc, (idx, coeff)| acc + coeff * x[idx]);
-        dx[n - 1] = 1.0 - feedback;
-        dx
-    };
-
-    let output = |x: &[f64]| -> f64 { b.iter().enumerate().fold(0.0, |acc, (idx, coeff)| acc + coeff * x[idx]) };
-
-    for time in &times {
-        points.push(CurvePoint { x: *time, y: output(&state) });
-        let k1 = derivative(&state);
-        let x2: Vec<f64> = state.iter().zip(k1.iter()).map(|(s, k)| s + 0.5 * dt * k).collect();
-        let k2 = derivative(&x2);
-        let x3: Vec<f64> = state.iter().zip(k2.iter()).map(|(s, k)| s + 0.5 * dt * k).collect();
-        let k3 = derivative(&x3);
-        let x4: Vec<f64> = state.iter().zip(k3.iter()).map(|(s, k)| s + dt * k).collect();
-        let k4 = derivative(&x4);
-        for index in 0..n {
-            state[index] += (dt / 6.0) * (k1[index] + 2.0 * k2[index] + 2.0 * k3[index] + k4[index]);
-        }
-    }
-
-    let final_value = points.last().map(|point| point.y).unwrap_or(0.0);
-    let max_value = points.iter().map(|point| point.y).fold(f64::MIN, f64::max);
-    let overshoot_pct = if final_value.abs() > 1e-12 {
-        ((max_value - final_value).max(0.0) / final_value.abs()) * 100.0
-    } else {
-        0.0
-    };
-    let rise_low = 0.1 * final_value;
-    let rise_high = 0.9 * final_value;
-    let rise_start = points.iter().find(|point| point.y >= rise_low).map(|point| point.x);
-    let rise_end = points.iter().find(|point| point.y >= rise_high).map(|point| point.x);
-    let settling_time_sec = points
+fn compute_time_metrics(points: &[CurvePoint]) -> ControlMetrics {
+    let finite_points: Vec<&CurvePoint> = points
         .iter()
-        .rposition(|point| (point.y - final_value).abs() > 0.02 * final_value.abs().max(1e-9))
-        .and_then(|index| points.get(index + 1).map(|point| point.x));
-    let peak_time_sec = points
-        .iter()
-        .max_by(|a, b| a.y.partial_cmp(&b.y).unwrap())
-        .map(|point| point.x);
+        .filter(|point| point.x.is_finite() && point.y.is_finite())
+        .collect();
 
-    (
-        points,
-        ControlMetrics {
-            overshoot_pct,
-            rise_time_sec: match (rise_start, rise_end) {
-                (Some(start), Some(end)) => Some(end - start),
-                _ => None,
-            },
-            settling_time_sec,
-            peak_time_sec,
-            final_value,
+    if finite_points.is_empty() {
+        return ControlMetrics {
+            overshoot_pct: 0.0,
+            rise_time_sec: None,
+            settling_time_sec: None,
+            peak_time_sec: None,
+            final_value: 0.0,
             phase_margin_deg: None,
             gain_margin_db: None,
             gain_crossover_rad_per_sec: None,
             phase_crossover_rad_per_sec: None,
             bandwidth_rad_per_sec: None,
+        };
+    }
+
+    let final_value = finite_points.last().map(|point| point.y).unwrap_or(0.0);
+    let peak_point = finite_points
+        .iter()
+        .copied()
+        .max_by(|left, right| compare_f64(left.y, right.y));
+    let max_value = peak_point.map(|point| point.y).unwrap_or(final_value);
+    let overshoot_pct = if final_value.abs() > 1e-12 {
+        ((max_value - final_value).max(0.0) / final_value.abs()) * 100.0
+    } else {
+        0.0
+    };
+
+    let rise_low = 0.1 * final_value;
+    let rise_high = 0.9 * final_value;
+    let crosses = |value: f64, target: f64| -> bool {
+        if final_value >= 0.0 {
+            value >= target
+        } else {
+            value <= target
+        }
+    };
+    let rise_start = finite_points
+        .iter()
+        .copied()
+        .find(|point| crosses(point.y, rise_low))
+        .map(|point| point.x);
+    let rise_end = finite_points
+        .iter()
+        .copied()
+        .find(|point| crosses(point.y, rise_high))
+        .map(|point| point.x);
+    let settling_time_sec = finite_points
+        .iter()
+        .rposition(|point| (point.y - final_value).abs() > 0.02 * final_value.abs().max(1e-9))
+        .and_then(|index| finite_points.get(index + 1).map(|point| point.x));
+
+    ControlMetrics {
+        overshoot_pct,
+        rise_time_sec: match (rise_start, rise_end) {
+            (Some(start), Some(end)) => Some(end - start),
+            _ => None,
         },
-    )
+        settling_time_sec,
+        peak_time_sec: peak_point.map(|point| point.x),
+        final_value,
+        phase_margin_deg: None,
+        gain_margin_db: None,
+        gain_crossover_rad_per_sec: None,
+        phase_crossover_rad_per_sec: None,
+        bandwidth_rad_per_sec: None,
+    }
+}
+
+fn step_response_by_residue(tf: &TransferFunction, times: &[f64]) -> Option<Vec<CurvePoint>> {
+    let mut augmented_denominator = tf.denominator.clone();
+    augmented_denominator.push(0.0);
+    let poles = durand_kerner(&augmented_denominator);
+    if poles.is_empty() {
+        return None;
+    }
+
+    let scale = poles
+        .iter()
+        .map(|pole| pole.norm())
+        .fold(1.0_f64, f64::max);
+    for (index, pole) in poles.iter().enumerate() {
+        for candidate in poles.iter().skip(index + 1) {
+            if (*pole - *candidate).norm() < 1e-6 * scale {
+                return None;
+            }
+        }
+    }
+
+    let derivative = poly_derivative(&augmented_denominator);
+    let residues: Vec<Complex64> = poles
+        .iter()
+        .map(|pole| {
+            let slope = eval_poly_complex(&derivative, *pole);
+            if slope.norm() < 1e-12 {
+                None
+            } else {
+                Some(eval_poly_complex(&tf.numerator, *pole) / slope)
+            }
+        })
+        .collect::<Option<Vec<_>>>()?;
+
+    let mut points = Vec::with_capacity(times.len());
+    for time in times {
+        let value = poles
+            .iter()
+            .zip(residues.iter())
+            .fold(Complex64::new(0.0, 0.0), |acc, (pole, residue)| acc + *residue * (*pole * *time).exp());
+        if !value.re.is_finite() || !value.im.is_finite() {
+            return None;
+        }
+        points.push(CurvePoint { x: *time, y: value.re });
+    }
+    Some(points)
+}
+
+fn step_response(tf: &TransferFunction, config: &TimeRangeConfig) -> (Vec<CurvePoint>, ControlMetrics) {
+    let tf = normalize_tf(tf.clone());
+    let times = linspace(config.start, config.end, config.samples.max(2));
+    let points = step_response_by_residue(&tf, &times).unwrap_or_else(|| {
+        let gain = if tf.denominator.first().map(|value| value.abs()).unwrap_or(0.0) < 1e-12 {
+            0.0
+        } else {
+            tf.numerator.first().copied().unwrap_or(0.0) / tf.denominator.first().copied().unwrap_or(1.0)
+        };
+        times.iter().map(|time| CurvePoint { x: *time, y: gain }).collect()
+    });
+    let metrics = compute_time_metrics(&points);
+    (points, metrics)
 }
 
 fn frequency_response(loop_tf: &TransferFunction, config: &FrequencyRangeConfig) -> (Vec<CurvePoint>, Vec<CurvePoint>, Vec<ComplexPoint>) {
@@ -399,11 +453,27 @@ fn frequency_response(loop_tf: &TransferFunction, config: &FrequencyRangeConfig)
     let mut magnitude = Vec::with_capacity(omegas.len());
     let mut phase = Vec::with_capacity(omegas.len());
     let mut nyquist_positive = Vec::with_capacity(omegas.len());
+    let mut last_phase: Option<f64> = None;
     for omega in omegas {
         let s = Complex64::new(0.0, omega);
         let value = eval_poly_complex(&loop_tf.numerator, s) / eval_poly_complex(&loop_tf.denominator, s);
-        magnitude.push(CurvePoint { x: omega, y: 20.0 * value.norm().log10() });
-        phase.push(CurvePoint { x: omega, y: value.arg().to_degrees() });
+        let norm = value.norm();
+        let mut phase_deg = if norm < 1e-12 { 0.0 } else { value.arg().to_degrees() };
+        if let Some(previous_phase) = last_phase {
+            while phase_deg - previous_phase > 180.0 {
+                phase_deg -= 360.0;
+            }
+            while phase_deg - previous_phase < -180.0 {
+                phase_deg += 360.0;
+            }
+        }
+        last_phase = Some(phase_deg);
+
+        magnitude.push(CurvePoint {
+            x: omega,
+            y: 20.0 * norm.max(1e-12).log10(),
+        });
+        phase.push(CurvePoint { x: omega, y: phase_deg });
         nyquist_positive.push(ComplexPoint { re: value.re, im: value.im });
     }
     let mut nyquist = nyquist_positive.clone();
@@ -503,47 +573,186 @@ fn durand_kerner(coeffs: &[f64]) -> Vec<Complex64> {
             break;
         }
     }
-    roots.sort_by(|left, right| left.re.partial_cmp(&right.re).unwrap());
+    sort_complex_points(&mut roots);
     roots
+}
+
+fn best_root_assignment(previous: &[Complex64], current: &[Complex64]) -> Vec<Complex64> {
+    if previous.len() != current.len() || current.len() <= 1 {
+        let mut ordered = current.to_vec();
+        sort_complex_points(&mut ordered);
+        return ordered;
+    }
+
+    let mut best_cost = f64::INFINITY;
+    let mut best_order = Vec::with_capacity(current.len());
+    let mut used = vec![false; current.len()];
+    let mut trial = Vec::with_capacity(current.len());
+
+    fn search(
+        index: usize,
+        previous: &[Complex64],
+        current: &[Complex64],
+        used: &mut [bool],
+        trial: &mut Vec<Complex64>,
+        trial_cost: f64,
+        best_cost: &mut f64,
+        best_order: &mut Vec<Complex64>,
+    ) {
+        if index == previous.len() {
+            if trial_cost < *best_cost {
+                *best_cost = trial_cost;
+                *best_order = trial.clone();
+            }
+            return;
+        }
+
+        for candidate_index in 0..current.len() {
+            if used[candidate_index] {
+                continue;
+            }
+            let segment_cost = (previous[index] - current[candidate_index]).norm_sqr();
+            let next_cost = trial_cost + segment_cost;
+            if next_cost >= *best_cost {
+                continue;
+            }
+            used[candidate_index] = true;
+            trial.push(current[candidate_index]);
+            search(index + 1, previous, current, used, trial, next_cost, best_cost, best_order);
+            trial.pop();
+            used[candidate_index] = false;
+        }
+    }
+
+    search(
+        0,
+        previous,
+        current,
+        &mut used,
+        &mut trial,
+        0.0,
+        &mut best_cost,
+        &mut best_order,
+    );
+
+    if best_order.is_empty() {
+        let mut ordered = current.to_vec();
+        sort_complex_points(&mut ordered);
+        ordered
+    } else {
+        best_order
+    }
+}
+
+#[derive(Clone)]
+struct RootLocusSample {
+    gain: f64,
+    roots: Vec<Complex64>,
+}
+
+fn compute_characteristic_roots(loop_tf: &TransferFunction, gain: f64) -> Vec<Complex64> {
+    let scaled_num: Vec<f64> = loop_tf.numerator.iter().map(|value| value * gain).collect();
+    let characteristic = poly_add(&loop_tf.denominator, &scaled_num);
+    durand_kerner(&characteristic)
+}
+
+fn sample_root_locus(loop_tf: &TransferFunction, gain: f64, previous: Option<&[Complex64]>) -> RootLocusSample {
+    let roots = compute_characteristic_roots(loop_tf, gain);
+    let ordered_roots = previous
+        .map(|reference| best_root_assignment(reference, &roots))
+        .unwrap_or_else(|| {
+            let mut initial = roots;
+            sort_complex_points(&mut initial);
+            initial
+        });
+    RootLocusSample { gain, roots: ordered_roots }
+}
+
+fn min_pairwise_distance(roots: &[Complex64]) -> f64 {
+    let mut min_distance = f64::INFINITY;
+    for (index, root) in roots.iter().enumerate() {
+        for candidate in roots.iter().skip(index + 1) {
+            min_distance = min_distance.min((*root - *candidate).norm());
+        }
+    }
+    if min_distance.is_finite() {
+        min_distance
+    } else {
+        0.0
+    }
+}
+
+fn should_refine_root_segment(left: &RootLocusSample, right: &RootLocusSample, depth: usize, max_depth: usize) -> bool {
+    if depth >= max_depth || left.roots.len() != right.roots.len() {
+        return false;
+    }
+    let scale = left
+        .roots
+        .iter()
+        .chain(right.roots.iter())
+        .map(|root| root.norm())
+        .fold(1.0_f64, f64::max);
+    let max_delta = left
+        .roots
+        .iter()
+        .zip(right.roots.iter())
+        .map(|(lhs, rhs)| (*lhs - *rhs).norm())
+        .fold(0.0_f64, f64::max);
+    let min_spacing = min_pairwise_distance(&left.roots).min(min_pairwise_distance(&right.roots));
+
+    max_delta > 0.18 * scale || min_spacing < 0.08 * scale
+}
+
+fn append_root_locus_segment(
+    loop_tf: &TransferFunction,
+    left: &RootLocusSample,
+    right_gain: f64,
+    depth: usize,
+    max_depth: usize,
+    output: &mut Vec<RootLocusSample>,
+) {
+    let right = sample_root_locus(loop_tf, right_gain, Some(&left.roots));
+    if should_refine_root_segment(left, &right, depth, max_depth) {
+        let mid_gain = 0.5 * (left.gain + right.gain);
+        if (mid_gain - left.gain).abs() < 1e-9 || (right.gain - mid_gain).abs() < 1e-9 {
+            output.push(right);
+            return;
+        }
+        append_root_locus_segment(loop_tf, left, mid_gain, depth + 1, max_depth, output);
+        if let Some(midpoint) = output.last().cloned() {
+            append_root_locus_segment(loop_tf, &midpoint, right.gain, depth + 1, max_depth, output);
+        } else {
+            output.push(right);
+        }
+    } else {
+        output.push(right);
+    }
 }
 
 fn root_locus(loop_tf: &TransferFunction, config: &RootLocusConfig, feasible_region: Option<FeasibleRegionConfig>) -> RootLocusData {
     let gains = linspace(config.min_gain, config.max_gain, config.samples.max(8));
     let degree = loop_tf.denominator.len().max(loop_tf.numerator.len()) - 1;
     let mut branches: Vec<Vec<ComplexPoint>> = vec![Vec::new(); degree];
-    let mut previous: Option<Vec<Complex64>> = None;
-
-    for gain in &gains {
-        let scaled_num: Vec<f64> = loop_tf.numerator.iter().map(|value| value * *gain).collect();
-        let char_poly = poly_add(&loop_tf.denominator, &scaled_num);
-        let mut roots = durand_kerner(&char_poly);
-        if let Some(prev) = &previous {
-            let mut ordered = Vec::with_capacity(roots.len());
-            let mut remaining = roots.clone();
-            for previous_root in prev {
-                let (best_index, _) = remaining
-                    .iter()
-                    .enumerate()
-                    .map(|(index, candidate)| (index, (*candidate - *previous_root).norm()))
-                    .min_by(|left, right| left.1.partial_cmp(&right.1).unwrap())
-                    .unwrap();
-                ordered.push(remaining.remove(best_index));
-            }
-            roots = ordered;
+    let max_depth = 5;
+    let mut samples = Vec::new();
+    let initial_gain = gains.first().copied().unwrap_or(config.min_gain);
+    samples.push(sample_root_locus(loop_tf, initial_gain, None));
+    for next_gain in gains.into_iter().skip(1) {
+        let left = samples.last().cloned();
+        if let Some(left_sample) = left {
+            append_root_locus_segment(loop_tf, &left_sample, next_gain, 0, max_depth, &mut samples);
         }
-        for (index, root) in roots.iter().enumerate() {
+    }
+
+    for sample in &samples {
+        for (index, root) in sample.roots.iter().enumerate() {
             if let Some(branch) = branches.get_mut(index) {
                 branch.push(ComplexPoint { re: root.re, im: root.im });
             }
         }
-        previous = Some(roots);
     }
 
-    let current_poly = poly_add(
-        &loop_tf.denominator,
-        &loop_tf.numerator.iter().map(|value| value * config.current_gain).collect::<Vec<_>>(),
-    );
-    let current_poles = durand_kerner(&current_poly)
+    let current_poles = compute_characteristic_roots(loop_tf, config.current_gain)
         .into_iter()
         .map(|root| ComplexPoint { re: root.re, im: root.im })
         .collect();
@@ -551,7 +760,7 @@ fn root_locus(loop_tf: &TransferFunction, config: &RootLocusConfig, feasible_reg
         .into_iter()
         .map(|root| ComplexPoint { re: root.re, im: root.im })
         .collect();
-    let open_loop_zeros = if loop_tf.numerator.len() > 1 {
+    let open_loop_zeros = if loop_tf.numerator.len() > 1 && loop_tf.numerator.iter().any(|value| value.abs() > 1e-12) {
         durand_kerner(&loop_tf.numerator)
             .into_iter()
             .map(|root| ComplexPoint { re: root.re, im: root.im })
@@ -647,5 +856,117 @@ mod tests {
         assert!(!result.step_response.points.is_empty());
         assert!(result.metrics.final_value > 0.4);
         assert!(result.metrics.final_value < 0.6);
+    }
+
+    fn ship_heading_request(gain: f64) -> ControlAnalysisRequest {
+        ControlAnalysisRequest {
+            runtime_mode: "analysis".to_string(),
+            _case_id: Some("ship_heading".to_string()),
+            plant: TransferFunctionSpec {
+                numerator: vec![0.01715],
+                denominator: vec![1.0, 2.24375, 0.214375, 0.0],
+            },
+            structures: vec![StructureSpec {
+                kind: "gain".to_string(),
+                enabled: true,
+                params: HashMap::from([(String::from("k"), gain)]),
+            }],
+            outputs: vec![
+                "step_response".to_string(),
+                "root_locus".to_string(),
+                "magnitude".to_string(),
+                "phase".to_string(),
+                "nyquist".to_string(),
+                "bode".to_string(),
+            ],
+            time_range: TimeRangeConfig { start: 0.0, end: 160.0, samples: 540 },
+            frequency_range: FrequencyRangeConfig { min: 1e-3, max: 1e1, samples: 360 },
+            root_locus: RootLocusConfig {
+                min_gain: 0.0,
+                max_gain: 12.0,
+                samples: 96,
+                current_gain: gain,
+            },
+            feasible_region: Some(FeasibleRegionConfig {
+                zeta_min: 0.5169308662051556,
+                sigma_min: 4.0 / 45.0,
+                mp_ratio: Some(0.15),
+                settling_time: Some(45.0),
+            }),
+        }
+    }
+
+    fn platform_pitch_request(gain: f64) -> ControlAnalysisRequest {
+        ControlAnalysisRequest {
+            runtime_mode: "analysis".to_string(),
+            _case_id: Some("platform_pitch".to_string()),
+            plant: TransferFunctionSpec {
+                numerator: vec![197.33333333333334, 2960.0],
+                denominator: vec![
+                    0.000002833333333333334,
+                    0.0034101666666666664,
+                    0.5788716666666666,
+                    35.37266666666667,
+                    101.0,
+                    0.0,
+                ],
+            },
+            structures: vec![StructureSpec {
+                kind: "gain".to_string(),
+                enabled: true,
+                params: HashMap::from([(String::from("k"), gain)]),
+            }],
+            outputs: vec![
+                "step_response".to_string(),
+                "root_locus".to_string(),
+                "magnitude".to_string(),
+                "phase".to_string(),
+                "nyquist".to_string(),
+                "bode".to_string(),
+            ],
+            time_range: TimeRangeConfig { start: 0.0, end: 2.0, samples: 540 },
+            frequency_range: FrequencyRangeConfig { min: 1e-1, max: 1e4, samples: 420 },
+            root_locus: RootLocusConfig {
+                min_gain: 0.0,
+                max_gain: 24.0,
+                samples: 120,
+                current_gain: gain,
+            },
+            feasible_region: Some(FeasibleRegionConfig {
+                zeta_min: 0.5911550337988976,
+                sigma_min: 20.0,
+                mp_ratio: Some(0.1),
+                settling_time: Some(0.2),
+            }),
+        }
+    }
+
+    #[test]
+    fn ship_heading_zero_gain_keeps_all_outputs_finite() {
+        let result = compute_analysis_inner(&ship_heading_request(0.0));
+
+        assert!(result
+            .magnitude
+            .points
+            .iter()
+            .all(|point| point.x.is_finite() && point.y.is_finite()));
+        assert!(result
+            .phase
+            .points
+            .iter()
+            .all(|point| point.x.is_finite() && point.y.is_finite()));
+        assert!(result
+            .nyquist
+            .points
+            .iter()
+            .all(|point| point.re.is_finite() && point.im.is_finite()));
+    }
+
+    #[test]
+    fn platform_pitch_case_computes_without_panicking() {
+        let result = compute_analysis_inner(&platform_pitch_request(5.0));
+
+        assert!(!result.step_response.points.is_empty());
+        assert_eq!(result.root_locus.branches.len(), 5);
     }
 }
