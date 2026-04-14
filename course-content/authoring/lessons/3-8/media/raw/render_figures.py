@@ -1,21 +1,36 @@
 from __future__ import annotations
 
+import csv
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
+ROOT = Path(__file__).resolve().parents[6]
 os.environ.setdefault('MPLCONFIGDIR', str(ROOT / '.cache' / 'matplotlib'))
+LESSON_SCRIPT_DIR = ROOT / '.codex' / 'skills' / 'lesson' / 'scripts'
+if str(LESSON_SCRIPT_DIR) not in sys.path:
+  sys.path.insert(0, str(LESSON_SCRIPT_DIR))
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
+from root_locus_branch_match import (
+  PlotView,
+  audit_root_locus,
+  load_complex_points_csv,
+  load_samples_csv,
+  load_views_json,
+  match_root_locus_branches,
+  write_matched_csv,
+)
 
 DATA_PATH = Path(__file__).resolve().parent / 'generated-data' / '3-8-design-data.json'
 RAW_DIR = Path(__file__).resolve().parent
+DATA_DIR = RAW_DIR / 'generated-data'
 OUT_DIR = RAW_DIR.parent / 'processed'
 TIKZ_COMPILER = Path.home() / '.cc-switch' / 'skills' / 'tikz-control-draw' / 'scripts' / 'compile_to_png.py'
 PLATFORM_BLOCK_TEX = RAW_DIR / '3-8-platform-block-diagram.tex'
@@ -37,6 +52,12 @@ COLORS = {
   'fill': '#eef6fb',
   'slow': '#756bb1',
   'grid': '#dddddd',
+}
+
+ROOT_VIEW_LIMITS = {
+  'effects-zero': {'xlim': (-4.6, 0.45), 'ylim': (-3.2, 3.2)},
+  'effects-rhp-zero': {'xlim': (-6.4, 1.65), 'ylim': (-2.2, 2.2)},
+  'platform-baseline': {'xlim': (-1100.0, 120.0), 'ylim': (-120.0, 120.0)},
 }
 
 
@@ -69,6 +90,93 @@ def complex_points(block: dict) -> np.ndarray:
 
 def locus_points(block: dict) -> np.ndarray:
   return np.asarray(block['real'], dtype=float) + 1j * np.asarray(block['imag'], dtype=float)
+
+
+def complex_list(block: dict) -> list[complex]:
+  if 'real' not in block or 'imag' not in block:
+    return []
+  real_raw = block['real']
+  imag_raw = block['imag']
+  if isinstance(real_raw, list):
+    real = np.asarray(real_raw, dtype=float)
+    imag = np.asarray(imag_raw, dtype=float)
+  else:
+    real = np.asarray([real_raw], dtype=float)
+    imag = np.asarray([imag_raw], dtype=float)
+  if real.size == 0:
+    return []
+  return [complex(float(re), float(im)) for re, im in zip(real.tolist(), imag.tolist())]
+
+
+def write_raw_root_locus_samples(path: Path, locus: dict) -> None:
+  path.parent.mkdir(parents=True, exist_ok=True)
+  gains = arr(locus, 'k')
+  real = np.asarray(locus['real'], dtype=float)
+  imag = np.asarray(locus['imag'], dtype=float)
+  with path.open('w', newline='', encoding='utf-8') as handle:
+    writer = csv.writer(handle)
+    writer.writerow(['sample_idx', 'gain', 're', 'im'])
+    for sample_idx, gain in enumerate(gains):
+      for root_idx in range(real.shape[0]):
+        writer.writerow([sample_idx, f'{gain:.12f}', f'{real[root_idx, sample_idx]:.12f}', f'{imag[root_idx, sample_idx]:.12f}'])
+
+
+def write_complex_points_csv(path: Path, points: list[complex]) -> None:
+  path.parent.mkdir(parents=True, exist_ok=True)
+  with path.open('w', newline='', encoding='utf-8') as handle:
+    writer = csv.writer(handle)
+    writer.writerow(['re', 'im'])
+    for point in points:
+      writer.writerow([f'{point.real:.12f}', f'{point.imag:.12f}'])
+
+
+def write_root_view_json(path: Path, name: str, xlim: tuple[float, float], ylim: tuple[float, float]) -> None:
+  payload = {
+    'views': [
+      {
+        'name': name,
+        'role': 'standalone',
+        'title': '根轨迹',
+        'xlim': [float(xlim[0]), float(xlim[1])],
+        'ylim': [float(ylim[0]), float(ylim[1])],
+      }
+    ]
+  }
+  path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding='utf-8')
+
+
+def match_root_locus_for_plot(
+  stem: str,
+  locus: dict,
+  open_poles: dict,
+  open_zeros: dict,
+  xlim: tuple[float, float],
+  ylim: tuple[float, float],
+  endpoint_tol: float = 5e-3,
+) -> list[np.ndarray]:
+  raw_samples_path = DATA_DIR / f'{stem}-root-locus-raw-samples.csv'
+  poles_path = DATA_DIR / f'{stem}-open-loop-poles.csv'
+  zeros_path = DATA_DIR / f'{stem}-open-loop-zeros.csv'
+  views_path = DATA_DIR / f'{stem}-root-locus-views.json'
+  matched_path = DATA_DIR / f'{stem}-root-locus-points.csv'
+  audit_path = DATA_DIR / f'{stem}-root-locus-audit.json'
+
+  write_raw_root_locus_samples(raw_samples_path, locus)
+  write_complex_points_csv(poles_path, complex_list(open_poles))
+  write_complex_points_csv(zeros_path, complex_list(open_zeros))
+  write_root_view_json(views_path, stem, xlim, ylim)
+
+  matched = match_root_locus_branches(load_samples_csv(raw_samples_path))
+  write_matched_csv(matched_path, matched)
+  report = audit_root_locus(
+    matched=matched,
+    open_loop_poles=load_complex_points_csv(poles_path),
+    open_loop_zeros=load_complex_points_csv(zeros_path),
+    endpoint_tol=endpoint_tol,
+    views=load_views_json(views_path),
+  )
+  audit_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
+  return [np.asarray(branch, dtype=complex) for branch in matched.branches]
 
 
 def interp_logx(x: np.ndarray, y: np.ndarray, x0: float) -> float:
@@ -204,7 +312,7 @@ def add_gm_marker(ax: plt.Axes, w: np.ndarray, mag_db: np.ndarray, wg: float, gm
   ax.text(wg * text_scale, mag_at_wg / 2, f'GM={gm_db:.1f} dB', fontsize=8.6, color=color)
 
 
-def plot_effect_figure(effect: dict, filename: str, suptitle: str) -> None:
+def plot_effect_figure(effect: dict, filename: str, suptitle: str, artifact_prefix: str) -> None:
   fig = plt.figure(figsize=(12.8, 8.8), dpi=220)
   gs = fig.add_gridspec(2, 2, hspace=0.32, wspace=0.26)
   ax_step = fig.add_subplot(gs[0, 0])
@@ -219,20 +327,37 @@ def plot_effect_figure(effect: dict, filename: str, suptitle: str) -> None:
   dedupe_legend(ax_step, frameon=False, fontsize=8.8, loc='best')
 
   style_root_axis(ax_root)
-  plot_root_locus(ax_root, effect['root_base'], COLORS['soft'], f"{effect['base_label']}根轨迹", linewidth=1.15, alpha=0.85)
-  plot_root_locus(ax_root, effect['root_new'], COLORS['accent'], f"{effect['new_label']}根轨迹", linewidth=1.25, alpha=0.9)
-  mark_open_loop_points(ax_root, effect['open_poles_base'], effect['open_zeros_base'], COLORS['soft'], prefix=effect['base_label'])
-  mark_open_loop_points(ax_root, effect['open_poles_new'], effect['open_zeros_new'], COLORS['accent'], prefix=effect['new_label'])
-  mark_closed_loop_points(ax_root, effect['closed_poles_base'], COLORS['base'], f"{effect['base_label']}闭环极点", marker='o', size=42)
-  mark_closed_loop_points(ax_root, effect['closed_poles_new'], COLORS['accent'], f"{effect['new_label']}闭环极点", marker='D', size=42)
   x0, x1, y0, y1 = root_limits_from_sets([
     locus_points(effect['root_base']),
     locus_points(effect['root_new']),
     complex_points(effect['closed_poles_base']),
     complex_points(effect['closed_poles_new']),
   ])
-  ax_root.set_xlim(x0, x1)
-  ax_root.set_ylim(y0, y1)
+  view_limits = ROOT_VIEW_LIMITS.get(f'effects-{artifact_prefix}', {'xlim': (x0, x1), 'ylim': (y0, y1)})
+  base_branches = match_root_locus_for_plot(
+    stem=f'effects-{artifact_prefix}-base',
+    locus=effect['root_base'],
+    open_poles=effect['open_poles_base'],
+    open_zeros=effect['open_zeros_base'],
+    xlim=view_limits['xlim'],
+    ylim=view_limits['ylim'],
+  )
+  new_branches = match_root_locus_for_plot(
+    stem=f'effects-{artifact_prefix}-new',
+    locus=effect['root_new'],
+    open_poles=effect['open_poles_new'],
+    open_zeros=effect['open_zeros_new'],
+    xlim=view_limits['xlim'],
+    ylim=view_limits['ylim'],
+  )
+  plot_root_locus(ax_root, base_branches, COLORS['soft'], f"{effect['base_label']}根轨迹", linewidth=1.15, alpha=0.85)
+  plot_root_locus(ax_root, new_branches, COLORS['accent'], f"{effect['new_label']}根轨迹", linewidth=1.25, alpha=0.9)
+  mark_open_loop_points(ax_root, effect['open_poles_base'], effect['open_zeros_base'], COLORS['soft'], prefix=effect['base_label'])
+  mark_open_loop_points(ax_root, effect['open_poles_new'], effect['open_zeros_new'], COLORS['accent'], prefix=effect['new_label'])
+  mark_closed_loop_points(ax_root, effect['closed_poles_base'], COLORS['base'], f"{effect['base_label']}闭环极点", marker='o', size=42)
+  mark_closed_loop_points(ax_root, effect['closed_poles_new'], COLORS['accent'], f"{effect['new_label']}闭环极点", marker='D', size=42)
+  ax_root.set_xlim(*view_limits['xlim'])
+  ax_root.set_ylim(*view_limits['ylim'])
   ax_root.set_title('根轨迹：主导极点落点对照')
   dedupe_legend(ax_root, frameon=False, fontsize=7.8, loc='best')
 
@@ -264,10 +389,10 @@ def plot_effect_figure(effect: dict, filename: str, suptitle: str) -> None:
 
 
 def render_effects(payload: dict) -> None:
-  plot_effect_figure(payload['effects']['gain'], '3-8-gain-effect.png', '增益提升：整体上移，但中频余量会先变紧')
-  plot_effect_figure(payload['effects']['zero'], '3-8-zero-effect.png', '左半平面零点：重点改写中频，相位提前与高频代价同时出现')
-  plot_effect_figure(payload['effects']['pole'], '3-8-pole-effect.png', '积分极点：先增强低频精度，再压缩中频相位余量')
-  plot_effect_figure(payload['effects']['rhp_zero'], '3-8-rhp-zero-effect.png', '右半平面零点：只看幅值会误判，必须连同相位一起判断')
+  plot_effect_figure(payload['effects']['gain'], '3-8-gain-effect.png', '增益提升：整体上移，但中频余量会先变紧', 'gain')
+  plot_effect_figure(payload['effects']['zero'], '3-8-zero-effect.png', '左半平面零点：重点改写中频，相位提前与高频代价同时出现', 'zero')
+  plot_effect_figure(payload['effects']['pole'], '3-8-pole-effect.png', '积分极点：先增强低频精度，再压缩中频相位余量', 'pole')
+  plot_effect_figure(payload['effects']['rhp_zero'], '3-8-rhp-zero-effect.png', '右半平面零点：只看幅值会误判，必须连同相位一起判断', 'rhp-zero')
 
 
 def render_nyquist_quickcheck(payload: dict) -> None:
@@ -394,9 +519,12 @@ def render_three_band(payload: dict) -> None:
   save(fig, '3-8-three-band-overview.png')
 
 
-def plot_root_locus(ax: plt.Axes, locus: dict, color: str, label: str, linewidth: float = 1.3, alpha: float = 0.9) -> None:
-  points = locus_points(locus)
-  for idx, branch in enumerate(points):
+def plot_root_locus(ax: plt.Axes, locus: dict | list[np.ndarray], color: str, label: str, linewidth: float = 1.3, alpha: float = 0.9) -> None:
+  if isinstance(locus, dict):
+    branches = [np.asarray(branch, dtype=complex) for branch in locus_points(locus)]
+  else:
+    branches = locus
+  for idx, branch in enumerate(branches):
     ax.plot(np.real(branch), np.imag(branch), color=color, linewidth=linewidth, alpha=alpha, label=label if idx == 0 else None)
 
 
@@ -559,14 +687,20 @@ def render_platform_baseline(payload: dict) -> None:
                bbox=dict(boxstyle='round,pad=0.22', facecolor='white', edgecolor='#d9d9d9'))
 
   style_root_axis(ax_root)
-  plot_root_locus(ax_root, payload['platform_case']['root_base'], COLORS['warning'], '名义对象根轨迹', linewidth=1.3)
+  platform_view = ROOT_VIEW_LIMITS['platform-baseline']
+  matched_platform_branches = match_root_locus_for_plot(
+    stem='platform-baseline',
+    locus=payload['platform_case']['root_base'],
+    open_poles=payload['platform_case']['open_poles_base'],
+    open_zeros=payload['platform_case']['open_zeros_base'],
+    xlim=platform_view['xlim'],
+    ylim=platform_view['ylim'],
+  )
+  plot_root_locus(ax_root, matched_platform_branches, COLORS['warning'], '名义对象根轨迹', linewidth=1.3)
   mark_open_loop_points(ax_root, payload['platform_case']['open_poles_base'], payload['platform_case']['open_zeros_base'], COLORS['warning'])
   mark_closed_loop_points(ax_root, payload['platform_case']['closed_poles_fast'], COLORS['accent'], 'K=5 闭环极点', marker='o', size=44)
-  apply_root_limits(ax_root, [
-    locus_points(payload['platform_case']['root_base']),
-    complex_points(payload['platform_case']['closed_poles_fast']),
-    complex_points(payload['platform_case']['open_poles_base']),
-  ])
+  ax_root.set_xlim(*platform_view['xlim'])
+  ax_root.set_ylim(*platform_view['ylim'])
   ax_root.set_title('复数域：激进增益对应的闭环极点已逼近低阻尼区域')
   dedupe_legend(ax_root, frameon=False, fontsize=8.5, loc='best')
 

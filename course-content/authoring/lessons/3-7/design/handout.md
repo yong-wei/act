@@ -5,7 +5,7 @@
 - **知识类型**：[C] + [X]
 - **前置**：已掌握负反馈结构表达、终值定理、根轨迹基本语言，以及超前/`PD` 校正的动态改善机理
 - **后续**：3-8（频域判别与跨域综合语言）、3-9（稳定—动态—稳态综合映射实验）、4-1（性能约束与设计入口）
-- **讲义定位**：本讲不把“稳态误差”写成公式清单，而是建立一条完整判断链：误差从哪条通道来，为什么型别决定误差阶次，为什么纯增益只能压小部分误差而不能消除结构性误差，以及为什么进入 `PI` 与滞后后必须重新用时域/频域语言审视代价。
+- **讲义定位**：我们不把“稳态误差”写成公式清单，而是顺着一条完整判断链展开：误差从哪条通道来，为什么型别决定误差阶次，为什么纯增益只能压小部分误差而不能消除结构性误差，以及为什么引入 `PI` 与滞后后还要重新审视时域与频域代价。
 
 ![封面漫画：单元导入](../media/processed/3-7-cover-comic.png)
 
@@ -19,7 +19,7 @@
 1. **系统结构来源**：开环低频结构决定某类误差是否可以从结构上被消除；
 2. **信号通道来源**：给定输入与外加扰动进入闭环的位置不同，最终影响输出和误差的方式也不同。
 
-因此，本讲先解决“误差怎样列式、怎样求”，再进入“为什么必须用积分、`PI` 或滞后去改结构，而不是只会调增益”。
+因此，我们先解决“误差怎样列式、怎样求”，再看为什么必须用积分、`PI` 或滞后去改结构，而不能只停留在调增益上。
 
 > 动态改善线回答“怎样更快、更有阻尼”；  
 > 稳态改善线回答“为什么更准，以及代价落在哪个频段”。
@@ -46,60 +46,62 @@
 
 ### 2.2 给定与扰动为何必须分通道
 
-设单回路负反馈系统中，控制器为 $G_c(s)$，对象为 $G_p(s)$，反馈环节为 $H(s)$。给定输入为 $R(s)$，扰动 $D(s)$ 加在对象输入端，总输出为 $C(s)$。本讲首先讨论比较点误差
+设单回路负反馈系统中，控制器为 $G_c(s)$，对象为 $G_p(s)$，反馈环节为 $H(s)$。给定输入为 $R(s)$，扰动 $D(s)$ 加在对象输入端，总输出为 $C(s)$。我们先写出比较点误差
 
-\begin{equation}
+$$
 E(s)=R(s)-B(s)=R(s)-H(s)C(s)
-\tag{3-7-1}\label{eq:3-7-error-definition}
-\end{equation}
+\tag{3-7-1}
+$$
 
 它是比较点上的闭环误差；只有在单位反馈 $H(s)=1$ 时，才与常说的输出跟踪误差 $R(s)-C(s)$ 一致。
 
-统一结构如图~\ref{fig:3-7-channels} 所示。
+统一结构如下图所示。
 
 ![给定通道与扰动通道的统一闭环结构](../media/processed/3-7-error-dual-channel.png){#fig:3-7-channels width=92%}
 
+若原题给出的并不是这种标准骨架，而是较长的方框图或含局部环节的结构图，可以先借助 `2-1` 与“方框图结构表达”中的等效化简工具，把结构整理成“给定通道 + 扰动通道”的统一形式，再进入误差分析。
+
 输入作用下的闭环传递函数为
 
-\begin{equation}
+$$
 \Phi_r(s)=\frac{C(s)}{R(s)}=\frac{G_c(s)G_p(s)}{1+G_c(s)G_p(s)H(s)}
-\tag{3-7-2}\label{eq:3-7-input-closed-loop}
-\end{equation}
+\tag{3-7-2}
+$$
 
 扰动作用下的闭环传递函数为
 
-\begin{equation}
+$$
 \Phi_d(s)=\frac{C(s)}{D(s)}=\frac{G_p(s)}{1+G_c(s)G_p(s)H(s)}
-\tag{3-7-3}\label{eq:3-7-disturbance-closed-loop}
-\end{equation}
+\tag{3-7-3}
+$$
 
 总输出由两条通道叠加得到：
 
-\begin{equation}
+$$
 C(s)=\Phi_r(s)R(s)+\Phi_d(s)D(s)
-\tag{3-7-4}\label{eq:3-7-total-output}
-\end{equation}
+\tag{3-7-4}
+$$
 
 再由比较点误差定义 $E(s)=R(s)-H(s)C(s)$，即可得到输入作用下与扰动作用下的误差传递函数：
 
-\begin{equation}
+$$
 \frac{E_r(s)}{R(s)}=\frac{1}{1+G_c(s)G_p(s)H(s)}
-\tag{3-7-5}\label{eq:3-7-input-error}
-\end{equation}
+\tag{3-7-5}
+$$
 
-\begin{equation}
+$$
 \frac{E_d(s)}{D(s)}=-\frac{G_p(s)H(s)}{1+G_c(s)G_p(s)H(s)}
-\tag{3-7-6}\label{eq:3-7-disturbance-error}
-\end{equation}
+\tag{3-7-6}
+$$
 
 于是总误差为
 
-\begin{equation}
+$$
 E(s)=E_r(s)+E_d(s)
-\tag{3-7-7}\label{eq:3-7-total-error}
-\end{equation}
+\tag{3-7-7}
+$$
 
-这里有一个必须点明的结论：
+关键结论是：
 
 > 四类传递函数的分母完全相同，都是 $1+G_c(s)G_p(s)H(s)$。  
 > 这个公共分母就是闭环系统的特征式，也对应梅森公式中的特征式。  
@@ -109,16 +111,16 @@ E(s)=E_r(s)+E_d(s)
 
 ### 2.3 终值定理：稳态误差的直接求法
 
-稳态误差的最通用路径是：
+求稳态误差时，我们通常按下面的顺序处理：
 
 1. 先确认闭环稳定；
 2. 写出所关心通道的误差传递函数；
 3. 再用终值定理求极限。
 
-\begin{equation}
+$$
 e_{ss}=\lim_{t\to \infty}e(t)=\lim_{s\to 0}sE(s)
-\tag{3-7-8}\label{eq:3-7-final-value}
-\end{equation}
+\tag{3-7-8}
+$$
 
 它回答的是“误差最终停在什么值上”，前提是闭环稳定，且 $sE(s)$ 的极点满足终值定理适用条件。
 
@@ -126,85 +128,85 @@ e_{ss}=\lim_{t\to \infty}e(t)=\lim_{s\to 0}sE(s)
 
 设单位反馈系统的开环传递函数为
 
-\begin{equation}
+$$
 G(s)=\frac{K}{s^2(0.5s+1)}
-\tag{3-7-9}\label{eq:3-7-poly-open-loop}
-\end{equation}
+\tag{3-7-9}
+$$
 
 给定输入为
 
-\begin{equation}
+$$
 r(t)=3+2t+\frac{1}{2}t^2
-\tag{3-7-10}\label{eq:3-7-poly-input}
-\end{equation}
+\tag{3-7-10}
+$$
 
 其拉氏变换为
 
-\begin{equation}
+$$
 R(s)=\frac{3}{s}+\frac{2}{s^2}+\frac{1}{s^3}
-\tag{3-7-11}\label{eq:3-7-poly-input-laplace}
-\end{equation}
+\tag{3-7-11}
+$$
 
 求稳态误差。
 
 **解**
 
-单位反馈下，式 \ref{eq:3-7-input-error} 退化为
+单位反馈下，输入通道的误差传递函数可直接退化为
 
-\begin{equation}
+$$
 \frac{E(s)}{R(s)}=\frac{1}{1+G(s)}
-\tag{3-7-12}\label{eq:3-7-unity-error}
-\end{equation}
+\tag{3-7-12}
+$$
 
 故
 
-\begin{equation}
+$$
 E(s)=\frac{1}{1+G(s)}R(s)
 =\frac{s^2(0.5s+1)}{s^2(0.5s+1)+K}\left(\frac{3}{s}+\frac{2}{s^2}+\frac{1}{s^3}\right)
-\tag{3-7-13}\label{eq:3-7-poly-error}
-\end{equation}
+\tag{3-7-13}
+$$
 
-由式 \ref{eq:3-7-final-value}：
+再用终值定理求极限：
 
-\begin{equation}
+$$
 \begin{aligned}
 e_{ss}
 &=\lim_{s\to 0}sE(s) \\
 &=\lim_{s\to 0}\frac{3s^2(0.5s+1)+2s(0.5s+1)+(0.5s+1)}{s^2(0.5s+1)+K} \\
 &=\frac{1}{K}
 \end{aligned}
-\tag{3-7-14}\label{eq:3-7-poly-final}
-\end{equation}
+\tag{3-7-14}
+$$
 
 所以多项式输入下的稳态误差为
 
-\begin{equation}
+$$
 e_{ss}=\frac{1}{K}
-\tag{3-7-15}\label{eq:3-7-poly-answer}
-\end{equation}
+\tag{3-7-15}
+$$
 
-这个例题的意义不只是算出结果，更重要的是为后面用型别与静态误差系数法复算同一题做铺垫。
+这个例题不仅给出结果，也为后面用型别与静态误差系数法复算同一题做了铺垫。
 
 ### 2.4 型别与静态误差系数：稳态误差的快速判断
 
 对标准给定输入，可把开环低频结构写成
 
-\begin{equation}
+$$
 G(s)H(s)=\frac{K_0}{s^v}G_0(s), \qquad G_0(0)\neq 0
-\tag{3-7-16}\label{eq:3-7-type-definition}
-\end{equation}
+\tag{3-7-16}
+$$
 
 其中 $v$ 是开环传递函数 $G(s)H(s)$ 在原点处的极点个数。  
 $v=0,1,2,\dots$ 分别对应 0 型、I 型、II 型等系统。
 
 静态误差系数定义为
 
-\begin{equation}
+$$
 K_p=\lim_{s\to 0}G(s)H(s), \qquad
 K_v=\lim_{s\to 0}sG(s)H(s), \qquad
 K_a=\lim_{s\to 0}s^2G(s)H(s)
-\tag{3-7-17}\label{eq:3-7-static-coeff}
-\end{equation}
+\tag{3-7-17}
+$$
 
 \begin{center}
 表 2. 各型别系统的静态误差系数
@@ -218,12 +220,12 @@ K_a=\lim_{s\to 0}s^2G(s)H(s)
 
 由静态误差系数再转成稳态误差，可得：
 
-\begin{equation}
+$$
 e_{ss,\mathrm{step}}=\frac{1}{1+K_p}, \qquad
 e_{ss,\mathrm{ramp}}=\frac{1}{K_v}, \qquad
 e_{ss,\mathrm{para}}=\frac{1}{K_a}
-\tag{3-7-18}\label{eq:3-7-standard-ess}
-\end{equation}
+\tag{3-7-18}
+$$
 
 \begin{center}
 表 3. 各型别系统对典型输入的稳态误差
@@ -236,16 +238,16 @@ e_{ss,\mathrm{para}}=\frac{1}{K_a}
 | II 型 | 0 | 0 | 有限非零 |
 
 这个表格只适用于闭环稳定的单回路标准负反馈系统，并且主要服务于**给定输入稳态误差**的快速判断。  
-一旦题目显式出现扰动通道，仍应优先回到式 \ref{eq:3-7-disturbance-error} 与式 \ref{eq:3-7-final-value}。
+一旦题目显式出现扰动通道，仍应优先回到“扰动作用下的误差传递函数 + 终值定理”这条完整路径。
 
 #### 回到例题 1：再用静态误差系数法复算
 
-由式 \ref{eq:3-7-poly-open-loop} 可见，该系统含有两个积分环节，因此是 II 型系统。于是
+由前面的开环传递函数可见，该系统含有两个积分环节，因此是 II 型系统。于是
 
-\begin{equation}
+$$
 K_a=\lim_{s\to 0}s^2G(s)=\lim_{s\to 0}\frac{K}{0.5s+1}=K
-\tag{3-7-19}\label{eq:3-7-ka-example}
-\end{equation}
+\tag{3-7-19}
+$$
 
 输入 $r(t)=3+2t+\frac{1}{2}t^2$ 可以看作“阶跃 + 斜坡 + 单位抛物线”三部分叠加。对 II 型系统：
 
@@ -255,17 +257,17 @@ K_a=\lim_{s\to 0}s^2G(s)=\lim_{s\to 0}\frac{K}{0.5s+1}=K
 
 故总稳态误差仍为
 
-\begin{equation}
+$$
 e_{ss}=\frac{1}{K}
-\tag{3-7-20}\label{eq:3-7-ka-answer}
-\end{equation}
+\tag{3-7-20}
+$$
 
 终值定理给出稳态误差的通用求解路径，型别与静态误差系数法则是在标准结构上做快速判断。  
 静态误差系数法只适用于单回路标准负反馈系统；一旦结构中显式出现扰动通道、附加反馈环节或非标准比较点，就应回到终值定理重新列式。
 
 ### 2.5 给定与扰动共同作用下如何求稳态误差
 
-当给定与扰动同时存在时，最稳妥的方法仍是：
+当给定与扰动同时存在时，我们仍按下面的顺序处理：
 
 1. 先按通道写出总输出；
 2. 再由 $E(s)=R(s)-H(s)C(s)$ 写总误差；若是单位反馈，才可简写成 $E(s)=R(s)-C(s)$；
@@ -273,14 +275,14 @@ e_{ss}=\frac{1}{K}
 
 #### 例题 2：给定与扰动共同作用
 
-这里故意把前向通道拆成两个环节：$G_1(s)$ 表示执行机构，$G_2(s)$ 表示被控对象，扰动加在两者之间。  
+这里把前向通道拆成两个环节：$G_1(s)$ 表示执行机构，$G_2(s)$ 表示被控对象，扰动加在两者之间。  
 它对应的物理意义是：执行器已经按给定发出了作用，但对象入口又额外受到外界推偏。  
 例如伺服电机已经给出阀位指令，但管路压力波动在对象入口处额外推了一下系统。
 
-\begin{equation}
+$$
 G_1(s)=\frac{5}{s+5}, \qquad G_2(s)=\frac{2}{s+2}
-\tag{3-7-21}\label{eq:3-7-example2-forward}
-\end{equation}
+\tag{3-7-21}
+$$
 
 扰动作用在执行器之后、被控对象之前，结构如图所示。
 
@@ -288,36 +290,36 @@ G_1(s)=\frac{5}{s+5}, \qquad G_2(s)=\frac{2}{s+2}
 
 给定为单位阶跃输入，扰动为对象入口处的常值附加输入：
 
-\begin{equation}
+$$
 R(s)=\frac{1}{s}, \qquad D(s)=\frac{0.2}{s}
-\tag{3-7-22}\label{eq:3-7-example2-signals}
-\end{equation}
+\tag{3-7-22}
+$$
 
 求总稳态误差。
 
 **解**
 
-单位反馈下，由式 \ref{eq:3-7-input-closed-loop} 与式 \ref{eq:3-7-disturbance-closed-loop} 可得
+单位反馈下，直接按“给定通道闭环传递函数”和“扰动通道闭环传递函数”的一般式代入，可得
 
-\begin{equation}
+$$
 \Phi_r(s)=\frac{G_1(s)G_2(s)}{1+G_1(s)G_2(s)}=\frac{10}{s^2+7s+20},
 \qquad
 \Phi_d(s)=\frac{G_2(s)}{1+G_1(s)G_2(s)}=\frac{2(s+5)}{s^2+7s+20}
-\tag{3-7-23}\label{eq:3-7-example2-channels}
-\end{equation}
+\tag{3-7-23}
+$$
 
 因此总误差写成
 
-\begin{equation}
+$$
 E(s)=\frac{1}{1+G_1(s)G_2(s)}R(s)-\frac{G_2(s)}{1+G_1(s)G_2(s)}D(s)
 =\frac{s^2+7s+10}{s^2+7s+20}\cdot \frac{1}{s}
 -\frac{2(s+5)}{s^2+7s+20}\cdot \frac{0.2}{s}
-\tag{3-7-24}\label{eq:3-7-example2-error}
-\end{equation}
+\tag{3-7-24}
+$$
 
 由终值定理：
 
-\begin{equation}
+$$
 \begin{aligned}
 e_{ss}
 &=\lim_{s\to 0}sE(s) \\
@@ -325,11 +327,11 @@ e_{ss}
 &=\frac{10}{20}-0.2\frac{10}{20} \\
 &=0.4
 \end{aligned}
-\tag{3-7-25}\label{eq:3-7-example2-answer}
-\end{equation}
+\tag{3-7-25}
+$$
 
 这个结果说明：同样是常值信号，给定输入与中间扰动经过的通道并不相同，所以留在比较点上的误差也不同。  
-因此，面对“给定 + 扰动”共同作用的问题，不能只背型别表，更不能把两个信号当作“同一位置的两个输入”来机械叠加。
+因此，面对“给定 + 扰动”共同作用的问题，我们不能只背型别表，更不能把两个信号当作“同一位置的两个输入”机械叠加。
 
 ### 2.6 为什么结构性误差不能靠纯调增益消除
 
@@ -347,13 +349,13 @@ e_{ss}
 - **结构修正**：通过引入积分或附加零极点，真正改变低频误差阶次与低频增益分布。
 
 所以，若题目要求的是结构性误差改善，就必须引入修正结构的控制器。  
-本讲后半段的两条典型路径正是：
+后半段的两条典型路径正是：
 
 1. `PI`：通过积分提高型别；
 2. 滞后：在不改变型别的前提下，提高低频增益并保持可接受的动态品质。
 
 这也正是第三章与第四章之间的过渡桥梁：  
-本章先解决“为什么要改结构”；下一章再把这些结构变化翻译成完整的频域判断语言。
+这一部分先解决“为什么要改结构”；下一讲再把这些结构变化翻译成完整的频域判断语言。
 
 ---
 
@@ -363,17 +365,17 @@ e_{ss}
 
 `PI` 控制器写成
 
-\begin{equation}
+$$
 G_{PI}(s)=K\left(1+\frac{1}{T_i s}\right)=K\frac{T_i s+1}{T_i s}
-\tag{3-7-26}\label{eq:3-7-pi}
-\end{equation}
+\tag{3-7-26}
+$$
 
 一级滞后校正网络写成
 
-\begin{equation}
+$$
 G_{lag}(s)=K\frac{Ts+1}{\beta Ts+1}, \qquad \beta>1
-\tag{3-7-27}\label{eq:3-7-lag}
-\end{equation}
+\tag{3-7-27}
+$$
 
 两者都能增强低频能力，但逻辑并不相同。若把上一课的超前校正也一起纳入比较，则可以统一成一条判别规律：先看新增零极点相对原点的先后顺序，再看系统型别是否变化，就能同时判断它对低频精度和对数幅频折线的影响。
 
@@ -381,7 +383,7 @@ G_{lag}(s)=K\frac{Ts+1}{\beta Ts+1}, \qquad \beta>1
 - 滞后：不改变积分个数，而是引入“零点在左、极点在右”的附加零极点对，核心目的是**提高低频增益而少动中频骨架**；因此会先下折，再回到原斜率。
 - 超前：表现为“极点在左、零点在右”，主要服务于目标频带的相位补偿；因此会先上折，再回到原斜率。
 
-PI、滞后、超前三种补偿的对数频率特性示意如图~\ref{fig:3-7-lowfreq} 所示。
+PI、滞后、超前三种补偿的对数频率特性示意如下图所示。
 
 ![PI、滞后与超前的零极点和转折频率对比](../media/processed/3-7-low-frequency-compensators.png){#fig:3-7-lowfreq fig-pos="H" width=96%}
 
@@ -398,10 +400,10 @@ PI、滞后、超前三种补偿的对数频率特性示意如图~\ref{fig:3-7-l
 
 取典型二阶对象
 
-\begin{equation}
+$$
 G_p(s)=\frac{4}{s(s+4)}
-\tag{3-7-28}\label{eq:3-7-plant}
-\end{equation}
+\tag{3-7-28}
+$$
 
 设计目标为：
 
@@ -409,84 +411,84 @@ G_p(s)=\frac{4}{s(s+4)}
 2. 超调量不超过 20%；
 3. 调节时间 $t_s(2\%) \le 12\ \mathrm{s}$。
 
-这里首次在非阶跃给定下讨论“时域性能指标”，观察对象要从输出 $y(t)$ 切换为误差 $e(t)$。  
+在这个例题里，观察对象从输出 $y(t)$ 切换为误差 $e(t)$。  
 更准确地说：超调量与调节时间仍由单位阶跃输出 $y(t)$ 衡量；而斜坡输入下的精度指标，则由误差 $e(t)=r(t)-y(t)$ 的稳态值衡量。
 
-先看纯增益方法。令控制器为 $G_c(s)=K$，则开环为
+若控制器只取纯增益 $G_c(s)=K$，则开环为
 
-\begin{equation}
+$$
 L_0(s)=\frac{4K}{s(s+4)}
-\tag{3-7-29}\label{eq:3-7-pure-gain}
-\end{equation}
+\tag{3-7-29}
+$$
 
 先由稳态误差指标判断纯增益法是否在结构上可行。该对象是 I 型系统，纯增益下速度误差系数为
 
-\begin{equation}
+$$
 K_v=\lim_{s\to 0}sL_0(s)=K
-\tag{3-7-32}\label{eq:3-7-pure-gain-kv}
-\end{equation}
+\tag{3-7-32}
+$$
 
 故斜坡稳态误差为
 
-\begin{equation}
+$$
 e_{ss,\mathrm{ramp}}=\frac{1}{K}
-\tag{3-7-33}\label{eq:3-7-pure-gain-ramp-error}
-\end{equation}
+\tag{3-7-33}
+$$
 
 这说明：纯增益无论多大，都只能把斜坡误差压小，无法把它变成零。  
 若要求斜坡稳态误差为 0，就必须把型别从 I 型提升到 II 型。
 
 闭环特征方程为
 
-\begin{equation}
+$$
 s^2+4s+4K=0
-\tag{3-7-30}\label{eq:3-7-pure-gain-char}
-\end{equation}
+\tag{3-7-30}
+$$
 
 当 $K>1$ 时，闭环极点为
 
-\begin{equation}
+$$
 s=-2\pm j\,2\sqrt{K-1}
-\tag{3-7-31}\label{eq:3-7-pure-gain-poles}
-\end{equation}
+\tag{3-7-31}
+$$
 
-这一步给出两个直接结论：
+由此得到两个直接结论：
 
 1. 根轨迹的复根实部始终固定在 $\operatorname{Re}(s)=-2$ 上，说明调大增益主要是把极点沿竖直线向上推；
 2. 阻尼比满足 $\zeta=1/\sqrt{K}$，因此为了减小稳态误差而增大 $K$，会同时减小阻尼。
 
 现在把时域指标翻译成复平面可行域。由
 
-\begin{equation}
+$$
 M_p \le 20\%, \qquad t_s(2\%) \le 12\ \mathrm{s}
-\tag{3-7-34}\label{eq:3-7-time-spec}
-\end{equation}
+\tag{3-7-34}
+$$
 
 可得
 
-\begin{equation}
+$$
 \begin{aligned}
 M_p=e^{-\pi\zeta/\sqrt{1-\zeta^2}}\le 0.2 &\Rightarrow \zeta \ge 0.456 \\
 t_s(2\%)\approx \frac{4}{\sigma}\le 12 &\Rightarrow \sigma \ge \frac{4}{12}=0.333
 \end{aligned}
-\tag{3-7-35}\label{eq:3-7-time-region}
-\end{equation}
+\tag{3-7-35}
+$$
 
-因此，可行域可概括为：闭环主导极点必须位于阻尼比边界内侧，并落在 $\operatorname{Re}(s)=-0.333$ 左侧。设计目标不是“把增益调大一点”，而是让补偿后的根轨迹穿过上述可行域，同时把系统型别提高一级。
+因此，闭环主导极点必须位于阻尼比边界内侧，并落在 $\operatorname{Re}(s)=-0.333$ 左侧。我们的目标不是“把增益调大一点”，而是让补偿后的根轨迹穿过上述可行域，同时把系统型别提高一级。
 
 取 `PI` 控制器
 
-\begin{equation}
+$$
 G_{PI}(s)=\frac{s+0.3}{s}
-\tag{3-7-36}\label{eq:3-7-time-pi-controller}
-\end{equation}
+\tag{3-7-36}
+$$
 
-由于原点处的附加极点是固定的，设计自由度主要体现在零点位置。把零点从远左逐步移向原点，观察根轨迹与可行域的交点后，可选定 $s=-0.3$ 作为折中位置。这样做的目的有两层：
+由于原点处的附加极点是固定的，设计自由度主要体现在零点位置。把零点从远左逐步移向原点，观察根轨迹与可行域的交点后，可选定 $s=-0.3$ 作为折中位置。这样做有两层含义：
 
 1. 通过新增积分环节把系统提升为 II 型，从结构上消除斜坡稳态误差；
-2. 通过把零点布置在实轴左半平面，重塑根轨迹骨架，使闭环极点落入式 \ref{eq:3-7-time-region} 对应的可行域。
+2. 通过把零点布置在实轴左半平面，重塑根轨迹骨架，使闭环极点落入前面由超调量与调节时间共同确定的可行域。
 
-图~\ref{fig:3-7-pi-time} 给出了纯增益与 `PI` 设计的根轨迹、阶跃响应和斜坡跟踪对比。
+下图给出了纯增益与 `PI` 设计的根轨迹、阶跃响应和斜坡跟踪对比。
 
 ![纯增益局限与 PI 时域设计](../media/processed/3-7-pi-time-domain-design.png){#fig:3-7-pi-time fig-pos="H" width=96%}
 
@@ -497,7 +499,7 @@ G_{PI}(s)=\frac{s+0.3}{s}
 - 加入 `PI` 后，系统型别提高为 II 型，斜坡误差曲线可收敛到 0；
 - `PI` 设计后的时域指标约为 $M_p \approx 20.0\%$、$t_s \approx 8.9\ \mathrm{s}$，已进入设计可行域。
 
-这一例题的真正结论不是“`PI` 能把误差变小”，而是：
+这一例题说明：
 
 > 当题目要求消除结构性误差时，第一步不是调增益，而是判断是否必须提高型别。
 
@@ -508,23 +510,23 @@ G_{PI}(s)=\frac{s+0.3}{s}
 1. 保持 $M_p \le 20\%$、$t_s(2\%) \le 12\ \mathrm{s}$；
 2. 在不提高型别的前提下，使速度误差系数提高到 $K_v \ge 10$。
 
-若仍只用纯增益，由式 \ref{eq:3-7-pure-gain-kv} 可知需要 $K \ge 10$。  
-但由式 \ref{eq:3-7-pure-gain-poles} 可知此时阻尼比只有
+若仍只用纯增益，由前面的速度误差系数关系可知需要 $K \ge 10$。  
+但由前面的闭环极点表达式可知此时阻尼比只有
 
-\begin{equation}
+$$
 \zeta=\frac{1}{\sqrt{10}}\approx 0.316
-\tag{3-7-37}\label{eq:3-7-pure-gain-zeta10}
-\end{equation}
+\tag{3-7-37}
+$$
 
-已明显低于式 \ref{eq:3-7-time-region} 给出的阻尼边界。  
+已明显低于前面时域指标换算得到的阻尼边界。  
 因此，单纯增益法虽然能把 $K_v$ 拉高，却会把极点推向低阻尼区域。
 
-这时引入滞后校正：
+若改用滞后校正：
 
-\begin{equation}
+$$
 G_{lag}(s)=\frac{s+0.2}{s+0.02}
-\tag{3-7-38}\label{eq:3-7-time-lag-controller}
-\end{equation}
+\tag{3-7-38}
+$$
 
 这个零极点对的相对位置正好体现了滞后与超前的区别：
 
@@ -534,12 +536,12 @@ G_{lag}(s)=\frac{s+0.2}{s+0.02}
 因此它的作用不是把根轨迹整体向左猛推，而是尽量保留原有工作点附近的动态特征，同时把低频增益放大约 10 倍。  
 对应的速度误差系数可写成
 
-\begin{equation}
+$$
 K_v=\lim_{s\to 0}sG_{lag}(s)G_p(s)=10
-\tag{3-7-39}\label{eq:3-7-lag-kv}
-\end{equation}
+\tag{3-7-39}
+$$
 
-图~\ref{fig:3-7-lag-time} 展示了纯增益与滞后校正在同一可行域下的比较。
+下图展示了纯增益与滞后校正在同一可行域下的比较。
 
 ![滞后校正的根轨迹与时域验证](../media/processed/3-7-lag-time-domain-design.png){#fig:3-7-lag-time fig-pos="H" width=96%}
 
@@ -549,7 +551,7 @@ K_v=\lim_{s\to 0}sG_{lag}(s)G_p(s)=10
 - 滞后校正虽然没有改变型别，但通过“零点在左、极点在右”的结构，把低频增益单独抬高；
 - 设计后的响应约为 $M_p \approx 12.7\%$、$t_s \approx 11.6\ \mathrm{s}$，同时满足 $K_v \approx 10$。
 
-所以，滞后的逻辑不是“更弱的积分”，而是：
+滞后的设计逻辑可以概括为：
 
 > 在型别不变时，尽量把低频增益和中频动态分开安排。
 
@@ -557,10 +559,10 @@ K_v=\lim_{s\to 0}sG_{lag}(s)G_p(s)=10
 
 仍取对象
 
-\begin{equation}
+$$
 G_p(s)=\frac{4}{s(s+4)}
-\tag{3-7-40}\label{eq:3-7-frequency-plant}
-\end{equation}
+\tag{3-7-40}
+$$
 
 频域目标给定为：
 
@@ -568,7 +570,7 @@ G_p(s)=\frac{4}{s(s+4)}
 2. 相位裕度 $PM \ge 55^\circ$；
 3. 截止频率希望落在 $\omega_c \approx 2.5\ \mathrm{rad/s}$ 附近。
 
-先看纯增益。由式 \ref{eq:3-7-pure-gain-kv}，若要满足 $K_v \ge 10$，必须取 $K \ge 10$。  
+若只用纯增益，由前面的速度误差系数关系，若要满足 $K_v \ge 10$，必须取 $K \ge 10$。  
 但数值核验表明，此时相位裕度仅约为 $34.9^\circ$。  
 若反过来把增益压到 $K=4$，则相位裕度可恢复到约 $51.8^\circ$，但速度误差系数只有 4。
 
@@ -581,10 +583,10 @@ G_p(s)=\frac{4}{s(s+4)}
 
 取
 
-\begin{equation}
+$$
 \omega_c^\ast = 2.5\ \mathrm{rad/s}
-\tag{3-7-41}\label{eq:3-7-wc-target}
-\end{equation}
+\tag{3-7-41}
+$$
 
 使系统既不过分保守，也不把中频推得过高。
 
@@ -592,17 +594,17 @@ G_p(s)=\frac{4}{s(s+4)}
 
 为减小积分环节在截止频率附近造成的附加相位滞后，取零点
 
-\begin{equation}
+$$
 \omega_z=0.125\ \mathrm{rad/s}
-\tag{3-7-42}\label{eq:3-7-pi-zero}
-\end{equation}
+\tag{3-7-42}
+$$
 
 对应控制器形式为
 
-\begin{equation}
+$$
 G_{PI}(s)=K\frac{s+0.125}{s}
-\tag{3-7-43}\label{eq:3-7-frequency-pi-general}
-\end{equation}
+\tag{3-7-43}
+$$
 
 此时在 $\omega_c^\ast$ 附近，`PI` 网络只引入很小的附加相位损失，但已把系统型别从 I 型提升为 II 型，使 $K_v$ 由有限值提升为无穷大。
 
@@ -610,42 +612,42 @@ G_{PI}(s)=K\frac{s+0.125}{s}
 
 在 $\omega=\omega_c^\ast$ 处满足
 
-\begin{equation}
+$$
 \left|K\frac{j\omega+0.125}{j\omega}G_p(j\omega)\right|_{\omega=2.5}=1
-\tag{3-7-44}\label{eq:3-7-pi-magnitude}
-\end{equation}
+\tag{3-7-44}
+$$
 
 代入数值可得 $K \approx 2.94$，故取
 
-\begin{equation}
+$$
 G_{PI}(s)=3\frac{s+0.125}{s}
-\tag{3-7-45}\label{eq:3-7-frequency-pi-final}
-\end{equation}
+\tag{3-7-45}
+$$
 
 **步骤 4：回查相位裕度、截止频率与时域响应**
 
-核验结果如图~\ref{fig:3-7-pi-frequency} 所示。
+核验结果如下图所示。
 
 ![PI 频域设计的逐步结果](../media/processed/3-7-pi-frequency-design.png){#fig:3-7-pi-frequency fig-pos="H" width=96%}
 
 设计结果约为：
 
-\begin{equation}
+$$
 PM \approx 54.8^\circ, \qquad
 \omega_c \approx 2.54\ \mathrm{rad/s}, \qquad
 K_v = \infty
-\tag{3-7-46}\label{eq:3-7-pi-frequency-result}
-\end{equation}
+\tag{3-7-46}
+$$
 
 对应闭环时域指标约为
 
-\begin{equation}
+$$
 M_p \approx 15.6\%, \qquad
 t_s \approx 6.0\ \mathrm{s}
-\tag{3-7-47}\label{eq:3-7-pi-frequency-step}
-\end{equation}
+\tag{3-7-47}
+$$
 
-这个例题要强调的不是某一组参数，而是设计顺序：
+这个例题的重点是设计顺序：
 
 > 先判断纯增益不可能兼顾低频精度和相位裕度，再定截止频率、布置 `PI` 零点，最后由幅值条件求 $K$ 并回查结果。
 
@@ -653,21 +655,21 @@ t_s \approx 6.0\ \mathrm{s}
 
 为了和上一课的动态改善线衔接，再取一个满足较高截止频率的 `PD` 方案
 
-\begin{equation}
+$$
 G_{PD}(s)=8(1+0.1s)
-\tag{3-7-48}\label{eq:3-7-frequency-pd}
-\end{equation}
+\tag{3-7-48}
+$$
 
 对同一对象 $G_p(s)=4/[s(s+4)]$ 核验，可得近似结果：
 
-\begin{equation}
+$$
 PM_{PD}\approx 64.9^\circ, \qquad
 \omega_{c,PD}\approx 5.41\ \mathrm{rad/s}, \qquad
 K_{v,PD}=8
-\tag{3-7-49}\label{eq:3-7-pd-frequency-result}
-\end{equation}
+\tag{3-7-49}
+$$
 
-将式 \ref{eq:3-7-pi-frequency-result} 与式 \ref{eq:3-7-pd-frequency-result} 对比，可总结为：
+把 `PI` 方案与 `PD` 方案的频域核验结果并列起来，可总结为：
 
 \begin{center}
 表 5. 频域设计下 `PI` 与 `PD` 的比较
@@ -678,7 +680,7 @@ K_{v,PD}=8
 | `PI` | 更强，斜坡误差可消除 | 较低 | 中等偏高 | 上升较慢，但跟踪更准 |
 | `PD` | 仍为 I 型，斜坡误差有限非零 | 更高 | 更高 | 上升更快、更利落，但低频误差不如 `PI` |
 
-图~\ref{fig:3-7-pi-pd} 给出了二者的时域响应形态对比。
+下图给出了二者的时域响应形态对比。
 
 ![频域设计下 PI 与 PD 的时域响应对比](../media/processed/3-7-pi-pd-comparison.png){#fig:3-7-pi-pd fig-pos="H" width=100%}
 
@@ -688,7 +690,7 @@ K_{v,PD}=8
 - `PD` 的阶跃响应更快，过渡过程更“利落”，但斜坡误差仍保留有限偏差；
 - 因而二者并非谁“更高级”，而是分别对应“低频精度优先”和“动态速度优先”的两条设计取向。
 
-### 3.6 本章收束：为什么这会自然过渡到 3-8
+### 3.6 收束：为什么这会自然过渡到 3-8
 
 `PI` 与滞后都在强调低频；`PD` 与超前则更多作用在中频与相位。  
 因此，当我们问“为什么更准”和“代价落在哪里”时，答案已经开始从时域和根轨迹转向频域：
@@ -697,14 +699,14 @@ K_{v,PD}=8
 2. 中频附近决定截止频率与相位裕度；
 3. 补偿器的零极点相对位置，决定了到底是在改善结构性误差，还是在交换速度与阻尼。
 
-这正是下一讲 `3-8` 的入口：把这里已经出现的“更准”和“代价”完整翻译成频域判别语言。
+这正是下一讲 `3-8` 的入口：把这里已经出现的“更准”和“代价”完整翻译成三频段语言，即低频看精度，中频看速度与稳定余量，高频看噪声与执行器负担。
 
 ---
 
 ## 四、工程视角：长期偏一点，整段航程都在付代价
 
 在船舶航向控制里，稳态误差看起来只是一个很小的角度偏差，但落到工程现场，它会转化成航迹偏离、反复操舵、推进功率浪费，以及狭窄航道中的安全风险。  
-工程上真正关心的，不是“能不能把公式背下来”，而是能否判断：
+工程上真正关心的是能否判断：
 
 1. 这类误差到底来自结构还是扰动；
 2. 该不该加积分；
@@ -743,7 +745,7 @@ K_{v,PD}=8
 
 ## 附录 B：本讲用到的复现脚本
 
-本讲仍保留 `MATLAB/Octave` 复现脚本，但不再在讲义中展开长脚本代码，以免打断正文阅读。  
+我们仍保留 `MATLAB/Octave` 复现脚本，但不在讲义中展开长脚本代码，以免打断正文阅读。  
 配套资料中保留两类脚本：
 
 1. 出图脚本：负责生成根轨迹、时域响应和频域响应图片；

@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
+import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
+ROOT = Path(__file__).resolve().parents[6]
 os.environ.setdefault('MPLCONFIGDIR', str(ROOT / '.cache' / 'matplotlib'))
+LESSON_SCRIPT_DIR = ROOT / '.codex' / 'skills' / 'lesson' / 'scripts'
+if str(LESSON_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(LESSON_SCRIPT_DIR))
 
 import matplotlib
 matplotlib.use('Agg')
@@ -13,9 +18,23 @@ import matplotlib.pyplot as plt
 from matplotlib import patches, ticker
 import numpy as np
 from PIL import Image
+from root_locus_branch_match import (
+    PlotView,
+    audit_root_locus,
+    load_complex_points_csv,
+    load_samples_csv,
+    match_root_locus_branches,
+    write_matched_csv,
+)
 
 DATA_PATH = Path(__file__).resolve().parent / 'generated-data' / '3-9-design-data.json'
+DATA_DIR = Path(__file__).resolve().parent / 'generated-data'
 OUT_DIR = Path(__file__).resolve().parent.parent / 'processed'
+RUNTIME_MEDIA_DIR = ROOT / 'course-content' / 'runtime' / 'lessons' / '3-9' / 'media'
+PRESERVED_RUNTIME_ASSETS = (
+    '3-9-cover-comic.png',
+    '3-9-info.png',
+)
 
 matplotlib.rcParams['font.family'] = 'sans-serif'
 matplotlib.rcParams['font.sans-serif'] = ['Hiragino Sans GB', 'STHeiti', 'Arial Unicode MS', 'Arial Unicode', 'DejaVu Sans']
@@ -64,8 +83,81 @@ def save(fig: plt.Figure, filename: str) -> None:
     flatten_to_white(path)
 
 
+def sync_preserved_runtime_assets() -> None:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    for filename in PRESERVED_RUNTIME_ASSETS:
+        source = RUNTIME_MEDIA_DIR / filename
+        if not source.exists():
+            raise FileNotFoundError(f'缺少运行态生成图，无法同步：{source}')
+        shutil.copy2(source, OUT_DIR / filename)
+
+
 def arr(block: dict, key: str) -> np.ndarray:
     return np.asarray(block[key], dtype=float)
+
+
+def root_branch_arrays(variant: dict) -> list[np.ndarray]:
+    return variant['root_locus_branches']
+
+
+def compute_root_limits(branch_sets: list[list[np.ndarray]], variants: list[dict]) -> tuple[tuple[float, float], tuple[float, float]]:
+    x_parts: list[np.ndarray] = []
+    y_parts: list[np.ndarray] = []
+
+    for branches in branch_sets:
+        for branch in branches:
+            x_parts.append(branch[:, 0])
+            y_parts.append(branch[:, 1])
+
+    for variant in variants:
+        x_parts.append(arr(variant['open_loop_poles'], 'real'))
+        y_parts.append(arr(variant['open_loop_poles'], 'imag'))
+        x_parts.append(arr(variant['closed_loop_poles'], 'real'))
+        y_parts.append(arr(variant['closed_loop_poles'], 'imag'))
+        zeros_real = arr(variant['open_loop_zeros'], 'real')
+        zeros_imag = arr(variant['open_loop_zeros'], 'imag')
+        if zeros_real.size:
+            x_parts.append(zeros_real)
+            y_parts.append(zeros_imag)
+
+    x = np.concatenate([part.reshape(-1) for part in x_parts if part.size])
+    y = np.concatenate([part.reshape(-1) for part in y_parts if part.size])
+    x = x[np.isfinite(x)]
+    y = y[np.isfinite(y)]
+    x_min = float(np.min(x))
+    x_max = float(np.max(x))
+    y_min = float(np.min(y))
+    y_max = float(np.max(y))
+    span_x = max(x_max - x_min, 0.8)
+    span_y = max(y_max - y_min, 0.8)
+    return (x_min - 0.18 * span_x, x_max + 0.18 * span_x), (y_min - 0.18 * span_y, y_max + 0.18 * span_y)
+
+
+def load_root_locus_branches(variant_id: str, variant: dict) -> list[np.ndarray]:
+    matched = match_root_locus_branches(load_samples_csv(DATA_DIR / f'{variant_id}_root_locus_raw_samples.csv'))
+    write_matched_csv(DATA_DIR / f'{variant_id}_root_locus_points.csv', matched)
+    xlim, ylim = compute_root_limits([[
+        np.array([(point.real, point.imag) for point in branch], dtype=float)
+        for branch in matched.branches
+    ]], [variant])
+    report = audit_root_locus(
+        matched=matched,
+        open_loop_poles=load_complex_points_csv(DATA_DIR / f'{variant_id}_open_loop_poles.csv'),
+        open_loop_zeros=load_complex_points_csv(DATA_DIR / f'{variant_id}_open_loop_zeros.csv'),
+        endpoint_tol=5e-3,
+        views=[PlotView(name=f'{variant_id}-main', xlim=xlim, ylim=ylim, role='subplot')],
+    )
+    (DATA_DIR / f'{variant_id}_root_locus_audit.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
+    return [
+        np.array([(point.real, point.imag) for point in branch], dtype=float)
+        for branch in matched.branches
+    ]
+
+
+def attach_root_locus_branches(payload: dict) -> dict:
+    for variant_id, variant in payload['variants'].items():
+        variant['root_locus_branches'] = load_root_locus_branches(variant_id, variant)
+    return payload
 
 
 def style_root_axis(ax: plt.Axes) -> None:
@@ -117,21 +209,15 @@ def summary_box(ax: plt.Axes, title: str, lines: list[str], facecolor: str = '#f
     )
 
 
-def set_root_limits(ax: plt.Axes, variant: dict) -> None:
-    rl = np.asarray(variant['root_locus']['real'], dtype=float)
-    il = np.asarray(variant['root_locus']['imag'], dtype=float)
-    x = np.concatenate([rl.reshape(-1), arr(variant['open_loop_poles'], 'real'), arr(variant['closed_loop_poles'], 'real')])
-    y = np.concatenate([il.reshape(-1), arr(variant['open_loop_poles'], 'imag'), arr(variant['closed_loop_poles'], 'imag')])
-    x = x[np.isfinite(x)]
-    y = y[np.isfinite(y)]
-    x_min = float(np.min(x))
-    x_max = float(np.max(x))
-    y_min = float(np.min(y))
-    y_max = float(np.max(y))
-    span_x = max(x_max - x_min, 0.8)
-    span_y = max(y_max - y_min, 0.8)
-    ax.set_xlim(x_min - 0.18 * span_x, x_max + 0.18 * span_x)
-    ax.set_ylim(y_min - 0.18 * span_y, y_max + 0.18 * span_y)
+def set_root_limits(ax: plt.Axes, before: dict, variant: dict) -> None:
+    branch_sets = [root_branch_arrays(before)]
+    variants = [before]
+    if variant['id'] != 'baseline':
+        branch_sets.append(root_branch_arrays(variant))
+        variants.append(variant)
+    xlim, ylim = compute_root_limits(branch_sets, variants)
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
 
 
 def draw_margin_lines_on_mag(ax: plt.Axes, w: np.ndarray, mag: np.ndarray, margins: dict, color: str) -> None:
@@ -181,15 +267,11 @@ def plot_variant_quad(before: dict, variant: dict, filename: str) -> None:
         ax1.legend(frameon=False, fontsize=8.6, loc='best')
 
     style_root_axis(ax2)
-    before_rl_real = np.asarray(before['root_locus']['real'], dtype=float)
-    before_rl_imag = np.asarray(before['root_locus']['imag'], dtype=float)
-    for row in range(before_rl_real.shape[0]):
-        ax2.plot(before_rl_real[row], before_rl_imag[row], color=before_color, linewidth=1.2, alpha=0.8)
+    for branch in root_branch_arrays(before):
+        ax2.plot(branch[:, 0], branch[:, 1], color=before_color, linewidth=1.2, alpha=0.8)
     if variant['id'] != 'baseline':
-        rl_real = np.asarray(variant['root_locus']['real'], dtype=float)
-        rl_imag = np.asarray(variant['root_locus']['imag'], dtype=float)
-        for row in range(rl_real.shape[0]):
-            ax2.plot(rl_real[row], rl_imag[row], color=after_color, linewidth=1.35, alpha=0.9)
+        for branch in root_branch_arrays(variant):
+            ax2.plot(branch[:, 0], branch[:, 1], color=after_color, linewidth=1.35, alpha=0.9)
     ax2.scatter(arr(before['open_loop_poles'], 'real'), arr(before['open_loop_poles'], 'imag'), marker='x', s=58, linewidths=1.5, color=before_color, zorder=6, label='校正前开环极点')
     ax2.scatter(arr(before['closed_loop_poles'], 'real'), arr(before['closed_loop_poles'], 'imag'), marker='o', s=40, facecolors=before_color, edgecolors='white', linewidths=0.8, zorder=7, label='校正前闭环极点')
     if variant['id'] != 'baseline':
@@ -204,7 +286,7 @@ def plot_variant_quad(before: dict, variant: dict, filename: str) -> None:
         zeros_imag = arr(variant['open_loop_zeros'], 'imag')
         if zeros_real.size:
             ax2.scatter(zeros_real, zeros_imag, marker='o', s=40, facecolors='white', edgecolors=before_color, linewidths=1.5, zorder=6, label='开环零点')
-    set_root_limits(ax2, variant)
+    set_root_limits(ax2, before, variant)
     ax2.set_title('左下：校正前/后根轨迹与极点位置')
     ax2.legend(frameon=False, fontsize=8.6, loc='best')
 
@@ -377,9 +459,9 @@ def render_all(payload: dict) -> None:
     }
     for key, filename in variant_files.items():
         plot_variant_quad(baseline, payload['variants'][key], filename)
-    render_cover(payload)
-    render_info(payload)
+    # 封面漫画与信息图为外部生成图，不允许被本脚本的 matplotlib 渲染结果覆盖。
+    sync_preserved_runtime_assets()
 
 
 if __name__ == '__main__':
-    render_all(load_payload())
+    render_all(attach_root_locus_branches(load_payload()))

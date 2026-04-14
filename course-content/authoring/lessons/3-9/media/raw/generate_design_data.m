@@ -21,27 +21,71 @@ function out = complex_vector_to_struct(values)
   out.imag = imag(values)';
 endfunction
 
-function out = root_locus_to_struct(sys, k_values)
-  [num, den] = tfdata(sys, "vector");
-  num = num(:)';
-  den = den(:)';
-  if length(num) < length(den)
-    num = [zeros(1, length(den) - length(num)), num];
-  elseif length(den) < length(num)
-    den = [zeros(1, length(num) - length(den)), den];
+function write_complex_points_csv(path, values)
+  fid = fopen(path, "w");
+  if fid < 0
+    error("Cannot open output file: %s", path);
+  endif
+  fprintf(fid, "re,im\n");
+  values = values(:);
+  for idx = 1:numel(values)
+    fprintf(fid, "%.12f,%.12f\n", real(values(idx)), imag(values(idx)));
+  endfor
+  fclose(fid);
+endfunction
+
+function gain_max = expand_root_locus_gain(sys, initial_gain_max, endpoint_tol)
+  gain_max = initial_gain_max;
+  finite_zeros = zero(sys)(:);
+  if isempty(finite_zeros)
+    return;
   endif
 
-  root_count = length(den) - 1;
-  roots_matrix = zeros(root_count, length(k_values));
-  for idx = 1:length(k_values)
-    coeffs = den + k_values(idx) * num;
-    roots_matrix(:, idx) = roots(coeffs);
-  endfor
+  while true
+    poles_now = pole(feedback(gain_max * sys, 1))(:);
+    covered = true;
+    for idx = 1:numel(finite_zeros)
+      if min(abs(poles_now - finite_zeros(idx))) > endpoint_tol
+        covered = false;
+        break;
+      endif
+    endfor
+    if covered
+      break;
+    endif
+    gain_max = gain_max * 2;
+    if gain_max > 1e6
+      error("Adaptive root-locus gain search exceeded safety bound for current variant.");
+    endif
+  endwhile
+endfunction
 
-  out = struct();
-  out.k = k_values(:)';
-  out.real = real(roots_matrix);
-  out.imag = imag(roots_matrix);
+function export_root_locus_samples(out_dir, variant_id, sys, initial_gain_max, sample_count)
+  gain_max = expand_root_locus_gain(sys, initial_gain_max, 5e-4);
+  gain_step = gain_max / (sample_count - 1);
+  [rldata, ~] = rlocus(sys, gain_step, 0, gain_max);
+
+  fid = fopen(fullfile(out_dir, strcat(variant_id, "_root_locus_raw_samples.csv")), "w");
+  if fid < 0
+    error("Cannot open root-locus sample output for variant: %s", variant_id);
+  endif
+  fprintf(fid, "sample_idx,gain,re,im\n");
+  for sample_idx = 1:columns(rldata)
+    for root_idx = 1:rows(rldata)
+      fprintf(
+        fid,
+        "%d,%.12f,%.12f,%.12f\n",
+        sample_idx - 1,
+        (sample_idx - 1) * gain_step,
+        real(rldata(root_idx, sample_idx)),
+        imag(rldata(root_idx, sample_idx))
+      );
+    endfor
+  endfor
+  fclose(fid);
+
+  write_complex_points_csv(fullfile(out_dir, strcat(variant_id, "_open_loop_poles.csv")), pole(sys));
+  write_complex_points_csv(fullfile(out_dir, strcat(variant_id, "_open_loop_zeros.csv")), zero(sys));
 endfunction
 
 function out = bode_to_struct(sys, omega)
@@ -105,11 +149,11 @@ function out = forced_to_struct(sys, t, u)
   out.y = y(:)';
 endfunction
 
-function out = variant_payload(id, title, task_tag, emphasis, controller, loop_shape, k_ref, time_mode, t_step, t_ramp, omega)
+function out = variant_payload(out_dir, id, title, task_tag, emphasis, controller, loop_shape, k_ref, time_mode, t_step, t_ramp, omega)
   loop = controller;
   closed = feedback(loop, 1);
-  [num_l, den_l] = tfdata(loop / k_ref, "vector");
-  rl_sys = tf(num_l, den_l);
+  rl_sys = loop_shape;
+  export_root_locus_samples(out_dir, id, rl_sys, max(4 * k_ref, 6), 260);
 
   [step_resp, ~] = step(feedback(loop, 1), t_step);
   step_metrics_block = step_metrics(closed, t_step, 0.02);
@@ -128,7 +172,6 @@ function out = variant_payload(id, title, task_tag, emphasis, controller, loop_s
   entry.open_loop_poles = complex_vector_to_struct(pole(loop));
   entry.open_loop_zeros = complex_vector_to_struct(zero(loop));
   entry.closed_loop_poles = complex_vector_to_struct(pole(closed));
-  entry.root_locus = root_locus_to_struct(rl_sys, linspace(0, max(4 * k_ref, 6), 260));
   entry.bode = bode_to_struct(loop, omega);
   entry.margins = margins_to_struct(loop);
   entry.step = response_to_struct(t_step, step_resp);
@@ -160,6 +203,7 @@ C_pi_corrected = 2.25 * (1 + 1 / (40 * s)) * ((s / 0.05) + 1) / ((s / 0.5) + 1);
 C_lag = 2.25 * 2 * ((40 * s) + 1) / ((80 * s) + 1);
 
 payload.variants.baseline = variant_payload(
+  out_dir,
   "baseline",
   "基准版本",
   "综合折中基线",
@@ -174,6 +218,7 @@ payload.variants.baseline = variant_payload(
 );
 
 payload.variants.zero_line = variant_payload(
+  out_dir,
   "zero_line",
   "零点线补强",
   "更偏动态改善",
@@ -188,6 +233,7 @@ payload.variants.zero_line = variant_payload(
 );
 
 payload.variants.pi_weak = variant_payload(
+  out_dir,
   "pi_weak",
   "弱积分",
   "稳态改善试探",
@@ -202,6 +248,7 @@ payload.variants.pi_weak = variant_payload(
 );
 
 payload.variants.pi_strong = variant_payload(
+  out_dir,
   "pi_strong",
   "强积分",
   "稳态收益更彻底",
@@ -216,6 +263,7 @@ payload.variants.pi_strong = variant_payload(
 );
 
 payload.variants.pi_corrected = variant_payload(
+  out_dir,
   "pi_corrected",
   "积分校正",
   "综合折中路线",
@@ -230,6 +278,7 @@ payload.variants.pi_corrected = variant_payload(
 );
 
 payload.variants.lag = variant_payload(
+  out_dir,
   "lag",
   "滞后对照",
   "温和稳态改善",

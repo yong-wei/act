@@ -987,13 +987,3 @@ $$
 ![稳定判据相关人物与学术脉络配图](../../../../resource-library/civics-cases/assets/processed/case-03-figure-01.jpeg){width=50%}
 
 *稳定判据相关人物与学术脉络配图。此处作为“数学融入工程”主题的扩展阅读材料，帮助读者将劳斯判据置于其科学史语境中加以理解。*
-
----
-
-## 附录 B：图像与脚本索引
-
-本讲图像生成脚本保存于：
-
-`course-content/authoring/lessons/3-2/media/raw/3-2-generate-plots.m`
-
-该脚本对应图 1、图 3 和图 4 的数值生成与出图流程。若你希望复现实验图像，可在 Octave 环境中直接运行此脚本，并结合讲义中的参数点检查极点迁移、阶跃响应与幅频曲线之间的一致性。

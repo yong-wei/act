@@ -1,0 +1,46 @@
+\documentclass[tikz,border=10pt]{standalone}
+
+\usepackage{CJKutf8}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,fit}
+\input{styles/block_styles}
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\begin{tikzpicture}[node distance=1.6cm, auto, >=stealth]
+  \tikzset{
+    transfer block/.style={
+      block large,
+      minimum width=2.5cm,
+      minimum height=1.15cm,
+      font=\small
+    },
+    transfer block wide/.style={
+      transfer block,
+      minimum width=3.0cm
+    }
+  }
+  \node[] (R) at (0,0) {$R(s)$};
+  \node[sum] (sum1) at (1.5,0) {};
+  \node[block] (K) at (3.0,0) {$K$};
+  \node[sum] (sum2) at (4.6,0) {};
+  \node[transfer block] (G1) at (6.55,0) {$\frac{3.43}{s+2.14375}$};
+  \node[tap] (tap1) at (8.55,0) {};
+  \node[transfer block wide] (G2) at (10.75,0) {$\frac{0.005}{s^2+0.1s}$};
+  \node[tap] (tap2) at (13.05,0) {};
+  \node[] (Y) at (14.35,0) {$C(s)$};
+
+  \node[block] (a) at (6.55,-1.95) {$a$};
+
+  \draw[signal] (R) -- (sum1);
+  \draw[signal] (sum1) -- (K) -- (sum2) -- (G1) -- (tap1) -- (G2) -- (tap2) -- (Y);
+
+  \draw[signal] (tap1) |- (a);
+  \draw[signal] (a) -| node[neg sign, left] {$-$} (sum2.south);
+
+  \draw[signal] (tap2) |- node[pos=0.35, right] {\small 单位反馈} (1.5,-2.95) -| node[neg sign, left] {$-$} (sum1.south);
+
+  \node[font=\small] at (6.55,-2.65) {局部负反馈};
+\end{tikzpicture}
+\end{CJK*}
+\end{document}

@@ -1,0 +1,53 @@
+{
+  "sample_count": 3500,
+  "gain_min": 0.0,
+  "gain_max": 34.99,
+  "branch_count": 3,
+  "expected_branch_count": 3,
+  "finite_zero_coverage": {
+    "endpoint_tolerance": 0.005,
+    "rows": [],
+    "all_matched_within_tolerance": true
+  },
+  "jump_metrics": [
+    {
+      "branch_index": 0,
+      "max_jump": 3.9153453000206895e-05,
+      "sign_switches": 0,
+      "endpoint_re": -2.266010344923,
+      "endpoint_im": 0.0
+    },
+    {
+      "branch_index": 1,
+      "max_jump": 0.006514318232999999,
+      "sign_switches": 0,
+      "endpoint_re": 0.011130172461,
+      "endpoint_im": -0.51448351882
+    },
+    {
+      "branch_index": 2,
+      "max_jump": 0.006494130006,
+      "sign_switches": 0,
+      "endpoint_re": 0.011130172461,
+      "endpoint_im": 0.51448351882
+    }
+  ],
+  "views": [
+    {
+      "name": "root-locus-main",
+      "role": "standalone",
+      "title": null,
+      "xlim": [
+        -2.35,
+        0.15
+      ],
+      "ylim": [
+        -0.55,
+        0.55
+      ],
+      "visible_branch_count": 3,
+      "visible_open_loop_pole_count": 3,
+      "visible_open_loop_zero_count": 0
+    }
+  ]
+}

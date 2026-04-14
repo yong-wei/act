@@ -1,0 +1,17 @@
+{
+  "views": [
+    {
+      "name": "effects-rhp-zero-new",
+      "role": "standalone",
+      "title": "根轨迹",
+      "xlim": [
+        -6.4,
+        1.65
+      ],
+      "ylim": [
+        -2.2,
+        2.2
+      ]
+    }
+  ]
+}

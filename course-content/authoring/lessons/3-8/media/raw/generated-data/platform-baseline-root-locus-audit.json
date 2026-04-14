@@ -1,0 +1,77 @@
+{
+  "sample_count": 1550,
+  "gain_min": 0.0,
+  "gain_max": 6399.999999999998,
+  "branch_count": 5,
+  "expected_branch_count": 5,
+  "finite_zero_coverage": {
+    "endpoint_tolerance": 0.005,
+    "rows": [
+      {
+        "zero_index": 0,
+        "branch_index": 4,
+        "zero_re": -15.0,
+        "zero_im": 0.0,
+        "endpoint_re": -15.00369213172,
+        "endpoint_im": 0.0,
+        "distance": 0.003692131719999381
+      }
+    ],
+    "all_matched_within_tolerance": true
+  },
+  "jump_metrics": [
+    {
+      "branch_index": 0,
+      "max_jump": 23.180479265590478,
+      "sign_switches": 0,
+      "endpoint_re": -942.578889175614,
+      "endpoint_im": 450.340168770785
+    },
+    {
+      "branch_index": 1,
+      "max_jump": 1.285706227559156,
+      "sign_switches": 0,
+      "endpoint_re": 348.286617594414,
+      "endpoint_im": 535.779940913061
+    },
+    {
+      "branch_index": 2,
+      "max_jump": 1.285706227559156,
+      "sign_switches": 0,
+      "endpoint_re": 348.286617594414,
+      "endpoint_im": -535.779940913061
+    },
+    {
+      "branch_index": 3,
+      "max_jump": 24.032202907094664,
+      "sign_switches": 0,
+      "endpoint_re": -942.578889175614,
+      "endpoint_im": -450.340168770785
+    },
+    {
+      "branch_index": 4,
+      "max_jump": 3.614189607228251,
+      "sign_switches": 0,
+      "endpoint_re": -15.00369213172,
+      "endpoint_im": 0.0
+    }
+  ],
+  "views": [
+    {
+      "name": "platform-baseline",
+      "role": "standalone",
+      "title": "根轨迹",
+      "xlim": [
+        -1100.0,
+        120.0
+      ],
+      "ylim": [
+        -120.0,
+        120.0
+      ],
+      "visible_branch_count": 5,
+      "visible_open_loop_pole_count": 5,
+      "visible_open_loop_zero_count": 1
+    }
+  ]
+}

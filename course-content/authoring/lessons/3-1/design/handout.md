@@ -429,16 +429,3 @@ $$
 
 - AI 是否明确区分了“附加极点远离主导区”和“附加极点进入主导区”这两种情形；
 - AI 是否同时给出了时域与频域依据，而不只是重复一句“主导极点可以近似”。
-
-## 附录｜图示与复现文件
-
-本讲使用的主要图示均由 Octave 脚本生成：
-
-- `3-1-pp-01-stability-half-plane.m`
-- `3-1-pp-02-poles-and-modes.m`
-- `3-1-pp-03-dominant-pole-response-families.m`
-- `3-1-pp-04-modal-superposition-high-order.m`
-- `3-1-pp-05-bode-model-reduction.m`
-- `3-1-pp-06-convolution-step-from-impulse.m`
-
-如需复现，请确认 Octave 已安装并加载 `control` 包。

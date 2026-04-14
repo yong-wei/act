@@ -37,7 +37,7 @@ function out = complex_vector_to_struct(values)
   out.imag = imag(values)';
 endfunction
 
-function out = root_locus_to_struct(sys, k_values)
+function roots_matrix = root_locus_matrix(sys, k_values)
   [num, den] = tfdata(sys, "vector");
   num = num(:)';
   den = den(:)';
@@ -55,11 +55,60 @@ function out = root_locus_to_struct(sys, k_values)
     coeffs = den + k_values(idx) * num;
     roots_matrix(:, idx) = roots(coeffs);
   endfor
+endfunction
+
+function out = root_locus_to_struct(sys, k_values)
+  roots_matrix = root_locus_matrix(sys, k_values);
 
   out = struct();
   out.k = k_values(:)';
   out.real = real(roots_matrix);
   out.imag = imag(roots_matrix);
+endfunction
+
+function ok = finite_zeros_covered(final_roots, finite_zeros, endpoint_tol)
+  if isempty(finite_zeros)
+    ok = true;
+    return;
+  endif
+
+  ok = true;
+  for idx = 1:numel(finite_zeros)
+    if min(abs(final_roots - finite_zeros(idx))) > endpoint_tol
+      ok = false;
+      return;
+    endif
+  endfor
+endfunction
+
+function k_values = adaptive_root_locus_grid(sys, initial_max, endpoint_tol, linear_samples, log_samples, safety_max)
+  finite_zeros = zero(sys)(:);
+  finite_zeros = finite_zeros(isfinite(real(finite_zeros)) & isfinite(imag(finite_zeros)));
+
+  gain_max = initial_max;
+  if ~isempty(finite_zeros)
+    while true
+      final_roots = pole(feedback(gain_max * sys, 1));
+      if finite_zeros_covered(final_roots, finite_zeros, endpoint_tol)
+        break;
+      endif
+      gain_max = gain_max * 2;
+      if gain_max > safety_max
+        error("Adaptive gain search exceeded safety bound %.6g for root locus export.", safety_max);
+      endif
+    endwhile
+  endif
+
+  if gain_max <= 5
+    k_values = linspace(0, gain_max, linear_samples);
+  else
+    k_values = unique([linspace(0, 5, linear_samples), logspace(log10(5.05), log10(gain_max), log_samples)]);
+  endif
+endfunction
+
+function out = adaptive_root_locus_to_struct(sys, initial_max, endpoint_tol, linear_samples, log_samples, safety_max)
+  k_values = adaptive_root_locus_grid(sys, initial_max, endpoint_tol, linear_samples, log_samples, safety_max);
+  out = root_locus_to_struct(sys, k_values);
 endfunction
 
 function metrics = step_metrics(sys, t, tol)
@@ -183,6 +232,7 @@ payload.effects.zero = effect_payload(
   "相位提前，动态更积极",
   "高频幅值抬升，噪声代价增加"
 );
+payload.effects.zero.root_new = adaptive_root_locus_to_struct(L0 * (1 + s / 1.2), 12, 5e-3, 420, 900, 1e6);
 payload.effects.pole = effect_payload(
   L0, 0.5 * L0 / s, w_effect, t_integral,
   "基准", "加入积分极点",
@@ -197,6 +247,7 @@ payload.effects.rhp_zero = effect_payload(
   "表面上更快",
   "相位代价更大，易误判"
 );
+payload.effects.rhp_zero.root_new = adaptive_root_locus_to_struct(L0 * (1 - s / 1.5), 12, 5e-3, 420, 1000, 1e7);
 
 payload.nyquist_quickcheck = struct();
 payload.nyquist_quickcheck.cases = {};
@@ -306,7 +357,7 @@ payload.platform_case.peak_comp = closed_loop_peak_to_struct(feedback(L_platform
 payload.platform_case.bandwidth_fast = estimate_bandwidth(feedback(L_platform_fast, 1), w_platform);
 payload.platform_case.bandwidth_slow = estimate_bandwidth(feedback(L_platform_slow, 1), w_platform);
 payload.platform_case.bandwidth_comp = estimate_bandwidth(feedback(L_platform_comp, 1), w_platform);
-payload.platform_case.root_base = root_locus_to_struct(L_platform_base, linspace(0, 25, 360));
+payload.platform_case.root_base = adaptive_root_locus_to_struct(L_platform_base, 25, 5e-3, 450, 1100, 1e7);
 payload.platform_case.root_comp = root_locus_to_struct(L_platform_comp, linspace(0, 5, 320));
 payload.platform_case.open_poles_base = complex_vector_to_struct(pole(L_platform_base));
 payload.platform_case.open_zeros_base = complex_vector_to_struct(zero(L_platform_base));

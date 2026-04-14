@@ -1,0 +1,70 @@
+{
+  "sample_count": 259,
+  "gain_min": 0.0,
+  "gain_max": 8.965250965251,
+  "branch_count": 4,
+  "expected_branch_count": 4,
+  "finite_zero_coverage": {
+    "endpoint_tolerance": 0.005,
+    "rows": [
+      {
+        "zero_index": 0,
+        "branch_index": 3,
+        "zero_re": -0.005,
+        "zero_im": 0.0,
+        "endpoint_re": -0.005033734638,
+        "endpoint_im": 0.0,
+        "distance": 3.373463799999973e-05
+      }
+    ],
+    "all_matched_within_tolerance": true
+  },
+  "jump_metrics": [
+    {
+      "branch_index": 0,
+      "max_jump": 0.00013621170600019994,
+      "sign_switches": 0,
+      "endpoint_re": -2.177398893641,
+      "endpoint_im": 0.0
+    },
+    {
+      "branch_index": 1,
+      "max_jump": 0.01507919977300016,
+      "sign_switches": 0,
+      "endpoint_re": -0.03065868586,
+      "endpoint_im": -0.262018251322
+    },
+    {
+      "branch_index": 2,
+      "max_jump": 0.015199643874000149,
+      "sign_switches": 0,
+      "endpoint_re": -0.03065868586,
+      "endpoint_im": 0.262018251322
+    },
+    {
+      "branch_index": 3,
+      "max_jump": 0.0037897933369921925,
+      "sign_switches": 0,
+      "endpoint_re": -0.005033734638,
+      "endpoint_im": 0.0
+    }
+  ],
+  "views": [
+    {
+      "name": "pi_weak-main",
+      "role": "subplot",
+      "title": null,
+      "xlim": [
+        -2.56933069449638,
+        0.39193180085538
+      ],
+      "ylim": [
+        -0.406018251322,
+        0.406018251322
+      ],
+      "visible_branch_count": 4,
+      "visible_open_loop_pole_count": 4,
+      "visible_open_loop_zero_count": 1
+    }
+  ]
+}

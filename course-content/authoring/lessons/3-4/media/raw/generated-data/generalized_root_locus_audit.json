@@ -1,0 +1,97 @@
+{
+  "sample_count": 1400,
+  "gain_min": 0.0,
+  "gain_max": 131072.00000000003,
+  "branch_count": 3,
+  "expected_branch_count": 3,
+  "finite_zero_coverage": {
+    "endpoint_tolerance": 0.0005,
+    "rows": [
+      {
+        "zero_index": 0,
+        "branch_index": 0,
+        "zero_re": -0.1,
+        "zero_im": 0.0,
+        "endpoint_re": -0.100002313231,
+        "endpoint_im": 0.0,
+        "distance": 2.313231000000693e-06
+      },
+      {
+        "zero_index": 1,
+        "branch_index": 1,
+        "zero_re": 0.0,
+        "zero_im": 0.0,
+        "endpoint_re": -1.227565e-06,
+        "endpoint_im": -0.000480953085,
+        "distance": 0.00048095465159081935
+      },
+      {
+        "zero_index": 2,
+        "branch_index": 2,
+        "zero_re": 0.0,
+        "zero_im": 0.0,
+        "endpoint_re": -1.227565e-06,
+        "endpoint_im": 0.000480953085,
+        "distance": 0.00048095465159081935
+      }
+    ],
+    "all_matched_within_tolerance": true
+  },
+  "jump_metrics": [
+    {
+      "branch_index": 0,
+      "max_jump": 0.088239807206,
+      "sign_switches": 0,
+      "endpoint_re": -0.100002313231,
+      "endpoint_im": 0.0
+    },
+    {
+      "branch_index": 1,
+      "max_jump": 0.00019379851278914642,
+      "sign_switches": 0,
+      "endpoint_re": -1.227565e-06,
+      "endpoint_im": -0.000480953085
+    },
+    {
+      "branch_index": 2,
+      "max_jump": 0.00019379851278914642,
+      "sign_switches": 0,
+      "endpoint_re": -1.227565e-06,
+      "endpoint_im": 0.000480953085
+    }
+  ],
+  "views": [
+    {
+      "name": "generalized-main",
+      "role": "standalone",
+      "title": null,
+      "xlim": [
+        -2.32,
+        0.06
+      ],
+      "ylim": [
+        -0.062,
+        0.062
+      ],
+      "visible_branch_count": 3,
+      "visible_open_loop_pole_count": 3,
+      "visible_open_loop_zero_count": 3
+    },
+    {
+      "name": "generalized-detail",
+      "role": "subplot",
+      "title": null,
+      "xlim": [
+        -0.07,
+        0.01
+      ],
+      "ylim": [
+        -0.06,
+        0.06
+      ],
+      "visible_branch_count": 2,
+      "visible_open_loop_pole_count": 2,
+      "visible_open_loop_zero_count": 2
+    }
+  ]
+}
