@@ -528,6 +528,161 @@ def render_pp08(data: dict) -> None:
     plt.close(fig)
 
 
+def render_example01(data: dict) -> None:
+    configure_style('lesson-3-3-example01')
+    fig = plt.figure(figsize=(12.6, 7.4))
+    plot_ax = styled_plot_axes(fig, [0.06, 0.14, 0.63, 0.74])
+    side_ax = fig.add_axes([0.74, 0.14, 0.22, 0.74])
+    side_ax.axis('off')
+
+    fig.text(0.5, 0.93, r'例题 1 根轨迹图：$G(s)H(s)=K/[s(s+2)(s+4)]$', fontsize=24, color=TITLE, weight='bold', ha='center')
+
+    roots = track_branches(np.array(data['example1']['real']), np.array(data['example1']['imag']))
+    for branch, color in zip(roots, [BLUE, GREEN, ORANGE]):
+        plot_ax.plot(branch.real, branch.imag, color=color, linewidth=2.2)
+
+    plot_ax.set_xlim(-8.2, 1.2)
+    plot_ax.set_ylim(-4.4, 4.4)
+    plot_ax.axhline(0, color=SUB, linewidth=1.6)
+    plot_ax.axvline(0, color=SUB, linewidth=1.6)
+    plot_ax.set_xlabel('实轴 $\\mathrm{Re}(s)$')
+    plot_ax.set_ylabel('虚轴 $\\mathrm{Im}(s)$')
+    plot_ax.scatter([0, -2, -4], [0, 0, 0], marker='x', s=120, linewidths=2.8, color=RED, zorder=5)
+    plot_ax.text(0.08, 0.24, '$0$', color=RED, fontsize=12)
+    plot_ax.text(-2.05, 0.24, '$-2$', color=RED, fontsize=12)
+    plot_ax.text(-4.20, 0.24, '$-4$', color=RED, fontsize=12)
+
+    plot_ax.plot([-8.2, -4.0], [0, 0], color=TEAL, linewidth=7, alpha=0.22)
+    plot_ax.plot([-2.0, 0.0], [0, 0], color=TEAL, linewidth=7, alpha=0.22)
+
+    centroid = -2.0
+    for angle_deg in (60, 180, 300):
+        rad = math.radians(angle_deg)
+        plot_ax.plot(
+            [centroid, centroid + 6.0 * math.cos(rad)],
+            [0, 6.0 * math.sin(rad)],
+            linestyle='--',
+            linewidth=1.6,
+            color=PURPLE,
+            alpha=0.9,
+        )
+    plot_ax.scatter([centroid], [0], s=54, color=PURPLE, zorder=6)
+    plot_ax.text(centroid + 0.15, 0.35, '重心 $-2$', color=PURPLE, fontsize=12.5)
+    plot_ax.text(0.65, 3.25, r'$60^\circ$', color=PURPLE, fontsize=12)
+    plot_ax.text(-7.15, 0.22, r'$180^\circ$', color=PURPLE, fontsize=12)
+    plot_ax.text(0.60, -3.55, r'$300^\circ$', color=PURPLE, fontsize=12)
+
+    add_round_box(side_ax, 0.02, 0.58, 0.96, 0.32)
+    add_text(side_ax, 0.50, 0.86, '关键位置', size=18, color=TITLE, weight='bold', ha='center')
+    add_text(side_ax, 0.08, 0.73, '极点：$0,-2,-4$', size=12.2, color=SUB)
+    add_text(side_ax, 0.08, 0.63, '实轴区段：$(-\\infty,-4)$ 与 $(-2,0)$', size=12.2, color=SUB)
+    add_text(side_ax, 0.08, 0.52, '渐近线重心：$\\sigma_a=-2$', size=12.2, color=SUB)
+    add_text(side_ax, 0.08, 0.42, r'渐近线角度：$60^\circ,180^\circ,300^\circ$', size=12.2, color=SUB)
+
+    add_round_box(side_ax, 0.02, 0.15, 0.96, 0.26, fill='#fffaf1', edge=GOLD)
+    add_text(side_ax, 0.08, 0.34, '图上阅读顺序', size=16.5, color=TITLE, weight='bold')
+    add_text(side_ax, 0.08, 0.24, '先看起点终点与实轴区段，\n再用渐近线判断无穷远方向。', size=12.0, color=SUB, linespacing=1.55)
+
+    fig.savefig(OUTPUT_DIR / '3-3-example-01-skeleton.svg', format='svg', bbox_inches='tight', pad_inches=0.02)
+    plt.close(fig)
+
+
+def render_example02(data: dict) -> None:
+    configure_style('lesson-3-3-example02')
+    fig = plt.figure(figsize=(12.8, 7.5))
+    plot_ax = styled_plot_axes(fig, [0.06, 0.14, 0.63, 0.74])
+    side_ax = fig.add_axes([0.74, 0.14, 0.22, 0.74])
+    side_ax.axis('off')
+
+    fig.text(0.5, 0.93, r'例题 2 根轨迹图：$G(s)H(s)=K/[s(s+1)(s+2)]$', fontsize=24, color=TITLE, weight='bold', ha='center')
+
+    roots = track_branches(np.array(data['main_example']['real']), np.array(data['main_example']['imag']))
+    for branch, color in zip(roots, [BLUE, GREEN, ORANGE]):
+        plot_ax.plot(branch.real, branch.imag, color=color, linewidth=2.2)
+
+    plot_ax.set_xlim(-5.2, 1.0)
+    plot_ax.set_ylim(-3.1, 3.1)
+    plot_ax.axhline(0, color=SUB, linewidth=1.6)
+    plot_ax.axvline(0, color=SUB, linewidth=1.6)
+    plot_ax.set_xlabel('实轴 $\\mathrm{Re}(s)$')
+    plot_ax.set_ylabel('虚轴 $\\mathrm{Im}(s)$')
+    plot_ax.scatter([0, -1, -2], [0, 0, 0], marker='x', s=120, linewidths=2.8, color=RED, zorder=5)
+
+    break_x = -1 + math.sqrt(3) / 3
+    cross_y = math.sqrt(2)
+    plot_ax.scatter([break_x], [0], s=62, color=ORANGE, zorder=7)
+    plot_ax.scatter([0, 0], [cross_y, -cross_y], s=58, color=GOLD, zorder=7)
+    plot_ax.annotate('分离点\n$(-0.423,0)$', xy=(break_x, 0), xytext=(0.25, 0.95), textcoords='data',
+                     arrowprops=dict(arrowstyle='-|>', color=ORANGE, lw=1.8), color=ORANGE, fontsize=12, ha='left')
+    plot_ax.annotate(r'虚轴交点' '\n' r'$s=\pm j\sqrt{2}$', xy=(0, cross_y), xytext=(-1.55, 2.1), textcoords='data',
+                     arrowprops=dict(arrowstyle='-|>', color=GOLD, lw=1.8), color=GOLD, fontsize=12, ha='left')
+    plot_ax.text(-0.58, 1.72, '$K=6$', color=GOLD, fontsize=12)
+
+    add_round_box(side_ax, 0.02, 0.57, 0.96, 0.35)
+    add_text(side_ax, 0.50, 0.86, '关键位置', size=18, color=TITLE, weight='bold', ha='center')
+    add_text(side_ax, 0.08, 0.73, r'分离点：$d=-1+\frac{\sqrt{3}}{3}$', size=12.1, color=SUB)
+    add_text(side_ax, 0.08, 0.62, r'对应增益：$K\approx 0.3849$', size=12.1, color=SUB)
+    add_text(side_ax, 0.08, 0.51, r'虚轴交点：$s=\pm j\sqrt{2}$', size=12.1, color=SUB)
+    add_text(side_ax, 0.08, 0.40, r'临界增益：$K=6$', size=12.1, color=SUB)
+
+    add_round_box(side_ax, 0.02, 0.15, 0.96, 0.24, fill='#fffaf1', edge=GOLD)
+    add_text(side_ax, 0.08, 0.33, '阅读提示', size=16.5, color=TITLE, weight='bold')
+    add_text(side_ax, 0.08, 0.22, '同一张图上，先用 $\\mathrm{d}K/\\mathrm{d}s=0$\n找实轴关键点，再用劳斯判据锁定越轴位置。', size=11.8, color=SUB, linespacing=1.55)
+
+    fig.savefig(OUTPUT_DIR / '3-3-example-02-breakaway-crossing.svg', format='svg', bbox_inches='tight', pad_inches=0.02)
+    plt.close(fig)
+
+
+def render_example03(data: dict) -> None:
+    configure_style('lesson-3-3-example03')
+    fig = plt.figure(figsize=(12.8, 7.5))
+    plot_ax = styled_plot_axes(fig, [0.06, 0.14, 0.63, 0.74])
+    side_ax = fig.add_axes([0.74, 0.14, 0.22, 0.74])
+    side_ax.axis('off')
+
+    fig.text(0.5, 0.93, r'例题 3 根轨迹图：$G(s)H(s)=K/[(s+2)(s^2+2s+5)]$', fontsize=24, color=TITLE, weight='bold', ha='center')
+
+    roots = track_branches(np.array(data['example3']['real']), np.array(data['example3']['imag']))
+    for branch, color in zip(roots, [BLUE, GREEN, ORANGE]):
+        plot_ax.plot(branch.real, branch.imag, color=color, linewidth=2.2)
+
+    plot_ax.set_xlim(-8.0, 1.2)
+    plot_ax.set_ylim(-5.0, 5.0)
+    plot_ax.axhline(0, color=SUB, linewidth=1.6)
+    plot_ax.axvline(0, color=SUB, linewidth=1.6)
+    plot_ax.set_xlabel('实轴 $\\mathrm{Re}(s)$')
+    plot_ax.set_ylabel('虚轴 $\\mathrm{Im}(s)$')
+
+    upper = np.array([-1.0, 2.0])
+    lower = np.array([-1.0, -2.0])
+    real_pole = np.array([-2.0, 0.0])
+    plot_ax.scatter([upper[0], lower[0], real_pole[0]], [upper[1], lower[1], real_pole[1]], marker='x', s=120, linewidths=2.8, color=RED, zorder=5)
+    plot_ax.text(-0.82, 2.25, r'$-1+j2$', color=RED, fontsize=12)
+    plot_ax.text(-0.92, -2.55, r'$-1-j2$', color=RED, fontsize=12)
+    plot_ax.text(-2.38, 0.28, r'$-2$', color=RED, fontsize=12)
+
+    dep = math.radians(26.565051)
+    for start, sign in [(upper, 1), (lower, -1)]:
+        end = start + np.array([2.1 * math.cos(dep), sign * 2.1 * math.sin(dep)])
+        plot_ax.annotate('', xy=end, xytext=start, arrowprops=dict(arrowstyle='-|>', color=PURPLE, lw=2.0))
+    plot_ax.text(1.05, 3.00, r'$+26.565^\circ$', color=PURPLE, fontsize=12)
+    plot_ax.text(1.00, -3.35, r'$-26.565^\circ$', color=PURPLE, fontsize=12)
+
+    add_round_box(side_ax, 0.02, 0.56, 0.96, 0.36)
+    add_text(side_ax, 0.50, 0.86, '关键位置', size=18, color=TITLE, weight='bold', ha='center')
+    add_text(side_ax, 0.08, 0.73, r'复极点：$-1\pm j2$', size=12.1, color=SUB)
+    add_text(side_ax, 0.08, 0.62, r'出射角：$\pm 26.565^\circ$', size=12.1, color=SUB)
+    add_text(side_ax, 0.08, 0.51, r'实极点：$-2$', size=12.1, color=SUB)
+    add_text(side_ax, 0.08, 0.40, r'根和恒定：$\sum s_i(K)=-4$', size=12.1, color=SUB)
+
+    add_round_box(side_ax, 0.02, 0.15, 0.96, 0.24, fill='#fffaf1', edge=GOLD)
+    add_text(side_ax, 0.08, 0.33, '阅读提示', size=16.5, color=TITLE, weight='bold')
+    add_text(side_ax, 0.08, 0.22, '先看复极点附近的离开方向，\n再用根之和原则检查整张草图是否自洽。', size=11.8, color=SUB, linespacing=1.55)
+
+    fig.savefig(OUTPUT_DIR / '3-3-example-03-departure-sum.svg', format='svg', bbox_inches='tight', pad_inches=0.02)
+    plt.close(fig)
+
+
 def main() -> None:
     data = load_plot_data()
     render_pp01()
@@ -538,6 +693,9 @@ def main() -> None:
     render_pp06()
     render_pp07(data)
     render_pp08(data)
+    render_example01(data)
+    render_example02(data)
+    render_example03(data)
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 # 3-4-intro-video.mp4
 
 - 夜班控制室里，高架堆垛机准备上线试运行，主屏先给出根轨迹主图和候选窗口，再并列展示摆动过大或过慢的后果，说明稳定窗口里仍有性能代价。
+- 用导入情境引出“会读主图，才会读懂参数窗口与性能代价”这一主题。
 
 https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=e0be2bc0fad2ef9992f7eb8aa7fa95b2&v=1775530904746&puid=26652392&enc=6a9b9465c1d20729b39c8f5fe942f991&wps=e7b2385e92a5d717ca181af1d1764766d70d687fb84ea7b5
 

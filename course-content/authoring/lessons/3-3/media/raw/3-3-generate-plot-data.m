@@ -36,6 +36,22 @@ main_values = unique([ ...
 ]);
 main_roots = sample_closed_loop_roots(@(k) [1, 3, 2, k], main_values);
 
+% Example 1a: G(s)=K/[s(s+2)(s+4)]
+example1_values = unique([ ...
+  0:0.0005:1.2, ...
+  1.205:0.005:10.0, ...
+  10.05:0.05:60.0 ...
+]);
+example1_roots = sample_closed_loop_roots(@(k) [1, 6, 8, k], example1_values);
+
+% Example 3: G(s)=K/[(s+2)(s^2+2s+5)]
+example3_values = unique([ ...
+  0:0.001:2.0, ...
+  2.01:0.01:15.0, ...
+  15.05:0.05:60.0 ...
+]);
+example3_roots = sample_closed_loop_roots(@(k) [1, 4, 9, 10 + k], example3_values);
+
 % Example 2: generalized root locus, Ge(s)=s(s+1)/(s+2)
 gen_values = unique([ ...
   0.001:0.0005:0.5, ...
@@ -53,6 +69,16 @@ payload.main_example = struct();
 payload.main_example.values = main_roots.values;
 payload.main_example.real = main_roots.real;
 payload.main_example.imag = main_roots.imag;
+
+payload.example1 = struct();
+payload.example1.values = example1_roots.values;
+payload.example1.real = example1_roots.real;
+payload.example1.imag = example1_roots.imag;
+
+payload.example3 = struct();
+payload.example3.values = example3_roots.values;
+payload.example3.real = example3_roots.real;
+payload.example3.imag = example3_roots.imag;
 
 payload.generalized_example = struct();
 payload.generalized_example.values = gen_roots.values;
