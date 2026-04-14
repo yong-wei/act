@@ -23,7 +23,7 @@
 | step-03 | 前测：三类起点误判先落地 | `question_stack` | 三题前测 + 一句直觉 + 反馈条 | `quiz_group` | `/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-03` |
 | step-04 | 二阶对象接入零点：先看哪条分支被拉走 | `figure_annotation_workspace` | 根轨迹图 + 对象式 + 标注区 | `annotation_choice` | `/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-04` |
 | step-05 | 三阶对象接入零点：零点位置怎样改写主导分支 | `dual_figure_compare_workspace` | 对照图 + 比较卡 + 记录栏 | `compare_note` | `/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-05` |
-| step-06 | 第一收束：左半平面零点改善趋势与右半平面问号 | `contrast_summary_board` | 对照表 + 风险预测卡 + 判断表 | `risk_prediction_submit` | `/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-06` |
+| step-06 | 第一收束：左半平面零点常改善动态，右半平面零点需另看边界 | `contrast_summary_board` | 对照表 + 风险预测卡 + 判断表 | `risk_prediction_submit` | `/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-06` |
 | step-07 | 结构辨认：PD 与测速反馈不靠名字判断 | `structure_compare_slide` | 结构图 + 术语卡 + 判断区 | `binary_choice` | `/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-07` |
 | step-08 | 阻尼工作区：由目标阻尼反求 $K_d$ 与 $K_t$ | `formula_workspace` | 公式卡 + 例题卡 + 填写区 | `worked_example_workspace` | `/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-08` |
 | step-09 | PD 与测速反馈的三域对照：同样提阻尼，不等于结构相同 | `tri_domain_compare_workspace` | 根轨迹图 + 时域图 + 频域图 + 对照卡 | `structured_compare` | `/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-09` |
@@ -196,11 +196,11 @@
 - 提示卡固定写明：先看哪条分支被零点拉走，再看实轴区段如何重排。
 - 工作区固定要求：
   - 单根轨迹工作区；
-  - 讲义示例切换；
-  - 添加零点；
-  - 添加极点；
-  - 拖动零极点；
-  - 默认零极点位置与讲义一致。
+  - 左侧为根轨迹面板、右侧为控件区；
+  - 控件区只保留 `基线 / 示例A / 示例B` 三种模式；
+  - 基线中的极点固定不可拖动；
+  - 示例中新增的零点可直接在根轨迹面板中拖动；
+  - 切换模式后恢复讲义默认位置。
 
 ### 互动升级点
 - 在统一根轨迹工作区中切换讲义示例、拖动零极点位置，再完成“被拉走的分支 + 被重排的实轴区段”记录。
@@ -247,11 +247,11 @@
 - 零点位置卡必须明确“靠近原点”和“靠近中左部极点”两种情形。
 - 工作区固定要求：
   - 单根轨迹工作区；
-  - 讲义示例切换；
-  - 添加零点；
-  - 添加极点；
-  - 拖动零极点；
-  - 默认零极点位置与讲义一致。
+  - 左侧为根轨迹面板、右侧为控件区；
+  - 控件区只保留 `基线 / 示例A / 示例B` 三种模式；
+  - 基线中的极点固定不可拖动；
+  - 示例中新增的零点可直接在根轨迹面板中拖动；
+  - 切换模式后恢复讲义默认位置。
 
 ### 互动升级点
 - 完成一句比较判断，且必须同时提到零点位置与主导分支变化。
@@ -274,7 +274,7 @@
 - 学生页预览：`/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-05`
 - 对齐要求：图、比较卡和句式同屏。
 
-## 步骤 06｜第一收束：左半平面零点改善趋势与右半平面问号
+## 步骤 06｜第一收束：左半平面零点常改善动态，右半平面零点需另看边界
 
 ### 页面骨架
 - 模板：`contrast_summary_board`

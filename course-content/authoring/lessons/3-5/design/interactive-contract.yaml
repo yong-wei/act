@@ -211,7 +211,7 @@ steps:
       - id: "workspace-rules"
         type: "bullet_list"
         title: "工作区要求"
-        items: ["单根轨迹工作区", "添加零点", "添加极点", "拖动零极点", "默认零极点位置与讲义一致"]
+        items: ["单根轨迹工作区", "左侧根轨迹面板", "右侧模式控件区", "基线/示例A/示例B", "示例零点可拖动，基线极点固定"]
       - id: "prompt"
         type: "bullet_list"
         title: "判断顺序"
@@ -274,7 +274,7 @@ steps:
       - id: "workspace-rules"
         type: "bullet_list"
         title: "工作区要求"
-        items: ["单根轨迹工作区", "添加零点", "添加极点", "拖动零极点", "默认零极点位置与讲义一致"]
+        items: ["单根轨迹工作区", "左侧根轨迹面板", "右侧模式控件区", "基线/示例A/示例B", "示例零点可拖动，基线极点固定"]
     interaction_spec:
       interaction_kind: "compare_note"
       student_task: "完成一句比较判断。"
@@ -304,7 +304,7 @@ steps:
       - "页面必须保留比较记录栏。"
 
   step-06:
-    title: "第一收束：左半平面零点改善趋势与右半平面问号"
+    title: "第一收束：左半平面零点常改善动态，右半平面零点需另看边界"
     layout:
       template: "contrast_summary_board"
       regions:
