@@ -43,6 +43,7 @@
 - 必做：在 `media/processed/` 下建立 `[单元编号]-media.md`，先写入 5 个课程级资源名称，并只为导入视频补 1 句内容文案。
 - 仅登记待审查占位：`cover-comic.png`、`intro-video.mp4`、`info.png`、`slides.pdf`、`audio.m4a`。
 - 上述待审查占位由用户后续完成成品后，在审查阶段确认可用性。
+- `cover-comic.png` 与 `info.png` 属于**保留资产文件名**：代码直出脚本、数值图渲染脚本和批量复绘脚本不得把它们作为输出目标。若需要在图片未回写前先导出讲义，只允许通过 `export_handout_pdf.py --draft-mode` 在临时目录生成占位图，不得向 `media/processed/` 回写伪造图片。
 
 ---
 

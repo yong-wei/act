@@ -162,6 +162,16 @@
 
 封面漫画在 Step 3 默认**只产出提示词文件** `media/raw/[单元编号]-cover-comic-prompt.md`，不要求在讲义起草阶段立即生成 `[单元编号]-cover-comic.png`。讲义正文保留图片占位，待图片制作完成后再回写并导出正式 PDF。若交付的是中文定稿提示词，其首句必须固定为“以哆啦A梦中的人物为原型”，且后续整段设计都要保持该系列漫画画风。
 
+若讲义正文已经成文、需要先导出一版 PDF 供 NotebookLM 或后续封面/信息图制作使用，而 `[单元编号]-cover-comic.png` 尚未回写，则必须使用：
+
+```bash
+python3 .codex/skills/lesson/scripts/export_handout_pdf.py \
+  --draft-mode \
+  course-content/authoring/lessons/[单元编号]/design/handout.md
+```
+
+该命令只会在临时目录生成导出占位图，并输出 `handout-draft.pdf`；不得为了让第一次导出跑通而在 `media/processed/` 下手工生成或脚本渲染假的 `cover-comic.png`。
+
 封面漫画默认按 **4 格或 6 格多格漫画** 编写提示词，不得写成单张大图式海报描述。正文必须逐格展开，至少写出 `第1格 / 第2格 / 第3格 / 第4格`，每格单独说明场景、角色动作/表情、关键道具和一句简短中文台词。详细硬约束与逐格样例统一见 `references/step7-multimedia-ai.md`。
 
 ---
@@ -172,7 +182,7 @@
 ![本讲信息图总结](../media/processed/[单元编号]-info.png)
 ```
 
-`[单元编号]-info.png` 默认不要求在 Step 3 同步生成提示词；讲义先保留占位，待后续多媒体制作或人工制作完成后再回写并导出最终 PDF。
+`[单元编号]-info.png` 默认不要求在 Step 3 同步生成提示词；讲义先保留占位，待后续多媒体制作或人工制作完成后再回写并导出最终 PDF。若首次只需导出草稿 PDF，同样使用 `--draft-mode`，不得在 `media/processed/` 中写入假的 `info.png`。
 
 ---
 
@@ -440,8 +450,9 @@ python3 .codex/skills/lesson/scripts/export_handout_pdf.py \
 
 ### 导出前必须确认
 
-- `cover-comic.png` 若仍未制作完成，学生版讲义只保留占位，不执行最终 PDF 导出
-- `info.png` 若仍未制作完成，学生版讲义只保留占位，不执行最终 PDF 导出
+- `cover-comic.png` 若仍未制作完成，只允许导出 `handout-draft.pdf`，不得覆盖 `handout.pdf`
+- `info.png` 若仍未制作完成，只允许导出 `handout-draft.pdf`，不得覆盖 `handout.pdf`
+- 草稿导出允许调用 `--draft-mode` 在临时目录生成占位图；占位图不得回写到 `media/processed/`
 - 若用户明确要求“先审 Markdown、后补图再导 PDF”，则必须按该顺序执行，不得把缺图状态误报为讲义完成态
 
 ### 导出后必须检查

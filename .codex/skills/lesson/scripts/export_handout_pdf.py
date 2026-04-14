@@ -10,8 +10,10 @@ from pathlib import Path
 
 try:
     from PIL import Image
+    from PIL import ImageDraw
 except ImportError:  # pragma: no cover - optional dependency check at runtime
     Image = None
+    ImageDraw = None
 
 MARKDOWN_IMAGE_LINE_RE = re.compile(
     r'^(?P<indent>\s*)!\[(?P<alt>.*?)\]\((?P<src>[^)]+)\)(?P<attrs>\{[^}]*\})?\s*$'
@@ -24,6 +26,13 @@ FENCED_BLOCK_LINE_RE = re.compile(r'^\s*(?P<fence>`{3,}|~{3,})')
 INLINE_CODE_RE = re.compile(r'`[^`\n]*`')
 INLINE_MATH_RE = re.compile(r'(?<!\\)\$[^$\n]+\$')
 PROTECTED_SEGMENT_TOKEN_RE = re.compile(r'\x00PROTECTED(?P<index>\d+)\x00')
+
+
+def is_course_summary_asset(target: str, alt_text: str = "") -> bool:
+    stem = Path(target).stem.lower()
+    return any(token in stem for token in ("cover", "info")) or any(
+        token in alt_text for token in ("封面", "信息图")
+    )
 
 
 def require_binary(name: str) -> str:
@@ -84,10 +93,7 @@ def render_style(
 
 
 def should_use_full_width_for_image(target: str, alt_text: str = "") -> bool:
-    stem = Path(target).stem.lower()
-    return any(token in stem for token in ("cover", "info")) or any(
-        token in alt_text for token in ("封面", "信息图")
-    )
+    return is_course_summary_asset(target, alt_text)
 
 
 def append_markdown_attribute(attr_block: str | None, attribute: str) -> str:
@@ -264,15 +270,85 @@ def preprocess_markdown_for_pdf(markdown: str) -> str:
     return normalized
 
 
-def create_preprocessed_markdown(markdown_path: Path) -> Path | None:
+def make_draft_placeholder_image(output_path: Path, title: str, subtitle: str) -> None:
+    if Image is None:
+        raise SystemExit(
+            "缺少依赖：Pillow\n"
+            "请先安装后再导出 PDF：\n"
+            "  python3 -m pip install Pillow"
+        )
+
+    image = Image.new("RGB", (2200, 1240), "white")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((80, 80, 2120, 1160), outline="#9aa4b2", width=8)
+    draw.rectangle((120, 120, 2080, 1120), outline="#d7dce3", width=2)
+    draw.text((180, 260), title, fill="#374151")
+    draw.text((180, 420), subtitle, fill="#6b7280")
+    draw.text((180, 560), "Draft PDF only. Final handout.pdf requires real asset backfill.", fill="#6b7280")
+    image.save(output_path)
+
+
+def materialize_draft_placeholders(markdown_path: Path, markdown: str) -> tuple[str, Path | None, list[str]]:
+    placeholder_dir = markdown_path.with_name(f".{markdown_path.stem}-pdf-placeholders")
+    rewritten_lines: list[str] = []
+    used_placeholders: list[str] = []
+
+    for line in markdown.splitlines():
+        match = MARKDOWN_IMAGE_LINE_RE.match(line)
+        if not match:
+            rewritten_lines.append(line)
+            continue
+
+        source = match.group("src")
+        alt_text = match.group("alt")
+        source_path = (markdown_path.parent / source).resolve()
+        if source_path.exists() or not is_course_summary_asset(source, alt_text):
+            rewritten_lines.append(line)
+            continue
+
+        placeholder_dir.mkdir(parents=True, exist_ok=True)
+        stem = Path(source).stem.lower()
+        if "cover" in stem or "封面" in alt_text:
+            title = "Cover comic pending"
+            subtitle = "Draft export placeholder only"
+        else:
+            title = "Info graphic pending"
+            subtitle = "Draft export placeholder only"
+
+        placeholder_path = placeholder_dir / f"{Path(source).stem}-draft-placeholder.png"
+        if not placeholder_path.exists():
+            make_draft_placeholder_image(placeholder_path, title, subtitle)
+
+        replacement = placeholder_path.relative_to(markdown_path.parent).as_posix()
+        attrs = match.group("attrs") or ""
+        rewritten_lines.append(
+            f"{match.group('indent')}![{alt_text}]({replacement}){attrs}"
+        )
+        used_placeholders.append(source)
+
+    rewritten = "\n".join(rewritten_lines)
+    if markdown.endswith("\n"):
+        rewritten += "\n"
+    return rewritten, (placeholder_dir if used_placeholders else None), used_placeholders
+
+
+def create_preprocessed_markdown(markdown_path: Path, draft_mode: bool = False) -> tuple[Path | None, list[Path], list[str]]:
     original = markdown_path.read_text(encoding="utf-8")
     normalized = preprocess_markdown_for_pdf(original)
+    extra_paths: list[Path] = []
+    used_placeholders: list[str] = []
+
+    if draft_mode:
+        normalized, placeholder_dir, used_placeholders = materialize_draft_placeholders(markdown_path, normalized)
+        if placeholder_dir is not None:
+            extra_paths.append(placeholder_dir)
+
     if normalized == original:
-        return None
+        return None, extra_paths, used_placeholders
 
     temp_path = markdown_path.with_name(f".{markdown_path.stem}-pdf-preprocessed.md")
     temp_path.write_text(normalized, encoding="utf-8")
-    return temp_path
+    return temp_path, extra_paths, used_placeholders
 
 
 def build_latex(markdown_path: Path, style_path: Path, output_tex: Path) -> None:
@@ -660,6 +736,11 @@ def main() -> int:
         action="store_true",
         help="无论目标样式文件是否已存在，都用技能模板重新生成",
     )
+    parser.add_argument(
+        "--draft-mode",
+        action="store_true",
+        help="草稿导出模式：允许封面漫画与信息图缺失，并仅在临时目录生成占位图；输出文件名为 *-draft.pdf",
+    )
     args = parser.parse_args()
 
     markdown_path = Path(args.markdown).resolve()
@@ -673,14 +754,21 @@ def main() -> int:
     lesson_id = derive_lesson_id(markdown_path)
     header_right = args.header_right or derive_right_header(markdown_path.stem, lesson_id)
     pdf_title = args.pdf_title or derive_pdf_title(markdown_path)
-    output_pdf = markdown_path.with_suffix(".pdf")
+    output_pdf = (
+        markdown_path.with_name(f"{markdown_path.stem}-draft.pdf")
+        if args.draft_mode
+        else markdown_path.with_suffix(".pdf")
+    )
     style_path = markdown_path.with_name(f"{markdown_path.stem}-pdf-style.tex")
     template_path = Path(__file__).resolve().parent.parent / "templates" / "handout-pdf-style.tex.tpl"
     repo_root = Path(__file__).resolve().parents[4]
     header_logo_left = (repo_root / "public/images/extracted/校徽校名组合-横版-提取.pdf").as_posix()
     header_logo_right = (repo_root / "public/images/CAlogo128.png").as_posix()
     tex_path = markdown_path.with_name(f"{markdown_path.stem}-pandoc-export.tex")
-    preprocessed_markdown_path = create_preprocessed_markdown(markdown_path)
+    preprocessed_markdown_path, extra_cleanup_paths, used_placeholders = create_preprocessed_markdown(
+        markdown_path,
+        draft_mode=args.draft_mode,
+    )
     markdown_input_path = preprocessed_markdown_path or markdown_path
     width_overrides = collect_markdown_width_overrides(
         markdown_input_path.read_text(encoding="utf-8")
@@ -710,13 +798,16 @@ def main() -> int:
             tex_path,
             extra_paths=[
                 path
-                for path in (normalized_asset_dir, preprocessed_markdown_path)
+                for path in (normalized_asset_dir, preprocessed_markdown_path, *extra_cleanup_paths)
                 if path is not None
             ] or None,
         )
 
     print(f"PDF 导出完成：{output_pdf}")
     print(f"样式文件：{style_path}")
+    if used_placeholders:
+        joined = "、".join(used_placeholders)
+        print(f"提示：本次为草稿导出，以下图片使用了临时占位，不会回写媒体目录：{joined}")
     return 0
 
 
