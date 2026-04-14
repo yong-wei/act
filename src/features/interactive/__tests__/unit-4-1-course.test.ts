@@ -50,6 +50,10 @@ describe('unit 4-1 interactive course', () => {
     expect(courseModule.getUNIT_4_1MediaSrc('step-04')).toContain('4-1-ship-heading-quad');
     expect(courseModule.getUNIT_4_1MediaSrc('step-05')).toContain('4-1-platform-pitch-quad');
     expect(courseModule.getUNIT_4_1MediaSrc('step-12')).toContain('4-1-info.png');
+    expect(courseModule.getUNIT_4_1MediaSrc('step-06')).toBeNull();
+    expect(courseModule.getUNIT_4_1MediaSrc('step-07')).toBeNull();
+    expect(courseModule.getUNIT_4_1MediaSrc('step-09')).toBeNull();
+    expect(courseModule.getUNIT_4_1MediaSrc('step-10')).toBeNull();
   });
 
   it('keeps the local page contracts aligned with the authoring interactive contract for all 12 steps', async () => {
@@ -168,6 +172,55 @@ describe('unit 4-1 interactive course', () => {
     expect(stepPanelsSource).toContain('P_p(s)=\\\\frac{2960\\\\left(\\\\frac{s}{15}+1\\\\right)}{s\\\\left(\\\\frac{s}{3}+1\\\\right)');
     expect(stepPanelsSource).toContain('J_{\\\\mathrm{ISE}}=\\\\int_{0}^{\\\\infty} e^2(t)\\\\,\\\\mathrm{d}t');
     expect(stepPanelsSource).toContain('\\\\mathcal{O}\\\\subseteq\\\\mathcal{S}\\\\subseteq\\\\mathcal{F}');
+  });
+
+  it('renders step-06/07/09/10 as native panels instead of static images', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).not.toContain('4-1-case-compare-summary.png');
+    expect(stepPanelsSource).not.toContain('4-1-indicator-role-matrix.png');
+    expect(stepPanelsSource).not.toContain('4-1-task-card-template.png');
+    expect(stepPanelsSource).not.toContain('4-1-region-layering.png');
+    expect(stepPanelsSource).toContain('function ContrastSummaryMatrixPanel');
+    expect(stepPanelsSource).toContain('data-progressive-reveal="row_or_column_reveal"');
+    expect(stepPanelsSource).toContain('data-progressive-reveal="section_click_reveal"');
+    expect(stepPanelsSource).toContain('data-progressive-reveal="step_click_reveal"');
+  });
+
+  it('keeps step-07/09/10 layout and formula wiring aligned with the revised page requirements', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain("const STEP07_INTEGRAL_FORMULA =");
+    expect(stepPanelsSource).toContain("const STEP10_LAYER_FORMULA = '\\\\mathcal{O}\\\\subseteq\\\\mathcal{S}\\\\subseteq\\\\mathcal{F}';");
+    expect(stepPanelsSource).toContain('formula={STEP07_INTEGRAL_FORMULA}');
+    expect(stepPanelsSource).toContain('math={STEP10_LAYER_FORMULA}');
+    expect(stepPanelsSource).toContain('data-layout="step07-formula-full-width"');
+    expect(stepPanelsSource).toContain('data-layout="step07-table-full-width"');
+    expect(stepPanelsSource).toContain('data-layout="step09-top-pair"');
+    expect(stepPanelsSource).toContain('data-layout="step09-example-pair"');
+    expect(stepPanelsSource).toContain('data-layout="step09-evidence-full-width"');
+    expect(stepPanelsSource).toContain('y="56"');
+    expect(stepPanelsSource).toContain('y="118"');
+  });
+
+  it('keeps the revised misconception checklist and exit summary static blocks for step-11 and step-12', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain('五步清单');
+    expect(stepPanelsSource).toContain('当前场景最不能接受的后果是什么。');
+    expect(stepPanelsSource).toContain('最后该怎样写成任务书。');
+    expect(stepPanelsSource).toContain('四句带走');
+    expect(stepPanelsSource).toContain('任务卡是后续设计的共享输入。');
+    expect(stepPanelsSource).toContain('4-4：用失败诊断回看任务卡。');
   });
 
   it('does not leak internal choice values into student-facing labels', () => {

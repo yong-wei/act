@@ -91,21 +91,21 @@ export const BINARY_CHOICE_PROMPTS = {
   'step-10': {
     prompt: '“当前指标都满足，所以这已经是最优解。”这句话最准确的判断是：',
     options: [
-      { value: 'feasible', label: '只说明进入可行域，还不能直接说满意或最优' },
-      { value: 'satisficing', label: '已经进入满意域，但仍不能直接宣称最优' },
+      { value: 'stable_equals_acceptable', label: '把“稳定或刚满足边界”误当成“已经可接受”' },
+      { value: 'acceptable_equals_optimal', label: '把“已经可接受”误当成“已经最优”' },
       { value: 'optimal', label: '只要指标满足就一定是最优域' },
     ],
-    answer: 'satisficing',
-    explanation: '满足当前任务边界更接近“可接受/满意”，但不能自动推出“最优”。',
+    answer: 'acceptable_equals_optimal',
+    explanation: '满足当前任务边界最多说明进入可接受层，不能自动推出“已经最优”。',
   },
   'step-11': {
     prompt: '“单看一张图就足够写结论。”这类说法最准确的归类是：',
     options: [
       { value: 'stable_equals_done', label: '把稳定误当成任务完成' },
       { value: 'all_metrics_same_priority', label: '把所有指标看成同等重要' },
-      { value: 'single_plot_conclusion', label: '把单图线索误当成完整任务结论' },
+      { value: 'single_graph_conclusion', label: '把单图线索误当成完整任务结论' },
     ],
-    answer: 'single_plot_conclusion',
+    answer: 'single_graph_conclusion',
     explanation: '4-1 要求把多图证据、约束和排序一起写回任务卡，不能单图直接定结论。',
   },
 } as const;

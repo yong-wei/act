@@ -5,19 +5,18 @@
 
 ## 文档职责
 
-- 本文件是供人审阅的课堂前台页面蓝图，负责固定页面顺序、模板、静态内容、互动方式、反馈口径与验收标准。
-- 同目录 [interactive-contract.yaml](./interactive-contract.yaml) 是机读契约；两者必须逐步骤同名、同序、同边界。
-- 本课是模块 4 的任务表达入口，先把“场景 -> 证据 -> 排序 -> 任务卡”写清楚，不承担控制器选型、参数整定或最优搜索。
-- 页面总目标固定为：学生能够基于双案例跨域证据，写出一张包含“最紧矛盾、硬约束、软目标、观察指标、证据来源”的任务表达卡。
+- 本文件是供人审阅的页面蓝图，只描述页面模板、阅读顺序、固定证据、互动升级位、教师聚合与学生页预览口径。
+- 同目录 [interactive-contract.yaml](./interactive-contract.yaml) 是机读真源；两份文件必须逐步骤同名、同序、同边界。
+- 本文件不是讲课脚本，不写教师口播，也不把页面结构留给实现阶段临时发挥。
+- 本课首先承担完整课件职责，再把最值得升级的位置做成证据联读板、参数联动仿真板或任务工作区。
 
 ## 表述规则
 
-- 互动课首先承担完整课件职责。每一步都要先把概念、公式、图示、表格和判断语句落成可读页面，再决定是否升级互动。
-- 本课主线固定为：`地图定位 -> 同图异读预判 -> 主场景联读 -> 对照案例重排 -> 双案例对照 -> 指标角色回收 -> 任务卡 -> 区域分层 -> 误判清单 -> 后测收束`。
-- 双案例页面必须保留“同一套跨域证据、不同任务排序”的核心对照，不能把稳定平台案例扩写成与主场景 A 平行的第二条主线。
-- 所有公式统一使用 LaTeX：行内 `$...$`，行间 `$$...$$`。
-- AI 信息只作为隐藏式页面上下文交给控灵助手消费，不设计页内显式 AI 模块。
-- 互动组件只负责预判、配对、分类、填写、误判暴露与参数联动，不负责替代学生完成控制器判断。
+- 每一步先固定页面上直接可见的对象、公式、图表、表格、结论，再写互动升级。
+- 讲义中的曲线图默认升级为参数联动仿真板，且互动图必须是讲义静态图的可调镜像，不另起一张新图。
+- 曲线图运行时统一接入 Rust/WASM 控制分析引擎；固定数轴、固定图组语义、图下折叠控件栏、图内指标标注保留两位小数。
+- 除系统框图外，对照矩阵、指标角色矩阵、任务表达卡、区域分层图、误判卡与判断清单默认采用前端原生绘制或原生表格，不保留为位图主体。
+- 默认预览入口固定为学生演示页；教师端模板弹窗只用于看骨架，不替代真实页面。
 
 ## 全课总览
 
@@ -26,42 +25,69 @@
 | step-01 | 回到地图：稳定不是任务完成 | `map_hero_slide` | 路径定位 -> 主问题 -> 本课边界 | `none` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-01` |
 | step-02 | 学习目标与边界：4-1 只负责写任务书 | `goal_boundary_slide` | 学习目标 -> 本课负责 -> 本课不负责 | `none` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-02` |
 | step-03 | 同图异读预判：为什么同一套证据会写出两张任务书 | `question_stack` | 场景提示 -> 三题预判 -> 误区提示 | `quiz_group` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-03` |
-| step-04 | 主场景 A：客船航向控制先保什么 | `case_study_dashboard` | 对象/背景 -> 模型与公式 -> 图像与曲线 -> 指标/边界 -> 判断与任务卡 | `parameter_slider` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-04` |
-| step-05 | 对照案例 B：稳定平台为什么把速度排得更前 | `case_study_dashboard` | 对象/背景 -> 模型与公式 -> 图像与曲线 -> 指标/边界 -> 判断与任务卡 | `parameter_slider` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-05` |
-| step-06 | 双案例对照：排序变化来自哪里 | `contrast_summary_board` | 对照矩阵 -> 排序结果 -> 一句话收束 | `card_sort` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-06` |
+| step-04 | 主场景 A：客船航向控制先保什么 | `case_study_dashboard` | 对象/背景 -> 模型与公式 -> 图像与曲线 -> 指标/边界 -> 判断与任务卡 | `parametric_sim` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-04` |
+| step-05 | 对照案例 B：稳定平台为什么把速度排得更前 | `case_study_dashboard` | 对象/背景 -> 模型与公式 -> 图像与曲线 -> 指标/边界 -> 判断与任务卡 | `parametric_sim` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-05` |
+| step-06 | 双案例对照：排序变化来自哪里 | `contrast_summary_board` | 对照矩阵 -> 排序结果 -> 一句话收束 | `evidence_board + card_sort` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-06` |
 | step-07 | 指标角色重组：时域、频域、积分误差各自回答什么 | `formula_table_match` | 问题分工 -> 公式与指标 -> 角色映射 | `triple_match` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-07` |
 | step-08 | 任务分类：硬约束、软目标、观察指标 | `comparison_panel_with_sort` | 分类规则 -> 指标卡组 -> 角色归类 | `card_sort` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-08` |
 | step-09 | 任务表达卡工作区：把后续设计输入写全 | `task_card_workspace` | 模板字段 -> 证据来源 -> 任务表达卡填写 | `task_card_workspace` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-09` |
 | step-10 | 区域分层：可行域、满意域、最优域不是一步 | `layered_region_board` | 集合关系 -> 分层图示 -> 边界判断 | `binary_choice` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-10` |
-| step-11 | 误判检查：稳定不等于完成，可行不等于最优 | `misconception_board` | 误判卡 -> 四格联读顺序 -> 纠偏判断 | `binary_choice` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-11` |
+| step-11 | 误判检查：稳定不等于完成，可行不等于最优 | `misconception_board` | 误判卡 -> 五步清单 -> 纠偏判断 | `binary_choice` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-11` |
 | step-12 | 后测与收束：先写任务，再谈方法 | `summary_quiz_board` | 后测题组 -> 四句带走 -> 后续去向 | `quiz_group` | `/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-12` |
 
 ## 讲义证据单元映射
 
 | handout_anchor | evidence_unit_id | evidence_kind | must_appear_content | target_step | page_mode | interaction_archetype | media_or_table_ref | acceptance_note |
 |---|---|---|---|---|---|---|---|---|
-| `## 一、回到地图：同一套跨域证据，为什么会写出两张不同任务书` | `eu-01-entry-question` | `concept_card` | “稳定不是任务完成”“4-1 先写任务，再谈方法”两条开场判断。 | step-01 | static | `entry_overview` | 主问题卡 | 首屏必须同时出现地图、主问题卡与边界卡。 |
-| `## 二、先做“同图异读”，再回收最小指标语言` | `eu-02-prejudge` | `diagnostic_prompt` | 以双案例预判题压出“同图异读”主问题。 | step-03 | static+interactive | `diagnostic_quiz` | 预判题组 | 三题必须围绕“排序为何变化”而不是名词记忆。 |
-| `### 2.1 主场景 A：客船航向控制为什么先保平顺与储备` | `eu-03-ship-figure` | `curve_figure` | 客船对象框图、传递函数、四联图与入口排序。 | step-04 | static+interactive | `parametric_sim` | `4-1-ship-heading-block.png` / `4-1-ship-heading-quad.png` | 对象框图、参数联动图和任务判断必须同页可见。 |
-| `### 2.2 对照案例 B：为什么稳定平台会把速度与带宽排得更前` | `eu-04-platform-figure` | `curve_figure` | 稳定平台对象框图、综合图与短对照排序。 | step-05 | static+interactive | `parametric_sim` | `4-1-platform-pitch-block.png` / `4-1-platform-pitch-quad.png` | 必须保留案例 B 的原图布局和“快但不够稳健”定位。 |
-| `### 2.3 为什么同一套图，会读出两种任务排序` | `eu-05-compare-matrix` | `comparison_table` | 双案例同图异读对照矩阵。 | step-06 | static+interactive | `evidence_reorder` | 表 4 / `4-1-case-compare-summary.png` | 对照矩阵和排序结果必须同屏。 |
-| `### 3.1 三类常用指标，各自回答不同问题` | `eu-06-role-language` | `formula_table` | 时域、频域、积分误差类指标分别回答什么；保留 `ISE/IAE/ITAE` 三式。 | step-07 | static+interactive | `concept_role_mapping` | 表 5 / `4-1-indicator-role-matrix.png` | 三类问题卡必须先于互动区出现。 |
-| `### 3.2 指标真正进入设计时，会变成三种角色 / ### 3.3 为什么“所有指标都重要”不是合格任务书` | `eu-07-role-classification` | `classification_rule` | 硬约束、软目标、观察指标三类角色与排序误判。 | step-08 | static+interactive | `role_classification` | 表 5 / 角色规则卡 | 分类规则必须先于拖拽区出现。 |
-| `### 4.1 一张合格的任务表达卡，至少要写清七项内容 / ### 6.4 工程判断清单：从跨域读图走到任务书` | `eu-08-task-card` | `task_card` | 任务表达卡七字段与五步判断清单。 | step-09 | static+interactive | `task_card_workspace` | 表 6 / `4-1-task-card-template.png` | 模板卡和证据库必须同屏。 |
-| `## 五、可行域、满意域与最优域必须分层` | `eu-09-region-layer` | `region_formula` | `$\mathcal{O}\subseteq\mathcal{S}\subseteq\mathcal{F}$` 与“4-1 不求最优”。 | step-10 | static+interactive | `layer_judgement` | 表 10 / `4-1-region-layering.png` | 必须明确“稳定 != 可接受 != 最优”。 |
-| `## 六、常见误判与工程判断清单` | `eu-10-misconception` | `misconception_card` | 三类常见误判与四格联读顺序。 | step-11 | static+interactive | `misconception_diagnosis` | 误判卡 / 表 11 | 三类误判必须完整落页。 |
-| `## 七、本节小结与衔接 / ### 7.4 一页带走 / ### 7.5 课后自检` | `eu-11-summary-exit` | `summary_quiz` | 四句带走、后测、`4-2/4-3` 去向。 | step-12 | static+quiz | `summary_quiz` | 小结卡 / 去向卡 | 总结页必须同时出现带走语句与去向卡。 |
+| `## 一、回到地图：同一套跨域证据，为什么会写出两张不同任务书` | `eu-01-entry-question` | `concept_card` | “稳定不是任务完成”“4-1 先写任务，再谈方法”“同一套跨域证据会写出不同任务书”三条开场判断。 | `step-01` | `static` | `entry_overview` | 主问题卡 | 首屏必须同时看到路径图、主问题卡和边界卡。 |
+| `## 二、先做“同图异读”，再回收最小指标语言` | `eu-02-prejudge` | `diagnostic_prompt` | 三道预判题必须围绕“当前最不能接受的后果、哪类指标先前移、为何不能写成同一张任务书”。 | `step-03` | `static+interactive` | `diagnostic_quiz` | 预判题组 | 三题必须全部明文落页，不得只留按钮。 |
+| `### 2.1 主场景 A：客船航向控制为什么先保平顺与储备` | `eu-03-ship-figure` | `curve_figure` | 客船对象框图、$P_h(s)$、$L_h(s)$、客船四联图、$M_p \le 15\%$、$t_s \le 45\,\text{s}$、入口排序判断。 | `step-04` | `static+interactive` | `parametric_sim` | `4-1-ship-heading-block.png` / `4-1-ship-heading-quad.png` | 对象框图、可调四联图和读图卡必须同页可见。 |
+| `### 2.2 对照案例 B：为什么稳定平台会把速度与带宽排得更前` | `eu-04-platform-figure` | `curve_figure` | 稳定平台对象框图、$P_p(s)$、$L_p(s)$、综合图布局说明、速度优势与储备代价的入口排序。 | `step-05` | `static+interactive` | `parametric_sim` | `4-1-platform-pitch-block.png` / `4-1-platform-pitch-quad.png` | 必须保留案例 B 的特殊图组结构与短对照定位。 |
+| `### 2.3 为什么同一套图，会读出两种任务排序` | `eu-05-compare-matrix` | `table` | 双场景同图异读对照矩阵四行内容和“语言相同，排序不同”的收束语。 | `step-06` | `static+interactive` | `evidence_reorder` | 表 4 / `4-1-case-compare-summary.png` | 对照矩阵改为原生表格，排序条目拖拽区位于其下。 |
+| `### 3.1 三类常用指标，各自回答不同问题 / ### 3.2 指标真正进入设计时，会变成三种角色` | `eu-06-role-language` | `formula_table` | 时域、频域、积分误差三类问题卡，`ISE/IAE/ITAE` 三式，表 5 的三类角色。 | `step-07` | `static+interactive` | `concept_role_mapping` | 表 5 / `4-1-indicator-role-matrix.png` | 问题卡、积分误差公式和角色矩阵必须先于配对区出现。 |
+| `### 3.3 为什么“所有指标都重要”不是合格任务书` | `eu-07-role-classification` | `classification_rule` | 硬约束、软目标、观察指标三类规则与“角色由任务决定，不由名词决定”的固定提醒。 | `step-08` | `static+interactive` | `role_classification` | 角色规则卡 | 规则卡必须完整落页，拖拽区只做分类，不重复解释。 |
+| `### 4.1 一张合格的任务表达卡，至少要写清七项内容 / ### 4.2 主场景 A：客船航向控制的任务表达卡 / ### 4.3 对照案例 B：稳定平台的任务表达卡为什么会改写排序` | `eu-08-task-card` | `task_card` | 七字段模板、五步判断清单、主场景 A 完整示范、案例 B 短对照。 | `step-09` | `static+interactive` | `task_card_workspace` | 表 6 / 表 7 / 表 8 / `4-1-task-card-template.png` | 模板卡、证据库和填写区必须同屏。 |
+| `## 五、可行域、满意域与最优域必须分层` | `eu-09-region-layer` | `region_figure` | $\mathcal{O}\subseteq\mathcal{S}\subseteq\mathcal{F}$、三层区域定义、表 10 的三层差别。 | `step-10` | `static+interactive` | `layer_judgement` | 表 10 / `4-1-region-layering.png` | 分层图改为原生图示，不得退化为单张位图。 |
+| `## 六、常见误判与工程判断清单` | `eu-10-misconception` | `misconception` | 三类误判卡、四步联读顺序、表 11 的五步工程判断清单。 | `step-11` | `static+interactive` | `misconception_diagnosis` | 表 11 | 误判卡与五步清单必须同页。 |
+| `## 七、本节小结与衔接 / ### 7.4 一页带走 / ### 7.5 课后自检` | `eu-11-summary-exit` | `summary_quiz` | 四句带走、本讲产出、`4-2/4-3/4-4` 去向、五题课后自检。 | `step-12` | `static+quiz` | `summary_quiz` | 小结卡 / 去向卡 | 总结区必须能独立复习，不依赖教师补充。 |
+
+## 曲线图证据单元补充合同
+
+| figure_ref | baseline_state | layout_mirror | controls | reachable_states | collapse_policy |
+|------------|----------------|---------------|----------|------------------|-----------------|
+| `4-1-ship-heading-quad.png` | `K_h=2.25`，基线结构与讲义原图一致 | `2x2` | 图下折叠控件栏，单共享滑块 `K_h` | `handout_curve_family_baseline`、`ship_speed_up_margin_tighter`、`ship_more_conservative_slower_but_safer` | `controls_below_collapsible` |
+| `4-1-platform-pitch-quad.png` | `K_p=5`，保留讲义原有综合图布局 | `custom-grid` | 图下折叠控件栏，单共享滑块 `K_p` | `handout_curve_family_baseline`、`platform_speed_advantage_with_tighter_margin`、`platform_margin_recovery_with_speed_tradeoff` | `controls_below_collapsible` |
+
+| engine_family | request_contract | axis_policy | overlay_policy | sampling_policy | precision_policy |
+|---------------|------------------|-------------|----------------|-----------------|------------------|
+| `rust_wasm_control_engine` | `caseId=ship_heading`；`outputs=[step_response, root_locus, magnitude, phase]`；`timeRange=[0,160]`；`frequencyRange=[1e-3,10]`；`rootLocus=[0,5]`；`referenceProfile=unit_step`；`feasibleRegion={Mp<=15%, ts<=45s}` | `fixed_extent` | 时域图显示 `$M_p,t_r,t_s,t_p$`，幅频图显示 `$GM,\omega_c$`，根轨迹显示当前闭环极点， 相频图显示 `$PM,\omega_g$` | 根轨迹关键点附近加密采样，交汇与回折保持连续，交叉频率附近频域采样加密 | `fixed_2_decimals` |
+| `rust_wasm_control_engine` | `caseId=platform_pitch`；`outputs=[step_response, root_locus, magnitude, phase]`；`timeRange=[0,1.2]`；`frequencyRange=[1e-1,10^3]`；`rootLocus=[0,12]`；`referenceProfile=unit_step`；`feasibleRegion=high_speed_high_damping_entry` | `fixed_extent` | 综合图主视根轨迹显示当前闭环极点，右侧窄图显示时域指标、`GM`、`PM` 与交叉频率 | 双根轨迹分支连续重排序，交汇与回折区加密；交叉频率与裕度附近频域采样加密 | `fixed_2_decimals` |
+
+## 原生示意图与原生表格合同
+
+| figure_or_table_ref | render_mode | progressive_reveal | interaction_carrier | acceptance_note |
+|---------------------|-------------|--------------------|---------------------|-----------------|
+| `表 4 / 4-1-case-compare-summary.png` | `native_table + native_html` | `row_or_column_reveal` | 行高亮 + 排序条目拖拽 | 四行对照矩阵必须保留，不能烘成信息图位图。 |
+| `表 5 / 4-1-indicator-role-matrix.png` | `native_table + native_svg` | `row_or_column_reveal` | 问题卡点击高亮 + 三栏配对 | 角色矩阵中的符号与公式必须继续支持 LaTeX。 |
+| `表 6 / 4-1-task-card-template.png` | `native_html` | `section_click_reveal` | 七字段模板逐段显影 + 工作区填写 | 模板卡必须可继续扩展为后续局部交互，不保留为静态图片。 |
+| `表 10 / 4-1-region-layering.png` | `native_svg` | `step_click_reveal` | 分层区点击高亮 + 层级判断 | 三层区域关系必须可点击显影。 |
+| `表 11` | `native_table` | `row_or_column_reveal` | 五步清单逐行高亮 + 误判纠偏 | 五步清单必须与误判卡同页可见。 |
+
+---
 
 ## 步骤 01｜回到地图：稳定不是任务完成
 
 ### 页面骨架
 
 - 模板：`map_hero_slide`
-- 区域：`header` / `lead` / `summary`
-
-### 主阅读顺序
-
-- `路径定位` -> `主问题` -> `本课边界`
+- 主阅读顺序：
+  - `路径定位`
+  - `主问题`
+  - `本课边界`
+- 区域：
+  - `header`：课次标题与模块定位
+  - `lead`：路径图与主问题卡
+  - `summary`：边界卡
 
 ### 模块清单
 
@@ -69,84 +95,100 @@
 - `core-question-card`：主问题卡
 - `boundary-card`：本课边界卡
 
-### 静态承载内容
+### 固定内容
 
-- 路径图固定高亮 `3-9 -> 4-1 -> 4-2 -> 4-3`，把 4-1 标为“任务表达入口”。
+- 路径图固定高亮 `3-9 -> 4-1 -> 4-2 -> 4-3 -> 4-4`，把 `4-1` 标为“任务表达入口”。
 - 主问题卡固定写明：
-  - 系统已经稳定，为什么还不能直接谈方法？
-  - 同一套跨域证据，为什么会写出不同任务排序？
-- 边界卡固定写明：本课只写任务，不进入结构选型、参数整定和自动求优。
+  - 系统已经稳定，为什么还不能直接谈方法；
+  - 同一套跨域证据，为什么会写出不同任务排序；
+  - 4-1 的任务不是给方案名，而是先写任务书。
+- 边界卡固定写明：本课只写任务，不进入结构选型、参数整定和最优搜索。
 
 ### 互动升级点
 
-- 组件类型：`none`
+- 主类型：`none`
+- 本页无作答区，无揭示按钮，无教师统计面板占位。
 
-### AI 边界
+### 埋点与教师数据
 
-- 页面目标：建立模块 4 的入口定位。
-- 允许范围：课程路径、分析语言与任务语言的区别。
-- 禁止范围：任何控制器推荐。
+- 埋点摘要：`viewed`、`timeOnStep`、`teacherFollowSync`
+- 教师聚合：`view_count`、`sync_status`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-01`
+- 对齐要求：首屏直接出现路径图、主问题卡和边界卡，无空白互动容器。
+
+---
 
 ## 步骤 02｜学习目标与边界：4-1 只负责写任务书
 
 ### 页面骨架
 
 - 模板：`goal_boundary_slide`
-- 区域：`goals` / `boundary`
-
-### 主阅读顺序
-
-- `学习目标` -> `本课负责` -> `本课不负责`
+- 主阅读顺序：
+  - `学习目标`
+  - `本课负责`
+  - `本课不负责`
+- 区域：
+  - `goals`：四项目标卡
+  - `boundary`：负责 / 不负责边界表
 
 ### 模块清单
 
 - `goal-cards`：四项目标卡
-- `boundary-table`：负责/不负责对照表
+- `boundary-table`：边界表
 
-### 静态承载内容
+### 固定内容
 
 - 四项目标卡固定写明：
   - 会解释为什么同一套证据会导出不同排序；
-  - 会区分时域、频域、积分误差类指标各自回答什么；
+  - 会区分时域、频域、积分误差各自回答的问题；
   - 会把指标改写成硬约束、软目标和观察指标；
   - 会写出可交给 `4-2/4-3/4-4` 的任务表达卡。
 - 边界表固定写明：
-  - 本课负责：双案例联读、指标角色回收、任务卡、区域分层、误判清单；
-  - 本课不负责：控制结构选择、参数方向试探、最优解搜索。
+  - 本课负责：双案例联读、指标角色回收、任务表达卡、区域分层、误判清单；
+  - 本课不负责：控制结构选择、参数试探、最优解搜索。
 
 ### 互动升级点
 
-- 组件类型：`none`
+- 主类型：`none`
+- 本页纯静态承载，边界表承担全部知识表达，不添加装饰性互动。
 
-### AI 边界
+### 埋点与教师数据
 
-- 页面目标：把 4-1 与后续课次的边界立住。
-- 禁止范围：提前讨论 `4-2/4-3` 的方案判断。
+- 埋点摘要：`viewed`、`timeOnStep`
+- 教师聚合：`view_count`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-02`
+- 对齐要求：目标卡与边界表必须同屏可见，不折叠成摘要。
+
+---
 
 ## 步骤 03｜同图异读预判：为什么同一套证据会写出两张任务书
 
 ### 页面骨架
 
 - 模板：`question_stack`
-- 区域：`question-stack` / `submit-bar`
-
-### 主阅读顺序
-
-- `场景提示` -> `三题预判` -> `误区提示`
+- 主阅读顺序：
+  - `场景提示`
+  - `三题预判`
+  - `误区提示`
+- 区域：
+  - `question-stack`：三题纵向堆叠
+  - `submit-bar`：提交与反馈条
 
 ### 模块清单
 
-- `pretest-q1`：客船场景最先要守住什么
-- `pretest-q2`：稳定平台场景为什么不能只盯着速度
-- `pretest-q3`：同一套图为何不能写成同一张任务书
+- `pretest-q1`：客船场景最不能接受什么
+- `pretest-q2`：稳定平台为什么不能只盯速度
+- `pretest-q3`：为何不能写成同一张任务书
 
-### 静态承载内容
+### 固定内容
 
-- 三道题干全部明文落页，并在题干中明确引用“客船航向控制”和“稳定平台”两个对象。
-- 题干只问三类判断：
-  - 当前最不能接受的后果是什么；
-  - 哪类指标应当先前移；
-  - 为什么“所有指标都重要”不是设计入口。
+- 三道题干全部明文落页，并明确引用“客船航向控制”“稳定平台”两个对象。
 - 误区提示固定列出：
   - 稳定不是任务完成；
   - 更大带宽不是无条件更优；
@@ -154,177 +196,239 @@
 
 ### 互动升级点
 
-- 组件类型：`quiz_group`
+- 主类型：`quiz_group`
 - 作答模型：允许重提一次；教师端区分首答与重提。
-- 揭示规则：`teacher_toggle`
+- 反馈规则：只返回错因标签，不直接给完整排序答案。
+- 教师揭示：`teacher_toggle`
 
-### AI 边界
+### 埋点与教师数据
 
-- 页面目标：先暴露“同图异读”入口误区。
-- 禁止范围：替学生给出完整结论。
+- 埋点摘要：`attemptCount`、`resultState`、`errorBucket`、`teacherRevealSeen`
+- 教师聚合：`question_distribution`、`top_misconceptions`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-03`
+- 对齐要求：三题在未作答状态下全部可见，反馈条位于题组下方。
+
+---
 
 ## 步骤 04｜主场景 A：客船航向控制先保什么
 
 ### 页面骨架
 
 - 模板：`case_study_dashboard`
-- 区域：`object` / `evidence` / `analysis`
-
-### 主阅读顺序
-
-- `对象/背景` -> `模型与公式` -> `图像与曲线` -> `指标/边界` -> `判断与任务卡`
+- 主阅读顺序：
+  - `对象/背景`
+  - `模型与公式`
+  - `图像与曲线`
+  - `指标/边界`
+  - `判断与任务卡`
+- 区域：
+  - `object`：对象框图与传函
+  - `evidence`：四联图与控件栏
+  - `analysis`：读图卡与任务填写区
 
 ### 模块清单
 
 - `ship-object-block`：`4-1-ship-heading-block.png`
-- `ship-quad-figure`：`4-1-ship-heading-quad.png`
-- `ship-reading-card`：主矛盾/边界/证据三栏卡
+- `ship-quad-figure`：客船四联图画板
+- `ship-reading-card`：主矛盾 / 必守边界 / 证据来源卡
 
-### 静态承载内容
+### 固定内容
 
 - 对象区完整写出：
   $$
   P_h(s)=\frac{0.01715}{s(s+0.1)(s+2.14375)},\qquad
   L_h(s)=\frac{0.0385875}{s(s+0.1)(s+2.14375)}
   $$
-- 四联图区旁固定写明入口边界：
+- 边界区完整写出：
   $$
   M_p \le 15\%,\qquad t_s \le 45\,\text{s}
   $$
-- 读图卡必须把三条判断写实：
+- 读图卡固定写明：
   - 当前系统稳定，但过程偏冲、偏拖；
-  - 设计点还未进入当前任务可接受区域；
-  - 客船场景的入口排序是“平顺与储备优先，再谈提速”。
+  - 当前闭环极点尚未进入任务允许区域；
+  - 客船场景的入口排序是“先保平顺与储备，再谈提速”。
 
 ### 互动升级点
 
-- 主类型：`parameter_slider`
-- 参数联动区负责在讲义基线状态上联动显示客船四联图，允许学生围绕同一结构调节关键增益并观察时域、根轨迹、幅频与相频/裕度同步变化。
-- 结构化比较卡保留为次级工作区，只负责填写“当前主要矛盾 / 必守边界 / 当前证据来源”。
-- 反馈规则：按字段提示缺项，不直接给控制器答案。
+- 主类型：`parametric_sim`
+- 互动组件：
+  - 上部为四联图参数联动画板；
+  - 下部为三字段结构化填写区，仅填写“当前主要矛盾 / 必守边界 / 证据来源”。
+- 反馈规则：按字段提示缺项与错类，不直接给控制器名称或参数建议。
 
 ### 曲线互动镜像说明
 
 - 对应静态图：`4-1-ship-heading-quad.png`
-- 默认状态：保持讲义基线参数 `K_h=2.25`，四联图初始曲线位置与 handout 完全一致。
-- 图组排布：默认保持 `2×2` 四联图阅读语义；窄屏仅做响应式重排，不改变阅读顺序。
-- 控件策略：图像模块下方使用折叠式控件栏；当前步骤只暴露一个共享参数滑块，不额外拆分同类结构开关。
-- 可达状态：至少覆盖讲义中的基线工作点与“继续提速会压紧储备”的关键变化区间。
+- 基线状态：`K_h=2.25`，默认曲线位置与讲义原图一致。
+- 图组排布：`2x2`，阅读顺序固定为“时域 -> 幅频 -> 根轨迹 -> 相频”。
+- 控件策略：图像模块下方折叠式控件栏，仅暴露一个共享滑块 `K_h`。
+- 折叠策略：`图下折叠控件栏`
+- 运行时合同要点：
+  - `engine_family = rust_wasm_control_engine`
+  - `request_contract` 必含 `caseId=ship_heading`、`outputs`、`timeRange`、`frequencyRange`、`rootLocus`、`referenceProfile`、`feasibleRegion`
+  - `axis_policy = fixed_extent`
+  - `panel_overlay` 固定显示当前时域指标、交叉频率、双裕度与闭环极点
+  - `sampling_policy` 必须写出根轨迹关键点加密采样与轨迹连续性
+  - `precision_policy = fixed_2_decimals`
 
-### AI 边界
+### 埋点与教师数据
 
-- 页面目标：把主场景 A 的排序压实为“先进入可接受区域，再谈速度”。
-- 交付方式：隐藏式页面上下文，仅供控灵助手消费。
-- 禁止范围：直接给出结构名称。
+- 埋点摘要：`fieldCompletion`、`errorBucket`、`timeOnStep`
+- 教师聚合：`field_completion_rate`、`top_error_buckets`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-04`
+- 对齐要求：对象框图、四联图和读图卡必须首屏连续可读；学生演示页必须展示真实滑块与真实四联图。
+
+---
 
 ## 步骤 05｜对照案例 B：稳定平台为什么把速度排得更前
 
 ### 页面骨架
 
 - 模板：`case_study_dashboard`
-- 区域：`object` / `evidence` / `analysis`
-
-### 主阅读顺序
-
-- `对象/背景` -> `模型与公式` -> `图像与曲线` -> `指标/边界` -> `判断与任务卡`
+- 主阅读顺序：
+  - `对象/背景`
+  - `模型与公式`
+  - `图像与曲线`
+  - `指标/边界`
+  - `判断与任务卡`
+- 区域：
+  - `object`：对象框图与传函
+  - `evidence`：综合图与控件栏
+  - `analysis`：短对照读图卡
 
 ### 模块清单
 
 - `platform-object-block`：`4-1-platform-pitch-block.png`
-- `platform-quad-figure`：`4-1-platform-pitch-quad.png`
-- `platform-reading-card`：速度/超调/储备三栏卡
+- `platform-quad-figure`：稳定平台综合图画板
+- `platform-reading-card`：速度优势 / 边界代价 / 证据来源卡
 
-### 静态承载内容
+### 固定内容
 
 - 对象区完整写出：
   $$
   P_p(s)=\frac{2960\left(\frac{s}{15}+1\right)}{s\left(\frac{s}{3}+1\right)\left[(1.7s+1)(0.005s+1)(0.001s+1)+100\right]},\qquad
   L_p(s)=K_pP_p(s)
   $$
-- 说明卡固定写明：案例 B 保留“双根轨迹 + 右上双窄图”的综合布局，只服务“排序重排”的短对照功能。
-- 读图卡必须把三条判断写实：
+- 布局说明固定写明：案例 B 保留“根轨迹主视区 + 右侧窄图”的综合图结构，只承担排序重排的短对照职责。
+- 读图卡固定写明：
   - 当前工作点速度优势明显；
   - 超调与储备仍未整理到位；
   - 平台场景的入口排序是“先保速度优势，再把超调与储备整理到位”。
 
 ### 互动升级点
 
-- 主类型：`parameter_slider`
-- 参数联动区负责镜像案例 B 的综合图，保留原图中的“根轨迹主视区 + 压缩幅相窄图”结构，让学生通过关键参数调节观察速度优势与储备代价的联动。
-- 结构化比较卡保留为次级工作区，只负责填写“速度为何前移 / 哪条边界不能放松 / 当前代价来自哪类证据”。
-- 反馈规则：检查是否同时写到速度优势与边界代价。
+- 主类型：`parametric_sim`
+- 互动组件：
+  - 上部为综合图参数联动画板；
+  - 下部为三字段结构化填写区，仅填写“速度为何前移 / 哪条边界不能放松 / 代价来自哪类证据”。
+- 反馈规则：检查是否同时写到速度优势与边界代价，不扩展为整定课。
 
 ### 曲线互动镜像说明
 
 - 对应静态图：`4-1-platform-pitch-quad.png`
-- 默认状态：保持 handout 中案例 B 的基线工作点与原图结构，不把综合图压扁成普通单图切换。
-- 图组排布：保留讲义原有的“综合图”阅读结构，默认先看主视根轨迹，再看压缩幅相窄图。
-- 控件策略：图像模块下方使用折叠式控件栏；当前步骤优先暴露一个共享参数滑块，后续若加入结构变化，再增加结构勾选与各自参数滑块。
-- 可达状态：至少覆盖“速度优势仍在”和“储备进一步压紧”两类典型状态。
+- 基线状态：`K_p=5`，默认布局与讲义原图一致，不压扁成普通单图切换。
+- 图组排布：`custom-grid`，阅读顺序固定为“主视根轨迹 -> 右侧时域 -> 右侧幅频 -> 右侧相频”。
+- 控件策略：图像模块下方折叠式控件栏，仅暴露一个共享滑块 `K_p`。
+- 折叠策略：`图下折叠控件栏`
+- 运行时合同要点：
+  - `engine_family = rust_wasm_control_engine`
+  - `request_contract` 必含 `caseId=platform_pitch`、`outputs`、`timeRange`、`frequencyRange`、`rootLocus`、`referenceProfile`、`feasibleRegion`
+  - `subplot_mapping` 必须明确根轨迹主视区与右侧三块窄图区的对应关系
+  - `axis_policy = fixed_extent`
+  - `panel_overlay` 固定显示当前时域指标、双裕度、交叉频率与闭环极点
+  - `sampling_policy` 必须写出双根轨迹关键区间加密与连续重排序
+  - `precision_policy = fixed_2_decimals`
 
-### AI 边界
+### 埋点与教师数据
 
-- 页面目标：让学生区分“排序重排”和“边界失效”不是一回事。
-- 交付方式：隐藏式页面上下文，仅供控灵助手消费。
-- 禁止范围：扩展为整定课。
+- 埋点摘要：`fieldCompletion`、`errorBucket`、`timeOnStep`
+- 教师聚合：`field_completion_rate`、`top_error_buckets`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-05`
+- 对齐要求：综合图的特殊布局必须原样保留；学生演示页必须直接显示真实参数联动组件。
+
+---
 
 ## 步骤 06｜双案例对照：排序变化来自哪里
 
 ### 页面骨架
 
 - 模板：`contrast_summary_board`
-- 区域：`matrix` / `sorting` / `summary`
-
-### 主阅读顺序
-
-- `对照矩阵` -> `排序结果` -> `一句话收束`
+- 主阅读顺序：
+  - `对照矩阵`
+  - `排序结果`
+  - `一句话收束`
+- 区域：
+  - `matrix`：双案例同图异读原生矩阵
+  - `sorting`：排序条目拖拽区
+  - `summary`：一句话收束卡
 
 ### 模块清单
 
-- `case-compare-matrix`：双案例同图异读对照矩阵
+- `case-compare-matrix`：原生表格矩阵
 - `sorting-cards`：排序条目卡组
 - `summary-card`：一句话收束卡
 
-### 静态承载内容
+### 固定内容
 
-- 对照矩阵固定保留四行：
+- 原生矩阵固定保留四行：
   - 左上时域首先暴露什么；
   - 根轨迹首先提示什么；
   - 幅频首先提示什么；
   - 相频与裕度首先提示什么。
-- 总结卡固定写明：
+- 收束卡固定写明：
   - 变的是任务优先级，不是基础分析语言；
   - 同一套图在不同场景下会导出不同任务排序。
 
 ### 互动升级点
 
-- 组件类型：`card_sort`
-- 任务：把结论条目拖到“客船排序”或“平台排序”。
+- 主类型：`evidence_board + card_sort`
+- 对照矩阵采用原生表格，可逐行高亮。
+- 排序区把条目拖入“客船排序”“平台排序”两列。
 - 反馈规则：错位时只提示“场景与排序不匹配”。
 
-### AI 边界
+### 埋点与教师数据
 
-- 页面目标：把“同图异读”从案例现象压成稳定结论。
-- 禁止范围：跨案例给统一方案。
+- 埋点摘要：`sortAttempted`、`sortCorrected`、`timeOnStep`
+- 教师聚合：`sorting_distribution`、`completion_rate`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-06`
+- 对齐要求：原生矩阵与拖拽区必须同屏；不允许退化成纯文字列表。
+
+---
 
 ## 步骤 07｜指标角色重组：时域、频域、积分误差各自回答什么
 
 ### 页面骨架
 
 - 模板：`formula_table_match`
-- 区域：`formula` / `tables` / `interaction`
-
-### 主阅读顺序
-
-- `问题分工` -> `公式与指标` -> `角色映射`
+- 主阅读顺序：
+  - `问题分工`
+  - `公式与指标`
+  - `角色映射`
+- 区域：
+  - `formula`：积分误差公式卡
+  - `tables`：问题卡与角色矩阵
+  - `interaction`：三栏配对区
 
 ### 模块清单
 
 - `role-question-cards`：三类问题卡
 - `integral-index-card`：积分误差公式卡
-- `role-match-zone`：指标配对区
+- `role-matrix-table`：原生角色矩阵
+- `role-match-zone`：三栏配对区
 
-### 静态承载内容
+### 固定内容
 
 - 三类问题卡固定写明：
   - 过程是否可接受；
@@ -336,29 +440,39 @@
   J_{\mathrm{IAE}}=\int_{0}^{\infty} |e(t)|\,\mathrm{d}t,\qquad
   J_{\mathrm{ITAE}}=\int_{0}^{\infty} t|e(t)|\,\mathrm{d}t
   $$
-- 静态说明必须明确：这里回收的是最小指标语言，不展开为优化算法专题。
+- 原生矩阵固定保留“硬约束 / 软目标 / 观察指标”的三类角色与典型写法。
 
 ### 互动升级点
 
-- 组件类型：`triple_match`
-- 任务：把典型指标拖到“过程接受度 / 储备边界 / 累计代价”三栏。
+- 主类型：`triple_match`
+- 互动区只负责把典型指标拖到“过程接受度 / 储备边界 / 累计代价”三栏。
 - 反馈规则：即时标对错，可重试。
 
-### AI 边界
+### 埋点与教师数据
 
-- 页面目标：把三类指标的功能差异压实。
-- 禁止范围：扩展为最优化课程。
+- 埋点摘要：`matchAttempted`、`matchCorrected`、`timeOnStep`
+- 教师聚合：`common_mismatch_pairs`、`completion_rate`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-07`
+- 对齐要求：三类问题卡、积分误差公式和角色矩阵必须先于配对区出现；公式与符号继续采用 LaTeX 渲染。
+
+---
 
 ## 步骤 08｜任务分类：硬约束、软目标、观察指标
 
 ### 页面骨架
 
 - 模板：`comparison_panel_with_sort`
-- 区域：`rules` / `card-bank` / `sort-area`
-
-### 主阅读顺序
-
-- `分类规则` -> `指标卡组` -> `角色归类`
+- 主阅读顺序：
+  - `分类规则`
+  - `指标卡组`
+  - `角色归类`
+- 区域：
+  - `rules`：分类规则卡
+  - `card-bank`：指标与场景条目卡组
+  - `sort-area`：三类角色拖拽区
 
 ### 模块清单
 
@@ -366,183 +480,239 @@
 - `metric-card-bank`：指标卡组
 - `classification-sort`：分类拖拽区
 
-### 静态承载内容
+### 固定内容
 
-- 规则卡必须完整出现：
+- 规则卡必须完整写出：
   - 硬约束：不能破，先筛掉不能做的；
   - 软目标：守住底线后继续争取；
   - 观察指标：用来解释代价与后果。
 - 指标卡组至少包含：$M_p$、$t_s$、$\gamma$、$\omega_c$、$\omega_b$、$M_r$、积分误差。
-- 固定提醒语必须出现：同一个指标名称能扮演什么角色，不由名词本身决定，而由任务背景决定。
+- 固定提醒语必须出现：角色由任务背景决定，不由名词本身决定。
 
 ### 互动升级点
 
-- 组件类型：`card_sort`
+- 主类型：`card_sort`
 - 任务：把两组场景条目拖入三类角色区。
 - 反馈规则：先只提示“分类冲突”，答案由教师控制揭示。
 
-### AI 边界
+### 埋点与教师数据
 
-- 页面目标：把“指标名称”改写成“任务角色”。
-- 禁止范围：根据角色直接给控制器建议。
+- 埋点摘要：`attemptCount`、`sortBucket`、`timeOnStep`
+- 教师聚合：`bucket_distribution`、`common_sort_errors`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-08`
+- 对齐要求：规则卡必须完整落页，拖拽区位于其下，不改写为单选题。
+
+---
 
 ## 步骤 09｜任务表达卡工作区：把后续设计输入写全
 
 ### 页面骨架
 
 - 模板：`task_card_workspace`
-- 区域：`template` / `evidence` / `workspace`
-
-### 主阅读顺序
-
-- `模板字段` -> `证据来源` -> `任务表达卡填写`
+- 主阅读顺序：
+  - `模板字段`
+  - `证据来源`
+  - `任务表达卡填写`
+- 区域：
+  - `template`：七字段模板卡
+  - `evidence`：证据库与示范卡
+  - `workspace`：任务表达卡填写区
 
 ### 模块清单
 
-- `task-card-template`：七字段模板卡
+- `task-card-template`：原生七字段模板卡
 - `evidence-bank`：可引用证据条
+- `task-card-example-a`：主场景 A 示例卡
+- `task-card-example-b`：案例 B 短对照卡
 - `task-card-form`：填写区
 
-### 静态承载内容
+### 固定内容
 
 - 七字段固定为：对象、控制目标、最紧矛盾、硬约束、软目标、观察指标、证据来源。
-- 判断清单固定写明五步：
+- 五步判断清单固定写明：
   - 当前场景最不能接受的后果是什么；
   - 这些后果先落在哪些指标上；
   - 当前工作点是否进入允许区域；
-  - 继续改善会先碰到什么代价；
+  - 再改善会先碰到什么代价；
   - 最后再写排序和任务卡。
-- 页面必须同时给出主场景 A 的完整示范口径和案例 B 的短对照口径。
+- 证据库必须同时给出主场景 A 的完整示范口径和案例 B 的短对照口径。
 
 ### 互动升级点
 
-- 组件类型：`task_card_workspace`
-- 任务：任选一个案例，完整填写任务表达卡。
+- 主类型：`task_card_workspace`
+- 模板卡采用原生 HTML，支持七字段逐段显影。
+- 学生从证据库拖入或点选证据条，再填写任务表达卡。
 - 反馈规则：按字段检查是否遗漏“最紧矛盾”和“证据来源”。
 
-### AI 边界
+### 埋点与教师数据
 
-- 页面目标：形成可交给 `4-2/4-3/4-4` 的统一输入卡。
-- 允许范围：字段完整性检查、误判提醒。
-- 禁止范围：直接生成控制器方案。
+- 埋点摘要：`fieldCompletion`、`submissionState`、`timeOnStep`
+- 教师聚合：`field_completion_rate`、`submission_overview`、`top_missing_fields`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-09`
+- 对齐要求：模板卡、证据库与填写区必须同屏；模板卡不能退化为图片。
+
+---
 
 ## 步骤 10｜区域分层：可行域、满意域、最优域不是一步
 
 ### 页面骨架
 
 - 模板：`layered_region_board`
-- 区域：`formula` / `diagram` / `decision`
-
-### 主阅读顺序
-
-- `集合关系` -> `分层图示` -> `边界判断`
+- 主阅读顺序：
+  - `集合关系`
+  - `分层图示`
+  - `边界判断`
+- 区域：
+  - `formula`：集合关系公式卡
+  - `diagram`：原生分层图示
+  - `decision`：边界判断区
 
 ### 模块清单
 
 - `layer-formula-card`：集合关系公式卡
-- `layer-diagram`：分层示意图
-- `layer-judgement`：分层判断区
+- `layer-diagram`：原生分层图
+- `layer-difference-table`：三层差别表
+- `layer-judgement`：边界判断区
 
-### 静态承载内容
+### 固定内容
 
 - 公式卡固定写明：
   $$
   \mathcal{O}\subseteq\mathcal{S}\subseteq\mathcal{F}
   $$
-- 分层图固定说明：
+- 分层图区固定说明：
   - 可行域：先排除不能做；
   - 满意域：当前已经可接受；
   - 最优域：后续课程才有资格比较。
-- 页面必须明确写出：4-1 只把边界画到“当前可接受”，不能直接把“稳定”写成“已经最优”。
+- 三层差别表必须保留“稳定 / 可接受 / 最优”的典型误判对照。
 
 ### 互动升级点
 
-- 组件类型：`binary_choice`
+- 主类型：`binary_choice`
+- 分层图采用原生 SVG，支持逐层点击显影。
 - 任务：判断给定说法属于哪一层误判。
 - 反馈规则：即时给出错因标签。
 
-### AI 边界
+### 埋点与教师数据
 
-- 页面目标：把“稳定 != 可接受 != 最优”说透。
-- 禁止范围：直接求参数最优解。
+- 埋点摘要：`selectedOption`、`resultState`、`errorBucket`
+- 教师聚合：`option_distribution`、`misconception_rate`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-10`
+- 对齐要求：分层图必须为真实可点击图示；不允许退化为纯文字说明。
+
+---
 
 ## 步骤 11｜误判检查：稳定不等于完成，可行不等于最优
 
 ### 页面骨架
 
 - 模板：`misconception_board`
-- 区域：`cards` / `decision`
-
-### 主阅读顺序
-
-- `误判卡` -> `四格联读顺序` -> `纠偏判断`
+- 主阅读顺序：
+  - `误判卡`
+  - `五步清单`
+  - `纠偏判断`
+- 区域：
+  - `cards`：三类误判卡
+  - `checklist`：工程判断清单
+  - `decision`：纠偏判断区
 
 ### 模块清单
 
 - `misconception-cards`：三类误判卡
+- `engineering-checklist`：五步原生表格清单
 - `misconception-judge`：判断区
 
-### 静态承载内容
+### 固定内容
 
 - 三张误判卡固定写明：
   - 稳定 = 任务完成；
   - 所有指标同等重要；
   - 只看一张图就能直接下结论。
-- 旁侧必须给出四格联读顺序提示：
-  - 先看时域暴露什么；
-  - 再看根轨迹与可行域；
-  - 再看幅频给出的工作频带；
-  - 最后看相频与裕度代价。
+- 五步清单固定保留：
+  - 当前场景最不能接受的后果是什么；
+  - 这些后果会先落在哪些指标上；
+  - 当前工作点有没有进入当前任务允许区域；
+  - 若继续改善，会先碰到哪类代价；
+  - 最后该怎样写成任务书。
 
 ### 互动升级点
 
-- 组件类型：`binary_choice`
+- 主类型：`binary_choice`
+- 误判卡采用原生卡片，可逐张高亮。
+- 五步清单采用原生表格，可逐行高亮。
 - 任务：判断给定说法属于哪一类误判。
 - 反馈规则：即时显示错因标签。
 
-### AI 边界
+### 埋点与教师数据
 
-- 页面目标：在进入 `4-2` 之前清理入口误判。
-- 禁止范围：把误判题变成选型题。
+- 埋点摘要：`selectedOption`、`resultState`、`errorBucket`
+- 教师聚合：`misconception_distribution`、`top_error_buckets`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-11`
+- 对齐要求：误判卡与五步清单必须同页可见；教师端只增加聚合统计，不改变学生页布局。
+
+---
 
 ## 步骤 12｜后测与收束：先写任务，再谈方法
 
 ### 页面骨架
 
 - 模板：`summary_quiz_board`
-- 区域：`quiz` / `summary` / `next-step`
-
-### 主阅读顺序
-
-- `后测题组` -> `四句带走` -> `后续去向`
+- 主阅读顺序：
+  - `后测题组`
+  - `四句带走`
+  - `后续去向`
+- 区域：
+  - `quiz`：后测题组
+  - `summary`：四句带走与本讲产出
+  - `next-step`：`4-2/4-3/4-4` 去向卡
 
 ### 模块清单
 
-- `post-quiz-group`：后测题组
-- `summary-card`：四句带走
-- `engineering-checklist-card`：工程判断清单
-- `next-step-card`：去向卡
+- `post-quiz-group`：三题后测
+- `takeaway-cards`：四句带走卡
+- `output-summary`：本讲产出卡
+- `next-step-cards`：后续去向卡
 
-### 静态承载内容
+### 固定内容
 
-- 小结卡固定保留四句带走：
+- 后测题组固定围绕三类判断：
+  - 为什么客船和稳定平台会对同一套证据写出不同排序；
+  - 为什么稳定不等于任务完成；
+  - 进入 `4-2` 前最先必须保留哪类输入信息。
+- 四句带走固定写明：
   - 稳定只是设计起点，不是设计终点；
-  - 同一套跨域证据，会因为场景不同而读出不同任务排序；
-  - 真正进入设计前，必须先写清最紧矛盾、硬约束、软目标、观察指标和证据来源；
-  - 可行域不等于满意域，满意域不等于最优域。
-- 工程判断清单卡固定保留五步判断顺序。
-- 去向卡固定写明：
-  - `4-2`：根据任务排序讨论结构适配逻辑；
-  - `4-3`：根据任务卡讨论初始参数方向；
-  - `4-4`：根据任务卡回看首轮失败诊断。
+  - 同一套跨域证据会因为工程场景不同而读出不同任务排序；
+  - 真正进入设计前，必须先把最紧矛盾、硬约束、软目标、观察指标、证据来源写成任务表达卡；
+  - 可行域不等于满意域，满意域也不等于最优域。
+- 去向卡固定说明：
+  - `4-2` 解释结构；
+  - `4-3` 形成起步方向；
+  - `4-4` 用失败诊断回看任务卡。
 
 ### 互动升级点
 
-- 组件类型：`quiz_group`
-- 任务：完成 4 道后测题。
-- 揭示规则：`teacher_toggle`
+- 主类型：`quiz_group`
+- 作答模型：客观题即时判定，解释题提交后由教师揭示参考答案。
+- 反馈规则：后测只收束主线，不新增新概念。
 
-### AI 边界
+### 埋点与教师数据
 
-- 页面目标：完成本课收束并把学生送到 `4-2/4-3/4-4`。
-- 禁止范围：提前给出结构选型结论。
+- 埋点摘要：`attemptCount`、`resultState`、`timeOnStep`
+- 教师聚合：`question_distribution`、`completion_rate`、`top_misconceptions`
+
+### 预览口径
+
+- 学生页预览：`/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-12`
+- 对齐要求：后测题组、四句带走和去向卡必须同页完整收束；总结页必须能独立复习。
