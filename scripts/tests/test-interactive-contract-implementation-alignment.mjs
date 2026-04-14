@@ -91,11 +91,15 @@ function compareField(mismatches, stepId, field, expected, actual) {
   }
 }
 
+function resolveInputPath(root, inputPath) {
+  return path.isAbsolute(inputPath) ? inputPath : path.join(root, inputPath);
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const root = process.cwd();
-  const contractPath = path.join(root, args.contract);
-  const implementationPath = path.join(root, args.implementation);
+  const contractPath = resolveInputPath(root, args.contract);
+  const implementationPath = resolveInputPath(root, args.implementation);
 
   const contract = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
   const source = fs.readFileSync(implementationPath, 'utf8');
@@ -150,7 +154,25 @@ function main() {
 
     compareField(mismatches, stepId, 'layout.template', authoringStep.layout?.template, localPageContract.layout?.template);
     compareField(mismatches, stepId, 'layout.regions', authoringStep.layout?.regions ?? [], localPageContract.layout?.regions ?? []);
+    if ('reading_order' in (authoringStep.layout ?? {})) {
+      compareField(
+        mismatches,
+        stepId,
+        'layout.reading_order',
+        authoringStep.layout?.reading_order ?? [],
+        localPageContract.layout?.readingOrder ?? [],
+      );
+    }
     compareField(mismatches, stepId, 'interactionKind', interactionKind, localPageContract.interactionKind);
+    if ('interaction_archetype' in (authoringStep.interaction_spec ?? {})) {
+      compareField(
+        mismatches,
+        stepId,
+        'interactionArchetype',
+        authoringStep.interaction_spec?.interaction_archetype,
+        localPageContract.interactionArchetype,
+      );
+    }
     compareField(
       mismatches,
       stepId,
@@ -172,6 +194,15 @@ function main() {
       authoringStep.telemetry_spec?.misconception_tags ?? [],
       localPageContract.misconceptionTags ?? [],
     );
+    if ('delivery_mode' in (authoringStep.ai_context_spec ?? {})) {
+      compareField(
+        mismatches,
+        stepId,
+        'aiDeliveryMode',
+        authoringStep.ai_context_spec?.delivery_mode,
+        localStep.aiContext?.deliveryMode ?? localPageContract.aiDeliveryMode,
+      );
+    }
     compareField(
       mismatches,
       stepId,
@@ -179,11 +210,38 @@ function main() {
       authoringStep.preview_contract?.demo_path,
       localPageContract.previewDemoPath,
     );
+    if ('layout_mirror' in (authoringStep.interactive_figure_spec ?? {})) {
+      compareField(
+        mismatches,
+        stepId,
+        'figureLayoutMirror',
+        authoringStep.interactive_figure_spec?.layout_mirror,
+        localPageContract.figureLayoutMirror,
+      );
+    }
+    if ('placement' in (authoringStep.interactive_figure_spec?.controls ?? {})) {
+      compareField(
+        mismatches,
+        stepId,
+        'controlsPlacement',
+        authoringStep.interactive_figure_spec?.controls?.placement,
+        localPageContract.controlsPlacement,
+      );
+    }
+    if ('collapsed_by_default' in (authoringStep.interactive_figure_spec?.controls ?? {})) {
+      compareField(
+        mismatches,
+        stepId,
+        'controlsCollapsedByDefault',
+        authoringStep.interactive_figure_spec?.controls?.collapsed_by_default,
+        localPageContract.controlsCollapsedByDefault,
+      );
+    }
   }
 
   if (mismatches.length) {
-    console.error(
-      JSON.stringify(
+    process.stderr.write(
+      `${JSON.stringify(
         {
           message: 'interactive contract implementation alignment failed',
           contract: args.contract,
@@ -192,9 +250,10 @@ function main() {
         },
         null,
         2,
-      ),
+      )}\n`,
     );
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
 
   console.log(

@@ -4,8 +4,9 @@
 
 本规则适用于：
 
-- `python3` 脚本可生成的控制图、响应图、频域图、根轨迹图
-- 前端可直接绘制的 SVG 结构图、知识结构图、流程图
+- 作者态用 `python3` / `Octave` 生成的控制图、响应图、频域图、根轨迹图
+- 运行时由 Rust/WASM 控制分析引擎驱动、前端实时重绘的曲线图工作区
+- 前端可直接绘制的 SVG 结构图、知识结构图、流程图、原生表格
 - 线框型方框图、信号流图、电路图、弹簧阻尼系统示意图
 
 不适用于：
@@ -19,7 +20,7 @@
 
 ### 控制系统图与仿真
 
-以下内容统一优先使用 `python3 + control`：
+作者态静态图、离线夹具与核验数据统一优先使用 `python3 + control` 或 `Octave`：
 
 - 阶跃响应、脉冲响应、斜坡响应
 - 频率响应、伯德图、奈奎斯特图
@@ -27,6 +28,8 @@
 - 参数变化对动态性能的影响图
 
 凡涉及课程结论、图上数值、指标标注的确定性结果，都应尽量由脚本直接算出，不靠手绘或拍脑袋标注。
+
+互动课运行时的参数联动曲线不再默认走 `python3` 实时计算，而是统一复用共享 Rust/WASM 控制分析引擎、共享请求接口与固定面板工作区。当前基线以 `4-1` 的 `useControlEngine -> control-analysis.worker.ts -> compute_analysis -> ControlFigureWorkspace` 为准。
 
 ### 线框图
 
@@ -74,9 +77,10 @@
 
 1. 从 `multimedia.md`、`interactive-page.md` 与 runtime review 中识别缺失媒体。
 2. 判断该媒体属于：
-   - `python3 + control`
+   - 运行时 Rust/WASM 曲线工作区
+   - `python3 + control` / `Octave`
    - `tikz-control-draw`
-   - 前端 SVG 绘制
+   - 前端 SVG / Canvas / HTML 原生绘制
 3. 在 `media/raw/` 补脚本或源文件。
 4. 统一生成到 `media/processed/`。
 5. 抽样浏览器核对图像内容、中文、布局和尺寸。
@@ -136,10 +140,11 @@
 - 页面统一通过 runtime 路径读取媒体
 - 浏览器要检查真实中文显示，而不只是“文件存在”
 - 线框图和控制图应优先走真实绘制/仿真流程，不要回退到 ASCII 或截图占位
+- `4-1` 已进一步固化出“统一 Rust/WASM 曲线引擎 + 固定面板组合 + 固定坐标范围 + 指标覆盖层”的运行时基线，后续课程默认沿用
 
 ## 最小验证清单
 
-- [ ] 已判断资源属于 `python3 + control`、`tikz-control-draw` 或前端 SVG
+- [ ] 已判断资源属于运行时 Rust/WASM 曲线工作区、`python3 + control` / `Octave`、`tikz-control-draw` 或前端原生绘制
 - [ ] 原始脚本/源文件已落在 `media/raw/`
 - [ ] 处理后产物已落在 `media/processed/`
 - [ ] 已完成浏览器抽查

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 
@@ -873,9 +874,8 @@ def test_build_implementation_contract_check_registers_unit_4_1():
     source_path, issues, summary = review_lesson_content.build_implementation_contract_check('4-1', contract_path)
 
     assert source_path == 'src/lib/unit-4-1-course.ts'
-    assert summary == []
-    assert issues
-    assert any('step-04' in issue for issue in issues)
+    assert issues == []
+    assert summary == ['已检测到 `4-1` 的本地实现契约与作者态互动契约一致。']
 
 
 def test_build_interactive_page_check_reads_unit_4_1_evidence_contract():
@@ -889,7 +889,172 @@ def test_build_interactive_page_check_reads_unit_4_1_evidence_contract():
     assert check['curve_figure_steps_missing_mirror'] == []
     assert check['curve_figure_steps_missing_contract'] == []
     assert check['implementation_contract_source'] == 'src/lib/unit-4-1-course.ts'
-    assert check['implementation_contract_issues']
+    assert check['implementation_contract_issues'] == []
+    assert check['implementation_contract_summary'] == ['已检测到 `4-1` 的本地实现契约与作者态互动契约一致。']
+
+
+def test_build_interactive_page_check_validates_optional_nested_render_contracts(tmp_path):
+    lesson_dir = tmp_path / 'authoring' / 'lessons' / 'demo-8'
+    design_dir = lesson_dir / 'design'
+    design_dir.mkdir(parents=True)
+
+    handout_path = design_dir / 'handout.md'
+    interactive_page_path = design_dir / 'interactive-page.md'
+    interactive_contract_path = design_dir / 'interactive-contract.yaml'
+
+    handout_path.write_text(
+        '\n'.join(
+            [
+                '# demo',
+                '',
+                '## 曲线图',
+                '',
+                '## 示意图',
+                '',
+                '## 表格',
+            ]
+        ),
+        encoding='utf-8',
+    )
+    interactive_page_path.write_text(
+        '\n'.join(
+            [
+                '## 讲义证据单元映射',
+                '| handout_anchor | evidence_unit_id | evidence_kind | must_appear_content | target_step | page_mode | interaction_archetype | media_or_table_ref | acceptance_note |',
+                '|---|---|---|---|---|---|---|---|---|',
+                '| `## 曲线图` | `eu-01` | `curve_figure` | 曲线图基线 | `step-01` | `static+interactive` | `parametric_sim` | `demo-8-curve.png` | 曲线镜像 |',
+                '| `## 示意图` | `eu-02` | `structure_figure` | 示意图逐步呈现 | `step-02` | `static+interactive` | `evidence_board` | `demo-8-figure.png` | 原生示意图 |',
+                '| `## 表格` | `eu-03` | `table` | 表格公式保留 | `step-03` | `static+interactive` | `evidence_board` | `表 1` | 原生表格 |',
+                '',
+                '## step-01｜曲线图',
+                '### 页面骨架',
+                '- 模板：`curve_board`',
+                '### 主阅读顺序',
+                '- `对象` -> `图像与曲线`',
+                '### 固定内容',
+                '- 保留曲线图基线。',
+                '### 互动升级点',
+                '- 主类型：`parametric_sim`',
+                '### 曲线互动镜像说明',
+                '- 基线参数：`K=2.00`',
+                '',
+                '## step-02｜示意图',
+                '### 页面骨架',
+                '- 模板：`figure_board`',
+                '### 主阅读顺序',
+                '- `对象` -> `示意图`',
+                '### 固定内容',
+                '- 保留示意图。',
+                '### 互动升级点',
+                '- 主类型：`evidence_board`',
+                '',
+                '## step-03｜表格',
+                '### 页面骨架',
+                '- 模板：`table_board`',
+                '### 主阅读顺序',
+                '- `对象` -> `表格`',
+                '### 固定内容',
+                '- 保留表格。',
+                '### 互动升级点',
+                '- 主类型：`evidence_board`',
+            ]
+        ),
+        encoding='utf-8',
+    )
+    interactive_contract_path.write_text(
+        json.dumps(
+            {
+                'lesson_id': 'demo-8',
+                'required_curve_figure_fields': [
+                    'engine_family',
+                    'request_contract',
+                    'subplot_mapping',
+                    'axis_policy',
+                    'panel_overlay',
+                    'reference_signal',
+                    'sampling_policy',
+                    'precision_policy',
+                ],
+                'required_native_figure_fields': [
+                    'render_mode',
+                    'progressive_reveal',
+                    'interaction_carrier',
+                ],
+                'required_native_table_fields': [
+                    'render_mode',
+                    'formula_rendering',
+                ],
+                'steps': {
+                    'step-01': {
+                        'title': '曲线图',
+                        'layout': {'template': 'curve_board', 'regions': []},
+                        'modules': [],
+                        'content_blocks': [],
+                        'interaction_spec': {'interaction_kind': 'parameter_slider', 'interaction_archetype': 'parametric_sim'},
+                        'teacher_controls': [],
+                        'telemetry_spec': {'summary_fields': [], 'misconception_tags': []},
+                        'teacher_insight_spec': {'widgets': []},
+                        'ai_context_spec': {'delivery_mode': 'hidden_page_context'},
+                        'preview_contract': {'route_kind': 'student_demo', 'demo_path': '/demo?step=step-01'},
+                        'acceptance_checks': [],
+                        'interactive_figure_spec': {
+                            'layout_mirror': '2x2',
+                            'controls': {'placement': 'below_figure', 'collapsed_by_default': True},
+                        },
+                    },
+                    'step-02': {
+                        'title': '示意图',
+                        'layout': {'template': 'figure_board', 'regions': []},
+                        'modules': [],
+                        'content_blocks': [],
+                        'interaction_spec': {'interaction_kind': 'none'},
+                        'teacher_controls': [],
+                        'telemetry_spec': {'summary_fields': [], 'misconception_tags': []},
+                        'teacher_insight_spec': {'widgets': []},
+                        'ai_context_spec': {'delivery_mode': 'hidden_page_context'},
+                        'preview_contract': {'route_kind': 'student_demo', 'demo_path': '/demo?step=step-02'},
+                        'acceptance_checks': [],
+                        'native_figure_spec': {
+                            'render_mode': 'native_svg',
+                        },
+                    },
+                    'step-03': {
+                        'title': '表格',
+                        'layout': {'template': 'table_board', 'regions': []},
+                        'modules': [],
+                        'content_blocks': [],
+                        'interaction_spec': {'interaction_kind': 'none'},
+                        'teacher_controls': [],
+                        'telemetry_spec': {'summary_fields': [], 'misconception_tags': []},
+                        'teacher_insight_spec': {'widgets': []},
+                        'ai_context_spec': {'delivery_mode': 'hidden_page_context'},
+                        'preview_contract': {'route_kind': 'student_demo', 'demo_path': '/demo?step=step-03'},
+                        'acceptance_checks': [],
+                        'native_table_spec': {
+                            'render_mode': 'native_table',
+                        },
+                    },
+                },
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding='utf-8',
+    )
+
+    original_get_lesson_dir = review_lesson_content.get_authoring_lesson_dir
+    try:
+        review_lesson_content.get_authoring_lesson_dir = lambda _: lesson_dir
+        check = review_lesson_content.build_interactive_page_check(
+            'demo-8',
+            [handout_path, interactive_page_path],
+        )
+    finally:
+        review_lesson_content.get_authoring_lesson_dir = original_get_lesson_dir
+
+    assert any('interactive_figure_spec.engine_family' in issue for issue in check['issues'])
+    assert any('native_figure_spec.progressive_reveal' in issue for issue in check['issues'])
+    assert any('native_table_spec.formula_rendering' in issue for issue in check['issues'])
 
 
 def test_ensure_runtime_media_index_creates_standard_sections(tmp_path):

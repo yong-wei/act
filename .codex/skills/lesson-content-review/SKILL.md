@@ -1,6 +1,6 @@
 ---
 name: lesson-content-review
-description: Use when reviewing a lesson under `course-content/authoring/lessons/` before interactive implementation, especially when handout correctness, `boppps.md` and `interactive-page.md` coverage, knowledge cards, factual claims, scientific reasoning, formulas, examples, or code-generated media must be checked, fixed in authoring, and exported to the corresponding runtime review directory.
+description: Use when reviewing a lesson under `course-content/authoring/lessons/`, especially when handout correctness, `boppps.md` and `interactive-page.md` coverage, `interactive-contract.yaml` 与本地互动实现契约一致性、知识卡片、事实性结论、科学推理、公式、示例或代码直出媒体需要被审查、回修并导出到 runtime 审查目录。
 ---
 
 # Lesson Content Review
@@ -14,8 +14,10 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - 以**正确性**为第一优先级：先查错，再谈完整性与可制作性；不主动润色文风。
 - 所有课型都必须审 `design/interactive-page.md` 与 `design/interactive-contract.yaml`（若已建立）；互动页不是可有可无的附属稿，而是课堂 PPT 的互动延伸板。
 - 互动设计默认采用双轨真源：人读 `interactive-page.md`，机读 `interactive-contract.yaml`；审查时不得只看其中一份。
+- 若课次已经落地本地互动实现，还必须把 `interactive-page.md`、`interactive-contract.yaml` 与本地实现契约一起做三层审查；只审作者态而不审实现，视为审查未完成。
 - 互动页覆盖审查必须确认：讲义核心概念、公式、图表、例题、结论已经落到页面；静态页合法且必要；关键知识不能只藏在互动组件里。
-- 审查还必须确认：人读稿的页面蓝图与机读稿的结构化契约逐步骤对齐，且默认预览口径固定为学生演示页。
+- 审查还必须确认：人读稿的页面蓝图、机读稿的结构化契约与本地实现契约逐步骤对齐，且默认预览口径固定为学生演示页。
+- 互动页面实现审核必须做到元件级：页面模板、区域布局、主阅读顺序、模块清单、互动原型、教师控件、埋点摘要、教师聚合、隐藏式 AI 上下文、预览路径、曲线图镜像布局与控件位置都要逐项核对。
 - 审查结论分层输出，且每层都要给出 `通过 / 需修订 / 阻塞` 状态：**结构正确性**、**互动页覆盖**、**事实正确性**、**科学合理性**、**确定性结论验证**。
 - 代码直出媒体必须先落 `media/processed/` 审核，再进入 runtime。
 - `course-content/runtime/knowledge/cards/nodes/` 继续作为全局知识卡片运行时来源；lesson runtime 只保存审查索引与报告。
@@ -34,6 +36,11 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - `course-content/authoring/lessons/<lesson>/design/multimedia.md`（如果存在）
 - `course-content/authoring/knowledge/cards/lessons/<lesson>/sequence.json`
 - `course-content/authoring/knowledge/cards/nodes/*.md` 中与本课相关的卡片
+
+若该课已经存在互动课程本地实现，还必须额外读取：
+- `course-content/scripts/review_lesson_content.py` 中 `IMPLEMENTATION_CONTRACT_REGISTRY` 对应到的本地实现源码
+- 本地实现导出的步骤定义常量与页面契约常量（由审查脚本自动解析）
+- 与该课关联的学生页预览路径、教师聚合配置与课程级 AI 页面上下文接入点
 
 若是 legacy 实践课且仍未迁移到讲义主线，可额外读取：
 - `design/practice-guide.md`
@@ -135,6 +142,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 
 - 不分理论课或实践课，都必须读取并审查 `design/interactive-page.md`
 - 若课次已建立双轨设计，则必须同步读取并审查 `design/interactive-contract.yaml`
+- 若课次已进入互动课程实现阶段，则必须把本地实现契约一并纳入审查
 - 先检查人读稿是否是“页面蓝图”而不是“讲课脚本”：
   - 页面模板 / 区域布局
   - 模块清单
@@ -144,14 +152,17 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
   - 教师聚合
   - AI 边界
   - 学生页预览路径
-- 再检查是否存在 `## 讲义核心内容映射`，并确认映射表使用 `handout_anchor / core_item_type / must_appear_content / target_step / page_mode / interaction_upgrade / media_or_table_ref / acceptance_note`
-- 互动页审查的目标不是“有没有互动”，而是“整门课是否已经先成为完整课件”
+- 再检查是否存在 `## 讲义核心内容映射` 或 `## 讲义证据单元映射`
+  - 若使用核心内容映射，至少包含 `handout_anchor / core_item_type / must_appear_content / target_step / page_mode / interaction_upgrade / media_or_table_ref / acceptance_note`
+  - 若使用证据单元映射，至少包含 `handout_anchor / evidence_unit_id / evidence_kind / must_appear_content / target_step / page_mode / interaction_archetype / media_or_table_ref / acceptance_note`
+- 互动页审查的目标不是“有没有互动”，而是“整门课是否已经先成为完整课件”，并且最终实现没有背离作者态合同
 - 重点检查：
   - 关键知识是否已在页面中静态或“静态 + 互动升级”地承载，而不是只存在于互动组件内部
   - 是否允许并合理使用纯静态页面来承担概念、公式、图示、表格、结论等基础教学职责
   - 页面数量是否服从内容逻辑与覆盖需求，而不是为了控制页数牺牲知识承载
   - 讲义主线中的核心概念、公式、图表、例题、结论是否都能在页面中找到明确落点
   - `interactive-page.md` 与 `interactive-contract.yaml` 的步骤顺序、步骤标题、预览路径、互动类型是否逐项一致
+  - 若课次已经进入实现阶段，`interactive-page.md`、`interactive-contract.yaml` 与本地实现契约是否三方一致
   - `interactive-contract.yaml` 是否具备至少这些步骤级字段：
     - `layout`
     - `modules`
@@ -163,14 +174,41 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
     - `ai_context_spec`
     - `preview_contract`
     - `acceptance_checks`
+  - 若课次采用新版证据单元合同，步骤内是否补齐 `evidence_units` 并与页面稿中的证据单元叙述一致
+  - 采用证据单元映射时，每一步是否写出 `主阅读顺序`，并与 `interactive-contract.yaml > steps.<step>.layout.reading_order` 一致
+  - 曲线图证据单元是否在页面稿中写明“曲线互动镜像说明”，并在契约中提供 `interactive_figure_spec`
+  - 曲线图互动是否满足本轮修订基线：
+    - 默认状态与讲义静态图一致
+    - 讲义若为 `2×2` 图组，互动图默认镜像为 `2x2`
+    - 控件栏默认位于图像模块下方折叠区
+    - 单参数单滑块；涉及结构变化时使用结构勾选加各自参数滑块
+    - 同类结构只配置一次，不按静态图曲线条数重复配置
   - 人读稿是否存在动作化写法导致页面结构不清，例如“展示 / 引导 / 完成一次 / 跟随推导 / 让学生”
   - 默认预览是否固定为学生演示页，而不是教师模板弹窗
+  - `ai_context_spec` 是否保持隐藏式页面上下文口径，不擅自膨胀为默认可见 AI 模块
   - 对于拖拽、连线、排序、拖槽、路径高亮等设计，是否在审查中明确标记“不得降级实现”
+  - 本地实现元件级审查是否逐项通过：
+    - `title`
+    - `pageType`
+    - `interactionKind`
+    - `layout.template`
+    - `layout.regions`
+    - `layout.reading_order`
+    - `interaction_archetype`
+    - `previewDemoPath`
+    - `teacherInsightWidgets`
+    - `telemetrySummaryFields`
+    - `misconceptionTags`
+    - `ai_context_spec.delivery_mode`
+    - `interactive_figure_spec.layout_mirror`
+    - `interactive_figure_spec.controls.placement`
+    - `interactive_figure_spec.controls.collapsed_by_default`
   - 参与式步骤累计时长是否不少于 45 分钟
   - 至少有一个或多个工作区/探索页/对照页承载学生实际操作、观察、记录、反馈
   - 教师端与学生端的页面差异是否清楚，且教师侧只要求聚合结果，不额外引入高频原始轨迹存储
   - 不得把实践课写成“教师演示 + 学生围观 + 末尾提交一句话感想”
 - 审查结果必须输出为 `course-content/runtime/lessons/<lesson>/review/interactive-page-check.json`
+- 详细规则与元件级核对表见 `references/interactive-implementation-review.md`
 
 ### 7. 审知识卡片
 
@@ -262,14 +300,23 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 已检查 `design/interactive-page.md`
 - [ ] 若课次已建立双轨设计，已检查 `design/interactive-contract.yaml`
 - [ ] 已确认 `design/interactive-page.md` 采用页面蓝图写法，而不是教师/学生动作脚本
-- [ ] 已确认 `design/interactive-page.md` 含 `## 讲义核心内容映射`
+- [ ] 已确认 `design/interactive-page.md` 含 `## 讲义核心内容映射` 或 `## 讲义证据单元映射`
 - [ ] 已确认每一步都写明页面模板、区域布局、模块清单、固定内容、互动机制、教师聚合、AI 边界与学生页预览
+- [ ] 若采用证据单元映射，已确认表头字段完整且 `handout_anchor`、`target_step` 可命中
+- [ ] 已确认采用证据单元映射的步骤都写出 `主阅读顺序`
 - [ ] 已确认讲义核心概念、公式、图表、例题、结论都有页面落点
 - [ ] 已确认关键知识没有只藏在互动组件里，必要静态页已保留
 - [ ] 已确认 `interactive-page.md` 与 `interactive-contract.yaml` 的步骤顺序、标题、互动类型、预览路径一致（如适用）
 - [ ] 已确认 `interactive-contract.yaml` 的步骤级字段完整（如适用）
+- [ ] 已确认 `ai_context_spec` 维持隐藏式页面上下文，不默认扩展为可见 AI 区块（如适用）
+- [ ] 已确认曲线图步骤都写有“曲线互动镜像说明”，且 `interactive-contract.yaml` 提供 `interactive_figure_spec`（如适用）
+- [ ] 已确认曲线图默认态与 handout 静态图一致，`2×2` 图组镜像为 `2x2`，控件栏位于图下折叠区（如适用）
+- [ ] 已确认单参数曲线图使用单滑块；多结构曲线图使用结构勾选与各自参数滑块（如适用）
 - [ ] 已确认默认预览口径是学生演示页，而不是教师模板弹窗（如适用）
 - [ ] 已确认拖拽 / 连线 / 排序 / 拖槽 / 路径高亮等互动未在设计审查中被默许降级
+- [ ] 若已存在本地互动实现，已完成三层合同审查：设计稿 / 机读契约 / 本地实现
+- [ ] 若已存在本地互动实现，已逐项核对页面模板、区域、主阅读顺序、互动原型、教师聚合、埋点、AI 上下文与图像控件位置
+- [ ] 若已存在本地互动实现，已检查 `interactive-page-check.json` 中 `implementation_contract_issues` 为空
 - [ ] 已检查正式讲义中的图号/表号、图题/表题是否完整且连续
 - [ ] 已确认正文中没有“图示建议”“待制作”“脚本验证”等作者态过程文本
 - [ ] 已确认设计期 `Octave` + `control` 内置函数校验未被错误写入讲义正文
@@ -299,11 +346,19 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - 把“实践不少于 45 分钟”误写成教师演示、口头讨论或课后自学时间
 - 只在实践课审 `interactive-page.md`，默认理论课不需要做页面覆盖审查
 - 只审 `interactive-page.md`，跳过 `interactive-contract.yaml`，导致机读契约与人读蓝图失配
+- 只审作者态双轨文档，不检查本地实现契约，导致真实页面已经漂移仍被放行
 - 允许 `interactive-page.md` 没有“讲义核心内容映射”，导致讲义核心内容没有明确落点
+- 允许“讲义证据单元映射”缺列、`handout_anchor` 失效或 `target_step` 漏配，导致讲义主线无法追踪到页面
 - 把 `interactive-page.md` 写成教师口播脚本、动作脚本，而不是固定页面蓝图
+- 忽略“主阅读顺序”，导致案例页阅读路径与讲义逻辑顺序脱节
 - 把核心概念、关键公式或例题结论只交给互动组件，页面静态部分只剩标题和提示
 - 审查时默认接受“设计里写拖拽，最终实现成单选也行”的降级做法
+- 曲线图互动没有复现讲义静态基线，或把 `2×2` 图组压成单图切换
+- 曲线图控件位置漂移到侧边栏、顶部悬浮区，或默认展开遮挡图像
+- 多结构曲线图仍按“每条曲线一个开关”建控件，导致结构层与参数层混杂
 - 允许默认预览继续使用教师端模板弹窗，而不是学生演示页
+- 把 `ai_context_spec` 误实现成默认可见 AI 卡片，破坏隐藏式页面上下文边界
+- 本地实现把 `reading_order`、`interaction_archetype`、教师聚合或埋点字段偷换成别的语义近似值
 - 看到公式能渲染就算通过，却没检查推导、数值或符号方向
 - 只审事实和公式，不审讲义是否仍带有“图示建议”“待制作”“脚本验证”等作者态痕迹
 - 把设计期验证过程直接保留在讲义正文，而不是转成审查记录或学生附录代码
@@ -323,9 +378,16 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - 实践课的讲义、BOPPPS、互动页三者对“45 分钟以上学生实践训练”说法不一致
 - 理论课的审查范围里没有 `interactive-page.md`
 - 双轨课次的审查范围里没有 `interactive-contract.yaml`
+- 已有本地互动实现，但审查范围里没有实现契约对比
 - 互动页只有互动框架，没有核心概念、公式、表格、图示或例题的静态承载
 - 人读稿与机读稿的步骤、互动类型或预览路径不一致
+- 人读稿、机读稿与本地实现三者中任意一方的布局、阅读顺序、互动原型或教师聚合不一致
+- 曲线图步骤没有“曲线互动镜像说明”，或契约中没有 `interactive_figure_spec`
+- 讲义是 `2×2` 曲线图组，本地实现却不是 `2x2` 镜像布局
+- 曲线图默认参数不能回到讲义静态图所对应的基线状态
+- 本地实现把图下折叠控件栏改成常驻侧栏，或把结构勾选退化成单选题
 - 设计稿里明确是拖拽 / 连线 / 排序，但审查意见默认允许实现阶段随意改成交互更弱的题型
+- 页面默认出现 AI 模块，但作者态只声明隐藏式 `ai_context_spec`
 - 外部事实没有来源链接和核验日期
 - 计算结果、响应曲线、频域结论没有脚本支撑
 - 讲义里的图没有正式编号图题，或仍然出现作者态占位说明

@@ -35,8 +35,14 @@
 
 ```json
 {
+  "assignment_title": "自动控制原理 作业3：稳定性与动态特性",
   "question_id": "T3-2",
   "question_type": "C",
+  "question_score": 20,
+  "assignment_score_policy": {
+    "assignment_total": 100,
+    "question_breakdown": [20, 20, 20, 40]
+  },
   "difficulty": "⭐⭐",
   "title": "根轨迹基本规则应用",
   "ability": "手绘根轨迹草图（8条规则综合应用）",
@@ -94,7 +100,8 @@
   "self_check": {
     "self_contained": true,
     "gradable": true,
-    "matches_question_type": true
+    "matches_question_type": true,
+    "score_consistent": true
   }
 }
 ```
@@ -130,6 +137,12 @@ $$
 {
   "selected_draft_id": "draft-2",
   "selection_reason": "最符合题号要求且题面自包含",
+  "score_check": {
+    "question_score": 20,
+    "score_consistent": true,
+    "score_reasonable": true,
+    "assignment_structure_compatible": true
+  },
   "rejected": [
     {
       "draft_id": "draft-1",
@@ -193,13 +206,14 @@ $$
 
 最终 Markdown 交付顺序固定为：
 
-1. 题号 / 题型 / 难度
-2. 最终题面
-3. 标准答案（正文内已嵌入行内得分点）
-4. 分步评分标准
-5. 裁判结论
-6. 一致性记录
-7. 是否触发第二轮作答
+1. 作业名称（若适用）
+2. 题号 / 题型 / 难度 / 题目分值
+3. 最终题面
+4. 标准答案（正文内已嵌入行内得分点）
+5. 分步评分标准
+6. 裁判结论
+7. 一致性记录
+8. 是否触发第二轮作答
 
 说明：
 - 不再单列“参考作答”章节。

@@ -1,13 +1,13 @@
 ---
 name: refine
-description: Use when refining student-facing `handout.md` files under `course-content/authoring/lessons/*/design/`, especially when an author-state lesson handout still contains teacher-facing or meta narration, needs tighter wording and a consistent “我们”视角, and the polished result should be written to `design/handout-refine.md` without changing formulas, figures, tables, or syllabus boundaries.
+description: Use when refining student-facing `handout.md` files under `course-content/authoring/lessons/*/design/`, especially when an author-state lesson handout still contains teacher-facing or meta narration, needs tighter wording and a consistent “我们”视角, and the polished result should be written back to the same `design/handout.md` without changing formulas, figures, tables, or syllabus boundaries.
 ---
 
 # 讲义润色技能（Refine）
 
 ## Overview
 
-把 `course-content/authoring/lessons/{unit}/design/handout.md` 润色成学生可直接阅读的 `handout-refine.md`。保留知识内容、公式、图表、表格、章节层级和单元边界，只调整文风、句法与叙述密度，让讲义更紧凑、更直接、更容易抓住重点。
+把 `course-content/authoring/lessons/{unit}/design/handout.md` 直接润色成学生可直接阅读的最终讲义，并回写到同一个 `handout.md`。保留知识内容、公式、图表、表格、章节层级和单元边界，只调整文风、句法与叙述密度，让讲义更紧凑、更直接、更容易抓住重点。
 
 本技能的核心目标不是“把讲义写得更像老师在课堂上说话”，而是“把讲义写成学生拿到后能顺畅阅读、快速定位重点的文本”。
 
@@ -23,7 +23,7 @@ description: Use when refining student-facing `handout.md` files under `course-c
 2. `course-content/syllabus-refactor/main.md`
 3. `course-content/syllabus-refactor/unit-design-details/module{N}.md`
 
-必要时可把现有的 `course-content/authoring/lessons/{unit}/design/handout-refine.md` 仅作为措辞参考，但输出必须以当前 `handout.md` 为准重新整理，不要沿用过期结构。
+若目录下已有历史 `course-content/authoring/lessons/{unit}/design/handout-refine.md`，只能把它当作旧措辞参考；最终必须以当前 `handout.md` 为准重新整理，并直接回写 `handout.md`，不要再生成、刷新或维护 `handout-refine.md`。
 
 ### 2. 先判边界，再动表达
 
@@ -60,7 +60,7 @@ description: Use when refining student-facing `handout.md` files under `course-c
 
 遇到这类问题时，应在结果中明确标记“需回到 `lesson` 的讲义生成阶段重写结构”，而不是只做句法压缩。
 
-输出覆盖到 `course-content/authoring/lessons/{unit}/design/handout-refine.md`。
+输出直接覆盖到 `course-content/authoring/lessons/{unit}/design/handout.md`，不要另存为 `handout-refine.md` 或其他平行副本。
 
 ## 润色规则
 
@@ -266,7 +266,7 @@ description: Use when refining student-facing `handout.md` files under `course-c
 
 完成后至少检查这些项目：
 
-- `handout-refine.md` 仍覆盖原稿全部公式、图片和表格；
+- 回写后的 `handout.md` 仍覆盖原稿全部公式、图片和表格；
 - 不再出现“您”；
 - “我们”成为主导视角；
 - 教师态/作者态句式显著减少；
@@ -284,4 +284,4 @@ description: Use when refining student-facing `handout.md` files under `course-c
 1. 主要删改了哪些元叙述、教师态和 AI 味表达；
 2. 哪些高频绕行句被改成了直接表述；
 3. 是否保留了公式、图片、表格和章节结构；
-4. 是否补齐或重刷了已有的 `handout-refine.md`。
+4. 是否已直接回写 `handout.md`，且没有再生成或更新 `handout-refine.md`。

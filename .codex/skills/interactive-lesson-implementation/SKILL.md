@@ -16,6 +16,9 @@ description: Use when implementing or upgrading this repository's interactive le
 - `1-2`：17 步课堂蓝图、词云/回复列表、runtime 首页与课堂双线协同。
 - `1-3`：增强型工作区、步骤级 AI 上下文、知识卡抽屉、浏览器验收、review/runtime 联动。
 - `2-1`：课前预习台统一入口模板、runtime 媒体文案装配、页内音视频容器、讲义在线阅读/下载，以及课堂外资源互动追踪链路。
+- `4-1`：统一 `useControlEngine -> control-analysis.worker.ts -> Rust/WASM compute_analysis -> ControlFigureWorkspace` 的曲线联动基线、固定面板组合、固定坐标范围、指标覆盖层与共享夹具回退。
+
+后续课程若涉及参数联动曲线，默认沿用 `4-1` 的 Rust/WASM 曲线联动基线；除非设计稿显式声明例外，不再回退到旧的单课内联图表实现。
 
 **核心原则：**
 - 互动课程首先是完整课件，其次才是互动体验。页面必须先承载标题层级、公式、表格、图示、例题、结论，再把最值得升级的位置做成交互。
@@ -281,7 +284,14 @@ description: Use when implementing or upgrading this repository's interactive le
 - 同类型结构只配置一次，不按每条曲线重复配置
 - 不得把 handout 的曲线图随意改成另一种视觉组织方式，除非设计稿已明确要求
 - 控件变化必须即时驱动曲线、设计点、可行域标记或相关示意层同步重绘；禁止“控件会动，但图不变”
-- 参数对比图、知识结构示意图
+- 运行时统一复用共享控制分析底座：`useControlEngine`、`control-analysis.worker.ts`、Rust/WASM `compute_analysis`、`ControlFigureWorkspace` 与共享请求接口；不要在单课里重写一套内联图表计算器
+- 曲线图请求参数必须与设计稿契约对齐，至少覆盖 `caseId`、`outputs`、`timeRange`、`frequencyRange`、`rootLocus`、`structures`、`referenceProfile`、`feasibleRegion`
+- 四联图或多联图的子图内容、位置与阅读顺序，必须严格继承讲义原图布局；若讲义把幅频和相频拆成双图，也必须按原图位置实现，不得因为实现方便改换位置
+- 面板默认只保留标题，不再额外堆叠解释文案；时域图显示当前时域性能指标，频域图显示 `PM/GM` 与交越频率，根轨迹图显示当前闭环极点；所有图内标注与 tooltip 统一保留 2 位小数
+- 时域图默认用虚线叠加参考信号
+- 绘图范围与数轴必须固定，按参数上下限覆盖的全区间预设；不允许滑块变化时动态缩放坐标轴，避免界面闪烁
+- 根轨迹实现必须关注分离点、回折点与交汇点；若统一 Rust 引擎已对关键区间采样做过加密，实现阶段不得再退回低精度采样，导致分离点不交汇
+- 曲线图的子图内容、位置、阅读顺序必须与讲义严格一致；不得把讲义左下的根轨迹挪到右上，也不得把综合图压扁成任意切换式单图
 
 #### 示意图原生重绘
 
@@ -294,9 +304,21 @@ description: Use when implementing or upgrading this repository's interactive le
 
 只有当图片本身承载不可替代的外部素材信息时，才允许保留位图。若是模板、矩阵、层级框、关系示意，必须做成前端可读、可缩放、可随主题适配的原生组件。
 
+除系统框图外，默认不再把示意图实现成静态 PNG。若设计稿中的示意图属于步骤、对比、卡片式结构，默认进一步升级为“按步骤点击逐步呈现”的互动形态，而不是一次性平铺全部信息。
+
+#### 原生表格
+
+讲义中的表格进入互动页时，默认实现为前端原生表格：
+
+- 公式与符号继续走页面 LaTeX 渲染链
+- 不得把表格整体做成图片贴入页面
+- 若设计稿要求逐行、逐列或分组呈现，应实现为渐进揭示，而不是整表静态平铺
+
 制作规则：
-- 控制仿真、响应曲线、频域结果：使用 `python3` + `control`
+- 互动课运行时参数联动曲线：使用统一 Rust/WASM 控制分析引擎与共享工作区
+- 作者态静态图、离线校核数据、夹具基线：使用 `python3` + `control` 或 `Octave`
 - 方框图/信号流图/电路/机械结构：使用 `tikz-control-draw`
+- 示意图与表格原生化：使用前端 SVG / Canvas / HTML 原生组件
 - 作者态脚本放在 `course-content/authoring/lessons/.../<lesson>/media/raw/`
 - 审核产物放在 `course-content/authoring/lessons/.../<lesson>/media/processed/`
 - 再通过 `bash course-content/scripts/export-runtime.sh <lesson>` 导出到 runtime
@@ -332,6 +354,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - 讲义必须正确渲染 LaTeX 公式
 - 讲义入口与详情区都要支持导出 PDF
 - 如果入口页包含预习台或课外媒体卡，默认复用 `2-1` 当前入口模板或其共享组件，不要各课重新发明结构、容器和事件链。
+- 入口页若包含预习台、媒体卡、讲义、知识图谱、知识卡或跨域入口，必须采用统一资源挂载与互动埋点链路；优先复用 `LessonEntryMediaHub`、`LessonEntryRuntimeSections` 与 `useResourceInteractionTracking`，不要单课自造资源壳层或自定义裸埋点。
 
 若课程入口页还包含“课前预习台”或运行态媒体入口，不要在主技能正文里自行发挥布局和文案，必须转读：
 
@@ -419,6 +442,8 @@ description: Use when implementing or upgrading this repository's interactive le
 - 不在模块里继续散写旧式颜色类；优先复用统一主题变量和现有 premium lesson 视觉基线。
 - 公式必须以 LaTeX 形式在页面中正确渲染，不能退化为纯文本近似写法。
 - 面向学生的文案、按钮、选项标签中不得泄露实现层字段名、枚举值、内部状态键或 telemetry tag，例如 `stable_equals_done` 这类内部标识不得直接显示在前端。
+- 页面中的互动只能实现设计契约已经声明的类型、顺序、反馈与指标呈现；若实现时发现契约缺字段，应先回写 `interactive-page.md` / `interactive-contract.yaml`，再继续编码。
+- 页面埋点必须优先复用统一互动采集框架；课堂内事件走 `useCourseEventTracking / useInteractiveTracking`，课堂外资源事件走 `useResourceInteractionTracking`，不得把两套语义混写。
 - 若实现偏离设计稿，必须在课程笔记中写清楚：来自哪份设计稿、偏离原因、为何更适合平台。
 
 ## 闭环验证
@@ -436,12 +461,14 @@ description: Use when implementing or upgrading this repository's interactive le
 - 每个需要 AI 的步骤都接到正确的隐藏式上下文；若出现页内 AI 入口，必须属于设计稿允许的例外
 - 所有曲线图步骤都满足“默认状态复现 handout 静态图、图组排布一致、控件栏下置折叠”
 - 动态曲线步骤已验证“控件变化 -> 图形即时重绘”，而不是只有旁白或数值变化
+- 动态曲线步骤已验证“统一 Rust/WASM 引擎 + 固定面板组合 + 固定坐标范围 + 2 位小数指标标注”全部成立
 - 学生提交后有明确提交态、等待态、答案反馈或修正反馈
 - 教师端统计、词云、答案揭示、结束课堂都可用
 - 课程事件与治理映射没有脱节
 - 课堂外资源行为没有漏掉；入口页媒体、讲义、知识图谱、知识卡片与跨域入口均已进入统一追踪链
 - 课程使用统一 session / Redis / SSE 能力，没有单课私有同步方案
 - 原生示意图在亮色/深色、桌面/移动口径下都可读，没有退化成糊图或裁切错位
+- 原生表格已落成真实表格节点，表内公式与符号渲染正常，没有被截图替代
 
 验证结果必须写回 `notes/<lesson>.md`，至少留下：
 - 设计稿到实现稿对照表的最终状态
@@ -477,6 +504,14 @@ python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_a
 ```
 
 这条脚本会调用实现侧一致性测试，校验作者态 `interactive-contract.yaml` 与本地平行契约在步骤标题、互动类型、模板/区域、教师洞察、telemetry、错因标签和学生演示页预览路径上的一致性。未通过时，不得宣称互动页面已经按契约实现。
+
+在上述脚本通过后，必须再调用子代理做实现情况审查：
+
+- 至少调用 1 个子代理做“契约实现审查”，核对页面结构、曲线面板、原生示意图、原生表格、入口资源挂载与埋点是否与技能规范一致
+- 若本地服务可启动，默认继续调用教师端/学生端双子代理做浏览器闭环验收
+- 主代理负责收集审查结论与缺陷，不把长篇浏览器过程塞回主上下文
+
+若子代理审查指出契约漏实现、旧口径回潮、埋点缺失或曲线/示意图降级，必须先修复，再宣称完成。
 
 推荐至少补一类守卫测试：
 - 检查隐藏式 AI 页面上下文与控灵助手接线
@@ -533,7 +568,7 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
 - `references/runtime-media-index-contract.md`
   - `runtime/lessons/<lesson>/media/<lesson>-media.md` 的文档结构、解析约束与前端装配规则
 - `references/runtime-code-generated-media.md`
-  - 代码直出图、`python3 + control`、`tikz-control-draw` 与 runtime 导出规范
+  - Rust/WASM 运行时曲线、作者态静态图、前端原生绘制、`tikz-control-draw` 与 runtime 导出规范
 - `references/verification-and-note-update.md`
   - 设计核对、浏览器验收、笔记更新与验证清单
 - `references/closed-loop-browser-validation.md`
@@ -558,9 +593,12 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
 - [ ] 已确认教师端统计、词云、答案揭示和结束课堂链路
 - [ ] 若课程入口页含预习台/媒体卡/知识图谱/知识卡/跨域入口，已设计并保留统一课堂外资源追踪链
 - [ ] 已判断媒体缺口应通过 `media/raw` / `media/processed` 补齐，而不是继续 ASCII 或长期占位
-- [ ] 已对控制图使用 `python3 + control`，对线框图使用 `tikz-control-draw`
+- [ ] 已区分“运行时互动曲线使用 Rust/WASM 统一引擎”与“作者态静态图/离线校核使用 `python3 + control` 或 `Octave`”
+- [ ] 已对示意图使用前端原生绘制，对表格使用原生表格，对线框图使用 `tikz-control-draw`
 - [ ] 已优先复用统一 session / Redis / SSE / rate limit 能力
 - [ ] 已在课程目录、预置教案、课堂码解析和 AI 注册表中完成接线
+- [ ] 已确认课程入口采用统一资源挂载与互动埋点链路
 - [ ] 已完成设计稿对照验证与浏览器闭环验收
+- [ ] 已完成至少一次子代理实现审查
 - [ ] 已通过 `python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --strict-implementation-contract`
 - [ ] 已更新 `notes/<lesson>.md`

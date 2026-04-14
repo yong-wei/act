@@ -107,8 +107,9 @@
 如果某资源本质上是控制图、结构图或机械/电路线框图：
 
 - 不要先写图片占位路径
-- 先判断是否应用 `python3 + control` 或 `tikz-control-draw`
-- 真实生成后进入 `media/processed/`，再导出 runtime
+- 先判断该资源属于“运行时 Rust/WASM 曲线工作区”“作者态 `python3 + control` / `Octave` 静态图”还是 `tikz-control-draw`
+- 运行时曲线工作区不是传统文件型媒体，不要求落成单张 `media/processed/*` 图片；它属于页面运行时能力，应走共享引擎、共享工作区与实现契约
+- 只有文件型静态图资源，才执行“真实生成后进入 `media/processed/`，再导出 runtime”；运行时曲线工作区不走这条文件产物流转
 
 ## AI 图与外部媒体
 

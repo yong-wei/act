@@ -503,6 +503,42 @@ def compare_contract_field(
     )
 
 
+def normalize_optional_required_fields(payload: dict[str, Any], field_name: str) -> list[str]:
+    raw_fields = payload.get(field_name)
+    if not isinstance(raw_fields, list):
+        return []
+    return [
+        str(field).strip()
+        for field in raw_fields
+        if str(field).strip()
+    ]
+
+
+def has_nested_contract_field(payload: Any, field_path: str) -> bool:
+    current = payload
+    for segment in field_path.split('.'):
+        if not isinstance(current, dict) or segment not in current:
+            return False
+        current = current.get(segment)
+    return True
+
+
+def collect_missing_nested_contract_fields(
+    container_name: str,
+    container_payload: Any,
+    required_fields: list[str],
+) -> list[str]:
+    if not required_fields:
+        return []
+    if not isinstance(container_payload, dict):
+        return [f'{container_name}.{field_name}' for field_name in required_fields]
+    return [
+        f'{container_name}.{field_name}'
+        for field_name in required_fields
+        if not has_nested_contract_field(container_payload, field_name)
+    ]
+
+
 def build_implementation_contract_check(lesson_id: str, contract_path: Path) -> tuple[str | None, list[str], list[str]]:
     config = IMPLEMENTATION_CONTRACT_REGISTRY.get(lesson_id)
     if not config:
@@ -926,22 +962,57 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
     issues.extend(implementation_contract_issues)
 
     curve_figure_steps_missing_contract: list[str] = []
+    nested_render_contract_fields_missing: list[str] = []
     payload, _ = load_interactive_contract(interactive_contract)
     if isinstance(payload, dict):
         contract_steps = payload.get('steps')
+        required_curve_figure_fields = normalize_optional_required_fields(payload, 'required_curve_figure_fields')
+        required_native_figure_fields = normalize_optional_required_fields(payload, 'required_native_figure_fields')
+        required_native_table_fields = normalize_optional_required_fields(payload, 'required_native_table_fields')
         if isinstance(contract_steps, dict):
+            missing_nested_fields_by_step: dict[str, list[str]] = {}
             for row in mapping_rows:
                 target_step = row.get('target_step', '').strip().strip('`')
                 evidence_kind = row.get('evidence_kind', '').strip()
                 core_item_type = row.get('core_item_type', '').strip()
                 kind_text = '/'.join(part for part in [core_item_type, evidence_kind] if part)
-                if 'curve_figure' not in kind_text or not target_step:
+                if not target_step:
                     continue
                 step_payload = contract_steps.get(target_step)
                 if not isinstance(step_payload, dict):
                     continue
-                if 'interactive_figure_spec' not in step_payload and target_step not in curve_figure_steps_missing_contract:
+                if 'curve_figure' in kind_text and 'interactive_figure_spec' not in step_payload and target_step not in curve_figure_steps_missing_contract:
                     curve_figure_steps_missing_contract.append(target_step)
+                missing_nested_fields: list[str] = []
+                if 'curve_figure' in kind_text:
+                    missing_nested_fields = collect_missing_nested_contract_fields(
+                        'interactive_figure_spec',
+                        step_payload.get('interactive_figure_spec'),
+                        required_curve_figure_fields,
+                    )
+                elif 'table' in kind_text:
+                    missing_nested_fields = collect_missing_nested_contract_fields(
+                        'native_table_spec',
+                        step_payload.get('native_table_spec'),
+                        required_native_table_fields,
+                    )
+                elif 'figure' in kind_text:
+                    missing_nested_fields = collect_missing_nested_contract_fields(
+                        'native_figure_spec',
+                        step_payload.get('native_figure_spec'),
+                        required_native_figure_fields,
+                    )
+
+                if missing_nested_fields:
+                    existing_fields = missing_nested_fields_by_step.setdefault(target_step, [])
+                    for field_name in missing_nested_fields:
+                        if field_name not in existing_fields:
+                            existing_fields.append(field_name)
+
+            for step_id, field_names in missing_nested_fields_by_step.items():
+                issue = f'步骤 `{step_id}` 的互动契约缺少字段：{", ".join(field_names)}'
+                issues.append(issue)
+                nested_render_contract_fields_missing.extend(field_names)
 
     if curve_figure_steps_missing_contract:
         issues.append(f'以下曲线图步骤的互动契约缺少 `interactive_figure_spec`：{", ".join(curve_figure_steps_missing_contract)}')
@@ -978,7 +1049,7 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         'step_reading_order_missing': step_reading_order_missing,
         'curve_figure_steps_missing_mirror': curve_figure_steps_missing_mirror,
         'curve_figure_steps_missing_contract': curve_figure_steps_missing_contract,
-        'missing_contract_fields': [],
+        'missing_contract_fields': nested_render_contract_fields_missing,
         'step_contract_issues': contract_issues,
         'implementation_contract_summary': implementation_contract_summary,
         'implementation_contract_issues': implementation_contract_issues,
