@@ -144,6 +144,42 @@ describe('unit 4-1 interactive course', () => {
     expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
   });
 
+  it('renders the shared control figure workspace instead of inline svg chart builders for step 04 and step 05', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).not.toContain("4-1-ship-heading-quad.png");
+    expect(stepPanelsSource).not.toContain("4-1-platform-pitch-quad.png");
+    expect(stepPanelsSource).toContain('ControlFigureWorkspace');
+    expect(stepPanelsSource).not.toContain('function StepResponseChart');
+    expect(stepPanelsSource).not.toContain('function RootLocusChart');
+  });
+
+  it('keeps complete formulas visible for steps 04, 05, 07, and 10', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain('P_h(s)=\\\\frac{0.01715}{s(s+0.1)(s+2.14375)}');
+    expect(stepPanelsSource).toContain('L_h(s)=K_hP_h(s)=\\\\frac{0.0385875}{s(s+0.1)(s+2.14375)}');
+    expect(stepPanelsSource).toContain('P_p(s)=\\\\frac{2960\\\\left(\\\\frac{s}{15}+1\\\\right)}{s\\\\left(\\\\frac{s}{3}+1\\\\right)');
+    expect(stepPanelsSource).toContain('J_{\\\\mathrm{ISE}}=\\\\int_{0}^{\\\\infty} e^2(t)\\\\,\\\\mathrm{d}t');
+    expect(stepPanelsSource).toContain('\\\\mathcal{O}\\\\subseteq\\\\mathcal{S}\\\\subseteq\\\\mathcal{F}');
+  });
+
+  it('does not leak internal choice values into student-facing labels', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain('const showOptionPrefix = /^[A-Z]$/.test(option.value);');
+    expect(stepPanelsSource).toContain("{showOptionPrefix ? <span className=\"font-medium\">{option.value}. </span> : null}");
+  });
+
   it('parses the 4-1 runtime media index into typed pre-study resources', () => {
     const mediaDocument = readFileSync(
       join(repoRoot, 'course-content/runtime/lessons/4-1/media/4-1-media.md'),
@@ -197,5 +233,17 @@ describe('unit 4-1 interactive course', () => {
     expect(parsed.mediaResources.some((resource) => resource.filename === 'handout.md')).toBe(false);
     expect(parsed.handoutSummary).toContain('客船航向控制');
     expect(parsed.handoutSummary).toContain('船载稳定平台');
+  });
+
+  it('tightens the interactive lesson implementation skill for dynamic figures and native diagram redraw', () => {
+    const skillSource = readFileSync(
+      join(repoRoot, '.codex/skills/interactive-lesson-implementation/SKILL.md'),
+      'utf8',
+    );
+
+    expect(skillSource).toContain('控件直接驱动同页曲线或图示的原生重绘');
+    expect(skillSource).toContain('任务表达卡模板');
+    expect(skillSource).toContain('指标角色矩阵');
+    expect(skillSource).toContain('stable_equals_done');
   });
 });

@@ -1,6 +1,6 @@
 ---
 name: interactive-lesson-implementation
-description: Use when implementing or upgrading this repository's interactive lessons from `course-content/authoring/lessons/` and reviewed runtime lesson bundles, especially to align new lesson structures, turn reviewed handouts/BOPPPS/media into production pages, and enforce the current premium-course rules around PPT-style content coverage, in-page AI, submission feedback, teacher aggregation, event governance, runtime media, and session sync/performance reuse.
+description: Use when implementing or upgrading this repository's interactive lessons from `course-content/authoring/lessons/` and reviewed runtime lesson bundles, especially to align new lesson structures, turn reviewed handouts/BOPPPS/media into production pages, and enforce the current premium-course rules around evidence-complete page coverage, hidden AI page contexts, submission feedback, teacher aggregation, event governance, runtime media, and session sync/performance reuse.
 ---
 
 # Interactive Lesson Implementation
@@ -13,7 +13,7 @@ description: Use when implementing or upgrading this repository's interactive le
 
 当前默认基线不再是单一 `L-2c`，而是综合以下已落地课程能力：
 - `1-1`：理论型精品互动课的第一页入口、教师/学生双端、提交闭环、教师统计与答案揭示、统一事件链。
-- `1-2`：17 步课堂蓝图、页内 AI 弹窗、词云/回复列表、runtime 首页与课堂双线协同。
+- `1-2`：17 步课堂蓝图、词云/回复列表、runtime 首页与课堂双线协同。
 - `1-3`：增强型工作区、步骤级 AI 上下文、知识卡抽屉、浏览器验收、review/runtime 联动。
 - `2-1`：课前预习台统一入口模板、runtime 媒体文案装配、页内音视频容器、讲义在线阅读/下载，以及课堂外资源互动追踪链路。
 
@@ -21,10 +21,14 @@ description: Use when implementing or upgrading this repository's interactive le
 - 互动课程首先是完整课件，其次才是互动体验。页面必须先承载标题层级、公式、表格、图示、例题、结论，再把最值得升级的位置做成交互。
 - 静态页合法且必要；不是每一步都必须互动，页面总数按教学逻辑与覆盖需求决定，不设硬上限。
 - 关键知识不得转嫁给互动组件。即使关闭互动，页面也必须保留核心概念、公式、图示、表格、例题和结论。
+- 页面骨架优先服从讲义证据链，不得把案例页、综合页或设计页实现成流程管理器、小测堆栈或摘要卡拼盘。
 - 双轨设计真源具有最高优先级：人读 `interactive-page.md`，机读 `interactive-contract.yaml`。实现时必须同时服从二者，不得跳过其一。
 - **严格按结构化文档实现。禁止降级实现、禁止偷懒替换、禁止自由发挥补设计。**
 - 设计稿中若已明确拖拽、连线、排序、拖槽、路径高亮、热点标注等组件形态，实施阶段不得改成选择题、填空题、文本问答或“先放占位以后再补”。
-- 设计稿中若已固定页面模板、区域、模块、文本、公式、图片、表格、教师聚合、AI 边界与学生页预览，实施阶段不得擅自删改、合并、改写或重排。
+- 设计稿中若已固定页面模板、区域、模块、文本、公式、图片、表格、教师聚合、隐藏式 AI 上下文与学生页预览，实施阶段不得擅自删改、合并、改写或重排。
+- 设计稿若已固定证据单元顺序、主阅读顺序、曲线图镜像排布、基线参数或结构切换方式，实现阶段不得擅自改成“图先行”“卡片先行”“单选替代”或“另起一套互动图”。
+- 设计稿若写明 `parameter_slider` / `parametric_sim` / 曲线联动图，实施时必须让控件直接驱动同页曲线或图示的原生重绘；禁止保留静态截图，再在截图下方附一块“滑块说明卡”假装联动。
+- 设计稿若同时给出对象框图、传函与曲线证据，页面顺序必须服从讲义与设计真源；默认先对象框图，再传函，再动态曲线区。若框图与传函同屏，可用双栏；若该段只剩框图，则框图单栏横向铺满。
 - 运行时页面必须 `runtime-first`，不能偷偷回读 `authoring` 或历史 `content`。
 - 课程页面必须同步接入步骤级 AI 上下文、提交反馈、教师端汇总、统一课程事件与数据治理语义。
 - 课程入口页、预习台、知识图谱、知识卡片、跨域模块和 standalone 互动资源的课堂外行为，也必须进入统一追踪链路；不要只顾课堂内事件。
@@ -124,9 +128,11 @@ description: Use when implementing or upgrading this repository's interactive le
 实现前先逐步核对双轨设计中已经固定的结构，不得在实现阶段重新发明页面：
 
 - 页面模板、区域布局、模块清单是否已明确
+- 证据单元、主阅读顺序、折叠策略是否已明确
 - 固定文本、公式、图片、表格、例题、结论是否已明确
 - 互动组件类型、交互规则、干扰项、揭示规则是否已明确
-- 埋点摘要、教师聚合、AI 边界、学生页预览路径是否已明确
+- 曲线图是否已明确为静态展示还是参数联动仿真板；若为参数联动图，是否已写明基线参数、图组排布、结构切换方式与控件栏位置
+- 埋点摘要、教师聚合、AI 上下文、学生页预览路径是否已明确
 
 若这些内容未写明，先回到 `interactive-page.md` / `interactive-contract.yaml` 补设计，不得在实现阶段自由发挥补齐。
 
@@ -137,8 +143,9 @@ description: Use when implementing or upgrading this repository's interactive le
 实现前先在 `notes/<lesson>.md` 写出对照表，再开始改代码。对照表至少包含：
 
 - 设计稿步骤 / 标题
-- 人读稿页面模板 / 区域 / 模块 / 固定内容
-- 机读稿互动类型 / 交互规则 / 埋点 / 教师聚合 / AI 边界 / 预览路径
+- 人读稿页面模板 / 主阅读顺序 / 区域 / 模块 / 固定内容
+- 机读稿互动类型 / 交互规则 / 埋点 / 教师聚合 / AI 上下文 / 预览路径
+- 若为曲线图步骤：静态图基线、图组排布、结构切换、控件折叠策略
 - 当前实现位置或缺口
 - 本轮处理状态（严格实现 / 缺实现 / 设计冲突待回修）
 - 验证方式或证据
@@ -146,8 +153,10 @@ description: Use when implementing or upgrading this repository's interactive le
 建立对照表后，至少核对：
 
 - 步骤数量、标题、顺序、时长
-- 每一步的页面模板、区域、模块、静态承载内容是否已实现
+- 每一步的页面模板、主阅读顺序、区域、模块、静态承载内容是否已实现
 - 每一步的互动类型是否与机读契约一致
+- 每一步的证据单元是否已完整落页，而不是只剩摘要卡
+- 若存在曲线图步骤，默认状态是否复现讲义静态图，图组排布是否与原图一致
 - 每一步是否发生了降级实现、删减实现或擅自新增设计
 - 教师端控制流：释放、揭示、汇总、结束课堂
 - 学生页默认预览是否与真实学生页一致
@@ -162,18 +171,19 @@ description: Use when implementing or upgrading this repository's interactive le
 
 #### AI 上下文
 
-- 是否需要页内 AI 助手
 - `topic`
 - `learningObjectives`
 - `knowledgeType`
 - `quickQuestions`
 - `systemPromptExtension`
+- `deliveryMode`
 
 默认做法：
 - 在 `src/lib/<lesson>-ai-contexts.ts` 中集中维护步骤级配置
 - 在 `src/lib/course-ai-contexts.ts` 中注册课程
 - 在学生页步骤切换时调用 `useGlobalAI().updatePageContext(...)`
-- AI 交互应以内嵌对话框或抽屉完成，不要跳转旧 `/ai` 页面
+- 默认把 AI 作为隐藏式页面上下文与快捷提示词配置，供全局浮动助手消费；不要默认在页面内部实现显式 AI 模块
+- 若课程确需页内 AI 入口，必须有明确理由，并在设计稿中写成例外项；不要跳转旧 `/ai` 页面
 
 #### 学生反馈
 
@@ -258,7 +268,31 @@ description: Use when implementing or upgrading this repository's interactive le
 
 - 时域/频域/根轨迹/伯德图/奈奎斯特等控制图
 - 方框图、信号流图、电路图、弹簧阻尼系统等线框图
+
+#### 曲线图镜像实现优先
+
+若设计稿中的证据单元对应 handout 曲线图，默认优先实现为“静态图的可调镜像”：
+
+- 默认参数、默认结构组合、默认曲线数量必须先复现讲义静态图
+- 静态图若为 `2x2` 图组，互动图默认也保持 `2x2` 图组，只允许为窄屏做响应式重排
+- 控件栏默认位于图组下方并折叠
+- 单参数变化默认只给一个滑块
+- 多结构比较默认给结构勾选项，并为每种结构提供自己的参数滑块
+- 同类型结构只配置一次，不按每条曲线重复配置
+- 不得把 handout 的曲线图随意改成另一种视觉组织方式，除非设计稿已明确要求
+- 控件变化必须即时驱动曲线、设计点、可行域标记或相关示意层同步重绘；禁止“控件会动，但图不变”
 - 参数对比图、知识结构示意图
+
+#### 示意图原生重绘
+
+以下内容默认视为“结构示意图”，应优先在前端以 SVG / Canvas / 结构化组件原生重绘，而不是直接插入 PNG：
+
+- 任务表达卡模板
+- 指标角色矩阵
+- 区域分层图、可行域/满意域/最优域关系图
+- 判断清单、职责分工板、流程关系图
+
+只有当图片本身承载不可替代的外部素材信息时，才允许保留位图。若是模板、矩阵、层级框、关系示意，必须做成前端可读、可缩放、可随主题适配的原生组件。
 
 制作规则：
 - 控制仿真、响应曲线、频域结果：使用 `python3` + `control`
@@ -324,6 +358,8 @@ description: Use when implementing or upgrading this repository's interactive le
 - 设计稿写的是路径高亮，实际做成文字解释题
 - 设计稿写的是三列配对舞台，实际只保留一个下拉框
 - 设计稿写了完整表格、公式条、图示，实际删成几行摘要
+- 设计稿写的是动态曲线联动，实际保留静态截图，只在下方加参数说明卡
+- 设计稿写的是模板卡、矩阵图、层级示意，实际直接塞一张位图
 - 设计稿写明学生演示页预览，实际仍以教师模板弹窗作为验收替代
 - 设计稿未要求新增内容，实际擅自加入新问题、新结论、新例题或新交互
 - 设计稿信息不全时，实施阶段自行补设计而不回写设计源
@@ -364,7 +400,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - `1-2`
   - 17 步课堂蓝图
   - 词云/回复列表
-  - 页内 AI 弹窗
+  - 页面结构化上下文与课堂骨架拆分
 - `1-3`
   - 增强版工作区
   - 步骤级 AI 上下文集中注册
@@ -378,9 +414,11 @@ description: Use when implementing or upgrading this repository's interactive le
 - 课程实现后，必须在互动课程总入口页注册精品课程入口。
 - 新课实现后，必须在 `src/features/interactive/learning-catalog.ts` 注册入口。
 - 不把 AI 文案、快捷问题、步骤目标散落在多个组件里。
+- 不默认给每一步长出页内 AI 区块；若只是为了接控灵助手上下文，保持隐藏式页面上下文即可。
 - 不把大块课程正文硬编码成难以复用的 JSX 常量堆；优先整理为步骤配置、内容块、媒体清单、工作区配置。
 - 不在模块里继续散写旧式颜色类；优先复用统一主题变量和现有 premium lesson 视觉基线。
 - 公式必须以 LaTeX 形式在页面中正确渲染，不能退化为纯文本近似写法。
+- 面向学生的文案、按钮、选项标签中不得泄露实现层字段名、枚举值、内部状态键或 telemetry tag，例如 `stable_equals_done` 这类内部标识不得直接显示在前端。
 - 若实现偏离设计稿，必须在课程笔记中写清楚：来自哪份设计稿、偏离原因、为何更适合平台。
 
 ## 闭环验证
@@ -389,16 +427,21 @@ description: Use when implementing or upgrading this repository's interactive le
 
 - 每一步即使关闭互动，仍保留可讲授的静态核心内容
 - 静态页被合理使用来承载概念、公式、表格、图示、例题、结论
-- 关键知识没有被转嫁给互动组件、AI 弹窗或提交后反馈区
+- 关键知识没有被转嫁给互动组件、页内 AI 模块或提交后反馈区
 - 页面先满足完整课件职责，而不是只剩互动骨架
+- 设计型或案例型页面的主阅读顺序仍与讲义一致，没有被改写成“大图先行”或“流程卡先行”
+- 每一步的证据单元都已显式落页，不是只剩摘要卡或操作卡
 - 首页和课堂页都没有偷偷回读 `authoring`
 - 媒体真实可读，且不是 ASCII 占位
-- 每个需要 AI 的步骤都接到正确上下文
+- 每个需要 AI 的步骤都接到正确的隐藏式上下文；若出现页内 AI 入口，必须属于设计稿允许的例外
+- 所有曲线图步骤都满足“默认状态复现 handout 静态图、图组排布一致、控件栏下置折叠”
+- 动态曲线步骤已验证“控件变化 -> 图形即时重绘”，而不是只有旁白或数值变化
 - 学生提交后有明确提交态、等待态、答案反馈或修正反馈
 - 教师端统计、词云、答案揭示、结束课堂都可用
 - 课程事件与治理映射没有脱节
 - 课堂外资源行为没有漏掉；入口页媒体、讲义、知识图谱、知识卡片与跨域入口均已进入统一追踪链
 - 课程使用统一 session / Redis / SSE 能力，没有单课私有同步方案
+- 原生示意图在亮色/深色、桌面/移动口径下都可读，没有退化成糊图或裁切错位
 
 验证结果必须写回 `notes/<lesson>.md`，至少留下：
 - 设计稿到实现稿对照表的最终状态
@@ -436,8 +479,10 @@ python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_a
 这条脚本会调用实现侧一致性测试，校验作者态 `interactive-contract.yaml` 与本地平行契约在步骤标题、互动类型、模板/区域、教师洞察、telemetry、错因标签和学生演示页预览路径上的一致性。未通过时，不得宣称互动页面已经按契约实现。
 
 推荐至少补一类守卫测试：
-- 检查页内 AI 弹窗而非跳转
+- 检查隐藏式 AI 页面上下文与控灵助手接线
+- 若设计稿要求页内 AI 入口，再检查其以内嵌对话框或抽屉实现，而非跳转
 - 检查提交反馈与教师汇聚存在
+- 检查曲线图步骤的基线参数、图组排布与控件布局未漂移
 - 检查统一事件链接线
 - 检查 runtime 首页内容来源
 

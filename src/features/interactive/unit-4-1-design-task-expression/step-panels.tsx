@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Copy, Sparkles } from 'lucide-react';
+import { BlockMath, InlineMath } from 'react-katex';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
@@ -14,6 +15,11 @@ import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
 import { useInteractiveAI } from '@/features/interactive/hooks/useInteractiveAI';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import type { InteractiveConfig } from '@/features/interactive/types';
+import {
+  getUnit41FallbackResult,
+} from '@/resources/control-system/analysis/unit-4-1-fixtures';
+import { buildUnit41AnalysisRequest } from '@/resources/control-system/analysis/unit-4-1-request-builder';
+import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
 import {
   UNIT_4_1_COURSE_TITLE,
   type UNIT_4_1StepDefinition,
@@ -152,14 +158,14 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
     intro: '客船航向控制的任务语言强调“平顺与储备优先，再谈提速”。对象框图、根轨迹、幅频和相频信息必须同页并读，不能只盯其中一张图。',
     sections: [
       {
-        title: '开环传函',
-        tone: 'violet',
-        markdown: '$$L_h(s)=\\frac{0.0385875}{s(s+0.1)(s+2.14375)}$$',
-      },
-      {
         title: '入口边界',
         tone: 'amber',
         bullets: ['超调量 Mp <= 15%', '调节时间 ts <= 45 s'],
+      },
+      {
+        title: '三条任务判断',
+        tone: 'cyan',
+        bullets: ['当前系统稳定，但过程偏冲、偏拖。', '设计点还未进入当前任务可接受区域。', '客船场景先保平顺与储备，再谈提速。'],
       },
     ],
     note: '对象框图与四联图必须同页可见，分析区只允许写“矛盾 / 边界 / 证据”，不允许直接跳到控制器名。',
@@ -173,9 +179,9 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
     intro: '稳定平台案例会把速度和带宽排得更前，但这不代表储备边界失效。它只是说明当前主任务重排了，证据语言和边界意识并没有消失。',
     sections: [
       {
-        title: '当前工作点',
+        title: '三条任务判断',
         tone: 'cyan',
-        bullets: ['高带宽。', '高速度。', '超调偏大。', '储备仍需补足。'],
+        bullets: ['当前工作点速度优势明显。', '超调与储备仍未整理到位。', '平台场景先保速度优势，再把超调与储备整理到位。'],
       },
       {
         title: '特殊布局说明',
@@ -220,7 +226,8 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
       {
         title: '积分误差类指标',
         tone: 'violet',
-        markdown: '$$J_{\\mathrm{ISE}},\\quad J_{\\mathrm{IAE}},\\quad J_{\\mathrm{ITAE}}$$',
+        markdown:
+          '$$J_{\\mathrm{ISE}}=\\int_{0}^{\\infty} e^2(t)\\,\\mathrm{d}t,\\qquad J_{\\mathrm{IAE}}=\\int_{0}^{\\infty} |e(t)|\\,\\mathrm{d}t,\\qquad J_{\\mathrm{ITAE}}=\\int_{0}^{\\infty} t|e(t)|\\,\\mathrm{d}t$$',
       },
     ],
     prompts: [
@@ -253,9 +260,9 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
     intro: '任务表达卡不是总结作文，而是给 4-2/4-3 的输入卡。对象、目标、硬约束、软目标、观察指标、证据来源都要落地，优先级也必须写清楚。',
     sections: [
       {
-        title: '六字段',
+        title: '七字段',
         tone: 'emerald',
-        bullets: ['对象', '目标', '硬约束', '软目标', '观察指标', '证据来源'],
+        bullets: ['对象', '控制目标', '最紧矛盾', '硬约束', '软目标', '观察指标', '证据来源'],
       },
       {
         title: '五步判断清单',
@@ -338,14 +345,8 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
 };
 
 const EXTRA_MEDIA_BY_STEP: Partial<Record<string, Array<{ src: string; alt: string }>>> = {
-  'step-04': [
-    { src: '/course-runtime/lessons/4-1/media/4-1-ship-heading-block.png', alt: '客船航向控制对象框图' },
-    { src: '/course-runtime/lessons/4-1/media/4-1-ship-heading-quad.png', alt: '客船航向控制四联图' },
-  ],
-  'step-05': [
-    { src: '/course-runtime/lessons/4-1/media/4-1-platform-pitch-block.png', alt: '稳定平台对象框图' },
-    { src: '/course-runtime/lessons/4-1/media/4-1-platform-pitch-quad.png', alt: '稳定平台综合图' },
-  ],
+  'step-04': [{ src: '/course-runtime/lessons/4-1/media/4-1-ship-heading-block.png', alt: '客船航向控制对象框图' }],
+  'step-05': [{ src: '/course-runtime/lessons/4-1/media/4-1-platform-pitch-block.png', alt: '稳定平台对象框图' }],
 };
 
 function getToneClass(tone: Tone = 'slate') {
@@ -414,6 +415,18 @@ function MediaPanel({ src, alt }: { src: string; alt: string }) {
   );
 }
 
+function FormulaCard({ title, formula, body }: { title: string; formula: string; body?: string }) {
+  return (
+    <div className="premium-lesson-tone-block premium-tone-violet h-full">
+      <div className="premium-lesson-title text-sm font-semibold">{title}</div>
+      <div className="mt-3 overflow-x-auto text-sm">
+        <BlockMath math={formula} />
+      </div>
+      {body ? <p className="mt-2 text-sm leading-7">{body}</p> : null}
+    </div>
+  );
+}
+
 function TextInput({
   value,
   onChange,
@@ -451,16 +464,23 @@ function ChoiceGroup({
   return (
     <div className="grid gap-2">
       {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => onChange(option.value)}
-          className={`premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-left text-sm transition ${
-            value === option.value ? 'ring-2 ring-cyan-400' : ''
-          }`}
-        >
-          <span className="font-medium">{option.value}.</span> {option.label}
-        </button>
+        (() => {
+          const showOptionPrefix = /^[A-Z]$/.test(option.value);
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onChange(option.value)}
+              className={`premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-left text-sm transition ${
+                value === option.value ? 'ring-2 ring-cyan-400' : ''
+              }`}
+            >
+              {showOptionPrefix ? <span className="font-medium">{option.value}. </span> : null}
+              {option.label}
+            </button>
+          );
+        })()
       ))}
     </div>
   );
@@ -500,6 +520,8 @@ interface CaseParameterConfig {
   lowHint: string;
   highHint: string;
   figureNote: string;
+  formula: string;
+  orderingSummary: string;
 }
 
 const CASE_PARAMETER_CONFIG: Record<'step-04' | 'step-05', CaseParameterConfig> = {
@@ -516,6 +538,9 @@ const CASE_PARAMETER_CONFIG: Record<'step-04' | 'step-05', CaseParameterConfig> 
     lowHint: '降低增益后，响应更稳妥，但速度与穿越频率会一起回落。',
     highHint: '继续抬高增益会换来更快的趋势，但超调和储备压力会同步上升。',
     figureNote: '图像模块保持 2×2 阅读语义；控件栏默认折叠在图像下方。',
+    formula:
+      'P_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)},\\qquad L_h(s)=K_hP_h(s)=\\frac{0.0385875}{s(s+0.1)(s+2.14375)}',
+    orderingSummary: '顺序固定为：对象框图 -> 开环传函 -> 动态四联图。',
   },
   'step-05': {
     key: 'K_p',
@@ -530,6 +555,9 @@ const CASE_PARAMETER_CONFIG: Record<'step-04' | 'step-05', CaseParameterConfig> 
     lowHint: '减小增益会缓和代价，但速度优势会一并回落。',
     highHint: '继续抬高增益能进一步推高速度与带宽，但储备代价会更快显现。',
     figureNote: '保留“双根轨迹 + 右上双窄图”的综合布局语义，不压缩成普通单图。',
+    formula:
+      'P_p(s)=\\frac{2960\\left(\\frac{s}{15}+1\\right)}{s\\left(\\frac{s}{3}+1\\right)\\left[(1.7s+1)(0.005s+1)(0.001s+1)+100\\right]},\\qquad L_p(s)=K_pP_p(s)',
+    orderingSummary: '顺序固定为：对象框图 -> 开环传函 -> 综合动态曲线区。',
   },
 };
 
@@ -579,18 +607,35 @@ function ParameterMirrorPanel({
   const config = CASE_PARAMETER_CONFIG[stepId];
   const [value, setValue] = useState(config.baseline);
   const state = describeParameterState(stepId, value);
+  const request = useMemo(
+    () =>
+      buildUnit41AnalysisRequest(stepId, {
+        gain: value,
+        structures: [{ kind: 'gain', enabled: true, params: { k: value }, label: config.label }],
+      }),
+    [config.label, stepId, value],
+  );
+  const fallbackResult = useMemo(() => getUnit41FallbackResult(stepId), [stepId]);
 
   return (
     <div className="premium-lesson-surface-elevated mt-4 rounded-3xl px-4 py-4">
       <div className="premium-lesson-title text-sm font-semibold">{config.summaryTitle}</div>
       <div className="premium-lesson-muted mt-2 text-sm">{config.figureNote}</div>
+      <div className="premium-lesson-caption mt-2 text-xs">{config.orderingSummary}</div>
+      <ControlFigureWorkspace
+        request={request}
+        fallbackResult={fallbackResult}
+        layout={stepId === 'step-04' ? 'quad' : 'platform'}
+      />
       <details className="mt-4 rounded-2xl border border-border/50 bg-background/60 px-4 py-3">
         <summary className="cursor-pointer list-none text-sm font-medium text-foreground">
           控件栏
         </summary>
         <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div>
-            <label className="premium-lesson-title text-sm font-medium">{config.label}</label>
+            <div className="premium-lesson-title text-sm font-medium">
+              <InlineMath math={config.key} /> 共享增益滑块
+            </div>
             <input
               type="range"
               min={config.min}
@@ -605,7 +650,7 @@ function ParameterMirrorPanel({
               className="mt-3 w-full"
             />
             <div className="premium-lesson-caption mt-2 text-xs">
-              当前值：{value.toFixed(stepId === 'step-04' ? 2 : 1)}
+              当前值：<InlineMath math={`${config.key}=${value.toFixed(stepId === 'step-04' ? 2 : 1)}`} />
               {config.unitLabel}
             </div>
           </div>
@@ -621,6 +666,90 @@ function ParameterMirrorPanel({
             {item}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function RoleMatrixPanel() {
+  return (
+    <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+      <div className="premium-lesson-title text-sm font-semibold">指标角色矩阵</div>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {[
+          {
+            title: '过程是否可接受',
+            tone: 'premium-tone-cyan',
+            lines: ['超调量 Mp', '调节时间 ts', '上升时间 tr'],
+          },
+          {
+            title: '离风险边界还有多远',
+            tone: 'premium-tone-amber',
+            lines: ['相角裕度 γ', '增益裕度 Kg', '穿越频率 / 带宽'],
+          },
+          {
+            title: '全过程累计付出什么代价',
+            tone: 'premium-tone-violet',
+            lines: ['ISE', 'IAE', 'ITAE'],
+          },
+        ].map((column) => (
+          <div key={column.title} className={`premium-lesson-tone-block ${column.tone}`}>
+            <div className="premium-lesson-title text-sm font-semibold">{column.title}</div>
+            <ul className="mt-3 grid gap-2 text-sm">
+              {column.lines.map((line) => (
+                <li key={line} className="ml-4 list-disc">
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TaskCardTemplatePanel() {
+  return (
+    <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+      <div className="premium-lesson-title text-sm font-semibold">任务表达卡模板</div>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {[
+          '对象',
+          '控制目标',
+          '最紧矛盾',
+          '硬约束',
+          '软目标',
+          '观察指标',
+          '证据来源',
+        ].map((field) => (
+          <div key={field} className="premium-lesson-tone-block premium-tone-slate min-h-[84px]">
+            <div className="premium-lesson-title text-sm font-medium">{field}</div>
+            <div className="premium-lesson-muted mt-3 text-sm">由跨域证据压缩成可以交给后续课次的输入项。</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LayeredRegionPanel() {
+  return (
+    <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+      <div className="premium-lesson-title text-sm font-semibold">区域分层示意</div>
+      <div className="mt-4 rounded-3xl border border-border/60 bg-background/55 p-4">
+        <div className="rounded-3xl border border-cyan-300/60 p-5">
+          <div className="rounded-2xl border border-emerald-300/60 p-5">
+            <div className="rounded-2xl border border-amber-300/60 p-5">
+              <div className="premium-lesson-title text-center text-sm font-semibold">最优域 O</div>
+              <div className="premium-lesson-muted mt-2 text-center text-sm">后续课程才有资格比较</div>
+            </div>
+            <div className="premium-lesson-title mt-4 text-center text-sm font-semibold">满意域 S</div>
+            <div className="premium-lesson-muted mt-2 text-center text-sm">当前已经可接受，但还不能直接宣称最优</div>
+          </div>
+          <div className="premium-lesson-title mt-4 text-center text-sm font-semibold">可行域 F</div>
+          <div className="premium-lesson-muted mt-2 text-center text-sm">先排除不能做的方案，稳定只是进入这里的最低门槛之一</div>
+        </div>
       </div>
     </div>
   );
@@ -686,7 +815,7 @@ function getRevealMarkdown(step: UNIT_4_1StepDefinition) {
     case 'step-08':
       return '先分角色：**不能破的是硬约束，继续争取的是软目标，用来解释后果的是观察指标。**';
     case 'step-09':
-      return '合格任务卡至少补齐：**对象、目标、硬约束、软目标、观察指标、证据来源、优先级。**';
+      return '合格任务卡至少补齐：**对象、控制目标、最紧矛盾、硬约束、软目标、观察指标、证据来源和优先级。**';
     case 'step-10':
       return BINARY_CHOICE_PROMPTS['step-10'].explanation;
     case 'step-11':
@@ -761,6 +890,33 @@ export function UNIT_4_1StepContentPanel({
   const blueprint = getStepBlueprint(step);
   const extraMedia = EXTRA_MEDIA_BY_STEP[step.id] ?? [];
 
+  if (step.id === 'step-04' || step.id === 'step-05') {
+    const config = CASE_PARAMETER_CONFIG[step.id];
+
+    return (
+      <section className="premium-lesson-panel px-5 py-5">
+        <div className="premium-lesson-kicker">{blueprint.kicker}</div>
+        <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
+        <p className="premium-lesson-muted mt-3 text-sm leading-7 sm:text-base">{blueprint.intro}</p>
+
+        <div className={`mt-4 grid gap-4 ${extraMedia.length ? 'xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]' : ''}`}>
+          {extraMedia.length ? <MediaPanel src={extraMedia[0].src} alt={extraMedia[0].alt} /> : null}
+          <FormulaCard title="对象与开环传函" formula={config.formula} body={config.orderingSummary} />
+        </div>
+
+        <ParameterMirrorPanel stepId={step.id} onWorkspaceParameterChange={onWorkspaceParameterChange} />
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          {blueprint.sections.map((section) => (
+            <InfoSection key={`${step.id}-${section.title}`} section={section} />
+          ))}
+        </div>
+
+        {blueprint.note ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">{blueprint.note}</div> : null}
+      </section>
+    );
+  }
+
   return (
     <section className="premium-lesson-panel px-5 py-5">
       <div className="premium-lesson-kicker">{blueprint.kicker}</div>
@@ -781,18 +937,21 @@ export function UNIT_4_1StepContentPanel({
         </div>
       ) : null}
 
-      {(step.id === 'step-04' || step.id === 'step-05') ? (
-        <ParameterMirrorPanel
-          stepId={step.id}
-          onWorkspaceParameterChange={onWorkspaceParameterChange}
-        />
+      {step.id === 'step-07' ? (
+        <div className="mt-4">
+          <RoleMatrixPanel />
+        </div>
       ) : null}
 
       {step.id === 'step-09' ? (
         <div className="mt-4">
-          <div className="premium-lesson-tone-block premium-tone-cyan text-sm">
-            任务表达卡工作区要求把模板图、证据库和填写区同时摆在眼前，先选案例，再补优先级和证据来源。
-          </div>
+          <TaskCardTemplatePanel />
+        </div>
+      ) : null}
+
+      {step.id === 'step-10' ? (
+        <div className="mt-4">
+          <LayeredRegionPanel />
         </div>
       ) : null}
 

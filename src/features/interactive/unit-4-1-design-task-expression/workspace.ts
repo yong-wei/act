@@ -197,7 +197,8 @@ export const TASK_CARD_PRIORITY_OPTIONS = [
 
 export const TASK_CARD_FIELDS = [
   { key: 'object', label: '对象' },
-  { key: 'goal', label: '目标' },
+  { key: 'goal', label: '控制目标' },
+  { key: 'coreConflict', label: '最紧矛盾' },
   { key: 'hardConstraint', label: '硬约束' },
   { key: 'softTarget', label: '软目标' },
   { key: 'observationMetric', label: '观察指标' },

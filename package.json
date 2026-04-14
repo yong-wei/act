@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node ./scripts/ops/clear-logs.mjs && next dev",
-    "build": "prisma generate && next build",
+    "build": "npm run wasm:build:control-engine && prisma generate && next build",
     "start": "node ./scripts/ops/clear-logs.mjs && next start -p 3001",
     "lint": "next lint",
     "test": "node ./scripts/tests/smoke-test.mjs",
@@ -47,7 +47,8 @@
     "migrate:facts": "npx tsx scripts/migrations/002-migrate-to-learning-facts.ts",
     "migrate:snapshots": "npx tsx scripts/migrations/003-backfill-snapshots.ts",
     "worker:dev": "npx tsx scripts/workers/data-governance-worker.ts",
-    "worker:scheduler": "npx tsx scripts/workers/scheduler.ts"
+    "worker:scheduler": "npx tsx scripts/workers/scheduler.ts",
+    "wasm:build:control-engine": "node ./scripts/wasm/build-control-engine.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.72",
@@ -78,6 +79,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "d3": "^7.9.0",
+    "echarts": "^6.0.0",
     "katex": "^0.16.27",
     "lucide-react": "^0.263.0",
     "mathjs": "^15.1.0",
