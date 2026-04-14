@@ -16,7 +16,8 @@ type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
 type ChartSeriesItem = ChartSeriesValue extends (infer Item)[] ? Item : ChartSeriesValue;
 type ChartSeriesArray = ChartSeriesItem[];
 type ControlCaseId = 'ship_heading' | 'platform_pitch';
-type AxisKey = 'step' | 'magnitude' | 'phase' | 'rootLocus' | 'nyquist';
+type AxisKey = 'step' | 'magnitude' | 'phase' | 'rootLocus' | 'rootLocusFull' | 'rootLocusZoom' | 'nyquist';
+type RootLocusMode = 'default' | 'full' | 'zoom';
 
 interface AxisPreset {
   x: [number, number];
@@ -29,13 +30,17 @@ const CONTROL_AXIS_PRESETS: Record<ControlCaseId, Record<AxisKey, AxisPreset>> =
     magnitude: { x: [1e-3, 10], y: [-90, 50] },
     phase: { x: [1e-3, 10], y: [-270, -90] },
     rootLocus: { x: [-3.2, 0.4], y: [-0.8, 0.8] },
+    rootLocusFull: { x: [-3.2, 0.4], y: [-0.8, 0.8] },
+    rootLocusZoom: { x: [-3.2, 0.4], y: [-0.8, 0.8] },
     nyquist: { x: [-1.6, 1.2], y: [-1.6, 1.6] },
   },
   platform_pitch: {
     step: { x: [0, 2], y: [0, 1.4] },
     magnitude: { x: [1e-1, 1e4], y: [-150, 70] },
     phase: { x: [1e-1, 1e4], y: [-360, -90] },
-    rootLocus: { x: [-140, 5], y: [-80, 80] },
+    rootLocus: { x: [-140, 4], y: [-80, 80] },
+    rootLocusFull: { x: [-1100, 50], y: [-80, 80] },
+    rootLocusZoom: { x: [-140, 4], y: [-80, 80] },
     nyquist: { x: [-1.6, 1.2], y: [-1.6, 1.6] },
   },
 };
@@ -52,6 +57,16 @@ function getAxisPreset(caseId: string | undefined, axisKey: AxisKey): AxisPreset
     return CONTROL_AXIS_PRESETS[caseId][axisKey];
   }
   return undefined;
+}
+
+function getRootLocusAxisKey(mode: RootLocusMode): AxisKey {
+  if (mode === 'full') {
+    return 'rootLocusFull';
+  }
+  if (mode === 'zoom') {
+    return 'rootLocusZoom';
+  }
+  return 'rootLocus';
 }
 
 function formatFixed(value: number | null | undefined, suffix = ''): string {
@@ -274,81 +289,101 @@ function buildFeasibleRegionSeries(
   const sigmaBoundary = -rootLocus.feasibleRegion.sigmaMin;
   const zeta = rootLocus.feasibleRegion.zetaMin;
   const tangent = Math.sqrt(Math.max(1e-12, 1 - zeta * zeta)) / zeta;
+  const yAtLeftBoundary = Math.min(yMax, (-xMin) * tangent);
+  const yAtSigmaBoundary = Math.min(yMax, Math.abs(sigmaBoundary) * tangent);
+  const areaStyle = { color: 'rgba(59, 130, 246, 0.12)' };
+  const polygon = [
+    [xMin, -yAtLeftBoundary],
+    [xMin, yAtLeftBoundary],
+    [sigmaBoundary, yAtSigmaBoundary],
+    [sigmaBoundary, -yAtSigmaBoundary],
+  ];
   const xLimit = Math.max(xMin, -yMax / tangent);
   const yLimit = Math.min(yMax, Math.abs(xLimit) * tangent);
 
   return [
     {
       name: '可行域参考',
-      type: 'line',
-      showSymbol: false,
-      lineStyle: { opacity: 0 },
-      data: [],
-      markArea: {
-        itemStyle: { color: 'rgba(34, 197, 94, 0.08)' },
-        data: [[
-          { xAxis: xMin, yAxis: yMin },
-          { xAxis: sigmaBoundary, yAxis: yMax },
-        ]],
+      type: 'custom',
+      silent: true,
+      data: [0],
+      renderItem: (_params: unknown, api: { coord: (value: [number, number]) => number[] }) => {
+        const points = polygon.map(([x, y]) => api.coord([x, y]));
+        return {
+          type: 'polygon',
+          shape: { points },
+          style: {
+            fill: areaStyle.color,
+            stroke: 'rgba(37, 99, 235, 0.55)',
+            lineWidth: 1,
+          },
+        };
       },
     },
     {
       name: 'σ 边界',
       type: 'line',
       showSymbol: false,
-      lineStyle: { color: '#22c55e', type: 'dashed', width: 1.3 },
+      lineStyle: { color: '#2563eb', type: 'dotted', width: 1.5 },
       data: [[sigmaBoundary, yMin], [sigmaBoundary, yMax]],
     },
     {
       name: 'ζ 边界',
       type: 'line',
       showSymbol: false,
-      lineStyle: { color: '#10b981', type: 'dotted', width: 1.3 },
+      lineStyle: { color: '#2563eb', type: 'dashdot', width: 1.5 },
       data: [[0, 0], [xLimit, yLimit]],
     },
     {
       name: '',
       type: 'line',
       showSymbol: false,
-      lineStyle: { color: '#10b981', type: 'dotted', width: 1.3 },
+      lineStyle: { color: '#2563eb', type: 'dashdot', width: 1.5 },
       data: [[0, 0], [xLimit, -yLimit]],
     },
   ];
 }
 
-function buildRootLocusOption(rootLocus: RootLocusData, caseId?: string): EChartsCoreOption {
-  const axisPreset = getAxisPreset(caseId, 'rootLocus');
+function buildRootLocusOption(
+  rootLocus: RootLocusData,
+  caseId?: string,
+  mode: RootLocusMode = 'default',
+): EChartsCoreOption {
+  const axisPreset = getAxisPreset(caseId, getRootLocusAxisKey(mode));
+  const showFeasible = mode !== 'full';
+  const locusBranches = mode === 'full' && rootLocus.fullBranches ? rootLocus.fullBranches : rootLocus.branches;
   const series: ChartSeriesArray = [
-    ...buildFeasibleRegionSeries(rootLocus, axisPreset),
-    ...rootLocus.branches.map((branch, index) => ({
+    ...(showFeasible ? buildFeasibleRegionSeries(rootLocus, axisPreset) : []),
+    ...locusBranches.map((branch, index) => ({
       name: index === 0 ? '根轨迹' : '',
       type: 'line',
       showSymbol: false,
-      lineStyle: { color: '#38bdf8', width: 1.8 },
+      lineStyle: { color: '#4c78a8', width: 1.7 },
       data: branch.map((point) => [point.re, point.im]),
     })),
     {
       name: '当前闭环极点',
       type: 'scatter',
       symbol: 'circle',
-      symbolSize: 8,
-      itemStyle: { color: '#fb923c' },
+      symbolSize: 9,
+      itemStyle: { color: '#1f4e79', borderColor: '#ffffff', borderWidth: 1.2 },
       data: rootLocus.currentPoles.map((pole) => [pole.re, pole.im]),
     },
     {
       name: '开环极点',
       type: 'scatter',
-      symbol: 'diamond',
-      symbolSize: 10,
-      itemStyle: { color: '#f87171' },
+      symbol: 'path://M -0.6 -0.6 L 0.6 0.6 M -0.6 0.6 L 0.6 -0.6',
+      symbolSize: 18,
+      lineStyle: { color: '#c81d25', width: 2.2 },
+      itemStyle: { color: '#c81d25' },
       data: rootLocus.openLoopPoles.map((pole) => [pole.re, pole.im]),
     },
     {
       name: '开环零点',
       type: 'scatter',
-      symbol: 'rect',
-      symbolSize: 10,
-      itemStyle: { color: '#facc15' },
+      symbol: 'circle',
+      symbolSize: 12,
+      itemStyle: { color: '#ffffff', borderColor: '#d97706', borderWidth: 2.2 },
       data: rootLocus.openLoopZeros.map((zero) => [zero.re, zero.im]),
     },
   ];
@@ -361,7 +396,6 @@ function buildRootLocusOption(rootLocus: RootLocusData, caseId?: string): EChart
       textStyle: { fontSize: 10 },
       itemWidth: 10,
       itemHeight: 10,
-      data: ['可行域参考', 'σ 边界', 'ζ 边界', '根轨迹', '当前闭环极点', '开环极点', '开环零点'],
     },
     grid: { top: 34, right: 18, bottom: 42, left: 58 },
     tooltip: {
@@ -607,12 +641,21 @@ export function NyquistPanel({ result, caseId }: { result: ControlAnalysisResult
   );
 }
 
-export function RootLocusPanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
+export function RootLocusPanel({
+  result,
+  caseId,
+  mode = 'default',
+}: {
+  result: ControlAnalysisResult;
+  caseId?: string;
+  mode?: RootLocusMode;
+}) {
+  const title = mode === 'full' ? '根轨迹全览' : mode === 'zoom' ? '根轨迹区域放大' : '根轨迹';
   return (
     <ControlChartPanel
-      title="根轨迹"
+      title={title}
       meta={buildPoleText(result.rootLocus.currentPoles)}
-      option={buildRootLocusOption(result.rootLocus, caseId)}
+      option={buildRootLocusOption(result.rootLocus, caseId, mode)}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
     />

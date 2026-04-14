@@ -16,6 +16,7 @@ interface RawCasePayload {
   bode: { w: number[]; mag_db: number[]; phase_deg: number[] };
   margins: { pm: number; gm_db: number; wc: number; wg: number };
   root_locus: { real: number[][]; imag: number[][] };
+  root_locus_full?: { real: number[][]; imag: number[][] };
   closed_loop_poles: { real: number[] | number; imag: number[] | number };
   open_loop_poles: { real: number[] | number; imag: number[] | number };
   open_loop_zeros: { real: number[] | number; imag: number[] | number };
@@ -78,10 +79,13 @@ function buildNyquistPoints(payload: RawCasePayload): ComplexPoint[] {
   return [...forward, ...mirrored];
 }
 
-function buildRootLocusBranches(payload: RawCasePayload) {
-  return payload.root_locus.real.map((realBranch, branchIndex) => {
-    const imagBranch = payload.root_locus.imag[branchIndex] ?? [];
-    return decimate(realBranch.map((re, index) => ({ re, im: imagBranch[index] ?? 0 })), 96);
+function buildRootLocusBranches(
+  locus: { real: number[][]; imag: number[][] },
+  targetCount: number,
+) {
+  return locus.real.map((realBranch, branchIndex) => {
+    const imagBranch = locus.imag[branchIndex] ?? [];
+    return decimate(realBranch.map((re, index) => ({ re, im: imagBranch[index] ?? 0 })), targetCount);
   });
 }
 
@@ -124,7 +128,8 @@ export function getUnit41FallbackResult(stepId: Unit41StepId): ControlAnalysisRe
       points: buildNyquistPoints(payload),
     },
     rootLocus: {
-      branches: buildRootLocusBranches(payload),
+      branches: buildRootLocusBranches(payload.root_locus, 256),
+      fullBranches: payload.root_locus_full ? buildRootLocusBranches(payload.root_locus_full, 360) : undefined,
       currentPoles: zipComplexPoints(asArray(payload.closed_loop_poles.real), asArray(payload.closed_loop_poles.imag)),
       openLoopPoles: zipComplexPoints(asArray(payload.open_loop_poles.real), asArray(payload.open_loop_poles.imag)),
       openLoopZeros: zipComplexPoints(asArray(payload.open_loop_zeros.real), asArray(payload.open_loop_zeros.imag)),

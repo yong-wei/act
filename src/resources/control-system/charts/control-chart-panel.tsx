@@ -2,24 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
-
-import {
-  CanvasRenderer,
-} from 'echarts/renderers';
-import {
-  MarkAreaComponent,
-  GridComponent,
-  LegendComponent,
-  MarkLineComponent,
-  TooltipComponent,
-} from 'echarts/components';
-import {
-  LineChart,
-  ScatterChart,
-} from 'echarts/charts';
-import { init, use, type ECharts, type EChartsCoreOption } from 'echarts/core';
-
-use([CanvasRenderer, GridComponent, TooltipComponent, LegendComponent, LineChart, ScatterChart, MarkLineComponent, MarkAreaComponent]);
+import type { ECharts, EChartsCoreOption } from 'echarts/core';
 
 export interface ControlChartPanelProps {
   title: string;
@@ -42,22 +25,58 @@ export function ControlChartPanel({
 }: ControlChartPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ECharts | null>(null);
+  const optionRef = useRef<EChartsCoreOption>(option);
+
+  optionRef.current = option;
 
   useEffect(() => {
     if (!containerRef.current) {
       return undefined;
     }
 
-    const chart = init(containerRef.current, undefined, { renderer: 'canvas' });
-    chartRef.current = chart;
+    let disposed = false;
+    let cleanup = () => undefined;
 
-    const observer = new ResizeObserver(() => chart.resize());
-    observer.observe(containerRef.current);
+    void (async () => {
+      const [{ init, use }, { CanvasRenderer }, components, charts] = await Promise.all([
+        import('echarts/core'),
+        import('echarts/renderers'),
+        import('echarts/components'),
+        import('echarts/charts'),
+      ]);
+
+      use([
+        CanvasRenderer,
+        components.GridComponent,
+        components.TooltipComponent,
+        components.LegendComponent,
+        components.MarkLineComponent,
+        charts.LineChart,
+        charts.ScatterChart,
+        charts.CustomChart,
+      ]);
+
+      if (disposed || !containerRef.current) {
+        return;
+      }
+
+      const chart = init(containerRef.current, undefined, { renderer: 'canvas' });
+      chartRef.current = chart;
+      chart.setOption(optionRef.current, { notMerge: false, lazyUpdate: true });
+
+      const observer = new ResizeObserver(() => chart.resize());
+      observer.observe(containerRef.current);
+
+      cleanup = () => {
+        observer.disconnect();
+        chart.dispose();
+        chartRef.current = null;
+      };
+    })();
 
     return () => {
-      observer.disconnect();
-      chart.dispose();
-      chartRef.current = null;
+      disposed = true;
+      cleanup();
     };
   }, []);
 

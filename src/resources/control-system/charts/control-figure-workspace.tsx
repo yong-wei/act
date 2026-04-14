@@ -50,15 +50,11 @@ export function ControlFigureWorkspace({
           </div>
         </div>
       ) : (
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)]">
-          <RootLocusPanel result={result} caseId={request.caseId} />
-          <div className="grid gap-4">
-            <MagnitudePanel result={result} caseId={request.caseId} />
-            <PhasePanel result={result} caseId={request.caseId} />
-          </div>
-          <div className="xl:col-span-2">
-            <StepResponsePanel result={result} caseId={request.caseId} />
-          </div>
+        <div className="grid gap-4 xl:grid-cols-2">
+          <StepResponsePanel result={result} caseId={request.caseId} />
+          <BodePanel result={result} caseId={request.caseId} />
+          <RootLocusPanel result={result} caseId={request.caseId} mode="full" />
+          <RootLocusPanel result={result} caseId={request.caseId} mode="zoom" />
         </div>
       )}
     </div>

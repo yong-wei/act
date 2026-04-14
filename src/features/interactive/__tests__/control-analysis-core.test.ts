@@ -57,7 +57,15 @@ describe('control analysis core foundation', () => {
     expect(panelSource).toContain('toFixed(2)');
     expect(panelSource).toContain('ship_heading');
     expect(panelSource).toContain('platform_pitch');
+    expect(panelSource).toContain('rootLocusFull');
+    expect(panelSource).toContain('rootLocusZoom');
+    expect(panelSource).toContain('areaStyle');
+    expect(panelSource).not.toContain('markArea');
     expect(workspaceSource).not.toContain('正在计算控制分析曲线');
     expect(workspaceSource).toContain('xl:grid-cols-[minmax(0,1.18fr)_minmax(0,1fr)]');
+    expect(workspaceSource).toContain('xl:grid-cols-2');
+    expect(workspaceSource).toContain('<BodePanel');
+    expect(workspaceSource).toContain('mode="full"');
+    expect(workspaceSource).toContain('mode="zoom"');
   });
 });

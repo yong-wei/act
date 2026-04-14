@@ -129,6 +129,7 @@ export interface NyquistData {
 
 export interface RootLocusData {
   branches: ComplexPoint[][];
+  fullBranches?: ComplexPoint[][];
   currentPoles: ComplexPoint[];
   openLoopPoles: ComplexPoint[];
   openLoopZeros: ComplexPoint[];
