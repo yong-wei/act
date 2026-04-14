@@ -16,6 +16,7 @@
     "acceptance_checks"
   ],
   "included_in_primary_sources": true,
+  "mapping_contract_mode": "core_items",
   "has_core_mapping_section": true,
   "mapping_columns_present": [
     "handout_anchor",
@@ -28,20 +29,54 @@
     "acceptance_note"
   ],
   "missing_mapping_columns": [],
-  "invalid_handout_anchors": [],
+  "invalid_handout_anchors": [
+    "### 1.1 从 3-4 的结论继续往前走",
+    "### 1.5 [AI融入点] 先写下你的直觉",
+    "### 2.2 例 2：三阶纯极点对象，零点位置不同，主导分支被拉走的方式也不同",
+    "### 3.1` 与 `### 3.2 不先看名字，先看等效阻尼相同的后果",
+    "### 3.2",
+    "### 3.3",
+    "### 3.4",
+    "### 4.2 超前为什么更像在关键位置补角",
+    "### 4.3 频域下的一般设计原则",
+    "### 4.4 频域设计下的适用规律",
+    "### 5.2 非最小相最先暴露出来的，不是慢，而是先往反方向动",
+    "### 5.4 如何控制不能只说原则，先看一个保守带宽实例",
+    "附录A"
+  ],
   "missing_target_steps": [],
-  "formula_mapping_issues": [],
+  "formula_mapping_issues": [
+    "步骤 `step-08` 的“静态承载内容”未显式覆盖公式型映射：K_d=K_t=0.3",
+    "步骤 `step-11` 的“静态承载内容”未显式覆盖公式型映射：G_{\\text{lead}}(s)=\\frac{Ts+1}{\\alphaTs+1},\\0<\\alpha<1"
+  ],
   "step_static_blocks_missing": [],
   "step_upgrade_blocks_missing": [],
+  "step_reading_order_missing": [],
+  "curve_figure_steps_missing_mirror": [],
+  "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
-  "step_contract_issues": [],
+  "step_contract_issues": [
+    "interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value"
+  ],
   "implementation_contract_summary": [],
   "implementation_contract_issues": [],
-  "summary": [
-    "已覆盖讲义中的核心公式与静态承载内容。",
-    "已检测到 `3-5` 的 V2 互动契约，步骤字段完整。"
+  "summary": [],
+  "warnings": [
+    "以下 handout_anchor 未在讲义标题中命中：### 1.1 从 3-4 的结论继续往前走, ### 1.5 [AI融入点] 先写下你的直觉, ### 2.2 例 2：三阶纯极点对象，零点位置不同，主导分支被拉走的方式也不同, ### 3.1` 与 `### 3.2 不先看名字，先看等效阻尼相同的后果, ### 3.2, ### 3.3, ### 3.4, ### 4.2 超前为什么更像在关键位置补角, ### 4.3 频域下的一般设计原则, ### 4.4 频域设计下的适用规律, ### 5.2 非最小相最先暴露出来的，不是慢，而是先往反方向动, ### 5.4 如何控制不能只说原则，先看一个保守带宽实例, 附录A",
+    "步骤 `step-08` 的“静态承载内容”未显式覆盖公式型映射：K_d=K_t=0.3",
+    "步骤 `step-11` 的“静态承载内容”未显式覆盖公式型映射：G_{\\text{lead}}(s)=\\frac{Ts+1}{\\alphaTs+1},\\0<\\alpha<1",
+    "interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value"
   ],
-  "warnings": [],
-  "missing": [],
-  "issues": []
+  "missing": [
+    "以下 handout_anchor 未在讲义标题中命中：### 1.1 从 3-4 的结论继续往前走, ### 1.5 [AI融入点] 先写下你的直觉, ### 2.2 例 2：三阶纯极点对象，零点位置不同，主导分支被拉走的方式也不同, ### 3.1` 与 `### 3.2 不先看名字，先看等效阻尼相同的后果, ### 3.2, ### 3.3, ### 3.4, ### 4.2 超前为什么更像在关键位置补角, ### 4.3 频域下的一般设计原则, ### 4.4 频域设计下的适用规律, ### 5.2 非最小相最先暴露出来的，不是慢，而是先往反方向动, ### 5.4 如何控制不能只说原则，先看一个保守带宽实例, 附录A",
+    "步骤 `step-08` 的“静态承载内容”未显式覆盖公式型映射：K_d=K_t=0.3",
+    "步骤 `step-11` 的“静态承载内容”未显式覆盖公式型映射：G_{\\text{lead}}(s)=\\frac{Ts+1}{\\alphaTs+1},\\0<\\alpha<1",
+    "interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value"
+  ],
+  "issues": [
+    "以下 handout_anchor 未在讲义标题中命中：### 1.1 从 3-4 的结论继续往前走, ### 1.5 [AI融入点] 先写下你的直觉, ### 2.2 例 2：三阶纯极点对象，零点位置不同，主导分支被拉走的方式也不同, ### 3.1` 与 `### 3.2 不先看名字，先看等效阻尼相同的后果, ### 3.2, ### 3.3, ### 3.4, ### 4.2 超前为什么更像在关键位置补角, ### 4.3 频域下的一般设计原则, ### 4.4 频域设计下的适用规律, ### 5.2 非最小相最先暴露出来的，不是慢，而是先往反方向动, ### 5.4 如何控制不能只说原则，先看一个保守带宽实例, 附录A",
+    "步骤 `step-08` 的“静态承载内容”未显式覆盖公式型映射：K_d=K_t=0.3",
+    "步骤 `step-11` 的“静态承载内容”未显式覆盖公式型映射：G_{\\text{lead}}(s)=\\frac{Ts+1}{\\alphaTs+1},\\0<\\alpha<1",
+    "interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value"
+  ]
 }

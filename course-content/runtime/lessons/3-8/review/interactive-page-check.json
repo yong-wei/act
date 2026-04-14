@@ -16,6 +16,7 @@
     "acceptance_checks"
   ],
   "included_in_primary_sources": true,
+  "mapping_contract_mode": "core_items",
   "has_core_mapping_section": true,
   "mapping_columns_present": [
     "handout_anchor",
@@ -33,6 +34,9 @@
   "formula_mapping_issues": [],
   "step_static_blocks_missing": [],
   "step_upgrade_blocks_missing": [],
+  "step_reading_order_missing": [],
+  "curve_figure_steps_missing_mirror": [],
+  "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
   "step_contract_issues": [],
   "implementation_contract_summary": [],

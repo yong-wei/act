@@ -152,13 +152,13 @@ steps:
       - id: "ai-gate-note"
         type: "plain_text"
         title: "AI 顺序约束"
-        body: "先提交自己的判断，再允许打开 AI 对照；AI 只用于误判对照，不代答。"
+        body: "先提交自己的判断，再允许通过控灵助手中的快捷提问做 AI 对照；AI 只用于误判对照，不代答。"
     interaction_spec:
       interaction_kind: "quiz_group"
       student_task: "完成三道前测，并提交一句自己的直觉判断。"
       attempt_model: "允许重提一次；教师端区分首答与重提。"
       answer_reveal: "teacher_toggle"
-      ai_unlock_rule: "只有前测与直觉提交完成后才可打开 AI 对照。"
+      ai_unlock_rule: "只有前测与直觉提交完成后才可解锁控灵助手中的快捷提问。"
     teacher_controls:
       - "释放前测"
       - "显示误区分布"
