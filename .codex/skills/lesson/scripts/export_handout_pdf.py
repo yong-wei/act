@@ -138,6 +138,20 @@ def collect_markdown_width_overrides(markdown: str) -> dict[str, str]:
     return overrides
 
 
+def collect_markdown_table_ratio_overrides(markdown: str) -> dict[str, list[float]]:
+    overrides: dict[str, list[float]] = {}
+    pattern = re.compile(r"^Table:\s*(?P<title>.*?)(?:\s*\{(?P<attrs>[^}]*)\})?\s*$")
+    for line in markdown.splitlines():
+        match = pattern.match(line.strip())
+        if not match:
+            continue
+        title = match.group("title").strip()
+        _, ratios = parse_table_caption_attrs(match.group("attrs"))
+        if title and ratios:
+            overrides[title] = ratios
+    return overrides
+
+
 def protect_inline_markdown_segments(line: str) -> tuple[str, list[str]]:
     protected_segments: list[str] = []
 
@@ -232,6 +246,7 @@ def normalize_ascii_quotes_for_markdown_prose(markdown: str) -> tuple[str, list[
 def preprocess_markdown_for_pdf(markdown: str) -> str:
     processed_lines: list[str] = []
     last_nonempty_kind: str | None = None
+    table_caption_re = re.compile(r"^(Table:\s*)(?P<title>.*?)(?:\s*\{(?P<attrs>[^}]*)\})?\s*$")
 
     for line in markdown.splitlines():
         stripped = line.strip()
@@ -248,6 +263,13 @@ def preprocess_markdown_for_pdf(markdown: str) -> str:
             )
             processed_lines.append(line)
             last_nonempty_kind = "image"
+            continue
+
+        table_caption_match = table_caption_re.match(line)
+        if table_caption_match:
+            line = f"{table_caption_match.group(1)}{table_caption_match.group('title').strip()}"
+            processed_lines.append(line)
+            last_nonempty_kind = "other"
             continue
 
         if stripped and last_nonempty_kind == "image" and MANUAL_FIGURE_CAPTION_RE.match(stripped):
@@ -484,12 +506,23 @@ def build_rebalanced_longtable_spec(column_count: int) -> str | None:
 
 
 def count_longtable_columns(spec: str) -> int:
-    begin_match = re.search(
-        r'\\begin\{longtable\}\[\]\{(?P<inner>[\s\S]*?)\}\s*$',
-        spec.strip(),
+    lines = [line.strip() for line in spec.splitlines() if line.strip()]
+    begin_index = next(
+        (index for index, line in enumerate(lines) if line.startswith(r"\begin{longtable}")),
+        None,
     )
-    if begin_match:
-        spec = begin_match.group("inner")
+    if begin_index is not None:
+        collected: list[str] = []
+        for line in lines[begin_index:]:
+            if line.startswith(r"\caption{") or line.startswith(r"\toprule"):
+                break
+            collected.append(line)
+        joined = "".join(collected)
+        joined = re.sub(r'^\\begin\{longtable\}\[\]\{', '', joined)
+        joined = re.sub(r'\}\s*$', '', joined)
+        spec = joined
+    else:
+        spec = spec.strip()
 
     p_count = spec.count("p{")
     if p_count:
@@ -522,7 +555,23 @@ def parse_table_caption_attrs(attrs_text: str | None) -> tuple[str | None, list[
     return label, ratios
 
 
-def rewrite_longtable_preambles(tex_content: str) -> str:
+def split_existing_latex_table_caption(caption_text: str) -> tuple[str, list[float] | None]:
+    stripped = caption_text.strip()
+    attr_match = re.search(r'(?P<title>.*?)(?:\\\{|{)(?P<attrs>[^}]*)\}?\s*$', stripped)
+    if not attr_match:
+        return stripped, None
+
+    title = attr_match.group("title").rstrip()
+    _, ratios = parse_table_caption_attrs(attr_match.group("attrs"))
+    if ratios:
+        return title, ratios
+    return stripped, None
+
+
+def rewrite_longtable_preambles(
+    tex_content: str,
+    table_ratio_overrides: dict[str, list[float]] | None = None,
+) -> str:
     lines = tex_content.splitlines(keepends=True)
     rewritten: list[str] = []
     auto_index = 0
@@ -558,19 +607,46 @@ def rewrite_longtable_preambles(tex_content: str) -> str:
 
         column_count = count_longtable_columns("".join(preamble_lines))
         custom_ratios = pending_caption[2] if pending_caption else None
+        existing_caption_lines = [line for line in preamble_lines[1:] if line.lstrip().startswith(r"\caption{")]
+        cleaned_caption_line: str | None = None
+        if not custom_ratios and existing_caption_lines and table_ratio_overrides:
+            caption_match = re.match(r'\\caption\{(?P<title>.*)\}\\tabularnewline\s*$', existing_caption_lines[0].strip())
+            if caption_match:
+                caption_title, caption_ratios = split_existing_latex_table_caption(
+                    caption_match.group("title").strip()
+                )
+                cleaned_caption_line = rf"\caption{{{caption_title}}}\tabularnewline"
+                custom_ratios = caption_ratios or table_ratio_overrides.get(caption_title)
+        elif existing_caption_lines:
+            caption_match = re.match(r'\\caption\{(?P<title>.*)\}\\tabularnewline\s*$', existing_caption_lines[0].strip())
+            if caption_match:
+                caption_title, _ = split_existing_latex_table_caption(
+                    caption_match.group("title").strip()
+                )
+                cleaned_caption_line = rf"\caption{{{caption_title}}}\tabularnewline"
         if custom_ratios and len(custom_ratios) == column_count:
             new_spec = build_longtable_spec_from_ratios(custom_ratios)
         else:
             new_spec = build_rebalanced_longtable_spec(column_count)
         if new_spec:
             rewritten.append(rf"\begin{{longtable}}[]{{{new_spec}}}" + "\n")
+            if pending_caption:
+                title, label, _ = pending_caption
+                rewritten.append(rf"\caption{{{title}}}\label{{{label}}}\\" + "\n")
+                pending_caption = None
+            else:
+                for line in preamble_lines[1:]:
+                    if line.lstrip().startswith(r"\caption{"):
+                        if cleaned_caption_line:
+                            rewritten.append(cleaned_caption_line + "\n")
+                        else:
+                            rewritten.append(line)
         else:
-            rewritten.extend(preamble_lines)
-
-        if pending_caption:
-            title, label, _ = pending_caption
-            rewritten.append(rf"\caption{{{title}}}\label{{{label}}}\\" + "\n")
-            pending_caption = None
+            for line in preamble_lines:
+                if cleaned_caption_line and line.lstrip().startswith(r"\caption{"):
+                    rewritten.append(cleaned_caption_line + "\n")
+                else:
+                    rewritten.append(line)
 
         if index < len(lines):
             rewritten.append(lines[index])
@@ -582,9 +658,13 @@ def rewrite_longtable_preambles(tex_content: str) -> str:
 def rewrite_latex_for_pdf_layout(
     tex_content: str,
     width_overrides: dict[str, str] | None = None,
+    table_ratio_overrides: dict[str, list[float]] | None = None,
 ) -> str:
     tex_content = normalize_ascii_quotes_for_latex(tex_content)
-    tex_content = rewrite_longtable_preambles(tex_content)
+    tex_content = rewrite_longtable_preambles(
+        tex_content,
+        table_ratio_overrides=table_ratio_overrides,
+    )
     tex_content = re.sub(r"\\begin{figure}(?:\[[^\]]*\])?", r"\\begin{figure}[H]", tex_content)
     tex_content = re.sub(
         r"^\s*\\setkeys{Gin}{width=\\maxwidth,height=\\maxheight,keepaspectratio}\s*$",
@@ -616,11 +696,13 @@ def rewrite_latex_for_pdf_layout(
 def rewrite_latex_file_for_pdf_layout(
     tex_path: Path,
     width_overrides: dict[str, str] | None = None,
+    table_ratio_overrides: dict[str, list[float]] | None = None,
 ) -> None:
     tex_path.write_text(
         rewrite_latex_for_pdf_layout(
             tex_path.read_text(encoding="utf-8"),
             width_overrides=width_overrides,
+            table_ratio_overrides=table_ratio_overrides,
         ),
         encoding="utf-8",
     )
@@ -765,6 +847,7 @@ def main() -> int:
     header_logo_left = (repo_root / "public/images/extracted/校徽校名组合-横版-提取.pdf").as_posix()
     header_logo_right = (repo_root / "public/images/CAlogo128.png").as_posix()
     tex_path = markdown_path.with_name(f"{markdown_path.stem}-pandoc-export.tex")
+    original_markdown = markdown_path.read_text(encoding="utf-8")
     preprocessed_markdown_path, extra_cleanup_paths, used_placeholders = create_preprocessed_markdown(
         markdown_path,
         draft_mode=args.draft_mode,
@@ -773,6 +856,7 @@ def main() -> int:
     width_overrides = collect_markdown_width_overrides(
         markdown_input_path.read_text(encoding="utf-8")
     )
+    table_ratio_overrides = collect_markdown_table_ratio_overrides(original_markdown)
 
     if args.refresh_style or not style_path.exists():
         render_style(
@@ -788,7 +872,11 @@ def main() -> int:
     build_latex(markdown_input_path, style_path, tex_path)
     rewrite_svg_includes_to_pdf(tex_path)
     normalized_asset_dir = normalize_raster_includes(tex_path)
-    rewrite_latex_file_for_pdf_layout(tex_path, width_overrides=width_overrides)
+    rewrite_latex_file_for_pdf_layout(
+        tex_path,
+        width_overrides=width_overrides,
+        table_ratio_overrides=table_ratio_overrides,
+    )
     try:
         compile_pdf_from_tex(tex_path, output_pdf)
     except Exception:

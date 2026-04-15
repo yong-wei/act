@@ -1,11 +1,12 @@
 # 设计决策索引
 
 状态: active
-最后更新: 2026-03-17
+最后更新: 2026-04-14
 摘要: 存放长期有效的设计决策记录，推荐使用 ADR 命名。
 上游:
 - [../00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
-下游: []
+下游:
+- [ADR-2026-04-14-unit-3-6-zero-design-boundary.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/50-decisions/ADR-2026-04-14-unit-3-6-zero-design-boundary.md)
 相关:
 - `新增决策时建议命名为 ADR-YYYY-MM-DD-topic.md`
 
