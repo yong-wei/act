@@ -28,6 +28,14 @@ GEMINI.md
 .logs/
 docs/courses/
 deploy/
+!deploy/
+deploy/*
+!deploy/podman/
+deploy/podman/*
+!deploy/podman/README.md
+!deploy/podman/configure-service.sh
+!deploy/podman/container-start-wrapper.sh
+!deploy/podman/deploy.sh
 data/
 .cache/
 .tmp/

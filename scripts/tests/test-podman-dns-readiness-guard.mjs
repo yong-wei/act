@@ -61,14 +61,50 @@ assert.match(
 
 assert.match(
   deployScript,
-  /wait_for_node_tcp "\$DB_HOST_ALIAS" 5432/,
-  'Podman 部署脚本必须在启动应用前等待数据库 TCP 可连通',
+  /wait_for_node_tcp "\$DB_CONTAINER_IP" 5432/,
+  'Podman 部署脚本必须在启动应用前基于容器 IP 等待数据库 TCP 可连通，避免 DNS 抖动',
 );
 
 assert.match(
   deployScript,
-  /wait_for_node_tcp "\$REDIS_HOST_ALIAS" 6379/,
-  'Podman 部署脚本必须在启动应用与 worker 前等待 Redis TCP 可连通',
+  /wait_for_node_tcp "\$REDIS_CONTAINER_IP" 6379/,
+  'Podman 部署脚本必须在启动应用与 worker 前基于容器 IP 等待 Redis TCP 可连通，避免 DNS 抖动',
+);
+
+assert.match(
+  deployScript,
+  /resolve_container_ip\(\)/,
+  'Podman 部署脚本必须定义容器 IP 解析逻辑，为应用与 worker 注入静态主机映射',
+);
+
+assert.match(
+  deployScript,
+  /DB_CONTAINER_IP="\$\(resolve_container_ip "\$DB_CONTAINER"\)"/,
+  'Podman 部署脚本必须在启动应用前解析数据库容器 IP',
+);
+
+assert.match(
+  deployScript,
+  /REDIS_CONTAINER_IP="\$\(resolve_container_ip "\$REDIS_CONTAINER"\)"/,
+  'Podman 部署脚本必须在启动应用前解析 Redis 容器 IP',
+);
+
+assert.equal(
+  deployScript.includes('DB_HOST_ARGS=(--add-host "${DB_CONTAINER}:${DB_CONTAINER_IP}" --add-host "${DB_CONTAINER}.dns.podman:${DB_CONTAINER_IP}")'),
+  true,
+  'Podman 部署脚本必须为数据库同时注入短主机名与 dns.podman 主机映射，绕开 Node getaddrinfo 抖动',
+);
+
+assert.equal(
+  deployScript.includes('REDIS_HOST_ARGS=(--add-host "${REDIS_CONTAINER}:${REDIS_CONTAINER_IP}" --add-host "${REDIS_CONTAINER}.dns.podman:${REDIS_CONTAINER_IP}")'),
+  true,
+  'Podman 部署脚本必须为 Redis 同时注入短主机名与 dns.podman 主机映射，绕开 Node getaddrinfo 抖动',
+);
+
+assert.equal(
+  deployScript.includes('"${DB_HOST_ARGS[@]}"') && deployScript.includes('"${REDIS_HOST_ARGS[@]}"'),
+  true,
+  'Podman 部署脚本必须在应用与 worker 容器启动参数中附带数据库与 Redis 的主机映射',
 );
 
 assert.match(
