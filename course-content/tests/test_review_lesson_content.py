@@ -1059,21 +1059,6 @@ def test_build_interactive_page_check_validates_optional_nested_render_contracts
 
 def test_ensure_runtime_media_index_creates_standard_sections(tmp_path):
     media_index_path = tmp_path / 'runtime' / 'lessons' / '2-1' / 'media' / '2-1-media.md'
-    prompt_path = tmp_path / 'authoring' / 'lessons' / '2-1' / 'media' / 'raw' / '2-1-intro-video-prompt.md'
-    prompt_path.parent.mkdir(parents=True, exist_ok=True)
-    prompt_path.write_text(
-        '\n'.join(
-            [
-                '# 2-1 即梦导入视频中文提示词',
-                '',
-                '## Agent 模式视频生成提示词',
-                '',
-                '校园里一辆自动送餐车沿着白线前进，突然偏离路线，差点冲进花坛。',
-                '最后点出本课主题：建模与变换语言，就是把复杂真实系统变成可分析、可连接、可运算的对象。',
-            ]
-        ),
-        encoding='utf-8',
-    )
 
     review_lesson_content.ensure_runtime_media_index(media_index_path, '2-1')
 
@@ -1081,19 +1066,13 @@ def test_ensure_runtime_media_index_creates_standard_sections(tmp_path):
         [
             '# 2-1-intro-video.mp4',
             '',
-            '- 用导入情境引出“建模与变换语言，就是把复杂真实系统变成可分析、可连接、可运算的对象”这一主题。',
-            '',
-            '# 2-1-audio.m4a',
-            '',
-            '',
             '# 2-1-slides.pdf',
-            '',
             '',
             '# 2-1-course.mp4',
             '',
+            '# 2-1-audio.m4a',
             '',
             '# handout.md',
-            '',
             '',
         ]
     )
@@ -1111,21 +1090,6 @@ def test_ensure_runtime_media_index_creates_standard_sections(tmp_path):
 def test_ensure_runtime_media_index_preserves_existing_links_and_order(tmp_path):
     media_index_path = tmp_path / 'runtime' / 'lessons' / '2-1' / 'media' / '2-1-media.md'
     media_index_path.parent.mkdir(parents=True, exist_ok=True)
-    prompt_path = tmp_path / 'authoring' / 'lessons' / '2-1' / 'media' / 'raw' / '2-1-intro-video-prompt.md'
-    prompt_path.parent.mkdir(parents=True, exist_ok=True)
-    prompt_path.write_text(
-        '\n'.join(
-            [
-                '# 2-1 即梦导入视频中文提示词',
-                '',
-                '## Agent 模式视频生成提示词',
-                '',
-                '校园里一辆自动送餐车沿着白线前进，突然偏离路线，差点冲进花坛。',
-                '最后点出本课主题：建模与变换语言，就是把复杂真实系统变成可分析、可连接、可运算的对象。',
-            ]
-        ),
-        encoding='utf-8',
-    )
     media_index_path.write_text(
         '\n'.join(
             [
@@ -1154,28 +1118,25 @@ def test_ensure_runtime_media_index_preserves_existing_links_and_order(tmp_path)
 
     assert media_index_path.read_text(encoding='utf-8') == '\n'.join(
         [
-            '# 2-1-intro-video.mp4',
-            '',
-            '- 旧导入视频标题',
-            '- 用导入情境引出“建模与变换语言，就是把复杂真实系统变成可分析、可连接、可运算的对象”这一主题。',
-            '',
-            'https://example.com/intro',
-            '',
-            '# 2-1-audio.m4a',
-            '',
-            '',
-            '# 2-1-slides.pdf',
-            '',
-            '',
             '# 2-1-course.mp4',
             '',
             '- 旧课程视频标题',
             '',
             'https://example.com/course',
             '',
+            '# 2-1-intro-video.mp4',
+            '',
+            '- 旧导入视频标题',
+            '',
+            'https://example.com/intro',
+            '',
             '# handout.md',
             '',
             '旧讲义摘要，应当保留。',
+            '',
+            '# 2-1-slides.pdf',
+            '',
+            '# 2-1-audio.m4a',
             '',
         ]
     )

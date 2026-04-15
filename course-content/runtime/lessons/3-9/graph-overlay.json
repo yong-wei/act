@@ -67,7 +67,8 @@
       "step_ids": [
         "step-04",
         "step-05",
-        "step-06"
+        "step-06",
+        "step-07"
       ],
       "node_ids": [
         "左半平面零点的动态改善机理_3_35002",
@@ -78,10 +79,10 @@
       ]
     },
     {
-      "group_name": "任务标签、频域复核与模块4入口",
+      "group_name": "综合映射与模块4入口",
       "step_ids": [
-        "step-07",
-        "step-08"
+        "step-08",
+        "step-09"
       ],
       "node_ids": [
         "三频段闭环性能回读_3_38003",
@@ -341,7 +342,7 @@
       "id": "左半平面零点的动态改善机理_3_35002",
       "name": "左半平面零点的动态改善机理",
       "nodeType": "THEORY",
-      "description": "左半平面零点通过改变相角平衡与根轨迹骨架，使主导极点更有机会进入阻尼更合适、实部更靠左的区域，因此常常带来更快、更稳的动态趋势；但这种改善会伴随高频放大或结构副作用。",
+      "description": "左半平面零点通过改变相角平衡与根轨迹骨架，使闭环极点更有机会进入阻尼更合适、实部更靠左的区域，因此常带来更快、更稳的动态趋势；这种改善必须同时通过根轨迹、时域、频域和结构判断读回。",
       "positionX": -48.5,
       "positionY": 28.0,
       "positionZ": 0,
@@ -354,10 +355,10 @@
         "chapterName": "未分章",
         "category": "概念性",
         "bloom_level": "分析",
-        "definition": "左半平面零点通过改变相角平衡与根轨迹骨架，使主导极点更有机会进入阻尼更合适、实部更靠左的区域，因此常常带来更快、更稳的动态趋势；但这种改善会伴随高频放大或结构副作用。",
+        "definition": "左半平面零点通过改变相角平衡与根轨迹骨架，使闭环极点更有机会进入阻尼更合适、实部更靠左的区域，因此常带来更快、更稳的动态趋势；这种改善必须同时通过根轨迹、时域、频域和结构判断读回。",
         "examples": [
-          "在同一纯极点对象上加入左半平面零点后，阶跃响应常表现为超调下降、调节时间缩短，但不是简单等价于增益增大。",
-          "PD 与超前都利用左半平面零点改善动态，只是对高频代价的处理方式不同。"
+          "在同一纯极点对象上加入左半平面零点后，阶跃响应常表现为超调下降、调节时间缩短，但这不等价于单纯增益增大。",
+          "PD 与超前都利用左半平面零点改善动态，只是频域整形方式与高频代价不同。"
         ],
         "formulas": [
           "M_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times100\\%",
@@ -711,8 +712,8 @@
       "name": "根轨迹",
       "nodeType": "THEORY",
       "description": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
-      "positionX": 105.7,
-      "positionY": 61.0,
+      "positionX": 31.6,
+      "positionY": 117.8,
       "positionZ": 4,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",
@@ -771,8 +772,8 @@
       "name": "串联无源滞后校正",
       "nodeType": "THEORY",
       "description": "一种通过串联滞后网络来改善系统稳态精度和动态性能的校正方法。",
-      "positionX": 150.7,
-      "positionY": -87.0,
+      "positionX": 127.3,
+      "positionY": 127.3,
       "positionZ": 6,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -861,35 +862,11 @@
       "strength": 0.95
     },
     {
-      "id": "rel-79f78d5522a4d68d",
-      "sourceId": "频域综合判断与工程读回_3_38004",
-      "targetId": "稳定_动态_稳态综合映射框架_3_39001",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.95
-    },
-    {
-      "id": "rel-6f33f1c7f33ddfcf",
-      "sourceId": "根轨迹_4_c19f8854",
-      "targetId": "稳定_动态_稳态综合映射框架_3_39001",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-678492a685ecbf06",
-      "sourceId": "稳定_动态_稳态综合映射框架_3_39001",
-      "targetId": "任务标签与机制标签匹配_3_39002",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.94
-    },
-    {
-      "id": "rel-d8f2e7b5ae82bda6",
-      "sourceId": "左半平面零点的动态改善机理_3_35002",
-      "targetId": "任务标签与机制标签匹配_3_39002",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
+      "id": "rel-14c1cb06e92f07fa",
+      "sourceId": "积分环节_2_11005",
+      "targetId": "积分与滞后的稳态改善分工_3_39003",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
       "strength": 0.9
     },
     {
@@ -901,20 +878,28 @@
       "strength": 0.95
     },
     {
-      "id": "rel-14c1cb06e92f07fa",
-      "sourceId": "积分环节_2_11005",
-      "targetId": "积分与滞后的稳态改善分工_3_39003",
-      "relation": "prerequisite",
-      "relationType": "prerequisite",
-      "strength": 0.9
+      "id": "rel-678492a685ecbf06",
+      "sourceId": "稳定_动态_稳态综合映射框架_3_39001",
+      "targetId": "任务标签与机制标签匹配_3_39002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
     },
     {
-      "id": "rel-c71456d4c47aac46",
-      "sourceId": "串联无源滞后校正_6_2a52e865",
-      "targetId": "积分与滞后的稳态改善分工_3_39003",
+      "id": "rel-6f33f1c7f33ddfcf",
+      "sourceId": "根轨迹_4_c19f8854",
+      "targetId": "稳定_动态_稳态综合映射框架_3_39001",
       "relation": "applies_to",
       "relationType": "applies_to",
       "strength": 0.9
+    },
+    {
+      "id": "rel-79f78d5522a4d68d",
+      "sourceId": "频域综合判断与工程读回_3_38004",
+      "targetId": "稳定_动态_稳态综合映射框架_3_39001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
     },
     {
       "id": "rel-8189abce8b953e80",
@@ -927,6 +912,22 @@
     {
       "id": "rel-9c1104cbe550d4a9",
       "sourceId": "三频段闭环性能回读_3_38003",
+      "targetId": "任务标签与机制标签匹配_3_39002",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-c71456d4c47aac46",
+      "sourceId": "串联无源滞后校正_6_2a52e865",
+      "targetId": "积分与滞后的稳态改善分工_3_39003",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-d8f2e7b5ae82bda6",
+      "sourceId": "左半平面零点的动态改善机理_3_35002",
       "targetId": "任务标签与机制标签匹配_3_39002",
       "relation": "cross_domain",
       "relationType": "cross_domain",

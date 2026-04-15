@@ -6,9 +6,9 @@ from pathlib import Path
 
 STANDARD_MEDIA_SUFFIXES = (
     'intro-video.mp4',
-    'audio.m4a',
     'slides.pdf',
     'course.mp4',
+    'audio.m4a',
 )
 HANDOUT_SECTION_NAME = 'handout.md'
 
@@ -262,36 +262,37 @@ def rebuild_intro_video_section(
     return lines
 
 
+def build_blank_runtime_media_index_content(lesson_id: str) -> str:
+    lines: list[str] = []
+    for filename in build_required_media_filenames(lesson_id):
+        lines.extend([f'# {filename}', ''])
+    return '\n'.join(lines)
+
+
 def compose_runtime_media_index_content(
     lesson_id: str,
     existing_markdown: str | None,
-    intro_video_summary: str | None,
 ) -> str:
     existing_sections = parse_runtime_media_sections(existing_markdown or '')
-    lines: list[str] = []
-    intro_video_filename = f'{lesson_id}-intro-video.mp4'
+    if not existing_sections:
+        return build_blank_runtime_media_index_content(lesson_id)
 
-    for filename in build_required_media_filenames(lesson_id):
-        lines.append(f'# {filename}')
-        lines.append('')
-        existing_section_lines = existing_sections.get(filename, [])
+    existing_content = (existing_markdown or '').rstrip('\n')
+    missing_filenames = [
+        filename for filename in build_required_media_filenames(lesson_id)
+        if filename not in existing_sections
+    ]
+    if not missing_filenames:
+        return existing_content + '\n'
 
-        if filename == intro_video_filename:
-            section_lines = rebuild_intro_video_section(existing_section_lines, intro_video_summary)
-        elif filename == HANDOUT_SECTION_NAME:
-            section_lines = rebuild_handout_section(existing_section_lines)
-        else:
-            section_lines = rebuild_generic_media_section(existing_section_lines)
-
-        if section_lines:
-            lines.extend(section_lines)
-        lines.append('')
-
+    lines = [existing_content, '']
+    for filename in missing_filenames:
+        lines.extend([f'# {filename}', ''])
     return '\n'.join(lines)
 
 
 def build_runtime_media_index_content(lesson_id: str, existing_markdown: str | None = None) -> str:
-    return compose_runtime_media_index_content(lesson_id, existing_markdown, intro_video_summary=None)
+    return compose_runtime_media_index_content(lesson_id, existing_markdown)
 
 
 def ensure_runtime_media_index(
@@ -302,8 +303,7 @@ def ensure_runtime_media_index(
     if existing_markdown is None and media_index_path.exists():
         existing_markdown = media_index_path.read_text(encoding='utf-8')
 
-    intro_video_summary = load_intro_video_theme_summary(lesson_id, media_index_path)
     media_index_path.parent.mkdir(parents=True, exist_ok=True)
-    content = compose_runtime_media_index_content(lesson_id, existing_markdown, intro_video_summary)
+    content = compose_runtime_media_index_content(lesson_id, existing_markdown)
     media_index_path.write_text(content, encoding='utf-8')
     sync_runtime_media_index_to_authoring_processed(media_index_path, lesson_id, content)

@@ -66,26 +66,12 @@ def test_generate_runtime_media_preserves_existing_media_index(tmp_path):
     lesson_id = 'demo-3'
     authoring_lesson_dir = tmp_path / 'authoring' / 'lessons' / lesson_id
     processed_dir = authoring_lesson_dir / 'media' / 'processed'
-    raw_dir = authoring_lesson_dir / 'media' / 'raw'
     runtime_media_dir = tmp_path / 'runtime' / 'lessons' / lesson_id / 'media'
 
     processed_dir.mkdir(parents=True)
-    raw_dir.mkdir(parents=True)
     runtime_media_dir.mkdir(parents=True)
 
     processed_dir.joinpath('demo-3-info.png').write_bytes(b'png')
-    raw_dir.joinpath('demo-3-intro-video-prompt.md').write_text(
-        '\n'.join(
-            [
-                '# demo-3 即梦导入视频中文提示词',
-                '',
-                '## Agent 模式视频生成提示词',
-                '',
-                '最后点出本课主题：用同一条轨迹看清风险边界。',
-            ]
-        ),
-        encoding='utf-8',
-    )
     runtime_media_dir.joinpath('demo-3-media.md').write_text(
         '# demo-3-course.mp4\n\nhttps://example.com/course\n',
         encoding='utf-8',
@@ -98,18 +84,16 @@ def test_generate_runtime_media_preserves_existing_media_index(tmp_path):
 
     assert runtime_media_dir.joinpath('demo-3-info.png').read_bytes() == b'png'
     assert runtime_media_dir.joinpath('demo-3-media.md').read_text(encoding='utf-8') == (
-        '# demo-3-intro-video.mp4\n\n'
-        '- 用导入情境引出“用同一条轨迹看清风险边界”这一主题。\n\n'
-        '# demo-3-audio.m4a\n\n\n'
-        '# demo-3-slides.pdf\n\n\n'
         '# demo-3-course.mp4\n\nhttps://example.com/course\n'
-        '\n# handout.md\n\n'
+        '\n# demo-3-intro-video.mp4\n\n'
+        '# demo-3-slides.pdf\n\n'
+        '# demo-3-audio.m4a\n\n'
+        '# handout.md\n'
     )
     assert processed_dir.joinpath('demo-3-media.md').read_text(encoding='utf-8') == (
-        '# demo-3-intro-video.mp4\n\n'
-        '- 用导入情境引出“用同一条轨迹看清风险边界”这一主题。\n\n'
-        '# demo-3-audio.m4a\n\n\n'
-        '# demo-3-slides.pdf\n\n\n'
         '# demo-3-course.mp4\n\nhttps://example.com/course\n'
-        '\n# handout.md\n\n'
+        '\n# demo-3-intro-video.mp4\n\n'
+        '# demo-3-slides.pdf\n\n'
+        '# demo-3-audio.m4a\n\n'
+        '# handout.md\n'
     )

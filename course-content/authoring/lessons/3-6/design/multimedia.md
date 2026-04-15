@@ -23,18 +23,18 @@
 | 编号 | 文件名 / 标识 | 生成方式 | 引用于 | 优先级 |
 | :---: | --- | --- | --- | :---: |
 | 1 | `3-6-cover-comic.png` | AI 静态图 | `handout.md` 首页 / interactive step-01 | P0 |
-| 2 | `3-6-info.png` | 代码直出信息图 | `handout.md` 课末 / interactive step-13 | P1 |
+| 2 | `3-6-info.png` | 代码直出信息图 | `handout.md` 课末 / interactive step-15 | P1 |
 | 3 | `3-6-design-map.png` | 代码直出信息图 | handout §2 / interactive step-05 | P1 |
 | 4 | `3-6-pd-design.png` | Octave + Python | handout §3 / interactive step-07 | P0 |
-| 5 | `3-6-rate-feedback-design.png` | Octave + Python | handout §4 / interactive step-08 | P0 |
+| 5 | `3-6-rate-feedback-design.png` | Octave + Python | handout §4 / interactive step-09 | P0 |
 | 6 | `3-6-pd-rate-structure.png` | 复用 `3-5` 结构图 | handout §4 / teacher-handout / interactive step-08 | P1 |
-| 7 | `3-6-lead-design.png` | Octave + Python | handout §5 / interactive step-09 | P0 |
-| 8 | `3-6-pd-frequency-design.png` | Octave + Python | handout §6 / interactive step-10 | P0 |
-| 9 | `3-6-rhp-boundary.png` | Octave + Python | handout §7 / interactive step-11 | P0 |
+| 7 | `3-6-lead-design.png` | Octave + Python | handout §5 / interactive step-11 | P0 |
+| 8 | `3-6-pd-frequency-design.png` | Octave + Python | handout §6 / interactive step-13 | P0 |
+| 9 | `3-6-rhp-boundary.png` | Octave + Python | handout §7 / interactive step-14 | P0 |
 | 10 | `3-6-intro-video.mp4` | AI 视频 | Bridge-in / interactive step-01 | P1 |
 | 11 | `3-6-intro-video-prompts.md` | 提示词文稿 | 视频生成依据 | 已有 |
 | 12 | `3-6-cover-comic-prompt.md` | 提示词文稿 | 封面漫画生成依据 | P1 |
-| 13 | `ic-36-design-report` | 前端绘制 | interactive step-11~13 | P1 |
+| 13 | `ic-36-design-report` | 前端绘制 | interactive step-13~15 | P1 |
 
 ---
 
@@ -100,7 +100,7 @@
 
 ### `ic-36-design-report`
 
-- **引用位置**：`interactive-page.md` step-11 ~ step-13
+- **引用位置**：`interactive-page.md` step-13 ~ step-15
 - **组件类型**：设计报告汇总面板
 - **功能**：
   - 汇总任务 A / B / C / D 的目标、参数、验收结果
@@ -113,4 +113,4 @@
 
 1. 互动实现时，必须让任务 C 与任务 D 共用同一组频域目标，避免把比较做成两套不同指标下的伪对比。
 2. 任务 E 不应开放激进带宽自由调参，应把重点放在“先重审目标、再选结构”的判断链上。
-3. 若后续补 `interactive-contract.yaml`，契约应直接对齐“指标翻译 -> A/B/C/D/E 五任务链 -> 设计报告”的结构。
+3. 当前 `interactive-contract.yaml` 已固定为 `15` 步结构；后续若进入 runtime 实现，媒体落点、步骤编号与设计报告面板都应继续对齐“指标翻译 -> A/B/C/D/E 五任务链 -> 设计报告”的主线，不得回退到旧版 `13` 步口径。

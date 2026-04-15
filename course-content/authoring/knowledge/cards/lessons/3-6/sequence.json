@@ -25,7 +25,8 @@
       "group_name": "任务 A / B：时域目标驱动设计",
       "step_ids": [
         "step-07",
-        "step-08"
+        "step-08",
+        "step-09"
       ],
       "node_ids": [
         "左半平面零点的动态改善机理_3_35002",
@@ -37,8 +38,10 @@
     {
       "group_name": "任务 C / D：频域目标驱动设计",
       "step_ids": [
-        "step-09",
-        "step-10"
+        "step-10",
+        "step-11",
+        "step-12",
+        "step-13"
       ],
       "node_ids": [
         "PD与超前的频域整形差异_3_35004",
@@ -50,9 +53,8 @@
     {
       "group_name": "任务 E 与课末收束",
       "step_ids": [
-        "step-11",
-        "step-12",
-        "step-13"
+        "step-14",
+        "step-15"
       ],
       "node_ids": [
         "非最小相与右半平面零点_3_35005",

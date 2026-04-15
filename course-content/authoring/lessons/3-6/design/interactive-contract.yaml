@@ -1,635 +1,1006 @@
-{
-  "contract_version": "2.0",
-  "lesson_id": "3-6",
-  "course_title": "3-6：零点作用与动态改善实验——从性能目标到校正设计",
-  "course_route_segment": "unit-3-6-zero-design-workshop",
-  "preview_mode": {
-    "default_entry": "student_demo",
-    "student_demo_base_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo",
-    "teacher_preview_panel_note": "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
-  },
-  "telemetry_strategy": "lightweight_high_value",
-  "teacher_insight_strategy": "step_level_aggregation_only",
-  "required_step_fields": [
-    "layout",
-    "modules",
-    "content_blocks",
-    "interaction_spec",
-    "teacher_controls",
-    "telemetry_spec",
-    "teacher_insight_spec",
-    "ai_context_spec",
-    "preview_contract",
-    "acceptance_checks"
-  ],
-  "steps": {
-    "step-01": {
-      "title": "封面导入：为什么今天必须先定目标",
-      "layout": {
-        "template": "binary_choice_illustration",
-        "regions": [
-          { "id": "media", "width": "full", "order": 1 },
-          { "id": "question", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "cover-media", "region": "media", "kind": "illustration", "must_be_visible": true },
-        { "id": "core-question-card", "region": "question", "kind": "question-card", "must_be_visible": true },
-        { "id": "first-reaction-choice", "region": "interaction", "kind": "single-choice", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "core-question", "type": "plain_text", "title": "核心追问", "body": "入口必须先按目标分类，而不是先迷信某一张图。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "single_choice",
-        "student_task": "在三种入口判断之间做首次选择。",
-        "correct_answer": "C",
-        "options": {
-          "A": "先看根轨迹",
-          "B": "先看 Bode 图",
-          "C": "先看目标是什么"
-        },
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["释放首反应选择", "显示正确项与一句点评"],
-      "telemetry_spec": {
-        "summary_fields": ["selectedOption", "resultState", "teacherRevealSeen"],
-        "misconception_tags": ["tool_before_goal"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["option_distribution", "goal_entry_confusion_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "打破先上某张图再说的惯性。",
-        "allowed_scope": ["目标", "入口", "设计工具分类"],
-        "forbidden_scope": ["后续参数结果"],
-        "canonical_facts": ["本课入口先按目标分类。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-01",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["封面媒体、核心追问和选择按钮首屏可见。", "本页不提前出现任务结果。"]
-    },
-    "step-02": {
-      "title": "回到地图：从零点机理切到校正设计",
-      "layout": {
-        "template": "map_hero_slide",
-        "regions": [
-          { "id": "header", "width": "full", "order": 1 },
-          { "id": "lead", "width": "full", "order": 2 },
-          { "id": "summary", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "stage-map", "region": "header", "kind": "stage-map", "must_be_visible": true },
-        { "id": "bridge-card", "region": "lead", "kind": "bridge-card", "must_be_visible": true },
-        { "id": "boundary-card", "region": "summary", "kind": "boundary-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "path", "type": "plain_text", "title": "路径定位", "body": "固定高亮 3-5 -> 3-6 -> 3-7。" },
-        { "id": "boundary", "type": "plain_text", "title": "本课边界", "body": "本课只做目标驱动设计与边界判断，不进入模块4完整整定流程。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "none",
-        "student_task": "只阅读，不提交。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["推进到下一页", "高亮当前节点"],
-      "telemetry_spec": {
-        "summary_fields": ["viewed", "timeOnStep", "teacherFollowSync"],
-        "result_policy": "no_submission"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["view_count", "sync_status"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "标定本课在模块3中的位置。",
-        "allowed_scope": ["前后课关系", "主线切换", "边界"],
-        "forbidden_scope": ["具体计算"],
-        "canonical_facts": ["3-5 讲机理，3-6 讲目标驱动设计，3-7 讲稳态改善。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-02",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["路径图、主线卡和边界卡同屏。", "本页没有作答区。"]
-    },
-    "step-03": {
-      "title": "本节目标与五任务设计链",
-      "layout": {
-        "template": "goal_chain_slide",
-        "regions": [
-          { "id": "goals", "width": "full", "order": 1 },
-          { "id": "chain", "width": "full", "order": 2 },
-          { "id": "outputs", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "goal-card-row", "region": "goals", "kind": "goal-card-row", "must_be_visible": true },
-        { "id": "task-chain", "region": "chain", "kind": "task-chain", "must_be_visible": true },
-        { "id": "deliverable-card-row", "region": "outputs", "kind": "deliverable-card-row", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "goals", "type": "bullet_list", "title": "三项目标", "items": ["翻译时域指标。", "翻译频域指标。", "在非最小相对象下先重审目标。"] },
-        { "id": "deliverables", "type": "bullet_list", "title": "固定交付物", "items": ["指标翻译表", "时域设计记录", "频域设计记录", "边界判断卡", "一页设计报告"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "none",
-        "student_task": "只建立本课整体预期。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["逐项强调目标", "高亮五任务链"],
-      "telemetry_spec": {
-        "summary_fields": ["viewed", "timeOnStep"],
-        "result_policy": "no_submission"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["view_count"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "压实本课能力边界与输出格式。",
-        "allowed_scope": ["目标", "任务链", "交付物"],
-        "forbidden_scope": ["参数答案"],
-        "canonical_facts": ["本课按五任务链推进。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-03",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["目标卡、任务链和交付物卡同屏。", "本页无提交组件。"]
-    },
-    "step-04": {
-      "title": "前测：你会怎样从指标进入设计",
-      "layout": {
-        "template": "question_stack",
-        "regions": [
-          { "id": "question-stack", "width": "full", "order": 1 },
-          { "id": "record", "width": "full", "order": 2 },
-          { "id": "ai-gate", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "pretest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "pretest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "pretest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "reason-record", "region": "record", "kind": "short-response", "must_be_visible": true },
-        { "id": "ai-gate-note", "region": "ai-gate", "kind": "boundary-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "ai-order", "type": "plain_text", "title": "AI 顺序约束", "body": "先提交判断，再允许打开 AI 对照。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "quiz_group",
-        "student_task": "完成三道前测，并提交一句理由。",
-        "attempt_model": "允许重提一次；AI 入口默认锁定。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["释放前测", "显示误区分布", "控制答案揭示"],
-      "telemetry_spec": {
-        "summary_fields": ["attemptCount", "resultState", "errorBucket", "reasonTextSubmitted"],
-        "misconception_tags": ["time_domain_goal_entry_confusion", "frequency_domain_goal_entry_confusion", "nmp_boundary_confusion"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["question_distribution", "top_misconceptions"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "暴露起点误区并保住先独立判断的顺序。",
-        "allowed_scope": ["错因归类", "入口对照", "术语纠偏"],
-        "forbidden_scope": ["生成完整前测答案"],
-        "canonical_facts": ["AI 只用于对照，不代替作答。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-04",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["未作答状态下三题、理由栏和 AI 锁定提示同时可见。", "AI 入口默认不可用。"]
-    },
-    "step-05": {
-      "title": "任务书：固定对象、两类目标与交付记录",
-      "layout": {
-        "template": "table_plus_prompt",
-        "regions": [
-          { "id": "object", "width": "full", "order": 1 },
-          { "id": "targets", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "plant-card", "region": "object", "kind": "formula-card", "must_be_visible": true },
-        { "id": "goal-table", "region": "targets", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "task-table", "region": "targets", "kind": "task-table", "must_be_visible": true },
-        { "id": "entry-classifier", "region": "interaction", "kind": "categorize-and-confirm", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "plant", "type": "formula", "title": "示例对象", "value": "G_p(s)=4/[s(s+0.8)]" },
-        { "id": "goals", "type": "bullet_list", "title": "两类目标", "items": ["时域：Mp<=20%, ts<=4s。", "频域：PM>=50°, wc≈3 rad/s。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "categorize_and_confirm",
-        "student_task": "把目标拖入对应入口栏，再确认。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["收集分类结果", "查看错分分布"],
-      "telemetry_spec": {
-        "summary_fields": ["bucketAssignment", "attemptCount", "timeOnStep"],
-        "misconception_tags": ["goal_misbucket"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["goal_bucket_distribution", "misbucket_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "压实先按目标分类再选工具的入口规则。",
-        "allowed_scope": ["对象", "任务", "目标分类"],
-        "forbidden_scope": ["替学生完成分类"],
-        "canonical_facts": ["时域目标和频域目标的入口不同。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-05",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["对象公式、目标表、任务表和分类组件同屏。", "错分时只提示入口类型。"]
-    },
-    "step-06": {
-      "title": "工作区 A：把时域指标翻译成设计可行域",
-      "layout": {
-        "template": "constraint_translation_workspace",
-        "regions": [
-          { "id": "formula", "width": "full", "order": 1 },
-          { "id": "workspace", "width": "full", "order": 2 },
-          { "id": "record", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "translation-formula-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
-        { "id": "complex-plane-workspace", "region": "workspace", "kind": "workspace-builder", "must_be_visible": true },
-        { "id": "translation-record-table", "region": "record", "kind": "record-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "translation", "type": "bullet_list", "title": "翻译结果", "items": ["ζ>=0.456", "Re(s)<=-1", "纯增益复根实部停在 -0.4"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "workspace_builder",
-        "student_task": "叠加目标区域并填写翻译表。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["显示目标区域参考线", "查看翻译表提交情况"],
-      "telemetry_spec": {
-        "summary_fields": ["constraintOverlayState", "recordSubmitted", "attemptCount"],
-        "misconception_tags": ["constraint_translation_error", "pure_gain_can_pass"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["overlay_accuracy", "pure_gain_failure_tags"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把时域指标翻译成区域语言。",
-        "allowed_scope": ["指标翻译", "阻尼线", "实部边界"],
-        "forbidden_scope": ["代替学生填写记录表"],
-        "canonical_facts": ["纯增益无法进入本课可行域。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-06",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["公式卡、区域工作区和翻译表同屏。", "工作区支持阻尼线和实部边界叠加。"]
-    },
-    "step-07": {
-      "title": "工作区 B：PD 时域设计",
-      "layout": {
-        "template": "tri_panel_design_workspace",
-        "regions": [
-          { "id": "task-chain", "width": "full", "order": 1 },
-          { "id": "workspace", "width": "full", "order": 2 },
-          { "id": "record", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "pd-design-chain", "region": "task-chain", "kind": "task-chain", "must_be_visible": true },
-        { "id": "tri-panel-workspace", "region": "workspace", "kind": "parameter-workspace", "must_be_visible": true },
-        { "id": "pd-record-card", "region": "record", "kind": "record-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "design-point", "type": "formula", "title": "设计点", "value": "s_d=-1.1±j1.67" },
-        { "id": "controller", "type": "formula", "title": "控制器形式", "value": "G_PD(s)=K(1+T_d s)" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "parameter_workspace",
-        "student_task": "调节 T_d 和 K，通过三面板验收并提交解释句。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["查看调参轨迹", "切换验收阈值显示"],
-      "telemetry_spec": {
-        "summary_fields": ["parameterTrail", "validationState", "recordSubmitted"],
-        "misconception_tags": ["skip_design_point", "memorize_pd_answer_only"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["final_parameter_distribution", "validation_pass_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "压实时域 PD 的完整设计链。",
-        "allowed_scope": ["设计点", "相角条件", "模值条件", "验收"],
-        "forbidden_scope": ["跳过设计点直接背参数"],
-        "canonical_facts": ["本任务先证纯增益不可能，再引入零点。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-07",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["设计点、控制器形式、三面板和记录卡同屏。", "提交前必须完成验收。"]
-    },
-    "step-08": {
-      "title": "工作区 C：测速反馈时域设计",
-      "layout": {
-        "template": "structure_formula_workspace",
-        "regions": [
-          { "id": "structure", "width": "full", "order": 1 },
-          { "id": "workspace", "width": "full", "order": 2 },
-          { "id": "record", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "rate-structure-card", "region": "structure", "kind": "structure-card", "must_be_visible": true },
-        { "id": "rate-formula-card", "region": "structure", "kind": "formula-card", "must_be_visible": true },
-        { "id": "tri-panel-workspace", "region": "workspace", "kind": "parameter-workspace", "must_be_visible": true },
-        { "id": "rate-record-card", "region": "record", "kind": "record-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "structure-note", "type": "plain_text", "title": "抓手差异", "body": "测速反馈先定等效极点，再求 K_t 和 K。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "parameter_workspace",
-        "student_task": "按顺序调节 K_t 和 K，并提交结构差异解释句。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["查看参数调整顺序", "查看结构误判比例"],
-      "telemetry_spec": {
-        "summary_fields": ["parameterTrail", "adjustmentOrder", "recordSubmitted"],
-        "misconception_tags": ["pd_equals_rate_feedback"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["adjustment_order_distribution", "pd_rate_confusion_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "建立测速反馈与 PD 的设计抓手差异。",
-        "allowed_scope": ["结构图", "等效方程", "调参顺序"],
-        "forbidden_scope": ["把测速反馈写成前向显式增零点"],
-        "canonical_facts": ["测速反馈的入口是等效极点位置。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-08",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["结构图、公式卡和工作区同屏。", "系统能记录参数调整顺序。"]
-    },
-    "step-09": {
-      "title": "工作区 D：超前频域设计",
-      "layout": {
-        "template": "bode_design_workspace",
-        "regions": [
-          { "id": "goal", "width": "full", "order": 1 },
-          { "id": "workspace", "width": "full", "order": 2 },
-          { "id": "record", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "frequency-goal-card", "region": "goal", "kind": "goal-card", "must_be_visible": true },
-        { "id": "lead-formula-card", "region": "goal", "kind": "formula-card", "must_be_visible": true },
-        { "id": "bode-workspace", "region": "workspace", "kind": "parameter-workspace", "must_be_visible": true },
-        { "id": "lead-record-card", "region": "record", "kind": "record-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "frequency-goals", "type": "plain_text", "title": "频域目标", "body": "PM>=50°，wc≈3 rad/s。" },
-        { "id": "design-order", "type": "plain_text", "title": "顺序提醒", "body": "先看只调增益会怎样，再补角，再布置频带，再求 K_c。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "parameter_workspace",
-        "student_task": "调节 a、T、K_c，完成频域与时域双验收。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["查看裕度恢复情况", "查看参数分布"],
-      "telemetry_spec": {
-        "summary_fields": ["parameterTrail", "marginState", "recordSubmitted"],
-        "misconception_tags": ["gain_only_is_enough", "skip_lead_order"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["lead_parameter_distribution", "margin_recovery_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "压实频域超前设计链。",
-        "allowed_scope": ["补角", "交叉频率", "幅值条件", "回查"],
-        "forbidden_scope": ["看起来差不多就算达标"],
-        "canonical_facts": ["频域设计先看只调增益会怎样。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-09",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["频域目标卡、超前形式卡和工作区同屏。", "达标需要频域与时域双验收。"]
-    },
-    "step-10": {
-      "title": "工作区 E：同一频域指标下的 PD 设计",
-      "layout": {
-        "template": "dual_solution_compare_workspace",
-        "regions": [
-          { "id": "goal", "width": "full", "order": 1 },
-          { "id": "workspace", "width": "full", "order": 2 },
-          { "id": "compare", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "shared-goal-card", "region": "goal", "kind": "goal-card", "must_be_visible": true },
-        { "id": "pd-frequency-card", "region": "goal", "kind": "formula-card", "must_be_visible": true },
-        { "id": "bode-workspace", "region": "workspace", "kind": "parameter-workspace", "must_be_visible": true },
-        { "id": "compare-board", "region": "compare", "kind": "structured-compare", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "compare-purpose", "type": "plain_text", "title": "比较目的", "body": "同一频域指标下比较超前和 PD 的时域副作用。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "structured_compare",
-        "student_task": "完成 PD 频域设计，并填写与超前方案的并排比较表。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["查看差异标签分布", "筛选空泛比较答案"],
-      "telemetry_spec": {
-        "summary_fields": ["comparisonSubmitted", "differenceTags", "validationState"],
-        "misconception_tags": ["frequency_pass_equals_all_pass", "empty_compare"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["difference_tag_distribution", "empty_comparison_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "压实同指标下比较副作用的课程意图。",
-        "allowed_scope": ["共同目标", "并排比较", "时域回查"],
-        "forbidden_scope": ["只看频域达标就结束"],
-        "canonical_facts": ["任务 D 与任务 E 共用同一频域指标。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-10",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["共同目标卡、工作区和比较卡同屏。", "比较表不能为空。"]
-    },
-    "step-11": {
-      "title": "工作区 F：非最小相边界与结构选择",
-      "layout": {
-        "template": "boundary_decision_workspace",
-        "regions": [
-          { "id": "boundary-object", "width": "full", "order": 1 },
-          { "id": "risk", "width": "full", "order": 2 },
-          { "id": "decision", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "nmp-object-card", "region": "boundary-object", "kind": "formula-card", "must_be_visible": true },
-        { "id": "risk-figure", "region": "risk", "kind": "figure", "must_be_visible": true },
-        { "id": "decision-matrix", "region": "decision", "kind": "decision-submit", "must_be_visible": true },
-        { "id": "example-replay", "region": "decision", "kind": "example-replay", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "boundary-fact", "type": "plain_text", "title": "边界事实", "body": "右半平面零点在 +3.33，原 wc≈3 目标过于激进。" },
-        { "id": "decision-rule", "type": "plain_text", "title": "顺序规则", "body": "先改目标，再选结构。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "decision_submit",
-        "student_task": "先判断原目标是否仍可行，再提交结构选择与理由。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["查看结构选择分布", "查看是否跳过目标重审"],
-      "telemetry_spec": {
-        "summary_fields": ["feasibilityChoice", "structureChoice", "reasonSubmitted"],
-        "misconception_tags": ["skip_goal_review", "nmp_still_push_bandwidth"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["structure_choice_distribution", "boundary_skip_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "建立边界先于调参的判断顺序。",
-        "allowed_scope": ["可行性", "风险", "保守目标", "结构选择"],
-        "forbidden_scope": ["未重审目标就直接推荐结构"],
-        "canonical_facts": ["非最小相对象下先改目标。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["边界对象公式、风险图和结构选择矩阵同屏。", "提交前必须经过目标重审确认。"]
-    },
-    "step-12": {
-      "title": "后测：设计链和边界是否分清",
-      "layout": {
-        "template": "post_quiz_stack",
-        "regions": [
-          { "id": "question-stack", "width": "full", "order": 1 },
-          { "id": "explain", "width": "full", "order": 2 },
-          { "id": "ai-compare", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "posttest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "posttest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "posttest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "one-sentence-explain", "region": "explain", "kind": "short-response", "must_be_visible": true },
-        { "id": "ai-compare-panel", "region": "ai-compare", "kind": "ai-compare-panel", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "ai-note", "type": "plain_text", "title": "AI 对照规则", "body": "完成后测后才开放 AI 对照；AI 只标记遗漏点。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "quiz_group",
-        "student_task": "完成三道后测并提交一句解释。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["释放后测", "显示剩余混淆标签", "控制 AI 对照开放"],
-      "telemetry_spec": {
-        "summary_fields": ["attemptCount", "resultState", "reasonTextSubmitted", "aiCompareOpened"],
-        "misconception_tags": ["shared_goal_purpose_confusion", "rate_feedback_entry_confusion", "nmp_goal_review_confusion"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["posttest_distribution", "remaining_confusion_tags"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "完成课末纠偏。",
-        "allowed_scope": ["遗漏点提示", "错因对照"],
-        "forbidden_scope": ["自动生成完整标准答案"],
-        "canonical_facts": ["AI 只用于课后纠偏。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-12",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["三题、解释栏和 AI 对照说明同屏。", "AI 对照在提交前不可用。"]
-    },
-    "step-13": {
-      "title": "收束：从指标走到结构选择",
-      "layout": {
-        "template": "summary_infographic",
-        "regions": [
-          { "id": "summary", "width": "full", "order": 1 },
-          { "id": "media", "width": "full", "order": 2 },
-          { "id": "exit", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "summary-card-row", "region": "summary", "kind": "summary-card-row", "must_be_visible": true },
-        { "id": "info-graphic", "region": "media", "kind": "figure", "must_be_visible": true },
-        { "id": "next-lesson-card", "region": "exit", "kind": "next-lesson-card", "must_be_visible": true },
-        { "id": "exit-reflection", "region": "exit", "kind": "exit-reflection", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "summary-lines", "type": "bullet_list", "title": "三句结论", "items": ["时域先翻译成目标区域。", "频域先翻译成补角与交叉频率。", "非最小相先重审目标。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "exit_reflection",
-        "student_task": "补全一句个人收束句。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["查看词云", "查看完成率"],
-      "telemetry_spec": {
-        "summary_fields": ["reflectionSubmitted", "reflectionLength"],
-        "result_policy": "store_text_only"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["reflection_word_cloud", "completion_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把本课主线收束成可复述的判断语言。",
-        "allowed_scope": ["三句结论", "前后课衔接"],
-        "forbidden_scope": ["扩写成新知识点"],
-        "canonical_facts": ["3-7 将转入稳态改善线。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-13",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["信息图、三句结论和退出反思栏同屏。", "本页没有标准答案揭示。"]
-    }
-  }
-}
+contract_version: '3.0'
+lesson_id: '3-6'
+course_title: '3-6：零点作用与动态改善实验——从性能目标到校正设计'
+course_route_segment: 'unit-3-6-zero-design-workshop'
+preview_mode:
+  default_entry: 'student_demo'
+  student_demo_base_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo'
+  teacher_preview_panel_note: '教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。'
+telemetry_strategy: 'lightweight_high_value'
+teacher_insight_strategy: 'step_level_aggregation_only'
+required_step_fields:
+  - layout
+  - modules
+  - evidence_units
+  - content_blocks
+  - interaction_spec
+  - teacher_controls
+  - telemetry_spec
+  - teacher_insight_spec
+  - ai_context_spec
+  - preview_contract
+  - acceptance_checks
+sequence_alignment:
+  manifest_file: 'course-content/authoring/lessons/3-6/manifest.json'
+  sequence_file: 'course-content/authoring/knowledge/cards/lessons/3-6/sequence.json'
+  group_mapping:
+    - group_name: '从 3-5 机理切到目标翻译'
+      step_ids: ['step-01', 'step-02', 'step-03', 'step-04', 'step-05', 'step-06']
+      node_ids:
+        - '零点引入与根轨迹重排_3_35001'
+        - '主导极点_3_4c4c6bbd'
+        - 'PD与测速反馈的等效阻尼对比_3_35003'
+        - 'PD与超前的频域整形差异_3_35004'
+        - '相角裕度_5_0a9c6e90'
+        - '带宽_5_6730fda4'
+        - '时域指标到目标极点区域_3_36001'
+    - group_name: '任务 A / B：时域目标驱动设计'
+      step_ids: ['step-07', 'step-08', 'step-09']
+      node_ids:
+        - '左半平面零点的动态改善机理_3_35002'
+        - '目标驱动PD校正_3_36002'
+        - 'PD与测速反馈的等效阻尼对比_3_35003'
+        - '目标驱动测速反馈校正_3_36003'
+    - group_name: '任务 C / D：频域目标驱动设计'
+      step_ids: ['step-10', 'step-11', 'step-12', 'step-13']
+      node_ids:
+        - 'PD与超前的频域整形差异_3_35004'
+        - '相角裕度_5_0a9c6e90'
+        - '带宽_5_6730fda4'
+        - '目标驱动超前校正_3_36004'
+    - group_name: '任务 E 与课末收束'
+      step_ids: ['step-14', 'step-15']
+      node_ids:
+        - '非最小相与右半平面零点_3_35005'
+        - '右半平面零点可行性边界_3_36005'
+evidence_unit_upgrade_table:
+  - evidence_unit_id: 'eu-01'
+    handout_anchor: '### 1.1 上一课的成果与本课的挑战'
+    evidence_kind: 'concept'
+    target_steps: ['step-02']
+    upgrade_mode: 'static_retention'
+    keep_elements: ['3-5 -> 3-6 -> 3-7 路径图', '主线切换句']
+    non_reducible: ['3-5 讲机理，3-6 讲目标驱动设计，3-7 讲稳态改善']
+    acceptance_checks: ['首屏必须看出本课在模块 3 中的位置。']
+  - evidence_unit_id: 'eu-02'
+    handout_anchor: '### 1.2 本课主线'
+    evidence_kind: 'task_card'
+    target_steps: ['step-03']
+    upgrade_mode: 'native_html'
+    keep_elements: ['五任务链', '交付物卡', '实践规则卡']
+    non_reducible: ['五个任务名称与顺序', '固定提交物']
+    acceptance_checks: ['不得缩成“若干设计任务”。']
+  - evidence_unit_id: 'eu-03'
+    handout_anchor: '### 1.3 先做一次“目标翻译”预测'
+    evidence_kind: 'task_card+quiz'
+    target_steps: ['step-04']
+    upgrade_mode: 'click_reveal'
+    keep_elements: ['三题前测', '理由栏', 'AI 锁定提示']
+    non_reducible: ['先独立判断，再允许 AI 对照']
+    acceptance_checks: ['AI 入口默认锁定。']
+  - evidence_unit_id: 'eu-04'
+    handout_anchor: '### 2.1 / ### 2.2 / ### 2.3'
+    evidence_kind: 'object+formula+table'
+    target_steps: ['step-05']
+    upgrade_mode: 'native_html'
+    keep_elements: ['对象公式', '三类校正表达式', '五任务表']
+    non_reducible: ['对象公式、三类装置标准表达、任务 A-E 与推荐工具']
+    acceptance_checks: ['对象卡、表达式卡和任务表必须同屏。']
+  - evidence_unit_id: 'eu-05'
+    handout_anchor: '### 2.4 将时域指标翻译为目标区域'
+    evidence_kind: 'derivation'
+    target_steps: ['step-06']
+    upgrade_mode: 'click_reveal'
+    keep_elements: ['Mp 翻译公式', 'ts 翻译公式', '区域结论']
+    non_reducible: ['公式 -> 代入 -> 区域 -> 失败原因']
+    acceptance_checks: ['不得只保留最终结论。']
+  - evidence_unit_id: 'eu-06'
+    handout_anchor: '### 2.4 将时域指标翻译为目标区域'
+    evidence_kind: 'curve_figure'
+    target_steps: ['step-06']
+    upgrade_mode: 'parametric_sim'
+    keep_elements: ['复平面可行域', '纯增益根轨迹', '失败记录']
+    non_reducible: ['原对象复根实部固定在 -0.4，无法达到 Re(s)<=-1']
+    acceptance_checks: ['基线态必须复现讲义中的纯增益失败图景。']
+  - evidence_unit_id: 'eu-07'
+    handout_anchor: '### 3.1 / ### 3.2 / ### 3.3'
+    evidence_kind: 'derivation+curve_figure'
+    target_steps: ['step-07']
+    upgrade_mode: 'click_reveal+parametric_sim'
+    keep_elements: ['设计点', '相角条件', '模值条件', '三面板']
+    non_reducible: ['设计点选择理由、Td≈0.35、K≈1.00、验收逻辑']
+    acceptance_checks: ['不得只保留最终参数结果式。']
+  - evidence_unit_id: 'eu-08'
+    handout_anchor: '### 4.1 / ### 4.2 / ### 4.4'
+    evidence_kind: 'structure_figure+derivation+table'
+    target_steps: ['step-08', 'step-09']
+    upgrade_mode: 'native_svg+click_reveal+parametric_sim'
+    keep_elements: ['测速反馈结构图', '等效特征方程', '对照表', '三面板']
+    non_reducible: ['先定等效极点，再求 Kt，最后由模值条件求 K']
+    acceptance_checks: ['step-08 不得直接跳成工作区。']
+  - evidence_unit_id: 'eu-09'
+    handout_anchor: '### 5.1 / ### 5.2 / ### 5.3 / ### 5.4 / ### 5.5'
+    evidence_kind: 'derivation+curve_figure'
+    target_steps: ['step-10', 'step-11']
+    upgrade_mode: 'click_reveal+parametric_sim'
+    keep_elements: ['共同频域目标', '只调增益失败证据', '超前四步链', '2x2 工作区']
+    non_reducible: ['PM>=50°', 'wc≈3', '补角、布置频带、由幅值条件求 Kc']
+    acceptance_checks: ['不得只留下“超前形式 + 调参面板”。']
+  - evidence_unit_id: 'eu-10'
+    handout_anchor: '### 6.1 / ### 6.2 / ### 6.3 / ### 6.4 / ### 6.5'
+    evidence_kind: 'derivation+compare+curve_figure'
+    target_steps: ['step-12', 'step-13']
+    upgrade_mode: 'click_reveal+parametric_sim+native_table'
+    keep_elements: ['共同目标卡', 'PD 频域相角条件', '并排比较板']
+    non_reducible: ['同指标比较副作用的课程意图']
+    acceptance_checks: ['比较板不得只写“二者都达标”。']
+  - evidence_unit_id: 'eu-11'
+    handout_anchor: '### 7.1 / ### 7.2 / ### 7.3 / 附录 B'
+    evidence_kind: 'curve_figure+boundary+task_card'
+    target_steps: ['step-14']
+    upgrade_mode: 'parametric_sim+click_reveal'
+    keep_elements: ['边界对象公式', '风险图', '保守示例抽屉', '选择矩阵']
+    non_reducible: ['先改目标，再选结构']
+    acceptance_checks: ['不得只保留风险图，不得省略保守示例。']
+  - evidence_unit_id: 'eu-12'
+    handout_anchor: '## 八、本课小结与前后衔接'
+    evidence_kind: 'summary+infographic'
+    target_steps: ['step-15']
+    upgrade_mode: 'static_retention'
+    keep_elements: ['三句结论', '3-6-info.png', '去向卡']
+    non_reducible: ['时域入口、频域入口、非最小相边界三句结论']
+    acceptance_checks: ['信息图与三句结论必须同屏。']
+mixed_evidence_order_table:
+  - step_id: 'step-01'
+    order: ['封面媒体', '核心追问', '首反应选择']
+    same_screen: ['封面媒体', '核心追问', '选择按钮']
+  - step_id: 'step-02'
+    order: ['路径图', '主线切换卡', '边界卡']
+    same_screen: ['路径图', '主线卡', '边界卡']
+  - step_id: 'step-03'
+    order: ['五任务链', '交付物卡', '实践规则卡']
+    same_screen: ['五任务链', '交付物卡']
+  - step_id: 'step-04'
+    order: ['三题前测', '理由栏', 'AI 锁定提示']
+    same_screen: ['三题前测', '理由栏', 'AI 锁定提示']
+  - step_id: 'step-05'
+    order: ['对象公式卡', '三类表达式卡', '五任务表', '入口分类组件']
+    same_screen: ['对象公式卡', '三类表达式卡', '五任务表']
+  - step_id: 'step-06'
+    order: ['翻译公式', '区域结论显影', '纯增益失败证据', '复平面工作区']
+    same_screen: ['翻译公式', '区域结论', '纯增益失败证据']
+  - step_id: 'step-07'
+    order: ['设计点卡', '相角条件显影', '模值条件显影', '三面板工作区', '记录卡']
+    same_screen: ['设计点卡', '公式显影区', '三面板工作区']
+  - step_id: 'step-08'
+    order: ['结构图', '等效方程显影', '对照表', '顺序检查组件']
+    same_screen: ['结构图', '等效方程', '对照表']
+  - step_id: 'step-09'
+    order: ['等效极点目标卡', '模值条件提示', '三面板工作区', '解释提交卡']
+    same_screen: ['等效极点目标卡', '模值条件提示', '三面板工作区']
+  - step_id: 'step-10'
+    order: ['共同频域目标卡', '只调增益失败证据', '超前四步显影链', '简答框']
+    same_screen: ['共同频域目标卡', '失败证据', '四步显影链']
+  - step_id: 'step-11'
+    order: ['超前形式卡', '顺序卡', 'Bode 双图', '阶跃回查', '记录卡']
+    same_screen: ['超前形式卡', 'Bode 双图', '阶跃回查']
+  - step_id: 'step-12'
+    order: ['共同目标卡', 'PD 频域相角条件显影', '比较维度表', '进入工作区提示']
+    same_screen: ['共同目标卡', '比较维度表']
+  - step_id: 'step-13'
+    order: ['PD 频域工作区', '并排比较板', '差异提交区']
+    same_screen: ['PD 频域工作区', '并排比较板']
+  - step_id: 'step-14'
+    order: ['边界对象卡', '风险图', '保守示例抽屉', '选择矩阵', '理由提交卡']
+    same_screen: ['边界对象卡', '风险图', '选择矩阵']
+  - step_id: 'step-15'
+    order: ['三题后测', '三句结论', '信息图', '退出反思']
+    same_screen: ['三题后测', '三句结论', '信息图']
+curve_runtime_contracts:
+  - contract_id: 'curve-step-06'
+    step_id: 'step-06'
+    figure_ref: 'pure-gain-feasible-region'
+    baseline_state:
+      structure: 'pure_gain'
+      parameters:
+        K: 0.192
+      display_overlays: ['feasible_region', 'dominant_poles']
+    layout_mirror: 'single_plot_plus_result_card'
+    controls: ['K slider']
+    reachable_states: ['纯增益靠近超调边界但仍无法满足 ts 目标', '复根实部固定在 -0.4 的失败态']
+    collapse_policy: 'controls_below_collapsible'
+    engine_family: 'rust_wasm_control_engine'
+    request_contract:
+      caseId: 'unit-3-6-pure-gain-failure'
+      outputs: ['root_locus', 'dominant_poles', 'feasible_region']
+      axis_policy: 'fixed_extent'
+      overlay_policy: ['feasible_region', 'current_poles']
+      sampling_policy: 'critical_point_dense'
+      precision_policy: 'fixed_2_decimals'
+  - contract_id: 'curve-step-07'
+    step_id: 'step-07'
+    figure_ref: '3-6-pd-design'
+    baseline_state:
+      structure: 'pd'
+      parameters:
+        Td: 0.35
+        K: 1.0
+      display_overlays: ['feasible_region', 'current_poles', 'mp_ts']
+    layout_mirror: 'root_locus_left_step_response_top_right_metric_card_bottom_right'
+    controls: ['Td slider', 'K slider']
+    reachable_states: ['讲义中的通过态', '纯增益不可达态', '零点过近导致超调增大的失败态']
+    collapse_policy: 'controls_below_collapsible'
+    engine_family: 'rust_wasm_control_engine'
+    request_contract:
+      caseId: 'unit-3-6-pd-time-domain'
+      outputs: ['root_locus', 'step_response', 'metrics']
+      axis_policy: 'fixed_extent'
+      overlay_policy: ['feasible_region', 'current_poles', 'mp_ts']
+      sampling_policy: 'critical_point_dense'
+      precision_policy: 'fixed_2_decimals'
+  - contract_id: 'curve-step-09'
+    step_id: 'step-09'
+    figure_ref: '3-6-rate-feedback-design'
+    baseline_state:
+      structure: 'rate_feedback'
+      parameters:
+        Kt: 0.35
+        K: 1.0
+      display_overlays: ['equivalent_pole', 'current_poles', 'mp_ts']
+    layout_mirror: 'root_locus_left_step_response_top_right_metric_card_bottom_right'
+    controls: ['Kt slider', 'K slider']
+    reachable_states: ['讲义中的通过态', '等效极点左移不足的失败态', '增益过大导致超调恶化的失败态']
+    collapse_policy: 'controls_below_collapsible'
+    engine_family: 'rust_wasm_control_engine'
+    request_contract:
+      caseId: 'unit-3-6-rate-feedback'
+      outputs: ['root_locus', 'step_response', 'metrics']
+      axis_policy: 'fixed_extent'
+      overlay_policy: ['equivalent_pole', 'current_poles', 'mp_ts']
+      sampling_policy: 'critical_point_dense'
+      precision_policy: 'fixed_2_decimals'
+  - contract_id: 'curve-step-11'
+    step_id: 'step-11'
+    figure_ref: '3-6-lead-design'
+    baseline_state:
+      structure: 'lead'
+      parameters:
+        a: 'handout_baseline'
+        T: 'handout_baseline'
+        Kc: 'handout_baseline'
+      display_overlays: ['pm_gm', 'wc', 'mp_ts']
+    layout_mirror: '2x2_bode_mag_bode_phase_step_response_metric_card'
+    controls: ['a slider', 'T slider', 'Kc slider']
+    reachable_states: ['讲义中的通过态', '只调增益失败态', '相角不足失败态']
+    collapse_policy: 'controls_below_collapsible'
+    engine_family: 'rust_wasm_control_engine'
+    request_contract:
+      caseId: 'unit-3-6-lead-design'
+      outputs: ['bode_mag', 'bode_phase', 'step_response', 'metrics']
+      axis_policy: 'fixed_extent'
+      overlay_policy: ['pm_gm', 'wc', 'mp_ts']
+      sampling_policy: 'critical_point_dense'
+      precision_policy: 'fixed_2_decimals'
+  - contract_id: 'curve-step-13'
+    step_id: 'step-13'
+    figure_ref: '3-6-pd-frequency-design'
+    baseline_state:
+      structure: 'pd_frequency'
+      parameters:
+        Td: 'handout_baseline'
+        K: 'handout_baseline'
+      display_overlays: ['pm_gm', 'wc', 'mp_ts']
+    layout_mirror: 'left_workspace_right_compare_board'
+    controls: ['Td slider', 'K slider']
+    reachable_states: ['讲义中的通过态', '与超前同指标的比较态', '高频放大风险偏大的失败态']
+    collapse_policy: 'controls_below_collapsible'
+    engine_family: 'rust_wasm_control_engine'
+    request_contract:
+      caseId: 'unit-3-6-pd-frequency'
+      outputs: ['bode_mag', 'bode_phase', 'step_response', 'metrics', 'compare_summary']
+      axis_policy: 'fixed_extent'
+      overlay_policy: ['pm_gm', 'wc', 'mp_ts']
+      sampling_policy: 'critical_point_dense'
+      precision_policy: 'fixed_2_decimals'
+  - contract_id: 'curve-step-14'
+    step_id: 'step-14'
+    figure_ref: '3-6-rhp-boundary'
+    baseline_state:
+      structure: 'nmp_boundary'
+      parameters:
+        target_profile: 'original_frequency_target'
+      display_overlays: ['inverse_response', 'rhp_zero_marker', 'pm_gm']
+    layout_mirror: 'left_risk_panel_right_decision_matrix'
+    controls: ['target_profile toggle', 'structure multiselect']
+    reachable_states: ['原目标不可直接沿用的风险态', '保守目标下的三结构比较态']
+    collapse_policy: 'controls_below_collapsible'
+    engine_family: 'rust_wasm_control_engine'
+    request_contract:
+      caseId: 'unit-3-6-nmp-boundary'
+      outputs: ['bode_mag', 'bode_phase', 'step_response', 'risk_flags']
+      axis_policy: 'fixed_extent'
+      overlay_policy: ['inverse_response', 'rhp_zero_marker', 'pm_gm']
+      sampling_policy: 'critical_point_dense'
+      precision_policy: 'fixed_2_decimals'
+steps:
+  step-01:
+    title: '封面导入：目标必须先于工具'
+    stage: 'bridge'
+    duration_minutes: 3
+    layout:
+      template: 'binary_choice_illustration'
+      regions:
+        - { id: 'media', width: 'full', order: 1 }
+        - { id: 'question', width: 'full', order: 2 }
+        - { id: 'interaction', width: 'full', order: 3 }
+    modules:
+      - { id: 'cover-media', region: 'media', kind: 'illustration', must_be_visible: true }
+      - { id: 'core-question-card', region: 'question', kind: 'question-card', must_be_visible: true }
+      - { id: 'first-reaction-choice', region: 'interaction', kind: 'single-choice', must_be_visible: true }
+    evidence_units: ['eu-03']
+    content_blocks:
+      - id: 'core-question'
+        type: 'plain_text'
+        title: '核心追问'
+        body: '为什么同样都在引入零点相关装置，有时入口是目标极点区域，有时入口却是相角裕度与截止频率。'
+    interaction_spec:
+      interaction_kind: 'single_choice'
+      student_task: '在三种入口判断之间做首次选择。'
+      options: { A: '先看根轨迹', B: '先看 Bode 图', C: '先看目标是什么' }
+      correct_answer: 'C'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['释放首反应选择', '显示正确项与一句点评']
+    telemetry_spec:
+      summary_fields: ['selectedOption', 'resultState', 'teacherRevealSeen']
+      misconception_tags: ['tool_before_goal']
+    teacher_insight_spec:
+      widgets: ['option_distribution', 'goal_entry_confusion_rate']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '打破先上某张图再说的惯性。'
+      allowed_scope: ['目标', '入口', '工具分类']
+      forbidden_scope: ['后续参数结果']
+      canonical_facts: ['本课入口先按目标分类。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-01'
+      must_match_student_page: true
+    acceptance_checks:
+      - '封面媒体、核心追问和选择按钮首屏可见。'
+      - '本页不提前出现任务结果。'
+  step-02:
+    title: '回到地图：从 3-5 的机理走向 3-6 的设计'
+    stage: 'bridge'
+    duration_minutes: 3
+    layout:
+      template: 'map_hero_slide'
+      regions:
+        - { id: 'header', width: 'full', order: 1 }
+        - { id: 'lead', width: 'full', order: 2 }
+        - { id: 'summary', width: 'full', order: 3 }
+    modules:
+      - { id: 'stage-map', region: 'header', kind: 'stage-map', must_be_visible: true }
+      - { id: 'bridge-card', region: 'lead', kind: 'bridge-card', must_be_visible: true }
+      - { id: 'boundary-card', region: 'summary', kind: 'boundary-card', must_be_visible: true }
+    evidence_units: ['eu-01']
+    content_blocks:
+      - id: 'boundary'
+        type: 'plain_text'
+        title: '本课边界'
+        body: '本课只做目标驱动设计与边界判断，不进入模块 4 的完整方案整定。'
+    interaction_spec:
+      interaction_kind: 'none'
+      student_task: '只阅读，不提交。'
+      answer_reveal: 'none'
+    teacher_controls: ['推进到下一页', '高亮当前节点']
+    telemetry_spec:
+      summary_fields: ['viewed', 'timeOnStep', 'teacherFollowSync']
+      result_policy: 'no_submission'
+    teacher_insight_spec:
+      widgets: ['view_count', 'sync_status']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '标定本课在模块 3 中的位置。'
+      allowed_scope: ['前后课关系', '主线切换', '边界']
+      forbidden_scope: ['具体参数计算']
+      canonical_facts: ['3-5 讲机理，3-6 讲目标驱动设计，3-7 讲稳态改善。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-02'
+      must_match_student_page: true
+    acceptance_checks:
+      - '路径图、主线卡和边界卡同屏。'
+  step-03:
+    title: '五任务设计链与提交物总览'
+    stage: 'objective'
+    duration_minutes: 4
+    layout:
+      template: 'goal_chain_slide'
+      regions:
+        - { id: 'chain', width: 'full', order: 1 }
+        - { id: 'outputs', width: 'full', order: 2 }
+        - { id: 'rules', width: 'full', order: 3 }
+    modules:
+      - { id: 'task-chain', region: 'chain', kind: 'task-chain', must_be_visible: true }
+      - { id: 'deliverable-card-row', region: 'outputs', kind: 'deliverable-card-row', must_be_visible: true }
+      - { id: 'practice-rule-card', region: 'rules', kind: 'rule-card', must_be_visible: true }
+    evidence_units: ['eu-02']
+    content_blocks:
+      - id: 'deliverables'
+        type: 'bullet_list'
+        title: '固定交付物'
+        items: ['指标翻译表', '时域设计记录', '频域设计记录', '边界判断卡', '一页设计报告']
+    interaction_spec:
+      interaction_kind: 'none'
+      student_task: '只建立本课整体预期。'
+      answer_reveal: 'none'
+    teacher_controls: ['逐项强调目标', '高亮五任务链']
+    telemetry_spec:
+      summary_fields: ['viewed', 'timeOnStep']
+      result_policy: 'no_submission'
+    teacher_insight_spec:
+      widgets: ['view_count']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '压实本课能力边界与输出格式。'
+      allowed_scope: ['目标', '任务链', '交付物', '实践规则']
+      forbidden_scope: ['参数答案']
+      canonical_facts: ['本课按五任务链推进。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-03'
+      must_match_student_page: true
+    acceptance_checks:
+      - '任务链与交付物同屏。'
+  step-04:
+    title: '前测：三类目标分别从哪里进入'
+    stage: 'pre_assessment'
+    duration_minutes: 6
+    layout:
+      template: 'question_stack'
+      regions:
+        - { id: 'question-stack', width: 'full', order: 1 }
+        - { id: 'record', width: 'full', order: 2 }
+        - { id: 'ai-gate', width: 'full', order: 3 }
+    modules:
+      - { id: 'pretest-q1', region: 'question-stack', kind: 'single-choice-card', must_be_visible: true }
+      - { id: 'pretest-q2', region: 'question-stack', kind: 'single-choice-card', must_be_visible: true }
+      - { id: 'pretest-q3', region: 'question-stack', kind: 'single-choice-card', must_be_visible: true }
+      - { id: 'reason-record', region: 'record', kind: 'short-response', must_be_visible: true }
+      - { id: 'ai-gate-note', region: 'ai-gate', kind: 'boundary-card', must_be_visible: true }
+    evidence_units: ['eu-03']
+    content_blocks:
+      - id: 'ai-order'
+        type: 'plain_text'
+        title: 'AI 顺序约束'
+        body: '先提交判断，再允许打开 AI 对照。'
+    interaction_spec:
+      interaction_kind: 'quiz_group'
+      student_task: '完成三道前测，并提交一句理由。'
+      attempt_model: '允许重提一次；AI 入口默认锁定。'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['释放前测', '显示误区分布', '控制答案揭示']
+    telemetry_spec:
+      summary_fields: ['attemptCount', 'resultState', 'errorBucket', 'reasonTextSubmitted']
+      misconception_tags: ['time_domain_goal_entry_confusion', 'frequency_domain_goal_entry_confusion', 'nmp_boundary_confusion']
+    teacher_insight_spec:
+      widgets: ['question_distribution', 'top_misconceptions']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '暴露起点误区并保住先独立判断的顺序。'
+      allowed_scope: ['错因归类', '入口对照', '术语纠偏']
+      forbidden_scope: ['生成完整前测答案']
+      canonical_facts: ['AI 只用于对照，不代替作答。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-04'
+      must_match_student_page: true
+    acceptance_checks:
+      - '三题、理由栏和 AI 锁定提示同时可见。'
+      - 'AI 入口默认不可用。'
+  step-05:
+    title: '任务书：统一对象、三类装置与五任务入口'
+    stage: 'participatory_learning'
+    duration_minutes: 5
+    layout:
+      template: 'evidence_board'
+      regions:
+        - { id: 'object', width: 'full', order: 1 }
+        - { id: 'expressions', width: 'full', order: 2 }
+        - { id: 'tasks', width: 'full', order: 3 }
+    modules:
+      - { id: 'plant-card', region: 'object', kind: 'formula-card', must_be_visible: true }
+      - { id: 'controller-expression-tabs', region: 'expressions', kind: 'tabbed-formula-panel', must_be_visible: true }
+      - { id: 'task-table', region: 'tasks', kind: 'task-table', must_be_visible: true }
+      - { id: 'entry-classifier', region: 'tasks', kind: 'categorize-and-confirm', must_be_visible: true }
+    evidence_units: ['eu-04']
+    content_blocks:
+      - id: 'plant'
+        type: 'formula'
+        title: '示例对象'
+        value: 'G_p(s)=4/[s(s+0.8)]'
+    interaction_spec:
+      interaction_kind: 'categorize_and_confirm'
+      student_task: '把五个任务分别拖入先上根轨迹、先上 Bode 图、先重审目标三栏。'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['释放分类题', '显示班级分类分布']
+    telemetry_spec:
+      summary_fields: ['bucketAssignment', 'attemptCount', 'timeOnStep']
+      misconception_tags: ['misbucket_goal_entry']
+    teacher_insight_spec:
+      widgets: ['goal_bucket_distribution', 'misbucket_rate']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '压实先按目标分类，再选工具的入口规则。'
+      allowed_scope: ['对象', '任务', '目标分类']
+      forbidden_scope: ['替学生完成分类']
+      canonical_facts: ['入口先看目标，再看工具。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-05'
+      must_match_student_page: true
+    acceptance_checks:
+      - '对象卡、表达式卡、任务表和分类组件必须同屏。'
+  step-06:
+    title: '推导显影 A：时域指标如何变成设计可行域'
+    stage: 'participatory_learning'
+    duration_minutes: 8
+    layout:
+      template: 'derivation_reveal_board'
+      regions:
+        - { id: 'derivation', width: 'full', order: 1 }
+        - { id: 'figure', width: 'full', order: 2 }
+        - { id: 'record', width: 'full', order: 3 }
+    modules:
+      - { id: 'translation-formula-panel', region: 'derivation', kind: 'formula-panel', must_be_visible: true }
+      - { id: 'feasible-region-reveal', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
+      - { id: 'pure-gain-failure-plot', region: 'figure', kind: 'parametric-plot', must_be_visible: true }
+      - { id: 'translation-record-table', region: 'record', kind: 'record-table', must_be_visible: true }
+    evidence_units: ['eu-05', 'eu-06']
+    content_blocks:
+      - id: 'translation-formulas'
+        type: 'formula_group'
+        title: '时域翻译公式'
+        formulas:
+          - 'Mp=e^(-zeta*pi/sqrt(1-zeta^2))*100%'
+          - 'ts≈4/(zeta*omega_n)'
+      - id: 'translation-conclusion'
+        type: 'plain_text'
+        title: '区域结论'
+        body: 'zeta>=0.456，Re(s)<=-1。'
+    interaction_spec:
+      interaction_kind: 'workspace_builder'
+      student_task: '叠加阻尼线和实部边界，并填写一句纯增益失败原因。'
+      runtime_plot_contract_ref: 'curve-step-06'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['切换基线参数', '显示失败结论标签']
+    telemetry_spec:
+      summary_fields: ['constraintOverlayState', 'recordSubmitted', 'attemptCount']
+      misconception_tags: ['pure_gain_failure_confusion']
+    teacher_insight_spec:
+      widgets: ['overlay_accuracy', 'pure_gain_failure_tags']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '把口号式“更快更稳”翻译成区域语言。'
+      allowed_scope: ['指标翻译', '阻尼线', '实部边界', '纯增益失败原因']
+      forbidden_scope: ['替学生直接写结论']
+      canonical_facts: ['纯增益无法进入本课设计可行域。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-06'
+      must_match_student_page: true
+    acceptance_checks:
+      - '公式、区域结论、纯增益失败证据和记录表必须同屏。'
+  step-07:
+    title: '任务 A：PD 时域设计'
+    stage: 'participatory_learning'
+    duration_minutes: 12
+    layout:
+      template: 'parametric_sim_board'
+      regions:
+        - { id: 'evidence', width: 'full', order: 1 }
+        - { id: 'derivation', width: 'full', order: 2 }
+        - { id: 'workspace', width: 'full', order: 3 }
+    modules:
+      - { id: 'pd-design-point-card', region: 'evidence', kind: 'formula-card', must_be_visible: true }
+      - { id: 'pd-derivation-reveal', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
+      - { id: 'pd-tri-panel-workspace', region: 'workspace', kind: 'parametric-workspace', must_be_visible: true }
+      - { id: 'pd-record-card', region: 'workspace', kind: 'record-card', must_be_visible: true }
+    evidence_units: ['eu-07']
+    content_blocks:
+      - id: 'pd-design-point'
+        type: 'formula'
+        title: '设计点'
+        value: 's_d=-1.1±j1.67'
+      - id: 'pd-controller'
+        type: 'formula'
+        title: '控制器形式'
+        value: 'G_PD(s)=K(1+T_d s)'
+    interaction_spec:
+      interaction_kind: 'parameter_workspace'
+      student_task: '调参直到目标区域和时域指标同时通过，并提交一句解释。'
+      controls: ['Td slider', 'K slider']
+      runtime_plot_contract_ref: 'curve-step-07'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['显示基线参数', '查看学生调参轨迹']
+    telemetry_spec:
+      summary_fields: ['parameterTrail', 'validationState', 'recordSubmitted']
+      misconception_tags: ['skip_design_point', 'pd_only_memorize_answer']
+    teacher_insight_spec:
+      widgets: ['final_parameter_distribution', 'validation_pass_rate']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '压实时域 PD 的完整设计链。'
+      allowed_scope: ['设计点', '相角条件', '模值条件', '验收逻辑']
+      forbidden_scope: ['跳过设计点直接背答案']
+      canonical_facts: ['设计点是 PD 设计的入口，不是零点猜测。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-07'
+      must_match_student_page: true
+    acceptance_checks:
+      - '设计点、公式显影区、三面板工作区与记录卡必须同屏。'
+  step-08:
+    title: '任务 B 的证据板：测速反馈为何不是“换位置的 PD”'
+    stage: 'participatory_learning'
+    duration_minutes: 5
+    layout:
+      template: 'structure_evidence_board'
+      regions:
+        - { id: 'structure', width: 'full', order: 1 }
+        - { id: 'derivation', width: 'full', order: 2 }
+        - { id: 'compare', width: 'full', order: 3 }
+    modules:
+      - { id: 'rate-structure-diagram', region: 'structure', kind: 'native-svg-diagram', must_be_visible: true }
+      - { id: 'rate-derivation-reveal', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
+      - { id: 'pd-rate-contrast-table', region: 'compare', kind: 'native-table', must_be_visible: true }
+      - { id: 'sequence-check-card', region: 'compare', kind: 'sequenced-reveal', must_be_visible: true }
+    evidence_units: ['eu-08']
+    content_blocks:
+      - id: 'rate-formula'
+        type: 'formula_group'
+        title: '测速反馈标准表达'
+        formulas:
+          - 'U(s)=K E(s)-K_t sY(s)'
+          - '1+4K/[s(s+0.8+4K_t)]=0'
+    interaction_spec:
+      interaction_kind: 'sequenced_reveal'
+      student_task: '按正确顺序点亮结构差异、等效方程、设计抓手和与 PD 的区别。'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['控制显影顺序答案', '查看顺序正确率']
+    telemetry_spec:
+      summary_fields: ['revealOrder', 'completedState']
+      misconception_tags: ['rate_as_pd_relocated']
+    teacher_insight_spec:
+      widgets: ['reveal_order_accuracy', 'pd_rate_confusion_rate']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '建立测速反馈与 PD 的设计抓手差异。'
+      allowed_scope: ['结构图', '等效方程', '设计抓手差异']
+      forbidden_scope: ['把测速反馈误写成前向显式增零点']
+      canonical_facts: ['测速反馈先定等效极点位置。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-08'
+      must_match_student_page: true
+    acceptance_checks:
+      - '结构图、等效方程和对照表必须同屏。'
+  step-09:
+    title: '任务 B：测速反馈时域设计'
+    stage: 'participatory_learning'
+    duration_minutes: 10
+    layout:
+      template: 'parametric_sim_board'
+      regions:
+        - { id: 'evidence', width: 'full', order: 1 }
+        - { id: 'derivation', width: 'full', order: 2 }
+        - { id: 'workspace', width: 'full', order: 3 }
+    modules:
+      - { id: 'rate-target-card', region: 'evidence', kind: 'target-card', must_be_visible: true }
+      - { id: 'rate-modulus-reveal', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
+      - { id: 'rate-tri-panel-workspace', region: 'workspace', kind: 'parametric-workspace', must_be_visible: true }
+      - { id: 'rate-record-card', region: 'workspace', kind: 'record-card', must_be_visible: true }
+    evidence_units: ['eu-08']
+    content_blocks:
+      - id: 'rate-target'
+        type: 'plain_text'
+        title: '等效极点目标'
+        body: '将原极点 -0.8 左移到 -2.2，使复根实部稳定落在 -1.1。'
+    interaction_spec:
+      interaction_kind: 'parameter_workspace'
+      student_task: '完成参数调整并提交一句为什么这里先定等效极点。'
+      controls: ['Kt slider', 'K slider']
+      runtime_plot_contract_ref: 'curve-step-09'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['显示基线参数', '查看顺序是否正确']
+    telemetry_spec:
+      summary_fields: ['parameterTrail', 'adjustmentOrder', 'recordSubmitted']
+      misconception_tags: ['guess_zero_first_in_rate_feedback']
+    teacher_insight_spec:
+      widgets: ['adjustment_order_distribution', 'rate_validation_pass_rate']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '建立测速反馈的参数抓手与验收逻辑。'
+      allowed_scope: ['等效极点位置', '模值条件', '顺序检查']
+      forbidden_scope: ['只报参数结果不解释']
+      canonical_facts: ['测速反馈先改写骨架，再验收时域。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-09'
+      must_match_student_page: true
+    acceptance_checks:
+      - '等效极点目标卡、模值条件提示和三面板工作区必须同屏。'
+  step-10:
+    title: '推导显影 B：频域目标如何进入超前设计'
+    stage: 'participatory_learning'
+    duration_minutes: 6
+    layout:
+      template: 'derivation_reveal_board'
+      regions:
+        - { id: 'goal', width: 'full', order: 1 }
+        - { id: 'evidence', width: 'full', order: 2 }
+        - { id: 'derivation', width: 'full', order: 3 }
+    modules:
+      - { id: 'shared-frequency-goal-card', region: 'goal', kind: 'goal-card', must_be_visible: true }
+      - { id: 'gain-only-failure-card', region: 'evidence', kind: 'evidence-card', must_be_visible: true }
+      - { id: 'lead-derivation-reveal', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
+      - { id: 'lead-intent-response', region: 'derivation', kind: 'structured-response', must_be_visible: true }
+    evidence_units: ['eu-09']
+    content_blocks:
+      - id: 'shared-goal'
+        type: 'formula_group'
+        title: '共同频域目标'
+        formulas:
+          - 'PM>=50°'
+          - 'wc≈3 rad/s'
+    interaction_spec:
+      interaction_kind: 'structured_response'
+      student_task: '写一句为什么频域设计必须先看若只调增益会怎样。'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['展示关键词命中率']
+    telemetry_spec:
+      summary_fields: ['responseSubmitted', 'keywordCoverage']
+      misconception_tags: ['skip_gain_only_check']
+    teacher_insight_spec:
+      widgets: ['keyword_coverage_distribution']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '压实共同频域目标与超前四步链。'
+      allowed_scope: ['共同目标', '失败证据', '四步链']
+      forbidden_scope: ['直接给出超前最终参数']
+      canonical_facts: ['超前设计先看只调增益为何失败。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-10'
+      must_match_student_page: true
+    acceptance_checks:
+      - '共同目标、失败证据和四步显影链必须同屏。'
+  step-11:
+    title: '任务 C：超前频域设计'
+    stage: 'participatory_learning'
+    duration_minutes: 10
+    layout:
+      template: 'frequency_design_workspace'
+      regions:
+        - { id: 'formula', width: 'full', order: 1 }
+        - { id: 'workspace', width: 'full', order: 2 }
+        - { id: 'record', width: 'full', order: 3 }
+    modules:
+      - { id: 'lead-formula-card', region: 'formula', kind: 'formula-card', must_be_visible: true }
+      - { id: 'lead-sequence-card', region: 'formula', kind: 'sequence-card', must_be_visible: true }
+      - { id: 'lead-frequency-workspace', region: 'workspace', kind: 'parametric-workspace', must_be_visible: true }
+      - { id: 'lead-record-card', region: 'record', kind: 'record-card', must_be_visible: true }
+    evidence_units: ['eu-09']
+    content_blocks:
+      - id: 'lead-formula'
+        type: 'formula'
+        title: '超前控制器形式'
+        value: 'G_lead(s)=K_c(aTs+1)/(Ts+1), a>1'
+    interaction_spec:
+      interaction_kind: 'parameter_workspace'
+      student_task: '完成超前设计并记录为何频域通过后仍要回查时域。'
+      controls: ['a slider', 'T slider', 'Kc slider']
+      runtime_plot_contract_ref: 'curve-step-11'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['显示讲义基线参数', '切换只调增益失败态']
+    telemetry_spec:
+      summary_fields: ['parameterTrail', 'marginState', 'recordSubmitted']
+      misconception_tags: ['stop_after_frequency_pass']
+    teacher_insight_spec:
+      widgets: ['lead_parameter_distribution', 'margin_recovery_rate']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '完成超前的频域设计与时域回查。'
+      allowed_scope: ['补角', '交叉频率', '幅值条件', '时域回查']
+      forbidden_scope: ['把超前设计压成“调到差不多”']
+      canonical_facts: ['频域达标后仍需回查时域副作用。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11'
+      must_match_student_page: true
+    acceptance_checks:
+      - '超前形式卡、顺序卡、Bode 双图、阶跃回查与记录卡必须同屏。'
+  step-12:
+    title: '推导显影 C：为何同一频域指标下还要再做一次 PD'
+    stage: 'participatory_learning'
+    duration_minutes: 5
+    layout:
+      template: 'compare_reveal_board'
+      regions:
+        - { id: 'goal', width: 'full', order: 1 }
+        - { id: 'derivation', width: 'full', order: 2 }
+        - { id: 'compare', width: 'full', order: 3 }
+    modules:
+      - { id: 'shared-goal-card', region: 'goal', kind: 'goal-card', must_be_visible: true }
+      - { id: 'pd-frequency-derivation', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
+      - { id: 'compare-rubric-table', region: 'compare', kind: 'native-table', must_be_visible: true }
+      - { id: 'entry-note', region: 'compare', kind: 'entry-note', must_be_visible: true }
+    evidence_units: ['eu-10']
+    content_blocks:
+      - id: 'compare-rubric'
+        type: 'bullet_list'
+        title: '比较维度'
+        items: ['达标情况', '超调', '调节时间', '高频放大风险', '推荐结构']
+    interaction_spec:
+      interaction_kind: 'structured_response'
+      student_task: '勾选为什么必须沿用相同频域指标的理由标签。'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['查看理由标签分布']
+    telemetry_spec:
+      summary_fields: ['reasonTags', 'completedState']
+      misconception_tags: ['no_same_goal_compare_intent']
+    teacher_insight_spec:
+      widgets: ['reason_tag_distribution', 'empty_reason_rate']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '压实同指标比较副作用的课程意图。'
+      allowed_scope: ['共同目标', '比较维度', 'PD 频域入口']
+      forbidden_scope: ['只讲频域达标，不提比较意图']
+      canonical_facts: ['任务 D 的存在是为了比较副作用。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-12'
+      must_match_student_page: true
+    acceptance_checks:
+      - '共同目标卡、显影区和比较维度表必须同屏。'
+  step-13:
+    title: '任务 D：同指标下的 PD 频域设计与并排比较'
+    stage: 'participatory_learning'
+    duration_minutes: 8
+    layout:
+      template: 'comparison_lab_board'
+      regions:
+        - { id: 'workspace', width: 'full', order: 1 }
+        - { id: 'compare', width: 'full', order: 2 }
+        - { id: 'submit', width: 'full', order: 3 }
+    modules:
+      - { id: 'pd-frequency-workspace', region: 'workspace', kind: 'parametric-workspace', must_be_visible: true }
+      - { id: 'lead-pd-compare-board', region: 'compare', kind: 'compare-board', must_be_visible: true }
+      - { id: 'difference-submit-card', region: 'submit', kind: 'structured-submit', must_be_visible: true }
+    evidence_units: ['eu-10']
+    content_blocks:
+      - id: 'compare-board-note'
+        type: 'plain_text'
+        title: '并排比较要求'
+        body: '同步填写是否达标、Mp、ts、高频放大风险与推荐结构。'
+    interaction_spec:
+      interaction_kind: 'structured_compare'
+      student_task: '完成 PD 频域设计，并填写与超前方案的结构化比较表。'
+      controls: ['Td slider', 'K slider']
+      runtime_plot_contract_ref: 'curve-step-13'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['切换超前基线方案', '查看差异标签分布']
+    telemetry_spec:
+      summary_fields: ['comparisonSubmitted', 'differenceTags', 'validationState']
+      misconception_tags: ['both_pass_then_stop']
+    teacher_insight_spec:
+      widgets: ['difference_tag_distribution', 'empty_comparison_rate']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '在同一频域目标下完成 PD 设计并比较副作用。'
+      allowed_scope: ['共同目标', '结构化比较', '时域回查']
+      forbidden_scope: ['只看频域达标就结束']
+      canonical_facts: ['同指标比较才有资格讨论结构差异。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-13'
+      must_match_student_page: true
+    acceptance_checks:
+      - '工作区、并排比较板和差异提交区必须同屏。'
+  step-14:
+    title: '任务 E：右半平面零点下的边界与结构选择'
+    stage: 'participatory_learning'
+    duration_minutes: 8
+    layout:
+      template: 'boundary_decision_workspace'
+      regions:
+        - { id: 'boundary-object', width: 'full', order: 1 }
+        - { id: 'risk', width: 'full', order: 2 }
+        - { id: 'decision', width: 'full', order: 3 }
+    modules:
+      - { id: 'nmp-object-card', region: 'boundary-object', kind: 'formula-card', must_be_visible: true }
+      - { id: 'risk-figure-panel', region: 'risk', kind: 'parametric-risk-panel', must_be_visible: true }
+      - { id: 'conservative-example-drawer', region: 'risk', kind: 'drawer', must_be_visible: true }
+      - { id: 'decision-matrix', region: 'decision', kind: 'decision-matrix', must_be_visible: true }
+      - { id: 'decision-submit-card', region: 'decision', kind: 'structured-submit', must_be_visible: true }
+    evidence_units: ['eu-11']
+    content_blocks:
+      - id: 'nmp-object'
+        type: 'formula'
+        title: '边界对象'
+        value: 'G_nmp(s)=4(1-0.3s)/[s(s+0.8)]'
+      - id: 'boundary-rule'
+        type: 'plain_text'
+        title: '边界结论'
+        body: '非最小相对象下先改目标，再选 PD、测速反馈或超前。'
+    interaction_spec:
+      interaction_kind: 'decision_submit'
+      student_task: '先判断原目标是否仍可行，再在三种结构中做出优先选择，并提交一句依据。'
+      controls: ['target_profile toggle', 'structure multiselect']
+      runtime_plot_contract_ref: 'curve-step-14'
+      prerequisites: ['已重审目标']
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['切换保守目标档位', '查看结构选择分布']
+    telemetry_spec:
+      summary_fields: ['feasibilityChoice', 'structureChoice', 'reasonSubmitted']
+      misconception_tags: ['boundary_skip_then_choose_structure']
+    teacher_insight_spec:
+      widgets: ['structure_choice_distribution', 'boundary_skip_rate']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '在非最小相对象下先重审目标，再做结构选择。'
+      allowed_scope: ['边界对象', '目标重审', '结构选择依据']
+      forbidden_scope: ['不重审目标时直接推荐结构']
+      canonical_facts: ['目标本身也是非最小相设计变量。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-14'
+      must_match_student_page: true
+    acceptance_checks:
+      - '边界对象卡、风险图、示例抽屉和选择矩阵必须同屏。'
+  step-15:
+    title: '后测与收束：从指标走到结构选择'
+    stage: 'post_assessment'
+    duration_minutes: 5
+    layout:
+      template: 'summary_assessment_board'
+      regions:
+        - { id: 'quiz', width: 'full', order: 1 }
+        - { id: 'summary', width: 'full', order: 2 }
+        - { id: 'close', width: 'full', order: 3 }
+    modules:
+      - { id: 'posttest-group', region: 'quiz', kind: 'quiz-group', must_be_visible: true }
+      - { id: 'three-line-summary', region: 'summary', kind: 'summary-card', must_be_visible: true }
+      - { id: 'info-graphic', region: 'close', kind: 'illustration', must_be_visible: true }
+      - { id: 'exit-reflection', region: 'close', kind: 'short-response', must_be_visible: true }
+    evidence_units: ['eu-12']
+    content_blocks:
+      - id: 'three-lines'
+        type: 'bullet_list'
+        title: '三句结论'
+        items:
+          - '时域指标先翻译成目标区域。'
+          - '频域指标先翻译成相角裕度与截止频率。'
+          - '右半平面零点下，目标本身也是设计变量。'
+    interaction_spec:
+      interaction_kind: 'quiz_group+exit_reflection'
+      student_task: '完成三题后测，再写一句反思。'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls: ['显示后测正确率', '查看反思关键词']
+    telemetry_spec:
+      summary_fields: ['posttestAccuracy', 'reflectionSubmitted']
+      misconception_tags: ['still_choose_tool_before_goal']
+    teacher_insight_spec:
+      widgets: ['posttest_distribution', 'reflection_keyword_cloud']
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '完成课末总结与去向收束。'
+      allowed_scope: ['课末总结', '概念收束', '后续去向']
+      forbidden_scope: ['重做整套设计题答案']
+      canonical_facts: ['目标先于工具是本课总原则。']
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-15'
+      must_match_student_page: true
+    acceptance_checks:
+      - '后测、三句结论、信息图与退出反思构成完整收束页。'

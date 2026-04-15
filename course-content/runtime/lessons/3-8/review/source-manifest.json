@@ -1,7 +1,7 @@
 {
   "lesson_id": "3-8",
   "unit_type": "理论",
-  "generated_at": "2026-04-14T07:33:30.449713+00:00",
+  "generated_at": "2026-04-15T04:22:50.495865+00:00",
   "primary_sources": [
     "course-content/authoring/lessons/3-8/design/handout.md",
     "course-content/authoring/lessons/3-8/design/interactive-page.md"
@@ -23,12 +23,87 @@
       "page_formula_sources": []
     },
     {
+      "output": "3-8-gain-effect.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-zero-effect.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-pole-effect.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-rhp-zero-effect.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-nyquist-quickcheck.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-nyquist-example.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-bode-example.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
       "output": "3-8-three-band-overview.png",
       "formula_mode": "none",
       "page_formula_sources": []
     },
     {
-      "output": "3-8-double-ship-frequency-compare.png",
+      "output": "3-8-heading-baseline.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-heading-case.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-platform-block-diagram.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-platform-baseline.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-platform-case.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-slides.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-course.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-8-audio.m4a",
       "formula_mode": "none",
       "page_formula_sources": []
     }

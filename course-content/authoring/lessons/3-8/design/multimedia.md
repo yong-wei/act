@@ -1,7 +1,6 @@
 # 单元 3-8 多模态资源设计与采用清单
 
-> **当前阶段目标**：先落 `3-8` 导入视频提示词，服务“频域翻译器”课堂开场。
-> **资源总数**：6 项
+> **当前阶段目标**：对齐新版学生版讲义、教师版讲义与互动课程设计，形成可直接支撑 `3-8` 全课判断链的正式媒体包。
 > **命名前缀**：全部统一使用 `3-8-...`
 
 ## 1. 资源融入评审单
@@ -19,20 +18,33 @@
 
 ---
 
-## 2. 资源总表
+## 2. 正式媒体总表
 
 | 编号 | 文件名 / 标识 | 生成方式 | 引用于 | 优先级 |
 | :---: | --- | --- | --- | :---: |
-| 1 | `3-8-cover-comic.png` | AI 静态图 | `handout.md` 首页 / interactive step-01 | P0 |
-| 2 | `3-8-cover-comic-prompt.md` | 提示词文稿 | 封面图生成依据 | 已有 |
-| 3 | `3-8-intro-video.mp4` | AI 视频 | Bridge-in / interactive step-01 | P0 |
-| 4 | `3-8-intro-video-prompts.md` | 提示词文稿 | 视频生成依据 | 已有 |
-| 5 | `3-8-three-band-overview.png` | 代码直出图 | handout §三频段 / interactive 中段 | P1 |
-| 6 | `3-8-double-ship-frequency-compare.png` | 代码直出图 | handout 收束 / interactive 后段 | P1 |
+| 1 | `3-8-cover-comic.png` | AI 静态图 | `handout.md` 首页 / `interactive-page.md` `step-01` | P0 |
+| 2 | `3-8-intro-video.mp4` | AI 视频 | Bridge-in / `interactive-page.md` `step-01` | P0 |
+| 3 | `3-8-gain-effect.png` | `Octave` + `Python/matplotlib` | handout §2.2.1 / `interactive-page.md` `step-02` | P0 |
+| 4 | `3-8-zero-effect.png` | `Octave` + `Python/matplotlib` | handout §2.2.2 / `interactive-page.md` `step-02` | P0 |
+| 5 | `3-8-pole-effect.png` | `Octave` + `Python/matplotlib` | handout §2.2.3 / `interactive-page.md` `step-02` | P0 |
+| 6 | `3-8-rhp-zero-effect.png` | `Octave` + `Python/matplotlib` | handout §2.2.4 / `interactive-page.md` `step-02` | P0 |
+| 7 | `3-8-nyquist-quickcheck.png` | `Octave` + `Python/matplotlib` | handout 例题 2 / `interactive-page.md` `step-07` | P0 |
+| 8 | `3-8-nyquist-example.png` | `Octave` + `Python/matplotlib` | handout 例题 3 / `interactive-page.md` `step-07` | P0 |
+| 9 | `3-8-bode-example.png` | `Octave` + `Python/matplotlib` | handout §2.4 / `interactive-page.md` `step-08` | P0 |
+| 10 | `3-8-three-band-overview.png` | `Octave` + `Python/matplotlib` | handout §2.5 / `interactive-page.md` `step-09` | P0 |
+| 11 | `3-8-heading-baseline.png` | `Octave` + `Python/matplotlib` | handout §2.6.1 / `interactive-page.md` `step-10` | P0 |
+| 12 | `3-8-heading-case.png` | `Octave` + `Python/matplotlib` | handout §2.6.1 / `interactive-page.md` `step-10` | P0 |
+| 13 | `3-8-platform-block-diagram.png` | TikZ 线框图 | handout §2.6.2 / `interactive-page.md` `step-11` | P0 |
+| 14 | `3-8-platform-baseline.png` | `Octave` + `Python/matplotlib` | handout §2.6.2 / `interactive-page.md` `step-11` | P0 |
+| 15 | `3-8-platform-case.png` | `Octave` + `Python/matplotlib` | handout §2.6.2 / `interactive-page.md` `step-11` | P0 |
+| 16 | `3-8-info.png` | 代码直出信息图 | handout 课末 / `interactive-page.md` `step-12` | P0 |
+| 17 | `3-8-slides.pdf` | 课程级占位资源 | runtime 预习/课堂配套 | P1 |
+| 18 | `3-8-course.mp4` | 课程级占位资源 | runtime 课程视频入口 | P1 |
+| 19 | `3-8-audio.m4a` | 课程级占位资源 | runtime 音频入口 | P1 |
 
 ---
 
-## 3. 已有与待生成文稿
+## 3. 已有脚本与提示词入口
 
 ### 3.1 已有导入视频提示词
 
@@ -46,14 +58,18 @@
 - **用途**：生成讲义首页封面漫画
 - **画面主轴**：同一艘船的多种结构变化最终被 `Nyquist` 危险点与三频段总图统一翻译
 
-### 3.3 待补代码直出图
+### 3.3 数值图与结构图生成入口
 
-- **`3-8-three-band-overview.png`**
-  - 内容：低频/中频/高频三段任务分工总图
-  - 作用：为视频后段与讲义正文提供静态骨架
-- **`3-8-double-ship-frequency-compare.png`**
-  - 内容：船舶航向控制与船载稳定平台的频域量回读对照
-  - 作用：支撑“同样是频域图，任务重点不同”的工程收束
+- **`media/raw/3-8-frequency-translation-validation.m`**
+  - 用途：统一核验增益、零点、积分、非最小相、Nyquist、Bode 与两组工程案例的数值结论
+- **`media/raw/3-8-handout-figures.m`**
+  - 用途：输出讲义正文使用的频域指纹图、Nyquist 快判图、Bode 图与工程案例图
+- **`media/raw/generate_design_data.m`**
+  - 用途：导出最终排版所需的结构化数据
+- **`media/raw/render_figures.py`**
+  - 用途：按 `3-6` 统一风格完成 PNG 排版
+- **`media/raw/3-8-platform-block-diagram.tex`**
+  - 用途：生成稳定平台案例控制框图
 
 ---
 
@@ -69,6 +85,6 @@
 
 ## 5. 后续执行建议
 
-1. 先用 `media/raw/3-8-intro-video-prompts.md` 生成 15 秒导入视频，优先验证“`Nyquist` 危险点 + 三频段 + 双船回读”三处画面是否稳定。
+1. 先用 `media/raw/3-8-intro-video-prompts.md` 生成 15 秒导入视频，优先验证“`Nyquist` 临界点 + 三频段 + 双案例切换”三处画面是否稳定。
 2. 若即梦对公式或坐标渲染不稳定，优先改成“无字曲线 + 色带 + 仪表灯”表达，不要强行堆砌可读文字。
-3. 后续补 `interactive-page.md` 时，开场页应直接消费这段视频，不再另写一套脱节导语。
+3. 教师版讲义导出后，媒体包应以 `gain / zero / pole / rhp-zero / Nyquist / Bode / three-band / heading / platform / info` 这组正式文件名作为审查口径，不再沿用旧的 `double-ship-frequency-compare` 表述。
