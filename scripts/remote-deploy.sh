@@ -335,7 +335,7 @@ remote "grep -q 'data-governance-worker.ts' '${REMOTE_APP_DEPLOY_SCRIPT}'"
 
 log "- 校验远端 systemd 配置脚本已更新数据库/Redis 等待逻辑"
 remote "grep -q 'pg_isready' '${REMOTE_SERVICE_SCRIPT}'"
-remote "grep -q '\"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only' '${REMOTE_SERVICE_SCRIPT}'"
+remote "grep -q '\"\\${APP_DEPLOY_SCRIPT}\" --app-only' '${REMOTE_SERVICE_SCRIPT}'"
 
 log "- 校验系统服务"
 remote "test \"\$(systemctl is-active nginx)\" = active"

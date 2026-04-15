@@ -215,9 +215,9 @@ function main() {
     '远端部署脚本必须校验远端部署脚本已纳入 worker'
   );
 
-  assert.equal(
-    script.includes("grep -q '\\\"${REMOTE_APP_DEPLOY_SCRIPT}\\\" --app-only' '${REMOTE_SERVICE_SCRIPT}'"),
-    true,
+  assert.match(
+    script,
+    /grep -q '.*APP_DEPLOY_SCRIPT.*--app-only'.*REMOTE_SERVICE_SCRIPT/,
     '远端部署脚本必须验证 systemd 配置脚本在数据库就绪后重新执行 4-deploy.sh --app-only'
   );
 
