@@ -211,7 +211,7 @@ steps:
       - id: "workspace-rules"
         type: "bullet_list"
         title: "工作区要求"
-        items: ["单根轨迹工作区", "左侧根轨迹面板", "右侧模式控件区", "基线/示例A/示例B", "示例零点可拖动，基线极点固定"]
+        items: ["单根轨迹工作区", "左侧根轨迹面板", "右侧模式控件区", "基线/添加零点", "零点标注可拖动，基线极点固定"]
       - id: "prompt"
         type: "bullet_list"
         title: "判断顺序"
@@ -274,7 +274,7 @@ steps:
       - id: "workspace-rules"
         type: "bullet_list"
         title: "工作区要求"
-        items: ["单根轨迹工作区", "左侧根轨迹面板", "右侧模式控件区", "基线/示例A/示例B", "示例零点可拖动，基线极点固定"]
+        items: ["单根轨迹工作区", "左侧根轨迹面板", "右侧模式控件区", "基线/添加零点", "零点标注可拖动，基线极点固定"]
     interaction_spec:
       interaction_kind: "compare_note"
       student_task: "完成一句比较判断。"
@@ -381,11 +381,12 @@ steps:
           - "不能因为都能增大阻尼就把两者混同。"
       - id: "fixed-formulas"
         type: "formula_list"
-        title: "固定公式"
+        title: "命名公式"
         items:
-          - "G_p(s)=4/[s(s+0.8)],\\ T_0(s)=4/[s^2+0.8s+4]"
-          - "s^2+(2\\zeta\\omega_n+K_d\\omega_n^2)s+\\omega_n^2=0"
-          - "s^2+(2\\zeta\\omega_n+K_t\\omega_n^2)s+\\omega_n^2=0"
+          - "被控对象：G_p(s)=4/[s(s+0.8)]"
+          - "相应的闭环传递函数：T_0(s)=4/[s^2+0.8s+4]"
+          - "PD 等效特征方程：s^2+(2\\zeta\\omega_n+K_d\\omega_n^2)s+\\omega_n^2=0"
+          - "测速反馈等效特征方程：s^2+(2\\zeta\\omega_n+K_t\\omega_n^2)s+\\omega_n^2=0"
     interaction_spec:
       interaction_kind: "binary_choice"
       student_task: "判断测速反馈是否在前向通道显式增加零点。"
@@ -724,11 +725,11 @@ steps:
       - id: "figure-ref"
         type: "plain_text"
         title: "对照图"
-        body: "固定使用 3-5-rl-05-nmp-compare.png。"
+        body: "最小相开环对象与非最小相开环对象之后，固定使用 3-5-rl-05-nmp-compare.png。"
       - id: "mirror-note"
         type: "plain_text"
         title: "镜像对象"
-        body: "唯一差别是零点位于左半平面还是右半平面。"
+        body: "最小相开环对象与非最小相开环对象唯一差别是零点位于左半平面还是右半平面。"
       - id: "term-note"
         type: "plain_text"
         title: "术语提醒"
@@ -836,7 +837,7 @@ steps:
       - id: "observation-list"
         type: "bullet_list"
         title: "四个观察量"
-        items: ["根轨迹", "时域", "频域", "结构判断"]
+        items: ["根轨迹观察量", "时域观察量", "频域观察量", "结构判断观察量"]
       - id: "next-step"
         type: "plain_text"
         title: "下一课去向"
