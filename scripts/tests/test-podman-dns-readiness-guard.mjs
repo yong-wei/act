@@ -203,6 +203,12 @@ assert.match(
   'systemd 配置脚本必须定义 Node 侧 TCP 就绪等待逻辑',
 );
 
+assert.match(
+  serviceScript,
+  /APP_DEPLOY_SCRIPT="\$\{APP_DEPLOY_SCRIPT:-\$\{PROJECT_DIR\}\/scripts\/4-deploy\.sh\}"/,
+  'systemd 配置脚本必须显式引用远端同步后的 4-deploy.sh，以便在开机时重建依赖静态主机映射的应用容器',
+);
+
 assert.equal(
   serviceScript.includes('require(\\"node:net\\")'),
   true,
@@ -255,6 +261,36 @@ assert.match(
   serviceScript,
   /wait_for_node_tcp "\$REDIS_HOST_ALIAS" 6379/,
   'systemd 配置脚本必须在启动应用与 worker 前等待 Redis TCP 可连通',
+);
+
+assert.equal(
+  serviceScript.includes('ExecStart=/bin/sh -lc \'"${APP_DEPLOY_SCRIPT}" --app-only\''),
+  true,
+  'systemd 配置脚本必须在数据库就绪后重新执行 4-deploy.sh --app-only，重建应用、Redis 与 worker 容器',
+);
+
+assert.equal(
+  serviceScript.includes('ExecStart=/usr/bin/podman start ${REDIS_CONTAINER}'),
+  false,
+  'systemd 配置脚本不得直接启动旧的 Redis 容器，否则会导致随后重建出的静态主机映射失配',
+);
+
+assert.equal(
+  serviceScript.includes('ExecStart=/usr/bin/podman start ${APP_CONTAINER}'),
+  false,
+  'systemd 配置脚本不得直接启动旧的应用容器，否则会复用过期的静态主机映射',
+);
+
+assert.equal(
+  serviceScript.includes('ExecStart=/usr/bin/podman start ${WORKER_CONTAINER}'),
+  false,
+  'systemd 配置脚本不得直接启动旧的 worker 容器，否则会复用过期的静态主机映射',
+);
+
+assert.equal(
+  serviceScript.includes('ExecStartPost=/bin/sh -lc \'for i in 1 2 3 4 5 6 7 8 9 10; do /usr/bin/podman exec ${WORKER_CONTAINER} ./node_modules/.bin/tsx scripts/workers/scheduler.ts && exit 0; sleep 3; done; exit 1\''),
+  false,
+  'systemd 配置脚本不应再单独执行 scheduler.ts，因为 4-deploy.sh --app-only 已内置该初始化流程',
 );
 
 assert.equal(
