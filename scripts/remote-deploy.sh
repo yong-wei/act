@@ -335,8 +335,7 @@ remote "grep -q 'data-governance-worker.ts' '${REMOTE_APP_DEPLOY_SCRIPT}'"
 
 log "- 校验远端 systemd 配置脚本已更新数据库/Redis 等待逻辑"
 remote "grep -q 'pg_isready' '${REMOTE_SERVICE_SCRIPT}'"
-remote "grep -q 'redis-cli ping' '${REMOTE_SERVICE_SCRIPT}'"
-remote "grep -q 'scheduler.ts' '${REMOTE_SERVICE_SCRIPT}'"
+remote "grep -q '\"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only' '${REMOTE_SERVICE_SCRIPT}'"
 
 log "- 校验系统服务"
 remote "test \"\$(systemctl is-active nginx)\" = active"
@@ -369,9 +368,9 @@ remote "podman exec '${REDIS_NAME_HINT}' redis-cli ping | grep -qx PONG"
 remote "podman exec '${REDIS_NAME_HINT}' redis-cli CONFIG GET maxmemory-policy | tail -n 1 | grep -qx 'noeviction'"
 
 log "- 校验应用与 worker 容器环境变量"
-remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}:6379$'"
+remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}\\.dns\\.podman:6379$'"
 remote "podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^DATABASE_URL=.*connection_limit=10&pool_timeout=20'"
-remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}:6379$'"
+remote "podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}\\.dns\\.podman:6379$'"
 
 log "- 校验 worker 启动日志"
 remote "podman logs --tail 120 '${WORKER_NAME_HINT}' | grep -q '\\[Worker\\] Data governance worker started'"

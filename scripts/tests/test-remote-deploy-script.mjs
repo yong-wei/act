@@ -216,6 +216,18 @@ function main() {
   );
 
   assert.equal(
+    script.includes("grep -q '\\\"${REMOTE_APP_DEPLOY_SCRIPT}\\\" --app-only' '${REMOTE_SERVICE_SCRIPT}'"),
+    true,
+    '远端部署脚本必须验证 systemd 配置脚本在数据库就绪后重新执行 4-deploy.sh --app-only'
+  );
+
+  assert.equal(
+    script.includes("grep -q 'scheduler.ts' '${REMOTE_SERVICE_SCRIPT}'"),
+    false,
+    '远端部署脚本不得再要求 systemd 配置脚本单独执行 scheduler.ts'
+  );
+
+  assert.equal(
     script.includes('container-start-wrapper.sh'),
     true,
     '远端部署脚本必须同步容器启动包装脚本，确保服务器端应用与 worker 使用等待式启动包装'
@@ -237,6 +249,18 @@ function main() {
     script.includes("podman logs --tail 120 '${WORKER_NAME_HINT}' | grep -q '\\\\[Worker\\\\] Data governance worker started'"),
     true,
     '远端部署脚本必须验证 worker 启动日志'
+  );
+
+  assert.equal(
+    script.includes("podman inspect '${APP_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}\\\\.dns\\\\.podman:6379$'"),
+    true,
+    '远端部署脚本必须验证应用容器的 REDIS_URL 已归一化为 dns.podman 主机名',
+  );
+
+  assert.equal(
+    script.includes("podman inspect '${WORKER_NAME_HINT}' --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^REDIS_URL=redis://${REDIS_NAME_HINT}\\\\.dns\\\\.podman:6379$'"),
+    true,
+    '远端部署脚本必须验证 worker 容器的 REDIS_URL 已归一化为 dns.podman 主机名',
   );
 
   assert.equal(
