@@ -1,8 +1,8 @@
 # 事故与复盘索引
 
 状态: active
-最后更新: 2026-03-25
-摘要: 存放真实故障和排障复盘，帮助跨会话快速识别“这是不是老问题重现”，当前已覆盖会话鉴权/部署混淆、startup 端口残留、本地 Homebrew Octave/Qt 插件缺失，以及 Redis OOM 触发的 worker 日志风暴。
+最后更新: 2026-04-15
+摘要: 存放真实故障和排障复盘，帮助跨会话快速识别“这是不是老问题重现”，当前已覆盖会话鉴权/部署混淆、startup 端口残留、本地 Homebrew Octave/Qt 插件缺失、Redis OOM 触发的 worker 日志风暴，以及 2026-04-15 暴露出的 Podman systemd 接管与生产认证地址配置问题。
 上游:
 - [../00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
 下游:
@@ -10,6 +10,7 @@
 - [2026-03-19-startup-port-residue.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-03-19-startup-port-residue.md)
 - [2026-03-24-homebrew-octave-qt-plugin.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-03-24-homebrew-octave-qt-plugin.md)
 - [2026-03-25-worker-redis-oom-log-flood.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-03-25-worker-redis-oom-log-flood.md)
+- [2026-04-15-podman-systemd-and-auth-url-deploy-hardening.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-04-15-podman-systemd-and-auth-url-deploy-hardening.md)
 相关:
 - [../30-operations/50-known-deploy-risks.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/30-operations/50-known-deploy-risks.md)
 

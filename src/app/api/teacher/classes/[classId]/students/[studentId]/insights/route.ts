@@ -11,6 +11,7 @@ import {
 import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 import { normalizeInsightRiskLevel, parseStringList } from '@/features/teacher/teacher-insights';
 
 type TeacherStudentRiskItem = {
@@ -292,6 +293,9 @@ export async function GET(
     return NextResponse.json(payload);
   } catch (error) {
     console.error('[TeacherStudentInsights] Error:', error);
+    if (isDatabaseConnectivityError(error)) {
+      return createDatabaseUnavailableResponse();
+    }
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
 }

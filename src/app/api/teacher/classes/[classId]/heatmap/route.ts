@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { COMPETENCY_DIMENSIONS, type CompetencyDimension } from '@/lib/data-governance/competency-model';
+import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 
 export interface HeatmapData {
   students: Array<{
@@ -192,6 +193,9 @@ export async function GET(
     return NextResponse.json(response, { headers });
   } catch (error) {
     console.error('[ClassHeatmap] Error:', error);
+    if (isDatabaseConnectivityError(error)) {
+      return createDatabaseUnavailableResponse();
+    }
     return NextResponse.json(
       { error: '服务器错误' },
       { status: 500 }

@@ -10,7 +10,6 @@ REMOTE_PROJECT_DIR="${REMOTE_PROJECT_DIR:-/home/projects/act}"
 LOCAL_IMAGE_TAR="${LOCAL_IMAGE_TAR:-deploy/images/act-obe.tar}"
 REMOTE_IMAGES_DIR="${REMOTE_IMAGES_DIR:-${REMOTE_PROJECT_DIR}/images}"
 REMOTE_IMAGE_TAR="${REMOTE_IMAGE_TAR:-${REMOTE_IMAGES_DIR}/act-obe.tar}"
-REMOTE_DEPLOY_SCRIPT="${REMOTE_DEPLOY_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/0-one-key.sh}"
 LOCAL_RUNTIME_DIR="${LOCAL_RUNTIME_DIR:-${ROOT_DIR}/course-content/runtime}"
 REMOTE_RUNTIME_DIR="${REMOTE_RUNTIME_DIR:-${REMOTE_PROJECT_DIR}/course-content/runtime}"
 LOCAL_APP_DEPLOY_SCRIPT="${LOCAL_APP_DEPLOY_SCRIPT:-${ROOT_DIR}/deploy/podman/deploy.sh}"
@@ -19,6 +18,10 @@ LOCAL_SERVICE_SCRIPT="${LOCAL_SERVICE_SCRIPT:-${ROOT_DIR}/deploy/podman/configur
 REMOTE_SERVICE_SCRIPT="${REMOTE_SERVICE_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/5-configure-service.sh}"
 LOCAL_START_WRAPPER_SCRIPT="${LOCAL_START_WRAPPER_SCRIPT:-${ROOT_DIR}/deploy/podman/container-start-wrapper.sh}"
 REMOTE_START_WRAPPER_SCRIPT="${REMOTE_START_WRAPPER_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/container-start-wrapper.sh}"
+REMOTE_EXPORT_DB_SCRIPT="${REMOTE_EXPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/1-export-db.sh}"
+REMOTE_LOAD_IMAGES_SCRIPT="${REMOTE_LOAD_IMAGES_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/2-load-images.sh}"
+REMOTE_IMPORT_DB_SCRIPT="${REMOTE_IMPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/3-import-db.sh}"
+REMOTE_NGINX_SCRIPT="${REMOTE_NGINX_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/6-configure-nginx.sh}"
 PUBLIC_URL="${PUBLIC_URL:-https://act.adapt-learn.online/}"
 APP_NAME_HINT="${APP_NAME_HINT:-act-obe-app}"
 DB_NAME_HINT="${DB_NAME_HINT:-act-obe-postgres}"
@@ -266,19 +269,29 @@ log "远端容器启动包装脚本: ${REMOTE_START_WRAPPER_SCRIPT}"
 
 log
 log "[3/5] 上传镜像"
-remote "rm -f '${REMOTE_TMP_TAR}'"
-scp -q "${LOCAL_IMAGE_TAR}" "${SSH_TARGET}:${REMOTE_TMP_TAR}"
-
-REMOTE_TMP_SHA="$(remote_sha256 "${REMOTE_TMP_TAR}")"
-if [[ "${LOCAL_SHA}" != "${REMOTE_TMP_SHA}" ]]; then
-  remote "rm -f '${REMOTE_TMP_TAR}'" || true
-  fail "远端临时文件 SHA256 不一致，本地=${LOCAL_SHA}，远端=${REMOTE_TMP_SHA}"
+REMOTE_EXISTING_SHA=""
+if remote "test -f '${REMOTE_IMAGE_TAR}'"; then
+  REMOTE_EXISTING_SHA="$(remote_sha256 "${REMOTE_IMAGE_TAR}")"
 fi
 
-remote "mv '${REMOTE_TMP_TAR}' '${REMOTE_IMAGE_TAR}'"
-REMOTE_FINAL_SHA="$(remote_sha256 "${REMOTE_IMAGE_TAR}")"
-if [[ "${LOCAL_SHA}" != "${REMOTE_FINAL_SHA}" ]]; then
-  fail "远端最终文件 SHA256 不一致，本地=${LOCAL_SHA}，远端=${REMOTE_FINAL_SHA}"
+if [[ "${REMOTE_EXISTING_SHA}" == "${LOCAL_SHA}" ]]; then
+  REMOTE_FINAL_SHA="${REMOTE_EXISTING_SHA}"
+  log "远端镜像已是相同 SHA256，跳过重复上传"
+else
+  remote "rm -f '${REMOTE_TMP_TAR}'"
+  scp -q "${LOCAL_IMAGE_TAR}" "${SSH_TARGET}:${REMOTE_TMP_TAR}"
+
+  REMOTE_TMP_SHA="$(remote_sha256 "${REMOTE_TMP_TAR}")"
+  if [[ "${LOCAL_SHA}" != "${REMOTE_TMP_SHA}" ]]; then
+    remote "rm -f '${REMOTE_TMP_TAR}'" || true
+    fail "远端临时文件 SHA256 不一致，本地=${LOCAL_SHA}，远端=${REMOTE_TMP_SHA}"
+  fi
+
+  remote "mv '${REMOTE_TMP_TAR}' '${REMOTE_IMAGE_TAR}'"
+  REMOTE_FINAL_SHA="$(remote_sha256 "${REMOTE_IMAGE_TAR}")"
+  if [[ "${LOCAL_SHA}" != "${REMOTE_FINAL_SHA}" ]]; then
+    fail "远端最终文件 SHA256 不一致，本地=${LOCAL_SHA}，远端=${REMOTE_FINAL_SHA}"
+  fi
 fi
 
 log "远端镜像路径: ${REMOTE_IMAGE_TAR}"
@@ -286,7 +299,23 @@ log "远端 SHA256: ${REMOTE_FINAL_SHA}"
 
 log
 log "[4/5] 远端部署"
-remote "bash -lc 'set -euo pipefail; bash \"${REMOTE_DEPLOY_SCRIPT}\" 2>&1 | tee \"${REMOTE_LOG_FILE}\"'"
+remote "bash -lc 'set -euo pipefail
+{
+  echo \"[remote-deploy] Step 1/7: 导出现有数据库\"
+  \"${REMOTE_EXPORT_DB_SCRIPT}\" || true
+  echo \"[remote-deploy] Step 2/7: 装载镜像\"
+  \"${REMOTE_LOAD_IMAGES_SCRIPT}\"
+  echo \"[remote-deploy] Step 3/7: 启动数据库容器\"
+  \"${REMOTE_APP_DEPLOY_SCRIPT}\" --db-only
+  echo \"[remote-deploy] Step 4/7: 导入最新数据库\"
+  \"${REMOTE_IMPORT_DB_SCRIPT}\"
+  echo \"[remote-deploy] Step 5/7: 启动应用容器\"
+  \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
+  echo \"[remote-deploy] Step 6/7: 配置 Nginx 域名反向代理\"
+  \"${REMOTE_NGINX_SCRIPT}\"
+  echo \"[remote-deploy] Step 7/7: 配置 systemd 开机自启\"
+  \"${REMOTE_SERVICE_SCRIPT}\"
+} 2>&1 | tee \"${REMOTE_LOG_FILE}\"'"
 
 log
 log "[5/5] 部署验证"
@@ -361,6 +390,10 @@ wait_for_public_http 120 || fail "公网首页未在预期时间内恢复"
 
 log "- 校验公网认证会话接口"
 wait_for_public_session_api 120 || fail "公网认证会话接口未在预期时间内恢复"
+
+log "- 校验公网 readyz 健康接口"
+curl -fsS "${PUBLIC_URL%/}/api/readyz" | grep -q '"db":true'
+curl -fsS "${PUBLIC_URL%/}/api/readyz" | grep -q '"redis":true'
 
 log
 log "远端部署完成并验证通过"

@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 
 export async function GET(
   request: NextRequest,
@@ -103,6 +104,9 @@ export async function GET(
     });
   } catch (error) {
     console.error('[TeacherDashboard] Error:', error);
+    if (isDatabaseConnectivityError(error)) {
+      return createDatabaseUnavailableResponse();
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

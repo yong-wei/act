@@ -62,6 +62,29 @@ function main() {
 
   assert.match(
     dockerfile,
+    /ARG RUSTUP_DIST_SERVER=/,
+    'Dockerfile 必须允许配置 Rust toolchain 下载源，避免构建卡死在默认站点'
+  );
+
+  assert.match(
+    dockerfile,
+    /ARG RUSTUP_UPDATE_ROOT=/,
+    'Dockerfile 必须允许配置 Rust update 根地址，保证 rustup 可切换到可达镜像'
+  );
+
+  assert.match(
+    dockerfile,
+    /apk add --no-cache build-base rustup cargo/,
+    'Dockerfile 必须直接从 Alpine 仓库安装 rustup 与 cargo，避免依赖 sh.rustup.rs'
+  );
+
+  assert.ok(
+    !/curl https:\/\/sh\.rustup\.rs/.test(dockerfile),
+    'Dockerfile 不得再依赖 sh.rustup.rs，避免远端构建因脚本入口不可达而卡死'
+  );
+
+  assert.match(
+    dockerfile,
     /RUN npm run build/,
     'Dockerfile 必须在容器内执行 npm run build，确保走统一构建链路'
   );
@@ -82,6 +105,7 @@ function main() {
   assert.ok(fs.existsSync(entrypointPath), '项目根目录必须存在 docker-entrypoint.sh');
 
   const deployScript = read('deploy/podman/deploy.sh');
+  const buildScript = read('scripts/build.sh');
   const startWrapperScript = read('deploy/podman/container-start-wrapper.sh');
   assert.match(
     deployScript,
@@ -105,6 +129,30 @@ function main() {
     deployScript,
     /redis-server --appendonly yes/,
     'Podman 部署脚本必须启动 Redis 容器'
+  );
+
+  assert.match(
+    buildScript,
+    /RUSTUP_DIST_SERVER="\$\{RUSTUP_DIST_SERVER:-/,
+    '构建脚本必须暴露 RUSTUP_DIST_SERVER，便于远端原生构建切换镜像源'
+  );
+
+  assert.match(
+    buildScript,
+    /RUSTUP_UPDATE_ROOT="\$\{RUSTUP_UPDATE_ROOT:-/,
+    '构建脚本必须暴露 RUSTUP_UPDATE_ROOT，便于远端原生构建切换镜像源'
+  );
+
+  assert.match(
+    buildScript,
+    /--build-arg "RUSTUP_DIST_SERVER=\$\{RUSTUP_DIST_SERVER\}"/,
+    '构建脚本必须把 RUSTUP_DIST_SERVER 传入 Dockerfile'
+  );
+
+  assert.match(
+    buildScript,
+    /--build-arg "RUSTUP_UPDATE_ROOT=\$\{RUSTUP_UPDATE_ROOT\}"/,
+    '构建脚本必须把 RUSTUP_UPDATE_ROOT 传入 Dockerfile'
   );
 
   for (const tableName of [

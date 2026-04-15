@@ -1,7 +1,8 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { startTransition, useEffect, useRef, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   BookOpen,
   ChevronRight,
@@ -56,6 +57,7 @@ interface TeacherDashboardProps {
     className?: string;
     classId?: string;
   }>;
+  mode?: 'ready' | 'degraded';
 }
 
 export function TeacherDashboard({
@@ -64,9 +66,69 @@ export function TeacherDashboard({
   recentClasses,
   recentPlans,
   activeSessions,
+  mode = 'ready',
 }: TeacherDashboardProps) {
+  const router = useRouter();
+  const refreshScheduledRef = useRef(false);
+
+  useEffect(() => {
+    refreshScheduledRef.current = false;
+  }, [mode]);
+
+  useEffect(() => {
+    if (mode !== 'degraded') {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const probeReadyz = async () => {
+      if (refreshScheduledRef.current) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/readyz', {
+          cache: 'no-store',
+        });
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = (await response.json()) as { db?: boolean };
+        if (!cancelled && payload.db) {
+          refreshScheduledRef.current = true;
+          startTransition(() => {
+            router.refresh();
+          });
+        }
+      } catch {
+        // 降级恢复阶段忽略瞬时探测失败，等待下一轮轮询。
+      }
+    };
+
+    void probeReadyz();
+    const timer = window.setInterval(() => {
+      void probeReadyz();
+    }, 10000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [mode, router]);
+
   return (
     <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
+      {mode === 'degraded' && (
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+          <p className="text-sm font-semibold">教师工作台已切换为降级模式</p>
+          <p className="mt-1 text-sm">
+            当前数据库连接暂不可用，班级、教案与课堂统计已临时隐藏。系统会自动重试，恢复后将自动刷新页面。
+          </p>
+        </div>
+      )}
+
       <div className="teacher-home-hero mb-8">
         <div className="mb-6">
           <h2 className="text-3xl font-bold text-foreground">欢迎回来，{user.name || '老师'}！</h2>

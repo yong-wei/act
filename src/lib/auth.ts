@@ -5,6 +5,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 
 import { sessionProfileCache, sessionRequestDeduplicator } from '@/lib/lru-cache';
 import { prisma } from '@/lib/prisma';
+import { isDatabaseConnectivityError } from '@/lib/service-availability';
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -76,29 +77,48 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = (token.role as UserRole) ?? UserRole.STUDENT;
 
+        if (session.user.role !== UserRole.STUDENT) {
+          return session;
+        }
+
         const userId = token.id as string;
         const cachedProfile = sessionProfileCache.get(userId);
-        const profile =
-          cachedProfile ??
-          (await sessionRequestDeduplicator.execute(userId, async () => {
-            const fetchedProfile = await prisma.studentProfile.findUnique({
-              where: { userId },
-              select: {
-                studentNumber: true,
-                classId: true,
-                techScore: true,
-                ethicsScore: true,
-                major: true,
-                className: true,
-              },
-            });
+        let profile = cachedProfile;
 
-            if (fetchedProfile) {
-              sessionProfileCache.set(userId, fetchedProfile);
+        if (!profile) {
+          try {
+            const fetchedProfile = await sessionRequestDeduplicator.execute(userId, async () => {
+              const fetchedProfile = await prisma.studentProfile.findUnique({
+                where: { userId },
+                select: {
+                  studentNumber: true,
+                  classId: true,
+                  techScore: true,
+                  ethicsScore: true,
+                  major: true,
+                  className: true,
+                },
+              });
+
+              if (fetchedProfile) {
+                sessionProfileCache.set(userId, fetchedProfile);
+              }
+
+              return fetchedProfile;
+            });
+            profile = fetchedProfile ?? undefined;
+          } catch (error) {
+            if (isDatabaseConnectivityError(error)) {
+              console.error('[auth] student profile enrichment skipped due to database connectivity issue', {
+                userId,
+                error,
+              });
+              return session;
             }
 
-            return fetchedProfile;
-          }));
+            throw error;
+          }
+        }
 
         if (profile) {
           session.user.profile = profile;

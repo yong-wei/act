@@ -10,6 +10,7 @@ import {
 } from '@/lib/data-governance/competency-model';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 import {
   normalizeInsightRiskLevel,
   parseStringList,
@@ -312,6 +313,9 @@ export async function GET(
     return NextResponse.json(payload);
   } catch (error) {
     console.error('[TeacherClassInsights] Error:', error);
+    if (isDatabaseConnectivityError(error)) {
+      return createDatabaseUnavailableResponse();
+    }
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
 }

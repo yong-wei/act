@@ -41,6 +41,32 @@ function main() {
     '远端部署脚本必须使用临时文件上传'
   );
 
+  assert.equal(
+    script.includes('REMOTE_EXISTING_SHA=""') &&
+      script.includes('test -f') &&
+      script.includes('REMOTE_IMAGE_TAR'),
+    true,
+    '远端部署脚本必须先探测远端正式镜像文件是否已存在',
+  );
+
+  assert.equal(
+    script.includes('REMOTE_EXISTING_SHA="$(remote_sha256 "${REMOTE_IMAGE_TAR}")"'),
+    true,
+    '远端部署脚本必须在远端镜像已存在时计算其 SHA256',
+  );
+
+  assert.equal(
+    script.includes('if [[ "${REMOTE_EXISTING_SHA}" == "${LOCAL_SHA}" ]]; then'),
+    true,
+    '远端部署脚本必须在上传前判断远端镜像是否已与本地一致',
+  );
+
+  assert.equal(
+    script.includes('远端镜像已是相同 SHA256，跳过重复上传'),
+    true,
+    '远端部署脚本必须在镜像一致时输出跳过重复上传的日志',
+  );
+
   assert.match(
     script,
     /scp -q "\$\{LOCAL_IMAGE_TAR\}" "\$\{SSH_TARGET\}:\$\{REMOTE_TMP_TAR\}"/,
@@ -53,10 +79,62 @@ function main() {
     '远端部署脚本必须在远端使用原子替换覆盖正式镜像'
   );
 
-  assert.match(
-    script,
-    /REMOTE_DEPLOY_SCRIPT="\$\{REMOTE_DEPLOY_SCRIPT:-\$\{REMOTE_PROJECT_DIR\}\/scripts\/0-one-key\.sh\}"/,
-    '远端部署脚本必须以 0-one-key.sh 作为默认远端部署入口'
+  assert.equal(
+    script.includes('0-one-key.sh'),
+    false,
+    '远端部署脚本不得依赖服务器残留的 0-one-key.sh'
+  );
+
+  assert.equal(
+    script.includes('8-verify-deploy.sh'),
+    false,
+    '远端部署脚本不得依赖服务器残留的 8-verify-deploy.sh'
+  );
+
+  assert.equal(
+    script.includes('REMOTE_EXPORT_DB_SCRIPT="${REMOTE_EXPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/1-export-db.sh}"') &&
+      script.includes('\\"${REMOTE_EXPORT_DB_SCRIPT}\\"'),
+    true,
+    '远端部署脚本必须直接编排数据库导出脚本'
+  );
+
+  assert.equal(
+    script.includes('REMOTE_LOAD_IMAGES_SCRIPT="${REMOTE_LOAD_IMAGES_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/2-load-images.sh}"') &&
+      script.includes('\\"${REMOTE_LOAD_IMAGES_SCRIPT}\\"'),
+    true,
+    '远端部署脚本必须直接编排镜像装载脚本'
+  );
+
+  assert.equal(
+    script.includes('REMOTE_IMPORT_DB_SCRIPT="${REMOTE_IMPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/3-import-db.sh}"') &&
+      script.includes('\\"${REMOTE_IMPORT_DB_SCRIPT}\\"'),
+    true,
+    '远端部署脚本必须直接编排数据库导入脚本'
+  );
+
+  assert.equal(
+    script.includes('\\"${REMOTE_APP_DEPLOY_SCRIPT}\\" --db-only'),
+    true,
+    '远端部署脚本必须直接调用已同步的 4-deploy.sh 启动数据库'
+  );
+
+  assert.equal(
+    script.includes('\\"${REMOTE_APP_DEPLOY_SCRIPT}\\" --app-only'),
+    true,
+    '远端部署脚本必须直接调用已同步的 4-deploy.sh 启动应用'
+  );
+
+  assert.equal(
+    script.includes('REMOTE_NGINX_SCRIPT="${REMOTE_NGINX_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/6-configure-nginx.sh}"') &&
+      script.includes('\\"${REMOTE_NGINX_SCRIPT}\\"'),
+    true,
+    '远端部署脚本必须直接编排 Nginx 配置脚本'
+  );
+
+  assert.equal(
+    script.includes('\\"${REMOTE_SERVICE_SCRIPT}\\"'),
+    true,
+    '远端部署脚本必须直接调用已同步的 5-configure-service.sh'
   );
 
   assert.equal(
@@ -99,6 +177,12 @@ function main() {
     script.includes('curl -fsS "${PUBLIC_URL%/}/api/auth/session"'),
     true,
     '远端部署脚本必须验证公网认证会话接口'
+  );
+
+  assert.equal(
+    script.includes('curl -fsS "${PUBLIC_URL%/}/api/readyz"'),
+    true,
+    '远端部署脚本必须验证公网 readyz 健康接口'
   );
 
   assert.equal(
