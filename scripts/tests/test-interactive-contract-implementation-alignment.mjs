@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import ts from 'typescript';
+import { parse } from 'yaml';
 
 function parseArgs(argv) {
   const args = {
@@ -101,7 +102,7 @@ function main() {
   const contractPath = resolveInputPath(root, args.contract);
   const implementationPath = resolveInputPath(root, args.implementation);
 
-  const contract = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+  const contract = parse(fs.readFileSync(contractPath, 'utf8'));
   const source = fs.readFileSync(implementationPath, 'utf8');
   const pageContracts = findConst(source, args.pageContractConst);
   const lessonSteps = findConst(source, args.stepConst);

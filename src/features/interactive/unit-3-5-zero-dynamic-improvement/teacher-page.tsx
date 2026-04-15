@@ -8,13 +8,11 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
-import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   finalizeUNIT_3_5TeacherSession,
   getUNIT_3_5MediaSrc,
-  isUNIT_3_5AiPageType,
   isUNIT_3_5TeacherSyncState,
   resolveUNIT_3_5TeacherSyncDraft,
   shouldPostUNIT_3_5TeacherSync,
@@ -29,7 +27,6 @@ import {
 import { UNIT_3_5CourseHeader } from './course-header';
 import {
   UNIT_3_5KnowledgeMapVisual,
-  UNIT_3_5StepAiAssistant,
   UNIT_3_5StepContentPanel,
   UNIT_3_5TeacherActivitySummary,
 } from './step-panels';
@@ -71,7 +68,7 @@ export function UNIT_3_5TeacherPage({
     adapter: UNIT_3_5_SESSION_ADAPTER,
   });
 
-  const { trackCourseEvent, trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError, trackWorkspaceParamChange } =
+  const { trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError, trackWorkspaceParamChange } =
     useCourseEventTracking({
       resourceKey: UNIT_3_5_RESOURCE_KEY,
       resourceId: UNIT_3_5_RESOURCE_KEY,
@@ -183,19 +180,6 @@ export function UNIT_3_5TeacherPage({
     }
   }, [finishSession, router, sessionInfo, step.id, trackSessionFinalize]);
 
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
-
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
       trackWorkspaceParamChange(step.id, {
@@ -291,12 +275,6 @@ export function UNIT_3_5TeacherPage({
           mediaAlt={step.title}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
-
-        {isUNIT_3_5AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_5StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
 
         <div className="mt-4">
           <UNIT_3_5TeacherActivitySummary

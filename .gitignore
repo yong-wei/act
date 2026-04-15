@@ -14,6 +14,7 @@ GEMINI.md
 !.codex/skills/lesson/references/
 .codex/skills/lesson/references/*
 !.codex/skills/lesson/references/step3-handout.md
+!.codex/skills/lesson/references/step6-interactive-page.md
 !.codex/skills/lesson/references/step7-multimedia.md
 !.codex/skills/lesson/references/step7-multimedia-codegen.md
 !.codex/skills/lesson/references/step7-multimedia-ai.md
@@ -79,3 +80,7 @@ course-content/slides-ref
 *.mp4
 *.m4a
 *.pdf
+
+# Local debugging and Rust build artifacts
+rust/control-engine/target/
+unit41-step*.png

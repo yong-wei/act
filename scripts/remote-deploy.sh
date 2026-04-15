@@ -17,6 +17,8 @@ LOCAL_APP_DEPLOY_SCRIPT="${LOCAL_APP_DEPLOY_SCRIPT:-${ROOT_DIR}/deploy/podman/de
 REMOTE_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/4-deploy.sh}"
 LOCAL_SERVICE_SCRIPT="${LOCAL_SERVICE_SCRIPT:-${ROOT_DIR}/deploy/podman/configure-service.sh}"
 REMOTE_SERVICE_SCRIPT="${REMOTE_SERVICE_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/5-configure-service.sh}"
+LOCAL_START_WRAPPER_SCRIPT="${LOCAL_START_WRAPPER_SCRIPT:-${ROOT_DIR}/deploy/podman/container-start-wrapper.sh}"
+REMOTE_START_WRAPPER_SCRIPT="${REMOTE_START_WRAPPER_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/container-start-wrapper.sh}"
 PUBLIC_URL="${PUBLIC_URL:-https://act.adapt-learn.online/}"
 APP_NAME_HINT="${APP_NAME_HINT:-act-obe-app}"
 DB_NAME_HINT="${DB_NAME_HINT:-act-obe-postgres}"
@@ -26,6 +28,7 @@ WORKER_NAME_HINT="${WORKER_NAME_HINT:-act-obe-worker}"
 REMOTE_TMP_TAR="${REMOTE_IMAGE_TAR}.tmp"
 REMOTE_TMP_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT}.tmp"
 REMOTE_TMP_SERVICE_SCRIPT="${REMOTE_SERVICE_SCRIPT}.tmp"
+REMOTE_TMP_START_WRAPPER_SCRIPT="${REMOTE_START_WRAPPER_SCRIPT}.tmp"
 REMOTE_LOG_FILE="${REMOTE_LOG_FILE:-/tmp/act-obe-one-key.log}"
 
 while [[ $# -gt 0 ]]; do
@@ -242,6 +245,7 @@ log "[2/5] 同步运行时资源与部署脚本"
 [[ -d "${LOCAL_RUNTIME_DIR}" ]] || fail "本地 runtime 目录不存在: ${LOCAL_RUNTIME_DIR}"
 [[ -f "${LOCAL_APP_DEPLOY_SCRIPT}" ]] || fail "本地应用部署脚本不存在: ${LOCAL_APP_DEPLOY_SCRIPT}"
 [[ -f "${LOCAL_SERVICE_SCRIPT}" ]] || fail "本地 systemd 配置脚本不存在: ${LOCAL_SERVICE_SCRIPT}"
+[[ -f "${LOCAL_START_WRAPPER_SCRIPT}" ]] || fail "本地容器启动包装脚本不存在: ${LOCAL_START_WRAPPER_SCRIPT}"
 
 remote "mkdir -p '${REMOTE_IMAGES_DIR}' '${REMOTE_RUNTIME_DIR}' '$(dirname "${REMOTE_APP_DEPLOY_SCRIPT}")'"
 rsync -az --delete -e "ssh -o BatchMode=yes" "${LOCAL_RUNTIME_DIR}/" "${SSH_TARGET}:${REMOTE_RUNTIME_DIR}/"
@@ -252,9 +256,13 @@ remote "chmod +x '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' && mv '${REMOTE_TMP_APP_DEPLO
 scp -q "${LOCAL_SERVICE_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_SERVICE_SCRIPT}"
 remote "chmod +x '${REMOTE_TMP_SERVICE_SCRIPT}' && mv '${REMOTE_TMP_SERVICE_SCRIPT}' '${REMOTE_SERVICE_SCRIPT}'"
 
+scp -q "${LOCAL_START_WRAPPER_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_START_WRAPPER_SCRIPT}"
+remote "chmod +x '${REMOTE_TMP_START_WRAPPER_SCRIPT}' && mv '${REMOTE_TMP_START_WRAPPER_SCRIPT}' '${REMOTE_START_WRAPPER_SCRIPT}'"
+
 log "远端 runtime 目录: ${REMOTE_RUNTIME_DIR}"
 log "远端应用部署脚本: ${REMOTE_APP_DEPLOY_SCRIPT}"
 log "远端 systemd 配置脚本: ${REMOTE_SERVICE_SCRIPT}"
+log "远端容器启动包装脚本: ${REMOTE_START_WRAPPER_SCRIPT}"
 
 log
 log "[3/5] 上传镜像"

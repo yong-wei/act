@@ -132,6 +132,12 @@ function main() {
   );
 
   assert.equal(
+    script.includes('container-start-wrapper.sh'),
+    true,
+    '远端部署脚本必须同步容器启动包装脚本，确保服务器端应用与 worker 使用等待式启动包装'
+  );
+
+  assert.equal(
     script.includes("redis-cli ping | grep -qx PONG"),
     true,
     '远端部署脚本必须验证 Redis PING'

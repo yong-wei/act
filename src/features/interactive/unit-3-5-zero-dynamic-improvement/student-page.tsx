@@ -15,7 +15,6 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit35StepAIContext } from '@/lib/course-ai-contexts';
 import {
   getUNIT_3_5MediaSrc,
-  isUNIT_3_5AiPageType,
   isUNIT_3_5InteractivePageType,
   UNIT_3_5_LESSON_KEY,
   UNIT_3_5_LESSON_STEPS,
@@ -28,7 +27,6 @@ import { UNIT_3_5CourseHeader } from './course-header';
 import { getUNIT_3_5PlainText } from './rich-text';
 import {
   UNIT_3_5KnowledgeMapVisual,
-  UNIT_3_5StepAiAssistant,
   UNIT_3_5StepContentPanel,
   UNIT_3_5StudentActivityForm,
   UNIT_3_5StudentSummaryPanel,
@@ -91,14 +89,6 @@ export function UNIT_3_5StudentPage({
   const step = UNIT_3_5_LESSON_STEPS[activeIndex];
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
-  const aiDisabled =
-    (step.id === 'step-03' || step.id === 'step-15') && !savedResponse;
-  const aiDisabledReason =
-    step.id === 'step-03'
-      ? '请先独立完成前测并提交，再用 AI 做错因对照。'
-      : step.id === 'step-15'
-        ? '请先完成后测并提交，再用 AI 对照危险误判。'
-        : undefined;
 
   useEffect(() => {
     const stepContext = getUnit35StepAIContext(step.id);
@@ -174,19 +164,6 @@ export function UNIT_3_5StudentPage({
       return nextState;
     });
   };
-
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
 
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
@@ -280,17 +257,6 @@ export function UNIT_3_5StudentPage({
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 
-        {isUNIT_3_5AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_5StepAiAssistant
-              step={step}
-              onAiEvent={handleAiEvent}
-              disabled={aiDisabled}
-              disabledReason={aiDisabledReason}
-            />
-          </div>
-        ) : null}
-
         <div className="mt-4">
           <UNIT_3_5StudentActivityForm
             step={step}
@@ -302,7 +268,7 @@ export function UNIT_3_5StudentPage({
           />
         </div>
 
-        {step.id === 'step-16' ? (
+        {step.id === 'step-15' ? (
           <div className="mt-4">
             <UNIT_3_5StudentSummaryPanel responses={courseState.responses} />
           </div>

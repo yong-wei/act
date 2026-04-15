@@ -26,6 +26,8 @@ course-content/runtime
 scripts/
 !scripts/
 scripts/*
+!scripts/wasm/
+!scripts/wasm/**
 !scripts/workers/
 !scripts/workers/**
 *.tsbuildinfo
@@ -34,3 +36,5 @@ deploy
 data
 aliyunssh
 aliyunssh.pub
+rust/control-engine/target
+unit41-step*.png

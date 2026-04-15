@@ -12,6 +12,7 @@ export interface ControlChartPanelProps {
   fallback?: ReactNode;
   isFallback?: boolean;
   className?: string;
+  chartClassName?: string;
 }
 
 export function ControlChartPanel({
@@ -22,6 +23,7 @@ export function ControlChartPanel({
   fallback,
   isFallback = false,
   className = '',
+  chartClassName = 'h-[260px]',
 }: ControlChartPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ECharts | null>(null);
@@ -91,8 +93,8 @@ export function ControlChartPanel({
         {meta ? <div className="premium-lesson-caption max-w-[72%] text-right text-[11px]">{meta}</div> : null}
         {isFallback ? <div className="premium-lesson-caption text-[11px]">fixture fallback</div> : null}
       </div>
-      <div className="relative mt-3 overflow-hidden rounded-2xl border border-border/50 bg-background/55">
-        <div ref={containerRef} className="h-[260px] w-full" />
+      <div className="relative mt-3 flex-1 overflow-hidden rounded-2xl border border-border/50 bg-background/55">
+        <div ref={containerRef} className={`${chartClassName} w-full`} />
         {overlay ? <div className="pointer-events-none absolute inset-0">{overlay}</div> : null}
         {isFallback && fallback ? (
           <div className="absolute inset-x-0 bottom-0 border-t border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">

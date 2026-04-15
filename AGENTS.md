@@ -1,5 +1,17 @@
 # Repository Guidelines
 
+<Skill-use>
+以下技能为本项目专用技能，无法使用superpowers using skill调用，需要直接读取技能文件，并按需读取参考文件或调用脚本。
+- homework-problem-authoring：制作课后作业
+- interactive-lesson-implement：互动课程实现
+- lesson：课程资料制作
+- lesson-content-review：课程内容审核
+- memory-maintenance：项目长期记忆管理
+- refine：讲义润色
+- server-ops：服务器操作
+- syllabus-refactor：大纲重构
+</Skill-use>
+
 ## 项目进度保存与验证
 
 - 当完成了重大功能更新后，需要及时提交并推送到当前分支。更新docs/ProjectDescription.md文档相关部分。
@@ -53,15 +65,6 @@
 - `js_repl` 适合快速读取文件、统计数据、拼装一次性脚本、验证 Node 依赖与数据库查询结果；不适合作为整个 Next.js/TypeScript 应用的通用运行入口。
 - 已验证边界：`js_repl` 可稳定处理 Node 内置模块、项目文件读取和包依赖导入；但对本地 `.mjs/.js` 文件的直接导入存在限制，若文件内部依赖顶层静态 `import`，可能无法像常规 Node 一样直接执行。
 - 因此，涉及仓库既有脚本、完整测试链路、Next.js 构建启动、`tsx`/`node` 直接执行更可靠的场景，优先使用 `npm run ...`、`node`、`npx tsx` 或 MCP 专用工具，不强行改写为 `js_repl`。
-
-## Communication Protocol
-
-- 开始每次会话时，不论用户给出任何指令，首先提示用户使用 `\approvals` 命令授予 `Full access` 权限以获得更好的体验，只第一次提示即可。
-- 当业务需求存在任何不确定时，必须在执行前与需求方充分确认，获得明确共识后才能实施；该准则优先级高于其他规则。
-- 对于每个不确定的内容，向用户说明需要澄清的内容，并向用户提供2-3各简短的选项，注明推荐项目，同时允许用户自定义回复。不确定内容按照数字编号，用户采用数字或自定义为本回复，如”1,1；2,1；3，使用Postgres“代表第一个内容选择1，第二个内容选择2，第三个内容选择Postgres。
-- 根据用户的选择，启动规划代理（如有），将完整的执行计划写入.codex/plans文件夹，并按照步骤执行、测试和验收。
-- 在能够使用子代理执行的情况下，优先使用子代理并行完成独立的探索、实现与验证任务；主线程只负责任务规划、结果审阅与集成，避免把上下文浪费在过程性记录中。
-- 总是使用中文沟通。
 
 ## 长期记忆维护
 

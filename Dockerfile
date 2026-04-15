@@ -31,6 +31,11 @@ RUN --mount=type=cache,target=/root/.npm \
 # Builder stage
 FROM base AS builder
 WORKDIR /app
+RUN apk add --no-cache curl build-base
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal --default-toolchain stable \
+  && rustup target add wasm32-unknown-unknown \
+  && cargo install wasm-pack --locked --version 0.13.1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -38,7 +43,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build the application
-RUN npx next build
+RUN npm run build
 
 # Runner stage
 FROM base AS runner

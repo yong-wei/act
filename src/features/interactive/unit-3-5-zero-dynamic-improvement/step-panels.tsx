@@ -1,38 +1,36 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
-import { Copy, Sparkles } from 'lucide-react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { BlockMath } from 'react-katex';
+import ReactMarkdown from 'react-markdown';
+import rehypeKatex from 'rehype-katex';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
-import { useInteractiveAI } from '@/features/interactive/hooks/useInteractiveAI';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
-import type { InteractiveConfig } from '@/features/interactive/types';
 import {
-  UNIT_3_5_COURSE_TITLE,
   UNIT_3_5_LESSON_STEPS,
   UNIT_3_5_STAGE_LABEL,
   type UNIT_3_5StepDefinition,
   type UNIT_3_5StepResponse,
 } from '@/lib/unit-3-5-course';
-import { getUNIT_3_5PlainText, UNIT_3_5InlineRichText } from './rich-text';
+import { UNIT_3_5InlineRichText } from './rich-text';
+import { UNIT_3_5RootLocusWorkspace } from './root-locus-workspace';
 import {
   BAND_LABEL_OPTIONS,
   BRANCH_REGION_OPTIONS,
   COMPARE_NOTE_KEYWORDS,
   DERIVATION_FIELDS,
   IMPROVED_METRIC_OPTIONS,
-  OBSERVATION_FOCUS_OPTIONS,
   PHASE_PEAK_OPTIONS,
   POST_QUIZ_QUESTIONS,
   PRETEST_QUESTIONS,
   RISK_TAG_OPTIONS,
+  RULE_CHECK_OPTIONS,
   SCENARIO_CARDS,
   SCENARIO_SORT_COLUMNS,
-  SENTENCE_REBUILD_TOKENS,
   STRUCTURED_COMPARE_FIELDS,
   TERM_EXPLAINER_KEYWORDS,
   REAL_AXIS_SEGMENT_OPTIONS,
@@ -61,6 +59,27 @@ interface ChoiceOption {
   label: string;
 }
 
+const MARKDOWN_COMPONENTS = {
+  p: ({ children }: { children?: ReactNode }) => <p className="mt-2 text-sm leading-7">{children}</p>,
+  ul: ({ children }: { children?: ReactNode }) => <ul className="mt-3 grid gap-2 text-sm leading-7">{children}</ul>,
+  li: ({ children }: { children?: ReactNode }) => <li className="ml-4 list-disc">{children}</li>,
+  table: ({ children }: { children?: ReactNode }) => (
+    <div className="mt-3 overflow-x-auto rounded-2xl border border-border/60 bg-background/55">
+      <table className="w-full border-collapse text-left text-sm">{children}</table>
+    </div>
+  ),
+  thead: ({ children }: { children?: ReactNode }) => <thead className="bg-background/70">{children}</thead>,
+  th: ({ children }: { children?: ReactNode }) => (
+    <th className="border-b border-border/60 px-3 py-2 font-medium text-foreground/85">{children}</th>
+  ),
+  td: ({ children }: { children?: ReactNode }) => (
+    <td className="border-b border-border/40 px-3 py-2 align-top text-foreground/85">{children}</td>
+  ),
+  code: ({ children }: { children?: ReactNode }) => (
+    <code className="rounded bg-background/80 px-1.5 py-0.5 text-[0.9em]">{children}</code>
+  ),
+};
+
 export interface UNIT_3_5TeacherResponseItem {
   studentName: string;
   response: UNIT_3_5StepResponse;
@@ -68,6 +87,65 @@ export interface UNIT_3_5TeacherResponseItem {
 
 function getToneClass(tone: Tone = 'slate') {
   return `premium-tone-${tone}`;
+}
+
+function renderMarkdown(markdown: string) {
+  return (
+    <ReactMarkdown
+      components={MARKDOWN_COMPONENTS}
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[rehypeKatex]}
+    >
+      {markdown}
+    </ReactMarkdown>
+  );
+}
+
+interface ProgressiveFormulaItem {
+  title: string;
+  math: string;
+}
+
+function ProgressiveFormulaStack({
+  items,
+}: {
+  items: ProgressiveFormulaItem[];
+}) {
+  const [revealedCount, setRevealedCount] = useState(1);
+  const visibleItems = items.slice(0, revealedCount);
+
+  return (
+    <div className="mt-3 grid gap-3">
+      {visibleItems.map((item, index) => {
+        const isBottomCard = index === visibleItems.length - 1;
+        const canRevealNext = isBottomCard && revealedCount < items.length;
+
+        if (canRevealNext) {
+          return (
+            <button
+              key={item.title}
+              type="button"
+              onClick={() => setRevealedCount((current) => Math.min(items.length, current + 1))}
+              className="rounded-2xl border border-cyan-300/40 bg-background/70 px-3 py-3 text-left text-sm transition hover:border-cyan-300/70"
+            >
+              <div className="mb-2 text-sm font-medium">{item.title}</div>
+              <div className="[&_.katex-display]:m-0">
+                <BlockMath math={item.math} />
+              </div>
+              <div className="mt-3 text-xs text-cyan-200">点击本卡揭示下一层</div>
+            </button>
+          );
+        }
+
+        return (
+          <div key={item.title} className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+            <div className="mb-2 text-sm font-medium">{item.title}</div>
+            <BlockMath math={item.math} />
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function getStepBlueprint(step: UNIT_3_5StepDefinition): StepBlueprint {
@@ -114,7 +192,7 @@ function getStepBlueprint(step: UNIT_3_5StepDefinition): StepBlueprint {
           {
             title: 'AI 顺序约束',
             tone: 'amber',
-            body: '必须先完成三题和一句直觉，再允许打开页内 AI。AI 在这里只做错因对照，不代替独立判断。',
+            body: '必须先完成三题和一句直觉，再允许使用控灵助手中的快捷提问。AI 在这里只做错因对照，不代替独立判断。',
           },
         ],
       };
@@ -148,9 +226,9 @@ function getStepBlueprint(step: UNIT_3_5StepDefinition): StepBlueprint {
         intro: '第一组结论先只压到这里：左半平面零点通常能改善动态，但右半平面零点先不要急着下“更快更好”的判断。',
         sections: [
           {
-            title: '为什么要先留下问号',
+            title: '为什么要另看边界',
             tone: 'amber',
-            body: '因为右半平面零点会把“零点改善动态”变成带条件的结论，真正的危险要放到非最小相边界中再揭示。',
+            body: '因为右半平面零点会把“零点改善动态”变成带条件的结论，真正需要追问的是逆响应、额外相位滞后与带宽边界。',
           },
         ],
       };
@@ -160,9 +238,9 @@ function getStepBlueprint(step: UNIT_3_5StepDefinition): StepBlueprint {
         intro: 'PD 与测速反馈都能增大阻尼，但结构图不能混着认。测速反馈保留外环单位负反馈，同时在对象输入前叠加速度项反馈；它不显式增加前向零点。',
         sections: [
           {
-            title: '辨认重点',
+            title: '本页要回答的问题',
             tone: 'cyan',
-            bullets: ['PD：前向通道显式增加零点。', '测速反馈：局部速度反馈改善阻尼，但不显式增加前向零点。'],
+            body: '先把结构图、被控对象和两条等效特征方程对上，再回答：测速反馈是否在前向通道显式增加零点？',
           },
         ],
       };
@@ -171,11 +249,6 @@ function getStepBlueprint(step: UNIT_3_5StepDefinition): StepBlueprint {
         kicker: 'Formula',
         intro: '这一页必须把“公式看懂”推进到“会反求参数”。本例目标阻尼给定为 0.5，最终应推出 Kd = Kt = 0.3。',
         sections: [
-          {
-            title: '两条核心关系',
-            tone: 'violet',
-            formula: '\\zeta_{PD}=\\zeta+\\frac{1}{2}K_d\\omega_n,\\qquad \\zeta_v=\\zeta+\\frac{1}{2}K_t\\omega_n',
-          },
           {
             title: '过程优先',
             tone: 'amber',
@@ -191,106 +264,80 @@ function getStepBlueprint(step: UNIT_3_5StepDefinition): StepBlueprint {
           {
             title: '三域对照提醒',
             tone: 'emerald',
-            bullets: ['共同点：都让系统先变得更不爱振荡。', '不同点：PD 显式增加前向零点；测速反馈不显式增加前向零点。', '三域图不能退化成单域标签页。'],
+            bullets: ['共同点：都让系统先变得更不爱振荡。', '提高阻尼不等于结构相同。', '不同点：PD 显式增加前向零点；测速反馈不显式增加前向零点。', '三域图不能退化成单域标签页。'],
           },
         ],
       };
     case 'step-10':
       return {
-        kicker: 'Integration',
-        intro: '提高阻尼不等于结构相同。你需要把打散的关键词重组为一句完整结论，而不是只背一个“都能变稳”的口号。',
+        kicker: 'PD Frequency',
+        intro: 'PD 单独装置的关键不是“更强”，而是它会持续抬升中高频，从而推动交叉频率右移，同时带来高频代价。',
         sections: [
           {
-            title: '本页要压成一句话',
-            tone: 'cyan',
-            body: '提高阻尼不等于结构相同，还要继续看零点位置与三域表现。',
+            title: '阅读顺序',
+            tone: 'amber',
+            bullets: ['先沿用上一步对象。', '再写理想 PD 控制器。', '随后按频率特性、幅频特性、相频特性的顺序阅读。', '最后再回到高频代价。'],
           },
         ],
       };
     case 'step-11':
       return {
-        kicker: 'PD Principle',
-        intro: 'PD 单独装置先抬的是中高频幅值，随后把交叉频率往右推；对应的代价是高频代价与噪声放大风险。',
+        kicker: 'Lead Frequency',
+        intro: '超前装置更像在关键频带制造相位峰，它不是持续抬高整个中高频，而是把补相角集中在需要的位置。',
         sections: [
           {
-            title: '频域主线',
-            tone: 'amber',
-            bullets: ['低频基本不动。', '拐点后中高频被抬起。', '高频代价不能被省略。'],
-          },
-          {
-            title: '单独装置公式',
-            tone: 'violet',
-            formula: '|G_{PD}(j\\omega)|=\\sqrt{1+(\\omega T_d)^2},\\qquad \\phi_{PD}(\\omega)=\\arctan(\\omega T_d)',
+            title: '阅读顺序',
+            tone: 'cyan',
+            body: '先认超前网络标准形式，再分别读幅频特性、相频特性、最大超前角出现频率和最大超前角。',
           },
         ],
       };
     case 'step-12':
       return {
-        kicker: 'Lead Principle',
-        intro: '超前单独装置不是“更强的 PD”，它更像在关键频带制造相位峰，主动改善相角裕度。',
+        kicker: 'Design Rules',
+        intro: '这一页只做初步判断：什么时候优先想 PD，什么时候优先想超前，什么时候需要先承认还得继续判边界。',
         sections: [
           {
-            title: '关键结论',
-            tone: 'cyan',
-            bullets: ['相位峰应落在截止频率附近。', '页面必须明确指出改善的是相角裕度。'],
-          },
-          {
-            title: '标准式',
-            tone: 'violet',
-            formula: '|G_{lead}(j\\omega)|=\\sqrt{\\frac{1+(\\omega T)^2}{1+(\\alpha\\omega T)^2}},\\qquad \\phi_{lead}(\\omega)=\\arctan(\\omega T)-\\arctan(\\alpha\\omega T)',
+            title: '设计原则',
+            tone: 'emerald',
+            bullets: ['PD 先看是否需要抬交叉、提响应积极性。', '超前先看是否需要在截止频率附近补相角、守住稳定裕度。', '二者都不直接等于完整整定答案。'],
           },
         ],
       };
     case 'step-13':
       return {
-        kicker: 'Design Rules',
-        intro: '频域设计原则必须落成可迁移的动作：什么时候优先想 PD，什么时候优先想超前，什么时候两者都不够。',
+        kicker: 'NMP Entrance',
+        intro: '非最小相入口的重点是把镜像零点、逆响应和“先反向动”放在一起看，确认问题不只是名字变化。',
         sections: [
           {
-            title: '约束优先级',
-            tone: 'emerald',
-            bullets: ['只想抬交叉且能接受中高频抬升时，优先想 PD。', '想在关键频带补相角、改善相角裕度时，优先想超前。', '遇到非最小相或强噪声约束时，要先承认两者都不够。'],
+            title: '阅读顺序',
+            tone: 'rose',
+            bullets: ['先认最小相与非最小相开环对象。', '再看对照图中的逆响应与额外相位滞后。', '最后再回到 5.4 保守带宽实例表。'],
           },
         ],
       };
     case 'step-14':
       return {
-        kicker: 'NMP',
-        intro: '非最小相必须同时从名字来源、时域逆响应和频域额外相位滞后三层来理解，不能只停在一句定义。',
+        kicker: 'Bandwidth Boundary',
+        intro: '右半平面零点真正危险的地方，在于它会把“想更快”变成更早撞上稳定边界的风险，所以动作通常是先保守带宽。',
         sections: [
           {
-            title: '为什么叫非最小相',
-            tone: 'rose',
-            body: '右半平面零点会让系统相位不再是“最小可能值”，于是既可能出现逆响应，也会在频域上带来额外相位滞后。',
+            title: '频域后果卡',
+            tone: 'amber',
+            bullets: ['右半平面零点带来额外相位滞后。', '过度提高带宽会更早逼近稳定边界。', '保守动作是先守交叉频率与相角裕度。'],
           },
         ],
+        note: '为什么非最小相对象往往要先保守带宽：因为右半平面零点会带来逆响应与额外相位滞后。',
       };
     case 'step-15':
       return {
         kicker: 'Post-check',
-        intro: '后测的目标是把最危险的误判压下去，尤其是“零点就等于更大增益”“超前只是更强的 PD”“继续把带宽往上推就能压住逆响应”。',
+        intro: '最后一页把后测、四个观察量、风险边界和 3-6 入口收拢成一张判断地图，准备带进下一课的统一对象实验。',
         sections: [
           {
-            title: 'AI 对照区锁定规则',
-            tone: 'amber',
-            body: '只有后测提交后，才允许打开 AI 对照区。AI 只做危险误判纠偏，不代写后测答案。',
-          },
-          {
-            title: '边界提醒',
-            tone: 'rose',
-            body: '为什么非最小相对象往往要先保守带宽：因为右半平面零点会带来逆响应与额外相位滞后，盲目继续推高带宽通常会更早撞上边界。',
-          },
-        ],
-      };
-    case 'step-16':
-      return {
-        kicker: 'Wrap-up',
-        intro: '最后带走四个观察量：先看根轨迹骨架是否被改写，再看结构里有没有显式前向零点，再看频域是抬交叉还是补相角，最后看对象有没有非最小相边界。',
-        sections: [
-          {
-            title: '下一课去向',
+            title: '收束提醒',
             tone: 'violet',
-            body: '3-6 会把今天的结构比较放到统一对象实验中，继续验证三域怎样联动变化。',
+            body: '四个观察量会以紧凑卡片形式回收，最后一起指向 3-6 的统一对象实验。',
           },
         ],
       };
@@ -301,36 +348,6 @@ function getStepBlueprint(step: UNIT_3_5StepDefinition): StepBlueprint {
         sections: [],
       };
   }
-}
-
-function getAiPrompts(step: UNIT_3_5StepDefinition) {
-  switch (step.id) {
-    case 'step-03':
-      return ['请只帮我检查前测里的误判类型，不要直接替我回答三道题。'];
-    case 'step-08':
-      return ['请只检查我的 Kd / Kt 推导链是否完整，不要直接把最终数值写给我。'];
-    case 'step-11':
-      return ['请围绕 PD 的频域作用解释“抬交叉”和“高频代价”，不要直接代做标签。'];
-    case 'step-15':
-      return ['请只帮我纠正“继续把带宽往上推就能解决非最小相问题”这类危险误判，不要替我完成后测。'];
-    default:
-      return ['请围绕当前页面目标解释概念或检查我的作答思路，不要直接替我完成结论。'];
-  }
-}
-
-function buildInteractiveAiConfig(step: UNIT_3_5StepDefinition): InteractiveConfig {
-  return {
-    resourceId: `unit-3-5:${step.id}`,
-    registryId: `unit-3-5:${step.id}`,
-    title: `${UNIT_3_5_COURSE_TITLE} · ${getUNIT_3_5PlainText(step.title)}`,
-    aiHints: `当前只围绕 ${getUNIT_3_5PlainText(step.title)} 提供解释和检查，不替代学生完成最终判断。`,
-    config: {
-      ai: {
-        enabled: true,
-        persona: 'tutor',
-      },
-    },
-  };
 }
 
 function getRevealContent(step: UNIT_3_5StepDefinition) {
@@ -348,24 +365,24 @@ function getRevealContent(step: UNIT_3_5StepDefinition) {
     case 'step-09':
       return '参考口径：共同点是都能提高阻尼；不同点是 PD 显式增加前向零点，而测速反馈不显式增加前向零点。';
     case 'step-10':
-      return '参考句式：提高阻尼不等于结构相同，还要继续看零点位置与三域表现。';
+      return '参考口径：PD 的频域本质是抬升中高频幅值、推动截止频率右移，代价是高频噪声与控制动作放大。';
     case 'step-11':
-      return '参考口径：PD 的频域本质是抬升中高频幅值、推动截止频率右移，代价是高频代价与噪声放大。';
-    case 'step-12':
       return '参考口径：超前更像在关键频带补相角，核心改善的是相角裕度。';
+    case 'step-12':
+      return '参考口径：PD 主打抬交叉，超前主打补相角；遇到边界约束时要先承认还需继续判断。';
     case 'step-13':
-      return '参考口径：PD 主打抬交叉，超前主打补相角；非最小相或强噪声约束下要先承认两者都不够。';
+      return '参考解释：右半平面零点会带来逆响应与额外相位滞后，因此“先反向动”不是偶然现象。';
     case 'step-14':
-      return '参考解释：非最小相意味着对象相位不再最小，典型后果是逆响应与额外相位滞后。';
+      return '参考口径：右半平面零点会带来额外相位滞后，保守动作通常是先守交叉频率与相角裕度。';
     case 'step-15':
-      return '参考口径：右半平面零点会带来逆响应与额外相位滞后，设计上通常先保守带宽，而不是继续盲目往上推。';
+      return '参考口径：本课最后要带走四个观察量与风险边界，并把它们转成 3-6 的统一对象实验入口。';
     default:
       return null;
   }
 }
 
 function supportsAnswerReveal(step: UNIT_3_5StepDefinition) {
-  return !['display', 'risk_prediction_submit', 'exit_reflection'].includes(step.pageType);
+  return !['display', 'risk_prediction_submit'].includes(step.pageType);
 }
 
 function parseList(value?: string) {
@@ -500,6 +517,288 @@ function serializeScenarioPlacements(mapping: Map<string, string>) {
     .join('||');
 }
 
+function renderStepSupplement(
+  step: UNIT_3_5StepDefinition,
+  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void,
+  mediaSrc?: string | null,
+) {
+  switch (step.id) {
+    case 'step-04':
+      return (
+        <div className="mt-4 grid gap-4">
+          <div className="premium-lesson-tone-block premium-tone-violet">
+            <div className="font-medium">对象式先落页，再看分支被拉走</div>
+            <div className="mt-2 text-sm leading-7">本页把两个旧示例合并为一个“添加零点”模式。先切换基线，再进入添加零点，沿实轴拖动零点标注，观察被拉走的分支与实轴区段如何一起重排。</div>
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <div className="mb-2 text-sm font-medium">基线对象</div>
+                <BlockMath math={'L_0(s)=\\frac{K}{s(s+1)}'} />
+              </div>
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <div className="mb-2 text-sm font-medium">添加零点后的开环对象</div>
+                <BlockMath math={'L_z(s)=\\frac{K(s+z)}{s(s+1)},\\quad z>0'} />
+              </div>
+            </div>
+          </div>
+          <UNIT_3_5RootLocusWorkspace stepId="step-04" onWorkspaceParameterChange={onWorkspaceParameterChange} />
+        </div>
+      );
+    case 'step-05':
+      return (
+        <div className="mt-4 grid gap-4">
+          <div className="premium-lesson-tone-block premium-tone-violet">
+            <div className="font-medium">三阶对象必须先把讲义公式和零点位置说清</div>
+            <div className="mt-2 text-sm leading-7">本页同样只保留“基线”和“添加零点”两个模式。你需要在同一组极点下拖动零点位置，比较主导分支在哪一段被改写得更明显。</div>
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <div className="mb-2 text-sm font-medium">基线对象</div>
+                <BlockMath math={'L_3(s)=\\frac{K}{s(s+1)(s+4)}'} />
+              </div>
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <div className="mb-2 text-sm font-medium">添加零点后的开环对象</div>
+                <BlockMath math={'L_z(s)=\\frac{K(s+z)}{s(s+1)(s+4)},\\quad z>0'} />
+              </div>
+            </div>
+          </div>
+          <UNIT_3_5RootLocusWorkspace stepId="step-05" onWorkspaceParameterChange={onWorkspaceParameterChange} />
+        </div>
+      );
+    case 'step-07':
+      return (
+        <div className="mt-4 grid gap-4">
+          <div className="premium-lesson-tone-block premium-tone-violet">
+            <div className="font-medium">先把结构图和公式一一对上，再进入判断</div>
+            <div className="mt-3 grid gap-3">
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <div className="mb-2 text-sm font-medium">被控对象</div>
+                <BlockMath math={'G_p(s)=\\frac{4}{s(s+0.8)}'} />
+              </div>
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <div className="mb-2 text-sm font-medium">相应的闭环传递函数</div>
+                <BlockMath math={'T_0(s)=\\frac{4}{s^2+0.8s+4}'} />
+              </div>
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <div className="mb-2 text-sm font-medium">PD 等效特征方程</div>
+                <BlockMath math={'s^2+\\left(2\\zeta\\omega_n+K_d\\omega_n^2\\right)s+\\omega_n^2=0'} />
+              </div>
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <div className="mb-2 text-sm font-medium">测速反馈等效特征方程</div>
+                <BlockMath math={'s^2+\\left(2\\zeta\\omega_n+K_t\\omega_n^2\\right)s+\\omega_n^2=0'} />
+              </div>
+            </div>
+            <div className="mt-3 rounded-2xl border border-border/50 bg-background/65 px-3 py-3 text-sm leading-7">
+              问题：测速反馈是否在前向通道显式增加零点？
+            </div>
+          </div>
+        </div>
+      );
+    case 'step-08':
+      return (
+        <div className="mt-4 grid gap-4">
+          <div className="premium-lesson-tone-block premium-tone-violet">
+            <div className="font-medium">等效阻尼推导链</div>
+            <div className="mt-3 grid gap-3">
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <BlockMath math={'\\zeta_{PD}=\\zeta+\\frac{1}{2}K_d\\omega_n,\\qquad \\zeta_v=\\zeta+\\frac{1}{2}K_t\\omega_n'} />
+              </div>
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <BlockMath math={'K_d=K_t=\\frac{2(\\zeta^\\star-\\zeta)}{\\omega_n}'} />
+              </div>
+            </div>
+            <div className="mt-3">
+              {renderMarkdown(
+                [
+                  '1. 把闭环特征方程改写成标准二阶形式 $s^2+2\\zeta_{\\mathrm{eq}}\\omega_n s+\\omega_n^2=0$。',
+                  '2. 对 `PD` 结构，有 $2\\zeta_{\\mathrm{eq}}\\omega_n=2\\zeta\\omega_n+K_d\\omega_n^2$，因此 $\\zeta_{PD}=\\zeta+\\frac{1}{2}K_d\\omega_n$。',
+                  '3. 对测速反馈，有 $2\\zeta_{\\mathrm{eq}}\\omega_n=2\\zeta\\omega_n+K_t\\omega_n^2$，因此 $\\zeta_v=\\zeta+\\frac{1}{2}K_t\\omega_n$。',
+                  '4. 本例取 $\\omega_n=2$、$\\zeta=0.2$、$\\zeta^\\star=0.5$，即可得到 $K_d=K_t=0.3$。',
+                ].join('\n'),
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    case 'step-09':
+      return (
+        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.12fr)_minmax(280px,0.88fr)]">
+          <div className="premium-lesson-tone-block premium-tone-violet">
+            <div className="font-medium">闭环传函对照</div>
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <BlockMath math={'T_{PD}(s)=\\frac{4(1+0.3s)}{s^2+2s+4}'} />
+              </div>
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <BlockMath math={'T_v(s)=\\frac{4}{s^2+2s+4}'} />
+              </div>
+            </div>
+            <div className="mt-3">
+              {renderMarkdown(
+                '| 结构 | 超调量 | 2% 调节时间 | 解读 |\n| --- | --- | --- | --- |\n| 校正前 | 约 `52.3%` | 约 `9.92 s` | 典型欠阻尼且拖尾明显 |\n| `PD` 后 | 约 `20.5%` | 约 `3.82 s` | 阻尼显著改善，但输入通道零点让前段抬升更积极 |\n| 测速反馈后 | 约 `16.3%` | 约 `4.04 s` | 阻尼改善接近 `PD`，但因为没有显式前向零点，超调更克制 |',
+              )}
+            </div>
+          </div>
+          <div className="grid gap-4">
+            <div className="premium-lesson-tone-block premium-tone-emerald">
+              <div className="font-medium">三域指标速记</div>
+              <div className="mt-3">
+                {renderMarkdown(
+                  '| 结构 | 共振峰值 | 带宽 |\n| --- | --- | --- |\n| 校正前 | 约 `8.14 dB` | 约 `3.04 rad/s` |\n| `PD` 后 | 约 `2.04 dB` | 约 `2.97 rad/s` |\n| 测速反馈后 | 约 `1.25 dB` | 约 `2.56 rad/s` |',
+                )}
+              </div>
+            </div>
+            <div className="premium-lesson-tone-block premium-tone-cyan">
+              <div className="font-medium">课堂判断锚点</div>
+              <ul className="mt-3 grid gap-2 text-sm leading-7">
+                <li className="ml-4 list-disc">共同点：两种结构都先把系统从明显欠阻尼拉回更可控区间。</li>
+                <li className="ml-4 list-disc">根轨迹与时域的差异，要追溯到前向零点是否显式出现。</li>
+                <li className="ml-4 list-disc">频域代价不同，决定了“同样提阻尼”并不等于“结构相同”。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      );
+    case 'step-10':
+      return (
+        <div className="mt-4 grid gap-4">
+          <div className="premium-lesson-tone-block premium-tone-violet">
+            <div className="font-medium">4.1 先沿用上一步对象，再按讲义顺序展开 PD 的频域证据</div>
+            <ProgressiveFormulaStack
+              items={[
+                { title: '沿用上一步对象', math: 'G_p(s)=\\frac{4}{s(s+0.8)}' },
+                { title: '理想 PD 控制器', math: 'G_{PD}(s)=1+T_d s' },
+                { title: '频率特性', math: 'G_{PD}(j\\omega)=1+j\\omega T_d' },
+                { title: '幅频特性', math: '\\left|G_{PD}(j\\omega)\\right|=\\sqrt{1+(\\omega T_d)^2}' },
+                { title: '相频特性', math: '\\phi_{PD}(\\omega)=\\arctan(\\omega T_d)' },
+              ]}
+            />
+            <div className="mt-3 rounded-2xl border border-border/50 bg-background/65 px-3 py-3 text-sm leading-7">
+              {renderMarkdown(
+                [
+                  '- 在低频段，$|G_{PD}(j\\omega)| \\approx 1$，几乎不动直流和低频增益。',
+                  '- 当频率越过拐点 $\\omega_d=1/T_d$ 后，幅值按 `+20 dB/dec` 持续抬升。',
+                  '- `PD` 先把中高频幅值往上托，交叉频率才有机会右移；交叉频率右移后，系统才表现为“更快”。',
+                  '- 高频代价是噪声、测量抖动和控制动作一起被放大。',
+                ].join('\n'),
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    case 'step-11':
+      return (
+        <div className="mt-4 grid gap-4">
+          <div className="premium-lesson-tone-block premium-tone-cyan">
+            <div className="font-medium">先认超前网络标准形式，再给每条公式一个明确名称</div>
+            <ProgressiveFormulaStack
+              items={[
+                { title: '超前网络标准形式', math: 'G_{\\text{lead}}(s)=\\frac{Ts+1}{\\alpha Ts+1},\\qquad 0<\\alpha<1' },
+                { title: '幅频特性', math: '\\left|G_{\\text{lead}}(j\\omega)\\right|=\\sqrt{\\frac{1+(\\omega T)^2}{1+(\\alpha \\omega T)^2}}' },
+                { title: '相频特性', math: '\\phi_{\\text{lead}}(\\omega)=\\arctan(\\omega T)-\\arctan(\\alpha \\omega T)' },
+                { title: '最大超前角出现频率', math: '\\omega_m=\\frac{1}{T\\sqrt{\\alpha}}' },
+                { title: '最大超前角', math: '\\phi_m=\\sin^{-1}\\left(\\frac{1-\\alpha}{1+\\alpha}\\right)' },
+              ]}
+            />
+            <div className="mt-3 rounded-2xl border border-border/50 bg-background/65 px-3 py-3 text-sm leading-7">
+              {renderMarkdown(
+                [
+                  '- 零点先提供提前相位，极点再把提前相位收住，所以相位提升只集中在中间一段关键频带。',
+                  '- 相位峰最有价值的位置通常就在截止频率附近，因为这里直接决定相角裕度还能不能守住。',
+                  '- 当 $\\omega < \\omega_z=1/T$ 时，幅值几乎不变。',
+                  '- 在 $\\omega_z$ 到 $\\omega_p=1/(\\alpha T)$ 之间，幅值按 `+20 dB/dec` 上升。',
+                  '- 超过极点频率后，幅值不再继续无限抬升，而是趋于有限增益 $20\\log_{10}(1/\\alpha)$。',
+                  '- 超前不是持续抬整个中高频，而是在关键频带制造相位峰。',
+                ].join('\n'),
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    case 'step-12':
+      return (
+        <div className="mt-4 grid gap-4">
+          <div className="premium-lesson-tone-block premium-tone-cyan">
+            <div className="font-medium">图 6｜PD 与超前：零点位置可以相同，但频域整形方式不同</div>
+            <div className="mt-2 text-sm leading-7">先看频域图，再回头看根轨迹和阶跃响应；对 `PD` 与超前而言，频域整形是起因，根轨迹差异是结果。</div>
+          </div>
+          <div className="premium-lesson-tone-block premium-tone-violet">
+            <div className="font-medium">频域与适用规律表</div>
+            <div className="mt-3">
+              {renderMarkdown(
+                '| 结构 | 交叉频率 | 相角裕度 | 频域解释 |\n| --- | --- | --- | --- |\n| 校正前 | 约 `1.92 rad/s` | 约 `22.6°` | 中频段补角不足，速度和裕度都偏紧 |\n| `PD` 后 | 约 `2.10 rad/s` | 约 `53.1°` | 中高频抬升明显，交叉点右移，速度提高且裕度改善 |\n| 超前后 | 约 `2.09 rad/s` | 约 `45.9°` | 在交叉频率附近主动补角，裕度提高且高频放大更受控 |\n\n| 结构 | 更适合的场景 | 不适合的场景 | 一句话概括 |\n| --- | --- | --- | --- |\n| `PD` | 主要目标是提高响应速度、增大阻尼、提高截止频率；高频噪声约束不太强；对象本身较低阶或主导低阶特征明显 | 测量噪声强、执行机构高频能力有限、不能接受明显高频放大 | “先抬中高频，再把交叉点往右推” |\n| 超前校正 | 主要矛盾是相角裕度不足；希望在截止频率附近主动补角；需要比 `PD` 更可控的高频代价；幅值裕度和整体带宽仍有可调整空间 | 高频放大约束极严、低频精度本身才是主要矛盾、需要同时解决稳态与动态多重冲突 | “在关键频段补相角，不让高频一路抬上去” |\n\n| 结构 | 超调量 | 2% 调节时间 |\n| --- | --- | --- |\n| 校正前 | 约 `52.3%` | 约 `9.92 s` |\n| `PD` 后 | 约 `20.5%` | 约 `3.82 s` |\n| 超前后 | 约 `25.7%` | 约 `3.84 s` |',
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    case 'step-13':
+      return (
+        <div className="mt-4 grid gap-4">
+          <div className="premium-lesson-tone-block premium-tone-violet">
+            <div className="font-medium">先把最小相与非最小相的公式放在最上方</div>
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <div className="mb-2 text-sm font-medium">最小相开环对象</div>
+                <BlockMath math={'L_{\\text{mp}}(s)=K\\frac{4(s+1)}{s(s+2)(s+5)}'} />
+              </div>
+              <div className="rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <div className="mb-2 text-sm font-medium">非最小相开环对象</div>
+                <BlockMath math={'L_{\\text{nmp}}(s)=K\\frac{4(1-s)}{s(s+2)(s+5)}'} />
+              </div>
+            </div>
+          </div>
+          {mediaSrc ? (
+            <figure className="premium-lesson-surface-elevated overflow-hidden px-4 py-4">
+              <div className="mb-3 text-sm font-medium">对照图：先比较镜像零点下的响应与频域后果</div>
+              <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border/60 bg-background/60">
+                <Image src={mediaSrc} alt={step.title} fill className="object-contain" />
+              </div>
+            </figure>
+          ) : null}
+          <div className="premium-lesson-tone-block premium-tone-rose">
+            <div className="font-medium">现象与分析</div>
+            <ul className="mt-3 grid gap-2 text-sm leading-7">
+              <li className="ml-4 list-disc">唯一差别是零点位于左半平面还是右半平面。</li>
+              <li className="ml-4 list-disc">非最小相最先暴露的是逆响应与额外相位滞后，不是单纯“更慢”。</li>
+              <li className="ml-4 list-disc">因此“先反向动”必须同时回到结构来源和频域代价解释。</li>
+            </ul>
+          </div>
+          <div className="premium-lesson-tone-block premium-tone-violet">
+            <div className="font-medium">5.4 保守带宽实例表</div>
+            <div className="mt-3">
+              {renderMarkdown(
+                '| 增益 | 最深逆响应 | 最大峰值 | 解读 |\n| --- | --- | --- | --- |\n| `K=0.6` | 约 `-0.106` | 无明显正向峰值 | 保守，逆响应较轻 |\n| `K=1.0` | 约 `-0.186` | 峰值约 `1.158` | 中等控制，能跟踪但代价已显现 |\n| `K=2.0` | 约 `-0.428` | 峰值约 `2.195` | 过激，逆响应和峰值同时恶化 |',
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    case 'step-15':
+      return (
+        <div className="mt-4 grid gap-4">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              { title: '根轨迹观察量', body: '先看分支是否被零点拉走，以及主导极点候选区是否整体更有利。' },
+              { title: '时域观察量', body: '再看调节时间、超调与是否出现前冲或逆向初始动作。' },
+              { title: '频域观察量', body: '继续检查相位是更提前还是更滞后，带宽是更容易提高还是更早触顶。' },
+              { title: '结构判断观察量', body: '最后回到结构来源，确认差异究竟来自零点位置、结构通道还是边界约束。' },
+            ].map((item) => (
+              <div key={item.title} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+                <div className="text-sm font-medium">{item.title}</div>
+                <div className="premium-lesson-muted mt-2 text-sm leading-7">{item.body}</div>
+              </div>
+            ))}
+          </div>
+          <div className="premium-lesson-tone-block premium-tone-violet">
+            <div className="font-medium">下一课去向</div>
+            <div className="mt-2 text-sm leading-7">3-6 将在统一对象上把 PD、测速反馈、超前与非最小相边界放入实验链，四个观察量会继续作为统一比较框架保留下来。</div>
+          </div>
+        </div>
+      );
+    default:
+      return null;
+  }
+}
+
 export function UNIT_3_5KnowledgeMapVisual() {
   return (
     <section className="premium-lesson-panel-soft mb-4 px-4 py-4">
@@ -526,6 +825,7 @@ export function UNIT_3_5StepContentPanel({
   step,
   mediaSrc,
   mediaAlt,
+  onWorkspaceParameterChange,
 }: {
   step: UNIT_3_5StepDefinition;
   mediaSrc?: string | null;
@@ -533,6 +833,7 @@ export function UNIT_3_5StepContentPanel({
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const blueprint = getStepBlueprint(step);
+  const shouldRenderMedia = Boolean(mediaSrc) && !['step-04', 'step-05', 'step-13'].includes(step.id);
 
   return (
     <section className="premium-lesson-panel px-4 py-5">
@@ -544,10 +845,10 @@ export function UNIT_3_5StepContentPanel({
       </h2>
       <p className="premium-lesson-muted mt-3 text-sm sm:text-base">{blueprint.intro}</p>
 
-      {mediaSrc ? (
+      {shouldRenderMedia ? (
         <figure className="premium-lesson-surface-elevated mt-4 overflow-hidden px-4 py-4">
           <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border/60 bg-background/60">
-            <Image src={mediaSrc} alt={mediaAlt ?? step.title} fill className="object-contain" />
+            <Image src={mediaSrc!} alt={mediaAlt ?? step.title} fill className="object-contain" />
           </div>
         </figure>
       ) : null}
@@ -576,6 +877,7 @@ export function UNIT_3_5StepContentPanel({
       </div>
 
       {blueprint.note ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">{blueprint.note}</div> : null}
+      {renderStepSupplement(step, onWorkspaceParameterChange, mediaSrc)}
     </section>
   );
 }
@@ -651,6 +953,10 @@ export function UNIT_3_5StudentActivityForm({
       case 'binary_choice':
         return (
           <div className="grid gap-4">
+            <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+              <div className="premium-lesson-title text-sm font-medium">问题：测速反馈是否在前向通道显式增加零点？</div>
+              <div className="premium-lesson-muted mt-2 text-sm">先看上方结构图与公式，再提交“是 / 否”的判断，并补一句结构理由。</div>
+            </div>
             {renderChoiceButtons({
               options: [
                 { value: 'yes', label: '是，测速反馈在前向通道显式增加零点' },
@@ -810,37 +1116,6 @@ export function UNIT_3_5StudentActivityForm({
             </button>
           </div>
         );
-      case 'sentence_rebuild': {
-        const builtTokens = parseList(draft.tokenOrder);
-        return (
-          <div className="grid gap-4">
-            <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">点击下列关键词，重组一句完整结论</div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {SENTENCE_REBUILD_TOKENS.map((token) => (
-                  <button
-                    key={token}
-                    type="button"
-                    className="premium-lesson-control"
-                    onClick={() => updateDraft('tokenOrder', [...builtTokens, token].join('||'), 'button')}
-                  >
-                    {token}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">当前句子</div>
-              <div className="mt-3 min-h-[80px] rounded-2xl border border-border/60 px-3 py-3 text-sm leading-7">
-                {builtTokens.length ? builtTokens.join(' ') : '尚未选择关键词'}
-              </div>
-            </div>
-            <button type="button" onClick={() => submit({ tokenOrder: draft.tokenOrder ?? '' })} className="premium-lesson-action-primary">
-              {submitted ? '重新提交句子' : '提交句子'}
-            </button>
-          </div>
-        );
-      }
       case 'frequency_band_labeling':
         return (
           <div className="grid gap-4">
@@ -976,27 +1251,42 @@ export function UNIT_3_5StudentActivityForm({
             </button>
           </div>
         );
-      case 'exit_reflection':
+      case 'rule_check':
         return (
           <div className="grid gap-4">
-            <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">以后你打算先盯住哪一个观察量？</div>
-              <div className="mt-3">
-                {renderChoiceButtons({
-                  options: OBSERVATION_FOCUS_OPTIONS,
-                  value: draft.focus ?? '',
-                  onChange: (value) => updateDraft('focus', value, 'button'),
-                })}
+            {[
+              {
+                key: 'rule-1',
+                statement: '右半平面零点会带来额外相位滞后，所以通常先保守交叉频率与相角裕度。',
+              },
+              {
+                key: 'rule-2',
+                statement: '非最小相对象要继续把带宽往上推。',
+              },
+              {
+                key: 'rule-3',
+                statement: '右半平面零点很危险。',
+              },
+            ].map((item) => (
+              <div key={item.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+                <div className="premium-lesson-title text-sm font-medium">{item.statement}</div>
+                <div className="mt-3">
+                  <SelectField
+                    value={draft[item.key] ?? ''}
+                    onChange={(value) => updateDraft(item.key, value, 'select')}
+                    options={RULE_CHECK_OPTIONS}
+                  />
+                </div>
               </div>
-            </div>
+            ))}
             <TextInput
-              value={draft.reflection ?? ''}
-              onChange={(value) => updateDraft('reflection', value)}
-              placeholder="写一句：我以后会先看哪一个观察量，为什么"
+              value={draft.rule_reason ?? ''}
+              onChange={(value) => updateDraft('rule_reason', value)}
+              placeholder="补一句：为什么右半平面零点会限制带宽"
               multiline
             />
             <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">
-              {submitted ? '重新提交反思' : '提交反思'}
+              {submitted ? '重新提交规则判断' : '提交规则判断'}
             </button>
           </div>
         );
@@ -1143,82 +1433,6 @@ export function UNIT_3_5StudentSummaryPanel({
       <div className="premium-lesson-tone-block premium-tone-emerald mt-4 text-sm">
         你已经把“零点改写骨架、结构辨认、频域整形、非最小相边界”串成一条判断链，下一课会把它们放进统一对象实验。
       </div>
-    </section>
-  );
-}
-
-export function UNIT_3_5StepAiAssistant({
-  step,
-  onAiEvent,
-  disabled = false,
-  disabledReason,
-}: {
-  step: UNIT_3_5StepDefinition;
-  onAiEvent?: (eventType: string, data?: Record<string, unknown>) => void;
-  disabled?: boolean;
-  disabledReason?: string;
-}) {
-  const prompts = getAiPrompts(step);
-  const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
-  const ai = useInteractiveAI({
-    config: buildInteractiveAiConfig(step),
-    contextData: {
-      lessonId: '3-5',
-      stepId: step.id,
-      prompts,
-    },
-    onEvent: onAiEvent,
-  });
-
-  useEffect(() => {
-    if (!copiedPrompt) return undefined;
-    const timer = window.setTimeout(() => setCopiedPrompt(null), 1200);
-    return () => window.clearTimeout(timer);
-  }, [copiedPrompt]);
-
-  return (
-    <section className="premium-lesson-panel-soft px-4 py-4">
-      <div className="premium-lesson-title flex items-center gap-2 text-sm font-medium">
-        <Sparkles className="h-4 w-4" />
-        页内 AI 助手
-      </div>
-      <p className="premium-lesson-muted mt-2 text-sm">
-        当前只围绕 <UNIT_3_5InlineRichText text={step.title} className="inline" /> 学习，帮助你检查概念、推导链和误判纠偏，不替你直接下最终结论。
-      </p>
-      <div className="mt-4 grid gap-3">
-        {prompts.map((prompt) => (
-          <div key={prompt} className="premium-lesson-surface-elevated flex flex-wrap items-start justify-between gap-3 px-4 py-4">
-            <div className="text-sm leading-7">{prompt}</div>
-            <button
-              type="button"
-              onClick={async () => {
-                await navigator.clipboard.writeText(prompt);
-                setCopiedPrompt(prompt);
-              }}
-              className="premium-lesson-control shrink-0"
-            >
-              <Copy className="h-4 w-4" />
-              {copiedPrompt === prompt ? '已复制' : '复制提示词'}
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {disabled ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">{disabledReason ?? '当前步骤尚未满足 AI 解锁条件。'}</div> : null}
-
-      <button type="button" onClick={disabled ? undefined : ai.togglePanel} disabled={disabled} className="premium-lesson-action-primary mt-4 disabled:opacity-40">
-        打开页内 AI
-      </button>
-
-      <Dialog open={ai.isPanelOpen} onOpenChange={ai.togglePanel}>
-        <DialogContent className="max-w-5xl border-none bg-transparent p-0 shadow-none">
-          <DialogHeader className="sr-only">
-            <DialogTitle>{getUNIT_3_5PlainText(step.title)} AI 助手</DialogTitle>
-            <DialogDescription>用于概念解释、推导链核对和误判纠偏。</DialogDescription>
-          </DialogHeader>
-          <InteractiveAIPanel ai={ai} title={`${getUNIT_3_5PlainText(step.title)} · AI 助手`} position="floating" onClose={ai.togglePanel} />
-        </DialogContent>
-      </Dialog>
     </section>
   );
 }

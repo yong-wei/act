@@ -15,7 +15,7 @@ import { ControlChartPanel } from './control-chart-panel';
 type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
 type ChartSeriesItem = ChartSeriesValue extends (infer Item)[] ? Item : ChartSeriesValue;
 type ChartSeriesArray = ChartSeriesItem[];
-type ControlCaseId = 'ship_heading' | 'platform_pitch';
+type ControlCaseId = string;
 type AxisKey = 'step' | 'magnitude' | 'phase' | 'rootLocus' | 'rootLocusFull' | 'rootLocusZoom' | 'nyquist';
 type RootLocusMode = 'default' | 'full' | 'zoom';
 
@@ -24,7 +24,7 @@ interface AxisPreset {
   y: [number, number];
 }
 
-const CONTROL_AXIS_PRESETS: Record<ControlCaseId, Record<AxisKey, AxisPreset>> = {
+const CONTROL_AXIS_PRESETS: Record<string, Partial<Record<AxisKey, AxisPreset>>> = {
   ship_heading: {
     step: { x: [0, 160], y: [0, 1.4] },
     magnitude: { x: [1e-3, 10], y: [-90, 50] },
@@ -43,6 +43,16 @@ const CONTROL_AXIS_PRESETS: Record<ControlCaseId, Record<AxisKey, AxisPreset>> =
     rootLocusZoom: { x: [-140, 4], y: [-80, 80] },
     nyquist: { x: [-1.6, 1.2], y: [-1.6, 1.6] },
   },
+  unit35_step04: {
+    rootLocus: { x: [-4.5, 0.5], y: [-2.4, 2.4] },
+    rootLocusFull: { x: [-4.5, 0.5], y: [-2.4, 2.4] },
+    rootLocusZoom: { x: [-4.5, 0.5], y: [-2.4, 2.4] },
+  },
+  unit35_step05: {
+    rootLocus: { x: [-4.8, 0.5], y: [-3.2, 3.2] },
+    rootLocusFull: { x: [-4.8, 0.5], y: [-3.2, 3.2] },
+    rootLocusZoom: { x: [-4.8, 0.5], y: [-3.2, 3.2] },
+  },
 };
 
 function toSeriesArray(series?: EChartsCoreOption['series']): ChartSeriesArray {
@@ -53,10 +63,7 @@ function toSeriesArray(series?: EChartsCoreOption['series']): ChartSeriesArray {
 }
 
 function getAxisPreset(caseId: string | undefined, axisKey: AxisKey): AxisPreset | undefined {
-  if (caseId === 'ship_heading' || caseId === 'platform_pitch') {
-    return CONTROL_AXIS_PRESETS[caseId][axisKey];
-  }
-  return undefined;
+  return caseId ? CONTROL_AXIS_PRESETS[caseId]?.[axisKey] : undefined;
 }
 
 function getRootLocusAxisKey(mode: RootLocusMode): AxisKey {
@@ -348,8 +355,9 @@ function buildRootLocusOption(
   rootLocus: RootLocusData,
   caseId?: string,
   mode: RootLocusMode = 'default',
+  axisPresetOverride?: AxisPreset,
 ): EChartsCoreOption {
-  const axisPreset = getAxisPreset(caseId, getRootLocusAxisKey(mode));
+  const axisPreset = axisPresetOverride ?? getAxisPreset(caseId, getRootLocusAxisKey(mode));
   const showFeasible = mode !== 'full';
   const locusBranches = mode === 'full' && rootLocus.fullBranches ? rootLocus.fullBranches : rootLocus.branches;
   const series: ChartSeriesArray = [
@@ -645,19 +653,30 @@ export function RootLocusPanel({
   result,
   caseId,
   mode = 'default',
+  overlay,
+  className,
+  chartClassName,
+  axisPresetOverride,
 }: {
   result: ControlAnalysisResult;
   caseId?: string;
   mode?: RootLocusMode;
+  overlay?: ReactNode;
+  className?: string;
+  chartClassName?: string;
+  axisPresetOverride?: AxisPreset;
 }) {
   const title = mode === 'full' ? '根轨迹全览' : mode === 'zoom' ? '根轨迹区域放大' : '根轨迹';
   return (
     <ControlChartPanel
       title={title}
       meta={buildPoleText(result.rootLocus.currentPoles)}
-      option={buildRootLocusOption(result.rootLocus, caseId, mode)}
+      option={buildRootLocusOption(result.rootLocus, caseId, mode, axisPresetOverride)}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
+      overlay={overlay}
+      className={className}
+      chartClassName={chartClassName}
     />
   );
 }

@@ -373,7 +373,7 @@ wait_for_page() {
 }
 
 wait_for_page "登录" "http://127.0.0.1:${FRONTEND_PORT}/login" "账号登录"
-wait_for_page "互动课程入口" "http://127.0.0.1:${FRONTEND_PORT}/interactive-learning/courses/l2d-three-domain-linkage-practice" "输入课堂码加入课堂"
+wait_for_page "互动课程入口" "http://127.0.0.1:${FRONTEND_PORT}/interactive-learning/courses" "精品课程"
 
 LISTEN_PID=$(lsof -tiTCP:"$FRONTEND_PORT" -sTCP:LISTEN 2>/dev/null | head -n 1 || true)
 if [ -n "$LISTEN_PID" ]; then

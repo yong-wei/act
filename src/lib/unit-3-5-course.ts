@@ -13,12 +13,11 @@ export type UNIT_3_5PageType =
   | 'risk_prediction_submit'
   | 'worked_example_workspace'
   | 'structured_compare'
-  | 'sentence_rebuild'
   | 'frequency_band_labeling'
   | 'phase_peak_locator'
   | 'scenario_sort_matrix'
   | 'term_explainer'
-  | 'exit_reflection';
+  | 'rule_check';
 
 export interface UNIT_3_5PageRegionContract {
   id: string;
@@ -141,7 +140,7 @@ export const UNIT_3_5_PAGE_CONTRACTS: Record<string, UNIT_3_5PageContract> = {
       regions: [
         { id: 'objects', width: 'full', order: 1 },
         { id: 'outputs', width: 'full', order: 2 },
-        { id: 'boundaries', width: 'full', order: 3 },
+        { id: 'metrics', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'none',
@@ -196,29 +195,29 @@ export const UNIT_3_5_PAGE_CONTRACTS: Record<string, UNIT_3_5PageContract> = {
     layout: {
       template: 'contrast_summary_board',
       regions: [
-        { id: 'summary', width: 'full', order: 1 },
-        { id: 'risk-prompt', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'table', width: 'full', order: 1 },
+        { id: 'risk', width: 'full', order: 2 },
+        { id: 'record', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'risk_prediction_submit',
-    teacherInsightWidgets: ['risk_prediction_distribution', 'optimistic_bias_rate'],
-    telemetrySummaryFields: ['riskPredictionSubmitted', 'riskTag', 'submitTime'],
+    teacherInsightWidgets: ['risk_prediction_distribution', 'top_reason_tags'],
+    telemetrySummaryFields: ['selectedRiskClaim', 'reasonTag', 'attemptCount'],
     previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-06',
   },
   'step-07': {
     layout: {
       template: 'structure_compare_slide',
       regions: [
-        { id: 'figure', width: 'full', order: 1 },
-        { id: 'notes', width: 'full', order: 2 },
+        { id: 'media', width: 'full', order: 1 },
+        { id: 'terms', width: 'full', order: 2 },
         { id: 'interaction', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'binary_choice',
-    teacherInsightWidgets: ['structure_misread_rate', 'option_distribution'],
-    telemetrySummaryFields: ['selectedOption', 'resultState', 'teacherRevealSeen'],
-    misconceptionTags: ['rate_feedback_adds_forward_zero'],
+    teacherInsightWidgets: ['option_distribution', 'structure_confusion_rate'],
+    telemetrySummaryFields: ['selectedOption', 'resultState'],
+    misconceptionTags: ['rate_feedback_equals_forward_zero'],
     previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-07',
   },
   'step-08': {
@@ -231,67 +230,53 @@ export const UNIT_3_5_PAGE_CONTRACTS: Record<string, UNIT_3_5PageContract> = {
       ],
     },
     interactionKind: 'worked_example_workspace',
-    teacherInsightWidgets: ['numeric_accuracy_rate', 'missing_derivation_fields'],
-    telemetrySummaryFields: ['submittedKd', 'submittedKt', 'derivationCompleteness', 'attemptCount'],
+    teacherInsightWidgets: ['numeric_error_distribution', 'missing_keyword_rate'],
+    telemetrySummaryFields: ['numericAnswer', 'reasonKeywords', 'attemptCount'],
     previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-08',
   },
   'step-09': {
     layout: {
       template: 'tri_domain_compare_workspace',
       regions: [
-        { id: 'figure', width: 'full', order: 1 },
-        { id: 'guide', width: 'full', order: 2 },
+        { id: 'graphs', width: 'full', order: 1 },
+        { id: 'summary', width: 'full', order: 2 },
         { id: 'record', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'structured_compare',
-    teacherInsightWidgets: ['single_domain_response_rate', 'difference_field_quality'],
-    telemetrySummaryFields: ['compareFieldsCompleted', 'evidenceDomainCount', 'attemptCount'],
+    teacherInsightWidgets: ['domain_missing_rate', 'top_confused_domains'],
+    telemetrySummaryFields: ['domainCoverage', 'differenceCount', 'attemptCount'],
     previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-09',
   },
   'step-10': {
     layout: {
-      template: 'knowledge_integration_board',
-      regions: [
-        { id: 'summary', width: 'full', order: 1 },
-        { id: 'interaction', width: 'full', order: 2 },
-        { id: 'teacher-panel', width: 'full', order: 3 },
-      ],
-    },
-    interactionKind: 'sentence_rebuild',
-    teacherInsightWidgets: ['keyword_missing_rate', 'completion_rate'],
-    telemetrySummaryFields: ['tokenOrder', 'missingKeywords', 'attemptCount'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-10',
-  },
-  'step-11': {
-    layout: {
       template: 'frequency_principle_workspace',
       regions: [
         { id: 'formula', width: 'full', order: 1 },
-        { id: 'principle', width: 'full', order: 2 },
+        { id: 'bands', width: 'full', order: 2 },
         { id: 'interaction', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'frequency_band_labeling',
-    teacherInsightWidgets: ['band_confusion_distribution', 'noise_risk_blind_rate'],
-    telemetrySummaryFields: ['bandLabels', 'attemptCount', 'confusionTag'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-11',
+    teacherInsightWidgets: ['band_confusion_heatmap'],
+    telemetrySummaryFields: ['bandLabelsPlaced', 'attemptCount'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-10',
   },
-  'step-12': {
+  'step-11': {
     layout: {
       template: 'lead_phase_peak_workspace',
       regions: [
         { id: 'formula', width: 'full', order: 1 },
-        { id: 'principle', width: 'full', order: 2 },
+        { id: 'graphic', width: 'full', order: 2 },
         { id: 'interaction', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'phase_peak_locator',
-    teacherInsightWidgets: ['peak_band_accuracy', 'margin_metric_confusion_rate'],
-    telemetrySummaryFields: ['peakBandChoice', 'improvedMetricChoice', 'attemptCount'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-12',
+    teacherInsightWidgets: ['peak_band_distribution', 'target_metric_confusion_rate'],
+    telemetrySummaryFields: ['peakBandSelection', 'targetMetricSelection', 'attemptCount'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-11',
   },
-  'step-13': {
+  'step-12': {
     layout: {
       template: 'design_rule_matrix',
       regions: [
@@ -301,52 +286,51 @@ export const UNIT_3_5_PAGE_CONTRACTS: Record<string, UNIT_3_5PageContract> = {
       ],
     },
     interactionKind: 'scenario_sort_matrix',
-    teacherInsightWidgets: ['scenario_confusion_matrix', 'top_missed_constraints'],
-    telemetrySummaryFields: ['scenarioPlacements', 'attemptCount', 'missedConstraintTag'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-13',
+    teacherInsightWidgets: ['scenario_confusion_matrix'],
+    telemetrySummaryFields: ['scenarioPlacements', 'attemptCount'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-12',
   },
-  'step-14': {
+  'step-13': {
     layout: {
       template: 'nonminimum_phase_compare',
       regions: [
         { id: 'objects', width: 'full', order: 1 },
-        { id: 'figure', width: 'full', order: 2 },
+        { id: 'media', width: 'full', order: 2 },
         { id: 'interaction', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'term_explainer',
-    teacherInsightWidgets: ['definition_quality', 'missing_phase_reasoning_rate'],
-    telemetrySummaryFields: ['termExplanationSubmitted', 'usedKeywords', 'attemptCount'],
+    teacherInsightWidgets: ['missing_term_rate'],
+    telemetrySummaryFields: ['usedTerms', 'attemptCount'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-13',
+  },
+  'step-14': {
+    layout: {
+      template: 'boundary_decision_workspace',
+      regions: [
+        { id: 'risk-table', width: 'full', order: 1 },
+        { id: 'summary', width: 'full', order: 2 },
+        { id: 'interaction', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'rule_check',
+    teacherInsightWidgets: ['rule_gap_distribution'],
+    telemetrySummaryFields: ['ruleSelectionState', 'missingPartTag', 'attemptCount'],
     previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-14',
   },
   'step-15': {
     layout: {
-      template: 'boundary_decision_workspace',
+      template: 'summary_quiz_board',
       regions: [
-        { id: 'table', width: 'full', order: 1 },
-        { id: 'quiz', width: 'full', order: 2 },
-        { id: 'ai-compare', width: 'full', order: 3 },
+        { id: 'quiz', width: 'full', order: 1 },
+        { id: 'summary', width: 'full', order: 2 },
+        { id: 'next', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'quiz_group',
-    teacherInsightWidgets: ['post_quiz_distribution', 'most_dangerous_misjudgement'],
-    telemetrySummaryFields: ['postQuizScore', 'errorBucket', 'aiCompareUsed', 'dangerousMisjudgementTag'],
-    misconceptionTags: ['zero_equals_gain', 'pd_equals_rate_feedback', 'lead_stronger_than_pd', 'keep_pushing_bandwidth_for_nmp'],
+    teacherInsightWidgets: ['post_quiz_distribution', 'exit_keyword_gap'],
+    telemetrySummaryFields: ['attemptCount', 'resultState', 'keywordCoverage'],
     previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-15',
-  },
-  'step-16': {
-    layout: {
-      template: 'summary_infographic',
-      regions: [
-        { id: 'infographic', width: 'full', order: 1 },
-        { id: 'checklist', width: 'full', order: 2 },
-        { id: 'next-step', width: 'full', order: 3 },
-      ],
-    },
-    interactionKind: 'exit_reflection',
-    teacherInsightWidgets: ['observation_focus_distribution', 'exit_completion_rate'],
-    telemetrySummaryFields: ['selectedObservationFocus', 'exitReflectionSubmitted'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo?step=step-16',
   },
 };
 
@@ -358,43 +342,42 @@ export const UNIT_3_5_INTERACTIVE_PAGE_TYPES = new Set<UNIT_3_5PageType>([
   'risk_prediction_submit',
   'worked_example_workspace',
   'structured_compare',
-  'sentence_rebuild',
   'frequency_band_labeling',
   'phase_peak_locator',
   'scenario_sort_matrix',
   'term_explainer',
-  'exit_reflection',
+  'rule_check',
 ]);
 
 export const UNIT_3_5_LESSON_STEPS: UNIT_3_5StepDefinition[] = [
   {
     id: 'step-01',
     stage: 'B',
-    title: '回到地图：为什么只调增益很快不够',
+    title: '回到地图：从沿轨迹读图转向结构改变',
     hint: '只阅读，不提交。',
-    duration: '8 min',
+    duration: '6 min',
     pageType: 'display',
   },
   {
     id: 'step-02',
     stage: 'O',
-    title: '统一对象、四个版本与三项固定产出',
+    title: '统一对象与观察框架：四个版本、三项产出、四个观察量',
     hint: '只建立比较框架，不提交。',
-    duration: '4 min',
+    duration: '5 min',
     pageType: 'display',
   },
   {
     id: 'step-03',
     stage: 'P1',
-    title: '前测：先写下直觉，不让 AI 代替判断',
-    hint: '完成三道前测，并提交一句自己的直觉判断。',
+    title: '前测：三类起点误判先落地',
+    hint: '完成三道前测，并提交一句直觉判断。',
     duration: '6 min',
     pageType: 'quiz_group',
   },
   {
     id: 'step-04',
     stage: 'P2',
-    title: '二阶纯极点对象接入零点：第一眼先看哪条分支被拉走',
+    title: '二阶对象接入零点：先看哪条分支被拉走',
     hint: '标记被零点拉走的分支，并勾选被重排的实轴区段。',
     duration: '6 min',
     pageType: 'annotation_choice',
@@ -402,23 +385,23 @@ export const UNIT_3_5_LESSON_STEPS: UNIT_3_5StepDefinition[] = [
   {
     id: 'step-05',
     stage: 'P2',
-    title: '三阶对象接入零点：主导分支怎样被重新分配',
-    hint: '完成一句比较判断。',
+    title: '三阶对象接入零点：零点位置怎样改写主导分支',
+    hint: '完成一句比较判断，并同时提到零点位置与主导分支变化。',
     duration: '6 min',
     pageType: 'compare_note',
   },
   {
     id: 'step-06',
     stage: 'P2',
-    title: '第一组结论：左半平面改善动态，右半平面先留下问号',
-    hint: '在风险边界卡上写出对右半平面零点的第一判断。',
+    title: '第一收束：左半平面零点常改善动态，右半平面零点需另看边界',
+    hint: '提交一个风险预测，并写一句理由。',
     duration: '6 min',
     pageType: 'risk_prediction_submit',
   },
   {
     id: 'step-07',
     stage: 'P2',
-    title: '结构辨认：PD 与测速反馈为什么不能混成一个名字',
+    title: '结构辨认：PD 与测速反馈不靠名字判断',
     hint: '判断测速反馈是否在前向通道显式增加零点。',
     duration: '5 min',
     pageType: 'binary_choice',
@@ -426,74 +409,66 @@ export const UNIT_3_5_LESSON_STEPS: UNIT_3_5StepDefinition[] = [
   {
     id: 'step-08',
     stage: 'P2',
-    title: '阻尼公式工作区：由目标阻尼反求 $K_d$ 与 $K_t$',
-    hint: '填写 Kd、Kt 与代入链。',
+    title: '阻尼工作区：由目标阻尼反求 $K_d$ 与 $K_t$',
+    hint: '填写 Kd=Kt 的数值，并写一句结构解释。',
     duration: '5 min',
     pageType: 'worked_example_workspace',
   },
   {
     id: 'step-09',
     stage: 'P2',
-    title: 'PD 与测速反馈的三域对照：共同点与不同点分别落在哪里',
-    hint: '分别填写共同点和不同点。',
+    title: 'PD 与测速反馈的三域对照：同样提阻尼，不等于结构相同',
+    hint: '分别填写共同点与不同点，并覆盖根轨迹、时域、频域三个域。',
     duration: '5 min',
     pageType: 'structured_compare',
   },
   {
     id: 'step-10',
     stage: 'P2',
-    title: '这一组实例真正该留下什么：提高阻尼不等于结构相同',
-    hint: '把打散的关键词重组为一句完整结论。',
+    title: 'PD 单独装置的频域指纹：中高频抬升与高频代价',
+    hint: '为低频、拐点后与高频区域放置正确标签。',
     duration: '5 min',
-    pageType: 'sentence_rebuild',
+    pageType: 'frequency_band_labeling',
   },
   {
     id: 'step-11',
     stage: 'P2',
-    title: 'PD 单独装置的频域原理：抬中高频、推交叉、代价是高频放大',
-    hint: '给低频、拐点后中高频和高频代价区打标签。',
-    duration: '4 min',
-    pageType: 'frequency_band_labeling',
-  },
-  {
-    id: 'step-12',
-    stage: 'P2',
-    title: '超前单独装置的频域原理：相位峰、补相角、作用集中在关键频带',
-    hint: '定位相位峰所在频带，并判断改善的核心指标是相角裕度。',
+    title: '超前单独装置的频域指纹：相位峰、补角与作用频带',
+    hint: '定位相位峰频带，并匹配其主要改善对象。',
     duration: '5 min',
     pageType: 'phase_peak_locator',
   },
   {
-    id: 'step-13',
+    id: 'step-12',
     stage: 'P2',
-    title: '频域设计原则：什么时候优先想 PD，什么时候优先想超前',
-    hint: '把工程情境拖到优先想 PD、优先想超前或两者都不够三列。',
+    title: '频域对照：什么时候优先想 PD，什么时候优先想超前',
+    hint: '把四个场景拖放到优先想 PD、优先想超前、需要再判边界三栏。',
     duration: '5 min',
     pageType: 'scenario_sort_matrix',
   },
   {
+    id: 'step-13',
+    stage: 'P2',
+    title: '非最小相入口：镜像零点、逆响应与“先反向动”',
+    hint: '写出为什么会先反向动的一句解释。',
+    duration: '5 min',
+    pageType: 'term_explainer',
+  },
+  {
     id: 'step-14',
     stage: 'P2',
-    title: '非最小相：镜像对象、逆响应与额外相位滞后',
-    hint: '补全一句话“非最小相这个名字的来源是 ________”。',
-    duration: '12 min',
-    pageType: 'term_explainer',
+    title: '频域边界：右半平面零点为何限制带宽',
+    hint: '判断规则陈述是否同时包含结论与原因。',
+    duration: '6 min',
+    pageType: 'rule_check',
   },
   {
     id: 'step-15',
     stage: 'P3',
-    title: '非最小相控制边界与课后纠错：先保守带宽，再纠正危险误判',
-    hint: '完成后测；后测提交后再输入一句自己最容易说错的误判。',
+    title: '后测与收束：四个观察量、风险边界与 3-6 入口',
+    hint: '完成两题客观题和一题简短解释题。',
     duration: '6 min',
     pageType: 'quiz_group',
-  },
-  {
-    id: 'step-16',
-    stage: 'S',
-    title: '收束：四个观察量、信息图与 3-6 统一对象实验预告',
-    hint: '写一句“我以后先看哪一个观察量”。',
-    duration: '2 min',
-    pageType: 'exit_reflection',
   },
 ] as const;
 
@@ -537,10 +512,10 @@ const UNIT_3_5_MEDIA_BY_STEP_ID: Record<string, string> = {
   'step-04': '/course-runtime/lessons/3-5/media/3-5-rl-01-low-order-zero-compare.png',
   'step-05': '/course-runtime/lessons/3-5/media/3-5-rl-02-high-order-zero-compare.png',
   'step-07': '/course-runtime/lessons/3-5/media/3-5-md-01-pd-rate-structure.png',
-  'step-11': '/course-runtime/lessons/3-5/media/3-5-rl-03-pd-rate-compare.png',
+  'step-09': '/course-runtime/lessons/3-5/media/3-5-rl-03-pd-rate-compare.png',
   'step-12': '/course-runtime/lessons/3-5/media/3-5-rl-04-pd-lead-compare.png',
-  'step-14': '/course-runtime/lessons/3-5/media/3-5-rl-05-nmp-compare.png',
-  'step-16': '/course-runtime/lessons/3-5/media/3-5-info.png',
+  'step-13': '/course-runtime/lessons/3-5/media/3-5-rl-05-nmp-compare.png',
+  'step-15': '/course-runtime/lessons/3-5/media/3-5-info.png',
 };
 
 export function getUNIT_3_5MediaSrc(stepId: string) {

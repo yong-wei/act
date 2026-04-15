@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { parse } from 'yaml';
 
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
@@ -28,13 +29,13 @@ describe('unit 3-5 interactive course', () => {
   it('defines the full 16-step lesson flow', async () => {
     const courseModule = await import('@/lib/unit-3-5-course');
 
-    expect(courseModule.UNIT_3_5_LESSON_STEPS).toHaveLength(16);
+    expect(courseModule.UNIT_3_5_LESSON_STEPS).toHaveLength(15);
     expect(courseModule.UNIT_3_5_LESSON_STEPS[0]?.id).toBe('step-01');
-    expect(courseModule.UNIT_3_5_LESSON_STEPS[15]?.id).toBe('step-16');
+    expect(courseModule.UNIT_3_5_LESSON_STEPS[14]?.id).toBe('step-15');
   });
 
-  it('exposes AI quick questions for the nonminimum-phase boundary step', () => {
-    const quickQuestions = getStepQuickQuestions('unit-3-5-zero-dynamic-improvement-v1', 'step-15');
+  it('exposes AI quick questions for the nonminimum-phase bandwidth-boundary step', () => {
+    const quickQuestions = getStepQuickQuestions('unit-3-5-zero-dynamic-improvement-v1', 'step-14');
 
     expect(quickQuestions).toHaveLength(2);
     expect(quickQuestions[0]?.question).toContain('带宽');
@@ -47,14 +48,13 @@ describe('unit 3-5 interactive course', () => {
     expect(courseModule.getUNIT_3_5MediaSrc('step-04')).toContain('3-5-rl-01-low-order-zero-compare');
     expect(courseModule.getUNIT_3_5MediaSrc('step-05')).toContain('3-5-rl-02-high-order-zero-compare');
     expect(courseModule.getUNIT_3_5MediaSrc('step-07')).toContain('3-5-md-01-pd-rate-structure');
-    expect(courseModule.getUNIT_3_5MediaSrc('step-11')).toContain('3-5-rl-03-pd-rate-compare');
-    expect(courseModule.getUNIT_3_5MediaSrc('step-12')).toContain('3-5-rl-04-pd-lead-compare');
-    expect(courseModule.getUNIT_3_5MediaSrc('step-14')).toContain('3-5-rl-05-nmp-compare');
-    expect(courseModule.getUNIT_3_5MediaSrc('step-16')).toContain('3-5-info');
+    expect(courseModule.getUNIT_3_5MediaSrc('step-09')).toContain('3-5-rl-03-pd-rate-compare');
+    expect(courseModule.getUNIT_3_5MediaSrc('step-13')).toContain('3-5-rl-05-nmp-compare');
+    expect(courseModule.getUNIT_3_5MediaSrc('step-15')).toContain('3-5-info');
   });
 
   it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
-    const contract = JSON.parse(
+    const contract = parse(
       readFileSync(
         join(repoRoot, 'course-content/authoring/lessons/3-5/design/interactive-contract.yaml'),
         'utf8',
@@ -75,7 +75,7 @@ describe('unit 3-5 interactive course', () => {
 
     const courseModule = await import('@/lib/unit-3-5-course');
     const interactiveSteps = new Map(courseModule.UNIT_3_5_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
-    const expectedStepIds = ['step-03', 'step-04', 'step-08', 'step-09', 'step-11', 'step-13', 'step-15', 'step-16'] as const;
+    const expectedStepIds = ['step-03', 'step-04', 'step-08', 'step-09', 'step-10', 'step-12', 'step-14', 'step-15'] as const;
 
     for (const stepId of expectedStepIds) {
       const authoringStep = contract.steps[stepId];
@@ -172,8 +172,8 @@ describe('unit 3-5 interactive course', () => {
     expect(workspaceSource).toContain('PRETEST_QUESTIONS');
     expect(workspaceSource).toContain('RISK_TAG_OPTIONS');
     expect(workspaceSource).toContain('SCENARIO_SORT_COLUMNS');
-    expect(workspaceSource).toContain('OBSERVATION_FOCUS_OPTIONS');
     expect(workspaceSource).toContain('PHASE_PEAK_OPTIONS');
+    expect(workspaceSource).toContain('RULE_CHECK_OPTIONS');
     expect(workspaceSource).not.toContain('WINDOW_TAG_OPTIONS');
   });
 
@@ -202,5 +202,190 @@ describe('unit 3-5 interactive course', () => {
 
     expect(studentPageSource).toContain('getUnit35StepAIContext');
     expect(studentPageSource).not.toContain('getUnit34StepAIContext');
+  });
+
+  it('keeps AI hidden inside the global Konling context instead of rendering a page-level assistant', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-5-zero-dynamic-improvement/step-panels.tsx'),
+      'utf8',
+    );
+    const studentPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-5-zero-dynamic-improvement/student-page.tsx'),
+      'utf8',
+    );
+
+    expect(studentPageSource).toContain('updatePageContext({');
+    expect(studentPageSource).toContain('quickQuestions: stepContext.quickQuestions');
+    expect(studentPageSource).not.toContain('UNIT_3_5StepAiAssistant');
+    expect(stepPanelsSource).not.toContain('InteractiveAIPanel');
+    expect(stepPanelsSource).not.toContain('useInteractiveAI');
+    expect(stepPanelsSource).not.toContain('页内 AI 助手');
+    expect(stepPanelsSource).not.toContain('打开页内 AI');
+  });
+
+  it('keeps step-04 and step-05 on a single engine-driven root-locus workspace with only baseline and add-zero modes', () => {
+    const authoringPageSource = readFileSync(
+      join(repoRoot, 'course-content/authoring/lessons/3-5/design/interactive-page.md'),
+      'utf8',
+    );
+    const rootWorkspaceSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-5-zero-dynamic-improvement/root-locus-workspace.tsx'),
+      'utf8',
+    );
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-5-zero-dynamic-improvement/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(authoringPageSource).toContain('统一仿真引擎');
+    expect(authoringPageSource).toContain('单根轨迹工作区');
+    expect(authoringPageSource).toContain('基线');
+    expect(authoringPageSource).toContain('添加零点');
+    expect(authoringPageSource).not.toContain('示例A');
+    expect(authoringPageSource).not.toContain('示例B');
+    expect(authoringPageSource).not.toContain('添加极点');
+
+    expect(stepPanelsSource).toContain('L_0(s)');
+    expect(stepPanelsSource).toContain('L_3(s)');
+    expect(stepPanelsSource).toContain('L_z(s)');
+    expect(rootWorkspaceSource).toContain('基线');
+    expect(rootWorkspaceSource).toContain('添加零点');
+    expect(rootWorkspaceSource).not.toContain('示例A');
+    expect(rootWorkspaceSource).not.toContain('示例B');
+    expect(rootWorkspaceSource).not.toContain('添加极点');
+    expect(rootWorkspaceSource).not.toContain('删除');
+    expect(rootWorkspaceSource).toContain('samples: 240');
+    expect(rootWorkspaceSource).not.toContain('InlineMath math={getPointMath');
+    expect(rootWorkspaceSource).toContain('开环零点可直接拖动');
+  });
+
+  it('defines root-locus modes with locked baseline poles and one draggable add-zero mode', async () => {
+    const workspaceModule = await import('@/features/interactive/unit-3-5-zero-dynamic-improvement/workspace');
+
+    const step04Config = workspaceModule.UNIT_3_5_ROOT_LOCUS_WORKSPACE_CONFIG['step-04'];
+    const step05Config = workspaceModule.UNIT_3_5_ROOT_LOCUS_WORKSPACE_CONFIG['step-05'];
+
+    expect(step04Config.modes.map((mode) => mode.label)).toEqual(['基线', '添加零点']);
+    expect(step05Config.modes.map((mode) => mode.label)).toEqual(['基线', '添加零点']);
+    expect(step04Config.modes).toHaveLength(2);
+    expect(step05Config.modes).toHaveLength(2);
+    expect(step04Config.modes[0]?.points.every((point) => point.draggable === false)).toBe(true);
+    expect(step05Config.modes[0]?.points.every((point) => point.draggable === false)).toBe(true);
+    expect(
+      step04Config.modes[1]?.points.filter((point) => point.kind === 'zero').every((point) => point.draggable === true),
+    ).toBe(true);
+    expect(
+      step05Config.modes[1]?.points.filter((point) => point.kind === 'zero').every((point) => point.draggable === true),
+    ).toBe(true);
+    expect(
+      step04Config.modes[1]?.points.filter((point) => point.kind === 'pole').every((point) => point.draggable === false),
+    ).toBe(true);
+  });
+
+  it('uses named evidence modules instead of generic formula cards in later steps', async () => {
+    const courseModule = await import('@/lib/unit-3-5-course');
+    const authoringPageSource = readFileSync(
+      join(repoRoot, 'course-content/authoring/lessons/3-5/design/interactive-page.md'),
+      'utf8',
+    );
+    const contractSource = readFileSync(
+      join(repoRoot, 'course-content/authoring/lessons/3-5/design/interactive-contract.yaml'),
+      'utf8',
+    );
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-5-zero-dynamic-improvement/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(courseModule.UNIT_3_5_LESSON_STEPS.find((step) => step.id === 'step-06')?.title).toBe(
+      '第一收束：左半平面零点常改善动态，右半平面零点需另看边界',
+    );
+    expect(authoringPageSource).not.toContain('左半平面零点改善趋势与右半平面问号');
+    expect(contractSource).not.toContain('左半平面零点改善趋势与右半平面问号');
+    expect(stepPanelsSource).not.toContain('固定公式');
+    expect(stepPanelsSource).toContain('被控对象');
+    expect(stepPanelsSource).toContain('相应的闭环传递函数');
+    expect(stepPanelsSource).toContain('PD 等效特征方程');
+    expect(stepPanelsSource).toContain('测速反馈等效特征方程');
+    expect(stepPanelsSource).not.toContain("G_p(s)=\\frac{4}{s(s+0.8)},\\qquad T_0(s)=\\frac{4}{s^2+0.8s+4}");
+    expect(stepPanelsSource).toContain('三域指标速记');
+    expect(stepPanelsSource).toContain('课堂判断锚点');
+  });
+
+  it('keeps the missing step-07 to step-13 handout evidence explicit and ordered in the runtime page source', () => {
+    const authoringPageSource = readFileSync(
+      join(repoRoot, 'course-content/authoring/lessons/3-5/design/interactive-page.md'),
+      'utf8',
+    );
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-5-zero-dynamic-improvement/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(authoringPageSource).toContain('闭环传递函数');
+    expect(authoringPageSource).toContain('等效阻尼推导链');
+    expect(authoringPageSource).toContain('沿用上一步对象');
+    expect(authoringPageSource).toContain('理想 PD 控制器');
+    expect(authoringPageSource).toContain('幅频特性');
+    expect(authoringPageSource).toContain('相频特性');
+    expect(authoringPageSource).toContain('超前网络标准形式');
+    expect(authoringPageSource).toContain('最小相开环对象');
+    expect(authoringPageSource).toContain('非最小相开环对象');
+    expect(authoringPageSource).toContain('图 6');
+    expect(authoringPageSource).toContain('5.4');
+    expect(authoringPageSource).toContain('保守带宽实例表');
+
+    expect(stepPanelsSource).toContain('G_p(s)=');
+    expect(stepPanelsSource).toContain('T_0(s)=');
+    expect(stepPanelsSource).toContain('等效阻尼推导链');
+    expect(stepPanelsSource).toContain('K_d=K_t=');
+    expect(stepPanelsSource).toContain('问题：测速反馈是否在前向通道显式增加零点？');
+    expect(stepPanelsSource).toContain('沿用上一步对象');
+    expect(stepPanelsSource).toContain('理想 PD 控制器');
+    expect(stepPanelsSource).toContain('频率特性');
+    expect(stepPanelsSource).toContain('幅频特性');
+    expect(stepPanelsSource).toContain('相频特性');
+    expect(stepPanelsSource).toContain('G_{PD}(s)=1+T_d s');
+    expect(stepPanelsSource).toContain('超前网络标准形式');
+    expect(stepPanelsSource).toContain('最大超前角出现频率');
+    expect(stepPanelsSource).toContain('最大超前角');
+    expect(stepPanelsSource).toContain('超前不是持续抬整个中高频');
+    expect(stepPanelsSource).toContain('最小相开环对象');
+    expect(stepPanelsSource).toContain('非最小相开环对象');
+    expect(stepPanelsSource).toContain('现象与分析');
+    expect(stepPanelsSource).toContain('图 6');
+    expect(stepPanelsSource).toContain('| 结构 | 交叉频率 | 相角裕度 | 频域解释 |');
+    expect(stepPanelsSource).toContain('| 结构 | 更适合的场景 | 不适合的场景 | 一句话概括 |');
+    expect(stepPanelsSource).toContain('| 增益 | 最深逆响应 | 最大峰值 | 解读 |');
+    expect(stepPanelsSource.indexOf('沿用上一步对象')).toBeLessThan(stepPanelsSource.indexOf('理想 PD 控制器'));
+    expect(stepPanelsSource.indexOf('理想 PD 控制器')).toBeLessThan(stepPanelsSource.indexOf('频率特性'));
+    expect(stepPanelsSource.indexOf('频率特性')).toBeLessThan(stepPanelsSource.indexOf('幅频特性'));
+    expect(stepPanelsSource.indexOf('幅频特性')).toBeLessThan(stepPanelsSource.indexOf('相频特性'));
+    expect(stepPanelsSource.indexOf('最小相开环对象')).toBeLessThan(stepPanelsSource.indexOf('现象与分析'));
+    expect(stepPanelsSource.indexOf('现象与分析')).toBeLessThan(stepPanelsSource.indexOf('| 增益 | 最深逆响应 | 最大峰值 | 解读 |'));
+  });
+
+  it('renders step-15 observation modules as a compact four-card summary', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-5-zero-dynamic-improvement/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain('根轨迹观察量');
+    expect(stepPanelsSource).toContain('时域观察量');
+    expect(stepPanelsSource).toContain('频域观察量');
+    expect(stepPanelsSource).toContain('结构判断观察量');
+    expect(stepPanelsSource).toContain('sm:grid-cols-2');
+  });
+
+  it('reveals step-10 and step-11 formulas progressively from the bottom card', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-5-zero-dynamic-improvement/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain('点击本卡揭示下一层');
+    expect(stepPanelsSource).toContain('revealedCount');
+    expect(stepPanelsSource).toContain('setRevealedCount');
   });
 });

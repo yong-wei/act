@@ -10,6 +10,8 @@ function read(file) {
 
 function main() {
   const dockerfile = read('Dockerfile');
+  const dockerignore = read('.dockerignore');
+  const packageJson = JSON.parse(read('package.json'));
   const migrationSql = fs
     .readdirSync(path.join(root, 'prisma', 'migrations'), { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
@@ -46,10 +48,41 @@ function main() {
     'Dockerfile 必须把 worker 所需源码复制到运行镜像'
   );
 
+  assert.match(
+    dockerfile,
+    /rustup target add wasm32-unknown-unknown/,
+    'Dockerfile 必须在容器内安装 Rust 的 wasm32 构建目标'
+  );
+
+  assert.match(
+    dockerfile,
+    /cargo install wasm-pack/,
+    'Dockerfile 必须在容器内安装 wasm-pack，避免镜像依赖宿主机预生成 Wasm 产物'
+  );
+
+  assert.match(
+    dockerfile,
+    /RUN npm run build/,
+    'Dockerfile 必须在容器内执行 npm run build，确保走统一构建链路'
+  );
+
+  assert.match(
+    packageJson.scripts.build,
+    /wasm:build:control-engine/,
+    '统一 build 脚本必须先构建控制分析内核的 Wasm 产物'
+  );
+
+  assert.match(
+    dockerignore,
+    /!scripts\/wasm\//,
+    '.dockerignore 必须保留 scripts/wasm 构建脚本进入镜像构建上下文'
+  );
+
   const entrypointPath = path.join(root, 'docker-entrypoint.sh');
   assert.ok(fs.existsSync(entrypointPath), '项目根目录必须存在 docker-entrypoint.sh');
 
   const deployScript = read('deploy/podman/deploy.sh');
+  const startWrapperScript = read('deploy/podman/container-start-wrapper.sh');
   assert.match(
     deployScript,
     /RUN_MIGRATIONS_ON_START="1"/,
@@ -58,8 +91,14 @@ function main() {
 
   assert.match(
     deployScript,
+    /\/app-container-start-wrapper\.sh worker/,
+    'Podman 部署脚本必须以 worker 角色启动容器启动包装脚本'
+  );
+
+  assert.match(
+    startWrapperScript,
     /data-governance-worker\.ts/,
-    'Podman 部署脚本必须启动数据治理 worker'
+    '容器启动包装脚本必须最终启动数据治理 worker'
   );
 
   assert.match(

@@ -4,6 +4,99 @@ export interface WorkspaceParameterChange {
   source: 'input' | 'select' | 'button' | 'drag';
 }
 
+export type Unit35RootStepId = 'step-04' | 'step-05';
+export type Unit35RootPointKind = 'pole' | 'zero';
+
+export interface Unit35RootPointDefinition {
+  id: string;
+  kind: Unit35RootPointKind;
+  position: number;
+  draggable: boolean;
+}
+
+export interface Unit35RootModeDefinition {
+  key: string;
+  label: string;
+  formula: string;
+  points: Unit35RootPointDefinition[];
+}
+
+export interface Unit35RootWorkspaceDefinition {
+  title: string;
+  intro: string;
+  range: { min: number; max: number };
+  imagRange: { min: number; max: number };
+  rootLocusMaxGain: number;
+  rootLocusSamples: number;
+  defaultGain: number;
+  modes: Unit35RootModeDefinition[];
+}
+
+export const UNIT_3_5_ROOT_LOCUS_WORKSPACE_CONFIG: Record<Unit35RootStepId, Unit35RootWorkspaceDefinition> = {
+  'step-04': {
+    title: '二阶对象根轨迹工作区',
+    intro: '公式区下方直接进入单根轨迹工作区。右侧只保留“基线”和“添加零点”两种模式；进入添加零点后，直接拖动零点标注即可比较不同位置的骨架重排。',
+    range: { min: -4.5, max: 0.5 },
+    imagRange: { min: -2.4, max: 2.4 },
+    rootLocusMaxGain: 14,
+    rootLocusSamples: 240,
+    defaultGain: 1,
+    modes: [
+      {
+        key: 'baseline',
+        label: '基线',
+        formula: 'L_0(s)=\\frac{K}{s(s+1)}',
+        points: [
+          { id: 'p0', kind: 'pole', position: 0, draggable: false },
+          { id: 'p1', kind: 'pole', position: -1, draggable: false },
+        ],
+      },
+      {
+        key: 'add-zero',
+        label: '添加零点',
+        formula: 'L_z(s)=\\frac{K(s+z)}{s(s+1)},\\quad z>0',
+        points: [
+          { id: 'p0', kind: 'pole', position: 0, draggable: false },
+          { id: 'p1', kind: 'pole', position: -1, draggable: false },
+          { id: 'z2', kind: 'zero', position: -2, draggable: true },
+        ],
+      },
+    ],
+  },
+  'step-05': {
+    title: '三阶对象根轨迹工作区',
+    intro: '延续同样的左右分栏组织。右侧模式切换只保留“基线”和“添加零点”；进入添加零点后，沿实轴拖动零点标注，观察主导分支如何重排。',
+    range: { min: -4.8, max: 0.5 },
+    imagRange: { min: -3.2, max: 3.2 },
+    rootLocusMaxGain: 18,
+    rootLocusSamples: 240,
+    defaultGain: 1,
+    modes: [
+      {
+        key: 'baseline',
+        label: '基线',
+        formula: 'L_3(s)=\\frac{K}{s(s+1)(s+4)}',
+        points: [
+          { id: 'p0', kind: 'pole', position: 0, draggable: false },
+          { id: 'p1', kind: 'pole', position: -1, draggable: false },
+          { id: 'p4', kind: 'pole', position: -4, draggable: false },
+        ],
+      },
+      {
+        key: 'add-zero',
+        label: '添加零点',
+        formula: 'L_z(s)=\\frac{K(s+z)}{s(s+1)(s+4)},\\quad z>0',
+        points: [
+          { id: 'p0', kind: 'pole', position: 0, draggable: false },
+          { id: 'p1', kind: 'pole', position: -1, draggable: false },
+          { id: 'p4', kind: 'pole', position: -4, draggable: false },
+          { id: 'z04', kind: 'zero', position: -0.4, draggable: true },
+        ],
+      },
+    ],
+  },
+};
+
 export const PRETEST_QUESTIONS = [
   {
     key: 'q1',
@@ -55,26 +148,6 @@ export const POST_QUIZ_QUESTIONS = [
   },
   {
     key: 'q2',
-    prompt: '为什么 PD 与测速反馈在阻尼结果上可能相似，但结构判断上不能视为同一个东西？',
-    type: 'choice',
-    options: [
-      { value: 'forward-zero', label: '因为测速反馈不显式增加前向零点，而 PD 会' },
-      { value: 'same-structure', label: '因为两者只是参数名字不同' },
-      { value: 'only-root-locus', label: '因为只要根轨迹像就等同' },
-    ],
-  },
-  {
-    key: 'q3',
-    prompt: '为什么不能把超前校正说成“更强的 PD”？',
-    type: 'choice',
-    options: [
-      { value: 'phase-margin', label: '因为超前主打关键频带补相角，改善的是相角裕度' },
-      { value: 'same-thing', label: '因为超前只是更大的微分增益' },
-      { value: 'noise-only', label: '因为只要不怕噪声，就都一样' },
-    ],
-  },
-  {
-    key: 'q4',
     prompt: '为什么非最小相对象第一反应通常不是“继续把带宽往上推”？',
     type: 'choice',
     options: [
@@ -84,8 +157,8 @@ export const POST_QUIZ_QUESTIONS = [
     ],
   },
   {
-    key: 'dangerous_misjudgement',
-    prompt: '写一句你最容易说错的危险误判，以及现在会怎么改正。',
+    key: 'summary_explanation',
+    prompt: '写一句解释：你会把哪一个观察量先带进 3-6，并说明原因。',
     type: 'text',
   },
 ] as const;
@@ -131,15 +204,6 @@ export const STRUCTURED_COMPARE_FIELDS = [
   { key: 'frequency_domain_diff', label: '不同点：频域代价差异' },
 ] as const;
 
-export const SENTENCE_REBUILD_TOKENS = [
-  '提高阻尼',
-  '不等于',
-  '结构相同',
-  '还要继续看',
-  '零点位置',
-  '三域表现',
-] as const;
-
 export const BAND_LABEL_OPTIONS = [
   { value: 'low-frequency', label: '低频基本不动' },
   { value: 'mid-high-rise', label: '拐点后中高频被抬起' },
@@ -178,9 +242,8 @@ export const TERM_EXPLAINER_KEYWORDS = [
   '不是最小相位',
 ] as const;
 
-export const OBSERVATION_FOCUS_OPTIONS = [
-  { value: 'root-locus', label: '先看根轨迹骨架怎么被改写' },
-  { value: 'structure', label: '先看结构里是否显式增加了前向零点' },
-  { value: 'frequency', label: '先看频域里是抬交叉还是补相角' },
-  { value: 'boundary', label: '先看对象有没有非最小相边界' },
+export const RULE_CHECK_OPTIONS = [
+  { value: 'complete', label: '结论与原因都完整' },
+  { value: 'missing-reason', label: '只有结论，缺少原因' },
+  { value: 'missing-action', label: '只有风险描述，缺少保守动作' },
 ] as const;
