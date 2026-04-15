@@ -74,7 +74,7 @@ export const UNIT_3_6_STEP_AI_CONTEXTS: Record<string, AIContextConfig> = {
       { label: '本页目标', question: '这组三题分别在检查哪三类入口混淆？' },
       { label: '允许范围', question: 'AI 在这一页只能怎样帮助我？' },
     ],
-    '允许范围：错因归类、入口对照、术语纠偏。禁止范围：直接生成完整前测答案。关键事实：前测与理由提交完成后才允许打开 AI 对照。',
+    '允许范围：错因归类、入口对照、术语纠偏。禁止范围：直接生成完整前测答案。关键事实：前测与理由提交完成后，才能进入控灵助手中的错因对照。',
   ),
   'step-05': context(
     'step-05',
@@ -89,7 +89,7 @@ export const UNIT_3_6_STEP_AI_CONTEXTS: Record<string, AIContextConfig> = {
   ),
   'step-06': context(
     'step-06',
-    '推导显影 A：时域指标如何变成设计可行域',
+    '时域指标如何变成设计可行域',
     'workspace',
     ['把超调量和调节时间翻译成目标极点区域。', '说明为什么纯增益不能直接通过。'],
     [

@@ -151,8 +151,8 @@ export const UNIT_3_6_PAGE_CONTRACTS: Record<string, UNIT_3_6PageContract> = {
     layout: {
       template: 'goal_chain_slide',
       regions: [
-        { id: 'chain', width: 'full', order: 1 },
-        { id: 'outputs', width: 'full', order: 2 },
+        { id: 'chain', width: 'half', order: 1 },
+        { id: 'outputs', width: 'half', order: 2 },
         { id: 'rules', width: 'full', order: 3 },
       ],
     },
@@ -167,7 +167,6 @@ export const UNIT_3_6_PAGE_CONTRACTS: Record<string, UNIT_3_6PageContract> = {
       regions: [
         { id: 'question-stack', width: 'full', order: 1 },
         { id: 'record', width: 'full', order: 2 },
-        { id: 'ai-gate', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'quiz_group',
@@ -200,8 +199,8 @@ export const UNIT_3_6_PAGE_CONTRACTS: Record<string, UNIT_3_6PageContract> = {
       template: 'derivation_reveal_board',
       regions: [
         { id: 'derivation', width: 'full', order: 1 },
-        { id: 'figure', width: 'full', order: 2 },
-        { id: 'record', width: 'full', order: 3 },
+        { id: 'figure', width: 'half', order: 2 },
+        { id: 'record', width: 'half', order: 3 },
       ],
     },
     interactionKind: 'workspace_builder',
@@ -234,10 +233,9 @@ export const UNIT_3_6_PAGE_CONTRACTS: Record<string, UNIT_3_6PageContract> = {
         { id: 'compare', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'sequenced_reveal',
-    teacherInsightWidgets: ['reveal_order_accuracy', 'pd_rate_confusion_rate'],
-    telemetrySummaryFields: ['revealOrder', 'completedState'],
-    misconceptionTags: ['rate_as_pd_relocated'],
+    interactionKind: 'none',
+    teacherInsightWidgets: ['view_count'],
+    telemetrySummaryFields: ['viewed', 'timeOnStep'],
     previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-08',
   },
   'step-09': {
@@ -389,7 +387,7 @@ export const UNIT_3_6_LESSON_STEPS: UNIT_3_6StepDefinition[] = [
     id: 'step-04',
     stage: 'P1',
     title: '前测：三类目标分别从哪里进入',
-    hint: '完成三题前测和一句理由，提交后再打开 AI 对照。',
+    hint: '先独立完成三题前测与一句理由，再进入错因对照。',
     duration: '6 min',
     pageType: 'quiz_group',
   },
@@ -404,8 +402,8 @@ export const UNIT_3_6_LESSON_STEPS: UNIT_3_6StepDefinition[] = [
   {
     id: 'step-06',
     stage: 'P2',
-    title: '推导显影 A：时域指标如何变成设计可行域',
-    hint: '完成区域翻译，并记录纯增益失败原因。',
+    title: '时域指标如何变成设计可行域',
+    hint: '先点击显影翻译公式，再拖动增益观察纯增益失败原因。',
     duration: '8 min',
     pageType: 'workspace_builder',
   },
@@ -421,9 +419,9 @@ export const UNIT_3_6_LESSON_STEPS: UNIT_3_6StepDefinition[] = [
     id: 'step-08',
     stage: 'P2',
     title: '任务 B 的证据板：测速反馈为何不是“换位置的 PD”',
-    hint: '按顺序点亮结构差异、等效方程、设计抓手和与 PD 的区别。',
+    hint: '先读原生结构图、等效方程与对照表，再进入测速反馈设计。',
     duration: '5 min',
-    pageType: 'sequenced_reveal',
+    pageType: 'display',
   },
   {
     id: 'step-09',
@@ -496,7 +494,7 @@ export function isUNIT_3_6InteractivePageType(pageType: UNIT_3_6PageType) {
 }
 
 export function isUNIT_3_6AiPageType(_pageType: UNIT_3_6PageType) {
-  return true;
+  return false;
 }
 
 export function createEmptyUNIT_3_6StudentState(studentName: string): UNIT_3_6StudentCourseState {
@@ -522,7 +520,6 @@ const UNIT_3_6_MEDIA_BY_STEP_ID: Record<string, string> = {
   'step-01': '/course-runtime/lessons/3-6/media/3-6-cover-comic.png',
   'step-02': '/course-runtime/lessons/3-6/media/3-6-design-map.png',
   'step-07': '/course-runtime/lessons/3-6/media/3-6-pd-design.png',
-  'step-08': '/course-runtime/lessons/3-6/media/3-6-pd-rate-structure.png',
   'step-09': '/course-runtime/lessons/3-6/media/3-6-rate-feedback-design.png',
   'step-11': '/course-runtime/lessons/3-6/media/3-6-lead-design.png',
   'step-13': '/course-runtime/lessons/3-6/media/3-6-pd-frequency-design.png',

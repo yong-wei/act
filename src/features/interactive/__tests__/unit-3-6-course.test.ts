@@ -7,6 +7,7 @@ import { parse } from 'yaml';
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
+import { isUNIT_3_6AiPageType } from '@/lib/unit-3-6-course';
 
 vi.mock('server-only', () => ({}));
 
@@ -47,7 +48,7 @@ describe('unit 3-6 interactive course', () => {
     expect(courseModule.getUNIT_3_6MediaSrc('step-01')).toContain('3-6-cover-comic');
     expect(courseModule.getUNIT_3_6MediaSrc('step-02')).toContain('3-6-design-map');
     expect(courseModule.getUNIT_3_6MediaSrc('step-07')).toContain('3-6-pd-design');
-    expect(courseModule.getUNIT_3_6MediaSrc('step-08')).toContain('3-6-pd-rate-structure');
+    expect(courseModule.getUNIT_3_6MediaSrc('step-08')).toBeNull();
     expect(courseModule.getUNIT_3_6MediaSrc('step-09')).toContain('3-6-rate-feedback-design');
     expect(courseModule.getUNIT_3_6MediaSrc('step-11')).toContain('3-6-lead-design');
     expect(courseModule.getUNIT_3_6MediaSrc('step-13')).toContain('3-6-pd-frequency-design');
@@ -84,8 +85,13 @@ describe('unit 3-6 interactive course', () => {
       const localStep = interactiveSteps.get(stepId);
       const localPageContract = courseModule.UNIT_3_6_PAGE_CONTRACTS[stepId];
 
+      const expectedPageType =
+        authoringStep.interaction_spec.interaction_kind === 'none'
+          ? 'display'
+          : authoringStep.interaction_spec.interaction_kind;
+
       expect(localStep?.title).toBe(authoringStep.title);
-      expect(localStep?.pageType).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(localStep?.pageType).toBe(expectedPageType);
       expect(localPageContract?.layout.template).toBe(authoringStep.layout.template);
       expect(localPageContract?.layout.regions).toEqual(authoringStep.layout.regions);
       expect(localPageContract?.interactionKind).toBe(authoringStep.interaction_spec.interaction_kind);
@@ -202,5 +208,101 @@ describe('unit 3-6 interactive course', () => {
 
     expect(studentPageSource).toContain('getUnit36StepAIContext');
     expect(studentPageSource).not.toContain('getUnit35StepAIContext');
+  });
+
+  it('keeps AI as hidden page context instead of rendering a visible page-level assistant', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-6-zero-design-workshop/step-panels.tsx'),
+      'utf8',
+    );
+    const studentPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-6-zero-design-workshop/student-page.tsx'),
+      'utf8',
+    );
+    const teacherPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-6-zero-design-workshop/teacher-page.tsx'),
+      'utf8',
+    );
+
+    expect(isUNIT_3_6AiPageType('display')).toBe(false);
+    expect(isUNIT_3_6AiPageType('quiz_group')).toBe(false);
+    expect(isUNIT_3_6AiPageType('workspace_builder')).toBe(false);
+    expect(studentPageSource).toContain('quickQuestions: stepContext.quickQuestions');
+    expect(studentPageSource).not.toContain('UNIT_3_6StepAiAssistant');
+    expect(teacherPageSource).not.toContain('UNIT_3_6StepAiAssistant');
+    expect(stepPanelsSource).not.toContain('InteractiveAIPanel');
+    expect(stepPanelsSource).not.toContain('useInteractiveAI');
+    expect(stepPanelsSource).not.toContain('页内 AI 对照区');
+    expect(stepPanelsSource).not.toContain('打开 AI 助手');
+  });
+
+  it('keeps step-03 as a static two-column overview instead of adding a separate activity area', () => {
+    const authoringPageSource = readFileSync(
+      join(repoRoot, 'course-content/authoring/lessons/3-6/design/interactive-page.md'),
+      'utf8',
+    );
+    const contract = parse(
+      readFileSync(
+        join(repoRoot, 'course-content/authoring/lessons/3-6/design/interactive-contract.yaml'),
+        'utf8',
+      ),
+    ) as {
+      steps: Record<string, { layout: { regions: Array<{ id: string; width: string }> } }>;
+    };
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-6-zero-design-workshop/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(authoringPageSource).toContain('并排两列');
+    expect(contract.steps['step-03']?.layout.regions).toEqual([
+      { id: 'chain', width: 'half', order: 1 },
+      { id: 'outputs', width: 'half', order: 2 },
+      { id: 'rules', width: 'full', order: 3 },
+    ]);
+    expect(stepPanelsSource).toContain('data-layout="step03-two-column"');
+  });
+
+  it('keeps step-06 on a shared root-locus engine with click-to-reveal formulas and a right-side record area', () => {
+    const authoringPageSource = readFileSync(
+      join(repoRoot, 'course-content/authoring/lessons/3-6/design/interactive-page.md'),
+      'utf8',
+    );
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-6-zero-design-workshop/step-panels.tsx'),
+      'utf8',
+    );
+    const studentPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-6-zero-design-workshop/student-page.tsx'),
+      'utf8',
+    );
+
+    expect(authoringPageSource).toContain('时域指标如何变成设计可行域');
+    expect(authoringPageSource).toContain('统一仿真引擎');
+    expect(authoringPageSource).toContain('根轨迹面板在左，记录区在右');
+    expect(stepPanelsSource).toContain('function UNIT_3_6Step06GainWorkspace');
+    expect(stepPanelsSource).toContain('useControlEngine');
+    expect(stepPanelsSource).toContain('RootLocusPanel');
+    expect(stepPanelsSource).toContain('data-progressive-reveal="step_click_reveal"');
+    expect(studentPageSource).toContain('step.id === \'step-06\'');
+  });
+
+  it('keeps step-08 as a native structure evidence board without bitmap fallback or a separate submit form', async () => {
+    const courseModule = await import('@/lib/unit-3-6-course');
+    const authoringPageSource = readFileSync(
+      join(repoRoot, 'course-content/authoring/lessons/3-6/design/interactive-page.md'),
+      'utf8',
+    );
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-6-zero-design-workshop/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(courseModule.getUNIT_3_6MediaSrc('step-08')).toBeNull();
+    expect(authoringPageSource).toContain('原生结构图');
+    expect(authoringPageSource).toContain('不设置独立学生作答区');
+    expect(stepPanelsSource).toContain('function UNIT_3_6RateFeedbackStructureDiagram');
+    expect(stepPanelsSource).toContain('function UNIT_3_6Step08EvidenceBoard');
+    expect(stepPanelsSource).not.toContain('3-6-pd-rate-structure');
   });
 });

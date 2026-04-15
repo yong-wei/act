@@ -2,25 +2,24 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
-import { Copy, Sparkles } from 'lucide-react';
+import { Copy } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import { BlockMath } from 'react-katex';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
-import { useInteractiveAI } from '@/features/interactive/hooks/useInteractiveAI';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
-import type { InteractiveConfig } from '@/features/interactive/types';
 import {
-  UNIT_3_6_COURSE_TITLE,
   UNIT_3_6_LESSON_STEPS,
   UNIT_3_6_STAGE_LABEL,
   type UNIT_3_6StepDefinition,
   type UNIT_3_6StepResponse,
 } from '@/lib/unit-3-6-course';
+import { getUnit36PureGainFallbackResult } from '@/resources/control-system/analysis/unit-3-6-fixtures';
+import { buildUnit36PureGainFailureRequest } from '@/resources/control-system/analysis/unit-3-6-request-builder';
+import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
+import { RootLocusPanel } from '@/resources/control-system/charts/control-analysis-panels';
 import {
   BOUNDARY_STRUCTURE_OPTIONS,
   CONSTRAINT_TRANSLATION_FIELDS,
@@ -58,6 +57,11 @@ interface ChoiceOption {
   label: string;
 }
 
+interface ProgressiveFormulaItem {
+  title: string;
+  math: string;
+}
+
 export interface UNIT_3_6TeacherResponseItem {
   studentName: string;
   response: UNIT_3_6StepResponse;
@@ -78,6 +82,51 @@ function renderInlineMathText(text: string) {
     >
       {text}
     </ReactMarkdown>
+  );
+}
+
+function ProgressiveFormulaStack({
+  items,
+}: {
+  items: ProgressiveFormulaItem[];
+}) {
+  const [revealedCount, setRevealedCount] = useState(1);
+  const visibleItems = items.slice(0, revealedCount);
+
+  return (
+    <div className="mt-4 grid gap-3" data-progressive-reveal="step_click_reveal">
+      {visibleItems.map((item, index) => {
+        const isLastVisible = index === visibleItems.length - 1;
+        const canRevealNext = isLastVisible && revealedCount < items.length;
+
+        if (canRevealNext) {
+          return (
+            <button
+              key={item.title}
+              type="button"
+              onClick={() => setRevealedCount((current) => Math.min(items.length, current + 1))}
+              className="rounded-2xl border border-cyan-300/40 bg-background/70 px-4 py-4 text-left transition hover:border-cyan-300/70"
+              data-progressive-reveal="step_click_reveal"
+            >
+              <div className="premium-lesson-title text-sm font-medium">{item.title}</div>
+              <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                <BlockMath math={item.math} />
+              </div>
+              <div className="mt-3 text-xs text-cyan-200">点击本卡揭示下一层</div>
+            </button>
+          );
+        }
+
+        return (
+          <div key={item.title} className="rounded-2xl border border-border/60 bg-background/55 px-4 py-4">
+            <div className="premium-lesson-title text-sm font-medium">{item.title}</div>
+            <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+              <BlockMath math={item.math} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -120,7 +169,7 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
     case 'step-03':
       return {
         kicker: 'Goals',
-        intro: '五任务链必须完整写出来，因为这节课不是“装置鉴赏课”，而是一条从指标进入设计的完整执行链。',
+        intro: '五任务链与固定交付物需要并排看清，因为这节课不是“装置鉴赏课”，而是一条从指标进入设计的完整执行链。',
         sections: [
           {
             title: '固定交付物',
@@ -137,12 +186,12 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
     case 'step-04':
       return {
         kicker: 'Pre-check',
-        intro: '这组前测只检测入口混淆，不追求立即给出完整答案；AI 在这里也只能做错因对照，不能替你作答。',
+        intro: '这组前测只检测入口混淆，不追求立即给出完整答案；先独立完成三题与理由，再进入后续错因对照。',
         sections: [
           {
-            title: 'AI gate',
+            title: '顺序要求',
             tone: 'amber',
-            body: '先提交自己的入口判断，再允许打开 AI 对照区。',
+            body: '先完成三题前测与一句理由，再进入下一步对照与讨论。',
           },
         ],
       };
@@ -206,11 +255,6 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
             title: '先看结构差异',
             tone: 'violet',
             body: '测速反馈把微分环节放在反馈通道，不等于在前向通道显式加一个零点。',
-          },
-          {
-            title: '顺序提醒',
-            tone: 'amber',
-            body: '先定等效极点，再求 Kt。',
           },
           {
             title: '结构表达',
@@ -350,42 +394,6 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
         sections: [],
       };
   }
-}
-
-function getAiPrompts(step: UNIT_3_6StepDefinition) {
-  switch (step.id) {
-    case 'step-04':
-      return ['请只帮我定位入口混淆，不要直接替我完成三题前测。'];
-    case 'step-06':
-      return ['请检查我的指标翻译链是否完整，不要直接把区域答案写给我。'];
-    case 'step-08':
-      return ['请只纠正测速反馈与 PD 的结构差异，不要直接替我完成顺序显影。'];
-    case 'step-10':
-      return ['请只检查我有没有写出“只调增益失败”的理由，不要直接给出超前最终参数。'];
-    case 'step-12':
-      return ['请只帮助我理解为什么必须同指标比较，不要直接替我完成理由标签。'];
-    case 'step-14':
-      return ['请只围绕非最小相边界检查我的理由，不要直接替我选结构。'];
-    case 'step-15':
-      return ['请只帮助我收束本课三句结论，不要直接代写后测或反思。'];
-    default:
-      return ['请围绕当前页面目标解释概念或检查我的思路，不要直接替我完成最终记录。'];
-  }
-}
-
-function buildInteractiveAiConfig(step: UNIT_3_6StepDefinition): InteractiveConfig {
-  return {
-    resourceId: `unit-3-6:${step.id}`,
-    registryId: `unit-3-6:${step.id}`,
-    title: `${UNIT_3_6_COURSE_TITLE} · ${step.title}`,
-    aiHints: `当前只围绕 ${step.title} 提供解释和检查，不替代学生完成最终设计判断。`,
-    config: {
-      ai: {
-        enabled: true,
-        persona: 'tutor',
-      },
-    },
-  };
 }
 
 function getRevealContent(step: UNIT_3_6StepDefinition) {
@@ -568,6 +576,244 @@ function SelectField({
   );
 }
 
+function UNIT_3_6Step03Overview() {
+  return (
+    <div className="mt-4 grid gap-4" data-layout="step03-two-column">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="premium-lesson-tone-block premium-tone-violet">
+          <div className="premium-lesson-title text-sm font-medium">五任务设计链</div>
+          <div className="mt-3 grid gap-3">
+            {DESIGN_TASK_CARDS.map((task, index) => (
+              <div key={task.id} className="rounded-2xl bg-background/70 px-4 py-3">
+                <div className="premium-lesson-kicker">任务 {index + 1}</div>
+                <div className="premium-lesson-title mt-1 text-sm font-medium">{task.label}</div>
+                <div className="premium-lesson-muted mt-1 text-sm">{task.summary}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="premium-lesson-tone-block premium-tone-emerald">
+          <div className="premium-lesson-title text-sm font-medium">固定交付物</div>
+          <div className="mt-3 grid gap-3">
+            {['指标翻译表', '时域设计记录', '频域设计记录', '边界判断卡', '一页设计报告'].map((item) => (
+              <div key={item} className="rounded-2xl bg-background/70 px-4 py-3 text-sm">
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="premium-lesson-tone-block premium-tone-amber">
+        <div className="premium-lesson-title text-sm font-medium">实践规则</div>
+        <div className="mt-2 text-sm leading-7">
+          记录重点是设计链、判断句与比较结果，而不是死记单一参数数值。本页只建立整体预期，不设置独立学生作答区。
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function formatPoleText(re: number, im: number) {
+  const imagAbs = Math.abs(im).toFixed(2);
+  return `${re.toFixed(2)} ${im >= 0 ? '+' : '-'} j${imagAbs}`;
+}
+
+function UNIT_3_6Step06GainWorkspace({
+  onWorkspaceParameterChange,
+}: {
+  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+}) {
+  const [gain, setGain] = useState(0.19);
+  const request = useMemo(() => buildUnit36PureGainFailureRequest(gain), [gain]);
+  const fallbackResult = useMemo(() => getUnit36PureGainFallbackResult(), []);
+  const { result, error, isLoading } = useControlEngine(request, fallbackResult);
+  const poles = result?.rootLocus.currentPoles ?? [];
+
+  return (
+    <div className="mt-4 rounded-3xl border border-border/60 bg-background/55 px-4 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="premium-lesson-title text-base font-semibold">统一仿真引擎根轨迹面板</div>
+          <div className="premium-lesson-muted mt-2 text-sm leading-7">
+            仅调比例增益，观察闭环极点始终沿纯增益根轨迹移动。可行域覆盖层用于对照阻尼比下界 0.456
+            与实部边界 -1 两条约束。
+          </div>
+        </div>
+        <div className="rounded-2xl bg-background/70 px-3 py-2 text-sm">
+          当前增益 <span className="font-medium text-cyan-200">{gain.toFixed(2)}</span>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        {result ? (
+          <RootLocusPanel
+            result={result}
+            axisPresetOverride={{ x: [-3.2, 0.4], y: [-2.4, 2.4] }}
+            className="flex h-full flex-col"
+            chartClassName="h-full min-h-[440px]"
+          />
+        ) : (
+          <div className="flex min-h-[440px] items-center justify-center rounded-2xl border border-border/60 bg-background/70 px-6 text-sm text-foreground/70">
+            {isLoading ? '统一仿真引擎正在计算根轨迹。' : '根轨迹结果暂不可用。'}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <label className="rounded-2xl border border-border/60 bg-background/70 px-4 py-4">
+          <div className="premium-lesson-title text-sm font-medium">拖动增益观察闭环根轨迹</div>
+          <input
+            type="range"
+            min="0"
+            max="0.35"
+            step="0.01"
+            value={gain}
+            onChange={(event) => {
+              const nextValue = Number(event.target.value);
+              setGain(nextValue);
+              onWorkspaceParameterChange?.({ key: 'step-06:K', value: nextValue, source: 'drag' });
+            }}
+            className="mt-4 w-full accent-cyan-400"
+          />
+          <div className="premium-lesson-muted mt-2 text-xs">当增益增大后，复根实部仍停在约 -0.4，因此无法跨过调节时间边界。</div>
+        </label>
+
+        <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-4">
+          <div className="premium-lesson-title text-sm font-medium">当前闭环极点</div>
+          <div className="mt-3 grid gap-2 text-sm">
+            {poles.length ? (
+              poles.map((pole, index) => (
+                <div key={`${pole.re}-${pole.im}-${index}`} className="rounded-2xl bg-background/70 px-3 py-2">
+                  {formatPoleText(pole.re, pole.im)}
+                </div>
+              ))
+            ) : (
+              <div className="premium-lesson-muted text-sm">当前未取得闭环极点结果。</div>
+            )}
+          </div>
+          {error ? <div className="premium-lesson-muted mt-3 text-xs">{error}</div> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UNIT_3_6RateFeedbackStructureDiagram() {
+  return (
+    <div className="rounded-3xl border border-border/60 bg-background/55 px-4 py-4">
+      <div className="premium-lesson-title text-sm font-medium">测速反馈原生结构图</div>
+      <svg viewBox="0 0 760 250" className="mt-4 w-full overflow-visible rounded-2xl bg-background/70 p-3">
+        <defs>
+          <marker id="unit36-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+            <path d="M0 0L10 5L0 10Z" fill="currentColor" />
+          </marker>
+        </defs>
+
+        <circle cx="72" cy="110" r="22" fill="none" stroke="currentColor" strokeWidth="2" />
+        <text x="72" y="101" textAnchor="middle" fontSize="18">+</text>
+        <text x="72" y="126" textAnchor="middle" fontSize="18">−</text>
+        <text x="30" y="86" fontSize="15">R(s)</text>
+        <line x1="30" y1="110" x2="50" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+
+        <line x1="94" y1="110" x2="176" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+        <rect x="176" y="82" width="78" height="56" rx="12" fill="none" stroke="currentColor" strokeWidth="2.2" />
+        <text x="215" y="115" textAnchor="middle" fontSize="18">K</text>
+
+        <line x1="254" y1="110" x2="338" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+        <circle cx="362" cy="110" r="22" fill="none" stroke="currentColor" strokeWidth="2" />
+        <text x="362" y="101" textAnchor="middle" fontSize="18">+</text>
+        <text x="362" y="126" textAnchor="middle" fontSize="18">−</text>
+
+        <line x1="384" y1="110" x2="470" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+        <rect x="470" y="82" width="110" height="56" rx="12" fill="none" stroke="currentColor" strokeWidth="2.2" />
+        <text x="525" y="106" textAnchor="middle" fontSize="16">Gₚ(s)</text>
+        <text x="525" y="126" textAnchor="middle" fontSize="15">4 / [s(s+0.8)]</text>
+
+        <line x1="580" y1="110" x2="678" y2="110" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+        <text x="692" y="102" fontSize="15">Y(s)</text>
+
+        <line x1="640" y1="110" x2="640" y2="190" stroke="currentColor" strokeWidth="2.2" />
+        <rect x="500" y="172" width="88" height="42" rx="12" fill="none" stroke="currentColor" strokeWidth="2.2" />
+        <text x="544" y="198" textAnchor="middle" fontSize="16">sKₜ</text>
+        <line x1="500" y1="193" x2="384" y2="193" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+        <line x1="640" y1="190" x2="588" y2="190" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+        <line x1="384" y1="193" x2="384" y2="132" stroke="currentColor" strokeWidth="2.2" markerEnd="url(#unit36-arrow)" />
+      </svg>
+      <div className="premium-lesson-muted mt-3 text-sm leading-7">
+        关键差异不在“前向显式增零点”，而在反馈通道引入速度项，由此先改写等效特征方程中的实极点位置。
+      </div>
+    </div>
+  );
+}
+
+function UNIT_3_6Step08EvidenceBoard() {
+  return (
+    <div className="mt-4 grid gap-4">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_minmax(320px,0.88fr)]">
+        <UNIT_3_6RateFeedbackStructureDiagram />
+
+        <div className="grid gap-4">
+          <div className="premium-lesson-tone-block premium-tone-cyan">
+            <div className="premium-lesson-title text-sm font-medium">等效特征方程</div>
+            <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 [&_.katex-display]:m-0">
+              <BlockMath math={'U(s)=K E(s)-K_t sY(s)'} />
+            </div>
+            <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 [&_.katex-display]:m-0">
+              <BlockMath math={'1+\\frac{4K}{s(s+0.8+4K_t)}=0'} />
+            </div>
+          </div>
+
+          <div className="premium-lesson-tone-block premium-tone-amber">
+            <div className="premium-lesson-title text-sm font-medium">设计顺序</div>
+            <div className="mt-3 grid gap-2 text-sm">
+              {[
+                '先决定等效极点位置',
+                '再由极点左移量反求 K_t',
+                '最后由模值条件求 K',
+              ].map((item) => (
+                <div key={item} className="rounded-2xl bg-background/70 px-3 py-2">
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-3xl border border-border/60 bg-background/55">
+        <table className="w-full border-collapse text-left text-sm">
+          <thead className="bg-background/70">
+            <tr>
+              <th className="border-b border-border/60 px-4 py-3 font-medium">比较项</th>
+              <th className="border-b border-border/60 px-4 py-3 font-medium">前向 `PD`</th>
+              <th className="border-b border-border/60 px-4 py-3 font-medium">测速反馈</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border-b border-border/40 px-4 py-3">微分环节位置</td>
+              <td className="border-b border-border/40 px-4 py-3">前向通道显式形成零点</td>
+              <td className="border-b border-border/40 px-4 py-3">反馈通道引入速度项</td>
+            </tr>
+            <tr>
+              <td className="border-b border-border/40 px-4 py-3">第一抓手</td>
+              <td className="border-b border-border/40 px-4 py-3">设计点与相角条件</td>
+              <td className="border-b border-border/40 px-4 py-3">等效极点位置</td>
+            </tr>
+            <tr>
+              <td className="px-4 py-3">本页要记住的话</td>
+              <td className="px-4 py-3">先定设计点，再求零点与增益</td>
+              <td className="px-4 py-3">先定等效极点，再求 Kₜ 与 K</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export function UNIT_3_6KnowledgeMapVisual() {
   return (
     <section className="premium-lesson-panel-soft mb-4 px-4 py-4">
@@ -594,6 +840,7 @@ export function UNIT_3_6StepContentPanel({
   step,
   mediaSrc,
   mediaAlt,
+  onWorkspaceParameterChange,
 }: {
   step: UNIT_3_6StepDefinition;
   mediaSrc?: string | null;
@@ -601,6 +848,67 @@ export function UNIT_3_6StepContentPanel({
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const blueprint = getStepBlueprint(step);
+
+  if (step.id === 'step-03') {
+    return (
+      <section className="premium-lesson-panel px-4 py-5">
+        <div className="premium-lesson-kicker">
+          {blueprint.kicker} · {UNIT_3_6_STAGE_LABEL[step.stage]}
+        </div>
+        <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
+        <p className="premium-lesson-muted mt-3 text-sm sm:text-base">{blueprint.intro}</p>
+        <UNIT_3_6Step03Overview />
+      </section>
+    );
+  }
+
+  if (step.id === 'step-06') {
+    return (
+      <section className="premium-lesson-panel px-4 py-5">
+        <div className="premium-lesson-kicker">
+          {blueprint.kicker} · {UNIT_3_6_STAGE_LABEL[step.stage]}
+        </div>
+        <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
+        <p className="premium-lesson-muted mt-3 text-sm sm:text-base">{blueprint.intro}</p>
+
+        <ProgressiveFormulaStack
+          items={[
+            {
+              title: '核心翻译公式 1：由超调量进入阻尼比',
+              math: 'M_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times100\\%',
+            },
+            {
+              title: '核心翻译公式 2：由调节时间进入实部边界',
+              math: 't_s\\approx\\frac{4}{\\zeta\\omega_n}',
+            },
+            {
+              title: '点击后得到的结论',
+              math: '\\zeta \\ge 0.456,\\qquad \\operatorname{Re}(s)\\le -1',
+            },
+            {
+              title: '再点击得到纯增益失败结论',
+              math: '\\text{纯增益复根实部固定在 } -0.4\\text{ 左右，无法跨过 }\\operatorname{Re}(s)\\le -1',
+            },
+          ]}
+        />
+
+        <UNIT_3_6Step06GainWorkspace onWorkspaceParameterChange={onWorkspaceParameterChange} />
+      </section>
+    );
+  }
+
+  if (step.id === 'step-08') {
+    return (
+      <section className="premium-lesson-panel px-4 py-5">
+        <div className="premium-lesson-kicker">
+          {blueprint.kicker} · {UNIT_3_6_STAGE_LABEL[step.stage]}
+        </div>
+        <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
+        <p className="premium-lesson-muted mt-3 text-sm sm:text-base">{blueprint.intro}</p>
+        <UNIT_3_6Step08EvidenceBoard />
+      </section>
+    );
+  }
 
   return (
     <section className="premium-lesson-panel px-4 py-5">
@@ -1124,60 +1432,6 @@ export function UNIT_3_6TeacherActivitySummary({
       {answerVisible && getRevealContent(step) ? (
         <div className="premium-lesson-tone-block premium-tone-emerald mt-4 text-sm">{getRevealContent(step)}</div>
       ) : null}
-    </section>
-  );
-}
-
-export function UNIT_3_6StepAiAssistant({
-  step,
-  onAiEvent,
-  disabled = false,
-  disabledReason,
-}: {
-  step: UNIT_3_6StepDefinition;
-  onAiEvent?: (eventType: string, data?: Record<string, unknown>) => void;
-  disabled?: boolean;
-  disabledReason?: string;
-}) {
-  const ai = useInteractiveAI({
-    config: buildInteractiveAiConfig(step),
-    contextData: {
-      stepId: step.id,
-      prompts: getAiPrompts(step),
-    },
-    onEvent: onAiEvent,
-  });
-
-  return (
-    <section className="premium-lesson-panel px-4 py-5">
-      <div className="premium-lesson-kicker">AI Assistant</div>
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h3 className="premium-lesson-title text-lg font-semibold">页内 AI 对照区</h3>
-          <p className="premium-lesson-muted mt-1 text-sm">{getAiPrompts(step)[0]}</p>
-        </div>
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={ai.togglePanel}
-          className="premium-lesson-action-secondary inline-flex items-center gap-2 disabled:opacity-50"
-        >
-          <Sparkles className="h-4 w-4" />
-          打开 AI 助手
-        </button>
-      </div>
-
-      {disabledReason ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">{disabledReason}</div> : null}
-
-      <Dialog open={ai.isPanelOpen} onOpenChange={ai.togglePanel}>
-        <DialogContent className="max-w-[980px] border-none bg-transparent p-0 shadow-none">
-          <DialogHeader className="sr-only">
-            <DialogTitle>{step.title} · AI 对照</DialogTitle>
-            <DialogDescription>围绕当前步骤的目标、边界和作答进行解释或检查。</DialogDescription>
-          </DialogHeader>
-          <InteractiveAIPanel ai={ai} title={`${step.title} · AI 对照`} position="floating" onClose={ai.togglePanel} />
-        </DialogContent>
-      </Dialog>
     </section>
   );
 }

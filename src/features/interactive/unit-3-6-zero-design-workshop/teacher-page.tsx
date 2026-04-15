@@ -8,13 +8,11 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
-import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   finalizeUNIT_3_6TeacherSession,
   getUNIT_3_6MediaSrc,
-  isUNIT_3_6AiPageType,
   isUNIT_3_6TeacherSyncState,
   resolveUNIT_3_6TeacherSyncDraft,
   shouldPostUNIT_3_6TeacherSync,
@@ -29,7 +27,6 @@ import {
 import { UNIT_3_6CourseHeader } from './course-header';
 import {
   UNIT_3_6KnowledgeMapVisual,
-  UNIT_3_6StepAiAssistant,
   UNIT_3_6StepContentPanel,
   UNIT_3_6TeacherActivitySummary,
 } from './step-panels';
@@ -71,7 +68,7 @@ export function UNIT_3_6TeacherPage({
     adapter: UNIT_3_6_SESSION_ADAPTER,
   });
 
-  const { trackCourseEvent, trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError, trackWorkspaceParamChange } =
+  const { trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError, trackWorkspaceParamChange } =
     useCourseEventTracking({
       resourceKey: UNIT_3_6_RESOURCE_KEY,
       resourceId: UNIT_3_6_RESOURCE_KEY,
@@ -183,19 +180,6 @@ export function UNIT_3_6TeacherPage({
     }
   }, [finishSession, router, sessionInfo, step.id, trackSessionFinalize]);
 
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
-
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
       trackWorkspaceParamChange(step.id, {
@@ -292,32 +276,28 @@ export function UNIT_3_6TeacherPage({
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 
-        {isUNIT_3_6AiPageType(step.pageType) ? (
+        {step.pageType !== 'display' ? (
           <div className="mt-4">
-            <UNIT_3_6StepAiAssistant step={step} onAiEvent={handleAiEvent} />
+            <UNIT_3_6TeacherActivitySummary
+              step={step}
+              responses={currentResponses}
+              released={Boolean(releasedActivities[step.id])}
+              answerVisible={Boolean(revealedAnswers[step.id])}
+              onToggleRelease={() =>
+                setLocalReleasedActivities((prev) => ({
+                  ...(prev ?? (teacherSyncState as UNIT_3_6TeacherCourseSyncState | null)?.releasedActivities ?? {}),
+                  [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_6TeacherCourseSyncState | null)?.releasedActivities?.[step.id]),
+                }))
+              }
+              onToggleAnswerVisible={() =>
+                setLocalRevealedAnswers((prev) => ({
+                  ...(prev ?? (teacherSyncState as UNIT_3_6TeacherCourseSyncState | null)?.revealedAnswers ?? {}),
+                  [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_6TeacherCourseSyncState | null)?.revealedAnswers?.[step.id]),
+                }))
+              }
+            />
           </div>
         ) : null}
-
-        <div className="mt-4">
-          <UNIT_3_6TeacherActivitySummary
-            step={step}
-            responses={currentResponses}
-            released={Boolean(releasedActivities[step.id])}
-            answerVisible={Boolean(revealedAnswers[step.id])}
-            onToggleRelease={() =>
-              setLocalReleasedActivities((prev) => ({
-                ...(prev ?? (teacherSyncState as UNIT_3_6TeacherCourseSyncState | null)?.releasedActivities ?? {}),
-                [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_6TeacherCourseSyncState | null)?.releasedActivities?.[step.id]),
-              }))
-            }
-            onToggleAnswerVisible={() =>
-              setLocalRevealedAnswers((prev) => ({
-                ...(prev ?? (teacherSyncState as UNIT_3_6TeacherCourseSyncState | null)?.revealedAnswers ?? {}),
-                [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_6TeacherCourseSyncState | null)?.revealedAnswers?.[step.id]),
-              }))
-            }
-          />
-        </div>
       </main>
     </div>
   );

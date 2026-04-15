@@ -74,10 +74,10 @@ evidence_unit_upgrade_table:
     handout_anchor: '### 1.3 先做一次“目标翻译”预测'
     evidence_kind: 'task_card+quiz'
     target_steps: ['step-04']
-    upgrade_mode: 'click_reveal'
-    keep_elements: ['三题前测', '理由栏', 'AI 锁定提示']
-    non_reducible: ['先独立判断，再允许 AI 对照']
-    acceptance_checks: ['AI 入口默认锁定。']
+    upgrade_mode: 'native_html'
+    keep_elements: ['三题前测', '理由栏']
+    non_reducible: ['先独立判断，再进入 AI 对照']
+    acceptance_checks: ['页面内不出现显式 AI gate。']
   - evidence_unit_id: 'eu-04'
     handout_anchor: '### 2.1 / ### 2.2 / ### 2.3'
     evidence_kind: 'object+formula+table'
@@ -98,10 +98,10 @@ evidence_unit_upgrade_table:
     handout_anchor: '### 2.4 将时域指标翻译为目标区域'
     evidence_kind: 'curve_figure'
     target_steps: ['step-06']
-    upgrade_mode: 'parametric_sim'
+    upgrade_mode: 'shared_engine_panel'
     keep_elements: ['复平面可行域', '纯增益根轨迹', '失败记录']
     non_reducible: ['原对象复根实部固定在 -0.4，无法达到 Re(s)<=-1']
-    acceptance_checks: ['基线态必须复现讲义中的纯增益失败图景。']
+    acceptance_checks: ['根轨迹面板在左，记录区在右，且基线态必须复现讲义中的纯增益失败图景。']
   - evidence_unit_id: 'eu-07'
     handout_anchor: '### 3.1 / ### 3.2 / ### 3.3'
     evidence_kind: 'derivation+curve_figure'
@@ -117,7 +117,7 @@ evidence_unit_upgrade_table:
     upgrade_mode: 'native_svg+click_reveal+parametric_sim'
     keep_elements: ['测速反馈结构图', '等效特征方程', '对照表', '三面板']
     non_reducible: ['先定等效极点，再求 Kt，最后由模值条件求 K']
-    acceptance_checks: ['step-08 不得直接跳成工作区。']
+    acceptance_checks: ['step-08 不得直接跳成工作区，且不设置独立学生作答区。']
   - evidence_unit_id: 'eu-09'
     handout_anchor: '### 5.1 / ### 5.2 / ### 5.3 / ### 5.4 / ### 5.5'
     evidence_kind: 'derivation+curve_figure'
@@ -159,21 +159,21 @@ mixed_evidence_order_table:
     same_screen: ['路径图', '主线卡', '边界卡']
   - step_id: 'step-03'
     order: ['五任务链', '交付物卡', '实践规则卡']
-    same_screen: ['五任务链', '交付物卡']
+    same_screen: ['五任务链', '交付物卡', '实践规则卡']
   - step_id: 'step-04'
-    order: ['三题前测', '理由栏', 'AI 锁定提示']
-    same_screen: ['三题前测', '理由栏', 'AI 锁定提示']
+    order: ['三题前测', '理由栏', '控灵助手顺序约束']
+    same_screen: ['三题前测', '理由栏']
   - step_id: 'step-05'
     order: ['对象公式卡', '三类表达式卡', '五任务表', '入口分类组件']
     same_screen: ['对象公式卡', '三类表达式卡', '五任务表']
   - step_id: 'step-06'
-    order: ['翻译公式', '区域结论显影', '纯增益失败证据', '复平面工作区']
-    same_screen: ['翻译公式', '区域结论', '纯增益失败证据']
+    order: ['翻译公式', '区域结论显影', '纯增益失败证据', '左侧根轨迹', '右侧记录区']
+    same_screen: ['翻译公式', '区域结论', '左侧根轨迹', '右侧记录区']
   - step_id: 'step-07'
     order: ['设计点卡', '相角条件显影', '模值条件显影', '三面板工作区', '记录卡']
     same_screen: ['设计点卡', '公式显影区', '三面板工作区']
   - step_id: 'step-08'
-    order: ['结构图', '等效方程显影', '对照表', '顺序检查组件']
+    order: ['结构图', '等效方程显影', '对照表']
     same_screen: ['结构图', '等效方程', '对照表']
   - step_id: 'step-09'
     order: ['等效极点目标卡', '模值条件提示', '三面板工作区', '解释提交卡']
@@ -205,7 +205,7 @@ curve_runtime_contracts:
       parameters:
         K: 0.192
       display_overlays: ['feasible_region', 'dominant_poles']
-    layout_mirror: 'single_plot_plus_result_card'
+    layout_mirror: 'top_formula_plus_left_plot_right_record'
     controls: ['K slider']
     reachable_states: ['纯增益靠近超调边界但仍无法满足 ts 目标', '复根实部固定在 -0.4 的失败态']
     collapse_policy: 'controls_below_collapsible'
@@ -417,8 +417,8 @@ steps:
     layout:
       template: 'goal_chain_slide'
       regions:
-        - { id: 'chain', width: 'full', order: 1 }
-        - { id: 'outputs', width: 'full', order: 2 }
+        - { id: 'chain', width: 'half', order: 1 }
+        - { id: 'outputs', width: 'half', order: 2 }
         - { id: 'rules', width: 'full', order: 3 }
     modules:
       - { id: 'task-chain', region: 'chain', kind: 'task-chain', must_be_visible: true }
@@ -451,7 +451,7 @@ steps:
       demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-03'
       must_match_student_page: true
     acceptance_checks:
-      - '任务链与交付物同屏。'
+      - '五任务链与交付物并排两列，实践规则整行收束。'
   step-04:
     title: '前测：三类目标分别从哪里进入'
     stage: 'pre_assessment'
@@ -461,23 +461,21 @@ steps:
       regions:
         - { id: 'question-stack', width: 'full', order: 1 }
         - { id: 'record', width: 'full', order: 2 }
-        - { id: 'ai-gate', width: 'full', order: 3 }
     modules:
       - { id: 'pretest-q1', region: 'question-stack', kind: 'single-choice-card', must_be_visible: true }
       - { id: 'pretest-q2', region: 'question-stack', kind: 'single-choice-card', must_be_visible: true }
       - { id: 'pretest-q3', region: 'question-stack', kind: 'single-choice-card', must_be_visible: true }
       - { id: 'reason-record', region: 'record', kind: 'short-response', must_be_visible: true }
-      - { id: 'ai-gate-note', region: 'ai-gate', kind: 'boundary-card', must_be_visible: true }
     evidence_units: ['eu-03']
     content_blocks:
-      - id: 'ai-order'
+      - id: 'assistant-order'
         type: 'plain_text'
-        title: 'AI 顺序约束'
-        body: '先提交判断，再允许打开 AI 对照。'
+        title: '控灵助手顺序约束'
+        body: '先提交判断，再进入控灵助手中的错因对照。'
     interaction_spec:
       interaction_kind: 'quiz_group'
       student_task: '完成三道前测，并提交一句理由。'
-      attempt_model: '允许重提一次；AI 入口默认锁定。'
+      attempt_model: '允许重提一次；提交前不开放答案型 AI 对照。'
       answer_reveal: 'teacher_toggle'
     teacher_controls: ['释放前测', '显示误区分布', '控制答案揭示']
     telemetry_spec:
@@ -496,8 +494,8 @@ steps:
       demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-04'
       must_match_student_page: true
     acceptance_checks:
-      - '三题、理由栏和 AI 锁定提示同时可见。'
-      - 'AI 入口默认不可用。'
+      - '三题与理由栏同时可见。'
+      - '页面内不出现显式 AI gate。'
   step-05:
     title: '任务书：统一对象、三类装置与五任务入口'
     stage: 'participatory_learning'
@@ -542,19 +540,19 @@ steps:
     acceptance_checks:
       - '对象卡、表达式卡、任务表和分类组件必须同屏。'
   step-06:
-    title: '推导显影 A：时域指标如何变成设计可行域'
+    title: '时域指标如何变成设计可行域'
     stage: 'participatory_learning'
     duration_minutes: 8
     layout:
       template: 'derivation_reveal_board'
       regions:
         - { id: 'derivation', width: 'full', order: 1 }
-        - { id: 'figure', width: 'full', order: 2 }
-        - { id: 'record', width: 'full', order: 3 }
+        - { id: 'figure', width: 'half', order: 2 }
+        - { id: 'record', width: 'half', order: 3 }
     modules:
       - { id: 'translation-formula-panel', region: 'derivation', kind: 'formula-panel', must_be_visible: true }
       - { id: 'feasible-region-reveal', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
-      - { id: 'pure-gain-failure-plot', region: 'figure', kind: 'parametric-plot', must_be_visible: true }
+      - { id: 'pure-gain-failure-plot', region: 'figure', kind: 'shared-engine-root-locus-panel', must_be_visible: true }
       - { id: 'translation-record-table', region: 'record', kind: 'record-table', must_be_visible: true }
     evidence_units: ['eu-05', 'eu-06']
     content_blocks:
@@ -570,7 +568,7 @@ steps:
         body: 'zeta>=0.456，Re(s)<=-1。'
     interaction_spec:
       interaction_kind: 'workspace_builder'
-      student_task: '叠加阻尼线和实部边界，并填写一句纯增益失败原因。'
+      student_task: '点击核心翻译公式依次显影结论，再拖动增益观察纯增益根轨迹，并填写一句纯增益失败原因。'
       runtime_plot_contract_ref: 'curve-step-06'
       answer_reveal: 'teacher_toggle'
     teacher_controls: ['切换基线参数', '显示失败结论标签']
@@ -590,7 +588,7 @@ steps:
       demo_path: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-06'
       must_match_student_page: true
     acceptance_checks:
-      - '公式、区域结论、纯增益失败证据和记录表必须同屏。'
+      - '公式显影位于上方；下方根轨迹面板在左，记录区在右。'
   step-07:
     title: '任务 A：PD 时域设计'
     stage: 'participatory_learning'
@@ -654,7 +652,6 @@ steps:
       - { id: 'rate-structure-diagram', region: 'structure', kind: 'native-svg-diagram', must_be_visible: true }
       - { id: 'rate-derivation-reveal', region: 'derivation', kind: 'derivation-reveal', must_be_visible: true }
       - { id: 'pd-rate-contrast-table', region: 'compare', kind: 'native-table', must_be_visible: true }
-      - { id: 'sequence-check-card', region: 'compare', kind: 'sequenced-reveal', must_be_visible: true }
     evidence_units: ['eu-08']
     content_blocks:
       - id: 'rate-formula'
@@ -664,15 +661,15 @@ steps:
           - 'U(s)=K E(s)-K_t sY(s)'
           - '1+4K/[s(s+0.8+4K_t)]=0'
     interaction_spec:
-      interaction_kind: 'sequenced_reveal'
-      student_task: '按正确顺序点亮结构差异、等效方程、设计抓手和与 PD 的区别。'
-      answer_reveal: 'teacher_toggle'
-    teacher_controls: ['控制显影顺序答案', '查看顺序正确率']
+      interaction_kind: 'none'
+      student_task: '本页不设置独立学生作答区，只完成结构差异阅读与证据对照。'
+      answer_reveal: 'none'
+    teacher_controls: ['强调结构差异', '点名复述设计抓手']
     telemetry_spec:
-      summary_fields: ['revealOrder', 'completedState']
-      misconception_tags: ['rate_as_pd_relocated']
+      summary_fields: ['viewed', 'timeOnStep']
+      result_policy: 'no_submission'
     teacher_insight_spec:
-      widgets: ['reveal_order_accuracy', 'pd_rate_confusion_rate']
+      widgets: ['view_count']
       aggregation: 'step_level'
     ai_context_spec:
       page_goal: '建立测速反馈与 PD 的设计抓手差异。'
@@ -685,6 +682,7 @@ steps:
       must_match_student_page: true
     acceptance_checks:
       - '结构图、等效方程和对照表必须同屏。'
+      - '结构图必须采用原生方式绘制，且不设置独立学生作答区。'
   step-09:
     title: '任务 B：测速反馈时域设计'
     stage: 'participatory_learning'

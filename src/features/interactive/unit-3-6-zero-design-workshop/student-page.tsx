@@ -15,7 +15,6 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit36StepAIContext } from '@/lib/course-ai-contexts';
 import {
   getUNIT_3_6MediaSrc,
-  isUNIT_3_6AiPageType,
   isUNIT_3_6InteractivePageType,
   UNIT_3_6_LESSON_KEY,
   UNIT_3_6_LESSON_STEPS,
@@ -27,7 +26,6 @@ import {
 import { UNIT_3_6CourseHeader } from './course-header';
 import {
   UNIT_3_6KnowledgeMapVisual,
-  UNIT_3_6StepAiAssistant,
   UNIT_3_6StepContentPanel,
   UNIT_3_6StudentActivityForm,
   UNIT_3_6StudentSummaryPanel,
@@ -90,15 +88,21 @@ export function UNIT_3_6StudentPage({
   const step = UNIT_3_6_LESSON_STEPS[activeIndex];
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
-  const aiDisabled = step.id === 'step-04' && !savedResponse;
-  const aiDisabledReason =
-    step.id === 'step-04'
-      ? '请先独立完成前测并提交，再用 AI 做错因对照。'
-      : undefined;
+  const isStep06 = step.id === 'step-06';
 
   useEffect(() => {
     const stepContext = getUnit36StepAIContext(step.id);
     if (stepContext) {
+      const assistantLocked = step.id === 'step-04' && !savedResponse;
+      const quickQuestions = assistantLocked
+        ? [
+            { label: '先独立作答', question: '请先提醒我独立完成三题前测和一句理由，暂时不要给答案。' },
+            { label: '只做错因定位', question: '提交前只允许帮我识别入口混淆，不允许直接代答。' },
+          ]
+        : stepContext.quickQuestions;
+      const systemPromptExtension = assistantLocked
+        ? `${stepContext.systemPromptExtension}\n当前处于前测未提交阶段。你只能提醒学生先独立完成三题与理由，禁止直接给出前测答案或替学生判断。`
+        : stepContext.systemPromptExtension;
       updatePageContext({
         courseId: stepContext.courseId,
         courseTitle: stepContext.courseTitle,
@@ -110,9 +114,15 @@ export function UNIT_3_6StudentPage({
         tools: stepContext.tools,
         quickQuestions: stepContext.quickQuestions,
         systemPromptExtension: stepContext.systemPromptExtension,
+        ...(assistantLocked
+          ? {
+              quickQuestions,
+              systemPromptExtension,
+            }
+          : {}),
       });
     }
-  }, [step.id, updatePageContext]);
+  }, [savedResponse, step.id, updatePageContext]);
 
   const answerVisible =
     teacherSyncState?.activeStepId === step.id
@@ -170,19 +180,6 @@ export function UNIT_3_6StudentPage({
       return nextState;
     });
   };
-
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
 
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
@@ -269,34 +266,46 @@ export function UNIT_3_6StudentPage({
 
         {step.id === 'step-01' ? <UNIT_3_6KnowledgeMapVisual /> : null}
 
-        <UNIT_3_6StepContentPanel
-          step={step}
-          mediaSrc={getUNIT_3_6MediaSrc(step.id)}
-          mediaAlt={step.title}
-          onWorkspaceParameterChange={handleWorkspaceParameterChange}
-        />
-
-        {isUNIT_3_6AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_6StepAiAssistant
+        {isStep06 ? (
+          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.28fr)_minmax(320px,0.72fr)]">
+            <UNIT_3_6StepContentPanel
               step={step}
-              onAiEvent={handleAiEvent}
-              disabled={aiDisabled}
-              disabledReason={aiDisabledReason}
+              mediaSrc={getUNIT_3_6MediaSrc(step.id)}
+              mediaAlt={step.title}
+              onWorkspaceParameterChange={handleWorkspaceParameterChange}
+            />
+            <UNIT_3_6StudentActivityForm
+              step={step}
+              savedResponse={savedResponse}
+              released={released}
+              answerVisible={answerVisible}
+              onSubmit={handleSubmitResponse}
+              onWorkspaceParameterChange={handleWorkspaceParameterChange}
             />
           </div>
-        ) : null}
+        ) : (
+          <>
+            <UNIT_3_6StepContentPanel
+              step={step}
+              mediaSrc={getUNIT_3_6MediaSrc(step.id)}
+              mediaAlt={step.title}
+              onWorkspaceParameterChange={handleWorkspaceParameterChange}
+            />
 
-        <div className="mt-4">
-          <UNIT_3_6StudentActivityForm
-            step={step}
-            savedResponse={savedResponse}
-            released={released}
-            answerVisible={answerVisible}
-            onSubmit={handleSubmitResponse}
-            onWorkspaceParameterChange={handleWorkspaceParameterChange}
-          />
-        </div>
+            {step.pageType !== 'display' ? (
+              <div className="mt-4">
+                <UNIT_3_6StudentActivityForm
+                  step={step}
+                  savedResponse={savedResponse}
+                  released={released}
+                  answerVisible={answerVisible}
+                  onSubmit={handleSubmitResponse}
+                  onWorkspaceParameterChange={handleWorkspaceParameterChange}
+                />
+              </div>
+            ) : null}
+          </>
+        )}
 
         {step.id === 'step-13' ? (
           <div className="mt-4">

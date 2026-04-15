@@ -22,11 +22,11 @@
 | step-01 | 封面导入：目标必须先于工具 | `binary_choice_illustration` | 封面媒体、核心追问、入口误判 | `single_choice` | 2 分钟 |
 | step-02 | 回到地图：从 `3-5` 的机理走向 `3-6` 的设计 | `map_hero_slide` | 路径图、主线卡、边界卡 | `none` | 0 分钟 |
 | step-03 | 五任务设计链与提交物总览 | `goal_chain_slide` | 五任务链、交付物、实践规则 | `none` | 0 分钟 |
-| step-04 | 前测：三类目标分别从哪里进入 | `question_stack` | 三题前测、理由栏、AI 锁定提示 | `quiz_group` | 6 分钟 |
+| step-04 | 前测：三类目标分别从哪里进入 | `question_stack` | 三题前测、理由栏 | `quiz_group` | 6 分钟 |
 | step-05 | 任务书：统一对象、三类装置与五任务入口 | `evidence_board` | 对象公式、三类校正表达式、任务书表格 | `categorize_and_confirm` | 4 分钟 |
-| step-06 | 推导显影 A：时域指标如何变成设计可行域 | `derivation_reveal_board` | 翻译公式、可行域结论、纯增益失败证据 | `workspace_builder` | 8 分钟 |
+| step-06 | 时域指标如何变成设计可行域 | `derivation_reveal_board` | 翻译公式、可行域结论、纯增益失败证据 | `workspace_builder` | 8 分钟 |
 | step-07 | 任务 A：`PD` 时域设计 | `parametric_sim_board` | 设计点、相角条件、模值条件、三面板验收 | `parameter_workspace` | 12 分钟 |
-| step-08 | 任务 B 的证据板：测速反馈为何不是“换位置的 `PD`” | `structure_evidence_board` | 结构图、等效特征方程、对照表 | `sequenced_reveal` | 4 分钟 |
+| step-08 | 任务 B 的证据板：测速反馈为何不是“换位置的 `PD`” | `structure_evidence_board` | 原生结构图、等效特征方程、对照表 | `none` | 4 分钟 |
 | step-09 | 任务 B：测速反馈时域设计 | `parametric_sim_board` | 等效极点位置、模值条件、三面板验收 | `parameter_workspace` | 10 分钟 |
 | step-10 | 推导显影 B：频域目标如何进入超前设计 | `derivation_reveal_board` | 共同频域目标、只调增益失败、超前四步链 | `structured_response` | 4 分钟 |
 | step-11 | 任务 C：超前频域设计 | `frequency_design_workspace` | 超前参数链、Bode 双图、阶跃回查 | `parameter_workspace` | 10 分钟 |
@@ -48,13 +48,13 @@
 |---|---|---|---|---|---|---|---|
 | `eu-01` | `concept + bridge` | `### 1.1 上一课的成果与本课的挑战` | `step-02` | `静态保留` | `3-5 -> 3-6 -> 3-7` 路径图、主线切换句 | `3-5 讲机理，3-6 讲目标驱动设计，3-7 讲稳态改善` | 首屏必须看出本课在模块 3 中的位置 |
 | `eu-02` | `task_card` | `### 1.2 本课主线` | `step-03` | `原生重绘` | 五任务链、交付物、实践规则 | 五个任务名称与顺序、固定提交物 | 不得缩成“若干设计任务” |
-| `eu-03` | `task_card + quiz` | `### 1.3 先做一次“目标翻译”预测` | `step-04` | `点击显影` | 三题前测、理由栏、AI 锁定提示 | “先独立判断，再允许 AI 对照”的顺序 | AI 入口默认锁定，提交后才解锁 |
+| `eu-03` | `task_card + quiz` | `### 1.3 先做一次“目标翻译”预测` | `step-04` | `原生表单` | 三题前测、理由栏 | “先独立判断，再进入 AI 对照”的顺序 | 页面内不出现显式 AI gate，顺序约束转入控灵助手上下文 |
 | `eu-04` | `object + formula + table` | `### 2.1`、`### 2.2`、`### 2.3` | `step-05` | `原生重绘` | $$G_p(s)=\frac{4}{s(s+0.8)}$$、`PD`/测速反馈/超前表达式、五任务表 | 对象公式、三类装置的标准表达、任务 A-E 与推荐工具 | 对象卡、表达式卡和任务表必须同屏 |
 | `eu-05` | `derivation` | `### 2.4 将时域指标翻译为目标区域` | `step-06` | `点击显影` | $$M_p$$ 与 $$t_s$$ 翻译公式、$\zeta \ge 0.456$、$\operatorname{Re}(s)\le -1$ | 从指标到区域的推导链，以及纯增益无法进入区域的结论 | 必须看出“公式 -> 代入 -> 区域 -> 失败原因”四层 |
-| `eu-06` | `curve_figure + conclusion` | `### 2.4 将时域指标翻译为目标区域` | `step-06` | `参数联动` | 复平面可行域、纯增益根轨迹、纯增益失败记录 | 原对象复根实部固定在 `-0.4`，无法达到 $\operatorname{Re}(s)\le -1$ | 基线态必须复现讲义中的纯增益失败图景 |
+| `eu-06` | `curve_figure + conclusion` | `### 2.4 将时域指标翻译为目标区域` | `step-06` | `统一仿真引擎` | 复平面可行域、纯增益根轨迹、纯增益失败记录 | 原对象复根实部固定在 `-0.4`，无法达到 $\operatorname{Re}(s)\le -1$ | 根轨迹面板在左，记录区在右，基线态必须复现讲义中的纯增益失败图景 |
 | `eu-07` | `derivation` | `### 3.1`、`### 3.2`、`### 3.3` | `step-07` | `点击显影 + 参数联动` | 设计点 $$s_d=-1.1\pm j1.67$$、相角条件、模值条件 | 设计点选择理由、$$T_d \approx 0.35$$、$$K \approx 1.00$$、验收逻辑 | 不得只保留最终参数结果式 |
 | `eu-08` | `curve_figure` | `![3-6-pd-design.png]` | `step-07` | `参数联动` | 根轨迹、阶跃响应、指标卡三面板 | 目标区域叠加、基线参数、通过态与失败态 | 三面板默认态必须与讲义图一致 |
-| `eu-09` | `structure_figure + derivation + table` | `### 4.1`、`### 4.2`、`### 4.4` | `step-08`、`step-09` | `原生重绘 + 点击显影 + 参数联动` | 测速反馈结构图、等效特征方程、`PD` 对照表 | “先定等效极点，再求 $K_t$，最后由模值条件求 $K$” 的顺序 | `step-08` 不得直接跳成工作区，必须先显式落出结构差异 |
+| `eu-09` | `structure_figure + derivation + table` | `### 4.1`、`### 4.2`、`### 4.4` | `step-08`、`step-09` | `原生重绘 + 点击显影 + 参数联动` | 测速反馈结构图、等效特征方程、`PD` 对照表 | “先定等效极点，再求 $K_t$，最后由模值条件求 $K$” 的顺序 | `step-08` 必须先显式落出结构差异，且不设置独立学生作答区 |
 | `eu-10` | `curve_figure` | `![3-6-rate-feedback-design.png]` | `step-09` | `参数联动` | 等效根轨迹、阶跃响应、指标卡三面板 | 基线参数 $$K_t=0.35$$、$$K=1.00$$ 与 `PD` 区别 | 工作区必须支持顺序检查而非只收最终参数 |
 | `eu-11` | `derivation` | `### 5.1` 到 `### 5.5` | `step-10`、`step-11` | `点击显影 + 参数联动` | 共同频域目标、只调增益失败、超前四步链 | $$PM \ge 50^\circ$$、$\omega_c \approx 3$、补角、布置频带、由幅值条件求 $K_c$ | 不得只留下“超前形式 + 调参面板” |
 | `eu-12` | `curve_figure` | `![3-6-lead-design.png]` | `step-11` | `参数联动` | 幅频图、相频图、阶跃回查、指标卡 | 基线超前参数、双裕度标注、时域回查 | 频域双图与时域回查必须同屏 |
@@ -68,12 +68,12 @@
 |------|------------|------------|--------------|----------|
 | `step-01` | 封面媒体 | 核心追问 | 首反应选择 | 媒体、问题、按钮同屏 |
 | `step-02` | 路径图 | 主线切换卡 | 边界卡 | 三块必须同屏，不折叠 |
-| `step-03` | 五任务链 | 交付物卡 | 实践规则卡 | 任务链与交付物同屏 |
-| `step-04` | 三题前测 | 理由栏 | AI 锁定提示 | 作答区与 AI 提示同屏 |
+| `step-03` | 五任务链 | 交付物卡 | 实践规则卡 | 五任务链与交付物并排两列，实践规则整行收束 |
+| `step-04` | 三题前测 | 理由栏 | 顺序约束转入控灵助手 | 页面内不出现显式 AI gate |
 | `step-05` | 对象公式卡 | 三类校正表达式卡 | 五任务表与入口分类区 | 对象卡、表达式卡、任务表同屏 |
-| `step-06` | 时域翻译公式 | 代入与区域结论显影 | 复平面工作区与纯增益失败记录 | 公式、区域、失败证据必须同屏 |
+| `step-06` | 时域翻译公式 | 代入与区域结论显影 | 统一引擎根轨迹面板与记录区 | 公式先点击显影，再在下方以左图右记录方式完成工作区 |
 | `step-07` | 设计点卡与顺序卡 | 相角条件与模值条件显影 | 三面板工作区与记录卡 | 设计点、公式链、工作区同屏 |
-| `step-08` | 结构图 | 等效特征方程显影 | `PD`/测速反馈对照表与顺序检查 | 结构图与方程同屏，不可后置 |
+| `step-08` | 原生结构图 | 等效特征方程显影 | `PD`/测速反馈对照表 | 结构图与方程同屏，不设置独立学生作答区 |
 | `step-09` | 等效极点目标卡 | 模值条件与参数顺序提示 | 三面板工作区与一句解释提交 | 顺序提示必须位于工作区上方 |
 | `step-10` | 共同频域目标卡 | 只调增益失败证据 | 超前四步显影链与简答框 | 目标卡与失败证据同屏 |
 | `step-11` | 超前形式卡 | 参数求解顺序卡 | Bode 双图、阶跃回查与记录卡 | 双图与时域回查同屏 |
@@ -85,7 +85,7 @@
 ## 曲线镜像与运行时合同
 | 步骤 | 图组 / 证据 | 基线态 | 图组镜像 | 控件 | 运行时合同 |
 |------|-------------|--------|----------|------|------------|
-| `step-06` | 纯增益失败复平面板 | 原对象、仅调比例增益、复根实部固定在 `-0.4` | 单图复平面 + 右侧结论卡 | `K` 滑块 | `caseId=unit-3-6-pure-gain-failure`；`outputs=[root_locus, dominant_poles, feasible_region]`；`axis_policy=fixed_extent`；`sampling_policy=critical_point_dense` |
+| `step-06` | 纯增益失败复平面板 | 原对象、仅调比例增益、复根实部固定在 `-0.4` | 上方公式显影 + 下方左根轨迹右记录 | `K` 滑块 | `caseId=unit-3-6-pure-gain-failure`；`engine=useControlEngine + RootLocusPanel`；`axis_policy=fixed_extent`；`sampling_policy=critical_point_dense` |
 | `step-07` | `PD` 三面板 | $$T_d=0.35$$、$$K=1.00$$、目标区域开启 | 左根轨迹 / 右上阶跃 / 右下指标卡 | `T_d`、`K` 滑块 | `caseId=unit-3-6-pd-time-domain`；`outputs=[root_locus, step_response, metrics]`；`overlay_policy=[feasible_region,current_poles,mp_ts]` |
 | `step-09` | 测速反馈三面板 | $$K_t=0.35$$、$$K=1.00$$、等效极点为 `-2.2` | 左等效根轨迹 / 右上阶跃 / 右下指标卡 | `K_t`、`K` 滑块 | `caseId=unit-3-6-rate-feedback`；`outputs=[root_locus, step_response, metrics]`；`overlay_policy=[equivalent_pole,current_poles,mp_ts]` |
 | `step-11` | 超前频域工作区 | 讲义基线超前参数 | `2×2`：幅频 / 相频 / 阶跃回查 / 指标卡 | `a`、`T`、`K_c` 滑块 | `caseId=unit-3-6-lead-design`；`outputs=[bode_mag, bode_phase, step_response, metrics]`；`overlay_policy=[pm_gm,wc,mp_ts]` |
@@ -169,8 +169,8 @@
 ### 页面骨架
 - 模板：`goal_chain_slide`
 - 区域：
-  - `chain`：五任务链
-  - `outputs`：提交物卡
+  - `chain`：五任务链（左列）
+  - `outputs`：提交物卡（右列）
   - `rules`：实践规则卡
 
 ### 模块清单
@@ -196,7 +196,7 @@
 
 ### 预览口径
 - 学生页预览：`/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-03`
-- 对齐要求：任务链与交付物同屏，不得拆成两步。
+- 对齐要求：任务链与交付物并排两列呈现，不得拆成两步，也不设置独立学生作答区。
 
 ## 步骤 04｜前测：三类目标分别从哪里进入
 
@@ -205,18 +205,16 @@
 - 区域：
   - `question-stack`：三题前测
   - `record`：一句理由栏
-  - `ai-gate`：AI 锁定提示
 
 ### 模块清单
 - `pretest-q1`：时域目标入口题
 - `pretest-q2`：频域目标入口题
 - `pretest-q3`：右半平面零点边界题
 - `reason-record`：理由填写栏
-- `ai-gate-note`：AI 顺序约束卡
 
 ### 固定证据
 - 三道题干全部明文落页，分别对应：$M_p/t_s$、$PM/\omega_c$、右半平面零点。
-- AI 顺序卡固定写明：先提交判断，再允许查看 AI 对照；AI 只做错因对照，不代替学生作答。
+- 顺序约束固定写明：先独立完成三题与理由，再进入控灵助手中的错因对照；控灵助手不代替学生作答。
 
 ### 互动升级点
 - 组件类型：`quiz_group`
@@ -233,7 +231,7 @@
 
 ### 预览口径
 - 学生页预览：`/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-04`
-- 对齐要求：三题、理由栏和 AI 锁定提示在未作答状态下同时可见。
+- 对齐要求：三题与理由栏在未作答状态下同时可见；页面内不出现显式 AI gate。
 
 ## 步骤 05｜任务书：统一对象、三类装置与五任务入口
 
@@ -290,19 +288,19 @@ $$
 - 学生页预览：`/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-05`
 - 对齐要求：对象卡、表达式卡、任务表与分类组件必须同屏。
 
-## 步骤 06｜推导显影 A：时域指标如何变成设计可行域
+## 步骤 06｜时域指标如何变成设计可行域
 
 ### 页面骨架
 - 模板：`derivation_reveal_board`
 - 区域：
   - `derivation`：公式显影区
-  - `figure`：复平面证据板
-  - `record`：翻译记录表
+  - `figure`：统一引擎根轨迹面板（左列）
+  - `record`：翻译记录表（右列）
 
 ### 模块清单
 - `translation-formula-panel`：时域指标翻译公式
 - `feasible-region-reveal`：显影链
-- `pure-gain-failure-plot`：纯增益失败复平面板
+- `pure-gain-failure-plot`：统一引擎纯增益失败根轨迹面板
 - `translation-record-table`：记录表
 
 ### 固定证据
@@ -321,7 +319,7 @@ $$
 
 ### 互动升级点
 - 组件类型：`workspace_builder`
-- 学生任务：在复平面上叠加阻尼线和实部边界，并填写一句纯增益失败原因
+- 学生任务：点击核心翻译公式依次显影约束结论，再拖动增益观察纯增益闭环根轨迹，并填写一句纯增益失败原因
 - 反馈规则：只提示边界叠加是否正确，不替代学生写出结论句
 
 ### 埋点与教师数据
@@ -334,7 +332,7 @@ $$
 
 ### 预览口径
 - 学生页预览：`/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-06`
-- 对齐要求：公式、区域结论、纯增益失败复平面板与记录表必须同屏。
+- 对齐要求：公式显影位于上方；下方使用统一仿真引擎，根轨迹面板在左，记录区在右。
 
 ## 步骤 07｜任务 A：`PD` 时域设计
 
@@ -398,7 +396,6 @@ $$
 - `rate-structure-diagram`：原生结构图
 - `rate-derivation-reveal`：等效特征方程显影区
 - `pd-rate-contrast-table`：对照表
-- `sequence-check-card`：顺序检查组件
 
 ### 固定证据
 - 结构图旁必须完整给出
@@ -415,9 +412,9 @@ $$
 - 对照表固定写明：测速反馈的抓手是等效极点，不是“把 `PD` 换个位置”。
 
 ### 互动升级点
-- 组件类型：`sequenced_reveal`
-- 学生任务：按正确顺序点亮“结构差异 -> 等效特征方程 -> 设计抓手 -> 与 `PD` 的区别”
-- 反馈规则：顺序全对后才开放进入 `step-09`
+- 组件类型：`none`
+- 学生任务：本页不设置独立学生作答区，只负责完成结构差异阅读与证据对照
+- 反馈规则：不单独提交，作为进入 `step-09` 前的证据板
 
 ### 埋点与教师数据
 - 埋点摘要：`revealOrder`、`completedState`
@@ -429,7 +426,7 @@ $$
 
 ### 预览口径
 - 学生页预览：`/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-08`
-- 对齐要求：结构图、等效方程和对照表必须同屏，不得只剩工作区入口。
+- 对齐要求：结构图、等效方程和对照表必须同屏；结构图必须采用原生方式绘制，且不设置独立学生作答区。
 
 ## 步骤 09｜任务 B：测速反馈时域设计
 
