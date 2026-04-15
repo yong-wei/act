@@ -12,9 +12,9 @@ import type { Message } from 'ai/react';
 export type PageType = 'theory' | 'practice' | 'quiz' | 'reflection' | 'workspace' | 'summary';
 
 /**
- * 知识类型 (C: 概念性, X: 程序性, D: 元认知)
+ * 知识类型 (C: 概念性, X: 程序性, D: 元认知, X+C: 概念+程序复合)
  */
-export type KnowledgeType = 'C' | 'X' | 'D';
+export type KnowledgeType = 'C' | 'X' | 'D' | 'X+C';
 
 /**
  * 学习风格

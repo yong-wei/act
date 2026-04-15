@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 import sys
+import yaml
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -305,6 +306,12 @@ IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
         'lesson_steps_const': 'UNIT_4_1_LESSON_STEPS',
         'source_path': 'src/lib/unit-4-1-course.ts',
     },
+    '3-6': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-3-6-course.ts',
+        'page_contracts_const': 'UNIT_3_6_PAGE_CONTRACTS',
+        'lesson_steps_const': 'UNIT_3_6_LESSON_STEPS',
+        'source_path': 'src/lib/unit-3-6-course.ts',
+    },
 }
 
 TYPESCRIPT_EXPORT_EXTRACTOR = r"""
@@ -395,9 +402,9 @@ def load_interactive_contract(contract_path: Path) -> tuple[dict[str, Any] | Non
         return None, []
 
     try:
-        payload = json.loads(contract_path.read_text(encoding='utf-8'))
-    except json.JSONDecodeError as exc:
-        return None, [f'interactive-contract.yaml 不是有效的 JSON/YAML 子集：{exc.msg}']
+        payload = yaml.safe_load(contract_path.read_text(encoding='utf-8'))
+    except yaml.YAMLError as exc:
+        return None, [f'interactive-contract.yaml 解析失败：{exc}']
 
     if not isinstance(payload, dict):
         return None, ['interactive-contract.yaml 顶层必须是对象']
@@ -760,7 +767,7 @@ def extract_step_sections(markdown: str) -> dict[str, dict[str, str]]:
         step_id = f'step-{int(step_num):02d}'
         block = match.group(0)
         static_match = re.search(
-            r'###\s+(?:静态承载内容|固定内容)\s*\n(?P<body>.*?)(?=\n###\s+(?:互动升级点|互动与反馈)|\Z)',
+            r'###\s+(?:静态承载内容|固定内容|固定证据)\s*\n(?P<body>.*?)(?=\n###\s+(?:互动升级点|互动与反馈)|\Z)',
             block,
             re.DOTALL,
         )
@@ -837,8 +844,18 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         'media_or_table_ref',
         'acceptance_note',
     ]
+    upgrade_decision_columns = [
+        'evidence_unit_id',
+        'handout_anchor',
+        'evidence_kind',
+        'target_steps',
+        'upgrade_mode',
+        'keep_elements',
+        'non_reducible',
+        'acceptance_checks',
+    ]
     mapping_match = re.search(
-        r'##\s+(?P<title>讲义核心内容映射|讲义证据单元映射)\s*\n(?P<body>.*?)(?=\n##\s+|\Z)',
+        r'##\s+(?P<title>讲义核心内容映射|讲义证据单元映射|证据单元升级决策表)\s*\n(?P<body>.*?)(?=\n##\s+|\Z)',
         text,
         re.DOTALL,
     )
@@ -846,9 +863,12 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
     mapping_rows: list[dict[str, str]] = []
     mapping_contract_mode = 'core_items'
     if mapping_match:
-        mapping_contract_mode = (
-            'evidence_units' if mapping_match.group('title') == '讲义证据单元映射' else 'core_items'
-        )
+        if mapping_match.group('title') == '讲义证据单元映射':
+            mapping_contract_mode = 'evidence_units'
+        elif mapping_match.group('title') == '证据单元升级决策表':
+            mapping_contract_mode = 'upgrade_table'
+        else:
+            mapping_contract_mode = 'core_items'
         rows = [line.strip() for line in mapping_match.group('body').splitlines() if line.strip().startswith('|')]
         if len(rows) >= 2:
             mapping_columns_present = [cell.strip() for cell in rows[0].strip('|').split('|')]
@@ -856,11 +876,14 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         else:
             issues.append(f'{mapping_match.group("title")}存在，但缺少表头或数据行')
     else:
-        issues.append('缺少“讲义核心内容映射”或“讲义证据单元映射”章节')
+        issues.append('缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节')
 
-    required_mapping_columns = (
-        evidence_mapping_columns if mapping_contract_mode == 'evidence_units' else core_mapping_columns
-    )
+    if mapping_contract_mode == 'evidence_units':
+        required_mapping_columns = evidence_mapping_columns
+    elif mapping_contract_mode == 'upgrade_table':
+        required_mapping_columns = upgrade_decision_columns
+    else:
+        required_mapping_columns = core_mapping_columns
     missing_mapping_columns = [
         column for column in required_mapping_columns if column not in mapping_columns_present
     ]
@@ -877,7 +900,7 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
     for step_block in step_pattern.finditer(text):
         block = step_block.group(0)
         title_line = block.splitlines()[0].strip()
-        if '静态承载内容' not in block and '固定内容' not in block:
+        if '静态承载内容' not in block and '固定内容' not in block and '固定证据' not in block:
             step_static_blocks_missing.append(title_line)
         if '互动升级点' not in block and '互动与反馈' not in block:
             step_upgrade_blocks_missing.append(title_line)
@@ -898,47 +921,48 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
     formula_mapping_issues: list[str] = []
     curve_figure_steps_missing_mirror: list[str] = []
 
-    for row in mapping_rows:
-        handout_anchor = row.get('handout_anchor', '').strip()
-        target_step = row.get('target_step', '').strip().strip('`')
-        core_item_type = row.get('core_item_type', '').strip()
-        evidence_kind = row.get('evidence_kind', '').strip()
-        must_appear_content = row.get('must_appear_content', '').strip()
-        kind_text = '/'.join(part for part in [core_item_type, evidence_kind] if part)
+    if mapping_contract_mode in {'core_items', 'evidence_units'}:
+        for row in mapping_rows:
+            handout_anchor = row.get('handout_anchor', '').strip()
+            target_step = row.get('target_step', '').strip().strip('`')
+            core_item_type = row.get('core_item_type', '').strip()
+            evidence_kind = row.get('evidence_kind', '').strip()
+            must_appear_content = row.get('must_appear_content', '').strip()
+            kind_text = '/'.join(part for part in [core_item_type, evidence_kind] if part)
 
-        for anchor in split_handout_anchor(handout_anchor):
-            if handout_headings and anchor not in handout_headings and anchor not in invalid_handout_anchors:
-                invalid_handout_anchors.append(anchor)
+            for anchor in split_handout_anchor(handout_anchor):
+                if handout_headings and anchor not in handout_headings and anchor not in invalid_handout_anchors:
+                    invalid_handout_anchors.append(anchor)
 
-        if target_step and target_step not in step_sections and target_step not in missing_target_steps:
-            missing_target_steps.append(target_step)
-            continue
+            if target_step and target_step not in step_sections and target_step not in missing_target_steps:
+                missing_target_steps.append(target_step)
+                continue
 
-        if 'curve_figure' in kind_text and target_step and target_step in step_sections:
-            if not step_sections[target_step]['has_curve_figure_mirror'] and target_step not in curve_figure_steps_missing_mirror:
-                curve_figure_steps_missing_mirror.append(target_step)
+            if 'curve_figure' in kind_text and target_step and target_step in step_sections:
+                if not step_sections[target_step]['has_curve_figure_mirror'] and target_step not in curve_figure_steps_missing_mirror:
+                    curve_figure_steps_missing_mirror.append(target_step)
 
-        if 'formula' not in kind_text or not target_step or target_step not in step_sections:
-            continue
+            if 'formula' not in kind_text or not target_step or target_step not in step_sections:
+                continue
 
-        static_content = step_sections[target_step]['static']
-        static_formulas = extract_formula_tokens(static_content)
-        normalized_static_text = normalize_formula_text(static_content)
-        required_formulas = extract_formula_tokens(must_appear_content)
+            static_content = step_sections[target_step]['static']
+            static_formulas = extract_formula_tokens(static_content)
+            normalized_static_text = normalize_formula_text(static_content)
+            required_formulas = extract_formula_tokens(must_appear_content)
 
-        if required_formulas:
-            missing_formulas = [
-                formula for formula in required_formulas
-                if not formula_is_covered(formula, static_formulas, normalized_static_text)
-            ]
-            if missing_formulas:
+            if required_formulas:
+                missing_formulas = [
+                    formula for formula in required_formulas
+                    if not formula_is_covered(formula, static_formulas, normalized_static_text)
+                ]
+                if missing_formulas:
+                    formula_mapping_issues.append(
+                        f'步骤 `{target_step}` 的“静态承载内容”未显式覆盖公式型映射：{", ".join(missing_formulas)}'
+                    )
+            elif not has_latex_formula_markers(static_content):
                 formula_mapping_issues.append(
-                    f'步骤 `{target_step}` 的“静态承载内容”未显式覆盖公式型映射：{", ".join(missing_formulas)}'
+                    f'步骤 `{target_step}` 的“静态承载内容”缺少公式型映射所需的 LaTeX 公式。'
                 )
-        elif not has_latex_formula_markers(static_content):
-            formula_mapping_issues.append(
-                f'步骤 `{target_step}` 的“静态承载内容”缺少公式型映射所需的 LaTeX 公式。'
-            )
 
     if invalid_handout_anchors:
         issues.append(f'以下 handout_anchor 未在讲义标题中命中：{", ".join(invalid_handout_anchors)}')
@@ -964,7 +988,7 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
     curve_figure_steps_missing_contract: list[str] = []
     nested_render_contract_fields_missing: list[str] = []
     payload, _ = load_interactive_contract(interactive_contract)
-    if isinstance(payload, dict):
+    if isinstance(payload, dict) and mapping_contract_mode in {'core_items', 'evidence_units'}:
         contract_steps = payload.get('steps')
         required_curve_figure_fields = normalize_optional_required_fields(payload, 'required_curve_figure_fields')
         required_native_figure_fields = normalize_optional_required_fields(payload, 'required_native_figure_fields')
@@ -1022,6 +1046,8 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
     if not issues:
         if mapping_contract_mode == 'evidence_units':
             summary.append('已覆盖讲义中的核心证据单元、主阅读顺序与曲线图镜像要求。')
+        elif mapping_contract_mode == 'upgrade_table':
+            summary.append('已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。')
         else:
             summary.append('已覆盖讲义中的核心公式与静态承载内容。')
     else:

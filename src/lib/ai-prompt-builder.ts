@@ -144,6 +144,7 @@ function getKnowledgeTypeLabel(type: KnowledgeType): string {
     C: '概念性知识 (Conceptual)',
     X: '程序性知识 (Procedural)',
     D: '元认知知识 (Metacognitive)',
+    'X+C': '概念+程序复合知识 (Conceptual + Procedural)',
   };
   return labels[type] || type;
 }

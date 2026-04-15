@@ -90,14 +90,11 @@ export function UNIT_3_6StudentPage({
   const step = UNIT_3_6_LESSON_STEPS[activeIndex];
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
-  const aiDisabled =
-    (step.id === 'step-04' || step.id === 'step-12') && !savedResponse;
+  const aiDisabled = step.id === 'step-04' && !savedResponse;
   const aiDisabledReason =
     step.id === 'step-04'
       ? '请先独立完成前测并提交，再用 AI 做错因对照。'
-      : step.id === 'step-12'
-        ? '请先完成后测并提交，再用 AI 做设计链对照。'
-        : undefined;
+      : undefined;
 
   useEffect(() => {
     const stepContext = getUnit36StepAIContext(step.id);

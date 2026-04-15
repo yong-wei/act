@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { parse } from 'yaml';
 
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
@@ -25,16 +26,16 @@ describe('unit 3-6 interactive course', () => {
     expect(registry?.courseMeta.courseTitle).toContain('零点作用与动态改善实验');
   });
 
-  it('defines the full 13-step lesson flow', async () => {
+  it('defines the full 15-step lesson flow', async () => {
     const courseModule = await import('@/lib/unit-3-6-course');
 
-    expect(courseModule.UNIT_3_6_LESSON_STEPS).toHaveLength(13);
+    expect(courseModule.UNIT_3_6_LESSON_STEPS).toHaveLength(15);
     expect(courseModule.UNIT_3_6_LESSON_STEPS[0]?.id).toBe('step-01');
-    expect(courseModule.UNIT_3_6_LESSON_STEPS[12]?.id).toBe('step-13');
+    expect(courseModule.UNIT_3_6_LESSON_STEPS[14]?.id).toBe('step-15');
   });
 
   it('exposes AI quick questions for the boundary decision step', () => {
-    const quickQuestions = getStepQuickQuestions('unit-3-6-zero-design-workshop-v1', 'step-11');
+    const quickQuestions = getStepQuickQuestions('unit-3-6-zero-design-workshop-v1', 'step-14');
 
     expect(quickQuestions).toHaveLength(2);
     expect(quickQuestions[0]?.question).toContain('非最小相');
@@ -44,17 +45,18 @@ describe('unit 3-6 interactive course', () => {
     const courseModule = await import('@/lib/unit-3-6-course');
 
     expect(courseModule.getUNIT_3_6MediaSrc('step-01')).toContain('3-6-cover-comic');
-    expect(courseModule.getUNIT_3_6MediaSrc('step-05')).toContain('3-6-design-map');
+    expect(courseModule.getUNIT_3_6MediaSrc('step-02')).toContain('3-6-design-map');
     expect(courseModule.getUNIT_3_6MediaSrc('step-07')).toContain('3-6-pd-design');
-    expect(courseModule.getUNIT_3_6MediaSrc('step-08')).toContain('3-6-rate-feedback-design');
-    expect(courseModule.getUNIT_3_6MediaSrc('step-09')).toContain('3-6-lead-design');
-    expect(courseModule.getUNIT_3_6MediaSrc('step-10')).toContain('3-6-pd-frequency-design');
-    expect(courseModule.getUNIT_3_6MediaSrc('step-11')).toContain('3-6-rhp-boundary');
-    expect(courseModule.getUNIT_3_6MediaSrc('step-13')).toContain('3-6-info');
+    expect(courseModule.getUNIT_3_6MediaSrc('step-08')).toContain('3-6-pd-rate-structure');
+    expect(courseModule.getUNIT_3_6MediaSrc('step-09')).toContain('3-6-rate-feedback-design');
+    expect(courseModule.getUNIT_3_6MediaSrc('step-11')).toContain('3-6-lead-design');
+    expect(courseModule.getUNIT_3_6MediaSrc('step-13')).toContain('3-6-pd-frequency-design');
+    expect(courseModule.getUNIT_3_6MediaSrc('step-14')).toContain('3-6-rhp-boundary');
+    expect(courseModule.getUNIT_3_6MediaSrc('step-15')).toContain('3-6-info');
   });
 
   it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
-    const contract = JSON.parse(
+    const contract = parse(
       readFileSync(
         join(repoRoot, 'course-content/authoring/lessons/3-6/design/interactive-contract.yaml'),
         'utf8',
@@ -75,7 +77,7 @@ describe('unit 3-6 interactive course', () => {
 
     const courseModule = await import('@/lib/unit-3-6-course');
     const interactiveSteps = new Map(courseModule.UNIT_3_6_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
-    const expectedStepIds = ['step-01', 'step-04', 'step-06', 'step-08', 'step-10', 'step-11', 'step-13'] as const;
+    const expectedStepIds = ['step-01', 'step-04', 'step-06', 'step-08', 'step-10', 'step-11', 'step-13', 'step-14', 'step-15'] as const;
 
     for (const stepId of expectedStepIds) {
       const authoringStep = contract.steps[stepId];
@@ -148,8 +150,8 @@ describe('unit 3-6 interactive course', () => {
     const parsed = parseRuntimeLessonMediaDocument(mediaDocument);
 
     expect(parsed.mediaResources.some((resource) => resource.filename === 'handout.md')).toBe(false);
-    expect(parsed.handoutSummary).toContain('超前校正');
-    expect(parsed.handoutSummary).toContain('PD控制');
+    expect(parsed.handoutSummary).toContain('超前频域设计');
+    expect(parsed.handoutSummary).toContain('`PD` 频域设计');
   });
 
   it('keeps the classroom panels focused on goal-driven design, not on the 3-5 mechanism-only storyline', () => {

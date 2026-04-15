@@ -11,9 +11,11 @@ export type UNIT_3_6PageType =
   | 'categorize_and_confirm'
   | 'workspace_builder'
   | 'parameter_workspace'
+  | 'sequenced_reveal'
+  | 'structured_response'
   | 'structured_compare'
   | 'decision_submit'
-  | 'exit_reflection';
+  | 'quiz_group+exit_reflection';
 
 export interface UNIT_3_6PageRegionContract {
   id: string;
@@ -149,9 +151,9 @@ export const UNIT_3_6_PAGE_CONTRACTS: Record<string, UNIT_3_6PageContract> = {
     layout: {
       template: 'goal_chain_slide',
       regions: [
-        { id: 'goals', width: 'full', order: 1 },
-        { id: 'chain', width: 'full', order: 2 },
-        { id: 'outputs', width: 'full', order: 3 },
+        { id: 'chain', width: 'full', order: 1 },
+        { id: 'outputs', width: 'full', order: 2 },
+        { id: 'rules', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'none',
@@ -180,69 +182,99 @@ export const UNIT_3_6_PAGE_CONTRACTS: Record<string, UNIT_3_6PageContract> = {
   },
   'step-05': {
     layout: {
-      template: 'table_plus_prompt',
+      template: 'evidence_board',
       regions: [
         { id: 'object', width: 'full', order: 1 },
-        { id: 'targets', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'expressions', width: 'full', order: 2 },
+        { id: 'tasks', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'categorize_and_confirm',
     teacherInsightWidgets: ['goal_bucket_distribution', 'misbucket_rate'],
     telemetrySummaryFields: ['bucketAssignment', 'attemptCount', 'timeOnStep'],
-    misconceptionTags: ['goal_misbucket'],
+    misconceptionTags: ['misbucket_goal_entry'],
     previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-05',
   },
   'step-06': {
     layout: {
-      template: 'constraint_translation_workspace',
+      template: 'derivation_reveal_board',
       regions: [
-        { id: 'formula', width: 'full', order: 1 },
-        { id: 'workspace', width: 'full', order: 2 },
+        { id: 'derivation', width: 'full', order: 1 },
+        { id: 'figure', width: 'full', order: 2 },
         { id: 'record', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'workspace_builder',
     teacherInsightWidgets: ['overlay_accuracy', 'pure_gain_failure_tags'],
     telemetrySummaryFields: ['constraintOverlayState', 'recordSubmitted', 'attemptCount'],
-    misconceptionTags: ['constraint_translation_error', 'pure_gain_can_pass'],
+    misconceptionTags: ['pure_gain_failure_confusion'],
     previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-06',
   },
   'step-07': {
     layout: {
-      template: 'tri_panel_design_workspace',
+      template: 'parametric_sim_board',
       regions: [
-        { id: 'task-chain', width: 'full', order: 1 },
-        { id: 'workspace', width: 'full', order: 2 },
-        { id: 'record', width: 'full', order: 3 },
+        { id: 'evidence', width: 'full', order: 1 },
+        { id: 'derivation', width: 'full', order: 2 },
+        { id: 'workspace', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'parameter_workspace',
     teacherInsightWidgets: ['final_parameter_distribution', 'validation_pass_rate'],
     telemetrySummaryFields: ['parameterTrail', 'validationState', 'recordSubmitted'],
-    misconceptionTags: ['skip_design_point', 'memorize_pd_answer_only'],
+    misconceptionTags: ['skip_design_point', 'pd_only_memorize_answer'],
     previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-07',
   },
   'step-08': {
     layout: {
-      template: 'structure_formula_workspace',
+      template: 'structure_evidence_board',
       regions: [
         { id: 'structure', width: 'full', order: 1 },
-        { id: 'workspace', width: 'full', order: 2 },
-        { id: 'record', width: 'full', order: 3 },
+        { id: 'derivation', width: 'full', order: 2 },
+        { id: 'compare', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'parameter_workspace',
-    teacherInsightWidgets: ['adjustment_order_distribution', 'pd_rate_confusion_rate'],
-    telemetrySummaryFields: ['parameterTrail', 'adjustmentOrder', 'recordSubmitted'],
-    misconceptionTags: ['pd_equals_rate_feedback'],
+    interactionKind: 'sequenced_reveal',
+    teacherInsightWidgets: ['reveal_order_accuracy', 'pd_rate_confusion_rate'],
+    telemetrySummaryFields: ['revealOrder', 'completedState'],
+    misconceptionTags: ['rate_as_pd_relocated'],
     previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-08',
   },
   'step-09': {
     layout: {
-      template: 'bode_design_workspace',
+      template: 'parametric_sim_board',
+      regions: [
+        { id: 'evidence', width: 'full', order: 1 },
+        { id: 'derivation', width: 'full', order: 2 },
+        { id: 'workspace', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'parameter_workspace',
+    teacherInsightWidgets: ['adjustment_order_distribution', 'rate_validation_pass_rate'],
+    telemetrySummaryFields: ['parameterTrail', 'adjustmentOrder', 'recordSubmitted'],
+    misconceptionTags: ['guess_zero_first_in_rate_feedback'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-09',
+  },
+  'step-10': {
+    layout: {
+      template: 'derivation_reveal_board',
       regions: [
         { id: 'goal', width: 'full', order: 1 },
+        { id: 'evidence', width: 'full', order: 2 },
+        { id: 'derivation', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'structured_response',
+    teacherInsightWidgets: ['keyword_coverage_distribution'],
+    telemetrySummaryFields: ['responseSubmitted', 'keywordCoverage'],
+    misconceptionTags: ['skip_gain_only_check'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-10',
+  },
+  'step-11': {
+    layout: {
+      template: 'frequency_design_workspace',
+      regions: [
+        { id: 'formula', width: 'full', order: 1 },
         { id: 'workspace', width: 'full', order: 2 },
         { id: 'record', width: 'full', order: 3 },
       ],
@@ -250,25 +282,40 @@ export const UNIT_3_6_PAGE_CONTRACTS: Record<string, UNIT_3_6PageContract> = {
     interactionKind: 'parameter_workspace',
     teacherInsightWidgets: ['lead_parameter_distribution', 'margin_recovery_rate'],
     telemetrySummaryFields: ['parameterTrail', 'marginState', 'recordSubmitted'],
-    misconceptionTags: ['gain_only_is_enough', 'skip_lead_order'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-09',
+    misconceptionTags: ['stop_after_frequency_pass'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
   },
-  'step-10': {
+  'step-12': {
     layout: {
-      template: 'dual_solution_compare_workspace',
+      template: 'compare_reveal_board',
       regions: [
         { id: 'goal', width: 'full', order: 1 },
-        { id: 'workspace', width: 'full', order: 2 },
+        { id: 'derivation', width: 'full', order: 2 },
         { id: 'compare', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'structured_response',
+    teacherInsightWidgets: ['reason_tag_distribution', 'empty_reason_rate'],
+    telemetrySummaryFields: ['reasonTags', 'completedState'],
+    misconceptionTags: ['no_same_goal_compare_intent'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-12',
+  },
+  'step-13': {
+    layout: {
+      template: 'comparison_lab_board',
+      regions: [
+        { id: 'workspace', width: 'full', order: 1 },
+        { id: 'compare', width: 'full', order: 2 },
+        { id: 'submit', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'structured_compare',
     teacherInsightWidgets: ['difference_tag_distribution', 'empty_comparison_rate'],
     telemetrySummaryFields: ['comparisonSubmitted', 'differenceTags', 'validationState'],
-    misconceptionTags: ['frequency_pass_equals_all_pass', 'empty_compare'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-10',
+    misconceptionTags: ['both_pass_then_stop'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-13',
   },
-  'step-11': {
+  'step-14': {
     layout: {
       template: 'boundary_decision_workspace',
       regions: [
@@ -280,41 +327,23 @@ export const UNIT_3_6_PAGE_CONTRACTS: Record<string, UNIT_3_6PageContract> = {
     interactionKind: 'decision_submit',
     teacherInsightWidgets: ['structure_choice_distribution', 'boundary_skip_rate'],
     telemetrySummaryFields: ['feasibilityChoice', 'structureChoice', 'reasonSubmitted'],
-    misconceptionTags: ['skip_goal_review', 'nmp_still_push_bandwidth'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+    misconceptionTags: ['boundary_skip_then_choose_structure'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-14',
   },
-  'step-12': {
+  'step-15': {
     layout: {
-      template: 'post_quiz_stack',
+      template: 'summary_assessment_board',
       regions: [
-        { id: 'question-stack', width: 'full', order: 1 },
-        { id: 'explain', width: 'full', order: 2 },
-        { id: 'ai-compare', width: 'full', order: 3 },
+        { id: 'quiz', width: 'full', order: 1 },
+        { id: 'summary', width: 'full', order: 2 },
+        { id: 'close', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'quiz_group',
-    teacherInsightWidgets: ['posttest_distribution', 'remaining_confusion_tags'],
-    telemetrySummaryFields: ['attemptCount', 'resultState', 'reasonTextSubmitted', 'aiCompareOpened'],
-    misconceptionTags: [
-      'shared_goal_purpose_confusion',
-      'rate_feedback_entry_confusion',
-      'nmp_goal_review_confusion',
-    ],
-    previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-12',
-  },
-  'step-13': {
-    layout: {
-      template: 'summary_infographic',
-      regions: [
-        { id: 'summary', width: 'full', order: 1 },
-        { id: 'media', width: 'full', order: 2 },
-        { id: 'exit', width: 'full', order: 3 },
-      ],
-    },
-    interactionKind: 'exit_reflection',
-    teacherInsightWidgets: ['reflection_word_cloud', 'completion_rate'],
-    telemetrySummaryFields: ['reflectionSubmitted', 'reflectionLength'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-13',
+    interactionKind: 'quiz_group+exit_reflection',
+    teacherInsightWidgets: ['posttest_distribution', 'reflection_keyword_cloud'],
+    telemetrySummaryFields: ['posttestAccuracy', 'reflectionSubmitted'],
+    misconceptionTags: ['still_choose_tool_before_goal'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-15',
   },
 };
 
@@ -324,24 +353,26 @@ export const UNIT_3_6_INTERACTIVE_PAGE_TYPES = new Set<UNIT_3_6PageType>([
   'categorize_and_confirm',
   'workspace_builder',
   'parameter_workspace',
+  'sequenced_reveal',
+  'structured_response',
   'structured_compare',
   'decision_submit',
-  'exit_reflection',
+  'quiz_group+exit_reflection',
 ]);
 
 export const UNIT_3_6_LESSON_STEPS: UNIT_3_6StepDefinition[] = [
   {
     id: 'step-01',
     stage: 'B',
-    title: '封面导入：为什么今天必须先定目标',
-    hint: '先回答“入口应该先看什么”，教师可稍后揭示答案。',
-    duration: '4 min',
+    title: '封面导入：目标必须先于工具',
+    hint: '先判断入口原则，再进入后续设计链。',
+    duration: '2 min',
     pageType: 'single_choice',
   },
   {
     id: 'step-02',
     stage: 'O',
-    title: '回到地图：从零点机理切到校正设计',
+    title: '回到地图：从 3-5 的机理走向 3-6 的设计',
     hint: '只阅读，不提交。',
     duration: '2 min',
     pageType: 'display',
@@ -349,15 +380,15 @@ export const UNIT_3_6_LESSON_STEPS: UNIT_3_6StepDefinition[] = [
   {
     id: 'step-03',
     stage: 'O',
-    title: '本节目标与五任务设计链',
-    hint: '确认本课三项目标、五任务链与固定交付物。',
+    title: '五任务设计链与提交物总览',
+    hint: '确认五任务、固定交付物与实践规则。',
     duration: '2 min',
     pageType: 'display',
   },
   {
     id: 'step-04',
     stage: 'P1',
-    title: '前测：你会怎样从指标进入设计',
+    title: '前测：三类目标分别从哪里进入',
     hint: '完成三题前测和一句理由，提交后再打开 AI 对照。',
     duration: '6 min',
     pageType: 'quiz_group',
@@ -365,74 +396,90 @@ export const UNIT_3_6_LESSON_STEPS: UNIT_3_6StepDefinition[] = [
   {
     id: 'step-05',
     stage: 'P2',
-    title: '任务书：固定对象、两类目标与交付记录',
-    hint: '把时域 / 频域 / 边界问题拖入正确入口栏。',
-    duration: '6 min',
+    title: '任务书：统一对象、三类装置与五任务入口',
+    hint: '先读对象与三类装置，再完成入口分类。',
+    duration: '5 min',
     pageType: 'categorize_and_confirm',
   },
   {
     id: 'step-06',
     stage: 'P2',
-    title: '工作区 A：把时域指标翻译成设计可行域',
-    hint: '填写时域指标翻译结果，并记录纯增益为什么不能直接达标。',
+    title: '推导显影 A：时域指标如何变成设计可行域',
+    hint: '完成区域翻译，并记录纯增益失败原因。',
     duration: '8 min',
     pageType: 'workspace_builder',
   },
   {
     id: 'step-07',
     stage: 'P2',
-    title: '工作区 B：PD 时域设计',
-    hint: '记录设计点、参数链与验收结果。',
+    title: '任务 A：PD 时域设计',
+    hint: '按设计点、相角条件、模值条件完成时域 PD 设计。',
     duration: '12 min',
     pageType: 'parameter_workspace',
   },
   {
     id: 'step-08',
     stage: 'P2',
-    title: '工作区 C：测速反馈时域设计',
-    hint: '先定等效极点，再求 Kt 和 K。',
-    duration: '10 min',
-    pageType: 'parameter_workspace',
+    title: '任务 B 的证据板：测速反馈为何不是“换位置的 PD”',
+    hint: '按顺序点亮结构差异、等效方程、设计抓手和与 PD 的区别。',
+    duration: '5 min',
+    pageType: 'sequenced_reveal',
   },
   {
     id: 'step-09',
     stage: 'P2',
-    title: '工作区 D：超前频域设计',
-    hint: '先补角，再布置截止频率，最后回查时域代价。',
+    title: '任务 B：测速反馈时域设计',
+    hint: '先定等效极点，再调 Kt 与 K 并完成验收。',
     duration: '10 min',
     pageType: 'parameter_workspace',
   },
   {
     id: 'step-10',
     stage: 'P2',
-    title: '工作区 E：同一频域指标下的 PD 设计',
-    hint: '在相同频域目标下比较 PD 与超前的差异标签。',
-    duration: '8 min',
-    pageType: 'structured_compare',
+    title: '推导显影 B：频域目标如何进入超前设计',
+    hint: '先看只调增益为何失败，再写出超前四步链的理由。',
+    duration: '6 min',
+    pageType: 'structured_response',
   },
   {
     id: 'step-11',
     stage: 'P2',
-    title: '工作区 F：非最小相边界与结构选择',
-    hint: '先重审目标，再提交结构选择与理由。',
-    duration: '6 min',
-    pageType: 'decision_submit',
+    title: '任务 C：超前频域设计',
+    hint: '完成超前设计，并记录为何频域通过后仍要回查时域。',
+    duration: '10 min',
+    pageType: 'parameter_workspace',
   },
   {
     id: 'step-12',
-    stage: 'P3',
-    title: '后测：设计链和边界是否分清',
-    hint: '完成后测与一句解释，提交后可查看 AI 对照。',
-    duration: '6 min',
-    pageType: 'quiz_group',
+    stage: 'P2',
+    title: '推导显影 C：为何同一频域指标下还要再做一次 PD',
+    hint: '勾选同指标比较的理由标签，压实比较意图。',
+    duration: '5 min',
+    pageType: 'structured_response',
   },
   {
     id: 'step-13',
-    stage: 'S',
-    title: '收束：从指标走到结构选择',
-    hint: '写一句你要带走的设计判断。',
-    duration: '4 min',
-    pageType: 'exit_reflection',
+    stage: 'P2',
+    title: '任务 D：同指标下的 PD 频域设计与并排比较',
+    hint: '完成 PD 频域设计，并填写与超前方案的结构化比较表。',
+    duration: '8 min',
+    pageType: 'structured_compare',
+  },
+  {
+    id: 'step-14',
+    stage: 'P2',
+    title: '任务 E：右半平面零点下的边界与结构选择',
+    hint: '先判断原目标是否仍可行，再提交结构选择与理由。',
+    duration: '8 min',
+    pageType: 'decision_submit',
+  },
+  {
+    id: 'step-15',
+    stage: 'P3',
+    title: '后测与收束：从指标走到结构选择',
+    hint: '完成三题后测、三句结论阅读与一句反思。',
+    duration: '5 min',
+    pageType: 'quiz_group+exit_reflection',
   },
 ] as const;
 
@@ -473,13 +520,14 @@ export const UNIT_3_6_PREMIUM_LESSON_CARD = {
 
 const UNIT_3_6_MEDIA_BY_STEP_ID: Record<string, string> = {
   'step-01': '/course-runtime/lessons/3-6/media/3-6-cover-comic.png',
-  'step-05': '/course-runtime/lessons/3-6/media/3-6-design-map.png',
+  'step-02': '/course-runtime/lessons/3-6/media/3-6-design-map.png',
   'step-07': '/course-runtime/lessons/3-6/media/3-6-pd-design.png',
-  'step-08': '/course-runtime/lessons/3-6/media/3-6-rate-feedback-design.png',
-  'step-09': '/course-runtime/lessons/3-6/media/3-6-lead-design.png',
-  'step-10': '/course-runtime/lessons/3-6/media/3-6-pd-frequency-design.png',
-  'step-11': '/course-runtime/lessons/3-6/media/3-6-rhp-boundary.png',
-  'step-13': '/course-runtime/lessons/3-6/media/3-6-info.png',
+  'step-08': '/course-runtime/lessons/3-6/media/3-6-pd-rate-structure.png',
+  'step-09': '/course-runtime/lessons/3-6/media/3-6-rate-feedback-design.png',
+  'step-11': '/course-runtime/lessons/3-6/media/3-6-lead-design.png',
+  'step-13': '/course-runtime/lessons/3-6/media/3-6-pd-frequency-design.png',
+  'step-14': '/course-runtime/lessons/3-6/media/3-6-rhp-boundary.png',
+  'step-15': '/course-runtime/lessons/3-6/media/3-6-info.png',
 };
 
 export function getUNIT_3_6MediaSrc(stepId: string) {

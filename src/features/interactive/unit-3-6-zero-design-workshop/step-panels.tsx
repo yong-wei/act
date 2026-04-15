@@ -27,9 +27,12 @@ import {
   DESIGN_TASK_CARDS,
   DIFFERENCE_TAG_OPTIONS,
   ENTRY_BUCKETS,
+  FINAL_QUIZ_QUESTIONS,
   PARAMETER_WORKSPACE_FIELDS,
-  POST_QUIZ_QUESTIONS,
   PRETEST_QUESTIONS,
+  REASON_TAG_OPTIONS,
+  SEQUENCE_REVEAL_OPTIONS,
+  STRUCTURED_RESPONSE_KEYWORD_OPTIONS,
   type WorkspaceParameterChange,
 } from './workspace';
 
@@ -100,7 +103,7 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
     case 'step-02':
       return {
         kicker: 'Map',
-        intro: '3-5 回答“为什么改变结构后，轨迹和响应会一起变”，3-6 则把这个机理推进到“如何按目标进入设计链”，再把边界交给 3-7。',
+        intro: '3-5 回答“为什么改变结构后，轨迹和响应会一起变”，3-6 则把机理推进到“如何按目标进入设计链”，再把稳态改善交给 3-7。',
         sections: [
           {
             title: '路径定位',
@@ -120,9 +123,9 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
         intro: '五任务链必须完整写出来，因为这节课不是“装置鉴赏课”，而是一条从指标进入设计的完整执行链。',
         sections: [
           {
-            title: '三项目标',
+            title: '固定交付物',
             tone: 'emerald',
-            bullets: ['把时域指标翻译成目标极点区域。', '把频域指标翻译成补角与交叉频率。', '在非最小相对象下先重审目标再选结构。'],
+            bullets: ['指标翻译表', '时域设计记录', '频域设计记录', '边界判断卡', '一页设计报告'],
           },
           {
             title: '五任务链',
@@ -146,7 +149,7 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
     case 'step-05':
       return {
         kicker: 'Brief',
-        intro: '对象、目标表和任务表必须同屏，因为本页的关键动作不是“背术语”，而是把目标放回正确入口。',
+        intro: '对象、三类校正表达式和五任务表必须同屏，因为本页的关键动作不是“背术语”，而是把任务放回正确入口。',
         sections: [
           {
             title: '固定对象',
@@ -154,15 +157,15 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
             formula: 'G_p(s)=\\frac{4}{s(s+0.8)}',
           },
           {
-            title: '入口规则',
+            title: '三类装置',
             tone: 'amber',
-            body: '先按目标分类，再进入工具。',
+            bullets: ['PD：$G_{PD}(s)=K(1+T_d s)$', '测速反馈：$U(s)=KE(s)-K_t sY(s)$', '超前：$G_{lead}(s)=K_c(aTs+1)/(Ts+1)$'],
           },
         ],
       };
     case 'step-06':
       return {
-        kicker: 'Workspace A',
+        kicker: 'Reveal A',
         intro: '时域设计不能从参数开始，必须先把 Mp 和 ts 翻译成目标极点区域，再说明为什么单纯调增益并不会自动满足约束。',
         sections: [
           {
@@ -179,7 +182,7 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
       };
     case 'step-07':
       return {
-        kicker: 'Workspace B',
+        kicker: 'Task A',
         intro: 'PD 时域设计的核心不是背参数，而是按“设计点 -> 相角条件 -> 模值条件 -> 验收”完整走一遍。',
         sections: [
           {
@@ -196,9 +199,14 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
       };
     case 'step-08':
       return {
-        kicker: 'Workspace C',
+        kicker: 'Task B Prep',
         intro: '测速反馈不能按“另一个 PD”去理解，它的设计抓手是等效极点位置，所以顺序必须是：先定等效极点，再求 Kt。',
         sections: [
+          {
+            title: '先看结构差异',
+            tone: 'violet',
+            body: '测速反馈把微分环节放在反馈通道，不等于在前向通道显式加一个零点。',
+          },
           {
             title: '顺序提醒',
             tone: 'amber',
@@ -206,31 +214,82 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
           },
           {
             title: '结构表达',
-            tone: 'violet',
+            tone: 'cyan',
             formula: 'U(s)=K E(s)-K_t sY(s)',
           },
         ],
       };
     case 'step-09':
       return {
-        kicker: 'Workspace D',
-        intro: '超前频域设计要求你先把目标翻译成补角与截止频率，再决定 a、T 和 Kc，而不是看到 Bode 图就盲调增益。',
+        kicker: 'Task B',
+        intro: '测速反馈时域设计仍要沿用时域目标，但其入口是等效极点和模值条件，而不是前向零点位置。',
         sections: [
           {
-            title: '频域目标',
+            title: '等效极点目标',
             tone: 'cyan',
-            formula: 'PM\\ge 50^\\circ,\\qquad \\omega_c\\approx 3\\ \\text{rad/s}',
+            body: '将原极点 -0.8 左移到 -2.2，使复根实部稳定落在 -1.1。',
           },
           {
             title: '顺序提醒',
             tone: 'emerald',
-            body: '先补角，再布置频带，最后回查时域代价。',
+            body: '先定等效极点，再由模值条件反求参数并回查时域。',
           },
         ],
       };
     case 'step-10':
       return {
-        kicker: 'Workspace E',
+        kicker: 'Reveal B',
+        intro: '频域设计不能一上来就调滑块。必须先看共同目标，再看只调增益会怎样失败，最后才进入超前四步链。',
+        sections: [
+          {
+            title: '共同频域目标',
+            tone: 'cyan',
+            formula: 'PM\\ge 50^\\circ,\\qquad \\omega_c\\approx 3\\ \\text{rad/s}',
+          },
+          {
+            title: '超前四步链',
+            tone: 'amber',
+            bullets: ['先看只调增益为何失败', '再计算需要补多少相角', '然后布置相位峰所在频带', '最后用幅值条件求 K_c 并回查时域'],
+          },
+        ],
+      };
+    case 'step-11':
+      return {
+        kicker: 'Task C',
+        intro: '超前频域设计要求先把目标翻译成补角与截止频率，再决定 a、T 和 Kc，而不是看到 Bode 图就盲调增益。',
+        sections: [
+          {
+            title: '超前控制器形式',
+            tone: 'violet',
+            formula: 'G_{lead}(s)=K_c\\frac{aTs+1}{Ts+1},\\qquad a>1',
+          },
+          {
+            title: '顺序提醒',
+            tone: 'amber',
+            body: '先补角，再布置频带，最后回查时域副作用。',
+          },
+        ],
+      };
+    case 'step-12':
+      return {
+        kicker: 'Reveal C',
+        intro: '同一频域目标下再做一次 PD，不是为了证明谁更强，而是为了把“达标”和“代价”分开看清。',
+        sections: [
+          {
+            title: '比较维度',
+            tone: 'cyan',
+            bullets: ['是否达标', '超调', '调节时间', '高频放大风险', '推荐结构'],
+          },
+          {
+            title: '本页意图',
+            tone: 'amber',
+            body: '任务 D 的存在，是为了比较同指标下的结构副作用，而不是重复做一题。',
+          },
+        ],
+      };
+    case 'step-13':
+      return {
+        kicker: 'Task D',
         intro: '对照页最重要的句子只有一句：同一频域目标达标，不代表时域代价相同。',
         sections: [
           {
@@ -245,9 +304,9 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
           },
         ],
       };
-    case 'step-11':
+    case 'step-14':
       return {
-        kicker: 'Workspace F',
+        kicker: 'Task E',
         intro: '右半平面零点不是“再多补一点角”就能糊过去的问题。这里必须把设计链收束成一句话：先改目标，再选结构。',
         sections: [
           {
@@ -260,25 +319,23 @@ function getStepBlueprint(step: UNIT_3_6StepDefinition): StepBlueprint {
             tone: 'amber',
             body: '先改目标，再选结构。',
           },
-        ],
-      };
-    case 'step-12':
-      return {
-        kicker: 'Post-check',
-        intro: '后测只看一件事：你是否已经把“目标 -> 结构 -> 参数 -> 验收 -> 边界”这条链真正分清。',
-        sections: [
           {
-            title: 'AI compare',
-            tone: 'amber',
-            body: '提交后测和一句解释之后，才允许打开 AI compare。',
+            title: '保守示例抽屉',
+            tone: 'violet',
+            bullets: ['保守带宽档位', '较稳妥的频域目标', '结构选择依据要写明风险来源'],
           },
         ],
       };
-    case 'step-13':
+    case 'step-15':
       return {
         kicker: 'Wrap-up',
         intro: '最后只带走三句收束：时域先翻译成区域，频域先翻译成补角与交叉频率，非最小相先重审目标。',
         sections: [
+          {
+            title: '三句结论',
+            tone: 'cyan',
+            bullets: ['时域指标先翻译成目标区域。', '频域指标先翻译成相角裕度与截止频率。', '右半平面零点下，目标本身也是设计变量。'],
+          },
           {
             title: '去向卡',
             tone: 'violet',
@@ -302,11 +359,15 @@ function getAiPrompts(step: UNIT_3_6StepDefinition) {
     case 'step-06':
       return ['请检查我的指标翻译链是否完整，不要直接把区域答案写给我。'];
     case 'step-08':
-      return ['请只纠正测速反馈的设计顺序，不要直接代做参数计算。'];
-    case 'step-11':
-      return ['请只围绕非最小相边界检查我的理由，不要直接替我选结构。'];
+      return ['请只纠正测速反馈与 PD 的结构差异，不要直接替我完成顺序显影。'];
+    case 'step-10':
+      return ['请只检查我有没有写出“只调增益失败”的理由，不要直接给出超前最终参数。'];
     case 'step-12':
-      return ['请只做后测错因对照，不要代写后测答案。'];
+      return ['请只帮助我理解为什么必须同指标比较，不要直接替我完成理由标签。'];
+    case 'step-14':
+      return ['请只围绕非最小相边界检查我的理由，不要直接替我选结构。'];
+    case 'step-15':
+      return ['请只帮助我收束本课三句结论，不要直接代写后测或反思。'];
     default:
       return ['请围绕当前页面目标解释概念或检查我的思路，不要直接替我完成最终记录。'];
   }
@@ -342,20 +403,26 @@ function getRevealContent(step: UNIT_3_6StepDefinition) {
     case 'step-08':
       return '参考口径：测速反馈的入口是等效极点位置，而不是显式前向零点。';
     case 'step-09':
-      return '参考口径：超前设计先补角，再布置频带，最后回查时域代价。';
+      return '参考口径：测速反馈先定等效极点，再由模值条件反求参数。';
     case 'step-10':
-      return '参考句式：同一频域目标达标，不代表时域代价相同。';
+      return '参考口径：超前设计先看只调增益为何失败，再进入补角与布置频带。';
     case 'step-11':
-      return '参考口径：右半平面零点下通常先保守带宽，先改目标，再选结构。';
+      return '参考口径：频域通过后仍要回查时域代价，不能只盯住相角裕度。';
     case 'step-12':
       return '参考口径：任务 C 和任务 D 必须沿用同一组频域指标，才能比较真实代价差异。';
+    case 'step-13':
+      return '参考句式：同一频域目标达标，不代表时域代价相同。';
+    case 'step-14':
+      return '参考口径：右半平面零点下通常先保守带宽，先改目标，再选结构。';
+    case 'step-15':
+      return '参考口径：时域先翻译成区域，频域先翻译成补角与交叉频率，非最小相先重审目标。';
     default:
       return null;
   }
 }
 
 function supportsAnswerReveal(step: UNIT_3_6StepDefinition) {
-  return !['display', 'exit_reflection'].includes(step.pageType);
+  return step.pageType !== 'display';
 }
 
 function parseList(value?: string) {
@@ -415,6 +482,34 @@ function renderChoiceButtons({
           {option.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+function renderMultiChoiceButtons({
+  options,
+  values,
+  onToggle,
+}: {
+  options: readonly ChoiceOption[];
+  values: string[];
+  onToggle: (value: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((option) => {
+        const active = values.includes(option.value);
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onToggle(option.value)}
+            className={`premium-lesson-control ${active ? 'ring-2 ring-cyan-400' : ''}`}
+          >
+            {option.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -589,7 +684,7 @@ export function UNIT_3_6StudentActivityForm({
     });
   };
 
-  const renderQuizGroup = (questions: typeof PRETEST_QUESTIONS | typeof POST_QUIZ_QUESTIONS) => (
+  const renderQuizGroup = (questions: typeof PRETEST_QUESTIONS | typeof FINAL_QUIZ_QUESTIONS) => (
     <div className="grid gap-4">
       {questions.map((question) => (
         <div key={question.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
@@ -615,6 +710,14 @@ export function UNIT_3_6StudentActivityForm({
     </div>
   );
 
+  const toggleDelimitedValue = (key: string, value: string) => {
+    const currentValues = parseList(draft[key]);
+    const nextValues = currentValues.includes(value)
+      ? currentValues.filter((item) => item !== value)
+      : [...currentValues, value];
+    updateDraft(key, nextValues.join('||'), 'button');
+  };
+
   let formBody: React.ReactNode = null;
   let submitLabel = '提交本页记录';
 
@@ -635,51 +738,31 @@ export function UNIT_3_6StudentActivityForm({
       submitLabel = '提交首次判断';
       break;
     case 'quiz_group':
-      formBody = renderQuizGroup(step.id === 'step-12' ? POST_QUIZ_QUESTIONS : PRETEST_QUESTIONS);
-      submitLabel = step.id === 'step-12' ? '提交后测' : '提交前测';
+      formBody = renderQuizGroup(PRETEST_QUESTIONS);
+      submitLabel = '提交前测';
       break;
     case 'categorize_and_confirm':
       formBody = (
         <div className="grid gap-4">
-          <div className="grid gap-3 md:grid-cols-3">
-            <div className="premium-lesson-surface-elevated px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">时域目标</div>
-              <div className="premium-lesson-muted mt-1 text-xs">Mp ≤ 20%，ts ≤ 4s</div>
-              <div className="mt-3">
-                <SelectField
-                  value={draft.timeGoalBucket ?? ''}
-                  onChange={(value) => updateDraft('timeGoalBucket', value, 'select')}
-                  options={ENTRY_BUCKETS.map((bucket) => ({ value: bucket.key, label: bucket.title }))}
-                />
+          <div className="grid gap-3">
+            {DESIGN_TASK_CARDS.map((task) => (
+              <div key={task.id} className="premium-lesson-surface-elevated px-4 py-4">
+                <div className="premium-lesson-title text-sm font-medium">{task.label}</div>
+                <div className="premium-lesson-muted mt-1 text-xs">{task.summary}</div>
+                <div className="mt-3">
+                  <SelectField
+                    value={draft[task.id] ?? ''}
+                    onChange={(value) => updateDraft(task.id, value, 'select')}
+                    options={ENTRY_BUCKETS.map((bucket) => ({ value: bucket.key, label: bucket.title }))}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="premium-lesson-surface-elevated px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">频域目标</div>
-              <div className="premium-lesson-muted mt-1 text-xs">PM ≥ 50°，wc ≈ 3 rad/s</div>
-              <div className="mt-3">
-                <SelectField
-                  value={draft.frequencyGoalBucket ?? ''}
-                  onChange={(value) => updateDraft('frequencyGoalBucket', value, 'select')}
-                  options={ENTRY_BUCKETS.map((bucket) => ({ value: bucket.key, label: bucket.title }))}
-                />
-              </div>
-            </div>
-            <div className="premium-lesson-surface-elevated px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">边界问题</div>
-              <div className="premium-lesson-muted mt-1 text-xs">右半平面零点出现后怎么办</div>
-              <div className="mt-3">
-                <SelectField
-                  value={draft.boundaryBucket ?? ''}
-                  onChange={(value) => updateDraft('boundaryBucket', value, 'select')}
-                  options={ENTRY_BUCKETS.map((bucket) => ({ value: bucket.key, label: bucket.title }))}
-                />
-              </div>
-            </div>
+            ))}
           </div>
           <TextInput
             value={draft.bucketReason ?? ''}
             onChange={(value) => updateDraft('bucketReason', value)}
-            placeholder="补一句：为什么这样分类？"
+            placeholder="补一句：哪一个任务最容易被分错，为什么？"
             multiline
           />
         </div>
@@ -702,6 +785,25 @@ export function UNIT_3_6StudentActivityForm({
         </div>
       );
       break;
+    case 'sequenced_reveal':
+      formBody = (
+        <div className="grid gap-4">
+          {[1, 2, 3, 4].map((order) => (
+            <div key={order}>
+              <div className="premium-lesson-title text-sm font-medium">第 {order} 步</div>
+              <div className="mt-2">
+                <SelectField
+                  value={draft[`sequence-${order}`] ?? ''}
+                  onChange={(value) => updateDraft(`sequence-${order}`, value, 'select')}
+                  options={SEQUENCE_REVEAL_OPTIONS.map((item) => ({ value: item.value, label: item.label }))}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+      submitLabel = '提交显影顺序';
+      break;
     case 'parameter_workspace':
       formBody = (
         <div className="grid gap-4">
@@ -716,7 +818,7 @@ export function UNIT_3_6StudentActivityForm({
               />
             </div>
           ))}
-          {step.id === 'step-08' ? (
+          {step.id === 'step-09' ? (
             <div>
               <div className="premium-lesson-title text-sm font-medium">调整顺序</div>
               <TextInput
@@ -728,6 +830,48 @@ export function UNIT_3_6StudentActivityForm({
           ) : null}
         </div>
       );
+      break;
+    case 'structured_response':
+      formBody =
+        step.id === 'step-12' ? (
+          <div className="grid gap-4">
+            <div>
+              <div className="premium-lesson-title text-sm font-medium">理由标签</div>
+              {renderMultiChoiceButtons({
+                options: REASON_TAG_OPTIONS,
+                values: parseList(draft.reasonTags),
+                onToggle: (value) => toggleDelimitedValue('reasonTags', value),
+              })}
+            </div>
+            <TextInput
+              value={draft.compareIntent ?? ''}
+              onChange={(value) => updateDraft('compareIntent', value)}
+              placeholder="补一句：为什么这里必须沿用相同频域目标？"
+              multiline
+            />
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            <div>
+              <div className="premium-lesson-title text-sm font-medium">理由说明</div>
+              <TextInput
+                value={draft.responseText ?? ''}
+                onChange={(value) => updateDraft('responseText', value)}
+                placeholder="写一句：为什么频域设计必须先看只调增益会怎样？"
+                multiline
+              />
+            </div>
+            <div>
+              <div className="premium-lesson-title text-sm font-medium">关键词命中</div>
+              {renderMultiChoiceButtons({
+                options: STRUCTURED_RESPONSE_KEYWORD_OPTIONS,
+                values: parseList(draft.keywordCoverage),
+                onToggle: (value) => toggleDelimitedValue('keywordCoverage', value),
+              })}
+            </div>
+          </div>
+        );
+      submitLabel = '提交理由';
       break;
     case 'structured_compare':
       formBody = (
@@ -743,10 +887,10 @@ export function UNIT_3_6StudentActivityForm({
           </div>
           <div>
             <div className="premium-lesson-title text-sm font-medium">差异标签</div>
-            {renderChoiceButtons({
+            {renderMultiChoiceButtons({
               options: DIFFERENCE_TAG_OPTIONS,
-              value: draft.differenceTags ?? '',
-              onChange: (value) => updateDraft('differenceTags', value, 'button'),
+              values: parseList(draft.differenceTags),
+              onToggle: (value) => toggleDelimitedValue('differenceTags', value),
             })}
           </div>
         </div>
@@ -768,11 +912,11 @@ export function UNIT_3_6StudentActivityForm({
           </div>
           <div>
             <div className="premium-lesson-title text-sm font-medium">结构选择</div>
-            <SelectField
-              value={draft.structureChoice ?? ''}
-              onChange={(value) => updateDraft('structureChoice', value, 'select')}
-              options={BOUNDARY_STRUCTURE_OPTIONS}
-            />
+            {renderMultiChoiceButtons({
+              options: BOUNDARY_STRUCTURE_OPTIONS,
+              values: parseList(draft.structureChoice),
+              onToggle: (value) => toggleDelimitedValue('structureChoice', value),
+            })}
           </div>
           <div>
             <div className="premium-lesson-title text-sm font-medium">理由</div>
@@ -786,16 +930,24 @@ export function UNIT_3_6StudentActivityForm({
         </div>
       );
       break;
-    case 'exit_reflection':
+    case 'quiz_group+exit_reflection':
       formBody = (
-        <TextInput
-          value={draft.reflectionSubmitted ?? ''}
-          onChange={(value) => updateDraft('reflectionSubmitted', value)}
-          placeholder="写一句你要带走的设计判断"
-          multiline
-        />
+        <div className="grid gap-4">
+          {renderQuizGroup(FINAL_QUIZ_QUESTIONS)}
+          <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+            <div className="premium-lesson-title text-sm font-medium">一句反思</div>
+            <div className="mt-3">
+              <TextInput
+                value={draft.reflectionSubmitted ?? ''}
+                onChange={(value) => updateDraft('reflectionSubmitted', value)}
+                placeholder="写一句你要带走的设计判断"
+                multiline
+              />
+            </div>
+          </div>
+        </div>
       );
-      submitLabel = '提交收束反思';
+      submitLabel = '提交后测与反思';
       break;
     default:
       formBody = null;
@@ -803,7 +955,30 @@ export function UNIT_3_6StudentActivityForm({
 
   const handleSubmit = () => {
     if (step.pageType === 'display') return;
-    submit(draft);
+    const answers = { ...draft };
+    if (step.pageType === 'sequenced_reveal') {
+      answers.revealOrder = [answers['sequence-1'], answers['sequence-2'], answers['sequence-3'], answers['sequence-4']]
+        .filter(Boolean)
+        .join('||');
+      answers.completedState =
+        [answers['sequence-1'], answers['sequence-2'], answers['sequence-3'], answers['sequence-4']].every(Boolean)
+          ? 'complete'
+          : 'incomplete';
+    }
+    if (step.pageType === 'structured_response' && step.id === 'step-10') {
+      answers.responseSubmitted = answers.responseText ? 'submitted' : 'empty';
+    }
+    if (step.pageType === 'structured_response' && step.id === 'step-12') {
+      answers.completedState = answers.compareIntent || answers.reasonTags ? 'complete' : 'incomplete';
+    }
+    if (step.pageType === 'quiz_group+exit_reflection') {
+      const score =
+        Number(answers.q1 === 'same-goal') +
+        Number(answers.q2 === 'equivalent-pole') +
+        Number(answers.q3 === 'nmp-boundary');
+      answers.posttestAccuracy = `${score}/3`;
+    }
+    submit(answers);
   };
 
   return (

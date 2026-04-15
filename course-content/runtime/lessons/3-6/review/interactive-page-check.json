@@ -2,10 +2,11 @@
   "lesson_id": "3-6",
   "source_path": "course-content/authoring/lessons/3-6/design/interactive-page.md",
   "contract_path": "course-content/authoring/lessons/3-6/design/interactive-contract.yaml",
-  "implementation_contract_source": null,
+  "implementation_contract_source": "src/lib/unit-3-6-course.ts",
   "contract_required_fields": [
     "layout",
     "modules",
+    "evidence_units",
     "content_blocks",
     "interaction_spec",
     "teacher_controls",
@@ -16,66 +17,53 @@
     "acceptance_checks"
   ],
   "included_in_primary_sources": true,
-  "mapping_contract_mode": "core_items",
-  "has_core_mapping_section": false,
-  "mapping_columns_present": [],
+  "mapping_contract_mode": "upgrade_table",
+  "has_core_mapping_section": true,
+  "mapping_columns_present": [
+    "证据单元",
+    "证据类型",
+    "来源锚点",
+    "目标步骤",
+    "升级方式",
+    "保留元素",
+    "不得删减内容",
+    "验收点"
+  ],
   "missing_mapping_columns": [
+    "evidence_unit_id",
     "handout_anchor",
-    "core_item_type",
-    "must_appear_content",
-    "target_step",
-    "page_mode",
-    "interaction_upgrade",
-    "media_or_table_ref",
-    "acceptance_note"
+    "evidence_kind",
+    "target_steps",
+    "upgrade_mode",
+    "keep_elements",
+    "non_reducible",
+    "acceptance_checks"
   ],
   "invalid_handout_anchors": [],
   "missing_target_steps": [],
   "formula_mapping_issues": [],
-  "step_static_blocks_missing": [
-    "## 步骤 01｜封面导入：目标必须先于工具",
-    "## 步骤 02｜回到地图：从 `3-5` 的机理走向 `3-6` 的设计",
-    "## 步骤 03｜五任务设计链与提交物总览",
-    "## 步骤 04｜前测：三类目标分别从哪里进入",
-    "## 步骤 05｜任务书：统一对象、三类装置与五任务入口",
-    "## 步骤 06｜推导显影 A：时域指标如何变成设计可行域",
-    "## 步骤 07｜任务 A：`PD` 时域设计",
-    "## 步骤 08｜任务 B 的证据板：测速反馈为何不是“换位置的 `PD`”",
-    "## 步骤 09｜任务 B：测速反馈时域设计",
-    "## 步骤 10｜推导显影 B：频域目标如何进入超前设计",
-    "## 步骤 11｜任务 C：超前频域设计",
-    "## 步骤 12｜推导显影 C：为何同一频域指标下还要再做一次 `PD`",
-    "## 步骤 13｜任务 D：同指标下的 `PD` 频域设计与并排比较",
-    "## 步骤 14｜任务 E：右半平面零点下的边界与结构选择",
-    "## 步骤 15｜后测与收束：从指标走到结构选择"
-  ],
+  "step_static_blocks_missing": [],
   "step_upgrade_blocks_missing": [],
   "step_reading_order_missing": [],
   "curve_figure_steps_missing_mirror": [],
   "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
-  "step_contract_issues": [
-    "interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value"
+  "step_contract_issues": [],
+  "implementation_contract_summary": [
+    "已检测到 `3-6` 的本地实现契约与作者态互动契约一致。"
   ],
-  "implementation_contract_summary": [],
   "implementation_contract_issues": [],
-  "summary": [],
+  "summary": [
+    "已检测到 `3-6` 的 V2 互动契约，步骤字段完整。",
+    "已检测到 `3-6` 的本地实现契约与作者态互动契约一致。"
+  ],
   "warnings": [
-    "缺少“讲义核心内容映射”或“讲义证据单元映射”章节",
-    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note",
-    "以下步骤缺少“静态承载内容”：## 步骤 01｜封面导入：目标必须先于工具, ## 步骤 02｜回到地图：从 `3-5` 的机理走向 `3-6` 的设计, ## 步骤 03｜五任务设计链与提交物总览, ## 步骤 04｜前测：三类目标分别从哪里进入, ## 步骤 05｜任务书：统一对象、三类装置与五任务入口, ## 步骤 06｜推导显影 A：时域指标如何变成设计可行域, ## 步骤 07｜任务 A：`PD` 时域设计, ## 步骤 08｜任务 B 的证据板：测速反馈为何不是“换位置的 `PD`”, ## 步骤 09｜任务 B：测速反馈时域设计, ## 步骤 10｜推导显影 B：频域目标如何进入超前设计, ## 步骤 11｜任务 C：超前频域设计, ## 步骤 12｜推导显影 C：为何同一频域指标下还要再做一次 `PD`, ## 步骤 13｜任务 D：同指标下的 `PD` 频域设计与并排比较, ## 步骤 14｜任务 E：右半平面零点下的边界与结构选择, ## 步骤 15｜后测与收束：从指标走到结构选择",
-    "interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value"
+    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks"
   ],
   "missing": [
-    "缺少“讲义核心内容映射”或“讲义证据单元映射”章节",
-    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note",
-    "以下步骤缺少“静态承载内容”：## 步骤 01｜封面导入：目标必须先于工具, ## 步骤 02｜回到地图：从 `3-5` 的机理走向 `3-6` 的设计, ## 步骤 03｜五任务设计链与提交物总览, ## 步骤 04｜前测：三类目标分别从哪里进入, ## 步骤 05｜任务书：统一对象、三类装置与五任务入口, ## 步骤 06｜推导显影 A：时域指标如何变成设计可行域, ## 步骤 07｜任务 A：`PD` 时域设计, ## 步骤 08｜任务 B 的证据板：测速反馈为何不是“换位置的 `PD`”, ## 步骤 09｜任务 B：测速反馈时域设计, ## 步骤 10｜推导显影 B：频域目标如何进入超前设计, ## 步骤 11｜任务 C：超前频域设计, ## 步骤 12｜推导显影 C：为何同一频域指标下还要再做一次 `PD`, ## 步骤 13｜任务 D：同指标下的 `PD` 频域设计与并排比较, ## 步骤 14｜任务 E：右半平面零点下的边界与结构选择, ## 步骤 15｜后测与收束：从指标走到结构选择",
-    "interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value"
+    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks"
   ],
   "issues": [
-    "缺少“讲义核心内容映射”或“讲义证据单元映射”章节",
-    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note",
-    "以下步骤缺少“静态承载内容”：## 步骤 01｜封面导入：目标必须先于工具, ## 步骤 02｜回到地图：从 `3-5` 的机理走向 `3-6` 的设计, ## 步骤 03｜五任务设计链与提交物总览, ## 步骤 04｜前测：三类目标分别从哪里进入, ## 步骤 05｜任务书：统一对象、三类装置与五任务入口, ## 步骤 06｜推导显影 A：时域指标如何变成设计可行域, ## 步骤 07｜任务 A：`PD` 时域设计, ## 步骤 08｜任务 B 的证据板：测速反馈为何不是“换位置的 `PD`”, ## 步骤 09｜任务 B：测速反馈时域设计, ## 步骤 10｜推导显影 B：频域目标如何进入超前设计, ## 步骤 11｜任务 C：超前频域设计, ## 步骤 12｜推导显影 C：为何同一频域指标下还要再做一次 `PD`, ## 步骤 13｜任务 D：同指标下的 `PD` 频域设计与并排比较, ## 步骤 14｜任务 E：右半平面零点下的边界与结构选择, ## 步骤 15｜后测与收束：从指标走到结构选择",
-    "interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value"
+    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks"
   ]
 }

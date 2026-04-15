@@ -42,7 +42,7 @@ export const PRETEST_QUESTIONS = [
   },
 ] as const;
 
-export const POST_QUIZ_QUESTIONS = [
+export const FINAL_QUIZ_QUESTIONS = [
   {
     key: 'q1',
     prompt: '为什么任务 C 和任务 D 必须沿用同一组频域指标？',
@@ -73,17 +73,12 @@ export const POST_QUIZ_QUESTIONS = [
       { value: 'ignore-phase', label: '因为右半平面零点只影响时域，不影响频域边界' },
     ],
   },
-  {
-    key: 'reason',
-    prompt: '写一句你现在最想保留的设计判断。',
-    type: 'text',
-  },
 ] as const;
 
 export const ENTRY_BUCKETS = [
-  { key: 'time-domain', title: '先上目标极点区域' },
-  { key: 'frequency-domain', title: '先上 Bode 目标卡' },
-  { key: 'boundary-review', title: '先重审目标边界' },
+  { key: 'root-locus', title: '先上目标极点区域 / 根轨迹' },
+  { key: 'bode-goal', title: '先上共同频域目标 / Bode' },
+  { key: 'review-goal', title: '先重审目标边界' },
 ] as const;
 
 export const DESIGN_TASK_CARDS = [
@@ -105,6 +100,27 @@ export const PARAMETER_WORKSPACE_FIELDS = [
   { key: 'parameterChoice', label: '关键参数' },
   { key: 'validation', label: '验收结果' },
   { key: 'reason', label: '一句设计说明' },
+] as const;
+
+export const SEQUENCE_REVEAL_OPTIONS = [
+  { value: 'structure', label: '结构图先指出测速反馈所在通道' },
+  { value: 'equation', label: '等效特征方程解释设计抓手' },
+  { value: 'contrast', label: 'PD / 测速反馈对照表说明差异' },
+  { value: 'handle', label: '最后收束到“先定等效极点，再求 Kt”' },
+] as const;
+
+export const STRUCTURED_RESPONSE_KEYWORD_OPTIONS = [
+  { value: 'shared-goal', label: '先写共同频域目标' },
+  { value: 'gain-only-failure', label: '说明只调增益为何失败' },
+  { value: 'lead-four-step', label: '补角 -> 布置频带 -> 幅值条件 -> 回查' },
+  { value: 'no-final-answer', label: '不直接报最终参数' },
+] as const;
+
+export const REASON_TAG_OPTIONS = [
+  { value: 'same-goal-needed', label: '必须沿用同一目标才有可比性' },
+  { value: 'compare-side-effects', label: '比较副作用而不只看达标' },
+  { value: 'pd-entry-remains', label: 'PD 频域设计仍需独立入口' },
+  { value: 'not-stop-at-pass', label: '频域通过后不能立刻停止分析' },
 ] as const;
 
 export const DIFFERENCE_TAG_OPTIONS = [
