@@ -162,9 +162,9 @@ export const UNIT_3_7_PAGE_CONTRACTS: Record<string, UNIT_3_7PageContract> = {
         { id: 'interaction', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'hotspot_labeling',
-    teacherInsightWidgets: ['hotspot_confusion_map', 'completion_rate'],
-    telemetrySummaryFields: ['attemptCount', 'selectedHotspots', 'resultState'],
+    interactionKind: 'activity_card_set',
+    teacherInsightWidgets: ['option_distribution', 'channel_confusion_rate'],
+    telemetrySummaryFields: ['attemptCount', 'completedCards', 'resultState'],
     previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-04',
   },
   'step-05': {
@@ -398,7 +398,7 @@ export const UNIT_3_7_LESSON_STEPS: UNIT_3_7StepDefinition[] = [
     title: '双通道骨架：四类传函分卡命名',
     hint: '用统一结构图把四类传函与总输出、总误差结论一次立住，先分通道再谈稳态误差。',
     duration: '7 min',
-    pageType: 'hotspot_labeling',
+    pageType: 'activity_card_set',
   },
   {
     id: 'step-05',
@@ -523,7 +523,7 @@ export function isUNIT_3_7AiPageType(_pageType: UNIT_3_7PageType) {
 }
 
 export function isUNIT_3_7ActivityFirstStep(stepId: string) {
-  return stepId === 'step-03' || stepId === 'step-16';
+  return stepId === 'step-16';
 }
 
 export function createEmptyUNIT_3_7StudentState(studentName: string): UNIT_3_7StudentCourseState {

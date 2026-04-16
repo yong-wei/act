@@ -39,9 +39,52 @@ describe('unit 3-7 interactive course', () => {
 
     expect(courseModule.isUNIT_3_7AiPageType('display')).toBe(false);
     expect(courseModule.isUNIT_3_7AiPageType('quiz_group')).toBe(false);
-    expect(courseModule.isUNIT_3_7ActivityFirstStep('step-03')).toBe(true);
+    expect(courseModule.isUNIT_3_7ActivityFirstStep('step-03')).toBe(false);
     expect(courseModule.isUNIT_3_7ActivityFirstStep('step-16')).toBe(true);
     expect(courseModule.isUNIT_3_7ActivityFirstStep('step-04')).toBe(false);
+  });
+
+  it('keeps step-04 and the worked-example pages on per-card submissions with at most two questions per page', async () => {
+    const courseModule = await import('@/lib/unit-3-7-course');
+    const workspaceModule = await import('@/features/interactive/unit-3-7-steady-error-low-frequency-compensation/workspace');
+
+    expect(courseModule.UNIT_3_7_PAGE_CONTRACTS['step-04']?.interactionKind).toBe('activity_card_set');
+    expect(workspaceModule.ACTIVITY_CARD_FIELDS['step-04']).toHaveLength(2);
+    expect(workspaceModule.WORKED_EXAMPLE_FIELDS['step-05']).toHaveLength(2);
+    expect(workspaceModule.ACTIVITY_CARD_FIELDS['step-06']).toHaveLength(2);
+    expect(workspaceModule.WORKED_EXAMPLE_FIELDS['step-07']).toHaveLength(2);
+    expect(workspaceModule.ACTIVITY_CARD_FIELDS['step-09']).toHaveLength(2);
+    expect(workspaceModule.WORKED_EXAMPLE_FIELDS['step-10']).toHaveLength(2);
+    expect(workspaceModule.WORKED_EXAMPLE_FIELDS['step-11']).toHaveLength(2);
+    expect(workspaceModule.ACTIVITY_CARD_FIELDS['step-12']).toHaveLength(2);
+    expect(workspaceModule.WORKED_EXAMPLE_FIELDS['step-13']).toHaveLength(2);
+    expect(workspaceModule.WORKED_EXAMPLE_FIELDS['step-14']).toHaveLength(2);
+    expect(workspaceModule.ACTIVITY_CARD_FIELDS['step-15']).toHaveLength(2);
+  });
+
+  it('implements progressive reveal controls, the step-09 curve toggle panel, and removes the redundant no-submit block on display pages', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-7-steady-error-low-frequency-compensation/step-panels.tsx'),
+      'utf8',
+    );
+    const studentPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-7-steady-error-low-frequency-compensation/student-page.tsx'),
+      'utf8',
+    );
+    const teacherPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-7-steady-error-low-frequency-compensation/teacher-page.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain('显示下一步');
+    expect(stepPanelsSource).toContain('重置步骤');
+    expect(stepPanelsSource).toContain('幅频特性切换');
+    expect(stepPanelsSource).toContain('叠加显示');
+    expect(stepPanelsSource).toContain('PI 幅频特性');
+    expect(stepPanelsSource).toContain('滞后幅频特性');
+    expect(stepPanelsSource).toContain('超前幅频特性');
+    expect(studentPageSource).not.toContain('本页无需提交');
+    expect(teacherPageSource).not.toContain('当前收到 {responses.length} 份本页作答');
   });
 
   it('exposes AI quick questions for the frequency comparison step', () => {

@@ -202,6 +202,7 @@ export function UNIT_3_7TeacherPage({
   }
 
   const activityFirst = isUNIT_3_7ActivityFirstStep(step.id);
+  const isDisplayStep = step.pageType === 'display';
   const contentPanel = (
     <UNIT_3_7StepContentPanel
       step={step}
@@ -210,7 +211,7 @@ export function UNIT_3_7TeacherPage({
       onWorkspaceParameterChange={handleWorkspaceParameterChange}
     />
   );
-  const teacherSummaryPanel = (
+  const teacherSummaryPanel = isDisplayStep ? null : (
     <div className="mt-4">
       <UNIT_3_7TeacherActivitySummary
         step={step}
@@ -303,8 +304,9 @@ export function UNIT_3_7TeacherPage({
 
         {step.id === 'step-01' ? <UNIT_3_7KnowledgeMapVisual /> : null}
 
-        {activityFirst ? teacherSummaryPanel : contentPanel}
-        {activityFirst ? contentPanel : teacherSummaryPanel}
+        {activityFirst && teacherSummaryPanel ? teacherSummaryPanel : null}
+        {contentPanel}
+        {!activityFirst && teacherSummaryPanel ? teacherSummaryPanel : null}
       </main>
     </div>
   );

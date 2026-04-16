@@ -111,48 +111,42 @@ export const HOTSPOT_FIELDS = [
 export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]> = {
   'step-05': [
     {
-      key: 'stability',
+      key: 'formula_path',
       label: '卡片 1',
-      prompt: '写出终值定理三步法的第一步，并说明为什么不能跳过。',
-      inputKind: 'text',
-      placeholder: '先判稳定，因为……',
+      prompt: '终值定理直接求的首要动作是什么？',
+      inputKind: 'single_choice',
+      options: [
+        { value: 'A', label: '先写误差通道，再判断能否做终值极限' },
+        { value: 'B', label: '先直接查型别表，再补误差式' },
+        { value: 'C', label: '先把所有输入都改成单位阶跃' },
+      ],
     },
     {
-      key: 'error_expression',
+      key: 'result_reason',
       label: '卡片 2',
-      prompt: '本题为什么必须先写误差传函，再谈终值极限？',
+      prompt: '为什么例题 1 最后只剩 `1/K` 这一项？',
       inputKind: 'text',
-      placeholder: '误差传函决定……',
-    },
-    {
-      key: 'result',
-      label: '卡片 3',
-      prompt: '例题 1 的最终稳态误差结果是什么？',
-      inputKind: 'text',
-      placeholder: '写出 1/K 并说明来源',
+      placeholder: '说明是哪个输入分量决定了最终误差……',
     },
   ],
   'step-07': [
     {
-      key: 'reference_term',
+      key: 'first_move',
       label: '卡片 1',
-      prompt: '写出给定通道在总误差式中的贡献。',
-      inputKind: 'text',
-      placeholder: 'E_r(s)=…',
+      prompt: '例题 2 第一动作应是什么？',
+      inputKind: 'single_choice',
+      options: [
+        { value: 'A', label: '先把给定项与扰动项分通道，再写总误差式' },
+        { value: 'B', label: '直接把两个输入一起套进型别表' },
+        { value: 'C', label: '先判它更像 PI 还是滞后问题' },
+      ],
     },
     {
-      key: 'disturbance_term',
+      key: 'formula_reason',
       label: '卡片 2',
-      prompt: '写出扰动通道在总误差式中的贡献。',
+      prompt: '为什么本题不能直接用型别与误差系数表得到 `e_ss = 0.4`？',
       inputKind: 'text',
-      placeholder: 'E_d(s)=…',
-    },
-    {
-      key: 'result',
-      label: '卡片 3',
-      prompt: '为什么本题最终结果是 e_ss = 0.4？',
-      inputKind: 'text',
-      placeholder: '因为给定项与扰动项……',
+      placeholder: '从双通道和总误差式说明……',
     },
   ],
   'step-10': [
@@ -168,15 +162,8 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
       ],
     },
     {
-      key: 'feasible_region',
-      label: '卡片 2',
-      prompt: '时域指标换成可行域后，至少要同时写出哪两类边界？',
-      inputKind: 'text',
-      placeholder: '阻尼比边界与……',
-    },
-    {
       key: 'pi_role',
-      label: '卡片 3',
+      label: '卡片 2',
       prompt: '在这个例题里，PI 的首要作用是什么？',
       inputKind: 'single_choice',
       options: [
@@ -195,21 +182,15 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
       placeholder: '因为 K 过大时……',
     },
     {
-      key: 'lag_position',
+      key: 'lag_role',
       label: '卡片 2',
-      prompt: '把“零点在左 / 极点在右”的相对位置与作用匹配。',
-      inputKind: 'match',
+      prompt: '滞后校正最关键的结构作用是什么？',
+      inputKind: 'single_choice',
       options: [
-        { value: 'left-zero', label: '零点在左：尽量少动中频骨架' },
-        { value: 'right-pole', label: '极点在右：把低频增益单独抬高' },
+        { value: 'A', label: '提高型别，把有限斜坡误差直接变成 0' },
+        { value: 'B', label: '在型别不变时抬高低频增益，并尽量少动中频骨架' },
+        { value: 'C', label: '主要提高高频相位超前' },
       ],
-    },
-    {
-      key: 'kv_result',
-      label: '卡片 3',
-      prompt: '本题滞后校正后的 Kv 结果应写成什么？',
-      inputKind: 'text',
-      placeholder: 'Kv = 10',
     },
   ],
   'step-13': [
@@ -226,13 +207,6 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
       prompt: '写出频域 PI 设计链的顺序关键词。',
       inputKind: 'text',
       placeholder: '截止频率 -> 零点 -> 幅值条件 -> 回查',
-    },
-    {
-      key: 'zero_rule',
-      label: '卡片 3',
-      prompt: 'PI 零点为什么要放在目标截止频率以下？',
-      inputKind: 'text',
-      placeholder: '为了减小截止频率附近的附加相位滞后……',
     },
   ],
   'step-14': [
@@ -254,17 +228,34 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
         { value: 'C', label: '更高型别与无限 Kv' },
       ],
     },
-    {
-      key: 'pd_reason',
-      label: '卡片 3',
-      prompt: '本页为什么强调“方案读取与核验”，而不是完整整定？',
-      inputKind: 'text',
-      placeholder: '因为讲义已直接给出方案……',
-    },
   ],
 };
 
 export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> = {
+  'step-04': [
+    {
+      key: 'reference_output_tf',
+      label: '卡片 1',
+      prompt: '下列哪一个是“给定到输出传函”？',
+      inputKind: 'single_choice',
+      options: [
+        { value: 'A', label: 'C(s)/R(s)=Gc(s)Gp(s) / (1+Gc(s)Gp(s)H(s))' },
+        { value: 'B', label: 'C(s)/D(s)=Gp(s) / (1+Gc(s)Gp(s)H(s))' },
+        { value: 'C', label: 'E_d(s)/D(s)=-Gp(s)H(s) / (1+Gc(s)Gp(s)H(s))' },
+      ],
+    },
+    {
+      key: 'disturbance_channel_judgement',
+      label: '卡片 2',
+      prompt: '显式扰动从哪一条信号判断链进入稳态误差分析？',
+      inputKind: 'single_choice',
+      options: [
+        { value: 'A', label: '先看给定输入型别，再直接套标准误差表' },
+        { value: 'B', label: '先写扰动到输出或误差的通道，再并入总误差式' },
+        { value: 'C', label: '只看闭环分母，不必区分分子与入口' },
+      ],
+    },
+  ],
   'step-06': [
     {
       key: 'fast_path_scope',
@@ -278,15 +269,8 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
       ],
     },
     {
-      key: 'table_boundary',
-      label: '卡片 2',
-      prompt: '为什么“扰动题不能直接套表”是本页边界？',
-      inputKind: 'text',
-      placeholder: '因为扰动要先分通道……',
-    },
-    {
       key: 'type_rule',
-      label: '卡片 3',
+      label: '卡片 2',
       prompt: '如果目标是判断是否必须引入积分，第一步该看什么？',
       inputKind: 'text',
       placeholder: '先看型别……',
@@ -315,13 +299,6 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
         { value: 'C', label: '主要提高相位裕度' },
       ],
     },
-    {
-      key: 'lag_warning',
-      label: '卡片 3',
-      prompt: '为什么不能把滞后直接理解成“弱积分”？',
-      inputKind: 'text',
-      placeholder: '因为它并不新增积分个数……',
-    },
   ],
   'step-12': [
     {
@@ -344,13 +321,6 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
         { value: 'B', label: '滞后' },
       ],
     },
-    {
-      key: 'time_compare',
-      label: '卡片 3',
-      prompt: '时域两法比较时，至少应并列写出哪三类信息？',
-      inputKind: 'text',
-      placeholder: '收益、代价、适用场景',
-    },
   ],
   'step-15': [
     {
@@ -372,13 +342,6 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
         { value: 'A', label: 'PI' },
         { value: 'B', label: 'PD' },
       ],
-    },
-    {
-      key: 'freq_compare',
-      label: '卡片 3',
-      prompt: '比较 PI 与 PD 时，为什么不能只看单一指标？',
-      inputKind: 'text',
-      placeholder: '需要把低频精度、截止频率和相位裕度一起看……',
     },
   ],
 };

@@ -171,6 +171,7 @@
 
 ### 静态承载内容
 - 三道题干全部明文落页。
+- 前测提示文本块固定放在题组上方，先说明本页要暴露哪三类误判，再进入学生作答区。
 - 误区标签固定列出：
   - 扰动不是另一种输入型别；
   - 增益变大不等于型别提高；
@@ -219,9 +220,12 @@
   - 分母相同反映结构，分子不同反映通道。
 
 ### 互动升级点
-- 组件类型：`hotspot_labeling`
-- 学生任务：把“给定入口 / 扰动入口 / 总输出 / 总误差”与图中位置对应起来
-- 反馈规则：即时标对错，可重试
+- 组件类型：`activity_card_set`
+- 学生任务：先阅读结构图与四类命名传函，再完成两道勾选提交题
+- 作答卡：
+  - `channel-card-1`：判断“给定到输出传函”，`single_choice`
+  - `channel-card-2`：判断“扰动项应先走哪条分析路径”，`single_choice`
+- 每卡单独提交，不设置整页统一提交按钮
 
 ### 教师控制
 - `release_activity`：页面载入即开放
@@ -272,8 +276,7 @@
   5. 说明为何由抛物线分量决定最终误差
 - 学生作答卡仅要求关键步骤：
   - `ex1-card-1`：判断首步动作，`single_choice`
-  - `ex1-card-2`：补全误差表达式核心因子，`fill_text`
-  - `ex1-card-3`：排序三步法，`drag_sort`
+  - `ex1-card-2`：说明为何最终只剩 `1/K`，`fill_text`
 - 每卡单独提交。
 
 ### 教师控制
@@ -306,6 +309,7 @@
   - 型别定义：$G(s)H(s)=\dfrac{K_0}{s^v}G_0(s)$
   - 静态误差系数：$K_p$、$K_v$、$K_a$
   - 典型输入稳态误差：$e_{ss,\mathrm{step}}$、$e_{ss,\mathrm{ramp}}$、$e_{ss,\mathrm{para}}$
+- 第一行固定保持“左侧开环低频结构与判断文案，右侧三个静态误差系数”。
 - 两张表左右并排，且第一列统一为“型别”。
 - 边界说明固定写明：标准给定输入可先快判；显式扰动问题必须优先列式。
 - 作答区顶部必须重述问题：回到例题 1，为什么 II 型系统最后只剩抛物线分量误差？
@@ -314,8 +318,7 @@
 - 组件类型：`activity_card_set`
 - 作答卡为独立小卡片：
   - `type-card-1`：判断系统型别，`single_choice`
-  - `type-card-2`：把输入分量与误差结论匹配，`match`
-  - `type-card-3`：补全 $K_a$ 求法，`fill_text`
+  - `type-card-2`：说明判断是否必须引入积分时先看什么，`fill_text`
 - 每卡单独提交，可按半栏或通栏排布。
 
 ### 教师控制
@@ -366,8 +369,7 @@
   5. 得到 `0.4` 并解释为何不能直接套型别表
 - 学生作答卡：
   - `ex2-card-1`：判断第一步动作，`single_choice`
-  - `ex2-card-2`：补全总误差式缺项，`fill_text`
-  - `ex2-card-3`：给定项与扰动项连线，`match`
+  - `ex2-card-2`：说明为何必须先列总误差式，`fill_text`
 
 ### 教师控制
 - `release_activity`：控制作答卡显示；默认关闭
@@ -434,14 +436,15 @@
   - 滞后：不改变积分个数，而是通过“零点在左、极点在右”的附加零极点对提高低频增益。
   - 超前：极点在左、零点在右，主要服务于目标频带的相位补偿。
 - 图使用 `3-7-low-frequency-compensators.png`。
+- 图形区改为“左侧幅频特性面板 + 右侧勾选控件面板”，图中文字迁到控件面板中。
 - 表格保留“型别是否变化 / 主要收益 / 主要代价 / 更像哪条设计线”四列。
+- 表格下方追加误判点，固定提醒“滞后不等于弱积分”“超前不等于低频补偿”。
 
 ### 互动升级点
 - 组件类型：`activity_card_set`
 - 作答卡每题独立：
-  - `lf-card-1`：把方法与“提高型别 / 提高低频增益 / 补相位”匹配，`match`
-  - `lf-card-2`：判断“滞后是否等于弱积分”，`single_choice`
-  - `lf-card-3`：按低频与中频作用排序，`drag_sort`
+  - `lf-card-1`：判断 `PI` 的结构抓手，`single_choice`
+  - `lf-card-2`：判断滞后的核心收益，`single_choice`
 
 ### 教师控制
 - `release_activity`：控制作答卡是否显示；默认关闭
@@ -492,8 +495,7 @@
   7. 核验结果：$M_p \approx 20.0\%$，$t_s \approx 8.9\ \mathrm{s}$
 - 学生作答卡：
   - `time-pi-card-1`：判断纯增益为何不够，`single_choice`
-  - `time-pi-card-2`：补全可行域条件，`fill_text`
-  - `time-pi-card-3`：选择 `PI` 的首要作用，`multi_choice`
+  - `time-pi-card-2`：选择 `PI` 的首要作用，`single_choice`
 
 ### 教师控制
 - `release_activity`：控制作答卡显示；默认关闭
@@ -542,8 +544,7 @@
   7. 总结：型别不变时，尽量把低频增益与中频动态分开安排
 - 学生作答卡：
   - `time-lag-card-1`：判断纯增益失败原因，`single_choice`
-  - `time-lag-card-2`：匹配零点和极点的相对位置与作用，`match`
-  - `time-lag-card-3`：补全 `K_v` 结果，`fill_text`
+  - `time-lag-card-2`：判断滞后的核心结构作用，`single_choice`
 
 ### 教师控制
 - `release_activity`：控制作答卡显示；默认关闭
@@ -577,8 +578,7 @@
 - 组件类型：`activity_card_set`
 - 作答卡：
   - `time-compare-card-1`：把“斜坡误差为 0”对应到方法，`single_choice`
-  - `time-compare-card-2`：把收益与代价成对匹配，`match`
-  - `time-compare-card-3`：选择适用场景，`multi_choice`
+  - `time-compare-card-2`：把“型别不变但 Kv 提高”对应到方法，`single_choice`
 
 ### 教师控制
 - `release_activity`：控制作答卡显示；默认关闭
@@ -629,8 +629,7 @@
   8. 补充时域核验：$M_p \approx 15.6\%$，$t_s \approx 6.0\ \mathrm{s}$
 - 学生作答卡：
   - `freq-pi-card-1`：判断纯增益不兼容的原因，`single_choice`
-  - `freq-pi-card-2`：补全设计顺序，`drag_sort`
-  - `freq-pi-card-3`：填写零点放置原则，`fill_text`
+  - `freq-pi-card-2`：补全设计顺序，`fill_text`
 
 ### 教师控制
 - `release_activity`：控制作答卡显示；默认关闭
@@ -676,8 +675,7 @@
   5. 总结：该方案代表“动态速度优先”的设计取向
 - 学生作答卡：
   - `freq-pd-card-1`：判断本方案是否提高型别，`single_choice`
-  - `freq-pd-card-2`：把核验指标与性能描述匹配，`match`
-  - `freq-pd-card-3`：填写保留误差的原因，`fill_text`
+  - `freq-pd-card-2`：判断最能体现“动态速度优先”的指标，`single_choice`
 
 ### 教师控制
 - `release_activity`：控制作答卡显示；默认关闭
@@ -711,8 +709,7 @@
 - 组件类型：`activity_card_set`
 - 作答卡：
   - `freq-compare-card-1`：选择更适合斜坡跟踪精度优先的方案，`single_choice`
-  - `freq-compare-card-2`：匹配“更快 / 更准 / 代价落点”，`match`
-  - `freq-compare-card-3`：判断场景归属，`multi_choice`
+  - `freq-compare-card-2`：选择更适合动态速度优先的方案，`single_choice`
 
 ### 教师控制
 - `release_activity`：控制作答卡显示；默认关闭
@@ -757,7 +754,7 @@
 
 ### 预览口径
 - 学生页预览：`/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-16`
-- 对齐要求：后测单独成页，不与总结合并
+- 对齐要求：后测单独成页，不与总结合并，且后测卡片位于页面最上方
 
 ## 步骤 17｜收束与去向：规则表、信息图与 3-8 入口
 
@@ -789,4 +786,4 @@
 
 ### 预览口径
 - 学生页预览：`/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-17`
-- 对齐要求：本页只承载收束与去向，不再包含后测题
+- 对齐要求：本页只承载收束与去向，不再包含后测题，也不再额外显示“无需提交”占位模块

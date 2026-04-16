@@ -218,7 +218,8 @@ steps:
       - { id: "formula-card-3", region: "formula", kind: "formula-card", must_be_visible: true }
       - { id: "formula-card-4", region: "formula", kind: "formula-card", must_be_visible: true }
       - { id: "channel-sum-card", region: "formula", kind: "formula-card", must_be_visible: true }
-      - { id: "channel-hotspots", region: "interaction", kind: "hotspot-labeling", must_be_visible: true }
+      - { id: "channel-choice-card-1", region: "interaction", kind: "single-choice-card", must_be_visible: true }
+      - { id: "channel-choice-card-2", region: "interaction", kind: "single-choice-card", must_be_visible: true }
     content_blocks:
       - id: "figure-ref"
         type: "plain_text"
@@ -240,11 +241,11 @@ steps:
     evidence_sequence:
       - "先出现双通道结构图。"
       - "再出现四个命名公式卡与总输出/总误差结论。"
-      - "最后出现热点标注区。"
+      - "最后出现两张独立勾选提交卡。"
     interaction_spec:
-      interaction_kind: "hotspot_labeling"
-      student_task: "把给定入口、扰动入口、总输出和总误差与图中位置对应起来。"
-      answer_reveal: "instant_feedback"
+      interaction_kind: "activity_card_set"
+      student_task: "先阅读双通道结构与四类命名传函，再完成两道勾选提交题。"
+      answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "visible"
         release_required: false
@@ -258,10 +259,10 @@ steps:
       teacher_step_reveal: "not_applicable"
       reveal_reference_answer: "teacher_toggle"
     telemetry_spec:
-      summary_fields: ["attemptCount", "selectedHotspots", "resultState"]
+      summary_fields: ["attemptCount", "completedCards", "resultState"]
       result_policy: "store_best_attempt"
     teacher_insight_spec:
-      widgets: ["hotspot_confusion_map", "completion_rate"]
+      widgets: ["option_distribution", "channel_confusion_rate"]
       aggregation: "step_level"
     ai_context_spec:
       page_goal: "固定先分结构、后分通道的读法。"
@@ -276,7 +277,7 @@ steps:
       must_match_student_page: true
     acceptance_checks:
       - "结构图、四个命名公式卡和总结论必须先于互动出现。"
-      - "热点区不能替代静态正文。"
+      - "互动区必须是两张独立勾选卡，且每卡单独提交。"
 
   step-05:
     title: "终值定理直接求：原理模块与例题 1 分离"
