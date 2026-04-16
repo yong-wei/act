@@ -3,10 +3,13 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { BopppsStage, LessonItemType, Prisma } from '@prisma/client';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   buildLessonPlanDeleteConflictMessage,
   canDeleteLessonPlan,
 } from '@/lib/lesson-plan-delete-policy';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: Request,
@@ -30,6 +33,7 @@ export async function GET(
 
     return NextResponse.json(plan);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error fetching lesson plan:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -124,6 +128,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedPlan);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error updating lesson plan:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -192,6 +197,7 @@ export async function DELETE(
       );
     }
 
+    rethrowIfNextDynamicError(error);
     console.error('Error deleting lesson plan:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

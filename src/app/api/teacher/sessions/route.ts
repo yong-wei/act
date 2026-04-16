@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server';
 import { SessionStatus } from '@prisma/client';
 
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
@@ -82,6 +85,7 @@ export async function GET(request: Request) {
       }))
     );
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[TeacherSessions][GET] Error:', error);
     return NextResponse.json({ error: '获取课堂历史失败' }, { status: 500 });
   }
@@ -162,6 +166,7 @@ export async function PATCH(request: Request) {
       className: updated.class?.name ?? null,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[TeacherSessions][PATCH] Error:', error);
     return NextResponse.json({ error: '更新课堂归档失败' }, { status: 500 });
   }
@@ -207,6 +212,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[TeacherSessions][DELETE] Error:', error);
     return NextResponse.json({ error: '删除课堂失败' }, { status: 500 });
   }

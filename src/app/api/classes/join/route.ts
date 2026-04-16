@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
 
 // POST: 学生通过班级码加入班级
 export async function POST(request: Request) {
@@ -72,6 +75,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('加入班级失败:', error);
     return NextResponse.json({ error: '加入班级失败' }, { status: 500 });
   }

@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import * as XLSX from 'xlsx';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * Excel 导入学生 API
@@ -155,6 +158,7 @@ export async function POST(
       },
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error importing students:', error);
     return NextResponse.json({ error: '导入失败' }, { status: 500 });
   }

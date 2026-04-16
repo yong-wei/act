@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { KnowledgeNodeType, BloomLevel } from '@prisma/client';
 import { filterKnowledgeNodes, loadKnowledgeGraphData } from '@/lib/knowledge-graph-source';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -63,6 +64,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(nodes);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error fetching knowledge nodes:', error);
     return NextResponse.json(
       { error: 'Failed to fetch knowledge nodes' },

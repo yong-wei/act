@@ -36,7 +36,8 @@
       "group_name": "综合映射与模块4入口",
       "step_ids": [
         "step-08",
-        "step-09"
+        "step-09",
+        "step-10"
       ],
       "node_ids": [
         "三频段闭环性能回读_3_38003",

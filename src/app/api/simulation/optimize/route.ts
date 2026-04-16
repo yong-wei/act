@@ -6,6 +6,7 @@
 
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   optimizePIDParams,
   type OptimizationTarget,
@@ -14,6 +15,8 @@ import {
   DEFAULT_CONSTRAINTS,
   DEFAULT_TARGET,
 } from '@/resources/simulations/lib/monte-carlo-optimizer';
+
+export const dynamic = 'force-dynamic';
 
 export interface OptimizeRequest {
   config: Partial<SimpleSimConfig>;
@@ -83,6 +86,7 @@ export async function POST(request: Request) {
       advice: generateAdvice(result.score, result.metrics),
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('参数优化失败:', error);
     return NextResponse.json(
       { error: '服务器错误' },

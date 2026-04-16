@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { parse } from 'yaml';
 
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
@@ -25,12 +26,12 @@ describe('unit 3-7 interactive course', () => {
     expect(registry?.courseMeta.courseTitle).toContain('型别、积分环节与稳态改善');
   });
 
-  it('defines the full 12-step lesson flow', async () => {
+  it('defines the full 17-step lesson flow', async () => {
     const courseModule = await import('@/lib/unit-3-7-course');
 
-    expect(courseModule.UNIT_3_7_LESSON_STEPS).toHaveLength(12);
+    expect(courseModule.UNIT_3_7_LESSON_STEPS).toHaveLength(17);
     expect(courseModule.UNIT_3_7_LESSON_STEPS[0]?.id).toBe('step-01');
-    expect(courseModule.UNIT_3_7_LESSON_STEPS[11]?.id).toBe('step-12');
+    expect(courseModule.UNIT_3_7_LESSON_STEPS[16]?.id).toBe('step-17');
   });
 
   it('keeps page AI hidden and only exposes activity-first layout on the contract-required steps', async () => {
@@ -39,15 +40,15 @@ describe('unit 3-7 interactive course', () => {
     expect(courseModule.isUNIT_3_7AiPageType('display')).toBe(false);
     expect(courseModule.isUNIT_3_7AiPageType('quiz_group')).toBe(false);
     expect(courseModule.isUNIT_3_7ActivityFirstStep('step-03')).toBe(true);
-    expect(courseModule.isUNIT_3_7ActivityFirstStep('step-12')).toBe(true);
+    expect(courseModule.isUNIT_3_7ActivityFirstStep('step-16')).toBe(true);
     expect(courseModule.isUNIT_3_7ActivityFirstStep('step-04')).toBe(false);
   });
 
-  it('exposes AI quick questions for the low-frequency compensation compare step', () => {
-    const quickQuestions = getStepQuickQuestions('unit-3-7-steady-error-low-frequency-compensation-v1', 'step-10');
+  it('exposes AI quick questions for the frequency comparison step', () => {
+    const quickQuestions = getStepQuickQuestions('unit-3-7-steady-error-low-frequency-compensation-v1', 'step-15');
 
     expect(quickQuestions).toHaveLength(2);
-    expect(quickQuestions[0]?.question).toContain('PI');
+    expect(quickQuestions[0]?.question).toContain('低频精度');
   });
 
   it('maps runtime media using the real 3-7 prefixed asset names', async () => {
@@ -58,12 +59,14 @@ describe('unit 3-7 interactive course', () => {
     expect(courseModule.getUNIT_3_7MediaSrc('step-07')).toContain('3-7-example2-structure');
     expect(courseModule.getUNIT_3_7MediaSrc('step-09')).toContain('3-7-low-frequency-compensators');
     expect(courseModule.getUNIT_3_7MediaSrc('step-10')).toContain('3-7-pi-time-domain-design');
-    expect(courseModule.getUNIT_3_7MediaSrc('step-11')).toContain('3-7-pi-frequency-design');
-    expect(courseModule.getUNIT_3_7MediaSrc('step-12')).toContain('3-7-info');
+    expect(courseModule.getUNIT_3_7MediaSrc('step-11')).toContain('3-7-lag-time-domain-design');
+    expect(courseModule.getUNIT_3_7MediaSrc('step-13')).toContain('3-7-pi-frequency-design');
+    expect(courseModule.getUNIT_3_7MediaSrc('step-14')).toContain('3-7-pi-pd-comparison');
+    expect(courseModule.getUNIT_3_7MediaSrc('step-17')).toContain('3-7-info');
   });
 
   it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
-    const contract = JSON.parse(
+    const contract = parse(
       readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-7/design/interactive-contract.yaml'), 'utf8'),
     ) as {
       steps: Record<
@@ -81,15 +84,35 @@ describe('unit 3-7 interactive course', () => {
 
     const courseModule = await import('@/lib/unit-3-7-course');
     const interactiveSteps = new Map(courseModule.UNIT_3_7_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
-    const expectedStepIds = ['step-03', 'step-04', 'step-05', 'step-06', 'step-08', 'step-09', 'step-10', 'step-11', 'step-12'] as const;
+    const expectedStepIds = [
+      'step-03',
+      'step-04',
+      'step-05',
+      'step-06',
+      'step-08',
+      'step-09',
+      'step-10',
+      'step-11',
+      'step-12',
+      'step-13',
+      'step-14',
+      'step-15',
+      'step-16',
+      'step-17',
+    ] as const;
 
     for (const stepId of expectedStepIds) {
       const authoringStep = contract.steps[stepId];
       const localStep = interactiveSteps.get(stepId);
       const localPageContract = courseModule.UNIT_3_7_PAGE_CONTRACTS[stepId];
 
+      const expectedPageType =
+        authoringStep.interaction_spec.interaction_kind === 'none'
+          ? 'display'
+          : authoringStep.interaction_spec.interaction_kind;
+
       expect(localStep?.title).toBe(authoringStep.title);
-      expect(localStep?.pageType).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(localStep?.pageType).toBe(expectedPageType);
       expect(localPageContract?.layout.template).toBe(authoringStep.layout.template);
       expect(localPageContract?.layout.regions).toEqual(authoringStep.layout.regions);
       expect(localPageContract?.interactionKind).toBe(authoringStep.interaction_spec.interaction_kind);
@@ -172,8 +195,10 @@ describe('unit 3-7 interactive course', () => {
     expect(stepPanelsSource).toContain('G_1(s)');
     expect(stepPanelsSource).toContain('PI 与滞后都在低频补偿线上，但抓手不同');
     expect(stepPanelsSource).toContain('e_ss = 0.4');
-    expect(stepPanelsSource).toContain('PI 与滞后都站在低频补偿线上');
-    expect(stepPanelsSource).toContain('为什么 PI 更准、PD 更快');
+    expect(stepPanelsSource).toContain('纯增益不能把斜坡误差变为 0');
+    expect(stepPanelsSource).toContain('型别不变时，尽量把低频增益和中频动态分开安排');
+    expect(stepPanelsSource).toContain('先判断纯增益不可能兼顾低频精度和相位裕度');
+    expect(stepPanelsSource).toContain('动态速度优先');
     expect(stepPanelsSource).toContain('低频精度');
     expect(stepPanelsSource).toContain('3-8 将把低频收益和中频代价翻译成统一频域判断');
     expect(stepPanelsSource).not.toContain('劳斯判据');
@@ -183,9 +208,8 @@ describe('unit 3-7 interactive course', () => {
 
     expect(workspaceSource).toContain('HOTSPOT_FIELDS');
     expect(workspaceSource).toContain('WORKED_EXAMPLE_FIELDS');
-    expect(workspaceSource).toContain('TRIPLE_MATCH_FIELDS');
-    expect(workspaceSource).toContain('CARD_SORT_ITEMS');
-    expect(workspaceSource).toContain('STRUCTURED_COMPARE_FIELDS');
+    expect(workspaceSource).toContain('ACTIVITY_CARD_FIELDS');
+    expect(workspaceSource).toContain('ASSESSMENT_CARD_FIELDS');
   });
 
   it('uses the 3-7 step AI context inside the student page', () => {

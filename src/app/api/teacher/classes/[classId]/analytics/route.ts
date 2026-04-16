@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getServerAuthSession } from '@/lib/auth'
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error'
 import { prisma } from '@/lib/prisma'
 import { getClassExtracurricularAnalytics } from '@/lib/extracurricular-analytics'
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   _request: Request,
@@ -36,6 +39,7 @@ export async function GET(
     const payload = await getClassExtracurricularAnalytics(classId)
     return NextResponse.json(payload)
   } catch (error) {
+    rethrowIfNextDynamicError(error)
     console.error('获取班级展示分析失败:', error)
     return NextResponse.json({ error: '服务器错误' }, { status: 500 })
   }

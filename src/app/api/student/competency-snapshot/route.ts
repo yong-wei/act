@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { calculateTrendVector } from '@/lib/data-governance/competency-engine';
 import type { CompetencyVector, TrendVector } from '@/lib/data-governance/competency-model';
@@ -14,6 +15,8 @@ import {
   dedupeRiskFlags,
 } from '@/lib/data-governance/profile-center';
 import type { RiskFlag } from '@/lib/data-governance/risk-detector';
+
+export const dynamic = 'force-dynamic';
 
 export interface StudentSnapshotResponse {
   currentSnapshot: {
@@ -136,6 +139,7 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[StudentSnapshot] Error:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }

@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { Prisma } from '@prisma/client';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * 搜索学生
@@ -86,6 +89,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(formattedStudents);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error searching students:', error);
     return NextResponse.json({ error: '搜索失败' }, { status: 500 });
   }

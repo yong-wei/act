@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { BopppsStage, LessonItemType } from '@prisma/client';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -35,6 +38,7 @@ export async function GET() {
 
     return NextResponse.json(plans);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error fetching lesson plans:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -97,6 +101,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(plan);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error creating lesson plan:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

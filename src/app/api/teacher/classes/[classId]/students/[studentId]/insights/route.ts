@@ -10,9 +10,12 @@ import {
 } from '@/lib/data-governance/competency-model';
 import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
 import { normalizeInsightRiskLevel, parseStringList } from '@/features/teacher/teacher-insights';
+
+export const dynamic = 'force-dynamic';
 
 type TeacherStudentRiskItem = {
   type: string;
@@ -292,6 +295,7 @@ export async function GET(
 
     return NextResponse.json(payload);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[TeacherStudentInsights] Error:', error);
     if (isDatabaseConnectivityError(error)) {
       return createDatabaseUnavailableResponse();

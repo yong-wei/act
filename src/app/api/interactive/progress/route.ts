@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/interactive/progress
@@ -98,6 +101,7 @@ export async function GET(request: NextRequest) {
       totalInteractions: recentEvents._count.id,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[Interactive Progress API] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -202,6 +206,7 @@ export async function POST(request: NextRequest) {
       message: 'No knowledge node associated with this resource',
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[Interactive Progress API] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

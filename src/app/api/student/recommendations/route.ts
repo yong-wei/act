@@ -7,6 +7,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { generateRecommendations, type RecommendationType } from '@/lib/data-governance/recommendation-engine';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 export interface RecommendationsResponse {
   recommendations: Array<{
@@ -84,6 +87,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[RecommendationsAPI] Error:', error);
     return NextResponse.json(
       { error: '服务器错误' },

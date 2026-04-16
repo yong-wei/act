@@ -7,8 +7,11 @@
 
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+
+export const dynamic = 'force-dynamic';
 
 // 请求验证 schema
 const createViolationSchema = z.object({
@@ -106,6 +109,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('创建违规记录失败:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
@@ -161,6 +165,7 @@ export async function PATCH(request: Request) {
       },
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('提交整改方案失败:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }

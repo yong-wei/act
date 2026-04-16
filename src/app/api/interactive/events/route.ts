@@ -4,12 +4,15 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { eventQueue } from '@/lib/event-queue';
 import { eventRateLimiter } from '@/lib/rate-limiter';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import type { ClassroomInteractionEventInput } from '@/lib/classroom-analytics/types';
 import { toLearningEvent } from '@/lib/data-governance/event-protocol';
 import { routeEvent } from '@/lib/data-governance/event-buffer';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
 import type { PageType } from '@/lib/data-governance/event-protocol';
+
+export const dynamic = 'force-dynamic';
 
 function toDateTime(value: number | string | null | undefined): Date | null {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -224,6 +227,7 @@ export async function POST(request: NextRequest) {
       pending: eventQueue.getStats().pending,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[Interactive Events API] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -328,6 +332,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[Interactive Events API] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

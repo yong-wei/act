@@ -4,6 +4,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { buildSessionParticipantHref, resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
 import { logClassroomEvent } from '@/lib/classroom-observability';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * 根据入会码查找课堂会话
@@ -123,6 +126,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(response);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error finding session by join code:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },

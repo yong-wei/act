@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth'; // Assuming authOptions is exported from here
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
@@ -40,6 +43,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(playlists);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error fetching playlists:', error);
     return NextResponse.json(
       { error: 'Failed to fetch playlists' },
@@ -87,6 +91,7 @@ export async function POST(request: Request) {
     return NextResponse.json(playlist);
 
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error creating playlist:', error);
     return NextResponse.json(
       { error: 'Failed to create playlist' },

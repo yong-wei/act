@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { assessPromptQuality, type AssessPromptRequest } from '@/features/evaluation/prompt-quality';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
@@ -15,6 +18,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return NextResponse.json(
       {
         error: '提示词评价失败',

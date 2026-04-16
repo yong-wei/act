@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { selectNextQuestion } from '@/features/assessment/adaptive-engine';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 interface NextQuestionRequest {
   userId?: string;
@@ -18,6 +21,7 @@ export async function POST(request: Request) {
     const result = selectNextQuestion({ userId, sessionId });
     return NextResponse.json(result);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return NextResponse.json(
       {
         error: '获取下一题失败',

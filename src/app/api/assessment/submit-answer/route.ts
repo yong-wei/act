@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { submitAnswer } from '@/features/assessment/adaptive-engine';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 interface SubmitAnswerRequest {
   userId?: string;
@@ -28,6 +31,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return NextResponse.json(
       {
         error: '提交答案失败',

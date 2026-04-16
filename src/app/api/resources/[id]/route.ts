@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: Request,
@@ -18,6 +21,7 @@ export async function GET(
 
     return NextResponse.json(resource);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error fetching resource:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -51,6 +55,7 @@ export async function PATCH(
 
     return NextResponse.json(resource);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error updating resource:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

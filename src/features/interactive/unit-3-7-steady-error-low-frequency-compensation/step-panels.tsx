@@ -9,18 +9,16 @@ import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
+import type { UNIT_3_7StepDefinition, UNIT_3_7StepResponse } from '@/lib/unit-3-7-course';
 import {
-  type UNIT_3_7StepDefinition,
-  type UNIT_3_7StepResponse,
-} from '@/lib/unit-3-7-course';
-import {
-  CARD_SORT_ITEMS,
+  ACTIVITY_CARD_FIELDS,
+  ASSESSMENT_CARD_FIELDS,
   HOTSPOT_FIELDS,
   POSTTEST_QUESTIONS,
   PRETEST_QUESTIONS,
-  STRUCTURED_COMPARE_FIELDS,
-  TRIPLE_MATCH_FIELDS,
   WORKED_EXAMPLE_FIELDS,
+  type ActivityCardField,
+  type ChoiceOption,
   type WorkspaceParameterChange,
 } from './workspace';
 
@@ -40,11 +38,6 @@ interface StepBlueprint {
   sections: StepSection[];
   note?: string;
   prompts?: string[];
-}
-
-interface ChoiceOption {
-  value: string;
-  label: string;
 }
 
 export interface UNIT_3_7TeacherResponseItem {
@@ -85,25 +78,13 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
       {
         title: '本课主问题',
         tone: 'cyan',
-        bullets: [
-          '系统稳定了，为什么误差还可能留在比较点上？',
-          '为什么“更快更稳”并不等于已经“更准”？',
-        ],
+        bullets: ['系统稳定了，为什么误差还可能留在比较点上？', '为什么“更快更稳”并不等于已经“更准”？'],
       },
       {
         title: '边界提醒',
         tone: 'amber',
-        bullets: [
-          '本课不进入 Nyquist 判据。',
-          '本课不进入模块 4 的完整整定流程。',
-          '本课先建立误差分析与低频补偿入口。',
-        ],
+        bullets: ['本课不进入 Nyquist 判据。', '本课不进入模块 4 的完整整定流程。', '本课先建立误差分析与低频补偿入口。'],
       },
-    ],
-    note: '首屏必须看见路径图、主问题卡和边界卡，不能用互动题替代导入本体。',
-    prompts: [
-      '为什么 3-6 解决了“更快更稳”之后，3-7 还必须单独回答“为什么更准”？',
-      '3-7 与 3-8 的关系是什么，为什么今天先从低频精度切入？',
     ],
   },
   'step-02': {
@@ -118,13 +99,9 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
       {
         title: '负责 / 不负责',
         tone: 'slate',
-        markdown: `| 本课负责 | 本课不负责 |\n| --- | --- |\n| 通道分析、稳态误差求解、低频补偿路径、频域过渡 | Nyquist 判据、完整整定、模块 4 控制器选型 |`,
+        markdown:
+          '| 本课负责 | 本课不负责 |\n| --- | --- |\n| 通道分析、稳态误差求解、低频补偿路径、频域过渡 | Nyquist 判据、完整整定、模块 4 控制器选型 |',
       },
-    ],
-    note: '目标卡与边界表必须同屏，本页不需要学生提交。',
-    prompts: [
-      '本课四项目标分别围绕哪四个动作展开？',
-      '为什么 3-7 必须停在误差分析和低频补偿入口，而不提前滑进完整频域设计？',
     ],
   },
   'step-03': {
@@ -134,21 +111,8 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
       {
         title: '常见混淆',
         tone: 'rose',
-        bullets: [
-          '扰动不是另一种输入型别。',
-          '增益变大不等于型别提高。',
-          '滞后不是更弱一点的积分。',
-        ],
+        bullets: ['扰动不是另一种输入型别。', '增益变大不等于型别提高。', '滞后不是更弱一点的积分。'],
       },
-      {
-        title: '教师观察点',
-        tone: 'violet',
-        bullets: ['区分首答与重提。', '优先看错因分布，而不是只看对错率。'],
-      },
-    ],
-    prompts: [
-      '为什么显式扰动问题不能直接当成另一种输入型别来套 Kp/Kv/Ka 表？',
-      '为什么把滞后看成“更弱一点的积分”会带来错误判断？',
     ],
   },
   'step-04': {
@@ -172,10 +136,6 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
         bullets: ['分母相同反映结构。', '分子不同反映通道。', '先分通道，再谈稳态误差。'],
       },
     ],
-    prompts: [
-      '为什么四类传函的分母相同？',
-      '为什么同一结构下，通道差异会体现在分子上？',
-    ],
   },
   'step-05': {
     kicker: 'Direct Path',
@@ -187,20 +147,11 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
         bullets: ['先判稳定。', '写出误差传函。', '再做终值极限。'],
       },
       {
-        title: '终值定理',
-        tone: 'violet',
-        markdown: '$$e_{ss}=\\lim_{s\\to 0} sE(s)$$',
-      },
-      {
         title: '例题 1 题面与结果摘要',
         tone: 'slate',
-        markdown: '$$R(s)=\\dfrac{3}{s}+\\dfrac{2}{s^2}+\\dfrac{1}{s^3}$$\n\n本题最终稳态误差为 1/K。',
+        markdown:
+          '$$G(s)=\\dfrac{K}{s^2(0.5s+1)}$$\n$$R(s)=\\dfrac{3}{s}+\\dfrac{2}{s^2}+\\dfrac{1}{s^3}$$\n\n本题最终稳态误差为 1/K。',
       },
-    ],
-    note: '三步法卡和例题题面必须同屏，工作区只能提示漏步，不能直接给答案。',
-    prompts: [
-      '为什么用终值定理前必须先判断系统稳定？',
-      '为什么即使后面学了型别快判，终值定理直接求仍然是通用路径？',
     ],
   },
   'step-06': {
@@ -216,8 +167,7 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
       {
         title: '型别与误差系数关系',
         tone: 'slate',
-        markdown:
-          '| 系统型别 | 首个有限静态误差系数 |\n| --- | --- |\n| 0 型 | K_p |\n| I 型 | K_v |\n| II 型 | K_a |',
+        markdown: '| 型别 | 首个有限误差系数 |\n| --- | --- |\n| 0 型 | K_p |\n| I 型 | K_v |\n| II 型 | K_a |',
       },
       {
         title: '型别与典型输入误差关系',
@@ -228,16 +178,8 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
       {
         title: '边界提醒',
         tone: 'amber',
-        bullets: [
-          '标准负反馈、只问典型给定输入稳态误差：优先快速判。',
-          '显式给定与扰动共同存在：优先直接求。',
-          '目标是判断是否必须引入积分：先看型别。',
-        ],
+        bullets: ['标准给定输入优先快判。', '显式扰动问题优先直接求。', '判断是否必须积分时，先看型别。'],
       },
-    ],
-    prompts: [
-      '什么时候可以优先用型别和静态误差系数快速判断稳态误差？',
-      '如果把显式扰动问题也强行折成快判题，最容易漏掉什么？',
     ],
   },
   'step-07': {
@@ -248,23 +190,14 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
         title: '题面卡',
         tone: 'slate',
         markdown:
-          '$$G_1(s)=\\dfrac{10}{s(s+2)}$$\n$$G_2(s)=\\dfrac{2}{s+5},\\quad R(s)=\\dfrac{1}{s},\\quad D(s)=\\dfrac{0.2}{s}$$',
+          '$$G_1(s)=\\dfrac{5}{s+5},\\quad G_2(s)=\\dfrac{2}{s+2}$$\n$$R(s)=\\dfrac{1}{s},\\quad D(s)=\\dfrac{0.2}{s}$$',
       },
       {
-        title: '总误差式',
+        title: '总误差式与结果',
         tone: 'violet',
         markdown:
-          '$$E(s)=\\frac{1}{1+G_1(s)G_2(s)}R(s)-\\frac{G_2(s)}{1+G_1(s)G_2(s)}D(s)$$\n$$E(s)=\\frac{s^2+7s+10}{s^2+7s+20}\\cdot\\frac{1}{s}-\\frac{2(s+5)}{s^2+7s+20}\\cdot\\frac{0.2}{s}$$',
+          '$$E(s)=\\frac{1}{1+G_1(s)G_2(s)}R(s)-\\frac{G_2(s)}{1+G_1(s)G_2(s)}D(s)$$\n\n结果固定为 $e_{ss}=0.4$。',
       },
-      {
-        title: '结果解释',
-        tone: 'rose',
-        bullets: ['结果固定为 e_ss = 0.4。', '0.4 不是套表来的，而是双通道叠加后的极限结果。'],
-      },
-    ],
-    prompts: [
-      '为什么给定与扰动共同存在时，第一步必须先写总误差式？',
-      '例题 2 的稳态误差 0.4 反映的是哪两条通道叠加后的结果？',
     ],
   },
   'step-08': {
@@ -274,10 +207,7 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
       {
         title: '对照卡',
         tone: 'emerald',
-        bullets: [
-          '增益调节：压小有限误差，但不改变误差阶次。',
-          '型别提高：可能把原本有限误差变成 0。',
-        ],
+        bullets: ['增益调节：压小有限误差，但不改变误差阶次。', '型别提高：可能把原本有限误差变成 0。'],
       },
       {
         title: '结论句',
@@ -285,25 +215,22 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
         body: '想消除结构性误差，第一步不是继续调 K，而是判断是否必须引入积分。',
       },
     ],
-    prompts: [
-      '为什么增益变大和型别提高都可能让误差变小，但它们不是同一种动作？',
-      '遇到想把有限误差结构性变成 0 的目标时，为什么第一步常常是判断是否必须引入积分？',
-    ],
   },
   'step-09': {
     kicker: 'Low-Frequency Compensation',
-    intro: 'PI 与滞后都站在低频补偿线上，但 PI 的抓手是改型别，滞后的抓手是抬低频增益。收益和代价必须配套理解。',
+    intro: 'PI 与滞后都在低频补偿线上，但抓手不同：前者改型别，后者抬低频增益。收益和代价必须配套理解。',
     sections: [
       {
-        title: '路径比较表',
-        tone: 'slate',
+        title: '两条补偿路径',
+        tone: 'cyan',
         markdown:
-          '| 路径 | 是否改型别 | 主要收益 | 主要代价 |\n| --- | --- | --- | --- |\n| PI | 是 | 可把某些有限误差结构性变成 0 | 会影响截止频率、相位裕度与时域速度 |\n| 滞后 | 否 | 压小有限误差、抬高 Kv | 引入相位滞后、常把截止频率拉低 |',
+          '$$G_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right)$$\n$$G_{lag}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1$$',
       },
       {
-        title: '共同点句',
-        tone: 'cyan',
-        body: 'PI 与滞后都在低频补偿线上，但抓手不同：前者直接改型别，后者主要通过低频增益重分配压小有限误差。',
+        title: '比较表',
+        tone: 'slate',
+        markdown:
+          '| 路径 | 是否改型别 | 主要收益 | 主要代价 |\n| --- | --- | --- | --- |\n| PI | 是 | 改变误差阶次 | 相位滞后增加、响应变慢 |\n| 滞后 | 否 | 提高低频增益、压小有限误差 | 截止频率下降、速度受限 |',
       },
       {
         title: '禁止误判',
@@ -311,88 +238,154 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
         bullets: ['不要把滞后简化成“弱一点的积分”。', '不要只记收益，不看代价落点。'],
       },
     ],
-    prompts: [
-      'PI 为什么会直接改变型别，而滞后通常不会？',
-      '滞后怎样通过低频增益重分配来改善有限误差？',
-    ],
   },
   'step-10': {
-    kicker: 'Time-Domain Design Compare',
-    intro: '两张时域设计图必须和指标卡同屏阅读：PI 直接提高型别，滞后则在型别不变的前提下把 Kv 抬到目标值。',
+    kicker: 'Time-Domain PI',
+    intro: '时域 PI 设计必须按“题面 -> 纯增益局限 -> 可行域 -> PI 选点 -> 验证”顺序展开。关键不是把图看懂，而是先认清为什么纯增益不能把斜坡误差变为 0。',
     sections: [
       {
-        title: '指标卡',
-        tone: 'cyan',
-        bullets: ['PI：提高型别，斜坡误差归零。', '滞后：型别不变，把 Kv 抬高到目标值。'],
+        title: '对象与目标',
+        tone: 'slate',
+        markdown:
+          '$$G_p(s)=\\dfrac{4}{s(s+4)}$$\n\n目标：斜坡输入稳态误差为 0，$M_p\\le 20\\%$，$t_s(2\\%)\\le 12\\,\\mathrm{s}$。',
       },
       {
-        title: '比较要求',
+        title: '关键步骤',
         tone: 'violet',
-        bullets: ['结构抓手是什么？', '精度收益是什么？', '动态代价落在哪里？'],
+        bullets: [
+          '纯增益不能把斜坡误差变为 0。',
+          '由时域指标换成可行域：阻尼比边界与实部边界同时成立。',
+          '引入 PI 后，提高型别到 II 型，使斜坡误差从结构上归零。',
+        ],
       },
-    ],
-    prompts: [
-      'PI 时域设计图上最能体现“提高型别”的证据是什么？',
-      '滞后时域设计图里，哪些量说明它没有改型别，但把 Kv 抬到了目标值？',
     ],
   },
   'step-11': {
-    kicker: 'Frequency-Domain Transition',
-    intro: '3-7 到 3-8 的桥就搭在这里：为什么 PI 更准、PD 更快，先用低频与中频的语言说清楚，再把它接到下一课的统一频域判别。',
+    kicker: 'Time-Domain Lag',
+    intro: '时域滞后页必须独立承载“纯增益矛盾 -> 零极点相对位置 -> Kv 提升 -> 验证结果”。这里的核心句是：型别不变时，尽量把低频增益和中频动态分开安排。',
     sections: [
       {
-        title: '设计顺序卡',
-        tone: 'emerald',
-        bullets: [
-          '纯增益若取 K ≥ 10 才能满足 Kv ≥ 10，但相位裕度不足。',
-          '先定 ωc* = 2.5 rad/s。',
-          '再布置 PI 零点 ωz = 0.125 rad/s。',
-          '最后由幅值条件求 G_PI(s)=3(s+0.125)/s 并回查 PM、ωc。',
-        ],
+        title: '对象与目标',
+        tone: 'slate',
+        markdown:
+          '$$G_p(s)=\\dfrac{4}{s(s+4)}$$\n\n目标：保持 $M_p\\le 20\\%$、$t_s(2\\%)\\le 12\\,\\mathrm{s}$，同时使 $K_v\\ge 10$。',
       },
       {
-        title: 'PI / PD 对照',
-        tone: 'amber',
-        markdown:
-          '| 方法 | 低频精度 | 截止频率 | 相位裕度 | 时域形态 |\n| --- | --- | --- | --- | --- |\n| PI | 更偏低频精度优先 | 常向低频侧移动 | 容易被压缩，需要回查 | 更容易变慢 |\n| PD | 不主打低频补偿 | 可向高频侧推进 | 更利于抬高 | 更偏动态速度优先 |',
+        title: '关键步骤',
+        tone: 'violet',
+        bullets: [
+          '纯增益若要满足 $K_v\\ge 10$，会先跌出阻尼边界。',
+          '滞后通过“零点在左、极点在右”的结构，把低频增益单独抬高。',
+          '型别不变时，尽量把低频增益和中频动态分开安排。',
+        ],
       },
-    ],
-    prompts: [
-      '为什么单纯把 K 调到满足 Kv≥10，常常会先在相位裕度上出问题？',
-      '为什么 PI 更偏低频精度优先，而 PD 更偏动态速度优先？',
     ],
   },
   'step-12': {
-    kicker: 'Post-Assessment And Wrap-Up',
-    intro: '最后只检查两件事：你会不会先选路径，再认代价；你能不能把 3-7 的低频收益和中频代价，平滑翻译成 3-8 的频域判别入口。',
+    kicker: 'Time-Domain Compare',
+    intro: '比较页只负责归纳，不再重复承载完整求解链。这里要把“斜坡误差为 0”和“型别不变但 Kv 提高”分别归到不同方法。',
     sections: [
       {
-        title: '六条小结',
-        tone: 'slate',
-        bullets: [
-          '稳态误差先分通道。',
-          '终值定理是通用路径。',
-          '型别和误差系数是标准快判。',
-          '增益变大不等于型别提高。',
-          'PI 与滞后都不是免费午餐。',
-          '下一课转入频域判别语言。',
-        ],
+        title: '比较维度',
+        tone: 'cyan',
+        bullets: ['型别是否变化', '主要收益', '主要代价', '适用问题'],
       },
       {
-        title: '规则表',
-        tone: 'violet',
+        title: '结论句',
+        tone: 'amber',
+        body: 'PI 更偏结构性误差消除；滞后更偏在保留动态指标前提下抬高低频增益。',
+      },
+    ],
+  },
+  'step-13': {
+    kicker: 'Frequency-Domain PI',
+    intro: '频域 PI 设计的重点是顺序而不是答案：先判断纯增益不可能兼顾低频精度和相位裕度，再定截止频率、布置零点，最后由幅值条件求比例系数。',
+    sections: [
+      {
+        title: '对象与目标',
+        tone: 'slate',
         markdown:
-          '| 题型 | 优先路径 |\n| --- | --- |\n| 标准负反馈、只问典型给定输入稳态误差 | 快速判 |\n| 输入与扰动共同存在 | 直接求 |\n| 输入是多项式叠加 | 直接求与快速判均可 |\n| 判断是否必须引入积分 | 先看型别 |',
+          '$$G_p(s)=\\dfrac{4}{s(s+4)}$$\n\n目标：$K_v\\ge 10$，$PM\\ge 55^\\circ$，$\\omega_c\\approx 2.5\\,\\mathrm{rad/s}$。',
+      },
+      {
+        title: '四步设计链',
+        tone: 'violet',
+        bullets: [
+          '先判断纯增益不可能兼顾低频精度和相位裕度。',
+          '先定目标截止频率，再把 PI 零点放在截止频率以下。',
+          '由幅值条件求 K，并回查相位裕度、截止频率和时域指标。',
+        ],
+      },
+    ],
+  },
+  'step-14': {
+    kicker: 'Frequency-Domain PD Readout',
+    intro: '本页明确是“方案读取与核验”，不是凭空补造讲义未给出的完整整定链。它的教学任务是把动态速度优先的证据读出来。',
+    sections: [
+      {
+        title: '方案题面',
+        tone: 'slate',
+        markdown:
+          '$$G_p(s)=\\dfrac{4}{s(s+4)}$$\n$$G_{PD}(s)=8(1+0.1s)$$',
+      },
+      {
+        title: '核验结论',
+        tone: 'violet',
+        bullets: [
+          '该方案仍为 I 型，因此斜坡误差有限非零。',
+          '更高截止频率和更高相位裕度对应更快、更利落的动态形态。',
+          '本方案代表动态速度优先，而不是低频精度优先。',
+        ],
+      },
+    ],
+  },
+  'step-15': {
+    kicker: 'Frequency-Domain Compare',
+    intro: '频域比较页必须把低频精度、截止频率、相位裕度和时域形态统一到一张表里。PI 更偏低频精度优先，PD 更偏动态速度优先。',
+    sections: [
+      {
+        title: '比较维度',
+        tone: 'cyan',
+        bullets: ['低频精度', '截止频率', '相位裕度', '时域形态', '设计取向'],
+      },
+      {
+        title: '结论句',
+        tone: 'amber',
+        body: '二者不是“谁更高级”，而是对应不同设计取向：低频精度优先 vs 动态速度优先。',
+      },
+    ],
+  },
+  'step-16': {
+    kicker: 'Post-Assessment',
+    intro: '后测单独成页，只检查两件事：你会不会先选路径，再认方法与代价落点。每道题独立成卡，不再与总结合并。',
+    sections: [
+      {
+        title: '错因标签',
+        tone: 'rose',
+        bullets: ['所有稳态误差都能套表。', 'PI 没有代价。', '滞后只是更弱积分。'],
+      },
+    ],
+  },
+  'step-17': {
+    kicker: 'Wrap-Up And Next',
+    intro: '收束页只承载工程视角、小结、规则表、信息图与 3-8 去向，不再混入任何后测题。',
+    sections: [
+      {
+        title: '工程视角',
+        tone: 'amber',
+        body: '长期偏一点，整段航程都在付代价。工程上真正关心的是：误差来自哪里、该不该加积分、该用 PI 还是滞后，以及代价会被推向哪里。',
+      },
+      {
+        title: '选用规则表',
+        tone: 'slate',
+        markdown:
+          '| 当前问题 | 建议路径 | 关键提醒 |\n| --- | --- | --- |\n| 标准负反馈、只问典型给定输入稳态误差 | 优先快速判 | 先看型别，再看 $K_p/K_v/K_a$ |\n| 输入与扰动共同存在 | 优先直接求 | 先分通道，再做终值极限 |\n| 输入是多项式叠加 | 两条路径都可用 | 终值定理看全式，静态误差系数看保留分量 |\n| 目标是判断是否必须引入积分 | 先看型别 | 判断误差能否从结构上变成零 |',
       },
       {
         title: '下一课去向',
         tone: 'cyan',
-        body: '3-8 将把低频收益和中频代价翻译成统一频域判断，用频域语言继续回答“更准”和“更快”如何一起被约束。',
+        body: '3-8 将把低频收益和中频代价翻译成统一频域判断，并继续回答“更准”和“更快”如何一起被约束。',
       },
-    ],
-    prompts: [
-      '遇到哪些题型时，应该优先直接求而不是先套型别和误差系数表？',
-      '为什么 3-7 的低频收益和中频代价，会自然过渡到 3-8 的统一频域判别语言？',
     ],
   },
 };
@@ -440,17 +433,11 @@ function TextInput({
   value,
   onChange,
   placeholder,
-  multiline = true,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
-  multiline?: boolean;
 }) {
-  if (!multiline) {
-    return <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="premium-lesson-input w-full" />;
-  }
-
   return (
     <textarea
       value={value}
@@ -518,17 +505,15 @@ function getDefaultDraft(step: UNIT_3_7StepDefinition, savedResponse?: UNIT_3_7S
     case 'binary_choice':
       return { choice: '' };
     case 'quiz_group':
-      return step.id === 'step-03' ? { q1: '', q2: '', q3: '' } : { q1: '', q2: '', q3: '', q4: '' };
+      return Object.fromEntries(PRETEST_QUESTIONS.map((question) => [question.key, '']));
+    case 'quiz_card_grid':
+      return Object.fromEntries(ASSESSMENT_CARD_FIELDS.map((question) => [question.key, '']));
     case 'hotspot_labeling':
       return Object.fromEntries(HOTSPOT_FIELDS.map((field) => [field.key, '']));
     case 'worked_example_workspace':
-      return Object.fromEntries(WORKED_EXAMPLE_FIELDS[step.id as 'step-05' | 'step-07'].map((field) => [field.key, '']));
-    case 'triple_match':
-      return Object.fromEntries(TRIPLE_MATCH_FIELDS[step.id as 'step-06' | 'step-11'].map((field) => [field.key, '']));
-    case 'card_sort':
-      return Object.fromEntries(CARD_SORT_ITEMS.map((item) => [item.key, '']));
-    case 'structured_compare':
-      return Object.fromEntries(STRUCTURED_COMPARE_FIELDS.map((field) => [field.key, '']));
+      return Object.fromEntries((WORKED_EXAMPLE_FIELDS[step.id] ?? []).map((field) => [field.key, '']));
+    case 'activity_card_set':
+      return Object.fromEntries((ACTIVITY_CARD_FIELDS[step.id] ?? []).map((field) => [field.key, '']));
     default:
       return {};
   }
@@ -563,14 +548,22 @@ function getRevealMarkdown(step: UNIT_3_7StepDefinition) {
     case 'step-07':
       return '例题 2 的关键词是：**先分通道，再写总误差式，最后由终值定理得到 e_ss = 0.4**。';
     case 'step-08':
-      return '正确判断是 **B：若型别不变，斜坡误差最多被压小，不能结构性归零**。';
+      return '正确判断是：**增益变大只能压小有限误差，结构性归零必须依赖型别提高。**';
     case 'step-09':
-      return '排序时应抓住两件事：**PI 改型别；滞后抬低频增益但常带来相位滞后和截止频率下降。**';
+      return '总览页要同时看到收益和代价：**PI 负责改型别；滞后负责在型别不变时抬低频增益。**';
     case 'step-10':
-      return '比较时不要只写“更好”，必须分别写出**结构抓手 / 精度收益 / 动态代价**。';
+      return '时域 PI 页的关键词：**纯增益不能把斜坡误差变为 0 -> 时域指标换可行域 -> PI 提高型别。**';
     case 'step-11':
-      return '本页要把“更准 / 更快 / 裕量代价 / 低频补偿”分别配回**PI 或 PD**以及对应频段。';
+      return '时域滞后页的关键词：**型别不变时，尽量把低频增益和中频动态分开安排。**';
     case 'step-12':
+      return '比较页只负责归纳：**PI 更偏结构性归零，滞后更偏 Kv 提升与低频增益重分配。**';
+    case 'step-13':
+      return '频域 PI 设计顺序：**先判断纯增益不可能兼顾低频精度和相位裕度，再定截止频率、布置零点、由幅值条件求 K。**';
+    case 'step-14':
+      return 'PD 方案页的关键词：**该方案仍为 I 型，因此斜坡误差有限非零，但更偏动态速度优先。**';
+    case 'step-15':
+      return '频域比较页要同时看：**低频精度、截止频率、相位裕度和动态速度优先。**';
+    case 'step-16':
       return POSTTEST_QUESTIONS.map((item, index) => `${index + 1}. ${item.explanation}`).join('\n\n');
     default:
       return '';
@@ -582,6 +575,7 @@ function summarizeResponses(step: UNIT_3_7StepDefinition, responses: UNIT_3_7Tea
     case 'binary_choice':
       return getDistribution(responses.map((item) => item.response.answers.choice || '未作答'));
     case 'quiz_group':
+    case 'quiz_card_grid':
       return getDistribution(
         responses.flatMap((item) =>
           Object.entries(item.response.answers)
@@ -591,13 +585,25 @@ function summarizeResponses(step: UNIT_3_7StepDefinition, responses: UNIT_3_7Tea
       );
     case 'hotspot_labeling':
     case 'worked_example_workspace':
-    case 'triple_match':
-    case 'card_sort':
-    case 'structured_compare':
+    case 'activity_card_set':
       return responses.map((item) => [item.studentName, trimText(Object.values(item.response.answers).join(' / '))]);
     default:
       return [];
   }
+}
+
+function renderActivityCard(
+  field: ActivityCardField,
+  value: string,
+  onChange: (value: string) => void,
+) {
+  if (field.inputKind === 'single_choice' && field.options) {
+    return <ChoiceGroup options={field.options} value={value} onChange={onChange} />;
+  }
+  if (field.inputKind === 'match' && field.options) {
+    return <SelectField value={value} onChange={onChange} options={field.options} />;
+  }
+  return <TextInput value={value} onChange={onChange} placeholder={field.placeholder ?? field.prompt} />;
 }
 
 export function UNIT_3_7KnowledgeMapVisual() {
@@ -632,7 +638,9 @@ export function UNIT_3_7StepContentPanel({
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const blueprint = getStepBlueprint(step);
-  const showPrimaryMedia = Boolean(mediaSrc) && step.id !== 'step-10' && step.id !== 'step-11';
+  const validationLastSteps = new Set(['step-10', 'step-11', 'step-13', 'step-14', 'step-17']);
+  const showMediaFirst = Boolean(mediaSrc) && !validationLastSteps.has(step.id);
+  const showMediaLast = Boolean(mediaSrc) && validationLastSteps.has(step.id);
 
   return (
     <section className="premium-lesson-panel px-5 py-5">
@@ -640,23 +648,9 @@ export function UNIT_3_7StepContentPanel({
       <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
       <p className="premium-lesson-muted mt-3 text-sm leading-7 sm:text-base">{blueprint.intro}</p>
 
-      {showPrimaryMedia && mediaSrc ? (
+      {showMediaFirst && mediaSrc ? (
         <div className="mt-4">
           <MediaPanel src={mediaSrc} alt={step.title} />
-        </div>
-      ) : null}
-
-      {step.id === 'step-10' ? (
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <MediaPanel src="/course-runtime/lessons/3-7/media/3-7-pi-time-domain-design.png" alt="PI 时域设计图" />
-          <MediaPanel src="/course-runtime/lessons/3-7/media/3-7-lag-time-domain-design.png" alt="滞后时域设计图" />
-        </div>
-      ) : null}
-
-      {step.id === 'step-11' ? (
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <MediaPanel src="/course-runtime/lessons/3-7/media/3-7-pi-frequency-design.png" alt="PI 频域设计图" />
-          <MediaPanel src="/course-runtime/lessons/3-7/media/3-7-pi-pd-comparison.png" alt="PI 与 PD 对照图" />
         </div>
       ) : null}
 
@@ -665,6 +659,12 @@ export function UNIT_3_7StepContentPanel({
           <InfoSection key={`${step.id}-${section.title}`} section={section} />
         ))}
       </div>
+
+      {showMediaLast && mediaSrc ? (
+        <div className="mt-4">
+          <MediaPanel src={mediaSrc} alt={step.title} />
+        </div>
+      ) : null}
 
       {blueprint.note ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">{blueprint.note}</div> : null}
     </section>
@@ -739,7 +739,7 @@ export function UNIT_3_7StudentActivityForm({
           ) : null}
 
           {step.pageType === 'quiz_group' ? (
-            (step.id === 'step-03' ? PRETEST_QUESTIONS : POSTTEST_QUESTIONS).map((question) => (
+            PRETEST_QUESTIONS.map((question) => (
               <div key={question.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
                 <div className="mt-3">
@@ -749,75 +749,58 @@ export function UNIT_3_7StudentActivityForm({
             ))
           ) : null}
 
+          {step.pageType === 'quiz_card_grid' ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {ASSESSMENT_CARD_FIELDS.map((question) => (
+                <div key={question.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+                  <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
+                  <div className="mt-3">
+                    <ChoiceGroup options={question.options} value={draft[question.key] ?? ''} onChange={(value) => updateDraft(question.key, value)} />
+                  </div>
+                  <button type="button" onClick={() => submit({ ...draft, [question.key]: draft[question.key] ?? '' })} className="premium-lesson-action-secondary mt-4">
+                    保存本题
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
           {step.pageType === 'hotspot_labeling' ? (
             HOTSPOT_FIELDS.map((field) => (
               <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
                 <div className="mt-3">
-                  <TextInput
-                    value={draft[field.key] ?? ''}
-                    onChange={(value) => updateDraft(field.key, value)}
-                    placeholder={`写出图中对应的 ${field.label} 位置说明`}
-                  />
+                  <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={`写出图中对应的 ${field.label} 位置说明`} />
                 </div>
               </div>
             ))
           ) : null}
 
           {step.pageType === 'worked_example_workspace' ? (
-            WORKED_EXAMPLE_FIELDS[step.id as 'step-05' | 'step-07'].map((field) => (
+            (WORKED_EXAMPLE_FIELDS[step.id] ?? []).map((field) => (
               <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                <div className="mt-3">
-                  <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={field.label} />
-                </div>
+                <p className="premium-lesson-muted mt-2 text-sm">{field.prompt}</p>
+                <div className="mt-3">{renderActivityCard(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value))}</div>
               </div>
             ))
           ) : null}
 
-          {step.pageType === 'triple_match' ? (
-            TRIPLE_MATCH_FIELDS[step.id as 'step-06' | 'step-11'].map((field) => (
+          {step.pageType === 'activity_card_set' ? (
+            (ACTIVITY_CARD_FIELDS[step.id] ?? []).map((field) => (
               <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                <div className="mt-3">
-                  <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={field.label} />
-                </div>
+                <p className="premium-lesson-muted mt-2 text-sm">{field.prompt}</p>
+                <div className="mt-3">{renderActivityCard(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value))}</div>
               </div>
             ))
           ) : null}
 
-          {step.pageType === 'card_sort' ? (
-            CARD_SORT_ITEMS.map((item) => (
-              <div key={item.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                <div className="premium-lesson-title text-sm font-medium">{item.label}</div>
-                <div className="mt-3">
-                  <SelectField
-                    value={draft[item.key] ?? ''}
-                    onChange={(value) => updateDraft(item.key, value, 'select')}
-                    options={[
-                      { value: 'pi', label: '归到 PI' },
-                      { value: 'lag', label: '归到滞后' },
-                    ]}
-                  />
-                </div>
-              </div>
-            ))
+          {step.pageType !== 'quiz_card_grid' ? (
+            <button type="button" onClick={() => submit()} className="premium-lesson-action-primary">
+              {submitted ? '重新提交本页作答' : '提交本页作答'}
+            </button>
           ) : null}
-
-          {step.pageType === 'structured_compare' ? (
-            STRUCTURED_COMPARE_FIELDS.map((field) => (
-              <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                <div className="mt-3">
-                  <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={field.label} />
-                </div>
-              </div>
-            ))
-          ) : null}
-
-          <button type="button" onClick={() => submit()} className="premium-lesson-action-primary">
-            {submitted ? '重新提交本页作答' : '提交本页作答'}
-          </button>
         </div>
       )}
 
@@ -868,12 +851,7 @@ export function UNIT_3_7TeacherActivitySummary({
           <button type="button" onClick={onToggleRelease} className="premium-lesson-action-secondary">
             {released ? '撤回互动' : '释放互动'}
           </button>
-          <button
-            type="button"
-            onClick={onToggleAnswerVisible}
-            disabled={!canReveal}
-            className="premium-lesson-action-primary disabled:opacity-40"
-          >
+          <button type="button" onClick={onToggleAnswerVisible} disabled={!canReveal} className="premium-lesson-action-primary disabled:opacity-40">
             {answerVisible ? '隐藏参考答案' : '显示参考答案'}
           </button>
         </div>

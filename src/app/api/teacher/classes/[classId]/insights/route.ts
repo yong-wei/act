@@ -17,6 +17,9 @@ import {
   rankStudentsByAttention,
   summarizeGovernanceState,
 } from '@/features/teacher/teacher-insights';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 type LevelDistribution = Record<keyof typeof COMPETENCY_LEVELS, number>;
 
@@ -312,6 +315,7 @@ export async function GET(
 
     return NextResponse.json(payload);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[TeacherClassInsights] Error:', error);
     if (isDatabaseConnectivityError(error)) {
       return createDatabaseUnavailableResponse();

@@ -6,9 +6,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { COMPETENCY_DIMENSIONS, type CompetencyDimension } from '@/lib/data-governance/competency-model';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';
+
+export const dynamic = 'force-dynamic';
 
 export interface HeatmapData {
   students: Array<{
@@ -192,6 +195,7 @@ export async function GET(
 
     return NextResponse.json(response, { headers });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[ClassHeatmap] Error:', error);
     if (isDatabaseConnectivityError(error)) {
       return createDatabaseUnavailableResponse();

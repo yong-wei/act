@@ -7,8 +7,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
@@ -96,6 +99,7 @@ export async function GET(
 
     return NextResponse.json({ students: students_list });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[RiskStudents] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

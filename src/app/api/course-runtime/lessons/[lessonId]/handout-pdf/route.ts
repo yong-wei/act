@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { generateLessonHandoutPdf } from '@/lib/handout-pdf-export';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,7 @@ export async function GET(
       },
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Failed to export lesson handout pdf:', error);
     return NextResponse.json(
       { error: '讲义 PDF 导出失败，请稍后重试。' },

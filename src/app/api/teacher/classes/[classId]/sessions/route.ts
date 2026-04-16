@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { Prisma, SessionStatus } from '@prisma/client';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * 获取班级的课堂历史
@@ -114,6 +117,7 @@ export async function GET(
 
     return NextResponse.json(formattedSessions);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error fetching class sessions:', error);
     return NextResponse.json({ error: '获取课堂历史失败' }, { status: 500 });
   }

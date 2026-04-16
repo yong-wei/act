@@ -4,6 +4,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { logClassroomEvent } from '@/lib/classroom-observability';
 import type { ClassroomStateMutationInput } from '@/lib/classroom-analytics/types';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 function toDateTime(value: number | string | null | undefined): Date | null {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -97,6 +100,7 @@ export async function POST(
 
     return NextResponse.json(studentState);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error submitting student state:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -302,6 +306,7 @@ export async function GET(
 
     return NextResponse.json({ states, courseStates: states, teacherStates, summary });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error fetching student states:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

@@ -6,6 +6,7 @@
 
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
   buildAdaptivePracticeSummary,
@@ -28,6 +29,8 @@ import {
 } from '@/lib/data-governance/competency-model';
 import { generateRecommendations } from '@/lib/data-governance/recommendation-engine';
 import { getAbilityReport, getDiagnostic } from '@/features/assessment/adaptive-engine';
+
+export const dynamic = 'force-dynamic';
 
 export interface UserProfileResponse {
   user: {
@@ -511,6 +514,7 @@ export async function GET() {
 
     return NextResponse.json(response);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('获取用户画像失败:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
@@ -547,6 +551,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('更新用户画像失败:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }

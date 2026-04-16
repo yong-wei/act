@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
 
 // GET: 获取班级详情
 export async function GET(
@@ -81,6 +84,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedClass);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('更新班级失败:', error);
     return NextResponse.json({ error: '更新班级失败' }, { status: 500 });
   }
@@ -124,6 +128,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('删除班级失败:', error);
     return NextResponse.json({ error: '删除班级失败' }, { status: 500 });
   }

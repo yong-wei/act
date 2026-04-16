@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
 
 // 生成6位随机班级码
 function generateClassCode(): string {
@@ -78,6 +81,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newClass, { status: 201 });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('创建班级失败:', error);
     return NextResponse.json({ error: '创建班级失败' }, { status: 500 });
   }

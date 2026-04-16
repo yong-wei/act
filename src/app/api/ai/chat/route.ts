@@ -11,10 +11,12 @@ import { getAIModel, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext 
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
@@ -100,6 +102,7 @@ export async function POST(request: Request) {
     // 返回流式响应
     return result.toDataStreamResponse();
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('AI Chat API 错误:', error);
     return new Response(
       JSON.stringify({

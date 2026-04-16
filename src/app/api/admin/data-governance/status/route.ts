@@ -7,9 +7,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { redisClient } from '@/lib/redis-client';
 import { summarizeLearningFactTypes } from '@/features/admin/states/system-usage-data';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -193,6 +196,7 @@ export async function GET(request: NextRequest) {
       factTypeDistribution: summarizeLearningFactTypes(learningFacts),
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[DataGovernanceStatus] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

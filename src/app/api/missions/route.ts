@@ -6,7 +6,10 @@
 
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
 
 export interface MissionWithProgress {
   id: string;
@@ -99,6 +102,7 @@ export async function GET() {
       },
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('获取任务列表失败:', error);
     return NextResponse.json(
       { error: '服务器错误' },

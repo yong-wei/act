@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
     const content = await fs.readFile(resolvedPath, 'utf8');
     return NextResponse.json({ content });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Failed to load MDX content:', error);
     return NextResponse.json({ error: 'Failed to load MDX content' }, { status: 500 });
   }

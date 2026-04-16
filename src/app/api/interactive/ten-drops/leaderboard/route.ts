@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+
+export const dynamic = 'force-dynamic';
 
 const TEN_DROPS_REGISTRY_ID = 'ten-drops-game-v1';
 
@@ -88,6 +91,7 @@ export async function GET(request: Request) {
       entries,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[TenDrops Leaderboard API] Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

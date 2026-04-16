@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { StreamingTextResponse, streamText } from 'ai';
@@ -14,6 +15,8 @@ import { getAIModel } from '@/lib/ai-client';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import type { AIContext } from '@/types/ai-context';
 import type { Message } from 'ai/react';
+
+export const dynamic = 'force-dynamic';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -145,6 +148,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       assistantMessage,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error in POST /api/ai/sessions/[id]/messages:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -198,6 +202,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error in PUT /api/ai/sessions/[id]/messages:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

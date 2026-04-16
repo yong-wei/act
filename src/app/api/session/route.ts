@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { generateUniqueJoinCode } from '@/lib/join-code';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
@@ -73,6 +76,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newSession);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error creating session:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

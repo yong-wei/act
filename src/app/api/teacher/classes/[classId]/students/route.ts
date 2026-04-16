@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * 班级学生管理 API
@@ -84,6 +87,7 @@ export async function POST(
       message: `已将 ${student.name} 添加到班级`,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error adding student to class:', error);
     return NextResponse.json({ error: '添加失败' }, { status: 500 });
   }
@@ -155,6 +159,7 @@ export async function DELETE(
       message: `已将 ${studentProfile.user.name} 从班级移除`,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error removing student from class:', error);
     return NextResponse.json({ error: '移除失败' }, { status: 500 });
   }
@@ -215,6 +220,7 @@ export async function GET(
 
     return NextResponse.json(formattedStudents);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error getting class students:', error);
     return NextResponse.json({ error: '获取失败' }, { status: 500 });
   }

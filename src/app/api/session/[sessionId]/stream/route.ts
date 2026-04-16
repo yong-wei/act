@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redisClient } from '@/lib/redis-client';
 import { classroomRateLimiter } from '@/lib/rate-limiter';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * SSE 流端点
@@ -202,6 +205,7 @@ export async function GET(
       },
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[SSE] Error:', error);
     return new Response('Internal server error', { status: 500 });
   }

@@ -8,11 +8,10 @@ export type UNIT_3_7PageType =
   | 'display'
   | 'binary_choice'
   | 'quiz_group'
+  | 'quiz_card_grid'
   | 'hotspot_labeling'
   | 'worked_example_workspace'
-  | 'triple_match'
-  | 'card_sort'
-  | 'structured_compare';
+  | 'activity_card_set';
 
 export interface UNIT_3_7PageRegionContract {
   id: string;
@@ -164,141 +163,208 @@ export const UNIT_3_7_PAGE_CONTRACTS: Record<string, UNIT_3_7PageContract> = {
       ],
     },
     interactionKind: 'hotspot_labeling',
-    teacherInsightWidgets: ['common_mislabels', 'completion_rate'],
-    telemetrySummaryFields: ['labelAttempted', 'labelCorrected', 'timeOnStep'],
-    misconceptionTags: ['channel_position_confusion'],
+    teacherInsightWidgets: ['hotspot_confusion_map', 'completion_rate'],
+    telemetrySummaryFields: ['attemptCount', 'selectedHotspots', 'resultState'],
     previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-04',
   },
   'step-05': {
     layout: {
       template: 'worked_example_workspace',
       regions: [
-        { id: 'workflow', width: 'full', order: 1 },
+        { id: 'principle', width: 'full', order: 1 },
         { id: 'problem', width: 'full', order: 2 },
-        { id: 'workspace', width: 'full', order: 3 },
+        { id: 'derivation', width: 'full', order: 3 },
+        { id: 'activity', width: 'full', order: 4 },
       ],
     },
     interactionKind: 'worked_example_workspace',
-    teacherInsightWidgets: ['stuck_step_distribution'],
-    telemetrySummaryFields: ['stepCompletion', 'errorBucket', 'timeOnStep'],
-    misconceptionTags: ['skipped_error_expression', 'final_value_without_stability_check'],
+    teacherInsightWidgets: ['activity_completion_rate', 'top_missing_steps'],
+    telemetrySummaryFields: ['attemptCount', 'stepRevealCount', 'completedCards'],
     previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-05',
   },
   'step-06': {
     layout: {
-      template: 'formula_table_match',
+      template: 'formula_table_workspace',
       regions: [
-        { id: 'formula', width: 'full', order: 1 },
+        { id: 'formula-groups', width: 'full', order: 1 },
         { id: 'tables', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'activity', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'triple_match',
-    teacherInsightWidgets: ['common_mismatch_pairs'],
-    telemetrySummaryFields: ['matchAttempted', 'matchCorrected'],
-    misconceptionTags: ['all_disturbance_use_static_coefficients'],
+    interactionKind: 'activity_card_set',
+    teacherInsightWidgets: ['table_match_distribution', 'top_confusions'],
+    telemetrySummaryFields: ['attemptCount', 'completedCards', 'errorBucket'],
     previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-06',
   },
   'step-07': {
     layout: {
       template: 'worked_example_workspace',
       regions: [
-        { id: 'problem', width: 'full', order: 1 },
-        { id: 'figure', width: 'full', order: 2 },
-        { id: 'workspace', width: 'full', order: 3 },
+        { id: 'principle', width: 'full', order: 1 },
+        { id: 'problem', width: 'full', order: 2 },
+        { id: 'derivation', width: 'full', order: 3 },
+        { id: 'activity', width: 'full', order: 4 },
       ],
     },
     interactionKind: 'worked_example_workspace',
-    teacherInsightWidgets: ['missing_term_distribution'],
-    telemetrySummaryFields: ['stepCompletion', 'errorBucket'],
-    misconceptionTags: ['forgot_disturbance_term', 'wrong_total_error_definition'],
+    teacherInsightWidgets: ['completion_rate', 'top_formula_gaps'],
+    telemetrySummaryFields: ['attemptCount', 'stepRevealCount', 'completedCards'],
     previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-07',
   },
   'step-08': {
     layout: {
       template: 'contrast_summary_board',
       regions: [
-        { id: 'compare', width: 'full', order: 1 },
-        { id: 'interaction', width: 'full', order: 2 },
-        { id: 'summary', width: 'full', order: 3 },
+        { id: 'contrast', width: 'full', order: 1 },
+        { id: 'activity', width: 'full', order: 2 },
       ],
     },
     interactionKind: 'binary_choice',
-    teacherInsightWidgets: ['option_distribution'],
-    telemetrySummaryFields: ['selectedOption', 'resultState'],
-    misconceptionTags: ['gain_equals_type_raise'],
+    teacherInsightWidgets: ['option_distribution', 'top_misclassifications'],
+    telemetrySummaryFields: ['selectedOptions', 'resultState'],
     previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-08',
   },
   'step-09': {
     layout: {
-      template: 'comparison_panel_with_sort',
+      template: 'formula_figure_table_stack',
       regions: [
-        { id: 'media', width: 'full', order: 1 },
-        { id: 'table', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'formula', width: 'full', order: 1 },
+        { id: 'copy', width: 'full', order: 2 },
+        { id: 'figure', width: 'full', order: 3 },
+        { id: 'table', width: 'full', order: 4 },
+        { id: 'activity', width: 'full', order: 5 },
       ],
     },
-    interactionKind: 'card_sort',
-    teacherInsightWidgets: ['misclassified_cards'],
-    telemetrySummaryFields: ['sortAttempted', 'sortCorrected'],
-    misconceptionTags: ['lag_is_weaker_integral', 'pi_has_no_cost'],
+    interactionKind: 'activity_card_set',
+    teacherInsightWidgets: ['method_confusion_rate', 'top_mismatch_pairs'],
+    telemetrySummaryFields: ['attemptCount', 'completedCards', 'errorBucket'],
     previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-09',
   },
   'step-10': {
     layout: {
-      template: 'design_compare_workspace',
+      template: 'method_reveal_page',
       regions: [
-        { id: 'left-example', width: 'full', order: 1 },
-        { id: 'right-example', width: 'full', order: 2 },
-        { id: 'comparison', width: 'full', order: 3 },
+        { id: 'problem', width: 'full', order: 1 },
+        { id: 'derivation', width: 'full', order: 2 },
+        { id: 'validation', width: 'full', order: 3 },
+        { id: 'activity', width: 'full', order: 4 },
       ],
     },
-    interactionKind: 'structured_compare',
-    teacherInsightWidgets: ['common_compare_gaps'],
-    telemetrySummaryFields: ['fieldsCompleted', 'compareBucket'],
-    misconceptionTags: ['only_memorized_metrics_without_mechanism'],
+    interactionKind: 'worked_example_workspace',
+    teacherInsightWidgets: ['completion_rate', 'top_reasoning_gaps'],
+    telemetrySummaryFields: ['attemptCount', 'stepRevealCount', 'completedCards'],
     previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-10',
   },
   'step-11': {
     layout: {
-      template: 'formula_media_compare',
+      template: 'method_reveal_page',
       regions: [
-        { id: 'media', width: 'full', order: 1 },
-        { id: 'table', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'problem', width: 'full', order: 1 },
+        { id: 'derivation', width: 'full', order: 2 },
+        { id: 'validation', width: 'full', order: 3 },
+        { id: 'activity', width: 'full', order: 4 },
       ],
     },
-    interactionKind: 'triple_match',
-    teacherInsightWidgets: ['common_mismatch_pairs'],
-    telemetrySummaryFields: ['matchAttempted', 'matchCorrected'],
-    misconceptionTags: ['pi_and_pd_same_design_goal'],
+    interactionKind: 'worked_example_workspace',
+    teacherInsightWidgets: ['completion_rate', 'top_reasoning_gaps'],
+    telemetrySummaryFields: ['attemptCount', 'stepRevealCount', 'completedCards'],
     previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-11',
   },
   'step-12': {
     layout: {
-      template: 'summary_quiz_board',
+      template: 'comparison_board',
       regions: [
-        { id: 'quiz', width: 'full', order: 1 },
-        { id: 'summary', width: 'full', order: 2 },
-        { id: 'next', width: 'full', order: 3 },
+        { id: 'dimension', width: 'full', order: 1 },
+        { id: 'table', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'quiz_group',
-    teacherInsightWidgets: ['question_distribution', 'summary_completion_rate'],
-    telemetrySummaryFields: ['attemptCount', 'resultState', 'errorBucket'],
-    misconceptionTags: ['wrong_path_selection', 'cannot_identify_cost_location'],
+    interactionKind: 'activity_card_set',
+    teacherInsightWidgets: ['comparison_choice_distribution', 'top_confusions'],
+    telemetrySummaryFields: ['attemptCount', 'completedCards', 'errorBucket'],
     previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-12',
+  },
+  'step-13': {
+    layout: {
+      template: 'method_reveal_page',
+      regions: [
+        { id: 'problem', width: 'full', order: 1 },
+        { id: 'derivation', width: 'full', order: 2 },
+        { id: 'validation', width: 'full', order: 3 },
+        { id: 'activity', width: 'full', order: 4 },
+      ],
+    },
+    interactionKind: 'worked_example_workspace',
+    teacherInsightWidgets: ['completion_rate', 'top_reasoning_gaps'],
+    telemetrySummaryFields: ['attemptCount', 'stepRevealCount', 'completedCards'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-13',
+  },
+  'step-14': {
+    layout: {
+      template: 'method_reveal_page',
+      regions: [
+        { id: 'problem', width: 'full', order: 1 },
+        { id: 'derivation', width: 'full', order: 2 },
+        { id: 'validation', width: 'full', order: 3 },
+        { id: 'activity', width: 'full', order: 4 },
+      ],
+    },
+    interactionKind: 'worked_example_workspace',
+    teacherInsightWidgets: ['completion_rate', 'top_reasoning_gaps'],
+    telemetrySummaryFields: ['attemptCount', 'stepRevealCount', 'completedCards'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-14',
+  },
+  'step-15': {
+    layout: {
+      template: 'comparison_board',
+      regions: [
+        { id: 'dimension', width: 'full', order: 1 },
+        { id: 'table', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'activity_card_set',
+    teacherInsightWidgets: ['comparison_choice_distribution', 'top_confusions'],
+    telemetrySummaryFields: ['attemptCount', 'completedCards', 'errorBucket'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-15',
+  },
+  'step-16': {
+    layout: {
+      template: 'assessment_card_grid',
+      regions: [
+        { id: 'cards', width: 'full', order: 1 },
+        { id: 'feedback', width: 'full', order: 2 },
+      ],
+    },
+    interactionKind: 'quiz_card_grid',
+    teacherInsightWidgets: ['question_distribution', 'top_misconceptions'],
+    telemetrySummaryFields: ['attemptCount', 'completedCards', 'errorBucket'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-16',
+  },
+  'step-17': {
+    layout: {
+      template: 'summary_route_board',
+      regions: [
+        { id: 'engineering', width: 'full', order: 1 },
+        { id: 'summary', width: 'full', order: 2 },
+        { id: 'appendix', width: 'full', order: 3 },
+        { id: 'next', width: 'full', order: 4 },
+      ],
+    },
+    interactionKind: 'none',
+    teacherInsightWidgets: ['view_count'],
+    telemetrySummaryFields: ['viewed', 'timeOnStep'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-17',
   },
 };
 
 export const UNIT_3_7_INTERACTIVE_PAGE_TYPES = new Set<UNIT_3_7PageType>([
   'binary_choice',
   'quiz_group',
+  'quiz_card_grid',
   'hotspot_labeling',
   'worked_example_workspace',
-  'triple_match',
-  'card_sort',
-  'structured_compare',
+  'activity_card_set',
 ]);
 
 export const UNIT_3_7_LESSON_STEPS: UNIT_3_7StepDefinition[] = [
@@ -306,7 +372,7 @@ export const UNIT_3_7_LESSON_STEPS: UNIT_3_7StepDefinition[] = [
     id: 'step-01',
     stage: 'B',
     title: '回到地图：为什么动态改善之后还可能不够准',
-    hint: '先把 3-7 放回 3-6 到 3-8 之间，明确“更快更稳”还没有回答“为什么更准”。',
+    hint: '先把 3-7 放回 3-6 到 3-8 之间，明确“更快更稳”并没有自动回答“为什么更准”。',
     duration: '4 min',
     pageType: 'display',
   },
@@ -314,7 +380,7 @@ export const UNIT_3_7_LESSON_STEPS: UNIT_3_7StepDefinition[] = [
     id: 'step-02',
     stage: 'O',
     title: '学习目标与边界：本课先回答“为什么更准”',
-    hint: '四项目标与课堂边界一次钉死，本课不提前滑进 Nyquist 判据和完整整定。',
+    hint: '四项目标与课堂边界一次钉死，本课不提前进入 Nyquist 判据和完整频域整定。',
     duration: '4 min',
     pageType: 'display',
   },
@@ -329,26 +395,26 @@ export const UNIT_3_7_LESSON_STEPS: UNIT_3_7StepDefinition[] = [
   {
     id: 'step-04',
     stage: 'P2',
-    title: '双通道骨架：先分给定与扰动，再写总输出与总误差',
-    hint: '用统一结构图把输入/扰动两类误差通道钉住，先分通道再谈稳态误差。',
-    duration: '8 min',
+    title: '双通道骨架：四类传函分卡命名',
+    hint: '用统一结构图把四类传函与总输出、总误差结论一次立住，先分通道再谈稳态误差。',
+    duration: '7 min',
     pageType: 'hotspot_labeling',
   },
   {
     id: 'step-05',
     stage: 'P2',
-    title: '终值定理直接求：稳态误差的通用路径',
-    hint: '三步法必须稳定、列式、取极限全链路保留，不能直接背结果。',
-    duration: '10 min',
+    title: '终值定理直接求：原理模块与例题 1 分离',
+    hint: '三步法必须完整保留为“稳定 -> 列式 -> 极限”，不能只背终值公式或最终结果。',
+    duration: '8 min',
     pageType: 'worked_example_workspace',
   },
   {
     id: 'step-06',
     stage: 'P2',
-    title: '型别与静态误差系数：什么时候能快速判断',
-    hint: '把快判的适用边界说清，只在标准给定输入时才优先用型别和误差系数。',
-    duration: '8 min',
-    pageType: 'triple_match',
+    title: '型别与静态误差系数：双表并排快判',
+    hint: '快判只服务于标准给定输入；显式扰动和双输入问题仍要优先直接求。',
+    duration: '7 min',
+    pageType: 'activity_card_set',
   },
   {
     id: 'step-07',
@@ -361,42 +427,82 @@ export const UNIT_3_7_LESSON_STEPS: UNIT_3_7StepDefinition[] = [
   {
     id: 'step-08',
     stage: 'P2',
-    title: '增益变大 vs 型别提高：哪一种才会改变误差阶次',
+    title: '增益变大 vs 型别提高：哪一种会改变误差阶次',
     hint: '把“压小有限误差”和“结构性归零”彻底分开，先判断是否必须引入积分。',
-    duration: '6 min',
+    duration: '5 min',
     pageType: 'binary_choice',
   },
   {
     id: 'step-09',
     stage: 'P2',
-    title: '稳态改善路径比较：PI 与滞后都站在低频补偿线上',
-    hint: '同样是低频补偿，PI 改型别，滞后重分配低频增益，收益和代价不一样。',
-    duration: '8 min',
-    pageType: 'card_sort',
+    title: '低频补偿总览：PI、滞后与超前的结构差别',
+    hint: '先读公式和文案，再看图与表，最后再做卡片判断，不能把总览页做成只有一张排序题。',
+    duration: '7 min',
+    pageType: 'activity_card_set',
   },
   {
     id: 'step-10',
     stage: 'P2',
-    title: '时域设计工作区：PI 改型别，滞后抬低频',
-    hint: '把时域图、指标卡和结构抓手放到同一页，对比 PI 与滞后两种设计链。',
-    duration: '10 min',
-    pageType: 'structured_compare',
+    title: '时域 PI 设计：先证明纯增益不够，再改结构',
+    hint: '题面、可行域换算、PI 选点与验证图必须分层出现，验证图只能放在最后。',
+    duration: '8 min',
+    pageType: 'worked_example_workspace',
   },
   {
     id: 'step-11',
     stage: 'P2',
-    title: '频域过渡：为什么 PI 更准、PD 更快',
-    hint: '把 3-7 收束到低频收益和中频代价的频域语言，为 3-8 做准备。',
+    title: '时域滞后设计：型别不变时怎样抬高低频增益',
+    hint: '滞后页必须独立承载“纯增益矛盾 -> 零极点相对位置 -> Kv 提升 -> 验证结果”。',
     duration: '8 min',
-    pageType: 'triple_match',
+    pageType: 'worked_example_workspace',
   },
   {
     id: 'step-12',
+    stage: 'P2',
+    title: '时域两法比较：收益、代价与适用场景',
+    hint: '比较页只负责归纳，不再重复承载完整求解链。',
+    duration: '5 min',
+    pageType: 'activity_card_set',
+  },
+  {
+    id: 'step-13',
+    stage: 'P2',
+    title: '频域 PI 设计：纯增益为何不能两头兼顾',
+    hint: '四步设计链必须完整出现：纯增益冲突 -> 目标截止频率 -> 零点布置 -> 幅值条件求 K 并回查。',
+    duration: '8 min',
+    pageType: 'worked_example_workspace',
+  },
+  {
+    id: 'step-14',
+    stage: 'P2',
+    title: '频域 PD 方案读取：速度优先方案的核验结果',
+    hint: '本页是方案读取与核验，不是假造一条并不存在的完整整定链。',
+    duration: '6 min',
+    pageType: 'worked_example_workspace',
+  },
+  {
+    id: 'step-15',
+    stage: 'P2',
+    title: '频域两法比较：低频精度优先 vs 动态速度优先',
+    hint: '比较页必须同时保留“更准 / 更快 / 代价落点 / 设计取向”四类判断。',
+    duration: '5 min',
+    pageType: 'activity_card_set',
+  },
+  {
+    id: 'step-16',
     stage: 'P3',
-    title: '后测与收束：先选路径，再认代价，最后接到 3-8',
-    hint: '后测只检查路径选择和代价识别，小结必须把 3-7 平滑接到 3-8。',
-    duration: '10 min',
-    pageType: 'quiz_group',
+    title: '后测：路径选择与方法判断',
+    hint: '后测单独成页，四题独立卡片并排，不能再与总结混页。',
+    duration: '6 min',
+    pageType: 'quiz_card_grid',
+  },
+  {
+    id: 'step-17',
+    stage: 'P3',
+    title: '收束与去向：规则表、信息图与 3-8 入口',
+    hint: '本页只承载工程视角、小结、规则表、信息图和 3-8 去向，不再包含任何后测题。',
+    duration: '4 min',
+    pageType: 'display',
   },
 ] as const;
 
@@ -417,7 +523,7 @@ export function isUNIT_3_7AiPageType(_pageType: UNIT_3_7PageType) {
 }
 
 export function isUNIT_3_7ActivityFirstStep(stepId: string) {
-  return stepId === 'step-03' || stepId === 'step-12';
+  return stepId === 'step-03' || stepId === 'step-16';
 }
 
 export function createEmptyUNIT_3_7StudentState(studentName: string): UNIT_3_7StudentCourseState {
@@ -445,8 +551,10 @@ const UNIT_3_7_MEDIA_BY_STEP_ID: Record<string, string> = {
   'step-07': '/course-runtime/lessons/3-7/media/3-7-example2-structure.png',
   'step-09': '/course-runtime/lessons/3-7/media/3-7-low-frequency-compensators.png',
   'step-10': '/course-runtime/lessons/3-7/media/3-7-pi-time-domain-design.png',
-  'step-11': '/course-runtime/lessons/3-7/media/3-7-pi-frequency-design.png',
-  'step-12': '/course-runtime/lessons/3-7/media/3-7-info.png',
+  'step-11': '/course-runtime/lessons/3-7/media/3-7-lag-time-domain-design.png',
+  'step-13': '/course-runtime/lessons/3-7/media/3-7-pi-frequency-design.png',
+  'step-14': '/course-runtime/lessons/3-7/media/3-7-pi-pd-comparison.png',
+  'step-17': '/course-runtime/lessons/3-7/media/3-7-info.png',
 };
 
 export function getUNIT_3_7MediaSrc(stepId: string) {

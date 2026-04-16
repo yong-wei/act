@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 
 const TEN_DROPS_REGISTRY_ID = 'ten-drops-game-v1';
+export const dynamic = 'force-dynamic';
 
 function extractTenDropsEvent(eventData: Prisma.JsonValue) {
   if (!eventData || typeof eventData !== 'object' || Array.isArray(eventData)) return null;
@@ -77,6 +79,7 @@ export async function GET() {
       lastLevelId,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[TenDrops Progress API] Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -121,6 +124,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[TenDrops Progress API] Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

@@ -1,8 +1,10 @@
 import { appendFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 type FrontendLogPayload = {
   type?: string;
@@ -39,6 +41,7 @@ export async function POST(request: Request) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       {

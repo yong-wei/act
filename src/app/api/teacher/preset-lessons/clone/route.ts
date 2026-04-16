@@ -11,6 +11,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { ALL_PRESETS } from '@/features/teacher/preset-lessons';
 import { BopppsStage, LessonItemType, ResourceType } from '@prisma/client';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
@@ -131,6 +134,7 @@ export async function POST(request: Request) {
       message: `成功克隆预置教案 "${preset.title}"`,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error cloning preset lesson:', error);
     return NextResponse.json(
       { error: 'Internal Server Error', details: String(error) },

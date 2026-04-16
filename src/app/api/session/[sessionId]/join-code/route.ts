@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { generateUniqueJoinCode } from '@/lib/join-code';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 export async function PATCH(
   _request: Request,
@@ -40,6 +43,7 @@ export async function PATCH(
 
     return NextResponse.json(updated);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error regenerating join code:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

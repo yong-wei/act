@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   buildKnowledgeNodeDetailFromGraph,
   loadKnowledgeGraphData,
 } from '@/lib/knowledge-graph-source';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   _request: Request,
@@ -113,6 +115,7 @@ export async function GET(
       relatedNodes: uniqueRelatedNodes,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error fetching knowledge node:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -147,6 +150,7 @@ export async function PATCH(
 
     return NextResponse.json(node);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error updating knowledge node:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

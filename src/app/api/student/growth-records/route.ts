@@ -6,7 +6,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
 
 export type GrowthRecordType = 'milestone' | 'simulation' | 'risk_resolved' | 'excellent_design' | 'achievement';
 
@@ -83,6 +86,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('[GrowthRecordsAPI] Error:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }

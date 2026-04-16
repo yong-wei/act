@@ -6,6 +6,9 @@ import { SessionStatus, BopppsStage } from '@prisma/client';
 import { logClassroomEvent } from '@/lib/classroom-observability';
 import { redisClient } from '@/lib/redis-client';
 import { classroomRateLimiter } from '@/lib/rate-limiter';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 export async function PATCH(request: Request, { params }: { params: { sessionId: string } }) {
   try {
@@ -112,6 +115,7 @@ export async function PATCH(request: Request, { params }: { params: { sessionId:
 
     return NextResponse.json(updatedSession);
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error updating session:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -176,6 +180,7 @@ export async function GET(request: Request, { params }: { params: { sessionId: s
             planTitle: session.plan.title,
         });
     } catch (error) {
+        rethrowIfNextDynamicError(error);
         console.error('[Session GET] Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }

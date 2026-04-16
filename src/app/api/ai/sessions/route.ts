@@ -7,9 +7,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
 const SESSION_EXPIRY_DAYS = 7;
+export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/ai/sessions?courseId=X&pageId=Y
@@ -89,6 +91,7 @@ export async function GET(request: NextRequest) {
       expiresAt: newSession.expiresAt,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error in GET /api/ai/sessions:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -144,6 +147,7 @@ export async function POST(request: NextRequest) {
       expiresAt: newSession.expiresAt,
     });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     console.error('Error in POST /api/ai/sessions:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
