@@ -413,7 +413,11 @@ export function isUNIT_3_7InteractivePageType(pageType: UNIT_3_7PageType) {
 }
 
 export function isUNIT_3_7AiPageType(_pageType: UNIT_3_7PageType) {
-  return true;
+  return false;
+}
+
+export function isUNIT_3_7ActivityFirstStep(stepId: string) {
+  return stepId === 'step-03' || stepId === 'step-12';
 }
 
 export function createEmptyUNIT_3_7StudentState(studentName: string): UNIT_3_7StudentCourseState {

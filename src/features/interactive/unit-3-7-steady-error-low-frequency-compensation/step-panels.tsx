@@ -2,20 +2,14 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Copy, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
-import { useInteractiveAI } from '@/features/interactive/hooks/useInteractiveAI';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
-import type { InteractiveConfig } from '@/features/interactive/types';
 import {
-  UNIT_3_7_COURSE_TITLE,
   type UNIT_3_7StepDefinition,
   type UNIT_3_7StepResponse,
 } from '@/lib/unit-3-7-course';
@@ -168,6 +162,11 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
           '$$\\Phi_r(s)=\\frac{C(s)}{R(s)}=\\frac{G_c(s)G_p(s)}{1+G_c(s)G_p(s)H(s)}$$\n$$\\Phi_d(s)=\\frac{C(s)}{D(s)}=\\frac{G_p(s)}{1+G_c(s)G_p(s)H(s)}$$\n$$\\frac{E_r(s)}{R(s)}=\\frac{1}{1+G_c(s)G_p(s)H(s)}$$\n$$\\frac{E_d(s)}{D(s)}=-\\frac{G_p(s)H(s)}{1+G_c(s)G_p(s)H(s)}$$',
       },
       {
+        title: '总输出与总误差',
+        tone: 'violet',
+        markdown: '$$C(s)=\\Phi_r(s)R(s)+\\Phi_d(s)D(s)$$\n$$E(s)=E_r(s)+E_d(s)$$',
+      },
+      {
         title: '核心判断',
         tone: 'amber',
         bullets: ['分母相同反映结构。', '分子不同反映通道。', '先分通道，再谈稳态误差。'],
@@ -192,6 +191,11 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
         tone: 'violet',
         markdown: '$$e_{ss}=\\lim_{s\\to 0} sE(s)$$',
       },
+      {
+        title: '例题 1 题面与结果摘要',
+        tone: 'slate',
+        markdown: '$$R(s)=\\dfrac{3}{s}+\\dfrac{2}{s^2}+\\dfrac{1}{s^3}$$\n\n本题最终稳态误差为 1/K。',
+      },
     ],
     note: '三步法卡和例题题面必须同屏，工作区只能提示漏步，不能直接给答案。',
     prompts: [
@@ -208,6 +212,18 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
         tone: 'cyan',
         markdown:
           '$$G(s)H(s)=\\frac{K_0}{s^v}G_0(s),\\quad G_0(0)\\neq 0$$\n$$K_p=\\lim_{s\\to 0}G(s)H(s),\\quad K_v=\\lim_{s\\to 0}sG(s)H(s),\\quad K_a=\\lim_{s\\to 0}s^2G(s)H(s)$$',
+      },
+      {
+        title: '型别与误差系数关系',
+        tone: 'slate',
+        markdown:
+          '| 系统型别 | 首个有限静态误差系数 |\n| --- | --- |\n| 0 型 | K_p |\n| I 型 | K_v |\n| II 型 | K_a |',
+      },
+      {
+        title: '型别与典型输入误差关系',
+        tone: 'emerald',
+        markdown:
+          '| 输入类型 | 0 型 | I 型 | II 型 |\n| --- | --- | --- | --- |\n| 单位阶跃 | 有限 | 0 | 0 |\n| 单位斜坡 | ∞ | 有限 | 0 |\n| 单位抛物 | ∞ | ∞ | 有限 |',
       },
       {
         title: '边界提醒',
@@ -228,6 +244,12 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
     kicker: 'Dual-Input Example',
     intro: '例题 2 的目标不是再算一个数字，而是把“给定 + 扰动共同存在时不能只套表”这件事做成固定动作：先分通道，列总误差，再求极限。',
     sections: [
+      {
+        title: '题面卡',
+        tone: 'slate',
+        markdown:
+          '$$G_1(s)=\\dfrac{10}{s(s+2)}$$\n$$G_2(s)=\\dfrac{2}{s+5},\\quad R(s)=\\dfrac{1}{s},\\quad D(s)=\\dfrac{0.2}{s}$$',
+      },
       {
         title: '总误差式',
         tone: 'violet',
@@ -279,6 +301,11 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
           '| 路径 | 是否改型别 | 主要收益 | 主要代价 |\n| --- | --- | --- | --- |\n| PI | 是 | 可把某些有限误差结构性变成 0 | 会影响截止频率、相位裕度与时域速度 |\n| 滞后 | 否 | 压小有限误差、抬高 Kv | 引入相位滞后、常把截止频率拉低 |',
       },
       {
+        title: '共同点句',
+        tone: 'cyan',
+        body: 'PI 与滞后都在低频补偿线上，但抓手不同：前者直接改型别，后者主要通过低频增益重分配压小有限误差。',
+      },
+      {
         title: '禁止误判',
         tone: 'rose',
         bullets: ['不要把滞后简化成“弱一点的积分”。', '不要只记收益，不看代价落点。'],
@@ -326,7 +353,8 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
       {
         title: 'PI / PD 对照',
         tone: 'amber',
-        bullets: ['PI 更偏低频精度优先。', 'PD 更偏动态速度优先。'],
+        markdown:
+          '| 方法 | 低频精度 | 截止频率 | 相位裕度 | 时域形态 |\n| --- | --- | --- | --- | --- |\n| PI | 更偏低频精度优先 | 常向低频侧移动 | 容易被压缩，需要回查 | 更容易变慢 |\n| PD | 不主打低频补偿 | 可向高频侧推进 | 更利于抬高 | 更偏动态速度优先 |',
       },
     ],
     prompts: [
@@ -356,6 +384,11 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
         markdown:
           '| 题型 | 优先路径 |\n| --- | --- |\n| 标准负反馈、只问典型给定输入稳态误差 | 快速判 |\n| 输入与扰动共同存在 | 直接求 |\n| 输入是多项式叠加 | 直接求与快速判均可 |\n| 判断是否必须引入积分 | 先看型别 |',
       },
+      {
+        title: '下一课去向',
+        tone: 'cyan',
+        body: '3-8 将把低频收益和中频代价翻译成统一频域判断，用频域语言继续回答“更准”和“更快”如何一起被约束。',
+      },
     ],
     prompts: [
       '遇到哪些题型时，应该优先直接求而不是先套型别和误差系数表？',
@@ -366,29 +399,6 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
 
 function getStepBlueprint(step: UNIT_3_7StepDefinition) {
   return STEP_BLUEPRINTS[step.id] ?? STEP_BLUEPRINTS['step-01'];
-}
-
-function getAiPrompts(step: UNIT_3_7StepDefinition) {
-  return getStepBlueprint(step).prompts ?? [];
-}
-
-function buildInteractiveAiConfig(step: UNIT_3_7StepDefinition): InteractiveConfig {
-  return {
-    resourceId: `unit37:${step.id}`,
-    registryId: 'unit37-inline-ai',
-    title: `${step.title} · 页内 AI 助手`,
-    description: '当前课程页的就地 AI 对照助手',
-    aiHints: `围绕 ${step.title} 进行讲解，只回答当前页面问题。`,
-    config: {
-      ai: {
-        enabled: true,
-        persona: 'tutor',
-      },
-      layout: {
-        showAIPanel: true,
-      },
-    },
-  };
 }
 
 function renderMarkdown(markdown: string) {
@@ -622,6 +632,7 @@ export function UNIT_3_7StepContentPanel({
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const blueprint = getStepBlueprint(step);
+  const showPrimaryMedia = Boolean(mediaSrc) && step.id !== 'step-10' && step.id !== 'step-11';
 
   return (
     <section className="premium-lesson-panel px-5 py-5">
@@ -629,7 +640,7 @@ export function UNIT_3_7StepContentPanel({
       <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
       <p className="premium-lesson-muted mt-3 text-sm leading-7 sm:text-base">{blueprint.intro}</p>
 
-      {mediaSrc ? (
+      {showPrimaryMedia && mediaSrc ? (
         <div className="mt-4">
           <MediaPanel src={mediaSrc} alt={step.title} />
         </div>
@@ -908,81 +919,6 @@ export function UNIT_3_7StudentSummaryPanel({
           </div>
         ))}
       </div>
-    </section>
-  );
-}
-
-export function UNIT_3_7StepAiAssistant({
-  step,
-  onAiEvent,
-}: {
-  step: UNIT_3_7StepDefinition;
-  onAiEvent?: (eventType: string, data?: Record<string, unknown>) => void;
-}) {
-  const prompts = getAiPrompts(step);
-  const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
-  const ai = useInteractiveAI({
-    config: buildInteractiveAiConfig(step),
-    contextData: {
-      lessonId: '3-7',
-      stepId: step.id,
-      prompts,
-    },
-    onEvent: onAiEvent,
-  });
-
-  useEffect(() => {
-    if (!copiedPrompt) return undefined;
-    const timer = window.setTimeout(() => setCopiedPrompt(null), 1200);
-    return () => window.clearTimeout(timer);
-  }, [copiedPrompt]);
-
-  if (!prompts.length) {
-    return null;
-  }
-
-  return (
-    <section className="premium-lesson-panel-soft px-4 py-4">
-      <div className="premium-lesson-title flex items-center gap-2 text-sm font-medium">
-        <Sparkles className="h-4 w-4" />
-        页内 AI 助手
-      </div>
-      <p className="premium-lesson-muted mt-2 text-sm">先完成自己的判断，再使用下面的提示词与页内 AI 对照。AI 只核对推理链，不替你跳过第一步。</p>
-
-      <div className="mt-4 grid gap-3">
-        {prompts.map((prompt) => (
-          <div key={prompt} className="premium-lesson-surface-elevated flex flex-wrap items-start justify-between gap-3 px-4 py-4">
-            <pre className="whitespace-pre-wrap text-sm leading-7 text-foreground">{prompt}</pre>
-            <button
-              type="button"
-              onClick={async () => {
-                await navigator.clipboard.writeText(prompt);
-                setCopiedPrompt(prompt);
-              }}
-              className="premium-lesson-action-secondary"
-            >
-              <Copy className="h-4 w-4" />
-              {copiedPrompt === prompt ? '已复制' : '复制提示词'}
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <button type="button" onClick={ai.togglePanel} className="premium-lesson-action-primary mt-4">
-        向 AI 核对推理链
-      </button>
-
-      <Dialog open={ai.isPanelOpen} onOpenChange={ai.togglePanel}>
-        <DialogContent className="max-w-5xl border-border bg-background p-0 text-foreground">
-          <DialogHeader className="border-b border-border px-6 py-4">
-            <DialogTitle>{UNIT_3_7_COURSE_TITLE} · 页内 AI 助手</DialogTitle>
-            <DialogDescription>当前只围绕 {step.title} 回答问题，帮助你核对“通道 -&gt; 路径 -&gt; 低频补偿”的推理链。</DialogDescription>
-          </DialogHeader>
-          <div className="h-[75vh]">
-            <InteractiveAIPanel ai={ai} title={`${step.title} · AI 对照`} position="right" />
-          </div>
-        </DialogContent>
-      </Dialog>
     </section>
   );
 }

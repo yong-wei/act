@@ -1,753 +1,1221 @@
-{
-  "contract_version": "2.0",
-  "lesson_id": "3-7",
-  "course_title": "3-7：型别、积分环节与稳态改善",
-  "course_route_segment": "unit-3-7-steady-error-low-frequency-compensation",
-  "preview_mode": {
-    "default_entry": "student_demo",
-    "student_demo_base_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo",
-    "teacher_preview_panel_note": "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
-  },
-  "telemetry_strategy": "lightweight_high_value",
-  "teacher_insight_strategy": "step_level_aggregation_only",
-  "required_step_fields": [
-    "layout",
-    "modules",
-    "content_blocks",
-    "evidence_sequence",
-    "interaction_spec",
-    "teacher_controls",
-    "telemetry_spec",
-    "teacher_insight_spec",
-    "ai_context_spec",
-    "preview_contract",
-    "acceptance_checks"
-  ],
-  "evidence_upgrade_matrix": [
-    {
-      "evidence_id": "intro-route-question",
-      "source_anchor": "## 一、引入：系统已经稳定了，为什么还可能不够准",
-      "target_step": "step-01",
-      "upgrade_mode": "static_keep",
-      "keep_elements": ["3-6 -> 3-7 -> 3-8 路径", "主问题", "边界卡"],
-      "non_reducible": ["动态改善没有自动回答更准"],
-      "acceptance_focus": "首屏直接看到路径图、主问题卡、边界卡。"
-    },
-    {
-      "evidence_id": "dual-channel-formulas",
-      "source_anchor": "### 2.1 / ### 2.2",
-      "target_step": "step-04",
-      "upgrade_mode": "native_redraw_plus_hotspot",
-      "keep_elements": ["双通道结构图", "四类传函", "总输出结论", "总误差结论"],
-      "non_reducible": ["不得只留结构图", "不得删掉总输出/总误差结论"],
-      "acceptance_focus": "结构图、四式卡和通道判断句在互动前完整可读。"
-    },
-    {
-      "evidence_id": "final-value-example-1",
-      "source_anchor": "### 2.3 / 例题 1",
-      "target_step": "step-05",
-      "upgrade_mode": "static_keep_plus_workspace",
-      "keep_elements": ["三步法", "终值定理", "题面", "结果 1/K"],
-      "non_reducible": ["不得只剩终值公式", "三步法不得删除"],
-      "acceptance_focus": "三步法卡、终值定理、题面、结果同屏。"
-    },
-    {
-      "evidence_id": "type-two-tables",
-      "source_anchor": "### 2.4",
-      "target_step": "step-06",
-      "upgrade_mode": "static_keep_plus_match",
-      "keep_elements": ["型别定义", "Kp/Kv/Ka", "双表", "适用边界"],
-      "non_reducible": ["不得只保留一张表", "扰动题不能直接套表"],
-      "acceptance_focus": "两张表先于配对区出现。"
-    },
-    {
-      "evidence_id": "compound-example-2",
-      "source_anchor": "### 2.5 / 例题 2",
-      "target_step": "step-07",
-      "upgrade_mode": "static_keep_plus_workspace",
-      "keep_elements": ["双输入结构", "总误差式", "代入式", "结果 0.4"],
-      "non_reducible": ["不得把理由删成只剩答案"],
-      "acceptance_focus": "结构图、两条公式和结果栏同页。"
-    },
-    {
-      "evidence_id": "gain-vs-type",
-      "source_anchor": "### 2.6",
-      "target_step": "step-08",
-      "upgrade_mode": "static_keep_plus_binary_choice",
-      "keep_elements": ["压小误差", "改变误差阶次"],
-      "non_reducible": ["不得把“压小”和“归零”混为一谈"],
-      "acceptance_focus": "对照卡先出现，判断区后出现。"
-    },
-    {
-      "evidence_id": "pi-lag-paths",
-      "source_anchor": "### 3.1",
-      "target_step": "step-09",
-      "upgrade_mode": "native_redraw_plus_sort",
-      "keep_elements": ["补偿结构对照图", "比较表", "共同点与差异"],
-      "non_reducible": ["不得把 lag 写成弱积分"],
-      "acceptance_focus": "图与表先于排序区。"
-    },
-    {
-      "evidence_id": "time-domain-dual-design",
-      "source_anchor": "### 3.2 / ### 3.3",
-      "target_step": "step-10",
-      "upgrade_mode": "static_keep_plus_structured_compare",
-      "keep_elements": ["PI 设计图", "lag 设计图", "关键指标", "结构抓手"],
-      "non_reducible": ["不得只剩指标结论"],
-      "acceptance_focus": "两图与指标卡同屏可比。"
-    },
-    {
-      "evidence_id": "frequency-transition",
-      "source_anchor": "### 3.4 / ### 3.5",
-      "target_step": "step-11",
-      "upgrade_mode": "static_keep_plus_match",
-      "keep_elements": ["纯增益限制", "PI 设计顺序", "PI 频域图", "PI/PD 比较表"],
-      "non_reducible": ["不得只保留最终控制器表达式"],
-      "acceptance_focus": "限制条件、顺序卡、图表同屏。"
-    },
-    {
-      "evidence_id": "summary-and-next",
-      "source_anchor": "### 3.6 / ## 五 / ## 附录 A",
-      "target_step": "step-12",
-      "upgrade_mode": "static_keep_plus_quiz",
-      "keep_elements": ["六条小结", "规则表", "信息图", "3-8 去向"],
-      "non_reducible": ["规则表不得删除"],
-      "acceptance_focus": "小结卡、规则表、后测题、去向卡同页。"
-    }
-  ],
-  "mixed_evidence_order_table": {
-    "step-04": ["先结构图与信号位置", "再四类传函与总输出/总误差结论", "最后热点标注"],
-    "step-05": ["先三步法与终值定理", "再题面与列式链", "最后工作区"],
-    "step-06": ["先型别定义与误差系数公式", "再两张快判表与边界提示", "最后配对区"],
-    "step-07": ["先双输入结构图", "再总误差式、代入式与结果栏", "最后工作区"],
-    "step-09": ["先补偿对照图", "再比较表与共同点句", "最后排序区"],
-    "step-10": ["先 PI 设计图", "再 lag 设计图与指标卡", "最后结构化比较区"],
-    "step-11": ["先纯增益限制句与设计顺序卡", "再两张图与比较表", "最后配对区"],
-    "step-12": ["先后测题组", "再六条小结、规则表与信息图", "最后 3-8 去向卡"]
-  },
-  "steps": {
-    "step-01": {
-      "title": "回到地图：为什么动态改善之后还可能不够准",
-      "layout": {
-        "template": "map_hero_slide",
-        "regions": [
-          { "id": "header", "width": "full", "order": 1 },
-          { "id": "lead", "width": "full", "order": 2 },
-          { "id": "summary", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "stage-map", "region": "lead", "kind": "stage-map", "must_be_visible": true },
-        { "id": "core-question-card", "region": "lead", "kind": "question-card", "must_be_visible": true },
-        { "id": "boundary-card", "region": "summary", "kind": "boundary-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "path", "type": "plain_text", "title": "路径定位", "body": "固定高亮 3-6 -> 3-7 -> 3-8。" },
-        { "id": "question", "type": "bullet_list", "title": "主问题", "items": ["系统稳定了，为什么误差还可能留在比较点上？", "为什么更快更稳不等于已经更准？"] }
-      ],
-      "evidence_sequence": [
-        "先呈现 3-6 -> 3-7 -> 3-8 路径。",
-        "再呈现主问题卡。",
-        "最后呈现边界卡。"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "none",
-        "student_task": "只阅读，不提交。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["推进到下一页", "高亮当前节点"],
-      "telemetry_spec": {
-        "summary_fields": ["viewed", "timeOnStep", "teacherFollowSync"],
-        "result_policy": "no_submission"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["view_count", "sync_status"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "标定 3-7 位于模块 3 的误差分析总入口位置。",
-        "allowed_scope": ["课程路径", "动态改善线与误差分析主线的区别"],
-        "forbidden_scope": ["例题参数", "补偿器整定"],
-        "canonical_facts": ["3-6 解决怎样更快更稳。", "3-7 是模块 3 的误差分析总入口课。", "3-7 继续回答为什么还能更准。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-01",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["首屏能看到路径图、主问题卡和边界卡。", "本页无作答区。"]
-    },
-    "step-02": {
-      "title": "学习目标与边界：本课先回答“为什么更准”",
-      "layout": {
-        "template": "goal_boundary_slide",
-        "regions": [
-          { "id": "goals", "width": "full", "order": 1 },
-          { "id": "boundary", "width": "full", "order": 2 }
-        ]
-      },
-      "modules": [
-        { "id": "goal-cards", "region": "goals", "kind": "goal-card-row", "must_be_visible": true },
-        { "id": "boundary-table", "region": "boundary", "kind": "comparison-table", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "goals", "type": "bullet_list", "title": "四项目标", "items": ["会分通道。", "会选路径。", "会区分增益与型别。", "会比较 PI 与滞后。"] },
-        { "id": "boundary", "type": "table", "title": "本课边界", "body": "负责误差通道、稳态误差求解与低频补偿路径；不负责频域判据与完整整定。" }
-      ],
-      "evidence_sequence": [
-        "先呈现四项目标卡。",
-        "再呈现负责 / 不负责边界表。"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "none",
-        "student_task": "只建立目标与边界。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["逐条强调目标", "高亮边界表某一行"],
-      "telemetry_spec": {
-        "summary_fields": ["viewed", "timeOnStep"],
-        "result_policy": "no_submission"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["view_count"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "建立明确的课堂边界。",
-        "allowed_scope": ["目标卡", "边界表"],
-        "forbidden_scope": ["后续模块内容"],
-        "canonical_facts": ["本课不进入 Nyquist 判据。", "本课不进入模块 4 完整整定。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-02",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["目标卡和边界表必须同屏。", "本页无提交区。"]
-    },
-    "step-03": {
-      "title": "前测：给定、扰动、型别三类混淆",
-      "layout": {
-        "template": "question_stack",
-        "regions": [
-          { "id": "question-stack", "width": "full", "order": 1 },
-          { "id": "submit-bar", "width": "full", "order": 2 }
-        ]
-      },
-      "modules": [
-        { "id": "pretest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "pretest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "pretest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "misconception-note", "type": "bullet_list", "title": "常见混淆", "items": ["扰动不是另一种输入型别。", "增益变大不等于型别提高。", "滞后不是更弱积分。"] }
-      ],
-      "evidence_sequence": [
-        "先完整呈现三道前测题干。",
-        "再呈现常见混淆提示。",
-        "最后呈现提交条。"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "quiz_group",
-        "student_task": "完成三道前测题。",
-        "attempt_model": "允许重提一次，教师端区分首答与重提。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["释放前测", "显示统计", "显示答案"],
-      "telemetry_spec": {
-        "summary_fields": ["attemptCount", "resultState", "errorBucket"],
-        "misconception_tags": ["disturbance_is_input_type", "gain_equals_type_raise", "lag_is_weaker_integral"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["question_distribution", "top_misconceptions"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "暴露起点误区。",
-        "allowed_scope": ["错因归类", "术语纠偏"],
-        "forbidden_scope": ["代替作答"],
-        "canonical_facts": ["前测只暴露误区，不拉开成绩差距。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-03",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["三题在未作答状态下全部可见。", "教师端可看到错因分布。"]
-    },
-    "step-04": {
-      "title": "双通道骨架：先分给定与扰动，再写总输出与总误差",
-      "layout": {
-        "template": "formula_media_compare",
-        "regions": [
-          { "id": "media", "width": "full", "order": 1 },
-          { "id": "formula", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "dual-channel-figure", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
-        { "id": "formula-card-row", "region": "formula", "kind": "formula-card-row", "must_be_visible": true },
-        { "id": "channel-hotspots", "region": "interaction", "kind": "hotspot-labeling", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "formula-summary", "type": "bullet_list", "title": "四类传函", "items": ["C/R", "C/D", "E/R", "E/D"] },
-        { "id": "channel-sum", "type": "formula", "title": "总输出与总误差", "body": "C(s)=\\Phi_r(s)R(s)+\\Phi_d(s)D(s),\\quad E(s)=E_r(s)+E_d(s)" },
-        { "id": "channel-rule", "type": "plain_text", "title": "核心判断", "body": "分母相同反映结构，分子不同反映通道。" }
-      ],
-      "evidence_sequence": [
-        "先呈现双通道结构图与信号位置。",
-        "再呈现四类传函与总输出/总误差结论。",
-        "最后开放热点标注。"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "hotspot_labeling",
-        "student_task": "把给定入口、扰动入口、总输出和总误差与图中位置对应起来。",
-        "answer_reveal": "instant_feedback"
-      },
-      "teacher_controls": ["重置标注", "显示常见错标位置"],
-      "telemetry_spec": {
-        "summary_fields": ["labelAttempted", "labelCorrected", "timeOnStep"],
-        "misconception_tags": ["channel_position_confusion"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["common_mislabels", "completion_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把“先分通道”立成固定动作。",
-        "allowed_scope": ["通道位置", "结构与分子分母含义"],
-        "forbidden_scope": ["直接报例题结果"],
-        "canonical_facts": ["四类传函分母相同。", "通道差异体现在分子和信号进入位置。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-04",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["结构图、四式卡与总输出/总误差结论在未交互状态下完整可见。", "热点区不是替代结构图的唯一信息源。"]
-    },
-    "step-05": {
-      "title": "终值定理直接求：稳态误差的通用路径",
-      "layout": {
-        "template": "worked_example_workspace",
-        "regions": [
-          { "id": "workflow", "width": "full", "order": 1 },
-          { "id": "problem", "width": "full", "order": 2 },
-          { "id": "workspace", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "three-step-card", "region": "workflow", "kind": "workflow-card", "must_be_visible": true },
-        { "id": "example-one-card", "region": "problem", "kind": "worked-example-card", "must_be_visible": true },
-        { "id": "limit-workspace", "region": "workspace", "kind": "worked-example-workspace", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "formula", "type": "formula", "title": "终值定理", "value": "e_{ss}=\\lim_{s\\to 0}sE(s)" },
-        { "id": "workflow", "type": "bullet_list", "title": "三步法", "items": ["先判稳定。", "写出误差传函。", "再做终值极限。"] },
-        { "id": "result-anchor", "type": "plain_text", "title": "结果锚点", "body": "本题最终稳态误差为 1/K。" }
-      ],
-      "evidence_sequence": [
-        "先呈现三步法卡与终值定理。",
-        "再呈现例题 1 题面与列式链。",
-        "最后开放工作区。"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "worked_example_workspace",
-        "student_task": "按步骤补全例题 1 的列式与极限链。",
-        "answer_reveal": "step_feedback_only"
-      },
-      "teacher_controls": ["显示下一步提示", "公布完整计算链"],
-      "telemetry_spec": {
-        "summary_fields": ["stepCompletion", "errorBucket", "timeOnStep"],
-        "misconception_tags": ["skipped_error_expression", "final_value_without_stability_check"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["stuck_step_distribution"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把直接求法压成固定流程。",
-        "allowed_scope": ["终值定理", "列式顺序", "例题 1"],
-        "forbidden_scope": ["跳过误差表达直接报结果"],
-        "canonical_facts": ["终值定理是通用路径。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-05",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["三步法卡、终值定理、题面与结果锚点必须同屏。", "工作区反馈只提示漏步，不直接给答案。"]
-    },
-    "step-06": {
-      "title": "型别与静态误差系数：什么时候能快速判断",
-      "layout": {
-        "template": "formula_table_match",
-        "regions": [
-          { "id": "formula", "width": "full", "order": 1 },
-          { "id": "tables", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "type-definition-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
-        { "id": "static-coefficient-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
-        { "id": "type-coefficient-table", "region": "tables", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "type-error-table", "region": "tables", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "match-zone", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "coefficient-table-note", "type": "plain_text", "title": "表 2", "body": "本页必须同时静态承载“型别与误差系数关系表”和“型别与典型输入误差表”，不得只保留其中一张表。" },
-        { "id": "boundary-note", "type": "plain_text", "title": "适用边界", "body": "显式扰动问题不能拿表直接替代列式。" }
-      ],
-      "evidence_sequence": [
-        "先呈现型别定义与 Kp/Kv/Ka 公式。",
-        "再呈现两张快判表与边界提示。",
-        "最后开放配对区。"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "triple_match",
-        "student_task": "把输入类型、误差系数和误差形式对应起来。",
-        "answer_reveal": "instant_feedback"
-      },
-      "teacher_controls": ["重置配对", "显示常见错配"],
-      "telemetry_spec": {
-        "summary_fields": ["matchAttempted", "matchCorrected"],
-        "misconception_tags": ["all_disturbance_use_static_coefficients"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["common_mismatch_pairs"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把快判的适用边界说清。",
-        "allowed_scope": ["型别", "Kp/Kv/Ka", "标准给定输入"],
-        "forbidden_scope": ["所有稳态误差都套表"],
-        "canonical_facts": ["快判依赖结构标准与通道单一。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-06",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["两张表与边界提示必须先于配对区出现。", "页面不能只有拖拽没有表。"]
-    },
-    "step-07": {
-      "title": "复合例题：给定与扰动共同作用时为什么不能只套表",
-      "layout": {
-        "template": "worked_example_workspace",
-        "regions": [
-          { "id": "problem", "width": "full", "order": 1 },
-          { "id": "figure", "width": "full", "order": 2 },
-          { "id": "workspace", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "example-two-card", "region": "problem", "kind": "worked-example-card", "must_be_visible": true },
-        { "id": "example-two-figure", "region": "figure", "kind": "comparison-graphic", "must_be_visible": true },
-        { "id": "total-error-formula-card", "region": "figure", "kind": "formula-card", "must_be_visible": true },
-        { "id": "total-error-workspace", "region": "workspace", "kind": "worked-example-workspace", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "total-error-formula", "type": "formula", "title": "总误差表达式", "body": "E(s)=\\frac{1}{1+G_1(s)G_2(s)}R(s)-\\frac{G_2(s)}{1+G_1(s)G_2(s)}D(s)" },
-        { "id": "total-error-expanded", "type": "formula", "title": "代入后的总误差式", "body": "E(s)=\\frac{s^2+7s+10}{s^2+7s+20}\\cdot \\frac{1}{s}-\\frac{2(s+5)}{s^2+7s+20}\\cdot \\frac{0.2}{s}" },
-        { "id": "result", "type": "plain_text", "title": "结果锚点", "body": "本题最终总稳态误差为 0.4，原因不是套表，而是先分通道再求极限。" }
-      ],
-      "evidence_sequence": [
-        "先呈现双输入结构图与题面。",
-        "再呈现总误差式、代入式与结果栏。",
-        "最后开放工作区。"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "worked_example_workspace",
-        "student_task": "补全总误差表达式并检查结果。",
-        "answer_reveal": "step_feedback_only"
-      },
-      "teacher_controls": ["显示正确列式顺序", "公布完整结果"],
-      "telemetry_spec": {
-        "summary_fields": ["stepCompletion", "errorBucket"],
-        "misconception_tags": ["forgot_disturbance_term", "wrong_total_error_definition"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["missing_term_distribution"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "纠正“给定 + 扰动题也能只套表”的误判。",
-        "allowed_scope": ["总输出", "总误差", "双通道列式"],
-        "forbidden_scope": ["把两个信号并成单一路径输入"],
-        "canonical_facts": ["复合问题优先直接求。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-07",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["结构图、题面、总误差式、代入式与结果栏必须同页可见。", "工作区不能掩盖题面。"]
-    },
-    "step-08": {
-      "title": "增益变大 vs 型别提高：哪一种才会改变误差阶次",
-      "layout": {
-        "template": "contrast_summary_board",
-        "regions": [
-          { "id": "compare", "width": "full", "order": 1 },
-          { "id": "interaction", "width": "full", "order": 2 },
-          { "id": "summary", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "gain-vs-type-card", "region": "compare", "kind": "contrast-card", "must_be_visible": true },
-        { "id": "binary-judge", "region": "interaction", "kind": "binary-choice", "must_be_visible": true },
-        { "id": "error-note", "region": "summary", "kind": "error-note", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "summary", "type": "plain_text", "title": "结论", "body": "想消除结构性误差，第一步不是调 K，而是判断是否必须引入积分。" }
-      ],
-      "evidence_sequence": [
-        "先呈现增益 vs 型别对照卡。",
-        "再呈现结论句。",
-        "最后开放二选一判断区。"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "binary_choice",
-        "student_task": "判断 I 型系统只调增益能否把斜坡误差结构性变成 0。",
-        "correct_answer": "B",
-        "options": {
-          "A": "只要把增益调大，斜坡误差总能变成 0",
-          "B": "若型别不变，斜坡误差最多被压小，不能结构性归零"
-        },
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["释放判断题", "显示一句纠错"],
-      "telemetry_spec": {
-        "summary_fields": ["selectedOption", "resultState"],
-        "misconception_tags": ["gain_equals_type_raise"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["option_distribution"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把“压小”和“归零”分开。",
-        "allowed_scope": ["增益", "型别", "误差阶次"],
-        "forbidden_scope": ["直接进入整定参数"],
-        "canonical_facts": ["增益调节不改变误差阶次。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-08",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["对照卡必须先完整出现。", "错误反馈只纠正概念，不提前进入整定。"]
-    },
-    "step-09": {
-      "title": "稳态改善路径比较：PI 与滞后都站在低频补偿线上",
-      "layout": {
-        "template": "comparison_panel_with_sort",
-        "regions": [
-          { "id": "media", "width": "full", "order": 1 },
-          { "id": "table", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "low-frequency-figure", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
-        { "id": "path-compare-table", "region": "table", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "sort-zone", "region": "interaction", "kind": "card-sort", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "summary", "type": "plain_text", "title": "共同点", "body": "PI 与滞后都在改善低频精度，但结构抓手不同。" }
-      ],
-      "evidence_sequence": [
-        "先呈现补偿结构对照图。",
-        "再呈现比较表与共同点句。",
-        "最后开放排序区。"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "card_sort",
-        "student_task": "把提高型别、抬低频增益、相位滞后增加、截止频率下降归到 PI 或滞后。",
-        "answer_reveal": "instant_feedback"
-      },
-      "teacher_controls": ["重置排序", "显示错分类"],
-      "telemetry_spec": {
-        "summary_fields": ["sortAttempted", "sortCorrected"],
-        "misconception_tags": ["lag_is_weaker_integral", "pi_has_no_cost"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["misclassified_cards"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把两条低频补偿线并列立住。",
-        "allowed_scope": ["低频补偿", "型别变化", "低频增益重分配"],
-        "forbidden_scope": ["把滞后简化成强弱关系"],
-        "canonical_facts": ["PI 主要靠提高型别。", "Lag 主要靠重分配低频增益。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-09",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["图和比较表必须先于排序区出现。", "排序区条目直接对应比较表字段。"]
-    },
-    "step-10": {
-      "title": "时域设计工作区：PI 改型别，滞后抬低频",
-      "layout": {
-        "template": "design_compare_workspace",
-        "regions": [
-          { "id": "left-example", "width": "full", "order": 1 },
-          { "id": "right-example", "width": "full", "order": 2 },
-          { "id": "comparison", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "pi-time-design", "region": "left-example", "kind": "design-graphic", "must_be_visible": true },
-        { "id": "lag-time-design", "region": "right-example", "kind": "design-graphic", "must_be_visible": true },
-        { "id": "metric-compare-card", "region": "comparison", "kind": "metric-card-row", "must_be_visible": true },
-        { "id": "compare-workspace", "region": "comparison", "kind": "structured-compare", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "metrics", "type": "bullet_list", "title": "关键判断", "items": ["PI：提高型别，斜坡误差归零。", "Lag：型别不变，K_v 提高到目标值。"] }
-      ],
-      "evidence_sequence": [
-        "先呈现 PI 时域设计图。",
-        "再呈现 lag 时域设计图与指标卡。",
-        "最后开放结构化比较区。"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "structured_compare",
-        "student_task": "分别填写两条路径的结构抓手、精度收益与动态代价。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["显示参考比较", "切换到任一设计图放大查看"],
-      "telemetry_spec": {
-        "summary_fields": ["fieldsCompleted", "compareBucket"],
-        "misconception_tags": ["only_memorized_metrics_without_mechanism"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["common_compare_gaps"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把时域设计差异落到具体图上。",
-        "allowed_scope": ["型别", "Kv", "超调量", "调节时间"],
-        "forbidden_scope": ["把结果当纯参数记忆"],
-        "canonical_facts": ["PI 改变误差阶次。", "Lag 主要重排低频增益。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-10",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["两张设计图和指标卡必须同屏可比。", "比较区不能代替图本身。"]
-    },
-    "step-11": {
-      "title": "频域过渡：为什么 PI 更准、PD 更快",
-      "layout": {
-        "template": "formula_media_compare",
-        "regions": [
-          { "id": "media", "width": "full", "order": 1 },
-          { "id": "table", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "pi-frequency-figure", "region": "media", "kind": "design-graphic", "must_be_visible": true },
-        { "id": "pi-pd-compare-figure", "region": "media", "kind": "comparison-graphic", "must_be_visible": true },
-        { "id": "frequency-design-order-card", "region": "table", "kind": "process-card", "must_be_visible": true },
-        { "id": "pi-pd-table", "region": "table", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "cause-match", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "pure-gain-limit", "type": "plain_text", "title": "纯增益限制", "body": "纯增益若取 K>=10 才能满足 K_v>=10，但相位裕度不足，无法同时兼顾低频精度与稳定裕量。" },
-        { "id": "pi-design-sequence", "type": "bullet_list", "title": "PI 频域设计顺序", "items": ["先定目标截止频率 ω_c*=2.5 rad/s。", "再把 PI 零点放到 ω_z=0.125 rad/s。", "再由幅值条件求 G_PI(s)=3(s+0.125)/s。", "最后回查 PM、ω_c 与时域响应。"] },
-        { "id": "summary", "type": "bullet_list", "title": "核心结论", "items": ["PI 更偏低频精度优先。", "PD 更偏动态速度优先。"] }
-      ],
-      "evidence_sequence": [
-        "先呈现纯增益限制句与 PI 设计顺序卡。",
-        "再呈现两张图与比较表。",
-        "最后开放配对区。"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "triple_match",
-        "student_task": "把更准、更快、裕量代价与对应方法和频段关系配对。",
-        "answer_reveal": "instant_feedback"
-      },
-      "teacher_controls": ["重置配对", "显示常见错配"],
-      "telemetry_spec": {
-        "summary_fields": ["matchAttempted", "matchCorrected"],
-        "misconception_tags": ["pi_and_pd_same_design_goal"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["common_mismatch_pairs"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把 3-7 收束到 3-8 的频域入口。",
-        "allowed_scope": ["低频", "中频", "相角裕度", "带宽", "PI/PD 对照"],
-        "forbidden_scope": ["完整整定流程", "Nyquist 判据"],
-        "canonical_facts": ["低频主要回答为什么更准。", "中频附近主要暴露速度与裕量代价。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-11",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["纯增益限制句、设计顺序卡、两张图与比较表必须完整可见。", "配对失败时不提前进入判据。"]
-    },
-    "step-12": {
-      "title": "后测与收束：先选路径，再认代价，最后接到 3-8",
-      "layout": {
-        "template": "summary_quiz_board",
-        "regions": [
-          { "id": "quiz", "width": "full", "order": 1 },
-          { "id": "summary", "width": "full", "order": 2 },
-          { "id": "next", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "post-quiz", "region": "quiz", "kind": "quiz-group", "must_be_visible": true },
-        { "id": "summary-card", "region": "summary", "kind": "summary-card", "must_be_visible": true },
-        { "id": "path-selection-table", "region": "summary", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "info-graphic", "region": "summary", "kind": "summary-graphic", "must_be_visible": true },
-        { "id": "next-lesson-card", "region": "next", "kind": "next-step-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "path-selection-summary", "type": "bullet_list", "title": "直接求 / 快速判规则", "items": ["标准负反馈、只问典型给定输入稳态误差：优先快速判。", "输入与扰动共同存在：优先直接求。", "输入是多项式叠加：直接求与快速判均可。", "目标是判断是否必须引入积分：先看型别。"] },
-        { "id": "summary", "type": "bullet_list", "title": "六条小结", "items": ["稳态误差先分通道。", "终值定理是通用路径。", "型别与误差系数是标准快判。", "增益变大不等于型别提高。", "PI 与滞后都不是免费午餐。", "3-8 将进入频域判别语言。"] }
-      ],
-      "evidence_sequence": [
-        "先呈现后测题组。",
-        "再呈现六条小结、规则表与信息图。",
-        "最后呈现 3-8 去向卡。"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "quiz_group",
-        "student_task": "完成四题后测。",
-        "attempt_model": "允许重提一次。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["释放后测", "显示统计", "显示答案"],
-      "telemetry_spec": {
-        "summary_fields": ["attemptCount", "resultState", "errorBucket"],
-        "misconception_tags": ["wrong_path_selection", "cannot_identify_cost_location"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["question_distribution", "summary_completion_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "检查学生会不会选路径和认代价。",
-        "allowed_scope": ["错因归类", "关键词纠偏"],
-        "forbidden_scope": ["替学生写总结句"],
-        "canonical_facts": ["3-8 会把低频收益和中频代价统一翻译成频域判断。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-12",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["后测题、小结卡、规则表、信息图与去向卡必须同页可见。", "本页既能完成测验也能独立复习。"]
-    }
-  }
-}
+contract_version: "2.1"
+lesson_id: "3-7"
+course_title: "3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理"
+course_route_segment: "unit-3-7-steady-error-low-frequency-compensation"
+preview_mode:
+  default_entry: "student_demo"
+  student_demo_base_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo"
+  teacher_preview_panel_note: "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
+telemetry_strategy: "lightweight_high_value"
+teacher_insight_strategy: "step_level_aggregation_only"
+required_step_fields:
+  - "layout"
+  - "modules"
+  - "content_blocks"
+  - "evidence_sequence"
+  - "interaction_spec"
+  - "teacher_controls"
+  - "telemetry_spec"
+  - "teacher_insight_spec"
+  - "ai_context_spec"
+  - "preview_contract"
+  - "acceptance_checks"
+steps:
+  step-01:
+    title: "回到地图：为什么动态改善之后还可能不够准"
+    layout:
+      template: "map_hero_slide"
+      regions:
+        - { id: "header", width: "full", order: 1 }
+        - { id: "lead", width: "full", order: 2 }
+        - { id: "summary", width: "full", order: 3 }
+    modules:
+      - { id: "stage-map", region: "lead", kind: "stage-map", must_be_visible: true }
+      - { id: "core-question-card", region: "lead", kind: "question-card", must_be_visible: true }
+      - { id: "boundary-card", region: "summary", kind: "boundary-card", must_be_visible: true }
+    content_blocks:
+      - id: "path"
+        type: "plain_text"
+        title: "路径定位"
+        body: "固定高亮 3-6 -> 3-7 -> 3-8。"
+      - id: "question"
+        type: "bullet_list"
+        title: "主问题"
+        items:
+          - "系统稳定了，为什么误差还可能留在比较点上？"
+          - "为什么更快更稳不等于已经更准？"
+      - id: "boundary"
+        type: "plain_text"
+        title: "边界卡"
+        body: "本课先解决误差通道、稳态误差求解与低频补偿路径，不进入完整频域整定。"
+    evidence_sequence:
+      - "先呈现 3-6 -> 3-7 -> 3-8 路径。"
+      - "再呈现主问题卡。"
+      - "最后呈现边界卡。"
+    interaction_spec:
+      interaction_kind: "none"
+      student_task: "只阅读，不提交。"
+      answer_reveal: "none"
+    teacher_controls:
+      release_activity: "not_applicable"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "not_applicable"
+    telemetry_spec:
+      summary_fields: ["viewed", "timeOnStep", "teacherFollowSync"]
+      result_policy: "no_submission"
+    teacher_insight_spec:
+      widgets: ["view_count", "sync_status"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "标定 3-7 位于模块 3 的误差分析总入口位置。"
+      allowed_scope: ["课程路径", "动态改善线与误差分析主线的区别"]
+      forbidden_scope: ["例题参数", "补偿器整定"]
+      canonical_facts:
+        - "3-6 解决怎样更快更稳。"
+        - "3-7 继续回答为什么还能更准。"
+        - "3-8 将把低频收益与中频代价翻译成统一频域语言。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-01"
+      must_match_student_page: true
+    acceptance_checks:
+      - "首屏能看到路径图、主问题卡和边界卡。"
+      - "本页没有作答区。"
+
+  step-02:
+    title: "学习目标与边界：本课先回答“为什么更准”"
+    layout:
+      template: "goal_boundary_slide"
+      regions:
+        - { id: "goals", width: "full", order: 1 }
+        - { id: "boundary", width: "full", order: 2 }
+    modules:
+      - { id: "goal-cards", region: "goals", kind: "goal-card-row", must_be_visible: true }
+      - { id: "boundary-table", region: "boundary", kind: "comparison-table", must_be_visible: true }
+    content_blocks:
+      - id: "goals"
+        type: "bullet_list"
+        title: "四项目标"
+        items:
+          - "会分给定通道与扰动通道。"
+          - "会在直接求与快速判之间选路径。"
+          - "会区分增益变大与型别提高。"
+          - "会比较 PI 与滞后两条低频补偿路径。"
+      - id: "boundary"
+        type: "table"
+        title: "本课边界"
+        body: "负责误差通道、稳态误差求解与低频补偿；不负责 Nyquist 判据与完整整定。"
+    evidence_sequence:
+      - "先呈现四项目标卡。"
+      - "再呈现负责 / 不负责边界表。"
+    interaction_spec:
+      interaction_kind: "none"
+      student_task: "只建立目标与边界。"
+      answer_reveal: "none"
+    teacher_controls:
+      release_activity: "not_applicable"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "not_applicable"
+    telemetry_spec:
+      summary_fields: ["viewed", "timeOnStep"]
+      result_policy: "no_submission"
+    teacher_insight_spec:
+      widgets: ["view_count"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "建立明确的课堂边界。"
+      allowed_scope: ["目标卡", "边界表"]
+      forbidden_scope: ["后续模块内容"]
+      canonical_facts:
+        - "本课不进入 Nyquist 判据。"
+        - "本课不进入模块 4 的完整整定。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-02"
+      must_match_student_page: true
+    acceptance_checks:
+      - "目标卡和边界表必须同屏。"
+      - "本页无提交区。"
+
+  step-03:
+    title: "前测：给定、扰动、型别三类混淆"
+    layout:
+      template: "question_stack"
+      regions:
+        - { id: "question-stack", width: "full", order: 1 }
+        - { id: "submit-bar", width: "full", order: 2 }
+    modules:
+      - { id: "pretest-q1", region: "question-stack", kind: "single-choice-card", must_be_visible: true }
+      - { id: "pretest-q2", region: "question-stack", kind: "single-choice-card", must_be_visible: true }
+      - { id: "pretest-q3", region: "question-stack", kind: "single-choice-card", must_be_visible: true }
+      - { id: "misconception-note", region: "submit-bar", kind: "misconception-note", must_be_visible: true }
+    content_blocks:
+      - id: "misconception-note"
+        type: "bullet_list"
+        title: "常见混淆"
+        items:
+          - "扰动不是另一种输入型别。"
+          - "增益变大不等于型别提高。"
+          - "滞后不是更弱积分。"
+    evidence_sequence:
+      - "先完整呈现三道前测题干。"
+      - "再呈现误区标签。"
+      - "最后呈现提交条。"
+    interaction_spec:
+      interaction_kind: "quiz_group"
+      student_task: "完成三道前测题。"
+      attempt_model: "允许重提一次，教师端区分首答与重提。"
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "visible"
+        release_required: false
+        browse_required: false
+        can_view_problem_statement: true
+        can_view_derivation_steps: false
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "page_load_open"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "resultState", "errorBucket"]
+      misconception_tags:
+        - "disturbance_is_input_type"
+        - "gain_equals_type_raise"
+        - "lag_is_weaker_integral"
+    teacher_insight_spec:
+      widgets: ["question_distribution", "top_misconceptions"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "暴露三类起点误区。"
+      allowed_scope: ["错因归类", "术语纠偏"]
+      forbidden_scope: ["直接代答"]
+      canonical_facts:
+        - "前测用于暴露判断链断点。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-03"
+      must_match_student_page: true
+    acceptance_checks:
+      - "未作答状态下三题全部可见。"
+      - "教师端能看到错误分布。"
+
+  step-04:
+    title: "双通道骨架：四类传函分卡命名"
+    layout:
+      template: "formula_media_compare"
+      regions:
+        - { id: "media", width: "full", order: 1 }
+        - { id: "formula", width: "full", order: 2 }
+        - { id: "interaction", width: "full", order: 3 }
+    modules:
+      - { id: "dual-channel-figure", region: "media", kind: "figure", must_be_visible: true }
+      - { id: "formula-card-1", region: "formula", kind: "formula-card", must_be_visible: true }
+      - { id: "formula-card-2", region: "formula", kind: "formula-card", must_be_visible: true }
+      - { id: "formula-card-3", region: "formula", kind: "formula-card", must_be_visible: true }
+      - { id: "formula-card-4", region: "formula", kind: "formula-card", must_be_visible: true }
+      - { id: "channel-sum-card", region: "formula", kind: "formula-card", must_be_visible: true }
+      - { id: "channel-hotspots", region: "interaction", kind: "hotspot-labeling", must_be_visible: true }
+    content_blocks:
+      - id: "figure-ref"
+        type: "plain_text"
+        title: "主图"
+        body: "固定使用 3-7-error-dual-channel.png。"
+      - id: "formula-summary"
+        type: "bullet_list"
+        title: "命名公式卡"
+        items:
+          - "给定到输出：Φr(s)=C(s)/R(s)"
+          - "扰动到输出：Φd(s)=C(s)/D(s)"
+          - "给定到误差：Er(s)/R(s)"
+          - "扰动到误差：Ed(s)/D(s)"
+          - "总输出与总误差：C(s)=Φr(s)R(s)+Φd(s)D(s)，E(s)=Er(s)+Ed(s)"
+      - id: "core-judgement"
+        type: "plain_text"
+        title: "核心判断"
+        body: "分母相同反映结构，分子不同反映通道。"
+    evidence_sequence:
+      - "先出现双通道结构图。"
+      - "再出现四个命名公式卡与总输出/总误差结论。"
+      - "最后出现热点标注区。"
+    interaction_spec:
+      interaction_kind: "hotspot_labeling"
+      student_task: "把给定入口、扰动入口、总输出和总误差与图中位置对应起来。"
+      answer_reveal: "instant_feedback"
+      student_access:
+        default_visibility: "visible"
+        release_required: false
+        browse_required: false
+        can_view_problem_statement: true
+        can_view_derivation_steps: false
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "page_load_open"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "selectedHotspots", "resultState"]
+      result_policy: "store_best_attempt"
+    teacher_insight_spec:
+      widgets: ["hotspot_confusion_map", "completion_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "固定先分结构、后分通道的读法。"
+      allowed_scope: ["结构图", "四类传函", "总输出", "总误差"]
+      forbidden_scope: ["跳过通道直接套表"]
+      canonical_facts:
+        - "四类传函分母相同。"
+        - "总输出与总误差必须分别写出。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-04"
+      must_match_student_page: true
+    acceptance_checks:
+      - "结构图、四个命名公式卡和总结论必须先于互动出现。"
+      - "热点区不能替代静态正文。"
+
+  step-05:
+    title: "终值定理直接求：原理模块与例题 1 分离"
+    layout:
+      template: "worked_example_workspace"
+      regions:
+        - { id: "principle", width: "full", order: 1 }
+        - { id: "problem", width: "full", order: 2 }
+        - { id: "derivation", width: "full", order: 3 }
+        - { id: "activity", width: "full", order: 4 }
+    modules:
+      - { id: "principle-card", region: "principle", kind: "principle-card", must_be_visible: true }
+      - { id: "example-1-problem", region: "problem", kind: "example-card", must_be_visible: true }
+      - { id: "example-1-derivation", region: "derivation", kind: "step-reveal-list", must_be_visible: true }
+      - { id: "activity-card-row", region: "activity", kind: "activity-card-set", must_be_visible: true }
+    content_blocks:
+      - id: "principle"
+        type: "bullet_list"
+        title: "终值定理三步法"
+        items:
+          - "先判闭环稳定。"
+          - "再写所关心通道的误差传递函数。"
+          - "最后用 e_ss=lim(s→0)sE(s) 求极限。"
+      - id: "problem"
+        type: "formula_list"
+        title: "例题 1 完整题面"
+        items:
+          - "G(s)=K/[s^2(0.5s+1)]"
+          - "r(t)=3+2t+0.5t^2"
+          - "R(s)=3/s+2/s^2+1/s^3"
+          - "求稳态误差"
+      - id: "result"
+        type: "plain_text"
+        title: "结果摘要"
+        body: "本题最终稳态误差为 1/K。"
+    evidence_sequence:
+      - "先出现原理模块。"
+      - "再出现例题 1 完整题面。"
+      - "最后出现逐步显影步骤与作答卡。"
+    interaction_spec:
+      interaction_kind: "worked_example_workspace"
+      student_task: "完成例题 1 的关键步骤判断与补全。"
+      step_reveal_policy: "teacher_or_browse_gate"
+      activity_cards:
+        - { id: "ex1-card-1", prompt: "第一步应先写什么？", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "ex1-card-2", prompt: "补全误差表达式核心因子。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "ex1-card-3", prompt: "按顺序排列三步法。", response_kind: "drag_sort", submit_scope: "per_card", layout_span: "one_third" }
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "hidden"
+        release_required: true
+        browse_required: true
+        can_view_problem_statement: true
+        can_view_derivation_steps: false
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "default_closed"
+      open_browse: "default_closed"
+      teacher_step_reveal: "independent"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "stepRevealCount", "completedCards"]
+      result_policy: "store_latest_attempt"
+    teacher_insight_spec:
+      widgets: ["activity_completion_rate", "top_missing_steps"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把通用三步法与完整题面绑定。"
+      allowed_scope: ["终值定理", "题面", "求解顺序"]
+      forbidden_scope: ["只给最终答案"]
+      canonical_facts:
+        - "原理模块与例题模块必须分离。"
+        - "逐步显影只能隐藏步骤，不能隐藏题面。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-05"
+      must_match_student_page: true
+    acceptance_checks:
+      - "学生默认能看到原理模块和完整题面。"
+      - "学生默认不能展开步骤，作答区默认隐藏。"
+
+  step-06:
+    title: "型别与静态误差系数：双表并排快判"
+    layout:
+      template: "formula_table_workspace"
+      regions:
+        - { id: "formula-groups", width: "full", order: 1 }
+        - { id: "tables", width: "full", order: 2 }
+        - { id: "activity", width: "full", order: 3 }
+    modules:
+      - { id: "type-definition-card", region: "formula-groups", kind: "formula-card", must_be_visible: true }
+      - { id: "static-error-constants-card", region: "formula-groups", kind: "formula-card", must_be_visible: true }
+      - { id: "steady-error-formulas-card", region: "formula-groups", kind: "formula-card", must_be_visible: true }
+      - { id: "constants-table", region: "tables", kind: "table", must_be_visible: true }
+      - { id: "steady-error-table", region: "tables", kind: "table", must_be_visible: true }
+      - { id: "boundary-note", region: "tables", kind: "note-card", must_be_visible: true }
+      - { id: "example-1-quick-judge-cards", region: "activity", kind: "activity-card-set", must_be_visible: true }
+    content_blocks:
+      - id: "formula-groups"
+        type: "formula_list"
+        title: "命名公式"
+        items:
+          - "型别定义：G(s)H(s)=K0/s^v·G0(s)"
+          - "静态误差系数：Kp、Kv、Ka"
+          - "典型输入稳态误差：e_ss,step / e_ss,ramp / e_ss,para"
+      - id: "tables"
+        type: "bullet_list"
+        title: "并排双表要求"
+        items:
+          - "表 2：各型别系统的静态误差系数。"
+          - "表 3：各型别系统对典型输入的稳态误差。"
+      - id: "boundary-note"
+        type: "plain_text"
+        title: "适用边界"
+        body: "标准给定输入可先快判；显式扰动问题必须优先列式。"
+    evidence_sequence:
+      - "先出现命名公式组。"
+      - "再出现两张并排表格与边界说明。"
+      - "最后出现例题 1 快判作答卡。"
+    interaction_spec:
+      interaction_kind: "activity_card_set"
+      student_task: "回到例题 1，完成系统型别与误差结论快判。"
+      activity_cards:
+        - { id: "type-card-1", prompt: "判断系统型别。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "type-card-2", prompt: "匹配输入分量与误差结论。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "type-card-3", prompt: "补全 Ka 求法。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "hidden"
+        release_required: true
+        browse_required: false
+        can_view_problem_statement: true
+        can_view_derivation_steps: true
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "default_closed"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "completedCards", "errorBucket"]
+      result_policy: "store_latest_attempt"
+    teacher_insight_spec:
+      widgets: ["table_match_distribution", "top_confusions"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把型别定义、误差系数和快判边界绑到同一页。"
+      allowed_scope: ["型别", "Kp/Kv/Ka", "典型输入误差"]
+      forbidden_scope: ["把扰动问题偷换成给定输入快判"]
+      canonical_facts:
+        - "双表必须先于作答区出现。"
+        - "快判只是直接求的加速版，不是替代版。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-06"
+      must_match_student_page: true
+    acceptance_checks:
+      - "公式组、双表和边界说明始终可见。"
+      - "作答区默认隐藏。"
+
+  step-07:
+    title: "复合例题：给定与扰动共同作用时为什么不能只套表"
+    layout:
+      template: "worked_example_workspace"
+      regions:
+        - { id: "principle", width: "full", order: 1 }
+        - { id: "problem", width: "full", order: 2 }
+        - { id: "derivation", width: "full", order: 3 }
+        - { id: "activity", width: "full", order: 4 }
+    modules:
+      - { id: "principle-card", region: "principle", kind: "principle-card", must_be_visible: true }
+      - { id: "example-2-problem", region: "problem", kind: "example-card", must_be_visible: true }
+      - { id: "example-2-figure", region: "problem", kind: "figure", must_be_visible: true }
+      - { id: "example-2-derivation", region: "derivation", kind: "step-reveal-list", must_be_visible: true }
+      - { id: "activity-card-row", region: "activity", kind: "activity-card-set", must_be_visible: true }
+    content_blocks:
+      - id: "principle"
+        type: "plain_text"
+        title: "双通道求解原则"
+        body: "先写总输出，再写总误差，最后做终值极限。"
+      - id: "problem"
+        type: "bullet_list"
+        title: "例题 2 完整题面"
+        items:
+          - "G1(s)=5/(s+5)，G2(s)=2/(s+2)。"
+          - "扰动加在执行机构之后、被控对象之前。"
+          - "R(s)=1/s，D(s)=0.2/s。"
+          - "问题：求总稳态误差。"
+      - id: "result"
+        type: "plain_text"
+        title: "结果摘要"
+        body: "本题最终稳态误差为 0.4。"
+    evidence_sequence:
+      - "先出现原理模块。"
+      - "再按讲义顺序出现题面文字、结构图与输入条件。"
+      - "最后出现逐步显影步骤与作答卡。"
+    interaction_spec:
+      interaction_kind: "worked_example_workspace"
+      student_task: "完成例题 2 的总误差列式与判断。"
+      step_reveal_policy: "teacher_or_browse_gate"
+      activity_cards:
+        - { id: "ex2-card-1", prompt: "判断第一步动作。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "ex2-card-2", prompt: "补全总误差式缺项。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "ex2-card-3", prompt: "把给定项与扰动项连线。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "hidden"
+        release_required: true
+        browse_required: true
+        can_view_problem_statement: true
+        can_view_derivation_steps: false
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "default_closed"
+      open_browse: "default_closed"
+      teacher_step_reveal: "independent"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "stepRevealCount", "completedCards"]
+      result_policy: "store_latest_attempt"
+    teacher_insight_spec:
+      widgets: ["completion_rate", "top_formula_gaps"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "固定‘给定 + 扰动’题必须先分通道再列总误差。"
+      allowed_scope: ["总输出", "总误差", "终值定理"]
+      forbidden_scope: ["直接套型别表"]
+      canonical_facts:
+        - "结构图不得脱离题面文字被自动置顶。"
+        - "题面必须完整可见。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-07"
+      must_match_student_page: true
+    acceptance_checks:
+      - "学生默认能看到完整题面，但不能直接展开步骤。"
+      - "作答区默认隐藏。"
+
+  step-08:
+    title: "增益变大 vs 型别提高：哪一种会改变误差阶次"
+    layout:
+      template: "contrast_summary_board"
+      regions:
+        - { id: "contrast", width: "full", order: 1 }
+        - { id: "activity", width: "full", order: 2 }
+    modules:
+      - { id: "gain-card", region: "contrast", kind: "comparison-card", must_be_visible: true }
+      - { id: "type-card", region: "contrast", kind: "comparison-card", must_be_visible: true }
+      - { id: "decision-cards", region: "activity", kind: "binary-choice-set", must_be_visible: true }
+    content_blocks:
+      - id: "contrast"
+        type: "bullet_list"
+        title: "核心对照"
+        items:
+          - "增益调节：压小有限误差，不改变误差阶次。"
+          - "结构修正：通过积分或附加零极点改变低频结构，可能改变误差阶次。"
+      - id: "conclusion"
+        type: "plain_text"
+        title: "结论句"
+        body: "若题目要求把结构性误差变成零，第一步不是调增益，而是判断是否必须提高型别。"
+    evidence_sequence:
+      - "先出现对照卡。"
+      - "最后出现判断题卡。"
+    interaction_spec:
+      interaction_kind: "binary_choice"
+      student_task: "判断三个情境更接近压小有限误差还是改变误差阶次。"
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "visible"
+        release_required: false
+        browse_required: false
+        can_view_problem_statement: true
+        can_view_derivation_steps: false
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "page_load_open"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["selectedOptions", "resultState"]
+      result_policy: "store_latest_attempt"
+    teacher_insight_spec:
+      widgets: ["option_distribution", "top_misclassifications"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把‘压小’与‘归零’的本质差异固定下来。"
+      allowed_scope: ["增益", "型别", "误差阶次"]
+      forbidden_scope: ["把二者混成同一效果"]
+      canonical_facts:
+        - "增益不能单独把结构性误差变成零。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-08"
+      must_match_student_page: true
+    acceptance_checks:
+      - "对照卡先于判断卡出现。"
+      - "本页不再承担公式推导。"
+
+  step-09:
+    title: "低频补偿总览：PI、滞后与超前的结构差别"
+    layout:
+      template: "formula_figure_table_stack"
+      regions:
+        - { id: "formula", width: "full", order: 1 }
+        - { id: "copy", width: "full", order: 2 }
+        - { id: "figure", width: "full", order: 3 }
+        - { id: "table", width: "full", order: 4 }
+        - { id: "activity", width: "full", order: 5 }
+    modules:
+      - { id: "pi-formula-card", region: "formula", kind: "formula-card", must_be_visible: true }
+      - { id: "lag-formula-card", region: "formula", kind: "formula-card", must_be_visible: true }
+      - { id: "copy-card", region: "copy", kind: "copy-card", must_be_visible: true }
+      - { id: "low-frequency-figure", region: "figure", kind: "figure", must_be_visible: true }
+      - { id: "comparison-table", region: "table", kind: "comparison-table", must_be_visible: true }
+      - { id: "activity-card-grid", region: "activity", kind: "activity-card-set", must_be_visible: true }
+    content_blocks:
+      - id: "formulas"
+        type: "formula_list"
+        title: "命名公式"
+        items:
+          - "PI：G_PI(s)=K(1+1/(Ti s))"
+          - "滞后：G_lag(s)=K(Ts+1)/(βTs+1)"
+      - id: "copy"
+        type: "bullet_list"
+        title: "三类补偿的基本文案"
+        items:
+          - "PI 通过积分提高型别。"
+          - "滞后通过零点在左、极点在右的附加零极点对提高低频增益。"
+          - "超前主要服务于目标频带的相位补偿。"
+      - id: "figure-and-table"
+        type: "plain_text"
+        title: "图表要求"
+        body: "固定使用 3-7-low-frequency-compensators.png，并保留表 4 的四列比较。"
+    evidence_sequence:
+      - "先出现公式组。"
+      - "再出现基本文案。"
+      - "然后出现补偿图与比较表。"
+      - "最后出现作答卡。"
+    interaction_spec:
+      interaction_kind: "activity_card_set"
+      student_task: "完成方法、作用与代价的归类。"
+      activity_cards:
+        - { id: "lf-card-1", prompt: "把方法与核心作用匹配。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "lf-card-2", prompt: "判断滞后是否等于弱积分。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "lf-card-3", prompt: "按低频与中频作用排序。", response_kind: "drag_sort", submit_scope: "per_card", layout_span: "one_third" }
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "hidden"
+        release_required: true
+        browse_required: false
+        can_view_problem_statement: true
+        can_view_derivation_steps: true
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "default_closed"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "completedCards", "errorBucket"]
+      result_policy: "store_latest_attempt"
+    teacher_insight_spec:
+      widgets: ["method_confusion_rate", "top_mismatch_pairs"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把低频补偿三种结构先按公式与文案分清，再谈比较。"
+      allowed_scope: ["PI", "滞后", "超前", "型别", "低频增益"]
+      forbidden_scope: ["把滞后写成弱积分"]
+      canonical_facts:
+        - "图表不得先于公式与文案出现。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-09"
+      must_match_student_page: true
+    acceptance_checks:
+      - "页面顺序必须是公式 -> 文案 -> 图片 -> 表格 -> 作答卡。"
+      - "作答卡默认隐藏。"
+
+  step-10:
+    title: "时域 PI 设计：先证明纯增益不够，再改结构"
+    layout:
+      template: "method_reveal_page"
+      regions:
+        - { id: "problem", width: "full", order: 1 }
+        - { id: "derivation", width: "full", order: 2 }
+        - { id: "validation", width: "full", order: 3 }
+        - { id: "activity", width: "full", order: 4 }
+    modules:
+      - { id: "time-pi-problem", region: "problem", kind: "example-card", must_be_visible: true }
+      - { id: "time-pi-derivation", region: "derivation", kind: "step-reveal-list", must_be_visible: true }
+      - { id: "time-pi-validation-figure", region: "validation", kind: "figure", must_be_visible: true }
+      - { id: "time-pi-activity-cards", region: "activity", kind: "activity-card-set", must_be_visible: true }
+    content_blocks:
+      - id: "problem"
+        type: "bullet_list"
+        title: "对象与目标"
+        items:
+          - "对象：Gp(s)=4/[s(s+4)]。"
+          - "目标：斜坡输入稳态误差为 0。"
+          - "目标：超调量不超过 20%，调节时间不超过 12 s。"
+      - id: "validation"
+        type: "plain_text"
+        title: "验证图"
+        body: "固定使用 3-7-pi-time-domain-design.png，且只在步骤链末端出现。"
+    evidence_sequence:
+      - "先出现题面模块。"
+      - "再逐步显影纯增益局限、可行域换算与 PI 选点。"
+      - "最后出现验证图与作答卡。"
+    interaction_spec:
+      interaction_kind: "worked_example_workspace"
+      student_task: "完成时域 PI 设计链中的关键判断。"
+      step_reveal_policy: "teacher_or_browse_gate"
+      activity_cards:
+        - { id: "time-pi-card-1", prompt: "判断纯增益为何不够。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-pi-card-2", prompt: "补全可行域条件。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-pi-card-3", prompt: "选择 PI 的首要作用。", response_kind: "multi_choice", submit_scope: "per_card", layout_span: "one_third" }
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "hidden"
+        release_required: true
+        browse_required: true
+        can_view_problem_statement: true
+        can_view_derivation_steps: false
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "default_closed"
+      open_browse: "default_closed"
+      teacher_step_reveal: "independent"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "stepRevealCount", "completedCards"]
+      result_policy: "store_latest_attempt"
+    teacher_insight_spec:
+      widgets: ["completion_rate", "top_reasoning_gaps"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把‘纯增益不够 -> 需要提高型别 -> 再看可行域’串成一条显影链。"
+      allowed_scope: ["纯增益局限", "可行域", "PI 零点选择"]
+      forbidden_scope: ["只放验证图，不写过程"]
+      canonical_facts:
+        - "方法页必须先于比较页。"
+        - "验证图只能最后出现。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-10"
+      must_match_student_page: true
+    acceptance_checks:
+      - "题面完整显示。"
+      - "学生默认不能展开步骤，作答区默认隐藏。"
+
+  step-11:
+    title: "时域滞后设计：型别不变时怎样抬高低频增益"
+    layout:
+      template: "method_reveal_page"
+      regions:
+        - { id: "problem", width: "full", order: 1 }
+        - { id: "derivation", width: "full", order: 2 }
+        - { id: "validation", width: "full", order: 3 }
+        - { id: "activity", width: "full", order: 4 }
+    modules:
+      - { id: "time-lag-problem", region: "problem", kind: "example-card", must_be_visible: true }
+      - { id: "time-lag-derivation", region: "derivation", kind: "step-reveal-list", must_be_visible: true }
+      - { id: "time-lag-validation-figure", region: "validation", kind: "figure", must_be_visible: true }
+      - { id: "time-lag-activity-cards", region: "activity", kind: "activity-card-set", must_be_visible: true }
+    content_blocks:
+      - id: "problem"
+        type: "bullet_list"
+        title: "对象与目标"
+        items:
+          - "对象：Gp(s)=4/[s(s+4)]。"
+          - "目标：保持 Mp≤20%、ts(2%)≤12 s。"
+          - "目标：在不提高型别的前提下，使 Kv≥10。"
+      - id: "validation"
+        type: "plain_text"
+        title: "验证图"
+        body: "固定使用 3-7-lag-time-domain-design.png，且只在步骤链末端出现。"
+    evidence_sequence:
+      - "先出现题面模块。"
+      - "再逐步显影纯增益矛盾、滞后结构与 Kv 推导。"
+      - "最后出现验证图与作答卡。"
+    interaction_spec:
+      interaction_kind: "worked_example_workspace"
+      student_task: "完成时域滞后设计链中的关键判断。"
+      step_reveal_policy: "teacher_or_browse_gate"
+      activity_cards:
+        - { id: "time-lag-card-1", prompt: "判断纯增益失败原因。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-lag-card-2", prompt: "匹配零点、极点相对位置与作用。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-lag-card-3", prompt: "补全 Kv 结果。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "hidden"
+        release_required: true
+        browse_required: true
+        can_view_problem_statement: true
+        can_view_derivation_steps: false
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "default_closed"
+      open_browse: "default_closed"
+      teacher_step_reveal: "independent"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "stepRevealCount", "completedCards"]
+      result_policy: "store_latest_attempt"
+    teacher_insight_spec:
+      widgets: ["completion_rate", "top_reasoning_gaps"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把‘型别不变也能改善低频精度’的滞后逻辑写成完整方法页。"
+      allowed_scope: ["纯增益矛盾", "滞后结构", "Kv 推导"]
+      forbidden_scope: ["把滞后写成弱积分"]
+      canonical_facts:
+        - "题面完整出现。"
+        - "验证图最后出现。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-11"
+      must_match_student_page: true
+    acceptance_checks:
+      - "题面完整显示。"
+      - "学生默认不能展开步骤，作答区默认隐藏。"
+
+  step-12:
+    title: "时域两法比较：收益、代价与适用场景"
+    layout:
+      template: "comparison_board"
+      regions:
+        - { id: "dimension", width: "full", order: 1 }
+        - { id: "table", width: "full", order: 2 }
+        - { id: "activity", width: "full", order: 3 }
+    modules:
+      - { id: "comparison-dimensions", region: "dimension", kind: "dimension-card-row", must_be_visible: true }
+      - { id: "time-methods-table", region: "table", kind: "comparison-table", must_be_visible: true }
+      - { id: "activity-card-grid", region: "activity", kind: "activity-card-set", must_be_visible: true }
+    content_blocks:
+      - id: "dimension"
+        type: "bullet_list"
+        title: "比较维度"
+        items:
+          - "型别是否变化"
+          - "主要收益"
+          - "主要代价"
+          - "适用问题"
+          - "验证结果"
+      - id: "table"
+        type: "plain_text"
+        title: "比较页职责"
+        body: "本页只负责归纳，不重复承载完整推导链。"
+    evidence_sequence:
+      - "先出现比较维度卡。"
+      - "再出现时域两法并列表。"
+      - "最后出现选择题卡。"
+    interaction_spec:
+      interaction_kind: "activity_card_set"
+      student_task: "完成时域两法的适用场景判断。"
+      activity_cards:
+        - { id: "time-compare-card-1", prompt: "把‘斜坡误差为 0’对应到方法。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-compare-card-2", prompt: "把收益与代价成对匹配。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-compare-card-3", prompt: "选择适用场景。", response_kind: "multi_choice", submit_scope: "per_card", layout_span: "one_third" }
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "hidden"
+        release_required: true
+        browse_required: false
+        can_view_problem_statement: true
+        can_view_derivation_steps: true
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "default_closed"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "completedCards", "errorBucket"]
+      result_policy: "store_latest_attempt"
+    teacher_insight_spec:
+      widgets: ["comparison_choice_distribution", "top_confusions"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把时域两法各自的收益、代价与场景归并到同一页。"
+      allowed_scope: ["PI", "滞后", "结构性误差", "低频增益"]
+      forbidden_scope: ["让比较页吞掉方法页"]
+      canonical_facts:
+        - "本页只能出现在 step-10 和 step-11 之后。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-12"
+      must_match_student_page: true
+    acceptance_checks:
+      - "本页不再承担完整求解链。"
+      - "作答区默认隐藏。"
+
+  step-13:
+    title: "频域 PI 设计：纯增益为何不能两头兼顾"
+    layout:
+      template: "method_reveal_page"
+      regions:
+        - { id: "problem", width: "full", order: 1 }
+        - { id: "derivation", width: "full", order: 2 }
+        - { id: "validation", width: "full", order: 3 }
+        - { id: "activity", width: "full", order: 4 }
+    modules:
+      - { id: "freq-pi-problem", region: "problem", kind: "example-card", must_be_visible: true }
+      - { id: "freq-pi-derivation", region: "derivation", kind: "step-reveal-list", must_be_visible: true }
+      - { id: "freq-pi-validation-figure", region: "validation", kind: "figure", must_be_visible: true }
+      - { id: "freq-pi-activity-cards", region: "activity", kind: "activity-card-set", must_be_visible: true }
+    content_blocks:
+      - id: "problem"
+        type: "bullet_list"
+        title: "对象与频域目标"
+        items:
+          - "对象：Gp(s)=4/[s(s+4)]。"
+          - "目标：Kv≥10。"
+          - "目标：PM≥55°。"
+          - "目标：ωc≈2.5 rad/s。"
+      - id: "validation"
+        type: "plain_text"
+        title: "验证图"
+        body: "固定使用 3-7-pi-frequency-design.png，且只在步骤链末端出现。"
+    evidence_sequence:
+      - "先出现题面模块。"
+      - "再逐步显影纯增益冲突与四步设计链。"
+      - "最后出现验证图与作答卡。"
+    interaction_spec:
+      interaction_kind: "worked_example_workspace"
+      student_task: "完成频域 PI 设计链中的关键判断。"
+      step_reveal_policy: "teacher_or_browse_gate"
+      activity_cards:
+        - { id: "freq-pi-card-1", prompt: "判断纯增益不兼容的原因。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "freq-pi-card-2", prompt: "补全设计顺序。", response_kind: "drag_sort", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "freq-pi-card-3", prompt: "填写零点放置原则。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "hidden"
+        release_required: true
+        browse_required: true
+        can_view_problem_statement: true
+        can_view_derivation_steps: false
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "default_closed"
+      open_browse: "default_closed"
+      teacher_step_reveal: "independent"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "stepRevealCount", "completedCards"]
+      result_policy: "store_latest_attempt"
+    teacher_insight_spec:
+      widgets: ["completion_rate", "top_reasoning_gaps"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把频域 PI 设计顺序固定成完整方法页。"
+      allowed_scope: ["纯增益冲突", "目标截止频率", "PI 零点", "幅值条件"]
+      forbidden_scope: ["只保留最终控制器表达式"]
+      canonical_facts:
+        - "设计图最后出现。"
+        - "方法页不能被比较页替代。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-13"
+      must_match_student_page: true
+    acceptance_checks:
+      - "题面完整显示。"
+      - "学生默认不能展开步骤，作答区默认隐藏。"
+
+  step-14:
+    title: "频域 PD 方案读取：速度优先方案的核验结果"
+    layout:
+      template: "method_reveal_page"
+      regions:
+        - { id: "problem", width: "full", order: 1 }
+        - { id: "derivation", width: "full", order: 2 }
+        - { id: "validation", width: "full", order: 3 }
+        - { id: "activity", width: "full", order: 4 }
+    modules:
+      - { id: "freq-pd-problem", region: "problem", kind: "example-card", must_be_visible: true }
+      - { id: "freq-pd-derivation", region: "derivation", kind: "step-reveal-list", must_be_visible: true }
+      - { id: "freq-pd-validation-figure", region: "validation", kind: "figure", must_be_visible: true }
+      - { id: "freq-pd-activity-cards", region: "activity", kind: "activity-card-set", must_be_visible: true }
+    content_blocks:
+      - id: "problem"
+        type: "bullet_list"
+        title: "对象与方案题面"
+        items:
+          - "对象：Gp(s)=4/[s(s+4)]。"
+          - "给定方案：G_PD(s)=8(1+0.1s)。"
+          - "页面语义：本页是方案读取与核验，不是假造完整整定链。"
+      - id: "validation"
+        type: "plain_text"
+        title: "验证图"
+        body: "固定使用 3-7-pi-pd-comparison.png，且只在步骤链末端出现。"
+    evidence_sequence:
+      - "先出现题面模块。"
+      - "再逐步显影核验指标与时域形态说明。"
+      - "最后出现对比图与作答卡。"
+    interaction_spec:
+      interaction_kind: "worked_example_workspace"
+      student_task: "完成频域 PD 方案核验中的关键判断。"
+      step_reveal_policy: "teacher_or_browse_gate"
+      activity_cards:
+        - { id: "freq-pd-card-1", prompt: "判断本方案是否提高型别。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "freq-pd-card-2", prompt: "匹配核验指标与性能描述。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "freq-pd-card-3", prompt: "填写保留误差的原因。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "hidden"
+        release_required: true
+        browse_required: true
+        can_view_problem_statement: true
+        can_view_derivation_steps: false
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "default_closed"
+      open_browse: "default_closed"
+      teacher_step_reveal: "independent"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "stepRevealCount", "completedCards"]
+      result_policy: "store_latest_attempt"
+    teacher_insight_spec:
+      widgets: ["completion_rate", "top_reasoning_gaps"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把‘速度优先’方案读取成完整核验链，而不是伪装成新整定。"
+      allowed_scope: ["PD 方案", "核验指标", "时域形态", "取向解释"]
+      forbidden_scope: ["补造讲义未给出的完整整定步骤"]
+      canonical_facts:
+        - "本页明确是方案读取与核验。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-14"
+      must_match_student_page: true
+    acceptance_checks:
+      - "本页必须明确标注为方案读取与核验。"
+      - "图像最后出现。"
+
+  step-15:
+    title: "频域两法比较：低频精度优先 vs 动态速度优先"
+    layout:
+      template: "comparison_board"
+      regions:
+        - { id: "dimension", width: "full", order: 1 }
+        - { id: "table", width: "full", order: 2 }
+        - { id: "activity", width: "full", order: 3 }
+    modules:
+      - { id: "comparison-dimensions", region: "dimension", kind: "dimension-card-row", must_be_visible: true }
+      - { id: "freq-methods-table", region: "table", kind: "comparison-table", must_be_visible: true }
+      - { id: "activity-card-grid", region: "activity", kind: "activity-card-set", must_be_visible: true }
+    content_blocks:
+      - id: "dimension"
+        type: "bullet_list"
+        title: "比较维度"
+        items:
+          - "低频精度"
+          - "截止频率"
+          - "相位裕度"
+          - "时域形态"
+          - "适用设计取向"
+      - id: "table"
+        type: "plain_text"
+        title: "核心判断"
+        body: "PI 更偏低频精度优先，PD 更偏动态速度优先。"
+    evidence_sequence:
+      - "先出现比较维度卡。"
+      - "再出现频域两法并列表。"
+      - "最后出现选择题卡。"
+    interaction_spec:
+      interaction_kind: "activity_card_set"
+      student_task: "完成频域两法的场景归类。"
+      activity_cards:
+        - { id: "freq-compare-card-1", prompt: "选择更适合斜坡跟踪精度优先的方案。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "freq-compare-card-2", prompt: "匹配‘更快 / 更准 / 代价落点’。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "freq-compare-card-3", prompt: "判断场景归属。", response_kind: "multi_choice", submit_scope: "per_card", layout_span: "one_third" }
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "hidden"
+        release_required: true
+        browse_required: false
+        can_view_problem_statement: true
+        can_view_derivation_steps: true
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "default_closed"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "completedCards", "errorBucket"]
+      result_policy: "store_latest_attempt"
+    teacher_insight_spec:
+      widgets: ["comparison_choice_distribution", "top_confusions"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把频域两法的收益、代价与场景归并到同一页。"
+      allowed_scope: ["PI", "PD", "低频精度", "动态速度", "相位裕度"]
+      forbidden_scope: ["让比较页替代方法页"]
+      canonical_facts:
+        - "本页只承担比较，不再次展开方法推导。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-15"
+      must_match_student_page: true
+    acceptance_checks:
+      - "本页只承担比较，不再次展开方法推导。"
+      - "作答区默认隐藏。"
+
+  step-16:
+    title: "后测：路径选择与方法判断"
+    layout:
+      template: "assessment_card_grid"
+      regions:
+        - { id: "cards", width: "full", order: 1 }
+        - { id: "feedback", width: "full", order: 2 }
+    modules:
+      - { id: "post-q1", region: "cards", kind: "quiz-card", must_be_visible: true }
+      - { id: "post-q2", region: "cards", kind: "quiz-card", must_be_visible: true }
+      - { id: "post-q3", region: "cards", kind: "quiz-card", must_be_visible: true }
+      - { id: "post-q4", region: "cards", kind: "quiz-card", must_be_visible: true }
+      - { id: "teacher-feedback-strip", region: "feedback", kind: "feedback-strip", must_be_visible: true }
+    content_blocks:
+      - id: "quiz-summary"
+        type: "bullet_list"
+        title: "四道后测题"
+        items:
+          - "遇到给定 + 扰动共同作用时，第一步是什么。"
+          - "哪类问题可先用型别和静态误差系数快速判断。"
+          - "斜坡误差想从有限值变成 0，应先判断什么。"
+          - "PI 与滞后各把收益放在哪、代价推向哪。"
+      - id: "error-tags"
+        type: "bullet_list"
+        title: "错因标签"
+        items:
+          - "所有稳态误差都能套表。"
+          - "PI 没有代价。"
+          - "滞后只是更弱积分。"
+    evidence_sequence:
+      - "先出现四道后测题卡。"
+      - "最后出现教师点评区。"
+    interaction_spec:
+      interaction_kind: "quiz_card_grid"
+      student_task: "四题独立作答，单卡提交。"
+      answer_reveal: "teacher_toggle"
+      student_access:
+        default_visibility: "visible"
+        release_required: false
+        browse_required: false
+        can_view_problem_statement: true
+        can_view_derivation_steps: false
+        can_submit_without_browse: true
+    teacher_controls:
+      release_activity: "page_load_open"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "teacher_toggle"
+    telemetry_spec:
+      summary_fields: ["attemptCount", "completedCards", "errorBucket"]
+      result_policy: "store_latest_attempt"
+    teacher_insight_spec:
+      widgets: ["question_distribution", "top_misconceptions"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "检查路径选择与方法判断是否真正形成。"
+      allowed_scope: ["路径判断", "方法适用场景", "错因归类"]
+      forbidden_scope: ["把后测与总结页混成一步"]
+      canonical_facts:
+        - "后测应与收束页分离。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-16"
+      must_match_student_page: true
+    acceptance_checks:
+      - "后测单独成页。"
+      - "每张卡片保留独立提交按钮。"
+
+  step-17:
+    title: "收束与去向：规则表、信息图与 3-8 入口"
+    layout:
+      template: "summary_route_board"
+      regions:
+        - { id: "engineering", width: "full", order: 1 }
+        - { id: "summary", width: "full", order: 2 }
+        - { id: "appendix", width: "full", order: 3 }
+        - { id: "next", width: "full", order: 4 }
+    modules:
+      - { id: "engineering-perspective-card", region: "engineering", kind: "summary-card", must_be_visible: true }
+      - { id: "summary-list", region: "summary", kind: "summary-list", must_be_visible: true }
+      - { id: "rule-table", region: "appendix", kind: "table", must_be_visible: true }
+      - { id: "info-graphic", region: "appendix", kind: "figure", must_be_visible: true }
+      - { id: "next-lesson-card", region: "next", kind: "next-lesson-card", must_be_visible: true }
+    content_blocks:
+      - id: "engineering"
+        type: "plain_text"
+        title: "工程视角"
+        body: "长期偏一点，整段航程都在付代价。"
+      - id: "summary"
+        type: "bullet_list"
+        title: "本节小结六条"
+        items:
+          - "误差分析先分结构来源与通道来源。"
+          - "标准给定输入可在直接求与快速判之间选择。"
+          - "给定 + 扰动题必须先列通道。"
+          - "增益变大不等于型别提高。"
+          - "PI 与滞后同属低频补偿，但设计逻辑不同。"
+          - "低频收益与中频代价将在 3-8 统一翻译为频域语言。"
+      - id: "appendix"
+        type: "plain_text"
+        title: "规则表与信息图"
+        body: "必须完整保留表 6 与 3-7-info.png。"
+    evidence_sequence:
+      - "先出现工程视角卡。"
+      - "再出现小结六条。"
+      - "然后出现规则表与信息图。"
+      - "最后出现 3-8 去向卡。"
+    interaction_spec:
+      interaction_kind: "none"
+      student_task: "只阅读，不提交。"
+      answer_reveal: "none"
+    teacher_controls:
+      release_activity: "not_applicable"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "not_applicable"
+    telemetry_spec:
+      summary_fields: ["viewed", "timeOnStep"]
+      result_policy: "no_submission"
+    teacher_insight_spec:
+      widgets: ["view_count"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把本课的判断链收束到规则表、信息图和下一课入口。"
+      allowed_scope: ["规则表", "信息图", "3-8 去向"]
+      forbidden_scope: ["重新回到后测语义"]
+      canonical_facts:
+        - "本页只承载收束与去向，不再包含后测题。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo?step=step-17"
+      must_match_student_page: true
+    acceptance_checks:
+      - "规则表与信息图必须完整保留。"
+      - "本页不再包含后测题。"

@@ -33,6 +33,16 @@ describe('unit 3-7 interactive course', () => {
     expect(courseModule.UNIT_3_7_LESSON_STEPS[11]?.id).toBe('step-12');
   });
 
+  it('keeps page AI hidden and only exposes activity-first layout on the contract-required steps', async () => {
+    const courseModule = await import('@/lib/unit-3-7-course');
+
+    expect(courseModule.isUNIT_3_7AiPageType('display')).toBe(false);
+    expect(courseModule.isUNIT_3_7AiPageType('quiz_group')).toBe(false);
+    expect(courseModule.isUNIT_3_7ActivityFirstStep('step-03')).toBe(true);
+    expect(courseModule.isUNIT_3_7ActivityFirstStep('step-12')).toBe(true);
+    expect(courseModule.isUNIT_3_7ActivityFirstStep('step-04')).toBe(false);
+  });
+
   it('exposes AI quick questions for the low-frequency compensation compare step', () => {
     const quickQuestions = getStepQuickQuestions('unit-3-7-steady-error-low-frequency-compensation-v1', 'step-10');
 
@@ -153,11 +163,23 @@ describe('unit 3-7 interactive course', () => {
     );
 
     expect(stepPanelsSource).toContain('分母相同反映结构');
+    expect(stepPanelsSource).toContain('C(s)=\\\\Phi_r(s)R(s)+\\\\Phi_d(s)D(s)');
+    expect(stepPanelsSource).toContain('E(s)=E_r(s)+E_d(s)');
+    expect(stepPanelsSource).toContain('R(s)=\\\\dfrac{3}{s}+\\\\dfrac{2}{s^2}+\\\\dfrac{1}{s^3}');
+    expect(stepPanelsSource).toContain('本题最终稳态误差为 1/K');
+    expect(stepPanelsSource).toContain('型别与误差系数关系');
+    expect(stepPanelsSource).toContain('型别与典型输入误差关系');
+    expect(stepPanelsSource).toContain('G_1(s)');
+    expect(stepPanelsSource).toContain('PI 与滞后都在低频补偿线上，但抓手不同');
     expect(stepPanelsSource).toContain('e_ss = 0.4');
     expect(stepPanelsSource).toContain('PI 与滞后都站在低频补偿线上');
     expect(stepPanelsSource).toContain('为什么 PI 更准、PD 更快');
+    expect(stepPanelsSource).toContain('低频精度');
+    expect(stepPanelsSource).toContain('3-8 将把低频收益和中频代价翻译成统一频域判断');
     expect(stepPanelsSource).not.toContain('劳斯判据');
     expect(stepPanelsSource).not.toContain('根轨迹增益');
+    expect(stepPanelsSource).not.toContain('InteractiveAIPanel');
+    expect(stepPanelsSource).not.toContain('页内 AI 助手');
 
     expect(workspaceSource).toContain('HOTSPOT_FIELDS');
     expect(workspaceSource).toContain('WORKED_EXAMPLE_FIELDS');
@@ -171,8 +193,16 @@ describe('unit 3-7 interactive course', () => {
       join(repoRoot, 'src/features/interactive/unit-3-7-steady-error-low-frequency-compensation/student-page.tsx'),
       'utf8',
     );
+    const teacherPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-7-steady-error-low-frequency-compensation/teacher-page.tsx'),
+      'utf8',
+    );
 
     expect(studentPageSource).toContain('getUnit37StepAIContext');
     expect(studentPageSource).not.toContain('getUnit36StepAIContext');
+    expect(studentPageSource).not.toContain('UNIT_3_7StepAiAssistant');
+    expect(teacherPageSource).not.toContain('UNIT_3_7StepAiAssistant');
+    expect(studentPageSource).toContain("isUNIT_3_7ActivityFirstStep(step.id)");
+    expect(teacherPageSource).toContain("isUNIT_3_7ActivityFirstStep(step.id)");
   });
 });

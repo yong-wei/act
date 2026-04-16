@@ -92,7 +92,8 @@
         "step_ids": [
           "step-09",
           "step-10",
-          "step-11"
+          "step-11",
+          "step-12"
         ],
         "node_ids": [
           "积分环节_2_11005",
@@ -102,9 +103,24 @@
         ]
       },
       {
+        "group_name": "频域设计与速度优先方案",
+        "step_ids": [
+          "step-13",
+          "step-14",
+          "step-15"
+        ],
+        "node_ids": [
+          "比例-积分控制器_3_2d540516",
+          "频率特性_5_404adfdd",
+          "相角裕度_5_0a9c6e90",
+          "带宽_5_6730fda4"
+        ]
+      },
+      {
         "group_name": "后测与频域收束",
         "step_ids": [
-          "step-12"
+          "step-16",
+          "step-17"
         ],
         "node_ids": [
           "频率特性_5_404adfdd",

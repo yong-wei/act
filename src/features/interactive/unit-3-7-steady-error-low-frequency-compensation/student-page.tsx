@@ -15,7 +15,7 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit37StepAIContext } from '@/lib/course-ai-contexts';
 import {
   getUNIT_3_7MediaSrc,
-  isUNIT_3_7AiPageType,
+  isUNIT_3_7ActivityFirstStep,
   isUNIT_3_7InteractivePageType,
   UNIT_3_7_LESSON_KEY,
   UNIT_3_7_LESSON_STEPS,
@@ -27,10 +27,8 @@ import {
 import { UNIT_3_7CourseHeader } from './course-header';
 import {
   UNIT_3_7KnowledgeMapVisual,
-  UNIT_3_7StepAiAssistant,
   UNIT_3_7StepContentPanel,
   UNIT_3_7StudentActivityForm,
-  UNIT_3_7StudentSummaryPanel,
 } from './step-panels';
 import type { WorkspaceParameterChange } from './workspace';
 
@@ -166,19 +164,6 @@ export function UNIT_3_7StudentPage({
     });
   };
 
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
-
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
       trackWorkspaceParamChange(step.id, {
@@ -208,6 +193,28 @@ export function UNIT_3_7StudentPage({
       </div>
     );
   }
+
+  const activityFirst = isUNIT_3_7ActivityFirstStep(step.id);
+  const contentPanel = (
+    <UNIT_3_7StepContentPanel
+      step={step}
+      mediaSrc={getUNIT_3_7MediaSrc(step.id)}
+      mediaAlt={step.title}
+      onWorkspaceParameterChange={handleWorkspaceParameterChange}
+    />
+  );
+  const activityPanel = (
+    <div className="mt-4">
+      <UNIT_3_7StudentActivityForm
+        step={step}
+        savedResponse={savedResponse}
+        released={released}
+        answerVisible={answerVisible}
+        onSubmit={handleSubmitResponse}
+        onWorkspaceParameterChange={handleWorkspaceParameterChange}
+      />
+    </div>
+  );
 
   return (
     <div className="premium-lesson-shell">
@@ -264,35 +271,8 @@ export function UNIT_3_7StudentPage({
 
         {step.id === 'step-01' ? <UNIT_3_7KnowledgeMapVisual /> : null}
 
-        <UNIT_3_7StepContentPanel
-          step={step}
-          mediaSrc={getUNIT_3_7MediaSrc(step.id)}
-          mediaAlt={step.title}
-          onWorkspaceParameterChange={handleWorkspaceParameterChange}
-        />
-
-        {isUNIT_3_7AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_7StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
-
-        <div className="mt-4">
-          <UNIT_3_7StudentActivityForm
-            step={step}
-            savedResponse={savedResponse}
-            released={released}
-            answerVisible={answerVisible}
-            onSubmit={handleSubmitResponse}
-            onWorkspaceParameterChange={handleWorkspaceParameterChange}
-          />
-        </div>
-
-        {step.id === 'step-12' ? (
-          <div className="mt-4">
-            <UNIT_3_7StudentSummaryPanel responses={courseState.responses} />
-          </div>
-        ) : null}
+        {activityFirst ? activityPanel : contentPanel}
+        {activityFirst ? contentPanel : activityPanel}
       </main>
     </div>
   );

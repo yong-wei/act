@@ -1,583 +1,592 @@
 ## 文档职责
-- 本文件是 `3-8` 的作者态互动课程蓝图，负责固定页面骨架、证据顺序、互动升级方式、教师聚合口径、AI 边界与学生演示页预览路径。
-- 同目录 [interactive-contract.yaml](./interactive-contract.yaml) 负责机读契约；两者必须按 `step-01` 到 `step-12` 一一对应。
-- 本文件不是讲义摘要，不把公式、图表、案例和结论压缩成“实现时补”；凡讲义中的核心证据链，都必须在这里写成可落页、可验收的页面顺序。
-- 本课首先是 `3-8（理论） 频域判别与跨域综合语言` 的页面化课件，然后才是局部互动增强；静态证据不完整时，禁止用小测或工作区占位代替。
+- 本文件是 `3-8` 的作者态互动设计真源，负责把讲义证据链拆成学生脱离讲稿也能读懂的页面序列。
+- 同目录 [interactive-contract.yaml](./interactive-contract.yaml) 负责机读契约；两者必须按 `step-01` 到 `step-20` 一一对应。
+- 本文件不允许把讲义中的完整逻辑单元压成“实现时再补”的占位说明。凡是原理、例题、公式链、图后解释、案例判断链，均必须先写成可落页结构。
 
-## 表述规则
-- 页面描述只写客观结构：区域、模块、证据、阅读顺序、互动组件、反馈、教师聚合、AI 边界与验收条件。
-- 禁止把“展示、引导、讲解、让学生先想一想”写成设计内容；这些属于课堂执行层，不属于作者态前台真源。
-- 本课主线固定为：`结构变化的频域指纹 -> Nyquist / Bode 判稳统一 -> 三频段分工 -> 双工程案例读回 -> 3-9 / 模块4 入口`。
-- 本课不得回退到模块 2 的作图基础重讲，也不得偷渡模块 4 的完整选型、整定和优化排序。
-- 讲义中的曲线图默认优先升级为参数联动或结构切换面板；若暂不升级，也必须先把图、公式、表和结论链静态落完整。
+## 设计原则
+- 页面顺序服从讲义顺序，不为了首屏视觉把曲线图抢到公式和题面之前。
+- 逻辑单元必须完整：原理页、例题页、案例页、后测页、收束页边界清楚，不混成一页。
+- 逐步披露只能隐藏步骤，不能隐藏题面、对象、已知条件与目标指标。
+- 曲线图默认升级为“讲义静态图可复现 + 参数或结构切换可探索”的互动面板，不再只做图片陈列。
+- 学生互动必须多样化，并且一页内优先用独立小卡片完成独立提交，避免整页统一大表单。
+- 始终用这句检查每一步：`学生脱离讲稿后，能否仅凭当前页面理解本步知识对象、判断动作和与主线的关系？`
+
+## 通用自包含验收问题
+- 当前页的对象是什么。
+- 当前页正在判断或解决什么问题。
+- 当前页最关键的证据在哪里，是公式、图、表还是例题题面。
+- 当前页的结论如何接回“结构变化 -> 稳定边界 -> 闭环读回”主线。
 
 ## 节点与步骤分组
-- `group-01｜导入与翻译框架`：`step-01` 到 `step-05`
-- `group-02｜判稳统一链`：`step-06` 到 `step-08`
-- `group-03｜频段分工与工程读回`：`step-09` 到 `step-11`
-- `group-04｜后测与出口收束`：`step-12`
+- `group-01｜导入与结构指纹`：`step-01` 到 `step-06`
+- `group-02｜Nyquist 统一判稳链`：`step-07` 到 `step-10`
+- `group-03｜Bode 与三频段读回`：`step-11` 到 `step-14`
+- `group-04｜双工程案例读回`：`step-15` 到 `step-18`
+- `group-05｜出口检查与收束`：`step-19` 到 `step-20`
 
 ## 全课总览
-| 步骤 | 标题 | 页面模板 | 证据重心 | 互动组件 | 预估学生实践 |
-|------|------|----------|----------|----------|--------------|
-| `step-01` | 回到地图：为什么频域不是新章而是统一翻译器 | `map_hero_slide` | 路径图、主问题卡、边界卡 | `none` | 0 分钟 |
-| `step-02` | 先看指纹：四类结构变化为什么在频域里长得不一样 | `comparison_gallery_with_prompt` | 四图并排、两问清单、误判底线 | `binary_choice` | 3 分钟 |
-| `step-03` | 统一翻译链：结构变化、稳定边界和闭环后果如何接起来 | `translation_chain_board` | 翻译链、三种稳定语言、边界表 | `none` | 0 分钟 |
-| `step-04` | 前测：四类典型误判先暴露出来 | `question_stack` | 四题前测、错因标签、AI 锁定提示 | `quiz_group` | 6 分钟 |
-| `step-05` | 频域翻译总表：先判哪一段频率，再谈收益与代价 | `formula_table_match` | 总表、例题 1、频带说明卡 | `triple_match` | 6 分钟 |
-| `step-06` | 从 $F(s)=1+L(s)$ 到 $(-1,0)$：Nyquist 判稳的来路 | `formula_media_compare` | 三张公式卡、几何示意、顺序链 | `reason_check` | 5 分钟 |
-| `step-07` | 快速判稳：先数 $P$，再数 $N$，最后算 $Z$ | `comparison_panel_with_sort` | 四图快判、边界例题、判稳表 | `card_sort` | 8 分钟 |
-| `step-08` | Bode 判稳：截止频率、裕度与三种稳定语言的对照 | `dual_graph_indicator_locator` | Bode 图、指标表、三语言对照表 | `hotspot_labeling` | 7 分钟 |
-| `step-09` | 三频段分工：精度、速度和代价必须分开读 | `compare_then_ai` | 三频段总图、目标切换卡、例题 5 | `ai_compare_workspace` | 7 分钟 |
-| `step-10` | 航向控制案例：为什么中频超前能同时更快且更稳 | `design_compare_workspace` | 基线 2×2、目标翻译链、校正后 2×2、指标表 | `structured_compare` | 9 分钟 |
-| `step-11` | 稳定平台案例：为什么只降增益不如中频定向校正 | `design_compare_workspace` | 控制框图、三方案 2×2、结论表 | `structured_compare` | 9 分钟 |
-| `step-12` | 后测与收束：频域判断地图如何接到 `3-9` 与模块 4 | `summary_quiz_board` | 后测题组、四条结论、去向卡、信息图 | `quiz_group` | 5 分钟 |
+| 步骤 | 标题 | 页面模板 | 逻辑单元 | 互动组件 | 预估学生实践 |
+|---|---|---|---|---|---|
+| `step-01` | 路径定位：`3-8` 为什么不是新章 | `map_hero_slide` | 模块位置、主问题、边界 | `none` | 0 分钟 |
+| `step-02` | 统一翻译器：结构变化如何接到稳定边界与闭环后果 | `translation_chain_board` | 翻译链、三步判断法、课程目标 | `none` | 0 分钟 |
+| `step-03` | 前测：四类典型误判先暴露出来 | `question_stack` | 误判清单、前测题组 | `quiz_group` | 6 分钟 |
+| `step-04` | 四类结构变化总表：先看哪一段频带，再谈收益与代价 | `table_explain_board` | 结构变化总表、频带职责 | `row_focus_toggle` | 4 分钟 |
+| `step-05` | 曲线互动页：四类结构变化为什么留下不同频域指纹 | `curve_compare_lab` | 四类变化 2×2 面板 | `curve_compare_panel` | 8 分钟 |
+| `step-06` | 例题 1：先从哪一段频带开始判断结构变化 | `worked_example_lab` | 完整题面、求解链、作答卡 | `activity_cards` | 7 分钟 |
+| `step-07` | 幅角原理：总转角、`P` 与 `Z` 在说什么 | `formula_story_board` | 幅角原理、符号含义 | `step_reveal` | 5 分钟 |
+| `step-08` | 为什么取 `F(s)=1+L(s)`，为什么盯住 `(-1,0)` | `derivation_compare_board` | 辅助函数、临界点、判稳顺序 | `reason_chain` | 6 分钟 |
+| `step-09` | 例题 2：第一组 Nyquist 快速判稳题 | `worked_example_quadrant` | 四图快判、`P/N/Z` 表 | `matrix_choice_cards` | 7 分钟 |
+| `step-10` | 例题 3：靠近边界与越过边界有什么本质不同 | `boundary_compare_board` | 设计型例题、增益区间判断 | `card_sort` | 6 分钟 |
+| `step-11` | Bode 判稳：截止频率、相角裕度和增益裕度 | `dual_graph_indicator_locator` | Bode 图、四条关键线、定义式 | `hotspot_labeling` | 7 分钟 |
+| `step-12` | 例题 4：由 Bode 图直接判断系统在边界哪一侧 | `worked_example_locator` | 例题题面、读图链、结论 | `activity_cards` | 6 分钟 |
+| `step-13` | 三频段分工：精度、速度与代价不能混读 | `band_focus_board` | 三频段总图、频域量读回表 | `band_focus_panel` | 5 分钟 |
+| `step-14` | 例题 5：目标切换时，先改哪一段频带 | `goal_switch_workspace` | 目标切换题、独立判断、AI 对照 | `goal_cards_plus_ai` | 7 分钟 |
+| `step-15` | 航向控制案例：先把基线方案的问题读清楚 | `case_baseline_board` | 基线 2×2、问题定位、指标读取 | `evidence_mark_cards` | 6 分钟 |
+| `step-16` | 航向控制案例：把时域指标翻译成频域目标，再看超前校正 | `case_translation_compare` | 目标翻译链、超前网络、前后对照 | `structured_compare` | 8 分钟 |
+| `step-17` | 稳定平台案例：为什么“只改增益”会左右为难 | `scheme_problem_board` | 控制框图、激进基线、仅降增益矛盾 | `scheme_vote_cards` | 6 分钟 |
+| `step-18` | 稳定平台案例：超前校正怎样兼顾速度和平稳 | `scheme_compare_lab` | 三方案 2×2、指标表、结论链 | `structured_compare` | 8 分钟 |
+| `step-19` | 后测：把完整判断链独立走一遍 | `posttest_board` | 后测题组、剩余错因 | `quiz_group` | 5 分钟 |
+| `step-20` | 总结与去向：`3-9` 和模块 4 从哪里接走本课 | `summary_exit_board` | 四条结论、信息图、去向卡 | `reflection_card` | 3 分钟 |
 
 ## 证据单元升级决策表
 | 证据类型 | 来源锚点 | 目标步骤 | 升级方式 | 保留元素 | 不得删减内容 | 验收点 |
 |---|---|---|---|---|---|---|
-| 路径定位 + 主问题 | `## 一、引入`、`### 2.1 频域是统一翻译器` | `step-01` | 静态保留 | `3-5 -> 3-7 -> 3-8 -> 3-9` 路径、主问题、边界卡 | “频域不是新章，而是统一翻译器”这句主判断不得消失 | 首屏看到路径图、主问题卡和边界卡 |
-| 四类频域指纹总览 | `## 一、引入`、`### 2.2 四类结构变化的频域指纹` | `step-02` | 静态保留 + 二选一判断 | `3-8-gain-effect.png`、`3-8-zero-effect.png`、`3-8-pole-effect.png`、`3-8-rhp-zero-effect.png`、两问清单 | 不得只保留图片或只保留判断题；“同时看频带与相位”不得删 | 四图与两问清单先于判断区完整出现 |
-| 统一翻译链 + 三语言对照 | `### 2.1 频域是统一翻译器`、`### 2.4.2 为什么不能只看截止频率` | `step-03` | 原生重绘 | 翻译链、三种稳定语言对照表、本课边界表 | 不得只剩一条箭头链；三语言对照和边界必须同页 | 翻译链、对照表、边界表同屏 |
-| 四类误判前测 | `## 一、引入`、`### 2.4.2`、`### 2.5` | `step-04` | 题组前测 | “只看幅值”“Nyquist 先数圈”“截止频率等于一切”“非最小相可盲目追带宽”四类误区 | AI 对照必须后置；错因标签必须可聚合 | 教师端可直接看到四类错因比例 |
-| 频域翻译总表 + 例题 1 | `### 2.2 四类结构变化的频域指纹`、`#### 例题 1` | `step-05` | 静态保留 + 三向配对 | 结构变化、主要频带、收益/代价、例题 1 结论 | 不得把“先判哪一段频率”压缩成只看答案 | 总表、例题卡、频带说明先于配对区出现 |
-| Nyquist 推导显影链 | `### 2.3 从幅角原理到 Nyquist 判据` | `step-06` | 点击显影 | $F(s)=1+L(s)$、$\Delta \arg F(s)=2\pi(Z-P)$、`Z=P-N`、临界点 $(-1,0)$ | 不得只保留最终判据，不得删掉“为什么看 $(-1,0)$” | 公式卡、几何示意和顺序链同屏 |
-| Nyquist 快判例题组 | `#### 例题 2`、`#### 例题 3` | `step-07` | 静态保留 + 分类判断 | `3-8-nyquist-quickcheck.png`、`3-8-nyquist-example.png`、`P/N/Z` 表 | 不得把“靠近边界”和“已越界”混成一个结论 | 四图、判稳表、边界句先于排序区出现 |
-| Bode 判稳与三语言对应 | `### 2.4 Bode 判稳与稳定裕度`、`#### 例题 4` | `step-08` | 静态保留 + 热点标注 | `3-8-bode-example.png`、截止频率、相位穿越频率、PM、GM、三语言对照表 | 不得只保留 Bode 图；三语言对照和“开环读余量，闭环看带宽”必须保留 | Bode 图、指标表、对照表同屏 |
-| 三频段总图 + 例题 5 | `### 2.5 三频段分工`、`#### 例题 5` | `step-09` | 静态保留 + AI 对照工作区 | `3-8-three-band-overview.png`、低/中/高频职责、目标切换卡 | AI 只能用于对照，不得替代先判频带 | 三频段图、目标卡、AI 边界提示同屏 |
-| 航向控制完整证据链 | `#### 2.6.1 船舶航向控制` | `step-10` | 静态保留 + 参数联动预埋 + 结构化比较 | 基线 2×2、目标翻译链、超前网络、校正后 2×2、指标表 | 不得只保留结果表；`M_p -> \zeta -> \gamma` 与 `t_s -> \omega_n -> \omega_c` 链不得删 | 两张 2×2 图、目标翻译卡和指标表同页 |
-| 稳定平台三方案证据链 | `#### 2.6.2 稳定平台` | `step-11` | 原生重绘 + 参数联动预埋 + 结构化比较 | 控制框图、激进基线、仅降增益、超前校正三方案、结论表 | 不得删掉“只靠降增益为什么不够”；三方案必须同页可比 | 结构图、三方案对照和结论表同屏 |
-| 收束与去向 | `## 三、本节小结` | `step-12` | 静态保留 + 后测 | 四条小结、`3-8-info.png`、`3-9 / 4-1` 去向卡 | 后测不能替代小结卡；去向必须明确写出 | 小结卡、信息图、去向卡、后测题同页 |
+| 路径定位与主问题 | `## 一、引入` | `step-01` | 静态保留 | `3-5 -> 3-7 -> 3-8 -> 3-9` 路径、主问题、边界句 | “频域是统一翻译器”不得消失 | 首屏看到路径图、主问题、边界 |
+| 统一翻译链与课程目标 | `### 2.1 频域是统一翻译器` | `step-02` | 原生重绘 | `结构变化 -> 开环频率特性改写 -> 稳定边界变化 -> 闭环性能后果` | 三步判断法、课程目标、本课边界必须同页 | 学生能说出“先看频带，再看边界，最后读回闭环” |
+| 四类误判 | `## 一、引入`、`### 2.4.2`、`### 2.5` | `step-03` | 前测题组 | 只看幅值、跳过 `P`、只看截止频率、盲目追带宽 | 错因标签必须能被教师聚合 | 教师端可直接看到错因分布 |
+| 四类结构变化总表 | `### 2.2 四类结构变化的频域指纹` | `step-04` | 静态保留 + 行聚焦 | 变化类型、频带、幅相变化、收益、代价 | 不得只留图，不得删“主要改写频带” | 总表在无交互状态下也完整可读 |
+| 四类结构变化曲线图 | `#### 2.2.1` 到 `#### 2.2.4` | `step-05` | 曲线镜像面板 | 幅频、相频、根轨迹、时域对照 | 默认态必须复现讲义静态图 | 面板未操作时与讲义图义一致 |
+| 例题 1 | `#### 例题 1` | `step-06` | 完整题面 + 逐步显影 + 作答卡 | 三个结构变化、频带判断、收益与代价结论 | 题面必须完整可见，步骤不能只剩答案 | 学生不看讲稿也能知道要判断什么 |
+| 幅角原理 | `#### 2.3.1` | `step-07` | 逐步显影 | 总转角公式、`P`/`Z` 含义、闭环稳定语境 | 不得只保留符号结论 | 每一步显影都能独立解释 |
+| 辅助函数与临界点 | `#### 2.3.2`、`#### 2.3.3` | `step-08` | 公式链显影 + 因果排序 | `F(s)=1+G(s)H(s)`、`(-1,0)`、`N=P-Z` | “为什么看 `(-1,0)`”不得删 | 学生能复述来路，不只背判据 |
+| 例题 2 与例题 3 | `#### 例题 2`、`#### 例题 3` | `step-09`、`step-10` | 例题分拆 | 快判四图、设计型边界图区分 | “靠近边界”与“越过边界”不得混并 | 两道例题各有独立题面和作答区 |
+| Bode 判稳主链 | `### 2.4 Bode 判稳与稳定裕度` | `step-11` | 静态保留 + 热点标注 | Bode 图、定义式、四条关键线 | 不能只留 Bode 图，不得删指标定义 | 图、公式、线位说明同屏 |
+| 例题 4 | `#### 例题 4` | `step-12` | 完整题面 + 独立作答卡 | 判稳问题、读图顺序、结论 | 题面不得缩成一句题干 | 作答卡逐卡提交，不用大文本框 |
+| 三频段分工与例题 5 | `### 2.5`、`#### 例题 5` | `step-13`、`step-14` | 总图 + 目标切换工作区 | 三频段职责、频域量读回、目标切换 | AI 只能后置对照，不能代替首答 | 先独立判断，后 AI 对照 |
+| 航向控制案例 | `#### 2.6.1` | `step-15`、`step-16` | 案例拆成“基线读图”与“目标翻译+校正对照” | 基线 2×2、指标、翻译链、超前网络、对照指标表 | `Mp -> ζ -> PM` 和 `ts -> ωn -> ωc` 链不得删 | 学生能先看懂问题，再看懂为什么这样改 |
+| 稳定平台案例 | `#### 2.6.2` | `step-17`、`step-18` | 案例拆成“结构与矛盾”与“三方案对照” | 控制框图、激进基线、仅降增益、超前校正 | “只降增益为什么不够”不得丢掉 | 学生能解释为什么真正解法是中频定向校正 |
+| 后测与收束 | `## 三、本节小结` | `step-19`、`step-20` | 后测与收束分离 | 后测题组、四条结论、信息图、去向卡 | 不得再把后测和总结挤成一页 | 出口页只做总结，不再承担测验语义 |
 
 ## 混合证据顺序表
-| 步骤 | 先出现什么 | 再出现什么 | 最后出现什么 | 必须同屏内容 | 不得折叠内容 |
-|---|---|---|---|---|---|
-| `step-02` | 四图并排 | 两问清单 | 二选一判断区 | 四图、两问、底线句 | 任一对照图 |
-| `step-03` | 翻译链 | 三语言对照表 | 本课边界表 | 翻译链、对照表、边界表 | 三语言对照表 |
-| `step-05` | 频域翻译总表 | 例题 1 题面与答案链 | 配对区 | 总表、例题卡、频带说明 | 总表 |
-| `step-06` | 三张公式卡 | 临界点几何示意 | 顺序检查区 | 三张公式卡、几何示意 | 任一公式卡 |
-| `step-07` | 快判四图 | `P/N/Z` 表与边界提醒 | 分类排序区 | 四图、判稳表、边界提醒 | 判稳表 |
-| `step-08` | Bode 图 | 指标表与三语言对照表 | 热点标注区 | Bode 图、指标表、对照表 | 指标表 |
-| `step-09` | 三频段总图 | 目标切换卡与例题 5 结论 | AI 对照区 | 三频段图、目标卡、AI 边界提示 | 三频段总图 |
-| `step-10` | 基线 2×2 图与原始指标 | 目标翻译链与超前网络 | 校正后 2×2 图、指标表、比较区 | 两张 2×2 图、翻译卡、指标表 | 目标翻译链 |
-| `step-11` | 控制框图与三方案说明 | 三方案 2×2 图 | 结论表与比较区 | 控制框图、三方案图、结论表 | 三方案对照 |
-| `step-12` | 后测题组 | 四条小结与信息图 | `3-9 / 4-1` 去向卡 | 小结卡、信息图、去向卡 | 去向卡 |
+| 步骤 | 先出现什么 | 再出现什么 | 最后出现什么 |
+|---|---|---|---|
+| `step-01` | 路径图 | 主问题卡 | 边界卡 |
+| `step-02` | 统一翻译链 | 三步判断法 | 课程目标与边界 |
+| `step-03` | 四类误判清单 | 前测题卡 | 错因标签说明 |
+| `step-04` | 结构变化总表 | 频带职责提示 | 行聚焦切换条 |
+| `step-05` | 变化类型说明 | 2×2 曲线面板 | 独立作答卡 |
+| `step-06` | 完整题面 | 逐步显影链 | 参考答案与结论解释 |
+| `step-07` | 幅角原理题眼 | 符号表与总转角链 | 小结卡 |
+| `step-08` | `F(s)=1+L(s)` 公式卡 | 临界点等价链 | 固定判稳顺序 |
+| `step-09` | 例题 2 图组 | `P/N/Z` 表 | 快判作答卡 |
+| `step-10` | 例题 3 题面与图区 | 边界解释句 | 分类作答区 |
+| `step-11` | Bode 图 | 指标定义与三语言对照 | 热点标注区 |
+| `step-12` | 例题 4 题面 | 读图链 | 独立作答卡 |
+| `step-13` | 三频段总图 | 频域量读回表 | 频带聚焦控件 |
+| `step-14` | 目标切换题面 | 独立判断卡 | AI 对照区 |
+| `step-15` | 基线 2×2 图 | 问题定位提示 | 证据标注卡 |
+| `step-16` | 指标翻译链 | 超前网络说明 | 前后对照与比较卡 |
+| `step-17` | 控制框图 | 激进基线与仅降增益矛盾 | 方案投票卡 |
+| `step-18` | 三方案 2×2 图 | 指标表 | 结构化比较卡 |
+| `step-19` | 后测题组 | 剩余错因回看 | 班级整体薄弱项 |
+| `step-20` | 四条结论 | 信息图 | `3-9 / 4-1` 去向卡 |
 
 ## 曲线镜像与运行时合同
 | 步骤 | 图组 / 证据 | 基线态 | 图组镜像 | 控件 | 运行时合同 |
-|------|-------------|--------|----------|------|------------|
-| `step-10` | 航向控制 2×2 对照 | 基线态固定为讲义中的 $K=2.25$ 直接负反馈；校正态固定为讲义中的超前网络基线参数 | 固定 `2×2`：左上时域、左下根轨迹与闭环极点、右上开环幅频、右下开环相频与裕度；窄屏只允许响应式换行，不改变语义顺序 | `case_toggle`（基线 / 超前）、`parameter_drawer`（仅教师示范开放） | `caseId=unit-3-8-heading-lead-compare`；`outputs=[step_response, root_locus, bode_mag, bode_phase, metrics]`；`overlay_policy=[current_poles, pm_gm, wc_wb]`；`axis_policy=fixed_extent` |
-| `step-11` | 稳定平台三方案对照 | 基线态固定为激进增益 $K=5$；对照态固定包含 `K=0.2` 与超前校正方案 | 固定 `2×2`：左上时域、左下根轨迹与闭环极点、右上开环幅频、右下开环相频与裕度；三方案通过勾选切换叠加 | `scheme_toggle`（激进基线 / 仅降增益 / 超前校正）、`parameter_drawer`（教师示范开放） | `caseId=unit-3-8-platform-three-scheme`；`outputs=[step_response, root_locus, bode_mag, bode_phase, metrics, compare_summary]`；`overlay_policy=[scheme_colors, pm_gm, wc_wr_mr]`；`axis_policy=fixed_extent` |
+|---|---|---|---|---|---|
+| `step-05` | 四类结构变化指纹 | 默认显示讲义原始顺序：增益、左半平面零点、积分 / 极点、右半平面零点 | 固定 `2×2`：左上幅频、右上相频、左下根轨迹、右下时域；低/中/高频采用同一颜色罩层 | `change_toggle`、`band_overlay_toggle`、`metric_hint_toggle` | `caseId=unit-3-8-structure-fingerprint-lab`；`outputs=[bode_mag,bode_phase,root_locus,step_response]`；`axis_policy=fixed_extent` |
+| `step-11` | Bode 判稳主图 | 默认复现讲义静态 Bode 图 | 在原图上叠加 `ωc`、`ωπ`、`PM`、`GM` 可交互锚点 | `indicator_toggle`、`line_highlight` | `caseId=unit-3-8-bode-margin-locator`；`outputs=[bode_mag,bode_phase,margin_overlay]` |
+| `step-13` | 三频段分工总图 | 默认显示讲义分频总览 | 同一张总图提供低/中/高频聚焦层和典型指标提示条 | `band_focus_toggle` | `caseId=unit-3-8-three-band-focus`；`outputs=[band_overlay,metric_prompt]` |
+| `step-15` / `step-16` | 航向控制案例 2×2 | `step-15` 固定基线态 `K=2.25`；`step-16` 固定“基线 / 超前校正”对照态 | 固定 `2×2`：时域、根轨迹、幅频、相频；只允许响应式换行，不改语义顺序 | `case_toggle`、`overlay_toggle`、`parameter_drawer`（教师示范专用） | `caseId=unit-3-8-heading-lead-compare`；`outputs=[step_response,root_locus,bode_mag,bode_phase,metrics]` |
+| `step-17` / `step-18` | 稳定平台三方案 2×2 | `step-17` 先给激进基线与仅降增益；`step-18` 再给三方案完整对照 | 固定 `2×2` 与指标表联动；三方案颜色与讲义一致 | `scheme_toggle`、`overlay_toggle`、`parameter_drawer`（教师示范专用） | `caseId=unit-3-8-platform-three-scheme`；`outputs=[step_response,root_locus,bode_mag,bode_phase,metrics,compare_summary]` |
 
 ## 讲义核心内容映射
 | handout_anchor | core_item_type | must_appear_content | target_step | page_mode | interaction_upgrade | media_or_table_ref | acceptance_note |
 |---|---|---|---|---|---|---|---|
-| `## 一、引入：为什么同样是结构变了，频域图上的反应却完全不同` | `concept + question` | 主问题、四类结构变化并排对照、两问清单。 | `step-02` | `static + choice` | 二选一只负责暴露“只看幅值”的误判。 | `3-8-gain-effect.png / 3-8-zero-effect.png / 3-8-pole-effect.png / 3-8-rhp-zero-effect.png` | 四图与两问不得后置到互动之后。 |
-| `### 2.1 频域是统一翻译器` | `concept + chain` | `结构变化 -> 开环频率特性改写 -> 稳定边界变化 -> 闭环后果`，以及本课边界。 | `step-03` | `static` | 保持静态总览，不做低价值交互。 | 翻译链 + 边界表 | 翻译链与边界表必须同页。 |
-| `### 2.2 四类结构变化的频域指纹` | `table + figure` | 四类变化各改哪一段频率、收益与代价落点。 | `step-05` | `static + interactive` | 三向配对只负责强化“变化类型 / 频带 / 代价”对应。 | 频域翻译总表 | 总表必须先于配对区出现。 |
-| `#### 例题 1：先从哪一段频带开始判断结构变化` | `worked_example` | 例题 1 的频带判断链与答案。 | `step-05` | `static + interactive` | 配对区不替代例题卡。 | 例题 1 卡 | 例题卡必须先于配对区出现。 |
-| `### 2.3 从幅角原理到 Nyquist 判据` | `derivation + concept` | $F(s)=1+L(s)$、幅角原理、临界点 $(-1,0)$、`Z=P-N` 的推导链。 | `step-06` | `static + interactive` | 顺序检查只负责固定判稳逻辑顺序。 | 公式卡 + 临界点示意 | 三张公式卡与临界点示意必须同屏。 |
-| `#### 例题 2：第一组快速判稳题` | `worked_example + table` | 快判四图与 `P/N/Z` 固定顺序。 | `step-07` | `static + interactive` | 分类区只负责稳定/不稳归类。 | `3-8-nyquist-quickcheck.png` | 图和表必须在未作答状态下可见。 |
-| `#### 例题 3：第二组设计型例题` | `worked_example + boundary` | “靠近边界”和“已越界”的图区分。 | `step-07` | `static + interactive` | 分类区不能替代边界说明。 | `3-8-nyquist-example.png` | 边界图与提醒句必须可见。 |
-| `### 2.4 Bode 判稳与稳定裕度` | `graph + formula + table` | 截止频率、相角裕度、增益裕度和三种稳定语言对应。 | `step-08` | `static + interactive` | 热点标注只负责把线和量一一对应。 | `3-8-bode-example.png` | Bode 图、指标表、三语言对照表必须同页。 |
-| `#### 例题 4：由 Bode 图直接判稳` | `worked_example + formula` | 例题 4 的判稳结论与 Bode 读图链。 | `step-08` | `static + interactive` | 热点标注不替代例题说明。 | 例题 4 卡 | 例题卡必须含公式与结论。 |
-| `### 2.5 三频段分工：谁负责精度，谁负责速度，谁负责代价` | `concept + ai` | 低频/中频/高频任务分工与目标切换。 | `step-09` | `static + ai` | AI 区只允许做“先自判、再对照”。 | `3-8-three-band-overview.png` | 三频段总图和目标卡必须先于 AI 区出现。 |
-| `#### 例题 5：按频段安排校正目标` | `worked_example + ai` | 例题 5 的频带优先级判断。 | `step-09` | `static + ai` | AI 区不能替代先独立判断。 | 例题 5 卡 | 例题卡必须先于 AI 区出现。 |
-| `#### 2.6.1 船舶航向控制：超前校正把“较慢且超调偏大”改成“更快且更稳”` | `case + derivation + comparison` | 基线指标、目标翻译链、超前网络、基线/校正后 2×2 对照、指标表。 | `step-10` | `static + interactive` | 结构化比较只负责归纳“主改中频、换来什么、代价是什么”。 | `3-8-heading-baseline.png / 3-8-heading-case.png` | 两张 2×2 图、翻译卡、指标表必须同页。 |
-| `#### 2.6.2 稳定平台：单纯降增益不够，超前校正更能兼顾速度与平稳` | `case + structure + comparison` | 控制框图、激进基线、仅降增益、超前校正三方案、结论表。 | `step-11` | `static + interactive` | 结构化比较只负责回答“为什么只降增益不够”。 | `3-8-platform-block-diagram.png / 3-8-platform-baseline.png / 3-8-platform-case.png` | 控制框图和三方案对照必须同页。 |
-| `## 三、本节小结` | `summary + quiz` | 四条结论、`3-8-info.png`、`3-9 / 4-1` 去向。 | `step-12` | `static + quiz` | 后测只检查判断顺序与边界，不替代小结卡。 | `3-8-info.png` | 小结卡、信息图、去向卡和后测题必须同页。 |
+| `## 一、引入：为什么同样是结构变了，频域图上的反应却完全不同` | `concept + question` | 路径定位、主问题、边界 | `step-01` | `static` | 不做交互，保持定向进入 | 路径图 | 首屏完成课程定位 |
+| `### 2.1 频域是统一翻译器` | `concept + chain` | 翻译链、三步判断法、课程目标 | `step-02` | `static` | 不做低价值小测 | 翻译链与目标卡 | 读完即可知道主线 |
+| `### 2.2 四类结构变化的频域指纹` | `table + figure` | 总表与四类曲线 | `step-04`、`step-05` | `static + interactive` | 先表后图，图升级为曲线面板 | 总表 + 四张图 | 图不能替代表 |
+| `#### 例题 1：先从哪一段频带开始判断结构变化` | `worked_example` | 完整题面、求解链、答案解释 | `step-06` | `worked_example` | 作答卡分卡提交 | 例题 1 卡 | 题面始终可见 |
+| `#### 2.3.1 幅角原理在说什么` | `derivation` | 总转角与 `P/Z` 含义 | `step-07` | `derivation` | 逐步显影 | 公式链 | 不得只剩结果式 |
+| `#### 2.3.2 为什么要取 F(s)=1+G(s)H(s)`、`#### 2.3.3 为什么临界点会变成 (-1,0)` | `derivation + concept` | 辅助函数、临界点、`N=P-Z` | `step-08` | `derivation + reason` | 因果排序 | 公式卡 + 临界点示意 | 来路必须讲清 |
+| `#### 例题 2：第一组快速判稳题` | `worked_example` | 四图快判与 `P/N/Z` 表 | `step-09` | `worked_example` | 独立题卡 | `3-8-nyquist-quickcheck.png` | 图表先于作答 |
+| `#### 例题 3：第二组设计型例题` | `worked_example + boundary` | 边界图区分与增益判断 | `step-10` | `worked_example` | 卡片分类 | `3-8-nyquist-example.png` | “逼近边界”与“越界”分开 |
+| `### 2.4 Bode 判稳与稳定裕度` | `graph + formula + table` | Bode 图、定义式、三语言对照 | `step-11` | `graph + interaction` | 热点标注只服务读图 | `3-8-bode-example.png` | 图、式、表同屏 |
+| `#### 例题 4：由 Bode 图直接判稳` | `worked_example` | 完整题面、读图链、稳定侧判断 | `step-12` | `worked_example` | 独立作答卡 | 例题 4 卡 | 不缩成一句题干 |
+| `### 2.5 三频段分工：谁负责精度，谁负责速度，谁负责代价` | `concept + figure` | 三频段总图与频域量读回表 | `step-13` | `static + focus` | 频带聚焦层 | `3-8-three-band-overview.png` | 先图后控件 |
+| `#### 例题 5：按频段安排校正目标` | `worked_example + ai` | 目标切换、独立判断、AI 对照 | `step-14` | `worked_example + ai` | AI 后置 | 例题 5 卡 | 先首答再 AI |
+| `#### 2.6.1 船舶航向控制` | `case + derivation + comparison` | 基线问题、指标翻译、超前校正对照 | `step-15`、`step-16` | `case` | 结构化比较 | `3-8-heading-baseline.png / 3-8-heading-case.png` | 案例拆成两页 |
+| `#### 2.6.2 稳定平台` | `case + structure + comparison` | 控制框图、只降增益的不足、三方案对照 | `step-17`、`step-18` | `case` | 结构化比较 | `3-8-platform-block-diagram.png / 3-8-platform-baseline.png / 3-8-platform-case.png` | 先讲矛盾，再讲解法 |
+| `## 三、本节小结` | `summary` | 四条结论、信息图、去向 | `step-20` | `summary` | 只保留一句反思卡 | `3-8-info.png` | 收束页不再承担后测 |
 
-## 步骤 01｜回到地图：为什么频域不是新章而是统一翻译器
-
+## 步骤 01｜路径定位：`3-8` 为什么不是新章
 ### 页面骨架
 - 模板：`map_hero_slide`
-- 区域：`header` / `lead` / `summary`
-
+- 区域：`header / lead / summary`
 ### 模块清单
-- `stage-map`：高亮 `3-5 -> 3-7 -> 3-8 -> 3-9`
-- `core-question-card`：主问题卡
-- `boundary-card`：本课边界卡
-
+- `stage-map`
+- `core-question-card`
+- `boundary-card`
 ### 静态承载内容
-- 路径图固定写明：`3-5` 已建立零点与中频动态改善，`3-7` 已建立低频补偿与稳态改善，`3-8` 负责把这些结构变化统一翻译到频域判断语言。
-- 主问题卡固定写明：
-  - 为什么同样是结构变了，频域里看起来完全不同？
-  - 为什么频域不只是判稳，还能读出收益与代价？
-- 边界卡固定写明：本课不重讲模块 2 的作图基础，也不进入模块 4 的完整整定。
-
+- 高亮 `3-5 -> 3-7 -> 3-8 -> 3-9`
+- 主问题：结构变化为什么在频域里呈现不同指纹，且这些指纹如何接到稳定边界与工程读回
+- 边界：不重讲模块 2 作图基础，不提前进入模块 4 整定
+### 混合证据顺序
+- 路径图 -> 主问题卡 -> 边界卡
 ### 互动升级点
-- 组件类型：`none`
-
-### 埋点与教师数据
-- 埋点摘要：`viewed`、`timeOnStep`、`teacherFollowSync`
-- 教师聚合：`view_count`、`sync_status`
-
-### AI 边界
-- 允许范围：课程路径、本课任务、与 `3-5 / 3-7 / 3-9` 的关系
-- 禁止范围：提前展开 Nyquist 与 Bode 公式细节
-
+- `none`
+### 教师控制
+- 仅允许高亮路径节点，不出现作答开关
+### 学生默认状态
+- 全部静态可见，无作答区
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-01`
-- 对齐要求：路径图、主问题卡和边界卡首屏同见。
+- 学生页首屏同时看到路径图、主问题、边界
 
-## 步骤 02｜先看指纹：四类结构变化为什么在频域里长得不一样
-
-### 页面骨架
-- 模板：`comparison_gallery_with_prompt`
-- 区域：`gallery` / `questions` / `interaction`
-
-### 模块清单
-- `fingerprint-gallery`：四图并排
-- `question-list`：两问清单
-- `binary-vote`：误判判断区
-
-### 静态承载内容
-- 四图固定按以下顺序出现：
-  1. `3-8-gain-effect.png`
-  2. `3-8-zero-effect.png`
-  3. `3-8-pole-effect.png`
-  4. `3-8-rhp-zero-effect.png`
-- 两问清单固定写明：
-  1. 这类变化首先改写哪一段频率？
-  2. 它换来的主要收益与代价分别落在哪个闭环后果上？
-- 底线句固定写明：频域判断必须同时看幅值、相位与被改写的频段。
-
-### 互动升级点
-- 组件类型：`binary_choice`
-- 题干固定为：频域分析是否只需要看幅值变化？
-- 选项固定为：
-  - A：只要曲线抬高，系统一定更快更好
-  - B：还要同时看相位代价和被改写的频段
-- 正确项：`B`
-- 反馈规则：只允许暴露“只看幅值”的误判，不提前泄露后续例题答案。
-
-### 埋点与教师数据
-- 埋点摘要：`selectedOption`、`resultState`
-- 教师聚合：`option_distribution`、`only_watch_magnitude_rate`
-
-### AI 边界
-- 允许范围：四类结构变化、频带、相位代价
-- 禁止范围：提前进入 Nyquist 判稳与工程案例结论
-
-### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-02`
-- 对齐要求：四图与两问清单必须先于判断区完整落页。
-
-## 步骤 03｜统一翻译链：结构变化、稳定边界和闭环后果如何接起来
-
+## 步骤 02｜统一翻译器：结构变化如何接到稳定边界与闭环后果
 ### 页面骨架
 - 模板：`translation_chain_board`
-- 区域：`chain` / `table` / `boundary`
-
+- 区域：`chain / method / objective`
 ### 模块清单
-- `translation-chain-card`：统一翻译链
-- `language-correspondence-table`：三种稳定语言对照表
-- `boundary-table`：本课边界表
-
+- `translation-chain-card`
+- `three-step-method-card`
+- `objective-list`
+- `boundary-note`
 ### 静态承载内容
-- 翻译链固定写成：
-  $$
-  \text{结构变化} \rightarrow \text{开环频率特性改写} \rightarrow \text{稳定边界变化} \rightarrow \text{闭环后果}
-  $$
-- 三种稳定语言对照表必须同时给出：
-  - 极点 / 根轨迹语言
-  - Nyquist 语言
-  - Bode 语言
-- 边界表固定写明：
-  - 本课负责统一翻译、判稳与工程读回；
-  - 不负责作图基础重练；
-  - 不负责完整补偿器参数整定与模块 4 的排序。
-
+- 翻译链：`结构变化 -> 开环频率特性改写 -> 稳定边界变化 -> 闭环性能后果`
+- 三步判断法：先看频带，再看边界，最后读回闭环
+- 课程目标与本课边界
+### 混合证据顺序
+- 翻译链 -> 三步判断法 -> 课程目标与边界
 ### 互动升级点
-- 组件类型：`none`
-
-### 埋点与教师数据
-- 埋点摘要：`viewed`、`timeOnStep`
-- 教师聚合：`view_count`
-
-### AI 边界
-- 允许范围：翻译链、三种稳定语言、本课边界
-- 禁止范围：生成任何控制器参数建议
-
+- `none`
+### 教师控制
+- 仅允许高亮当前判断节点
+### 学生默认状态
+- 全部静态可见
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-03`
-- 对齐要求：翻译链、三语言对照表和边界表必须同屏。
+- 不借助讲稿也能知道本课主线和判断动作
 
-## 步骤 04｜前测：四类典型误判先暴露出来
-
+## 步骤 03｜前测：四类典型误判先暴露出来
 ### 页面骨架
 - 模板：`question_stack`
-- 区域：`question-stack` / `record` / `ai-gate`
-
+- 区域：`prompt / questions / notes`
 ### 模块清单
-- `pretest-q1`：频带误判
-- `pretest-q2`：Nyquist 顺序误判
-- `pretest-q3`：截止频率误判
-- `pretest-q4`：非最小相误判
-- `reason-record`：一句理由栏
-- `ai-gate-note`：AI 锁定提示
-
+- `misconception-list`
+- `pretest-card-group`
+- `reason-record`
+- `ai-lock-note`
 ### 静态承载内容
-- 四题固定对应四类误区：
-  1. 增益与积分是否改写同一段频率；
-  2. Nyquist 是否可以不先数 `P`；
-  3. 截止频率更大是否自动更好；
-  4. 右半平面零点是否可以靠更大带宽直接“压过去”。
-- AI 锁定提示固定写明：必须先完成首答，才能进入 AI 对照区。
-
+- 四类误判清单
+- 每题必须附一句理由框
+- AI 锁定提示：首答前不可看对照
+### 混合证据顺序
+- 误判清单 -> 题组 -> 理由记录与 AI 锁定
 ### 互动升级点
-- 组件类型：`quiz_group`
-- 允许一次重提，但教师端必须区分首答与重提。
-- 错因标签固定为：
-  - `band_before_conclusion`
-  - `nyquist_skip_p`
-  - `wc_equals_everything`
-  - `nmp_unlimited_bandwidth`
-
-### 埋点与教师数据
-- 埋点摘要：`attemptCount`、`resultState`、`errorBucket`
-- 教师聚合：`question_distribution`、`top_misconceptions`
-
-### AI 边界
-- 允许范围：术语纠偏、错因命名
-- 禁止范围：直接代做后续例题与案例判断
-
+- 四张独立题卡，允许单卡提交
+### 教师控制
+- `release_activity`、`reveal_reference_answer` 分离
+### 学生默认状态
+- 题卡默认隐藏，发放后显示；理由框与题卡同步开放
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-04`
-- 对齐要求：四题、理由栏和 AI 锁定提示同页可见。
+- 学生页看到题面完整，不先给答案
 
-## 步骤 05｜频域翻译总表：先判哪一段频率，再谈收益与代价
-
+## 步骤 04｜四类结构变化总表：先看哪一段频带，再谈收益与代价
 ### 页面骨架
-- 模板：`formula_table_match`
-- 区域：`table` / `example` / `interaction`
-
+- 模板：`table_explain_board`
+- 区域：`table / notes / focus`
 ### 模块清单
-- `translation-table`：频域翻译总表
-- `example-card`：例题 1 题面与答案链
-- `frequency-band-note`：频带说明卡
-- `triple-match-zone`：三向配对区
-
+- `fingerprint-table`
+- `frequency-band-note`
+- `row-focus-toggle`
 ### 静态承载内容
-- 总表列固定为：
-  - 结构变化
-  - 主要改写频带
-  - 幅值 / 相位主变化
-  - 典型收益
-  - 典型代价
-- 例题 1 必须明确写出：
-  - `4` 倍增益
-  - 左半平面零点 `1+s/0.8`
-  - 原点积分极点
-  三种变化分别优先改写哪一段频率。
-- 频带说明卡固定写明：先判断变化落在哪一段频带，再判断是否逼近稳定边界。
-
+- 五列总表：结构变化、频带、幅相变化、收益、代价
+- 频带职责提示卡
+### 混合证据顺序
+- 总表 -> 频带职责提示 -> 行聚焦切换
 ### 互动升级点
-- 组件类型：`triple_match`
-- 学生任务：把“变化类型 / 首要频带 / 主要收益代价”对应起来。
-- 即时反馈只负责纠偏频带定位，不代替例题解释。
-
-### 埋点与教师数据
-- 埋点摘要：`matchAttempted`、`matchCorrected`
-- 教师聚合：`common_mismatch_pairs`
-
-### AI 边界
-- 允许范围：频带、收益、代价的对应关系
-- 禁止范围：把配对结果直接上升成“推荐控制器”
-
+- 行聚焦只用于突出某一类变化，不能替代表格正文
+### 教师控制
+- 允许逐行高亮，不涉及答案显示
+### 学生默认状态
+- 表格全文可见，行聚焦可自主操作
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-05`
-- 对齐要求：总表、例题卡和频带说明必须先于配对区出现。
+- 不看曲线图也能先建立四类变化的判断骨架
 
-## 步骤 06｜从 $F(s)=1+L(s)$ 到 $(-1,0)$：Nyquist 判稳的来路
-
+## 步骤 05｜曲线互动页：四类结构变化为什么留下不同频域指纹
 ### 页面骨架
-- 模板：`formula_media_compare`
-- 区域：`formula` / `media` / `interaction`
-
+- 模板：`curve_compare_lab`
+- 区域：`selector / figure / cards`
 ### 模块清单
-- `f-of-s-card`：`F(s)=1+L(s)` 卡
-- `argument-principle-card`：$\Delta \arg F(s)=2\pi(Z-P)$ 卡
-- `pnz-card`：`Z=P-N` 卡
-- `critical-point-graphic`：临界点几何示意
-- `reason-check`：顺序检查区
-
+- `change-selector`
+- `fingerprint-2x2-panel`
+- `band-overlay-strip`
+- `activity-card-row`
 ### 静态承载内容
-- 三张公式卡必须同时出现，不得拆成多步后补。
-- 临界点几何示意必须同时说明：
-  - 为什么在 `F` 平面看原点；
-  - 为什么在 `L(j\omega)` 平面改看 `(-1,0)`。
-- 固定顺序句必须完整出现：
-  1. 先数开环右半平面极点数 `P`
-  2. 再数包围数 `N`
-  3. 最后算闭环右半平面极点数 `Z`
-
+- 面板默认复现讲义四张图含义
+- 面板固定 `2×2`：幅频、相频、根轨迹、时域
+- 频带罩层提示低 / 中 / 高频职责
+### 混合证据顺序
+- 变化类型说明 -> `2×2` 面板 -> 频带罩层 -> 独立作答卡
 ### 互动升级点
-- 组件类型：`reason_check`
-- 学生任务：对“辅助函数 -> 临界点 -> 先数什么 -> 再算什么”的顺序做判断。
-- 反馈规则：只能纠正顺序链，不替代公式卡本体。
-
-### 埋点与教师数据
-- 埋点摘要：`selectionState`、`resultState`
-- 教师聚合：`confusion_matrix`
-
-### AI 边界
-- 允许范围：辅助函数、幅角原理、判稳顺序
-- 禁止范围：代替学生做后续快判题
-
+- 学生可切换四类变化并观察同一对象下四种图像如何联动变化
+- 作答卡包含：频带判断、收益判断、代价判断三类不同交互
+### 教师控制
+- 可锁定面板到某一变化；`release_activity` 与 `open_browse` 分离
+### 学生默认状态
+- 面板可浏览；作答卡默认隐藏，发放后出现
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-06`
-- 对齐要求：三张公式卡、几何示意与顺序区同屏。
+- 学生不看讲稿也能从面板知道“哪一类变化先改哪一段”
 
-## 步骤 07｜快速判稳：先数 $P$，再数 $N$，最后算 $Z$
-
+## 步骤 06｜例题 1：先从哪一段频带开始判断结构变化
 ### 页面骨架
-- 模板：`comparison_panel_with_sort`
-- 区域：`media` / `table` / `interaction`
-
+- 模板：`worked_example_lab`
+- 区域：`problem / reveal / activity`
 ### 模块清单
-- `quickcheck-gallery`：例题 2 快判四图
-- `boundary-case-card`：例题 3 边界对照卡
-- `pnz-table`：判稳表
-- `sort-zone`：分类区
-
+- `problem-statement-card`
+- `given-change-list`
+- `step-reveal-column`
+- `activity-card-grid`
+- `reference-answer-card`
 ### 静态承载内容
-- `3-8-nyquist-quickcheck.png` 固定承担四个典型对象快判。
-- `3-8-nyquist-example.png` 固定承担“靠近边界但未包围”与“已经包围”两种增益区间对照。
-- 判稳表固定列为：对象 / `P` / `N` / `Z=P-N` / 结论。
-- 边界提醒固定写明：右半平面零点不等于右半平面极点。
-
+- 完整题面：`4` 倍增益、左半平面零点、原点积分极点
+- 必须保留“分别判断哪种变化最先改写低频 / 中频，并说明收益与代价”
+### 混合证据顺序
+- 完整题面 -> 结构变化列表 -> 逐步显影链 -> 作答卡 -> 参考答案
 ### 互动升级点
-- 组件类型：`card_sort`
-- 学生任务：把给定对象归入“闭环稳定”“逼近边界”“闭环不稳”三类。
-- 即时反馈只校正分类，不替代判稳表。
-
-### 埋点与教师数据
-- 埋点摘要：`sortAttempted`、`sortCorrected`
-- 教师聚合：`misclassified_cards`
-
-### AI 边界
-- 允许范围：`P/N/Z` 顺序、边界类型
-- 禁止范围：跳过判稳步骤直接报最终稳定性
-
+- 三张独立作答卡分别对应“频带判断”“收益配对”“代价配对”
+- 逐步显影链按“先判频带 -> 再说收益 -> 最后说代价”展开
+### 教师控制
+- `teacher_step_reveal` 控制显影；`reveal_reference_answer` 独立
+### 学生默认状态
+- 题面始终可见；步骤默认不可浏览；作答卡默认隐藏
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-07`
-- 对齐要求：四图、判稳表和边界提醒必须先于分类区出现。
+- 不看讲稿也知道题目对象、解题动作和标准结论
 
-## 步骤 08｜Bode 判稳：截止频率、裕度与三种稳定语言的对照
+## 步骤 07｜幅角原理：总转角、`P` 与 `Z` 在说什么
+### 页面骨架
+- 模板：`formula_story_board`
+- 区域：`question / formula / note`
+### 模块清单
+- `question-card`
+- `argument-principle-formula`
+- `symbol-meaning-table`
+- `mini-summary-card`
+### 静态承载内容
+- 总转角公式
+- `P`、`Z`、总转角在闭环稳定分析中的作用
+### 混合证据顺序
+- 题眼 -> 公式 -> 符号表 -> 小结
+### 互动升级点
+- 逐步显影只控制解释层次，不隐藏公式本身
+### 教师控制
+- 教师可逐条显影解释句
+### 学生默认状态
+- 公式可见，解释默认锁定
+### 预览口径
+- 学生能独立回答“为什么要数 `P` 和 `Z`”
 
+## 步骤 08｜为什么取 `F(s)=1+L(s)`，为什么盯住 `(-1,0)`
+### 页面骨架
+- 模板：`derivation_compare_board`
+- 区域：`formula / geometry / chain`
+### 模块清单
+- `auxiliary-function-card`
+- `closed-loop-root-card`
+- `critical-point-graphic`
+- `reason-chain-sorter`
+### 静态承载内容
+- `F(s)=1+G(s)H(s)` 与闭环特征方程等价链
+- `(-1,0)` 作为临界点的来路
+- 固定顺序：`先数 P -> 再数 N -> 最后算 Z`
+### 混合证据顺序
+- 公式链 -> 临界点示意 -> 固定判稳顺序 -> 作答区
+### 互动升级点
+- 学生对“辅助函数 / 临界点 / 判稳顺序”做因果排序
+### 教师控制
+- 可单独开放排序题，不自动显示答案
+### 学生默认状态
+- 公式链与临界点图可见；排序题默认隐藏
+### 预览口径
+- 学生能复述 Nyquist 判据的来路，而非只背结论
+
+## 步骤 09｜例题 2：第一组 Nyquist 快速判稳题
+### 页面骨架
+- 模板：`worked_example_quadrant`
+- 区域：`problem / table / activity`
+### 模块清单
+- `quickcheck-image`
+- `pnz-table`
+- `matrix-choice-cards`
+- `boundary-note`
+### 静态承载内容
+- `3-8-nyquist-quickcheck.png`
+- `P/N/Z` 判稳表
+- 边界提醒：右半平面零点不等于右半平面极点
+### 混合证据顺序
+- 图组 -> 判稳表 -> 边界提醒 -> 独立题卡
+### 互动升级点
+- 每个对象单独一张题卡，避免整页统一提交
+### 教师控制
+- 可按对象逐卡发放答案
+### 学生默认状态
+- 图表可见；题卡默认隐藏
+### 预览口径
+- 学生可以不看讲稿直接完成快判
+
+## 步骤 10｜例题 3：靠近边界与越过边界有什么本质不同
+### 页面骨架
+- 模板：`boundary_compare_board`
+- 区域：`problem / compare / activity`
+### 模块清单
+- `design-example-card`
+- `boundary-figure`
+- `gain-interval-note`
+- `card-sort-zone`
+### 静态承载内容
+- `K=80` 与 `K=110` 对比题面
+- 必须保留“靠近稳定边界但未包围”和“已经发生包围”两种状态
+### 混合证据顺序
+- 完整题面 -> 边界图 -> 增益区间说明 -> 分类作答区
+### 互动升级点
+- 分类卡要求学生判断“稳定 / 逼近边界 / 越过边界”
+### 教师控制
+- `open_browse` 与 `reveal_reference_answer` 分离
+### 学生默认状态
+- 题面和图片区可见；分类区发放后显示
+### 预览口径
+- 学生清楚知道这页是边界判断，不是又一页快判表
+
+## 步骤 11｜Bode 判稳：截止频率、相角裕度和增益裕度
 ### 页面骨架
 - 模板：`dual_graph_indicator_locator`
-- 区域：`media` / `table` / `interaction`
-
+- 区域：`graph / formula / activity`
 ### 模块清单
-- `bode-graph`：Bode 图
-- `margin-table`：指标表
-- `language-table`：三语言对照表
-- `locator-zone`：热点标注区
-
+- `bode-image`
+- `indicator-formula-list`
+- `three-language-table`
+- `hotspot-labeling-zone`
 ### 静态承载内容
-- `3-8-bode-example.png` 必须完整落页。
-- 本页公式必须明文落出：
-  $$
-  |L(j\omega_c)|=1,\qquad \gamma = 180^\circ + \angle L(j\omega_c),\qquad G_m=\frac{1}{|L(j\omega_\pi)|}
-  $$
-- 指标表固定包括：
-  - 截止频率 $\omega_c$
-  - 相位穿越频率 $\omega_\pi$
-  - 相角裕度 $\gamma$
-  - 增益裕度 $G_m$
-- 三语言对照表固定给出：
-  - 极点离虚轴多近
-  - Nyquist 离临界点多近
-  - Bode 的穿越与裕度如何表达同一问题
-- 固定口令句必须出现：开环读余量，闭环看带宽。
-
+- `3-8-bode-example.png`
+- 四个定义对象：`ωc`、`ωπ`、`PM`、`GM`
+- 三种稳定语言对照表
+### 混合证据顺序
+- Bode 图 -> 指标定义 -> 三语言对照 -> 标注区
 ### 互动升级点
-- 组件类型：`hotspot_labeling`
-- 学生任务：把截止频率线、相位穿越频率线、PM 线、GM 线对应到图上。
-- 即时反馈只负责锚点定位，不替代指标表。
-
-### 埋点与教师数据
-- 埋点摘要：`labelAttempted`、`labelCorrected`
-- 教师聚合：`common_mislabels`
-
-### AI 边界
-- 允许范围：Bode 判稳指标与三语言对应
-- 禁止范围：把截止频率和带宽混成同一个量
-
+- 学生在图上定位四条关键线与两个频率点
+### 教师控制
+- 可单独显示正确锚点，不等于显示整页答案
+### 学生默认状态
+- 图、式、表可见；标注区默认隐藏
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-08`
-- 对齐要求：Bode 图、指标表、三语言对照表同页。
+- 不看讲稿也知道“Bode 判稳到底看哪四样东西”
 
-## 步骤 09｜三频段分工：精度、速度和代价必须分开读
-
+## 步骤 12｜例题 4：由 Bode 图直接判断系统在边界哪一侧
 ### 页面骨架
-- 模板：`compare_then_ai`
-- 区域：`media` / `prompt` / `ai`
-
+- 模板：`worked_example_locator`
+- 区域：`problem / reveal / activity`
 ### 模块清单
-- `three-band-overview`：三频段总图
-- `goal-switch-card-row`：目标切换卡
-- `example-five-card`：例题 5 卡
-- `ai-compare-zone`：AI 对照工作区
-
+- `problem-statement-card`
+- `reading-order-card`
+- `activity-card-grid`
+- `reference-answer-card`
 ### 静态承载内容
-- `3-8-three-band-overview.png` 必须先于互动区出现。
-- 目标切换卡至少包含三种任务：
-  - 优先减小稳态误差
-  - 优先提高速度
-  - 优先降低超调并减轻执行器波动
-- 例题 5 必须保留结论：若任务从“尽快跟踪”切换为“优先平稳”，重点应落在相角裕度和谐振峰值，而不是继续右推截止频率。
-
+- 完整题面三问
+- 读图顺序：先看 `ωc` 与相位，再看 `ωπ` 与幅值，最后下结论
+### 混合证据顺序
+- 题面 -> 读图顺序 -> 独立作答卡 -> 参考答案
 ### 互动升级点
-- 组件类型：`ai_compare_workspace`
-- 学生任务：先写出“优先改哪一段频带、主要看哪两个频域量”，再进入 AI 对照。
-- AI 对照仅用于核对“先判频带、再问 AI”的顺序，不允许直接生成最终答案模板。
-
-### 埋点与教师数据
-- 埋点摘要：`draftSubmitted`、`aiViewed`、`revisionState`
-- 教师聚合：`goal_choice_distribution`、`ai_revision_rate`
-
-### AI 边界
-- 允许范围：低频/中频/高频职责，目标切换下的频段优先级
-- 禁止范围：代替学生完成完整案例比较
-
+- 三张作答卡分别对应“裕度正负”“是否越界”“如何拉回稳定侧”
+### 教师控制
+- 逐卡放答案，允许教师单独显影解题步骤
+### 学生默认状态
+- 题面与读图顺序可见；步骤与答案默认锁定
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-09`
-- 对齐要求：三频段总图、目标切换卡、AI 边界提示同屏。
+- 学生能完整知道例题问题而不是只看结论
 
-## 步骤 10｜航向控制案例：为什么中频超前能同时更快且更稳
-
+## 步骤 13｜三频段分工：精度、速度与代价不能混读
 ### 页面骨架
-- 模板：`design_compare_workspace`
-- 区域：`baseline` / `derivation` / `compare`
-
+- 模板：`band_focus_board`
+- 区域：`figure / table / focus`
 ### 模块清单
-- `baseline-figure`：`3-8-heading-baseline.png`
-- `target-translation-card`：目标翻译链卡
-- `corrected-figure`：`3-8-heading-case.png`
-- `metrics-table`：指标对照表
-- `structured-compare-zone`：结构化比较区
-
+- `three-band-image`
+- `band-duty-table`
+- `metric-readback-table`
+- `band-focus-panel`
 ### 静态承载内容
-- 基线图必须先给出以下四个指标：
-  - 相角裕度约 `37.43°`
-  - 截止频率约 `0.1169 rad/s`
-  - 超调量约 `31.95%`
-  - 调节时间约 `83.10 s`
-- 目标翻译链必须完整写出：
-  - $M_p \approx 15\% \rightarrow \zeta_d \approx 0.52 \rightarrow \gamma_d \approx 50^\circ \sim 55^\circ$
-  - $t_s \approx 45 s \rightarrow \omega_{n,d} \approx 0.17 rad/s \rightarrow \omega_c \approx 0.25 rad/s$
-- 超前网络必须明文给出：
-  $$
-  C_h(s)=\frac{1+s/0.05}{1+s/0.3}
-  $$
-- 校正后对照图与指标表必须同页；指标表至少含 `PM / wc / wb / M_r / 超调量 / 调节时间`。
-
+- 三频段总图
+- 频域量如何读回闭环表现的对照表
+### 混合证据顺序
+- 总图 -> 频带职责表 -> 频域量读回表 -> 聚焦控件
 ### 互动升级点
-- 组件类型：`structured_compare`
-- 学生任务固定为三栏：
-  1. 主要改写哪一段频带；
-  2. 频域里哪两个量发生了关键变化；
-  3. 时域里因此读回了什么收益与代价。
-- 比较区默认只允许在“基线 / 超前”之间来回对照，不允许脱离证据自由发挥。
-
-### 埋点与教师数据
-- 埋点摘要：`compareSubmitted`、`focusBand`、`selectedMetrics`
-- 教师聚合：`focus_band_distribution`、`metric_focus_heatmap`
-
-### AI 边界
-- 允许范围：中频超前、裕度变化、时域读回
-- 禁止范围：替学生编造未出现在页面上的新整定方案
-
+- 点击某一频带时，只高亮该频带相关指标与工程含义
+### 教师控制
+- 允许教师锁定某一频带做集体讲解
+### 学生默认状态
+- 总图与表格可见；聚焦控件可自主操作
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-10`
-- 对齐要求：基线 2×2、目标翻译卡、校正后 2×2 和指标表必须同页可比。
+- 学生能独立回答“低频 / 中频 / 高频各负责什么”
 
-## 步骤 11｜稳定平台案例：为什么只降增益不如中频定向校正
-
+## 步骤 14｜例题 5：目标切换时，先改哪一段频带
 ### 页面骨架
-- 模板：`design_compare_workspace`
-- 区域：`structure` / `figures` / `compare`
-
+- 模板：`goal_switch_workspace`
+- 区域：`problem / cards / ai`
 ### 模块清单
-- `platform-structure-card`：`3-8-platform-block-diagram.png`
-- `scheme-figure`：`3-8-platform-baseline.png` 与 `3-8-platform-case.png`
-- `conclusion-table`：三方案结论表
-- `structured-compare-zone`：结构化比较区
-
+- `goal-switch-card`
+- `activity-card-grid`
+- `ai-compare-zone`
+- `revision-note`
 ### 静态承载内容
-- 控制框图必须先落出四个模块：比例放大环节、执行机构、平台动力学、单位反馈。
-- 三方案必须明确写成：
-  - 激进基线：`K=5`
-  - 仅降增益：`K=0.2`
-  - 超前校正方案
-- 结论表至少包含：
-  - 速度
-  - 超调 / 峰化
-  - 相角裕度
-  - 截止频率
-  - 高频代价
-- 固定结论句必须保留：只靠降增益会把速度压得过低；真正有效的是在中频定向补角，而不是单向把增益往下拧。
-
+- 完整题面：任务从“尽快跟踪”切到“优先减小超调并减轻执行器波动”
+- 必须保留三组选项
+### 混合证据顺序
+- 题面 -> 独立作答卡 -> AI 对照 -> 修订记录
 ### 互动升级点
-- 组件类型：`structured_compare`
-- 学生任务固定为：
-  1. 指出哪种方案只是“退回保守”，而不是“兼顾两头”；
-  2. 指出超前校正主要在哪个频带完成修正；
-  3. 写出一句“为什么只降增益不够”的比较结论。
-
-### 埋点与教师数据
-- 埋点摘要：`compareSubmitted`、`selectedScheme`、`reasonTag`
-- 教师聚合：`scheme_preference_distribution`、`reason_tag_cloud`
-
-### AI 边界
-- 允许范围：三方案比较、中频补角、速度与平稳权衡
-- 禁止范围：生成页面之外的新模型、新参数或新控制结构
-
+- 先做独立判断卡，再进入 AI 对照区
+- 题卡类型至少包含单选、多选、排序三类
+### 教师控制
+- `release_activity` 与 `open_browse` 分离；AI 区单独开放
+### 学生默认状态
+- 题面可见；作答卡默认隐藏；AI 区默认关闭
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-11`
-- 对齐要求：控制框图、三方案对照图和结论表必须同页。
+- 学生不看讲稿也知道“这页先要自己判断，再看 AI”
 
-## 步骤 12｜后测与收束：频域判断地图如何接到 `3-9` 与模块 4
-
+## 步骤 15｜航向控制案例：先把基线方案的问题读清楚
 ### 页面骨架
-- 模板：`summary_quiz_board`
-- 区域：`quiz` / `summary` / `next`
-
+- 模板：`case_baseline_board`
+- 区域：`problem / figure / activity`
 ### 模块清单
-- `posttest-group`：后测题组
-- `summary-card-row`：四条结论卡
-- `info-graphic`：`3-8-info.png`
-- `next-step-card`：去向卡
-
+- `case-context-card`
+- `baseline-2x2-figure`
+- `metric-strip`
+- `evidence-mark-cards`
 ### 静态承载内容
-- 四条结论卡固定为：
-  1. 频域是统一翻译器，不是新章孤岛；
-  2. Nyquist 与 Bode 说的是同一个稳定边界问题；
-  3. 低频、中频、高频分别承担精度、速度与代价判断；
-  4. 有效校正不是盲目改增益，而是定向改写关键频带。
-- 去向卡固定写明：
-  - `3-9`：把今天的频域判断链放回同一对象的多版本比较；
-  - 模块 4：把“读懂频域”推进到“按约束形成设计行动”。
-
+- 基线对象来源与 `K=2.25` 说明
+- 基线 `2×2` 图
+- 四个基线指标：相角裕度、截止频率、超调量、调节时间
+### 混合证据顺序
+- 案例背景 -> 基线 `2×2` 图 -> 指标条 -> 证据标注卡
 ### 互动升级点
-- 组件类型：`quiz_group`
-- 后测题固定围绕：
-  - `P/N/Z` 顺序
-  - 截止频率与裕度的关系
-  - 目标切换下的频带优先级
-  - 非最小相的边界直觉
-
-### 埋点与教师数据
-- 埋点摘要：`attemptCount`、`resultState`、`exitReflection`
-- 教师聚合：`posttest_distribution`、`top_remaining_confusions`
-
-### AI 边界
-- 允许范围：本课四条结论与下一课去向
-- 禁止范围：把模块 4 的方案设计提前展开
-
+- 学生用证据标注卡回答“主要问题不在低频，而在中频余量偏小”
+### 教师控制
+- 可切换各子图高亮层，不开放参数编辑
+### 学生默认状态
+- 图和指标可见；标注卡默认隐藏
 ### 预览口径
-- 学生页预览：`/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-12`
-- 对齐要求：后测题、四条结论、信息图和去向卡必须同页完整出现。
+- 学生能先读懂“原系统哪里不好”，再进入校正
+
+## 步骤 16｜航向控制案例：把时域指标翻译成频域目标，再看超前校正
+### 页面骨架
+- 模板：`case_translation_compare`
+- 区域：`translation / compare / activity`
+### 模块清单
+- `translation-chain-card`
+- `lead-network-card`
+- `compare-2x2-figure`
+- `metrics-table`
+- `structured-compare-zone`
+### 静态承载内容
+- `Mp -> ζ -> PM` 链
+- `ts -> ωn -> ωc` 链
+- 超前网络 `C_h(s)` 与基线 / 校正后对照
+### 混合证据顺序
+- 指标翻译链 -> 超前网络 -> 前后对照图 -> 指标表 -> 比较卡
+### 互动升级点
+- 结构化比较卡要求学生指出主改频带、关键频域量变化、对应时域收益
+### 教师控制
+- 可逐段显影翻译链；参考答案与比较卡答案分离
+### 学生默认状态
+- 翻译链与对照图可见；比较卡默认隐藏
+### 预览口径
+- 学生能独立看懂为什么超前校正是中频动作
+
+## 步骤 17｜稳定平台案例：为什么“只改增益”会左右为难
+### 页面骨架
+- 模板：`scheme_problem_board`
+- 区域：`structure / figure / activity`
+### 模块清单
+- `platform-structure-graphic`
+- `aggressive-vs-slow-figure`
+- `contradiction-note`
+- `scheme-vote-cards`
+### 静态承载内容
+- 控制框图
+- 激进基线与仅降增益的对照
+- 矛盾句：快但冒进，稳但太慢
+### 混合证据顺序
+- 控制框图 -> 双方案对照 -> 矛盾句 -> 方案投票卡
+### 互动升级点
+- 投票卡要求学生先判断“哪一个只是退回保守”
+### 教师控制
+- 允许只高亮某一方案的四个子图
+### 学生默认状态
+- 结构图与双方案图可见；投票卡默认隐藏
+### 预览口径
+- 学生先看懂问题结构，再进入真正解法
+
+## 步骤 18｜稳定平台案例：超前校正怎样兼顾速度和平稳
+### 页面骨架
+- 模板：`scheme_compare_lab`
+- 区域：`figure / table / activity`
+### 模块清单
+- `three-scheme-2x2-figure`
+- `metrics-table`
+- `fixed-conclusion-card`
+- `structured-compare-zone`
+### 静态承载内容
+- 三方案完整对照
+- 指标表与固定结论：超前校正通过中频补角兼顾速度和平稳
+### 混合证据顺序
+- 三方案图 -> 指标表 -> 固定结论 -> 结构化比较卡
+### 互动升级点
+- 比较卡要求学生写清“只降增益为什么不够”“超前校正主改哪一段频带”
+### 教师控制
+- 可切换三方案叠加；答案显影与方案切换分离
+### 学生默认状态
+- 图表可见；比较卡默认隐藏
+### 预览口径
+- 学生能独立解释为什么最终方案不是简单改比例增益
+
+## 步骤 19｜后测：把完整判断链独立走一遍
+### 页面骨架
+- 模板：`posttest_board`
+- 区域：`questions / review / class`
+### 模块清单
+- `posttest-card-group`
+- `remaining-confusion-note`
+- `teacher-aggregation-strip`
+### 静态承载内容
+- 后测覆盖：`P/N/Z` 顺序、Bode 边界判断、频带优先级、非最小相边界
+### 混合证据顺序
+- 题组 -> 错因回看 -> 班级聚合条
+### 互动升级点
+- 后测仍采用独立题卡，不使用整页统一提交
+### 教师控制
+- 发放、答案、班级薄弱项三类控制分离
+### 学生默认状态
+- 题卡默认隐藏，发放后显示
+### 预览口径
+- 学生可完整独立跑一遍判断链
+
+## 步骤 20｜总结与去向：`3-9` 和模块 4 从哪里接走本课
+### 页面骨架
+- 模板：`summary_exit_board`
+- 区域：`summary / info / next`
+### 模块清单
+- `summary-card-row`
+- `info-graphic`
+- `next-step-card`
+- `reflection-card`
+### 静态承载内容
+- 四条结论卡
+- `3-8-info.png`
+- 去向：`3-9` 的多版本映射与模块 4 的约束驱动设计
+### 混合证据顺序
+- 四条结论 -> 信息图 -> 去向卡 -> 一句话反思
+### 互动升级点
+- 仅保留一句反思卡，不再承担教学内容新增
+### 教师控制
+- 无作答发放；仅允许显示 / 隐藏反思卡
+### 学生默认状态
+- 全部静态可见，反思卡可选填写
+### 预览口径
+- 学生离开本课时能复述主线，并知道下一课从哪里接续

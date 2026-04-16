@@ -14,7 +14,7 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   finalizeUNIT_3_7TeacherSession,
   getUNIT_3_7MediaSrc,
-  isUNIT_3_7AiPageType,
+  isUNIT_3_7ActivityFirstStep,
   isUNIT_3_7TeacherSyncState,
   resolveUNIT_3_7TeacherSyncDraft,
   shouldPostUNIT_3_7TeacherSync,
@@ -29,7 +29,6 @@ import {
 import { UNIT_3_7CourseHeader } from './course-header';
 import {
   UNIT_3_7KnowledgeMapVisual,
-  UNIT_3_7StepAiAssistant,
   UNIT_3_7StepContentPanel,
   UNIT_3_7TeacherActivitySummary,
 } from './step-panels';
@@ -183,19 +182,6 @@ export function UNIT_3_7TeacherPage({
     }
   }, [finishSession, router, sessionInfo, step.id, trackSessionFinalize]);
 
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
-
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
       trackWorkspaceParamChange(step.id, {
@@ -214,6 +200,38 @@ export function UNIT_3_7TeacherPage({
       </div>
     );
   }
+
+  const activityFirst = isUNIT_3_7ActivityFirstStep(step.id);
+  const contentPanel = (
+    <UNIT_3_7StepContentPanel
+      step={step}
+      mediaSrc={getUNIT_3_7MediaSrc(step.id)}
+      mediaAlt={step.title}
+      onWorkspaceParameterChange={handleWorkspaceParameterChange}
+    />
+  );
+  const teacherSummaryPanel = (
+    <div className="mt-4">
+      <UNIT_3_7TeacherActivitySummary
+        step={step}
+        responses={currentResponses}
+        released={Boolean(releasedActivities[step.id])}
+        answerVisible={Boolean(revealedAnswers[step.id])}
+        onToggleRelease={() =>
+          setLocalReleasedActivities((prev) => ({
+            ...(prev ?? (teacherSyncState as UNIT_3_7TeacherCourseSyncState | null)?.releasedActivities ?? {}),
+            [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_7TeacherCourseSyncState | null)?.releasedActivities?.[step.id]),
+          }))
+        }
+        onToggleAnswerVisible={() =>
+          setLocalRevealedAnswers((prev) => ({
+            ...(prev ?? (teacherSyncState as UNIT_3_7TeacherCourseSyncState | null)?.revealedAnswers ?? {}),
+            [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_7TeacherCourseSyncState | null)?.revealedAnswers?.[step.id]),
+          }))
+        }
+      />
+    </div>
+  );
 
   return (
     <div className="premium-lesson-shell">
@@ -285,39 +303,8 @@ export function UNIT_3_7TeacherPage({
 
         {step.id === 'step-01' ? <UNIT_3_7KnowledgeMapVisual /> : null}
 
-        <UNIT_3_7StepContentPanel
-          step={step}
-          mediaSrc={getUNIT_3_7MediaSrc(step.id)}
-          mediaAlt={step.title}
-          onWorkspaceParameterChange={handleWorkspaceParameterChange}
-        />
-
-        {isUNIT_3_7AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_7StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
-
-        <div className="mt-4">
-          <UNIT_3_7TeacherActivitySummary
-            step={step}
-            responses={currentResponses}
-            released={Boolean(releasedActivities[step.id])}
-            answerVisible={Boolean(revealedAnswers[step.id])}
-            onToggleRelease={() =>
-              setLocalReleasedActivities((prev) => ({
-                ...(prev ?? (teacherSyncState as UNIT_3_7TeacherCourseSyncState | null)?.releasedActivities ?? {}),
-                [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_7TeacherCourseSyncState | null)?.releasedActivities?.[step.id]),
-              }))
-            }
-            onToggleAnswerVisible={() =>
-              setLocalRevealedAnswers((prev) => ({
-                ...(prev ?? (teacherSyncState as UNIT_3_7TeacherCourseSyncState | null)?.revealedAnswers ?? {}),
-                [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_7TeacherCourseSyncState | null)?.revealedAnswers?.[step.id]),
-              }))
-            }
-          />
-        </div>
+        {activityFirst ? teacherSummaryPanel : contentPanel}
+        {activityFirst ? contentPanel : teacherSummaryPanel}
       </main>
     </div>
   );

@@ -3,7 +3,8 @@
 <Skill-use>
 以下技能为本项目专用技能，无法使用superpowers using skill调用，需要直接读取技能文件，并按需读取参考文件或调用脚本。
 - homework-problem-authoring：制作课后作业
-- interactive-lesson-implement：互动课程实现
+- interactive-design：互动课程设计
+- interactive-lesson-implementation：互动课程实现
 - lesson：课程资料制作
 - lesson-content-review：课程内容审核
 - memory-maintenance：项目长期记忆管理
