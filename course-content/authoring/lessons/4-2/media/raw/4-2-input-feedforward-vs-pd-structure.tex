@@ -1,0 +1,62 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage[UTF8]{ctex}
+\input{/Users/YW/.cc-switch/skills/tikz-control-draw/scripts/styles/block_styles.tex}
+\usetikzlibrary{positioning,calc}
+
+\tikzset{
+  titletext/.style={font=\fontsize{9}{11}\selectfont\bfseries, text=labelcolor},
+  cn label/.style={font=\scriptsize, text=labelcolor},
+  block cn/.style={block large, minimum width=2.1cm, minimum height=1.15cm, font=\scriptsize\bfseries},
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=1.35cm and 1.3cm]
+  \begin{scope}[shift={(0,0)}]
+    \node[titletext, anchor=west] at (0,2.1) {按输入补偿前馈};
+    \node[cn label] (r1) at (0,0) {给定 $r(s)$};
+    \node[sum, right=1.2cm of r1] (sum11) {};
+    \node[block cn, right=1.45cm of sum11] (c1) {反馈控制器\\$C(s)=4$};
+    \node[sum, right=1.7cm of c1] (sum12) {};
+    \node[block cn, right=1.45cm of sum12] (p1) {被控对象\\$P(s)$};
+    \node[tap, right=1.0cm of p1] (ytap1) {};
+    \node[cn label, right=0.9cm of ytap1] (y1) {输出 $y(s)$};
+    \node[tap] (rtap1) at ($(r1)!0.55!(sum11)$) {};
+    \node[block cn] (ff1) at ($(sum12)+(0,1.75)$) {输入前馈\\$F(s)=s$};
+    \coordinate (fb1) at ($(sum11)+(0,-0.75)$);
+
+    \draw[signal] (r1) -- (rtap1) -- (sum11);
+    \draw[signal] (sum11) -- node[label above] {$e(s)$} (c1);
+    \draw[signal] (c1) -- node[label above] {$u_{\mathrm{fb}}(s)$} (sum12);
+    \draw[signal] (sum12) -- node[label above] {$u(s)$} (p1);
+    \draw[signal] (p1) -- (ytap1) -- (y1);
+    \draw[signal] (rtap1) |- (ff1.west);
+    \draw[signal] (ff1) -- node[label right] {$u_{\mathrm{ff}}(s)$} (sum12.north);
+    \draw[signal] (ytap1) |- (fb1) -| (sum11.south);
+
+    \node[cn label] at ($(sum11)+(-0.32,0.28)$) {$+$};
+    \node[cn label] at ($(sum11)+(-0.32,-0.28)$) {$-$};
+    \node[cn label] at ($(sum12)+(-0.32,0.28)$) {$+$};
+    \node[cn label] at ($(sum12)+(0.32,0.28)$) {$+$};
+  \end{scope}
+
+  \begin{scope}[shift={(0,-4.25)}]
+    \node[titletext, anchor=west] at (0,2.1) {PD 串入反馈主环路};
+    \node[cn label] (r2) at (0,0) {给定 $r(s)$};
+    \node[sum, right=1.2cm of r2] (sum21) {};
+    \node[block cn, right=1.45cm of sum21] (cpd2) {PD 控制器\\$C_{\mathrm{PD}}(s)=4+s$};
+    \node[block cn, right=1.55cm of cpd2] (p2) {被控对象\\$P(s)$};
+    \node[tap, right=1.0cm of p2] (ytap2) {};
+    \node[cn label, right=0.9cm of ytap2] (y2) {输出 $y(s)$};
+    \coordinate (fb2) at ($(sum21)+(0,-0.75)$);
+
+    \draw[signal] (r2) -- (sum21);
+    \draw[signal] (sum21) -- node[label above] {$e(s)$} (cpd2);
+    \draw[signal] (cpd2) -- node[label above] {$u(s)$} (p2);
+    \draw[signal] (p2) -- (ytap2) -- (y2);
+    \draw[signal] (ytap2) |- (fb2) -| (sum21.south);
+
+    \node[cn label] at ($(sum21)+(-0.32,0.28)$) {$+$};
+    \node[cn label] at ($(sum21)+(-0.32,-0.28)$) {$-$};
+  \end{scope}
+\end{tikzpicture}
+\end{document}
