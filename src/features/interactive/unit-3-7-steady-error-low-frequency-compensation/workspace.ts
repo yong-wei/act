@@ -112,7 +112,7 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
   'step-05': [
     {
       key: 'formula_path',
-      label: '卡片 1',
+      label: '1. 终值定理直接求的首要动作是什么？',
       prompt: '终值定理直接求的首要动作是什么？',
       inputKind: 'single_choice',
       options: [
@@ -123,7 +123,7 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
     },
     {
       key: 'result_reason',
-      label: '卡片 2',
+      label: '2. 为什么例题 1 最后只剩 1/K？',
       prompt: '为什么例题 1 最后只剩 `1/K` 这一项？',
       inputKind: 'text',
       placeholder: '说明是哪个输入分量决定了最终误差……',
@@ -132,7 +132,7 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
   'step-07': [
     {
       key: 'first_move',
-      label: '卡片 1',
+      label: '1. 例题 2 第一动作应是什么？',
       prompt: '例题 2 第一动作应是什么？',
       inputKind: 'single_choice',
       options: [
@@ -143,7 +143,7 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
     },
     {
       key: 'formula_reason',
-      label: '卡片 2',
+      label: '2. 为什么本题不能直接套型别表？',
       prompt: '为什么本题不能直接用型别与误差系数表得到 `e_ss = 0.4`？',
       inputKind: 'text',
       placeholder: '从双通道和总误差式说明……',
@@ -152,7 +152,7 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
   'step-10': [
     {
       key: 'gain_limit',
-      label: '卡片 1',
+      label: '1. 为什么纯增益不能把斜坡误差变为 0？',
       prompt: '为什么纯增益不能把斜坡误差变为 0？',
       inputKind: 'single_choice',
       options: [
@@ -163,7 +163,7 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
     },
     {
       key: 'pi_role',
-      label: '卡片 2',
+      label: '2. 在这个例题里，PI 的首要作用是什么？',
       prompt: '在这个例题里，PI 的首要作用是什么？',
       inputKind: 'single_choice',
       options: [
@@ -176,14 +176,14 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
   'step-11': [
     {
       key: 'gain_conflict',
-      label: '卡片 1',
+      label: '1. 为什么只靠纯增益会先跌出阻尼边界？',
       prompt: '为什么只靠纯增益把 Kv 提高到 10，会先跌出阻尼边界？',
       inputKind: 'text',
       placeholder: '因为 K 过大时……',
     },
     {
       key: 'lag_role',
-      label: '卡片 2',
+      label: '2. 滞后校正最关键的结构作用是什么？',
       prompt: '滞后校正最关键的结构作用是什么？',
       inputKind: 'single_choice',
       options: [
@@ -196,14 +196,14 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
   'step-13': [
     {
       key: 'gain_tradeoff',
-      label: '卡片 1',
+      label: '1. 为什么频域 PI 设计要先说明纯增益不能两头兼顾？',
       prompt: '为什么频域 PI 设计要先说明纯增益不能两头兼顾？',
       inputKind: 'text',
       placeholder: '因为 Kv 与相位裕度……',
     },
     {
       key: 'design_sequence',
-      label: '卡片 2',
+      label: '2. 频域 PI 设计链的顺序关键词是什么？',
       prompt: '写出频域 PI 设计链的顺序关键词。',
       inputKind: 'text',
       placeholder: '截止频率 -> 零点 -> 幅值条件 -> 回查',
@@ -212,14 +212,14 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
   'step-14': [
     {
       key: 'pd_type',
-      label: '卡片 1',
+      label: '1. 给定 PD 方案为什么不是低频精度优先？',
       prompt: '给定 PD 方案为什么仍然不是“低频精度优先”方案？',
       inputKind: 'text',
       placeholder: '因为它仍为 I 型……',
     },
     {
       key: 'pd_metrics',
-      label: '卡片 2',
+      label: '2. 哪项指标最能体现动态速度优先？',
       prompt: '哪项指标最能体现这个方案更偏动态速度优先？',
       inputKind: 'single_choice',
       options: [
@@ -235,7 +235,7 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
   'step-04': [
     {
       key: 'reference_output_tf',
-      label: '卡片 1',
+      label: '1. 下列哪一个是给定到输出传函？',
       prompt: '下列哪一个是“给定到输出传函”？',
       inputKind: 'single_choice',
       options: [
@@ -246,7 +246,7 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
     },
     {
       key: 'disturbance_channel_judgement',
-      label: '卡片 2',
+      label: '2. 显式扰动应先走哪条分析路径？',
       prompt: '显式扰动从哪一条信号判断链进入稳态误差分析？',
       inputKind: 'single_choice',
       options: [
@@ -259,7 +259,7 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
   'step-06': [
     {
       key: 'fast_path_scope',
-      label: '卡片 1',
+      label: '1. 哪类问题最适合优先用快判？',
       prompt: '哪类问题最适合优先用型别与静态误差系数快速判断？',
       inputKind: 'single_choice',
       options: [
@@ -270,7 +270,7 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
     },
     {
       key: 'type_rule',
-      label: '卡片 2',
+      label: '2. 判断是否必须引入积分时先看什么？',
       prompt: '如果目标是判断是否必须引入积分，第一步该看什么？',
       inputKind: 'text',
       placeholder: '先看型别……',
@@ -279,7 +279,7 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
   'step-09': [
     {
       key: 'pi_focus',
-      label: '卡片 1',
+      label: '1. PI 的结构抓手最适合归到哪一项？',
       prompt: 'PI 的结构抓手最适合归到哪一项？',
       inputKind: 'single_choice',
       options: [
@@ -290,7 +290,7 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
     },
     {
       key: 'lag_focus',
-      label: '卡片 2',
+      label: '2. 滞后校正最核心的收益是什么？',
       prompt: '滞后校正最核心的收益是什么？',
       inputKind: 'single_choice',
       options: [
@@ -303,7 +303,7 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
   'step-12': [
     {
       key: 'pi_scene',
-      label: '卡片 1',
+      label: '1. 斜坡误差结构性变成 0 时应先想到哪种方法？',
       prompt: '若目标是把斜坡误差结构性变成 0，应优先想到哪种方法？',
       inputKind: 'single_choice',
       options: [
@@ -313,7 +313,7 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
     },
     {
       key: 'lag_scene',
-      label: '卡片 2',
+      label: '2. 型别不变但 Kv 提高时更偏向哪种方法？',
       prompt: '若要求型别不变但 Kv 提高，应更偏向哪种方法？',
       inputKind: 'single_choice',
       options: [
@@ -325,7 +325,7 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
   'step-15': [
     {
       key: 'accuracy_priority',
-      label: '卡片 1',
+      label: '1. 低频精度优先时更接近哪种方案？',
       prompt: '若更强调低频精度优先，应更接近哪种方案？',
       inputKind: 'single_choice',
       options: [
@@ -335,7 +335,7 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
     },
     {
       key: 'speed_priority',
-      label: '卡片 2',
+      label: '2. 动态速度优先时更接近哪种方案？',
       prompt: '若更强调动态速度优先，应更接近哪种方案？',
       inputKind: 'single_choice',
       options: [

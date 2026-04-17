@@ -323,8 +323,7 @@ steps:
       step_reveal_policy: "teacher_or_browse_gate"
       activity_cards:
         - { id: "ex1-card-1", prompt: "第一步应先写什么？", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "ex1-card-2", prompt: "补全误差表达式核心因子。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "ex1-card-3", prompt: "按顺序排列三步法。", response_kind: "drag_sort", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "ex1-card-2", prompt: "为什么最终只剩 1/K？", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -402,8 +401,7 @@ steps:
       student_task: "回到例题 1，完成系统型别与误差结论快判。"
       activity_cards:
         - { id: "type-card-1", prompt: "判断系统型别。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "type-card-2", prompt: "匹配输入分量与误差结论。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "type-card-3", prompt: "补全 Ka 求法。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "type-card-2", prompt: "如果要判断是否必须引入积分，第一步该看什么？", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -480,8 +478,7 @@ steps:
       step_reveal_policy: "teacher_or_browse_gate"
       activity_cards:
         - { id: "ex2-card-1", prompt: "判断第一步动作。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "ex2-card-2", prompt: "补全总误差式缺项。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "ex2-card-3", prompt: "把给定项与扰动项连线。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "ex2-card-2", prompt: "为什么必须先列总误差式？", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -591,7 +588,7 @@ steps:
       - { id: "pi-formula-card", region: "formula", kind: "formula-card", must_be_visible: true }
       - { id: "lag-formula-card", region: "formula", kind: "formula-card", must_be_visible: true }
       - { id: "copy-card", region: "copy", kind: "copy-card", must_be_visible: true }
-      - { id: "low-frequency-figure", region: "figure", kind: "figure", must_be_visible: true }
+      - { id: "low-frequency-magnitude-workspace", region: "figure", kind: "analysis-workspace", must_be_visible: true }
       - { id: "comparison-table", region: "table", kind: "comparison-table", must_be_visible: true }
       - { id: "activity-card-grid", region: "activity", kind: "activity-card-set", must_be_visible: true }
     content_blocks:
@@ -611,7 +608,7 @@ steps:
       - id: "figure-and-table"
         type: "plain_text"
         title: "图表要求"
-        body: "固定使用 3-7-low-frequency-compensators.png，并保留表 4 的四列比较。"
+        body: "运行时统一使用 Rust/WASM 幅频工作区，并保留表 4 的四列比较；作者态图片仅作版式参考。"
     evidence_sequence:
       - "先出现公式组。"
       - "再出现基本文案。"
@@ -621,9 +618,8 @@ steps:
       interaction_kind: "activity_card_set"
       student_task: "完成方法、作用与代价的归类。"
       activity_cards:
-        - { id: "lf-card-1", prompt: "把方法与核心作用匹配。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "lf-card-2", prompt: "判断滞后是否等于弱积分。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "lf-card-3", prompt: "按低频与中频作用排序。", response_kind: "drag_sort", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "lf-card-1", prompt: "判断 PI 的结构抓手。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "lf-card-2", prompt: "判断滞后的核心收益。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -693,8 +689,7 @@ steps:
       step_reveal_policy: "teacher_or_browse_gate"
       activity_cards:
         - { id: "time-pi-card-1", prompt: "判断纯增益为何不够。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "time-pi-card-2", prompt: "补全可行域条件。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "time-pi-card-3", prompt: "选择 PI 的首要作用。", response_kind: "multi_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-pi-card-2", prompt: "选择 PI 的首要作用。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -765,8 +760,7 @@ steps:
       step_reveal_policy: "teacher_or_browse_gate"
       activity_cards:
         - { id: "time-lag-card-1", prompt: "判断纯增益失败原因。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "time-lag-card-2", prompt: "匹配零点、极点相对位置与作用。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "time-lag-card-3", prompt: "补全 Kv 结果。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-lag-card-2", prompt: "判断滞后的核心结构作用。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -836,8 +830,7 @@ steps:
       student_task: "完成时域两法的适用场景判断。"
       activity_cards:
         - { id: "time-compare-card-1", prompt: "把‘斜坡误差为 0’对应到方法。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "time-compare-card-2", prompt: "把收益与代价成对匹配。", response_kind: "match", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "time-compare-card-3", prompt: "选择适用场景。", response_kind: "multi_choice", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "time-compare-card-2", prompt: "把‘型别不变但 Kv 提高’对应到方法。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -908,8 +901,7 @@ steps:
       step_reveal_policy: "teacher_or_browse_gate"
       activity_cards:
         - { id: "freq-pi-card-1", prompt: "判断纯增益不兼容的原因。", response_kind: "single_choice", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "freq-pi-card-2", prompt: "补全设计顺序。", response_kind: "drag_sort", submit_scope: "per_card", layout_span: "one_third" }
-        - { id: "freq-pi-card-3", prompt: "填写零点放置原则。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
+        - { id: "freq-pi-card-2", prompt: "补全设计顺序。", response_kind: "fill_text", submit_scope: "per_card", layout_span: "one_third" }
       answer_reveal: "teacher_toggle"
       student_access:
         default_visibility: "hidden"
@@ -1107,6 +1099,10 @@ steps:
           - "哪类问题可先用型别和静态误差系数快速判断。"
           - "斜坡误差想从有限值变成 0，应先判断什么。"
           - "PI 与滞后各把收益放在哪、代价推向哪。"
+      - id: "title-card"
+        type: "plain_text"
+        title: "后测名称卡"
+        body: "先判断路径，再判断方法与代价落点。"
       - id: "error-tags"
         type: "bullet_list"
         title: "错因标签"
@@ -1115,7 +1111,8 @@ steps:
           - "PI 没有代价。"
           - "滞后只是更弱积分。"
     evidence_sequence:
-      - "先出现四道后测题卡。"
+      - "先出现后测名称卡。"
+      - "再出现四道后测题卡。"
       - "最后出现教师点评区。"
     interaction_spec:
       interaction_kind: "quiz_card_grid"

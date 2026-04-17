@@ -523,7 +523,7 @@ export function isUNIT_3_7AiPageType(_pageType: UNIT_3_7PageType) {
 }
 
 export function isUNIT_3_7ActivityFirstStep(stepId: string) {
-  return stepId === 'step-16';
+  return false;
 }
 
 export function createEmptyUNIT_3_7StudentState(studentName: string): UNIT_3_7StudentCourseState {
