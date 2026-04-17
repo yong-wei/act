@@ -272,6 +272,7 @@ steps:
     interaction_spec:
       interaction_kind: 'quiz_group'
       student_task: '完成四道前测题，并为每题提交一句理由。'
+      activity_card_rationale: '前测页属于题组页，四张卡分别对应四类典型误判，必须独立聚合错因，不能压成两道综合题。'
       step_reveal_policy:
         mode: 'none'
       activity_cards:
@@ -483,6 +484,7 @@ steps:
     interaction_spec:
       interaction_kind: 'curve_compare_panel'
       student_task: '切换四类结构变化，并完成频带、收益、代价三张独立作答卡。'
+      activity_card_rationale: '三张卡分别承载频带定位、收益判断、代价判断三种不同动作；若合并，会把“先判频带”再次压扁成泛化结论。'
       step_reveal_policy:
         mode: 'none'
       activity_cards:
@@ -619,6 +621,7 @@ steps:
     interaction_spec:
       interaction_kind: 'activity_cards'
       student_task: '完成三张独立作答卡，分别回答频带、收益与代价。'
+      activity_card_rationale: '例题页需要保持“先判频带，再配对收益与代价”的解题顺序，因此拆成三张卡，避免一道综合题掩盖具体误判。'
       step_reveal_policy:
         mode: 'teacher_or_browse_release'
         problem_statement: 'always_visible'
@@ -942,6 +945,7 @@ steps:
     interaction_spec:
       interaction_kind: 'matrix_choice_cards'
       student_task: '对四个对象分别判断 P、N、Z 与闭环稳定性。'
+      activity_card_rationale: '本页本质是四对象快判题组，必须保持一对象一判断卡，教师才能定位是哪一类图形或哪一步 P/N/Z 判断出错。'
       step_reveal_policy:
         mode: 'teacher_or_browse_release'
         problem_statement: 'always_visible'
@@ -1297,6 +1301,7 @@ steps:
     interaction_spec:
       interaction_kind: 'activity_cards'
       student_task: '完成三张独立作答卡，分别判断裕度正负、边界位置和回拉方向。'
+      activity_card_rationale: '三张卡分别对应裕度正负、边界位置和回拉方向，三者不是同一动作；若合并，会削弱 Bode 读图链。'
       step_reveal_policy:
         mode: 'teacher_or_browse_release'
         problem_statement: 'always_visible'
@@ -1515,6 +1520,7 @@ steps:
     interaction_spec:
       interaction_kind: 'goal_cards_plus_ai'
       student_task: '先完成独立判断卡，再查看 AI 对照并决定是否修订。'
+      activity_card_rationale: '本页需要依次完成首选频带、可动指标和操作顺序三种任务，再进入 AI 对照；三卡拆开才能保留“先自判、后修订”的顺序。'
       step_reveal_policy:
         mode: 'none'
       activity_cards:
@@ -1755,6 +1761,7 @@ steps:
     interaction_spec:
       interaction_kind: 'structured_compare'
       student_task: '指出主改频带、关键频域量变化，以及时域收益。'
+      activity_card_rationale: '三张比较卡分别承载主改频带、关键频域量与时域收益读回，正对应“翻译链”的三个环节，不能压成一句口号。'
       step_reveal_policy:
         mode: 'teacher_or_browse_release'
         problem_statement: 'always_visible'
@@ -2003,6 +2010,7 @@ steps:
     interaction_spec:
       interaction_kind: 'structured_compare'
       student_task: '解释为什么只降增益不够，以及超前校正主改哪一段频带。'
+      activity_card_rationale: '本页需要分别说明方案不足、主改频带和最终收益；三卡拆开可避免把工程比较压成一句“超前更好”的口号。'
       step_reveal_policy:
         mode: 'teacher_or_browse_release'
         problem_statement: 'always_visible'
@@ -2126,6 +2134,7 @@ steps:
     interaction_spec:
       interaction_kind: 'quiz_group'
       student_task: '完成四张后测题卡，并提交一句出口自检。'
+      activity_card_rationale: '后测页属于题组页，四张卡分别检查顺序、边界、频带和非最小相直觉，必须独立统计残余错因。'
       step_reveal_policy:
         mode: 'none'
       activity_cards:

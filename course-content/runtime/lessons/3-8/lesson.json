@@ -80,7 +80,11 @@
         "step_ids": [
           "step-06",
           "step-07",
-          "step-08"
+          "step-08",
+          "step-09",
+          "step-10",
+          "step-11",
+          "step-12"
         ],
         "node_ids": [
           "幅角原理_5_f843970e",
@@ -94,9 +98,12 @@
       {
         "group_name": "三频段分工与工程案例读回",
         "step_ids": [
-          "step-09",
-          "step-10",
-          "step-11"
+          "step-13",
+          "step-14",
+          "step-15",
+          "step-16",
+          "step-17",
+          "step-18"
         ],
         "node_ids": [
           "频率特性_5_404adfdd",
@@ -110,7 +117,8 @@
       {
         "group_name": "后测与模块出口收束",
         "step_ids": [
-          "step-12"
+          "step-19",
+          "step-20"
         ],
         "node_ids": [
           "结构变化的频域指纹_3_38001",
