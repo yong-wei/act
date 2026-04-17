@@ -10,70 +10,27 @@ import type {
   CurvePoint,
   RootLocusData,
 } from '../analysis/types';
+import {
+  axisTooltipFormatter,
+  buildBodePanelOption,
+  buildMarginSeries,
+  formatAxisValue,
+  getControlAxisPreset,
+  getRootLocusAxisKey,
+  type AxisPreset,
+  type RootLocusMode,
+} from './control-bode-options';
 import { ControlChartPanel } from './control-chart-panel';
 
 type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
 type ChartSeriesItem = ChartSeriesValue extends (infer Item)[] ? Item : ChartSeriesValue;
 type ChartSeriesArray = ChartSeriesItem[];
-type ControlCaseId = string;
-type AxisKey = 'step' | 'magnitude' | 'phase' | 'rootLocus' | 'rootLocusFull' | 'rootLocusZoom' | 'nyquist';
-type RootLocusMode = 'default' | 'full' | 'zoom';
-
-interface AxisPreset {
-  x: [number, number];
-  y: [number, number];
-}
-
-const CONTROL_AXIS_PRESETS: Record<string, Partial<Record<AxisKey, AxisPreset>>> = {
-  ship_heading: {
-    step: { x: [0, 160], y: [0, 1.4] },
-    magnitude: { x: [1e-3, 10], y: [-90, 50] },
-    phase: { x: [1e-3, 10], y: [-270, -90] },
-    rootLocus: { x: [-3.2, 0.4], y: [-0.8, 0.8] },
-    rootLocusFull: { x: [-3.2, 0.4], y: [-0.8, 0.8] },
-    rootLocusZoom: { x: [-3.2, 0.4], y: [-0.8, 0.8] },
-    nyquist: { x: [-1.6, 1.2], y: [-1.6, 1.6] },
-  },
-  platform_pitch: {
-    step: { x: [0, 2], y: [0, 1.4] },
-    magnitude: { x: [1e-1, 1e4], y: [-150, 70] },
-    phase: { x: [1e-1, 1e4], y: [-360, -90] },
-    rootLocus: { x: [-140, 4], y: [-80, 80] },
-    rootLocusFull: { x: [-1100, 50], y: [-80, 80] },
-    rootLocusZoom: { x: [-140, 4], y: [-80, 80] },
-    nyquist: { x: [-1.6, 1.2], y: [-1.6, 1.6] },
-  },
-  unit35_step04: {
-    rootLocus: { x: [-4.5, 0.5], y: [-2.4, 2.4] },
-    rootLocusFull: { x: [-4.5, 0.5], y: [-2.4, 2.4] },
-    rootLocusZoom: { x: [-4.5, 0.5], y: [-2.4, 2.4] },
-  },
-  unit35_step05: {
-    rootLocus: { x: [-4.8, 0.5], y: [-3.2, 3.2] },
-    rootLocusFull: { x: [-4.8, 0.5], y: [-3.2, 3.2] },
-    rootLocusZoom: { x: [-4.8, 0.5], y: [-3.2, 3.2] },
-  },
-};
 
 function toSeriesArray(series?: EChartsCoreOption['series']): ChartSeriesArray {
   if (!series) {
     return [];
   }
   return Array.isArray(series) ? [...series] as ChartSeriesArray : [series as ChartSeriesItem];
-}
-
-function getAxisPreset(caseId: string | undefined, axisKey: AxisKey): AxisPreset | undefined {
-  return caseId ? CONTROL_AXIS_PRESETS[caseId]?.[axisKey] : undefined;
-}
-
-function getRootLocusAxisKey(mode: RootLocusMode): AxisKey {
-  if (mode === 'full') {
-    return 'rootLocusFull';
-  }
-  if (mode === 'zoom') {
-    return 'rootLocusZoom';
-  }
-  return 'rootLocus';
 }
 
 function formatFixed(value: number | null | undefined, suffix = ''): string {
@@ -83,40 +40,10 @@ function formatFixed(value: number | null | undefined, suffix = ''): string {
   return `${value.toFixed(2)}${suffix}`;
 }
 
-function formatAxisValue(value: number): string {
-  const absolute = Math.abs(value);
-  if ((absolute > 0 && absolute < 0.01) || absolute >= 1000) {
-    return value.toExponential(2);
-  }
-  return value.toFixed(2);
-}
-
 function formatComplex(point: ComplexPoint): string {
   const imagAbs = Math.abs(point.im);
   const imag = `${point.im >= 0 ? '+' : '-'}j${imagAbs.toFixed(2)}`;
   return `${point.re.toFixed(2)}${imag}`;
-}
-
-function axisTooltipFormatter(params: unknown): string {
-  const rows = Array.isArray(params) ? params : [params];
-  const items = rows as Array<{
-    axisValue?: number | string;
-    marker?: string;
-    seriesName?: string;
-    value?: number[] | string | number;
-  }>;
-  const axisValue = items[0]?.axisValue;
-  const header = axisValue == null || !Number.isFinite(Number(axisValue))
-    ? ''
-    : formatAxisValue(Number(axisValue));
-  const body = items
-    .map((item) => {
-      const rawValue = Array.isArray(item.value) ? item.value[item.value.length - 1] : item.value;
-      const numberValue = typeof rawValue === 'number' ? rawValue : Number(rawValue);
-      return `${item.marker ?? ''}${item.seriesName ?? ''} ${formatFixed(numberValue)}`;
-    })
-    .join('<br/>');
-  return header ? `${header}<br/>${body}` : body;
 }
 
 function pointTooltipFormatter(params: { seriesName?: string; value?: number[] | string | number }): string {
@@ -148,82 +75,6 @@ function buildPoleText(points: ComplexPoint[]): ReactNode {
   return points.map((point, index) => `p${index + 1}=${formatComplex(point)}`).join(' | ');
 }
 
-function buildMarginSeries(metrics: ControlMetrics, mode: 'magnitude' | 'phase'): ChartSeriesArray {
-  const gainCross = metrics.gainCrossoverRadPerSec;
-  const phaseCross = metrics.phaseCrossoverRadPerSec;
-  const phaseMargin = metrics.phaseMarginDeg;
-  const gainMargin = metrics.gainMarginDb;
-
-  if (mode === 'magnitude') {
-    return [
-      {
-        name: '0 dB',
-        type: 'line',
-        showSymbol: false,
-        lineStyle: { color: 'rgba(148, 163, 184, 0.6)', type: 'dashed', width: 1.2 },
-        data: [],
-        markLine: {
-          symbol: 'none',
-          label: { formatter: '0 dB' },
-          lineStyle: { color: 'rgba(148, 163, 184, 0.6)', type: 'dashed' },
-          data: [{ yAxis: 0 }],
-        },
-      },
-      ...(gainCross != null
-        ? [{
-            name: '相角裕度交越',
-            type: 'scatter',
-            symbolSize: 10,
-            itemStyle: { color: '#22d3ee' },
-            data: [[gainCross, 0]],
-          } satisfies ChartSeriesItem]
-        : []),
-      ...(phaseCross != null && gainMargin != null
-        ? [{
-            name: '增益裕度交越',
-            type: 'scatter',
-            symbolSize: 10,
-            itemStyle: { color: '#f97316' },
-            data: [[phaseCross, -gainMargin]],
-          } satisfies ChartSeriesItem]
-        : []),
-    ];
-  }
-
-  return [
-    {
-      name: '-180°',
-      type: 'line',
-      showSymbol: false,
-      lineStyle: { color: 'rgba(148, 163, 184, 0.6)', type: 'dashed', width: 1.2 },
-      data: [],
-      markLine: {
-        symbol: 'none',
-        label: { formatter: '-180°' },
-        lineStyle: { color: 'rgba(148, 163, 184, 0.6)', type: 'dashed' },
-        data: [{ yAxis: -180 }],
-      },
-    },
-    ...(gainCross != null && phaseMargin != null
-      ? [{
-          name: '相角裕度交越',
-          type: 'scatter',
-          symbolSize: 10,
-          itemStyle: { color: '#22d3ee' },
-          data: [[gainCross, phaseMargin - 180]],
-        } satisfies ChartSeriesItem]
-      : []),
-    ...(phaseCross != null
-      ? [{
-          name: '增益裕度交越',
-          type: 'scatter',
-          symbolSize: 10,
-          itemStyle: { color: '#f97316' },
-          data: [[phaseCross, -180]],
-        } satisfies ChartSeriesItem]
-      : []),
-  ];
-}
 
 function buildLineOption(
   points: CurvePoint[],
@@ -357,7 +208,7 @@ function buildRootLocusOption(
   mode: RootLocusMode = 'default',
   axisPresetOverride?: AxisPreset,
 ): EChartsCoreOption {
-  const axisPreset = axisPresetOverride ?? getAxisPreset(caseId, getRootLocusAxisKey(mode));
+  const axisPreset = axisPresetOverride ?? getControlAxisPreset(caseId, getRootLocusAxisKey(mode));
   const showFeasible = mode !== 'full';
   const locusBranches = mode === 'full' && rootLocus.fullBranches ? rootLocus.fullBranches : rootLocus.branches;
   const series: ChartSeriesArray = [
@@ -439,7 +290,7 @@ function buildRootLocusOption(
 }
 
 function buildNyquistOption(result: ControlAnalysisResult, caseId?: string): EChartsCoreOption {
-  const axisPreset = getAxisPreset(caseId, 'nyquist');
+  const axisPreset = getControlAxisPreset(caseId, 'nyquist');
   return {
     animation: false,
     grid: { top: 18, right: 18, bottom: 42, left: 58 },
@@ -490,107 +341,13 @@ function buildNyquistOption(result: ControlAnalysisResult, caseId?: string): ECh
   };
 }
 
-function buildBodePanelOption(result: ControlAnalysisResult, caseId?: string): EChartsCoreOption {
-  const magnitudeAxis = getAxisPreset(caseId, 'magnitude');
-  const phaseAxis = getAxisPreset(caseId, 'phase');
-  const magnitudeMarginSeries = buildMarginSeries(result.metrics, 'magnitude');
-  const phaseMarginSeries = buildMarginSeries(result.metrics, 'phase');
-
-  return {
-    animation: false,
-    tooltip: {
-      trigger: 'axis',
-      formatter: axisTooltipFormatter,
-    },
-    grid: [
-      { top: 18, right: 18, bottom: '56%', left: 62 },
-      { top: '58%', right: 18, bottom: 42, left: 62 },
-    ],
-    xAxis: [
-      {
-        type: 'log',
-        min: magnitudeAxis?.x[0],
-        max: magnitudeAxis?.x[1],
-        axisLabel: {
-          formatter: formatAxisValue,
-        },
-        splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
-      },
-      {
-        type: 'log',
-        min: phaseAxis?.x[0],
-        max: phaseAxis?.x[1],
-        gridIndex: 1,
-        name: 'ω / rad/s',
-        nameLocation: 'middle',
-        nameGap: 28,
-        axisLabel: {
-          formatter: formatAxisValue,
-        },
-        splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
-      },
-    ],
-    yAxis: [
-      {
-        type: 'value',
-        min: magnitudeAxis?.y[0],
-        max: magnitudeAxis?.y[1],
-        name: '幅值 / dB',
-        nameLocation: 'middle',
-        nameGap: 40,
-        axisLabel: {
-          formatter: formatAxisValue,
-        },
-        splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
-      },
-      {
-        type: 'value',
-        min: phaseAxis?.y[0],
-        max: phaseAxis?.y[1],
-        gridIndex: 1,
-        name: '相位 / deg',
-        nameLocation: 'middle',
-        nameGap: 44,
-        axisLabel: {
-          formatter: formatAxisValue,
-        },
-        splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.12)' } },
-      },
-    ],
-    series: [
-      {
-        name: '幅频',
-        type: 'line',
-        showSymbol: false,
-        lineStyle: { color: '#a78bfa', width: 2.5 },
-        data: result.magnitude.points.map((point) => [point.x, point.y]),
-      },
-      ...magnitudeMarginSeries,
-      {
-        name: '相频',
-        type: 'line',
-        xAxisIndex: 1,
-        yAxisIndex: 1,
-        showSymbol: false,
-        lineStyle: { color: '#fb7185', width: 2.5 },
-        data: result.phase.points.map((point) => [point.x, point.y]),
-      },
-      ...phaseMarginSeries.map((series) => ({
-        ...series,
-        xAxisIndex: 1,
-        yAxisIndex: 1,
-      })),
-    ],
-  };
-}
-
 function fallbackNode(result: ControlAnalysisResult): ReactNode {
   return result.isFallback ? result.fallbackMessage ?? '当前显示离线基线结果。' : null;
 }
 
 export function StepResponsePanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
   const option = buildLineOption(result.stepResponse.points, '#22d3ee', '时间 / s', '响应', {
-    axisPreset: getAxisPreset(caseId, 'step'),
+    axisPreset: getControlAxisPreset(caseId, 'step'),
   });
   return (
     <ControlChartPanel
@@ -606,7 +363,7 @@ export function StepResponsePanel({ result, caseId }: { result: ControlAnalysisR
 export function MagnitudePanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
   const option = buildLineOption(result.magnitude.points, '#a78bfa', 'ω / rad/s', '幅值 / dB', {
     xAxisType: 'log',
-    axisPreset: getAxisPreset(caseId, 'magnitude'),
+    axisPreset: getControlAxisPreset(caseId, 'magnitude'),
     extraSeries: buildMarginSeries(result.metrics, 'magnitude'),
   });
   return (
@@ -623,7 +380,7 @@ export function MagnitudePanel({ result, caseId }: { result: ControlAnalysisResu
 export function PhasePanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
   const option = buildLineOption(result.phase.points, '#fb7185', 'ω / rad/s', '相位 / deg', {
     xAxisType: 'log',
-    axisPreset: getAxisPreset(caseId, 'phase'),
+    axisPreset: getControlAxisPreset(caseId, 'phase'),
     extraSeries: buildMarginSeries(result.metrics, 'phase'),
   });
   return (

@@ -12,7 +12,9 @@ import 'katex/dist/katex.min.css';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
 import type { ControlAnalysisRequest, ControlAnalysisResult, CurvePoint } from '@/resources/control-system/analysis/types';
-import { MagnitudePanel } from '@/resources/control-system/charts/control-analysis-panels';
+import { BodePanel } from '@/resources/control-system/charts/control-analysis-panels';
+import { buildBodeComparisonOption, UNIT_37_LOW_FREQUENCY_BODE_CASE_ID } from '@/resources/control-system/charts/control-bode-options';
+import { ControlChartPanel } from '@/resources/control-system/charts/control-chart-panel';
 import type { UNIT_3_7StepDefinition, UNIT_3_7StepResponse } from '@/lib/unit-3-7-course';
 import {
   ACTIVITY_CARD_FIELDS,
@@ -72,6 +74,11 @@ const MARKDOWN_COMPONENTS = {
   code: ({ children }: { children?: ReactNode }) => (
     <code className="rounded bg-background/80 px-1.5 py-0.5 text-[0.9em]">{children}</code>
   ),
+};
+
+const INLINE_MARKDOWN_COMPONENTS = {
+  code: MARKDOWN_COMPONENTS.code,
+  p: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
 };
 
 const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
@@ -406,6 +413,7 @@ interface LowFrequencyStructureOption {
   description: string;
   parameters: Record<string, number>;
   fallbackMagnitude: readonly CurvePoint[];
+  fallbackPhase: readonly CurvePoint[];
 }
 
 const REVEAL_STEP_CONTENT: Record<string, readonly RevealStepItem[]> = {
@@ -551,12 +559,38 @@ const REVEAL_STEP_CONTENT: Record<string, readonly RevealStepItem[]> = {
   ],
 };
 
+const LOW_FREQUENCY_SAMPLE_POINTS = [0.01, 0.028, 0.078, 0.216, 0.602, 1.678, 4.673, 13.019, 36.267, 100] as const;
+
+function toDegrees(value: number) {
+  return (value * 180) / Math.PI;
+}
+
+function buildFallbackPhase(
+  key: LowFrequencyStructureOption['key'],
+  parameters: Record<string, number>,
+): readonly CurvePoint[] {
+  return LOW_FREQUENCY_SAMPLE_POINTS.map((omega) => {
+    if (key === 'pi') {
+      const ti = parameters.ti ?? 1;
+      return { x: omega, y: toDegrees(-Math.atan(1 / (omega * ti))) };
+    }
+    if (key === 'lag') {
+      const t = parameters.t ?? 1;
+      const beta = parameters.beta ?? 10;
+      return { x: omega, y: toDegrees(Math.atan(omega * t) - Math.atan(omega * beta * t)) };
+    }
+    const t = parameters.t ?? 1;
+    const alpha = parameters.alpha ?? 0.1;
+    return { x: omega, y: toDegrees(Math.atan(omega * t) - Math.atan(omega * alpha * t)) };
+  });
+}
+
 const LOW_FREQUENCY_STRUCTURE_OPTIONS: readonly LowFrequencyStructureOption[] = [
   {
     key: 'pi',
-    label: 'PI 幅频特性',
+    label: 'PI',
     color: '#0ea5e9',
-    description: '低频增益显著抬高，本质是通过积分提高型别。',
+    description: '通过积分提高型别，低频收益最强，但也会带来更多相位滞后。',
     parameters: { k: 1, ti: 1 },
     fallbackMagnitude: [
       { x: 0.01, y: 33.98 },
@@ -570,12 +604,13 @@ const LOW_FREQUENCY_STRUCTURE_OPTIONS: readonly LowFrequencyStructureOption[] = 
       { x: 36.267, y: 0.0 },
       { x: 100, y: 0.0 },
     ],
+    fallbackPhase: buildFallbackPhase('pi', { k: 1, ti: 1 }),
   },
   {
     key: 'lag',
-    label: '滞后幅频特性',
+    label: '滞后',
     color: '#10b981',
-    description: '型别不变，但把低频增益整体抬高，中频以后快速贴回去。',
+    description: '型别不变，重点是把低频增益抬高，再尽量少动中频骨架。',
     parameters: { k: 1, t: 1, beta: 10 },
     fallbackMagnitude: [
       { x: 0.01, y: -0.96 },
@@ -589,12 +624,13 @@ const LOW_FREQUENCY_STRUCTURE_OPTIONS: readonly LowFrequencyStructureOption[] = 
       { x: 36.267, y: -20.0 },
       { x: 100, y: -20.0 },
     ],
+    fallbackPhase: buildFallbackPhase('lag', { k: 1, t: 1, beta: 10 }),
   },
   {
     key: 'lead',
-    label: '超前幅频特性',
+    label: '超前',
     color: '#f97316',
-    description: '更强调中频附近的相位与带宽改善，不以低频误差归零为主。',
+    description: '更偏中频相位与带宽改善，动态速度更积极，但不以低频误差归零为主。',
     parameters: { k: 1, t: 1, alpha: 0.1 },
     fallbackMagnitude: [
       { x: 0.01, y: 0.01 },
@@ -608,6 +644,7 @@ const LOW_FREQUENCY_STRUCTURE_OPTIONS: readonly LowFrequencyStructureOption[] = 
       { x: 36.267, y: 13.98 },
       { x: 100, y: 13.98 },
     ],
+    fallbackPhase: buildFallbackPhase('lead', { k: 1, t: 1, alpha: 0.1 }),
   },
 ];
 
@@ -623,6 +660,14 @@ function renderMarkdown(markdown: string) {
   );
 }
 
+function renderInlineMarkdown(markdown: string) {
+  return (
+    <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]} components={INLINE_MARKDOWN_COMPONENTS}>
+      {markdown}
+    </ReactMarkdown>
+  );
+}
+
 function InfoSection({ section }: { section: StepSection }) {
   return (
     <div className={`premium-lesson-tone-block ${getToneClass(section.tone)} h-full`}>
@@ -632,7 +677,7 @@ function InfoSection({ section }: { section: StepSection }) {
         <ul className="mt-3 grid gap-2 text-sm leading-7">
           {section.bullets.map((item) => (
             <li key={item} className="ml-4 list-disc">
-              {item}
+              {renderInlineMarkdown(item)}
             </li>
           ))}
         </ul>
@@ -735,7 +780,7 @@ function buildLowFrequencyRequest(structureKey: LowFrequencyStructureOption['key
   const selected = LOW_FREQUENCY_STRUCTURE_OPTIONS.find((item) => item.key === structureKey) ?? LOW_FREQUENCY_STRUCTURE_OPTIONS[0];
   return {
     runtimeMode: 'analysis',
-    caseId: `unit-3-7-${structureKey}-magnitude`,
+    caseId: UNIT_37_LOW_FREQUENCY_BODE_CASE_ID,
     plant: {
       numerator: [1],
       denominator: [1],
@@ -774,7 +819,7 @@ function buildLowFrequencyFallbackResult(structureKey: LowFrequencyStructureOpti
     },
     stepResponse: { points: [] },
     magnitude: { points: [...selected.fallbackMagnitude] },
-    phase: { points: [] },
+    phase: { points: [...selected.fallbackPhase] },
     nyquist: { points: [] },
     rootLocus: {
       branches: [],
@@ -783,7 +828,20 @@ function buildLowFrequencyFallbackResult(structureKey: LowFrequencyStructureOpti
       openLoopZeros: [],
     },
     isFallback: true,
-    fallbackMessage: '当前显示离线基线幅频曲线。',
+    fallbackMessage: '当前显示离线基线 Bode 曲线。',
+  };
+}
+
+function useLowFrequencyAnalysis(structureKey: LowFrequencyStructureOption['key']) {
+  const option = LOW_FREQUENCY_STRUCTURE_OPTIONS.find((item) => item.key === structureKey) ?? LOW_FREQUENCY_STRUCTURE_OPTIONS[0];
+  const request = useMemo(() => buildLowFrequencyRequest(structureKey), [structureKey]);
+  const fallbackResult = useMemo(() => buildLowFrequencyFallbackResult(structureKey), [structureKey]);
+  const analysis = useControlEngine(request, fallbackResult);
+
+  return {
+    option,
+    request,
+    ...analysis,
   };
 }
 
@@ -798,6 +856,10 @@ function ProgressiveRevealPanel({
   const [revealedCount, setRevealedCount] = useState(0);
   const nextStep = steps[revealedCount];
   const canRevealMore = revealedCount < steps.length;
+
+  useEffect(() => {
+    setRevealedCount(0);
+  }, [stepId]);
 
   if (!steps.length) {
     return null;
@@ -865,58 +927,95 @@ function ProgressiveRevealPanel({
 }
 
 function LowFrequencyMagnitudeBoard() {
-  const [selectedKey, setSelectedKey] = useState<LowFrequencyStructureOption['key']>('pi');
-  const selected = useMemo(
-    () => LOW_FREQUENCY_STRUCTURE_OPTIONS.find((item) => item.key === selectedKey) ?? LOW_FREQUENCY_STRUCTURE_OPTIONS[0],
-    [selectedKey],
+  const [selectedKeys, setSelectedKeys] = useState<Array<LowFrequencyStructureOption['key']>>(['pi', 'lag', 'lead']);
+  const piAnalysis = useLowFrequencyAnalysis('pi');
+  const lagAnalysis = useLowFrequencyAnalysis('lag');
+  const leadAnalysis = useLowFrequencyAnalysis('lead');
+  const analyses = [piAnalysis, lagAnalysis, leadAnalysis];
+  const selectedAnalyses = analyses.filter((analysis) => selectedKeys.includes(analysis.option.key));
+  const readyAnalyses = selectedAnalyses.filter((analysis) => Boolean(analysis.result)) as Array<
+    (typeof selectedAnalyses)[number] & { result: ControlAnalysisResult }
+  >;
+  const comparisonOption = useMemo(
+    () =>
+      readyAnalyses.length > 1
+        ? buildBodeComparisonOption(
+            readyAnalyses.map((analysis) => ({
+              label: analysis.option.label,
+              color: analysis.option.color,
+              result: analysis.result,
+            })),
+            UNIT_37_LOW_FREQUENCY_BODE_CASE_ID,
+          )
+        : null,
+    [readyAnalyses],
   );
-  const request = useMemo(() => buildLowFrequencyRequest(selectedKey), [selectedKey]);
-  const fallbackResult = useMemo(() => buildLowFrequencyFallbackResult(selectedKey), [selectedKey]);
-  const { result, error, isLoading } = useControlEngine(request, fallbackResult);
+  const hasFallback = readyAnalyses.some((analysis) => analysis.result.isFallback);
+  const combinedError = analyses.find((analysis) => analysis.error)?.error;
+  const isLoading = selectedAnalyses.some((analysis) => analysis.isLoading) && !readyAnalyses.length;
+
+  const toggleSelection = (key: LowFrequencyStructureOption['key']) => {
+    setSelectedKeys((current) => {
+      if (current.includes(key)) {
+        return current.length === 1 ? current : current.filter((item) => item !== key);
+      }
+      return [...current, key];
+    });
+  };
 
   return (
     <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.22fr)_minmax(320px,0.78fr)]">
       <div className="rounded-3xl border border-border/60 bg-background/55 px-4 py-4">
-        <div className="premium-lesson-title text-base font-semibold">统一仿真引擎幅频面板</div>
+        <div className="premium-lesson-title text-base font-semibold">Bode 对比图</div>
         <div className="premium-lesson-muted mt-2 text-sm leading-7">
-          本页统一通过 Rust/WASM 分析引擎驱动幅频特性面板。左侧只保留一张共享面板，用于切换读取 PI、滞后与超前三类补偿的低频与中频变化。
+          幅频与相频放在同一频率轴下读取。单选时看单条结构，多选时直接叠加比较低频收益与中频代价。
         </div>
         <div className="mt-4">
-          {result ? (
-            <MagnitudePanel result={result} caseId={request.caseId} />
+          {!selectedAnalyses.length ? (
+            <div className="flex min-h-[420px] items-center justify-center rounded-2xl border border-border/60 bg-background/70 px-6 text-sm text-foreground/70">
+              请至少勾选一种补偿结构。
+            </div>
+          ) : selectedAnalyses.length === 1 && readyAnalyses[0]?.result ? (
+            <BodePanel result={readyAnalyses[0].result} caseId={selectedAnalyses[0].request.caseId} />
+          ) : comparisonOption ? (
+            <ControlChartPanel
+              title="组合 Bode 图"
+              meta="实线读幅频，虚线读相频；上下共用同一频率轴。"
+              option={comparisonOption}
+              chartClassName="h-[420px]"
+              isFallback={hasFallback}
+              fallback="当前使用离线基线曲线。"
+            />
           ) : (
             <div className="flex min-h-[420px] items-center justify-center rounded-2xl border border-border/60 bg-background/70 px-6 text-sm text-foreground/70">
-              {isLoading ? '统一仿真引擎正在计算幅频特性。' : '幅频特性结果暂不可用。'}
+              {isLoading ? '正在生成 Bode 对比图。' : 'Bode 对比图暂不可用。'}
             </div>
           )}
         </div>
-        {error ? <div className="premium-lesson-muted mt-3 text-xs">{error}</div> : null}
+        {combinedError ? <div className="premium-lesson-muted mt-3 text-xs">{combinedError}</div> : null}
       </div>
 
       <div className="premium-lesson-panel-soft px-4 py-4">
-        <div className="premium-lesson-title text-base font-semibold">结构切换与阅读口径</div>
-        <div className="premium-lesson-muted mt-1 text-sm">每次只读取一类补偿结构，避免把三条曲线挤回同一张局部图里造成误读。</div>
-        <div className="premium-lesson-tone-block premium-tone-amber mt-3 text-sm">先读低频端的收益，再读中频附近可能转移出的代价。</div>
+        <div className="premium-lesson-title text-base font-semibold">对比控制面板</div>
+        <div className="premium-lesson-muted mt-1 text-sm">可多选叠加。先看低频端谁抬得更高，再看相频拖后或提前落在什么频段。</div>
+        <div className="premium-lesson-tone-block premium-tone-amber mt-3 text-sm">
+          读取口径：低频收益不等于没有代价，比较时务必同时看幅频抬升和相频变化。
+        </div>
         <div className="mt-4 grid gap-3">
-          {LOW_FREQUENCY_STRUCTURE_OPTIONS.map((option) => (
-            <label key={option.key} className="premium-lesson-surface-elevated flex cursor-pointer items-start gap-3 rounded-2xl px-3 py-3">
+          {analyses.map((analysis) => (
+            <label key={analysis.option.key} className="premium-lesson-surface-elevated flex cursor-pointer items-start gap-3 rounded-2xl px-3 py-3">
               <input
-                type="radio"
-                name="unit-37-low-frequency-structure"
+                type="checkbox"
                 className="mt-1 h-4 w-4 accent-cyan-400"
-                checked={selectedKey === option.key}
-                onChange={() => setSelectedKey(option.key)}
+                checked={selectedKeys.includes(analysis.option.key)}
+                onChange={() => toggleSelection(analysis.option.key)}
               />
               <div>
-                <div className="text-sm font-medium" style={{ color: option.color }}>{option.label}</div>
-                <div className="premium-lesson-muted mt-1 text-sm">{option.description}</div>
+                <div className="text-sm font-medium" style={{ color: analysis.option.color }}>{analysis.option.label}</div>
+                <div className="premium-lesson-muted mt-1 text-sm">{analysis.option.description}</div>
               </div>
             </label>
           ))}
-        </div>
-        <div className="premium-lesson-surface-elevated mt-4 rounded-2xl px-3 py-3 text-sm">
-          <div className="font-medium">{selected.label}</div>
-          <div className="premium-lesson-muted mt-1">{selected.description}</div>
         </div>
       </div>
     </div>
@@ -970,7 +1069,7 @@ function ChoiceGroup({
             value === option.value ? 'ring-2 ring-cyan-400' : ''
           }`}
         >
-          <span className="font-medium">{option.value}.</span> {option.label}
+          <span className="font-medium">{option.value}.</span> {renderInlineMarkdown(option.label)}
         </button>
       ))}
     </div>
@@ -1108,18 +1207,6 @@ function renderActivityCard(
   return <TextInput value={value} onChange={onChange} placeholder={field.placeholder ?? field.prompt} />;
 }
 
-function normalizeCardText(value: string) {
-  return value
-    .replace(/^\d+\.\s*/, '')
-    .replace(/[`*]/g, '')
-    .replace(/[：:？?！!。,.，\s]/g, '')
-    .trim();
-}
-
-function shouldRenderCardPrompt(field: ActivityCardField) {
-  return normalizeCardText(field.label) !== normalizeCardText(field.prompt);
-}
-
 export function UNIT_3_7KnowledgeMapVisual() {
   return (
     <section className="premium-lesson-panel-soft mb-4 px-4 py-4">
@@ -1190,23 +1277,23 @@ export function UNIT_3_7StepContentPanel({
                 <MediaPanel src={mediaSrc} alt={step.title} />
               </div>
             ) : null}
-            <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
               <MathCard
                 title="给定到输出传函"
-                expression="\\Phi_r(s)=\\frac{C(s)}{R(s)}=\\frac{G_c(s)G_p(s)}{1+G_c(s)G_p(s)H(s)}"
+                expression="\Phi_r(s)=\frac{C(s)}{R(s)}=\frac{G_c(s)G_p(s)}{1+G_c(s)G_p(s)H(s)}"
               />
               <MathCard
                 title="扰动到输出传函"
-                expression="\\Phi_d(s)=\\frac{C(s)}{D(s)}=\\frac{G_p(s)}{1+G_c(s)G_p(s)H(s)}"
+                expression="\Phi_d(s)=\frac{C(s)}{D(s)}=\frac{G_p(s)}{1+G_c(s)G_p(s)H(s)}"
               />
               <MathCard
                 title="给定到误差传函"
-                expression="\\frac{E_r(s)}{R(s)}=\\frac{1}{1+G_c(s)G_p(s)H(s)}"
+                expression="\frac{E_r(s)}{R(s)}=\frac{1}{1+G_c(s)G_p(s)H(s)}"
                 tone="violet"
               />
               <MathCard
                 title="扰动到误差传函"
-                expression="\\frac{E_d(s)}{D(s)}=-\\frac{G_p(s)H(s)}{1+G_c(s)G_p(s)H(s)}"
+                expression="\frac{E_d(s)}{D(s)}=-\frac{G_p(s)H(s)}{1+G_c(s)G_p(s)H(s)}"
                 tone="violet"
               />
             </div>
@@ -1234,7 +1321,7 @@ export function UNIT_3_7StepContentPanel({
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
               <MathCard
                 title="终值定理公式"
-                expression="e_{ss}=\\lim_{s\\to 0}sE(s)"
+                expression="e_{ss}=\lim_{s\to 0}sE(s)"
                 description="先判闭环稳定，再决定这个极限是否有意义。"
               />
               <InfoSection
@@ -1249,8 +1336,8 @@ export function UNIT_3_7StepContentPanel({
               <div className={`premium-lesson-tone-block ${getToneClass('slate')}`}>
                 <div className="premium-lesson-title text-sm font-semibold">例题 1 题面</div>
                 <div className="mt-3 grid gap-3">
-                  <MathBlock expression="G(s)=\\dfrac{K}{s^2(0.5s+1)}" />
-                  <MathBlock expression="R(s)=\\dfrac{3}{s}+\\dfrac{2}{s^2}+\\dfrac{1}{s^3}" />
+                  <MathBlock expression="G(s)=\dfrac{K}{s^2(0.5s+1)}" />
+                  <MathBlock expression="R(s)=\dfrac{3}{s}+\dfrac{2}{s^2}+\dfrac{1}{s^3}" />
                 </div>
                 <p className="mt-3 text-sm leading-7">求系统的稳态误差，并判断最终保留下来的主导项。</p>
               </div>
@@ -1266,16 +1353,16 @@ export function UNIT_3_7StepContentPanel({
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
               <MathCard
                 title="开环低频结构与判断口令"
-                expression="G(s)H(s)=\\frac{K_0}{s^v}G_0(s),\\quad G_0(0)\\neq 0"
+                expression="G(s)H(s)=\frac{K_0}{s^v}G_0(s),\quad G_0(0)\neq 0"
                 description="先看积分个数，再决定是否可能把某类稳态误差结构性变成 0。"
                 tone="cyan"
               />
               <div className={`premium-lesson-tone-block ${getToneClass('violet')} h-full`}>
                 <div className="premium-lesson-title text-sm font-semibold">三个静态误差系数</div>
                 <div className="mt-3 grid gap-3">
-                  <MathBlock expression="K_p=\\lim_{s\\to 0}G(s)H(s)" />
-                  <MathBlock expression="K_v=\\lim_{s\\to 0}sG(s)H(s)" />
-                  <MathBlock expression="K_a=\\lim_{s\\to 0}s^2G(s)H(s)" />
+                  <MathBlock expression="K_p=\lim_{s\to 0}G(s)H(s)" />
+                  <MathBlock expression="K_v=\lim_{s\to 0}sG(s)H(s)" />
+                  <MathBlock expression="K_a=\lim_{s\to 0}s^2G(s)H(s)" />
                 </div>
               </div>
             </div>
@@ -1296,8 +1383,8 @@ export function UNIT_3_7StepContentPanel({
                 headers={['输入类型', '0 型', 'I 型', 'II 型']}
                 rows={[
                   ['单位阶跃', '有限', '0', '0'],
-                  ['单位斜坡', <InlineMath key="inf01" math="\\infty" />, '有限', '0'],
-                  ['单位抛物', <InlineMath key="inf02" math="\\infty" />, <InlineMath key="inf03" math="\\infty" />, '有限'],
+                  ['单位斜坡', <InlineMath key="inf01" math="\infty" />, '有限', '0'],
+                  ['单位抛物', <InlineMath key="inf02" math="\infty" />, <InlineMath key="inf03" math="\infty" />, '有限'],
                 ]}
               />
             </div>
@@ -1325,12 +1412,12 @@ export function UNIT_3_7StepContentPanel({
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
               <MathCard
                 title="系统传函"
-                expression="G_1(s)=\\dfrac{5}{s+5},\\quad G_2(s)=\\dfrac{2}{s+2}"
+                expression="G_1(s)=\dfrac{5}{s+5},\quad G_2(s)=\dfrac{2}{s+2}"
                 tone="slate"
               />
               <MathCard
                 title="输入信号"
-                expression="R(s)=\\dfrac{1}{s},\\quad D(s)=\\dfrac{0.2}{s}"
+                expression="R(s)=\dfrac{1}{s},\quad D(s)=\dfrac{0.2}{s}"
                 tone="emerald"
               />
             </div>
@@ -1345,11 +1432,11 @@ export function UNIT_3_7StepContentPanel({
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
               <MathCard
                 title="PI 控制器"
-                expression="G_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right)=K\\frac{T_i s+1}{T_i s}"
+                expression="G_{PI}(s)=K\left(1+\frac{1}{T_i s}\right)=K\frac{T_i s+1}{T_i s}"
               />
               <MathCard
                 title="一级滞后校正"
-                expression="G_{lag}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1"
+                expression="G_{lag}(s)=K\frac{Ts+1}{\beta Ts+1},\ \beta>1"
                 tone="emerald"
               />
             </div>
@@ -1390,17 +1477,19 @@ export function UNIT_3_7StepContentPanel({
       case 'step-16':
         return (
           <>
-            <div className="premium-lesson-tone-block premium-tone-cyan mt-4">
-              <div className="premium-lesson-kicker">Post-Assessment</div>
-              <div className="premium-lesson-title mt-2 text-lg font-semibold">后测：路径选择与方法判断</div>
-              <p className="mt-3 text-sm leading-7">
-                先阅读本页名称卡，再进入下方题卡区逐题作答。重点检查两件事：是否会先选分析路径，以及是否能辨认 PI、滞后与动态速度优先方案的收益和代价落点。
-              </p>
-            </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-3">
-              {blueprint.sections.map((section) => (
-                <InfoSection key={`${step.id}-${section.title}`} section={section} />
-              ))}
+            <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(300px,0.95fr)]">
+              <div className="premium-lesson-tone-block premium-tone-cyan h-full">
+                <div className="premium-lesson-kicker">Post-Assessment</div>
+                <div className="premium-lesson-title mt-2 text-lg font-semibold">后测：路径选择与方法判断</div>
+                <p className="mt-3 text-sm leading-7">
+                  本页只检查两件事：是否会先选分析路径，以及是否能辨认 PI、滞后与动态速度优先方案的收益和代价落点。
+                </p>
+              </div>
+              <div className="grid gap-4">
+                {blueprint.sections.map((section) => (
+                  <InfoSection key={`${step.id}-${section.title}`} section={section} />
+                ))}
+              </div>
             </div>
           </>
         );
@@ -1566,7 +1655,6 @@ export function UNIT_3_7StudentActivityForm({
               {(WORKED_EXAMPLE_FIELDS[step.id] ?? []).map((field) => (
                 <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                   <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                  {shouldRenderCardPrompt(field) ? <p className="premium-lesson-muted mt-2 text-sm">{field.prompt}</p> : null}
                   <div className="mt-3">{renderActivityCard(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value))}</div>
                   <button
                     type="button"
@@ -1585,7 +1673,6 @@ export function UNIT_3_7StudentActivityForm({
               {(ACTIVITY_CARD_FIELDS[step.id] ?? []).map((field) => (
                 <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                   <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                  {shouldRenderCardPrompt(field) ? <p className="premium-lesson-muted mt-2 text-sm">{field.prompt}</p> : null}
                   <div className="mt-3">{renderActivityCard(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value))}</div>
                   <button
                     type="button"

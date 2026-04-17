@@ -1,8 +1,13 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { ECharts, EChartsCoreOption } from 'echarts/core';
+
+import { useTheme } from '@/components/providers/theme-provider';
+import { DEFAULT_THEME } from '@/lib/theme-config';
+
+import { applyControlChartTheme } from './control-chart-theme';
 
 export interface ControlChartPanelProps {
   title: string;
@@ -27,9 +32,14 @@ export function ControlChartPanel({
 }: ControlChartPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ECharts | null>(null);
-  const optionRef = useRef<EChartsCoreOption>(option);
+  const { mounted, theme } = useTheme();
+  const themedOption = useMemo(
+    () => applyControlChartTheme(option, mounted ? theme : DEFAULT_THEME),
+    [mounted, option, theme],
+  );
+  const optionRef = useRef<EChartsCoreOption>(themedOption);
 
-  optionRef.current = option;
+  optionRef.current = themedOption;
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -83,8 +93,8 @@ export function ControlChartPanel({
   }, []);
 
   useEffect(() => {
-    chartRef.current?.setOption(option, { notMerge: false, lazyUpdate: true });
-  }, [option]);
+    chartRef.current?.setOption(themedOption, { notMerge: false, lazyUpdate: true });
+  }, [themedOption]);
 
   return (
     <div className={`premium-lesson-tone-block premium-tone-slate ${className}`}>
@@ -97,7 +107,7 @@ export function ControlChartPanel({
         <div ref={containerRef} className={`${chartClassName} w-full`} />
         {overlay ? <div className="pointer-events-none absolute inset-0">{overlay}</div> : null}
         {isFallback && fallback ? (
-          <div className="absolute inset-x-0 bottom-0 border-t border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+          <div className="absolute inset-x-0 bottom-0 border-t border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-100">
             {fallback}
           </div>
         ) : null}

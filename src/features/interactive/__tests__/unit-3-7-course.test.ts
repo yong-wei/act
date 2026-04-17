@@ -89,13 +89,27 @@ describe('unit 3-7 interactive course', () => {
     expect(stepPanelsSource).toContain('重置步骤');
     expect(stepPanelsSource).toContain('点击当前步骤可继续显影下一层');
     expect(stepPanelsSource).not.toContain('第 1 步：');
+    expect(stepPanelsSource).toContain("useEffect(() => {\n    setRevealedCount(0);\n  }, [stepId]);");
     expect(stepPanelsSource).toContain('useControlEngine');
-    expect(stepPanelsSource).toContain('MagnitudePanel');
+    expect(stepPanelsSource).toContain('BodePanel');
     expect(stepPanelsSource).not.toContain('LOW_FREQUENCY_CURVES');
     expect(stepPanelsSource).toContain('提交答案');
     expect(stepPanelsSource).not.toContain('提交本卡');
+    expect(stepPanelsSource).not.toContain('shouldRenderCardPrompt(field)');
+    expect(stepPanelsSource).not.toContain('{field.prompt}');
+    expect(stepPanelsSource).toContain('{renderInlineMarkdown(option.label)}');
+    expect(stepPanelsSource).toContain('mt-4 grid gap-4 md:grid-cols-2');
+    expect(stepPanelsSource).not.toContain('mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4');
     expect(studentPageSource).not.toContain('本页无需提交');
     expect(teacherPageSource).not.toContain('当前收到 {responses.length} 份本页作答');
+  });
+
+  it('renders step-04 answer options as inline LaTeX labels', async () => {
+    const workspaceModule = await import('@/features/interactive/unit-3-7-steady-error-low-frequency-compensation/workspace');
+
+    expect(workspaceModule.ACTIVITY_CARD_FIELDS['step-04'][0]?.options?.[0]?.label).toContain('$\\dfrac{C(s)}{R(s)}');
+    expect(workspaceModule.ACTIVITY_CARD_FIELDS['step-04'][0]?.options?.[1]?.label).toContain('$\\dfrac{C(s)}{D(s)}');
+    expect(workspaceModule.ACTIVITY_CARD_FIELDS['step-04'][0]?.options?.[2]?.label).toContain('$\\dfrac{E_d(s)}{D(s)}');
   });
 
   it('keeps the authoring contract on two-card pages and puts the post-assessment title card above the questions', () => {
@@ -264,9 +278,16 @@ describe('unit 3-7 interactive course', () => {
     );
 
     expect(stepPanelsSource).toContain('分母相同反映结构');
-    expect(stepPanelsSource).toContain('C(s)=\\\\Phi_r(s)R(s)+\\\\Phi_d(s)D(s)');
+    expect(stepPanelsSource).toContain('C(s)=\\Phi_r(s)R(s)+\\Phi_d(s)D(s)');
+    expect(stepPanelsSource).not.toContain('expression="\\\\Phi_r(s)');
+    expect(stepPanelsSource).not.toContain('expression="\\\\frac{E_r(s)}{R(s)}');
     expect(stepPanelsSource).toContain('E(s)=E_r(s)+E_d(s)');
-    expect(stepPanelsSource).toContain('R(s)=\\\\dfrac{3}{s}+\\\\dfrac{2}{s^2}+\\\\dfrac{1}{s^3}');
+    expect(stepPanelsSource).toContain('R(s)=\\dfrac{3}{s}+\\dfrac{2}{s^2}+\\dfrac{1}{s^3}');
+    expect(stepPanelsSource).toContain('G(s)H(s)=\\frac{K_0}{s^v}G_0(s),\\quad G_0(0)\\neq 0');
+    expect(stepPanelsSource).toContain('K_v=\\lim_{s\\to 0}sG(s)H(s)');
+    expect(stepPanelsSource).toContain('R(s)=\\dfrac{1}{s},\\quad D(s)=\\dfrac{0.2}{s}');
+    expect(stepPanelsSource).toContain('G_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right)=K\\frac{T_i s+1}{T_i s}');
+    expect(stepPanelsSource).toContain('G_{lag}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1');
     expect(stepPanelsSource).toContain('本题最终稳态误差为 1/K');
     expect(stepPanelsSource).toContain('型别与误差系数关系');
     expect(stepPanelsSource).toContain('型别与典型输入误差关系');
@@ -276,6 +297,7 @@ describe('unit 3-7 interactive course', () => {
     expect(stepPanelsSource).toContain('纯增益不能把斜坡误差变为 0');
     expect(stepPanelsSource).toContain('型别不变时，尽量把低频增益和中频动态分开安排');
     expect(stepPanelsSource).toContain('先判断纯增益不可能兼顾低频精度和相位裕度');
+    expect(stepPanelsSource).toContain('纯增益若要满足 $K_v\\\\ge 10$，会先跌出阻尼边界。');
     expect(stepPanelsSource).toContain('动态速度优先');
     expect(stepPanelsSource).toContain('低频精度');
     expect(stepPanelsSource).toContain('3-8 将把低频收益和中频代价翻译成统一频域判断');

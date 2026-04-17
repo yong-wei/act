@@ -239,9 +239,9 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
       prompt: '下列哪一个是“给定到输出传函”？',
       inputKind: 'single_choice',
       options: [
-        { value: 'A', label: 'C(s)/R(s)=Gc(s)Gp(s) / (1+Gc(s)Gp(s)H(s))' },
-        { value: 'B', label: 'C(s)/D(s)=Gp(s) / (1+Gc(s)Gp(s)H(s))' },
-        { value: 'C', label: 'E_d(s)/D(s)=-Gp(s)H(s) / (1+Gc(s)Gp(s)H(s))' },
+        { value: 'A', label: '$\\dfrac{C(s)}{R(s)}=\\dfrac{G_c(s)G_p(s)}{1+G_c(s)G_p(s)H(s)}$' },
+        { value: 'B', label: '$\\dfrac{C(s)}{D(s)}=\\dfrac{G_p(s)}{1+G_c(s)G_p(s)H(s)}$' },
+        { value: 'C', label: '$\\dfrac{E_d(s)}{D(s)}=-\\dfrac{G_p(s)H(s)}{1+G_c(s)G_p(s)H(s)}$' },
       ],
     },
     {
