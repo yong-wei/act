@@ -21,6 +21,164 @@ required_step_fields:
   - "ai_context_spec"
   - "preview_contract"
   - "acceptance_checks"
+sequence_alignment:
+  manifest_file: "course-content/authoring/lessons/3-4/manifest.json"
+  sequence_file: "course-content/authoring/knowledge/cards/lessons/3-4/sequence.json"
+  group_mapping:
+    - group_name: "导入与主图入口"
+      step_ids: ["step-01", "step-02", "step-03", "step-04"]
+      node_ids:
+        - "根轨迹_4_c19f8854"
+        - "根轨迹完整法则_3_0f2e7b11"
+        - "关键节点读图_3_8b2f0d12"
+    - group_name: "关键节点与参数窗口"
+      step_ids: ["step-05", "step-06", "step-07", "step-08"]
+      node_ids:
+        - "关键节点读图_3_8b2f0d12"
+        - "稳定可行域_3_7eed0929"
+        - "参数窗口判断_3_7c3e318f"
+        - "根轨迹增益换算_3_4b1d9e6c"
+    - group_name: "对象化三域验证"
+      step_ids: ["step-09", "step-10", "step-11", "step-12"]
+      node_ids:
+        - "闭环主导极点_3_de941720"
+        - "对象化三域验证_3_56cb3a4e"
+        - "参数窗口判断_3_7c3e318f"
+    - group_name: "广义根轨迹与出口"
+      step_ids: ["step-13", "step-14", "step-15", "step-16", "step-17"]
+      node_ids:
+        - "参数窗口判断_3_7c3e318f"
+        - "对象化三域验证_3_56cb3a4e"
+        - "根轨迹增益换算_3_4b1d9e6c"
+evidence_unit_upgrade_table:
+  - evidence_unit_id: "3-4-eu-01"
+    handout_anchor: "## 一、问题提出：稳定之后，还要回答什么"
+    evidence_kind: "路径定位+课程边界"
+    target_steps: ["step-01"]
+    upgrade_mode: "地图页静态保留"
+    keep_elements: ["3-3 -> 3-4 -> 3-5 路径", "读图与验证高亮", "主问题", "边界句"]
+    non_reducible: ["不重讲 3-3 法则证明", "不进入零点、PD 与模块 4 设计任务"]
+    acceptance_checks: ["首屏必须同屏看到路径图、主问题和边界卡。"]
+  - evidence_unit_id: "3-4-eu-02"
+    handout_anchor: "## 一、问题提出：稳定之后，还要回答什么"
+    evidence_kind: "核心问题+课堂产出"
+    target_steps: ["step-02"]
+    upgrade_mode: "问题链页 + 产出表"
+    keep_elements: ["核心问题", "三张记录表", "判断链"]
+    non_reducible: ["稳定只是下限，不是结论", "三张记录表不得压成口号"]
+    acceptance_checks: ["学生离开讲稿后仍知道本课最终要交什么。"]
+  - evidence_unit_id: "3-4-eu-03"
+    handout_anchor: "### 2.1 固定对象与三个版本"
+    evidence_kind: "对象公式+版本表+前测"
+    target_steps: ["step-03"]
+    upgrade_mode: "对象卡 + 版本表 + 初判题"
+    keep_elements: ["对象公式", "k=0.01715K", "A/B/C 三版本", "第一判断"]
+    non_reducible: ["对象、记号与版本差异必须同时出现"]
+    acceptance_checks: ["对象卡、版本表与三题初判必须同页。"]
+  - evidence_unit_id: "3-4-eu-04"
+    handout_anchor: "### 2.2 拿到主图后的固定读图顺序"
+    evidence_kind: "读图流程"
+    target_steps: ["step-04"]
+    upgrade_mode: "流程卡 + 排序区"
+    keep_elements: ["四步法", "误判提示"]
+    non_reducible: ["先节点后窗口", "先窗口后后果"]
+    acceptance_checks: ["学生能够把读图顺序排成稳定动作链。"]
+  - evidence_unit_id: "3-4-eu-05"
+    handout_anchor: "### 2.3 分离点：从实极点主导走向共轭极点主导 / ### 2.4 虚轴交点：稳定窗口的上界 / ### 2.5 参考工作点 B 的位置为什么重要"
+    evidence_kind: "主图关键节点"
+    target_steps: ["step-05"]
+    upgrade_mode: "证据板 + 热点定位"
+    keep_elements: ["主图", "关键节点图", "B 位置图", "三条证据卡"]
+    non_reducible: ["节点名称", "节点作用", "B 的主图依据"]
+    acceptance_checks: ["学生能准确指出节点，并说清每个节点回答的问题。"]
+  - evidence_unit_id: "3-4-eu-06"
+    handout_anchor: "### 2.6 关键节点读图记录"
+    evidence_kind: "记录模板+判断句"
+    target_steps: ["step-06"]
+    upgrade_mode: "模板表 + 双卡作答"
+    keep_elements: ["五字段记录模板", "B/C 判断句任务"]
+    non_reducible: ["位置与后果必须同时出现", "不得只剩碎句"]
+    acceptance_checks: ["至少能写出一句完整工程判断。"]
+  - evidence_unit_id: "3-4-eu-07"
+    handout_anchor: "### 3.2 稳定窗口不等于可接受窗口 / ### 3.3 参数窗口判断表"
+    evidence_kind: "窗口语言+参数角色"
+    target_steps: ["step-07"]
+    upgrade_mode: "双定义页 + 判断表 + 双卡作答"
+    keep_elements: ["0<K<28.05", "双窗口定义", "A/B/C 参数角色与后果"]
+    non_reducible: ["还稳定不等于可接受", "必须保留代价语言"]
+    acceptance_checks: ["学生能区分底线判断与工程判断。"]
+  - evidence_unit_id: "3-4-eu-08"
+    handout_anchor: "### 3.1 先把图上的增益和工程里的增益分开"
+    evidence_kind: "换算链"
+    target_steps: ["step-08"]
+    upgrade_mode: "完整例题页 + 逐步显影"
+    keep_elements: ["k=0.01715K", "K=k/0.01715", "B 版本示例"]
+    non_reducible: ["题面", "关系式", "代入链", "变量解释"]
+    acceptance_checks: ["学生默认先见题面与公式，步骤后显影。"]
+  - evidence_unit_id: "3-4-eu-09"
+    handout_anchor: "### 4.1 为什么要做三域验证 / ### 4.2 总三域对照表"
+    evidence_kind: "三域角色+总表"
+    target_steps: ["step-09"]
+    upgrade_mode: "角色卡 + 总表 + 配对区"
+    keep_elements: ["三域角色", "A/B/C 总三域对照表"]
+    non_reducible: ["先说明三域各回答什么", "不得压成再看两张图"]
+    acceptance_checks: ["学生能先理解三域为何互证，再进入具体验证。"]
+  - evidence_unit_id: "3-4-eu-10"
+    handout_anchor: "### 4.3 时域验证：版本 B 为什么能够作为参考工作点"
+    evidence_kind: "时域验证图+说明"
+    target_steps: ["step-10"]
+    upgrade_mode: "图后解释页 + 双卡作答"
+    keep_elements: ["3-4-step-compare.png", "主导极点近似说明", "局限提示"]
+    non_reducible: ["近似可信与仍有局限必须并存"]
+    acceptance_checks: ["图、说明卡和作答卡必须同页。"]
+  - evidence_unit_id: "3-4-eu-11"
+    handout_anchor: "### 4.4 频域验证：低中频为什么近似成立，高频为何仍不能忽略"
+    evidence_kind: "频率点表+频域解释"
+    target_steps: ["step-11"]
+    upgrade_mode: "频率点表 + Bode 对照 + 双卡作答"
+    keep_elements: ["四个代表频率点", "低中频近似", "高频差异"]
+    non_reducible: ["不得只给结论句", "高频差异仍需单列记录"]
+    acceptance_checks: ["学生能写出哪里成立、哪里失效的完整句。"]
+  - evidence_unit_id: "3-4-eu-12"
+    handout_anchor: "### 4.5 频域代价：版本 C 为什么不能只看跟踪收益 / ### 4.6 斜坡响应与航迹对照：连续跟踪中的收益与代价 / ### 4.7 对象化验证记录"
+    evidence_kind: "收益代价对照"
+    target_steps: ["step-12"]
+    upgrade_mode: "双证据对照页 + 双卡作答"
+    keep_elements: ["C 的高带宽/低裕量/高共振峰", "B/C 航迹与斜坡对照", "收益-代价句模板", "对象化验证记录口径"]
+    non_reducible: ["不得只写更快或更危险其中之一"]
+    acceptance_checks: ["学生能写出完整收益-代价句，并把它归回取舍型参数。"]
+  - evidence_unit_id: "3-4-eu-13"
+    handout_anchor: "### 5.1 为什么这里还要补上广义根轨迹"
+    evidence_kind: "新问题入口"
+    target_steps: ["step-13"]
+    upgrade_mode: "结构图 + 误判判断"
+    keep_elements: ["非增益参数问题", "局部反馈结构图", "误判提示"]
+    non_reducible: ["不得把 a 当成再调一次 K"]
+    acceptance_checks: ["学生知道对象变了，问题也变了。"]
+  - evidence_unit_id: "3-4-eu-14"
+    handout_anchor: "### 5.2 给定局部反馈结构如何改写特征方程"
+    evidence_kind: "改写链"
+    target_steps: ["step-14"]
+    upgrade_mode: "完整例题页 + 逐步显影"
+    keep_elements: ["G_1(s)", "G_{1,eq}(s)", "新特征方程", "B(s)+aA(s)=0", "1+aA(s)/B(s)=0", "G_e(s)=A(s)/B(s)", "180° 根轨迹解释"]
+    non_reducible: ["题面与改写链必须完整出现", "不能只给最后等效开环"]
+    acceptance_checks: ["学生能说清法则不变，只是对象先被改写。"]
+  - evidence_unit_id: "3-4-eu-15"
+    handout_anchor: "### 5.3 非增益参数 $a$ 改写主导极点的方式 / ### 5.4 非增益参数窗口记录"
+    evidence_kind: "广义参数窗口"
+    target_steps: ["step-15"]
+    upgrade_mode: "广义根轨迹图 + 参数窗口表 + 双卡作答"
+    keep_elements: ["a=0/0.2/0.5/1.0 极点表", "三段窗口建议", "a 的权衡句"]
+    non_reducible: ["不得写成 a 越大越好", "不得把窗口压成单点结论"]
+    acceptance_checks: ["学生能写出比较基线、实践窗口与边界提醒。"]
+  - evidence_unit_id: "3-4-eu-16"
+    handout_anchor: "## 六、课末收束：沿既有结构分析的能力与边界 / ## 七、小结"
+    evidence_kind: "后测+收束"
+    target_steps: ["step-16", "step-17"]
+    upgrade_mode: "后测页 + 出口页"
+    keep_elements: ["三题后测", "五条带走", "边界句", "3-5 去向"]
+    non_reducible: ["后测不得与总结混页", "出口页不得重新引入新任务"]
+    acceptance_checks: ["学生离开本课时能明确留下了什么能力、为什么下一课要改结构。"]
 steps:
   step-01:
     title: "回到地图：从 3-3 法则走向 3-4 判断"

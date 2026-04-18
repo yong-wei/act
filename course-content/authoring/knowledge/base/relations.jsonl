@@ -16419,3 +16419,7 @@
 {"relation_id": "rel-b173854885623ba7", "source": "反馈保底与前馈补偿边界", "target": "单结构首轮起步卡", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.88}
 {"relation_id": "rel-c971e26ca1a412ff", "source": "低频补偿稳态改善路径", "target": "结构工具箱最小语义", "source_chapter": 3, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "rel-feb625fbb1878332", "source": "设计任务表达卡", "target": "结构工具箱最小语义", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.96}
+{"relation_id": "rel-35402099f6fb951d", "source": "按输入补偿前馈的无差度提升", "target": "单结构首轮起步卡", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.86}
+{"relation_id": "rel-39c39d967cc570a5", "source": "反馈保底与前馈补偿边界", "target": "按输入补偿前馈的无差度提升", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.92}
+{"relation_id": "rel-93571479f8db934d", "source": "按扰动补偿前馈的对消条件", "target": "单结构首轮起步卡", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.87}
+{"relation_id": "rel-acfb25e7e85a0324", "source": "反馈保底与前馈补偿边界", "target": "按扰动补偿前馈的对消条件", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.93}

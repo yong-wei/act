@@ -6,10 +6,11 @@
   "contract_required_fields": [
     "layout",
     "modules",
-    "evidence_units",
     "content_blocks",
+    "evidence_sequence",
     "interaction_spec",
     "teacher_controls",
+    "student_access",
     "telemetry_spec",
     "teacher_insight_spec",
     "ai_context_spec",
@@ -17,26 +18,20 @@
     "acceptance_checks"
   ],
   "included_in_primary_sources": true,
-  "mapping_contract_mode": "evidence_units",
+  "mapping_contract_mode": "upgrade_table",
   "has_core_mapping_section": true,
   "mapping_columns_present": [
-    "handout_anchor",
     "evidence_unit_id",
+    "handout_anchor",
     "evidence_kind",
-    "must_appear_content",
-    "target_step",
-    "page_mode",
-    "interaction_archetype",
-    "media_or_table_ref",
-    "acceptance_note"
+    "target_steps",
+    "upgrade_mode",
+    "keep_elements",
+    "non_reducible",
+    "acceptance_checks"
   ],
   "missing_mapping_columns": [],
-  "invalid_handout_anchors": [
-    "### 2.6 `关键节点读图记录",
-    "### 3.3 `参数窗口判断表",
-    "### 4.2 `总三域对照表",
-    "### 4.6 `对象化验证记录"
-  ],
+  "invalid_handout_anchors": [],
   "missing_target_steps": [],
   "formula_mapping_issues": [],
   "step_static_blocks_missing": [],
@@ -49,15 +44,10 @@
   "implementation_contract_summary": [],
   "implementation_contract_issues": [],
   "summary": [
+    "已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。",
     "已检测到 `3-4` 的 V2 互动契约，步骤字段完整。"
   ],
-  "warnings": [
-    "以下 handout_anchor 未在讲义标题中命中：### 2.6 `关键节点读图记录, ### 3.3 `参数窗口判断表, ### 4.2 `总三域对照表, ### 4.6 `对象化验证记录"
-  ],
-  "missing": [
-    "以下 handout_anchor 未在讲义标题中命中：### 2.6 `关键节点读图记录, ### 3.3 `参数窗口判断表, ### 4.2 `总三域对照表, ### 4.6 `对象化验证记录"
-  ],
-  "issues": [
-    "以下 handout_anchor 未在讲义标题中命中：### 2.6 `关键节点读图记录, ### 3.3 `参数窗口判断表, ### 4.2 `总三域对照表, ### 4.6 `对象化验证记录"
-  ]
+  "warnings": [],
+  "missing": [],
+  "issues": []
 }

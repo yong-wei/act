@@ -1,7 +1,7 @@
 {
   "lesson_id": "3-2",
   "unit_type": "实践",
-  "generated_at": "2026-04-14T05:50:33.814907+00:00",
+  "generated_at": "2026-04-18T03:25:41.551670+00:00",
   "primary_sources": [
     "course-content/authoring/lessons/3-2/design/handout.md",
     "course-content/authoring/lessons/3-2/design/interactive-page.md"
@@ -12,24 +12,6 @@
   "boppps_source": "course-content/authoring/lessons/3-2/design/boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/3-2/sequence.json",
   "expected_code_media": [
-    {
-      "script": "3-2-generate-reference-cards.py",
-      "output": "3-2-special-cases-card.svg",
-      "formula_mode": "svg-mathtext",
-      "page_formula_sources": [
-        "design/handout.md",
-        "design/interactive-page.md"
-      ]
-    },
-    {
-      "script": "3-2-generate-reference-cards.py",
-      "output": "3-2-parameter-range-flow.svg",
-      "formula_mode": "svg-mathtext",
-      "page_formula_sources": [
-        "design/handout.md",
-        "design/interactive-page.md"
-      ]
-    },
     {
       "output": "3-2-pole-migration.png",
       "formula_mode": "none",
@@ -42,6 +24,16 @@
     },
     {
       "output": "3-2-bode-magnitude.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-2-special-cases-card.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-2-parameter-range-flow.svg",
       "formula_mode": "none",
       "page_formula_sources": []
     },

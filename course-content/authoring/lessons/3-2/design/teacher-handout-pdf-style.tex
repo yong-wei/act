@@ -7,15 +7,18 @@
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
+\usepackage{ltcaption}
 \usepackage{caption}
 \usepackage{float}
 \usepackage{needspace}
 \usepackage{enumitem}
 \usepackage{fvextra}
+\usepackage[most]{tcolorbox}
 \usepackage[svgnames]{xcolor}
 \usepackage{hyperref}
 
 \geometry{a4paper, top=24mm, bottom=24mm, left=22mm, right=22mm, headsep=8mm, footskip=10mm}
+\raggedbottom
 
 \setmainfont{Times New Roman}
 \setmonofont{Menlo}
@@ -26,6 +29,11 @@
 \setstretch{1.22}
 \setlength{\parindent}{2em}
 \setlength{\parskip}{0.35em}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\setlength{\LTcapwidth}{\textwidth}
 \setlist[itemize]{itemsep=0.25em, topsep=0.35em}
 \setlist[enumerate]{itemsep=0.25em, topsep=0.35em}
 
@@ -56,6 +64,7 @@
 \DeclareCaptionLabelFormat{zhtable}{表#2}
 \captionsetup[figure]{labelformat=zhfigure}
 \captionsetup[table]{labelformat=zhtable}
+\captionsetup[longtable]{labelformat=zhtable, justification=centering}
 
 \fvset{
   breaklines=true,
@@ -66,6 +75,25 @@
   rulecolor=\color{RuleGray},
   framesep=4pt
 }
+
+\newtcolorbox{HandoutQuoteBox}{
+  enhanced,
+  breakable,
+  colback=TitleBlue!6!white,
+  colframe=TitleBlue!18!white,
+  boxrule=0.4pt,
+  arc=1.2mm,
+  left=8pt,
+  right=8pt,
+  top=6pt,
+  bottom=6pt,
+  borderline west={1.8pt}{0pt}{TitleBlue!55!black},
+  before skip=0.8em,
+  after skip=0.8em
+}
+\renewenvironment{quote}
+  {\begin{HandoutQuoteBox}\small\color{TitleBlue}\noindent\ignorespaces}
+  {\end{HandoutQuoteBox}}
 
 \pagestyle{fancy}
 \fancyhf{}

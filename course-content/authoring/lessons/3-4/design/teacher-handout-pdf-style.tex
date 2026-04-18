@@ -7,6 +7,7 @@
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
+\usepackage{ltcaption}
 \usepackage{caption}
 \usepackage{float}
 \usepackage{needspace}
@@ -17,6 +18,7 @@
 \usepackage{hyperref}
 
 \geometry{a4paper, top=24mm, bottom=24mm, left=22mm, right=22mm, headsep=8mm, footskip=10mm}
+\raggedbottom
 
 \setmainfont{Times New Roman}
 \setmonofont{Menlo}
@@ -27,6 +29,11 @@
 \setstretch{1.22}
 \setlength{\parindent}{2em}
 \setlength{\parskip}{0.35em}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\setlength{\LTcapwidth}{\textwidth}
 \setlist[itemize]{itemsep=0.25em, topsep=0.35em}
 \setlist[enumerate]{itemsep=0.25em, topsep=0.35em}
 
@@ -57,6 +64,7 @@
 \DeclareCaptionLabelFormat{zhtable}{表#2}
 \captionsetup[figure]{labelformat=zhfigure}
 \captionsetup[table]{labelformat=zhtable}
+\captionsetup[longtable]{labelformat=zhtable, justification=centering}
 
 \fvset{
   breaklines=true,

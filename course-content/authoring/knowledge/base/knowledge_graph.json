@@ -19215,12 +19215,79 @@
       ],
       "created_at": null,
       "updated_at": null
+    },
+    "按扰动补偿前馈的对消条件_4_42007": {
+      "id": "按扰动补偿前馈的对消条件_4_42007",
+      "name": "按扰动补偿前馈的对消条件",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 0,
+      "chapter_name": "约束设计层",
+      "definition": "当扰动通道可测且模型可用时，可沿扰动入口附近构造前馈补偿，使扰动在目标频段内尽量被对消，再由反馈处理剩余部分。",
+      "examples": [
+        "若扰动通道与控制通道同形，理想前馈可直接写成等幅反向补偿。",
+        "若只做到部分补偿，反馈闭环仍可把残余扰动继续压下去，因此前馈是在减轻反馈负担，而不是替代反馈。"
+      ],
+      "formulas": [
+        "T_{yd}(s)=\\dfrac{G(s)G_{ff}(s)+G_d(s)}{1+G(s)C(s)}",
+        "G_{ff}(s)=-\\dfrac{G_d(s)}{G(s)}"
+      ],
+      "prerequisites": [
+        "反馈保底与前馈补偿边界_4_42005",
+        "主矛盾到频段职责映射_4_42003"
+      ],
+      "related_concepts": [
+        "单结构首轮起步卡_4_42001"
+      ],
+      "difficulty": 4,
+      "importance": 4,
+      "keywords": [
+        "扰动前馈",
+        "通道对消",
+        "抗扰",
+        "残余扰动"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "按输入补偿前馈的无差度提升_4_42006": {
+      "id": "按输入补偿前馈的无差度提升_4_42006",
+      "name": "按输入补偿前馈的无差度提升",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 0,
+      "chapter_name": "约束设计层",
+      "definition": "当给定变化趋势已知时，可沿输入通道提前施加控制量，以减小跟踪误差或提高等效无差度；工程上更常追求误差显著减小，而不是机械追求全补偿。",
+      "examples": [
+        "没有输入前馈时，斜坡输入误差完全依赖反馈逐步消化。",
+        "取合适前馈参数后，可把原本的有差跟踪提升为该类输入下的无差跟踪；但参数过大又会出现过补偿。"
+      ],
+      "formulas": [
+        "u(s)=C(s)\\bigl(r(s)-y(s)\\bigr)+F(s)r(s)",
+        "e_{ss}^{(ff)}=\\dfrac{A(1-\\tau K_2)}{K_1K_2}"
+      ],
+      "prerequisites": [
+        "反馈保底与前馈补偿边界_4_42005"
+      ],
+      "related_concepts": [
+        "单结构首轮起步卡_4_42001"
+      ],
+      "difficulty": 4,
+      "importance": 4,
+      "keywords": [
+        "输入前馈",
+        "无差度",
+        "跟踪",
+        "过补偿"
+      ],
+      "created_at": null,
+      "updated_at": null
     }
   },
   "relations": [],
   "metadata": {
-    "merged_at": "2026-04-13T10:01:04.408402+00:00",
-    "total_nodes": 689,
-    "total_relations": 16421
+    "merged_at": "2026-04-18T03:25:49.333894+00:00",
+    "total_nodes": 691,
+    "total_relations": 16425
   }
 }
