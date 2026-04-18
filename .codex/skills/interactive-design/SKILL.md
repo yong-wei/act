@@ -43,6 +43,8 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 
 ## 核心原则
 
+在作者态互动设计中，`interactive-contract.yaml` 是机读约束，`interactive-page.md` 是页面蓝图 prose。两者都以讲义证据链为源，但人读稿默认不得直接继承实现门槛、检查表和流程提示的表层口吻。先抽 **clean brief**，再写页面蓝图 prose，最后再做一次去污染检查。
+
 0. **独立学习可理解性是硬门槛**
    - 每一步都要自问：若拿掉讲稿，学生能否仅凭当前页面知道“对象是什么、正在判断什么、为什么现在看这页、结论如何接回主线”。
    - 若答案是否定的，说明该页缺少题面、前提、公式链、图后解释或结论桥接，必须补齐，不能交给教师口头兜底。
@@ -82,7 +84,16 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 
 ## 设计流程
 
-### Step 1｜讲义证据单元切分
+### Step 1｜抽取 clean brief 与讲义证据单元
+
+先把 handout、BOPPPS、manifest、sequence 和既有设计中的工程性提示下沉为 hidden constraints，只保留：
+
+- 本页必须出现哪些对象、证据、题面、公式链、图后解释、结论桥接
+- 哪些范围不能扩张
+- 目标读者在这一页需要完成什么理解 / 判断 / 操作
+- 哪些教师控制语义必须进入机读契约，但不直接写成 prose 句型
+
+若当前上下文里混入大量 harness、superpowers 或实现阶段提示，优先采用“主代理先抽 clean brief，子代理只接收 brief 生成 prose”的策略；子代理只处理页面蓝图 prose，不继承上游工程提示全文。
 
 把讲义中的内容切成证据单元，至少覆盖：
 
@@ -107,7 +118,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - `不得删减内容`
 - `验收点`
 
-### Step 3｜先搭步骤框架，再写细节
+### Step 3｜先搭步骤框架，再写页面蓝图 prose
 
 先给出步骤列表框架，再逐步补齐每步的：
 
@@ -121,6 +132,8 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 学生默认状态
 - 学生页预览路径
 - 本页脱离讲稿后的自包含检查
+
+`interactive-page.md` 的每一步都应写成**页面蓝图 prose**，解释当前页的对象、证据、判断动作和阅读顺序；不要写成教师口播稿、前端需求单或“展示 / 引导 / 完成一次”式动作脚本。
 
 ### Step 4｜同步产出双轨真源
 
@@ -146,6 +159,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 教师控制不是单一“释放互动”开关
 - 抽掉讲稿后，每一步仍能让学生知道当前对象、任务、关键证据和与主线的连接点
 - 所有曲线页都写明基线状态、阅读口令和结论回接，不能只给可操作面板
+- 页面蓝图 prose 中没有把 teacher controls、验收点、实现门槛直接写成自然段主干
 
 ## 输出要求
 

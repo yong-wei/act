@@ -23,6 +23,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - `course-content/runtime/knowledge/cards/nodes/` 继续作为全局知识卡片运行时来源；lesson runtime 只保存审查索引与报告。
 - 对涉及任务、事迹、新闻、机构、标准、时间敏感数字等外部事实，必须联网核验。
 - 对涉及控制计算、响应曲线、频域/根轨迹、性能指标等确定性内容，默认必须使用 `Octave` 中的原生函数与 `control` 包内置函数验证；不要为阶跃响应、频率响应、性能指标等基础能力自造底层计算函数。
+- 审查不负责代替生成阶段重写 prose，但必须识别**污染信号**：若正文主干被流程腔、防御腔、管理腔或课程编排说明占据，应明确要求回到生成阶段重写。
 
 ## Inputs
 
@@ -88,6 +89,11 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
   - 若需要学生复现，正文是否仅点名 MATLAB/Octave 文件名，具体最简代码是否收在附录
   - 若为实践课，讲义是否仍是一条完整可独立阅读的知识与能力主线，而不是退化成操作说明单
 - 不改文风，不做泛化重写
+- 但要额外标记以下污染信号，供生成阶段回修：
+  - “本讲 / 上一讲 / 下一步 / 接下来”高频充当段落推进器
+  - “不能直接 / 不是……而是……”成为默认句式
+  - “产出 / 交付 / 回收 / 移交 / 压实”直接进入解释性段落
+  - 正文长期停留在解释课程编排，而不是解释对象、证据和判断
 
 ### 3. 审事实正确性
 
@@ -209,6 +215,12 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
   - 不得把实践课写成“教师演示 + 学生围观 + 末尾提交一句话感想”
 - 审查结果必须输出为 `course-content/runtime/lessons/<lesson>/review/interactive-page-check.json`
 - 详细规则与元件级核对表见 `references/interactive-implementation-review.md`
+
+### 6.6 判定污染信号的返工路径
+
+- 若污染只剩局部句法和少量绕行句，可标记为**可交给 `refine` 清扫**。
+- 若污染已经进入段落骨架、页面蓝图结构或课程主线表达，应标记为**需回到生成阶段重写**。
+- 默认不要在 review 阶段直接把整篇 prose 重写到底；审查结论重点是指出污染位置、影响范围和返工入口。
 
 ### 7. 审知识卡片
 

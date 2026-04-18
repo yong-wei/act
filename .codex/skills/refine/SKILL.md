@@ -11,6 +11,8 @@ description: Use when refining student-facing `handout.md` files under `course-c
 
 本技能的核心目标不是“把讲义写得更像老师在课堂上说话”，而是“把讲义写成学生拿到后能顺畅阅读、快速定位重点的文本”。
 
+本技能是整条生成链中的**最后一道文风清扫工序**，不负责替代 `lesson` 的结构生成。若污染来自上游 brief、段落骨架或知识组织方式，优先返回 `lesson` 的生成阶段重写，不靠润色强行补救。
+
 ## Workflow
 
 ### 1. 确认目标文件
@@ -59,6 +61,15 @@ description: Use when refining student-facing `handout.md` files under `course-c
 - 没有分层练习。
 
 遇到这类问题时，应在结果中明确标记“需回到 `lesson` 的讲义生成阶段重写结构”，而不是只做句法压缩。
+
+若原稿的主要问题不是句法，而是以下任一污染来源，同样默认返回 `lesson`：
+
+- brief 本身带着流程控制口吻
+- 正文按“本讲 / 下一步 / 产出 / 交付”推进
+- 大量工程性检查表被直接翻译成自然段
+- 相邻段落反复解释课程编排而不解释对象
+
+这类问题属于生成阶段失真，`refine` 只负责标记和清扫尾部残留，不负责重新发明知识结构。
 
 输出直接覆盖到 `course-content/authoring/lessons/{unit}/design/handout.md`，不要另存为 `handout-refine.md` 或其他平行副本。
 

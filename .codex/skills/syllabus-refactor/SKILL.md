@@ -44,6 +44,18 @@ description: Use when restructuring an engineering course at whole-course level 
 - 把用户当作共同设计者，不当作单向被评审对象。
 - 把外部资源当作候选证据与候选方案，不盲目照搬。
 
+## 对下游人读文档的交接要求
+
+本技能本身主要产出蓝图、边界、评审单和模块级设计文稿，不直接替代 `lesson` 或 `interactive-design` 的 prose 生成。但凡本技能要为讲义、教案、互动页面或模块级人读稿提供输入，默认先整理一份 **clean brief**，供下游人读稿使用。
+
+这份 clean brief 只保留：
+
+- 当前层级必须讲清的对象、能力、证据、边界
+- 明确不可扩张到什么范围
+- 读者需要完成哪些理解 / 判断 / 迁移动作
+
+资源评审单、排除理由、回写要求、竞赛口径、检查项等继续留在 **隐含约束**、表格或决策块中，不直接变成解释性 prose 的句型。
+
 ## Resource Library as Formal Input
 
 `course-content/resource-library/` 现在是本技能的正式候选输入源，不再只是“有空可以翻一下”的资料夹。默认按以下角色理解：
@@ -199,6 +211,8 @@ description: Use when restructuring an engineering course at whole-course level 
 - 本轮内容对教案的约束
 - 本轮内容对互动课程设计的约束
 - 本轮内容对媒体清单的约束
+
+若同时需要输出模块级人读文稿，解释性段落应围绕对象、判断、证据展开；边界、排除项和资源门槛优先留在表格、接口块或决策块中，避免解释段落滑向项目管理文风。
 
 只有在确有必要时，才扩展到评价、资源、作业或实验设计；一旦扩展到作业，必须进入下文“作业题目重构入口”。
 

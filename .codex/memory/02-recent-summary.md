@@ -1,7 +1,7 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-04-16
+最后更新: 2026-04-18
 摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，模块 2 的 `2-1 / 2-2 / 2-3 / 2-4` 也已进入作者态双轨真源驱动的精品互动课实现阶段，且作者态互动设计已从 `lesson` 中正式拆分为独立 `interactive-design` 技能，必须注意“讲义/图谱/BOPPPS/多媒体”“作者态互动设计”“互动实现”已经形成三层独立边界。
 上游:
 - [00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
@@ -15,6 +15,7 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-04-18 已正式把模块4原 `4-3 / 4-4` 合并为新的 `4-3（实践） 初始方案落地实践：从对象分析到结构组合与首轮验证`，并同步把模块4由 `8` 个单元压缩为 `7` 个单元、由 `16h` 调整为 `14h`；`4-4/4-5/4-6/4-7` 现分别对应多目标权衡、优化实践、场景迁移与双场景综合比较。新的稳定边界是：学生版讲义不再允许以“方案卡字段学”“失败三分类”“故意失败剧本”为正文骨架，而必须按“任务表达 -> 结构选型 -> 方案落地 -> 权衡修正 -> 迁移比较”直接展开；同时，这次合并只把全课程显性编排从 `76h` 压到 `74h`，距正式 `72h` 仍差 `2h`，后续还需继续确定减载位置。若后续继续制作模块4讲义、教案、互动课或媒体，先读 [50-decisions/ADR-2026-04-18-module4-merge-4-3-4-4.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/50-decisions/ADR-2026-04-18-module4-merge-4-3-4-4.md)
 - 2026-04-16 已把作者态互动课程设计从 `lesson` 技能中独立拆出，新增 `interactive-design` 技能及三份专用参考：`worked-example-modules.md`、`curve-interaction-panels.md`、`page-sequence-and-activity-controls.md`。新的固定边界是：`lesson` 只负责讲义、图谱、BOPPPS 与多媒体；`interactive-design` 负责 `interactive-page.md` 与 `interactive-contract.yaml`；`interactive-lesson-implementation` 只负责把双轨设计落成代码与 runtime 行为。后续若遇到“图先于逻辑、例题消失、推导被压扁、作答区过于笼统、教师控制语义混乱”等问题，先回到 `interactive-design`，不要继续把互动设计规则塞回 `lesson`，也不要在实现阶段临时脑补默认语义；优先阅读 [70-workflows/67-interactive-design-skill-split.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/67-interactive-design-skill-split.md)
 - 2026-04-15 针对教师驾驶舱线上长期停留在降级模式的问题，已经进一步确认并沉淀出三条新的稳定运维事实：第一，`deploy/podman/*.sh` 一度被根级 `.gitignore` 的 `deploy/` 规则整体排除，因此今后凡是修部署脚本，先确认这些文件已经被显式纳入 Git 版本控制，不要只在本地未跟踪文件里修改；第二，这台生产机上的 `Podman + Alpine/musl + Node 18` 组合里，`nslookup`/`dns.resolve4()` 能解析 `*.dns.podman` 并不代表 Node 业务进程里的 `getaddrinfo` 稳定，因此 `deploy/podman/deploy.sh` 已改为在创建 `app/worker` 时注入数据库与 Redis 的静态 `--add-host` 映射；第三，`configure-service.sh` 必须在数据库就绪后重新执行 `4-deploy.sh --app-only` 重建应用栈，不能再 `podman start` 旧的 `app/worker` 容器，否则数据库和 Redis 重启换 IP 后，旧容器内静态映射会立即失效。当前生产验收结果已恢复为四个核心容器全部 `Up`、`act-obe-stack.service` 为 `active`、`/api/readyz` 返回 `app=true, db=true, redis=true`、`/api/auth/session` 正常、BullMQ key 存在、worker 日志出现 `[Worker] Data governance worker started`。后续若再排查线上教师驾驶舱降级、Redis/DB 健康误判或 systemd 重启后的连接异常，先读 [60-incidents/2026-04-15-podman-systemd-and-auth-url-deploy-hardening.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/60-incidents/2026-04-15-podman-systemd-and-auth-url-deploy-hardening.md) 与 [30-operations/50-known-deploy-risks.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/30-operations/50-known-deploy-risks.md)
 - 2026-04-15 已完成教师驾驶舱线上部署链路的三项关键加固：`scripts/remote-deploy.sh --skip-build` 会先比较本地与远端镜像包 SHA256，一致时直接跳过重复上传；`deploy/podman/configure-service.sh` 已补上 `KillMode=none` 与 `Delegate=yes` 并改为优先从 `DATABASE_URL` 派生数据库密码，避免远端 `act-obe-stack.service` 再次触发 Podman `unable to freeze` / `conmon died without writing exit file`；`deploy/podman/deploy.sh` 现在会把生产环境中的 `NEXTAUTH_URL=http://localhost:3001` 归一化为 `https://$APP_DOMAIN`，并自动补齐 `DATABASE_URL` 的 `connection_limit=10&pool_timeout=20`，从而修复教师退出登录跳回本地地址与最终验收未达标的问题。后续若再做生产部署，继续坚持“本机构建镜像包、远端仅装载镜像与运维脚本”的固定模式，不要恢复远端构建或上传源码
