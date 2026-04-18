@@ -1,62 +1,51 @@
 # 多模态资源设计 | 单元 3-2：劳斯判据——从高阶系统稳定判定到参数可行域
 
-> **资源总数**：11 项正式媒体规划，另含 2 份提示词文件。
-> **当前完成**：`3-2-pole-migration.png`、`3-2-step-comparison.png`、`3-2-bode-magnitude.png`、`3-2-special-cases-card.svg`、`3-2-parameter-range-flow.svg`、`3-2-cover-comic.png`、`3-2-info.png`、`3-2-slides.pdf`、`3-2-intro-video.mp4`、`3-2-course.mp4`、`3-2-audio.m4a`、`3-2-cover-comic-prompt.md`、`3-2-intro-video-prompts.md`。
-> **本轮重点**：以统一高阶主对象支撑讲义、教师版讲义和互动页，不再新增同义图，避免图像口径分叉。
-> **验证约定**：本单元所有控制图统一以 `Octave + control` 为真值来源。
+本单元的媒体设计围绕同一个四阶对象展开，目标不是堆叠图像数量，而是让学生在不同表述之间看到同一条稳定边界：代数上由劳斯表给出，复平面上表现为极点逼近或穿越虚轴，时域和频域上则表现为响应与峰值的变化。现有资源已经能够覆盖这条主线，不再额外生成同义图。
+
+本单元正式媒体共 11 项，另保留 2 份提示词文件；控制图像统一以 `Octave + control` 为真值来源，正式成品均使用 `3-2-` 前缀。
 
 ---
 
-## 1. 本课资源采用单
+## 一、资源采用说明
 
-| 候选资源路径 | 资源类型 | 计划落点 | 采用方式 | 采用级别 | 边界说明 |
+| 候选资源路径 | 资源类型 | 计划落点 | 采用方式 | 采用级别 | 说明 |
 |---|---|---|---|---|---|
-| `course-content/resource-library/pptx/8稳定_控制系统首要任务/README.md` | `pptx` | 讲义正文 / 课堂导入 / 特殊情况方法卡 | 改写吸收 | 必融入 | 吸收劳斯骨架、特殊情况处理与参数区间主线，不照搬旧例题串讲 |
-| `course-content/questions/questions/AC-Q-0048.md` | `exercise` | 图 1-3 数值核验思路 | 改写吸收 | 必融入 | 服务参数扫描、典型响应和趋势验证 |
-| `course-content/questions/questions/AC-Q-0046.md` | `exercise` | 特殊情况辨识 | 改写吸收 | 必融入 | 服务 `首位为0` 与 `全零行` 的方法辨识 |
-| `course-content/resource-library/civics-cases/cases/03-数理交响启示录.md` | `civics` | 附录 A | 改写吸收 + 直接复用配图 | 可选融入 | 服务“数学融入工程”的科学史收束 |
-| `course-content/resource-library/pptx/11放眼大局_根轨迹法/README.md` 等根轨迹资源 | `pptx` | 无 | 排除 | 排除 | 避免本课提前进入根轨迹法则系统教学 |
+| `course-content/resource-library/pptx/8稳定_控制系统首要任务/README.md` | `pptx` | 讲义正文、课堂导入、特殊情况方法卡 | 改写吸收 | 必融入 | 吸收劳斯判据主线、特殊情况辨识和参数区间表达，不沿用旧例题铺陈方式 |
+| `course-content/questions/questions/AC-Q-0048.md` | `exercise` | 参数扫描与图 1-3 的数值核验 | 改写吸收 | 必融入 | 用于支撑参数变化、典型响应和趋势判断 |
+| `course-content/questions/questions/AC-Q-0046.md` | `exercise` | 特殊情况辨识 | 改写吸收 | 必融入 | 用于区分 `首位为 0` 与 `全零行` 两种处理方式 |
+| `course-content/resource-library/civics-cases/cases/03-数理交响启示录.md` | `civics` | 附录 A | 改写吸收 + 复用配图 | 可选融入 | 只服务“数学工具进入工程判断”的价值收束，不干扰正文主线 |
+| `course-content/resource-library/pptx/11放眼大局_根轨迹法/README.md` 等根轨迹资源 | `pptx` | 无 | 排除 | 排除 | 本课只讨论稳定边界与可行域，不提前展开根轨迹法则体系 |
 
 ---
 
-## 2. 正式命名与目录约束
+## 二、命名与目录
 
-- 所有正式媒体固定使用 `3-2-...` 前缀。
 - 原料目录：`media/raw/`
 - 成品目录：`media/processed/`
-- 当前已有脚本：
+- 已有脚本：
   - `media/raw/3-2-generate-plots.m`
   - `media/raw/3-2-generate-reference-cards.py`
-- 当前已有成品：
-  - `media/processed/3-2-pole-migration.png`
-  - `media/processed/3-2-step-comparison.png`
-  - `media/processed/3-2-bode-magnitude.png`
-  - `media/processed/3-2-special-cases-card.svg`
-  - `media/processed/3-2-parameter-range-flow.svg`
-  - `media/processed/3-2-cover-comic.png`
-  - `media/processed/3-2-info.png`
-  - `media/processed/3-2-slides.pdf`
-  - `media/processed/3-2-intro-video.mp4`
-  - `media/processed/3-2-course.mp4`
-  - `media/processed/3-2-audio.m4a`
+- 命名规则：所有正式成品统一使用 `3-2-...`
+
+这一命名方式的意义不只是归档整齐，更是为了保证讲义、教师版讲义、互动页和运行时资源引用同一批资产，不再出现同一内容多份近义文件。
 
 ---
 
-## 3. 资源总表
+## 三、正式资源总表
 
-| 编号 | 文件名 | 类型 | 状态 | 引用于 |
-|:---:|---|---|:---:|---|
-| 1 | `3-2-pole-migration.png` | 代码直出图 | 已完成 | `handout` §3、§6 / `boppps` 导入 / `interactive-page` 步骤 2、7 |
-| 2 | `3-2-step-comparison.png` | 代码直出图 | 已完成 | `handout` §5 / `boppps` 三域对应段 / `interactive-page` 步骤 10 |
-| 3 | `3-2-bode-magnitude.png` | 代码直出图 | 已完成 | `handout` §5 / `boppps` 三域对应段 / `interactive-page` 步骤 11 |
-| 4 | `3-2-special-cases-card.svg` | 方法卡 | 已完成 | `handout` §4 / `interactive-page` 步骤 8、9 / `boppps` 特殊情况段 |
-| 5 | `3-2-parameter-range-flow.svg` | 流程图 | 已完成 | `handout` §6 / `interactive-page` 步骤 12 |
-| 6 | `3-2-cover-comic.png` | 讲义封面图 | 已完成 | 讲义封面 / 互动课入口 |
-| 7 | `3-2-info.png` | 讲义信息图 | 已完成 | 讲义总结 / 互动课收束页 |
-| 8 | `3-2-slides.pdf` | 生成式课件 | 已完成 | 课堂投屏 / 课件归档 |
-| 9 | `3-2-intro-video.mp4` | 导入视频 | 已完成 | 课堂开场 / 互动课首页 |
-| 10 | `3-2-course.mp4` | 课程视频 | 已完成 | 课程归档 / 回看入口 |
-| 11 | `3-2-audio.m4a` | 音频播客 | 已完成 | 音频归档 |
+| 编号 | 文件名 | 类型 | 引用位置 | 资源作用 |
+|:---:|---|---|---|---|
+| 1 | `3-2-pole-migration.png` | 代码直出图 | `handout` §3、§6；`boppps` 导入；`interactive-page` 步骤 2、7 | 把代数区间、极点迁移和区域约束放到同一张图上 |
+| 2 | `3-2-step-comparison.png` | 代码直出图 | `handout` §5；`boppps` 三域对应；`interactive-page` 步骤 10 | 展示稳定、临界、失稳三种时域表现 |
+| 3 | `3-2-bode-magnitude.png` | 代码直出图 | `handout` §5；`boppps` 三域对应；`interactive-page` 步骤 11 | 展示接近稳定边界时频域峰值的抬高 |
+| 4 | `3-2-special-cases-card.svg` | 方法卡 | `handout` §4；`interactive-page` 步骤 8、9；`boppps` 特殊情况段 | 并列呈现两类特殊情况的判断与处理 |
+| 5 | `3-2-parameter-range-flow.svg` | 流程图 | `handout` §6；`interactive-page` 步骤 12 | 固定“写方程—列劳斯表—合并区间—变量平移”的求解链 |
+| 6 | `3-2-cover-comic.png` | 讲义封面图 | 讲义封面；互动课入口 | 提供统一视觉入口 |
+| 7 | `3-2-info.png` | 讲义信息图 | 讲义总结；互动课收束页 | 汇总本课关键对象与判断链 |
+| 8 | `3-2-slides.pdf` | 课件 | 课堂投屏；课件归档 | 服务课堂展示与归档回看 |
+| 9 | `3-2-intro-video.mp4` | 导入视频 | 课堂开场；互动课首页 | 形成进入问题的情境 |
+| 10 | `3-2-course.mp4` | 课程视频 | 课程归档；回看入口 | 提供课后回看材料 |
+| 11 | `3-2-audio.m4a` | 音频播客 | 音频归档 | 服务碎片化复习与回听 |
 
 提示词文件：
 
@@ -65,84 +54,40 @@
 
 ---
 
-## 4. 现有代码直出图与原料映射
+## 四、核心图像与原料映射
 
-| 标识 | 原料文件 | 成品文件 | 工具 | 核心用途 |
+| 标识 | 原料文件 | 成品文件 | 工具 | 教学作用 |
 |---|---|---|---|---|
-| `pp-01` | `media/raw/3-2-generate-plots.m` | `media/processed/3-2-pole-migration.png` | Octave | 展示统一对象在参数扫描下的极点迁移范围，支撑稳定区间和区域约束的几何解释 |
-| `pp-02` | `media/raw/3-2-generate-plots.m` | `media/processed/3-2-step-comparison.png` | Octave | 展示稳定、临界、失稳三种状态在时间响应中的差异 |
-| `pp-03` | `media/raw/3-2-generate-plots.m` | `media/processed/3-2-bode-magnitude.png` | Octave | 展示接近稳定边界时频域峰值抬高的趋势 |
-| `pp-04` | `media/raw/3-2-generate-reference-cards.py` | `media/processed/3-2-special-cases-card.svg` | Python + matplotlib mathtext | 用双栏方法卡固定区分“首位为 0”和“全零行”的处理流程 |
-| `pp-05` | `media/raw/3-2-generate-reference-cards.py` | `media/processed/3-2-parameter-range-flow.svg` | Python + matplotlib mathtext | 用流程图固定“写方程 → 列劳斯表 → 合并区间 → 区域约束先平移”的求解链 |
+| `pp-01` | `media/raw/3-2-generate-plots.m` | `media/processed/3-2-pole-migration.png` | Octave | 说明参数变化下的极点迁移范围，并把稳定区间与区域约束转成几何直觉 |
+| `pp-02` | `media/raw/3-2-generate-plots.m` | `media/processed/3-2-step-comparison.png` | Octave | 比较稳定、临界、失稳三种时间响应 |
+| `pp-03` | `media/raw/3-2-generate-plots.m` | `media/processed/3-2-bode-magnitude.png` | Octave | 说明接近稳定边界时频域峰值为何上扬 |
+| `pp-04` | `media/raw/3-2-generate-reference-cards.py` | `media/processed/3-2-special-cases-card.svg` | Python + matplotlib mathtext | 固定两类特殊情况的辨识与处理动作 |
+| `pp-05` | `media/raw/3-2-generate-reference-cards.py` | `media/processed/3-2-parameter-range-flow.svg` | Python + matplotlib mathtext | 固定参数可行域的推导顺序与区域约束入口 |
 
-说明：
-
-- `pp-01` 是本课最关键的主图，用于连接代数区间、极点结构和区域约束。
-- `pp-02` 与 `pp-03` 共同承担“三域对应”中的时域和频域证据。
-- 三张图已经在讲义正文中完成回写，后续应直接复用到教师版讲义和互动页，不再生成同义版。
+其中 `pp-01` 是本课的主图。它负责把“参数区间”“极点结构”“区域筛选”三件事同时讲清。`pp-02` 与 `pp-03` 则共同承担三域对应，二者应始终配对出现，不宜单独抽离使用。
 
 ---
 
-## 5. 后续待制作媒体建议
+## 五、课程级资源
 
-### 资源 pp-04 | 特殊情况方法卡
-
-- **存放**：`media/raw/3-2-generate-reference-cards.py` -> `media/processed/3-2-special-cases-card.svg`
-- **公式模式**：`svg-mathtext`
-- **页面公式来源**：`design/handout.md`, `design/interactive-page.md`
-- 当前状态：已完成，采用左右双卡布局
-- 成品内容：
-  - 左卡：`首位为 0，非全零行` 的处理流程
-  - 右卡：`全零行` 的辅助方程流程
-- 用途：讲义 §4 与互动页步骤 8-9 的固定说明板
-
-### 资源 pp-05 | 参数可行域流程图
-
-- **存放**：`media/raw/3-2-generate-reference-cards.py` -> `media/processed/3-2-parameter-range-flow.svg`
-- **公式模式**：`svg-mathtext`
-- **页面公式来源**：`design/handout.md`, `design/interactive-page.md`
-- 当前状态：已完成，采用横向流程图
-- 成品内容：
-  - 写特征方程
-  - 列带参数劳斯表
-  - 取第一列条件
-  - 合并区间
-  - 若有区域约束则先做变量平移
-
-### 5.3 课程级资源
-
-| 资源 | 正式文件名 | 当前说明 |
+| 资源 | 正式文件名 | 当前用途 |
 |---|---|---|
-| 封面图 | `3-2-cover-comic.png` | 已存在成品，提示词文件保留作追溯 |
-| 信息图 | `3-2-info.png` | 已存在成品，可直接进入讲义与 runtime |
-| 课件 | `3-2-slides.pdf` | 已存在成品，可直接归档与投屏 |
-| 导入视频 | `3-2-intro-video.mp4` | 已存在成品，提示词文件保留作追溯 |
-| 课程视频 | `3-2-course.mp4` | 已存在成品，可直接归档与回看 |
-| 音频播客 | `3-2-audio.m4a` | 已存在成品，可直接归档 |
+| 封面图 | `3-2-cover-comic.png` | 讲义封面与互动课入口 |
+| 信息图 | `3-2-info.png` | 讲义总结与互动课收束页 |
+| 课件 | `3-2-slides.pdf` | 课堂投屏与归档 |
+| 导入视频 | `3-2-intro-video.mp4` | 课堂开场与互动首页 |
+| 课程视频 | `3-2-course.mp4` | 回看入口 |
+| 音频播客 | `3-2-audio.m4a` | 音频归档与复习 |
+
+这些课程级资源不承担细部推导说明，主要负责入口、收束和回看。真正用于概念辨析和方法判断的，仍是前述五项核心图像资源。
 
 ---
 
-## 6. 复用策略
+## 六、复用原则
 
-- `3-2-pole-migration.png` 在正文、教师讲义和互动页都应保持同一图号和同一图意。
-- `3-2-step-comparison.png` 与 `3-2-bode-magnitude.png` 必须成对使用，避免三域链条被拆散。
-- 附录 A 使用课程思政案例的人物配图，不再单独复制到本单元 `media/processed/`，避免资产重复。
+- `3-2-pole-migration.png` 在正文、教师版讲义和互动页中应保持同一图意，不另起近义版本。
+- `3-2-step-comparison.png` 与 `3-2-bode-magnitude.png` 应成对出现，避免把三域链条拆开。
+- `3-2-special-cases-card.svg` 适合承担固定说明板的角色，不再把同一内容改写成另一张方法图。
+- 附录 A 若使用课程思政案例配图，直接复用上游资产，不在本单元重复生成副本。
 
----
-
-## 7. 后续制作优先级
-
-### P1：已完成，可直接复用
-
-- `3-2-pole-migration.png`
-- `3-2-step-comparison.png`
-- `3-2-bode-magnitude.png`
-- `3-2-special-cases-card.svg`
-- `3-2-parameter-range-flow.svg`
-- `3-2-generate-plots.m`
-- `3-2-cover-comic.png`
-- `3-2-info.png`
-- `3-2-slides.pdf`
-- `3-2-intro-video.mp4`
-- `3-2-course.mp4`
-- `3-2-audio.m4a`
+这样处理之后，媒体系统会更像一组互相支撑的证据，而不是一串彼此竞争注意力的文件清单。

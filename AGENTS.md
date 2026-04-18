@@ -13,6 +13,10 @@
 - syllabus-refactor：大纲重构
 </Skill-use>
 
+<Skill-evolve>
+在使用项目专属技能执行操作时，如果遇到了问题，在尝试解决后应该将解决思路沉淀在相应技能中，避免二次踩坑。
+</Skill-evolve>
+
 ## 项目进度保存与验证
 
 - 当完成了重大功能更新后，需要及时提交并推送到当前分支。更新docs/ProjectDescription.md文档相关部分。

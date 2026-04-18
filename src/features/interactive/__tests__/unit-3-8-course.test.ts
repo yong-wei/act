@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { parse } from 'yaml';
 
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
@@ -25,48 +26,61 @@ describe('unit 3-8 interactive course', () => {
     expect(registry?.courseMeta.courseTitle).toContain('频域判别与跨域综合语言');
   });
 
-  it('defines the full 12-step lesson flow', async () => {
+  it('defines the full 20-step lesson flow', async () => {
     const courseModule = await import('@/lib/unit-3-8-course');
 
-    expect(courseModule.UNIT_3_8_LESSON_STEPS).toHaveLength(12);
+    expect(courseModule.UNIT_3_8_LESSON_STEPS).toHaveLength(20);
     expect(courseModule.UNIT_3_8_LESSON_STEPS[0]?.id).toBe('step-01');
-    expect(courseModule.UNIT_3_8_LESSON_STEPS[11]?.id).toBe('step-12');
+    expect(courseModule.UNIT_3_8_LESSON_STEPS[19]?.id).toBe('step-20');
+    expect(courseModule.UNIT_3_8_LESSON_STEPS[4]?.pageType).toBe('curve_compare_panel');
+    expect(courseModule.UNIT_3_8_LESSON_STEPS[13]?.pageType).toBe('goal_cards_plus_ai');
+    expect(courseModule.UNIT_3_8_LESSON_STEPS[19]?.pageType).toBe('reflection_card');
   });
 
-  it('exposes AI quick questions for the three-band compare workspace', () => {
-    const quickQuestions = getStepQuickQuestions('unit-3-8-frequency-domain-translation-judgment-v1', 'step-09');
+  it('exposes AI quick questions for the goal-switch page and keeps only that page as visible AI step', async () => {
+    const quickQuestions = getStepQuickQuestions('unit-3-8-frequency-domain-translation-judgment-v1', 'step-14');
+    const courseModule = await import('@/lib/unit-3-8-course');
 
     expect(quickQuestions).toHaveLength(2);
-    expect(quickQuestions[0]?.question).toContain('尽快跟踪');
+    expect(quickQuestions[0]?.question).toContain('目标');
+    expect(courseModule.isUNIT_3_8AiPageType('goal_cards_plus_ai')).toBe(true);
+    expect(courseModule.isUNIT_3_8AiPageType('curve_compare_panel')).toBe(false);
+    expect(courseModule.isUNIT_3_8AiPageType('structured_compare')).toBe(false);
   });
 
-  it('maps runtime media using the real 3-8 prefixed asset names', async () => {
+  it('maps runtime media to the actual 3-8 design steps', async () => {
     const courseModule = await import('@/lib/unit-3-8-course');
 
     expect(courseModule.getUNIT_3_8MediaSrc('step-01')).toContain('3-8-cover-comic');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-02')).toContain('3-8-gain-effect');
     expect(courseModule.getUNIT_3_8MediaSrc('step-05')).toContain('3-8-zero-effect');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-06')).toContain('3-8-nyquist-example-check');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-07')).toContain('3-8-nyquist-quickcheck');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-08')).toContain('3-8-bode-example');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-09')).toContain('3-8-three-band-overview');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-10')).toContain('3-8-heading-case');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-11')).toContain('3-8-platform-case');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-12')).toContain('3-8-info');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-09')).toContain('3-8-nyquist-quickcheck');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-10')).toContain('3-8-nyquist-example');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-11')).toContain('3-8-bode-example');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-13')).toContain('3-8-three-band-overview');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-15')).toContain('3-8-heading-baseline');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-16')).toContain('3-8-heading-case');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-17')).toContain('3-8-platform-block-diagram');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-18')).toContain('3-8-platform-case');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-20')).toContain('3-8-info');
   });
 
-  it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
-    const contract = JSON.parse(
+  it('keeps the local page contracts aligned with the authoring interactive contract for all 20 steps', async () => {
+    const contract = parse(
       readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-8/design/interactive-contract.yaml'), 'utf8'),
     ) as {
       steps: Record<
         string,
         {
           title: string;
-          layout: { template: string; regions: Array<{ id: string; width: string; order: number }> };
+          layout: {
+            template: string;
+            regions: Array<{ id: string; width: string; order: number }>;
+            reading_order?: string[];
+          };
           interaction_spec: { interaction_kind: string };
           teacher_insight_spec: { widgets: string[] };
           telemetry_spec: { summary_fields: string[]; misconception_tags?: string[] };
+          ai_context_spec: { delivery_mode?: string };
           preview_contract: { demo_path: string };
         }
       >;
@@ -74,18 +88,7 @@ describe('unit 3-8 interactive course', () => {
 
     const courseModule = await import('@/lib/unit-3-8-course');
     const interactiveSteps = new Map(courseModule.UNIT_3_8_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
-    const expectedStepIds = [
-      'step-02',
-      'step-04',
-      'step-05',
-      'step-06',
-      'step-07',
-      'step-08',
-      'step-09',
-      'step-10',
-      'step-11',
-      'step-12',
-    ] as const;
+    const expectedStepIds = Object.keys(contract.steps);
 
     for (const stepId of expectedStepIds) {
       const authoringStep = contract.steps[stepId];
@@ -102,6 +105,28 @@ describe('unit 3-8 interactive course', () => {
       expect(localPageContract?.misconceptionTags ?? []).toEqual(authoringStep.telemetry_spec.misconception_tags ?? []);
       expect(localPageContract?.previewDemoPath).toBe(authoringStep.preview_contract.demo_path);
     }
+  });
+
+  it('stores browse visibility and step reveal progress in the teacher sync payload', async () => {
+    const courseModule = await import('@/lib/unit-3-8-course');
+
+    const payload = courseModule.UNIT_3_8_SESSION_ADAPTER.buildTeacherSyncPayload({
+      activeStepId: 'step-07',
+      revealedAnswers: { 'step-07': false },
+      releasedActivities: { 'step-06': true, 'step-07': true },
+      browseEnabled: { 'step-07': true },
+      teacherRevealProgress: { 'step-07': 2 },
+      updatedAt: 123,
+    });
+
+    expect(payload).toMatchObject({
+      kind: 'teacher_sync_unit38',
+      activeStepId: 'step-07',
+      releasedActivities: { 'step-06': true, 'step-07': true },
+      browseEnabled: { 'step-07': true },
+      teacherRevealProgress: { 'step-07': 2 },
+      updatedAt: 123,
+    });
   });
 
   it('registers the course in the learning catalog and classroom route resolver', () => {
@@ -164,17 +189,17 @@ describe('unit 3-8 interactive course', () => {
       'utf8',
     );
 
-    expect(stepPanelsSource).toContain('Bode 判稳不是另一套规则');
-    expect(stepPanelsSource).toContain('Nyquist 与 Bode 描述同一临界边界');
-    expect(stepPanelsSource).toContain('真正有效的动作是中频定向补角');
+    expect(stepPanelsSource).toContain('为什么“只改增益”会左右为难');
+    expect(stepPanelsSource).toContain('目标切换时，先改哪一段频带');
+    expect(stepPanelsSource).toContain('把完整判断链独立走一遍');
     expect(stepPanelsSource).not.toContain('PI 与滞后都站在低频补偿线上');
     expect(stepPanelsSource).not.toContain('劳斯判据');
 
-    expect(workspaceSource).toContain('HOTSPOT_FIELDS');
-    expect(workspaceSource).toContain('TRIPLE_MATCH_FIELDS');
-    expect(workspaceSource).toContain('CARD_SORT_ITEMS');
-    expect(workspaceSource).toContain('AI_COMPARE_FIELDS');
-    expect(workspaceSource).toContain('STRUCTURED_COMPARE_FIELDS');
+    expect(workspaceSource).toContain('ROW_FOCUS_TOGGLE_ROWS');
+    expect(workspaceSource).toContain('CURVE_COMPARE_CONTROLS');
+    expect(workspaceSource).toContain('GOAL_SWITCH_FIELDS');
+    expect(workspaceSource).toContain('SCHEME_VOTE_OPTIONS');
+    expect(workspaceSource).toContain('REFLECTION_PROMPTS');
   });
 
   it('uses the 3-8 step AI context inside the student page', () => {

@@ -15,6 +15,7 @@ import {
   finalizeUNIT_3_8TeacherSession,
   getUNIT_3_8MediaSrc,
   isUNIT_3_8AiPageType,
+  isUNIT_3_8InteractivePageType,
   isUNIT_3_8TeacherSyncState,
   resolveUNIT_3_8TeacherSyncDraft,
   shouldPostUNIT_3_8TeacherSync,
@@ -47,6 +48,8 @@ export function UNIT_3_8TeacherPage({
   const [showStudentList, setShowStudentList] = useState(false);
   const [localRevealedAnswers, setLocalRevealedAnswers] = useState<Record<string, boolean> | null>(null);
   const [localReleasedActivities, setLocalReleasedActivities] = useState<Record<string, boolean> | null>(null);
+  const [localBrowseEnabled, setLocalBrowseEnabled] = useState<Record<string, boolean> | null>(null);
+  const [localTeacherRevealProgress, setLocalTeacherRevealProgress] = useState<Record<string, number> | null>(null);
 
   const interactiveTracking = useInteractiveTracking({
     resourceId: UNIT_3_8_RESOURCE_KEY,
@@ -88,14 +91,16 @@ export function UNIT_3_8TeacherPage({
     return (latestRecord?.data as UNIT_3_8TeacherCourseSyncState | null) ?? null;
   }, [teacherStates]);
 
-  const { revealedAnswers, releasedActivities } = useMemo(
+  const { revealedAnswers, releasedActivities, browseEnabled, teacherRevealProgress } = useMemo(
     () =>
       resolveUNIT_3_8TeacherSyncDraft({
         localRevealedAnswers,
         localReleasedActivities,
+        localBrowseEnabled,
+        localTeacherRevealProgress,
         teacherSyncState,
       }),
-    [localRevealedAnswers, localReleasedActivities, teacherSyncState],
+    [localBrowseEnabled, localReleasedActivities, localRevealedAnswers, localTeacherRevealProgress, teacherSyncState],
   );
 
   const previousStepIdRef = useRef<string | null>(null);
@@ -120,8 +125,10 @@ export function UNIT_3_8TeacherPage({
       activeStepId: step.id,
       revealedAnswers,
       releasedActivities,
+      browseEnabled,
+      teacherRevealProgress,
     });
-  }, [loadingSession, postTeacherSyncInput, revealedAnswers, releasedActivities, step.id, teacherViewHydrated]);
+  }, [browseEnabled, loadingSession, postTeacherSyncInput, releasedActivities, revealedAnswers, step.id, teacherRevealProgress, teacherViewHydrated]);
 
   const studentStates = useMemo(() => {
     return courseStates
@@ -288,6 +295,7 @@ export function UNIT_3_8TeacherPage({
           mediaSrc={getUNIT_3_8MediaSrc(step.id)}
           mediaAlt={step.title}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
+          revealProgress={teacherRevealProgress[step.id] ?? 0}
         />
 
         {isUNIT_3_8AiPageType(step.pageType) ? (
@@ -296,26 +304,48 @@ export function UNIT_3_8TeacherPage({
           </div>
         ) : null}
 
-        <div className="mt-4">
-          <UNIT_3_8TeacherActivitySummary
-            step={step}
-            responses={currentResponses}
-            released={Boolean(releasedActivities[step.id])}
-            answerVisible={Boolean(revealedAnswers[step.id])}
-            onToggleRelease={() =>
-              setLocalReleasedActivities((prev) => ({
-                ...(prev ?? (teacherSyncState as UNIT_3_8TeacherCourseSyncState | null)?.releasedActivities ?? {}),
-                [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_8TeacherCourseSyncState | null)?.releasedActivities?.[step.id]),
-              }))
-            }
-            onToggleAnswerVisible={() =>
-              setLocalRevealedAnswers((prev) => ({
-                ...(prev ?? (teacherSyncState as UNIT_3_8TeacherCourseSyncState | null)?.revealedAnswers ?? {}),
-                [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_8TeacherCourseSyncState | null)?.revealedAnswers?.[step.id]),
-              }))
-            }
-          />
-        </div>
+        {isUNIT_3_8InteractivePageType(step.pageType) ? (
+          <div className="mt-4">
+            <UNIT_3_8TeacherActivitySummary
+              step={step}
+              responses={currentResponses}
+              released={Boolean(releasedActivities[step.id])}
+              browseEnabled={Boolean(browseEnabled[step.id])}
+              answerVisible={Boolean(revealedAnswers[step.id])}
+              revealProgress={teacherRevealProgress[step.id] ?? 0}
+              onToggleRelease={() =>
+                setLocalReleasedActivities((prev) => ({
+                  ...(prev ?? teacherSyncState?.releasedActivities ?? {}),
+                  [step.id]: !(prev?.[step.id] ?? teacherSyncState?.releasedActivities?.[step.id]),
+                }))
+              }
+              onToggleBrowse={() =>
+                setLocalBrowseEnabled((prev) => ({
+                  ...(prev ?? teacherSyncState?.browseEnabled ?? {}),
+                  [step.id]: !(prev?.[step.id] ?? teacherSyncState?.browseEnabled?.[step.id]),
+                }))
+              }
+              onToggleAnswerVisible={() =>
+                setLocalRevealedAnswers((prev) => ({
+                  ...(prev ?? teacherSyncState?.revealedAnswers ?? {}),
+                  [step.id]: !(prev?.[step.id] ?? teacherSyncState?.revealedAnswers?.[step.id]),
+                }))
+              }
+              onAdvanceReveal={() =>
+                setLocalTeacherRevealProgress((prev) => ({
+                  ...(prev ?? teacherSyncState?.teacherRevealProgress ?? {}),
+                  [step.id]: (prev?.[step.id] ?? teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0) + 1,
+                }))
+              }
+              onResetReveal={() =>
+                setLocalTeacherRevealProgress((prev) => ({
+                  ...(prev ?? teacherSyncState?.teacherRevealProgress ?? {}),
+                  [step.id]: 0,
+                }))
+              }
+            />
+          </div>
+        ) : null}
       </main>
     </div>
   );

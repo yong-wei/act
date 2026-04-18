@@ -15,6 +15,7 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit38StepAIContext } from '@/lib/course-ai-contexts';
 import {
   getUNIT_3_8MediaSrc,
+  getUNIT_3_8PageContract,
   isUNIT_3_8AiPageType,
   isUNIT_3_8InteractivePageType,
   UNIT_3_8_LESSON_KEY,
@@ -89,6 +90,7 @@ export function UNIT_3_8StudentPage({
 
   const step = UNIT_3_8_LESSON_STEPS[activeIndex];
   const savedResponse = courseState.responses[step.id];
+  const pageContract = getUNIT_3_8PageContract(step.id);
   const { updatePageContext } = useGlobalAI();
 
   useEffect(() => {
@@ -109,16 +111,28 @@ export function UNIT_3_8StudentPage({
     }
   }, [step.id, updatePageContext]);
 
-  const answerVisible =
-    teacherSyncState?.activeStepId === step.id
-      ? Boolean((teacherSyncState as { revealedAnswers?: Record<string, boolean> })?.revealedAnswers?.[step.id])
-      : false;
   const released =
-    isDemo || !isUNIT_3_8InteractivePageType(step.pageType)
+    isDemo ||
+    !isUNIT_3_8InteractivePageType(step.pageType) ||
+    pageContract.teacherControls.releaseActivity !== 'separate_toggle'
       ? true
-      : teacherSyncState?.activeStepId === step.id
-        ? Boolean((teacherSyncState as { releasedActivities?: Record<string, boolean> })?.releasedActivities?.[step.id])
-        : false;
+      : Boolean(teacherSyncState?.releasedActivities?.[step.id]);
+  const browseEnabled =
+    isDemo ||
+    pageContract.teacherControls.openBrowse === 'always_on' ||
+    pageContract.teacherControls.openBrowse === 'not_applicable'
+      ? true
+      : Boolean(teacherSyncState?.browseEnabled?.[step.id]);
+  const answerVisible =
+    pageContract.teacherControls.revealReferenceAnswer === 'separate_toggle'
+      ? Boolean(teacherSyncState?.revealedAnswers?.[step.id])
+      : false;
+  const revealProgress =
+    isDemo
+      ? 99
+      : pageContract.teacherControls.teacherStepReveal === 'teacher_only'
+        ? (teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0)
+        : 0;
 
   const previousStepIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -269,6 +283,7 @@ export function UNIT_3_8StudentPage({
           mediaSrc={getUNIT_3_8MediaSrc(step.id)}
           mediaAlt={step.title}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
+          revealProgress={revealProgress}
         />
 
         {isUNIT_3_8AiPageType(step.pageType) ? (
@@ -277,18 +292,21 @@ export function UNIT_3_8StudentPage({
           </div>
         ) : null}
 
-        <div className="mt-4">
-          <UNIT_3_8StudentActivityForm
-            step={step}
-            savedResponse={savedResponse}
-            released={released}
-            answerVisible={answerVisible}
-            onSubmit={handleSubmitResponse}
-            onWorkspaceParameterChange={handleWorkspaceParameterChange}
-          />
-        </div>
+        {isUNIT_3_8InteractivePageType(step.pageType) ? (
+          <div className="mt-4">
+            <UNIT_3_8StudentActivityForm
+              step={step}
+              savedResponse={savedResponse}
+              released={released}
+              browseEnabled={browseEnabled}
+              answerVisible={answerVisible}
+              onSubmit={handleSubmitResponse}
+              onWorkspaceParameterChange={handleWorkspaceParameterChange}
+            />
+          </div>
+        ) : null}
 
-        {step.id === 'step-12' ? (
+        {step.id === 'step-20' ? (
           <div className="mt-4">
             <UNIT_3_8StudentSummaryPanel responses={courseState.responses} />
           </div>

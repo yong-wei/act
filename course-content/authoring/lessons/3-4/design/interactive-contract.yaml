@@ -1,751 +1,1281 @@
-{
-  "contract_version": "2.1",
-  "lesson_id": "3-4",
-  "course_title": "3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上",
-  "course_route_segment": "unit-3-4-root-locus-reading-validation",
-  "preview_mode": {
-    "default_entry": "student_demo",
-    "student_demo_base_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo",
-    "teacher_preview_panel_note": "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
-  },
-  "telemetry_strategy": "lightweight_high_value",
-  "teacher_insight_strategy": "step_level_aggregation_only",
-  "required_step_fields": [
-    "layout",
-    "modules",
-    "evidence_units",
-    "content_blocks",
-    "interaction_spec",
-    "teacher_controls",
-    "telemetry_spec",
-    "teacher_insight_spec",
-    "ai_context_spec",
-    "preview_contract",
-    "acceptance_checks"
-  ],
-  "steps": {
-    "step-01": {
-      "title": "回到地图：从 3-3 法则走向 3-4 判断",
-      "layout": {
-        "template": "map_hero_slide",
-        "regions": [
-          { "id": "header", "width": "full", "order": 1 },
-          { "id": "lead", "width": "full", "order": 2 },
-          { "id": "summary", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["路径定位", "主问题", "本课边界"]
-      },
-      "modules": [
-        { "id": "stage-map", "region": "lead", "kind": "stage-map", "must_be_visible": true },
-        { "id": "today-task", "region": "summary", "kind": "key-task-card", "must_be_visible": true },
-        { "id": "boundary-card", "region": "summary", "kind": "boundary-card", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-00-map", "kind": "concept_card" }
-      ],
-      "content_blocks": [
-        { "id": "path", "type": "plain_text", "title": "路径定位", "body": "固定高亮 3-3 -> 3-4 -> 3-5。" },
-        { "id": "today-task", "type": "bullet_list", "title": "本课任务", "items": ["把法则压成稳定读图动作。", "把主图判断改写成参数语言。", "用三域证据完成对象化验证。"] },
-        { "id": "boundary", "type": "bullet_list", "title": "本课边界", "items": ["不重讲根轨迹法则证明。", "不进入零点、PD 与超前校正。", "不进入模块4设计任务。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "none",
-        "interaction_archetype": "entry_overview",
-        "student_task": "只阅读，不提交。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["推进到下一页", "高亮当前节点"],
-      "telemetry_spec": {
-        "summary_fields": ["viewed", "timeOnStep", "teacherFollowSync"],
-        "result_policy": "no_submission"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["view_count", "sync_status"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "标定 3-4 是法则课之后的读图与验证课。",
-        "allowed_scope": ["课程路径", "3-3 到 3-4 的切换"],
-        "forbidden_scope": ["A/B/C 的最终排序", "数值结论"],
-        "canonical_facts": ["3-3 负责法则。", "3-4 负责按图判断。", "3-5 再进入结构改变。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-01",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["首屏必须同时出现路径图、任务卡和边界卡。", "本页无作答区。"]
-    },
-    "step-02": {
-      "title": "问题提出与三项产出：稳定之后还要回答什么",
-      "layout": {
-        "template": "goal_chain_slide",
-        "regions": [
-          { "id": "question", "width": "full", "order": 1 },
-          { "id": "outputs", "width": "full", "order": 2 },
-          { "id": "summary", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["核心问题", "三项产出", "本课主线"]
-      },
-      "modules": [
-        { "id": "core-question-card", "region": "question", "kind": "question-card", "must_be_visible": true },
-        { "id": "deliverable-table", "region": "outputs", "kind": "deliverable-table", "must_be_visible": true },
-        { "id": "chain-summary-card", "region": "summary", "kind": "summary-card", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-01-entry-question", "kind": "concept_card" },
-        { "id": "eu-02-output-table", "kind": "deliverable_table" }
-      ],
-      "content_blocks": [
-        { "id": "question", "type": "plain_text", "title": "核心问题", "body": "同样位于稳定窗口内的参数，也可能对应完全不同的速度、振荡、风险与工程后果。" },
-        { "id": "outputs", "type": "table", "title": "三项固定产出", "body": "关键节点读图记录、参数窗口判断表、对象化验证记录。" },
-        { "id": "chain", "type": "plain_text", "title": "判断链", "body": "关键节点读图 -> 参数窗口判断 -> 对象化三域验证。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "none",
-        "interaction_archetype": "deliverable_alignment",
-        "student_task": "建立问题意识和产出边界。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["高亮三项产出", "强调本课主线"],
-      "telemetry_spec": {
-        "summary_fields": ["viewed", "timeOnStep"],
-        "result_policy": "no_submission"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["view_count"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "压实本课要交什么、为什么不能只停在还稳定。",
-        "allowed_scope": ["核心问题", "三项产出"],
-        "forbidden_scope": ["将三项产出简化为口号"],
-        "canonical_facts": ["本课围绕三项固定产出组织。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-02",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["核心问题卡、产出表和主线摘要必须同屏。", "本页无提交区。"]
-    },
-    "step-03": {
-      "title": "固定对象与三个版本：先在同一张主图上做初判",
-      "layout": {
-        "template": "version_overview_quiz",
-        "regions": [
-          { "id": "object", "width": "full", "order": 1 },
-          { "id": "versions", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["对象与公式", "A/B/C 版本表", "三题初判"]
-      },
-      "modules": [
-        { "id": "object-formula-card", "region": "object", "kind": "formula-card", "must_be_visible": true },
-        { "id": "version-table", "region": "versions", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "prejudge-quiz", "region": "interaction", "kind": "quiz-group", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-03-version-table", "kind": "comparison_table" }
-      ],
-      "content_blocks": [
-        { "id": "object", "type": "plain_text", "title": "对象与记号", "body": "G(s)=0.01715K/[s(s+0.1)(s+2.14375)]，k=0.01715K。" },
-        { "id": "version-table", "type": "table", "title": "A/B/C 三版本", "body": "必须完整列出 K、k、闭环极点特征与第一判断。" },
-        { "id": "quiz-note", "type": "plain_text", "title": "初判范围", "body": "只问谁最慢、谁最平衡、谁最冒险，不提前公布答案。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "quiz_group",
-        "interaction_archetype": "diagnostic_quiz",
-        "student_task": "完成三题初判。",
-        "attempt_model": "允许重提一次，教师端区分首答与重提。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["释放初判题", "显示统计", "显示答案"],
-      "telemetry_spec": {
-        "summary_fields": ["attemptCount", "predictionLabels", "errorBucket"],
-        "misconception_tags": ["stable_equals_better", "ignored_version_character", "no_common_coordinate_system"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["prediction_distribution", "top_misconceptions"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "先暴露对 A/B/C 的第一印象。",
-        "allowed_scope": ["版本气质", "误区标签"],
-        "forbidden_scope": ["直接给标准排序"],
-        "canonical_facts": ["A/B/C 必须在同一张主图口径下比较。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-03",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["对象公式、版本表和三题初判必须同页可见。", "误区提示不能提前泄露标准答案。"]
-    },
-    "step-04": {
-      "title": "固定读图顺序：先骨架，再关键节点，再窗口，再后果",
-      "layout": {
-        "template": "workflow_sort_board",
-        "regions": [
-          { "id": "workflow", "width": "full", "order": 1 },
-          { "id": "interaction", "width": "full", "order": 2 },
-          { "id": "feedback", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["四步法卡片", "排序区", "误判提示"]
-      },
-      "modules": [
-        { "id": "workflow-cards", "region": "workflow", "kind": "workflow-card-row", "must_be_visible": true },
-        { "id": "sort-board", "region": "interaction", "kind": "sequence-sort", "must_be_visible": true },
-        { "id": "feedback-strip", "region": "feedback", "kind": "feedback-strip", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-04-reading-workflow", "kind": "workflow_card" }
-      ],
-      "content_blocks": [
-        { "id": "workflow", "type": "bullet_list", "title": "四步法", "items": ["看骨架。", "找关键节点。", "区分稳定窗口与可接受窗口。", "最后再谈参数与工程后果。"] },
-        { "id": "warning", "type": "plain_text", "title": "误判提醒", "body": "不能因为局部位置看起来顺眼，就跳过前两步直接下结论。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "sequence_sort",
-        "interaction_archetype": "sequence_sort",
-        "student_task": "把四步法排成稳定读图动作链。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["释放排序区", "显示参考顺序"],
-      "telemetry_spec": {
-        "summary_fields": ["sortOrder", "attemptCount", "resultState"],
-        "misconception_tags": ["jump_to_conclusion", "window_before_nodes"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["common_wrong_orders", "completion_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "把读图顺序固定下来。",
-        "allowed_scope": ["四步法名称与职责"],
-        "forbidden_scope": ["跳过顺序直接评价某一版本"],
-        "canonical_facts": ["窗口判断必须晚于关键节点判断。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-04",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["四步法卡片必须先于排序区出现。", "反馈不能代替学生完成排序。"]
-    },
-    "step-05": {
-      "title": "关键节点证据板：分离点、虚轴交点与参考工作点 B",
-      "layout": {
-        "template": "evidence_reading_board",
-        "regions": [
-          { "id": "figure", "width": "full", "order": 1 },
-          { "id": "evidence", "width": "full", "order": 2 },
-          { "id": "conclusion", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["主图骨架", "关键节点定义", "参考工作点结论"]
-      },
-      "modules": [
-        { "id": "keynode-figure", "region": "figure", "kind": "graphic", "must_be_visible": true },
-        { "id": "boundary-figure", "region": "figure", "kind": "graphic", "must_be_visible": true },
-        { "id": "evidence-cards", "region": "evidence", "kind": "evidence-card-row", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-05-separation-point", "kind": "annotated_figure" },
-        { "id": "eu-06-imaginary-boundary", "kind": "annotated_figure" },
-        { "id": "eu-07-reference-b", "kind": "reference_case" }
-      ],
-      "content_blocks": [
-        { "id": "separation", "type": "plain_text", "title": "分离点", "body": "分离点约为 s≈-0.0494，且必须经过候选点计算、区段合法性检查和参数范围检查。" },
-        { "id": "boundary", "type": "plain_text", "title": "稳定边界", "body": "稳定边界约为 K≈28.05，对应虚轴交点 s=±j0.4626。" },
-        { "id": "reference-b", "type": "bullet_list", "title": "B 的三条证据", "items": ["越过分离点。", "远离虚轴边界。", "实部与虚部量级接近。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "hotspot_labeling",
-        "interaction_archetype": "hotspot_labeling",
-        "student_task": "在图上点选分离点、虚轴边界和 B 的参考位置。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["显示关键热点", "显示参考解释"],
-      "telemetry_spec": {
-        "summary_fields": ["hotspotSelections", "resultState", "retryCount"],
-        "misconception_tags": ["missed_separation_point", "ignored_imaginary_boundary", "cannot_locate_reference_B"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["hotspot_accuracy", "missed_node_type"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "把关键节点从看过变成叫得准、说得出作用。",
-        "allowed_scope": ["节点名称", "节点作用"],
-        "forbidden_scope": ["绕过节点直接评价版本优劣"],
-        "canonical_facts": ["B 的位置判断必须同时依赖三条证据。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-05",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["关键节点图、参考工作点图和证据卡必须同页可见。", "热点反馈不得替代意义解释。"]
-    },
-    "step-06": {
-      "title": "关键节点读图记录：把主图证据写成判断句",
-      "layout": {
-        "template": "keynode_annotation_workspace",
-        "regions": [
-          { "id": "template", "width": "full", "order": 1 },
-          { "id": "workspace", "width": "full", "order": 2 },
-          { "id": "record", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["记录模板", "节点标注", "一句读图结论"]
-      },
-      "modules": [
-        { "id": "record-template", "region": "template", "kind": "table", "must_be_visible": true },
-        { "id": "annotation-layer", "region": "workspace", "kind": "annotation-layer", "must_be_visible": true },
-        { "id": "result-card", "region": "record", "kind": "result-card", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-08-keynode-record", "kind": "record_template" }
-      ],
-      "content_blocks": [
-        { "id": "template", "type": "table", "title": "关键节点读图记录", "body": "必须含分离点判断、虚轴边界判断、主导极点候选、读图结论。" },
-        { "id": "result-card", "type": "plain_text", "title": "结果要求", "body": "每个版本都必须写成一句完整判断，不能只写更靠左或更危险。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "annotation_submit",
-        "interaction_archetype": "annotation_record",
-        "student_task": "为 A/B/C 三版本填写节点记录，并提交一句读图结论。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["查看班级记录缺项", "显示示例句式"],
-      "telemetry_spec": {
-        "summary_fields": ["fieldCompletion", "annotationCount", "errorBucket"],
-        "misconception_tags": ["record_missing_field", "no_complete_judgement_sentence"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["missing_field_rate", "common_shortcuts"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "把看图压实成写记录。",
-        "allowed_scope": ["记录模板字段", "完整句要求"],
-        "forbidden_scope": ["自动生成整句判断"],
-        "canonical_facts": ["主图证据必须写成完整判断句。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-06",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["记录模板必须先于提交区出现。", "教师端可统计缺项类型。"]
-    },
-    "step-07": {
-      "title": "参数窗口判断：稳定窗口不等于可接受窗口",
-      "layout": {
-        "template": "window_judgement_workspace",
-        "regions": [
-          { "id": "rule", "width": "full", "order": 1 },
-          { "id": "table", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["双窗口定义", "版本对照表", "判断与贴标签"]
-      },
-      "modules": [
-        { "id": "window-rule-card", "region": "rule", "kind": "rule-card", "must_be_visible": true },
-        { "id": "window-table", "region": "table", "kind": "table", "must_be_visible": true },
-        { "id": "tagging-panel", "region": "interaction", "kind": "tag-panel", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-09-window-logic", "kind": "judgement_rule" },
-        { "id": "eu-10-window-table", "kind": "judgement_table" }
-      ],
-      "content_blocks": [
-        { "id": "rule", "type": "bullet_list", "title": "双窗口定义", "items": ["稳定窗口回答是否仍在稳定范围内。", "可接受窗口回答是否仍处于工程愿意接受的中心区域。"] },
-        { "id": "table", "type": "table", "title": "参数窗口判断表", "body": "必须完整保留 k、K、稳定性判断、预计时域后果、预计频域后果、参数角色。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "window_tagging",
-        "interaction_archetype": "window_tagging",
-        "student_task": "为 A/B/C 贴上参数角色标签，并补齐一句双窗口判断。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["显示角色分布", "显示参考标签"],
-      "telemetry_spec": {
-        "summary_fields": ["selectedTags", "fieldCompletion", "errorBucket"],
-        "misconception_tags": ["stable_equals_acceptable", "missing_role_label"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["role_distribution", "window_confusion_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "把窗口判断从口头印象变成双层表述。",
-        "allowed_scope": ["稳定窗口", "可接受窗口", "参数角色"],
-        "forbidden_scope": ["把双窗口混写成单一词汇"],
-        "canonical_facts": ["稳定窗口不等于可接受窗口。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-07",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["双窗口定义与表头字段必须同屏。", "标签反馈不得直接给标准答案。"]
-    },
-    "step-08": {
-      "title": "增益换算链：从 k 到 K 才能落回工程参数",
-      "layout": {
-        "template": "formula_workspace",
-        "regions": [
-          { "id": "formula", "width": "full", "order": 1 },
-          { "id": "example", "width": "full", "order": 2 },
-          { "id": "workspace", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["换算公式", "版本换算卡", "校对与修订"]
-      },
-      "modules": [
-        { "id": "formula-card", "region": "formula", "kind": "formula-card", "must_be_visible": true },
-        { "id": "conversion-example", "region": "example", "kind": "example-card", "must_be_visible": true },
-        { "id": "conversion-workspace", "region": "workspace", "kind": "workspace", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-11-gain-conversion", "kind": "formula_card" }
-      ],
-      "content_blocks": [
-        { "id": "formula", "type": "plain_text", "title": "换算公式", "body": "k=0.01715K，K=k/0.01715。" },
-        { "id": "example", "type": "plain_text", "title": "参考工作点 B", "body": "k=0.0104 => K≈0.6064。" },
-        { "id": "workspace-note", "type": "plain_text", "title": "工作区规则", "body": "先写公式链，再写变量含义，最后写结果。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "formula_workspace",
-        "interaction_archetype": "formula_workspace",
-        "student_task": "完成 A/B/C 的换算链，至少完整写出 B 的链条。",
-        "answer_reveal": "field_feedback_only"
-      },
-      "teacher_controls": ["打开校对助手模式", "显示常见换算错误"],
-      "telemetry_spec": {
-        "summary_fields": ["formulaChainComplete", "errorBucket", "assistantCheckUsed"],
-        "misconception_tags": ["k_equals_K", "missing_variable_meaning", "numeric_conversion_error"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["conversion_error_rate", "assistant_usage_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "把图上参数落回工程参数。",
-        "allowed_scope": ["换算链完整性", "变量含义", "数值校对"],
-        "forbidden_scope": ["直接给版本排序", "替学生写工程判断"],
-        "canonical_facts": ["图上参数不直接等于控制器参数。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-08",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["公式卡、示例卡和记录区必须同页可见。", "校对模式只允许检查换算链。"]
-    },
-    "step-09": {
-      "title": "总三域对照：为什么必须让主图、时域、频域互相补证",
-      "layout": {
-        "template": "evidence_matrix_slide",
-        "regions": [
-          { "id": "rationale", "width": "full", "order": 1 },
-          { "id": "matrix", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["三域角色", "总表联读", "进入回查"]
-      },
-      "modules": [
-        { "id": "domain-role-cards", "region": "rationale", "kind": "card-row", "must_be_visible": true },
-        { "id": "domain-matrix", "region": "matrix", "kind": "comparison-matrix", "must_be_visible": true },
-        { "id": "role-match", "region": "interaction", "kind": "triple-match", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-12-domain-rationale", "kind": "concept_card" },
-        { "id": "eu-13-domain-matrix", "kind": "comparison_matrix" }
-      ],
-      "content_blocks": [
-        { "id": "roles", "type": "bullet_list", "title": "三域角色", "items": ["根轨迹解释节点与窗口。", "时域验证快慢、振荡和近似有效性。", "频域验证带宽、裕量与风险暴露。"] },
-        { "id": "matrix", "type": "table", "title": "总三域对照表", "body": "必须并排保留 A/B/C 在根轨迹、时域、频域中的对应结论。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "triple_match",
-        "interaction_archetype": "evidence_role_match",
-        "student_task": "把根轨迹判断、时域后果和频域后果配成同一版本的证据链。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["显示配对统计", "显示正确配对"],
-      "telemetry_spec": {
-        "summary_fields": ["matchResult", "attemptCount", "errorBucket"],
-        "misconception_tags": ["domain_confusion", "single_domain_evidence"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["domain_confusion_pairs", "completion_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "立住三域为何缺一不可。",
-        "allowed_scope": ["三域角色", "版本证据链"],
-        "forbidden_scope": ["把三域压缩成附属说明"],
-        "canonical_facts": ["对象化判断必须由多域证据闭合。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-09",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["三域角色卡和总表必须同页可见。", "配对区不得吞掉总表静态内容。"]
-    },
-    "step-10": {
-      "title": "时域回查：版本 B 为什么能够作为参考工作点",
-      "layout": {
-        "template": "comparison_panel_with_toggle",
-        "regions": [
-          { "id": "figure", "width": "full", "order": 1 },
-          { "id": "analysis", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["阶跃对照图", "主导极点近似", "B 的可信条件"]
-      },
-      "modules": [
-        { "id": "step-compare-figure", "region": "figure", "kind": "graphic", "must_be_visible": true },
-        { "id": "approximation-card", "region": "analysis", "kind": "explanation-card", "must_be_visible": true },
-        { "id": "toggle-panel", "region": "interaction", "kind": "panel-toggle", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-14-step-response", "kind": "curve_figure" }
-      ],
-      "content_blocks": [
-        { "id": "figure-note", "type": "plain_text", "title": "阶跃对照图", "body": "固定使用 3-4-step-compare.png，对照原系统与主导极点近似系统。" },
-        { "id": "approximation", "type": "bullet_list", "title": "可信条件", "items": ["上升段与峰值附近保持较好一致。", "收敛段方向一致。", "可信但不是所有版本都同样适用。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "panel_toggle_compare",
-        "interaction_archetype": "panel_compare",
-        "student_task": "切换版本后写出哪一版最能支撑参考工作点判断，以及原因。",
-        "answer_reveal": "field_feedback_only"
-      },
-      "teacher_controls": ["切换版本聚焦", "公布参考关键词"],
-      "telemetry_spec": {
-        "summary_fields": ["focusedVersion", "reasonKeywords", "resultState"],
-        "misconception_tags": ["approximation_overgeneralization", "missing_balance_reason"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["focus_distribution", "missing_reason_keyword"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "用时域证据支撑 B 的参考工作点结论。",
-        "allowed_scope": ["阶跃对照", "近似有效性"],
-        "forbidden_scope": ["把主导极点近似绝对化"],
-        "canonical_facts": ["B 的平衡性有时域证据支撑。"]
-      },
-      "interactive_figure_spec": {
-        "mirrors_static_figure": true,
-        "figure_ref": "3-4-step-compare.png",
-        "baseline_state": {
-          "focused_version": "B"
-        },
-        "layout_mirror": "single_compare_panel",
-        "controls": {
-          "placement": "below_figure",
-          "collapsed_by_default": false,
-          "parameter_controls": [
-            { "id": "focused_version", "kind": "segmented_control", "scope": "shared" }
-          ]
-        }
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-10",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["阶跃对照图和限制语必须同页出现。", "切换区不得替代静态说明卡。"]
-    },
-    "step-11": {
-      "title": "频域与航迹对照：版本 C 的收益与代价必须同时落页",
-      "layout": {
-        "template": "dual_evidence_compare_workspace",
-        "regions": [
-          { "id": "bode", "width": "full", "order": 1 },
-          { "id": "track", "width": "full", "order": 2 },
-          { "id": "conclusion", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["Bode 对照", "航迹对照", "风险句写作"]
-      },
-      "modules": [
-        { "id": "bode-figure", "region": "bode", "kind": "graphic", "must_be_visible": true },
-        { "id": "track-figures", "region": "track", "kind": "graphic-group", "must_be_visible": true },
-        { "id": "risk-card", "region": "conclusion", "kind": "result-card", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-15-bode-compare", "kind": "curve_figure" },
-        { "id": "eu-16-track-compare", "kind": "comparison_figure" }
-      ],
-      "content_blocks": [
-        { "id": "bode-note", "type": "plain_text", "title": "频域证据", "body": "必须同时保留带宽、相角裕度、共振峰和频域解释。" },
-        { "id": "track-note", "type": "plain_text", "title": "航迹证据", "body": "B 的均衡表现与 C 的跟踪收益都必须连同风险解释一起出现。" },
-        { "id": "sentence-rule", "type": "plain_text", "title": "风险句格式", "body": "C 在……方面更强，但以……为代价。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "panel_toggle_compare",
-        "interaction_archetype": "panel_compare",
-        "student_task": "切换证据面板后写出一句完整风险句。",
-        "answer_reveal": "field_feedback_only"
-      },
-      "teacher_controls": ["切换证据面板", "公布收益与代价关键词"],
-      "telemetry_spec": {
-        "summary_fields": ["evidencePanelPath", "riskSentenceComplete", "resultState"],
-        "misconception_tags": ["only_speed_gain", "only_risk_without_gain", "ignored_frequency_domain"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["panel_path_distribution", "missing_tradeoff_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "把 C 的工程含义写成收益与代价并存的完整句。",
-        "allowed_scope": ["频域证据", "航迹证据", "取舍表达"],
-        "forbidden_scope": ["单边结论", "只看一张图就下结论"],
-        "canonical_facts": ["C 的收益必须连同裕量代价一起解读。"]
-      },
-      "interactive_figure_spec": {
-        "mirrors_static_figure": true,
-        "figure_ref": "3-4-bode-compare.png",
-        "baseline_state": {
-          "evidence_mode": "bode_and_track"
-        },
-        "layout_mirror": "stacked_compare",
-        "controls": {
-          "placement": "below_figure",
-          "collapsed_by_default": false,
-          "parameter_controls": [
-            { "id": "evidence_mode", "kind": "segmented_control", "scope": "shared" }
-          ]
-        }
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-11",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["Bode 图、航迹图和风险句区域必须同页可见。", "风险句必须同时包含收益与代价。"]
-    },
-    "step-12": {
-      "title": "对象化验证记录与后测：写出完整工程判断",
-      "layout": {
-        "template": "validation_record_workspace",
-        "regions": [
-          { "id": "template", "width": "full", "order": 1 },
-          { "id": "workspace", "width": "full", "order": 2 },
-          { "id": "quiz", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["记录模板", "两域以上证据", "后测提交"]
-      },
-      "modules": [
-        { "id": "validation-template", "region": "template", "kind": "table", "must_be_visible": true },
-        { "id": "summary-workspace", "region": "workspace", "kind": "workspace", "must_be_visible": true },
-        { "id": "post-quiz", "region": "quiz", "kind": "quiz-group", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-17-validation-record", "kind": "record_template" }
-      ],
-      "content_blocks": [
-        { "id": "template", "type": "table", "title": "对象化验证记录", "body": "必须含工程对象、选定参数、根轨迹判断、时域验证、频域验证、主导极点近似是否可信、综合结论。" },
-        { "id": "quiz-note", "type": "plain_text", "title": "后测范围", "body": "三题只围绕完整工程判断、k->K 换算和参考工作点证据。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "validation_record_workspace",
-        "interaction_archetype": "validation_record_workspace",
-        "student_task": "完成一条对象化验证记录，并回答三题后测。",
-        "attempt_model": "后测允许重提一次，教师端区分首答与重提。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["查看记录完成度", "显示后测统计", "显示参考答案"],
-      "telemetry_spec": {
-        "summary_fields": ["recordCompletion", "evidenceDomainCount", "quizResult"],
-        "misconception_tags": ["single_domain_judgement", "missing_conversion_chain", "reference_B_without_evidence"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["completion_rate", "domain_count_distribution", "top_posttest_errors"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "把前面分散的证据链收束成完整工程判断。",
-        "allowed_scope": ["记录模板字段", "两域以上证据要求"],
-        "forbidden_scope": ["自动生成综合结论整句"],
-        "canonical_facts": ["完整工程判断至少包含两域以上证据。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-12",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["记录模板必须先于后测区出现。", "至少要求两域以上证据。"]
-    },
-    "step-13": {
-      "title": "收束与去向：只调增益为何很快到边界",
-      "layout": {
-        "template": "summary_infographic",
-        "regions": [
-          { "id": "takeaways", "width": "full", "order": 1 },
-          { "id": "roles", "width": "full", "order": 2 },
-          { "id": "next", "width": "full", "order": 3 }
-        ],
-        "reading_order": ["四句带走", "参数角色回收", "3-5 去向"]
-      },
-      "modules": [
-        { "id": "takeaway-list", "region": "takeaways", "kind": "list", "must_be_visible": true },
-        { "id": "role-summary", "region": "roles", "kind": "card-row", "must_be_visible": true },
-        { "id": "next-step-card", "region": "next", "kind": "next-step-card", "must_be_visible": true }
-      ],
-      "evidence_units": [
-        { "id": "eu-18-summary-role", "kind": "summary_card" },
-        { "id": "eu-19-next-step", "kind": "summary_card" },
-        { "id": "eu-20-summary", "kind": "summary_card" }
-      ],
-      "content_blocks": [
-        { "id": "takeaways", "type": "bullet_list", "title": "四句带走", "items": ["3-4 的核心是把法则压成判断动作。", "参数判断至少分稳定窗口与可接受窗口两层。", "根轨迹增益必须换算回工程控制器参数。", "三域验证是为主图判断补证据。"] },
-        { "id": "roles", "type": "bullet_list", "title": "参数角色回收", "items": ["A：稳定下界，偏保守。", "B：参考工作点。", "C：收益与代价并存的取舍型参数。"] },
-        { "id": "next", "type": "plain_text", "title": "下一课去向", "body": "3-5 将从零点进入，讨论如何改变轨迹本身，而不再只在既有轨迹上选点。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "exit_reflection",
-        "interaction_archetype": "summary_exit",
-        "student_task": "写一句“如果只继续增大增益，会先失去什么”。",
-        "answer_reveal": "keyword_check_only"
-      },
-      "teacher_controls": ["显示关键词统计"],
-      "telemetry_spec": {
-        "summary_fields": ["reflectionKeywords", "viewed", "timeOnStep"],
-        "result_policy": "keyword_reflection"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["reflection_keyword_distribution"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "delivery_mode": "hidden_page_context",
-        "page_goal": "完成本课收束，并把问题自然送往 3-5。",
-        "allowed_scope": ["本课总结", "下一课去向"],
-        "forbidden_scope": ["提前展开零点机理或 PD 设计"],
-        "canonical_facts": ["只调增益很快会压缩稳定裕量并加重振荡风险。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-13",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["四句带走、参数角色卡和去向卡必须同页可见。", "反思句必须指向边界而不是复述口号。"]
-    }
-  }
-}
+contract_version: "2.1"
+lesson_id: "3-4"
+course_title: "3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上"
+course_route_segment: "unit-3-4-root-locus-reading-validation"
+preview_mode:
+  default_entry: "student_demo"
+  student_demo_base_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo"
+  teacher_preview_panel_note: "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
+telemetry_strategy: "lightweight_high_value"
+teacher_insight_strategy: "step_level_aggregation_only"
+required_step_fields:
+  - "layout"
+  - "modules"
+  - "content_blocks"
+  - "evidence_sequence"
+  - "interaction_spec"
+  - "teacher_controls"
+  - "student_access"
+  - "telemetry_spec"
+  - "teacher_insight_spec"
+  - "ai_context_spec"
+  - "preview_contract"
+  - "acceptance_checks"
+steps:
+  step-01:
+    title: "回到地图：从 3-3 法则走向 3-4 判断"
+    layout:
+      template: "map_hero_slide"
+      regions:
+        - { id: "header", width: "full", order: 1 }
+        - { id: "lead", width: "full", order: 2 }
+        - { id: "summary", width: "full", order: 3 }
+    modules:
+      - { id: "stage-map", region: "lead", kind: "stage-map", must_be_visible: true }
+      - { id: "core-question-card", region: "lead", kind: "question-card", must_be_visible: true }
+      - { id: "boundary-card", region: "summary", kind: "boundary-card", must_be_visible: true }
+    content_blocks:
+      - id: "path"
+        type: "plain_text"
+        title: "路径定位"
+        body: "固定高亮 3-3 -> 3-4 -> 3-5。"
+      - id: "question"
+        type: "plain_text"
+        title: "主问题"
+        body: "沿既有根轨迹继续调增益时，哪些工作点只是还稳定，哪些工作点才值得选用。"
+      - id: "boundary"
+        type: "bullet_list"
+        title: "本课边界"
+        items:
+          - "不重讲 3-3 的法则证明。"
+          - "不进入零点、PD 与模块 4 设计任务。"
+    evidence_sequence:
+      - "先呈现路径图。"
+      - "再呈现主问题卡。"
+      - "最后呈现边界卡。"
+    interaction_spec:
+      interaction_kind: "none"
+      student_task: "只阅读，不提交。"
+      answer_reveal: "none"
+    teacher_controls:
+      release_activity: "not_applicable"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "not_applicable"
+    student_access:
+      default_visibility: "visible"
+      release_required: false
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: "not_applicable"
+    telemetry_spec:
+      summary_fields: ["viewed", "timeOnStep", "teacherFollowSync"]
+      result_policy: "no_submission"
+    teacher_insight_spec:
+      widgets: ["view_count", "sync_status"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "标定 3-4 是 3-3 之后的读图与验证课。"
+      allowed_scope: ["课程路径", "主问题", "本课边界"]
+      forbidden_scope: ["A/B/C 的最终排序", "广义根轨迹细节"]
+      canonical_facts:
+        - "3-3 负责法则。"
+        - "3-4 负责按图判断。"
+        - "3-5 将进入结构改变。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-01"
+      must_match_student_page: true
+    acceptance_checks:
+      - "首屏必须同时出现路径图、主问题卡和边界卡。"
+      - "本页无作答区。"
+
+  step-02:
+    title: "问题提出与三张记录表：稳定之后还要回答什么"
+    layout:
+      template: "goal_chain_slide"
+      regions:
+        - { id: "question", width: "full", order: 1 }
+        - { id: "outputs", width: "full", order: 2 }
+        - { id: "summary", width: "full", order: 3 }
+    modules:
+      - { id: "core-question-card", region: "question", kind: "question-card", must_be_visible: true }
+      - { id: "deliverable-table", region: "outputs", kind: "deliverable-table", must_be_visible: true }
+      - { id: "chain-summary-card", region: "summary", kind: "summary-card", must_be_visible: true }
+    content_blocks:
+      - id: "question"
+        type: "plain_text"
+        title: "核心问题"
+        body: "同样位于稳定窗口内的参数，也可能对应完全不同的速度、振荡、风险与工程后果。"
+      - id: "outputs"
+        type: "table"
+        title: "三张记录表"
+        body: "关键节点读图记录、参数窗口判断表、对象化验证记录。"
+      - id: "chain"
+        type: "formula"
+        title: "判断链"
+        value: "\\text{关键节点读图} \\rightarrow \\text{参数窗口判断} \\rightarrow \\text{对象化三域验证} \\rightarrow \\text{广义参数验证}"
+    evidence_sequence:
+      - "先呈现核心问题卡。"
+      - "再呈现三张记录表。"
+      - "最后呈现判断链摘要。"
+    interaction_spec:
+      interaction_kind: "none"
+      student_task: "建立本课产出边界。"
+      answer_reveal: "none"
+    teacher_controls:
+      release_activity: "not_applicable"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "not_applicable"
+    student_access:
+      default_visibility: "visible"
+      release_required: false
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: "not_applicable"
+    telemetry_spec:
+      summary_fields: ["viewed", "timeOnStep"]
+      result_policy: "no_submission"
+    teacher_insight_spec:
+      widgets: ["view_count"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "压实本课要交什么、为什么不能停在还稳定。"
+      allowed_scope: ["三张记录表", "判断链"]
+      forbidden_scope: ["把三张记录表压成口号"]
+      canonical_facts:
+        - "本课围绕三份记录组织。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-02"
+      must_match_student_page: true
+    acceptance_checks:
+      - "核心问题卡、三张记录表和判断链摘要必须同屏。"
+      - "本页无作答区。"
+
+  step-03:
+    title: "固定对象与三个版本：先暴露“稳定=可用”的第一误判"
+    layout:
+      template: "version_overview_quiz"
+      regions:
+        - { id: "object", width: "full", order: 1 }
+        - { id: "versions", width: "full", order: 2 }
+        - { id: "interaction", width: "full", order: 3 }
+    modules:
+      - { id: "object-formula-card", region: "object", kind: "formula-card", must_be_visible: true }
+      - { id: "version-table", region: "versions", kind: "comparison-table", must_be_visible: true }
+      - { id: "prejudge-quiz", region: "interaction", kind: "quiz-group", must_be_visible: true }
+    content_blocks:
+      - id: "object"
+        type: "formula_group"
+        title: "对象与记号"
+        items:
+          - "G(s)=\\frac{0.01715K}{s(s+0.1)(s+2.14375)}"
+          - "k=0.01715K"
+      - id: "version-table"
+        type: "table"
+        title: "A/B/C 三版本"
+        body: "必须完整列出 K、k、闭环极点特征与第一判断。"
+      - id: "quiz-note"
+        type: "plain_text"
+        title: "初判范围"
+        body: "只暴露谁最慢、谁最均衡、谁最冒险，不提前公布标准排序。"
+    evidence_sequence:
+      - "先呈现对象与记号。"
+      - "再呈现 A/B/C 版本表。"
+      - "最后呈现三题初判。"
+    interaction_spec:
+      interaction_kind: "quiz_group"
+      student_task: "完成三题初判，不把稳定直接等同于更优。"
+      questions:
+        - id: "q1"
+          prompt: "哪一版最慢。"
+          response_kind: "single_choice"
+        - id: "q2"
+          prompt: "哪一版最均衡。"
+          response_kind: "single_choice"
+        - id: "q3"
+          prompt: "哪一版最冒险。"
+          response_kind: "single_choice"
+      attempt_model: "allow_one_retry"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: "not_applicable"
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields: ["attemptCount", "selectedOption", "errorBucket"]
+      misconception_tags: ["stable_equals_usable", "ignored_parameter_role", "no_common_coordinate_system"]
+    teacher_insight_spec:
+      widgets: ["option_distribution", "top_misconceptions"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "先暴露对 A/B/C 的第一印象。"
+      allowed_scope: ["版本气质", "常见误判"]
+      forbidden_scope: ["直接给出标准排序"]
+      canonical_facts:
+        - "A/B/C 必须在同一对象、同一口径下比较。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-03"
+      must_match_student_page: true
+    acceptance_checks:
+      - "对象卡、版本表与三题初判必须同页。"
+      - "误区提示不能提前泄露标准答案。"
+
+  step-04:
+    title: "固定读图顺序：先骨架，再关键节点，再窗口，再后果"
+    layout:
+      template: "workflow_sort_board"
+      regions:
+        - { id: "workflow", width: "full", order: 1 }
+        - { id: "interaction", width: "full", order: 2 }
+        - { id: "feedback", width: "full", order: 3 }
+    modules:
+      - { id: "workflow-cards", region: "workflow", kind: "workflow-card-row", must_be_visible: true }
+      - { id: "sort-board", region: "interaction", kind: "sequence-sort", must_be_visible: true }
+      - { id: "feedback-strip", region: "feedback", kind: "feedback-strip", must_be_visible: true }
+    content_blocks:
+      - id: "workflow"
+        type: "bullet_list"
+        title: "四步法"
+        items:
+          - "看骨架。"
+          - "找关键节点。"
+          - "区分稳定窗口与可接受窗口。"
+          - "最后再翻译后果。"
+      - id: "warning"
+        type: "plain_text"
+        title: "误判提醒"
+        body: "不能因为某个点看起来顺眼，就跳过前两步直接说哪个版本更好。"
+    evidence_sequence:
+      - "先呈现四步法卡片。"
+      - "再呈现排序区。"
+      - "最后呈现误判提示。"
+    interaction_spec:
+      interaction_kind: "sequence_sort"
+      student_task: "把四步法排成稳定读图动作链。"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: "not_applicable"
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields: ["sortOrder", "attemptCount", "resultState"]
+      misconception_tags: ["jump_to_conclusion", "window_before_nodes"]
+    teacher_insight_spec:
+      widgets: ["common_wrong_orders", "completion_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把读图顺序固定下来。"
+      allowed_scope: ["四步法名称与职责"]
+      forbidden_scope: ["跳过顺序直接评价版本优劣"]
+      canonical_facts:
+        - "窗口判断必须晚于关键节点判断。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-04"
+      must_match_student_page: true
+    acceptance_checks:
+      - "四步法卡片必须先于排序区出现。"
+      - "反馈不能替代学生完成排序。"
+
+  step-05:
+    title: "关键节点证据板：分离点、虚轴交点与参考工作点 B"
+    layout:
+      template: "evidence_reading_board"
+      regions:
+        - { id: "figure", width: "full", order: 1 }
+        - { id: "evidence", width: "full", order: 2 }
+        - { id: "interaction", width: "full", order: 3 }
+    modules:
+      - { id: "root-locus-figure", region: "figure", kind: "graphic", must_be_visible: true }
+      - { id: "keynode-figure", region: "figure", kind: "graphic", must_be_visible: true }
+      - { id: "reference-b-figure", region: "figure", kind: "graphic", must_be_visible: true }
+      - { id: "evidence-cards", region: "evidence", kind: "evidence-card-row", must_be_visible: true }
+      - { id: "hotspot-board", region: "interaction", kind: "hotspot-labeling", must_be_visible: true }
+    content_blocks:
+      - id: "root-locus"
+        type: "media"
+        asset: "3-4-root-locus-summary.png"
+      - id: "keynodes"
+        type: "media"
+        asset: "3-4-root-locus-keynodes.png"
+      - id: "reference-b"
+        type: "media"
+        asset: "3-4-root-locus-reference-b.png"
+      - id: "evidence"
+        type: "bullet_list"
+        title: "三条关键证据"
+        items:
+          - "分离点 s≈-0.0494 把实极点主导与共轭极点主导分开。"
+          - "虚轴交点对应 K≈28.05，给出稳定窗口上界。"
+          - "B 既越过分离点，又远离虚轴边界。"
+    evidence_sequence:
+      - "先呈现主图与关键节点图。"
+      - "再呈现三条证据卡。"
+      - "最后呈现热点定位区。"
+    interaction_spec:
+      interaction_kind: "hotspot_labeling"
+      student_task: "在图上点选分离点、虚轴边界和参考工作点 B。"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: "not_applicable"
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields: ["hotspotSelections", "resultState", "retryCount"]
+      misconception_tags: ["confused_separation_and_boundary", "missed_reference_b_position"]
+    teacher_insight_spec:
+      widgets: ["hotspot_accuracy", "missed_node_type"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把关键节点从看过变成叫得准、说得出作用。"
+      allowed_scope: ["节点名称", "节点作用", "B 的主图依据"]
+      forbidden_scope: ["绕过节点直接讲版本优劣"]
+      canonical_facts:
+        - "分离点、虚轴边界和参考工作点回答不同问题。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-05"
+      must_match_student_page: true
+    acceptance_checks:
+      - "主图、节点图与 B 位置图必须同页。"
+      - "热点定位只检验识别，不替代作用解释。"
+
+  step-06:
+    title: "关键节点读图记录：把主图证据写成一句工程判断"
+    layout:
+      template: "record_workspace"
+      regions:
+        - { id: "template", width: "full", order: 1 }
+        - { id: "evidence", width: "full", order: 2 }
+        - { id: "activity", width: "full", order: 3 }
+    modules:
+      - { id: "record-template", region: "template", kind: "record-template", must_be_visible: true }
+      - { id: "readout-reminder", region: "evidence", kind: "reminder-card", must_be_visible: true }
+      - { id: "activity-card-a", region: "activity", kind: "short-response", must_be_visible: true }
+      - { id: "activity-card-b", region: "activity", kind: "short-response", must_be_visible: true }
+    content_blocks:
+      - id: "template"
+        type: "table"
+        title: "关键节点读图记录模板"
+        body: "对象版本、分离点判断、虚轴边界判断、主导极点候选、读图结论。"
+      - id: "reminder"
+        type: "plain_text"
+        title: "写法提醒"
+        body: "判断句必须同时包含位置与后果，不能只写更靠左或更危险。"
+    evidence_sequence:
+      - "先呈现记录模板。"
+      - "再呈现写法提醒。"
+      - "最后呈现两张作答卡。"
+    interaction_spec:
+      interaction_kind: "activity_cards"
+      student_task: "补写 B 与 C 的关键节点判断句。"
+      activity_cards:
+        - id: "card-b"
+          prompt: "为版本 B 写一句为什么它能作为参考工作点。"
+          response_kind: "fill_text"
+          submit_scope: "per_card"
+          layout_span: "half"
+        - id: "card-c"
+          prompt: "为版本 C 写一句为什么它仍稳定但已偏向风险区。"
+          response_kind: "fill_text"
+          submit_scope: "per_card"
+          layout_span: "half"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: "not_applicable"
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields: ["submissionCount", "keywordCoverage", "resultState"]
+      misconception_tags: ["position_without_consequence", "used_vague_language_only"]
+    teacher_insight_spec:
+      widgets: ["completion_rate", "missing_keyword_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把关键节点翻译成完整判断句。"
+      allowed_scope: ["B 的参考依据", "C 的风险依据"]
+      forbidden_scope: ["自动生成整句结论"]
+      canonical_facts:
+        - "关键节点记录属于学生产出，不是展示卡。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-06"
+      must_match_student_page: true
+    acceptance_checks:
+      - "模板先于作答卡出现。"
+      - "两张作答卡默认半宽并排。"
+
+  step-07:
+    title: "稳定窗口与可接受窗口：A/B/C 各自处在哪一侧"
+    layout:
+      template: "comparison_judgement_board"
+      regions:
+        - { id: "definition", width: "full", order: 1 }
+        - { id: "table", width: "full", order: 2 }
+        - { id: "activity", width: "full", order: 3 }
+    modules:
+      - { id: "window-definition-cards", region: "definition", kind: "definition-card-row", must_be_visible: true }
+      - { id: "parameter-window-table", region: "table", kind: "comparison-table", must_be_visible: true }
+      - { id: "activity-card-a", region: "activity", kind: "classification-cards", must_be_visible: true }
+      - { id: "activity-card-b", region: "activity", kind: "short-response", must_be_visible: true }
+    content_blocks:
+      - id: "definition"
+        type: "bullet_list"
+        title: "两层窗口语言"
+        items:
+          - "稳定窗口：先回答是否还稳定。"
+          - "可接受窗口：再回答速度、振荡与裕量是否仍愿意接受。"
+      - id: "stable-window"
+        type: "formula"
+        title: "稳定窗口"
+        value: "0<K<28.05"
+      - id: "table"
+        type: "table"
+        title: "参数窗口判断表"
+        body: "A/B/C 的 k、K、稳定性判断、预计时域后果、预计频域后果和参数角色。"
+    evidence_sequence:
+      - "先呈现双窗口定义。"
+      - "再呈现参数窗口判断表。"
+      - "最后呈现两张作答卡。"
+    interaction_spec:
+      interaction_kind: "activity_cards"
+      student_task: "把 A/B/C 归入参数角色，并补写窗口判断句。"
+      activity_cards:
+        - id: "classify"
+          prompt: "将 A/B/C 分别归入偏保守、参考工作点、取舍型参数。"
+          response_kind: "drag_sort"
+          submit_scope: "per_card"
+          layout_span: "half"
+        - id: "window-sentence"
+          prompt: "补写一句为什么还稳定不等于可接受。"
+          response_kind: "fill_text"
+          submit_scope: "per_card"
+          layout_span: "half"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: "not_applicable"
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields: ["classificationResult", "keywordCoverage", "resultState"]
+      misconception_tags: ["stable_equals_acceptable", "no_tradeoff_language"]
+    teacher_insight_spec:
+      widgets: ["classification_distribution", "missing_tradeoff_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把底线语言与工程语言分开。"
+      allowed_scope: ["稳定窗口", "可接受窗口", "参数角色"]
+      forbidden_scope: ["把窗口判断压成单一稳定性结论"]
+      canonical_facts:
+        - "窗口判断至少要写出位置与代价。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-07"
+      must_match_student_page: true
+    acceptance_checks:
+      - "双窗口定义和参数窗口表必须同屏。"
+      - "两张作答卡默认半宽并排。"
+
+  step-08:
+    title: "增益换算链：从图上的 k 落回工程参数 K"
+    layout:
+      template: "worked_example_reveal"
+      regions:
+        - { id: "principle", width: "full", order: 1 }
+        - { id: "problem", width: "full", order: 2 }
+        - { id: "activity", width: "full", order: 3 }
+        - { id: "reference", width: "full", order: 4 }
+    modules:
+      - { id: "principle-card", region: "principle", kind: "formula-card", must_be_visible: true }
+      - { id: "problem-card", region: "problem", kind: "problem-card", must_be_visible: true }
+      - { id: "step-reveal-board", region: "problem", kind: "step-reveal-board", must_be_visible: true }
+      - { id: "activity-card-a", region: "activity", kind: "fill-text", must_be_visible: true }
+      - { id: "activity-card-b", region: "activity", kind: "short-response", must_be_visible: true }
+      - { id: "reference-answer", region: "reference", kind: "reference-answer", must_be_visible: true }
+    content_blocks:
+      - id: "principle"
+        type: "formula_group"
+        title: "换算关系"
+        items:
+          - "k=0.01715K"
+          - "K=\\frac{k}{0.01715}"
+      - id: "problem"
+        type: "plain_text"
+        title: "参考工作点 B"
+        body: "若图上读得参考工作点 B 对应 k=0.0104，实际控制器增益 K 应写成多少。"
+      - id: "step-hint"
+        type: "plain_text"
+        title: "显影要求"
+        body: "先写关系式，再代入数值，最后解释变量含义。"
+    evidence_sequence:
+      - "先呈现换算关系与题面。"
+      - "再呈现逐步显影链。"
+      - "最后呈现两张作答卡与参考答案。"
+    interaction_spec:
+      interaction_kind: "worked_example_workspace"
+      student_task: "完成一次完整换算，不只抄结果。"
+      step_reveal_policy:
+        initial_state: "collapsed"
+        visible_without_browse: ["题面", "换算关系", "本页任务提示"]
+        student_progression: "requires_open_browse"
+        teacher_progression: "teacher_step_reveal_independent"
+      activity_cards:
+        - id: "conversion-chain"
+          prompt: "补全 B 的换算链。"
+          response_kind: "fill_text"
+          submit_scope: "per_card"
+          layout_span: "half"
+        - id: "meaning"
+          prompt: "解释为什么图上的 k 不等于控制器中的 K。"
+          response_kind: "fill_text"
+          submit_scope: "per_card"
+          layout_span: "half"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "separate_toggle"
+      teacher_step_reveal: "separate_toggle"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: true
+      can_view_problem_statement: true
+      can_view_derivation_steps: false
+      can_submit_without_browse: false
+    telemetry_spec:
+      summary_fields: ["revealDepth", "submissionCount", "errorBucket", "teacherRevealSeen"]
+      misconception_tags: ["k_equals_K", "missing_relation", "numeric_only_no_chain"]
+    teacher_insight_spec:
+      widgets: ["conversion_error_rate", "browse_open_rate", "answer_reveal_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把图上参数落回工程参数。"
+      allowed_scope: ["换算链", "变量含义", "B 的参考数值"]
+      forbidden_scope: ["直接代写最终排序"]
+      canonical_facts:
+        - "换算链必须完整出现。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-08"
+      must_match_student_page: true
+    acceptance_checks:
+      - "题面与换算关系必须常显。"
+      - "显影链默认收起，不能直接全展开给学生。"
+
+  step-09:
+    title: "为什么必须三域互证：主图、时域、频域先并排对齐"
+    layout:
+      template: "evidence_matrix_slide"
+      regions:
+        - { id: "roles", width: "full", order: 1 }
+        - { id: "matrix", width: "full", order: 2 }
+        - { id: "interaction", width: "full", order: 3 }
+    modules:
+      - { id: "domain-role-cards", region: "roles", kind: "role-card-row", must_be_visible: true }
+      - { id: "domain-matrix", region: "matrix", kind: "comparison-table", must_be_visible: true }
+      - { id: "triple-match", region: "interaction", kind: "triple-match", must_be_visible: true }
+    content_blocks:
+      - id: "roles"
+        type: "bullet_list"
+        title: "三域角色"
+        items:
+          - "根轨迹：看极点落在哪里、离边界多远。"
+          - "时域：看快慢、振荡和调节过程。"
+          - "频域：看带宽、裕量和高频代价。"
+      - id: "matrix"
+        type: "table"
+        title: "总三域对照表"
+        body: "并排给出 A/B/C 在根轨迹、时域、频域中的对应结论。"
+    evidence_sequence:
+      - "先呈现三域角色卡。"
+      - "再呈现总三域对照表。"
+      - "最后呈现配对区。"
+    interaction_spec:
+      interaction_kind: "triple_match"
+      student_task: "把同一版本的三域证据配成完整链条。"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: "not_applicable"
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields: ["matchResult", "attemptCount", "resultState"]
+      misconception_tags: ["domain_mismatch", "single_domain_judgement"]
+    teacher_insight_spec:
+      widgets: ["match_accuracy", "domain_confusion_pairs"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "先立住三域为何互证。"
+      allowed_scope: ["三域职责", "A/B/C 总表"]
+      forbidden_scope: ["把三域压成附属阅读"]
+      canonical_facts:
+        - "三域验证是主图判断的补证，不是另开主题。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-09"
+      must_match_student_page: true
+    acceptance_checks:
+      - "角色卡和总表必须同页。"
+      - "配对区不能先于总表出现。"
+
+  step-10:
+    title: "时域验证：版本 B 为什么能够作为参考工作点"
+    layout:
+      template: "comparison_panel_with_toggle"
+      regions:
+        - { id: "figure", width: "full", order: 1 }
+        - { id: "analysis", width: "full", order: 2 }
+        - { id: "activity", width: "full", order: 3 }
+    modules:
+      - { id: "step-compare-figure", region: "figure", kind: "graphic", must_be_visible: true }
+      - { id: "approximation-card", region: "analysis", kind: "analysis-card", must_be_visible: true }
+      - { id: "activity-card-a", region: "activity", kind: "single-choice", must_be_visible: true }
+      - { id: "activity-card-b", region: "activity", kind: "short-response", must_be_visible: true }
+    content_blocks:
+      - id: "figure"
+        type: "media"
+        asset: "3-4-step-compare.png"
+      - id: "analysis"
+        type: "bullet_list"
+        title: "时域读法"
+        items:
+          - "原系统与主导极点近似系统在上升段、峰值附近和收敛段保持较好一致。"
+          - "B 的较均衡判断有时域证据支撑。"
+          - "近似可信，不等于所有动态细节都可忽略。"
+    evidence_sequence:
+      - "先呈现阶跃对照图。"
+      - "再呈现近似说明卡。"
+      - "最后呈现两张作答卡。"
+    interaction_spec:
+      interaction_kind: "activity_cards"
+      student_task: "指出支撑 B 的时域证据，并补一句限制语。"
+      activity_cards:
+        - id: "evidence-pick"
+          prompt: "哪一条时域现象最能支撑 B 的参考地位。"
+          response_kind: "single_choice"
+          submit_scope: "per_card"
+          layout_span: "half"
+        - id: "limit-sentence"
+          prompt: "补写一句为什么它仍不是完美无代价的工作点。"
+          response_kind: "fill_text"
+          submit_scope: "per_card"
+          layout_span: "half"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: "not_applicable"
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields: ["selectedOption", "keywordCoverage", "resultState"]
+      misconception_tags: ["overtrust_dominant_pole", "time_domain_without_limit"]
+    teacher_insight_spec:
+      widgets: ["evidence_choice_distribution", "missing_limit_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "用时域证据支撑 B 的参考地位。"
+      allowed_scope: ["阶跃对照", "近似可信", "限制语"]
+      forbidden_scope: ["把 B 说成绝对最优"]
+      canonical_facts:
+        - "B 的参考地位来自证据，而非感觉。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-10"
+      must_match_student_page: true
+    acceptance_checks:
+      - "阶跃图、近似说明和作答卡必须同页。"
+      - "两张作答卡默认半宽并排。"
+
+  step-11:
+    title: "频域验证：低中频近似成立，高频差异仍要单列记录"
+    layout:
+      template: "table_figure_workspace"
+      regions:
+        - { id: "table", width: "full", order: 1 }
+        - { id: "figure", width: "full", order: 2 }
+        - { id: "activity", width: "full", order: 3 }
+    modules:
+      - { id: "frequency-point-table", region: "table", kind: "comparison-table", must_be_visible: true }
+      - { id: "bode-compare-figure", region: "figure", kind: "graphic", must_be_visible: true }
+      - { id: "activity-card-a", region: "activity", kind: "single-choice", must_be_visible: true }
+      - { id: "activity-card-b", region: "activity", kind: "short-response", must_be_visible: true }
+    content_blocks:
+      - id: "table"
+        type: "table"
+        title: "代表性频率点"
+        body: "0.01、0.10、1.00、5.00 rad/s 下的幅值与相位差解释。"
+      - id: "figure"
+        type: "media"
+        asset: "3-4-bode-compare.png"
+      - id: "conclusion"
+        type: "plain_text"
+        title: "频域结论"
+        body: "低中频基本一致，高频差异逐步放大。"
+    evidence_sequence:
+      - "先呈现代表性频率点表。"
+      - "再呈现 Bode 对照图。"
+      - "最后呈现两张作答卡。"
+    interaction_spec:
+      interaction_kind: "activity_cards"
+      student_task: "判断近似在哪些频段成立，并说明为什么高频仍需记账。"
+      activity_cards:
+        - id: "band-choice"
+          prompt: "哪一段频率最能支撑主动态近似成立。"
+          response_kind: "single_choice"
+          submit_scope: "per_card"
+          layout_span: "half"
+        - id: "high-frequency"
+          prompt: "补写一句为什么高频差异仍需单列记录。"
+          response_kind: "fill_text"
+          submit_scope: "per_card"
+          layout_span: "half"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: "not_applicable"
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields: ["selectedOption", "keywordCoverage", "resultState"]
+      misconception_tags: ["all_frequency_equivalent", "ignored_high_frequency_fast_pole"]
+    teacher_insight_spec:
+      widgets: ["band_choice_distribution", "missing_high_frequency_reason"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把频域验证写成哪里成立、哪里失效。"
+      allowed_scope: ["代表性频率点", "低中频近似", "高频差异"]
+      forbidden_scope: ["把近似推广成全频段等价"]
+      canonical_facts:
+        - "高频差异不能被删成一句旁注。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-11"
+      must_match_student_page: true
+    acceptance_checks:
+      - "频率点表必须先于 Bode 图出现。"
+      - "作答区不能脱离频率点表独立存在。"
+
+  step-12:
+    title: "版本 C 的收益与代价：Bode 与航迹不能只保留一边"
+    layout:
+      template: "dual_evidence_compare_workspace"
+      regions:
+        - { id: "bode", width: "full", order: 1 }
+        - { id: "track", width: "full", order: 2 }
+        - { id: "activity", width: "full", order: 3 }
+    modules:
+      - { id: "bode-figure", region: "bode", kind: "graphic", must_be_visible: true }
+      - { id: "track-figure-b", region: "track", kind: "graphic", must_be_visible: true }
+      - { id: "track-figure-c", region: "track", kind: "graphic", must_be_visible: true }
+      - { id: "activity-card-a", region: "activity", kind: "short-response", must_be_visible: true }
+      - { id: "activity-card-b", region: "activity", kind: "single-choice", must_be_visible: true }
+    content_blocks:
+      - id: "bode-summary"
+        type: "bullet_list"
+        title: "频域代价"
+        items:
+          - "C 的带宽显著提高。"
+          - "相角裕量几乎耗尽。"
+          - "共振峰显著放大。"
+      - id: "track-summary"
+        type: "plain_text"
+        title: "航迹收益"
+        body: "C 的连续跟踪更贴近给定，但这一收益必须和频域代价一起读。"
+    evidence_sequence:
+      - "先呈现频域证据。"
+      - "再呈现航迹证据。"
+      - "最后呈现两张作答卡。"
+    interaction_spec:
+      interaction_kind: "activity_cards"
+      student_task: "把 C 的工程含义写成收益与代价并存的一句完整话。"
+      activity_cards:
+        - id: "tradeoff"
+          prompt: "补全一句：C 在……方面更强，但以……为代价。"
+          response_kind: "fill_text"
+          submit_scope: "per_card"
+          layout_span: "half"
+        - id: "window-role"
+          prompt: "C 属于稳定窗口内的取舍型参数，还是可接受窗口中心。"
+          response_kind: "single_choice"
+          submit_scope: "per_card"
+          layout_span: "half"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: "not_applicable"
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields: ["keywordCoverage", "selectedOption", "resultState"]
+      misconception_tags: ["only_benefit", "only_cost", "misclassified_c_window_role"]
+    teacher_insight_spec:
+      widgets: ["tradeoff_keyword_rate", "window_role_distribution"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把 C 的工程含义写成收益与代价并存。"
+      allowed_scope: ["频域代价", "航迹收益", "取舍型参数"]
+      forbidden_scope: ["只保留单边表述"]
+      canonical_facts:
+        - "C 不是可接受窗口中心。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-12"
+      must_match_student_page: true
+    acceptance_checks:
+      - "频域证据必须先于航迹证据出现。"
+      - "两张作答卡默认半宽并排。"
+
+  step-13:
+    title: "广义根轨迹入口：局部反馈系数 a 为什么不是“再调一次 K”"
+    layout:
+      template: "figure_question_vote"
+      regions:
+        - { id: "question", width: "full", order: 1 }
+        - { id: "figure", width: "full", order: 2 }
+        - { id: "interaction", width: "full", order: 3 }
+    modules:
+      - { id: "entry-question-card", region: "question", kind: "question-card", must_be_visible: true }
+      - { id: "local-feedback-figure", region: "figure", kind: "graphic", must_be_visible: true }
+      - { id: "binary-choice", region: "interaction", kind: "binary-choice", must_be_visible: true }
+    content_blocks:
+      - id: "question"
+        type: "plain_text"
+        title: "新问题"
+        body: "当变化的不是外环比例增益，而是局部反馈系数 a 时，极点还会沿原普通根轨迹移动吗。"
+      - id: "figure"
+        type: "media"
+        asset: "3-4-local-feedback-block.png"
+      - id: "warning"
+        type: "plain_text"
+        title: "误判提醒"
+        body: "a 改写的是对象内部结构，不是把原来的 K 再推大一次。"
+    evidence_sequence:
+      - "先呈现新问题卡。"
+      - "再呈现局部反馈结构图。"
+      - "最后呈现二选一判断。"
+    interaction_spec:
+      interaction_kind: "binary_choice"
+      student_task: "判断 a 调大是否等价于 K 调大。"
+      options:
+        A: "等价，只是另一种调增益"
+        B: "不等价，因为参数进入方式改变了对象"
+      correct_answer: "B"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: "not_applicable"
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields: ["selectedOption", "resultState", "teacherRevealSeen"]
+      misconception_tags: ["a_equals_gain_only"]
+    teacher_insight_spec:
+      widgets: ["option_distribution", "reveal_correction_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "引出为什么要用广义根轨迹。"
+      allowed_scope: ["局部反馈结构", "参数进入方式"]
+      forbidden_scope: ["提前展开全部改写细节"]
+      canonical_facts:
+        - "参数进入方式改变时，必须先改写问题。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-13"
+      must_match_student_page: true
+    acceptance_checks:
+      - "问题卡和结构图必须先于判断区出现。"
+      - "错误反馈只能指出参数进入方式改变，不直接展开改写链。"
+
+  step-14:
+    title: "改写链：从给定局部反馈结构走到等效根轨迹"
+    layout:
+      template: "worked_example_reveal"
+      regions:
+        - { id: "principle", width: "full", order: 1 }
+        - { id: "problem", width: "full", order: 2 }
+        - { id: "activity", width: "full", order: 3 }
+        - { id: "reference", width: "full", order: 4 }
+    modules:
+      - { id: "object-card", region: "principle", kind: "formula-card", must_be_visible: true }
+      - { id: "problem-card", region: "problem", kind: "problem-card", must_be_visible: true }
+      - { id: "step-reveal-board", region: "problem", kind: "step-reveal-board", must_be_visible: true }
+      - { id: "activity-card-a", region: "activity", kind: "short-response", must_be_visible: true }
+      - { id: "activity-card-b", region: "activity", kind: "single-choice", must_be_visible: true }
+      - { id: "reference-answer", region: "reference", kind: "reference-answer", must_be_visible: true }
+    content_blocks:
+      - id: "object"
+        type: "formula_group"
+        title: "对象与等效内环"
+        items:
+          - "G_1(s)=\\frac{3.43}{s+2.14375}"
+          - "G_{1,\\mathrm{eq}}(s)=\\frac{3.43}{s+2.14375+3.43a}"
+      - id: "problem"
+        type: "plain_text"
+        title: "改写目标"
+        body: "在参考工作点 K=0.6064 下，把局部反馈系数 a 的影响改写回可做根轨迹分析的形式。"
+      - id: "step-hint"
+        type: "plain_text"
+        title: "显影要求"
+        body: "显影链至少依次出现新特征方程、B(s)+aA(s)=0、1+aA(s)/B(s)=0、等效开环与轨迹类型判断。"
+    evidence_sequence:
+      - "先呈现对象卡与题面卡。"
+      - "再呈现改写显影链。"
+      - "最后呈现两张作答卡与参考答案。"
+    interaction_spec:
+      interaction_kind: "worked_example_workspace"
+      student_task: "说明为什么要先改写，再决定用哪一类根轨迹条件。"
+      step_reveal_policy:
+        initial_state: "collapsed"
+        visible_without_browse: ["对象卡", "题面卡", "本页任务提示"]
+        student_progression: "requires_open_browse"
+        teacher_progression: "teacher_step_reveal_independent"
+      activity_cards:
+        - id: "rewrite-why"
+          prompt: "说明为什么这里不能直接沿原普通根轨迹处理。"
+          response_kind: "fill_text"
+          submit_scope: "per_card"
+          layout_span: "half"
+        - id: "locus-type"
+          prompt: "本题应按 180° 还是 0° 根轨迹理解。"
+          response_kind: "single_choice"
+          submit_scope: "per_card"
+          layout_span: "half"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "separate_toggle"
+      teacher_step_reveal: "separate_toggle"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: true
+      can_view_problem_statement: true
+      can_view_derivation_steps: false
+      can_submit_without_browse: false
+    telemetry_spec:
+      summary_fields: ["revealDepth", "submissionCount", "selectedOption", "resultState"]
+      misconception_tags: ["generalized_locus_is_new_rule", "wrong_locus_type"]
+    teacher_insight_spec:
+      widgets: ["rewrite_error_rate", "browse_open_rate", "locus_type_distribution"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把广义根轨迹说清为先改写再用法则。"
+      allowed_scope: ["改写链", "轨迹类型判断"]
+      forbidden_scope: ["绕过改写直接给结论"]
+      canonical_facts:
+        - "广义根轨迹不是另一套新法则。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-14"
+      must_match_student_page: true
+    acceptance_checks:
+      - "题面与对象卡必须常显。"
+      - "显影链默认收起，学生不能未开放浏览就直接看到全部步骤。"
+
+  step-15:
+    title: "非增益参数窗口记录：a 从 0 到 1 怎样改写主导极点"
+    layout:
+      template: "parameter_window_compare_board"
+      regions:
+        - { id: "figure", width: "full", order: 1 }
+        - { id: "table", width: "full", order: 2 }
+        - { id: "activity", width: "full", order: 3 }
+    modules:
+      - { id: "generalized-root-locus-figure", region: "figure", kind: "graphic", must_be_visible: true }
+      - { id: "parameter-window-table", region: "table", kind: "comparison-table", must_be_visible: true }
+      - { id: "activity-card-a", region: "activity", kind: "drag-sort", must_be_visible: true }
+      - { id: "activity-card-b", region: "activity", kind: "short-response", must_be_visible: true }
+    content_blocks:
+      - id: "figure"
+        type: "media"
+        asset: "3-4-generalized-root-locus.png"
+      - id: "table"
+        type: "table"
+        title: "非增益参数窗口"
+        body: "a=0、0.2、0.5、1.0 的代表性极点、主导变化与第一判断。"
+      - id: "window-note"
+        type: "plain_text"
+        title: "记录建议"
+        body: "先写比较基线，再写实践窗口，最后写边界提醒，不直接写成越大越好。"
+    evidence_sequence:
+      - "先呈现广义根轨迹图。"
+      - "再呈现参数窗口表。"
+      - "最后呈现两张作答卡。"
+    interaction_spec:
+      interaction_kind: "activity_cards"
+      student_task: "把 a 的代表点归入窗口角色，并补一句权衡判断。"
+      activity_cards:
+        - id: "window-sort"
+          prompt: "将 a=0、0.2、0.5、1.0 归入比较基线、实践窗口、边界提醒。"
+          response_kind: "drag_sort"
+          submit_scope: "per_card"
+          layout_span: "half"
+        - id: "tradeoff"
+          prompt: "补写一句为什么 a 越大并不等于整体更优。"
+          response_kind: "fill_text"
+          submit_scope: "per_card"
+          layout_span: "half"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: "not_applicable"
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields: ["classificationResult", "keywordCoverage", "resultState"]
+      misconception_tags: ["a_monotonic_better", "ignored_speed_damping_tradeoff"]
+    teacher_insight_spec:
+      widgets: ["window_classification_distribution", "missing_tradeoff_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "把非增益参数写成窗口，而不是单点答案。"
+      allowed_scope: ["代表点", "窗口角色", "权衡语言"]
+      forbidden_scope: ["把 a 写成越大越好"]
+      canonical_facts:
+        - "当前页只做窗口判断，不做补偿器设计结论。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-15"
+      must_match_student_page: true
+    acceptance_checks:
+      - "广义根轨迹图必须先于参数窗口表出现。"
+      - "两张作答卡默认半宽并排。"
+
+  step-16:
+    title: "后测：读图、换算、三域与广义参数是否已经成链"
+    layout:
+      template: "posttest_board"
+      regions:
+        - { id: "title", width: "full", order: 1 }
+        - { id: "questions", width: "full", order: 2 }
+        - { id: "feedback", width: "full", order: 3 }
+    modules:
+      - { id: "posttest-title-card", region: "title", kind: "title-card", must_be_visible: true }
+      - { id: "posttest-q1", region: "questions", kind: "single-choice", must_be_visible: true }
+      - { id: "posttest-q2", region: "questions", kind: "fill-text", must_be_visible: true }
+      - { id: "posttest-q3", region: "questions", kind: "single-choice", must_be_visible: true }
+      - { id: "feedback-strip", region: "feedback", kind: "feedback-strip", must_be_visible: true }
+    content_blocks:
+      - id: "title"
+        type: "plain_text"
+        title: "本页任务"
+        body: "检查四段判断链是否已经连成一句完整话。"
+      - id: "questions"
+        type: "bullet_list"
+        title: "三题范围"
+        items:
+          - "为什么还稳定不足以构成完整工程判断。"
+          - "若图上读得 k=0.0104，实际控制器增益 K 应是多少。"
+          - "为什么局部反馈系数 a 不能按普通增益根轨迹直接理解。"
+    evidence_sequence:
+      - "先呈现后测标题卡。"
+      - "再呈现三题题面。"
+      - "最后呈现提交与统计。"
+    interaction_spec:
+      interaction_kind: "quiz_group"
+      student_task: "独立完成三题后测。"
+      questions:
+        - id: "q1"
+          prompt: "为什么还稳定不足以构成完整工程判断。"
+          response_kind: "single_choice"
+        - id: "q2"
+          prompt: "写出 k=0.0104 对应的 K。"
+          response_kind: "fill_text"
+        - id: "q3"
+          prompt: "为什么 a 不能按普通增益根轨迹直接理解。"
+          response_kind: "single_choice"
+      attempt_model: "allow_one_retry"
+      answer_reveal: "teacher_toggle"
+    teacher_controls:
+      release_activity: "separate_toggle"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "separate_toggle"
+    student_access:
+      default_visibility: "hidden"
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: "not_applicable"
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields: ["attemptCount", "score", "errorBucket", "teacherRevealSeen"]
+      misconception_tags: ["stable_equals_complete", "k_equals_K", "generalized_equals_ordinary"]
+    teacher_insight_spec:
+      widgets: ["question_accuracy", "top_posttest_errors", "retry_rate"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "收口全课主线。"
+      allowed_scope: ["关键节点", "换算链", "三域验证", "广义参数"]
+      forbidden_scope: ["再开新任务"]
+      canonical_facts:
+        - "后测只检查是否成链。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-16"
+      must_match_student_page: true
+    acceptance_checks:
+      - "后测标题卡必须先于题组出现。"
+      - "答案揭示与统计不能替代题面本身。"
+
+  step-17:
+    title: "收束与去向：沿既有结构分析的能力与边界"
+    layout:
+      template: "summary_exit_board"
+      regions:
+        - { id: "takeaways", width: "full", order: 1 }
+        - { id: "boundary", width: "full", order: 2 }
+        - { id: "next", width: "full", order: 3 }
+    modules:
+      - { id: "takeaway-list", region: "takeaways", kind: "summary-list", must_be_visible: true }
+      - { id: "boundary-card", region: "boundary", kind: "boundary-card", must_be_visible: true }
+      - { id: "next-step-card", region: "next", kind: "next-step-card", must_be_visible: true }
+    content_blocks:
+      - id: "takeaways"
+        type: "bullet_list"
+        title: "五条带走"
+        items:
+          - "先看关键节点，再谈参数窗口。"
+          - "稳定窗口与可接受窗口要分开说。"
+          - "图上的 k 要换回工程参数 K。"
+          - "三域验证用于给主图判断补证。"
+          - "广义根轨迹先改写，再继续用法则。"
+      - id: "boundary"
+        type: "plain_text"
+        title: "本课边界"
+        body: "沿既有结构分析可以帮助我们选点与辨识窗口，但不能替代后续通过结构变化主动改写轨迹。"
+      - id: "next"
+        type: "plain_text"
+        title: "下一课去向"
+        body: "3-5 将从零点进入，讨论怎样改变轨迹本身，而不只是沿既有轨迹选点。"
+    evidence_sequence:
+      - "先呈现五条带走。"
+      - "再呈现边界卡。"
+      - "最后呈现下一课去向卡。"
+    interaction_spec:
+      interaction_kind: "none"
+      student_task: "只阅读，不提交。"
+      answer_reveal: "none"
+    teacher_controls:
+      release_activity: "not_applicable"
+      open_browse: "not_applicable"
+      teacher_step_reveal: "not_applicable"
+      reveal_reference_answer: "not_applicable"
+    student_access:
+      default_visibility: "visible"
+      release_required: false
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: "not_applicable"
+    telemetry_spec:
+      summary_fields: ["viewed", "timeOnStep"]
+      result_policy: "no_submission"
+    teacher_insight_spec:
+      widgets: ["view_count"]
+      aggregation: "step_level"
+    ai_context_spec:
+      page_goal: "完成能力回收，并把问题自然送往 3-5。"
+      allowed_scope: ["五条带走", "本课边界", "下一课去向"]
+      forbidden_scope: ["提前展开零点与 PD 设计"]
+      canonical_facts:
+        - "3-4 收在选点与窗口判断。"
+        - "3-5 从改轨迹进入。"
+    preview_contract:
+      route_kind: "student_demo"
+      demo_path: "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-17"
+      must_match_student_page: true
+    acceptance_checks:
+      - "五条带走、边界卡和去向卡必须同页可见。"
+      - "本页无作答区。"

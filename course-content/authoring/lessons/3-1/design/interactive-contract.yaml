@@ -1,723 +1,1654 @@
-{
-  "contract_version": "2.0",
-  "lesson_id": "3-1",
-  "course_title": "3-1：纯极点视角下的稳定、模态与双域近似",
-  "course_route_segment": "unit-3-1-pure-pole-stability-and-dynamics",
-  "preview_mode": {
-    "default_entry": "student_demo",
-    "student_demo_base_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo",
-    "teacher_preview_panel_note": "教师端模板弹窗只用于查看课堂骨架；默认页面预览必须打开学生演示页。"
-  },
-  "telemetry_strategy": "lightweight_high_value",
-  "teacher_insight_strategy": "step_level_aggregation_only",
-  "required_step_fields": [
-    "layout",
-    "modules",
-    "content_blocks",
-    "interaction_spec",
-    "teacher_controls",
-    "telemetry_spec",
-    "teacher_insight_spec",
-    "ai_context_spec",
-    "preview_contract",
-    "acceptance_checks"
-  ],
-  "steps": {
-    "step-01": {
-      "title": "回到地图——从模块2的对象语言走向模块3的机理语言",
-      "layout": {
-        "template": "map_hero_slide",
-        "regions": [
-          { "id": "header", "width": "full", "order": 1 },
-          { "id": "lead", "width": "full", "order": 2 },
-          { "id": "summary", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "stage-map", "region": "lead", "kind": "stage-map", "must_be_visible": true },
-        { "id": "today-task", "region": "summary", "kind": "key-task-card", "must_be_visible": true },
-        { "id": "boundary-note", "region": "summary", "kind": "boundary-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "stage-map", "type": "plain_text", "title": "路径定位", "body": "固定高亮 2-2 -> 2-4 -> 3-1 -> 3-2 -> 3-3。" },
-        { "id": "today-task", "type": "bullet_list", "title": "本课任务", "items": ["先守住稳定底线。", "把极点翻译成模态。", "判断时域和频域近似何时可信。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "none",
-        "student_task": "只阅读，不提交。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["推进到下一页", "高亮当前节点"],
-      "telemetry_spec": {
-        "summary_fields": ["viewed", "timeOnStep", "teacherFollowSync"],
-        "result_policy": "no_submission"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["view_count", "sync_status"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "标定本课位于模块3入口的位置。",
-        "allowed_scope": ["课程路径", "模块2到模块3的切换"],
-        "forbidden_scope": ["提前解释公式", "提前给近似结论"],
-        "canonical_facts": ["模块2主要建立对象语言。", "3-1开始建立极点统领双域行为的机理语言。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-01",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["首屏可见路径图、任务卡和边界卡。", "本页没有作答区。"]
-    },
-    "step-02": {
-      "title": "情境引入——同主导极点，为什么响应还会不同",
-      "layout": {
-        "template": "triple_model_vote",
-        "regions": [
-          { "id": "formula-strip", "width": "full", "order": 1 },
-          { "id": "chart", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "model-formulas", "region": "formula-strip", "kind": "formula-card-row", "must_be_visible": true },
-        { "id": "response-compare", "region": "chart", "kind": "illustration", "must_be_visible": true },
-        { "id": "binary-vote", "region": "interaction", "kind": "binary-choice", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "model-formulas", "type": "plain_text", "title": "三模型起点", "body": "Gref、GA、GB 同主导极点、不同附加极点。" },
-        { "id": "response-compare", "type": "plain_text", "title": "核心冲突", "body": "同主导极点并不保证主要响应完全一样。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "binary_choice",
-        "student_task": "判断差异的根源是否还要看附加模态退场快慢。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["显示班级分布", "揭示参考结论"],
-      "telemetry_spec": {
-        "summary_fields": ["selectedOption", "resultState", "teacherRevealSeen"],
-        "result_policy": "store_choice"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["option_distribution", "reveal_correction_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "压实本课主问题。",
-        "allowed_scope": ["主导极点", "附加极点", "响应差异"],
-        "forbidden_scope": ["直接展开完整近似准则"],
-        "canonical_facts": ["主导极点重要，但不是唯一证据。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-02",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["三模型公式、对照图与判断区同屏。", "错误反馈不提前给完整答案。"]
-    },
-    "step-03": {
-      "title": "学习目标与课堂边界——本课负责什么，不负责什么",
-      "layout": {
-        "template": "goal_chain_slide",
-        "regions": [
-          { "id": "goals", "width": "full", "order": 1 },
-          { "id": "chain", "width": "full", "order": 2 },
-          { "id": "boundary", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "goal-cards", "region": "goals", "kind": "goal-card-row", "must_be_visible": true },
-        { "id": "method-chain", "region": "chain", "kind": "formula-chain", "must_be_visible": true },
-        { "id": "boundary-card", "region": "boundary", "kind": "boundary-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "goals", "type": "bullet_list", "title": "三项目标", "items": ["会判稳定底线。", "会把极点翻译成模态。", "会判断近似何时可信。"] },
-        { "id": "boundary", "type": "bullet_list", "title": "本课不负责", "items": ["劳斯判据", "根轨迹", "Nyquist/Bode 判稳", "裕度设计与整定"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "none",
-        "student_task": "只建立本课边界。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["逐条强调目标", "高亮边界"],
-      "telemetry_spec": {
-        "summary_fields": ["viewed", "timeOnStep"],
-        "result_policy": "no_submission"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["view_count"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "明确本课能力边界。",
-        "allowed_scope": ["三项目标", "主线链", "越界内容"],
-        "forbidden_scope": ["提前给后续课程细节"],
-        "canonical_facts": ["本课只讲纯极点语言。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-03",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["目标卡、主线链与边界卡同时可见。", "本页无作答区。"]
-    },
-    "step-04": {
-      "title": "前测——稳定、主导极点与“可忽略”直觉判断",
-      "layout": {
-        "template": "question_stack",
-        "regions": [
-          { "id": "question-stack", "width": "full", "order": 1 },
-          { "id": "submit-bar", "width": "full", "order": 2 }
-        ]
-      },
-      "modules": [
-        { "id": "pretest-q1", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "pretest-q2", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "pretest-q3", "region": "question-stack", "kind": "single-choice-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "misconception-note", "type": "bullet_list", "title": "常见混淆", "items": ["稳定不等于表现已经够好。", "主导极点不是唯一极点。", "更靠左不是无条件可忽略。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "quiz_group",
-        "student_task": "完成三道前测题。",
-        "attempt_model": "允许重提一次，教师端区分首答与重提。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["释放前测", "显示统计", "显示答案"],
-      "telemetry_spec": {
-        "summary_fields": ["attemptCount", "resultState", "errorBucket"],
-        "misconception_tags": ["stable_not_equal_good", "dominant_not_only", "left_more_not_absolute"]
-      },
-      "teacher_insight_spec": {
-        "widgets": ["question_distribution", "top_misconceptions"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "暴露起点误区。",
-        "allowed_scope": ["错因归类", "术语纠偏"],
-        "forbidden_scope": ["代替作答"],
-        "canonical_facts": ["前测用于暴露混淆，而不是直接给结论。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-04",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["三题在未作答状态下全部可见。", "教师端可看到错误分布。"]
-    },
-    "step-05": {
-      "title": "稳定底线——先回答“能不能谈近似”",
-      "layout": {
-        "template": "formula_plus_plane_check",
-        "regions": [
-          { "id": "formula-card", "width": "full", "order": 1 },
-          { "id": "media", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "characteristic-equation", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
-        { "id": "stability-plane", "region": "media", "kind": "illustration", "must_be_visible": true },
-        { "id": "reason-check", "region": "interaction", "kind": "reason-check", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "characteristic-equation", "type": "plain_text", "title": "稳定起点", "body": "特征方程、闭环极点与半平面判据必须同页出现。" },
-        { "id": "stability-plane", "type": "plain_text", "title": "半平面判读", "body": "左半平面稳定，虚轴临界稳定，右半平面不稳定。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "reason_check",
-        "student_task": "判断若存在虚轴根或右半平面根，是否还能直接谈高阶近似。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["显示参考解释", "高亮半平面区域"],
-      "telemetry_spec": {
-        "summary_fields": ["predictionSubmitted", "reasonLength", "teacherRevealSeen"],
-        "result_policy": "store_reason"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["prediction_distribution", "reason_tag_cloud"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "立住稳定底线。",
-        "allowed_scope": ["特征方程", "半平面", "稳定语言"],
-        "forbidden_scope": ["劳斯表与参数可行域"],
-        "canonical_facts": ["先判断能不能谈近似，再谈近似如何做。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-05",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["特征方程卡、半平面图和判断区同屏。", "静态内容先于互动出现。"]
-    },
-    "step-06": {
-      "title": "从极点到模态——极点为什么会直接进入响应",
-      "layout": {
-        "template": "formula_explain_match",
-        "regions": [
-          { "id": "formula-card", "width": "full", "order": 1 },
-          { "id": "explain-strip", "width": "full", "order": 2 },
-          { "id": "match-zone", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "partial-fraction-form", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
-        { "id": "modal-response-form", "region": "formula-card", "kind": "formula-card", "must_be_visible": true },
-        { "id": "role-strip", "region": "explain-strip", "kind": "bullet-strip", "must_be_visible": true },
-        { "id": "triple-match", "region": "match-zone", "kind": "triple-match", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "partial-fraction-form", "type": "plain_text", "title": "分式展开", "body": "必须落地一般分式展开式。"},
-        { "id": "modal-response-form", "type": "plain_text", "title": "响应展开", "body": "必须落地一般模态响应式，并说明留数、时间因子和极点位置的分工。"},
-        { "id": "role-strip", "type": "bullet_list", "title": "三段解释", "items": ["极点位置决定节奏。", "虚部决定振荡频率。", "留数决定权重与方向。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "triple_match",
-        "student_task": "完成“极点位置 / 留数系数 / 响应现象”三列对应。",
-        "answer_reveal": "instant_feedback"
-      },
-      "teacher_controls": ["显示常见错配", "重置本步"],
-      "telemetry_spec": {
-        "summary_fields": ["matchAttempted", "matchCorrected", "timeOnStep"],
-        "result_policy": "store_match_result"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["common_mismatch_pairs", "completion_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把极点翻译成模态项。",
-        "allowed_scope": ["部分分式", "模态", "留数", "节奏"],
-        "forbidden_scope": ["直接跳到主导极点经验句"],
-        "canonical_facts": ["极点不是静态坐标，而是响应项的来源。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-06",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["两条公式卡与解释条先落页。", "配对区不遮挡公式卡。"]
-    },
-    "step-07": {
-      "title": "三类极点与重根——形态为什么会完全不同",
-      "layout": {
-        "template": "family_compare_switcher",
-        "regions": [
-          { "id": "family-summary", "width": "full", "order": 1 },
-          { "id": "shared-chart", "width": "full", "order": 2 },
-          { "id": "switcher", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "pole-family-card", "region": "family-summary", "kind": "family-card", "must_be_visible": true },
-        { "id": "repeat-root-note", "region": "family-summary", "kind": "note-card", "must_be_visible": true },
-        { "id": "family-chart", "region": "shared-chart", "kind": "illustration", "must_be_visible": true },
-        { "id": "misconception-switcher", "region": "switcher", "kind": "tab-switch", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "family-formulas", "type": "plain_text", "title": "典型形态", "body": "必须明确负实极点、左半平面共轭复极点、右半平面极点以及重根时间因子。"},
-        { "id": "family-summary", "type": "bullet_list", "title": "三类极点", "items": ["负实极点对应非振荡衰减。", "左半平面共轭复极点对应振荡衰减。", "右半平面极点对应发散。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "tab_switch",
-        "student_task": "切换三个误区标签，查看对应纠偏解释。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["切换误区标签", "停留在当前标签"],
-      "telemetry_spec": {
-        "summary_fields": ["tabVisited", "viewDuration"],
-        "result_policy": "track_visits"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["tab_focus_distribution"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "建立极点类型到响应形态的映射。",
-        "allowed_scope": ["三类极点", "重根", "误区纠偏"],
-        "forbidden_scope": ["把负模态等同于失稳"],
-        "canonical_facts": ["共轭复极点对应一条真实输出曲线。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-07",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["图示与典型公式始终可见。", "切换器不替代静态说明。"]
-    },
-    "step-08": {
-      "title": "三模型时域对照——主导极点近似为什么有时可靠",
-      "layout": {
-        "template": "triple_model_compare",
-        "regions": [
-          { "id": "formula-strip", "width": "full", "order": 1 },
-          { "id": "media", "width": "full", "order": 2 },
-          { "id": "workspace", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "model-set", "region": "formula-strip", "kind": "formula-card-row", "must_be_visible": true },
-        { "id": "time-response-figure", "region": "media", "kind": "illustration", "must_be_visible": true },
-        { "id": "metric-table", "region": "media", "kind": "table-card", "must_be_visible": true },
-        { "id": "comparison-workspace", "region": "workspace", "kind": "short-response", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "dominant-pair", "type": "plain_text", "title": "主导极点对", "body": "必须把三模型与共同主导极点对同屏落地。"},
-        { "id": "metric-table", "type": "plain_text", "title": "时域指标", "body": "固定包含 tr、tp、Mp、ts 四项。"}
-      ],
-      "interaction_spec": {
-        "interaction_kind": "comparison_workspace",
-        "student_task": "写出哪一组最接近参考模型，哪一组已明显改写主要动态。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["显示班级关键词", "广播一条代表性答案"],
-      "telemetry_spec": {
-        "summary_fields": ["responseSubmitted", "responseLength", "timeOnStep"],
-        "result_policy": "store_text_only"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["response_word_cloud", "common_reason_tags"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把视觉差异绑定到附加模态退场快慢。",
-        "allowed_scope": ["主导极点", "附加极点", "时域指标"],
-        "forbidden_scope": ["偷换成同主导极点必同响应"],
-        "canonical_facts": ["三模型共享主导对，但附加极点位置不同。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-08",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["三模型公式、时域图和指标表同屏。", "记录区在静态内容下方。"]
-    },
-    "step-09": {
-      "title": "时域近似边界——“更靠左”不是万能判断句",
-      "layout": {
-        "template": "decision_table_with_reason",
-        "regions": [
-          { "id": "table", "width": "full", "order": 1 },
-          { "id": "prompt", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "time-criteria-table", "region": "table", "kind": "criteria-table", "must_be_visible": true },
-        { "id": "boundary-note", "region": "prompt", "kind": "note-card", "must_be_visible": true },
-        { "id": "reason-check", "region": "interaction", "kind": "reason-check", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "time-criteria-table", "type": "bullet_list", "title": "判断准则", "items": ["3~5 倍更靠左只是经验起点。", "还要看附加模态权重。", "还要防范近主导区重根或聚集极点。", "结论必须回到时域指标表核对。"] },
-        { "id": "boundary-note", "type": "plain_text", "title": "边界提醒", "body": "经验句不能代替证据链。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "reason_check",
-        "student_task": "补全“系统 A 更接近二阶近似，不只是因为更靠左，还因为 ________”。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["显示参考理由", "汇总常见缺口"],
-      "telemetry_spec": {
-        "summary_fields": ["predictionSubmitted", "reasonLength", "teacherRevealSeen"],
-        "result_policy": "store_reason"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["reason_tag_cloud", "correction_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "防止把经验规则讲成定理。",
-        "allowed_scope": ["附加模态权重", "时间尺度", "指标回查"],
-        "forbidden_scope": ["引入频域判稳和设计语言"],
-        "canonical_facts": ["时域近似要回到指标和时间尺度证据。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-09",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["准则表和边界提醒在未作答状态下完整可见。", "解释区不遮挡准则表。"]
-    },
-    "step-10": {
-      "title": "仅看时域还不够——为什么还要回到频域",
-      "layout": {
-        "template": "bridge_table_plus_prompt",
-        "regions": [
-          { "id": "summary", "width": "full", "order": 1 },
-          { "id": "question-list", "width": "full", "order": 2 },
-          { "id": "interaction", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "time-domain-summary", "region": "summary", "kind": "summary-card", "must_be_visible": true },
-        { "id": "frequency-questions", "region": "question-list", "kind": "bullet-strip", "must_be_visible": true },
-        { "id": "short-response", "region": "interaction", "kind": "short-response", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "time-domain-summary", "type": "plain_text", "title": "时域结论", "body": "时域能回答像不像，但还不能回答主要工作频带里是否也近似。" },
-        { "id": "frequency-questions", "type": "bullet_list", "title": "频域追问", "items": ["幅频骨架是否接近。", "相位偏差是否进入主要带宽。", "附加极点折点是否侵入关注频段。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "short_response",
-        "student_task": "用一句话补全“频域检查之所以必要，是因为 ________”。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["收集短答", "显示词云"],
-      "telemetry_spec": {
-        "summary_fields": ["responseSubmitted", "responseLength", "timeOnStep"],
-        "result_policy": "store_text_only"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["response_word_cloud", "common_reason_tags"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "完成从时域证据到频域证据的过渡。",
-        "allowed_scope": ["幅频骨架", "相位偏差", "带宽"],
-        "forbidden_scope": ["提前代入完整幅频表达式"],
-        "canonical_facts": ["时域和频域都要服务同一个近似判断。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-10",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["结论卡、追问清单和短答栏同屏。", "短答区不遮挡追问清单。"]
-    },
-    "step-11": {
-      "title": "Bode 对照——附加极点何时侵入主要带宽",
-      "layout": {
-        "template": "bode_compare_workspace",
-        "regions": [
-          { "id": "formula-strip", "width": "full", "order": 1 },
-          { "id": "media", "width": "full", "order": 2 },
-          { "id": "workspace", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "magnitude-formulas", "region": "formula-strip", "kind": "formula-card-row", "must_be_visible": true },
-        { "id": "bode-figure", "region": "media", "kind": "illustration", "must_be_visible": true },
-        { "id": "frequency-scale-table", "region": "media", "kind": "table-card", "must_be_visible": true },
-        { "id": "workspace", "region": "workspace", "kind": "checklist", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "magnitude-formulas", "type": "plain_text", "title": "频域起点", "body": "幅频表达式、固有频率、两个附加极点折点和参考带宽必须一起出现。" },
-        { "id": "frequency-scale-table", "type": "bullet_list", "title": "三种频率尺度", "items": ["固有频率约 1.79 rad/s。", "系统 A 折点约 5 rad/s。", "系统 B 折点约 1.4 rad/s。", "参考带宽约 2.39 rad/s。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "parameter_workspace",
-        "student_task": "勾选固有频率、转折频率和带宽分别回答什么问题。",
-        "answer_reveal": "instant_feedback"
-      },
-      "teacher_controls": ["显示班级混淆矩阵", "锁定当前视图"],
-      "telemetry_spec": {
-        "summary_fields": ["selectionState", "resultState", "timeOnStep"],
-        "result_policy": "store_selection"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["confusion_matrix", "completion_rate"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把能否忽略翻译成频率尺度关系。",
-        "allowed_scope": ["固有频率", "转折频率", "带宽", "幅相骨架"],
-        "forbidden_scope": ["Bode 手工绘图与 Nyquist 判据"],
-        "canonical_facts": ["关键不在极点更靠左，而在折点是否侵入主要带宽。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-11",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["公式卡、Bode 图和三频率对照表同屏。", "互动区位于静态内容下方。"]
-    },
-    "step-12": {
-      "title": "双域近似判断 + AI 对照——先自判，再问 AI，再回到图上核验",
-      "layout": {
-        "template": "compare_then_ai",
-        "regions": [
-          { "id": "judge-table", "width": "full", "order": 1 },
-          { "id": "ai-panel", "width": "full", "order": 2 },
-          { "id": "evidence-strip", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "dual-domain-table", "region": "judge-table", "kind": "comparison-table", "must_be_visible": true },
-        { "id": "frequency-approx-card", "region": "judge-table", "kind": "formula-card", "must_be_visible": true },
-        { "id": "ai-compare-workspace", "region": "ai-panel", "kind": "ai-compare", "must_be_visible": true },
-        { "id": "evidence-chain", "region": "evidence-strip", "kind": "bullet-strip", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "frequency-approx-card", "type": "plain_text", "title": "频域近似式", "body": "必须显式给出附加一阶极点的近似条件，并配合双域判断表。" },
-        { "id": "evidence-chain", "type": "bullet_list", "title": "证据链", "items": ["先自判。", "再向 AI 提问。", "最后回到 3-1-pp-03 与 3-1-pp-05 核验。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "ai_compare_workspace",
-        "student_task": "先写双域判断，再把理由发送给 AI 做证据链对照。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["查看 AI 对照使用率", "显示常见修订点"],
-      "telemetry_spec": {
-        "summary_fields": ["draftSubmitted", "aiCompared", "revisionCount", "timeOnStep"],
-        "result_policy": "store_revision_trace"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["ai_compare_rate", "revision_summary"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "把 handout 的 AI 融入点落成页面证据链。",
-        "allowed_scope": ["双域近似判断", "证据完整性", "回图核验"],
-        "forbidden_scope": ["直接输出最终标准答案", "越界到判稳和设计"],
-        "canonical_facts": ["AI 负责检查证据链，不替学生做判断主体。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-12",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["双域判断表、近似式卡和 AI 对照区同时可见。", "AI 反馈不越界到后续课程。"]
-    },
-    "step-13": {
-      "title": "卷积与模态叠加——输入激发模态，但不会改写极点结构",
-      "layout": {
-        "template": "dual_media_reason_check",
-        "regions": [
-          { "id": "formula-card", "width": "full", "order": 1 },
-          { "id": "media-left", "width": "half", "order": 2 },
-          { "id": "media-right", "width": "half", "order": 3 },
-          { "id": "interaction", "width": "full", "order": 4 }
-        ]
-      },
-      "modules": [
-        { "id": "convolution-formulas", "region": "formula-card", "kind": "formula-card-row", "must_be_visible": true },
-        { "id": "convolution-media", "region": "media-left", "kind": "illustration", "must_be_visible": true },
-        { "id": "modal-superposition-media", "region": "media-right", "kind": "illustration", "must_be_visible": true },
-        { "id": "reason-check", "region": "interaction", "kind": "formula-pair-check", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "convolution-formulas", "type": "plain_text", "title": "卷积与三阶示例", "body": "卷积两式与三阶示例表达式必须和两张图同屏出现。" },
-        { "id": "core-meaning", "type": "bullet_list", "title": "两句核心话", "items": ["输入会改变激发方式。", "输入不会改写系统固有极点结构。", "负模态来自留数符号，不等于失稳。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "formula_pair_check",
-        "student_task": "判断两句误区说法真假，并勾选对应证据图。",
-        "answer_reveal": "instant_feedback"
-      },
-      "teacher_controls": ["显示误区统计", "高亮对应证据图"],
-      "telemetry_spec": {
-        "summary_fields": ["selectionState", "resultState", "evidenceChosen"],
-        "result_policy": "store_selection"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["misconception_rate", "evidence_distribution"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "用卷积把全课闭合。",
-        "allowed_scope": ["卷积", "延时脉冲响应", "模态叠加", "留数符号"],
-        "forbidden_scope": ["重讲拉氏变换基础"],
-        "canonical_facts": ["卷积改变输入激发方式，不改系统极点。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-13",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["卷积公式、三阶示例和两张图在未作答状态下完整可见。", "互动区要求学生引用证据图。"]
-    },
-    "step-14": {
-      "title": "后测——会不会发散、能不能近似、为什么能解释",
-      "layout": {
-        "template": "post_quiz_stack",
-        "regions": [
-          { "id": "quiz-stack", "width": "full", "order": 1 },
-          { "id": "submit-bar", "width": "full", "order": 2 }
-        ]
-      },
-      "modules": [
-        { "id": "post-q1", "region": "quiz-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "post-q2", "region": "quiz-stack", "kind": "single-choice-card", "must_be_visible": true },
-        { "id": "post-q3", "region": "quiz-stack", "kind": "short-response-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "post-note", "type": "bullet_list", "title": "后测聚焦", "items": ["会不会发散。", "双域近似能不能成立。", "为什么卷积能解释输入变化但不改极点。"] }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "quiz_group",
-        "student_task": "完成两题客观题和一题解释题。",
-        "attempt_model": "允许重提一次，教师端区分首答与重提。",
-        "answer_reveal": "teacher_toggle"
-      },
-      "teacher_controls": ["释放后测", "显示班级统计", "显示答案"],
-      "telemetry_spec": {
-        "summary_fields": ["attemptCount", "resultState", "errorBucket", "teacherRevealSeen"],
-        "result_policy": "store_attempts"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["question_distribution", "top_misconceptions"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "检查学生是否能用完整语言作结。",
-        "allowed_scope": ["错因归类", "证据链纠偏"],
-        "forbidden_scope": ["直接替解释题作答"],
-        "canonical_facts": ["出口不仅要会选答案，还要会解释。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-14",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["三题在未作答状态下全部可见。", "教师端可看到首答与重提差异。"]
-    },
-    "step-15": {
-      "title": "总结与后续预告——先守底线，再谈机制，再谈后续方法",
-      "layout": {
-        "template": "summary_infographic",
-        "regions": [
-          { "id": "summary-strip", "width": "full", "order": 1 },
-          { "id": "infographic", "width": "full", "order": 2 },
-          { "id": "next-step", "width": "full", "order": 3 }
-        ]
-      },
-      "modules": [
-        { "id": "exit-rules", "region": "summary-strip", "kind": "bullet-strip", "must_be_visible": true },
-        { "id": "info-graphic", "region": "infographic", "kind": "illustration", "must_be_visible": true },
-        { "id": "next-lesson-card", "region": "next-step", "kind": "next-step-card", "must_be_visible": true }
-      ],
-      "content_blocks": [
-        { "id": "exit-rules", "type": "bullet_list", "title": "四句出口判断", "items": ["稳定是底线。", "时域看附加模态退场快慢。", "频域看转折频率是否侵入主要带宽。", "卷积只激发模态，不改写极点结构。"] },
-        { "id": "next-lesson-card", "type": "plain_text", "title": "下一课去向", "body": "3-2 将把稳定底线推进成稳定边界可视化。" }
-      ],
-      "interaction_spec": {
-        "interaction_kind": "none",
-        "student_task": "只收束，不提交。",
-        "answer_reveal": "none"
-      },
-      "teacher_controls": ["高亮四句出口判断", "切到下一课预告"],
-      "telemetry_spec": {
-        "summary_fields": ["viewed", "timeOnStep"],
-        "result_policy": "no_submission"
-      },
-      "teacher_insight_spec": {
-        "widgets": ["view_count"],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "收束为可复习提要。",
-        "allowed_scope": ["四句出口判断", "后续课程去向"],
-        "forbidden_scope": ["新增新概念"],
-        "canonical_facts": ["3-1 负责纯极点语言，3-2 才进入稳定边界可视化。"]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-15",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": ["四句出口判断、信息图和后续预告卡同屏。", "本页无作答区。"]
-    }
-  }
-}
+contract_version: '2.2'
+lesson_id: '3-1'
+course_title: '3-1：纯极点视角下的稳定、模态与双域近似'
+course_route_segment: 'unit-3-1-pure-pole-stability-and-dynamics'
+design_acceptance_focus:
+  - '学生脱离讲稿后，仍能基于当前页面理解知识对象、判断动作和主线位置。'
+  - '逐步显影只隐藏步骤，不隐藏题面、对象、目标问题与结论桥接。'
+  - '主导极点近似必须同时保留时域证据与频域证据，不能退化为一句经验话。'
+preview_mode:
+  default_entry: 'student_demo'
+  student_demo_base_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo'
+  teacher_preview_panel_note: '教师预览只检查课堂骨架；默认预览路径仍以学生演示页为准。'
+telemetry_strategy: 'step_level_learning_evidence'
+teacher_insight_strategy: 'misconception_and_progress_dual_track'
+required_step_fields:
+  - 'layout'
+  - 'modules'
+  - 'content_blocks'
+  - 'evidence_sequence'
+  - 'interaction_spec'
+  - 'teacher_controls'
+  - 'student_access'
+  - 'telemetry_spec'
+  - 'teacher_insight_spec'
+  - 'ai_context_spec'
+  - 'preview_contract'
+  - 'acceptance_checks'
+steps:
+  step-01:
+    title: '回到路径：从模块 2 的低阶直觉走向模块 3 的极点语言'
+    layout:
+      template: 'map_hero_slide'
+      regions:
+        - id: 'header'
+          width: 'full'
+          order: 1
+        - id: 'lead'
+          width: 'full'
+          order: 2
+        - id: 'summary'
+          width: 'full'
+          order: 3
+    modules:
+      - id: 'stage-map'
+        region: 'lead'
+        kind: 'stage-map'
+        must_be_visible: true
+      - id: 'today-task-card'
+        region: 'lead'
+        kind: 'question-card'
+        must_be_visible: true
+      - id: 'boundary-card'
+        region: 'summary'
+        kind: 'boundary-card'
+        must_be_visible: true
+    content_blocks:
+      - id: 'path'
+        type: 'plain_text'
+        title: '路径定位'
+        body: '固定高亮 2-4 -> 3-1 -> 3-2 -> 3-3，并写清 3-1 负责把模块 2 的低阶直觉推进到极点统领双域行为的语言。'
+      - id: 'question'
+        type: 'plain_text'
+        title: '主问题'
+        body: '高阶系统为什么仍常能用低阶模型解释主要动态。'
+      - id: 'boundary'
+        type: 'bullet_list'
+        title: '边界'
+        items:
+          - '只讨论纯极点系统。'
+          - '不进入劳斯判据、根轨迹、Nyquist/Bode 判稳与校正设计。'
+    evidence_sequence:
+      - '路径图'
+      - '主问题卡'
+      - '边界卡'
+    interaction_spec:
+      interaction_kind: 'none'
+      student_task: '只阅读，不提交。'
+      step_reveal_policy:
+        mode: 'none'
+    teacher_controls:
+      release_activity: 'not_applicable'
+      open_browse: 'not_applicable'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'not_applicable'
+      instructor_demo_tools:
+        - 'highlight_path_node'
+    student_access:
+      default_visibility: 'visible'
+      release_required: false
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'viewed'
+        - 'timeOnStep'
+        - 'teacherFollowSync'
+      result_policy: 'no_submission'
+    teacher_insight_spec:
+      widgets:
+        - 'view_count'
+        - 'sync_status'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '标定本课在模块 3 中的入口位置。'
+      allowed_scope:
+        - '课程路径'
+        - '模块 2 到模块 3 的切换'
+      forbidden_scope:
+        - '提前解释例题'
+        - '提前给近似结论'
+      canonical_facts:
+        - '3-1 不是重复二阶指标。'
+        - '3-1 负责建立极点语言。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-01'
+      must_match_student_page: true
+    acceptance_checks:
+      - '首屏必须同时看到路径图、主问题卡和边界卡。'
+      - '学生不看讲稿也能说出 3-1 为什么会出现在 2-4 之后。'
+
+  step-02:
+    title: '情境引入：同主导极点，为什么响应仍会分家'
+    layout:
+      template: 'triple_model_conflict'
+      regions:
+        - id: 'formula-strip'
+          width: 'full'
+          order: 1
+        - id: 'media'
+          width: 'full'
+          order: 2
+        - id: 'interaction'
+          width: 'full'
+          order: 3
+    modules:
+      - id: 'model-formula-row'
+        region: 'formula-strip'
+        kind: 'formula-card-row'
+        must_be_visible: true
+      - id: 'dominant-pole-note'
+        region: 'formula-strip'
+        kind: 'notice-card'
+        must_be_visible: true
+      - id: 'response-compare-figure'
+        region: 'media'
+        kind: 'comparison-graphic'
+        must_be_visible: true
+      - id: 'binary-vote'
+        region: 'interaction'
+        kind: 'binary-choice'
+        must_be_visible: true
+    content_blocks:
+      - id: 'models'
+        type: 'plain_text'
+        title: '三模型'
+        body: 'G_ref、G_A、G_B 共享同一对主导共轭极点 -0.8 ± j1.6，区别只在附加极点位置。'
+      - id: 'conflict'
+        type: 'plain_text'
+        title: '冲突问题'
+        body: '同主导极点是否足以保证主要响应接近。'
+    evidence_sequence:
+      - '三模型公式条'
+      - '同主导极点附注'
+      - '阶跃响应对照图'
+      - '二选一判断'
+    interaction_spec:
+      interaction_kind: 'binary_choice'
+      student_task: '判断是否还必须看附加模态退场快慢。'
+      correct_answer: 'B'
+      options:
+        A: '只要主导极点相同，主要响应就应基本一致。'
+        B: '还必须检查附加模态的退场快慢和时间尺度。'
+      failure_feedback: '只提示“同主导极点并不自动等于同响应”。'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls:
+      release_activity: 'page_load_open'
+      open_browse: 'not_applicable'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'teacher_toggle'
+      instructor_demo_tools:
+        - 'show_class_distribution'
+    student_access:
+      default_visibility: 'visible'
+      release_required: false
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'selectedOption'
+        - 'resultState'
+        - 'teacherRevealSeen'
+      result_policy: 'store_choice'
+    teacher_insight_spec:
+      widgets:
+        - 'option_distribution'
+        - 'misconception_rate'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '压实时域主问题，不提前给出完整近似准则。'
+      allowed_scope:
+        - '主导极点'
+        - '附加极点'
+        - '响应差异'
+      forbidden_scope:
+        - '直接展开时域与频域全部规则'
+      canonical_facts:
+        - '主导极点重要，但不是唯一证据。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-02'
+      must_match_student_page: true
+    acceptance_checks:
+      - '学生在未作答前必须看到三模型和阶跃响应对照图。'
+      - '错误反馈不得提前给出完整近似准则。'
+
+  step-03:
+    title: '学习目标与课堂边界：本课负责什么，不负责什么'
+    layout:
+      template: 'goal_boundary_slide'
+      regions:
+        - id: 'goals'
+          width: 'full'
+          order: 1
+        - id: 'chain'
+          width: 'full'
+          order: 2
+        - id: 'boundary'
+          width: 'full'
+          order: 3
+    modules:
+      - id: 'goal-card-row'
+        region: 'goals'
+        kind: 'goal-card-row'
+        must_be_visible: true
+      - id: 'main-chain-card'
+        region: 'chain'
+        kind: 'formula-chain'
+        must_be_visible: true
+      - id: 'boundary-table'
+        region: 'boundary'
+        kind: 'comparison-table'
+        must_be_visible: true
+    content_blocks:
+      - id: 'goals'
+        type: 'bullet_list'
+        title: '四项目标'
+        items:
+          - '会判稳定底线。'
+          - '会把极点翻译成模态。'
+          - '会用时域证据筛选近似。'
+          - '会用频域证据复核近似。'
+      - id: 'chain'
+        type: 'plain_text'
+        title: '主线'
+        body: '稳定底线 -> 模态语言 -> 时域筛选 -> 频域复核 -> 卷积收束。'
+      - id: 'boundary'
+        type: 'table'
+        title: '边界表'
+        body: '不进入劳斯判据、根轨迹、Nyquist/Bode 判稳和校正设计。'
+    evidence_sequence:
+      - '四项目标'
+      - '主线链'
+      - '边界表'
+    interaction_spec:
+      interaction_kind: 'none'
+      student_task: '只建立课程边界。'
+      step_reveal_policy:
+        mode: 'none'
+    teacher_controls:
+      release_activity: 'not_applicable'
+      open_browse: 'not_applicable'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'not_applicable'
+      instructor_demo_tools:
+        - 'highlight_goal'
+        - 'highlight_boundary_row'
+    student_access:
+      default_visibility: 'visible'
+      release_required: false
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'viewed'
+        - 'timeOnStep'
+      result_policy: 'no_submission'
+    teacher_insight_spec:
+      widgets:
+        - 'view_count'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '建立本课任务边界。'
+      allowed_scope:
+        - '课程目标'
+        - '本课负责'
+        - '本课不负责'
+      forbidden_scope:
+        - '提前进入下一课方法'
+      canonical_facts:
+        - '3-1 只建立纯极点语言。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-03'
+      must_match_student_page: true
+    acceptance_checks:
+      - '目标、主线和边界必须同屏。'
+      - '学生不看讲稿也能说出本课不负责哪些内容。'
+
+  step-04:
+    title: '前测：稳定、主导极点与“可忽略”直觉判断'
+    layout:
+      template: 'question_stack'
+      regions:
+        - id: 'prompt'
+          width: 'full'
+          order: 1
+        - id: 'questions'
+          width: 'full'
+          order: 2
+        - id: 'notes'
+          width: 'full'
+          order: 3
+    modules:
+      - id: 'misconception-note'
+        region: 'prompt'
+        kind: 'bullet-card'
+        must_be_visible: true
+      - id: 'pretest-card-group'
+        region: 'questions'
+        kind: 'quiz-group'
+        must_be_visible: true
+      - id: 'reason-reminder'
+        region: 'notes'
+        kind: 'notice-card'
+        must_be_visible: true
+    content_blocks:
+      - id: 'misconceptions'
+        type: 'bullet_list'
+        title: '常见混淆'
+        items:
+          - '稳定不等于表现已经够好。'
+          - '同主导极点不等于同响应。'
+          - '更靠左不是无条件可忽略。'
+      - id: 'reason'
+        type: 'plain_text'
+        title: '理由要求'
+        body: '每题都要写一句为什么。'
+    evidence_sequence:
+      - '常见混淆'
+      - '三道题面'
+      - '理由提示'
+    interaction_spec:
+      interaction_kind: 'quiz_group'
+      student_task: '完成三道前测题。'
+      attempt_model: '允许重提一次，教师端区分首答与重提。'
+      activity_cards:
+        - id: 'pretest-q1'
+          prompt: '稳定的系统是否就代表它的动态表现已经足够好。'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'full'
+        - id: 'pretest-q2'
+          prompt: '两个系统若拥有同一对主导共轭极点，单位阶跃响应是否就会几乎一样。'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'full'
+        - id: 'pretest-q3'
+          prompt: '附加极点位于 -5 与 -1.4 时，哪一个更可能被忽略，并说明理由。'
+          response_kind: 'fill_text'
+          submit_scope: 'per_card'
+          layout_span: 'full'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls:
+      release_activity: 'teacher_toggle'
+      open_browse: 'not_applicable'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'teacher_toggle'
+      instructor_demo_tools:
+        - 'show_question_distribution'
+        - 'show_top_misconceptions'
+    student_access:
+      default_visibility: 'hidden'
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'attemptCount'
+        - 'resultState'
+        - 'errorBucket'
+      misconception_tags:
+        - 'stable_not_equal_good'
+        - 'same_dominant_not_same_response'
+        - 'left_more_not_absolute'
+    teacher_insight_spec:
+      widgets:
+        - 'question_distribution'
+        - 'top_misconceptions'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '暴露起点误区。'
+      allowed_scope:
+        - '错因归类'
+        - '术语纠偏'
+      forbidden_scope:
+        - '代替作答'
+      canonical_facts:
+        - '前测用于暴露误区，不用于直接给结论。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-04'
+      must_match_student_page: true
+    acceptance_checks:
+      - '题组释放后，三道题面必须完整可见。'
+      - '教师端必须能看到三类错因的聚合。'
+
+  step-05:
+    title: '稳定底线：先回答“能不能谈近似”'
+    layout:
+      template: 'formula_plane_reason'
+      regions:
+        - id: 'formula'
+          width: 'full'
+          order: 1
+        - id: 'media'
+          width: 'full'
+          order: 2
+        - id: 'interaction'
+          width: 'full'
+          order: 3
+    modules:
+      - id: 'characteristic-equation-card'
+        region: 'formula'
+        kind: 'formula-card'
+        must_be_visible: true
+      - id: 'stability-rule-list'
+        region: 'formula'
+        kind: 'bullet-card'
+        must_be_visible: true
+      - id: 'half-plane-figure'
+        region: 'media'
+        kind: 'illustration'
+        must_be_visible: true
+      - id: 'reason-check-card'
+        region: 'interaction'
+        kind: 'reason-check'
+        must_be_visible: true
+    content_blocks:
+      - id: 'formula'
+        type: 'formula'
+        title: '稳定起点'
+        value: 'D(s)=0'
+      - id: 'rules'
+        type: 'bullet_list'
+        title: '三种情况'
+        items:
+          - '全部极点实部小于 0：渐近稳定。'
+          - '虚轴极点且右半平面无极点：临界稳定。'
+          - '出现右半平面极点：存在发散模态。'
+      - id: 'figure-note'
+        type: 'plain_text'
+        title: '判断任务'
+        body: '先判断能不能谈近似，再谈近似如何做。'
+    evidence_sequence:
+      - '特征方程卡'
+      - '稳定规则'
+      - '半平面图'
+      - '判断卡'
+    interaction_spec:
+      interaction_kind: 'reason_check'
+      student_task: '判断若存在虚轴根或右半平面根，是否还能直接谈高阶近似。'
+      response_kind: 'fill_text'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls:
+      release_activity: 'teacher_toggle'
+      open_browse: 'not_applicable'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'teacher_toggle'
+      instructor_demo_tools:
+        - 'highlight_half_plane_region'
+    student_access:
+      default_visibility: 'hidden'
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'predictionSubmitted'
+        - 'reasonLength'
+        - 'teacherRevealSeen'
+      result_policy: 'store_reason'
+    teacher_insight_spec:
+      widgets:
+        - 'prediction_distribution'
+        - 'reason_tag_cloud'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '立住稳定底线。'
+      allowed_scope:
+        - '特征方程'
+        - '半平面'
+        - '稳定语言'
+      forbidden_scope:
+        - '劳斯表与参数可行域'
+      canonical_facts:
+        - '稳定判定先回答是否会失控。'
+        - '本页还不讨论动态品质。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-05'
+      must_match_student_page: true
+    acceptance_checks:
+      - '特征方程、规则和半平面图必须在未作答状态下完整可见。'
+      - '判断卡不能取代静态规则区。'
+
+  step-06:
+    title: '从极点到模态：极点为什么会直接写进响应'
+    layout:
+      template: 'formula_story_board'
+      regions:
+        - id: 'decomposition'
+          width: 'full'
+          order: 1
+        - id: 'response'
+          width: 'full'
+          order: 2
+        - id: 'meaning'
+          width: 'full'
+          order: 3
+        - id: 'interaction'
+          width: 'full'
+          order: 4
+    modules:
+      - id: 'partial-fraction-card'
+        region: 'decomposition'
+        kind: 'formula-card'
+        must_be_visible: true
+      - id: 'impulse-response-card'
+        region: 'response'
+        kind: 'formula-card'
+        must_be_visible: true
+      - id: 'meaning-table'
+        region: 'meaning'
+        kind: 'comparison-table'
+        must_be_visible: true
+      - id: 'triple-match'
+        region: 'interaction'
+        kind: 'triple-match'
+        must_be_visible: true
+    content_blocks:
+      - id: 'decomposition'
+        type: 'formula'
+        title: '部分分式'
+        value: 'G(s)=\\sum_{i=1}^{m}\\sum_{r=1}^{q_i}\\frac{A_{i,r}}{(s-p_i)^r}'
+      - id: 'response'
+        type: 'formula'
+        title: '脉冲响应'
+        value: 'g(t)=\\sum_{i=1}^{m}\\sum_{r=1}^{q_i}\\frac{A_{i,r}}{(r-1)!}t^{r-1}e^{p_i t}'
+      - id: 'meaning'
+        type: 'bullet_list'
+        title: '含义对照'
+        items:
+          - '实部决定衰减或增长速度。'
+          - '虚部决定振荡频率。'
+          - '重数引入 t、t^2 等多项式因子。'
+          - '留数决定模态权重和方向。'
+    evidence_sequence:
+      - '部分分式'
+      - '脉冲响应'
+      - '含义表'
+      - '配对区'
+    interaction_spec:
+      interaction_kind: 'triple_match'
+      student_task: '把实部、虚部、重数、留数与它们控制的响应特征对应起来。'
+      answer_reveal: 'instant_feedback'
+    teacher_controls:
+      release_activity: 'page_load_open'
+      open_browse: 'not_applicable'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'teacher_toggle'
+      instructor_demo_tools:
+        - 'reset_match'
+    student_access:
+      default_visibility: 'visible'
+      release_required: false
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'matchAttempted'
+        - 'matchCorrected'
+        - 'timeOnStep'
+      result_policy: 'store_match_result'
+    teacher_insight_spec:
+      widgets:
+        - 'common_mismatch_pairs'
+        - 'completion_rate'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '把极点和响应式直接连接起来。'
+      allowed_scope:
+        - '部分分式'
+        - '脉冲响应'
+        - '模态含义'
+      forbidden_scope:
+        - '提前进入主导极点近似结论'
+      canonical_facts:
+        - '极点不是抽象标签，而是运动模态。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-06'
+      must_match_student_page: true
+    acceptance_checks:
+      - '两条公式必须在首屏完整出现。'
+      - '配对区只强化含义，不得替代公式和表。'
+
+  step-07:
+    title: '三类极点与重根：响应形态为什么不止一种'
+    layout:
+      template: 'classification_board'
+      regions:
+        - id: 'figure'
+          width: 'full'
+          order: 1
+        - id: 'compare'
+          width: 'full'
+          order: 2
+        - id: 'activity'
+          width: 'full'
+          order: 3
+    modules:
+      - id: 'pole-mode-figure'
+        region: 'figure'
+        kind: 'comparison-graphic'
+        must_be_visible: true
+      - id: 'type-compare-table'
+        region: 'compare'
+        kind: 'comparison-table'
+        must_be_visible: true
+      - id: 'repeated-root-card'
+        region: 'compare'
+        kind: 'formula-card'
+        must_be_visible: true
+      - id: 'activity-card-01'
+        region: 'activity'
+        kind: 'single-choice-card'
+        must_be_visible: true
+      - id: 'activity-card-02'
+        region: 'activity'
+        kind: 'fill-text-card'
+        must_be_visible: true
+    content_blocks:
+      - id: 'compare'
+        type: 'bullet_list'
+        title: '三类极点'
+        items:
+          - '单个负实极点：纯指数衰减。'
+          - '左半平面共轭复极点：振荡衰减。'
+          - '右半平面极点：发散模态。'
+      - id: 'repeated'
+        type: 'formula'
+        title: '重根项'
+        value: 'A_1e^{pt}+A_2te^{pt}'
+    evidence_sequence:
+      - '类型对照图'
+      - '类型对照表'
+      - '重根公式卡'
+      - '两张判断卡'
+    interaction_spec:
+      interaction_kind: 'activity_cards'
+      student_task: '完成极点类型判断和重根风险解释。'
+      activity_cards:
+        - id: 'activity-card-01'
+          prompt: '把负实极点、左半平面共轭复极点、右半平面极点与响应形态对应起来。'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+        - id: 'activity-card-02'
+          prompt: '说明为什么重根不能只按“位置差不多”处理。'
+          response_kind: 'fill_text'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls:
+      release_activity: 'teacher_toggle'
+      open_browse: 'not_applicable'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'teacher_toggle'
+      instructor_demo_tools:
+        - 'show_type_distribution'
+    student_access:
+      default_visibility: 'hidden'
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'attemptCount'
+        - 'resultState'
+        - 'errorBucket'
+      misconception_tags:
+        - 'complex_pair_means_two_outputs'
+        - 'repeated_root_can_be_ignored'
+    teacher_insight_spec:
+      widgets:
+        - 'option_distribution'
+        - 'top_misconceptions'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '区分极点类型、响应形态与重根风险。'
+      allowed_scope:
+        - '极点类型'
+        - '响应形态'
+        - '重根'
+      forbidden_scope:
+        - '直接跳到主导极点近似'
+      canonical_facts:
+        - '重根会改变前段包络。'
+        - '共轭复极点不代表两条物理输出曲线。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-07'
+      must_match_student_page: true
+    acceptance_checks:
+      - '图、表和重根卡必须先于作答卡出现。'
+      - '两张作答卡必须并排而非整页单栏堆叠。'
+
+  step-08:
+    title: '最小例题：三模型时域对照与主导模态近似'
+    layout:
+      template: 'worked_example_reveal_lab'
+      regions:
+        - id: 'problem'
+          width: 'full'
+          order: 1
+        - id: 'formulas'
+          width: 'full'
+          order: 2
+        - id: 'figure'
+          width: 'full'
+          order: 3
+        - id: 'table'
+          width: 'full'
+          order: 4
+        - id: 'activity'
+          width: 'full'
+          order: 5
+    modules:
+      - id: 'problem-statement-card'
+        region: 'problem'
+        kind: 'worked-example-problem'
+        must_be_visible: true
+      - id: 'response-formula-stack'
+        region: 'formulas'
+        kind: 'formula-stack'
+        must_be_visible: true
+      - id: 'dominant-step-figure'
+        region: 'figure'
+        kind: 'comparison-graphic'
+        must_be_visible: true
+      - id: 'indicator-table'
+        region: 'table'
+        kind: 'comparison-table'
+        must_be_visible: true
+      - id: 'activity-card-01'
+        region: 'activity'
+        kind: 'fill-text-card'
+        must_be_visible: true
+      - id: 'activity-card-02'
+        region: 'activity'
+        kind: 'fill-text-card'
+        must_be_visible: true
+    content_blocks:
+      - id: 'problem'
+        type: 'plain_text'
+        title: '题面'
+        body: '比较 G_ref、G_A、G_B 的单位阶跃响应，判断附加极点是否仍可忽略。'
+      - id: 'formulas'
+        type: 'plain_text'
+        title: '显式响应'
+        body: '完整保留 y_ref(t)、y_A(t)、y_B(t) 三条显式阶跃响应式。'
+      - id: 'table'
+        type: 'table'
+        title: '指标表'
+        body: '保留 t_r、t_p、M_p、t_s 以及三模型结论。'
+    evidence_sequence:
+      - '题面卡'
+      - '显式响应式'
+      - '时域对照图'
+      - '指标表'
+      - '两张作答卡'
+    interaction_spec:
+      interaction_kind: 'worked_example_workspace'
+      student_task: '在完整题面基础上完成系统 A 与系统 B 的时域解释。'
+      step_reveal_policy:
+        mode: 'teacher_or_student_controlled'
+        hide_problem_statement: false
+        hide_derivation_only: true
+      activity_cards:
+        - id: 'activity-card-01'
+          prompt: '说明系统 A 为什么仍接近参考模型。'
+          response_kind: 'fill_text'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+        - id: 'activity-card-02'
+          prompt: '说明系统 B 为什么已明显偏离参考模型。'
+          response_kind: 'fill_text'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls:
+      release_activity: 'teacher_toggle'
+      open_browse: 'default_closed'
+      teacher_step_reveal: 'independent'
+      reveal_reference_answer: 'teacher_toggle'
+      instructor_demo_tools:
+        - 'step_reveal_next'
+        - 'highlight_indicator_row'
+    student_access:
+      default_visibility: 'hidden'
+      release_required: true
+      browse_required: true
+      can_view_problem_statement: true
+      can_view_derivation_steps: false
+      can_submit_without_browse: false
+    telemetry_spec:
+      summary_fields:
+        - 'revealProgress'
+        - 'attemptCount'
+        - 'resultState'
+      misconception_tags:
+        - 'fast_mode_effect_ignored'
+        - 'same_dominant_equals_same_response'
+    teacher_insight_spec:
+      widgets:
+        - 'reveal_completion_rate'
+        - 'answer_quality_tags'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '用显式响应和指标表支撑主导模态近似判断。'
+      allowed_scope:
+        - '三模型'
+        - '时间尺度'
+        - '指标变化'
+      forbidden_scope:
+        - '只说“更靠左”而不引用证据'
+      canonical_facts:
+        - '系统 A 的附加模态衰减更快。'
+        - '系统 B 的附加模态已进入主要动态区。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-08'
+      must_match_student_page: true
+    acceptance_checks:
+      - '题面、三条响应式、对照图和指标表必须在未展开步骤时仍可见。'
+      - '学生不能在未开放浏览时自行展开显影步骤。'
+
+  step-09:
+    title: '时域筛选：更靠左为什么只是第一轮判断'
+    layout:
+      template: 'evidence_table_plus_cards'
+      regions:
+        - id: 'rules'
+          width: 'full'
+          order: 1
+        - id: 'risks'
+          width: 'full'
+          order: 2
+        - id: 'activity'
+          width: 'full'
+          order: 3
+    modules:
+      - id: 'rule-card'
+        region: 'rules'
+        kind: 'rule-card'
+        must_be_visible: true
+      - id: 'risk-list'
+        region: 'risks'
+        kind: 'bullet-card'
+        must_be_visible: true
+      - id: 'activity-card-01'
+        region: 'activity'
+        kind: 'fill-text-card'
+        must_be_visible: true
+      - id: 'activity-card-02'
+        region: 'activity'
+        kind: 'fill-text-card'
+        must_be_visible: true
+    content_blocks:
+      - id: 'rule'
+        type: 'plain_text'
+        title: '经验筛选'
+        body: '被忽略极点实部绝对值约为主导极点的 3~5 倍以上时，时域近似通常较可靠。'
+      - id: 'risks'
+        type: 'bullet_list'
+        title: '风险清单'
+        items:
+          - '附加极点靠近主导区。'
+          - '主导区附近有多个极点或重根。'
+          - '附加模态权重足以改写主要动态。'
+      - id: 'boundary'
+        type: 'plain_text'
+        title: '边界'
+        body: '这不是定理，只是第一轮筛选准则。'
+    evidence_sequence:
+      - '经验规则'
+      - '风险清单'
+      - '边界提示'
+      - '两张迁移卡'
+    interaction_spec:
+      interaction_kind: 'activity_cards'
+      student_task: '完成时域迁移判断。'
+      activity_cards:
+        - id: 'activity-card-01'
+          prompt: '若主导极点为 -1 ± j2，附加极点为 -6，你会先做怎样的时域判断。'
+          response_kind: 'fill_text'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+        - id: 'activity-card-02'
+          prompt: '说明为什么这一步仍不能取代图形和数值证据。'
+          response_kind: 'fill_text'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls:
+      release_activity: 'teacher_toggle'
+      open_browse: 'not_applicable'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'teacher_toggle'
+      instructor_demo_tools:
+        - 'highlight_risk_item'
+    student_access:
+      default_visibility: 'hidden'
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'attemptCount'
+        - 'resultState'
+      misconception_tags:
+        - 'rule_as_theorem'
+        - 'skip_visual_evidence'
+    teacher_insight_spec:
+      widgets:
+        - 'reason_tag_cloud'
+        - 'top_misconceptions'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '把经验句定位为第一轮筛选，而不是终局结论。'
+      allowed_scope:
+        - '3~5 倍经验'
+        - '风险因素'
+      forbidden_scope:
+        - '把经验句说成严格定理'
+      canonical_facts:
+        - '时域筛选之后仍要看频域。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-09'
+      must_match_student_page: true
+    acceptance_checks:
+      - '规则卡必须显式写出“不是定理”。'
+      - '两张卡必须分别承载筛选判断与边界解释。'
+
+  step-10:
+    title: '转向频域：时域相近为什么还不够'
+    layout:
+      template: 'transition_question_board'
+      regions:
+        - id: 'question'
+          width: 'full'
+          order: 1
+        - id: 'task'
+          width: 'full'
+          order: 2
+        - id: 'interaction'
+          width: 'full'
+          order: 3
+    modules:
+      - id: 'transition-question-card'
+        region: 'question'
+        kind: 'question-card'
+        must_be_visible: true
+      - id: 'frequency-checklist'
+        region: 'task'
+        kind: 'bullet-card'
+        must_be_visible: true
+      - id: 'binary-vote'
+        region: 'interaction'
+        kind: 'binary-choice'
+        must_be_visible: true
+    content_blocks:
+      - id: 'question'
+        type: 'plain_text'
+        title: '转场问题'
+        body: '阶跃响应相近，并不自动意味着主要工作频段里的幅相特性也相近。'
+      - id: 'tasks'
+        type: 'bullet_list'
+        title: '频域要追问的两件事'
+        items:
+          - '附加极点的转折频率是否落入主要带宽。'
+          - '低阶模型是否还适合估计带宽和相位滞后。'
+    evidence_sequence:
+      - '转场问题'
+      - '频域任务卡'
+      - '二选一判断'
+    interaction_spec:
+      interaction_kind: 'binary_choice'
+      student_task: '判断是否可以只凭时域结果宣布近似可靠。'
+      correct_answer: 'B'
+      options:
+        A: '只要时域曲线接近，就可以宣布近似可靠。'
+        B: '还必须检查主要工作频段里的幅相偏差。'
+      failure_feedback: '只提示“时域相近不等于频域相近”。'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls:
+      release_activity: 'page_load_open'
+      open_browse: 'not_applicable'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'teacher_toggle'
+      instructor_demo_tools:
+        - 'show_option_distribution'
+    student_access:
+      default_visibility: 'visible'
+      release_required: false
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'selectedOption'
+        - 'resultState'
+      result_policy: 'store_choice'
+    teacher_insight_spec:
+      widgets:
+        - 'option_distribution'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '把时域筛选自然接到频域复核。'
+      allowed_scope:
+        - '主要带宽'
+        - '幅相偏差'
+      forbidden_scope:
+        - '跳过 Bode 图直接下频域结论'
+      canonical_facts:
+        - '频域复核与时域筛选是同一近似判断的下半段。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-10'
+      must_match_student_page: true
+    acceptance_checks:
+      - '先出现转场问题与任务卡，再出现判断按钮。'
+      - '本页不得直接替代下一页的 Bode 证据。'
+
+  step-11:
+    title: 'Bode 对照：附加极点何时侵入主要带宽'
+    layout:
+      template: 'curve_compare_lab'
+      regions:
+        - id: 'formulas'
+          width: 'full'
+          order: 1
+        - id: 'figure'
+          width: 'full'
+          order: 2
+        - id: 'table'
+          width: 'full'
+          order: 3
+        - id: 'activity'
+          width: 'full'
+          order: 4
+    modules:
+      - id: 'magnitude-formula-stack'
+        region: 'formulas'
+        kind: 'formula-stack'
+        must_be_visible: true
+      - id: 'bode-compare-figure'
+        region: 'figure'
+        kind: 'interactive-figure'
+        must_be_visible: true
+      - id: 'bandwidth-table'
+        region: 'table'
+        kind: 'comparison-table'
+        must_be_visible: true
+      - id: 'approximation-card'
+        region: 'table'
+        kind: 'formula-card'
+        must_be_visible: true
+      - id: 'activity-card-01'
+        region: 'activity'
+        kind: 'single-choice-card'
+        must_be_visible: true
+      - id: 'activity-card-02'
+        region: 'activity'
+        kind: 'fill-text-card'
+        must_be_visible: true
+    content_blocks:
+      - id: 'formulas'
+        type: 'plain_text'
+        title: '幅频表达式'
+        body: '完整保留 |G_ref(jω)|、|G_A(jω)|、|G_B(jω)| 三条表达式。'
+      - id: 'table'
+        type: 'table'
+        title: '带宽表'
+        body: '比较转折频率、数值带宽与频域判断。'
+      - id: 'approximation'
+        type: 'formula'
+        title: '近似式'
+        value: '|1/(1+j\\omega/p)|\\approx 1,\\ \\angle 1/(1+j\\omega/p)\\approx 0^\\circ\\ (\\omega \\ll p)'
+    evidence_sequence:
+      - '幅频表达式'
+      - 'Bode 对照图'
+      - '带宽表'
+      - '近似式'
+      - '两张作答卡'
+    interaction_spec:
+      interaction_kind: 'curve_compare_panel'
+      student_task: '判断哪一个附加极点已经侵入主要带宽，并说明后果。'
+      interactive_figure_spec:
+        baseline_media: '3-1-pp-05-bode-model-reduction.svg'
+        default_state: '复现讲义三模型 Bode 静态图'
+        controls:
+          - 'toggle_model_visibility'
+          - 'show_break_frequency_marker'
+          - 'show_bandwidth_marker'
+        reading_prompt:
+          - '先看主导二阶对的主频尺度。'
+          - '再看附加极点转折频率。'
+          - '最后判断它是否落入主要带宽。'
+      activity_cards:
+        - id: 'activity-card-01'
+          prompt: '哪一个附加极点已经侵入主要带宽。'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+        - id: 'activity-card-02'
+          prompt: '说明为什么系统 B 不宜继续视为原来的低阶对象。'
+          response_kind: 'fill_text'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls:
+      release_activity: 'teacher_toggle'
+      open_browse: 'page_load_open'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'teacher_toggle'
+      instructor_demo_tools:
+        - 'lock_to_model'
+        - 'toggle_bandwidth_marker'
+    student_access:
+      default_visibility: 'locked'
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: false
+    telemetry_spec:
+      summary_fields:
+        - 'panelExplored'
+        - 'markerToggled'
+        - 'resultState'
+      misconception_tags:
+        - 'break_frequency_outside_bandwidth_ignored'
+        - 'frequency_check_skipped'
+    teacher_insight_spec:
+      widgets:
+        - 'panel_usage_heatmap'
+        - 'top_misconceptions'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '把频域复核落到转折频率与主要带宽的相对位置上。'
+      allowed_scope:
+        - 'Bode 图'
+        - '带宽'
+        - '转折频率'
+      forbidden_scope:
+        - '直接跳进 Nyquist 或裕度设计'
+      canonical_facts:
+        - '系统 A 的附加极点转折频率在主要带宽外。'
+        - '系统 B 的附加极点转折频率已落入主要带宽附近。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-11'
+      must_match_student_page: true
+    acceptance_checks:
+      - '图、表、近似式必须在不操作面板时完整可见。'
+      - '默认态必须与讲义 Bode 图表达的结论一致。'
+
+  step-12:
+    title: '双域判断表：先自判，再问 AI，再回到图上核验'
+    layout:
+      template: 'double_domain_judgment_board'
+      regions:
+        - id: 'table'
+          width: 'full'
+          order: 1
+        - id: 'activity'
+          width: 'full'
+          order: 2
+        - id: 'ai'
+          width: 'full'
+          order: 3
+    modules:
+      - id: 'double-domain-table'
+        region: 'table'
+        kind: 'comparison-table'
+        must_be_visible: true
+      - id: 'migration-problem-card'
+        region: 'table'
+        kind: 'worked-example-problem'
+        must_be_visible: true
+      - id: 'self-judge-card-01'
+        region: 'activity'
+        kind: 'fill-text-card'
+        must_be_visible: true
+      - id: 'self-judge-card-02'
+        region: 'activity'
+        kind: 'fill-text-card'
+        must_be_visible: true
+      - id: 'ai-compare-card'
+        region: 'ai'
+        kind: 'ai-compare-workspace'
+        must_be_visible: true
+      - id: 'return-to-figure-note'
+        region: 'ai'
+        kind: 'notice-card'
+        must_be_visible: true
+    content_blocks:
+      - id: 'table'
+        type: 'table'
+        title: '双域判断表'
+        body: '并列比较时域可靠/不可靠、频域可靠/不可靠与用途边界。'
+      - id: 'migration'
+        type: 'plain_text'
+        title: '迁移题'
+        body: '主导极点为 -1 ± j2，附加极点为 -6，先不给数值计算，只做双域定性判断。'
+      - id: 'ai-boundary'
+        type: 'bullet_list'
+        title: 'AI 使用边界'
+        items:
+          - '必须先完成自判。'
+          - 'AI 只作为对照，不替代首答。'
+          - 'AI 给出的理由必须回到时域图与 Bode 图核验。'
+    evidence_sequence:
+      - '双域判断表'
+      - '迁移题卡'
+      - '两张自判卡'
+      - 'AI 对照区'
+      - '回图核验提示'
+    interaction_spec:
+      interaction_kind: 'ai_compare_workspace'
+      student_task: '先完成时域与频域自判，再查看 AI 对照。'
+      activity_cards:
+        - id: 'self-judge-card-01'
+          prompt: '给出时域判断，并说明依据。'
+          response_kind: 'fill_text'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+        - id: 'self-judge-card-02'
+          prompt: '给出频域判断，并说明依据。'
+          response_kind: 'fill_text'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+      ai_compare_policy:
+        lock_until_student_submit: true
+        compare_focus:
+          - '是否明确区分时域筛选与频域复核'
+          - '是否引用带宽内外而非只说更靠左'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls:
+      release_activity: 'teacher_toggle'
+      open_browse: 'page_load_open'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'teacher_toggle'
+      instructor_demo_tools:
+        - 'unlock_ai_compare'
+        - 'show_reference_reason'
+    student_access:
+      default_visibility: 'locked'
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'attemptCount'
+        - 'aiCompareOpened'
+        - 'resultState'
+      misconception_tags:
+        - 'ai_before_self_judgment'
+        - 'single_domain_reasoning'
+    teacher_insight_spec:
+      widgets:
+        - 'ai_compare_usage'
+        - 'reason_tag_cloud'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '把双域判断框架固化为可迁移动作。'
+      allowed_scope:
+        - '双域判断表'
+        - '迁移题'
+        - 'AI 对照边界'
+      forbidden_scope:
+        - '直接把 AI 输出当标准答案'
+      canonical_facts:
+        - '先自判后 AI。'
+        - 'AI 理由必须回到图上核验。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-12'
+      must_match_student_page: true
+    acceptance_checks:
+      - '双域判断表与迁移题必须先于 AI 区完整出现。'
+      - 'AI 对照在学生未提交前必须保持锁定。'
+
+  step-13:
+    title: '卷积与模态叠加：输入激发模态，但不改写极点结构'
+    layout:
+      template: 'convolution_modal_board'
+      regions:
+        - id: 'convolution'
+          width: 'full'
+          order: 1
+        - id: 'figure'
+          width: 'full'
+          order: 2
+        - id: 'example'
+          width: 'full'
+          order: 3
+        - id: 'activity'
+          width: 'full'
+          order: 4
+    modules:
+      - id: 'convolution-formula-card'
+        region: 'convolution'
+        kind: 'formula-card'
+        must_be_visible: true
+      - id: 'step-response-figure'
+        region: 'figure'
+        kind: 'comparison-graphic'
+        must_be_visible: true
+      - id: 'modal-example-card'
+        region: 'example'
+        kind: 'formula-card'
+        must_be_visible: true
+      - id: 'modal-superposition-figure'
+        region: 'example'
+        kind: 'comparison-graphic'
+        must_be_visible: true
+      - id: 'activity-card-01'
+        region: 'activity'
+        kind: 'single-choice-card'
+        must_be_visible: true
+      - id: 'activity-card-02'
+        region: 'activity'
+        kind: 'fill-text-card'
+        must_be_visible: true
+    content_blocks:
+      - id: 'convolution'
+        type: 'plain_text'
+        title: '卷积关系'
+        body: '保留 y(t)=∫_0^t g(t-τ)u(τ)dτ 与单位阶跃响应的特例。'
+      - id: 'example'
+        type: 'plain_text'
+        title: '三阶模态例子'
+        body: '保留 G(s)=12/[(s+1)(s+2)(s+6)]、部分分式结果与 g(t)=2.4e^{-t}-3e^{-2t}+0.6e^{-6t}。'
+      - id: 'note'
+        type: 'plain_text'
+        title: '纠偏'
+        body: '负留数不等于不稳定；稳定性仍看极点位置。'
+    evidence_sequence:
+      - '卷积公式'
+      - '卷积图'
+      - '三阶模态例子'
+      - '模态叠加图'
+      - '两张判断卡'
+    interaction_spec:
+      interaction_kind: 'activity_cards'
+      student_task: '完成卷积与模态叠加的两个判断。'
+      activity_cards:
+        - id: 'activity-card-01'
+          prompt: '在 2.4e^{-t}、-3e^{-2t}、0.6e^{-6t} 中，哪一个模态退场最快。'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+        - id: 'activity-card-02'
+          prompt: '说明为什么负留数不等于系统不稳定。'
+          response_kind: 'fill_text'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls:
+      release_activity: 'teacher_toggle'
+      open_browse: 'not_applicable'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'teacher_toggle'
+      instructor_demo_tools:
+        - 'highlight_modal_component'
+    student_access:
+      default_visibility: 'hidden'
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'attemptCount'
+        - 'resultState'
+      misconception_tags:
+        - 'negative_residue_means_unstable'
+        - 'input_changes_poles'
+    teacher_insight_spec:
+      widgets:
+        - 'option_distribution'
+        - 'top_misconceptions'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '把输入激发和固有极点结构区分开。'
+      allowed_scope:
+        - '卷积'
+        - '模态叠加'
+        - '留数符号'
+      forbidden_scope:
+        - '把输入作用说成改写极点位置'
+      canonical_facts:
+        - '输入激发模态，但不改写系统固有极点。'
+        - '留数的正负不决定稳定性。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-13'
+      must_match_student_page: true
+    acceptance_checks:
+      - '卷积公式和三阶模态例子必须完整可见。'
+      - '两张卡必须分别纠正“哪个模态最快”和“负留数是否不稳定”两类误解。'
+
+  step-14:
+    title: '后测：会不会发散、能不能近似、为什么能解释'
+    layout:
+      template: 'posttest_board'
+      regions:
+        - id: 'header'
+          width: 'full'
+          order: 1
+        - id: 'questions'
+          width: 'full'
+          order: 2
+        - id: 'notes'
+          width: 'full'
+          order: 3
+    modules:
+      - id: 'posttest-title-card'
+        region: 'header'
+        kind: 'title-card'
+        must_be_visible: true
+      - id: 'posttest-card-group'
+        region: 'questions'
+        kind: 'quiz-group'
+        must_be_visible: true
+      - id: 'reason-note'
+        region: 'notes'
+        kind: 'notice-card'
+        must_be_visible: true
+    content_blocks:
+      - id: 'title'
+        type: 'plain_text'
+        title: '本页任务'
+        body: '独立走完“稳定 -> 近似 -> 解释”判断链。'
+      - id: 'reason'
+        type: 'plain_text'
+        title: '作答要求'
+        body: '每题至少引用一个时域或频域证据。'
+    evidence_sequence:
+      - '标题卡'
+      - '三道题面'
+      - '理由提示'
+    interaction_spec:
+      interaction_kind: 'quiz_group'
+      student_task: '完成三道后测题。'
+      attempt_model: '允许一次修正提交。'
+      activity_cards:
+        - id: 'posttest-q1'
+          prompt: '若存在右半平面极点，系统是否还能稳定。'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'full'
+        - id: 'posttest-q2'
+          prompt: '当附加极点转折频率落入主要带宽时，低阶近似是否仍可靠，并说明理由。'
+          response_kind: 'fill_text'
+          submit_scope: 'per_card'
+          layout_span: 'full'
+        - id: 'posttest-q3'
+          prompt: '为什么阶跃响应可以看成多个延时脉冲响应的叠加。'
+          response_kind: 'fill_text'
+          submit_scope: 'per_card'
+          layout_span: 'full'
+      answer_reveal: 'teacher_toggle'
+    teacher_controls:
+      release_activity: 'teacher_toggle'
+      open_browse: 'not_applicable'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'teacher_toggle'
+      instructor_demo_tools:
+        - 'show_question_distribution'
+        - 'show_reason_tags'
+    student_access:
+      default_visibility: 'hidden'
+      release_required: true
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'attemptCount'
+        - 'resultState'
+        - 'errorBucket'
+      misconception_tags:
+        - 'rhp_can_still_approximate'
+        - 'bandwidth_intrusion_ignored'
+        - 'step_from_nothing'
+    teacher_insight_spec:
+      widgets:
+        - 'question_distribution'
+        - 'reason_tag_cloud'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '检查学生是否形成完整判断链。'
+      allowed_scope:
+        - '稳定判定'
+        - '双域近似'
+        - '卷积解释'
+      forbidden_scope:
+        - '直接给答案而不要求证据'
+      canonical_facts:
+        - '后测检查的是完整链路，不是背口号。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-14'
+      must_match_student_page: true
+    acceptance_checks:
+      - '标题卡必须先于题卡出现。'
+      - '三题必须分别覆盖稳定底线、双域近似与卷积解释。'
+
+  step-15:
+    title: '总结与去向：先守底线，再谈模态，再谈后续方法'
+    layout:
+      template: 'summary_exit_board'
+      regions:
+        - id: 'summary'
+          width: 'full'
+          order: 1
+        - id: 'infographic'
+          width: 'full'
+          order: 2
+        - id: 'next'
+          width: 'full'
+          order: 3
+    modules:
+      - id: 'six-point-summary'
+        region: 'summary'
+        kind: 'summary-list'
+        must_be_visible: true
+      - id: 'info-graphic'
+        region: 'infographic'
+        kind: 'summary-graphic'
+        must_be_visible: true
+      - id: 'next-lesson-card'
+        region: 'next'
+        kind: 'next-step-card'
+        must_be_visible: true
+    content_blocks:
+      - id: 'summary'
+        type: 'bullet_list'
+        title: '六条结论'
+        items:
+          - '稳定只是底线。'
+          - '极点进入响应后变成模态。'
+          - '重根不能被忽略。'
+          - '时域先做第一轮筛选。'
+          - '频域必须再做带宽复核。'
+          - '卷积说明输入激发同一套模态。'
+      - id: 'next'
+        type: 'plain_text'
+        title: '去向'
+        body: '3-2 将把稳定边界从口头判断推进到可分析、可表达的对象。'
+    evidence_sequence:
+      - '六条结论'
+      - '信息图'
+      - '去向卡'
+    interaction_spec:
+      interaction_kind: 'none'
+      student_task: '只复习与收束，不提交。'
+      step_reveal_policy:
+        mode: 'none'
+    teacher_controls:
+      release_activity: 'not_applicable'
+      open_browse: 'not_applicable'
+      teacher_step_reveal: 'not_applicable'
+      reveal_reference_answer: 'not_applicable'
+      instructor_demo_tools:
+        - 'highlight_summary_item'
+    student_access:
+      default_visibility: 'visible'
+      release_required: false
+      browse_required: false
+      can_view_problem_statement: true
+      can_view_derivation_steps: true
+      can_submit_without_browse: true
+    telemetry_spec:
+      summary_fields:
+        - 'viewed'
+        - 'timeOnStep'
+      result_policy: 'no_submission'
+    teacher_insight_spec:
+      widgets:
+        - 'view_count'
+      aggregation: 'step_level'
+    ai_context_spec:
+      page_goal: '把本课六个支点与 3-2 的衔接收束清楚。'
+      allowed_scope:
+        - '六条结论'
+        - '3-2 的入口意义'
+      forbidden_scope:
+        - '提前展开 3-2 具体内容'
+      canonical_facts:
+        - '3-1 的收束是进入稳定边界正式方法前的语言准备。'
+    preview_contract:
+      route_kind: 'student_demo'
+      demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-15'
+      must_match_student_page: true
+    acceptance_checks:
+      - '本页不出现作答占位。'
+      - '学生离开讲稿也能说出本课六条结论和 3-2 的去向。'

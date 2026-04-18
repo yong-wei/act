@@ -1,733 +1,578 @@
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-互动页面设计 | 单元 3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上
-技术栈：Next.js 14 + TypeScript + Tailwind CSS + shadcn/ui
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 ## 文档职责
+- 本文件是 `3-4` 的作者态互动设计真源，负责把讲义中的主图读法、参数窗口、三域验证与广义根轨迹改写成学生脱离讲稿也能独立理解的页面序列。
+- 同目录 [interactive-contract.yaml](./interactive-contract.yaml) 负责机读契约；两者必须按 `step-01` 到 `step-17` 同名、同序、同边界。
+- 本文件不接受“只保留一张图和一句结论”的压缩写法。凡是对象、题面、公式链、图后解释、判断表与结论桥接，均必须先落成可阅读页面，再决定互动升级。
 
-- 本文件是供人审阅的课堂前台页面蓝图，负责固定页面顺序、模板、静态内容、互动方式、反馈口径与验收标准。
-- 同目录 [interactive-contract.yaml](./interactive-contract.yaml) 是机读契约；两者必须逐步骤同名、同序、同边界。
-- 本课是 `3-3` 法则课之后的实践化读图课，先把“主图证据 -> 参数语言 -> 三域验证”写成完整课件，再决定局部互动升级。
-- 页面总目标固定为：学生能够围绕同一船舶航向控制对象，把根轨迹判断写成一条完整工程判断链：`关键节点读图 -> 参数窗口判断 -> 增益换算 -> 对象化三域验证`。
+## 设计原则
+- 页面顺序服从讲义证据链，不为了首屏视觉把根轨迹图、Bode 图或航迹图抢到问题、公式链和判断动作之前。
+- `关键节点读图`、`参数窗口判断`、`对象化三域验证`、`广义根轨迹改写` 四条线必须先后成链，不再把广义参数压成课末附注。
+- 逐步显影只能隐藏步骤，不能隐藏对象、已知条件、题面、目标判断与结论桥接。
+- 学生作答默认拆成独立小卡片并单卡提交，不使用整页统一大表单。
+- 后测与收束分离，出口页只做能力回收、边界说明与去向提示。
 
-## 表述规则
+## 通用自包含验收问题
+- 当前页的对象是什么。
+- 当前页正在判断什么问题。
+- 当前页最关键的证据在哪里，是主图、公式链、表格还是对照图。
+- 当前页的结论如何接回 `关键节点 -> 参数窗口 -> 三域验证 -> 广义参数` 主线。
 
-- 互动课首先承担完整课件职责。每一步都要先把概念、公式、图示、表格和判断语句落成可读页面，再决定是否升级互动。
-- 本课主线固定为：`地图定位 -> 问题与产出 -> 同对象三版本初判 -> 固定读图顺序 -> 关键节点证据 -> 参数窗口 -> 增益换算 -> 三域补证 -> 对象化判断 -> 出口边界`。
-- 页面必须严格命中讲义真实标题，不再使用脱离讲义结构的自拟锚点。
-- AI 信息只作为隐藏式页面上下文交给控灵助手消费，不设计独立显式 AI 页面模块；若需要校对换算链，只能作为页面外呼起的辅助校对模式，不能代替学生写判断。
-- 互动组件只负责初判、排序、标注、判断、填写和对照，不负责替代学生完成工程结论。
+## 节点与步骤分组
+- `group-01｜导入与主图入口`：`step-01` 到 `step-04`
+- `group-02｜关键节点与参数窗口`：`step-05` 到 `step-08`
+- `group-03｜对象化三域验证`：`step-09` 到 `step-12`
+- `group-04｜广义根轨迹与出口`：`step-13` 到 `step-17`
 
 ## 全课总览
+| 步骤 | 标题 | 页面模板 | 逻辑单元 | 互动组件 |
+|---|---|---|---|---|
+| `step-01` | 回到地图：从 `3-3` 法则走向 `3-4` 判断 | `map_hero_slide` | 路径定位、主问题、边界 | `none` |
+| `step-02` | 问题提出与三张记录表：稳定之后还要回答什么 | `goal_chain_slide` | 核心问题、固定产出、判断链 | `none` |
+| `step-03` | 固定对象与三个版本：先暴露“稳定=可用”的第一误判 | `version_overview_quiz` | 对象、版本表、三题初判 | `quiz_group` |
+| `step-04` | 固定读图顺序：先骨架，再关键节点，再窗口，再后果 | `workflow_sort_board` | 四步法、排序区、误判提示 | `sequence_sort` |
+| `step-05` | 关键节点证据板：分离点、虚轴交点与参考工作点 `B` | `evidence_reading_board` | 主图、节点卡、热点定位 | `hotspot_labeling` |
+| `step-06` | 关键节点读图记录：把主图证据写成一句工程判断 | `record_workspace` | 记录模板、判断句、双卡作答 | `activity_cards` |
+| `step-07` | 稳定窗口与可接受窗口：`A/B/C` 各自处在哪一侧 | `comparison_judgement_board` | 双窗口定义、判断表、双卡作答 | `activity_cards` |
+| `step-08` | 增益换算链：从图上的 `k` 落回工程参数 `K` | `worked_example_reveal` | 换算公式、参考工作点、双卡作答 | `worked_example_workspace` |
+| `step-09` | 为什么必须三域互证：主图、时域、频域先并排对齐 | `evidence_matrix_slide` | 三域角色、总表、配对区 | `triple_match` |
+| `step-10` | 时域验证：版本 `B` 为什么能够作为参考工作点 | `comparison_panel_with_toggle` | 阶跃对照、近似说明、双卡作答 | `activity_cards` |
+| `step-11` | 频域验证：低中频近似成立，高频差异仍要单列记录 | `table_figure_workspace` | 频率点表、Bode 对照、双卡作答 | `activity_cards` |
+| `step-12` | 版本 `C` 的收益与代价：Bode 与航迹不能只保留一边 | `dual_evidence_compare_workspace` | 频域证据、航迹证据、双卡作答 | `activity_cards` |
+| `step-13` | 广义根轨迹入口：局部反馈系数 `a` 为什么不是“再调一次 `K`” | `figure_question_vote` | 新问题、结构图、误判暴露 | `binary_choice` |
+| `step-14` | 改写链：从给定局部反馈结构走到等效根轨迹 | `worked_example_reveal` | 完整对象、改写显影链、双卡作答 | `worked_example_workspace` |
+| `step-15` | 非增益参数窗口记录：`a` 从 `0` 到 `1` 怎样改写主导极点 | `parameter_window_compare_board` | 广义根轨迹图、窗口表、双卡作答 | `activity_cards` |
+| `step-16` | 后测：读图、换算、三域与广义参数是否已经成链 | `posttest_board` | 标题卡、三题后测、统计区 | `quiz_group` |
+| `step-17` | 收束与去向：沿既有结构分析的能力与边界 | `summary_exit_board` | 五条带走、边界卡、去向卡 | `none` |
 
-| 步骤 | 标题 | 页面模板 | 主阅读顺序 | 互动主类型 | 学生页预览 |
-|------|------|----------|------------|------------|------------|
-| step-01 | 回到地图：从 3-3 法则走向 3-4 判断 | `map_hero_slide` | 路径定位 -> 主问题 -> 本课边界 | `none` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-01` |
-| step-02 | 问题提出与三项产出：稳定之后还要回答什么 | `goal_chain_slide` | 核心问题 -> 三项产出 -> 本课主线 | `none` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-02` |
-| step-03 | 固定对象与三个版本：先在同一张主图上做初判 | `version_overview_quiz` | 对象与公式 -> A/B/C 版本表 -> 三题初判 | `quiz_group` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-03` |
-| step-04 | 固定读图顺序：先骨架，再关键节点，再窗口，再后果 | `workflow_sort_board` | 四步法卡片 -> 排序区 -> 误判提示 | `sequence_sort` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-04` |
-| step-05 | 关键节点证据板：分离点、虚轴交点与参考工作点 B | `evidence_reading_board` | 主图骨架 -> 关键节点定义 -> 参考工作点结论 | `hotspot_labeling` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-05` |
-| step-06 | 关键节点读图记录：把主图证据写成判断句 | `keynode_annotation_workspace` | 记录模板 -> 节点标注 -> 一句读图结论 | `annotation_submit` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-06` |
-| step-07 | 参数窗口判断：稳定窗口不等于可接受窗口 | `window_judgement_workspace` | 双窗口定义 -> 版本对照表 -> 判断与贴标签 | `window_tagging` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-07` |
-| step-08 | 增益换算链：从 $k$ 到 $K$ 才能落回工程参数 | `formula_workspace` | 换算公式 -> 版本换算卡 -> 校对与修订 | `formula_workspace` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-08` |
-| step-09 | 总三域对照：为什么必须让主图、时域、频域互相补证 | `evidence_matrix_slide` | 三域角色 -> 总表联读 -> 进入回查 | `triple_match` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-09` |
-| step-10 | 时域回查：版本 B 为什么能够作为参考工作点 | `comparison_panel_with_toggle` | 阶跃对照图 -> 主导极点近似 -> B 的可信条件 | `panel_toggle_compare` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-10` |
-| step-11 | 频域与航迹对照：版本 C 的收益与代价必须同时落页 | `dual_evidence_compare_workspace` | Bode 对照 -> 航迹对照 -> 风险句写作 | `panel_toggle_compare` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-11` |
-| step-12 | 对象化验证记录与后测：写出完整工程判断 | `validation_record_workspace` | 记录模板 -> 两域以上证据 -> 后测提交 | `validation_record_workspace` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-12` |
-| step-13 | 收束与去向：只调增益为何很快到边界 | `summary_infographic` | 四句带走 -> 参数角色回收 -> 3-5 去向 | `exit_reflection` | `/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-13` |
+## 证据单元升级决策表
+| 证据类型 | 来源锚点 | 目标步骤 | 升级方式 | 保留元素 | 不得删减内容 | 验收点 |
+|---|---|---|---|---|---|---|
+| 路径定位与课程边界 | `## 一、问题提出`、`manifest.json` | `step-01` | 静态保留 | `3-3 -> 3-4 -> 3-5` 路径、主问题、边界句 | “本课不重讲法则证明，也不进入零点设计”不得消失 | 首屏可直接看到路径图、主问题和边界 |
+| 核心问题与三张记录表 | `## 一` | `step-02` | 问题卡 + 产出表 | 核心问题、三张记录表、判断链 | 不得把三张表压成口号 | 学生能知道本课最终交什么 |
+| 固定对象与 `A/B/C` 三版本 | `### 2.1` | `step-03` | 对象卡 + 版本表 + 前测 | `G(s)`、`k=0.01715K`、`A/B/C` 版本表 | 对象、参数和第一判断必须同时出现 | 对象卡、版本表与题卡同页 |
+| 读图顺序 | `### 2.2` | `step-04` | 流程卡 + 排序区 | 四步法、误判提示 | 不得跳过“先节点后窗口” | 学生能把读图顺序排对 |
+| 分离点、虚轴交点、参考工作点 `B` | `### 2.3` `### 2.4` `### 2.5` | `step-05` | 证据板 + 热点定位 | 主图、关键节点图、`B` 位置图、三条证据卡 | 节点定义与作用不得只剩图 | 学生能叫准节点并说出作用 |
+| 关键节点读图记录 | `### 2.6` | `step-06` | 模板表 + 双卡作答 | 记录字段、`A/B/C` 读图结论 | 不得只留“更靠左/更危险”一类碎句 | 至少能写出一句完整工程判断 |
+| 稳定窗口与可接受窗口 | `### 3.2` `### 3.3` | `step-07` | 双定义页 + 判断表 + 双卡作答 | `0<K<28.05`、稳定/可接受窗口定义、参数角色 | 不得把“还稳定”直接写成“可用” | 学生能区分底线语言与工程语言 |
+| 增益换算链 | `### 3.1` | `step-08` | 完整例题页 + 逐步显影 | `k=0.01715K`、`K=k/0.01715`、`B` 版本示例 | 不能只给结果数值，不给换算链 | 学生默认先见题面，步骤后显影 |
+| 三域角色与总三域对照表 | `### 4.1` `### 4.2` | `step-09` | 角色卡 + 总表 + 配对 | 根轨迹/时域/频域角色、总表 | 不得把三域压成“再看两张图” | 学生能先看到三域为何互证 |
+| 版本 `B` 的时域验证 | `### 4.3` | `step-10` | 图后解释 + 双卡作答 | 阶跃对照图、主导极点近似说明 | “近似可信”与“仍有局限”必须并存 | 图、说明卡和作答卡同页 |
+| 版本 `B` 的频域验证 | `### 4.4` | `step-11` | 频率点表 + Bode 对照 + 双卡作答 | 代表性频率点、低中频近似、高频差异 | 不得只给结论句，不给对照表 | 学生能写出“哪里成立、哪里失效” |
+| 版本 `C` 的收益与代价 | `### 4.5` `### 4.6` | `step-12` | 频域图 + 航迹图 + 双卡作答 | Bode 图、B/C 航迹、风险句模板 | 不得只写“更快”或只写“更危险” | 学生能写完整收益-代价句 |
+| 广义根轨迹为什么要引入 | `### 5.1` | `step-13` | 结构图 + 误判判断 | 新问题、局部反馈结构、误判暴露 | 不得把 `a` 当成“另一种 `K`” | 学生知道对象变了、问题也变了 |
+| 局部反馈结构改写链 | `### 5.2` | `step-14` | 完整例题页 + 逐步显影 | `G_1(s)`、`G_{1,eq}(s)`、特征方程、`B(s)+aA(s)=0`、`1+aA/B=0` | 题面与改写链必须完整出现 | 学生能说清“法则不变，只是改写对象” |
+| 非增益参数窗口 | `### 5.3` `### 5.4` | `step-15` | 广义根轨迹图 + 参数窗口表 + 双卡作答 | `a=0/0.2/0.5/1.0`、极点变化、窗口建议 | 不得写成“`a` 越大越好” | 学生能写出窗口而不是单点结论 |
+| 后测与收束 | `## 六` `## 七` | `step-16` `step-17` | 后测页 + 收束页 | 三题后测、五条带走、边界与去向 | 后测不得与总结混页 | 出口页只做回收与去向说明 |
 
-> 实践训练时长承接：`step-03` 到 `step-12` 中，学生实际初判、排序、标注、判断、换算、对照、记录与提交累计约 `58` 分钟；其中核心工作区 `step-04` 到 `step-12` 累计约 `52` 分钟，满足实践课不少于 `45` 分钟的参与式训练要求。
-
-## 讲义证据单元映射
-
-| handout_anchor | evidence_unit_id | evidence_kind | must_appear_content | target_step | page_mode | interaction_archetype | media_or_table_ref | acceptance_note |
-|---|---|---|---|---|---|---|---|---|
-| `## 一、问题提出：稳定之后，还要回答什么` | `eu-01-entry-question` | `concept_card` | “稳定只是底线，还要继续判断快慢、振荡、风险和后果”的主问题。 | step-02 | static | `entry_overview` | 核心问题卡 | 本页必须把主问题和三项产出同时落页。 |
-| `## 一、问题提出：稳定之后，还要回答什么` | `eu-02-output-table` | `deliverable_table` | `关键节点读图记录`、`参数窗口判断表`、`对象化验证记录` 三项固定产出及字段。 | step-02 | static | `deliverable_alignment` | 学习产出表 | 产出字段必须完整出现，不能只保留名称。 |
-| `### 2.1 固定对象与三个版本` | `eu-03-version-table` | `comparison_table` | 船舶航向控制对象公式、`k=0.01715K` 与 A/B/C 三版本表。 | step-03 | static+interactive | `diagnostic_quiz` | `3-4-root-locus-summary.png` / 版本表 | 公式、版本表和三题初判必须同页可见。 |
-| `### 2.2 拿到主图后的固定读图顺序` | `eu-04-reading-workflow` | `workflow_card` | 四步法：看骨架、找关键节点、区分窗口、最后谈参数与后果。 | step-04 | static+interactive | `sequence_sort` | `3-4-root-locus-summary.png` | 四步法卡片必须先于排序区出现。 |
-| `### 2.3 分离点：从实极点主导走向共轭极点主导` | `eu-05-separation-point` | `annotated_figure` | 分离点的位置、合法性检查和“越过分离点后进入复极点主导”的结论。 | step-05 | static+interactive | `hotspot_labeling` | `3-4-root-locus-keynodes.png` | 分离点公式与图示必须同时出现。 |
-| `### 2.4 虚轴交点：稳定窗口的上界` | `eu-06-imaginary-boundary` | `annotated_figure` | 稳定边界 `K≈28.05`、虚轴交点与“稳定窗口上界”结论。 | step-05 | static+interactive | `hotspot_labeling` | `3-4-root-locus-keynodes.png` | 不能只写数值，必须写清窗口意义。 |
-| `### 2.5 参考工作点 B 的位置为什么重要` | `eu-07-reference-b` | `reference_case` | B 同时满足“越过分离点”“远离虚轴边界”“实虚部量级接近”。 | step-05 | static+interactive | `hotspot_labeling` | `3-4-root-locus-reference-b.png` | B 的三条证据必须独立落页。 |
-| `### 2.6 关键节点读图记录` | `eu-08-keynode-record` | `record_template` | 三版本的节点位置、主导极点候选与一句读图结论。 | step-06 | static+interactive | `annotation_record` | 记录模板 | 记录模板字段必须先给出，再开放提交。 |
-| `### 3.2 稳定窗口不等于可接受窗口` | `eu-09-window-logic` | `judgement_rule` | “稳定窗口”和“可接受窗口”的双层判断逻辑。 | step-07 | static+interactive | `window_tagging` | `3-4-conditional-stability-window.png` | 页面必须明确双窗口不是同一概念。 |
-| `### 3.3 参数窗口判断表` | `eu-10-window-table` | `judgement_table` | A/B/C 的窗口位置、预计时域后果、预计频域后果和参数角色。 | step-07 | static+interactive | `window_tagging` | 参数窗口判断表 | 表头字段必须完整出现。 |
-| `### 3.1 先把图上的增益和工程里的增益分开` | `eu-11-gain-conversion` | `formula_card` | `k=0.01715K`、`K=k/0.01715` 与参考工作点 B 的换算链。 | step-08 | static+interactive | `formula_workspace` | `3-4-gain-conversion-card.png` | 公式、变量说明和换算记录栏必须同屏。 |
-| `### 4.1 为什么必须做三域验证` | `eu-12-domain-rationale` | `concept_card` | 主图判断必须由时域、频域与近似有效性共同补证。 | step-09 | static+interactive | `evidence_role_match` | 三域角色卡 | 页面必须先解释“为何补证”，再进入配对。 |
-| `### 4.2 总三域对照表` | `eu-13-domain-matrix` | `comparison_matrix` | A/B/C 在根轨迹、时域、频域中的并排总表。 | step-09 | static+interactive | `evidence_role_match` | 总三域对照表 | 总表和三域角色卡必须同页可见。 |
-| `### 4.3 时域验证：版本 B 为什么能够作为参考工作点` | `eu-14-step-response` | `curve_figure` | 原系统与主导极点近似系统的阶跃响应对照，以及 B 的可信条件。 | step-10 | static+interactive | `panel_compare` | `3-4-step-compare.png` | 阶跃对照图与“可信但非万能”的限制语必须同屏。 |
-| `### 4.4 频域验证：版本 C 的代价是什么` | `eu-15-bode-compare` | `curve_figure` | A/B/C 的闭环 Bode 图对照、带宽、相角裕度与共振峰。 | step-11 | static+interactive | `panel_compare` | `3-4-bode-compare.png` | 频域表与图必须同页出现。 |
-| `### 4.5 航迹对照：连续跟踪中的收益与代价` | `eu-16-track-compare` | `comparison_figure` | B 与 C 在航迹任务中的收益与风险必须一起解读。 | step-11 | static+interactive | `panel_compare` | `3-4-turning-track-k06064.png` / `3-4-turning-track-k20.png` | 不允许只写“跟踪更好”而不写代价。 |
-| `### 4.6 对象化验证记录` | `eu-17-validation-record` | `record_template` | 工程对象、选定参数、根轨迹判断、时域验证、频域验证与综合结论。 | step-12 | static+interactive | `validation_record_workspace` | 对象化验证记录表 | 至少要求两域以上证据加一句综合判断。 |
-| `### 5.1 本课到底完成了什么` | `eu-18-summary-role` | `summary_card` | A/B/C 三类参数角色与本课完成的判断链。 | step-13 | static | `summary_exit` | 参数角色卡 | 总结页必须回收三类参数角色。 |
-| `### 5.2 为什么下一课必须引入零点` | `eu-19-next-step` | `summary_card` | 只调增益会把系统推向更小稳定裕量，下一课转向零点与结构改变。 | step-13 | static | `summary_exit` | 去向卡 | 必须明确 `3-5` 的去向而不提前展开。 |
-| `## 六、小结` | `eu-20-summary` | `summary_card` | 四句带走与 A/B/C 三类参数角色回收。 | step-13 | static+reflection | `summary_exit` | `3-4-info.png` | 小结页必须能独立复习，不依赖教师口头补充。 |
+## 混合证据顺序表
+| 步骤 | 先出现什么 | 再出现什么 | 最后出现什么 |
+|---|---|---|---|
+| `step-01` | 路径图 | 主问题卡 | 边界卡 |
+| `step-02` | 核心问题卡 | 三张记录表 | 判断链摘要 |
+| `step-03` | 对象与记号 | `A/B/C` 版本表 | 三题初判 |
+| `step-04` | 四步法卡片 | 排序区 | 误判提示 |
+| `step-05` | 主图与关键节点图 | 三张证据卡 | 热点定位区 |
+| `step-06` | 记录模板 | `A/B/C` 读图提醒 | 双卡作答 |
+| `step-07` | 双窗口定义 | 参数窗口判断表 | 双卡作答 |
+| `step-08` | 完整题面与换算公式 | `B` 版本换算显影链 | 双卡作答与参考答案 |
+| `step-09` | 三域角色卡 | 总三域对照表 | 配对区 |
+| `step-10` | 阶跃对照图 | 近似说明卡 | 双卡作答 |
+| `step-11` | 代表性频率点表 | Bode 对照图 | 双卡作答 |
+| `step-12` | 频域证据 | 航迹证据 | 双卡作答 |
+| `step-13` | 新问题卡 | 局部反馈结构图 | 二选一判断 |
+| `step-14` | 完整对象与题面 | 改写显影链 | 双卡作答与参考答案 |
+| `step-15` | 广义根轨迹图 | 非增益参数窗口表 | 双卡作答 |
+| `step-16` | 后测标题卡 | 三题题面 | 提交与统计 |
+| `step-17` | 五条带走 | 边界卡 | `3-5` 去向卡 |
 
 ## 步骤 01｜回到地图：从 3-3 法则走向 3-4 判断
-
 ### 页面骨架
-
 - 模板：`map_hero_slide`
-- 区域：`header` / `lead` / `summary`
-
-### 主阅读顺序
-
-- `路径定位` -> `主问题` -> `本课边界`
-
+- 区域：`header / lead / summary`
 ### 模块清单
-
-- `stage-map`：模块 3 路径图
-- `today-task`：本课任务卡
-- `boundary-card`：本课边界卡
-
+- `stage-map`
+- `core-question-card`
+- `boundary-card`
 ### 静态承载内容
-
 - 路径图固定高亮 `3-3 -> 3-4 -> 3-5`，把 `3-4` 标为“读图与验证”。
-- 任务卡固定写明：
-  - `3-3` 解决“为什么这样走”；
-  - `3-4` 解决“怎样按图判断”；
-  - `3-5` 才进入“如何改变轨迹”。
-- 边界卡固定写明：本课不重讲根轨迹法则证明，不进入零点、`PD`、超前校正和模块 4 设计任务。
-
+- 主问题卡固定写明：沿既有根轨迹继续调增益，哪些工作点只是“还稳定”，哪些工作点才值得选用。
+- 边界卡固定写明：本课不重讲 `3-3` 的法则证明，不进入零点、`PD`、模块 4 设计任务。
+### 混合证据顺序
+- 路径图 -> 主问题卡 -> 边界卡
 ### 互动升级点
-
-- 组件类型：`none`
-
-### 埋点与教师数据
-
-- 埋点摘要：`viewed`、`timeOnStep`、`teacherFollowSync`
-- 教师聚合：`view_count`、`sync_status`
-
-### AI 边界
-
-- 页面目标：标定本课位于模块 3 中的位置。
-- 交付方式：隐藏式页面上下文。
-- 允许范围：课程路径、法则课到判断课的切换。
-- 禁止范围：提前给出 A/B/C 排序和数值结论。
-
+- `none`
+### 教师控制
+- `release_activity / open_browse / teacher_step_reveal / reveal_reference_answer` 均不适用。
+### 学生默认状态
+- 页面全部可见，无作答区。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-01`
-- 对齐要求：首屏必须同时出现路径图、任务卡和边界卡，无作答区占位。
+### 脱离讲稿自包含检查
+- 学生仅看本页，也能知道 `3-4` 的主任务是把 `3-3` 的法则翻译成可执行判断。
 
-## 步骤 02｜问题提出与三项产出：稳定之后还要回答什么
-
+## 步骤 02｜问题提出与三张记录表：稳定之后还要回答什么
 ### 页面骨架
-
 - 模板：`goal_chain_slide`
-- 区域：`question` / `outputs` / `summary`
-
-### 主阅读顺序
-
-- `核心问题` -> `三项产出` -> `本课主线`
-
+- 区域：`question / outputs / summary`
 ### 模块清单
-
-- `core-question-card`：核心问题卡
-- `deliverable-table`：三项固定产出表
-- `chain-summary-card`：判断链摘要卡
-
+- `core-question-card`
+- `deliverable-table`
+- `chain-summary-card`
 ### 静态承载内容
-
 - 核心问题卡固定写明：同样位于稳定窗口内的参数，也可能对应完全不同的速度、振荡、风险与工程后果。
-- 三项固定产出表必须完整落页：
-  - `关键节点读图记录`
-  - `参数窗口判断表`
-  - `对象化验证记录`
-- 判断链摘要卡固定写明：`关键节点读图 -> 参数窗口判断 -> 对象化三域验证`。
-
+- 三张记录表必须完整落页：`关键节点读图记录`、`参数窗口判断表`、`对象化验证记录`。
+- 判断链摘要卡固定写明：`关键节点读图 -> 参数窗口判断 -> 对象化三域验证 -> 广义参数验证`。
+### 混合证据顺序
+- 核心问题卡 -> 三张记录表 -> 判断链摘要
 ### 互动升级点
-
-- 组件类型：`none`
-
-### 埋点与教师数据
-
-- 埋点摘要：`viewed`、`timeOnStep`
-- 教师聚合：`view_count`
-
-### AI 边界
-
-- 页面目标：压实本课要交什么、为什么不能只停在“还稳定”。
-- 交付方式：隐藏式页面上下文。
-- 禁止范围：把三项产出简化成口号。
-
+- `none`
+### 教师控制
+- 四类控制均不适用。
+### 学生默认状态
+- 全部静态可见。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-02`
-- 对齐要求：核心问题卡、产出表和主线摘要必须同屏。
+### 脱离讲稿自包含检查
+- 学生能明确本课最终要交的不是一句结论，而是三份可回看的判断记录。
 
-## 步骤 03｜固定对象与三个版本：先在同一张主图上做初判
-
+## 步骤 03｜固定对象与三个版本：先暴露“稳定=可用”的第一误判
 ### 页面骨架
-
 - 模板：`version_overview_quiz`
-- 区域：`object` / `versions` / `interaction`
-
-### 主阅读顺序
-
-- `对象与公式` -> `A/B/C 版本表` -> `三题初判`
-
+- 区域：`object / versions / interaction`
 ### 模块清单
-
-- `object-formula-card`：对象与记号说明
-- `version-table`：A/B/C 版本表
-- `prejudge-quiz`：三题初判区
-
+- `object-formula-card`
+- `version-table`
+- `prejudge-quiz`
 ### 静态承载内容
-
-- 对象公式卡必须完整写出：
+- 对象卡必须完整写出
   $$
   G(s)=\frac{0.01715K}{s(s+0.1)(s+2.14375)},\qquad k=0.01715K
   $$
-- 版本表必须完整给出 A/B/C 的 `K`、`k`、闭环极点特征与第一判断。
-- 三道初判题固定围绕：
-  - 谁最慢；
-  - 谁最平衡；
-  - 谁最冒险。
-
+- 版本表必须完整给出 `A/B/C` 的 `K`、`k`、闭环极点特征与第一判断。
+- 三题初判固定围绕：谁最慢、谁最均衡、谁最冒险。
+### 混合证据顺序
+- 对象与记号 -> `A/B/C` 版本表 -> 三题初判
 ### 互动升级点
-
-- 组件类型：`quiz_group`
-- 作答模型：允许重提一次，教师端区分首答与重提。
-- 揭示规则：`teacher_toggle`
-- 反馈规则：只指出“是否把稳定直接等同于更优”或“是否忽略版本气质差异”，不提前给完整答案。
-
-### 埋点与教师数据
-
-- 埋点摘要：`attemptCount`、`predictionLabels`、`errorBucket`
-- 教师聚合：`prediction_distribution`、`top_misconceptions`
-
-### AI 边界
-
-- 页面目标：让学生先暴露对 A/B/C 的第一印象。
-- 交付方式：隐藏式页面上下文。
-- 允许范围：版本气质、误区标签。
-- 禁止范围：直接给出标准排序。
-
+- `quiz_group`
+- 三题只暴露误判，不提前公布标准排序。
+### 教师控制
+- `release_activity` 与 `reveal_reference_answer` 独立控制。
+- `open_browse / teacher_step_reveal` 不适用。
+### 学生默认状态
+- 对象卡与版本表始终可见；题卡默认隐藏，教师释放后作答。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-03`
-- 对齐要求：对象公式、版本表和三题初判必须同页可见。
+### 脱离讲稿自包含检查
+- 学生能读出 `A/B/C` 在同一对象、同一口径下比较，而不是三道无背景选择题。
 
 ## 步骤 04｜固定读图顺序：先骨架，再关键节点，再窗口，再后果
-
 ### 页面骨架
-
 - 模板：`workflow_sort_board`
-- 区域：`workflow` / `interaction` / `feedback`
-
-### 主阅读顺序
-
-- `四步法卡片` -> `排序区` -> `误判提示`
-
+- 区域：`workflow / interaction / feedback`
 ### 模块清单
-
-- `workflow-cards`：四步法卡片
-- `sort-board`：排序区
-- `feedback-strip`：结果提示条
-
+- `workflow-cards`
+- `sort-board`
+- `feedback-strip`
 ### 静态承载内容
-
-- 四步法卡片固定写明：
-  1. 先看起点、终点和分支数；
-  2. 再找分离点、虚轴交点和主导极点候选；
-  3. 再区分稳定窗口与可接受窗口；
-  4. 最后才谈参数和工程后果。
-- 误判提示固定写明：不能因为局部位置“看起来顺眼”就跳过前两步直接下结论。
-
+- 四步法卡片固定写明：看骨架、找关键节点、区分窗口、翻译后果。
+- 误判提示固定写明：不能因为某个点“看起来顺眼”，就跳过前两步直接说哪个版本更好。
+### 混合证据顺序
+- 四步法卡片 -> 排序区 -> 误判提示
 ### 互动升级点
-
-- 组件类型：`sequence_sort`
+- `sequence_sort`
 - 学生任务：把四步法排成稳定读图动作链。
-- 反馈规则：只提示哪一步放错，不直接替学生重排。
-- 揭示规则：`teacher_toggle`
-
-### 埋点与教师数据
-
-- 埋点摘要：`sortOrder`、`attemptCount`、`resultState`
-- 教师聚合：`common_wrong_orders`、`completion_rate`
-
-### AI 边界
-
-- 页面目标：把读图顺序固定下来。
-- 交付方式：隐藏式页面上下文。
-- 禁止范围：跳过顺序直接评价某一版本。
-
+### 教师控制
+- `release_activity` 与 `reveal_reference_answer` 独立控制。
+- `open_browse / teacher_step_reveal` 不适用。
+### 学生默认状态
+- 四步法卡片始终可见；排序区默认隐藏。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-04`
-- 对齐要求：四步法卡片必须先于排序区出现。
+### 脱离讲稿自包含检查
+- 学生能明确本课先处理读图顺序，再进入单个节点与参数判断。
 
 ## 步骤 05｜关键节点证据板：分离点、虚轴交点与参考工作点 B
-
 ### 页面骨架
-
 - 模板：`evidence_reading_board`
-- 区域：`figure` / `evidence` / `conclusion`
-
-### 主阅读顺序
-
-- `主图骨架` -> `关键节点定义` -> `参考工作点结论`
-
+- 区域：`figure / evidence / interaction`
 ### 模块清单
-
-- `keynode-figure`：关键节点标注图
-- `boundary-figure`：参考工作点 B 图
-- `evidence-cards`：三张证据卡
-
+- `root-locus-figure`
+- `keynode-figure`
+- `reference-b-figure`
+- `evidence-cards`
+- `hotspot-board`
 ### 静态承载内容
-
-- 必须完整保留三条证据：
-  - 分离点约为 $s\approx -0.0494$，并且要说明“候选点计算 + 区段合法性检查 + 参数范围检查”；
-  - 稳定边界约为 $K\approx 28.05$，对应虚轴交点 $s=\pm j0.4626$；
-  - B 的价值来自“越过分离点、远离虚轴边界、实虚部量级接近”。
-- 图像固定使用：
-  - `3-4-root-locus-keynodes.png`
-  - `3-4-root-locus-reference-b.png`
-
+- 主图固定使用 `3-4-root-locus-summary.png`，关键节点图固定使用 `3-4-root-locus-keynodes.png`。
+- 三张证据卡必须完整保留：
+  - 分离点约为 `s≈-0.0494`，把“实极点主导”与“共轭极点主导”分开。
+  - 虚轴交点对应稳定边界 `K≈28.05`，给出稳定窗口上界。
+  - 参考工作点 `B` 既越过分离点，又远离虚轴边界，因此可作为均衡参考。
+- `B` 位置图固定使用 `3-4-root-locus-reference-b.png`。
+### 混合证据顺序
+- 主图与关键节点图 -> 三张证据卡 -> 热点定位区
 ### 互动升级点
-
-- 组件类型：`hotspot_labeling`
-- 学生任务：在图上点选“分离点”“虚轴边界”“B 的参考位置”三个热点。
-- 反馈规则：只判定是否命中对应区域，不替代学生写意义解释。
-- 揭示规则：`teacher_toggle`
-
-### 埋点与教师数据
-
-- 埋点摘要：`hotspotSelections`、`resultState`、`retryCount`
-- 教师聚合：`hotspot_accuracy`、`missed_node_type`
-
-### AI 边界
-
-- 页面目标：把关键节点从“看过”变成“叫得准、说得出作用”。
-- 交付方式：隐藏式页面上下文。
-- 禁止范围：绕过节点定义直接讲版本优劣。
-
+- `hotspot_labeling`
+- 学生任务：在图上点选“分离点”“虚轴边界”“参考工作点 B”。
+### 教师控制
+- `release_activity` 与 `reveal_reference_answer` 独立控制。
+- `open_browse / teacher_step_reveal` 不适用。
+### 学生默认状态
+- 图与证据卡始终可见；热点定位区默认隐藏。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-05`
-- 对齐要求：关键节点图、参考工作点图和三张证据卡必须同页可见。
+### 脱离讲稿自包含检查
+- 学生能仅凭本页说明：这三个节点各自回答什么问题，为什么它们支撑 `B` 的参考地位。
 
-## 步骤 06｜关键节点读图记录：把主图证据写成判断句
-
+## 步骤 06｜关键节点读图记录：把主图证据写成一句工程判断
 ### 页面骨架
-
-- 模板：`keynode_annotation_workspace`
-- 区域：`template` / `workspace` / `record`
-
-### 主阅读顺序
-
-- `记录模板` -> `节点标注` -> `一句读图结论`
-
+- 模板：`record_workspace`
+- 区域：`template / evidence / activity`
 ### 模块清单
-
-- `record-template`：`关键节点读图记录` 模板
-- `annotation-layer`：主图标注层
-- `result-card`：一句判断卡
-
+- `record-template`
+- `readout-reminder`
+- `activity-card-a`
+- `activity-card-b`
 ### 静态承载内容
-
-- 记录模板字段必须固定写明：
-  - 分离点判断
-  - 虚轴边界判断
-  - 主导极点候选
-  - 读图结论
-- 结果卡固定提醒：每个版本都必须写成一句完整判断，不能只写“更靠左”或“更危险”。
-
+- 记录模板字段必须完整写明：`对象版本 / 分离点判断 / 虚轴边界判断 / 主导极点候选 / 读图结论`。
+- 提醒卡固定写明：读图结论必须同时包含“位置”与“后果”，不能只写“更靠左”“更危险”。
+### 混合证据顺序
+- 记录模板 -> 读图提醒 -> 双卡作答
 ### 互动升级点
-
-- 组件类型：`annotation_submit`
-- 学生任务：为 A/B/C 三版本填写节点记录，并提交一句读图结论。
-- 反馈规则：按缺项提示，不直接给结论模板。
-- 揭示规则：`teacher_toggle`
-
-### 埋点与教师数据
-
-- 埋点摘要：`fieldCompletion`、`annotationCount`、`errorBucket`
-- 教师聚合：`missing_field_rate`、`common_shortcuts`
-
-### AI 边界
-
-- 页面目标：把“看图”压实成“写记录”。
-- 交付方式：隐藏式页面上下文。
-- 禁止范围：自动生成整句判断。
-
+- `activity_cards`
+- 卡片 1：为版本 `B` 写一句“为什么它能作为参考工作点”。
+- 卡片 2：为版本 `C` 写一句“为什么它仍稳定但已偏向风险区”。
+### 教师控制
+- `release_activity` 与 `reveal_reference_answer` 独立控制。
+- `open_browse / teacher_step_reveal` 不适用。
+### 学生默认状态
+- 模板与提醒始终可见；两张作答卡默认隐藏。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-06`
-- 对齐要求：模板字段必须先于提交区出现。
+### 脱离讲稿自包含检查
+- 学生能知道当前不是重新认点，而是把节点翻译成完整判断句。
 
-## 步骤 07｜参数窗口判断：稳定窗口不等于可接受窗口
-
+## 步骤 07｜稳定窗口与可接受窗口：A/B/C 各自处在哪一侧
 ### 页面骨架
-
-- 模板：`window_judgement_workspace`
-- 区域：`rule` / `table` / `interaction`
-
-### 主阅读顺序
-
-- `双窗口定义` -> `版本对照表` -> `判断与贴标签`
-
+- 模板：`comparison_judgement_board`
+- 区域：`definition / table / activity`
 ### 模块清单
-
-- `window-rule-card`：双窗口规则卡
-- `window-table`：参数窗口判断表
-- `tagging-panel`：窗口贴标签区
-
+- `window-definition-cards`
+- `parameter-window-table`
+- `activity-card-a`
+- `activity-card-b`
 ### 静态承载内容
-
-- 规则卡固定写明：
-  - 稳定窗口回答“是否仍在稳定范围内”；
-  - 可接受窗口回答“是否仍处于工程愿意接受的中心区域”。
-- 参数窗口判断表必须完整保留列：
-  - 根轨迹增益 $k$
-  - 实际控制器增益 $K$
-  - 稳定性判断
-  - 预计时域后果
-  - 预计频域后果
-  - 参数角色
-
+- 双定义卡必须同时写明：
+  - 稳定窗口：先回答“是否仍然稳定”。
+  - 可接受窗口：再回答“速度、振荡和裕量是否仍愿意接受”。
+- 参数窗口判断表必须完整保留 `A/B/C` 的 `k`、`K`、稳定性判断、预计时域后果、预计频域后果和参数角色。
+- 稳定窗口固定写出 `0<K<28.05`。
+### 混合证据顺序
+- 双窗口定义 -> 参数窗口判断表 -> 双卡作答
 ### 互动升级点
-
-- 组件类型：`window_tagging`
-- 学生任务：给 A/B/C 贴上“偏保守 / 参考工作点 / 取舍型参数”等标签，并补齐一句双窗口判断。
-- 反馈规则：只提示“漏写稳定窗口”或“漏写可接受窗口”，不直接给标签答案。
-- 揭示规则：`teacher_toggle`
-
-### 埋点与教师数据
-
-- 埋点摘要：`selectedTags`、`fieldCompletion`、`errorBucket`
-- 教师聚合：`role_distribution`、`window_confusion_rate`
-
-### AI 边界
-
-- 页面目标：把窗口判断从口头印象变成双层表述。
-- 交付方式：隐藏式页面上下文。
-- 禁止范围：把稳定窗口和可接受窗口混写成一个词。
-
+- `activity_cards`
+- 卡片 1：把 `A/B/C` 归入“偏保守 / 参考工作点 / 取舍型参数”。
+- 卡片 2：补写一句“为什么还稳定不等于可接受”。
+### 教师控制
+- `release_activity` 与 `reveal_reference_answer` 独立控制。
+- `open_browse / teacher_step_reveal` 不适用。
+### 学生默认状态
+- 定义卡与判断表始终可见；作答卡默认隐藏。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-07`
-- 对齐要求：双窗口定义和表头字段必须同屏。
+### 脱离讲稿自包含检查
+- 学生能说清：窗口判断不是单一“稳定/不稳定”，而是底线与工程语言的两层判断。
 
-## 步骤 08｜增益换算链：从 $k$ 到 $K$ 才能落回工程参数
-
+## 步骤 08｜增益换算链：从图上的 k 落回工程参数 K
 ### 页面骨架
-
-- 模板：`formula_workspace`
-- 区域：`formula` / `example` / `workspace`
-
-### 主阅读顺序
-
-- `换算公式` -> `版本换算卡` -> `校对与修订`
-
+- 模板：`worked_example_reveal`
+- 区域：`principle / problem / activity / reference`
 ### 模块清单
-
-- `formula-card`：换算公式卡
-- `conversion-example`：B 版本换算示例
-- `conversion-workspace`：换算记录区
-
+- `principle-card`
+- `problem-card`
+- `step-reveal-board`
+- `activity-card-a`
+- `activity-card-b`
+- `reference-answer`
 ### 静态承载内容
-
-- 公式卡必须完整保留：
+- 原理卡必须完整写出
   $$
   k=0.01715K,\qquad K=\frac{k}{0.01715}
   $$
-- 示例卡必须完整保留：
-  $$
-  k=0.0104 \Rightarrow K=\frac{0.0104}{0.01715}\approx 0.6064
-  $$
-- 工作区提示固定写明：先写公式链，再写变量含义，最后写结果。
-
+- 题面卡固定写明：若图上读得参考工作点 `B` 对应 `k=0.0104`，实际控制器增益 `K` 应写成多少。
+- 显影链至少保留三步：写关系式、代入 `k=0.0104`、得到 `K≈0.6064` 并解释变量含义。
+### 混合证据顺序
+- 原理卡与题面卡 -> 换算显影链 -> 双卡作答与参考答案
 ### 互动升级点
-
-- 组件类型：`formula_workspace`
-- 学生任务：完成 A/B/C 的换算链，至少完整写出一条参考工作点 B 的链条。
-- 反馈规则：按“公式缺失 / 变量混淆 / 数值错误”三类给出提示。
-- 教师可开启“校对助手模式”，仅允许对换算链做缺项校对，不允许代写工程判断。
-
-### 埋点与教师数据
-
-- 埋点摘要：`formulaChainComplete`、`errorBucket`、`assistantCheckUsed`
-- 教师聚合：`conversion_error_rate`、`assistant_usage_rate`
-
-### AI 边界
-
-- 页面目标：把图上参数落回工程参数。
-- 交付方式：隐藏式页面上下文；外呼校对模式仅核查换算链。
-- 禁止范围：让助手直接替学生给出最终版本排序。
-
+- `worked_example_workspace`
+- 卡片 1：补全 `B` 的换算链。
+- 卡片 2：解释为什么“图上的 `k` 不等于控制器中的 `K`”。
+### 教师控制
+- `release_activity`、`open_browse`、`teacher_step_reveal`、`reveal_reference_answer` 全部独立控制。
+### 学生默认状态
+- 题面与原理卡始终可见；显影链默认收起；作答卡默认隐藏。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-08`
-- 对齐要求：公式卡、示例卡和记录区必须同页可见。
+### 脱离讲稿自包含检查
+- 学生能仅凭本页完成一次完整换算，而不是只抄结论数值。
 
-## 步骤 09｜总三域对照：为什么必须让主图、时域、频域互相补证
-
+## 步骤 09｜为什么必须三域互证：主图、时域、频域先并排对齐
 ### 页面骨架
-
 - 模板：`evidence_matrix_slide`
-- 区域：`rationale` / `matrix` / `interaction`
-
-### 主阅读顺序
-
-- `三域角色` -> `总表联读` -> `进入回查`
-
+- 区域：`roles / matrix / interaction`
 ### 模块清单
-
-- `domain-role-cards`：三域角色卡
-- `domain-matrix`：总三域对照表
-- `role-match`：角色配对区
-
+- `domain-role-cards`
+- `domain-matrix`
+- `triple-match`
 ### 静态承载内容
-
-- 三域角色卡固定写明：
-  - 根轨迹：解释节点、窗口与主导分支；
-  - 时域：验证响应快慢、振荡与近似有效性；
-  - 频域：验证带宽、裕量与风险暴露。
-- 总三域对照表必须并排保留 A/B/C 在三域中的对应结论。
-
+- 三域角色卡必须写明：
+  - 根轨迹回答“极点落在哪里、离边界多远”。
+  - 时域回答“快慢、振荡与调节过程如何表现”。
+  - 频域回答“带宽、裕量与高频代价如何暴露”。
+- 总三域对照表必须并排给出 `A/B/C` 在三域中的对应结论。
+### 混合证据顺序
+- 三域角色卡 -> 总三域对照表 -> 配对区
 ### 互动升级点
-
-- 组件类型：`triple_match`
-- 学生任务：把“根轨迹判断”“时域后果”“频域后果”配成同一版本的证据链。
-- 反馈规则：只提示哪一列配错，不直接替学生纠正。
-
-### 埋点与教师数据
-
-- 埋点摘要：`matchResult`、`attemptCount`、`errorBucket`
-- 教师聚合：`domain_confusion_pairs`、`completion_rate`
-
-### AI 边界
-
-- 页面目标：先立住三域为什么缺一不可。
-- 交付方式：隐藏式页面上下文。
-- 禁止范围：把三域压缩成“再看两张图就行”的附属说明。
-
+- `triple_match`
+- 学生任务：把同一版本的根轨迹、时域、频域证据配成完整链条。
+### 教师控制
+- `release_activity` 与 `reveal_reference_answer` 独立控制。
+- `open_browse / teacher_step_reveal` 不适用。
+### 学生默认状态
+- 角色卡与总表始终可见；配对区默认隐藏。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-09`
-- 对齐要求：三域角色卡和总表必须同页可见。
+### 脱离讲稿自包含检查
+- 学生能明确：后续不是另开时域课和频域课，而是在给主图判断补证。
 
-## 步骤 10｜时域回查：版本 B 为什么能够作为参考工作点
-
+## 步骤 10｜时域验证：版本 B 为什么能够作为参考工作点
 ### 页面骨架
-
 - 模板：`comparison_panel_with_toggle`
-- 区域：`figure` / `analysis` / `interaction`
-
-### 主阅读顺序
-
-- `阶跃对照图` -> `主导极点近似` -> `B 的可信条件`
-
+- 区域：`figure / analysis / activity`
 ### 模块清单
-
-- `step-compare-figure`：阶跃响应对照图
-- `approximation-card`：近似有效性说明卡
-- `toggle-panel`：版本聚焦切换区
-
+- `step-compare-figure`
+- `approximation-card`
+- `activity-card-a`
+- `activity-card-b`
 ### 静态承载内容
-
-- 必须完整保留：
-  - 原系统与主导极点近似系统的阶跃响应对照；
-  - “B 附近使用主导极点解释主要动态是可信的”；
-  - “可信但不是万能”的限制语。
-- 图像固定使用 `3-4-step-compare.png`。
-
+- 阶跃对照图固定使用 `3-4-step-compare.png`。
+- 近似说明卡必须写明：在 `B` 附近，原系统与主导极点近似系统在上升段、峰值附近与收敛段保持较好一致，因此“较均衡”不是感觉判断。
+- 限制语固定写明：主导极点近似可信，不等于所有动态细节都可忽略。
+### 混合证据顺序
+- 阶跃对照图 -> 近似说明卡 -> 双卡作答
 ### 互动升级点
-
-- 组件类型：`panel_toggle_compare`
-- 学生任务：在 A/B/C 三版本中切换，写出“哪一版最能支撑参考工作点判断，为什么”。
-- 反馈规则：只检查是否同时提到“均衡”和“近似可信”，不直接给示范句。
-
-### 曲线互动镜像说明
-
-- 对应静态图：`3-4-step-compare.png`
-- 默认状态：聚焦 B 版本，图中原系统与主导极点近似系统保持讲义默认对照状态。
-- 图组排布：保持讲义中的单页对照布局，不拆分为独立小图。
-- 控件策略：图像下方提供版本切换按钮，不追加自由参数滑块。
-
-### 埋点与教师数据
-
-- 埋点摘要：`focusedVersion`、`reasonKeywords`、`resultState`
-- 教师聚合：`focus_distribution`、`missing_reason_keyword`
-
-### AI 边界
-
-- 页面目标：让学生知道 B 的“平衡”不是感觉，而有时域证据支撑。
-- 交付方式：隐藏式页面上下文。
-- 禁止范围：把主导极点近似绝对化为所有版本都同样可信。
-
+- `activity_cards`
+- 卡片 1：指出哪一条时域证据最能支撑 `B` 的参考地位。
+- 卡片 2：补写一句“为什么它仍不是完美无代价的工作点”。
+### 教师控制
+- `release_activity` 与 `reveal_reference_answer` 独立控制。
+- `open_browse / teacher_step_reveal` 不适用。
+### 学生默认状态
+- 图与说明卡始终可见；作答卡默认隐藏。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-10`
-- 对齐要求：阶跃对照图和限制语必须同页出现。
+### 脱离讲稿自包含检查
+- 学生能从当前页独立回答：为什么 `B` 在时域上能站住脚，为什么这只是“参考”而不是“绝对最优”。
 
-## 步骤 11｜频域与航迹对照：版本 C 的收益与代价必须同时落页
-
+## 步骤 11｜频域验证：低中频近似成立，高频差异仍要单列记录
 ### 页面骨架
-
-- 模板：`dual_evidence_compare_workspace`
-- 区域：`bode` / `track` / `conclusion`
-
-### 主阅读顺序
-
-- `Bode 对照` -> `航迹对照` -> `风险句写作`
-
+- 模板：`table_figure_workspace`
+- 区域：`table / figure / activity`
 ### 模块清单
-
-- `bode-figure`：Bode 对照图
-- `track-figures`：B 与 C 的航迹对照图
-- `risk-card`：收益与代价句写作区
-
+- `frequency-point-table`
+- `bode-compare-figure`
+- `activity-card-a`
+- `activity-card-b`
 ### 静态承载内容
-
-- Bode 对照区必须完整保留：
-  - 带宽；
-  - 相角裕度；
-  - 共振峰；
-  - 频域解释。
-- 航迹对照区必须完整保留：
-  - B 的均衡表现；
-  - C 的跟踪收益；
-  - 以及“收益必须连同频域代价一起解读”。
-- 图像固定使用：
-  - `3-4-bode-compare.png`
-  - `3-4-turning-track-k06064.png`
-  - `3-4-turning-track-k20.png`
-
+- 代表性频率点表必须完整保留 `0.01 / 0.10 / 1.00 / 5.00 rad/s` 下的幅值与相位差解释。
+- Bode 对照图固定使用 `3-4-bode-compare.png` 中 `B` 的原系统与近似系统对照区域，或其等价拆分视图。
+- 结论条必须同时写明：低中频基本一致，高频差异逐步放大。
+### 混合证据顺序
+- 代表性频率点表 -> Bode 对照图 -> 双卡作答
 ### 互动升级点
-
-- 组件类型：`panel_toggle_compare`
-- 学生任务：切换证据面板后写出一句完整风险句，格式为“C 在……方面更强，但以……为代价”。
-- 反馈规则：必须同时出现收益与代价两个要素，否则判为不完整。
-
-### 曲线互动镜像说明
-
-- 对应静态图：`3-4-bode-compare.png`
-- 默认状态：保持讲义中 A/B/C 三版本同屏对照。
-- 图组排布：保持讲义的单页多曲线对照，不改成拆分页。
-- 控件策略：只允许在“频域证据 / 航迹证据 / 合并证据”之间切换，不开放自由参数调节。
-
-### 埋点与教师数据
-
-- 埋点摘要：`evidencePanelPath`、`riskSentenceComplete`、`resultState`
-- 教师聚合：`panel_path_distribution`、`missing_tradeoff_rate`
-
-### AI 边界
-
-- 页面目标：把 C 的工程含义写成“收益与代价并存”的完整句。
-- 交付方式：隐藏式页面上下文。
-- 禁止范围：只保留“更快”或只保留“更危险”的单边表述。
-
+- `activity_cards`
+- 卡片 1：判断哪一段频率最能支撑“主动态近似成立”。
+- 卡片 2：补写一句“为什么高频差异仍需要单列记录”。
+### 教师控制
+- `release_activity` 与 `reveal_reference_answer` 独立控制。
+- `open_browse / teacher_step_reveal` 不适用。
+### 学生默认状态
+- 表与图始终可见；作答卡默认隐藏。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-11`
-- 对齐要求：Bode 图、航迹图和风险句区域必须同页可见。
+### 脱离讲稿自包含检查
+- 学生能独立说出：频域为什么支持 `B` 的主动态判断，又为什么不能把近似推广成全频段等价。
 
-## 步骤 12｜对象化验证记录与后测：写出完整工程判断
-
+## 步骤 12｜版本 C 的收益与代价：Bode 与航迹不能只保留一边
 ### 页面骨架
-
-- 模板：`validation_record_workspace`
-- 区域：`template` / `workspace` / `quiz`
-
-### 主阅读顺序
-
-- `记录模板` -> `两域以上证据` -> `后测提交`
-
+- 模板：`dual_evidence_compare_workspace`
+- 区域：`bode / track / activity`
 ### 模块清单
-
-- `validation-template`：对象化验证记录模板
-- `summary-workspace`：综合判断填写区
-- `post-quiz`：三题后测区
-
+- `bode-figure`
+- `track-figure-b`
+- `track-figure-c`
+- `activity-card-a`
+- `activity-card-b`
 ### 静态承载内容
-
-- 记录模板字段必须完整保留：
-  - 工程对象
-  - 选定参数
-  - 根轨迹判断
-  - 时域验证
-  - 频域验证
-  - 主导极点近似是否可信
-  - 综合结论
-- 三道后测题固定围绕：
-  - 为什么“还稳定”不足以构成完整工程判断；
-  - 若图上读得 `k=0.0104`，实际 `K` 应是多少；
-  - A/B/C 中谁更适合作为参考工作点，并至少写出两条证据。
-
+- Bode 区必须完整保留 `C` 的高带宽、低相角裕度和显著共振峰三条信息。
+- 航迹区必须同时保留 `B` 与 `C` 的斜坡响应/回转航迹对照，不能只展示 `C` 的局部收益。
+- 风险句模板固定写明：`C 在……方面更强，但以……为代价。`
+### 混合证据顺序
+- Bode 证据 -> 航迹证据 -> 双卡作答
 ### 互动升级点
-
-- 组件类型：`validation_record_workspace`
-- 学生任务：完成一条对象化验证记录，并回答三题后测。
-- 反馈规则：记录区按缺项提示；后测区允许重提一次，教师端区分首答与重提。
-- 揭示规则：`teacher_toggle`
-
-### 埋点与教师数据
-
-- 埋点摘要：`recordCompletion`、`evidenceDomainCount`、`quizResult`
-- 教师聚合：`completion_rate`、`domain_count_distribution`、`top_posttest_errors`
-
-### AI 边界
-
-- 页面目标：把前面分散的证据链收束成完整工程判断。
-- 交付方式：隐藏式页面上下文。
-- 禁止范围：自动生成综合结论整句。
-
+- `activity_cards`
+- 卡片 1：补全一条收益-代价句。
+- 卡片 2：判断 `C` 仍属“稳定窗口内的取舍型参数”还是“可接受窗口中心”。
+### 教师控制
+- `release_activity` 与 `reveal_reference_answer` 独立控制。
+- `open_browse / teacher_step_reveal` 不适用。
+### 学生默认状态
+- 图与句式提示始终可见；作答卡默认隐藏。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-12`
-- 对齐要求：记录模板必须先于后测区出现，且至少要求两域以上证据。
+### 脱离讲稿自包含检查
+- 学生能看懂：`C` 的工程含义不是“更快”或“更差”其中之一，而是收益与代价并存。
 
-## 步骤 13｜收束与去向：只调增益为何很快到边界
-
+## 步骤 13｜广义根轨迹入口：局部反馈系数 a 为什么不是“再调一次 K”
 ### 页面骨架
-
-- 模板：`summary_infographic`
-- 区域：`takeaways` / `roles` / `next`
-
-### 主阅读顺序
-
-- `四句带走` -> `参数角色回收` -> `3-5 去向`
-
+- 模板：`figure_question_vote`
+- 区域：`question / figure / interaction`
 ### 模块清单
-
-- `takeaway-list`：四句带走
-- `role-summary`：A/B/C 参数角色卡
-- `next-step-card`：下一课去向卡
-
+- `entry-question-card`
+- `local-feedback-figure`
+- `binary-choice`
 ### 静态承载内容
-
-- 四句带走固定写明：
-  1. `3-4` 的核心不是重讲法则，而是把法则压成判断动作；
-  2. 参数判断至少分为稳定窗口与可接受窗口两层；
-  3. 根轨迹增益必须先换算回工程控制器参数；
-  4. 三域验证是为主图判断补证据，不是重复看图。
-- 参数角色卡固定回收：
-  - A：稳定下界，偏保守；
-  - B：参考工作点；
-  - C：收益与代价并存的取舍型参数。
-- 去向卡固定写明：下一课 `3-5` 将从零点进入，讨论如何改变轨迹本身，而不再只在既有轨迹上选点。
-
+- 问题卡固定写明：当变化的不是外环比例增益，而是给定局部反馈系数 `a` 时，极点还会沿原来的普通根轨迹移动吗。
+- 结构图固定使用 `3-4-local-feedback-block.png`。
+- 误判提示固定写明：`a` 改写的是对象内部结构，不是直接把原来的 `K` 再推大一次。
+### 混合证据顺序
+- 新问题卡 -> 结构图 -> 二选一判断
 ### 互动升级点
-
-- 组件类型：`exit_reflection`
-- 学生任务：写一句“如果只继续增大增益，会先失去什么”。
-- 反馈规则：只检查是否提到“稳定裕量 / 振荡风险 / 结构改变”中的至少一个关键词。
-
-### 埋点与教师数据
-
-- 埋点摘要：`reflectionKeywords`、`viewed`、`timeOnStep`
-- 教师聚合：`reflection_keyword_distribution`
-
-### AI 边界
-
-- 页面目标：完成本课收束，并把问题自然送往 `3-5`。
-- 交付方式：隐藏式页面上下文。
-- 禁止范围：提前展开零点机理或 `PD` 设计。
-
+- `binary_choice`
+- 题目：`把局部反馈系数 a 调大，是否等价于把原来的外环增益 K 再调大。`
+### 教师控制
+- `release_activity` 与 `reveal_reference_answer` 独立控制。
+- `open_browse / teacher_step_reveal` 不适用。
+### 学生默认状态
+- 问题卡与结构图始终可见；判断区默认隐藏。
 ### 预览口径
-
 - 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-13`
-- 对齐要求：四句带走、参数角色卡和去向卡必须同页可见。
+### 脱离讲稿自包含检查
+- 学生能知道：这里引入广义根轨迹，是因为参数进入方式已经改变。
+
+## 步骤 14｜改写链：从给定局部反馈结构走到等效根轨迹
+### 页面骨架
+- 模板：`worked_example_reveal`
+- 区域：`principle / problem / activity / reference`
+### 模块清单
+- `object-card`
+- `problem-card`
+- `step-reveal-board`
+- `activity-card-a`
+- `activity-card-b`
+- `reference-answer`
+### 静态承载内容
+- 对象卡必须完整保留
+  $$
+  G_1(s)=\frac{3.43}{s+2.14375},\qquad
+  G_{1,\mathrm{eq}}(s)=\frac{3.43}{s+2.14375+3.43a}
+  $$
+- 题面卡固定写明：在参考工作点 `K=0.6064` 下，把局部反馈系数 `a` 引入舵机环节后，如何把问题改写回根轨迹形式。
+- 显影链至少依次给出：新特征方程、`B(s)+aA(s)=0`、`1+aA(s)/B(s)=0`、等效开环 `G_e(s)=A(s)/B(s)`、为何此处对应标准 `180°` 根轨迹。
+### 混合证据顺序
+- 对象卡与题面卡 -> 改写显影链 -> 双卡作答与参考答案
+### 互动升级点
+- `worked_example_workspace`
+- 卡片 1：判断本题为什么不能直接沿原普通根轨迹处理。
+- 卡片 2：判断这里应按 `180°` 还是 `0°` 根轨迹理解，并说明理由。
+### 教师控制
+- `release_activity`、`open_browse`、`teacher_step_reveal`、`reveal_reference_answer` 全部独立控制。
+### 学生默认状态
+- 题面与对象卡始终可见；显影链默认收起；作答卡默认隐藏。
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-14`
+### 脱离讲稿自包含检查
+- 学生能仅凭当前页说清：广义根轨迹不是另一套法则，而是先把参数问题改写回标准形式。
+
+## 步骤 15｜非增益参数窗口记录：a 从 0 到 1 怎样改写主导极点
+### 页面骨架
+- 模板：`parameter_window_compare_board`
+- 区域：`figure / table / activity`
+### 模块清单
+- `generalized-root-locus-figure`
+- `parameter-window-table`
+- `activity-card-a`
+- `activity-card-b`
+### 静态承载内容
+- 广义根轨迹图固定使用 `3-4-generalized-root-locus.png`。
+- 参数窗口表必须完整保留 `a=0 / 0.2 / 0.5 / 1.0` 的代表性极点、主导变化与第一判断。
+- 记录建议必须明确三段窗口：比较基线、实践窗口、边界提醒。
+### 混合证据顺序
+- 广义根轨迹图 -> 参数窗口表 -> 双卡作答
+### 互动升级点
+- `activity_cards`
+- 卡片 1：把 `a=0 / 0.2 / 0.5 / 1.0` 归入“比较基线 / 实践窗口 / 边界提醒”。
+- 卡片 2：补写一句“为什么 `a` 越大并不等于整体更优”。
+### 教师控制
+- `release_activity` 与 `reveal_reference_answer` 独立控制。
+- `open_browse / teacher_step_reveal` 不适用。
+### 学生默认状态
+- 图与参数窗口表始终可见；作答卡默认隐藏。
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-15`
+### 脱离讲稿自包含检查
+- 学生能读懂：当前页不是在给设计答案，而是在写非增益参数的可接受窗口。
+
+## 步骤 16｜后测：读图、换算、三域与广义参数是否已经成链
+### 页面骨架
+- 模板：`posttest_board`
+- 区域：`title / questions / feedback`
+### 模块清单
+- `posttest-title-card`
+- `posttest-q1`
+- `posttest-q2`
+- `posttest-q3`
+- `feedback-strip`
+### 静态承载内容
+- 标题卡固定写明：本页只检查四段判断链是否已经连成一句完整话。
+- 三题题面固定围绕：
+  - 为什么“还稳定”不足以构成完整工程判断。
+  - 若图上读得 `k=0.0104`，实际控制器增益 `K` 应是多少。
+  - 为什么局部反馈系数 `a` 不能按普通增益根轨迹直接理解。
+### 混合证据顺序
+- 标题卡 -> 三题题面 -> 提交与统计
+### 互动升级点
+- `quiz_group`
+- 三题独立作答，不合并成一条长题。
+### 教师控制
+- `release_activity` 与 `reveal_reference_answer` 独立控制。
+- `open_browse / teacher_step_reveal` 不适用。
+### 学生默认状态
+- 标题卡始终可见；题卡默认隐藏，教师释放后作答。
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-16`
+### 脱离讲稿自包含检查
+- 学生能知道这页是在收口全课主线，而不是再开一组新任务。
+
+## 步骤 17｜收束与去向：沿既有结构分析的能力与边界
+### 页面骨架
+- 模板：`summary_exit_board`
+- 区域：`takeaways / boundary / next`
+### 模块清单
+- `takeaway-list`
+- `boundary-card`
+- `next-step-card`
+### 静态承载内容
+- 五条带走必须覆盖：关键节点、参数窗口、增益换算、三域验证、广义参数改写。
+- 边界卡固定写明：沿既有结构分析可以帮助我们选点与辨识窗口，但不能替代后续通过结构变化主动改写轨迹。
+- 去向卡固定写明：下一课 `3-5` 将从零点进入，讨论怎样改变轨迹本身，而不只是沿既有轨迹选点。
+### 混合证据顺序
+- 五条带走 -> 边界卡 -> 去向卡
+### 互动升级点
+- `none`
+### 教师控制
+- 四类控制均不适用。
+### 学生默认状态
+- 页面全部可见，无作答区。
+### 预览口径
+- 学生页预览：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-17`
+### 脱离讲稿自包含检查
+- 学生能明确本课留下了什么能力，也能知道为什么 `3-5` 必须进入结构改变。
