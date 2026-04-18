@@ -1,0 +1,79 @@
+{
+  "sample_count": 319,
+  "gain_min": 0.0,
+  "gain_max": 119.623824451411,
+  "branch_count": 4,
+  "expected_branch_count": 4,
+  "finite_zero_coverage": {
+    "endpoint_tolerance": 0.005,
+    "rows": [
+      {
+        "zero_index": 0,
+        "branch_index": 2,
+        "zero_re": -1.111111111111,
+        "zero_im": 0.0,
+        "endpoint_re": -1.110958381646,
+        "endpoint_im": 0.0,
+        "distance": 0.00015272946499989004
+      },
+      {
+        "zero_index": 1,
+        "branch_index": 3,
+        "zero_re": -0.555555555556,
+        "zero_im": 0.0,
+        "endpoint_re": -0.555074078968,
+        "endpoint_im": 0.0,
+        "distance": 0.00048147658800001825
+      }
+    ],
+    "all_matched_within_tolerance": true
+  },
+  "jump_metrics": [
+    {
+      "branch_index": 0,
+      "max_jump": 4.922049400059597,
+      "sign_switches": 0,
+      "endpoint_re": -3.694761547471,
+      "endpoint_im": -94.694579809059
+    },
+    {
+      "branch_index": 1,
+      "max_jump": 4.922049400059597,
+      "sign_switches": 0,
+      "endpoint_re": -3.694761547471,
+      "endpoint_im": 94.694579809059
+    },
+    {
+      "branch_index": 2,
+      "max_jump": 0.0580359459419999,
+      "sign_switches": 0,
+      "endpoint_re": -1.110958381646,
+      "endpoint_im": 0.0
+    },
+    {
+      "branch_index": 3,
+      "max_jump": 0.31348118966000005,
+      "sign_switches": 0,
+      "endpoint_re": -0.555074078968,
+      "endpoint_im": 0.0
+    }
+  ],
+  "views": [
+    {
+      "name": "pi_lead_after-main",
+      "role": "subplot",
+      "title": null,
+      "xlim": [
+        -6.55555555555608,
+        1.00000000000008
+      ],
+      "ylim": [
+        -128.78462854032023,
+        128.78462854032023
+      ],
+      "visible_branch_count": 4,
+      "visible_open_loop_pole_count": 4,
+      "visible_open_loop_zero_count": 2
+    }
+  ]
+}

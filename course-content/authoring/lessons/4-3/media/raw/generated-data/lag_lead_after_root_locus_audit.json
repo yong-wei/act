@@ -1,0 +1,86 @@
+{
+  "sample_count": 319,
+  "gain_min": 0.0,
+  "gain_max": 239.247648902821,
+  "branch_count": 5,
+  "expected_branch_count": 5,
+  "finite_zero_coverage": {
+    "endpoint_tolerance": 0.005,
+    "rows": [
+      {
+        "zero_index": 0,
+        "branch_index": 3,
+        "zero_re": -1.25,
+        "zero_im": 0.0,
+        "endpoint_re": -1.249738914268,
+        "endpoint_im": 0.0,
+        "distance": 0.0002610857320000104
+      },
+      {
+        "zero_index": 1,
+        "branch_index": 4,
+        "zero_re": -0.2,
+        "zero_im": 0.0,
+        "endpoint_re": -0.199660770953,
+        "endpoint_im": 0.0,
+        "distance": 0.00033922904700001144
+      }
+    ],
+    "all_matched_within_tolerance": true
+  },
+  "jump_metrics": [
+    {
+      "branch_index": 0,
+      "max_jump": 1.1715306109709989,
+      "sign_switches": 0,
+      "endpoint_re": -39.115150833976,
+      "endpoint_im": 0.0
+    },
+    {
+      "branch_index": 1,
+      "max_jump": 3.075559565441807,
+      "sign_switches": 0,
+      "endpoint_re": 10.632275259599,
+      "endpoint_im": -28.404421230979
+    },
+    {
+      "branch_index": 2,
+      "max_jump": 3.0755595206487807,
+      "sign_switches": 0,
+      "endpoint_re": 10.632275259599,
+      "endpoint_im": 28.404421230979
+    },
+    {
+      "branch_index": 3,
+      "max_jump": 0.09855784335800011,
+      "sign_switches": 0,
+      "endpoint_re": -1.249738914268,
+      "endpoint_im": 0.0
+    },
+    {
+      "branch_index": 4,
+      "max_jump": 0.046410999255,
+      "sign_switches": 0,
+      "endpoint_re": -0.199660770953,
+      "endpoint_im": 0.0
+    }
+  ],
+  "views": [
+    {
+      "name": "lag_lead_after-main",
+      "role": "subplot",
+      "title": null,
+      "xlim": [
+        -48.0696875308195,
+        19.5868119564425
+      ],
+      "ylim": [
+        -38.63001287413144,
+        38.63001287413144
+      ],
+      "visible_branch_count": 5,
+      "visible_open_loop_pole_count": 5,
+      "visible_open_loop_zero_count": 2
+    }
+  ]
+}
