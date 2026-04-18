@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { parse } from 'yaml';
 
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
@@ -50,7 +51,7 @@ describe('unit 3-1 interactive course', () => {
   });
 
   it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
-    const contract = JSON.parse(
+    const contract = parse(
       readFileSync(
         join(repoRoot, 'course-content/authoring/lessons/3-1/design/interactive-contract.yaml'),
         'utf8',
@@ -68,15 +69,37 @@ describe('unit 3-1 interactive course', () => {
 
     const courseModule = await import('@/lib/unit-3-1-course');
     const interactiveSteps = new Map(courseModule.UNIT_3_1_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
-    const expectedStepIds = ['step-04', 'step-07', 'step-08', 'step-11', 'step-12', 'step-13', 'step-14'] as const;
+    const expectedStepIds = [
+      'step-01',
+      'step-02',
+      'step-03',
+      'step-04',
+      'step-05',
+      'step-06',
+      'step-07',
+      'step-08',
+      'step-09',
+      'step-10',
+      'step-11',
+      'step-12',
+      'step-13',
+      'step-14',
+      'step-15',
+    ] as const;
 
     for (const stepId of expectedStepIds) {
       const authoringStep = contract.steps[stepId];
       const localStep = interactiveSteps.get(stepId);
       const localPageContract = courseModule.UNIT_3_1_PAGE_CONTRACTS[stepId];
+      const expectedPageType =
+        authoringStep.interaction_spec.interaction_kind === 'none'
+          ? stepId === 'step-15'
+            ? 'summary'
+            : 'display'
+          : authoringStep.interaction_spec.interaction_kind;
 
       expect(localStep?.title).toBe(authoringStep.title);
-      expect(localStep?.pageType).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(localStep?.pageType).toBe(expectedPageType);
       expect(localPageContract?.layout.template).toBe(authoringStep.layout.template);
       expect(localPageContract?.layout.regions).toEqual(authoringStep.layout.regions);
       expect(localPageContract?.interactionKind).toBe(authoringStep.interaction_spec.interaction_kind);
@@ -85,6 +108,30 @@ describe('unit 3-1 interactive course', () => {
       expect(localPageContract?.misconceptionTags ?? []).toEqual(authoringStep.telemetry_spec.misconception_tags ?? []);
       expect(localPageContract?.previewDemoPath).toBe(authoringStep.preview_contract.demo_path);
     }
+  });
+
+  it('keeps hidden AI, progressive reveal, and per-card submission constraints in the runtime panels', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-1-pure-pole-stability-and-dynamics/step-panels.tsx'),
+      'utf8',
+    );
+    const studentPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-1-pure-pole-stability-and-dynamics/student-page.tsx'),
+      'utf8',
+    );
+    const teacherPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-1-pure-pole-stability-and-dynamics/teacher-page.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).not.toContain('InteractiveAIPanel');
+    expect(stepPanelsSource).toContain('显示下一步');
+    expect(stepPanelsSource).toContain('重置步骤');
+    expect(stepPanelsSource).toContain('提交答案');
+    expect(stepPanelsSource).toContain('mt-4 grid gap-4 md:grid-cols-2');
+    expect(stepPanelsSource).not.toContain('本页互动状态');
+    expect(studentPageSource).not.toContain('UNIT_3_1StepAiAssistant');
+    expect(teacherPageSource).not.toContain('UNIT_3_1StepAiAssistant');
   });
 
   it('registers the course in the learning catalog and classroom route resolver', () => {
