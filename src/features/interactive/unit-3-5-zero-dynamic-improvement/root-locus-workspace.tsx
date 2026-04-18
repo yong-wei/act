@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ECharts } from 'echarts/core';
 import { BlockMath } from 'react-katex';
 
 import { RootLocusPanel } from '@/resources/control-system/charts/control-analysis-panels';
@@ -12,13 +13,6 @@ import {
   type Unit35RootStepId,
   type WorkspaceParameterChange,
 } from './workspace';
-
-const ROOT_LOCUS_PLOT_FRAME = {
-  top: 34,
-  right: 18,
-  bottom: 42,
-  left: 58,
-} as const;
 
 const ROOT_LOCUS_CASE_ID: Record<Unit35RootStepId, string> = {
   'step-04': 'unit35_step04',
@@ -93,16 +87,6 @@ function buildUnit35RootLocusRequest(
   };
 }
 
-function getPlotRatios(stepId: Unit35RootStepId, point: Unit35RootPointDefinition) {
-  const config = UNIT_3_5_ROOT_LOCUS_WORKSPACE_CONFIG[stepId];
-  const xRatio = (point.position - config.range.min) / (config.range.max - config.range.min);
-  const yRatio = (config.imagRange.max - 0) / (config.imagRange.max - config.imagRange.min);
-  return {
-    left: `${clamp(xRatio, 0, 1) * 100}%`,
-    top: `${clamp(yRatio, 0, 1) * 100}%`,
-  };
-}
-
 export function UNIT_3_5RootLocusWorkspace({
   stepId,
   onWorkspaceParameterChange,
@@ -116,6 +100,7 @@ export function UNIT_3_5RootLocusWorkspace({
   const [points, setPoints] = useState<Unit35RootPointDefinition[]>(() => clonePoints(defaultMode.points));
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
+  const chartRef = useRef<ECharts | null>(null);
 
   useEffect(() => {
     const nextDefaultMode = UNIT_3_5_ROOT_LOCUS_WORKSPACE_CONFIG[stepId].modes[0];
@@ -139,9 +124,17 @@ export function UNIT_3_5RootLocusWorkspace({
     const handleMove = (event: PointerEvent) => {
       const track = trackRef.current;
       if (!track) return;
+      const chart = chartRef.current;
+      if (!chart) return;
       const rect = track.getBoundingClientRect();
-      const ratio = clamp((event.clientX - rect.left) / rect.width, 0, 1);
-      const nextPosition = Number((config.range.min + ratio * (config.range.max - config.range.min)).toFixed(2));
+      const axisPoint = chart.convertFromPixel(
+        { xAxisIndex: 0, yAxisIndex: 0 },
+        [event.clientX - rect.left, event.clientY - rect.top],
+      );
+      if (!Array.isArray(axisPoint) || axisPoint.length < 2 || !Number.isFinite(Number(axisPoint[0]))) {
+        return;
+      }
+      const nextPosition = Number(clamp(Number(axisPoint[0]), config.range.min, config.range.max).toFixed(2));
       setPoints((previous) =>
         previous.map((point) =>
           point.id === draggingId && point.draggable ? { ...point, position: nextPosition } : point,
@@ -173,7 +166,7 @@ export function UNIT_3_5RootLocusWorkspace({
           <div className="premium-lesson-muted mt-2 text-sm">
             面板沿统一仿真引擎实时重算。开环零点可直接拖动，开环极点保持为叉形标注，当前闭环极点仍沿用图中的原始显示。
           </div>
-          <div ref={trackRef} className="relative mt-4 flex-1">
+          <div className="relative mt-4 flex-1">
             {isLoading && !result ? (
               <div className="flex h-full min-h-[520px] items-center justify-center rounded-2xl border border-border/60 bg-background/80 px-6 text-sm text-foreground/65">
                 统一仿真引擎正在计算根轨迹。
@@ -183,50 +176,27 @@ export function UNIT_3_5RootLocusWorkspace({
                 result={result}
                 caseId={ROOT_LOCUS_CASE_ID[stepId]}
                 axisPresetOverride={{ x: [config.range.min, config.range.max], y: [config.imagRange.min, config.imagRange.max] }}
+                interactiveLayerRef={trackRef}
+                onChartReady={(chart) => {
+                  chartRef.current = chart;
+                }}
+                interactiveHandles={points.map((point, index) => ({
+                  id: point.id,
+                  kind: point.kind,
+                  point: { re: point.position, im: 0 },
+                  draggable: point.draggable,
+                  ariaLabel:
+                    point.kind === 'zero'
+                      ? `开环零点 ${point.position} 可拖动`
+                      : `开环极点 ${index + 1} 固定`,
+                  cursor: point.draggable ? 'ew-resize' : undefined,
+                }))}
+                onHandlePointerDown={(handleId, event) => {
+                  event.preventDefault();
+                  setDraggingId(handleId);
+                }}
                 className="flex h-full flex-col"
                 chartClassName="h-full min-h-[520px]"
-                overlay={
-                  <div
-                    ref={trackRef}
-                    className="absolute"
-                    style={{
-                      top: ROOT_LOCUS_PLOT_FRAME.top,
-                      right: ROOT_LOCUS_PLOT_FRAME.right,
-                      bottom: ROOT_LOCUS_PLOT_FRAME.bottom,
-                      left: ROOT_LOCUS_PLOT_FRAME.left,
-                    }}
-                  >
-                    {points.map((point, index) => {
-                      const position = getPlotRatios(stepId, point);
-
-                      return (
-                        <div key={point.id} className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2" style={position}>
-                          {point.draggable ? (
-                            <button
-                              type="button"
-                              onPointerDown={(event) => {
-                                event.preventDefault();
-                                setDraggingId(point.id);
-                              }}
-                              className="pointer-events-auto relative h-4 w-4 rounded-full border-[2px] border-amber-600 bg-transparent shadow-[0_0_0_1px_rgba(255,255,255,0.75)] cursor-ew-resize"
-                              aria-label={`开环零点 ${point.position} 可拖动`}
-                            >
-                              <span className="sr-only">开环零点</span>
-                            </button>
-                          ) : (
-                            <div
-                              className="pointer-events-none relative h-5 w-5"
-                              aria-label={`开环极点 ${index + 1} 固定`}
-                            >
-                              <span className="absolute left-1/2 top-1/2 h-[2px] w-5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-rose-700" />
-                              <span className="absolute left-1/2 top-1/2 h-[2px] w-5 -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-rose-700" />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                }
               />
             ) : (
               <div className="flex h-full min-h-[520px] items-center justify-center rounded-2xl border border-border/60 bg-background/80 px-6 text-sm text-foreground/65">

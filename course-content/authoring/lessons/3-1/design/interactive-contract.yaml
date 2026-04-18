@@ -129,24 +129,38 @@ steps:
         - id: 'formula-strip'
           width: 'full'
           order: 1
-        - id: 'media'
-          width: 'full'
+        - id: 'root-locus'
+          width: 'half'
           order: 2
+        - id: 'response'
+          width: 'half'
+          order: 3
+        - id: 'metrics'
+          width: 'full'
+          order: 4
         - id: 'interaction'
           width: 'full'
-          order: 3
+          order: 5
     modules:
-      - id: 'model-formula-row'
+      - id: 'reference-formula-card'
         region: 'formula-strip'
-        kind: 'formula-card-row'
+        kind: 'formula-card'
         must_be_visible: true
-      - id: 'dominant-pole-note'
+      - id: 'three-pole-family-card'
         region: 'formula-strip'
-        kind: 'notice-card'
+        kind: 'formula-card'
         must_be_visible: true
-      - id: 'response-compare-figure'
-        region: 'media'
-        kind: 'comparison-graphic'
+      - id: 'root-locus-panel'
+        region: 'root-locus'
+        kind: 'interactive-figure'
+        must_be_visible: true
+      - id: 'step-response-compare-panel'
+        region: 'response'
+        kind: 'interactive-figure'
+        must_be_visible: true
+      - id: 'live-metrics-row'
+        region: 'metrics'
+        kind: 'metric-row'
         must_be_visible: true
       - id: 'binary-vote'
         region: 'interaction'
@@ -156,15 +170,16 @@ steps:
       - id: 'models'
         type: 'plain_text'
         title: '三模型'
-        body: 'G_ref、G_A、G_B 共享同一对主导共轭极点 -0.8 ± j1.6，区别只在附加极点位置。'
+        body: '先给出参考模型 G_ref(s)=3.2/(s^2+1.6s+3.2)，再给出可拖动三极点模板 G_3(s,p_3)=3.2|p_3|/[(s+|p_3|)(s^2+1.6s+3.2)]。'
       - id: 'conflict'
         type: 'plain_text'
         title: '冲突问题'
         body: '同主导极点是否足以保证主要响应接近。'
     evidence_sequence:
-      - '三模型公式条'
-      - '同主导极点附注'
-      - '阶跃响应对照图'
+      - '参考模型与三极点模板'
+      - '左根轨迹面板'
+      - '右响应对照面板'
+      - '实时指标'
       - '二选一判断'
     interaction_spec:
       interaction_kind: 'binary_choice'
@@ -175,6 +190,14 @@ steps:
         B: '还必须检查附加模态的退场快慢和时间尺度。'
       failure_feedback: '只提示“同主导极点并不自动等于同响应”。'
       answer_reveal: 'teacher_toggle'
+      interactive_figure_spec:
+        default_state: '主导共轭极点固定为 -0.8 ± j1.6，附加极点默认对准系统 A 的 -5。'
+        controls:
+          - 'drag_open_loop_pole_inside_root_locus_panel'
+        reading_prompt:
+          - '先看左侧根轨迹面板里的附加极点位置。'
+          - '再看右侧原系统与三极点系统的响应差异。'
+          - '最后对照实时指标判断附加模态是否已经改写主要动态。'
     teacher_controls:
       release_activity: 'page_load_open'
       open_browse: 'not_applicable'
@@ -215,7 +238,7 @@ steps:
       demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-02'
       must_match_student_page: true
     acceptance_checks:
-      - '学生在未作答前必须看到三模型和阶跃响应对照图。'
+      - '学生在未作答前必须看到参考模型、三极点模板、左根轨迹面板、右响应对照面板和实时指标。'
       - '错误反馈不得提前给出完整近似准则。'
 
   step-03:
@@ -224,10 +247,10 @@ steps:
       template: 'goal_boundary_slide'
       regions:
         - id: 'goals'
-          width: 'full'
+          width: 'half'
           order: 1
         - id: 'chain'
-          width: 'full'
+          width: 'half'
           order: 2
         - id: 'boundary'
           width: 'full'
@@ -263,8 +286,8 @@ steps:
         title: '边界表'
         body: '不进入劳斯判据、根轨迹、Nyquist/Bode 判稳和校正设计。'
     evidence_sequence:
-      - '四项目标'
-      - '主线链'
+      - '四项目标（左）'
+      - '主线链（右）'
       - '边界表'
     interaction_spec:
       interaction_kind: 'none'
@@ -569,7 +592,7 @@ steps:
         value: 'g(t)=\\sum_{i=1}^{m}\\sum_{r=1}^{q_i}\\frac{A_{i,r}}{(r-1)!}t^{r-1}e^{p_i t}'
       - id: 'meaning'
         type: 'bullet_list'
-        title: '含义对照'
+        title: '紧凑读法'
         items:
           - '实部决定衰减或增长速度。'
           - '虚部决定振荡频率。'
@@ -583,6 +606,7 @@ steps:
     interaction_spec:
       interaction_kind: 'triple_match'
       student_task: '把实部、虚部、重数、留数与它们控制的响应特征对应起来。'
+      card_layout: 'two_column_compact'
       answer_reveal: 'instant_feedback'
     teacher_controls:
       release_activity: 'page_load_open'
@@ -751,13 +775,13 @@ steps:
         - id: 'formulas'
           width: 'full'
           order: 2
-        - id: 'figure'
+        - id: 'reveal'
           width: 'full'
           order: 3
-        - id: 'table'
+        - id: 'activity'
           width: 'full'
           order: 4
-        - id: 'activity'
+        - id: 'exploration'
           width: 'full'
           order: 5
     modules:
@@ -769,13 +793,9 @@ steps:
         region: 'formulas'
         kind: 'formula-stack'
         must_be_visible: true
-      - id: 'dominant-step-figure'
-        region: 'figure'
-        kind: 'comparison-graphic'
-        must_be_visible: true
-      - id: 'indicator-table'
-        region: 'table'
-        kind: 'comparison-table'
+      - id: 'worked-example-reveal-stack'
+        region: 'reveal'
+        kind: 'progressive-reveal'
         must_be_visible: true
       - id: 'activity-card-01'
         region: 'activity'
@@ -785,30 +805,45 @@ steps:
         region: 'activity'
         kind: 'fill-text-card'
         must_be_visible: true
+      - id: 'interactive-exploration-panel'
+        region: 'exploration'
+        kind: 'interactive-figure'
+        must_be_visible: true
+      - id: 'live-metrics-row'
+        region: 'exploration'
+        kind: 'metric-row'
+        must_be_visible: true
     content_blocks:
       - id: 'problem'
         type: 'plain_text'
         title: '题面'
-        body: '比较 G_ref、G_A、G_B 的单位阶跃响应，判断附加极点是否仍可忽略。'
-      - id: 'formulas'
-        type: 'plain_text'
-        title: '显式响应'
-        body: '完整保留 y_ref(t)、y_A(t)、y_B(t) 三条显式阶跃响应式。'
-      - id: 'table'
-        type: 'table'
-        title: '指标表'
-        body: '保留 t_r、t_p、M_p、t_s 以及三模型结论。'
+        body: '船舶航向对象在保留同一对主导共轭极点 -0.8 ± j1.6 时，比较附加极点位于 -5 与 -1.4 两种情形，判断主导模态近似何时还能成立。题面必须同时给出 G_ref、G_A、G_B 三个对象的传递函数。'
+      - id: 'task'
+        type: 'bullet_list'
+        title: '分析任务'
+        items:
+          - '分析三组模型在时域响应、运动模态与动态性能上的差异。'
+          - '判断附加极点何时还能忽略，何时已经改写主要动态。'
+          - '说明为什么系统 A 仍接近参考模型，而系统 B 已明显偏离参考模型。'
+      - id: 'reveal'
+        type: 'bullet_list'
+        title: '逐步显影链'
+        items:
+          - '先抽出共享主导极点与参考二阶参数。'
+          - '再写出三条显式阶跃响应。'
+          - '然后比较时间尺度与附加模态项。'
+          - '最后用 t_r、t_p、M_p、t_s 解释为什么系统 A 与系统 B 得到不同结论。'
     evidence_sequence:
-      - '题面卡'
-      - '显式响应式'
-      - '时域对照图'
-      - '指标表'
+      - '题目背景与三条传函'
+      - '分析任务'
+      - '逐步显影链'
       - '两张作答卡'
+      - '互动探索与实时指标'
     interaction_spec:
       interaction_kind: 'worked_example_workspace'
       student_task: '在完整题面基础上完成系统 A 与系统 B 的时域解释。'
       step_reveal_policy:
-        mode: 'teacher_or_student_controlled'
+        mode: 'teacher_or_inline_progressive'
         hide_problem_statement: false
         hide_derivation_only: true
       activity_cards:
@@ -852,7 +887,7 @@ steps:
         - 'answer_quality_tags'
       aggregation: 'step_level'
     ai_context_spec:
-      page_goal: '用显式响应和指标表支撑主导模态近似判断。'
+      page_goal: '用三条传函、逐步显影推导和指标核验支撑主导模态近似判断。'
       allowed_scope:
         - '三模型'
         - '时间尺度'
@@ -867,7 +902,8 @@ steps:
       demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-08'
       must_match_student_page: true
     acceptance_checks:
-      - '题面、三条响应式、对照图和指标表必须在未展开步骤时仍可见。'
+      - '题面、三条传函和分析任务必须在未展开步骤时仍可见。'
+      - '点击当前已显影的最下方步骤时，必须继续显影下一层。'
       - '学生不能在未开放浏览时自行展开显影步骤。'
 
   step-09:
@@ -1079,31 +1115,34 @@ steps:
         - id: 'formulas'
           width: 'full'
           order: 1
-        - id: 'figure'
-          width: 'full'
+        - id: 'root-locus'
+          width: 'half'
           order: 2
-        - id: 'table'
-          width: 'full'
+        - id: 'bode'
+          width: 'half'
           order: 3
-        - id: 'activity'
+        - id: 'metrics'
           width: 'full'
           order: 4
+        - id: 'activity'
+          width: 'full'
+          order: 5
     modules:
       - id: 'magnitude-formula-stack'
         region: 'formulas'
         kind: 'formula-stack'
         must_be_visible: true
-      - id: 'bode-compare-figure'
-        region: 'figure'
+      - id: 'root-locus-panel'
+        region: 'root-locus'
         kind: 'interactive-figure'
         must_be_visible: true
-      - id: 'bandwidth-table'
-        region: 'table'
-        kind: 'comparison-table'
+      - id: 'bode-compare-panel'
+        region: 'bode'
+        kind: 'interactive-figure'
         must_be_visible: true
-      - id: 'approximation-card'
-        region: 'table'
-        kind: 'formula-card'
+      - id: 'frequency-metrics-row'
+        region: 'metrics'
+        kind: 'metric-row'
         must_be_visible: true
       - id: 'activity-card-01'
         region: 'activity'
@@ -1118,34 +1157,30 @@ steps:
         type: 'plain_text'
         title: '幅频表达式'
         body: '完整保留 |G_ref(jω)|、|G_A(jω)|、|G_B(jω)| 三条表达式。'
-      - id: 'table'
-        type: 'table'
-        title: '带宽表'
-        body: '比较转折频率、数值带宽与频域判断。'
-      - id: 'approximation'
-        type: 'formula'
-        title: '近似式'
-        value: '|1/(1+j\\omega/p)|\\approx 1,\\ \\angle 1/(1+j\\omega/p)\\approx 0^\\circ\\ (\\omega \\ll p)'
+      - id: 'metrics'
+        type: 'bullet_list'
+        title: '频域指标'
+        items:
+          - '标出主导二阶对的固有频率 ω_n。'
+          - '标出附加极点转折频率 ω_break。'
+          - '标出参考模型与当前三极点系统的带宽 ω_bw。'
     evidence_sequence:
-      - '幅频表达式'
-      - 'Bode 对照图'
-      - '带宽表'
-      - '近似式'
+      - '三条频率特性式'
+      - '左根轨迹面板'
+      - '右 Bode 面板'
+      - '频域指标'
       - '两张作答卡'
     interaction_spec:
       interaction_kind: 'curve_compare_panel'
       student_task: '判断哪一个附加极点已经侵入主要带宽，并说明后果。'
       interactive_figure_spec:
-        baseline_media: '3-1-pp-05-bode-model-reduction.svg'
-        default_state: '复现讲义三模型 Bode 静态图'
+        default_state: '左侧沿用 step-02 的附加极点拖动面板，右侧默认对准系统 A 的 Bode 对照。'
         controls:
-          - 'toggle_model_visibility'
-          - 'show_break_frequency_marker'
-          - 'show_bandwidth_marker'
+          - 'drag_open_loop_pole_inside_root_locus_panel'
         reading_prompt:
-          - '先看主导二阶对的主频尺度。'
-          - '再看附加极点转折频率。'
-          - '最后判断它是否落入主要带宽。'
+          - '先看左侧根轨迹面板里附加极点的位置。'
+          - '再看右侧 Bode 图上的转折频率与带宽标记。'
+          - '最后判断附加极点是否已经侵入主要带宽。'
       activity_cards:
         - id: 'activity-card-01'
           prompt: '哪一个附加极点已经侵入主要带宽。'
@@ -1202,7 +1237,7 @@ steps:
       demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-11'
       must_match_student_page: true
     acceptance_checks:
-      - '图、表、近似式必须在不操作面板时完整可见。'
+      - '三条频率特性式、左根轨迹面板、右 Bode 面板和频域指标必须在不操作面板时完整可见。'
       - '默认态必须与讲义 Bode 图表达的结论一致。'
 
   step-12:
@@ -1341,22 +1376,25 @@ steps:
         - id: 'convolution'
           width: 'full'
           order: 1
-        - id: 'figure'
+        - id: 'figure-06'
           width: 'full'
           order: 2
         - id: 'example'
           width: 'full'
           order: 3
-        - id: 'activity'
+        - id: 'figure-07'
           width: 'full'
           order: 4
+        - id: 'activity'
+          width: 'full'
+          order: 5
     modules:
       - id: 'convolution-formula-card'
         region: 'convolution'
         kind: 'formula-card'
         must_be_visible: true
       - id: 'step-response-figure'
-        region: 'figure'
+        region: 'figure-06'
         kind: 'comparison-graphic'
         must_be_visible: true
       - id: 'modal-example-card'
@@ -1364,7 +1402,7 @@ steps:
         kind: 'formula-card'
         must_be_visible: true
       - id: 'modal-superposition-figure'
-        region: 'example'
+        region: 'figure-07'
         kind: 'comparison-graphic'
         must_be_visible: true
       - id: 'activity-card-01'
@@ -1379,20 +1417,20 @@ steps:
       - id: 'convolution'
         type: 'plain_text'
         title: '卷积关系'
-        body: '保留 y(t)=∫_0^t g(t-τ)u(τ)dτ 与单位阶跃响应的特例。'
+        body: '保留 y(t)=∫_0^t g(t-τ)u(τ)dτ 与 y_{\\text{step}}(t)=∫_0^t g(t-τ)dτ，并用文字说明“阶跃响应为什么是延时脉冲响应的连续叠加”。'
       - id: 'example'
         type: 'plain_text'
         title: '三阶模态例子'
-        body: '保留 G(s)=12/[(s+1)(s+2)(s+6)]、部分分式结果与 g(t)=2.4e^{-t}-3e^{-2t}+0.6e^{-6t}。'
+        body: '保留 G(s)=12/[(s+1)(s+2)(s+6)]、部分分式结果与 g(t)=2.4e^{-t}-3e^{-2t}+0.6e^{-6t}，并逐句分析哪个模态退场更快、哪个留数为负。'
       - id: 'note'
         type: 'plain_text'
         title: '纠偏'
         body: '负留数不等于不稳定；稳定性仍看极点位置。'
     evidence_sequence:
       - '卷积公式'
-      - '卷积图'
+      - '图 6'
       - '三阶模态例子'
-      - '模态叠加图'
+      - '图 7'
       - '两张判断卡'
     interaction_spec:
       interaction_kind: 'activity_cards'
@@ -1451,7 +1489,7 @@ steps:
       demo_path: '/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo?step=step-13'
       must_match_student_page: true
     acceptance_checks:
-      - '卷积公式和三阶模态例子必须完整可见。'
+      - '卷积公式与解释、图 6、三阶模态例子与分析、图 7 必须按顺序完整可见。'
       - '两张卡必须分别纠正“哪个模态最快”和“负留数是否不稳定”两类误解。'
 
   step-14:

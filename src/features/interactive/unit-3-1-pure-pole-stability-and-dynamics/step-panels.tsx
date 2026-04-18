@@ -16,11 +16,10 @@ import {
   type UNIT_3_1StepResponse,
 } from '@/lib/unit-3-1-course';
 import {
-  BANDWIDTH_CHECKLIST,
-  DOMINANT_MODEL_CARDS,
   POLE_FAMILY_TABS,
   type WorkspaceParameterChange,
 } from './workspace';
+import { UNIT_3_1InteractiveExplorationPanel } from './interactive-exploration-panel';
 
 type Tone = 'cyan' | 'emerald' | 'amber' | 'rose' | 'slate';
 
@@ -107,6 +106,32 @@ function getToneClass(tone: Tone = 'slate') {
   return `premium-tone-${tone}`;
 }
 
+function renderMarkdown(markdown: string) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[rehypeKatex]}
+      components={MARKDOWN_COMPONENTS}
+    >
+      {markdown}
+    </ReactMarkdown>
+  );
+}
+
+function renderInlineMathText(text: string) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkMath]}
+      rehypePlugins={[rehypeKatex]}
+      components={{
+        p: ({ children }) => <span>{children}</span>,
+      }}
+    >
+      {text}
+    </ReactMarkdown>
+  );
+}
+
 function getStepBlueprint(step: UNIT_3_1StepDefinition): StepBlueprint {
   switch (step.id) {
     case 'step-01':
@@ -129,18 +154,17 @@ function getStepBlueprint(step: UNIT_3_1StepDefinition): StepBlueprint {
     case 'step-02':
       return {
         kicker: 'Conflict',
-        intro: '三组模型共享同一对主导极点，但响应仍然会分家。真正需要追问的是附加模态究竟退场得够不够快。',
+        intro: '把参考模型和一个可拖动的三极点系统放到同一块面板里，直接观察：同一对主导极点之下，附加模态退场得够不够快，决定了右侧响应是否还会跟着走。',
         sections: [
           {
-            title: '三模型冲突',
+            title: '参考模型与三极点模板',
             tone: 'amber',
             markdown: `$$
 G_{\\mathrm{ref}}(s)=\\frac{3.2}{s^2+1.6s+3.2}
 $$
 
 $$
-G_{A}(s)=\\frac{16}{(s+5)(s^2+1.6s+3.2)},\\qquad
-G_{B}(s)=\\frac{4.48}{(s+1.4)(s^2+1.6s+3.2)}
+G_3(s,p_3)=\\frac{3.2|p_3|}{(s+|p_3|)(s^2+1.6s+3.2)},\\qquad p_3<0
 $$`,
           },
         ],
@@ -159,6 +183,11 @@ $$`,
             title: '主线顺序',
             tone: 'slate',
             bullets: ['稳定底线', '模态语言', '时域筛选', '频域复核', '卷积收束'],
+          },
+          {
+            title: '课堂边界',
+            tone: 'amber',
+            bullets: ['不进入劳斯判据', '不进入根轨迹与 Nyquist/Bode 判稳', '不进入频域校正设计'],
           },
         ],
       };
@@ -207,7 +236,7 @@ g(t)=\\sum_{i=1}^{m}\\sum_{r=1}^{q_i}\\frac{A_{i,r}}{(r-1)!}t^{r-1}e^{p_i t}
 $$`,
           },
           {
-            title: '读法',
+            title: '紧凑读法',
             tone: 'cyan',
             bullets: ['实部决定衰减速度', '虚部决定振荡节奏', '重数决定时间因子', '留数决定模态权重'],
           },
@@ -230,15 +259,36 @@ $$`,
     case 'step-08':
       return {
         kicker: 'Worked Example',
-        intro: '最小例题必须同时保留题面、显式响应、图和指标表，再用逐步显影解释为什么系统 A 还能近似，系统 B 却已偏离。',
+        intro: '最小例题先给出三个传递函数与分析问题，再按讲义顺序逐步显影共享主导极点、显式响应、时间尺度比较和指标核验。',
         sections: [
           {
-            title: '本页判断焦点',
+            title: '三个传递函数',
+            tone: 'slate',
+            markdown: `$$
+G_{\\mathrm{ref}}(s)=\\frac{3.2}{s^2+1.6s+3.2}
+$$
+
+$$
+G_{\\mathrm{A}}(s)=\\frac{16}{(s+5)(s^2+1.6s+3.2)}
+$$
+
+$$
+G_{\\mathrm{B}}(s)=\\frac{4.48}{(s+1.4)(s^2+1.6s+3.2)}
+$$`,
+          },
+          {
+            title: '题目',
             tone: 'cyan',
-            bullets: ['系统 A 为什么仍接近参考模型', '系统 B 为什么已明显改写主要动态'],
+            markdown: `$$
+ p_{1,2}=-0.8 \\pm j1.6
+$$
+
+- 分析三组模型在时域响应、运动模态与动态性能上的差异。
+- 判断附加极点什么时候还能忽略，什么时候已经改写了主要动态。
+- 说明为什么系统 A 仍接近参考模型，而系统 B 已明显偏离参考模型。`,
           },
         ],
-        note: '显影只能隐藏比较步骤，不能隐藏题面、对象和判断问题。',
+        note: '显影只能隐藏推导、显式响应、时间尺度比较与指标核验，不能隐藏题面和三个传递函数。点击当前步骤可继续显影下一层。',
       };
     case 'step-09':
       return {
@@ -267,17 +317,26 @@ $$`,
     case 'step-11':
       return {
         kicker: 'Bode Evidence',
-        intro: '频域不是平移教材，而是补上附加极点是否侵入主要带宽的证据。',
+        intro: '频域页必须把三条频率特性表达式一次性写全，再把左侧附加极点位置与右侧 Bode 图上的转折频率、带宽读数直接连起来。',
         sections: [
           {
-            title: '幅频表达和频率锚点',
+            title: '三条频率特性表达式',
             tone: 'slate',
             markdown: `$$
 \\left|G_{\\mathrm{ref}}(j\\omega)\\right|=\\frac{3.2}{\\sqrt{(3.2-\\omega^2)^2+(1.6\\omega)^2}}
 $$
 
 $$
-\\omega_n\\approx1.79\\ \\text{rad/s},\\qquad \\omega_{BW}\\approx2.39\\ \\text{rad/s}
+\\left|G_{A}(j\\omega)\\right|=\\frac{16}{\\sqrt{\\omega^2+5^2}\\,\\sqrt{(3.2-\\omega^2)^2+(1.6\\omega)^2}}
+$$
+
+$$
+\\left|G_{B}(j\\omega)\\right|=\\frac{4.48}{\\sqrt{\\omega^2+1.4^2}\\,\\sqrt{(3.2-\\omega^2)^2+(1.6\\omega)^2}}
+$$
+
+$$
+\\omega_n\\approx1.79\\ \\text{rad/s},\\qquad \\omega_{BW}\\approx2.39\\ \\text{rad/s},\\qquad
+\\omega_{\\mathrm{break}}=|p_3|
 $$`,
           },
         ],
@@ -298,17 +357,17 @@ $$`,
     case 'step-13':
       return {
         kicker: 'Convolution',
-        intro: '卷积与模态叠加解释的是输入怎样激发已有模态，它不会改写系统本身的极点结构。',
+        intro: '这一页先把卷积原理写清楚，再看图 6，随后用一个三阶模态例子做具体分析，最后才回到图 7 总结“输入激发模态，但不改写极点结构”。',
         sections: [
           {
-            title: '卷积关系',
+            title: '卷积原理',
             tone: 'slate',
             markdown: `$$
 y(t)=\\int_0^t g(t-\\tau)u(\\tau)\\,\\mathrm{d}\\tau
 $$
 
 $$
-G(s)=\\frac{12}{(s+1)(s+2)(s+6)},\\qquad g(t)=2.4e^{-t}-3e^{-2t}+0.6e^{-6t}
+y_{\\text{step}}(t)=\\int_0^t g(t-\\tau)\\,\\mathrm{d}\\tau
 $$`,
           },
         ],
@@ -704,15 +763,15 @@ function getStepActivity(step: UNIT_3_1StepDefinition): ActivitySpec {
         cards: [
           {
             id: 'fastest-modal',
-            title: '在 2.4e^{-t}、-3e^{-2t}、0.6e^{-6t} 中，哪一个模态退场最快？',
+            title: '在 $2.4e^{-t}$、$-3e^{-2t}$、$0.6e^{-6t}$ 中，哪一个模态退场最快？',
             kind: 'question',
             question: {
               key: 'fastest-modal',
-              prompt: '在 2.4e^{-t}、-3e^{-2t}、0.6e^{-6t} 中，哪一个模态退场最快？',
+              prompt: '在 $2.4e^{-t}$、$-3e^{-2t}$、$0.6e^{-6t}$ 中，哪一个模态退场最快？',
               options: [
-                { value: 'e1', label: '2.4e^{-t}' },
-                { value: 'e2', label: '-3e^{-2t}' },
-                { value: 'e6', label: '0.6e^{-6t}' },
+                { value: 'e1', label: '$2.4e^{-t}$' },
+                { value: 'e2', label: '$-3e^{-2t}$' },
+                { value: 'e6', label: '$0.6e^{-6t}$' },
               ],
               answer: 'e6',
               explanation: '指数衰减率由实部大小决定，-6 对应的模态退场最快。',
@@ -823,14 +882,15 @@ function getWordCloudEntries(responses: UNIT_3_1TeacherResponseItem[]) {
     .slice(0, 12);
 }
 
-function renderFieldValue(field: ActivityField | undefined, value: string) {
+function renderFieldValue(field: ActivityField | undefined, value: string): ReactNode {
   if (!field) {
     return value || '未作答';
   }
   if (field.type !== 'radio') {
     return value || '未作答';
   }
-  return field.options?.find((option) => option.value === value)?.label ?? value ?? '未作答';
+  const label = field.options?.find((option) => option.value === value)?.label ?? value ?? '未作答';
+  return typeof label === 'string' ? renderInlineMathText(label) : label;
 }
 
 function buildStudentFieldId(stepId: string, fieldKey: string) {
@@ -851,6 +911,10 @@ function StepInlineVisual({
   useEffect(() => {
     setRevealedCount(0);
   }, [step.id]);
+
+  if (step.id === 'step-02') {
+    return <UNIT_3_1InteractiveExplorationPanel mode="step" defaultPoleMagnitude={5} onParameterChange={onParameterChange} />;
+  }
 
   if (step.id === 'step-07') {
     return (
@@ -877,7 +941,7 @@ function StepInlineVisual({
         </div>
         <div className="premium-lesson-surface-elevated mt-4 px-4 py-4 text-sm">
           <div className="font-medium">{activeFamily.label}</div>
-          <div className="premium-lesson-muted mt-2">{activeFamily.formula}</div>
+          <div className="premium-lesson-muted mt-2 text-sm">{renderMarkdown(`$$${activeFamily.formula}$$`)}</div>
           <div className="mt-2">{activeFamily.phenomenon}</div>
           <div className="premium-lesson-tone-block premium-tone-amber mt-3">{activeFamily.misconception}</div>
         </div>
@@ -886,81 +950,156 @@ function StepInlineVisual({
   }
 
   if (step.id === 'step-08') {
-    const revealCards = [
+    const revealSteps = [
       {
-        title: '题面与模型',
-        body: '先对照参考模型、系统 A 与系统 B 的传递函数，确认它们共享同一对主导共轭极点。',
+        title: '先抽出共同主导极点与参考二阶参数',
+        markdown: `三组模型共享主导共轭极点 $p_{1,2}=-0.8\\pm j1.6$。  
+参考二阶模型满足
+$$
+\\omega_n=\\sqrt{3.2}\\approx1.789,\\qquad
+\\zeta=\\frac{1.6}{2\\sqrt{3.2}}\\approx0.447,\\qquad
+\\omega_d=\\omega_n\\sqrt{1-\\zeta^2}=1.6
+$$`,
       },
       {
-        title: '显式响应',
-        body: '再比较显式响应里的附加模态项，观察哪一项仍在主要动态窗口内持续发声。',
+        title: '写出三条显式阶跃响应',
+        markdown: `$$
+y_{\\mathrm{ref}}(t)=1-e^{-0.8t}\\left(\\cos 1.6t+0.5\\sin 1.6t\\right)
+$$
+
+$$
+y_{\\mathrm{A}}(t)=1-0.1584e^{-5t}-0.8416e^{-0.8t}\\cos 1.6t-0.9158e^{-0.8t}\\sin 1.6t
+$$
+
+$$
+y_{\\mathrm{B}}(t)=1-1.0959e^{-1.4t}+0.0959e^{-0.8t}\\cos 1.6t-0.9110e^{-0.8t}\\sin 1.6t
+$$`,
       },
       {
-        title: '图与指标表',
-        body: '最后回到响应曲线和指标表，把“接近/偏离”的判断落到图形与数值证据上。',
+        title: '比较时间尺度与附加模态',
+        markdown: `主导模态时间常数约为 $1/0.8=1.25\\ \\text{s}$。  
+系统 A 的附加模态是 $0.1584e^{-5t}$，时间常数约为 $0.2\\ \\text{s}$，会在主要动态真正展开前快速退场。  
+系统 B 的附加模态是 $1.0959e^{-1.4t}$，时间常数约为 $0.714\\ \\text{s}$，已经落入主要动态的同一时间尺度。`,
+      },
+      {
+        title: '回到动态性能指标核验',
+        markdown: `参考模型满足
+$$
+M_p\\approx20.79\\%,\\qquad t_p=\\frac{\\pi}{1.6}\\approx1.963\\ \\text{s},\\qquad t_s(2\\%)\\approx\\frac{4}{0.8}=5.00\\ \\text{s}
+$$
+
+系统 A 的数值结果仍与基线接近；系统 B 的 $t_p$ 被拉长到约 $2.829\\ \\text{s}$、$M_p$ 下降到约 $7.04\\%$，已经不能继续当作同一条主要动态。`,
       },
     ];
+    const nextStep = revealSteps[revealedCount];
+    const canRevealMore = revealedCount < revealSteps.length;
 
     return (
-      <section className="premium-lesson-panel-soft mt-4 px-4 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="premium-lesson-title text-sm font-medium">例题显影区</div>
-            <div className="premium-lesson-muted mt-1 text-sm">逐步显影只隐藏比较步骤，不隐藏题面本身。</div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setRevealedCount((count) => Math.min(count + 1, revealCards.length))}
-              className="premium-lesson-action-secondary"
-            >
-              显示下一步
-            </button>
-            <button type="button" onClick={() => setRevealedCount(0)} className="premium-lesson-action-secondary">
-              重置步骤
-            </button>
-          </div>
-        </div>
-        <div className="premium-lesson-muted mt-3 text-sm">点击“显示下一步”后，依次显影题面比较、模态比较和指标核验。</div>
-        <div className="mt-4 grid gap-3">
-          {revealCards.slice(0, revealedCount).map((card) => (
-            <div key={card.title} className="premium-lesson-surface-elevated px-4 py-4 text-sm">
-              <div className="font-medium">{card.title}</div>
-              <div className="premium-lesson-muted mt-2">{card.body}</div>
+      <>
+        <section className="premium-lesson-panel-soft mt-4 px-4 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="premium-lesson-title text-sm font-medium">例题逐步显影区</div>
+              <div className="premium-lesson-muted mt-1 text-sm">
+                {nextStep ? `当前阅读焦点：${nextStep.title}` : '全部步骤已显影，可回看并串联完整判断链。'}
+              </div>
+              <div className="premium-lesson-caption mt-2 text-xs">点击当前步骤可继续显影下一层。</div>
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setRevealedCount((count) => Math.min(count + 1, revealSteps.length))}
+                disabled={revealedCount >= revealSteps.length}
+                className="premium-lesson-action-secondary disabled:opacity-40"
+              >
+                显示下一步
+              </button>
+              <button type="button" onClick={() => setRevealedCount(0)} className="premium-lesson-action-secondary">
+                重置步骤
+              </button>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-3">
+            {revealedCount === 0 ? (
+              <button
+                type="button"
+                onClick={() => setRevealedCount(1)}
+                className="premium-lesson-tone-block premium-tone-slate text-left text-sm"
+              >
+                题面已固定显示：先看三个传递函数，再分析三组模型在时域响应、运动模态与动态性能上的差异。点击此处或上方“显示下一步”，逐步展开推导和计算过程。
+              </button>
+            ) : null}
+            {revealSteps.slice(0, revealedCount).map((item, index) => (
+              <button
+                key={item.title}
+                type="button"
+                onClick={() => {
+                  if (index === revealedCount - 1 && canRevealMore) {
+                    setRevealedCount((count) => Math.min(count + 1, revealSteps.length));
+                  }
+                }}
+                className={`premium-lesson-surface-elevated rounded-2xl px-4 py-4 text-left ${
+                  index === revealedCount - 1 && canRevealMore ? 'cursor-pointer ring-1 ring-cyan-400/40' : 'cursor-default'
+                }`}
+              >
+                <div className="premium-lesson-kicker">步骤 {index + 1}</div>
+                <div className="premium-lesson-title mt-1 text-sm font-semibold">{item.title}</div>
+                <div className="mt-2 text-sm leading-7">{renderMarkdown(item.markdown)}</div>
+                {index === revealedCount - 1 && canRevealMore ? (
+                  <div className="premium-lesson-caption mt-3 text-xs">点击当前步骤可继续显影下一层。</div>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </section>
+        <UNIT_3_1InteractiveExplorationPanel mode="step" defaultPoleMagnitude={5} onParameterChange={onParameterChange} />
+      </>
     );
   }
 
   if (step.id === 'step-11') {
-    return (
-      <section className="premium-lesson-panel-soft mt-4 px-4 py-4">
-        <div className="premium-lesson-title text-sm font-medium">频率锚点对照表</div>
-        <div className="mt-3 grid gap-3 md:grid-cols-3">
-          {BANDWIDTH_CHECKLIST.map((item, index) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => onParameterChange?.({ key: 'bandwidthChecklist', value: index, source: 'toggle' })}
-              className="premium-lesson-surface-elevated px-4 py-4 text-left text-sm"
-            >
-              <div className="font-medium">{item.label}</div>
-              <div className="premium-lesson-muted mt-2">{item.question}</div>
-              <div className="mt-2">{item.meaning}</div>
-            </button>
-          ))}
-        </div>
-      </section>
-    );
+    return <UNIT_3_1InteractiveExplorationPanel mode="bode" defaultPoleMagnitude={5} onParameterChange={onParameterChange} />;
   }
 
   if (step.id === 'step-13') {
     return (
       <section className="premium-lesson-panel-soft mt-4 px-4 py-4">
         <div className="premium-lesson-title text-sm font-medium">卷积与模态双图证据区</div>
-        <div className="mt-3 grid gap-4 lg:grid-cols-2">
+        <div className="premium-lesson-muted mt-2 text-sm">
+          先看图 6 理解“阶跃响应来自延时脉冲响应的连续叠加”，再看具体例子和图 7 读出留数符号与衰减节奏如何共同进入总响应。
+        </div>
+        <div className="mt-4 grid gap-4">
+          <figure className="premium-lesson-surface-elevated overflow-hidden px-3 py-3">
+            <Image
+              src="/course-runtime/lessons/3-1/media/3-1-pp-06-convolution-step-from-impulse.svg"
+              alt="卷积叠加图"
+              width={1200}
+              height={720}
+              unoptimized
+              className="h-auto w-full rounded-2xl border border-border/60 bg-background/60"
+            />
+            <figcaption className="premium-lesson-muted mt-2 text-xs">
+              图 6：把单位阶跃响应读成许多延时脉冲响应沿时间轴连续叠加。
+            </figcaption>
+          </figure>
+          <div className="premium-lesson-tone-block premium-tone-cyan text-sm">
+            <div className="font-medium">卷积图下面继续给出具体例子</div>
+            <div className="mt-2 text-sm leading-7">
+              {renderMarkdown(`$$
+G(s)=\\frac{12}{(s+1)(s+2)(s+6)}
+$$
+
+$$
+g(t)=2.4e^{-t}-3e^{-2t}+0.6e^{-6t}
+$$`)}
+            </div>
+          </div>
+          <div className="premium-lesson-tone-block premium-tone-cyan text-sm">
+            <div className="font-medium">具体例子怎么读</div>
+            <div className="mt-2 text-sm leading-7">
+              {renderMarkdown(`在 $2.4e^{-t}-3e^{-2t}+0.6e^{-6t}$ 里，衰减最快的是 $0.6e^{-6t}$；负号只说明 $-3e^{-2t}$ 这一项在总响应中起抵消作用，不会把极点推到右半平面。`)}
+            </div>
+          </div>
           <figure className="premium-lesson-surface-elevated overflow-hidden px-3 py-3">
             <Image
               src="/course-runtime/lessons/3-1/media/3-1-pp-04-modal-superposition-high-order.svg"
@@ -970,12 +1109,8 @@ function StepInlineVisual({
               unoptimized
               className="h-auto w-full rounded-2xl border border-border/60 bg-background/60"
             />
-            <figcaption className="premium-lesson-muted mt-2 text-xs">模态叠加图：解释不同模态如何共同构成输出。</figcaption>
+            <figcaption className="premium-lesson-muted mt-2 text-xs">图 7：三阶模态例子里，不同留数与不同衰减节奏怎样共同构成总响应。</figcaption>
           </figure>
-          <div className="premium-lesson-tone-block premium-tone-cyan text-sm">
-            <div className="font-medium">本页判断锚点</div>
-            <div className="mt-2">输入改变的是各模态被激发的方式，不是系统极点的几何位置。</div>
-          </div>
         </div>
       </section>
     );
@@ -1008,6 +1143,19 @@ export function UNIT_3_1KnowledgeMapVisual() {
   );
 }
 
+function getMediaCaption(stepId: string) {
+  switch (stepId) {
+    case 'step-05':
+      return '复平面稳定区、临界边界与失稳区对照图。';
+    case 'step-07':
+      return '三类极点与典型响应形态的对应图。';
+    case 'step-15':
+      return '本课总结信息图：先守稳定底线，再读模态，再做双域近似判断。';
+    default:
+      return null;
+  }
+}
+
 export function UNIT_3_1StepContentPanel({
   step,
   mediaSrc,
@@ -1020,6 +1168,8 @@ export function UNIT_3_1StepContentPanel({
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const blueprint = useMemo(() => getStepBlueprint(step), [step]);
+  const primarySections = step.id === 'step-03' ? blueprint.sections.slice(0, 2) : blueprint.sections;
+  const trailingSections = step.id === 'step-03' ? blueprint.sections.slice(2) : [];
 
   return (
     <section className="premium-lesson-panel px-4 py-5">
@@ -1031,13 +1181,13 @@ export function UNIT_3_1StepContentPanel({
       <h2 className="premium-lesson-title mt-4 text-2xl font-semibold">{step.title}</h2>
       <p className="premium-lesson-muted mt-3 text-sm leading-7">{blueprint.intro}</p>
 
-      <div className="mt-5 grid gap-4">
-        {blueprint.sections.map((section) => (
+      <div className={`mt-5 grid gap-4 ${step.id === 'step-03' ? 'lg:grid-cols-2' : ''}`}>
+        {primarySections.map((section) => (
           <div key={section.title} className={`premium-lesson-tone-block ${getToneClass(section.tone)}`}>
             <div className="premium-lesson-title text-sm font-medium">{section.title}</div>
             {section.body ? <p className="mt-2 text-sm leading-7">{section.body}</p> : null}
             {section.bullets?.length ? (
-              <div className="mt-3 grid gap-2">
+              <div className={`mt-3 grid gap-2 ${step.id === 'step-06' && section.title === '紧凑读法' ? 'sm:grid-cols-2' : ''}`}>
                 {section.bullets.map((bullet) => (
                   <div key={bullet} className="text-sm leading-7">
                     {bullet}
@@ -1046,19 +1196,32 @@ export function UNIT_3_1StepContentPanel({
               </div>
             ) : null}
             {section.markdown ? (
-              <div className="text-sm leading-7">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[rehypeKatex]}
-                  components={MARKDOWN_COMPONENTS}
-                >
-                  {section.markdown}
-                </ReactMarkdown>
-              </div>
+              <div className="text-sm leading-7">{renderMarkdown(section.markdown)}</div>
             ) : null}
           </div>
         ))}
       </div>
+
+      {trailingSections.length ? (
+        <div className="mt-4 grid gap-4">
+          {trailingSections.map((section) => (
+            <div key={section.title} className={`premium-lesson-tone-block ${getToneClass(section.tone)}`}>
+              <div className="premium-lesson-title text-sm font-medium">{section.title}</div>
+              {section.body ? <p className="mt-2 text-sm leading-7">{section.body}</p> : null}
+              {section.bullets?.length ? (
+                <div className="mt-3 grid gap-2">
+                  {section.bullets.map((bullet) => (
+                    <div key={bullet} className="text-sm leading-7">
+                      {bullet}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              {section.markdown ? <div className="text-sm leading-7">{renderMarkdown(section.markdown)}</div> : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       <StepInlineVisual step={step} onParameterChange={onWorkspaceParameterChange} />
 
@@ -1074,9 +1237,7 @@ export function UNIT_3_1StepContentPanel({
             unoptimized
             className="h-auto w-full rounded-2xl border border-border/60 bg-background/60"
           />
-          <figcaption className="premium-lesson-muted mt-3 text-xs">
-            课程 runtime 配套图示。当前交互实现直接消费 `course-content/runtime/lessons/3-1/media/*`。
-          </figcaption>
+          {getMediaCaption(step.id) ? <figcaption className="premium-lesson-muted mt-3 text-xs">{getMediaCaption(step.id)}</figcaption> : null}
         </figure>
       ) : null}
     </section>
@@ -1097,7 +1258,7 @@ function renderQuestionCard({
   const question = card.question!;
   return (
     <>
-      <div className="premium-lesson-title text-sm font-medium">{card.title}</div>
+      <div className="premium-lesson-title text-sm font-medium">{renderInlineMathText(card.title)}</div>
       <div className="mt-3 grid gap-2">
         {question.options.map((option) => (
           <label key={option.value} className="premium-lesson-control flex items-start gap-2">
@@ -1107,13 +1268,16 @@ function renderQuestionCard({
               checked={draft[question.key] === option.value}
               onChange={() => setDraft((prev) => ({ ...prev, [question.key]: option.value }))}
             />
-            <span className="text-sm leading-6">{option.label}</span>
+            <span className="text-sm leading-6">{renderInlineMathText(option.label)}</span>
           </label>
         ))}
       </div>
       {showAnswers ? (
         <div className="premium-lesson-tone-block premium-tone-emerald mt-4 text-sm">
-          <div className="font-medium">参考答案：{question.options.find((option) => option.value === question.answer)?.label}</div>
+          <div className="font-medium">
+            参考答案：
+            {renderInlineMathText(question.options.find((option) => option.value === question.answer)?.label ?? '')}
+          </div>
           <div className="mt-2">{question.explanation}</div>
         </div>
       ) : null}
@@ -1141,7 +1305,7 @@ function renderFieldCard({
         htmlFor={field.type === 'radio' ? undefined : buildStudentFieldId(stepId, field.key)}
         className="premium-lesson-title block text-sm font-medium"
       >
-        {card.title}
+        {renderInlineMathText(card.title)}
       </label>
       {field.type === 'textarea' ? (
         <textarea
@@ -1164,7 +1328,7 @@ function renderFieldCard({
                 checked={draft[field.key] === option.value}
                 onChange={() => setDraft((prev) => ({ ...prev, [field.key]: option.value }))}
               />
-              <span className="text-sm leading-6">{option.label}</span>
+              <span className="text-sm leading-6">{renderInlineMathText(option.label)}</span>
             </label>
           ))}
         </div>
@@ -1223,7 +1387,8 @@ export function UNIT_3_1StudentActivityForm({
   }
 
   const showAnswers = answerVisible;
-  const gridClass = activity.grid === 'double' ? 'mt-4 grid gap-4 md:grid-cols-2' : 'mt-4 grid gap-4';
+  const isDoubleGrid = activity.grid === 'double' || step.id === 'step-06';
+  const gridClass = isDoubleGrid ? 'mt-4 grid gap-4 md:grid-cols-2' : 'mt-4 grid gap-4';
 
   return (
     <section className="premium-lesson-panel-soft px-4 py-4">
@@ -1315,12 +1480,12 @@ export function UNIT_3_1TeacherActivitySummary({
             }));
             return (
               <div key={card.id} className="premium-lesson-surface-elevated px-4 py-4">
-                <div className="premium-lesson-title text-sm font-medium">{card.title}</div>
+                <div className="premium-lesson-title text-sm font-medium">{renderInlineMathText(card.title)}</div>
                 <div className="mt-3 grid gap-2">
                   {counts.map(({ option, count }) => (
                     <div key={option.value} className="text-sm">
                       <div className="flex items-center justify-between gap-3">
-                        <span>{option.label}</span>
+                        <span>{renderInlineMathText(option.label)}</span>
                         <span className="premium-lesson-muted">{count} 人</span>
                       </div>
                       <div className="mt-1 h-2 rounded-full bg-slate-800/70">
@@ -1331,7 +1496,10 @@ export function UNIT_3_1TeacherActivitySummary({
                 </div>
                 {answerVisible ? (
                   <div className="premium-lesson-tone-block premium-tone-emerald mt-4 text-sm">
-                    <div className="font-medium">参考答案：{question.options.find((option) => option.value === question.answer)?.label}</div>
+                    <div className="font-medium">
+                      参考答案：
+                      {renderInlineMathText(question.options.find((option) => option.value === question.answer)?.label ?? '')}
+                    </div>
                     <div className="mt-2">{question.explanation}</div>
                   </div>
                 ) : null}
@@ -1342,7 +1510,7 @@ export function UNIT_3_1TeacherActivitySummary({
           const field = card.field!;
           return (
             <div key={card.id} className="premium-lesson-surface-elevated px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">{card.title}</div>
+              <div className="premium-lesson-title text-sm font-medium">{renderInlineMathText(card.title)}</div>
               {answerVisible && field.answer ? (
                 <div className="premium-lesson-tone-block premium-tone-emerald mt-4 text-sm">
                   参考答案：{renderFieldValue(field, field.answer)}

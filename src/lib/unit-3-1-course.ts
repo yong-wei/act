@@ -139,8 +139,10 @@ export const UNIT_3_1_PAGE_CONTRACTS: Record<string, UNIT_3_1PageContract> = {
       template: 'triple_model_conflict',
       regions: [
         { id: 'formula-strip', width: 'full', order: 1 },
-        { id: 'media', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'root-locus', width: 'half', order: 2 },
+        { id: 'response', width: 'half', order: 3 },
+        { id: 'metrics', width: 'full', order: 4 },
+        { id: 'interaction', width: 'full', order: 5 },
       ],
     },
     interactionKind: 'binary_choice',
@@ -152,8 +154,8 @@ export const UNIT_3_1_PAGE_CONTRACTS: Record<string, UNIT_3_1PageContract> = {
     layout: {
       template: 'goal_boundary_slide',
       regions: [
-        { id: 'goals', width: 'full', order: 1 },
-        { id: 'chain', width: 'full', order: 2 },
+        { id: 'goals', width: 'half', order: 1 },
+        { id: 'chain', width: 'half', order: 2 },
         { id: 'boundary', width: 'full', order: 3 },
       ],
     },
@@ -227,9 +229,9 @@ export const UNIT_3_1_PAGE_CONTRACTS: Record<string, UNIT_3_1PageContract> = {
       regions: [
         { id: 'problem', width: 'full', order: 1 },
         { id: 'formulas', width: 'full', order: 2 },
-        { id: 'figure', width: 'full', order: 3 },
-        { id: 'table', width: 'full', order: 4 },
-        { id: 'activity', width: 'full', order: 5 },
+        { id: 'reveal', width: 'full', order: 3 },
+        { id: 'activity', width: 'full', order: 4 },
+        { id: 'exploration', width: 'full', order: 5 },
       ],
     },
     interactionKind: 'worked_example_workspace',
@@ -272,9 +274,10 @@ export const UNIT_3_1_PAGE_CONTRACTS: Record<string, UNIT_3_1PageContract> = {
       template: 'curve_compare_lab',
       regions: [
         { id: 'formulas', width: 'full', order: 1 },
-        { id: 'figure', width: 'full', order: 2 },
-        { id: 'table', width: 'full', order: 3 },
-        { id: 'activity', width: 'full', order: 4 },
+        { id: 'root-locus', width: 'half', order: 2 },
+        { id: 'bode', width: 'half', order: 3 },
+        { id: 'metrics', width: 'full', order: 4 },
+        { id: 'activity', width: 'full', order: 5 },
       ],
     },
     interactionKind: 'curve_compare_panel',
@@ -303,9 +306,10 @@ export const UNIT_3_1_PAGE_CONTRACTS: Record<string, UNIT_3_1PageContract> = {
       template: 'convolution_modal_board',
       regions: [
         { id: 'convolution', width: 'full', order: 1 },
-        { id: 'figure', width: 'full', order: 2 },
+        { id: 'figure-06', width: 'full', order: 2 },
         { id: 'example', width: 'full', order: 3 },
-        { id: 'activity', width: 'full', order: 4 },
+        { id: 'figure-07', width: 'full', order: 4 },
+        { id: 'activity', width: 'full', order: 5 },
       ],
     },
     interactionKind: 'activity_cards',
@@ -518,12 +522,8 @@ export const UNIT_3_1_PREMIUM_LESSON_CARD = {
 } as const;
 
 const UNIT_3_1_MEDIA_BY_STEP_ID: Record<string, string> = {
-  'step-02': '/course-runtime/lessons/3-1/media/3-1-pp-03-dominant-pole-response-families.svg',
   'step-05': '/course-runtime/lessons/3-1/media/3-1-pp-01-stability-half-plane.svg',
   'step-07': '/course-runtime/lessons/3-1/media/3-1-pp-02-poles-and-modes.svg',
-  'step-08': '/course-runtime/lessons/3-1/media/3-1-pp-03-dominant-pole-response-families.svg',
-  'step-11': '/course-runtime/lessons/3-1/media/3-1-pp-05-bode-model-reduction.svg',
-  'step-13': '/course-runtime/lessons/3-1/media/3-1-pp-06-convolution-step-from-impulse.svg',
   'step-15': '/course-runtime/lessons/3-1/media/3-1-info.png',
 };
 

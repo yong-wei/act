@@ -45,6 +45,22 @@ const CONTROL_AXIS_PRESETS: Record<string, Partial<Record<AxisKey, AxisPreset>>>
     rootLocusFull: { x: [-4.8, 0.5], y: [-3.2, 3.2] },
     rootLocusZoom: { x: [-4.8, 0.5], y: [-3.2, 3.2] },
   },
+  unit31_triple_pole_explorer: {
+    step: { x: [0, 8], y: [0, 1.45] },
+    magnitude: { x: [1e-1, 1e2], y: [-55, 10] },
+    phase: { x: [1e-1, 1e2], y: [-260, 20] },
+    rootLocus: { x: [-7, 0.6], y: [-2.8, 2.8] },
+    rootLocusFull: { x: [-7, 0.6], y: [-2.8, 2.8] },
+    rootLocusZoom: { x: [-7, 0.6], y: [-2.8, 2.8] },
+  },
+  unit31_reference_model: {
+    step: { x: [0, 8], y: [0, 1.45] },
+    magnitude: { x: [1e-1, 1e2], y: [-55, 10] },
+    phase: { x: [1e-1, 1e2], y: [-260, 20] },
+    rootLocus: { x: [-3.2, 0.6], y: [-2.8, 2.8] },
+    rootLocusFull: { x: [-3.2, 0.6], y: [-2.8, 2.8] },
+    rootLocusZoom: { x: [-3.2, 0.6], y: [-2.8, 2.8] },
+  },
   [UNIT_37_LOW_FREQUENCY_BODE_CASE_ID]: {
     magnitude: { x: [1e-2, 1e2], y: [-30, 40] },
     phase: { x: [1e-2, 1e2], y: [-100, 70] },

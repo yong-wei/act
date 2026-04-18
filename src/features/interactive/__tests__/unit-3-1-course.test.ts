@@ -45,8 +45,10 @@ describe('unit 3-1 interactive course', () => {
     const courseModule = await import('@/lib/unit-3-1-course');
 
     expect(courseModule.getUNIT_3_1MediaSrc('step-05')).toContain('3-1-pp-01-stability-half-plane');
-    expect(courseModule.getUNIT_3_1MediaSrc('step-08')).toContain('3-1-pp-03-dominant-pole-response-families');
-    expect(courseModule.getUNIT_3_1MediaSrc('step-13')).toContain('3-1-pp-06-convolution-step-from-impulse');
+    expect(courseModule.getUNIT_3_1MediaSrc('step-02')).toBeNull();
+    expect(courseModule.getUNIT_3_1MediaSrc('step-08')).toBeNull();
+    expect(courseModule.getUNIT_3_1MediaSrc('step-11')).toBeNull();
+    expect(courseModule.getUNIT_3_1MediaSrc('step-13')).toBeNull();
     expect(courseModule.getUNIT_3_1MediaSrc('step-15')).toContain('3-1-info.png');
   });
 
@@ -110,9 +112,57 @@ describe('unit 3-1 interactive course', () => {
     }
   });
 
+  it('updates the authoring contract for the new interactive exploration layout and worked-example constraints', () => {
+    const contractSource = readFileSync(
+      join(repoRoot, 'course-content/authoring/lessons/3-1/design/interactive-contract.yaml'),
+      'utf8',
+    );
+    const contract = parse(
+      contractSource,
+    ) as {
+      steps: Record<string, {
+        layout: { regions: Array<{ id: string; width: string; order: number }> };
+        content_blocks: Array<{ id: string; body?: string; value?: string }>;
+        interaction_spec?: { step_reveal_policy?: { mode?: string } };
+      }>;
+    };
+
+    expect(contract.steps['step-02']?.layout.regions).toEqual([
+      { id: 'formula-strip', width: 'full', order: 1 },
+      { id: 'root-locus', width: 'half', order: 2 },
+      { id: 'response', width: 'half', order: 3 },
+      { id: 'metrics', width: 'full', order: 4 },
+      { id: 'interaction', width: 'full', order: 5 },
+    ]);
+    expect(contract.steps['step-03']?.layout.regions).toEqual([
+      { id: 'goals', width: 'half', order: 1 },
+      { id: 'chain', width: 'half', order: 2 },
+      { id: 'boundary', width: 'full', order: 3 },
+    ]);
+    expect(contract.steps['step-08']?.interaction_spec?.step_reveal_policy?.mode).toBe('teacher_or_inline_progressive');
+    expect(
+      contract.steps['step-11']?.content_blocks.some((block) =>
+        (block.body ?? '').includes('|G_ref(jω)|、|G_A(jω)|、|G_B(jω)|'),
+      ),
+    ).toBe(true);
+    expect(contractSource).toContain('y_{\\\\text{step}}(t)');
+  });
+
   it('keeps hidden AI, progressive reveal, and per-card submission constraints in the runtime panels', () => {
+    const controlPanelsSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+    const chartPanelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-chart-panel.tsx'),
+      'utf8',
+    );
     const stepPanelsSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-3-1-pure-pole-stability-and-dynamics/step-panels.tsx'),
+      'utf8',
+    );
+    const explorationSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-1-pure-pole-stability-and-dynamics/interactive-exploration-panel.tsx'),
       'utf8',
     );
     const studentPageSource = readFileSync(
@@ -125,10 +175,34 @@ describe('unit 3-1 interactive course', () => {
     );
 
     expect(stepPanelsSource).not.toContain('InteractiveAIPanel');
+    expect(controlPanelsSource).toContain('interactiveHandles');
+    expect(controlPanelsSource).toContain("kind: 'pole' | 'zero'");
+    expect(controlPanelsSource).toContain('onHandlePointerDown');
+    expect(controlPanelsSource).toContain('renderInteractiveHandle');
+    expect(controlPanelsSource).toContain('convertToPixel');
+    expect(chartPanelSource).toContain('onChartReady');
     expect(stepPanelsSource).toContain('显示下一步');
     expect(stepPanelsSource).toContain('重置步骤');
     expect(stepPanelsSource).toContain('提交答案');
     expect(stepPanelsSource).toContain('mt-4 grid gap-4 md:grid-cols-2');
+    expect(stepPanelsSource).toContain('点击当前步骤可继续显影下一层');
+    expect(stepPanelsSource).toContain('题面已固定显示');
+    expect(stepPanelsSource).toContain('G_{\\\\mathrm{A}}(s)');
+    expect(stepPanelsSource).toContain('分析三组模型在时域响应、运动模态与动态性能上的差异');
+    expect(stepPanelsSource).toContain('卷积图下面继续给出具体例子');
+    expect(stepPanelsSource).toContain('renderInlineMathText');
+    expect(explorationSource).toContain('useControlEngine');
+    expect(explorationSource).toContain('RootLocusPanel');
+    expect(explorationSource).toContain('ControlChartPanel');
+    expect(explorationSource).toContain('拖动附加极点');
+    expect(explorationSource).toContain('buildRootLocusRequest');
+    expect(explorationSource).toContain('pointermove');
+    expect(explorationSource).toContain('interactiveHandles');
+    expect(explorationSource).not.toContain('rounded-full border-2 border-amber-500');
+    expect(explorationSource).not.toContain('直接拖动图中的开环附加极点');
+    expect(stepPanelsSource).toContain('\\\\left|G_{A}(j\\\\omega)\\\\right|');
+    expect(stepPanelsSource).toContain('\\\\left|G_{B}(j\\\\omega)\\\\right|');
+    expect(stepPanelsSource).not.toContain('课程 runtime 配套图示');
     expect(stepPanelsSource).not.toContain('本页互动状态');
     expect(studentPageSource).not.toContain('UNIT_3_1StepAiAssistant');
     expect(teacherPageSource).not.toContain('UNIT_3_1StepAiAssistant');

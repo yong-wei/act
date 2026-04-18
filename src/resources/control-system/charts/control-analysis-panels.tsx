@@ -1,7 +1,8 @@
 'use client';
 
-import type { ReactNode } from 'react';
-import type { EChartsCoreOption } from 'echarts/core';
+import { useCallback, useRef, useState } from 'react';
+import type { PointerEvent as ReactPointerEvent, ReactNode, Ref } from 'react';
+import type { ECharts, EChartsCoreOption } from 'echarts/core';
 
 import type {
   ComplexPoint,
@@ -25,6 +26,17 @@ import { ControlChartPanel } from './control-chart-panel';
 type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
 type ChartSeriesItem = ChartSeriesValue extends (infer Item)[] ? Item : ChartSeriesValue;
 type ChartSeriesArray = ChartSeriesItem[];
+
+const ROOT_LOCUS_POLE_SYMBOL = 'path://M -0.6 -0.6 L 0.6 0.6 M -0.6 0.6 L 0.6 -0.6';
+
+export type RootLocusInteractiveHandle = {
+  id: string;
+  kind: 'pole' | 'zero';
+  point: ComplexPoint;
+  draggable?: boolean;
+  ariaLabel: string;
+  cursor?: string;
+};
 
 function toSeriesArray(series?: EChartsCoreOption['series']): ChartSeriesArray {
   if (!series) {
@@ -231,7 +243,7 @@ function buildRootLocusOption(
     {
       name: '开环极点',
       type: 'scatter',
-      symbol: 'path://M -0.6 -0.6 L 0.6 0.6 M -0.6 0.6 L 0.6 -0.6',
+      symbol: ROOT_LOCUS_POLE_SYMBOL,
       symbolSize: 18,
       lineStyle: { color: '#c81d25', width: 2.2 },
       itemStyle: { color: '#c81d25' },
@@ -345,6 +357,68 @@ function fallbackNode(result: ControlAnalysisResult): ReactNode {
   return result.isFallback ? result.fallbackMessage ?? '当前显示离线基线结果。' : null;
 }
 
+function getInteractiveHandlePixelPosition(point: ComplexPoint, chart: ECharts | null) {
+  if (!chart) {
+    return null;
+  }
+  const pixel = chart.convertToPixel({ xAxisIndex: 0, yAxisIndex: 0 }, [point.re, point.im]);
+  if (!Array.isArray(pixel) || pixel.length < 2) {
+    return null;
+  }
+  const [left, top] = pixel;
+  if (!Number.isFinite(left) || !Number.isFinite(top)) {
+    return null;
+  }
+  return { left, top };
+}
+
+function renderInteractiveHandle(
+  handle: RootLocusInteractiveHandle,
+  pixelPosition: { left: number; top: number } | null,
+  onHandlePointerDown?: (id: string, event: ReactPointerEvent<HTMLButtonElement>) => void,
+) {
+  if (!pixelPosition) {
+    return null;
+  }
+  const content =
+    handle.kind === 'pole' ? (
+      <div className="pointer-events-none relative h-5 w-5">
+        <span className="absolute left-1/2 top-1/2 h-[2.2px] w-5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-[#c81d25]" />
+        <span className="absolute left-1/2 top-1/2 h-[2.2px] w-5 -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-[#c81d25]" />
+      </div>
+    ) : (
+      <div className="pointer-events-none relative h-4 w-4 rounded-full border-[2.2px] border-[#d97706] bg-transparent" />
+    );
+
+  return (
+    <div
+      key={handle.id}
+      className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2"
+      style={{
+        left: `${pixelPosition.left}px`,
+        top: `${pixelPosition.top}px`,
+      }}
+    >
+      {handle.draggable ? (
+        <button
+          type="button"
+          onPointerDown={(event) => onHandlePointerDown?.(handle.id, event)}
+          className="pointer-events-auto relative block bg-transparent p-0"
+          style={{ cursor: handle.cursor ?? 'grab' }}
+          aria-label={handle.ariaLabel}
+        >
+          {content}
+          <span className="sr-only">{handle.ariaLabel}</span>
+        </button>
+      ) : (
+        <div className="pointer-events-none" aria-label={handle.ariaLabel}>
+          {content}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function StepResponsePanel({ result, caseId }: { result: ControlAnalysisResult; caseId?: string }) {
   const option = buildLineOption(result.stepResponse.points, '#22d3ee', '时间 / s', '响应', {
     axisPreset: getControlAxisPreset(caseId, 'step'),
@@ -411,6 +485,10 @@ export function RootLocusPanel({
   caseId,
   mode = 'default',
   overlay,
+  interactiveHandles,
+  onHandlePointerDown,
+  interactiveLayerRef,
+  onChartReady,
   className,
   chartClassName,
   axisPresetOverride,
@@ -419,19 +497,54 @@ export function RootLocusPanel({
   caseId?: string;
   mode?: RootLocusMode;
   overlay?: ReactNode;
+  interactiveHandles?: RootLocusInteractiveHandle[];
+  onHandlePointerDown?: (id: string, event: ReactPointerEvent<HTMLButtonElement>) => void;
+  interactiveLayerRef?: Ref<HTMLDivElement>;
+  onChartReady?: (chart: ECharts, container: HTMLDivElement) => void;
   className?: string;
   chartClassName?: string;
   axisPresetOverride?: AxisPreset;
 }) {
   const title = mode === 'full' ? '根轨迹全览' : mode === 'zoom' ? '根轨迹区域放大' : '根轨迹';
+  const axisPreset = axisPresetOverride ?? getControlAxisPreset(caseId, getRootLocusAxisKey(mode));
+  const chartRef = useRef<ECharts | null>(null);
+  const [overlayVersion, setOverlayVersion] = useState(0);
+  const handleChartReady = useCallback((chart: ECharts, container: HTMLDivElement) => {
+    chartRef.current = chart;
+    setOverlayVersion((version) => version + 1);
+    onChartReady?.(chart, container);
+  }, [onChartReady]);
+
+  const interactiveOverlay = interactiveHandles && interactiveHandles.length > 0 ? (
+    <div
+      ref={interactiveLayerRef}
+      className="absolute inset-0"
+      data-overlay-version={overlayVersion}
+    >
+      {interactiveHandles.map((handle) =>
+        renderInteractiveHandle(
+          handle,
+          getInteractiveHandlePixelPosition(handle.point, chartRef.current),
+          onHandlePointerDown,
+        ),
+      )}
+    </div>
+  ) : null;
+
   return (
     <ControlChartPanel
       title={title}
       meta={buildPoleText(result.rootLocus.currentPoles)}
-      option={buildRootLocusOption(result.rootLocus, caseId, mode, axisPresetOverride)}
+      option={buildRootLocusOption(result.rootLocus, caseId, mode, axisPreset)}
       fallback={fallbackNode(result)}
       isFallback={Boolean(result.isFallback)}
-      overlay={overlay}
+      onChartReady={handleChartReady}
+      overlay={
+        <>
+          {interactiveOverlay}
+          {overlay}
+        </>
+      }
       className={className}
       chartClassName={chartClassName}
     />

@@ -1,7 +1,7 @@
 export interface WorkspaceParameterChange {
   key: string;
   value: number;
-  source: 'slider' | 'toggle' | 'preset';
+  source: 'slider' | 'toggle' | 'preset' | 'drag';
 }
 
 export interface PoleFamilyTab {

@@ -14,6 +14,7 @@ export interface ControlChartPanelProps {
   meta?: ReactNode;
   option: EChartsCoreOption;
   overlay?: ReactNode;
+  onChartReady?: (chart: ECharts, container: HTMLDivElement) => void;
   fallback?: ReactNode;
   isFallback?: boolean;
   className?: string;
@@ -25,6 +26,7 @@ export function ControlChartPanel({
   meta,
   option,
   overlay,
+  onChartReady,
   fallback,
   isFallback = false,
   className = '',
@@ -32,6 +34,7 @@ export function ControlChartPanel({
 }: ControlChartPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ECharts | null>(null);
+  const onChartReadyRef = useRef<typeof onChartReady>(onChartReady);
   const { mounted, theme } = useTheme();
   const themedOption = useMemo(
     () => applyControlChartTheme(option, mounted ? theme : DEFAULT_THEME),
@@ -40,6 +43,7 @@ export function ControlChartPanel({
   const optionRef = useRef<EChartsCoreOption>(themedOption);
 
   optionRef.current = themedOption;
+  onChartReadyRef.current = onChartReady;
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -75,8 +79,14 @@ export function ControlChartPanel({
       const chart = init(containerRef.current, undefined, { renderer: 'canvas' });
       chartRef.current = chart;
       chart.setOption(optionRef.current, { notMerge: false, lazyUpdate: true });
+      onChartReadyRef.current?.(chart, containerRef.current);
 
-      const observer = new ResizeObserver(() => chart.resize());
+      const observer = new ResizeObserver(() => {
+        chart.resize();
+        if (containerRef.current) {
+          onChartReadyRef.current?.(chart, containerRef.current);
+        }
+      });
       observer.observe(containerRef.current);
 
       cleanup = () => {
