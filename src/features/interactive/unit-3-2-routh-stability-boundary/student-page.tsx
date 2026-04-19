@@ -16,7 +16,6 @@ import { getUnit32StepAIContext } from '@/lib/course-ai-contexts';
 import {
   getUNIT_3_2PageContract,
   getUNIT_3_2MediaSrc,
-  isUNIT_3_2AiPageType,
   isUNIT_3_2InteractivePageType,
   UNIT_3_2_LESSON_KEY,
   UNIT_3_2_LESSON_STEPS,
@@ -28,7 +27,6 @@ import {
 import { UNIT_3_2CourseHeader } from './course-header';
 import {
   UNIT_3_2KnowledgeMapVisual,
-  UNIT_3_2StepAiAssistant,
   UNIT_3_2StepContentPanel,
   UNIT_3_2StudentActivityForm,
   UNIT_3_2StudentSummaryPanel,
@@ -178,19 +176,6 @@ export function UNIT_3_2StudentPage({
     });
   };
 
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
-
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
       trackWorkspaceParamChange(step.id, {
@@ -283,12 +268,6 @@ export function UNIT_3_2StudentPage({
           revealProgress={revealProgress}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
-
-        {isUNIT_3_2AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_2StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
 
         <div className="mt-4">
           <UNIT_3_2StudentActivityForm

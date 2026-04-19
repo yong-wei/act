@@ -169,6 +169,43 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 所有曲线页都写明基线状态、阅读口令和结论回接，不能只给可操作面板
 - 页面蓝图 prose 中没有把 teacher controls、验收点、实现门槛直接写成自然段主干
 
+### Step 6｜子代理设计接受记录
+
+完成 `interactive-page.md` 与 `interactive-contract.yaml` 后，必须进入子代理驱动接受流程：
+
+1. 主代理首先基于讲义的核心思路和主要内容模块，先定总页数、页面顺序以及每页对应的讲义文稿范围。
+2. 主代理把单页 clean brief 发给**设计子代理**，要求它围绕“学生只看这一页互动就能明白”完成页面设计。
+3. 设计子代理完成后，再交给**逻辑审核子代理**，用学生视角审查“学生只看这一页互动就能明白这个页面到底在讲什么吗”。
+4. 若逻辑审核子代理判定不通过，必须转交给**整改子代理**回修，再次进入审核闭环。
+
+1. 主代理只把 clean brief、讲义证据单元表、双轨真源草案与必须遵守的检查项交给设计审查子代理，不把上游 harness、实现阶段提示或完整聊天上下文塞给子代理。
+2. 子代理只判断“证据是否完整落页、页面蓝图 prose 是否自包含、机读契约是否可实现、是否存在降级或污染信号”，不得在审查阶段重写整课。
+3. 主代理根据子代理问题回修双轨真源；若当前环境没有可用子代理，主代理必须用同一输入另开一次独立审查视角完成等价检查，并在记录中标注 `review_mode: "main_agent_fallback"`。
+4. 接受通过后，写入 `design/interactive-design-acceptance.json`；缺少该文件时，后续 `lesson-content-review` 将视为硬闸门未通过。
+
+`interactive-design-acceptance.json` 最小结构：
+
+```json
+{
+  "acceptance_version": 1,
+  "lesson_id": "<lesson>",
+  "status": "accepted",
+  "accepted_at": "2026-04-19T00:00:00+08:00",
+  "review_mode": "subagent",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/<lesson>/design/interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/<lesson>/design/interactive-contract.yaml"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass"
+  },
+  "issues": []
+}
+```
+
 ## 输出要求
 
 ### `interactive-page.md`
@@ -195,6 +232,20 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 
 若涉及例题显影或学生作答，还必须补齐由参考文件要求的访问与控制字段。
 
+### `interactive-design-acceptance.json`
+
+必须写清：
+
+- `acceptance_version`
+- `lesson_id`
+- `status`
+- `accepted_at`
+- `review_mode`
+- `source_files.interactive_page`
+- `source_files.interactive_contract`
+- `checks`
+- `issues`
+
 ## 常见误用
 
 | 误用 | 正确做法 |
@@ -215,6 +266,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 例题与推导显影规则已写清
 - 曲线图步骤与比较页的拆分合理
 - 教师/学生控制语义已写成可实现字段
+- 子代理或等价独立审查已通过，并写入 `design/interactive-design-acceptance.json`
 - 拿掉讲稿后，学生仍可基于互动页理解每个逻辑单元的知识对象、判断动作和主线位置
 
 *版本：v1.1 | 2026-04-19*

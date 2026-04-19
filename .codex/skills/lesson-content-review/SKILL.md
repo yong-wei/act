@@ -34,6 +34,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - `course-content/authoring/lessons/<lesson>/design/boppps.md`
 - `course-content/authoring/lessons/<lesson>/design/interactive-page.md`
 - `course-content/authoring/lessons/<lesson>/design/interactive-contract.yaml`（若存在）
+- `course-content/authoring/lessons/<lesson>/design/interactive-design-acceptance.json`
 - `course-content/authoring/lessons/<lesson>/design/multimedia.md`（如果存在）
 - `course-content/authoring/knowledge/cards/lessons/<lesson>/sequence.json`
 - `course-content/authoring/knowledge/cards/nodes/*.md` 中与本课相关的卡片
@@ -42,6 +43,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - `course-content/scripts/review_lesson_content.py` 中 `IMPLEMENTATION_CONTRACT_REGISTRY` 对应到的本地实现源码
 - 本地实现导出的步骤定义常量与页面契约常量（由审查脚本自动解析）
 - 与该课关联的学生页预览路径、教师聚合配置与课程级 AI 页面上下文接入点
+- `course-content/authoring/lessons/<lesson>/notes/interactive-implementation-acceptance.json`
 
 若是 legacy 实践课且仍未迁移到讲义主线，可额外读取：
 - `design/practice-guide.md`
@@ -64,6 +66,22 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - **确定性项**：公式、代数计算、控制图、性能指标、系统结论、仿真结果
 
 高风险项优先审查。
+
+### 1.5 先审接受文件与 runtime 审查时效
+
+在进入正文覆盖与实现契约核对前，先把以下文件视为硬闸门输入：
+
+- `design/interactive-design-acceptance.json`
+- `notes/interactive-implementation-acceptance.json`（若该课已存在本地实现）
+
+审查要求：
+
+- 两个 JSON 都必须能被 `review_lesson_content.py` 成功解析并通过字段校验。
+- `interactive-design-acceptance.json` 至少要证明当前 `interactive-page.md` 与 `interactive-contract.yaml` 已完成设计接受。
+- 若课次已有本地实现，`interactive-implementation-acceptance.json` 至少要给出 `reviewed_runtime_artifacts`、`checks.inline_ai_visibility`、`checks.static_media_downgrade`。
+- 审查时必须先确认**作者态同步**是否完成；若作者态文件更新时间晚于当前 runtime 审查产物，必须判定为 `runtime_review_stale`，也要在结论中明确写出“**审查已过期**”与兼容标签 `stale_review`。
+- 若本地实现接受文件记录了隐藏式 AI 被做成页内入口，必须记为 `inline_ai_visibility`，并在文字结论中明确写出“**页内 AI**”违规。
+- 若本地实现接受文件记录了工作区 / 参数联动被静态媒体替代，必须记为 `static_media_downgrade`，并在文字结论中明确写出“**静态图片降级**”。
 
 ### 2. 审正文正确性（不是只审格式）
 
@@ -214,6 +232,12 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
   - 教师端与学生端的页面差异是否清楚，且教师侧只要求聚合结果，不额外引入高频原始轨迹存储
   - 不得把实践课写成“教师演示 + 学生围观 + 末尾提交一句话感想”
 - 审查结果必须输出为 `course-content/runtime/lessons/<lesson>/review/interactive-page-check.json`
+- `interactive-page-check.json` 必须额外写出：
+  - `design_acceptance_issues`
+  - `implementation_acceptance_issues`
+  - `runtime_review_stale_issues`
+  - `hard_gate_issues`
+  - `hard_gate_issue_codes`
 - 详细规则与元件级核对表见 `references/interactive-implementation-review.md`
 
 ### 6.6 判定污染信号的返工路径
@@ -277,6 +301,21 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 python3 course-content/scripts/review_lesson_content.py --lesson <lesson>
 ```
 
+若课次已存在本地互动实现，收工前还必须再运行：
+
+```bash
+python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --strict-implementation-contract
+```
+
+该严格模式会阻塞以下问题：
+
+- `design/interactive-design-acceptance.json` 缺失或不合法
+- `notes/interactive-implementation-acceptance.json` 缺失或不合法
+- `runtime_review_stale`
+- `inline_ai_visibility`
+- `static_media_downgrade`
+- 作者态契约与本地实现契约漂移
+
 预期产物：
 - `course-content/runtime/lessons/<lesson>/handout.md`
 - `course-content/runtime/lessons/<lesson>/handout.pdf`
@@ -302,6 +341,7 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - 事实正确性：哪些内容已联网核验，哪些内容只能保守表述
 - 科学合理性：哪些逻辑链成立，哪些结论需要删改或补条件
 - 确定性验证：哪些公式、图像、例题、指标已由 `Octave` + `control` 内置函数复现
+- 实现闸门：接受文件、runtime 时效、`inline_ai_visibility`、`static_media_downgrade` 是否全部清零
 
 ## Quick Checks
 
@@ -311,6 +351,7 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 已检查 design/handout.md
 - [ ] 已检查 `design/interactive-page.md`
 - [ ] 若课次已建立双轨设计，已检查 `design/interactive-contract.yaml`
+- [ ] 已检查 `design/interactive-design-acceptance.json`
 - [ ] 已确认 `design/interactive-page.md` 采用页面蓝图写法，而不是教师/学生动作脚本
 - [ ] 已确认 `design/interactive-page.md` 含 `## 讲义核心内容映射` 或 `## 讲义证据单元映射`
 - [ ] 已确认每一步都写明页面模板、区域布局、模块清单、固定内容、互动机制、教师聚合、AI 边界与学生页预览
@@ -318,6 +359,10 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 已确认采用证据单元映射的步骤都写出 `主阅读顺序`
 - [ ] 已确认讲义核心概念、公式、图表、例题、结论都有页面落点
 - [ ] 已确认关键知识没有只藏在互动组件里，必要静态页已保留
+- [ ] 若已存在本地互动实现，已检查 `notes/interactive-implementation-acceptance.json`
+- [ ] 已确认不存在 `runtime_review_stale`
+- [ ] 已确认不存在 `inline_ai_visibility`
+- [ ] 已确认不存在 `static_media_downgrade`
 - [ ] 已确认 `interactive-page.md` 与 `interactive-contract.yaml` 的步骤顺序、标题、互动类型、预览路径一致（如适用）
 - [ ] 已确认 `interactive-contract.yaml` 的步骤级字段完整（如适用）
 - [ ] 已确认 `ai_context_spec` 维持隐藏式页面上下文，不默认扩展为可见 AI 区块（如适用）

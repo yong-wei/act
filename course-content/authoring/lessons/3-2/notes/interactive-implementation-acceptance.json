@@ -1,0 +1,25 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "3-2",
+  "status": "accepted",
+  "accepted_at": "2026-04-19T19:16:00+08:00",
+  "review_mode": "subagent",
+  "implementation_contract_source": "src/lib/unit-3-2-course.ts",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/3-2/review/review-report.md",
+    "course-content/runtime/lessons/3-2/review/interactive-page-check.json"
+  ],
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": []
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": []
+    }
+  },
+  "issues": []
+}

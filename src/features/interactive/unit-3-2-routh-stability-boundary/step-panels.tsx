@@ -2,15 +2,14 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Copy, Sparkles } from 'lucide-react';
 import { BlockMath } from 'react-katex';
+import ReactMarkdown from 'react-markdown';
+import rehypeKatex from 'rehype-katex';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
-import { useInteractiveAI } from '@/features/interactive/hooks/useInteractiveAI';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
-import type { InteractiveConfig } from '@/features/interactive/types';
 import {
   getUNIT_3_2PageContract,
   UNIT_3_2_COURSE_TITLE,
@@ -24,6 +23,7 @@ import {
   STATE_MATCH_OPTIONS,
   type WorkspaceParameterChange,
 } from './workspace';
+import { UNIT_3_2AnalysisWorkspace } from './analysis-workspace';
 
 type Tone = 'cyan' | 'emerald' | 'amber' | 'violet' | 'rose' | 'slate';
 
@@ -32,6 +32,7 @@ interface StepSection {
   body?: string;
   bullets?: string[];
   formula?: string;
+  markdown?: string;
   tone?: Tone;
 }
 
@@ -51,6 +52,7 @@ interface ChoiceOption {
 interface QuizQuestion {
   key: string;
   prompt: string;
+  formula?: string;
   type?: 'choice' | 'text';
   options?: ChoiceOption[];
   answer?: string;
@@ -60,6 +62,7 @@ interface QuizQuestion {
 interface FormField {
   key: string;
   label: string;
+  formula?: string;
   type: 'text' | 'textarea' | 'radio';
   placeholder?: string;
   answer?: string;
@@ -81,13 +84,45 @@ interface ActivityCardSpec {
   fields: FormField[];
 }
 
+interface RevealDetail {
+  key: string;
+  label: string;
+  body?: string;
+  formula?: string;
+  bullets?: string[];
+}
+
 export interface UNIT_3_2TeacherResponseItem {
   studentName: string;
   response: UNIT_3_2StepResponse;
 }
 
+const MARKDOWN_COMPONENTS = {
+  p: ({ children }: { children?: ReactNode }) => <p className="mt-2 text-sm leading-7">{children}</p>,
+  ul: ({ children }: { children?: ReactNode }) => <ul className="mt-3 grid gap-2 text-sm leading-7">{children}</ul>,
+  li: ({ children }: { children?: ReactNode }) => <li className="ml-4 list-disc">{children}</li>,
+  strong: ({ children }: { children?: ReactNode }) => <strong className="font-semibold text-foreground">{children}</strong>,
+  code: ({ children }: { children?: ReactNode }) => (
+    <code className="rounded bg-background/70 px-1.5 py-0.5 text-[0.92em]">{children}</code>
+  ),
+};
+
 function getToneClass(tone: Tone = 'slate') {
   return `premium-tone-${tone}`;
+}
+
+function RichText({ content, className }: { content: string; className?: string }) {
+  return (
+    <div className={className}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+        components={MARKDOWN_COMPONENTS}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
 }
 
 function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
@@ -112,21 +147,26 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
       };
     case 'step-02':
       return {
-        kicker: 'Figure vs Rule',
-        intro: '极点迁移图能给直觉，但它还不能直接替代对特征方程系数的系统判稳。3-2 要解决的正是这层缺口。',
+        kicker: 'Closed-loop Characteristic Equation',
+        intro: '引入页先固定闭环特征方程这个主对象，再说明“图像为什么只能给直觉、不能单独给出参数可行域”。图片此时不是主角，主角是代数对象与它提出的判断问题。',
         sections: [
           {
-            title: '三问',
-            tone: 'amber',
-            bullets: ['哪一段参数仍稳定？', '触到边界之后到底发生了什么？', '不显式求根时怎样直接筛参数？'],
+            title: '本页固定对象',
+            tone: 'cyan',
+            formula: 'D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)',
           },
           {
-            title: '这页的结论',
+            title: '由特征方程直接追问的三个问题',
+            tone: 'amber',
+            bullets: ['不显式求根时，怎样直接判断某个 k 是否稳定？', '当参数碰到边界时，闭环根究竟发生了什么变化？', '怎样把“稳定 / 临界 / 失稳”翻译成参数可行域语言？'],
+          },
+          {
+            title: '图与规则的分工',
             tone: 'violet',
-            body: '图像直觉负责提醒我们“边界快到了”，系数规则负责告诉我们“边界到底在哪、区间到底多宽”。',
+            body: '极点迁移图负责提醒“边界快到了”，劳斯判据负责把问题落回特征方程系数，给出边界位置和区间宽度。',
           },
         ],
-        prompts: ['为什么图像直觉不能单独回答参数筛选？', '系数规则补上的到底是哪一层证据？'],
+        prompts: ['为什么闭环特征方程还不能只靠极点迁移图来判断稳定区间？', '从闭环特征方程系数直接判稳，到底补上了哪一层证据？'],
       };
     case 'step-03':
       return {
@@ -154,7 +194,8 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
           {
             title: '完整题面',
             tone: 'cyan',
-            body: '取 k=4，对 D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k) 列写普通劳斯表，并判断系统稳定性。',
+            body: '取 k=4，对下式列写普通劳斯表，并判断系统稳定性。',
+            formula: 'D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)',
           },
           {
             title: '固定对象',
@@ -162,17 +203,17 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
             formula: 'D(s)=s^4+5s^3+9s^2+11s+6',
           },
           {
-            title: '第一列结论',
+            title: '本页要固定的判断目标',
             tone: 'amber',
-            formula: '1,\\ 5,\\ \\frac{34}{5},\\ \\frac{112}{17},\\ 6',
+            bullets: ['先完整列出劳斯表。', '再从第一列判断右半平面根数。', '最后把“第一列全正”翻译成稳定性结论。'],
           },
         ],
-        prompts: ['为什么本页已经能判稳，但还没有显式求出全部根？'],
+        prompts: ['固定 k=4 以后，为什么只看第一列就已经能判断稳定性？'],
       };
     case 'step-05':
       return {
         kicker: 'Feasible Range',
-        intro: '把参数带进第一列之后，劳斯判据会自然推进到稳定区间。学生在这一页必须先看到条件链，再看到区间结论，不能只记住最后一行答案。',
+        intro: '把参数带进第一列之后，劳斯判据会自然推进到稳定区间。这一页必须先看到条件链，再看到区间结论，不能只记住最后一行答案。',
         sections: [
           {
             title: '带参数对象',
@@ -180,9 +221,9 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
             formula: 'D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)',
           },
           {
-            title: '稳定区间',
+            title: '本页固定任务',
             tone: 'emerald',
-            formula: '-2<k<18',
+            bullets: ['把完整劳斯表列成含 k 的第一列。', '逐条写出第一列全正的不等式。', '把不等式链合并成稳定区间。'],
           },
           {
             title: '典型错因',
@@ -195,20 +236,20 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
     case 'step-06':
       return {
         kicker: 'Boundary Mapping',
-        intro: '代数边界不能只停留在数字上，还要落回复平面根结构。参数点、图上位置与根结构需要在同一页里互相对照。',
+        intro: '这一页直接切到 Rust/WASM 驱动的根轨迹工作区。左侧固定看根轨迹，右侧只保留参数 k 控件、典型值按钮和区间状态说明，把边界数字重新翻译回复平面根结构。',
         sections: [
           {
-            title: '边界点与稳定区',
+            title: '先固定三个关键参数点',
             tone: 'cyan',
             bullets: ['k=-2：原点根边界。', 'k=18：纯虚根边界。', 'k=22：已出现右半平面共轭根。'],
           },
           {
-            title: '关键提醒',
+            title: '这一页要读出的信息',
             tone: 'amber',
-            body: '两个边界点都压在稳定边界上，但对应的根结构并不相同；只有把边界重新翻译回复平面，参数区间才真正有了物理意义。',
+            bullets: ['固定对象是 P(s)=s^4+5s^3+9s^2+7s+2 与 k(s+1) 的闭环组合。', '区间状态负责回答“k 现在落在稳定区内还是边界上”。', '根轨迹负责回答“边界点对应的是原点根还是纯虚根”。'],
           },
         ],
-        prompts: ['为什么 k=-2 与 k=18 同在边界上，却不是同一种临界状态？'],
+        prompts: ['为什么 k=-2 与 k=18 同在边界上，却对应两种不同的根结构？'],
       };
     case 'step-07':
       return {
@@ -218,7 +259,8 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
           {
             title: '完整题面',
             tone: 'cyan',
-            body: '对 D_1(s)=s^4+2s^3+3s^2+6s+5 建立劳斯表，处理“首位为 0 但该行不全为 0”的情况。',
+            body: '对下式建立劳斯表，处理“首位为 0 但该行不全为 0”的情况。',
+            formula: 'D_1(s)=s^4+2s^3+3s^2+6s+5',
           },
           {
             title: '关键量',
@@ -236,15 +278,16 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
     case 'step-08':
       return {
         kicker: 'Full Zero Row',
-        intro: '全零行不是“算不下去了”，而是对称根结构露出来了，所以必须通过辅助方程把这层信息重新写回劳斯表。',
+        intro: '全零行不是“算不下去了”，而是对称根结构露出来了。这一页必须逐步显示“发现零行 -> 构造辅助方程 -> 求导替换 -> 回读根结构”的完整链条。',
         sections: [
           {
             title: '完整题面',
             tone: 'cyan',
-            body: '对 D_2(s)=s^4+2s^3+2s^2+2s+1 建立劳斯表，并处理“某一整行为零”的情况。',
+            body: '对下式建立劳斯表，并处理“某一整行为零”的情况。',
+            formula: 'D_2(s)=s^4+2s^3+2s^2+2s+1',
           },
           {
-            title: '辅助方程规则',
+            title: '先固定处理规则',
             tone: 'emerald',
             bullets: ['全零行出现后，先取上一行系数构造 A(s)。', '再对 A(s) 求导，用导数系数替换零行。', '最后由辅助方程的根判断具体根结构。'],
           },
@@ -259,7 +302,7 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
     case 'step-09':
       return {
         kicker: 'Routh to Time Domain',
-        intro: '劳斯结论要能翻译回时域。表格先说明极点结构，图像再说明响应形态，这两个证据不能拆开读。',
+        intro: '这一页不再放静态图片，而是用根轨迹 + 时域响应联动面板，让“极点位置怎样改写响应形态”直接可见。读图顺序仍然是先表后图，再回到作答卡。',
         sections: [
           {
             title: '对应表',
@@ -267,9 +310,9 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
             bullets: ['第一列全正 -> 左半平面极点 -> 衰减收敛。', '边界根 -> 虚轴或原点 -> 等幅振荡或边界停留。', '第一列变号 -> 右半平面根 -> 发散。'],
           },
           {
-            title: '图后解释',
+            title: '读图提醒',
             tone: 'amber',
-            body: '极点越逼近虚轴，振荡衰减越慢；进入右半平面后，振荡包络开始放大。原点根与纯虚根都属于边界，但时域表现并不相同。',
+            body: '左侧根轨迹先告诉我们极点正在向哪里移动，右侧时域响应再把这种移动翻译成收敛、等幅或发散。原点根与纯虚根都属于边界，但时域表现并不相同。',
           },
         ],
         prompts: ['原点根与纯虚根在时域上的主要差异是什么？'],
@@ -277,7 +320,7 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
     case 'step-10':
       return {
         kicker: 'Routh to Frequency Domain',
-        intro: '频域线索在 3-2 里仍是辅助证据，但必须能回译到边界类型。公式卡、Bode 图和三域总表需要同页出现。',
+        intro: '这一页也不再停留在静态图，而是用根轨迹 + 幅频特性联动面板去读边界迹象。频域在 3-2 里仍是辅助证据，但必须能回译到边界类型。',
         sections: [
           {
             title: '频域线索',
@@ -295,7 +338,7 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
     case 'step-11':
       return {
         kicker: 'Shifted Constraint',
-        intro: '更强的区域约束不是新方法，而是把竖线约束通过变量平移重新送回普通劳斯判定。旧区间与新区间必须同页对照。',
+        intro: '更强的区域约束不是新方法，而是把竖线约束通过变量平移重新送回普通劳斯判定。这一页必须把“为什么要平移、平移后对象是什么、如何再列劳斯表、新旧区间如何对照”逐步写清。',
         sections: [
           {
             title: '完整题面',
@@ -427,32 +470,34 @@ const POSTTEST_QUESTIONS: QuizQuestion[] = [
   },
 ];
 
-const STEP_REVEAL_SEGMENTS_BY_STEP: Partial<Record<string, ReadonlyArray<{ key: string; label: string }>>> = {
+const STEP_REVEAL_SEGMENTS_BY_STEP: Partial<Record<string, ReadonlyArray<RevealDetail>>> = {
   'step-04': [
-    { key: 'base-rows', label: '先排出 s^4 与 s^3 两行' },
-    { key: 'coefficients', label: '依次算出 b_1、b_2 与 c_1' },
-    { key: 'first-column', label: '读第一列并做数值求根交叉验证' },
+    { key: 'base-rows', label: '第 1 步：先固定对象并排出 s^4、s^3 两行', formula: 's^4:\\ 1\\quad 9\\quad 6\\qquad s^3:\\ 5\\quad 11\\quad 0', body: '固定对象后，先把奇偶项系数按劳斯表规则排入前两行。' },
+    { key: 'b-row', label: '第 2 步：由前两行算出 s^2 行', formula: 'b_1=\\frac{5\\times 9-1\\times 11}{5}=\\frac{34}{5},\\qquad b_2=\\frac{5\\times 6-1\\times 0}{5}=6', body: '这里第一次真正进入递推计算。重点不是背公式，而是知道新行由上一层两行交叉算出。' },
+    { key: 'c-row', label: '第 3 步：继续算出 s^1 行', formula: 'c_1=\\frac{\\frac{34}{5}\\times 11-5\\times 6}{\\frac{34}{5}}=\\frac{112}{17}', body: '继续递推直到只剩第一列，即可回答右半平面根数。' },
+    { key: 'first-column', label: '第 4 步：回到第一列做稳定判断', formula: '1,\\ 5,\\ \\frac{34}{5},\\ \\frac{112}{17},\\ 6', bullets: ['第一列全正，没有符号变化。', '因此右半平面根数为 0。', '本例稳定，但这里仍然没有显式求出全部根。'] },
   ],
   'step-05': [
-    { key: 'table', label: '先列出带参数劳斯表' },
-    { key: 'inequality-chain', label: '再写出第一列不等式链' },
-    { key: 'interval', label: '最后合并条件得到稳定区间' },
+    { key: 'table', label: '第 1 步：先列出含 k 的劳斯表第一列', formula: '1,\\ 5,\\ \\frac{38-k}{5},\\ \\frac{k^2-13k-90}{k-38},\\ k+2', body: '一旦 k 进入系数，第一列本身就变成了参数条件链。' },
+    { key: 'inequality-chain', label: '第 2 步：逐条写出第一列全正条件', bullets: ['\\(\\frac{38-k}{5}>0\\Rightarrow k<38\\)', '\\(\\frac{k^2-13k-90}{k-38}>0\\Rightarrow -2<k<18\\ \\text{或}\\ k>38\\)', '\\(k+2>0\\Rightarrow k>-2\\)'], body: '不能直接跳到区间，必须逐条保留条件来源。' },
+    { key: 'interval', label: '第 3 步：合并得到稳定区间', formula: '-2<k<18', bullets: ['s^0 行条件负责托住左端点。', '合并条件后，k>38 被前一行符号条件排除。'] },
   ],
   'step-07': [
-    { key: 'zero-head', label: '先得到 b_1=0、b_2=5' },
-    { key: 'epsilon', label: '再用 ε 替代首位零' },
-    { key: 'sign-change', label: '根据第一列符号变化判断右半平面根数' },
+    { key: 'zero-head', label: '第 1 步：先识别“首位为 0，但该行不全为 0”', formula: 's^2\\ \\text{行首项}=\\frac{2\\times3-1\\times6}{2}=0', body: '这里不是全零行，因此处理动作不是辅助方程，而是 ε 连续化。' },
+    { key: 'epsilon', label: '第 2 步：用 ε 替代该行首位', formula: 's^2:\\ \\varepsilon\\quad 5\\quad 0', bullets: ['ε 只是判断辅助量。', '它的任务是保住第一列符号判断的连续性。'] },
+    { key: 'sign-change', label: '第 3 步：沿第一列回读符号变化', formula: '1,\\ 2,\\ \\varepsilon,\\ 6-\\frac{10}{\\varepsilon},\\ 5', bullets: ['当 ε\\to0^+ 时，\\(6-\\frac{10}{\\varepsilon}<0\\)。', '第一列发生两次变号。', '因此右半平面根数为 2。'] },
   ],
   'step-08': [
-    { key: 'zero-row', label: '先识别整行为零' },
-    { key: 'aux-equation', label: '由上一行系数构造 A(s)' },
-    { key: 'derivative', label: '对 A(s) 求导并替换零行' },
-    { key: 'structure', label: '由辅助方程根判断对称根结构' },
+    { key: 'zero-row', label: '第 1 步：先确认出现的是整行为零', formula: 's^2:\\ 1\\quad 1\\quad 0\\qquad s^1:\\ 0\\quad 0\\quad 0', body: '整行为零说明不是首位为 0 那一类异常，而是对称根结构浮现出来了。' },
+    { key: 'aux-equation', label: '第 2 步：由上一行构造辅助方程', formula: 'A(s)=s^2+1', bullets: ['辅助方程来自零行上一行。', '它把隐藏的对称根结构显式写回代数对象。'] },
+    { key: 'derivative', label: '第 3 步：对辅助方程求导并回填零行', formula: 'A\'(s)=2s\\Rightarrow s^1\\ \\text{行替换为}\\ 2\\quad 0', body: '替换零行的不是任意一行，而是辅助方程导数的系数。' },
+    { key: 'structure', label: '第 4 步：再由辅助方程的根回读结构', formula: 'A(s)=0\\Rightarrow s=\\pm j', bullets: ['本例对应纯虚根对。', '这一步解释了为什么会出现整行为零。'] },
   ],
   'step-11': [
-    { key: 'shift-polynomial', label: '先写出平移后多项式' },
-    { key: 'shifted-routh', label: '再列写平移后的劳斯表' },
-    { key: 'compare-intervals', label: '最后比较旧区间与新区间' },
+    { key: 'shift-polynomial', label: '第 1 步：把竖线约束改写成变量平移', formula: 's=z-\\frac12,\\qquad \\tilde D(z,k)=D\\left(z-\\frac12,k\\right)', body: '平移的目的，是把“全部极点位于 \\(\\operatorname{Re}(s)<-0.5\\)”改写成 z 平面中的普通稳定问题。' },
+    { key: 'expanded', label: '第 2 步：写出平移后的多项式', formula: '\\tilde D(z,k)=z^4+3z^3+3z^2+\\left(k+\\frac54\\right)z+\\left(\\frac{k}{2}+\\frac{3}{16}\\right)', body: '新的特征方程对象变了，但判稳方法没有变，仍然回到普通劳斯判据。' },
+    { key: 'shifted-routh', label: '第 3 步：对平移后对象再列劳斯条件', bullets: ['\\(\\frac{31-4k}{12}>0\\Rightarrow k<\\frac{31}{4}\\)', '\\(\\frac{k}{2}+\\frac{3}{16}>0\\Rightarrow k>-\\frac38\\)', '\\(\\frac{4(k-4)(k+2)}{4k-31}>0\\Rightarrow -2<k<4\\ \\text{或}\\ k>\\frac{31}{4}\\)'] },
+    { key: 'compare-intervals', label: '第 4 步：对比旧区间与新区间', formula: '-2<k<18,\\qquad -\\frac38<k<4', bullets: ['更强约束会收紧可行区间。', 'k=4 在普通稳定问题中可行，但已经压在新边界上。'] },
   ],
 };
 
@@ -805,29 +850,6 @@ function getRevealContent(step: UNIT_3_2StepDefinition) {
   }
 }
 
-function getAiPrompts(step: UNIT_3_2StepDefinition) {
-  return getStepBlueprint(step).prompts ?? [];
-}
-
-function buildInteractiveAiConfig(step: UNIT_3_2StepDefinition): InteractiveConfig {
-  return {
-    resourceId: `unit32:${step.id}`,
-    registryId: 'unit32-inline-ai',
-    title: `${step.title} · 页内 AI 助手`,
-    description: '当前课程页的就地 AI 对照助手',
-    aiHints: `围绕 ${step.title} 进行讲解，只回答当前页面问题。`,
-    config: {
-      ai: {
-        enabled: true,
-        persona: 'tutor',
-      },
-      layout: {
-        showAIPanel: true,
-      },
-    },
-  };
-}
-
 function getDefaultDraft(activity: ActivitySpec, savedResponse?: UNIT_3_2StepResponse) {
   if (savedResponse) {
     return savedResponse.answers;
@@ -941,7 +963,7 @@ function RevealTrack({
   revealProgress,
 }: {
   title: string;
-  items: ReadonlyArray<{ key: string; label: string }>;
+  items: ReadonlyArray<RevealDetail>;
   revealProgress: number;
 }) {
   return (
@@ -951,9 +973,30 @@ function RevealTrack({
         {items.map((item, index) => (
           <div
             key={item.key}
-            className={`rounded-2xl border px-3 py-2 text-sm ${index < revealProgress ? 'border-cyan-400/60 bg-cyan-500/10' : 'border-border/50 bg-background/40 text-foreground/60'}`}
+            className={`rounded-2xl border px-3 py-3 text-sm ${index < revealProgress ? 'border-cyan-400/60 bg-cyan-500/10' : 'border-border/50 bg-background/40 text-foreground/60'}`}
           >
-            {item.label}
+            <div className="font-medium">{item.label}</div>
+            {index < revealProgress ? (
+              <div className="mt-2">
+                {item.body ? <RichText content={item.body} /> : null}
+                {item.formula ? (
+                  <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                    <BlockMath math={item.formula} />
+                  </div>
+                ) : null}
+                {item.bullets?.length ? (
+                  <ul className="mt-3 grid gap-2 text-sm leading-7">
+                    {item.bullets.map((bullet) => (
+                      <li key={bullet} className="ml-4 list-disc">
+                        <RichText content={bullet} />
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            ) : (
+              <div className="mt-2 text-xs">等待教师显影后显示本步骤的公式与解释。</div>
+            )}
           </div>
         ))}
       </div>
@@ -1014,6 +1057,7 @@ export function UNIT_3_2StepContentPanel({
   step,
   mediaSrc,
   mediaAlt,
+  onWorkspaceParameterChange,
   revealProgress = 0,
 }: {
   step: UNIT_3_2StepDefinition;
@@ -1046,7 +1090,8 @@ export function UNIT_3_2StepContentPanel({
         {blueprint.sections.map((section) => (
           <div key={section.title} className={`premium-lesson-tone-block ${getToneClass(section.tone)}`}>
             <div className="font-medium">{section.title}</div>
-            {section.body ? <div className="mt-2 text-sm leading-7">{section.body}</div> : null}
+            {section.body ? <RichText content={section.body} /> : null}
+            {section.markdown ? <RichText content={section.markdown} /> : null}
             {section.formula ? (
               <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
                 <BlockMath math={section.formula} />
@@ -1056,7 +1101,7 @@ export function UNIT_3_2StepContentPanel({
               <ul className="mt-3 grid gap-2 text-sm leading-7">
                 {section.bullets.map((item) => (
                   <li key={item} className="ml-4 list-disc">
-                    {item}
+                    <RichText content={item} />
                   </li>
                 ))}
               </ul>
@@ -1064,6 +1109,13 @@ export function UNIT_3_2StepContentPanel({
           </div>
         ))}
       </div>
+
+      {step.id === 'step-06' || step.id === 'step-09' || step.id === 'step-10' ? (
+        <UNIT_3_2AnalysisWorkspace
+          stepId={step.id}
+          onWorkspaceParameterChange={onWorkspaceParameterChange}
+        />
+      ) : null}
 
       {revealItems.length ? <RevealTrack title="教师逐步显影" items={revealItems} revealProgress={Math.min(revealItems.length, revealProgress)} /> : null}
 
@@ -1131,13 +1183,17 @@ export function UNIT_3_2StudentActivityForm({
   return (
     <section className="premium-lesson-panel-soft px-4 py-4">
       <div className="premium-lesson-title text-sm font-medium">学生作答区</div>
-      <p className="premium-lesson-muted mt-2 text-sm">
-        {locked
-          ? requiresBrowse && !browseEnabled
-            ? '教师尚未开放浏览，请先阅读已显示的静态内容。'
-            : '教师尚未发放本页互动，请先阅读上方静态内容。'
-          : activity.helper}
-      </p>
+      <div className="premium-lesson-muted mt-2 text-sm">
+        <RichText
+          content={
+            locked
+              ? requiresBrowse && !browseEnabled
+                ? '教师尚未开放浏览，请先阅读已显示的静态内容。'
+                : '教师尚未发放本页互动，请先阅读上方静态内容。'
+              : activity.helper
+          }
+        />
+      </div>
 
       {contract.teacherControls.teacherStepReveal === 'teacher_only' && activity.kind === 'cards' ? (
         <div className="premium-lesson-muted mt-2 text-xs">当前显影层级：{revealProgress}</div>
@@ -1149,7 +1205,14 @@ export function UNIT_3_2StudentActivityForm({
         <div className="mt-4 grid gap-4">
           {activity.questions?.map((question) => (
             <div key={question.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
+              <div className="premium-lesson-title text-sm font-medium">
+                <RichText content={question.prompt} />
+              </div>
+              {question.formula ? (
+                <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                  <BlockMath math={question.formula} />
+                </div>
+              ) : null}
               <div className="mt-3">
                 {question.type === 'text' ? (
                   <TextInput
@@ -1171,7 +1234,14 @@ export function UNIT_3_2StudentActivityForm({
 
           {activity.fields?.map((field) => (
             <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
+              <div className="premium-lesson-title text-sm font-medium">
+                <RichText content={field.label} />
+              </div>
+              {field.formula ? (
+                <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                  <BlockMath math={field.formula} />
+                </div>
+              ) : null}
               <div className="mt-3">
                 {field.type === 'radio' ? (
                   <ChoiceGroup
@@ -1197,11 +1267,25 @@ export function UNIT_3_2StudentActivityForm({
                 const cardSubmitted = card.fields.every((field) => Boolean(savedAnswers[field.key]?.trim()));
                 return (
                   <div key={card.id} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                    <div className="premium-lesson-title text-sm font-medium">{card.title}</div>
-                    {card.helper ? <div className="premium-lesson-muted mt-2 text-sm">{card.helper}</div> : null}
+                    <div className="premium-lesson-title text-sm font-medium">
+                      <RichText content={card.title} />
+                    </div>
+                    {card.helper ? (
+                      <div className="premium-lesson-muted mt-2 text-sm">
+                        <RichText content={card.helper} />
+                      </div>
+                    ) : null}
                     <div className="mt-3 grid gap-3">
                       {card.fields.map((field) => (
                         <div key={field.key}>
+                          <div className="premium-lesson-muted mb-2 text-sm">
+                            <RichText content={field.label} />
+                          </div>
+                          {field.formula ? (
+                            <div className="mb-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                              <BlockMath math={field.formula} />
+                            </div>
+                          ) : null}
                           {field.type === 'radio' ? (
                             <ChoiceGroup
                               options={field.options ?? []}
@@ -1247,7 +1331,9 @@ export function UNIT_3_2StudentActivityForm({
       />
 
       {answerVisible && revealContent ? (
-        <div className="premium-lesson-tone-block premium-tone-emerald mt-4 text-sm leading-7">{revealContent}</div>
+        <div className="premium-lesson-tone-block premium-tone-emerald mt-4 text-sm leading-7">
+          <RichText content={revealContent} />
+        </div>
       ) : null}
     </section>
   );
@@ -1353,7 +1439,9 @@ export function UNIT_3_2TeacherActivitySummary({
             <div className="mt-3 grid gap-3 text-sm">
               {activityFields.map((field) => (
                 <div key={field.key}>
-                  <div className="font-medium">{field.label}</div>
+                  <div className="font-medium">
+                    <RichText content={field.label} />
+                  </div>
                   <div className="premium-lesson-muted mt-1">{renderFieldValue(field, field.answer ?? '')}</div>
                 </div>
               ))}
@@ -1428,84 +1516,6 @@ export function UNIT_3_2StudentSummaryPanel({
       <div className="premium-lesson-tone-block premium-tone-emerald mt-4 text-sm">
         {'你已经把“普通判稳 -> 参数区间 -> 特殊情况 -> 三域翻译 -> 区域约束”这条链条搭起来了。下一课会解释极点为何沿稳定边界附近那条路径迁移。'}
       </div>
-    </section>
-  );
-}
-
-export function UNIT_3_2StepAiAssistant({
-  step,
-  onAiEvent,
-}: {
-  step: UNIT_3_2StepDefinition;
-  onAiEvent?: (eventType: string, data?: Record<string, unknown>) => void;
-}) {
-  const prompts = getAiPrompts(step);
-  const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
-  const ai = useInteractiveAI({
-    config: buildInteractiveAiConfig(step),
-    contextData: {
-      lessonId: '3-2',
-      stepId: step.id,
-      prompts,
-    },
-    onEvent: onAiEvent,
-  });
-
-  useEffect(() => {
-    if (!copiedPrompt) {
-      return undefined;
-    }
-    const timer = window.setTimeout(() => setCopiedPrompt(null), 1200);
-    return () => window.clearTimeout(timer);
-  }, [copiedPrompt]);
-
-  if (!prompts.length) {
-    return null;
-  }
-
-  return (
-    <section className="premium-lesson-panel-soft px-4 py-4">
-      <div className="premium-lesson-title flex items-center gap-2 text-sm font-medium">
-        <Sparkles className="h-4 w-4" />
-        页内 AI 助手
-      </div>
-      <p className="premium-lesson-muted mt-2 text-sm">
-        当前只围绕 {step.title} 回答问题，帮助你核对“判稳规则 -&gt; 边界结构 -&gt; 参数可行域”的推理链。
-      </p>
-      <div className="mt-4 grid gap-3">
-        {prompts.map((prompt) => (
-          <div key={prompt} className="premium-lesson-surface-elevated flex flex-wrap items-start justify-between gap-3 px-4 py-4">
-            <div className="text-sm leading-7">{prompt}</div>
-            <button
-              type="button"
-              onClick={async () => {
-                await navigator.clipboard.writeText(prompt);
-                setCopiedPrompt(prompt);
-              }}
-              className="premium-lesson-control shrink-0"
-            >
-              <Copy className="h-4 w-4" />
-              {copiedPrompt === prompt ? '已复制' : '复制提示词'}
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <button type="button" onClick={ai.togglePanel} className="premium-lesson-action-primary mt-4">
-        打开页内 AI
-      </button>
-
-      <Dialog open={ai.isPanelOpen} onOpenChange={ai.togglePanel}>
-        <DialogContent className="max-w-5xl border-border bg-background p-0 text-foreground">
-          <DialogHeader className="border-b border-border px-6 py-4">
-            <DialogTitle>{UNIT_3_2_COURSE_TITLE} · 页内 AI 助手</DialogTitle>
-            <DialogDescription>{step.title}</DialogDescription>
-          </DialogHeader>
-          <div className="h-[75vh]">
-            <InteractiveAIPanel ai={ai} title={`${step.title} · AI 对照`} position="right" />
-          </div>
-        </DialogContent>
-      </Dialog>
     </section>
   );
 }

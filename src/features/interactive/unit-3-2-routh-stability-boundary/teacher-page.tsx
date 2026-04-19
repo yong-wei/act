@@ -14,7 +14,6 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   finalizeUNIT_3_2TeacherSession,
   getUNIT_3_2MediaSrc,
-  isUNIT_3_2AiPageType,
   isUNIT_3_2TeacherSyncState,
   resolveUNIT_3_2TeacherSyncDraft,
   shouldPostUNIT_3_2TeacherSync,
@@ -29,7 +28,6 @@ import {
 import { UNIT_3_2CourseHeader } from './course-header';
 import {
   UNIT_3_2KnowledgeMapVisual,
-  UNIT_3_2StepAiAssistant,
   UNIT_3_2StepContentPanel,
   UNIT_3_2TeacherActivitySummary,
 } from './step-panels';
@@ -189,19 +187,6 @@ export function UNIT_3_2TeacherPage({
     }
   }, [finishSession, router, sessionInfo, step.id, trackSessionFinalize]);
 
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
-
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
       trackWorkspaceParamChange(step.id, {
@@ -298,12 +283,6 @@ export function UNIT_3_2TeacherPage({
           revealProgress={teacherRevealProgress[step.id] ?? 0}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
-
-        {isUNIT_3_2AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_2StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
 
         <div className="mt-4">
           <UNIT_3_2TeacherActivitySummary

@@ -18,6 +18,9 @@ COURSE_ROOT = REPO_ROOT / 'course-content'
 AUTHORING_ROOT = COURSE_ROOT / 'authoring'
 RUNTIME_ROOT = COURSE_ROOT / 'runtime'
 
+ACCEPTANCE_PASS_STATUSES = {'accepted', 'pass', 'passed'}
+ACCEPTANCE_FAIL_STATUSES = {'blocked', 'fail', 'failed', 'needs_revision', 'rejected'}
+
 sys.path.insert(0, str(COURSE_ROOT / 'scripts'))
 from lesson_id_map import (  # noqa: E402
     get_authoring_cards_dir,
@@ -38,7 +41,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         '--strict-implementation-contract',
         action='store_true',
-        help='Exit with non-zero status when authoring interactive contract and local implementation contract drift.',
+        help='Exit with non-zero status when implementation contract, acceptance files, stale review, or hard gates fail.',
     )
     return parser.parse_args()
 
@@ -62,6 +65,78 @@ def format_repo_path(path: Path) -> str:
         return str(path.relative_to(REPO_ROOT)).replace('\\', '/')
     except ValueError:
         return path.as_posix()
+
+
+def parse_iso_datetime(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    normalized = value.strip().replace('Z', '+00:00')
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
+def normalize_status(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip().lower()
+    if normalized in ACCEPTANCE_PASS_STATUSES | ACCEPTANCE_FAIL_STATUSES:
+        return normalized
+    return None
+
+
+def normalize_string_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [
+        item.strip()
+        for item in value
+        if isinstance(item, str) and item.strip()
+    ]
+
+
+def resolve_repo_path(raw_path: str) -> Path:
+    path = Path(raw_path)
+    if path.is_absolute():
+        return path
+    return REPO_ROOT / path
+
+
+def collect_acceptance_source_files(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return normalize_string_list(value)
+    if isinstance(value, dict):
+        return [
+            raw.strip()
+            for raw in value.values()
+            if isinstance(raw, str) and raw.strip()
+        ]
+    return []
+
+
+def build_hard_gate_issue(
+    code: str,
+    message: str,
+    *,
+    step_ids: list[str] | None = None,
+    evidence: list[str] | None = None,
+    source_path: str | None = None,
+) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        'code': code,
+        'message': message,
+    }
+    if step_ids:
+        payload['step_ids'] = step_ids
+    if evidence:
+        payload['evidence'] = evidence
+    if source_path:
+        payload['source_path'] = source_path
+    return payload
 
 
 def ensure_runtime_review_dir(lesson_id: str) -> Path:
@@ -552,6 +627,251 @@ def collect_missing_nested_contract_fields(
     ]
 
 
+def load_acceptance_payload(path: Path, label: str) -> tuple[dict[str, Any] | None, list[str]]:
+    if not path.exists():
+        return None, [f'缺少 {label}：{format_repo_path(path)}']
+    try:
+        payload = read_json(path)
+    except json.JSONDecodeError as exc:
+        return None, [f'{label} 不是合法 JSON：{exc.msg}']
+    if not isinstance(payload, dict):
+        return None, [f'{label} 顶层必须是对象']
+    return payload, []
+
+
+def validate_common_acceptance_fields(
+    payload: dict[str, Any],
+    lesson_id: str,
+    label: str,
+) -> list[str]:
+    issues: list[str] = []
+    if str(payload.get('lesson_id', '')).strip() != lesson_id:
+        issues.append(f'{label} 的 `lesson_id` 必须等于 `{lesson_id}`')
+    if 'acceptance_version' not in payload:
+        issues.append(f'{label} 缺少 `acceptance_version`')
+    status = normalize_status(payload.get('status'))
+    if status is None:
+        issues.append(f'{label} 的 `status` 必须为 accepted/pass/passed 或 blocked/fail/failed/needs_revision/rejected')
+    elif status not in ACCEPTANCE_PASS_STATUSES:
+        issues.append(f'{label} 状态未通过：{payload.get("status")}')
+    if parse_iso_datetime(payload.get('accepted_at')) is None:
+        issues.append(f'{label} 缺少合法 ISO 时间字段 `accepted_at`')
+    return issues
+
+
+def validate_design_acceptance(
+    lesson_id: str,
+    lesson_dir: Path,
+) -> tuple[Path, dict[str, Any] | None, list[str], list[str]]:
+    path = lesson_dir / 'design' / 'interactive-design-acceptance.json'
+    payload, issues = load_acceptance_payload(path, '互动设计接受文件')
+    if payload is None:
+        return path, None, issues, []
+
+    issues.extend(validate_common_acceptance_fields(payload, lesson_id, '互动设计接受文件'))
+    source_files = collect_acceptance_source_files(payload.get('source_files'))
+    required_suffixes = [
+        'design/interactive-page.md',
+        'design/interactive-contract.yaml',
+    ]
+    for suffix in required_suffixes:
+        if not any(source_file.endswith(suffix) for source_file in source_files):
+            issues.append(f'互动设计接受文件 `source_files` 缺少 `{suffix}`')
+
+    summary: list[str] = []
+    if not issues:
+        summary.append('互动设计接受文件已通过校验。')
+    return path, payload, issues, summary
+
+
+def normalize_acceptance_check_payload(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str):
+        return {'status': value}
+    if isinstance(value, bool):
+        return {'status': 'fail' if value else 'pass'}
+    return {}
+
+
+def validate_implementation_acceptance(
+    lesson_id: str,
+    lesson_dir: Path,
+    *,
+    required: bool,
+) -> tuple[Path, dict[str, Any] | None, list[str], list[str], list[str], dict[str, dict[str, Any]]]:
+    path = lesson_dir / 'notes' / 'interactive-implementation-acceptance.json'
+    if not required and not path.exists():
+        return path, None, [], [], [], {}
+
+    payload, issues = load_acceptance_payload(path, '互动实现接受文件')
+    if payload is None:
+        return path, None, issues if required else [], [], [], {}
+
+    issues.extend(validate_common_acceptance_fields(payload, lesson_id, '互动实现接受文件'))
+    reviewed_runtime_artifacts = normalize_string_list(payload.get('reviewed_runtime_artifacts'))
+    if not reviewed_runtime_artifacts:
+        issues.append('互动实现接受文件缺少非空 `reviewed_runtime_artifacts`')
+    else:
+        required_suffixes = [
+            '/review/review-report.md',
+            '/review/interactive-page-check.json',
+        ]
+        for suffix in required_suffixes:
+            if not any(path_value.endswith(suffix) for path_value in reviewed_runtime_artifacts):
+                issues.append(f'互动实现接受文件 `reviewed_runtime_artifacts` 缺少 `{suffix}`')
+        for artifact in reviewed_runtime_artifacts:
+            artifact_path = resolve_repo_path(artifact)
+            if not artifact_path.exists():
+                issues.append(f'互动实现接受文件引用的 runtime 审查产物不存在：{artifact}')
+
+    checks = payload.get('checks')
+    if not isinstance(checks, dict):
+        issues.append('互动实现接受文件缺少 `checks` 对象')
+        checks = {}
+
+    check_findings: dict[str, dict[str, Any]] = {}
+    for check_name in ('inline_ai_visibility', 'static_media_downgrade'):
+        check_payload = normalize_acceptance_check_payload(checks.get(check_name))
+        if not check_payload:
+            issues.append(f'互动实现接受文件缺少 `checks.{check_name}`')
+            continue
+        status = normalize_status(check_payload.get('status'))
+        if status is None:
+            issues.append(f'互动实现接受文件 `checks.{check_name}.status` 不合法')
+            continue
+        step_ids = normalize_string_list(check_payload.get('step_ids') or check_payload.get('steps'))
+        evidence = normalize_string_list(check_payload.get('evidence') or check_payload.get('issues'))
+        check_findings[check_name] = {
+            'status': status,
+            'step_ids': step_ids,
+            'evidence': evidence,
+        }
+
+    summary: list[str] = []
+    if not issues:
+        summary.append('互动实现接受文件已通过校验。')
+    return path, payload, issues, summary, reviewed_runtime_artifacts, check_findings
+
+
+def get_hidden_ai_step_ids(contract_steps: Any) -> list[str]:
+    if not isinstance(contract_steps, dict):
+        return []
+    step_ids: list[str] = []
+    for step_id, step_payload in contract_steps.items():
+        if not isinstance(step_payload, dict):
+            continue
+        ai_context_spec = step_payload.get('ai_context_spec')
+        if isinstance(ai_context_spec, dict) and ai_context_spec.get('delivery_mode') == 'hidden_page_context':
+            step_ids.append(str(step_id))
+    return step_ids
+
+
+def step_requires_live_linkage(step_payload: Any) -> bool:
+    if not isinstance(step_payload, dict):
+        return False
+    interaction_spec = step_payload.get('interaction_spec')
+    layout = step_payload.get('layout')
+    candidate_values: list[str] = []
+    if isinstance(interaction_spec, dict):
+        for field_name in ('interaction_kind', 'interaction_archetype', 'student_task'):
+            value = interaction_spec.get(field_name)
+            if isinstance(value, str):
+                candidate_values.append(value.lower())
+    if isinstance(layout, dict):
+        template = layout.get('template')
+        if isinstance(template, str):
+            candidate_values.append(template.lower())
+        regions = layout.get('regions')
+        if isinstance(regions, list):
+            for region in regions:
+                if isinstance(region, dict) and isinstance(region.get('id'), str):
+                    candidate_values.append(region['id'].lower())
+    return any(
+        keyword in value
+        for value in candidate_values
+        for keyword in ('workspace', 'parameter', 'parametric', 'slider', 'interactive_figure')
+    )
+
+
+def get_live_linkage_step_ids(contract_steps: Any) -> list[str]:
+    if not isinstance(contract_steps, dict):
+        return []
+    return [
+        str(step_id)
+        for step_id, step_payload in contract_steps.items()
+        if step_requires_live_linkage(step_payload)
+    ]
+
+
+def intersect_or_default(candidate_steps: list[str], allowed_steps: list[str]) -> list[str]:
+    if candidate_steps:
+        return [step_id for step_id in candidate_steps if step_id in allowed_steps]
+    return allowed_steps
+
+
+def build_acceptance_hard_gate_issues(
+    contract_steps: Any,
+    implementation_check_findings: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    hard_gate_issues: list[dict[str, Any]] = []
+    hidden_ai_step_ids = get_hidden_ai_step_ids(contract_steps)
+    inline_ai_check = implementation_check_findings.get('inline_ai_visibility')
+    if inline_ai_check and inline_ai_check.get('status') in ACCEPTANCE_FAIL_STATUSES:
+        affected_steps = intersect_or_default(inline_ai_check.get('step_ids', []), hidden_ai_step_ids)
+        if affected_steps:
+            hard_gate_issues.append(build_hard_gate_issue(
+                'inline_ai_visibility',
+                '契约要求隐藏式 AI 页面上下文，但本地实现验收记录了页内 AI 入口。',
+                step_ids=affected_steps,
+                evidence=inline_ai_check.get('evidence', []),
+            ))
+
+    live_linkage_step_ids = get_live_linkage_step_ids(contract_steps)
+    static_media_check = implementation_check_findings.get('static_media_downgrade')
+    if static_media_check and static_media_check.get('status') in ACCEPTANCE_FAIL_STATUSES:
+        affected_steps = intersect_or_default(static_media_check.get('step_ids', []), live_linkage_step_ids)
+        if affected_steps:
+            hard_gate_issues.append(build_hard_gate_issue(
+                'static_media_downgrade',
+                '契约要求工作区或参数联动，但本地实现验收记录为静态媒体降级。',
+                step_ids=affected_steps,
+                evidence=static_media_check.get('evidence', []),
+            ))
+    return hard_gate_issues
+
+
+def build_runtime_review_staleness_issues(
+    authoring_paths: list[Path],
+    reviewed_runtime_artifacts: list[str],
+) -> list[dict[str, Any]]:
+    existing_authoring_paths = [path for path in authoring_paths if path.exists()]
+    runtime_paths = [
+        resolve_repo_path(path)
+        for path in reviewed_runtime_artifacts
+        if resolve_repo_path(path).exists()
+    ]
+    if not existing_authoring_paths or not runtime_paths:
+        return []
+
+    newest_authoring_path = max(existing_authoring_paths, key=lambda path: path.stat().st_mtime)
+    oldest_runtime_path = min(runtime_paths, key=lambda path: path.stat().st_mtime)
+    if newest_authoring_path.stat().st_mtime <= oldest_runtime_path.stat().st_mtime:
+        return []
+
+    source_time = datetime.fromtimestamp(newest_authoring_path.stat().st_mtime, timezone.utc).isoformat()
+    runtime_time = datetime.fromtimestamp(oldest_runtime_path.stat().st_mtime, timezone.utc).isoformat()
+    return [build_hard_gate_issue(
+        'runtime_review_stale',
+        (
+            '作者态文件晚于 runtime 审查产物，当前审查已过期（stale_review）：'
+            f'`{format_repo_path(newest_authoring_path)}` 更新于 {source_time}，'
+            f'晚于 `{format_repo_path(oldest_runtime_path)}` 的 {runtime_time}。'
+        ),
+        source_path=format_repo_path(newest_authoring_path),
+    )]
+
+
 def build_implementation_contract_check(lesson_id: str, contract_path: Path) -> tuple[str | None, list[str], list[str]]:
     config = IMPLEMENTATION_CONTRACT_REGISTRY.get(lesson_id)
     if not config:
@@ -802,6 +1122,8 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
             'lesson_id': lesson_id,
             'source_path': None,
             'contract_path': format_repo_path(interactive_contract),
+            'design_acceptance_path': format_repo_path(lesson_dir / 'design' / 'interactive-design-acceptance.json'),
+            'implementation_acceptance_path': format_repo_path(lesson_dir / 'notes' / 'interactive-implementation-acceptance.json'),
             'implementation_contract_source': None,
             'contract_required_fields': INTERACTIVE_CONTRACT_REQUIRED_STEP_FIELDS,
             'included_in_primary_sources': False,
@@ -819,6 +1141,14 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
             'curve_figure_steps_missing_contract': [],
             'missing_contract_fields': [],
             'step_contract_issues': [],
+            'design_acceptance_summary': [],
+            'design_acceptance_issues': [],
+            'implementation_acceptance_summary': [],
+            'implementation_acceptance_issues': [],
+            'runtime_review_stale_issues': [],
+            'hard_gate_issues': [],
+            'hard_gate_issue_codes': [],
+            'blocking_issues': ['缺少 design/interactive-page.md'],
             'implementation_contract_summary': [],
             'implementation_contract_issues': [],
             'summary': [],
@@ -985,17 +1315,54 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         interactive_contract,
     )
     issues.extend(contract_issues)
+    implementation_config = IMPLEMENTATION_CONTRACT_REGISTRY.get(lesson_id)
+    requires_implementation_acceptance = bool(
+        implementation_config and Path(implementation_config['course_lib_path']).exists()
+    )
     implementation_contract_source, implementation_contract_issues, implementation_contract_summary = build_implementation_contract_check(
         lesson_id,
         interactive_contract,
     )
     issues.extend(implementation_contract_issues)
 
+    design_acceptance_path, _design_acceptance_payload, design_acceptance_issues, design_acceptance_summary = validate_design_acceptance(
+        lesson_id,
+        lesson_dir,
+    )
+    issues.extend(design_acceptance_issues)
+    (
+        implementation_acceptance_path,
+        _implementation_acceptance_payload,
+        implementation_acceptance_issues,
+        implementation_acceptance_summary,
+        reviewed_runtime_artifacts,
+        implementation_check_findings,
+    ) = validate_implementation_acceptance(
+        lesson_id,
+        lesson_dir,
+        required=requires_implementation_acceptance,
+    )
+    issues.extend(implementation_acceptance_issues)
+
     curve_figure_steps_missing_contract: list[str] = []
     nested_render_contract_fields_missing: list[str] = []
     payload, _ = load_interactive_contract(interactive_contract)
+    contract_steps = payload.get('steps') if isinstance(payload, dict) else None
+    hard_gate_issues = build_acceptance_hard_gate_issues(
+        contract_steps,
+        implementation_check_findings,
+    )
+    default_review_artifacts = [
+        format_repo_path(get_runtime_lesson_dir(lesson_id) / 'review' / 'review-report.md'),
+        format_repo_path(get_runtime_lesson_dir(lesson_id) / 'review' / 'interactive-page-check.json'),
+    ]
+    hard_gate_issues.extend(build_runtime_review_staleness_issues(
+        list(dict.fromkeys(primary_sources + [interactive_contract, design_acceptance_path])),
+        reviewed_runtime_artifacts or default_review_artifacts,
+    ))
+    hard_gate_messages = [issue['message'] for issue in hard_gate_issues]
+    issues.extend(hard_gate_messages)
     if isinstance(payload, dict) and mapping_contract_mode in {'core_items', 'evidence_units'}:
-        contract_steps = payload.get('steps')
         required_curve_figure_fields = normalize_optional_required_fields(payload, 'required_curve_figure_fields')
         required_native_figure_fields = normalize_optional_required_fields(payload, 'required_native_figure_fields')
         required_native_table_fields = normalize_optional_required_fields(payload, 'required_native_table_fields')
@@ -1060,12 +1427,22 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         warnings.extend(issues)
     summary.extend(contract_summary)
     summary.extend(implementation_contract_summary)
+    summary.extend(design_acceptance_summary)
+    summary.extend(implementation_acceptance_summary)
     warnings.extend(contract_warnings)
+    blocking_issues = (
+        implementation_contract_issues
+        + design_acceptance_issues
+        + implementation_acceptance_issues
+        + hard_gate_messages
+    )
 
     return {
         'lesson_id': lesson_id,
         'source_path': format_repo_path(interactive_page),
         'contract_path': format_repo_path(interactive_contract),
+        'design_acceptance_path': format_repo_path(design_acceptance_path),
+        'implementation_acceptance_path': format_repo_path(implementation_acceptance_path),
         'implementation_contract_source': implementation_contract_source,
         'contract_required_fields': contract_required_fields,
         'included_in_primary_sources': interactive_page in primary_sources,
@@ -1083,6 +1460,22 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         'curve_figure_steps_missing_contract': curve_figure_steps_missing_contract,
         'missing_contract_fields': nested_render_contract_fields_missing,
         'step_contract_issues': contract_issues,
+        'design_acceptance_summary': design_acceptance_summary,
+        'design_acceptance_issues': design_acceptance_issues,
+        'implementation_acceptance_summary': implementation_acceptance_summary,
+        'implementation_acceptance_issues': implementation_acceptance_issues,
+        'reviewed_runtime_artifacts': reviewed_runtime_artifacts,
+        'runtime_review_stale_issues': [
+            issue for issue in hard_gate_issues
+            if issue.get('code') == 'runtime_review_stale'
+        ],
+        'hard_gate_issues': hard_gate_issues,
+        'hard_gate_issue_codes': [
+            issue.get('code')
+            for issue in hard_gate_issues
+            if issue.get('code')
+        ],
+        'blocking_issues': blocking_issues,
         'implementation_contract_summary': implementation_contract_summary,
         'implementation_contract_issues': implementation_contract_issues,
         'summary': summary,
@@ -1407,10 +1800,10 @@ def main() -> None:
         ),
     )
 
-    if args.strict_implementation_contract and interactive_page_check.get('implementation_contract_issues'):
+    if args.strict_implementation_contract and interactive_page_check.get('blocking_issues'):
         raise SystemExit(
-            'interactive implementation contract drift detected:\n- '
-            + '\n- '.join(interactive_page_check['implementation_contract_issues'])
+            'interactive implementation contract gate failed:\n- '
+            + '\n- '.join(interactive_page_check['blocking_issues'])
         )
 
     if not args.skip_export:

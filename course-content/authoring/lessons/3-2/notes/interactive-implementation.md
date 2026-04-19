@@ -39,3 +39,11 @@
 rtk npm run test:unit -- src/features/interactive/__tests__/unit-3-2-course.test.ts
 rtk python3 course-content/scripts/review_lesson_content.py --lesson 3-2 --strict-implementation-contract
 ```
+
+## 本轮整改补记
+
+- 学生页与教师页已移除页内 AI 入口，快捷提问仅保留在隐藏式控灵页面上下文中。
+- `step-06`、`step-09`、`step-10` 已改为 Rust/WASM 驱动的动态工作区，分别对应边界判读、时域响应与幅频特性。
+- `step-02`、`step-08`、`step-09`、`step-10`、`step-11` 不再依赖静态图片承载核心知识。
+- `step-04`、`step-05`、`step-07`、`step-08`、`step-11` 的教师逐步显影已改为真实步骤内容，不再只是标签列表。
+- 本轮接受记录写入 `design/interactive-design-acceptance.json` 与 `notes/interactive-implementation-acceptance.json`，供严格审查脚本读取。

@@ -1,0 +1,18 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "3-2",
+  "status": "accepted",
+  "accepted_at": "2026-04-19T19:16:00+08:00",
+  "review_mode": "subagent",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/3-2/design/interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/3-2/design/interactive-contract.yaml"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass"
+  },
+  "issues": []
+}

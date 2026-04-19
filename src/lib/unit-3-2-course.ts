@@ -442,7 +442,7 @@ export function isUNIT_3_2InteractivePageType(pageType: UNIT_3_2PageType) {
 }
 
 export function isUNIT_3_2AiPageType(_pageType: UNIT_3_2PageType) {
-  return true;
+  return false;
 }
 
 export function createEmptyUNIT_3_2StudentState(studentName: string): UNIT_3_2StudentCourseState {
@@ -465,11 +465,6 @@ export const UNIT_3_2_PREMIUM_LESSON_CARD = {
 } as const;
 
 const UNIT_3_2_MEDIA_BY_STEP_ID: Record<string, string> = {
-  'step-02': '/course-runtime/lessons/3-2/media/3-2-pole-migration.png',
-  'step-08': '/course-runtime/lessons/3-2/media/3-2-special-cases-card.png',
-  'step-09': '/course-runtime/lessons/3-2/media/3-2-step-comparison.png',
-  'step-10': '/course-runtime/lessons/3-2/media/3-2-bode-magnitude.png',
-  'step-11': '/course-runtime/lessons/3-2/media/3-2-parameter-range-flow.png',
   'step-13': '/course-runtime/lessons/3-2/media/3-2-info.png',
 };
 

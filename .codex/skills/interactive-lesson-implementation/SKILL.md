@@ -120,8 +120,11 @@ description: Use when implementing or upgrading this repository's interactive le
 - `runtime/.../review/knowledge-card-check.json`
 - `runtime/.../review/multimedia-check.json`
 - `runtime/.../review/source-manifest.json`
+- `design/interactive-design-acceptance.json`
 
 如果这些 runtime/review 产物不存在，先回到 `lesson-content-review`，不要在本技能里顺手补审正文或知识卡。
+
+如果 `interactive-page-check.json` 已经记录 `runtime_review_stale`、`inline_ai_visibility`、`static_media_downgrade` 或接受文件缺失问题，先回到设计 / 审查 / 实现接受流程修复；不得带着这些硬闸门问题继续写代码。
 
 若课程包含入口页预习台、媒体入口卡或讲义下载/在线阅读卡，还必须额外读取：
 
@@ -190,6 +193,56 @@ description: Use when implementing or upgrading this repository's interactive le
 - 媒体是否真的存在，而不是还停留在设计说明
 
 没有对照表，不得直接开工。
+
+### 2.5 子代理驱动实现接受文件
+
+实现完成前必须形成 `notes/interactive-implementation-acceptance.json`，它不是普通笔记，而是 `lesson-content-review` 脚本会读取的硬闸门输入。
+
+流程固定为：
+
+1. 主代理逐个页面发放实现任务，先把双轨真源、runtime/review 产物、实现源码入口、对照表和已知风险整理成短任务包。
+2. 每一页先交给**实现子代理**，任务目标必须写明：忠实反映契约中的内容和逻辑，不随便应付，把文本升级成服务知识传授与能力训练的互动形态。
+3. 实现子代理完成后，再交给**学生视角审查子代理**，明确用学生视角追问“学生只看这一页，是否足以理解当前对象、过程和结论”。
+4. 若学生视角审查子代理判定不通过，主代理必须把该页转交给另一位整改子代理回修，再进入下一轮审查。
+5. 若本地服务可启动，再调用教师端 / 学生端浏览器验收子代理；不能启动时，必须在接受文件中写明降级为代码级验收以及缺失的浏览器证据。
+6. 若环境没有可用子代理，主代理必须用同一任务包做至少两轮独立审查，并在接受文件中标注 `review_mode: "main_agent_fallback"`。
+7. 所有页面都通过后，再写入 `notes/interactive-implementation-acceptance.json`，随后运行 `python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --strict-implementation-contract`。
+
+`notes/interactive-implementation-acceptance.json` 最小结构：
+
+```json
+{
+  "acceptance_version": 1,
+  "lesson_id": "<lesson>",
+  "status": "accepted",
+  "accepted_at": "2026-04-19T00:00:00+08:00",
+  "review_mode": "subagent",
+  "implementation_contract_source": "src/lib/<lesson>-course.ts",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/<lesson>/review/review-report.md",
+    "course-content/runtime/lessons/<lesson>/review/interactive-page-check.json"
+  ],
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": []
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": []
+    }
+  },
+  "issues": []
+}
+```
+
+判定要求：
+
+- `inline_ai_visibility`：只要契约为 `ai_context_spec.delivery_mode: hidden_page_context`，学生页正文中出现页内 AI 卡片、提示词复制区、独立对话入口或跳转旧 `/ai` 的入口，即必须记为 `fail`。
+- `static_media_downgrade`：只要契约要求 `workspace`、`parameter_slider`、`parametric_sim` 或等价工作区联动，而实现仍用静态 PNG/SVG/PDF 主体加文字说明、滑块不驱动图像或控件只改旁白，即必须记为 `fail`。
+- 两类问题被写入接受文件后，审查脚本会在 `interactive-page-check.json` 中分别落为 `inline_ai_visibility` 与 `static_media_downgrade`，并在严格模式下阻塞。
 
 ### 3. AI / 反馈 / 数据治理设计必须先于实现
 
@@ -525,7 +578,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - 浏览器验收或测试证据
 - 仍待回补的页面覆盖缺口
 
-若课次已建立 `interactive-contract.yaml` 且仓库内已存在对应互动课程实现，收工前还必须执行：
+若课次已建立 `interactive-contract.yaml` 且仓库内已存在对应互动课程实现，收工前还必须在子代理实现接受文件写入后执行：
 
 ```bash
 python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --strict-implementation-contract
@@ -533,7 +586,10 @@ python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --stri
 
 要求：
 - 该命令必须通过，不能只生成 `interactive-page-check.json` 而忽略实现契约漂移
-- 重点检查作者态 `interactive-contract.yaml` 与本地页面契约、步骤定义是否一致
+- 重点检查作者态 `interactive-contract.yaml`、`design/interactive-design-acceptance.json`、`notes/interactive-implementation-acceptance.json` 与本地页面契约、步骤定义是否一致
+- 若作者态文件晚于 runtime 审查产物，脚本会判定 `runtime_review_stale`，必须先重新审查并重新接受实现
+- 若本地实现把隐藏式 AI 做成页内入口，脚本会判定 `inline_ai_visibility`
+- 若工作区 / 参数联动被静态媒体替代，脚本会判定 `static_media_downgrade`
 - 若失败，先修实现或修双轨真源，再继续浏览器验收
 - 若 `interactive-page-check.json` 或 `review-report.md` 仍保留 `handout_anchor`、公式映射、契约解析、实现契约漂移等关键告警，不得宣称实现完成；默认以关键告警清零作为收工门槛
 
@@ -555,13 +611,9 @@ python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_a
 
 这条脚本会调用实现侧一致性测试，校验作者态 `interactive-contract.yaml` 与本地平行契约在步骤标题、互动类型、模板/区域、教师洞察、telemetry、错因标签和学生演示页预览路径上的一致性。未通过时，不得宣称互动页面已经按契约实现。
 
-在上述脚本通过后，必须再调用子代理做实现情况审查：
+子代理审查必须发生在严格脚本前；主代理只收集审查结论、修复问题并写入接受文件，不把长篇浏览器过程塞回主上下文。
 
-- 至少调用 1 个子代理做“契约实现审查”，核对页面结构、曲线面板、原生示意图、原生表格、入口资源挂载与埋点是否与技能规范一致
-- 若本地服务可启动，默认继续调用教师端/学生端双子代理做浏览器闭环验收
-- 主代理负责收集审查结论与缺陷，不把长篇浏览器过程塞回主上下文
-
-若子代理审查指出契约漏实现、旧口径回潮、埋点缺失或曲线/示意图降级，必须先修复，再宣称完成。
+若子代理审查指出契约漏实现、旧口径回潮、埋点缺失、页内 AI 入口或曲线/示意图静态降级，必须先修复，再写 `notes/interactive-implementation-acceptance.json`，更不得宣称完成。
 
 推荐至少补一类守卫测试：
 - 检查隐藏式 AI 页面上下文与控灵助手接线
@@ -589,6 +641,7 @@ python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_a
 - 完成一轮主要实现或核对后必须更新笔记
 - 开工前必须写入“设计稿到实现稿对照表”
 - 收工前必须补上“完整课件职责核对”和验证记录
+- 收工前必须补齐 `notes/interactive-implementation-acceptance.json`
 - 笔记要记录“当前规范如何在该课落地”，不是只记流水账
 
 如果笔记不存在，使用：
@@ -650,5 +703,6 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
 - [ ] 已确认课程入口采用统一资源挂载与互动埋点链路
 - [ ] 已完成设计稿对照验证与浏览器闭环验收
 - [ ] 已完成至少一次子代理实现审查
+- [ ] 已写入 `notes/interactive-implementation-acceptance.json`
 - [ ] 已通过 `python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --strict-implementation-contract`
 - [ ] 已更新 `notes/<lesson>.md`
