@@ -25,6 +25,7 @@ import { UNIT_3_7_PREMIUM_LESSON_CARD } from '@/lib/unit-3-7-course';
 import { UNIT_3_8_PREMIUM_LESSON_CARD } from '@/lib/unit-3-8-course';
 import { UNIT_3_9_PREMIUM_LESSON_CARD } from '@/lib/unit-3-9-course';
 import { UNIT_4_1_PREMIUM_LESSON_CARD } from '@/lib/unit-4-1-course';
+import { UNIT_4_2_PREMIUM_LESSON_CARD } from '@/lib/unit-4-2-course';
 
 export interface InteractiveResource {
   id: string;
@@ -146,6 +147,7 @@ export const FEATURED_LESSONS = [
   UNIT_3_8_PREMIUM_LESSON_CARD,
   UNIT_3_9_PREMIUM_LESSON_CARD,
   UNIT_4_1_PREMIUM_LESSON_CARD,
+  UNIT_4_2_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -373,10 +375,11 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
     id: 'module-4',
     title: '模块4',
     description:
-      '模块4 当前先开放 4-1 入口课，把模块 3 的稳定、动态、稳态证据统一改写成“目标—约束—优先级—证据来源”的任务表达卡，为 4-2 的结构筛选与 4-3 的初始方案方向做输入准备。',
+      '模块4 当前开放 4-1 与 4-2 两个新主线单元，先把模块 3 的稳定、动态、稳态证据统一改写成任务表达卡，再把任务表达卡推进成单结构首轮起步卡，为 4-3 的初始方案方向做输入准备。',
     chipLabel: '设计入口主线',
     lessons: [
       createModuleLesson('unit-4-1-design-task-expression', '4-1'),
+      createModuleLesson('unit-4-2-controller-selection-first-start', '4-2'),
     ],
   },
 ] as const;

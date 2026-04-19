@@ -13,9 +13,9 @@
 - 已将 `design/boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
-- 以下 handout_anchor 未在讲义标题中命中：## 一、引入：任务表达卡已经写好，为什么还不能直接喊出控制器名字, ### 1.1 从 4-1 接过来的是一张矛盾清单, 表2. 结构工具箱总表, ### 2.3 PID 为什么不是默认起点, ### 3.1~3.5, ### 4.1 客船案例, ### 4.2 稳定平台案例, ## 五、把选型结论写成一张"单结构首轮起步卡"
-- 以下 target_step 未在步骤正文中命中：step-06, step-09
-- interactive-contract.yaml 不是有效的 JSON/YAML 子集：Expecting value
+- 已检测到 `4-2` 的 V2 互动契约，步骤字段完整。
+- 缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节
+- 讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。

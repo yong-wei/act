@@ -8,13 +8,12 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
-import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   finalizeUNIT_3_4TeacherSession,
+  getUNIT_3_4PageContract,
   getUNIT_3_4MediaSrc,
-  isUNIT_3_4AiPageType,
   isUNIT_3_4TeacherSyncState,
   resolveUNIT_3_4TeacherSyncDraft,
   shouldPostUNIT_3_4TeacherSync,
@@ -29,7 +28,6 @@ import {
 import { UNIT_3_4CourseHeader } from './course-header';
 import {
   UNIT_3_4KnowledgeMapVisual,
-  UNIT_3_4StepAiAssistant,
   UNIT_3_4StepContentPanel,
   UNIT_3_4TeacherActivitySummary,
 } from './step-panels';
@@ -47,6 +45,8 @@ export function UNIT_3_4TeacherPage({
   const [showStudentList, setShowStudentList] = useState(false);
   const [localRevealedAnswers, setLocalRevealedAnswers] = useState<Record<string, boolean> | null>(null);
   const [localReleasedActivities, setLocalReleasedActivities] = useState<Record<string, boolean> | null>(null);
+  const [localBrowseEnabled, setLocalBrowseEnabled] = useState<Record<string, boolean> | null>(null);
+  const [localTeacherRevealProgress, setLocalTeacherRevealProgress] = useState<Record<string, number> | null>(null);
 
   const interactiveTracking = useInteractiveTracking({
     resourceId: UNIT_3_4_RESOURCE_KEY,
@@ -71,7 +71,7 @@ export function UNIT_3_4TeacherPage({
     adapter: UNIT_3_4_SESSION_ADAPTER,
   });
 
-  const { trackCourseEvent, trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError, trackWorkspaceParamChange } =
+  const { trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError, trackWorkspaceParamChange } =
     useCourseEventTracking({
       resourceKey: UNIT_3_4_RESOURCE_KEY,
       resourceId: UNIT_3_4_RESOURCE_KEY,
@@ -82,20 +82,23 @@ export function UNIT_3_4TeacherPage({
     });
 
   const step = UNIT_3_4_LESSON_STEPS[activeIndex];
+  const pageContract = getUNIT_3_4PageContract(step.id);
 
   const teacherSyncState = useMemo(() => {
     const latestRecord = [...teacherStates].reverse().find((record) => isUNIT_3_4TeacherSyncState(record.data));
     return (latestRecord?.data as UNIT_3_4TeacherCourseSyncState | null) ?? null;
   }, [teacherStates]);
 
-  const { revealedAnswers, releasedActivities } = useMemo(
+  const { revealedAnswers, releasedActivities, browseEnabled, teacherRevealProgress } = useMemo(
     () =>
       resolveUNIT_3_4TeacherSyncDraft({
         localRevealedAnswers,
         localReleasedActivities,
+        localBrowseEnabled,
+        localTeacherRevealProgress,
         teacherSyncState,
       }),
-    [localRevealedAnswers, localReleasedActivities, teacherSyncState],
+    [localBrowseEnabled, localReleasedActivities, localRevealedAnswers, localTeacherRevealProgress, teacherSyncState],
   );
 
   const previousStepIdRef = useRef<string | null>(null);
@@ -120,8 +123,10 @@ export function UNIT_3_4TeacherPage({
       activeStepId: step.id,
       revealedAnswers,
       releasedActivities,
+      browseEnabled,
+      teacherRevealProgress,
     });
-  }, [loadingSession, postTeacherSyncInput, revealedAnswers, releasedActivities, step.id, teacherViewHydrated]);
+  }, [browseEnabled, loadingSession, postTeacherSyncInput, releasedActivities, revealedAnswers, step.id, teacherRevealProgress, teacherViewHydrated]);
 
   const studentStates = useMemo(() => {
     return courseStates
@@ -182,19 +187,6 @@ export function UNIT_3_4TeacherPage({
       setEndingSession(false);
     }
   }, [finishSession, router, sessionInfo, step.id, trackSessionFinalize]);
-
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
 
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
@@ -289,25 +281,51 @@ export function UNIT_3_4TeacherPage({
           step={step}
           mediaSrc={getUNIT_3_4MediaSrc(step.id)}
           mediaAlt={step.title}
+          browseEnabled={
+            pageContract.teacherControls.openBrowse === 'not_applicable' ||
+            pageContract.teacherControls.openBrowse === 'always_on'
+              ? true
+              : Boolean(browseEnabled[step.id])
+          }
+          revealProgress={teacherRevealProgress[step.id] ?? 0}
+          allowInlineReveal={false}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
-
-        {isUNIT_3_4AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_4StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
 
         <div className="mt-4">
           <UNIT_3_4TeacherActivitySummary
             step={step}
+            pageContract={pageContract}
             responses={currentResponses}
             released={Boolean(releasedActivities[step.id])}
+            browseEnabled={Boolean(browseEnabled[step.id])}
+            revealProgress={teacherRevealProgress[step.id] ?? 0}
             answerVisible={Boolean(revealedAnswers[step.id])}
             onToggleRelease={() =>
               setLocalReleasedActivities((prev) => ({
                 ...(prev ?? (teacherSyncState as UNIT_3_4TeacherCourseSyncState | null)?.releasedActivities ?? {}),
                 [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_4TeacherCourseSyncState | null)?.releasedActivities?.[step.id]),
+              }))
+            }
+            onToggleBrowse={() =>
+              setLocalBrowseEnabled((prev) => ({
+                ...(prev ?? (teacherSyncState as UNIT_3_4TeacherCourseSyncState | null)?.browseEnabled ?? {}),
+                [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_4TeacherCourseSyncState | null)?.browseEnabled?.[step.id]),
+              }))
+            }
+            onAdvanceReveal={() =>
+              setLocalTeacherRevealProgress((prev) => ({
+                ...(prev ?? (teacherSyncState as UNIT_3_4TeacherCourseSyncState | null)?.teacherRevealProgress ?? {}),
+                [step.id]: Math.min(
+                  99,
+                  (prev?.[step.id] ?? (teacherSyncState as UNIT_3_4TeacherCourseSyncState | null)?.teacherRevealProgress?.[step.id] ?? 0) + 1,
+                ),
+              }))
+            }
+            onResetReveal={() =>
+              setLocalTeacherRevealProgress((prev) => ({
+                ...(prev ?? (teacherSyncState as UNIT_3_4TeacherCourseSyncState | null)?.teacherRevealProgress ?? {}),
+                [step.id]: 0,
               }))
             }
             onToggleAnswerVisible={() =>

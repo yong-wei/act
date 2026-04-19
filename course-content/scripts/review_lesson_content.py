@@ -288,6 +288,12 @@ INTERACTIVE_CONTRACT_REQUIRED_STEP_FIELDS = [
 ]
 
 IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
+    '3-2': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-3-2-course.ts',
+        'page_contracts_const': 'UNIT_3_2_PAGE_CONTRACTS',
+        'lesson_steps_const': 'UNIT_3_2_LESSON_STEPS',
+        'source_path': 'src/lib/unit-3-2-course.ts',
+    },
     '2-1': {
         'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-2-1-course.ts',
         'page_contracts_const': 'UNIT_2_1_PAGE_CONTRACTS',
@@ -614,9 +620,9 @@ def build_implementation_contract_check(lesson_id: str, contract_path: Path) -> 
         compare_contract_field(issues, step_id, 'title', step_payload.get('title'), local_step.get('title'))
         local_page_type = local_step.get('pageType')
         if interaction_kind == 'none':
-            if local_page_type not in {'display', 'summary'}:
+            if local_page_type not in {'none', 'display', 'summary'}:
                 issues.append(
-                    '步骤 `{step}` 的实现契约字段 `pageType` 与作者态不一致：expected="display|summary" actual={actual}'.format(
+                    '步骤 `{step}` 的实现契约字段 `pageType` 与作者态不一致：expected="none|display|summary" actual={actual}'.format(
                         step=step_id,
                         actual=json.dumps(local_page_type, ensure_ascii=False),
                     )

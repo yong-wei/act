@@ -7,7 +7,6 @@
 - interactive-lesson-implementation：互动课程实现
 - lesson：课程资料制作
 - lesson-content-review：课程内容审核
-- memory-maintenance：项目长期记忆管理
 - refine：讲义润色
 - server-ops：服务器操作
 - syllabus-refactor：大纲重构
@@ -76,7 +75,7 @@
 - 本仓库使用 `.codex/memory/` 保存跨会话长期记忆。
 - 智能体初始化或刚进入仓库时，应先快速读取 `.codex/memory/00-index.md` 与 `.codex/memory/02-recent-summary.md`，先建立“最近发生了什么、当前应警惕什么”的最小上下文，再按 `.codex/memory/01-reading-map.md` 进入对应主题。
 - 若本次会话产出稳定且可复用的项目事实、设计决策、事故复盘或高频流程，优先更新 `.codex/memory/`，不要把细节继续堆入 `AGENTS.md`。
-- 维护 `.codex/memory/` 时，优先遵循 `.codex/memory/README.md` 与 `.codex/skills/memory-maintenance/SKILL.md`。
+- 维护 `.codex/memory/` 时，优先遵循 `.codex/memory/README.md` 与全局 `memory-maintenance` 技能（`${CODEX_HOME:-$HOME/.codex}/skills/memory-maintenance/SKILL.md`）。
 
 ## Project Structure & Module Organization
 本仓库为单一 Next.js 14 应用，代码集中在根目录：

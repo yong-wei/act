@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { parse } from 'yaml';
 
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
@@ -25,16 +26,21 @@ describe('unit 3-3 interactive course', () => {
     expect(registry?.courseMeta.courseTitle).toContain('根轨迹机制');
   });
 
-  it('defines the full 13-step lesson flow', async () => {
+  it('defines the full 17-step lesson flow', async () => {
     const courseModule = await import('@/lib/unit-3-3-course');
 
-    expect(courseModule.UNIT_3_3_LESSON_STEPS).toHaveLength(13);
+    expect(courseModule.UNIT_3_3_LESSON_STEPS).toHaveLength(17);
     expect(courseModule.UNIT_3_3_LESSON_STEPS[0]?.id).toBe('step-01');
-    expect(courseModule.UNIT_3_3_LESSON_STEPS[12]?.id).toBe('step-13');
+    expect(courseModule.UNIT_3_3_LESSON_STEPS[9]?.pageType).toBe('activity_cards');
+    expect(courseModule.UNIT_3_3_LESSON_STEPS[10]?.pageType).toBe('sequence_sort');
+    expect(courseModule.UNIT_3_3_LESSON_STEPS[11]?.pageType).toBe('classification_cards');
+    expect(courseModule.UNIT_3_3_LESSON_STEPS[15]?.pageType).toBe('quiz_group');
+    expect(courseModule.UNIT_3_3_LESSON_STEPS[16]?.id).toBe('step-17');
+    expect(courseModule.UNIT_3_3_LESSON_STEPS[16]?.pageType).toBe('display');
   });
 
   it('exposes AI quick questions for the formula ordering step', () => {
-    const quickQuestions = getStepQuickQuestions('unit-3-3-root-locus-rules-v1', 'step-10');
+    const quickQuestions = getStepQuickQuestions('unit-3-3-root-locus-rules-v1', 'step-13');
 
     expect(quickQuestions).toHaveLength(2);
     expect(quickQuestions[0]?.question).toContain('等效开环');
@@ -44,18 +50,16 @@ describe('unit 3-3 interactive course', () => {
     const courseModule = await import('@/lib/unit-3-3-course');
 
     expect(courseModule.getUNIT_3_3MediaSrc('step-02')).toContain('3-3-pp-04-complete-rules-example');
-    expect(courseModule.getUNIT_3_3MediaSrc('step-06')).toContain('3-3-pp-03-angle-and-magnitude-geometry');
-    expect(courseModule.getUNIT_3_3MediaSrc('step-11')).toContain('3-3-pp-07-generalized-time-constant-example');
-    expect(courseModule.getUNIT_3_3MediaSrc('step-12')).toContain('3-3-pp-08-dynamics-translation');
-    expect(courseModule.getUNIT_3_3MediaSrc('step-13')).toContain('3-3-info');
+    expect(courseModule.getUNIT_3_3MediaSrc('step-05')).toContain('3-3-pp-03-angle-and-magnitude-geometry');
+    expect(courseModule.getUNIT_3_3MediaSrc('step-10')).toContain('3-3-example-03-departure-sum');
+    expect(courseModule.getUNIT_3_3MediaSrc('step-14')).toContain('3-3-pp-07-generalized-time-constant-example');
+    expect(courseModule.getUNIT_3_3MediaSrc('step-15')).toContain('3-3-pp-08-dynamics-translation');
+    expect(courseModule.getUNIT_3_3MediaSrc('step-17')).toContain('3-3-info');
   });
 
-  it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
-    const contract = JSON.parse(
-      readFileSync(
-        join(repoRoot, 'course-content/authoring/lessons/3-3/design/interactive-contract.yaml'),
-        'utf8',
-      ),
+  it('keeps the local page contracts aligned with the authoring interactive contract for all 17 steps', async () => {
+    const contract = parse(
+      readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-3/design/interactive-contract.yaml'), 'utf8'),
     ) as {
       steps: Record<
         string,
@@ -72,15 +76,16 @@ describe('unit 3-3 interactive course', () => {
 
     const courseModule = await import('@/lib/unit-3-3-course');
     const interactiveSteps = new Map(courseModule.UNIT_3_3_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
-    const expectedStepIds = ['step-06', 'step-07', 'step-09', 'step-10', 'step-12', 'step-13'] as const;
+    const expectedStepIds = Object.keys(contract.steps);
 
     for (const stepId of expectedStepIds) {
       const authoringStep = contract.steps[stepId];
       const localStep = interactiveSteps.get(stepId);
       const localPageContract = courseModule.UNIT_3_3_PAGE_CONTRACTS[stepId];
+      const expectedPageType = authoringStep.interaction_spec.interaction_kind === 'none' ? 'display' : authoringStep.interaction_spec.interaction_kind;
 
       expect(localStep?.title).toBe(authoringStep.title);
-      expect(localStep?.pageType).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(localStep?.pageType).toBe(expectedPageType);
       expect(localPageContract?.layout.template).toBe(authoringStep.layout.template);
       expect(localPageContract?.layout.regions).toEqual(authoringStep.layout.regions);
       expect(localPageContract?.interactionKind).toBe(authoringStep.interaction_spec.interaction_kind);
@@ -164,13 +169,16 @@ describe('unit 3-3 interactive course', () => {
     expect(stepPanelsSource).toContain('G(s)H(s)=K/[s(s+1)(s+2)]');
     expect(stepPanelsSource).toContain('0<K<6');
     expect(stepPanelsSource).toContain('0° 根轨迹');
-    expect(stepPanelsSource).not.toContain('劳斯');
+    expect(stepPanelsSource).toContain('七步读图法');
+    expect(stepPanelsSource).toContain('原点极点');
+    expect(stepPanelsSource).toContain('九项法则共同构成普通根轨迹');
     expect(stepPanelsSource).not.toContain('稳定区间：`-2 < k < 18`');
 
     expect(workspaceSource).toContain('RULE_HIGHLIGHT_OPTIONS');
     expect(workspaceSource).toContain('WORKED_EXAMPLE_SECTIONS');
     expect(workspaceSource).toContain('FORMULA_ORDERING_SEQUENCE');
     expect(workspaceSource).toContain('DYNAMIC_MAPPING_OPTIONS');
+    expect(stepPanelsSource).toContain("case 'step-17'");
     expect(workspaceSource).not.toContain('BOUNDARY_MATCH_OPTIONS');
     expect(workspaceSource).not.toContain('CASE_BUCKETS');
   });

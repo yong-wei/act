@@ -18,12 +18,7 @@ export const UNIT_3_2_ROUTH_STABILITY_BOUNDARY_PRESET: PresetLessonConfig = {
   items: UNIT_3_2_LESSON_STEPS.map((step, index) => ({
     stage: UNIT_3_2_STAGE_MAP[step.stage],
     order: index + 1,
-    registryId:
-      step.pageType === 'summary'
-        ? 'classroom-ai-report'
-        : isUNIT_3_2InteractivePageType(step.pageType)
-          ? 'classroom-assessment'
-          : 'classroom-objective',
+    registryId: isUNIT_3_2InteractivePageType(step.pageType) ? 'classroom-assessment' : 'classroom-objective',
     resourceType: ResourceType.INTERACTIVE_COMP,
     duration: Math.max(1, Math.round(Number.parseFloat(step.duration) || 1)),
     title: step.title,

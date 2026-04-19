@@ -68,6 +68,10 @@ import {
   getUnit41StepAIContext as getUnit41StepAIContextLocal,
   getUnit41StepQuickQuestions as getUnit41StepQuickQuestionsLocal,
 } from './unit-4-1-ai-contexts';
+import {
+  getUnit42StepAIContext as getUnit42StepAIContextLocal,
+  getUnit42StepQuickQuestions as getUnit42StepQuickQuestionsLocal,
+} from './unit-4-2-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -200,6 +204,15 @@ export {
   getUnit41StepAIContext,
   getUnit41StepQuickQuestions,
 } from './unit-4-1-ai-contexts';
+
+export {
+  UNIT_4_2_COURSE_META,
+  UNIT_4_2_STEP_AI_CONTEXTS,
+  getUNIT_4_2StepAIContext,
+  getUNIT_4_2StepQuickQuestions,
+  getUnit42StepAIContext,
+  getUnit42StepQuickQuestions,
+} from './unit-4-2-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -368,6 +381,17 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '4-1：设计起点：性能指标体系、工程约束与可行域表达',
       courseDescription:
         '围绕指标角色重组、硬约束/软目标/观察指标分类、可行域分层和双案例联读，把已有分析证据收束成任务表达卡。',
+    },
+  },
+
+  'unit-4-2-controller-selection-first-start-v1': {
+    getStepContext: (stepId: string) => getUnit42StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit42StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-4-2-controller-selection-first-start-v1',
+      courseTitle: '4-2：控制器选型原理：不同控制结构为何适合不同任务',
+      courseDescription:
+        '围绕结构工具箱、三频段职责、双案例首轮起步与前馈补偿边界，把任务表达卡推进成单结构首轮起步卡。',
     },
   },
 };

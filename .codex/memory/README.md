@@ -35,11 +35,11 @@
 ## README 与 Skill 的分工
 
 - `README.md` 负责静态约定：目录职责、命名规范、文件头格式、读取顺序
-- `memory-maintenance` skill 负责动态维护：分类判断、写入位置选择、索引补链、归档判断、最小校验
+- 全局 `memory-maintenance` skill 负责动态维护：分类判断、写入位置选择、索引补链、归档判断、最小校验
 
 ## 何时调用记忆维护 skill
 
-建议在以下场景调用 `.codex/skills/memory-maintenance/SKILL.md`：
+建议在以下场景调用全局 `memory-maintenance` 技能（`${CODEX_HOME:-$HOME/.codex}/skills/memory-maintenance/SKILL.md`）：
 
 - 一次会话形成了稳定且可复用的项目事实
 - 新增了长期有效的设计决策
@@ -52,13 +52,13 @@
 完成 memory 维护后，建议运行：
 
 ```bash
-python3 .codex/skills/memory-maintenance/scripts/validate_memory.py
+python3 "${CODEX_HOME:-$HOME/.codex}/skills/memory-maintenance/scripts/validate_memory.py" .codex/memory
 ```
 
 如果你只是想先创建一个符合约定的新文件骨架，可运行：
 
 ```bash
-python3 .codex/skills/memory-maintenance/scripts/new_memory_file.py --kind leaf --path 20-architecture/example.md --title "示例叶子文件"
+python3 "${CODEX_HOME:-$HOME/.codex}/skills/memory-maintenance/scripts/new_memory_file.py" --kind leaf --path 20-architecture/example.md --title "示例叶子文件"
 ```
 
 当前该脚本只校验最小结构约束：

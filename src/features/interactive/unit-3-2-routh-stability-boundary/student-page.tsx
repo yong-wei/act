@@ -14,6 +14,7 @@ import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit32StepAIContext } from '@/lib/course-ai-contexts';
 import {
+  getUNIT_3_2PageContract,
   getUNIT_3_2MediaSrc,
   isUNIT_3_2AiPageType,
   isUNIT_3_2InteractivePageType,
@@ -88,6 +89,7 @@ export function UNIT_3_2StudentPage({
     });
 
   const step = UNIT_3_2_LESSON_STEPS[activeIndex];
+  const pageContract = getUNIT_3_2PageContract(step.id);
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
 
@@ -109,16 +111,26 @@ export function UNIT_3_2StudentPage({
     }
   }, [step.id, updatePageContext]);
 
-  const answerVisible =
-    teacherSyncState?.activeStepId === step.id
-      ? Boolean((teacherSyncState as { revealedAnswers?: Record<string, boolean> })?.revealedAnswers?.[step.id])
-      : false;
+  const answerVisible = teacherSyncState?.activeStepId === step.id ? Boolean(teacherSyncState?.revealedAnswers?.[step.id]) : false;
   const released =
-    isDemo || !isUNIT_3_2InteractivePageType(step.pageType)
+    isDemo ||
+    !isUNIT_3_2InteractivePageType(step.pageType) ||
+    pageContract.teacherControls.releaseActivity === 'page_load_open' ||
+    pageContract.teacherControls.releaseActivity === 'always_on'
       ? true
       : teacherSyncState?.activeStepId === step.id
-        ? Boolean((teacherSyncState as { releasedActivities?: Record<string, boolean> })?.releasedActivities?.[step.id])
+        ? Boolean(teacherSyncState?.releasedActivities?.[step.id])
         : false;
+  const browseEnabled =
+    isDemo ||
+    pageContract.teacherControls.openBrowse === 'not_applicable' ||
+    pageContract.teacherControls.openBrowse === 'page_load_open' ||
+    pageContract.teacherControls.openBrowse === 'always_on'
+      ? true
+      : teacherSyncState?.activeStepId === step.id
+        ? Boolean(teacherSyncState?.browseEnabled?.[step.id])
+        : false;
+  const revealProgress = teacherSyncState?.activeStepId === step.id ? teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0 : 0;
 
   const previousStepIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -268,6 +280,7 @@ export function UNIT_3_2StudentPage({
           step={step}
           mediaSrc={getUNIT_3_2MediaSrc(step.id)}
           mediaAlt={step.title}
+          revealProgress={revealProgress}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 
@@ -282,12 +295,14 @@ export function UNIT_3_2StudentPage({
             step={step}
             savedResponse={savedResponse}
             released={released}
+            browseEnabled={browseEnabled}
             answerVisible={answerVisible}
+            revealProgress={revealProgress}
             onSubmit={handleSubmitResponse}
           />
         </div>
 
-        {step.pageType === 'summary' ? (
+        {step.id === 'step-13' ? (
           <div className="mt-4">
             <UNIT_3_2StudentSummaryPanel responses={courseState.responses} />
           </div>

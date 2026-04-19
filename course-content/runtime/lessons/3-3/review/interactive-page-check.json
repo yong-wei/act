@@ -21,15 +21,6 @@
   "mapping_contract_mode": "upgrade_table",
   "has_core_mapping_section": true,
   "mapping_columns_present": [
-    "证据类型",
-    "来源锚点",
-    "目标步骤",
-    "升级方式",
-    "保留元素",
-    "不得删减内容",
-    "验收点"
-  ],
-  "missing_mapping_columns": [
     "evidence_unit_id",
     "handout_anchor",
     "evidence_kind",
@@ -39,6 +30,7 @@
     "non_reducible",
     "acceptance_checks"
   ],
+  "missing_mapping_columns": [],
   "invalid_handout_anchors": [],
   "missing_target_steps": [],
   "formula_mapping_issues": [],
@@ -52,15 +44,10 @@
   "implementation_contract_summary": [],
   "implementation_contract_issues": [],
   "summary": [
+    "已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。",
     "已检测到 `3-3` 的 V2 互动契约，步骤字段完整。"
   ],
-  "warnings": [
-    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks"
-  ],
-  "missing": [
-    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks"
-  ],
-  "issues": [
-    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks"
-  ]
+  "warnings": [],
+  "missing": [],
+  "issues": []
 }

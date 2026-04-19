@@ -14,6 +14,7 @@ import { UNIT_3_7_COURSE_TITLE, UNIT_3_7_ROUTE_SEGMENT } from '@/lib/unit-3-7-co
 import { UNIT_3_8_COURSE_TITLE, UNIT_3_8_ROUTE_SEGMENT } from '@/lib/unit-3-8-course';
 import { UNIT_3_9_COURSE_TITLE, UNIT_3_9_ROUTE_SEGMENT } from '@/lib/unit-3-9-course';
 import { UNIT_4_1_COURSE_TITLE, UNIT_4_1_ROUTE_SEGMENT } from '@/lib/unit-4-1-course';
+import { UNIT_4_2_COURSE_TITLE, UNIT_4_2_ROUTE_SEGMENT } from '@/lib/unit-4-2-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -161,6 +162,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '4-1：设计起点：性能指标体系、工程约束与可行域表达',
       '设计起点：性能指标体系、工程约束与可行域表达',
       '设计起点',
+    ],
+  },
+  {
+    routeSegment: UNIT_4_2_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_4_2_COURSE_TITLE,
+      '4-2：控制器选型原理：不同控制结构为何适合不同任务',
+      '控制器选型原理：不同控制结构为何适合不同任务',
+      '控制器选型原理',
     ],
   },
 ];

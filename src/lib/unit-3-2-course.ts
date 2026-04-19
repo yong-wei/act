@@ -4,22 +4,14 @@ import type { LessonSessionAdapter } from '@/features/interactive/session-framew
 import type { StepAIContext } from '@/types/ai-context';
 
 export type UNIT_3_2StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
-export type UNIT_3_2PageType =
-  | 'display'
-  | 'summary'
-  | 'binary_choice'
-  | 'quiz_group'
-  | 'short_response'
-  | 'interval_input'
-  | 'triple_match'
-  | 'classification_drag'
-  | 'formula_completion'
-  | 'reason_check'
-  | 'parameter_workspace'
-  | 'tab_switch'
-  | 'comparison_workspace'
-  | 'ai_compare_workspace'
-  | 'formula_pair_check';
+export type UNIT_3_2TeacherControlMode =
+  | 'not_applicable'
+  | 'separate_toggle'
+  | 'teacher_only'
+  | 'page_load_open'
+  | 'always_on';
+
+export type UNIT_3_2PageType = 'none' | 'binary_choice' | 'quiz_group' | 'activity_cards';
 
 export interface UNIT_3_2PageRegionContract {
   id: string;
@@ -32,14 +24,18 @@ export interface UNIT_3_2PageContract {
     template: string;
     regions: UNIT_3_2PageRegionContract[];
   };
-  interactionKind: Exclude<UNIT_3_2PageType, 'display' | 'summary'> | 'none';
+  interactionKind: UNIT_3_2PageType;
   teacherInsightWidgets: string[];
   telemetrySummaryFields: string[];
   misconceptionTags?: string[];
+  teacherControls: {
+    releaseActivity: UNIT_3_2TeacherControlMode;
+    openBrowse: UNIT_3_2TeacherControlMode;
+    teacherStepReveal: UNIT_3_2TeacherControlMode;
+    revealReferenceAnswer: UNIT_3_2TeacherControlMode;
+  };
   previewDemoPath: string;
 }
-
-export type Unit32WorkspaceKind = 'interval' | 'boundary' | 'constraint' | 'none';
 
 export interface UNIT_3_2StepDefinition {
   id: string;
@@ -48,7 +44,6 @@ export interface UNIT_3_2StepDefinition {
   hint: string;
   duration: string;
   pageType: UNIT_3_2PageType;
-  workspaceKind?: Unit32WorkspaceKind;
   aiContext?: StepAIContext;
 }
 
@@ -71,6 +66,8 @@ export interface UNIT_3_2TeacherCourseSyncState {
   activeStepId: string;
   revealedAnswers: Record<string, boolean>;
   releasedActivities: Record<string, boolean>;
+  browseEnabled: Record<string, boolean>;
+  teacherRevealProgress: Record<string, number>;
   updatedAt: number;
 }
 
@@ -78,6 +75,8 @@ export interface UNIT_3_2TeacherSyncInput {
   activeStepId: string;
   revealedAnswers: Record<string, boolean>;
   releasedActivities: Record<string, boolean>;
+  browseEnabled: Record<string, boolean>;
+  teacherRevealProgress: Record<string, number>;
   updatedAt?: number;
   [key: string]: unknown;
 }
@@ -137,13 +136,19 @@ export const UNIT_3_2_PAGE_CONTRACTS: Record<string, UNIT_3_2PageContract> = {
     interactionKind: 'none',
     teacherInsightWidgets: ['view_count', 'sync_status'],
     telemetrySummaryFields: ['viewed', 'timeOnStep', 'teacherFollowSync'],
+    teacherControls: {
+      releaseActivity: 'not_applicable',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'not_applicable',
+    },
     previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-01',
   },
   'step-02': {
     layout: {
-      template: 'figure_question_vote',
+      template: 'figure_question_board',
       regions: [
-        { id: 'figure', width: 'full', order: 1 },
+        { id: 'media', width: 'full', order: 1 },
         { id: 'questions', width: 'full', order: 2 },
         { id: 'interaction', width: 'full', order: 3 },
       ],
@@ -152,212 +157,276 @@ export const UNIT_3_2_PAGE_CONTRACTS: Record<string, UNIT_3_2PageContract> = {
     teacherInsightWidgets: ['option_distribution', 'misconception_rate'],
     telemetrySummaryFields: ['selectedOption', 'resultState', 'teacherRevealSeen'],
     misconceptionTags: ['visual_boundary_is_enough'],
+    teacherControls: {
+      releaseActivity: 'page_load_open',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+    },
     previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-02',
   },
   'step-03': {
     layout: {
-      template: 'goal_boundary_slide',
-      regions: [
-        { id: 'goals', width: 'full', order: 1 },
-        { id: 'chain', width: 'full', order: 2 },
-        { id: 'boundary', width: 'full', order: 3 },
-      ],
-    },
-    interactionKind: 'none',
-    teacherInsightWidgets: ['view_count'],
-    telemetrySummaryFields: ['viewed', 'timeOnStep'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-03',
-  },
-  'step-04': {
-    layout: {
       template: 'question_stack',
       regions: [
-        { id: 'question-stack', width: 'full', order: 1 },
-        { id: 'submit-bar', width: 'full', order: 2 },
+        { id: 'title', width: 'full', order: 1 },
+        { id: 'question-stack', width: 'full', order: 2 },
+        { id: 'submit-bar', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'quiz_group',
     teacherInsightWidgets: ['question_distribution', 'top_misconceptions'],
     telemetrySummaryFields: ['attemptCount', 'resultState', 'errorBucket'],
-    misconceptionTags: ['routh_equals_root_solving', 'zero_head_equals_zero_row', 'stable_equals_ready_for_optimization'],
+    misconceptionTags: ['routh_equals_root_solving', 'zero_head_equals_zero_row', 'stability_equals_stronger_region'],
+    teacherControls: {
+      releaseActivity: 'page_load_open',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+    },
+    previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-03',
+  },
+  'step-04': {
+    layout: {
+      template: 'worked_example_reveal',
+      regions: [
+        { id: 'problem', width: 'full', order: 1 },
+        { id: 'derivation', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
+        { id: 'reference', width: 'full', order: 4 },
+      ],
+    },
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['card_accuracy_distribution', 'step_reveal_usage'],
+    telemetrySummaryFields: ['cardResultStates', 'stepRevealCount', 'timeOnStep'],
+    misconceptionTags: ['stable_equals_all_roots_solved', 'first_column_role_missing'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'separate_toggle',
+      teacherStepReveal: 'teacher_only',
+      revealReferenceAnswer: 'separate_toggle',
+    },
     previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-04',
   },
   'step-05': {
     layout: {
-      template: 'table_construction_workspace',
+      template: 'worked_example_reveal',
       regions: [
-        { id: 'object', width: 'full', order: 1 },
-        { id: 'table', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'problem', width: 'full', order: 1 },
+        { id: 'derivation', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
+        { id: 'reference', width: 'full', order: 4 },
       ],
     },
-    interactionKind: 'short_response',
-    teacherInsightWidgets: ['response_word_cloud', 'common_reason_tags'],
-    telemetrySummaryFields: ['responseSubmitted', 'responseLength', 'timeOnStep'],
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['interval_accuracy_distribution', 'top_missing_conditions'],
+    telemetrySummaryFields: ['cardResultStates', 'stepRevealCount', 'attemptCount'],
+    misconceptionTags: ['missing_s0_condition', 'fraction_sign_chain_error'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'separate_toggle',
+      teacherStepReveal: 'teacher_only',
+      revealReferenceAnswer: 'separate_toggle',
+    },
     previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-05',
   },
   'step-06': {
     layout: {
-      template: 'interval_workflow_workspace',
+      template: 'figure_mapping_workspace',
       regions: [
-        { id: 'equation', width: 'full', order: 1 },
-        { id: 'conditions', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'table', width: 'full', order: 1 },
+        { id: 'media', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
+        { id: 'reference', width: 'full', order: 4 },
       ],
     },
-    interactionKind: 'interval_input',
-    teacherInsightWidgets: ['range_distribution', 'missing_condition_rate'],
-    telemetrySummaryFields: ['submittedRange', 'resultState', 'errorBucket'],
-    misconceptionTags: ['missing_s0_condition', 'fraction_chain_error', 'treating_routh_as_root_solver'],
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['match_accuracy_distribution', 'boundary_confusion_tags'],
+    telemetrySummaryFields: ['cardResultStates', 'timeOnStep'],
+    misconceptionTags: ['origin_root_equals_pure_imaginary_pair', 'boundary_only_memorized_as_number'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'page_load_open',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+    },
     previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-06',
   },
   'step-07': {
     layout: {
-      template: 'boundary_mapping_board',
+      template: 'worked_example_reveal',
       regions: [
-        { id: 'figure', width: 'full', order: 1 },
-        { id: 'cards', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'problem', width: 'full', order: 1 },
+        { id: 'derivation', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
+        { id: 'reference', width: 'full', order: 4 },
       ],
     },
-    interactionKind: 'triple_match',
-    teacherInsightWidgets: ['match_accuracy', 'boundary_confusion_tags'],
-    telemetrySummaryFields: ['matchAttempts', 'resultState', 'timeOnStep'],
-    misconceptionTags: ['origin_root_equals_pure_imaginary_pair'],
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['card_accuracy_distribution', 'epsilon_misconception_rate'],
+    telemetrySummaryFields: ['cardResultStates', 'stepRevealCount'],
+    misconceptionTags: ['epsilon_as_real_parameter', 'zero_head_means_boundary'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'separate_toggle',
+      teacherStepReveal: 'teacher_only',
+      revealReferenceAnswer: 'separate_toggle',
+    },
     previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-07',
   },
   'step-08': {
     layout: {
-      template: 'case_split_match',
+      template: 'worked_example_reveal',
       regions: [
-        { id: 'examples', width: 'full', order: 1 },
-        { id: 'method-card', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'problem', width: 'full', order: 1 },
+        { id: 'rule', width: 'full', order: 2 },
+        { id: 'derivation', width: 'full', order: 3 },
+        { id: 'activity', width: 'full', order: 4 },
+        { id: 'reference', width: 'full', order: 5 },
       ],
     },
-    interactionKind: 'classification_drag',
-    teacherInsightWidgets: ['case_split_distribution', 'confusion_rate'],
-    telemetrySummaryFields: ['selectedBucket', 'resultState', 'retryCount'],
-    misconceptionTags: ['zero_head_equals_zero_row'],
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['auxiliary_equation_accuracy', 'root_structure_confusion_tags'],
+    telemetrySummaryFields: ['cardResultStates', 'stepRevealCount'],
+    misconceptionTags: ['full_zero_row_equals_add_epsilon', 'full_zero_row_means_only_pure_imaginary'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'separate_toggle',
+      teacherStepReveal: 'teacher_only',
+      revealReferenceAnswer: 'separate_toggle',
+    },
     previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-08',
   },
   'step-09': {
     layout: {
-      template: 'method_card_with_completion',
+      template: 'table_figure_workspace',
       regions: [
-        { id: 'formula', width: 'full', order: 1 },
-        { id: 'workflow', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'table', width: 'full', order: 1 },
+        { id: 'media', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
+        { id: 'reference', width: 'full', order: 4 },
       ],
     },
-    interactionKind: 'formula_completion',
-    teacherInsightWidgets: ['formula_error_hotspots', 'method_completion_rate'],
-    telemetrySummaryFields: ['completionState', 'resultState', 'timeOnStep'],
-    misconceptionTags: ['missing_upper_row_source', 'forget_derivative_replace'],
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['match_accuracy_distribution', 'time_response_confusion_tags'],
+    telemetrySummaryFields: ['cardResultStates', 'timeOnStep'],
+    misconceptionTags: ['origin_root_equals_pure_imaginary_time_response', 'unstable_only_seen_as_graph'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'page_load_open',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+    },
     previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-09',
   },
   'step-10': {
     layout: {
-      template: 'response_compare_board',
+      template: 'figure_table_workspace',
       regions: [
-        { id: 'figure', width: 'full', order: 1 },
-        { id: 'translation', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'formula', width: 'full', order: 1 },
+        { id: 'media', width: 'full', order: 2 },
+        { id: 'table', width: 'full', order: 3 },
+        { id: 'activity', width: 'full', order: 4 },
+        { id: 'reference', width: 'full', order: 5 },
       ],
     },
-    interactionKind: 'triple_match',
-    teacherInsightWidgets: ['state_match_accuracy', 'critical_state_confusion'],
-    telemetrySummaryFields: ['matchAttempts', 'resultState', 'timeOnStep'],
-    misconceptionTags: ['critical_equals_slow'],
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['frequency_confusion_distribution', 'explanation_keyword_hits'],
+    telemetrySummaryFields: ['cardResultStates', 'timeOnStep'],
+    misconceptionTags: ['origin_root_equals_resonance_peak', 'frequency_view_detached_from_poles'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'page_load_open',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+    },
     previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-10',
   },
   'step-11': {
     layout: {
-      template: 'frequency_warning_board',
+      template: 'worked_example_reveal',
       regions: [
-        { id: 'figure', width: 'full', order: 1 },
-        { id: 'conclusion', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'problem', width: 'full', order: 1 },
+        { id: 'derivation', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
+        { id: 'reference', width: 'full', order: 4 },
       ],
     },
-    interactionKind: 'reason_check',
-    teacherInsightWidgets: ['reason_accuracy', 'boundary_to_frequency_confusion'],
-    telemetrySummaryFields: ['selectionState', 'resultState', 'teacherRevealSeen'],
-    misconceptionTags: ['frequency_view_becomes_stability_criterion'],
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['interval_accuracy_distribution', 'boundary_point_confusion_rate'],
+    telemetrySummaryFields: ['cardResultStates', 'stepRevealCount'],
+    misconceptionTags: ['region_shift_as_new_method', 'stronger_constraint_no_shrink'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'separate_toggle',
+      teacherStepReveal: 'teacher_only',
+      revealReferenceAnswer: 'separate_toggle',
+    },
     previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-11',
   },
   'step-12': {
     layout: {
-      template: 'constraint_transform_workspace',
+      template: 'post_quiz_stack',
       regions: [
-        { id: 'constraint', width: 'full', order: 1 },
-        { id: 'workflow', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'title', width: 'full', order: 1 },
+        { id: 'question-stack', width: 'full', order: 2 },
+        { id: 'submit-bar', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'parameter_workspace',
-    teacherInsightWidgets: ['range_accuracy', 'constraint_reason_distribution'],
-    telemetrySummaryFields: ['submittedRange', 'reasonTag', 'resultState'],
-    misconceptionTags: ['constraint_shift_is_new_topic', 'forget_interval_shrink_reason'],
+    interactionKind: 'quiz_group',
+    teacherInsightWidgets: ['question_distribution', 'keyword_hit_rate'],
+    telemetrySummaryFields: ['attemptCount', 'resultState', 'keywordCoverage'],
+    misconceptionTags: ['sign_change_not_counted', 'full_zero_row_without_auxiliary_equation', 'stronger_region_not_understood'],
+    teacherControls: {
+      releaseActivity: 'page_load_open',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+    },
     previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-12',
   },
   'step-13': {
     layout: {
-      template: 'post_quiz_stack',
-      regions: [
-        { id: 'question-stack', width: 'full', order: 1 },
-        { id: 'submit-bar', width: 'full', order: 2 },
-      ],
-    },
-    interactionKind: 'quiz_group',
-    teacherInsightWidgets: ['question_accuracy', 'explanation_keywords'],
-    telemetrySummaryFields: ['attemptCount', 'resultState', 'revisionCount'],
-    misconceptionTags: ['can_compute_but_cannot_explain_boundary'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-13',
-  },
-  'step-14': {
-    layout: {
       template: 'summary_infographic',
       regions: [
-        { id: 'summary', width: 'full', order: 1 },
-        { id: 'cheatsheet', width: 'full', order: 2 },
-        { id: 'next-step', width: 'full', order: 3 },
+        { id: 'summary-table', width: 'full', order: 1 },
+        { id: 'infographic', width: 'full', order: 2 },
+        { id: 'exit-note', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'none',
     teacherInsightWidgets: ['view_count'],
     telemetrySummaryFields: ['viewed', 'timeOnStep'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-14',
+    teacherControls: {
+      releaseActivity: 'not_applicable',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'not_applicable',
+    },
+    previewDemoPath: '/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-13',
   },
 };
 
 export const UNIT_3_2_INTERACTIVE_PAGE_TYPES = new Set<UNIT_3_2PageType>([
   'binary_choice',
   'quiz_group',
-  'short_response',
-  'interval_input',
-  'triple_match',
-  'classification_drag',
-  'formula_completion',
-  'reason_check',
-  'parameter_workspace',
+  'activity_cards',
 ]);
 
 export const UNIT_3_2_LESSON_STEPS: UNIT_3_2StepDefinition[] = [
-  { id: 'step-01', stage: 'B', title: '回到地图——从纯极点语言走向稳定边界', hint: '从 3-1 接续到 3-2，先立住本课位于模块 3 的位置。', duration: '3 min', pageType: 'display' },
-  { id: 'step-02', stage: 'B', title: '情境引入——看到极点逼近边界还不够吗', hint: '先暴露“只看图就够了”的误判，再引出系数规则。', duration: '5 min', pageType: 'binary_choice' },
-  { id: 'step-03', stage: 'O', title: '学习目标——本课要建立哪套边界语言', hint: '明确本课目标、主线和边界，不越界进根轨迹。', duration: '4 min', pageType: 'display' },
-  { id: 'step-04', stage: 'P1', title: '前测——高阶系统不求根也能判稳吗', hint: '用三题前测暴露“劳斯等于求根法”等常见混淆。', duration: '8 min', pageType: 'quiz_group' },
-  { id: 'step-05', stage: 'P2', title: '普通劳斯表：第一列为何足以回答稳定性', hint: '建立“判稳不等于求根”的第一条规则意识。', duration: '8 min', pageType: 'short_response' },
-  { id: 'step-06', stage: 'P2', title: '带参数劳斯表：稳定区间怎样直接读出', hint: '把第一列条件链推进到参数区间表达。', duration: '10 min', pageType: 'interval_input', workspaceKind: 'interval' },
-  { id: 'step-07', stage: 'P2', title: '边界回看：代数区间怎样落到极点迁移图', hint: '把代数边界翻译成几何边界与根结构差异。', duration: '7 min', pageType: 'triple_match', workspaceKind: 'boundary' },
-  { id: 'step-08', stage: 'P2', title: '特殊情况辨识：先分清首位为 0 还是全零行', hint: '先辨识，再处理，不能把两类特殊情况混为一谈。', duration: '7 min', pageType: 'classification_drag' },
-  { id: 'step-09', stage: 'P2', title: '处理动作：ε 延拓与辅助方程', hint: '把特殊情况处理链和根结构含义绑定起来。', duration: '7 min', pageType: 'formula_completion' },
-  { id: 'step-10', stage: 'P2', title: '三域对照一：稳定、临界、失稳的时域差异', hint: '把稳定状态、时域曲线和极点结构建立第一轮翻译。', duration: '6 min', pageType: 'triple_match' },
-  { id: 'step-11', stage: 'P2', title: '三域对照二：边界附近为何先出现频域峰值', hint: '频域在本课只做辅助观察，不升级成判据课。', duration: '5 min', pageType: 'reason_check' },
-  { id: 'step-12', stage: 'P2', title: '区域约束：变量平移如何把竖线约束转成普通判稳', hint: '把判稳推进到更强约束下的参数可行域表达。', duration: '8 min', pageType: 'parameter_workspace', workspaceKind: 'constraint' },
-  { id: 'step-13', stage: 'P3', title: '后测——会算表，更要会解释边界语言', hint: '检查学生是否真正建立了边界语言而不只是会算表。', duration: '8 min', pageType: 'quiz_group' },
-  { id: 'step-14', stage: 'S', title: '总结与后续预告——从判稳走向迁移机制', hint: '用五条结论收束 3-2，并把视角推到 3-3 与 4-1。', duration: '4 min', pageType: 'summary' },
+  { id: 'step-01', stage: 'B', title: '回到地图——从纯极点语言走向稳定边界', hint: '先把 3-2 放回模块 3 主线，明确本课处理高阶特征方程的稳定边界。', duration: '3 min', pageType: 'none' },
+  { id: 'step-02', stage: 'B', title: '先看主对象——极点迁移图提出了哪三个问题', hint: '先暴露“只看图就够了”的误判，再把问题收回到系数规则。', duration: '4 min', pageType: 'binary_choice' },
+  { id: 'step-03', stage: 'P1', title: '前测——不求根判稳、特殊情况与区域收紧', hint: '用三题前测把普通判稳、特殊情况与区域约束的起点误区先暴露出来。', duration: '6 min', pageType: 'quiz_group' },
+  { id: 'step-04', stage: 'P2', title: '普通劳斯表——固定 k=4 时怎样从第一列读出稳定性', hint: '题面常显、步骤显影、双卡独立提交，建立“判稳不等于求根”的第一条规则。', duration: '8 min', pageType: 'activity_cards' },
+  { id: 'step-05', stage: 'P2', title: '带参数劳斯表——稳定区间怎样从第一列条件链中写出', hint: '把第一列条件链推进到稳定区间，并显式防止漏掉 s^0 行条件。', duration: '10 min', pageType: 'activity_cards' },
+  { id: 'step-06', stage: 'P2', title: '边界点回到复平面——k=-2、18、22 分别对应什么根结构', hint: '把参数点、根结构和极点迁移图放回同一页，避免只记边界数字。', duration: '7 min', pageType: 'activity_cards' },
+  { id: 'step-07', stage: 'P2', title: '首位为 0——ε 连续化为什么只服务于符号判断', hint: '固定题面先行，再逐步显影 epsilon 连续化的判断链，不把 epsilon 当真实参数。', duration: '8 min', pageType: 'activity_cards' },
+  { id: 'step-08', stage: 'P2', title: '全零行——辅助方程怎样把对称根结构重新写出来', hint: '显式区分全零行与首位为 0，保留规则卡、推导链和双作答卡。', duration: '8 min', pageType: 'activity_cards' },
+  { id: 'step-09', stage: 'P2', title: '劳斯现象到时域——极点结构怎样改写响应形态', hint: '先表后图，再用双卡把极点结构翻译到时域响应。', duration: '6 min', pageType: 'activity_cards' },
+  { id: 'step-10', stage: 'P2', title: '劳斯现象到频域——峰值抬高、理想共振与低频抬升如何区分', hint: '把频域观察固定在本课的辅助证据地位，不升级成新的主判据。', duration: '6 min', pageType: 'activity_cards' },
+  { id: 'step-11', stage: 'P2', title: '变量平移——把 Re(s)<-0.5 转成普通劳斯判定', hint: '题面、平移链、区间对比和几何解释保持同页，不能压成一个区间输入框。', duration: '9 min', pageType: 'activity_cards' },
+  { id: 'step-12', stage: 'P3', title: '后测——判稳、特殊情况与区域约束能否连成一条链', hint: '后测单独成页，检查学生是否真的把判稳、特殊情况与区域约束连成一条边界语言链。', duration: '6 min', pageType: 'quiz_group' },
+  { id: 'step-13', stage: 'S', title: '收束——从稳定判定走向参数设计入口', hint: '只做收束与去向，不再把后测和总结混在同一页。', duration: '4 min', pageType: 'none' },
 ] as const;
 
 export function getUNIT_3_2Step(stepId: string) {
@@ -398,11 +467,10 @@ export const UNIT_3_2_PREMIUM_LESSON_CARD = {
 const UNIT_3_2_MEDIA_BY_STEP_ID: Record<string, string> = {
   'step-02': '/course-runtime/lessons/3-2/media/3-2-pole-migration.png',
   'step-08': '/course-runtime/lessons/3-2/media/3-2-special-cases-card.png',
-  'step-09': '/course-runtime/lessons/3-2/media/3-2-special-cases-card.svg',
-  'step-10': '/course-runtime/lessons/3-2/media/3-2-step-comparison.png',
-  'step-11': '/course-runtime/lessons/3-2/media/3-2-bode-magnitude.png',
-  'step-12': '/course-runtime/lessons/3-2/media/3-2-parameter-range-flow.png',
-  'step-14': '/course-runtime/lessons/3-2/media/3-2-info.png',
+  'step-09': '/course-runtime/lessons/3-2/media/3-2-step-comparison.png',
+  'step-10': '/course-runtime/lessons/3-2/media/3-2-bode-magnitude.png',
+  'step-11': '/course-runtime/lessons/3-2/media/3-2-parameter-range-flow.png',
+  'step-13': '/course-runtime/lessons/3-2/media/3-2-info.png',
 };
 
 export function getUNIT_3_2MediaSrc(stepId: string) {
@@ -444,6 +512,8 @@ export const UNIT_3_2_SESSION_ADAPTER: LessonSessionAdapter<
       activeStepId: input.activeStepId,
       revealedAnswers: input.revealedAnswers,
       releasedActivities: input.releasedActivities,
+      browseEnabled: input.browseEnabled,
+      teacherRevealProgress: input.teacherRevealProgress,
       updatedAt: input.updatedAt ?? Date.now(),
     };
   },
@@ -456,11 +526,15 @@ export function shouldPostUNIT_3_2TeacherSync(input: UNIT_3_2TeacherSyncPostGate
 export function resolveUNIT_3_2TeacherSyncDraft(input: {
   localRevealedAnswers: Record<string, boolean> | null;
   localReleasedActivities: Record<string, boolean> | null;
+  localBrowseEnabled: Record<string, boolean> | null;
+  localTeacherRevealProgress: Record<string, number> | null;
   teacherSyncState: UNIT_3_2TeacherCourseSyncState | null;
 }) {
   return {
     revealedAnswers: input.localRevealedAnswers ?? input.teacherSyncState?.revealedAnswers ?? {},
     releasedActivities: input.localReleasedActivities ?? input.teacherSyncState?.releasedActivities ?? {},
+    browseEnabled: input.localBrowseEnabled ?? input.teacherSyncState?.browseEnabled ?? {},
+    teacherRevealProgress: input.localTeacherRevealProgress ?? input.teacherSyncState?.teacherRevealProgress ?? {},
   };
 }
 

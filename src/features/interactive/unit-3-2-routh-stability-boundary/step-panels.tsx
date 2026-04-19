@@ -12,6 +12,7 @@ import { useInteractiveAI } from '@/features/interactive/hooks/useInteractiveAI'
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import type { InteractiveConfig } from '@/features/interactive/types';
 import {
+  getUNIT_3_2PageContract,
   UNIT_3_2_COURSE_TITLE,
   UNIT_3_2_LESSON_STEPS,
   UNIT_3_2_STAGE_LABEL,
@@ -20,8 +21,6 @@ import {
 } from '@/lib/unit-3-2-course';
 import {
   BOUNDARY_MATCH_OPTIONS,
-  CASE_BUCKETS,
-  CONSTRAINT_REASON_OPTIONS,
   STATE_MATCH_OPTIONS,
   type WorkspaceParameterChange,
 } from './workspace';
@@ -68,10 +67,18 @@ interface FormField {
 }
 
 interface ActivitySpec {
-  kind: 'none' | 'quiz' | 'form';
+  kind: 'none' | 'quiz' | 'form' | 'cards';
   helper: string;
   questions?: QuizQuestion[];
   fields?: FormField[];
+  cards?: ActivityCardSpec[];
+}
+
+interface ActivityCardSpec {
+  id: string;
+  title: string;
+  helper?: string;
+  fields: FormField[];
 }
 
 export interface UNIT_3_2TeacherResponseItem {
@@ -123,62 +130,49 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
       };
     case 'step-03':
       return {
-        kicker: 'Scope',
-        intro: '本课不追求一次讲完所有稳定方法，而是先把“普通判稳、特殊情况、三域翻译、参数可行域”这条链条站稳。',
+        kicker: 'Pre-assessment',
+        intro: '前测只检查判断链是否已经成形，不拉开分数。三题会同时暴露“不求根判稳、特殊情况辨识、区域收紧”这三条线上最常见的误判。',
         sections: [
           {
-            title: '四项目标',
+            title: '本页任务',
             tone: 'cyan',
-            bullets: ['会判稳。', '会分辨两类特殊情况。', '会做三域翻译。', '会表达参数可行域。'],
+            body: '先用三道题把普通判稳、特殊情况与区域收紧的起点理解暴露出来，再带着错因进入后续例题。',
           },
           {
-            title: '本课主线',
-            tone: 'emerald',
-            body: '普通判稳 -> 参数区间 -> 特殊情况 -> 三域翻译 -> 区域约束',
-          },
-          {
-            title: '刻意不做的事',
-            tone: 'rose',
-            bullets: ['不提前展开根轨迹法则。', '不进入 Nyquist 判稳与裕度计算。', '不直接进入控制器结构选型。'],
+            title: '常见混淆',
+            tone: 'amber',
+            bullets: ['劳斯判据不是另一种求根法。', '首位为 0 不等于全零行。', '稳定区间不等于更强区域约束下的可行域。'],
           },
         ],
-        prompts: ['为什么 3-2 要停在边界语言，不继续滑向根轨迹法则？'],
+        prompts: ['为什么会算劳斯表，不等于已经建立了完整的边界语言？'],
       };
     case 'step-04':
       return {
-        kicker: 'Pre-check',
-        intro: '前测不为分层，而是为暴露错因。3-2 最常见的三类混淆：把劳斯当求根法、把两类特殊情况混为一谈、把稳定直接当成可以优化。',
+        kicker: 'Ordinary Routh',
+        intro: '这页先把普通劳斯表站稳。题面、对象公式和目标结论都必须常显，教师显影只控制递推步骤，不隐藏“本例到底在求什么”。',
         sections: [
           {
-            title: '检查重点',
-            tone: 'amber',
-            bullets: ['劳斯回答的是“有没有右半平面根”，不是“把全部根算出来”。', '首位为 0 不等于全零行。', '先守住稳定可行域，再谈性能优化。'],
-          },
-        ],
-        prompts: ['为什么会算表不代表已经建立了边界语言？'],
-      };
-    case 'step-05':
-      return {
-        kicker: 'Routh Axis',
-        intro: '普通劳斯表的核心不是“表格很会算”，而是第一列已经把稳定性问题收束成右半平面根数问题。',
-        sections: [
-          {
-            title: '固定参数对象',
+            title: '完整题面',
             tone: 'cyan',
+            body: '取 k=4，对 D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k) 列写普通劳斯表，并判断系统稳定性。',
+          },
+          {
+            title: '固定对象',
+            tone: 'emerald',
             formula: 'D(s)=s^4+5s^3+9s^2+11s+6',
           },
           {
-            title: '核心规则',
-            tone: 'emerald',
-            body: '第一列符号变化次数 = 右半平面根数。先判稳，再决定是否需要显式求根验证。',
+            title: '第一列结论',
+            tone: 'amber',
+            formula: '1,\\ 5,\\ \\frac{34}{5},\\ \\frac{112}{17},\\ 6',
           },
         ],
-        prompts: ['为什么只看第一列就已经足以回答稳定性？', '为什么这一页判稳了，却还没有求出全部根？'],
+        prompts: ['为什么本页已经能判稳，但还没有显式求出全部根？'],
       };
-    case 'step-06':
+    case 'step-05':
       return {
         kicker: 'Feasible Range',
-        intro: '一旦把参数带进第一列条件链，劳斯判据就从“判稳”自然推进到“稳定区间”。',
+        intro: '把参数带进第一列之后，劳斯判据会自然推进到稳定区间。学生在这一页必须先看到条件链，再看到区间结论，不能只记住最后一行答案。',
         sections: [
           {
             title: '带参数对象',
@@ -186,172 +180,176 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
             formula: 'D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)',
           },
           {
-            title: '区间结论',
+            title: '稳定区间',
             tone: 'emerald',
             formula: '-2<k<18',
           },
           {
-            title: '这一页最容易漏掉什么',
+            title: '典型错因',
             tone: 'amber',
-            bullets: ['漏掉 $s^0$ 行条件。', '分式链条只看分子、不看符号一致性。', '把劳斯误当成“先求根再验证”的绕路工具。'],
+            bullets: ['漏掉 s^0 行条件。', '分式链条只看分子，不看符号一致性。', '把劳斯误当成先求根再验证的绕路工具。'],
           },
         ],
-        prompts: ['条件链最容易漏掉哪一步？', '为什么漏条件会把区间假性放宽？'],
+        prompts: ['第一列条件链最容易漏掉哪一步？'],
       };
-    case 'step-07':
+    case 'step-06':
       return {
         kicker: 'Boundary Mapping',
-        intro: '代数边界不是抽象符号，而会落成不同的根结构与不同的图上边界位置。',
+        intro: '代数边界不能只停留在数字上，还要落回复平面根结构。参数点、图上位置与根结构需要在同一页里互相对照。',
         sections: [
           {
-            title: '边界参数',
+            title: '边界点与稳定区',
             tone: 'cyan',
-            formula: 'k=-2,\\qquad k=18',
-          },
-          {
-            title: '两类边界并不一样',
-            tone: 'amber',
-            bullets: ['原点根边界：系统触到稳定底线。', '纯虚根边界：共轭根逼近并穿越虚轴。', '稳定区内部：全部根仍留在左半平面。'],
-          },
-        ],
-        prompts: ['为什么 $k=-2$ 与 $k=18$ 的根结构不是同一种临界状态？'],
-      };
-    case 'step-08':
-      return {
-        kicker: 'Split First',
-        intro: '特殊情况处理前，第一动作不是下公式，而是先分辨“首位为 0”还是“全零行”。',
-        sections: [
-          {
-            title: '短例 A',
-            tone: 'cyan',
-            formula: 'D_1(s)=s^4+2s^3+3s^2+6s+5',
-          },
-          {
-            title: '短例 B',
-            tone: 'violet',
-            formula: 'D_2(s)=s^4+2s^3+2s^2+2s+1',
-          },
-          {
-            title: '操作顺序',
-            tone: 'amber',
-            bullets: ['先辨识属于哪类特殊情况。', '再选择 epsilon 延拓或辅助方程。', '辨识错误会让整条处理链跑偏。'],
-          },
-        ],
-        prompts: ['为什么如果分类错了，后续处理就会整体错位？'],
-      };
-    case 'step-09':
-      return {
-        kicker: 'Method Chain',
-        intro: '全零行不是“算不下去了”，而是边界根结构露出来了，所以必须通过辅助方程把这层信息接回劳斯表。',
-        sections: [
-          {
-            title: '辅助方程',
-            tone: 'cyan',
-            formula: 'A(s)=s^2+1',
-          },
-          {
-            title: '导数替换',
-            tone: 'emerald',
-            formula: 'A\'(s)=2s',
-          },
-          {
-            title: '方法提醒',
-            tone: 'amber',
-            bullets: ['epsilon 延拓处理的是首位为 0。', '辅助方程处理的是全零行。', '导数替换来自上一行的结构信息，不是随手凑一行。'],
-          },
-        ],
-        prompts: ['为什么全零行会暴露对称根信息？', '为什么辅助方程求导后能回填劳斯表？'],
-      };
-    case 'step-10':
-      return {
-        kicker: 'Three Domains',
-        intro: '劳斯结论不能只停在“符号变化次数”，还要翻译到时域响应和极点半平面位置。',
-        sections: [
-          {
-            title: '三域翻译',
-            tone: 'cyan',
-            bullets: ['稳定 -> 衰减收敛 -> 左半平面极点', '临界 -> 等幅振荡或边界停留 -> 虚轴或原点根', '失稳 -> 发散 -> 右半平面根'],
+            bullets: ['k=-2：原点根边界。', 'k=18：纯虚根边界。', 'k=22：已出现右半平面共轭根。'],
           },
           {
             title: '关键提醒',
             tone: 'amber',
-            body: '“临界稳定”不是“更慢一点的稳定”，而是系统已经触到稳定底线。',
+            body: '两个边界点都压在稳定边界上，但对应的根结构并不相同；只有把边界重新翻译回复平面，参数区间才真正有了物理意义。',
           },
         ],
-        prompts: ['为什么临界状态不能被理解成“只是更慢一点”？'],
+        prompts: ['为什么 k=-2 与 k=18 同在边界上，却不是同一种临界状态？'],
+      };
+    case 'step-07':
+      return {
+        kicker: 'Zero Leading Entry',
+        intro: '“首位为 0 但该行不全为 0”要用 ε 做连续化处理，但 ε 只服务于第一列符号判断，不是系统的真实参数。',
+        sections: [
+          {
+            title: '完整题面',
+            tone: 'cyan',
+            body: '对 D_1(s)=s^4+2s^3+3s^2+6s+5 建立劳斯表，处理“首位为 0 但该行不全为 0”的情况。',
+          },
+          {
+            title: '关键量',
+            tone: 'emerald',
+            formula: 'c_1=6-\\frac{10}{\\varepsilon}',
+          },
+          {
+            title: '结论目标',
+            tone: 'amber',
+            bullets: ['判断目标始终是第一列符号变化。', 'ε 用来保持符号连续化，不代表真实参数进入系统。', '本例右半平面根数应回到第一列来读。'],
+          },
+        ],
+        prompts: ['为什么 ε 连续化只服务于符号判断，而不是系统真实参数？'],
+      };
+    case 'step-08':
+      return {
+        kicker: 'Full Zero Row',
+        intro: '全零行不是“算不下去了”，而是对称根结构露出来了，所以必须通过辅助方程把这层信息重新写回劳斯表。',
+        sections: [
+          {
+            title: '完整题面',
+            tone: 'cyan',
+            body: '对 D_2(s)=s^4+2s^3+2s^2+2s+1 建立劳斯表，并处理“某一整行为零”的情况。',
+          },
+          {
+            title: '辅助方程规则',
+            tone: 'emerald',
+            bullets: ['全零行出现后，先取上一行系数构造 A(s)。', '再对 A(s) 求导，用导数系数替换零行。', '最后由辅助方程的根判断具体根结构。'],
+          },
+          {
+            title: '关键链条',
+            tone: 'amber',
+            formula: 'A(s)=s^2+1,\\qquad A\'(s)=2s,\\qquad s=\\pm j',
+          },
+        ],
+        prompts: ['为什么全零行会暴露对称根结构？'],
+      };
+    case 'step-09':
+      return {
+        kicker: 'Routh to Time Domain',
+        intro: '劳斯结论要能翻译回时域。表格先说明极点结构，图像再说明响应形态，这两个证据不能拆开读。',
+        sections: [
+          {
+            title: '对应表',
+            tone: 'cyan',
+            bullets: ['第一列全正 -> 左半平面极点 -> 衰减收敛。', '边界根 -> 虚轴或原点 -> 等幅振荡或边界停留。', '第一列变号 -> 右半平面根 -> 发散。'],
+          },
+          {
+            title: '图后解释',
+            tone: 'amber',
+            body: '极点越逼近虚轴，振荡衰减越慢；进入右半平面后，振荡包络开始放大。原点根与纯虚根都属于边界，但时域表现并不相同。',
+          },
+        ],
+        prompts: ['原点根与纯虚根在时域上的主要差异是什么？'],
+      };
+    case 'step-10':
+      return {
+        kicker: 'Routh to Frequency Domain',
+        intro: '频域线索在 3-2 里仍是辅助证据，但必须能回译到边界类型。公式卡、Bode 图和三域总表需要同页出现。',
+        sections: [
+          {
+            title: '频域线索',
+            tone: 'cyan',
+            bullets: ['接近稳定边界时峰值抬高。', '纯虚根会在有限频率附近留下尖锐共振痕迹。', '原点根首先改写低频特性。'],
+          },
+          {
+            title: '关键提醒',
+            tone: 'amber',
+            body: '这里的频域现象仍由极点位置决定，不能把 Bode 图当成与稳定性无关的孤立图像。',
+          },
+        ],
+        prompts: ['为什么靠近稳定边界时峰值会抬高？'],
       };
     case 'step-11':
       return {
-        kicker: 'Frequency Warning',
-        intro: '接近稳定边界时，相关频段的峰值往往先抬高，但在 3-2 里这仍只是辅助观察线索。',
-        sections: [
-          {
-            title: '两条结论',
-            tone: 'cyan',
-            bullets: ['接近边界时，相关频段峰值会抬高。', '频域在本课只做辅助观察，不升级成主判据。'],
-          },
-        ],
-        prompts: ['为什么这里的频域现象不能直接替代判稳规则？'],
-      };
-    case 'step-12':
-      return {
         kicker: 'Shifted Constraint',
-        intro: '当稳定要求从“在左半平面”变成“在竖线左侧”时，变量平移把它重新送回普通劳斯判稳。',
+        intro: '更强的区域约束不是新方法，而是把竖线约束通过变量平移重新送回普通劳斯判定。旧区间与新区间必须同页对照。',
         sections: [
           {
-            title: '竖线约束',
+            title: '完整题面',
             tone: 'cyan',
-            formula: '\\operatorname{Re}(s)<-0.5',
+            body: '要求全部极点满足 Re(s)<-0.5，把区域约束转成普通劳斯判定，并写出新的可行域。',
           },
           {
             title: '变量平移',
             tone: 'emerald',
-            formula: 's=z-\\frac{1}{2}',
+            formula: 's=z-\\frac{1}{2},\\qquad \\tilde D(z,k)=D\\left(z-\\frac12,k\\right)',
           },
           {
-            title: '新区间',
-            tone: 'violet',
-            formula: '-\\frac{3}{8}<k<4',
+            title: '区间对比',
+            tone: 'amber',
+            formula: '-2<k<18,\\qquad -\\frac{3}{8}<k<4',
           },
         ],
-        prompts: ['为什么更强约束会把可行区间收缩？', '为什么平移后问题还能回到普通劳斯判稳？'],
+        prompts: ['为什么更强约束会把可行区间收缩？'],
+      };
+    case 'step-12':
+      return {
+        kicker: 'Post-assessment',
+        intro: '后测检查的不是算表速度，而是学生是否已经把“判稳、特殊情况、区域约束”连成一条边界语言链。',
+        sections: [
+          {
+            title: '检查重点',
+            tone: 'cyan',
+            bullets: ['能否把边界点翻译到根结构。', '能否分清首位为 0 与全零行。', '能否解释更强约束为什么会收紧可行域。'],
+          },
+          {
+            title: '答题口径',
+            tone: 'amber',
+            body: '答案不应只停留在会算，而要能说出边界意味着什么、为什么会这样以及它如何限制参数选择。',
+          },
+        ],
+        prompts: ['如果学生会算表，却解释不出边界语言，说明缺了哪一层理解？'],
       };
     case 'step-13':
       return {
-        kicker: 'Post-check',
-        intro: '后测检查的不是算表速度，而是学生能不能真正说出“边界语言”在解释什么。',
-        sections: [
-          {
-            title: '检查口径',
-            tone: 'amber',
-            body: '会算表只是最低层，真正要带走的是：边界对应什么根结构、什么时域表现、什么参数窗口。',
-          },
-        ],
-        prompts: ['如果学生会算表却解释不出边界含义，说明缺了哪一层理解？'],
-      };
-    case 'step-14':
-      return {
         kicker: 'Takeaways',
-        intro: '3-2 的出口不是多记几条技巧，而是形成“先判稳、再识别边界、再进入参数可行域”的一条稳定判断链。',
+        intro: '3-2 的出口不是多记几条技巧，而是形成“先判稳、再识别边界、再进入参数可行域”的完整判断链，并把它交给后续根轨迹与设计任务。',
         sections: [
           {
-            title: '五条结论',
+            title: '四个带走的锚点',
             tone: 'emerald',
-            bullets: [
-              '劳斯首先回答高阶系统的稳定底线。',
-              '第一列符号变化次数对应右半平面根数。',
-              '两类特殊情况对应两种不同处理动作。',
-              '劳斯结论要翻译到极点、时域和频域线索。',
-              '先有稳定可行域，后谈性能优化。',
-            ],
+            bullets: ['普通劳斯表先回答高阶系统是否稳定。', '特殊情况必须先分型，再选处理动作。', '边界结论要翻译到极点、时域与频域线索。', '更强约束会把稳定区间收紧成更窄的参数可行域。'],
           },
           {
-            title: '去向卡',
+            title: '课程出口',
             tone: 'cyan',
-            body: '3-3 会解释极点为何沿边界附近那条路径迁移，4-1 再把可行域语言推进到参数设计任务。',
+            body: '下一课 3-3 会解释极点为何沿边界附近那条路径迁移，4-1 再把可行域语言推进到参数设计任务。',
           },
         ],
-        prompts: ['3-2 最值得带走的五条结论是什么？', '为什么 3-3 和 4-1 会分别接住 3-2 的出口？'],
+        prompts: ['为什么 3-2 的出口是参数设计入口，而不是直接开始整定？'],
       };
     default:
       return {
@@ -429,142 +427,346 @@ const POSTTEST_QUESTIONS: QuizQuestion[] = [
   },
 ];
 
+const STEP_REVEAL_SEGMENTS_BY_STEP: Partial<Record<string, ReadonlyArray<{ key: string; label: string }>>> = {
+  'step-04': [
+    { key: 'base-rows', label: '先排出 s^4 与 s^3 两行' },
+    { key: 'coefficients', label: '依次算出 b_1、b_2 与 c_1' },
+    { key: 'first-column', label: '读第一列并做数值求根交叉验证' },
+  ],
+  'step-05': [
+    { key: 'table', label: '先列出带参数劳斯表' },
+    { key: 'inequality-chain', label: '再写出第一列不等式链' },
+    { key: 'interval', label: '最后合并条件得到稳定区间' },
+  ],
+  'step-07': [
+    { key: 'zero-head', label: '先得到 b_1=0、b_2=5' },
+    { key: 'epsilon', label: '再用 ε 替代首位零' },
+    { key: 'sign-change', label: '根据第一列符号变化判断右半平面根数' },
+  ],
+  'step-08': [
+    { key: 'zero-row', label: '先识别整行为零' },
+    { key: 'aux-equation', label: '由上一行系数构造 A(s)' },
+    { key: 'derivative', label: '对 A(s) 求导并替换零行' },
+    { key: 'structure', label: '由辅助方程根判断对称根结构' },
+  ],
+  'step-11': [
+    { key: 'shift-polynomial', label: '先写出平移后多项式' },
+    { key: 'shifted-routh', label: '再列写平移后的劳斯表' },
+    { key: 'compare-intervals', label: '最后比较旧区间与新区间' },
+  ],
+};
+
 function getActivitySpec(step: UNIT_3_2StepDefinition): ActivitySpec {
-  switch (step.pageType) {
-    case 'binary_choice':
+  switch (step.id) {
+    case 'step-02':
       return {
         kind: 'form',
         helper: '先选立场，再看教师揭示后的纠偏。',
         fields: [
           {
             key: 'choice',
-            label: '你的判断',
+            label: '只看极点迁移图，是否已经足够写出参数可行域。',
             type: 'radio',
             answer: 'B',
             options: [
-              { value: 'A', label: '只要图上看见边界点，就足够判断参数' },
+              { value: 'A', label: '足够，图上边界点已经全部给出。' },
               { value: 'B', label: '还需要一套从特征方程系数直接判稳的方法' },
             ],
           },
         ],
       };
-    case 'quiz_group':
+    case 'step-03':
       return {
         kind: 'quiz',
-        helper: step.id === 'step-13' ? '后测检查边界语言是否已经成形。' : '前测用于暴露错因，不用于拉开分数。',
-        questions: step.id === 'step-13' ? POSTTEST_QUESTIONS : PRETEST_QUESTIONS,
+        helper: '前测用于暴露错因，不用于拉开分数。',
+        questions: PRETEST_QUESTIONS,
       };
-    case 'short_response':
+    case 'step-04':
       return {
-        kind: 'form',
-        helper: '用一句话说清“为什么能判稳但还没有显式求根”。',
-        fields: [
+        kind: 'cards',
+        helper: '先跟随显影链读出第一列，再完成两张独立作答卡。',
+        cards: [
           {
-            key: 'reason',
-            label: '一句话解释',
-            type: 'textarea',
-            placeholder: '例如：第一列符号变化已经回答了右半平面根数，所以先能判稳，不必先把全部根算出来。',
-            answer: '第一列符号变化次数已经给出右半平面根数，因此劳斯可以先判稳，再决定是否需要显式求根验证。',
-          },
-        ],
-      };
-    case 'interval_input':
-      return {
-        kind: 'form',
-        helper: '填写区间，并明确最容易漏掉的条件。',
-        fields: [
-          {
-            key: 'range',
-            label: '稳定区间',
-            type: 'text',
-            placeholder: '例如：-2 < k < 18',
-            answer: '-2 < k < 18',
+            id: 'card-04-a',
+            title: '本例右半平面根数是多少。',
+            fields: [
+              {
+                key: 'rhpCount',
+                label: '本例右半平面根数是多少。',
+                type: 'radio',
+                answer: '0',
+                options: [
+                  { value: '0', label: '0 个' },
+                  { value: '1', label: '1 个' },
+                  { value: '2', label: '2 个' },
+                  { value: '3', label: '3 个' },
+                ],
+              },
+            ],
           },
           {
-            key: 'missingCondition',
-            label: '最容易漏掉的条件',
-            type: 'radio',
-            answer: 's0',
-            options: [
-              { value: 's1', label: '只看高阶行，不看低阶行' },
-              { value: 's0', label: '漏掉 s^0 行条件' },
-              { value: 'solver', label: '把劳斯当成先求根再验证的工具' },
+            id: 'card-04-b',
+            title: '为什么本页已经能判稳，但还没有显式求出全部根。',
+            fields: [
+              {
+                key: 'methodMeaning',
+                label: '为什么本页已经能判稳，但还没有显式求出全部根。',
+                type: 'textarea',
+                placeholder: '用 1-2 句话解释第一列与右半平面根数的关系。',
+                answer: '因为第一列符号变化次数已经给出右半平面根数，所以劳斯可以先判稳；显式求根只是后续的交叉验证。',
+              },
             ],
           },
         ],
       };
-    case 'triple_match':
-      if (step.id === 'step-07') {
-        return {
-          kind: 'form',
-          helper: '把边界参数、图上位置和根结构描述对起来。',
-          fields: [
-            { key: 'parameter', label: '边界参数', type: 'radio', answer: 'k=18', options: [...BOUNDARY_MATCH_OPTIONS.parameter] },
-            { key: 'geometry', label: '图上位置', type: 'radio', answer: 'imaginary-pair', options: [...BOUNDARY_MATCH_OPTIONS.geometry] },
-            { key: 'meaning', label: '根结构描述', type: 'radio', answer: 'cross-axis', options: [...BOUNDARY_MATCH_OPTIONS.meaning] },
-          ],
-        };
-      }
+    case 'step-05':
       return {
-        kind: 'form',
-        helper: '把响应曲线、极点结构和稳定状态标签对应起来。',
-        fields: [
-          { key: 'curve', label: '曲线标签', type: 'radio', answer: 'critical', options: [...STATE_MATCH_OPTIONS.curve] },
-          { key: 'pole', label: '极点结构', type: 'radio', answer: 'axis-boundary', options: [...STATE_MATCH_OPTIONS.pole] },
-          { key: 'state', label: '稳定状态', type: 'radio', answer: 'critical', options: [...STATE_MATCH_OPTIONS.state] },
-        ],
-      };
-    case 'classification_drag':
-      return {
-        kind: 'form',
-        helper: '先分辨异常类型，再决定处理动作。',
-        fields: [
-          { key: 'caseA', label: '短例 A 属于', type: 'radio', answer: 'zero-head', options: [...CASE_BUCKETS] },
-          { key: 'caseB', label: '短例 B 属于', type: 'radio', answer: 'zero-row', options: [...CASE_BUCKETS] },
-        ],
-      };
-    case 'formula_completion':
-      return {
-        kind: 'form',
-        helper: '把“上一行 -> 辅助方程 -> 导数替换”链条补齐。',
-        fields: [
-          { key: 'upperRow', label: '来自上一行的结构', type: 'text', placeholder: '例如：由 s^2 行构造偶多项式', answer: '由上一行偶次幂项构造辅助方程' },
-          { key: 'auxEquation', label: '辅助方程', type: 'text', placeholder: '例如：A(s)=s^2+1', answer: 'A(s)=s^2+1' },
-          { key: 'derivative', label: '导数替换', type: 'text', placeholder: '例如：A\'(s)=2s', answer: 'A\'(s)=2s' },
-        ],
-      };
-    case 'reason_check':
-      return {
-        kind: 'form',
-        helper: '判断峰值抬高与边界接近的关系，并写一句边界提醒。',
-        fields: [
+        kind: 'cards',
+        helper: '根据显影链写出稳定区间，并指出最容易遗漏的条件。',
+        cards: [
           {
-            key: 'selection',
-            label: '你的判断',
-            type: 'radio',
-            answer: 'yes',
-            options: [
-              { value: 'yes', label: '峰值抬高常是接近边界的辅助线索' },
-              { value: 'no', label: '峰值抬高与边界接近没有关系' },
+            id: 'card-05-a',
+            title: '填写稳定区间。',
+            fields: [
+              {
+                key: 'range',
+                label: '填写稳定区间。',
+                type: 'text',
+                placeholder: '例如：-2 < k < 18',
+                answer: '-2 < k < 18',
+              },
             ],
           },
           {
-            key: 'reason',
-            label: '边界提醒',
-            type: 'textarea',
-            placeholder: '例如：它只能做辅助观察，不能代替劳斯判稳。',
-            answer: '接近稳定边界时相关频段峰值会抬高，但本课仍以劳斯判稳为主，频域只做辅助观察。',
+            id: 'card-05-b',
+            title: '哪一个条件最容易被遗漏。',
+            fields: [
+              {
+                key: 'missingCondition',
+                label: '哪一个条件最容易被遗漏。',
+                type: 'radio',
+                answer: 's0',
+                options: [
+                  { value: 's1', label: '只看高阶行，不看低阶行' },
+                  { value: 's0', label: '漏掉 s^0 行条件' },
+                  { value: 'solver', label: '把劳斯当成先求根再验证的工具' },
+                ],
+              },
+            ],
           },
         ],
       };
-    case 'parameter_workspace':
+    case 'step-06':
       return {
-        kind: 'form',
-        helper: '把区域约束转成变量平移后的新区间，并说清“为什么更窄”。',
-        fields: [
-          { key: 'range', label: '新区间', type: 'text', placeholder: '例如：-3/8 < k < 4', answer: '-3/8 < k < 4' },
-          { key: 'reasonTag', label: '原因标签', type: 'radio', answer: 'interval-shrinks', options: [...CONSTRAINT_REASON_OPTIONS] },
+        kind: 'cards',
+        helper: '把参数点与根结构对应起来，并解释两个边界点为何不是同一种临界状态。',
+        cards: [
+          {
+            id: 'card-06-a',
+            title: '把参数点与根结构做匹配。',
+            fields: [
+              { key: 'parameter', label: '边界参数', type: 'radio', answer: 'k=18', options: [...BOUNDARY_MATCH_OPTIONS.parameter] },
+              { key: 'geometry', label: '图上位置', type: 'radio', answer: 'imaginary-pair', options: [...BOUNDARY_MATCH_OPTIONS.geometry] },
+              { key: 'meaning', label: '根结构描述', type: 'radio', answer: 'cross-axis', options: [...BOUNDARY_MATCH_OPTIONS.meaning] },
+            ],
+          },
+          {
+            id: 'card-06-b',
+            title: '为什么 k=-2 与 k=18 都在边界上，却不是同一种临界状态。',
+            fields: [
+              {
+                key: 'boundaryDifference',
+                label: '为什么 k=-2 与 k=18 都在边界上，却不是同一种临界状态。',
+                type: 'textarea',
+                placeholder: '说明原点根边界与纯虚根边界的差异。',
+                answer: '因为 k=-2 对应原点根边界，而 k=18 对应纯虚根边界；两者虽然都在边界上，但极点结构和响应含义并不相同。',
+              },
+            ],
+          },
         ],
+      };
+    case 'step-07':
+      return {
+        kind: 'cards',
+        helper: '先跟随显影链完成连续化，再判断右半平面根数并说明 ε 的角色。',
+        cards: [
+          {
+            id: 'card-07-a',
+            title: '本例右半平面根数是多少。',
+            fields: [
+              {
+                key: 'epsilonRhpCount',
+                label: '本例右半平面根数是多少。',
+                type: 'radio',
+                answer: '2',
+                options: [
+                  { value: '0', label: '0 个' },
+                  { value: '1', label: '1 个' },
+                  { value: '2', label: '2 个' },
+                  { value: '3', label: '3 个' },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'card-07-b',
+            title: '为什么 ε 只服务于符号连续化，而不是系统真实参数。',
+            fields: [
+              {
+                key: 'epsilonRole',
+                label: '为什么 ε 只服务于符号连续化，而不是系统真实参数。',
+                type: 'textarea',
+                placeholder: '说明 ε 在首位为 0 场景中的作用。',
+                answer: 'ε 只是在首位为 0 时维持第一列符号连续判断的辅助量，不代表系统真的引入了一个可调参数。',
+              },
+            ],
+          },
+        ],
+      };
+    case 'step-08':
+      return {
+        kind: 'cards',
+        helper: '先跟随显影链写出辅助方程，再判断本例对应的根结构。',
+        cards: [
+          {
+            id: 'card-08-a',
+            title: '写出本例辅助方程。',
+            fields: [
+              {
+                key: 'auxEquation',
+                label: '写出本例辅助方程。',
+                type: 'text',
+                placeholder: '例如：A(s)=s^2+1',
+                answer: 'A(s)=s^2+1',
+              },
+            ],
+          },
+          {
+            id: 'card-08-b',
+            title: '本例对应哪一种根结构。',
+            fields: [
+              {
+                key: 'rootStructure',
+                label: '本例对应哪一种根结构。',
+                type: 'radio',
+                answer: 'pure-imaginary',
+                options: [
+                  { value: 'pure-imaginary', label: '纯虚根对' },
+                  { value: 'origin-root', label: '原点根' },
+                  { value: 'rhp-pair', label: '右半平面共轭根' },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+    case 'step-09':
+      return {
+        kind: 'cards',
+        helper: '把劳斯现象与时域曲线对应起来，并区分原点根与纯虚根的时域差异。',
+        cards: [
+          {
+            id: 'card-09-a',
+            title: '把劳斯现象与时域曲线做匹配。',
+            fields: [
+              { key: 'curve', label: '曲线标签', type: 'radio', answer: 'critical', options: [...STATE_MATCH_OPTIONS.curve] },
+              { key: 'pole', label: '极点结构', type: 'radio', answer: 'axis-boundary', options: [...STATE_MATCH_OPTIONS.pole] },
+              { key: 'state', label: '稳定状态', type: 'radio', answer: 'critical', options: [...STATE_MATCH_OPTIONS.state] },
+            ],
+          },
+          {
+            id: 'card-09-b',
+            title: '原点根与纯虚根在时域上的主要差异是什么。',
+            fields: [
+              {
+                key: 'timeDomainDifference',
+                label: '原点根与纯虚根在时域上的主要差异是什么。',
+                type: 'textarea',
+                placeholder: '说明两类边界在时域上的主要差异。',
+                answer: '纯虚根更直接对应有限频率处的等幅振荡，而原点根首先表现为低频边界停留或积分型拖尾，两者虽然都在边界上，但时域特征不同。',
+              },
+            ],
+          },
+        ],
+      };
+    case 'step-10':
+      return {
+        kind: 'cards',
+        helper: '辨识纯虚根、原点根与边界逼近在频域中的不同痕迹。',
+        cards: [
+          {
+            id: 'card-10-a',
+            title: '哪一种频域现象最直接对应纯虚根。',
+            fields: [
+              {
+                key: 'frequencyPhenomenon',
+                label: '哪一种频域现象最直接对应纯虚根。',
+                type: 'radio',
+                answer: 'sharp-resonance',
+                options: [
+                  { value: 'sharp-resonance', label: '有限频率处出现尖锐共振峰' },
+                  { value: 'low-frequency-lift', label: '低频端首先持续抬升' },
+                  { value: 'mild-peak', label: '整体峰值略升但没有尖锐峰' },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'card-10-b',
+            title: '为什么靠近稳定边界时峰值会抬高。',
+            fields: [
+              {
+                key: 'peakReason',
+                label: '为什么靠近稳定边界时峰值会抬高。',
+                type: 'textarea',
+                placeholder: '说明极点逼近边界与峰值抬高的关系。',
+                answer: '因为主导极点逼近虚轴后阻尼减小，相关频段的响应被放大，所以频域峰值会先抬高，这是一条边界逼近的辅助线索。',
+              },
+            ],
+          },
+        ],
+      };
+    case 'step-11':
+      return {
+        kind: 'cards',
+        helper: '根据平移后的劳斯表写出新区间，并判断给定参数是否越过新边界。',
+        cards: [
+          {
+            id: 'card-11-a',
+            title: '填写更强约束下的可行域。',
+            fields: [
+              {
+                key: 'shiftedRange',
+                label: '填写更强约束下的可行域。',
+                type: 'text',
+                placeholder: '例如：-3/8 < k < 4',
+                answer: '-3/8 < k < 4',
+              },
+            ],
+          },
+          {
+            id: 'card-11-b',
+            title: 'k=4 是否仍满足新约束。',
+            fields: [
+              {
+                key: 'k4Boundary',
+                label: 'k=4 是否仍满足新约束。',
+                type: 'radio',
+                answer: 'no',
+                options: [
+                  { value: 'yes', label: '是，仍在新区间内' },
+                  { value: 'no', label: '否，已经压在新边界上' },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+    case 'step-12':
+      return {
+        kind: 'quiz',
+        helper: '后测检查边界语言是否已经成形。',
+        questions: POSTTEST_QUESTIONS,
       };
     default:
       return {
@@ -578,23 +780,25 @@ function getRevealContent(step: UNIT_3_2StepDefinition) {
   switch (step.id) {
     case 'step-02':
       return '正确项：**B**。图像直觉只能提醒“边界快到了”，真正的参数筛选还要回到特征方程系数规则。';
-    case 'step-04':
+    case 'step-03':
       return '前测纠偏：劳斯不是另一种求根法；首位为 0 与全零行必须先分辨；稳定之后才有资格继续谈性能优化。';
-    case 'step-06':
+    case 'step-04':
+      return '本例第一列为 `1, 5, 34/5, 112/17, 6`，因此右半平面根数为 0。劳斯先回答的是“有没有右半平面根”，不是先把全部根显式求出来。';
+    case 'step-05':
       return '稳定区间：`-2 < k < 18`。典型错因是漏掉 $s^0$ 行条件，导致区间被假性放宽。';
-    case 'step-07':
+    case 'step-06':
       return '边界翻译：`k=-2` 更接近原点根边界；`k=18` 对应纯虚根边界。不同参数触发的是不同的临界根结构。';
+    case 'step-07':
+      return '首位为 0 的处理重点是保持第一列符号连续判断。本例用 ε 连续化后，可读出右半平面根数为 2；ε 不是系统真实参数。';
     case 'step-08':
-      return '分类结论：短例 A 先走 epsilon 延拓；短例 B 需要辅助方程。顺序永远是“先辨识，再处理”。';
+      return '全零行应先构造辅助方程 `A(s)=s^2+1`，再用 `A\'(s)=2s` 回填零行。本例暴露的是纯虚根对，而不是继续加 ε。';
     case 'step-09':
-      return '处理链：上一行结构 -> 辅助方程 $A(s)$ -> 导数替换 $A\'(s)$。全零行不是算不下去，而是根结构露出来了。';
+      return '时域翻译：稳定对应衰减收敛，边界根对应等幅振荡或边界停留，失稳对应发散。原点根与纯虚根同属边界，但响应形态并不相同。';
     case 'step-10':
-      return '三域翻译：稳定 -> 衰减收敛 -> 左半平面；临界 -> 等幅振荡/边界停留 -> 虚轴或原点；失稳 -> 发散 -> 右半平面。';
+      return '频域翻译：纯虚根最直接对应有限频率处的尖锐共振峰；原点根首先改写低频特性；峰值抬高说明系统在逼近稳定边界。';
     case 'step-11':
-      return '边界提醒：峰值抬高是接近边界的辅助观察线索，但 3-2 仍以劳斯判稳为主，不引入 Nyquist 判据。';
+      return '变量平移后新区间：`-3/8 < k < 4`。更强的竖线约束会收紧可行域，所以 `k=4` 已经压在新边界上。';
     case 'step-12':
-      return '变量平移后新区间：`-3/8 < k < 4`。更强的竖线约束会让可行域收缩。';
-    case 'step-13':
       return '后测标准：会算表只是起点，真正关键是能把边界翻译到根结构、时域表现和参数可行域语言。';
     default:
       return null;
@@ -635,6 +839,11 @@ function getDefaultDraft(activity: ActivitySpec, savedResponse?: UNIT_3_2StepRes
   for (const question of activity.questions ?? []) {
     defaults[question.key] = '';
   }
+  for (const card of activity.cards ?? []) {
+    for (const field of card.fields) {
+      defaults[field.key] = '';
+    }
+  }
   return defaults;
 }
 
@@ -664,6 +873,10 @@ function renderFieldValue(field: FormField | undefined, value: string) {
   if (!field) return value;
   if (field.type !== 'radio') return value;
   return field.options?.find((option) => option.value === value)?.label ?? value;
+}
+
+function getActivityFields(activity: ActivitySpec) {
+  return [...(activity.fields ?? []), ...(activity.cards?.flatMap((card) => card.fields) ?? [])];
 }
 
 function ChoiceGroup({
@@ -722,8 +935,34 @@ function TextInput({
   );
 }
 
+function RevealTrack({
+  title,
+  items,
+  revealProgress,
+}: {
+  title: string;
+  items: ReadonlyArray<{ key: string; label: string }>;
+  revealProgress: number;
+}) {
+  return (
+    <div className="premium-lesson-tone-block premium-tone-violet mt-4">
+      <div className="premium-lesson-title text-sm font-semibold">{title}</div>
+      <div className="mt-3 grid gap-2">
+        {items.map((item, index) => (
+          <div
+            key={item.key}
+            className={`rounded-2xl border px-3 py-2 text-sm ${index < revealProgress ? 'border-cyan-400/60 bg-cyan-500/10' : 'border-border/50 bg-background/40 text-foreground/60'}`}
+          >
+            {item.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function supportsAnswerReveal(step: UNIT_3_2StepDefinition) {
-  return step.pageType !== 'display' && step.pageType !== 'summary' && Boolean(getRevealContent(step));
+  return getUNIT_3_2PageContract(step.id).teacherControls.revealReferenceAnswer !== 'not_applicable' && Boolean(getRevealContent(step));
 }
 
 function summarizeResponses(step: UNIT_3_2StepDefinition, responses: UNIT_3_2TeacherResponseItem[]) {
@@ -775,13 +1014,16 @@ export function UNIT_3_2StepContentPanel({
   step,
   mediaSrc,
   mediaAlt,
+  revealProgress = 0,
 }: {
   step: UNIT_3_2StepDefinition;
   mediaSrc?: string | null;
   mediaAlt?: string;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+  revealProgress?: number;
 }) {
   const blueprint = getStepBlueprint(step);
+  const revealItems = STEP_REVEAL_SEGMENTS_BY_STEP[step.id] ?? [];
 
   return (
     <section className="premium-lesson-panel px-4 py-5">
@@ -823,6 +1065,8 @@ export function UNIT_3_2StepContentPanel({
         ))}
       </div>
 
+      {revealItems.length ? <RevealTrack title="教师逐步显影" items={revealItems} revealProgress={Math.min(revealItems.length, revealProgress)} /> : null}
+
       {blueprint.note ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">{blueprint.note}</div> : null}
     </section>
   );
@@ -832,13 +1076,17 @@ export function UNIT_3_2StudentActivityForm({
   step,
   savedResponse,
   released,
+  browseEnabled = true,
   answerVisible,
+  revealProgress = 0,
   onSubmit,
 }: {
   step: UNIT_3_2StepDefinition;
   savedResponse?: UNIT_3_2StepResponse;
   released: boolean;
+  browseEnabled?: boolean;
   answerVisible: boolean;
+  revealProgress?: number;
   onSubmit: (response: UNIT_3_2StepResponse) => void;
 }) {
   const activity = getActivitySpec(step);
@@ -848,27 +1096,52 @@ export function UNIT_3_2StudentActivityForm({
     setDraft(getDefaultDraft(activity, savedResponse));
   }, [activity, savedResponse]);
 
+  const contract = getUNIT_3_2PageContract(step.id);
   const submitted = Boolean(savedResponse);
-  const locked = !released && activity.kind !== 'none';
+  const requiresRelease = contract.teacherControls.releaseActivity === 'separate_toggle';
+  const requiresBrowse = contract.teacherControls.openBrowse === 'separate_toggle';
+  const locked = activity.kind !== 'none' && ((requiresRelease && !released && !submitted) || (requiresBrowse && !browseEnabled));
   const revealContent = getRevealContent(step);
+  const savedAnswers = savedResponse?.answers ?? {};
 
   const updateDraft = (key: string, value: string) => {
     setDraft((prev) => ({ ...prev, [key]: value }));
   };
 
   if (activity.kind === 'none') {
-    return (
-      <section className="premium-lesson-panel-soft px-4 py-4">
-        <div className="premium-lesson-title text-sm font-medium">本页无需提交</div>
-        <SubmissionStatus submitted={false} idleText="本页以阅读、观察和教师推进为主，不需要学生提交作答。" />
-      </section>
-    );
+    return null;
   }
+
+  const submit = (answers: Record<string, string>) => {
+    onSubmit({
+      stepId: step.id,
+      submittedAt: Date.now(),
+      answers,
+    });
+  };
+
+  const submitCard = (card: ActivityCardSpec) => {
+    const nextAnswers = {
+      ...savedAnswers,
+      ...Object.fromEntries(card.fields.map((field) => [field.key, draft[field.key] ?? ''])),
+    };
+    submit(nextAnswers);
+  };
 
   return (
     <section className="premium-lesson-panel-soft px-4 py-4">
       <div className="premium-lesson-title text-sm font-medium">学生作答区</div>
-      <p className="premium-lesson-muted mt-2 text-sm">{locked ? '教师尚未释放本页互动，请先阅读上方静态内容。' : activity.helper}</p>
+      <p className="premium-lesson-muted mt-2 text-sm">
+        {locked
+          ? requiresBrowse && !browseEnabled
+            ? '教师尚未开放浏览，请先阅读已显示的静态内容。'
+            : '教师尚未发放本页互动，请先阅读上方静态内容。'
+          : activity.helper}
+      </p>
+
+      {contract.teacherControls.teacherStepReveal === 'teacher_only' && activity.kind === 'cards' ? (
+        <div className="premium-lesson-muted mt-2 text-xs">当前显影层级：{revealProgress}</div>
+      ) : null}
 
       {locked ? (
         <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">当前互动尚未释放。</div>
@@ -918,23 +1191,60 @@ export function UNIT_3_2StudentActivityForm({
             </div>
           ))}
 
-          <button
-            type="button"
-            onClick={() =>
-              onSubmit({
-                stepId: step.id,
-                submittedAt: Date.now(),
-                answers: draft,
-              })
-            }
-            className="premium-lesson-action-primary"
-          >
-            {submitted ? '重新提交本页作答' : '提交到教师端'}
-          </button>
+          {activity.cards?.length ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {activity.cards.map((card) => {
+                const cardSubmitted = card.fields.every((field) => Boolean(savedAnswers[field.key]?.trim()));
+                return (
+                  <div key={card.id} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+                    <div className="premium-lesson-title text-sm font-medium">{card.title}</div>
+                    {card.helper ? <div className="premium-lesson-muted mt-2 text-sm">{card.helper}</div> : null}
+                    <div className="mt-3 grid gap-3">
+                      {card.fields.map((field) => (
+                        <div key={field.key}>
+                          {field.type === 'radio' ? (
+                            <ChoiceGroup
+                              options={field.options ?? []}
+                              value={draft[field.key] ?? ''}
+                              onChange={(value) => updateDraft(field.key, value)}
+                            />
+                          ) : (
+                            <TextInput
+                              value={draft[field.key] ?? ''}
+                              onChange={(value) => updateDraft(field.key, value)}
+                              placeholder={field.placeholder}
+                              multiline={field.type === 'textarea'}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button type="button" onClick={() => submitCard(card)} className="premium-lesson-action-primary mt-4 w-full">
+                      {cardSubmitted ? '重新提交答案' : '提交答案'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {activity.kind === 'form' || activity.kind === 'quiz' ? (
+            <button
+              type="button"
+              onClick={() => submit(draft)}
+              className="premium-lesson-action-primary"
+            >
+              {submitted ? '重新提交本页作答' : '提交答案'}
+            </button>
+          ) : null}
         </div>
       )}
 
-      <SubmissionStatus submitted={submitted} />
+      <SubmissionStatus
+        submitted={submitted}
+        submittedText="已提交当前作答，教师端会看到你的最新答案。"
+        idleText="尚未提交当前页面作答。"
+      />
 
       {answerVisible && revealContent ? (
         <div className="premium-lesson-tone-block premium-tone-emerald mt-4 text-sm leading-7">{revealContent}</div>
@@ -947,20 +1257,36 @@ export function UNIT_3_2TeacherActivitySummary({
   step,
   responses,
   released,
+  browseEnabled = true,
   answerVisible,
+  revealProgress = 0,
   onToggleRelease,
+  onToggleBrowse,
   onToggleAnswerVisible,
+  onAdvanceReveal,
+  onResetReveal,
 }: {
   step: UNIT_3_2StepDefinition;
   responses: UNIT_3_2TeacherResponseItem[];
   released: boolean;
+  browseEnabled?: boolean;
   answerVisible: boolean;
+  revealProgress?: number;
   onToggleRelease: () => void;
+  onToggleBrowse: () => void;
   onToggleAnswerVisible: () => void;
+  onAdvanceReveal: () => void;
+  onResetReveal: () => void;
 }) {
   const summary = useMemo(() => summarizeResponses(step, responses), [responses, step]);
   const activity = getActivitySpec(step);
+  const controls = getUNIT_3_2PageContract(step.id).teacherControls;
   const wordCloud = getWordCloudEntries(responses);
+  const activityFields = getActivityFields(activity);
+
+  if (activity.kind === 'none') {
+    return null;
+  }
 
   return (
     <section className="premium-lesson-panel-soft px-4 py-4">
@@ -970,19 +1296,42 @@ export function UNIT_3_2TeacherActivitySummary({
           <div className="premium-lesson-muted mt-1 text-sm">当前收到 {responses.length} 份本页作答。</div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onToggleRelease} className="premium-lesson-action-secondary">
-            {released ? '撤回互动' : '释放互动'}
-          </button>
-          <button
-            type="button"
-            onClick={onToggleAnswerVisible}
-            disabled={!supportsAnswerReveal(step)}
-            className="premium-lesson-action-primary disabled:opacity-40"
-          >
-            {answerVisible ? '隐藏参考答案' : '显示参考答案'}
-          </button>
+          {controls.releaseActivity === 'separate_toggle' ? (
+            <button type="button" onClick={onToggleRelease} className="premium-lesson-action-secondary">
+              {released ? '撤回互动' : '发放作答'}
+            </button>
+          ) : null}
+          {controls.openBrowse === 'separate_toggle' ? (
+            <button type="button" onClick={onToggleBrowse} className="premium-lesson-action-secondary">
+              {browseEnabled ? '关闭浏览' : '开放浏览'}
+            </button>
+          ) : null}
+          {controls.teacherStepReveal === 'teacher_only' ? (
+            <>
+              <button type="button" onClick={onAdvanceReveal} className="premium-lesson-action-secondary">
+                教师逐步显影
+              </button>
+              <button type="button" onClick={onResetReveal} className="premium-lesson-action-secondary">
+                重置显影
+              </button>
+            </>
+          ) : null}
+          {controls.revealReferenceAnswer === 'separate_toggle' ? (
+            <button
+              type="button"
+              onClick={onToggleAnswerVisible}
+              disabled={!supportsAnswerReveal(step)}
+              className="premium-lesson-action-primary disabled:opacity-40"
+            >
+              {answerVisible ? '隐藏参考答案' : '显示参考答案'}
+            </button>
+          ) : null}
         </div>
       </div>
+
+      {controls.teacherStepReveal === 'teacher_only' ? (
+        <div className="premium-lesson-muted mt-3 text-sm">当前显影层级：{revealProgress}</div>
+      ) : null}
 
       {summary.length ? (
         <div className="mt-4 grid gap-2">
@@ -997,12 +1346,12 @@ export function UNIT_3_2TeacherActivitySummary({
         <div className="premium-lesson-muted mt-4 text-sm">本页暂无学生提交。</div>
       )}
 
-      {activity.fields?.length ? (
+      {activityFields.length ? (
         <div className="mt-4 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="premium-lesson-surface-elevated px-4 py-4">
             <div className="premium-lesson-title text-sm font-medium">参考锚点</div>
             <div className="mt-3 grid gap-3 text-sm">
-              {activity.fields.map((field) => (
+              {activityFields.map((field) => (
                 <div key={field.key}>
                   <div className="font-medium">{field.label}</div>
                   <div className="premium-lesson-muted mt-1">{renderFieldValue(field, field.answer ?? '')}</div>
@@ -1020,7 +1369,7 @@ export function UNIT_3_2TeacherActivitySummary({
                     <div className="font-medium">{item.studentName}</div>
                     <div className="mt-2 grid gap-2">
                       {Object.entries(item.response.answers).map(([key, value]) => {
-                        const field = activity.fields?.find((entry) => entry.key === key);
+                        const field = activityFields.find((entry) => entry.key === key);
                         return (
                           <div key={key}>
                             <span className="premium-lesson-muted">{field?.label ?? key}：</span>

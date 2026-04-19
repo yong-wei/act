@@ -47,6 +47,8 @@ export function UNIT_3_2TeacherPage({
   const [showStudentList, setShowStudentList] = useState(false);
   const [localRevealedAnswers, setLocalRevealedAnswers] = useState<Record<string, boolean> | null>(null);
   const [localReleasedActivities, setLocalReleasedActivities] = useState<Record<string, boolean> | null>(null);
+  const [localBrowseEnabled, setLocalBrowseEnabled] = useState<Record<string, boolean> | null>(null);
+  const [localTeacherRevealProgress, setLocalTeacherRevealProgress] = useState<Record<string, number> | null>(null);
 
   const interactiveTracking = useInteractiveTracking({
     resourceId: UNIT_3_2_RESOURCE_KEY,
@@ -88,14 +90,16 @@ export function UNIT_3_2TeacherPage({
     return (latestRecord?.data as UNIT_3_2TeacherCourseSyncState | null) ?? null;
   }, [teacherStates]);
 
-  const { revealedAnswers, releasedActivities } = useMemo(
+  const { revealedAnswers, releasedActivities, browseEnabled, teacherRevealProgress } = useMemo(
     () =>
       resolveUNIT_3_2TeacherSyncDraft({
         localRevealedAnswers,
         localReleasedActivities,
+        localBrowseEnabled,
+        localTeacherRevealProgress,
         teacherSyncState,
       }),
-    [localRevealedAnswers, localReleasedActivities, teacherSyncState],
+    [localBrowseEnabled, localRevealedAnswers, localReleasedActivities, localTeacherRevealProgress, teacherSyncState],
   );
 
   const previousStepIdRef = useRef<string | null>(null);
@@ -120,8 +124,10 @@ export function UNIT_3_2TeacherPage({
       activeStepId: step.id,
       revealedAnswers,
       releasedActivities,
+      browseEnabled,
+      teacherRevealProgress,
     });
-  }, [loadingSession, postTeacherSyncInput, revealedAnswers, releasedActivities, step.id, teacherViewHydrated]);
+  }, [browseEnabled, loadingSession, postTeacherSyncInput, releasedActivities, revealedAnswers, step.id, teacherRevealProgress, teacherViewHydrated]);
 
   const studentStates = useMemo(() => {
     return courseStates
@@ -289,6 +295,7 @@ export function UNIT_3_2TeacherPage({
           step={step}
           mediaSrc={getUNIT_3_2MediaSrc(step.id)}
           mediaAlt={step.title}
+          revealProgress={teacherRevealProgress[step.id] ?? 0}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 
@@ -303,17 +310,37 @@ export function UNIT_3_2TeacherPage({
             step={step}
             responses={currentResponses}
             released={Boolean(releasedActivities[step.id])}
+            browseEnabled={Boolean(browseEnabled[step.id])}
             answerVisible={Boolean(revealedAnswers[step.id])}
+            revealProgress={teacherRevealProgress[step.id] ?? 0}
             onToggleRelease={() =>
               setLocalReleasedActivities((prev) => ({
                 ...(prev ?? (teacherSyncState as UNIT_3_2TeacherCourseSyncState | null)?.releasedActivities ?? {}),
                 [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_2TeacherCourseSyncState | null)?.releasedActivities?.[step.id]),
               }))
             }
+            onToggleBrowse={() =>
+              setLocalBrowseEnabled((prev) => ({
+                ...(prev ?? (teacherSyncState as UNIT_3_2TeacherCourseSyncState | null)?.browseEnabled ?? {}),
+                [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_2TeacherCourseSyncState | null)?.browseEnabled?.[step.id]),
+              }))
+            }
             onToggleAnswerVisible={() =>
               setLocalRevealedAnswers((prev) => ({
                 ...(prev ?? (teacherSyncState as UNIT_3_2TeacherCourseSyncState | null)?.revealedAnswers ?? {}),
                 [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_2TeacherCourseSyncState | null)?.revealedAnswers?.[step.id]),
+              }))
+            }
+            onAdvanceReveal={() =>
+              setLocalTeacherRevealProgress((prev) => ({
+                ...(prev ?? (teacherSyncState as UNIT_3_2TeacherCourseSyncState | null)?.teacherRevealProgress ?? {}),
+                [step.id]: (prev?.[step.id] ?? (teacherSyncState as UNIT_3_2TeacherCourseSyncState | null)?.teacherRevealProgress?.[step.id] ?? 0) + 1,
+              }))
+            }
+            onResetReveal={() =>
+              setLocalTeacherRevealProgress((prev) => ({
+                ...(prev ?? (teacherSyncState as UNIT_3_2TeacherCourseSyncState | null)?.teacherRevealProgress ?? {}),
+                [step.id]: 0,
               }))
             }
           />

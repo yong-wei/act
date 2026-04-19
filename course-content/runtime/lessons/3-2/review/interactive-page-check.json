@@ -2,7 +2,7 @@
   "lesson_id": "3-2",
   "source_path": "course-content/authoring/lessons/3-2/design/interactive-page.md",
   "contract_path": "course-content/authoring/lessons/3-2/design/interactive-contract.yaml",
-  "implementation_contract_source": null,
+  "implementation_contract_source": "src/lib/unit-3-2-course.ts",
   "contract_required_fields": [
     "layout",
     "modules",
@@ -41,11 +41,14 @@
   "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
   "step_contract_issues": [],
-  "implementation_contract_summary": [],
+  "implementation_contract_summary": [
+    "已检测到 `3-2` 的本地实现契约与作者态互动契约一致。"
+  ],
   "implementation_contract_issues": [],
   "summary": [
     "已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。",
-    "已检测到 `3-2` 的 V2 互动契约，步骤字段完整。"
+    "已检测到 `3-2` 的 V2 互动契约，步骤字段完整。",
+    "已检测到 `3-2` 的本地实现契约与作者态互动契约一致。"
   ],
   "warnings": [],
   "missing": [],

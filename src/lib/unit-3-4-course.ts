@@ -4,19 +4,22 @@ import type { LessonSessionAdapter } from '@/features/interactive/session-framew
 import type { StepAIContext } from '@/types/ai-context';
 
 export type UNIT_3_4StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
+export type UNIT_3_4TeacherControlMode =
+  | 'not_applicable'
+  | 'separate_toggle'
+  | 'teacher_only'
+  | 'always_on';
+
 export type UNIT_3_4PageType =
   | 'display'
   | 'summary'
-  | 'binary_choice'
   | 'quiz_group'
   | 'sequence_sort'
-  | 'preset_prediction_submit'
-  | 'annotation_submit'
-  | 'window_tagging'
-  | 'formula_workspace'
-  | 'ai_compare_workspace'
-  | 'panel_toggle_compare'
-  | 'exit_reflection';
+  | 'hotspot_labeling'
+  | 'activity_cards'
+  | 'worked_example_workspace'
+  | 'triple_match'
+  | 'binary_choice';
 
 export interface UNIT_3_4PageRegionContract {
   id: string;
@@ -33,6 +36,14 @@ export interface UNIT_3_4PageContract {
   teacherInsightWidgets: string[];
   telemetrySummaryFields: string[];
   misconceptionTags?: string[];
+  teacherControls: {
+    releaseActivity: UNIT_3_4TeacherControlMode;
+    openBrowse: UNIT_3_4TeacherControlMode;
+    teacherStepReveal: UNIT_3_4TeacherControlMode;
+    revealReferenceAnswer: UNIT_3_4TeacherControlMode;
+    instructorDemoTools: string[];
+  };
+  aiDeliveryMode: 'hidden_page_context';
   previewDemoPath: string;
 }
 
@@ -65,6 +76,8 @@ export interface UNIT_3_4TeacherCourseSyncState {
   activeStepId: string;
   revealedAnswers: Record<string, boolean>;
   releasedActivities: Record<string, boolean>;
+  browseEnabled: Record<string, boolean>;
+  teacherRevealProgress: Record<string, number>;
   updatedAt: number;
 }
 
@@ -72,6 +85,8 @@ export interface UNIT_3_4TeacherSyncInput {
   activeStepId: string;
   revealedAnswers: Record<string, boolean>;
   releasedActivities: Record<string, boolean>;
+  browseEnabled: Record<string, boolean>;
+  teacherRevealProgress: Record<string, number>;
   updatedAt?: number;
   [key: string]: unknown;
 }
@@ -98,7 +113,7 @@ export const UNIT_3_4_TEACHER_STATE_KEY = 'teacher-sync';
 export const UNIT_3_4_COURSE_TITLE = '3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上';
 export const UNIT_3_4_COURSE_SUBTITLE = 'Root Locus Reading Validation';
 export const UNIT_3_4_COURSE_DESCRIPTION =
-  '围绕关键节点读图、参数窗口判断、根轨迹增益换算与对象化三域验证，把 3-3 的根轨迹法则压成真正可用的判断动作链。';
+  '围绕关键节点读图、参数窗口判断、根轨迹增益换算、对象化三域验证与广义根轨迹改写，把 3-3 的根轨迹法则压成真正可执行的工程判断动作链。';
 
 export const UNIT_3_4_STAGE_LABEL: Record<UNIT_3_4StageCode, string> = {
   B: 'B · 导入',
@@ -131,52 +146,62 @@ export const UNIT_3_4_PAGE_CONTRACTS: Record<string, UNIT_3_4PageContract> = {
     interactionKind: 'none',
     teacherInsightWidgets: ['view_count', 'sync_status'],
     telemetrySummaryFields: ['viewed', 'timeOnStep', 'teacherFollowSync'],
+    teacherControls: {
+      releaseActivity: 'not_applicable',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'not_applicable',
+      instructorDemoTools: ['highlight_path_node'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
     previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-01',
   },
   'step-02': {
     layout: {
-      template: 'binary_choice_illustration',
-      regions: [
-        { id: 'media', width: 'full', order: 1 },
-        { id: 'questions', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
-      ],
-    },
-    interactionKind: 'binary_choice',
-    teacherInsightWidgets: ['option_distribution', 'misconception_rate'],
-    telemetrySummaryFields: ['selectedOption', 'resultState', 'teacherRevealSeen'],
-    misconceptionTags: ['stability_equals_enough'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-02',
-  },
-  'step-03': {
-    layout: {
       template: 'goal_chain_slide',
       regions: [
-        { id: 'goals', width: 'full', order: 1 },
+        { id: 'question', width: 'full', order: 1 },
         { id: 'outputs', width: 'full', order: 2 },
-        { id: 'boundaries', width: 'full', order: 3 },
+        { id: 'summary', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'none',
     teacherInsightWidgets: ['view_count'],
     telemetrySummaryFields: ['viewed', 'timeOnStep'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-03',
+    teacherControls: {
+      releaseActivity: 'not_applicable',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'not_applicable',
+      instructorDemoTools: ['highlight_output_chain'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
+    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-02',
   },
-  'step-04': {
+  'step-03': {
     layout: {
-      template: 'question_stack',
+      template: 'version_overview_quiz',
       regions: [
-        { id: 'question-stack', width: 'full', order: 1 },
-        { id: 'submit-bar', width: 'full', order: 2 },
+        { id: 'object', width: 'full', order: 1 },
+        { id: 'versions', width: 'full', order: 2 },
+        { id: 'interaction', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'quiz_group',
-    teacherInsightWidgets: ['question_distribution', 'top_misconceptions'],
-    telemetrySummaryFields: ['attemptCount', 'resultState', 'errorBucket'],
-    misconceptionTags: ['single_domain_judgement', 'stability_equals_acceptability', 'k_equals_K'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-04',
+    teacherInsightWidgets: ['option_distribution', 'top_misconceptions'],
+    telemetrySummaryFields: ['attemptCount', 'selectedOption', 'errorBucket'],
+    misconceptionTags: ['stable_equals_usable', 'ignored_parameter_role', 'no_common_coordinate_system'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['show_option_distribution'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
+    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-03',
   },
-  'step-05': {
+  'step-04': {
     layout: {
       template: 'workflow_sort_board',
       regions: [
@@ -188,260 +213,465 @@ export const UNIT_3_4_PAGE_CONTRACTS: Record<string, UNIT_3_4PageContract> = {
     interactionKind: 'sequence_sort',
     teacherInsightWidgets: ['common_wrong_orders', 'completion_rate'],
     telemetrySummaryFields: ['sortOrder', 'attemptCount', 'resultState'],
+    misconceptionTags: ['jump_to_conclusion', 'window_before_nodes'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['show_sort_heatmap'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
+    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-04',
+  },
+  'step-05': {
+    layout: {
+      template: 'evidence_reading_board',
+      regions: [
+        { id: 'figure', width: 'full', order: 1 },
+        { id: 'evidence', width: 'full', order: 2 },
+        { id: 'interaction', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'hotspot_labeling',
+    teacherInsightWidgets: ['hotspot_accuracy', 'missed_node_type'],
+    telemetrySummaryFields: ['hotspotSelections', 'resultState', 'retryCount'],
+    misconceptionTags: ['confused_separation_and_boundary', 'missed_reference_b_position'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['highlight_key_nodes'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
     previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-05',
   },
   'step-06': {
     layout: {
-      template: 'version_prediction_workspace',
+      template: 'record_workspace',
       regions: [
-        { id: 'task', width: 'full', order: 1 },
-        { id: 'workspace', width: 'full', order: 2 },
-        { id: 'record', width: 'full', order: 3 },
+        { id: 'template', width: 'full', order: 1 },
+        { id: 'evidence', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'preset_prediction_submit',
-    teacherInsightWidgets: ['first_impression_distribution', 'switch_path_heatmap'],
-    telemetrySummaryFields: ['presetSwitchOrder', 'predictionLabels', 'submitTime'],
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['completion_rate', 'missing_keyword_rate'],
+    telemetrySummaryFields: ['submissionCount', 'keywordCoverage', 'resultState'],
+    misconceptionTags: ['position_without_consequence', 'used_vague_language_only'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['show_submission_examples'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
     previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-06',
   },
   'step-07': {
     layout: {
-      template: 'keynode_annotation_workspace',
+      template: 'comparison_judgement_board',
       regions: [
-        { id: 'task', width: 'full', order: 1 },
-        { id: 'workspace', width: 'full', order: 2 },
-        { id: 'record', width: 'full', order: 3 },
+        { id: 'definition', width: 'full', order: 1 },
+        { id: 'table', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'annotation_submit',
-    teacherInsightWidgets: ['annotation_heatmap', 'node_type_error_rate'],
-    telemetrySummaryFields: ['annotationPoints', 'editCount', 'submitTime'],
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['classification_distribution', 'missing_tradeoff_rate'],
+    telemetrySummaryFields: ['classificationResult', 'keywordCoverage', 'resultState'],
+    misconceptionTags: ['stable_equals_acceptable', 'no_tradeoff_language'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['show_window_confusions'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
     previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-07',
   },
   'step-08': {
     layout: {
-      template: 'window_judgement_workspace',
+      template: 'worked_example_reveal',
       regions: [
-        { id: 'task', width: 'full', order: 1 },
-        { id: 'workspace', width: 'full', order: 2 },
-        { id: 'record', width: 'full', order: 3 },
+        { id: 'principle', width: 'full', order: 1 },
+        { id: 'problem', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
+        { id: 'reference', width: 'full', order: 4 },
       ],
     },
-    interactionKind: 'window_tagging',
-    teacherInsightWidgets: ['window_label_distribution', 'high_risk_confusions'],
-    telemetrySummaryFields: ['windowTags', 'revisionCount', 'submitState'],
+    interactionKind: 'worked_example_workspace',
+    teacherInsightWidgets: ['conversion_error_rate', 'browse_open_rate', 'answer_reveal_rate'],
+    telemetrySummaryFields: ['revealDepth', 'submissionCount', 'errorBucket', 'teacherRevealSeen'],
+    misconceptionTags: ['k_equals_K', 'missing_relation', 'numeric_only_no_chain'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'separate_toggle',
+      teacherStepReveal: 'separate_toggle',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['advance_derivation'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
     previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-08',
   },
   'step-09': {
     layout: {
-      template: 'gain_conversion_workspace',
+      template: 'evidence_matrix_slide',
       regions: [
-        { id: 'task', width: 'full', order: 1 },
-        { id: 'formula', width: 'full', order: 2 },
-        { id: 'record', width: 'full', order: 3 },
+        { id: 'roles', width: 'full', order: 1 },
+        { id: 'matrix', width: 'full', order: 2 },
+        { id: 'interaction', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'formula_workspace',
-    teacherInsightWidgets: ['kK_confusion_rate', 'formula_chain_completeness'],
-    telemetrySummaryFields: ['formulaInputs', 'mistakeType', 'submitState'],
+    interactionKind: 'triple_match',
+    teacherInsightWidgets: ['match_accuracy', 'domain_confusion_pairs'],
+    telemetrySummaryFields: ['matchResult', 'attemptCount', 'resultState'],
+    misconceptionTags: ['domain_mismatch', 'single_domain_judgement'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['show_role_mapping'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
     previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-09',
   },
   'step-10': {
     layout: {
-      template: 'compare_then_ai',
+      template: 'comparison_panel_with_toggle',
       regions: [
-        { id: 'self-work', width: 'full', order: 1 },
-        { id: 'ai-panel', width: 'full', order: 2 },
-        { id: 'revision', width: 'full', order: 3 },
+        { id: 'figure', width: 'full', order: 1 },
+        { id: 'analysis', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'ai_compare_workspace',
-    teacherInsightWidgets: ['common_chain_gaps', 'ai_helpfulness_tags'],
-    telemetrySummaryFields: ['aiRequestSent', 'revisionDelta', 'finalSubmitState'],
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['evidence_choice_distribution', 'missing_limit_rate'],
+    telemetrySummaryFields: ['selectedOption', 'keywordCoverage', 'resultState'],
+    misconceptionTags: ['overtrust_dominant_pole', 'time_domain_without_limit'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['toggle_time_domain_focus'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
     previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-10',
   },
   'step-11': {
     layout: {
-      template: 'step_compare_workspace',
+      template: 'table_figure_workspace',
       regions: [
-        { id: 'task', width: 'full', order: 1 },
-        { id: 'workspace', width: 'full', order: 2 },
-        { id: 'record', width: 'full', order: 3 },
+        { id: 'table', width: 'full', order: 1 },
+        { id: 'figure', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'panel_toggle_compare',
-    teacherInsightWidgets: ['time_domain_choice_distribution', 'late_revision_rate'],
-    telemetrySummaryFields: ['panelTogglePath', 'dwellTimeByVersion', 'revisionFlag'],
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['band_choice_distribution', 'missing_high_frequency_reason'],
+    telemetrySummaryFields: ['selectedOption', 'keywordCoverage', 'resultState'],
+    misconceptionTags: ['all_frequency_equivalent', 'ignored_high_frequency_fast_pole'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['show_frequency_readings'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
     previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-11',
   },
   'step-12': {
     layout: {
-      template: 'bode_compare_workspace',
+      template: 'dual_evidence_compare_workspace',
       regions: [
-        { id: 'task', width: 'full', order: 1 },
-        { id: 'workspace', width: 'full', order: 2 },
-        { id: 'record', width: 'full', order: 3 },
+        { id: 'bode', width: 'full', order: 1 },
+        { id: 'track', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'panel_toggle_compare',
-    teacherInsightWidgets: ['final_ranking_distribution', 'single_domain_overuse_rate'],
-    telemetrySummaryFields: ['panelTogglePath', 'finalRanking', 'evidenceDomainCount'],
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['tradeoff_keyword_rate', 'window_role_distribution'],
+    telemetrySummaryFields: ['keywordCoverage', 'selectedOption', 'resultState'],
+    misconceptionTags: ['only_benefit', 'only_cost', 'misclassified_c_window_role'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['toggle_dual_evidence'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
     previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-12',
   },
   'step-13': {
     layout: {
-      template: 'post_quiz_stack',
+      template: 'figure_question_vote',
       regions: [
-        { id: 'question-stack', width: 'full', order: 1 },
-        { id: 'submit-bar', width: 'full', order: 2 },
+        { id: 'question', width: 'full', order: 1 },
+        { id: 'figure', width: 'full', order: 2 },
+        { id: 'interaction', width: 'full', order: 3 },
       ],
     },
-    interactionKind: 'quiz_group',
-    teacherInsightWidgets: ['correct_rate', 'missing_keyword_distribution'],
-    telemetrySummaryFields: ['attemptCount', 'resultState', 'keywordCoverage'],
+    interactionKind: 'binary_choice',
+    teacherInsightWidgets: ['option_distribution', 'reveal_correction_rate'],
+    telemetrySummaryFields: ['selectedOption', 'resultState', 'teacherRevealSeen'],
+    misconceptionTags: ['a_equals_gain_only'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['show_vote_distribution'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
     previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-13',
   },
   'step-14': {
     layout: {
-      template: 'summary_infographic',
+      template: 'worked_example_reveal',
       regions: [
-        { id: 'summary-grid', width: 'full', order: 1 },
-        { id: 'exit-card', width: 'full', order: 2 },
-        { id: 'next-step', width: 'full', order: 3 },
+        { id: 'principle', width: 'full', order: 1 },
+        { id: 'problem', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
+        { id: 'reference', width: 'full', order: 4 },
       ],
     },
-    interactionKind: 'exit_reflection',
-    teacherInsightWidgets: ['exit_keyword_cloud', 'boundary_understanding_tags'],
-    telemetrySummaryFields: ['reflectionSubmitted', 'reflectionKeywords', 'timeOnStep'],
+    interactionKind: 'worked_example_workspace',
+    teacherInsightWidgets: ['rewrite_error_rate', 'browse_open_rate', 'locus_type_distribution'],
+    telemetrySummaryFields: ['revealDepth', 'submissionCount', 'selectedOption', 'resultState'],
+    misconceptionTags: ['generalized_locus_is_new_rule', 'wrong_locus_type'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'separate_toggle',
+      teacherStepReveal: 'separate_toggle',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['advance_derivation'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
     previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-14',
+  },
+  'step-15': {
+    layout: {
+      template: 'parameter_window_compare_board',
+      regions: [
+        { id: 'figure', width: 'full', order: 1 },
+        { id: 'table', width: 'full', order: 2 },
+        { id: 'activity', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['window_classification_distribution', 'missing_tradeoff_rate'],
+    telemetrySummaryFields: ['classificationResult', 'keywordCoverage', 'resultState'],
+    misconceptionTags: ['a_monotonic_better', 'ignored_speed_damping_tradeoff'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['compare_parameter_windows'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
+    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-15',
+  },
+  'step-16': {
+    layout: {
+      template: 'posttest_board',
+      regions: [
+        { id: 'title', width: 'full', order: 1 },
+        { id: 'questions', width: 'full', order: 2 },
+        { id: 'feedback', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'quiz_group',
+    teacherInsightWidgets: ['question_accuracy', 'top_posttest_errors', 'retry_rate'],
+    telemetrySummaryFields: ['attemptCount', 'score', 'errorBucket', 'teacherRevealSeen'],
+    misconceptionTags: ['stable_equals_complete', 'k_equals_K', 'generalized_equals_ordinary'],
+    teacherControls: {
+      releaseActivity: 'separate_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'separate_toggle',
+      instructorDemoTools: ['show_posttest_gaps'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
+    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-16',
+  },
+  'step-17': {
+    layout: {
+      template: 'summary_exit_board',
+      regions: [
+        { id: 'takeaways', width: 'full', order: 1 },
+        { id: 'boundary', width: 'full', order: 2 },
+        { id: 'next', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'none',
+    teacherInsightWidgets: ['view_count'],
+    telemetrySummaryFields: ['viewed', 'timeOnStep'],
+    teacherControls: {
+      releaseActivity: 'not_applicable',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'not_applicable',
+      instructorDemoTools: ['highlight_next_unit'],
+    },
+    aiDeliveryMode: 'hidden_page_context',
+    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-17',
   },
 };
 
 export const UNIT_3_4_INTERACTIVE_PAGE_TYPES = new Set<UNIT_3_4PageType>([
-  'binary_choice',
   'quiz_group',
   'sequence_sort',
-  'preset_prediction_submit',
-  'annotation_submit',
-  'window_tagging',
-  'formula_workspace',
-  'ai_compare_workspace',
-  'panel_toggle_compare',
-  'exit_reflection',
+  'hotspot_labeling',
+  'activity_cards',
+  'worked_example_workspace',
+  'triple_match',
+  'binary_choice',
 ]);
 
 export const UNIT_3_4_LESSON_STEPS: UNIT_3_4StepDefinition[] = [
   {
     id: 'step-01',
     stage: 'B',
-    title: '回到地图——从 3-3 法则走向 3-4 判断',
-    hint: '明确 3-4 不再重复法则证明，而是把法则压成可执行的读图动作与证据链。',
+    title: '回到地图：从 3-3 法则走向 3-4 判断',
+    hint: '先标定本课在模块 3 里的位置，不重讲法则证明，只负责按图判断。',
     duration: '4 min',
     pageType: 'display',
   },
   {
     id: 'step-02',
-    stage: 'B',
-    title: '情境引入——稳定了，是否就已经够好',
-    hint: '先打破“稳定就够”的直觉闭合，再进入窗口、换算与三域验证。',
-    duration: '5 min',
-    pageType: 'binary_choice',
-  },
-  {
-    id: 'step-03',
     stage: 'O',
-    title: '本节目标——三项固定产出与课堂边界',
-    hint: '把本课的三项产出和不越界边界一次钉死。',
+    title: '问题提出与三张记录表：稳定之后还要回答什么',
+    hint: '把关键节点、参数窗口、三域验证与广义参数记录成完整判断链。',
     duration: '4 min',
     pageType: 'display',
   },
   {
-    id: 'step-04',
+    id: 'step-03',
     stage: 'P1',
-    title: '前测——你会先看哪个域来判断版本优劣',
-    hint: '暴露“只看一域、稳定=可接受、k 直接等于 K”的起点误区。',
+    title: '固定对象与三个版本：先暴露“稳定=可用”的第一误判',
+    hint: '对象、版本和误判要同页出现，不能先把证据链抽空。',
     duration: '6 min',
     pageType: 'quiz_group',
   },
   {
-    id: 'step-05',
+    id: 'step-04',
     stage: 'P2',
-    title: '固定读图顺序：先骨架，再关键节点，再窗口',
-    hint: '先把读图顺序定住，否则后面的版本判断会不断串层。',
+    title: '固定读图顺序：先骨架，再关键节点，再窗口，再后果',
+    hint: '先定住读图动作链，后续版本判断才不会串层。',
     duration: '6 min',
     pageType: 'sequence_sort',
   },
   {
+    id: 'step-05',
+    stage: 'P2',
+    title: '关键节点证据板：分离点、虚轴交点与参考工作点 B',
+    hint: '关键节点必须回到主图证据和工程问题，不只是会背名称。',
+    duration: '7 min',
+    pageType: 'hotspot_labeling',
+  },
+  {
     id: 'step-06',
     stage: 'P2',
-    title: '工作区 A：A/B/C 三版本第一眼预测',
-    hint: '先做第一轮排序，再用后续节点、窗口和三域证据修正。',
-    duration: '8 min',
-    pageType: 'preset_prediction_submit',
+    title: '关键节点读图记录：把主图证据写成一句工程判断',
+    hint: '关键节点、版本位置和工程后果要写成完整句，而不是碎片词。',
+    duration: '7 min',
+    pageType: 'activity_cards',
   },
   {
     id: 'step-07',
     stage: 'P2',
-    title: '工作区 B：关键节点标注与读图记录',
-    hint: '把“会说法则名”推进成“会抓图上真正决定后续判断的节点”。',
-    duration: '8 min',
-    pageType: 'annotation_submit',
+    title: '稳定窗口与可接受窗口：A/B/C 各自处在哪一侧',
+    hint: '稳定窗口不等于可接受窗口，必须保留代价语言。',
+    duration: '7 min',
+    pageType: 'activity_cards',
   },
   {
     id: 'step-08',
     stage: 'P2',
-    title: '工作区 C：稳定窗口与可接受窗口',
-    hint: '稳定窗口回答还能不能工作，可接受窗口回答值不值得继续用。',
+    title: '增益换算链：从图上的 k 落回工程参数 K',
+    hint: '题面常显、步骤显影，先完成 k 到 K 的完整换算链。',
     duration: '8 min',
-    pageType: 'window_tagging',
+    pageType: 'worked_example_workspace',
   },
   {
     id: 'step-09',
     stage: 'P2',
-    title: '工作区 D：根轨迹增益 k 到控制器增益 K 的换算',
-    hint: '图上先读的是根轨迹增益，工程上最终要落到控制器增益语言。',
-    duration: '7 min',
-    pageType: 'formula_workspace',
+    title: '为什么必须三域互证：主图、时域、频域先并排对齐',
+    hint: '先认清三域各回答什么，再进入局部验证。',
+    duration: '6 min',
+    pageType: 'triple_match',
   },
   {
     id: 'step-10',
     stage: 'P2',
-    title: 'AI 对照——检查换算链而不是代做判断',
-    hint: '让 AI 做链条校对器，不做版本排序代答器。',
-    duration: '6 min',
-    pageType: 'ai_compare_workspace',
+    title: '时域验证：版本 B 为什么能够作为参考工作点',
+    hint: '图后继续读近似说明与局限，不把时域图当作单独结论。',
+    duration: '7 min',
+    pageType: 'activity_cards',
   },
   {
     id: 'step-11',
     stage: 'P2',
-    title: '工作区 E：时域回查，谁慢、谁平衡、谁开始冒险',
-    hint: '先用时域证据回查主图直觉，再判断哪一步最值得修正。',
+    title: '频域验证：低中频近似成立，高频差异仍要单列记录',
+    hint: '频率点表、Bode 对照和结论句必须同页，不压成一句口号。',
     duration: '7 min',
-    pageType: 'panel_toggle_compare',
+    pageType: 'activity_cards',
   },
   {
     id: 'step-12',
     stage: 'P2',
-    title: '工作区 F：频域回查，风险为什么会先暴露',
-    hint: '把主图、时域和频域真正闭合成最终工程判断。',
+    title: '版本 C 的收益与代价：Bode 与航迹不能只保留一边',
+    hint: '收益和代价都要落在双证据上，不能只写更快或更危险的一边。',
     duration: '7 min',
-    pageType: 'panel_toggle_compare',
+    pageType: 'activity_cards',
   },
   {
     id: 'step-13',
+    stage: 'P2',
+    title: '广义根轨迹入口：局部反馈系数 a 为什么不是“再调一次 K”',
+    hint: '对象变了，判断问题也变了，不能把 a 当作另一个 K。',
+    duration: '6 min',
+    pageType: 'binary_choice',
+  },
+  {
+    id: 'step-14',
+    stage: 'P2',
+    title: '改写链：从给定局部反馈结构走到等效根轨迹',
+    hint: '法则不变，但对象先被改写，显影链必须完整展开。',
+    duration: '8 min',
+    pageType: 'worked_example_workspace',
+  },
+  {
+    id: 'step-15',
+    stage: 'P2',
+    title: '非增益参数窗口记录：a 从 0 到 1 怎样改写主导极点',
+    hint: '要同时写出比较基线、窗口建议与边界提醒。',
+    duration: '7 min',
+    pageType: 'activity_cards',
+  },
+  {
+    id: 'step-16',
     stage: 'P3',
-    title: '后测——完整工程判断要包含哪些证据',
-    hint: '检查是否真正形成“关键节点 / 窗口 / 换算 / 三域”的完整判断链。',
+    title: '后测：读图、换算、三域与广义参数是否已经成链',
+    hint: '后测只检查是否形成完整判断链，不混入新的设计任务。',
     duration: '6 min',
     pageType: 'quiz_group',
   },
   {
-    id: 'step-14',
+    id: 'step-17',
     stage: 'S',
-    title: '收束——只调增益为什么很快会到边界',
-    hint: '把“只调增益”的边界语言收束成下一课的结构改变入口。',
+    title: '收束与去向：沿既有结构分析的能力与边界',
+    hint: '把本课能力边界收束到 3-5 的结构改变入口。',
     duration: '4 min',
-    pageType: 'exit_reflection',
+    pageType: 'summary',
   },
 ] as const;
 
@@ -458,7 +688,7 @@ export function isUNIT_3_4InteractivePageType(pageType: UNIT_3_4PageType) {
 }
 
 export function isUNIT_3_4AiPageType(_pageType: UNIT_3_4PageType) {
-  return true;
+  return false;
 }
 
 export function createEmptyUNIT_3_4StudentState(studentName: string): UNIT_3_4StudentCourseState {
@@ -474,22 +704,23 @@ export function createEmptyUNIT_3_4StudentState(studentName: string): UNIT_3_4St
 export const UNIT_3_4_PREMIUM_LESSON_CARD = {
   id: 'unit-3-4-root-locus-reading-validation',
   title: UNIT_3_4_COURSE_TITLE,
-  description: '精品互动课：关键节点、参数窗口、增益换算与三域证据闭环。',
+  description: '精品互动课：关键节点、参数窗口、增益换算、三域互证与广义根轨迹。',
   duration: '90 分钟',
   href: `/interactive-learning/courses/${UNIT_3_4_ROUTE_SEGMENT}`,
   badge: '精品课程',
 } as const;
 
 const UNIT_3_4_MEDIA_BY_STEP_ID: Record<string, string> = {
-  'step-02': '/course-runtime/lessons/3-4/media/3-4-cover-comic.png',
+  'step-03': '/course-runtime/lessons/3-4/media/3-4-cover-comic.png',
   'step-05': '/course-runtime/lessons/3-4/media/3-4-root-locus-summary.png',
-  'step-06': '/course-runtime/lessons/3-4/media/3-4-root-locus-summary.png',
-  'step-07': '/course-runtime/lessons/3-4/media/3-4-root-locus-keynodes.png',
-  'step-08': '/course-runtime/lessons/3-4/media/3-4-conditional-stability-window.png',
-  'step-09': '/course-runtime/lessons/3-4/media/3-4-gain-conversion-card.png',
-  'step-11': '/course-runtime/lessons/3-4/media/3-4-step-compare.png',
-  'step-12': '/course-runtime/lessons/3-4/media/3-4-bode-compare.png',
-  'step-14': '/course-runtime/lessons/3-4/media/3-4-info.png',
+  'step-08': '/course-runtime/lessons/3-4/media/3-4-gain-conversion-card.png',
+  'step-10': '/course-runtime/lessons/3-4/media/3-4-step-compare.png',
+  'step-11': '/course-runtime/lessons/3-4/media/3-4-bode-compare.png',
+  'step-12': '/course-runtime/lessons/3-4/media/3-4-turning-track-k20.png',
+  'step-13': '/course-runtime/lessons/3-4/media/3-4-local-feedback-block.png',
+  'step-14': '/course-runtime/lessons/3-4/media/3-4-generalized-root-locus-debug.png',
+  'step-15': '/course-runtime/lessons/3-4/media/3-4-generalized-root-locus.png',
+  'step-17': '/course-runtime/lessons/3-4/media/3-4-info.png',
 };
 
 export function getUNIT_3_4MediaSrc(stepId: string) {
@@ -531,6 +762,8 @@ export const UNIT_3_4_SESSION_ADAPTER: LessonSessionAdapter<
       activeStepId: input.activeStepId,
       revealedAnswers: input.revealedAnswers,
       releasedActivities: input.releasedActivities,
+      browseEnabled: input.browseEnabled,
+      teacherRevealProgress: input.teacherRevealProgress,
       updatedAt: input.updatedAt ?? Date.now(),
     };
   },
@@ -543,11 +776,15 @@ export function shouldPostUNIT_3_4TeacherSync(input: UNIT_3_4TeacherSyncPostGate
 export function resolveUNIT_3_4TeacherSyncDraft(input: {
   localRevealedAnswers: Record<string, boolean> | null;
   localReleasedActivities: Record<string, boolean> | null;
+  localBrowseEnabled: Record<string, boolean> | null;
+  localTeacherRevealProgress: Record<string, number> | null;
   teacherSyncState: UNIT_3_4TeacherCourseSyncState | null;
 }) {
   return {
     revealedAnswers: input.localRevealedAnswers ?? input.teacherSyncState?.revealedAnswers ?? {},
     releasedActivities: input.localReleasedActivities ?? input.teacherSyncState?.releasedActivities ?? {},
+    browseEnabled: input.localBrowseEnabled ?? input.teacherSyncState?.browseEnabled ?? {},
+    teacherRevealProgress: input.localTeacherRevealProgress ?? input.teacherSyncState?.teacherRevealProgress ?? {},
   };
 }
 

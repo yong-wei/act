@@ -14,8 +14,8 @@ import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit34StepAIContext } from '@/lib/course-ai-contexts';
 import {
+  getUNIT_3_4PageContract,
   getUNIT_3_4MediaSrc,
-  isUNIT_3_4AiPageType,
   isUNIT_3_4InteractivePageType,
   UNIT_3_4_LESSON_KEY,
   UNIT_3_4_LESSON_STEPS,
@@ -27,7 +27,6 @@ import {
 import { UNIT_3_4CourseHeader } from './course-header';
 import {
   UNIT_3_4KnowledgeMapVisual,
-  UNIT_3_4StepAiAssistant,
   UNIT_3_4StepContentPanel,
   UNIT_3_4StudentActivityForm,
   UNIT_3_4StudentSummaryPanel,
@@ -88,6 +87,7 @@ export function UNIT_3_4StudentPage({
     });
 
   const step = UNIT_3_4_LESSON_STEPS[activeIndex];
+  const pageContract = getUNIT_3_4PageContract(step.id);
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
 
@@ -109,16 +109,28 @@ export function UNIT_3_4StudentPage({
     }
   }, [step.id, updatePageContext]);
 
-  const answerVisible =
-    teacherSyncState?.activeStepId === step.id
-      ? Boolean((teacherSyncState as { revealedAnswers?: Record<string, boolean> })?.revealedAnswers?.[step.id])
-      : false;
   const released =
-    isDemo || !isUNIT_3_4InteractivePageType(step.pageType)
+    isDemo ||
+    !isUNIT_3_4InteractivePageType(step.pageType) ||
+    pageContract.teacherControls.releaseActivity !== 'separate_toggle'
       ? true
-      : teacherSyncState?.activeStepId === step.id
-        ? Boolean((teacherSyncState as { releasedActivities?: Record<string, boolean> })?.releasedActivities?.[step.id])
-        : false;
+      : Boolean(teacherSyncState?.releasedActivities?.[step.id]);
+  const browseEnabled =
+    isDemo ||
+    pageContract.teacherControls.openBrowse === 'always_on' ||
+    pageContract.teacherControls.openBrowse === 'not_applicable'
+      ? true
+      : Boolean(teacherSyncState?.browseEnabled?.[step.id]);
+  const answerVisible =
+    pageContract.teacherControls.revealReferenceAnswer === 'separate_toggle'
+      ? Boolean(teacherSyncState?.revealedAnswers?.[step.id])
+      : false;
+  const revealProgress =
+    isDemo
+      ? 99
+      : pageContract.teacherControls.teacherStepReveal === 'separate_toggle'
+        ? (teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0)
+        : 0;
 
   const previousStepIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -165,19 +177,6 @@ export function UNIT_3_4StudentPage({
       return nextState;
     });
   };
-
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
 
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
@@ -268,14 +267,11 @@ export function UNIT_3_4StudentPage({
           step={step}
           mediaSrc={getUNIT_3_4MediaSrc(step.id)}
           mediaAlt={step.title}
+          browseEnabled={browseEnabled}
+          revealProgress={revealProgress}
+          allowInlineReveal={isDemo || pageContract.teacherControls.teacherStepReveal !== 'teacher_only'}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
-
-        {isUNIT_3_4AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_4StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
 
         <div className="mt-4">
           <UNIT_3_4StudentActivityForm
@@ -283,6 +279,7 @@ export function UNIT_3_4StudentPage({
             savedResponse={savedResponse}
             released={released}
             answerVisible={answerVisible}
+            browseEnabled={browseEnabled}
             onSubmit={handleSubmitResponse}
             onWorkspaceParameterChange={handleWorkspaceParameterChange}
           />

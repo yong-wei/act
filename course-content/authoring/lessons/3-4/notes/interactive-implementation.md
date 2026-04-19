@@ -1,67 +1,71 @@
 # 3-4 互动课程实现记录
 
-更新时间：2026-04-07
+更新时间：2026-04-19
 
-## 设计稿到实现稿对照表（2026-04-07）
+## 本轮结论
 
-| step | 设计稿关键约束 | 当前实现位置 | 本轮状态 | 验证方式 |
-|---|---|---|---|---|
-| step-01 | `map_hero_slide`，`view_count / sync_status`，路径图+任务卡+边界卡同屏 | `src/lib/unit-3-4-course.ts` + `step-panels.tsx` | 待实现 | 契约单测 + 演示页快照 |
-| step-02 | `binary_choice_illustration`，误区为“稳定=够好” | `src/lib/unit-3-4-course.ts` + `step-panels.tsx` | 待实现 | 契约单测 + 教师揭示流 |
-| step-03 | `goal_chain_slide`，三项固定产出完整落页 | `src/lib/unit-3-4-course.ts` + `step-panels.tsx` | 待实现 | 契约单测 |
-| step-04 | `question_stack`，三题纵向前测，教师看错因分布 | `src/lib/unit-3-4-course.ts` + `step-panels.tsx` | 待实现 | 契约单测 + 提交流 |
-| step-05 | `workflow_sort_board`，四步读图顺序不可降级 | `src/lib/unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 待实现 | 契约单测 + 排序交互 |
-| step-06 | `version_prediction_workspace`，A/B/C 首轮预测 + 记录栏 | `src/lib/unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 待实现 | 契约单测 + 提交流 |
-| step-07 | `keynode_annotation_workspace`，四类关键节点标注与一句判断 | `src/lib/unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 待实现 | 契约单测 + 标注提交流 |
-| step-08 | `window_judgement_workspace`，稳定窗口与可接受窗口双层标签 | `src/lib/unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 待实现 | 契约单测 + 标签统计 |
-| step-09 | `gain_conversion_workspace`，`k = 0.01715K` 换算链不能偷简 | `src/lib/unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 待实现 | 契约单测 + 公式链校验 |
-| step-10 | `compare_then_ai`，AI 只做换算链检查，不代做判断 | `src/lib/unit-3-4-course.ts` + `step-panels.tsx` + `student-page.tsx` | 待实现 | 契约单测 + AI context 校验 |
-| step-11 | `step_compare_workspace`，时域回查与版本含义卡必须同屏 | `src/lib/unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 待实现 | 契约单测 + 面板切换交互 |
-| step-12 | `bode_compare_workspace`，频域回查后锁定最终判断 | `src/lib/unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 待实现 | 契约单测 + 最终提交流 |
-| step-13 | `post_quiz_stack`，解释题关键词覆盖检查 | `src/lib/unit-3-4-course.ts` + `step-panels.tsx` | 待实现 | 契约单测 + 提交统计 |
-| step-14 | `summary_infographic`，四列表+出口反思，不依赖教师口头补 | `src/lib/unit-3-4-course.ts` + `step-panels.tsx` | 待实现 | 契约单测 + 演示页快照 |
+- `3-4` 已从旧的 14 步实现整改为与作者态双轨真源一致的 17 步课堂主线。
+- 页内显式 AI 助手已移除，统一改为隐藏式页面上下文，由全局课程 AI 接管。
+- 教师控制已按作者态拆分为四类：释放互动、开放浏览、逐步显影、揭示参考答案。
+- `UNIT_3_4_PAGE_CONTRACTS` 已补齐作者态要求的模板区域、互动类型、教师洞察、遥测字段、误区标签与演示页预览路径。
 
-说明：
-- 本轮以 `course-content/authoring/lessons/3-4/design/interactive-page.md` 与 `interactive-contract.yaml` 为双轨真源，不接受任何降级实现。
-- `course-content/runtime/lessons/3-4/` 的 `handout / media / review / graph-overlay / lesson.json` 已存在，可直接作为 runtime-first 输入。
-- 当前尚无 `3-4` 课程代码目录、注册点和测试文件，属于本轮主缺口。
+## 17 步对齐表
 
-## 本轮实现范围
+| step | 作者态页面语义 | 实现侧落点 | 本轮状态 |
+|---|---|---|---|
+| step-01 | 路径地图页 | `unit-3-4-course.ts` + `step-panels.tsx` | 已对齐 |
+| step-02 | 目标链与三张记录表 | `unit-3-4-course.ts` + `step-panels.tsx` | 已对齐 |
+| step-03 | 对象与 A/B/C 初判 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-04 | 固定读图顺序排序 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-05 | 关键节点证据板与热点定位 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-06 | 关键节点读图记录 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-07 | 稳定窗口与可接受窗口判断 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-08 | `k = 0.01715K` 换算显影例题 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-09 | 三域角色与总表配对 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-10 | 时域验证与主导极点近似边界 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-11 | 频域验证与高频差异 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-12 | 收益代价双证据对照 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-13 | 为什么不是“再调一次 K” | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-14 | 广义根轨迹改写链显影 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-15 | 非增益参数窗口判断 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-16 | 后测 | `unit-3-4-course.ts` + `workspace.ts` + `step-panels.tsx` | 已对齐 |
+| step-17 | 出口页与 3-5 去向 | `unit-3-4-course.ts` + `step-panels.tsx` | 已对齐 |
 
-- 新增主线精品互动课路由：`/interactive-learning/courses/unit-3-4-root-locus-reading-validation`
-- 新增 `src/lib/unit-3-4-course.ts`，承载 14 步课程定义、平行契约、会话适配与媒体映射
-- 新增 `src/lib/unit-3-4-ai-contexts.ts`，并注册到 `src/lib/course-ai-contexts.ts`
-- 新增 `src/features/interactive/unit-3-4-root-locus-reading-validation/`
-  - `entry-page.tsx`
-  - `student-page.tsx`
-  - `teacher-page.tsx`
-  - `course-header.tsx`
-  - `step-panels.tsx`
-  - `workspace.ts`
-- 新增 `src/app/interactive-learning/courses/unit-3-4-root-locus-reading-validation/` 三类页面入口
-- 新增 `src/features/teacher/preset-lessons/presets/unit-3-4-root-locus-reading-validation.ts`
-- 接入 `learning-catalog`、`classroom-session-route`、`preset index`
-- 新增 `src/features/interactive/__tests__/unit-3-4-course.test.ts`
+## 关键整改点
 
-## 运行时真源
+### 1. 课程定义与契约
 
-- 统一从 `course-content/runtime/lessons/3-4/` 读取：
-  - `lesson.json`
-  - `graph-overlay.json`
-  - `handout.md`
-  - `handout.pdf`
-  - `media/3-4-media.md`
-  - `review/*`
+- [src/lib/unit-3-4-course.ts](/Users/YW/Documents/Site/act.just.edu.cn/src/lib/unit-3-4-course.ts) 现以 17 步定义课程主线，`step-17` 作为独立总结页。
+- `UNIT_3_4_PAGE_CONTRACTS` 已逐步对齐作者态 `interactive-contract.yaml` 的 `layout / interactionKind / teacherInsightWidgets / telemetrySummaryFields / misconceptionTags / teacherControls / previewDemoPath`。
+- `UNIT_3_4TeacherCourseSyncState` 与 `UNIT_3_4TeacherSyncInput` 已扩展 `browseEnabled`、`teacherRevealProgress`，用于显影页和教师浏览控制。
 
-## 当前取舍
+### 2. AI 策略
 
-- 优先复用 `3-3` 的页面骨架、会话同步和入口页结构，不新造另一套精品课框架。
-- `3-4` 的复杂工作区先尽量落在轻量表单、按钮切换、标签选择、文本记录和教师统计上；如需新增局部交互抽象，只在 `step-panels.tsx / workspace.ts` 内最小扩展。
-- 入口页直接复用 `LessonEntryMediaHub` 与 `LessonEntryRuntimeSections`，保证课堂外资源埋点沿用统一链路。
+- [src/lib/unit-3-4-ai-contexts.ts](/Users/YW/Documents/Site/act.just.edu.cn/src/lib/unit-3-4-ai-contexts.ts) 已重写为 17 步页面上下文。
+- `isUNIT_3_4AiPageType()` 现不再暴露页内 AI 页面，而是全部走隐藏式页面上下文，避免再回到旧版页内助手实现。
 
-## 验证计划
+### 3. 工作区与面板
 
-- `npx vitest run src/features/interactive/__tests__/unit-3-4-course.test.ts`
-- `python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 3-4`
-- `npm run lint`
-- `npm run test`
+- [src/features/interactive/unit-3-4-root-locus-reading-validation/workspace.ts](/Users/YW/Documents/Site/act.just.edu.cn/src/features/interactive/unit-3-4-root-locus-reading-validation/workspace.ts) 已切换到新版数据结构：`READING_SEQUENCE_OPTIONS`、`HOTSPOT_LABEL_FIELDS`、`ACTIVITY_CARD_FIELDS`、`TRIPLE_MATCH_FIELDS`、`WORKED_EXAMPLE_FIELDS`、`POST_QUIZ_QUESTIONS`。
+- [src/features/interactive/unit-3-4-root-locus-reading-validation/step-panels.tsx](/Users/YW/Documents/Site/act.just.edu.cn/src/features/interactive/unit-3-4-root-locus-reading-validation/step-panels.tsx) 已按 17 步重组静态蓝图、学生作答区与教师汇总区，并保留显影锚点：
+  - `显示下一步`
+  - `重置步骤`
+  - `点击当前步骤可继续显影下一层`
+
+### 4. 教师/学生双端同步
+
+- [src/features/interactive/unit-3-4-root-locus-reading-validation/student-page.tsx](/Users/YW/Documents/Site/act.just.edu.cn/src/features/interactive/unit-3-4-root-locus-reading-validation/student-page.tsx) 现按页面契约动态计算 `released / browseEnabled / answerVisible / revealProgress`。
+- [src/features/interactive/unit-3-4-root-locus-reading-validation/teacher-page.tsx](/Users/YW/Documents/Site/act.just.edu.cn/src/features/interactive/unit-3-4-root-locus-reading-validation/teacher-page.tsx) 已新增本地草稿态与同步输入，覆盖浏览开关与逐步显影深度。
+
+## 验证记录
+
+已通过：
+
+- `rtk npm run test:unit -- src/features/interactive/__tests__/unit-3-4-course.test.ts`
+- `rtk npm run test:unit -- src/features/interactive/__tests__/module-3-4-formula-rendering.test.ts`
+- `rtk python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 3-4`
+- `rtk npm run lint`
+
+待与仓库其余改动一并回归：
+
+- `rtk npm run test`

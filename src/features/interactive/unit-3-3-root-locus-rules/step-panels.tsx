@@ -26,8 +26,6 @@ import {
   KEYPOINT_MATCH_OPTIONS,
   RULE_HIGHLIGHT_OPTIONS,
   TAB_SWITCH_OPTIONS,
-  WORKED_EXAMPLE_REFERENCE,
-  WORKED_EXAMPLE_SECTIONS,
   type WorkspaceParameterChange,
 } from './workspace';
 
@@ -63,6 +61,26 @@ interface QuizQuestion {
   explanation: string;
 }
 
+interface ActivityCardDefinition {
+  key: string;
+  title: string;
+  prompt: string;
+  placeholder: string;
+  reference: string;
+}
+
+interface SequenceSortItem {
+  id: string;
+  label: string;
+  explanation: string;
+}
+
+interface ClassificationCardDefinition {
+  key: string;
+  prompt: string;
+  answer: string;
+}
+
 type ActivitySpec =
   | { kind: 'none'; helper: string }
   | { kind: 'binary_choice'; helper: string; options: ChoiceOption[]; correct: string }
@@ -78,7 +96,10 @@ type ActivitySpec =
     }
   | { kind: 'region_highlight'; helper: string; prompt: string; correct: string[] }
   | { kind: 'triple_match'; helper: string; options: ChoiceOption[] }
-  | { kind: 'worked_example'; helper: string }
+  | { kind: 'worked_example'; helper: string; plant: string; method: string[]; sections: ActivityCardDefinition[] }
+  | { kind: 'activity_cards'; helper: string; cards: ActivityCardDefinition[] }
+  | { kind: 'sequence_sort'; helper: string; items: SequenceSortItem[] }
+  | { kind: 'classification_cards'; helper: string; options: ChoiceOption[]; cards: ClassificationCardDefinition[] }
   | { kind: 'formula_ordering'; helper: string }
   | { kind: 'tab_switch'; helper: string; defaultTab: string }
   | { kind: 'mapping_highlight'; helper: string; options: ChoiceOption[] }
@@ -89,7 +110,7 @@ export interface UNIT_3_3TeacherResponseItem {
   response: UNIT_3_3StepResponse;
 }
 
-const STEP_13_QUESTIONS: QuizQuestion[] = [
+const STEP_16_QUESTIONS: QuizQuestion[] = [
   {
     key: 'q1',
     prompt: '判断某个点是否属于根轨迹时，正确顺序是：',
@@ -103,20 +124,114 @@ const STEP_13_QUESTIONS: QuizQuestion[] = [
   },
   {
     key: 'q2',
-    prompt: '对 G(s)H(s)=K/[s(s+1)(s+2)] 这道主例，稳定范围是：',
+    prompt: '读图时为什么必须先骨架、再关键点、最后补局部方向？',
     options: [
-      { value: '0-3', label: '0<K<3' },
-      { value: '0-6', label: '0<K<6' },
-      { value: '6-infty', label: 'K>6' },
+      { value: 'skeleton-first', label: '因为骨架先回答整体走向，再由关键点和局部方向补细节' },
+      { value: 'keypoint-first', label: '因为关键点最难，所以应该最先抓住' },
+      { value: 'any-order', label: '顺序无关，只要法则都算到即可' },
     ],
-    answer: '0-6',
-    explanation: 'K=6 是虚轴交点对应的稳定边界，真正的稳定范围是 0<K<6。',
+    answer: 'skeleton-first',
+    explanation: '骨架先给整张图的大势，关键点和局部方向是在骨架之后做修正与补细节。',
   },
   {
     key: 'q3',
-    prompt: '请用 1-2 句话说明：为什么广义根轨迹不是一套全新的算法？',
+    prompt: '请用 1-2 句话说明：广义根轨迹为什么不是一套全新的算法？',
     type: 'text',
     explanation: '理想回答应提到 B(s)+aA(s)=0 改写成 1+aA(s)/B(s)=0，再复用普通根轨迹法则。',
+  },
+];
+
+const WORKED_EXAMPLE_CONFIGS: Record<string, { plant: string; method: string[]; sections: ActivityCardDefinition[] }> = {
+  'step-07': {
+    plant: 'G(s)H(s)=K/[s(s+2)(s+4)]',
+    method: ['先看起点终点', '再判实轴区段', '最后算渐近线并判断总体走向'],
+    sections: [
+      {
+        key: 'real-axis',
+        title: '卡片 1：实轴区段',
+        prompt: '哪些实轴区段属于根轨迹。',
+        placeholder: '例如：(-∞,-4) 与 (-2,0) 属于轨迹，因为右侧实极点与实零点总数为奇数。',
+        reference: '(-∞,-4) 与 (-2,0) 属于轨迹。',
+      },
+      {
+        key: 'asymptote',
+        title: '卡片 2：渐近线重心与角度',
+        prompt: '渐近线重心与角度如何确定。',
+        placeholder: '例如：重心在 -2，角度为 60°、180°、300°。',
+        reference: '重心在 -2，角度为 60°、180°、300°。',
+      },
+    ],
+  },
+  'step-09': {
+    plant: 'G(s)H(s)=K/[s(s+1)(s+2)]',
+    method: ['先筛候选分离点', '再用劳斯判据找虚轴交点', '最后回到关键节点职责'],
+    sections: [
+      {
+        key: 'breakaway',
+        title: '卡片 1：真实分离点',
+        prompt: '哪一个候选点是真实分离点。',
+        placeholder: '例如：先由 dK/ds=0 得候选点，再筛掉不在实轴轨迹段上的点。',
+        reference: '只保留位于根轨迹实轴区段上的候选点作为真实分离点。',
+      },
+      {
+        key: 'imaginary-crossing',
+        title: '卡片 2：临界增益与虚轴交点',
+        prompt: '临界增益与虚轴交点如何对应。',
+        placeholder: '例如：K=6 对应 s=±j√2，说明它回答的是稳定边界而不是实轴分离点。',
+        reference: 'K=6 对应 s=±j√2，回答的是稳定边界。',
+      },
+    ],
+  },
+};
+
+const STEP_10_ACTIVITY_CARDS: ActivityCardDefinition[] = [
+  {
+    key: 'departure-angle',
+    title: '卡片 1：出射角',
+    prompt: '上半平面复极点的出射角是多少。',
+    placeholder: '例如：先列角度平衡，再给出上半平面复极点的出射角结果。',
+    reference: '先由角度平衡求出上半平面复极点的出射角，再用共轭对称得到下半平面结果。',
+  },
+  {
+    key: 'root-sum',
+    title: '卡片 2：根之和校核',
+    prompt: '根之和原则如何限制另一实根的位置。',
+    placeholder: '例如：根之和保持不变，因此局部方向判断不能破坏整张图的实轴对称与总和约束。',
+    reference: '根之和保持常数，因此局部方向与整图位置必须同时自洽。',
+  },
+];
+
+const WORKFLOW_SEQUENCE: SequenceSortItem[] = [
+  { id: 'poles-zeros', label: '写出极点与零点', explanation: '先交代对象和分支出发/终止位置。' },
+  { id: 'real-axis', label: '判实轴区段', explanation: '用奇偶判段找出真正属于轨迹的实轴段。' },
+  { id: 'asymptote', label: '求渐近线', explanation: '先看无穷远方向的大势。' },
+  { id: 'real-keypoints', label: '找实轴关键点', explanation: '再补分离点 / 汇合点等实轴关键点。' },
+  { id: 'imaginary-axis', label: '查虚轴交点', explanation: '判断何时碰到稳定边界。' },
+  { id: 'local-direction', label: '补局部方向', explanation: '再补复极点 / 复零点附近的局部切线方向。' },
+  { id: 'global-check', label: '做全图复核', explanation: '最后用对称性、根之和等约束检查整图是否自洽。' },
+];
+
+const CLASSIFICATION_OPTIONS: ChoiceOption[] = [
+  { value: 'origin-pole', label: '原点极点' },
+  { value: 'real-pole', label: '实轴极点' },
+  { value: 'complex-pole', label: '共轭复极点' },
+];
+
+const CLASSIFICATION_CARDS: ClassificationCardDefinition[] = [
+  {
+    key: 'integrator-trend',
+    prompt: '“更接近积分型结构，需要优先警惕低频拖尾” 对应哪类开环极点？',
+    answer: 'origin-pole',
+  },
+  {
+    key: 'real-axis-trend',
+    prompt: '“直接决定实轴区段与分离 / 汇合可能” 对应哪类开环极点？',
+    answer: 'real-pole',
+  },
+  {
+    key: 'oscillation-trend',
+    prompt: '“必须补出射角，振荡趋势更明显” 对应哪类开环极点？',
+    answer: 'complex-pole',
   },
 ];
 
@@ -129,7 +244,7 @@ function getStepBlueprint(step: UNIT_3_3StepDefinition): StepBlueprint {
     case 'step-01':
       return {
         kicker: 'Map',
-        intro: '3-2 已经告诉我们稳定边界在哪里，3-3 要继续回答：参数变化时，闭环极点为什么会沿特定路径迁移，以及这条路径如何翻译成动态变化。',
+        intro: '3-2 已经告诉我们稳定边界在哪里，3-3 要继续回答：参数变化时，闭环极点究竟沿什么路径迁移，以及这条路径如何接到 3-4 的读图窗口。',
         sections: [
           {
             title: '路径图',
@@ -148,12 +263,12 @@ function getStepBlueprint(step: UNIT_3_3StepDefinition): StepBlueprint {
     case 'step-02':
       return {
         kicker: 'Question',
-        intro: '只知道 K=6 是边界点，还不足以回答“极点先往哪走、何时开始更振荡、边界之前发生了什么”。这正是根轨迹机制的入口。',
+        intro: '只知道稳定区间或边界点，还不足以回答“极点先往哪走、何时更振荡、参数该朝哪里调”。这正是根轨迹机制的入口。',
         sections: [
           {
-            title: '三问',
+            title: '本页四问',
             tone: 'amber',
-            bullets: ['极点先往哪走？', '系统何时开始更振荡？', '边界点之前发生了什么迁移？'],
+            bullets: ['极点先往哪走？', '什么时候开始更振荡？', '什么时候真正碰到稳定边界？', '参数应朝哪个方向继续调？'],
           },
           {
             title: '本页结论',
@@ -169,14 +284,14 @@ function getStepBlueprint(step: UNIT_3_3StepDefinition): StepBlueprint {
         intro: '本课主链固定为：参数变化 -> 闭环极点迁移 -> 轨迹条件 -> 完整法则 -> 动态翻译。',
         sections: [
           {
-            title: '五项目标',
+            title: '四项目标',
             tone: 'cyan',
-            bullets: ['理解根轨迹定义。', '掌握 GH=-1 到两大条件的入口。', '会用骨架法则与关键节点读图。', '理解广义根轨迹如何转回普通根轨迹。', '把轨迹翻译回系统动态变化。'],
+            bullets: ['说清根轨迹研究的是闭环极点迁移。', '先用相角条件再用幅值条件。', '按层次使用九项法则。', '把图形重新翻译回系统动态变化。'],
           },
           {
-            title: '课程边界',
+            title: '负责与不负责',
             tone: 'rose',
-            bullets: ['不进入完整手工绘图训练。', '不进入控制器参数设计。', '不把 3-4 的读图窗口提前塞回本课。'],
+            bullets: ['本课负责迁移机制、完整法则、广义改写与动态翻译。', '本课不进入控制器设计。', '本课不提前代替 3-4 的参数窗口判断。'],
           },
         ],
         prompts: ['为什么本课必须停在“迁移机制与法则”，而不是提前滑到设计？'],
@@ -207,49 +322,26 @@ function getStepBlueprint(step: UNIT_3_3StepDefinition): StepBlueprint {
       };
     case 'step-05':
       return {
-        kicker: 'Condition Entry',
-        intro: '完整法则并不是从一张表硬背，而是从闭环特征方程自然分出。',
+        kicker: 'Condition Chain',
+        intro: '完整法则并不是从一张表硬背，而是从 1+L(s)=0 到 L(s)=-1 这条链自然分出，并落成“先资格、后参数”的判断节奏。',
         sections: [
           {
             title: '方程链',
             tone: 'cyan',
-            formula: '1+G(s)H(s)=0  ->  G(s)H(s)=-1',
+            formula: '1+L(s)=0 \\rightarrow L(s)=-1',
           },
           {
-            title: '入口卡',
+            title: '两大判据',
             tone: 'emerald',
-            body: '后续的相角条件与幅值条件，都从 GH=-1 这一步分出。',
+            bullets: ['相角条件先判断某点能不能在轨迹上。', '幅值条件再把轨迹点对应到具体参数值。'],
           },
         ],
-        prompts: ['为什么 GH=-1 是根轨迹法则的共同入口？'],
+        prompts: ['为什么 L(s)=-1 是根轨迹法则的共同入口？', '为什么这里必须先资格、后参数？'],
       };
     case 'step-06':
       return {
-        kicker: 'Angle Then Magnitude',
-        intro: '两条条件缺一不可，但使用顺序不能颠倒：先资格、后参数。',
-        sections: [
-          {
-            title: '相角条件',
-            tone: 'cyan',
-            formula: 'angle G(s)H(s)=(2k+1)pi',
-          },
-          {
-            title: '幅值条件',
-            tone: 'emerald',
-            formula: '|G(s)H(s)|=1',
-          },
-          {
-            title: '顺序提醒',
-            tone: 'amber',
-            body: '先资格、后参数。先看这个点能不能在轨迹上，再看它对应多大参数。',
-          },
-        ],
-        prompts: ['为什么相角条件必须先于幅值条件？', '幅值条件到底补的是哪一层信息？'],
-      };
-    case 'step-07':
-      return {
         kicker: 'Skeleton Rules',
-        intro: '画图第一轮不先扑向关键节点，而是先搭骨架：起点终点、实轴区段、渐近线。',
+        intro: '画图第一轮不是先扑向关键节点，而是先搭骨架：起点终点、实轴区段、渐近线。',
         sections: [
           {
             title: '起点与终点',
@@ -269,10 +361,29 @@ function getStepBlueprint(step: UNIT_3_3StepDefinition): StepBlueprint {
         ],
         prompts: ['为什么必须先骨架、后关键节点？', '只靠骨架法则时，已经能看清哪些大势信息？'],
       };
+    case 'step-07':
+      return {
+        kicker: 'Worked Example 1',
+        intro: '第一道例题只允许使用骨架法则，目的不是算满所有细节，而是先把整张图的总体走向搭起来。',
+        sections: [
+          {
+            title: '本页方法',
+            tone: 'cyan',
+            bullets: ['先看起点终点。', '再判实轴区段。', '最后算渐近线并判断总体走向。'],
+          },
+          {
+            title: '例题对象',
+            tone: 'emerald',
+            formula: 'G(s)H(s)=K/[s(s+2)(s+4)]',
+          },
+        ],
+        note: '题面默认可见；逐步显影只负责步骤，不遮住题面。',
+        prompts: ['这道题里哪些信息属于骨架层，哪些还不能提前算成关键节点？'],
+      };
     case 'step-08':
       return {
         kicker: 'Key Points',
-        intro: '关键节点不是一团“细节”，而是分别回答不同问题：分离点、虚轴交点、起始角/终止角各司其职。',
+        intro: '关键节点不是一团“细节”，而是分别回答不同问题：分离点、虚轴交点、出射角 / 入射角、根之和各司其职。',
         sections: [
           {
             title: '分离点 / 汇合点',
@@ -285,17 +396,22 @@ function getStepBlueprint(step: UNIT_3_3StepDefinition): StepBlueprint {
             body: '回答根轨迹何时真正触碰稳定边界。',
           },
           {
-            title: '起始角 / 终止角',
+            title: '出射角 / 入射角',
             tone: 'violet',
             body: '回答复极点、复零点附近的局部切线方向。',
           },
+          {
+            title: '根之和',
+            tone: 'amber',
+            body: '回答整张图是否与全局守恒约束自洽。',
+          },
         ],
-        prompts: ['为什么如果把三类关键节点混为一谈，画图顺序就会混乱？'],
+        prompts: ['为什么如果把这些关键节点混为一谈，画图顺序就会混乱？'],
       };
     case 'step-09':
       return {
-        kicker: 'Worked Example',
-        intro: '把骨架、关键点与稳定范围串到同一道主例里，才算真正把 3-3 的机制链条接起来。',
+        kicker: 'Worked Example 2',
+        intro: '第二道例题把 dK/ds 和劳斯判据放到同一道题里，目的不是多背一套公式，而是分清“实轴关键点”和“稳定边界”是两类不同问题。',
         sections: [
           {
             title: '题面',
@@ -303,43 +419,107 @@ function getStepBlueprint(step: UNIT_3_3StepDefinition): StepBlueprint {
             formula: 'G(s)H(s)=K/[s(s+1)(s+2)]',
           },
           {
-            title: '三步法',
+            title: '双方法分工',
             tone: 'emerald',
-            bullets: ['先骨架。', '再关键点。', '最后稳定范围。'],
+            bullets: ['dK/ds 用于实轴关键点。', '劳斯判据用于虚轴交点与稳定边界。'],
           },
           {
-            title: '最终稳定范围',
+            title: '关键边界',
             tone: 'amber',
+            formula: 'K=6,\\ s=\\pm j\\sqrt{2}',
+          },
+          {
+            title: '稳定范围回看',
+            tone: 'violet',
             formula: '0<K<6',
           },
         ],
-        note: '工作区只承接三步法和中间量，不一次性放出完整答案。',
-        prompts: ['为什么 K=6 既是关键节点又是稳定边界？', '为什么必须按三步法而不是上来直接算边界？'],
+        note: '题面与主图始终可见；显影链只负责展开步骤，不吞掉题面。',
+        prompts: ['为什么这道题里不能把 dK/ds 和劳斯判据混成一个黑箱步骤？'],
       };
     case 'step-10':
       return {
-        kicker: 'Generalized View',
-        intro: '广义根轨迹没有发明新法则，它只是把一般参数问题改写回普通根轨迹入口。',
+        kicker: 'Worked Example 3',
+        intro: '第三道例题把“局部出射角”和“整图根之和校核”放在一起，目的是说明局部方向与全图自洽必须同时成立。',
         sections: [
           {
-            title: '一般参数形式',
+            title: '本页抓手',
             tone: 'cyan',
-            formula: 'B(s)+aA(s)=0',
+            bullets: ['局部方向看出射角。', '整图自洽看实轴对称与根之和。'],
           },
           {
-            title: '改写回标准入口',
+            title: '例题对象',
             tone: 'emerald',
-            formula: '1+aA(s)/B(s)=0',
-          },
-          {
-            title: '等效开环卡',
-            tone: 'violet',
-            body: '没有新法则，只有新改写：把一般参数对象认成新的等效开环后，再复用普通根轨迹。',
+            formula: 'G(s)H(s)=K/[(s+2)(s^2+2s+5)]',
           },
         ],
-        prompts: ['为什么广义根轨迹不是一套新算法？', '等效开环卡到底在帮我们做什么？'],
+        prompts: ['为什么局部出射角和根之和校核必须同时成立？'],
       };
     case 'step-11':
+      return {
+        kicker: 'Workflow',
+        intro: '九项法则不是平铺清单，而是要重组为真实可执行的七步读图法：先骨架，再关键点，最后补局部方向。',
+        sections: [
+          {
+            title: '七步读图法',
+            tone: 'cyan',
+            bullets: ['写出极点与零点。', '判实轴区段。', '求渐近线。', '找实轴关键点。', '查虚轴交点。', '补局部方向。', '做全图复核。'],
+          },
+          {
+            title: '典型误判',
+            tone: 'amber',
+            body: '不要一上来先抓分离点，再回头补骨架；顺序一反，整张图就会失真。',
+          },
+        ],
+        prompts: ['为什么“先骨架、后关键点、最后补局部方向”不是口号，而是读图顺序本身？'],
+      };
+    case 'step-12':
+      return {
+        kicker: 'Pole Types',
+        intro: '不同开环极点类型会留下不同的轨迹趋势线索。把对象类型和图上现象直接对应起来，才能避免只背法则名称。',
+        sections: [
+          {
+            title: '原点极点',
+            tone: 'cyan',
+            body: '更接近积分型结构，先警惕低频拖尾与主导分支贴近虚轴。',
+          },
+          {
+            title: '实轴极点',
+            tone: 'emerald',
+            body: '直接决定实轴区段以及分离 / 汇合是否可能出现。',
+          },
+          {
+            title: '共轭复极点',
+            tone: 'violet',
+            body: '必须补出射角，振荡趋势更明显，局部方向信息更关键。',
+          },
+          {
+            title: '对象与趋势对照',
+            tone: 'amber',
+            body: '不要把对象类型和轨迹趋势拆开背诵，二者必须直接连起来。',
+          },
+        ],
+        prompts: ['为什么必须重新回到对象类型，而不能只背法则名称？'],
+      };
+    case 'step-13':
+      return {
+        kicker: 'Generalized View',
+        intro: '广义根轨迹没有发明新法则，它只是把一般参数问题改写回普通根轨迹入口，让原来的判断链继续可用。',
+        sections: [
+          {
+            title: '改写链',
+            tone: 'cyan',
+            formula: 'B(s)+aA(s)=0 \\rightarrow 1+a\\dfrac{A(s)}{B(s)}=0',
+          },
+          {
+            title: '等效开环',
+            tone: 'emerald',
+            body: '法则没有变，变化的是参数被改写到等效开环的位置。关键抓手就是“等效开环”。',
+          },
+        ],
+        prompts: ['为什么广义根轨迹不是一套全新的算法？', '等效开环这一步到底在帮我们保留什么？'],
+      };
+    case 'step-14':
       return {
         kicker: 'Compare',
         intro: '时间常数例子与 0° / 180° 根轨迹都在说明同一个事实：研究对象没变，变化的是参数入口和相角条件。',
@@ -347,7 +527,7 @@ function getStepBlueprint(step: UNIT_3_3StepDefinition): StepBlueprint {
           {
             title: '时间常数例子',
             tone: 'cyan',
-            bullets: ['把非增益参数改写成等效开环。', '重点是“能转回普通根轨迹”，不是多背一个新算例。'],
+            bullets: ['先把非增益参数改写成等效开环。', '重点是“能转回普通根轨迹”，而不是多背一个新算例。'],
           },
           {
             title: '0° 根轨迹 vs 180° 根轨迹',
@@ -355,9 +535,9 @@ function getStepBlueprint(step: UNIT_3_3StepDefinition): StepBlueprint {
             bullets: ['同一研究对象：闭环根迁移。', '主要差异：相角条件方向不同。', '仍然属于统一的广义视角。'],
           },
         ],
-        prompts: ['时间常数例子和 0°/180° 根轨迹为什么还能放在同一页比较？'],
+        prompts: ['时间常数例子和 0° / 180° 根轨迹为什么还能放在同一页比较？'],
       };
-    case 'step-12':
+    case 'step-15':
       return {
         kicker: 'Dynamic Translation',
         intro: '根轨迹最终不是为了停在图上，而是要把图重新翻译成“更快、更振荡、更靠近边界”这类动态判断。',
@@ -365,39 +545,57 @@ function getStepBlueprint(step: UNIT_3_3StepDefinition): StepBlueprint {
           {
             title: '三条翻译线',
             tone: 'cyan',
-            bullets: ['左右半平面：先看稳定与越轴。', '离虚轴距离：再看快慢与阻尼。', '实轴/复平面主导：再看振荡趋势。'],
+            bullets: ['左右半平面：先看稳定与越轴。', '离虚轴距离：再看快慢与拖尾。', '主导极点在实轴还是复平面：再看振荡趋势。'],
           },
           {
             title: '阅读提醒',
             tone: 'amber',
-            body: '别机械盯所有分支，而要先抓住主导分支。',
+            body: '别机械盯所有分支，而要先抓住主导极点所在位置。',
           },
         ],
-        prompts: ['为什么动态翻译必须先抓主导分支？', '更快、更振荡、更靠近边界分别看哪里？'],
+        prompts: ['为什么动态翻译必须先抓主导极点？', '更快、更振荡、更靠近边界分别看哪里？'],
       };
-    case 'step-13':
+    case 'step-16':
       return {
-        kicker: 'Post-check',
-        intro: '收束页同时承担三件事：后测诊断、五点总结，以及把出口稳稳送到 3-4 的读图窗口。',
+        kicker: 'Post-test',
+        intro: '后测只检查链条是否形成，不再新增概念。真正要看的，是条件入口、法则层次、广义改写与动态翻译有没有连成一条判断链。',
         sections: [
           {
-            title: '五点总结',
+            title: '本页任务',
+            tone: 'cyan',
+            bullets: ['检查相角条件与幅值条件的先后顺序。', '检查读图顺序是否仍然坚持骨架优先。', '检查广义改写与动态翻译是否已经接通。'],
+          },
+          {
+            title: '错因回看',
+            tone: 'amber',
+            body: '只显示错因标签，不直接把整题答案提前端出来。',
+          },
+        ],
+        prompts: ['如果三道后测只允许抓一个总错误源，最该优先抓的是哪一类？'],
+      };
+    case 'step-17':
+      return {
+        kicker: 'Exit',
+        intro: '收束页只做三件事：回收五条结论、用信息图压住主线、把出口清楚送到 3-4 的读图窗口。',
+        sections: [
+          {
+            title: '五条带走',
             tone: 'emerald',
             bullets: [
-              '根轨迹研究的是参数变化下的闭环根集合。',
-              'GH=-1 是相角/幅值条件的共同入口。',
-              '先骨架，再关键节点，最后把图翻译回稳定范围。',
-              '广义根轨迹只是把一般参数改写回普通根轨迹。',
-              '动态翻译是为 3-4 的读图窗口做准备。',
+              '研究对象是闭环极点迁移。',
+              '先相角条件，后幅值条件。',
+              '九项法则共同构成普通根轨迹。',
+              '读图时先骨架后关键点再补局部方向。',
+              '图上的迁移要重新翻回动态语言。',
             ],
           },
           {
             title: '下一课去向',
             tone: 'cyan',
-            body: '3-4 将正式进入读图判断、关键节点验证与参数窗口。',
+            body: '3-4 将把这些法则真正用于主图判断、参数窗口与对象化验证。',
           },
         ],
-        prompts: ['如果只抓一个总错误源，3-3 最该优先纠正什么？'],
+        prompts: ['为什么 3-4 会从“先骨架后关键点再补局部方向”继续展开？'],
       };
     default:
       return {
@@ -457,7 +655,27 @@ function getActivitySpec(step: UNIT_3_3StepDefinition): ActivitySpec {
     case 'worked_example_workspace':
       return {
         kind: 'worked_example',
-        helper: '依次补全骨架、关键点与稳定范围，不一次性抄完整答案。',
+        helper: '题面默认可见；逐步显影只展开步骤，按卡片分别作答。',
+        ...(WORKED_EXAMPLE_CONFIGS[step.id] ?? WORKED_EXAMPLE_CONFIGS['step-07']),
+      };
+    case 'activity_cards':
+      return {
+        kind: 'activity_cards',
+        helper: '先看完整题面，再按卡片分别完成局部方向与整图校核。',
+        cards: STEP_10_ACTIVITY_CARDS,
+      };
+    case 'sequence_sort':
+      return {
+        kind: 'sequence_sort',
+        helper: '把九项法则重组成七步读图法，而不是平铺背诵。',
+        items: WORKFLOW_SEQUENCE,
+      };
+    case 'classification_cards':
+      return {
+        kind: 'classification_cards',
+        helper: '把轨迹现象与对应开环极点类型匹配。',
+        options: CLASSIFICATION_OPTIONS,
+        cards: CLASSIFICATION_CARDS,
       };
     case 'formula_ordering':
       return {
@@ -480,7 +698,7 @@ function getActivitySpec(step: UNIT_3_3StepDefinition): ActivitySpec {
       return {
         kind: 'quiz_group',
         helper: '后测只检查核心判断，不替代总结卡。',
-        questions: STEP_13_QUESTIONS,
+        questions: STEP_16_QUESTIONS,
       };
     default:
       return {
@@ -496,20 +714,28 @@ function getRevealContent(step: UNIT_3_3StepDefinition) {
       return '正确项：还需要整条迁移路径。K=6 只说明边界点，不能解释极点是如何走到边界附近的。';
     case 'step-04':
       return '根轨迹强调的是参数连续变化下的闭环根集合，而不是某一个参数点的孤立求根结果。';
-    case 'step-06':
+    case 'step-05':
       return '顺序必须是“先资格、后参数”：先用相角条件判断能否在轨迹上，再用幅值条件确定参数大小。';
-    case 'step-07':
+    case 'step-06':
       return '骨架法则先锁定三件事：起点终点、实轴区段、渐近线。分离点和虚轴交点属于下一层关键节点。';
+    case 'step-07':
+      return '例题 1 的关键不是算满细节，而是先用骨架法则搭出整张图的大势。';
     case 'step-08':
-      return '分离点回答“何时离开实轴”，虚轴交点回答“何时碰到稳定边界”，起始角/终止角回答“局部切线方向”。';
+      return '分离点回答“何时离开实轴”，虚轴交点回答“何时碰到稳定边界”，出射角 / 入射角回答“局部切线方向”。';
     case 'step-09':
-      return '主例标准链：先骨架，再关键点，最后稳定范围；其中 K=6 对应虚轴交点，真正稳定范围是 0<K<6。';
+      return '例题 2 中，dK/ds 用来找实轴关键点，劳斯判据用来找虚轴交点和稳定边界，二者不能混成一步。';
     case 'step-10':
-      return '广义根轨迹不是新算法，而是把 B(s)+aA(s)=0 改写成 1+aA(s)/B(s)=0，再复用普通根轨迹法则。';
+      return '例题 3 要同时满足两层约束：局部方向看出射角，整图位置看根之和与对称性。';
+    case 'step-11':
+      return '七步读图法的核心顺序是：先骨架，再关键点，最后补局部方向并做全图复核。';
     case 'step-12':
-      return '动态翻译的三个抓手分别是：左右半平面、离虚轴距离、主导分支是在实轴还是复平面。';
+      return '三类开环极点会留下不同的轨迹趋势线索：原点极点更接近积分型，实轴极点影响区段，共轭复极点必须补方向。';
     case 'step-13':
-      return '3-3 的真正出口不是背法则，而是能把条件、骨架、关键节点与动态翻译串成一个整体判断。';
+      return '广义根轨迹不是新算法，而是把 B(s)+aA(s)=0 改写成 1+aA(s)/B(s)=0，再复用普通根轨迹法则。';
+    case 'step-15':
+      return '动态翻译的三个抓手分别是：左右半平面、离虚轴距离、主导分支是在实轴还是复平面。';
+    case 'step-16':
+      return '3-3 的真正出口不是背法则，而是能把条件、骨架、关键节点、广义改写与动态翻译串成一个整体判断。';
     default:
       return null;
   }
@@ -571,6 +797,13 @@ function getOrderingFromResponse(savedResponse?: UNIT_3_3StepResponse) {
     : FORMULA_ORDERING_SEQUENCE.map((item) => item.id);
 }
 
+function getWorkflowOrderingFromResponse(savedResponse?: UNIT_3_3StepResponse) {
+  const stored = parseStoredList(savedResponse?.answers.order);
+  return stored.length === WORKFLOW_SEQUENCE.length
+    ? stored
+    : WORKFLOW_SEQUENCE.map((item) => item.id);
+}
+
 function summarizeResponses(step: UNIT_3_3StepDefinition, responses: UNIT_3_3TeacherResponseItem[]) {
   if (!responses.length || step.pageType === 'tab_switch') {
     return [];
@@ -611,7 +844,30 @@ function summarizeResponses(step: UNIT_3_3StepDefinition, responses: UNIT_3_3Tea
         break;
       }
       case 'worked_example_workspace': {
-        WORKED_EXAMPLE_SECTIONS.forEach((section) => add(`${section.title} -> ${trimText(item.response.answers[section.key] ?? '未作答')}`));
+        if (activity.kind === 'worked_example') {
+          activity.sections.forEach((section) => add(`${section.title} -> ${trimText(item.response.answers[section.key] ?? '未作答')}`));
+        }
+        break;
+      }
+      case 'activity_cards': {
+        if (activity.kind === 'activity_cards') {
+          activity.cards.forEach((card) => add(`${card.title} -> ${trimText(item.response.answers[card.key] ?? '未作答')}`));
+        }
+        break;
+      }
+      case 'sequence_sort': {
+        const order = parseStoredList(item.response.answers.order)
+          .map((value) => WORKFLOW_SEQUENCE.find((entry) => entry.id === value)?.label ?? value)
+          .join(' -> ');
+        add(order || '未作答');
+        break;
+      }
+      case 'classification_cards': {
+        CLASSIFICATION_CARDS.forEach((card) => {
+          const value = item.response.answers[card.key];
+          const label = CLASSIFICATION_OPTIONS.find((option) => option.value === value)?.label ?? '未作答';
+          add(`${card.prompt} -> ${label}`);
+        });
         break;
       }
       case 'formula_ordering': {
@@ -630,7 +886,7 @@ function summarizeResponses(step: UNIT_3_3StepDefinition, responses: UNIT_3_3Tea
         break;
       }
       case 'quiz_group': {
-        STEP_13_QUESTIONS.forEach((question) => {
+        STEP_16_QUESTIONS.forEach((question) => {
           const value = item.response.answers[question.key];
           const label = question.type === 'text'
             ? trimText(value ?? '未作答')
@@ -715,6 +971,8 @@ function renderFieldValue(step: UNIT_3_3StepDefinition, key: string, value: stri
       return (activity.kind === 'reason_check' ? activity.options.find((option) => option.value === value)?.label : value) ?? value;
     case 'triple_match':
       return KEYPOINT_MATCH_OPTIONS.find((option) => option.value === value)?.label ?? value;
+    case 'classification_cards':
+      return CLASSIFICATION_OPTIONS.find((option) => option.value === value)?.label ?? value;
     case 'mapping_highlight':
       return DYNAMIC_MAPPING_OPTIONS.find((option) => option.value === value)?.label ?? value;
     default:
@@ -825,12 +1083,14 @@ export function UNIT_3_3StudentActivityForm({
   const [draft, setDraft] = useState<Record<string, string>>(savedResponse?.answers ?? {});
   const [selectedRegions, setSelectedRegions] = useState<string[]>(parseStoredList(savedResponse?.answers.selected));
   const [ordering, setOrdering] = useState<string[]>(getOrderingFromResponse(savedResponse));
+  const [workflowOrdering, setWorkflowOrdering] = useState<string[]>(getWorkflowOrderingFromResponse(savedResponse));
   const [activeTab, setActiveTab] = useState(activity.kind === 'tab_switch' ? activity.defaultTab : TAB_SWITCH_OPTIONS[0]?.value ?? 'time-constant');
 
   useEffect(() => {
     setDraft(savedResponse?.answers ?? {});
     setSelectedRegions(parseStoredList(savedResponse?.answers.selected));
     setOrdering(getOrderingFromResponse(savedResponse));
+    setWorkflowOrdering(getWorkflowOrderingFromResponse(savedResponse));
     if (activity.kind === 'tab_switch') {
       setActiveTab(savedResponse?.answers.tab ?? activity.defaultTab);
     }
@@ -1046,9 +1306,9 @@ export function UNIT_3_3StudentActivityForm({
         return (
           <div className="grid gap-4">
             <div className="premium-lesson-tone-block premium-tone-cyan text-sm">
-              主例：{WORKED_EXAMPLE_REFERENCE.plant}。按“{WORKED_EXAMPLE_REFERENCE.method.join(' -> ')}”推进。
+              主例：{activity.plant}。按“{activity.method.join(' -> ')}”推进。
             </div>
-            {WORKED_EXAMPLE_SECTIONS.map((section) => (
+            {activity.sections.map((section) => (
               <div key={section.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">{section.title}</div>
                 <div className="premium-lesson-muted mt-2 text-sm">{section.prompt}</div>
@@ -1063,7 +1323,114 @@ export function UNIT_3_3StudentActivityForm({
               </div>
             ))}
             <button type="button" onClick={() => handleSubmit(draft)} className="premium-lesson-action-primary">
-              {submitted ? '重新提交三步法结果' : '提交三步法结果'}
+              {submitted ? '重新提交本页作答' : '提交本页作答'}
+            </button>
+          </div>
+        );
+      case 'activity_cards':
+        return (
+          <div className="grid gap-4">
+            {activity.cards.map((card) => (
+              <div key={card.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+                <div className="premium-lesson-title text-sm font-medium">{card.title}</div>
+                <div className="premium-lesson-muted mt-2 text-sm">{card.prompt}</div>
+                <div className="mt-3">
+                  <TextInput
+                    value={draft[card.key] ?? ''}
+                    onChange={(value) => updateDraft(card.key, value)}
+                    placeholder={card.placeholder}
+                    multiline
+                  />
+                </div>
+              </div>
+            ))}
+            <button type="button" onClick={() => handleSubmit(draft)} className="premium-lesson-action-primary">
+              {submitted ? '重新提交作答卡' : '提交作答卡'}
+            </button>
+          </div>
+        );
+      case 'sequence_sort':
+        return (
+          <div className="grid gap-4">
+            <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+              <div className="premium-lesson-title text-sm font-medium">按读图顺序重排步骤</div>
+              <div className="mt-3 grid gap-3">
+                {workflowOrdering.map((id, index) => {
+                  const item = activity.items.find((entry) => entry.id === id);
+                  if (!item) return null;
+                  return (
+                    <div key={id} className="rounded-2xl border border-border/60 px-3 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <div className="font-medium">
+                            {index + 1}. {item.label}
+                          </div>
+                          <div className="premium-lesson-muted mt-1 text-sm">{item.explanation}</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            disabled={index === 0}
+                            onClick={() => {
+                              setWorkflowOrdering((prev) => {
+                                const next = [...prev];
+                                [next[index - 1], next[index]] = [next[index], next[index - 1]];
+                                onWorkspaceParameterChange?.({ key: 'order', value: next.join('||'), source: 'button' });
+                                return next;
+                              });
+                            }}
+                            className="premium-lesson-control disabled:opacity-40"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={index === workflowOrdering.length - 1}
+                            onClick={() => {
+                              setWorkflowOrdering((prev) => {
+                                const next = [...prev];
+                                [next[index], next[index + 1]] = [next[index + 1], next[index]];
+                                onWorkspaceParameterChange?.({ key: 'order', value: next.join('||'), source: 'button' });
+                                return next;
+                              });
+                            }}
+                            className="premium-lesson-control disabled:opacity-40"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleSubmit({ order: workflowOrdering.join('||') })}
+              className="premium-lesson-action-primary"
+            >
+              {submitted ? '重新提交排序' : '提交排序'}
+            </button>
+          </div>
+        );
+      case 'classification_cards':
+        return (
+          <div className="grid gap-4">
+            {activity.cards.map((card) => (
+              <div key={card.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+                <div className="premium-lesson-title text-sm font-medium">{card.prompt}</div>
+                <div className="mt-3">
+                  <ChoiceGroup
+                    options={activity.options}
+                    value={draft[card.key] ?? ''}
+                    onChange={(value) => updateDraft(card.key, value, 'button')}
+                  />
+                </div>
+              </div>
+            ))}
+            <button type="button" onClick={() => handleSubmit(draft)} className="premium-lesson-action-primary">
+              {submitted ? '重新提交分类' : '提交分类'}
             </button>
           </div>
         );
@@ -1228,9 +1595,24 @@ function getTeacherReferenceItems(step: UNIT_3_3StepDefinition) {
         value: KEYPOINT_MATCH_OPTIONS.find((option) => option.value === group.answer)?.label ?? group.answer,
       }));
     case 'worked_example_workspace':
-      return WORKED_EXAMPLE_SECTIONS.map((section) => ({
+      return (WORKED_EXAMPLE_CONFIGS[step.id]?.sections ?? []).map((section) => ({
         label: section.title,
         value: section.reference,
+      }));
+    case 'activity_cards':
+      return STEP_10_ACTIVITY_CARDS.map((card) => ({
+        label: card.title,
+        value: card.reference,
+      }));
+    case 'sequence_sort':
+      return WORKFLOW_SEQUENCE.map((item, index) => ({
+        label: `顺序 ${index + 1}`,
+        value: item.label,
+      }));
+    case 'classification_cards':
+      return CLASSIFICATION_CARDS.map((card) => ({
+        label: card.prompt,
+        value: CLASSIFICATION_OPTIONS.find((option) => option.value === card.answer)?.label ?? card.answer,
       }));
     case 'formula_ordering':
       return FORMULA_ORDERING_SEQUENCE.map((item, index) => ({
@@ -1243,7 +1625,7 @@ function getTeacherReferenceItems(step: UNIT_3_3StepDefinition) {
         value: DYNAMIC_MAPPING_OPTIONS.find((option) => option.value === row.answer)?.label ?? row.answer,
       }));
     case 'quiz_group':
-      return STEP_13_QUESTIONS.map((question) => ({
+      return STEP_16_QUESTIONS.map((question) => ({
         label: question.prompt,
         value: question.type === 'text'
           ? question.explanation
@@ -1351,7 +1733,12 @@ export function UNIT_3_3TeacherActivitySummary({
         </div>
       ) : null}
 
-      {wordCloud.length && (step.pageType === 'short_response' || step.pageType === 'worked_example_workspace' || step.pageType === 'quiz_group') ? (
+      {wordCloud.length && (
+        step.pageType === 'short_response'
+        || step.pageType === 'worked_example_workspace'
+        || step.pageType === 'activity_cards'
+        || step.pageType === 'quiz_group'
+      ) ? (
         <div className="premium-lesson-panel mt-4 px-4 py-4">
           <div className="premium-lesson-title text-sm font-medium">关键词速览</div>
           <div className="mt-3 flex flex-wrap gap-2">

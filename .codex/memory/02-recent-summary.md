@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-04-18
-摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，模块 2 的 `2-1 / 2-2 / 2-3 / 2-4` 也已进入作者态双轨真源驱动的精品互动课实现阶段，且作者态互动设计已从 `lesson` 中正式拆分为独立 `interactive-design` 技能，必须注意“讲义/图谱/BOPPPS/多媒体”“作者态互动设计”“互动实现”已经形成三层独立边界。
+最后更新: 2026-04-19
+摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，模块 2 的 `2-1 / 2-2 / 2-3 / 2-4` 也已进入作者态双轨真源驱动的精品互动课实现阶段，模块 4 的 `4-2` 则已完成 13 步整改并沉淀出“KaTeX 公式字符串不要 `String.raw` + 双反斜杠、正式页媒体只读 runtime 路径”的新护栏；同时作者态互动设计已从 `lesson` 中正式拆分为独立 `interactive-design` 技能，必须注意“讲义/图谱/BOPPPS/多媒体”“作者态互动设计”“互动实现”已经形成三层独立边界。
 上游:
 - [00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
 - [README.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/README.md)
@@ -14,6 +14,8 @@
 - [docs/ProjectDescription.md](/Users/YW/Documents/Site/act.just.edu.cn/docs/ProjectDescription.md)
 
 ## 最近最重要的稳定变化
+
+- 2026-04-19 已完成 `4-2` 精品互动课 `unit-4-2-controller-selection-first-start` 的 13 步整改：旧信息图总结页已删除，`step-03` 改为纯判断链静态页，`step-04` 改为“结构工具箱总表 + 多选矩阵”，`step-05/07` 改为 Rust/WASM 原生统一面板，`step-06/08/09` 改为逐步显影，`step-11` 压缩为六字段最小起步卡；同时还沉淀出两条新的稳定护栏：第一，React + KaTeX 公式字符串不能再使用 `String.raw` 叠加双反斜杠，否则会把 `\frac`、`\mathrm` 等命令错误传成字面量；第二，互动课正式页面只能读取 `/course-runtime/lessons/<lesson>/media/...`，不能回读 `course-content/authoring/.../media/processed/...`。后续若继续制作或回修互动课中的公式、结构图、四联图或原生统一面板，先读 [70-workflows/68-interactive-formula-and-runtime-media-guards.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/68-interactive-formula-and-runtime-media-guards.md)
 
 - 2026-04-18 已正式把模块4原 `4-3 / 4-4` 合并为新的 `4-3（实践） 初始方案落地实践：从对象分析到结构组合与首轮验证`，并同步把模块4由 `8` 个单元压缩为 `7` 个单元、由 `16h` 调整为 `14h`；`4-4/4-5/4-6/4-7` 现分别对应多目标权衡、优化实践、场景迁移与双场景综合比较。新的稳定边界是：学生版讲义不再允许以“方案卡字段学”“失败三分类”“故意失败剧本”为正文骨架，而必须按“任务表达 -> 结构选型 -> 方案落地 -> 权衡修正 -> 迁移比较”直接展开；同时，这次合并只把全课程显性编排从 `76h` 压到 `74h`，距正式 `72h` 仍差 `2h`，后续还需继续确定减载位置。若后续继续制作模块4讲义、教案、互动课或媒体，先读 [50-decisions/ADR-2026-04-18-module4-merge-4-3-4-4.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/50-decisions/ADR-2026-04-18-module4-merge-4-3-4-4.md)
 - 2026-04-16 已把作者态互动课程设计从 `lesson` 技能中独立拆出，新增 `interactive-design` 技能及三份专用参考：`worked-example-modules.md`、`curve-interaction-panels.md`、`page-sequence-and-activity-controls.md`。新的固定边界是：`lesson` 只负责讲义、图谱、BOPPPS 与多媒体；`interactive-design` 负责 `interactive-page.md` 与 `interactive-contract.yaml`；`interactive-lesson-implementation` 只负责把双轨设计落成代码与 runtime 行为。后续若遇到“图先于逻辑、例题消失、推导被压扁、作答区过于笼统、教师控制语义混乱”等问题，先回到 `interactive-design`，不要继续把互动设计规则塞回 `lesson`，也不要在实现阶段临时脑补默认语义；优先阅读 [70-workflows/67-interactive-design-skill-split.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/67-interactive-design-skill-split.md)

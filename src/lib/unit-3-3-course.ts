@@ -13,6 +13,9 @@ export type UNIT_3_3PageType =
   | 'reason_check'
   | 'region_highlight'
   | 'triple_match'
+  | 'activity_cards'
+  | 'sequence_sort'
+  | 'classification_cards'
   | 'classification_drag'
   | 'formula_completion'
   | 'worked_example_workspace'
@@ -193,23 +196,10 @@ export const UNIT_3_3_PAGE_CONTRACTS: Record<string, UNIT_3_3PageContract> = {
   },
   'step-05': {
     layout: {
-      template: 'equation_to_condition_chain',
+      template: 'equation_condition_workspace',
       regions: [
-        { id: 'equation-chain', width: 'full', order: 1 },
-        { id: 'condition-intro', width: 'full', order: 2 },
-      ],
-    },
-    interactionKind: 'none',
-    teacherInsightWidgets: ['view_count'],
-    telemetrySummaryFields: ['viewed', 'timeOnStep'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-05',
-  },
-  'step-06': {
-    layout: {
-      template: 'geometry_check_workspace',
-      regions: [
-        { id: 'figure', width: 'full', order: 1 },
-        { id: 'conditions', width: 'full', order: 2 },
+        { id: 'equation', width: 'full', order: 1 },
+        { id: 'geometry', width: 'full', order: 2 },
         { id: 'interaction', width: 'full', order: 3 },
       ],
     },
@@ -217,9 +207,9 @@ export const UNIT_3_3_PAGE_CONTRACTS: Record<string, UNIT_3_3PageContract> = {
     teacherInsightWidgets: ['reason_distribution'],
     telemetrySummaryFields: ['selectedReason', 'attemptCount', 'teacherRevealSeen'],
     misconceptionTags: ['magnitude_before_angle'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-06',
+    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-05',
   },
-  'step-07': {
+  'step-06': {
     layout: {
       template: 'rules_overview_board',
       regions: [
@@ -232,14 +222,29 @@ export const UNIT_3_3_PAGE_CONTRACTS: Record<string, UNIT_3_3PageContract> = {
     teacherInsightWidgets: ['rule_confusion_heatmap'],
     telemetrySummaryFields: ['highlightChoice', 'resultState', 'teacherRevealSeen'],
     misconceptionTags: ['jump_to_keypoints_too_early'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-06',
+  },
+  'step-07': {
+    layout: {
+      template: 'worked_example_workspace',
+      regions: [
+        { id: 'principle', width: 'full', order: 1 },
+        { id: 'problem', width: 'full', order: 2 },
+        { id: 'workspace', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'worked_example_workspace',
+    teacherInsightWidgets: ['activity_completion_rate', 'top_missing_steps'],
+    telemetrySummaryFields: ['cardResultStates', 'stepRevealCount', 'completedCards'],
+    misconceptionTags: ['real_axis_segment_error', 'asymptote_formula_missing'],
     previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-07',
   },
   'step-08': {
     layout: {
-      template: 'keypoint_compare_board',
+      template: 'keypoint_framework_board',
       regions: [
-        { id: 'main-figure', width: 'full', order: 1 },
-        { id: 'keypoint-cards', width: 'full', order: 2 },
+        { id: 'cards', width: 'full', order: 1 },
+        { id: 'formulas', width: 'full', order: 2 },
         { id: 'interaction', width: 'full', order: 3 },
       ],
     },
@@ -253,51 +258,96 @@ export const UNIT_3_3_PAGE_CONTRACTS: Record<string, UNIT_3_3PageContract> = {
     layout: {
       template: 'worked_example_workspace',
       regions: [
-        { id: 'problem', width: 'full', order: 1 },
-        { id: 'method', width: 'full', order: 2 },
+        { id: 'principle', width: 'full', order: 1 },
+        { id: 'problem', width: 'full', order: 2 },
         { id: 'workspace', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'worked_example_workspace',
-    teacherInsightWidgets: ['example_bottlenecks'],
-    telemetrySummaryFields: ['stepCompletion', 'attemptCount', 'errorBucket'],
-    misconceptionTags: ['worked_example_order_confusion'],
+    teacherInsightWidgets: ['activity_completion_rate', 'top_missing_steps'],
+    telemetrySummaryFields: ['cardResultStates', 'stepRevealCount', 'completedCards'],
+    misconceptionTags: ['candidate_point_unscreened', 'routh_boundary_misread'],
     previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-09',
   },
   'step-10': {
     layout: {
+      template: 'worked_example_workspace',
+      regions: [
+        { id: 'principle', width: 'full', order: 1 },
+        { id: 'problem', width: 'full', order: 2 },
+        { id: 'workspace', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'activity_cards',
+    teacherInsightWidgets: ['activity_completion_rate', 'top_missing_steps'],
+    telemetrySummaryFields: ['cardResultStates', 'stepRevealCount', 'completedCards'],
+    misconceptionTags: ['departure_angle_only', 'root_sum_ignored'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-10',
+  },
+  'step-11': {
+    layout: {
+      template: 'workflow_sort_board',
+      regions: [
+        { id: 'workflow', width: 'full', order: 1 },
+        { id: 'interaction', width: 'full', order: 2 },
+        { id: 'feedback', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'sequence_sort',
+    teacherInsightWidgets: ['workflow_error_heatmap'],
+    telemetrySummaryFields: ['sortAttemptCount', 'resultState', 'teacherRevealSeen'],
+    misconceptionTags: ['workflow_order_confusion'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-11',
+  },
+  'step-12': {
+    layout: {
+      template: 'pole_type_compare_board',
+      regions: [
+        { id: 'cards', width: 'full', order: 1 },
+        { id: 'table', width: 'full', order: 2 },
+        { id: 'interaction', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'classification_cards',
+    teacherInsightWidgets: ['classification_accuracy_distribution'],
+    telemetrySummaryFields: ['cardResultStates', 'teacherRevealSeen'],
+    misconceptionTags: ['pole_type_trend_confusion'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-12',
+  },
+  'step-13': {
+    layout: {
       template: 'equivalent_open_loop_chain',
       regions: [
-        { id: 'rewrite-chain', width: 'full', order: 1 },
-        { id: 'equivalent-card', width: 'full', order: 2 },
+        { id: 'rewrite', width: 'full', order: 1 },
+        { id: 'equivalent', width: 'full', order: 2 },
         { id: 'interaction', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'formula_ordering',
     teacherInsightWidgets: ['ordering_error_patterns'],
-    telemetrySummaryFields: ['orderAttempted', 'resultState', 'teacherRevealSeen'],
-    misconceptionTags: ['generalized_is_new_tool'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-10',
+    telemetrySummaryFields: ['sortAttemptCount', 'resultState', 'teacherRevealSeen'],
+    misconceptionTags: ['generalized_as_new_algorithm'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-13',
   },
-  'step-11': {
+  'step-14': {
     layout: {
       template: 'compare_dual_root_locus',
       regions: [
         { id: 'example', width: 'full', order: 1 },
-        { id: 'compare-table', width: 'full', order: 2 },
+        { id: 'compare', width: 'full', order: 2 },
         { id: 'interaction', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'tab_switch',
     teacherInsightWidgets: ['tab_attention_distribution'],
     telemetrySummaryFields: ['tabVisited', 'timeOnTab'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-11',
+    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-14',
   },
-  'step-12': {
+  'step-15': {
     layout: {
       template: 'dynamic_translation_panel',
       regions: [
-        { id: 'translation-table', width: 'full', order: 1 },
+        { id: 'table', width: 'full', order: 1 },
         { id: 'figure', width: 'full', order: 2 },
         { id: 'interaction', width: 'full', order: 3 },
       ],
@@ -305,27 +355,37 @@ export const UNIT_3_3_PAGE_CONTRACTS: Record<string, UNIT_3_3PageContract> = {
     interactionKind: 'mapping_highlight',
     teacherInsightWidgets: ['translation_error_map'],
     telemetrySummaryFields: ['mappingChoice', 'resultState', 'teacherRevealSeen'],
-    misconceptionTags: ['dynamic_translation_confusion'],
-    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-12',
+    misconceptionTags: ['geometry_without_dynamics'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-15',
   },
-  'step-13': {
+  'step-16': {
     layout: {
-      template: 'postcheck_quiz',
+      template: 'posttest_board',
       regions: [
-        { id: 'quiz', width: 'full', order: 1 },
-        { id: 'summary', width: 'full', order: 2 },
-        { id: 'next-step', width: 'full', order: 3 },
+        { id: 'intro', width: 'full', order: 1 },
+        { id: 'quiz', width: 'full', order: 2 },
+        { id: 'review', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'quiz_group',
-    teacherInsightWidgets: ['post_quiz_distribution', 'ready_for_next_lesson_rate'],
+    teacherInsightWidgets: ['post_quiz_distribution', 'top_misconceptions'],
     telemetrySummaryFields: ['attemptCount', 'resultState', 'errorBucket', 'teacherRevealSeen'],
-    misconceptionTags: [
-      'angle_magnitude_order_confusion',
-      'skeleton_vs_keypoint_confusion',
-      'generalized_rewrite_confusion',
-    ],
-    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-13',
+    misconceptionTags: ['condition_order_error', 'workflow_flattened', 'generalized_translation_weak'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-16',
+  },
+  'step-17': {
+    layout: {
+      template: 'summary_exit_board',
+      regions: [
+        { id: 'summary', width: 'full', order: 1 },
+        { id: 'infographic', width: 'full', order: 2 },
+        { id: 'next-step', width: 'full', order: 3 },
+      ],
+    },
+    interactionKind: 'none',
+    teacherInsightWidgets: ['view_count'],
+    telemetrySummaryFields: ['viewed', 'timeOnStep'],
+    previewDemoPath: '/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo?step=step-17',
   },
 };
 
@@ -335,6 +395,9 @@ export const UNIT_3_3_INTERACTIVE_PAGE_TYPES = new Set<UNIT_3_3PageType>([
   'reason_check',
   'region_highlight',
   'triple_match',
+  'activity_cards',
+  'sequence_sort',
+  'classification_cards',
   'worked_example_workspace',
   'formula_ordering',
   'tab_switch',
@@ -346,24 +409,24 @@ export const UNIT_3_3_LESSON_STEPS: UNIT_3_3StepDefinition[] = [
   {
     id: 'step-01',
     stage: 'B',
-    title: '回到地图：从稳定边界走向迁移机制',
-    hint: '从 3-2 的边界语言回到模块主线，交代 3-3 为什么要研究极点怎样迁移。',
+    title: '回到地图：为什么稳定边界还不等于迁移机制',
+    hint: '先把 3-3 放回 3-2 与 3-4 之间的模块位置，说明为什么只知道稳定边界还不够。',
     duration: '3 min',
     pageType: 'display',
   },
   {
     id: 'step-02',
     stage: 'P1',
-    title: '问题引入：知道 K=6 还不够',
-    hint: '先暴露“知道边界点就够了”的误判，再提出整条迁移路径的问题。',
+    title: '问题引入：知道稳定区间为什么仍然不够',
+    hint: '用主图和四问暴露“只知道边界点就够了”的误判。',
     duration: '5 min',
     pageType: 'binary_choice',
   },
   {
     id: 'step-03',
     stage: 'O',
-    title: '本课目标与边界',
-    hint: '明确本课负责迁移机制、完整法则、广义视角与动态翻译，不提前进入 3-4 的读图窗口。',
+    title: '本课目标与研究对象：我们要跟踪的是谁',
+    hint: '明确本课研究对象、主线链和不负责的边界。',
     duration: '4 min',
     pageType: 'display',
   },
@@ -378,41 +441,42 @@ export const UNIT_3_3_LESSON_STEPS: UNIT_3_3StepDefinition[] = [
   {
     id: 'step-05',
     stage: 'P2',
-    title: '从闭环特征方程到 GH=-1',
-    hint: '明确相角条件和幅值条件都从 GH=-1 这一步分出。',
-    duration: '6 min',
-    pageType: 'display',
-  },
-  {
-    id: 'step-06',
-    stage: 'P2',
-    title: '相角条件与幅值条件',
-    hint: '稳住“先资格、后参数”的判断顺序。',
+    title: '从 `1+L(s)=0` 到相角条件与幅值条件',
+    hint: '把方程链、几何图与两大判据放回同一页，并稳住先资格后参数的顺序。',
     duration: '10 min',
     pageType: 'reason_check',
   },
   {
-    id: 'step-07',
+    id: 'step-06',
     stage: 'P2',
-    title: '骨架法则：起点终点、实轴区段、渐近线',
-    hint: '先搭整体骨架，不一上来就陷入关键节点与局部修正。',
+    title: '骨架法则板：起点终点、实轴区段与渐近线',
+    hint: '先用骨架法则搭出整张图的大势，不提前跳进关键节点。',
     duration: '12 min',
     pageType: 'region_highlight',
     workspaceKind: 'region-highlight',
   },
   {
+    id: 'step-07',
+    stage: 'P2',
+    title: '例题 1：只用骨架法则先判断整体走向',
+    hint: '先把骨架法则压到完整题面里，再做双卡作答。',
+    duration: '10 min',
+    pageType: 'worked_example_workspace',
+    workspaceKind: 'worked-example',
+  },
+  {
     id: 'step-08',
     stage: 'P2',
-    title: '关键节点：分离点、虚轴交点、起始角终止角',
-    hint: '把三类关键节点的职责拆开，不混成同一类“细节点”。',
+    title: '关键节点与局部方向：分离点、虚轴交点、出射角、入射角、根之和',
+    hint: '把不同关键节点的职责拆开，并说明它们各自回答什么问题。',
     duration: '10 min',
     pageType: 'triple_match',
   },
   {
     id: 'step-09',
     stage: 'P2',
-    title: '完整例题：三阶对象的根轨迹骨架与稳定范围',
-    hint: '用一道主例把骨架、关键点和稳定范围重新串起来。',
+    title: '例题 2：用 `dK/ds` 与劳斯判据找关键节点',
+    hint: '在同一题里区分实轴关键点与稳定边界的不同判断职责。',
     duration: '12 min',
     pageType: 'worked_example_workspace',
     workspaceKind: 'worked-example',
@@ -420,36 +484,68 @@ export const UNIT_3_3_LESSON_STEPS: UNIT_3_3StepDefinition[] = [
   {
     id: 'step-10',
     stage: 'P2',
-    title: '广义根轨迹：一般参数怎样转回普通根轨迹',
-    hint: '说明广义根轨迹没有新法则，只是换了改写入口。',
+    title: '例题 3：复极点附近怎样离开，整张图怎样自洽',
+    hint: '把局部出射角与整图根和守恒放到同一道题里打通。',
     duration: '7 min',
-    pageType: 'formula_ordering',
-    workspaceKind: 'formula-ordering',
+    pageType: 'activity_cards',
   },
   {
     id: 'step-11',
     stage: 'P2',
-    title: '时间常数例子与 0°/180° 根轨迹',
-    hint: '比较一般参数例子与 0°/180° 根轨迹的相同对象、不同相角条件。',
+    title: '读图顺序：先骨架，再关键点，最后补局部方向',
+    hint: '把法则清单重组为真实可执行的七步读图顺序。',
     duration: '6 min',
-    pageType: 'tab_switch',
+    pageType: 'sequence_sort',
   },
   {
     id: 'step-12',
     stage: 'P2',
-    title: '动态翻译：从极点迁移到快慢和振荡',
-    hint: '把图上的迁移重新翻译回稳定性、快慢和振荡趋势。',
+    title: '三类开环极点：原点极点、实轴极点、共轭复极点',
+    hint: '把对象类型与轨迹趋势线索直接对应起来。',
     duration: '5 min',
+    pageType: 'classification_cards',
+  },
+  {
+    id: 'step-13',
+    stage: 'P2',
+    title: '广义根轨迹：一般参数如何改写成标准问题',
+    hint: '说明法则没有变，变化的是参数被送入等效开环的方式。',
+    duration: '6 min',
+    pageType: 'formula_ordering',
+    workspaceKind: 'formula-ordering',
+  },
+  {
+    id: 'step-14',
+    stage: 'P2',
+    title: '时间常数例子与 `0^\\circ / 180^\\circ` 根轨迹对照',
+    hint: '把时间常数例子与 0° / 180° 对照放回统一的广义根轨迹视角。',
+    duration: '6 min',
+    pageType: 'tab_switch',
+  },
+  {
+    id: 'step-15',
+    stage: 'P2',
+    title: '动态翻译：怎样把根轨迹重新读回稳定性、快慢与振荡',
+    hint: '把图上的迁移重新翻译成稳定性、快慢、拖尾与振荡趋势。',
+    duration: '6 min',
     pageType: 'mapping_highlight',
     workspaceKind: 'mapping-highlight',
   },
   {
-    id: 'step-13',
+    id: 'step-16',
     stage: 'P3',
-    title: '后测与收束：从法则走向读图窗口',
-    hint: '用三题后测和五点总结把本课收束，并把出口推进到 3-4 的读图窗口。',
+    title: '后测：条件、法则、改写与读图顺序是否已经成链',
+    hint: '用三题后测检查条件入口、法则层次、广义改写与动态翻译是否已经连成链。',
     duration: '6 min',
     pageType: 'quiz_group',
+  },
+  {
+    id: 'step-17',
+    stage: 'S',
+    title: '收束与去向：九项法则带走什么，`3-4` 从哪里接走',
+    hint: '用五条结论和下一课去向卡收束本课。',
+    duration: '4 min',
+    pageType: 'display',
   },
 ] as const;
 
@@ -490,14 +586,15 @@ export const UNIT_3_3_PREMIUM_LESSON_CARD = {
 
 const UNIT_3_3_MEDIA_BY_STEP_ID: Record<string, string> = {
   'step-02': '/course-runtime/lessons/3-3/media/3-3-pp-04-complete-rules-example.svg',
-  'step-06': '/course-runtime/lessons/3-3/media/3-3-pp-03-angle-and-magnitude-geometry.svg',
-  'step-07': '/course-runtime/lessons/3-3/media/3-3-pp-04-complete-rules-example.svg',
+  'step-05': '/course-runtime/lessons/3-3/media/3-3-pp-03-angle-and-magnitude-geometry.svg',
+  'step-06': '/course-runtime/lessons/3-3/media/3-3-pp-04-complete-rules-example.svg',
+  'step-07': '/course-runtime/lessons/3-3/media/3-3-example-01-skeleton.svg',
   'step-08': '/course-runtime/lessons/3-3/media/3-3-pp-06-departure-arrival-angle.svg',
-  'step-09': '/course-runtime/lessons/3-3/media/3-3-pp-04-complete-rules-example.svg',
-  'step-10': '/course-runtime/lessons/3-3/media/3-3-pp-01-root-locus-roadmap.svg',
-  'step-11': '/course-runtime/lessons/3-3/media/3-3-pp-07-generalized-time-constant-example.svg',
-  'step-12': '/course-runtime/lessons/3-3/media/3-3-pp-08-dynamics-translation.svg',
-  'step-13': '/course-runtime/lessons/3-3/media/3-3-info.png',
+  'step-09': '/course-runtime/lessons/3-3/media/3-3-example-02-breakaway-crossing.svg',
+  'step-10': '/course-runtime/lessons/3-3/media/3-3-example-03-departure-sum.svg',
+  'step-14': '/course-runtime/lessons/3-3/media/3-3-pp-07-generalized-time-constant-example.svg',
+  'step-15': '/course-runtime/lessons/3-3/media/3-3-pp-08-dynamics-translation.svg',
+  'step-17': '/course-runtime/lessons/3-3/media/3-3-info.png',
 };
 
 export function getUNIT_3_3MediaSrc(stepId: string) {

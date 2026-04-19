@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { parse } from 'yaml';
 
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
@@ -25,16 +26,19 @@ describe('unit 3-2 interactive course', () => {
     expect(registry?.courseMeta.courseTitle).toContain('劳斯判据');
   });
 
-  it('defines the full 14-step lesson flow', async () => {
+  it('defines the full 13-step lesson flow', async () => {
     const courseModule = await import('@/lib/unit-3-2-course');
 
-    expect(courseModule.UNIT_3_2_LESSON_STEPS).toHaveLength(14);
+    expect(courseModule.UNIT_3_2_LESSON_STEPS).toHaveLength(13);
     expect(courseModule.UNIT_3_2_LESSON_STEPS[0]?.id).toBe('step-01');
-    expect(courseModule.UNIT_3_2_LESSON_STEPS[13]?.id).toBe('step-14');
+    expect(courseModule.UNIT_3_2_LESSON_STEPS[12]?.id).toBe('step-13');
+    expect(courseModule.UNIT_3_2_LESSON_STEPS[3]?.pageType).toBe('activity_cards');
+    expect(courseModule.UNIT_3_2_LESSON_STEPS[11]?.pageType).toBe('quiz_group');
+    expect(courseModule.UNIT_3_2_LESSON_STEPS[12]?.pageType).toBe('none');
   });
 
   it('exposes AI quick questions for the interval workspace step', () => {
-    const quickQuestions = getStepQuickQuestions('unit-3-2-routh-stability-boundary-v1', 'step-06');
+    const quickQuestions = getStepQuickQuestions('unit-3-2-routh-stability-boundary-v1', 'step-05');
 
     expect(quickQuestions).toHaveLength(2);
     expect(quickQuestions[0]?.question).toContain('条件链');
@@ -45,18 +49,15 @@ describe('unit 3-2 interactive course', () => {
 
     expect(courseModule.getUNIT_3_2MediaSrc('step-02')).toContain('3-2-pole-migration');
     expect(courseModule.getUNIT_3_2MediaSrc('step-08')).toContain('3-2-special-cases-card');
-    expect(courseModule.getUNIT_3_2MediaSrc('step-10')).toContain('3-2-step-comparison');
-    expect(courseModule.getUNIT_3_2MediaSrc('step-11')).toContain('3-2-bode-magnitude');
-    expect(courseModule.getUNIT_3_2MediaSrc('step-12')).toContain('3-2-parameter-range-flow');
-    expect(courseModule.getUNIT_3_2MediaSrc('step-14')).toContain('3-2-info');
+    expect(courseModule.getUNIT_3_2MediaSrc('step-09')).toContain('3-2-step-comparison');
+    expect(courseModule.getUNIT_3_2MediaSrc('step-10')).toContain('3-2-bode-magnitude');
+    expect(courseModule.getUNIT_3_2MediaSrc('step-11')).toContain('3-2-parameter-range-flow');
+    expect(courseModule.getUNIT_3_2MediaSrc('step-13')).toContain('3-2-info');
   });
 
-  it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
-    const contract = JSON.parse(
-      readFileSync(
-        join(repoRoot, 'course-content/authoring/lessons/3-2/design/interactive-contract.yaml'),
-        'utf8',
-      ),
+  it('keeps the local page contracts aligned with the authoring interactive contract for all 13 steps', async () => {
+    const contract = parse(
+      readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-2/design/interactive-contract.yaml'), 'utf8'),
     ) as {
       steps: Record<
         string,
@@ -66,6 +67,12 @@ describe('unit 3-2 interactive course', () => {
           interaction_spec: { interaction_kind: string };
           teacher_insight_spec: { widgets: string[] };
           telemetry_spec: { summary_fields: string[]; misconception_tags?: string[] };
+          teacher_controls: {
+            release_activity: string;
+            open_browse: string;
+            teacher_step_reveal: string;
+            reveal_reference_answer: string;
+          };
           preview_contract: { demo_path: string };
         }
       >;
@@ -73,7 +80,7 @@ describe('unit 3-2 interactive course', () => {
 
     const courseModule = await import('@/lib/unit-3-2-course');
     const interactiveSteps = new Map(courseModule.UNIT_3_2_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
-    const expectedStepIds = ['step-06', 'step-08', 'step-09', 'step-11', 'step-12', 'step-13'] as const;
+    const expectedStepIds = Object.keys(contract.steps);
 
     for (const stepId of expectedStepIds) {
       const authoringStep = contract.steps[stepId];
@@ -88,8 +95,34 @@ describe('unit 3-2 interactive course', () => {
       expect(localPageContract?.teacherInsightWidgets).toEqual(authoringStep.teacher_insight_spec.widgets);
       expect(localPageContract?.telemetrySummaryFields).toEqual(authoringStep.telemetry_spec.summary_fields);
       expect(localPageContract?.misconceptionTags ?? []).toEqual(authoringStep.telemetry_spec.misconception_tags ?? []);
+      expect(localPageContract?.teacherControls.releaseActivity).toBe(authoringStep.teacher_controls.release_activity);
+      expect(localPageContract?.teacherControls.openBrowse).toBe(authoringStep.teacher_controls.open_browse);
+      expect(localPageContract?.teacherControls.teacherStepReveal).toBe(authoringStep.teacher_controls.teacher_step_reveal);
+      expect(localPageContract?.teacherControls.revealReferenceAnswer).toBe(authoringStep.teacher_controls.reveal_reference_answer);
       expect(localPageContract?.previewDemoPath).toBe(authoringStep.preview_contract.demo_path);
     }
+  });
+
+  it('stores browse visibility and step reveal progress in the teacher sync payload', async () => {
+    const courseModule = await import('@/lib/unit-3-2-course');
+
+    const payload = courseModule.UNIT_3_2_SESSION_ADAPTER.buildTeacherSyncPayload({
+      activeStepId: 'step-04',
+      revealedAnswers: { 'step-04': false },
+      releasedActivities: { 'step-04': true },
+      browseEnabled: { 'step-04': true },
+      teacherRevealProgress: { 'step-04': 2 },
+      updatedAt: 123,
+    });
+
+    expect(payload).toMatchObject({
+      kind: 'teacher_sync_unit32',
+      activeStepId: 'step-04',
+      releasedActivities: { 'step-04': true },
+      browseEnabled: { 'step-04': true },
+      teacherRevealProgress: { 'step-04': 2 },
+      updatedAt: 123,
+    });
   });
 
   it('registers the course in the learning catalog and classroom route resolver', () => {
