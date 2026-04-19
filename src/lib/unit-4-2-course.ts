@@ -40,6 +40,9 @@ export interface UNIT_4_2PageContract {
   teacherInsightWidgets: string[];
   telemetrySummaryFields: string[];
   misconceptionTags?: string[];
+  figureLayoutMirror?: string;
+  controlsPlacement?: string;
+  controlsCollapsedByDefault?: boolean;
   aiPageGoal: string;
   previewDemoPath: string;
 }
@@ -235,6 +238,9 @@ export const UNIT_4_2_PAGE_CONTRACTS: Record<string, UNIT_4_2PageContract> = {
     teacherInsightWidgets: ['error_bucket_distribution', 'card_completion_rate'],
     telemetrySummaryFields: ['cardSubmitted', 'errorBucket', 'timeOnStep'],
     misconceptionTags: ['ship_speed_first', 'ship_cost_missing'],
+    figureLayoutMirror: 'quad_panel',
+    controlsPlacement: 'below_quad_panel',
+    controlsCollapsedByDefault: false,
     aiPageGoal: '固定客船案例的低频主矛盾。',
     previewDemoPath: '/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-05',
   },
@@ -280,6 +286,9 @@ export const UNIT_4_2_PAGE_CONTRACTS: Record<string, UNIT_4_2PageContract> = {
     teacherInsightWidgets: ['error_bucket_distribution', 'card_completion_rate'],
     telemetrySummaryFields: ['cardSubmitted', 'errorBucket', 'timeOnStep'],
     misconceptionTags: ['platform_speed_only', 'platform_low_frequency_bias'],
+    figureLayoutMirror: 'quad_panel',
+    controlsPlacement: 'below_quad_panel',
+    controlsCollapsedByDefault: false,
     aiPageGoal: '固定平台案例的中频主矛盾。',
     previewDemoPath: '/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo?step=step-07',
   },

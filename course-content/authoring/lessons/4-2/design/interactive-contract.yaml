@@ -87,6 +87,17 @@ steps:
         - { id: 'table', width: 'full', order: 1 }
         - { id: 'summary', width: 'full', order: 2 }
         - { id: 'interaction', width: 'full', order: 3 }
+    content_blocks:
+      controller_toolbox:
+        required_columns: ['结构', '数学表达式', '最小作用语义', '首轮使用边界']
+        required_formulas:
+          - 'C_P(s)=K_p'
+          - 'C_{PI}(s)=K_p+\dfrac{K_i}{s}'
+          - 'C_{PD}(s)=K_p+K_d s'
+          - 'C_{PID}(s)=K_p+\dfrac{K_i}{s}+K_d s'
+          - 'C_{lead}(s)=K\dfrac{Ts+1}{\alpha Ts+1}, 0<\alpha<1'
+          - 'C_{lag}(s)=K\dfrac{Ts+1}{\beta Ts+1}, \beta>1'
+          - 'u(s)=C(s)(r(s)-y(s))+F(s)r(s)'
     interaction_spec: { interaction_kind: 'multi_select_matrix' }
     teacher_controls:
       release_activity: 'page_load_open'
@@ -108,6 +119,11 @@ steps:
         - { id: 'case', width: 'full', order: 1 }
         - { id: 'media', width: 'full', order: 2 }
         - { id: 'interaction', width: 'full', order: 3 }
+    interactive_figure_spec:
+      engine: 'rust_wasm_control_analysis'
+      layout_mirror: 'quad_panel'
+      feasible_region_policy: 'not_applicable_in_handout'
+      controls: { placement: 'below_quad_panel', collapsed_by_default: false }
     interaction_spec: { interaction_kind: 'activity_card_set' }
     teacher_controls:
       release_activity: 'teacher_toggle'
@@ -130,7 +146,19 @@ steps:
         - { id: 'comparison', width: 'full', order: 2 }
         - { id: 'worked-example', width: 'full', order: 3 }
         - { id: 'interaction', width: 'full', order: 4 }
-    interaction_spec: { interaction_kind: 'worked_example_reveal' }
+    evidence_sequence:
+      - '完整题面'
+      - '讲义表5'
+      - '逐步显影：锁定对象'
+      - '逐步显影：写出基线'
+      - '逐步显影：对照表5'
+      - '逐步显影：形成起步句'
+      - '双栏作答'
+    interaction_spec:
+      interaction_kind: 'worked_example_reveal'
+      step_reveal_policy:
+        min_layers: 4
+        local_click_to_continue: true
     teacher_controls:
       release_activity: 'teacher_toggle'
       open_browse: 'teacher_toggle'
@@ -151,6 +179,11 @@ steps:
         - { id: 'case', width: 'full', order: 1 }
         - { id: 'media', width: 'full', order: 2 }
         - { id: 'interaction', width: 'full', order: 3 }
+    interactive_figure_spec:
+      engine: 'rust_wasm_control_analysis'
+      layout_mirror: 'quad_panel'
+      feasible_region_policy: 'not_applicable_in_handout'
+      controls: { placement: 'below_quad_panel', collapsed_by_default: false }
     interaction_spec: { interaction_kind: 'activity_card_set' }
     teacher_controls:
       release_activity: 'teacher_toggle'
@@ -173,7 +206,19 @@ steps:
         - { id: 'comparison', width: 'full', order: 2 }
         - { id: 'worked-example', width: 'full', order: 3 }
         - { id: 'interaction', width: 'full', order: 4 }
-    interaction_spec: { interaction_kind: 'worked_example_reveal' }
+    evidence_sequence:
+      - '完整题面'
+      - '平台比较表'
+      - '逐步显影：锁定对象'
+      - '逐步显影：定位中频'
+      - '逐步显影：比较 PI 与 PD/超前'
+      - '逐步显影：形成起步句'
+      - '双栏作答'
+    interaction_spec:
+      interaction_kind: 'worked_example_reveal'
+      step_reveal_policy:
+        min_layers: 4
+        local_click_to_continue: true
     teacher_controls:
       release_activity: 'teacher_toggle'
       open_browse: 'teacher_toggle'
@@ -195,7 +240,20 @@ steps:
         - { id: 'comparison', width: 'full', order: 2 }
         - { id: 'worked-example', width: 'full', order: 3 }
         - { id: 'interaction', width: 'full', order: 4 }
-    interaction_spec: { interaction_kind: 'worked_example_reveal' }
+    evidence_sequence:
+      - '原理逐步显影：参考通道提前出力'
+      - '原理逐步显影：理想输入补偿目标'
+      - 'runtime 输入前馈结构图'
+      - '分析逐步显影：闭环结果对比'
+      - '分析逐步显影：验证目标'
+      - 'runtime 四联对比图'
+      - '双栏作答'
+    interaction_spec:
+      interaction_kind: 'worked_example_reveal'
+      step_reveal_policy:
+        reveal_sections:
+          principle: { min_layers: 2, local_click_to_continue: true }
+          analysis: { min_layers: 2, local_click_to_continue: true }
     teacher_controls:
       release_activity: 'teacher_toggle'
       open_browse: 'teacher_toggle'
@@ -217,7 +275,19 @@ steps:
         - { id: 'media', width: 'full', order: 2 }
         - { id: 'summary', width: 'full', order: 3 }
         - { id: 'interaction', width: 'full', order: 4 }
-    interaction_spec: { interaction_kind: 'activity_card_set' }
+    evidence_sequence:
+      - '公式与原理：扰动前馈控制量分解'
+      - '公式与原理：扰动到输出传递与理想补偿'
+      - 'runtime 扰动前馈结构图'
+      - '抗扰分析逐步显影'
+      - '边界结论'
+      - 'runtime 四联对比图'
+      - '双栏作答'
+    interaction_spec:
+      interaction_kind: 'activity_card_set'
+      step_reveal_policy:
+        min_layers: 3
+        local_click_to_continue: true
     teacher_controls:
       release_activity: 'teacher_toggle'
       open_browse: 'page_load_open'

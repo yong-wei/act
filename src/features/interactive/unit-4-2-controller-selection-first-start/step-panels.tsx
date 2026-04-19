@@ -10,8 +10,8 @@ import {
   type UNIT_4_2StepDefinition,
   type UNIT_4_2StepResponse,
 } from '@/lib/unit-4-2-course';
-import { getUnit41FallbackResult } from '@/resources/control-system/analysis/unit-4-1-fixtures';
-import { buildUnit41AnalysisRequest } from '@/resources/control-system/analysis/unit-4-1-request-builder';
+import { getUnit42FallbackResult } from '@/resources/control-system/analysis/unit-4-2-fixtures';
+import { buildUnit42AnalysisRequest } from '@/resources/control-system/analysis/unit-4-2-request-builder';
 import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
 import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
 import type { WorkspaceParameterChange } from './workspace';
@@ -58,9 +58,18 @@ const INPUT_FEEDFORWARD_STRUCTURE_SRC =
   '/course-runtime/lessons/4-2/media/4-2-input-feedforward-vs-pd-structure.png';
 const DISTURBANCE_FEEDFORWARD_STRUCTURE_SRC =
   '/course-runtime/lessons/4-2/media/4-2-disturbance-feedforward-structure-compare.png';
+const PROPORTIONAL_FORMULA = 'C_P(s)=K_p';
+const PI_FORMULA = 'C_{PI}(s)=K_p+\\dfrac{K_i}{s}';
+const PD_FORMULA = 'C_{PD}(s)=K_p+K_d s';
+const PID_FORMULA = 'C_{PID}(s)=K_p+\\dfrac{K_i}{s}+K_d s';
+const LEAD_FORMULA = 'C_{lead}(s)=K\\dfrac{Ts+1}{\\alpha Ts+1},\\ 0<\\alpha<1';
+const LAG_FORMULA = 'C_{lag}(s)=K\\dfrac{Ts+1}{\\beta Ts+1},\\ \\beta>1';
+const FEEDFORWARD_FORMULA = 'u(s)=C(s)\\bigl(r(s)-y(s)\\bigr)+F(s)r(s)';
+const INPUT_FEEDFORWARD_IDEAL_FORMULA = 'G_f(s)G_2(s)=1';
 const INPUT_FEEDFORWARD_CORE_FORMULA = 'u(s)=C(s)(r(s)-y(s))+F(s)r(s)';
 const INPUT_FEEDFORWARD_CLOSED_LOOP_FORMULA = 'T_r^{(ff)}(s)=\\frac{s+4}{s^2+s+4}';
 const PD_CLOSED_LOOP_FORMULA = 'T_r^{(PD)}(s)=\\frac{s+4}{s^2+2s+4}';
+const DISTURBANCE_FEEDFORWARD_CORE_FORMULA = 'u(s)=u_{fb}(s)+u_{ff}(s),\\quad u_{ff}(s)=G_{ff}(s)d(s)';
 const DISTURBANCE_FEEDFORWARD_FORMULA = 'T_{yd}(s)=\\frac{G(s)G_{ff}(s)+G_d(s)}{1+G(s)C(s)}';
 const DISTURBANCE_IDEAL_FORMULA = 'G_{ff}(s)=-\\frac{G_d(s)}{G(s)}';
 
@@ -223,7 +232,7 @@ const ASSESSMENT_CARD_FIELDS: QuestionCard[] = [
 
 const CASE_PANEL_CONFIG = {
   ship: {
-    requestStepId: 'step-04' as const,
+    requestCaseId: 'ship' as const,
     layout: 'quad' as const,
     sliderKey: 'K_h',
     baseline: 2.25,
@@ -234,7 +243,7 @@ const CASE_PANEL_CONFIG = {
     summaryTitle: '客船原生统一面板',
   },
   platform: {
-    requestStepId: 'step-05' as const,
+    requestCaseId: 'platform' as const,
     layout: 'platform' as const,
     sliderKey: 'K_p',
     baseline: 5,
@@ -381,13 +390,13 @@ function CaseNativeWorkspace({
   const deferredValue = useDeferredValue(value);
   const request = useMemo(
     () =>
-      buildUnit41AnalysisRequest(config.requestStepId, {
+      buildUnit42AnalysisRequest(config.requestCaseId, {
         gain: deferredValue,
         structures: [{ kind: 'gain', enabled: true, params: { k: deferredValue }, label: config.label }],
       }),
-    [config.label, config.requestStepId, deferredValue],
+    [config.label, config.requestCaseId, deferredValue],
   );
-  const fallbackResult = useMemo(() => getUnit41FallbackResult(config.requestStepId), [config.requestStepId]);
+  const fallbackResult = useMemo(() => getUnit42FallbackResult(config.requestCaseId), [config.requestCaseId]);
   const { result } = useControlEngine(request, fallbackResult);
 
   return (
@@ -435,14 +444,49 @@ function CaseNativeWorkspace({
   );
 }
 
-const TOOLBOX_TABLE_ROWS = [
-  ['P', '比例放大当前误差', '提高响应力度；但不能单独消除稳态误差。'],
-  ['PI', '补低频与稳态误差', '适合低频保持、慢扰动抑制；代价是相位余量可能收紧。'],
-  ['PD', '整理中频阻尼与速度感', '适合超调、阻尼和相位储备问题；代价是噪声敏感。'],
-  ['PID', '低频与中频同时参与', '只有单一语义解释不了任务时才压后进入候选。'],
-  ['超前', '工程化相位超前', '改善截止频率附近相位与动态品质；高频风险需检查。'],
-  ['滞后', '克制地补低频', '低频收益更温和，适合不想大幅牺牲中频储备的场景。'],
-  ['前馈', '已知给定或扰动通道补偿', '先削弱误差来源，但不能替代反馈保底。'],
+const CONTROLLER_TOOLBOX_ROWS = [
+  {
+    name: 'P',
+    formula: PROPORTIONAL_FORMULA,
+    semantic: '比例放大当前误差，先建立最小可用闭环。',
+    boundary: '提高响应力度；但不能单独消除稳态误差，也不能独自解释复杂任务。',
+  },
+  {
+    name: 'PI',
+    formula: PI_FORMULA,
+    semantic: '补低频与稳态误差，直接抬升低频回路增益。',
+    boundary: '适合低频保持、慢扰动抑制；代价是相位余量可能收紧、过程可能变慢。',
+  },
+  {
+    name: 'PD',
+    formula: PD_FORMULA,
+    semantic: '整理中频阻尼与速度感，改善截止频率附近相位趋势。',
+    boundary: '适合超调、阻尼和相位储备问题；代价是噪声敏感，不能单独补低频精度。',
+  },
+  {
+    name: 'PID',
+    formula: PID_FORMULA,
+    semantic: '同时补低频和中频，只在单一结构解释不了任务时压后进入候选。',
+    boundary: '结构复杂，若理由不清容易退化成默认答案；4-2 不把它当首轮默认起点。',
+  },
+  {
+    name: '超前',
+    formula: LEAD_FORMULA,
+    semantic: '工程化相位超前，在中频附近提供正相位。',
+    boundary: '改善截止频率附近相位与动态品质；高频放大与噪声风险需同时检查。',
+  },
+  {
+    name: '滞后',
+    formula: LAG_FORMULA,
+    semantic: '克制地补低频，在少动中频的前提下抬升低频能力。',
+    boundary: '低频收益更温和，适合不想大幅牺牲中频储备的场景；速度可能下降。',
+  },
+  {
+    name: '前馈',
+    formula: FEEDFORWARD_FORMULA,
+    semantic: '沿已知给定或扰动通道提前注入控制量，减少误差形成。',
+    boundary: '先削弱误差来源，但不能替代反馈保底；高度依赖模型与测量质量。',
+  },
 ] as const;
 
 const SHIP_TABLE5_ROWS = [
@@ -474,10 +518,18 @@ const REVEAL_STEPS: Record<string, Array<{ title: string; formula?: string; body
     { title: '第 3 步：比较 PI 与 PD/超前', body: 'PD / 超前更直接服务中频动态品质，PI 的低频收益不是当前第一矛盾。' },
     { title: '第 4 步：形成起步句', body: '首轮可从 PD / 超前起步，并检查噪声、高频放大和实现滤波。' },
   ],
+  'step-09-principle': [
+    { title: '第 1 步：先钉死职责分工', formula: INPUT_FEEDFORWARD_CORE_FORMULA, body: '输入前馈先沿参考通道提前出力，反馈继续负责稳定性、鲁棒性与误差修正。' },
+    { title: '第 2 步：再写理想目标', formula: INPUT_FEEDFORWARD_IDEAL_FORMULA, body: '理想输入补偿追求的是“按给定作用的完全不变性”，不是把反馈主链直接改写。' },
+  ],
   'step-09': [
-    { title: '第 1 步：区分通道', formula: INPUT_FEEDFORWARD_CORE_FORMULA, body: '输入前馈从参考通道进入，不是把反馈主链里的 PD 改名。' },
-    { title: '第 2 步：比较闭环结果', formula: `${INPUT_FEEDFORWARD_CLOSED_LOOP_FORMULA},\\quad ${PD_CLOSED_LOOP_FORMULA}`, body: '根轨迹近似相似不等于结构等价，通道职责不同。' },
-    { title: '第 3 步：写验证目标', body: '先验证参考跟踪误差是否减少，再检查过补偿、噪声与模型依赖。' },
+    { title: '第 1 步：比较闭环结果', formula: `${INPUT_FEEDFORWARD_CLOSED_LOOP_FORMULA},\\quad ${PD_CLOSED_LOOP_FORMULA}`, body: '两者虽然都有分子 $s+4$，但分母不同，说明输入前馈与 PD 的闭环职责不同。' },
+    { title: '第 2 步：写验证目标', body: '先验证参考跟踪误差是否减少，再检查过补偿、噪声与模型依赖。' },
+  ],
+  'step-10-analysis': [
+    { title: '第 1 步：先看扰动入口', formula: DISTURBANCE_FEEDFORWARD_CORE_FORMULA, body: '扰动前馈先沿扰动入口构造反作用通道，不等误差先长大。' },
+    { title: '第 2 步：再看传递关系', formula: DISTURBANCE_FEEDFORWARD_FORMULA, body: '它削弱的是扰动到输出的传递，而不是改写反馈主环路的特征方程。' },
+    { title: '第 3 步：最后收束边界', body: '必须同时检查模型失配、测量噪声与理想补偿是否可因果实现，反馈仍承担最终保底。' },
   ],
 };
 
@@ -511,18 +563,50 @@ function SimpleTable({ rows }: { rows: readonly (readonly string[])[] }) {
   );
 }
 
-function RevealChain({ stepId, revealProgress }: { stepId: string; revealProgress: number }) {
+function RevealChain({
+  stepId,
+  revealProgress,
+  title = '逐步显影',
+  allowInlineReveal = true,
+}: {
+  stepId: string;
+  revealProgress: number;
+  title?: string;
+  allowInlineReveal?: boolean;
+}) {
   const steps = REVEAL_STEPS[stepId] ?? [];
-  const visibleCount = Math.max(1, Math.min(steps.length, revealProgress || 1));
+  const teacherVisibleCount = Math.max(1, Math.min(steps.length, revealProgress || 1));
+  const [localRevealCount, setLocalRevealCount] = useState(teacherVisibleCount);
+
+  useEffect(() => {
+    setLocalRevealCount(teacherVisibleCount);
+  }, [stepId, teacherVisibleCount]);
 
   if (!steps.length) {
     return null;
   }
 
+  const visibleCount = Math.max(teacherVisibleCount, localRevealCount);
+  const canRevealMore = allowInlineReveal && visibleCount < steps.length;
+
   return (
     <div data-progressive-reveal="step_click_reveal" className="mt-4 grid gap-3">
+      <div className="premium-lesson-title text-sm font-semibold">{title}</div>
+      <div className="premium-lesson-caption text-xs">
+        {allowInlineReveal ? '点击当前最下方已显影步骤可继续展开下一层。' : '当前显影由教师推进。'}
+      </div>
       {steps.slice(0, visibleCount).map((item, index) => (
-        <div key={item.title} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
+        <div
+          key={item.title}
+          onClick={() => {
+            if (index === visibleCount - 1 && canRevealMore) {
+              setLocalRevealCount((count) => Math.min(count + 1, steps.length));
+            }
+          }}
+          className={`premium-lesson-surface-elevated rounded-3xl px-4 py-4 ${
+            index === visibleCount - 1 && canRevealMore ? 'cursor-pointer ring-1 ring-cyan-400/40' : ''
+          }`}
+        >
           <div className="premium-lesson-kicker">Reveal {index + 1}</div>
           <div className="premium-lesson-title mt-1 text-sm font-semibold">{item.title}</div>
           {item.formula ? (
@@ -531,6 +615,9 @@ function RevealChain({ stepId, revealProgress }: { stepId: string; revealProgres
             </div>
           ) : null}
           <p className="premium-lesson-muted mt-2 text-sm leading-7">{item.body}</p>
+          {index === visibleCount - 1 && canRevealMore ? (
+            <div className="premium-lesson-caption mt-3 text-xs">点击当前步骤继续显影下一层。</div>
+          ) : null}
         </div>
       ))}
     </div>
@@ -563,9 +650,35 @@ function ToolboxTablePanel() {
   return (
     <div className="grid gap-4">
       <InfoCard title="结构工具箱总表" tone="cyan">
-        上方表格至少复现讲义表 3 的前三列：结构、最小作用语义、首轮使用边界。互动区只做多选判断，不再退回单选配对。
+        上方表格完整给出结构名称、数学表达式、最小作用语义与首轮使用边界。互动区只做多选判断，不再退回单选配对。
       </InfoCard>
-      <SimpleTable rows={[['结构', '最小作用语义', '首轮使用边界'], ...TOOLBOX_TABLE_ROWS]} />
+      <div className="overflow-x-auto rounded-3xl border border-border/60 bg-background/55">
+        <table className="w-full border-collapse text-left text-sm">
+          <thead className="bg-background/70">
+            <tr>
+              {['结构', '数学表达式', '最小作用语义', '首轮使用边界'].map((cell) => (
+                <th key={cell} className="border-b border-border/60 px-3 py-3 font-medium text-foreground/80">
+                  {cell}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {CONTROLLER_TOOLBOX_ROWS.map((row) => (
+              <tr key={row.name}>
+                <td className="border-b border-border/40 px-3 py-3 align-top font-medium text-foreground/85">{row.name}</td>
+                <td className="border-b border-border/40 px-3 py-3 align-top text-foreground/85">
+                  <div className="min-w-[240px] overflow-x-auto">
+                    <FormulaBlock formula={row.formula} />
+                  </div>
+                </td>
+                <td className="border-b border-border/40 px-3 py-3 align-top leading-7 text-foreground/85">{row.semantic}</td>
+                <td className="border-b border-border/40 px-3 py-3 align-top leading-7 text-foreground/85">{row.boundary}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <InfoCard title="PID 压后原则" tone="amber">
         只有低频保持、中频动态和实现代价同时无法由单一结构解释时，PID 或复合结构才进入候选；4-2 只写首轮单结构起步，不直接生成完整复合方案。
       </InfoCard>
@@ -618,12 +731,14 @@ export function UNIT_4_2StepContentPanel({
   mediaSrc,
   mediaAlt,
   revealProgress,
+  allowInlineReveal = true,
   onWorkspaceParameterChange,
 }: {
   step: UNIT_4_2StepDefinition;
   mediaSrc?: string | null;
   mediaAlt?: string;
   revealProgress: number;
+  allowInlineReveal?: boolean;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   return (
@@ -679,7 +794,7 @@ export function UNIT_4_2StepContentPanel({
             已知客船航向保持对象和基线增益，判断首轮结构为何更像 PI / 滞后，而不是先上 PD。
           </InfoCard>
           <SimpleTable rows={SHIP_TABLE5_ROWS} />
-          <RevealChain stepId={step.id} revealProgress={revealProgress} />
+          <RevealChain stepId={step.id} revealProgress={revealProgress} allowInlineReveal={allowInlineReveal} />
         </div>
       ) : null}
 
@@ -702,34 +817,51 @@ export function UNIT_4_2StepContentPanel({
             已知平台对象速度已建立但阻尼与超调仍紧，判断首轮结构为何更像 PD / 超前，而不是先补 PI。
           </InfoCard>
           <SimpleTable rows={PLATFORM_COMPARE_ROWS} />
-          <RevealChain stepId={step.id} revealProgress={revealProgress} />
+          <RevealChain stepId={step.id} revealProgress={revealProgress} allowInlineReveal={allowInlineReveal} />
         </div>
       ) : null}
 
       {step.id === 'step-09' ? (
         <div className="mt-4 grid gap-4">
+          <RevealChain
+            stepId="step-09-principle"
+            title="原理逐步显影"
+            revealProgress={revealProgress}
+            allowInlineReveal={allowInlineReveal}
+          />
           <MediaPanel src={INPUT_FEEDFORWARD_STRUCTURE_SRC} alt="输入前馈与 PD 结构对比" />
-          <div className="grid gap-4 lg:grid-cols-3">
-            <FormulaCard title="输入前馈结构式" formula={INPUT_FEEDFORWARD_CORE_FORMULA} />
+          <div className="grid gap-4 lg:grid-cols-2">
             <FormulaCard title="输入前馈闭环" formula={INPUT_FEEDFORWARD_CLOSED_LOOP_FORMULA} />
-            <FormulaCard title="PD 闭环" formula={PD_CLOSED_LOOP_FORMULA} />
+            <FormulaCard title="PD 闭环对照" formula={PD_CLOSED_LOOP_FORMULA} />
           </div>
+          <RevealChain
+            stepId={step.id}
+            title="分析逐步显影"
+            revealProgress={revealProgress}
+            allowInlineReveal={allowInlineReveal}
+          />
           {mediaSrc ? <MediaPanel src={mediaSrc} alt={mediaAlt ?? step.title} /> : null}
-          <RevealChain stepId={step.id} revealProgress={revealProgress} />
         </div>
       ) : null}
 
       {step.id === 'step-10' ? (
         <div className="mt-4 grid gap-4">
-          <MediaPanel src={DISTURBANCE_FEEDFORWARD_STRUCTURE_SRC} alt="扰动前馈结构对比" />
           <div className="grid gap-4 lg:grid-cols-2">
+            <FormulaCard title="扰动前馈控制量分解" formula={DISTURBANCE_FEEDFORWARD_CORE_FORMULA} />
             <FormulaCard title="扰动到输出传递" formula={DISTURBANCE_FEEDFORWARD_FORMULA} />
-            <FormulaCard title="理想扰动补偿" formula={DISTURBANCE_IDEAL_FORMULA} />
+            <FormulaCard title="理想扰动补偿条件" formula={DISTURBANCE_IDEAL_FORMULA} />
           </div>
-          {mediaSrc ? <MediaPanel src={mediaSrc} alt={mediaAlt ?? step.title} /> : null}
+          <MediaPanel src={DISTURBANCE_FEEDFORWARD_STRUCTURE_SRC} alt="扰动前馈结构对比" />
+          <RevealChain
+            stepId="step-10-analysis"
+            title="抗扰分析逐步显影"
+            revealProgress={revealProgress}
+            allowInlineReveal={allowInlineReveal}
+          />
           <InfoCard title="边界结论" tone="amber">
             扰动前馈负责削弱已知扰动来源；反馈仍负责稳定、鲁棒性和未知误差保底。
           </InfoCard>
+          {mediaSrc ? <MediaPanel src={mediaSrc} alt={mediaAlt ?? step.title} /> : null}
         </div>
       ) : null}
 

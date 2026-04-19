@@ -178,6 +178,71 @@ describe('unit 4-2 interactive course', () => {
     expect(stepPanelsSource).not.toContain('留给 4-3 的问题');
   });
 
+  it('renders full mathematical expressions for the step-04 controller toolbox instead of only semantic labels', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain('C_{PI}(s)=K_p+\\\\dfrac{K_i}{s}');
+    expect(stepPanelsSource).toContain('C_{PD}(s)=K_p+K_d s');
+    expect(stepPanelsSource).toContain('C_{lead}(s)=K\\\\dfrac{Ts+1}{\\\\alpha Ts+1}');
+    expect(stepPanelsSource).toContain('C_{lag}(s)=K\\\\dfrac{Ts+1}{\\\\beta Ts+1}');
+  });
+
+  it('keeps step-09 and step-10 in handout order: principle/formulas before structure figure and comparison figure after analysis', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
+      'utf8',
+    );
+
+    const step09Start = stepPanelsSource.indexOf("step.id === 'step-09'");
+    const step10Start = stepPanelsSource.indexOf("step.id === 'step-10'");
+    const step11Start = stepPanelsSource.indexOf("step.id === 'step-11'");
+    const step09Slice = stepPanelsSource.slice(step09Start, step10Start);
+    const step10Slice = stepPanelsSource.slice(step10Start, step11Start);
+
+    expect(step09Slice.indexOf('stepId="step-09-principle"')).toBeLessThan(
+      step09Slice.indexOf('MediaPanel src={INPUT_FEEDFORWARD_STRUCTURE_SRC}'),
+    );
+    expect(step09Slice.indexOf('MediaPanel src={INPUT_FEEDFORWARD_STRUCTURE_SRC}')).toBeLessThan(
+      step09Slice.indexOf('stepId={step.id}'),
+    );
+    expect(step09Slice.indexOf('RevealChain stepId={step.id} revealProgress={revealProgress}')).toBeLessThan(
+      step09Slice.indexOf('{mediaSrc ? <MediaPanel src={mediaSrc}'),
+    );
+    expect(step10Slice.indexOf('FormulaCard title="扰动到输出传递"')).toBeLessThan(
+      step10Slice.indexOf('MediaPanel src={DISTURBANCE_FEEDFORWARD_STRUCTURE_SRC}'),
+    );
+    expect(step10Slice.indexOf('InfoCard title="边界结论"')).toBeLessThan(
+      step10Slice.indexOf('{mediaSrc ? <MediaPanel src={mediaSrc}'),
+    );
+  });
+
+  it('lets worked-example reveal maintain local click-to-continue state instead of relying only on teacher progress', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
+      'utf8',
+    );
+    const revealChainStart = stepPanelsSource.indexOf('function RevealChain');
+    const revealChainEnd = stepPanelsSource.indexOf('export function UNIT_4_2KnowledgeMapVisual');
+    const revealChainSlice = stepPanelsSource.slice(revealChainStart, revealChainEnd);
+
+    expect(revealChainSlice).toContain('useState(');
+    expect(revealChainSlice).toContain('setLocalRevealCount');
+    expect(revealChainSlice).toContain('onClick={() => {');
+  });
+
+  it('does not directly reuse the unit-4-1 request builder or fallback fixtures inside the 4-2 step panels', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).not.toContain('unit-4-1-request-builder');
+    expect(stepPanelsSource).not.toContain('unit-4-1-fixtures');
+  });
+
   it('parses the 4-2 runtime media index into typed pre-study resources', () => {
     const mediaDocument = readFileSync(
       join(repoRoot, 'course-content/runtime/lessons/4-2/media/4-2-media.md'),
