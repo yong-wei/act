@@ -2,6 +2,8 @@
   "lesson_id": "4-2",
   "source_path": "course-content/authoring/lessons/4-2/design/interactive-page.md",
   "contract_path": "course-content/authoring/lessons/4-2/design/interactive-contract.yaml",
+  "design_acceptance_path": "course-content/authoring/lessons/4-2/design/interactive-design-acceptance.json",
+  "implementation_acceptance_path": "course-content/authoring/lessons/4-2/notes/interactive-implementation-acceptance.json",
   "implementation_contract_source": null,
   "contract_required_fields": [
     "layout",
@@ -36,10 +38,22 @@
   "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
   "step_contract_issues": [],
+  "design_acceptance_summary": [
+    "互动设计接受文件已通过校验。"
+  ],
+  "design_acceptance_issues": [],
+  "implementation_acceptance_summary": [],
+  "implementation_acceptance_issues": [],
+  "reviewed_runtime_artifacts": [],
+  "runtime_review_stale_issues": [],
+  "hard_gate_issues": [],
+  "hard_gate_issue_codes": [],
+  "blocking_issues": [],
   "implementation_contract_summary": [],
   "implementation_contract_issues": [],
   "summary": [
-    "已检测到 `4-2` 的 V2 互动契约，步骤字段完整。"
+    "已检测到 `4-2` 的 V2 互动契约，步骤字段完整。",
+    "互动设计接受文件已通过校验。"
   ],
   "warnings": [
     "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",

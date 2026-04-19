@@ -190,6 +190,29 @@ describe('unit 4-2 interactive course', () => {
     expect(stepPanelsSource).toContain('C_{lag}(s)=K\\\\dfrac{Ts+1}{\\\\beta Ts+1}');
   });
 
+  it('keeps step-06 and step-08 frequency-domain evidence complete instead of collapsing them into one-line comparisons', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
+      'utf8',
+    );
+    const interactivePageSource = readFileSync(
+      join(repoRoot, 'course-content/authoring/lessons/4-2/design/interactive-page.md'),
+      'utf8',
+    );
+
+    expect(interactivePageSource).toContain('频域公式链');
+    expect(interactivePageSource).toContain('截止频率附近的幅值、相位比较');
+    expect(interactivePageSource).toContain('PD / 超前 与 PI 的频域公式比较');
+
+    expect(stepPanelsSource).toContain('C_{PI}(j\\\\omega_c)');
+    expect(stepPanelsSource).toContain('C_{PD}(j\\\\omega_c)');
+    expect(stepPanelsSource).toContain('\\\\sqrt{2}\\\\approx 1.414');
+    expect(stepPanelsSource).toContain('45^\\\\circ');
+    expect(stepPanelsSource).toContain('\\\\omega_i=5\\\\,\\\\text{rad/s}');
+    expect(stepPanelsSource).toContain('表 5 的频域比较');
+    expect(stepPanelsSource).toContain('表 7 的频域比较');
+  });
+
   it('keeps step-09 and step-10 in handout order: principle/formulas before structure figure and comparison figure after analysis', () => {
     const stepPanelsSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),

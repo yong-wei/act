@@ -14,6 +14,7 @@
 
 ## 互动页覆盖审查
 - 已检测到 `4-2` 的 V2 互动契约，步骤字段完整。
+- 互动设计接受文件已通过校验。
 - 缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节
 - 讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note
 

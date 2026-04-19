@@ -65,6 +65,17 @@ const PID_FORMULA = 'C_{PID}(s)=K_p+\\dfrac{K_i}{s}+K_d s';
 const LEAD_FORMULA = 'C_{lead}(s)=K\\dfrac{Ts+1}{\\alpha Ts+1},\\ 0<\\alpha<1';
 const LAG_FORMULA = 'C_{lag}(s)=K\\dfrac{Ts+1}{\\beta Ts+1},\\ \\beta>1';
 const FEEDFORWARD_FORMULA = 'u(s)=C(s)\\bigl(r(s)-y(s)\\bigr)+F(s)r(s)';
+const SHIP_PI_AT_WC_FORMULA =
+  '\\begin{aligned}\\left|\\frac{C_{PI}(j\\omega_c)}{K_p}\\right|&=\\sqrt{1+\\left(\\frac{\\omega_i}{\\omega_c}\\right)^2}\\approx 1.015\\\\ \\angle \\frac{C_{PI}(j\\omega_c)}{K_p}&\\approx -9.7^\\circ\\end{aligned}';
+const SHIP_PD_AT_WC_FORMULA =
+  '\\begin{aligned}\\left|\\frac{C_{PD}(j\\omega_c)}{K_p}\\right|&=\\sqrt{2}\\approx 1.414\\\\ \\angle \\frac{C_{PD}(j\\omega_c)}{K_p}&=45^\\circ\\end{aligned}';
+const PLATFORM_PD_AT_WC_FORMULA =
+  '\\begin{aligned}\\left|\\frac{C_{PD}(j\\omega_c)}{K_p}\\right|&=\\sqrt{2}\\approx 1.414\\\\ \\angle \\frac{C_{PD}(j\\omega_c)}{K_p}&=45^\\circ\\end{aligned}';
+const PLATFORM_PI_AT_WC_FORMULA =
+  '\\begin{aligned}\\left|\\frac{C_{PI}(j\\omega_c)}{K_p}\\right|&=\\sqrt{1+\\left(\\frac{\\omega_i}{\\omega_c}\\right)^2}\\approx 1.013\\\\ \\angle \\frac{C_{PI}(j\\omega_c)}{K_p}&=-\\arctan \\frac{\\omega_i}{\\omega_c}\\approx -9.1^\\circ\\end{aligned}';
+const PLATFORM_LEAD_PHASE_FORMULA =
+  '\\phi_{\\max}=\\sin^{-1}\\frac{1-\\alpha}{1+\\alpha}=\\sin^{-1}\\frac{0.8}{1.2}\\approx 41.8^\\circ';
+const PLATFORM_PI_REFERENCE_FREQUENCY = '\\omega_i=5\\,\\text{rad/s}';
 const INPUT_FEEDFORWARD_IDEAL_FORMULA = 'G_f(s)G_2(s)=1';
 const INPUT_FEEDFORWARD_CORE_FORMULA = 'u(s)=C(s)(r(s)-y(s))+F(s)r(s)';
 const INPUT_FEEDFORWARD_CLOSED_LOOP_FORMULA = 'T_r^{(ff)}(s)=\\frac{s+4}{s^2+s+4}';
@@ -509,14 +520,32 @@ const REVEAL_STEPS: Record<string, Array<{ title: string; formula?: string; body
   'step-06': [
     { title: '第 1 步：锁定对象', formula: SHIP_FORMULA, body: '客船对象含积分环节，低频误差积累会直接变成航向保持问题。' },
     { title: '第 2 步：写出基线', formula: SHIP_LOOP_FORMULA, body: '基线只说明对象可被闭环带住，不说明慢扰动和低频保持已经足够。' },
-    { title: '第 3 步：对照表5', body: '表5显示 PI / 滞后更直接命中低频保持，而 PD 更偏中频动态整理。' },
-    { title: '第 4 步：形成起步句', body: '首轮可从 PI / 滞后起步，并同步检查相位余量和速度代价。' },
+    {
+      title: '第 3 步：写 PI 在截止频率附近的作用',
+      formula: SHIP_PI_AT_WC_FORMULA,
+      body: 'PI 在当前 \\omega_c 附近只温和抬升幅值，却已经把作用点压在低频保持与慢扰动抑制更关心的区间。',
+    },
+    {
+      title: '第 4 步：写 PD 在截止频率附近的作用',
+      formula: SHIP_PD_AT_WC_FORMULA,
+      body: 'PD 的首轮强化更直接落在中频动态整理，因此它并没有先命中客船当前的低频主矛盾。',
+    },
+    { title: '第 5 步：对照表5形成起步句', body: '表5显示 PI / 滞后更直接命中低频保持，而 PD 更偏中频动态整理，因此首轮先写 PI / 滞后，并同步检查相位余量和速度代价。' },
   ],
   'step-08': [
     { title: '第 1 步：锁定对象', formula: PLATFORM_FORMULA, body: '稳定平台对象速度优势已经可见，问题不应再先回到低频精度。' },
     { title: '第 2 步：定位中频', body: '若超调和阻尼仍紧，首轮目标应落到截止频率附近的相位与阻尼整理。' },
-    { title: '第 3 步：比较 PI 与 PD/超前', body: 'PD / 超前更直接服务中频动态品质，PI 的低频收益不是当前第一矛盾。' },
-    { title: '第 4 步：形成起步句', body: '首轮可从 PD / 超前起步，并检查噪声、高频放大和实现滤波。' },
+    {
+      title: '第 3 步：写 PD 在截止频率附近的作用',
+      formula: PLATFORM_PD_AT_WC_FORMULA,
+      body: 'PD 在当前最关键的那一带给出正相位，因此更直接服务平台的阻尼、超调和中频动态品质整理。',
+    },
+    {
+      title: '第 4 步：写 PI 在截止频率附近的作用',
+      formula: PLATFORM_PI_AT_WC_FORMULA,
+      body: 'PI 在同一频段只带来轻微幅值变化和额外相位滞后，因此不会先解决平台当前的中频主矛盾。',
+    },
+    { title: '第 5 步：比较 PI 与 PD/超前并形成起步句', body: 'PD / 超前更直接命中中频动态品质，PI 的低频收益不是当前第一矛盾，因此首轮可从 PD / 超前起步，并检查噪声、高频放大和实现滤波。' },
   ],
   'step-09-principle': [
     { title: '第 1 步：先钉死职责分工', formula: INPUT_FEEDFORWARD_CORE_FORMULA, body: '输入前馈先沿参考通道提前出力，反馈继续负责稳定性、鲁棒性与误差修正。' },
@@ -793,7 +822,39 @@ export function UNIT_4_2StepContentPanel({
           <InfoCard title="完整题面" tone="cyan">
             已知客船航向保持对象和基线增益，判断首轮结构为何更像 PI / 滞后，而不是先上 PD。
           </InfoCard>
-          <SimpleTable rows={SHIP_TABLE5_ROWS} />
+          <InfoCard title="PI 与 PD 在当前 ω_c 附近的频域公式链" tone="slate">
+            这一页先把截止频率附近的幅值、相位比较写全，再用表 5 收束为首轮起步判断。
+          </InfoCard>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <FormulaCard
+              title="PI 在当前 ω_c 附近"
+              formula={SHIP_PI_AT_WC_FORMULA}
+              note="这一步先证明：PI 的首轮作用点更贴近低频保持与慢扰动抑制。"
+            />
+            <FormulaCard
+              title="PD 在当前 ω_c 附近"
+              formula={SHIP_PD_AT_WC_FORMULA}
+              note="PD 首先整理的是截止频率附近的相位与动态品质，而不是客船当前最紧的低频矛盾。"
+            />
+          </div>
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+            <div className="grid gap-4">
+              <InfoCard title="表 5 的频域比较" tone="amber">
+                先看作用点，再决定首轮结构：客船场景优先问“低频保持能否先站稳”，而不是先问“能不能继续提速”。
+              </InfoCard>
+              <SimpleTable rows={SHIP_TABLE5_ROWS} />
+            </div>
+            <div className="grid gap-4">
+              <FormulaCard
+                title="滞后为何保留为同类候选"
+                formula={LAG_FORMULA}
+                note="滞后与 PI 一样优先补低频，但写法更温和，更适合暂时不把积分直接推到第一步的工程表达。"
+              />
+              <InfoCard title="读图收束" tone="emerald">
+                当低频保持能力和慢扰动抑制是第一矛盾时，`PI / 滞后` 比 `PD` 更直接；`PD` 留给后续中频动态整理，而不是首轮起步。
+              </InfoCard>
+            </div>
+          </div>
           <RevealChain stepId={step.id} revealProgress={revealProgress} allowInlineReveal={allowInlineReveal} />
         </div>
       ) : null}
@@ -816,7 +877,46 @@ export function UNIT_4_2StepContentPanel({
           <InfoCard title="完整题面" tone="cyan">
             已知平台对象速度已建立但阻尼与超调仍紧，判断首轮结构为何更像 PD / 超前，而不是先补 PI。
           </InfoCard>
-          <SimpleTable rows={PLATFORM_COMPARE_ROWS} />
+          <InfoCard title="PD / 超前 与 PI 的频域公式比较" tone="slate">
+            平台页必须把截止频率附近的幅值、相位比较写清，再说明为什么首轮先整理中频动态品质。
+          </InfoCard>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <FormulaCard
+              title="PD 在当前 ω_c 附近"
+              formula={PLATFORM_PD_AT_WC_FORMULA}
+              note="当前最关键的那一带需要正相位与阻尼整理，因此 PD 先命中平台的中频矛盾。"
+            />
+            <FormulaCard
+              title="PI 在当前 ω_c 附近"
+              formula={PLATFORM_PI_AT_WC_FORMULA}
+              note={
+                <>
+                  代表性积分拐点取 <InlineMath math={PLATFORM_PI_REFERENCE_FREQUENCY} />
+                  ，这里只比较首轮作用点，不展开完整整定。
+                </>
+              }
+            />
+          </div>
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+            <div className="grid gap-4">
+              <InfoCard title="表 7 的频域比较" tone="amber">
+                平台并不是先缺低频精度，而是先缺截止频率附近的相位、阻尼和动态品质整理。
+              </InfoCard>
+              <SimpleTable rows={PLATFORM_COMPARE_ROWS} />
+            </div>
+            <div className="grid gap-4">
+              <FormulaCard
+                title="超前为何是 PD 的工程化写法"
+                formula={PLATFORM_LEAD_PHASE_FORMULA}
+                note="超前把补相位和不过分放大高频放在同一张工程折中表里，因此与 PD 同属于首轮中频整理路线。"
+              />
+              <FormulaCard
+                title="超前网络表达"
+                formula={LEAD_FORMULA}
+                note="当平台已经很快但阻尼仍紧时，`PD / 超前` 是同一路线的两种写法。"
+              />
+            </div>
+          </div>
           <RevealChain stepId={step.id} revealProgress={revealProgress} allowInlineReveal={allowInlineReveal} />
         </div>
       ) : null}

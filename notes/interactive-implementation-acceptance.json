@@ -1,0 +1,29 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "4-2",
+  "status": "accepted",
+  "accepted_at": "2026-04-19T20:29:59+0800",
+  "review_mode": "main_agent_fallback",
+  "implementation_contract_source": "src/lib/unit-4-2-course.ts",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/4-2/review/review-report.md",
+    "course-content/runtime/lessons/4-2/review/interactive-page-check.json"
+  ],
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx 中仅保留隐藏式页面上下文入口，学生正文未新增页内 AI 卡片。"
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "step-05 与 step-07 继续使用原生统一面板；step-06 与 step-08 本轮补的是讲义要求的频域公式链与表格证据，不是把互动降级为静态截图主页面。"
+      ]
+    }
+  },
+  "issues": []
+}
