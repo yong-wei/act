@@ -17,6 +17,10 @@ import {
   type Unit43PanelId,
 } from '@/resources/control-system/analysis/unit-4-3-request-builder';
 import { getUnit43DesignPayload } from '@/resources/control-system/analysis/unit-4-3-fixtures';
+import {
+  buildUnit43RollBoundaryComparison,
+  normalizeUnit43RollBoundaryParams,
+} from '@/resources/control-system/analysis/unit-4-3-roll-boundary';
 import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
 import { axisTooltipFormatter, formatAxisValue, getControlAxisPreset } from '@/resources/control-system/charts/control-bode-options';
 import { ControlChartPanel } from '@/resources/control-system/charts/control-chart-panel';
@@ -38,6 +42,10 @@ type ComparisonPoint = { x: number; baseline: number | null; current: number | n
 const HEADING_PLANT_TEX = 'P_h(s)=\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}';
 const HEADING_CONTROLLER_TEX = 'C_h(s)=K\\dfrac{Ts+1}{\\alpha Ts+1},\\ 0<\\alpha<1';
 const MINI_EXAMPLE_PLANT_TEX = 'P_e(s)=\\dfrac{1}{(s+1)(0.4s+1)(0.1s+1)}';
+const STEP_05_DEFAULT_PARAMS = { gain: 6, piPoleFrequency: 1 / 1.8, leadZeroFrequency: 1 / 0.9, leadPoleFrequency: 1 / 0.18 } as const;
+const STEP_06_DEFAULT_PARAMS = { gain: 6, lagPoleFrequency: 1 / 20, lagZeroFrequency: 1 / 5, leadZeroFrequency: 1 / 0.8, leadPoleFrequency: 1 / 0.16 } as const;
+const STEP_07_DEFAULT_PARAMS = { kp: 3.5, ki: 3.5 / 1.5, kd: 0.25 } as const;
+const STEP_10_DEFAULT_PARAMS = { gain: 2.8, leadZeroFrequency: 0.1, leadPoleFrequency: 1 / 4.06 } as const;
 
 const QUIZ_OPTIONS = {
   'step-14': [
@@ -506,42 +514,39 @@ function RevealChain({
   allowInlineReveal: boolean;
 }) {
   const steps = REVEALS[stepId];
-  const [localVisibleCount, setLocalVisibleCount] = useState(1);
+  const teacherVisibleCount = Math.max(1, Math.min(steps.length, revealProgress || 1));
+  const [localVisibleCount, setLocalVisibleCount] = useState(teacherVisibleCount);
 
   useEffect(() => {
-    setLocalVisibleCount(1);
-  }, [stepId]);
+    setLocalVisibleCount(teacherVisibleCount);
+  }, [stepId, teacherVisibleCount]);
 
-  const visibleCount = Math.min(
-    steps.length,
-    Math.max(1, revealProgress, allowInlineReveal ? localVisibleCount : 1),
-  );
+  const visibleCount = Math.max(teacherVisibleCount, allowInlineReveal ? localVisibleCount : teacherVisibleCount);
+  const canRevealMore = allowInlineReveal && visibleCount < steps.length;
 
   return (
     <div className="space-y-3" data-progressive-reveal="step_click_reveal">
-      {steps.map((item, index) => {
-        const visible = index < visibleCount;
-        const canAdvance = allowInlineReveal && visible && index === visibleCount - 1 && visibleCount < steps.length;
-
-        return (
-          <button
-            key={`${stepId}-${item.title}`}
-            type="button"
-            className={cn(
-              'block w-full rounded-[28px] border px-4 py-4 text-left transition',
-              visible ? 'border-cyan-400/40 bg-cyan-500/10' : 'border-white/10 bg-slate-950/40 opacity-70',
-            )}
-            onClick={() => {
-              if (canAdvance) {
-                setLocalVisibleCount((current) => current + 1);
-              }
-            }}
-          >
-            <div className="premium-lesson-title text-sm font-medium">{item.title}</div>
-            {visible ? <div className="mt-3">{renderPromptContent(item.blocks)}</div> : null}
-          </button>
-        );
-      })}
+      {steps.slice(0, visibleCount).map((item, index) => (
+        <button
+          key={`${stepId}-${item.title}`}
+          type="button"
+          className={cn(
+            'block w-full rounded-[28px] border border-cyan-400/40 bg-cyan-500/10 px-4 py-4 text-left transition',
+            index === visibleCount - 1 && canRevealMore && 'ring-1 ring-cyan-400/40',
+          )}
+          onClick={() => {
+            if (index === visibleCount - 1 && canRevealMore) {
+              setLocalVisibleCount((current) => Math.min(current + 1, steps.length));
+            }
+          }}
+        >
+          <div className="premium-lesson-title text-sm font-medium">{item.title}</div>
+          <div className="mt-3">{renderPromptContent(item.blocks)}</div>
+          {index === visibleCount - 1 && canRevealMore ? (
+            <div className="premium-lesson-muted mt-3 text-xs">点击当前最下方已显影步骤可继续展开下一层。</div>
+          ) : null}
+        </button>
+      ))}
     </div>
   );
 }
@@ -553,6 +558,7 @@ function buildComparisonChartOption(
     xAxisType?: 'value' | 'log';
     xAxisName: string;
     yAxisName: string;
+    dynamicYAxis?: boolean;
   },
 ): EChartsCoreOption {
   const baselineData = series
@@ -561,14 +567,37 @@ function buildComparisonChartOption(
   const currentData = series
     .filter((point) => typeof point.current === 'number' && Number.isFinite(point.current))
     .map((point) => [point.x, point.current as number]);
+  const yValues = [...baselineData, ...currentData].map((point) => point[1] as number);
+  const yMin = yValues.length ? Math.min(...yValues) : config.axisPreset?.y[0];
+  const yMax = yValues.length ? Math.max(...yValues) : config.axisPreset?.y[1];
+  const ySpan = typeof yMin === 'number' && typeof yMax === 'number' ? Math.max(yMax - yMin, 1e-3) : 1;
+  const yPad = Math.max(ySpan * 0.08, config.xAxisType === 'log' ? 0.5 : 0.02);
+  const derivedYAxis =
+    config.dynamicYAxis && typeof yMin === 'number' && typeof yMax === 'number'
+      ? {
+          min: Math.min(yMin, 0) - yPad,
+          max: yMax + yPad,
+        }
+      : {
+          min: config.axisPreset?.y[0],
+          max: config.axisPreset?.y[1],
+        };
 
   return {
     animation: false,
+    legend: {
+      top: 0,
+      right: 8,
+      data: ['原系统', '当前参数'],
+      textStyle: { fontSize: 10 },
+      itemWidth: 10,
+      itemHeight: 10,
+    },
     tooltip: {
       trigger: 'axis',
       formatter: axisTooltipFormatter,
     },
-    grid: { top: 18, right: 18, bottom: 42, left: 62 },
+    grid: { top: 34, right: 18, bottom: 42, left: 62 },
     xAxis: {
       type: config.xAxisType ?? 'value',
       min: config.axisPreset?.x[0],
@@ -583,8 +612,8 @@ function buildComparisonChartOption(
     },
     yAxis: {
       type: 'value',
-      min: config.axisPreset?.y[0],
-      max: config.axisPreset?.y[1],
+      min: derivedYAxis.min,
+      max: derivedYAxis.max,
       name: config.yAxisName,
       nameLocation: 'middle',
       nameGap: 42,
@@ -595,7 +624,7 @@ function buildComparisonChartOption(
     },
     series: [
       {
-        name: '校正前',
+        name: '原系统',
         type: 'line',
         showSymbol: false,
         smooth: false,
@@ -603,7 +632,7 @@ function buildComparisonChartOption(
         data: baselineData,
       },
       {
-        name: '当前',
+        name: '当前参数',
         type: 'line',
         showSymbol: false,
         smooth: false,
@@ -616,15 +645,15 @@ function buildComparisonChartOption(
 
 function getDefaultAnalysisParams(stepId: keyof typeof ANALYSIS_CONFIG): Unit43PanelParams {
   if (stepId === 'step-05') {
-    return { gain: 6, piPoleFrequency: 1 / 1.8, leadZeroFrequency: 1 / 0.9, leadPoleFrequency: 1 / 0.18 };
+    return STEP_05_DEFAULT_PARAMS;
   }
   if (stepId === 'step-06') {
-    return { gain: 6, lagPoleFrequency: 1 / 20, lagZeroFrequency: 1 / 5, leadZeroFrequency: 1 / 0.8, leadPoleFrequency: 1 / 0.16 };
+    return STEP_06_DEFAULT_PARAMS;
   }
   if (stepId === 'step-07') {
-    return { kp: 3.5, ki: 3.5 / 1.5, kd: 0.25 };
+    return STEP_07_DEFAULT_PARAMS;
   }
-  return { gain: 2.8, leadZeroFrequency: 0.1, leadPoleFrequency: 1 / 4.06 };
+  return STEP_10_DEFAULT_PARAMS;
 }
 
 function UnifiedAnalysisPanel({
@@ -706,48 +735,44 @@ function RollBoundaryPanel({
 }) {
   const [params, setParams] = useState({ kp: 0.7858, ki: 2, kd: 4.104 });
   const deferred = useDeferredValue(params);
-  const normalized = useMemo(() => normalizeUnit43PanelParams('roll_boundary', deferred), [deferred]);
-  const request = useMemo(() => buildUnit43AnalysisRequest('roll_boundary', normalized), [normalized]);
-  const fallbackResult = useMemo(() => getUnit43FallbackResult('roll_boundary'), []);
-  const analysis = useControlEngine(request, fallbackResult);
-  const result = analysis.result ?? fallbackResult;
-  const before = getUnit43DesignPayload('roll_boundary');
-  const resonance = before.resonance;
-
-  const timeData: ComparisonPoint[] =
-    before.time_open?.t?.slice(0, 240).map((x: number, index: number) => ({
-      x,
-      baseline: before.time_open?.y?.[index] ?? null,
-      current: result.stepResponse.points[index]?.y ?? null,
-    })) ?? [];
-
-  const bodeData: ComparisonPoint[] =
-    before.bode_before?.w?.slice(0, 240).map((x: number, index: number) => ({
-      x,
-      baseline: before.bode_before?.mag_db?.[index] ?? null,
-      current: result.magnitude.points[index]?.y ?? null,
-    })) ?? [];
-
-  const magnitudePoints = result.magnitude.points ?? [];
-  const currentPeak = magnitudePoints.reduce<{ x: number; y: number } | null>(
-    (best, point) => (!best || point.y > best.y ? point : best),
-    null,
+  const normalized = useMemo(
+    () => normalizeUnit43RollBoundaryParams(deferred),
+    [deferred],
   );
-  const ratio =
-    typeof currentPeak?.y === 'number' && typeof resonance?.open_peak_db === 'number'
-      ? Math.pow(10, (currentPeak.y - resonance.open_peak_db) / 20)
-      : null;
+  const comparison = useMemo(
+    () =>
+      buildUnit43RollBoundaryComparison({
+        kp: normalized.kp,
+        ki: normalized.ki,
+        kd: normalized.kd,
+      }),
+    [normalized.kd, normalized.ki, normalized.kp],
+  );
+
+  const timeData: ComparisonPoint[] = comparison.timeSeries.baseline.map((point, index) => ({
+    x: point.x,
+    baseline: point.y,
+    current: comparison.timeSeries.current[index]?.y ?? null,
+  }));
+
+  const bodeData: ComparisonPoint[] = comparison.magnitudeSeries.baseline.map((point, index) => ({
+    x: point.x,
+    baseline: point.y,
+    current: comparison.magnitudeSeries.current[index]?.y ?? null,
+  }));
 
   const timeOption = buildComparisonChartOption(timeData, {
     axisPreset: getControlAxisPreset('unit43_roll_boundary', 'step'),
     xAxisName: 't / s',
     yAxisName: '响应',
+    dynamicYAxis: true,
   });
   const bodeOption = buildComparisonChartOption(bodeData, {
     axisPreset: getControlAxisPreset('unit43_roll_boundary', 'magnitude'),
     xAxisType: 'log',
     xAxisName: 'ω / rad/s',
     yAxisName: '幅值 / dB',
+    dynamicYAxis: true,
   });
 
   return (
@@ -799,9 +824,21 @@ function RollBoundaryPanel({
       </details>
       <MetricGrid
         rows={[
-          { label: '共振峰值', baseline: fmt(resonance?.open_peak_db, ' dB'), current: fmt(currentPeak?.y, ' dB') },
-          { label: '共振频率', baseline: fmt(resonance?.open_w, ' rad/s', 3), current: fmt(currentPeak?.x, ' rad/s', 3) },
-          { label: '振幅比', baseline: '1.000', current: fmt(ratio, '', 3) },
+          {
+            label: '共振峰值',
+            baseline: fmt(comparison.metrics.resonancePeakDb.baseline, ' dB'),
+            current: fmt(comparison.metrics.resonancePeakDb.current, ' dB'),
+          },
+          {
+            label: '共振频率',
+            baseline: fmt(comparison.metrics.resonanceFrequencyRadPerSec.baseline, ' rad/s', 3),
+            current: fmt(comparison.metrics.resonanceFrequencyRadPerSec.current, ' rad/s', 3),
+          },
+          {
+            label: '振幅比',
+            baseline: '1.000',
+            current: fmt(comparison.metrics.amplitudeRatio.current, '', 3),
+          },
         ]}
       />
     </SurfaceCard>
@@ -927,8 +964,8 @@ function renderStepBody(
         <>
           <SurfaceCard title="对象与讲义基线">
             <div className="grid gap-3 md:grid-cols-2">
-              <BlockMath math="P_1(s)=\\dfrac{1}{(s+1)(0.4s+1)}" />
-              <BlockMath math="C_1(s)=6\\left(1+\\dfrac{1}{1.8s}\\right)\\dfrac{0.9s+1}{0.18s+1}" />
+              <BlockMath math={'P_1(s)=\\dfrac{1}{(s+1)(0.4s+1)}'} />
+              <BlockMath math={'C_1(s)=6\\left(1+\\dfrac{1}{1.8s}\\right)\\dfrac{0.9s+1}{0.18s+1}'} />
             </div>
             <div className="premium-lesson-muted text-sm leading-6">
               PI 环节负责提高低频增益，超前环节负责在截止频率附近补相位。
@@ -953,8 +990,8 @@ function renderStepBody(
         <>
           <SurfaceCard title="对象与讲义基线">
             <div className="grid gap-3 md:grid-cols-2">
-              <BlockMath math="P_2(s)=\\dfrac{1}{(s+1)(0.5s+1)(0.1s+1)}" />
-              <BlockMath math="C_2(s)=6\\dfrac{5s+1}{20s+1}\\dfrac{0.8s+1}{0.16s+1}" />
+              <BlockMath math={'P_2(s)=\\dfrac{1}{(s+1)(0.5s+1)(0.1s+1)}'} />
+              <BlockMath math={'C_2(s)=6\\dfrac{5s+1}{20s+1}\\dfrac{0.8s+1}{0.16s+1}'} />
             </div>
             <div className="premium-lesson-muted text-sm leading-6">
               滞后环节负责提高低频增益，超前环节负责补回相位储备。
@@ -979,8 +1016,8 @@ function renderStepBody(
         <>
           <SurfaceCard title="对象与讲义基线">
             <div className="grid gap-3 md:grid-cols-2">
-              <BlockMath math="P_3(s)=\\dfrac{1}{(s+1)(s+2)}" />
-              <BlockMath math="C_3(s)=3.5+\\dfrac{2.333}{s}+\\dfrac{0.25s}{0.05s+1}" />
+              <BlockMath math={'P_3(s)=\\dfrac{1}{(s+1)(s+2)}'} />
+              <BlockMath math={'C_3(s)=3.5+\\dfrac{2.333}{s}+\\dfrac{0.25s}{0.05s+1}'} />
             </div>
             <div className="premium-lesson-muted text-sm leading-6">
               积分补低频、微分整理中频、滤波限制高频代价。
@@ -1103,8 +1140,8 @@ function renderStepBody(
         <>
           <SurfaceCard title="边界案例：横摇减摇鳍首先是扰动通道重写">
             <div className="grid gap-3 md:grid-cols-2">
-              <BlockMath math="G_{\\varphi M_f}(s)=\\dfrac{1}{2.052s^2+0.3929s+1}" />
-              <BlockMath math="G_c(s)=0.7858+\\dfrac{2}{s}+4.104s" />
+              <BlockMath math={'G_{\\varphi M_f}(s)=\\dfrac{1}{2.052s^2+0.3929s+1}'} />
+              <BlockMath math={'G_c(s)=0.7858+\\dfrac{2}{s}+4.104s'} />
             </div>
             <div className="premium-lesson-muted text-sm leading-6">
               这里的复合结构不是单纯按频段叠加，而是为了重写扰动抑制通道。{mediaSrc ? ` 参考图：${mediaAlt}` : ''}

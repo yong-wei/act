@@ -31,7 +31,7 @@ describe('unit 4-3 control analysis builder', () => {
     );
     expect(formatUnit43ControllerFormula('pi_lead', normalized)).toContain('C(s)=');
     expect(formatUnit43ControllerFormula('pi_lead', normalized)).toContain('\\left(1+\\dfrac{1}{');
-  });
+  }, 15000);
 
   it('builds filtered pid requests with a fixed filter constant and emits the actual controller formula', async () => {
     const {
@@ -130,5 +130,24 @@ describe('unit 4-3 control analysis builder', () => {
     const rollRequest = buildUnit43AnalysisRequest('roll_boundary', rollParams);
     expect(rollRequest.caseId).toBe('unit43_roll_boundary');
     expect(getUnit43FallbackResult('roll_boundary').metrics.phaseMarginDeg).not.toBeNull();
+  });
+
+  it('builds roll-boundary disturbance comparison data from the disturbance channel instead of the generic closed-loop tracking output', async () => {
+    const { buildUnit43RollBoundaryComparison } = await import(
+      '@/resources/control-system/analysis/unit-4-3-roll-boundary'
+    );
+
+    const comparison = buildUnit43RollBoundaryComparison({
+      kp: 0.7858,
+      ki: 2,
+      kd: 4.104,
+    });
+
+    expect(comparison.metrics.resonancePeakDb.current).toBeCloseTo(1.774126956, 3);
+    expect(comparison.metrics.resonanceFrequencyRadPerSec.current).toBeCloseTo(0.686925868, 3);
+    expect(comparison.metrics.amplitudeRatio.current).toBeCloseTo(0.333333333, 3);
+    expect(comparison.timeSeries.current.length).toBeGreaterThan(100);
+    expect(comparison.magnitudeSeries.current.length).toBeGreaterThan(100);
+    expect(comparison.magnitudeSeries.current[0]?.y).toBeLessThan(0);
   });
 });

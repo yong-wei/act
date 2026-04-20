@@ -172,6 +172,41 @@ describe('unit 4-3 interactive course', () => {
     expect(stepPanelsSource).not.toContain('/ai');
   });
 
+  it('keeps static KaTeX formulas in escaped string literals and avoids String.raw wrappers', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).not.toContain('String.raw');
+    expect(stepPanelsSource).not.toContain('<BlockMath math="');
+    expect(stepPanelsSource).toContain('P_1(s)=\\\\dfrac{1}{(s+1)(0.4s+1)}');
+    expect(stepPanelsSource).toContain('P_2(s)=\\\\dfrac{1}{(s+1)(0.5s+1)(0.1s+1)}');
+    expect(stepPanelsSource).toContain('P_3(s)=\\\\dfrac{1}{(s+1)(s+2)}');
+    expect(stepPanelsSource).toContain('G_{\\\\varphi M_f}(s)=\\\\dfrac{1}{2.052s^2+0.3929s+1}');
+  });
+
+  it('aligns step-09 and step-11 reveal rendering with the 4-2 slice-based progressive reveal pattern', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain('steps.slice(0, visibleCount)');
+    expect(stepPanelsSource).toContain('点击当前最下方已显影步骤可继续展开下一层');
+    expect(stepPanelsSource).not.toContain('const visible = index < visibleCount;');
+  });
+
+  it('adds an explicit legend to the step-13 comparison chart so baseline and current curves stay distinguishable', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain('legend:');
+    expect(stepPanelsSource).toContain("data: ['原系统', '当前参数']");
+  });
+
   it('maps runtime media only for the remaining static anchor steps and keeps native analysis panels off the old image mapping', async () => {
     const courseModule = await import('@/lib/unit-4-3-course');
 
