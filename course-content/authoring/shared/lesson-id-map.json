@@ -227,6 +227,21 @@
       "notes": "4-2 为模块4当前主线课次，对应控制器选型原理与单结构首轮起步。"
     },
     {
+      "request_ids": ["4-3"],
+      "canonical_id": "4-3",
+      "display_id": "4-3",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "4-3",
+      "source_group": null,
+      "authoring_lesson_dir": "4-3",
+      "authoring_cards_dir": "4-3",
+      "authoring_overlays_dir": "4-3",
+      "runtime_lesson_dir": "4-3",
+      "legacy_source_ids": [],
+      "notes": "4-3 为模块4当前主线实践课次，对应初始方案落地实践：从对象分析到结构组合与首轮验证。"
+    },
+    {
       "request_ids": ["legacy/1-1", "1-1"],
       "canonical_id": "legacy/1-1",
       "display_id": "1-1",

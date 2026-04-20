@@ -44,14 +44,15 @@ describe('unit 3-2 interactive course', () => {
     expect(quickQuestions[0]?.question).toContain('条件链');
   });
 
-  it('maps runtime media using the real 3-2 prefixed asset names', async () => {
+  it('keeps step-level fixed media limited to the summary infographic while process steps use live panels or reveal boards', async () => {
     const courseModule = await import('@/lib/unit-3-2-course');
 
-    expect(courseModule.getUNIT_3_2MediaSrc('step-02')).toContain('3-2-pole-migration');
-    expect(courseModule.getUNIT_3_2MediaSrc('step-08')).toContain('3-2-special-cases-card');
-    expect(courseModule.getUNIT_3_2MediaSrc('step-09')).toContain('3-2-step-comparison');
-    expect(courseModule.getUNIT_3_2MediaSrc('step-10')).toContain('3-2-bode-magnitude');
-    expect(courseModule.getUNIT_3_2MediaSrc('step-11')).toContain('3-2-parameter-range-flow');
+    expect(courseModule.getUNIT_3_2MediaSrc('step-02')).toBeNull();
+    expect(courseModule.getUNIT_3_2MediaSrc('step-06')).toBeNull();
+    expect(courseModule.getUNIT_3_2MediaSrc('step-08')).toBeNull();
+    expect(courseModule.getUNIT_3_2MediaSrc('step-09')).toBeNull();
+    expect(courseModule.getUNIT_3_2MediaSrc('step-10')).toBeNull();
+    expect(courseModule.getUNIT_3_2MediaSrc('step-11')).toBeNull();
     expect(courseModule.getUNIT_3_2MediaSrc('step-13')).toContain('3-2-info');
   });
 
@@ -179,9 +180,9 @@ describe('unit 3-2 interactive course', () => {
     ]);
     expect(resources[0]).toMatchObject({
       kind: 'video',
-      status: 'pending',
+      status: 'ready',
     });
-    expect(resources[0]?.title).toContain('不必先求出全部根也能提前看见稳定边界');
+    expect(resources[0]?.title).toContain('高阶系统不求根，也能先看出稳定边界');
   });
 
   it('keeps handout summary outside mediaResources when parsing 3-2 runtime media document', () => {

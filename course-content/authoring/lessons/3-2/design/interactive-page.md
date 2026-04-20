@@ -5,15 +5,15 @@
 | 步骤 | 标题 | 页面模板 | 主体布局 | 互动组件 | 学生实践分钟 | 学生页预览 |
 | --- | --- | --- | --- | --- | --- | --- |
 | step-01 | 回到地图——从纯极点语言走向稳定边界 | `map_hero_slide` | 路径图 + 任务卡 | `none` | 0 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-01` |
-| step-02 | 先看主对象——极点迁移图提出了哪三个问题 | `figure_question_board` | 主图 + 三问卡 + 二选一 | `binary_choice` | 4 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-02` |
+| step-02 | 先看主对象——一般化特征方程为什么先于图像判断 | `figure_question_board` | 主对象卡 + 三问卡 + 二选一 | `binary_choice` | 4 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-02` |
 | step-03 | 前测——不求根判稳、特殊情况与区域收紧 | `question_stack` | 标题卡 + 三题卡组 | `quiz_group` | 6 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-03` |
 | step-04 | 普通劳斯表——固定 `k=4` 时怎样从第一列读出稳定性 | `worked_example_reveal` | 题面卡 + 显影链 + 双作答卡 | `activity_cards` | 8 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-04` |
 | step-05 | 带参数劳斯表——稳定区间怎样从第一列条件链中写出 | `worked_example_reveal` | 参数对象 + 不等式链 + 双作答卡 | `activity_cards` | 10 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-05` |
-| step-06 | 边界点回到复平面——`k=-2`、`18`、`22` 分别对应什么根结构 | `figure_mapping_workspace` | 参数表 + 极点迁移图 + 双作答卡 | `activity_cards` | 7 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-06` |
+| step-06 | 边界点回到复平面——`k=-2`、`18`、`22` 分别对应什么根结构 | `figure_mapping_workspace` | 参数表 + 复平面分析面板 + 双作答卡 | `activity_cards` | 7 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-06` |
 | step-07 | 首位为 0——`ε` 连续化为什么只服务于符号判断 | `worked_example_reveal` | 短例题面 + 显影链 + 双作答卡 | `activity_cards` | 8 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-07` |
 | step-08 | 全零行——辅助方程怎样把对称根结构重新写出来 | `worked_example_reveal` | 短例题面 + 规则卡 + 双作答卡 | `activity_cards` | 8 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-08` |
-| step-09 | 劳斯现象到时域——极点结构怎样改写响应形态 | `table_figure_workspace` | 对应表 + 阶跃图 + 双作答卡 | `activity_cards` | 6 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-09` |
-| step-10 | 劳斯现象到频域——峰值抬高、理想共振与低频抬升如何区分 | `figure_table_workspace` | 公式卡 + Bode 图 + 双作答卡 | `activity_cards` | 6 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-10` |
+| step-09 | 劳斯现象到时域——极点结构怎样改写响应形态 | `table_figure_workspace` | 对应表 + 时域响应分析面板 + 双作答卡 | `activity_cards` | 6 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-09` |
+| step-10 | 劳斯现象到频域——峰值抬高、理想共振与低频抬升如何区分 | `figure_table_workspace` | 公式卡 + 频域迹象分析面板 + 双作答卡 | `activity_cards` | 6 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-10` |
 | step-11 | 变量平移——把 `\operatorname{Re}(s)<-0.5` 转成普通劳斯判定 | `worked_example_reveal` | 约束卡 + 平移链 + 双作答卡 | `activity_cards` | 9 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-11` |
 | step-12 | 后测——判稳、特殊情况与区域约束能否连成一条链 | `post_quiz_stack` | 标题卡 + 三题卡组 | `quiz_group` | 6 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-12` |
 | step-13 | 收束——从稳定判定走向参数设计入口 | `summary_infographic` | 四列表 + 信息图 | `none` | 0 | `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-13` |
@@ -24,14 +24,14 @@
 
 | evidence_unit_id | handout_anchor | evidence_kind | target_steps | upgrade_mode | keep_elements | non_reducible | acceptance_checks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `3-2-eu-01` | `## 一、引入：高阶系统稳定分析为什么需要劳斯判据` | 路径定位与主问题 | `step-01` `step-02` | 地图页 + 主图三问页 | 路径图、主问题、`3-2-pole-migration.png` | “先看边界，再谈迁移”的入口判断 | 学生首屏就知道当前对象是高阶特征方程边界问题 |
+| `3-2-eu-01` | `## 一、引入：高阶系统稳定分析为什么需要劳斯判据` | 路径定位与主问题 | `step-01` `step-02` | 地图页 + 主对象三问页 | 路径图、一般化特征方程、主问题 | “先固定代数对象，再进入边界判断”的入口顺序 | 学生首屏就知道当前对象是高阶特征方程边界问题 |
 | `3-2-eu-02` | `### 2.1` `### 2.2` `### 2.3` `### 2.4` | 固定参数普通劳斯表 | `step-04` | 完整例题页 + 逐步显影 | `D(s)=s^4+5s^3+9s^2+11s+6`、完整劳斯表、第一列、数值求根结论 | 递推链与“第一列全正”结论 | 题面常显，显影只隐藏步骤，不隐藏对象和结论目标 |
 | `3-2-eu-03` | `### 3.1` `### 3.2` | 带参数劳斯表与稳定区间 | `step-05` | 完整例题页 + 双卡作答 | `D(s,k)`、参数劳斯表、不等式链、`-2<k<18` | `s^0` 行条件与区间合并过程 | 学生能在同页看到条件链、区间和作答卡的对应关系 |
-| `3-2-eu-04` | `### 3.3` `### 3.4` `### 3.5` | 边界点与极点迁移 | `step-06` | 参数点映射页 | `k=-2,18,22`、求根表、迁移图 | 原点根与纯虚根的差异 | 学生能同时看到参数点、根结构与图上位置 |
+| `3-2-eu-04` | `### 3.3` `### 3.4` `### 3.5` | 边界点与复平面结构 | `step-06` | 参数点映射页 | `k=-2,18,22`、求根表、复平面分析面板 | 原点根与纯虚根的差异 | 学生能同时看到参数点、根结构与图上位置 |
 | `3-2-eu-05` | `### 4.1` | 首位为 0 短例 | `step-07` | 完整例题页 + 逐步显影 | `D_1(s)`、`ε` 替换、符号序列、求根结果 | `ε` 的角色与两次变号结论 | 不把 `ε` 写成真实参数，也不跳过符号判断 |
 | `3-2-eu-06` | `### 4.2` `### 4.3` | 全零行短例 | `step-08` | 完整例题页 + 规则卡 | `D_2(s)`、辅助方程一般式、`A(s)=s^2+1`、`A'(s)=2s` | “先构造辅助方程，再判根结构” | 学生能独立说出何时用辅助方程、何时不用 |
-| `3-2-eu-07` | `### 5.1` `### 5.2` | 劳斯到时域 | `step-09` | 对应表 + 阶跃图页 | 表 3、`3-2-step-comparison.png` | 稳定、临界、失稳的时域差异 | 图和表必须同页，且先有表后有图 |
-| `3-2-eu-08` | `### 5.3` `### 5.4` | 劳斯到频域 | `step-10` | 公式卡 + Bode 图 + 三域总表 | `\omega=1\,\text{rad/s}`、`3-2-bode-magnitude.png`、表 4 | 峰值抬高、理想共振、低频抬升的分辨 | 学生能从频域回译到极点结构 |
+| `3-2-eu-07` | `### 5.1` `### 5.2` | 劳斯到时域 | `step-09` | 对应表 + 时域响应分析页 | 表 3、时域响应分析面板 | 稳定、临界、失稳的时域差异 | 表和分析面板必须同页，且先有表后有图形证据 |
+| `3-2-eu-08` | `### 5.3` `### 5.4` | 劳斯到频域 | `step-10` | 公式卡 + 频域分析页 + 三域总表 | `\omega=1\,\text{rad/s}`、频域迹象分析面板、表 4 | 峰值抬高、理想共振、低频抬升的分辨 | 学生能从频域回译到极点结构 |
 | `3-2-eu-09` | `### 6.1` `### 6.2` `### 6.3` `### 6.4` | 变量平移与更强约束 | `step-11` | 完整例题页 + 逐步显影 | `s=z-\frac12`、平移后多项式、平移后劳斯表、`-\frac38<k<4` | 新旧区间对比与“无解约束”提示 | 同页必须出现旧区间、新区间和几何解释 |
 | `3-2-eu-10` | `## 七、自学核验建议` | 总结与核验 | `step-12` `step-13` | 后测页 + 收束页 | 四条核验主线、信息图 `3-2-info.png` | 判稳、特殊情况、区域约束三线合并 | 后测与收束明确分离，不混成同一页 |
 
@@ -40,15 +40,15 @@
 | 步骤 | 先出现什么 | 再出现什么 | 最后出现什么 |
 | --- | --- | --- | --- |
 | `step-01` | 路径图与今日任务 | 本课主问题 | 无互动 |
-| `step-02` | 极点迁移图 | 三个判断问题与一句结论桥接 | 二选一判断 |
+| `step-02` | 一般化特征方程与三问 | 为什么需要劳斯判据 | 二选一判断 |
 | `step-03` | 后测标题卡与三题题面 | 常见误区提示 | 提交与统计 |
 | `step-04` | 固定对象题面与前两行表格 | 普通劳斯表显影步骤与第一列结论 | 两张独立作答卡与参考答案 |
 | `step-05` | 带参数对象与完整劳斯表 | 第一列不等式链与稳定区间 | 区间卡和漏条件判断卡 |
-| `step-06` | 参数点求根表 | 极点迁移图与边界说明 | 参数-根结构映射卡 |
+| `step-06` | 参数点求根表 | 复平面分析面板与边界说明 | 参数-根结构映射卡 |
 | `step-07` | `D_1(s)` 题面 | `b_1=0`、`ε` 替换、符号序列 | 右半平面根数判断卡 |
 | `step-08` | `D_2(s)` 题面与零行现象 | 辅助方程一般式、本例导数替换 | 辅助方程填写卡与根结构判断卡 |
-| `step-09` | 劳斯现象到极点结构表 | 阶跃响应图与图后解释 | 现象-时域匹配卡 |
-| `step-10` | 频域线索公式卡 | Bode 图与三域总表 | 频域现象辨识卡 |
+| `step-09` | 劳斯现象到极点结构表 | 时域响应分析面板与图后解释 | 现象-时域匹配卡 |
+| `step-10` | 频域线索公式卡 | 频域迹象分析面板与三域总表 | 频域现象辨识卡 |
 | `step-11` | 更强约束题面 | 变量平移链、平移后劳斯表、新旧区间对比 | 新区间填写卡与参数点判断卡 |
 | `step-12` | 后测标题卡 | 三题作答区 | 答案揭示与统计 |
 | `step-13` | 四列表总结 | 信息图与出口句 | 无互动 |
@@ -90,35 +90,38 @@
 ### 脱离讲稿自包含检查
 - 学生离开讲稿后，仍能知道这一课研究的是“高阶特征方程的稳定边界”，而不是单纯求根练习
 
-## 步骤 02｜先看主对象——极点迁移图提出了哪三个问题
+## 步骤 02｜先看主对象——一般化特征方程为什么先于图像判断
 
 ### 页面骨架
 - 模板：`figure_question_board`
 - 区域：`media` / `questions` / `interaction`
 
 ### 模块清单
-- `pole-migration-figure`：`3-2-pole-migration.png`
+- `characteristic-equation-card`：一般化特征方程对象卡
 - `three-questions`：三问卡
 - `binary-choice`：二选一判断区
 
 ### 静态承载内容
-- 主图完整呈现参数从 `k=-2` 到 `k=22` 的极点迁移
+- 主对象卡固定写明
+  $$
+  D(s)=a_ns^n+a_{n-1}s^{n-1}+\cdots+a_1s+a_0=0
+  $$
 - 三问卡固定写明：
-  - 哪一段参数仍保持稳定
-  - 哪两个点恰好压在边界上
-  - 只有特征方程时，怎样不靠图继续判断
-- 结论桥接句写明：图像暴露了边界，但没有替代系数判稳
+  - 系统是否稳定，右半平面根有几个
+  - 参数推到哪里会碰到稳定边界
+  - 稳定边界究竟对应什么根结构
+- 结论桥接句写明：高阶系统往往先拿到特征方程系数，因此必须有一套不显式求根也能判稳的方法
 
 ### 混合证据顺序
-- 极点迁移图
+- 一般化特征方程
 - 三问卡
 - 二选一判断
 
 ### 互动升级点
 - 组件类型：`binary_choice`
-- 题目：只看极点迁移图，是否已经足够写出参数可行域
+- 题目：只给出高阶闭环特征方程系数时，是否还能继续沿用“先求全部根再判断”的入口
 - 选项：
-  - A：足够，图上边界点已经全部给出
+  - A：可以，先把根全部求出来再逐个判断即可
   - B：不够，还需要一套由特征方程系数直接判稳的方法
 - 正确项：`B`
 
@@ -126,14 +129,14 @@
 - `发放作答` 与 `显示参考答案` 分离
 
 ### 学生默认状态
-- 图与三问先完整可见
+- 主对象卡与三问先完整可见
 - 判断区默认可见
 
 ### 学生页预览路径
 - `/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo?step=step-02`
 
 ### 脱离讲稿自包含检查
-- 学生只看这一页，也能明确“图只是入口，真正的问题是如何把边界转成代数规则”
+- 学生只看这一页，也能明确“高阶系统先固定代数对象，再引出劳斯判据的必要性”
 
 ## 步骤 03｜前测——不求根判稳、特殊情况与区域收紧
 
@@ -308,22 +311,22 @@
 
 ### 模块清单
 - `parameter-table`：参数点求根结果表
-- `pole-migration-figure`：极点迁移图
+- `dynamic-analysis-panel`：复平面分析面板
 - `activity-card-a`：参数与根结构匹配卡
 - `activity-card-b`：边界差异解释卡
 - `reference-answer`：参考答案卡
 
 ### 静态承载内容
 - 参数表至少列出 `k=12`、`k=18`、`k=22` 的求根结果与稳定性
-- 图前说明写明：
+- 分析面板前说明写明：
   - `k=-2` 对应原点根
   - `k=18` 对应纯虚根
   - `k=22` 已出现右半平面共轭根
-- 图后解释必须把“代数区间边界”与“极点穿越虚轴”联系起来
+- 面板后的解释必须把“代数区间边界”与“极点穿越虚轴”联系起来
 
 ### 混合证据顺序
 - 参数点求根表
-- 极点迁移图
+- 复平面分析面板
 - 边界解释卡
 - 两张作答卡
 
@@ -391,7 +394,7 @@
 ### 教师控制
 - `发放作答`
 - `开放浏览`
-- `教师逐步显影`
+- `逐行推进显影`
 - `显示参考答案`
 
 ### 学生默认状态
@@ -445,7 +448,7 @@
 ### 教师控制
 - `发放作答`
 - `开放浏览`
-- `教师逐步显影`
+- `逐行推进显影`
 - `显示参考答案`
 
 ### 学生默认状态
@@ -467,7 +470,7 @@
 
 ### 模块清单
 - `structure-table`：劳斯结论到极点结构对应表
-- `step-response-figure`：`3-2-step-comparison.png`
+- `dynamic-analysis-panel`：时域响应分析面板
 - `activity-card-a`：现象匹配卡
 - `activity-card-b`：边界区分卡
 - `reference-answer`：参考答案卡
@@ -478,11 +481,11 @@
   - 第一列两次变号 -> 两个右半平面根
   - 全零行 -> 关于原点对称的根结构
   - 原点根 -> 保留不衰减模态
-- 图后解释要写明：极点越逼近虚轴，衰减越慢；进入右半平面后，振荡包络开始放大
+- 面板后的解释要写明：极点越逼近虚轴，衰减越慢；进入右半平面后，振荡包络开始放大
 
 ### 混合证据顺序
 - 对应表
-- 阶跃响应图
+- 时域响应分析面板
 - 图后解释
 - 两张作答卡
 
@@ -498,7 +501,7 @@
 - `显示参考答案`
 
 ### 学生默认状态
-- 表格与图先完整可见
+- 表格与分析面板先完整可见
 - 作答卡默认隐藏
 
 ### 学生页预览路径
@@ -515,7 +518,7 @@
 
 ### 模块清单
 - `formula-card`：频域线索公式卡
-- `bode-figure`：`3-2-bode-magnitude.png`
+- `dynamic-analysis-panel`：频域迹象分析面板
 - `three-domain-table`：三域总表
 - `activity-card-a`：频域现象辨识卡
 - `activity-card-b`：三域回译卡
@@ -530,7 +533,7 @@
 
 ### 混合证据顺序
 - 频域线索公式卡
-- Bode 图
+- 频域迹象分析面板
 - 三域总表
 - 两张作答卡
 
@@ -546,7 +549,7 @@
 - `显示参考答案`
 
 ### 学生默认状态
-- 公式卡、图与总表先可见
+- 公式卡、分析面板与总表先可见
 - 作答卡默认隐藏
 
 ### 学生页预览路径
@@ -600,7 +603,7 @@
 ### 教师控制
 - `发放作答`
 - `开放浏览`
-- `教师逐步显影`
+- `逐行推进显影`
 - `显示参考答案`
 
 ### 学生默认状态

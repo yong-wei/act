@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { BlockMath } from 'react-katex';
+import { BlockMath, InlineMath } from 'react-katex';
 
 import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
 import type { ControlAnalysisRequest } from '@/resources/control-system/analysis/types';
@@ -166,7 +166,7 @@ function AnalysisControls({
   );
 }
 
-export function UNIT_3_2AnalysisWorkspace({
+export function UNIT_3_2DynamicAnalysisPanel({
   stepId,
   onWorkspaceParameterChange,
 }: {
@@ -192,16 +192,20 @@ export function UNIT_3_2AnalysisWorkspace({
 
   return (
     <section className="premium-lesson-panel-soft mt-4 px-4 py-4">
-      <div className="premium-lesson-title text-base font-semibold">UNIT_3_2AnalysisWorkspace</div>
+      <div className="premium-lesson-title text-base font-semibold">
+        {stepId === 'step-06' ? '边界点复平面分析' : stepId === 'step-09' ? '时域响应对照分析' : '频域迹象对照分析'}
+      </div>
       <div className="premium-lesson-muted mt-2 text-sm">
-        左侧固定使用 Rust/WASM 驱动的根轨迹；右侧根据当前步骤切换为参数解释、时域响应或幅频特性。
+        先用复平面位置确认极点结构，再结合当前页面读取参数状态、时域响应或幅频迹象。
       </div>
 
       {stepId === 'step-06' ? (
         <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
           <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
             <div className="premium-lesson-title text-sm font-medium">根轨迹</div>
-            <div className="premium-lesson-muted mt-2 text-sm">固定对象是 P(s)=s^4+5s^3+9s^2+7s+2，增益项通过 k(s+1) 进入闭环特征方程。</div>
+            <div className="premium-lesson-muted mt-2 text-sm">
+              固定对象是 <InlineMath math={'P(s)=s^4+5s^3+9s^2+7s+2'} />，增益项通过 <InlineMath math={'k(s+1)'} /> 进入闭环特征方程。
+            </div>
             <div className="mt-4">
               {rootLocusState.result ? (
                 <RootLocusPanel result={rootLocusState.result} caseId={rootLocusRequest.caseId} />

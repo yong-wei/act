@@ -281,6 +281,7 @@ export function UNIT_3_2TeacherPage({
           mediaSrc={getUNIT_3_2MediaSrc(step.id)}
           mediaAlt={step.title}
           revealProgress={teacherRevealProgress[step.id] ?? 0}
+          allowInlineReveal
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 

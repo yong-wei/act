@@ -23,7 +23,7 @@ import {
   STATE_MATCH_OPTIONS,
   type WorkspaceParameterChange,
 } from './workspace';
-import { UNIT_3_2AnalysisWorkspace } from './analysis-workspace';
+import { UNIT_3_2DynamicAnalysisPanel } from './analysis-workspace';
 
 type Tone = 'cyan' | 'emerald' | 'amber' | 'violet' | 'rose' | 'slate';
 
@@ -125,6 +125,27 @@ function RichText({ content, className }: { content: string; className?: string 
   );
 }
 
+function renderInlineMathText(text: string) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkMath]}
+      rehypePlugins={[rehypeKatex]}
+      components={{
+        p: ({ children }) => <span>{children}</span>,
+      }}
+    >
+      {text}
+    </ReactMarkdown>
+  );
+}
+
+function getRenderedStepTitle(step: UNIT_3_2StepDefinition) {
+  if (step.id === 'step-11') {
+    return '变量平移——把 $\\operatorname{Re}(s)<-0.5$ 转成普通劳斯判定';
+  }
+  return step.title;
+}
+
 function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
   switch (step.id) {
     case 'step-01':
@@ -148,25 +169,25 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
     case 'step-02':
       return {
         kicker: 'Closed-loop Characteristic Equation',
-        intro: '引入页先固定闭环特征方程这个主对象，再说明“图像为什么只能给直觉、不能单独给出参数可行域”。图片此时不是主角，主角是代数对象与它提出的判断问题。',
+        intro: '引入页先固定高阶闭环特征方程的一般形式，再说明为什么面对三阶、四阶及更高阶系统时，必须先有一套不显式求根也能判稳的规则。',
         sections: [
           {
             title: '本页固定对象',
             tone: 'cyan',
-            formula: 'D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)',
+            formula: 'D(s)=a_ns^n+a_{n-1}s^{n-1}+\\cdots+a_1s+a_0=0',
           },
           {
             title: '由特征方程直接追问的三个问题',
             tone: 'amber',
-            bullets: ['不显式求根时，怎样直接判断某个 k 是否稳定？', '当参数碰到边界时，闭环根究竟发生了什么变化？', '怎样把“稳定 / 临界 / 失稳”翻译成参数可行域语言？'],
+            bullets: ['系统是否稳定，右半平面根有几个？', '参数推到哪里会碰到稳定边界？', '稳定边界究竟对应什么根结构？'],
           },
           {
-            title: '图与规则的分工',
+            title: '为什么需要劳斯判据',
             tone: 'violet',
-            body: '极点迁移图负责提醒“边界快到了”，劳斯判据负责把问题落回特征方程系数，给出边界位置和区间宽度。',
+            body: '二阶系统还能直接写根，高阶系统往往先拿到特征方程系数。劳斯判据的作用，就是基于这些系数先回答稳定性、右半平面根数和边界位置。',
           },
         ],
-        prompts: ['为什么闭环特征方程还不能只靠极点迁移图来判断稳定区间？', '从闭环特征方程系数直接判稳，到底补上了哪一层证据？'],
+        prompts: ['为什么高阶系统不能继续沿用“先求全部根再判断”的入口？', '劳斯判据相对直接看图，多补上了哪一层代数证据？'],
       };
     case 'step-03':
       return {
@@ -236,8 +257,13 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
     case 'step-06':
       return {
         kicker: 'Boundary Mapping',
-        intro: '这一页直接切到 Rust/WASM 驱动的根轨迹工作区。左侧固定看根轨迹，右侧只保留参数 k 控件、典型值按钮和区间状态说明，把边界数字重新翻译回复平面根结构。',
+        intro: '这一页把边界参数重新送回复平面。目标不是再记一组数字，而是把参数点、根结构和复平面位置同时对应起来。',
         sections: [
+          {
+            title: '当前主对象',
+            tone: 'emerald',
+            formula: 'D(s,k)=s^4+5s^3+9s^2+(7+k)s+(2+k)',
+          },
           {
             title: '先固定三个关键参数点',
             tone: 'cyan',
@@ -246,7 +272,7 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
           {
             title: '这一页要读出的信息',
             tone: 'amber',
-            bullets: ['固定对象是 P(s)=s^4+5s^3+9s^2+7s+2 与 k(s+1) 的闭环组合。', '区间状态负责回答“k 现在落在稳定区内还是边界上”。', '根轨迹负责回答“边界点对应的是原点根还是纯虚根”。'],
+            bullets: ['参数状态先回答“当前 k 在稳定区内、边界上，还是已经越界”。', '复平面图再回答“边界点对应的是原点根还是纯虚根”。', '同样是边界，原点根与纯虚根的后续解释并不相同。'],
           },
         ],
         prompts: ['为什么 k=-2 与 k=18 同在边界上，却对应两种不同的根结构？'],
@@ -302,7 +328,7 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
     case 'step-09':
       return {
         kicker: 'Routh to Time Domain',
-        intro: '这一页不再放静态图片，而是用根轨迹 + 时域响应联动面板，让“极点位置怎样改写响应形态”直接可见。读图顺序仍然是先表后图，再回到作答卡。',
+        intro: '这一页把劳斯结论翻译到时域。读图顺序仍然是先看对应表，再看响应曲线，最后回到作答卡解释“为什么会这样”。',
         sections: [
           {
             title: '对应表',
@@ -312,7 +338,7 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
           {
             title: '读图提醒',
             tone: 'amber',
-            body: '左侧根轨迹先告诉我们极点正在向哪里移动，右侧时域响应再把这种移动翻译成收敛、等幅或发散。原点根与纯虚根都属于边界，但时域表现并不相同。',
+            body: '先用复平面位置判断极点在左半平面、虚轴还是右半平面，再用响应曲线确认它对应的是衰减收敛、等幅振荡还是发散。原点根与纯虚根都属于边界，但时域表现并不相同。',
           },
         ],
         prompts: ['原点根与纯虚根在时域上的主要差异是什么？'],
@@ -320,7 +346,7 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
     case 'step-10':
       return {
         kicker: 'Routh to Frequency Domain',
-        intro: '这一页也不再停留在静态图，而是用根轨迹 + 幅频特性联动面板去读边界迹象。频域在 3-2 里仍是辅助证据，但必须能回译到边界类型。',
+        intro: '这一页把边界迹象翻译到频域。频域在 3-2 里仍是辅助证据，但必须能够回译到“接近边界、纯虚根、原点根”这三类结构差异。',
         sections: [
           {
             title: '频域线索',
@@ -330,7 +356,7 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
           {
             title: '关键提醒',
             tone: 'amber',
-            body: '这里的频域现象仍由极点位置决定，不能把 Bode 图当成与稳定性无关的孤立图像。',
+            body: '峰值抬高、尖锐共振和低频抬升都不是孤立图像现象，而是极点结构变化在频域中的投影。',
           },
         ],
         prompts: ['为什么靠近稳定边界时峰值会抬高？'],
@@ -343,7 +369,7 @@ function getStepBlueprint(step: UNIT_3_2StepDefinition): StepBlueprint {
           {
             title: '完整题面',
             tone: 'cyan',
-            body: '要求全部极点满足 Re(s)<-0.5，把区域约束转成普通劳斯判定，并写出新的可行域。',
+            body: '要求全部极点满足 $\\operatorname{Re}(s)<-0.5$，把区域约束转成普通劳斯判定，并写出新的可行域。',
           },
           {
             title: '变量平移',
@@ -472,33 +498,41 @@ const POSTTEST_QUESTIONS: QuizQuestion[] = [
 
 const STEP_REVEAL_SEGMENTS_BY_STEP: Partial<Record<string, ReadonlyArray<RevealDetail>>> = {
   'step-04': [
-    { key: 'base-rows', label: '第 1 步：先固定对象并排出 s^4、s^3 两行', formula: 's^4:\\ 1\\quad 9\\quad 6\\qquad s^3:\\ 5\\quad 11\\quad 0', body: '固定对象后，先把奇偶项系数按劳斯表规则排入前两行。' },
-    { key: 'b-row', label: '第 2 步：由前两行算出 s^2 行', formula: 'b_1=\\frac{5\\times 9-1\\times 11}{5}=\\frac{34}{5},\\qquad b_2=\\frac{5\\times 6-1\\times 0}{5}=6', body: '这里第一次真正进入递推计算。重点不是背公式，而是知道新行由上一层两行交叉算出。' },
-    { key: 'c-row', label: '第 3 步：继续算出 s^1 行', formula: 'c_1=\\frac{\\frac{34}{5}\\times 11-5\\times 6}{\\frac{34}{5}}=\\frac{112}{17}', body: '继续递推直到只剩第一列，即可回答右半平面根数。' },
-    { key: 'first-column', label: '第 4 步：回到第一列做稳定判断', formula: '1,\\ 5,\\ \\frac{34}{5},\\ \\frac{112}{17},\\ 6', bullets: ['第一列全正，没有符号变化。', '因此右半平面根数为 0。', '本例稳定，但这里仍然没有显式求出全部根。'] },
+    { key: 'base-rows', label: '列 $s^4$、$s^3$ 行', formula: 's^4:\\ 1\\quad 9\\quad 6\\qquad s^3:\\ 5\\quad 11\\quad 0', body: '固定对象后，先把偶次项与奇次项系数排入前两行。' },
+    { key: 'b-row', label: '求 $s^2$ 行', formula: 'b_1=\\frac{5\\times 9-1\\times 11}{5}=\\frac{34}{5},\\qquad b_2=\\frac{5\\times 6-1\\times 0}{5}=6', body: '第三行由前两行交叉递推得到，先把这一层系数写完整。' },
+    { key: 'c-row', label: '求 $s^1$ 行', formula: 'c_1=\\frac{\\frac{34}{5}\\times 11-5\\times 6}{\\frac{34}{5}}=\\frac{112}{17}', body: '继续递推到只剩第一列，就能开始回读稳定结论。' },
+    { key: 'first-column', label: '读第一列并判断稳定性', formula: '1,\\ 5,\\ \\frac{34}{5},\\ \\frac{112}{17},\\ 6', bullets: ['第一列全正，没有符号变化。', '因此右半平面根数为 0。', '本例稳定，但这里仍然没有显式求出全部根。'] },
   ],
   'step-05': [
-    { key: 'table', label: '第 1 步：先列出含 k 的劳斯表第一列', formula: '1,\\ 5,\\ \\frac{38-k}{5},\\ \\frac{k^2-13k-90}{k-38},\\ k+2', body: '一旦 k 进入系数，第一列本身就变成了参数条件链。' },
-    { key: 'inequality-chain', label: '第 2 步：逐条写出第一列全正条件', bullets: ['\\(\\frac{38-k}{5}>0\\Rightarrow k<38\\)', '\\(\\frac{k^2-13k-90}{k-38}>0\\Rightarrow -2<k<18\\ \\text{或}\\ k>38\\)', '\\(k+2>0\\Rightarrow k>-2\\)'], body: '不能直接跳到区间，必须逐条保留条件来源。' },
-    { key: 'interval', label: '第 3 步：合并得到稳定区间', formula: '-2<k<18', bullets: ['s^0 行条件负责托住左端点。', '合并条件后，k>38 被前一行符号条件排除。'] },
+    { key: 'table', label: '写第一列参数链', formula: '1,\\ 5,\\ \\frac{38-k}{5},\\ \\frac{k^2-13k-90}{k-38},\\ k+2', body: '一旦 k 进入系数，第一列本身就变成了参数条件链。' },
+    { key: 'inequality-chain', label: '逐条写第一列全正条件', bullets: ['$\\frac{38-k}{5}>0\\Rightarrow k<38$', '$\\frac{k^2-13k-90}{k-38}>0\\Rightarrow -2<k<18\\ \\text{或}\\ k>38$', '$k+2>0\\Rightarrow k>-2$'], body: '不能直接跳到区间，必须逐条保留条件来源。' },
+    { key: 'interval', label: '合并条件得到稳定区间', formula: '-2<k<18', bullets: ['$s^0$ 行条件负责托住左端点。', '合并条件后，$k>38$ 被前一行符号条件排除。'] },
   ],
   'step-07': [
-    { key: 'zero-head', label: '第 1 步：先识别“首位为 0，但该行不全为 0”', formula: 's^2\\ \\text{行首项}=\\frac{2\\times3-1\\times6}{2}=0', body: '这里不是全零行，因此处理动作不是辅助方程，而是 ε 连续化。' },
-    { key: 'epsilon', label: '第 2 步：用 ε 替代该行首位', formula: 's^2:\\ \\varepsilon\\quad 5\\quad 0', bullets: ['ε 只是判断辅助量。', '它的任务是保住第一列符号判断的连续性。'] },
-    { key: 'sign-change', label: '第 3 步：沿第一列回读符号变化', formula: '1,\\ 2,\\ \\varepsilon,\\ 6-\\frac{10}{\\varepsilon},\\ 5', bullets: ['当 ε\\to0^+ 时，\\(6-\\frac{10}{\\varepsilon}<0\\)。', '第一列发生两次变号。', '因此右半平面根数为 2。'] },
+    { key: 'zero-head', label: '写出首位为 0 的 $s^2$ 行', formula: 'b_1=\\frac{2\\times3-1\\times6}{2}=0,\\qquad b_2=\\frac{2\\times5-1\\times0}{2}=5', body: '这里是“首位为 0，但该行不全为 0”，处理动作是连续化，而不是辅助方程。' },
+    { key: 'epsilon', label: '用 $\\varepsilon$ 替代首位并继续列写', formula: 's^2:\\ \\varepsilon\\quad 5\\quad 0,\\qquad c_1=6-\\frac{10}{\\varepsilon}', bullets: ['$\\varepsilon$ 只是判断辅助量。', '它的任务是保住第一列符号判断的连续性。'] },
+    { key: 'sign-change', label: '读第一列符号变化', formula: '1,\\ 2,\\ \\varepsilon,\\ 6-\\frac{10}{\\varepsilon},\\ 5', bullets: ['当 $\\varepsilon\\to0^+$ 时，$6-\\frac{10}{\\varepsilon}<0$。', '第一列发生两次变号。', '因此右半平面根数为 2。'] },
   ],
   'step-08': [
-    { key: 'zero-row', label: '第 1 步：先确认出现的是整行为零', formula: 's^2:\\ 1\\quad 1\\quad 0\\qquad s^1:\\ 0\\quad 0\\quad 0', body: '整行为零说明不是首位为 0 那一类异常，而是对称根结构浮现出来了。' },
-    { key: 'aux-equation', label: '第 2 步：由上一行构造辅助方程', formula: 'A(s)=s^2+1', bullets: ['辅助方程来自零行上一行。', '它把隐藏的对称根结构显式写回代数对象。'] },
-    { key: 'derivative', label: '第 3 步：对辅助方程求导并回填零行', formula: 'A\'(s)=2s\\Rightarrow s^1\\ \\text{行替换为}\\ 2\\quad 0', body: '替换零行的不是任意一行，而是辅助方程导数的系数。' },
-    { key: 'structure', label: '第 4 步：再由辅助方程的根回读结构', formula: 'A(s)=0\\Rightarrow s=\\pm j', bullets: ['本例对应纯虚根对。', '这一步解释了为什么会出现整行为零。'] },
+    { key: 'zero-row', label: '确认 $s^1$ 行整行为 0', formula: 's^2:\\ 1\\quad 1\\quad 0\\qquad s^1:\\ 0\\quad 0\\quad 0', body: '整行为零说明不是首位为 0 那一类异常，而是对称根结构浮现出来了。' },
+    { key: 'aux-equation', label: '由上一行构造辅助方程', formula: 'A(s)=s^2+1', bullets: ['辅助方程来自零行上一行。', '它把隐藏的对称根结构显式写回代数对象。'] },
+    { key: 'derivative', label: '求导并替换零行', formula: 'A\'(s)=2s\\Rightarrow s^1\\ \\text{行替换为}\\ 2\\quad 0', body: '替换零行的不是任意一行，而是辅助方程导数的系数。' },
+    { key: 'structure', label: '由辅助方程回读根结构', formula: 'A(s)=0\\Rightarrow s=\\pm j', bullets: ['本例对应纯虚根对。', '这一步解释了为什么会出现整行为零。'] },
   ],
   'step-11': [
-    { key: 'shift-polynomial', label: '第 1 步：把竖线约束改写成变量平移', formula: 's=z-\\frac12,\\qquad \\tilde D(z,k)=D\\left(z-\\frac12,k\\right)', body: '平移的目的，是把“全部极点位于 \\(\\operatorname{Re}(s)<-0.5\\)”改写成 z 平面中的普通稳定问题。' },
-    { key: 'expanded', label: '第 2 步：写出平移后的多项式', formula: '\\tilde D(z,k)=z^4+3z^3+3z^2+\\left(k+\\frac54\\right)z+\\left(\\frac{k}{2}+\\frac{3}{16}\\right)', body: '新的特征方程对象变了，但判稳方法没有变，仍然回到普通劳斯判据。' },
-    { key: 'shifted-routh', label: '第 3 步：对平移后对象再列劳斯条件', bullets: ['\\(\\frac{31-4k}{12}>0\\Rightarrow k<\\frac{31}{4}\\)', '\\(\\frac{k}{2}+\\frac{3}{16}>0\\Rightarrow k>-\\frac38\\)', '\\(\\frac{4(k-4)(k+2)}{4k-31}>0\\Rightarrow -2<k<4\\ \\text{或}\\ k>\\frac{31}{4}\\)'] },
-    { key: 'compare-intervals', label: '第 4 步：对比旧区间与新区间', formula: '-2<k<18,\\qquad -\\frac38<k<4', bullets: ['更强约束会收紧可行区间。', 'k=4 在普通稳定问题中可行，但已经压在新边界上。'] },
+    { key: 'shift-polynomial', label: '写变量平移 $s=z-\\frac12$', formula: 's=z-\\frac12,\\qquad \\tilde D(z,k)=D\\left(z-\\frac12,k\\right)', body: '平移的目的，是把“全部极点位于 $\\operatorname{Re}(s)<-0.5$”改写成 z 平面中的普通稳定问题。' },
+    { key: 'expanded', label: '写平移后的多项式', formula: '\\tilde D(z,k)=z^4+3z^3+3z^2+\\left(k+\\frac54\\right)z+\\left(\\frac{k}{2}+\\frac{3}{16}\\right)', body: '新的特征方程对象变了，但判稳方法没有变，仍然回到普通劳斯判据。' },
+    { key: 'shifted-routh', label: '写平移后第一列条件', bullets: ['$\\frac{31-4k}{12}>0\\Rightarrow k<\\frac{31}{4}$', '$\\frac{k}{2}+\\frac{3}{16}>0\\Rightarrow k>-\\frac38$', '$\\frac{4(k-4)(k+2)}{4k-31}>0\\Rightarrow -2<k<4\\ \\text{或}\\ k>\\frac{31}{4}$'] },
+    { key: 'compare-intervals', label: '对比旧区间与新区间', formula: '-2<k<18,\\qquad -\\frac38<k<4', bullets: ['更强约束会收紧可行区间。', 'k=4 在普通稳定问题中可行，但已经压在新边界上。'] },
   ],
+};
+
+const STEP_REVEAL_TITLE_BY_STEP: Partial<Record<string, string>> = {
+  'step-04': '普通劳斯表列写',
+  'step-05': '参数条件链列写',
+  'step-07': '首位为 0 的连续化列写',
+  'step-08': '辅助方程处理链',
+  'step-11': '变量平移列写链',
 };
 
 function getActivitySpec(step: UNIT_3_2StepDefinition): ActivitySpec {
@@ -961,42 +995,65 @@ function RevealTrack({
   title,
   items,
   revealProgress,
+  allowInlineReveal = true,
 }: {
   title: string;
   items: ReadonlyArray<RevealDetail>;
   revealProgress: number;
+  allowInlineReveal?: boolean;
 }) {
+  const teacherVisibleCount = Math.max(1, Math.min(items.length, revealProgress || 1));
+  const [localRevealCount, setLocalRevealCount] = useState(teacherVisibleCount);
+
+  useEffect(() => {
+    setLocalRevealCount(teacherVisibleCount);
+  }, [teacherVisibleCount, title]);
+
+  const visibleCount = Math.max(teacherVisibleCount, localRevealCount);
+  const canRevealMore = allowInlineReveal && visibleCount < items.length;
+
   return (
     <div className="premium-lesson-tone-block premium-tone-violet mt-4">
       <div className="premium-lesson-title text-sm font-semibold">{title}</div>
+      <div className="premium-lesson-caption mt-2 text-xs">
+        {allowInlineReveal ? '点击当前最下方已显影步骤可继续展开下一层。' : '当前显影由教师推进。'}
+      </div>
       <div className="mt-3 grid gap-2">
-        {items.map((item, index) => (
+        {items.slice(0, visibleCount).map((item, index) => (
           <div
             key={item.key}
-            className={`rounded-2xl border px-3 py-3 text-sm ${index < revealProgress ? 'border-cyan-400/60 bg-cyan-500/10' : 'border-border/50 bg-background/40 text-foreground/60'}`}
+            onClick={() => {
+              if (index === visibleCount - 1 && canRevealMore) {
+                setLocalRevealCount((count) => Math.min(count + 1, items.length));
+              }
+            }}
+            className={`rounded-2xl border px-3 py-3 text-sm ${
+              index === visibleCount - 1 && canRevealMore
+                ? 'cursor-pointer border-cyan-400/60 bg-cyan-500/10 ring-1 ring-cyan-400/40'
+                : 'border-cyan-400/60 bg-cyan-500/10'
+            }`}
           >
-            <div className="font-medium">{item.label}</div>
-            {index < revealProgress ? (
-              <div className="mt-2">
-                {item.body ? <RichText content={item.body} /> : null}
-                {item.formula ? (
-                  <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
-                    <BlockMath math={item.formula} />
-                  </div>
-                ) : null}
-                {item.bullets?.length ? (
-                  <ul className="mt-3 grid gap-2 text-sm leading-7">
-                    {item.bullets.map((bullet) => (
-                      <li key={bullet} className="ml-4 list-disc">
-                        <RichText content={bullet} />
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-            ) : (
-              <div className="mt-2 text-xs">等待教师显影后显示本步骤的公式与解释。</div>
-            )}
+            <div className="font-medium">{renderInlineMathText(item.label)}</div>
+            <div className="mt-2">
+              {item.body ? <RichText content={item.body} /> : null}
+              {item.formula ? (
+                <div className="mt-3 rounded-2xl bg-background/70 px-3 py-3 text-sm [&_.katex-display]:m-0">
+                  <BlockMath math={item.formula} />
+                </div>
+              ) : null}
+              {item.bullets?.length ? (
+                <ul className="mt-3 grid gap-2 text-sm leading-7">
+                  {item.bullets.map((bullet) => (
+                    <li key={bullet} className="ml-4 list-disc">
+                      <RichText content={bullet} />
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {index === visibleCount - 1 && canRevealMore ? (
+                <div className="premium-lesson-caption mt-3 text-xs">点击当前步骤继续显影下一层。</div>
+              ) : null}
+            </div>
           </div>
         ))}
       </div>
@@ -1059,22 +1116,25 @@ export function UNIT_3_2StepContentPanel({
   mediaAlt,
   onWorkspaceParameterChange,
   revealProgress = 0,
+  allowInlineReveal = true,
 }: {
   step: UNIT_3_2StepDefinition;
   mediaSrc?: string | null;
   mediaAlt?: string;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
   revealProgress?: number;
+  allowInlineReveal?: boolean;
 }) {
   const blueprint = getStepBlueprint(step);
   const revealItems = STEP_REVEAL_SEGMENTS_BY_STEP[step.id] ?? [];
+  const revealTitle = STEP_REVEAL_TITLE_BY_STEP[step.id] ?? '分步列写';
 
   return (
     <section className="premium-lesson-panel px-4 py-5">
       <div className="premium-lesson-kicker">
         {blueprint.kicker} · {UNIT_3_2_STAGE_LABEL[step.stage]}
       </div>
-      <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
+      <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{renderInlineMathText(getRenderedStepTitle(step))}</h2>
       <p className="premium-lesson-muted mt-3 text-sm sm:text-base">{blueprint.intro}</p>
 
       {mediaSrc ? (
@@ -1089,7 +1149,7 @@ export function UNIT_3_2StepContentPanel({
       <div className="mt-4 grid gap-4">
         {blueprint.sections.map((section) => (
           <div key={section.title} className={`premium-lesson-tone-block ${getToneClass(section.tone)}`}>
-            <div className="font-medium">{section.title}</div>
+            <div className="font-medium">{renderInlineMathText(section.title)}</div>
             {section.body ? <RichText content={section.body} /> : null}
             {section.markdown ? <RichText content={section.markdown} /> : null}
             {section.formula ? (
@@ -1111,13 +1171,20 @@ export function UNIT_3_2StepContentPanel({
       </div>
 
       {step.id === 'step-06' || step.id === 'step-09' || step.id === 'step-10' ? (
-        <UNIT_3_2AnalysisWorkspace
+        <UNIT_3_2DynamicAnalysisPanel
           stepId={step.id}
           onWorkspaceParameterChange={onWorkspaceParameterChange}
         />
       ) : null}
 
-      {revealItems.length ? <RevealTrack title="教师逐步显影" items={revealItems} revealProgress={Math.min(revealItems.length, revealProgress)} /> : null}
+      {revealItems.length ? (
+        <RevealTrack
+          title={revealTitle}
+          items={revealItems}
+          revealProgress={Math.min(revealItems.length, revealProgress)}
+          allowInlineReveal={allowInlineReveal}
+        />
+      ) : null}
 
       {blueprint.note ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">{blueprint.note}</div> : null}
     </section>
@@ -1395,7 +1462,7 @@ export function UNIT_3_2TeacherActivitySummary({
           {controls.teacherStepReveal === 'teacher_only' ? (
             <>
               <button type="button" onClick={onAdvanceReveal} className="premium-lesson-action-secondary">
-                教师逐步显影
+                显示下一行
               </button>
               <button type="button" onClick={onResetReveal} className="premium-lesson-action-secondary">
                 重置显影

@@ -1,0 +1,1246 @@
+{
+  "lesson_id": "4-3",
+  "title": "初始方案落地实践：从对象分析到结构组合与首轮验证",
+  "focus_node_ids": [
+    "对象分析回收到设计入口_4_43001",
+    "单结构与复合结构分流条件_4_43002",
+    "参数方向表达卡_4_43003",
+    "首轮验证最小读数逻辑_4_43004",
+    "问题清单移交表_4_43005",
+    "扰动抑制中的通道重写边界_4_43006"
+  ],
+  "reuse_node_ids": [
+    "设计任务表达卡_4_41001",
+    "单结构首轮起步卡_4_42001",
+    "主矛盾到频段职责映射_4_42003",
+    "结构作用点与代价来源对照_4_42004",
+    "反馈保底与前馈补偿边界_4_42005",
+    "目标驱动超前校正_3_36004",
+    "低频补偿稳态改善路径_3_37003",
+    "三频段闭环性能回读_3_38003",
+    "相角裕度_5_5a74b451",
+    "带宽频率_5_6996a44a"
+  ],
+  "entry_nodes": [
+    "对象分析回收到设计入口_4_43001",
+    "单结构与复合结构分流条件_4_43002"
+  ],
+  "summary_nodes": [
+    "首轮验证最小读数逻辑_4_43004",
+    "问题清单移交表_4_43005",
+    "扰动抑制中的通道重写边界_4_43006"
+  ],
+  "card_order": [
+    "设计任务表达卡_4_41001",
+    "单结构首轮起步卡_4_42001",
+    "主矛盾到频段职责映射_4_42003",
+    "结构作用点与代价来源对照_4_42004",
+    "反馈保底与前馈补偿边界_4_42005",
+    "目标驱动超前校正_3_36004",
+    "低频补偿稳态改善路径_3_37003",
+    "三频段闭环性能回读_3_38003",
+    "相角裕度_5_5a74b451",
+    "带宽频率_5_6996a44a",
+    "对象分析回收到设计入口_4_43001",
+    "单结构与复合结构分流条件_4_43002",
+    "参数方向表达卡_4_43003",
+    "首轮验证最小读数逻辑_4_43004",
+    "问题清单移交表_4_43005",
+    "扰动抑制中的通道重写边界_4_43006"
+  ],
+  "groups": [
+    {
+      "group_name": "任务卡回收与对象入口",
+      "step_ids": [
+        "step-01",
+        "step-02"
+      ],
+      "node_ids": [
+        "设计任务表达卡_4_41001",
+        "单结构首轮起步卡_4_42001",
+        "对象分析回收到设计入口_4_43001"
+      ]
+    },
+    {
+      "group_name": "结构分流判断",
+      "step_ids": [
+        "step-03",
+        "step-04"
+      ],
+      "node_ids": [
+        "主矛盾到频段职责映射_4_42003",
+        "结构作用点与代价来源对照_4_42004",
+        "单结构与复合结构分流条件_4_43002"
+      ]
+    },
+    {
+      "group_name": "复合结构与参数方向",
+      "step_ids": [
+        "step-05",
+        "step-06"
+      ],
+      "node_ids": [
+        "目标驱动超前校正_3_36004",
+        "低频补偿稳态改善路径_3_37003",
+        "反馈保底与前馈补偿边界_4_42005",
+        "参数方向表达卡_4_43003"
+      ]
+    },
+    {
+      "group_name": "首轮验证读数",
+      "step_ids": [
+        "step-07",
+        "step-08"
+      ],
+      "node_ids": [
+        "三频段闭环性能回读_3_38003",
+        "相角裕度_5_5a74b451",
+        "带宽频率_5_6996a44a",
+        "首轮验证最小读数逻辑_4_43004"
+      ]
+    },
+    {
+      "group_name": "问题清单与移交",
+      "step_ids": [
+        "step-09",
+        "step-10"
+      ],
+      "node_ids": [
+        "问题清单移交表_4_43005"
+      ]
+    },
+    {
+      "group_name": "边界案例",
+      "step_ids": [
+        "step-11",
+        "step-12"
+      ],
+      "node_ids": [
+        "扰动抑制中的通道重写边界_4_43006"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "三频段闭环性能回读_3_38003",
+      "name": "三频段闭环性能回读",
+      "nodeType": "THEORY",
+      "description": "按低频、中频、高频三段分工，把开环图上读到的低频增益、截止频率、相角裕度、带宽和谐振峰值重新翻译成稳态精度、速度、超调、噪声与执行器负担等闭环后果。",
+      "positionX": 31.1,
+      "positionY": -31.1,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "按低频、中频、高频三段分工，把开环图上读到的低频增益、截止频率、相角裕度、带宽和谐振峰值重新翻译成稳态精度、速度、超调、噪声与执行器负担等闭环后果。",
+        "examples": [
+          "若任务从“尽快跟踪”切换为“减小超调并减轻执行器波动”，则应优先提高中频余量并压低谐振峰值，而不是继续右推截止频率。",
+          "同样是提高带宽，最小相对象和非最小相对象读回的风险不同：后者更容易被额外相位滞后压缩裕量。"
+        ],
+        "formulas": [
+          "|\\Phi(j\\omega_b)|=\\frac{|\\Phi(j0)|}{\\sqrt{2}}",
+          "M_r=\\max_{\\omega}|\\Phi(j\\omega)|"
+        ],
+        "prerequisites": [
+          "奈奎斯特与Bode统一判稳链_3_38002",
+          "相角裕度_5_0a9c6e90",
+          "带宽_5_6730fda4",
+          "非最小相与右半平面零点_3_35005"
+        ],
+        "relatedConcepts": [
+          "频域综合判断与工程读回_3_38004",
+          "谐振峰值_5_e5918c55"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "三频段",
+          "带宽",
+          "谐振峰值",
+          "稳态精度",
+          "速度",
+          "高频代价"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/三频段闭环性能回读_3_38003.md"
+      ],
+      "tags": [
+        "三频段",
+        "带宽",
+        "谐振峰值",
+        "稳态精度",
+        "速度",
+        "高频代价",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "低频补偿稳态改善路径_3_37003",
+      "name": "低频补偿稳态改善路径",
+      "nodeType": "THEORY",
+      "description": "把 PI 与滞后都理解为低频补偿：前者通过积分提高型别，后者通过低频增益重分配压小有限误差，并且二者都会把动态速度与频域裕量代价转移到其他频段。",
+      "positionX": 0.0,
+      "positionY": 50.0,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "把 PI 与滞后都理解为低频补偿：前者通过积分提高型别，后者通过低频增益重分配压小有限误差，并且二者都会把动态速度与频域裕量代价转移到其他频段。",
+        "examples": [
+          "PI 通过在原点增加积分极点，使 I 型系统提升为 II 型，从结构上消除斜坡稳态误差。",
+          "滞后校正通过“零点在左、极点在右”的附加零极点对抬高低频增益，在型别不变时改善速度误差系数。"
+        ],
+        "formulas": [
+          "G_{PI}(s)=K\\frac{T_i s+1}{T_i s}",
+          "G_{lag}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1"
+        ],
+        "prerequisites": [
+          "稳态误差双路径判断_3_37002",
+          "积分环节_2_11005",
+          "比例-积分控制器_3_2d540516",
+          "串联无源滞后校正_6_2a52e865"
+        ],
+        "relatedConcepts": [
+          "频率特性_5_404adfdd",
+          "相角裕度_5_0a9c6e90",
+          "带宽_5_6730fda4"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "低频补偿",
+          "PI",
+          "滞后校正",
+          "型别提高",
+          "低频增益",
+          "代价"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/低频补偿稳态改善路径_3_37003.md"
+      ],
+      "tags": [
+        "低频补偿",
+        "PI",
+        "滞后校正",
+        "型别提高",
+        "低频增益",
+        "代价",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "目标驱动超前校正_3_36004",
+      "name": "目标驱动超前校正",
+      "nodeType": "THEORY",
+      "description": "围绕相角裕度和截止频率等频域目标，通过 Bode 图读取当前裕度和工作频段，计算所需补角并反推出超前网络参数 a、T，再回到闭环时域响应验收设计副作用。",
+      "positionX": -62.0,
+      "positionY": 0.0,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "结构机理层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "结构机理层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "围绕相角裕度和截止频率等频域目标，通过 Bode 图读取当前裕度和工作频段，计算所需补角并反推出超前网络参数 a、T，再回到闭环时域响应验收设计副作用。",
+        "examples": [
+          "先由目标相角裕度求补角，再由补角反算 a，并把最大补角频率对准新截止频率。",
+          "补偿后即便相角裕度达标，也仍要回到阶跃响应检查时域代价。"
+        ],
+        "formulas": [
+          "G_{lead}(s)=K_c\\frac{aTs+1}{Ts+1}",
+          "\\omega_m=\\frac{1}{\\sqrt{a}T}",
+          "\\psi_m=\\arcsin\\frac{a-1}{a+1}"
+        ],
+        "prerequisites": [
+          "PD与超前的频域整形差异_3_35004",
+          "相角裕度_5_0a9c6e90",
+          "带宽_5_6730fda4"
+        ],
+        "relatedConcepts": [
+          "目标驱动测速反馈校正_3_36003",
+          "右半平面零点可行性边界_3_36005"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "超前校正",
+          "相角裕度",
+          "截止频率",
+          "Bode设计"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/目标驱动超前校正_3_36004.md"
+      ],
+      "tags": [
+        "超前校正",
+        "相角裕度",
+        "截止频率",
+        "Bode设计",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "主矛盾到频段职责映射_4_42003",
+      "name": "主矛盾到频段职责映射",
+      "nodeType": "THEORY",
+      "description": "按照“先识别主矛盾，再判断它主要落在低频、中频、高频还是给定/扰动通道”的顺序，把任务表达卡转成结构筛选的输入。",
+      "positionX": -74.0,
+      "positionY": 0.0,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "按照“先识别主矛盾，再判断它主要落在低频、中频、高频还是给定/扰动通道”的顺序，把任务表达卡转成结构筛选的输入。",
+        "examples": [
+          "当任务首先关心慢扰动抑制和稳态精度时，主矛盾通常更偏低频能力。",
+          "当任务首先关心超调、阻尼和相角裕度时，主矛盾通常更偏中频动态品质。"
+        ],
+        "formulas": [
+          "\\text{主矛盾} \\rightarrow \\text{频段职责/通道} \\rightarrow \\text{单结构优先级}"
+        ],
+        "prerequisites": [
+          "设计任务表达卡_4_41001",
+          "三频段闭环性能回读_3_38003",
+          "相角裕度_5_5a74b451",
+          "带宽频率_5_6996a44a"
+        ],
+        "relatedConcepts": [
+          "结构作用点与代价来源对照_4_42004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "主矛盾",
+          "低频",
+          "中频",
+          "三频段",
+          "任务映射"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/主矛盾到频段职责映射_4_42003.md"
+      ],
+      "tags": [
+        "主矛盾",
+        "低频",
+        "中频",
+        "三频段",
+        "任务映射",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "单结构与复合结构分流条件_4_43002",
+      "name": "单结构与复合结构分流条件",
+      "nodeType": "THEORY",
+      "description": "根据对象当前最紧矛盾、单结构已暴露的代价和可测通道条件，判断首轮方案应继续单结构，还是进入复合结构或反馈-前馈组合。",
+      "positionX": -37.0,
+      "positionY": -64.1,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "根据对象当前最紧矛盾、单结构已暴露的代价和可测通道条件，判断首轮方案应继续单结构，还是进入复合结构或反馈-前馈组合。",
+        "examples": [
+          "若单结构继续增强会明显贴近控制峰值或相角裕量边界，就应考虑补入第二条机制线。",
+          "当扰动通道可测且主问题确实来自该通道时，反馈加前馈组合往往比继续强化单一反馈结构更合适。"
+        ],
+        "formulas": [
+          "\\text{主矛盾}+\\text{已暴露代价}+\\text{通道条件}\\rightarrow \\text{单结构/复合结构}"
+        ],
+        "prerequisites": [
+          "对象分析回收到设计入口_4_43001",
+          "结构作用点与代价来源对照_4_42004",
+          "反馈保底与前馈补偿边界_4_42005"
+        ],
+        "relatedConcepts": [
+          "参数方向表达卡_4_43003"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "分流",
+          "复合结构",
+          "前馈",
+          "第二机制线"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/单结构与复合结构分流条件_4_43002.md"
+      ],
+      "tags": [
+        "分流",
+        "复合结构",
+        "前馈",
+        "第二机制线",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "单结构首轮起步卡_4_42001",
+      "name": "单结构首轮起步卡",
+      "nodeType": "THEORY",
+      "description": "把当前任务、最紧矛盾、首选单结构、参数起步方向、预期改善、代价说明和留给下一课的未决项压成一张首轮设计输入卡，用来把 4-2 的选型理由固定下来。",
+      "positionX": -19.2,
+      "positionY": -71.5,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把当前任务、最紧矛盾、首选单结构、参数起步方向、预期改善、代价说明和留给下一课的未决项压成一张首轮设计输入卡，用来把 4-2 的选型理由固定下来。",
+        "examples": [
+          "客船航向保持的起步卡会把“低频能力不足”写成最紧矛盾，再把 `PI/滞后` 写成首选单结构，并明确第一轮先验证误差是否下降、储备是否仍可接受。",
+          "稳定平台案例会把“中频动态品质与储备整理”写成更紧矛盾，再把 `PD/超前` 写成首选单结构，并要求同时补出高频代价。"
+        ],
+        "formulas": [
+          "\\text{起步卡}=(\\text{任务},\\text{主矛盾},\\text{首选单结构},\\text{参数方向},\\text{预期改善},\\text{代价},\\text{未决项})"
+        ],
+        "prerequisites": [
+          "结构工具箱最小语义_4_42002",
+          "主矛盾到频段职责映射_4_42003",
+          "结构作用点与代价来源对照_4_42004",
+          "反馈保底与前馈补偿边界_4_42005"
+        ],
+        "relatedConcepts": [
+          "设计任务表达卡_4_41001"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "起步卡",
+          "单结构",
+          "参数方向",
+          "验证假设"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/单结构首轮起步卡_4_42001.md"
+      ],
+      "tags": [
+        "起步卡",
+        "单结构",
+        "参数方向",
+        "验证假设",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "参数方向表达卡_4_43003",
+      "name": "参数方向表达卡",
+      "nodeType": "THEORY",
+      "description": "把首轮方案写成“先改哪段行为、预期先改善什么、最可能先透支什么”的设计表达，用来替代只报参数大小的经验描述。",
+      "positionX": -0.0,
+      "positionY": -74.0,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把首轮方案写成“先改哪段行为、预期先改善什么、最可能先透支什么”的设计表达，用来替代只报参数大小的经验描述。",
+        "examples": [
+          "客船航向保持的超前初始方案，可写成“在截止频率附近补相位，先缩短调节时间，同时警惕超调量和控制峰值贴近边界”。",
+          "滞后加超前方案可写成“先抬低频能力压静差，再回收中频相位，首轮重点关注调节时间是否明显变慢”。"
+        ],
+        "formulas": [
+          "\\text{参数方向}=(\\text{先改哪段行为},\\text{预期改善},\\text{最可能透支})"
+        ],
+        "prerequisites": [
+          "单结构与复合结构分流条件_4_43002",
+          "目标驱动超前校正_3_36004",
+          "低频补偿稳态改善路径_3_37003"
+        ],
+        "relatedConcepts": [
+          "首轮验证最小读数逻辑_4_43004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "参数方向",
+          "设计语言",
+          "首轮方案"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/参数方向表达卡_4_43003.md"
+      ],
+      "tags": [
+        "参数方向",
+        "设计语言",
+        "首轮方案",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "反馈保底与前馈补偿边界_4_42005",
+      "name": "反馈保底与前馈补偿边界",
+      "nodeType": "THEORY",
+      "description": "当给定或扰动通道可测时，前馈可以作为定向补偿进入候选；但反馈仍负责稳定性、鲁棒性与模型偏差下的保底，二者不能互相替代。",
+      "positionX": 37.0,
+      "positionY": -64.1,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "当给定或扰动通道可测时，前馈可以作为定向补偿进入候选；但反馈仍负责稳定性、鲁棒性与模型偏差下的保底，二者不能互相替代。",
+        "examples": [
+          "已测扰动出现时，可先用前馈在扰动进入误差环节前对冲一部分影响，但未知扰动和模型偏差仍要靠反馈兜底。",
+          "把“前馈更快”误写成“前馈更高级”，会直接抹掉反馈闭环的保底职责。"
+        ],
+        "formulas": [
+          "u(s)=u_{\\mathrm{fb}}(s)+u_{\\mathrm{ff}}(s),\\qquad u_{\\mathrm{ff}}(s)=-G_{\\mathrm{ff}}(s)d_m(s)"
+        ],
+        "prerequisites": [
+          "结构工具箱最小语义_4_42002",
+          "主矛盾到频段职责映射_4_42003"
+        ],
+        "relatedConcepts": [
+          "单结构首轮起步卡_4_42001"
+        ],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "前馈",
+          "反馈",
+          "扰动补偿",
+          "鲁棒性"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/反馈保底与前馈补偿边界_4_42005.md"
+      ],
+      "tags": [
+        "前馈",
+        "反馈",
+        "扰动补偿",
+        "鲁棒性",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "对象分析回收到设计入口_4_43001",
+      "name": "对象分析回收到设计入口",
+      "nodeType": "THEORY",
+      "description": "把对象模型、任务书、约束边界和首轮观察指标重新压成设计入口，明确当前最紧矛盾、暂缓决策项和第一轮验证重点。",
+      "positionX": 80.0,
+      "positionY": 0.0,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "把对象模型、任务书、约束边界和首轮观察指标重新压成设计入口，明确当前最紧矛盾、暂缓决策项和第一轮验证重点。",
+        "examples": [
+          "客船航向保持对象虽然自带积分特性，但当前最紧问题并不在稳态误差，而在中频动态品质与控制峰值边界。",
+          "某对象稳态误差偏大但速度尚可时，应先把低频能力写成入口，而不是一上来堆复合结构。"
+        ],
+        "formulas": [
+          "\\text{对象分析}=(\\text{主矛盾},\\text{硬约束},\\text{可接受代价},\\text{首轮验证重点})"
+        ],
+        "prerequisites": [
+          "设计任务表达卡_4_41001",
+          "单结构首轮起步卡_4_42001"
+        ],
+        "relatedConcepts": [
+          "主矛盾到频段职责映射_4_42003"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "对象分析",
+          "设计入口",
+          "主矛盾",
+          "约束"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/对象分析回收到设计入口_4_43001.md"
+      ],
+      "tags": [
+        "对象分析",
+        "设计入口",
+        "主矛盾",
+        "约束",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "扰动抑制中的通道重写边界_4_43006",
+      "name": "扰动抑制中的通道重写边界",
+      "nodeType": "THEORY",
+      "description": "当设计任务从给定跟踪转为扰动抑制时，复合结构可能不再主要来自频段叠加，而是来自对控制通道、扰动通道和物理分量的重新组织。",
+      "positionX": 20.7,
+      "positionY": 77.3,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "当设计任务从给定跟踪转为扰动抑制时，复合结构可能不再主要来自频段叠加，而是来自对控制通道、扰动通道和物理分量的重新组织。",
+        "examples": [
+          "横摇减摇鳍控制器同时组合角速度、角度和积分作用，说明复合结构可以来自扰动抑制通道重写。",
+          "若设计任务转向可测扰动对消，就不能继续只用‘低频/中频补偿’解释结构组合。"
+        ],
+        "formulas": [
+          "u(s)=u_{\\mathrm{feedback}}(s)+u_{\\mathrm{channel\\ rewrite}}(s)"
+        ],
+        "prerequisites": [
+          "反馈保底与前馈补偿边界_4_42005",
+          "单结构与复合结构分流条件_4_43002"
+        ],
+        "relatedConcepts": [
+          "问题清单移交表_4_43005"
+        ],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "扰动抑制",
+          "通道重写",
+          "边界案例",
+          "减摇鳍"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/扰动抑制中的通道重写边界_4_43006.md"
+      ],
+      "tags": [
+        "扰动抑制",
+        "通道重写",
+        "边界案例",
+        "减摇鳍",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "结构作用点与代价来源对照_4_42004",
+      "name": "结构作用点与代价来源对照",
+      "nodeType": "THEORY",
+      "description": "说明每一类单结构为什么会优先改善某一段行为，以及这种改善为什么必然在储备、速度、噪声或复杂度上暴露相应代价。",
+      "positionX": -43.0,
+      "positionY": 74.5,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "说明每一类单结构为什么会优先改善某一段行为，以及这种改善为什么必然在储备、速度、噪声或复杂度上暴露相应代价。",
+        "examples": [
+          "`PI` 提高低频能力时，常会同时带来相位滞后和速度代价。",
+          "`PD/超前` 改善中频动态品质时，往往会把高频敏感性和实现复杂度一起抬高。"
+        ],
+        "formulas": [
+          "\\text{收益位置} \\neq \\text{代价消失};\\quad \\text{结构作用点} \\rightarrow \\text{代价来源}"
+        ],
+        "prerequisites": [
+          "主矛盾到频段职责映射_4_42003",
+          "相角裕度_5_5a74b451",
+          "幅值裕度_5_73af26a5",
+          "带宽频率_5_6996a44a"
+        ],
+        "relatedConcepts": [
+          "反馈保底与前馈补偿边界_4_42005",
+          "单结构首轮起步卡_4_42001"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "收益",
+          "代价",
+          "相角裕度",
+          "噪声敏感性",
+          "结构比较"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/结构作用点与代价来源对照_4_42004.md"
+      ],
+      "tags": [
+        "收益",
+        "代价",
+        "相角裕度",
+        "噪声敏感性",
+        "结构比较",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "设计任务表达卡_4_41001",
+      "name": "设计任务表达卡",
+      "nodeType": "THEORY",
+      "description": "把控制对象、控制目标、硬约束、软目标、观察指标和证据来源写成同一张输入卡，用来把模块3的分析证据转换为模块4后续选型与起步的共同输入。",
+      "positionX": -83.1,
+      "positionY": 22.3,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把控制对象、控制目标、硬约束、软目标、观察指标和证据来源写成同一张输入卡，用来把模块3的分析证据转换为模块4后续选型与起步的共同输入。",
+        "examples": [
+          "客船航向控制的任务表达卡会把“超调不可继续维持在当前水平”和“相位储备要更从容”写成硬约束，再把“进一步缩短调节时间”写成软目标。",
+          "稳定平台场景会把“保持高响应频带”提前到更高优先级，同时仍保留“不能继续压紧中频储备”的边界。"
+        ],
+        "formulas": [
+          "\\text{任务表达卡}=(\\text{对象},\\text{目标},\\text{硬约束},\\text{软目标},\\text{观察指标},\\text{证据来源})"
+        ],
+        "prerequisites": [
+          "指标角色重组_4_41002",
+          "硬约束-软目标-观察指标分类_4_41003",
+          "可行域-满意域-最优域分层_4_41004",
+          "跨域联读任务重排_4_41005"
+        ],
+        "relatedConcepts": [
+          "设计可行域_4_Lsum004"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "任务表达卡",
+          "目标-约束-优先级",
+          "证据来源",
+          "设计输入"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/设计任务表达卡_4_41001.md"
+      ],
+      "tags": [
+        "任务表达卡",
+        "目标-约束-优先级",
+        "证据来源",
+        "设计输入",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "问题清单移交表_4_43005",
+      "name": "问题清单移交表",
+      "nodeType": "THEORY",
+      "description": "把首轮验证结论压成“已满足目标、已暴露代价、下一轮优先调整项”三类句子，用来把首轮证据正式移交给后续权衡和优化阶段。",
+      "positionX": 92.0,
+      "positionY": 0.0,
+      "positionZ": 0,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把首轮验证结论压成“已满足目标、已暴露代价、下一轮优先调整项”三类句子，用来把首轮证据正式移交给后续权衡和优化阶段。",
+        "examples": [
+          "客船航向保持的首轮问题清单会同时记录‘调节时间已进入目标附近’和‘控制峰值已贴近边界’。",
+          "若某方案静差已满足要求，但相角裕量和超调量同时偏紧，问题清单应先指向参数回收或机制重分配。"
+        ],
+        "formulas": [
+          "\\text{问题清单}=(\\text{已满足目标},\\text{已暴露代价},\\text{下一轮优先调整项})"
+        ],
+        "prerequisites": [
+          "首轮验证最小读数逻辑_4_43004"
+        ],
+        "relatedConcepts": [
+          "单结构与复合结构分流条件_4_43002"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "问题清单",
+          "移交",
+          "下一轮调整"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/问题清单移交表_4_43005.md"
+      ],
+      "tags": [
+        "问题清单",
+        "移交",
+        "下一轮调整",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "首轮验证最小读数逻辑_4_43004",
+      "name": "首轮验证最小读数逻辑",
+      "nodeType": "THEORY",
+      "description": "首轮验证至少同时读取时域、频域和控制量边界中的关键证据，用来判断方案是否接住主矛盾、是否触碰硬约束，以及下一轮应优先调整什么。",
+      "positionX": 23.8,
+      "positionY": 88.9,
+      "positionZ": 0,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": null,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "首轮验证至少同时读取时域、频域和控制量边界中的关键证据，用来判断方案是否接住主矛盾、是否触碰硬约束，以及下一轮应优先调整什么。",
+        "examples": [
+          "客船航向保持首轮验证同时看调节时间、超调量、相角裕度和控制峰值，才能说明超前方案是否值得继续推进。",
+          "对低频补偿主导的对象，不能只看静差改善，还要同时看调节时间和相角裕度是否明显恶化。"
+        ],
+        "formulas": [
+          "\\text{首轮验证}=\\{\\text{时域过程},\\text{截止频率/相角裕度},\\text{控制峰值或高频代价}\\}"
+        ],
+        "prerequisites": [
+          "参数方向表达卡_4_43003",
+          "三频段闭环性能回读_3_38003",
+          "相角裕度_5_5a74b451",
+          "带宽频率_5_6996a44a"
+        ],
+        "relatedConcepts": [
+          "问题清单移交表_4_43005"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "首轮验证",
+          "时域",
+          "频域",
+          "控制峰值"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/首轮验证最小读数逻辑_4_43004.md"
+      ],
+      "tags": [
+        "首轮验证",
+        "时域",
+        "频域",
+        "控制峰值",
+        "chapter-0"
+      ]
+    },
+    {
+      "id": "带宽频率_5_6996a44a",
+      "name": "带宽频率",
+      "nodeType": "THEORY",
+      "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
+      "positionX": 0.0,
+      "positionY": 154.0,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
+        "examples": [
+          "对于一阶系统，ω_b=1/T；对于二阶系统，ω_b与ω_n和ζ有关。",
+          "磁盘驱动读取系统：从图5-59确定闭环带宽频率ωb=2000 rad/s。",
+          "机械臂控制系统：需要计算闭环系统的带宽频率ωb。"
+        ],
+        "formulas": [
+          "20\\lg|\\Phi(j\\omega_b)| = 20\\lg|\\Phi(j0)| - 3"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "3dB点",
+          "闭环幅频特性",
+          "闭环频率特性",
+          "响应速度",
+          "截止频率"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628615",
+        "updatedAt": "2026-02-04T17:54:16.628615",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/带宽频率_5_6996a44a.md"
+      ],
+      "tags": [
+        "3dB点",
+        "闭环幅频特性",
+        "闭环频率特性",
+        "响应速度",
+        "截止频率",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "相角裕度_5_5a74b451",
+      "name": "相角裕度",
+      "nodeType": "THEORY",
+      "description": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
+      "positionX": 113.1,
+      "positionY": 113.1,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
+        "examples": [
+          "例5-13计算典型二阶系统的相角裕度与阻尼比的关系。",
+          "例5-14计算不同开环增益下的相角裕度。",
+          "雕刻机系统：相角裕度γ=53°，表明闭环系统稳定。",
+          "磁盘驱动读取系统：通过图5-58确定相角裕度γ=45°。"
+        ],
+        "formulas": [
+          "\\gamma = 180^\\circ + \\varphi(\\omega_c)",
+          "\\gamma = 180^\\circ + \\angle G(j\\omega_c)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "截止频率",
+          "相位滞后",
+          "临界稳定",
+          "稳定性",
+          "开环频率特性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628585",
+        "updatedAt": "2026-02-04T17:54:16.628586",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md"
+      ],
+      "tags": [
+        "截止频率",
+        "相位滞后",
+        "临界稳定",
+        "稳定性",
+        "开环频率特性",
+        "chapter-5"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "rel-04e19a5b4939ba49",
+      "sourceId": "带宽频率_5_6996a44a",
+      "targetId": "主矛盾到频段职责映射_4_42003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.89
+    },
+    {
+      "id": "rel-137b23c3f325cf77",
+      "sourceId": "三频段闭环性能回读_3_38003",
+      "targetId": "主矛盾到频段职责映射_4_42003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-2439edc7b65f3dda",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "主矛盾到频段职责映射_4_42003",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-52840748131e83f2",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "结构作用点与代价来源对照_4_42004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-533f0df90b438d5d",
+      "sourceId": "结构作用点与代价来源对照_4_42004",
+      "targetId": "单结构首轮起步卡_4_42001",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-64279ce498e1776d",
+      "sourceId": "主矛盾到频段职责映射_4_42003",
+      "targetId": "结构作用点与代价来源对照_4_42004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-6df90136d86500da",
+      "sourceId": "带宽频率_5_6996a44a",
+      "targetId": "结构作用点与代价来源对照_4_42004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-7c74dd94a5cf67da",
+      "sourceId": "主矛盾到频段职责映射_4_42003",
+      "targetId": "反馈保底与前馈补偿边界_4_42005",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.87
+    },
+    {
+      "id": "rel-b173854885623ba7",
+      "sourceId": "反馈保底与前馈补偿边界_4_42005",
+      "targetId": "单结构首轮起步卡_4_42001",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-4b2560dfce10945b",
+      "sourceId": "设计任务表达卡_4_41001",
+      "targetId": "对象分析回收到设计入口_4_43001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-799716dd55eee56e",
+      "sourceId": "单结构首轮起步卡_4_42001",
+      "targetId": "对象分析回收到设计入口_4_43001",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-bed75c6a39ec8481",
+      "sourceId": "对象分析回收到设计入口_4_43001",
+      "targetId": "单结构与复合结构分流条件_4_43002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
+    },
+    {
+      "id": "rel-fc59e39a20d4d02c",
+      "sourceId": "结构作用点与代价来源对照_4_42004",
+      "targetId": "单结构与复合结构分流条件_4_43002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.91
+    },
+    {
+      "id": "rel-8a242360c1137e0d",
+      "sourceId": "反馈保底与前馈补偿边界_4_42005",
+      "targetId": "单结构与复合结构分流条件_4_43002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-fabd8c9044fdbef1",
+      "sourceId": "单结构与复合结构分流条件_4_43002",
+      "targetId": "参数方向表达卡_4_43003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-fb932d3abb418fcb",
+      "sourceId": "目标驱动超前校正_3_36004",
+      "targetId": "参数方向表达卡_4_43003",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-08390f3b28c43e25",
+      "sourceId": "低频补偿稳态改善路径_3_37003",
+      "targetId": "参数方向表达卡_4_43003",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-5be9ea98eee60cf2",
+      "sourceId": "参数方向表达卡_4_43003",
+      "targetId": "首轮验证最小读数逻辑_4_43004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
+    },
+    {
+      "id": "rel-332827f5343149eb",
+      "sourceId": "三频段闭环性能回读_3_38003",
+      "targetId": "首轮验证最小读数逻辑_4_43004",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-9516a4ca3f51e66b",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "首轮验证最小读数逻辑_4_43004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.89
+    },
+    {
+      "id": "rel-5119019e643f1082",
+      "sourceId": "带宽频率_5_6996a44a",
+      "targetId": "首轮验证最小读数逻辑_4_43004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.87
+    },
+    {
+      "id": "rel-0d982d2165cf3bd9",
+      "sourceId": "首轮验证最小读数逻辑_4_43004",
+      "targetId": "问题清单移交表_4_43005",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.98
+    },
+    {
+      "id": "rel-9482ff68353d461b",
+      "sourceId": "反馈保底与前馈补偿边界_4_42005",
+      "targetId": "扰动抑制中的通道重写边界_4_43006",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-264a4a8c1eb9acc5",
+      "sourceId": "单结构与复合结构分流条件_4_43002",
+      "targetId": "扰动抑制中的通道重写边界_4_43006",
+      "relation": "generalizes",
+      "relationType": "generalizes",
+      "strength": 0.84
+    }
+  ]
+}

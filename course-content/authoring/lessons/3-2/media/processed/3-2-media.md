@@ -1,7 +1,8 @@
 # 3-2-intro-video.mp4
 
-- 学生不断推大高阶系统参数滑块，极点逐步逼近虚轴、振荡和幅频峰值同步抬高，老师再展开劳斯表，说明不必先求出全部根也能提前看见稳定边界。
 - 用导入情境引出“高阶系统不求根，也能先看出稳定边界”这一主题。
+
+https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=31c1b5d3289b308f21e286dfac71c88d&v=1776583104385&puid=26652392&enc=3e40fcac14667bc3bf432bea6fdc25f0&wps=658f65849ec7c7e238c497ad5f576878d70d687fb84ea7b5
 
 # 3-2-audio.m4a
 

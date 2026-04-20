@@ -2,8 +2,8 @@
   "acceptance_version": 1,
   "lesson_id": "3-2",
   "status": "accepted",
-  "accepted_at": "2026-04-19T19:16:00+08:00",
-  "review_mode": "subagent",
+  "accepted_at": "2026-04-19T22:56:25+08:00",
+  "review_mode": "main_agent_fallback",
   "implementation_contract_source": "src/lib/unit-3-2-course.ts",
   "reviewed_runtime_artifacts": [
     "course-content/runtime/lessons/3-2/review/review-report.md",
