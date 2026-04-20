@@ -61,7 +61,7 @@
     "lesson_id": "4-3",
     "groups": [
       {
-        "group_name": "任务卡回收与对象入口",
+        "group_name": "入口与对象分析",
         "step_ids": [
           "step-01",
           "step-02"
@@ -73,7 +73,7 @@
         ]
       },
       {
-        "group_name": "结构分流判断",
+        "group_name": "结构分流与总览",
         "step_ids": [
           "step-03",
           "step-04"
@@ -85,7 +85,7 @@
         ]
       },
       {
-        "group_name": "复合结构与参数方向",
+        "group_name": "复合结构 A/B",
         "step_ids": [
           "step-05",
           "step-06"
@@ -93,38 +93,53 @@
         "node_ids": [
           "目标驱动超前校正_3_36004",
           "低频补偿稳态改善路径_3_37003",
-          "反馈保底与前馈补偿边界_4_42005",
           "参数方向表达卡_4_43003"
         ]
       },
       {
-        "group_name": "首轮验证读数",
+        "group_name": "复合结构 C 与客船入口",
         "step_ids": [
           "step-07",
           "step-08"
         ],
         "node_ids": [
-          "三频段闭环性能回读_3_38003",
-          "相角裕度_5_5a74b451",
-          "带宽频率_5_6996a44a",
-          "首轮验证最小读数逻辑_4_43004"
+          "反馈保底与前馈补偿边界_4_42005",
+          "目标驱动超前校正_3_36004",
+          "参数方向表达卡_4_43003"
         ]
       },
       {
-        "group_name": "问题清单与移交",
+        "group_name": "客船落地与验证",
         "step_ids": [
           "step-09",
           "step-10"
         ],
         "node_ids": [
+          "参数方向表达卡_4_43003",
+          "三频段闭环性能回读_3_38003",
+          "相角裕度_5_5a74b451",
+          "带宽频率_5_6996a44a",
+          "首轮验证最小读数逻辑_4_43004",
           "问题清单移交表_4_43005"
         ]
       },
       {
-        "group_name": "边界案例",
+        "group_name": "例题与工作区",
         "step_ids": [
           "step-11",
           "step-12"
+        ],
+        "node_ids": [
+          "单结构与复合结构分流条件_4_43002",
+          "参数方向表达卡_4_43003",
+          "问题清单移交表_4_43005"
+        ]
+      },
+      {
+        "group_name": "边界案例与收束",
+        "step_ids": [
+          "step-13",
+          "step-14"
         ],
         "node_ids": [
           "扰动抑制中的通道重写边界_4_43006"
@@ -159,7 +174,12 @@
   "media_index_path": "/course-runtime/lessons/4-3/media/4-3-media.md",
   "media_index_source_path": "course-content/runtime/lessons/4-3/media/4-3-media.md",
   "review": {
-    "status": "pending",
-    "boppps_path": "/course-runtime/lessons/4-3/review/boppps.md"
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/4-3/review/boppps.md",
+    "report_path": "/course-runtime/lessons/4-3/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/4-3/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/4-3/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/4-3/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/4-3/review/source-manifest.json"
   }
 }

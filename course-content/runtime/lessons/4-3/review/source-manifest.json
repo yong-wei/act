@@ -1,0 +1,91 @@
+{
+  "lesson_id": "4-3",
+  "unit_type": "实践",
+  "generated_at": "2026-04-20T03:20:23.016626+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/4-3/design/handout.md",
+    "course-content/authoring/lessons/4-3/design/interactive-page.md"
+  ],
+  "interactive_page_source": "course-content/authoring/lessons/4-3/design/interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/4-3/design/interactive-contract.yaml",
+  "handout_pdf_source": "course-content/authoring/lessons/4-3/design/handout.pdf",
+  "boppps_source": "course-content/authoring/lessons/4-3/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/4-3/sequence.json",
+  "expected_code_media": [
+    {
+      "output": "4-3-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-pi-lead-compound-quad.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-lag-lead-compound-quad.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-pid-compound-quad.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-heading-case-quad.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-roll-fin-compensation-structure.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-roll-boundary-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-intro-video.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-slides.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-course.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-audio.m4a",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-parameter-direction-template.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-3-issue-handover-template.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "handout.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    }
+  ]
+}

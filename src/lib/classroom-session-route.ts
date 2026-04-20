@@ -15,6 +15,7 @@ import { UNIT_3_8_COURSE_TITLE, UNIT_3_8_ROUTE_SEGMENT } from '@/lib/unit-3-8-co
 import { UNIT_3_9_COURSE_TITLE, UNIT_3_9_ROUTE_SEGMENT } from '@/lib/unit-3-9-course';
 import { UNIT_4_1_COURSE_TITLE, UNIT_4_1_ROUTE_SEGMENT } from '@/lib/unit-4-1-course';
 import { UNIT_4_2_COURSE_TITLE, UNIT_4_2_ROUTE_SEGMENT } from '@/lib/unit-4-2-course';
+import { UNIT_4_3_COURSE_TITLE, UNIT_4_3_ROUTE_SEGMENT } from '@/lib/unit-4-3-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -171,6 +172,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '4-2：控制器选型原理：不同控制结构为何适合不同任务',
       '控制器选型原理：不同控制结构为何适合不同任务',
       '控制器选型原理',
+    ],
+  },
+  {
+    routeSegment: UNIT_4_3_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_4_3_COURSE_TITLE,
+      '4-3：初始方案落地实践：从对象分析到结构组合与首轮验证',
+      '初始方案落地实践：从对象分析到结构组合与首轮验证',
+      '初始方案落地实践',
     ],
   },
 ];

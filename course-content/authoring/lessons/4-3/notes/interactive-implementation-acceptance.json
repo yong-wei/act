@@ -1,0 +1,36 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "4-3",
+  "status": "accepted",
+  "accepted_at": "2026-04-20T11:20:00+08:00",
+  "review_mode": "main_agent_fallback",
+  "implementation_contract_source": "src/lib/unit-4-3-course.ts",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/4-3/review/review-report.md",
+    "course-content/runtime/lessons/4-3/review/interactive-page-check.json"
+  ],
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "学生页只通过 useGlobalAI().updatePageContext 接入隐藏式页面上下文，正文不提供页内 AI 卡片、复制提示词或旧 /ai 跳转。"
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "14 个步骤的题面、表格、公式、显影文本、图后解释与作答题面均来自 interactive-contract.yaml 的 content_blocks 与 interaction_spec。"
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "4-3 契约未要求参数联动工作区；正式媒体作为讲义四联图、结构图和对照图按证据顺序呈现，未将联动任务降级为静态截图。"
+      ]
+    }
+  },
+  "issues": []
+}

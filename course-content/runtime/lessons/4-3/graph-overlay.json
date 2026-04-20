@@ -50,7 +50,7 @@
   ],
   "groups": [
     {
-      "group_name": "任务卡回收与对象入口",
+      "group_name": "入口与对象分析",
       "step_ids": [
         "step-01",
         "step-02"
@@ -62,7 +62,7 @@
       ]
     },
     {
-      "group_name": "结构分流判断",
+      "group_name": "结构分流与总览",
       "step_ids": [
         "step-03",
         "step-04"
@@ -74,7 +74,7 @@
       ]
     },
     {
-      "group_name": "复合结构与参数方向",
+      "group_name": "复合结构 A/B",
       "step_ids": [
         "step-05",
         "step-06"
@@ -82,38 +82,53 @@
       "node_ids": [
         "目标驱动超前校正_3_36004",
         "低频补偿稳态改善路径_3_37003",
-        "反馈保底与前馈补偿边界_4_42005",
         "参数方向表达卡_4_43003"
       ]
     },
     {
-      "group_name": "首轮验证读数",
+      "group_name": "复合结构 C 与客船入口",
       "step_ids": [
         "step-07",
         "step-08"
       ],
       "node_ids": [
-        "三频段闭环性能回读_3_38003",
-        "相角裕度_5_5a74b451",
-        "带宽频率_5_6996a44a",
-        "首轮验证最小读数逻辑_4_43004"
+        "反馈保底与前馈补偿边界_4_42005",
+        "目标驱动超前校正_3_36004",
+        "参数方向表达卡_4_43003"
       ]
     },
     {
-      "group_name": "问题清单与移交",
+      "group_name": "客船落地与验证",
       "step_ids": [
         "step-09",
         "step-10"
       ],
       "node_ids": [
+        "参数方向表达卡_4_43003",
+        "三频段闭环性能回读_3_38003",
+        "相角裕度_5_5a74b451",
+        "带宽频率_5_6996a44a",
+        "首轮验证最小读数逻辑_4_43004",
         "问题清单移交表_4_43005"
       ]
     },
     {
-      "group_name": "边界案例",
+      "group_name": "例题与工作区",
       "step_ids": [
         "step-11",
         "step-12"
+      ],
+      "node_ids": [
+        "单结构与复合结构分流条件_4_43002",
+        "参数方向表达卡_4_43003",
+        "问题清单移交表_4_43005"
+      ]
+    },
+    {
+      "group_name": "边界案例与收束",
+      "step_ids": [
+        "step-13",
+        "step-14"
       ],
       "node_ids": [
         "扰动抑制中的通道重写边界_4_43006"
@@ -1123,12 +1138,60 @@
       "strength": 0.88
     },
     {
+      "id": "rel-08390f3b28c43e25",
+      "sourceId": "低频补偿稳态改善路径_3_37003",
+      "targetId": "参数方向表达卡_4_43003",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-0d982d2165cf3bd9",
+      "sourceId": "首轮验证最小读数逻辑_4_43004",
+      "targetId": "问题清单移交表_4_43005",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.98
+    },
+    {
+      "id": "rel-264a4a8c1eb9acc5",
+      "sourceId": "单结构与复合结构分流条件_4_43002",
+      "targetId": "扰动抑制中的通道重写边界_4_43006",
+      "relation": "generalizes",
+      "relationType": "generalizes",
+      "strength": 0.84
+    },
+    {
+      "id": "rel-332827f5343149eb",
+      "sourceId": "三频段闭环性能回读_3_38003",
+      "targetId": "首轮验证最小读数逻辑_4_43004",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.92
+    },
+    {
       "id": "rel-4b2560dfce10945b",
       "sourceId": "设计任务表达卡_4_41001",
       "targetId": "对象分析回收到设计入口_4_43001",
       "relation": "leads_to",
       "relationType": "leads_to",
       "strength": 0.96
+    },
+    {
+      "id": "rel-5119019e643f1082",
+      "sourceId": "带宽频率_5_6996a44a",
+      "targetId": "首轮验证最小读数逻辑_4_43004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.87
+    },
+    {
+      "id": "rel-5be9ea98eee60cf2",
+      "sourceId": "参数方向表达卡_4_43003",
+      "targetId": "首轮验证最小读数逻辑_4_43004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
     },
     {
       "id": "rel-799716dd55eee56e",
@@ -1139,28 +1202,36 @@
       "strength": 0.92
     },
     {
-      "id": "rel-bed75c6a39ec8481",
-      "sourceId": "对象分析回收到设计入口_4_43001",
-      "targetId": "单结构与复合结构分流条件_4_43002",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.97
-    },
-    {
-      "id": "rel-fc59e39a20d4d02c",
-      "sourceId": "结构作用点与代价来源对照_4_42004",
-      "targetId": "单结构与复合结构分流条件_4_43002",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.91
-    },
-    {
       "id": "rel-8a242360c1137e0d",
       "sourceId": "反馈保底与前馈补偿边界_4_42005",
       "targetId": "单结构与复合结构分流条件_4_43002",
       "relation": "applies_to",
       "relationType": "applies_to",
       "strength": 0.88
+    },
+    {
+      "id": "rel-9482ff68353d461b",
+      "sourceId": "反馈保底与前馈补偿边界_4_42005",
+      "targetId": "扰动抑制中的通道重写边界_4_43006",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-9516a4ca3f51e66b",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "首轮验证最小读数逻辑_4_43004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.89
+    },
+    {
+      "id": "rel-bed75c6a39ec8481",
+      "sourceId": "对象分析回收到设计入口_4_43001",
+      "targetId": "单结构与复合结构分流条件_4_43002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
     },
     {
       "id": "rel-fabd8c9044fdbef1",
@@ -1179,68 +1250,12 @@
       "strength": 0.9
     },
     {
-      "id": "rel-08390f3b28c43e25",
-      "sourceId": "低频补偿稳态改善路径_3_37003",
-      "targetId": "参数方向表达卡_4_43003",
+      "id": "rel-fc59e39a20d4d02c",
+      "sourceId": "结构作用点与代价来源对照_4_42004",
+      "targetId": "单结构与复合结构分流条件_4_43002",
       "relation": "applies_to",
       "relationType": "applies_to",
-      "strength": 0.88
-    },
-    {
-      "id": "rel-5be9ea98eee60cf2",
-      "sourceId": "参数方向表达卡_4_43003",
-      "targetId": "首轮验证最小读数逻辑_4_43004",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.97
-    },
-    {
-      "id": "rel-332827f5343149eb",
-      "sourceId": "三频段闭环性能回读_3_38003",
-      "targetId": "首轮验证最小读数逻辑_4_43004",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.92
-    },
-    {
-      "id": "rel-9516a4ca3f51e66b",
-      "sourceId": "相角裕度_5_5a74b451",
-      "targetId": "首轮验证最小读数逻辑_4_43004",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.89
-    },
-    {
-      "id": "rel-5119019e643f1082",
-      "sourceId": "带宽频率_5_6996a44a",
-      "targetId": "首轮验证最小读数逻辑_4_43004",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.87
-    },
-    {
-      "id": "rel-0d982d2165cf3bd9",
-      "sourceId": "首轮验证最小读数逻辑_4_43004",
-      "targetId": "问题清单移交表_4_43005",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.98
-    },
-    {
-      "id": "rel-9482ff68353d461b",
-      "sourceId": "反馈保底与前馈补偿边界_4_42005",
-      "targetId": "扰动抑制中的通道重写边界_4_43006",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.88
-    },
-    {
-      "id": "rel-264a4a8c1eb9acc5",
-      "sourceId": "单结构与复合结构分流条件_4_43002",
-      "targetId": "扰动抑制中的通道重写边界_4_43006",
-      "relation": "generalizes",
-      "relationType": "generalizes",
-      "strength": 0.84
+      "strength": 0.91
     }
   ]
 }

@@ -72,6 +72,10 @@ import {
   getUnit42StepAIContext as getUnit42StepAIContextLocal,
   getUnit42StepQuickQuestions as getUnit42StepQuickQuestionsLocal,
 } from './unit-4-2-ai-contexts';
+import {
+  getUnit43StepAIContext as getUnit43StepAIContextLocal,
+  getUnit43StepQuickQuestions as getUnit43StepQuickQuestionsLocal,
+} from './unit-4-3-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -213,6 +217,14 @@ export {
   getUnit42StepAIContext,
   getUnit42StepQuickQuestions,
 } from './unit-4-2-ai-contexts';
+export {
+  UNIT_4_3_COURSE_META,
+  UNIT_4_3_STEP_AI_CONTEXTS,
+  getUNIT_4_3StepAIContext,
+  getUNIT_4_3StepQuickQuestions,
+  getUnit43StepAIContext,
+  getUnit43StepQuickQuestions,
+} from './unit-4-3-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -392,6 +404,17 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '4-2：控制器选型原理：不同控制结构为何适合不同任务',
       courseDescription:
         '围绕结构工具箱、三频段职责、双案例首轮起步与前馈补偿边界，把任务表达卡推进成单结构首轮起步卡。',
+    },
+  },
+
+  'unit-4-3-initial-scheme-practice-first-validation-v1': {
+    getStepContext: (stepId: string) => getUnit43StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit43StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-4-3-initial-scheme-practice-first-validation-v1',
+      courseTitle: '4-3：初始方案落地实践：从对象分析到结构组合与首轮验证',
+      courseDescription:
+        '围绕对象分析、结构分流、复合结构职责、参数方向、首轮验证与问题清单，把起步卡推进成可验证的第一版方案。',
     },
   },
 };
