@@ -93,6 +93,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 先把 handout、BOPPPS、manifest、sequence 和既有设计中的工程性提示下沉为 hidden constraints，只保留：
 
 - 本页必须出现哪些对象、证据、题面、公式链、图后解释、结论桥接
+- 本页必须出现哪些**可直接渲染给学生的正文内容载荷**，例如标题句、题面全文、关键段落、表格内容、图后解释、作答题面与总结句
 - 哪些范围不能扩张
 - 目标读者在这一页需要完成什么理解 / 判断 / 操作
 - 哪些教师控制语义必须进入机读契约，但不直接写成 prose 句型
@@ -110,6 +111,20 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 例题与求解链
 - 结论句
 - 误判点
+
+同时把每个证据单元继续拆成“页面内容载荷”，至少考虑：
+
+- 页面标题与小标题
+- 面向学生直接显示的正文句、提示句、过渡句
+- 完整题面或案例任务书，不得只写“见讲义”
+- 公式本体与公式解释句
+- 表格列名、行名与单元格正文
+- 图注、图后解释与读图口令
+- 逐步显影各层的完整文本，而不是只记“第 1 步 / 第 2 步”
+- 作答卡标题、题面、干扰项或答案口径
+- 本页收束句与回接主线的结论句
+
+若某个证据单元只能被概括成“这里放一张图”“这里有个表”“这里学生讨论”，说明内容载荷尚未抽完，不能进入后续步骤。
 
 ### Step 2｜为证据单元选页面归宿
 
@@ -130,6 +145,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 页面模板
 - 区域布局
 - 模块清单
+- 页面正文内容源
 - 静态承载内容
 - 证据顺序
 - 互动升级点
@@ -139,6 +155,18 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 本页脱离讲稿后的自包含检查
 
 `interactive-page.md` 的每一步都应写成**页面蓝图 prose**，解释当前页的对象、证据、判断动作和阅读顺序；不要写成教师口播稿、前端需求单或“展示 / 引导 / 完成一次”式动作脚本。
+
+仅写“静态承载内容：表 3 结果摘要”“对象 `P(s)` 与控制器 `C(s)`”“这里出现题面与四联图”还不够。这些仍是摘要级设计约束，不是可直接实现的课程内容。每一步必须继续下沉到可直接落到页面上的内容层，例如：
+
+- 标题卡写什么句子
+- 题面全文如何呈现
+- 表格每一列和每个关键单元格写什么
+- 公式后解释句怎么写
+- 图后先读什么、再判断什么
+- 作答卡标题与题面各写什么
+- 本页最后用哪一句话把结论接回主线
+
+若实现者拿到设计稿后，仍需要自己编写大段教学正文、重写题面、补表格内容、脑补图后解释或替作者决定显影文本，则该设计稿仍然内容不足。
 
 ### Step 4｜同步产出双轨真源
 
@@ -151,6 +179,13 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 预览路径
 - 教师控制语义
 - 学生访问语义
+- 页面正文内容源与内容块语义
+
+其中：
+
+- `interactive-page.md` 负责给出人读层的完整页面内容蓝图；
+- `interactive-contract.yaml` 负责给出机读层的最小可实现内容载荷；
+- 二者都必须承载课程内容，不能出现“人读稿有内容、契约只有框架”或“契约有若干字段、人读稿只有约束摘要”的失衡状态。
 
 ### Step 5｜出稿前检查
 
@@ -168,6 +203,9 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 抽掉讲稿后，每一步仍能让学生知道当前对象、任务、关键证据和与主线的连接点
 - 所有曲线页都写明基线状态、阅读口令和结论回接，不能只给可操作面板
 - 页面蓝图 prose 中没有把 teacher controls、验收点、实现门槛直接写成自然段主干
+- 每一步都已写出可直接呈现给学生的正文内容、题面、表格内容、图后解释或显影文本，而不是只留下摘要级标签
+- `interactive-contract.yaml` 的 `content_blocks` 不是标题索引或占位提示，而是最小可实现内容真源
+- 实现者不需要靠 handout 或个人理解二次撰写大段课程正文，才能把当前步骤做成可读页面
 
 ### Step 6｜子代理设计接受记录
 
@@ -177,11 +215,14 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 2. 主代理把单页 clean brief 发给**设计子代理**，要求它围绕“学生只看这一页互动就能明白”完成页面设计。
 3. 设计子代理完成后，再交给**逻辑审核子代理**，用学生视角审查“学生只看这一页互动就能明白这个页面到底在讲什么吗”。
 4. 若逻辑审核子代理判定不通过，必须转交给**整改子代理**回修，再次进入审核闭环。
+5. 上述“设计子代理 -> 逻辑审核子代理 -> 整改子代理（按需）”是**强约束硬流程**，不得省略、合并、主代理代审，也不得以任何“等价检查”“主代理 fallback”“单次自查”替代。
 
 1. 主代理只把 clean brief、讲义证据单元表、双轨真源草案与必须遵守的检查项交给设计审查子代理，不把上游 harness、实现阶段提示或完整聊天上下文塞给子代理。
-2. 子代理只判断“证据是否完整落页、页面蓝图 prose 是否自包含、机读契约是否可实现、是否存在降级或污染信号”，不得在审查阶段重写整课。
-3. 主代理根据子代理问题回修双轨真源；若当前环境没有可用子代理，主代理必须用同一输入另开一次独立审查视角完成等价检查，并在记录中标注 `review_mode: "main_agent_fallback"`。
-4. 接受通过后，写入 `design/interactive-design-acceptance.json`；缺少该文件时，后续 `lesson-content-review` 将视为硬闸门未通过。
+2. 子代理必须按**单步 clean brief -> 单步页面设计 -> 单步逻辑审核**的粒度工作；不得把整课打包成一次笼统审查，也不得跳过页面级独立判断。
+3. 子代理只判断“证据是否完整落页、页面蓝图 prose 是否自包含、机读契约是否可实现、是否存在降级或污染信号”，不得在审查阶段重写整课。
+4. 主代理根据子代理问题回修双轨真源后，必须把回修后的对应步骤重新送入逻辑审核闭环，直到通过为止。
+5. 若当前环境没有可用子代理、子代理调用失败、子代理权限不足，或任何原因导致上述独立代理链无法执行，主代理必须**立即向用户如实报告**：当前流程被阻塞，尚不满足 `interactive-design` 的接受条件；不得自主降级为主代理自审，不得写入“已接受”的验收文件。
+6. 只有在子代理闭环真实完成且全部通过后，才允许写入 `design/interactive-design-acceptance.json`；缺少该文件时，后续 `lesson-content-review` 将视为硬闸门未通过。
 
 `interactive-design-acceptance.json` 最小结构：
 
@@ -206,6 +247,12 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 }
 ```
 
+阻塞态约束：
+
+- 若子代理链未真实执行完成，不得产出 `status: "accepted"` 的验收文件。
+- 若因子代理不可用而中断，必须向用户明确说明阻塞原因，并等待用户处理环境或调整任务；这属于流程阻塞，不属于可自主裁剪的设计细节。
+- `review_mode` 只允许记录真实执行过的审查模式；当前技能默认且唯一接受态取值为 `subagent`，不得再写入 `main_agent_fallback` 或其他主代理替代模式。
+
 ## 输出要求
 
 ### `interactive-page.md`
@@ -216,6 +263,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 证据单元升级决策表
 - 混合证据顺序表
 - 每一步的页面骨架、模块清单、静态承载内容、互动升级点、教师控制、学生默认状态、预览口径
+- 每一步的页面正文内容源，例如标题文案、题面全文、关键正文句、表格正文、图后解释、显影文本、作答题面、收束句
 - 每一步的“脱离讲稿自包含检查”或等价说明
 
 ### `interactive-contract.yaml`
@@ -231,6 +279,19 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - `preview_contract`
 
 若涉及例题显影或学生作答，还必须补齐由参考文件要求的访问与控制字段。
+
+`content_blocks` 在本技能中是**强制内容真源**，不得退化为标题索引、占位提示或“见讲义”锚点。每一步至少应能从 `content_blocks` 或等价结构中直接读出以下一类或多类内容：
+
+- 正文段落 / 提示句
+- 题面全文 / 任务书
+- 表格内容
+- 公式解释句
+- 图注与图后解释
+- 显影步骤文本
+- 作答卡题面或选项
+- 收束句 / 回接主线句
+
+若当前步骤没有这些内容，只剩模板、模块名和互动类型，则该契约仍不能视为可实现的双轨真源。
 
 ### `interactive-design-acceptance.json`
 

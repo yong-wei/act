@@ -26,6 +26,7 @@ FENCED_BLOCK_LINE_RE = re.compile(r'^\s*(?P<fence>`{3,}|~{3,})')
 INLINE_CODE_RE = re.compile(r'`[^`\n]*`')
 INLINE_MATH_RE = re.compile(r'(?<!\\)\$[^$\n]+\$')
 PROTECTED_SEGMENT_TOKEN_RE = re.compile(r'\x00PROTECTED(?P<index>\d+)\x00')
+PDF_TABLE_COLS_COMMENT_RE = re.compile(r'^\s*<!--\s*pdf-table-cols:\s*(?P<cols>[0-9.,\s]+)\s*-->\s*$')
 
 
 def is_course_summary_asset(target: str, alt_text: str = "") -> bool:
@@ -243,12 +244,60 @@ def normalize_ascii_quotes_for_markdown_prose(markdown: str) -> tuple[str, list[
     return normalized, odd_quote_lines
 
 
+def looks_like_inline_tex_math(content: str) -> bool:
+    stripped = content.strip()
+    if stripped.startswith(r'\(') and stripped.endswith(r'\)'):
+        return True
+
+    tex_markers = (
+        r'\times',
+        r'\text{',
+        r'\omega',
+        r'\phi',
+        r'\zeta',
+        r'\alpha',
+        r'\beta',
+        r'\le',
+        r'\ge',
+        r'\approx',
+        r'\qquad',
+        r'\,',
+        r'\%',
+        r'^\circ',
+    )
+    return any(marker in stripped for marker in tex_markers)
+
+
+def convert_inline_tex_code_spans_to_math(line: str) -> str:
+    def replace(match: re.Match[str]) -> str:
+        raw = match.group(0)[1:-1]
+        if not looks_like_inline_tex_math(raw):
+            return match.group(0)
+
+        stripped = raw.strip()
+        if stripped.startswith(r'\(') and stripped.endswith(r'\)'):
+            stripped = stripped[2:-2].strip()
+        return f'${stripped}$'
+
+    return INLINE_CODE_RE.sub(replace, line)
+
+
 def preprocess_markdown_for_pdf(markdown: str) -> str:
     processed_lines: list[str] = []
     last_nonempty_kind: str | None = None
     table_caption_re = re.compile(r"^(Table:\s*)(?P<title>.*?)(?:\s*\{(?P<attrs>[^}]*)\})?\s*$")
+    pending_table_cols: str | None = None
 
     for line in markdown.splitlines():
+        stripped = line.strip()
+        pdf_table_cols_match = PDF_TABLE_COLS_COMMENT_RE.match(line)
+        if pdf_table_cols_match:
+            pending_table_cols = ", ".join(
+                part.strip() for part in pdf_table_cols_match.group("cols").split(",") if part.strip()
+            )
+            continue
+
+        line = convert_inline_tex_code_spans_to_math(line)
         stripped = line.strip()
         image_match = MARKDOWN_IMAGE_LINE_RE.match(line)
         if image_match:
@@ -267,11 +316,29 @@ def preprocess_markdown_for_pdf(markdown: str) -> str:
 
         table_caption_match = table_caption_re.match(line)
         if table_caption_match:
-            line = f"{table_caption_match.group(1)}{table_caption_match.group('title').strip()}"
+            title = table_caption_match.group('title').strip()
+            attrs = table_caption_match.group('attrs')
+            if pending_table_cols and not attrs:
+                line = f"{table_caption_match.group(1)}{title} {{cols={pending_table_cols}}}"
+                pending_table_cols = None
+            else:
+                line = f"{table_caption_match.group(1)}{title}"
             processed_lines.append(line)
             last_nonempty_kind = "other"
             continue
 
+        manual_table_caption_match = MANUAL_TABLE_CAPTION_RE.match(stripped)
+        if manual_table_caption_match:
+            if pending_table_cols and not manual_table_caption_match.group("attrs"):
+                number = manual_table_caption_match.group("number")
+                title = manual_table_caption_match.group("title").strip()
+                line = f"表 {number}. {title} {{cols={pending_table_cols}}}"
+                pending_table_cols = None
+            processed_lines.append(line)
+            last_nonempty_kind = "other"
+            continue
+
+        pending_table_cols = None
         if stripped and last_nonempty_kind == "image" and MANUAL_FIGURE_CAPTION_RE.match(stripped):
             continue
 

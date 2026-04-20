@@ -78,9 +78,10 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 
 - 两个 JSON 都必须能被 `review_lesson_content.py` 成功解析并通过字段校验。
 - `interactive-design-acceptance.json` 至少要证明当前 `interactive-page.md` 与 `interactive-contract.yaml` 已完成设计接受。
-- 若课次已有本地实现，`interactive-implementation-acceptance.json` 至少要给出 `reviewed_runtime_artifacts`、`checks.inline_ai_visibility`、`checks.static_media_downgrade`。
+- 若课次已有本地实现，`interactive-implementation-acceptance.json` 至少要给出 `reviewed_runtime_artifacts`、`checks.inline_ai_visibility`、`checks.content_source_completeness`、`checks.static_media_downgrade`；旧课若暂未补齐 `content_source_completeness`，审查结论中必须显式标注为“旧版接受文件兼容口径”，不得误写为新标准已满足。
 - 审查时必须先确认**作者态同步**是否完成；若作者态文件更新时间晚于当前 runtime 审查产物，必须判定为 `runtime_review_stale`，也要在结论中明确写出“**审查已过期**”与兼容标签 `stale_review`。
 - 若本地实现接受文件记录了隐藏式 AI 被做成页内入口，必须记为 `inline_ai_visibility`，并在文字结论中明确写出“**页内 AI**”违规。
+- 若本地实现接受文件记录了页面正文、题面、表格、显影文本或图后解释主要依赖实现阶段自由补写，而不是来自双轨设计真源，必须记为 `content_source_insufficient`，并在文字结论中明确写出“**内容真源不足**”。
 - 若本地实现接受文件记录了工作区 / 参数联动被静态媒体替代，必须记为 `static_media_downgrade`，并在文字结论中明确写出“**静态图片降级**”。
 
 ### 2. 审正文正确性（不是只审格式）
@@ -313,6 +314,7 @@ python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --stri
 - `notes/interactive-implementation-acceptance.json` 缺失或不合法
 - `runtime_review_stale`
 - `inline_ai_visibility`
+- `content_source_insufficient`
 - `static_media_downgrade`
 - 作者态契约与本地实现契约漂移
 
@@ -341,7 +343,7 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - 事实正确性：哪些内容已联网核验，哪些内容只能保守表述
 - 科学合理性：哪些逻辑链成立，哪些结论需要删改或补条件
 - 确定性验证：哪些公式、图像、例题、指标已由 `Octave` + `control` 内置函数复现
-- 实现闸门：接受文件、runtime 时效、`inline_ai_visibility`、`static_media_downgrade` 是否全部清零
+- 实现闸门：接受文件、runtime 时效、`inline_ai_visibility`、`content_source_insufficient`、`static_media_downgrade` 是否全部清零
 
 ## Quick Checks
 
@@ -362,6 +364,7 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 若已存在本地互动实现，已检查 `notes/interactive-implementation-acceptance.json`
 - [ ] 已确认不存在 `runtime_review_stale`
 - [ ] 已确认不存在 `inline_ai_visibility`
+- [ ] 已确认不存在 `content_source_insufficient`
 - [ ] 已确认不存在 `static_media_downgrade`
 - [ ] 已确认 `interactive-page.md` 与 `interactive-contract.yaml` 的步骤顺序、标题、互动类型、预览路径一致（如适用）
 - [ ] 已确认 `interactive-contract.yaml` 的步骤级字段完整（如适用）

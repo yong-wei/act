@@ -1,7 +1,7 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-04-19
+最后更新: 2026-04-20
 摘要: 这是智能体初始化时优先读取的最近上下文入口，浓缩最近几次会话中最值得先知道的稳定变化、当前风险与建议下一跳；当前除 `1-1`、`1-2`、`1-3` runtime-first 精品互动课主线外，模块 2 的 `2-1 / 2-2 / 2-3 / 2-4` 也已进入作者态双轨真源驱动的精品互动课实现阶段，模块 4 的 `4-2` 则已完成 13 步整改并沉淀出“KaTeX 公式字符串不要 `String.raw` + 双反斜杠、正式页媒体只读 runtime 路径”的新护栏；同时作者态互动设计已从 `lesson` 中正式拆分为独立 `interactive-design` 技能，必须注意“讲义/图谱/BOPPPS/多媒体”“作者态互动设计”“互动实现”已经形成三层独立边界。
 上游:
 - [00-index.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/00-index.md)
@@ -14,6 +14,10 @@
 - [docs/ProjectDescription.md](/Users/YW/Documents/Site/act.just.edu.cn/docs/ProjectDescription.md)
 
 ## 最近最重要的稳定变化
+
+- 2026-04-20 模块4后半链已重构为“显式带优化思想的控制器设计链”：`4-4` 固定为固定结构下的优化建模，`4-5` 固定为参数约束翻译与带约束参数优化实践，`4-6` 固定为固定结构优化边界、结构编码入口与场景迁移，`4-7` 固定为完整工程设计闭环实践；同时轻量回修 `4-1`，补入 `ITSE` 与控制量代价，轻量回修 `4-3`，补入参数优化入口卡。后续制作 `4-4 / 4-5 / 4-6 / 4-7` 讲义、教案、互动课程或媒体清单时，以 [ADR-2026-04-20-module4-optimization-chain.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/50-decisions/ADR-2026-04-20-module4-optimization-chain.md) 和 `course-content/syllabus-refactor/unit-design-details/module4.md` 为准，不再沿用“先权衡、再修正、再迁移”的旧口径。
+
+- 2026-04-20 已重做 `4-3` 作者态互动课程设计：`interactive-page.md` 与 `interactive-contract.yaml` 继续保留 14 步框架，叙事固定为“结构工具箱优先”，三类复合结构采用“一结构一任务”，并把 `PI+超前`、`滞后+超前`、带微分滤波 `PID`、客船五步参数方向显影、最小例题、三卡实践工作区与横摇通道重写边界案例全部下沉为可直接呈现给学生的页面内容载荷；`review_lesson_content.py --lesson 4-3 --skip-export --strict-implementation-contract` 已通过，`missing_contract_fields`、`step_contract_issues`、`missing_target_steps` 与 `formula_mapping_issues` 均为空。后续实现 `unit-4-3-initial-scheme-practice-first-validation` 时应直接消费这组双轨真源，不再回读讲义临时重写页面正文。
 
 - 2026-04-19 已完成 `4-2` 精品互动课 `unit-4-2-controller-selection-first-start` 的 13 步整改：旧信息图总结页已删除，`step-03` 改为纯判断链静态页，`step-04` 改为“结构工具箱总表 + 多选矩阵”，`step-05/07` 改为 Rust/WASM 原生统一面板，`step-06/08/09` 改为逐步显影，`step-11` 压缩为六字段最小起步卡；同时还沉淀出两条新的稳定护栏：第一，React + KaTeX 公式字符串不能再使用 `String.raw` 叠加双反斜杠，否则会把 `\frac`、`\mathrm` 等命令错误传成字面量；第二，互动课正式页面只能读取 `/course-runtime/lessons/<lesson>/media/...`，不能回读 `course-content/authoring/.../media/processed/...`。后续若继续制作或回修互动课中的公式、结构图、四联图或原生统一面板，先读 [70-workflows/68-interactive-formula-and-runtime-media-guards.md](/Users/YW/Documents/Site/act.just.edu.cn/.codex/memory/70-workflows/68-interactive-formula-and-runtime-media-guards.md)
 

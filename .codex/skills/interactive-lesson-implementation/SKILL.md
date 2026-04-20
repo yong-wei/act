@@ -157,11 +157,23 @@ description: Use when implementing or upgrading this repository's interactive le
 - 页面模板、区域布局、模块清单是否已明确
 - 证据单元、主阅读顺序、折叠策略是否已明确
 - 固定文本、公式、图片、表格、例题、结论是否已明确
+- 页面正文内容源是否已明确到可直接实现，而不是只剩摘要级“这里放什么”
 - 互动组件类型、交互规则、干扰项、揭示规则是否已明确
 - 曲线图是否已明确为静态展示还是参数联动仿真板；若为参数联动图，是否已写明基线参数、图组排布、结构切换方式与控件栏位置
 - 埋点摘要、教师聚合、AI 上下文、学生页预览路径是否已明确
 
 若这些内容未写明，先回到 `interactive-page.md` / `interactive-contract.yaml` 补设计，不得在实现阶段自由发挥补齐。
+
+这里的“内容未写明”不仅指缺少模板或模块，更包括以下情况：
+
+- 人读稿只写“静态承载内容：表 3 结果摘要”“对象 `P(s)` 与控制器 `C(s)`”，却没有真正可显示给学生的正文、题面、表格内容、图后解释
+- 机读稿虽有 `content_blocks`，但里面只有标题索引、占位说明、锚点提示或“见讲义”
+- 例题页没有题面全文，只有“展示例题”“显示推导链”这类摘要句
+- 表格页只有列名要求，没有行项和单元格正文
+- 图页只有媒体文件名，没有图注、读图口令和图后结论
+- 显影页只有“第 1 步 / 第 2 步”标签，没有每层具体文本
+
+只要出现上述任一情况，都视为**内容真源不足**，必须阻塞并回退设计，不能带着“先做框架、内容后补”的想法继续实现。
 
 若缺失的是例题显影节奏、学生作答卡粒度、教师浏览控制或图文顺序等作者态约束，先回到 `interactive-design` 补设计，不得在实现阶段擅自发明默认规则。
 
@@ -173,7 +185,9 @@ description: Use when implementing or upgrading this repository's interactive le
 
 - 设计稿步骤 / 标题
 - 人读稿页面模板 / 主阅读顺序 / 区域 / 模块 / 固定内容
+- 人读稿页面正文内容源 / 缺口
 - 机读稿互动类型 / 交互规则 / 埋点 / 教师聚合 / AI 上下文 / 预览路径
+- 机读稿 `content_blocks` / 题面 / 表格 / 显影文本完整性
 - 若为曲线图步骤：静态图基线、图组排布、结构切换、控件折叠策略
 - 当前实现位置或缺口
 - 本轮处理状态（严格实现 / 缺实现 / 设计冲突待回修）
@@ -185,6 +199,8 @@ description: Use when implementing or upgrading this repository's interactive le
 - 每一步的页面模板、主阅读顺序、区域、模块、静态承载内容是否已实现
 - 每一步的互动类型是否与机读契约一致
 - 每一步的证据单元是否已完整落页，而不是只剩摘要卡
+- 每一步的页面内容是否主要来自双轨真源，而不是实现阶段自由补写
+- 若某一步缺少可直接实现的内容真源，是否已在开工前标成阻塞并回退设计
 - 若存在曲线图步骤，默认状态是否复现讲义静态图，图组排布是否与原图一致
 - 每一步是否发生了降级实现、删减实现或擅自新增设计
 - 教师端控制流：释放、揭示、汇总、结束课堂
@@ -193,6 +209,8 @@ description: Use when implementing or upgrading this repository's interactive le
 - 媒体是否真的存在，而不是还停留在设计说明
 
 没有对照表，不得直接开工。
+
+若对照表显示任何一步存在“结构齐全但内容真源不足”，也不得直接开工。此时唯一正确动作是回到 `interactive-design` 补齐内容真源，而不是让实现者自行写正文、压缩题面、重建表格或脑补图后解释。
 
 ### 2.5 子代理驱动实现接受文件
 
@@ -228,6 +246,11 @@ description: Use when implementing or upgrading this repository's interactive le
       "step_ids": [],
       "evidence": []
     },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": []
+    },
     "static_media_downgrade": {
       "status": "pass",
       "step_ids": [],
@@ -241,8 +264,9 @@ description: Use when implementing or upgrading this repository's interactive le
 判定要求：
 
 - `inline_ai_visibility`：只要契约为 `ai_context_spec.delivery_mode: hidden_page_context`，学生页正文中出现页内 AI 卡片、提示词复制区、独立对话入口或跳转旧 `/ai` 的入口，即必须记为 `fail`。
+- `content_source_completeness`：只要某一步的最终页面正文、题面、表格、显影文本、图后解释或作答题面，主要依赖实现阶段自由补写，而不是来自双轨设计真源中可直接实现的内容载荷，即必须记为 `fail`。典型信号包括：设计稿只有摘要句、`content_blocks` 只有占位提示、实现稿新增大段作者态未给出的正文、把“见讲义”改写成页面内容。
 - `static_media_downgrade`：只要契约要求 `workspace`、`parameter_slider`、`parametric_sim` 或等价工作区联动，而实现仍用静态 PNG/SVG/PDF 主体加文字说明、滑块不驱动图像或控件只改旁白，即必须记为 `fail`。
-- 两类问题被写入接受文件后，审查脚本会在 `interactive-page-check.json` 中分别落为 `inline_ai_visibility` 与 `static_media_downgrade`，并在严格模式下阻塞。
+- 三类问题被写入接受文件后，审查脚本应在 `interactive-page-check.json` 中分别落为 `inline_ai_visibility`、`content_source_insufficient` 与 `static_media_downgrade`，并在严格模式下阻塞。
 
 ### 3. AI / 反馈 / 数据治理设计必须先于实现
 
