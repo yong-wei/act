@@ -878,6 +878,70 @@ def test_build_implementation_contract_check_registers_unit_4_1():
     assert summary == ['已检测到 `4-1` 的本地实现契约与作者态互动契约一致。']
 
 
+def test_validate_implementation_acceptance_allows_missing_content_source_completeness_for_legacy_payload(tmp_path):
+    lesson_dir = tmp_path / 'authoring' / 'lessons' / 'demo-impl-1'
+    notes_dir = lesson_dir / 'notes'
+    notes_dir.mkdir(parents=True)
+
+    acceptance_path = notes_dir / 'interactive-implementation-acceptance.json'
+    acceptance_path.write_text(
+        json.dumps(
+            {
+                'acceptance_version': 1,
+                'lesson_id': 'demo-impl-1',
+                'status': 'accepted',
+                'accepted_at': '2026-04-20T00:00:00+08:00',
+                'review_mode': 'subagent',
+                'reviewed_runtime_artifacts': [
+                    'course-content/runtime/lessons/4-1/review/review-report.md',
+                    'course-content/runtime/lessons/4-1/review/interactive-page-check.json',
+                ],
+                'checks': {
+                    'inline_ai_visibility': {'status': 'pass', 'step_ids': [], 'evidence': []},
+                    'static_media_downgrade': {'status': 'pass', 'step_ids': [], 'evidence': []},
+                },
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding='utf-8',
+    )
+
+    path, _payload, issues, _summary, _artifacts, findings = review_lesson_content.validate_implementation_acceptance(
+        'demo-impl-1',
+        lesson_dir,
+        required=True,
+    )
+
+    assert path == acceptance_path
+    assert '互动实现接受文件缺少 `checks.content_source_completeness`' not in issues
+    assert 'content_source_completeness' not in findings
+
+
+def test_build_acceptance_hard_gate_issues_includes_content_source_insufficient():
+    contract_steps = {
+        'step-01': {
+            'interaction_spec': {'interaction_kind': 'none'},
+            'content_blocks': [{'id': 'body', 'type': 'plain_text', 'body': '示例正文'}],
+        }
+    }
+
+    hard_gate_issues = review_lesson_content.build_acceptance_hard_gate_issues(
+        contract_steps,
+        {
+            'content_source_completeness': {
+                'status': 'fail',
+                'step_ids': ['step-01'],
+                'evidence': ['实现稿新增大段设计稿未给出的正文。'],
+            }
+        },
+    )
+
+    assert any(issue['code'] == 'content_source_insufficient' for issue in hard_gate_issues)
+    assert any('内容真源不足' in issue['message'] for issue in hard_gate_issues)
+    assert any(issue['step_ids'] == ['step-01'] for issue in hard_gate_issues)
+
+
 def test_build_interactive_page_check_reads_unit_4_1_evidence_contract():
     primary_sources = review_lesson_content.build_primary_sources('4-1', '理论')
 

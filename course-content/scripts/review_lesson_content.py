@@ -245,6 +245,47 @@ def extract_expected_code_media(multimedia_path: Path) -> list[dict[str, str]]:
                     if source.strip()
                 ]
 
+    resource_table_match = re.search(
+        r'^##\s+三、正式资源总表\s*\n(?P<body>.*?)(?=^##\s+|\Z)',
+        text,
+        re.MULTILINE | re.DOTALL,
+    )
+    if resource_table_match:
+        rows = [line.strip() for line in resource_table_match.group('body').splitlines() if line.strip().startswith('|')]
+        for row in parse_markdown_table(rows):
+            output_name = Path(str(row.get('文件名', '')).strip().strip('`')).name
+            expected = expected_by_output.get(output_name)
+            if not expected or expected.get('page_formula_sources'):
+                continue
+
+            citation_text = str(row.get('引用位置', ''))
+            page_formula_sources: list[str] = []
+            if 'handout' in citation_text:
+                page_formula_sources.append('design/handout.md')
+            if 'interactive-page' in citation_text:
+                page_formula_sources.append('design/interactive-page.md')
+            if page_formula_sources:
+                expected['page_formula_sources'] = page_formula_sources
+
+    core_mapping_match = re.search(
+        r'^##\s+四、核心图像与原料映射\s*\n(?P<body>.*?)(?=^##\s+|\Z)',
+        text,
+        re.MULTILINE | re.DOTALL,
+    )
+    if core_mapping_match:
+        rows = [line.strip() for line in core_mapping_match.group('body').splitlines() if line.strip().startswith('|')]
+        for row in parse_markdown_table(rows):
+            output_name = Path(str(row.get('成品文件', '')).strip().strip('`')).name
+            expected = expected_by_output.get(output_name)
+            if not expected or expected.get('formula_mode') != 'none':
+                continue
+
+            tool_text = str(row.get('工具', '')).lower()
+            if 'mathtext' in tool_text:
+                expected['formula_mode'] = 'svg-mathtext'
+            elif 'latex' in tool_text:
+                expected['formula_mode'] = 'svg-latex-engine'
+
     return list(expected_by_output.values())
 
 
@@ -731,10 +772,13 @@ def validate_implementation_acceptance(
         checks = {}
 
     check_findings: dict[str, dict[str, Any]] = {}
-    for check_name in ('inline_ai_visibility', 'static_media_downgrade'):
+    required_check_names = ('inline_ai_visibility', 'static_media_downgrade')
+    optional_check_names = ('content_source_completeness',)
+    for check_name in required_check_names + optional_check_names:
         check_payload = normalize_acceptance_check_payload(checks.get(check_name))
         if not check_payload:
-            issues.append(f'互动实现接受文件缺少 `checks.{check_name}`')
+            if check_name in required_check_names:
+                issues.append(f'互动实现接受文件缺少 `checks.{check_name}`')
             continue
         status = normalize_status(check_payload.get('status'))
         if status is None:
@@ -752,6 +796,58 @@ def validate_implementation_acceptance(
     if not issues:
         summary.append('互动实现接受文件已通过校验。')
     return path, payload, issues, summary, reviewed_runtime_artifacts, check_findings
+
+
+def build_default_review_artifacts(lesson_id: str) -> list[str]:
+    try:
+        runtime_review_dir = get_runtime_lesson_dir(lesson_id) / 'review'
+    except KeyError:
+        return []
+    return [
+        format_repo_path(runtime_review_dir / 'review-report.md'),
+        format_repo_path(runtime_review_dir / 'interactive-page-check.json'),
+    ]
+
+
+def issues_only_missing_acceptance_file(issues: list[str], label: str) -> bool:
+    if not issues:
+        return False
+    expected_prefix = f'缺少 {label}：'
+    return all(issue.startswith(expected_prefix) for issue in issues)
+
+
+def apply_legacy_acceptance_compatibility(
+    design_acceptance_issues: list[str],
+    implementation_acceptance_issues: list[str],
+    reviewed_runtime_artifacts: list[str],
+    hard_gate_issues: list[dict[str, Any]],
+) -> tuple[list[str], list[str], list[str], list[dict[str, Any]]]:
+    design_missing_only = issues_only_missing_acceptance_file(design_acceptance_issues, '互动设计接受文件')
+    implementation_missing_only = issues_only_missing_acceptance_file(implementation_acceptance_issues, '互动实现接受文件')
+    if not design_missing_only or not implementation_missing_only:
+        return [], design_acceptance_issues, implementation_acceptance_issues, hard_gate_issues
+
+    existing_review_artifacts = [
+        artifact
+        for artifact in reviewed_runtime_artifacts
+        if resolve_repo_path(artifact).exists()
+    ]
+    if not existing_review_artifacts:
+        return [], design_acceptance_issues, implementation_acceptance_issues, hard_gate_issues
+
+    compatibility_notes = [
+        '检测到旧版 runtime 审查产物但缺少新式互动设计/实现接受文件，当前按旧课兼容口径仅提示，不作为阻塞项。'
+    ]
+    retained_hard_gate_issues: list[dict[str, Any]] = []
+    for issue in hard_gate_issues:
+        if issue.get('code') == 'runtime_review_stale':
+            compatibility_notes.append(
+                '旧版 runtime 审查产物时间早于作者态文件，已按旧课兼容口径降为提示，请后续补齐新版接受文件与审查导出。'
+            )
+            continue
+        retained_hard_gate_issues.append(issue)
+
+    return compatibility_notes, [], [], retained_hard_gate_issues
 
 
 def get_hidden_ai_step_ids(contract_steps: Any) -> list[str]:
@@ -804,6 +900,12 @@ def get_live_linkage_step_ids(contract_steps: Any) -> list[str]:
     ]
 
 
+def get_contract_step_ids(contract_steps: Any) -> list[str]:
+    if not isinstance(contract_steps, dict):
+        return []
+    return [str(step_id) for step_id in contract_steps.keys()]
+
+
 def intersect_or_default(candidate_steps: list[str], allowed_steps: list[str]) -> list[str]:
     if candidate_steps:
         return [step_id for step_id in candidate_steps if step_id in allowed_steps]
@@ -837,6 +939,18 @@ def build_acceptance_hard_gate_issues(
                 '契约要求工作区或参数联动，但本地实现验收记录为静态媒体降级。',
                 step_ids=affected_steps,
                 evidence=static_media_check.get('evidence', []),
+            ))
+
+    contract_step_ids = get_contract_step_ids(contract_steps)
+    content_source_check = implementation_check_findings.get('content_source_completeness')
+    if content_source_check and content_source_check.get('status') in ACCEPTANCE_FAIL_STATUSES:
+        affected_steps = intersect_or_default(content_source_check.get('step_ids', []), contract_step_ids)
+        if affected_steps:
+            hard_gate_issues.append(build_hard_gate_issue(
+                'content_source_insufficient',
+                '双轨设计真源未提供足够课程内容载荷，本地实现依赖自由补写正文或题面，存在内容真源不足问题。',
+                step_ids=affected_steps,
+                evidence=content_source_check.get('evidence', []),
             ))
     return hard_gate_issues
 
@@ -1343,6 +1457,8 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         required=requires_implementation_acceptance,
     )
     issues.extend(implementation_acceptance_issues)
+    original_design_acceptance_issues = list(design_acceptance_issues)
+    original_implementation_acceptance_issues = list(implementation_acceptance_issues)
 
     curve_figure_steps_missing_contract: list[str] = []
     nested_render_contract_fields_missing: list[str] = []
@@ -1352,14 +1468,28 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         contract_steps,
         implementation_check_findings,
     )
-    default_review_artifacts = [
-        format_repo_path(get_runtime_lesson_dir(lesson_id) / 'review' / 'review-report.md'),
-        format_repo_path(get_runtime_lesson_dir(lesson_id) / 'review' / 'interactive-page-check.json'),
-    ]
+    default_review_artifacts = build_default_review_artifacts(lesson_id)
     hard_gate_issues.extend(build_runtime_review_staleness_issues(
         list(dict.fromkeys(primary_sources + [interactive_contract, design_acceptance_path])),
         reviewed_runtime_artifacts or default_review_artifacts,
     ))
+    (
+        legacy_acceptance_notes,
+        design_acceptance_issues,
+        implementation_acceptance_issues,
+        hard_gate_issues,
+    ) = apply_legacy_acceptance_compatibility(
+        design_acceptance_issues,
+        implementation_acceptance_issues,
+        reviewed_runtime_artifacts or default_review_artifacts,
+        hard_gate_issues,
+    )
+    if legacy_acceptance_notes:
+        issues = [
+            issue for issue in issues
+            if issue not in original_design_acceptance_issues
+            and issue not in original_implementation_acceptance_issues
+        ]
     hard_gate_messages = [issue['message'] for issue in hard_gate_issues]
     issues.extend(hard_gate_messages)
     if isinstance(payload, dict) and mapping_contract_mode in {'core_items', 'evidence_units'}:
@@ -1429,6 +1559,7 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
     summary.extend(implementation_contract_summary)
     summary.extend(design_acceptance_summary)
     summary.extend(implementation_acceptance_summary)
+    warnings.extend(legacy_acceptance_notes)
     warnings.extend(contract_warnings)
     blocking_issues = (
         implementation_contract_issues
@@ -1478,6 +1609,7 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         'blocking_issues': blocking_issues,
         'implementation_contract_summary': implementation_contract_summary,
         'implementation_contract_issues': implementation_contract_issues,
+        'legacy_acceptance_notes': legacy_acceptance_notes,
         'summary': summary,
         'warnings': warnings,
         'missing': issues,

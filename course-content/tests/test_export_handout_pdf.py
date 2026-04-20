@@ -78,6 +78,41 @@ print("hello")
     assert 'fig-pos="H" width=100%' in normalized
 
 
+def test_preprocess_markdown_converts_inline_tex_code_spans_to_math():
+    markdown = """若要求 `\\(M_p \\le 20\\%\\)`，则希望 `\\(t_s \\approx 40\\,\\text{s}\\)`。
+
+表中读数包括 `1.96\\times10^{-4}`、`0.18\\ \\text{rad/s}` 和 `49^\\circ`。
+
+普通代码 `print("hello")` 不应被改写。
+"""
+
+    normalized = exporter.preprocess_markdown_for_pdf(markdown)
+
+    assert '`\\(M_p \\le 20\\%\\)`' not in normalized
+    assert '`\\(t_s \\approx 40\\,\\text{s}\\)`' not in normalized
+    assert '$M_p \\le 20\\%$' in normalized
+    assert '$t_s \\approx 40\\,\\text{s}$' in normalized
+    assert '$1.96\\times10^{-4}$' in normalized
+    assert '$0.18\\ \\text{rad/s}$' in normalized
+    assert '$49^\\circ$' in normalized
+    assert '`print("hello")`' in normalized
+
+
+def test_preprocess_markdown_applies_hidden_pdf_table_cols_comment_to_next_manual_caption():
+    markdown = """<!-- pdf-table-cols: 0.14, 0.38, 0.28, 0.20 -->
+表 2. 复合结构的常见写法与适用情形
+
+| 形式 | 一般表达式 | 更适合解决的问题 | 结构分工 |
+| --- | --- | --- | --- |
+| A | B | C | D |
+"""
+
+    normalized = exporter.preprocess_markdown_for_pdf(markdown)
+
+    assert '<!-- pdf-table-cols:' not in normalized
+    assert '表 2. 复合结构的常见写法与适用情形 {cols=0.14, 0.38, 0.28, 0.20}' in normalized
+
+
 def test_normalize_ascii_quotes_for_markdown_prose_reports_unmatched_quotes():
     markdown = '这一句有"未闭合引号。\n下一句有"一对"引号。\n'
 
