@@ -1,6 +1,6 @@
 ---
 name: lesson
-description: 面向“自动控制原理”课程创作讲义、知识图谱节点、BOPPPS 课案与多模态资源；在正式制作前先执行运行时知识图谱与知识卡片到作者态的同步与冲突检测，并按 `course-content/syllabus-refactor/` 的最新边界生成新编号课次。当用户要求生成单元讲义、教师版讲义、知识节点、BOPPPS、媒体规格、时域/频域/根轨迹图或线框图时，应启用本技能。
+description: 面向“自动控制原理”课程创作讲义、知识图谱节点、BOPPPS 课案与多模态资源；在正式制作前先执行运行时知识图谱与知识卡片到作者态的同步、冲突检测以及必要的课次编号/路径核对。当用户要求生成课程讲义、教师版讲义、知识节点、BOPPPS、媒体规格、时域/频域/根轨迹图或线框图时，应启用本技能。
 ---
 
 # lesson — 自动控制原理课程内容创作技能
@@ -98,7 +98,10 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 
 5. **静态核验与成图必须统一**
    - 讲义、教师版讲义与多媒体中的控制系统数值结论，统一用 `Octave` 做数值验证。
+   - Octave 负责数值计算与导出数据。
+   - Python/matplotlib 负责最终排版出图。
    - 主要数值曲线统一采用“两段式流程”：`Octave` 导出数据，`Python/matplotlib` 最终排版。
+   - 3-6 单元的数值图风格为统一基线。
    - 默认优先使用 `step()`、`bode()`、`nyquist()`、`rlocus()`、`lsim()`、`margin()` 等高层函数。
    - 根轨迹若转为 `Python/matplotlib` 复绘，必须调用 `.codex/skills/lesson/scripts/root_locus_branch_match.py` 做分支连续匹配与审计。
    - 讲义中给出的参考代码默认必须是 `MATLAB/Octave` 形式。
@@ -107,7 +110,7 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
    - 方框图、信号流图、电路图、机械结构图等线框图必须显式调用 `tikz-control-draw`。
 
 7. **讲义围绕单一主线展开**
-   - 必须围绕当前单元主题组织为一条清晰逻辑链，避免知识点并列堆放。
+   - 必须围绕本次课程目标与当前知识对象组织为一条清晰逻辑链，避免知识点并列堆放。
    - 必要的长推导、补充证明与扩展讨论可放附录，正文只保留服务主线的版本。
 
 8. **所有图像禁止 ASCII 图**
@@ -137,7 +140,7 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 
 14. **资源库只作候选源，不直接拼贴成课**
    - 正式创作前必须读取 `course-content/resource-library/integration-framework.md`。
-   - 应根据当前单元目标，选择性读取 `pptx`、`civics-cases`、`ship-control-cases` 的索引和正文。
+   - 应根据本次课程目标，选择性读取 `pptx`、`civics-cases`、`ship-control-cases` 的索引和正文。
    - 每项资源都必须标记 `改写吸收 / 直接复用图片 / 仅作灵感 / 排除` 之一。
 
 15. **多媒体阶段必须产出媒体链接文档**
@@ -164,8 +167,8 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 4. `course-content/authoring/shared/lesson-id-map.json`
 
 其中：
-- `module-skeletons.md` 决定单元骨架、课型、学时和主线位置。
-- `unit-design-details/module*.md` 决定该单元的产物边界与设计原则。
+- `module-skeletons.md` 决定课程骨架、课型、学时与内部编号约束。
+- `unit-design-details/module*.md` 决定该课的内部产物边界与设计原则。
 - `lesson-id-map.json` 决定新编号、legacy 来源组、归档路径与可否生成。
 - `integration-framework.md` 决定资源选材顺序、采用级别与产物级转写边界。
 
@@ -194,12 +197,12 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
    ```bash
    python3 .codex/skills/lesson/scripts/kg_query.py stats
    ```
-4. 说明当前课次是否为主线课次、legacy 来源组或阻断项。
+4. 完成当前课次编号、legacy 映射与阻断项的内部核对；这些信息默认不写入面向用户或学生的显式文本。
 
 ### Step 1｜资源采用单
 
 1. 读取 `course-content/resource-library/integration-framework.md`。
-2. 按当前单元目标选择性读取 `pptx`、思政案例、船舶案例与习题资源。
+2. 按本次课程目标选择性读取 `pptx`、思政案例、船舶案例与习题资源。
 3. 输出“本课资源采用单”，至少包含：
    - 候选资源路径
    - 资源类型
@@ -220,7 +223,7 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 
 学生版讲义默认要求：
 - 从一个典型问题或任务开篇
-- 指出前置缺口与本课能力产出
+- 只显式列出本次课程目标，并用布鲁姆动词写成学习者完成本次课程后能够具备的能力项
 - 至少包含 1 个最小例题和 3 道分层练习
 - 以总结和扩展思考收束
 

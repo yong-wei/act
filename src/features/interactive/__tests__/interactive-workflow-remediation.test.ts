@@ -31,17 +31,19 @@ describe('interactive workflow remediation guards', () => {
     expect(implementationSkill).toContain('忠实反映契约中的内容和逻辑');
   });
 
-  it('teaches review and audit tools to reject stale review state, visible inline AI and static-image downgrades', () => {
+  it('teaches review and audit tools to reject stale review state, visible inline AI, insufficient content sources and static-image downgrades', () => {
     const reviewSkill = readRepoFile('.codex/skills/lesson-content-review/SKILL.md');
     const reviewScript = readRepoFile('course-content/scripts/review_lesson_content.py');
 
     expect(reviewSkill).toContain('作者态同步');
     expect(reviewSkill).toContain('审查已过期');
     expect(reviewSkill).toContain('页内 AI');
+    expect(reviewSkill).toContain('内容真源不足');
     expect(reviewSkill).toContain('静态图片降级');
     expect(reviewScript).toContain('interactive-design-acceptance.json');
     expect(reviewScript).toContain('interactive-implementation-acceptance.json');
     expect(reviewScript).toContain('inline_ai_visibility');
+    expect(reviewScript).toContain('content_source_insufficient');
     expect(reviewScript).toContain('stale_review');
     expect(reviewScript).toContain('static_media_downgrade');
   });

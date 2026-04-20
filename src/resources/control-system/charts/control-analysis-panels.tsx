@@ -23,6 +23,9 @@ import {
 } from './control-bode-options';
 import { ControlChartPanel } from './control-chart-panel';
 
+// Shared axis presets must stay aligned with case ids like ship_heading/platform_pitch
+// and the root-locus variants rootLocusFull/rootLocusZoom used by the workspace.
+
 type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
 type ChartSeriesItem = ChartSeriesValue extends (infer Item)[] ? Item : ChartSeriesValue;
 type ChartSeriesArray = ChartSeriesItem[];

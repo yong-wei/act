@@ -11,7 +11,7 @@ export type UNIT_3_2TeacherControlMode =
   | 'page_load_open'
   | 'always_on';
 
-export type UNIT_3_2PageType = 'none' | 'binary_choice' | 'quiz_group' | 'activity_cards';
+export type UNIT_3_2PageType = 'display' | 'summary' | 'binary_choice' | 'quiz_group' | 'activity_cards';
 
 export interface UNIT_3_2PageRegionContract {
   id: string;
@@ -24,7 +24,7 @@ export interface UNIT_3_2PageContract {
     template: string;
     regions: UNIT_3_2PageRegionContract[];
   };
-  interactionKind: UNIT_3_2PageType;
+  interactionKind: UNIT_3_2PageType | 'none';
   teacherInsightWidgets: string[];
   telemetrySummaryFields: string[];
   misconceptionTags?: string[];
@@ -414,7 +414,7 @@ export const UNIT_3_2_INTERACTIVE_PAGE_TYPES = new Set<UNIT_3_2PageType>([
 ]);
 
 export const UNIT_3_2_LESSON_STEPS: UNIT_3_2StepDefinition[] = [
-  { id: 'step-01', stage: 'B', title: '回到地图——从纯极点语言走向稳定边界', hint: '先把 3-2 放回模块 3 主线，明确本课处理高阶特征方程的稳定边界。', duration: '3 min', pageType: 'none' },
+  { id: 'step-01', stage: 'B', title: '回到地图——从纯极点语言走向稳定边界', hint: '先把 3-2 放回模块 3 主线，明确本课处理高阶特征方程的稳定边界。', duration: '3 min', pageType: 'display' },
   { id: 'step-02', stage: 'B', title: '先看主对象——极点迁移图提出了哪三个问题', hint: '先暴露“只看图就够了”的误判，再把问题收回到系数规则。', duration: '4 min', pageType: 'binary_choice' },
   { id: 'step-03', stage: 'P1', title: '前测——不求根判稳、特殊情况与区域收紧', hint: '用三题前测把普通判稳、特殊情况与区域约束的起点误区先暴露出来。', duration: '6 min', pageType: 'quiz_group' },
   { id: 'step-04', stage: 'P2', title: '普通劳斯表——固定 k=4 时怎样从第一列读出稳定性', hint: '题面常显、步骤显影、双卡独立提交，建立“判稳不等于求根”的第一条规则。', duration: '8 min', pageType: 'activity_cards' },
@@ -426,7 +426,7 @@ export const UNIT_3_2_LESSON_STEPS: UNIT_3_2StepDefinition[] = [
   { id: 'step-10', stage: 'P2', title: '劳斯现象到频域——峰值抬高、理想共振与低频抬升如何区分', hint: '把频域观察固定在本课的辅助证据地位，不升级成新的主判据。', duration: '6 min', pageType: 'activity_cards' },
   { id: 'step-11', stage: 'P2', title: '变量平移——把 Re(s)<-0.5 转成普通劳斯判定', hint: '题面、平移链、区间对比和几何解释保持同页，不能压成一个区间输入框。', duration: '9 min', pageType: 'activity_cards' },
   { id: 'step-12', stage: 'P3', title: '后测——判稳、特殊情况与区域约束能否连成一条链', hint: '后测单独成页，检查学生是否真的把判稳、特殊情况与区域约束连成一条边界语言链。', duration: '6 min', pageType: 'quiz_group' },
-  { id: 'step-13', stage: 'S', title: '收束——从稳定判定走向参数设计入口', hint: '只做收束与去向，不再把后测和总结混在同一页。', duration: '4 min', pageType: 'none' },
+  { id: 'step-13', stage: 'S', title: '收束——从稳定判定走向参数设计入口', hint: '只做收束与去向，不再把后测和总结混在同一页。', duration: '4 min', pageType: 'summary' },
 ] as const;
 
 export function getUNIT_3_2Step(stepId: string) {

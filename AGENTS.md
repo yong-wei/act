@@ -70,13 +70,6 @@
 - 已验证边界：`js_repl` 可稳定处理 Node 内置模块、项目文件读取和包依赖导入；但对本地 `.mjs/.js` 文件的直接导入存在限制，若文件内部依赖顶层静态 `import`，可能无法像常规 Node 一样直接执行。
 - 因此，涉及仓库既有脚本、完整测试链路、Next.js 构建启动、`tsx`/`node` 直接执行更可靠的场景，优先使用 `npm run ...`、`node`、`npx tsx` 或 MCP 专用工具，不强行改写为 `js_repl`。
 
-## 长期记忆维护
-
-- 本仓库使用 `.codex/memory/` 保存跨会话长期记忆。
-- 智能体初始化或刚进入仓库时，应先快速读取 `.codex/memory/00-index.md` 与 `.codex/memory/02-recent-summary.md`，先建立“最近发生了什么、当前应警惕什么”的最小上下文，再按 `.codex/memory/01-reading-map.md` 进入对应主题。
-- 若本次会话产出稳定且可复用的项目事实、设计决策、事故复盘或高频流程，优先更新 `.codex/memory/`，不要把细节继续堆入 `AGENTS.md`。
-- 维护 `.codex/memory/` 时，优先遵循 `.codex/memory/README.md` 与全局 `memory-maintenance` 技能（`${CODEX_HOME:-$HOME/.codex}/skills/memory-maintenance/SKILL.md`）。
-
 ## Project Structure & Module Organization
 本仓库为单一 Next.js 14 应用，代码集中在根目录：
 - `src/app/`：路由与页面。

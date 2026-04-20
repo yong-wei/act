@@ -13,6 +13,7 @@ import {
   formatUnit43PlantFormula,
   getUnit43FallbackResult,
   normalizeUnit43PanelParams,
+  type Unit43PanelParams,
   type Unit43PanelId,
 } from '@/resources/control-system/analysis/unit-4-3-request-builder';
 import { getUnit43DesignPayload } from '@/resources/control-system/analysis/unit-4-3-fixtures';
@@ -29,8 +30,8 @@ import type { WorkspaceParameterChange } from './workspace';
 
 type TeacherResponseItem = { studentName: string; response: UNIT_4_3StepResponse };
 type MetricRow = { label: string; baseline: string; current: string };
-type PromptContentBlock = { type: 'text' | 'math'; value: string };
-type PromptContent = PromptContentBlock[];
+type PromptContentBlock = Readonly<{ type: 'text' | 'math'; value: string }>;
+type PromptContent = readonly PromptContentBlock[];
 type PromptField = { key: string; title: string; prompt: PromptContent; placeholder: string; half?: boolean };
 type ComparisonPoint = { x: number; baseline: number | null; current: number | null };
 
@@ -537,7 +538,7 @@ function RevealChain({
             }}
           >
             <div className="premium-lesson-title text-sm font-medium">{item.title}</div>
-            {visible ? <div className="mt-3">{renderPromptContent(item.blocks as PromptContent)}</div> : null}
+            {visible ? <div className="mt-3">{renderPromptContent(item.blocks)}</div> : null}
           </button>
         );
       })}
@@ -613,6 +614,19 @@ function buildComparisonChartOption(
   };
 }
 
+function getDefaultAnalysisParams(stepId: keyof typeof ANALYSIS_CONFIG): Unit43PanelParams {
+  if (stepId === 'step-05') {
+    return { gain: 6, piPoleFrequency: 1 / 1.8, leadZeroFrequency: 1 / 0.9, leadPoleFrequency: 1 / 0.18 };
+  }
+  if (stepId === 'step-06') {
+    return { gain: 6, lagPoleFrequency: 1 / 20, lagZeroFrequency: 1 / 5, leadZeroFrequency: 1 / 0.8, leadPoleFrequency: 1 / 0.16 };
+  }
+  if (stepId === 'step-07') {
+    return { kp: 3.5, ki: 3.5 / 1.5, kd: 0.25 };
+  }
+  return { gain: 2.8, leadZeroFrequency: 0.1, leadPoleFrequency: 1 / 4.06 };
+}
+
 function UnifiedAnalysisPanel({
   stepId,
   onWorkspaceParameterChange,
@@ -621,18 +635,7 @@ function UnifiedAnalysisPanel({
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const config = ANALYSIS_CONFIG[stepId];
-  const [params, setParams] = useState<Record<string, number>>(() => {
-    if (stepId === 'step-05') {
-      return { gain: 6, piPoleFrequency: 1 / 1.8, leadZeroFrequency: 1 / 0.9, leadPoleFrequency: 1 / 0.18 };
-    }
-    if (stepId === 'step-06') {
-      return { gain: 6, lagPoleFrequency: 1 / 20, lagZeroFrequency: 1 / 5, leadZeroFrequency: 1 / 0.8, leadPoleFrequency: 1 / 0.16 };
-    }
-    if (stepId === 'step-07') {
-      return { kp: 3.5, ki: 3.5 / 1.5, kd: 0.25 };
-    }
-    return { gain: 2.8, leadZeroFrequency: 0.1, leadPoleFrequency: 1 / 4.06 };
-  });
+  const [params, setParams] = useState<Unit43PanelParams>(() => getDefaultAnalysisParams(stepId));
   const deferred = useDeferredValue(params);
   const normalized = useMemo(
     () => normalizeUnit43PanelParams(config.panelId, deferred),

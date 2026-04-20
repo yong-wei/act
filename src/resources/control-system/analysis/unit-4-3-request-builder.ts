@@ -306,7 +306,7 @@ export function buildUnit43AnalysisRequest(
   const config = CASE_CONFIG[panelId];
   const normalized = normalizeUnit43PanelParams(panelId, params);
   const currentGain =
-    'gain' in normalized ? normalized.gain : 'kp' in normalized ? normalized.kp : 1;
+    ('gain' in normalized ? normalized.gain : 'kp' in normalized ? normalized.kp : 1) ?? 1;
 
   let structures: StructureSpec[];
   if (panelId === 'pi_lead') {

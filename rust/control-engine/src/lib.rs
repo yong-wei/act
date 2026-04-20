@@ -258,10 +258,32 @@ fn tf_from_structure(spec: &StructureSpec) -> TransferFunction {
             TransferFunction { numerator: vec![k * td, k], denominator: vec![1.0] }
         }
         "pid" => {
-            let k = get("k", get("kp", 1.0));
-            let ti = get("ti", 1.0);
-            let td = get("td", 1.0);
-            TransferFunction { numerator: vec![k * td * ti, k * (td + ti), k], denominator: vec![ti, 0.0] }
+            let has_direct_gains = spec.params.contains_key("kp")
+                || spec.params.contains_key("ki")
+                || spec.params.contains_key("kd")
+                || spec.params.contains_key("tf");
+            if has_direct_gains {
+                let kp = get("kp", get("k", 1.0));
+                let ki = get("ki", if spec.params.contains_key("ti") { kp / get("ti", 1.0).max(1e-9) } else { 0.0 });
+                let kd = get("kd", if spec.params.contains_key("td") { kp * get("td", 0.0) } else { 0.0 });
+                let tf = get("tf", 0.0);
+                if tf > 0.0 {
+                    TransferFunction {
+                        numerator: vec![kp * tf + kd, kp + ki * tf, ki],
+                        denominator: vec![tf, 1.0, 0.0],
+                    }
+                } else {
+                    TransferFunction {
+                        numerator: vec![kd, kp, ki],
+                        denominator: vec![1.0, 0.0],
+                    }
+                }
+            } else {
+                let k = get("k", get("kp", 1.0));
+                let ti = get("ti", 1.0);
+                let td = get("td", 1.0);
+                TransferFunction { numerator: vec![k * td * ti, k * (td + ti), k], denominator: vec![ti, 0.0] }
+            }
         }
         "lead" => {
             let k = get("k", 1.0);
