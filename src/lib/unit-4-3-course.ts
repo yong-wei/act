@@ -143,35 +143,26 @@ export const UNIT_4_3_PAGE_CONTRACTS: Record<string, UNIT_4_3PageContract> = {
           id: "lead",
           width: "full",
           order: 2
-        },
-        {
-          id: "assessment",
-          width: "full",
-          order: 3
         }
       ]
     },
-    interactionKind: "quiz_group",
+    interactionKind: "none",
     teacherControls: {
-      releaseActivity: "page_load_open",
+      releaseActivity: "not_applicable",
       openBrowse: "not_applicable",
       teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "teacher_toggle"
+      revealReferenceAnswer: "not_applicable"
     },
     teacherInsightWidgets: [
-      "question_distribution",
-      "top_misconceptions"
+      "view_count",
+      "sync_status"
     ],
     telemetrySummaryFields: [
-      "attemptCount",
-      "resultState",
-      "errorBucket"
+      "viewed",
+      "timeOnStep",
+      "teacherFollowSync"
     ],
-    misconceptionTags: [
-      "structure_name_only",
-      "skip_validation",
-      "skip_issue_list"
-    ],
+    misconceptionTags: [],
     aiPageGoal: "固定 4-3 是把起步卡推进成第一版方案的课程。",
     previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-01"
   },
@@ -723,7 +714,7 @@ export const UNIT_4_3_LESSON_STEPS: UNIT_4_3StepDefinition[] = [
     title: "回到地图：4-2 的起步卡如何长成 4-3 的第一版方案",
     hint: "固定 4-3 是把起步卡推进成第一版方案的课程。",
     duration: "4 min",
-    pageType: "quiz_group"
+    pageType: "display"
   },
   {
     id: "step-02",
@@ -867,11 +858,6 @@ export const UNIT_4_3_PREMIUM_LESSON_CARD = {
 } as const;
 
 const UNIT_4_3_MEDIA_BY_STEP_ID: Record<string, string> = {
-  "step-05": "/course-runtime/lessons/4-3/media/4-3-pi-lead-compound-quad.png",
-  "step-06": "/course-runtime/lessons/4-3/media/4-3-lag-lead-compound-quad.png",
-  "step-07": "/course-runtime/lessons/4-3/media/4-3-pid-compound-quad.png",
-  "step-10": "/course-runtime/lessons/4-3/media/4-3-heading-case-quad.png",
-  "step-13": "/course-runtime/lessons/4-3/media/4-3-roll-fin-compensation-structure.png",
   "step-01": "/course-runtime/lessons/4-3/media/4-3-cover-comic.png",
   "step-14": "/course-runtime/lessons/4-3/media/4-3-info.png"
 };

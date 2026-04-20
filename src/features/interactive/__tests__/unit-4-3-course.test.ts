@@ -27,7 +27,7 @@ describe('unit 4-3 interactive course', () => {
     expect(courseModule.UNIT_4_3_LESSON_STEPS[0]?.id).toBe('step-01');
     expect(courseModule.UNIT_4_3_LESSON_STEPS[13]?.id).toBe('step-14');
     expect(courseModule.UNIT_4_3_LESSON_STEPS.map((step: { pageType: string }) => step.pageType)).toEqual([
-      'quiz_group',
+      'display',
       'activity_card_set',
       'single_choice',
       'display',
@@ -139,16 +139,67 @@ describe('unit 4-3 interactive course', () => {
 
     expect(stepPanelsSource).not.toContain('/course-content/authoring/lessons/4-3/media/processed/');
     expect(stepPanelsSource).not.toContain('/course-runtime/lessons/legacy/4-3');
-    expect(stepPanelsSource).toContain('/course-runtime/lessons/4-3/media/4-3-pi-lead-compound-quad.png');
-    expect(stepPanelsSource).toContain('/course-runtime/lessons/4-3/media/4-3-roll-fin-compensation-structure.png');
+    expect(stepPanelsSource).toContain('useControlEngine');
+    expect(stepPanelsSource).toContain('ControlFigureWorkspace');
+    expect(stepPanelsSource).toContain('buildUnit43AnalysisRequest');
+    expect(stepPanelsSource).toContain('getUnit43FallbackResult');
+    expect(stepPanelsSource).toContain('当前控制器传函');
+    expect(stepPanelsSource).toContain('校正前性能指标');
+    expect(stepPanelsSource).toContain('当前性能指标');
+    expect(stepPanelsSource).toContain('时域响应对比');
+    expect(stepPanelsSource).toContain('Bode 对比');
+    expect(stepPanelsSource).toContain('M_p=e^{-\\\\frac{\\\\pi\\\\zeta}{\\\\sqrt{1-\\\\zeta^2}}}');
+    expect(stepPanelsSource).toContain('t_s\\\\approx\\\\dfrac{4}{\\\\zeta\\\\omega_n}');
+    expect(stepPanelsSource).toContain('P_h(s)=\\\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}');
+    expect(stepPanelsSource).toContain('P_e(s)=\\\\dfrac{1}{(s+1)(0.4s+1)(0.1s+1)}');
+    expect(stepPanelsSource).toContain('练习 1：结构判断');
     expect(stepPanelsSource).toContain('data-progressive-reveal="step_click_reveal"');
+    expect(stepPanelsSource).toContain("type: 'math'");
+    expect(stepPanelsSource).toContain("type: 'text'");
     expect(stepPanelsSource).toContain('对象分析记录单');
     expect(stepPanelsSource).toContain('初始方案表达卡');
     expect(stepPanelsSource).toContain('问题清单移交表');
+    expect(stepPanelsSource).toContain('renderPromptContent');
+    expect(stepPanelsSource).toContain('formatUnit43PlantFormula');
+    expect(stepPanelsSource).toContain('ControlChartPanel');
+    expect(stepPanelsSource).toContain('axisTooltipFormatter');
     expect(stepPanelsSource).toContain('md:grid-cols-2');
+    expect(stepPanelsSource).not.toContain('baseline.plantTex.replace(/^.*?=/, \'\')');
+    expect(stepPanelsSource).not.toContain("import {\n  CartesianGrid,");
+    expect(stepPanelsSource).not.toContain('function OverlayLinePanel');
     expect(stepPanelsSource).not.toContain('本页无需提交');
     expect(stepPanelsSource).not.toContain('复制提示词');
     expect(stepPanelsSource).not.toContain('/ai');
+  });
+
+  it('maps runtime media only for the remaining static anchor steps and keeps native analysis panels off the old image mapping', async () => {
+    const courseModule = await import('@/lib/unit-4-3-course');
+
+    expect(courseModule.getUNIT_4_3MediaSrc('step-01')).toContain('4-3-cover-comic.png');
+    expect(courseModule.getUNIT_4_3MediaSrc('step-05')).toBeNull();
+    expect(courseModule.getUNIT_4_3MediaSrc('step-06')).toBeNull();
+    expect(courseModule.getUNIT_4_3MediaSrc('step-07')).toBeNull();
+    expect(courseModule.getUNIT_4_3MediaSrc('step-10')).toBeNull();
+    expect(courseModule.getUNIT_4_3MediaSrc('step-13')).toBeNull();
+    expect(courseModule.getUNIT_4_3MediaSrc('step-14')).toContain('4-3-info.png');
+  });
+
+  it('records the revised implementation acceptance evidence instead of the old static-media downgrade claim', () => {
+    const acceptance = JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/authoring/lessons/4-3/notes/interactive-implementation-acceptance.json'),
+        'utf8',
+      ),
+    ) as {
+      checks?: {
+        static_media_downgrade?: {
+          evidence?: string[];
+        };
+      };
+    };
+
+    expect(acceptance.checks?.static_media_downgrade?.evidence?.join('\n')).not.toContain('4-3 契约未要求参数联动工作区');
+    expect(acceptance.checks?.static_media_downgrade?.evidence?.join('\n')).toContain('Rust/WASM');
   });
 
   it('wires the runtime entry page through shared media hub and runtime sections', () => {

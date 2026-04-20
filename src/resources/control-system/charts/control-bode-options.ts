@@ -65,6 +65,15 @@ const CONTROL_AXIS_PRESETS: Record<string, Partial<Record<AxisKey, AxisPreset>>>
     magnitude: { x: [1e-2, 1e2], y: [-30, 40] },
     phase: { x: [1e-2, 1e2], y: [-100, 70] },
   },
+  unit43_roll_boundary: {
+    step: { x: [0, 20], y: [-0.2, 1.2] },
+    magnitude: { x: [1e-2, 1e2], y: [-10, 20] },
+    phase: { x: [1e-2, 1e2], y: [-240, 30] },
+    rootLocus: { x: [-1.2, 0.2], y: [-1.2, 1.2] },
+    rootLocusFull: { x: [-6, 0.5], y: [-4.5, 4.5] },
+    rootLocusZoom: { x: [-1.2, 0.2], y: [-1.2, 1.2] },
+    nyquist: { x: [-1.8, 1.4], y: [-1.8, 1.8] },
+  },
 };
 
 export function getControlAxisPreset(caseId: string | undefined, axisKey: AxisKey): AxisPreset | undefined {
