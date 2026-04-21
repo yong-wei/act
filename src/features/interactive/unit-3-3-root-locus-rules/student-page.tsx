@@ -15,7 +15,6 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit33StepAIContext } from '@/lib/course-ai-contexts';
 import {
   getUNIT_3_3MediaSrc,
-  isUNIT_3_3AiPageType,
   isUNIT_3_3InteractivePageType,
   UNIT_3_3_LESSON_KEY,
   UNIT_3_3_LESSON_STEPS,
@@ -27,7 +26,6 @@ import {
 import { UNIT_3_3CourseHeader } from './course-header';
 import {
   UNIT_3_3KnowledgeMapVisual,
-  UNIT_3_3StepAiAssistant,
   UNIT_3_3StepContentPanel,
   UNIT_3_3StudentActivityForm,
   UNIT_3_3StudentSummaryPanel,
@@ -119,6 +117,16 @@ export function UNIT_3_3StudentPage({
       : teacherSyncState?.activeStepId === step.id
         ? Boolean((teacherSyncState as { releasedActivities?: Record<string, boolean> })?.releasedActivities?.[step.id])
         : false;
+  const browseEnabled =
+    isDemo || !isUNIT_3_3InteractivePageType(step.pageType)
+      ? true
+      : teacherSyncState?.activeStepId === step.id
+        ? Boolean((teacherSyncState as { browseEnabled?: Record<string, boolean> })?.browseEnabled?.[step.id])
+        : false;
+  const revealProgress =
+    teacherSyncState?.activeStepId === step.id
+      ? (teacherSyncState as { teacherRevealProgress?: Record<string, number> })?.teacherRevealProgress?.[step.id] ?? 0
+      : 0;
 
   const previousStepIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -165,19 +173,6 @@ export function UNIT_3_3StudentPage({
       return nextState;
     });
   };
-
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
 
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
@@ -268,27 +263,24 @@ export function UNIT_3_3StudentPage({
           step={step}
           mediaSrc={getUNIT_3_3MediaSrc(step.id)}
           mediaAlt={step.title}
+          revealProgress={revealProgress}
+          allowInlineReveal={isDemo || browseEnabled}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
-
-        {isUNIT_3_3AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_3StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
 
         <div className="mt-4">
           <UNIT_3_3StudentActivityForm
             step={step}
             savedResponse={savedResponse}
             released={released}
+            browseEnabled={browseEnabled}
             answerVisible={answerVisible}
+            revealProgress={revealProgress}
             onSubmit={handleSubmitResponse}
-            onWorkspaceParameterChange={handleWorkspaceParameterChange}
           />
         </div>
 
-        {step.pageType === 'summary' ? (
+        {step.id === 'step-15' ? (
           <div className="mt-4">
             <UNIT_3_3StudentSummaryPanel responses={courseState.responses} />
           </div>

@@ -1,218 +1,155 @@
 export interface WorkspaceParameterChange {
   key: string;
   value: string | number | boolean;
-  source: 'input' | 'select' | 'button';
+  source: 'input' | 'select' | 'button' | 'drag';
 }
 
-export interface RuleHighlightOption {
+export interface ChoiceOption {
   value: string;
   label: string;
-  figureCue: string;
-  detail: string;
-  category: 'skeleton' | 'keypoint';
-  relatedRules: string[];
 }
 
-export const RULE_HIGHLIGHT_OPTIONS: RuleHighlightOption[] = [
-  {
-    value: 'start-end',
-    label: '起点与终点',
-    figureCue: '看开环极点出发、看开环零点或无穷远收束',
-    detail: '根轨迹从开环极点出发，终止于开环零点或沿渐近线走向无穷远。',
-    category: 'skeleton',
-    relatedRules: ['起点终点', '分支数 = 开环极点数'],
-  },
-  {
-    value: 'real-axis',
-    label: '实轴区段',
-    figureCue: '用奇偶判段判断哪些实轴段真正属于轨迹',
-    detail: '实轴上某点右侧若有奇数个实极点和实零点，则该段属于根轨迹。',
-    category: 'skeleton',
-    relatedRules: ['实轴区段法则', '奇偶判段'],
-  },
-  {
-    value: 'asymptote',
-    label: '渐近线中心与夹角',
-    figureCue: '分支走向无穷远时整体朝哪几个方向展开',
-    detail: '当极点数多于零点数时，额外分支沿渐近线展开，中心与夹角先定骨架。',
-    category: 'skeleton',
-    relatedRules: ['渐近线中心', '渐近线夹角'],
-  },
-  {
-    value: 'breakaway',
-    label: '分离点/汇合点',
-    figureCue: '分支离开实轴或重新并回实轴的位置',
-    detail: '这是关键节点层，不属于第一轮骨架法则。',
-    category: 'keypoint',
-    relatedRules: ['关键节点', '后续精化'],
-  },
-  {
-    value: 'imaginary-crossing',
-    label: '虚轴交点',
-    figureCue: '轨迹何时真正触碰稳定边界',
-    detail: '这同样属于关键节点层，负责解释越轴与稳定边界。',
-    category: 'keypoint',
-    relatedRules: ['稳定边界', '关键节点'],
-  },
-] as const;
-
-export interface KeypointMatchGroup {
-  key: string;
-  prompt: string;
-  answer: string;
-}
-
-export const KEYPOINT_MATCH_OPTIONS = [
-  { value: 'breakaway', label: '分离点 / 汇合点' },
-  { value: 'imaginary-crossing', label: '虚轴交点' },
-  { value: 'departure-angle', label: '起始角 / 终止角' },
-] as const;
-
-export const KEYPOINT_MATCH_GROUPS: KeypointMatchGroup[] = [
-  {
-    key: 'leave-real-axis',
-    prompt: '回答“分支何时离开实轴、何时重新并回实轴”',
-    answer: 'breakaway',
-  },
-  {
-    key: 'touch-stability-boundary',
-    prompt: '回答“根轨迹何时真正碰到稳定边界”',
-    answer: 'imaginary-crossing',
-  },
-  {
-    key: 'local-tangent-direction',
-    prompt: '回答“复极点或复零点附近的局部切线方向”',
-    answer: 'departure-angle',
-  },
-] as const;
-
-export interface WorkedExampleSection {
+export interface ActivityCardDefinition {
   key: string;
   title: string;
   prompt: string;
   placeholder: string;
   reference: string;
-  errorBucket: string;
 }
 
-export const WORKED_EXAMPLE_SECTIONS: WorkedExampleSection[] = [
-  {
-    key: 'skeleton',
-    title: '第一步：先骨架',
-    prompt: '写出起点、终点和渐近线大势。',
-    placeholder: '例如：3 条分支从 0、-1、-2 出发；无有限零点；两条渐近线中心在 -1，夹角为 ±90°。',
-    reference: '3 条分支从 0、-1、-2 出发；无有限零点；两条渐近线中心在 -1，夹角为 ±90°。',
-    errorBucket: 'skeleton_setup',
-  },
-  {
-    key: 'real-axis-and-keypoint',
-    title: '第二步：补实轴区段与关键节点',
-    prompt: '补上真正属于根轨迹的实轴区段，以及 K=6 对应的关键节点意义。',
-    placeholder: '例如：实轴区段在 (-∞,-2) 与 (-1,0)；K=6 时轨迹穿越虚轴，是稳定边界点。',
-    reference: '实轴区段在 (-∞,-2) 与 (-1,0)；K=6 时轨迹穿越虚轴，是稳定边界点。',
-    errorBucket: 'keypoint_or_real_axis',
-  },
-  {
-    key: 'stability-range',
-    title: '第三步：回到稳定范围',
-    prompt: '把图上的迁移结论翻译回稳定范围。',
-    placeholder: '例如：闭环稳定范围为 0<K<6。',
-    reference: '0<K<6',
-    errorBucket: 'stability_translation',
-  },
-] as const;
-
-export const WORKED_EXAMPLE_REFERENCE = {
-  plant: 'G(s)H(s)=K/[s(s+1)(s+2)]',
-  method: ['先骨架', '再关键点', '最后稳定范围'],
-  stabilityRange: '0<K<6',
-} as const;
-
-export interface FormulaOrderingItem {
+export interface SequenceSortItem {
   id: string;
   label: string;
   explanation: string;
 }
 
-export const FORMULA_ORDERING_SEQUENCE: FormulaOrderingItem[] = [
-  {
-    id: 'general-form',
-    label: '从一般参数特征方程出发：B(s)+aA(s)=0',
-    explanation: '先承认参数不一定是增益 K，而可以是一般参数 a。',
-  },
-  {
-    id: 'normalized-form',
-    label: '把式子改写成：1+aA(s)/B(s)=0',
-    explanation: '这一步把问题送回“1+开环=0”的普通根轨迹入口。',
-  },
-  {
-    id: 'equivalent-open-loop',
-    label: '认出等效开环：G_eq(s)=aA(s)/B(s)',
-    explanation: '广义根轨迹没有新法则，只是换成新的等效开环。',
-  },
-  {
-    id: 'reuse-rules',
-    label: '复用普通根轨迹法则读取迁移规律',
-    explanation: '之后仍然回到相角/幅值条件和完整法则。',
-  },
-] as const;
-
-export interface TabSwitchOption {
-  value: string;
-  label: string;
-  heading: string;
-  bullets: string[];
-}
-
-export const TAB_SWITCH_OPTIONS: TabSwitchOption[] = [
-  {
-    value: 'time-constant',
-    label: '时间常数例子',
-    heading: '以时间常数 T_a 为参数',
-    bullets: [
-      '先把时间常数参数改写进特征方程，再转成等效开环。',
-      '典型等效开环可整理为 s(s+1)/(s+2) 这一类对象。',
-      '关注点不是“新算例”，而是“非增益参数也能转回普通根轨迹”。',
-    ],
-  },
-  {
-    value: 'zero-vs-oneeighty',
-    label: '0° vs 180°',
-    heading: '0° 根轨迹与 180° 根轨迹',
-    bullets: [
-      '两者研究对象相同，都是参数变化下的闭环根迁移。',
-      '差异来自相角条件方向不同，因此图形展开方向会变。',
-      '它们都属于广义根轨迹视角，而不是两套互不相干的工具。',
-    ],
-  },
-] as const;
-
-export interface DynamicMappingRow {
+export interface ClassificationCardDefinition {
   key: string;
-  cue: string;
+  prompt: string;
   answer: string;
 }
 
-export const DYNAMIC_MAPPING_OPTIONS = [
-  { value: 'faster', label: '更快' },
-  { value: 'more-oscillatory', label: '更振荡' },
-  { value: 'closer-to-boundary', label: '更靠近边界' },
-] as const;
+export interface QuizQuestion {
+  key: string;
+  prompt: string;
+  type?: 'choice' | 'text';
+  options?: ChoiceOption[];
+  answer?: string;
+  explanation: string;
+}
 
-export const DYNAMIC_MAPPING_ROWS: DynamicMappingRow[] = [
+export const STEP07_CARDS: ActivityCardDefinition[] = [
   {
-    key: 'move-left',
-    cue: '主导极点整体向左远离虚轴',
-    answer: 'faster',
+    key: 'real-axis',
+    title: '实轴区段判断',
+    prompt: '哪些实轴区段属于根轨迹。',
+    placeholder: '例如：(-∞,-4) 与 (-2,0) 属于轨迹。',
+    reference: '(-∞,-4) 与 (-2,0) 属于轨迹。',
   },
   {
-    key: 'move-up-and-down',
-    cue: '共轭极点离开实轴，虚部增大',
-    answer: 'more-oscillatory',
+    key: 'asymptote',
+    title: '渐近线重心与角度',
+    prompt: '渐近线重心与角度如何确定。',
+    placeholder: '例如：重心在 -2，角度为 60°、180°、300°。',
+    reference: '重心在 -2，角度为 60°、180°、300°。',
+  },
+];
+
+export const STEP09_CARDS: ActivityCardDefinition[] = [
+  {
+    key: 'breakaway',
+    title: '真实分离点筛选',
+    prompt: '哪一个候选点是真实分离点。',
+    placeholder: '例如：只有位于根轨迹实轴区段且对应 K>0 的候选点才保留。',
+    reference: '只保留位于根轨迹实轴区段且对应 K>0 的候选点。',
   },
   {
-    key: 'approach-imaginary-axis',
-    cue: '主导分支贴近虚轴或穿越虚轴',
-    answer: 'closer-to-boundary',
+    key: 'imaginary-crossing',
+    title: '临界增益与虚轴交点',
+    prompt: '临界增益与虚轴交点如何对应。',
+    placeholder: '例如：K=6 对应 s=±j√2，回答的是稳定边界。',
+    reference: 'K=6 对应 s=±j√2，回答的是稳定边界。',
   },
-] as const;
+];
+
+export const STEP11_CARDS: ActivityCardDefinition[] = [
+  {
+    key: 'departure-angle',
+    title: '复极点出射角',
+    prompt: '上半平面复极点的出射角是多少。',
+    placeholder: '例如：先列角度平衡，再给出上半平面 26.565° 的出射角结果。',
+    reference: '先由角度平衡求出上半平面复极点的出射角 26.565°，再用共轭对称得到下半平面结果。',
+  },
+  {
+    key: 'root-sum',
+    title: '根之和约束',
+    prompt: '根之和原则如何限制另一实根的位置。',
+    placeholder: '例如：根之和 = -4，因此局部方向与整图位置必须同时自洽。',
+    reference: '根之和 = -4，因此局部方向与整图位置必须同时自洽。',
+  },
+];
+
+export const WORKFLOW_SEQUENCE: SequenceSortItem[] = [
+  { id: 'poles-zeros', label: '写出极点与零点', explanation: '先交代对象和分支出发 / 终止位置。' },
+  { id: 'real-axis', label: '判实轴区段', explanation: '用奇偶判段找出真正属于轨迹的实轴段。' },
+  { id: 'asymptote', label: '求渐近线', explanation: '先看无穷远方向的大势。' },
+  { id: 'real-keypoints', label: '找实轴关键点', explanation: '再补分离点 / 汇合点等实轴关键点。' },
+  { id: 'imaginary-axis', label: '查虚轴交点', explanation: '判断何时碰到稳定边界。' },
+  { id: 'local-direction', label: '补局部方向', explanation: '再补复极点 / 复零点附近的局部切线方向。' },
+  { id: 'global-check', label: '做全图复核', explanation: '最后用对称性、根之和等约束检查整图是否自洽。' },
+];
+
+export const CLASSIFICATION_OPTIONS: ChoiceOption[] = [
+  { value: 'origin-pole', label: '原点极点' },
+  { value: 'real-pole', label: '实轴极点' },
+  { value: 'complex-pole', label: '共轭复极点' },
+];
+
+export const CLASSIFICATION_CARDS: ClassificationCardDefinition[] = [
+  {
+    key: 'integrator-trend',
+    prompt: '“更接近积分型结构，需要优先警惕低频拖尾” 对应哪类开环极点？',
+    answer: 'origin-pole',
+  },
+  {
+    key: 'real-axis-trend',
+    prompt: '“直接决定实轴区段与分离 / 汇合可能” 对应哪类开环极点？',
+    answer: 'real-pole',
+  },
+  {
+    key: 'oscillation-trend',
+    prompt: '“必须补出射角，振荡趋势更明显” 对应哪类开环极点？',
+    answer: 'complex-pole',
+  },
+];
+
+export const POSTTEST_QUESTIONS: QuizQuestion[] = [
+  {
+    key: 'q1',
+    prompt: '判断某个点是否属于根轨迹时，正确顺序是：',
+    options: [
+      { value: 'angle-first', label: '先看相角条件，再用幅值条件确定参数大小' },
+      { value: 'magnitude-first', label: '先算参数，再回头看相角是否凑得上' },
+      { value: 'either', label: '两者顺序无关，只要最后都算到即可' },
+    ],
+    answer: 'angle-first',
+    explanation: '相角条件先回答“有没有资格在轨迹上”，幅值条件再回答“若在轨迹上，对应多大参数”。',
+  },
+  {
+    key: 'q2',
+    prompt: '读图时为什么必须先骨架、再关键点、最后补局部方向？',
+    options: [
+      { value: 'skeleton-first', label: '因为骨架先回答整体走向，再由关键点和局部方向补细节' },
+      { value: 'keypoint-first', label: '因为关键点最难，所以应该最先抓住' },
+      { value: 'any-order', label: '顺序无关，只要法则都算到即可' },
+    ],
+    answer: 'skeleton-first',
+    explanation: '骨架先给整张图的大势，关键点和局部方向是在骨架之后做修正与补细节。',
+  },
+  {
+    key: 'q3',
+    prompt: '在例题中，dK/ds、劳斯判据、出射角和根之和各自回答什么问题？',
+    type: 'text',
+    explanation: '理想回答应覆盖实轴关键点、稳定边界、局部方向与整图守恒四个职责。',
+  },
+];

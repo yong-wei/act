@@ -36,6 +36,7 @@ export type RootLocusInteractiveHandle = {
   id: string;
   kind: 'pole' | 'zero';
   point: ComplexPoint;
+  renderAs?: 'open-pole' | 'open-zero' | 'closed-pole';
   draggable?: boolean;
   ariaLabel: string;
   cursor?: string;
@@ -65,7 +66,9 @@ function pointTooltipFormatter(params: { seriesName?: string; value?: number[] |
   const value = params.value;
   const x = Array.isArray(value) ? Number(value[0]) : Number(value);
   const y = Array.isArray(value) ? Number(value[1]) : Number(value);
-  return `${params.seriesName ?? '数据点'}<br/>Re(s): ${formatFixed(x)}<br/>Im(s): ${formatFixed(y)}`;
+  const gain = Array.isArray(value) && value.length > 2 ? Number(value[2]) : Number.NaN;
+  const gainLine = Number.isFinite(gain) ? `<br/>Gain K: ${formatFixed(gain)}` : '';
+  return `${params.seriesName ?? '数据点'}<br/>Re(s): ${formatFixed(x)}<br/>Im(s): ${formatFixed(y)}${gainLine}`;
 }
 
 function buildMetricText(metrics: ControlMetrics): ReactNode {
@@ -233,7 +236,7 @@ function buildRootLocusOption(
       type: 'line',
       showSymbol: false,
       lineStyle: { color: '#4c78a8', width: 1.7 },
-      data: branch.map((point) => [point.re, point.im]),
+      data: branch.map((point) => [point.re, point.im, point.gain ?? null]),
     })),
     {
       name: '当前闭环极点',
@@ -383,8 +386,13 @@ function renderInteractiveHandle(
   if (!pixelPosition) {
     return null;
   }
+  const renderAs =
+    handle.renderAs ?? (handle.kind === 'zero' ? 'open-zero' : 'open-pole');
+  const isClosedPole = handle.renderAs === 'closed-pole' || renderAs === 'closed-pole';
   const content =
-    handle.kind === 'pole' ? (
+    isClosedPole ? (
+      <div className="pointer-events-none relative h-4 w-4 rounded-full border-[2px] border-white bg-[#1f4e79] shadow-[0_0_0_2px_rgba(31,78,121,0.28)]" />
+    ) : renderAs === 'open-pole' ? (
       <div className="pointer-events-none relative h-5 w-5">
         <span className="absolute left-1/2 top-1/2 h-[2.2px] w-5 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-[#c81d25]" />
         <span className="absolute left-1/2 top-1/2 h-[2.2px] w-5 -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-[#c81d25]" />

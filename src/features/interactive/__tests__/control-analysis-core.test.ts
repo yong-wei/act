@@ -68,4 +68,32 @@ describe('control analysis core foundation', () => {
     expect(workspaceSource).toContain('mode="full"');
     expect(workspaceSource).toContain('mode="zoom"');
   });
+
+  it('keeps root-locus sample gain metadata available for trajectory snapping workflows', () => {
+    const typeSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/analysis/types.ts'),
+      'utf8',
+    );
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+
+    expect(typeSource).toContain('export interface RootLocusSamplePoint extends ComplexPoint');
+    expect(typeSource).toContain('gain?: number;');
+    expect(typeSource).toContain('branches: RootLocusSamplePoint[][];');
+    expect(typeSource).toContain('fullBranches?: RootLocusSamplePoint[][];');
+    expect(panelSource).toContain('point.gain');
+    expect(panelSource).toContain('Gain K');
+  });
+
+  it('supports a dedicated closed-pole handle variant for draggable closed-loop markers', () => {
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
+
+    expect(panelSource).toContain("renderAs?: 'open-pole' | 'open-zero' | 'closed-pole'");
+    expect(panelSource).toContain("handle.renderAs === 'closed-pole'");
+  });
 });

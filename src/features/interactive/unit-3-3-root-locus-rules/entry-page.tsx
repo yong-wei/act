@@ -210,7 +210,7 @@ export function UNIT_3_3CourseEntryPage({
             并为 <strong>3-4</strong> 的读图窗口判断与对象化验证打地基。
           </p>
           <div className="mt-4 flex flex-wrap gap-2 text-xs">
-            {['根轨迹', '相角条件', '幅值条件', '完整法则', '广义根轨迹', '动态翻译'].map((item) => (
+            {['根轨迹', '相角条件', '幅值条件', '完整法则', '关键节点', '读图顺序'].map((item) => (
               <span key={item} className="premium-lesson-tone-pill premium-tone-cyan">
                 {item}
               </span>
