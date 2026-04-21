@@ -192,4 +192,70 @@ describe('unit 3-3 interactive course', () => {
     expect(studentPageSource).toContain('getUnit33StepAIContext');
     expect(studentPageSource).not.toContain('getUnit32StepAIContext');
   });
+
+  it('does not render a placeholder submission shell for static reading pages', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-3-root-locus-rules/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).not.toContain('本页无需提交');
+    expect(stepPanelsSource).not.toContain('本页以静态阅读和教师推进为主，不需要学生提交作答。');
+  });
+
+  it('uses semantic activity card titles instead of generic card numbering', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-3-root-locus-rules/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).not.toContain('卡片 1：');
+    expect(stepPanelsSource).not.toContain('卡片 2：');
+    expect(stepPanelsSource).toContain('实轴区段判断');
+    expect(stepPanelsSource).toContain('渐近线重心与角度');
+    expect(stepPanelsSource).toContain('真实分离点筛选');
+    expect(stepPanelsSource).toContain('临界增益与虚轴交点');
+    expect(stepPanelsSource).toContain('复极点出射角');
+    expect(stepPanelsSource).toContain('根之和约束');
+  });
+
+  it('records the 3-3 implementation acceptance contract source', () => {
+    const acceptance = JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/authoring/lessons/3-3/notes/interactive-implementation-acceptance.json'),
+        'utf8',
+      ),
+    ) as {
+      lesson_id: string;
+      review_mode: string;
+      implementation_contract_source: string;
+      reviewed_runtime_artifacts: string[];
+    };
+
+    expect(acceptance.lesson_id).toBe('3-3');
+    expect(acceptance.review_mode).toBe('main_agent_fallback');
+    expect(acceptance.implementation_contract_source).toBe('src/lib/unit-3-3-course.ts');
+    expect(acceptance.reviewed_runtime_artifacts).toContain(
+      'course-content/runtime/lessons/3-3/review/interactive-page-check.json',
+    );
+  });
+
+  it('stabilizes activity spec dependencies to avoid browser-side render loops', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-3-root-locus-rules/step-panels.tsx'),
+      'utf8',
+    );
+
+    const useMemoMatches = stepPanelsSource.match(/useMemo\(\(\) => getActivitySpec\(step\), \[step\]\)/g) ?? [];
+
+    expect(useMemoMatches).toHaveLength(1);
+    expect(stepPanelsSource).not.toContain("function summarizeResponses(step: UNIT_3_3StepDefinition, responses: UNIT_3_3TeacherResponseItem[]) {\n  if (!responses.length || step.pageType === 'tab_switch') {\n    return [];\n  }\n\n  const activity = useMemo(() => getActivitySpec(step), [step.id]);");
+    expect(stepPanelsSource).toContain("const activity = getActivitySpec(step);");
+    expect(stepPanelsSource).toContain("const isTabSwitch = activity.kind === 'tab_switch';");
+    expect(stepPanelsSource).toContain(
+      "const defaultTab = isTabSwitch ? activity.defaultTab : TAB_SWITCH_OPTIONS[0]?.value ?? 'time-constant';",
+    );
+    expect(stepPanelsSource).not.toContain('}, [activity, savedResponse]);');
+    expect(stepPanelsSource).toContain('}, [defaultTab, isTabSwitch, savedResponse]);');
+  });
 });

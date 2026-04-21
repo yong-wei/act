@@ -47,9 +47,14 @@
     "互动设计接受文件已通过校验。"
   ],
   "design_acceptance_issues": [],
-  "implementation_acceptance_summary": [],
+  "implementation_acceptance_summary": [
+    "互动实现接受文件已通过校验。"
+  ],
   "implementation_acceptance_issues": [],
-  "reviewed_runtime_artifacts": [],
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/3-3/review/review-report.md",
+    "course-content/runtime/lessons/3-3/review/interactive-page-check.json"
+  ],
   "runtime_review_stale_issues": [],
   "hard_gate_issues": [],
   "hard_gate_issue_codes": [],
@@ -60,7 +65,8 @@
   "summary": [
     "已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。",
     "已检测到 `3-3` 的 V2 互动契约，步骤字段完整。",
-    "互动设计接受文件已通过校验。"
+    "互动设计接受文件已通过校验。",
+    "互动实现接受文件已通过校验。"
   ],
   "warnings": [],
   "missing": [],

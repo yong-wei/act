@@ -148,14 +148,14 @@ const WORKED_EXAMPLE_CONFIGS: Record<string, { plant: string; method: string[]; 
     sections: [
       {
         key: 'real-axis',
-        title: '卡片 1：实轴区段',
+        title: '实轴区段判断',
         prompt: '哪些实轴区段属于根轨迹。',
         placeholder: '例如：(-∞,-4) 与 (-2,0) 属于轨迹，因为右侧实极点与实零点总数为奇数。',
         reference: '(-∞,-4) 与 (-2,0) 属于轨迹。',
       },
       {
         key: 'asymptote',
-        title: '卡片 2：渐近线重心与角度',
+        title: '渐近线重心与角度',
         prompt: '渐近线重心与角度如何确定。',
         placeholder: '例如：重心在 -2，角度为 60°、180°、300°。',
         reference: '重心在 -2，角度为 60°、180°、300°。',
@@ -168,14 +168,14 @@ const WORKED_EXAMPLE_CONFIGS: Record<string, { plant: string; method: string[]; 
     sections: [
       {
         key: 'breakaway',
-        title: '卡片 1：真实分离点',
+        title: '真实分离点筛选',
         prompt: '哪一个候选点是真实分离点。',
         placeholder: '例如：先由 dK/ds=0 得候选点，再筛掉不在实轴轨迹段上的点。',
         reference: '只保留位于根轨迹实轴区段上的候选点作为真实分离点。',
       },
       {
         key: 'imaginary-crossing',
-        title: '卡片 2：临界增益与虚轴交点',
+        title: '临界增益与虚轴交点',
         prompt: '临界增益与虚轴交点如何对应。',
         placeholder: '例如：K=6 对应 s=±j√2，说明它回答的是稳定边界而不是实轴分离点。',
         reference: 'K=6 对应 s=±j√2，回答的是稳定边界。',
@@ -187,14 +187,14 @@ const WORKED_EXAMPLE_CONFIGS: Record<string, { plant: string; method: string[]; 
 const STEP_10_ACTIVITY_CARDS: ActivityCardDefinition[] = [
   {
     key: 'departure-angle',
-    title: '卡片 1：出射角',
+    title: '复极点出射角',
     prompt: '上半平面复极点的出射角是多少。',
     placeholder: '例如：先列角度平衡，再给出上半平面复极点的出射角结果。',
     reference: '先由角度平衡求出上半平面复极点的出射角，再用共轭对称得到下半平面结果。',
   },
   {
     key: 'root-sum',
-    title: '卡片 2：根之和校核',
+    title: '根之和约束',
     prompt: '根之和原则如何限制另一实根的位置。',
     placeholder: '例如：根之和保持不变，因此局部方向判断不能破坏整张图的实轴对称与总和约束。',
     reference: '根之和保持常数，因此局部方向与整图位置必须同时自洽。',
@@ -1079,22 +1079,24 @@ export function UNIT_3_3StudentActivityForm({
   onSubmit: (response: UNIT_3_3StepResponse) => void;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
-  const activity = getActivitySpec(step);
+  const activity = useMemo(() => getActivitySpec(step), [step]);
+  const isTabSwitch = activity.kind === 'tab_switch';
+  const defaultTab = isTabSwitch ? activity.defaultTab : TAB_SWITCH_OPTIONS[0]?.value ?? 'time-constant';
   const [draft, setDraft] = useState<Record<string, string>>(savedResponse?.answers ?? {});
   const [selectedRegions, setSelectedRegions] = useState<string[]>(parseStoredList(savedResponse?.answers.selected));
   const [ordering, setOrdering] = useState<string[]>(getOrderingFromResponse(savedResponse));
   const [workflowOrdering, setWorkflowOrdering] = useState<string[]>(getWorkflowOrderingFromResponse(savedResponse));
-  const [activeTab, setActiveTab] = useState(activity.kind === 'tab_switch' ? activity.defaultTab : TAB_SWITCH_OPTIONS[0]?.value ?? 'time-constant');
+  const [activeTab, setActiveTab] = useState(defaultTab);
 
   useEffect(() => {
     setDraft(savedResponse?.answers ?? {});
     setSelectedRegions(parseStoredList(savedResponse?.answers.selected));
     setOrdering(getOrderingFromResponse(savedResponse));
     setWorkflowOrdering(getWorkflowOrderingFromResponse(savedResponse));
-    if (activity.kind === 'tab_switch') {
-      setActiveTab(savedResponse?.answers.tab ?? activity.defaultTab);
+    if (isTabSwitch) {
+      setActiveTab(savedResponse?.answers.tab ?? defaultTab);
     }
-  }, [activity, savedResponse]);
+  }, [defaultTab, isTabSwitch, savedResponse]);
 
   const submitted = Boolean(savedResponse);
   const locked = !released && activity.kind !== 'none' && activity.kind !== 'tab_switch';
@@ -1114,12 +1116,7 @@ export function UNIT_3_3StudentActivityForm({
   };
 
   if (activity.kind === 'none') {
-    return (
-      <section className="premium-lesson-panel-soft px-4 py-4">
-        <div className="premium-lesson-title text-sm font-medium">本页无需提交</div>
-        <SubmissionStatus submitted={false} idleText="本页以静态阅读和教师推进为主，不需要学生提交作答。" />
-      </section>
-    );
+    return null;
   }
 
   if (activity.kind === 'tab_switch') {
