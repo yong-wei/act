@@ -25,14 +25,15 @@
   "mapping_columns_present": [
     "evidence_unit_id",
     "handout_anchor",
-    "evidence_kind",
     "target_steps",
-    "upgrade_mode",
     "keep_elements",
-    "non_reducible",
+    "non_reducible"
+  ],
+  "missing_mapping_columns": [
+    "evidence_kind",
+    "upgrade_mode",
     "acceptance_checks"
   ],
-  "missing_mapping_columns": [],
   "invalid_handout_anchors": [],
   "missing_target_steps": [],
   "formula_mapping_issues": [],
@@ -43,32 +44,31 @@
   "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
   "step_contract_issues": [],
-  "design_acceptance_summary": [],
-  "design_acceptance_issues": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/4-4/design/interactive-design-acceptance.json"
+  "design_acceptance_summary": [
+    "互动设计接受文件已通过校验。"
   ],
+  "design_acceptance_issues": [],
   "implementation_acceptance_summary": [],
   "implementation_acceptance_issues": [],
   "reviewed_runtime_artifacts": [],
   "runtime_review_stale_issues": [],
   "hard_gate_issues": [],
   "hard_gate_issue_codes": [],
-  "blocking_issues": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/4-4/design/interactive-design-acceptance.json"
-  ],
+  "blocking_issues": [],
   "implementation_contract_summary": [],
   "implementation_contract_issues": [],
   "legacy_acceptance_notes": [],
   "summary": [
-    "已检测到 `4-4` 的 V2 互动契约，步骤字段完整。"
+    "已检测到 `4-4` 的 V2 互动契约，步骤字段完整。",
+    "互动设计接受文件已通过校验。"
   ],
   "warnings": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/4-4/design/interactive-design-acceptance.json"
+    "讲义映射合同缺少列：evidence_kind, upgrade_mode, acceptance_checks"
   ],
   "missing": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/4-4/design/interactive-design-acceptance.json"
+    "讲义映射合同缺少列：evidence_kind, upgrade_mode, acceptance_checks"
   ],
   "issues": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/4-4/design/interactive-design-acceptance.json"
+    "讲义映射合同缺少列：evidence_kind, upgrade_mode, acceptance_checks"
   ]
 }
