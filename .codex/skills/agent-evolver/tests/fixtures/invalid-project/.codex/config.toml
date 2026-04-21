@@ -1,0 +1,7 @@
+# project-agent-catalog:start
+# - bad-agent | .codex/agents/bad-agent.toml | gpt-5.4-mini | medium | 缺少 developer_instructions 的坏样例
+# project-agent-catalog:end
+
+[agents]
+max_threads = 4
+max_depth = 1

@@ -1,0 +1,6 @@
+{"timestamp":"2026-04-21T00:00:00+08:00","agent":"starter","model":"gpt-5.4","reasoning_effort":"medium","task_type":"triage","outcome":"success","quality":"good","notes":"快速分流正常。"}
+{"timestamp":"2026-04-21T00:05:00+08:00","agent":"critical-reviewer","model":"gpt-5.4","reasoning_effort":"xhigh","task_type":"review","outcome":"success","quality":"good","notes":"发现真实问题。"}
+{"timestamp":"2026-04-21T00:12:00+08:00","agent":"critical-reviewer","model":"gpt-5.4","reasoning_effort":"xhigh","task_type":"review","outcome":"timeout","quality":"poor","notes":"等待时间过长。"}
+{"timestamp":"2026-04-21T00:18:00+08:00","agent":"critical-reviewer","model":"gpt-5.4","reasoning_effort":"xhigh","task_type":"review","outcome":"success","quality":"poor","notes":"结论过重，超出需要。"}
+{"timestamp":"2026-04-21T00:22:00+08:00","agent":"spark-coder","model":"gpt-5.3-codex-spark","reasoning_effort":"medium","task_type":"small_fix","outcome":"success","quality":"poor","notes":"试图扩展到跨文件重构。"}
+{"timestamp":"2026-04-21T00:27:00+08:00","agent":"spark-coder","model":"gpt-5.3-codex-spark","reasoning_effort":"medium","task_type":"small_fix","outcome":"success","quality":"poor","notes":"变更面超过简单修补。"}

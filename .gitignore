@@ -6,8 +6,15 @@ AGENTS.md
 GEMINI.md
 .codex/
 !.codex/
+.codex/config.toml
+!.codex/config.toml
+.codex/agents/
+!.codex/agents/
+!.codex/agents/**
 .codex/plans/
 !.codex/skills/
+!.codex/skills/agent-evolver/
+!.codex/skills/agent-evolver/**
 !.codex/skills/lesson/
 .codex/skills/lesson/*
 !.codex/skills/lesson/SKILL.md
