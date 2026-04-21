@@ -10,6 +10,7 @@
 - refine：讲义润色
 - server-ops：服务器操作
 - syllabus-refactor：大纲重构
+- agent-evolver：子代理自进化
 </Skill-use>
 
 <Skill-evolve>

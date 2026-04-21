@@ -28,6 +28,7 @@ GEMINI.md
 !.codex/skills/lesson/scripts/
 .codex/skills/lesson/scripts/*
 !.codex/skills/lesson/scripts/export_handout_pdf.py
+!.codex/skills/lesson/scripts/render_pdf_review_pages.py
 !.codex/skills/lesson/templates/
 .codex/skills/lesson/templates/*
 !.codex/skills/lesson/templates/handout-pdf-style.tex.tpl

@@ -118,7 +118,7 @@ const CASE_CONFIG: Record<Unit43PanelId, CaseConfig> = {
       coefficientOrder: 'descending',
       label: '横摇减摇鳍对象',
     },
-    timeRange: { start: 0, end: 20, samples: 520 },
+    timeRange: { start: 0, end: 40, samples: 520 },
     frequencyRange: { min: 1e-2, max: 1e2, samples: 360 },
     rootLocus: { minGain: 0, maxGain: 8, samples: 96 },
     feasibleRegion: undefined,

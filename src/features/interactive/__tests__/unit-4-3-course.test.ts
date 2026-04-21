@@ -7,6 +7,8 @@ import { parse } from 'yaml';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
+import { buildUnit43AnalysisRequest } from '@/resources/control-system/analysis/unit-4-3-request-builder';
+import { getControlAxisPreset } from '@/resources/control-system/charts/control-bode-options';
 
 vi.mock('server-only', () => ({}));
 
@@ -205,6 +207,25 @@ describe('unit 4-3 interactive course', () => {
 
     expect(stepPanelsSource).toContain('legend:');
     expect(stepPanelsSource).toContain("data: ['原系统', '当前参数']");
+    expect(stepPanelsSource).toContain("itemStyle: { color: BASELINE_SERIES_COLOR }");
+    expect(stepPanelsSource).toContain("itemStyle: { color: CURRENT_SERIES_COLOR }");
+  });
+
+  it('keeps the step-13 roll-boundary comparison aligned to the 0-40 s authoring window', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(getControlAxisPreset('unit43_roll_boundary', 'step')).toEqual({
+      x: [0, 40],
+      y: [-0.2, 1.2],
+    });
+
+    expect(
+      buildUnit43AnalysisRequest('roll_boundary', { kp: 0.7858, ki: 2, kd: 4.104 }).timeRange.end,
+    ).toBe(40);
+    expect(stepPanelsSource).toContain("yAxisName: '\\\\varphi / rad'");
   });
 
   it('maps runtime media only for the remaining static anchor steps and keeps native analysis panels off the old image mapping', async () => {

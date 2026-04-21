@@ -115,6 +115,10 @@ export interface ComplexPoint {
   im: number;
 }
 
+export interface RootLocusSamplePoint extends ComplexPoint {
+  gain?: number;
+}
+
 export interface StepResponseData {
   points: CurvePoint[];
 }
@@ -128,8 +132,8 @@ export interface NyquistData {
 }
 
 export interface RootLocusData {
-  branches: ComplexPoint[][];
-  fullBranches?: ComplexPoint[][];
+  branches: RootLocusSamplePoint[][];
+  fullBranches?: RootLocusSamplePoint[][];
   currentPoles: ComplexPoint[];
   openLoopPoles: ComplexPoint[];
   openLoopZeros: ComplexPoint[];

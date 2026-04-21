@@ -46,6 +46,8 @@ const STEP_05_DEFAULT_PARAMS = { gain: 6, piPoleFrequency: 1 / 1.8, leadZeroFreq
 const STEP_06_DEFAULT_PARAMS = { gain: 6, lagPoleFrequency: 1 / 20, lagZeroFrequency: 1 / 5, leadZeroFrequency: 1 / 0.8, leadPoleFrequency: 1 / 0.16 } as const;
 const STEP_07_DEFAULT_PARAMS = { kp: 3.5, ki: 3.5 / 1.5, kd: 0.25 } as const;
 const STEP_10_DEFAULT_PARAMS = { gain: 2.8, leadZeroFrequency: 0.1, leadPoleFrequency: 1 / 4.06 } as const;
+const BASELINE_SERIES_COLOR = '#f59e0b';
+const CURRENT_SERIES_COLOR = '#22d3ee';
 
 const QUIZ_OPTIONS = {
   'step-14': [
@@ -626,17 +628,21 @@ function buildComparisonChartOption(
       {
         name: '原系统',
         type: 'line',
+        color: BASELINE_SERIES_COLOR,
         showSymbol: false,
         smooth: false,
-        lineStyle: { color: '#f59e0b', width: 2.2 },
+        lineStyle: { color: BASELINE_SERIES_COLOR, width: 2.2 },
+        itemStyle: { color: BASELINE_SERIES_COLOR },
         data: baselineData,
       },
       {
         name: '当前参数',
         type: 'line',
+        color: CURRENT_SERIES_COLOR,
         showSymbol: false,
         smooth: false,
-        lineStyle: { color: '#22d3ee', width: 2.4 },
+        lineStyle: { color: CURRENT_SERIES_COLOR, width: 2.4 },
+        itemStyle: { color: CURRENT_SERIES_COLOR },
         data: currentData,
       },
     ],
@@ -764,7 +770,7 @@ function RollBoundaryPanel({
   const timeOption = buildComparisonChartOption(timeData, {
     axisPreset: getControlAxisPreset('unit43_roll_boundary', 'step'),
     xAxisName: 't / s',
-    yAxisName: '响应',
+    yAxisName: '\\varphi / rad',
     dynamicYAxis: true,
   });
   const bodeOption = buildComparisonChartOption(bodeData, {
