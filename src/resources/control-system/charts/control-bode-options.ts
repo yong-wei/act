@@ -45,6 +45,16 @@ const CONTROL_AXIS_PRESETS: Record<string, Partial<Record<AxisKey, AxisPreset>>>
     rootLocusFull: { x: [-4.8, 0.5], y: [-3.2, 3.2] },
     rootLocusZoom: { x: [-4.8, 0.5], y: [-3.2, 3.2] },
   },
+  'unit-3-3-step-05-condition-workspace': {
+    rootLocus: { x: [-8, 1], y: [-2.6, 2.6] },
+    rootLocusFull: { x: [-8, 1], y: [-2.6, 2.6] },
+    rootLocusZoom: { x: [-8, 1], y: [-2.6, 2.6] },
+  },
+  'unit-3-3-step-06-skeleton-workspace': {
+    rootLocus: { x: [-8, 1], y: [-5.5, 5.5] },
+    rootLocusFull: { x: [-8, 1], y: [-5.5, 5.5] },
+    rootLocusZoom: { x: [-8, 1], y: [-5.5, 5.5] },
+  },
   unit31_triple_pole_explorer: {
     step: { x: [0, 8], y: [0, 1.45] },
     magnitude: { x: [1e-1, 1e2], y: [-55, 10] },
@@ -66,7 +76,7 @@ const CONTROL_AXIS_PRESETS: Record<string, Partial<Record<AxisKey, AxisPreset>>>
     phase: { x: [1e-2, 1e2], y: [-100, 70] },
   },
   unit43_roll_boundary: {
-    step: { x: [0, 20], y: [-0.2, 1.2] },
+    step: { x: [0, 40], y: [-0.2, 1.2] },
     magnitude: { x: [1e-2, 1e2], y: [-10, 20] },
     phase: { x: [1e-2, 1e2], y: [-240, 30] },
     rootLocus: { x: [-1.2, 0.2], y: [-1.2, 1.2] },

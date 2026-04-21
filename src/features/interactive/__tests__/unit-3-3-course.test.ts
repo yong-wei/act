@@ -271,6 +271,14 @@ describe('unit 3-3 interactive course', () => {
       join(repoRoot, 'src/features/interactive/unit-3-3-root-locus-rules/step-panels.tsx'),
       'utf8',
     );
+    const axisPresetSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-bode-options.ts'),
+      'utf8',
+    );
+    const fixtureSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/analysis/unit-3-3-fixtures.ts'),
+      'utf8',
+    );
 
     expect(stepPanelsSource).toContain('angle G_0(s_0)H(s_0)=(2\\\\ell+1)\\\\pi');
     expect(stepPanelsSource).toContain('K=1/|G_0(s_0)H(s_0)|');
@@ -280,6 +288,33 @@ describe('unit 3-3 interactive course', () => {
     expect(stepPanelsSource).toContain('theta_{z1}');
     expect(stepPanelsSource).toContain('theta_{p1}');
     expect(stepPanelsSource).toContain('theta_{p2}');
+    expect(stepPanelsSource).toContain('开环极点 p1');
+    expect(stepPanelsSource).toContain('开环极点 p2');
+    expect(axisPresetSource).toContain('unit-3-3-step-05-condition-workspace');
+    expect(axisPresetSource).toContain('x: [-8, 1]');
+    expect(fixtureSource).toContain('point(-1.42, 1.12, 3.1)');
+    expect(fixtureSource).toContain('point(-1.42, -1.12, 3.1)');
+    expect(fixtureSource).toContain('point(-1.26, 0.18, 1.95)');
+    expect(fixtureSource).toContain('point(-1.26, -0.18, 1.95)');
+  });
+
+  it('keeps step-06 on one fixed workspace and shows poles plus complex asymptotes progressively', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-3-root-locus-rules/step-panels.tsx'),
+      'utf8',
+    );
+    const axisPresetSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-bode-options.ts'),
+      'utf8',
+    );
+
+    expect(axisPresetSource).toContain('unit-3-3-step-06-skeleton-workspace');
+    expect(axisPresetSource).toContain('x: [-8, 1]');
+    expect(stepPanelsSource).toContain('开环极点：红色叉号，决定起点。');
+    expect(stepPanelsSource).toContain('phase >= 1');
+    expect(stepPanelsSource).toContain('asymptoteTargets');
+    expect(stepPanelsSource).toContain('{ re: 0.75, im: 4.85 }');
+    expect(stepPanelsSource).toContain('{ re: 0.75, im: -4.85 }');
   });
 
   it('deduplicates step-08 and restores the full breakaway plus imaginary-axis derivation chain', () => {
@@ -295,6 +330,8 @@ describe('unit 3-3 interactive course', () => {
     expect(stepPanelsSource).toContain('由劳斯表首列临界条件求 K');
     expect(stepPanelsSource).toContain('再由辅助方程求虚轴交点频率');
     expect(stepPanelsSource).not.toContain('虚轴交点法则模块');
+    expect(stepPanelsSource).not.toContain('breakaway');
+    expect(stepPanelsSource).not.toContain('break-in');
     expect(stepPanelsSource).not.toContain('显示下一步');
   });
 
@@ -318,6 +355,8 @@ describe('unit 3-3 interactive course', () => {
     expect(stepPanelsSource).toContain('根之和 = -4');
     expect(stepPanelsSource).toContain('共轭对称');
     expect(stepPanelsSource).toContain('data-progressive-reveal="step_click_reveal"');
+    expect(stepPanelsSource).not.toContain("{ title: '闭环特征方程', tone: 'emerald', formula: 's^3+3s^2+2s+K=0' }");
+    expect(stepPanelsSource).not.toContain("{ title: '稳定范围', tone: 'amber', formula: '0<K<6' }");
     expect(stepPanelsSource).not.toContain('显示下一步');
 
     expect(workspaceSource).toContain('K=6 对应 s=±j√2');
@@ -354,16 +393,14 @@ describe('unit 3-3 interactive course', () => {
     expect(stepPanelsSource).not.toContain('const [revealedCount, setRevealedCount]');
   });
 
-  it('keeps the old generated infographic asset for step-15 instead of the small replacement image', () => {
-    const authoringInfoSize = statSync(
-      join(repoRoot, 'course-content/authoring/lessons/3-3/media/processed/3-3-info.png'),
-    ).size;
-    const runtimeInfoSize = statSync(
-      join(repoRoot, 'course-content/runtime/lessons/3-3/media/3-3-info.png'),
-    ).size;
+  it('maps step-15 back to the generated closing infographic image', () => {
+    const courseSource = readFileSync(
+      join(repoRoot, 'src/lib/unit-3-3-course.ts'),
+      'utf8',
+    );
 
-    expect(authoringInfoSize).toBeGreaterThan(1_000_000);
-    expect(runtimeInfoSize).toBeGreaterThan(1_000_000);
+    expect(courseSource).toContain("'step-15': '/course-runtime/lessons/3-3/media/3-3-info.png'");
+    expect(courseSource).not.toContain("'step-15': '/course-runtime/lessons/3-3/media/3-3-pp-08-dynamics-translation.svg'");
   });
 
   it('uses the global 3-3 AI context inside the student page without rendering a page-local AI assistant', () => {

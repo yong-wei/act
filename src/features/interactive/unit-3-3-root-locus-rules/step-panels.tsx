@@ -162,9 +162,7 @@ function getStepBlueprint(step: UNIT_3_3StepDefinition): StepBlueprint {
         kicker: 'Example 2',
         intro: '第二道例题把 dK/ds 和劳斯判据放进同一道题里，目的在于分清实轴关键点与稳定边界。',
         sections: [
-          { title: '题面', tone: 'cyan', formula: 'G(s)H(s)=K/[s(s+1)(s+2)]' },
-          { title: '闭环特征方程', tone: 'emerald', formula: 's^3+3s^2+2s+K=0' },
-          { title: '稳定范围', tone: 'amber', formula: '0<K<6' },
+          { title: '方法分工', tone: 'cyan', bullets: ['dK/ds 链负责找实轴关键点。', '劳斯判据链负责找稳定边界与虚轴交点。'] },
         ],
       };
     case 'step-10':
@@ -294,7 +292,7 @@ const STEP08_BREAKAWAY_REVEALS: RevealItem[] = [
   {
     title: '分离点与汇合点共用同一组公式',
     body: '单根从实轴离开叫分离点，两支复根回到实轴叫汇合点；判定框架完全相同，只是图形语义不同。',
-    formula: '\\text{breakaway / break-in}\\Rightarrow K(s),\\ \\dfrac{\\mathrm{d}K}{\\mathrm{d}s},\\ s_b\\in\\text{轨迹},\\ K(s_b)>0',
+    formula: '\\text{分离点或汇合点}\\Rightarrow K(s),\\ \\dfrac{\\mathrm{d}K}{\\mathrm{d}s},\\ s_b\\in\\text{轨迹},\\ K(s_b)>0',
     tone: 'slate',
   },
 ] as const;
@@ -327,9 +325,9 @@ const STEP08_IMAGINARY_AXIS_REVEALS: RevealItem[] = [
 ] as const;
 const STEP09_REVEALS: RevealItem[] = [
   {
-    title: '第一步：先把题面方程固定下来',
-    body: '这一步把“找关键节点”落到同一条闭环特征方程上。',
-    formula: 's^3+3s^2+2s+K=0',
+    title: '第一步：先固定题面并写出闭环特征方程',
+    body: '先把题面与特征方程放到同一层，后续两条求解链都围绕这条方程展开。',
+    formula: 'G(s)H(s)=K/[s(s+1)(s+2)],\\quad s^3+3s^2+2s+K=0',
     tone: 'cyan',
   },
   {
@@ -560,6 +558,9 @@ function Step05GeometryOverlay({
             />
             <text x={item.pixel.left + 10} y={item.pixel.top - 10} fill={item.color} fontSize="13" fontWeight="600">
               {item.key}
+            </text>
+            <text x={item.pixel.left + 10} y={item.pixel.top + 8} fill={item.color} fontSize="12" fontWeight="600">
+              {item.key.startsWith('p') ? `开环极点 ${item.key}` : `开环零点 ${item.key}`}
             </text>
             <text x={midX + 6} y={midY - 8} fill={item.color} fontSize="12" fontWeight="600">
               {item.thetaLabel}
@@ -803,10 +804,15 @@ function Step06ProgressOverlay({
   chart: ECharts | null;
   phase: number;
 }) {
-  if (!chart || phase < 2) {
+  if (!chart || phase < 1) {
     return null;
   }
   const centroid = { re: -2, im: 0 };
+  const polePoints = [
+    { label: '开环极点 p1', point: { re: 0, im: 0 } },
+    { label: '开环极点 p2', point: { re: -2, im: 0 } },
+    { label: '开环极点 p3', point: { re: -4, im: 0 } },
+  ];
   const realAxisSegments = [
     { start: { re: -8, im: 0 }, end: { re: -4, im: 0 } },
     { start: { re: -2, im: 0 }, end: { re: 0, im: 0 } },
@@ -819,6 +825,19 @@ function Step06ProgressOverlay({
 
   return (
     <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
+      {phase >= 1
+        ? polePoints.map((item) => {
+            const pixel = projectChartPoint(chart, item.point);
+            if (!pixel) {
+              return null;
+            }
+            return (
+              <text key={item.label} x={pixel.left + 10} y={pixel.top - 10} fill="#c81d25" fontSize="12" fontWeight="600">
+                {item.label}
+              </text>
+            );
+          })
+        : null}
       {phase >= 2
         ? realAxisSegments.map((segment, index) => {
             const start = projectChartPoint(chart, segment.start);
