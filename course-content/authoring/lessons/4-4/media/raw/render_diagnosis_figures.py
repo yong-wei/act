@@ -207,7 +207,7 @@ def plot_roll_case(payload: dict) -> None:
         bbox=dict(boxstyle='round,pad=0.25', facecolor='white', edgecolor='#d9d9d9'),
     )
 
-    fig.suptitle('对照案例：横摇减摇鳍的失败要按抗扰通道来读', fontsize=15, y=0.98)
+    fig.suptitle('对照案例：横摇减摇鳍的证据要按抗扰通道来读', fontsize=15, y=0.98)
     save(fig, '4-4-roll-channel-contrast.png')
 
 

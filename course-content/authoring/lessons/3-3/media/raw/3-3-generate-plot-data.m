@@ -52,14 +52,6 @@ example3_values = unique([ ...
 ]);
 example3_roots = sample_closed_loop_roots(@(k) [1, 4, 9, 10 + k], example3_values);
 
-% Example 2: generalized root locus, Ge(s)=s(s+1)/(s+2)
-gen_values = unique([ ...
-  0.001:0.0005:0.5, ...
-  0.505:0.005:8.0, ...
-  8.02:0.02:20.0 ...
-]);
-gen_roots = sample_closed_loop_roots(@(t) [t, t + 1, 2], gen_values);
-
 % Snapshot roots for the dynamics panel
 dynamics_values = [0.8, 3.0, 5.5];
 dynamics_roots = sample_closed_loop_roots(@(k) [1, 3, 2, k], dynamics_values);
@@ -79,11 +71,6 @@ payload.example3 = struct();
 payload.example3.values = example3_roots.values;
 payload.example3.real = example3_roots.real;
 payload.example3.imag = example3_roots.imag;
-
-payload.generalized_example = struct();
-payload.generalized_example.values = gen_roots.values;
-payload.generalized_example.real = gen_roots.real;
-payload.generalized_example.imag = gen_roots.imag;
 
 payload.dynamics_snapshots = dynamics_roots;
 

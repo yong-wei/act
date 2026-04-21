@@ -2,7 +2,7 @@
   "acceptance_version": 1,
   "lesson_id": "3-3",
   "status": "accepted",
-  "accepted_at": "2026-04-20T23:31:00+08:00",
+  "accepted_at": "2026-04-21T13:50:00+08:00",
   "review_mode": "main_agent_fallback",
   "implementation_contract_source": "src/lib/unit-3-3-course.ts",
   "reviewed_runtime_artifacts": [
@@ -14,27 +14,36 @@
       "status": "pass",
       "step_ids": [],
       "evidence": [
-        "student-page.tsx 继续通过 getUnit33StepAIContext 与 useGlobalAI().updatePageContext 注入隐藏式页面上下文，正文未新增显式 AI 教学块。"
+        "student-page.tsx 与 teacher-page.tsx 继续保持隐藏式全局 AI 上下文注入，没有回退成页内 AI 面板。",
+        "本轮整改集中在 step-05/06/08/09/11 的内容实现，没有重新引入可见 AI 控件。"
       ]
     },
     "content_source_completeness": {
       "status": "pass",
       "step_ids": [
-        "step-07",
+        "step-05",
+        "step-06",
+        "step-08",
         "step-09",
-        "step-10"
+        "step-11"
       ],
       "evidence": [
-        "step-panels.tsx 继续按 17 步渲染作者态契约对应的正文、题面、显影链和作答区，本轮仅收口静态页占位壳层与无语义卡标题。",
-        "例题页仍保持题面始终可见、正文在前作答在后，未把双卡工作区压回统一提交表单。"
+        "step-05 已改为顶部常显两大条件、下方左图右参数，并支持沿根轨迹吸附拖动 s0。",
+        "step-06 已改成例题 1 对象 G(s)H(s)=K/[s(s+2)(s+4)] 的统一根轨迹面板，删除底部重复步骤列表。",
+        "step-08 已完整补齐分离点显影链和虚轴交点顺序链，重复模块已去除。",
+        "step-09 已补齐 dK/ds、真实分离点、K≈0.3849、K=6、±j√2 与 0<K<6 的完整显影链。",
+        "step-11 已补齐 26.565° 出射角、共轭对称与根之和 = -4 的整图复核链。"
       ]
     },
     "static_media_downgrade": {
       "status": "pass",
-      "step_ids": [],
+      "step_ids": [
+        "step-05",
+        "step-06"
+      ],
       "evidence": [
-        "src/lib/unit-3-3-course.ts 保持 `/course-runtime/lessons/3-3/media/...` 的 runtime-first 媒体映射，未回读 authoring 路径。",
-        "step-14 继续保留 tab_switch 对照页，step-17 继续读取 3-3-info.png，不存在把设计稿媒体退化成占位文本的新增回归。"
+        "step-05 与 step-06 不再依赖手写 SVG 假图层，而是统一走 useControlEngine + RootLocusPanel。",
+        "共享 analysis/types.ts 已暴露根轨迹采样点 gain 元数据，control-analysis-panels.tsx tooltip 已显示 Gain K。"
       ]
     }
   },

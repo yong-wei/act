@@ -159,7 +159,7 @@ def render_pp01() -> None:
     add_text(ax, 0.5, 0.94, '根轨迹主线图', size=26, color=TITLE, weight='bold', ha='center')
 
     cards = [
-        (0.08, 0.62, 0.18, 0.16, '#e0f2fe', BLUE, '参数变化', '增益 / 时间常数 / 反馈系数'),
+        (0.08, 0.62, 0.18, 0.16, '#e0f2fe', BLUE, '参数变化', '增益 / 反馈系数'),
         (0.31, 0.62, 0.20, 0.16, '#dcfce7', GREEN, '闭环特征方程', r'$1 + G(s)H(s) = 0$'),
         (0.56, 0.62, 0.18, 0.16, '#fef3c7', GOLD, '两大条件', '相角判点位，幅值回参数'),
         (0.79, 0.62, 0.14, 0.16, '#ede9fe', PURPLE, '整张轨迹', '在复平面连续展开'),
@@ -184,35 +184,6 @@ def render_pp01() -> None:
     add_text(ax, 0.5, 0.08, '先把参数变化转写成闭环特征方程，再用两大条件与完整法则读出轨迹、稳定性和动态后果。', size=14, color=TITLE, weight='bold', ha='center')
 
     fig.savefig(OUTPUT_DIR / '3-3-pp-01-root-locus-roadmap.svg', format='svg', bbox_inches='tight', pad_inches=0.02)
-    plt.close(fig)
-
-
-def render_pp02() -> None:
-    configure_style('lesson-3-3-pp02')
-    fig = plt.figure(figsize=(12, 6.8))
-    ax = fig.add_axes([0, 0, 1, 1])
-    ax.axis('off')
-
-    add_text(ax, 0.5, 0.93, '广义根轨迹扩展关系', size=26, color=TITLE, weight='bold', ha='center')
-
-    blocks = [
-        (0.08, 0.55, 0.24, 0.22, '#e0f2fe', BLUE, '普通根轨迹', r'$1 + K G(s)H(s) = 0$', '参数就是开环增益'),
-        (0.38, 0.55, 0.24, 0.22, '#dcfce7', GREEN, '广义根轨迹', r'$1 + a \, A(s)/B(s) = 0$', '参数可来自时间常数或结构项'),
-        (0.68, 0.55, 0.24, 0.22, '#fef3c7', GOLD, r'$0^\circ$ / $180^\circ$ 根轨迹', '相角目标随参数符号改变', '整图走向也会随之改变'),
-    ]
-    for x, y, w, h, fill, edge, title, formula, body in blocks:
-        add_round_box(ax, x, y, w, h, fill=fill, edge=edge, radius=0.025)
-        add_text(ax, x + w / 2, y + h - 0.05, title, size=18, color=INK, weight='bold', ha='center')
-        add_text(ax, x + w / 2, y + h / 2, formula, size=16, color=INK, ha='center', va='center')
-        add_text(ax, x + w / 2, y + 0.05, body, size=12.5, color=SUB, ha='center', va='bottom')
-    add_arrow(ax, (0.32, 0.66), (0.38, 0.66))
-    add_arrow(ax, (0.62, 0.66), (0.68, 0.66))
-
-    add_round_box(ax, 0.15, 0.18, 0.70, 0.16, fill='#ffffff', edge=GRID, radius=0.025)
-    add_text(ax, 0.5, 0.285, '统一方法', size=20, color=TITLE, weight='bold', ha='center')
-    add_text(ax, 0.5, 0.215, '先把参数改写进标准形式，再把起点终点、实轴区段、渐近线和虚轴交点整套法则搬过去。', size=13.5, color=SUB, ha='center', va='bottom')
-
-    fig.savefig(OUTPUT_DIR / '3-3-pp-02-generalized-root-locus-map.svg', format='svg', bbox_inches='tight', pad_inches=0.02)
     plt.close(fig)
 
 
@@ -427,66 +398,6 @@ def render_pp06() -> None:
     plt.close(fig)
 
 
-def render_pp07(data: dict) -> None:
-    configure_style('lesson-3-3-pp07')
-    fig = plt.figure(figsize=(13.2, 7.8))
-    left_ax = fig.add_axes([0.05, 0.14, 0.27, 0.74])
-    plot_ax = styled_plot_axes(fig, [0.38, 0.16, 0.58, 0.70])
-    left_ax.axis('off')
-    fig.text(0.5, 0.93, '广义根轨迹例图：时间常数 $T_a$ 改变时的闭环极点迁移', fontsize=24, color=TITLE, weight='bold', ha='center')
-
-    add_round_box(left_ax, 0.02, 0.29, 0.96, 0.64)
-    add_text(left_ax, 0.50, 0.88, '从原方程到标准形式', size=18, color=TITLE, weight='bold', ha='center')
-    steps = [
-        r'$1+\dfrac{1}{(T_a s+1)(s+1)}=0$',
-        r'$(T_a s+1)(s+1)+1=0$',
-        r'$T_a s^2+(T_a+1)s+2=0$',
-        r'$T_a s(s+1)+(s+2)=0$',
-        r'$1+T_a\,\dfrac{s(s+1)}{s+2}=0$',
-    ]
-    ypos = 0.79
-    for idx, formula in enumerate(steps):
-        add_text(left_ax, 0.08, ypos - idx * 0.112, formula, size=14.4)
-        if idx < len(steps) - 1:
-            add_arrow(left_ax, (0.50, ypos - idx * 0.112 - 0.048), (0.50, ypos - idx * 0.112 - 0.082))
-    add_round_box(left_ax, 0.02, 0.03, 0.96, 0.20, fill='#fffaf1', edge=GOLD)
-    add_text(left_ax, 0.08, 0.18, '读图要点', size=16.5, color=TITLE, weight='bold')
-    add_text(
-        left_ax,
-        0.08,
-        0.12,
-        r'等效开环：$G_e(s)H_e(s)=s(s+1)/(s+2)$' '\n'
-        r'轨迹先形成复根，再回到实轴进入有限零点。',
-        size=11.2,
-        color=SUB,
-        linespacing=1.55,
-    )
-
-    roots = track_branches(np.array(data['generalized_example']['real']), np.array(data['generalized_example']['imag']))
-    for branch, color in zip(roots, [BLUE, GREEN]):
-        plot_ax.plot(branch.real, branch.imag, color=color, linewidth=2.2)
-    plot_ax.set_xlim(-10.0, 1.2)
-    plot_ax.set_ylim(-2.4, 2.4)
-    plot_ax.axhline(0, color=SUB, linewidth=1.6)
-    plot_ax.axvline(0, color=SUB, linewidth=1.6)
-    plot_ax.set_xlabel('实轴 $\\mathrm{Re}(s)$')
-    plot_ax.set_ylabel('虚轴 $\\mathrm{Im}(s)$')
-    plot_ax.scatter([-2], [0], marker='x', s=120, linewidths=2.8, color=RED)
-    plot_ax.scatter([-1, 0], [0, 0], marker='o', s=95, linewidths=2.3, facecolors='white', edgecolors=BLUE)
-
-    critical_t = [3 - 2 * math.sqrt(2), 3 + 2 * math.sqrt(2)]
-    critical_x = [-2 - math.sqrt(2), -2 + math.sqrt(2)]
-    plot_ax.scatter(critical_x, [0, 0], color=ORANGE, s=54, zorder=6)
-    plot_ax.text(-4.05, 0.20, r'$T_a=3-2\sqrt{2}$', color=ORANGE, fontsize=12.4)
-    plot_ax.text(-0.95, 0.20, r'$T_a=3+2\sqrt{2}$', color=ORANGE, fontsize=12.4)
-    plot_ax.annotate('', xy=(-1.7, 1.45), xytext=(-3.1, 1.45), arrowprops=dict(arrowstyle='-|>', color=GREEN, lw=2.0))
-    plot_ax.annotate('', xy=(-0.15, 0.02), xytext=(-0.85, 0.02), arrowprops=dict(arrowstyle='-|>', color=GREEN, lw=2.0))
-    plot_ax.text(-1.45, -0.28, '$T_a$ 增大', color=GREEN, fontsize=12.6)
-
-    fig.savefig(OUTPUT_DIR / '3-3-pp-07-generalized-time-constant-example.svg', format='svg', bbox_inches='tight', pad_inches=0.02)
-    plt.close(fig)
-
-
 def render_pp08(data: dict) -> None:
     configure_style('lesson-3-3-pp08')
     fig = plt.figure(figsize=(13.0, 7.8))
@@ -686,12 +597,10 @@ def render_example03(data: dict) -> None:
 def main() -> None:
     data = load_plot_data()
     render_pp01()
-    render_pp02()
     render_pp03()
     render_pp04(data)
     render_pp05()
     render_pp06()
-    render_pp07(data)
     render_pp08(data)
     render_example01(data)
     render_example02(data)

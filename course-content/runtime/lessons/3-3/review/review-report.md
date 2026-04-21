@@ -13,10 +13,10 @@
 - 已将 `design/boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
-- 已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。
 - 已检测到 `3-3` 的 V2 互动契约，步骤字段完整。
 - 互动设计接受文件已通过校验。
 - 互动实现接受文件已通过校验。
+- 讲义映射合同缺少列：evidence_kind, upgrade_mode, non_reducible, acceptance_checks
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。

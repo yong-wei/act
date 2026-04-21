@@ -4,12 +4,10 @@ from pathlib import Path
 
 SVG_FILES = [
     'course-content/authoring/lessons/3-3/media/processed/3-3-pp-01-root-locus-roadmap.svg',
-    'course-content/authoring/lessons/3-3/media/processed/3-3-pp-02-generalized-root-locus-map.svg',
     'course-content/authoring/lessons/3-3/media/processed/3-3-pp-03-angle-and-magnitude-geometry.svg',
     'course-content/authoring/lessons/3-3/media/processed/3-3-pp-04-complete-rules-example.svg',
     'course-content/authoring/lessons/3-3/media/processed/3-3-pp-05-real-axis-parity.svg',
     'course-content/authoring/lessons/3-3/media/processed/3-3-pp-06-departure-arrival-angle.svg',
-    'course-content/authoring/lessons/3-3/media/processed/3-3-pp-07-generalized-time-constant-example.svg',
     'course-content/authoring/lessons/3-3/media/processed/3-3-pp-08-dynamics-translation.svg',
 ]
 
@@ -32,6 +30,3 @@ def test_3_3_layout_regressions_are_fixed() -> None:
     assert '起始角和终止角负责局部修正。' in pp06
     assert '先用整图法则确定骨架，' in pp06
     assert '再用切线方向修正复极点和复零点附近的形状。' in pp06
-
-    pp07 = Path('course-content/authoring/lessons/3-3/media/processed/3-3-pp-07-generalized-time-constant-example.svg').read_text(encoding='utf-8')
-    assert 'id="axes_3"' not in pp07

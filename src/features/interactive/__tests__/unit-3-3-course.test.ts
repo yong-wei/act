@@ -307,6 +307,10 @@ describe('unit 3-3 interactive course', () => {
       join(repoRoot, 'src/resources/control-system/charts/control-bode-options.ts'),
       'utf8',
     );
+    const chartPanelSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-analysis-panels.tsx'),
+      'utf8',
+    );
 
     expect(axisPresetSource).toContain('unit-3-3-step-06-skeleton-workspace');
     expect(axisPresetSource).toContain('x: [-8, 1]');
@@ -315,6 +319,10 @@ describe('unit 3-3 interactive course', () => {
     expect(stepPanelsSource).toContain('asymptoteTargets');
     expect(stepPanelsSource).toContain('{ re: 0.75, im: 4.85 }');
     expect(stepPanelsSource).toContain('{ re: 0.75, im: -4.85 }');
+    expect(chartPanelSource).toContain('ROOT_LOCUS_POLE_SYMBOL');
+    expect(chartPanelSource).toContain('Z\'');
+    expect(chartPanelSource).toContain('show: true');
+    expect(chartPanelSource).toContain("data: ['根轨迹', '当前闭环极点', '开环极点', '开环零点']");
   });
 
   it('deduplicates step-08 and restores the full breakaway plus imaginary-axis derivation chain', () => {

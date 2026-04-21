@@ -1,7 +1,7 @@
 {
   "lesson_id": "3-3",
   "unit_type": "理论",
-  "generated_at": "2026-04-21T03:44:15.239681+00:00",
+  "generated_at": "2026-04-21T05:51:12.154822+00:00",
   "primary_sources": [
     "course-content/authoring/lessons/3-3/design/handout.md",
     "course-content/authoring/lessons/3-3/design/interactive-page.md"
@@ -28,11 +28,6 @@
       "page_formula_sources": []
     },
     {
-      "output": "3-3-pp-02-generalized-root-locus-map.svg",
-      "formula_mode": "none",
-      "page_formula_sources": []
-    },
-    {
       "output": "3-3-pp-03-angle-and-magnitude-geometry.svg",
       "formula_mode": "none",
       "page_formula_sources": []
@@ -53,12 +48,17 @@
       "page_formula_sources": []
     },
     {
-      "output": "3-3-pp-07-generalized-time-constant-example.svg",
+      "output": "3-3-example-01-skeleton.svg",
       "formula_mode": "none",
       "page_formula_sources": []
     },
     {
-      "output": "3-3-pp-08-dynamics-translation.svg",
+      "output": "3-3-example-02-breakaway-crossing.svg",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "3-3-example-03-departure-sum.svg",
       "formula_mode": "none",
       "page_formula_sources": []
     }

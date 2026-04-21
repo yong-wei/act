@@ -30,7 +30,8 @@ type ChartSeriesValue = NonNullable<EChartsCoreOption['series']>;
 type ChartSeriesItem = ChartSeriesValue extends (infer Item)[] ? Item : ChartSeriesValue;
 type ChartSeriesArray = ChartSeriesItem[];
 
-const ROOT_LOCUS_POLE_SYMBOL = 'path://M -0.6 -0.6 L 0.6 0.6 M -0.6 0.6 L 0.6 -0.6';
+const ROOT_LOCUS_POLE_SYMBOL =
+  'path://M -0.85 -0.58 L -0.58 -0.85 L 0 -0.27 L 0.58 -0.85 L 0.85 -0.58 L 0.27 0 L 0.85 0.58 L 0.58 0.85 L 0 0.27 L -0.58 0.85 L -0.85 0.58 L -0.27 0 Z';
 
 export type RootLocusInteractiveHandle = {
   id: string;
@@ -268,11 +269,13 @@ function buildRootLocusOption(
   return {
     animation: false,
     legend: {
+      show: true,
+      data: ['根轨迹', '当前闭环极点', '开环极点', '开环零点'],
       top: 0,
       right: 8,
       textStyle: { fontSize: 10 },
-      itemWidth: 10,
-      itemHeight: 10,
+      itemWidth: 12,
+      itemHeight: 12,
     },
     grid: { top: 34, right: 18, bottom: 42, left: 58 },
     tooltip: {

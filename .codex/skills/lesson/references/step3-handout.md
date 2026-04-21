@@ -506,6 +506,22 @@ python3 .codex/skills/lesson/scripts/export_handout_pdf.py \
 
 ### 导出后必须检查
 
+固定先用下面的脚本把抽查页渲染成图片，再进行人工复核：
+
+```bash
+python3 .codex/skills/lesson/scripts/render_pdf_review_pages.py \
+  course-content/authoring/lessons/[单元编号]/design/handout.pdf \
+  --pages 1 2 5 10 \
+  --format jpeg
+```
+
+说明：
+
+- 该脚本会先探测本机 `pdftoppm` 是否支持 `-png/-jpeg`
+- 若当前环境是 `xpdf` 风格的 `pdftoppm`，会自动改走“先输出 PPM，再用 `sips` / `magick` / `convert` 转图”的降级链路
+- 因此后续不要再直接手写 `pdftoppm -png` 或 `pdftoppm -jpeg`
+- 若检查草稿 PDF，则把输入文件改为 `handout-draft.pdf`
+
 学生版至少抽查以下页面：
 
 1. 首页：看标题层级、页眉页脚、段落密度是否正常
@@ -523,6 +539,7 @@ python3 .codex/skills/lesson/scripts/export_handout_pdf.py \
 ### 常见故障与处理
 
 - 缺少 `rsvg-convert`：安装 `librsvg`
+- `pdftoppm` 不支持 `-png/-jpeg`：不要继续手工试错，直接改用 `render_pdf_review_pages.py`
 - PDF 导出报某个 LaTeX 键无效：先查样式模板是否使用了当前 `xelatex/fvextra/fancyvrb` 版本不支持的参数
 - 行内代码出现希腊字母缺字：优先显式指定等宽字体，而不是改正文符号
 

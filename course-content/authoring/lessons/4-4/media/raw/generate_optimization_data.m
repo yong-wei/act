@@ -114,6 +114,30 @@ function value = heading_objective(x, plant, t, weights, refs, thresholds)
   [value, ~] = heading_cost(x, plant, t, weights, refs, thresholds);
 endfunction
 
+function penalty = bound_penalty(x, lb, ub)
+  x = x(:);
+  lb = lb(:);
+  ub = ub(:);
+  under = max(0, lb - x);
+  over = max(0, x - ub);
+  penalty = 200 * sum((under + over) .^ 2);
+endfunction
+
+function [score, metrics] = heading_unconstrained_cost(x, plant, t, weights, refs, lb, ub)
+  controller = heading_controller_from_x(x);
+  metrics = collect_heading_metrics(controller, plant, t);
+  score = ...
+    weights(1) * (metrics.settling_time / refs.settling_time_target) + ...
+    weights(2) * (metrics.itae / refs.itae_ref) + ...
+    weights(3) * (metrics.itse / refs.itse_ref) + ...
+    weights(4) * (metrics.control_energy / refs.control_energy_ref) + ...
+    bound_penalty(x, lb, ub);
+endfunction
+
+function value = heading_unconstrained_objective(x, plant, t, weights, refs, lb, ub)
+  [value, ~] = heading_unconstrained_cost(x, plant, t, weights, refs, lb, ub);
+endfunction
+
 function out = heading_payload(label, x, plant, t, omega)
   controller = heading_controller_from_x(x);
   closed_loop = feedback(controller * plant, 1);
@@ -134,6 +158,16 @@ function flag = heading_metrics_feasible(metrics, thresholds)
     metrics.overshoot <= thresholds.overshoot && ...
     metrics.control_peak <= thresholds.control_peak && ...
     metrics.phase_margin >= thresholds.phase_margin;
+endfunction
+
+function entry = heading_solution_entry(label, case_id, weights, x_opt, plant, t, omega, score, cvg, iterations)
+  entry = heading_payload(label, x_opt, plant, t, omega);
+  entry.case_id = case_id;
+  entry.weights = weights;
+  entry.weights_label = sprintf("[%.2f, %.2f, %.2f, %.2f]", weights(1), weights(2), weights(3), weights(4));
+  entry.score = score;
+  entry.cvg = cvg;
+  entry.iterations = iterations;
 endfunction
 
 function controller = roll_controller_from_gain(k)
@@ -207,6 +241,7 @@ ship_refs = struct();
 ship_refs.settling_time_target = 40.0;
 ship_refs.overshoot_target = 20.0;
 ship_refs.itae_ref = ship_initial.metrics.itae;
+ship_refs.itse_ref = ship_initial.metrics.itse;
 ship_refs.control_energy_ref = ship_initial.metrics.control_energy;
 
 ship_thresholds = struct();
@@ -302,6 +337,130 @@ for i = 1:min(3, numel(ship_sorted_entries))
   ship_top_entries{end + 1} = ship_sorted_entries{i};
 endfor
 
+ship_unconstrained_weights = [
+  0.40, 0.30, 0.20, 0.10;
+  0.30, 0.30, 0.20, 0.20;
+  0.20, 0.25, 0.25, 0.30
+];
+ship_unconstrained_case_ids = {"speed_first", "balanced", "energy_first"};
+ship_unconstrained_labels = {"速度优先无约束方案", "平衡偏好无约束方案", "动作代价优先无约束方案"};
+ship_unconstrained_entries = {};
+ship_unconstrained_opts = optimset(
+  "MaxIter", 80,
+  "TolX", 1e-4,
+  "TolFun", 1e-4,
+  "Display", "off"
+);
+ship_seed = x0;
+for i = 1:rows(ship_unconstrained_weights)
+  weights = ship_unconstrained_weights(i, :);
+  [x_opt, fval, cvg, outp] = fminsearch(
+    @(x) heading_unconstrained_objective(x, ship_plant, ship_t, weights, ship_refs, lb, ub),
+    ship_seed,
+    ship_unconstrained_opts
+  );
+  [score, ~] = heading_unconstrained_cost(x_opt, ship_plant, ship_t, weights, ship_refs, lb, ub);
+  if isfield(outp, "iterations")
+    iterations = outp.iterations;
+  elseif isfield(outp, "niter")
+    iterations = outp.niter;
+  else
+    iterations = NaN;
+  endif
+  entry = heading_solution_entry(
+    ship_unconstrained_labels{i},
+    ship_unconstrained_case_ids{i},
+    weights,
+    x_opt,
+    ship_plant,
+    ship_t,
+    ship_w,
+    score,
+    cvg,
+    iterations
+  );
+  entry.raw_objective = fval;
+  ship_unconstrained_entries{end + 1} = entry;
+  ship_seed = x_opt;
+endfor
+
+ship_pareto_weights = linspace(0, 1, 11);
+ship_pareto_entries_all = {};
+ship_pareto_seed = x0;
+for i = 1:numel(ship_pareto_weights)
+  lambda = ship_pareto_weights(i);
+  weights = [0, lambda, 0, 1 - lambda];
+  [x_opt, fval, cvg, outp] = fminsearch(
+    @(x) heading_unconstrained_objective(x, ship_plant, ship_t, weights, ship_refs, lb, ub),
+    ship_pareto_seed,
+    ship_unconstrained_opts
+  );
+  [score, ~] = heading_unconstrained_cost(x_opt, ship_plant, ship_t, weights, ship_refs, lb, ub);
+  if isfield(outp, "iterations")
+    iterations = outp.iterations;
+  elseif isfield(outp, "niter")
+    iterations = outp.niter;
+  else
+    iterations = NaN;
+  endif
+  entry = heading_solution_entry(
+    sprintf("Pareto 候选 %.2f", lambda),
+    sprintf("pareto_%02d", i),
+    weights,
+    x_opt,
+    ship_plant,
+    ship_t,
+    ship_w,
+    score,
+    cvg,
+    iterations
+  );
+  entry.pareto_lambda = lambda;
+  entry.raw_objective = fval;
+  ship_pareto_entries_all{end + 1} = entry;
+  ship_pareto_seed = x_opt;
+endfor
+
+ship_pareto_front = {};
+for i = 1:numel(ship_pareto_entries_all)
+  current = ship_pareto_entries_all{i};
+  dominated = false;
+  for j = 1:numel(ship_pareto_entries_all)
+    if i == j
+      continue;
+    endif
+    other = ship_pareto_entries_all{j};
+    if ...
+      other.metrics.itae <= current.metrics.itae && ...
+      other.metrics.control_energy <= current.metrics.control_energy && ...
+      (other.metrics.itae < current.metrics.itae || other.metrics.control_energy < current.metrics.control_energy)
+      dominated = true;
+      break;
+    endif
+  endfor
+  if !dominated
+    ship_pareto_front{end + 1} = current;
+  endif
+endfor
+
+pareto_itae = zeros(1, numel(ship_pareto_front));
+for i = 1:numel(ship_pareto_front)
+  pareto_itae(i) = ship_pareto_front{i}.metrics.itae;
+endfor
+[~, pareto_order] = sort(pareto_itae);
+ship_pareto_front = ship_pareto_front(pareto_order);
+
+ship_pareto_examples = {};
+if !isempty(ship_pareto_front)
+  example_indices = unique([1, ceil(numel(ship_pareto_front) / 2), numel(ship_pareto_front)]);
+  example_labels = {"快速端", "中间点", "节能端"};
+  for k = 1:numel(example_indices)
+    entry = ship_pareto_front{example_indices(k)};
+    entry.example_label = example_labels{k};
+    ship_pareto_examples{end + 1} = entry;
+  endfor
+endif
+
 ship_normalization_refs = {
   struct("name", "t_s/40", "value", ship_refs.settling_time_target, "source", "40 s 来自客船航向保持任务书中的速度目标，用于把调节时间写成软目标。"),
   struct("name", "M_p/20", "value", ship_refs.overshoot_target, "source", "20%% 来自舒适性边界。该值既作为归一化基准，也作为硬约束阈值。"),
@@ -396,6 +555,9 @@ payload.ship.integral_index_notes = {
   struct("name", "ITAE", "role", "主代价项", "meaning", "对后期拖尾误差更敏感，适合航向保持这类希望尽快收稳的任务。"),
   struct("name", "ITSE", "role", "复核指标", "meaning", "对误差峰值和中前期偏差更敏感，用来检查结果是否只是拖尾缩短而并未真正压低误差强度。")
 };
+payload.ship.unconstrained_weight_scan = ship_unconstrained_entries;
+payload.ship.pareto_front = ship_pareto_front;
+payload.ship.pareto_examples = ship_pareto_examples;
 
 payload.roll = struct();
 payload.roll.plant_tex = "P_r(s)=1/(2.052s^2+0.3929s+1)";
