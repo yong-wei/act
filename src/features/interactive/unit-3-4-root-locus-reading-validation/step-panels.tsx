@@ -45,6 +45,20 @@ interface StepBlueprint {
   note?: string;
 }
 
+interface StaticCardData {
+  title: string;
+  body: string | string[];
+  tone?: Tone;
+}
+
+interface StaticTableData {
+  title: string;
+  columns: string[];
+  rows: string[][];
+  tone?: Tone;
+  note?: string;
+}
+
 interface ProgressiveRevealData {
   promptTitle: string;
   promptBody: string[];
@@ -85,14 +99,18 @@ function getStepBlueprint(step: UNIT_3_4StepDefinition): StepBlueprint {
         intro: '本课不是再听一遍法则，而是把“会背法则”推进成“会按图做判断”。',
         sections: [
           {
-            title: '三张记录表',
+            title: '记录表 / 要回答的问题 / 至少应包含的信息',
             tone: 'emerald',
-            bullets: ['关键节点读图记录', '参数窗口判断表', '对象化验证记录'],
+            bullets: [
+              '关键节点读图记录：主图上先看哪些位置；至少包含分离点、虚轴交点、主导极点候选、稳定窗口。',
+              '参数窗口判断表：哪些参数只是稳定，哪些参数更值得选用；至少包含根轨迹增益、实际控制器增益、非增益参数窗口、稳定性判断、性能趋势。',
+              '对象化验证记录：图上的判断落回真实对象后是否仍成立；至少包含时域后果、频域后果、主导极点近似是否可信、低中频近似与高频差异。',
+            ],
           },
           {
-            title: '判断链',
+            title: '三张记录表首尾相接',
             tone: 'amber',
-            bullets: ['关键节点读图', '参数窗口判断', '对象化三域验证', '广义参数验证'],
+            body: '关键节点读图 -> 参数窗口判断 -> 对象化三域验证 -> 广义参数验证。',
           },
         ],
       };
@@ -119,9 +137,14 @@ function getStepBlueprint(step: UNIT_3_4StepDefinition): StepBlueprint {
         intro: '固定读图顺序：先骨架，再关键节点，再窗口，再后果。',
         sections: [
           {
-            title: '误判提醒',
-            tone: 'amber',
-            body: '不能因为某个点“看起来顺眼”，就跳过前两步直接说哪个版本更好。',
+            title: '四步法说明卡',
+            tone: 'cyan',
+            bullets: [
+              '看骨架：先看起点、终点和分支数量，判断对象的整体骨架。',
+              '找关键节点：锁定分离点、虚轴交点和主导极点候选，判断主导形态与边界位置。',
+              '区分窗口：从关键节点走到稳定窗口与可接受窗口，判断参数落在哪一侧。',
+              '翻译后果：把图上的位置改写成参数语言和工程后果，说明快慢、振荡、裕量与风险。',
+            ],
           },
         ],
       };
@@ -144,12 +167,23 @@ function getStepBlueprint(step: UNIT_3_4StepDefinition): StepBlueprint {
     case 'step-06':
       return {
         kicker: 'Record',
-        intro: '关键节点读图记录：把主图证据写成一句工程判断。',
+        intro: '关键节点读图记录：把主图证据写成一句工程判断，当前页先把 B/C 的证据回顾带回页面。',
         sections: [
+          {
+            title: 'B/C 证据回顾表',
+            tone: 'cyan',
+            bullets: [
+              'B：已越过分离点；仍明显远离虚轴边界；主导极点候选为 -0.0488±j0.0496；速度与阻尼较均衡，可作参考工作点。',
+              'C：早已越过分离点；已明显向虚轴边界逼近；主导极点候选为 -0.0135±j0.3931；仍稳定，但振荡趋势与风险感显著增强。',
+            ],
+          },
           {
             title: '写法提醒',
             tone: 'emerald',
-            bullets: ['必须同时写位置与后果。', '不能只剩“更靠左”或“更危险”这样的碎句。'],
+            bullets: [
+              '写判断句时，位置、边界关系与工程后果必须一起出现。',
+              '不能只留下“更靠左”或“更危险”一类碎句。',
+            ],
           },
         ],
       };
@@ -196,12 +230,17 @@ function getStepBlueprint(step: UNIT_3_4StepDefinition): StepBlueprint {
     case 'step-10':
       return {
         kicker: 'Time Domain',
-        intro: '时域验证：版本 B 为什么能够作为参考工作点。',
+        intro: '时域验证：版本 B 为什么能够作为参考工作点，以及为什么当前阶跃证据还不是验证链终点。',
         sections: [
           {
             title: '时域读法',
             tone: 'emerald',
-            bullets: ['先看快慢与振荡。', '再看拖尾与近似误差。', '最后写出“可信但有限”的结论。'],
+            bullets: ['先看快慢与振荡。', '再看拖尾与近似误差。', '最后写出为什么 B 的主动态解释站得住脚。'],
+          },
+          {
+            title: '边界提醒',
+            tone: 'amber',
+            body: '这张阶跃对照还不能代替后续频域与持续跟踪验证。',
           },
         ],
       };
@@ -211,9 +250,19 @@ function getStepBlueprint(step: UNIT_3_4StepDefinition): StepBlueprint {
         intro: '频域验证：低中频近似成立，高频差异仍要单列记录。',
         sections: [
           {
-            title: '频域结论',
+            title: '主导极点近似可信性图',
             tone: 'amber',
-            bullets: ['低中频可支撑近似结论。', '高频差异不能被当作“无关紧要”。'],
+            body: '这张图只服务一个问题：为什么 B 版本可以用主导极点近似抓住主要动态，同时又不能把近似扩张成全频段等价。',
+          },
+          {
+            title: '四个代表频率点',
+            tone: 'amber',
+            bullets: [
+              '0.01 rad/s：原系统 1.0001，近似系统 1.0211，相位差约 0.26°；低频几乎一致，稳态与主动态判断近似不变。',
+              '0.10 rad/s：原系统 0.4385，近似系统 0.4476，相位差约 2.63°；中频仍较接近，主导极点近似仍可解释主要动态。',
+              '1.00 rad/s：原系统 0.0044，近似系统 0.0049，相位差约 24.98°；高频差异明显增大，近似模型不能替代高频细节判断。',
+              '5.00 rad/s：原系统 0.0001，近似系统 0.0002，相位差约 66.77°；快极点影响在高频被放大，高频证据需要单独记录。',
+            ],
           },
         ],
       };
@@ -285,7 +334,28 @@ function getStepBlueprint(step: UNIT_3_4StepDefinition): StepBlueprint {
           {
             title: '五条带走',
             tone: 'cyan',
-            bullets: ['会按图抓关键节点。', '会区分稳定与可接受窗口。', '会完成 k 到 K 换算。', '会用三域证据闭合判断。', '知道 a 不是再调一次 K。'],
+            bullets: [
+              '先看关键节点，再谈参数窗口。',
+              '稳定窗口与可接受窗口要分开说。',
+              '图上的 k 要换回工程参数 K。',
+              '三域验证用于给主图判断补证。',
+              '广义根轨迹先改写，再继续用法则。',
+            ],
+          },
+          {
+            title: '最终判断',
+            tone: 'emerald',
+            body: '最终判断必须同时带走：A 偏保守，B 是参考工作点，C 是稳定窗口内带明确代价的取舍型参数。',
+          },
+          {
+            title: '边界卡',
+            tone: 'amber',
+            body: '沿既有结构分析可以帮助我们选点与辨识窗口，但不能替代后续通过结构变化主动改写轨迹。',
+          },
+          {
+            title: '3-5 去向卡',
+            tone: 'violet',
+            body: '3-5 将从零点进入，讨论怎样改变轨迹本身，而不只是沿既有轨迹选点。',
           },
         ],
       };
@@ -329,6 +399,45 @@ function getProgressiveRevealData(stepId: string): ProgressiveRevealData | null 
     default:
       return null;
   }
+}
+
+function getStep02DeliverablesTable(): StaticTableData {
+  return {
+    title: '三张记录表',
+    tone: 'emerald',
+    columns: ['记录表', '要回答的问题', '至少应包含的信息'],
+    rows: [
+      ['关键节点读图记录', '主图上先看哪些位置。', '分离点、虚轴交点、主导极点候选、稳定窗口'],
+      ['参数窗口判断表', '哪些参数只是稳定，哪些参数更值得选用。', '根轨迹增益、实际控制器增益、非增益参数窗口、稳定性判断、性能趋势'],
+      ['对象化验证记录', '图上的判断落回真实对象后是否仍成立。', '时域后果、频域后果、主导极点近似是否可信、低中频近似与高频差异'],
+    ],
+  };
+}
+
+function getStep06RecordTable(): StaticTableData {
+  return {
+    title: 'B/C 证据回顾表',
+    tone: 'cyan',
+    columns: ['对象版本', '是否越过分离点', '与虚轴边界关系', '主导极点候选', '读图结论'],
+    rows: [
+      ['B', '已越过分离点', '仍明显远离虚轴边界', '-0.0488±j0.0496', '速度与阻尼较均衡，可作参考工作点'],
+      ['C', '早已越过分离点', '已明显向虚轴边界逼近', '-0.0135±j0.3931', '仍稳定，但振荡趋势与风险感显著增强'],
+    ],
+  };
+}
+
+function getStep11FrequencyTable(): StaticTableData {
+  return {
+    title: '代表频率点表',
+    tone: 'amber',
+    columns: ['频率', '原系统幅值', '近似系统幅值', '相位差', '解释'],
+    rows: [
+      ['0.01 rad/s', '1.0001', '1.0211', '约 0.26°', '低频几乎一致，稳态与主动态判断近似不变'],
+      ['0.10 rad/s', '0.4385', '0.4476', '约 2.63°', '中频仍较接近，主导极点近似仍可解释主要动态'],
+      ['1.00 rad/s', '0.0044', '0.0049', '约 24.98°', '高频差异明显增大，近似模型不能替代高频细节判断'],
+      ['5.00 rad/s', '0.0001', '0.0002', '约 66.77°', '快极点影响在高频被放大，高频证据需要单独记录'],
+    ],
+  };
 }
 
 function parseList(value?: string) {
@@ -453,15 +562,139 @@ function InfoSection({ section }: { section: StepSection }) {
   );
 }
 
-function MediaPanel({ src, alt }: { src: string; alt: string }) {
+function SummaryCard({ card }: { card: StaticCardData }) {
+  const paragraphs = Array.isArray(card.body) ? card.body : [card.body];
+  return (
+    <div className={`premium-lesson-tone-block ${getToneClass(card.tone)}`}>
+      <div className="premium-lesson-title text-sm font-semibold">{card.title}</div>
+      <div className="mt-3 grid gap-2 text-sm leading-7">
+        {paragraphs.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NativeTablePanel({ table }: { table: StaticTableData }) {
+  return (
+    <div className={`premium-lesson-tone-block ${getToneClass(table.tone)}`}>
+      <div className="premium-lesson-title text-sm font-semibold">{table.title}</div>
+      <div className="mt-3 overflow-x-auto rounded-2xl border border-border/60 bg-background/55">
+        <table className="w-full min-w-[680px] border-collapse text-left text-sm">
+          <thead className="bg-background/70">
+            <tr>
+              {table.columns.map((column) => (
+                <th key={column} className="border-b border-border/60 px-3 py-2 font-medium text-foreground/80">
+                  {column}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {table.rows.map((row, rowIndex) => (
+              <tr key={`${table.title}-${rowIndex}`} className="align-top">
+                {row.map((cell, cellIndex) => (
+                  <td key={`${table.title}-${rowIndex}-${cellIndex}`} className="border-b border-border/40 px-3 py-3 text-foreground/85 last:border-b-0">
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {table.note ? <p className="premium-lesson-muted mt-3 text-sm leading-7">{table.note}</p> : null}
+    </div>
+  );
+}
+
+function MediaPanel({ src, alt, caption }: { src: string; alt: string; caption?: string | string[] }) {
+  const captionLines = caption ? (Array.isArray(caption) ? caption : [caption]) : ['图示用于支撑本页判断，不替代正文证据链。'];
   return (
     <figure className="premium-lesson-surface-elevated overflow-hidden rounded-3xl px-4 py-4">
       <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border/60 bg-background/70">
         <Image src={src} alt={alt} fill className="object-contain" unoptimized />
       </div>
-      <figcaption className="premium-lesson-muted mt-2 text-xs">图示用于支撑本页判断，不替代正文证据链。</figcaption>
+      <figcaption className="premium-lesson-muted mt-3 grid gap-2 text-sm leading-7">
+        {captionLines.map((line) => (
+          <p key={line}>{line}</p>
+        ))}
+      </figcaption>
     </figure>
   );
+}
+
+function renderCustomStaticContent(step: UNIT_3_4StepDefinition, mediaSrc?: string | null, mediaAlt?: string) {
+  switch (step.id) {
+    case 'step-02':
+      return (
+        <div className="mt-4 grid gap-4">
+          <SummaryCard
+            card={{
+              title: '核心问题卡',
+              tone: 'cyan',
+              body: '同样位于稳定窗口内的参数，也可能对应完全不同的速度、振荡、风险与工程后果。',
+            }}
+          />
+          <NativeTablePanel table={getStep02DeliverablesTable()} />
+          <SummaryCard
+            card={{
+              title: '判断链摘要卡',
+              tone: 'amber',
+              body: '三张记录表首尾相接：关键节点读图 -> 参数窗口判断 -> 对象化三域验证 -> 广义参数验证。',
+            }}
+          />
+        </div>
+      );
+    case 'step-06':
+      return (
+        <div className="mt-4 grid gap-4">
+          <NativeTablePanel table={getStep06RecordTable()} />
+          <SummaryCard
+            card={{
+              title: '读图结论提示',
+              tone: 'emerald',
+              body: '位置与后果必须一起写，不能只留下“更靠左”“更危险”一类碎句；完整判断至少要同时交代节点位置、边界关系和工程后果。',
+            }}
+          />
+        </div>
+      );
+    case 'step-10':
+      return mediaSrc ? (
+        <div className="mt-4 grid gap-4">
+          <MediaPanel src={mediaSrc} alt={mediaAlt ?? step.title} />
+          <SummaryCard
+            card={{
+              title: '近似说明卡',
+              tone: 'emerald',
+              body: [
+                '在 B 附近，原系统与主导极点近似系统在上升段、峰值附近与收敛段保持较好一致，因此“较均衡”不是感觉判断。',
+                '这张阶跃对照证明主导极点近似在当前主动态上可信，但它还不能替代后续的频域核对和持续跟踪任务核对。',
+              ],
+            }}
+          />
+        </div>
+      ) : null;
+    case 'step-11':
+      return (
+        <div className="mt-4 grid gap-4">
+          <NativeTablePanel table={getStep11FrequencyTable()} />
+          {mediaSrc ? (
+            <MediaPanel
+              src={mediaSrc}
+              alt={mediaAlt ?? step.title}
+              caption={[
+                '这张图只服务一个问题：为什么 B 版本可以用主导极点近似抓住主要动态，同时又不能把近似扩张成全频段等价。',
+                '低中频基本一致，高频差异逐步放大。',
+              ]}
+            />
+          ) : null}
+        </div>
+      );
+    default:
+      return null;
+  }
 }
 
 function ProgressiveRevealPanel({
@@ -662,6 +895,7 @@ export function UNIT_3_4StepContentPanel({
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const blueprint = getStepBlueprint(step);
+  const customStaticContent = renderCustomStaticContent(step, mediaSrc, mediaAlt);
 
   return (
     <section className="premium-lesson-panel px-4 py-5">
@@ -671,17 +905,23 @@ export function UNIT_3_4StepContentPanel({
       <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
       <p className="premium-lesson-muted mt-3 text-sm sm:text-base">{blueprint.intro}</p>
 
-      {mediaSrc ? (
-        <div className="mt-4">
-          <MediaPanel src={mediaSrc} alt={mediaAlt ?? step.title} />
-        </div>
-      ) : null}
+      {customStaticContent ? (
+        customStaticContent
+      ) : (
+        <>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {blueprint.sections.map((section) => (
+              <InfoSection key={`${step.id}-${section.title}`} section={section} />
+            ))}
+          </div>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        {blueprint.sections.map((section) => (
-          <InfoSection key={`${step.id}-${section.title}`} section={section} />
-        ))}
-      </div>
+          {mediaSrc ? (
+            <div className="mt-4">
+              <MediaPanel src={mediaSrc} alt={mediaAlt ?? step.title} />
+            </div>
+          ) : null}
+        </>
+      )}
 
       {step.pageType === 'worked_example_workspace' ? (
         <div className="mt-4">
@@ -732,6 +972,7 @@ export function UNIT_3_4StudentActivityForm({
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const [draft, setDraft] = useState<Record<string, string>>(getDefaultDraft(step, savedResponse));
+  const pageContract = getUNIT_3_4PageContract(step.id);
 
   useEffect(() => {
     setDraft(getDefaultDraft(step, savedResponse));
@@ -742,7 +983,13 @@ export function UNIT_3_4StudentActivityForm({
   }
 
   const submitted = Boolean(savedResponse);
-  const locked = !released;
+  const requiresRelease =
+    pageContract.teacherControls.releaseActivity === 'separate_toggle' ||
+    pageContract.teacherControls.releaseActivity === 'teacher_toggle';
+  const requiresBrowse =
+    pageContract.teacherControls.openBrowse === 'separate_toggle' ||
+    pageContract.teacherControls.openBrowse === 'teacher_toggle';
+  const locked = (requiresRelease && !released && !submitted) || (requiresBrowse && !browseEnabled);
 
   const updateDraft = (key: string, value: string, source: WorkspaceParameterChange['source'] = 'input') => {
     setDraft((prev) => ({ ...prev, [key]: value }));
@@ -833,6 +1080,12 @@ export function UNIT_3_4StudentActivityForm({
             <button type="button" onClick={submit} className="premium-lesson-action-primary">
               提交答案
             </button>
+            {step.id === 'step-04' ? (
+              <div className="premium-lesson-tone-block premium-tone-amber text-sm">
+                <div className="font-medium">读图顺序先于好坏判断。</div>
+                <div className="mt-2 leading-7">不能因为某个点看起来顺眼，就跳过前两步直接宣布哪个版本更好。</div>
+              </div>
+            ) : null}
           </div>
         );
       }
@@ -927,8 +1180,20 @@ export function UNIT_3_4StudentActivityForm({
   return (
     <section className="premium-lesson-panel-soft px-4 py-4">
       <div className="premium-lesson-title text-sm font-medium">学生作答区</div>
-      <p className="premium-lesson-muted mt-2 text-sm">{locked ? '教师尚未释放本页互动，请先阅读上方静态内容。' : '按本页任务完成判断与提交。'}</p>
-      {locked ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">当前互动尚未释放。</div> : <div className="mt-4">{renderBody()}</div>}
+      <p className="premium-lesson-muted mt-2 text-sm">
+        {locked
+          ? requiresBrowse && !browseEnabled
+            ? '教师尚未开放浏览，请先阅读已显示的静态内容。'
+            : '教师尚未释放本页互动，请先阅读上方静态内容。'
+          : '按本页任务完成判断与提交。'}
+      </p>
+      {locked ? (
+        <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">
+          {requiresBrowse && !browseEnabled ? '当前浏览尚未开放。' : '当前互动尚未释放。'}
+        </div>
+      ) : (
+        <div className="mt-4">{renderBody()}</div>
+      )}
       <SubmissionStatus submitted={submitted} />
       {answerVisible && getRevealContent(step.id) ? (
         <div className="premium-lesson-tone-block premium-tone-emerald mt-4 whitespace-pre-line text-sm leading-7">{getRevealContent(step.id)}</div>
@@ -980,17 +1245,20 @@ export function UNIT_3_4TeacherActivitySummary({
           <div className="premium-lesson-muted mt-1 text-sm">本页收到 {responses.length} 份学生提交。</div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {pageContract.teacherControls.releaseActivity === 'separate_toggle' ? (
+          {pageContract.teacherControls.releaseActivity === 'separate_toggle' ||
+          pageContract.teacherControls.releaseActivity === 'teacher_toggle' ? (
             <button type="button" onClick={onToggleRelease} className="premium-lesson-action-secondary">
-              {released ? '撤回互动' : '释放互动'}
+              {released ? '撤回互动' : '发放作答'}
             </button>
           ) : null}
-          {pageContract.teacherControls.openBrowse === 'separate_toggle' ? (
+          {pageContract.teacherControls.openBrowse === 'separate_toggle' ||
+          pageContract.teacherControls.openBrowse === 'teacher_toggle' ? (
             <button type="button" onClick={onToggleBrowse} className="premium-lesson-action-secondary">
               {browseEnabled ? '关闭浏览' : '开放浏览'}
             </button>
           ) : null}
-          {pageContract.teacherControls.teacherStepReveal === 'separate_toggle' ? (
+          {pageContract.teacherControls.teacherStepReveal === 'separate_toggle' ||
+          pageContract.teacherControls.teacherStepReveal === 'teacher_toggle' ? (
             <>
               <button
                 type="button"
@@ -1010,7 +1278,8 @@ export function UNIT_3_4TeacherActivitySummary({
               </button>
             </>
           ) : null}
-          {pageContract.teacherControls.revealReferenceAnswer === 'separate_toggle' ? (
+          {pageContract.teacherControls.revealReferenceAnswer === 'separate_toggle' ||
+          pageContract.teacherControls.revealReferenceAnswer === 'teacher_toggle' ? (
             <button type="button" onClick={onToggleAnswerVisible} className="premium-lesson-action-primary">
               {answerVisible ? '隐藏参考答案' : '显示参考答案'}
             </button>
@@ -1018,7 +1287,8 @@ export function UNIT_3_4TeacherActivitySummary({
         </div>
       </div>
 
-      {pageContract.teacherControls.teacherStepReveal === 'separate_toggle' ? (
+      {pageContract.teacherControls.teacherStepReveal === 'separate_toggle' ||
+      pageContract.teacherControls.teacherStepReveal === 'teacher_toggle' ? (
         <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">
           当前显影进度：{revealProgress} / {revealSteps}。
         </div>

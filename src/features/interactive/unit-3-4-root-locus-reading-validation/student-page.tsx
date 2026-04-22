@@ -112,23 +112,27 @@ export function UNIT_3_4StudentPage({
   const released =
     isDemo ||
     !isUNIT_3_4InteractivePageType(step.pageType) ||
-    pageContract.teacherControls.releaseActivity !== 'separate_toggle'
+    pageContract.teacherControls.releaseActivity === 'page_load_open' ||
+    pageContract.teacherControls.releaseActivity === 'always_on'
       ? true
       : Boolean(teacherSyncState?.releasedActivities?.[step.id]);
   const browseEnabled =
     isDemo ||
+    pageContract.teacherControls.openBrowse === 'page_load_open' ||
     pageContract.teacherControls.openBrowse === 'always_on' ||
     pageContract.teacherControls.openBrowse === 'not_applicable'
       ? true
       : Boolean(teacherSyncState?.browseEnabled?.[step.id]);
   const answerVisible =
-    pageContract.teacherControls.revealReferenceAnswer === 'separate_toggle'
+    pageContract.teacherControls.revealReferenceAnswer === 'separate_toggle' ||
+    pageContract.teacherControls.revealReferenceAnswer === 'teacher_toggle'
       ? Boolean(teacherSyncState?.revealedAnswers?.[step.id])
       : false;
   const revealProgress =
     isDemo
       ? 99
-      : pageContract.teacherControls.teacherStepReveal === 'separate_toggle'
+      : pageContract.teacherControls.teacherStepReveal === 'separate_toggle' ||
+          pageContract.teacherControls.teacherStepReveal === 'teacher_toggle'
         ? (teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0)
         : 0;
 
@@ -269,7 +273,7 @@ export function UNIT_3_4StudentPage({
           mediaAlt={step.title}
           browseEnabled={browseEnabled}
           revealProgress={revealProgress}
-          allowInlineReveal={isDemo || pageContract.teacherControls.teacherStepReveal !== 'teacher_only'}
+          allowInlineReveal={isDemo || pageContract.teacherControls.teacherStepReveal !== 'not_applicable'}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 

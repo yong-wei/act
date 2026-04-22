@@ -1,0 +1,78 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "4-4",
+  "status": "accepted",
+  "accepted_at": "2026-04-22T00:13:48+08:00",
+  "review_mode": "subagent+browser",
+  "implementation_contract_source": "src/lib/unit-4-4-course.ts",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/4-4/review/review-report.md",
+    "course-content/runtime/lessons/4-4/review/interactive-page-check.json"
+  ],
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "student-page.tsx 继续通过 useGlobalAI().updatePageContext 注入隐藏式页面上下文，没有引入页内 AI 卡片或旧 /ai 跳转入口。",
+        "teacher-page.tsx 未渲染可见 AI 控件，课堂控制仍保持教师推进、学生作答与知识抽屉分离。"
+      ]
+    },
+    "contract_alignment_repairs": {
+      "status": "pass",
+      "step_ids": [
+        "step-03",
+        "step-07",
+        "step-10",
+        "step-08",
+        "step-09",
+        "step-11",
+        "step-12",
+        "step-13"
+      ],
+      "evidence": [
+        "step-03 已改为卡片级独立提交，学生端逐题出现“单独提交本卡”，不再把三题前测压成一次整页提交。",
+        "step-07 已改为默认开放题面、仅保留教师显影控制；学生端不再出现“等待教师释放”，而是固定显示显影状态面板。",
+        "step-10 的 front 读法卡和图下注释已统一到“越往左走……；越往上走……”口径，页面内不再混用两套 Pareto 方向描述。",
+        "step-08 已回接 contract 的三组权重真值与表 4 控制器、调节时间、ITAE、ITSE、控制能量，不再使用实现阶段自造数据。",
+        "step-09 已回接主案例综合图、三条时域回读与表 5 的截止频率、相角裕度、超调和控制峰值真值。",
+        "step-11 已按作者态恢复表 6、典型点响应图、三条图后解释与三条工程意义卡，不再把 P1/P2/P3 的收益-代价比较压成一句泛化结论。",
+        "step-12 已按作者态恢复横摇对象、自由目标、表 7、验证图、两条回读结论，并将三张工作卡改为独立提交。",
+        "step-13 已从单选识别题恢复为三张 fill_text 后测卡，重新回到“判断链回收”而不是标准答案辨认。"
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "4-4 契约未要求参数滑块或原生联动工作区，本轮静态页面与运行时媒体均按 contract 的 image-panel / formula-card / task_card_workspace 形态实现，没有把要求中的互动降级成额外静态占位图。",
+        "正式页面只消费 /course-runtime/lessons/4-4/media/... 运行时媒体路径，没有回读 authoring 媒体。"
+      ]
+    },
+    "browser_page_walkthrough": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04",
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-12",
+        "step-13",
+        "step-14"
+      ],
+      "evidence": [
+        "Playwright 逐页访问 student/demo?step=step-01..14 后，14 页均正常加载，页面异常和控制台异常为 0。",
+        "浏览器复核确认 step-03/12/13 的“单独提交本卡”已实际渲染，step-07 不再出现“等待教师释放”，step-10/11 的 Pareto 解释文本已按最新契约显示。",
+        "浏览器复核确认所有 img 路径均为 /course-runtime/lessons/4-4/media/...，页面正文未暴露旧 /ai 路径。"
+      ]
+    }
+  },
+  "issues": []
+}

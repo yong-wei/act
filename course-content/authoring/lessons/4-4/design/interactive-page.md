@@ -36,22 +36,22 @@
 
 ## 证据单元升级决策表
 
-| evidence_unit_id | handout_anchor | target_steps | keep_elements | non_reducible |
-|---|---|---|---|---|
-| route_and_problem | 开头、第一节、课程目标 | step-01 | 对象 `P_h(s)`、四类拉扯、本课路径、本课七项目标 | 对象与拉扯先于目标卡 |
-| classical_trials | 3.1-3.2 | step-02 | 四组试凑表、拉扯读法、图后结论 | 不得先讲求解器 |
-| preassessment_gate | BOPPPS P₁ | step-03 | 三个前测判断题、题后过渡句 | 前测独立成页 |
-| parameterization_entry | 4.1-4.2 | step-04 | 起始方案、参数向量、参数范围表、范围说明 | 必须写明“参数范围不等于输出复核条件” |
-| free_objective_design | 5.1-5.3 | step-05 | 四类自由目标、归一化基准、`J_free` | 不得加入罚项 |
-| optimization_method | 6.1-6.2 | step-06 | 数值优化五步迭代链 | 不得退化成算法名词列表 |
-| gradient_intuition | 6.3 | step-07 | 一维例子、梯度下降图、图后解释 | 题面与显影分离 |
-| unconstrained_family | 7.1 | step-08 | 三组权重、三类控制器、时域总表 | 传函与权重都要完整出现 |
-| time_frequency_compare | 7.2-7.3 | step-09 | 综合图、频域表、三条回读结论 | 不得只保留单个候选 |
-| pareto_front | 8.1 | step-10 | `Pareto front` 图、二目标定义、front 读法 | 必须出现可视化前沿 |
-| pareto_points | 8.2-8.3 | step-11 | 三个典型点参数表、响应图、工程意义 | 不得退化成最小例题 |
-| roll_boundary_case | 9.1-9.2 | step-12 | 横摇自由目标、数值表、验证图、三张工作卡题面 | 必须出现数值响应实验 |
-| post_assessment | BOPPPS P₃ | step-13 | 三题后测、答题前过渡句 | 后测独立成页 |
-| summary_and_handoff | 10、BOPPPS S | step-14 | 六条总结链、`4-5` 去向 | 总结与移交独立成页 |
+| evidence_unit_id | evidence_kind | handout_anchor | target_steps | keep_elements | upgrade_mode | non_reducible | acceptance_checks |
+|---|---|---|---|---|---|---|---|
+| route_and_problem | concept_route | 开头、第一节、课程目标 | step-01 | 对象 `P_h(s)`、四类拉扯、本课路径、本课七项目标 | static_to_goal_map | 对象与拉扯先于目标卡 | 对象卡、拉扯卡、路径图、目标卡必须同页完整出现 |
+| classical_trials | evidence_table | 3.1-3.2 | step-02 | 四组试凑表、拉扯读法、图后结论 | table_plus_chart | 不得先讲求解器 | 表 1 必须先于读图口令和对比图出现 |
+| preassessment_gate | quiz_gate | BOPPPS P₁ | step-03 | 三个前测判断题、题后过渡句 | quiz_group_upgrade | 前测独立成页 | 三题题干与过渡句必须完整可见 |
+| parameterization_entry | formula_parameter | 4.1-4.2 | step-04 | 起始方案、参数向量、参数范围表、范围说明 | formula_board_with_card | 必须写明“参数范围不等于输出复核条件” | 起始方案、参数向量、范围表与范围说明缺一不可 |
+| free_objective_design | formula_objective | 5.1-5.3 | step-05 | 四类自由目标、归一化基准、`J_free` | formula_workspace_upgrade | 不得加入罚项 | 四类目标项、归一化表和 `J_free` 公式必须同页对齐 |
+| optimization_method | method_chain | 6.1-6.2 | step-06 | 数值优化五步迭代链 | static_method_chain | 不得退化成算法名词列表 | 必须完整写出“取参数-仿真-回读-代回-更新”链路 |
+| gradient_intuition | worked_example | 6.3 | step-07 | 一维例子、梯度下降图、图后解释 | reveal_chain | 题面与显影分离 | 默认只显第一层，且教师显影推进后学生页同步 |
+| unconstrained_family | candidate_table | 7.1 | step-08 | 三组权重、三类控制器、时域总表 | results_board | 传函与权重都要完整出现 | 权重偏好说明与表 4 必须完整映射 |
+| time_frequency_compare | curve_evidence | 7.2-7.3 | step-09 | 综合图、频域表、三条回读结论 | curve_board_with_card | 不得只保留单个候选 | 综合图、表 5 与作答卡必须保持同页顺序 |
+| pareto_front | pareto_curve | 8.1 | step-10 | `Pareto front` 图、二目标定义、front 读法 | curve_plus_definition | 必须出现可视化前沿 | 二目标定义、front 图和读法卡缺一不可 |
+| pareto_points | comparison_decision | 8.2-8.3 | step-11 | 三个典型点参数表、响应图、工程意义 | comparison_board | 不得退化成最小例题 | 表 6、响应图和三条工程意义必须完整落页 |
+| roll_boundary_case | boundary_workspace | 9.1-9.2 | step-12 | 横摇自由目标、数值表、验证图、三张工作卡题面 | task_workspace_upgrade | 必须出现数值响应实验 | 三张工作卡必须独立提交，且题面与验证图同时可见 |
+| post_assessment | quiz_group | BOPPPS P₃ | step-13 | 三题后测、答题前过渡句 | quiz_group_upgrade | 后测独立成页 | 三题后测不得与总结页合并 |
+| summary_and_handoff | summary_handoff | 10、BOPPPS S | step-14 | 六条总结链、`4-5` 去向 | summary_board | 总结与移交独立成页 | 六条带走结论与 `4-5` 去向卡必须完整保留 |
 
 ## 逐步说明
 
@@ -73,7 +73,7 @@
 
 ### step-05｜自由目标与归一化：怎样把偏好写成同一套比较语言
 - 页面骨架：上半区放四类自由目标项卡和归一化表，下半区放 `J_free` 公式卡、项义解释表和一张判断卡。
-- 页面正文内容：目标项卡固定写“调节时间 `t_s`”“`ITAE`”“`ITSE`”“控制能量 `E_u`”。归一化表完整保留 `$t_s/40`、`ITAE/ITAE_0`、`ITSE/ITSE_0`、`E_u/E_{u,0}`` 的来源。公式卡完整写 `$J_{\\mathrm{free}}(\\theta)=w_1\\dfrac{t_s}{40}+w_2\\dfrac{ITAE}{ITAE_0}+w_3\\dfrac{ITSE}{ITSE_0}+w_4\\dfrac{E_u}{E_{u,0}}$`。解释表逐项写“能否更快”“拖尾是否更短”“中前段误差强度是否被压低”“动作代价是否被透支”。作答卡要求学生区分哪两项更像收益、哪一项最明显在记录动作代价。本页不出现罚项。
+- 页面正文内容：目标项卡固定写“调节时间 `t_s`”“`ITAE`”“`ITSE`”“控制能量 `E_u`”。归一化表完整保留 `$t_s/40$`、`$ITAE/ITAE_0$`、`$ITSE/ITSE_0$`、`$E_u/E_{u,0}$` 的来源。公式卡完整写 `$J_{\\mathrm{free}}(\\theta)=w_1\\dfrac{t_s}{40}+w_2\\dfrac{ITAE}{ITAE_0}+w_3\\dfrac{ITSE}{ITSE_0}+w_4\\dfrac{E_u}{E_{u,0}}$`。解释表逐项写“能否更快”“拖尾是否更短”“中前段误差强度是否被压低”“动作代价是否被透支”。作答卡要求学生区分哪两项更像收益、哪一项最明显在记录动作代价。本页不出现罚项。
 
 ### step-06｜数值优化到底在这门课里做什么
 - 页面骨架：上半区放“问题写成什么”卡，中部放五步迭代链，下半区放一张收束卡。

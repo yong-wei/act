@@ -48,11 +48,11 @@ describe('unit 3-4 interactive course', () => {
     expect(courseModule.getUNIT_3_4MediaSrc('step-05')).toContain('3-4-root-locus-summary');
     expect(courseModule.getUNIT_3_4MediaSrc('step-08')).toContain('3-4-gain-conversion-card');
     expect(courseModule.getUNIT_3_4MediaSrc('step-10')).toContain('3-4-step-compare');
-    expect(courseModule.getUNIT_3_4MediaSrc('step-11')).toContain('3-4-bode-compare');
+    expect(courseModule.getUNIT_3_4MediaSrc('step-11')).toContain('3-4-dominant-pole-selection');
     expect(courseModule.getUNIT_3_4MediaSrc('step-12')).toContain('3-4-turning-track-k20');
     expect(courseModule.getUNIT_3_4MediaSrc('step-13')).toContain('3-4-local-feedback-block');
     expect(courseModule.getUNIT_3_4MediaSrc('step-15')).toContain('3-4-generalized-root-locus');
-    expect(courseModule.getUNIT_3_4MediaSrc('step-17')).toContain('3-4-info');
+    expect(courseModule.getUNIT_3_4MediaSrc('step-17')).toBeNull();
   });
 
   it('keeps the local page contracts aligned with the authoring interactive contract for representative steps', async () => {
@@ -112,7 +112,6 @@ describe('unit 3-4 interactive course', () => {
             ? 'summary'
             : 'display'
           : authoringStep.interaction_spec.interaction_kind;
-
       expect(localStep?.title).toBe(authoringStep.title);
       expect(localStep?.pageType).toBe(expectedPageType);
       expect(localPageContract?.layout.template).toBe(authoringStep.layout.template);
@@ -202,6 +201,20 @@ describe('unit 3-4 interactive course', () => {
     expect(stepPanelsSource).toContain('为什么必须三域互证');
     expect(stepPanelsSource).toContain('为什么不是“再调一次 K”');
     expect(stepPanelsSource).toContain('广义根轨迹');
+    expect(stepPanelsSource).toContain('同样位于稳定窗口内的参数，也可能对应完全不同的速度、振荡、风险与工程后果');
+    expect(stepPanelsSource).toContain('记录表');
+    expect(stepPanelsSource).toContain('对象版本');
+    expect(stepPanelsSource).toContain('记录表 / 要回答的问题 / 至少应包含的信息');
+    expect(stepPanelsSource).toContain('三张记录表首尾相接');
+    expect(stepPanelsSource).toContain('先看起点、终点和分支数量');
+    expect(stepPanelsSource).toContain('B/C 证据回顾表');
+    expect(stepPanelsSource).toContain('在 B 附近，原系统与主导极点近似系统在上升段、峰值附近与收敛段保持较好一致');
+    expect(stepPanelsSource).toContain('这张阶跃对照还不能代替后续频域与持续跟踪验证');
+    expect(stepPanelsSource).toContain('主导极点近似可信性图');
+    expect(stepPanelsSource).toContain('低频几乎一致，稳态与主动态判断近似不变');
+    expect(stepPanelsSource).toContain('低中频基本一致，高频差异逐步放大');
+    expect(stepPanelsSource).toContain('读图顺序先于好坏判断');
+    expect(stepPanelsSource).toContain('收束与去向');
     expect(stepPanelsSource).toContain('显示下一步');
     expect(stepPanelsSource).toContain('重置步骤');
     expect(stepPanelsSource).not.toContain('本页无需提交');
@@ -214,6 +227,33 @@ describe('unit 3-4 interactive course', () => {
     expect(workspaceSource).toContain('TRIPLE_MATCH_FIELDS');
     expect(workspaceSource).toContain('WORKED_EXAMPLE_FIELDS');
     expect(workspaceSource).toContain('POST_QUIZ_QUESTIONS');
+    expect(workspaceSource).toContain('为什么这张阶跃对照还不能代替后续频域与持续跟踪验证');
+    expect(workspaceSource).toContain('低中频近似成立');
+    expect(workspaceSource).toContain('高频差异仍要单列记录');
+  });
+
+  it('keeps release and browse controls aligned with teacher_toggle/page_load_open semantics', () => {
+    const studentPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-4-root-locus-reading-validation/student-page.tsx'),
+      'utf8',
+    );
+    const teacherPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-4-root-locus-reading-validation/teacher-page.tsx'),
+      'utf8',
+    );
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-4-root-locus-reading-validation/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(studentPageSource).toContain("pageContract.teacherControls.releaseActivity === 'page_load_open'");
+    expect(studentPageSource).toContain("pageContract.teacherControls.openBrowse === 'page_load_open'");
+    expect(studentPageSource).toContain("pageContract.teacherControls.revealReferenceAnswer === 'teacher_toggle'");
+    expect(studentPageSource).toContain("pageContract.teacherControls.teacherStepReveal === 'teacher_toggle'");
+    expect(teacherPageSource).toContain("pageContract.teacherControls.openBrowse === 'page_load_open'");
+    expect(stepPanelsSource).toContain("pageContract.teacherControls.releaseActivity === 'teacher_toggle'");
+    expect(stepPanelsSource).toContain("pageContract.teacherControls.openBrowse === 'teacher_toggle'");
+    expect(stepPanelsSource).toContain('教师尚未开放浏览，请先阅读已显示的静态内容。');
   });
 
   it('uses hidden page AI context inside the student page and removes explicit page AI assistants from both views', () => {

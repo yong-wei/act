@@ -46,6 +46,12 @@ LESSON_PRESETS = {
         'page_contract_const': 'UNIT_4_1_PAGE_CONTRACTS',
         'step_const': 'UNIT_4_1_LESSON_STEPS',
     },
+    '4-4': {
+        'contract': 'course-content/authoring/lessons/4-4/design/interactive-contract.yaml',
+        'implementation': 'src/lib/unit-4-4-course.ts',
+        'page_contract_const': 'UNIT_4_4_PAGE_CONTRACTS',
+        'step_const': 'UNIT_4_4_LESSON_STEPS',
+    },
 }
 
 

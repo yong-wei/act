@@ -193,10 +193,10 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
     },
     {
       key: 'approximation_limit',
-      label: '为什么仍要保留“近似可信但有限”',
-      prompt: '为什么这里不能把主导极点近似直接当成“完全等价”？',
+      label: '为什么这张阶跃对照还不能代替后续频域与持续跟踪验证',
+      prompt: '为什么这张阶跃对照还不能代替后续频域与持续跟踪验证？',
       inputKind: 'text',
-      placeholder: '说明近似成立范围与残余误差……',
+      placeholder: '说明为什么当前时域证据仍需要后续验证链补证……',
     },
   ],
   'step-11': [

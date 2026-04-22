@@ -16,6 +16,7 @@ import { UNIT_3_9_COURSE_TITLE, UNIT_3_9_ROUTE_SEGMENT } from '@/lib/unit-3-9-co
 import { UNIT_4_1_COURSE_TITLE, UNIT_4_1_ROUTE_SEGMENT } from '@/lib/unit-4-1-course';
 import { UNIT_4_2_COURSE_TITLE, UNIT_4_2_ROUTE_SEGMENT } from '@/lib/unit-4-2-course';
 import { UNIT_4_3_COURSE_TITLE, UNIT_4_3_ROUTE_SEGMENT } from '@/lib/unit-4-3-course';
+import { UNIT_4_4_COURSE_TITLE, UNIT_4_4_ROUTE_SEGMENT } from '@/lib/unit-4-4-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 
@@ -181,6 +182,14 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       '4-3：初始方案落地实践：从对象分析到结构组合与首轮验证',
       '初始方案落地实践：从对象分析到结构组合与首轮验证',
       '初始方案落地实践',
+    ],
+  },
+  {
+    routeSegment: UNIT_4_4_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_4_4_COURSE_TITLE,
+      '4-4：多目标权衡与控制器优化设计',
+      '多目标权衡与控制器优化设计',
     ],
   },
 ];

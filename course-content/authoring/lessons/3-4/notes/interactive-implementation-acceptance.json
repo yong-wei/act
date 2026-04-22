@@ -1,0 +1,50 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "3-4",
+  "status": "accepted",
+  "accepted_at": "2026-04-21T19:26:00+08:00",
+  "review_mode": "main_agent_fallback",
+  "implementation_contract_source": "src/lib/unit-3-4-course.ts",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/3-4/review/review-report.md",
+    "course-content/runtime/lessons/3-4/review/interactive-page-check.json"
+  ],
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "student-page.tsx 继续通过 useGlobalAI().updatePageContext 注入隐藏式页面上下文，没有回退成页内 AI 面板。",
+        "teacher-page.tsx 未引入可见 AI 控件，课堂端仍保持教师控制与学生提交分离。"
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": [
+        "step-02",
+        "step-04",
+        "step-06",
+        "step-10",
+        "step-11",
+        "step-17"
+      ],
+      "evidence": [
+        "step-02 已补成带“记录表 / 要回答的问题 / 至少应包含的信息”的三张记录表静态载荷，不再只剩名称列表。",
+        "step-04 已把四步法补成带观察对象与判断产出的完整说明卡，而不是四个短标签。",
+        "step-06 已改成 B/C 证据回顾表加判断提示，页面正文直接提供写判断句所需证据。",
+        "step-10 已把时域页的第二问改成“为什么这张阶跃对照还不能代替后续频域与持续跟踪验证”，与作者态一致。",
+        "step-11 已补齐四个代表频率点的数值证据，并切换到作者态指定的主导极点近似可信性图。",
+        "step-17 已补齐最终判断、边界说明与 3-5 去向，不再只剩单组带走结论。"
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "本轮没有把工作区、显影链或参数联动退化成额外静态占位图。",
+        "3-4 正式页面仍只消费 /course-runtime/lessons/3-4/media/... 运行时媒体路径，没有回读 authoring 媒体。"
+      ]
+    }
+  },
+  "issues": []
+}

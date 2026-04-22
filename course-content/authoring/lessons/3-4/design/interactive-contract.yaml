@@ -49,8 +49,8 @@ steps:
     modules: [ { id: 'core-question-card', region: 'question', kind: 'summary-card', must_be_visible: true }, { id: 'deliverable-table', region: 'outputs', kind: 'native-table', must_be_visible: true }, { id: 'chain-summary-card', region: 'summary', kind: 'summary-card', must_be_visible: true } ]
     content_blocks:
       core_question: { text: '同样位于稳定窗口内的参数，也可能对应完全不同的速度、振荡、风险与工程后果。' }
-      deliverables: [ '关键节点读图记录', '参数窗口判断表', '对象化验证记录' ]
-      chain_summary: { text: '关键节点读图 -> 参数窗口判断 -> 对象化三域验证 -> 广义参数验证。' }
+      deliverables: { columns: [ '记录表', '要回答的问题', '至少应包含的信息' ], rows: [ [ '关键节点读图记录', '主图上先看哪些位置。', '分离点、虚轴交点、主导极点候选、稳定窗口' ], [ '参数窗口判断表', '哪些参数只是稳定，哪些参数更值得选用。', '根轨迹增益、实际控制器增益、非增益参数窗口、稳定性判断、性能趋势' ], [ '对象化验证记录', '图上的判断落回真实对象后是否仍成立。', '时域后果、频域后果、主导极点近似是否可信、低中频近似与高频差异' ] ] }
+      chain_summary: { text: '三张记录表首尾相接：关键节点读图 -> 参数窗口判断 -> 对象化三域验证 -> 广义参数验证。' }
     evidence_sequence: [ '核心问题卡', '三张记录表', '判断链摘要' ]
     interaction_spec: { interaction_kind: 'none', student_task: '只阅读，不提交。', answer_reveal: 'none' }
     teacher_controls: { release_activity: 'not_applicable', open_browse: 'not_applicable', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'not_applicable' }
@@ -84,7 +84,7 @@ steps:
     layout: { template: 'workflow_sort_board', regions: [ { id: 'workflow', width: 'full', order: 1 }, { id: 'interaction', width: 'full', order: 2 }, { id: 'feedback', width: 'full', order: 3 } ] }
     modules: [ { id: 'workflow-cards', region: 'workflow', kind: 'card-stack', must_be_visible: true }, { id: 'sort-board', region: 'interaction', kind: 'sort-board', must_be_visible: true }, { id: 'feedback-strip', region: 'feedback', kind: 'summary-card', must_be_visible: true } ]
     content_blocks:
-      workflow_cards: [ '看骨架', '找关键节点', '区分窗口', '翻译后果' ]
+      workflow_cards: [ '看骨架：先看起点、终点和分支数量，判断对象的整体骨架。', '找关键节点：锁定分离点、虚轴交点和主导极点候选，判断主导形态与边界位置。', '区分窗口：从关键节点走到稳定窗口与可接受窗口，判断参数落在哪一侧。', '翻译后果：把图上的位置改写成参数语言和工程后果，说明快慢、振荡、裕量与风险。' ]
       error_warning: { text: '不能因为某个点看起来顺眼，就跳过前两步直接宣布哪个版本更好。' }
       summary_sentence: { text: '读图顺序先于好坏判断。' }
     evidence_sequence: [ '四步法卡片', '排序区', '误判提示' ]
@@ -120,10 +120,10 @@ steps:
     layout: { template: 'record_workspace', regions: [ { id: 'record', width: 'full', order: 1 }, { id: 'interaction', width: 'full', order: 2 } ] }
     modules: [ { id: 'record-template', region: 'record', kind: 'native-table', must_be_visible: true }, { id: 'activity-card-a', region: 'interaction', kind: 'fill-text-card', must_be_visible: true }, { id: 'activity-card-b', region: 'interaction', kind: 'fill-text-card', must_be_visible: true } ]
     content_blocks:
-      record_template: { columns: [ '对象版本', '关键位置', '边界关系', '主导特征', '工程后果' ], note: '位置与后果必须一起写。' }
+      record_template: { columns: [ '对象版本', '是否越过分离点', '与虚轴边界关系', '主导极点候选', '读图结论' ], rows: [ [ 'B', '已越过分离点', '仍明显远离虚轴边界', '$-0.0488\\pm j0.0496$', '速度与阻尼较均衡，可作参考工作点' ], [ 'C', '早已越过分离点', '已明显向虚轴边界逼近', '$-0.0135\\pm j0.3931$', '仍稳定，但振荡趋势与风险感显著增强' ] ], note: '写判断句时，位置、边界关系与工程后果必须一起出现。' }
       task_prompts: [ '写出 B 的完整工程判断。', '写出 C 的风险判断。' ]
-      summary_sentence: { text: '读图记录的目标是写出完整工程判断，而不是收集碎片化形容词。' }
-    evidence_sequence: [ '记录模板', '判断提示', '双卡作答' ]
+      summary_sentence: { text: '读图记录的目标是把 B/C 的节点位置、边界关系和工程后果连成完整判断句，而不是收集碎片化形容词。' }
+    evidence_sequence: [ 'B/C 证据回顾表', '判断提示', '双卡作答' ]
     interaction_spec: { interaction_kind: 'activity_cards', student_task: '把主图证据写成完整工程判断。', activity_cards: [ { id: 'record-b', prompt: '请写出 B 的完整工程判断。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }, { id: 'record-c', prompt: '请写出 C 的风险判断。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' } ], answer_reveal: 'teacher_toggle' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: false, can_submit_without_browse: true }
@@ -196,9 +196,9 @@ steps:
     content_blocks:
       media_requirements: { asset: '3-4-step-compare.png' }
       explanation: { text: '在 B 附近，原系统与主导极点近似系统在上升段、峰值附近与收敛段保持较好一致，因此“较均衡”不是感觉判断。' }
-      limitation: { text: '主导极点近似可信，不等于所有动态细节都可忽略。' }
+      limitation: { text: '主导极点近似可信，但这张阶跃对照还不能代替后续的频域核对和持续跟踪任务核对。' }
     evidence_sequence: [ '阶跃对照图', '近似说明卡', '双卡作答' ]
-    interaction_spec: { interaction_kind: 'activity_cards', student_task: '说明 B 为什么能作为参考工作点，又为什么仍不是完美无代价的点。', activity_cards: [ { id: 'support-b', prompt: '指出哪一条时域证据最能支撑 B 的参考地位。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }, { id: 'limit-b', prompt: '补写一句为什么它仍不是完美无代价的工作点。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' } ], answer_reveal: 'teacher_toggle' }
+    interaction_spec: { interaction_kind: 'activity_cards', student_task: '说明 B 为什么能作为参考工作点，以及为什么这张阶跃对照还不能代替后续验证。', activity_cards: [ { id: 'support-b', prompt: '指出哪一条时域证据最能支撑 B 的参考地位。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }, { id: 'limit-b', prompt: '补写一句为什么这张阶跃对照还不能代替后续频域与持续跟踪验证。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' } ], answer_reveal: 'teacher_toggle' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: false, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: [ 'error_bucket_distribution', 'card_completion_rate' ] }
@@ -210,12 +210,13 @@ steps:
   step-11:
     title: '频域验证：低中频近似成立，高频差异仍要单列记录'
     layout: { template: 'table_figure_workspace', regions: [ { id: 'table', width: 'full', order: 1 }, { id: 'figure', width: 'full', order: 2 }, { id: 'activity', width: 'full', order: 3 } ] }
-    modules: [ { id: 'frequency-point-table', region: 'table', kind: 'native-table', must_be_visible: true }, { id: 'bode-compare-figure', region: 'figure', kind: 'media', must_be_visible: true }, { id: 'activity-card-a', region: 'activity', kind: 'fill-text-card', must_be_visible: true }, { id: 'activity-card-b', region: 'activity', kind: 'fill-text-card', must_be_visible: true } ]
+    modules: [ { id: 'frequency-point-table', region: 'table', kind: 'native-table', must_be_visible: true }, { id: 'dominant-pole-selection-figure', region: 'figure', kind: 'media', must_be_visible: true }, { id: 'activity-card-a', region: 'activity', kind: 'fill-text-card', must_be_visible: true }, { id: 'activity-card-b', region: 'activity', kind: 'fill-text-card', must_be_visible: true } ]
     content_blocks:
-      frequency_points: { columns: [ '频率', '主要观察', '解释' ], rows: [ [ '0.01 rad/s', '原系统与近似系统接近', '低频主动态判断成立' ], [ '0.10 rad/s', '仍保持良好一致', '中低频趋势继续成立' ], [ '1.00 rad/s', '差异开始出现', '接近主动态边界' ], [ '5.00 rad/s', '差异明显放大', '高频近似不能继续外推' ] ] }
-      bode_media: { asset: '3-4-bode-compare.png' }
+      frequency_points: { columns: [ '频率', '原系统幅值', '近似系统幅值', '相位差', '解释' ], rows: [ [ '0.01 rad/s', '1.0001', '1.0211', '约 0.26°', '低频几乎一致，稳态与主动态判断近似不变' ], [ '0.10 rad/s', '0.4385', '0.4476', '约 2.63°', '中频仍较接近，主导极点近似仍可解释主要动态' ], [ '1.00 rad/s', '0.0044', '0.0049', '约 24.98°', '高频差异明显增大，近似模型不能替代高频细节判断' ], [ '5.00 rad/s', '0.0001', '0.0002', '约 66.77°', '快极点影响在高频被放大，高频证据需要单独记录' ] ] }
+      approximation_media: { asset: '3-4-dominant-pole-selection.png' }
+      approximation_note: { text: '这张图只服务一个问题：为什么 B 版本可以用主导极点近似抓住主要动态，同时又不能把近似扩张成全频段等价。' }
       conclusion: { text: '低中频基本一致，高频差异逐步放大。' }
-    evidence_sequence: [ '代表性频率点表', 'Bode 对照图', '双卡作答' ]
+    evidence_sequence: [ '代表性频率点表', '主导极点近似可信性图', '双卡作答' ]
     interaction_spec: { interaction_kind: 'activity_cards', student_task: '说明频域为什么支持 B 的主动态判断，又为什么不能把近似推广成全频段等价。', activity_cards: [ { id: 'support-band', prompt: '哪一段频率最能支撑主动态近似成立。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }, { id: 'high-frequency', prompt: '为什么高频差异仍需要单列记录。', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' } ], answer_reveal: 'teacher_toggle' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: false, can_submit_without_browse: true }

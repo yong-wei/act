@@ -27,6 +27,7 @@ import { UNIT_3_9_PREMIUM_LESSON_CARD } from '@/lib/unit-3-9-course';
 import { UNIT_4_1_PREMIUM_LESSON_CARD } from '@/lib/unit-4-1-course';
 import { UNIT_4_2_PREMIUM_LESSON_CARD } from '@/lib/unit-4-2-course';
 import { UNIT_4_3_PREMIUM_LESSON_CARD } from '@/lib/unit-4-3-course';
+import { UNIT_4_4_PREMIUM_LESSON_CARD } from '@/lib/unit-4-4-course';
 
 export interface InteractiveResource {
   id: string;
@@ -150,6 +151,7 @@ export const FEATURED_LESSONS = [
   UNIT_4_1_PREMIUM_LESSON_CARD,
   UNIT_4_2_PREMIUM_LESSON_CARD,
   UNIT_4_3_PREMIUM_LESSON_CARD,
+  UNIT_4_4_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',

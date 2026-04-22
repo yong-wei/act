@@ -12700,10 +12700,10 @@
     ]
   },
   {
-    "id": "任务通道变化下的代价函数改写_4_44007",
-    "name": "任务通道变化下的代价函数改写",
+    "id": "任务通道变化下的自由目标改写_4_44007",
+    "name": "任务通道变化下的自由目标改写",
     "nodeType": "THEORY",
-    "description": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，目标函数、观察指标和边界项也必须按照新的任务语言整体改写。",
+    "description": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
     "positionX": -74.0,
     "positionY": 0.0,
     "positionZ": 0,
@@ -12716,17 +12716,16 @@
       "chapterName": "约束设计层",
       "category": "程序性",
       "bloom_level": "分析",
-      "definition": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，目标函数、观察指标和边界项也必须按照新的任务语言整体改写。",
+      "definition": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
       "examples": [
-        "横摇抗扰案例中，`M_p`、`t_s` 和 `ITAE` 不再是主语言，RMS 与谐振峰值才更能表达‘整体摆动是否被压低’。",
-        "若沿用航向保持的代价函数去优化横摇抗扰，求解器会沿错误方向努力，因为它仍在奖励跟踪型指标。"
+        "横摇抗扰中，RMS 与谐振峰比调节时间和 `ITAE` 更能描述目标。",
+        "若沿用航向保持的自由目标去比较横摇案例，求解器会沿错误方向搜索。"
       ],
       "formulas": [
-        "J_r(k)=0.55\\frac{RMS(\\varphi)}{RMS(\\varphi)_0}+0.30\\frac{\\max_\\omega|T_d(j\\omega)|}{\\max_\\omega|T_d(j\\omega)|_0}+0.15\\frac{RMS(u)}{RMS(u)_0}+1200\\max(0,u_{\\max}-0.75)^2"
+        "J_r(k)=0.60\\frac{RMS(\\varphi)}{RMS(\\varphi)_0}+0.25\\frac{\\max_\\omega|T_d(j\\omega)|}{\\max_\\omega|T_d(j\\omega)|_0}+0.15\\frac{RMS(u)}{RMS(u)_0}"
       ],
       "prerequisites": [
-        "固定结构优化中的指标分层_4_44002",
-        "目标函数与罚项表达_4_44004",
+        "无约束加权目标表达_4_44004",
         "展示解与Pareto最小取舍_4_44006"
       ],
       "relatedConcepts": [
@@ -12735,22 +12734,22 @@
       "difficulty": 5,
       "importance": 5,
       "keywords": [
-        "代价函数改写",
+        "自由目标改写",
         "任务通道",
-        "横摇抗扰",
-        "RMS"
+        "横摇抗扰"
       ],
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/任务通道变化下的自由目标改写_4_44007.md"
+    ],
     "tags": [
-      "代价函数改写",
+      "自由目标改写",
       "任务通道",
       "横摇抗扰",
-      "RMS",
       "chapter-0"
     ]
   },
@@ -12758,7 +12757,7 @@
     "id": "优化起点与归一化来源_4_44003",
     "name": "优化起点与归一化来源",
     "nodeType": "THEORY",
-    "description": "固定结构优化中的参数向量、参数范围和归一化基准都必须来自已有设计证据，其中起点通常来自上一轮可运行方案，归一化基准则来自任务书或首轮仿真结果。",
+    "description": "固定结构优化中的参数向量、参数范围和归一化基准必须来自已有设计证据，其中起点来自上一轮可运行方案，归一化基准来自任务书或首轮仿真结果。",
     "positionX": -71.5,
     "positionY": -19.2,
     "positionZ": 0,
@@ -12771,41 +12770,41 @@
       "chapterName": "约束设计层",
       "category": "程序性",
       "bloom_level": "应用",
-      "definition": "固定结构优化中的参数向量、参数范围和归一化基准都必须来自已有设计证据，其中起点通常来自上一轮可运行方案，归一化基准则来自任务书或首轮仿真结果。",
+      "definition": "固定结构优化中的参数向量、参数范围和归一化基准必须来自已有设计证据，其中起点来自上一轮可运行方案，归一化基准来自任务书或首轮仿真结果。",
       "examples": [
-        "客船案例直接把 `4-3` 给出的超前校正方案写成参数向量起点，再用任务书中的 `40 s` 与 `20%` 以及首轮仿真的 `ITAE_0`、`E_{u,0}` 完成归一化。",
-        "若起点本身连闭环都跑不通，求解器首先面对的就不是优化，而是如何离开无效区域。"
+        "客船案例把 `4-3` 的超前校正方案直接写成参数向量起点。",
+        "`ITAE_0`、`ITSE_0` 和 `E_{u,0}` 都来自起始方案读数，而不是临时手填。"
       ],
       "formulas": [
-        "\\theta=[K,\\,T,\\,\\alpha]^\\mathsf{T},\\qquad J_h=w_1\\frac{t_s}{40}+w_2\\frac{M_p}{20}+w_3\\frac{ITAE}{ITAE_0}+w_4\\frac{E_u}{E_{u,0}}+P(\\theta)"
+        "\\theta=[K,\\,T,\\,\\alpha]^\\mathsf{T},\\qquad C_h(s)=K\\frac{Ts+1}{\\alpha Ts+1}"
       ],
       "prerequisites": [
         "单结构首轮起步卡_4_42001",
         "参数方向表达卡_4_43003",
-        "固定结构优化中的指标分层_4_44002"
+        "固定结构自由目标项选择_4_44002"
       ],
       "relatedConcepts": [
-        "目标函数与罚项表达_4_44004"
+        "无约束加权目标表达_4_44004"
       ],
       "difficulty": 4,
       "importance": 5,
       "keywords": [
         "优化起点",
-        "参数范围",
         "归一化",
-        "首轮方案"
+        "参数范围"
       ],
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/优化起点与归一化来源_4_44003.md"
+    ],
     "tags": [
       "优化起点",
-      "参数范围",
       "归一化",
-      "首轮方案",
+      "参数范围",
       "chapter-0"
     ]
   },
@@ -12857,68 +12856,12 @@
     ]
   },
   {
-    "id": "冲突指标下的经典试凑空可行域_4_44001",
-    "name": "冲突指标下的经典试凑空可行域",
-    "nodeType": "THEORY",
-    "description": "当固定结构下的人工试凑在速度、超调、控制峰值与相角裕度之间反复拉扯，而没有一组参数能同时守住全部底线时，对当前试参路径而言，可行域表现为一块空白区域。",
-    "positionX": -52.3,
-    "positionY": -52.3,
-    "positionZ": 0,
-    "bloomLevel": "ANALYZE",
-    "knowledgeDim": "CONCEPTUAL",
-    "chapter": null,
-    "chapterName": "约束设计层",
-    "metadata": {
-      "chapter": null,
-      "chapterName": "约束设计层",
-      "category": "概念性",
-      "bloom_level": "分析",
-      "definition": "当固定结构下的人工试凑在速度、超调、控制峰值与相角裕度之间反复拉扯，而没有一组参数能同时守住全部底线时，对当前试参路径而言，可行域表现为一块空白区域。",
-      "examples": [
-        "客船航向保持的四组经典试凑中，激进方案先撞控制峰值边界，最小修正方案又在超调和相角裕度上留下缺口。",
-        "仅补低频的方案看似动作更保守，却把动态品质和储备一起拖得更差，说明问题不是继续多试几组参数就能自动解决。"
-      ],
-      "formulas": [
-        "M_p\\le 20\\%,\\quad \\max|u(t)|\\le 7,\\quad \\phi_m\\ge 45^\\circ"
-      ],
-      "prerequisites": [
-        "问题清单移交表_4_43005",
-        "三频段闭环性能回读_3_38003",
-        "超调量_5_3d015714",
-        "相角裕度_5_5a74b451"
-      ],
-      "relatedConcepts": [
-        "固定结构优化中的指标分层_4_44002"
-      ],
-      "difficulty": 4,
-      "importance": 5,
-      "keywords": [
-        "空可行域",
-        "经典试凑",
-        "冲突指标",
-        "固定结构"
-      ],
-      "createdAt": null,
-      "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
-    },
-    "content": {},
-    "resources": [],
-    "tags": [
-      "空可行域",
-      "经典试凑",
-      "冲突指标",
-      "固定结构",
-      "chapter-0"
-    ]
-  },
-  {
     "id": "劳斯判据_4_05ba60cd",
     "name": "劳斯判据",
     "nodeType": "THEORY",
     "description": "一种判断线性系统稳定性的代数判据，通过构造劳斯表并检查第一列符号变化来确定系统是否稳定。",
-    "positionX": -58.0,
-    "positionY": -100.5,
+    "positionX": -82.0,
+    "positionY": -82.0,
     "positionZ": 4,
     "bloomLevel": "APPLY",
     "knowledgeDim": "PROCEDURAL",
@@ -12963,8 +12906,8 @@
     "name": "单位反馈控制系统",
     "nodeType": "THEORY",
     "description": "一种控制系统结构，其输出量通过反馈网络与输入量进行比较，形成闭环控制。",
-    "positionX": -30.0,
-    "positionY": -112.0,
+    "positionX": -58.0,
+    "positionY": -100.5,
     "positionZ": 4,
     "bloomLevel": "UNDERSTAND",
     "knowledgeDim": "CONCEPTUAL",
@@ -13007,8 +12950,8 @@
     "name": "单结构与复合结构分流条件",
     "nodeType": "THEORY",
     "description": "根据对象当前最紧矛盾、单结构已暴露的代价和可测通道条件，判断首轮方案应继续单结构，还是进入复合结构或反馈-前馈组合。",
-    "positionX": -0.0,
-    "positionY": -74.0,
+    "positionX": -19.2,
+    "positionY": -71.5,
     "positionZ": 0,
     "bloomLevel": "ANALYZE",
     "knowledgeDim": "CONCEPTUAL",
@@ -13064,8 +13007,8 @@
     "name": "单结构首轮起步卡",
     "nodeType": "THEORY",
     "description": "把当前任务、最紧矛盾、首选单结构、参数起步方向、预期改善、代价说明和留给下一课的未决项压成一张首轮设计输入卡，用来把 4-2 的选型理由固定下来。",
-    "positionX": 19.2,
-    "positionY": -71.5,
+    "positionX": -0.0,
+    "positionY": -74.0,
     "positionZ": 0,
     "bloomLevel": "APPLY",
     "knowledgeDim": "PROCEDURAL",
@@ -13122,8 +13065,8 @@
     "name": "参数方向表达卡",
     "nodeType": "THEORY",
     "description": "把首轮方案写成“先改哪段行为、预期先改善什么、最可能先透支什么”的设计表达，用来替代只报参数大小的经验描述。",
-    "positionX": 37.0,
-    "positionY": -64.1,
+    "positionX": 19.2,
+    "positionY": -71.5,
     "positionZ": 0,
     "bloomLevel": "APPLY",
     "knowledgeDim": "PROCEDURAL",
@@ -13177,8 +13120,8 @@
     "name": "参数根轨迹",
     "nodeType": "THEORY",
     "description": "以系统参数（非开环增益K）为可变参数绘制的根轨迹，绘制法则与常规根轨迹相同。",
-    "positionX": 82.0,
-    "positionY": -82.0,
+    "positionX": 58.0,
+    "positionY": -100.5,
     "positionZ": 4,
     "bloomLevel": "APPLY",
     "knowledgeDim": "PROCEDURAL",
@@ -13224,8 +13167,8 @@
     "name": "反馈保底与前馈补偿边界",
     "nodeType": "THEORY",
     "description": "当给定或扰动通道可测时，前馈可以作为定向补偿进入候选；但反馈仍负责稳定性、鲁棒性与模型偏差下的保底，二者不能互相替代。",
-    "positionX": 64.1,
-    "positionY": -37.0,
+    "positionX": 52.3,
+    "positionY": -52.3,
     "positionZ": 0,
     "bloomLevel": "ANALYZE",
     "knowledgeDim": "CONCEPTUAL",
@@ -13280,8 +13223,8 @@
     "name": "可行域-满意域-最优域分层",
     "nodeType": "THEORY",
     "description": "把设计区域分成“先排除不能做的可行域筛选、再保留当前可接受的满意域、最后才比较更优解的最优域”三层结构，以防入口课把筛边界和求最优混成一步。",
-    "positionX": 71.5,
-    "positionY": -19.2,
+    "positionX": 64.1,
+    "positionY": -37.0,
     "positionZ": 0,
     "bloomLevel": "ANALYZE",
     "knowledgeDim": "CONCEPTUAL",
@@ -13334,12 +13277,12 @@
     ]
   },
   {
-    "id": "固定结构优化中的指标分层_4_44002",
-    "name": "固定结构优化中的指标分层",
+    "id": "固定结构自由目标项选择_4_44002",
+    "name": "固定结构自由目标项选择",
     "nodeType": "THEORY",
-    "description": "在固定结构优化中，把同一组性能指标重新写成硬约束、软目标和观察指标，用来区分哪些底线绝不能先破，哪些量可以在守底线后继续权衡，哪些量只负责解释代价与后果。",
-    "positionX": 80.0,
-    "positionY": 0.0,
+    "description": "在固定结构的无约束加权建模中，先选出本课要比较的自由目标项，例如时间、拖尾、误差强度和动作代价，再用它们承载偏好。",
+    "positionX": 71.5,
+    "positionY": -19.2,
     "positionZ": 0,
     "bloomLevel": "ANALYZE",
     "knowledgeDim": "PROCEDURAL",
@@ -13350,42 +13293,41 @@
       "chapterName": "约束设计层",
       "category": "程序性",
       "bloom_level": "分析",
-      "definition": "在固定结构优化中，把同一组性能指标重新写成硬约束、软目标和观察指标，用来区分哪些底线绝不能先破，哪些量可以在守底线后继续权衡，哪些量只负责解释代价与后果。",
+      "definition": "在固定结构的无约束加权建模中，先选出本课要比较的自由目标项，例如时间、拖尾、误差强度和动作代价，再用它们承载偏好。",
       "examples": [
-        "客船航向保持中，超调、控制峰值与相角裕度属于硬约束，调节时间与累计误差属于软目标，截止频率、幅值裕度和 `ITSE` 更适合作为观察指标。",
-        "当横摇抗扰成为主任务时，横摇均方值与谐振峰值转成主目标，而原先用于航向跟踪的超调和调节时间不再承担主语言角色。"
+        "客船航向保持中，`t_s`、`ITAE`、`ITSE` 和控制能量一起承担自由目标角色。",
+        "这些量在 4-4 先负责表达偏好，而不是先负责裁决结果能不能交付。"
       ],
       "formulas": [
-        "\\text{指标分层}=(\\text{硬约束},\\text{软目标},\\text{观察指标})"
+        "\\text{自由目标项}=(t_s,\\ ITAE,\\ ITSE,\\ E_u)"
       ],
       "prerequisites": [
         "设计任务表达卡_4_41001",
-        "硬约束-软目标-观察指标分类_4_41003",
-        "冲突指标下的经典试凑空可行域_4_44001"
+        "经典试凑中的多目标拉扯_4_44001"
       ],
       "relatedConcepts": [
         "优化起点与归一化来源_4_44003",
-        "目标函数与罚项表达_4_44004"
+        "无约束加权目标表达_4_44004"
       ],
       "difficulty": 4,
       "importance": 5,
       "keywords": [
-        "指标分层",
-        "硬约束",
-        "软目标",
-        "观察指标"
+        "自由目标",
+        "指标选择",
+        "固定结构"
       ],
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/固定结构自由目标项选择_4_44002.md"
+    ],
     "tags": [
-      "指标分层",
-      "硬约束",
-      "软目标",
-      "观察指标",
+      "自由目标",
+      "指标选择",
+      "固定结构",
       "chapter-0"
     ]
   },
@@ -13394,8 +13336,8 @@
     "name": "复平面可行域",
     "nodeType": "THEORY",
     "description": "在复平面上，同时满足超调量约束（阻尼比射线下方）和调节时间约束（实部垂线左侧）的极点允许区域；是三域设计可行域的几何枢纽。",
-    "positionX": 117.8,
-    "positionY": 31.6,
+    "positionX": 122.0,
+    "positionY": 0.0,
     "positionZ": 4,
     "bloomLevel": "UNDERSTAND",
     "knowledgeDim": "CONCEPTUAL",
@@ -13453,8 +13395,8 @@
     "name": "实轴上的根轨迹",
     "nodeType": "THEORY",
     "description": "实轴上的某一区域，若其右边开环实数零、极点个数之和为奇数，则该区域是根轨迹。",
-    "positionX": 105.7,
-    "positionY": 61.0,
+    "positionX": 117.8,
+    "positionY": 31.6,
     "positionZ": 4,
     "bloomLevel": "APPLY",
     "knowledgeDim": "PROCEDURAL",
@@ -13497,8 +13439,8 @@
     "name": "对象分析回收到设计入口",
     "nodeType": "THEORY",
     "description": "把对象模型、任务书、约束边界和首轮观察指标重新压成设计入口，明确当前最紧矛盾、暂缓决策项和第一轮验证重点。",
-    "positionX": 56.6,
-    "positionY": 56.6,
+    "positionX": 69.3,
+    "positionY": 40.0,
     "positionZ": 0,
     "bloomLevel": "ANALYZE",
     "knowledgeDim": "PROCEDURAL",
@@ -13549,67 +13491,12 @@
     ]
   },
   {
-    "id": "局部优化问题四要素_4_44005",
-    "name": "局部优化问题四要素",
-    "nodeType": "THEORY",
-    "description": "一个可执行的局部优化问题至少要明确变量、目标函数、约束和初值四项信息；求解器只是消费这四项定义，而不是替代它们作出设计判断。",
-    "positionX": 40.0,
-    "positionY": 69.3,
-    "positionZ": 0,
-    "bloomLevel": "ANALYZE",
-    "knowledgeDim": "CONCEPTUAL",
-    "chapter": null,
-    "chapterName": "约束设计层",
-    "metadata": {
-      "chapter": null,
-      "chapterName": "约束设计层",
-      "category": "概念性",
-      "bloom_level": "分析",
-      "definition": "一个可执行的局部优化问题至少要明确变量、目标函数、约束和初值四项信息；求解器只是消费这四项定义，而不是替代它们作出设计判断。",
-      "examples": [
-        "客船案例中，变量是 `[K,T,\\alpha]`，目标函数是 `J_h(\\theta)`，约束包括参数范围与罚项，初值来自 `4-3` 首轮方案。",
-        "梯度下降一维二次函数示意只用于讲清下降方向、步长和停止条件，不用于替代真实案例的求解器。"
-      ],
-      "formulas": [
-        "\\text{优化问题}=(\\text{变量},\\text{目标函数},\\text{约束},\\text{初值})",
-        "x_{k+1}=x_k-\\eta\\nabla f(x_k)"
-      ],
-      "prerequisites": [
-        "优化起点与归一化来源_4_44003",
-        "目标函数与罚项表达_4_44004"
-      ],
-      "relatedConcepts": [
-        "展示解与Pareto最小取舍_4_44006"
-      ],
-      "difficulty": 3,
-      "importance": 5,
-      "keywords": [
-        "四要素",
-        "局部优化",
-        "梯度下降",
-        "fmincon"
-      ],
-      "createdAt": null,
-      "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
-    },
-    "content": {},
-    "resources": [],
-    "tags": [
-      "四要素",
-      "局部优化",
-      "梯度下降",
-      "fmincon",
-      "chapter-0"
-    ]
-  },
-  {
     "id": "展示解与Pareto最小取舍_4_44006",
     "name": "展示解与Pareto最小取舍",
     "nodeType": "THEORY",
-    "description": "多目标优化中的展示解只是给定偏好下更均衡的一组可接受结果，而不是脱离偏好和约束语境的唯一绝对最优；最小 Pareto 概念用来说明不同可行解可能分别在不同目标上占优。",
-    "positionX": 20.7,
-    "positionY": 77.3,
+    "description": "展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优；最小 Pareto 概念用来说明不同候选可能各自在不同目标上占优。",
+    "positionX": 56.6,
+    "positionY": 56.6,
     "positionZ": 0,
     "bloomLevel": "ANALYZE",
     "knowledgeDim": "CONCEPTUAL",
@@ -13620,27 +13507,25 @@
       "chapterName": "约束设计层",
       "category": "概念性",
       "bloom_level": "分析",
-      "definition": "多目标优化中的展示解只是给定偏好下更均衡的一组可接受结果，而不是脱离偏好和约束语境的唯一绝对最优；最小 Pareto 概念用来说明不同可行解可能分别在不同目标上占优。",
+      "definition": "展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优；最小 Pareto 概念用来说明不同候选可能各自在不同目标上占优。",
       "examples": [
-        "客船案例中，均衡权重方案并非每一列都最优，却在硬约束不破的前提下把速度、拖尾和控制代价压到更均衡的位置。",
-        "控制能量最低的候选解并不自动成为展示解，因为它可能同时拖长调节时间或放大误差拖尾。"
+        "动作代价最低的候选不一定适合作为展示解，因为它可能同时拖长过程。",
+        "更快的候选也不自动胜出，因为它可能只是更贴合当前偏好，而不是在所有目标上都最好。"
       ],
       "formulas": [
-        "\\text{展示解}\\neq \\text{每一列单独最优},\\qquad \\text{Pareto}:\\ \\nexists\\ \\text{在所有目标上同时更优的可行替代解}"
+        "\\text{展示解}\\neq \\text{单列最优},\\qquad \\text{Pareto}:\\ \\text{不同候选可分别在不同目标上占优}"
       ],
       "prerequisites": [
-        "目标函数与罚项表达_4_44004",
-        "局部优化问题四要素_4_44005"
+        "权重偏好与无约束候选解_4_44005"
       ],
       "relatedConcepts": [
-        "任务通道变化下的代价函数改写_4_44007"
+        "任务通道变化下的自由目标改写_4_44007"
       ],
       "difficulty": 4,
       "importance": 4,
       "keywords": [
         "展示解",
         "Pareto",
-        "权重",
         "取舍"
       ],
       "createdAt": null,
@@ -13648,11 +13533,12 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/展示解与Pareto最小取舍_4_44006.md"
+    ],
     "tags": [
       "展示解",
       "Pareto",
-      "权重",
       "取舍",
       "chapter-0"
     ]
@@ -13662,8 +13548,8 @@
     "name": "广义根轨迹",
     "nodeType": "THEORY",
     "description": "除根轨迹增益K为变化参数以外的根轨迹，包括参数根轨迹、零度根轨迹等。",
-    "positionX": 0.0,
-    "positionY": 122.0,
+    "positionX": 61.0,
+    "positionY": 105.7,
     "positionZ": 4,
     "bloomLevel": "UNDERSTAND",
     "knowledgeDim": "CONCEPTUAL",
@@ -13708,7 +13594,7 @@
     "name": "开环传递函数",
     "nodeType": "THEORY",
     "description": "在控制系统开环状态下，输出拉普拉斯变换与输入拉普拉斯变换之比。",
-    "positionX": -31.6,
+    "positionX": 31.6,
     "positionY": 117.8,
     "positionZ": 4,
     "bloomLevel": "APPLY",
@@ -13754,8 +13640,8 @@
     "name": "开环零极点",
     "nodeType": "THEORY",
     "description": "开环传递函数的零点和极点，是绘制根轨迹的已知起点和终点。",
-    "positionX": -61.0,
-    "positionY": 105.7,
+    "positionX": 0.0,
+    "positionY": 122.0,
     "positionZ": 4,
     "bloomLevel": "REMEMBER",
     "knowledgeDim": "FACTUAL",
@@ -13802,8 +13688,8 @@
     "name": "开环零点",
     "nodeType": "THEORY",
     "description": "控制系统开环传递函数中，使分子为零的根，即传递函数为零的点。",
-    "positionX": -86.3,
-    "positionY": 86.3,
+    "positionX": -31.6,
+    "positionY": 117.8,
     "positionZ": 4,
     "bloomLevel": "UNDERSTAND",
     "knowledgeDim": "CONCEPTUAL",
@@ -13846,8 +13732,8 @@
     "name": "扰动抑制中的通道重写边界",
     "nodeType": "THEORY",
     "description": "当设计任务从给定跟踪转为扰动抑制时，复合结构可能不再主要来自频段叠加，而是来自对控制通道、扰动通道和物理分量的重新组织。",
-    "positionX": -69.3,
-    "positionY": 40.0,
+    "positionX": -40.0,
+    "positionY": 69.3,
     "positionZ": 0,
     "bloomLevel": "ANALYZE",
     "knowledgeDim": "CONCEPTUAL",
@@ -13902,8 +13788,8 @@
     "name": "指标角色重组",
     "nodeType": "THEORY",
     "description": "把时域指标、频域指标和积分误差类指标从“描述系统当前怎样”重组为“分别回答过程接受度、储备边界和累计代价”的设计语言。",
-    "positionX": -77.3,
-    "positionY": 20.7,
+    "positionX": -56.6,
+    "positionY": 56.6,
     "positionZ": 0,
     "bloomLevel": "ANALYZE",
     "knowledgeDim": "CONCEPTUAL",
@@ -13962,8 +13848,8 @@
     "name": "按扰动补偿前馈的对消条件",
     "nodeType": "THEORY",
     "description": "当扰动通道可测且模型可用时，可沿扰动入口附近构造前馈补偿，使扰动在目标频段内尽量被对消，再由反馈处理剩余部分。",
-    "positionX": -80.0,
-    "positionY": 0.0,
+    "positionX": -69.3,
+    "positionY": 40.0,
     "positionZ": 0,
     "bloomLevel": "ANALYZE",
     "knowledgeDim": "CONCEPTUAL",
@@ -14020,7 +13906,7 @@
     "nodeType": "THEORY",
     "description": "当给定变化趋势已知时，可沿输入通道提前施加控制量，以减小跟踪误差或提高等效无差度；工程上更常追求误差显著减小，而不是机械追求全补偿。",
     "positionX": -77.3,
-    "positionY": -20.7,
+    "positionY": 20.7,
     "positionZ": 0,
     "bloomLevel": "ANALYZE",
     "knowledgeDim": "CONCEPTUAL",
@@ -14071,12 +13957,66 @@
     ]
   },
   {
+    "id": "无约束加权目标表达_4_44004",
+    "name": "无约束加权目标表达",
+    "nodeType": "THEORY",
+    "description": "把多类自由目标项写成统一的无量纲加权目标函数，用来表达当前设计偏好，而不在本课提前引入输出侧硬约束。",
+    "positionX": -80.0,
+    "positionY": 0.0,
+    "positionZ": 0,
+    "bloomLevel": "APPLY",
+    "knowledgeDim": "PROCEDURAL",
+    "chapter": null,
+    "chapterName": "约束设计层",
+    "metadata": {
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "definition": "把多类自由目标项写成统一的无量纲加权目标函数，用来表达当前设计偏好，而不在本课提前引入输出侧硬约束。",
+      "examples": [
+        "客船案例把时间、拖尾、误差强度和动作代价写成 `J_free(θ)`。",
+        "本课的目标函数先诚实表达偏好，再把结果交给下一课做边界复核。"
+      ],
+      "formulas": [
+        "J_{free}(\\theta)=w_1\\frac{t_s(\\theta)}{40}+w_2\\frac{ITAE(\\theta)}{ITAE_0}+w_3\\frac{ITSE(\\theta)}{ITSE_0}+w_4\\frac{E_u(\\theta)}{E_{u,0}}"
+      ],
+      "prerequisites": [
+        "固定结构自由目标项选择_4_44002",
+        "优化起点与归一化来源_4_44003"
+      ],
+      "relatedConcepts": [
+        "权重偏好与无约束候选解_4_44005"
+      ],
+      "difficulty": 5,
+      "importance": 5,
+      "keywords": [
+        "目标函数",
+        "加权目标",
+        "无约束"
+      ],
+      "createdAt": null,
+      "updatedAt": null,
+      "source": "course-content/runtime/knowledge/graph/nodes.json"
+    },
+    "content": {},
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/无约束加权目标表达_4_44004.md"
+    ],
+    "tags": [
+      "目标函数",
+      "加权目标",
+      "无约束",
+      "chapter-0"
+    ]
+  },
+  {
     "id": "智能汽车-高速公路系统车辆间距控制系统_4_0ea9ee04",
     "name": "智能汽车-高速公路系统车辆间距控制系统",
     "nodeType": "THEORY",
     "description": "利用电子设备和控制系统自动保持车辆间安全距离的位置控制系统。",
-    "positionX": -105.7,
-    "positionY": -61.0,
+    "positionX": -117.8,
+    "positionY": -31.6,
     "positionZ": 4,
     "bloomLevel": "APPLY",
     "knowledgeDim": "CONCEPTUAL",
@@ -14112,6 +14052,59 @@
       "位置控制",
       "智能交通",
       "chapter-4"
+    ]
+  },
+  {
+    "id": "权重偏好与无约束候选解_4_44005",
+    "name": "权重偏好与无约束候选解",
+    "nodeType": "THEORY",
+    "description": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
+    "positionX": -69.3,
+    "positionY": -40.0,
+    "positionZ": 0,
+    "bloomLevel": "ANALYZE",
+    "knowledgeDim": "PROCEDURAL",
+    "chapter": null,
+    "chapterName": "约束设计层",
+    "metadata": {
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "category": "程序性",
+      "bloom_level": "分析",
+      "definition": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
+      "examples": [
+        "客船案例中，`C_u(s)=5\\frac{10s+1}{2s+1}` 会显著压低时间指标和拖尾。",
+        "若权重更重视动作代价，求解器就会倾向另一类更保守的候选。"
+      ],
+      "formulas": [
+        "C_u(s)=5\\frac{10s+1}{2s+1}"
+      ],
+      "prerequisites": [
+        "无约束加权目标表达_4_44004"
+      ],
+      "relatedConcepts": [
+        "展示解与Pareto最小取舍_4_44006"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "权重",
+        "偏好",
+        "候选解"
+      ],
+      "createdAt": null,
+      "updatedAt": null,
+      "source": "course-content/runtime/knowledge/graph/nodes.json"
+    },
+    "content": {},
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/权重偏好与无约束候选解_4_44005.md"
+    ],
+    "tags": [
+      "权重",
+      "偏好",
+      "候选解",
+      "chapter-0"
     ]
   },
   {
@@ -15005,67 +14998,12 @@
     ]
   },
   {
-    "id": "目标函数与罚项表达_4_44004",
-    "name": "目标函数与罚项表达",
-    "nodeType": "THEORY",
-    "description": "把软目标写入总代价函数，把硬约束写成显式罚项或等价约束表达，用统一的数值语言承载工程偏好与不可破坏的底线。",
-    "positionX": -60.8,
-    "positionY": 60.8,
-    "positionZ": 0,
-    "bloomLevel": "APPLY",
-    "knowledgeDim": "PROCEDURAL",
-    "chapter": null,
-    "chapterName": "约束设计层",
-    "metadata": {
-      "chapter": null,
-      "chapterName": "约束设计层",
-      "category": "程序性",
-      "bloom_level": "应用",
-      "definition": "把软目标写入总代价函数，把硬约束写成显式罚项或等价约束表达，用统一的数值语言承载工程偏好与不可破坏的底线。",
-      "examples": [
-        "客船航向保持把调节时间、超调、`ITAE` 和控制能量写成总代价项，同时用超调、控制峰值和相角裕度越界的罚项压住不可接受解。",
-        "横摇抗扰把横摇角 RMS、扰动通道谐振峰和减摇鳍动作 RMS 写成主代价项，再用控制峰值约束保护执行机构边界。"
-      ],
-      "formulas": [
-        "P(\\theta)=50\\max(0,M_p-20)^2+20\\max(0,u_{\\max}-7)^2+5\\max(0,45-\\phi_m)^2"
-      ],
-      "prerequisites": [
-        "固定结构优化中的指标分层_4_44002",
-        "优化起点与归一化来源_4_44003"
-      ],
-      "relatedConcepts": [
-        "局部优化问题四要素_4_44005",
-        "任务通道变化下的代价函数改写_4_44007"
-      ],
-      "difficulty": 5,
-      "importance": 5,
-      "keywords": [
-        "目标函数",
-        "罚项",
-        "总代价",
-        "约束表达"
-      ],
-      "createdAt": null,
-      "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
-    },
-    "content": {},
-    "resources": [],
-    "tags": [
-      "目标函数",
-      "罚项",
-      "总代价",
-      "约束表达",
-      "chapter-0"
-    ]
-  },
-  {
     "id": "相角条件_4_597a8cf7",
     "name": "相角条件",
     "nodeType": "THEORY",
     "description": "根轨迹上任意一点s应满足的关于开环零极点向量的相角之和的条件。",
-    "positionX": -110.9,
-    "positionY": 64.0,
+    "positionX": -90.5,
+    "positionY": 90.5,
     "positionZ": 4,
     "bloomLevel": "APPLY",
     "knowledgeDim": "PROCEDURAL",
@@ -15112,8 +15050,8 @@
     "name": "硬约束-软目标-观察指标分类",
     "nodeType": "THEORY",
     "description": "将性能指标按照“不能违反的底线、守住底线后继续争取的方向、用于解释方案后果的证据”三类进行分类的设计判断框架。",
-    "positionX": -83.1,
-    "positionY": 22.3,
+    "positionX": -74.5,
+    "positionY": 43.0,
     "positionZ": 0,
     "bloomLevel": "ANALYZE",
     "knowledgeDim": "PROCEDURAL",
@@ -15168,8 +15106,8 @@
     "name": "稳定性",
     "nodeType": "THEORY",
     "description": "闭环系统所有极点均位于s左半平面时，系统输出不发散的性质。",
-    "positionX": -128.0,
-    "positionY": 0.0,
+    "positionX": -123.6,
+    "positionY": 33.1,
     "positionZ": 4,
     "bloomLevel": "REMEMBER",
     "knowledgeDim": "CONCEPTUAL",
@@ -15210,8 +15148,8 @@
     "name": "稳态误差",
     "nodeType": "THEORY",
     "description": "系统响应进入稳态后，其输出与期望值之间的偏差，与系统类型和输入信号有关。",
-    "positionX": -123.6,
-    "positionY": -33.1,
+    "positionX": -128.0,
+    "positionY": 0.0,
     "positionZ": 4,
     "bloomLevel": "APPLY",
     "knowledgeDim": "CONCEPTUAL",
@@ -15256,6 +15194,60 @@
       "误差",
       "系统精度",
       "chapter-4"
+    ]
+  },
+  {
+    "id": "经典试凑中的多目标拉扯_4_44001",
+    "name": "经典试凑中的多目标拉扯",
+    "nodeType": "THEORY",
+    "description": "当固定结构下的人工试凑分别换来速度、拖尾、误差强度或动作代价上的局部收益，却无法用统一标准比较这些收益时，就会出现多目标拉扯。",
+    "positionX": -83.1,
+    "positionY": -22.3,
+    "positionZ": 0,
+    "bloomLevel": "ANALYZE",
+    "knowledgeDim": "CONCEPTUAL",
+    "chapter": null,
+    "chapterName": "约束设计层",
+    "metadata": {
+      "chapter": null,
+      "chapterName": "约束设计层",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "definition": "当固定结构下的人工试凑分别换来速度、拖尾、误差强度或动作代价上的局部收益，却无法用统一标准比较这些收益时，就会出现多目标拉扯。",
+      "examples": [
+        "客船航向保持中，激进方案换来了更快过程，却同时显著抬高动作代价。",
+        "收回动作强度的方案避免了过猛输出，却又把前面争取到的速度收益让了回去。"
+      ],
+      "formulas": [
+        "\\text{拉扯}=(\\text{过程收益},\\text{误差收益},\\text{动作代价})"
+      ],
+      "prerequisites": [
+        "问题清单移交表_4_43005",
+        "三频段闭环性能回读_3_38003"
+      ],
+      "relatedConcepts": [
+        "固定结构自由目标项选择_4_44002"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "经典试凑",
+        "多目标拉扯",
+        "固定结构"
+      ],
+      "createdAt": null,
+      "updatedAt": null,
+      "source": "course-content/runtime/knowledge/graph/nodes.json"
+    },
+    "content": {},
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/经典试凑中的多目标拉扯_4_44001.md"
+    ],
+    "tags": [
+      "经典试凑",
+      "多目标拉扯",
+      "固定结构",
+      "chapter-0"
     ]
   },
   {
@@ -34678,12 +34670,289 @@
     ]
   },
   {
+    "id": "任务通道变化下的代价函数改写_4_44007",
+    "name": "任务通道变化下的代价函数改写",
+    "nodeType": "THEORY",
+    "description": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，目标函数、观察指标和边界项也必须按照新的任务语言整体改写。",
+    "positionX": -48.7,
+    "positionY": 181.6,
+    "positionZ": 0,
+    "bloomLevel": "ANALYZE",
+    "knowledgeDim": "PROCEDURAL",
+    "chapter": 0,
+    "chapterName": "约束设计层",
+    "metadata": {
+      "chapter": 0,
+      "chapterName": "约束设计层",
+      "category": "程序性",
+      "bloom_level": "分析",
+      "definition": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，目标函数、观察指标和边界项也必须按照新的任务语言整体改写。",
+      "examples": [
+        "横摇抗扰案例中，`M_p`、`t_s` 和 `ITAE` 不再是主语言，RMS 与谐振峰值才更能表达‘整体摆动是否被压低’。",
+        "若沿用航向保持的代价函数去优化横摇抗扰，求解器会沿错误方向努力，因为它仍在奖励跟踪型指标。"
+      ],
+      "formulas": [
+        "J_r(k)=0.55\\frac{RMS(\\varphi)}{RMS(\\varphi)_0}+0.30\\frac{\\max_\\omega|T_d(j\\omega)|}{\\max_\\omega|T_d(j\\omega)|_0}+0.15\\frac{RMS(u)}{RMS(u)_0}+1200\\max(0,u_{\\max}-0.75)^2"
+      ],
+      "prerequisites": [
+        "固定结构优化中的指标分层_4_44002",
+        "目标函数与罚项表达_4_44004",
+        "展示解与Pareto最小取舍_4_44006"
+      ],
+      "relatedConcepts": [
+        "扰动抑制中的通道重写边界_4_43006"
+      ],
+      "difficulty": 5,
+      "importance": 5,
+      "keywords": [
+        "代价函数改写",
+        "任务通道",
+        "横摇抗扰",
+        "RMS"
+      ],
+      "createdAt": null,
+      "updatedAt": null,
+      "source": "course-content/runtime/knowledge/graph/nodes.json"
+    },
+    "content": {},
+    "resources": [],
+    "tags": [
+      "代价函数改写",
+      "任务通道",
+      "横摇抗扰",
+      "RMS",
+      "chapter-0"
+    ]
+  },
+  {
+    "id": "冲突指标下的经典试凑空可行域_4_44001",
+    "name": "冲突指标下的经典试凑空可行域",
+    "nodeType": "THEORY",
+    "description": "当固定结构下的人工试凑在速度、超调、控制峰值与相角裕度之间反复拉扯，而没有一组参数能同时守住全部底线时，对当前试参路径而言，可行域表现为一块空白区域。",
+    "positionX": -94.0,
+    "positionY": 162.8,
+    "positionZ": 0,
+    "bloomLevel": "ANALYZE",
+    "knowledgeDim": "CONCEPTUAL",
+    "chapter": 0,
+    "chapterName": "约束设计层",
+    "metadata": {
+      "chapter": 0,
+      "chapterName": "约束设计层",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "definition": "当固定结构下的人工试凑在速度、超调、控制峰值与相角裕度之间反复拉扯，而没有一组参数能同时守住全部底线时，对当前试参路径而言，可行域表现为一块空白区域。",
+      "examples": [
+        "客船航向保持的四组经典试凑中，激进方案先撞控制峰值边界，最小修正方案又在超调和相角裕度上留下缺口。",
+        "仅补低频的方案看似动作更保守，却把动态品质和储备一起拖得更差，说明问题不是继续多试几组参数就能自动解决。"
+      ],
+      "formulas": [
+        "M_p\\le 20\\%,\\quad \\max|u(t)|\\le 7,\\quad \\phi_m\\ge 45^\\circ"
+      ],
+      "prerequisites": [
+        "问题清单移交表_4_43005",
+        "三频段闭环性能回读_3_38003",
+        "超调量_5_3d015714",
+        "相角裕度_5_5a74b451"
+      ],
+      "relatedConcepts": [
+        "固定结构优化中的指标分层_4_44002"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "空可行域",
+        "经典试凑",
+        "冲突指标",
+        "固定结构"
+      ],
+      "createdAt": null,
+      "updatedAt": null,
+      "source": "course-content/runtime/knowledge/graph/nodes.json"
+    },
+    "content": {},
+    "resources": [],
+    "tags": [
+      "空可行域",
+      "经典试凑",
+      "冲突指标",
+      "固定结构",
+      "chapter-0"
+    ]
+  },
+  {
+    "id": "固定结构优化中的指标分层_4_44002",
+    "name": "固定结构优化中的指标分层",
+    "nodeType": "THEORY",
+    "description": "在固定结构优化中，把同一组性能指标重新写成硬约束、软目标和观察指标，用来区分哪些底线绝不能先破，哪些量可以在守底线后继续权衡，哪些量只负责解释代价与后果。",
+    "positionX": -132.9,
+    "positionY": 132.9,
+    "positionZ": 0,
+    "bloomLevel": "ANALYZE",
+    "knowledgeDim": "PROCEDURAL",
+    "chapter": 0,
+    "chapterName": "约束设计层",
+    "metadata": {
+      "chapter": 0,
+      "chapterName": "约束设计层",
+      "category": "程序性",
+      "bloom_level": "分析",
+      "definition": "在固定结构优化中，把同一组性能指标重新写成硬约束、软目标和观察指标，用来区分哪些底线绝不能先破，哪些量可以在守底线后继续权衡，哪些量只负责解释代价与后果。",
+      "examples": [
+        "客船航向保持中，超调、控制峰值与相角裕度属于硬约束，调节时间与累计误差属于软目标，截止频率、幅值裕度和 `ITSE` 更适合作为观察指标。",
+        "当横摇抗扰成为主任务时，横摇均方值与谐振峰值转成主目标，而原先用于航向跟踪的超调和调节时间不再承担主语言角色。"
+      ],
+      "formulas": [
+        "\\text{指标分层}=(\\text{硬约束},\\text{软目标},\\text{观察指标})"
+      ],
+      "prerequisites": [
+        "设计任务表达卡_4_41001",
+        "硬约束-软目标-观察指标分类_4_41003",
+        "冲突指标下的经典试凑空可行域_4_44001"
+      ],
+      "relatedConcepts": [
+        "优化起点与归一化来源_4_44003",
+        "目标函数与罚项表达_4_44004"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "指标分层",
+        "硬约束",
+        "软目标",
+        "观察指标"
+      ],
+      "createdAt": null,
+      "updatedAt": null,
+      "source": "course-content/runtime/knowledge/graph/nodes.json"
+    },
+    "content": {},
+    "resources": [],
+    "tags": [
+      "指标分层",
+      "硬约束",
+      "软目标",
+      "观察指标",
+      "chapter-0"
+    ]
+  },
+  {
+    "id": "局部优化问题四要素_4_44005",
+    "name": "局部优化问题四要素",
+    "nodeType": "THEORY",
+    "description": "一个可执行的局部优化问题至少要明确变量、目标函数、约束和初值四项信息；求解器只是消费这四项定义，而不是替代它们作出设计判断。",
+    "positionX": -162.8,
+    "positionY": 94.0,
+    "positionZ": 0,
+    "bloomLevel": "ANALYZE",
+    "knowledgeDim": "CONCEPTUAL",
+    "chapter": 0,
+    "chapterName": "约束设计层",
+    "metadata": {
+      "chapter": 0,
+      "chapterName": "约束设计层",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "definition": "一个可执行的局部优化问题至少要明确变量、目标函数、约束和初值四项信息；求解器只是消费这四项定义，而不是替代它们作出设计判断。",
+      "examples": [
+        "客船案例中，变量是 `[K,T,\\alpha]`，目标函数是 `J_h(\\theta)`，约束包括参数范围与罚项，初值来自 `4-3` 首轮方案。",
+        "梯度下降一维二次函数示意只用于讲清下降方向、步长和停止条件，不用于替代真实案例的求解器。"
+      ],
+      "formulas": [
+        "\\text{优化问题}=(\\text{变量},\\text{目标函数},\\text{约束},\\text{初值})",
+        "x_{k+1}=x_k-\\eta\\nabla f(x_k)"
+      ],
+      "prerequisites": [
+        "优化起点与归一化来源_4_44003",
+        "目标函数与罚项表达_4_44004"
+      ],
+      "relatedConcepts": [
+        "展示解与Pareto最小取舍_4_44006"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "四要素",
+        "局部优化",
+        "梯度下降",
+        "fmincon"
+      ],
+      "createdAt": null,
+      "updatedAt": null,
+      "source": "course-content/runtime/knowledge/graph/nodes.json"
+    },
+    "content": {},
+    "resources": [],
+    "tags": [
+      "四要素",
+      "局部优化",
+      "梯度下降",
+      "fmincon",
+      "chapter-0"
+    ]
+  },
+  {
+    "id": "目标函数与罚项表达_4_44004",
+    "name": "目标函数与罚项表达",
+    "nodeType": "THEORY",
+    "description": "把软目标写入总代价函数，把硬约束写成显式罚项或等价约束表达，用统一的数值语言承载工程偏好与不可破坏的底线。",
+    "positionX": -181.6,
+    "positionY": 48.7,
+    "positionZ": 0,
+    "bloomLevel": "APPLY",
+    "knowledgeDim": "PROCEDURAL",
+    "chapter": 0,
+    "chapterName": "约束设计层",
+    "metadata": {
+      "chapter": 0,
+      "chapterName": "约束设计层",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "definition": "把软目标写入总代价函数，把硬约束写成显式罚项或等价约束表达，用统一的数值语言承载工程偏好与不可破坏的底线。",
+      "examples": [
+        "客船航向保持把调节时间、超调、`ITAE` 和控制能量写成总代价项，同时用超调、控制峰值和相角裕度越界的罚项压住不可接受解。",
+        "横摇抗扰把横摇角 RMS、扰动通道谐振峰和减摇鳍动作 RMS 写成主代价项，再用控制峰值约束保护执行机构边界。"
+      ],
+      "formulas": [
+        "P(\\theta)=50\\max(0,M_p-20)^2+20\\max(0,u_{\\max}-7)^2+5\\max(0,45-\\phi_m)^2"
+      ],
+      "prerequisites": [
+        "固定结构优化中的指标分层_4_44002",
+        "优化起点与归一化来源_4_44003"
+      ],
+      "relatedConcepts": [
+        "局部优化问题四要素_4_44005",
+        "任务通道变化下的代价函数改写_4_44007"
+      ],
+      "difficulty": 5,
+      "importance": 5,
+      "keywords": [
+        "目标函数",
+        "罚项",
+        "总代价",
+        "约束表达"
+      ],
+      "createdAt": null,
+      "updatedAt": null,
+      "source": "course-content/runtime/knowledge/graph/nodes.json"
+    },
+    "content": {},
+    "resources": [],
+    "tags": [
+      "目标函数",
+      "罚项",
+      "总代价",
+      "约束表达",
+      "chapter-0"
+    ]
+  },
+  {
     "id": "零度与一百八十度根轨迹_3_c1bb7dbe",
     "name": "零度与一百八十度根轨迹",
     "nodeType": "THEORY",
     "description": "当闭环特征方程写成 1+KG(s)H(s)=0 或 1-KG(s)H(s)=0 时，相角条件分别落在奇数倍 π 和偶数倍 π，对应一百八十度根轨迹与零度根轨迹两种典型情形。",
-    "positionX": -48.7,
-    "positionY": 181.6,
+    "positionX": -188.0,
+    "positionY": 0.0,
     "positionZ": 0,
     "bloomLevel": "ANALYZE",
     "knowledgeDim": "CONCEPTUAL",

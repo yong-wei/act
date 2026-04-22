@@ -76,6 +76,13 @@ import {
   getUnit43StepAIContext as getUnit43StepAIContextLocal,
   getUnit43StepQuickQuestions as getUnit43StepQuickQuestionsLocal,
 } from './unit-4-3-ai-contexts';
+import {
+  getUnit44StepAIContext,
+  getUnit44StepAIContextLocal,
+  getUnit44StepQuickQuestions,
+  getUnit44StepQuickQuestionsLocal,
+  UNIT_4_4_COURSE_META,
+} from './unit-4-4-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -225,6 +232,14 @@ export {
   getUnit43StepAIContext,
   getUnit43StepQuickQuestions,
 } from './unit-4-3-ai-contexts';
+export {
+  UNIT_4_4_COURSE_META,
+  UNIT_4_4_STEP_AI_CONTEXTS,
+  getUnit44StepAIContext,
+  getUnit44StepQuickQuestions,
+  getUnit44StepAIContextLocal,
+  getUnit44StepQuickQuestionsLocal,
+} from './unit-4-4-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -415,6 +430,16 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseTitle: '4-3：初始方案落地实践：从对象分析到结构组合与首轮验证',
       courseDescription:
         '围绕对象分析、结构分流、复合结构职责、参数方向、首轮验证与问题清单，把起步卡推进成可验证的第一版方案。',
+    },
+  },
+
+  'unit-4-4-fixed-structure-optimization-modeling-v1': {
+    getStepContext: (stepId: string) => getUnit44StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit44StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: UNIT_4_4_COURSE_META.courseId,
+      courseTitle: UNIT_4_4_COURSE_META.courseTitle,
+      courseDescription: UNIT_4_4_COURSE_META.courseDescription,
     },
   },
 };

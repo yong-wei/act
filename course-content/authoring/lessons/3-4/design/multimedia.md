@@ -26,11 +26,11 @@
 | `3-4-root-locus-keynodes.png` | 关键节点标注图 | 已完成 | 讲义正文 / 互动页步骤 7 | 支持分离点、虚轴交点、主导极点候选的定位与记录 |
 | `3-4-root-locus-reference-b.png` | 参考工作点图 | 已完成 | 讲义正文 / 教师版 / 卡片 | 说明 B 版本为何能被读成参考工作点 |
 | `3-4-conditional-stability-window.png` | 参数窗口图 | 已完成 | 讲义正文 / 互动页步骤 8 | 把“稳定窗口”和“可接受窗口”区别开来 |
-| `3-4-step-compare.png` | 时域对比图 | 本题重制 | 讲义正文 / 互动页步骤 11 | 用本题 `Octave` 数据展示原系统与主导极点近似的阶跃对照 |
+| `3-4-step-compare.png` | 时域对比图 | 本题重制 | 讲义正文 / 互动页步骤 10 | 用本题 `Octave` 数据展示原系统与主导极点近似的阶跃对照 |
 | `3-4-bode-compare.png` | 频域对比图 | 已完成 | 讲义正文 / 互动页步骤 12 | 支持对象化频域验证，让风险先于失稳暴露 |
 | `3-4-local-feedback-block.png` | 局部反馈框图 | 本轮新增 | 讲义正文 §5.2 / 教师版 | 说明局部负反馈只围绕 $G_1(s)$，不改外环单位反馈位置 |
 | `3-4-generalized-root-locus.png` | 广义根轨迹图 | 本轮新增 | 讲义正文 §5.3 / 教师版 | 展示局部反馈系数 $a$ 增大时快极点分支与主导极点窗口的联动变化 |
-| `3-4-dominant-pole-selection.png` | 主导极点可信性图 | 已完成 | 讲义正文 / 教师版 | 说明 B 版本为何仍可用主导极点近似抓住主要动态 |
+| `3-4-dominant-pole-selection.png` | 主导极点可信性图 | 已完成 | 讲义正文 / 教师版 / 互动页步骤 11 | 说明 B 版本为何仍可用主导极点近似抓住主要动态，并提醒高频细节不能被省略 |
 | `3-4-info.png` | 课末信息图 | 已完成 | `handout.md` 附录前 | 用一张总结图收束全课 |
 
 ## 3. 本轮补齐的新媒体
@@ -92,7 +92,8 @@
 - 步骤 7：`3-4-root-locus-keynodes.png`
 - 步骤 8：`3-4-conditional-stability-window.png`
 - 步骤 9：`3-4-gain-conversion-card.png`
-- 步骤 11：`3-4-step-compare.png`
+- 步骤 10：`3-4-step-compare.png`
+- 步骤 11：`3-4-dominant-pole-selection.png`
 - 步骤 12：`3-4-bode-compare.png`
 
 ## 6. 版面与阅读原则

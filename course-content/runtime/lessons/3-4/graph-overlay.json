@@ -292,7 +292,7 @@
         "definition": "在根轨迹上，若一点已经满足相角条件，则幅值条件用于计算这一点对应的参数值，从而把点位判断转化为参数回算。",
         "examples": [
           "已知某点位于根轨迹上，可由 |G(s)H(s)|=1 求得对应的根轨迹增益。",
-          "在广义根轨迹中，幅值条件同样用于回算等效参数。"
+          "在例题中，幅值条件负责把图上的候选点重新接回具体参数值。"
         ],
         "formulas": [
           "|G(s)H(s)|=1",
@@ -303,8 +303,8 @@
           "相角条件_4_597a8cf7"
         ],
         "relatedConcepts": [
-          "广义根轨迹_4_30f5ea13",
-          "闭环极点_3_f9432bf3"
+          "闭环极点_3_f9432bf3",
+          "关键节点读图_3_8b2f0d12"
         ],
         "difficulty": 3,
         "importance": 5,
@@ -557,8 +557,8 @@
       "name": "根轨迹",
       "nodeType": "THEORY",
       "description": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
-      "positionX": -31.6,
-      "positionY": 117.8,
+      "positionX": -61.0,
+      "positionY": -105.7,
       "positionZ": 4,
       "bloomLevel": "UNDERSTAND",
       "knowledgeDim": "CONCEPTUAL",

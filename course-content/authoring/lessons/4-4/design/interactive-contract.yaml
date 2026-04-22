@@ -480,6 +480,7 @@ steps:
       - { id: 'shared-structure', region: 'formula', kind: 'formula-card', must_be_visible: true }
       - { id: 'pareto-point-table', region: 'table', kind: 'native-table', must_be_visible: true }
       - { id: 'pareto-response-figure', region: 'figure', kind: 'image-panel', must_be_visible: true }
+      - { id: 'pareto-response-reading', region: 'figure', kind: 'summary-card', must_be_visible: true }
       - { id: 'engineering-meaning', region: 'meaning', kind: 'summary-card', must_be_visible: true }
       - { id: 'pareto-point-task', region: 'interaction', kind: 'single-choice-card', must_be_visible: true }
     content_blocks:
@@ -495,7 +496,12 @@ steps:
       pareto_response_figure:
         runtime_media: '/course-runtime/lessons/4-4/media/4-4-pareto-response-compare.png'
         caption: 'Pareto 前沿上的典型候选：时域与频域对比'
-        conclusion: '这三点的差异不是谁彻底赢了，而是谁愿意承担怎样的收益与代价交换。'
+        conclusion: '图上保留下来的三点都没有把另外两点彻底压倒，因此必须回到收益与代价交换来读。'
+      pareto_response_reading:
+        bullets:
+          - '从 P3 走向 P1，可以显著压低 ITAE，但必须接受更高控制能量。'
+          - '从 P1 回到 P3，可以大幅节省动作代价，但必须接受更长拖尾。'
+          - 'P2 夹在中间，没有把另一边彻底碾压掉。'
       engineering_meaning:
         bullets:
           - '这条前沿先筛掉同时输给别人的候选。'
@@ -504,7 +510,7 @@ steps:
       pareto_point_task:
         question: '为什么 P1、P2、P3 能在 Pareto 意义下“同样好”？'
         options: ['因为它们彼此之间都存在收益与代价交换', '因为三个点的数值完全一样', '因为只要在前沿上就自动可交付']
-    evidence_sequence: ['同一结构说明', '表 6', '响应图', '工程意义卡', '单选判断']
+    evidence_sequence: ['同一结构说明', '表 6', '响应图', '图后解释', '工程意义卡', '单选判断']
     interaction_spec:
       interaction_kind: 'single_choice'
       student_task: '判断为什么三个典型点在 Pareto 意义下同样好。'

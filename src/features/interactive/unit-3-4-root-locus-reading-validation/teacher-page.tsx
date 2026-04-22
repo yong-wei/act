@@ -283,6 +283,7 @@ export function UNIT_3_4TeacherPage({
           mediaAlt={step.title}
           browseEnabled={
             pageContract.teacherControls.openBrowse === 'not_applicable' ||
+            pageContract.teacherControls.openBrowse === 'page_load_open' ||
             pageContract.teacherControls.openBrowse === 'always_on'
               ? true
               : Boolean(browseEnabled[step.id])

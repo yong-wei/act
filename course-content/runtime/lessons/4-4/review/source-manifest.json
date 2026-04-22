@@ -1,14 +1,14 @@
 {
   "lesson_id": "4-4",
   "unit_type": "理论",
-  "generated_at": "2026-04-21T10:20:33.173577+00:00",
+  "generated_at": "2026-04-21T16:14:46.610875+00:00",
   "primary_sources": [
     "course-content/authoring/lessons/4-4/design/handout.md",
     "course-content/authoring/lessons/4-4/design/interactive-page.md"
   ],
   "interactive_page_source": "course-content/authoring/lessons/4-4/design/interactive-page.md",
   "interactive_contract_source": "course-content/authoring/lessons/4-4/design/interactive-contract.yaml",
-  "handout_pdf_source": null,
+  "handout_pdf_source": "course-content/authoring/lessons/4-4/design/handout.pdf",
   "boppps_source": "course-content/authoring/lessons/4-4/design/boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/4-4/sequence.json",
   "expected_code_media": []
