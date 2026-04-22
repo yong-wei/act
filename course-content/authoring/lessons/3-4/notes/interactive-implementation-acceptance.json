@@ -2,7 +2,7 @@
   "acceptance_version": 1,
   "lesson_id": "3-4",
   "status": "accepted",
-  "accepted_at": "2026-04-21T19:26:00+08:00",
+  "accepted_at": "2026-04-22T10:56:00+08:00",
   "review_mode": "main_agent_fallback",
   "implementation_contract_source": "src/lib/unit-3-4-course.ts",
   "reviewed_runtime_artifacts": [
@@ -14,35 +14,47 @@
       "status": "pass",
       "step_ids": [],
       "evidence": [
-        "student-page.tsx 继续通过 useGlobalAI().updatePageContext 注入隐藏式页面上下文，没有回退成页内 AI 面板。",
-        "teacher-page.tsx 未引入可见 AI 控件，课堂端仍保持教师控制与学生提交分离。"
+        "student-page.tsx 继续通过 useGlobalAI().updatePageContext 注入隐藏式页面上下文，学生正文未新增页内 AI 面板。",
+        "teacher-page.tsx 未引入可见 AI 控件，课堂端仍保持教师控制、学生浏览与提交分离。"
       ]
     },
     "content_source_completeness": {
       "status": "pass",
       "step_ids": [
-        "step-02",
+        "step-03",
         "step-04",
-        "step-06",
-        "step-10",
+        "step-08",
         "step-11",
-        "step-17"
+        "step-12",
+        "step-13",
+        "step-14",
+        "step-15",
+        "step-16"
       ],
       "evidence": [
-        "step-02 已补成带“记录表 / 要回答的问题 / 至少应包含的信息”的三张记录表静态载荷，不再只剩名称列表。",
-        "step-04 已把四步法补成带观察对象与判断产出的完整说明卡，而不是四个短标签。",
-        "step-06 已改成 B/C 证据回顾表加判断提示，页面正文直接提供写判断句所需证据。",
-        "step-10 已把时域页的第二问改成“为什么这张阶跃对照还不能代替后续频域与持续跟踪验证”，与作者态一致。",
-        "step-11 已补齐四个代表频率点的数值证据，并切换到作者态指定的主导极点近似可信性图。",
-        "step-17 已补齐最终判断、边界说明与 3-5 去向，不再只剩单组带走结论。"
+        "step-03 已去掉旧配图依赖，保留对象公式、A/B/C 三版本表与前测题组，正文可独立支撑“稳定不等于可用”的判断。",
+        "step-04 已去掉数字序号，学生端进入页面后随机化四步读图顺序，同时保留完整四步法说明卡。",
+        "step-08 已补成题面常显的增益换算显影链，默认只显第一层，点击当前最下方已显影步骤可继续展开，重置会回到教师基线层。",
+        "step-11 已按讲义 4.5 节重做频域证据页，正文同时承载读图表与 3-4-bode-compare.png。",
+        "step-12 已同页嵌入两张连续跟踪对照图，明确展示 k=0.6064 与 k=20 的航迹差异。",
+        "step-13 已把广义根轨迹等效改写补成完整逐步显影链，不再只剩一张图片。",
+        "step-14 已改成非增益参数窗口记录页，提供根轨迹图、代表性极点表、参数区间窗口表与双卡作答。",
+        "step-15 与 step-16 已分离为后测页和总结页，后者补入讲义信息图 3-4-info.png。"
       ]
     },
     "static_media_downgrade": {
       "status": "pass",
-      "step_ids": [],
+      "step_ids": [
+        "step-05",
+        "step-06",
+        "step-08",
+        "step-13"
+      ],
       "evidence": [
-        "本轮没有把工作区、显影链或参数联动退化成额外静态占位图。",
-        "3-4 正式页面仍只消费 /course-runtime/lessons/3-4/media/... 运行时媒体路径，没有回读 authoring 媒体。"
+        "step-05 已改为 Rust/WASM 驱动的统一根轨迹面板，左侧采集拖点数据，右侧按三个问题分按钮逐题提交，没有回退成静态截图或文字热点题。",
+        "step-06 已把两个问题拆成两张可分别提交的学生作答卡，没有退化为整页统一提交。",
+        "step-08 与 step-13 都采用新版逐步显影链，而不是把完整推导默认展开或退回静态结论卡。",
+        "正式页面仍只消费 /course-runtime/lessons/3-4/media/... 运行时媒体路径，没有回读 authoring 媒体。"
       ]
     }
   },

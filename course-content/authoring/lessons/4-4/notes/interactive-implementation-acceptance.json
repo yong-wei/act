@@ -2,8 +2,8 @@
   "acceptance_version": 1,
   "lesson_id": "4-4",
   "status": "accepted",
-  "accepted_at": "2026-04-22T00:13:48+08:00",
-  "review_mode": "subagent+browser",
+  "accepted_at": "2026-04-22T10:55:26+08:00",
+  "review_mode": "subagent+code-review",
   "implementation_contract_source": "src/lib/unit-4-4-course.ts",
   "reviewed_runtime_artifacts": [
     "course-content/runtime/lessons/4-4/review/review-report.md",
@@ -14,63 +14,51 @@
       "status": "pass",
       "step_ids": [],
       "evidence": [
-        "student-page.tsx 继续通过 useGlobalAI().updatePageContext 注入隐藏式页面上下文，没有引入页内 AI 卡片或旧 /ai 跳转入口。",
-        "teacher-page.tsx 未渲染可见 AI 控件，课堂控制仍保持教师推进、学生作答与知识抽屉分离。"
+        "student-page.tsx 继续通过 useGlobalAI().updatePageContext 配合 getUnit44StepAIContext(step.id) 注入隐藏式页面上下文，step-13 的 AI context 也已同步标记为 quiz，没有引入页内 AI 卡片或旧 /ai 跳转。",
+        "teacher-page.tsx 仍只保留课堂推进、作答释放、答案揭示与知识抽屉，没有新增可见 AI 面板。"
       ]
     },
     "contract_alignment_repairs": {
       "status": "pass",
       "step_ids": [
+        "step-01",
+        "step-02",
         "step-03",
+        "step-05",
         "step-07",
         "step-10",
-        "step-08",
-        "step-09",
         "step-11",
-        "step-12",
         "step-13"
       ],
       "evidence": [
-        "step-03 已改为卡片级独立提交，学生端逐题出现“单独提交本卡”，不再把三题前测压成一次整页提交。",
-        "step-07 已改为默认开放题面、仅保留教师显影控制；学生端不再出现“等待教师释放”，而是固定显示显影状态面板。",
-        "step-10 的 front 读法卡和图下注释已统一到“越往左走……；越往上走……”口径，页面内不再混用两套 Pareto 方向描述。",
-        "step-08 已回接 contract 的三组权重真值与表 4 控制器、调节时间、ITAE、ITSE、控制能量，不再使用实现阶段自造数据。",
-        "step-09 已回接主案例综合图、三条时域回读与表 5 的截止频率、相角裕度、超调和控制峰值真值。",
-        "step-11 已按作者态恢复表 6、典型点响应图、三条图后解释与三条工程意义卡，不再把 P1/P2/P3 的收益-代价比较压成一句泛化结论。",
-        "step-12 已按作者态恢复横摇对象、自由目标、表 7、验证图、两条回读结论，并将三张工作卡改为独立提交。",
-        "step-13 已从单选识别题恢复为三张 fill_text 后测卡，重新回到“判断链回收”而不是标准答案辨认。"
+        "step-01 已收束为纯问题引入页，只呈现对象、多目标拉扯、课程路径与“缺的是统一比较语言”，不再提前给出课程目标。",
+        "step-02 已独立呈现“完成本次课程后，学习者能够：”及 7 条课程目标，没有提前放入数据表、图片或前测。",
+        "step-03 已改为“四组经典试凑结果”通栏表 + 正式媒体图 + 读图口令/图后结论 + 页尾前测，前测不再提前。",
+        "step-05 已改为四类指标含义卡、J_free 通栏公式、合并后的“归一化来源与每一项正在回答的问题”通栏表，以及讲义 5.3 权重说明。",
+        "step-07 已补页面标题，左侧使用 GradientDescentNativeFigure 原生绘图，右侧改为“当前位置与代价函数值的逐步显影”。",
+        "step-10 顶部先给二目标公式，随后左侧使用 ParetoFrontNativeFigure，右侧统计面板与其共享同一组前沿点数据，页面说明改成“拖动曲线上的候选点”。",
+        "step-11 已改为参数表在上、典型点响应图通栏在下，并继续保留图后解释与工程意义卡。",
+        "step-13 已改为三题选择题后测；unit-4-4-course.ts 中 step-13 的 pageType 与 interactionKind 均为 quiz_group，isUNIT_4_4PerCardQuizStep(step-13)=true，isUNIT_4_4PerCardTextStep(step-13)=false。"
       ]
     },
     "static_media_downgrade": {
       "status": "pass",
-      "step_ids": [],
+      "step_ids": [
+        "step-07",
+        "step-10",
+        "step-11"
+      ],
       "evidence": [
-        "4-4 契约未要求参数滑块或原生联动工作区，本轮静态页面与运行时媒体均按 contract 的 image-panel / formula-card / task_card_workspace 形态实现，没有把要求中的互动降级成额外静态占位图。",
-        "正式页面只消费 /course-runtime/lessons/4-4/media/... 运行时媒体路径，没有回读 authoring 媒体。"
+        "step-07 与 step-10 不再依赖静态截图或假交互，native-figures.tsx 已提供 GradientDescentNativeFigure 与 ParetoFrontNativeFigure 两个原生绘图组件。",
+        "step-10 右侧统计面板与左侧 Pareto 曲线共同读取 figure-data.ts 的同一组前沿点真值；step-11 的参数表直接复用 UNIT_4_4_STEP11_PARETO_ROWS，和前沿图数据保持一致。",
+        "step-panels.tsx 的 RUNTIME_MEDIA_ROOT 与 unit-4-4-course.ts 的 getUNIT_4_4MediaSrc 均只指向 /course-runtime/lessons/4-4/media/...，没有回读 authoring 媒体路径。"
       ]
     },
     "browser_page_walkthrough": {
-      "status": "pass",
-      "step_ids": [
-        "step-01",
-        "step-02",
-        "step-03",
-        "step-04",
-        "step-05",
-        "step-06",
-        "step-07",
-        "step-08",
-        "step-09",
-        "step-10",
-        "step-11",
-        "step-12",
-        "step-13",
-        "step-14"
-      ],
+      "status": "not_rechecked",
+      "step_ids": [],
       "evidence": [
-        "Playwright 逐页访问 student/demo?step=step-01..14 后，14 页均正常加载，页面异常和控制台异常为 0。",
-        "浏览器复核确认 step-03/12/13 的“单独提交本卡”已实际渲染，step-07 不再出现“等待教师释放”，step-10/11 的 Pareto 解释文本已按最新契约显示。",
-        "浏览器复核确认所有 img 路径均为 /course-runtime/lessons/4-4/media/...，页面正文未暴露旧 /ai 路径。"
+        "本次刷新未重跑浏览器逐页走查；当前结论仅依据 step-panels.tsx、native-figures.tsx、unit-4-4-course.ts、unit-4-4-ai-contexts.ts 与 runtime/review 产物复核。"
       ]
     }
   },

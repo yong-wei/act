@@ -1,0 +1,51 @@
+{
+  "lesson_id": "4-5",
+  "unit_type": "实践",
+  "generated_at": "2026-04-22T07:31:55.860256+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/4-5/design/handout.md",
+    "course-content/authoring/lessons/4-5/design/interactive-page.md"
+  ],
+  "interactive_page_source": "course-content/authoring/lessons/4-5/design/interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/4-5/design/interactive-contract.yaml",
+  "handout_pdf_source": null,
+  "boppps_source": "course-content/authoring/lessons/4-5/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/4-5/sequence.json",
+  "expected_code_media": [
+    {
+      "output": "4-5-ship-heading-unconstrained-failure-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-5-ship-heading-constraint-closure-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-5-ship-heading-same-weight-constraint-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-5-weight-sweep-constrained-summary.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-5-ship-heading-pid-vs-leadlag-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-5-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-5-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    }
+  ]
+}

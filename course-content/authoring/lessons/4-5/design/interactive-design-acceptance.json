@@ -1,0 +1,70 @@
+{
+  "acceptance_version": "1.0",
+  "lesson_id": "4-5",
+  "status": "accepted",
+  "accepted_at": "2026-04-22T15:31:24+08:00",
+  "review_mode": "subagent",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/4-5/design/interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/4-5/design/interactive-contract.yaml"
+  },
+  "checks": {
+    "evidence_complete": true,
+    "contract_alignment": true,
+    "student_self_contained": true,
+    "no_prose_pollution": true
+  },
+  "review_records": [
+    {
+      "step_id": "step-01",
+      "reviewer_agent": "019db402-3d7a-7a70-b13c-ecdf2b0e29f4",
+      "final_result": "pass_after_revision"
+    },
+    {
+      "step_id": "step-02",
+      "reviewer_agent": "019db402-4005-7911-9e3e-63a71c09aa66",
+      "final_result": "pass_after_revision"
+    },
+    {
+      "step_id": "step-03",
+      "reviewer_agent": "019db402-4318-70c0-9ee7-609b11e03b5d",
+      "final_result": "pass_after_revision"
+    },
+    {
+      "step_id": "step-04",
+      "reviewer_agent": "019db402-44b8-7900-a352-a95f99a692ea",
+      "final_result": "pass_after_revision"
+    },
+    {
+      "step_id": "step-05",
+      "reviewer_agent": "019db402-487b-7663-bbf8-1a8814192d37",
+      "final_result": "pass_after_revision"
+    },
+    {
+      "step_id": "step-06",
+      "reviewer_agent": "019db402-3d7a-7a70-b13c-ecdf2b0e29f4",
+      "final_result": "pass_after_revision"
+    },
+    {
+      "step_id": "step-07",
+      "reviewer_agent": "019db402-4005-7911-9e3e-63a71c09aa66",
+      "final_result": "pass_after_revision"
+    },
+    {
+      "step_id": "step-08",
+      "reviewer_agent": "019db402-4318-70c0-9ee7-609b11e03b5d",
+      "final_result": "pass_after_revision"
+    },
+    {
+      "step_id": "step-09",
+      "reviewer_agent": "019db402-44b8-7900-a352-a95f99a692ea",
+      "final_result": "pass_after_revision"
+    },
+    {
+      "step_id": "step-10",
+      "reviewer_agent": "019db402-487b-7663-bbf8-1a8814192d37",
+      "final_result": "pass_after_revision"
+    }
+  ],
+  "issues": []
+}

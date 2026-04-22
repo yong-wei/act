@@ -121,6 +121,35 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
     expect(INTERACTIVE_COURSE_MODULES[0]?.lessons.every((lesson) => lesson.legacySourceLabel == null)).toBe(true);
   });
 
+  it('exposes unit 4-1 through unit 4-4 in module 4', () => {
+    expect(INTERACTIVE_COURSE_MODULES[2]?.lessons.map((lesson) => ({
+      id: lesson.id,
+      unitLabel: lesson.unitLabel,
+      legacySourceLabel: lesson.legacySourceLabel ?? null,
+    }))).toEqual([
+      {
+        id: 'unit-4-1-design-task-expression',
+        unitLabel: '4-1',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-4-2-controller-selection-first-start',
+        unitLabel: '4-2',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-4-3-initial-scheme-practice-first-validation',
+        unitLabel: '4-3',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-4-4-fixed-structure-optimization-modeling',
+        unitLabel: '4-4',
+        legacySourceLabel: null,
+      },
+    ]);
+  });
+
   it('uses 90-minute durations for 2-2, 2-3, 2-4, and 3-1 in module cards and presets', () => {
     const module2Lessons = new Map(INTERACTIVE_COURSE_MODULES[0]?.lessons.map((lesson) => [lesson.id, lesson.duration]));
     const module3Lessons = new Map(INTERACTIVE_COURSE_MODULES[1]?.lessons.map((lesson) => [lesson.id, lesson.duration]));

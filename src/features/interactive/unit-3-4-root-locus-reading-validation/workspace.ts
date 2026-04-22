@@ -1,7 +1,10 @@
+import type { ControlAnalysisRequest, RootLocusSamplePoint } from '@/resources/control-system/analysis/types';
+import type { AxisPreset } from '@/resources/control-system/charts/control-bode-options';
+
 export interface WorkspaceParameterChange {
   key: string;
   value: string | number | boolean;
-  source: 'input' | 'select' | 'button';
+  source: 'input' | 'select' | 'button' | 'drag';
 }
 
 export interface ChoiceOption {
@@ -25,6 +28,16 @@ export interface TripleMatchField {
   options: readonly ChoiceOption[];
 }
 
+export interface Step05TargetQuestion {
+  key: string;
+  label: string;
+  shortLabel: string;
+  prompt: string;
+  target: { re: number; im: number };
+  acceptMirror: boolean;
+  maxDistance: number;
+}
+
 export const READING_SEQUENCE_OPTIONS = [
   { value: 'skeleton', label: '先看骨架' },
   { value: 'keynodes', label: '再找关键节点' },
@@ -32,11 +45,101 @@ export const READING_SEQUENCE_OPTIONS = [
   { value: 'consequence', label: '最后才谈工程后果' },
 ] as const;
 
-export const HOTSPOT_LABEL_FIELDS = [
-  { key: 'breakaway', label: '分离点' },
-  { key: 'imaginary_boundary', label: '虚轴边界' },
-  { key: 'reference_B', label: '参考工作点 B' },
+export const STEP05_TARGET_QUESTIONS: readonly Step05TargetQuestion[] = [
+  {
+    key: 'breakaway',
+    shortLabel: '分离点',
+    label: '问题一：分离点',
+    prompt: '把闭环极点拖到分离点附近后提交。',
+    target: { re: -0.0494, im: 0 },
+    acceptMirror: false,
+    maxDistance: 0.03,
+  },
+  {
+    key: 'imaginary_boundary',
+    shortLabel: '虚轴边界',
+    label: '问题二：虚轴边界',
+    prompt: '把闭环极点拖到虚轴边界附近后提交。',
+    target: { re: 0, im: 0.4626 },
+    acceptMirror: true,
+    maxDistance: 0.06,
+  },
+  {
+    key: 'reference_B',
+    shortLabel: '参考工作点 B',
+    label: '问题三：参考工作点 B',
+    prompt: '把闭环极点拖到参考工作点 B 附近后提交。',
+    target: { re: -0.0488, im: 0.0496 },
+    acceptMirror: true,
+    maxDistance: 0.03,
+  },
 ] as const;
+
+export const STEP05_AXIS_PRESET: AxisPreset = {
+  x: [-2.4, 0.25],
+  y: [-0.7, 0.7],
+};
+
+export const STEP05_DEFAULT_POINT = { re: -0.0488, im: 0.0496 } as const;
+
+export function buildUnit34Step05AnalysisRequest(): ControlAnalysisRequest {
+  return {
+    runtimeMode: 'analysis',
+    caseId: 'unit-3-4-step-05-root-locus-targeting',
+    plant: {
+      numerator: [0.01715],
+      denominator: [1, 2.24375, 0.214375, 0],
+      coefficientOrder: 'descending',
+      label: 'G(s)=0.01715K/[s(s+0.1)(s+2.14375)]',
+    },
+    structures: [{ kind: 'gain', enabled: true, params: { k: 0.6064 }, label: 'K' }],
+    outputs: ['root_locus'],
+    timeRange: { start: 0, end: 60, samples: 300 },
+    frequencyRange: { min: 1e-3, max: 1e2, samples: 300 },
+    rootLocus: { minGain: 0, maxGain: 30, samples: 480, currentGain: 0.6064 },
+  };
+}
+
+export function findNearestSample(
+  branches: RootLocusSamplePoint[][],
+  target: { re: number; im: number } | null,
+) {
+  if (!target) {
+    return null;
+  }
+
+  let best: RootLocusSamplePoint | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const branch of branches) {
+    for (const sample of branch) {
+      const distance = Math.hypot(sample.re - target.re, sample.im - target.im);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = sample;
+      }
+    }
+  }
+  return best;
+}
+
+export function measureStep05TargetDistance(
+  sample: Pick<RootLocusSamplePoint, 're' | 'im'>,
+  question: Step05TargetQuestion,
+) {
+  const direct = Math.hypot(sample.re - question.target.re, sample.im - question.target.im);
+  if (!question.acceptMirror) {
+    return direct;
+  }
+  const mirrored = Math.hypot(sample.re - question.target.re, sample.im + question.target.im);
+  return Math.min(direct, mirrored);
+}
+
+export function isStep05TargetSatisfied(
+  sample: Pick<RootLocusSamplePoint, 're' | 'im'>,
+  question: Step05TargetQuestion,
+) {
+  return measureStep05TargetDistance(sample, question) <= question.maxDistance;
+}
 
 export const PRE_QUIZ_QUESTIONS = [
   {
@@ -124,20 +227,24 @@ export const WORKED_EXAMPLE_FIELDS: Record<string, readonly ActivityCardField[]>
       placeholder: '说明记号含义和工程后果……',
     },
   ],
-  'step-14': [
+  'step-13': [
     {
-      key: 'rewrite_chain',
-      label: '改写链：从局部反馈结构走到等效根轨迹',
-      prompt: '请写出从局部反馈结构走到等效根轨迹对象的关键改写链。',
+      key: 'rewrite_why',
+      label: '为什么这里不能直接沿原普通根轨迹处理',
+      prompt: '请写出一句说明对象为什么先被改写。',
       inputKind: 'text',
-      placeholder: 'G1(s) -> 特征方程 -> B(s)+aA(s)=0 -> Ge(s)=A(s)/B(s)',
+      placeholder: '说明 a 进入位置改变了对象与特征方程……',
     },
     {
-      key: 'rule_statement',
-      label: '为什么这里不是“换了一条根轨迹法则”',
-      prompt: '为什么进入广义根轨迹后，真正变化的是对象而不是根轨迹法则本身？',
-      inputKind: 'text',
-      placeholder: '说明“法则不变、对象先改写”的含义……',
+      key: 'locus_type',
+      label: '本题应按哪一种根轨迹理解',
+      prompt: '本题应按 180° 还是 0° 根轨迹理解？',
+      inputKind: 'single_choice',
+      options: [
+        { value: 'A', label: '按 180° 根轨迹理解，因为整理后是 1+aA(s)/B(s)=0' },
+        { value: 'B', label: '按 0° 根轨迹理解，因为 a 出现在分子位置' },
+        { value: 'C', label: '两者都不适用，因为广义根轨迹不再使用原条件' },
+      ],
     },
   ],
 };
@@ -201,50 +308,54 @@ export const ACTIVITY_CARD_FIELDS: Record<string, readonly ActivityCardField[]> 
   ],
   'step-11': [
     {
-      key: 'low_mid_frequency',
-      label: '哪里可以说“低中频近似成立”',
-      prompt: '请写出一句说明低中频近似成立的结论。',
+      key: 'benefit_frequency',
+      label: '版本 C 的频域收益',
+      prompt: '请写出一句只谈版本 C 频域收益的判断。',
       inputKind: 'text',
-      placeholder: '结合代表频率点说明……',
+      placeholder: '围绕带宽提升或跟踪能力增强作答……',
     },
     {
-      key: 'high_frequency',
-      label: '为什么高频差异仍要单列记录',
-      prompt: '请写出一句说明高频差异不能被省略的结论。',
+      key: 'cost_frequency',
+      label: '版本 C 的频域代价',
+      prompt: '请写出一句只谈版本 C 频域代价的判断。',
       inputKind: 'text',
-      placeholder: '说明带宽外风险或相位变化……',
+      placeholder: '围绕低裕量或高共振峰作答……',
     },
   ],
   'step-12': [
     {
-      key: 'benefit_sentence',
-      label: '版本 C 的收益',
-      prompt: '请写出一句只谈版本 C 收益的证据化判断。',
+      key: 'track_tradeoff',
+      label: '连续跟踪中的收益-代价句',
+      prompt: '请补写一句连续跟踪中的收益-代价判断。',
       inputKind: 'text',
-      placeholder: '结合 Bode 或航迹证据说明……',
+      placeholder: '把连续跟踪收益和风险代价写在一句话里……',
     },
     {
-      key: 'cost_sentence',
-      label: '版本 C 的代价',
-      prompt: '请写出一句只谈版本 C 代价的证据化判断。',
-      inputKind: 'text',
-      placeholder: '说明高带宽、低裕量或航迹风险……',
+      key: 'track_window',
+      label: '版本 C 在窗口中的位置',
+      prompt: '版本 C 更接近哪一种窗口位置？',
+      inputKind: 'single_choice',
+      options: [
+        { value: 'A', label: '稳定窗口内的取舍型参数' },
+        { value: 'B', label: '可接受窗口中心' },
+        { value: 'C', label: '已经失稳' },
+      ],
     },
   ],
-  'step-15': [
+  'step-14': [
     {
       key: 'window_recommendation',
       label: 'a 的窗口建议',
-      prompt: '请写出对 a 的实践窗口建议。',
+      prompt: '请写出对 a 的比较基线、实践窗口与边界提醒。',
       inputKind: 'text',
-      placeholder: '说明比较基线、推荐区间和理由……',
+      placeholder: '说明 a=0、0<a≲0.5、a≳1 各自的窗口语言……',
     },
     {
       key: 'boundary_warning',
       label: '为什么不能把 a 压成“越大越好”',
       prompt: '请写出一句边界提醒，说明为什么 a 不能压成“越大越好”。',
       inputKind: 'text',
-      placeholder: '说明主导极点、代价与边界……',
+      placeholder: '说明主导极点、速度与振荡之间的权衡……',
     },
   ],
 };
@@ -257,30 +368,52 @@ export const BINARY_CHOICE_OPTIONS = [
 export const POST_QUIZ_QUESTIONS = [
   {
     key: 'q1',
-    prompt: '在 3-4 的完整判断链里，第一步固定动作应是什么？',
+    prompt: '分离点、虚轴边界与参考工作点 B 各回答什么？',
     options: [
-      { value: 'A', label: '先猜哪个版本最优' },
-      { value: 'B', label: '先按骨架 -> 关键节点 -> 窗口 -> 后果的顺序读图' },
-      { value: 'C', label: '先看频域，再回头补主图' },
+      { value: 'A', label: '分离点给稳定上界，虚轴边界给工作点命名，B 只表示换算示例' },
+      { value: 'B', label: '分离点区分主导形态，虚轴边界给稳定窗口上界，B 标记均衡参考工作点' },
+      { value: 'C', label: '三者都只表示图上的位置，无工程含义' },
     ],
     answer: 'B',
-    explanation: '读图顺序错了，后续窗口和三域结论都会串层。',
+    explanation: '三者对应的是不同层次的主图判断，而不是三个并列名词。',
   },
   {
     key: 'q2',
-    prompt: '若图上读到的是根轨迹增益 k，下一步最关键的动作是什么？',
+    prompt: '为什么“还稳定”不足以构成完整工程判断？',
     options: [
-      { value: 'A', label: '直接把 k 当成工程参数 K' },
-      { value: 'B', label: '先完成 k 到 K 的换算，再进入工程判断' },
-      { value: 'C', label: '先只看时域，不需要换算' },
+      { value: 'A', label: '因为稳定已经足够说明速度、振荡和裕量都合格' },
+      { value: 'B', label: '因为还稳定只是一条底线，还要继续判断速度、振荡、裕量和代价是否可接受' },
+      { value: 'C', label: '因为只要在稳定窗口内，就必然位于可接受窗口中心' },
     ],
     answer: 'B',
-    explanation: '图上参数先是根轨迹增益，必须先翻译回工程参数语言。',
+    explanation: '窗口判断必须把“能不能工作”和“值不值得采用”分开。',
   },
   {
     key: 'q3',
-    prompt: '解释题：为什么局部反馈系数 a 不是“再调一次 K”？',
-    answer: '',
-    explanation: '理想回答应指出对象/特征方程先被改写，再说明法则不变但对象变化。',
+    prompt: '写出 k=0.0104 对应的 K。',
+    answer: '0.6064',
+    explanation: 'K = 0.0104 / 0.01715 ≈ 0.6064。',
+  },
+  {
+    key: 'q4',
+    prompt: '三域互证怎样支撑或限制 B/C 的判断？',
+    options: [
+      { value: 'A', label: '三域互证只是重复表达，不会改变对 B/C 的判断' },
+      { value: 'B', label: '三域互证分别补充主图判断的时域支撑、频域支撑和代价边界，因此能支撑或限制对 B/C 的最终判断' },
+      { value: 'C', label: '三域互证只在失稳时才有价值' },
+    ],
+    answer: 'B',
+    explanation: '主图给位置，时域和频域给对象化后果与边界。',
+  },
+  {
+    key: 'q5',
+    prompt: '为什么 a 不能按普通增益根轨迹直接理解？',
+    options: [
+      { value: 'A', label: '因为 a 只是另一种写法的 K' },
+      { value: 'B', label: '因为 a 会改变参数进入方式和对象结构，所以必须先改写问题再继续用根轨迹条件' },
+      { value: 'C', label: '因为广义根轨迹完全不再使用原来的法则' },
+    ],
+    answer: 'B',
+    explanation: '法则仍然可用，但对象先被改写。',
   },
 ] as const;

@@ -16458,3 +16458,16 @@
 {"relation_id": "rel-f5708e4b0178a620", "source": "目标函数与罚项表达", "target": "局部优化问题四要素", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.97}
 {"relation_id": "rel-f708488304a45d07", "source": "优化起点与归一化来源", "target": "目标函数与罚项表达", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.95}
 {"relation_id": "rel-ff61af6bc883ecaf", "source": "任务通道变化下的代价函数改写", "target": "扰动抑制中的通道重写边界", "source_chapter": 4, "target_chapter": 4, "relation_type": "related", "strength": 0.85}
+{"relation_id": "rel-0797d2cd416f9917", "source": "任务通道变化下的自由目标改写", "target": "扰动抑制中的通道重写边界", "source_chapter": 4, "target_chapter": 4, "relation_type": "related", "strength": 0.84}
+{"relation_id": "rel-2af60bc273de612c", "source": "权重偏好与无约束候选解", "target": "展示解与Pareto最小取舍", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.94}
+{"relation_id": "rel-3866ff7c24abbf0d", "source": "优化起点与归一化来源", "target": "无约束加权目标表达", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.96}
+{"relation_id": "rel-6a1a5288a511cf1a", "source": "设计任务表达卡", "target": "固定结构自由目标项选择", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.91}
+{"relation_id": "rel-6f424592b51fdaf5", "source": "无约束加权目标表达", "target": "展示解与Pareto最小取舍", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.88}
+{"relation_id": "rel-83b1803b7c3a3db0", "source": "固定结构自由目标项选择", "target": "无约束加权目标表达", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "rel-9344c921f6d8af0a", "source": "问题清单移交表", "target": "经典试凑中的多目标拉扯", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.96}
+{"relation_id": "rel-9e3d2c513af76a60", "source": "经典试凑中的多目标拉扯", "target": "固定结构自由目标项选择", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.97}
+{"relation_id": "rel-9e65a9d7f9b97dbf", "source": "无约束加权目标表达", "target": "任务通道变化下的自由目标改写", "source_chapter": 4, "target_chapter": 4, "relation_type": "generalizes", "strength": 0.92}
+{"relation_id": "rel-b573bdb8eff992cb", "source": "三频段闭环性能回读", "target": "经典试凑中的多目标拉扯", "source_chapter": 3, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.9}
+{"relation_id": "rel-ba23a0f54d58cbd4", "source": "固定结构自由目标项选择", "target": "优化起点与归一化来源", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.9}
+{"relation_id": "rel-ded07f7f397b4ac5", "source": "无约束加权目标表达", "target": "权重偏好与无约束候选解", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.97}
+{"relation_id": "rel-f87a558a81b8c44d", "source": "展示解与Pareto最小取舍", "target": "任务通道变化下的自由目标改写", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.9}

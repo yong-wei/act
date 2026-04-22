@@ -230,9 +230,8 @@ export const UNIT_3_4_PAGE_CONTRACTS: Record<string, UNIT_3_4PageContract> = {
     layout: {
       template: 'evidence_reading_board',
       regions: [
-        { id: 'figure', width: 'full', order: 1 },
-        { id: 'evidence', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
+        { id: 'evidence', width: 'full', order: 1 },
+        { id: 'interaction', width: 'full', order: 2 },
       ],
     },
     interactionKind: 'hotspot_labeling',
@@ -376,7 +375,7 @@ export const UNIT_3_4_PAGE_CONTRACTS: Record<string, UNIT_3_4PageContract> = {
     interactionKind: 'activity_cards',
     teacherInsightWidgets: ['error_bucket_distribution'],
     telemetrySummaryFields: ['cardSubmitted', 'timeOnStep'],
-    misconceptionTags: ['all_frequency_equivalent', 'ignore_high_frequency'],
+    misconceptionTags: ['faster_only_no_cost', 'frequency_cost_omitted'],
     teacherControls: {
       releaseActivity: 'teacher_toggle',
       openBrowse: 'page_load_open',
@@ -391,15 +390,15 @@ export const UNIT_3_4_PAGE_CONTRACTS: Record<string, UNIT_3_4PageContract> = {
     layout: {
       template: 'dual_evidence_compare_workspace',
       regions: [
-        { id: 'bode', width: 'full', order: 1 },
-        { id: 'track', width: 'full', order: 2 },
+        { id: 'track-b', width: 'full', order: 1 },
+        { id: 'track-c', width: 'full', order: 2 },
         { id: 'activity', width: 'full', order: 3 },
       ],
     },
     interactionKind: 'activity_cards',
     teacherInsightWidgets: ['question_distribution', 'top_misconceptions'],
     telemetrySummaryFields: ['cardSubmitted', 'resultState'],
-    misconceptionTags: ['faster_is_better', 'only_risk_no_benefit'],
+    misconceptionTags: ['track_gain_without_cost', 'window_misjudge'],
     teacherControls: {
       releaseActivity: 'teacher_toggle',
       openBrowse: 'page_load_open',
@@ -412,29 +411,6 @@ export const UNIT_3_4_PAGE_CONTRACTS: Record<string, UNIT_3_4PageContract> = {
   },
   'step-13': {
     layout: {
-      template: 'figure_question_vote',
-      regions: [
-        { id: 'question', width: 'full', order: 1 },
-        { id: 'figure', width: 'full', order: 2 },
-        { id: 'interaction', width: 'full', order: 3 },
-      ],
-    },
-    interactionKind: 'binary_choice',
-    teacherInsightWidgets: ['question_distribution'],
-    telemetrySummaryFields: ['attemptCount', 'resultState'],
-    misconceptionTags: ['a_equals_gain', 'ignore_structure_change'],
-    teacherControls: {
-      releaseActivity: 'teacher_toggle',
-      openBrowse: 'page_load_open',
-      teacherStepReveal: 'not_applicable',
-      revealReferenceAnswer: 'teacher_toggle',
-      instructorDemoTools: ['show_vote_distribution'],
-    },
-    aiDeliveryMode: 'hidden_page_context',
-    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-13',
-  },
-  'step-14': {
-    layout: {
       template: 'worked_example_reveal',
       regions: [
         { id: 'principle', width: 'full', order: 1 },
@@ -446,7 +422,7 @@ export const UNIT_3_4_PAGE_CONTRACTS: Record<string, UNIT_3_4PageContract> = {
     interactionKind: 'worked_example_workspace',
     teacherInsightWidgets: ['step_reveal_progress', 'card_completion_rate'],
     telemetrySummaryFields: ['stepRevealCount', 'cardSubmitted'],
-    misconceptionTags: ['no_rewrite_needed', 'wrong_locus_type'],
+    misconceptionTags: ['a_equals_gain', 'no_rewrite_needed', 'wrong_locus_type'],
     teacherControls: {
       releaseActivity: 'teacher_toggle',
       openBrowse: 'teacher_toggle',
@@ -455,9 +431,9 @@ export const UNIT_3_4_PAGE_CONTRACTS: Record<string, UNIT_3_4PageContract> = {
       instructorDemoTools: ['advance_derivation'],
     },
     aiDeliveryMode: 'hidden_page_context',
-    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-14',
+    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-13',
   },
-  'step-15': {
+  'step-14': {
     layout: {
       template: 'parameter_window_compare_board',
       regions: [
@@ -478,9 +454,9 @@ export const UNIT_3_4_PAGE_CONTRACTS: Record<string, UNIT_3_4PageContract> = {
       instructorDemoTools: ['compare_parameter_windows'],
     },
     aiDeliveryMode: 'hidden_page_context',
-    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-15',
+    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-14',
   },
-  'step-16': {
+  'step-15': {
     layout: {
       template: 'posttest_board',
       regions: [
@@ -501,9 +477,9 @@ export const UNIT_3_4_PAGE_CONTRACTS: Record<string, UNIT_3_4PageContract> = {
       instructorDemoTools: ['show_posttest_gaps'],
     },
     aiDeliveryMode: 'hidden_page_context',
-    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-16',
+    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-15',
   },
-  'step-17': {
+  'step-16': {
     layout: {
       template: 'summary_exit_board',
       regions: [
@@ -524,7 +500,7 @@ export const UNIT_3_4_PAGE_CONTRACTS: Record<string, UNIT_3_4PageContract> = {
       instructorDemoTools: ['highlight_next_unit'],
     },
     aiDeliveryMode: 'hidden_page_context',
-    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-17',
+    previewDemoPath: '/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo?step=step-16',
   },
 };
 
@@ -622,37 +598,29 @@ export const UNIT_3_4_LESSON_STEPS: UNIT_3_4StepDefinition[] = [
   {
     id: 'step-11',
     stage: 'P2',
-    title: '频域验证：低中频近似成立，高频差异仍要单列记录',
-    hint: '频率点表、Bode 对照和结论句必须同页，不压成一句口号。',
+    title: '频域代价：版本 `C` 为什么不能只看跟踪收益',
+    hint: '按 4.5 的频域比较表和 Bode 对照，把收益与代价同时写出来。',
     duration: '7 min',
     pageType: 'activity_cards',
   },
   {
     id: 'step-12',
     stage: 'P2',
-    title: '版本 `C` 的收益与代价：Bode 与航迹不能只保留一边',
-    hint: '收益和代价都要落在双证据上，不能只写更快或更危险的一边。',
+    title: '斜坡响应与航迹对照：连续跟踪中的收益与代价',
+    hint: '按 4.6 同时保留 B/C 两张图，把连续跟踪中的收益和风险写成完整句。',
     duration: '7 min',
     pageType: 'activity_cards',
   },
   {
     id: 'step-13',
     stage: 'P2',
-    title: '广义根轨迹入口：局部反馈系数 `a` 为什么不是“再调一次 `K`”',
-    hint: '对象变了，判断问题也变了，不能把 a 当作另一个 K。',
+    title: '广义根轨迹与等效改写：局部反馈系数 `a` 为什么不是“再调一次 `K`”',
+    hint: '对象先改写，再继续用根轨迹条件；本页必须保留完整显影链。',
     duration: '6 min',
-    pageType: 'binary_choice',
-  },
-  {
-    id: 'step-14',
-    stage: 'P2',
-    title: '改写链：从给定局部反馈结构走到等效根轨迹',
-    hint: '法则不变，但对象先被改写，显影链必须完整展开。',
-    duration: '8 min',
     pageType: 'worked_example_workspace',
   },
   {
-    id: 'step-15',
+    id: 'step-14',
     stage: 'P2',
     title: '非增益参数窗口记录：`a` 从 `0` 到 `1` 怎样改写主导极点',
     hint: '要同时写出比较基线、窗口建议与边界提醒。',
@@ -660,7 +628,7 @@ export const UNIT_3_4_LESSON_STEPS: UNIT_3_4StepDefinition[] = [
     pageType: 'activity_cards',
   },
   {
-    id: 'step-16',
+    id: 'step-15',
     stage: 'P3',
     title: '后测：读图、换算、三域与广义参数是否已经成链',
     hint: '后测只检查是否形成完整判断链，不混入新的设计任务。',
@@ -668,7 +636,7 @@ export const UNIT_3_4_LESSON_STEPS: UNIT_3_4StepDefinition[] = [
     pageType: 'quiz_group',
   },
   {
-    id: 'step-17',
+    id: 'step-16',
     stage: 'S',
     title: '收束与去向：沿既有结构分析的能力与边界',
     hint: '把本课能力边界收束到 3-5 的结构改变入口。',
@@ -713,15 +681,11 @@ export const UNIT_3_4_PREMIUM_LESSON_CARD = {
 } as const;
 
 const UNIT_3_4_MEDIA_BY_STEP_ID: Record<string, string> = {
-  'step-03': '/course-runtime/lessons/3-4/media/3-4-cover-comic.png',
-  'step-05': '/course-runtime/lessons/3-4/media/3-4-root-locus-summary.png',
-  'step-08': '/course-runtime/lessons/3-4/media/3-4-gain-conversion-card.png',
   'step-10': '/course-runtime/lessons/3-4/media/3-4-step-compare.png',
-  'step-11': '/course-runtime/lessons/3-4/media/3-4-dominant-pole-selection.png',
-  'step-12': '/course-runtime/lessons/3-4/media/3-4-turning-track-k20.png',
+  'step-11': '/course-runtime/lessons/3-4/media/3-4-bode-compare.png',
   'step-13': '/course-runtime/lessons/3-4/media/3-4-local-feedback-block.png',
-  'step-14': '/course-runtime/lessons/3-4/media/3-4-generalized-root-locus-debug.png',
-  'step-15': '/course-runtime/lessons/3-4/media/3-4-generalized-root-locus.png',
+  'step-14': '/course-runtime/lessons/3-4/media/3-4-generalized-root-locus.png',
+  'step-16': '/course-runtime/lessons/3-4/media/3-4-info.png',
 };
 
 export function getUNIT_3_4MediaSrc(stepId: string) {

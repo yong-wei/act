@@ -140,7 +140,7 @@ export const UNIT_4_4_STAGE_MAP: Record<UNIT_4_4StageCode, BopppsStage> = {
 
 export const UNIT_4_4_PAGE_CONTRACTS: Record<string, UNIT_4_4PageContract> = {
   'step-01': {
-    layout: { template: 'map_goal_boundary_slide', regions: [{ id: 'object', width: 'full', order: 1 }, { id: 'route', width: 'full', order: 2 }, { id: 'summary', width: 'full', order: 3 }] },
+    layout: { template: 'map_goal_boundary_slide', regions: [{ id: 'object', width: 'full', order: 1 }, { id: 'route', width: 'full', order: 2 }, { id: 'question', width: 'full', order: 3 }] },
     interactionKind: 'none',
     teacherControls: { releaseActivity: 'not_applicable', openBrowse: 'not_applicable', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'not_applicable' },
     teacherInsightWidgets: ['view_count', 'sync_status'],
@@ -150,27 +150,27 @@ export const UNIT_4_4_PAGE_CONTRACTS: Record<string, UNIT_4_4PageContract> = {
     previewDemoPath: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-01',
   },
   'step-02': {
-    layout: { template: 'evidence_table_plus_chart', regions: [{ id: 'table', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }] },
+    layout: { template: 'goal_statement_board', regions: [{ id: 'header', width: 'full', order: 1 }, { id: 'goals', width: 'full', order: 2 }] },
     interactionKind: 'none',
     teacherControls: { releaseActivity: 'not_applicable', openBrowse: 'not_applicable', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'not_applicable' },
     teacherInsightWidgets: ['view_count'],
     telemetrySummaryFields: ['viewed', 'timeOnStep'],
     misconceptionTags: [],
-    aiPageGoal: '先用首轮证据固定多目标拉扯，再进入前测与自由目标设计。',
+    aiPageGoal: '显式呈现本课课程目标，不提前放入证据表和图片。',
     previewDemoPath: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-02',
   },
   'step-03': {
-    layout: { template: 'quiz_group_board', regions: [{ id: 'header', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }, { id: 'closing', width: 'full', order: 3 }] },
+    layout: { template: 'evidence_table_plus_chart_with_quiz', regions: [{ id: 'table', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'reading', width: 'full', order: 3 }, { id: 'quiz', width: 'full', order: 4 }] },
     interactionKind: 'quiz_group',
     teacherControls: { releaseActivity: 'teacher_toggle', openBrowse: 'page_load_open', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'teacher_toggle' },
     teacherInsightWidgets: ['question_distribution', 'top_misconceptions', 'completion_rate'],
     telemetrySummaryFields: ['attemptCount', 'resultState', 'cardSubmitted'],
     misconceptionTags: ['candidate_equals_delivery', 'range_equals_boundary', 'objective_reuse'],
-    aiPageGoal: '在主体内容前先固定三条容易误判的边界。',
+    aiPageGoal: '先用四组证据固定多目标拉扯，再把前测放到页面最后。',
     previewDemoPath: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-03',
   },
   'step-04': {
-    layout: { template: 'parameterization_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'table', width: 'full', order: 2 }, { id: 'interaction', width: 'full', order: 3 }] },
+    layout: { template: 'parameterization_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'evidence', width: 'full', order: 2 }, { id: 'table', width: 'full', order: 3 }, { id: 'interaction', width: 'full', order: 4 }] },
     interactionKind: 'activity_card_set',
     teacherControls: { releaseActivity: 'teacher_toggle', openBrowse: 'page_load_open', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'teacher_toggle' },
     teacherInsightWidgets: ['card_completion_rate', 'error_bucket_distribution'],
@@ -180,7 +180,7 @@ export const UNIT_4_4_PAGE_CONTRACTS: Record<string, UNIT_4_4PageContract> = {
     previewDemoPath: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-04',
   },
   'step-05': {
-    layout: { template: 'formula_workspace_board', regions: [{ id: 'targets', width: 'full', order: 1 }, { id: 'normalization', width: 'full', order: 2 }, { id: 'formula', width: 'full', order: 3 }, { id: 'interaction', width: 'full', order: 4 }] },
+    layout: { template: 'formula_workspace_board', regions: [{ id: 'targets', width: 'full', order: 1 }, { id: 'formula', width: 'full', order: 2 }, { id: 'normalization', width: 'full', order: 3 }, { id: 'meaning', width: 'full', order: 4 }, { id: 'interaction', width: 'full', order: 5 }] },
     interactionKind: 'activity_card_set',
     teacherControls: { releaseActivity: 'teacher_toggle', openBrowse: 'page_load_open', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'teacher_toggle' },
     teacherInsightWidgets: ['card_completion_rate', 'error_bucket_distribution'],
@@ -200,7 +200,7 @@ export const UNIT_4_4_PAGE_CONTRACTS: Record<string, UNIT_4_4PageContract> = {
     previewDemoPath: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-06',
   },
   'step-07': {
-    layout: { template: 'worked_example_reveal_board', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }, { id: 'figure', width: 'full', order: 3 }] },
+    layout: { template: 'worked_example_reveal_board', regions: [{ id: 'problem', width: 'full', order: 1 }, { id: 'figure', width: 'half', order: 2 }, { id: 'reveal', width: 'half', order: 3 }] },
     interactionKind: 'teacher_reveal_only',
     teacherControls: { releaseActivity: 'not_applicable', openBrowse: 'teacher_only', teacherStepReveal: 'teacher_toggle', revealReferenceAnswer: 'not_applicable' },
     teacherInsightWidgets: ['view_count', 'teacher_reveal_sync'],
@@ -230,7 +230,7 @@ export const UNIT_4_4_PAGE_CONTRACTS: Record<string, UNIT_4_4PageContract> = {
     previewDemoPath: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-09',
   },
   'step-10': {
-    layout: { template: 'curve_evidence_board', regions: [{ id: 'definition', width: 'full', order: 1 }, { id: 'figure', width: 'full', order: 2 }, { id: 'reading', width: 'full', order: 3 }, { id: 'interaction', width: 'full', order: 4 }] },
+    layout: { template: 'curve_evidence_board', regions: [{ id: 'definition', width: 'full', order: 1 }, { id: 'figure', width: 'half', order: 2 }, { id: 'reading', width: 'half', order: 3 }, { id: 'interaction', width: 'full', order: 4 }] },
     interactionKind: 'single_choice',
     teacherControls: { releaseActivity: 'teacher_toggle', openBrowse: 'page_load_open', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'teacher_toggle' },
     teacherInsightWidgets: ['question_distribution', 'top_misconceptions'],
@@ -289,8 +289,8 @@ const UNIT_4_4_INTERACTIVE_PAGE_TYPES = new Set<UNIT_4_4PageType>([
   'task_card_workspace',
 ]);
 
-const UNIT_4_4_PER_CARD_QUIZ_STEPS = new Set(['step-03']);
-const UNIT_4_4_PER_CARD_TEXT_STEPS = new Set(['step-12', 'step-13']);
+const UNIT_4_4_PER_CARD_QUIZ_STEPS = new Set(['step-03', 'step-13']);
+const UNIT_4_4_PER_CARD_TEXT_STEPS = new Set(['step-12']);
 
 export const UNIT_4_4_PARETO_FRONT_READING_BULLETS = [
   '越往左走，控制能量更小，但 ITAE 会明显变差。',
@@ -306,8 +306,8 @@ export const UNIT_4_4_PARETO_POINT_READING_BULLETS = [
 
 export const UNIT_4_4_LESSON_STEPS: readonly UNIT_4_4StepDefinition[] = [
   { id: 'step-01', stage: 'B', title: '客船航向保持对象与多目标拉扯：为什么经典试凑会停住', hint: '先交代对象与拉扯，再固定本课只产出无约束候选族。', duration: '5 min', pageType: 'display' },
-  { id: 'step-02', stage: 'O', title: '四组经典试凑结果：多目标拉扯先被证据看见', hint: '先用首轮证据固定多目标拉扯，再进入前测与自由目标设计。', duration: '6 min', pageType: 'display' },
-  { id: 'step-03', stage: 'P1', title: '前测：先判断哪些边界还没有被正式写进模型', hint: '在主体内容前先固定三条容易误判的边界。', duration: '5 min', pageType: 'quiz_group' },
+  { id: 'step-02', stage: 'O', title: '本次课程目标：这一课要把哪些判断写实', hint: '显式呈现本课课程目标，不提前放入证据表和图片。', duration: '4 min', pageType: 'display' },
+  { id: 'step-03', stage: 'P1', title: '四组经典试凑结果：多目标拉扯先被证据看见', hint: '先用四组证据固定多目标拉扯，再把前测放到页面最后。', duration: '7 min', pageType: 'quiz_group' },
   { id: 'step-04', stage: 'P2', title: '参数化入口：起点、参数向量与参数范围从哪里来', hint: '固定参数化入口与参数范围的职责边界。', duration: '6 min', pageType: 'activity_card_set' },
   { id: 'step-05', stage: 'P2', title: '自由目标与归一化：怎样把偏好写成同一套比较语言', hint: '固定自由目标与归一化来源，不在本页引入罚项。', duration: '7 min', pageType: 'activity_card_set' },
   { id: 'step-06', stage: 'P2', title: '数值优化到底在这门课里做什么', hint: '解释本课数值优化的真实职责，而不是罗列算法名词。', duration: '6 min', pageType: 'display' },
@@ -375,11 +375,9 @@ export const UNIT_4_4_PREMIUM_LESSON_CARD = {
 } as const;
 
 const UNIT_4_4_MEDIA_BY_STEP_ID: Record<string, string> = {
-  'step-01': '/course-runtime/lessons/4-4/media/4-4-cover-comic.png',
-  'step-02': '/course-runtime/lessons/4-4/media/4-4-ship-heading-diagnosis-compare.png',
-  'step-07': '/course-runtime/lessons/4-4/media/4-4-gradient-descent-path.png',
+  'step-03': '/course-runtime/lessons/4-4/media/4-4-ship-heading-diagnosis-compare.png',
+  'step-04': '/course-runtime/lessons/4-4/media/4-4-ship-heading-optimization-compare.png',
   'step-09': '/course-runtime/lessons/4-4/media/4-4-ship-heading-unconstrained-weight-compare.png',
-  'step-10': '/course-runtime/lessons/4-4/media/4-4-pareto-front.png',
   'step-11': '/course-runtime/lessons/4-4/media/4-4-pareto-response-compare.png',
   'step-12': '/course-runtime/lessons/4-4/media/4-4-roll-optimization-compare.png',
   'step-14': '/course-runtime/lessons/4-4/media/4-4-info.png',

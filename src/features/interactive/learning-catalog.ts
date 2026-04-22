@@ -379,12 +379,13 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
     id: 'module-4',
     title: '模块4',
     description:
-      '模块4 当前开放 4-1、4-2、4-3 三个新主线单元，先把模块 3 的稳定、动态、稳态证据统一改写成任务表达卡，再把任务表达卡推进成单结构起步卡，并在 4-3 中落成第一版方案与首轮验证。',
+      '模块4 当前开放 4-1、4-2、4-3、4-4 四个新主线单元，先把模块 3 的稳定、动态、稳态证据统一改写成任务表达卡，再把任务表达卡推进成单结构起步卡，并在 4-3 中落成第一版方案与首轮验证，随后进入 4-4 的多目标权衡与控制器优化设计。',
     chipLabel: '设计入口主线',
     lessons: [
       createModuleLesson('unit-4-1-design-task-expression', '4-1'),
       createModuleLesson('unit-4-2-controller-selection-first-start', '4-2'),
       createModuleLesson('unit-4-3-initial-scheme-practice-first-validation', '4-3'),
+      createModuleLesson('unit-4-4-fixed-structure-optimization-modeling', '4-4'),
     ],
   },
 ] as const;

@@ -10,8 +10,8 @@ export const UNIT_4_4_COURSE_META = {
 
 const STEP_CONFIG = {
   'step-01': { title: '客船航向保持对象与多目标拉扯：为什么经典试凑会停住', pageType: 'theory', purpose: '先交代对象与拉扯，再固定本课只产出无约束候选族。' },
-  'step-02': { title: '四组经典试凑结果：多目标拉扯先被证据看见', pageType: 'theory', purpose: '先用首轮证据固定多目标拉扯，再进入前测与自由目标设计。' },
-  'step-03': { title: '前测：先判断哪些边界还没有被正式写进模型', pageType: 'quiz', purpose: '在主体内容前先固定三条容易误判的边界。' },
+  'step-02': { title: '本次课程目标：这一课要把哪些判断写实', pageType: 'theory', purpose: '显式呈现本课课程目标，不提前放入证据表和图片。' },
+  'step-03': { title: '四组经典试凑结果：多目标拉扯先被证据看见', pageType: 'quiz', purpose: '先用四组证据固定多目标拉扯，再把前测放到页面最后。' },
   'step-04': { title: '参数化入口：起点、参数向量与参数范围从哪里来', pageType: 'practice', purpose: '固定参数化入口与参数范围的职责边界。' },
   'step-05': { title: '自由目标与归一化：怎样把偏好写成同一套比较语言', pageType: 'practice', purpose: '固定自由目标与归一化来源，不在本页引入罚项。' },
   'step-06': { title: '数值优化到底在这门课里做什么', pageType: 'theory', purpose: '解释本课数值优化的真实职责，而不是罗列算法名词。' },

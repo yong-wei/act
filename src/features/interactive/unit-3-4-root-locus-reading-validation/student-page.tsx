@@ -129,12 +129,10 @@ export function UNIT_3_4StudentPage({
       ? Boolean(teacherSyncState?.revealedAnswers?.[step.id])
       : false;
   const revealProgress =
-    isDemo
-      ? 99
-      : pageContract.teacherControls.teacherStepReveal === 'separate_toggle' ||
-          pageContract.teacherControls.teacherStepReveal === 'teacher_toggle'
-        ? (teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0)
-        : 0;
+    pageContract.teacherControls.teacherStepReveal === 'separate_toggle' ||
+    pageContract.teacherControls.teacherStepReveal === 'teacher_toggle'
+      ? (teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0)
+      : 0;
 
   const previousStepIdRef = useRef<string | null>(null);
   useEffect(() => {

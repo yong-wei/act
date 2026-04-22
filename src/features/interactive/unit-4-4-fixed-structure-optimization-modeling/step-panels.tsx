@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { BlockMath } from 'react-katex';
+import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
@@ -15,6 +15,18 @@ import {
   type UNIT_4_4StepDefinition,
   type UNIT_4_4StepResponse,
 } from '@/lib/unit-4-4-course';
+import {
+  getUnit44GradientRevealState,
+  getUnit44ParetoPoint,
+  getUnit44ProgressiveRevealVisibleCount,
+  UNIT_4_4_PARETO_DEFAULT_POINT_ID,
+  UNIT_4_4_STEP11_PARETO_ROWS,
+} from './figure-data';
+import {
+  GradientDescentNativeFigure,
+  ParetoFrontNativeFigure,
+  ParetoPointStatsPanelInner,
+} from './native-figures';
 import type { WorkspaceParameterChange } from './workspace';
 
 type TeacherResponseItem = { studentName: string; response: UNIT_4_4StepResponse };
@@ -37,6 +49,13 @@ type RevealStep = {
   title: string;
   blocks: readonly PromptContentBlock[];
 };
+type RichTableCell = Readonly<{ type: 'text' | 'math'; value: string }>;
+type TableValue = string | RichTableCell;
+type MethodCard = Readonly<{
+  title: string;
+  text: string;
+  formula?: string;
+}>;
 
 const HEADING_PLANT_TEX = 'P_h(s)=\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}';
 const HEADING_INITIAL_CONTROLLER_TEX = 'C_{h,0}(s)=2.796\\dfrac{10s+1}{4.06s+1}';
@@ -56,7 +75,7 @@ const ROLL_OBJECTIVE_TEX =
 const PARETO_TITLE = 'Pareto front';
 const RUNTIME_MEDIA_ROOT = '/course-runtime/lessons/4-4/media/';
 
-const STEP_01_GOALS = [
+const STEP_02_GOALS = [
   '说明经典试凑为何停在多目标拉扯前。',
   '写清参数化入口与参数范围的职责。',
   '把四类自由目标写成同一套比较语言。',
@@ -79,18 +98,22 @@ const STEP_04_RANGE_ROWS = [
   ['α', '[0.15,0.85]', '保持在超前结构有效区间内'],
 ] as const;
 
-const STEP_05_NORMALIZATION_ROWS = [
-  ['t_s / 40', '40', '来自当前任务书中的速度期望'],
-  ['ITAE / ITAE_0', '63.6924', '4-3 起始方案的拖尾读数'],
-  ['ITSE / ITSE_0', '16.5282', '4-3 起始方案的误差强度读数'],
-  ['E_u / E_{u,0}', '125.7148', '4-3 起始方案的控制能量读数'],
+const STEP_04_PRIOR_METRIC_ROWS = [
+  ['调节时间 t_s / s', '36.0', '主过程偏慢'],
+  ['ITAE', '63.692', '拖尾仍偏大'],
+  ['ITSE', '16.528', '前中段误差强度仍需继续压低'],
+  ['控制能量 E_u', '125.715', '动作代价已不可忽视'],
+  ['截止频率 ω_c / rad/s', '0.180', '带宽仍偏低'],
+  ['相角裕度 / deg', '49.046', '仍有继续调整空间'],
+  ['超调 / %', '18.864', '前段动态形状仍不理想'],
+  ['控制峰值', '6.887', '动作峰值已开始抬高'],
 ] as const;
 
-const STEP_05_MEANING_ROWS = [
-  ['t_s / 40', '能否更快收住'],
-  ['ITAE / ITAE_0', '拖尾是否更短'],
-  ['ITSE / ITSE_0', '前中段误差强度是否被压下去'],
-  ['E_u / E_{u,0}', '动作代价是否被明显抬高'],
+const STEP_05_NORMALIZATION_ROWS = [
+  [mathCell('t_s / 40'), textCell('40'), textCell('来自当前任务书中的速度期望'), textCell('能否更快收住')],
+  [mathCell('ITAE / ITAE_0'), textCell('63.6924'), textCell('4-3 起始方案的拖尾读数'), textCell('拖尾是否更短')],
+  [mathCell('ITSE / ITSE_0'), textCell('16.5282'), textCell('4-3 起始方案的误差强度读数'), textCell('前中段误差强度是否被压下去')],
+  [mathCell('E_u / E_{u,0}'), textCell('125.7148'), textCell('4-3 起始方案的控制能量读数'), textCell('动作代价是否被明显抬高')],
 ] as const;
 
 const STEP_08_WEIGHT_ROWS = [
@@ -100,10 +123,36 @@ const STEP_08_WEIGHT_ROWS = [
 ] as const;
 
 const STEP_08_RESULT_ROWS = [
-  ['起始方案', '2.796(10s+1)/(4.06s+1)', '36.0', '63.692', '16.528', '125.715'],
-  ['速度优先 A', '2.7566(9.9829s+1)/(1.4999s+1)', '15.2', '16.033', '7.084', '293.446'],
-  ['平衡权重 B', '2.0644(9.9804s+1)/(2.0809s+1)', '13.5', '28.266', '12.405', '122.904'],
-  ['能量优先 C', '1.9318(9.9472s+1)/(2.2531s+1)', '20.9', '32.652', '14.210', '100.267'],
+  [textCell('起始方案'), mathCell('2.796\\dfrac{10s+1}{4.06s+1}'), textCell('36.0'), textCell('63.692'), textCell('16.528'), textCell('125.715')],
+  [textCell('速度优先 A'), mathCell('2.7566\\dfrac{9.9829s+1}{1.4999s+1}'), textCell('15.2'), textCell('16.033'), textCell('7.084'), textCell('293.446')],
+  [textCell('平衡权重 B'), mathCell('2.0644\\dfrac{9.9804s+1}{2.0809s+1}'), textCell('13.5'), textCell('28.266'), textCell('12.405'), textCell('122.904')],
+  [textCell('能量优先 C'), mathCell('1.9318\\dfrac{9.9472s+1}{2.2531s+1}'), textCell('20.9'), textCell('32.652'), textCell('14.210'), textCell('100.267')],
+] as const;
+
+const STEP_06_METHOD_CARDS: readonly MethodCard[] = [
+  {
+    title: '取参数',
+    text: '先从当前固定结构里取一组可比较的参数。',
+    formula: '\\theta=[K,T,\\alpha]^\\mathsf T',
+  },
+  {
+    title: '跑闭环仿真',
+    text: '把这组参数代回主案例闭环，得到响应与控制动作。',
+  },
+  {
+    title: '回读指标',
+    text: '从仿真结果里回读统一比较语言中的关键指标。',
+    formula: 't_s,\\ ITAE,\\ ITSE,\\ E_u',
+  },
+  {
+    title: '代回目标函数',
+    text: '把同一组读数代回自由目标，判断是否更符合当前偏好。',
+    formula: 'J_{\\mathrm{free}}(\\theta)',
+  },
+  {
+    title: '比较后更新',
+    text: '若当前方向更合适，就继续沿该方向搜索；否则换方向重试。',
+  },
 ] as const;
 
 const STEP_09_FREQ_ROWS = [
@@ -111,12 +160,6 @@ const STEP_09_FREQ_ROWS = [
   ['速度优先 A', '0.209', '66.974', '2.305', '18.347'],
   ['平衡权重 B', '0.156', '67.748', '1.996', '9.901'],
   ['能量优先 C', '0.146', '67.762', '2.054', '8.528'],
-] as const;
-
-const STEP_11_PARETO_ROWS = [
-  ['快速端 P1', '2.4277', '10.0534', '1.5889', '19.117', '218.322', '11.6', '15.361'],
-  ['中间点 P2', '1.5784', '10.3392', '2.7273', '44.542', '61.513', '18.0', '5.983'],
-  ['节能端 P3', '1.0099', '11.0334', '4.8821', '106.750', '19.194', '28.2', '2.282'],
 ] as const;
 
 const STEP_12_ROLL_ROWS = [
@@ -157,6 +200,41 @@ const QUIZ_GROUPS: Record<string, readonly ChoiceQuestion[]> = {
       explanation: '通道职责一变，收益项和代价项的分配语言也必须跟着改写。',
     },
   ],
+  'step-13': [
+    {
+      key: 'post-quiz-1',
+      prompt: '为什么本课保留下来的只能叫“候选族”，而不是最终可用解？',
+      options: [
+        { value: 'A', label: '因为还没有经过 4-5 的工程复核' },
+        { value: 'B', label: '因为参数还没有写成向量' },
+        { value: 'C', label: '因为调节时间没有下降' },
+      ],
+      answer: 'A',
+      explanation: '4-4 只完成无约束候选的筛选与展示，还没有进入输出侧工程边界复核。',
+    },
+    {
+      key: 'post-quiz-2',
+      prompt: '为什么 Pareto front 不是再选一个绝对最优？',
+      options: [
+        { value: 'A', label: '因为它保留的是一组非支配候选' },
+        { value: 'B', label: '因为图还没画完' },
+        { value: 'C', label: '因为权重没有归一化' },
+      ],
+      answer: 'A',
+      explanation: 'Pareto front 的价值在于保留互相之间仍然存在收益与代价交换的一组非支配候选。',
+    },
+    {
+      key: 'post-quiz-3',
+      prompt: '为什么横摇案例不能继续沿用航向保持中的目标语言？',
+      options: [
+        { value: 'A', label: '因为任务通道变了，收益项和代价项必须跟着改写' },
+        { value: 'B', label: '因为横摇对象没有积分环节' },
+        { value: 'C', label: '因为参数范围必须改成负数' },
+      ],
+      answer: 'A',
+      explanation: '对象任务从航向跟踪换成横摇抗扰后，收益项和代价项的定义必须同步改写。',
+    },
+  ],
 };
 
 const SINGLE_CHOICE_QUESTIONS: Record<string, ChoiceQuestion> = {
@@ -175,20 +253,20 @@ const SINGLE_CHOICE_QUESTIONS: Record<string, ChoiceQuestion> = {
     key: 'pareto-meaning',
     prompt: '为什么 Pareto front 不是再选一个绝对最优？',
     options: [
-      { value: 'A', label: '因为不同偏好会落在同一条非支配前沿上' },
-      { value: 'B', label: '因为优化器无法比较任何两个点' },
-      { value: 'C', label: '因为所有点都已经满足同一个成本' },
+      { value: 'A', label: '因为它保留的是一组非支配候选' },
+      { value: 'B', label: '因为图还没画完' },
+      { value: 'C', label: '因为权重没有填完' },
     ],
     answer: 'A',
     explanation: '前沿的价值在于把不同偏好下依然值得保留的一族候选显性呈现出来。',
   },
   'step-11': {
-    key: 'same-good',
-    prompt: '为什么 P_1 / P_2 / P_3 在 Pareto 意义下同样好，而不是谁彻底赢了？',
+    key: 'pareto-point-why',
+    prompt: '为什么 P1、P2、P3 能在 Pareto 意义下“同样好”？',
     options: [
-      { value: 'A', label: '因为三点在 ITAE 与动作代价之间各自承担了不同取舍' },
-      { value: 'B', label: '因为三点的参数完全一样' },
-      { value: 'C', label: '因为图上标了三种颜色' },
+      { value: 'A', label: '因为它们彼此之间都存在收益与代价交换' },
+      { value: 'B', label: '因为三个点的数值完全一样' },
+      { value: 'C', label: '因为只要在前沿上就自动可交付' },
     ],
     answer: 'A',
     explanation: '它们没有任何一个点能同时把另一点在两个目标上都彻底压倒。',
@@ -198,10 +276,10 @@ const SINGLE_CHOICE_QUESTIONS: Record<string, ChoiceQuestion> = {
 const TEXT_PROMPTS: Record<string, readonly PromptField[]> = {
   'step-04': [
     {
-      key: 'start-point-why',
-      title: '起点为什么直接来自 4-3',
-      prompt: [{ type: 'text', value: '请用一句话说明为什么这组参数适合作为优化起点。' }],
-      placeholder: '围绕“已有首轮证据、结构仍可解释、参数方向已经明确”作答。',
+      key: 'improvement-gap',
+      title: '上一轮方案还能从哪些地方继续改进',
+      prompt: [{ type: 'text', value: '你认为上一课中的方案还有哪些可以改进的地方？' }],
+      placeholder: '可围绕调节时间、拖尾、误差强度、控制能量、带宽或动作峰值作答。',
     },
   ],
   'step-05': [
@@ -246,32 +324,12 @@ const TEXT_PROMPTS: Record<string, readonly PromptField[]> = {
       placeholder: '围绕摆幅下降、谐振峰下降与 RMS(u) 上升作答。',
     },
   ],
-  'step-13': [
-    {
-      key: 'post-quiz-1',
-      title: '为什么只能叫候选族',
-      prompt: [{ type: 'text', value: '为什么本课保留下来的只能叫“候选族”，而不是最终可用解？' }],
-      placeholder: '回接 4-4 只完成无约束候选呈现，尚未进入 4-5 的工程复核。',
-    },
-    {
-      key: 'post-quiz-2',
-      title: '为什么 Pareto front 不是绝对最优',
-      prompt: [{ type: 'text', value: '为什么 Pareto front 不是再选一个绝对最优？' }],
-      placeholder: '回接“非支配候选”与目标间收益代价交换。',
-    },
-    {
-      key: 'post-quiz-3',
-      title: '为什么横摇案例要改写目标语言',
-      prompt: [{ type: 'text', value: '为什么横摇案例不能继续沿用航向保持中的目标语言？' }],
-      placeholder: '回接通道变化后收益项、代价项和验证读数的变化。',
-    },
-  ],
 };
 
 const REFERENCE_ANSWERS: Record<string, readonly string[]> = {
   'step-04': [
-    '起点直接来自 4-3，因为这组参数已经完成首轮对象化验证，仍保持固定结构可解释。',
-    '优化不是重新随机起步，而是沿已有证据链继续比较不同偏好。',
+    '上一轮结果已经暴露出过程偏慢、拖尾仍大、动作代价不可忽视等改进空间，因此适合作为参数化入口。',
+    '本页不是重新随机起步，而是把上一轮证据继续整理成可优化的参数向量与比较语言。',
   ],
   'step-05': [
     '更像收益的通常是速度项、拖尾项和误差强度项；最明显记录动作代价的是控制能量。',
@@ -354,6 +412,14 @@ function FormulaCard({ title, formula, note }: { title: string; formula: string;
   );
 }
 
+function textCell(value: string): RichTableCell {
+  return { type: 'text', value };
+}
+
+function mathCell(value: string): RichTableCell {
+  return { type: 'math', value };
+}
+
 function BulletCard({ title, bullets }: { title: string; bullets: readonly string[] }) {
   return (
     <div className="premium-lesson-surface-elevated rounded-2xl px-4 py-4">
@@ -372,7 +438,7 @@ function SimpleTable({
   rows,
 }: {
   columns: readonly string[];
-  rows: readonly (readonly string[])[];
+  rows: readonly (readonly TableValue[])[];
 }) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
@@ -388,10 +454,18 @@ function SimpleTable({
         </thead>
         <tbody>
           {rows.map((row, rowIndex) => (
-            <tr key={`${row[0]}-${rowIndex}`} className="align-top">
+            <tr key={`row-${rowIndex}`} className="align-top">
               {row.map((cell, cellIndex) => (
-                <td key={`${cellIndex}-${cell}`} className="border-b border-slate-100 px-3 py-2 text-slate-700">
-                  {cell}
+                <td key={`${rowIndex}-${cellIndex}`} className="border-b border-slate-100 px-3 py-2 text-slate-700">
+                  {typeof cell === 'string' ? (
+                    cell
+                  ) : cell.type === 'math' ? (
+                    <span className="inline-block overflow-x-auto align-middle">
+                      <InlineMath math={cell.value} />
+                    </span>
+                  ) : (
+                    cell.value
+                  )}
                 </td>
               ))}
             </tr>
@@ -445,25 +519,18 @@ function renderPromptContent(blocks: readonly PromptContentBlock[]) {
 
 function ProgressiveReveal({
   steps,
-  revealProgress,
+  visibleCount,
   allowInlineReveal,
+  canRevealMore,
+  onAdvanceReveal,
 }: {
   steps: readonly RevealStep[];
-  revealProgress: number;
+  visibleCount: number;
   allowInlineReveal: boolean;
+  canRevealMore: boolean;
+  onAdvanceReveal: () => void;
 }) {
-  const [localRevealCount, setLocalRevealCount] = useState(1);
-
-  useEffect(() => {
-    setLocalRevealCount(1);
-  }, [steps]);
-
-  const teacherVisibleCount = Math.min(Math.max(revealProgress + 1, 1), steps.length);
-  const visibleCount = allowInlineReveal
-    ? Math.min(Math.max(teacherVisibleCount, localRevealCount), steps.length)
-    : teacherVisibleCount;
   const visibleSteps = steps.slice(0, visibleCount);
-  const canRevealMore = allowInlineReveal && visibleCount < steps.length;
 
   return (
     <div className="space-y-3">
@@ -477,7 +544,7 @@ function ProgressiveReveal({
             disabled={!isLastVisible || !canRevealMore}
             onClick={() => {
               if (isLastVisible && canRevealMore) {
-                setLocalRevealCount((current) => Math.min(current + 1, steps.length));
+                onAdvanceReveal();
               }
             }}
             className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left shadow-sm disabled:cursor-default"
@@ -487,9 +554,9 @@ function ProgressiveReveal({
           </button>
         );
       })}
-      {canRevealMore ? (
-        <div className="premium-lesson-muted text-xs">点击当前最下方已显影步骤可继续展开下一层。</div>
-      ) : null}
+      <div className="premium-lesson-muted text-xs">
+        {allowInlineReveal ? '点击当前最下方已显影步骤可继续展开下一层。' : '当前显影由教师推进。'}
+      </div>
     </div>
   );
 }
@@ -511,9 +578,9 @@ function ReferenceAnswerPanel({ stepId }: { stepId: string }) {
 function Step03Or13Intro({ stepId }: { stepId: string }) {
   if (stepId === 'step-03') {
     return (
-      <Panel title="前测" kicker="P1">
+      <Panel title="前测：先判断哪些边界还没有被正式写进模型" kicker="P1">
         <p className="premium-lesson-muted text-sm leading-6">
-          这一页不要求求参数，只要求先判断哪些话现在还不能说满。
+          看完四组试凑证据后，再判断哪些话现在还不能说满。
         </p>
         <p className="premium-lesson-muted text-sm leading-6">
           若这三题里仍有判断不稳，后面的参数化、自由目标和边界案例就会被误读成“优化已经替工程裁决”。
@@ -522,7 +589,7 @@ function Step03Or13Intro({ stepId }: { stepId: string }) {
     );
   }
   return (
-    <Panel title="后测" kicker="P3">
+    <Panel title="阶段判断后测" kicker="P3">
       <p className="premium-lesson-muted text-sm leading-6">这一页只检查判断链，不负责总结和移交。</p>
       <p className="premium-lesson-muted text-sm leading-6">
         答题时必须同时回接本课中的证据页，而不是只重复名词定义。
@@ -873,6 +940,23 @@ export function UNIT_4_4StepContentPanel({
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   void onWorkspaceParameterChange;
+  const [selectedParetoPointId, setSelectedParetoPointId] = useState(UNIT_4_4_PARETO_DEFAULT_POINT_ID);
+  const [step07LocalRevealCount, setStep07LocalRevealCount] = useState(1);
+
+  useEffect(() => {
+    setSelectedParetoPointId(UNIT_4_4_PARETO_DEFAULT_POINT_ID);
+  }, [step.id]);
+
+  const step07TeacherVisibleCount = getUnit44ProgressiveRevealVisibleCount(
+    revealProgress,
+    1,
+    false,
+    STEP_07_REVEALS.length,
+  );
+
+  useEffect(() => {
+    setStep07LocalRevealCount(step07TeacherVisibleCount);
+  }, [step.id, step07TeacherVisibleCount]);
 
   if (step.id === 'step-01') {
     return (
@@ -889,8 +973,7 @@ export function UNIT_4_4StepContentPanel({
             ]}
           />
         </div>
-        {mediaSrc ? <FigureCard src={mediaSrc} alt={mediaAlt} caption="本课封面图" conclusion="这一页先给出对象、拉扯和路径，不要求任何作答。" /> : null}
-        <div className="grid gap-4 lg:grid-cols-[1fr_1.1fr]">
+        <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
           <BulletCard
             title="课程路径"
             bullets={[
@@ -899,7 +982,11 @@ export function UNIT_4_4StepContentPanel({
               '4-5 工程边界复核',
             ]}
           />
-          <BulletCard title="本课七项目标" bullets={STEP_01_GOALS} />
+          <Panel title="当前真正缺的不是更多试凑，而是统一的比较语言">
+            <p className="premium-lesson-muted text-sm leading-6">
+              经典试凑已经告诉我们方向，却还没有告诉我们这些收益和代价该怎样放进同一套比较语言。
+            </p>
+          </Panel>
         </div>
       </div>
     );
@@ -908,12 +995,35 @@ export function UNIT_4_4StepContentPanel({
   if (step.id === 'step-02') {
     return (
       <div className="space-y-4">
-        <Panel title="四组经典试凑结果">
+        <Panel title="本次课程目标：这一课要把哪些判断写实" kicker="Objective">
+          <p className="premium-lesson-muted text-sm leading-6">完成本次课程后，学习者能够：</p>
+        </Panel>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {STEP_02_GOALS.map((goal, index) => (
+            <div key={goal} className="premium-lesson-surface-elevated rounded-2xl px-4 py-4">
+              <div className="premium-lesson-kicker">Goal {index + 1}</div>
+              <div className="premium-lesson-muted mt-2 text-sm leading-6">{goal}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (step.id === 'step-03') {
+    return (
+      <div className="space-y-4">
+        <Panel title="四组经典试凑结果：多目标拉扯先被证据看见">
           <SimpleTable
             columns={['方案', '设计意图', '超调 / %', '调节时间 / s', '控制峰值', '相角裕度 / deg', '读数结论']}
             rows={STEP_02_ROWS}
           />
         </Panel>
+        <FigureCard
+          src={withRuntimeFallback(mediaSrc, '4-4-ship-heading-diagnosis-compare.png')}
+          alt={mediaAlt}
+          caption="客船航向保持首轮验证对比"
+        />
         <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
           <BulletCard
             title="读图口令"
@@ -924,19 +1034,15 @@ export function UNIT_4_4StepContentPanel({
               '最后判断为什么这些变化还没进入同一套评价语言。',
             ]}
           />
-          <FigureCard
-            src={withRuntimeFallback(mediaSrc, '4-4-ship-heading-diagnosis-compare.png')}
-            alt={mediaAlt}
-            caption="客船航向保持首轮验证对比"
-            conclusion="固定结构没有失效，真正暴露出来的是多目标拉扯还缺统一比较语言。"
-          />
+          <Panel title="图后结论">
+            <p className="premium-lesson-muted text-sm leading-6">
+              固定结构没有失效，真正暴露出来的是多目标拉扯还缺一套统一评价语言。
+            </p>
+          </Panel>
         </div>
+        <Step03Or13Intro stepId={step.id} />
       </div>
     );
-  }
-
-  if (step.id === 'step-03' || step.id === 'step-13') {
-    return <Step03Or13Intro stepId={step.id} />;
   }
 
   if (step.id === 'step-04') {
@@ -946,6 +1052,16 @@ export function UNIT_4_4StepContentPanel({
           <FormulaCard title="4-3 起始方案" formula={HEADING_INITIAL_CONTROLLER_TEX} />
           <FormulaCard title="本课参数化入口" formula={HEADING_PARAMETERIZATION_TEX} />
         </div>
+        <Panel title="上一轮设计结果与性能指标">
+          <FigureCard
+            src={withRuntimeFallback(mediaSrc, '4-4-ship-heading-optimization-compare.png')}
+            alt={mediaAlt}
+            caption="上一轮设计结果回看"
+          />
+          <div className="mt-4">
+            <SimpleTable columns={['指标', '数值', '上一轮结果说明']} rows={STEP_04_PRIOR_METRIC_ROWS} />
+          </div>
+        </Panel>
         <Panel title="参数范围表">
           <SimpleTable columns={['参数', '取值范围', '结构解释']} rows={STEP_04_RANGE_ROWS} />
           <p className="premium-lesson-muted text-sm leading-6">
@@ -960,21 +1076,30 @@ export function UNIT_4_4StepContentPanel({
     return (
       <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {['调节时间 t_s', 'ITAE', 'ITSE', '控制能量 E_u'].map((item) => (
-            <div key={item} className="premium-lesson-surface-elevated rounded-2xl px-4 py-4 text-center">
-              <div className="premium-lesson-title text-sm font-semibold">{item}</div>
+          {[
+            ['调节时间 t_s', '代表收敛速度'],
+            ['ITAE', '代表误差拖尾是否被压短'],
+            ['ITSE', '代表前中段强误差是否真的被压下去'],
+            ['控制能量 E_u', '代表控制动作整体是否过于激进'],
+          ].map(([title, note]) => (
+            <div key={title} className="premium-lesson-surface-elevated rounded-2xl px-4 py-4 text-center">
+              <div className="premium-lesson-title text-sm font-semibold">{title}</div>
+              <div className="premium-lesson-muted mt-2 text-sm leading-6">{note}</div>
             </div>
           ))}
         </div>
-        <Panel title="归一化来源">
-          <SimpleTable columns={['归一化项', '数值', '来源']} rows={STEP_05_NORMALIZATION_ROWS} />
+        <FormulaCard title="无约束加权自由目标" formula={J_FREE_TEX} />
+        <Panel title="归一化来源与每一项正在回答的问题">
+          <SimpleTable
+            columns={['归一化项', '数值', '来源', '这一项正在回答的问题']}
+            rows={STEP_05_NORMALIZATION_ROWS}
+          />
         </Panel>
-        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <FormulaCard title="无约束加权自由目标" formula={J_FREE_TEX} />
-          <Panel title="每一项正在回答的问题">
-            <SimpleTable columns={['项', '正在回答的问题']} rows={STEP_05_MEANING_ROWS} />
-          </Panel>
-        </div>
+        <Panel title="讲义 5.3：权重代表的是偏好，而不是客观真理">
+          <p className="premium-lesson-muted text-sm leading-6">
+            权重不是脱离任务的固定常数，而是偏好的数值化表达。只要偏好一变，数值搜索的推进方向也会跟着变。
+          </p>
+        </Panel>
       </div>
     );
   }
@@ -985,10 +1110,16 @@ export function UNIT_4_4StepContentPanel({
         <FormulaCard title="本课中的优化问题" formula={MINIMIZATION_TEX} />
         <Panel title="五步迭代链" kicker="Method">
           <div className="grid gap-3 md:grid-cols-5">
-            {['取参数', '跑闭环仿真', '回读 t_s / ITAE / ITSE / E_u', '代回目标函数', '比较后更新'].map((item, index) => (
-              <div key={item} className="premium-lesson-surface-elevated rounded-2xl px-4 py-4">
+            {STEP_06_METHOD_CARDS.map((card, index) => (
+              <div key={card.title} className="premium-lesson-surface-elevated rounded-2xl px-4 py-4">
                 <div className="premium-lesson-kicker">Step {index + 1}</div>
-                <div className="premium-lesson-title mt-2 text-sm font-semibold">{item}</div>
+                <div className="premium-lesson-title mt-2 text-sm font-semibold">{card.title}</div>
+                <div className="premium-lesson-muted mt-2 text-sm leading-6">{card.text}</div>
+                {card.formula ? (
+                  <div className="premium-lesson-muted mt-2 text-sm leading-6">
+                    <InlineMath math={card.formula} />
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>
@@ -1001,18 +1132,45 @@ export function UNIT_4_4StepContentPanel({
   }
 
   if (step.id === 'step-07') {
+    const step07VisibleRevealCount = getUnit44ProgressiveRevealVisibleCount(
+      revealProgress,
+      step07LocalRevealCount,
+      allowInlineReveal,
+      STEP_07_REVEALS.length,
+    );
+    const gradientRevealState = getUnit44GradientRevealState(step07VisibleRevealCount - 1);
+    const step07CanRevealMore = allowInlineReveal && step07VisibleRevealCount < STEP_07_REVEALS.length;
     return (
       <div className="space-y-4">
-        <FormulaCard title="最小例题题面" formula={MINI_EXAMPLE_TEX} note="这个例子不替主案例求参数，只负责把“沿代价面下滑”的直观印象讲清。"/>
-        <Panel title="逐步显影">
-          <ProgressiveReveal steps={STEP_07_REVEALS} revealProgress={revealProgress} allowInlineReveal={allowInlineReveal} />
+        <Panel title="为什么搜索会沿代价面下滑" kicker="Teacher Reveal">
+          <p className="premium-lesson-muted text-sm leading-6">
+            这一页只解决一件事：目标函数一旦写出，搜索为何会留下可读轨迹。
+          </p>
+          <div className="mt-3 overflow-x-auto">
+            <BlockMath math={MINI_EXAMPLE_TEX} />
+          </div>
+          <p className="premium-lesson-muted text-sm leading-6">
+            先看一维目标函数，从 x_0=0 出发，按当前位置的负梯度方向不断更新。
+          </p>
         </Panel>
-        <FigureCard
-          src={withRuntimeFallback(mediaSrc, '4-4-gradient-descent-path.png')}
-          alt={mediaAlt}
-          caption="梯度下降示意图"
-          conclusion="目标函数一旦写出，搜索就会在代价面上留下可读轨迹。"
-        />
+        <div className="grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
+          <GradientDescentNativeFigure
+            visiblePointCount={gradientRevealState.visiblePointCount}
+            visibleSegmentCount={gradientRevealState.visibleSegmentCount}
+            activePointIndex={gradientRevealState.activePointIndex}
+          />
+          <Panel title="当前位置与代价函数值的逐步显影">
+            <ProgressiveReveal
+              steps={STEP_07_REVEALS}
+              visibleCount={step07VisibleRevealCount}
+              allowInlineReveal={allowInlineReveal}
+              canRevealMore={step07CanRevealMore}
+              onAdvanceReveal={() =>
+                setStep07LocalRevealCount((current) => Math.min(current + 1, STEP_07_REVEALS.length))
+              }
+            />
+          </Panel>
+        </div>
       </div>
     );
   }
@@ -1048,25 +1206,27 @@ export function UNIT_4_4StepContentPanel({
   }
 
   if (step.id === 'step-10') {
+    const selectedPoint = getUnit44ParetoPoint(selectedParetoPointId);
     return (
       <div className="space-y-4">
-        <div className="grid gap-4 lg:grid-cols-[1fr_1.1fr]">
-          <FormulaCard
-            title="二目标定义"
-            formula={FREE_OBJECTIVES_TEX}
-            note="任何一个目标再改善一点，就一定会让另一个目标变差，这就是前沿上“非支配”的意义。"
-          />
-          <FigureCard
-            src={withRuntimeFallback(mediaSrc, '4-4-pareto-front.png')}
-            alt={mediaAlt}
-            caption={PARETO_TITLE}
-            conclusion="越往左走，控制能量更小；越往上走，动作代价更容易被压低。前沿把一族互相无法同时压倒的候选保留下来。"
-          />
-        </div>
-        <BulletCard
-          title="front 读法"
-          bullets={UNIT_4_4_PARETO_FRONT_READING_BULLETS}
+        <FormulaCard
+          title="二目标设计对"
+          formula={FREE_OBJECTIVES_TEX}
+          note="任何一个目标再改善一点，就一定会让另一个目标变差，这组非支配候选才会构成 Pareto front。"
         />
+        <Panel title="拖动曲线上的候选点">
+          <p className="premium-lesson-muted text-sm leading-6">
+            左侧原生曲线和右侧统计面板读取同一组前沿数据，用来说明为什么 Pareto front 保留的是一组非支配候选。
+          </p>
+          <p className="premium-lesson-muted text-sm leading-6">
+            越往左走，控制能量更省；越往上走，ITAE 更大，说明拖尾会更差。
+          </p>
+          <div className="mt-4 grid gap-4 lg:grid-cols-[1.12fr_0.88fr]">
+            <ParetoFrontNativeFigure selectedPointId={selectedParetoPointId} onSelectPoint={setSelectedParetoPointId} />
+            <ParetoPointStatsPanelInner point={selectedPoint} />
+          </div>
+        </Panel>
+        <BulletCard title="front 读法" bullets={UNIT_4_4_PARETO_FRONT_READING_BULLETS} />
       </div>
     );
   }
@@ -1076,17 +1236,15 @@ export function UNIT_4_4StepContentPanel({
       <div className="space-y-4">
         <FormulaCard title="仍然是同一固定结构" formula={HEADING_PARAMETERIZATION_TEX} />
         <Panel title="三个典型前沿点参数表">
-          <SimpleTable columns={['前沿点', 'K', 'T', 'αT', 'ITAE', 'E_u', '调节时间 / s', '控制峰值']} rows={STEP_11_PARETO_ROWS} />
+          <SimpleTable columns={['前沿点', 'K', 'T', 'αT', 'ITAE', 'E_u', '调节时间 / s', '控制峰值']} rows={UNIT_4_4_STEP11_PARETO_ROWS} />
         </Panel>
-        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <FigureCard
-            src={withRuntimeFallback(mediaSrc, '4-4-pareto-response-compare.png')}
-            alt={mediaAlt}
-            caption="Pareto 前沿上的典型候选：时域与频域对比"
-            conclusion="图上保留下来的三点都没有把另外两点彻底压倒，因此必须回到收益与代价交换来读。"
-          />
-          <BulletCard title="图后解释" bullets={UNIT_4_4_PARETO_POINT_READING_BULLETS} />
-        </div>
+        <FigureCard
+          src={withRuntimeFallback(mediaSrc, '4-4-pareto-response-compare.png')}
+          alt={mediaAlt}
+          caption="Pareto 前沿上的典型候选：时域与频域对比"
+          conclusion="图上保留下来的三点都没有把另外两点彻底压倒，因此必须回到收益与代价交换来读。"
+        />
+        <BulletCard title="图后解释" bullets={UNIT_4_4_PARETO_POINT_READING_BULLETS} />
         <BulletCard
           title="三条工程意义"
           bullets={[
@@ -1097,6 +1255,10 @@ export function UNIT_4_4StepContentPanel({
         />
       </div>
     );
+  }
+
+  if (step.id === 'step-13') {
+    return <Step03Or13Intro stepId={step.id} />;
   }
 
   if (step.id === 'step-12') {

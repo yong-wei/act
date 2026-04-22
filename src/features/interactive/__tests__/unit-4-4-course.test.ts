@@ -9,6 +9,10 @@ import { COURSE_AI_CONTEXT_REGISTRY } from '@/lib/course-ai-contexts';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
 
 vi.mock('server-only', () => ({}));
+vi.mock('@/lib/unit-3-4-ai-contexts', () => ({
+  getUnit34StepAIContext: () => undefined,
+  getUnit34StepQuickQuestions: () => [],
+}));
 
 const repoRoot = process.cwd();
 
@@ -182,12 +186,14 @@ describe('unit 4-4 interactive course', () => {
       '从 P_1 回到 P_3，可以大幅节省动作代价，但必须接受更长拖尾。',
       'P_2 夹在中间，没有把另一边彻底碾压掉。',
     ]);
-    expect(stepPanelsSource).toContain('越往左走，控制能量更小；越往上走，动作代价更容易被压低。');
+    expect(stepPanelsSource).toContain('越往左走，控制能量更省；越往上走，ITAE 更大，说明拖尾会更差。');
     expect(stepPanelsSource).not.toContain('越往下，拖尾更短');
     expect(stepPanelsSource).toContain('PerCardQuizForm');
     expect(stepPanelsSource).toContain('isUNIT_4_4PerCardQuizStep(step.id)');
     expect(stepPanelsSource).toContain("if (step.pageType === 'teacher_reveal_only')");
     expect(studentPageSource).toContain('isUNIT_4_4StepReleasedByDefault(step.id)');
+    expect(studentPageSource).toContain('allowInlineReveal={isDemo || browseEnabled}');
+    expect(studentPageSource).not.toContain('allowInlineReveal={false}');
     expect(stepPanelsSource).not.toContain('/ai');
   });
 
@@ -203,5 +209,33 @@ describe('unit 4-4 interactive course', () => {
 
     expect(courseModule.isUNIT_4_4PerCardQuizStep('step-03')).toBe(true);
     expect(courseModule.isUNIT_4_4PerCardQuizStep('step-10')).toBe(false);
+  });
+
+  it('re-aligns the revised 4-4 steps to the latest authoring sequence and native figure requirements', async () => {
+    const courseModule = await import('@/lib/unit-4-4-course');
+    const stepPanelsPath = join(
+      repoRoot,
+      'src/features/interactive/unit-4-4-fixed-structure-optimization-modeling/step-panels.tsx',
+    );
+    const stepPanelsSource = readFileSync(stepPanelsPath, 'utf8');
+
+    expect(stepPanelsSource).not.toContain('本课七项目标');
+    expect(stepPanelsSource).toContain('完成本次课程后，学习者能够：');
+    expect(stepPanelsSource).toContain('你认为上一课中的方案还有哪些可以改进的地方？');
+    expect(stepPanelsSource).toContain("import { BlockMath, InlineMath } from 'react-katex';");
+    expect(stepPanelsSource).toContain('GradientDescentNativeFigure');
+    expect(stepPanelsSource).toContain('ParetoFrontNativeFigure');
+    expect(stepPanelsSource).toContain("mathCell('t_s / 40')");
+    expect(stepPanelsSource).toContain("mathCell('ITAE / ITAE_0')");
+    expect(stepPanelsSource).toContain("mathCell('2.796\\\\dfrac{10s+1}{4.06s+1}')");
+    expect(stepPanelsSource).toContain('STEP_06_METHOD_CARDS');
+    expect(stepPanelsSource).toContain("formula: 'J_{\\\\mathrm{free}}(\\\\theta)'");
+    expect(stepPanelsSource).toContain('拖动曲线上的候选点');
+    expect(stepPanelsSource).toContain('上一轮设计结果与性能指标');
+    expect(stepPanelsSource).toContain('阶段判断后测');
+    expect(stepPanelsSource).toContain('非支配候选');
+
+    expect(courseModule.isUNIT_4_4PerCardTextStep('step-13')).toBe(false);
+    expect(courseModule.isUNIT_4_4PerCardQuizStep('step-13')).toBe(true);
   });
 });

@@ -278,7 +278,7 @@ export function UNIT_4_4StudentPage({
           mediaSrc={getUNIT_4_4MediaSrc(step.id)}
           mediaAlt={step.title}
           revealProgress={revealProgress}
-          allowInlineReveal={false}
+          allowInlineReveal={isDemo || browseEnabled}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 

@@ -19720,12 +19720,172 @@
       ],
       "created_at": null,
       "updated_at": null
+    },
+    "任务通道变化下的自由目标改写_4_44007": {
+      "id": "任务通道变化下的自由目标改写_4_44007",
+      "name": "任务通道变化下的自由目标改写",
+      "category": "程序性",
+      "bloom_level": "分析",
+      "chapter": 0,
+      "chapter_name": "约束设计层",
+      "definition": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
+      "examples": [
+        "横摇抗扰中，RMS 与谐振峰比调节时间和 `ITAE` 更能描述目标。",
+        "若沿用航向保持的自由目标去比较横摇案例，求解器会沿错误方向搜索。"
+      ],
+      "formulas": [
+        "J_r(k)=0.60\\frac{RMS(\\varphi)}{RMS(\\varphi)_0}+0.25\\frac{\\max_\\omega|T_d(j\\omega)|}{\\max_\\omega|T_d(j\\omega)|_0}+0.15\\frac{RMS(u)}{RMS(u)_0}"
+      ],
+      "prerequisites": [
+        "无约束加权目标表达_4_44004",
+        "展示解与Pareto最小取舍_4_44006"
+      ],
+      "related_concepts": [
+        "扰动抑制中的通道重写边界_4_43006"
+      ],
+      "difficulty": 5,
+      "importance": 5,
+      "keywords": [
+        "自由目标改写",
+        "任务通道",
+        "横摇抗扰"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "固定结构自由目标项选择_4_44002": {
+      "id": "固定结构自由目标项选择_4_44002",
+      "name": "固定结构自由目标项选择",
+      "category": "程序性",
+      "bloom_level": "分析",
+      "chapter": 0,
+      "chapter_name": "约束设计层",
+      "definition": "在固定结构的无约束加权建模中，先选出本课要比较的自由目标项，例如时间、拖尾、误差强度和动作代价，再用它们承载偏好。",
+      "examples": [
+        "客船航向保持中，`t_s`、`ITAE`、`ITSE` 和控制能量一起承担自由目标角色。",
+        "这些量在 4-4 先负责表达偏好，而不是先负责裁决结果能不能交付。"
+      ],
+      "formulas": [
+        "\\text{自由目标项}=(t_s,\\ ITAE,\\ ITSE,\\ E_u)"
+      ],
+      "prerequisites": [
+        "设计任务表达卡_4_41001",
+        "经典试凑中的多目标拉扯_4_44001"
+      ],
+      "related_concepts": [
+        "优化起点与归一化来源_4_44003",
+        "无约束加权目标表达_4_44004"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "自由目标",
+        "指标选择",
+        "固定结构"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "无约束加权目标表达_4_44004": {
+      "id": "无约束加权目标表达_4_44004",
+      "name": "无约束加权目标表达",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 0,
+      "chapter_name": "约束设计层",
+      "definition": "把多类自由目标项写成统一的无量纲加权目标函数，用来表达当前设计偏好，而不在本课提前引入输出侧硬约束。",
+      "examples": [
+        "客船案例把时间、拖尾、误差强度和动作代价写成 `J_free(θ)`。",
+        "本课的目标函数先诚实表达偏好，再把结果交给下一课做边界复核。"
+      ],
+      "formulas": [
+        "J_{free}(\\theta)=w_1\\frac{t_s(\\theta)}{40}+w_2\\frac{ITAE(\\theta)}{ITAE_0}+w_3\\frac{ITSE(\\theta)}{ITSE_0}+w_4\\frac{E_u(\\theta)}{E_{u,0}}"
+      ],
+      "prerequisites": [
+        "固定结构自由目标项选择_4_44002",
+        "优化起点与归一化来源_4_44003"
+      ],
+      "related_concepts": [
+        "权重偏好与无约束候选解_4_44005"
+      ],
+      "difficulty": 5,
+      "importance": 5,
+      "keywords": [
+        "目标函数",
+        "加权目标",
+        "无约束"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "权重偏好与无约束候选解_4_44005": {
+      "id": "权重偏好与无约束候选解_4_44005",
+      "name": "权重偏好与无约束候选解",
+      "category": "程序性",
+      "bloom_level": "分析",
+      "chapter": 0,
+      "chapter_name": "约束设计层",
+      "definition": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
+      "examples": [
+        "客船案例中，`C_u(s)=5\\frac{10s+1}{2s+1}` 会显著压低时间指标和拖尾。",
+        "若权重更重视动作代价，求解器就会倾向另一类更保守的候选。"
+      ],
+      "formulas": [
+        "C_u(s)=5\\frac{10s+1}{2s+1}"
+      ],
+      "prerequisites": [
+        "无约束加权目标表达_4_44004"
+      ],
+      "related_concepts": [
+        "展示解与Pareto最小取舍_4_44006"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "权重",
+        "偏好",
+        "候选解"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "经典试凑中的多目标拉扯_4_44001": {
+      "id": "经典试凑中的多目标拉扯_4_44001",
+      "name": "经典试凑中的多目标拉扯",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 0,
+      "chapter_name": "约束设计层",
+      "definition": "当固定结构下的人工试凑分别换来速度、拖尾、误差强度或动作代价上的局部收益，却无法用统一标准比较这些收益时，就会出现多目标拉扯。",
+      "examples": [
+        "客船航向保持中，激进方案换来了更快过程，却同时显著抬高动作代价。",
+        "收回动作强度的方案避免了过猛输出，却又把前面争取到的速度收益让了回去。"
+      ],
+      "formulas": [
+        "\\text{拉扯}=(\\text{过程收益},\\text{误差收益},\\text{动作代价})"
+      ],
+      "prerequisites": [
+        "问题清单移交表_4_43005",
+        "三频段闭环性能回读_3_38003"
+      ],
+      "related_concepts": [
+        "固定结构自由目标项选择_4_44002"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "经典试凑",
+        "多目标拉扯",
+        "固定结构"
+      ],
+      "created_at": null,
+      "updated_at": null
     }
   },
   "relations": [],
   "metadata": {
-    "merged_at": "2026-04-21T04:51:53.574864+00:00",
-    "total_nodes": 704,
-    "total_relations": 16460
+    "merged_at": "2026-04-22T02:00:30.912874+00:00",
+    "total_nodes": 709,
+    "total_relations": 16473
   }
 }

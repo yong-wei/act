@@ -34,13 +34,12 @@ steps:
       regions:
         - { id: 'object', width: 'full', order: 1 }
         - { id: 'route', width: 'full', order: 2 }
-        - { id: 'summary', width: 'full', order: 3 }
+        - { id: 'question', width: 'full', order: 3 }
     modules:
       - { id: 'object-card', region: 'object', kind: 'formula-card', must_be_visible: true }
       - { id: 'tension-list', region: 'object', kind: 'bullet-list-card', must_be_visible: true }
       - { id: 'route-map', region: 'route', kind: 'stage-map', must_be_visible: true }
-      - { id: 'role-note', region: 'route', kind: 'summary-card', must_be_visible: true }
-      - { id: 'goal-cards', region: 'summary', kind: 'goal-card-row', must_be_visible: true }
+      - { id: 'problem-focus', region: 'question', kind: 'summary-card', must_be_visible: true }
     content_blocks:
       object_card:
         title: '主案例对象'
@@ -55,8 +54,32 @@ steps:
           - '希望控制动作不要变得过于粗暴。'
       route_map:
         stages: ['4-3 固定结构与问题清单', '4-4 无约束优化建模与候选族', '4-5 工程边界复核']
-      role_note:
-        text: '本课先把固定结构、参数起点和性能偏好写成可计算的无约束目标，再把候选族交给 4-5 做工程复核。'
+      problem_focus:
+        title: '当前真正缺的不是更多试凑，而是统一的比较语言'
+        text: '经典试凑已经告诉我们方向，却还没有告诉我们这些收益和代价该怎样放进同一套比较语言。'
+    evidence_sequence: ['对象卡', '四类拉扯', '路径图', '问题聚焦句']
+    interaction_spec: { interaction_kind: 'none', student_task: '只阅读，不提交。' }
+    teacher_controls: { release_activity: 'not_applicable', open_browse: 'not_applicable', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'not_applicable' }
+    student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: false }
+    teacher_insight_spec: { widgets: ['view_count', 'sync_status'] }
+    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], misconception_tags: [] }
+    ai_context_spec: { page_goal: '先交代对象与拉扯，再固定本课只产出无约束候选族。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-01' }
+    acceptance_checks: ['对象卡与四类拉扯必须先于路径图和问题聚焦句出现。', '本页不得出现课程目标。', '本页无作答区。']
+
+  step-02:
+    title: '本次课程目标：这一课要把哪些判断写实'
+    layout:
+      template: 'goal_statement_board'
+      regions:
+        - { id: 'header', width: 'full', order: 1 }
+        - { id: 'goals', width: 'full', order: 2 }
+    modules:
+      - { id: 'goal-intro', region: 'header', kind: 'summary-card', must_be_visible: true }
+      - { id: 'goal-cards', region: 'goals', kind: 'goal-card-row', must_be_visible: true }
+    content_blocks:
+      goal_intro:
+        text: '完成本次课程后，学习者能够：'
       goal_cards:
         - '说明经典试凑为何停在多目标拉扯前。'
         - '写清参数化入口与参数范围的职责。'
@@ -65,27 +88,31 @@ steps:
         - '比较三组无约束候选的时域与频域差异。'
         - '理解 Pareto front 为什么保留一族候选。'
         - '看懂横摇边界案例为什么必须改写目标语言。'
-    evidence_sequence: ['对象卡', '四类拉扯', '路径图', '角色说明', '目标卡']
+    evidence_sequence: ['目标引导句', '七项目标']
     interaction_spec: { interaction_kind: 'none', student_task: '只阅读，不提交。' }
     teacher_controls: { release_activity: 'not_applicable', open_browse: 'not_applicable', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'not_applicable' }
     student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: false }
-    teacher_insight_spec: { widgets: ['view_count', 'sync_status'] }
+    teacher_insight_spec: { widgets: ['view_count'] }
     telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], misconception_tags: [] }
-    ai_context_spec: { page_goal: '先交代对象与拉扯，再固定本课只产出无约束候选族。' }
-    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-01' }
-    acceptance_checks: ['对象卡与四类拉扯必须先于路径图和目标卡出现。', '本页无作答区。']
+    ai_context_spec: { page_goal: '显式呈现本课课程目标，不提前放入证据表和图片。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-02' }
+    acceptance_checks: ['本页必须只承载课程目标。', '本页不得提前出现数据表、图片或前测。']
 
-  step-02:
+  step-03:
     title: '四组经典试凑结果：多目标拉扯先被证据看见'
     layout:
-      template: 'evidence_table_plus_chart'
+      template: 'evidence_table_plus_chart_with_quiz'
       regions:
         - { id: 'table', width: 'full', order: 1 }
         - { id: 'media', width: 'full', order: 2 }
+        - { id: 'reading', width: 'full', order: 3 }
+        - { id: 'quiz', width: 'full', order: 4 }
     modules:
       - { id: 'trial-table', region: 'table', kind: 'native-table', must_be_visible: true }
-      - { id: 'reading-order', region: 'media', kind: 'summary-card', must_be_visible: true }
       - { id: 'diagnosis-figure', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'reading-order', region: 'reading', kind: 'summary-card', must_be_visible: true }
+      - { id: 'reading-conclusion', region: 'reading', kind: 'summary-card', must_be_visible: true }
+      - { id: 'pre-quiz', region: 'quiz', kind: 'quiz-group', must_be_visible: true }
     content_blocks:
       trial_table:
         columns: ['方案', '设计意图', '超调 / %', '调节时间 / s', '控制峰值', '相角裕度 / deg', '读数结论']
@@ -94,50 +121,23 @@ steps:
           - ['仅补低频', '继续改善低频行为', '41.2759', '176.1', '1.1195', '30.8006', '低频改善后，动态矛盾更突出']
           - ['方向过激', '直接把速度拉起来', '20.2410', '19.6', '25.0000', '47.8274', '速度收益显著，但动作代价骤增']
           - ['最小修正', '把动作强度收回一部分', '24.8740', '39.1', '6.0000', '43.4991', '动作被收回后，动态品质又开始回退']
+      diagnosis_figure:
+        runtime_media: '/course-runtime/lessons/4-4/media/4-4-ship-heading-diagnosis-compare.png'
+        caption: '客船航向保持首轮验证对比'
       reading_order:
         bullets:
           - '先看哪一组更快。'
           - '再看哪一组拖尾更短。'
           - '随后看哪一组主要在收动作代价。'
           - '最后判断为什么这些变化还没进入同一套评价语言。'
-      diagnosis_figure:
-        runtime_media: '/course-runtime/lessons/4-4/media/4-4-ship-heading-diagnosis-compare.png'
-        caption: '客船航向保持首轮验证对比'
-        conclusion: '固定结构没有失效，真正暴露出来的是多目标拉扯还缺统一比较语言。'
-    evidence_sequence: ['表 1', '读图口令', '诊断图', '图后结论']
-    interaction_spec: { interaction_kind: 'none', student_task: '只阅读，不提交。' }
-    teacher_controls: { release_activity: 'not_applicable', open_browse: 'not_applicable', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'not_applicable' }
-    student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: false }
-    teacher_insight_spec: { widgets: ['view_count'] }
-    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], misconception_tags: [] }
-    ai_context_spec: { page_goal: '先用首轮证据固定多目标拉扯，再进入前测与自由目标设计。' }
-    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-02' }
-    acceptance_checks: ['表格先于图出现。', '图后结论必须写出“缺统一比较语言”。']
-
-  step-03:
-    title: '前测：先判断哪些边界还没有被正式写进模型'
-    layout:
-      template: 'quiz_group_board'
-      regions:
-        - { id: 'header', width: 'full', order: 1 }
-        - { id: 'quiz', width: 'full', order: 2 }
-        - { id: 'closing', width: 'full', order: 3 }
-    modules:
-      - { id: 'pretest-title', region: 'header', kind: 'summary-card', must_be_visible: true }
-      - { id: 'pre-quiz', region: 'quiz', kind: 'quiz-group', must_be_visible: true }
-      - { id: 'pretest-note', region: 'closing', kind: 'summary-card', must_be_visible: true }
-    content_blocks:
-      pretest_title:
-        title: '前测'
-        text: '这一页不要求求参数，只要求先判断哪些话现在还不能说满。'
+      reading_conclusion:
+        text: '固定结构没有失效，真正暴露出来的是多目标拉扯还缺一套统一评价语言。'
       pre_quiz:
         questions:
           - { id: 'pre-quiz-1', prompt: '只要一组参数让时间更短、拖尾更小，是否就已经能当最终答案？', options: ['否', '是'] }
           - { id: 'pre-quiz-2', prompt: '参数范围和工程硬边界是不是同一种东西？', options: ['不是', '是'] }
           - { id: 'pre-quiz-3', prompt: '若任务从航向跟踪改成横摇抗扰，原目标函数能否直接照搬？', options: ['不能', '能'] }
-      pretest_note:
-        text: '若这三题里仍有判断不稳，后面的参数化、自由目标和边界案例就会被误读成“优化已经替工程裁决”。'
-    evidence_sequence: ['前测标题卡', '三题前测', '过渡说明']
+    evidence_sequence: ['表 1', '首轮对比图', '读图口令', '图后结论', '三题前测']
     interaction_spec:
       interaction_kind: 'quiz_group'
       student_task: '完成三题前测。'
@@ -149,9 +149,9 @@ steps:
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['question_distribution', 'top_misconceptions', 'completion_rate'] }
     telemetry_spec: { summary_fields: ['attemptCount', 'resultState', 'cardSubmitted'], misconception_tags: ['candidate_equals_delivery', 'range_equals_boundary', 'objective_reuse'] }
-    ai_context_spec: { page_goal: '在主体内容前先固定三条容易误判的边界。' }
+    ai_context_spec: { page_goal: '先用四组证据固定多目标拉扯，再把前测放到页面最后。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-03' }
-    acceptance_checks: ['前测必须独立成页。', '三题题干必须完整可见。']
+    acceptance_checks: ['表格和图片都必须通栏。', '前测必须位于本页最后。', '三题题干必须完整可见。']
 
   step-04:
     title: '参数化入口：起点、参数向量与参数范围从哪里来'
@@ -159,11 +159,14 @@ steps:
       template: 'parameterization_board'
       regions:
         - { id: 'formula', width: 'full', order: 1 }
-        - { id: 'table', width: 'full', order: 2 }
-        - { id: 'interaction', width: 'full', order: 3 }
+        - { id: 'evidence', width: 'full', order: 2 }
+        - { id: 'table', width: 'full', order: 3 }
+        - { id: 'interaction', width: 'full', order: 4 }
     modules:
       - { id: 'initial-controller', region: 'formula', kind: 'formula-card', must_be_visible: true }
       - { id: 'parameter-vector', region: 'formula', kind: 'formula-card', must_be_visible: true }
+      - { id: 'prior-result-figure', region: 'evidence', kind: 'image-panel', must_be_visible: true }
+      - { id: 'prior-result-metrics', region: 'evidence', kind: 'native-table', must_be_visible: true }
       - { id: 'range-table', region: 'table', kind: 'native-table', must_be_visible: true }
       - { id: 'range-note', region: 'table', kind: 'summary-card', must_be_visible: true }
       - { id: 'start-task', region: 'interaction', kind: 'activity-card', must_be_visible: true }
@@ -174,6 +177,20 @@ steps:
       parameter_vector:
         title: '本课参数化入口'
         body: 'θ=[K,T,α]^T,  C_h(s)=K(Ts+1)/(αTs+1),  0<α<1'
+      prior_result_figure:
+        runtime_media: '/course-runtime/lessons/4-4/media/4-4-ship-heading-optimization-compare.png'
+        caption: '上一轮设计结果回看'
+      prior_result_metrics:
+        columns: ['指标', '数值', '上一轮结果说明']
+        rows:
+          - ['调节时间 t_s / s', '36.0', '主过程偏慢']
+          - ['ITAE', '63.692', '拖尾仍偏大']
+          - ['ITSE', '16.528', '前中段误差强度仍需继续压低']
+          - ['控制能量 E_u', '125.715', '动作代价已不可忽视']
+          - ['截止频率 ω_c / rad/s', '0.180', '带宽仍偏低']
+          - ['相角裕度 / deg', '49.046', '仍有继续调整空间']
+          - ['超调 / %', '18.864', '前段动态形状仍不理想']
+          - ['控制峰值', '6.887', '动作峰值已开始抬高']
       range_table:
         columns: ['参数', '取值范围', '结构解释']
         rows:
@@ -183,21 +200,21 @@ steps:
       range_note:
         text: '参数范围只负责保持当前固定结构可解释，并不等于输出过程的工程复核条件。'
       start_task:
-        title: '起点为什么直接来自 4-3'
-        prompt: '请用一句话说明为什么这组参数适合作为优化起点。'
-    evidence_sequence: ['起始方案', '参数向量', '参数范围表', '范围说明', '作答卡']
+        title: '上一轮方案还能从哪些地方继续改进'
+        prompt: '你认为上一课中的方案还有哪些可以改进的地方？'
+    evidence_sequence: ['起始方案', '参数向量', '上一轮设计结果图片', '上一轮性能指标', '参数范围表', '范围说明', '作答卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
-      student_task: '说明为何当前起点直接来自 4-3。'
+      student_task: '根据上一轮结果指出仍可继续改进的地方。'
       activity_cards:
-        - { id: 'start-point-why', prompt: '为什么这组参数可以直接作为优化起点？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'improvement-gap', prompt: '你认为上一课中的方案还有哪些可以改进的地方？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['card_completion_rate', 'error_bucket_distribution'] }
     telemetry_spec: { summary_fields: ['cardSubmitted', 'errorBucket'], misconception_tags: ['random_restart', 'range_equals_boundary'] }
     ai_context_spec: { page_goal: '固定参数化入口与参数范围的职责边界。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-04' }
-    acceptance_checks: ['参数范围说明必须有独立模块承载。', '起始方案必须回接 4-3。']
+    acceptance_checks: ['参数范围说明必须有独立模块承载。', '本页必须补入上一轮结果图片和性能指标。', '作答题面必须改成“还有哪些可以改进的地方”。']
 
   step-05:
     title: '自由目标与归一化：怎样把偏好写成同一套比较语言'
@@ -205,42 +222,39 @@ steps:
       template: 'formula_workspace_board'
       regions:
         - { id: 'targets', width: 'full', order: 1 }
-        - { id: 'normalization', width: 'full', order: 2 }
-        - { id: 'formula', width: 'full', order: 3 }
-        - { id: 'interaction', width: 'full', order: 4 }
+        - { id: 'formula', width: 'full', order: 2 }
+        - { id: 'normalization', width: 'full', order: 3 }
+        - { id: 'meaning', width: 'full', order: 4 }
+        - { id: 'interaction', width: 'full', order: 5 }
     modules:
       - { id: 'target-cards', region: 'targets', kind: 'equation-card-row', must_be_visible: true }
-      - { id: 'normalization-table', region: 'normalization', kind: 'native-table', must_be_visible: true }
       - { id: 'jfree-card', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'meaning-table', region: 'formula', kind: 'table-card', must_be_visible: true }
+      - { id: 'normalization-meaning-table', region: 'normalization', kind: 'native-table', must_be_visible: true }
+      - { id: 'weight-note', region: 'meaning', kind: 'summary-card', must_be_visible: true }
       - { id: 'role-task', region: 'interaction', kind: 'activity-card', must_be_visible: true }
     content_blocks:
       target_cards:
-        - '调节时间 t_s'
-        - 'ITAE'
-        - 'ITSE'
-        - '控制能量 E_u'
-      normalization_table:
-        columns: ['归一化项', '数值', '来源']
+        - { title: '调节时间 t_s', note: '代表收敛速度' }
+        - { title: 'ITAE', note: '代表误差拖尾是否被压短' }
+        - { title: 'ITSE', note: '代表前中段强误差是否真的被压下去' }
+        - { title: '控制能量 E_u', note: '代表控制动作整体是否过于激进' }
+      normalization_meaning_table:
+        columns: ['归一化项', '数值', '来源', '这一项正在回答的问题']
         rows:
-          - ['t_s / 40', '40', '来自当前任务书中的速度期望']
-          - ['ITAE / ITAE_0', '63.6924', '4-3 起始方案的拖尾读数']
-          - ['ITSE / ITSE_0', '16.5282', '4-3 起始方案的误差强度读数']
-          - ['E_u / E_{u,0}', '125.7148', '4-3 起始方案的控制能量读数']
+          - ['t_s / 40', '40', '来自当前任务书中的速度期望', '能否更快收住']
+          - ['ITAE / ITAE_0', '63.6924', '4-3 起始方案的拖尾读数', '拖尾是否更短']
+          - ['ITSE / ITSE_0', '16.5282', '4-3 起始方案的误差强度读数', '前中段误差强度是否被压下去']
+          - ['E_u / E_{u,0}', '125.7148', '4-3 起始方案的控制能量读数', '动作代价是否被明显抬高']
       jfree_card:
         title: '无约束加权自由目标'
-        body: 'J_free(θ)=w_1·t_s/40+w_2·ITAE/ITAE_0+w_3·ITSE/ITSE_0+w_4·E_u/E_{u,0}'
-      meaning_table:
-        columns: ['项', '正在回答的问题']
-        rows:
-          - ['t_s / 40', '能否更快收住']
-          - ['ITAE / ITAE_0', '拖尾是否更短']
-          - ['ITSE / ITSE_0', '前中段误差强度是否被压下去']
-          - ['E_u / E_{u,0}', '动作代价是否被明显抬高']
+        body: 'J_{free}(θ)=w_1·t_s(θ)/40+w_2·ITAE(θ)/ITAE_0+w_3·ITSE(θ)/ITSE_0+w_4·E_u(θ)/E_{u,0},  Σw_i=1'
+      weight_note:
+        title: '讲义 5.3：权重代表的是偏好，而不是客观真理'
+        text: '权重不是脱离任务的固定常数，而是偏好的数值化表达。只要偏好一变，数值搜索的推进方向也会跟着变。'
       role_task:
         title: '收益项与代价项'
         prompt: '请写出哪两项更像收益，哪一项最明显是在记录动作代价。'
-    evidence_sequence: ['四类自由目标项', '归一化表', 'J_free 公式', '项义解释', '作答卡']
+    evidence_sequence: ['四类自由目标项', 'J_free 公式', '归一化来源与项义合并表', '权重说明', '作答卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
       student_task: '区分收益项与代价项。'
@@ -252,7 +266,7 @@ steps:
     telemetry_spec: { summary_fields: ['cardSubmitted', 'errorBucket'], misconception_tags: ['no_normalization', 'energy_as_gain'] }
     ai_context_spec: { page_goal: '固定自由目标与归一化来源，不在本页引入罚项。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-05' }
-    acceptance_checks: ['必须完整呈现四类自由目标和归一化来源。', '本页不得出现罚项。']
+    acceptance_checks: ['必须完整呈现四类自由目标和归一化来源。', 'J_free 必须独立通栏出现。', '归一化来源与项义说明必须合并为一个通栏模块。', '本页不得出现罚项。']
 
   step-06:
     title: '数值优化到底在这门课里做什么'
@@ -295,25 +309,29 @@ steps:
       template: 'worked_example_reveal_board'
       regions:
         - { id: 'problem', width: 'full', order: 1 }
-        - { id: 'reveal', width: 'full', order: 2 }
-        - { id: 'figure', width: 'full', order: 3 }
+        - { id: 'figure', width: 'half', order: 2 }
+        - { id: 'reveal', width: 'half', order: 3 }
     modules:
+      - { id: 'page-title', region: 'problem', kind: 'summary-card', must_be_visible: true }
       - { id: 'mini-problem', region: 'problem', kind: 'problem-statement', must_be_visible: true }
+      - { id: 'gradient-figure', region: 'figure', kind: 'native-figure', must_be_visible: true }
       - { id: 'gradient-reveal', region: 'reveal', kind: 'step-reveal', must_be_visible: true }
-      - { id: 'gradient-figure', region: 'figure', kind: 'image-panel', must_be_visible: true }
     content_blocks:
+      page_title:
+        title: '为什么搜索会沿代价面下滑'
+        text: '这一页只解决一件事：目标函数一旦写出，搜索为何会留下可读轨迹。'
       mini_problem:
         prompt: '先看一维目标函数 f(x)=(x-3)^2+1。若从 x_0=0 出发，按当前位置的负梯度方向不断更新，会发生什么？'
       gradient_reveal:
         steps:
-          - '当前位置先给出当前代价值。'
-          - '再判断局部梯度把更新方向指向哪里。'
-          - '最后说明更新后为什么更接近谷底。'
+          - '当前位置与当前函数值。'
+          - '局部梯度指向哪里。'
+          - '更新后位置与新的代价函数值。'
       gradient_figure:
-        runtime_media: '/course-runtime/lessons/4-4/media/4-4-gradient-descent-path.png'
-        caption: '梯度下降搜索路径'
+        source: 'native_gradient_descent_figure'
+        caption: '梯度下降原生示意图'
         conclusion: '这个例子不是替主案例求控制器参数，而是在给出“目标函数一旦写出，搜索就会在代价面上留下可读轨迹”的最小直观印象。'
-    evidence_sequence: ['完整题面', '逐步显影链', '梯度下降图', '图后解释']
+    evidence_sequence: ['页面标题', '完整题面', '梯度下降原生图', '逐步显影链', '图后解释']
     interaction_spec:
       interaction_kind: 'teacher_reveal_only'
       student_task: '只阅读，不提交。'
@@ -325,7 +343,7 @@ steps:
     telemetry_spec: { summary_fields: ['viewed', 'teacherRevealCount'], misconception_tags: [] }
     ai_context_spec: { page_goal: '给出梯度下降的最小直观印象，不把它误写成主案例求解过程。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-07' }
-    acceptance_checks: ['题面必须完整可见。', '逐步显影只隐藏步骤，不隐藏题面。']
+    acceptance_checks: ['题面必须完整可见。', '左侧必须为原生绘制图像。', '右侧显影内容必须显示当前位置与代价值。', '逐步显影只隐藏步骤，不隐藏题面。']
 
   step-08:
     title: '主案例总表：起始方案与三组无约束权重方案如何分化'
@@ -361,7 +379,7 @@ steps:
       weight_choice:
         question: '若当前最担心动作代价继续抬高，更应优先保留哪一组偏好？'
         options: ['A', 'B', 'C']
-    evidence_sequence: ['同一结构说明', '三组权重表', '表 4', '单选判断']
+    evidence_sequence: ['同一结构说明', '三组权重表', '表 5', '单选判断']
     interaction_spec:
       interaction_kind: 'single_choice'
       student_task: '判断当前更应优先保留哪一组偏好。'
@@ -373,7 +391,7 @@ steps:
     telemetry_spec: { summary_fields: ['attemptCount', 'resultState', 'errorBucket'], misconception_tags: ['weights_as_constants', 'candidate_is_unique'] }
     ai_context_spec: { page_goal: '固定三组权重、三类控制器与时域总表，不再退回单一旧候选。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-08' }
-    acceptance_checks: ['C 组权重必须是 0.20/0.25/0.25/0.30。', '表 4 必须包含三组控制器传函。']
+    acceptance_checks: ['C 组权重必须是 0.20/0.25/0.25/0.30。', '表 5 必须包含三组控制器传函。']
 
   step-09:
     title: '时域与频域对比：三组候选到底换来了什么'
@@ -408,7 +426,7 @@ steps:
       comparison_task:
         title: '为什么这些读数不会朝同一个方向同步变化'
         prompt: '请用一句话说明为什么同样是无约束优化，时域收益、频域读数和动作代价不会朝同一个方向同步变化。'
-    evidence_sequence: ['综合图', '时域回读', '表 5', '作答卡']
+    evidence_sequence: ['综合图', '时域回读', '表 6', '作答卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
       student_task: '用一句话说明为什么不同读数不会同步变化。'
@@ -420,7 +438,7 @@ steps:
     telemetry_spec: { summary_fields: ['cardSubmitted', 'errorBucket'], misconception_tags: ['single_direction_change', 'ignore_peak_cost'] }
     ai_context_spec: { page_goal: '把三组候选放回时域与频域证据重新阅读。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-09' }
-    acceptance_checks: ['必须出现综合图和表 5。', '本页不得回退为单个候选说明。']
+    acceptance_checks: ['必须出现综合图和表 6。', '本页不得回退为单个候选说明。']
 
   step-10:
     title: 'Pareto front：为什么会出现一族同样值得保留的设计'
@@ -428,13 +446,13 @@ steps:
       template: 'curve_evidence_board'
       regions:
         - { id: 'definition', width: 'full', order: 1 }
-        - { id: 'figure', width: 'full', order: 2 }
-        - { id: 'reading', width: 'full', order: 3 }
+        - { id: 'figure', width: 'half', order: 2 }
+        - { id: 'reading', width: 'half', order: 3 }
         - { id: 'interaction', width: 'full', order: 4 }
     modules:
       - { id: 'pareto-definition', region: 'definition', kind: 'formula-card', must_be_visible: true }
-      - { id: 'pareto-figure', region: 'figure', kind: 'image-panel', must_be_visible: true }
-      - { id: 'pareto-reading', region: 'reading', kind: 'summary-card', must_be_visible: true }
+      - { id: 'pareto-figure', region: 'figure', kind: 'native-figure', must_be_visible: true }
+      - { id: 'pareto-reading', region: 'reading', kind: 'stat-panel', must_be_visible: true }
       - { id: 'pareto-task', region: 'interaction', kind: 'single-choice-card', must_be_visible: true }
     content_blocks:
       pareto_definition:
@@ -442,17 +460,20 @@ steps:
         body: '(ITAE(θ), E_u(θ))'
         note: '任何一个目标再改善一点，就一定会让另一个目标变差，这组非支配候选才会构成 Pareto front。'
       pareto_figure:
-        runtime_media: '/course-runtime/lessons/4-4/media/4-4-pareto-front.png'
+        source: 'native_pareto_front_figure'
         caption: '主案例的 Pareto front'
       pareto_reading:
+        title: '当前候选点统计'
+        fields: ['ITAE', 'E_u', '调节时间 / s', '控制峰值', 'K', 'T', 'αT']
+        note: '拖动曲线上的候选点后，右侧面板必须同步显示同一数据点的统计。'
         bullets:
           - '越往左走，控制能量更小，但 ITAE 会明显变差。'
           - '越往上走，拖尾改善有限，但动作代价更容易被压低。'
-          - '前沿本身已经把拖尾和动作代价的矛盾关系可视化。'
+          - 'Pareto front 保留的是一组非支配候选，而不是一个绝对最优点。'
       pareto_task:
         question: '为什么 Pareto front 不是再选一个绝对最优？'
         options: ['因为它保留的是一组非支配候选', '因为图还没画完', '因为权重没有填完']
-    evidence_sequence: ['二目标定义', 'front 图', 'front 读法', '单选判断']
+    evidence_sequence: ['二目标定义', '前沿原生图', '当前点统计面板', '单选判断']
     interaction_spec:
       interaction_kind: 'single_choice'
       student_task: '判断 Pareto front 为什么不是再选一个绝对最优。'
@@ -464,7 +485,7 @@ steps:
     telemetry_spec: { summary_fields: ['attemptCount', 'resultState', 'errorBucket'], misconception_tags: ['pareto_equals_single_best', 'front_as_weight_table'] }
     ai_context_spec: { page_goal: '固定 Pareto front 的可视化意义，而不是退回最小例题。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-10' }
-    acceptance_checks: ['必须出现 front 图。', '解释必须写出“一组非支配候选”。']
+    acceptance_checks: ['公式和解释必须通栏放在顶部。', '左侧必须使用原生 Pareto 曲线。', '拖点与右侧统计必须读取同一组前沿数据。', '解释必须写出“一组非支配候选”。']
 
   step-11:
     title: '三个典型前沿点：它们为什么在 Pareto 意义下同样好'
@@ -480,7 +501,7 @@ steps:
       - { id: 'shared-structure', region: 'formula', kind: 'formula-card', must_be_visible: true }
       - { id: 'pareto-point-table', region: 'table', kind: 'native-table', must_be_visible: true }
       - { id: 'pareto-response-figure', region: 'figure', kind: 'image-panel', must_be_visible: true }
-      - { id: 'pareto-response-reading', region: 'figure', kind: 'summary-card', must_be_visible: true }
+      - { id: 'pareto-response-reading', region: 'meaning', kind: 'summary-card', must_be_visible: true }
       - { id: 'engineering-meaning', region: 'meaning', kind: 'summary-card', must_be_visible: true }
       - { id: 'pareto-point-task', region: 'interaction', kind: 'single-choice-card', must_be_visible: true }
     content_blocks:
@@ -510,7 +531,7 @@ steps:
       pareto_point_task:
         question: '为什么 P1、P2、P3 能在 Pareto 意义下“同样好”？'
         options: ['因为它们彼此之间都存在收益与代价交换', '因为三个点的数值完全一样', '因为只要在前沿上就自动可交付']
-    evidence_sequence: ['同一结构说明', '表 6', '响应图', '图后解释', '工程意义卡', '单选判断']
+    evidence_sequence: ['同一结构说明', '表 7', '响应图', '图后解释', '工程意义卡', '单选判断']
     interaction_spec:
       interaction_kind: 'single_choice'
       student_task: '判断为什么三个典型点在 Pareto 意义下同样好。'
@@ -522,7 +543,7 @@ steps:
     telemetry_spec: { summary_fields: ['attemptCount', 'resultState', 'errorBucket'], misconception_tags: ['front_equals_delivery', 'same_good_equals_same_value'] }
     ai_context_spec: { page_goal: '用参数表、响应图和工程意义卡固定典型前沿点的判断价值。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-11' }
-    acceptance_checks: ['必须同时呈现同一结构说明、表 6、响应图和工程意义卡。', '不得退化成单个选择题例子。']
+    acceptance_checks: ['表 7 必须先于图片出现。', '图片必须在表格下通栏显示。', '不得退化成单个选择题例子。']
 
   step-12:
     title: '横摇边界案例：目标语言一变，数值响应也必须跟着变'
@@ -564,7 +585,7 @@ steps:
           - '请写出横摇案例中，为什么原航向保持目标函数不能直接照搬。'
           - '请写出哪两项数值变化最能说明目标语言改了，搜索方向也改了。'
           - '请用一句话说明横摇案例里收益与代价是怎样重新分配的。'
-    evidence_sequence: ['对象与结构', '横摇自由目标', '表 7', '验证图', '两条回读结论', '三卡提交']
+    evidence_sequence: ['对象与结构', '横摇自由目标', '表 8', '验证图', '两条回读结论', '三卡提交']
     interaction_spec:
       interaction_kind: 'task_card_workspace'
       student_task: '分别提交三张最小判断卡。'
@@ -578,7 +599,7 @@ steps:
     telemetry_spec: { summary_fields: ['fieldCompletion', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['reuse_tracking_language', 'ignore_numeric_validation'] }
     ai_context_spec: { page_goal: '把横摇边界案例从目标语言改写推进到数值响应验证。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-12' }
-    acceptance_checks: ['必须同时出现横摇自由目标、表 7、验证图和两条回读结论。', '三张卡独立提交。']
+    acceptance_checks: ['必须同时出现横摇自由目标、表 8、验证图和两条回读结论。', '三张卡独立提交。']
 
   step-13:
     title: '后测：判断链是否已经形成'
@@ -594,13 +615,13 @@ steps:
       - { id: 'posttest-note', region: 'closing', kind: 'summary-card', must_be_visible: true }
     content_blocks:
       posttest_title:
-        title: '后测'
+        title: '阶段判断后测'
         text: '这一页只检查判断链，不负责总结和移交。'
       post_quiz:
         questions:
-          - { id: 'post-quiz-1', prompt: '为什么本课保留下来的只能叫“候选族”，而不是最终可用解？' }
-          - { id: 'post-quiz-2', prompt: '为什么 Pareto front 不是再选一个绝对最优？' }
-          - { id: 'post-quiz-3', prompt: '为什么横摇案例不能继续沿用航向保持中的目标语言？' }
+          - { id: 'post-quiz-1', prompt: '为什么本课保留下来的只能叫“候选族”，而不是最终可用解？', options: ['因为还没有经过 4-5 的工程复核', '因为参数还没有写成向量', '因为调节时间没有下降'] }
+          - { id: 'post-quiz-2', prompt: '为什么 Pareto front 不是再选一个绝对最优？', options: ['因为它保留的是一组非支配候选', '因为图还没画完', '因为权重没有归一化'] }
+          - { id: 'post-quiz-3', prompt: '为什么横摇案例不能继续沿用航向保持中的目标语言？', options: ['因为任务通道变了，收益项和代价项必须跟着改写', '因为横摇对象没有积分环节', '因为参数范围必须改成负数'] }
       posttest_note:
         text: '答题时必须同时回接本课中的证据页，而不是只重复名词定义。'
     evidence_sequence: ['后测标题卡', '三题后测']
@@ -608,16 +629,16 @@ steps:
       interaction_kind: 'quiz_group'
       student_task: '完成三题后测。'
       activity_cards:
-        - { id: 'post-quiz-1', prompt: '为什么本课保留下来的只能叫“候选族”，而不是最终可用解？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
-        - { id: 'post-quiz-2', prompt: '为什么 Pareto front 不是再选一个绝对最优？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
-        - { id: 'post-quiz-3', prompt: '为什么横摇案例不能继续沿用航向保持中的目标语言？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'post-quiz-1', prompt: '为什么本课保留下来的只能叫“候选族”，而不是最终可用解？', response_kind: 'single_choice', options: ['因为还没有经过 4-5 的工程复核', '因为参数还没有写成向量', '因为调节时间没有下降'], submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'post-quiz-2', prompt: '为什么 Pareto front 不是再选一个绝对最优？', response_kind: 'single_choice', options: ['因为它保留的是一组非支配候选', '因为图还没画完', '因为权重没有归一化'], submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'post-quiz-3', prompt: '为什么横摇案例不能继续沿用航向保持中的目标语言？', response_kind: 'single_choice', options: ['因为任务通道变了，收益项和代价项必须跟着改写', '因为横摇对象没有积分环节', '因为参数范围必须改成负数'], submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['question_distribution', 'top_misconceptions', 'completion_rate'] }
     telemetry_spec: { summary_fields: ['attemptCount', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['candidate_equals_delivery', 'pareto_equals_single_best'] }
     ai_context_spec: { page_goal: '用后测固定本课核心判断链。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-13' }
-    acceptance_checks: ['后测必须独立成页。', '三题题干必须完整可见。']
+    acceptance_checks: ['后测必须独立成页。', '三题后测都必须是选择题。', '三题题干必须完整可见。']
 
   step-14:
     title: '总结与移交：把候选族交给 4-5 做工程复核'
