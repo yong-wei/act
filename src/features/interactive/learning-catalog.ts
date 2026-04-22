@@ -29,6 +29,16 @@ import { UNIT_4_2_PREMIUM_LESSON_CARD } from '@/lib/unit-4-2-course';
 import { UNIT_4_3_PREMIUM_LESSON_CARD } from '@/lib/unit-4-3-course';
 import { UNIT_4_4_PREMIUM_LESSON_CARD } from '@/lib/unit-4-4-course';
 
+const UNIT_4_5_PREMIUM_LESSON_CARD = {
+  id: 'unit-4-5-constraint-aware-parameter-optimization',
+  title: '4-5：约束下的优化设计实践：参数约束翻译与带约束参数优化',
+  description:
+    '精品互动课：把越界证据、硬约束翻译、罚函数与带约束三方案比较连成一条可交付判断链。',
+  duration: '90 分钟',
+  href: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization',
+  badge: '精品课程',
+} as const;
+
 export interface InteractiveResource {
   id: string;
   title: string;
@@ -152,6 +162,7 @@ export const FEATURED_LESSONS = [
   UNIT_4_2_PREMIUM_LESSON_CARD,
   UNIT_4_3_PREMIUM_LESSON_CARD,
   UNIT_4_4_PREMIUM_LESSON_CARD,
+  UNIT_4_5_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -379,13 +390,14 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
     id: 'module-4',
     title: '模块4',
     description:
-      '模块4 当前开放 4-1、4-2、4-3、4-4 四个新主线单元，先把模块 3 的稳定、动态、稳态证据统一改写成任务表达卡，再把任务表达卡推进成单结构起步卡，并在 4-3 中落成第一版方案与首轮验证，随后进入 4-4 的多目标权衡与控制器优化设计。',
+      '模块4 当前开放 4-1、4-2、4-3、4-4、4-5 五个新主线单元，先把模块 3 的稳定、动态、稳态证据统一改写成任务表达卡，再把任务表达卡推进成单结构起步卡，并在 4-3 中落成第一版方案与首轮验证，随后进入 4-4 的多目标权衡与控制器优化设计，最后在 4-5 把越界证据翻译成约束化设计判断。',
     chipLabel: '设计入口主线',
     lessons: [
       createModuleLesson('unit-4-1-design-task-expression', '4-1'),
       createModuleLesson('unit-4-2-controller-selection-first-start', '4-2'),
       createModuleLesson('unit-4-3-initial-scheme-practice-first-validation', '4-3'),
       createModuleLesson('unit-4-4-fixed-structure-optimization-modeling', '4-4'),
+      createModuleLesson('unit-4-5-constraint-aware-parameter-optimization', '4-5'),
     ],
   },
 ] as const;

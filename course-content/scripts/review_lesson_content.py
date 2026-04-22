@@ -428,6 +428,12 @@ IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
         'lesson_steps_const': 'UNIT_4_1_LESSON_STEPS',
         'source_path': 'src/lib/unit-4-1-course.ts',
     },
+    '4-5': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-4-5-course.ts',
+        'page_contracts_const': 'UNIT_4_5_PAGE_CONTRACTS_REVIEW',
+        'lesson_steps_const': 'UNIT_4_5_LESSON_STEPS',
+        'source_path': 'src/lib/unit-4-5-course.ts',
+    },
     '3-6': {
         'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-3-6-course.ts',
         'page_contracts_const': 'UNIT_3_6_PAGE_CONTRACTS',

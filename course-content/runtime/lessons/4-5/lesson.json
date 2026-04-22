@@ -1,0 +1,152 @@
+{
+  "lesson_id": "4-5",
+  "title": "约束下的优化设计实践：参数约束翻译与带约束参数优化",
+  "layer": "层4",
+  "unit_type": "实践",
+  "hours": 2,
+  "knowledge_type": "D",
+  "graph_version": "4-5-v1",
+  "focus_node_ids": [
+    "越界证据记录单_4_45001",
+    "参数约束翻译表_4_45002",
+    "罚函数表达表_4_45003",
+    "求解记录单_4_45004",
+    "优化前后证据比较表_4_45005",
+    "剩余风险说明_4_45006"
+  ],
+  "reuse_node_ids": [
+    "优化起点与归一化来源_4_44003",
+    "权重偏好与无约束候选解_4_44005",
+    "展示解与Pareto最小取舍_4_44006",
+    "任务通道变化下的自由目标改写_4_44007",
+    "调节时间_4_d3f3314b",
+    "超调量_5_3d015714",
+    "相角裕度_5_5a74b451",
+    "带宽频率_5_6996a44a"
+  ],
+  "entry_nodes": [
+    "越界证据记录单_4_45001",
+    "参数约束翻译表_4_45002"
+  ],
+  "summary_nodes": [
+    "优化前后证据比较表_4_45005",
+    "剩余风险说明_4_45006"
+  ],
+  "card_order": [
+    "权重偏好与无约束候选解_4_44005",
+    "调节时间_4_d3f3314b",
+    "超调量_5_3d015714",
+    "相角裕度_5_5a74b451",
+    "优化起点与归一化来源_4_44003",
+    "越界证据记录单_4_45001",
+    "参数约束翻译表_4_45002",
+    "罚函数表达表_4_45003",
+    "求解记录单_4_45004",
+    "展示解与Pareto最小取舍_4_44006",
+    "优化前后证据比较表_4_45005",
+    "带宽频率_5_6996a44a",
+    "任务通道变化下的自由目标改写_4_44007",
+    "剩余风险说明_4_45006"
+  ],
+  "preceding_lesson": "4-4",
+  "following_lesson": "4-6",
+  "refinement_units": [],
+  "ideological_point": "工程优化不能把越界代价埋进更漂亮的指标里。先把底线写清，再比较收益，才是对对象、执行机构和任务责任都负责的设计判断。",
+  "sequence": {
+    "lesson_id": "4-5",
+    "groups": [
+      {
+        "group_name": "无约束候选回收",
+        "step_ids": [
+          "step-01",
+          "step-02"
+        ],
+        "node_ids": [
+          "权重偏好与无约束候选解_4_44005",
+          "调节时间_4_d3f3314b",
+          "超调量_5_3d015714",
+          "相角裕度_5_5a74b451",
+          "越界证据记录单_4_45001"
+        ]
+      },
+      {
+        "group_name": "约束翻译与职责区分",
+        "step_ids": [
+          "step-03",
+          "step-04"
+        ],
+        "node_ids": [
+          "优化起点与归一化来源_4_44003",
+          "参数约束翻译表_4_45002"
+        ]
+      },
+      {
+        "group_name": "罚函数与求解实现",
+        "step_ids": [
+          "step-05",
+          "step-06"
+        ],
+        "node_ids": [
+          "罚函数表达表_4_45003",
+          "求解记录单_4_45004"
+        ]
+      },
+      {
+        "group_name": "统一证据比较",
+        "step_ids": [
+          "step-07",
+          "step-08"
+        ],
+        "node_ids": [
+          "展示解与Pareto最小取舍_4_44006",
+          "优化前后证据比较表_4_45005"
+        ]
+      },
+      {
+        "group_name": "剩余风险与移交",
+        "step_ids": [
+          "step-09",
+          "step-10"
+        ],
+        "node_ids": [
+          "带宽频率_5_6996a44a",
+          "任务通道变化下的自由目标改写_4_44007",
+          "剩余风险说明_4_45006"
+        ]
+      }
+    ],
+    "card_order": [
+      "权重偏好与无约束候选解_4_44005",
+      "调节时间_4_d3f3314b",
+      "超调量_5_3d015714",
+      "相角裕度_5_5a74b451",
+      "优化起点与归一化来源_4_44003",
+      "越界证据记录单_4_45001",
+      "参数约束翻译表_4_45002",
+      "罚函数表达表_4_45003",
+      "求解记录单_4_45004",
+      "展示解与Pareto最小取舍_4_44006",
+      "优化前后证据比较表_4_45005",
+      "带宽频率_5_6996a44a",
+      "任务通道变化下的自由目标改写_4_44007",
+      "剩余风险说明_4_45006"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/4-5/handout.md",
+  "handout_source_path": "course-content/runtime/lessons/4-5/handout.md",
+  "handout_pdf_path": "/course-runtime/lessons/4-5/handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/4-5/handout.pdf",
+  "graph_overlay_path": "/course-runtime/lessons/4-5/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/4-5/media",
+  "media_index_path": "/course-runtime/lessons/4-5/media/4-5-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/4-5/media/4-5-media.md",
+  "review": {
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/4-5/review/boppps.md",
+    "report_path": "/course-runtime/lessons/4-5/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/4-5/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/4-5/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/4-5/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/4-5/review/source-manifest.json"
+  }
+}

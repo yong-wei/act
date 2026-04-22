@@ -1,0 +1,1020 @@
+{
+  "lesson_id": "4-5",
+  "title": "约束下的优化设计实践：参数约束翻译与带约束参数优化",
+  "focus_node_ids": [
+    "越界证据记录单_4_45001",
+    "参数约束翻译表_4_45002",
+    "罚函数表达表_4_45003",
+    "求解记录单_4_45004",
+    "优化前后证据比较表_4_45005",
+    "剩余风险说明_4_45006"
+  ],
+  "reuse_node_ids": [
+    "优化起点与归一化来源_4_44003",
+    "权重偏好与无约束候选解_4_44005",
+    "展示解与Pareto最小取舍_4_44006",
+    "任务通道变化下的自由目标改写_4_44007",
+    "调节时间_4_d3f3314b",
+    "超调量_5_3d015714",
+    "相角裕度_5_5a74b451",
+    "带宽频率_5_6996a44a"
+  ],
+  "entry_nodes": [
+    "越界证据记录单_4_45001",
+    "参数约束翻译表_4_45002"
+  ],
+  "summary_nodes": [
+    "优化前后证据比较表_4_45005",
+    "剩余风险说明_4_45006"
+  ],
+  "card_order": [
+    "权重偏好与无约束候选解_4_44005",
+    "调节时间_4_d3f3314b",
+    "超调量_5_3d015714",
+    "相角裕度_5_5a74b451",
+    "优化起点与归一化来源_4_44003",
+    "越界证据记录单_4_45001",
+    "参数约束翻译表_4_45002",
+    "罚函数表达表_4_45003",
+    "求解记录单_4_45004",
+    "展示解与Pareto最小取舍_4_44006",
+    "优化前后证据比较表_4_45005",
+    "带宽频率_5_6996a44a",
+    "任务通道变化下的自由目标改写_4_44007",
+    "剩余风险说明_4_45006"
+  ],
+  "groups": [
+    {
+      "group_name": "无约束候选回收",
+      "step_ids": [
+        "step-01",
+        "step-02"
+      ],
+      "node_ids": [
+        "权重偏好与无约束候选解_4_44005",
+        "调节时间_4_d3f3314b",
+        "超调量_5_3d015714",
+        "相角裕度_5_5a74b451",
+        "越界证据记录单_4_45001"
+      ]
+    },
+    {
+      "group_name": "约束翻译与职责区分",
+      "step_ids": [
+        "step-03",
+        "step-04"
+      ],
+      "node_ids": [
+        "优化起点与归一化来源_4_44003",
+        "参数约束翻译表_4_45002"
+      ]
+    },
+    {
+      "group_name": "罚函数与求解实现",
+      "step_ids": [
+        "step-05",
+        "step-06"
+      ],
+      "node_ids": [
+        "罚函数表达表_4_45003",
+        "求解记录单_4_45004"
+      ]
+    },
+    {
+      "group_name": "统一证据比较",
+      "step_ids": [
+        "step-07",
+        "step-08"
+      ],
+      "node_ids": [
+        "展示解与Pareto最小取舍_4_44006",
+        "优化前后证据比较表_4_45005"
+      ]
+    },
+    {
+      "group_name": "剩余风险与移交",
+      "step_ids": [
+        "step-09",
+        "step-10"
+      ],
+      "node_ids": [
+        "带宽频率_5_6996a44a",
+        "任务通道变化下的自由目标改写_4_44007",
+        "剩余风险说明_4_45006"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "任务通道变化下的自由目标改写_4_44007",
+      "name": "任务通道变化下的自由目标改写",
+      "nodeType": "THEORY",
+      "description": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
+      "positionX": -112.0,
+      "positionY": -30.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
+        "examples": [
+          "横摇抗扰中，RMS 与谐振峰比调节时间和 `ITAE` 更能描述目标。",
+          "若沿用航向保持的自由目标去比较横摇案例，求解器会沿错误方向搜索。"
+        ],
+        "formulas": [
+          "J_r(k)=0.60\\frac{RMS(\\varphi)}{RMS(\\varphi)_0}+0.25\\frac{\\max_\\omega|T_d(j\\omega)|}{\\max_\\omega|T_d(j\\omega)|_0}+0.15\\frac{RMS(u)}{RMS(u)_0}"
+        ],
+        "prerequisites": [
+          "无约束加权目标表达_4_44004",
+          "展示解与Pareto最小取舍_4_44006"
+        ],
+        "relatedConcepts": [
+          "扰动抑制中的通道重写边界_4_43006"
+        ],
+        "difficulty": 5,
+        "importance": 5,
+        "keywords": [
+          "自由目标改写",
+          "任务通道",
+          "横摇抗扰"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/任务通道变化下的自由目标改写_4_44007.md"
+      ],
+      "tags": [
+        "自由目标改写",
+        "任务通道",
+        "横摇抗扰",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "优化前后证据比较表_4_45005",
+      "name": "优化前后证据比较表",
+      "nodeType": "THEORY",
+      "description": "把起始方案、无约束候选和带约束可用解放到同一证据框架里比较，说明约束究竟牺牲了什么，又换回了什么。",
+      "positionX": -100.5,
+      "positionY": -58.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "把起始方案、无约束候选和带约束可用解放到同一证据框架里比较，说明约束究竟牺牲了什么，又换回了什么。",
+        "examples": [
+          "客船案例中，带约束解不再追求无约束候选那种极端时间收益，而是换回了可交付性、控制峰值边界和更稳妥的余量。",
+          "同一权重下两组不同最优解并存，说明变化发生在可行域，而不是偏好语言本身。"
+        ],
+        "formulas": [
+          "\\mathcal{E}_{cmp}=\\{\\theta_0,\\ \\theta_u,\\ \\theta_c\\}\\times\\{M_p,\\ t_s,\\ ITAE,\\ ITSE,\\ E_u,\\ u_{\\max},\\ \\phi_m\\}"
+        ],
+        "prerequisites": [
+          "求解记录单_4_45004",
+          "展示解与Pareto最小取舍_4_44006"
+        ],
+        "relatedConcepts": [
+          "剩余风险说明_4_45006"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "证据比较",
+          "三方案对比",
+          "可行域",
+          "工程解释"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/优化前后证据比较表_4_45005.md"
+      ],
+      "tags": [
+        "证据比较",
+        "三方案对比",
+        "可行域",
+        "工程解释",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "优化起点与归一化来源_4_44003",
+      "name": "优化起点与归一化来源",
+      "nodeType": "THEORY",
+      "description": "固定结构优化中的参数向量、参数范围和归一化基准必须来自已有设计证据，其中起点来自上一轮可运行方案，归一化基准来自任务书或首轮仿真结果。",
+      "positionX": -82.0,
+      "positionY": -82.0,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "固定结构优化中的参数向量、参数范围和归一化基准必须来自已有设计证据，其中起点来自上一轮可运行方案，归一化基准来自任务书或首轮仿真结果。",
+        "examples": [
+          "客船案例把 `4-3` 的超前校正方案直接写成参数向量起点。",
+          "`ITAE_0`、`ITSE_0` 和 `E_{u,0}` 都来自起始方案读数，而不是临时手填。"
+        ],
+        "formulas": [
+          "\\theta=[K,\\,T,\\,\\alpha]^\\mathsf{T},\\qquad C_h(s)=K\\frac{Ts+1}{\\alpha Ts+1}"
+        ],
+        "prerequisites": [
+          "单结构首轮起步卡_4_42001",
+          "参数方向表达卡_4_43003",
+          "固定结构自由目标项选择_4_44002"
+        ],
+        "relatedConcepts": [
+          "无约束加权目标表达_4_44004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "优化起点",
+          "归一化",
+          "参数范围"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/优化起点与归一化来源_4_44003.md"
+      ],
+      "tags": [
+        "优化起点",
+        "归一化",
+        "参数范围",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "剩余风险说明_4_45006",
+      "name": "剩余风险说明",
+      "nodeType": "THEORY",
+      "description": "在确认当前参数解已经可用之后，继续指出其贴近边界的位置和固定结构仍未解决的问题，为 `4-6` 的场景迁移与结构边界分析留下清晰移交。",
+      "positionX": -30.0,
+      "positionY": -112.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "在确认当前参数解已经可用之后，继续指出其贴近边界的位置和固定结构仍未解决的问题，为 `4-6` 的场景迁移与结构边界分析留下清晰移交。",
+        "examples": [
+          "客船案例中，带约束解虽然守住 `u_{\\max}\\le 7`，但控制峰值已经贴近 `7` 的上限，说明余量并不宽松。",
+          "同一性能指标函数下，PID 与超前结构的最优点落在完全不同的代价分布上，说明结构差异已开始主导结果。"
+        ],
+        "formulas": [
+          "u_{\\max}^*=6.996\\approx 7,\\qquad \\text{fixed structure feasible} \\neq \\text{structure limit solved}"
+        ],
+        "prerequisites": [
+          "优化前后证据比较表_4_45005",
+          "任务通道变化下的自由目标改写_4_44007"
+        ],
+        "relatedConcepts": [
+          "带宽频率_5_6996a44a"
+        ],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "剩余风险",
+          "边界余量",
+          "结构限制",
+          "移交"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/剩余风险说明_4_45006.md"
+      ],
+      "tags": [
+        "剩余风险",
+        "边界余量",
+        "结构限制",
+        "移交",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "参数约束翻译表_4_45002",
+      "name": "参数约束翻译表",
+      "nodeType": "THEORY",
+      "description": "把输出侧硬约束和参数范围分别翻译成求解器可直接消费的不等式、上下界与读回规则，避免把不同职责的约束混写。",
+      "positionX": 122.0,
+      "positionY": 0.0,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把输出侧硬约束和参数范围分别翻译成求解器可直接消费的不等式、上下界与读回规则，避免把不同职责的约束混写。",
+        "examples": [
+          "客船案例中，`M_p\\le 20\\%`、`u_{\\max}\\le 7` 与 `\\phi_m\\ge 45^\\circ` 应进入 `nonlcon`，而 `1\\le K\\le 6` 属于参数上下界。",
+          "若把参数范围误当成工程可交付边界，求解器仍会在结构上说得通、工程上却失真的区域里搜索。"
+        ],
+        "formulas": [
+          "c(\\theta)=\\begin{bmatrix}M_p(\\theta)-20\\\\u_{\\max}(\\theta)-7\\\\45-\\phi_m(\\theta)\\end{bmatrix}\\le 0,\\qquad lb\\le \\theta\\le ub"
+        ],
+        "prerequisites": [
+          "越界证据记录单_4_45001",
+          "优化起点与归一化来源_4_44003"
+        ],
+        "relatedConcepts": [
+          "罚函数表达表_4_45003",
+          "求解记录单_4_45004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "约束翻译",
+          "nonlcon",
+          "上下界",
+          "职责分工"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/参数约束翻译表_4_45002.md"
+      ],
+      "tags": [
+        "约束翻译",
+        "nonlcon",
+        "上下界",
+        "职责分工",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "展示解与Pareto最小取舍_4_44006",
+      "name": "展示解与Pareto最小取舍",
+      "nodeType": "THEORY",
+      "description": "展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优；最小 Pareto 概念用来说明不同候选可能各自在不同目标上占优。",
+      "positionX": -31.6,
+      "positionY": 117.8,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优；最小 Pareto 概念用来说明不同候选可能各自在不同目标上占优。",
+        "examples": [
+          "动作代价最低的候选不一定适合作为展示解，因为它可能同时拖长过程。",
+          "更快的候选也不自动胜出，因为它可能只是更贴合当前偏好，而不是在所有目标上都最好。"
+        ],
+        "formulas": [
+          "\\text{展示解}\\neq \\text{单列最优},\\qquad \\text{Pareto}:\\ \\text{不同候选可分别在不同目标上占优}"
+        ],
+        "prerequisites": [
+          "权重偏好与无约束候选解_4_44005"
+        ],
+        "relatedConcepts": [
+          "任务通道变化下的自由目标改写_4_44007"
+        ],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "展示解",
+          "Pareto",
+          "取舍"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/展示解与Pareto最小取舍_4_44006.md"
+      ],
+      "tags": [
+        "展示解",
+        "Pareto",
+        "取舍",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "权重偏好与无约束候选解_4_44005",
+      "name": "权重偏好与无约束候选解",
+      "nodeType": "THEORY",
+      "description": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
+      "positionX": -0.0,
+      "positionY": -122.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
+        "examples": [
+          "客船案例中，`C_u(s)=5\\frac{10s+1}{2s+1}` 会显著压低时间指标和拖尾。",
+          "若权重更重视动作代价，求解器就会倾向另一类更保守的候选。"
+        ],
+        "formulas": [
+          "C_u(s)=5\\frac{10s+1}{2s+1}"
+        ],
+        "prerequisites": [
+          "无约束加权目标表达_4_44004"
+        ],
+        "relatedConcepts": [
+          "展示解与Pareto最小取舍_4_44006"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "权重",
+          "偏好",
+          "候选解"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/权重偏好与无约束候选解_4_44005.md"
+      ],
+      "tags": [
+        "权重",
+        "偏好",
+        "候选解",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "求解记录单_4_45004",
+      "name": "求解记录单",
+      "nodeType": "THEORY",
+      "description": "把变量、初值、参数上下界、目标函数、`nonlcon` 和最终参数解写成同一份记录单，用来保证求解过程可复核、可复现。",
+      "positionX": -128.0,
+      "positionY": 0.0,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把变量、初值、参数上下界、目标函数、`nonlcon` 和最终参数解写成同一份记录单，用来保证求解过程可复核、可复现。",
+        "examples": [
+          "客船案例把 `x0=[2.796,10,0.406]^\\mathsf T`、上下界和 `fmincon` 输出 `x^*` 统一收在一张记录单里。",
+          "学生若只报最终参数而不说明目标函数和边界来源，记录单就是不完整的。"
+        ],
+        "formulas": [
+          "\\mathcal{R}_{solve}=(x_0,\\ lb,\\ ub,\\ J(\\theta),\\ c(\\theta),\\ x^*,\\ f(x^*))"
+        ],
+        "prerequisites": [
+          "罚函数表达表_4_45003",
+          "优化起点与归一化来源_4_44003"
+        ],
+        "relatedConcepts": [
+          "优化前后证据比较表_4_45005"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "求解记录",
+          "fmincon",
+          "初值",
+          "复现"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/求解记录单_4_45004.md"
+      ],
+      "tags": [
+        "求解记录",
+        "fmincon",
+        "初值",
+        "复现",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "罚函数表达表_4_45003",
+      "name": "罚函数表达表",
+      "nodeType": "THEORY",
+      "description": "把越界代价显性写进总代价函数，使求解器在原有偏好不变的前提下主动远离不可交付区域。",
+      "positionX": 90.5,
+      "positionY": -90.5,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把越界代价显性写进总代价函数，使求解器在原有偏好不变的前提下主动远离不可交付区域。",
+        "examples": [
+          "客船案例中，超调、控制峰值和相角裕度分别以平方罚项进入总代价，越界越严重，总代价放大越快。",
+          "当结果未越界时，罚函数为零，搜索仍按原有偏好推进。"
+        ],
+        "formulas": [
+          "J_{con}(\\theta)=J_{free}(\\theta)+50\\max(0,M_p-20)^2+20\\max(0,u_{\\max}-7)^2+5\\max(0,45-\\phi_m)^2"
+        ],
+        "prerequisites": [
+          "参数约束翻译表_4_45002",
+          "优化起点与归一化来源_4_44003"
+        ],
+        "relatedConcepts": [
+          "求解记录单_4_45004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "罚函数",
+          "总代价",
+          "越界代价",
+          "显性边界"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/罚函数表达表_4_45003.md"
+      ],
+      "tags": [
+        "罚函数",
+        "总代价",
+        "越界代价",
+        "显性边界",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "调节时间_4_d3f3314b",
+      "name": "调节时间",
+      "nodeType": "THEORY",
+      "description": "系统响应进入并保持在稳态值允许误差带内所需的最短时间，取决于最靠近虚轴的闭环极点的实部。",
+      "positionX": 129.4,
+      "positionY": 34.7,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "根轨迹分析",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "根轨迹分析",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "系统响应进入并保持在稳态值允许误差带内所需的最短时间，取决于最靠近虚轴的闭环极点的实部。",
+        "examples": [
+          "自动焊接头控制要求调节时间小于3秒，通过配置极点实部满足要求。",
+          "例4-9中，要求调节时间不超过某个值，是设计自动驾驶仪的性能指标之一。",
+          "在车辆控制系统中，要求调节时间小于规定值以保证快速响应。"
+        ],
+        "formulas": [
+          "t_s = \\frac{4.4}{\\sigma}",
+          "t_s \\approx \\frac{4}{\\zeta \\omega_n} \\quad (\\text{对于2%误差带})",
+          "$t_s$"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "稳态误差带",
+          "极点实部",
+          "响应速度",
+          "性能指标",
+          "稳态",
+          "调节时间",
+          "瞬态性能"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628302",
+        "updatedAt": "2026-02-04T17:54:16.628302",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/调节时间_4_d3f3314b.md"
+      ],
+      "tags": [
+        "稳态误差带",
+        "极点实部",
+        "响应速度",
+        "性能指标",
+        "稳态",
+        "调节时间",
+        "瞬态性能",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "越界证据记录单_4_45001",
+      "name": "越界证据记录单",
+      "nodeType": "THEORY",
+      "description": "把无约束候选重新放回超调、控制峰值、相角裕度和控制能量等统一证据中复核，用来判断它究竟是在什么边界上失真。",
+      "positionX": 34.7,
+      "positionY": 129.4,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "把无约束候选重新放回超调、控制峰值、相角裕度和控制能量等统一证据中复核，用来判断它究竟是在什么边界上失真。",
+        "examples": [
+          "客船航向保持中，无约束候选虽然缩短了调节时间，却把控制峰值推到 `25`，同时超调超过 `20%`。",
+          "同一张记录单要求学生同时读取收益和越界代价，而不是只看一列更优指标。"
+        ],
+        "formulas": [
+          "\\mathcal{E}_{vio}=(M_p,\\ u_{\\max},\\ \\phi_m,\\ t_s,\\ ITAE,\\ ITSE,\\ E_u)"
+        ],
+        "prerequisites": [
+          "权重偏好与无约束候选解_4_44005",
+          "超调量_5_3d015714",
+          "相角裕度_5_5a74b451",
+          "调节时间_4_d3f3314b"
+        ],
+        "relatedConcepts": [
+          "参数约束翻译表_4_45002"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "越界证据",
+          "无约束候选",
+          "统一复核",
+          "工程失真"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/越界证据记录单_4_45001.md"
+      ],
+      "tags": [
+        "越界证据",
+        "无约束候选",
+        "统一复核",
+        "工程失真",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "带宽频率_5_6996a44a",
+      "name": "带宽频率",
+      "nodeType": "THEORY",
+      "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
+      "positionX": 39.9,
+      "positionY": -148.8,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
+        "examples": [
+          "对于一阶系统，ω_b=1/T；对于二阶系统，ω_b与ω_n和ζ有关。",
+          "磁盘驱动读取系统：从图5-59确定闭环带宽频率ωb=2000 rad/s。",
+          "机械臂控制系统：需要计算闭环系统的带宽频率ωb。"
+        ],
+        "formulas": [
+          "20\\lg|\\Phi(j\\omega_b)| = 20\\lg|\\Phi(j0)| - 3"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "3dB点",
+          "闭环幅频特性",
+          "闭环频率特性",
+          "响应速度",
+          "截止频率"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628615",
+        "updatedAt": "2026-02-04T17:54:16.628615",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/带宽频率_5_6996a44a.md"
+      ],
+      "tags": [
+        "3dB点",
+        "闭环幅频特性",
+        "闭环频率特性",
+        "响应速度",
+        "截止频率",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "相角裕度_5_5a74b451",
+      "name": "相角裕度",
+      "nodeType": "THEORY",
+      "description": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
+      "positionX": -80.0,
+      "positionY": -138.6,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
+        "examples": [
+          "例5-13计算典型二阶系统的相角裕度与阻尼比的关系。",
+          "例5-14计算不同开环增益下的相角裕度。",
+          "雕刻机系统：相角裕度γ=53°，表明闭环系统稳定。",
+          "磁盘驱动读取系统：通过图5-58确定相角裕度γ=45°。"
+        ],
+        "formulas": [
+          "\\gamma = 180^\\circ + \\varphi(\\omega_c)",
+          "\\gamma = 180^\\circ + \\angle G(j\\omega_c)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "截止频率",
+          "相位滞后",
+          "临界稳定",
+          "稳定性",
+          "开环频率特性"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628585",
+        "updatedAt": "2026-02-04T17:54:16.628586",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md"
+      ],
+      "tags": [
+        "截止频率",
+        "相位滞后",
+        "临界稳定",
+        "稳定性",
+        "开环频率特性",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "超调量_5_3d015714",
+      "name": "超调量",
+      "nodeType": "THEORY",
+      "description": "系统阶跃响应中，输出最大值超出稳态值的百分比，是衡量系统动态性能的指标之一。",
+      "positionX": 83.0,
+      "positionY": 143.8,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "频域分析",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "频域分析",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "系统阶跃响应中，输出最大值超出稳态值的百分比，是衡量系统动态性能的指标之一。",
+        "examples": [
+          "雕刻机系统：根据二阶近似模型估算超调量σ%=25%。",
+          "磁盘驱动读取系统：利用公式估算单位阶跃响应的超调量。"
+        ],
+        "formulas": [
+          "\\sigma\\% = e^{-\\pi\\zeta/\\sqrt{1-\\zeta^2}}\\times 100\\%"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 2,
+        "importance": 4,
+        "keywords": [
+          "阶跃响应",
+          "阻尼比",
+          "动态性能"
+        ],
+        "createdAt": "2026-02-04T17:54:16.628685",
+        "updatedAt": "2026-02-04T17:54:16.628685",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/超调量_5_3d015714.md"
+      ],
+      "tags": [
+        "阶跃响应",
+        "阻尼比",
+        "动态性能",
+        "chapter-5"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "调节时间|带宽频率|4-5",
+      "sourceId": "调节时间_4_d3f3314b",
+      "targetId": "带宽频率_5_6996a44a",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "相角裕度|超调量|5",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "超调量_5_3d015714",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.7
+    },
+    {
+      "id": "带宽频率|超调量|5",
+      "sourceId": "带宽频率_5_6996a44a",
+      "targetId": "超调量_5_3d015714",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.6
+    },
+    {
+      "id": "rel-1de0ce3af0c8fbab",
+      "sourceId": "权重偏好与无约束候选解_4_44005",
+      "targetId": "展示解与Pareto最小取舍_4_44006",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-809f5a04bc0e231c",
+      "sourceId": "展示解与Pareto最小取舍_4_44006",
+      "targetId": "任务通道变化下的自由目标改写_4_44007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-1dbd8dae234b018f",
+      "sourceId": "任务通道变化下的自由目标改写_4_44007",
+      "targetId": "剩余风险说明_4_45006",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.84
+    },
+    {
+      "id": "rel-339c78befb8902a1",
+      "sourceId": "优化起点与归一化来源_4_44003",
+      "targetId": "参数约束翻译表_4_45002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-4e2c29af3a255126",
+      "sourceId": "优化起点与归一化来源_4_44003",
+      "targetId": "求解记录单_4_45004",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-602ba1077478682e",
+      "sourceId": "超调量_5_3d015714",
+      "targetId": "越界证据记录单_4_45001",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-6c8dd083c1ecb896",
+      "sourceId": "展示解与Pareto最小取舍_4_44006",
+      "targetId": "优化前后证据比较表_4_45005",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-7fc4fabdc79d5ade",
+      "sourceId": "罚函数表达表_4_45003",
+      "targetId": "求解记录单_4_45004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-8ce4575dc548bea2",
+      "sourceId": "越界证据记录单_4_45001",
+      "targetId": "参数约束翻译表_4_45002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
+    },
+    {
+      "id": "rel-8e6e872a2e144d8e",
+      "sourceId": "相角裕度_5_5a74b451",
+      "targetId": "越界证据记录单_4_45001",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.86
+    },
+    {
+      "id": "rel-bd0482107d8b97e7",
+      "sourceId": "求解记录单_4_45004",
+      "targetId": "优化前后证据比较表_4_45005",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
+    },
+    {
+      "id": "rel-c92737e0e8480f44",
+      "sourceId": "权重偏好与无约束候选解_4_44005",
+      "targetId": "越界证据记录单_4_45001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-d4824edbbc8865da",
+      "sourceId": "优化前后证据比较表_4_45005",
+      "targetId": "剩余风险说明_4_45006",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-f979429951fdf561",
+      "sourceId": "参数约束翻译表_4_45002",
+      "targetId": "罚函数表达表_4_45003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.98
+    }
+  ]
+}
