@@ -1,56 +1,29 @@
 import type { BopppsStage } from '@prisma/client';
 
 import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
-import type { StepAIContext } from '@/types/ai-context';
+import {
+  getInteractiveRuntimeStep,
+  isInteractiveRuntimePageType,
+  type InteractiveInteractionKind,
+  type InteractiveRuntimeManifest,
+  type InteractiveRuntimeStepManifest,
+} from '@/lib/interactive-lesson-manifest';
 
 export type UNIT_4_3StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
-export type UNIT_4_3TeacherControlMode =
-  | 'not_applicable'
-  | 'page_load_open'
-  | 'teacher_toggle'
-  | 'teacher_direct';
+export type UNIT_4_3PageType = InteractiveInteractionKind;
 
-export type UNIT_4_3PageType =
-  | 'display'
-  | 'quiz_group'
-  | 'activity_card_set'
-  | 'single_choice'
-  | 'worked_example_reveal'
-  | 'task_card_workspace';
-
-export interface UNIT_4_3PageRegionContract {
-  id: string;
-  width: 'full' | 'half';
-  order: number;
-}
-
-export interface UNIT_4_3PageContract {
-  layout: {
-    template: string;
-    regions: UNIT_4_3PageRegionContract[];
-  };
-  interactionKind: Exclude<UNIT_4_3PageType, 'display'> | 'none';
-  teacherControls: {
-    releaseActivity: UNIT_4_3TeacherControlMode;
-    openBrowse: UNIT_4_3TeacherControlMode;
-    teacherStepReveal: UNIT_4_3TeacherControlMode;
-    revealReferenceAnswer: UNIT_4_3TeacherControlMode;
-  };
-  teacherInsightWidgets: string[];
-  telemetrySummaryFields: string[];
-  misconceptionTags?: string[];
-  aiPageGoal: string;
-  previewDemoPath: string;
-}
-
-export interface UNIT_4_3StepDefinition {
+export interface UNIT_4_3RuntimeStepDefinition {
   id: string;
   stage: UNIT_4_3StageCode;
   title: string;
   hint: string;
   duration: string;
   pageType: UNIT_4_3PageType;
-  aiContext?: StepAIContext;
+}
+
+export interface UNIT_4_3StepRuntimeMeta {
+  stage: UNIT_4_3StageCode;
+  duration: string;
 }
 
 export interface UNIT_4_3StepResponse {
@@ -129,712 +102,191 @@ export const UNIT_4_3_STAGE_MAP: Record<UNIT_4_3StageCode, BopppsStage> = {
   S: 'SUMMARY',
 };
 
-export const UNIT_4_3_PAGE_CONTRACTS: Record<string, UNIT_4_3PageContract> = {
-  "step-01": {
-    layout: {
-      template: "map_goal_boundary_slide",
-      regions: [
-        {
-          id: "header",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "lead",
-          width: "full",
-          order: 2
-        }
-      ]
-    },
-    interactionKind: "none",
-    teacherControls: {
-      releaseActivity: "not_applicable",
-      openBrowse: "not_applicable",
-      teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "not_applicable"
-    },
-    teacherInsightWidgets: [
-      "view_count",
-      "sync_status"
-    ],
-    telemetrySummaryFields: [
-      "viewed",
-      "timeOnStep",
-      "teacherFollowSync"
-    ],
-    misconceptionTags: [],
-    aiPageGoal: "固定 4-3 是把起步卡推进成第一版方案的课程。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-01"
-  },
-  "step-02": {
-    layout: {
-      template: "question_stack",
-      regions: [
-        {
-          id: "prompt",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "workspace",
-          width: "full",
-          order: 2
-        }
-      ]
-    },
-    interactionKind: "activity_card_set",
-    teacherControls: {
-      releaseActivity: "teacher_toggle",
-      openBrowse: "page_load_open",
-      teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "teacher_toggle"
-    },
-    teacherInsightWidgets: [
-      "error_bucket_distribution",
-      "card_completion_rate"
-    ],
-    telemetrySummaryFields: [
-      "cardSubmitted",
-      "errorBucket",
-      "timeOnStep"
-    ],
-    misconceptionTags: [
-      "restate_model_only",
-      "no_constraint",
-      "no_validation_target"
-    ],
-    aiPageGoal: "固定对象分析是设计入口，而不是背景重复。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-02"
-  },
-  "step-03": {
-    layout: {
-      template: "comparison_panel_with_sort",
-      regions: [
-        {
-          id: "table",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "interaction",
-          width: "full",
-          order: 2
-        }
-      ]
-    },
-    interactionKind: "single_choice",
-    teacherControls: {
-      releaseActivity: "teacher_toggle",
-      openBrowse: "page_load_open",
-      teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "teacher_toggle"
-    },
-    teacherInsightWidgets: [
-      "question_distribution",
-      "top_misconceptions"
-    ],
-    telemetrySummaryFields: [
-      "attemptCount",
-      "resultState",
-      "errorBucket"
-    ],
-    misconceptionTags: [
-      "compound_is_longer_name",
-      "feedforward_replaces_feedback",
-      "keep_single_structure_forever"
-    ],
-    aiPageGoal: "让学生把分流判断与表 1 建立一一对应。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-03"
-  },
-  "step-04": {
-    layout: {
-      template: "formula_table_reasoning",
-      regions: [
-        {
-          id: "formula",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "summary",
-          width: "full",
-          order: 2
-        }
-      ]
-    },
-    interactionKind: "none",
-    teacherControls: {
-      releaseActivity: "not_applicable",
-      openBrowse: "not_applicable",
-      teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "not_applicable"
-    },
-    teacherInsightWidgets: [
-      "view_count",
-      "sync_status"
-    ],
-    telemetrySummaryFields: [
-      "viewed",
-      "timeOnStep",
-      "teacherFollowSync"
-    ],
-    misconceptionTags: [],
-    aiPageGoal: "固定三类复合结构的适用问题与分工。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-04"
-  },
-  "step-05": {
-    layout: {
-      template: "compound_structure_board",
-      regions: [
-        {
-          id: "problem",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "media",
-          width: "full",
-          order: 2
-        },
-        {
-          id: "interaction",
-          width: "full",
-          order: 3
-        }
-      ]
-    },
-    interactionKind: "activity_card_set",
-    teacherControls: {
-      releaseActivity: "teacher_toggle",
-      openBrowse: "page_load_open",
-      teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "teacher_toggle"
-    },
-    teacherInsightWidgets: [
-      "card_completion_rate",
-      "error_bucket_distribution"
-    ],
-    telemetrySummaryFields: [
-      "cardSubmitted",
-      "errorBucket",
-      "timeOnStep"
-    ],
-    misconceptionTags: [
-      "pi_lead_same_job",
-      "ignore_mid_frequency_role"
-    ],
-    aiPageGoal: "把 PI+超前 的职责分工落成完整方法页。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-05"
-  },
-  "step-06": {
-    layout: {
-      template: "compound_structure_board",
-      regions: [
-        {
-          id: "problem",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "media",
-          width: "full",
-          order: 2
-        },
-        {
-          id: "interaction",
-          width: "full",
-          order: 3
-        }
-      ]
-    },
-    interactionKind: "activity_card_set",
-    teacherControls: {
-      releaseActivity: "teacher_toggle",
-      openBrowse: "page_load_open",
-      teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "teacher_toggle"
-    },
-    teacherInsightWidgets: [
-      "card_completion_rate",
-      "error_bucket_distribution"
-    ],
-    telemetrySummaryFields: [
-      "cardSubmitted",
-      "errorBucket",
-      "timeOnStep"
-    ],
-    misconceptionTags: [
-      "lag_only_speed_up",
-      "ignore_margin_recovery"
-    ],
-    aiPageGoal: "把滞后+超前 的稳健收益与速度代价写清。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-06"
-  },
-  "step-07": {
-    layout: {
-      template: "compound_structure_board",
-      regions: [
-        {
-          id: "problem",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "media",
-          width: "full",
-          order: 2
-        },
-        {
-          id: "interaction",
-          width: "full",
-          order: 3
-        }
-      ]
-    },
-    interactionKind: "activity_card_set",
-    teacherControls: {
-      releaseActivity: "teacher_toggle",
-      openBrowse: "page_load_open",
-      teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "teacher_toggle"
-    },
-    teacherInsightWidgets: [
-      "card_completion_rate",
-      "error_bucket_distribution"
-    ],
-    telemetrySummaryFields: [
-      "cardSubmitted",
-      "errorBucket",
-      "timeOnStep"
-    ],
-    misconceptionTags: [
-      "pid_default_answer",
-      "ignore_filter_role"
-    ],
-    aiPageGoal: "把带微分滤波 PID 的紧凑表达与高频克制写完整。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-07"
-  },
-  "step-08": {
-    layout: {
-      template: "case_evidence_board",
-      regions: [
-        {
-          id: "case",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "interaction",
-          width: "full",
-          order: 2
-        }
-      ]
-    },
-    interactionKind: "activity_card_set",
-    teacherControls: {
-      releaseActivity: "teacher_toggle",
-      openBrowse: "page_load_open",
-      teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "teacher_toggle"
-    },
-    teacherInsightWidgets: [
-      "card_completion_rate",
-      "error_bucket_distribution"
-    ],
-    telemetrySummaryFields: [
-      "cardSubmitted",
-      "errorBucket",
-      "timeOnStep"
-    ],
-    misconceptionTags: [
-      "add_integral_first",
-      "ignore_control_peak",
-      "ignore_existing_integrator"
-    ],
-    aiPageGoal: "固定客船案例当前主矛盾在中频动态品质。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-08"
-  },
-  "step-09": {
-    layout: {
-      template: "worked_example_compare",
-      regions: [
-        {
-          id: "problem",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "worked-example",
-          width: "full",
-          order: 2
-        }
-      ]
-    },
-    interactionKind: "worked_example_reveal",
-    teacherControls: {
-      releaseActivity: "not_applicable",
-      openBrowse: "teacher_toggle",
-      teacherStepReveal: "teacher_direct",
-      revealReferenceAnswer: "teacher_toggle"
-    },
-    teacherInsightWidgets: [
-      "step_reveal_progress",
-      "view_count",
-      "top_misconceptions"
-    ],
-    telemetrySummaryFields: [
-      "stepRevealCount",
-      "timeOnStep",
-      "errorBucket"
-    ],
-    misconceptionTags: [
-      "parameter_table_only",
-      "skip_phase_margin",
-      "skip_gain_condition"
-    ],
-    aiPageGoal: "把参数方向写成五步可解释链，而非参数表。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-09"
-  },
-  "step-10": {
-    layout: {
-      template: "validation_issue_board",
-      regions: [
-        {
-          id: "validation",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "interaction",
-          width: "full",
-          order: 2
-        }
-      ]
-    },
-    interactionKind: "activity_card_set",
-    teacherControls: {
-      releaseActivity: "teacher_toggle",
-      openBrowse: "page_load_open",
-      teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "teacher_toggle"
-    },
-    teacherInsightWidgets: [
-      "card_completion_rate",
-      "error_bucket_distribution"
-    ],
-    telemetrySummaryFields: [
-      "cardSubmitted",
-      "errorBucket",
-      "timeOnStep"
-    ],
-    misconceptionTags: [
-      "validation_as_finish",
-      "no_tradeoff_sentence",
-      "no_next_iteration"
-    ],
-    aiPageGoal: "把首轮验证结果转成下一轮问题清单。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-10"
-  },
-  "step-11": {
-    layout: {
-      template: "worked_example_compare",
-      regions: [
-        {
-          id: "problem",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "worked-example",
-          width: "full",
-          order: 2
-        }
-      ]
-    },
-    interactionKind: "worked_example_reveal",
-    teacherControls: {
-      releaseActivity: "not_applicable",
-      openBrowse: "teacher_toggle",
-      teacherStepReveal: "teacher_direct",
-      revealReferenceAnswer: "teacher_toggle"
-    },
-    teacherInsightWidgets: [
-      "step_reveal_progress",
-      "view_count"
-    ],
-    telemetrySummaryFields: [
-      "stepRevealCount",
-      "timeOnStep"
-    ],
-    misconceptionTags: [
-      "stay_single_structure",
-      "compound_without_reason"
-    ],
-    aiPageGoal: "用最小例题固定转入复合结构的触发条件。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-11"
-  },
-  "step-12": {
-    layout: {
-      template: "task_card_workspace",
-      regions: [
-        {
-          id: "template",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "workspace",
-          width: "full",
-          order: 2
-        }
-      ]
-    },
-    interactionKind: "task_card_workspace",
-    teacherControls: {
-      releaseActivity: "teacher_toggle",
-      openBrowse: "page_load_open",
-      teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "teacher_toggle"
-    },
-    teacherInsightWidgets: [
-      "field_completion_rate",
-      "error_bucket_distribution"
-    ],
-    telemetrySummaryFields: [
-      "fieldCompletion",
-      "cardSubmitted",
-      "timeOnStep"
-    ],
-    misconceptionTags: [
-      "missing_tradeoff",
-      "missing_validation",
-      "missing_issue_handover"
-    ],
-    aiPageGoal: "输出三份最小提交物，而不是单一大表单。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-12"
-  },
-  "step-13": {
-    layout: {
-      template: "boundary_case_board",
-      regions: [
-        {
-          id: "problem",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "media",
-          width: "full",
-          order: 2
-        },
-        {
-          id: "interaction",
-          width: "full",
-          order: 3
-        }
-      ]
-    },
-    interactionKind: "activity_card_set",
-    teacherControls: {
-      releaseActivity: "teacher_toggle",
-      openBrowse: "page_load_open",
-      teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "teacher_toggle"
-    },
-    teacherInsightWidgets: [
-      "card_completion_rate",
-      "error_bucket_distribution"
-    ],
-    telemetrySummaryFields: [
-      "cardSubmitted",
-      "errorBucket",
-      "timeOnStep"
-    ],
-    misconceptionTags: [
-      "all_compound_from_frequency_split",
-      "ignore_channel_rewrite"
-    ],
-    aiPageGoal: "说明复合结构还可能来自通道重写。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-13"
-  },
-  "step-14": {
-    layout: {
-      template: "summary_quiz_board",
-      regions: [
-        {
-          id: "assessment_region",
-          width: "full",
-          order: 1
-        },
-        {
-          id: "summary_region",
-          width: "full",
-          order: 2
-        }
-      ]
-    },
-    interactionKind: "quiz_group",
-    teacherControls: {
-      releaseActivity: "page_load_open",
-      openBrowse: "not_applicable",
-      teacherStepReveal: "not_applicable",
-      revealReferenceAnswer: "teacher_toggle"
-    },
-    teacherInsightWidgets: [
-      "question_distribution",
-      "top_misconceptions"
-    ],
-    telemetrySummaryFields: [
-      "attemptCount",
-      "resultState",
-      "errorBucket"
-    ],
-    misconceptionTags: [
-      "skip_issue_list",
-      "compound_equals_formula_length",
-      "validation_equals_finish"
-    ],
-    aiPageGoal: "检查判断链是否形成，并把学生送往 4-4。",
-    previewDemoPath: "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo?step=step-14"
-  }
+export const UNIT_4_3_STEP_RUNTIME_META: Record<string, UNIT_4_3StepRuntimeMeta> = {
+  'step-01': { stage: 'B', duration: '4 min' },
+  'step-02': { stage: 'P1', duration: '6 min' },
+  'step-03': { stage: 'P2', duration: '6 min' },
+  'step-04': { stage: 'P2', duration: '6 min' },
+  'step-05': { stage: 'P2', duration: '7 min' },
+  'step-06': { stage: 'P2', duration: '7 min' },
+  'step-07': { stage: 'P2', duration: '7 min' },
+  'step-08': { stage: 'P2', duration: '6 min' },
+  'step-09': { stage: 'P2', duration: '8 min' },
+  'step-10': { stage: 'P2', duration: '8 min' },
+  'step-11': { stage: 'P2', duration: '7 min' },
+  'step-12': { stage: 'P2', duration: '10 min' },
+  'step-13': { stage: 'P2', duration: '6 min' },
+  'step-14': { stage: 'S', duration: '5 min' },
 };
 
-export const UNIT_4_3_INTERACTIVE_PAGE_TYPES = new Set<UNIT_4_3PageType>([
-  'quiz_group',
-  'activity_card_set',
-  'single_choice',
-  'worked_example_reveal',
-  'task_card_workspace',
-]);
+export const UNIT_4_3_PRESET_STEPS: Array<
+  UNIT_4_3RuntimeStepDefinition & { interactive: boolean }
+> = [
+  {
+    id: 'step-01',
+    stage: 'B',
+    title: '回到地图：4-2 的起步卡如何长成 4-3 的第一版方案',
+    hint: '固定 4-3 是把起步卡推进成第一版方案的课程。',
+    duration: '4 min',
+    pageType: 'display',
+    interactive: false,
+  },
+  {
+    id: 'step-02',
+    stage: 'P1',
+    title: '对象分析四问：对象入口不是重抄模型',
+    hint: '固定对象分析是设计入口，而不是背景重复。',
+    duration: '6 min',
+    pageType: 'activity_card_set',
+    interactive: true,
+  },
+  {
+    id: 'step-03',
+    stage: 'P2',
+    title: '结构分流：什么时候继续单结构，什么时候进入复合结构',
+    hint: '让学生把分流判断与表 1 建立一一对应。',
+    duration: '6 min',
+    pageType: 'single_choice',
+    interactive: true,
+  },
+  {
+    id: 'step-04',
+    stage: 'P2',
+    title: '复合结构总览：三类常见写法不是公式堆长',
+    hint: '固定三类复合结构的适用问题与分工。',
+    duration: '6 min',
+    pageType: 'display',
+    interactive: false,
+  },
+  {
+    id: 'step-05',
+    stage: 'P2',
+    title: '结构 A：`PI + 超前`——低频托举与中频整理分工',
+    hint: '把 PI+超前 的职责分工落成完整方法页。',
+    duration: '7 min',
+    pageType: 'activity_card_set',
+    interactive: true,
+  },
+  {
+    id: 'step-06',
+    stage: 'P2',
+    title: '结构 B：`滞后 + 超前`——低频补偿与裕量回收并行',
+    hint: '把滞后+超前 的稳健收益与速度代价写清。',
+    duration: '7 min',
+    pageType: 'activity_card_set',
+    interactive: true,
+  },
+  {
+    id: 'step-07',
+    stage: 'P2',
+    title: '结构 C：带微分滤波的 `PID`——紧凑表达与高频克制',
+    hint: '把带微分滤波 PID 的紧凑表达与高频克制写完整。',
+    duration: '7 min',
+    pageType: 'activity_card_set',
+    interactive: true,
+  },
+  {
+    id: 'step-08',
+    stage: 'P2',
+    title: '客船案例入口：为什么这里先上超前，而不是立刻复合',
+    hint: '固定客船案例当前主矛盾在中频动态品质。',
+    duration: '6 min',
+    pageType: 'activity_card_set',
+    interactive: true,
+  },
+  {
+    id: 'step-09',
+    stage: 'P2',
+    title: '客船参数方向显影：五步把超前初始方案写成可运行表达',
+    hint: '把参数方向写成五步可解释链，而非参数表。',
+    duration: '8 min',
+    pageType: 'worked_example_reveal',
+    interactive: true,
+  },
+  {
+    id: 'step-10',
+    stage: 'P2',
+    title: '客船首轮验证：表 6 与问题清单怎样接成下一轮输入',
+    hint: '把首轮验证结果转成下一轮问题清单。',
+    duration: '8 min',
+    pageType: 'activity_card_set',
+    interactive: true,
+  },
+  {
+    id: 'step-11',
+    stage: 'P2',
+    title: '最小例题：什么时候从单结构走向复合结构',
+    hint: '用最小例题固定转入复合结构的触发条件。',
+    duration: '7 min',
+    pageType: 'worked_example_reveal',
+    interactive: true,
+  },
+  {
+    id: 'step-12',
+    stage: 'P2',
+    title: '实践工作区：对象分析记录单 + 初始方案表达卡 + 问题清单移交表',
+    hint: '输出三份最小提交物，而不是单一大表单。',
+    duration: '10 min',
+    pageType: 'task_card_workspace',
+    interactive: true,
+  },
+  {
+    id: 'step-13',
+    stage: 'P2',
+    title: '边界案例：横摇减摇鳍说明复合不只来自频段叠加',
+    hint: '说明复合结构还可能来自通道重写。',
+    duration: '6 min',
+    pageType: 'activity_card_set',
+    interactive: true,
+  },
+  {
+    id: 'step-14',
+    stage: 'S',
+    title: '后测与收束：从第一版方案走向 4-4 的多目标权衡',
+    hint: '检查判断链是否形成，并把学生送往 4-4。',
+    duration: '5 min',
+    pageType: 'quiz_group',
+    interactive: true,
+  },
+];
 
-export const UNIT_4_3_LESSON_STEPS: UNIT_4_3StepDefinition[] = [
-  {
-    id: "step-01",
-    stage: "B",
-    title: "回到地图：4-2 的起步卡如何长成 4-3 的第一版方案",
-    hint: "固定 4-3 是把起步卡推进成第一版方案的课程。",
-    duration: "4 min",
-    pageType: "display"
-  },
-  {
-    id: "step-02",
-    stage: "P1",
-    title: "对象分析四问：对象入口不是重抄模型",
-    hint: "固定对象分析是设计入口，而不是背景重复。",
-    duration: "6 min",
-    pageType: "activity_card_set"
-  },
-  {
-    id: "step-03",
-    stage: "P2",
-    title: "结构分流：什么时候继续单结构，什么时候进入复合结构",
-    hint: "让学生把分流判断与表 1 建立一一对应。",
-    duration: "6 min",
-    pageType: "single_choice"
-  },
-  {
-    id: "step-04",
-    stage: "P2",
-    title: "复合结构总览：三类常见写法不是公式堆长",
-    hint: "固定三类复合结构的适用问题与分工。",
-    duration: "6 min",
-    pageType: "display"
-  },
-  {
-    id: "step-05",
-    stage: "P2",
-    title: "结构 A：`PI + 超前`——低频托举与中频整理分工",
-    hint: "把 PI+超前 的职责分工落成完整方法页。",
-    duration: "7 min",
-    pageType: "activity_card_set"
-  },
-  {
-    id: "step-06",
-    stage: "P2",
-    title: "结构 B：`滞后 + 超前`——低频补偿与裕量回收并行",
-    hint: "把滞后+超前 的稳健收益与速度代价写清。",
-    duration: "7 min",
-    pageType: "activity_card_set"
-  },
-  {
-    id: "step-07",
-    stage: "P2",
-    title: "结构 C：带微分滤波的 `PID`——紧凑表达与高频克制",
-    hint: "把带微分滤波 PID 的紧凑表达与高频克制写完整。",
-    duration: "7 min",
-    pageType: "activity_card_set"
-  },
-  {
-    id: "step-08",
-    stage: "P2",
-    title: "客船案例入口：为什么这里先上超前，而不是立刻复合",
-    hint: "固定客船案例当前主矛盾在中频动态品质。",
-    duration: "6 min",
-    pageType: "activity_card_set"
-  },
-  {
-    id: "step-09",
-    stage: "P2",
-    title: "客船参数方向显影：五步把超前初始方案写成可运行表达",
-    hint: "把参数方向写成五步可解释链，而非参数表。",
-    duration: "8 min",
-    pageType: "worked_example_reveal"
-  },
-  {
-    id: "step-10",
-    stage: "P2",
-    title: "客船首轮验证：表 6 与问题清单怎样接成下一轮输入",
-    hint: "把首轮验证结果转成下一轮问题清单。",
-    duration: "8 min",
-    pageType: "activity_card_set"
-  },
-  {
-    id: "step-11",
-    stage: "P2",
-    title: "最小例题：什么时候从单结构走向复合结构",
-    hint: "用最小例题固定转入复合结构的触发条件。",
-    duration: "7 min",
-    pageType: "worked_example_reveal"
-  },
-  {
-    id: "step-12",
-    stage: "P2",
-    title: "实践工作区：对象分析记录单 + 初始方案表达卡 + 问题清单移交表",
-    hint: "输出三份最小提交物，而不是单一大表单。",
-    duration: "10 min",
-    pageType: "task_card_workspace"
-  },
-  {
-    id: "step-13",
-    stage: "P2",
-    title: "边界案例：横摇减摇鳍说明复合不只来自频段叠加",
-    hint: "说明复合结构还可能来自通道重写。",
-    duration: "6 min",
-    pageType: "activity_card_set"
-  },
-  {
-    id: "step-14",
-    stage: "S",
-    title: "后测与收束：从第一版方案走向 4-4 的多目标权衡",
-    hint: "检查判断链是否形成，并把学生送往 4-4。",
-    duration: "5 min",
-    pageType: "quiz_group"
+export function buildUNIT_4_3RuntimeSteps(
+  manifest: InteractiveRuntimeManifest | null,
+): UNIT_4_3RuntimeStepDefinition[] {
+  if (!manifest) {
+    return UNIT_4_3_PRESET_STEPS.map(({ interactive: _interactive, ...step }) => step);
   }
-] as const;
 
-export function getUNIT_4_3Step(stepId: string) {
-  return UNIT_4_3_LESSON_STEPS.find((step) => step.id === stepId) ?? UNIT_4_3_LESSON_STEPS[0];
+  return manifest.steps.map((step) => {
+    const meta = UNIT_4_3_STEP_RUNTIME_META[step.id] ?? { stage: 'P2' as const, duration: '5 min' };
+    const pageType =
+      step.interactionSpec.interactionKind === 'none'
+        ? 'display'
+        : step.interactionSpec.interactionKind;
+
+    return {
+      id: step.id,
+      stage: meta.stage,
+      title: step.title,
+      hint: step.aiContextSpec.pageGoal || step.interactionSpec.studentTask || step.title,
+      duration: meta.duration,
+      pageType,
+    };
+  });
 }
 
-export function getUNIT_4_3PageContract(stepId: string) {
-  return UNIT_4_3_PAGE_CONTRACTS[stepId] ?? UNIT_4_3_PAGE_CONTRACTS['step-01'];
+export function getUNIT_4_3StepManifest(
+  manifest: InteractiveRuntimeManifest,
+  stepId: string,
+): InteractiveRuntimeStepManifest {
+  return getInteractiveRuntimeStep(manifest, stepId) ?? manifest.steps[0];
 }
 
-export function isUNIT_4_3InteractivePageType(pageType: UNIT_4_3PageType) {
-  return UNIT_4_3_INTERACTIVE_PAGE_TYPES.has(pageType);
+export function isUNIT_4_3InteractivePageType(pageType: string) {
+  return isInteractiveRuntimePageType(pageType);
 }
 
-export function isUNIT_4_3AiPageType(_pageType: UNIT_4_3PageType) {
+export function isUNIT_4_3AiPageType(_pageType: string) {
   return false;
 }
 
@@ -856,15 +308,6 @@ export const UNIT_4_3_PREMIUM_LESSON_CARD = {
   href: `/interactive-learning/courses/${UNIT_4_3_ROUTE_SEGMENT}`,
   badge: '精品课程',
 } as const;
-
-const UNIT_4_3_MEDIA_BY_STEP_ID: Record<string, string> = {
-  "step-01": "/course-runtime/lessons/4-3/media/4-3-cover-comic.png",
-  "step-14": "/course-runtime/lessons/4-3/media/4-3-info.png"
-};
-
-export function getUNIT_4_3MediaSrc(stepId: string) {
-  return UNIT_4_3_MEDIA_BY_STEP_ID[stepId] ?? null;
-}
 
 export function isUNIT_4_3StudentState(value: unknown): value is UNIT_4_3StudentCourseState {
   if (!value || typeof value !== 'object') return false;

@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useDeferredValue,
   useEffect,
   useMemo,
   useRef,
@@ -21,7 +22,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { Complex } from '@/lib/control/linkage-engine';
 import {
   CRUISE_COURSE_MODE,
   CRUISE_DEFAULT_PID,
@@ -30,61 +30,24 @@ import {
   type CruiseControllerMode,
   type CruiseControllerParams,
 } from '@/lib/cruise-course';
+import {
+  adaptLinkageAnalysisResult,
+  buildLinkageAnalysisRequest,
+  type LinkageFrequencyDomainResponse,
+  type LinkageNyquistSample,
+  type LinkageStabilityResponse,
+  type LinkageTimeDomainResponse,
+} from '@/resources/control-system/analysis/multi-representation-linkage-analysis';
+import type {
+  ComplexPoint as Complex,
+  RootLocusSamplePoint,
+} from '@/resources/control-system/analysis/types';
+import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
 
-interface TimeDomainResponse {
-  samples: Array<{ time: number; response: number }>;
-  metrics: {
-    overshoot: number;
-    settlingTime: number;
-    riseTime: number;
-    steadyStateError: number;
-  };
-}
-
-interface NyquistSample extends Complex {
-  frequency: number;
-  magnitudeDb: number;
-  phaseDeg: number;
-}
-
-interface FrequencyDomainResponse {
-  samples: Array<{ frequency: number; magnitudeDb: number; phaseDeg: number }>;
-  nyquistSamples: NyquistSample[];
-  stabilityMargins: {
-    gainMargin: { value: number; frequency: number; isInfinite?: boolean };
-    phaseMargin: { value: number; frequency: number };
-  };
-  marginPoints: {
-    gainCrossover?: NyquistSample;
-    phaseCrossover?: NyquistSample;
-  };
-}
-
-interface RootLocusPoint extends Complex {
-  gain: number;
-}
-
-interface StabilityResponse {
-  isStable: boolean;
-  polesInRHP: number;
-  dampingRatios: number[];
-  hints: string[];
-  closedLoopPoles: Complex[];
-  rootLocus: {
-    branches: RootLocusPoint[][];
-    gainRange: {
-      min: number;
-      max: number;
-      points: number;
-    };
-    selectedGain: number;
-    closedLoopPoles: Complex[];
-  };
-  stabilityMargins: {
-    gainMargin: { value: number; frequency: number; isInfinite?: boolean };
-    phaseMargin: { value: number; frequency: number };
-  };
-}
+type TimeDomainResponse = LinkageTimeDomainResponse;
+type NyquistSample = LinkageNyquistSample;
+type FrequencyDomainResponse = LinkageFrequencyDomainResponse;
+type StabilityResponse = LinkageStabilityResponse;
 
 interface PoleZeroPoint {
   id: string;
@@ -168,7 +131,10 @@ function generateLogTicks(min: number, max: number): number[] {
   return values.sort((lhs, rhs) => lhs - rhs);
 }
 
-function findClosestRootLocusSnapshot(branches: RootLocusPoint[][], targetGain: number): Complex[] {
+function findClosestRootLocusSnapshot(
+  branches: RootLocusSamplePoint[][],
+  targetGain: number,
+): Complex[] {
   if (branches.length === 0 || branches[0].length === 0) {
     return [];
   }
@@ -187,7 +153,7 @@ function findClosestRootLocusSnapshot(branches: RootLocusPoint[][], targetGain: 
 
   return branches
     .map((branch) => branch[bestIndex])
-    .filter((item): item is RootLocusPoint => Boolean(item))
+    .filter((item): item is RootLocusSamplePoint => Boolean(item))
     .map((item) => ({ re: item.re, im: item.im }));
 }
 
@@ -323,18 +289,35 @@ export default function MultiRepresentationLinkagePage() {
   const [viewCenter, setViewCenter] = useState<Complex>({ re: 0, im: 0 });
   const [panning, setPanning] = useState<{ startX: number; startY: number; startCenter: Complex } | null>(null);
 
-  const [timeDomain, setTimeDomain] = useState<TimeDomainResponse | null>(null);
-  const [frequencyDomain, setFrequencyDomain] = useState<FrequencyDomainResponse | null>(null);
-  const [stability, setStability] = useState<StabilityResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const idRef = useRef(100);
   const pairRef = useRef(100);
   const baseControllerRef = useRef<CruiseControllerParams>(initialController);
 
   const displayPoles = dragging?.type === 'open-loop' ? draftPoles : modelPoles;
   const displayZeros = dragging?.type === 'open-loop' ? draftZeros : modelZeros;
+  const polesPayload = useMemo(() => modelPoles.map(toComplex), [modelPoles]);
+  const zerosPayload = useMemo(() => modelZeros.map(toComplex), [modelZeros]);
+  const linkageRequest = useMemo(
+    () =>
+      buildLinkageAnalysisRequest({
+        poles: polesPayload,
+        zeros: zerosPayload,
+        gain,
+        responseType,
+      }),
+    [gain, polesPayload, responseType, zerosPayload]
+  );
+  const deferredLinkageRequest = useDeferredValue(linkageRequest);
+  const analysisState = useControlEngine(deferredLinkageRequest);
+  const adaptedAnalysis = useMemo(
+    () => (analysisState.result ? adaptLinkageAnalysisResult(analysisState.result) : null),
+    [analysisState.result]
+  );
+  const timeDomain = adaptedAnalysis?.timeDomain ?? null;
+  const frequencyDomain = adaptedAnalysis?.frequencyDomain ?? null;
+  const stability = adaptedAnalysis?.stability ?? null;
+  const loading = analysisState.isLoading;
+  const error = analysisState.error;
 
   const baseViewRange = useMemo(() => {
     const closedLoopPoles = stability?.closedLoopPoles ?? [];
@@ -409,9 +392,6 @@ export default function MultiRepresentationLinkagePage() {
   );
 
   const originCanvas = useMemo(() => transformToCanvas({ re: 0, im: 0 }), [transformToCanvas]);
-
-  const polesPayload = useMemo(() => modelPoles.map(toComplex), [modelPoles]);
-  const zerosPayload = useMemo(() => modelZeros.map(toComplex), [modelZeros]);
 
   const addRealPoint = useCallback((type: 'pole' | 'zero') => {
     if (isCourseMode) {
@@ -493,70 +473,6 @@ export default function MultiRepresentationLinkagePage() {
   const updateDraftZero = useCallback((pointId: string, next: Complex) => {
     setDraftZeros((previous) => updatePointWithConjugateLink(previous, pointId, next));
   }, []);
-
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [timeResp, freqResp, stabilityResp] = await Promise.all([
-        fetch('/api/linkage/calculate-time-domain', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            poles: polesPayload,
-            zeros: zerosPayload,
-            gain,
-            timeRange: { start: 0, end: 20, step: 0.05 },
-            responseType,
-          }),
-        }),
-        fetch('/api/linkage/calculate-frequency-domain', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            poles: polesPayload,
-            zeros: zerosPayload,
-            gain,
-            frequencyRange: { min: 0.1, max: 100, points: 140 },
-          }),
-        }),
-        fetch('/api/linkage/stability-analysis', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            transferFunction: {
-              poles: polesPayload,
-              zeros: zerosPayload,
-              gain,
-            },
-          }),
-        }),
-      ]);
-
-      if (!timeResp.ok || !freqResp.ok || !stabilityResp.ok) {
-        throw new Error('计算接口返回异常');
-      }
-
-      const timeData = (await timeResp.json()) as TimeDomainResponse;
-      const freqData = (await freqResp.json()) as FrequencyDomainResponse;
-      const stabilityData = (await stabilityResp.json()) as StabilityResponse;
-
-      setTimeDomain(timeData);
-      setFrequencyDomain(freqData);
-      setStability(stabilityData);
-    } catch (fetchError) {
-      setError(fetchError instanceof Error ? fetchError.message : '未知错误');
-    } finally {
-      setLoading(false);
-    }
-  }, [gain, polesPayload, responseType, zerosPayload]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void fetchAll();
-    }, 120);
-    return () => window.clearTimeout(timer);
-  }, [fetchAll]);
 
   useEffect(() => {
     if (!isCourseMode) {
@@ -803,7 +719,7 @@ export default function MultiRepresentationLinkagePage() {
       }
     }
 
-    setPreviewGain(round3(Math.max(0, nearest.gain)));
+    setPreviewGain(round3(Math.max(0, nearest.gain ?? gain)));
   };
 
   const handleCanvasPointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {

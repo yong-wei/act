@@ -9,7 +9,7 @@ import {
   UNIT_4_3_COURSE_TITLE,
   UNIT_4_3_ROUTE_SEGMENT,
   UNIT_4_3_STAGE_LABEL,
-  type UNIT_4_3StepDefinition,
+  type UNIT_4_3RuntimeStepDefinition,
 } from '@/lib/unit-4-3-course';
 
 export function UNIT_4_3CourseHeader({
@@ -19,7 +19,7 @@ export function UNIT_4_3CourseHeader({
   middleNotice,
   rightSlot,
 }: {
-  steps: readonly UNIT_4_3StepDefinition[];
+  steps: readonly UNIT_4_3RuntimeStepDefinition[];
   activeIndex: number;
   onIndexChange: (index: number) => void;
   middleNotice?: string;

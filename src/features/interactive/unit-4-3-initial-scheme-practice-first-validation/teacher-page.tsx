@@ -12,14 +12,14 @@ import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
+  buildUNIT_4_3RuntimeSteps,
   finalizeUNIT_4_3TeacherSession,
-  getUNIT_4_3MediaSrc,
+  getUNIT_4_3StepManifest,
   isUNIT_4_3AiPageType,
   isUNIT_4_3TeacherSyncState,
   resolveUNIT_4_3TeacherSyncDraft,
   shouldPostUNIT_4_3TeacherSync,
   UNIT_4_3_LESSON_KEY,
-  UNIT_4_3_LESSON_STEPS,
   UNIT_4_3_RESOURCE_KEY,
   UNIT_4_3_SESSION_ADAPTER,
   UNIT_4_3_STAGE_MAP,
@@ -49,6 +49,11 @@ export function UNIT_4_3TeacherPage({
   const [localReleasedActivities, setLocalReleasedActivities] = useState<Record<string, boolean> | null>(null);
   const [localBrowseEnabled, setLocalBrowseEnabled] = useState<Record<string, boolean> | null>(null);
   const [localTeacherRevealProgress, setLocalTeacherRevealProgress] = useState<Record<string, number> | null>(null);
+  const interactiveManifest = lessonRuntime.interactiveManifest;
+  if (!interactiveManifest) {
+    throw new Error('4-3 runtime manifest is missing');
+  }
+  const runtimeSteps = buildUNIT_4_3RuntimeSteps(interactiveManifest);
 
   const interactiveTracking = useInteractiveTracking({
     resourceId: UNIT_4_3_RESOURCE_KEY,
@@ -69,7 +74,7 @@ export function UNIT_4_3TeacherPage({
     finishSession,
   } = useTeacherLessonSession({
     sessionId,
-    steps: UNIT_4_3_LESSON_STEPS,
+    steps: runtimeSteps,
     adapter: UNIT_4_3_SESSION_ADAPTER,
   });
 
@@ -83,7 +88,8 @@ export function UNIT_4_3TeacherPage({
       emit: interactiveTracking.emit,
     });
 
-  const step = UNIT_4_3_LESSON_STEPS[activeIndex];
+  const step = runtimeSteps[activeIndex];
+  const stepManifest = getUNIT_4_3StepManifest(interactiveManifest, step.id);
 
   const teacherSyncState = useMemo(() => {
     const latestRecord = [...teacherStates].reverse().find((record) => isUNIT_4_3TeacherSyncState(record.data));
@@ -156,7 +162,7 @@ export function UNIT_4_3TeacherPage({
 
   const handlePatchCurrentStep = useCallback(
     async (nextIndex: number) => {
-      const nextStep = UNIT_4_3_LESSON_STEPS[nextIndex];
+      const nextStep = runtimeSteps[nextIndex];
       trackStepLeave(step.id, { nextStepId: nextStep.id });
       await patchCurrentStep(nextIndex, {
         currentItemId: nextStep.id,
@@ -164,7 +170,7 @@ export function UNIT_4_3TeacherPage({
       });
       trackStepView(nextStep.id, { pageType: nextStep.pageType, stepIndex: nextIndex });
     },
-    [patchCurrentStep, step.id, trackStepLeave, trackStepView],
+    [patchCurrentStep, runtimeSteps, step.id, trackStepLeave, trackStepView],
   );
 
   const handleEndSession = useCallback(async () => {
@@ -224,7 +230,7 @@ export function UNIT_4_3TeacherPage({
   return (
     <div className="premium-lesson-shell">
       <UNIT_4_3CourseHeader
-        steps={UNIT_4_3_LESSON_STEPS}
+        steps={runtimeSteps}
         activeIndex={activeIndex}
         onIndexChange={(index) => void handlePatchCurrentStep(index)}
         middleNotice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
@@ -232,7 +238,7 @@ export function UNIT_4_3TeacherPage({
           <StepKnowledgeDrawer
             lessonRuntime={lessonRuntime}
             currentStepId={step.id}
-            orderedStepIds={UNIT_4_3_LESSON_STEPS.map((item) => item.id)}
+            orderedStepIds={runtimeSteps.map((item) => item.id)}
             title="页面知识卡片"
           />
         }
@@ -289,12 +295,10 @@ export function UNIT_4_3TeacherPage({
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
-        {step.id === 'step-01' ? <UNIT_4_3KnowledgeMapVisual /> : null}
-
         <UNIT_4_3StepContentPanel
+          manifest={interactiveManifest}
           step={step}
-          mediaSrc={getUNIT_4_3MediaSrc(step.id)}
-          mediaAlt={step.title}
+          stepManifest={stepManifest}
           revealProgress={teacherRevealProgress[step.id] ?? 0}
           allowInlineReveal
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
@@ -308,6 +312,7 @@ export function UNIT_4_3TeacherPage({
 
         <div className="mt-4">
           <UNIT_4_3TeacherActivitySummary
+            stepManifest={stepManifest}
             step={step}
             responses={currentResponses}
             released={Boolean(releasedActivities[step.id])}
