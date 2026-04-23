@@ -10,6 +10,8 @@
 # - spark-coder | .codex/agents/spark-coder.toml | gpt-5.3-codex-spark | medium | 极低延迟简单编码、小范围修补
 # project-agent-catalog:end
 
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
 [agents]
 max_threads = 5
 max_depth = 1
