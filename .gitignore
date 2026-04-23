@@ -13,6 +13,14 @@ GEMINI.md
 !.codex/agents/**
 .codex/plans/
 !.codex/skills/
+!.codex/skills/debug-issue/
+!.codex/skills/debug-issue/**
+!.codex/skills/explore-codebase/
+!.codex/skills/explore-codebase/**
+!.codex/skills/refactor-safely/
+!.codex/skills/refactor-safely/**
+!.codex/skills/review-changes/
+!.codex/skills/review-changes/**
 !.codex/skills/agent-evolver/
 !.codex/skills/agent-evolver/**
 !.codex/skills/lesson/
@@ -100,3 +108,5 @@ course-content/slides-ref
 # Local debugging and Rust build artifacts
 rust/control-engine/target/
 unit41-step*.png
+# Added by code-review-graph
+.code-review-graph/

@@ -122,3 +122,52 @@ This repo has no established commit history yet. Use short, imperative subjects 
 
 ## Data & Configuration Notes
 `prisma/schema.prisma` 使用 PostgreSQL（`DATABASE_URL`），如修改模型请执行 Prisma 迁移并更新数据。
+
+<!-- code-review-graph MCP tools -->
+## MCP Tools: code-review-graph
+
+**IMPORTANT: This project has a knowledge graph. ALWAYS use the
+code-review-graph MCP tools BEFORE using Grep/Glob/Read to explore
+the codebase.** The graph is faster, cheaper (fewer tokens), and gives
+you structural context (callers, dependents, test coverage) that file
+scanning cannot.
+
+**IMPORTANT: In Codex, some `code-review-graph` tools are lazily exposed.**
+If the current session only shows a subset of CRG tools, do **not** assume
+the others are unavailable or removed upstream. First use `tool_search` with
+queries such as `code-review-graph semantic_search_nodes query_graph
+get_impact_radius get_affected_flows list_flows get_flow
+get_architecture_overview list_communities refactor_tool` to load the
+deferred schemas, then call the corresponding `mcp__code_review_graph__.*_tool`.
+
+### When to use graph tools FIRST
+
+- **Exploring code**: `semantic_search_nodes` or `query_graph` instead of Grep
+- **Understanding impact**: `get_impact_radius` instead of manually tracing imports
+- **Code review**: `detect_changes` + `get_review_context` instead of reading entire files
+- **Finding relationships**: `query_graph` with callers_of/callees_of/imports_of/tests_for
+- **Architecture questions**: `get_architecture_overview` + `list_communities`
+
+Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
+
+### Key Tools
+
+| Tool | Use when |
+|------|----------|
+| `detect_changes` | Reviewing code changes — gives risk-scored analysis |
+| `get_review_context` | Need source snippets for review — token-efficient |
+| `get_impact_radius` | Understanding blast radius of a change |
+| `get_affected_flows` | Finding which execution paths are impacted |
+| `query_graph` | Tracing callers, callees, imports, tests, dependencies |
+| `semantic_search_nodes` | Finding functions/classes by name or keyword |
+| `get_architecture_overview` | Understanding high-level codebase structure |
+| `refactor_tool` | Planning renames, finding dead code |
+
+### Workflow
+
+1. Start with `get_minimal_context`.
+2. If a needed CRG tool is missing from the current session, use `tool_search`
+   to load it before falling back.
+3. Use `detect_changes` for code review.
+4. Use `get_affected_flows` to understand impact.
+5. Use `query_graph` pattern="tests_for" to check coverage.
