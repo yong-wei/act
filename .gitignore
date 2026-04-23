@@ -1,9 +1,7 @@
 .claude/
 .serena/
 image/
-CLAUDE.md
 AGENTS.md
-GEMINI.md
 .codex/
 !.codex/
 .codex/config.toml
