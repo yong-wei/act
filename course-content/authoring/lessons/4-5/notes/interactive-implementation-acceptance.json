@@ -1,0 +1,94 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "4-5",
+  "status": "accepted",
+  "accepted_at": "2026-04-22T18:32:15+08:00",
+  "review_mode": "subagent+code-review",
+  "implementation_contract_source": "src/lib/unit-4-5-course.ts",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/4-5/review/review-report.md",
+    "course-content/runtime/lessons/4-5/review/interactive-page-check.json",
+    "course-content/runtime/lessons/4-5/review/multimedia-check.json",
+    "course-content/runtime/lessons/4-5/review/source-manifest.json"
+  ],
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "student-page.tsx 继续通过 useGlobalAI().updatePageContext 与 getUnit45StepAIContext(step.id) 注入隐藏式页面上下文，没有新增页内 AI 卡片、按钮或 /ai 路由入口。",
+        "teacher-page.tsx 只保留课堂推进、作答释放、显影推进、答案揭示与知识抽屉，没有可见 AI 模块。"
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04",
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10"
+      ],
+      "evidence": [
+        "interactive-implementation.md 已逐步对照 10 步标题、模板、互动类型、内容真源与实现落点。",
+        "unit-4-5-course.ts 已按 authoring contract 回写 step-06 到 step-10 的 layout、teacherControls、telemetry 与 aiPageGoal，避免实现层自由改写。",
+        "step-panels.tsx 只承载 interactive-contract.yaml 已给定的公式、表格、图证、显影链和作答卡，没有新增讲义外正文。"
+      ]
+    },
+    "contract_alignment_repairs": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10"
+      ],
+      "evidence": [
+        "step-01 的 aiPageGoal 已补回“ 不回顾课程目标 ”口径，与 interactive-contract.yaml 一致。",
+        "step-02 已补齐 teacher insight 的 sync_status。",
+        "step-06 已补 interaction region、教师发放作答、答案揭示、card_completion_rate 与 cardSubmitted。",
+        "step-07 已改回 controllers/evidence/summary/interaction 四区布局，并补 hidden activity card 控制。",
+        "step-08 已改回 question/evidence/interaction 三区布局，以及 top_misconceptions / stepRevealCount 口径。",
+        "step-09 已改回 criteria/evidence/summary 三区布局与可接受但非终局的 authoring 口径。",
+        "step-10 已改回三题后测的 completion_rate / top_misconceptions / cardSubmitted 统计口径。"
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-07",
+        "step-08",
+        "step-09"
+      ],
+      "evidence": [
+        "unit-4-5-course.ts 的 getUNIT_4_5MediaSrc() 只映射 /course-runtime/lessons/4-5/media/...。",
+        "step-panels.tsx 没有回读 course-content/authoring/lessons/4-5/media/processed/...。",
+        "本课没有引入 useControlEngine、ControlFigureWorkspace 或其它曲线联动工作区，不存在把合同中的交互工作区静态降级的问题。"
+      ]
+    },
+    "targeted_verification": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "rtk npm exec vitest run src/features/interactive/__tests__/unit-4-5-course.test.ts src/features/interactive/__tests__/unit-4-5-wiring.test.ts src/features/interactive/__tests__/learning-catalog.test.ts 已通过，覆盖 10 步合同、平台接线、catalog 与隐藏式 AI 注册。"
+      ]
+    },
+    "browser_page_walkthrough": {
+      "status": "not_rechecked",
+      "step_ids": [],
+      "evidence": [
+        "本轮未重跑浏览器逐页走查；当前接受结论基于代码级对照、定向测试与独立子代理审查。"
+      ]
+    }
+  },
+  "issues": []
+}

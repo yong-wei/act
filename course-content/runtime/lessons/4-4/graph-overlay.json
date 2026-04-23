@@ -118,15 +118,15 @@
       "name": "三频段闭环性能回读",
       "nodeType": "THEORY",
       "description": "按低频、中频、高频三段分工，把开环图上读到的低频增益、截止频率、相角裕度、带宽和谐振峰值重新翻译成稳态精度、速度、超调、噪声与执行器负担等闭环后果。",
-      "positionX": 31.1,
-      "positionY": -31.1,
-      "positionZ": 0,
+      "positionX": 50.9,
+      "positionY": -50.9,
+      "positionZ": 3,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
+      "chapter": 3,
       "chapterName": "结构机理层",
       "metadata": {
-        "chapter": null,
+        "chapter": 3,
         "chapterName": "结构机理层",
         "category": "概念性",
         "bloom_level": "分析",
@@ -174,7 +174,7 @@
         "稳态精度",
         "速度",
         "高频代价",
-        "chapter-0"
+        "chapter-3"
       ]
     },
     {
@@ -182,15 +182,15 @@
       "name": "任务通道变化下的自由目标改写",
       "nodeType": "THEORY",
       "description": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
-      "positionX": -74.0,
-      "positionY": 0.0,
-      "positionZ": 0,
+      "positionX": -112.0,
+      "positionY": -30.0,
+      "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "程序性",
         "bloom_level": "分析",
@@ -228,7 +228,7 @@
         "自由目标改写",
         "任务通道",
         "横摇抗扰",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -236,15 +236,15 @@
       "name": "优化起点与归一化来源",
       "nodeType": "THEORY",
       "description": "固定结构优化中的参数向量、参数范围和归一化基准必须来自已有设计证据，其中起点来自上一轮可运行方案，归一化基准来自任务书或首轮仿真结果。",
-      "positionX": -71.5,
-      "positionY": -19.2,
-      "positionZ": 0,
+      "positionX": -82.0,
+      "positionY": -82.0,
+      "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "程序性",
         "bloom_level": "应用",
@@ -283,7 +283,7 @@
         "优化起点",
         "归一化",
         "参数范围",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -291,15 +291,15 @@
       "name": "单结构首轮起步卡",
       "nodeType": "THEORY",
       "description": "把当前任务、最紧矛盾、首选单结构、参数起步方向、预期改善、代价说明和留给下一课的未决项压成一张首轮设计输入卡，用来把 4-2 的选型理由固定下来。",
-      "positionX": -0.0,
-      "positionY": -74.0,
-      "positionZ": 0,
+      "positionX": 82.0,
+      "positionY": -82.0,
+      "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "程序性",
         "bloom_level": "应用",
@@ -341,7 +341,7 @@
         "单结构",
         "参数方向",
         "验证假设",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -349,15 +349,15 @@
       "name": "参数方向表达卡",
       "nodeType": "THEORY",
       "description": "把首轮方案写成“先改哪段行为、预期先改善什么、最可能先透支什么”的设计表达，用来替代只报参数大小的经验描述。",
-      "positionX": 19.2,
-      "positionY": -71.5,
-      "positionZ": 0,
+      "positionX": 100.5,
+      "positionY": -58.0,
+      "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "程序性",
         "bloom_level": "应用",
@@ -396,7 +396,7 @@
         "参数方向",
         "设计语言",
         "首轮方案",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -404,15 +404,15 @@
       "name": "固定结构自由目标项选择",
       "nodeType": "THEORY",
       "description": "在固定结构的无约束加权建模中，先选出本课要比较的自由目标项，例如时间、拖尾、误差强度和动作代价，再用它们承载偏好。",
-      "positionX": 71.5,
-      "positionY": -19.2,
-      "positionZ": 0,
+      "positionX": 86.3,
+      "positionY": 86.3,
+      "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "程序性",
         "bloom_level": "分析",
@@ -451,7 +451,7 @@
         "自由目标",
         "指标选择",
         "固定结构",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -459,15 +459,15 @@
       "name": "展示解与Pareto最小取舍",
       "nodeType": "THEORY",
       "description": "展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优；最小 Pareto 概念用来说明不同候选可能各自在不同目标上占优。",
-      "positionX": 56.6,
-      "positionY": 56.6,
-      "positionZ": 0,
+      "positionX": -31.6,
+      "positionY": 117.8,
+      "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "概念性",
         "bloom_level": "分析",
@@ -504,7 +504,7 @@
         "展示解",
         "Pareto",
         "取舍",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -512,15 +512,15 @@
       "name": "无约束加权目标表达",
       "nodeType": "THEORY",
       "description": "把多类自由目标项写成统一的无量纲加权目标函数，用来表达当前设计偏好，而不在本课提前引入输出侧硬约束。",
-      "positionX": -80.0,
-      "positionY": 0.0,
-      "positionZ": 0,
+      "positionX": -61.0,
+      "positionY": -105.7,
+      "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "程序性",
         "bloom_level": "应用",
@@ -558,7 +558,7 @@
         "目标函数",
         "加权目标",
         "无约束",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -566,15 +566,15 @@
       "name": "权重偏好与无约束候选解",
       "nodeType": "THEORY",
       "description": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
-      "positionX": -69.3,
-      "positionY": -40.0,
-      "positionZ": 0,
+      "positionX": -0.0,
+      "positionY": -122.0,
+      "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "程序性",
         "bloom_level": "分析",
@@ -611,7 +611,7 @@
         "权重",
         "偏好",
         "候选解",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -619,15 +619,15 @@
       "name": "经典试凑中的多目标拉扯",
       "nodeType": "THEORY",
       "description": "当固定结构下的人工试凑分别换来速度、拖尾、误差强度或动作代价上的局部收益，却无法用统一标准比较这些收益时，就会出现多目标拉扯。",
-      "positionX": -83.1,
-      "positionY": -22.3,
-      "positionZ": 0,
+      "positionX": -0.0,
+      "positionY": -128.0,
+      "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "概念性",
         "bloom_level": "分析",
@@ -665,7 +665,7 @@
         "经典试凑",
         "多目标拉扯",
         "固定结构",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -673,15 +673,15 @@
       "name": "设计任务表达卡",
       "nodeType": "THEORY",
       "description": "把控制对象、控制目标、硬约束、软目标、观察指标和证据来源写成同一张输入卡，用来把模块3的分析证据转换为模块4后续选型与起步的共同输入。",
-      "positionX": -22.3,
-      "positionY": -83.1,
-      "positionZ": 0,
+      "positionX": 123.6,
+      "positionY": -33.1,
+      "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "程序性",
         "bloom_level": "应用",
@@ -723,7 +723,7 @@
         "目标-约束-优先级",
         "证据来源",
         "设计输入",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -731,15 +731,15 @@
       "name": "问题清单移交表",
       "nodeType": "THEORY",
       "description": "把首轮验证结论压成“已满足目标、已暴露代价、下一轮优先调整项”三类句子，用来把首轮证据正式移交给后续权衡和优化阶段。",
-      "positionX": 0.0,
-      "positionY": 92.0,
-      "positionZ": 0,
+      "positionX": -129.4,
+      "positionY": -34.7,
+      "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "程序性",
         "bloom_level": "应用",
@@ -776,7 +776,7 @@
         "问题清单",
         "移交",
         "下一轮调整",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -784,8 +784,8 @@
       "name": "带宽频率",
       "nodeType": "THEORY",
       "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
-      "positionX": -154.0,
-      "positionY": 0.0,
+      "positionX": 39.9,
+      "positionY": -148.8,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -836,11 +836,83 @@
   ],
   "links": [
     {
+      "id": "rel-01198718bc35664b",
+      "sourceId": "固定结构自由目标项选择_4_44002",
+      "targetId": "优化起点与归一化来源_4_44003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-057296f47f06fff8",
+      "sourceId": "无约束加权目标表达_4_44004",
+      "targetId": "任务通道变化下的自由目标改写_4_44007",
+      "relation": "generalizes",
+      "relationType": "generalizes",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-1de0ce3af0c8fbab",
+      "sourceId": "权重偏好与无约束候选解_4_44005",
+      "targetId": "展示解与Pareto最小取舍_4_44006",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-4830b58c4828804e",
+      "sourceId": "经典试凑中的多目标拉扯_4_44001",
+      "targetId": "固定结构自由目标项选择_4_44002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
+    },
+    {
       "id": "rel-77884fb08474a0d0",
       "sourceId": "参数方向表达卡_4_43003",
       "targetId": "优化起点与归一化来源_4_44003",
       "relation": "applies_to",
       "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-809f5a04bc0e231c",
+      "sourceId": "展示解与Pareto最小取舍_4_44006",
+      "targetId": "任务通道变化下的自由目标改写_4_44007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-9ddd06316d1dfa84",
+      "sourceId": "设计任务表达卡_4_41001",
+      "targetId": "固定结构自由目标项选择_4_44002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.91
+    },
+    {
+      "id": "rel-aceac2627295047e",
+      "sourceId": "固定结构自由目标项选择_4_44002",
+      "targetId": "无约束加权目标表达_4_44004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-cdb0c9700582e515",
+      "sourceId": "无约束加权目标表达_4_44004",
+      "targetId": "展示解与Pareto最小取舍_4_44006",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-d05530005942cf4b",
+      "sourceId": "三频段闭环性能回读_3_38003",
+      "targetId": "经典试凑中的多目标拉扯_4_44001",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
       "strength": 0.9
     },
     {
@@ -852,7 +924,7 @@
       "strength": 0.89
     },
     {
-      "id": "rel-9344c921f6d8af0a",
+      "id": "rel-d3d224abd9569d45",
       "sourceId": "问题清单移交表_4_43005",
       "targetId": "经典试凑中的多目标拉扯_4_44001",
       "relation": "leads_to",
@@ -860,55 +932,7 @@
       "strength": 0.96
     },
     {
-      "id": "rel-b573bdb8eff992cb",
-      "sourceId": "三频段闭环性能回读_3_38003",
-      "targetId": "经典试凑中的多目标拉扯_4_44001",
-      "relation": "cross_domain",
-      "relationType": "cross_domain",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-9e3d2c513af76a60",
-      "sourceId": "经典试凑中的多目标拉扯_4_44001",
-      "targetId": "固定结构自由目标项选择_4_44002",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.97
-    },
-    {
-      "id": "rel-6a1a5288a511cf1a",
-      "sourceId": "设计任务表达卡_4_41001",
-      "targetId": "固定结构自由目标项选择_4_44002",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.91
-    },
-    {
-      "id": "rel-ba23a0f54d58cbd4",
-      "sourceId": "固定结构自由目标项选择_4_44002",
-      "targetId": "优化起点与归一化来源_4_44003",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-3866ff7c24abbf0d",
-      "sourceId": "优化起点与归一化来源_4_44003",
-      "targetId": "无约束加权目标表达_4_44004",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.96
-    },
-    {
-      "id": "rel-83b1803b7c3a3db0",
-      "sourceId": "固定结构自由目标项选择_4_44002",
-      "targetId": "无约束加权目标表达_4_44004",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.95
-    },
-    {
-      "id": "rel-ded07f7f397b4ac5",
+      "id": "rel-f5708e4b0178a620",
       "sourceId": "无约束加权目标表达_4_44004",
       "targetId": "权重偏好与无约束候选解_4_44005",
       "relation": "leads_to",
@@ -916,36 +940,12 @@
       "strength": 0.97
     },
     {
-      "id": "rel-2af60bc273de612c",
-      "sourceId": "权重偏好与无约束候选解_4_44005",
-      "targetId": "展示解与Pareto最小取舍_4_44006",
+      "id": "rel-f708488304a45d07",
+      "sourceId": "优化起点与归一化来源_4_44003",
+      "targetId": "无约束加权目标表达_4_44004",
       "relation": "leads_to",
       "relationType": "leads_to",
-      "strength": 0.94
-    },
-    {
-      "id": "rel-6f424592b51fdaf5",
-      "sourceId": "无约束加权目标表达_4_44004",
-      "targetId": "展示解与Pareto最小取舍_4_44006",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.88
-    },
-    {
-      "id": "rel-f87a558a81b8c44d",
-      "sourceId": "展示解与Pareto最小取舍_4_44006",
-      "targetId": "任务通道变化下的自由目标改写_4_44007",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-9e65a9d7f9b97dbf",
-      "sourceId": "无约束加权目标表达_4_44004",
-      "targetId": "任务通道变化下的自由目标改写_4_44007",
-      "relation": "generalizes",
-      "relationType": "generalizes",
-      "strength": 0.92
+      "strength": 0.96
     }
   ]
 }

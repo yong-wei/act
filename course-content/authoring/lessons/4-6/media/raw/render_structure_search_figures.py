@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import warnings
-from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
@@ -17,6 +16,7 @@ from matplotlib import ticker
 import numpy as np
 from PIL import Image
 
+
 DATA_PATH = Path(__file__).resolve().parent / 'generated-data' / '4-6-structure-search-data.json'
 OUT_DIR = Path(__file__).resolve().parent.parent / 'processed'
 
@@ -28,12 +28,23 @@ warnings.filterwarnings('ignore', message=r"Font 'default' does not have a glyph
 logging.getLogger('matplotlib').setLevel(logging.ERROR)
 
 COLORS = {
-    'baseline': '#4c78a8',
-    'selected': '#e45756',
+    'reference': '#6c757d',
+    'expected': '#6c757d',
+    'passenger_fixed': '#d1495b',
+    'passenger_variable': '#edae49',
+    'destroyer_fixed': '#00798c',
+    'destroyer_variable': '#30638e',
     'ga': '#2b8a3e',
     'pso': '#f58518',
     'grid': '#dddddd',
 }
+
+EXPERIMENT_ORDER = [
+    ('passenger_cost_fixed_structure', COLORS['passenger_fixed']),
+    ('passenger_cost_variable_structure', COLORS['passenger_variable']),
+    ('destroyer_cost_fixed_structure', COLORS['destroyer_fixed']),
+    ('destroyer_cost_variable_structure', COLORS['destroyer_variable']),
+]
 
 
 def load_payload() -> dict:
@@ -55,84 +66,135 @@ def save(fig: plt.Figure, filename: str) -> None:
     flatten_to_white(path)
 
 
-def style_axis(ax: plt.Axes, log_x: bool = False) -> None:
+def style_axis(ax: plt.Axes) -> None:
     ax.grid(True, color=COLORS['grid'], linewidth=0.7)
     ax.set_facecolor('white')
-    formatter = ticker.FuncFormatter(lambda x, pos: f'{x:g}')
-    ax.yaxis.set_major_formatter(formatter)
-    if log_x:
-        ax.set_xscale('log')
+    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{x:g}'))
+
+
+def plot_mismatch_evidence(payload: dict) -> None:
+    experiment = payload['destroyer_experiments']['passenger_cost_fixed_structure']
+    fig, axes = plt.subplots(1, 2, figsize=(13.6, 5.4), dpi=220)
+    ax_track, ax_traj = axes
+    style_axis(ax_track)
+    style_axis(ax_traj)
+
+    ref = experiment['time_response']['reference']
+    resp = experiment['time_response']['response']
+    traj_expected = experiment['trajectory']['expected']
+    traj_actual = experiment['trajectory']['actual']
+
+    t = np.asarray(ref['t'], dtype=float)
+    r = np.asarray(ref['y'], dtype=float)
+    y = np.asarray(resp['y'], dtype=float)
+    x_expected = np.asarray(traj_expected['x'], dtype=float)
+    y_expected = np.asarray(traj_expected['y'], dtype=float)
+    x_actual = np.asarray(traj_actual['x'], dtype=float)
+    y_actual = np.asarray(traj_actual['y'], dtype=float)
+
+    ax_track.step(t, r, where='post', color=COLORS['reference'], linestyle='--', linewidth=1.2, label='方波参考')
+    ax_track.plot(t, y, color=COLORS['passenger_fixed'], linewidth=2.2, label='实际航向')
+    ax_track.set_title('客船代价函数 + 固定超前结构：方波跟踪', fontsize=12)
+    ax_track.set_xlabel('时间 / s')
+    ax_track.set_ylabel('航向 / rad')
+    ax_track.legend(frameon=False, fontsize=9, loc='upper right')
+
+    ax_traj.plot(x_expected, y_expected, color=COLORS['expected'], linestyle='--', linewidth=1.2, label='期望航迹')
+    ax_traj.plot(x_actual, y_actual, color=COLORS['passenger_fixed'], linewidth=2.2, label='实际航迹')
+    ax_traj.set_title('客船代价函数 + 固定超前结构：航迹偏离', fontsize=12)
+    ax_traj.set_xlabel('x / m')
+    ax_traj.set_ylabel('y / m')
+    ax_traj.set_aspect('equal', adjustable='box')
+    ax_traj.legend(frameon=False, fontsize=9, loc='upper right')
+
+    metrics = experiment['metrics']
+    fig.suptitle('客船代价函数和固定超前结构在驱逐舰对象上的失配证据', fontsize=15, y=0.995)
+    fig.text(
+        0.5,
+        0.02,
+        (
+            f"过渡误差={metrics['transition_error']:.2f}，"
+            f"航迹偏离={metrics['trajectory_error']:.2f}，"
+            f"u_max={metrics['u_max']:.2f}，"
+            f"筛选={'通过' if experiment['screening']['passed'] else '未通过'}。"
+        ),
+        ha='center',
+        fontsize=9.5,
+    )
+    save(fig, '4-6-destroyer-mismatch-evidence.png')
 
 
 def plot_comparison(payload: dict) -> None:
-    baseline = payload['time_response']['baseline']
-    selected = payload['time_response']['selected']
-    freq_baseline = payload['frequency_response']['baseline']['open_loop']
-    freq_selected = payload['frequency_response']['selected']['open_loop']
+    experiments = payload['destroyer_experiments']
+    fig, axes = plt.subplots(4, 2, figsize=(14.5, 14.8), dpi=220)
 
-    fig, axes = plt.subplots(2, 2, figsize=(13.4, 9.2), dpi=220)
-    ax_step, ax_control = axes[0]
-    ax_mag, ax_phase = axes[1]
+    for row, (key, color) in enumerate(EXPERIMENT_ORDER):
+        experiment = experiments[key]
+        ax_track, ax_traj = axes[row]
+        style_axis(ax_track)
+        style_axis(ax_traj)
 
-    for ax in (ax_step, ax_control):
-        style_axis(ax)
-    for ax in (ax_mag, ax_phase):
-        style_axis(ax, log_x=True)
+        ref = experiment['time_response']['reference']
+        resp = experiment['time_response']['response']
+        traj_expected = experiment['trajectory']['expected']
+        traj_actual = experiment['trajectory']['actual']
 
-    for item, color in ((baseline, COLORS['baseline']), (selected, COLORS['selected'])):
-        t = np.asarray(item['response']['t'], dtype=float)
-        y = np.asarray(item['response']['y'], dtype=float)
-        tu = np.asarray(item['control']['t'], dtype=float)
-        u = np.asarray(item['control']['y'], dtype=float)
-        ax_step.plot(t, y, linewidth=2.2, color=color, label=item['label'])
-        ax_control.plot(tu, u, linewidth=2.2, color=color, label=item['label'])
+        t = np.asarray(ref['t'], dtype=float)
+        r = np.asarray(ref['y'], dtype=float)
+        y = np.asarray(resp['y'], dtype=float)
+        x_expected = np.asarray(traj_expected['x'], dtype=float)
+        y_expected = np.asarray(traj_expected['y'], dtype=float)
+        x_actual = np.asarray(traj_actual['x'], dtype=float)
+        y_actual = np.asarray(traj_actual['y'], dtype=float)
 
-    ax_step.axhline(1.0, color='#666666', linestyle='--', linewidth=0.9)
-    ax_step.set_title('闭环输出响应')
-    ax_step.set_xlabel('时间 / s')
-    ax_step.set_ylabel('输出')
-    ax_step.set_xlim(0, 80)
-    ax_step.legend(frameon=False, fontsize=9)
+        ax_track.step(t, r, where='post', color=COLORS['reference'], linestyle='--', linewidth=1.2, label='方波参考')
+        ax_track.plot(t, y, color=color, linewidth=2.2, label='实际航向')
+        ax_track.set_ylabel('航向 / rad')
+        ax_track.set_title(f"{experiment['label']}：方波跟踪", fontsize=11.5)
+        ax_track.legend(frameon=False, fontsize=8, loc='upper right')
 
-    ax_control.axhline(7.0, color='#666666', linestyle='--', linewidth=0.9)
-    ax_control.axhline(-7.0, color='#666666', linestyle='--', linewidth=0.9)
-    ax_control.set_title('控制量响应')
-    ax_control.set_xlabel('时间 / s')
-    ax_control.set_ylabel('控制量')
-    ax_control.set_xlim(0, 80)
+        ax_traj.plot(x_expected, y_expected, color=COLORS['expected'], linestyle='--', linewidth=1.2, label='期望航迹')
+        ax_traj.plot(x_actual, y_actual, color=color, linewidth=2.2, label='实际航迹')
+        ax_traj.set_aspect('equal', adjustable='box')
+        ax_traj.set_ylabel('y / m')
+        ax_traj.set_title(f"{experiment['label']}：期望航迹与实际航迹", fontsize=11.5)
+        ax_traj.legend(frameon=False, fontsize=8, loc='upper right')
 
-    for item, color in ((freq_baseline, COLORS['baseline']), (freq_selected, COLORS['selected'])):
-        w = np.asarray(item['w'], dtype=float)
-        mag_db = np.asarray(item['mag_db'], dtype=float)
-        phase_deg = np.asarray(item['phase_deg'], dtype=float)
-        label = '4-5 固定超前可用解' if color == COLORS['baseline'] else '4-6 联合搜索代表解'
-        ax_mag.plot(w, mag_db, linewidth=2.2, color=color, label=label)
-        ax_phase.plot(w, phase_deg, linewidth=2.2, color=color, label=label)
+        metrics = experiment['metrics']
+        ax_track.text(
+            0.01,
+            0.04,
+            (
+                f"t90={metrics['t90']:.2f}s  "
+                f"过渡误差={metrics['transition_error']:.2f}  "
+                f"轨迹误差={metrics['trajectory_error']:.2f}"
+            ),
+            transform=ax_track.transAxes,
+            fontsize=8.5,
+            va='bottom',
+        )
+        ax_traj.text(
+            0.01,
+            0.04,
+            (
+                f"u_max={metrics['u_max']:.2f}  "
+                f"E_u={metrics['control_energy']:.1f}  "
+                f"筛选={'通过' if experiment['screening']['passed'] else '未通过'}"
+            ),
+            transform=ax_traj.transAxes,
+            fontsize=8.5,
+            va='bottom',
+        )
 
-    ax_mag.axhline(0.0, color='#666666', linestyle='--', linewidth=0.9)
-    ax_mag.set_title('开环幅频特性')
-    ax_mag.set_xlabel(r'$\omega$ / rad/s')
-    ax_mag.set_ylabel('幅值 / dB')
-
-    ax_phase.axhline(-180.0, color='#666666', linestyle='--', linewidth=0.9)
-    ax_phase.set_title('开环相频特性')
-    ax_phase.set_xlabel(r'$\omega$ / rad/s')
-    ax_phase.set_ylabel('相位 / deg')
-
-    selected_metrics = selected['metrics']
-    fig.suptitle('航向对象上的结构-参数联合搜索结果对照', fontsize=15, y=0.98)
+    axes[-1, 0].set_xlabel('时间 / s')
+    axes[-1, 1].set_xlabel('x / m')
+    fig.suptitle('驱逐舰方波机动中的四类方案比较', fontsize=16, y=0.995)
     fig.text(
         0.5,
-        0.01,
-        (
-            f"代表解：{payload['selected_solution']['structure_name']}，"
-            f"t90={selected_metrics['t90']:.2f}s，"
-            f"控制峰值={selected_metrics['control_peak']:.2f}，"
-            f"相角裕度={selected_metrics['phase_margin']:.2f}°"
-        ),
+        0.008,
+        '左列为方波航向跟踪，右列为由方向方波与固定航速积分得到的期望航迹，以及由实际航向积分得到的实际航迹。',
         ha='center',
-        va='bottom',
-        fontsize=10,
+        fontsize=9.5,
     )
     save(fig, '4-6-ship-heading-hybrid-search-comparison.png')
 
@@ -140,55 +202,42 @@ def plot_comparison(payload: dict) -> None:
 def plot_convergence(payload: dict) -> None:
     history = payload['convergence_history']
     steps = np.asarray(history['steps'], dtype=float)
-    ga_mean = np.asarray(history['ga']['mean_best'], dtype=float)
-    pso_mean = np.asarray(history['pso']['mean_best'], dtype=float)
-    ga_rep = np.asarray(history['ga']['representative_best'], dtype=float)
-    pso_rep = np.asarray(history['pso']['representative_best'], dtype=float)
 
-    ga_counts = Counter(run['structure_id'] for run in payload['ga_runs'])
-    pso_counts = Counter(run['structure_id'] for run in payload['pso_runs'])
+    fig, axes = plt.subplots(1, 2, figsize=(14.0, 5.8), dpi=220)
+    for ax in axes:
+        style_axis(ax)
 
-    labels = ['1', '2', '3', '4', '5']
-    x = np.arange(len(labels))
-    width = 0.34
+    left = history['passenger_cost_variable_structure']
+    right = history['destroyer_cost_variable_structure']
 
-    fig, axes = plt.subplots(1, 2, figsize=(13.4, 5.7), dpi=220)
-    ax_curve, ax_bar = axes
-    style_axis(ax_curve)
-    style_axis(ax_bar)
+    axes[0].plot(steps, np.asarray(left['ga']['mean_best'], dtype=float), color=COLORS['ga'], linewidth=2.2, label='GA')
+    axes[0].plot(steps, np.asarray(left['pso']['mean_best'], dtype=float), color=COLORS['pso'], linewidth=2.2, label='PSO')
+    axes[0].set_title('客船代价函数 + 变结构搜索')
+    axes[0].set_xlabel('迭代轮次')
+    axes[0].set_ylabel('平均最优代价')
+    axes[0].legend(frameon=False, fontsize=9)
 
-    ax_curve.plot(steps, ga_mean, color=COLORS['ga'], linewidth=2.3, label='GA 平均最优代价')
-    ax_curve.plot(steps, pso_mean, color=COLORS['pso'], linewidth=2.3, label='PSO 平均最优代价')
-    ax_curve.plot(steps, ga_rep, color=COLORS['ga'], linewidth=1.4, linestyle='--', label='GA 代表种子')
-    ax_curve.plot(steps, pso_rep, color=COLORS['pso'], linewidth=1.4, linestyle='--', label='PSO 代表种子')
-    ax_curve.set_title('多次独立随机种子下的收敛曲线')
-    ax_curve.set_xlabel('迭代轮次')
-    ax_curve.set_ylabel('最优代价')
-    ax_curve.legend(frameon=False, fontsize=9)
+    axes[1].plot(steps, np.asarray(right['ga']['mean_best'], dtype=float), color=COLORS['ga'], linewidth=2.2, label='GA')
+    axes[1].plot(steps, np.asarray(right['pso']['mean_best'], dtype=float), color=COLORS['pso'], linewidth=2.2, label='PSO')
+    axes[1].set_title('驱逐舰专用代价函数 + 变结构搜索')
+    axes[1].set_xlabel('迭代轮次')
+    axes[1].set_ylabel('平均最优代价')
+    axes[1].legend(frameon=False, fontsize=9)
 
-    ga_values = [ga_counts.get(i, 0) for i in range(1, 6)]
-    pso_values = [pso_counts.get(i, 0) for i in range(1, 6)]
-    ax_bar.bar(x - width / 2, ga_values, width=width, color=COLORS['ga'], label='GA')
-    ax_bar.bar(x + width / 2, pso_values, width=width, color=COLORS['pso'], label='PSO')
-    ax_bar.set_xticks(x, labels)
-    ax_bar.set_xlabel('最终结构编号')
-    ax_bar.set_ylabel('出现次数')
-    ax_bar.set_title('最终解码结构的分布')
-    ax_bar.legend(frameon=False, fontsize=9)
-    ax_bar.annotate(
-        '结构 3 为主导收敛族',
-        xy=(2, max(ga_values[2], pso_values[2])),
-        xytext=(2.8, max(ga_values[2], pso_values[2]) + 0.8),
-        arrowprops={'arrowstyle': '->', 'color': '#444444'},
-        fontsize=10,
+    fig.suptitle('驱逐舰场景下的结构选择证据', fontsize=16, y=1.01)
+    fig.text(
+        0.5,
+        -0.02,
+        '两组图都保留 GA/PSO 20 代搜索，但只有驱逐舰专用代价函数把收敛方向稳定压向可交付的机动方案。',
+        ha='center',
+        fontsize=9.5,
     )
-
-    fig.suptitle('GA 与 PSO 在同一航向对象上的收敛对照', fontsize=15, y=1.02)
     save(fig, '4-6-ship-heading-hybrid-search-convergence.png')
 
 
 def main() -> None:
     payload = load_payload()
+    plot_mismatch_evidence(payload)
     plot_comparison(payload)
     plot_convergence(payload)
 

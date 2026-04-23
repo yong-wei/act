@@ -1,30 +1,36 @@
-function generate_structure_search_data()
+function probe_feedforward_structure_search()
   pkg load control;
 
   args = argv();
   if numel(args) < 2
-    error("usage: octave -qf generate_structure_search_data.m <input.json> <output.json>");
+    error("usage: octave -qf probe_feedforward_structure_search.m <input.json> <output.json>");
   endif
 
   input_payload = jsondecode(fileread(args{1}));
   output_path = args{2};
 
-  candidates = normalize_candidates(input_payload);
-  scenario = scenario_from_config(input_payload.scenario_configs.(input_payload.scenario_id));
+  scenario = scenario_from_config(input_payload.scenario_configs.destroyer_fast_heading_maneuver);
+  feedback_decoded = decode_feedback_vector(input_payload.feedback_z);
+  ff_candidates = input_payload.ff_candidates;
+  if isvector(ff_candidates)
+    ff_candidates = reshape(ff_candidates, 1, []);
+  endif
   include_traces = isfield(input_payload, "include_traces") && logical(input_payload.include_traces);
-  cost_mode = input_payload.cost_mode;
 
   evaluations = struct([]);
-  for i = 1:rows(candidates)
-    z = candidates(i, :);
-    decoded = decode_vector(z);
-    controller = controller_from_decoded(decoded);
-    evaluations(i) = evaluate_candidate(controller, decoded, scenario, cost_mode, include_traces);
+  for i = 1:rows(ff_candidates)
+    ff_decoded = decode_feedforward_vector(ff_candidates(i, :));
+    evaluations(i) = evaluate_feedforward_candidate(feedback_decoded, ff_decoded, scenario, include_traces);
   endfor
 
   payload = struct();
-  payload.scenario_id = input_payload.scenario_id;
-  payload.cost_mode = cost_mode;
+  payload.feedback = struct(
+    "z", input_payload.feedback_z,
+    "structure_id", feedback_decoded.structure_id,
+    "structure_name", feedback_decoded.structure_name,
+    "parameters", feedback_decoded.parameters,
+    "controller_tex", controller_tex(feedback_decoded)
+  );
   payload.evaluations = evaluations;
 
   fid = fopen(output_path, "w");
@@ -35,43 +41,23 @@ function generate_structure_search_data()
   fclose(fid);
 endfunction
 
-function candidates = normalize_candidates(input_payload)
-  if !isfield(input_payload, "candidates") || isempty(input_payload.candidates)
-    candidates = zeros(0, 6);
-    return;
-  endif
-
-  candidates = input_payload.candidates;
-  if isvector(candidates)
-    candidates = reshape(candidates, 1, []);
-  endif
-endfunction
-
 function scenario = scenario_from_config(config)
   s = tf("s");
-
   plant_cfg = config.plant;
   scenario = struct();
   scenario.id = config.id;
   scenario.label = config.label;
   scenario.plant = plant_cfg.gain / (s * (s + plant_cfg.slow_pole) * (s + plant_cfg.fast_pole));
   scenario.omega = logspace(-3, 1, 320)';
-  scenario.mission_time = build_time_vector(config.time);
+  scenario.mission_time = (config.time.start:config.time.step:config.time.stop)';
   scenario.mission_reference = build_reference_profile(scenario.mission_time, config.mission_profile);
-  scenario.switch_times = [];
-  if numel(config.mission_profile) > 1
-    scenario.switch_times = [config.mission_profile(2:end).time];
-  endif
+  scenario.switch_times = [config.mission_profile(2:end).time];
   scenario.first_target = config.initial_step.target;
   scenario.first_change_time = config.initial_step.segment_end;
   scenario.u_peak_limit = config.actuator.u_peak_limit;
   scenario.control_energy_limit = config.actuator.control_energy_limit;
   scenario.trajectory_speed = config.trajectory_speed;
   scenario.screening = config.screening;
-endfunction
-
-function t = build_time_vector(time_cfg)
-  t = (time_cfg.start:time_cfg.step:time_cfg.stop)';
 endfunction
 
 function y = build_reference_profile(t, profile)
@@ -85,26 +71,23 @@ function y = scale01(x, lo, hi)
   y = lo + (hi - lo) * x;
 endfunction
 
-function decoded = decode_vector(z)
+function decoded = decode_feedback_vector(z)
   z = z(:)';
   structure_id = max(1, min(5, ceil(5 * z(1))));
   decoded = struct();
-  decoded.structure_id = structure_id;
   decoded.z = z;
+  decoded.structure_id = structure_id;
 
   switch structure_id
     case 1
       decoded.structure_name = "PI";
-      decoded.active_slots = {"z_1", "z_2"};
-      decoded.ignored_slots = {"z_3", "z_4", "z_5"};
       decoded.parameters = struct(
         "K", scale01(z(2), 0.90, 2.20),
         "Ti", scale01(z(3), 8.00, 28.00)
       );
     case 2
+      decoded.structure_name = "lead";
       decoded.structure_name = "超前";
-      decoded.active_slots = {"z_1", "z_2", "z_3"};
-      decoded.ignored_slots = {"z_4", "z_5"};
       decoded.parameters = struct(
         "K", scale01(z(2), 1.00, 2.73),
         "Tz", scale01(z(3), 8.00, 17.585),
@@ -112,8 +95,6 @@ function decoded = decode_vector(z)
       );
     case 3
       decoded.structure_name = "PI + 超前";
-      decoded.active_slots = {"z_1", "z_2", "z_3", "z_4"};
-      decoded.ignored_slots = {"z_5"};
       decoded.parameters = struct(
         "K", scale01(z(2), 1.00, 2.20),
         "Ti", scale01(z(3), 6.00, 48.00),
@@ -122,8 +103,6 @@ function decoded = decode_vector(z)
       );
     case 4
       decoded.structure_name = "滞后 + 超前";
-      decoded.active_slots = {"z_1", "z_2", "z_3", "z_4", "z_5"};
-      decoded.ignored_slots = {};
       decoded.parameters = struct(
         "K", scale01(z(2), 0.90, 2.10),
         "Tlag", scale01(z(3), 6.00, 18.00),
@@ -133,8 +112,6 @@ function decoded = decode_vector(z)
       );
     otherwise
       decoded.structure_name = "带微分滤波的 PID";
-      decoded.active_slots = {"z_1", "z_2", "z_3", "z_4"};
-      decoded.ignored_slots = {"z_5"};
       decoded.parameters = struct(
         "Kp", scale01(z(2), 0.90, 2.50),
         "Ti", scale01(z(3), 8.00, 22.00),
@@ -188,6 +165,29 @@ function text = controller_tex(decoded)
   endswitch
 endfunction
 
+function ff_decoded = decode_feedforward_vector(z)
+  z = z(:)';
+  ff_decoded = struct();
+  ff_decoded.z = z;
+  ff_decoded.Kff = scale01(z(1), 0.00, 2.40);
+  ff_decoded.Tff = scale01(z(2), 0.40, 8.00);
+  ff_decoded.alpha = scale01(z(3), 0.05, 0.60);
+endfunction
+
+function ff = feedforward_from_decoded(decoded)
+  s = tf("s");
+  ff = decoded.Kff * ((decoded.Tff * s) / (decoded.alpha * decoded.Tff * s + 1));
+endfunction
+
+function text = feedforward_tex(decoded)
+  text = sprintf(
+    "F(s)=%.4f(%.4fs)/(%.4fs+1)",
+    decoded.Kff,
+    decoded.Tff,
+    decoded.alpha * decoded.Tff
+  );
+endfunction
+
 function response = response_struct(t, y)
   response = struct("t", t(:)', "y", y(:)');
 endfunction
@@ -198,16 +198,6 @@ function trajectory = trajectory_struct(t, heading, speed)
   x = cumtrapz(t(:), vx);
   y = cumtrapz(t(:), vy);
   trajectory = struct("t", t(:)', "x", x(:)', "y", y(:)');
-endfunction
-
-function freq_struct = frequency_struct(sys, omega)
-  resp = squeeze(freqresp(sys, omega));
-  freq_struct = struct(
-    "w", omega(:)',
-    "mag", abs(resp(:))',
-    "mag_db", (20 * log10(max(abs(resp(:)), 1e-12)))',
-    "phase_deg", (unwrap(angle(resp(:)))' * 180 / pi)
-  );
 endfunction
 
 function transition_error = transition_error_score(t, err, switch_times, horizon)
@@ -221,12 +211,6 @@ function transition_error = transition_error_score(t, err, switch_times, horizon
 endfunction
 
 function tail_error = tail_segment_error(t, err, switch_times)
-  if isempty(switch_times)
-    mask = t >= max(t(1), t(end) - 5);
-    tail_error = max(abs(err(mask)));
-    return;
-  endif
-
   segment_starts = [t(1); switch_times(:)];
   segment_ends = [switch_times(:); t(end)];
   tail_error = 0;
@@ -239,9 +223,9 @@ function tail_error = tail_segment_error(t, err, switch_times)
   endfor
 endfunction
 
-function metrics = collect_metrics(controller, scenario)
-  closed_loop = feedback(controller * scenario.plant, 1);
-  control_loop = feedback(controller, scenario.plant);
+function metrics = collect_metrics(controller, ff, scenario)
+  closed_loop = scenario.plant * (controller + ff) / (1 + scenario.plant * controller);
+  control_loop = (controller + ff) / (1 + scenario.plant * controller);
 
   mission_y = lsim(closed_loop, scenario.mission_reference, scenario.mission_time);
   mission_u = lsim(control_loop, scenario.mission_reference, scenario.mission_time);
@@ -265,28 +249,21 @@ function metrics = collect_metrics(controller, scenario)
   traj_actual = trajectory_struct(mission_t, mission_y, scenario.trajectory_speed);
   traj_err = sqrt((traj_expected.x(:) - traj_actual.x(:)) .^ 2 + (traj_expected.y(:) - traj_actual.y(:)) .^ 2);
 
-  poles = pole(closed_loop);
+  feedback_closed = feedback(controller * scenario.plant, 1);
+  poles = pole(feedback_closed);
   stable = all(real(poles) < -1e-6);
-  [gm, pm, wg, wc] = margin(controller * scenario.plant);
-  closed_freq = squeeze(freqresp(closed_loop, scenario.omega));
+  closed_freq = squeeze(freqresp(feedback_closed, scenario.omega));
 
   metrics = struct();
   metrics.t90 = t90;
-  metrics.ITAE = trapz(mission_t, mission_t .* abs(err));
-  metrics.ITSE = trapz(mission_t, mission_t .* (err .^ 2));
   metrics.tracking_error = trapz(mission_t, abs(err));
   metrics.transition_error = transition_error_score(mission_t, err, scenario.switch_times, 8.0);
   metrics.tail_segment_error = tail_segment_error(mission_t, err, scenario.switch_times);
   metrics.trajectory_error = trapz(mission_t, traj_err);
   metrics.u_max = max(abs(mission_u));
   metrics.control_energy = trapz(mission_t, mission_u .^ 2);
-  metrics.phase_margin = pm;
-  metrics.gain_margin = gm;
-  metrics.phase_cross = wg;
-  metrics.crossover = wc;
   metrics.M_r = max(abs(closed_freq(:)));
   metrics.stable = stable;
-  metrics.segment_max_error = max(abs(err));
 endfunction
 
 function screening_result = apply_screening(metrics, scenario)
@@ -318,30 +295,15 @@ function screening_result = apply_screening(metrics, scenario)
   screening_result.passed = isempty(failed);
 endfunction
 
-function identity = cost_identity(cost_mode)
-  if strcmp(cost_mode, "passenger_A")
-    identity = struct("family", "passenger", "variant", "A");
-  elseif strcmp(cost_mode, "passenger_B")
-    identity = struct("family", "passenger", "variant", "B");
-  elseif strcmp(cost_mode, "passenger_C")
-    identity = struct("family", "passenger", "variant", "C");
-  else
-    identity = struct("family", "destroyer", "variant", "D");
-  endif
-endfunction
-
-function cost_breakdown = compute_cost(metrics, screening_result, scenario, cost_mode)
+function cost_breakdown = compute_destroyer_cost(metrics, screening_result, scenario)
   numeric_values = [
     metrics.t90,
-    metrics.ITAE,
-    metrics.ITSE,
     metrics.tracking_error,
     metrics.transition_error,
     metrics.tail_segment_error,
     metrics.trajectory_error,
     metrics.u_max,
     metrics.control_energy,
-    metrics.phase_margin,
     metrics.M_r
   ];
 
@@ -351,47 +313,6 @@ function cost_breakdown = compute_cost(metrics, screening_result, scenario, cost
       "weighted", struct(),
       "penalties", struct("unstable", 40.0),
       "total", 40.0
-    );
-    return;
-  endif
-
-  if strcmp(cost_mode, "passenger_A") || strcmp(cost_mode, "passenger_B") || strcmp(cost_mode, "passenger_C")
-    if strcmp(cost_mode, "passenger_A")
-      weights = [0.40, 0.30, 0.20, 0.10];
-      variant = "A";
-    elseif strcmp(cost_mode, "passenger_B")
-      weights = [0.30, 0.30, 0.20, 0.20];
-      variant = "B";
-    else
-      weights = [0.20, 0.25, 0.25, 0.30];
-      variant = "C";
-    endif
-
-    normalized = struct(
-      "t90", metrics.t90 / 12.0,
-      "ITAE", metrics.ITAE / 4200.0,
-      "ITSE", metrics.ITSE / 3000.0,
-      "control_energy", metrics.control_energy / max(scenario.control_energy_limit, 1e-6)
-    );
-    weighted = struct(
-      "t90", weights(1) * normalized.t90,
-      "ITAE", weights(2) * normalized.ITAE,
-      "ITSE", weights(3) * normalized.ITSE,
-      "control_energy", weights(4) * normalized.control_energy
-    );
-    penalties = struct();
-    penalties.transition = 0.06 * max(0, metrics.transition_error - scenario.screening.transition_error_max);
-    penalties.trajectory = 0.01 * max(0, metrics.trajectory_error - scenario.screening.trajectory_error_max);
-    penalties.screen = 0.50 * numel(screening_result.failed_rules);
-    penalties.unstable = 0.0;
-    total = weighted.t90 + weighted.ITAE + weighted.ITSE + weighted.control_energy ...
-      + penalties.transition + penalties.trajectory + penalties.screen;
-    cost_breakdown = struct(
-      "variant", variant,
-      "normalized", normalized,
-      "weighted", weighted,
-      "penalties", penalties,
-      "total", total
     );
     return;
   endif
@@ -417,8 +338,9 @@ function cost_breakdown = compute_cost(metrics, screening_result, scenario, cost
   penalties.unstable = 0.0;
   total = weighted.transition_error + weighted.tracking_error + weighted.trajectory_error ...
     + weighted.u_peak + weighted.control_energy + penalties.robustness + penalties.tail + penalties.screen;
+
   cost_breakdown = struct(
-    "variant", "destroyer",
+    "variant", "destroyer_ff_probe",
     "normalized", normalized,
     "weighted", weighted,
     "penalties", penalties,
@@ -426,29 +348,33 @@ function cost_breakdown = compute_cost(metrics, screening_result, scenario, cost
   );
 endfunction
 
-function evaluation = evaluate_candidate(controller, decoded, scenario, cost_mode, include_traces)
-  metrics = collect_metrics(controller, scenario);
+function evaluation = evaluate_feedforward_candidate(feedback_decoded, ff_decoded, scenario, include_traces)
+  controller = controller_from_decoded(feedback_decoded);
+  ff = feedforward_from_decoded(ff_decoded);
+  metrics = collect_metrics(controller, ff, scenario);
   screening_result = apply_screening(metrics, scenario);
-  cost_breakdown = compute_cost(metrics, screening_result, scenario, cost_mode);
-  identity = cost_identity(cost_mode);
+  cost_breakdown = compute_destroyer_cost(metrics, screening_result, scenario);
 
   evaluation = struct();
-  evaluation.z = decoded.z;
-  evaluation.structure_id = decoded.structure_id;
-  evaluation.structure_name = decoded.structure_name;
-  evaluation.active_slots = decoded.active_slots;
-  evaluation.ignored_slots = decoded.ignored_slots;
-  evaluation.parameters = decoded.parameters;
-  evaluation.controller_tex = controller_tex(decoded);
+  evaluation.feedback = struct(
+    "structure_id", feedback_decoded.structure_id,
+    "structure_name", feedback_decoded.structure_name,
+    "parameters", feedback_decoded.parameters,
+    "controller_tex", controller_tex(feedback_decoded)
+  );
+  evaluation.feedforward = struct(
+    "Kff", ff_decoded.Kff,
+    "Tff", ff_decoded.Tff,
+    "alpha", ff_decoded.alpha,
+    "feedforward_tex", feedforward_tex(ff_decoded)
+  );
   evaluation.metrics = metrics;
   evaluation.screening = screening_result;
   evaluation.cost_breakdown = cost_breakdown;
-  evaluation.cost_family = identity.family;
-  evaluation.cost_variant = identity.variant;
 
   if include_traces
-    closed_loop = feedback(controller * scenario.plant, 1);
-    control_loop = feedback(controller, scenario.plant);
+    closed_loop = scenario.plant * (controller + ff) / (1 + scenario.plant * controller);
+    control_loop = (controller + ff) / (1 + scenario.plant * controller);
     mission_y = lsim(closed_loop, scenario.mission_reference, scenario.mission_time);
     mission_u = lsim(control_loop, scenario.mission_reference, scenario.mission_time);
     evaluation.time_response = struct(
@@ -460,11 +386,7 @@ function evaluation = evaluate_candidate(controller, decoded, scenario, cost_mod
       "expected", trajectory_struct(scenario.mission_time, scenario.mission_reference, scenario.trajectory_speed),
       "actual", trajectory_struct(scenario.mission_time, mission_y, scenario.trajectory_speed)
     );
-    evaluation.frequency_response = struct(
-      "open_loop", frequency_struct(controller * scenario.plant, scenario.omega),
-      "closed_loop", frequency_struct(closed_loop, scenario.omega)
-    );
   endif
 endfunction
 
-generate_structure_search_data();
+probe_feedforward_structure_search();
