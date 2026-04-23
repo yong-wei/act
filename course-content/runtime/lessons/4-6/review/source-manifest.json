@@ -1,0 +1,51 @@
+{
+  "lesson_id": "4-6",
+  "unit_type": "理论",
+  "generated_at": "2026-04-23T12:37:58.506358+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/4-6/design/handout.md",
+    "course-content/authoring/lessons/4-6/design/interactive-page.md"
+  ],
+  "interactive_page_source": "course-content/authoring/lessons/4-6/design/interactive-page.md",
+  "interactive_contract_source": "course-content/authoring/lessons/4-6/design/interactive-contract.yaml",
+  "handout_pdf_source": null,
+  "boppps_source": "course-content/authoring/lessons/4-6/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/4-6/sequence.json",
+  "expected_code_media": [
+    {
+      "output": "4-6-destroyer-mismatch-evidence.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-6-ship-heading-hybrid-search-comparison.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-6-ship-heading-hybrid-search-convergence.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-6-ship-heading-combo-probe.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-6-ship-heading-combo-control-effects.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-6-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "4-6-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    }
+  ]
+}

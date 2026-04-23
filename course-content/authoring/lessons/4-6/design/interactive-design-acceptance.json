@@ -1,0 +1,30 @@
+{
+  "acceptance_version": "1.0",
+  "lesson_id": "4-6",
+  "status": "accepted",
+  "accepted_at": "2026-04-23T19:31:02+0800",
+  "review_mode": "subagent",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/4-6/design/interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/4-6/design/interactive-contract.yaml"
+  },
+  "checks": {
+    "evidence_complete": true,
+    "contract_alignment": true,
+    "student_self_contained": true,
+    "no_prose_pollution": true
+  },
+  "review_records": [
+    {
+      "reviewer_agent": "019dba11-a931-7bc3-b817-b34566a92edd",
+      "scope": "页面序列与教学职责",
+      "final_result": "pass_with_integration"
+    },
+    {
+      "reviewer_agent": "019dba11-a9fe-7871-8f38-c2453b605989",
+      "scope": "机读契约骨架与控制语义",
+      "final_result": "pass_with_integration"
+    }
+  ],
+  "issues": []
+}
