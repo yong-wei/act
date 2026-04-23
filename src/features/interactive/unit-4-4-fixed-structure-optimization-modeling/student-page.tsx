@@ -128,6 +128,8 @@ export function UNIT_4_4StudentPage({
         ? Boolean(teacherSyncState?.browseEnabled?.[step.id])
         : false;
   const revealProgress = teacherSyncState?.activeStepId === step.id ? teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0 : 0;
+  const allowInlineReveal =
+    isDemo || (browseEnabled && pageContract.teacherControls.teacherStepReveal === 'not_applicable');
 
   const previousStepIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -278,7 +280,7 @@ export function UNIT_4_4StudentPage({
           mediaSrc={getUNIT_4_4MediaSrc(step.id)}
           mediaAlt={step.title}
           revealProgress={revealProgress}
-          allowInlineReveal={isDemo || browseEnabled}
+          allowInlineReveal={allowInlineReveal}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 

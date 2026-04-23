@@ -34,7 +34,7 @@ describe('unit 3-2 interactive course', () => {
     expect(courseModule.UNIT_3_2_LESSON_STEPS[12]?.id).toBe('step-13');
     expect(courseModule.UNIT_3_2_LESSON_STEPS[3]?.pageType).toBe('activity_cards');
     expect(courseModule.UNIT_3_2_LESSON_STEPS[11]?.pageType).toBe('quiz_group');
-    expect(courseModule.UNIT_3_2_LESSON_STEPS[12]?.pageType).toBe('none');
+    expect(courseModule.UNIT_3_2_LESSON_STEPS[12]?.pageType).toBe('summary');
   });
 
   it('exposes AI quick questions for the interval workspace step', () => {
@@ -87,9 +87,15 @@ describe('unit 3-2 interactive course', () => {
       const authoringStep = contract.steps[stepId];
       const localStep = interactiveSteps.get(stepId);
       const localPageContract = courseModule.UNIT_3_2_PAGE_CONTRACTS[stepId];
+      const expectedPageType =
+        authoringStep.interaction_spec.interaction_kind === 'none'
+          ? stepId === 'step-13'
+            ? 'summary'
+            : 'display'
+          : authoringStep.interaction_spec.interaction_kind;
 
       expect(localStep?.title).toBe(authoringStep.title);
-      expect(localStep?.pageType).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(localStep?.pageType).toBe(expectedPageType);
       expect(localPageContract?.layout.template).toBe(authoringStep.layout.template);
       expect(localPageContract?.layout.regions).toEqual(authoringStep.layout.regions);
       expect(localPageContract?.interactionKind).toBe(authoringStep.interaction_spec.interaction_kind);
@@ -124,6 +130,17 @@ describe('unit 3-2 interactive course', () => {
       teacherRevealProgress: { 'step-04': 2 },
       updatedAt: 123,
     });
+  });
+
+  it('keeps teacher-only reveal pages gated from inline student expansion', () => {
+    const studentPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-2-routh-stability-boundary/student-page.tsx'),
+      'utf8',
+    );
+
+    expect(studentPageSource).toContain("pageContract.teacherControls.teacherStepReveal === 'not_applicable'");
+    expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
+    expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
   });
 
   it('registers the course in the learning catalog and classroom route resolver', () => {

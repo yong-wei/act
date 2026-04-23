@@ -7,6 +7,10 @@ import 'katex/dist/katex.min.css';
 
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import {
+  buildPerCardSubmissionAnswers,
+  mergeSavedAnswersIntoDraft,
+} from '@/features/interactive/shared/per-card-response-utils';
+import {
   getUNIT_4_5PageContract,
   isUNIT_4_5PerCardTextStep,
   type UNIT_4_5StepDefinition,
@@ -809,12 +813,19 @@ export function UNIT_4_5StudentActivityForm({
   revealProgress: number;
   onSubmit: (response: UNIT_4_5StepResponse) => void;
 }) {
-  const prompts = PROMPT_FIELDS[step.id] ?? [];
+  const prompts = useMemo(() => PROMPT_FIELDS[step.id] ?? [], [step.id]);
+  const promptKeys = useMemo(() => prompts.map((field) => field.key), [prompts]);
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>(savedResponse?.answers ?? {});
 
   useEffect(() => {
-    setDraftAnswers(savedResponse?.answers ?? {});
-  }, [savedResponse, step.id]);
+    setDraftAnswers((currentDraft) =>
+      mergeSavedAnswersIntoDraft({
+        savedAnswers: savedResponse?.answers,
+        currentDraft: currentDraft,
+        keys: promptKeys,
+      }),
+    );
+  }, [promptKeys, savedResponse]);
 
   const submittedKeys = useMemo(() => new Set(Object.keys(savedResponse?.answers ?? {})), [savedResponse?.answers]);
   const hasSubmittablePrompts =
@@ -861,11 +872,11 @@ export function UNIT_4_5StudentActivityForm({
             onSubmit({
               stepId: step.id,
               submittedAt: Date.now(),
-              answers: {
-                ...(savedResponse?.answers ?? {}),
-                ...draftAnswers,
-                [field.key]: draftAnswers[field.key] ?? '',
-              },
+              answers: buildPerCardSubmissionAnswers({
+                savedAnswers: savedResponse?.answers,
+                currentDraft: draftAnswers,
+                targetKey: field.key,
+              }),
             })
           }
           submitted={submittedKeys.has(field.key)}

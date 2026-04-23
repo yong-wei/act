@@ -7,6 +7,10 @@ import 'katex/dist/katex.min.css';
 
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import {
+  buildPerCardSubmissionAnswers,
+  mergeSavedAnswersIntoDraft,
+} from '@/features/interactive/shared/per-card-response-utils';
+import {
   getUNIT_4_4PageContract,
   isUNIT_4_4PerCardQuizStep,
   isUNIT_4_4PerCardTextStep,
@@ -709,7 +713,13 @@ function PerCardQuizForm({
   const [answers, setAnswers] = useState<Record<string, string>>(() => buildInitialAnswers(savedResponse, keys));
 
   useEffect(() => {
-    setAnswers(buildInitialAnswers(savedResponse, keys));
+    setAnswers((currentDraft) =>
+      mergeSavedAnswersIntoDraft({
+        savedAnswers: savedResponse?.answers,
+        currentDraft,
+        keys,
+      }),
+    );
   }, [keys, savedResponse]);
 
   const submittedKeys = new Set(
@@ -753,11 +763,11 @@ function PerCardQuizForm({
                 onSubmit({
                   stepId,
                   submittedAt: Date.now(),
-                  answers: {
-                    ...(savedResponse?.answers ?? {}),
-                    ...answers,
-                    [question.key]: answers[question.key],
-                  },
+                  answers: buildPerCardSubmissionAnswers({
+                    savedAnswers: savedResponse?.answers,
+                    currentDraft: answers,
+                    targetKey: question.key,
+                  }),
                 });
               }}
               className="premium-lesson-action-primary"
@@ -848,7 +858,13 @@ function PerCardTextForm({
   const [answers, setAnswers] = useState<Record<string, string>>(() => buildInitialAnswers(savedResponse, keys));
 
   useEffect(() => {
-    setAnswers(buildInitialAnswers(savedResponse, keys));
+    setAnswers((currentDraft) =>
+      mergeSavedAnswersIntoDraft({
+        savedAnswers: savedResponse?.answers,
+        currentDraft,
+        keys,
+      }),
+    );
   }, [keys, savedResponse]);
 
   const submittedKeys = new Set(
@@ -881,11 +897,11 @@ function PerCardTextForm({
                 onSubmit({
                   stepId: step.id,
                   submittedAt: Date.now(),
-                  answers: {
-                    ...(savedResponse?.answers ?? {}),
-                    ...answers,
-                    [field.key]: answers[field.key] ?? '',
-                  },
+                  answers: buildPerCardSubmissionAnswers({
+                    savedAnswers: savedResponse?.answers,
+                    currentDraft: answers,
+                    targetKey: field.key,
+                  }),
                 })
               }
               className="premium-lesson-action-primary"

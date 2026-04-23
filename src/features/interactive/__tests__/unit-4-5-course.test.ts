@@ -143,7 +143,9 @@ describe('unit 4-5 interactive course', () => {
 
     expect(studentPageSource).toContain('updatePageContext({');
     expect(studentPageSource).not.toContain('AI 助手');
-    expect(studentPageSource).toContain('allowInlineReveal={isDemo || browseEnabled}');
+    expect(studentPageSource).toContain("pageContract.teacherControls.teacherStepReveal === 'not_applicable'");
+    expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
+    expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
     expect(teacherPageSource).toContain('UNIT_4_5TeacherActivitySummary');
   });
 

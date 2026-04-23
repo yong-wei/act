@@ -218,6 +218,14 @@ describe('unit 4-2 interactive course', () => {
       join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
       'utf8',
     );
+    const studentPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/student-page.tsx'),
+      'utf8',
+    );
+
+    expect(studentPageSource).toContain("pageContract.teacherControls.teacherStepReveal === 'not_applicable'");
+    expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
+    expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
 
     const step09Start = stepPanelsSource.indexOf("step.id === 'step-09'");
     const step10Start = stepPanelsSource.indexOf("step.id === 'step-10'");
