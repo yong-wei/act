@@ -126,11 +126,13 @@ This repo has no established commit history yet. Use short, imperative subjects 
 <!-- code-review-graph MCP tools -->
 ## MCP Tools: code-review-graph
 
-**IMPORTANT: This project has a knowledge graph. ALWAYS use the
-code-review-graph MCP tools BEFORE using Grep/Glob/Read to explore
-the codebase.** The graph is faster, cheaper (fewer tokens), and gives
-you structural context (callers, dependents, test coverage) that file
-scanning cannot.
+**IMPORTANT: This project has a knowledge graph. Use
+`code-review-graph` as the default first-pass workbench for code review,
+execution-flow tracing, impact analysis, and cross-file relationship
+questions.** In this repository, CRG is most valuable when the task is
+larger than a narrow single-symbol lookup: it surfaces affected flows,
+untested hotspots, bridge nodes, and caller/callee structure faster than
+manually stitching together `rg` output.
 
 **IMPORTANT: In Codex, some `code-review-graph` tools are lazily exposed.**
 If the current session only shows a subset of CRG tools, do **not** assume
@@ -142,13 +144,21 @@ deferred schemas, then call the corresponding `mcp__code_review_graph__.*_tool`.
 
 ### When to use graph tools FIRST
 
-- **Exploring code**: `semantic_search_nodes` or `query_graph` instead of Grep
-- **Understanding impact**: `get_impact_radius` instead of manually tracing imports
-- **Code review**: `detect_changes` + `get_review_context` instead of reading entire files
-- **Finding relationships**: `query_graph` with callers_of/callees_of/imports_of/tests_for
-- **Architecture questions**: `get_architecture_overview` + `list_communities`
+- **Code review**: `detect_changes` + `get_review_context` should be the default first pass
+- **Execution-flow questions**: `get_affected_flows`, `list_flows`, and `get_flow`
+- **Cross-file tracing**: `query_graph` with callers_of/callees_of/imports_of/tests_for
+- **Architecture and hotspots**: `get_architecture_overview`, `list_communities`, `get_bridge_nodes`
+- **Impact triage**: `get_affected_flows` first, then `get_impact_radius` as a secondary estimate
 
-Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
+### When direct `rg` is fine
+
+- The target file and symbol are already known
+- You only need to confirm a literal string, path, or one local helper
+- The question is narrower than “which flow / which cross-file chain / what blast radius”
+
+In other words: do not force CRG into trivial single-file lookups. Use it
+to shrink search space and reveal structure; then switch to `rg`, `sed`,
+`git diff`, and tests for the evidence pass.
 
 ### Key Tools
 
@@ -156,18 +166,30 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 |------|----------|
 | `detect_changes` | Reviewing code changes — gives risk-scored analysis |
 | `get_review_context` | Need source snippets for review — token-efficient |
-| `get_impact_radius` | Understanding blast radius of a change |
 | `get_affected_flows` | Finding which execution paths are impacted |
+| `get_flow` / `list_flows` | Inspecting actual execution paths |
 | `query_graph` | Tracing callers, callees, imports, tests, dependencies |
 | `semantic_search_nodes` | Finding functions/classes by name or keyword |
 | `get_architecture_overview` | Understanding high-level codebase structure |
 | `refactor_tool` | Planning renames, finding dead code |
+| `get_impact_radius` | Secondary blast-radius estimate; verify manually when the worktree is noisy |
 
 ### Workflow
 
 1. Start with `get_minimal_context`.
 2. If a needed CRG tool is missing from the current session, use `tool_search`
    to load it before falling back.
-3. Use `detect_changes` for code review.
-4. Use `get_affected_flows` to understand impact.
-5. Use `query_graph` pattern="tests_for" to check coverage.
+3. For review tasks, use `detect_changes`, then `get_review_context`.
+4. For impact questions, use `get_affected_flows` before `get_impact_radius`.
+5. For relationship questions, use `query_graph`; for concrete paths, use `get_flow`.
+6. Use `query_graph` pattern="tests_for" to check coverage gaps on changed logic.
+7. After CRG narrows the search space, switch to `rg`, `sed`, `git diff`, and tests.
+
+### Reliability Notes
+
+- In this repository, `detect_changes`, `get_review_context`, `get_affected_flows`,
+  `query_graph`, and `get_flow` were consistently the highest-value CRG tools.
+- `get_impact_radius` can be noisy in a dirty worktree; treat it as a hint,
+  not as the final answer.
+- Narrow targeted lookups may still be faster with plain `rg`; CRG should win
+  on structure, not on every trivial query.
