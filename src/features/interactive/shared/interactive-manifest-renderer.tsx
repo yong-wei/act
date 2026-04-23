@@ -79,6 +79,33 @@ function renderStackedTemplate({
   );
 }
 
+function renderBoundaryCaseTemplate({
+  step,
+  regionNodes,
+}: {
+  step: InteractiveRuntimeStepManifest;
+  regionNodes: InteractiveLayoutRegionNode[];
+}) {
+  const orderedRegions = buildOrderedRegions(step, regionNodes);
+
+  return createElement(
+    'div',
+    { 'data-template': step.layout.template, className: 'space-y-4' },
+    orderedRegions.map(({ region, nodes }) =>
+      createElement(
+        'section',
+        {
+          key: region.id,
+          'data-region': region.id,
+          'data-width': region.width,
+          className: region.id === 'media' && nodes.length > 1 ? 'grid gap-4 xl:grid-cols-2' : 'space-y-4',
+        },
+        nodes.map((item) => createElement(Fragment, { key: item.moduleId }, item.node)),
+      ),
+    ),
+  );
+}
+
 export const INTERACTIVE_TEMPLATE_REGISTRY: Record<string, InteractiveTemplateRenderer> = {
   stacked_regions: renderStackedTemplate,
   map_goal_boundary_slide: renderStackedTemplate,
@@ -90,7 +117,7 @@ export const INTERACTIVE_TEMPLATE_REGISTRY: Record<string, InteractiveTemplateRe
   worked_example_compare: renderStackedTemplate,
   validation_issue_board: renderStackedTemplate,
   task_card_workspace: renderStackedTemplate,
-  boundary_case_board: renderStackedTemplate,
+  boundary_case_board: renderBoundaryCaseTemplate,
   summary_quiz_board: renderStackedTemplate,
 };
 

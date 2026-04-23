@@ -228,6 +228,27 @@ describe('unit 4-3 interactive course', () => {
     expect(stepPanelsSource).toContain("itemStyle: { color: CURRENT_SERIES_COLOR }");
   });
 
+  it('renders the contract-required step-13 Bode module instead of dropping it from the shared registry', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx'),
+      'utf8',
+    );
+    const runtimeManifestSource = readFileSync(
+      join(repoRoot, 'course-content/runtime/lessons/4-3/interactive-manifest.json'),
+      'utf8',
+    );
+    const sharedRendererSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/interactive-manifest-renderer.tsx'),
+      'utf8',
+    );
+
+    expect(runtimeManifestSource).toContain('"id": "roll-native-bode-compare"');
+    expect(runtimeManifestSource).toContain('"kind": "rust-bode-compare-panel"');
+    expect(stepPanelsSource).toContain('function RollBoundaryBodePanel');
+    expect(stepPanelsSource).not.toContain("'rust-bode-compare-panel': () => null");
+    expect(sharedRendererSource).toContain("region.id === 'media' && nodes.length > 1 ? 'grid gap-4 xl:grid-cols-2' : 'space-y-4'");
+  });
+
   it('keeps the step-13 roll-boundary comparison aligned to the 0-40 s authoring window', () => {
     const stepPanelsSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx'),

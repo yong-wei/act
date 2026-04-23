@@ -1,6 +1,6 @@
 'use client';
 
-import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { EChartsCoreOption } from 'echarts/core';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
@@ -46,6 +46,7 @@ type PromptContentBlock = Readonly<{ type: 'text' | 'math'; value: string }>;
 type PromptContent = readonly PromptContentBlock[];
 type PromptField = { key: string; title: string; prompt: PromptContent; placeholder: string; half?: boolean };
 type ComparisonPoint = { x: number; baseline: number | null; current: number | null };
+type RollBoundaryParams = { kp: number; ki: number; kd: number };
 
 const HEADING_PLANT_TEX = 'P_h(s)=\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}';
 const HEADING_CONTROLLER_TEX = 'C_h(s)=K\\dfrac{Ts+1}{\\alpha Ts+1},\\ 0<\\alpha<1';
@@ -755,54 +756,14 @@ function UnifiedAnalysisPanel({
 }
 
 function RollBoundaryPanel({
-  onWorkspaceParameterChange,
+  state,
 }: {
-  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+  state: RollBoundaryModuleState;
 }) {
-  const [params, setParams] = useState({ kp: 0.7858, ki: 2, kd: 4.104 });
-  const deferred = useDeferredValue(params);
-  const normalized = useMemo(
-    () => normalizeUnit43RollBoundaryParams(deferred),
-    [deferred],
-  );
-  const comparison = useMemo(
-    () =>
-      buildUnit43RollBoundaryComparison({
-        kp: normalized.kp,
-        ki: normalized.ki,
-        kd: normalized.kd,
-      }),
-    [normalized.kd, normalized.ki, normalized.kp],
-  );
-
-  const timeData: ComparisonPoint[] = comparison.timeSeries.baseline.map((point, index) => ({
-    x: point.x,
-    baseline: point.y,
-    current: comparison.timeSeries.current[index]?.y ?? null,
-  }));
-
-  const bodeData: ComparisonPoint[] = comparison.magnitudeSeries.baseline.map((point, index) => ({
-    x: point.x,
-    baseline: point.y,
-    current: comparison.magnitudeSeries.current[index]?.y ?? null,
-  }));
-
-  const timeOption = buildComparisonChartOption(timeData, {
-    axisPreset: getControlAxisPreset('unit43_roll_boundary', 'step'),
-    xAxisName: 't / s',
-    yAxisName: '\\varphi / rad',
-    dynamicYAxis: true,
-  });
-  const bodeOption = buildComparisonChartOption(bodeData, {
-    axisPreset: getControlAxisPreset('unit43_roll_boundary', 'magnitude'),
-    xAxisType: 'log',
-    xAxisName: 'ω / rad/s',
-    yAxisName: '幅值 / dB',
-    dynamicYAxis: true,
-  });
+  const { normalized, comparison, timeOption, updateParam } = state;
 
   return (
-    <SurfaceCard title="横摇减摇鳍双栏联动面板">
+    <SurfaceCard title="横摇减摇鳍时域响应与控制区">
       <div className="grid gap-3 md:grid-cols-2">
         <div className="premium-lesson-tone-block premium-tone-cyan">
           <div className="premium-lesson-title text-sm font-medium">对象传函</div>
@@ -817,10 +778,7 @@ function RollBoundaryPanel({
           </div>
         </div>
       </div>
-      <div className="grid gap-4 xl:grid-cols-2">
-        <ControlChartPanel title="时域响应对比" option={timeOption} />
-        <ControlChartPanel title="Bode 对比" option={bodeOption} />
-      </div>
+      <ControlChartPanel title="时域响应对比" option={timeOption} />
       <details className="mt-4 rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3">
         <summary className="cursor-pointer text-sm font-medium">控件区</summary>
         <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -838,8 +796,7 @@ function RollBoundaryPanel({
                   value={value as number}
                   onChange={(event) => {
                     const next = Number(event.target.value);
-                    setParams((current) => ({ ...current, [key]: next }));
-                    onWorkspaceParameterChange?.({ key, value: next, source: 'slider' });
+                    updateParam(key as keyof RollBoundaryParams, next);
                   }}
                   className="mt-2 w-full"
                 />
@@ -867,6 +824,96 @@ function RollBoundaryPanel({
           },
         ]}
       />
+    </SurfaceCard>
+  );
+}
+
+type RollBoundaryModuleState = {
+  normalized: ReturnType<typeof normalizeUnit43RollBoundaryParams>;
+  comparison: ReturnType<typeof buildUnit43RollBoundaryComparison>;
+  timeOption: EChartsCoreOption;
+  bodeOption: EChartsCoreOption;
+  updateParam: (key: keyof RollBoundaryParams, value: number) => void;
+};
+
+function useRollBoundaryModuleState(
+  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void,
+): RollBoundaryModuleState {
+  const [params, setParams] = useState<RollBoundaryParams>({ kp: 0.7858, ki: 2, kd: 4.104 });
+  const deferred = useDeferredValue(params);
+  const normalized = useMemo(
+    () => normalizeUnit43RollBoundaryParams(deferred),
+    [deferred],
+  );
+  const comparison = useMemo(
+    () =>
+      buildUnit43RollBoundaryComparison({
+        kp: normalized.kp,
+        ki: normalized.ki,
+        kd: normalized.kd,
+      }),
+    [normalized.kd, normalized.ki, normalized.kp],
+  );
+
+  const timeData: ComparisonPoint[] = comparison.timeSeries.baseline.map((point, index) => ({
+    x: point.x,
+    baseline: point.y,
+    current: comparison.timeSeries.current[index]?.y ?? null,
+  }));
+
+  const bodeData: ComparisonPoint[] = comparison.magnitudeSeries.baseline.map((point, index) => ({
+    x: point.x,
+    baseline: point.y,
+    current: comparison.magnitudeSeries.current[index]?.y ?? null,
+  }));
+
+  const timeOption = useMemo(
+    () =>
+      buildComparisonChartOption(timeData, {
+        axisPreset: getControlAxisPreset('unit43_roll_boundary', 'step'),
+        xAxisName: 't / s',
+        yAxisName: '\\varphi / rad',
+        dynamicYAxis: true,
+      }),
+    [timeData],
+  );
+  const bodeOption = useMemo(
+    () =>
+      buildComparisonChartOption(bodeData, {
+        axisPreset: getControlAxisPreset('unit43_roll_boundary', 'magnitude'),
+        xAxisType: 'log',
+        xAxisName: 'ω / rad/s',
+        yAxisName: '幅值 / dB',
+        dynamicYAxis: true,
+      }),
+    [bodeData],
+  );
+
+  const updateParam = useCallback(
+    (key: keyof RollBoundaryParams, value: number) => {
+      setParams((current) => ({ ...current, [key]: value }));
+      onWorkspaceParameterChange?.({ key, value, source: 'slider' });
+    },
+    [onWorkspaceParameterChange],
+  );
+
+  return {
+    normalized,
+    comparison,
+    timeOption,
+    bodeOption,
+    updateParam,
+  };
+}
+
+function RollBoundaryBodePanel({
+  state,
+}: {
+  state: RollBoundaryModuleState;
+}) {
+  return (
+    <SurfaceCard title="横摇减摇鳍 Bode 对比">
+      <ControlChartPanel title="Bode 对比" option={state.bodeOption} />
     </SurfaceCard>
   );
 }
@@ -965,6 +1012,7 @@ type Unit43ModuleExtra = {
   revealProgress: number;
   allowInlineReveal: boolean;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+  rollBoundaryState: RollBoundaryModuleState;
 };
 
 const UNIT_4_3_MODULE_REGISTRY: InteractiveModuleRegistry<Unit43ModuleExtra> = {
@@ -1129,11 +1177,14 @@ const UNIT_4_3_MODULE_REGISTRY: InteractiveModuleRegistry<Unit43ModuleExtra> = {
         onWorkspaceParameterChange={extra.onWorkspaceParameterChange}
       />
     ) : null,
-  'rust-time-compare-panel': ({ step, module, extra }) =>
+  'rust-time-compare-panel': ({ module, extra }) =>
     module.id === 'roll-native-time-compare' ? (
-      <RollBoundaryPanel onWorkspaceParameterChange={extra.onWorkspaceParameterChange} />
+      <RollBoundaryPanel state={extra.rollBoundaryState} />
     ) : null,
-  'rust-bode-compare-panel': () => null,
+  'rust-bode-compare-panel': ({ module, extra }) =>
+    module.id === 'roll-native-bode-compare' ? (
+      <RollBoundaryBodePanel state={extra.rollBoundaryState} />
+    ) : null,
   'figure-note': ({ step }) => {
     const sentence = String(asRecord(step.contentBlocks.closing_sentence).text ?? '').trim();
     return sentence ? (
@@ -1175,6 +1226,8 @@ export function UNIT_4_3StepContentPanel({
   allowInlineReveal: boolean;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
+  const rollBoundaryState = useRollBoundaryModuleState(onWorkspaceParameterChange);
+
   return (
     <div>
       {renderInteractiveManifestStep({
@@ -1185,6 +1238,7 @@ export function UNIT_4_3StepContentPanel({
           revealProgress,
           allowInlineReveal,
           onWorkspaceParameterChange,
+          rollBoundaryState,
         },
       })}
     </div>
