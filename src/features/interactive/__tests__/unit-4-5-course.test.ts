@@ -189,6 +189,8 @@ describe('unit 4-5 interactive course', () => {
     expect(courseModule.isUNIT_4_5PerCardTextStep('step-09')).toBe(false);
     expect(courseModule.isUNIT_4_5PerCardQuizStep('step-12')).toBe(true);
     expect(courseModule.isUNIT_4_5PerCardQuizStep('step-03')).toBe(false);
+    expect(courseModule.isUNIT_4_5InteractivePageType('teacher_reveal_only')).toBe(true);
+    expect(courseModule.isUNIT_4_5InteractivePageType('display')).toBe(false);
   });
 
   it('keeps the global AI registry backed by the dedicated unit-4-5 module', () => {

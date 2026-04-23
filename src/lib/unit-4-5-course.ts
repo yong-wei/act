@@ -716,6 +716,7 @@ export const UNIT_4_5_PAGE_CONTRACTS_REVIEW: Record<string, UNIT_4_5PageContract
 const UNIT_4_5_INTERACTIVE_PAGE_TYPES = new Set<UNIT_4_5PageType>([
   'quiz_group',
   'activity_card_set',
+  'teacher_reveal_only',
 ]);
 const UNIT_4_5_PER_CARD_QUIZ_STEPS = new Set(['step-12']);
 const UNIT_4_5_PER_CARD_TEXT_STEPS = new Set(['step-04', 'step-05', 'step-07', 'step-08']);
