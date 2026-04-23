@@ -53,6 +53,18 @@ struct FeasibleRegionConfig {
     settling_time: Option<f64>,
 }
 
+#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+enum ResponseType {
+    Step,
+    Impulse,
+    Ramp,
+}
+
+fn default_response_type() -> ResponseType {
+    ResponseType::Step
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ControlAnalysisRequest {
@@ -62,6 +74,8 @@ struct ControlAnalysisRequest {
     plant: TransferFunctionSpec,
     structures: Vec<StructureSpec>,
     outputs: Vec<String>,
+    #[serde(default = "default_response_type")]
+    response_type: ResponseType,
     time_range: TimeRangeConfig,
     frequency_range: FrequencyRangeConfig,
     root_locus: RootLocusConfig,
@@ -80,6 +94,14 @@ struct CurvePoint {
 struct ComplexPoint {
     re: f64,
     im: f64,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct RootLocusSamplePoint {
+    re: f64,
+    im: f64,
+    gain: f64,
 }
 
 #[derive(Debug, Serialize)]
@@ -118,7 +140,7 @@ struct NyquistData {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct RootLocusData {
-    branches: Vec<Vec<ComplexPoint>>,
+    branches: Vec<Vec<RootLocusSamplePoint>>,
     current_poles: Vec<ComplexPoint>,
     open_loop_poles: Vec<ComplexPoint>,
     open_loop_zeros: Vec<ComplexPoint>,
@@ -407,6 +429,138 @@ fn compute_time_metrics(points: &[CurvePoint]) -> ControlMetrics {
     }
 }
 
+struct CanonicalStateSpace {
+    a: Vec<Vec<f64>>,
+    b: Vec<f64>,
+    c: Vec<f64>,
+    d: f64,
+}
+
+fn create_canonical_state_space(num: &[f64], den: &[f64]) -> Option<CanonicalStateSpace> {
+    if den.len() <= 1 {
+        return None;
+    }
+
+    let order = den.len() - 1;
+    let mut padded_num = vec![0.0; order + 1];
+    let offset = padded_num.len().saturating_sub(num.len());
+    for (index, value) in num.iter().enumerate() {
+        let target = index + offset;
+        if target < padded_num.len() {
+            padded_num[target] = *value;
+        }
+    }
+
+    let d = padded_num[0];
+    let a_asc: Vec<f64> = den.iter().skip(1).rev().copied().collect();
+    let b_asc: Vec<f64> = padded_num.iter().skip(1).rev().copied().collect();
+
+    let mut a = vec![vec![0.0; order]; order];
+    for row in 0..order.saturating_sub(1) {
+        a[row][row + 1] = 1.0;
+    }
+    for column in 0..order {
+        a[order - 1][column] = -a_asc[column];
+    }
+
+    let mut b = vec![0.0; order];
+    b[order - 1] = 1.0;
+
+    let c = (0..order)
+        .map(|index| b_asc[index] - a_asc[index] * d)
+        .collect();
+
+    Some(CanonicalStateSpace { a, b, c, d })
+}
+
+fn mat_vec_mul(matrix: &[Vec<f64>], vector: &[f64]) -> Vec<f64> {
+    matrix
+        .iter()
+        .map(|row| row.iter().zip(vector.iter()).map(|(lhs, rhs)| lhs * rhs).sum())
+        .collect()
+}
+
+fn vec_add(lhs: &[f64], rhs: &[f64]) -> Vec<f64> {
+    lhs.iter().zip(rhs.iter()).map(|(left, right)| left + right).collect()
+}
+
+fn vec_scale(values: &[f64], factor: f64) -> Vec<f64> {
+    values.iter().map(|value| value * factor).collect()
+}
+
+fn dot(lhs: &[f64], rhs: &[f64]) -> f64 {
+    lhs.iter().zip(rhs.iter()).map(|(left, right)| left * right).sum()
+}
+
+fn response_input(response_type: ResponseType, dt: f64, time: f64, index: usize) -> f64 {
+    match response_type {
+        ResponseType::Step => 1.0,
+        ResponseType::Impulse => {
+            if index == 0 {
+                1.0 / dt.max(1e-4)
+            } else {
+                0.0
+            }
+        }
+        ResponseType::Ramp => time.max(0.0),
+    }
+}
+
+fn simulate_time_response(
+    tf: &TransferFunction,
+    config: &TimeRangeConfig,
+    response_type: ResponseType,
+) -> Option<Vec<CurvePoint>> {
+    let tf = normalize_tf(tf.clone());
+    let system = create_canonical_state_space(&tf.numerator, &tf.denominator)?;
+    let count = config.samples.max(2);
+    let dt = (config.end - config.start) / (count - 1) as f64;
+    if !dt.is_finite() || dt <= 0.0 {
+        return None;
+    }
+
+    let mut state = vec![0.0; system.b.len()];
+    let mut points = Vec::with_capacity(count);
+
+    let derivative = |current_state: &[f64], time: f64, index: usize| -> Vec<f64> {
+        let input = response_input(response_type, dt, time, index);
+        let ax = mat_vec_mul(&system.a, current_state);
+        let bu = vec_scale(&system.b, input);
+        vec_add(&ax, &bu)
+    };
+
+    for index in 0..count {
+        let time = config.start + dt * index as f64;
+        let input = response_input(response_type, dt, time, index);
+        let output = dot(&system.c, &state) + system.d * input;
+        points.push(CurvePoint {
+            x: time,
+            y: if output.is_finite() { output } else { 0.0 },
+        });
+
+        if index + 1 == count {
+            break;
+        }
+
+        let k1 = derivative(&state, time, index);
+        let k2 = derivative(&vec_add(&state, &vec_scale(&k1, dt / 2.0)), time + dt / 2.0, index);
+        let k3 = derivative(&vec_add(&state, &vec_scale(&k2, dt / 2.0)), time + dt / 2.0, index);
+        let k4 = derivative(&vec_add(&state, &vec_scale(&k3, dt)), time + dt, index);
+
+        state = state
+            .iter()
+            .enumerate()
+            .map(|(state_index, value)| {
+                value
+                    + (dt / 6.0)
+                        * (k1[state_index] + 2.0 * k2[state_index] + 2.0 * k3[state_index] + k4[state_index])
+            })
+            .collect();
+    }
+
+    Some(points)
+}
+
 fn step_response_by_residue(tf: &TransferFunction, times: &[f64]) -> Option<Vec<CurvePoint>> {
     let mut augmented_denominator = tf.denominator.clone();
     augmented_denominator.push(0.0);
@@ -454,17 +608,27 @@ fn step_response_by_residue(tf: &TransferFunction, times: &[f64]) -> Option<Vec<
     Some(points)
 }
 
-fn step_response(tf: &TransferFunction, config: &TimeRangeConfig) -> (Vec<CurvePoint>, ControlMetrics) {
+fn step_response(
+    tf: &TransferFunction,
+    config: &TimeRangeConfig,
+    response_type: ResponseType,
+) -> (Vec<CurvePoint>, ControlMetrics) {
     let tf = normalize_tf(tf.clone());
     let times = linspace(config.start, config.end, config.samples.max(2));
-    let points = step_response_by_residue(&tf, &times).unwrap_or_else(|| {
-        let gain = if tf.denominator.first().map(|value| value.abs()).unwrap_or(0.0) < 1e-12 {
-            0.0
-        } else {
-            tf.numerator.first().copied().unwrap_or(0.0) / tf.denominator.first().copied().unwrap_or(1.0)
-        };
-        times.iter().map(|time| CurvePoint { x: *time, y: gain }).collect()
-    });
+    let points = match response_type {
+        ResponseType::Step => step_response_by_residue(&tf, &times)
+            .or_else(|| simulate_time_response(&tf, config, response_type))
+            .unwrap_or_else(|| {
+                let gain = if tf.denominator.first().map(|value| value.abs()).unwrap_or(0.0) < 1e-12 {
+                    0.0
+                } else {
+                    tf.numerator.first().copied().unwrap_or(0.0) / tf.denominator.first().copied().unwrap_or(1.0)
+                };
+                times.iter().map(|time| CurvePoint { x: *time, y: gain }).collect()
+            }),
+        ResponseType::Impulse | ResponseType::Ramp => simulate_time_response(&tf, config, response_type)
+            .unwrap_or_else(|| times.iter().map(|time| CurvePoint { x: *time, y: 0.0 }).collect()),
+    };
     let metrics = compute_time_metrics(&points);
     (points, metrics)
 }
@@ -754,7 +918,7 @@ fn append_root_locus_segment(
 fn root_locus(loop_tf: &TransferFunction, config: &RootLocusConfig, feasible_region: Option<FeasibleRegionConfig>) -> RootLocusData {
     let gains = linspace(config.min_gain, config.max_gain, config.samples.max(8));
     let degree = loop_tf.denominator.len().max(loop_tf.numerator.len()) - 1;
-    let mut branches: Vec<Vec<ComplexPoint>> = vec![Vec::new(); degree];
+    let mut branches: Vec<Vec<RootLocusSamplePoint>> = vec![Vec::new(); degree];
     let max_depth = 5;
     let mut samples = Vec::new();
     let initial_gain = gains.first().copied().unwrap_or(config.min_gain);
@@ -769,7 +933,11 @@ fn root_locus(loop_tf: &TransferFunction, config: &RootLocusConfig, feasible_reg
     for sample in &samples {
         for (index, root) in sample.roots.iter().enumerate() {
             if let Some(branch) = branches.get_mut(index) {
-                branch.push(ComplexPoint { re: root.re, im: root.im });
+                branch.push(RootLocusSamplePoint {
+                    re: root.re,
+                    im: root.im,
+                    gain: sample.gain,
+                });
             }
         }
     }
@@ -803,7 +971,7 @@ fn root_locus(loop_tf: &TransferFunction, config: &RootLocusConfig, feasible_reg
 fn compute_analysis_inner(request: &ControlAnalysisRequest) -> ControlAnalysisResult {
     let loop_tf = build_loop_tf(request);
     let closed_tf = tf_unity_feedback(&loop_tf);
-    let (step_points, mut metrics) = step_response(&closed_tf, &request.time_range);
+    let (step_points, mut metrics) = step_response(&closed_tf, &request.time_range, request.response_type);
     let (magnitude, phase, nyquist) = frequency_response(&loop_tf, &request.frequency_range);
     let (phase_margin_deg, gain_margin_db, gain_cross, phase_cross, bandwidth) = margins(&magnitude, &phase);
     metrics.phase_margin_deg = phase_margin_deg;
@@ -868,6 +1036,7 @@ mod tests {
                 params: HashMap::from([(String::from("k"), 1.0)]),
             }],
             outputs: vec!["step_response".to_string()],
+            response_type: ResponseType::Step,
             time_range: TimeRangeConfig { start: 0.0, end: 5.0, samples: 100 },
             frequency_range: FrequencyRangeConfig { min: 0.1, max: 10.0, samples: 64 },
             root_locus: RootLocusConfig { min_gain: 0.0, max_gain: 2.0, samples: 16, current_gain: 1.0 },
@@ -901,6 +1070,7 @@ mod tests {
                 "nyquist".to_string(),
                 "bode".to_string(),
             ],
+            response_type: ResponseType::Step,
             time_range: TimeRangeConfig { start: 0.0, end: 160.0, samples: 540 },
             frequency_range: FrequencyRangeConfig { min: 1e-3, max: 1e1, samples: 360 },
             root_locus: RootLocusConfig {
@@ -946,6 +1116,7 @@ mod tests {
                 "nyquist".to_string(),
                 "bode".to_string(),
             ],
+            response_type: ResponseType::Step,
             time_range: TimeRangeConfig { start: 0.0, end: 2.0, samples: 540 },
             frequency_range: FrequencyRangeConfig { min: 1e-1, max: 1e4, samples: 420 },
             root_locus: RootLocusConfig {
@@ -982,6 +1153,42 @@ mod tests {
             .points
             .iter()
             .all(|point| point.re.is_finite() && point.im.is_finite()));
+    }
+
+    #[test]
+    fn supports_impulse_and_ramp_time_responses() {
+        let mut impulse_request = ship_heading_request(1.0);
+        impulse_request.response_type = ResponseType::Impulse;
+        let impulse = compute_analysis_inner(&impulse_request);
+        assert!(!impulse.step_response.points.is_empty());
+        assert!(impulse
+            .step_response
+            .points
+            .iter()
+            .all(|point| point.x.is_finite() && point.y.is_finite()));
+        assert!(impulse
+            .step_response
+            .points
+            .iter()
+            .any(|point| point.y.abs() > 1e-6));
+
+        let mut ramp_request = ship_heading_request(1.0);
+        ramp_request.response_type = ResponseType::Ramp;
+        let ramp = compute_analysis_inner(&ramp_request);
+        assert!(!ramp.step_response.points.is_empty());
+        let last = ramp.step_response.points.last().unwrap();
+        let first = ramp.step_response.points.first().unwrap();
+        assert!(last.y.is_finite());
+        assert!(last.y > first.y);
+    }
+
+    #[test]
+    fn root_locus_branches_keep_gain_metadata() {
+        let result = compute_analysis_inner(&ship_heading_request(1.0));
+        let first_branch = result.root_locus.branches.first().expect("missing root locus branch");
+        assert!(!first_branch.is_empty());
+        assert!(first_branch.iter().all(|point| point.gain.is_finite()));
+        assert_eq!(first_branch.first().map(|point| point.gain), Some(0.0));
     }
 
     #[test]

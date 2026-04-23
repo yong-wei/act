@@ -1,12 +1,20 @@
 'use client';
 
-import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { EChartsCoreOption } from 'echarts/core';
-import Image from 'next/image';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
+import type { InteractiveRuntimeManifest, InteractiveRuntimeStepManifest } from '@/lib/interactive-lesson-manifest';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
+import {
+  renderInteractiveManifestStep,
+  renderStudentInteractiveActivity,
+  renderTeacherInteractiveActivity,
+  type InteractiveModuleRegistry,
+  type StudentInteractiveActivityRegistry,
+  type TeacherInteractiveActivityRegistry,
+} from '@/features/interactive/shared/interactive-manifest-renderer';
 import {
   buildUnit43AnalysisRequest,
   formatUnit43ControllerFormula,
@@ -26,8 +34,8 @@ import { axisTooltipFormatter, formatAxisValue, getControlAxisPreset } from '@/r
 import { ControlChartPanel } from '@/resources/control-system/charts/control-chart-panel';
 import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
 import {
-  getUNIT_4_3PageContract,
-  type UNIT_4_3StepDefinition,
+  isUNIT_4_3InteractivePageType,
+  type UNIT_4_3RuntimeStepDefinition,
   type UNIT_4_3StepResponse,
 } from '@/lib/unit-4-3-course';
 import type { WorkspaceParameterChange } from './workspace';
@@ -38,6 +46,7 @@ type PromptContentBlock = Readonly<{ type: 'text' | 'math'; value: string }>;
 type PromptContent = readonly PromptContentBlock[];
 type PromptField = { key: string; title: string; prompt: PromptContent; placeholder: string; half?: boolean };
 type ComparisonPoint = { x: number; baseline: number | null; current: number | null };
+type RollBoundaryParams = { kp: number; ki: number; kd: number };
 
 const HEADING_PLANT_TEX = 'P_h(s)=\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}';
 const HEADING_CONTROLLER_TEX = 'C_h(s)=K\\dfrac{Ts+1}{\\alpha Ts+1},\\ 0<\\alpha<1';
@@ -283,6 +292,12 @@ const REVEALS = {
   ],
 } as const;
 
+type RevealChainStepId = keyof typeof REVEALS;
+
+function isRevealChainStepId(stepId: string): stepId is RevealChainStepId {
+  return stepId in REVEALS;
+}
+
 const ANALYSIS_CONFIG = {
   'step-05': {
     panelId: 'pi_lead' as Unit43PanelId,
@@ -333,6 +348,12 @@ const ANALYSIS_CONFIG = {
     ],
   },
 } as const;
+
+type AnalysisStepId = keyof typeof ANALYSIS_CONFIG;
+
+function isAnalysisStepId(stepId: string): stepId is AnalysisStepId {
+  return stepId in ANALYSIS_CONFIG;
+}
 
 const CONTROL_METADATA: Record<Unit43PanelId, Record<string, { label: string; min: number; max: number; step: number; note?: string }>> = {
   pi_lead: {
@@ -511,7 +532,7 @@ function RevealChain({
   revealProgress,
   allowInlineReveal,
 }: {
-  stepId: 'step-09' | 'step-11';
+  stepId: RevealChainStepId;
   revealProgress: number;
   allowInlineReveal: boolean;
 }) {
@@ -649,7 +670,7 @@ function buildComparisonChartOption(
   };
 }
 
-function getDefaultAnalysisParams(stepId: keyof typeof ANALYSIS_CONFIG): Unit43PanelParams {
+function getDefaultAnalysisParams(stepId: AnalysisStepId): Unit43PanelParams {
   if (stepId === 'step-05') {
     return STEP_05_DEFAULT_PARAMS;
   }
@@ -666,7 +687,7 @@ function UnifiedAnalysisPanel({
   stepId,
   onWorkspaceParameterChange,
 }: {
-  stepId: keyof typeof ANALYSIS_CONFIG;
+  stepId: AnalysisStepId;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const config = ANALYSIS_CONFIG[stepId];
@@ -735,54 +756,14 @@ function UnifiedAnalysisPanel({
 }
 
 function RollBoundaryPanel({
-  onWorkspaceParameterChange,
+  state,
 }: {
-  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+  state: RollBoundaryModuleState;
 }) {
-  const [params, setParams] = useState({ kp: 0.7858, ki: 2, kd: 4.104 });
-  const deferred = useDeferredValue(params);
-  const normalized = useMemo(
-    () => normalizeUnit43RollBoundaryParams(deferred),
-    [deferred],
-  );
-  const comparison = useMemo(
-    () =>
-      buildUnit43RollBoundaryComparison({
-        kp: normalized.kp,
-        ki: normalized.ki,
-        kd: normalized.kd,
-      }),
-    [normalized.kd, normalized.ki, normalized.kp],
-  );
-
-  const timeData: ComparisonPoint[] = comparison.timeSeries.baseline.map((point, index) => ({
-    x: point.x,
-    baseline: point.y,
-    current: comparison.timeSeries.current[index]?.y ?? null,
-  }));
-
-  const bodeData: ComparisonPoint[] = comparison.magnitudeSeries.baseline.map((point, index) => ({
-    x: point.x,
-    baseline: point.y,
-    current: comparison.magnitudeSeries.current[index]?.y ?? null,
-  }));
-
-  const timeOption = buildComparisonChartOption(timeData, {
-    axisPreset: getControlAxisPreset('unit43_roll_boundary', 'step'),
-    xAxisName: 't / s',
-    yAxisName: '\\varphi / rad',
-    dynamicYAxis: true,
-  });
-  const bodeOption = buildComparisonChartOption(bodeData, {
-    axisPreset: getControlAxisPreset('unit43_roll_boundary', 'magnitude'),
-    xAxisType: 'log',
-    xAxisName: 'ω / rad/s',
-    yAxisName: '幅值 / dB',
-    dynamicYAxis: true,
-  });
+  const { normalized, comparison, timeOption, updateParam } = state;
 
   return (
-    <SurfaceCard title="横摇减摇鳍双栏联动面板">
+    <SurfaceCard title="横摇减摇鳍时域响应与控制区">
       <div className="grid gap-3 md:grid-cols-2">
         <div className="premium-lesson-tone-block premium-tone-cyan">
           <div className="premium-lesson-title text-sm font-medium">对象传函</div>
@@ -797,10 +778,7 @@ function RollBoundaryPanel({
           </div>
         </div>
       </div>
-      <div className="grid gap-4 xl:grid-cols-2">
-        <ControlChartPanel title="时域响应对比" option={timeOption} />
-        <ControlChartPanel title="Bode 对比" option={bodeOption} />
-      </div>
+      <ControlChartPanel title="时域响应对比" option={timeOption} />
       <details className="mt-4 rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3">
         <summary className="cursor-pointer text-sm font-medium">控件区</summary>
         <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -818,8 +796,7 @@ function RollBoundaryPanel({
                   value={value as number}
                   onChange={(event) => {
                     const next = Number(event.target.value);
-                    setParams((current) => ({ ...current, [key]: next }));
-                    onWorkspaceParameterChange?.({ key, value: next, source: 'slider' });
+                    updateParam(key as keyof RollBoundaryParams, next);
                   }}
                   className="mt-2 w-full"
                 />
@@ -851,6 +828,96 @@ function RollBoundaryPanel({
   );
 }
 
+type RollBoundaryModuleState = {
+  normalized: ReturnType<typeof normalizeUnit43RollBoundaryParams>;
+  comparison: ReturnType<typeof buildUnit43RollBoundaryComparison>;
+  timeOption: EChartsCoreOption;
+  bodeOption: EChartsCoreOption;
+  updateParam: (key: keyof RollBoundaryParams, value: number) => void;
+};
+
+function useRollBoundaryModuleState(
+  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void,
+): RollBoundaryModuleState {
+  const [params, setParams] = useState<RollBoundaryParams>({ kp: 0.7858, ki: 2, kd: 4.104 });
+  const deferred = useDeferredValue(params);
+  const normalized = useMemo(
+    () => normalizeUnit43RollBoundaryParams(deferred),
+    [deferred],
+  );
+  const comparison = useMemo(
+    () =>
+      buildUnit43RollBoundaryComparison({
+        kp: normalized.kp,
+        ki: normalized.ki,
+        kd: normalized.kd,
+      }),
+    [normalized.kd, normalized.ki, normalized.kp],
+  );
+
+  const timeData: ComparisonPoint[] = comparison.timeSeries.baseline.map((point, index) => ({
+    x: point.x,
+    baseline: point.y,
+    current: comparison.timeSeries.current[index]?.y ?? null,
+  }));
+
+  const bodeData: ComparisonPoint[] = comparison.magnitudeSeries.baseline.map((point, index) => ({
+    x: point.x,
+    baseline: point.y,
+    current: comparison.magnitudeSeries.current[index]?.y ?? null,
+  }));
+
+  const timeOption = useMemo(
+    () =>
+      buildComparisonChartOption(timeData, {
+        axisPreset: getControlAxisPreset('unit43_roll_boundary', 'step'),
+        xAxisName: 't / s',
+        yAxisName: '\\varphi / rad',
+        dynamicYAxis: true,
+      }),
+    [timeData],
+  );
+  const bodeOption = useMemo(
+    () =>
+      buildComparisonChartOption(bodeData, {
+        axisPreset: getControlAxisPreset('unit43_roll_boundary', 'magnitude'),
+        xAxisType: 'log',
+        xAxisName: 'ω / rad/s',
+        yAxisName: '幅值 / dB',
+        dynamicYAxis: true,
+      }),
+    [bodeData],
+  );
+
+  const updateParam = useCallback(
+    (key: keyof RollBoundaryParams, value: number) => {
+      setParams((current) => ({ ...current, [key]: value }));
+      onWorkspaceParameterChange?.({ key, value, source: 'slider' });
+    },
+    [onWorkspaceParameterChange],
+  );
+
+  return {
+    normalized,
+    comparison,
+    timeOption,
+    bodeOption,
+    updateParam,
+  };
+}
+
+function RollBoundaryBodePanel({
+  state,
+}: {
+  state: RollBoundaryModuleState;
+}) {
+  return (
+    <SurfaceCard title="横摇减摇鳍 Bode 对比">
+      <ControlChartPanel title="Bode 对比" option={state.bodeOption} />
+    </SurfaceCard>
+  );
+}
+
 export function UNIT_4_3KnowledgeMapVisual() {
   return (
     <SurfaceCard title="4-2 → 4-3 → 4-4 路径图">
@@ -874,349 +941,544 @@ export function UNIT_4_3StepAiAssistant({
   step: _step,
   onAiEvent: _onAiEvent,
 }: {
-  step: UNIT_4_3StepDefinition;
+  step: UNIT_4_3RuntimeStepDefinition;
   onAiEvent?: (eventType: string, data?: Record<string, unknown>) => void;
 }) {
   return null;
 }
 
-function renderStepBody(
-  step: UNIT_4_3StepDefinition,
-  mediaSrc: string | null,
-  mediaAlt: string,
-  revealProgress: number,
-  allowInlineReveal: boolean,
-  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void,
-) {
-  switch (step.id) {
-    case 'step-01':
-      return (
-        <SurfaceCard title="课程目标">
-          <div className="grid gap-3 md:grid-cols-2">
-            {[
-              '对象分析：把模型、任务和约束改写成设计入口。',
-              '结构分流：判断继续单结构、进入复合结构还是改写通道。',
-              '参数方向：写清先改哪段行为、预期改善什么、最可能先透支什么。',
-              '首轮验证与问题清单：确认这一版是否值得继续推进。',
-            ].map((item) => (
-              <div key={item} className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4 text-sm leading-6">
-                {item}
-              </div>
-            ))}
-          </div>
-        </SurfaceCard>
-      );
-    case 'step-02':
-      return (
-        <SurfaceCard title="对象分析四问">
-          <div className="grid gap-3 md:grid-cols-2">
-            {[
-              '当前最紧矛盾在哪里。',
-              '原有单结构还能否继续推。',
-              '新机制应当补到哪里。',
-              '首轮验证先盯什么。',
-            ].map((item) => (
-              <div key={item} className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4">
-                {item}
-              </div>
-            ))}
-          </div>
-          <div className="premium-lesson-tone-block premium-tone-cyan">
-            对象分析记录单：当前主矛盾、当前硬约束、继续单结构最先失守处、首轮验证重点读数。
-          </div>
-        </SurfaceCard>
-      );
-    case 'step-03':
-      return (
-        <>
-          <TablePanel
-            title="表 1 · 结构分流判断"
-            headers={['当前观察', '更合适的起步方向', '设计含义']}
-            rows={[
-              ['低频精度不足，但动态品质尚可', '继续 PI/滞后 单结构', '先把低频能力补上，再验证是否带来过大动态代价'],
-              ['超调、相角裕度或阻尼更紧', '继续 PD/超前 单结构', '先整理中频动态品质，再看速度与高频代价'],
-              ['单结构已经改善一项，却明显透支另一项', '进入复合结构', '第二条机制线用来分担职责，而不是把第一条机制线越推越激进'],
-              ['给定或扰动通道可测且主问题来自该通道', '反馈 + 前馈组合', '让前馈定向补偿通道，反馈继续保底'],
-            ]}
-          />
-          <SurfaceCard title="职责重分配结论">
-            <p className="premium-lesson-muted text-sm leading-6">
-              复合结构意味着职责重分配：原来压在一条机制线上的任务，需要改由两条或多条职责线共同承担。
-            </p>
-          </SurfaceCard>
-        </>
-      );
-    case 'step-04':
-      return (
-        <>
-          <TablePanel
-            title="表 2 · 三类复合结构总览"
-            headers={['形式', '一般表达式', '更适合解决的问题', '结构分工']}
-            rows={[
-              ['PI + 超前', 'C(s)=K\\left(1+\\dfrac{1}{T_i s}\\right)\\dfrac{T_\\alpha s+1}{\\alpha T_\\alpha s+1}', '既要压低静差，又要把中频相位和阻尼拉回可接受范围', 'PI 负责低频托举，超前负责中频整理'],
-              ['滞后 + 超前', 'C(s)=K\\dfrac{T_\\ell s+1}{\\beta T_\\ell s+1}\\dfrac{T_\\alpha s+1}{\\alpha T_\\alpha s+1}', '速度尚可但低频增益不够，同时又不希望明显牺牲相位裕量', '滞后补低频，超前补相位'],
-              ['带微分滤波 PID', 'C(s)=K_p+\\dfrac{K_i}{s}+\\dfrac{K_d s}{T_f s+1}', '需要零静差，又希望提前整理动态品质，同时控制高频放大', '积分补低频，微分改善中频，滤波限制高频代价'],
-            ]}
-          />
-          <SurfaceCard title="职责总览">
-            <p className="premium-lesson-muted text-sm leading-6">
-              同一条机制线不足以完成任务时，第二条机制线通常用来补足另一段行为。
-            </p>
-          </SurfaceCard>
-        </>
-      );
-    case 'step-05':
-      return (
-        <>
-          <SurfaceCard title="对象与讲义基线">
-            <div className="grid gap-3 md:grid-cols-2">
-              <BlockMath math={'P_1(s)=\\dfrac{1}{(s+1)(0.4s+1)}'} />
-              <BlockMath math={'C_1(s)=6\\left(1+\\dfrac{1}{1.8s}\\right)\\dfrac{0.9s+1}{0.18s+1}'} />
-            </div>
-            <div className="premium-lesson-muted text-sm leading-6">
-              PI 环节负责提高低频增益，超前环节负责在截止频率附近补相位。
-            </div>
-          </SurfaceCard>
-          <TablePanel
-            title="表 3 · PI + 超前结果摘要"
-            headers={['指标', '校正前', '校正后', '说明']}
-            rows={[
-              ['超调量', '1.93%', '12.30%', '动态更积极，超调仍处在可接受范围'],
-              ['调节时间', '1.63 s', '3.35 s', '引入积分后，系统愿意为零静差付出时间代价'],
-              ['稳态误差', '0.50', '约 0', '低频保持能力显著提高'],
-              ['相角裕度', '无代表值', '49.36°', '超前环节把中频相位重新托住'],
-              ['截止频率', '无代表值', '7.60 rad/s', '响应速度提高，同时控制作用更强'],
-            ]}
-          />
-          <UnifiedAnalysisPanel stepId="step-05" onWorkspaceParameterChange={onWorkspaceParameterChange} />
-        </>
-      );
-    case 'step-06':
-      return (
-        <>
-          <SurfaceCard title="对象与讲义基线">
-            <div className="grid gap-3 md:grid-cols-2">
-              <BlockMath math={'P_2(s)=\\dfrac{1}{(s+1)(0.5s+1)(0.1s+1)}'} />
-              <BlockMath math={'C_2(s)=6\\dfrac{5s+1}{20s+1}\\dfrac{0.8s+1}{0.16s+1}'} />
-            </div>
-            <div className="premium-lesson-muted text-sm leading-6">
-              滞后环节负责提高低频增益，超前环节负责补回相位储备。
-            </div>
-          </SurfaceCard>
-          <TablePanel
-            title="表 4 · 滞后 + 超前结果摘要"
-            headers={['指标', '校正前', '校正后', '说明']}
-            rows={[
-              ['超调量', '4.75%', '0%', '动态明显变得更保守'],
-              ['调节时间', '3.14 s', '17.28 s', '为换取高储备，速度付出了显著代价'],
-              ['稳态误差', '0.50', '0.146', '低频能力得到改善，但仍不是零静差'],
-              ['相角裕度', '无代表值', '108.70°', '首轮设计明显偏保守'],
-              ['截止频率', '无代表值', '1.52 rad/s', '速度下降，说明这一版更偏稳健'],
-            ]}
-          />
-          <UnifiedAnalysisPanel stepId="step-06" onWorkspaceParameterChange={onWorkspaceParameterChange} />
-        </>
-      );
-    case 'step-07':
-      return (
-        <>
-          <SurfaceCard title="对象与讲义基线">
-            <div className="grid gap-3 md:grid-cols-2">
-              <BlockMath math={'P_3(s)=\\dfrac{1}{(s+1)(s+2)}'} />
-              <BlockMath math={'C_3(s)=3.5+\\dfrac{2.333}{s}+\\dfrac{0.25s}{0.05s+1}'} />
-            </div>
-            <div className="premium-lesson-muted text-sm leading-6">
-              积分补低频、微分整理中频、滤波限制高频代价。
-            </div>
-          </SurfaceCard>
-          <TablePanel
-            title="表 5 · 带微分滤波 PID 结果摘要"
-            headers={['指标', '校正前', '校正后', '说明']}
-            rows={[
-              ['超调量', '0.43%', '0%', '动态保持平稳'],
-              ['调节时间', '2.52 s', '3.34 s', '速度略有下降，但稳态和储备更完整'],
-              ['稳态误差', '0.667', '约 0', '积分项决定了低频保持能力'],
-              ['相角裕度', '无代表值', '84.63°', '微分补偿改善了中频相位'],
-              ['截止频率', '无代表值', '1.21 rad/s', '整体更偏稳健而非激进提速'],
-            ]}
-          />
-          <UnifiedAnalysisPanel stepId="step-07" onWorkspaceParameterChange={onWorkspaceParameterChange} />
-        </>
-      );
-    case 'step-08':
-      return (
-        <SurfaceCard title="客船案例入口">
-          <div className="grid gap-3 md:grid-cols-2">
-            <BlockMath math={HEADING_PLANT_TEX} />
-            <div className="premium-lesson-tone-block premium-tone-amber">
-              对象已含积分特性，因此单位反馈下的稳态误差本来就很小。
-            </div>
-          </div>
-          <div className="grid gap-3 md:grid-cols-3">
-            {['超调量不超过 20%', '调节时间压到 40 s 左右', '控制峰值不超过 7'].map((item) => (
-              <div key={item} className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4 text-sm">
-                {item}
-              </div>
-            ))}
-          </div>
-          <div className="premium-lesson-muted text-sm leading-6">
-            当前主矛盾在修航过程偏慢与越摆风险，不在继续强化低频保持，因此首轮先用超前整理中频动态品质。
-          </div>
-        </SurfaceCard>
-      );
-    case 'step-09':
-      return (
-        <>
-          <SurfaceCard title="客船参数方向显影">
-            <div className="grid gap-3 md:grid-cols-2">
-              <BlockMath math={HEADING_PLANT_TEX} />
-              <BlockMath math={HEADING_CONTROLLER_TEX} />
-            </div>
-            <div className="premium-lesson-muted text-sm leading-6">
-              三项目标：超调量不超过 20%，调节时间压到 40 s 左右，控制峰值不超过 7。
-            </div>
-          </SurfaceCard>
-          <SurfaceCard title="逐步显影链">
-            <RevealChain stepId="step-09" revealProgress={revealProgress} allowInlineReveal={allowInlineReveal} />
-          </SurfaceCard>
-        </>
-      );
-    case 'step-10':
-      return (
-        <>
-          <TablePanel
-            title="表 6 · 客船首轮验证"
-            headers={['指标', '校正前', '校正后', '结果解释']}
-            rows={[
-              ['超调量', '13.50%', '18.86%', '仍满足 20% 约束，但已接近上限'],
-              ['峰值时间', '42.16 s', '15.72 s', '修航过程显著加快'],
-              ['调节时间', '65.48 s', '36.02 s', '已达到约 40 s 的目标'],
-              ['稳态误差', '1.96×10^-4', '约 0', '对象原有积分特性已保证良好低频保持'],
-              ['控制峰值', '1.00', '6.89', '接近约束上限，控制力度已较强'],
-              ['相角裕度', '54.57°', '49.05°', '超前校正把裕度压到目标附近'],
-              ['截止频率', '无代表值', '0.18 rad/s', '与参数方向设定一致'],
-            ]}
-          />
-          <UnifiedAnalysisPanel stepId="step-10" onWorkspaceParameterChange={onWorkspaceParameterChange} />
-        </>
-      );
-    case 'step-11':
-      return (
-        <>
-          <SurfaceCard title="最小例题">
-            <div className="grid gap-3 md:grid-cols-2">
-              <BlockMath math={MINI_EXAMPLE_PLANT_TEX} />
-              <div className="premium-lesson-muted text-sm leading-6">
-                要求：稳态误差不大于 0.12，超调量不高于 15%，调节时间不超过 12 s，相角裕度不低于 55°。已知单纯提高增益会让相位储备明显下降。
-              </div>
-            </div>
-          </SurfaceCard>
-          <SurfaceCard title="逐步显影链">
-            <RevealChain stepId="step-11" revealProgress={revealProgress} allowInlineReveal={allowInlineReveal} />
-          </SurfaceCard>
-          <SurfaceCard title="分层练习">
-            <div className="grid gap-3 md:grid-cols-3">
-              {['练习 1：结构判断', '练习 2：参数方向表达', '练习 3：问题清单整理'].map((item) => (
-                <div key={item} className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4 text-sm">
-                  {item}
-                </div>
-              ))}
-            </div>
-          </SurfaceCard>
-        </>
-      );
-    case 'step-12':
-      return (
-        <SurfaceCard title="实践工作区">
-          <div className="grid gap-3 md:grid-cols-3">
-            {[
-              '对象分析记录单：主矛盾、硬约束、继续单结构风险、首轮验证重点',
-              '初始方案表达卡：控制器结构、各部分职责、参数起步方向',
-              '问题清单移交表：已满足目标、已暴露代价、下一轮优先项',
-            ].map((item) => (
-              <div key={item} className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4 text-sm leading-6">
-                {item}
-              </div>
-            ))}
-          </div>
-        </SurfaceCard>
-      );
-    case 'step-13':
-      return (
-        <>
-          <SurfaceCard title="边界案例：横摇减摇鳍首先是扰动通道重写">
-            <div className="grid gap-3 md:grid-cols-2">
-              <BlockMath math={'G_{\\varphi M_f}(s)=\\dfrac{1}{2.052s^2+0.3929s+1}'} />
-              <BlockMath math={'G_c(s)=0.7858+\\dfrac{2}{s}+4.104s'} />
-            </div>
-            <div className="premium-lesson-muted text-sm leading-6">
-              这里的复合结构不是单纯按频段叠加，而是为了重写扰动抑制通道。{mediaSrc ? ` 参考图：${mediaAlt}` : ''}
-            </div>
-          </SurfaceCard>
-          <TablePanel
-            title="表 7 · 横摇减摇鳍结果"
-            headers={['指标', '原系统', '校正后', '含义']}
-            rows={[
-              ['共振峰值', '11.32 dB', '1.77 dB', '横摇共振被显著压低'],
-              ['共振频率', '0.687 rad/s', '0.687 rad/s', '主要改的是峰值高度，而不是移动共振点'],
-              ['振幅比', '1', '0.333', '共振处横摇响应约降为原来的三分之一'],
-            ]}
-          />
-          <RollBoundaryPanel onWorkspaceParameterChange={onWorkspaceParameterChange} />
-        </>
-      );
-    case 'step-14':
-      return (
-        <SurfaceCard title="收束与去向">
-          <div className="grid gap-3">
-            {[
-              '第一版方案必须包含对象分析、结构分流、参数方向、首轮验证与问题清单。',
-              '复合结构的意义在于职责分配，而不是公式长度。',
-              '首轮验证的价值在于形成下一轮入口。',
-              '4-4 将继续处理多个指标同时拉扯时，下一轮该先改什么。',
-            ].map((item) => (
-              <div key={item} className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4 text-sm leading-6">
-                {item}
-              </div>
-            ))}
-          </div>
-        </SurfaceCard>
-      );
-    default:
-      return mediaSrc ? (
-        <SurfaceCard title={step.title}>
-          <Image
-            src={mediaSrc}
-            alt={mediaAlt}
-            width={1600}
-            height={900}
-            unoptimized
-            className="h-auto w-full rounded-3xl"
-          />
-        </SurfaceCard>
-      ) : null;
+function asRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
   }
+  return value as Record<string, unknown>;
 }
 
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => String(item));
+}
+
+function pickFirstTableLikeBlock(stepManifest: InteractiveRuntimeStepManifest, moduleId: string) {
+  const contentBlocks = stepManifest.contentBlocks;
+
+  if (moduleId.includes('summary')) {
+    const resultSummary = asRecord(contentBlocks.result_summary);
+    if (Array.isArray(resultSummary.rows) && Array.isArray(resultSummary.columns)) {
+      return resultSummary;
+    }
+  }
+
+  for (const key of ['table_1', 'table_2', 'table_6', 'table_7', 'result_summary']) {
+    const candidate = asRecord(contentBlocks[key]);
+    if (Array.isArray(candidate.rows) && Array.isArray(candidate.columns)) {
+      return candidate;
+    }
+  }
+
+  for (const value of Object.values(contentBlocks)) {
+    const candidate = asRecord(value);
+    if (Array.isArray(candidate.rows) && Array.isArray(candidate.columns)) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+function pickProblemStatementBlock(stepManifest: InteractiveRuntimeStepManifest) {
+  for (const key of ['problem_statement', 'fixed_problem', 'formula_block']) {
+    const candidate = asRecord(stepManifest.contentBlocks[key]);
+    if (Object.keys(candidate).length) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function renderSentenceList(items: string[], columns = 'md:grid-cols-2') {
+  return (
+    <div className={cn('grid gap-3', columns)}>
+      {items.map((item) => (
+        <div key={item} className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4 text-sm leading-6">
+          {item}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+type Unit43ModuleExtra = {
+  revealProgress: number;
+  allowInlineReveal: boolean;
+  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+  rollBoundaryState: RollBoundaryModuleState;
+};
+
+const UNIT_4_3_MODULE_REGISTRY: InteractiveModuleRegistry<Unit43ModuleExtra> = {
+  'stage-map': () => <UNIT_4_3KnowledgeMapVisual />,
+  'goal-card-row': ({ step }) => {
+    const items = asStringArray(step.contentBlocks.goal_cards);
+    return items.length ? <SurfaceCard title="课程目标">{renderSentenceList(items)}</SurfaceCard> : null;
+  },
+  'question-card-set': ({ step }) => {
+    const items = asStringArray(step.contentBlocks.question_cards);
+    return items.length ? <SurfaceCard title="对象分析四问">{renderSentenceList(items)}</SurfaceCard> : null;
+  },
+  'goal-card-set': ({ step }) => {
+    const items = asStringArray(step.contentBlocks.target_constraints);
+    return items.length ? <SurfaceCard title="目标约束">{renderSentenceList(items, 'md:grid-cols-3')}</SurfaceCard> : null;
+  },
+  'single-choice-card': () => null,
+  'activity-card': () => null,
+  'activity-card-set': () => null,
+  'quiz-stack': ({ step }) => {
+    const items = asStringArray(step.contentBlocks.post_quiz_items);
+    return items.length ? <SurfaceCard title="后测题组">{renderSentenceList(items, 'grid-cols-1')}</SurfaceCard> : null;
+  },
+  'formula-card': ({ step }) => {
+    const block = asRecord(step.contentBlocks.formula_block);
+    const formulas = [block.object, block.controller]
+      .filter(Boolean)
+      .map((item) => String(item).replace(/^\$|\$$/g, ''));
+    const explanation = String(block.explanation ?? '').trim();
+    if (!formulas.length && !explanation) {
+      return null;
+    }
+    return (
+      <SurfaceCard title="对象与讲义基线">
+        {formulas.length ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            {formulas.map((formula) => (
+              <BlockMath key={formula} math={formula} />
+            ))}
+          </div>
+        ) : null}
+        {explanation ? <div className="premium-lesson-muted text-sm leading-6">{explanation}</div> : null}
+      </SurfaceCard>
+    );
+  },
+  'native-table': ({ step, module }) => {
+    const table = pickFirstTableLikeBlock(step, module.id);
+    if (!table) return null;
+    return (
+      <TablePanel
+        title={module.id.includes('validation') ? '表 6 · 客船首轮验证' : module.id.includes('roll') ? '表 7 · 横摇减摇鳍结果' : '结构判断表'}
+        headers={asStringArray(table.columns)}
+        rows={(table.rows as Array<unknown[]>).map((row) => row.map((cell) => String(cell)))}
+      />
+    );
+  },
+  'native-formula-table': ({ step }) => {
+    const table = pickFirstTableLikeBlock(step, 'table_2');
+    if (!table) return null;
+    return (
+      <TablePanel
+        title="表 2 · 三类复合结构总览"
+        headers={asStringArray(table.columns)}
+        rows={(table.rows as Array<unknown[]>).map((row) => row.map((cell) => String(cell)))}
+      />
+    );
+  },
+  'table-card': ({ step, module }) => {
+    const table = pickFirstTableLikeBlock(step, module.id);
+    if (!table) return null;
+    return (
+      <TablePanel
+        title={module.id.includes('pi') ? '表 3 · PI + 超前结果摘要' : module.id.includes('lag') ? '表 4 · 滞后 + 超前结果摘要' : '表 5 · 带微分滤波 PID 结果摘要'}
+        headers={asStringArray(table.columns)}
+        rows={(table.rows as Array<unknown[]>).map((row) => row.map((cell) => String(cell)))}
+      />
+    );
+  },
+  'problem-statement': ({ step }) => {
+    const block = pickProblemStatementBlock(step);
+    if (!block) return null;
+    const formulas = [block.object, block.controller, block.controller_form]
+      .filter(Boolean)
+      .map((item) => String(item).replace(/^\$|\$$/g, ''));
+    const notes = [
+      block.note,
+      block.task,
+      block.given_condition,
+      asRecord(step.contentBlocks.why_lead_first).text,
+      asRecord(step.contentBlocks.final_sentence).text,
+      asRecord(step.contentBlocks.closing_sentence).text,
+    ]
+      .filter(Boolean)
+      .map((item) => String(item));
+    const requirementItems = [
+      ...asStringArray(block.requirements),
+      ...asStringArray(block.goals),
+    ];
+
+    return (
+      <SurfaceCard title={step.id === 'step-13' ? '边界案例：横摇减摇鳍首先是扰动通道重写' : step.id === 'step-11' ? '最小例题' : '题面与对象'}>
+        {formulas.length ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            {formulas.map((formula) => (
+              <BlockMath key={formula} math={formula} />
+            ))}
+          </div>
+        ) : null}
+        {notes.map((note) => (
+          <div key={note} className="premium-lesson-muted text-sm leading-6">
+            {note}
+          </div>
+        ))}
+        {requirementItems.length ? renderSentenceList(requirementItems, 'md:grid-cols-2') : null}
+      </SurfaceCard>
+    );
+  },
+  'summary-card': ({ step }) => {
+    const takeaways = asStringArray(step.contentBlocks.takeaways);
+    if (takeaways.length) {
+      return <SurfaceCard title="收束与带走">{renderSentenceList(takeaways, 'grid-cols-1')}</SurfaceCard>;
+    }
+    const sentence = [
+      asRecord(step.contentBlocks.branch_summary).text,
+      asRecord(step.contentBlocks.summary_sentence).text,
+      asRecord(step.contentBlocks.closing_sentence).text,
+    ]
+      .find(Boolean);
+    return sentence ? (
+      <SurfaceCard title="要点总结">
+        <div className="premium-lesson-muted text-sm leading-6">{String(sentence)}</div>
+      </SurfaceCard>
+    ) : null;
+  },
+  'template-card': ({ step, module }) => {
+    const templateCards = asRecord(step.contentBlocks.template_cards);
+    const key = module.id.startsWith('analysis')
+      ? 'analysis_card'
+      : module.id.startsWith('scheme')
+        ? 'scheme_card'
+        : 'issue_card';
+    const items = asStringArray(templateCards[key]);
+    if (!items.length) return null;
+    const title = key === 'analysis_card' ? '对象分析记录单' : key === 'scheme_card' ? '初始方案表达卡' : '问题清单移交表';
+    return <SurfaceCard title={title}>{renderSentenceList(items, 'grid-cols-1')}</SurfaceCard>;
+  },
+  'step-reveal-chain': ({ step, extra }) => (
+    <SurfaceCard title="逐步显影链">
+      {isRevealChainStepId(step.id) ? (
+        <RevealChain
+          stepId={step.id}
+          revealProgress={extra.revealProgress}
+          allowInlineReveal={extra.allowInlineReveal}
+        />
+      ) : null}
+    </SurfaceCard>
+  ),
+  'rust-analysis-panel': ({ step, extra }) =>
+    isAnalysisStepId(step.id) ? (
+      <UnifiedAnalysisPanel
+        stepId={step.id}
+        onWorkspaceParameterChange={extra.onWorkspaceParameterChange}
+      />
+    ) : null,
+  'rust-time-compare-panel': ({ module, extra }) =>
+    module.id === 'roll-native-time-compare' ? (
+      <RollBoundaryPanel state={extra.rollBoundaryState} />
+    ) : null,
+  'rust-bode-compare-panel': ({ module, extra }) =>
+    module.id === 'roll-native-bode-compare' ? (
+      <RollBoundaryBodePanel state={extra.rollBoundaryState} />
+    ) : null,
+  'figure-note': ({ step }) => {
+    const sentence = String(asRecord(step.contentBlocks.closing_sentence).text ?? '').trim();
+    return sentence ? (
+      <SurfaceCard title="边界结论">
+        <div className="premium-lesson-muted text-sm leading-6">{sentence}</div>
+      </SurfaceCard>
+    ) : null;
+  },
+  'title-card': ({ step }) => {
+    const text = String(asRecord(step.contentBlocks.post_quiz_title).text ?? '').trim();
+    return text ? (
+      <SurfaceCard title="后测提示">
+        <div className="premium-lesson-muted text-sm leading-6">{text}</div>
+      </SurfaceCard>
+    ) : null;
+  },
+  'route-card': ({ step }) => {
+    const text = String(asRecord(step.contentBlocks.next_route).text ?? '').trim();
+    return text ? (
+      <SurfaceCard title="去向">
+        <div className="premium-lesson-muted text-sm leading-6">{text}</div>
+      </SurfaceCard>
+    ) : null;
+  },
+};
+
 export function UNIT_4_3StepContentPanel({
+  manifest,
   step,
-  mediaSrc,
-  mediaAlt,
+  stepManifest,
   revealProgress,
   allowInlineReveal,
   onWorkspaceParameterChange,
 }: {
-  step: UNIT_4_3StepDefinition;
-  mediaSrc: string | null;
-  mediaAlt: string;
+  manifest: InteractiveRuntimeManifest;
+  step: UNIT_4_3RuntimeStepDefinition;
+  stepManifest: InteractiveRuntimeStepManifest;
   revealProgress: number;
   allowInlineReveal: boolean;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
-  return <div>{renderStepBody(step, mediaSrc, mediaAlt, revealProgress, allowInlineReveal, onWorkspaceParameterChange)}</div>;
+  const rollBoundaryState = useRollBoundaryModuleState(onWorkspaceParameterChange);
+
+  return (
+    <div>
+      {renderInteractiveManifestStep({
+        manifest,
+        step: stepManifest,
+        moduleRegistry: UNIT_4_3_MODULE_REGISTRY,
+        extra: {
+          revealProgress,
+          allowInlineReveal,
+          onWorkspaceParameterChange,
+          rollBoundaryState,
+        },
+      })}
+    </div>
+  );
 }
 
+const SINGLE_CHOICE_OPTIONS = ['继续单结构', '进入复合结构', '反馈 + 前馈组合'] as const;
+
+function TextAreaActivityCards({
+  step,
+  savedResponse,
+  released,
+  browseEnabled,
+  revealProgress,
+  onSubmit,
+}: {
+  step: UNIT_4_3RuntimeStepDefinition;
+  savedResponse?: UNIT_4_3StepResponse;
+  released: boolean;
+  browseEnabled: boolean;
+  revealProgress: number;
+  onSubmit: (response: UNIT_4_3StepResponse) => void;
+}) {
+  const [answers, setAnswers] = useState<Record<string, string>>(savedResponse?.answers ?? {});
+
+  useEffect(() => {
+    setAnswers(savedResponse?.answers ?? {});
+  }, [savedResponse, step.id]);
+
+  const fields = ACTIVITY_FIELDS[step.id] ?? [];
+  const disabled = !released || (!browseEnabled && revealProgress === 0);
+
+  return (
+    <SurfaceCard title="学生作答区">
+      <SubmissionStatus
+        submitted={Boolean(savedResponse)}
+        submittedText="已提交当前页面作答。"
+        idleText={disabled ? '等待教师发放或开放浏览后再提交。' : '提交后会同步到教师端汇总。'}
+      />
+      <div className={step.id === 'step-12' ? 'grid gap-3' : 'grid gap-3 md:grid-cols-2'}>
+        {fields.map((field) => (
+          <div key={field.key}>
+            <TextareaCard
+              title={field.title}
+              prompt={field.prompt}
+              value={answers[field.key] ?? ''}
+              onChange={(value) => setAnswers((current) => ({ ...current, [field.key]: value }))}
+              placeholder={field.placeholder}
+              half={field.half}
+            />
+            <div className="mt-2 flex justify-end">
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => onSubmit({ stepId: step.id, submittedAt: Date.now(), answers })}
+                className="premium-lesson-action-primary"
+              >
+                提交答案
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </SurfaceCard>
+  );
+}
+
+function SingleChoiceActivity({
+  step,
+  stepManifest,
+  savedResponse,
+  released,
+  browseEnabled,
+  answerVisible,
+  revealProgress,
+  onSubmit,
+}: {
+  step: UNIT_4_3RuntimeStepDefinition;
+  stepManifest: InteractiveRuntimeStepManifest;
+  savedResponse?: UNIT_4_3StepResponse;
+  released: boolean;
+  browseEnabled: boolean;
+  answerVisible: boolean;
+  revealProgress: number;
+  onSubmit: (response: UNIT_4_3StepResponse) => void;
+}) {
+  const [answers, setAnswers] = useState<Record<string, string>>(savedResponse?.answers ?? {});
+
+  useEffect(() => {
+    setAnswers(savedResponse?.answers ?? {});
+  }, [savedResponse, step.id]);
+
+  const disabled =
+    !released
+    || (stepManifest.teacherControls.openBrowse === 'teacher_toggle' && !browseEnabled && revealProgress === 0);
+
+  return (
+    <SurfaceCard title="学生作答区">
+      <SubmissionStatus
+        submitted={Boolean(savedResponse)}
+        submittedText="已提交当前页面作答。"
+        idleText={disabled ? '等待教师发放或开放浏览后再提交。' : '提交后会同步到教师端汇总。'}
+      />
+      <div className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4">
+        <div className="premium-lesson-title text-sm font-medium">当前观察更适合走哪一路分流？</div>
+        {SINGLE_CHOICE_OPTIONS.map((option) => (
+          <label key={option} className="mt-3 flex items-start gap-2 text-sm">
+            <input
+              type="radio"
+              name="branch-choice"
+              checked={answers['branch-choice'] === option}
+              disabled={disabled}
+              onChange={() => setAnswers((current) => ({ ...current, 'branch-choice': option }))}
+            />
+            <span>{option}</span>
+          </label>
+        ))}
+        {answerVisible ? (
+          <div className="premium-lesson-muted mt-3 text-sm">
+            参考答案：进入哪一路分流，必须和表 1 的当前观察一一对应。
+          </div>
+        ) : null}
+        <div className="mt-3 flex justify-end">
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => onSubmit({ stepId: step.id, submittedAt: Date.now(), answers })}
+            className="premium-lesson-action-primary"
+          >
+            提交答案
+          </button>
+        </div>
+      </div>
+    </SurfaceCard>
+  );
+}
+
+function QuizGroupActivity({
+  step,
+  savedResponse,
+  released,
+  browseEnabled,
+  revealProgress,
+  answerVisible,
+  onSubmit,
+}: {
+  step: UNIT_4_3RuntimeStepDefinition;
+  savedResponse?: UNIT_4_3StepResponse;
+  released: boolean;
+  browseEnabled: boolean;
+  revealProgress: number;
+  answerVisible: boolean;
+  onSubmit: (response: UNIT_4_3StepResponse) => void;
+}) {
+  const [answers, setAnswers] = useState<Record<string, string>>(savedResponse?.answers ?? {});
+
+  useEffect(() => {
+    setAnswers(savedResponse?.answers ?? {});
+  }, [savedResponse, step.id]);
+
+  const disabled = !released || !browseEnabled || revealProgress > 0;
+
+  return (
+    <SurfaceCard title="学生作答区">
+      <SubmissionStatus
+        submitted={Boolean(savedResponse)}
+        submittedText="已提交当前页面作答。"
+        idleText={disabled ? '等待页面可作答后再提交。' : '提交后会同步到教师端汇总。'}
+      />
+      <div className="space-y-3">
+        {QUIZ_OPTIONS['step-14'].map(([prompt, options, answer], index) => (
+          <div
+            key={`${prompt}-${index}`}
+            className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4"
+          >
+            <div className="premium-lesson-title text-sm font-medium">{prompt}</div>
+            {options.map((option) => (
+              <label key={option} className="mt-3 flex items-start gap-2 text-sm">
+                <input
+                  type="radio"
+                  name={`post-${index}`}
+                  checked={answers[`post-${index}`] === option}
+                  disabled={disabled}
+                  onChange={() => setAnswers((current) => ({ ...current, [`post-${index}`]: option }))}
+                />
+                <span>{option}</span>
+              </label>
+            ))}
+            {answerVisible ? <div className="premium-lesson-muted mt-3 text-sm">参考答案：{answer}</div> : null}
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex justify-end">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onSubmit({ stepId: step.id, submittedAt: Date.now(), answers })}
+          className="premium-lesson-action-primary"
+        >
+          提交答案
+        </button>
+      </div>
+    </SurfaceCard>
+  );
+}
+
+const UNIT_4_3_STUDENT_ACTIVITY_REGISTRY: StudentInteractiveActivityRegistry<
+  UNIT_4_3RuntimeStepDefinition,
+  UNIT_4_3StepResponse
+> = {
+  none: () => null,
+  display: () => null,
+  summary: () => null,
+  worked_example_reveal: () => null,
+  single_choice: SingleChoiceActivity,
+  quiz_group: QuizGroupActivity,
+  activity_card_set: ({ step, savedResponse, released, browseEnabled, revealProgress, onSubmit }) => (
+    <TextAreaActivityCards
+      step={step}
+      savedResponse={savedResponse}
+      released={released}
+      browseEnabled={browseEnabled}
+      revealProgress={revealProgress}
+      onSubmit={onSubmit}
+    />
+  ),
+  task_card_workspace: ({ step, savedResponse, released, browseEnabled, revealProgress, onSubmit }) => (
+    <TextAreaActivityCards
+      step={step}
+      savedResponse={savedResponse}
+      released={released}
+      browseEnabled={browseEnabled}
+      revealProgress={revealProgress}
+      onSubmit={onSubmit}
+    />
+  ),
+};
+
 export function UNIT_4_3StudentActivityForm({
+  stepManifest,
   step,
   savedResponse,
   released,
@@ -1226,7 +1488,8 @@ export function UNIT_4_3StudentActivityForm({
   onSubmit,
   onWorkspaceParameterChange: _onWorkspaceParameterChange,
 }: {
-  step: UNIT_4_3StepDefinition;
+  stepManifest: InteractiveRuntimeStepManifest;
+  step: UNIT_4_3RuntimeStepDefinition;
   savedResponse?: UNIT_4_3StepResponse;
   released: boolean;
   browseEnabled: boolean;
@@ -1235,102 +1498,24 @@ export function UNIT_4_3StudentActivityForm({
   onSubmit: (response: UNIT_4_3StepResponse) => void;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
-  const pageContract = getUNIT_4_3PageContract(step.id);
-  const [answers, setAnswers] = useState<Record<string, string>>(savedResponse?.answers ?? {});
-
-  useEffect(() => {
-    setAnswers(savedResponse?.answers ?? {});
-  }, [savedResponse, step.id]);
-
-  const disabled =
-    !released || (pageContract.teacherControls.openBrowse === 'teacher_toggle' && !browseEnabled && revealProgress === 0);
-  const submit = () => onSubmit({ stepId: step.id, submittedAt: Date.now(), answers });
-
-  if (pageContract.interactionKind === 'none' || step.id === 'step-09' || step.id === 'step-11') {
+  if (!isUNIT_4_3InteractivePageType(step.pageType)) {
     return null;
   }
 
   return (
-    <SurfaceCard title="学生作答区">
-      <SubmissionStatus
-        submitted={Boolean(savedResponse)}
-        submittedText="已提交当前页面作答。"
-        idleText={disabled ? '等待教师发放或开放浏览后再提交。' : '提交后会同步到教师端汇总。'}
-      />
-      {step.id === 'step-03' ? (
-        <div className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4">
-          <div className="premium-lesson-title text-sm font-medium">当前观察更适合走哪一路分流？</div>
-          {['继续单结构', '进入复合结构', '反馈 + 前馈组合'].map((option) => (
-            <label key={option} className="mt-3 flex items-start gap-2 text-sm">
-              <input
-                type="radio"
-                name="branch-choice"
-                checked={answers['branch-choice'] === option}
-                disabled={disabled}
-                onChange={() => setAnswers((current) => ({ ...current, 'branch-choice': option }))}
-              />
-              <span>{option}</span>
-            </label>
-          ))}
-          {answerVisible ? (
-            <div className="premium-lesson-muted mt-3 text-sm">
-              参考答案：进入哪一路分流，必须和表 1 的当前观察一一对应。
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-      {step.id === 'step-14' ? (
-        <div className="space-y-3">
-          {QUIZ_OPTIONS['step-14'].map(([prompt, options, answer], index) => (
-            <div
-              key={`${prompt}-${index}`}
-              className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4"
-            >
-              <div className="premium-lesson-title text-sm font-medium">{prompt}</div>
-              {options.map((option) => (
-                <label key={option} className="mt-3 flex items-start gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name={`post-${index}`}
-                    checked={answers[`post-${index}`] === option}
-                    disabled={disabled}
-                    onChange={() => setAnswers((current) => ({ ...current, [`post-${index}`]: option }))}
-                  />
-                  <span>{option}</span>
-                </label>
-              ))}
-              {answerVisible ? <div className="premium-lesson-muted mt-3 text-sm">参考答案：{answer}</div> : null}
-            </div>
-          ))}
-        </div>
-      ) : null}
-      {ACTIVITY_FIELDS[step.id] ? (
-        <div className={step.id === 'step-12' ? 'grid gap-3' : 'grid gap-3 md:grid-cols-2'}>
-          {ACTIVITY_FIELDS[step.id].map((field) => (
-            <div key={field.key}>
-              <TextareaCard
-                title={field.title}
-                prompt={field.prompt}
-                value={answers[field.key] ?? ''}
-                onChange={(value) => setAnswers((current) => ({ ...current, [field.key]: value }))}
-                placeholder={field.placeholder}
-                half={field.half}
-              />
-              <div className="mt-2 flex justify-end">
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={submit}
-                  className="premium-lesson-action-primary"
-                >
-                  提交答案
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
-    </SurfaceCard>
+    <>
+      {renderStudentInteractiveActivity({
+        registry: UNIT_4_3_STUDENT_ACTIVITY_REGISTRY,
+        step,
+        stepManifest,
+        savedResponse,
+        released,
+        browseEnabled,
+        answerVisible,
+        revealProgress,
+        onSubmit,
+      })}
+    </>
   );
 }
 
@@ -1345,6 +1530,7 @@ export function UNIT_4_3StudentSummaryPanel({ responses }: { responses: Record<s
 }
 
 export function UNIT_4_3TeacherActivitySummary({
+  stepManifest,
   step,
   responses,
   released,
@@ -1357,7 +1543,8 @@ export function UNIT_4_3TeacherActivitySummary({
   onAdvanceReveal,
   onResetReveal,
 }: {
-  step: UNIT_4_3StepDefinition;
+  stepManifest: InteractiveRuntimeStepManifest;
+  step: UNIT_4_3RuntimeStepDefinition;
   responses: TeacherResponseItem[];
   released: boolean;
   browseEnabled: boolean;
@@ -1369,7 +1556,7 @@ export function UNIT_4_3TeacherActivitySummary({
   onAdvanceReveal: () => void;
   onResetReveal: () => void;
 }) {
-  return (
+  const renderSummary = () => (
     <SurfaceCard title="教师汇总与控制">
       <div className="grid gap-3 md:grid-cols-2">
         <button type="button" onClick={onToggleRelease} className="premium-lesson-action-secondary">
@@ -1412,5 +1599,36 @@ export function UNIT_4_3TeacherActivitySummary({
         </div>
       </div>
     </SurfaceCard>
+  );
+
+  const registry: TeacherInteractiveActivityRegistry<UNIT_4_3RuntimeStepDefinition, TeacherResponseItem> = {
+    none: renderSummary,
+    display: renderSummary,
+    summary: renderSummary,
+    activity_card_set: renderSummary,
+    single_choice: renderSummary,
+    worked_example_reveal: renderSummary,
+    task_card_workspace: renderSummary,
+    quiz_group: renderSummary,
+  };
+
+  return (
+    <>
+      {renderTeacherInteractiveActivity({
+        registry,
+        step,
+        stepManifest,
+        responses,
+        released,
+        browseEnabled,
+        answerVisible,
+        revealProgress,
+        onToggleRelease,
+        onToggleBrowse,
+        onToggleAnswerVisible,
+        onAdvanceReveal,
+        onResetReveal,
+      })}
+    </>
   );
 }

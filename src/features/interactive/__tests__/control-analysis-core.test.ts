@@ -25,6 +25,7 @@ describe('control analysis core foundation', () => {
     expect(request).toHaveProperty('stateSpaceSpec');
     expect(request).toHaveProperty('referenceProfile');
     expect(request).toHaveProperty('disturbanceProfile');
+    expect(request).toHaveProperty('responseType');
   });
 
   it('declares a chart panel shell with overlay slot and fixture fallback support', () => {
@@ -81,6 +82,7 @@ describe('control analysis core foundation', () => {
 
     expect(typeSource).toContain('export interface RootLocusSamplePoint extends ComplexPoint');
     expect(typeSource).toContain('gain?: number;');
+    expect(typeSource).toContain("responseType?: 'step' | 'impulse' | 'ramp';");
     expect(typeSource).toContain('branches: RootLocusSamplePoint[][];');
     expect(typeSource).toContain('fullBranches?: RootLocusSamplePoint[][];');
     expect(panelSource).toContain('point.gain');

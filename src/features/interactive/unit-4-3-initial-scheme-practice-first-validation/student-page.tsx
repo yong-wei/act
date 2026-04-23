@@ -14,12 +14,11 @@ import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit43StepAIContext } from '@/lib/course-ai-contexts';
 import {
-  getUNIT_4_3PageContract,
-  getUNIT_4_3MediaSrc,
+  buildUNIT_4_3RuntimeSteps,
+  getUNIT_4_3StepManifest,
   isUNIT_4_3AiPageType,
   isUNIT_4_3InteractivePageType,
   UNIT_4_3_LESSON_KEY,
-  UNIT_4_3_LESSON_STEPS,
   UNIT_4_3_RESOURCE_KEY,
   UNIT_4_3_SESSION_ADAPTER,
   type UNIT_4_3StudentCourseState,
@@ -49,6 +48,11 @@ export function UNIT_4_3StudentPage({
 
   const currentStudentName = authSession?.user?.name?.trim() || '学生';
   const currentUserId = authSession?.user?.id;
+  const interactiveManifest = lessonRuntime.interactiveManifest;
+  if (!interactiveManifest) {
+    throw new Error('4-3 runtime manifest is missing');
+  }
+  const runtimeSteps = buildUNIT_4_3RuntimeSteps(interactiveManifest);
 
   const interactiveTracking = useInteractiveTracking({
     resourceId: UNIT_4_3_RESOURCE_KEY,
@@ -70,7 +74,7 @@ export function UNIT_4_3StudentPage({
     setActiveIndex,
   } = useStudentLessonSession({
     sessionId,
-    steps: UNIT_4_3_LESSON_STEPS,
+    steps: runtimeSteps,
     adapter: UNIT_4_3_SESSION_ADAPTER,
     currentStudentName,
     currentUserId,
@@ -88,8 +92,8 @@ export function UNIT_4_3StudentPage({
       emit: interactiveTracking.emit,
     });
 
-  const step = UNIT_4_3_LESSON_STEPS[activeIndex];
-  const pageContract = getUNIT_4_3PageContract(step.id);
+  const step = runtimeSteps[activeIndex];
+  const stepManifest = getUNIT_4_3StepManifest(interactiveManifest, step.id);
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
 
@@ -115,22 +119,22 @@ export function UNIT_4_3StudentPage({
   const released =
     isDemo ||
     !isUNIT_4_3InteractivePageType(step.pageType) ||
-    pageContract.teacherControls.releaseActivity === 'page_load_open'
+    stepManifest.teacherControls.releaseActivity === 'page_load_open'
       ? true
       : teacherSyncState?.activeStepId === step.id
         ? Boolean(teacherSyncState?.releasedActivities?.[step.id])
         : false;
   const browseEnabled =
     isDemo ||
-    pageContract.teacherControls.openBrowse === 'not_applicable' ||
-    pageContract.teacherControls.openBrowse === 'page_load_open'
+    stepManifest.teacherControls.openBrowse === 'not_applicable' ||
+    stepManifest.teacherControls.openBrowse === 'page_load_open'
       ? true
       : teacherSyncState?.activeStepId === step.id
         ? Boolean(teacherSyncState?.browseEnabled?.[step.id])
         : false;
   const revealProgress = teacherSyncState?.activeStepId === step.id ? teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0 : 0;
   const allowInlineReveal =
-    isDemo || (browseEnabled && pageContract.teacherControls.teacherStepReveal === 'not_applicable');
+    isDemo || (browseEnabled && stepManifest.teacherControls.teacherStepReveal === 'not_applicable');
 
   const previousStepIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -224,10 +228,10 @@ export function UNIT_4_3StudentPage({
   return (
     <div className="premium-lesson-shell">
       <UNIT_4_3CourseHeader
-        steps={UNIT_4_3_LESSON_STEPS}
+        steps={runtimeSteps}
         activeIndex={activeIndex}
         onIndexChange={(index) => {
-          trackStepLeave(step.id, { nextStepId: UNIT_4_3_LESSON_STEPS[index]?.id });
+          trackStepLeave(step.id, { nextStepId: runtimeSteps[index]?.id });
           setActiveIndex(index);
         }}
         middleNotice={isOutOfSync ? `当前页面与教师不同步，教师正在第 ${teacherIndex + 1} 页` : step.hint}
@@ -235,7 +239,7 @@ export function UNIT_4_3StudentPage({
           <StepKnowledgeDrawer
             lessonRuntime={lessonRuntime}
             currentStepId={step.id}
-            orderedStepIds={UNIT_4_3_LESSON_STEPS.map((item) => item.id)}
+            orderedStepIds={runtimeSteps.map((item) => item.id)}
             title="页面知识卡片"
           />
         }
@@ -248,8 +252,8 @@ export function UNIT_4_3StudentPage({
             <button
               type="button"
               onClick={() => {
-                trackStepView(UNIT_4_3_LESSON_STEPS[teacherIndex]?.id, {
-                  pageType: UNIT_4_3_LESSON_STEPS[teacherIndex]?.pageType,
+                trackStepView(runtimeSteps[teacherIndex]?.id, {
+                  pageType: runtimeSteps[teacherIndex]?.pageType,
                   stepIndex: teacherIndex,
                   source: 'sync-to-teacher',
                 });
@@ -274,12 +278,10 @@ export function UNIT_4_3StudentPage({
           </div>
         </div>
 
-        {step.id === 'step-01' ? <UNIT_4_3KnowledgeMapVisual /> : null}
-
         <UNIT_4_3StepContentPanel
+          manifest={interactiveManifest}
           step={step}
-          mediaSrc={getUNIT_4_3MediaSrc(step.id)}
-          mediaAlt={step.title}
+          stepManifest={stepManifest}
           revealProgress={revealProgress}
           allowInlineReveal={allowInlineReveal}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
@@ -293,6 +295,7 @@ export function UNIT_4_3StudentPage({
 
         <div className="mt-4">
           <UNIT_4_3StudentActivityForm
+            stepManifest={stepManifest}
             step={step}
             savedResponse={savedResponse}
             released={released}
