@@ -193,10 +193,17 @@ describe('unit 4-3 interactive course', () => {
       join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx'),
       'utf8',
     );
+    const studentPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/student-page.tsx'),
+      'utf8',
+    );
 
     expect(stepPanelsSource).toContain('steps.slice(0, visibleCount)');
     expect(stepPanelsSource).toContain('点击当前最下方已显影步骤可继续展开下一层');
     expect(stepPanelsSource).not.toContain('const visible = index < visibleCount;');
+    expect(studentPageSource).toContain("pageContract.teacherControls.teacherStepReveal === 'not_applicable'");
+    expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
+    expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
   });
 
   it('adds an explicit legend to the step-13 comparison chart so baseline and current curves stay distinguishable', () => {

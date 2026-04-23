@@ -15,6 +15,7 @@ const authRoutePath = path.join(
   'route.ts',
 );
 const envExamplePath = path.join(rootDir, '.env.example');
+const ciWorkflowPath = path.join(rootDir, '.github', 'workflows', 'ci.yml');
 const shipModelPreviewPath = path.join(
   rootDir,
   'src',
@@ -32,6 +33,7 @@ const assertFile = (filePath) => {
 assertFile(schemaPath);
 assertFile(authRoutePath);
 assertFile(envExamplePath);
+assertFile(ciWorkflowPath);
 assertFile(shipModelPreviewPath);
 
 const schemaContent = fs.readFileSync(schemaPath, 'utf8');
@@ -51,6 +53,7 @@ if (shipModelPreviewContent.includes('PRELOAD_MODELS.forEach')) {
 }
 
 const envContent = fs.readFileSync(envExamplePath, 'utf8');
+const ciWorkflowContent = fs.readFileSync(ciWorkflowPath, 'utf8');
 const requiredVars = [
   'DATABASE_URL=',
   'NEXTAUTH_URL=',
@@ -62,6 +65,16 @@ const requiredVars = [
 const missingVars = requiredVars.filter((entry) => !envContent.includes(entry));
 if (missingVars.length > 0) {
   throw new Error(`.env.example missing keys: ${missingVars.join(', ')}`);
+}
+
+if (!ciWorkflowContent.includes('dtolnay/rust-toolchain@stable')) {
+  throw new Error('CI workflow must install the stable Rust toolchain before build.');
+}
+if (!ciWorkflowContent.includes('targets: wasm32-unknown-unknown')) {
+  throw new Error('CI workflow must add the wasm32-unknown-unknown target before build.');
+}
+if (!ciWorkflowContent.includes('cargo install wasm-pack --locked --version 0.13.1')) {
+  throw new Error('CI workflow must install wasm-pack 0.13.1 before npm run build.');
 }
 
 console.log('Smoke test passed.');

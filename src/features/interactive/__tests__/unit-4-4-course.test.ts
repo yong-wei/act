@@ -192,8 +192,9 @@ describe('unit 4-4 interactive course', () => {
     expect(stepPanelsSource).toContain('isUNIT_4_4PerCardQuizStep(step.id)');
     expect(stepPanelsSource).toContain("if (step.pageType === 'teacher_reveal_only')");
     expect(studentPageSource).toContain('isUNIT_4_4StepReleasedByDefault(step.id)');
-    expect(studentPageSource).toContain('allowInlineReveal={isDemo || browseEnabled}');
-    expect(studentPageSource).not.toContain('allowInlineReveal={false}');
+    expect(studentPageSource).toContain("pageContract.teacherControls.teacherStepReveal === 'not_applicable'");
+    expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
+    expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
     expect(stepPanelsSource).not.toContain('/ai');
   });
 

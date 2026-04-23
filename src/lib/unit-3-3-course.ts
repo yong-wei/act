@@ -28,6 +28,9 @@ export interface UNIT_3_3PageContract {
     regions: UNIT_3_3PageRegionContract[];
   };
   interactionKind: Exclude<UNIT_3_3PageType, 'display' | 'summary'> | 'none';
+  teacherControls?: {
+    teacherStepReveal: 'teacher_only' | 'not_applicable';
+  };
   teacherInsightWidgets: string[];
   telemetrySummaryFields: string[];
   misconceptionTags?: string[];
@@ -181,6 +184,7 @@ export const UNIT_3_3_PAGE_CONTRACTS: Record<string, UNIT_3_3PageContract> = {
       ],
     },
     interactionKind: 'worked_example_workspace',
+    teacherControls: { teacherStepReveal: 'teacher_only' },
     teacherInsightWidgets: ['activity_completion_rate', 'top_missing_steps'],
     telemetrySummaryFields: ['cardResultStates', 'stepRevealCount', 'completedCards'],
     misconceptionTags: ['real_axis_segment_error', 'asymptote_formula_missing'],
@@ -203,6 +207,7 @@ export const UNIT_3_3_PAGE_CONTRACTS: Record<string, UNIT_3_3PageContract> = {
       ],
     },
     interactionKind: 'worked_example_workspace',
+    teacherControls: { teacherStepReveal: 'teacher_only' },
     teacherInsightWidgets: ['activity_completion_rate', 'top_missing_steps'],
     telemetrySummaryFields: ['cardResultStates', 'stepRevealCount', 'completedCards'],
     misconceptionTags: ['candidate_point_unscreened', 'routh_boundary_misread'],
@@ -225,6 +230,7 @@ export const UNIT_3_3_PAGE_CONTRACTS: Record<string, UNIT_3_3PageContract> = {
       ],
     },
     interactionKind: 'activity_cards',
+    teacherControls: { teacherStepReveal: 'teacher_only' },
     teacherInsightWidgets: ['activity_completion_rate', 'top_missing_steps'],
     telemetrySummaryFields: ['cardResultStates', 'stepRevealCount', 'completedCards'],
     misconceptionTags: ['departure_angle_only', 'root_sum_ignored'],

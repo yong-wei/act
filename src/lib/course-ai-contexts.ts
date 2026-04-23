@@ -83,6 +83,11 @@ import {
   getUnit44StepQuickQuestionsLocal,
   UNIT_4_4_COURSE_META,
 } from './unit-4-4-ai-contexts';
+import {
+  getUnit45StepAIContextLocal,
+  getUnit45StepQuickQuestionsLocal,
+  UNIT_4_5_COURSE_META,
+} from './unit-4-5-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -240,6 +245,14 @@ export {
   getUnit44StepAIContextLocal,
   getUnit44StepQuickQuestionsLocal,
 } from './unit-4-4-ai-contexts';
+export {
+  UNIT_4_5_COURSE_META,
+  UNIT_4_5_STEP_AI_CONTEXTS,
+  getUnit45StepAIContext,
+  getUnit45StepQuickQuestions,
+  getUnit45StepAIContextLocal,
+  getUnit45StepQuickQuestionsLocal,
+} from './unit-4-5-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -440,6 +453,16 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseId: UNIT_4_4_COURSE_META.courseId,
       courseTitle: UNIT_4_4_COURSE_META.courseTitle,
       courseDescription: UNIT_4_4_COURSE_META.courseDescription,
+    },
+  },
+
+  'unit-4-5-constraint-aware-parameter-optimization-v1': {
+    getStepContext: (stepId: string) => getUnit45StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit45StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: UNIT_4_5_COURSE_META.courseId,
+      courseTitle: UNIT_4_5_COURSE_META.courseTitle,
+      courseDescription: UNIT_4_5_COURSE_META.courseDescription,
     },
   },
 };

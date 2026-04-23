@@ -1,14 +1,14 @@
 {
   "lesson_id": "4-5",
   "unit_type": "实践",
-  "generated_at": "2026-04-22T07:31:55.860256+00:00",
+  "generated_at": "2026-04-22T14:47:14.855040+00:00",
   "primary_sources": [
     "course-content/authoring/lessons/4-5/design/handout.md",
     "course-content/authoring/lessons/4-5/design/interactive-page.md"
   ],
   "interactive_page_source": "course-content/authoring/lessons/4-5/design/interactive-page.md",
   "interactive_contract_source": "course-content/authoring/lessons/4-5/design/interactive-contract.yaml",
-  "handout_pdf_source": null,
+  "handout_pdf_source": "course-content/authoring/lessons/4-5/design/handout.pdf",
   "boppps_source": "course-content/authoring/lessons/4-5/design/boppps.md",
   "sequence_source": "course-content/authoring/knowledge/cards/lessons/4-5/sequence.json",
   "expected_code_media": [

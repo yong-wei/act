@@ -395,6 +395,9 @@ describe('unit 3-3 interactive course', () => {
     expect(courseSource).toContain('teacherRevealProgress: input.teacherRevealProgress');
     expect(studentPageSource).toContain('browseEnabled');
     expect(studentPageSource).toContain('revealProgress');
+    expect(studentPageSource).toContain("(pageContract.teacherControls?.teacherStepReveal ?? 'not_applicable') === 'not_applicable'");
+    expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
+    expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
     expect(teacherPageSource).toContain('localBrowseEnabled');
     expect(teacherPageSource).toContain('localTeacherRevealProgress');
     expect(teacherPageSource).toContain('revealProgress={teacherRevealProgress[step.id] ?? 0}');

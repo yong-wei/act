@@ -121,7 +121,7 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
     expect(INTERACTIVE_COURSE_MODULES[0]?.lessons.every((lesson) => lesson.legacySourceLabel == null)).toBe(true);
   });
 
-  it('exposes unit 4-1 through unit 4-4 in module 4', () => {
+  it('exposes unit 4-1 through unit 4-5 in module 4', () => {
     expect(INTERACTIVE_COURSE_MODULES[2]?.lessons.map((lesson) => ({
       id: lesson.id,
       unitLabel: lesson.unitLabel,
@@ -145,6 +145,11 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
       {
         id: 'unit-4-4-fixed-structure-optimization-modeling',
         unitLabel: '4-4',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-4-5-constraint-aware-parameter-optimization',
+        unitLabel: '4-5',
         legacySourceLabel: null,
       },
     ]);

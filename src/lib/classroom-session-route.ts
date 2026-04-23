@@ -19,6 +19,9 @@ import { UNIT_4_3_COURSE_TITLE, UNIT_4_3_ROUTE_SEGMENT } from '@/lib/unit-4-3-co
 import { UNIT_4_4_COURSE_TITLE, UNIT_4_4_ROUTE_SEGMENT } from '@/lib/unit-4-4-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
+const UNIT_4_5_ROUTE_SEGMENT = 'unit-4-5-constraint-aware-parameter-optimization';
+const UNIT_4_5_COURSE_TITLE =
+  '4-5：约束下的优化设计实践：参数约束翻译与带约束参数优化';
 
 type SessionRole = 'teacher' | 'student';
 
@@ -190,6 +193,14 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       UNIT_4_4_COURSE_TITLE,
       '4-4：多目标权衡与控制器优化设计',
       '多目标权衡与控制器优化设计',
+    ],
+  },
+  {
+    routeSegment: UNIT_4_5_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_4_5_COURSE_TITLE,
+      '4-5：约束下的优化设计实践',
+      '约束下的优化设计实践',
     ],
   },
 ];

@@ -14,6 +14,7 @@ import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit33StepAIContext } from '@/lib/course-ai-contexts';
 import {
+  getUNIT_3_3PageContract,
   getUNIT_3_3MediaSrc,
   isUNIT_3_3InteractivePageType,
   UNIT_3_3_LESSON_KEY,
@@ -86,6 +87,7 @@ export function UNIT_3_3StudentPage({
     });
 
   const step = UNIT_3_3_LESSON_STEPS[activeIndex];
+  const pageContract = getUNIT_3_3PageContract(step.id);
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
 
@@ -127,6 +129,9 @@ export function UNIT_3_3StudentPage({
     teacherSyncState?.activeStepId === step.id
       ? (teacherSyncState as { teacherRevealProgress?: Record<string, number> })?.teacherRevealProgress?.[step.id] ?? 0
       : 0;
+  const allowInlineReveal =
+    isDemo ||
+    (browseEnabled && (pageContract.teacherControls?.teacherStepReveal ?? 'not_applicable') === 'not_applicable');
 
   const previousStepIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -264,7 +269,7 @@ export function UNIT_3_3StudentPage({
           mediaSrc={getUNIT_3_3MediaSrc(step.id)}
           mediaAlt={step.title}
           revealProgress={revealProgress}
-          allowInlineReveal={isDemo || browseEnabled}
+          allowInlineReveal={allowInlineReveal}
           onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
 

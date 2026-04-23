@@ -5,27 +5,11 @@ course_route_segment: 'unit-4-5-constraint-aware-parameter-optimization'
 preview_mode:
   default_entry: 'student_demo'
   student_demo_base_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo'
-  teacher_preview_panel_note: '教师预览默认对齐学生页。'
 media_policy:
   runtime_only: true
-  runtime_export_required: true
   runtime_media_base: '/course-runtime/lessons/4-5/media'
-  note: '正式页面只读取 runtime 媒体；作者态媒体只用于说明证据落点。'
-telemetry_strategy: 'lightweight_high_value'
 teacher_insight_strategy: 'step_level_aggregation_only'
-required_step_fields:
-  - 'layout'
-  - 'modules'
-  - 'content_blocks'
-  - 'evidence_sequence'
-  - 'interaction_spec'
-  - 'teacher_controls'
-  - 'student_access'
-  - 'teacher_insight_spec'
-  - 'telemetry_spec'
-  - 'ai_context_spec'
-  - 'preview_contract'
-  - 'acceptance_checks'
+telemetry_strategy: 'lightweight_high_value'
 steps:
   step-01:
     title: '无约束候选越界：时间指标更好，为什么仍不可交付'
@@ -42,39 +26,49 @@ steps:
       - { id: 'problem-focus', region: 'evidence', kind: 'summary-card', must_be_visible: true }
       - { id: 'bridge-conclusion', region: 'evidence', kind: 'summary-card', must_be_visible: true }
     content_blocks:
-      object_card:
-        title: '主案例对象'
-        body: 'P_h(s)=0.01715/[s(s+0.1)(s+2.14375)]；当前对象仍是客船航向保持主案例。'
-      controller_card:
-        title: '固定结构'
-        body: 'C_h(s)=K(Ts+1)/(αTs+1), 0<α<1'
-      candidate_card:
-        title: '无约束候选'
-        body: 'C_u(s)=5(10s+1)/(2s+1)；这是 4-4 留下的无约束候选，不是最终可交付方案。'
-      failure_figure:
-        runtime_media: '/course-runtime/lessons/4-5/media/4-5-ship-heading-unconstrained-failure-compare.png'
-        caption: '客船航向保持：无约束候选为什么不可直接交付'
-        reading_clues:
-          - '先看闭环输出确实更快压向目标。'
-          - '再看控制量已经明显冲出可接受动作区间。'
-      problem_focus:
-        title: '时间指标更好，为什么仍不可交付？'
-        text: '客船航向保持主案例中，更快收敛与更低误差还没有自动等于工程可交付。'
-      bridge_conclusion:
-        title: '本页结论'
-        text: '本课先不继续谈求解器，而是先把更优与可交付的断裂看清。更优不等于可交付。'
-    evidence_sequence: ['对象 P_h(s)', '结构 C_h(s)', '无约束候选 C_u(s)', '失败对比图', '问题句与收束句']
+      failure_figure: { runtime_media: '/course-runtime/lessons/4-5/media/4-5-ship-heading-unconstrained-failure-compare.png' }
+    evidence_sequence: ['对象', '结构', '候选', '失败图', '问题句与收束句']
     interaction_spec: { interaction_kind: 'none', student_task: '只阅读，不提交。' }
     teacher_controls: { release_activity: 'not_applicable', open_browse: 'not_applicable', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'not_applicable' }
     student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: false, can_submit_without_browse: false }
     teacher_insight_spec: { widgets: ['view_count', 'sync_status'] }
     telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], misconception_tags: [] }
-    ai_context_spec: { page_goal: '固定“更优不等于可交付”的入口，不回顾课程目标，不先讲求解器。' }
+    ai_context_spec: { page_goal: '固定“更优不等于可交付”的入口。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-01' }
-    acceptance_checks: ['对象、结构、候选、失败图、问题句和收束句必须同屏常显。', '本页不得出现课程目标。', '失败案例不得做显影。']
+    acceptance_checks: ['对象、结构、候选与失败图必须同屏常显。']
 
   step-02:
-    title: '自由目标收益不等于工程可用'
+    title: '本次课程目标：完成这轮实践后应能做到什么'
+    layout:
+      template: 'objective_chain_board'
+      regions:
+        - { id: 'header', width: 'full', order: 1 }
+        - { id: 'goals', width: 'full', order: 2 }
+        - { id: 'bridge', width: 'full', order: 3 }
+    modules:
+      - { id: 'objective-header', region: 'header', kind: 'summary-card', must_be_visible: true }
+      - { id: 'objective-list', region: 'goals', kind: 'summary-card', must_be_visible: true }
+      - { id: 'objective-bridge', region: 'bridge', kind: 'summary-card', must_be_visible: true }
+    content_blocks:
+      objective_list:
+        bullets:
+          - '指出无约束候选在哪些工程边界上失守。'
+          - '把超调、控制峰值和相角裕度写成硬约束。'
+          - '区分参数范围与输出侧硬约束的职责。'
+          - '解释罚函数与 fmincon/nonlcon 为什么会改写最优点位置。'
+          - '比较起始方案、无约束候选和带约束可用解，并说明剩余风险。'
+    evidence_sequence: ['标题', '五条课程目标', '桥接句']
+    interaction_spec: { interaction_kind: 'none', student_task: '阅读课程目标。' }
+    teacher_controls: { release_activity: 'not_applicable', open_browse: 'not_applicable', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'not_applicable' }
+    student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: false, can_submit_without_browse: false }
+    teacher_insight_spec: { widgets: ['view_count'] }
+    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], misconception_tags: [] }
+    ai_context_spec: { page_goal: '独立呈现本课布鲁姆能力目标。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-02' }
+    acceptance_checks: ['只允许出现本课目标，不暴露单元编排口径。']
+
+  step-03:
+    title: '自由目标收益与工程复核：更优为什么还不等于可用'
     layout:
       template: 'dual_table_evidence_board'
       regions:
@@ -86,50 +80,23 @@ steps:
       - { id: 'case-bridge', region: 'intro', kind: 'summary-card', must_be_visible: true }
       - { id: 'gain-table', region: 'gain', kind: 'native-table', must_be_visible: true }
       - { id: 'boundary-table', region: 'boundary', kind: 'native-table', must_be_visible: true }
-      - { id: 'reading-order', region: 'summary', kind: 'summary-card', must_be_visible: true }
       - { id: 'conclusion-card', region: 'summary', kind: 'summary-card', must_be_visible: true }
     content_blocks:
-      case_bridge:
-        title: '比较对象'
-        text: '当前仍是客船航向保持主案例，比较对象是 4-3 起始方案与 4-4 无约束候选；左表只看自由目标收益，右表专门复核这些收益是否伴随新的工程失守。'
       gain_table:
-        title: '表 1. 客船航向保持主案例中的自由目标收益'
-        columns: ['指标', '`4-3` 起始方案', '`4-4` 无约束候选', '收益判断']
-        rows:
-          - ['调节时间 / s', '36.0', '19.6', '更快']
-          - ['`ITAE`', '63.6924', '20.1632', '拖尾更短']
-          - ['`ITSE`', '16.5282', '5.3330', '前中段误差强度下降']
-          - ['控制能量', '125.7148', '774.9575', '为收益支付了更大动作代价']
+        columns: ['指标', '4-3 起始方案', '4-4 无约束候选', '收益判断']
       boundary_table:
-        title: '表 2. 同一主案例下的工程复核'
-        columns: ['指标', '`4-3` 起始方案', '`4-4` 无约束候选', '复核结论']
-        rows:
-          - ['超调 / %', '18.8636', '20.2410', '已越过舒适性边界']
-          - ['调节时间 / s', '36.0', '19.6', '收敛明显更快']
-          - ['`ITAE`', '63.6924', '20.1632', '拖尾明显缩短']
-          - ['`ITSE`', '16.5282', '5.3330', '前中段误差强度下降']
-          - ['控制能量', '125.7148', '774.9575', '动作代价急剧上升']
-          - ['控制峰值', '6.8867', '25.0000', '远超执行机构边界']
-          - ['相角裕度 / deg', '49.0462', '47.8274', '裕度未崩塌，但并没有换来更稳妥的整体结果']
-        emphasis_rows: ['超调 / %', '控制峰值', '相角裕度 / deg']
-        emphasis_note: '实现时必须把三条越界或边界相关证据做成高亮复核行，不能淹没在普通指标中。'
-      reading_order:
-        text: '先读收益列，再读越界列，最后判断这些收益是不是建立在越界代价之上。'
-      conclusion_card:
-        text: '自由目标收益是真实存在的，但它不能自动等于工程可用。'
-    evidence_sequence: ['案例说明', '表 1 收益列', '表 2 越界列', '读表口令', '结论句']
-    interaction_spec:
-      interaction_kind: 'none'
-      student_task: '只阅读，不提交。'
+        columns: ['指标', '4-3 起始方案', '4-4 无约束候选', '复核结论']
+    evidence_sequence: ['案例说明', '表1', '表2', '结论']
+    interaction_spec: { interaction_kind: 'none', student_task: '对照收益与工程复核。' }
     teacher_controls: { release_activity: 'not_applicable', open_browse: 'not_applicable', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'not_applicable' }
     student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: false }
     teacher_insight_spec: { widgets: ['view_count', 'sync_status'] }
     telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], misconception_tags: ['free_gain_equals_delivery'] }
-    ai_context_spec: { page_goal: '把收益列与越界列同页并置，固定本课真正问题。' }
-    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-02' }
-    acceptance_checks: ['表 1 与表 2 必须并排且同屏常显。', '必须出现客船航向保持主案例与比较对象说明。', '必须出现收益列/越界列比较口令。', '结论必须是“自由目标收益是真实存在的，但它不能自动等于工程可用”。']
+    ai_context_spec: { page_goal: '把收益列与工程复核重新对齐到讲义第三章。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-03' }
+    acceptance_checks: ['表 1 与表 2 必须同页出现。']
 
-  step-03:
+  step-04:
     title: '三条硬约束第一次被显性提出'
     layout:
       template: 'constraint_statement_board'
@@ -142,44 +109,25 @@ steps:
       - { id: 'constraint-formula', region: 'formula', kind: 'formula-card', must_be_visible: true }
       - { id: 'risk-table', region: 'table', kind: 'native-table', must_be_visible: true }
       - { id: 'delivery-conclusion', region: 'summary', kind: 'summary-card', must_be_visible: true }
-      - { id: 'constraint-role-card', region: 'interaction', kind: 'activity-card', must_be_visible: true }
-      - { id: 'misread-card', region: 'interaction', kind: 'activity-card', must_be_visible: true }
-    content_blocks:
-      constraint_formula:
-        title: '三条必须常显的硬约束'
-        body: 'M_p≤20%,  max|u(t)|≤7,  φ_m≥45°'
-        note: '本页所有判断都以这三条边界为固定参照。'
-      risk_table:
-        columns: ['硬约束', '挡住的风险', '若不显性写出会发生什么']
-        rows:
-          - ['M_p≤20%', '舒适性与修航平稳程度', '把越摆当作可无限接受的提速代价']
-          - ['max|u(t)|≤7', '执行机构物理能力', '候选解看似更快，实际已不可实现']
-          - ['φ_m≥45°', '闭环稳健性储备', '只看时域变快，不看模型偏差和扰动下的脆弱性']
-      delivery_conclusion:
-        text: '硬约束不是在表扬哪一组更优，而是在裁决结果能否交付。'
-      constraint_role_card:
-        title: '控制量爆表先被哪条边界挡住'
-        prompt: '哪一条边界最直接挡住控制量爆表？'
-      misread_card:
-        title: '相角裕度未崩塌为何仍不足够'
-        prompt: '为什么相角裕度没崩塌，仍不能说明候选整体可交付？'
-    evidence_sequence: ['三条硬约束', '风险-边界对应表', '交付裁决结论', '两张判断卡']
+      - { id: 'constraint-role-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+      - { id: 'misread-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+    evidence_sequence: ['三条硬约束', '风险表', '结论', '两张判断卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
-      student_task: '识别三条硬约束如何共同裁决结果能否交付。'
+      student_task: '识别三条硬约束如何共同裁决结果是否可交付。'
       activity_cards:
         - { id: 'constraint-role-card', prompt: '哪一条边界最直接挡住控制量爆表？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
         - { id: 'misread-card', prompt: '为什么相角裕度没崩塌，仍不能说明候选整体可交付？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
-    student_access: { default_visibility: 'visible', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
+    student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['card_completion_rate', 'error_bucket_distribution'] }
-    telemetry_spec: { summary_fields: ['cardSubmitted', 'errorBucket', 'timeOnStep'], misconception_tags: ['range_as_constraint', 'phase_margin_as_sufficient'] }
-    ai_context_spec: { page_goal: '把三条硬边界升格为交付裁决语言，不混入参数范围。' }
-    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-03' }
-    acceptance_checks: ['三条硬约束必须全程常显。', '风险-边界对应表必须完整落页。', '交付裁决结论必须常显。', '单页作答卡最多两张。']
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['range_as_constraint', 'phase_margin_as_sufficient'] }
+    ai_context_spec: { page_goal: '把三条硬边界升格为交付裁决语言。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-04' }
+    acceptance_checks: ['三条硬约束必须常显。']
 
-  step-04:
-    title: '参数范围不是硬约束'
+  step-05:
+    title: '参数范围与硬约束分别在回答什么'
     layout:
       template: 'constraint_role_split_board'
       regions:
@@ -191,37 +139,21 @@ steps:
       - { id: 'role-summary', region: 'top', kind: 'summary-card', must_be_visible: true }
       - { id: 'role-table', region: 'table', kind: 'native-table', must_be_visible: true }
       - { id: 'role-task', region: 'interaction', kind: 'activity-card', must_be_visible: false }
-    content_blocks:
-      range_formula:
-        title: '参数范围'
-        body: '1≤K≤6, 4≤T≤15, 0.15≤α≤0.85'
-      role_summary:
-        text: '参数范围负责结构可解释，硬约束负责结果可交付。'
-      role_table:
-        columns: ['设计对象', '在模型中的角色', '具体职责']
-        rows:
-          - ['$K,T,α$ 的结构解释', '参数范围', '维持固定结构可解释区间，告诉搜索只能在这一结构语义内移动']
-          - ['超调、控制峰值、相角裕度', '硬约束', '结果越界时进入罚函数或直接判为不可行']
-          - ['调节时间、ITAE、控制能量', '软目标', '在守住边界后继续争取更好表现']
-          - ['ITSE、截止频率、幅值裕度', '复核项', '求解后解释为什么当前结果可信而不是偶然数值']
-      role_task:
-        title: '职责判断'
-        prompt: '1≤K≤6 与 u_max≤7 分别在回答什么问题？'
-    evidence_sequence: ['参数范围式', '核心结论', '模型分工表', '判断卡']
+    evidence_sequence: ['参数范围式', '结论', '职责表', '判断卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
-      student_task: '区分参数范围与硬约束分别在回答什么问题。'
+      student_task: '区分参数范围与输出侧硬约束分别在回答什么。'
       activity_cards:
-        - { id: 'role-task', prompt: '1≤K≤6 与 u_max≤7 分别在回答什么问题？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'role-task', prompt: '$1\\le K\\le 6$ 与 $u_{\\max}\\le 7$ 分别在回答什么问题？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['card_completion_rate', 'response_bucket_distribution'] }
-    telemetry_spec: { summary_fields: ['cardSubmitted', 'resultState', 'timeOnStep'], misconception_tags: ['range_equals_delivery', 'constraint_role_confusion'] }
-    ai_context_spec: { page_goal: '只做职责区分，不重复上一页的边界论证。' }
-    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-04' }
-    acceptance_checks: ['参数范围式与核心结论必须同屏常显。', '模型分工表必须完整。', '本页最多一张判断卡。']
+    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['range_equals_delivery', 'constraint_role_confusion'] }
+    ai_context_spec: { page_goal: '清楚区分结构可解释与结果可交付。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-05' }
+    acceptance_checks: ['职责判断题面必须公式渲染。']
 
-  step-05:
+  step-06:
     title: '罚函数把边界写进模型'
     layout:
       template: 'formula_reveal_board'
@@ -235,38 +167,21 @@ steps:
       - { id: 'penalty-card', region: 'formula', kind: 'formula-card', must_be_visible: true }
       - { id: 'explain-reveal', region: 'explain', kind: 'step-reveal', must_be_visible: true }
       - { id: 'rule-conclusion', region: 'summary', kind: 'summary-card', must_be_visible: true }
-    content_blocks:
-      jfree_card:
-        title: '自由目标'
-        body: 'J_free(θ)=w_1·t_s(θ)/40+w_2·ITAE(θ)/ITAE_0+w_3·ITSE(θ)/ITSE_0+w_4·E_u(θ)/E_{u,0}'
-      jcon_card:
-        title: '带约束总代价'
-        body: 'J_con(θ)=J_free(θ)+P(θ)'
-      penalty_card:
-        title: '罚函数'
-        body: 'P(θ)=50max(0,M_p-20)^2+20max(0,u_max-7)^2+5max(0,45-φ_m)^2'
-      explain_reveal:
-        steps:
-          - '只要三条硬约束都未越界，P(θ)=0，搜索仍按原有偏好推进。'
-          - '一旦某一项越界，罚项开始增大，总代价不再只奖励更快或更省。'
-          - '越界越严重，罚项增长越快，搜索会被推回可交付区域。'
-      rule_conclusion:
-        text: '偏好没变，规则变了。'
-    evidence_sequence: ['J_free', 'J_con', 'P(θ)', '三层解释链', '结论句']
+    evidence_sequence: ['J_free', 'J_con', 'P(theta)', '解释链', '结论']
     interaction_spec:
       interaction_kind: 'teacher_reveal_only'
-      student_task: '理解偏好和规则的分工。'
+      student_task: '理解偏好没变，规则变了。'
       step_reveal_policy: { min_layers: 3, local_click_to_continue: true }
     teacher_controls: { release_activity: 'not_applicable', open_browse: 'not_applicable', teacher_step_reveal: 'teacher_only', reveal_reference_answer: 'not_applicable' }
     student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: false, can_submit_without_browse: false }
     teacher_insight_spec: { widgets: ['step_reveal_progress'] }
     telemetry_spec: { summary_fields: ['stepRevealCount', 'timeOnStep'], misconception_tags: ['penalty_as_new_preference'] }
-    ai_context_spec: { page_goal: '固定“偏好没变，规则变了”，不提前进入求解器细节。' }
-    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-05' }
-    acceptance_checks: ['三条公式本体必须常显。', '显影只作用于解释链，不作用于公式。', '“偏好没变，规则变了”必须常显。', '本页不得展开 fmincon 细节。']
+    ai_context_spec: { page_goal: '固定三条公式与“偏好没变，规则变了”。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-06' }
+    acceptance_checks: ['三个公式必须纵向通栏出现。']
 
-  step-06:
-    title: '求解器只消费五项定义'
+  step-07:
+    title: '求解输入与六步求解链：求解器究竟在消费什么'
     layout:
       template: 'solver_chain_board'
       regions:
@@ -279,44 +194,22 @@ steps:
       - { id: 'solver-chain', region: 'chain', kind: 'step-reveal', must_be_visible: true }
       - { id: 'solver-conclusion', region: 'summary', kind: 'summary-card', must_be_visible: true }
       - { id: 'solver-task', region: 'interaction', kind: 'activity-card', must_be_visible: false }
-    content_blocks:
-      solver_input_table:
-        title: '表 5. 求解器真正消费的五项定义'
-        columns: ['项目', '当前写法', '作用']
-        rows:
-          - ['对象', 'P_h(s)=0.01715/[s(s+0.1)(s+2.14375)]', '提供被控对象模型']
-          - ['结构', 'C_h(s)=K(Ts+1)/(αTs+1)', '固定参数化形式']
-          - ['起点与范围', 'x_0=[2.796,10,0.406]^T; lb=[1,4,0.15]^T; ub=[6,15,0.85]^T', '告诉搜索从哪里出发、能走到哪里']
-          - ['objective', '自由目标项加权和', '告诉求解器想把什么继续压低']
-          - ['nonlcon', 'M_p≤20%, max|u(t)|≤7, φ_m≥45°', '把交付边界写成可行性判定']
-      solver_chain:
-        steps:
-          - '给出 x0、lb、ub。'
-          - '写 objective。'
-          - '写 nonlcon。'
-          - '调用 fmincon。'
-          - '得到 x_star。'
-          - '把 x_star 翻译成 C_star。'
-      solver_conclusion:
-        text: '求解器只是在消费已经写清的问题定义，不会替我们决定边界来自哪里。'
-      solver_task:
-        prompt: '为什么本页的重点不是 API，而是五项定义？'
-    evidence_sequence: ['表 5 的五项定义', '六步求解链', '收束句', '判断卡']
+    evidence_sequence: ['表5', '六步链', '结论', '判断卡']
     interaction_spec:
       interaction_kind: 'teacher_reveal_only'
       student_task: '理解求解器只是在消费问题定义。'
       step_reveal_policy: { min_layers: 6, local_click_to_continue: true }
       activity_cards:
-        - { id: 'solver-task', prompt: '为什么本页的重点不是 API，而是五项定义？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
+        - { id: 'solver-task', prompt: '为什么本页重点不是 API，而是问题定义？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'full' }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'not_applicable', teacher_step_reveal: 'teacher_only', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: false, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['step_reveal_progress', 'card_completion_rate'] }
     telemetry_spec: { summary_fields: ['stepRevealCount', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['solver_as_magic'] }
-    ai_context_spec: { page_goal: '说明求解器只消费已写清的问题定义，而不是替我们决定边界。' }
-    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-06' }
-    acceptance_checks: ['表 5 的五项定义必须常显。', '六步链标题必须常显。', '收束句必须常显。', '本页不得写成 API 教程。']
+    ai_context_spec: { page_goal: '把表 5 和六步求解链补足到可独立理解。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-07' }
+    acceptance_checks: ['表5第二列的公式必须可渲染。']
 
-  step-07:
+  step-08:
     title: '同一权重下，为什么会分出两组最优'
     layout:
       template: 'same_weight_compare_board'
@@ -326,7 +219,6 @@ steps:
         - { id: 'summary', width: 'full', order: 3 }
         - { id: 'interaction', width: 'full', order: 4 }
     modules:
-      - { id: 'same-weight-context', region: 'controllers', kind: 'summary-card', must_be_visible: true }
       - { id: 'controller-triple', region: 'controllers', kind: 'formula-card-row', must_be_visible: true }
       - { id: 'same-weight-table', region: 'evidence', kind: 'native-table', must_be_visible: true }
       - { id: 'same-weight-figure', region: 'evidence', kind: 'image-panel', must_be_visible: true }
@@ -334,33 +226,8 @@ steps:
       - { id: 'feasible-conclusion', region: 'summary', kind: 'summary-card', must_be_visible: true }
       - { id: 'same-weight-task', region: 'interaction', kind: 'activity-card', must_be_visible: false }
     content_blocks:
-      same_weight_context:
-        text: '当前仍是客船航向保持主案例；比较对象没有切换，只是在同一对象、同一权重下并排看起始方案、无约束最优与带约束最优。'
-      controller_triple:
-        formulas:
-          - 'C_0(s)=2.796(10s+1)/(4.06s+1)'
-          - 'C_B(s)=2.0644(9.9804s+1)/(2.0809s+1)'
-          - 'C_{B,c}(s)=1.7679(10.4676s+1)/(2.6452s+1)'
-      same_weight_table:
-        title: '表 6. 同一权重下的三方案对比'
-        columns: ['方案', '调节时间 / s', 'ITAE', 'ITSE', '控制能量', '控制峰值', '相角裕度 / deg']
-        rows:
-          - ['`4-3` 起始方案', '36.0', '63.692', '16.528', '125.715', '6.887', '49.046']
-          - ['同权重无约束解', '13.5', '28.265', '12.404', '122.910', '9.901', '67.747']
-          - ['同权重带约束解', '15.4', '37.784', '16.486', '79.767', '6.996', '67.694']
-      same_weight_figure:
-        runtime_media: '/course-runtime/lessons/4-5/media/4-5-ship-heading-same-weight-constraint-compare.png'
-        caption: '平衡权重下：无约束最优与带约束最优为什么会分出两组不同解'
-      feasible_reveal:
-        steps:
-          - '同一权重没有变化。'
-          - '越界解被排出可行域。'
-          - '最优点因此在新的可行域内迁移。'
-      feasible_conclusion:
-        text: '改写的是可行域，不是权重语言。'
-      same_weight_task:
-        prompt: '为什么这里改写的是可行域，而不是权重语言？'
-    evidence_sequence: ['三条控制器', '表 6', '同权重比较图', '解释链', '结论句', '判断卡']
+      same_weight_figure: { runtime_media: '/course-runtime/lessons/4-5/media/4-5-ship-heading-same-weight-constraint-compare.png' }
+    evidence_sequence: ['三条控制器', '表6', '比较图', '解释链', '结论']
     interaction_spec:
       interaction_kind: 'teacher_reveal_only'
       student_task: '理解同一权重下最优点为何迁移。'
@@ -371,158 +238,110 @@ steps:
     student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: false, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['step_reveal_progress', 'card_completion_rate'] }
     telemetry_spec: { summary_fields: ['stepRevealCount', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['weight_changed', 'best_point_static'] }
-    ai_context_spec: { page_goal: '固定“改写的是可行域，不是权重语言”。' }
-    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-07' }
-    acceptance_checks: ['三条控制器、表 6 和比较图必须常显。', '解释链可显影，但图表不可隐藏。', '结论必须落到可行域迁移。']
-
-  step-08:
-    title: '三方案闭环比较：约束牺牲了什么，又换回了什么'
-    layout:
-      template: 'comparison_decision_board'
-      regions:
-        - { id: 'question', width: 'full', order: 1 }
-        - { id: 'evidence', width: 'full', order: 2 }
-        - { id: 'interaction', width: 'full', order: 3 }
-    modules:
-      - { id: 'comparison-question', region: 'question', kind: 'summary-card', must_be_visible: true }
-      - { id: 'closure-table', region: 'evidence', kind: 'native-table', must_be_visible: true }
-      - { id: 'closure-figure', region: 'evidence', kind: 'image-panel', must_be_visible: true }
-      - { id: 'summary-reveal', region: 'interaction', kind: 'step-reveal', must_be_visible: true }
-      - { id: 'gain-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
-      - { id: 'return-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
-    content_blocks:
-      comparison_question:
-        text: '约束牺牲了什么，又换回了什么？'
-      closure_table:
-        title: '表 9. 三方案关键指标对比'
-        columns: ['指标', '`4-3` 起始方案', '越界无约束候选', '`4-5` 带约束可用解']
-        rows:
-          - ['超调 / %', '18.8636', '20.2410', '1.8194']
-          - ['调节时间 / s', '36.0', '19.6', '15.4']
-          - ['ITAE', '63.6924', '20.1632', '37.7835']
-          - ['ITSE', '16.5282', '5.3330', '16.4860']
-          - ['控制能量', '125.7148', '774.9575', '79.7669']
-          - ['控制峰值', '6.8867', '25.0000', '6.9960']
-          - ['相角裕度 / deg', '49.0462', '47.8274', '67.6942']
-      closure_figure:
-        runtime_media: '/course-runtime/lessons/4-5/media/4-5-ship-heading-constraint-closure-compare.png'
-        caption: '从越界候选到带约束可用解的证据闭环'
-      summary_reveal:
-        steps:
-          - '无约束候选把收益建立在越界代价上。'
-          - '带约束可用解牺牲了部分自由目标收益。'
-          - '这种牺牲换回了真正可交付的边界收益。'
-      gain_card:
-        prompt: '哪一列收益被牺牲了？'
-      return_card:
-        prompt: '哪两条边界收益被换回来了？'
-    evidence_sequence: ['问题句', '表 9', '约束闭环图', '总结链', '两张作答卡']
-    interaction_spec:
-      interaction_kind: 'activity_card_set'
-      student_task: '在统一证据下比较牺牲与换回。'
-      activity_cards:
-        - { id: 'gain-card', prompt: '哪一列收益被牺牲了？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
-        - { id: 'return-card', prompt: '哪两条边界收益被换回来了？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
-    teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'teacher_only', reveal_reference_answer: 'teacher_toggle' }
-    student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
-    teacher_insight_spec: { widgets: ['card_completion_rate', 'top_misconceptions'] }
-    telemetry_spec: { summary_fields: ['cardSubmitted', 'stepRevealCount', 'timeOnStep'], misconception_tags: ['more_conservative_only', 'single_metric_best'] }
-    ai_context_spec: { page_goal: '解释收益与代价的再分配，避免空泛地说“更稳妥”。' }
+    ai_context_spec: { page_goal: '承载讲义6.3，解释可行域迁移。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-08' }
-    acceptance_checks: ['表头、三方案名称和核心指标必须常显。', '结论链可显影，但不能退化成空泛稳妥叙述。', '单页作答卡不超过两张。']
+    acceptance_checks: ['三条控制器、表6和比较图必须常显。']
 
   step-09:
-    title: '当前结果可接受，但结构差异已经露头'
+    title: '权重影响：可行域不变时，收益会怎样被重新分配'
     layout:
-      template: 'residual_risk_board'
+      template: 'weight_tradeoff_board'
       regions:
-        - { id: 'criteria', width: 'full', order: 1 }
-        - { id: 'evidence', width: 'full', order: 2 }
-        - { id: 'summary', width: 'full', order: 3 }
+        - { id: 'weights', width: 'full', order: 1 }
+        - { id: 'table', width: 'full', order: 2 }
+        - { id: 'figure', width: 'full', order: 3 }
+        - { id: 'summary', width: 'full', order: 4 }
     modules:
-      - { id: 'acceptance-criteria', region: 'criteria', kind: 'summary-card', must_be_visible: true }
-      - { id: 'margin-warning', region: 'criteria', kind: 'formula-card', must_be_visible: true }
-      - { id: 'structure-controllers', region: 'evidence', kind: 'formula-card-row', must_be_visible: true }
-      - { id: 'structure-table', region: 'evidence', kind: 'native-table', must_be_visible: true }
-      - { id: 'structure-figure', region: 'evidence', kind: 'image-panel', must_be_visible: true }
-      - { id: 'not-final-conclusion', region: 'summary', kind: 'summary-card', must_be_visible: true }
-      - { id: 'forward-link', region: 'summary', kind: 'summary-card', must_be_visible: true }
-      - { id: 'weight-sweep-note', region: 'summary', kind: 'step-reveal', must_be_visible: true }
+      - { id: 'weight-row', region: 'weights', kind: 'formula-card-row', must_be_visible: true }
+      - { id: 'weight-table', region: 'table', kind: 'native-table', must_be_visible: true }
+      - { id: 'weight-figure', region: 'figure', kind: 'image-panel', must_be_visible: true }
+      - { id: 'weight-summary', region: 'summary', kind: 'step-reveal', must_be_visible: true }
     content_blocks:
-      acceptance_criteria:
-        bullets:
-          - '参数仍能回到当前结构机理上解释。'
-          - '超调、控制峰值和相角裕度三条边界全部守住。'
-          - '改进收益能够在统一证据下被读出来。'
-      margin_warning:
-        title: '余量告警'
-        body: 'u_max*=6.996≈7'
-        note: '当前结构仍成立，但余量并不宽松。'
-      structure_controllers:
-        formulas:
-          - 'C_{LL}^*(s)=1.7679(10.4676s+1)/(2.6452s+1)'
-          - 'C_{PID}^*(s)=0.3205(1+1/(137.3s)+100.0s/(5.0s+1))'
-      structure_table:
-        title: '表 8. 同一主案例下，不同结构的最优解对比'
-        columns: ['方案', '调节时间 / s', 'ITAE', 'ITSE', '控制能量', '控制峰值', '相角裕度 / deg', '超调 / %']
-        rows:
-          - ['优化超前结构', '15.4', '37.784', '16.486', '79.766', '6.996', '67.694', '1.820']
-          - ['优化 PID', '200.0', '1063.966', '118.036', '95.775', '6.731', '70.601', '4.123']
-      structure_figure:
-        runtime_media: '/course-runtime/lessons/4-5/media/4-5-ship-heading-pid-vs-leadlag-compare.png'
-        caption: '同一性能指标函数下，结构改变会把最优点带向不同区间'
-      not_final_conclusion:
-        text: '固定结构下已经可行，不等于结构边界已经解决。'
-      forward_link:
-        text: '结构差异已露头，4-6 才进入结构边界主线。'
-      weight_sweep_note:
-        steps:
-          - '权重扫掠还能继续重排收益，但这不是本页主屏任务。'
-    evidence_sequence: ['三条可接受标准', '余量告警', '两种结构表达式', '表 8', '结构对比图', '非终局判断', '去向结论', '权重扫掠补证']
+      weight_figure: { runtime_media: '/course-runtime/lessons/4-5/media/4-5-weight-sweep-constrained-summary.png' }
+    evidence_sequence: ['三组权重', '表7', '权重扫掠图', '两条趋势']
     interaction_spec:
       interaction_kind: 'teacher_reveal_only'
-      student_task: '理解当前结果为何可接受但不是终局。'
+      student_task: '理解约束内的收益如何被权重重新分配。'
+      step_reveal_policy: { min_layers: 2, local_click_to_continue: true }
+    teacher_controls: { release_activity: 'not_applicable', open_browse: 'not_applicable', teacher_step_reveal: 'teacher_only', reveal_reference_answer: 'not_applicable' }
+    student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: false }
+    teacher_insight_spec: { widgets: ['step_reveal_progress'] }
+    telemetry_spec: { summary_fields: ['stepRevealCount', 'timeOnStep'], misconception_tags: ['weight_means_anything_goes'] }
+    ai_context_spec: { page_goal: '承载讲义6.4的权重重排证据。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-09' }
+    acceptance_checks: ['必须使用 4-5-weight-sweep-constrained-summary.png。']
+
+  step-10:
+    title: '同一主案例下：优化 PID 和优化超前结构为什么会分化'
+    layout:
+      template: 'structure_compare_board'
+      regions:
+        - { id: 'controllers', width: 'full', order: 1 }
+        - { id: 'table', width: 'full', order: 2 }
+        - { id: 'figure', width: 'full', order: 3 }
+        - { id: 'summary', width: 'full', order: 4 }
+    modules:
+      - { id: 'structure-controllers', region: 'controllers', kind: 'formula-card-row', must_be_visible: true }
+      - { id: 'structure-table', region: 'table', kind: 'native-table', must_be_visible: true }
+      - { id: 'structure-figure', region: 'figure', kind: 'image-panel', must_be_visible: true }
+      - { id: 'structure-summary', region: 'summary', kind: 'summary-card', must_be_visible: true }
+    content_blocks:
+      structure_figure: { runtime_media: '/course-runtime/lessons/4-5/media/4-5-ship-heading-pid-vs-leadlag-compare.png' }
+    evidence_sequence: ['两种结构公式', '表8', '结构对比图', '结构差异结论']
+    interaction_spec:
+      interaction_kind: 'teacher_reveal_only'
+      student_task: '理解结构改变会把最优区间带向何处。'
       step_reveal_policy: { min_layers: 1, local_click_to_continue: true }
     teacher_controls: { release_activity: 'not_applicable', open_browse: 'page_load_open', teacher_step_reveal: 'teacher_only', reveal_reference_answer: 'not_applicable' }
     student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: false }
     teacher_insight_spec: { widgets: ['view_count', 'time_distribution'] }
-    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], misconception_tags: ['acceptable_equals_final', 'pid_as_next_step_only'] }
-    ai_context_spec: { page_goal: '独立承载讲义 6.5，不把结构对比压进收尾页。' }
-    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-09' }
-    acceptance_checks: ['三条可接受标准和余量告警必须先于结构对比出现。', '本页不得写成后测或下一课正文。', '权重扫掠只能作为后置补证。']
+    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], misconception_tags: ['pid_is_always_better'] }
+    ai_context_spec: { page_goal: '承载讲义6.5的结构差异，不提前展开4-6。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-10' }
+    acceptance_checks: ['必须使用 PID/超前结构对比图。']
 
-  step-10:
-    title: '后测与收束：下一课转入结构边界与迁移'
+  step-11:
+    title: '三方案闭环比较：当前结果为何可接受但不是终局'
     layout:
-      template: 'quiz_summary_board'
+      template: 'closure_acceptance_board'
       regions:
-        - { id: 'header', width: 'full', order: 1 }
-        - { id: 'quiz', width: 'full', order: 2 }
+        - { id: 'table', width: 'full', order: 1 }
+        - { id: 'criteria', width: 'full', order: 2 }
         - { id: 'summary', width: 'full', order: 3 }
     modules:
-      - { id: 'posttest-header', region: 'header', kind: 'summary-card', must_be_visible: true }
+      - { id: 'closure-table', region: 'table', kind: 'native-table', must_be_visible: true }
+      - { id: 'acceptance-criteria', region: 'criteria', kind: 'summary-card', must_be_visible: true }
+      - { id: 'margin-warning', region: 'criteria', kind: 'formula-card', must_be_visible: true }
+      - { id: 'closure-summary', region: 'summary', kind: 'step-reveal', must_be_visible: true }
+      - { id: 'forward-link', region: 'summary', kind: 'summary-card', must_be_visible: true }
+    evidence_sequence: ['表9', '三条标准', '余量告警', '收束链', '去向句']
+    interaction_spec:
+      interaction_kind: 'teacher_reveal_only'
+      student_task: '理解当前结果为何可接受但不是终局。'
+      step_reveal_policy: { min_layers: 3, local_click_to_continue: true }
+    teacher_controls: { release_activity: 'not_applicable', open_browse: 'page_load_open', teacher_step_reveal: 'teacher_only', reveal_reference_answer: 'not_applicable' }
+    student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: false }
+    teacher_insight_spec: { widgets: ['view_count', 'time_distribution'] }
+    telemetry_spec: { summary_fields: ['stepRevealCount', 'timeOnStep'], misconception_tags: ['acceptable_equals_final'] }
+    ai_context_spec: { page_goal: '合并讲义6.6、6.7与第七章收束。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-11' }
+    acceptance_checks: ['表9必须先于可接受标准出现。']
+
+  step-12:
+    title: '后测：边界、求解与解释是否已经成链'
+    layout:
+      template: 'posttest_board'
+      regions:
+        - { id: 'intro', width: 'full', order: 1 }
+        - { id: 'quiz', width: 'full', order: 2 }
+        - { id: 'review', width: 'full', order: 3 }
+    modules:
+      - { id: 'posttest-header', region: 'intro', kind: 'summary-card', must_be_visible: true }
       - { id: 'posttest-q1', region: 'quiz', kind: 'quiz-card', must_be_visible: true }
       - { id: 'posttest-q2', region: 'quiz', kind: 'quiz-card', must_be_visible: true }
       - { id: 'posttest-q3', region: 'quiz', kind: 'quiz-card', must_be_visible: true }
-      - { id: 'handoff-summary', region: 'summary', kind: 'summary-card', must_be_visible: true }
-    content_blocks:
-      posttest_header:
-        text: '阶段判断后测：把边界、求解与解释重新连成一条链。'
-      posttest_q1:
-        prompt: '同一权重下为何分出两组参数？'
-        reference_explanation: '同一权重下分出两组参数，不是因为偏好变了，而是因为越界解被排出可行域，最优点被迫迁移。'
-        misconception_feedback: '若回答停在“罚函数变大了”，说明还没有回到可行域迁移这一层判断。'
-      posttest_q2:
-        prompt: '参数范围和输出侧硬约束分别回答什么问题？'
-        reference_explanation: '参数范围回答结构语义和搜索区间，输出侧硬约束回答结果是否还能交付。'
-        misconception_feedback: '若把两者都写成“限制参数”，说明仍在混淆结构可解释与结果可交付两层语言。'
-      posttest_q3:
-        prompt: '为什么当前结果仍需继续被审视？'
-        reference_explanation: '当前结果虽已可接受，但控制峰值余量很窄，且结构一旦改变，最优区间会明显改写，所以还不能把固定结构下的可行解当成终局。'
-        misconception_feedback: '若把“可接受”直接等同于“问题结束”，说明忽略了结构边界尚未进入主线。'
-      handoff_summary:
-        text: '当前结构余量不宽松，下一课转入结构边界与迁移。'
-    evidence_sequence: ['后测标题卡', '三题题干', '收束句']
+      - { id: 'posttest-note', region: 'review', kind: 'summary-card', must_be_visible: true }
+    evidence_sequence: ['后测标题卡', '三道后测题', '收束说明']
     interaction_spec:
       interaction_kind: 'quiz_group'
       student_task: '完成三题后测。'
@@ -534,6 +353,30 @@ steps:
     student_access: { default_visibility: 'visible', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['completion_rate', 'top_misconceptions'] }
     telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep', 'errorBucket'], misconception_tags: ['penalty_as_answer', 'range_equals_constraint', 'acceptable_equals_final'] }
-    ai_context_spec: { page_goal: '回收本课三条判断链，并把去向收束到 4-6。' }
-    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-10' }
-    acceptance_checks: ['三个题干必须常显。', '参考解释与错因反馈必须后置。', '收束不得扩成下一课正文。']
+    ai_context_spec: { page_goal: '独立后测，不再混入总结。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-12' }
+    acceptance_checks: ['后测页与总结页必须分离。']
+
+  step-13:
+    title: '总结：把越界证据、约束翻译与结构边界连成一条链'
+    layout:
+      template: 'summary_exit_board'
+      regions:
+        - { id: 'summary', width: 'full', order: 1 }
+        - { id: 'infographic', width: 'full', order: 2 }
+        - { id: 'next-step', width: 'full', order: 3 }
+    modules:
+      - { id: 'summary-chain', region: 'summary', kind: 'summary-card', must_be_visible: true }
+      - { id: 'summary-infographic', region: 'infographic', kind: 'image-panel', must_be_visible: true }
+      - { id: 'next-step-card', region: 'next-step', kind: 'summary-card', must_be_visible: true }
+    content_blocks:
+      summary_infographic: { runtime_media: '/course-runtime/lessons/4-5/media/4-5-info.png' }
+    evidence_sequence: ['五条总结', '信息图', '下一课去向']
+    interaction_spec: { interaction_kind: 'none', student_task: '阅读总结。' }
+    teacher_controls: { release_activity: 'not_applicable', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'not_applicable' }
+    student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: false }
+    teacher_insight_spec: { widgets: ['view_count'] }
+    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], misconception_tags: [] }
+    ai_context_spec: { page_goal: '用总结页与信息图收束本课。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-13' }
+    acceptance_checks: ['总结页必须嵌入 4-5-info.png。']

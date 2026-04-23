@@ -4,91 +4,117 @@
   "contract_path": "course-content/authoring/lessons/4-5/design/interactive-contract.yaml",
   "design_acceptance_path": "course-content/authoring/lessons/4-5/design/interactive-design-acceptance.json",
   "implementation_acceptance_path": "course-content/authoring/lessons/4-5/notes/interactive-implementation-acceptance.json",
-  "implementation_contract_source": null,
+  "implementation_contract_source": "src/lib/unit-4-5-course.ts",
   "contract_required_fields": [
     "layout",
     "modules",
     "content_blocks",
-    "evidence_sequence",
     "interaction_spec",
     "teacher_controls",
-    "student_access",
-    "teacher_insight_spec",
     "telemetry_spec",
+    "teacher_insight_spec",
     "ai_context_spec",
     "preview_contract",
     "acceptance_checks"
   ],
   "included_in_primary_sources": true,
-  "mapping_contract_mode": "evidence_units",
-  "has_core_mapping_section": true,
-  "mapping_columns_present": [
+  "mapping_contract_mode": "core_items",
+  "has_core_mapping_section": false,
+  "mapping_columns_present": [],
+  "missing_mapping_columns": [
     "handout_anchor",
-    "evidence_unit_id",
-    "evidence_kind",
+    "core_item_type",
     "must_appear_content",
     "target_step",
     "page_mode",
-    "interaction_archetype",
+    "interaction_upgrade",
     "media_or_table_ref",
     "acceptance_note"
   ],
-  "missing_mapping_columns": [],
-  "invalid_handout_anchors": [
-    "一、问题引入：为什么“自由目标更优”不等于“工程上可用”",
-    "3.1 从自由目标看，它确实很有诱惑力",
-    "3.2 一旦回到工程边界，问题立刻暴露",
-    "4.2 参数范围和硬约束不是同一种东西",
-    "4.3 先有边界，后有求解器",
-    "5.1 先保留上一课的自由目标",
-    "5.2 罚函数把越界代价显性写进目标",
-    "6.1 当前求解输入",
-    "6.2 `fmincon` 求解流程拆解",
-    "6.3 同一权重下，无约束与有约束为什么会分出两组不同解",
-    "6.6 三方案比较真正说明了什么",
-    "七、当前结果为什么可接受，但还不是终局",
-    "6.5 同一主案例下：优化 PID 和优化超前结构为什么会分化",
-    "P₃｜Post-assessment 后测"
-  ],
+  "invalid_handout_anchors": [],
   "missing_target_steps": [],
-  "formula_mapping_issues": [
-    "步骤 `step-01` 的“静态承载内容”未显式覆盖公式型映射：P_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)}`；`, `；`"
-  ],
+  "formula_mapping_issues": [],
   "step_static_blocks_missing": [],
-  "step_upgrade_blocks_missing": [],
+  "step_upgrade_blocks_missing": [
+    "## step-01｜无约束候选越界：时间指标更好，为什么仍不可交付",
+    "## step-02｜本次课程目标：完成这轮实践后应能做到什么",
+    "## step-03｜自由目标收益与工程复核：更优为什么还不等于可用",
+    "## step-09｜权重影响：可行域不变时，收益会怎样被重新分配",
+    "## step-10｜同一主案例下：优化 PID 和优化超前结构为什么会分化",
+    "## step-12｜后测：边界、求解与解释是否已经成链",
+    "## step-13｜总结：把越界证据、约束翻译与结构边界连成一条链"
+  ],
   "step_reading_order_missing": [],
   "curve_figure_steps_missing_mirror": [],
   "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
-  "step_contract_issues": [],
+  "step_contract_issues": [
+    "步骤 `step-04` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-05` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-06` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-07` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-11` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-12` 的互动契约缺少字段：content_blocks"
+  ],
   "design_acceptance_summary": [
     "互动设计接受文件已通过校验。"
   ],
   "design_acceptance_issues": [],
-  "implementation_acceptance_summary": [],
+  "implementation_acceptance_summary": [
+    "互动实现接受文件已通过校验。"
+  ],
   "implementation_acceptance_issues": [],
-  "reviewed_runtime_artifacts": [],
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/4-5/review/review-report.md",
+    "course-content/runtime/lessons/4-5/review/interactive-page-check.json",
+    "course-content/runtime/lessons/4-5/review/multimedia-check.json",
+    "course-content/runtime/lessons/4-5/review/source-manifest.json"
+  ],
   "runtime_review_stale_issues": [],
   "hard_gate_issues": [],
   "hard_gate_issue_codes": [],
   "blocking_issues": [],
-  "implementation_contract_summary": [],
+  "implementation_contract_summary": [
+    "已检测到 `4-5` 的本地实现契约与作者态互动契约一致。"
+  ],
   "implementation_contract_issues": [],
   "legacy_acceptance_notes": [],
   "summary": [
-    "已检测到 `4-5` 的 V2 互动契约，步骤字段完整。",
-    "互动设计接受文件已通过校验。"
+    "已检测到 `4-5` 的本地实现契约与作者态互动契约一致。",
+    "互动设计接受文件已通过校验。",
+    "互动实现接受文件已通过校验。"
   ],
   "warnings": [
-    "以下 handout_anchor 未在讲义标题中命中：一、问题引入：为什么“自由目标更优”不等于“工程上可用”, 3.1 从自由目标看，它确实很有诱惑力, 3.2 一旦回到工程边界，问题立刻暴露, 4.2 参数范围和硬约束不是同一种东西, 4.3 先有边界，后有求解器, 5.1 先保留上一课的自由目标, 5.2 罚函数把越界代价显性写进目标, 6.1 当前求解输入, 6.2 `fmincon` 求解流程拆解, 6.3 同一权重下，无约束与有约束为什么会分出两组不同解, 6.6 三方案比较真正说明了什么, 七、当前结果为什么可接受，但还不是终局, 6.5 同一主案例下：优化 PID 和优化超前结构为什么会分化, P₃｜Post-assessment 后测",
-    "步骤 `step-01` 的“静态承载内容”未显式覆盖公式型映射：P_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)}`；`, `；`"
+    "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",
+    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note",
+    "以下步骤缺少“互动升级点”：## step-01｜无约束候选越界：时间指标更好，为什么仍不可交付, ## step-02｜本次课程目标：完成这轮实践后应能做到什么, ## step-03｜自由目标收益与工程复核：更优为什么还不等于可用, ## step-09｜权重影响：可行域不变时，收益会怎样被重新分配, ## step-10｜同一主案例下：优化 PID 和优化超前结构为什么会分化, ## step-12｜后测：边界、求解与解释是否已经成链, ## step-13｜总结：把越界证据、约束翻译与结构边界连成一条链",
+    "步骤 `step-04` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-05` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-06` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-07` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-11` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-12` 的互动契约缺少字段：content_blocks"
   ],
   "missing": [
-    "以下 handout_anchor 未在讲义标题中命中：一、问题引入：为什么“自由目标更优”不等于“工程上可用”, 3.1 从自由目标看，它确实很有诱惑力, 3.2 一旦回到工程边界，问题立刻暴露, 4.2 参数范围和硬约束不是同一种东西, 4.3 先有边界，后有求解器, 5.1 先保留上一课的自由目标, 5.2 罚函数把越界代价显性写进目标, 6.1 当前求解输入, 6.2 `fmincon` 求解流程拆解, 6.3 同一权重下，无约束与有约束为什么会分出两组不同解, 6.6 三方案比较真正说明了什么, 七、当前结果为什么可接受，但还不是终局, 6.5 同一主案例下：优化 PID 和优化超前结构为什么会分化, P₃｜Post-assessment 后测",
-    "步骤 `step-01` 的“静态承载内容”未显式覆盖公式型映射：P_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)}`；`, `；`"
+    "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",
+    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note",
+    "以下步骤缺少“互动升级点”：## step-01｜无约束候选越界：时间指标更好，为什么仍不可交付, ## step-02｜本次课程目标：完成这轮实践后应能做到什么, ## step-03｜自由目标收益与工程复核：更优为什么还不等于可用, ## step-09｜权重影响：可行域不变时，收益会怎样被重新分配, ## step-10｜同一主案例下：优化 PID 和优化超前结构为什么会分化, ## step-12｜后测：边界、求解与解释是否已经成链, ## step-13｜总结：把越界证据、约束翻译与结构边界连成一条链",
+    "步骤 `step-04` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-05` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-06` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-07` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-11` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-12` 的互动契约缺少字段：content_blocks"
   ],
   "issues": [
-    "以下 handout_anchor 未在讲义标题中命中：一、问题引入：为什么“自由目标更优”不等于“工程上可用”, 3.1 从自由目标看，它确实很有诱惑力, 3.2 一旦回到工程边界，问题立刻暴露, 4.2 参数范围和硬约束不是同一种东西, 4.3 先有边界，后有求解器, 5.1 先保留上一课的自由目标, 5.2 罚函数把越界代价显性写进目标, 6.1 当前求解输入, 6.2 `fmincon` 求解流程拆解, 6.3 同一权重下，无约束与有约束为什么会分出两组不同解, 6.6 三方案比较真正说明了什么, 七、当前结果为什么可接受，但还不是终局, 6.5 同一主案例下：优化 PID 和优化超前结构为什么会分化, P₃｜Post-assessment 后测",
-    "步骤 `step-01` 的“静态承载内容”未显式覆盖公式型映射：P_h(s)=\\frac{0.01715}{s(s+0.1)(s+2.14375)}`；`, `；`"
+    "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",
+    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note",
+    "以下步骤缺少“互动升级点”：## step-01｜无约束候选越界：时间指标更好，为什么仍不可交付, ## step-02｜本次课程目标：完成这轮实践后应能做到什么, ## step-03｜自由目标收益与工程复核：更优为什么还不等于可用, ## step-09｜权重影响：可行域不变时，收益会怎样被重新分配, ## step-10｜同一主案例下：优化 PID 和优化超前结构为什么会分化, ## step-12｜后测：边界、求解与解释是否已经成链, ## step-13｜总结：把越界证据、约束翻译与结构边界连成一条链",
+    "步骤 `step-04` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-05` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-06` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-07` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-11` 的互动契约缺少字段：content_blocks",
+    "步骤 `step-12` 的互动契约缺少字段：content_blocks"
   ]
 }
