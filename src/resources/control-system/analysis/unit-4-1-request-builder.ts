@@ -51,6 +51,7 @@ export function buildUnit41AnalysisRequest(
     plant: config.plant,
     structures: input.structures,
     outputs: ['step_response', 'root_locus', 'magnitude', 'phase', 'nyquist', 'bode'],
+    responseType: 'step',
     timeRange: config.timeRange,
     frequencyRange: config.frequencyRange,
     rootLocus: {

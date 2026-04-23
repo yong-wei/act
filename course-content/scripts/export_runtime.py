@@ -13,6 +13,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COURSE_ROOT = REPO_ROOT / 'course-content'
@@ -486,6 +488,39 @@ def load_sequence(lesson_id: str) -> dict[str, Any]:
     return read_json(get_authoring_cards_dir(lesson_id) / 'sequence.json')
 
 
+def load_interactive_contract(lesson_id: str) -> dict[str, Any] | None:
+    contract_path = get_authoring_lesson_dir(lesson_id) / 'design' / 'interactive-contract.yaml'
+    if not contract_path.exists():
+        return None
+    payload = yaml.safe_load(contract_path.read_text(encoding='utf-8'))
+    if not isinstance(payload, dict):
+        return None
+    return payload
+
+
+def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
+    contract = load_interactive_contract(lesson_id)
+    if contract is None:
+        return None
+
+    steps = contract.get('steps')
+    if not isinstance(steps, dict):
+        return None
+
+    return {
+        'contract_version': contract.get('contract_version'),
+        'lesson_id': contract.get('lesson_id', lesson_id),
+        'course_title': contract.get('course_title', ''),
+        'course_route_segment': contract.get('course_route_segment', ''),
+        'preview_mode': contract.get('preview_mode', {}),
+        'media_policy': contract.get('media_policy', {}),
+        'telemetry_strategy': contract.get('telemetry_strategy', ''),
+        'teacher_insight_strategy': contract.get('teacher_insight_strategy', ''),
+        'required_step_fields': contract.get('required_step_fields', []),
+        'steps': steps,
+    }
+
+
 def build_graph_overlay(
     lesson_id: str,
     graph_lesson_id: str,
@@ -547,9 +582,12 @@ def export_lesson_runtime(
     export_handout(lesson_id)
     generate_runtime_media(lesson_id)
     review_paths = export_review_bundle(lesson_id)
+    interactive_manifest = build_interactive_runtime_manifest(lesson_id)
 
     graph_overlay = build_graph_overlay(lesson_id, graph_lesson_id, manifest, runtime_sequence, runtime_nodes, runtime_relations)
     write_json(runtime_dir / 'graph-overlay.json', graph_overlay)
+    if interactive_manifest is not None:
+        write_json(runtime_dir / 'interactive-manifest.json', interactive_manifest)
 
     lesson_json = {
         **manifest,
@@ -565,12 +603,29 @@ def export_lesson_runtime(
         'media_index_source_path': f'course-content/runtime/lessons/{runtime_fragment}/media/{lesson_id}-media.md',
         'review': review_paths,
     }
+    if interactive_manifest is not None:
+        lesson_json['interactive_manifest_path'] = f'/course-runtime/lessons/{runtime_fragment}/interactive-manifest.json'
+        lesson_json['interactive_manifest_source_path'] = (
+            f'course-content/runtime/lessons/{runtime_fragment}/interactive-manifest.json'
+        )
     write_json(runtime_dir / 'lesson.json', lesson_json)
 
 
 def load_combined_authoring_graph() -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]]]:
+    def normalize_authoring_node(node: dict[str, Any]) -> dict[str, Any]:
+        normalized = dict(node)
+        chapter = normalized.get('chapter')
+        if isinstance(chapter, str):
+            stripped = chapter.strip()
+            if stripped.isdigit():
+                normalized['chapter'] = int(stripped)
+        return normalized
+
     base_graph = read_json(AUTHORING_ROOT / 'knowledge' / 'base' / 'knowledge_graph.json')
-    nodes_by_id = dict(base_graph.get('nodes', {}))
+    nodes_by_id = {
+        node_id: normalize_authoring_node(node)
+        for node_id, node in dict(base_graph.get('nodes', {})).items()
+    }
     relation_records = read_jsonl(AUTHORING_ROOT / 'knowledge' / 'base' / 'relations.jsonl')
 
     lesson_root = AUTHORING_ROOT / 'lessons'
@@ -586,7 +641,7 @@ def load_combined_authoring_graph() -> tuple[dict[str, dict[str, Any]], list[dic
     for lesson_dir in lesson_dirs:
         for node in read_jsonl(lesson_dir / 'graph' / 'nodes.jsonl'):
             node_id = str(node['id'])
-            nodes_by_id[node_id] = node
+            nodes_by_id[node_id] = normalize_authoring_node(node)
         relation_records.extend(read_jsonl(lesson_dir / 'graph' / 'relations.jsonl'))
 
     return nodes_by_id, relation_records

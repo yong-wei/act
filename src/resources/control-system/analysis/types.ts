@@ -81,6 +81,7 @@ export interface ControlAnalysisRequest {
   plant: TransferFunctionSpec;
   structures: StructureSpec[];
   outputs: AnalysisOutputKind[];
+  responseType?: 'step' | 'impulse' | 'ramp';
   timeRange: TimeRangeConfig;
   frequencyRange: FrequencyRangeConfig;
   rootLocus: RootLocusConfig;

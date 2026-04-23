@@ -3,6 +3,11 @@ import 'server-only';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+import {
+  normalizeInteractiveRuntimeManifest,
+  type InteractiveRuntimeManifest,
+} from '@/lib/interactive-lesson-manifest';
+
 type RuntimeNode = {
   id: string;
   name: string;
@@ -46,6 +51,8 @@ type RuntimeLessonJson = {
     groups?: Array<{ group_name: string; step_ids: string[]; node_ids: string[] }>;
     card_order?: string[];
   };
+  interactive_manifest_path?: string;
+  interactive_manifest_source_path?: string;
 };
 
 type RuntimeGraphOverlay = {
@@ -103,6 +110,7 @@ export interface RuntimeLessonEntryBundle {
   handoutPreview: string;
   handoutSummary: string;
   mediaResources: RuntimeLessonMediaResource[];
+  interactiveManifest: InteractiveRuntimeManifest | null;
 }
 
 const RUNTIME_ROOT = path.join(process.cwd(), 'course-content', 'runtime');
@@ -310,16 +318,25 @@ export async function loadLessonRuntimeEntry(lessonId: string): Promise<RuntimeL
     lesson.handout_pdf_path ?? `/course-runtime/lessons/${runtimeLessonFragment}/handout.pdf`;
   const mediaIndexSourcePath =
     lesson.media_index_source_path ?? `course-content/runtime/lessons/${runtimeLessonFragment}/media/${lessonId}-media.md`;
+  const interactiveManifestSourcePath =
+    lesson.interactive_manifest_source_path
+    ?? `course-content/runtime/lessons/${runtimeLessonFragment}/interactive-manifest.json`;
   const handoutMarkdown = await readText(path.join(process.cwd(), handoutSourcePath));
   const handoutPreview = createHandoutPreview(handoutMarkdown);
-  const [handoutPdfExists, mediaIndexExists] = await Promise.all([
+  const [handoutPdfExists, mediaIndexExists, interactiveManifestExists] = await Promise.all([
     fileExists(path.join(process.cwd(), handoutPdfSourcePath)),
     fileExists(path.join(process.cwd(), mediaIndexSourcePath)),
+    fileExists(path.join(process.cwd(), interactiveManifestSourcePath)),
   ]);
   const mediaDocument = mediaIndexExists
     ? parseRuntimeLessonMediaDocument(await readText(path.join(process.cwd(), mediaIndexSourcePath)))
     : { handoutSummary: null, mediaResources: [] };
   const mediaResources = mediaDocument.mediaResources;
+  const interactiveManifest = interactiveManifestExists
+    ? normalizeInteractiveRuntimeManifest(
+        await readJson(path.join(process.cwd(), interactiveManifestSourcePath)),
+      )
+    : null;
 
   const nodesWithFront = await Promise.all(
     graphOverlay.nodes.map(async (node) => ({
@@ -358,5 +375,6 @@ export async function loadLessonRuntimeEntry(lessonId: string): Promise<RuntimeL
           .map((node) => node.name),
       }),
     mediaResources,
+    interactiveManifest,
   };
 }
