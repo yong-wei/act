@@ -773,6 +773,22 @@
       "strength": 0.95
     },
     {
+      "id": "rel-0896bcc53d721e7d",
+      "sourceId": "组合结构专项验证边界判断_4_46007",
+      "targetId": "剩余风险说明_4_45006",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.84
+    },
+    {
+      "id": "rel-13b843570edaf2cf",
+      "sourceId": "参数约束翻译表_4_45002",
+      "targetId": "统一结构编码与解码_4_46005",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.83
+    },
+    {
       "id": "rel-25247f69d5647beb",
       "sourceId": "剩余风险说明_4_45006",
       "targetId": "迁移场景任务重排_4_46001",
@@ -781,17 +797,41 @@
       "strength": 0.96
     },
     {
-      "id": "rel-efe0cfb359a00c4e",
-      "sourceId": "迁移场景任务重排_4_46001",
-      "targetId": "固定结构迁移失配信号_4_46002",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.97
-    },
-    {
       "id": "rel-47b9d0b3f493dafa",
       "sourceId": "权重偏好与无约束候选解_4_44005",
       "targetId": "固定结构迁移失配信号_4_46002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-870955c2326cb63f",
+      "sourceId": "四类方案比较矩阵_4_46006",
+      "targetId": "组合结构专项验证边界判断_4_46007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-ae380a37a5466250",
+      "sourceId": "优化前后证据比较表_4_45005",
+      "targetId": "四类方案比较矩阵_4_46006",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.87
+    },
+    {
+      "id": "rel-aff6d8057ae91164",
+      "sourceId": "任务通道变化下的自由目标改写_4_44007",
+      "targetId": "驱逐舰专用代价函数改写_4_46003",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-caf02c500cf8cb69",
+      "sourceId": "统一结构编码与解码_4_46005",
+      "targetId": "四类方案比较矩阵_4_46006",
       "relation": "applies_to",
       "relationType": "applies_to",
       "strength": 0.9
@@ -805,22 +845,6 @@
       "strength": 0.98
     },
     {
-      "id": "rel-aff6d8057ae91164",
-      "sourceId": "任务通道变化下的自由目标改写_4_44007",
-      "targetId": "驱逐舰专用代价函数改写_4_46003",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.88
-    },
-    {
-      "id": "rel-fc141927e0321019",
-      "sourceId": "驱逐舰专用代价函数改写_4_46003",
-      "targetId": "结构搜索引入条件_4_46004",
-      "relation": "leads_to",
-      "relationType": "leads_to",
-      "strength": 0.96
-    },
-    {
       "id": "rel-d6c60a49f2c7739e",
       "sourceId": "结构搜索引入条件_4_46004",
       "targetId": "统一结构编码与解码_4_46005",
@@ -829,44 +853,20 @@
       "strength": 0.97
     },
     {
-      "id": "rel-13b843570edaf2cf",
-      "sourceId": "参数约束翻译表_4_45002",
-      "targetId": "统一结构编码与解码_4_46005",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.83
-    },
-    {
-      "id": "rel-caf02c500cf8cb69",
-      "sourceId": "统一结构编码与解码_4_46005",
-      "targetId": "四类方案比较矩阵_4_46006",
-      "relation": "applies_to",
-      "relationType": "applies_to",
-      "strength": 0.9
-    },
-    {
-      "id": "rel-ae380a37a5466250",
-      "sourceId": "优化前后证据比较表_4_45005",
-      "targetId": "四类方案比较矩阵_4_46006",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.87
-    },
-    {
-      "id": "rel-870955c2326cb63f",
-      "sourceId": "四类方案比较矩阵_4_46006",
-      "targetId": "组合结构专项验证边界判断_4_46007",
+      "id": "rel-efe0cfb359a00c4e",
+      "sourceId": "迁移场景任务重排_4_46001",
+      "targetId": "固定结构迁移失配信号_4_46002",
       "relation": "leads_to",
       "relationType": "leads_to",
-      "strength": 0.94
+      "strength": 0.97
     },
     {
-      "id": "rel-0896bcc53d721e7d",
-      "sourceId": "组合结构专项验证边界判断_4_46007",
-      "targetId": "剩余风险说明_4_45006",
-      "relation": "related",
-      "relationType": "related",
-      "strength": 0.84
+      "id": "rel-fc141927e0321019",
+      "sourceId": "驱逐舰专用代价函数改写_4_46003",
+      "targetId": "结构搜索引入条件_4_46004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
     }
   ]
 }

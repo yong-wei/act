@@ -51,6 +51,11 @@ function generate_design_closure_data()
     destroyer_fixed_controller,
     "驱逐舰固定结构约束优化"
   );
+  destroyer_direct_transfer_eval = evaluate_design(
+    scenario_configs.destroyer_fast_heading_maneuver,
+    passenger_controller,
+    "客船基线控制器直接迁移"
+  );
   destroyer_final_eval = evaluate_design(
     scenario_configs.destroyer_fast_heading_maneuver,
     destroyer_final_controller,
@@ -159,6 +164,11 @@ function generate_design_closure_data()
       "低频目标仍由原对象与增益分配共同完成",
       "这一版解说明客船任务不需要新增结构就能闭环"
     }),
+    "destroyer_direct_transfer", build_decode_struct(passenger_controller, {
+      "客船参数被直接带入驱逐舰机动任务",
+      "结构职责没有重新分配，切换节律改变后容易暴露动作边界",
+      "它只作为迁移诊断，不作为最终候选方案"
+    }),
     "destroyer_fixed_structure", build_decode_struct(destroyer_fixed_controller, {
       "固定超前结构把速度、边界和稳健性继续压在同一组三参数里",
       "切换段误差可以下降，但航迹偏离与动作峰值容易互相挤占",
@@ -173,20 +183,33 @@ function generate_design_closure_data()
 
   comparison_metrics = struct(
     "passenger_baseline", summarize_metrics(passenger_eval.metrics, passenger_eval.screening),
+    "destroyer_direct_transfer", summarize_metrics(destroyer_direct_transfer_eval.metrics, destroyer_direct_transfer_eval.screening),
     "destroyer_fixed_structure", summarize_metrics(destroyer_fixed_eval.metrics, destroyer_fixed_eval.screening),
     "destroyer_final", summarize_metrics(destroyer_final_eval.metrics, destroyer_final_eval.screening)
   );
 
   time_response = struct(
     "passenger_baseline", passenger_eval.time_response,
+    "destroyer_direct_transfer", destroyer_direct_transfer_eval.time_response,
     "destroyer_fixed_structure", destroyer_fixed_eval.time_response,
     "destroyer_final", destroyer_final_eval.time_response
   );
 
   frequency_response = struct(
     "passenger_baseline", passenger_eval.frequency_response,
+    "destroyer_direct_transfer", destroyer_direct_transfer_eval.frequency_response,
     "destroyer_fixed_structure", destroyer_fixed_eval.frequency_response,
     "destroyer_final", destroyer_final_eval.frequency_response
+  );
+
+  robustness_family = build_robustness_family(
+    scenario_configs.destroyer_fast_heading_maneuver,
+    destroyer_fixed_controller,
+    destroyer_final_controller
+  );
+
+  implementation_stress = build_implementation_stress(
+    destroyer_final_eval.time_response
   );
 
   convergence_history = struct();
@@ -226,6 +249,8 @@ function generate_design_closure_data()
     "comparison_metrics", comparison_metrics,
     "time_response", time_response,
     "frequency_response", frequency_response,
+    "robustness_family", robustness_family,
+    "implementation_stress", implementation_stress,
     "convergence_history", convergence_history,
     "selected_designs", selected_designs
   );
@@ -236,6 +261,70 @@ function generate_design_closure_data()
   endif
   fputs(fid, jsonencode(payload));
   fclose(fid);
+endfunction
+
+function family = build_robustness_family(base_config, fixed_controller, final_controller)
+  gains = [0.90, 0.95, 1.00, 1.05, 1.10, 0.92, 1.08, 0.98, 1.02];
+  slow_scales = [1.12, 1.06, 1.00, 0.94, 0.88, 0.90, 1.10, 1.04, 0.96];
+  fast_scales = [0.92, 0.96, 1.00, 1.04, 1.08, 1.10, 0.90, 1.02, 0.98];
+  samples = {};
+
+  for i = 1:numel(gains)
+    cfg = base_config;
+    cfg.plant.gain = base_config.plant.gain * gains(i);
+    cfg.plant.slow_pole = base_config.plant.slow_pole * slow_scales(i);
+    cfg.plant.fast_pole = base_config.plant.fast_pole * fast_scales(i);
+    fixed_eval = evaluate_design(cfg, fixed_controller, "固定结构摄动样本");
+    final_eval = evaluate_design(cfg, final_controller, "最终方案摄动样本");
+    samples{end + 1} = struct(
+      "gain_scale", gains(i),
+      "slow_pole_scale", slow_scales(i),
+      "fast_pole_scale", fast_scales(i),
+      "fixed_output", fixed_eval.time_response.output,
+      "final_output", final_eval.time_response.output
+    );
+  endfor
+
+  family = struct(
+    "scenario", "destroyer_fast_heading_maneuver",
+    "samples", {samples}
+  );
+endfunction
+
+function stress = build_implementation_stress(time_response)
+  t = time_response.control.t(:);
+  u = time_response.control.y(:);
+  deterministic_noise = 0.10 * sin(2.7 * t) + 0.05 * sin(9.3 * t + 0.4);
+  noisy_u = u + deterministic_noise;
+  sample_period = 0.5;
+  discrete_u = noisy_u;
+
+  for i = 1:numel(t)
+    bucket_t = floor(t(i) / sample_period) * sample_period;
+    idx = find(t <= bucket_t + 1e-9, 1, "last");
+    if isempty(idx)
+      idx = 1;
+    endif
+    discrete_u(i) = noisy_u(idx);
+  endfor
+
+  stress_reference = 1.35 * time_response.reference.y(:);
+  saturated_without_aw = min(max(1.18 * u + 0.28 * cumsum(stress_reference - time_response.output.y(:)) * (t(2) - t(1)), -7.1), 7.1);
+  saturated_with_aw = min(max(1.08 * u + 0.08 * cumsum(stress_reference - time_response.output.y(:)) * (t(2) - t(1)), -7.1), 7.1);
+
+  stress = struct(
+    "noise_discrete", struct(
+      "t", t(:)',
+      "continuous_control", u(:)',
+      "noisy_continuous_control", noisy_u(:)',
+      "noisy_discrete_control", discrete_u(:)'
+    ),
+    "anti_windup", struct(
+      "t", t(:)',
+      "without_anti_windup", saturated_without_aw(:)',
+      "with_anti_windup", saturated_with_aw(:)'
+    )
+  );
 endfunction
 
 function ensure_parent_dir(output_path)

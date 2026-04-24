@@ -16481,3 +16481,15 @@
 {"relation_id": "rel-c92737e0e8480f44", "source": "权重偏好与无约束候选解", "target": "越界证据记录单", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.96}
 {"relation_id": "rel-d4824edbbc8865da", "source": "优化前后证据比较表", "target": "剩余风险说明", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.95}
 {"relation_id": "rel-f979429951fdf561", "source": "参数约束翻译表", "target": "罚函数表达表", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.98}
+{"relation_id": "rel-0896bcc53d721e7d", "source": "组合结构专项验证边界判断", "target": "剩余风险说明", "source_chapter": 4, "target_chapter": 4, "relation_type": "related", "strength": 0.84}
+{"relation_id": "rel-13b843570edaf2cf", "source": "参数约束翻译表", "target": "统一结构编码与解码", "source_chapter": 4, "target_chapter": 4, "relation_type": "related", "strength": 0.83}
+{"relation_id": "rel-25247f69d5647beb", "source": "剩余风险说明", "target": "迁移场景任务重排", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.96}
+{"relation_id": "rel-47b9d0b3f493dafa", "source": "权重偏好与无约束候选解", "target": "固定结构迁移失配信号", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-870955c2326cb63f", "source": "四类方案比较矩阵", "target": "组合结构专项验证边界判断", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.94}
+{"relation_id": "rel-ae380a37a5466250", "source": "优化前后证据比较表", "target": "四类方案比较矩阵", "source_chapter": 4, "target_chapter": 4, "relation_type": "related", "strength": 0.87}
+{"relation_id": "rel-aff6d8057ae91164", "source": "任务通道变化下的自由目标改写", "target": "驱逐舰专用代价函数改写", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.88}
+{"relation_id": "rel-caf02c500cf8cb69", "source": "统一结构编码与解码", "target": "四类方案比较矩阵", "source_chapter": 4, "target_chapter": 4, "relation_type": "applies_to", "strength": 0.9}
+{"relation_id": "rel-d6b954d2ac32bf2d", "source": "固定结构迁移失配信号", "target": "驱逐舰专用代价函数改写", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.98}
+{"relation_id": "rel-d6c60a49f2c7739e", "source": "结构搜索引入条件", "target": "统一结构编码与解码", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.97}
+{"relation_id": "rel-efe0cfb359a00c4e", "source": "迁移场景任务重排", "target": "固定结构迁移失配信号", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.97}
+{"relation_id": "rel-fc141927e0321019", "source": "驱逐舰专用代价函数改写", "target": "结构搜索引入条件", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.96}
