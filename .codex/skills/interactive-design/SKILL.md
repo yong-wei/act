@@ -61,6 +61,11 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
    - 若讲义顺序是“原理/公式 -> 结构图 -> 分析推导 -> 对比图”，互动页必须按这个顺序写入页面蓝图和契约。
    - 结构图、曲线图、对比图的位置必须能从讲义证据链或明确的设计理由中解释；若解释不了，默认放在其对应原理、题面或推导之后。
 
+1.5 **模板名意味着区域拓扑，不只是视觉名**
+   - 在作者态 contract 中，模板名不仅决定页面外观，也决定区域顺序和模块归宿。
+   - 若某个模板把 `problem`、`media`、`interaction` 等区域拆开写明，设计稿必须分别说明这些区域承载什么教学任务，不能只写成“一个综合面板”。
+   - 若同一区域存在多个 `must_be_visible` 模块，必须把它们当成多个独立教学载荷分别表达，不能在 prose 中偷并成一个笼统联动画面。
+
 2. **问题、原理、例题、作答必须拆开写清**
    - 原理/定理模块与例题模块必须分离。
    - 例题题面必须完整出现，不能只保留结果、图或摘要。
@@ -88,7 +93,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 
 - 例题、推导、显影与教师/学生浏览控制：`references/worked-example-modules.md`
 - 曲线图、设计页与比较页的拆分原则：`references/curve-interaction-panels.md`
-- 页面顺序、公式表格排布、作答卡与机读契约字段：`references/page-sequence-and-activity-controls.md`
+- 页面顺序、模板区域拓扑、公式表格排布、作答卡与机读契约字段：`references/page-sequence-and-activity-controls.md`
 
 ## 设计流程
 

@@ -3,9 +3,9 @@
 # `.codex/skills/agent-evolver/scripts/validate_agent_configs.py`.
 #
 # project-agent-catalog:start
-# - starter | .codex/agents/starter.toml | gpt-5.4 | medium | 多数起步任务、任务分流、初步判断
-# - deep-debugger | .codex/agents/deep-debugger.toml | gpt-5.4 | high | 复杂分析、跨文件排障、根因定位
-# - critical-reviewer | .codex/agents/critical-reviewer.toml | gpt-5.4 | xhigh | 关键审查、复杂 review、疑难终审
+# - starter | .codex/agents/starter.toml | gpt-5.5 | medium | 多数起步任务、任务分流、初步判断
+# - deep-debugger | .codex/agents/deep-debugger.toml | gpt-5.5 | high | 复杂分析、跨文件排障、根因定位
+# - critical-reviewer | .codex/agents/critical-reviewer.toml | gpt-5.5 | xhigh | 关键审查、复杂 review、疑难终审
 # - explorer-librarian | .codex/agents/explorer-librarian.toml | gpt-5.4-mini | medium | 探索、读扫、大文件审阅、支持文档
 # - spark-coder | .codex/agents/spark-coder.toml | gpt-5.3-codex-spark | medium | 极低延迟简单编码、小范围修补
 # project-agent-catalog:end

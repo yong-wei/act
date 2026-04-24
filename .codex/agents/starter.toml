@@ -1,6 +1,6 @@
 name = "starter"
 description = "多数起步任务、任务分流、初步判断与下一步收敛。"
-model = "gpt-5.4"
+model = "gpt-5.5"
 model_reasoning_effort = "medium"
 
 developer_instructions = """

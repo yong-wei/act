@@ -1,6 +1,6 @@
 name = "critical-reviewer"
 description = "关键审查、复杂 review、疑难问题终审。"
-model = "gpt-5.4"
+model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "read-only"
 

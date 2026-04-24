@@ -9,6 +9,8 @@ description: Use when implementing or upgrading this repository's interactive le
 
 按当前仓库的新体系实现或优化互动课程。把 `course-content/authoring/lessons/.../design/interactive-page.md` 与 `interactive-contract.yaml` 视为双轨设计真源，把 `course-content/runtime/lessons/...` 下经过 `lesson-content-review` 的产物视为已审查输入，把仓库中的课程代码视为待对齐对象。
 
+对采用新编排链的课程，运行时真源不是课程私有 `step-panels` 或 `unit-*-course.ts` 中再写一份平行页面契约，而是 review/export 后的 `interactive-manifest.json`。共享模板注册表、模块注册表与活动注册表的职责是**兑现 manifest 合同**，不是在实现阶段二次发明页面结构、吞并模块或把课程级缺口藏进共享渲染器。
+
 本技能主文件只保留总流程、触发条件和参考文件入口。凡是页面布局、入口页文案装配、runtime 媒体文档格式、视频/音频容器、讲义摘要渲染这类可复用细节，一律下沉到 `references/`，不要继续把所有设计细节堆回主技能正文。
 
 当前默认基线不再是单一 `L-2c`，而是综合以下已落地课程能力：
@@ -38,6 +40,10 @@ description: Use when implementing or upgrading this repository's interactive le
 - **严格按结构化文档实现。禁止降级实现、禁止偷懒替换、禁止自由发挥补设计。**
 - 设计稿中若已明确拖拽、连线、排序、拖槽、路径高亮、热点标注等组件形态，实施阶段不得改成选择题、填空题、文本问答或“先放占位以后再补”。
 - 设计稿中若已固定页面模板、区域、模块、文本、公式、图片、表格、教师聚合、隐藏式 AI 上下文与学生页预览，实施阶段不得擅自删改、合并、改写或重排。
+- 对 manifest 驱动新课，`must_be_visible: true` 的模块必须真实落页；缺 renderer、renderer 返回 `null`、或被共享渲染器静默过滤，都属于实现失败，不得以“后续补模块”“先用占位壳层”或“课程私有分支兜底”视作已完成。
+- 模板名不仅决定视觉顺序，也承载区域拓扑与保留规则。若步骤模板把两个模块放在同一区域，实施阶段必须保留它们的独立节点与阅读顺序，不得压成一个笼统面板或单个壳层摘要。
+- 共享模块注册表必须覆盖契约中实际出现的 `kind`；真正特殊的能力应落成窄适配器模块，而不是重新退回整门课私有 `switch (step.id)` 渲染器。
+- `rust-analysis-panel`、`rust-time-compare-panel`、`rust-bode-compare-panel` 这类 Rust/WASM 共享模块属于当前正式覆盖面。三域互动的 Rust 链条替换后若出现缺口，应修共享模块或其窄适配器，不得把新课技能默认回退到旧图表实现。
 - 设计稿若已固定证据单元顺序、主阅读顺序、曲线图镜像排布、基线参数或结构切换方式，实现阶段不得擅自改成“图先行”“卡片先行”“单选替代”或“另起一套互动图”。
 - 设计稿若已为某页写出本次课程目标或能力项，实现阶段必须保持布鲁姆动词与能力粒度，不得改写成课程编排说明、单元串联说明或泛化口号。
 - 若讲义或设计稿的顺序是“原理/公式 -> 结构图 -> 分析显影 -> 对比图”，实现必须按该顺序渲染；不得把媒体数组、hero 图或通用 `MediaPanel` 自动提前。
@@ -97,6 +103,20 @@ description: Use when implementing or upgrading this repository's interactive le
 
 若两者不一致，先回到设计/审查阶段修正，不得带着冲突进入实现。
 
+### 1.6 Manifest-first runtime 真源
+
+对新编排课次，还必须确认 runtime 是否已导出：
+
+- `runtime/.../interactive-manifest.json`
+
+并把它视为共享渲染器的唯一页面编排输入。实现前至少核对：
+
+- manifest 中的步骤顺序、模板名、区域顺序与作者态 contract 一致
+- `modules` 中所有 `must_be_visible: true` 项都能在共享模块注册表中找到落点
+- 若同一区域存在多个必显模块，当前模板不会把它们压成单节点或在过滤阶段静默丢弃
+
+若 manifest 已导出但共享渲染器无法兑现这些字段，说明问题在实现链，不得回退为课程级平行契约。
+
 ### 2. 运行时知识与卡片路径
 
 当前正确路径如下：
@@ -118,6 +138,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - `design/interactive-page.md`
 - `design/interactive-contract.yaml`（若存在则必读）
 - `runtime/.../lesson.json`
+- `runtime/.../interactive-manifest.json`（新编排课次必读）
 - `runtime/.../graph-overlay.json`
 - `runtime/.../handout.md`
 - `runtime/.../media/<lesson>-media.md`（若课程入口页、预习台或外部媒体入口存在，则必读）
@@ -162,6 +183,7 @@ description: Use when implementing or upgrading this repository's interactive le
 实现前先逐步核对双轨设计中已经固定的结构，不得在实现阶段重新发明页面：
 
 - 页面模板、区域布局、模块清单是否已明确
+- runtime manifest 是否已把这些模板、区域和模块完整导出，且未在 review/export 链上丢失
 - 证据单元、主阅读顺序、折叠策略是否已明确
 - 固定文本、公式、图片、表格、例题、结论是否已明确
 - 页面正文内容源是否已明确到可直接实现，而不是只剩摘要级“这里放什么”
@@ -204,6 +226,7 @@ description: Use when implementing or upgrading this repository's interactive le
 
 - 步骤数量、标题、顺序、时长
 - 每一步的页面模板、主阅读顺序、区域、模块、静态承载内容是否已实现
+- 每一步的 runtime manifest 是否与作者态 contract 同步，且共享渲染器未吞掉任何 `must_be_visible` 模块
 - 每一步的互动类型是否与机读契约一致
 - 每一步的证据单元是否已完整落页，而不是只剩摘要卡
 - 每一步的页面内容是否主要来自双轨真源，而不是实现阶段自由补写
@@ -618,6 +641,7 @@ python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --stri
 要求：
 - 该命令必须通过，不能只生成 `interactive-page-check.json` 而忽略实现契约漂移
 - 重点检查作者态 `interactive-contract.yaml`、`design/interactive-design-acceptance.json`、`notes/interactive-implementation-acceptance.json` 与本地页面契约、步骤定义是否一致
+- 对 manifest 驱动新课，还必须检查 `interactive-manifest.json`、共享模板注册表与共享模块注册表是否兑现 contract-required modules，而不是只让页面“能渲染出来”
 - 若作者态文件晚于 runtime 审查产物，脚本会判定 `runtime_review_stale`，必须先重新审查并重新接受实现
 - 若本地实现把隐藏式 AI 做成页内入口，脚本会判定 `inline_ai_visibility`
 - 若工作区 / 参数联动被静态媒体替代，脚本会判定 `static_media_downgrade`
@@ -653,8 +677,10 @@ python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_a
 - 检查曲线图步骤的基线参数、图组排布与控件布局未漂移
 - 检查统一事件链接线
 - 检查 runtime 首页内容来源
+- 对 manifest 驱动新课，检查 required module ids 全部落页、同区域多模块顺序保留、模板区域分组未被单壳层吞并、`?step=` 预览不丢模块
 
 详细规则见：
+- [references/manifest-runtime-contract.md](references/manifest-runtime-contract.md)
 - [references/verification-and-note-update.md](references/verification-and-note-update.md)
 - [references/closed-loop-browser-validation.md](references/closed-loop-browser-validation.md)
 - [references/browser-validation-teacher-subagent.md](references/browser-validation-teacher-subagent.md)
@@ -703,6 +729,8 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
   - `runtime/lessons/<lesson>/media/<lesson>-media.md` 的文档结构、解析约束与前端装配规则
 - `references/runtime-code-generated-media.md`
   - Rust/WASM 运行时曲线、作者态静态图、前端原生绘制、`tikz-control-draw` 与 runtime 导出规范
+- `references/manifest-runtime-contract.md`
+  - 新编排课程的 manifest-first 合同、模板/模块/活动注册表职责与必显模块兑现规则
 - `references/verification-and-note-update.md`
   - 设计核对、浏览器验收、笔记更新与验证清单
 - `references/closed-loop-browser-validation.md`
