@@ -4,6 +4,8 @@ use std::collections::HashMap;
 use std::cmp::Ordering;
 use wasm_bindgen::prelude::*;
 
+pub mod control_odyssey_runtime;
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TransferFunctionSpec {
@@ -1015,6 +1017,12 @@ pub fn compute_analysis(request_json: &str) -> Result<String, JsValue> {
     }
     let result = compute_analysis_inner(&request);
     serde_json::to_string(&result).map_err(|error| JsValue::from_str(&error.to_string()))
+}
+
+#[wasm_bindgen]
+pub fn compute_simulation_step(request_json: &str) -> Result<String, JsValue> {
+    control_odyssey_runtime::compute_simulation_step_json(request_json)
+        .map_err(|error| JsValue::from_str(&error))
 }
 
 #[cfg(test)]

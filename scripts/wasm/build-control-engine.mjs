@@ -4,9 +4,36 @@ import path from 'node:path';
 
 const repoRoot = process.cwd();
 const rustupBin = '/opt/homebrew/opt/rustup/bin';
+const basePath = `${rustupBin}:${process.env.PATH ?? ''}`;
+
+const resolveRustToolchainBin = () => {
+  const candidates = [
+    process.env.RUSTUP_BIN,
+    '/opt/homebrew/bin/rustup',
+    '/opt/homebrew/opt/rustup/bin/rustup',
+    'rustup',
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    try {
+      const rustcPath = execFileSync(candidate, ['which', 'rustc'], {
+        cwd: repoRoot,
+        env: { ...process.env, PATH: basePath },
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+      return path.dirname(rustcPath);
+    } catch {
+      // Try the next rustup candidate.
+    }
+  }
+  return null;
+};
+
+const rustToolchainBin = resolveRustToolchainBin();
 const env = {
   ...process.env,
-  PATH: `${rustupBin}:${process.env.PATH ?? ''}`,
+  PATH: [rustToolchainBin, rustupBin, process.env.PATH].filter(Boolean).join(':'),
 };
 
 if (!existsSync(path.join(repoRoot, 'rust/control-engine/Cargo.toml'))) {

@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/game-store';
 import { PhysicsEngine } from '../engine/physics';
+import { preloadControlOdysseyRuntime } from '../engine/control-engine-runtime';
 import { LevelGenerator, LevelSegment, SEGMENT_WIDTH, SHIP_X_OFFSET, VIEWPORT_HEIGHT, VIEWPORT_WIDTH, computeReferenceY } from '../engine/level-generator';
 import { buildRuntimeTierConfig, getLevelConfigById, getTierConfig, getTransferFunctionModel } from '../level-data';
 import { ShipAvatar } from './ShipAvatar';
@@ -102,6 +103,10 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
   const levelConfig = getLevelConfigById(currentLevelId);
 
   // 键盘事件监听
+  useEffect(() => {
+    void preloadControlOdysseyRuntime();
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
