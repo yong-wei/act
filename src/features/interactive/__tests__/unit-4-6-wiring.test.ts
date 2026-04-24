@@ -52,7 +52,7 @@ describe('unit 4-6 platform wiring', () => {
     expect(preset?.totalDuration).toBe(90);
     expect(preset?.items).toHaveLength(11);
     expect(preset?.items[0]).toMatchObject({
-      title: '从 4-5 可用解到驱逐舰失配：为什么这次不能只说“再调一调参数”',
+      title: '从场景配置对比到迁移问题：为什么这次不能只说“再调一调参数”',
       stage: 'BRIDGE_IN',
     });
     expect(preset?.items[9]).toMatchObject({

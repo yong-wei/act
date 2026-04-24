@@ -16,24 +16,29 @@
   "required_step_fields": [],
   "steps": {
     "step-01": {
-      "title": "从 4-5 可用解到驱逐舰失配：为什么这次不能只说“再调一调参数”",
+      "title": "从场景配置对比到迁移问题：为什么这次不能只说“再调一调参数”",
       "layout": {
         "template": "migration_boundary_hero_board",
         "regions": [
           {
             "id": "evidence",
-            "width": "half",
+            "width": "full",
             "order": 1
+          },
+          {
+            "id": "comparison",
+            "width": "full",
+            "order": 2
           },
           {
             "id": "figure",
             "width": "half",
-            "order": 2
+            "order": 3
           },
           {
             "id": "bridge",
             "width": "full",
-            "order": 3
+            "order": 4
           }
         ]
       },
@@ -53,6 +58,12 @@
         {
           "id": "problem-focus",
           "region": "evidence",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "scenario-reorder-note",
+          "region": "comparison",
           "kind": "summary-card",
           "must_be_visible": true
         },
@@ -82,12 +93,47 @@
         ],
         "mismatch_figure": {
           "runtime_media": "/course-runtime/lessons/4-6/media/4-6-destroyer-mismatch-evidence.png"
+        },
+        "scenario_table": {
+          "columns": [
+            "配置项",
+            "客船航向保持",
+            "驱逐舰快速机动航向控制"
+          ],
+          "rows": [
+            [
+              "对象模型",
+              "$P_p(s)=\\\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}$",
+              "$P_d(s)=\\\\dfrac{0.0216}{s(s+0.16)(s+2.85)}$"
+            ],
+            [
+              "任务语义",
+              "单次航向保持，强调平顺和储备",
+              "多段快速机动，强调关键时段跟踪与动作分配"
+            ],
+            [
+              "参考轨迹",
+              "单次保持参考",
+              "分段机动参考：起始转向、加深机动、回收再调整"
+            ],
+            [
+              "动作筛选线",
+              "峰值动作、总能量只要不逼近边界即可",
+              "峰值动作与控制能量都单独设线，不允许互相挤占"
+            ],
+            [
+              "优先判断",
+              "速度、超调、稳健性、动作代价协调",
+              "机动完成时间、跟踪误差、峰值动作、控制能量、稳健性并列比较"
+            ]
+          ]
         }
       },
       "evidence_sequence": [
         "客船对象",
         "4-5 可用解",
         "问题句",
+        "表 1 场景配置对比",
         "驱逐舰失配图",
         "图后阅读口令",
         "收束句"
@@ -124,13 +170,13 @@
         "misconception_tags": []
       },
       "ai_context_spec": {
-        "page_goal": "用旧解回收和新证据钉住“问题写法失效”的入口。"
+        "page_goal": "用表 1、旧解回收和新证据钉住“问题写法失效”的入口。"
       },
       "preview_contract": {
         "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-01"
       },
       "acceptance_checks": [
-        "旧解与失配图必须同页常显。"
+        "表 1、旧解与失配图必须同页常显。"
       ]
     },
     "step-02": {
@@ -294,24 +340,13 @@
         "migration_formula": {
           "latex": "$\\\\text{迁移判断}=\\\\text{对象变化}+\\\\text{任务变化}+\\\\text{筛选线重排}$"
         },
-        "scenario_table": {
-          "columns": [
-            "配置项",
-            "客船航向保持",
-            "驱逐舰快速机动航向控制"
-          ],
-          "rows": [
-            "对象模型",
-            "任务语义",
-            "参考轨迹",
-            "动作筛选线",
-            "优先判断"
-          ]
+        "scenario_reorder_note": {
+          "text": "回看 step-01 的表 1：对象模型、任务语义、参考轨迹、动作筛选线和优先判断共同改写了问题。驱逐舰不是更快一点的客船，而是进入多段快速机动、动作边界分开筛选、任务质量并列比较的新场景。"
         }
       },
       "evidence_sequence": [
         "迁移判断式",
-        "场景配置对比表",
+        "表 1 后的迁移判断说明",
         "优先判断总结",
         "两张判断卡"
       ],
@@ -372,7 +407,7 @@
         "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-03"
       },
       "acceptance_checks": [
-        "表 1 必须完整出现，不能压成摘要列表。"
+        "本页基于 step-01 的表 1 完成判断，不重复渲染完整表格。"
       ]
     },
     "step-04": {
@@ -416,6 +451,12 @@
           "must_be_visible": true
         },
         {
+          "id": "legacy-symbol-table",
+          "region": "formula",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
           "id": "mismatch-figure",
           "region": "figure",
           "kind": "image-panel",
@@ -439,6 +480,35 @@
           "$B=[0.30,0.30,0.20,0.20]$",
           "$J_p(\\\\theta)=0.30\\\\bar t_s+0.30\\\\overline{\\\\mathrm{ITAE}}+0.20\\\\overline{\\\\mathrm{ITSE}}+0.20\\\\bar E_u$"
         ],
+        "legacy_symbol_table": {
+          "columns": [
+            "符号",
+            "计算方法",
+            "含义"
+          ],
+          "rows": [
+            [
+              "$\\\\bar t_s$",
+              "调节时间除以客船基准调节时间 $t_{s,0}$",
+              "衡量保持任务的收敛速度。"
+            ],
+            [
+              "$\\\\overline{\\\\mathrm{ITAE}}$",
+              "$\\\\mathrm{ITAE}(\\\\theta)/\\\\mathrm{ITAE}_0$",
+              "时间加权绝对误差，用来惩罚后期仍拖尾的误差。"
+            ],
+            [
+              "$\\\\overline{\\\\mathrm{ITSE}}$",
+              "$\\\\mathrm{ITSE}(\\\\theta)/\\\\mathrm{ITSE}_0$",
+              "时间加权平方误差，用来压低较大的持续误差。"
+            ],
+            [
+              "$\\\\bar E_u$",
+              "$E_u(\\\\theta)/E_{u,0}$",
+              "控制能量归一化结果，用来约束持续动作代价。"
+            ]
+          ]
+        },
         "mismatch_figure": {
           "runtime_media": "/course-runtime/lessons/4-6/media/4-6-destroyer-mismatch-evidence.png"
         }
@@ -446,6 +516,7 @@
       "evidence_sequence": [
         "旧权重",
         "旧总代价",
+        "旧总代价符号说明",
         "失配图",
         "三类失配信号显影",
         "结论"
@@ -493,6 +564,7 @@
         "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-04"
       },
       "acceptance_checks": [
+        "旧总代价公式的每个符号必须有计算方法和含义说明。",
         "失配图与三类失配信号必须同页联动。"
       ]
     },
@@ -567,15 +639,42 @@
         },
         "metric_duty_table": {
           "columns": [
-            "量",
-            "它回答什么问题"
+            "职责",
+            "符号",
+            "计算方法",
+            "含义"
           ],
           "rows": [
-            "切换段误差",
-            "全程跟踪误差",
-            "航迹偏离",
-            "峰值动作",
-            "控制能量"
+            [
+              "切换段误差",
+              "$\\\\bar E_{\\\\mathrm{trans}}$",
+              "$E_{\\\\mathrm{trans}}(\\\\theta)/E_{\\\\mathrm{trans},0}$",
+              "统计方波切换后短时间窗口内的误差面积，衡量变向后能否尽快跟上。"
+            ],
+            [
+              "全程跟踪误差",
+              "$\\\\bar E_{\\\\psi}$",
+              "$E_{\\\\psi}(\\\\theta)/E_{\\\\psi,0}$",
+              "覆盖整个 120s 机动过程，防止只把少数切换段做好。"
+            ],
+            [
+              "航迹偏离",
+              "$\\\\bar E_{\\\\mathrm{traj}}$",
+              "$E_{\\\\mathrm{traj}}(\\\\theta)/E_{\\\\mathrm{traj},0}$",
+              "将期望航向与实际航向按固定航速积分成平面轨迹后累计偏差，回答船是否真正走到位。"
+            ],
+            [
+              "峰值动作",
+              "$\\\\bar u_{\\\\mathrm{peak}}$",
+              "$u_{\\\\mathrm{peak}}(\\\\theta)/u_{\\\\mathrm{lim}}$",
+              "检查执行机构瞬时最大操纵量是否越界。"
+            ],
+            [
+              "控制能量",
+              "$\\\\bar E_u$",
+              "$E_u(\\\\theta)/E_{u,\\\\mathrm{lim}}$",
+              "统计全程控制量平方积分，检查持续动作代价。"
+            ]
           ]
         }
       },
@@ -642,7 +741,7 @@
         "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-05"
       },
       "acceptance_checks": [
-        "五项职责必须明确写出，不得退化为摘要句。"
+        "五项职责必须明确写出对应符号、计算方法和含义，不得退化为摘要句。"
       ]
     },
     "step-06": {
@@ -688,6 +787,12 @@
         {
           "id": "candidate-structures",
           "region": "structures",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "structure-decode-example",
+          "region": "structures",
           "kind": "summary-card",
           "must_be_visible": true
         },
@@ -703,19 +808,60 @@
           "latex": "$\\\\text{对象变换}\\\\rightarrow\\\\text{任务变换}\\\\rightarrow\\\\text{筛选线重排}\\\\rightarrow\\\\text{固定结构职责过载}$"
         },
         "candidate_structures": {
-          "bullets": [
-            "PI",
-            "超前",
-            "PI + 超前",
-            "滞后 + 超前",
-            "带微分滤波的 PID"
+          "columns": [
+            "编号",
+            "结构",
+            "表达式",
+            "有效参数",
+            "参数范围"
+          ],
+          "rows": [
+            [
+              "1",
+              "PI",
+              "$C(s)=K\\\\dfrac{T_i s+1}{T_i s}$",
+              "$K,T_i$",
+              "$K\\\\in[0.90,2.20],\\\\ T_i\\\\in[8.00,28.00]$"
+            ],
+            [
+              "2",
+              "超前",
+              "$C(s)=K\\\\dfrac{T_z s+1}{T_p s+1}$",
+              "$K,T_z,T_p$",
+              "$K\\\\in[1.00,2.73],\\\\ T_z\\\\in[8.00,17.585],\\\\ T_p\\\\in[4.00,7.33]$"
+            ],
+            [
+              "3",
+              "PI + 超前",
+              "$C(s)=K\\\\dfrac{T_i s+1}{T_i s}\\\\dfrac{T_z s+1}{T_p s+1}$",
+              "$K,T_i,T_z,T_p$",
+              "$K\\\\in[1.00,2.20],\\\\ T_i\\\\in[6.00,48.00],\\\\ T_z\\\\in[5.00,22.00],\\\\ T_p\\\\in[1.80,6.00]$"
+            ],
+            [
+              "4",
+              "滞后 + 超前",
+              "$C(s)=K\\\\dfrac{\\\\beta T_{\\\\mathrm{lag}}s+1}{T_{\\\\mathrm{lag}}s+1}\\\\dfrac{T_{\\\\mathrm{lead}}s+1}{T_p s+1}$",
+              "$K,T_{\\\\mathrm{lag}},\\\\beta,T_{\\\\mathrm{lead}},T_p$",
+              "$K\\\\in[0.90,2.10],\\\\ T_{\\\\mathrm{lag}}\\\\in[6.00,18.00],\\\\ \\\\beta\\\\in[0.65,0.96],\\\\ T_{\\\\mathrm{lead}}\\\\in[6.00,18.00],\\\\ T_p\\\\in[2.50,6.20]$"
+            ],
+            [
+              "5",
+              "带微分滤波的 PID",
+              "$C(s)=K_p\\\\left(1+\\\\dfrac{1}{T_i s}+\\\\dfrac{T_d s}{T_f s+1}\\\\right)$",
+              "$K_p,T_i,T_d,T_f$",
+              "$K_p\\\\in[0.90,2.50],\\\\ T_i\\\\in[8.00,22.00],\\\\ T_d\\\\in[0.50,3.80],\\\\ T_f\\\\in[0.04,0.20]$"
+            ]
           ]
+        },
+        "structure_decode_example": {
+          "text": "解码例：z=[0.50,0.28,0.93,0.78,0.16,0.62]，先由 z_0=0.50 得到 ceil(5z_0)=3，选择 PI + 超前；随后只解释 z_1 到 z_4，得到 $K=1.336$、$T_i=45.06$、$T_z=18.26$、$T_p=2.472$，z_5 在该结构下被忽略。"
         }
       },
       "evidence_sequence": [
         "固定结构可用域收缩链",
         "结构搜索引入条件显影",
-        "五类候选结构",
+        "五类候选结构码本预览",
+        "解码映射例子",
         "收束句"
       ],
       "interaction_spec": {
@@ -761,7 +907,8 @@
         "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-06"
       },
       "acceptance_checks": [
-        "五类候选结构必须完整列出。"
+        "五类候选结构必须列出表达式、有效参数和参数范围。",
+        "必须给出至少一个解码映射例子。"
       ]
     },
     "step-07": {
@@ -1354,14 +1501,19 @@
             "order": 1
           },
           {
-            "id": "chain",
+            "id": "info",
             "width": "full",
             "order": 2
           },
           {
-            "id": "next",
+            "id": "chain",
             "width": "full",
             "order": 3
+          },
+          {
+            "id": "next",
+            "width": "full",
+            "order": 4
           }
         ]
       },
@@ -1370,6 +1522,12 @@
           "id": "summary-list",
           "region": "summary",
           "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "lesson-info-figure",
+          "region": "info",
+          "kind": "image-panel",
           "must_be_visible": true
         },
         {
@@ -1397,10 +1555,14 @@
         },
         "main_chain": {
           "text": "任务重排 -> 固定结构失配 -> 目标重排 -> 结构编码入口 -> 四类方案比较 -> 边界判断"
+        },
+        "lesson_info_figure": {
+          "runtime_media": "/course-runtime/lessons/4-6/media/4-6-info.png"
         }
       },
       "evidence_sequence": [
         "五条总结",
+        "本讲信息图",
         "主线链条",
         "4-7 去向卡"
       ],
@@ -1441,6 +1603,7 @@
         "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-11"
       },
       "acceptance_checks": [
+        "总结页必须补充运行态信息图。",
         "总结页只负责收束与移交，不再引入新判断。"
       ]
     }

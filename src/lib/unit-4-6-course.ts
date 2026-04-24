@@ -125,7 +125,7 @@ function preview(stepId: string) {
 }
 
 export const UNIT_4_6_LESSON_STEPS: readonly UNIT_4_6StepDefinition[] = [
-  { id: 'step-01', stage: 'B', title: '从 4-5 可用解到驱逐舰失配：为什么这次不能只说“再调一调参数”', hint: '用旧解回收和失配图钉住问题写法失效。', duration: '8 min', pageType: 'display' },
+  { id: 'step-01', stage: 'B', title: '从场景配置对比到迁移问题：为什么这次不能只说“再调一调参数”', hint: '用表 1、旧解回收和失配图钉住问题写法失效。', duration: '8 min', pageType: 'display' },
   { id: 'step-02', stage: 'O', title: '本次课程目标：完成这轮迁移判断后应能做到什么', hint: '独立呈现本课布鲁姆能力目标。', duration: '5 min', pageType: 'display' },
   { id: 'step-03', stage: 'P1', title: '迁移场景任务重排：客船与驱逐舰到底换了什么', hint: '固定对象、参考、筛选线与优先判断的重排。', duration: '8 min', pageType: 'activity_card_set' },
   { id: 'step-04', stage: 'P2', title: '固定结构迁移后的失配信号：拖尾、航迹偏离与职责过载如何同时出现', hint: '失配图与三类信号共同说明旧问题写法失效。', duration: '10 min', pageType: 'teacher_reveal_only' },
@@ -140,13 +140,13 @@ export const UNIT_4_6_LESSON_STEPS: readonly UNIT_4_6StepDefinition[] = [
 
 export const UNIT_4_6_PAGE_CONTRACTS_REVIEW: Record<string, UNIT_4_6PageContract> = {
   'step-01': {
-    layout: { template: 'migration_boundary_hero_board', regions: [{ id: 'evidence', width: 'half', order: 1 }, { id: 'figure', width: 'half', order: 2 }, { id: 'bridge', width: 'full', order: 3 }] },
+    layout: { template: 'migration_boundary_hero_board', regions: [{ id: 'evidence', width: 'full', order: 1 }, { id: 'comparison', width: 'full', order: 2 }, { id: 'figure', width: 'half', order: 3 }, { id: 'bridge', width: 'full', order: 4 }] },
     interactionKind: 'none',
     teacherControls: { releaseActivity: 'not_applicable', openBrowse: 'not_applicable', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'not_applicable' },
     teacherInsightWidgets: ['view_count', 'sync_status'],
     telemetrySummaryFields: ['viewed', 'timeOnStep'],
     misconceptionTags: [],
-    aiPageGoal: '用旧解回收和新证据钉住“问题写法失效”的入口。',
+    aiPageGoal: '用表 1、旧解回收和新证据钉住“问题写法失效”的入口。',
     previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-01',
   },
   'step-02': {
@@ -240,7 +240,7 @@ export const UNIT_4_6_PAGE_CONTRACTS_REVIEW: Record<string, UNIT_4_6PageContract
     previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-10',
   },
   'step-11': {
-    layout: { template: 'summary_exit_board', regions: [{ id: 'summary', width: 'full', order: 1 }, { id: 'chain', width: 'full', order: 2 }, { id: 'next', width: 'full', order: 3 }] },
+    layout: { template: 'summary_exit_board', regions: [{ id: 'summary', width: 'full', order: 1 }, { id: 'info', width: 'full', order: 2 }, { id: 'chain', width: 'full', order: 3 }, { id: 'next', width: 'full', order: 4 }] },
     interactionKind: 'none',
     teacherControls: { releaseActivity: 'not_applicable', openBrowse: 'not_applicable', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'not_applicable' },
     teacherInsightWidgets: ['view_count'],

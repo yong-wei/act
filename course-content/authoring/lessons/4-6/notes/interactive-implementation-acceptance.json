@@ -2,7 +2,7 @@
   "acceptance_version": 1,
   "lesson_id": "4-6",
   "status": "accepted",
-  "accepted_at": "2026-04-24T13:05:01+08:00",
+  "accepted_at": "2026-04-24T15:36:37+08:00",
   "review_mode": "main_agent_fallback",
   "implementation_contract_source": "src/lib/unit-4-6-course.ts",
   "reviewed_runtime_artifacts": [
@@ -36,7 +36,8 @@
       ],
       "evidence": [
         "implementation-mapping.md maps every manifest step to runtime modules and shared renderers",
-        "src/lib/unit-4-6-course.ts keeps local step/page contracts aligned to interactive-contract.yaml"
+        "src/lib/unit-4-6-course.ts keeps local step/page contracts aligned to interactive-contract.yaml",
+        "course-content/runtime/lessons/4-6/interactive-manifest.json carries step-01 table 1, step-04/05 symbol tables, step-06 structure codebook preview, and step-11 info graph"
       ]
     },
     "static_media_downgrade": {

@@ -72,6 +72,42 @@ describe('interactive runtime manifest', () => {
     );
   });
 
+  it('renders the revised 4-6 content payload from the manifest', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-6');
+    const manifest = runtime.interactiveManifest!;
+    const moduleRegistry = {
+      'formula-card': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+        createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
+      'summary-card': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+        createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
+      'native-table': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+        createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
+      'image-panel': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+        createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
+      'step-reveal': ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string } }) =>
+        createElement('div', null, module.id, JSON.stringify(step.contentBlocks)),
+    };
+
+    const renderStep = (stepId: string) => {
+      const step = manifest.steps.find((item) => item.id === stepId);
+      expect(step).toBeDefined();
+      return renderToStaticMarkup(
+        renderInteractiveManifestStep({
+          manifest,
+          step: step!,
+          moduleRegistry,
+          extra: undefined,
+        }),
+      );
+    };
+
+    expect(renderStep('step-01')).toContain('多段快速机动');
+    expect(renderStep('step-04')).toContain('legacy-symbol-table');
+    expect(renderStep('step-05')).toContain('船是否真正走到位');
+    expect(renderStep('step-06')).toContain('解码例');
+    expect(renderStep('step-11')).toContain('4-6-info.png');
+  });
+
   it('renders visible errors for required modules without a renderer instead of silently dropping them', async () => {
     const runtime = await loadLessonRuntimeEntry('4-6');
     const step = runtime.interactiveManifest?.steps[0];

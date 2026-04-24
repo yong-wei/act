@@ -12,6 +12,7 @@ import type {
 
 type ContentRecord = Record<string, unknown>;
 type TableCell = string | { kind: 'math'; value: string };
+type NativeTableData = { columns: string[]; rows: TableCell[][] };
 
 function asRecord(value: unknown): ContentRecord {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as ContentRecord) : {};
@@ -20,6 +21,34 @@ function asRecord(value: unknown): ContentRecord {
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.map((item) => String(item));
+}
+
+function asTableRows(value: unknown): TableCell[][] {
+  if (!Array.isArray(value)) return [];
+  const rows: TableCell[][] = [];
+  for (const row of value) {
+    if (!Array.isArray(row)) continue;
+    rows.push(
+      row.map((cell) => {
+        if (cell && typeof cell === 'object' && !Array.isArray(cell)) {
+          const record = cell as ContentRecord;
+          if (record.kind === 'math') {
+            return { kind: 'math', value: String(record.value ?? '') };
+          }
+        }
+        return String(cell);
+      }),
+    );
+  }
+  return rows;
+}
+
+function tableFromBlock(block: unknown): NativeTableData | null {
+  const source = asRecord(block);
+  const columns = asStringArray(source.columns);
+  const rows = asTableRows(source.rows);
+  if (!columns.length || !rows.length) return null;
+  return { columns, rows };
 }
 
 function normalizeMath(value: string) {
@@ -58,9 +87,11 @@ function titleFromId(id: string) {
     'objective-bridge': '主线桥接',
     'migration-formula': '迁移判断式',
     'scenario-compare-table': '场景配置对比表',
+    'scenario-reorder-note': '表后迁移判断',
     'priority-summary': '优先判断',
     'legacy-weight-card': '客船平衡权重',
     'legacy-objective-card': '沿用旧总代价',
+    'legacy-symbol-table': '旧总代价符号说明',
     'mismatch-reveal': '三类失配信号',
     'mismatch-conclusion': '结论',
     'legacy-objective': '客船总代价',
@@ -70,6 +101,7 @@ function titleFromId(id: string) {
     'overload-chain': '固定结构职责过载链',
     'search-condition-reveal': '结构搜索引入条件',
     'candidate-structures': '五类候选结构',
+    'structure-decode-example': '解码映射例子',
     'entry-conclusion': '入口判断',
     'encoding-formula': '统一编码定义',
     'structure-codebook': '五类结构码本',
@@ -87,6 +119,7 @@ function titleFromId(id: string) {
     'posttest-header': '阶段后测',
     'posttest-note': '提交说明',
     'summary-list': '五条总结',
+    'lesson-info-figure': '场景迁移、结构编码与边界判断总览',
     'main-chain': '本课主线链条',
     'next-step-card': '4-7 去向',
   };
@@ -121,14 +154,17 @@ function getImageSrc(step: InteractiveRuntimeStepManifest, moduleId: string) {
     'convergence-figure': 'convergence_figure',
     'probe-figure': 'probe_figure',
     'control-effects-figure': 'control_effects_figure',
+    'lesson-info-figure': 'lesson_info_figure',
   };
   const key = keyByModule[moduleId];
   if (!key) return null;
   return String(asRecord(step.contentBlocks[key]).runtime_media ?? '') || null;
 }
 
-function tableFor(step: InteractiveRuntimeStepManifest, moduleId: string) {
+function tableFor(step: InteractiveRuntimeStepManifest, moduleId: string): NativeTableData | null {
   if (moduleId === 'scenario-compare-table') {
+    const manifestTable = tableFromBlock(step.contentBlocks.scenario_table);
+    if (manifestTable) return manifestTable;
     const source = asRecord(step.contentBlocks.scenario_table);
     return {
       columns: asStringArray(source.columns),
@@ -141,7 +177,12 @@ function tableFor(step: InteractiveRuntimeStepManifest, moduleId: string) {
       ],
     };
   }
+  if (moduleId === 'legacy-symbol-table') {
+    return tableFromBlock(step.contentBlocks.legacy_symbol_table);
+  }
   if (moduleId === 'metric-duty-table') {
+    const manifestTable = tableFromBlock(step.contentBlocks.metric_duty_table);
+    if (manifestTable) return manifestTable;
     const source = asRecord(step.contentBlocks.metric_duty_table);
     return {
       columns: asStringArray(source.columns),
@@ -154,7 +195,12 @@ function tableFor(step: InteractiveRuntimeStepManifest, moduleId: string) {
       ],
     };
   }
+  if (moduleId === 'candidate-structures') {
+    return tableFromBlock(step.contentBlocks.candidate_structures);
+  }
   if (moduleId === 'structure-codebook') {
+    const manifestTable = tableFromBlock(step.contentBlocks.codebook_table);
+    if (manifestTable) return manifestTable;
     const source = asRecord(step.contentBlocks.codebook_table);
     return {
       columns: asStringArray(source.columns),
@@ -228,6 +274,9 @@ function summaryContent(step: InteractiveRuntimeStepManifest, moduleId: string) 
     'objective-header': { text: '完成这轮迁移判断后，我们应能做到什么。' },
     'objective-list': { bullets: asStringArray(asRecord(blocks.objective_list).bullets) },
     'objective-bridge': { text: '本课承接 4-5 的固定结构可用解，正式把结构边界显性化。' },
+    'scenario-reorder-note': {
+      text: String(asRecord(blocks.scenario_reorder_note).text ?? ''),
+    },
     'priority-summary': {
       text: '驱逐舰不是“更快一点的客船”，而是对象、参考和筛选线同时改写后的新任务。',
     },
@@ -238,6 +287,9 @@ function summaryContent(step: InteractiveRuntimeStepManifest, moduleId: string) 
       text: '驱逐舰场景改写的不是一组权重，而是整张比较对象清单。',
     },
     'candidate-structures': { bullets: asStringArray(asRecord(blocks.candidate_structures).bullets) },
+    'structure-decode-example': {
+      text: String(asRecord(blocks.structure_decode_example).text ?? ''),
+    },
     'entry-conclusion': {
       text: '引入结构搜索不是因为算法更复杂，而是因为固定结构已经不能完整承接当前任务。',
     },
