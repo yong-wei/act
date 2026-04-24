@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
 import {
   renderInteractiveLessonLayout,
+  renderInteractiveManifestStep,
   type InteractiveLayoutRegionNode,
   type InteractiveRuntimeStepManifest,
 } from '@/features/interactive/shared/interactive-manifest-renderer';
@@ -59,5 +60,55 @@ describe('interactive runtime manifest', () => {
 
     expect(html.indexOf('module-a')).toBeLessThan(html.indexOf('module-b'));
     expect(html).toContain('data-template="stacked_regions"');
+  });
+
+  it('loads the reviewed 4-6 runtime manifest including teacher_reveal_only steps', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-6');
+
+    expect(runtime.interactiveManifest?.lessonId).toBe('4-6');
+    expect(runtime.interactiveManifest?.steps).toHaveLength(11);
+    expect(runtime.interactiveManifest?.steps.map((step) => step.interactionSpec.interactionKind)).toContain(
+      'teacher_reveal_only',
+    );
+  });
+
+  it('renders visible errors for required modules without a renderer instead of silently dropping them', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-6');
+    const step = runtime.interactiveManifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: runtime.interactiveManifest!,
+        step: step!,
+        moduleRegistry: {},
+        extra: undefined,
+      }),
+    );
+
+    expect(html).toContain('data-manifest-render-error="step-01:plant-card"');
+    expect(html).toContain('缺少模块 renderer');
+  });
+
+  it('keeps multiple modules in the same manifest region in module order', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-6');
+    const step = runtime.interactiveManifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: runtime.interactiveManifest!,
+        step: step!,
+        moduleRegistry: {
+          'formula-card': ({ module }) => createElement('div', null, module.id),
+          'summary-card': ({ module }) => createElement('div', null, module.id),
+          'image-panel': ({ module }) => createElement('div', null, module.id),
+        },
+        extra: undefined,
+      }),
+    );
+
+    expect(html.indexOf('plant-card')).toBeLessThan(html.indexOf('recovered-solution-card'));
+    expect(html.indexOf('recovered-solution-card')).toBeLessThan(html.indexOf('problem-focus'));
   });
 });

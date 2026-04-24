@@ -88,6 +88,11 @@ import {
   getUnit45StepQuickQuestionsLocal,
   UNIT_4_5_COURSE_META,
 } from './unit-4-5-ai-contexts';
+import {
+  getUnit46StepAIContextLocal,
+  getUnit46StepQuickQuestionsLocal,
+  UNIT_4_6_COURSE_META,
+} from './unit-4-6-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -253,6 +258,14 @@ export {
   getUnit45StepAIContextLocal,
   getUnit45StepQuickQuestionsLocal,
 } from './unit-4-5-ai-contexts';
+export {
+  UNIT_4_6_COURSE_META,
+  UNIT_4_6_STEP_AI_CONTEXTS,
+  getUnit46StepAIContext,
+  getUnit46StepQuickQuestions,
+  getUnit46StepAIContextLocal,
+  getUnit46StepQuickQuestionsLocal,
+} from './unit-4-6-ai-contexts';
 
 /**
  * 课程AI上下文注册表
@@ -463,6 +476,16 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseId: UNIT_4_5_COURSE_META.courseId,
       courseTitle: UNIT_4_5_COURSE_META.courseTitle,
       courseDescription: UNIT_4_5_COURSE_META.courseDescription,
+    },
+  },
+
+  'unit-4-6-fixed-structure-boundary-structural-encoding-v1': {
+    getStepContext: (stepId: string) => getUnit46StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit46StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: UNIT_4_6_COURSE_META.courseId,
+      courseTitle: UNIT_4_6_COURSE_META.courseTitle,
+      courseDescription: UNIT_4_6_COURSE_META.courseDescription,
     },
   },
 };

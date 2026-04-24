@@ -17,6 +17,7 @@ import { UNIT_4_1_COURSE_TITLE, UNIT_4_1_ROUTE_SEGMENT } from '@/lib/unit-4-1-co
 import { UNIT_4_2_COURSE_TITLE, UNIT_4_2_ROUTE_SEGMENT } from '@/lib/unit-4-2-course';
 import { UNIT_4_3_COURSE_TITLE, UNIT_4_3_ROUTE_SEGMENT } from '@/lib/unit-4-3-course';
 import { UNIT_4_4_COURSE_TITLE, UNIT_4_4_ROUTE_SEGMENT } from '@/lib/unit-4-4-course';
+import { UNIT_4_6_COURSE_TITLE, UNIT_4_6_ROUTE_SEGMENT } from '@/lib/unit-4-6-course';
 
 const CRUISE_ROUTE_SEGMENT = 'cruise-comfort-boppps';
 const UNIT_4_5_ROUTE_SEGMENT = 'unit-4-5-constraint-aware-parameter-optimization';
@@ -201,6 +202,15 @@ const PREMIUM_ROUTE_DESCRIPTORS: PremiumRouteDescriptor[] = [
       UNIT_4_5_COURSE_TITLE,
       '4-5：约束下的优化设计实践',
       '约束下的优化设计实践',
+    ],
+  },
+  {
+    routeSegment: UNIT_4_6_ROUTE_SEGMENT,
+    aliases: [
+      UNIT_4_6_COURSE_TITLE,
+      '4-6：场景迁移与方案比较',
+      '固定结构优化边界与结构编码入口',
+      '场景迁移与方案比较',
     ],
   },
 ];

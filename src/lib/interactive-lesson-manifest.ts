@@ -2,6 +2,7 @@ export type InteractiveTeacherControlMode =
   | 'not_applicable'
   | 'page_load_open'
   | 'teacher_toggle'
+  | 'teacher_only'
   | 'teacher_direct';
 
 export type InteractiveInteractionKind =
@@ -10,6 +11,7 @@ export type InteractiveInteractionKind =
   | 'summary'
   | 'quiz_group'
   | 'activity_card_set'
+  | 'teacher_reveal_only'
   | 'single_choice'
   | 'worked_example_reveal'
   | 'task_card_workspace';

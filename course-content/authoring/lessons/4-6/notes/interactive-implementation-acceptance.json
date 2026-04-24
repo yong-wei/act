@@ -1,0 +1,64 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "4-6",
+  "status": "accepted",
+  "accepted_at": "2026-04-24T13:05:01+08:00",
+  "review_mode": "main_agent_fallback",
+  "implementation_contract_source": "src/lib/unit-4-6-course.ts",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/4-6/interactive-manifest.json",
+    "course-content/runtime/lessons/4-6/review/review-report.md",
+    "course-content/runtime/lessons/4-6/review/interactive-page-check.json"
+  ],
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "src/features/interactive/unit-4-6-fixed-structure-boundary-structural-encoding/student-page.tsx updates global hidden page context only",
+        "src/features/interactive/unit-4-6-fixed-structure-boundary-structural-encoding/step-panels.tsx contains no inline AI entry"
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04",
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11"
+      ],
+      "evidence": [
+        "implementation-mapping.md maps every manifest step to runtime modules and shared renderers",
+        "src/lib/unit-4-6-course.ts keeps local step/page contracts aligned to interactive-contract.yaml"
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "4-6 contract uses image-panel, formula-card, native-table, step-reveal, activity cards, and quiz group; no parameter-linked simulation is declared",
+        "runtime media paths remain under /course-runtime/lessons/4-6/media"
+      ]
+    }
+  },
+  "independent_review_rounds": [
+    {
+      "round": 1,
+      "scope": "manifest-to-code mapping",
+      "result": "pass"
+    },
+    {
+      "round": 2,
+      "scope": "student visible page and gate review",
+      "result": "pass"
+    }
+  ],
+  "issues": []
+}

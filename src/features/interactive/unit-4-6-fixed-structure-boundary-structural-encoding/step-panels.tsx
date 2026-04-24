@@ -1,0 +1,131 @@
+'use client';
+
+import {
+  createManifestContentModuleRegistry,
+} from '@/features/interactive/shared/manifest-content-renderers';
+import {
+  createManifestStudentActivityRegistry,
+  createManifestTeacherActivityRegistry,
+  type ManifestStepResponse,
+} from '@/features/interactive/shared/manifest-activity-renderers';
+import {
+  renderInteractiveManifestStep,
+  renderStudentInteractiveActivity,
+  renderTeacherInteractiveActivity,
+} from '@/features/interactive/shared/interactive-manifest-renderer';
+import {
+  getUNIT_4_6ManifestStep,
+  UNIT_4_6_RUNTIME_MANIFEST,
+  type UNIT_4_6StepDefinition,
+} from '@/lib/unit-4-6-course';
+
+type TeacherResponseItem = { studentName: string; response: ManifestStepResponse };
+
+export function UNIT_4_6StepContentPanel({
+  step,
+  revealProgress,
+  allowInlineReveal,
+}: {
+  step: UNIT_4_6StepDefinition;
+  revealProgress: number;
+  allowInlineReveal: boolean;
+}) {
+  const stepManifest = getUNIT_4_6ManifestStep(step.id);
+  const moduleRegistry = createManifestContentModuleRegistry({
+    revealProgress,
+    allowInlineReveal,
+  });
+
+  return (
+    <section className="space-y-4">
+      {renderInteractiveManifestStep({
+        manifest: UNIT_4_6_RUNTIME_MANIFEST,
+        step: stepManifest,
+        moduleRegistry,
+        extra: { revealProgress, allowInlineReveal },
+      })}
+    </section>
+  );
+}
+
+export function UNIT_4_6StudentActivityForm({
+  step,
+  savedResponse,
+  released,
+  browseEnabled,
+  answerVisible,
+  revealProgress,
+  onSubmit,
+}: {
+  step: UNIT_4_6StepDefinition;
+  savedResponse?: ManifestStepResponse;
+  released: boolean;
+  browseEnabled: boolean;
+  answerVisible: boolean;
+  revealProgress: number;
+  onSubmit: (response: ManifestStepResponse) => void;
+}) {
+  const stepManifest = getUNIT_4_6ManifestStep(step.id);
+  return (
+    <>
+      {renderStudentInteractiveActivity({
+        registry: createManifestStudentActivityRegistry<UNIT_4_6StepDefinition>(),
+        step,
+        stepManifest,
+        savedResponse,
+        released,
+        browseEnabled,
+        answerVisible,
+        revealProgress,
+        onSubmit,
+      })}
+    </>
+  );
+}
+
+export function UNIT_4_6TeacherActivitySummary({
+  step,
+  responses,
+  released,
+  browseEnabled,
+  answerVisible,
+  revealProgress,
+  onToggleRelease,
+  onToggleBrowse,
+  onToggleAnswerVisible,
+  onAdvanceReveal,
+  onResetReveal,
+}: {
+  step: UNIT_4_6StepDefinition;
+  responses: TeacherResponseItem[];
+  released: boolean;
+  browseEnabled: boolean;
+  answerVisible: boolean;
+  revealProgress: number;
+  onToggleRelease: () => void;
+  onToggleBrowse: () => void;
+  onToggleAnswerVisible: () => void;
+  onAdvanceReveal: () => void;
+  onResetReveal: () => void;
+}) {
+  const stepManifest = getUNIT_4_6ManifestStep(step.id);
+  return (
+    <>
+      {renderTeacherInteractiveActivity({
+        registry: createManifestTeacherActivityRegistry<UNIT_4_6StepDefinition>(),
+        step,
+        stepManifest,
+        responses,
+        released,
+        browseEnabled,
+        answerVisible,
+        revealProgress,
+        onToggleRelease,
+        onToggleBrowse,
+        onToggleAnswerVisible,
+        onAdvanceReveal,
+        onResetReveal,
+      })}
+    </>
+  );
+}

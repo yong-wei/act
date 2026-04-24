@@ -79,6 +79,33 @@ function renderStackedTemplate({
   );
 }
 
+function renderManifestModuleError({
+  step,
+  module,
+  reason,
+}: {
+  step: InteractiveRuntimeStepManifest;
+  module: InteractiveRuntimeModuleManifest;
+  reason: string;
+}) {
+  return createElement(
+    'div',
+    {
+      'data-manifest-render-error': `${step.id}:${module.id}`,
+      className:
+        'rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-900',
+    },
+    [
+      createElement('div', { key: 'title', className: 'font-semibold' }, '互动页模块渲染缺失'),
+      createElement(
+        'div',
+        { key: 'detail' },
+        `${step.id} / ${module.id} / ${module.kind}: ${reason}`,
+      ),
+    ],
+  );
+}
+
 export const INTERACTIVE_TEMPLATE_REGISTRY: Record<string, InteractiveTemplateRenderer> = {
   stacked_regions: renderStackedTemplate,
   map_goal_boundary_slide: renderStackedTemplate,
@@ -122,6 +149,17 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
     .map((module) => {
       const renderModule = moduleRegistry[module.kind];
       if (!renderModule) {
+        if (module.mustBeVisible) {
+          return {
+            moduleId: module.id,
+            regionId: module.region,
+            node: renderManifestModuleError({
+              step,
+              module,
+              reason: '缺少模块 renderer',
+            }),
+          } as InteractiveLayoutRegionNode;
+        }
         return null;
       }
       const node = renderModule({
@@ -131,6 +169,17 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
         extra,
       });
       if (!node) {
+        if (module.mustBeVisible) {
+          return {
+            moduleId: module.id,
+            regionId: module.region,
+            node: renderManifestModuleError({
+              step,
+              module,
+              reason: '模块 renderer 返回空内容',
+            }),
+          } as InteractiveLayoutRegionNode;
+        }
         return null;
       }
       return {

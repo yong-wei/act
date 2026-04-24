@@ -28,6 +28,7 @@ import { UNIT_4_1_PREMIUM_LESSON_CARD } from '@/lib/unit-4-1-course';
 import { UNIT_4_2_PREMIUM_LESSON_CARD } from '@/lib/unit-4-2-course';
 import { UNIT_4_3_PREMIUM_LESSON_CARD } from '@/lib/unit-4-3-course';
 import { UNIT_4_4_PREMIUM_LESSON_CARD } from '@/lib/unit-4-4-course';
+import { UNIT_4_6_PREMIUM_LESSON_CARD } from '@/lib/unit-4-6-course';
 
 const UNIT_4_5_PREMIUM_LESSON_CARD = {
   id: 'unit-4-5-constraint-aware-parameter-optimization',
@@ -163,6 +164,7 @@ export const FEATURED_LESSONS = [
   UNIT_4_3_PREMIUM_LESSON_CARD,
   UNIT_4_4_PREMIUM_LESSON_CARD,
   UNIT_4_5_PREMIUM_LESSON_CARD,
+  UNIT_4_6_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
@@ -330,7 +332,12 @@ export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
     lesson.id !== 'unit-3-7-steady-error-low-frequency-compensation' &&
     lesson.id !== 'unit-3-8-frequency-domain-translation-judgment' &&
     lesson.id !== 'unit-3-9-cross-domain-mapping-lab' &&
-    lesson.id !== 'unit-4-1-design-task-expression'
+    lesson.id !== 'unit-4-1-design-task-expression' &&
+    lesson.id !== 'unit-4-2-controller-selection-first-start' &&
+    lesson.id !== 'unit-4-3-initial-scheme-practice-first-validation' &&
+    lesson.id !== 'unit-4-4-fixed-structure-optimization-modeling' &&
+    lesson.id !== 'unit-4-5-constraint-aware-parameter-optimization' &&
+    lesson.id !== 'unit-4-6-fixed-structure-boundary-structural-encoding'
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;
@@ -390,7 +397,7 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
     id: 'module-4',
     title: '模块4',
     description:
-      '模块4 当前开放 4-1、4-2、4-3、4-4、4-5 五个新主线单元，先把模块 3 的稳定、动态、稳态证据统一改写成任务表达卡，再把任务表达卡推进成单结构起步卡，并在 4-3 中落成第一版方案与首轮验证，随后进入 4-4 的多目标权衡与控制器优化设计，最后在 4-5 把越界证据翻译成约束化设计判断。',
+      '模块4 当前开放 4-1、4-2、4-3、4-4、4-5、4-6 六个新主线单元，先把模块 3 的证据统一改写成任务表达卡，再推进到起步卡、第一版方案、多目标优化建模、约束化参数优化，最后在 4-6 显性处理固定结构优化边界与结构编码入口。',
     chipLabel: '设计入口主线',
     lessons: [
       createModuleLesson('unit-4-1-design-task-expression', '4-1'),
@@ -398,6 +405,7 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
       createModuleLesson('unit-4-3-initial-scheme-practice-first-validation', '4-3'),
       createModuleLesson('unit-4-4-fixed-structure-optimization-modeling', '4-4'),
       createModuleLesson('unit-4-5-constraint-aware-parameter-optimization', '4-5'),
+      createModuleLesson('unit-4-6-fixed-structure-boundary-structural-encoding', '4-6'),
     ],
   },
 ] as const;
