@@ -1,0 +1,872 @@
+{
+  "lesson_id": "4-6",
+  "title": "场景迁移与方案比较：固定结构优化边界与结构编码入口",
+  "focus_node_ids": [
+    "迁移场景任务重排_4_46001",
+    "固定结构迁移失配信号_4_46002",
+    "驱逐舰专用代价函数改写_4_46003",
+    "结构搜索引入条件_4_46004",
+    "统一结构编码与解码_4_46005",
+    "四类方案比较矩阵_4_46006",
+    "组合结构专项验证边界判断_4_46007"
+  ],
+  "reuse_node_ids": [
+    "权重偏好与无约束候选解_4_44005",
+    "参数约束翻译表_4_45002",
+    "优化前后证据比较表_4_45005",
+    "剩余风险说明_4_45006",
+    "任务通道变化下的自由目标改写_4_44007"
+  ],
+  "entry_nodes": [
+    "迁移场景任务重排_4_46001",
+    "固定结构迁移失配信号_4_46002"
+  ],
+  "summary_nodes": [
+    "四类方案比较矩阵_4_46006",
+    "组合结构专项验证边界判断_4_46007"
+  ],
+  "card_order": [
+    "剩余风险说明_4_45006",
+    "权重偏好与无约束候选解_4_44005",
+    "优化前后证据比较表_4_45005",
+    "参数约束翻译表_4_45002",
+    "任务通道变化下的自由目标改写_4_44007",
+    "迁移场景任务重排_4_46001",
+    "固定结构迁移失配信号_4_46002",
+    "驱逐舰专用代价函数改写_4_46003",
+    "结构搜索引入条件_4_46004",
+    "统一结构编码与解码_4_46005",
+    "四类方案比较矩阵_4_46006",
+    "组合结构专项验证边界判断_4_46007"
+  ],
+  "groups": [
+    {
+      "group_name": "迁移入口与任务重排",
+      "step_ids": [
+        "step-01",
+        "step-02"
+      ],
+      "node_ids": [
+        "剩余风险说明_4_45006",
+        "迁移场景任务重排_4_46001"
+      ]
+    },
+    {
+      "group_name": "失配证据与目标重排",
+      "step_ids": [
+        "step-03",
+        "step-04"
+      ],
+      "node_ids": [
+        "权重偏好与无约束候选解_4_44005",
+        "固定结构迁移失配信号_4_46002",
+        "驱逐舰专用代价函数改写_4_46003"
+      ]
+    },
+    {
+      "group_name": "结构编码入口",
+      "step_ids": [
+        "step-05",
+        "step-06"
+      ],
+      "node_ids": [
+        "参数约束翻译表_4_45002",
+        "结构搜索引入条件_4_46004",
+        "统一结构编码与解码_4_46005"
+      ]
+    },
+    {
+      "group_name": "四类方案比较",
+      "step_ids": [
+        "step-07",
+        "step-08",
+        "step-09"
+      ],
+      "node_ids": [
+        "优化前后证据比较表_4_45005",
+        "四类方案比较矩阵_4_46006"
+      ]
+    },
+    {
+      "group_name": "专项验证与闭环移交",
+      "step_ids": [
+        "step-10",
+        "step-11"
+      ],
+      "node_ids": [
+        "任务通道变化下的自由目标改写_4_44007",
+        "组合结构专项验证边界判断_4_46007"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "任务通道变化下的自由目标改写_4_44007",
+      "name": "任务通道变化下的自由目标改写",
+      "nodeType": "THEORY",
+      "description": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
+      "positionX": -112.0,
+      "positionY": -30.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
+        "examples": [
+          "横摇抗扰中，RMS 与谐振峰比调节时间和 `ITAE` 更能描述目标。",
+          "若沿用航向保持的自由目标去比较横摇案例，求解器会沿错误方向搜索。"
+        ],
+        "formulas": [
+          "J_r(k)=0.60\\frac{RMS(\\varphi)}{RMS(\\varphi)_0}+0.25\\frac{\\max_\\omega|T_d(j\\omega)|}{\\max_\\omega|T_d(j\\omega)|_0}+0.15\\frac{RMS(u)}{RMS(u)_0}"
+        ],
+        "prerequisites": [
+          "无约束加权目标表达_4_44004",
+          "展示解与Pareto最小取舍_4_44006"
+        ],
+        "relatedConcepts": [
+          "扰动抑制中的通道重写边界_4_43006"
+        ],
+        "difficulty": 5,
+        "importance": 5,
+        "keywords": [
+          "自由目标改写",
+          "任务通道",
+          "横摇抗扰"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/任务通道变化下的自由目标改写_4_44007.md"
+      ],
+      "tags": [
+        "自由目标改写",
+        "任务通道",
+        "横摇抗扰",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "优化前后证据比较表_4_45005",
+      "name": "优化前后证据比较表",
+      "nodeType": "THEORY",
+      "description": "把起始方案、无约束候选和带约束可用解放到同一证据框架里比较，说明约束究竟牺牲了什么，又换回了什么。",
+      "positionX": -100.5,
+      "positionY": -58.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "把起始方案、无约束候选和带约束可用解放到同一证据框架里比较，说明约束究竟牺牲了什么，又换回了什么。",
+        "examples": [
+          "客船案例中，带约束解不再追求无约束候选那种极端时间收益，而是换回了可交付性、控制峰值边界和更稳妥的余量。",
+          "同一权重下两组不同最优解并存，说明变化发生在可行域，而不是偏好语言本身。"
+        ],
+        "formulas": [
+          "\\mathcal{E}_{cmp}=\\{\\theta_0,\\ \\theta_u,\\ \\theta_c\\}\\times\\{M_p,\\ t_s,\\ ITAE,\\ ITSE,\\ E_u,\\ u_{\\max},\\ \\phi_m\\}"
+        ],
+        "prerequisites": [
+          "求解记录单_4_45004",
+          "展示解与Pareto最小取舍_4_44006"
+        ],
+        "relatedConcepts": [
+          "剩余风险说明_4_45006"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "证据比较",
+          "三方案对比",
+          "可行域",
+          "工程解释"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/优化前后证据比较表_4_45005.md"
+      ],
+      "tags": [
+        "证据比较",
+        "三方案对比",
+        "可行域",
+        "工程解释",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "剩余风险说明_4_45006",
+      "name": "剩余风险说明",
+      "nodeType": "THEORY",
+      "description": "在确认当前参数解已经可用之后，继续指出其贴近边界的位置和固定结构仍未解决的问题，为 `4-6` 的场景迁移与结构边界分析留下清晰移交。",
+      "positionX": -30.0,
+      "positionY": -112.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "在确认当前参数解已经可用之后，继续指出其贴近边界的位置和固定结构仍未解决的问题，为 `4-6` 的场景迁移与结构边界分析留下清晰移交。",
+        "examples": [
+          "客船案例中，带约束解虽然守住 `u_{\\max}\\le 7`，但控制峰值已经贴近 `7` 的上限，说明余量并不宽松。",
+          "同一性能指标函数下，PID 与超前结构的最优点落在完全不同的代价分布上，说明结构差异已开始主导结果。"
+        ],
+        "formulas": [
+          "u_{\\max}^*=6.996\\approx 7,\\qquad \\text{fixed structure feasible} \\neq \\text{structure limit solved}"
+        ],
+        "prerequisites": [
+          "优化前后证据比较表_4_45005",
+          "任务通道变化下的自由目标改写_4_44007"
+        ],
+        "relatedConcepts": [
+          "带宽频率_5_6996a44a"
+        ],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "剩余风险",
+          "边界余量",
+          "结构限制",
+          "移交"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/剩余风险说明_4_45006.md"
+      ],
+      "tags": [
+        "剩余风险",
+        "边界余量",
+        "结构限制",
+        "移交",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "参数约束翻译表_4_45002",
+      "name": "参数约束翻译表",
+      "nodeType": "THEORY",
+      "description": "把输出侧硬约束和参数范围分别翻译成求解器可直接消费的不等式、上下界与读回规则，避免把不同职责的约束混写。",
+      "positionX": 122.0,
+      "positionY": 0.0,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把输出侧硬约束和参数范围分别翻译成求解器可直接消费的不等式、上下界与读回规则，避免把不同职责的约束混写。",
+        "examples": [
+          "客船案例中，`M_p\\le 20\\%`、`u_{\\max}\\le 7` 与 `\\phi_m\\ge 45^\\circ` 应进入 `nonlcon`，而 `1\\le K\\le 6` 属于参数上下界。",
+          "若把参数范围误当成工程可交付边界，求解器仍会在结构上说得通、工程上却失真的区域里搜索。"
+        ],
+        "formulas": [
+          "c(\\theta)=\\begin{bmatrix}M_p(\\theta)-20\\\\u_{\\max}(\\theta)-7\\\\45-\\phi_m(\\theta)\\end{bmatrix}\\le 0,\\qquad lb\\le \\theta\\le ub"
+        ],
+        "prerequisites": [
+          "越界证据记录单_4_45001",
+          "优化起点与归一化来源_4_44003"
+        ],
+        "relatedConcepts": [
+          "罚函数表达表_4_45003",
+          "求解记录单_4_45004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "约束翻译",
+          "nonlcon",
+          "上下界",
+          "职责分工"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/参数约束翻译表_4_45002.md"
+      ],
+      "tags": [
+        "约束翻译",
+        "nonlcon",
+        "上下界",
+        "职责分工",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "四类方案比较矩阵_4_46006",
+      "name": "四类方案比较矩阵",
+      "nodeType": "THEORY",
+      "description": "把旧目标/新目标与旧结构/变结构两条轴交叉组合成四类方案，才能把“目标是否对题”和“结构是否仍够用”拆成两道独立判断。",
+      "positionX": 86.3,
+      "positionY": 86.3,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "把旧目标/新目标与旧结构/变结构两条轴交叉组合成四类方案，才能把“目标是否对题”和“结构是否仍够用”拆成两道独立判断。",
+        "examples": [
+          "驱逐舰采用客船代价函数但变结构搜索，说明放开结构并不能自动修正错误目标；驱逐舰采用专用代价函数但固定结构，则进一步说明结构边界还在。"
+        ],
+        "formulas": [
+          "\\{\\text{旧目标},\\text{新目标}\\}\\times\\{\\text{旧结构},\\text{变结构}\\}"
+        ],
+        "prerequisites": [
+          "统一结构编码与解码_4_46005",
+          "优化前后证据比较表_4_45005"
+        ],
+        "relatedConcepts": [
+          "组合结构专项验证边界判断_4_46007"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "四类方案",
+          "比较矩阵",
+          "目标错位",
+          "结构边界"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/四类方案比较矩阵_4_46006.md"
+      ],
+      "tags": [
+        "四类方案",
+        "比较矩阵",
+        "目标错位",
+        "结构边界",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "固定结构迁移失配信号_4_46002",
+      "name": "固定结构迁移失配信号",
+      "nodeType": "THEORY",
+      "description": "把原有固定结构和旧代价函数迁移到新任务后，若出现持续拖尾、航迹偏离放大和参数职责互相挤占，就说明问题已经不再适合写成单纯的参数微调。",
+      "positionX": 31.6,
+      "positionY": 117.8,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "把原有固定结构和旧代价函数迁移到新任务后，若出现持续拖尾、航迹偏离放大和参数职责互相挤占，就说明问题已经不再适合写成单纯的参数微调。",
+        "examples": [
+          "驱逐舰方波机动中，固定超前结构在多次切换后持续滞后，并通过航迹积分把误差逐段放大。"
+        ],
+        "formulas": [
+          "\\text{失配}=(\\text{切换段拖尾},\\ \\text{航迹偏离},\\ \\text{职责过载})"
+        ],
+        "prerequisites": [
+          "迁移场景任务重排_4_46001",
+          "权重偏好与无约束候选解_4_44005"
+        ],
+        "relatedConcepts": [
+          "驱逐舰专用代价函数改写_4_46003"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "失配信号",
+          "固定结构",
+          "拖尾",
+          "航迹偏离"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/固定结构迁移失配信号_4_46002.md"
+      ],
+      "tags": [
+        "失配信号",
+        "固定结构",
+        "拖尾",
+        "航迹偏离",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "权重偏好与无约束候选解_4_44005",
+      "name": "权重偏好与无约束候选解",
+      "nodeType": "THEORY",
+      "description": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
+      "positionX": 61.0,
+      "positionY": -105.7,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
+        "examples": [
+          "客船案例中，`C_u(s)=5\\frac{10s+1}{2s+1}` 会显著压低时间指标和拖尾。",
+          "若权重更重视动作代价，求解器就会倾向另一类更保守的候选。"
+        ],
+        "formulas": [
+          "C_u(s)=5\\frac{10s+1}{2s+1}"
+        ],
+        "prerequisites": [
+          "无约束加权目标表达_4_44004"
+        ],
+        "relatedConcepts": [
+          "展示解与Pareto最小取舍_4_44006"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "权重",
+          "偏好",
+          "候选解"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/权重偏好与无约束候选解_4_44005.md"
+      ],
+      "tags": [
+        "权重",
+        "偏好",
+        "候选解",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "组合结构专项验证边界判断_4_46007",
+      "name": "组合结构专项验证边界判断",
+      "nodeType": "THEORY",
+      "description": "当组合结构候选在总代价和航迹误差上继续改善，却把某些筛选线推向越线区域时，说明优化器仍会沿总代价允许的方向下降，结构扩张不自动等于工程可交付。",
+      "positionX": 64.0,
+      "positionY": -110.9,
+      "positionZ": 4,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "评价",
+        "definition": "当组合结构候选在总代价和航迹误差上继续改善，却把某些筛选线推向越线区域时，说明优化器仍会沿总代价允许的方向下降，结构扩张不自动等于工程可交付。",
+        "examples": [
+          "`PI + 超前 + lead_ff + filtered_rate` 在编码上看似更复杂，但前馈和测速反馈最终收缩成零增益，实际仍等价于反馈主通道的重排。"
+        ],
+        "formulas": [
+          "\\text{总代价更低}\\neq\\text{筛选线自动成立}"
+        ],
+        "prerequisites": [
+          "四类方案比较矩阵_4_46006"
+        ],
+        "relatedConcepts": [
+          "剩余风险说明_4_45006"
+        ],
+        "difficulty": 5,
+        "importance": 4,
+        "keywords": [
+          "组合结构",
+          "专项验证",
+          "硬约束",
+          "边界判断"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/组合结构专项验证边界判断_4_46007.md"
+      ],
+      "tags": [
+        "组合结构",
+        "专项验证",
+        "硬约束",
+        "边界判断",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "结构搜索引入条件_4_46004",
+      "name": "结构搜索引入条件",
+      "nodeType": "THEORY",
+      "description": "只有当固定结构已经无法同时解释速度收益、动作边界和稳健性余量，并且继续调参只会在同一小块可用域内交换代价时，结构搜索才构成合理入口。",
+      "positionX": 134.0,
+      "positionY": 0.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "只有当固定结构已经无法同时解释速度收益、动作边界和稳健性余量，并且继续调参只会在同一小块可用域内交换代价时，结构搜索才构成合理入口。",
+        "examples": [
+          "驱逐舰任务中，同一组超前参数既要兼顾切换段提速，又要守住动作边界和频域余量，说明结构职责已经过载。"
+        ],
+        "formulas": [
+          "\\text{引入条件}=\\text{职责过载}+\\text{可用域收缩}+\\text{解释链断层}"
+        ],
+        "prerequisites": [
+          "驱逐舰专用代价函数改写_4_46003"
+        ],
+        "relatedConcepts": [
+          "统一结构编码与解码_4_46005"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "结构搜索",
+          "引入条件",
+          "可用域"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/结构搜索引入条件_4_46004.md"
+      ],
+      "tags": [
+        "结构搜索",
+        "引入条件",
+        "可用域",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "统一结构编码与解码_4_46005",
+      "name": "统一结构编码与解码",
+      "nodeType": "THEORY",
+      "description": "把离散结构选择与连续参数搜索写进同一个六维归一化编码后，必须通过结构编号、有效槽位、忽略槽位和逐槽映射，把结果稳定解码回工程语言。",
+      "positionX": 129.4,
+      "positionY": 34.7,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把离散结构选择与连续参数搜索写进同一个六维归一化编码后，必须通过结构编号、有效槽位、忽略槽位和逐槽映射，把结果稳定解码回工程语言。",
+        "examples": [
+          "同一组六维向量在 `PI + 超前` 与 `超前` 结构下，会对应完全不同的有效参数集合，因此必须先判结构再解释参数。"
+        ],
+        "formulas": [
+          "[z_0,\\ldots,z_5]\\in[0,1]^6,\\qquad k=\\max(1,\\lceil 5z_0\\rceil)"
+        ],
+        "prerequisites": [
+          "结构搜索引入条件_4_46004",
+          "参数约束翻译表_4_45002"
+        ],
+        "relatedConcepts": [
+          "四类方案比较矩阵_4_46006"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "统一编码",
+          "解码",
+          "有效槽位",
+          "逐槽映射"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/统一结构编码与解码_4_46005.md"
+      ],
+      "tags": [
+        "统一编码",
+        "解码",
+        "有效槽位",
+        "逐槽映射",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "迁移场景任务重排_4_46001",
+      "name": "迁移场景任务重排",
+      "nodeType": "SCENARIO",
+      "description": "当对象参数、参考轨迹和筛选线一起变化时，原有方案中的收益与代价排序会随之改写，这种改写决定了后续判断是否仍沿用原来的设计语言。",
+      "positionX": -134.0,
+      "positionY": 0.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "当对象参数、参考轨迹和筛选线一起变化时，原有方案中的收益与代价排序会随之改写，这种改写决定了后续判断是否仍沿用原来的设计语言。",
+        "examples": [
+          "客船航向保持强调平顺、动作代价和稳健性协调，驱逐舰快速机动则把切换段跟踪、峰值动作和航迹偏离并列拉到前台。"
+        ],
+        "formulas": [
+          "\\text{迁移判断}=\\text{对象变化}+\\text{任务变化}+\\text{筛选线重排}"
+        ],
+        "prerequisites": [
+          "剩余风险说明_4_45006"
+        ],
+        "relatedConcepts": [
+          "固定结构迁移失配信号_4_46002"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "任务重排",
+          "场景迁移",
+          "筛选线"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/迁移场景任务重排_4_46001.md"
+      ],
+      "tags": [
+        "任务重排",
+        "场景迁移",
+        "筛选线",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "驱逐舰专用代价函数改写_4_46003",
+      "name": "驱逐舰专用代价函数改写",
+      "nodeType": "THEORY",
+      "description": "当任务从单次保持切到持续机动时，比较对象必须从客船场景中的收敛时间与综合误差，改写为切换段误差、全程跟踪误差、航迹偏离、峰值动作和控制能量。",
+      "positionX": 135.2,
+      "positionY": 36.2,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "当任务从单次保持切到持续机动时，比较对象必须从客船场景中的收敛时间与综合误差，改写为切换段误差、全程跟踪误差、航迹偏离、峰值动作和控制能量。",
+        "examples": [
+          "驱逐舰代价函数把航迹偏离单独列出，使“船是否真正走到位”成为与普通跟踪误差不同的判断对象。"
+        ],
+        "formulas": [
+          "J_d(\\theta)=\\lambda_1\\bar E_{\\mathrm{trans}}+\\lambda_2\\bar E_{\\psi}+\\lambda_3\\bar E_{\\mathrm{traj}}+\\lambda_4\\bar u_{\\mathrm{peak}}+\\lambda_5\\bar E_u"
+        ],
+        "prerequisites": [
+          "固定结构迁移失配信号_4_46002",
+          "任务通道变化下的自由目标改写_4_44007"
+        ],
+        "relatedConcepts": [
+          "结构搜索引入条件_4_46004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "代价函数改写",
+          "驱逐舰",
+          "航迹偏离",
+          "峰值动作"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/驱逐舰专用代价函数改写_4_46003.md"
+      ],
+      "tags": [
+        "代价函数改写",
+        "驱逐舰",
+        "航迹偏离",
+        "峰值动作",
+        "chapter-4"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "rel-1dbd8dae234b018f",
+      "sourceId": "任务通道变化下的自由目标改写_4_44007",
+      "targetId": "剩余风险说明_4_45006",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.84
+    },
+    {
+      "id": "rel-d4824edbbc8865da",
+      "sourceId": "优化前后证据比较表_4_45005",
+      "targetId": "剩余风险说明_4_45006",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-25247f69d5647beb",
+      "sourceId": "剩余风险说明_4_45006",
+      "targetId": "迁移场景任务重排_4_46001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-efe0cfb359a00c4e",
+      "sourceId": "迁移场景任务重排_4_46001",
+      "targetId": "固定结构迁移失配信号_4_46002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
+    },
+    {
+      "id": "rel-47b9d0b3f493dafa",
+      "sourceId": "权重偏好与无约束候选解_4_44005",
+      "targetId": "固定结构迁移失配信号_4_46002",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-d6b954d2ac32bf2d",
+      "sourceId": "固定结构迁移失配信号_4_46002",
+      "targetId": "驱逐舰专用代价函数改写_4_46003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.98
+    },
+    {
+      "id": "rel-aff6d8057ae91164",
+      "sourceId": "任务通道变化下的自由目标改写_4_44007",
+      "targetId": "驱逐舰专用代价函数改写_4_46003",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-fc141927e0321019",
+      "sourceId": "驱逐舰专用代价函数改写_4_46003",
+      "targetId": "结构搜索引入条件_4_46004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-d6c60a49f2c7739e",
+      "sourceId": "结构搜索引入条件_4_46004",
+      "targetId": "统一结构编码与解码_4_46005",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
+    },
+    {
+      "id": "rel-13b843570edaf2cf",
+      "sourceId": "参数约束翻译表_4_45002",
+      "targetId": "统一结构编码与解码_4_46005",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.83
+    },
+    {
+      "id": "rel-caf02c500cf8cb69",
+      "sourceId": "统一结构编码与解码_4_46005",
+      "targetId": "四类方案比较矩阵_4_46006",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-ae380a37a5466250",
+      "sourceId": "优化前后证据比较表_4_45005",
+      "targetId": "四类方案比较矩阵_4_46006",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.87
+    },
+    {
+      "id": "rel-870955c2326cb63f",
+      "sourceId": "四类方案比较矩阵_4_46006",
+      "targetId": "组合结构专项验证边界判断_4_46007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-0896bcc53d721e7d",
+      "sourceId": "组合结构专项验证边界判断_4_46007",
+      "targetId": "剩余风险说明_4_45006",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.84
+    }
+  ]
+}

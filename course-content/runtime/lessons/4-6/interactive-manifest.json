@@ -1,0 +1,1448 @@
+{
+  "contract_version": "2.1",
+  "lesson_id": "4-6",
+  "course_title": "4-6：场景迁移与方案比较：固定结构优化边界与结构编码入口",
+  "course_route_segment": "unit-4-6-fixed-structure-boundary-structural-encoding",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo"
+  },
+  "media_policy": {
+    "runtime_only": true,
+    "runtime_media_base": "/course-runtime/lessons/4-6/media"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [],
+  "steps": {
+    "step-01": {
+      "title": "从 4-5 可用解到驱逐舰失配：为什么这次不能只说“再调一调参数”",
+      "layout": {
+        "template": "migration_boundary_hero_board",
+        "regions": [
+          {
+            "id": "evidence",
+            "width": "half",
+            "order": 1
+          },
+          {
+            "id": "figure",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "bridge",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "plant-card",
+          "region": "evidence",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "recovered-solution-card",
+          "region": "evidence",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "problem-focus",
+          "region": "evidence",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "mismatch-figure",
+          "region": "figure",
+          "kind": "image-panel",
+          "must_be_visible": true
+        },
+        {
+          "id": "figure-reading-cue",
+          "region": "figure",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "bridge-conclusion",
+          "region": "bridge",
+          "kind": "summary-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "key_formulas": [
+          "$P_p(s)=\\\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}$",
+          "$C_p(s)=1.7679\\\\dfrac{10.4676s+1}{2.6452s+1}$"
+        ],
+        "mismatch_figure": {
+          "runtime_media": "/course-runtime/lessons/4-6/media/4-6-destroyer-mismatch-evidence.png"
+        }
+      },
+      "evidence_sequence": [
+        "客船对象",
+        "4-5 可用解",
+        "问题句",
+        "驱逐舰失配图",
+        "图后阅读口令",
+        "收束句"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count",
+          "sync_status"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "用旧解回收和新证据钉住“问题写法失效”的入口。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-01"
+      },
+      "acceptance_checks": [
+        "旧解与失配图必须同页常显。"
+      ]
+    },
+    "step-02": {
+      "title": "本次课程目标：完成这轮迁移判断后应能做到什么",
+      "layout": {
+        "template": "objective_chain_board",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "goals",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "bridge",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "objective-header",
+          "region": "header",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "objective-list",
+          "region": "goals",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "objective-bridge",
+          "region": "bridge",
+          "kind": "summary-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "objective_list": {
+          "bullets": [
+            "说明客船与驱逐舰任务中为什么会发生任务重排。",
+            "指出固定结构迁移后首先暴露出的失配信号。",
+            "解释驱逐舰专用代价函数为什么不是旧指标换名。",
+            "读懂五类结构的统一编码、有效槽位和逐槽映射。",
+            "用四类方案比较说明目标与结构是两道独立判断。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "标题",
+        "五条课程目标",
+        "桥接句"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读课程目标。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "独立呈现本课布鲁姆能力目标。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-02"
+      },
+      "acceptance_checks": [
+        "只允许出现本课目标，不暴露单元编排口径。"
+      ]
+    },
+    "step-03": {
+      "title": "迁移场景任务重排：客船与驱逐舰到底换了什么",
+      "layout": {
+        "template": "scenario_reorder_compare_board",
+        "regions": [
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "comparison",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "migration-formula",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "scenario-compare-table",
+          "region": "comparison",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "priority-summary",
+          "region": "summary",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "task-change-card",
+          "region": "interaction",
+          "kind": "activity-card",
+          "must_be_visible": false
+        },
+        {
+          "id": "boundary-split-card",
+          "region": "interaction",
+          "kind": "activity-card",
+          "must_be_visible": false
+        }
+      ],
+      "content_blocks": {
+        "migration_formula": {
+          "latex": "$\\\\text{迁移判断}=\\\\text{对象变化}+\\\\text{任务变化}+\\\\text{筛选线重排}$"
+        },
+        "scenario_table": {
+          "columns": [
+            "配置项",
+            "客船航向保持",
+            "驱逐舰快速机动航向控制"
+          ],
+          "rows": [
+            "对象模型",
+            "任务语义",
+            "参考轨迹",
+            "动作筛选线",
+            "优先判断"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "迁移判断式",
+        "场景配置对比表",
+        "优先判断总结",
+        "两张判断卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "student_task": "指出任务重排不仅包含对象参数变化。",
+        "activity_cards": [
+          {
+            "id": "task-change-card",
+            "prompt": "除了对象参数变化，本页还要求你至少指出哪两类任务语义变化？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "boundary-split-card",
+            "prompt": "为什么驱逐舰场景必须把峰值动作和控制能量分开筛选？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "card_completion_rate",
+          "error_bucket_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "migration_as_speedup_only"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把对象、任务和筛选线的重排写实。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-03"
+      },
+      "acceptance_checks": [
+        "表 1 必须完整出现，不能压成摘要列表。"
+      ]
+    },
+    "step-04": {
+      "title": "固定结构迁移后的失配信号：拖尾、航迹偏离与职责过载如何同时出现",
+      "layout": {
+        "template": "mismatch_evidence_board",
+        "regions": [
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "figure",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "reveal",
+            "width": "half",
+            "order": 3
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "legacy-weight-card",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "legacy-objective-card",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "mismatch-figure",
+          "region": "figure",
+          "kind": "image-panel",
+          "must_be_visible": true
+        },
+        {
+          "id": "mismatch-reveal",
+          "region": "reveal",
+          "kind": "step-reveal",
+          "must_be_visible": true
+        },
+        {
+          "id": "mismatch-conclusion",
+          "region": "summary",
+          "kind": "summary-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "key_formulas": [
+          "$B=[0.30,0.30,0.20,0.20]$",
+          "$J_p(\\\\theta)=0.30\\\\bar t_s+0.30\\\\overline{\\\\mathrm{ITAE}}+0.20\\\\overline{\\\\mathrm{ITSE}}+0.20\\\\bar E_u$"
+        ],
+        "mismatch_figure": {
+          "runtime_media": "/course-runtime/lessons/4-6/media/4-6-destroyer-mismatch-evidence.png"
+        }
+      },
+      "evidence_sequence": [
+        "旧权重",
+        "旧总代价",
+        "失配图",
+        "三类失配信号显影",
+        "结论"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "teacher_reveal_only",
+        "student_task": "理解三类失配信号如何共同指向旧问题写法失效。",
+        "step_reveal_policy": {
+          "min_layers": 3,
+          "local_click_to_continue": true
+        }
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "step_reveal_progress"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "stepRevealCount",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "parameter_tuning_is_enough"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把三类失配信号落成可读可见的证据链。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-04"
+      },
+      "acceptance_checks": [
+        "失配图与三类失配信号必须同页联动。"
+      ]
+    },
+    "step-05": {
+      "title": "驱逐舰专用代价函数：为什么比较对象必须重写",
+      "layout": {
+        "template": "objective_rewrite_board",
+        "regions": [
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "legacy-objective",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "destroyer-objective",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "metric-duty-table",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "trajectory-duty-card",
+          "region": "interaction",
+          "kind": "activity-card",
+          "must_be_visible": false
+        },
+        {
+          "id": "action-duty-card",
+          "region": "interaction",
+          "kind": "activity-card",
+          "must_be_visible": false
+        },
+        {
+          "id": "objective-summary",
+          "region": "summary",
+          "kind": "summary-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "destroyer_objective": {
+          "latex": "$J_d(\\\\theta)=\\\\lambda_1\\\\bar E_{\\\\mathrm{trans}}+\\\\lambda_2\\\\bar E_{\\\\psi}+\\\\lambda_3\\\\bar E_{\\\\mathrm{traj}}+\\\\lambda_4\\\\bar u_{\\\\mathrm{peak}}+\\\\lambda_5\\\\bar E_u$"
+        },
+        "metric_duty_table": {
+          "columns": [
+            "量",
+            "它回答什么问题"
+          ],
+          "rows": [
+            "切换段误差",
+            "全程跟踪误差",
+            "航迹偏离",
+            "峰值动作",
+            "控制能量"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "旧目标与新目标对照",
+        "五项职责表",
+        "两张判断卡",
+        "收束句"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "student_task": "区分五项量各自承担的判断职责。",
+        "activity_cards": [
+          {
+            "id": "trajectory-duty-card",
+            "prompt": "哪一项指标直接回答“船是否真正走到位”？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "action-duty-card",
+            "prompt": "为什么峰值动作与控制能量必须继续分开接受比较？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "card_completion_rate",
+          "response_bucket_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "metric_rename_only"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把五项比较对象写成清楚的职责表。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-05"
+      },
+      "acceptance_checks": [
+        "五项职责必须明确写出，不得退化为摘要句。"
+      ]
+    },
+    "step-06": {
+      "title": "何时把结构选择正式抬成问题本身",
+      "layout": {
+        "template": "structure_entry_board",
+        "regions": [
+          {
+            "id": "chain",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "reveal",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "structures",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "overload-chain",
+          "region": "chain",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "search-condition-reveal",
+          "region": "reveal",
+          "kind": "step-reveal",
+          "must_be_visible": true
+        },
+        {
+          "id": "candidate-structures",
+          "region": "structures",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "entry-conclusion",
+          "region": "summary",
+          "kind": "summary-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "overload_chain": {
+          "latex": "$\\\\text{对象变换}\\\\rightarrow\\\\text{任务变换}\\\\rightarrow\\\\text{筛选线重排}\\\\rightarrow\\\\text{固定结构职责过载}$"
+        },
+        "candidate_structures": {
+          "bullets": [
+            "PI",
+            "超前",
+            "PI + 超前",
+            "滞后 + 超前",
+            "带微分滤波的 PID"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "固定结构可用域收缩链",
+        "结构搜索引入条件显影",
+        "五类候选结构",
+        "收束句"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "teacher_reveal_only",
+        "student_task": "理解结构搜索是在什么条件下才成为合理入口。",
+        "step_reveal_policy": {
+          "min_layers": 3,
+          "local_click_to_continue": true
+        }
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "step_reveal_progress"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "stepRevealCount",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "structure_search_as_algorithm_upgrade"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把结构搜索引入条件钉成显性判断链。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-06"
+      },
+      "acceptance_checks": [
+        "五类候选结构必须完整列出。"
+      ]
+    },
+    "step-07": {
+      "title": "五类结构的统一编码：先判结构，再解释参数",
+      "layout": {
+        "template": "structural_encoding_workspace",
+        "regions": [
+          {
+            "id": "encoding",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "codebook",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "examples",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "encoding-formula",
+          "region": "encoding",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "structure-codebook",
+          "region": "codebook",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "decode-reveal",
+          "region": "examples",
+          "kind": "step-reveal",
+          "must_be_visible": true
+        },
+        {
+          "id": "structure-first-card",
+          "region": "interaction",
+          "kind": "activity-card",
+          "must_be_visible": false
+        },
+        {
+          "id": "active-slots-card",
+          "region": "interaction",
+          "kind": "activity-card",
+          "must_be_visible": false
+        }
+      ],
+      "content_blocks": {
+        "encoding_formula": {
+          "latex": [
+            "$[z_0,z_1,\\\\ldots,z_5]\\\\in[0,1]^6$",
+            "$k=\\\\max(1,\\\\lceil 5z_0\\\\rceil)$"
+          ]
+        },
+        "codebook_table": {
+          "columns": [
+            "结构",
+            "有效槽位",
+            "忽略槽位",
+            "参数允许范围"
+          ],
+          "rows": [
+            "PI",
+            "超前",
+            "PI + 超前",
+            "滞后 + 超前",
+            "带微分滤波的 PID"
+          ]
+        },
+        "decode_examples": {
+          "vectors": [
+            "z=[0.50,0.28,0.93,0.78,0.16,0.62]",
+            "z=[0.33,0.44,0.82,0.18,0.91,0.73]"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "六维编码定义",
+        "五类结构码本",
+        "解码示例显影",
+        "两张判断卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "teacher_reveal_only",
+        "student_task": "掌握结构编号、有效槽位与逐槽映射的最小链路。",
+        "step_reveal_policy": {
+          "min_layers": 3,
+          "local_click_to_continue": true
+        },
+        "activity_cards": [
+          {
+            "id": "structure-first-card",
+            "prompt": "给定一个编码向量时，哪一步必须先做，为什么？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "active-slots-card",
+            "prompt": "为什么不能把 z_1 到 z_5 永远当作同时生效的五个参数？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "step_reveal_progress",
+          "card_completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "stepRevealCount",
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "all_slots_active",
+          "decode_order_confusion"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把统一编码稳定落成“结构优先”的解码链。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-07"
+      },
+      "acceptance_checks": [
+        "五类结构、两组示例与编码公式必须同页出现。"
+      ]
+    },
+    "step-08": {
+      "title": "四类方案比较矩阵：先问目标是否对题，再问结构是否够用",
+      "layout": {
+        "template": "four_scheme_compare_board",
+        "regions": [
+          {
+            "id": "matrix",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "figure",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "scheme-matrix",
+          "region": "matrix",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "comparison-figure",
+          "region": "figure",
+          "kind": "image-panel",
+          "must_be_visible": true
+        },
+        {
+          "id": "question-table",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "comparison-reveal",
+          "region": "summary",
+          "kind": "step-reveal",
+          "must_be_visible": true
+        },
+        {
+          "id": "comparison-conclusion",
+          "region": "summary",
+          "kind": "summary-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "comparison_figure": {
+          "runtime_media": "/course-runtime/lessons/4-6/media/4-6-ship-heading-hybrid-search-comparison.png"
+        },
+        "question_table": {
+          "columns": [
+            "方案",
+            "它回答的问题",
+            "读图重点"
+          ],
+          "rows": [
+            "旧目标 + 旧结构",
+            "旧目标 + 变结构",
+            "新目标 + 旧结构",
+            "新目标 + 变结构"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "四类方案矩阵",
+        "主比较图",
+        "问题矩阵表",
+        "比较结论显影",
+        "收束句"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "teacher_reveal_only",
+        "student_task": "理解四类方案为什么能把目标与结构拆成独立判断。",
+        "step_reveal_policy": {
+          "min_layers": 3,
+          "local_click_to_continue": true
+        }
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "step_reveal_progress"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "stepRevealCount",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "just_pick_best_row"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把目标错位和结构边界拆成两道判断。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-08"
+      },
+      "acceptance_checks": [
+        "主比较图与问题矩阵表必须同页常显。"
+      ]
+    },
+    "step-09": {
+      "title": "结构搜索证据与专项验证：总代价更低为什么仍不自动等于可交付",
+      "layout": {
+        "template": "boundary_probe_board",
+        "regions": [
+          {
+            "id": "convergence",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "probe",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "control",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "convergence-figure",
+          "region": "convergence",
+          "kind": "image-panel",
+          "must_be_visible": true
+        },
+        {
+          "id": "probe-figure",
+          "region": "probe",
+          "kind": "image-panel",
+          "must_be_visible": true
+        },
+        {
+          "id": "control-formulas",
+          "region": "control",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "control-effects-figure",
+          "region": "control",
+          "kind": "image-panel",
+          "must_be_visible": true
+        },
+        {
+          "id": "boundary-reveal",
+          "region": "summary",
+          "kind": "step-reveal",
+          "must_be_visible": true
+        },
+        {
+          "id": "boundary-task",
+          "region": "interaction",
+          "kind": "activity-card",
+          "must_be_visible": false
+        }
+      ],
+      "content_blocks": {
+        "convergence_figure": {
+          "runtime_media": "/course-runtime/lessons/4-6/media/4-6-ship-heading-hybrid-search-convergence.png"
+        },
+        "probe_figure": {
+          "runtime_media": "/course-runtime/lessons/4-6/media/4-6-ship-heading-combo-probe.png"
+        },
+        "control_effects_figure": {
+          "runtime_media": "/course-runtime/lessons/4-6/media/4-6-ship-heading-combo-control-effects.png"
+        },
+        "control_formulas": {
+          "latex": [
+            "$u(s)=C_{fb}(s)(r(s)-\\\\psi(s))+F_r(s)r(s)-H_r(s)\\\\dot{\\\\psi}(s)$",
+            "$C_{fb}(s)=1.9727\\\\dfrac{47.0266s+1}{47.0266s}\\\\dfrac{20.6218s+1}{5.8952s+1}$",
+            "$F_r(s)=0\\\\cdot\\\\dfrac{0.9735s+1}{0.3286s+1}=0$",
+            "$H_r(s)=\\\\dfrac{0}{0.02s+1}=0$"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "收敛图",
+        "专项验证图",
+        "控制器表达式",
+        "控制效果曲线",
+        "边界判断显影",
+        "判断卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "teacher_reveal_only",
+        "student_task": "理解总代价更低与工程可交付之间仍有边界判断。",
+        "step_reveal_policy": {
+          "min_layers": 3,
+          "local_click_to_continue": true
+        },
+        "activity_cards": [
+          {
+            "id": "boundary-task",
+            "prompt": "为什么“总代价更低”与“工程可交付”不能直接画等号？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "step_reveal_progress",
+          "card_completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "stepRevealCount",
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "lower_cost_equals_delivery"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把专项验证的真正结论固定为边界判断。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-09"
+      },
+      "acceptance_checks": [
+        "收敛图、专项验证图和控制器表达式必须同页出现。"
+      ]
+    },
+    "step-10": {
+      "title": "后测：目标错位、结构边界与统一编码是否已经连成链",
+      "layout": {
+        "template": "posttest_board",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "quiz",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "note",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "posttest-header",
+          "region": "header",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "posttest-q1",
+          "region": "quiz",
+          "kind": "activity-card",
+          "must_be_visible": false
+        },
+        {
+          "id": "posttest-q2",
+          "region": "quiz",
+          "kind": "activity-card",
+          "must_be_visible": false
+        },
+        {
+          "id": "posttest-q3",
+          "region": "quiz",
+          "kind": "activity-card",
+          "must_be_visible": false
+        },
+        {
+          "id": "posttest-note",
+          "region": "note",
+          "kind": "summary-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "posttest_header": {
+          "text": "阶段后测：把目标、结构与编码重新连成一条判断链。"
+        },
+        "posttest_note": {
+          "text": "三题独立提交，不与总结页合并。"
+        }
+      },
+      "evidence_sequence": [
+        "后测标题",
+        "三题后测卡",
+        "提交说明"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "用三题后测复述完整判断链。",
+        "activity_cards": [
+          {
+            "id": "posttest-q1",
+            "prompt": "为什么本课不能继续把问题写成“在原结构里微调参数”？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          },
+          {
+            "id": "posttest-q2",
+            "prompt": "驱逐舰专用代价函数比客船代价函数多回答了什么？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          },
+          {
+            "id": "posttest-q3",
+            "prompt": "给定一个统一编码向量时，为什么必须先判结构编号再解释参数？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "activity_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "card_completion_rate",
+          "response_bucket_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "algorithm_name_over_chain"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "检查学生是否已把目标、结构与编码连成链。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-10"
+      },
+      "acceptance_checks": [
+        "后测必须独立成页，不能与总结合并。"
+      ]
+    },
+    "step-11": {
+      "title": "总结：从任务重排到结构编码入口的完整判断链",
+      "layout": {
+        "template": "summary_exit_board",
+        "regions": [
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "chain",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "next",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "summary-list",
+          "region": "summary",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "main-chain",
+          "region": "chain",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "next-step-card",
+          "region": "next",
+          "kind": "summary-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "summary_list": {
+          "bullets": [
+            "场景迁移会同时改写对象、任务和筛选线。",
+            "固定结构迁移的价值在于把结构边界暴露出来。",
+            "驱逐舰专用代价函数改写的是比较对象，而不只是权重。",
+            "统一编码让结构选择和参数搜索进入同一判断框架。",
+            "四类方案比较把目标是否对题与结构是否够用拆成独立判断。"
+          ]
+        },
+        "main_chain": {
+          "text": "任务重排 -> 固定结构失配 -> 目标重排 -> 结构编码入口 -> 四类方案比较 -> 边界判断"
+        }
+      },
+      "evidence_sequence": [
+        "五条总结",
+        "主线链条",
+        "4-7 去向卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读总结并进入下一课。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "收束本课并移交 4-7。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-11"
+      },
+      "acceptance_checks": [
+        "总结页只负责收束与移交，不再引入新判断。"
+      ]
+    }
+  }
+}

@@ -21,7 +21,7 @@
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。
 
 ## multimedia-check
-- 正式媒体仍缺失：handout.pdf
+- 已识别并确认存在 2 项正式媒体，未发现缺失。
 
 ## 导出结论
 - authoring 已作为审查源保留；runtime 已输出 handout、media、review 索引，可直接供后续互动课程制作使用。
