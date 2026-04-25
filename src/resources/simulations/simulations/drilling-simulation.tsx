@@ -63,32 +63,26 @@ import { HYSY981_PLATFORM_PARAMS } from '../core/constants';
 import {
   createSemiSub3DOFState,
   semiSub3DOFStep,
-  type SemiSubmersible3DOFState,
-} from '../physics/models/semisubmersible-3dof';
-import {
   createCurrentEnvironment,
   createWindEnvironment,
   updateCurrentEnvironment,
   updateWindEnvironment,
   computeTotalEnvironmentalForces,
   getTypicalEnvironment,
-  type CurrentEnvironment,
-  type WindEnvironment,
-} from '../physics/disturbances/current-model';
-import {
   allocateThrust,
   createThrusterConfigs,
   computeTotalPower,
   simulateThrusterFailure,
-} from '../physics/controllers/thruster-allocation';
-import {
   dpDecoupledControl,
   dpStandardControl,
   createDPControllerConfig,
-  createDPState,
+  createDPDecouplingState,
+  type SemiSubmersible3DOFState,
+  type CurrentEnvironment,
+  type WindEnvironment,
   type DPControllerConfig,
-  type DPState,
-} from '../physics/controllers/dp-decoupling-controller';
+  type DPDecouplingState,
+} from '../physics/simulation-engine-facade';
 import {
   HYSY981_THRUSTER_LAYOUT,
   DRILLING_ETHICAL_THRESHOLDS,
@@ -742,7 +736,7 @@ export function DrillingSimulation() {
   const platformStateRef = useRef<SemiSubmersible3DOFState>(
     createSemiSub3DOFState(0, 0, 0)
   );
-  const dpStateRef = useRef<DPState>(createDPState());
+  const dpStateRef = useRef<DPDecouplingState>(createDPDecouplingState());
   const dpConfigRef = useRef<DPControllerConfig>(
     createDPControllerConfig(DRILLING_DEFAULT_DP, true)
   );
@@ -960,7 +954,7 @@ export function DrillingSimulation() {
   const handleReset = () => {
     setIsRunning(false);
     platformStateRef.current = createSemiSub3DOFState(0, 0, 0);
-    dpStateRef.current = createDPState();
+    dpStateRef.current = createDPDecouplingState();
     timeRef.current = 0;
     lastUpdateRef.current = performance.now();
     clockRef.current.reset();

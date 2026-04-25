@@ -60,25 +60,21 @@ import {
   azipod3dofStepRK4,
   azipodToSimulationState,
   DEFAULT_AZIPOD_3DOF_PARAMS,
-  type Azipod3DOFInternalState,
-  type Azipod3DOFParams,
-} from '../physics/models/azipod-3dof';
-import {
   createIceBreakingState,
   iceBreakingStep,
   getIceBreakingSummary,
   getIceZoneSafetyLevel,
   DEFAULT_ICE_BREAKING_PARAMS,
-  type IceBreakingState,
-} from '../physics/disturbances/ice-breaking-model';
-import {
   createAzipodCourseKeeperState,
   azipodCourseKeeperControl,
   azipodCourseKeeperControlIceMode,
   getAzipodControllerDiagnostics,
   DEFAULT_AZIPOD_COURSE_KEEPER_CONFIG,
+  type Azipod3DOFInternalState,
+  type Azipod3DOFParams,
+  type IceBreakingState,
   type AzipodCourseKeeperState,
-} from '../physics/controllers/azipod-course-keeper';
+} from '../physics/simulation-engine-facade';
 import type { ControlMode, EthicalViolation, Vector2, PIDGains } from '../core/types';
 import {
   toRadians,

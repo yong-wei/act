@@ -56,19 +56,17 @@ import {
   createMMG3DOFState,
   mmg3dofStep,
   mmgToSimulationState,
-  type MMG3DOFState,
-} from '../physics/models/mmg-3dof';
-import {
   dpControl,
   dpControlWithFeedforward,
   createDPState,
   HIGH_PRECISION_DP_GAINS,
+  DredgingImpactModel,
+  type MMG3DOFState,
   type DPState,
   type DPTarget,
   type DPCurrentState,
   type DPErrorMetrics,
-} from '../physics/controllers/dp-controller';
-import { DredgingImpactModel } from '../physics/disturbances/dredging-impact';
+} from '../physics/simulation-engine-facade';
 import type { ControlMode, EthicalViolation, Vector2, DisturbanceVector } from '../core/types';
 import { toRadians, toDegrees, clamp, TIANJING_DREDGER_PARAMS } from '../core/constants';
 import {
