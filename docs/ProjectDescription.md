@@ -7,8 +7,10 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ## 2. 项目状态
 
 ✅ **开发阶段**：主要功能已完成，系统可用于教学实践
-📅 **最后更新**：2026-04-24
+📅 **最后更新**：2026-04-26
 # 近期更新
+
+🧩 **驱逐舰虚拟仿真实时步进迁入 Rust/WASM（2026-04-26）**：本轮围绕 [rust/control-engine/src/destroyer_hifi.rs](/Users/YW/Documents/Site/act.just.edu.cn/rust/control-engine/src/destroyer_hifi.rs)、[rust/control-engine/src/destroyer_hifi_runtime.rs](/Users/YW/Documents/Site/act.just.edu.cn/rust/control-engine/src/destroyer_hifi_runtime.rs)、[rust/control-engine/src/lib.rs](/Users/YW/Documents/Site/act.just.edu.cn/rust/control-engine/src/lib.rs)、[src/resources/simulations/rust/](/Users/YW/Documents/Site/act.just.edu.cn/src/resources/simulations/rust)、[src/resources/simulations/simulations/destroyer-simulation.tsx](/Users/YW/Documents/Site/act.just.edu.cn/src/resources/simulations/simulations/destroyer-simulation.tsx)、[rust/control-engine/tests/destroyer_hifi_runtime.rs](/Users/YW/Documents/Site/act.just.edu.cn/rust/control-engine/tests/destroyer_hifi_runtime.rs)、[src/features/interactive/__tests__/simulation-rust-runtime.test.ts](/Users/YW/Documents/Site/act.just.edu.cn/src/features/interactive/__tests__/simulation-rust-runtime.test.ts) 与 [tests/destroyer.spec.ts](/Users/YW/Documents/Site/act.just.edu.cn/tests/destroyer.spec.ts) 收口：新增 `compute_virtual_simulation_step` 统一虚拟仿真 WASM 入口，首批接入 `modelId=destroyer_hifi`，驱逐舰页面保留 3D 场景、任务切换、HUD、图表与控制面板，只把实时航向/位置/舵角步进从页面内 Nomoto 方程迁入 Rust 高保真 MMG stepper；前端新增仿真 Rust runtime 与适配层，统一按工程单位传递 `timeS / headingDeg / yawRateDegS / positionXM / positionYM / rudderDeg / speedMps`，并把 `positionYM` 映射回页面 `z` 轴。当前已显式通过 `cargo test --manifest-path rust/control-engine/Cargo.toml`、`npm run wasm:build:control-engine`、`npx vitest run src/features/interactive/__tests__/simulation-rust-runtime.test.ts`、`npm run lint`、`npm run test`、`npm run build` 与 `/simulations/destroyer` Playwright 回归验证。
 
 🧩 **`4-6` 精品互动课按 runtime manifest 落地（2026-04-24）**：本轮围绕 [course-content/runtime/lessons/4-6/interactive-manifest.json](/Users/YW/Documents/Site/act.just.edu.cn/course-content/runtime/lessons/4-6/interactive-manifest.json)、[src/features/interactive/shared/manifest-content-renderers.tsx](/Users/YW/Documents/Site/act.just.edu.cn/src/features/interactive/shared/manifest-content-renderers.tsx)、[src/features/interactive/shared/manifest-activity-renderers.tsx](/Users/YW/Documents/Site/act.just.edu.cn/src/features/interactive/shared/manifest-activity-renderers.tsx)、[src/lib/unit-4-6-course.ts](/Users/YW/Documents/Site/act.just.edu.cn/src/lib/unit-4-6-course.ts)、[src/features/interactive/unit-4-6-fixed-structure-boundary-structural-encoding/](/Users/YW/Documents/Site/act.just.edu.cn/src/features/interactive/unit-4-6-fixed-structure-boundary-structural-encoding) 与 [course-content/authoring/lessons/4-6/notes/implementation-mapping.md](/Users/YW/Documents/Site/act.just.edu.cn/course-content/authoring/lessons/4-6/notes/implementation-mapping.md) 收口：新增 `unit-4-6-fixed-structure-boundary-structural-encoding` 的入口页、学生页、教师页、课程适配器、步骤级隐藏式 AI 上下文、教师预置教案、课堂码路由、课程目录注册与实现验收文件；课程级 `step-panels.tsx` 只装配共享 manifest 模块和活动 registry，不再复制一份超大步骤页面分支；共享 manifest renderer 现在会把必显模块缺 renderer 的情况渲染为可见错误面板并由测试捕获。当前已通过 4 个定向 Vitest 文件、`review_lesson_content.py --lesson 4-6 --strict-implementation-contract`、4-6 既有 pytest、`npm run lint`、`npm run test`、`npm run build` 与本地 Playwright 浏览器验收。
 
@@ -145,7 +147,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 ### 3.2 驱逐舰航向控制仿真 ✅
 - **3D 可视化**：基于 Three.js / React Three Fiber 的沉浸式体验
 - **仿真模块化**：各虚拟仿真模块已完成组件化与资源注册，支持按模块独立加载与复用
-- **Nomoto 船舶模型**：高保真物理模拟，支持自定义 K、T 参数
+- **高保真 MMG 船舶模型**：实时航向、位置、舵角与速度步进由 `rust/control-engine` 的 `destroyer_hifi` WASM 运行时驱动
 - **多种控制模式**：
   - 手动控制
   - P 控制器

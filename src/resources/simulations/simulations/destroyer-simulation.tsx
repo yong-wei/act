@@ -33,21 +33,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 
 import { destroyer055Profile } from '../profiles/destroyer-055';
-import {
-  createNomotoState,
-  nomotoStep,
-  nomotoToSimulationState,
-  createPIDState,
-  pidControl,
-  type NomotoState,
-  type PIDControllerState,
-} from '../physics/models/nomoto-1st-order';
 import type { ControlMode, PIDGains } from '../core/types';
 import {
   clamp,
   toRadians,
   toDegrees,
-  angleDelta,
   DEFAULT_NOMOTO_PARAMS,
   DEFAULT_PID_GAINS,
 } from '../core/constants';
@@ -68,6 +58,16 @@ import {
   SIMULATION_MAX_SUB_STEPS,
   getSimulationDeltaFromSeconds,
 } from '../lib/simulation-timing';
+import {
+  buildDestroyerHifiStepRequest,
+  createDestroyerHifiStateFromSimulation,
+  mapDestroyerHifiStepResult,
+  type DestroyerHifiState,
+} from '../rust/destroyer-hifi-adapter';
+import {
+  computeDestroyerHifiStep,
+  preloadVirtualSimulationRuntime,
+} from '../rust/control-engine-runtime';
 
 Chart.register(...registerables);
 
@@ -114,8 +114,10 @@ interface SimulationState {
   rudderDeg: number;
   manualRudderDeg: number;
   speedMps: number;
-  integral: number;
-  prevErrorRad: number;
+  surgeMps: number;
+  swayMps: number;
+  integralDegS: number;
+  prevErrorDeg: number;
   waveY: number;
   wavePitch: number;
   waveRoll: number;
@@ -732,6 +734,22 @@ function SimulationEngine({
   const lastChartSampleRef = useRef(0);
   const totalErrorRef = useRef(0);
   const errorSampleCountRef = useRef(0);
+  const rustStateRef = useRef<DestroyerHifiState | null>(null);
+  const [runtimeReady, setRuntimeReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    preloadVirtualSimulationRuntime()
+      .then(() => {
+        if (!cancelled) setRuntimeReady(true);
+      })
+      .catch((error) => {
+        console.error('Failed to load virtual simulation runtime', error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     simTimeRef.current = 0;
@@ -740,6 +758,7 @@ function SimulationEngine({
     lastChartSampleRef.current = 0;
     totalErrorRef.current = 0;
     errorSampleCountRef.current = 0;
+    rustStateRef.current = null;
     clockRef.current.reset();
   }, [resetToken]);
 
@@ -766,7 +785,7 @@ function SimulationEngine({
   );
 
   useFrame((state) => {
-    if (!isRunning) {
+    if (!isRunning || !runtimeReady) {
       lastFrameTimeRef.current = state.clock.getElapsedTime();
       return;
     }
@@ -778,50 +797,53 @@ function SimulationEngine({
     if (frameDt <= 0) return;
 
     const stepSimulation = (dt: number) => {
-      simTimeRef.current += dt;
-      const simTime = simTimeRef.current;
+      const previousTime = simTimeRef.current;
+      const simTime = previousTime + dt;
 
       if (simTime > duration) return;
 
       const sim = simRef.current;
       const targetHeading = interpolateHeading(simTime);
+      const requestState =
+        rustStateRef.current ??
+        createDestroyerHifiStateFromSimulation({
+          timeS: previousTime,
+          headingDeg: toDegrees(sim.headingRad),
+          yawRateDegS: toDegrees(sim.yawRateRad),
+          positionX: sim.position.x,
+          positionZ: sim.position.z,
+          rudderDeg: sim.rudderDeg,
+          speedMps: sim.speedMps,
+          surgeMps: sim.surgeMps,
+          swayMps: sim.swayMps,
+          integralDegS: sim.integralDegS,
+          prevErrorDeg: sim.prevErrorDeg,
+        });
 
-      // PID 控制
-      if (controlMode === 'manual') {
-        sim.rudderDeg = sim.manualRudderDeg;
-      } else {
-        const currentHeading = normalizeHeading(toDegrees(sim.headingRad));
-        const errorDeg = angleDelta(targetHeading, currentHeading);
-        const errorRad = toRadians(errorDeg);
-        const derivative = (errorRad - sim.prevErrorRad) / dt;
-        sim.integral += errorRad * dt;
-
-        let kp = pidGains.kp;
-        let ki = pidGains.ki;
-        let kd = pidGains.kd;
-        if (controlMode === 'p') {
-          ki = 0;
-          kd = 0;
-        } else if (controlMode === 'pd') {
-          ki = 0;
-        }
-
-        const deltaRad = kp * errorRad + ki * sim.integral + kd * derivative;
-        sim.rudderDeg = clamp(
-          toDegrees(deltaRad),
-          -nomotoParams.maxRudderDeg,
-          nomotoParams.maxRudderDeg
-        );
-        sim.prevErrorRad = errorRad;
-      }
-
-      // Nomoto 动力学
-      const rudderRad = toRadians(sim.rudderDeg);
-      sim.yawRateRad += ((nomotoParams.K * rudderRad - sim.yawRateRad) / nomotoParams.T) * dt;
-      sim.headingRad += sim.yawRateRad * dt;
-
-      sim.position.x += sim.speedMps * Math.cos(sim.headingRad) * dt;
-      sim.position.z += sim.speedMps * Math.sin(sim.headingRad) * dt;
+      const stepResult = computeDestroyerHifiStep(
+        buildDestroyerHifiStepRequest({
+          dtS: dt,
+          targetHeadingDeg: targetHeading,
+          controlMode: controlMode === 'manual' || controlMode === 'p' || controlMode === 'pd' ? controlMode : 'pid',
+          pid: pidGains,
+          manualRudderDeg: sim.manualRudderDeg,
+          disturbanceEnabled: false,
+          state: requestState,
+        })
+      );
+      const mapped = mapDestroyerHifiStepResult(stepResult);
+      rustStateRef.current = mapped.state;
+      simTimeRef.current = mapped.timeS;
+      sim.position.x = mapped.position.x;
+      sim.position.z = mapped.position.z;
+      sim.headingRad = mapped.headingRad;
+      sim.yawRateRad = mapped.yawRateRad;
+      sim.rudderDeg = mapped.rudderDeg;
+      sim.speedMps = mapped.speedMps;
+      sim.surgeMps = stepResult.surgeMps ?? mapped.speedMps;
+      sim.swayMps = stepResult.swayMps ?? 0;
+      sim.integralDegS = stepResult.integralDegS ?? 0;
+      sim.prevErrorDeg = stepResult.prevErrorDeg ?? 0;
 
       // 波浪运动
       const posX = sim.position.x;
@@ -1297,8 +1319,10 @@ export default function DestroyerSimulation() {
     rudderDeg: 0,
     manualRudderDeg: 0,
     speedMps: REF_SPEED,
-    integral: 0,
-    prevErrorRad: 0,
+    surgeMps: REF_SPEED,
+    swayMps: 0,
+    integralDegS: 0,
+    prevErrorDeg: 0,
     waveY: 0,
     wavePitch: 0,
     waveRoll: 0,
@@ -1332,8 +1356,10 @@ export default function DestroyerSimulation() {
       rudderDeg: 0,
       manualRudderDeg: 0,
       speedMps: REF_SPEED,
-      integral: 0,
-      prevErrorRad: 0,
+      surgeMps: REF_SPEED,
+      swayMps: 0,
+      integralDegS: 0,
+      prevErrorDeg: 0,
       waveY: 0,
       wavePitch: 0,
       waveRoll: 0,
@@ -1504,7 +1530,7 @@ export default function DestroyerSimulation() {
 
       <SimulationTopBar
         title="055型驱逐舰战术机动仿真"
-        subtitle="Nomoto 航向控制 · 任务场景切换"
+        subtitle="高保真航向控制 · 任务场景切换"
         badge="Destroyer / OBE"
       />
     </div>
