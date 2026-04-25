@@ -30,8 +30,6 @@ EXPECTED_GENERATED_FIGURES = (
 
 EXPECTED_HANDOUT_FIGURES = (
     '4-7-segmented-identification-block.png',
-    '4-7-real-heading-control-task.png',
-    '4-7-final-controller-role-decode.png',
     '4-7-real-scenario-interpretation.png',
 )
 
@@ -39,8 +37,18 @@ EXPECTED_HIFI_REPORT_FIGURES = (
     '4-7-rudder-actuator-step-identification.png',
     '4-7-hull-yaw-step-identification.png',
     '4-7-disturbance-step-identification.png',
-    '4-7-controller-pi_lead-switching20s-calm.png',
-    '4-7-controller-pi_lead-circle-calm.png',
+    '4-7-traditional-diagnosis-four-panel.png',
+    '4-7-traditional-design-four-panel.png',
+    '4-7-optimization-convergence-identified.png',
+    '4-7-optimization-convergence-hifi.png',
+    '4-7-nominal-traditional-zigzag45.png',
+    '4-7-nominal-traditional-turning_ramp.png',
+    '4-7-nominal-optimized-zigzag45.png',
+    '4-7-nominal-optimized-turning_ramp.png',
+    '4-7-disturbance-controller-zigzag45.png',
+    '4-7-disturbance-controller-turning_ramp.png',
+    '4-7-noise-controller-zigzag45.png',
+    '4-7-noise-controller-turning_ramp.png',
 )
 
 EXPECTED_JSON_KEYS = {
@@ -78,7 +86,7 @@ def test_handout_exists_and_uses_preserved_seven_chapter_structure():
         '## 二、分段辨识与参数确定',
         '## 三、实际指标到代价函数',
         '## 四、控制器设计与优化对比',
-        '## 五、扰动影响、适用边界与模块 5 展望',
+        '## 五、扰动、噪声与传统控制结构的局限',
         '## 六、练习',
     ):
         assert heading in handout
@@ -129,6 +137,34 @@ def test_handout_keeps_new_boundary_and_filters_old_mouthfeel():
         'PI + 超前',
         '滞后 + 超前',
         '带微分滤波的 $PID$',
+        '$v=15.0\\,\\mathrm{m/s}\\approx29.2\\,\\mathrm{kn}$',
+        '结构编号',
+        '随机种子为 $4707$',
+        '遗传算法粗搜加局部精修',
+        '\\psi_m(t)=\\psi(t)+b_\\psi(t)+\\sigma_\\psi\\xi_k',
+        '测量低通',
+        '微分滤波',
+        '扰动观测器',
+        '增益调度',
+        '模型预测控制',
+        '学习型策略',
+        '传统设计诊断四联图',
+        '传统设计校正四联图',
+        'Nyquist',
+        'C_{trad}(s)=23.11',
+        'T_i=T_h=42.00',
+        'T_z=48.02',
+        'T_p=13.01',
+        '\\delta_c[k]=k_pe[k]+k_i I[k]+k_dD[k]',
+        '直接传递函数整定',
+        '固定超前校正',
+        '无扰动传统设计',
+        '有扰动优化设计',
+        '无抗噪传统设计',
+        '有抗噪优化设计',
+        '$1.18$',
+        '$0.0030$',
+        '$28.0$',
     ):
         assert phrase in handout
 
@@ -153,6 +189,7 @@ def test_handout_keeps_new_boundary_and_filters_old_mouthfeel():
         '移交',
         '产出',
         '暂不回写讲义',
+        '必须分开写清',
     ):
         assert banned not in handout
 
@@ -170,16 +207,32 @@ def test_handout_references_exact_media_outputs_and_report_figures():
 
     section_one = extract_between(handout, '## 一、真实航迹任务与分段辨识模型结构', '## 二、分段辨识与参数确定')
     section_two = extract_between(handout, '## 二、分段辨识与参数确定', '## 三、实际指标到代价函数')
-    section_four = extract_between(handout, '## 四、控制器设计与优化对比', '## 五、扰动影响、适用边界与模块 5 展望')
+    section_four = extract_between(handout, '## 四、控制器设计与优化对比', '## 五、扰动、噪声与传统控制结构的局限')
 
     assert '4-7-segmented-identification-block.png' in section_one
-    assert '4-7-real-heading-control-task.png' in section_one
+    assert '4-7-real-heading-control-task.png' not in section_one
+    assert 'T_r=1.10' not in section_one
+    assert 'T_h=42.00' not in section_one
+    assert 'K_h=0.0700' not in section_one
     assert '4-7-rudder-actuator-step-identification.png' in section_two
     assert '4-7-hull-yaw-step-identification.png' in section_two
     assert '4-7-disturbance-step-identification.png' in section_two
-    assert '4-7-controller-pi_lead-switching20s-calm.png' in section_four
-    assert '4-7-controller-pi_lead-circle-calm.png' in section_four
-    assert '4-7-final-controller-role-decode.png' in section_four
+    assert '集中写出最终辨识模型' in section_two
+    assert '4-7-nominal-traditional-zigzag45.png' in section_four
+    assert '4-7-traditional-diagnosis-four-panel.png' in section_four
+    assert '4-7-traditional-design-four-panel.png' in section_four
+    assert '4-7-optimization-convergence-identified.png' in section_four
+    assert '4-7-optimization-convergence-hifi.png' in section_four
+    assert '4-7-nominal-traditional-turning_ramp.png' in section_four
+    assert '4-7-nominal-optimized-zigzag45.png' in section_four
+    assert '4-7-nominal-optimized-turning_ramp.png' in section_four
+    assert '4-7-final-controller-role-decode.png' not in section_four
+
+    section_five = extract_between(handout, '## 五、扰动、噪声与传统控制结构的局限', '## 六、练习')
+    assert '4-7-disturbance-controller-zigzag45.png' in section_five
+    assert '4-7-disturbance-controller-turning_ramp.png' in section_five
+    assert '4-7-noise-controller-zigzag45.png' in section_five
+    assert '4-7-noise-controller-turning_ramp.png' in section_five
 
 
 def test_data_chain_files_exist_and_match_contract():

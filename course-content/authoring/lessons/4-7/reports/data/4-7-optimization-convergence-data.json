@@ -1,0 +1,371 @@
+{
+  "metadata": {
+    "method": "遗传算法粗搜 + 局部精修",
+    "populationSize": 48,
+    "generations": 40,
+    "eliteCount": 6,
+    "crossoverRate": 0.7,
+    "mutationRate": 0.18,
+    "randomSeed": 4707,
+    "localRefinement": "对入选结构参数进行小邻域坐标精修",
+    "encodingNote": "结构编号 + kp/ki/kd + 超前强度 + 滞后强度 + 微分滤波系数 + 测量滤波时间常数。"
+  },
+  "runs": [
+    {
+      "runId": "identified_model_optimization",
+      "title": "辨识模型优化过程",
+      "targetControllerId": "lag_lead",
+      "modelKind": "identified",
+      "initialReferenceControllerId": "direct_transfer",
+      "history": [
+        {
+          "generation": 0,
+          "bestObjective": 36.46690257457307
+        },
+        {
+          "generation": 1,
+          "bestObjective": 35.676252493252576
+        },
+        {
+          "generation": 2,
+          "bestObjective": 34.095049818936765
+        },
+        {
+          "generation": 3,
+          "bestObjective": 33.57593191962677
+        },
+        {
+          "generation": 4,
+          "bestObjective": 32.47213095598026
+        },
+        {
+          "generation": 5,
+          "bestObjective": 31.82239456079471
+        },
+        {
+          "generation": 6,
+          "bestObjective": 31.131131202482916
+        },
+        {
+          "generation": 7,
+          "bestObjective": 30.370968291148227
+        },
+        {
+          "generation": 8,
+          "bestObjective": 30.0033985954948
+        },
+        {
+          "generation": 9,
+          "bestObjective": 29.187488822877054
+        },
+        {
+          "generation": 10,
+          "bestObjective": 29.045233903310653
+        },
+        {
+          "generation": 11,
+          "bestObjective": 28.439058415797923
+        },
+        {
+          "generation": 12,
+          "bestObjective": 28.230466081011688
+        },
+        {
+          "generation": 13,
+          "bestObjective": 27.854916994224805
+        },
+        {
+          "generation": 14,
+          "bestObjective": 27.543715421260636
+        },
+        {
+          "generation": 15,
+          "bestObjective": 27.357331405479652
+        },
+        {
+          "generation": 16,
+          "bestObjective": 26.97489501404769
+        },
+        {
+          "generation": 17,
+          "bestObjective": 26.92572135092174
+        },
+        {
+          "generation": 18,
+          "bestObjective": 26.5793721830216
+        },
+        {
+          "generation": 19,
+          "bestObjective": 26.549524329844868
+        },
+        {
+          "generation": 20,
+          "bestObjective": 26.332335637302922
+        },
+        {
+          "generation": 21,
+          "bestObjective": 26.22441438556227
+        },
+        {
+          "generation": 22,
+          "bestObjective": 26.118820061851785
+        },
+        {
+          "generation": 23,
+          "bestObjective": 25.949052378194878
+        },
+        {
+          "generation": 24,
+          "bestObjective": 25.92849587729577
+        },
+        {
+          "generation": 25,
+          "bestObjective": 25.724383698947324
+        },
+        {
+          "generation": 26,
+          "bestObjective": 25.724383698947324
+        },
+        {
+          "generation": 27,
+          "bestObjective": 25.624716439358846
+        },
+        {
+          "generation": 28,
+          "bestObjective": 25.603540725849307
+        },
+        {
+          "generation": 29,
+          "bestObjective": 25.53721649901905
+        },
+        {
+          "generation": 30,
+          "bestObjective": 25.46954439955789
+        },
+        {
+          "generation": 31,
+          "bestObjective": 25.45625450307027
+        },
+        {
+          "generation": 32,
+          "bestObjective": 25.35654704641209
+        },
+        {
+          "generation": 33,
+          "bestObjective": 25.35654704641209
+        },
+        {
+          "generation": 34,
+          "bestObjective": 25.296433920540615
+        },
+        {
+          "generation": 35,
+          "bestObjective": 25.296433920540615
+        },
+        {
+          "generation": 36,
+          "bestObjective": 25.263407536006714
+        },
+        {
+          "generation": 37,
+          "bestObjective": 25.242755203421453
+        },
+        {
+          "generation": 38,
+          "bestObjective": 25.231091656638934
+        },
+        {
+          "generation": 39,
+          "bestObjective": 25.18574208058385
+        },
+        {
+          "generation": 40,
+          "bestObjective": 25.18574208058385
+        },
+        {
+          "generation": 41,
+          "bestObjective": 25.02336452115201,
+          "stage": "local_refinement"
+        }
+      ]
+    },
+    {
+      "runId": "hifi_model_optimization",
+      "title": "高保真模型优化过程",
+      "targetControllerId": "filtered_pid",
+      "modelKind": "hifi",
+      "initialReferenceControllerId": "fixed_lead",
+      "history": [
+        {
+          "generation": 0,
+          "bestObjective": 44.06149586490046
+        },
+        {
+          "generation": 1,
+          "bestObjective": 42.4160601084687
+        },
+        {
+          "generation": 2,
+          "bestObjective": 41.1342189365411
+        },
+        {
+          "generation": 3,
+          "bestObjective": 40.116105407197765
+        },
+        {
+          "generation": 4,
+          "bestObjective": 38.73415904458064
+        },
+        {
+          "generation": 5,
+          "bestObjective": 38.18837888936937
+        },
+        {
+          "generation": 6,
+          "bestObjective": 36.8992512362327
+        },
+        {
+          "generation": 7,
+          "bestObjective": 36.56312317497381
+        },
+        {
+          "generation": 8,
+          "bestObjective": 35.68011671207402
+        },
+        {
+          "generation": 9,
+          "bestObjective": 35.19609092574936
+        },
+        {
+          "generation": 10,
+          "bestObjective": 34.66574333577268
+        },
+        {
+          "generation": 11,
+          "bestObjective": 34.05826295364196
+        },
+        {
+          "generation": 12,
+          "bestObjective": 33.80397521136423
+        },
+        {
+          "generation": 13,
+          "bestObjective": 33.12783926569361
+        },
+        {
+          "generation": 14,
+          "bestObjective": 33.0633748601349
+        },
+        {
+          "generation": 15,
+          "bestObjective": 32.5671288668922
+        },
+        {
+          "generation": 16,
+          "bestObjective": 32.4268371858084
+        },
+        {
+          "generation": 17,
+          "bestObjective": 32.13032524310121
+        },
+        {
+          "generation": 18,
+          "bestObjective": 31.885755125277207
+        },
+        {
+          "generation": 19,
+          "bestObjective": 31.753142318873433
+        },
+        {
+          "generation": 20,
+          "bestObjective": 31.43525695805608
+        },
+        {
+          "generation": 21,
+          "bestObjective": 31.420691318055354
+        },
+        {
+          "generation": 22,
+          "bestObjective": 31.13062058937874
+        },
+        {
+          "generation": 23,
+          "bestObjective": 31.126465710520495
+        },
+        {
+          "generation": 24,
+          "bestObjective": 30.949468532158267
+        },
+        {
+          "generation": 25,
+          "bestObjective": 30.869030656549203
+        },
+        {
+          "generation": 26,
+          "bestObjective": 30.78996846733655
+        },
+        {
+          "generation": 27,
+          "bestObjective": 30.649171516907483
+        },
+        {
+          "generation": 28,
+          "bestObjective": 30.644488655877307
+        },
+        {
+          "generation": 29,
+          "bestObjective": 30.47003631383161
+        },
+        {
+          "generation": 30,
+          "bestObjective": 30.47003631383161
+        },
+        {
+          "generation": 31,
+          "bestObjective": 30.39947423140608
+        },
+        {
+          "generation": 32,
+          "bestObjective": 30.38843659203407
+        },
+        {
+          "generation": 33,
+          "bestObjective": 30.335884689764754
+        },
+        {
+          "generation": 34,
+          "bestObjective": 30.280542379540517
+        },
+        {
+          "generation": 35,
+          "bestObjective": 30.274957591050214
+        },
+        {
+          "generation": 36,
+          "bestObjective": 30.18895768424626
+        },
+        {
+          "generation": 37,
+          "bestObjective": 30.18895768424626
+        },
+        {
+          "generation": 38,
+          "bestObjective": 30.143841115706266
+        },
+        {
+          "generation": 39,
+          "bestObjective": 30.143841115706266
+        },
+        {
+          "generation": 40,
+          "bestObjective": 30.1211907607412
+        },
+        {
+          "generation": 41,
+          "bestObjective": 29.931914610694054,
+          "stage": "local_refinement"
+        }
+      ]
+    }
+  ]
+}

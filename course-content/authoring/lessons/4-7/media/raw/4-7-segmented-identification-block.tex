@@ -1,17 +1,18 @@
 \documentclass[tikz,border=8pt]{standalone}
+\usepackage{ctex}
 \usepackage{amsmath}
 \usetikzlibrary{arrows.meta,positioning}
 
 \begin{document}
 \begin{tikzpicture}[
   >=Stealth,
-  signal/.style={->, line width=1.2pt, draw=black!78},
+  signal/.style={->, line width=1.2pt, draw=black!80},
   block/.style={
     rectangle,
     draw=blue!70!black,
     line width=1.2pt,
-    minimum width=2.4cm,
-    minimum height=1.0cm,
+    minimum width=2.25cm,
+    minimum height=0.92cm,
     align=center,
     font=\footnotesize
   },
@@ -27,31 +28,42 @@
         (path picture bounding box.north west) -- (path picture bounding box.south east);
     }
   },
-  labelbox/.style={font=\footnotesize, align=center}
+  tap/.style={
+    circle,
+    draw=orange!80!black,
+    line width=1.2pt,
+    minimum size=4.5pt,
+    inner sep=0pt
+  },
+  labelbox/.style={font=\footnotesize, align=center},
+  linelabel/.style={font=\scriptsize, fill=white, inner sep=1.5pt}
 ]
-  \node[labelbox] (cmd) at (0,0) {$\delta_c$\\rudder command};
-  \node[block, right=1.0cm of cmd] (servo) {$\dfrac{1}{T_r s+1}$\\rudder inertia};
-  \node[labelbox, right=0.85cm of servo] (actual) {$\delta$\\actual rudder};
-  \node[sum, right=0.8cm of actual] (sumd) {};
-  \node[block, right=0.9cm of sumd] (hull) {$\dfrac{K_h}{T_hs+1}$\\hull inertia};
-  \node[labelbox, right=0.8cm of hull] (yaw) {$r$\\yaw rate};
-  \node[block, right=0.8cm of yaw] (int) {$\dfrac{1}{s}$\\integrator};
-  \node[labelbox, right=0.9cm of int] (heading) {$\psi$\\heading};
+  \node[labelbox] (ref) at (0,0) {期望航向\\$\psi_d$};
+  \node[sum, right=1.05cm of ref] (sumerr) {};
+  \node[block, right=1.10cm of sumerr] (controller) {控制器\\$C(s)$};
+  \node[block, right=1.15cm of controller] (servo) {舵机\\$\dfrac{1}{T_rs+1}$};
+  \node[sum, right=1.05cm of servo] (sumd) {};
+  \node[block, right=1.15cm of sumd] (hull) {船体艏摇\\$\dfrac{K_h}{T_hs+1}$};
+  \node[block, right=1.15cm of hull] (integrator) {积分\\$\dfrac{1}{s}$};
+  \node[tap, right=0.95cm of integrator] (tapout) {};
+  \node[labelbox, right=0.78cm of tapout] (out) {航向输出\\$\psi$};
 
-  \node[block, above=1.25cm of sumd] (dist) {$\dfrac{K_d}{T_d s+1}$\\equivalent disturbance};
-  \node[labelbox, above=0.45cm of dist] (dlabel) {$d$\\wind, current, wave moment};
+  \node[block, above=1.35cm of sumd] (dist) {扰动等效\\$\dfrac{K_d}{T_ds+1}$};
+  \node[labelbox, above=0.45cm of dist] (dsrc) {风浪流扰动\\$d$};
 
-  \draw[signal] (cmd) -- (servo);
-  \draw[signal] (servo) -- (actual);
-  \draw[signal] (actual) -- (sumd);
-  \draw[signal] (sumd) -- (hull);
-  \draw[signal] (hull) -- (yaw);
-  \draw[signal] (yaw) -- (int);
-  \draw[signal] (int) -- (heading);
-  \draw[signal] (dlabel) -- (dist);
-  \draw[signal] (dist) -- node[right, font=\footnotesize] {$d_e$} (sumd);
+  \draw[signal] (ref) -- node[linelabel, above] {给定} (sumerr);
+  \draw[signal] (sumerr) -- node[linelabel, above] {误差 $e_\psi$} (controller);
+  \draw[signal] (controller) -- node[linelabel, above] {舵令 $\delta_c$} (servo);
+  \draw[signal] (servo) -- node[linelabel, above] {实际舵角 $\delta$} (sumd);
+  \draw[signal] (sumd) -- node[linelabel, above] {合成输入} (hull);
+  \draw[signal] (hull) -- node[linelabel, above] {艏摇角速度 $r$} (integrator);
+  \draw[signal] (integrator) -- node[linelabel, above] {航向 $\psi$} (tapout) -- (out);
+  \draw[signal] (dsrc) -- (dist);
+  \draw[signal] (dist) -- node[linelabel, right] {等效舵角 $d_e$} (sumd);
 
-  \node[font=\footnotesize, align=center, below=0.75cm of hull, text width=6.7cm]
-    {Course low-order approximation: disturbance enters after rudder inertia and before hull inertia.};
+  \draw[signal] (tapout) |- ++(0,-1.35) -| node[linelabel, left, near end] {$-$} (sumerr.south);
+
+  \node[font=\footnotesize, align=center, below=0.95cm of hull, text width=8.6cm]
+    {分段辨识只给出闭环设计所需的低阶主通道；扰动在舵机之后、船体艏摇之前注入。};
 \end{tikzpicture}
 \end{document}

@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 REPORT_DIR = ROOT / 'authoring' / 'lessons' / '4-7' / 'reports'
 REPORT_PATH = REPORT_DIR / '4-7-destroyer-hifi-identification-report.md'
 DATA_PATH = REPORT_DIR / 'data' / '4-7-destroyer-hifi-experiment.json'
+TRADITIONAL_DESIGN_DATA_PATH = REPORT_DIR / 'data' / '4-7-traditional-design-four-panel-data.json'
+TRADITIONAL_DESIGN_OCTAVE_SCRIPT = REPORT_DIR / 'generate_traditional_design_four_panel_data.m'
 FIGURE_DIR = REPORT_DIR / 'figures'
 
 EXPECTED_SUMMARY_FIGURES = (
@@ -17,6 +19,18 @@ EXPECTED_SUMMARY_FIGURES = (
     '4-7-rudder-actuator-step-identification.png',
     '4-7-hull-yaw-step-identification.png',
     '4-7-disturbance-step-identification.png',
+    '4-7-traditional-diagnosis-four-panel.png',
+    '4-7-traditional-design-four-panel.png',
+    '4-7-optimization-convergence-identified.png',
+    '4-7-optimization-convergence-hifi.png',
+    '4-7-nominal-traditional-zigzag45.png',
+    '4-7-nominal-optimized-zigzag45.png',
+    '4-7-nominal-traditional-turning_ramp.png',
+    '4-7-nominal-optimized-turning_ramp.png',
+    '4-7-disturbance-controller-zigzag45.png',
+    '4-7-disturbance-controller-turning_ramp.png',
+    '4-7-noise-controller-zigzag45.png',
+    '4-7-noise-controller-turning_ramp.png',
 )
 
 CONTROLLER_IDS = (
@@ -25,13 +39,12 @@ CONTROLLER_IDS = (
     'pi_lead',
     'lag_lead',
     'filtered_pid',
+    'disturbance_optimized',
 )
 
 SCENARIO_IDS = (
-    'turn90',
-    'obstacle',
-    'circle',
-    'switching20s',
+    'zigzag45',
+    'turning_ramp',
 )
 
 
@@ -42,6 +55,8 @@ def read_text(path: Path) -> str:
 def test_destroyer_hifi_report_bundle_exists():
     assert REPORT_PATH.exists()
     assert DATA_PATH.exists()
+    assert TRADITIONAL_DESIGN_DATA_PATH.exists()
+    assert TRADITIONAL_DESIGN_OCTAVE_SCRIPT.exists()
     for filename in EXPECTED_SUMMARY_FIGURES:
         assert (FIGURE_DIR / filename).exists()
     controller_figures = sorted(FIGURE_DIR.glob('4-7-controller-*.png'))
@@ -49,7 +64,40 @@ def test_destroyer_hifi_report_bundle_exists():
         path for path in controller_figures
         if path.name != '4-7-controller-comparison.png'
     ]
-    assert len(controller_figures) == 40
+    assert len(controller_figures) == len(CONTROLLER_IDS) * len(SCENARIO_IDS) * 2
+
+
+def test_traditional_four_panel_data_is_octave_generated_contract():
+    script = read_text(TRADITIONAL_DESIGN_OCTAVE_SCRIPT)
+    payload = json.loads(read_text(TRADITIONAL_DESIGN_DATA_PATH))
+
+    assert 'pkg load control' in script
+    assert 'jsonencode(payload)' in script
+    assert 'step(feedback(P, 1)' in script
+    assert 'freqresp(P, w)' in script
+    assert 'roots(den + gains(i) * padded_num)' in script
+
+    assert set(payload) == {'design', 'diagnosis', 'designCheck'}
+    assert payload['design']['Ti'] == payload['design']['Th']
+    assert abs(payload['design']['wc'] - 0.040) < 1e-9
+    assert abs(payload['design']['Kc'] - 23.1105) < 0.01
+    assert set(payload['diagnosis']) >= {'timeS', 'stepResponse', 'bode', 'nyquist', 'rootLocus'}
+    assert set(payload['diagnosis']['bode']) >= {'plantMagDb', 'plantPhaseDeg'}
+    assert set(payload['designCheck']) >= {
+        'stepUncorrected',
+        'stepCorrected',
+        'bode',
+        'uncorrectedRootLocus',
+        'correctedRootLocus',
+    }
+    assert set(payload['designCheck']['bode']) >= {
+        'plantMagDb',
+        'controllerMagDb',
+        'correctedMagDb',
+        'plantPhaseDeg',
+        'controllerPhaseDeg',
+        'correctedPhaseDeg',
+    }
 
 
 def test_destroyer_hifi_json_contract_and_identification_quality():
@@ -61,6 +109,12 @@ def test_destroyer_hifi_json_contract_and_identification_quality():
         'segmentedIdentification',
         'validationScenarios',
         'controllerComparison',
+        'controllerEncoding',
+        'nominalComparison',
+        'disturbanceComparison',
+        'noiseComparison',
+        'searchMetadata',
+        'sensorNoiseSettings',
         'selectedControllerId',
         'disturbanceInterface',
     }
@@ -87,8 +141,10 @@ def test_destroyer_hifi_json_contract_and_identification_quality():
     )
 
     scenarios = {item['scenarioId']: item for item in payload['validationScenarios']}
-    assert {'turn90', 'obstacle', 'circle', 'switching20s'} <= set(scenarios)
+    assert set(scenarios) == {'zigzag45', 'turning_ramp'}
     assert all(item['headingRmseDeg'] < 18 for item in scenarios.values())
+    assert scenarios['zigzag45']['durationS'] >= 1200
+    assert scenarios['turning_ramp']['durationS'] >= 780
 
     comparison = payload['controllerComparison']
     assert payload['selectedControllerId'] == 'pi_lead'
@@ -105,6 +161,95 @@ def test_destroyer_hifi_json_contract_and_identification_quality():
         for model_kind in ('hifi', 'identified')
     }
     assert all(row['maxRudderDeg'] <= payload['modelBoundary']['maxRudderDeg'] + 1e-6 for row in comparison)
+
+
+def test_destroyer_hifi_new_scenario_and_design_group_contract():
+    payload = json.loads(read_text(DATA_PATH))
+
+    zigzag = next(item for item in payload['validationScenarios'] if item['scenarioId'] == 'zigzag45')
+    zigzag_targets = [point['targetHeadingDeg'] for point in zigzag['hifiTrace']]
+    assert max(zigzag_targets) == 45.0
+    assert min(zigzag_targets) == -45.0
+    assert zigzag['durationS'] == 1200.0
+
+    ramp = next(item for item in payload['validationScenarios'] if item['scenarioId'] == 'turning_ramp')
+    ramp_targets = [point['targetHeadingDeg'] for point in ramp['hifiTrace']]
+    assert ramp_targets[0] == 0.0
+    assert ramp_targets[-1] == 360.0
+    assert ramp_targets == sorted(ramp_targets)
+    assert ramp['durationS'] == 780.0
+
+    assert payload['modelBoundary']['cruiseSpeedMps'] == 15.0
+    assert len(payload['controllerEncoding']) == len(CONTROLLER_IDS)
+    assert any(
+        item['controllerId'] == 'disturbance_optimized'
+        and '扰动' in item['controllerName']
+        for item in payload['controllerEncoding']
+    )
+    for encoded in payload['controllerEncoding']:
+        assert set(encoded) >= {
+            'structureCode',
+            'kp',
+            'ki',
+            'kd',
+            'leadStrength',
+            'lagStrength',
+            'derivativeFilter',
+            'measurementFilterTimeConstantS',
+        }
+
+    search = payload['searchMetadata']
+    assert search['populationSize'] == 48
+    assert search['generations'] == 40
+    assert search['eliteCount'] == 6
+    assert search['crossoverRate'] == 0.70
+    assert search['mutationRate'] == 0.18
+    assert search['randomSeed'] == 4707
+
+    assert {item['groupId'] for item in payload['nominalComparison']} == {
+        'nominal_zigzag45',
+        'nominal_turning_ramp',
+    }
+    assert {item['groupId'] for item in payload['disturbanceComparison']} == {
+        'disturbance_zigzag45',
+        'disturbance_turning_ramp',
+    }
+    assert {item['groupId'] for item in payload['noiseComparison']} == {
+        'noise_zigzag45',
+        'noise_turning_ramp',
+    }
+    assert all(len(group['cases']) == 5 for group in payload['nominalComparison'])
+    assert all(len(group['cases']) == 3 for group in payload['disturbanceComparison'])
+    assert all(
+        any(case['controllerId'] == 'disturbance_optimized' for case in group['cases'])
+        for group in payload['disturbanceComparison']
+    )
+    assert all(len(group['cases']) == 4 for group in payload['noiseComparison'])
+
+    disturbance_interface = payload['disturbanceInterface']
+    assert disturbance_interface['activeLevelId'] == 'moderate'
+    assert len(disturbance_interface['engineeringLevels']) == 3
+    assert {
+        item['levelId'] for item in disturbance_interface['engineeringLevels']
+    } == {'mild', 'moderate', 'strong'}
+
+    calm_disturbed_scores = [
+        row['score'] for row in payload['controllerComparison']
+        if row['modelKind'] == 'hifi'
+        and row['disturbanceEnabled']
+        and row['controllerId'] == 'lag_lead'
+    ]
+    disturbance_optimized_scores = [
+        row['score'] for row in payload['controllerComparison']
+        if row['modelKind'] == 'hifi'
+        and row['disturbanceEnabled']
+        and row['controllerId'] == 'disturbance_optimized'
+    ]
+    assert sum(disturbance_optimized_scores) < sum(calm_disturbed_scores)
+
+    noise = payload['sensorNoiseSettings']
+    assert noise['measuredSignal'] == 'heading'
+    assert '\\psi_m(t)=\\psi(t)+b_\\psi(t)+\\sigma_\\psi\\xi_k' in noise['equation']
 
 
 def test_destroyer_hifi_json_uses_physical_units_for_public_traces():
