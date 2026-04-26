@@ -174,6 +174,64 @@ function ReferenceAnswer({
   );
 }
 
+function isSingleChoiceCard(card: InteractiveRuntimeActivityCardManifest) {
+  return card.responseKind === 'single_choice' || card.responseKind === 'binary_choice';
+}
+
+function StudentCardAnswerInput({
+  card,
+  value,
+  onChange,
+}: {
+  card: InteractiveRuntimeActivityCardManifest;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  if (isSingleChoiceCard(card)) {
+    if (!card.options.length) {
+      return (
+        <div
+          className="premium-lesson-tone-block premium-tone-amber mt-3 text-sm leading-7"
+          data-manifest-missing-field={`${card.id}:options`}
+        >
+          manifest 未提供本选择题选项，请在 activity_cards[].options 中补齐。
+        </div>
+      );
+    }
+
+    return (
+      <fieldset className="mt-3 space-y-2">
+        <legend className="sr-only">{card.title ?? card.prompt}</legend>
+        {card.options.map((option) => (
+          <label
+            key={option.value}
+            className="premium-lesson-surface-elevated flex cursor-pointer items-start gap-3 px-4 py-3 text-sm leading-6"
+          >
+            <input
+              type="radio"
+              name={card.id}
+              value={option.value}
+              checked={value === option.value}
+              onChange={() => onChange(option.value)}
+              className="mt-1"
+            />
+            <span>{option.label}</span>
+          </label>
+        ))}
+      </fieldset>
+    );
+  }
+
+  return (
+    <textarea
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      placeholder="写出判断依据。"
+      className="premium-lesson-input mt-3 min-h-[120px] w-full"
+    />
+  );
+}
+
 function StudentCards({
   stepManifest,
   savedResponse,
@@ -232,11 +290,10 @@ function StudentCards({
           <div key={card.id} className="premium-lesson-panel">
             <div className="premium-lesson-kicker">{cardTitle(card, index)}</div>
             <p className="premium-lesson-title mt-2 text-sm leading-7">{card.prompt}</p>
-            <textarea
+            <StudentCardAnswerInput
+              card={card}
               value={draftAnswers[card.id] ?? ''}
-              onChange={(event) => setDraftAnswers((prev) => ({ ...prev, [card.id]: event.target.value }))}
-              placeholder="写出判断依据。"
-              className="premium-lesson-input mt-3 min-h-[120px] w-full"
+              onChange={(value) => setDraftAnswers((prev) => ({ ...prev, [card.id]: value }))}
             />
             <div className="mt-3 flex items-center justify-between gap-3">
               <button
@@ -422,6 +479,8 @@ function TeacherSummary({
 
 export function createManifestStudentActivityRegistry<TStep>(): StudentInteractiveActivityRegistry<TStep, ManifestStepResponse> {
   return {
+    single_choice: (props) => <StudentCards {...props} />,
+    binary_choice: (props) => <StudentCards {...props} />,
     activity_card_set: (props) => <StudentCards {...props} />,
     quiz_group: (props) => <StudentCards {...props} />,
     teacher_reveal_only: (props) => <StudentCards {...props} />,
@@ -430,6 +489,8 @@ export function createManifestStudentActivityRegistry<TStep>(): StudentInteracti
 
 export function createManifestTeacherActivityRegistry<TStep>(): TeacherInteractiveActivityRegistry<TStep, TeacherResponseItem> {
   return {
+    single_choice: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
+    binary_choice: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     activity_card_set: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     quiz_group: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     teacher_reveal_only: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,

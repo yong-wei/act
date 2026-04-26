@@ -41,6 +41,7 @@ steps:
       page_intro:
         title: '本课角色'
         lead: '4-2 交来的是单结构起步卡，4-3 要把它推进成可运行的第一版方案，4-4 再接问题清单做多目标权衡。'
+        path_items: ['4-2 起步卡', '4-3 第一版方案', '4-4 多目标权衡']
       goal_cards:
         - '对象分析：把模型、任务和约束改写成设计入口。'
         - '结构分流：判断继续单结构、进入复合结构还是改写通道。'
@@ -120,7 +121,13 @@ steps:
       interaction_kind: 'single_choice'
       student_task: '判断当前观察最适合走哪一路分流。'
       activity_cards:
-        - { id: 'branch-choice', prompt: '当前观察更适合继续单结构、进入复合结构，还是反馈 + 前馈组合？', response_kind: 'single_choice', submit_scope: 'per_card', layout_span: 'full' }
+        - id: 'branch-choice'
+          prompt: '当前观察更适合继续单结构、进入复合结构，还是反馈 + 前馈组合？'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'full'
+          options: ['继续单结构', '进入复合结构', '反馈 + 前馈组合']
+          reference_answer: '进入哪一路分流，必须和表 1 的当前观察一一对应。'
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['question_distribution', 'top_misconceptions'] }
@@ -587,7 +594,32 @@ steps:
       next_route:
         text: '4-4 将继续处理多个指标同时拉扯时，下一轮该先改什么。'
     evidence_sequence: ['后测标题卡', '后测题组', '四句带走', '4-4 去向说明']
-    interaction_spec: { interaction_kind: 'quiz_group', student_task: '完成后测后再阅读收束区。', answer_reveal: 'teacher_toggle' }
+    interaction_spec:
+      interaction_kind: 'quiz_group'
+      student_task: '完成后测后再阅读收束区。'
+      answer_reveal: 'teacher_toggle'
+      activity_cards:
+        - id: 'post-quiz-1'
+          prompt: '对象已有积分时，为什么不一定先补低频能力。'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'full'
+          options: ['因为本课不允许积分', '因为当前主矛盾未必在低频保持能力', '因为积分一定更慢']
+          reference_answer: '因为当前主矛盾未必在低频保持能力'
+        - id: 'post-quiz-2'
+          prompt: '参数方向至少应包含哪三项内容。'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'full'
+          options: ['先改什么、希望换来什么、可能先透支什么', '结构名称、软件名称、截图', '只写一个参数值']
+          reference_answer: '先改什么、希望换来什么、可能先透支什么'
+        - id: 'post-quiz-3'
+          prompt: '首轮验证为何必须同时写收益、代价和下一轮优先项。'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'full'
+          options: ['因为展示更漂亮', '因为第一版方案的价值在于形成下一轮入口', '因为教师端需要更多字数']
+          reference_answer: '因为第一版方案的价值在于形成下一轮入口'
     teacher_controls: { release_activity: 'page_load_open', open_browse: 'not_applicable', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_submit_without_browse: true }
     teacher_insight_spec: { widgets: ['question_distribution', 'top_misconceptions'] }

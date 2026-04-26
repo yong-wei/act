@@ -31,6 +31,11 @@ export interface InteractiveRuntimeModuleManifest {
   payload: Record<string, unknown>;
 }
 
+export interface InteractiveRuntimeChoiceOptionManifest {
+  value: string;
+  label: string;
+}
+
 export interface InteractiveRuntimeActivityCardManifest {
   id: string;
   title?: string;
@@ -39,6 +44,7 @@ export interface InteractiveRuntimeActivityCardManifest {
   responseKind: string;
   submitScope: string;
   layoutSpan: string;
+  options: InteractiveRuntimeChoiceOptionManifest[];
 }
 
 export interface InteractiveRuntimeStepManifest {
@@ -129,6 +135,35 @@ function normalizeModule(value: unknown): InteractiveRuntimeModuleManifest {
   };
 }
 
+function normalizeChoiceOption(value: unknown): InteractiveRuntimeChoiceOptionManifest | null {
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    const text = String(value);
+    return { value: text, label: text };
+  }
+
+  const option = asRecord(value);
+  const rawLabel = option.label ?? option.text ?? option.value ?? option.id;
+  const rawValue = option.value ?? option.id ?? rawLabel;
+  const label = String(rawLabel ?? '');
+  const optionValue = String(rawValue ?? label);
+
+  if (!label.trim() && !optionValue.trim()) {
+    return null;
+  }
+
+  return {
+    value: optionValue,
+    label: label || optionValue,
+  };
+}
+
+function normalizeChoiceOptions(value: unknown): InteractiveRuntimeChoiceOptionManifest[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map(normalizeChoiceOption)
+    .filter((item): item is InteractiveRuntimeChoiceOptionManifest => Boolean(item));
+}
+
 function normalizeActivityCard(value: unknown): InteractiveRuntimeActivityCardManifest {
   const card = asRecord(value);
   return {
@@ -143,6 +178,7 @@ function normalizeActivityCard(value: unknown): InteractiveRuntimeActivityCardMa
     responseKind: String(card.response_kind ?? card.responseKind ?? ''),
     submitScope: String(card.submit_scope ?? card.submitScope ?? ''),
     layoutSpan: String(card.layout_span ?? card.layoutSpan ?? ''),
+    options: normalizeChoiceOptions(card.options),
   };
 }
 

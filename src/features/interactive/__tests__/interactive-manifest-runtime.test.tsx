@@ -195,6 +195,54 @@ describe('interactive runtime manifest', () => {
     });
   });
 
+  it('normalizes manifest choice options and keeps shared activity renderers option-driven', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-quiz': {
+          title: '选择题测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'quiz_group',
+            activity_cards: [
+              {
+                id: 'choice-a',
+                title: '判断主导矛盾',
+                prompt: '哪一项最能解释当前失配？',
+                response_kind: 'single_choice',
+                options: [
+                  { value: 'plant_mismatch', label: '对象模型变化' },
+                  '执行器限幅',
+                ],
+                reference_answer: '对象模型变化。',
+                submit_scope: 'per_card',
+                layout_span: 'full',
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const step = manifest?.steps[0];
+    const card = step?.interactionSpec.activityCards?.[0];
+
+    expect(card?.options).toEqual([
+      { value: 'plant_mismatch', label: '对象模型变化' },
+      { value: '执行器限幅', label: '执行器限幅' },
+    ]);
+
+    const activitySource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/activity-renderers.tsx'),
+      'utf8',
+    );
+
+    expect(activitySource).toContain('card.options');
+    expect(activitySource).toContain('type="radio"');
+  });
+
   it('keeps manifest activity registries for the three shared activity kinds without course-id answer maps', () => {
     const source = readFileSync(
       join(repoRoot, 'src/features/interactive/shared/manifest-runtime/activity-renderers.tsx'),
@@ -235,5 +283,75 @@ describe('interactive runtime manifest', () => {
     expect(source).not.toContain("'mismatch-reveal':");
     expect(source).not.toContain("'scenario-compare-table'");
     expect(source).not.toContain("'lesson-info-figure'");
+  });
+
+  it('drives 4-3 choice and quiz activity options from manifest instead of course-local constants', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-3');
+    const manifest = runtime.interactiveManifest!;
+    const branchChoice = manifest.steps
+      .find((step) => step.id === 'step-03')
+      ?.interactionSpec.activityCards?.[0];
+    const postQuizCards = manifest.steps
+      .find((step) => step.id === 'step-14')
+      ?.interactionSpec.activityCards ?? [];
+
+    expect(branchChoice?.responseKind).toBe('single_choice');
+    expect(branchChoice?.options.map((option) => option.label)).toEqual([
+      '继续单结构',
+      '进入复合结构',
+      '反馈 + 前馈组合',
+    ]);
+    expect(branchChoice?.referenceAnswer).toContain('表 1');
+
+    expect(postQuizCards).toHaveLength(3);
+    expect(postQuizCards.every((card) => card.responseKind === 'single_choice')).toBe(true);
+    expect(postQuizCards.every((card) => card.options.length === 3)).toBe(true);
+    expect(postQuizCards.map((card) => card.referenceAnswer)).toEqual([
+      '因为当前主矛盾未必在低频保持能力',
+      '先改什么、希望换来什么、可能先透支什么',
+      '因为第一版方案的价值在于形成下一轮入口',
+    ]);
+
+    const source = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('QUIZ_OPTIONS');
+    expect(source).not.toContain('SINGLE_CHOICE_OPTIONS');
+  });
+
+  it('covers reusable 4-3 static, path, and activity-anchor module kinds in the shared content registry', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-3');
+    const moduleKinds = new Set(runtime.interactiveManifest!.steps.flatMap((step) => step.modules.map((module) => module.kind)));
+    const sharedKinds = [
+      'stage-map',
+      'goal-card-row',
+      'goal-card-set',
+      'question-card-set',
+      'native-formula-table',
+      'table-card',
+      'problem-statement',
+      'title-card',
+      'quiz-stack',
+      'route-card',
+      'activity-card',
+      'activity-card-set',
+      'single-choice-card',
+    ];
+
+    for (const kind of sharedKinds) {
+      expect(moduleKinds.has(kind), kind).toBe(true);
+    }
+
+    const source = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
+
+    for (const kind of sharedKinds) {
+      expect(source, kind).toContain(`'${kind}':`);
+    }
+    expect(source).not.toContain('unit-4-3');
   });
 });

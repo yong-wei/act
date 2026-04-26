@@ -1,6 +1,6 @@
 'use client';
 
-import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { EChartsCoreOption } from 'echarts/core';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
@@ -12,6 +12,7 @@ import {
   type InteractiveModuleRegistry,
 } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import {
+  createManifestStudentActivityRegistry,
   renderStudentInteractiveActivity,
   renderTeacherInteractiveActivity,
   type StudentInteractiveActivityRegistry,
@@ -58,26 +59,6 @@ const STEP_07_DEFAULT_PARAMS = { kp: 3.5, ki: 3.5 / 1.5, kd: 0.25 } as const;
 const STEP_10_DEFAULT_PARAMS = { gain: 2.8, leadZeroFrequency: 0.1, leadPoleFrequency: 1 / 4.06 } as const;
 const BASELINE_SERIES_COLOR = '#f59e0b';
 const CURRENT_SERIES_COLOR = '#22d3ee';
-
-const QUIZ_OPTIONS = {
-  'step-14': [
-    [
-      '对象已有积分时，为什么不一定先补低频能力。',
-      ['因为本课不允许积分', '因为当前主矛盾未必在低频保持能力', '因为积分一定更慢'],
-      '因为当前主矛盾未必在低频保持能力',
-    ],
-    [
-      '参数方向至少应包含哪三项内容。',
-      ['先改什么、希望换来什么、可能先透支什么', '结构名称、软件名称、截图', '只写一个参数值'],
-      '先改什么、希望换来什么、可能先透支什么',
-    ],
-    [
-      '首轮验证为何必须同时写收益、代价和下一轮优先项。',
-      ['因为展示更漂亮', '因为第一版方案的价值在于形成下一轮入口', '因为教师端需要更多字数'],
-      '因为第一版方案的价值在于形成下一轮入口',
-    ],
-  ],
-} as const;
 
 const ACTIVITY_FIELDS: Record<string, PromptField[]> = {
   'step-02': [
@@ -970,7 +951,28 @@ type Unit43ModuleExtra = {
 };
 
 const UNIT_4_3_MODULE_REGISTRY: InteractiveModuleRegistry<Unit43ModuleExtra> = {
-  'stage-map': () => <UNIT_4_3KnowledgeMapVisual />,
+  'stage-map': ({ step }) => {
+    const intro = asRecord(step.contentBlocks.page_intro);
+    const items = asStringArray(intro.path_items);
+    return (
+      <SurfaceCard title={String(intro.title ?? '路径定位')}>
+        {items.length ? (
+          <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch">
+            {items.map((item, index) => (
+              <Fragment key={item}>
+                <div className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4 text-center text-sm font-semibold">
+                  {item}
+                </div>
+                {index < items.length - 1 ? <div className="hidden items-center text-slate-300 md:flex">→</div> : null}
+              </Fragment>
+            ))}
+          </div>
+        ) : null}
+        {intro.lead ? <div className="premium-lesson-muted text-sm leading-6">{String(intro.lead)}</div> : null}
+        <UNIT_4_3KnowledgeMapVisual />
+      </SurfaceCard>
+    );
+  },
   'goal-card-row': ({ step }) => {
     const items = asStringArray(step.contentBlocks.goal_cards);
     return items.length ? <SurfaceCard title="课程目标">{renderSentenceList(items)}</SurfaceCard> : null;
@@ -983,7 +985,29 @@ const UNIT_4_3_MODULE_REGISTRY: InteractiveModuleRegistry<Unit43ModuleExtra> = {
     const items = asStringArray(step.contentBlocks.target_constraints);
     return items.length ? <SurfaceCard title="目标约束">{renderSentenceList(items, 'md:grid-cols-3')}</SurfaceCard> : null;
   },
-  'single-choice-card': () => null,
+  'single-choice-card': ({ step }) => {
+    const cards = step.interactionSpec.activityCards ?? [];
+    return cards.length ? (
+      <SurfaceCard title="本页选择">
+        <div className="space-y-3">
+          {cards.map((card) => (
+            <div key={card.id} className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4">
+              <div className="premium-lesson-title text-sm font-medium">{card.prompt}</div>
+              {card.options.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {card.options.map((option) => (
+                    <span key={option.value} className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-300">
+                      {option.label}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </SurfaceCard>
+    ) : null;
+  },
   'activity-card': ({ module }) => (
     <div data-manifest-activity-anchor={module.id} className="hidden" aria-hidden="true" />
   ),
@@ -1197,8 +1221,6 @@ export function UNIT_4_3StepContentPanel({
   );
 }
 
-const SINGLE_CHOICE_OPTIONS = ['继续单结构', '进入复合结构', '反馈 + 前馈组合'] as const;
-
 function TextAreaActivityCards({
   step,
   savedResponse,
@@ -1258,144 +1280,10 @@ function TextAreaActivityCards({
   );
 }
 
-function SingleChoiceActivity({
-  step,
-  stepManifest,
-  savedResponse,
-  released,
-  browseEnabled,
-  answerVisible,
-  revealProgress,
-  onSubmit,
-}: {
-  step: UNIT_4_3RuntimeStepDefinition;
-  stepManifest: InteractiveRuntimeStepManifest;
-  savedResponse?: UNIT_4_3StepResponse;
-  released: boolean;
-  browseEnabled: boolean;
-  answerVisible: boolean;
-  revealProgress: number;
-  onSubmit: (response: UNIT_4_3StepResponse) => void;
-}) {
-  const [answers, setAnswers] = useState<Record<string, string>>(savedResponse?.answers ?? {});
-
-  useEffect(() => {
-    setAnswers(savedResponse?.answers ?? {});
-  }, [savedResponse, step.id]);
-
-  const disabled =
-    !released
-    || (stepManifest.teacherControls.openBrowse === 'teacher_toggle' && !browseEnabled && revealProgress === 0);
-
-  return (
-    <SurfaceCard title="学生作答区">
-      <SubmissionStatus
-        submitted={Boolean(savedResponse)}
-        submittedText="已提交当前页面作答。"
-        idleText={disabled ? '等待教师发放或开放浏览后再提交。' : '提交后会同步到教师端汇总。'}
-      />
-      <div className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4">
-        <div className="premium-lesson-title text-sm font-medium">当前观察更适合走哪一路分流？</div>
-        {SINGLE_CHOICE_OPTIONS.map((option) => (
-          <label key={option} className="mt-3 flex items-start gap-2 text-sm">
-            <input
-              type="radio"
-              name="branch-choice"
-              checked={answers['branch-choice'] === option}
-              disabled={disabled}
-              onChange={() => setAnswers((current) => ({ ...current, 'branch-choice': option }))}
-            />
-            <span>{option}</span>
-          </label>
-        ))}
-        {answerVisible ? (
-          <div className="premium-lesson-muted mt-3 text-sm">
-            参考答案：进入哪一路分流，必须和表 1 的当前观察一一对应。
-          </div>
-        ) : null}
-        <div className="mt-3 flex justify-end">
-          <button
-            type="button"
-            disabled={disabled}
-            onClick={() => onSubmit({ stepId: step.id, submittedAt: Date.now(), answers })}
-            className="premium-lesson-action-primary"
-          >
-            提交答案
-          </button>
-        </div>
-      </div>
-    </SurfaceCard>
-  );
-}
-
-function QuizGroupActivity({
-  step,
-  savedResponse,
-  released,
-  browseEnabled,
-  revealProgress,
-  answerVisible,
-  onSubmit,
-}: {
-  step: UNIT_4_3RuntimeStepDefinition;
-  savedResponse?: UNIT_4_3StepResponse;
-  released: boolean;
-  browseEnabled: boolean;
-  revealProgress: number;
-  answerVisible: boolean;
-  onSubmit: (response: UNIT_4_3StepResponse) => void;
-}) {
-  const [answers, setAnswers] = useState<Record<string, string>>(savedResponse?.answers ?? {});
-
-  useEffect(() => {
-    setAnswers(savedResponse?.answers ?? {});
-  }, [savedResponse, step.id]);
-
-  const disabled = !released || !browseEnabled || revealProgress > 0;
-
-  return (
-    <SurfaceCard title="学生作答区">
-      <SubmissionStatus
-        submitted={Boolean(savedResponse)}
-        submittedText="已提交当前页面作答。"
-        idleText={disabled ? '等待页面可作答后再提交。' : '提交后会同步到教师端汇总。'}
-      />
-      <div className="space-y-3">
-        {QUIZ_OPTIONS['step-14'].map(([prompt, options, answer], index) => (
-          <div
-            key={`${prompt}-${index}`}
-            className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4"
-          >
-            <div className="premium-lesson-title text-sm font-medium">{prompt}</div>
-            {options.map((option) => (
-              <label key={option} className="mt-3 flex items-start gap-2 text-sm">
-                <input
-                  type="radio"
-                  name={`post-${index}`}
-                  checked={answers[`post-${index}`] === option}
-                  disabled={disabled}
-                  onChange={() => setAnswers((current) => ({ ...current, [`post-${index}`]: option }))}
-                />
-                <span>{option}</span>
-              </label>
-            ))}
-            {answerVisible ? <div className="premium-lesson-muted mt-3 text-sm">参考答案：{answer}</div> : null}
-          </div>
-        ))}
-      </div>
-      <div className="mt-3 flex justify-end">
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => onSubmit({ stepId: step.id, submittedAt: Date.now(), answers })}
-          className="premium-lesson-action-primary"
-        >
-          提交答案
-        </button>
-      </div>
-    </SurfaceCard>
-  );
-}
+const UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY = createManifestStudentActivityRegistry<UNIT_4_3RuntimeStepDefinition>() as unknown as StudentInteractiveActivityRegistry<
+  UNIT_4_3RuntimeStepDefinition,
+  UNIT_4_3StepResponse
+>;
 
 const UNIT_4_3_STUDENT_ACTIVITY_REGISTRY: StudentInteractiveActivityRegistry<
   UNIT_4_3RuntimeStepDefinition,
@@ -1405,8 +1293,8 @@ const UNIT_4_3_STUDENT_ACTIVITY_REGISTRY: StudentInteractiveActivityRegistry<
   display: () => null,
   summary: () => null,
   worked_example_reveal: () => null,
-  single_choice: SingleChoiceActivity,
-  quiz_group: QuizGroupActivity,
+  single_choice: UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY.single_choice,
+  quiz_group: UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY.quiz_group,
   activity_card_set: ({ step, savedResponse, released, browseEnabled, revealProgress, onSubmit }) => (
     <TextAreaActivityCards
       step={step}
