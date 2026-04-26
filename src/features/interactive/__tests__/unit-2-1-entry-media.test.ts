@@ -49,7 +49,7 @@ describe('unit 2-1 entry media runtime', () => {
       accessMode: 'new_tab',
       embedMode: 'none',
       status: 'ready',
-      title: 'Control Theory Speedrun',
+      title: '控制理论生存指南：传递函数与终极梅森法则',
     });
   });
 
