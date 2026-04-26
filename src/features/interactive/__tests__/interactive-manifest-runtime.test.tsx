@@ -209,4 +209,31 @@ describe('interactive runtime manifest', () => {
     expect(source).not.toContain('REFERENCE_ANSWERS');
     expect(source).not.toContain('task-change-card');
   });
+
+  it('drives 4-6 shared content modules through manifest payload instead of course-specific module ids', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-6');
+    const manifest = runtime.interactiveManifest!;
+    const contentKinds = new Set(['formula-card', 'summary-card', 'native-table', 'image-panel', 'step-reveal']);
+
+    const contentModules = manifest.steps.flatMap((step) =>
+      step.modules
+        .filter((module) => contentKinds.has(module.kind))
+        .map((module) => ({ stepId: step.id, module })),
+    );
+
+    expect(contentModules.length).toBeGreaterThan(0);
+    for (const { stepId, module } of contentModules) {
+      expect(module.payload, `${stepId}:${module.id}`).not.toEqual({});
+    }
+
+    const source = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
+
+    expect(source).not.toContain("moduleId === 'plant-card'");
+    expect(source).not.toContain("'mismatch-reveal':");
+    expect(source).not.toContain("'scenario-compare-table'");
+    expect(source).not.toContain("'lesson-info-figure'");
+  });
 });

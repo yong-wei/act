@@ -2,6 +2,8 @@
 
 状态日期：2026-04-26
 
+进展补记：`4-6` 静态内容模块已经改为通过 manifest module `payload` 驱动公式、摘要、表格、图片与显影内容；共享 `content-renderers.tsx` 不再识别 `4-6` 专用 module id。
+
 ## 现状盘点
 
 当前互动课程运行时已经出现两条形态。第一条是传统课程本地实现：课程目录下维护大体量 `step-panels.tsx`，页面内容、作答区、教师汇总、显影逻辑和少量课程专用工作区混在同一文件中。第二条是 manifest-first 薄适配形态：运行时先加载 `course-content/runtime/lessons/<lesson>/interactive-manifest.json`，课程代码只负责接入共享 renderer、会话状态和课程路由。
