@@ -21,4 +21,16 @@ describe('simulation engine facade adoption', () => {
       expect(source, file).not.toMatch(directPhysicsImportPattern);
     }
   });
+
+  it('routes second-batch physical steppers through the virtual simulation runtime', () => {
+    const source = readFileSync(
+      path.join(process.cwd(), 'src/resources/simulations/physics/simulation-engine-facade.ts'),
+      'utf8',
+    );
+
+    expect(source).toContain('computeVirtualSimulationStep');
+    expect(source).toContain("modelId: 'mmg3dof'");
+    expect(source).toContain("modelId: 'semisub3dof'");
+    expect(source).toContain("modelId: 'azipod3dof'");
+  });
 });

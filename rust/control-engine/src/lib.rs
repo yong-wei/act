@@ -7,6 +7,7 @@ use wasm_bindgen::prelude::*;
 pub mod control_odyssey_runtime;
 pub mod destroyer_hifi;
 pub mod destroyer_hifi_runtime;
+pub mod virtual_simulation_runtime;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -1187,7 +1188,7 @@ pub fn compute_simulation_step(request_json: &str) -> Result<String, JsValue> {
 
 #[wasm_bindgen]
 pub fn compute_virtual_simulation_step(request_json: &str) -> Result<String, JsValue> {
-    destroyer_hifi_runtime::compute_virtual_simulation_step_json(request_json)
+    virtual_simulation_runtime::compute_virtual_simulation_step_json(request_json)
         .map_err(|error| JsValue::from_str(&error))
 }
 

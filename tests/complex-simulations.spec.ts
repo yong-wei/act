@@ -1,0 +1,48 @@
+import { test, expect } from '@playwright/test';
+
+const pages = [
+  {
+    path: '/simulations/dredger',
+    title: '天鲸号挖泥船动力定位仿真',
+    startName: /开始/,
+    runningText: '运行中',
+  },
+  {
+    path: '/simulations/drilling',
+    title: '海洋石油981 深水钻井平台',
+    startName: /开始/,
+    runningText: '运行中',
+  },
+  {
+    path: '/simulations/icebreaker',
+    title: '雪龙2号极地科考破冰船仿真',
+    startName: /运行/,
+    runningText: '暂停',
+  },
+];
+
+for (const scenario of pages) {
+  test(`${scenario.path} loads and starts without runtime errors`, async ({ page }) => {
+    test.setTimeout(120000);
+    const pageErrors: string[] = [];
+    const consoleErrors: string[] = [];
+
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+    page.on('console', (message) => {
+      if (message.type() === 'error') {
+        consoleErrors.push(message.text());
+      }
+    });
+
+    await page.goto(scenario.path, { waitUntil: 'networkidle' });
+    await expect(page.getByText(scenario.title)).toBeVisible({ timeout: 30000 });
+    await expect(page.locator('canvas')).toHaveCount(1, { timeout: 30000 });
+
+    await page.getByRole('button', { name: scenario.startName }).first().click();
+    await expect(page.getByText(scenario.runningText).first()).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(3000);
+
+    expect(pageErrors, `Page errors: ${pageErrors.join(' | ')}`).toEqual([]);
+    expect(consoleErrors, `Console errors: ${consoleErrors.join(' | ')}`).toEqual([]);
+  });
+}

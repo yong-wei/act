@@ -70,6 +70,8 @@ import {
   azipodCourseKeeperControlIceMode,
   getAzipodControllerDiagnostics,
   DEFAULT_AZIPOD_COURSE_KEEPER_CONFIG,
+  preloadVirtualSimulationRuntime,
+  isVirtualSimulationRuntimeReady,
   type Azipod3DOFInternalState,
   type Azipod3DOFParams,
   type IceBreakingState,
@@ -966,6 +968,10 @@ export default function IcebreakerSimulation() {
   // Azipod 参数 (使用预定义的默认参数)
   const azipodParams: Azipod3DOFParams = DEFAULT_AZIPOD_3DOF_PARAMS;
 
+  useEffect(() => {
+    preloadVirtualSimulationRuntime().catch(console.error);
+  }, []);
+
   // 仿真步进
   const simulationStep = useCallback(
     (dt: number) => {
@@ -1101,6 +1107,11 @@ export default function IcebreakerSimulation() {
     lastTimeRef.current = performance.now();
     let frameId = 0;
     const loop = (timestamp: number) => {
+      if (!isVirtualSimulationRuntimeReady()) {
+        lastTimeRef.current = timestamp;
+        frameId = requestAnimationFrame(loop);
+        return;
+      }
       const frameDt = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScale);
       lastTimeRef.current = timestamp;
       clockRef.current.advance(frameDt, simulationStep);

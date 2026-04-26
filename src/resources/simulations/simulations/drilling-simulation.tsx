@@ -77,6 +77,8 @@ import {
   dpStandardControl,
   createDPControllerConfig,
   createDPDecouplingState,
+  preloadVirtualSimulationRuntime,
+  isVirtualSimulationRuntimeReady,
   type SemiSubmersible3DOFState,
   type CurrentEnvironment,
   type WindEnvironment,
@@ -764,6 +766,10 @@ export function DrillingSimulation() {
   // 船舶配置
   const profile = drillingHYSY981Profile;
 
+  useEffect(() => {
+    preloadVirtualSimulationRuntime().catch(console.error);
+  }, []);
+
   // 更新海况
   useEffect(() => {
     const env = getTypicalEnvironment(config.seaStateLevel);
@@ -775,6 +781,12 @@ export function DrillingSimulation() {
   // 仿真主循环
   const simulate = useCallback(() => {
     if (!isRunning) return;
+
+    if (!isVirtualSimulationRuntimeReady()) {
+      lastUpdateRef.current = performance.now();
+      animationFrameRef.current = requestAnimationFrame(simulate);
+      return;
+    }
 
     const now = performance.now();
     const frameDt = getSimulationDeltaFromMilliseconds(now, lastUpdateRef.current, speedScale);

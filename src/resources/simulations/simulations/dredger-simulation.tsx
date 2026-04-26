@@ -61,6 +61,8 @@ import {
   createDPState,
   HIGH_PRECISION_DP_GAINS,
   DredgingImpactModel,
+  preloadVirtualSimulationRuntime,
+  isVirtualSimulationRuntimeReady,
   type MMG3DOFState,
   type DPState,
   type DPTarget,
@@ -596,9 +598,19 @@ export function DredgerSimulation() {
   // 船舶配置
   const profile = dredgerTianjingProfile;
 
+  useEffect(() => {
+    preloadVirtualSimulationRuntime().catch(console.error);
+  }, []);
+
   // 仿真主循环
   const simulate = useCallback(() => {
     if (!isRunning) return;
+
+    if (!isVirtualSimulationRuntimeReady()) {
+      lastUpdateRef.current = performance.now();
+      animationFrameRef.current = requestAnimationFrame(simulate);
+      return;
+    }
 
     const now = performance.now();
     const frameDt = getSimulationDeltaFromMilliseconds(now, lastUpdateRef.current, speedScale);

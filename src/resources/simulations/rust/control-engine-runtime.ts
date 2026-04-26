@@ -16,9 +16,13 @@ export const preloadVirtualSimulationRuntime = () => {
 
 export const isVirtualSimulationRuntimeReady = () => ready;
 
-export const computeDestroyerHifiStep = (request: DestroyerHifiStepRequest): DestroyerHifiStepResult => {
+export const computeVirtualSimulationStep = <TResult>(request: unknown): TResult => {
   if (!ready) {
     throw new Error('虚拟仿真数值内核尚未加载完成。');
   }
-  return JSON.parse(compute_virtual_simulation_step(JSON.stringify(request))) as DestroyerHifiStepResult;
+  return JSON.parse(compute_virtual_simulation_step(JSON.stringify(request))) as TResult;
+};
+
+export const computeDestroyerHifiStep = (request: DestroyerHifiStepRequest): DestroyerHifiStepResult => {
+  return computeVirtualSimulationStep<DestroyerHifiStepResult>(request);
 };
