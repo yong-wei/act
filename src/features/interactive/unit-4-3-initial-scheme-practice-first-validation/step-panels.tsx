@@ -9,12 +9,14 @@ import type { InteractiveRuntimeManifest, InteractiveRuntimeStepManifest } from 
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import {
   renderInteractiveManifestStep,
+  type InteractiveModuleRegistry,
+} from '@/features/interactive/shared/manifest-runtime/layout-renderer';
+import {
   renderStudentInteractiveActivity,
   renderTeacherInteractiveActivity,
-  type InteractiveModuleRegistry,
   type StudentInteractiveActivityRegistry,
   type TeacherInteractiveActivityRegistry,
-} from '@/features/interactive/shared/interactive-manifest-renderer';
+} from '@/features/interactive/shared/manifest-runtime/activity-renderers';
 import {
   buildUnit43AnalysisRequest,
   formatUnit43ControllerFormula,
@@ -982,8 +984,12 @@ const UNIT_4_3_MODULE_REGISTRY: InteractiveModuleRegistry<Unit43ModuleExtra> = {
     return items.length ? <SurfaceCard title="目标约束">{renderSentenceList(items, 'md:grid-cols-3')}</SurfaceCard> : null;
   },
   'single-choice-card': () => null,
-  'activity-card': () => null,
-  'activity-card-set': () => null,
+  'activity-card': ({ module }) => (
+    <div data-manifest-activity-anchor={module.id} className="hidden" aria-hidden="true" />
+  ),
+  'activity-card-set': ({ module }) => (
+    <div data-manifest-activity-anchor={module.id} className="hidden" aria-hidden="true" />
+  ),
   'quiz-stack': ({ step }) => {
     const items = asStringArray(step.contentBlocks.post_quiz_items);
     return items.length ? <SurfaceCard title="后测题组">{renderSentenceList(items, 'grid-cols-1')}</SurfaceCard> : null;

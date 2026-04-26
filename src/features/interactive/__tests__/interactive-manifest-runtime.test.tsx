@@ -6,12 +6,13 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
 import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import {
   renderInteractiveLessonLayout,
   renderInteractiveManifestStep,
   type InteractiveLayoutRegionNode,
   type InteractiveRuntimeStepManifest,
-} from '@/features/interactive/shared/interactive-manifest-renderer';
+} from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 
 vi.mock('server-only', () => ({}));
 
@@ -146,5 +147,66 @@ describe('interactive runtime manifest', () => {
 
     expect(html.indexOf('plant-card')).toBeLessThan(html.indexOf('recovered-solution-card'));
     expect(html.indexOf('recovered-solution-card')).toBeLessThan(html.indexOf('problem-focus'));
+  });
+
+  it('normalizes module payload titles and activity card reference answers from manifest payload', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-01': {
+          title: '测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'module-a',
+              title: 'manifest 模块标题',
+              region: 'main',
+              kind: 'summary-card',
+              must_be_visible: true,
+              payload: { block_key: 'summary_a' },
+            },
+          ],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'card-a',
+                title: 'manifest 卡片标题',
+                prompt: '写出判断依据。',
+                reference_answer: 'manifest 参考答案',
+                response_kind: 'fill_text',
+                submit_scope: 'per_card',
+                layout_span: 'full',
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(manifest?.steps[0]?.modules[0]).toMatchObject({
+      title: 'manifest 模块标题',
+      payload: { block_key: 'summary_a' },
+    });
+    expect(manifest?.steps[0]?.interactionSpec.activityCards?.[0]).toMatchObject({
+      title: 'manifest 卡片标题',
+      referenceAnswer: 'manifest 参考答案',
+    });
+  });
+
+  it('keeps manifest activity registries for the three shared activity kinds without course-id answer maps', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/activity-renderers.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain('activity_card_set:');
+    expect(source).toContain('quiz_group:');
+    expect(source).toContain('teacher_reveal_only:');
+    expect(source).toContain('card.referenceAnswer');
+    expect(source).toContain('data-manifest-missing-field');
+    expect(source).not.toContain('REFERENCE_ANSWERS');
+    expect(source).not.toContain('task-change-card');
   });
 });

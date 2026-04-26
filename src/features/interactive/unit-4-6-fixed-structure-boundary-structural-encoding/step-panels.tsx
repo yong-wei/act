@@ -2,17 +2,17 @@
 
 import {
   createManifestContentModuleRegistry,
-} from '@/features/interactive/shared/manifest-content-renderers';
+} from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import {
   createManifestStudentActivityRegistry,
   createManifestTeacherActivityRegistry,
-  type ManifestStepResponse,
-} from '@/features/interactive/shared/manifest-activity-renderers';
-import {
-  renderInteractiveManifestStep,
   renderStudentInteractiveActivity,
   renderTeacherInteractiveActivity,
-} from '@/features/interactive/shared/interactive-manifest-renderer';
+  type ManifestStepResponse,
+} from '@/features/interactive/shared/manifest-runtime/activity-renderers';
+import {
+  renderInteractiveManifestStep,
+} from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import {
   getUNIT_4_6ManifestStep,
   UNIT_4_6_RUNTIME_MANIFEST,

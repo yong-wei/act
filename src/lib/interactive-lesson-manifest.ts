@@ -24,14 +24,18 @@ export interface InteractiveRuntimeLayoutRegion {
 
 export interface InteractiveRuntimeModuleManifest {
   id: string;
+  title?: string;
   region: string;
   kind: string;
   mustBeVisible: boolean;
+  payload: Record<string, unknown>;
 }
 
 export interface InteractiveRuntimeActivityCardManifest {
   id: string;
+  title?: string;
   prompt: string;
+  referenceAnswer?: string;
   responseKind: string;
   submitScope: string;
   layoutSpan: string;
@@ -117,9 +121,11 @@ function normalizeModule(value: unknown): InteractiveRuntimeModuleManifest {
   const moduleRecord = asRecord(value);
   return {
     id: String(moduleRecord.id ?? ''),
+    title: moduleRecord.title ? String(moduleRecord.title) : undefined,
     region: String(moduleRecord.region ?? ''),
     kind: String(moduleRecord.kind ?? ''),
     mustBeVisible: Boolean(moduleRecord.must_be_visible ?? moduleRecord.mustBeVisible),
+    payload: asRecord(moduleRecord.payload),
   };
 }
 
@@ -127,7 +133,13 @@ function normalizeActivityCard(value: unknown): InteractiveRuntimeActivityCardMa
   const card = asRecord(value);
   return {
     id: String(card.id ?? ''),
+    title: card.title ? String(card.title) : undefined,
     prompt: String(card.prompt ?? ''),
+    referenceAnswer: card.reference_answer
+      ? String(card.reference_answer)
+      : card.referenceAnswer
+        ? String(card.referenceAnswer)
+        : undefined,
     responseKind: String(card.response_kind ?? card.responseKind ?? ''),
     submitScope: String(card.submit_scope ?? card.submitScope ?? ''),
     layoutSpan: String(card.layout_span ?? card.layoutSpan ?? ''),
