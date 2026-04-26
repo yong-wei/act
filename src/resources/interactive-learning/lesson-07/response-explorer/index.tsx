@@ -1,9 +1,14 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Activity, Gauge, Target, RefreshCw } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import {
+  isInteractiveSimulationRuntimeReady,
+  preloadInteractiveSimulationRuntime,
+  runSecondOrderAnalyticResponse,
+} from '@/resources/interactive-learning/rust/interactive-simulation-runtime';
 
 interface Challenge {
   id: string;
@@ -32,33 +37,24 @@ const CHALLENGES: Challenge[] = [
 
 interface ResponseExplorerProps extends BaseWidgetProps {}
 
-function computeResponse(zeta: number, wn: number) {
+function computeResponse(zeta: number, wn: number, runtimeReady = isInteractiveSimulationRuntimeReady()) {
   const safeZeta = Math.min(0.95, Math.max(0.05, zeta));
-  const wd = wn * Math.sqrt(1 - safeZeta * safeZeta);
-  const phi = Math.acos(safeZeta);
-  const tMax = Math.min(20, Math.max(6, 8 / (safeZeta * wn)));
-  const steps = 120;
-  const points = Array.from({ length: steps }, (_, idx) => {
-    const t = (tMax * idx) / (steps - 1);
-    const decay = Math.exp(-safeZeta * wn * t);
-    const response = 1 - (1 / Math.sqrt(1 - safeZeta * safeZeta)) * decay * Math.sin(wd * t + phi);
-    return { t, y: response };
-  });
-
-  const overshoot = Math.exp((-safeZeta * Math.PI) / Math.sqrt(1 - safeZeta * safeZeta)) * 100;
-  const peakTime = Math.PI / wd;
-  const settlingTime = 4 / (safeZeta * wn);
-  const riseTime = (Math.PI - phi) / wd;
-
-  return {
-    points,
-    tMax,
-    overshoot,
-    peakTime,
-    settlingTime,
-    riseTime,
-    wd,
-  };
+  const safeWn = Math.max(0.05, wn);
+  if (!runtimeReady) {
+    return {
+      points: [
+        { t: 0, y: 0 },
+        { t: 6, y: 0 },
+      ],
+      tMax: 6,
+      overshoot: 0,
+      peakTime: 0,
+      settlingTime: 0,
+      riseTime: 0,
+      wd: 0,
+    };
+  }
+  return runSecondOrderAnalyticResponse({ zeta: safeZeta, wn: safeWn, steps: 120 });
 }
 
 export default function ResponseExplorer({ onComplete, onStateChange }: ResponseExplorerProps) {
@@ -66,8 +62,21 @@ export default function ResponseExplorer({ onComplete, onStateChange }: Response
   const [zeta, setZeta] = useState(0.35);
   const [wn, setWn] = useState(2.0);
   const [completed, setCompleted] = useState<string[]>([]);
+  const [runtimeReady, setRuntimeReady] = useState(isInteractiveSimulationRuntimeReady());
 
-  const response = useMemo(() => computeResponse(zeta, wn), [zeta, wn]);
+  useEffect(() => {
+    let cancelled = false;
+    preloadInteractiveSimulationRuntime().then(() => {
+      if (!cancelled) {
+        setRuntimeReady(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const response = useMemo(() => computeResponse(zeta, wn, runtimeReady), [zeta, wn, runtimeReady]);
 
   const maxY = useMemo(() => Math.max(1.2, ...response.points.map((p) => p.y)) + 0.1, [response.points]);
 

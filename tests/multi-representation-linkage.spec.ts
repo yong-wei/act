@@ -20,7 +20,7 @@ test('multi representation linkage page should not emit chart size warning on fi
     }
   });
 
-  await page.goto('/interactive-learning/multi-representation-linkage', { waitUntil: 'networkidle' });
+  await page.goto('/interactive-learning/multi-representation-linkage', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: '多表征联动可视化引擎' })).toBeVisible();
 
   const phaseMarginValue = page

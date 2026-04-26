@@ -4,10 +4,6 @@
  * 使用随机搜索算法寻找最优 PID 参数
  */
 
-import {
-  generateGuidePath,
-  getScenarioLogic,
-} from './simulation-engine';
 import { computeVirtualSimulationServerStep } from '../rust/control-engine-server-runtime';
 import type { Position } from '../types';
 
@@ -58,6 +54,34 @@ export interface SimpleSimConfig {
     windSpeed: number;
   };
 }
+
+interface ScenarioLogic {
+  getDesiredHeading: (time: number) => number;
+  startPos: { x: number; z: number; headingDeg: number };
+}
+
+const getScenarioLogic = (_scenario: 'turn90'): ScenarioLogic => ({
+  startPos: { x: -6000, z: 0, headingDeg: 0 },
+  getDesiredHeading: (time: number) => (time < 60 ? 0 : 90),
+});
+
+const generateGuidePath = (logic: ScenarioLogic, duration: number, speed: number): Position[] => {
+  const points: Position[] = [];
+  let x = logic.startPos.x;
+  let z = logic.startPos.z;
+  const dt = 0.5;
+
+  points.push({ x, z });
+  for (let time = 0; time <= duration; time += dt) {
+    const headingRad = (logic.getDesiredHeading(time) * Math.PI) / 180;
+    x += speed * Math.cos(headingRad) * dt;
+    z += speed * Math.sin(headingRad) * dt;
+    if (Math.round(time / dt) % 4 === 0) {
+      points.push({ x, z });
+    }
+  }
+  return points;
+};
 
 interface RustQuickSimResult {
   trajectory: Array<{ time: number; x: number; z: number; heading: number; rudder: number }>;

@@ -23,10 +23,12 @@ import type {
 } from '../../types';
 import { DEFAULT_CHAMPAGNE_TOWER_PARAMS } from '../../types';
 import { SimulationClock } from '@/lib/simulation';
+import {
+  preloadInteractiveSimulationRuntime,
+  stepChampagneTower,
+} from '@/resources/interactive-learning/rust/interactive-simulation-runtime';
 
-const DEG_TO_RAD = Math.PI / 180;
 const RAD_TO_DEG = 180 / Math.PI;
-const G = 9.81; // 重力加速度
 
 export interface UseChampagneTowerOptions {
   params?: Partial<ChampagneTowerParams>;
@@ -69,10 +71,6 @@ export function useChampagneTower(
     ...customParams,
   };
 
-  // 计算物理参数
-  const naturalFreq = Math.sqrt(G / params.height); // ω = sqrt(g/L)
-  const fallThresholdRad = params.fallThreshold * DEG_TO_RAD;
-
   // 状态
   const [state, setState] = useState<ChampagneTowerState>({
     angle: 0,
@@ -96,32 +94,46 @@ export function useChampagneTower(
   const lastTimeRef = useRef<number>(0);
   const clockRef = useRef(new SimulationClock({ dt: 1 / updateRate, maxSubSteps: 6 }));
   const isFallingRef = useRef(false);
+  const runtimeReadyRef = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    preloadInteractiveSimulationRuntime().then(() => {
+      if (!cancelled) {
+        runtimeReadyRef.current = true;
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // 物理模拟步进
   const step = useCallback(
     (dt: number) => {
+      if (!runtimeReadyRef.current) return;
       const { angle, angularVelocity, lateralAccel, shipRoll } = stateRef.current;
-
-      // 计算外力（侧向加速度和船舶横摇的影响）
-      // 将加速度转换为等效角加速度
-      const externalForce = (lateralAccel * G) / params.height + shipRoll * DEG_TO_RAD * 0.5;
-
-      // 二阶系统动力学: θ'' = -2ζωθ' - ω²θ + F/L
-      const angularAccel =
-        -2 * params.dampingRatio * naturalFreq * angularVelocity -
-        naturalFreq * naturalFreq * angle +
-        externalForce;
-
-      // 欧拉积分
-      const newVelocity = angularVelocity + angularAccel * dt;
-      const newAngle = angle + newVelocity * dt;
+      const next = stepChampagneTower({
+        dt,
+        lateralAccel,
+        shipRollDeg: shipRoll,
+        params: {
+          height: params.height,
+          dampingRatio: params.dampingRatio,
+          fallThreshold: params.fallThreshold,
+        },
+        state: {
+          angle,
+          angularVelocity,
+        },
+      });
 
       // 更新状态
-      stateRef.current.angle = newAngle;
-      stateRef.current.angularVelocity = newVelocity;
+      stateRef.current.angle = next.angle;
+      stateRef.current.angularVelocity = next.angularVelocity;
 
       // 检查倒塌
-      const hasFallen = Math.abs(newAngle) > fallThresholdRad;
+      const hasFallen = next.isFalling;
 
       if (hasFallen && !isFallingRef.current) {
         isFallingRef.current = true;
@@ -129,18 +141,16 @@ export function useChampagneTower(
       }
 
       // 计算稳定性 (0-1)
-      const stability = Math.max(0, 1 - Math.abs(newAngle) / fallThresholdRad);
-
       // 更新 React 状态
       setState({
-        angle: newAngle,
-        angularVelocity: newVelocity,
+        angle: next.angle,
+        angularVelocity: next.angularVelocity,
         isFalling: hasFallen,
-        stability,
+        stability: next.stability,
         lateralAccel,
       });
     },
-    [params.dampingRatio, params.height, naturalFreq, fallThresholdRad]
+    [params.dampingRatio, params.fallThreshold, params.height]
   );
 
   // 动画循环

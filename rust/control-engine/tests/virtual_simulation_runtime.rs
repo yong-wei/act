@@ -8,6 +8,94 @@ fn assert_finite_fields(value: &Value, fields: &[&str]) {
 }
 
 #[test]
+fn interactive_linear_runtimes_return_finite_series() {
+    let pid_request = json!({
+        "modelId": "linear_pid_batch",
+        "dt": 0.05,
+        "duration": 2.0,
+        "reference": 1.0,
+        "kp": 1.2,
+        "ki": 0.1,
+        "kd": 0.25,
+        "numerator": [0.5],
+        "denominator": [0.0, 0.12, 1.0]
+    });
+    let pid_result: Value = serde_json::from_str(
+        &compute_virtual_simulation_step_json(&pid_request.to_string()).unwrap(),
+    )
+    .unwrap();
+    assert!(pid_result["times"].as_array().unwrap().len() > 10);
+    assert!(pid_result["response"][0].as_f64().unwrap().is_finite());
+    assert!(pid_result["metrics"]["finalValue"].as_f64().unwrap().is_finite());
+
+    let step_request = json!({
+        "modelId": "second_order_step_response",
+        "zeta": 0.45,
+        "omega": 4.5,
+        "duration": 2.0,
+        "dt": 0.01
+    });
+    let step_result: Value = serde_json::from_str(
+        &compute_virtual_simulation_step_json(&step_request.to_string()).unwrap(),
+    )
+    .unwrap();
+    assert!(step_result["values"].as_array().unwrap().len() > 100);
+    assert!(step_result["metrics"]["overshoot"].as_f64().unwrap().is_finite());
+
+    let response_request = json!({
+        "modelId": "transfer_function_response",
+        "numerator": [1.0],
+        "denominator": [1.0, 1.0],
+        "duration": 2.0,
+        "dt": 0.02,
+        "signal": "step"
+    });
+    let response_result: Value = serde_json::from_str(
+        &compute_virtual_simulation_step_json(&response_request.to_string()).unwrap(),
+    )
+    .unwrap();
+    assert!(response_result["points"].as_array().unwrap().len() > 20);
+    assert!(response_result["maxY"].as_f64().unwrap().is_finite());
+}
+
+#[test]
+fn interactive_cruise_and_champagne_steps_return_finite_state() {
+    let cruise_request = json!({
+        "modelId": "cruise_typhoon_step",
+        "dt": 0.1,
+        "seaState": 4,
+        "state": {
+            "time": 0.0,
+            "heading": 0.0,
+            "targetHeading": 20.0,
+            "rollAngle": 0.0,
+            "yawRate": 0.0,
+            "speed": 18.0,
+            "lateralAccel": 0.0
+        }
+    });
+    let cruise_result: Value = serde_json::from_str(
+        &compute_virtual_simulation_step_json(&cruise_request.to_string()).unwrap(),
+    )
+    .unwrap();
+    assert_finite_fields(&cruise_result, &["time", "heading", "rollAngle", "yawRate", "lateralAccel"]);
+
+    let tower_request = json!({
+        "modelId": "champagne_tower_step",
+        "dt": 0.1,
+        "lateralAccel": 0.2,
+        "shipRollDeg": 3.0,
+        "params": { "height": 1.8, "dampingRatio": 0.18, "fallThreshold": 12.0 },
+        "state": { "angle": 0.0, "angularVelocity": 0.0 }
+    });
+    let tower_result: Value = serde_json::from_str(
+        &compute_virtual_simulation_step_json(&tower_request.to_string()).unwrap(),
+    )
+    .unwrap();
+    assert_finite_fields(&tower_result, &["angle", "angularVelocity", "stability", "lateralAccel"]);
+}
+
+#[test]
 fn mmg3dof_step_outputs_finite_state_and_limits_rudder_rate() {
     let request = json!({
         "modelId": "mmg3dof",

@@ -3,9 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Award, Clock, Gauge, Sparkles, TrendingUp } from 'lucide-react';
 import { JUDGE_THRESHOLDS } from '../types';
-import { createLinearPlant } from '@/lib/simulation';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import {
+  preloadInteractiveSimulationRuntime,
+  runSecondOrderStepResponse,
+} from '@/resources/interactive-learning/rust/interactive-simulation-runtime';
 
 interface SimulationMetrics {
   riseTime: number | null;
@@ -24,68 +27,26 @@ interface SimulationResult {
 
 const TARGET = 1;
 
+const EMPTY_RESULT: SimulationResult = {
+  times: [0],
+  values: [0],
+  metrics: {
+    riseTime: null,
+    peakTime: null,
+    settlingTime: null,
+    overshoot: 0,
+    steadyStateError: 1,
+    peakValue: 0,
+  },
+};
+
 const formatValue = (value: number | null, unit: string) =>
   value === null || Number.isNaN(value) ? '--' : `${value.toFixed(2)}${unit}`;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function simulateStepResponse(zeta: number, omega: number, duration: number, dt: number): SimulationResult {
-  const steps = Math.floor(duration / dt);
-  const times: number[] = [];
-  const values: number[] = [];
-
-  const plant = createLinearPlant(
-    {
-      type: 'transfer_function',
-      numerator: [omega * omega],
-      denominator: [omega * omega, 2 * zeta * omega, 1],
-    },
-    dt
-  );
-  let y = 0;
-
-  for (let i = 0; i <= steps; i += 1) {
-    const t = i * dt;
-    const stepResult = plant.step([TARGET]);
-    y = stepResult.output[0] ?? 0;
-    times.push(t);
-    values.push(y);
-  }
-
-  const peakValue = Math.max(...values);
-  const peakIndex = values.indexOf(peakValue);
-  const peakTime = peakIndex >= 0 ? times[peakIndex] : null;
-  const overshoot = peakValue > TARGET ? ((peakValue - TARGET) / TARGET) * 100 : 0;
-
-  const riseStart = values.findIndex((value) => value >= TARGET * 0.1);
-  const riseEnd = values.findIndex((value) => value >= TARGET * 0.9);
-  const riseTime = riseStart >= 0 && riseEnd >= 0 ? times[riseEnd] - times[riseStart] : null;
-
-  const band = TARGET * 0.05;
-  let lastOutside = -1;
-  values.forEach((value, index) => {
-    if (Math.abs(value - TARGET) > band) {
-      lastOutside = index;
-    }
-  });
-  const settlingTime = lastOutside >= 0 && lastOutside + 1 < times.length
-    ? times[lastOutside + 1]
-    : 0;
-
-  const steadyStateError = Math.abs(TARGET - values[values.length - 1]);
-
-  return {
-    times,
-    values,
-    metrics: {
-      riseTime,
-      peakTime,
-      settlingTime,
-      overshoot,
-      steadyStateError,
-      peakValue,
-    },
-  };
+  return runSecondOrderStepResponse({ zeta, omega, duration, dt });
 }
 
 function buildPath(values: number[], width: number, height: number) {
@@ -134,12 +95,13 @@ export default function JudgeBenchSim({ onComplete, onStateChange }: JudgeBenchS
   const [zeta, setZeta] = useState(0.45);
   const [omega, setOmega] = useState(4.5);
   const [duration, setDuration] = useState(6);
-  const [result, setResult] = useState(() => simulateStepResponse(zeta, omega, duration, 0.01));
+  const [result, setResult] = useState<SimulationResult>(EMPTY_RESULT);
 
   const score = useMemo(() => computeScore(result.metrics), [result.metrics]);
   const advices = useMemo(() => buildAdvice(result.metrics), [result.metrics]);
 
-  const handleRun = useCallback(() => {
+  const handleRun = useCallback(async () => {
+    await preloadInteractiveSimulationRuntime();
     const nextResult = simulateStepResponse(zeta, omega, duration, 0.01);
     setResult(nextResult);
     interactive?.tracking.emit('submit', {
@@ -149,6 +111,18 @@ export default function JudgeBenchSim({ onComplete, onStateChange }: JudgeBenchS
       metrics: nextResult.metrics,
     });
   }, [zeta, omega, duration, interactive]);
+
+  useEffect(() => {
+    let cancelled = false;
+    preloadInteractiveSimulationRuntime().then(() => {
+      if (!cancelled) {
+        setResult(simulateStepResponse(zeta, omega, duration, 0.01));
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [duration, omega, zeta]);
 
   const pass = result.metrics.overshoot <= JUDGE_THRESHOLDS.overshoot
     && (result.metrics.settlingTime ?? 0) <= JUDGE_THRESHOLDS.settlingTime

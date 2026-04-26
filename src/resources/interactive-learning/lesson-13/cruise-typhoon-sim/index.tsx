@@ -35,6 +35,10 @@ import { EthicalTrigger, type EthicalTriggerConfig } from '@/components/classroo
 import { SimulationClock } from '@/lib/simulation';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import {
+  preloadInteractiveSimulationRuntime,
+  stepCruiseTyphoonScenario,
+} from '@/resources/interactive-learning/rust/interactive-simulation-runtime';
 
 // 动态导入3D仿真组件
 const CruiseSimulation3D = dynamic(
@@ -51,9 +55,6 @@ const CruiseSimulation3D = dynamic(
     ),
   }
 );
-
-// 重力加速度
-const G = 9.81;
 
 export interface CruiseTyphoonSimProps extends BaseWidgetProps {
   /** 场景配置 */
@@ -140,20 +141,19 @@ export function CruiseTyphoonSim({
   const animationRef = useRef<number>();
   const lastTimeRef = useRef<number>(0);
   const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
+  const runtimeReadyRef = useRef(false);
 
-  // 计算侧向加速度（基于横摇角和转向角速度）
-  const calculateLateralAccel = useCallback(
-    (rollAngle: number, yawRate: number, speed: number): number => {
-      // 侧向加速度 = g * sin(roll) + V * r
-      // 其中 V 是速度 (m/s)，r 是转向角速度 (rad/s)
-      const speedMs = (speed * 0.5144); // 节转换为m/s
-      const rollRad = (rollAngle * Math.PI) / 180;
-      const rollAccel = G * Math.sin(rollRad);
-      const turningAccel = speedMs * Math.abs(yawRate);
-      return (rollAccel + turningAccel) / G; // 返回 g 单位
-    },
-    []
-  );
+  useEffect(() => {
+    let cancelled = false;
+    preloadInteractiveSimulationRuntime().then(() => {
+      if (!cancelled) {
+        runtimeReadyRef.current = true;
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // 模拟仿真循环（实际应用中从3D仿真获取数据）
   useEffect(() => {
@@ -170,32 +170,12 @@ export function CruiseTyphoonSim({
       let currentState = simStateRef.current;
 
       const stepSimulation = (dt: number) => {
-        // 模拟航向变化（简化模型）
-        const headingError = currentState.targetHeading - currentState.heading;
-        const headingRate = Math.sign(headingError) * Math.min(Math.abs(headingError) * 0.1, 2);
-        const newHeading = currentState.heading + headingRate * dt;
-
-        // 模拟横摇（受海况影响）
-        const wavePhase = currentState.time * 0.5;
-        const baseRoll = 3 * Math.sin(wavePhase) * (scenario.seaState / 5);
-        const turningRoll = headingRate * 2; // 转向引起的横摇
-        const newRoll = baseRoll + turningRoll;
-
-        // 计算侧向加速度
-        const lateralAccel = calculateLateralAccel(
-          newRoll,
-          headingRate * (Math.PI / 180),
-          currentState.speed
-        );
-
-        currentState = {
-          ...currentState,
-          time: currentState.time + dt,
-          heading: newHeading,
-          rollAngle: newRoll,
-          yawRate: headingRate,
-          lateralAccel,
-        };
+        if (!runtimeReadyRef.current) return;
+        currentState = stepCruiseTyphoonScenario({
+          state: currentState,
+          dt,
+          seaState: scenario.seaState,
+        }) as typeof currentState;
       };
 
       const steps = clockRef.current.advance(frameDelta, stepSimulation);
@@ -216,7 +196,7 @@ export function CruiseTyphoonSim({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [simState.isRunning, simState.isPaused, scenario.seaState, calculateLateralAccel]);
+  }, [simState.isRunning, simState.isPaused, scenario.seaState]);
 
   // 更新香槟塔输入
   useEffect(() => {

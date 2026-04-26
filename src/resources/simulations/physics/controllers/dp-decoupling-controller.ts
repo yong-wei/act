@@ -29,7 +29,7 @@ import {
 import {
   getDecouplingMatrix,
   applyDecoupling,
-} from '../models/semisubmersible-3dof';
+} from '../model-state-helpers';
 
 // ============ 类型定义 ============
 

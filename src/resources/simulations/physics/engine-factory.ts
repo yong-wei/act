@@ -16,7 +16,6 @@ import type {
 } from '../core/types';
 import type { ShipProfile } from '../core/ship-profile';
 import {
-  nomotoStep,
   nomotoStepRK4,
   createNomotoState,
   nomotoToSimulationState,

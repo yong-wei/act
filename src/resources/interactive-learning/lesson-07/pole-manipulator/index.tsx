@@ -13,9 +13,10 @@ import {
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 import {
-  discretizeTransferFunctionTustin,
-  stepDiscreteStateSpace,
-} from '@/lib/simulation';
+  isInteractiveSimulationRuntimeReady,
+  preloadInteractiveSimulationRuntime,
+  runTransferFunctionResponse,
+} from '@/resources/interactive-learning/rust/interactive-simulation-runtime';
 
 const PLANE_BOUNDS = {
   minRe: -6,
@@ -241,18 +242,12 @@ function estimateDuration(poles: RootPoint[]) {
   return clamp(6 / minDecay, 6, 12);
 }
 
-function getSignalValue(signal: SignalType, t: number, dt: number) {
-  if (signal === 'step') return 1;
-  if (signal === 'ramp') return t;
-  if (signal === 'impulse') return t <= dt ? 1 / dt : 0;
-  return 1;
-}
-
 function simulateResponse(
   poles: RootPoint[],
   zeros: RootPoint[],
   signal: SignalType,
-  durationOverride?: number
+  durationOverride?: number,
+  runtimeReady = isInteractiveSimulationRuntimeReady()
 ): ResponseSeries {
   const expandedPoles = expandRoots(poles);
   const expandedZeros = expandRoots(zeros);
@@ -261,38 +256,26 @@ function simulateResponse(
   const denominator = toRealCoefficients(polyFromRoots(expandedPoles));
 
   const duration = durationOverride ?? estimateDuration(poles);
-  const steps = Math.min(MAX_SIM_STEPS, Math.ceil(duration / SIM_DT));
-
-  const model = discretizeTransferFunctionTustin(
-    {
-      type: 'transfer_function',
-      numerator: numerator.length ? numerator : [1],
-      denominator: denominator.length ? denominator : [1],
-    },
-    SIM_DT
-  );
-
-  const points: ResponsePoint[] = [];
-  let state = Array.from({ length: model.A.length }, () => 0);
-
-  for (let i = 0; i <= steps; i += 1) {
-    const t = i * SIM_DT;
-    const inputValue = getSignalValue(signal, t, SIM_DT);
-    const result = stepDiscreteStateSpace(model, state, [inputValue]);
-    state = result.state;
-    points.push({ t, y: result.output[0] ?? 0 });
+  if (!runtimeReady) {
+    return {
+      points: [
+        { t: 0, y: 0 },
+        { t: duration, y: 0 },
+      ],
+      minY: 0,
+      maxY: 1,
+      duration,
+    };
   }
 
-  const values = points.map((p) => p.y);
-  const minY = Math.min(...values, 0);
-  const maxY = Math.max(...values, 1);
-
-  return {
-    points,
-    minY: minY - 0.1 * Math.abs(minY),
-    maxY: maxY + 0.1 * Math.abs(maxY),
+  return runTransferFunctionResponse({
+    numerator: numerator.length ? numerator : [1],
+    denominator: denominator.length ? denominator : [1],
+    dt: SIM_DT,
     duration,
-  };
+    signal,
+    maxSteps: MAX_SIM_STEPS,
+  });
 }
 
 function computeStepMetrics(series: ResponseSeries): StepMetrics {
@@ -580,8 +563,24 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
   const [challengeStart, setChallengeStart] = useState<number | null>(null);
   const [challengeSubmitted, setChallengeSubmitted] = useState(false);
   const [challengeScores, setChallengeScores] = useState<number[] | null>(null);
+  const [runtimeReady, setRuntimeReady] = useState(isInteractiveSimulationRuntimeReady());
 
-  const response = useMemo(() => simulateResponse(poles, zeros, signal), [poles, zeros, signal]);
+  useEffect(() => {
+    let cancelled = false;
+    preloadInteractiveSimulationRuntime().then(() => {
+      if (!cancelled) {
+        setRuntimeReady(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const response = useMemo(
+    () => simulateResponse(poles, zeros, signal, undefined, runtimeReady),
+    [poles, zeros, signal, runtimeReady]
+  );
   const [responseViewMode, setResponseViewMode] = useState<'auto' | 'manual'>('auto');
   const [responseView, setResponseView] = useState<ResponseView>(() => buildResponseView(response));
   const [challengeViewMode, setChallengeViewMode] = useState<'auto' | 'manual'>('auto');
@@ -1202,7 +1201,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
         label: `曲线 ${index + 1}`,
         color: CHALLENGE_COLORS[index % CHALLENGE_COLORS.length],
         pole,
-        response: simulateResponse(polesForSim, [], 'step', sharedDuration),
+        response: simulateResponse(polesForSim, [], 'step', sharedDuration, runtimeReady),
         guess: randomStablePole(DEFAULT_PLANE_VIEW),
       };
     });
@@ -1215,7 +1214,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
     setChallengeViewMode('auto');
     setChallengeResponseView(buildChallengeResponseView(targets));
     interactive?.progress.setProgress(0);
-  }, [interactive?.progress]);
+  }, [interactive?.progress, runtimeReady]);
 
   useEffect(() => {
     if (mode === 'challenge') {

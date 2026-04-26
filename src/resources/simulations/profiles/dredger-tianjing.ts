@@ -9,7 +9,7 @@
 
 import type { ShipProfile } from '../core/ship-profile';
 import { TIANJING_DREDGER_PARAMS, HIGH_GAIN_PID } from '../core/constants';
-import { DEFAULT_MMG_PARAMS } from '../physics/models/mmg-3dof';
+import { DEFAULT_MMG_PARAMS } from '../physics/simulation-engine-facade';
 import { HIGH_PRECISION_DP_GAINS } from '../physics/controllers/dp-controller';
 
 export const dredgerTianjingProfile: ShipProfile = {

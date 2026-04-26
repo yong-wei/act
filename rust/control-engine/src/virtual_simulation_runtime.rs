@@ -125,8 +125,240 @@ fn json_array_f64(value: &Value, key: &str) -> Vec<f64> {
         .unwrap_or_default()
 }
 
+fn array_f64(value: &Value, key: &str, fallback: &[f64]) -> Vec<f64> {
+    let values = json_array_f64(value, key);
+    if values.is_empty() {
+        fallback.to_vec()
+    } else {
+        values
+    }
+}
+
 fn round2(value: f64) -> f64 {
     (value * 100.0).round() / 100.0
+}
+
+#[derive(Clone)]
+struct LinearDiscretePlant {
+    a: Vec<Vec<f64>>,
+    b: Vec<f64>,
+    c: Vec<f64>,
+    d: f64,
+}
+
+fn matrix_identity(size: usize) -> Vec<Vec<f64>> {
+    let mut matrix = vec![vec![0.0; size]; size];
+    for (index, row) in matrix.iter_mut().enumerate() {
+        row[index] = 1.0;
+    }
+    matrix
+}
+
+fn matrix_add(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
+    a.iter()
+        .zip(b.iter())
+        .map(|(ar, br)| ar.iter().zip(br.iter()).map(|(av, bv)| av + bv).collect())
+        .collect()
+}
+
+fn matrix_sub(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
+    a.iter()
+        .zip(b.iter())
+        .map(|(ar, br)| ar.iter().zip(br.iter()).map(|(av, bv)| av - bv).collect())
+        .collect()
+}
+
+fn matrix_scale(a: &[Vec<f64>], scalar: f64) -> Vec<Vec<f64>> {
+    a.iter()
+        .map(|row| row.iter().map(|value| value * scalar).collect())
+        .collect()
+}
+
+fn matrix_mul(a: &[Vec<f64>], b: &[Vec<f64>]) -> Vec<Vec<f64>> {
+    let rows = a.len();
+    let cols = b.first().map(|row| row.len()).unwrap_or(0);
+    let inner = b.len();
+    let mut output = vec![vec![0.0; cols]; rows];
+    for i in 0..rows {
+        for j in 0..cols {
+            output[i][j] = (0..inner).map(|k| a[i][k] * b[k][j]).sum();
+        }
+    }
+    output
+}
+
+fn matrix_vec_mul(a: &[Vec<f64>], x: &[f64]) -> Vec<f64> {
+    a.iter().map(|row| dot(row, x)).collect()
+}
+
+fn vec_matrix_mul(x: &[f64], a: &[Vec<f64>]) -> Vec<f64> {
+    let cols = a.first().map(|row| row.len()).unwrap_or(0);
+    (0..cols)
+        .map(|col| x.iter().enumerate().map(|(row, value)| value * a[row][col]).sum())
+        .collect()
+}
+
+fn dot(a: &[f64], b: &[f64]) -> f64 {
+    a.iter().zip(b.iter()).map(|(av, bv)| av * bv).sum()
+}
+
+fn invert_matrix(matrix: &[Vec<f64>]) -> Result<Vec<Vec<f64>>, String> {
+    let n = matrix.len();
+    let mut augmented = vec![vec![0.0; n * 2]; n];
+    for i in 0..n {
+        for j in 0..n {
+            augmented[i][j] = matrix[i][j];
+        }
+        augmented[i][n + i] = 1.0;
+    }
+    for col in 0..n {
+        let pivot = (col..n)
+            .max_by(|&a, &b| {
+                augmented[a][col]
+                    .abs()
+                    .partial_cmp(&augmented[b][col].abs())
+                    .unwrap()
+            })
+            .unwrap();
+        if augmented[pivot][col].abs() < 1e-12 {
+            return Err("matrix is singular".to_string());
+        }
+        augmented.swap(col, pivot);
+        let divisor = augmented[col][col];
+        for value in augmented[col].iter_mut() {
+            *value /= divisor;
+        }
+        for row in 0..n {
+            if row == col {
+                continue;
+            }
+            let factor = augmented[row][col];
+            for j in 0..(n * 2) {
+                augmented[row][j] -= factor * augmented[col][j];
+            }
+        }
+    }
+    Ok((0..n)
+        .map(|row| augmented[row][n..(n * 2)].to_vec())
+        .collect())
+}
+
+fn discretize_transfer_function(
+    numerator_in: &[f64],
+    denominator_in: &[f64],
+    dt: f64,
+) -> Result<LinearDiscretePlant, String> {
+    if denominator_in.is_empty() {
+        return Err("denominator cannot be empty".to_string());
+    }
+    let leading = *denominator_in.last().unwrap_or(&1.0);
+    if leading.abs() < 1e-12 {
+        return Err("highest-order denominator coefficient cannot be zero".to_string());
+    }
+    let numerator: Vec<f64> = numerator_in.iter().map(|value| value / leading).collect();
+    let denominator: Vec<f64> = denominator_in.iter().map(|value| value / leading).collect();
+    let order = denominator.len().saturating_sub(1);
+    if order == 0 {
+        return Ok(LinearDiscretePlant {
+            a: vec![vec![0.0]],
+            b: vec![1.0],
+            c: vec![numerator.first().copied().unwrap_or(0.0)],
+            d: 0.0,
+        });
+    }
+
+    let mut a = vec![vec![0.0; order]; order];
+    for index in 0..order.saturating_sub(1) {
+        a[index][index + 1] = 1.0;
+    }
+    for index in 0..order {
+        a[order - 1][index] = -denominator.get(index).copied().unwrap_or(0.0);
+    }
+    let mut b = vec![0.0; order];
+    b[order - 1] = 1.0;
+    let mut c = vec![0.0; order];
+    for (index, value) in numerator.iter().take(order).enumerate() {
+        c[index] = *value;
+    }
+    let d = if numerator.len() > order {
+        numerator[order]
+    } else {
+        0.0
+    };
+
+    let identity = matrix_identity(order);
+    let a_half = matrix_scale(&a, dt / 2.0);
+    let inv = invert_matrix(&matrix_sub(&identity, &a_half))?;
+    let ad = matrix_mul(&inv, &matrix_add(&identity, &a_half));
+    let bd = matrix_vec_mul(&inv, &b)
+        .into_iter()
+        .map(|value| value * dt)
+        .collect::<Vec<_>>();
+    let cd = vec_matrix_mul(&c, &inv);
+    let dd = d + dot(&cd, &b) * dt / 2.0;
+    Ok(LinearDiscretePlant {
+        a: ad,
+        b: bd,
+        c: cd,
+        d: dd,
+    })
+}
+
+fn step_linear_plant(plant: &LinearDiscretePlant, state: &mut Vec<f64>, input: f64) -> f64 {
+    if state.len() != plant.a.len() {
+        state.resize(plant.a.len(), 0.0);
+    }
+    let mut next = matrix_vec_mul(&plant.a, state);
+    for (value, b) in next.iter_mut().zip(plant.b.iter()) {
+        *value += b * input;
+    }
+    *state = next;
+    dot(&plant.c, state) + plant.d * input
+}
+
+fn response_metrics(values: &[f64], times: &[f64], target: f64) -> Value {
+    let final_value = values.last().copied().unwrap_or(0.0);
+    let steady_state_error = (target - final_value).abs();
+    let peak_value = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    let peak_index = values
+        .iter()
+        .position(|value| (*value - peak_value).abs() < 1e-12)
+        .unwrap_or(0);
+    let peak_time = times.get(peak_index).copied().unwrap_or(0.0);
+    let overshoot = if target.abs() > 1e-9 && peak_value > target {
+        (peak_value - target) / target.abs() * 100.0
+    } else {
+        0.0
+    };
+    let rise_start = values.iter().position(|value| *value >= target * 0.1);
+    let rise_end = values.iter().position(|value| *value >= target * 0.9);
+    let rise_time = match (rise_start, rise_end) {
+        (Some(start), Some(end)) => times.get(end).unwrap_or(&0.0) - times.get(start).unwrap_or(&0.0),
+        _ => 0.0,
+    };
+    let band = target.abs() * 0.05;
+    let last_outside = values
+        .iter()
+        .enumerate()
+        .filter(|(_, value)| (**value - target).abs() > band)
+        .map(|(index, _)| index)
+        .last();
+    let settling_time = match last_outside {
+        Some(index) if index + 1 < times.len() => times[index + 1],
+        Some(_) => times.last().copied().unwrap_or(0.0),
+        None => 0.0,
+    };
+
+    json!({
+        "finalValue": final_value,
+        "steadyStateError": steady_state_error,
+        "overshootPercent": overshoot.max(0.0),
+        "overshoot": overshoot.max(0.0),
+        "riseTime": rise_time,
+        "peakTime": peak_time,
+        "settlingTime": settling_time,
+        "peakValue": peak_value
+    })
 }
 
 fn compute_nomoto1st(request: &Value) -> Result<String, String> {
@@ -187,6 +419,221 @@ fn compute_nomoto1st(request: &Value) -> Result<String, String> {
         "positionZ": y[3] + dt * (k1[3] + 2.0 * k2[3] + 2.0 * k3[3] + k4[3]) / 6.0,
         "rudderDeg": rudder_deg,
         "speedMps": speed
+    }))
+    .map_err(|error| error.to_string())
+}
+
+fn compute_linear_pid_batch(request: &Value) -> Result<String, String> {
+    let dt = num(request, "dt", 0.05);
+    if dt <= 0.0 || dt > 1.0 {
+        return Err("dt must be in (0, 1].".to_string());
+    }
+    let duration = num(request, "duration", 20.0).clamp(dt, 120.0);
+    let reference = num(request, "reference", 1.0);
+    let numerator = array_f64(request, "numerator", &[1.0]);
+    let denominator = array_f64(request, "denominator", &[1.0, 1.0]);
+    let plant = discretize_transfer_function(&numerator, &denominator, dt)?;
+    let mut state = vec![0.0; plant.a.len()];
+    let mut y = 0.0;
+    let mut prev_error = 0.0;
+    let mut integral = 0.0;
+    let kp = num(request, "kp", 0.0);
+    let ki = num(request, "ki", 0.0);
+    let kd = num(request, "kd", 0.0);
+    let mut times = Vec::new();
+    let mut response = Vec::new();
+    let mut setpoint = Vec::new();
+
+    let mut sim_time = 0.0;
+    while sim_time <= duration + 1e-9 {
+        let error = reference - y;
+        integral += error * dt;
+        let derivative = (error - prev_error) / dt;
+        let control = kp * error + ki * integral + kd * derivative;
+        y = step_linear_plant(&plant, &mut state, control);
+        prev_error = error;
+        times.push(round2(sim_time));
+        response.push(y);
+        setpoint.push(reference);
+        sim_time += dt;
+    }
+
+    let metrics = response_metrics(&response, &times, reference);
+    serde_json::to_string(&json!({
+        "times": times,
+        "response": response,
+        "setpoint": setpoint,
+        "metrics": metrics
+    }))
+    .map_err(|error| error.to_string())
+}
+
+fn linear_input(signal: &str, time: f64, dt: f64) -> f64 {
+    match signal {
+        "ramp" => time,
+        "impulse" => {
+            if time <= dt {
+                1.0 / dt
+            } else {
+                0.0
+            }
+        }
+        _ => 1.0,
+    }
+}
+
+fn compute_transfer_function_response(request: &Value) -> Result<String, String> {
+    let dt = num(request, "dt", 1.0 / 60.0);
+    if dt <= 0.0 || dt > 1.0 {
+        return Err("dt must be in (0, 1].".to_string());
+    }
+    let duration = num(request, "duration", 8.0).clamp(dt, 120.0);
+    let numerator = array_f64(request, "numerator", &[1.0]);
+    let denominator = array_f64(request, "denominator", &[1.0, 1.0]);
+    let signal = request
+        .get("signal")
+        .and_then(Value::as_str)
+        .unwrap_or("step");
+    let plant = discretize_transfer_function(&numerator, &denominator, dt)?;
+    let mut state = vec![0.0; plant.a.len()];
+    let mut points = Vec::new();
+    let mut values = Vec::new();
+    let max_steps = num(request, "maxSteps", 900.0).round().clamp(1.0, 5000.0) as usize;
+    let steps = ((duration / dt).ceil() as usize).min(max_steps);
+    for index in 0..=steps {
+        let time = index as f64 * dt;
+        let y = step_linear_plant(&plant, &mut state, linear_input(signal, time, dt));
+        values.push(y);
+        points.push(json!({ "t": time, "y": y }));
+    }
+    let min_y = values.iter().copied().fold(0.0, f64::min);
+    let max_y = values.iter().copied().fold(1.0, f64::max);
+    serde_json::to_string(&json!({
+        "points": points,
+        "minY": min_y - 0.1 * min_y.abs(),
+        "maxY": max_y + 0.1 * max_y.abs(),
+        "duration": duration
+    }))
+    .map_err(|error| error.to_string())
+}
+
+fn compute_second_order_step_response(request: &Value) -> Result<String, String> {
+    let zeta = clamp(num(request, "zeta", 0.45), 0.01, 5.0);
+    let omega = num(request, "omega", 4.5).max(0.01);
+    let dt = num(request, "dt", 0.01);
+    let duration = num(request, "duration", 6.0);
+    let mut cloned = request.as_object().cloned().unwrap_or_default();
+    cloned.insert("numerator".to_string(), json!([omega * omega]));
+    cloned.insert("denominator".to_string(), json!([omega * omega, 2.0 * zeta * omega, 1.0]));
+    cloned.insert("dt".to_string(), json!(dt));
+    cloned.insert("duration".to_string(), json!(duration));
+    cloned.insert("signal".to_string(), json!("step"));
+    let response: Value =
+        serde_json::from_str(&compute_transfer_function_response(&Value::Object(cloned))?)
+            .map_err(|error| error.to_string())?;
+    let points = response
+        .get("points")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let times: Vec<f64> = points.iter().map(|point| num(point, "t", 0.0)).collect();
+    let values: Vec<f64> = points.iter().map(|point| num(point, "y", 0.0)).collect();
+    let metrics = response_metrics(&values, &times, 1.0);
+    serde_json::to_string(&json!({
+        "times": times,
+        "values": values,
+        "metrics": metrics
+    }))
+    .map_err(|error| error.to_string())
+}
+
+fn compute_second_order_analytic_response(request: &Value) -> Result<String, String> {
+    let zeta = clamp(num(request, "zeta", 0.35), 0.05, 0.95);
+    let wn = num(request, "wn", 2.0).max(0.05);
+    let wd = wn * (1.0 - zeta * zeta).sqrt();
+    let phi = zeta.acos();
+    let t_max = (8.0 / (zeta * wn)).clamp(6.0, 20.0);
+    let steps = num(request, "steps", 120.0).round().clamp(10.0, 2000.0) as usize;
+    let mut points = Vec::new();
+    for index in 0..steps {
+        let t = (t_max * index as f64) / ((steps - 1) as f64).max(1.0);
+        let decay = (-zeta * wn * t).exp();
+        let response = 1.0 - (1.0 / (1.0 - zeta * zeta).sqrt()) * decay * (wd * t + phi).sin();
+        points.push(json!({ "t": t, "y": response }));
+    }
+    serde_json::to_string(&json!({
+        "points": points,
+        "tMax": t_max,
+        "overshoot": ((-zeta * std::f64::consts::PI) / (1.0 - zeta * zeta).sqrt()).exp() * 100.0,
+        "peakTime": std::f64::consts::PI / wd,
+        "settlingTime": 4.0 / (zeta * wn),
+        "riseTime": (std::f64::consts::PI - phi) / wd,
+        "wd": wd
+    }))
+    .map_err(|error| error.to_string())
+}
+
+fn compute_cruise_typhoon_step(request: &Value) -> Result<String, String> {
+    let dt = num(request, "dt", 1.0 / 60.0);
+    if dt <= 0.0 || dt > 1.0 {
+        return Err("dt must be in (0, 1].".to_string());
+    }
+    let state = &request["state"];
+    let heading = num(state, "heading", 0.0);
+    let target_heading = num(state, "targetHeading", heading);
+    let speed = num(state, "speed", 20.0);
+    let sea_state = num(request, "seaState", 3.0);
+    let heading_error = target_heading - heading;
+    let heading_rate = heading_error.signum() * (heading_error.abs() * 0.1).min(2.0);
+    let new_heading = heading + heading_rate * dt;
+    let time = num(state, "time", 0.0) + dt;
+    let wave_phase = time * 0.5;
+    let base_roll = 3.0 * wave_phase.sin() * (sea_state / 5.0);
+    let turning_roll = heading_rate * 2.0;
+    let new_roll = base_roll + turning_roll;
+    let speed_ms = speed * 0.5144;
+    let roll_accel = 9.81 * deg_to_rad(new_roll).sin();
+    let turning_accel = speed_ms * deg_to_rad(heading_rate).abs();
+    let lateral_accel = (roll_accel + turning_accel) / 9.81;
+
+    let mut out = state.as_object().cloned().unwrap_or_default();
+    out.insert("time".to_string(), json!(time));
+    out.insert("heading".to_string(), json!(new_heading));
+    out.insert("rollAngle".to_string(), json!(new_roll));
+    out.insert("yawRate".to_string(), json!(heading_rate));
+    out.insert("lateralAccel".to_string(), json!(lateral_accel));
+    serde_json::to_string(&Value::Object(out)).map_err(|error| error.to_string())
+}
+
+fn compute_champagne_tower_step(request: &Value) -> Result<String, String> {
+    let dt = num(request, "dt", 1.0 / 60.0);
+    if dt <= 0.0 || dt > 1.0 {
+        return Err("dt must be in (0, 1].".to_string());
+    }
+    let state = &request["state"];
+    let params = &request["params"];
+    let height = num(params, "height", 1.8).max(0.1);
+    let damping_ratio = num(params, "dampingRatio", 0.18).max(0.0);
+    let fall_threshold = deg_to_rad(num(params, "fallThreshold", 12.0));
+    let natural_freq = (9.81 / height).sqrt();
+    let angle = num(state, "angle", 0.0);
+    let angular_velocity = num(state, "angularVelocity", 0.0);
+    let lateral_accel = num(request, "lateralAccel", 0.0);
+    let ship_roll = deg_to_rad(num(request, "shipRollDeg", 0.0));
+    let external_force = (lateral_accel * 9.81) / height + ship_roll * 0.5;
+    let angular_accel =
+        -2.0 * damping_ratio * natural_freq * angular_velocity - natural_freq * natural_freq * angle
+            + external_force;
+    let new_velocity = angular_velocity + angular_accel * dt;
+    let new_angle = angle + new_velocity * dt;
+    let is_falling = new_angle.abs() > fall_threshold;
+    let stability = (1.0 - new_angle.abs() / fall_threshold).max(0.0);
+    serde_json::to_string(&json!({
+        "angle": new_angle,
+        "angularVelocity": new_velocity,
+        "isFalling": is_falling,
+        "stability": stability,
+        "lateralAccel": lateral_accel
     }))
     .map_err(|error| error.to_string())
 }
@@ -1267,6 +1714,12 @@ pub fn compute_virtual_simulation_step_json(request_json: &str) -> Result<String
         "destroyer_hifi" => {
             destroyer_hifi_runtime::compute_virtual_simulation_step_json(request_json)
         }
+        "linear_pid_batch" => compute_linear_pid_batch(&request),
+        "transfer_function_response" => compute_transfer_function_response(&request),
+        "second_order_step_response" => compute_second_order_step_response(&request),
+        "second_order_analytic_response" => compute_second_order_analytic_response(&request),
+        "cruise_typhoon_step" => compute_cruise_typhoon_step(&request),
+        "champagne_tower_step" => compute_champagne_tower_step(&request),
         "nomoto1st" => compute_nomoto1st(&request),
         "nomoto2nd_delay" => compute_nomoto2nd_delay(&request),
         "nomoto_variable_mass" => compute_nomoto_variable_mass(&request),

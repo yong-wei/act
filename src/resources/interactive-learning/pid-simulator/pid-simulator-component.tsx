@@ -5,7 +5,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Chart from 'chart.js/auto';
 import { ArrowLeft, Play, RefreshCcw } from 'lucide-react';
-import { createLinearPlant, type TransferFunctionModel } from '@/lib/simulation';
+import type { TransferFunctionModel } from '@/lib/simulation';
+import {
+  preloadInteractiveSimulationRuntime,
+  runPidBatchSimulation,
+} from '@/resources/interactive-learning/rust/interactive-simulation-runtime';
 
 type ModelKey = 'motor' | 'ship' | 'usv' | 'dps' | 'dredger' | 'fin';
 
@@ -107,6 +111,10 @@ export function PidSimulatorComponent({
   const modelInfo = useMemo(() => MODEL_CONFIG[modelKey] || MODEL_CONFIG['ship'], [modelKey]);
 
   useEffect(() => {
+    void preloadInteractiveSimulationRuntime();
+  }, []);
+
+  useEffect(() => {
     if (!chartRef.current) return;
     const ctx = chartRef.current.getContext('2d');
     if (!ctx) return;
@@ -163,38 +171,24 @@ export function PidSimulatorComponent({
     });
   }, []);
 
-  const runSimulation = useCallback(() => {
+  const runSimulation = useCallback(async () => {
     if (!chartInstance.current) return;
+    await preloadInteractiveSimulationRuntime();
 
     const dt = Math.max(stepSize, 20) / 1000;
     const duration = 20 * timeScale;
-    const steps = Math.floor(duration / dt);
-
-    const plant = createLinearPlant(getPlantModel(modelKey), dt);
-    let y = 0;
-    let prevError = 0;
-    let integral = 0;
-
-    const responseData: number[] = [];
-    const setpointData: number[] = [];
-    const labels: string[] = [];
-
-    for (let i = 0; i <= steps; i += 1) {
-      const t = i * dt;
-      const error = reference - y;
-      integral += error * dt;
-      const derivative = (error - prevError) / dt;
-
-      const control = kp * error + ki * integral + kd * derivative;
-      const plantStep = plant.step([control]);
-      y = plantStep.output[0] ?? 0;
-
-      prevError = error;
-
-      responseData.push(y);
-      setpointData.push(reference);
-      labels.push(t.toFixed(2));
-    }
+    const result = runPidBatchSimulation({
+      model: getPlantModel(modelKey),
+      dt,
+      duration,
+      reference,
+      kp,
+      ki,
+      kd,
+    });
+    const responseData = result.response;
+    const setpointData = result.setpoint;
+    const labels = result.times.map((time) => time.toFixed(2));
 
     chartInstance.current.data.labels = labels;
     chartInstance.current.data.datasets[0].data = responseData;
@@ -202,10 +196,9 @@ export function PidSimulatorComponent({
     chartInstance.current.update();
 
     // Calculate performance metrics
-    const finalValue = responseData[responseData.length - 1] || 0;
-    const steadyStateError = Math.abs(reference - finalValue);
-    const maxOvershoot = Math.max(...responseData) - reference;
-    const overshootPercent = reference !== 0 ? (maxOvershoot / reference) * 100 : 0;
+    const finalValue = result.metrics.finalValue;
+    const steadyStateError = result.metrics.steadyStateError;
+    const overshootPercent = result.metrics.overshootPercent;
 
     // Emit state change
     onStateChange?.({
@@ -279,7 +272,7 @@ export function PidSimulatorComponent({
                 重置
               </button>
               <button
-                onClick={runSimulation}
+                 onClick={() => void runSimulation()}
                 className="flex items-center gap-2 rounded-lg border border-cyan-500/60 bg-cyan-500/10 px-3 py-1.5 text-sm text-cyan-100 transition hover:border-cyan-400"
               >
                 <Play className="h-4 w-4" />
@@ -302,7 +295,7 @@ export function PidSimulatorComponent({
               <RefreshCcw className="h-3 w-3" />
             </button>
             <button
-              onClick={runSimulation}
+               onClick={() => void runSimulation()}
               className="flex items-center gap-1 rounded bg-cyan-500/20 px-2 py-1 text-xs text-cyan-300 hover:bg-cyan-500/30"
             >
               <Play className="h-3 w-3" />

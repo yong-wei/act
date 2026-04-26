@@ -7,51 +7,38 @@
 
 import { computeVirtualSimulationStep } from '../rust/control-engine-runtime';
 import {
-  createNomotoState,
-  nomotoStep,
-  nomotoToSimulationState,
-  type NomotoState,
-} from './models/nomoto-1st-order';
-import {
-  createNomoto2ndOrderDelayState,
-  createPIDState as createPIDStateForLNG,
-  pidControl2ndOrder,
-  DEFAULT_NOMOTO_2ND_ORDER_PARAMS,
-  type Nomoto2ndOrderDelayState,
-} from './models/nomoto-2nd-order-delay';
-import {
-  createContainerShipState,
-  updateLoadRatio,
-  getContainerShipSummary,
-  shouldTriggerRollAlarm,
-  type ContainerShipState,
-} from './models/nomoto-variable-mass';
-import {
-  createRollCoupledState,
-  computeWaveExcitation,
-  DEFAULT_ROLL_COUPLED_PARAMS,
-  type RollCoupledState,
-} from './models/nomoto-roll-coupled';
-import {
-  createMMG3DOFState,
-  mmgToSimulationState,
-  DEFAULT_MMG_PARAMS,
-  type MMG3DOFState,
-} from './models/mmg-3dof';
-import {
-  createSemiSub3DOFState,
-  semiSubToSimulationState,
-  getDecouplingMatrix,
-  type SemiSubmersible3DOFState,
-} from './models/semisubmersible-3dof';
-import {
   createAzipod3DOFState,
-  azipodToSimulationState,
-  setAzipodCommands,
-  DEFAULT_AZIPOD_3DOF_PARAMS,
   type Azipod3DOFInternalState,
   type Azipod3DOFParams,
-} from './models/azipod-3dof';
+  azipodToSimulationState,
+  createContainerShipState,
+  createMMG3DOFState,
+  createNomoto2ndOrderDelayState,
+  createNomotoState,
+  createPIDStateForLNG,
+  createRollCoupledState,
+  createSemiSub3DOFState,
+  computeWaveExcitation,
+  DEFAULT_AZIPOD_3DOF_PARAMS,
+  DEFAULT_MMG_PARAMS,
+  DEFAULT_NOMOTO_2ND_ORDER_PARAMS,
+  DEFAULT_ROLL_COUPLED_PARAMS,
+  getContainerShipSummary,
+  getDecouplingMatrix,
+  mmgToSimulationState,
+  nomotoToSimulationState,
+  pidControl2ndOrder,
+  semiSubToSimulationState,
+  setAzipodCommands,
+  shouldTriggerRollAlarm,
+  updateLoadRatio,
+  type ContainerShipState,
+  type MMG3DOFState,
+  type Nomoto2ndOrderDelayState,
+  type NomotoState,
+  type RollCoupledState,
+  type SemiSubmersible3DOFState,
+} from './model-state-helpers';
 import { DEFAULT_NOMOTO_PARAMS } from '../core/constants';
 import type {
   DisturbanceVector,
@@ -69,7 +56,6 @@ export {
 
 export {
   createNomotoState,
-  nomotoStep,
   nomotoToSimulationState,
   DEFAULT_NOMOTO_PARAMS,
   type NomotoState,
