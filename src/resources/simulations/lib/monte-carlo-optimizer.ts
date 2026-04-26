@@ -5,11 +5,11 @@
  */
 
 import {
-  runQuickSimulation,
-  type QuickSimConfig,
   generateGuidePath,
   getScenarioLogic,
 } from './simulation-engine';
+import { computeVirtualSimulationServerStep } from '../rust/control-engine-server-runtime';
+import type { Position } from '../types';
 
 export interface OptimizationTarget {
   targetHeading: number; // 目标航向
@@ -59,6 +59,47 @@ export interface SimpleSimConfig {
   };
 }
 
+interface RustQuickSimResult {
+  trajectory: Array<{ time: number; x: number; z: number; heading: number; rudder: number }>;
+  chartData: {
+    time: number[];
+    desiredHeading: number[];
+    actualHeading: number[];
+    speed: number[];
+    rudder: number[];
+  };
+  metrics: {
+    avgError: number;
+    maxRudderRate: number;
+  };
+}
+
+function evaluateWithRustRuntime(
+  params: { kp: number; ki: number; kd: number },
+  guidePath: Position[],
+  duration: number,
+  speed: number,
+  simConfig: SimpleSimConfig,
+  target: OptimizationTarget,
+): RustQuickSimResult {
+  return computeVirtualSimulationServerStep<RustQuickSimResult>({
+    modelId: 'nomoto_quick_sim',
+    duration,
+    dt: 0.5,
+    start: { x: 0, z: 0, headingDeg: 0 },
+    targetHeadingDeg: target.targetHeading,
+    targetSwitchTime: 60,
+    pid: params,
+    nomoto: {
+      K: simConfig.nomotoK || 0.08,
+      T: simConfig.nomotoT || 55,
+      speedMps: speed,
+      maxRudderDeg: 35,
+    },
+    guidePath,
+  });
+}
+
 /**
  * 评估参数组合的得分
  */
@@ -75,26 +116,7 @@ function evaluateParams(
   const logic = getScenarioLogic('turn90');
   const guidePath = generateGuidePath(logic, duration, speed);
 
-  const config: QuickSimConfig = {
-    pid: params,
-    controlMode: 'pid',
-    start: { x: 0, z: 0, headingDeg: 0 },
-    duration,
-    getDesiredHeading: (t: number) => {
-      // 60秒时开始转向到目标航向
-      if (t < 60) return 0;
-      return target.targetHeading;
-    },
-    nomoto: {
-      K: simConfig.nomotoK || 0.08,
-      T: simConfig.nomotoT || 55,
-      speedMps: speed,
-      maxRudderDeg: 35,
-    },
-  };
-
-  // 运行快速仿真
-  const result = runQuickSimulation(config, guidePath);
+  const result = evaluateWithRustRuntime(params, guidePath, duration, speed, simConfig, target);
 
   // 计算超调量和调节时间
   let overshoot = 0;

@@ -33,4 +33,30 @@ describe('simulation engine facade adoption', () => {
     expect(source).toContain("modelId: 'semisub3dof'");
     expect(source).toContain("modelId: 'azipod3dof'");
   });
+
+  it('routes remaining real-time simulation steppers through the virtual simulation runtime', () => {
+    const source = readFileSync(
+      path.join(process.cwd(), 'src/resources/simulations/physics/simulation-engine-facade.ts'),
+      'utf8',
+    );
+    const engineFactory = readFileSync(
+      path.join(process.cwd(), 'src/resources/simulations/physics/engine-factory.ts'),
+      'utf8',
+    );
+
+    for (const modelId of [
+      "modelId: 'nomoto1st'",
+      "modelId: 'nomoto2nd_delay'",
+      "modelId: 'nomoto_variable_mass'",
+      "modelId: 'container_roll'",
+      "modelId: 'roll_coupled_nomoto'",
+    ]) {
+      expect(source).toContain(modelId);
+    }
+
+    expect(engineFactory).not.toMatch(/from ['"]\.\/models\/nomoto-1st-order['"]/);
+    expect(engineFactory).not.toMatch(/from ['"]\.\/models\/nomoto-2nd-order-delay['"]/);
+    expect(engineFactory).not.toMatch(/from ['"]\.\/models\/nomoto-variable-mass['"]/);
+    expect(engineFactory).not.toMatch(/from ['"]\.\/models\/nomoto-roll-coupled['"]/);
+  });
 });

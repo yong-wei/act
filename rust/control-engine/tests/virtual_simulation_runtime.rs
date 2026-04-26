@@ -151,3 +151,274 @@ fn azipod_step_outputs_finite_state_and_advances_time() {
     assert!(result["azipod1"]["thrust"].as_f64().unwrap() > 0.0);
     assert!(result["azipod1"]["slewRate"].as_f64().unwrap() <= 0.2094395102 + 1e-9);
 }
+
+#[test]
+fn nomoto_first_order_step_outputs_finite_state() {
+    let request = json!({
+        "modelId": "nomoto1st",
+        "dt": 0.5,
+        "rudderDeg": 10.0,
+        "state": {
+            "headingRad": 0.0,
+            "yawRateRad": 0.0,
+            "rudderDeg": 0.0,
+            "positionX": 0.0,
+            "positionZ": 0.0,
+            "speedMps": 5.0
+        },
+        "params": { "K": 0.1, "T": 50.0, "maxRudderDeg": 35.0 }
+    });
+
+    let result: Value =
+        serde_json::from_str(&compute_virtual_simulation_step_json(&request.to_string()).unwrap())
+            .unwrap();
+
+    assert_finite_fields(
+        &result,
+        &[
+            "headingRad",
+            "yawRateRad",
+            "rudderDeg",
+            "positionX",
+            "positionZ",
+            "speedMps",
+        ],
+    );
+    assert!(result["positionX"].as_f64().unwrap() > 0.0);
+    assert_eq!(result["rudderDeg"].as_f64().unwrap(), 10.0);
+}
+
+#[test]
+fn nomoto_second_order_delay_step_preserves_history_and_outputs_finite_state() {
+    let request = json!({
+        "modelId": "nomoto2nd_delay",
+        "dt": 0.5,
+        "rudderDeg": 8.0,
+        "state": {
+            "headingRad": 0.0,
+            "yawRateRad": 0.0,
+            "yawRateDerivative": 0.0,
+            "rudderDeg": 0.0,
+            "positionX": 0.0,
+            "positionZ": 0.0,
+            "speedMps": 9.8,
+            "rudderHistory": [0.0, 0.0, 0.0, 0.0],
+            "historyIndex": 0
+        },
+        "params": { "K": 0.03, "T1": 80.0, "T2": 20.0, "timeDelay": 2.0, "maxRudderDeg": 35.0, "speedMps": 9.8 }
+    });
+
+    let result: Value =
+        serde_json::from_str(&compute_virtual_simulation_step_json(&request.to_string()).unwrap())
+            .unwrap();
+
+    assert_finite_fields(
+        &result,
+        &[
+            "headingRad",
+            "yawRateRad",
+            "yawRateDerivative",
+            "rudderDeg",
+            "positionX",
+            "positionZ",
+            "speedMps",
+        ],
+    );
+    assert_eq!(result["historyIndex"].as_u64().unwrap(), 1);
+    assert_eq!(result["rudderHistory"][0].as_f64().unwrap(), 8.0);
+}
+
+#[test]
+fn variable_mass_nomoto_and_roll_steps_output_finite_state() {
+    let state = json!({
+        "headingRad": 0.0,
+        "yawRateRad": 0.0,
+        "rudderDeg": 0.0,
+        "positionX": 0.0,
+        "positionZ": 0.0,
+        "speedMps": 10.3,
+        "loadRatio": 0.5,
+        "cargoMass": 160000000.0,
+        "currentK": 0.08,
+        "currentT": 80.0,
+        "windLoad": { "force": 0.0, "moment": 1000000.0, "relativeDirection": 45.0 },
+        "roll": { "angle": 0.0, "rate": 0.0 }
+    });
+    let step_request = json!({
+        "modelId": "nomoto_variable_mass",
+        "dt": 0.5,
+        "rudderDeg": 6.0,
+        "externalMoment": 1000000.0,
+        "state": state
+    });
+    let step_result: Value = serde_json::from_str(
+        &compute_virtual_simulation_step_json(&step_request.to_string()).unwrap(),
+    )
+    .unwrap();
+    assert_finite_fields(
+        &step_result,
+        &[
+            "headingRad",
+            "yawRateRad",
+            "rudderDeg",
+            "positionX",
+            "positionZ",
+            "speedMps",
+        ],
+    );
+
+    let roll_request = json!({
+        "modelId": "container_roll",
+        "dt": 0.5,
+        "windMoment": 1000000.0,
+        "yawRateRad": step_result["yawRateRad"].as_f64().unwrap(),
+        "loadRatio": 0.5,
+        "state": { "angle": 0.0, "rate": 0.0 }
+    });
+    let roll_result: Value = serde_json::from_str(
+        &compute_virtual_simulation_step_json(&roll_request.to_string()).unwrap(),
+    )
+    .unwrap();
+    assert_finite_fields(&roll_result, &["angle", "rate"]);
+}
+
+#[test]
+fn roll_coupled_nomoto_step_outputs_finite_heading_and_roll_state() {
+    let request = json!({
+        "modelId": "roll_coupled_nomoto",
+        "dt": 0.5,
+        "rudderDeg": 5.0,
+        "finMomentNormalized": -0.1,
+        "waveExcitation": 0.2,
+        "turningExcitation": 0.03,
+        "state": {
+            "headingRad": 0.0,
+            "yawRateRad": 0.0,
+            "yawAccelRad": 0.0,
+            "rollRad": 0.0,
+            "rollRateRad": 0.0,
+            "positionX": 0.0,
+            "positionZ": 0.0,
+            "speedMps": 9.3,
+            "rudderDeg": 0.0,
+            "finAngleDeg": 0.0
+        },
+        "params": {
+            "K": 0.05,
+            "T1": 90.0,
+            "T2": 25.0,
+            "K_phi": 0.15,
+            "T_phi1": 8.0,
+            "T_phi2": 2.0,
+            "maxRudderDeg": 35.0,
+            "speedMps": 9.3
+        }
+    });
+
+    let result: Value =
+        serde_json::from_str(&compute_virtual_simulation_step_json(&request.to_string()).unwrap())
+            .unwrap();
+
+    assert_finite_fields(
+        &result,
+        &[
+            "headingRad",
+            "yawRateRad",
+            "yawAccelRad",
+            "rollRad",
+            "rollRateRad",
+            "positionX",
+            "positionZ",
+            "speedMps",
+        ],
+    );
+    assert!(result["positionX"].as_f64().unwrap() > 0.0);
+}
+
+#[test]
+fn cruise_comfort_analysis_outputs_engineering_scores() {
+    let request = json!({
+        "modelId": "cruise_comfort_analysis",
+        "objectives": {
+            "comfortWeight": 0.5,
+            "performanceWeight": 0.3,
+            "energyWeight": 0.2
+        },
+        "metrics": {
+            "msi": 12.0,
+            "settlingTime": 45.0,
+            "overshoot": 8.0,
+            "finPower": 120.0
+        }
+    });
+
+    let result: Value =
+        serde_json::from_str(&compute_virtual_simulation_step_json(&request.to_string()).unwrap())
+            .unwrap();
+
+    assert_finite_fields(
+        &result["objectiveScores"],
+        &["comfort", "performance", "energy"],
+    );
+    assert!(result["blendedScore"].as_f64().unwrap().is_finite());
+    assert_eq!(result["paretoFront"].as_array().unwrap().len(), 12);
+    assert!(result["advice"].as_array().unwrap().len() >= 1);
+}
+
+#[test]
+fn icebreaker_robust_analysis_outputs_scenario_aggregate() {
+    let request = json!({
+        "modelId": "icebreaker_robust_analysis",
+        "uncertaintyRange": {
+            "paramK": [0.85, 1.15],
+            "paramT": [0.8, 1.2]
+        },
+        "disturbanceScenarios": [
+            { "name": "薄冰扰动", "intensity": 1.0 },
+            { "name": "厚冰冲击", "intensity": 3.0 }
+        ],
+        "sampleCount": 40
+    });
+
+    let result: Value =
+        serde_json::from_str(&compute_virtual_simulation_step_json(&request.to_string()).unwrap())
+            .unwrap();
+
+    assert_finite_fields(
+        &result["robustnessMetrics"],
+        &[
+            "disturbanceRejection",
+            "stabilityMargin",
+            "parameterSensitivity",
+        ],
+    );
+    assert_eq!(result["scenarioResults"].as_array().unwrap().len(), 2);
+    assert!(result["recommendation"].as_str().unwrap().len() > 5);
+}
+
+#[test]
+fn nomoto_quick_simulation_outputs_metrics_for_optimizer() {
+    let request = json!({
+        "modelId": "nomoto_quick_sim",
+        "duration": 20.0,
+        "dt": 0.5,
+        "start": { "x": 0.0, "z": 0.0, "headingDeg": 0.0 },
+        "targetHeadingDeg": 30.0,
+        "targetSwitchTime": 5.0,
+        "pid": { "kp": 1.4, "ki": 0.02, "kd": 0.7 },
+        "nomoto": { "K": 0.08, "T": 55.0, "speedMps": 15.0, "maxRudderDeg": 35.0 },
+        "guidePath": [
+            { "x": 0.0, "z": 0.0 },
+            { "x": 300.0, "z": 0.0 },
+            { "x": 300.0, "z": 300.0 }
+        ]
+    });
+
+    let result: Value =
+        serde_json::from_str(&compute_virtual_simulation_step_json(&request.to_string()).unwrap())
+            .unwrap();
+
+    assert_finite_fields(&result["metrics"], &["avgError", "maxRudderRate"]);
+    assert_eq!(result["chartData"]["time"].as_array().unwrap().len(), 41);
+    assert_eq!(result["trajectory"].as_array().unwrap().len(), 41);
+}

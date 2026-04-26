@@ -43,6 +43,10 @@ import {
   ContainerShipEngine,
   createSimulationEngine,
 } from '../physics/engine-factory';
+import {
+  preloadVirtualSimulationRuntime,
+  isVirtualSimulationRuntimeReady,
+} from '../physics/simulation-engine-facade';
 import { toDegrees, toRadians, CONTAINER_MSC_PARAMS } from '../core/constants';
 import {
   SIMULATION_FIXED_STEP_SECONDS,
@@ -694,6 +698,8 @@ export default function ContainerSimulation() {
 
   // 初始化引擎
   useEffect(() => {
+    preloadVirtualSimulationRuntime().catch(console.error);
+
     const engine = createSimulationEngine(containerMscProfile) as ContainerShipEngine;
     engine.initialize(0, 0, 0);
     engine.setLoadRatio(0.5);
@@ -710,7 +716,7 @@ export default function ContainerSimulation() {
   // 仿真循环
   const simulationLoop = useCallback(() => {
     const engine = engineRef.current;
-    if (!engine || simState.isPaused) {
+    if (!engine || simState.isPaused || !isVirtualSimulationRuntimeReady()) {
       frameRef.current = requestAnimationFrame(simulationLoop);
       return;
     }

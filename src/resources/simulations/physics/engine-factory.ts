@@ -21,14 +21,14 @@ import {
   createNomotoState,
   nomotoToSimulationState,
   type NomotoState,
-} from './models/nomoto-1st-order';
+} from './simulation-engine-facade';
 import {
   mmg3dofStep,
   createMMG3DOFState,
   mmgToSimulationState,
   type MMG3DOFState,
   DEFAULT_MMG_PARAMS,
-} from './models/mmg-3dof';
+} from './simulation-engine-facade';
 import {
   PIDController,
   type PIDControllerState,
@@ -47,11 +47,11 @@ import {
 import {
   nomoto2ndOrderDelayStep,
   createNomoto2ndOrderDelayState,
-  createPIDState as createPIDStateForLNG,
+  createPIDStateForLNG,
   pidControl2ndOrder,
   DEFAULT_NOMOTO_2ND_ORDER_PARAMS,
   type Nomoto2ndOrderDelayState,
-} from './models/nomoto-2nd-order-delay';
+} from './simulation-engine-facade';
 import {
   sloshingStep,
   createSloshingState,
@@ -75,7 +75,7 @@ import {
   getContainerShipSummary,
   shouldTriggerRollAlarm,
   type ContainerShipState,
-} from './models/nomoto-variable-mass';
+} from './simulation-engine-facade';
 import {
   windLoadStep,
   createWindEnvironment,
@@ -115,7 +115,7 @@ import {
   computeWaveExcitation,
   DEFAULT_ROLL_COUPLED_PARAMS,
   type RollCoupledState,
-} from './models/nomoto-roll-coupled';
+} from './simulation-engine-facade';
 import {
   finStabilizerStep,
   createFinStabilizerState,
@@ -148,7 +148,7 @@ import {
   semiSubToSimulationState,
   getDecouplingMatrix,
   type SemiSubmersible3DOFState as SemiSub3DOFInternalState,
-} from './models/semisubmersible-3dof';
+} from './simulation-engine-facade';
 import {
   createCurrentEnvironment,
   createWindEnvironment as createCurrentWindEnvironment,
@@ -200,7 +200,7 @@ import {
   DEFAULT_AZIPOD_3DOF_PARAMS,
   type Azipod3DOFInternalState,
   type Azipod3DOFParams,
-} from './models/azipod-3dof';
+} from './simulation-engine-facade';
 import {
   createIceBreakingState,
   iceBreakingStep,

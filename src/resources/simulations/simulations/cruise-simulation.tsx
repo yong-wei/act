@@ -41,6 +41,10 @@ import {
   CruiseShipEngine,
   createSimulationEngine,
 } from '../physics/engine-factory';
+import {
+  preloadVirtualSimulationRuntime,
+  isVirtualSimulationRuntimeReady,
+} from '../physics/simulation-engine-facade';
 import { toDegrees, toRadians, CRUISE_ADORA_PARAMS, CRUISE_COMFORT_THRESHOLDS, CRUISE_DEFAULT_PID } from '../core/constants';
 import {
   CRUISE_COURSE_MODE,
@@ -1393,6 +1397,8 @@ export default function CruiseSimulation() {
 
   // 初始化引擎
   useEffect(() => {
+    preloadVirtualSimulationRuntime().catch(console.error);
+
     const engine = createSimulationEngine(cruiseAdoraProfile) as CruiseShipEngine;
     engine.initialize(-3000, 0, 0);
     engineRef.current = engine;
@@ -1406,7 +1412,8 @@ export default function CruiseSimulation() {
 
   // 仿真循环
   const simulate = useCallback((timestamp: number) => {
-    if (!engineRef.current || state.isPaused) {
+    if (!engineRef.current || state.isPaused || !isVirtualSimulationRuntimeReady()) {
+      lastTimeRef.current = timestamp;
       animationRef.current = requestAnimationFrame(simulate);
       return;
     }

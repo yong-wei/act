@@ -43,6 +43,10 @@ import {
   LNGCarrierEngine,
   createSimulationEngine,
 } from '../physics/engine-factory';
+import {
+  preloadVirtualSimulationRuntime,
+  isVirtualSimulationRuntimeReady,
+} from '../physics/simulation-engine-facade';
 import { toDegrees, toRadians, LNG_CHANGHENG_PARAMS } from '../core/constants';
 import {
   SIMULATION_FIXED_STEP_SECONDS,
@@ -549,6 +553,8 @@ export function LNGSimulation() {
 
   // 初始化引擎
   useEffect(() => {
+    preloadVirtualSimulationRuntime().catch(console.error);
+
     const engine = createSimulationEngine(lngChanghengProfile) as LNGCarrierEngine;
     engine.initialize(-3000, 0, 0);
     engineRef.current = engine;
@@ -558,6 +564,11 @@ export function LNGSimulation() {
   const simulationStep = useCallback((timestamp: number) => {
     const engine = engineRef.current;
     if (!engine) return;
+    if (!isVirtualSimulationRuntimeReady()) {
+      lastTimeRef.current = timestamp;
+      animationRef.current = requestAnimationFrame(simulationStep);
+      return;
+    }
 
     const frameDt = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScale);
     lastTimeRef.current = timestamp;

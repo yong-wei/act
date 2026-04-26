@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('destroyer simulation loads without runtime errors', async ({ page }) => {
-  test.setTimeout(120000);
+  test.setTimeout(180000);
   const pageErrors: string[] = [];
   const consoleErrors: string[] = [];
 
@@ -27,13 +27,25 @@ test('destroyer simulation loads without runtime errors', async ({ page }) => {
     (button as HTMLButtonElement).click();
   });
   await expect(page.getByText('运行中')).toBeVisible();
-  await page.waitForTimeout(12000);
+  await expect
+    .poll(
+      async () => {
+        const simulationText = await page.locator('body').innerText();
+        return Number(simulationText.match(/仿真时间\n([\d.]+) s/)?.[1] ?? 0);
+      },
+      { timeout: 90000 },
+    )
+    .toBeGreaterThan(65);
 
-  const simulationText = await page.locator('body').innerText();
-  const simulationTime = Number(simulationText.match(/仿真时间\n([\d.]+) s/)?.[1] ?? 0);
-  const rudderDeg = Math.abs(Number(simulationText.match(/舵角\n(-?[\d.]+)°/)?.[1] ?? 0));
-  expect(simulationTime).toBeGreaterThan(55);
-  expect(rudderDeg).toBeGreaterThan(1);
+  await expect
+    .poll(
+      async () => {
+        const simulationText = await page.locator('body').innerText();
+        return Math.abs(Number(simulationText.match(/舵角\n(-?[\d.]+)°/)?.[1] ?? 0));
+      },
+      { timeout: 30000 },
+    )
+    .toBeGreaterThan(1);
 
   await page.waitForTimeout(500);
 

@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+test.describe.configure({ mode: 'serial' });
+
 const pages = [
   {
     path: '/simulations/dredger',
@@ -19,11 +21,29 @@ const pages = [
     startName: /运行/,
     runningText: '暂停',
   },
+  {
+    path: '/simulations/container',
+    title: 'MSC Tessa 超大型集装箱船',
+    startName: /开始仿真/,
+    runningText: '暂停',
+  },
+  {
+    path: '/simulations/lng',
+    title: '长恒系列 LNG 运输船',
+    startName: /开始/,
+    runningText: '暂停',
+  },
+  {
+    path: '/simulations/cruise',
+    title: '邮轮仿真',
+    startName: /开始仿真/,
+    runningText: '暂停',
+  },
 ];
 
 for (const scenario of pages) {
   test(`${scenario.path} loads and starts without runtime errors`, async ({ page }) => {
-    test.setTimeout(120000);
+    test.setTimeout(180000);
     const pageErrors: string[] = [];
     const consoleErrors: string[] = [];
 

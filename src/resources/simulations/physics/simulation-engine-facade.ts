@@ -7,6 +7,32 @@
 
 import { computeVirtualSimulationStep } from '../rust/control-engine-runtime';
 import {
+  createNomotoState,
+  nomotoStep,
+  nomotoToSimulationState,
+  type NomotoState,
+} from './models/nomoto-1st-order';
+import {
+  createNomoto2ndOrderDelayState,
+  createPIDState as createPIDStateForLNG,
+  pidControl2ndOrder,
+  DEFAULT_NOMOTO_2ND_ORDER_PARAMS,
+  type Nomoto2ndOrderDelayState,
+} from './models/nomoto-2nd-order-delay';
+import {
+  createContainerShipState,
+  updateLoadRatio,
+  getContainerShipSummary,
+  shouldTriggerRollAlarm,
+  type ContainerShipState,
+} from './models/nomoto-variable-mass';
+import {
+  createRollCoupledState,
+  computeWaveExcitation,
+  DEFAULT_ROLL_COUPLED_PARAMS,
+  type RollCoupledState,
+} from './models/nomoto-roll-coupled';
+import {
   createMMG3DOFState,
   mmgToSimulationState,
   DEFAULT_MMG_PARAMS,
@@ -14,16 +40,27 @@ import {
 } from './models/mmg-3dof';
 import {
   createSemiSub3DOFState,
+  semiSubToSimulationState,
+  getDecouplingMatrix,
   type SemiSubmersible3DOFState,
 } from './models/semisubmersible-3dof';
 import {
   createAzipod3DOFState,
   azipodToSimulationState,
+  setAzipodCommands,
   DEFAULT_AZIPOD_3DOF_PARAMS,
   type Azipod3DOFInternalState,
   type Azipod3DOFParams,
 } from './models/azipod-3dof';
-import type { DisturbanceVector, MMG3DOFParams } from '../core/types';
+import { DEFAULT_NOMOTO_PARAMS } from '../core/constants';
+import type {
+  DisturbanceVector,
+  MMG3DOFParams,
+  NomotoParams,
+  Nomoto2ndOrderParams,
+  RollCoupledNomotoParams,
+  RollState,
+} from '../core/types';
 
 export {
   preloadVirtualSimulationRuntime,
@@ -31,8 +68,123 @@ export {
 } from '../rust/control-engine-runtime';
 
 export {
+  createNomotoState,
+  nomotoStep,
+  nomotoToSimulationState,
+  DEFAULT_NOMOTO_PARAMS,
+  type NomotoState,
+};
+
+export function nomotoStepRK4(
+  state: NomotoState,
+  rudderDeg: number,
+  dt: number,
+  params: NomotoParams = DEFAULT_NOMOTO_PARAMS,
+): NomotoState {
+  return computeVirtualSimulationStep<NomotoState>({
+    modelId: 'nomoto1st',
+    state,
+    rudderDeg,
+    dt,
+    params,
+  });
+}
+
+export {
+  createNomoto2ndOrderDelayState,
+  createPIDStateForLNG,
+  pidControl2ndOrder,
+  DEFAULT_NOMOTO_2ND_ORDER_PARAMS,
+  type Nomoto2ndOrderDelayState,
+};
+
+export function nomoto2ndOrderDelayStep(
+  state: Nomoto2ndOrderDelayState,
+  rudderDeg: number,
+  dt: number,
+  params: Nomoto2ndOrderParams,
+): Nomoto2ndOrderDelayState {
+  return computeVirtualSimulationStep<Nomoto2ndOrderDelayState>({
+    modelId: 'nomoto2nd_delay',
+    state,
+    rudderDeg,
+    dt,
+    params,
+  });
+}
+
+export {
+  createContainerShipState,
+  updateLoadRatio,
+  getContainerShipSummary,
+  shouldTriggerRollAlarm,
+  type ContainerShipState,
+};
+
+export function nomotoVariableMassStep(
+  state: ContainerShipState,
+  rudderDeg: number,
+  dt: number,
+  externalMoment = 0,
+): ContainerShipState {
+  return computeVirtualSimulationStep<ContainerShipState>({
+    modelId: 'nomoto_variable_mass',
+    state,
+    rudderDeg,
+    dt,
+    externalMoment,
+  });
+}
+
+export function rollStep(
+  state: RollState,
+  windMoment: number,
+  yawRateRad: number,
+  loadRatio: number,
+  dt: number,
+): RollState {
+  return computeVirtualSimulationStep<RollState>({
+    modelId: 'container_roll',
+    state,
+    windMoment,
+    yawRateRad,
+    loadRatio,
+    dt,
+  });
+}
+
+export {
+  createRollCoupledState,
+  computeWaveExcitation,
+  DEFAULT_ROLL_COUPLED_PARAMS,
+  type RollCoupledState,
+};
+
+export function rollCoupledNomotoStep(
+  state: RollCoupledState,
+  rudderDeg: number,
+  finMomentNormalized: number,
+  waveExcitation: number,
+  dt: number,
+  params: RollCoupledNomotoParams = DEFAULT_ROLL_COUPLED_PARAMS,
+  turningExcitation = 0,
+): RollCoupledState {
+  return computeVirtualSimulationStep<RollCoupledState>({
+    modelId: 'roll_coupled_nomoto',
+    state,
+    rudderDeg,
+    finMomentNormalized,
+    waveExcitation,
+    dt,
+    params,
+    turningExcitation,
+  });
+}
+
+export {
   createMMG3DOFState,
   mmgToSimulationState,
+  DEFAULT_MMG_PARAMS,
   type MMG3DOFState,
 };
 
@@ -73,6 +225,8 @@ export { DredgingImpactModel } from './disturbances/dredging-impact';
 
 export {
   createSemiSub3DOFState,
+  semiSubToSimulationState,
+  getDecouplingMatrix,
   type SemiSubmersible3DOFState,
 };
 
@@ -119,6 +273,7 @@ export {
 export {
   createAzipod3DOFState,
   azipodToSimulationState,
+  setAzipodCommands,
   DEFAULT_AZIPOD_3DOF_PARAMS,
   type Azipod3DOFInternalState,
   type Azipod3DOFParams,

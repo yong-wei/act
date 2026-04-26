@@ -55,6 +55,706 @@ fn wrap_pi(mut value: f64) -> f64 {
     value
 }
 
+fn deg_to_rad(value: f64) -> f64 {
+    value * std::f64::consts::PI / 180.0
+}
+
+fn rad_to_deg(value: f64) -> f64 {
+    value * 180.0 / std::f64::consts::PI
+}
+
+fn normalize_heading_deg(value: f64) -> f64 {
+    let mut normalized = value % 360.0;
+    if normalized < 0.0 {
+        normalized += 360.0;
+    }
+    normalized
+}
+
+fn normalize_signed_heading_deg(value: f64) -> f64 {
+    let normalized = normalize_heading_deg(value);
+    if normalized > 180.0 {
+        normalized - 360.0
+    } else {
+        normalized
+    }
+}
+
+fn angle_delta_deg(target: f64, current: f64) -> f64 {
+    let mut diff = normalize_heading_deg(target) - normalize_heading_deg(current);
+    if diff > 180.0 {
+        diff -= 360.0;
+    }
+    if diff < -180.0 {
+        diff += 360.0;
+    }
+    diff
+}
+
+fn nested_pair(value: &Value, parent: &str, key: &str, fallback: [f64; 2]) -> [f64; 2] {
+    let arr = value
+        .get(parent)
+        .and_then(|item| item.get(key))
+        .and_then(Value::as_array);
+    [
+        arr.and_then(|items| items.first())
+            .and_then(Value::as_f64)
+            .filter(|item| item.is_finite())
+            .unwrap_or(fallback[0]),
+        arr.and_then(|items| items.get(1))
+            .and_then(Value::as_f64)
+            .filter(|item| item.is_finite())
+            .unwrap_or(fallback[1]),
+    ]
+}
+
+fn json_array_f64(value: &Value, key: &str) -> Vec<f64> {
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .map(|item| {
+                    item.as_f64()
+                        .filter(|value| value.is_finite())
+                        .unwrap_or(0.0)
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn round2(value: f64) -> f64 {
+    (value * 100.0).round() / 100.0
+}
+
+fn compute_nomoto1st(request: &Value) -> Result<String, String> {
+    let dt = num(request, "dt", 0.0);
+    if dt <= 0.0 || dt > 1.0 {
+        return Err("dt must be in (0, 1].".to_string());
+    }
+    let state = &request["state"];
+    let params = &request["params"];
+    let rudder_deg = clamp(
+        num(request, "rudderDeg", 0.0),
+        -num(params, "maxRudderDeg", 35.0),
+        num(params, "maxRudderDeg", 35.0),
+    );
+    let rudder_rad = deg_to_rad(rudder_deg);
+    let heading = num(state, "headingRad", 0.0);
+    let yaw_rate = num(state, "yawRateRad", 0.0);
+    let x = num(state, "positionX", 0.0);
+    let z = num(state, "positionZ", 0.0);
+    let speed = num(state, "speedMps", num(params, "speedMps", 5.0));
+    let k = num(params, "K", 0.1);
+    let t = num(params, "T", 50.0).max(1e-6);
+
+    let derivative = |values: [f64; 4]| -> [f64; 4] {
+        let current_heading = values[0];
+        let current_yaw_rate = values[1];
+        [
+            current_yaw_rate,
+            (k * rudder_rad - current_yaw_rate) / t,
+            speed * current_heading.cos(),
+            speed * current_heading.sin(),
+        ]
+    };
+    let y = [heading, yaw_rate, x, z];
+    let k1 = derivative(y);
+    let k2 = derivative([
+        y[0] + 0.5 * dt * k1[0],
+        y[1] + 0.5 * dt * k1[1],
+        y[2] + 0.5 * dt * k1[2],
+        y[3] + 0.5 * dt * k1[3],
+    ]);
+    let k3 = derivative([
+        y[0] + 0.5 * dt * k2[0],
+        y[1] + 0.5 * dt * k2[1],
+        y[2] + 0.5 * dt * k2[2],
+        y[3] + 0.5 * dt * k2[3],
+    ]);
+    let k4 = derivative([
+        y[0] + dt * k3[0],
+        y[1] + dt * k3[1],
+        y[2] + dt * k3[2],
+        y[3] + dt * k3[3],
+    ]);
+    serde_json::to_string(&json!({
+        "headingRad": y[0] + dt * (k1[0] + 2.0 * k2[0] + 2.0 * k3[0] + k4[0]) / 6.0,
+        "yawRateRad": y[1] + dt * (k1[1] + 2.0 * k2[1] + 2.0 * k3[1] + k4[1]) / 6.0,
+        "positionX": y[2] + dt * (k1[2] + 2.0 * k2[2] + 2.0 * k3[2] + k4[2]) / 6.0,
+        "positionZ": y[3] + dt * (k1[3] + 2.0 * k2[3] + 2.0 * k3[3] + k4[3]) / 6.0,
+        "rudderDeg": rudder_deg,
+        "speedMps": speed
+    }))
+    .map_err(|error| error.to_string())
+}
+
+fn nomoto2_derivatives(yaw_rate: f64, yaw_accel: f64, rudder_rad: f64, params: &Value) -> [f64; 2] {
+    let k = num(params, "K", 0.03);
+    let t1 = num(params, "T1", 80.0).max(1e-6);
+    let t2 = num(params, "T2", 20.0).max(1e-6);
+    [
+        yaw_accel,
+        (k * rudder_rad - yaw_rate - (t1 + t2) * yaw_accel) / (t1 * t2),
+    ]
+}
+
+fn compute_nomoto2nd_delay(request: &Value) -> Result<String, String> {
+    let dt = num(request, "dt", 0.0);
+    if dt <= 0.0 || dt > 1.0 {
+        return Err("dt must be in (0, 1].".to_string());
+    }
+    let state = &request["state"];
+    let params = &request["params"];
+    let rudder_deg = clamp(
+        num(request, "rudderDeg", 0.0),
+        -num(params, "maxRudderDeg", 35.0),
+        num(params, "maxRudderDeg", 35.0),
+    );
+    let mut history = json_array_f64(state, "rudderHistory");
+    if history.is_empty() {
+        history.resize(
+            (num(params, "timeDelay", 0.5) / dt).ceil().max(1.0) as usize,
+            0.0,
+        );
+    }
+    let index = state
+        .get("historyIndex")
+        .and_then(Value::as_u64)
+        .map(|value| value as usize)
+        .unwrap_or(0)
+        % history.len();
+    let delayed_rudder = history[index];
+    history[index] = rudder_deg;
+    let new_index = (index + 1) % history.len();
+    let delayed_rudder_rad = deg_to_rad(delayed_rudder);
+
+    let yaw_rate = num(state, "yawRateRad", 0.0);
+    let yaw_accel = num(state, "yawRateDerivative", 0.0);
+    let k1 = nomoto2_derivatives(yaw_rate, yaw_accel, delayed_rudder_rad, params);
+    let k2 = nomoto2_derivatives(
+        yaw_rate + 0.5 * dt * k1[0],
+        yaw_accel + 0.5 * dt * k1[1],
+        delayed_rudder_rad,
+        params,
+    );
+    let k3 = nomoto2_derivatives(
+        yaw_rate + 0.5 * dt * k2[0],
+        yaw_accel + 0.5 * dt * k2[1],
+        delayed_rudder_rad,
+        params,
+    );
+    let k4 = nomoto2_derivatives(
+        yaw_rate + dt * k3[0],
+        yaw_accel + dt * k3[1],
+        delayed_rudder_rad,
+        params,
+    );
+    let new_yaw_rate = yaw_rate + dt * (k1[0] + 2.0 * k2[0] + 2.0 * k3[0] + k4[0]) / 6.0;
+    let new_yaw_accel = yaw_accel + dt * (k1[1] + 2.0 * k2[1] + 2.0 * k3[1] + k4[1]) / 6.0;
+    let new_heading = num(state, "headingRad", 0.0) + new_yaw_rate * dt;
+    let speed = num(state, "speedMps", num(params, "speedMps", 9.8));
+    serde_json::to_string(&json!({
+        "headingRad": new_heading,
+        "yawRateRad": new_yaw_rate,
+        "yawRateDerivative": new_yaw_accel,
+        "rudderDeg": rudder_deg,
+        "positionX": num(state, "positionX", 0.0) + speed * new_heading.cos() * dt,
+        "positionZ": num(state, "positionZ", 0.0) + speed * new_heading.sin() * dt,
+        "speedMps": speed,
+        "rudderHistory": history,
+        "historyIndex": new_index
+    }))
+    .map_err(|error| error.to_string())
+}
+
+fn compute_nomoto_variable_mass(request: &Value) -> Result<String, String> {
+    let dt = num(request, "dt", 0.0);
+    if dt <= 0.0 || dt > 1.0 {
+        return Err("dt must be in (0, 1].".to_string());
+    }
+    let state = &request["state"];
+    let load_ratio = clamp(num(state, "loadRatio", 0.5), 0.0, 1.0);
+    let rudder_deg = clamp(num(request, "rudderDeg", 0.0), -35.0, 35.0);
+    let rudder_rad = deg_to_rad(rudder_deg);
+    let current_k = num(state, "currentK", 0.08);
+    let current_t = num(state, "currentT", 80.0).max(1e-6);
+    let inertia = 5.0e10 + (1.5e11 - 5.0e10) * load_ratio;
+    let external_accel = num(request, "externalMoment", 0.0) / inertia;
+    let derivative =
+        |yaw_rate: f64| (current_k * rudder_rad - yaw_rate) / current_t + external_accel;
+    let r = num(state, "yawRateRad", 0.0);
+    let k1 = derivative(r);
+    let k2 = derivative(r + 0.5 * dt * k1);
+    let k3 = derivative(r + 0.5 * dt * k2);
+    let k4 = derivative(r + dt * k3);
+    let new_yaw_rate = r + dt * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
+    let heading = num(state, "headingRad", 0.0);
+    let speed = num(state, "speedMps", 10.3);
+    let mut out: Map<String, Value> = state.as_object().cloned().unwrap_or_default();
+    out.insert("headingRad".to_string(), json!(heading + r * dt));
+    out.insert("yawRateRad".to_string(), json!(new_yaw_rate));
+    out.insert("rudderDeg".to_string(), json!(rudder_deg));
+    out.insert(
+        "positionX".to_string(),
+        json!(num(state, "positionX", 0.0) + speed * heading.cos() * dt),
+    );
+    out.insert(
+        "positionZ".to_string(),
+        json!(num(state, "positionZ", 0.0) + speed * heading.sin() * dt),
+    );
+    out.insert("speedMps".to_string(), json!(speed));
+    serde_json::to_string(&Value::Object(out)).map_err(|error| error.to_string())
+}
+
+fn compute_container_roll(request: &Value) -> Result<String, String> {
+    let dt = num(request, "dt", 0.0);
+    if dt <= 0.0 || dt > 1.0 {
+        return Err("dt must be in (0, 1].".to_string());
+    }
+    let state = &request["state"];
+    let load_ratio = clamp(num(request, "loadRatio", 0.5), 0.0, 1.0);
+    let inertia = (5.0e10 * 0.3) + ((1.5e11 * 0.3) - (5.0e10 * 0.3)) * load_ratio;
+    let omega = 0.3;
+    let zeta = 0.05;
+    let k_roll = inertia * omega * omega;
+    let b_roll = 2.0 * zeta * omega * inertia;
+    let mass = 80_000_000.0 + (240_000_000.0 - 80_000_000.0) * load_ratio;
+    let turn_excitation = num(request, "yawRateRad", 0.0) * 10.3 * mass * 0.001;
+    let excitation = num(request, "windMoment", 0.0) * 0.5 + turn_excitation;
+    let angle = num(state, "angle", 0.0);
+    let rate = num(state, "rate", 0.0);
+    let accel = (excitation - b_roll * rate - k_roll * angle) / inertia;
+    serde_json::to_string(&json!({
+        "angle": angle + rate * dt,
+        "rate": rate + accel * dt
+    }))
+    .map_err(|error| error.to_string())
+}
+
+fn roll_coupled_heading_derivatives(
+    yaw_rate: f64,
+    yaw_accel: f64,
+    rudder_rad: f64,
+    params: &Value,
+) -> [f64; 2] {
+    let k = num(params, "K", 0.05);
+    let t1 = num(params, "T1", 90.0).max(1e-6);
+    let t2 = num(params, "T2", 25.0).max(1e-6);
+    [
+        yaw_accel,
+        (k * rudder_rad - yaw_rate - (t1 + t2) * yaw_accel) / (t1 * t2),
+    ]
+}
+
+fn roll_coupled_roll_derivatives(
+    roll: f64,
+    roll_rate: f64,
+    wave: f64,
+    fin: f64,
+    turning: f64,
+    params: &Value,
+) -> [f64; 2] {
+    let k_phi = num(params, "K_phi", 0.15);
+    let t_phi1 = num(params, "T_phi1", 8.0).max(1e-6);
+    let t_phi2 = num(params, "T_phi2", 2.0).max(1e-6);
+    [
+        roll_rate,
+        (k_phi * (wave + turning - fin) - roll - (t_phi1 + t_phi2) * roll_rate) / (t_phi1 * t_phi2),
+    ]
+}
+
+fn compute_roll_coupled_nomoto(request: &Value) -> Result<String, String> {
+    let dt = num(request, "dt", 0.0);
+    if dt <= 0.0 || dt > 1.0 {
+        return Err("dt must be in (0, 1].".to_string());
+    }
+    let state = &request["state"];
+    let params = &request["params"];
+    let rudder_deg = clamp(
+        num(request, "rudderDeg", 0.0),
+        -num(params, "maxRudderDeg", 35.0),
+        num(params, "maxRudderDeg", 35.0),
+    );
+    let rudder_rad = deg_to_rad(rudder_deg);
+    let yaw_rate = num(state, "yawRateRad", 0.0);
+    let yaw_accel = num(state, "yawAccelRad", 0.0);
+    let hk1 = roll_coupled_heading_derivatives(yaw_rate, yaw_accel, rudder_rad, params);
+    let hk2 = roll_coupled_heading_derivatives(
+        yaw_rate + 0.5 * dt * hk1[0],
+        yaw_accel + 0.5 * dt * hk1[1],
+        rudder_rad,
+        params,
+    );
+    let hk3 = roll_coupled_heading_derivatives(
+        yaw_rate + 0.5 * dt * hk2[0],
+        yaw_accel + 0.5 * dt * hk2[1],
+        rudder_rad,
+        params,
+    );
+    let hk4 = roll_coupled_heading_derivatives(
+        yaw_rate + dt * hk3[0],
+        yaw_accel + dt * hk3[1],
+        rudder_rad,
+        params,
+    );
+    let new_yaw_rate = yaw_rate + dt * (hk1[0] + 2.0 * hk2[0] + 2.0 * hk3[0] + hk4[0]) / 6.0;
+    let new_yaw_accel = yaw_accel + dt * (hk1[1] + 2.0 * hk2[1] + 2.0 * hk3[1] + hk4[1]) / 6.0;
+
+    let wave = num(request, "waveExcitation", 0.0);
+    let fin = num(request, "finMomentNormalized", 0.0);
+    let turning = num(request, "turningExcitation", 0.0);
+    let roll = num(state, "rollRad", 0.0);
+    let roll_rate = num(state, "rollRateRad", 0.0);
+    let rk1 = roll_coupled_roll_derivatives(roll, roll_rate, wave, fin, turning, params);
+    let rk2 = roll_coupled_roll_derivatives(
+        roll + 0.5 * dt * rk1[0],
+        roll_rate + 0.5 * dt * rk1[1],
+        wave,
+        fin,
+        turning,
+        params,
+    );
+    let rk3 = roll_coupled_roll_derivatives(
+        roll + 0.5 * dt * rk2[0],
+        roll_rate + 0.5 * dt * rk2[1],
+        wave,
+        fin,
+        turning,
+        params,
+    );
+    let rk4 = roll_coupled_roll_derivatives(
+        roll + dt * rk3[0],
+        roll_rate + dt * rk3[1],
+        wave,
+        fin,
+        turning,
+        params,
+    );
+    let new_roll = roll + dt * (rk1[0] + 2.0 * rk2[0] + 2.0 * rk3[0] + rk4[0]) / 6.0;
+    let new_roll_rate = roll_rate + dt * (rk1[1] + 2.0 * rk2[1] + 2.0 * rk3[1] + rk4[1]) / 6.0;
+    let new_heading = num(state, "headingRad", 0.0) + new_yaw_rate * dt;
+    let speed = num(state, "speedMps", num(params, "speedMps", 9.3));
+    serde_json::to_string(&json!({
+        "headingRad": new_heading,
+        "yawRateRad": new_yaw_rate,
+        "yawAccelRad": new_yaw_accel,
+        "rollRad": new_roll,
+        "rollRateRad": new_roll_rate,
+        "positionX": num(state, "positionX", 0.0) + speed * new_heading.cos() * dt,
+        "positionZ": num(state, "positionZ", 0.0) + speed * new_heading.sin() * dt,
+        "speedMps": speed,
+        "rudderDeg": rudder_deg,
+        "finAngleDeg": num(state, "finAngleDeg", 0.0)
+    }))
+    .map_err(|error| error.to_string())
+}
+
+fn compute_cruise_comfort_analysis(request: &Value) -> Result<String, String> {
+    let objectives = &request["objectives"];
+    let metrics = &request["metrics"];
+    let comfort_score = clamp(
+        100.0 - num(metrics, "msi", 0.0) * 1.5 - num(metrics, "overshoot", 0.0) * 0.6,
+        0.0,
+        100.0,
+    );
+    let performance_score = clamp(
+        100.0 - num(metrics, "settlingTime", 0.0) * 1.1 - num(metrics, "overshoot", 0.0) * 0.5,
+        0.0,
+        100.0,
+    );
+    let energy_score = clamp(100.0 - num(metrics, "finPower", 0.0) * 0.08, 0.0, 100.0);
+
+    let weight_sum = (num(objectives, "comfortWeight", 0.0)
+        + num(objectives, "performanceWeight", 0.0)
+        + num(objectives, "energyWeight", 0.0))
+    .max(1.0);
+    let comfort_weight = num(objectives, "comfortWeight", 0.0) / weight_sum;
+    let performance_weight = num(objectives, "performanceWeight", 0.0) / weight_sum;
+    let energy_weight = num(objectives, "energyWeight", 0.0) / weight_sum;
+    let blended_score = round2(
+        comfort_score * comfort_weight
+            + performance_score * performance_weight
+            + energy_score * energy_weight,
+    );
+
+    let pareto_front: Vec<Value> = (0..12)
+        .map(|index| {
+            let ratio = index as f64 / 11.0;
+            json!({
+                "comfort": round2(95.0 - ratio * 45.0 + (index as f64).sin() * 2.0),
+                "performance": round2(60.0 + ratio * 35.0 - ((index as f64) * 0.6).cos() * 3.0)
+            })
+        })
+        .collect();
+
+    let mut advice = Vec::new();
+    if comfort_score < 65.0 {
+        advice.push("舒适度偏低：建议降低带宽或加强减摇策略。");
+    }
+    if performance_score < 65.0 {
+        advice.push("性能偏弱：可适当提高 Kp 并控制超调。");
+    }
+    if energy_score < 60.0 {
+        advice.push("能耗偏高：建议限制减摇鳍动作频率。");
+    }
+    if advice.is_empty() {
+        advice.push("当前权衡较均衡，可继续微调提升 Pareto 前沿位置。");
+    }
+
+    serde_json::to_string(&json!({
+        "objectiveScores": {
+            "comfort": round2(comfort_score),
+            "performance": round2(performance_score),
+            "energy": round2(energy_score)
+        },
+        "blendedScore": blended_score,
+        "paretoFront": pareto_front,
+        "currentDesign": {
+            "comfort": round2(comfort_score),
+            "performance": round2(performance_score)
+        },
+        "advice": advice
+    }))
+    .map_err(|error| error.to_string())
+}
+
+fn deterministic_unit_sample(index: usize, salt: usize) -> f64 {
+    let x = ((index as f64 + 1.0) * (salt as f64 + 3.0) * 12.9898).sin() * 43758.5453;
+    x - x.floor()
+}
+
+fn compute_icebreaker_robust_analysis(request: &Value) -> Result<String, String> {
+    let sample_count = num(request, "sampleCount", 80.0).round().clamp(20.0, 300.0) as usize;
+    let [k_min, k_max] = nested_pair(request, "uncertaintyRange", "paramK", [0.9, 1.1]);
+    let [t_min, t_max] = nested_pair(request, "uncertaintyRange", "paramT", [0.9, 1.1]);
+    let scenarios = request
+        .get("disturbanceScenarios")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "disturbanceScenarios must be an array.".to_string())?;
+
+    let mut scenario_results = Vec::new();
+    for (scenario_index, scenario) in scenarios.iter().enumerate() {
+        let intensity = num(scenario, "intensity", 1.0);
+        let mut rejection_sum = 0.0;
+        let mut margin_sum = 0.0;
+        let mut sensitivity_sum = 0.0;
+
+        for sample_index in 0..sample_count {
+            let k = k_min
+                + deterministic_unit_sample(sample_index, scenario_index + 1) * (k_max - k_min);
+            let t = t_min
+                + deterministic_unit_sample(sample_index, scenario_index + 7) * (t_max - t_min);
+            let rejection = clamp(
+                92.0 - intensity * 9.0 - (1.0 - k).abs() * 26.0 - (1.0 - t).abs() * 18.0,
+                10.0,
+                100.0,
+            );
+            let margin = clamp(58.0 - intensity * 6.0 - (1.0 - t).abs() * 28.0, 5.0, 80.0);
+            let sensitivity = (1.0 - k).abs() * 100.0 + (1.0 - t).abs() * 100.0;
+
+            rejection_sum += rejection;
+            margin_sum += margin;
+            sensitivity_sum += sensitivity;
+        }
+
+        scenario_results.push(json!({
+            "name": scenario.get("name").and_then(Value::as_str).unwrap_or("未命名场景"),
+            "intensity": intensity,
+            "disturbanceRejection": round2(rejection_sum / sample_count as f64),
+            "stabilityMargin": round2(margin_sum / sample_count as f64),
+            "parameterSensitivity": round2(sensitivity_sum / sample_count as f64)
+        }));
+    }
+
+    let count = (scenario_results.len() as f64).max(1.0);
+    let aggregate_rejection = scenario_results
+        .iter()
+        .map(|item| num(item, "disturbanceRejection", 0.0))
+        .sum::<f64>()
+        / count;
+    let aggregate_margin = scenario_results
+        .iter()
+        .map(|item| num(item, "stabilityMargin", 0.0))
+        .sum::<f64>()
+        / count;
+    let aggregate_sensitivity = scenario_results
+        .iter()
+        .map(|item| num(item, "parameterSensitivity", 0.0))
+        .sum::<f64>()
+        / count;
+    let recommendation = if aggregate_margin < 25.0 {
+        "稳定裕度偏低，建议提高阻尼并放缓高频控制动作。"
+    } else if aggregate_sensitivity > 45.0 {
+        "参数敏感性偏高，建议收缩增益并增加鲁棒补偿。"
+    } else {
+        "鲁棒性表现良好，可继续进行局部精调优化。"
+    };
+
+    serde_json::to_string(&json!({
+        "robustnessMetrics": {
+            "disturbanceRejection": round2(aggregate_rejection),
+            "stabilityMargin": round2(aggregate_margin),
+            "parameterSensitivity": round2(aggregate_sensitivity)
+        },
+        "scenarioResults": scenario_results,
+        "recommendation": recommendation
+    }))
+    .map_err(|error| error.to_string())
+}
+
+#[derive(Clone, Copy)]
+struct QuickPoint {
+    x: f64,
+    z: f64,
+}
+
+fn cross_track_error(x: f64, z: f64, guide_path: &[QuickPoint]) -> f64 {
+    if guide_path.len() < 2 {
+        return 0.0;
+    }
+    let mut min_dist_sq = f64::INFINITY;
+    for segment in guide_path.windows(2) {
+        let p1 = segment[0];
+        let p2 = segment[1];
+        let vx = p2.x - p1.x;
+        let vz = p2.z - p1.z;
+        let wx = x - p1.x;
+        let wz = z - p1.z;
+        let c1 = wx * vx + wz * vz;
+        let c2 = vx * vx + vz * vz;
+        let dist_sq = if c1 <= 0.0 {
+            (x - p1.x).powi(2) + (z - p1.z).powi(2)
+        } else if c2 <= c1 || c2 <= 1e-9 {
+            (x - p2.x).powi(2) + (z - p2.z).powi(2)
+        } else {
+            let b = c1 / c2;
+            let px = p1.x + vx * b;
+            let pz = p1.z + vz * b;
+            (x - px).powi(2) + (z - pz).powi(2)
+        };
+        min_dist_sq = min_dist_sq.min(dist_sq);
+    }
+    min_dist_sq.sqrt()
+}
+
+fn compute_nomoto_quick_sim(request: &Value) -> Result<String, String> {
+    let dt = num(request, "dt", 0.5);
+    if dt <= 0.0 || dt > 1.0 {
+        return Err("dt must be in (0, 1].".to_string());
+    }
+    let duration = num(request, "duration", 120.0).clamp(dt, 600.0);
+    let start = &request["start"];
+    let pid = &request["pid"];
+    let nomoto = &request["nomoto"];
+    let speed = num(nomoto, "speedMps", 15.0);
+    let max_rudder = num(nomoto, "maxRudderDeg", 35.0);
+    let k = num(nomoto, "K", 0.08);
+    let t_nomoto = num(nomoto, "T", 55.0).max(1e-6);
+    let target_heading = num(request, "targetHeadingDeg", 90.0);
+    let target_switch_time = num(request, "targetSwitchTime", 60.0);
+
+    let guide_path: Vec<QuickPoint> = request
+        .get("guidePath")
+        .and_then(Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .map(|item| QuickPoint {
+                    x: num(item, "x", 0.0),
+                    z: num(item, "z", 0.0),
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let mut heading = deg_to_rad(num(start, "headingDeg", 0.0));
+    let mut yaw_rate = 0.0;
+    let mut x = num(start, "x", 0.0);
+    let mut z = num(start, "z", 0.0);
+    let mut integral = 0.0;
+    let mut prev_error = 0.0;
+    let mut prev_rudder = 0.0;
+    let mut max_rudder_rate: f64 = 0.0;
+    let mut total_error = 0.0;
+    let mut error_count = 0.0;
+    let integral_limit = if num(pid, "ki", 0.0).abs() > 1e-9 {
+        deg_to_rad(max_rudder) / num(pid, "ki", 0.0).abs()
+    } else {
+        f64::INFINITY
+    };
+
+    let mut times = Vec::new();
+    let mut desired_headings = Vec::new();
+    let mut actual_headings = Vec::new();
+    let mut speeds = Vec::new();
+    let mut rudders = Vec::new();
+    let mut trajectory = Vec::new();
+
+    let mut sim_time = 0.0;
+    while sim_time <= duration + 1e-9 {
+        let desired = if sim_time < target_switch_time {
+            0.0
+        } else {
+            target_heading
+        };
+        let current_heading = normalize_heading_deg(rad_to_deg(heading));
+        let error_rad = deg_to_rad(angle_delta_deg(desired, current_heading));
+        integral = clamp(integral + error_rad * dt, -integral_limit, integral_limit);
+        let derivative = (error_rad - prev_error) / dt;
+        let output_rad = num(pid, "kp", 0.0) * error_rad
+            + num(pid, "ki", 0.0) * integral
+            + num(pid, "kd", 0.0) * derivative;
+        let rudder = clamp(rad_to_deg(output_rad), -max_rudder, max_rudder);
+        prev_error = error_rad;
+
+        let rudder_rad = deg_to_rad(rudder);
+        let yaw_accel = (k * rudder_rad - yaw_rate) / t_nomoto;
+        yaw_rate += yaw_accel * dt;
+        heading += yaw_rate * dt;
+        x += speed * heading.cos() * dt;
+        z += speed * heading.sin() * dt;
+
+        total_error += cross_track_error(x, z, &guide_path);
+        error_count += 1.0;
+        max_rudder_rate = max_rudder_rate.max((rudder - prev_rudder).abs() / dt);
+        prev_rudder = rudder;
+
+        times.push(round2(sim_time));
+        desired_headings.push(normalize_signed_heading_deg(desired));
+        actual_headings.push(normalize_signed_heading_deg(current_heading));
+        speeds.push(speed);
+        rudders.push(rudder);
+        trajectory.push(json!({
+            "time": round2(sim_time),
+            "x": x,
+            "z": z,
+            "heading": current_heading,
+            "rudder": rudder
+        }));
+
+        sim_time += dt;
+    }
+
+    serde_json::to_string(&json!({
+        "trajectory": trajectory,
+        "chartData": {
+            "time": times,
+            "desiredHeading": desired_headings,
+            "actualHeading": actual_headings,
+            "speed": speeds,
+            "rudder": rudders
+        },
+        "metrics": {
+            "avgError": if error_count > 0.0 { total_error / error_count } else { 0.0 },
+            "maxRudderRate": max_rudder_rate
+        }
+    }))
+    .map_err(|error| error.to_string())
+}
+
 #[derive(Clone, Copy)]
 struct MmgState {
     x: f64,
@@ -567,6 +1267,14 @@ pub fn compute_virtual_simulation_step_json(request_json: &str) -> Result<String
         "destroyer_hifi" => {
             destroyer_hifi_runtime::compute_virtual_simulation_step_json(request_json)
         }
+        "nomoto1st" => compute_nomoto1st(&request),
+        "nomoto2nd_delay" => compute_nomoto2nd_delay(&request),
+        "nomoto_variable_mass" => compute_nomoto_variable_mass(&request),
+        "container_roll" => compute_container_roll(&request),
+        "roll_coupled_nomoto" => compute_roll_coupled_nomoto(&request),
+        "cruise_comfort_analysis" => compute_cruise_comfort_analysis(&request),
+        "icebreaker_robust_analysis" => compute_icebreaker_robust_analysis(&request),
+        "nomoto_quick_sim" => compute_nomoto_quick_sim(&request),
         "mmg3dof" => compute_mmg3dof(&request),
         "semisub3dof" => compute_semisub3dof(&request),
         "azipod3dof" => compute_azipod3dof(&request),
