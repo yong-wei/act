@@ -7,7 +7,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 
 ## Overview
 
-先审正确性，再做课程制作。这个技能面向 `course-content/authoring/lessons/<lesson>/` 的课程初稿，负责检查产物正确性、事实正确性、科学合理性与确定性结论，补齐知识卡片与代码直出媒体，并把已审查产物导出到 runtime，供后续互动课程制作技能直接消费。
+先审正确性，再做课程制作。这个技能面向 `course-content/authoring/lessons/<lesson>/` 的课程初稿，负责检查产物正确性、事实正确性、科学合理性与确定性结论，补齐知识卡片与代码直出媒体，并把已审查产物导出到 runtime。若互动课程设计已完成，还要检查互动步骤、知识卡片顺序与 `sequence.json` 是否一致。
 
 核心原则：
 - 先修 `authoring` 源文件，再导出 runtime；不要只在 runtime 打补丁。
@@ -36,7 +36,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - `course-content/authoring/lessons/<lesson>/design/interactive-contract.yaml`（若存在）
 - `course-content/authoring/lessons/<lesson>/design/interactive-design-acceptance.json`
 - `course-content/authoring/lessons/<lesson>/design/multimedia.md`（如果存在）
-- `course-content/authoring/knowledge/cards/lessons/<lesson>/sequence.json`
+- `course-content/authoring/knowledge/cards/lessons/<lesson>/sequence.json`（若已存在；互动设计前可缺失或为草案）
 - `course-content/authoring/knowledge/cards/nodes/*.md` 中与本课相关的卡片
 
 若该课已经存在互动课程本地实现，还必须额外读取：
@@ -60,7 +60,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 
 先把正文、教案、卡片、媒体中的关键陈述分类，不要一上来只看排版：
 
-- **结构性项**：标题层级、文件路径、媒体引用、sequence/card_order/manifest 对齐
+- **结构性项**：标题层级、文件路径、媒体引用、manifest 对齐；若互动设计已完成，还包括 sequence/card_order 与互动步骤对齐
 - **事实性项**：任务、事迹、新闻、机构、标准、时间、数字、案例背景
 - **科学性项**：概念定义、因果解释、逻辑推演、工程判断、边界条件
 - **确定性项**：公式、代数计算、控制图、性能指标、系统结论、仿真结果
@@ -116,7 +116,7 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 
 ### 3. 审事实正确性
 
-- 若陈述属于课内自足事实（如本课定义、课内任务约束、例题题设、步骤顺序、评分规则），对照讲义主线、manifest、sequence 与相关卡片做一致性核验。
+- 若陈述属于课内自足事实（如本课定义、课内任务约束、例题题设、步骤顺序、评分规则），对照讲义主线、manifest、互动设计稿、sequence（若已定稿）与相关卡片做一致性核验。
 - 若陈述属于外部事实，按以下规则处理：
   - **任务、事迹、新闻、机构、事件、标准、年份/日期、统计数字**：必须联网搜索证据验证
   - 优先使用官方站点、标准组织、学校/机构官网、权威媒体、一手报道
@@ -249,8 +249,10 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 
 ### 7. 审知识卡片
 
-- 读取 `course-content/authoring/knowledge/cards/lessons/<lesson>/sequence.json`
+- 若本课已经完成 `interactive-design-acceptance.json`，读取 `course-content/authoring/knowledge/cards/lessons/<lesson>/sequence.json`，并把它视为互动步骤与卡片呈现顺序的最终依据。
+- 若尚未进入互动设计阶段，`sequence.json` 可以缺失或标记为草案；此时只审知识节点和卡片正文是否存在、事实是否正确，不把卡片顺序当作阻塞项。
 - 核对 `groups[].node_ids` 与 `card_order` 中每张卡是否存在
+- 若互动设计已完成，额外核对 `groups[].step_ids` 是否能对应 `interactive-page.md` / `interactive-contract.yaml` 中的最终步骤。
 - 核对 `course-content/authoring/knowledge/cards/nodes/<node_id>.md`：
   - frontmatter 至少应包含 `node_id`、`lesson_units`、`source_docs`
   - 内容应包含 `## 首页` 与 `## 详情`
@@ -391,7 +393,7 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 已用 `Octave` + `control` 内置函数验证确定性结论（如适用）
 - [ ] 已检查 design/boppps.md 的覆盖与事实正确性
 - [ ] 已生成并检查 `review/interactive-page-check.json`
-- [ ] 已检查 lesson sequence 与知识卡片节点文件
+- [ ] 若互动设计已完成，已检查 lesson sequence 与知识卡片节点文件；若未完成互动设计，已检查知识卡片正文且未把 sequence 缺失作为阻塞项
 - [ ] 已生成 `media/processed/` 并核对图片正确性
 - [ ] 已检查所有媒体资源命名是否统一带单元前缀，包括代码直出图与线框图
 - [ ] 已检查媒体成图质量：字符、遮挡、截断、图例拥挤、留白与指向关系
@@ -401,6 +403,7 @@ runtime 契约见 `references/runtime-output-contract.md`。
 
 - 只改 runtime，不回写 `authoring`
 - 只看 `sequence.json`，不检查 `knowledge/cards/nodes/*.md`
+- 在互动设计前把 `sequence.json` 当成最终步骤顺序，反过来限制互动页拆分、后测/总结分离或卡片展示时机
 - 让 `export_runtime.py` 直接从 `media/raw/` 出 runtime，跳过 `media/processed/` 审核
 - 把实践课继续写成 `practice-guide` 替代讲义，而不是回到讲义主线
 - 把“实践不少于 45 分钟”误写成教师演示、口头讨论或课后自学时间

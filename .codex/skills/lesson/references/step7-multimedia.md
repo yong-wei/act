@@ -119,7 +119,7 @@
 **同时**读取以下三类内容，识别所有媒体插入点：
 - `design/handout.md`（讲义）
 - `design/interactive-page.md`（互动课设计）
-- `course-content/authoring/knowledge/cards/lessons/<unit>/sequence.json` 与其引用的 `course-content/authoring/knowledge/cards/nodes/<node_id>.md`（若 Step 4 已登记 `card-media-plan.md`，直接读取）
+- `course-content/authoring/knowledge/cards/lessons/<unit>/sequence.json` 与其引用的 `course-content/authoring/knowledge/cards/nodes/<node_id>.md`（若已进入互动设计或 Step 4 已登记 `card-media-plan.md`，直接读取；若 sequence 尚未定稿，只扫描已存在的卡片草案，不把卡片顺序当作媒体引用真源）
 
 扫描结果输出为统一资源总表，与用户确认优先级。**同一图像在多处引用时只列一行，"引用于"列注明所有引用位置**：
 

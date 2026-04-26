@@ -27,7 +27,8 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 
 - 本技能负责作者态互动设计与契约。
 - 本技能不负责师生端代码、课堂路由、会话同步与运行时埋点落地；这些由 `interactive-lesson-implementation` 负责。
-- 本技能不负责讲义正文、知识图谱与 BOPPPS 主线制作；这些由 `lesson` 负责。
+- 本技能不负责讲义正文、知识图谱概念事实与 BOPPPS 主线制作；这些由 `lesson` 负责。
+- 本技能负责互动呈现层的步骤编排、卡片展示位置、作答卡与显影链设计；因此 `sequence.json` 的最终顺序和 `groups[].step_ids` 应在本技能完成后定稿。若 lesson 阶段已生成 `sequence.json`，只把它当作候选输入，不得让它压制互动页步骤数、页面顺序或卡片拆分。
 
 ## 必读输入
 
@@ -36,7 +37,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 1. `course-content/authoring/lessons/[单元编号]/design/handout.md`
 2. `course-content/authoring/lessons/[单元编号]/design/boppps.md`
 3. `course-content/authoring/lessons/[单元编号]/manifest.json`
-4. `course-content/authoring/knowledge/cards/lessons/[单元编号]/sequence.json`
+4. 已有知识卡片与 `course-content/authoring/knowledge/cards/lessons/[单元编号]/sequence.json`（若存在）
 
 如已存在旧版互动设计，还必须读取：
 
@@ -99,7 +100,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 
 ### Step 1｜抽取 clean brief 与讲义证据单元
 
-先把 handout、BOPPPS、manifest、sequence 和既有设计中的工程性提示下沉为 hidden constraints，只保留：
+先把 handout、BOPPPS、manifest、已有卡片、候选 sequence 和既有设计中的工程性提示下沉为 hidden constraints，只保留：
 
 - 本页必须出现哪些对象、证据、题面、公式链、图后解释、结论桥接
 - 本页若需显式目标，应出现哪些布鲁姆能力项
@@ -107,6 +108,8 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 哪些范围不能扩张
 - 目标读者在这一页需要完成什么理解 / 判断 / 操作
 - 哪些教师控制语义必须进入机读契约，但不直接写成 prose 句型
+
+若 `sequence.json` 已存在，先判断它是“已由互动设计验收过的最终顺序”还是“lesson 阶段候选草案”。候选草案只能提供卡片池和初始分组，不能限制最终互动步骤数；若互动设计需要拆分后测/总结、增加扰动/噪声页、调整卡片展示时机，应以页面自包含和讲义证据链为准。
 
 若当前上下文里混入大量 harness、superpowers 或实现阶段提示，优先采用“主代理先抽 clean brief，子代理只接收 brief 生成 prose”的策略；子代理只处理页面蓝图 prose，不继承上游工程提示全文。
 
@@ -147,6 +150,17 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - `保留元素`
 - `不得删减内容`
 - `验收点`
+
+同时输出“知识卡片互动归宿表”，至少写清：
+
+- `node_id`
+- `卡片标题`
+- `来源证据`
+- `目标步骤`
+- `呈现方式`（常显卡片 / 显影卡片 / 作答前置 / 总结回看）
+- `是否需要补写或拆分`
+
+若发现现有 `sequence.json` 与互动步骤不一致，优先修订 sequence；不要为了迁就旧 sequence 压缩互动步骤。
 
 ### Step 3｜先搭步骤框架，再写页面蓝图 prose
 
@@ -191,11 +205,13 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 教师控制语义
 - 学生访问语义
 - 页面正文内容源与内容块语义
+- 每步知识卡片归属与 `sequence.json` 的 `groups[].step_ids`
 
 其中：
 
 - `interactive-page.md` 负责给出人读层的完整页面内容蓝图；
 - `interactive-contract.yaml` 负责给出机读层的最小可实现内容载荷；
+- `sequence.json` 负责记录互动步骤与知识卡片展示顺序；在本技能中应随双轨真源同步校准，不能早于互动页独立冻结；
 - 二者都必须承载课程内容，不能出现“人读稿有内容、契约只有框架”或“契约有若干字段、人读稿只有约束摘要”的失衡状态。
 
 ### Step 5｜出稿前检查
@@ -218,16 +234,18 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 每一步都已写出可直接呈现给学生的正文内容、题面、表格内容、图后解释或显影文本，而不是只留下摘要级标签
 - `interactive-contract.yaml` 的 `content_blocks` 不是标题索引或占位提示，而是最小可实现内容真源
 - 实现者不需要靠 handout 或个人理解二次撰写大段课程正文，才能把当前步骤做成可读页面
+- `sequence.json` 若存在，必须与最终步骤数和卡片归属一致；若它来自 lesson 阶段草案，必须在本阶段修订后再进入接受记录
 
 ### Step 6｜子代理设计接受记录
 
 完成 `interactive-page.md` 与 `interactive-contract.yaml` 后，必须进入子代理驱动接受流程：
 
 1. 主代理首先基于讲义的核心思路和主要内容模块，先定总页数、页面顺序以及每页对应的讲义文稿范围。
-2. 主代理把单页 clean brief 发给**设计子代理**，要求它围绕“学生只看这一页互动就能明白”完成页面设计。
-3. 设计子代理完成后，再交给**逻辑审核子代理**，用学生视角审查“学生只看这一页互动就能明白这个页面到底在讲什么吗”。
-4. 若逻辑审核子代理判定不通过，必须转交给**整改子代理**回修，再次进入审核闭环。
-5. 上述“设计子代理 -> 逻辑审核子代理 -> 整改子代理（按需）”是**强约束硬流程**，不得省略、合并、主代理代审，也不得以任何“等价检查”“主代理 fallback”“单次自查”替代。
+2. 主代理同步确定每页需要展示的知识卡片、作答卡、显影链和媒体证据；这一结果用于更新 `sequence.json`，不受 lesson 阶段候选顺序约束。
+3. 主代理把单页 clean brief 发给**设计子代理**，要求它围绕“学生只看这一页互动就能明白”完成页面设计。
+4. 设计子代理完成后，再交给**逻辑审核子代理**，用学生视角审查“学生只看这一页互动就能明白这个页面到底在讲什么吗”。
+5. 若逻辑审核子代理判定不通过，必须转交给**整改子代理**回修，再次进入审核闭环。
+6. 上述“设计子代理 -> 逻辑审核子代理 -> 整改子代理（按需）”是**强约束硬流程**，不得省略、合并、主代理代审，也不得以任何“等价检查”“主代理 fallback”“单次自查”替代。
 
 1. 主代理只把 clean brief、讲义证据单元表、双轨真源草案与必须遵守的检查项交给设计审查子代理，不把上游 harness、实现阶段提示或完整聊天上下文塞给子代理。
 2. 子代理必须按**单步 clean brief -> 单步页面设计 -> 单步逻辑审核**的粒度工作；不得把整课打包成一次笼统审查，也不得跳过页面级独立判断。
@@ -253,8 +271,10 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
     "evidence_complete": "pass",
     "contract_alignment": "pass",
     "student_self_contained": "pass",
-    "no_prose_pollution": "pass"
+    "no_prose_pollution": "pass",
+    "sequence_finalized": "pass"
   },
+  "sequence_source": "interactive_design_finalized",
   "issues": []
 }
 ```
@@ -276,6 +296,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 混合证据顺序表
 - 每一步的页面骨架、模块清单、静态承载内容、互动升级点、教师控制、学生默认状态、预览口径
 - 每一步的页面正文内容源，例如标题文案、题面全文、关键正文句、表格正文、图后解释、显影文本、作答题面、收束句
+- 每一步使用哪些知识卡片、是否常显、是否随显影出现、是否需要补写卡片
 - 每一步的“脱离讲稿自包含检查”或等价说明
 
 ### `interactive-contract.yaml`
@@ -318,6 +339,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - `source_files.interactive_contract`
 - `checks`
 - `issues`
+- `sequence_finalized` 或等价字段，说明 `sequence.json` 已与互动步骤和卡片归属一致；若本课暂不制作互动课程，不应写接受文件
 
 ## 常见误用
 
@@ -336,6 +358,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 
 - 双轨真源已写入作者态目录
 - 讲义证据链已完整映射
+- `sequence.json` 已按互动步骤完成最终校准，或明确记录本课不使用卡片顺序
 - 例题与推导显影规则已写清
 - 曲线图步骤与比较页的拆分合理
 - 教师/学生控制语义已写成可实现字段

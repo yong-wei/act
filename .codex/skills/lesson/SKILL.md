@@ -10,13 +10,14 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 本技能负责课程内容制作主线中的四类作者态产物：
 
 1. `handout.md` / `teacher-handout.md` 与对应 PDF
-2. `manifest.json`、`graph/*.jsonl`、`sequence.json` 与知识卡片顺序
+2. `manifest.json`、`graph/*.jsonl` 与知识卡片草案
 3. `boppps.md`
 4. `multimedia.md` 与媒体规划、代码直出媒体、导出文档
 
 **边界说明：**
 - 本技能不再负责 `interactive-page.md` 与 `interactive-contract.yaml`。
 - 互动课程设计已拆分为独立技能 `interactive-design`。
+- `sequence.json` 与“每一步展示哪些知识卡片”的最终顺序，不在 lesson 阶段冻结；它们由 `interactive-design` 依据互动步骤、显影链和作答卡统一校准。lesson 阶段可以生成候选卡片和临时顺序，但不得把它们作为互动设计的硬约束。
 - 若用户要求互动页面蓝图、互动契约、课堂页步骤拆分、例题显影、学生作答卡或教师控制语义，切换到 `interactive-design`。
 - 若用户要求将设计稿落成前端代码、课堂路由、师生端页面或运行时课程实现，切换到 `interactive-lesson-implementation`。
 
@@ -26,18 +27,18 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 
 ```text
 讲义（核心基础）
-    ├── 知识图谱与知识卡片（manifest / graph / sequence）
     ├── BOPPPS 课案
-    └── 多模态资源 + AI 提示词
+    ├── 多模态资源 + AI 提示词
+    └── 知识图谱与知识卡片草案（manifest / graph / card drafts）
 ```
 
 ### 实践课
 
 ```text
 讲义（同样是核心主线）
-    ├── 知识图谱与知识卡片（manifest / graph / sequence）
     ├── BOPPPS 课案（明确不少于 45 分钟学生实践训练）
-    └── 多模态资源 + 平台模块约束说明
+    ├── 多模态资源 + 平台模块约束说明
+    └── 知识图谱与知识卡片草案（manifest / graph / card drafts）
 ```
 
 **保存路径**
@@ -48,7 +49,7 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 - `course-content/authoring/lessons/[单元编号]/manifest.json`
 - `course-content/authoring/lessons/[单元编号]/graph/nodes.jsonl`
 - `course-content/authoring/lessons/[单元编号]/graph/relations.jsonl`
-- `course-content/authoring/knowledge/cards/lessons/[单元编号]/sequence.json`
+- `course-content/authoring/knowledge/cards/lessons/[单元编号]/sequence.json`（互动设计阶段定稿；lesson 阶段仅可作为候选草案）
 
 ## 协作原则
 
@@ -126,26 +127,33 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
    - 所有媒体成品都必须采用 `[单元编号]-{资源名}` 命名。
    - 不允许最终交付中混用无前缀旧命名。
 
-11. **讲义必须导出正式 PDF**
+11. **PDF 图表标题必须避免重复编号**
+   - Markdown 图片 alt 文本只写图题本身，不写 `图 1`、`图 4-7-1`、`图X.Y` 等人工图序；PDF 导出会自动生成 `图 1`、`图 2` 这类直接数字编号。
+   - 表题使用直接数字编号或 LaTeX `\caption{标题}` 自动编号，不写 `表 4-7-1` 这类带单元号的表序。
+   - 表格标题必须在 PDF 中居中。若使用原生 LaTeX 表格，应采用 `\begin{table}[H]`、`\centering`、`\caption{...}`、`\begin{tabular}...` 的结构；不要把表题作为普通左对齐段落放在表格上方。
+   - PDF 抽查时若出现 `图 12. 图 4-7-12 ...`、表题左对齐或表序混用单元号，视为版面未通过。
+
+12. **讲义必须导出正式 PDF**
    - 学生版与教师版 Markdown 定稿后，都必须导出同目录 PDF。
    - 默认使用 `.codex/skills/lesson/scripts/export_handout_pdf.py` 与统一模板。
    - 若 `cover-comic.png` 与 `info.png` 尚未完成，只允许使用 `--draft-mode` 导出草稿 PDF。
 
-12. **PDF 版面必须抽样复核**
+13. **PDF 版面必须抽样复核**
    - 学生版和教师版 PDF 都至少抽查首页、图表页、公式密集页、附录代码页或板书/课堂组织页。
    - 默认使用 `.codex/skills/lesson/scripts/render_pdf_review_pages.py` 渲染抽查页，不再手写 `pdftoppm -png/-jpeg` 这类环境敏感命令。
    - 若发现字体缺失、图形裁切、标注遮挡、代码块越界、页眉页脚错位或页码异常，则视为未完成。
 
-13. **讲义完成后先做图谱与知识卡片**
-   - 学生版与教师版 PDF 抽查通过后，先完成 `manifest.json`、`graph/*.jsonl` 与 `sequence.json`。
-   - `manifest.json` 与 `sequence.json` 缺失时，不进入 BOPPPS 与多媒体阶段。
+14. **讲义完成后先做知识底稿，不冻结互动顺序**
+   - 学生版与教师版 PDF 抽查通过后，可先完成 `manifest.json`、`graph/*.jsonl` 与知识卡片草案，保证概念存在性、事实来源和卡片正文可追踪。
+   - `sequence.json` 只记录候选卡片分组时，不得视为最终互动顺序；最终步骤、卡片展示位置和卡片顺序由 `interactive-design` 在互动页统一编排后定稿。
+   - BOPPPS 与多媒体阶段依赖讲义、教师讲义和媒体证据链，不依赖最终 `sequence.json`；不得因 `sequence.json` 尚未定稿而阻塞 BOPPPS 或媒体规格制作。
 
-14. **资源库只作候选源，不直接拼贴成课**
+15. **资源库只作候选源，不直接拼贴成课**
    - 正式创作前必须读取 `course-content/resource-library/integration-framework.md`。
    - 应根据本次课程目标，选择性读取 `pptx`、`civics-cases`、`ship-control-cases` 的索引和正文。
    - 每项资源都必须标记 `改写吸收 / 直接复用图片 / 仅作灵感 / 排除` 之一。
 
-15. **多媒体阶段必须产出媒体链接文档**
+16. **多媒体阶段必须产出媒体链接文档**
    - 在 `media/processed/` 下必须生成 `[单元编号]-media.md`。
    - 该文档至少保留 5 个课程级资源节名：
      - `[单元编号]-intro-video.mp4`
@@ -155,7 +163,7 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
      - `handout.md`
    - 若文档已有人工内容，不覆盖，只补缺失节名。
 
-16. **封面漫画与信息图属于保留资产**
+17. **封面漫画与信息图属于保留资产**
    - `[单元编号]-cover-comic.png` 与 `[单元编号]-info.png` 默认由用户或外部流程回写。
    - 任何代码直出脚本不得覆盖这些课程级保留资产。
 
@@ -234,7 +242,7 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 - 学生版 `handout.md` 必须先走 `clean brief -> prose 初稿 -> 去污染重写`，再导出 PDF。
 - 教师版 `teacher-handout.md` 必须以学生版 clean brief 和定稿内容为基础重写，不得把导出门槛、检查表、流程提示直接露出成课堂讲义句子。
 
-### Step 3｜知识图谱与知识卡片
+### Step 3｜知识图谱与知识卡片草案
 
 > **读取参考文件**：`references/step4-knowledge-graph.md`
 
@@ -242,13 +250,14 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 - `manifest.json`
 - `graph/nodes.jsonl`
 - `graph/relations.jsonl`
-- `course-content/authoring/knowledge/cards/lessons/[单元编号]/sequence.json`
+- 与本课相关的知识卡片草案或需补卡片清单
 
 固定顺序：
 1. 完成新增节点与关系
 2. 完成 `manifest.json`
-3. 完成 `sequence.json`
-4. 若需要互动页面蓝图，在本步骤完成后切换到 `interactive-design`
+3. 补齐已经确定会被讲义、教师讲义或媒体引用的知识卡片正文
+4. 若已经有清晰的候选卡片顺序，可生成临时 `sequence.json`，但必须标注为互动设计前草案，不得冻结步骤数或卡片顺序
+5. 完成 BOPPPS 与多媒体后，再切换到 `interactive-design`，由互动设计统一定稿 `sequence.json`、卡片展示步骤和作答卡/显影链关系
 
 ### Step 4｜BOPPPS 课案
 
@@ -273,7 +282,20 @@ description: 面向“自动控制原理”课程创作讲义、知识图谱节�
 2. 输出资源总表与制作规格
 3. 回写媒体引用与 `[单元编号]-media.md`
 
-### Step 6｜图谱增量镜像同步
+### Step 6｜移交互动课程设计
+
+完成学生讲义、教师讲义、BOPPPS、多媒体规格、基础图谱与卡片草案后，若本课需要互动课，切换到 `interactive-design`。
+
+移交给 `interactive-design` 的内容包括：
+- 学生讲义证据链
+- 教师讲义与 BOPPPS 中的课堂节奏、活动意图和误判点
+- 已落盘媒体与待制作媒体清单
+- `manifest.json`、`graph/*.jsonl`、知识卡片草案
+- 已有 `sequence.json`（若存在，仅作为候选输入）
+
+`interactive-design` 有权在保持知识事实正确的前提下，重排卡片顺序、拆分或合并互动步骤、要求补写卡片，并最终定稿 `sequence.json`。
+
+### Step 7｜图谱增量镜像同步
 
 运行：
 
@@ -287,11 +309,12 @@ python3 .codex/skills/lesson/scripts/sync_overlays.py [单元] --check
 python3 .codex/skills/lesson/scripts/sync_overlays.py [单元]
 ```
 
-### Step 7｜收尾检查
+### Step 8｜收尾检查
 
 逐项确认：
 - `manifest.json` 字段齐全且保持 `snake_case`
-- `sequence.json` 存在且 `groups` 含 `step_ids`
+- 若已经完成互动课程设计，`sequence.json` 存在且 `groups` 含 `step_ids`，并与 `interactive-page.md` / `interactive-contract.yaml` 的步骤一致
+- 若尚未进入互动课程设计，`sequence.json` 可不存在或仅为草案，不能据此判定 lesson 阶段失败
 - lesson 级废弃文件未回流
 - 两版 PDF 已抽查
 - `[单元编号]-media.md` 已存在
@@ -304,7 +327,7 @@ python3 .codex/skills/lesson/scripts/sync_overlays.py [单元]
 |------|----------|
 | 把讲义写成课堂讲稿摘要 | 讲义必须保持学生可独立阅读 |
 | 学生版刚确认就直接进入下游 | 必须先导出并抽查学生版 PDF |
-| 双版讲义一完成就跳过图谱 | 先完成 `manifest / graph / sequence` |
+| 双版讲义一完成就跳过知识底稿 | 先完成 `manifest / graph / card drafts`，但不冻结互动 `sequence` |
 | 只凭经验给出响应曲线与性能指标 | 先用 `Octave` 验证 |
 | 用普通绘图或截图处理线框图 | 必须调用 `tikz-control-draw` |
 
