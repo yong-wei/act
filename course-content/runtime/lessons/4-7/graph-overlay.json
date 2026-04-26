@@ -1,0 +1,937 @@
+{
+  "lesson_id": "4-7",
+  "title": "综合工程场景对比设计：完整控制器优化设计闭环",
+  "focus_node_ids": [
+    "高保真任务降阶辨识_4_47001",
+    "分段辨识模型组合_4_47002",
+    "工程指标代价函数翻译_4_47003",
+    "传统设计四联图校正_4_47004",
+    "结构参数联合搜索解码_4_47005",
+    "跨模型验证比较_4_47006",
+    "扰动噪声设计边界_4_47007",
+    "传统控制结构局限_4_47008"
+  ],
+  "reuse_node_ids": [
+    "统一结构编码与解码_4_46005",
+    "四类方案比较矩阵_4_46006",
+    "组合结构专项验证边界判断_4_46007",
+    "参数约束翻译表_4_45002",
+    "剩余风险说明_4_45006"
+  ],
+  "entry_nodes": [
+    "高保真任务降阶辨识_4_47001",
+    "分段辨识模型组合_4_47002"
+  ],
+  "summary_nodes": [
+    "跨模型验证比较_4_47006",
+    "扰动噪声设计边界_4_47007",
+    "传统控制结构局限_4_47008"
+  ],
+  "card_order": [
+    "剩余风险说明_4_45006",
+    "统一结构编码与解码_4_46005",
+    "高保真任务降阶辨识_4_47001",
+    "分段辨识模型组合_4_47002",
+    "工程指标代价函数翻译_4_47003",
+    "传统设计四联图校正_4_47004",
+    "结构参数联合搜索解码_4_47005",
+    "跨模型验证比较_4_47006",
+    "扰动噪声设计边界_4_47007",
+    "传统控制结构局限_4_47008"
+  ],
+  "groups": [
+    {
+      "group_name": "真实任务与分段辨识",
+      "step_ids": [
+        "step-01",
+        "step-02"
+      ],
+      "node_ids": [
+        "高保真任务降阶辨识_4_47001",
+        "分段辨识模型组合_4_47002"
+      ]
+    },
+    {
+      "group_name": "指标翻译与传统设计",
+      "step_ids": [
+        "step-03",
+        "step-04"
+      ],
+      "node_ids": [
+        "工程指标代价函数翻译_4_47003",
+        "传统设计四联图校正_4_47004"
+      ]
+    },
+    {
+      "group_name": "优化设计与跨模型验证",
+      "step_ids": [
+        "step-05",
+        "step-06",
+        "step-07"
+      ],
+      "node_ids": [
+        "统一结构编码与解码_4_46005",
+        "结构参数联合搜索解码_4_47005",
+        "跨模型验证比较_4_47006"
+      ]
+    },
+    {
+      "group_name": "扰动噪声与设计边界",
+      "step_ids": [
+        "step-08",
+        "step-09",
+        "step-10"
+      ],
+      "node_ids": [
+        "扰动噪声设计边界_4_47007",
+        "传统控制结构局限_4_47008"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "传统控制结构局限_4_47008",
+      "name": "传统控制结构局限",
+      "nodeType": "THEORY",
+      "description": "固定低阶传递函数、固定结构、线性反馈和单传感器反馈在高保真任务中都有表达边界，越过这些边界后需要鲁棒控制、扰动观测器、增益调度、MPC 或学习型策略。",
+      "positionX": -0.0,
+      "positionY": -116.0,
+      "positionZ": 4,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "评价",
+        "definition": "固定低阶传递函数、固定结构、线性反馈和单传感器反馈在高保真任务中都有表达边界，越过这些边界后需要鲁棒控制、扰动观测器、增益调度、MPC 或学习型策略。",
+        "examples": [
+          "当横荡、舵效变化、传感器噪声和大角度回转同时出现时，单一低阶航向反馈无法完整表达任务。"
+        ],
+        "formulas": [
+          "\\text{传统结构边界}=\\text{模型固定}+\\text{结构固定}+\\text{线性反馈}+\\text{单传感器}"
+        ],
+        "prerequisites": [
+          "扰动噪声设计边界_4_47007",
+          "组合结构专项验证边界判断_4_46007"
+        ],
+        "relatedConcepts": [
+          "剩余风险说明_4_45006"
+        ],
+        "difficulty": 5,
+        "importance": 4,
+        "keywords": [
+          "传统控制局限",
+          "鲁棒控制",
+          "扰动观测器",
+          "MPC"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/传统控制结构局限_4_47008.md"
+      ],
+      "tags": [
+        "传统控制局限",
+        "鲁棒控制",
+        "扰动观测器",
+        "MPC",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "传统设计四联图校正_4_47004",
+      "name": "传统设计四联图校正",
+      "nodeType": "THEORY",
+      "description": "用时域、根轨迹、Bode 和 Nyquist 四类证据诊断未校正辨识模型，再选择 $PI+\\text{超前}$ 结构并按频域指标计算参数。",
+      "positionX": 30.0,
+      "positionY": -112.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "用时域、根轨迹、Bode 和 Nyquist 四类证据诊断未校正辨识模型，再选择 $PI+\\text{超前}$ 结构并按频域指标计算参数。",
+        "examples": [
+          "未校正模型速度慢且中频相位不足，传统设计把积分零点放在船体慢极点附近，并用超前环节补偿相位。"
+        ],
+        "formulas": [
+          "C_{trad}(s)=23.11\\left(\\frac{42.00s+1}{42.00s}\\right)\\left(\\frac{48.02s+1}{13.01s+1}\\right)"
+        ],
+        "prerequisites": [
+          "工程指标代价函数翻译_4_47003"
+        ],
+        "relatedConcepts": [
+          "跨模型验证比较_4_47006"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "四联图",
+          "PI超前",
+          "Bode",
+          "根轨迹"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/传统设计四联图校正_4_47004.md"
+      ],
+      "tags": [
+        "四联图",
+        "PI超前",
+        "Bode",
+        "根轨迹",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "分段辨识模型组合_4_47002",
+      "name": "分段辨识模型组合",
+      "nodeType": "THEORY",
+      "description": "分别辨识舵机惯性、船体艏摇惯性和扰动等效惯性，再把可信的舵机段与船体段组合为名义航向模型，并把扰动段作为边界观察入口。",
+      "positionX": 82.0,
+      "positionY": -82.0,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "分别辨识舵机惯性、船体艏摇惯性和扰动等效惯性，再把可信的舵机段与船体段组合为名义航向模型，并把扰动段作为边界观察入口。",
+        "examples": [
+          "舵机段得到 $T_r=1.10\\,\\mathrm{s}$，船体段得到 $T_h=42.00\\,\\mathrm{s}$ 与 $K_h=0.0700$，扰动段只作为等效入口。"
+        ],
+        "formulas": [
+          "G_r(s)=\\frac{1}{1.10s+1}",
+          "G_h(s)=\\frac{0.0700}{42.00s+1}",
+          "G_d(s)=\\frac{0.0150}{54.00s+1}"
+        ],
+        "prerequisites": [
+          "高保真任务降阶辨识_4_47001"
+        ],
+        "relatedConcepts": [
+          "工程指标代价函数翻译_4_47003"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "分段辨识",
+          "舵机惯性",
+          "船体惯性",
+          "扰动等效"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/分段辨识模型组合_4_47002.md"
+      ],
+      "tags": [
+        "分段辨识",
+        "舵机惯性",
+        "船体惯性",
+        "扰动等效",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "剩余风险说明_4_45006",
+      "name": "剩余风险说明",
+      "nodeType": "THEORY",
+      "description": "在确认当前参数解已经可用之后，继续指出其贴近边界的位置和固定结构仍未解决的问题，为 `4-6` 的场景迁移与结构边界分析留下清晰移交。",
+      "positionX": 100.5,
+      "positionY": -58.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "在确认当前参数解已经可用之后，继续指出其贴近边界的位置和固定结构仍未解决的问题，为 `4-6` 的场景迁移与结构边界分析留下清晰移交。",
+        "examples": [
+          "客船案例中，带约束解虽然守住 `u_{\\max}\\le 7`，但控制峰值已经贴近 `7` 的上限，说明余量并不宽松。",
+          "同一性能指标函数下，PID 与超前结构的最优点落在完全不同的代价分布上，说明结构差异已开始主导结果。"
+        ],
+        "formulas": [
+          "u_{\\max}^*=6.996\\approx 7,\\qquad \\text{fixed structure feasible} \\neq \\text{structure limit solved}"
+        ],
+        "prerequisites": [
+          "优化前后证据比较表_4_45005",
+          "任务通道变化下的自由目标改写_4_44007"
+        ],
+        "relatedConcepts": [
+          "带宽频率_5_6996a44a"
+        ],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "剩余风险",
+          "边界余量",
+          "结构限制",
+          "移交"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/剩余风险说明_4_45006.md"
+      ],
+      "tags": [
+        "剩余风险",
+        "边界余量",
+        "结构限制",
+        "移交",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "参数约束翻译表_4_45002",
+      "name": "参数约束翻译表",
+      "nodeType": "THEORY",
+      "description": "把输出侧硬约束和参数范围分别翻译成求解器可直接消费的不等式、上下界与读回规则，避免把不同职责的约束混写。",
+      "positionX": 31.6,
+      "positionY": 117.8,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把输出侧硬约束和参数范围分别翻译成求解器可直接消费的不等式、上下界与读回规则，避免把不同职责的约束混写。",
+        "examples": [
+          "客船案例中，`M_p\\le 20\\%`、`u_{\\max}\\le 7` 与 `\\phi_m\\ge 45^\\circ` 应进入 `nonlcon`，而 `1\\le K\\le 6` 属于参数上下界。",
+          "若把参数范围误当成工程可交付边界，求解器仍会在结构上说得通、工程上却失真的区域里搜索。"
+        ],
+        "formulas": [
+          "c(\\theta)=\\begin{bmatrix}M_p(\\theta)-20\\\\u_{\\max}(\\theta)-7\\\\45-\\phi_m(\\theta)\\end{bmatrix}\\le 0,\\qquad lb\\le \\theta\\le ub"
+        ],
+        "prerequisites": [
+          "越界证据记录单_4_45001",
+          "优化起点与归一化来源_4_44003"
+        ],
+        "relatedConcepts": [
+          "罚函数表达表_4_45003",
+          "求解记录单_4_45004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "约束翻译",
+          "nonlcon",
+          "上下界",
+          "职责分工"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/参数约束翻译表_4_45002.md"
+      ],
+      "tags": [
+        "约束翻译",
+        "nonlcon",
+        "上下界",
+        "职责分工",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "四类方案比较矩阵_4_46006",
+      "name": "四类方案比较矩阵",
+      "nodeType": "THEORY",
+      "description": "把旧目标/新目标与旧结构/变结构两条轴交叉组合成四类方案，才能把“目标是否对题”和“结构是否仍够用”拆成两道独立判断。",
+      "positionX": -61.0,
+      "positionY": 105.7,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "把旧目标/新目标与旧结构/变结构两条轴交叉组合成四类方案，才能把“目标是否对题”和“结构是否仍够用”拆成两道独立判断。",
+        "examples": [
+          "驱逐舰采用客船代价函数但变结构搜索，说明放开结构并不能自动修正错误目标；驱逐舰采用专用代价函数但固定结构，则进一步说明结构边界还在。"
+        ],
+        "formulas": [
+          "\\{\\text{旧目标},\\text{新目标}\\}\\times\\{\\text{旧结构},\\text{变结构}\\}"
+        ],
+        "prerequisites": [
+          "统一结构编码与解码_4_46005",
+          "优化前后证据比较表_4_45005"
+        ],
+        "relatedConcepts": [
+          "组合结构专项验证边界判断_4_46007"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "四类方案",
+          "比较矩阵",
+          "目标错位",
+          "结构边界"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/四类方案比较矩阵_4_46006.md"
+      ],
+      "tags": [
+        "四类方案",
+        "比较矩阵",
+        "目标错位",
+        "结构边界",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "工程指标代价函数翻译_4_47003",
+      "name": "工程指标代价函数翻译",
+      "nodeType": "THEORY",
+      "description": "把航向误差、航迹偏离、舵角、舵速、饱和占比、控制能量和稳定裕度写成主目标、次目标、硬约束和罚项。",
+      "positionX": -105.7,
+      "positionY": -61.0,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把航向误差、航迹偏离、舵角、舵速、饱和占比、控制能量和稳定裕度写成主目标、次目标、硬约束和罚项。",
+        "examples": [
+          "同一任务中，航向误差回答是否跟住给定，航迹偏离回答船是否真正走到位，舵角与舵速回答执行机构是否可交付。"
+        ],
+        "formulas": [
+          "J=w_eJ_e+w_yJ_y+w_uJ_u+w_{\\dot u}J_{\\dot u}+w_sJ_s+J_{penalty}"
+        ],
+        "prerequisites": [
+          "分段辨识模型组合_4_47002",
+          "参数约束翻译表_4_45002"
+        ],
+        "relatedConcepts": [
+          "传统设计四联图校正_4_47004",
+          "结构参数联合搜索解码_4_47005"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "代价函数",
+          "硬约束",
+          "航迹偏离",
+          "舵速"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/工程指标代价函数翻译_4_47003.md"
+      ],
+      "tags": [
+        "代价函数",
+        "硬约束",
+        "航迹偏离",
+        "舵速",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "扰动噪声设计边界_4_47007",
+      "name": "扰动噪声设计边界",
+      "nodeType": "THEORY",
+      "description": "把外部扰动与航向传感器噪声作为独立边界处理，分别比较抗扰优化、测量低通、微分滤波和噪声下目标函数对设计结论的影响。",
+      "positionX": 31.6,
+      "positionY": -117.8,
+      "positionZ": 4,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "评价",
+        "definition": "把外部扰动与航向传感器噪声作为独立边界处理，分别比较抗扰优化、测量低通、微分滤波和噪声下目标函数对设计结论的影响。",
+        "examples": [
+          "中等扰动下比较无扰动传统设计、无扰动优化设计和有扰动优化设计；噪声下比较无抗噪与有抗噪控制器。"
+        ],
+        "formulas": [
+          "\\psi_m(t)=\\psi(t)+b_\\psi(t)+\\sigma_\\psi\\xi_k"
+        ],
+        "prerequisites": [
+          "跨模型验证比较_4_47006"
+        ],
+        "relatedConcepts": [
+          "传统控制结构局限_4_47008"
+        ],
+        "difficulty": 5,
+        "importance": 5,
+        "keywords": [
+          "扰动边界",
+          "航向传感器噪声",
+          "抗扰优化",
+          "抗噪设计"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/扰动噪声设计边界_4_47007.md"
+      ],
+      "tags": [
+        "扰动边界",
+        "航向传感器噪声",
+        "抗扰优化",
+        "抗噪设计",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "组合结构专项验证边界判断_4_46007",
+      "name": "组合结构专项验证边界判断",
+      "nodeType": "THEORY",
+      "description": "当组合结构候选在总代价和航迹误差上继续改善，却把某些筛选线推向越线区域时，说明优化器仍会沿总代价允许的方向下降，结构扩张不自动等于工程可交付。",
+      "positionX": 116.0,
+      "positionY": 67.0,
+      "positionZ": 4,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "评价",
+        "definition": "当组合结构候选在总代价和航迹误差上继续改善，却把某些筛选线推向越线区域时，说明优化器仍会沿总代价允许的方向下降，结构扩张不自动等于工程可交付。",
+        "examples": [
+          "`PI + 超前 + lead_ff + filtered_rate` 在编码上看似更复杂，但前馈和测速反馈最终收缩成零增益，实际仍等价于反馈主通道的重排。"
+        ],
+        "formulas": [
+          "\\text{总代价更低}\\neq\\text{筛选线自动成立}"
+        ],
+        "prerequisites": [
+          "四类方案比较矩阵_4_46006"
+        ],
+        "relatedConcepts": [
+          "剩余风险说明_4_45006"
+        ],
+        "difficulty": 5,
+        "importance": 4,
+        "keywords": [
+          "组合结构",
+          "专项验证",
+          "硬约束",
+          "边界判断"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/组合结构专项验证边界判断_4_46007.md"
+      ],
+      "tags": [
+        "组合结构",
+        "专项验证",
+        "硬约束",
+        "边界判断",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "结构参数联合搜索解码_4_47005",
+      "name": "结构参数联合搜索解码",
+      "nodeType": "THEORY",
+      "description": "把结构编号与连续控制参数统一编码，用固定随机种子的全局粗搜和局部精修得到候选控制器，再解码回经典控制结构与参数职责。",
+      "positionX": 34.7,
+      "positionY": 129.4,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把结构编号与连续控制参数统一编码，用固定随机种子的全局粗搜和局部精修得到候选控制器，再解码回经典控制结构与参数职责。",
+        "examples": [
+          "辨识模型优化解码为滞后 + 超前，高保真模型优化解码为带微分滤波的 $PID$。"
+        ],
+        "formulas": [
+          "\\delta_c[k]=k_pe[k]+k_iI[k]+k_dD[k]+a_{\\ell}\\frac{e[k]-e[k-1]}{\\Delta t}+a_gz[k]"
+        ],
+        "prerequisites": [
+          "统一结构编码与解码_4_46005",
+          "工程指标代价函数翻译_4_47003"
+        ],
+        "relatedConcepts": [
+          "跨模型验证比较_4_47006"
+        ],
+        "difficulty": 5,
+        "importance": 5,
+        "keywords": [
+          "结构编码",
+          "参数搜索",
+          "解码",
+          "遗传算法"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/结构参数联合搜索解码_4_47005.md"
+      ],
+      "tags": [
+        "结构编码",
+        "参数搜索",
+        "解码",
+        "遗传算法",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "统一结构编码与解码_4_46005",
+      "name": "统一结构编码与解码",
+      "nodeType": "THEORY",
+      "description": "把离散结构选择与连续参数搜索写进同一个六维归一化编码后，必须通过结构编号、有效槽位、忽略槽位和逐槽映射，把结果稳定解码回工程语言。",
+      "positionX": -67.0,
+      "positionY": 116.0,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把离散结构选择与连续参数搜索写进同一个六维归一化编码后，必须通过结构编号、有效槽位、忽略槽位和逐槽映射，把结果稳定解码回工程语言。",
+        "examples": [
+          "同一组六维向量在 `PI + 超前` 与 `超前` 结构下，会对应完全不同的有效参数集合，因此必须先判结构再解释参数。"
+        ],
+        "formulas": [
+          "[z_0,\\ldots,z_5]\\in[0,1]^6,\\qquad k=\\max(1,\\lceil 5z_0\\rceil)"
+        ],
+        "prerequisites": [
+          "结构搜索引入条件_4_46004",
+          "参数约束翻译表_4_45002"
+        ],
+        "relatedConcepts": [
+          "四类方案比较矩阵_4_46006"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "统一编码",
+          "解码",
+          "有效槽位",
+          "逐槽映射"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/统一结构编码与解码_4_46005.md"
+      ],
+      "tags": [
+        "统一编码",
+        "解码",
+        "有效槽位",
+        "逐槽映射",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "跨模型验证比较_4_47006",
+      "name": "跨模型验证比较",
+      "nodeType": "THEORY",
+      "description": "把传统设计、辨识模型优化和高保真模型优化放到统一方波与回转任务中比较，判断名义模型上的好结果是否能转化为真实任务可用。",
+      "positionX": 34.7,
+      "positionY": -129.4,
+      "positionZ": 4,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "把传统设计、辨识模型优化和高保真模型优化放到统一方波与回转任务中比较，判断名义模型上的好结果是否能转化为真实任务可用。",
+        "examples": [
+          "传统控制器先在辨识模型上验证，再放入高保真模型；优化控制器也必须分别检查辨识模型表现和高保真验证表现。"
+        ],
+        "formulas": [
+          "\\text{可交付判断}=\\text{名义模型证据}+\\text{高保真验证证据}+\\text{边界检查}"
+        ],
+        "prerequisites": [
+          "传统设计四联图校正_4_47004",
+          "结构参数联合搜索解码_4_47005"
+        ],
+        "relatedConcepts": [
+          "扰动噪声设计边界_4_47007"
+        ],
+        "difficulty": 5,
+        "importance": 5,
+        "keywords": [
+          "跨模型验证",
+          "高保真验证",
+          "方波任务",
+          "回转任务"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/跨模型验证比较_4_47006.md"
+      ],
+      "tags": [
+        "跨模型验证",
+        "高保真验证",
+        "方波任务",
+        "回转任务",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "高保真任务降阶辨识_4_47001",
+      "name": "高保真任务降阶辨识",
+      "nodeType": "THEORY",
+      "description": "把高保真航向任务中的舵机、船体艏摇、航向积分和航迹响应分解为可解释的低阶主通道，用于经典控制器设计与后续高保真验证。",
+      "positionX": -121.2,
+      "positionY": 70.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "把高保真航向任务中的舵机、船体艏摇、航向积分和航迹响应分解为可解释的低阶主通道，用于经典控制器设计与后续高保真验证。",
+        "examples": [
+          "驱逐舰 zig-zag 与回转任务先保留高保真航迹证据，再把舵令到航向的主通道降阶为三阶航向模型。"
+        ],
+        "formulas": [
+          "P_{id}(s)=\\frac{K}{s(T_rs+1)(T_hs+1)}"
+        ],
+        "prerequisites": [
+          "统一结构编码与解码_4_46005"
+        ],
+        "relatedConcepts": [
+          "分段辨识模型组合_4_47002"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "高保真模型",
+          "降阶辨识",
+          "驱逐舰航向"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/高保真任务降阶辨识_4_47001.md"
+      ],
+      "tags": [
+        "高保真模型",
+        "降阶辨识",
+        "驱逐舰航向",
+        "chapter-4"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "rel-0896bcc53d721e7d",
+      "sourceId": "组合结构专项验证边界判断_4_46007",
+      "targetId": "剩余风险说明_4_45006",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.84
+    },
+    {
+      "id": "rel-13b843570edaf2cf",
+      "sourceId": "参数约束翻译表_4_45002",
+      "targetId": "统一结构编码与解码_4_46005",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.83
+    },
+    {
+      "id": "rel-870955c2326cb63f",
+      "sourceId": "四类方案比较矩阵_4_46006",
+      "targetId": "组合结构专项验证边界判断_4_46007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-caf02c500cf8cb69",
+      "sourceId": "统一结构编码与解码_4_46005",
+      "targetId": "四类方案比较矩阵_4_46006",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-04cc91ee1b51a14c",
+      "sourceId": "统一结构编码与解码_4_46005",
+      "targetId": "高保真任务降阶辨识_4_47001",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-18c92f1a622ec5c3",
+      "sourceId": "分段辨识模型组合_4_47002",
+      "targetId": "工程指标代价函数翻译_4_47003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-1b8c5a479f4cbb56",
+      "sourceId": "工程指标代价函数翻译_4_47003",
+      "targetId": "传统设计四联图校正_4_47004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-21dbccdac09e8d06",
+      "sourceId": "扰动噪声设计边界_4_47007",
+      "targetId": "传统控制结构局限_4_47008",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-256247c224c32e97",
+      "sourceId": "组合结构专项验证边界判断_4_46007",
+      "targetId": "传统控制结构局限_4_47008",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.82
+    },
+    {
+      "id": "rel-54d37f28a98a1a5b",
+      "sourceId": "高保真任务降阶辨识_4_47001",
+      "targetId": "分段辨识模型组合_4_47002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.97
+    },
+    {
+      "id": "rel-6c4268e117d49539",
+      "sourceId": "结构参数联合搜索解码_4_47005",
+      "targetId": "跨模型验证比较_4_47006",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-760b621e8d56f6c7",
+      "sourceId": "传统设计四联图校正_4_47004",
+      "targetId": "跨模型验证比较_4_47006",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.92
+    },
+    {
+      "id": "rel-7a6748b6eab80179",
+      "sourceId": "跨模型验证比较_4_47006",
+      "targetId": "扰动噪声设计边界_4_47007",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.94
+    },
+    {
+      "id": "rel-8f18fa45e31dedd6",
+      "sourceId": "参数约束翻译表_4_45002",
+      "targetId": "工程指标代价函数翻译_4_47003",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-8f4fe0c101a30350",
+      "sourceId": "传统控制结构局限_4_47008",
+      "targetId": "剩余风险说明_4_45006",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "rel-b3b8c0acb1c07eb4",
+      "sourceId": "工程指标代价函数翻译_4_47003",
+      "targetId": "结构参数联合搜索解码_4_47005",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.93
+    }
+  ]
+}

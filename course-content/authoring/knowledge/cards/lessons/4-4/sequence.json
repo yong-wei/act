@@ -3,7 +3,10 @@
   "groups": [
     {
       "group_name": "对象与冲突证据",
-      "step_ids": ["step-01", "step-02"],
+      "step_ids": [
+        "step-01",
+        "step-02"
+      ],
       "node_ids": [
         "问题清单移交表_4_43005",
         "经典试凑中的多目标拉扯_4_44001"
@@ -11,7 +14,11 @@
     },
     {
       "group_name": "前测与参数化入口",
-      "step_ids": ["step-03", "step-04", "step-05"],
+      "step_ids": [
+        "step-03",
+        "step-04",
+        "step-05"
+      ],
       "node_ids": [
         "单结构首轮起步卡_4_42001",
         "参数方向表达卡_4_43003",
@@ -21,7 +28,12 @@
     },
     {
       "group_name": "优化方法与候选比较",
-      "step_ids": ["step-06", "step-07", "step-08", "step-09"],
+      "step_ids": [
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09"
+      ],
       "node_ids": [
         "无约束加权目标表达_4_44004",
         "权重偏好与无约束候选解_4_44005",
@@ -29,22 +41,30 @@
       ]
     },
     {
-      "group_name": "Pareto 与工程判断",
-      "step_ids": ["step-10", "step-11"],
+      "group_name": "Pareto前沿与工程判断",
+      "step_ids": [
+        "step-10",
+        "step-11"
+      ],
       "node_ids": [
         "展示解与Pareto最小取舍_4_44006"
       ]
     },
     {
       "group_name": "任务语言切换与边界案例",
-      "step_ids": ["step-12"],
+      "step_ids": [
+        "step-12"
+      ],
       "node_ids": [
         "任务通道变化下的自由目标改写_4_44007"
       ]
     },
     {
       "group_name": "后测与移交",
-      "step_ids": ["step-13", "step-14"],
+      "step_ids": [
+        "step-13",
+        "step-14"
+      ],
       "node_ids": [
         "展示解与Pareto最小取舍_4_44006",
         "任务通道变化下的自由目标改写_4_44007"

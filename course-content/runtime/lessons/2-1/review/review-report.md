@@ -14,14 +14,16 @@
 
 ## 互动页覆盖审查
 - 已检测到 `2-1` 的 V2 互动契约，步骤字段完整。
-- 缺少“讲义核心内容映射”章节
-- 讲义核心内容映射缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note
+- 已检测到 `2-1` 的本地实现契约与作者态互动契约一致。
+- 缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节
+- 讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note
+- 检测到旧版 runtime 审查产物但缺少新式互动设计/实现接受文件，当前按旧课兼容口径仅提示，不作为阻塞项。
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。
 
 ## multimedia-check
-- 已识别并确认存在 19 项正式媒体，未发现缺失。
+- 已识别并确认存在 2 项正式媒体，未发现缺失。
 
 ## 导出结论
 - authoring 已作为审查源保留；runtime 已输出 handout、media、review 索引，可直接供后续互动课程制作使用。

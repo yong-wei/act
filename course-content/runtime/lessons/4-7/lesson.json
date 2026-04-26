@@ -1,0 +1,134 @@
+{
+  "lesson_id": "4-7",
+  "title": "综合工程场景对比设计：完整控制器优化设计闭环",
+  "layer": "层4",
+  "unit_type": "实践",
+  "hours": 2,
+  "knowledge_type": "D",
+  "graph_version": "4-7-v1",
+  "focus_node_ids": [
+    "高保真任务降阶辨识_4_47001",
+    "分段辨识模型组合_4_47002",
+    "工程指标代价函数翻译_4_47003",
+    "传统设计四联图校正_4_47004",
+    "结构参数联合搜索解码_4_47005",
+    "跨模型验证比较_4_47006",
+    "扰动噪声设计边界_4_47007",
+    "传统控制结构局限_4_47008"
+  ],
+  "reuse_node_ids": [
+    "统一结构编码与解码_4_46005",
+    "四类方案比较矩阵_4_46006",
+    "组合结构专项验证边界判断_4_46007",
+    "参数约束翻译表_4_45002",
+    "剩余风险说明_4_45006"
+  ],
+  "entry_nodes": [
+    "高保真任务降阶辨识_4_47001",
+    "分段辨识模型组合_4_47002"
+  ],
+  "summary_nodes": [
+    "跨模型验证比较_4_47006",
+    "扰动噪声设计边界_4_47007",
+    "传统控制结构局限_4_47008"
+  ],
+  "card_order": [
+    "剩余风险说明_4_45006",
+    "统一结构编码与解码_4_46005",
+    "高保真任务降阶辨识_4_47001",
+    "分段辨识模型组合_4_47002",
+    "工程指标代价函数翻译_4_47003",
+    "传统设计四联图校正_4_47004",
+    "结构参数联合搜索解码_4_47005",
+    "跨模型验证比较_4_47006",
+    "扰动噪声设计边界_4_47007",
+    "传统控制结构局限_4_47008"
+  ],
+  "preceding_lesson": "4-6",
+  "following_lesson": "5-1",
+  "refinement_units": [],
+  "ideological_point": "完整工程设计闭环要求先承认真实任务，再提取可解释模型，最后回到高保真证据中判断方案是否可交付。优化结果只有能被解码为结构职责、参数含义和边界证据，才构成可靠设计。",
+  "sequence": {
+    "lesson_id": "4-7",
+    "groups": [
+      {
+        "group_name": "真实任务与分段辨识",
+        "step_ids": [
+          "step-01",
+          "step-02"
+        ],
+        "node_ids": [
+          "高保真任务降阶辨识_4_47001",
+          "分段辨识模型组合_4_47002"
+        ]
+      },
+      {
+        "group_name": "指标翻译与传统设计",
+        "step_ids": [
+          "step-03",
+          "step-04"
+        ],
+        "node_ids": [
+          "工程指标代价函数翻译_4_47003",
+          "传统设计四联图校正_4_47004"
+        ]
+      },
+      {
+        "group_name": "优化设计与跨模型验证",
+        "step_ids": [
+          "step-05",
+          "step-06",
+          "step-07"
+        ],
+        "node_ids": [
+          "统一结构编码与解码_4_46005",
+          "结构参数联合搜索解码_4_47005",
+          "跨模型验证比较_4_47006"
+        ]
+      },
+      {
+        "group_name": "扰动噪声与设计边界",
+        "step_ids": [
+          "step-08",
+          "step-09",
+          "step-10"
+        ],
+        "node_ids": [
+          "扰动噪声设计边界_4_47007",
+          "传统控制结构局限_4_47008"
+        ]
+      }
+    ],
+    "card_order": [
+      "剩余风险说明_4_45006",
+      "统一结构编码与解码_4_46005",
+      "高保真任务降阶辨识_4_47001",
+      "分段辨识模型组合_4_47002",
+      "工程指标代价函数翻译_4_47003",
+      "传统设计四联图校正_4_47004",
+      "结构参数联合搜索解码_4_47005",
+      "跨模型验证比较_4_47006",
+      "扰动噪声设计边界_4_47007",
+      "传统控制结构局限_4_47008"
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/4-7/handout.md",
+  "handout_source_path": "course-content/runtime/lessons/4-7/handout.md",
+  "handout_pdf_path": "/course-runtime/lessons/4-7/handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/4-7/handout.pdf",
+  "graph_overlay_path": "/course-runtime/lessons/4-7/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/4-7/media",
+  "media_index_path": "/course-runtime/lessons/4-7/media/4-7-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/4-7/media/4-7-media.md",
+  "review": {
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/4-7/review/boppps.md",
+    "report_path": "/course-runtime/lessons/4-7/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/4-7/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/4-7/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/4-7/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/4-7/review/source-manifest.json"
+  },
+  "interactive_manifest_path": "/course-runtime/lessons/4-7/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/4-7/interactive-manifest.json"
+}

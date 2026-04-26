@@ -1,0 +1,52 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "4-7",
+  "status": "accepted",
+  "accepted_at": "2026-04-26T20:18:42+08:00",
+  "review_mode": "subagent",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/4-7/design/interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/4-7/design/interactive-contract.yaml"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass"
+  },
+  "subagent_reviews": [
+    {
+      "scope": "step-01_to_step-04",
+      "status": "passed",
+      "agent_id": "019dc9b4-82b9-7941-a871-50b8215bb2c7",
+      "closed_issues": [
+        "step-01 contract figure explanation and conclusion",
+        "step-02 reading prompt and parameter explanation",
+        "step-04 stability margin and penalty formulas"
+      ]
+    },
+    {
+      "scope": "step-05_to_step-08",
+      "status": "passed",
+      "agent_id": "019dc9b4-8227-7411-8a66-e8dedb9debfc",
+      "closed_issues": [
+        "step-05 structure conclusion",
+        "step-06 full MATLAB-style Bode magnitude and phase requirement",
+        "step-07 structure coding and controller decoding table",
+        "step-08 baseline series, figure reading, and delivery judgment"
+      ]
+    },
+    {
+      "scope": "step-09_to_step-12",
+      "status": "passed",
+      "agent_id": "019dc9b7-f544-7ec3-8d39-c5e4f85eeb6e",
+      "closed_issues": [
+        "step-09 disturbance mechanism and disturbed-figure reading",
+        "step-10 noise-figure reading",
+        "step-11 reference answers and rubric",
+        "step-12 limitation explanations and evidence bridge"
+      ]
+    }
+  ],
+  "issues": []
+}

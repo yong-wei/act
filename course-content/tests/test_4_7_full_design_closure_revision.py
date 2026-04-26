@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -204,6 +205,7 @@ def test_handout_references_exact_media_outputs_and_report_figures():
 
     assert '../media/processed/4-7-cover-comic.png' in handout
     assert '../media/processed/4-7-info.png' in handout
+    assert '../reports/figures/' not in handout
 
     section_one = extract_between(handout, '## 一、真实航迹任务与分段辨识模型结构', '## 二、分段辨识与参数确定')
     section_two = extract_between(handout, '## 二、分段辨识与参数确定', '## 三、实际指标到代价函数')
@@ -233,6 +235,25 @@ def test_handout_references_exact_media_outputs_and_report_figures():
     assert '4-7-disturbance-controller-turning_ramp.png' in section_five
     assert '4-7-noise-controller-zigzag45.png' in section_five
     assert '4-7-noise-controller-turning_ramp.png' in section_five
+
+
+def test_handout_pdf_caption_sources_use_export_friendly_titles():
+    handout = read(HANDOUT_PATH)
+
+    image_alts = re.findall(r'^!\[(.*?)\]\(', handout, flags=re.MULTILINE)
+    assert image_alts
+    assert not [
+        alt for alt in image_alts
+        if re.match(r'^图\s*(?:[0-9０-９]+|4-7-)', alt)
+    ]
+
+    assert '表 4-7-' not in handout
+    assert r'\caption{名义设计与优化设计控制器参数}' in handout
+    assert r'\caption{扰动对比控制器参数}' in handout
+    assert r'\caption{航向传感器噪声对比控制器参数}' in handout
+
+    for filename in EXPECTED_HIFI_REPORT_FIGURES:
+        assert (PROCESSED_DIR / filename).exists()
 
 
 def test_data_chain_files_exist_and_match_contract():

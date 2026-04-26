@@ -2,6 +2,9 @@
   "lesson_id": "2-1",
   "source_path": "course-content/authoring/lessons/2-1/design/interactive-page.md",
   "contract_path": "course-content/authoring/lessons/2-1/design/interactive-contract.yaml",
+  "design_acceptance_path": "course-content/authoring/lessons/2-1/design/interactive-design-acceptance.json",
+  "implementation_acceptance_path": "course-content/authoring/lessons/2-1/notes/interactive-implementation-acceptance.json",
+  "implementation_contract_source": "src/lib/unit-2-1-course.ts",
   "contract_required_fields": [
     "layout",
     "modules",
@@ -15,6 +18,7 @@
     "acceptance_checks"
   ],
   "included_in_primary_sources": true,
+  "mapping_contract_mode": "core_items",
   "has_core_mapping_section": false,
   "mapping_columns_present": [],
   "missing_mapping_columns": [
@@ -32,21 +36,42 @@
   "formula_mapping_issues": [],
   "step_static_blocks_missing": [],
   "step_upgrade_blocks_missing": [],
+  "step_reading_order_missing": [],
+  "curve_figure_steps_missing_mirror": [],
+  "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
   "step_contract_issues": [],
+  "design_acceptance_summary": [],
+  "design_acceptance_issues": [],
+  "implementation_acceptance_summary": [],
+  "implementation_acceptance_issues": [],
+  "reviewed_runtime_artifacts": [],
+  "runtime_review_stale_issues": [],
+  "hard_gate_issues": [],
+  "hard_gate_issue_codes": [],
+  "blocking_issues": [],
+  "implementation_contract_summary": [
+    "已检测到 `2-1` 的本地实现契约与作者态互动契约一致。"
+  ],
+  "implementation_contract_issues": [],
+  "legacy_acceptance_notes": [
+    "检测到旧版 runtime 审查产物但缺少新式互动设计/实现接受文件，当前按旧课兼容口径仅提示，不作为阻塞项。"
+  ],
   "summary": [
-    "已检测到 `2-1` 的 V2 互动契约，步骤字段完整。"
+    "已检测到 `2-1` 的 V2 互动契约，步骤字段完整。",
+    "已检测到 `2-1` 的本地实现契约与作者态互动契约一致。"
   ],
   "warnings": [
-    "缺少“讲义核心内容映射”章节",
-    "讲义核心内容映射缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note"
+    "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",
+    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note",
+    "检测到旧版 runtime 审查产物但缺少新式互动设计/实现接受文件，当前按旧课兼容口径仅提示，不作为阻塞项。"
   ],
   "missing": [
-    "缺少“讲义核心内容映射”章节",
-    "讲义核心内容映射缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note"
+    "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",
+    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note"
   ],
   "issues": [
-    "缺少“讲义核心内容映射”章节",
-    "讲义核心内容映射缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note"
+    "缺少“讲义核心内容映射”“讲义证据单元映射”或“证据单元升级决策表”章节",
+    "讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note"
   ]
 }

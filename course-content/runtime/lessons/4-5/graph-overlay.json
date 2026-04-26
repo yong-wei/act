@@ -385,9 +385,9 @@
     },
     {
       "id": "展示解与Pareto最小取舍_4_44006",
-      "name": "展示解与Pareto最小取舍",
+      "name": "Pareto前沿与展示解取舍",
       "nodeType": "THEORY",
-      "description": "展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优；最小 Pareto 概念用来说明不同候选可能各自在不同目标上占优。",
+      "description": "Pareto前沿把一组互不支配的候选显性呈现出来；展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优。",
       "positionX": -31.6,
       "positionY": 117.8,
       "positionZ": 4,
@@ -400,13 +400,14 @@
         "chapterName": "约束设计层",
         "category": "概念性",
         "bloom_level": "分析",
-        "definition": "展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优；最小 Pareto 概念用来说明不同候选可能各自在不同目标上占优。",
+        "definition": "Pareto前沿把一组互不支配的候选显性呈现出来；展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优。",
         "examples": [
           "动作代价最低的候选不一定适合作为展示解，因为它可能同时拖长过程。",
           "更快的候选也不自动胜出，因为它可能只是更贴合当前偏好，而不是在所有目标上都最好。"
         ],
         "formulas": [
-          "\\text{展示解}\\neq \\text{单列最优},\\qquad \\text{Pareto}:\\ \\text{不同候选可分别在不同目标上占优}"
+          "\\mathcal{P}=\\{\\theta\\mid \\nexists\\theta'\\text{ 使所有目标不劣且至少一项目标更优}\\}",
+          "\\text{展示解}\\in\\mathcal{P},\\quad \\text{展示解}\\neq\\text{最终可交付方案}"
         ],
         "prerequisites": [
           "权重偏好与无约束候选解_4_44005"
@@ -417,9 +418,11 @@
         "difficulty": 4,
         "importance": 4,
         "keywords": [
+          "Pareto前沿",
+          "非支配候选",
           "展示解",
-          "Pareto",
-          "取舍"
+          "候选族",
+          "多目标取舍"
         ],
         "createdAt": null,
         "updatedAt": null,

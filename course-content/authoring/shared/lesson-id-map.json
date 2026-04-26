@@ -302,6 +302,21 @@
       "notes": "4-7 为模块4当前主线实践课次，对应综合工程场景对比设计。"
     },
     {
+      "request_ids": ["5-1"],
+      "canonical_id": "5-1",
+      "display_id": "5-1",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "5-1",
+      "source_group": null,
+      "authoring_lesson_dir": "5-1",
+      "authoring_cards_dir": "5-1",
+      "authoring_overlays_dir": "5-1",
+      "runtime_lesson_dir": "5-1",
+      "legacy_source_ids": [],
+      "notes": "5-1 为模块5当前主线课次，对应线性主干的边界：饱和、死区、滞回、切换与模型失配。"
+    },
+    {
       "request_ids": ["legacy/1-1", "1-1"],
       "canonical_id": "legacy/1-1",
       "display_id": "1-1",

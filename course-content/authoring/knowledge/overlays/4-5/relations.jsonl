@@ -7,6 +7,6 @@
 {"source_id":"罚函数表达表_4_45003","source_name":"罚函数表达表","target_id":"求解记录单_4_45004","target_name":"求解记录单","relation":"leads_to","strength":0.96,"description":"总代价函数和约束表达写清之后，求解记录单才能完整记录 `fmincon` 的输入与输出。","run_id":"4-5"}
 {"source_id":"优化起点与归一化来源_4_44003","source_name":"优化起点与归一化来源","target_id":"求解记录单_4_45004","target_name":"求解记录单","relation":"applies_to","strength":0.9,"description":"起点、上下界和归一化来源共同决定了求解记录单中的最小输入集合。","run_id":"4-5"}
 {"source_id":"求解记录单_4_45004","source_name":"求解记录单","target_id":"优化前后证据比较表_4_45005","target_name":"优化前后证据比较表","relation":"leads_to","strength":0.97,"description":"只有把求解输入和输出交代清楚，优化前后证据比较才真正可追溯。","run_id":"4-5"}
-{"source_id":"展示解与Pareto最小取舍_4_44006","source_name":"展示解与Pareto最小取舍","target_id":"优化前后证据比较表_4_45005","target_name":"优化前后证据比较表","relation":"applies_to","strength":0.88,"description":"三方案比较并不是逐列找最小值，而是回到当前偏好和可行域一起解释展示解为何变化。","run_id":"4-5"}
+{"source_id":"展示解与Pareto最小取舍_4_44006","source_name":"Pareto前沿与展示解取舍","target_id":"优化前后证据比较表_4_45005","target_name":"优化前后证据比较表","relation":"applies_to","strength":0.88,"description":"三方案比较并不是逐列找最小值，而是回到当前偏好和可行域一起解释展示解为何变化。","run_id":"4-5"}
 {"source_id":"优化前后证据比较表_4_45005","source_name":"优化前后证据比较表","target_id":"剩余风险说明_4_45006","target_name":"剩余风险说明","relation":"leads_to","strength":0.95,"description":"比较表不仅说明当前解为何可用，也暴露了它贴近边界的位置和结构层面的剩余问题。","run_id":"4-5"}
 {"source_id":"任务通道变化下的自由目标改写_4_44007","source_name":"任务通道变化下的自由目标改写","target_id":"剩余风险说明_4_45006","target_name":"剩余风险说明","relation":"related","strength":0.84,"description":"当固定结构的可行域已经看清，后续就必须继续面对任务变化和结构差异带来的边界问题。","run_id":"4-5"}
