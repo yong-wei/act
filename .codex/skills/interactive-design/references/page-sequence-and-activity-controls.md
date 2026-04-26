@@ -39,6 +39,16 @@
 
 - 若 `media` 区域同时有时间域对比和频域对比两个模块，应分别说明“学生先看什么曲线证据、再看什么频域证据”，而不是笼统写“综合比较面板”。
 
+## 3.7 组件式 manifest payload 必须自足
+
+`interactive-contract.yaml` 的 `modules` 和 `interaction_spec` 是 shared manifest runtime 的直接输入，不只是实现提示。默认要求：
+
+- `modules[].kind` 使用共享 registry 已覆盖的通用 kind；确需新 kind 时，先写清 payload 结构。
+- `modules[].payload.title` 或等价标题来源必须明确，不能让实现层按 module id 补标题。
+- 公式、表格、图片、路径图、目标卡、问题卡、显影链、作答锚点等模块，必须能从 payload 或 `content_blocks` 读出实际内容。
+- 选择题、题组、二元判断必须在 `interaction_spec.activity_cards[]` 写明 `prompt`、`options`、`reference_answer` 或等价揭示规则。
+- 不得把 `QUIZ_OPTIONS`、`SINGLE_CHOICE_OPTIONS`、课程 id 映射、module id 映射当作契约缺字段的补救方式。
+
 ## 4. 公式与表格必须拆开命名
 
 - 公式密集区必须按条目或成组关系拆开，并配名称或说明文案。

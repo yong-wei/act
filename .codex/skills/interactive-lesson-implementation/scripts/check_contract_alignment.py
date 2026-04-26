@@ -57,7 +57,7 @@ LESSON_PRESETS = {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description='检查互动课程作者态契约与本地实现平行契约是否一致。',
+        description='检查互动课程作者态契约与旧式本地实现契约是否一致。',
     )
     parser.add_argument('--lesson', help='课次编号；若存在预设，可直接使用。')
     parser.add_argument('--contract', help='作者态 interactive-contract.yaml 相对路径。')

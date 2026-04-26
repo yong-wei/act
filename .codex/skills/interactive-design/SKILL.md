@@ -67,6 +67,13 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
    - 若某个模板把 `problem`、`media`、`interaction` 等区域拆开写明，设计稿必须分别说明这些区域承载什么教学任务，不能只写成“一个综合面板”。
    - 若同一区域存在多个 `must_be_visible` 模块，必须把它们当成多个独立教学载荷分别表达，不能在 prose 中偷并成一个笼统联动画面。
 
+1.6 **组件式 manifest 契约优先**
+   - `interactive-contract.yaml` 必须能被 review/export 转成 shared manifest runtime 可消费的 `interactive-manifest.json`，不能只写给人工阅读。
+   - `modules[].kind` 优先选用共享 registry 已覆盖的 kind；确有缺口时，契约要写清新 kind 的输入 payload，而不是让实现层按课程编号猜。
+   - `modules[].payload` 必须承载模块标题、内容键、公式键、图片键、表格列行、路径项、显影项等最小渲染数据；不得依赖实现层写 `4-6`、`4-3` 或具体 module id 的映射表。
+   - `interaction_spec.activity_cards[]` 必须写入题面、选项、提交粒度、参考答案或揭示规则；选择题、题组和二元判断不得依赖课程私有 `QUIZ_OPTIONS`、`SINGLE_CHOICE_OPTIONS` 等常量。
+   - 路径图、目标卡、问题卡、公式卡、图片面板、原生表格、显影链、作答锚点、选择题组等，都要在 contract 中给出可渲染 payload；不要只写“这里使用组件”。
+
 2. **问题、原理、例题、作答必须拆开写清**
    - 原理/定理模块与例题模块必须分离。
    - 例题题面必须完整出现，不能只保留结果、图或摘要。
@@ -213,6 +220,8 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - `interactive-contract.yaml` 负责给出机读层的最小可实现内容载荷；
 - `sequence.json` 负责记录互动步骤与知识卡片展示顺序；在本技能中应随双轨真源同步校准，不能早于互动页独立冻结；
 - 二者都必须承载课程内容，不能出现“人读稿有内容、契约只有框架”或“契约有若干字段、人读稿只有约束摘要”的失衡状态。
+- 对采用组件式 manifest runtime 的课次，契约还必须让每个 `modules[].kind` 与 `modules[].payload` 足够明确，使实现层只需补共享 renderer 或窄适配器，不需要写课程私有内容映射。
+- 活动类 payload 也必须来自契约：题组选项、二元判断选项、参考答案、教师揭示文本和卡片标题都应落在 `interaction_spec` 或等价字段中。
 
 ### Step 5｜出稿前检查
 
@@ -233,6 +242,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 页面蓝图 prose 中没有把 teacher controls、验收点、实现门槛直接写成自然段主干
 - 每一步都已写出可直接呈现给学生的正文内容、题面、表格内容、图后解释或显影文本，而不是只留下摘要级标签
 - `interactive-contract.yaml` 的 `content_blocks` 不是标题索引或占位提示，而是最小可实现内容真源
+- `interactive-contract.yaml` 的 `modules[].payload`、`content_blocks` 与 `interaction_spec.activity_cards[]` 足以驱动共享 renderer；实现侧不需要按课程 id 或 module id 另写标题、选项、参考答案和表格行列
 - 实现者不需要靠 handout 或个人理解二次撰写大段课程正文，才能把当前步骤做成可读页面
 - `sequence.json` 若存在，必须与最终步骤数和卡片归属一致；若它来自 lesson 阶段草案，必须在本阶段修订后再进入接受记录
 
@@ -324,6 +334,14 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 作答卡题面或选项
 - 收束句 / 回接主线句
 
+`modules` 与 `interaction_spec` 是组件式 runtime 的直接输入，也不得退化为占位索引。至少应写清：
+
+- `modules[].kind`、`region`、`order`、`must_be_visible`
+- `modules[].payload.title` 或等价标题来源
+- 公式、表格、图片、路径项、显影项、卡片组等模块对应的 payload 键与实体内容
+- `activity_cards[].prompt`、`response_kind`、`options`、`submit_scope`
+- `reference_answer`、`reveal_answer` 或等价答案揭示规则
+
 若当前步骤没有这些内容，只剩模板、模块名和互动类型，则该契约仍不能视为可实现的双轨真源。
 
 ### `interactive-design-acceptance.json`
@@ -362,7 +380,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 例题与推导显影规则已写清
 - 曲线图步骤与比较页的拆分合理
 - 教师/学生控制语义已写成可实现字段
-- 子代理或等价独立审查已通过，并写入 `design/interactive-design-acceptance.json`
+- 子代理闭环已真实通过，并写入 `design/interactive-design-acceptance.json`
 - 拿掉讲稿后，学生仍可基于互动页理解当前知识对象、判断动作以及它们与本次课程目标的关系
 
-*版本：v1.1 | 2026-04-19*
+*版本：v1.2 | 2026-04-26*

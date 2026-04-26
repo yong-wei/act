@@ -11,6 +11,15 @@ description: Use when implementing or upgrading this repository's interactive le
 
 对采用新编排链的课程，运行时真源不是课程私有 `step-panels` 或 `unit-*-course.ts` 中再写一份平行页面契约，而是 review/export 后的 `interactive-manifest.json`。共享模板注册表、模块注册表与活动注册表的职责是**兑现 manifest 合同**，不是在实现阶段二次发明页面结构、吞并模块或把课程级缺口藏进共享渲染器。
 
+当前组件式 manifest runtime 的默认入口是 `src/features/interactive/shared/manifest-runtime/`：
+
+- `layout-renderer.tsx`：只负责编排 manifest step、layout region、template registry 与 module registry。
+- `content-renderers.tsx`：负责公式、摘要、表格、图片、显影、路径图、目标卡、问题卡等静态内容模块。
+- `activity-renderers.tsx`：负责学生提交、教师控制、答案揭示和提交汇总。
+- `types.ts`：复用 `src/lib/interactive-lesson-manifest.ts` 类型，避免重复定义。
+
+旧路径 `interactive-manifest-renderer.tsx`、`manifest-content-renderers.tsx`、`manifest-activity-renderers.tsx` 只是兼容 re-export；新增能力应优先落在 `manifest-runtime/` 目录下。课程目录下的 `step-panels.tsx` 若仍存在，只能是薄适配器：载入 manifest、合并共享 registry、接入极少量窄适配器和会话状态，不得再扩展为课程私有大 switch 或内容常量仓库。
+
 本技能主文件只保留总流程、触发条件和参考文件入口。凡是页面布局、入口页文案装配、runtime 媒体文档格式、视频/音频容器、讲义摘要渲染这类可复用细节，一律下沉到 `references/`，不要继续把所有设计细节堆回主技能正文。
 
 当前默认基线不再是单一 `L-2c`，而是综合以下已落地课程能力：
@@ -43,6 +52,8 @@ description: Use when implementing or upgrading this repository's interactive le
 - 对 manifest 驱动新课，`must_be_visible: true` 的模块必须真实落页；缺 renderer、renderer 返回 `null`、或被共享渲染器静默过滤，都属于实现失败，不得以“后续补模块”“先用占位壳层”或“课程私有分支兜底”视作已完成。
 - 模板名不仅决定视觉顺序，也承载区域拓扑与保留规则。若步骤模板把两个模块放在同一区域，实施阶段必须保留它们的独立节点与阅读顺序，不得压成一个笼统面板或单个壳层摘要。
 - 共享模块注册表必须覆盖契约中实际出现的 `kind`；真正特殊的能力应落成窄适配器模块，而不是重新退回整门课私有 `switch (step.id)` 渲染器。
+- 共享 renderer 禁止写课程 id、step id 或 module id 特判，例如把 `4-6` 的活动标题、`4-3` 的选择题选项、某个卡片参考答案硬编码在共享层。标题、选项、参考答案、表格行列、图片路径和显影文本必须优先来自 manifest payload；缺字段时给可见诊断或回退设计补 payload。
+- 处理组件缺口的顺序固定为：先补作者态 contract / runtime manifest payload，再补共享 content/activity renderer；只有能力确实不通用时，才写课程窄适配器。不得回退到课程私有 `QUIZ_OPTIONS`、`SINGLE_CHOICE_OPTIONS`、页面级参考答案映射或 `switch (step.id)`。
 - `rust-analysis-panel`、`rust-time-compare-panel`、`rust-bode-compare-panel` 这类 Rust/WASM 共享模块属于当前正式覆盖面。三域互动的 Rust 链条替换后若出现缺口，应修共享模块或其窄适配器，不得把新课技能默认回退到旧图表实现。
 - 设计稿若已固定证据单元顺序、主阅读顺序、曲线图镜像排布、基线参数或结构切换方式，实现阶段不得擅自改成“图先行”“卡片先行”“单选替代”或“另起一套互动图”。
 - 设计稿若已为某页写出本次课程目标或能力项，实现阶段必须保持布鲁姆动词与能力粒度，不得改写成课程编排说明、单元串联说明或泛化口号。
@@ -173,7 +184,7 @@ description: Use when implementing or upgrading this repository's interactive le
 
 如果是开始新课：
 - 先读设计稿和 runtime/review
-- 再找 `1-1`、`1-2`、`1-3` 或其他最相近课程做复用基线
+- 若存在 `interactive-manifest.json`，先以 `4-6` 与 `src/features/interactive/shared/manifest-runtime/` 作为组件式基线；`1-1`、`1-2`、`1-3` 主要用于入口页、会话、提交闭环等非 manifest 旧实现参考
 - 先给实现计划，再开始改代码
 
 ## 工作流
@@ -187,6 +198,8 @@ description: Use when implementing or upgrading this repository's interactive le
 - 证据单元、主阅读顺序、折叠策略是否已明确
 - 固定文本、公式、图片、表格、例题、结论是否已明确
 - 页面正文内容源是否已明确到可直接实现，而不是只剩摘要级“这里放什么”
+- `modules[].payload` 是否已承载共享 renderer 需要的标题、内容键、公式项、表格行列、图片路径、路径项、显影项或卡片项
+- `interaction_spec.activity_cards[]` 是否已承载题面、选项、参考答案、揭示规则和提交粒度；选择题与题组不得依赖实现侧课程私有常量
 - 互动组件类型、交互规则、干扰项、揭示规则是否已明确
 - 曲线图是否已明确为静态展示还是参数联动仿真板；若为参数联动图，是否已写明基线参数、图组排布、结构切换方式与控件栏位置
 - 埋点摘要、教师聚合、AI 上下文、学生页预览路径是否已明确
@@ -196,11 +209,12 @@ description: Use when implementing or upgrading this repository's interactive le
 这里的“内容未写明”不仅指缺少模板或模块，更包括以下情况：
 
 - 人读稿只写“静态承载内容：表 3 结果摘要”“对象 `P(s)` 与控制器 `C(s)`”，却没有真正可显示给学生的正文、题面、表格内容、图后解释
-- 机读稿虽有 `content_blocks`，但里面只有标题索引、占位说明、锚点提示或“见讲义”
+- 机读稿虽有 `content_blocks` 或 `modules[].payload`，但里面只有标题索引、占位说明、锚点提示或“见讲义”
 - 例题页没有题面全文，只有“展示例题”“显示推导链”这类摘要句
 - 表格页只有列名要求，没有行项和单元格正文
 - 图页只有媒体文件名，没有图注、读图口令和图后结论
 - 显影页只有“第 1 步 / 第 2 步”标签，没有每层具体文本
+- 选择题、题组、二元判断页在 manifest 中没有选项和参考答案，需要实现层额外写课程私有常量
 
 只要出现上述任一情况，都视为**内容真源不足**，必须阻塞并回退设计，不能带着“先做框架、内容后补”的想法继续实现。
 
@@ -216,7 +230,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - 人读稿页面模板 / 主阅读顺序 / 区域 / 模块 / 固定内容
 - 人读稿页面正文内容源 / 缺口
 - 机读稿互动类型 / 交互规则 / 埋点 / 教师聚合 / AI 上下文 / 预览路径
-- 机读稿 `content_blocks` / 题面 / 表格 / 显影文本完整性
+- 机读稿 `modules[].payload` / `content_blocks` / 题面 / 表格 / 显影文本 / 作答选项 / 参考答案完整性
 - 若为曲线图步骤：静态图基线、图组排布、结构切换、控件折叠策略
 - 当前实现位置或缺口
 - 本轮处理状态（严格实现 / 缺实现 / 设计冲突待回修）
@@ -230,6 +244,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - 每一步的互动类型是否与机读契约一致
 - 每一步的证据单元是否已完整落页，而不是只剩摘要卡
 - 每一步的页面内容是否主要来自双轨真源，而不是实现阶段自由补写
+- 课程适配器是否保持薄层：未新增课程私有大 switch、选择题常量、参考答案映射或共享 renderer 中的课程 id 特判
 - 若某一步缺少可直接实现的内容真源，是否已在开工前标成阻塞并回退设计
 - 若存在曲线图步骤，默认状态是否复现讲义静态图，图组排布是否与原图一致
 - 每一步是否发生了降级实现、删减实现或擅自新增设计
@@ -253,7 +268,7 @@ description: Use when implementing or upgrading this repository's interactive le
 3. 实现子代理完成后，再交给**学生视角审查子代理**，明确用学生视角追问“学生只看这一页，是否足以理解当前对象、过程和结论”。
 4. 若学生视角审查子代理判定不通过，主代理必须把该页转交给另一位整改子代理回修，再进入下一轮审查。
 5. 若本地服务可启动，再调用教师端 / 学生端浏览器验收子代理；不能启动时，必须在接受文件中写明降级为代码级验收以及缺失的浏览器证据。
-6. 若环境没有可用子代理，主代理必须用同一任务包做至少两轮独立审查，并在接受文件中标注 `review_mode: "main_agent_fallback"`。
+6. 若环境没有可用子代理、子代理调用失败或权限不足，必须向用户报告当前实现接受流程被阻塞；不得写入 `status: "accepted"`，也不得用主代理自审伪造子代理接受结果。
 7. 所有页面都通过后，再写入 `notes/interactive-implementation-acceptance.json`，随后运行 `python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --strict-implementation-contract`。
 
 `notes/interactive-implementation-acceptance.json` 最小结构：
@@ -294,7 +309,7 @@ description: Use when implementing or upgrading this repository's interactive le
 判定要求：
 
 - `inline_ai_visibility`：只要契约为 `ai_context_spec.delivery_mode: hidden_page_context`，学生页正文中出现页内 AI 卡片、提示词复制区、独立对话入口或跳转旧 `/ai` 的入口，即必须记为 `fail`。
-- `content_source_completeness`：只要某一步的最终页面正文、题面、表格、显影文本、图后解释或作答题面，主要依赖实现阶段自由补写，而不是来自双轨设计真源中可直接实现的内容载荷，即必须记为 `fail`。典型信号包括：设计稿只有摘要句、`content_blocks` 只有占位提示、实现稿新增大段作者态未给出的正文、把“见讲义”改写成页面内容。
+- `content_source_completeness`：只要某一步的最终页面正文、题面、表格、显影文本、图后解释、作答题面、选项或参考答案，主要依赖实现阶段自由补写，而不是来自双轨设计真源中可直接实现的内容载荷，即必须记为 `fail`。典型信号包括：设计稿只有摘要句、`content_blocks` 或 `modules[].payload` 只有占位提示、实现稿新增大段作者态未给出的正文、把“见讲义”改写成页面内容、选择题选项在课程私有常量中另写。
 - `static_media_downgrade`：只要契约要求 `workspace`、`parameter_slider`、`parametric_sim` 或等价工作区联动，而实现仍用静态 PNG/SVG/PDF 主体加文字说明、滑块不驱动图像或控件只改旁白，即必须记为 `fail`。
 - 三类问题被写入接受文件后，审查脚本应在 `interactive-page-check.json` 中分别落为 `inline_ai_visibility`、`content_source_insufficient` 与 `static_media_downgrade`，并在严格模式下阻塞。
 
@@ -664,7 +679,7 @@ python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_a
   --step-const <STEP_CONST>
 ```
 
-这条脚本会调用实现侧一致性测试，校验作者态 `interactive-contract.yaml` 与本地平行契约在步骤标题、互动类型、模板/区域、教师洞察、telemetry、错因标签和学生演示页预览路径上的一致性。未通过时，不得宣称互动页面已经按契约实现。
+这条脚本只服务仍保留本地页面契约常量的旧式实现；对 manifest-first 课程，优先依赖 `interactive-manifest.json`、共享 runtime 测试和 strict review。脚本会调用实现侧一致性测试，校验作者态 `interactive-contract.yaml` 与本地实现契约在步骤标题、互动类型、模板/区域、教师洞察、telemetry、错因标签和学生演示页预览路径上的一致性。未通过时，不得宣称互动页面已经按契约实现。
 
 子代理审查必须发生在严格脚本前；主代理只收集审查结论、修复问题并写入接受文件，不把长篇浏览器过程塞回主上下文。
 
@@ -715,8 +730,8 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
   - 初始化课程笔记
   - 使用 `python3` 运行
 - `scripts/check_contract_alignment.py`
-  - 校验作者态 `interactive-contract.yaml` 与本地实现平行契约的一致性
-  - 默认支持 `2-1` 预设；其他课次可显式传路径和常量名
+  - 校验作者态 `interactive-contract.yaml` 与旧式本地实现契约的一致性
+  - 默认支持仍保留页面契约常量的预设课次；manifest-first 课程优先使用 shared runtime 测试与 strict review
   - 使用 `python3` 运行
 
 ### references/
@@ -744,7 +759,9 @@ python3 scripts/init_course_note.py --lesson 1-4 --title "示例标题"
 
 - [ ] 已解析真实 authoring/runtime 课次路径，而不是想当然写 `legacy` 或非 `legacy`
 - [ ] 已确认课程产物已经过 `lesson-content-review`
-- [ ] 已读取 `interactive-page.md`、runtime handout、review 产物与 graph overlay
+- [ ] 已读取 `interactive-page.md`、`interactive-contract.yaml`、runtime handout、review 产物与 graph overlay
+- [ ] 若存在 `interactive-manifest.json`，已把它作为运行时页面编排真源，并确认课程适配器保持薄层
+- [ ] 已确认 manifest payload 足以驱动共享 renderer，没有课程私有选项、参考答案或 module id 映射
 - [ ] 若课程入口页含预习台/媒体卡，已读取 `references/runtime-entry-page-pattern.md`
 - [ ] 若课程入口页含 runtime 媒体文档，已读取 `references/runtime-media-index-contract.md`
 - [ ] 已先设计完整课件骨架，再设计互动升级位
