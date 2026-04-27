@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
@@ -6,13 +6,24 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
+import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import { isUNIT_4_1AiPageType } from '@/lib/unit-4-1-course';
 
 vi.mock('server-only', () => ({}));
 
 const repoRoot = process.cwd();
+const routeSegment = 'unit-4-1-design-task-expression';
+const featureBase = join(repoRoot, 'src/features/interactive', routeSegment);
+const manifestPath = join(repoRoot, 'course-content/runtime/lessons/4-1/interactive-manifest.json');
 let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaDocument;
 let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaIndex;
+
+function readRuntimeManifest() {
+  const raw = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  const manifest = normalizeInteractiveRuntimeManifest(raw);
+  if (!manifest) throw new Error('4-1 interactive manifest is invalid');
+  return { raw, manifest };
+}
 
 beforeAll(async () => {
   ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-runtime'));
@@ -28,8 +39,11 @@ describe('unit 4-1 interactive course', () => {
 
   it('defines the full 12-step lesson flow', async () => {
     const courseModule = await import('@/lib/unit-4-1-course');
+    const { manifest } = readRuntimeManifest();
 
+    expect(courseModule.UNIT_4_1_RUNTIME_MANIFEST.stepOrder).toEqual(manifest.stepOrder);
     expect(courseModule.UNIT_4_1_LESSON_STEPS).toHaveLength(12);
+    expect(courseModule.UNIT_4_1_LESSON_STEPS.map((step: { id: string }) => step.id)).toEqual(manifest.stepOrder);
     expect(courseModule.UNIT_4_1_LESSON_STEPS[0]?.id).toBe('step-01');
     expect(courseModule.UNIT_4_1_LESSON_STEPS[11]?.id).toBe('step-12');
     expect(courseModule.UNIT_4_1_LESSON_STEPS[3]?.pageType).toBe('parameter_slider');
@@ -54,6 +68,28 @@ describe('unit 4-1 interactive course', () => {
     expect(courseModule.getUNIT_4_1MediaSrc('step-07')).toBeNull();
     expect(courseModule.getUNIT_4_1MediaSrc('step-09')).toBeNull();
     expect(courseModule.getUNIT_4_1MediaSrc('step-10')).toBeNull();
+  });
+
+  it('exports a manifest-first runtime contract with object content blocks for 4-1', async () => {
+    const { raw, manifest } = readRuntimeManifest();
+    const courseModule = await import('@/lib/unit-4-1-course');
+
+    expect(existsSync(manifestPath)).toBe(true);
+    expect(raw.steps['step-01'].content_blocks).not.toBeInstanceOf(Array);
+    expect(Object.keys(raw.steps['step-01'].content_blocks)).toEqual(['path', 'question', 'boundary']);
+    expect(manifest.steps).toHaveLength(12);
+    expect(manifest.steps[0]?.contentBlocks.question).toMatchObject({
+      title: '主问题',
+    });
+
+    const step04Contract = courseModule.getUNIT_4_1PageContractFromManifest(manifest, 'step-04');
+    expect(step04Contract.layout.template).toEqual(manifest.steps[3]?.layout.template);
+    expect(step04Contract.layout.regions).toEqual(manifest.steps[3]?.layout.regions);
+    expect(step04Contract.interactionKind).toBe('parameter_slider');
+    expect(step04Contract.teacherControls?.releaseActivity).toBe('teacher_toggle');
+    expect(step04Contract.previewDemoPath).toBe(
+      '/interactive-learning/courses/unit-4-1-design-task-expression/student/demo?step=step-04',
+    );
   });
 
   it('keeps the local page contracts aligned with the authoring interactive contract for all 12 steps', async () => {
@@ -83,7 +119,9 @@ describe('unit 4-1 interactive course', () => {
     };
 
     const courseModule = await import('@/lib/unit-4-1-course');
-    const interactiveSteps = new Map(courseModule.UNIT_4_1_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
+    const interactiveSteps = new Map(
+      courseModule.UNIT_4_1_LESSON_STEPS.map((step: { id: string; title: string; pageType: string }) => [step.id, step]),
+    );
     const expectedStepIds = Object.keys(contract.steps);
 
     for (const stepId of expectedStepIds) {
@@ -146,6 +184,16 @@ describe('unit 4-1 interactive course', () => {
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
     expect(entrySource).toContain('courseLabel="4-1 · Pre-study"');
     expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+  });
+
+  it('passes the runtime manifest into the 4-1 student and teacher classroom pages', () => {
+    const studentPageSource = readFileSync(join(featureBase, 'student-page.tsx'), 'utf8');
+    const teacherPageSource = readFileSync(join(featureBase, 'teacher-page.tsx'), 'utf8');
+
+    expect(studentPageSource).toContain('lessonRuntime.interactiveManifest');
+    expect(studentPageSource).toContain('getUNIT_4_1PageContractFromManifest');
+    expect(teacherPageSource).toContain('lessonRuntime.interactiveManifest');
+    expect(teacherPageSource).toContain('getUNIT_4_1PageContractFromManifest');
   });
 
   it('renders the shared control figure workspace instead of inline svg chart builders for step 04 and step 05', () => {

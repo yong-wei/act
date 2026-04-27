@@ -1,6 +1,10 @@
 import type { BopppsStage } from '@prisma/client';
 
 import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
+import {
+  type InteractiveRuntimeManifest,
+  type InteractiveRuntimeStepManifest,
+} from '@/lib/interactive-lesson-manifest';
 import type { StepAIContext } from '@/types/ai-context';
 
 export type UNIT_4_1StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3';
@@ -13,6 +17,12 @@ export type UNIT_4_1PageType =
   | 'card_sort'
   | 'structured_compare'
   | 'task_card_workspace';
+export type UNIT_4_1TeacherControlMode =
+  | 'not_applicable'
+  | 'page_load_open'
+  | 'teacher_toggle'
+  | 'teacher_only'
+  | 'teacher_direct';
 
 export interface UNIT_4_1PageRegionContract {
   id: string;
@@ -32,6 +42,12 @@ export interface UNIT_4_1PageContract {
   telemetrySummaryFields: string[];
   misconceptionTags?: string[];
   aiDeliveryMode: 'hidden_page_context';
+  teacherControls?: {
+    releaseActivity: UNIT_4_1TeacherControlMode;
+    openBrowse: UNIT_4_1TeacherControlMode;
+    teacherStepReveal: UNIT_4_1TeacherControlMode;
+    revealReferenceAnswer: UNIT_4_1TeacherControlMode;
+  };
   figureLayoutMirror?: string;
   controlsPlacement?: 'below_figure';
   controlsCollapsedByDefault?: boolean;
@@ -447,6 +463,120 @@ export const UNIT_4_1_LESSON_STEPS: UNIT_4_1StepDefinition[] = [
     pageType: 'quiz_group',
   },
 ] as const;
+
+function pageTypeFromManifestStep(step: InteractiveRuntimeStepManifest): UNIT_4_1PageType {
+  const kind = step.interactionSpec.interactionKind;
+  if (kind === 'none' || kind === 'display' || kind === 'summary') return 'display';
+  if (
+    kind === 'binary_choice' ||
+    kind === 'quiz_group' ||
+    kind === 'parameter_slider' ||
+    kind === 'triple_match' ||
+    kind === 'card_sort' ||
+    kind === 'structured_compare' ||
+    kind === 'task_card_workspace'
+  ) {
+    return kind;
+  }
+  return 'display';
+}
+
+function fallbackUNIT_4_1ManifestStep(step: UNIT_4_1StepDefinition): InteractiveRuntimeStepManifest {
+  const pageContract = UNIT_4_1_PAGE_CONTRACTS[step.id];
+  const interactionKind = step.pageType === 'display' ? 'none' : step.pageType;
+  return {
+    id: step.id,
+    title: step.title,
+    layout: {
+      template: pageContract?.layout.template ?? 'stacked_regions',
+      regions: pageContract?.layout.regions ?? [{ id: 'main', width: 'full', order: 1 }],
+    },
+    modules: [],
+    contentBlocks: {},
+    evidenceSequence: [],
+    interactionSpec: {
+      interactionKind,
+      studentTask: step.hint,
+    },
+    teacherControls: {
+      releaseActivity: step.pageType === 'display' ? 'not_applicable' : 'teacher_toggle',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: step.pageType === 'quiz_group' ? 'teacher_toggle' : 'not_applicable',
+    },
+    studentAccess: {},
+    teacherInsightSpec: {
+      widgets: pageContract?.teacherInsightWidgets ?? [],
+    },
+    telemetrySpec: {
+      summaryFields: pageContract?.telemetrySummaryFields ?? [],
+      misconceptionTags: pageContract?.misconceptionTags ?? [],
+    },
+    aiContextSpec: {
+      pageGoal: step.hint,
+      deliveryMode: 'hidden_page_context',
+    },
+    interactiveFigureSpec: {
+      layoutMirror: pageContract?.figureLayoutMirror,
+      controlsPlacement: pageContract?.controlsPlacement,
+      controlsCollapsedByDefault: pageContract?.controlsCollapsedByDefault,
+    },
+    previewContract: {
+      demoPath: pageContract?.previewDemoPath ?? `/interactive-learning/courses/${UNIT_4_1_ROUTE_SEGMENT}/student/demo?step=${step.id}`,
+    },
+    acceptanceChecks: [],
+  };
+}
+
+function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNIT_4_1PageContract {
+  const pageType = pageTypeFromManifestStep(step);
+  return {
+    layout: {
+      template: step.layout.template,
+      regions: step.layout.regions,
+      readingOrder: [],
+    },
+    interactionKind: pageType === 'display' ? 'none' : pageType,
+    interactionArchetype: step.interactionSpec.interactionKind,
+    teacherControls: step.teacherControls,
+    teacherInsightWidgets: step.teacherInsightSpec.widgets,
+    telemetrySummaryFields: step.telemetrySpec.summaryFields,
+    misconceptionTags: step.telemetrySpec.misconceptionTags,
+    aiDeliveryMode: 'hidden_page_context',
+    figureLayoutMirror: step.interactiveFigureSpec.layoutMirror,
+    controlsPlacement: step.interactiveFigureSpec.controlsPlacement === 'below_figure' ? 'below_figure' : undefined,
+    controlsCollapsedByDefault: step.interactiveFigureSpec.controlsCollapsedByDefault,
+    previewDemoPath: step.previewContract.demoPath,
+  };
+}
+
+export const UNIT_4_1_RUNTIME_MANIFEST: InteractiveRuntimeManifest = {
+  lessonId: '4-1',
+  courseTitle: UNIT_4_1_COURSE_TITLE,
+  courseRouteSegment: UNIT_4_1_ROUTE_SEGMENT,
+  previewMode: {},
+  mediaPolicy: {},
+  telemetryStrategy: 'runtime_externalized',
+  teacherInsightStrategy: 'runtime_externalized',
+  requiredStepFields: [],
+  stepOrder: UNIT_4_1_LESSON_STEPS.map((step) => step.id),
+  steps: UNIT_4_1_LESSON_STEPS.map(fallbackUNIT_4_1ManifestStep),
+};
+
+export function getUNIT_4_1ManifestStepFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  const activeManifest = manifest ?? UNIT_4_1_RUNTIME_MANIFEST;
+  return activeManifest.steps.find((step) => step.id === stepId) ?? activeManifest.steps[0];
+}
+
+export function getUNIT_4_1PageContractFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  return pageContractFromManifestStep(getUNIT_4_1ManifestStepFromManifest(manifest, stepId));
+}
 
 export function getUNIT_4_1Step(stepId: string) {
   return UNIT_4_1_LESSON_STEPS.find((step) => step.id === stepId) ?? UNIT_4_1_LESSON_STEPS[0];

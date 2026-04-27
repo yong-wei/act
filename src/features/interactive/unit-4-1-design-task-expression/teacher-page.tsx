@@ -13,6 +13,7 @@ import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   finalizeUNIT_4_1TeacherSession,
+  getUNIT_4_1PageContractFromManifest,
   getUNIT_4_1MediaSrc,
   isUNIT_4_1AiPageType,
   isUNIT_4_1TeacherSyncState,
@@ -82,6 +83,8 @@ export function UNIT_4_1TeacherPage({
     });
 
   const step = UNIT_4_1_LESSON_STEPS[activeIndex];
+  const runtimeManifest = lessonRuntime.interactiveManifest;
+  const pageContract = getUNIT_4_1PageContractFromManifest(runtimeManifest, step.id);
 
   const teacherSyncState = useMemo(() => {
     const latestRecord = [...teacherStates].reverse().find((record) => isUNIT_4_1TeacherSyncState(record.data));
@@ -302,7 +305,12 @@ export function UNIT_4_1TeacherPage({
           <UNIT_4_1TeacherActivitySummary
             step={step}
             responses={currentResponses}
-            released={Boolean(releasedActivities[step.id])}
+            released={
+              pageContract.teacherControls?.releaseActivity === 'page_load_open' ||
+              pageContract.teacherControls?.releaseActivity === 'not_applicable'
+                ? true
+                : Boolean(releasedActivities[step.id])
+            }
             answerVisible={Boolean(revealedAnswers[step.id])}
             onToggleRelease={() =>
               setLocalReleasedActivities((prev) => ({

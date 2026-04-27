@@ -14,6 +14,7 @@ import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit41StepAIContext } from '@/lib/course-ai-contexts';
 import {
+  getUNIT_4_1PageContractFromManifest,
   getUNIT_4_1MediaSrc,
   isUNIT_4_1AiPageType,
   isUNIT_4_1InteractivePageType,
@@ -88,6 +89,8 @@ export function UNIT_4_1StudentPage({
     });
 
   const step = UNIT_4_1_LESSON_STEPS[activeIndex];
+  const runtimeManifest = lessonRuntime.interactiveManifest;
+  const pageContract = getUNIT_4_1PageContractFromManifest(runtimeManifest, step.id);
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
 
@@ -113,8 +116,12 @@ export function UNIT_4_1StudentPage({
     teacherSyncState?.activeStepId === step.id
       ? Boolean((teacherSyncState as { revealedAnswers?: Record<string, boolean> })?.revealedAnswers?.[step.id])
       : false;
+  const releasedByDefault =
+    pageContract.teacherControls?.releaseActivity === 'page_load_open' ||
+    pageContract.teacherControls?.releaseActivity === 'not_applicable' ||
+    !isUNIT_4_1InteractivePageType(step.pageType);
   const released =
-    isDemo || !isUNIT_4_1InteractivePageType(step.pageType)
+    isDemo || releasedByDefault
       ? true
       : teacherSyncState?.activeStepId === step.id
         ? Boolean((teacherSyncState as { releasedActivities?: Record<string, boolean> })?.releasedActivities?.[step.id])

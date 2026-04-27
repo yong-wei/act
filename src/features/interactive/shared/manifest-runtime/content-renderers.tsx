@@ -643,6 +643,64 @@ export function createManifestContentModuleRegistry(extra: {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
+    'summary-card-row': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} columns="md:grid-cols-2" />;
+    },
+    'question-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'question-card-row': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} />;
+    },
+    'boundary-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'comparison-table': ({ step, module }) => {
+      const table = tableFor(step, module);
+      if (table) return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} />;
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'structured-compare': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'graphic': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'interactive-figure': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'rule-card-row': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} />;
+    },
+    'card-bank': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} />;
+    },
+    'evidence-bank': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} columns="grid-cols-1" />;
+    },
+    'example-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'key-task-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'next-step-card-row': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} columns="md:grid-cols-3" />;
+    },
     'bullet-list-card': ({ step, module }) => {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;

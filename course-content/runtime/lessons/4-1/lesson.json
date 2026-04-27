@@ -156,5 +156,7 @@
     "interactive_page_check_path": "/course-runtime/lessons/4-1/review/interactive-page-check.json",
     "multimedia_check_path": "/course-runtime/lessons/4-1/review/multimedia-check.json",
     "source_manifest_path": "/course-runtime/lessons/4-1/review/source-manifest.json"
-  }
+  },
+  "interactive_manifest_path": "/course-runtime/lessons/4-1/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/4-1/interactive-manifest.json"
 }

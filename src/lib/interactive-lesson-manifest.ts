@@ -9,6 +9,11 @@ export type InteractiveInteractionKind =
   | 'none'
   | 'display'
   | 'summary'
+  | 'binary_choice'
+  | 'parameter_slider'
+  | 'triple_match'
+  | 'card_sort'
+  | 'structured_compare'
   | 'quiz_group'
   | 'multi_select_matrix'
   | 'quiz_card_grid'
@@ -115,6 +120,25 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+function normalizeContentBlocks(value: unknown): Record<string, unknown> {
+  if (Array.isArray(value)) {
+    return Object.fromEntries(
+      value
+        .map((item) => {
+          const block = asRecord(item);
+          const blockId = typeof block.id === 'string' ? block.id : '';
+          if (!blockId) return null;
+          const content = { ...block };
+          delete content.id;
+          return [blockId, content] as const;
+        })
+        .filter((item): item is readonly [string, Record<string, unknown>] => Boolean(item)),
+    );
+  }
+
+  return asRecord(value);
+}
+
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.map((item) => String(item));
@@ -194,6 +218,9 @@ function normalizeStep(stepId: string, value: unknown): InteractiveRuntimeStepMa
   const step = asRecord(value);
   const layout = asRecord(step.layout);
   const interactionSpec = asRecord(step.interaction_spec);
+  const interactionKind = String(
+    interactionSpec.interaction_kind ?? interactionSpec.interactionKind ?? 'none',
+  ) as InteractiveInteractionKind;
   const teacherControls = asRecord(step.teacher_controls);
   const teacherInsightSpec = asRecord(step.teacher_insight_spec);
   const telemetrySpec = asRecord(step.telemetry_spec);
@@ -210,12 +237,10 @@ function normalizeStep(stepId: string, value: unknown): InteractiveRuntimeStepMa
       regions: Array.isArray(layout.regions) ? layout.regions.map(normalizeRegion) : [],
     },
     modules: Array.isArray(step.modules) ? step.modules.map(normalizeModule) : [],
-    contentBlocks: asRecord(step.content_blocks),
+    contentBlocks: normalizeContentBlocks(step.content_blocks),
     evidenceSequence: asStringArray(step.evidence_sequence),
     interactionSpec: {
-      interactionKind: String(
-        interactionSpec.interaction_kind ?? interactionSpec.interactionKind ?? 'none',
-      ) as InteractiveInteractionKind,
+      interactionKind,
       studentTask: interactionSpec.student_task ? String(interactionSpec.student_task) : undefined,
       activityCards: Array.isArray(interactionSpec.activity_cards)
         ? interactionSpec.activity_cards.map(normalizeActivityCard)
@@ -227,7 +252,9 @@ function normalizeStep(stepId: string, value: unknown): InteractiveRuntimeStepMa
     },
     teacherControls: {
       releaseActivity: String(
-        teacherControls.release_activity ?? teacherControls.releaseActivity ?? 'not_applicable',
+        teacherControls.release_activity
+        ?? teacherControls.releaseActivity
+        ?? (isInteractiveRuntimePageType(interactionKind) ? 'teacher_toggle' : 'not_applicable'),
       ) as InteractiveTeacherControlMode,
       openBrowse: String(
         teacherControls.open_browse ?? teacherControls.openBrowse ?? 'not_applicable',
@@ -238,7 +265,7 @@ function normalizeStep(stepId: string, value: unknown): InteractiveRuntimeStepMa
       revealReferenceAnswer: String(
         teacherControls.reveal_reference_answer
         ?? teacherControls.revealReferenceAnswer
-        ?? 'not_applicable',
+        ?? (interactionKind === 'quiz_group' || interactionKind === 'single_choice' ? 'teacher_toggle' : 'not_applicable'),
       ) as InteractiveTeacherControlMode,
     },
     studentAccess: asRecord(step.student_access),

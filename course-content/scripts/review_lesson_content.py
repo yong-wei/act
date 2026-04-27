@@ -425,6 +425,7 @@ IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
     },
     '4-1': {
         'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-4-1-course.ts',
+        'runtime_manifest_path': REPO_ROOT / 'course-content' / 'runtime' / 'lessons' / '4-1' / 'interactive-manifest.json',
         'page_contracts_const': 'UNIT_4_1_PAGE_CONTRACTS',
         'lesson_steps_const': 'UNIT_4_1_LESSON_STEPS',
         'source_path': 'src/lib/unit-4-1-course.ts',
@@ -662,6 +663,11 @@ def page_contracts_from_runtime_manifest(manifest_path: Path) -> tuple[Any | Non
         if not isinstance(step_payload, dict):
             continue
         interaction_spec = step_payload.get('interaction_spec')
+        interaction_kind = (
+            interaction_spec.get('interaction_kind')
+            if isinstance(interaction_spec, dict)
+            else 'none'
+        )
         teacher_controls = step_payload.get('teacher_controls')
         teacher_insight_spec = step_payload.get('teacher_insight_spec')
         telemetry_spec = step_payload.get('telemetry_spec')
@@ -674,17 +680,25 @@ def page_contracts_from_runtime_manifest(manifest_path: Path) -> tuple[Any | Non
         )
         preview_contract = step_payload.get('preview_contract')
         contracts[step_id] = {
-            'layout': step_payload.get('layout') if isinstance(step_payload.get('layout'), dict) else {},
-            'interactionKind': (
-                interaction_spec.get('interaction_kind')
+            'layout': {
+                **(step_payload.get('layout') if isinstance(step_payload.get('layout'), dict) else {}),
+                'readingOrder': (
+                    step_payload.get('layout', {}).get('reading_order', [])
+                    if isinstance(step_payload.get('layout'), dict)
+                    else []
+                ),
+            },
+            'interactionKind': interaction_kind,
+            'interactionArchetype': (
+                interaction_spec.get('interaction_archetype')
                 if isinstance(interaction_spec, dict)
-                else 'none'
+                else None
             ),
             'teacherControls': {
                 'releaseActivity': (
                     teacher_controls.get('release_activity')
                     if isinstance(teacher_controls, dict)
-                    else 'not_applicable'
+                    else 'teacher_toggle' if interaction_kind != 'none' else 'not_applicable'
                 ),
                 'openBrowse': (
                     teacher_controls.get('open_browse')

@@ -507,6 +507,173 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
     if not isinstance(steps, dict):
         return None
 
+    def normalize_content_blocks(value: Any) -> Any:
+        if not isinstance(value, list):
+            return value
+        normalized: dict[str, Any] = {}
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            block_id = item.get('id')
+            if not isinstance(block_id, str) or not block_id:
+                continue
+            block = dict(item)
+            block.pop('id', None)
+            normalized[block_id] = block
+        return normalized
+
+    def block_to_payload(block_key: str, block: Any) -> dict[str, Any]:
+        if not isinstance(block, dict):
+            return {'block_key': block_key, 'text': str(block)}
+        payload: dict[str, Any] = {'block_key': block_key}
+        title = block.get('title')
+        if isinstance(title, str) and title:
+            payload['title'] = title
+        body = block.get('body')
+        if isinstance(body, str) and body:
+            payload['text'] = body
+        value = block.get('value')
+        if isinstance(value, str) and value:
+            payload['formula'] = value
+        items = block.get('items')
+        if isinstance(items, list) and items:
+            payload['items'] = items
+        columns = block.get('columns')
+        rows = block.get('rows')
+        if isinstance(columns, list) and isinstance(rows, list) and rows:
+            payload['columns'] = columns
+            payload['rows'] = rows
+        return payload
+
+    def pick_block_key(module: dict[str, Any], blocks: dict[str, Any], used: set[str]) -> str | None:
+        module_id = str(module.get('id', ''))
+        kind = str(module.get('kind', ''))
+        normalized = module_id.replace('-', '_')
+        candidates = [
+            module_id,
+            normalized,
+            module_id.removesuffix('-card'),
+            module_id.removesuffix('-cards'),
+            module_id.removesuffix('-table'),
+            module_id.removesuffix('-figure'),
+            module_id.removesuffix('-block'),
+        ]
+        if kind == 'stage-map':
+            candidates.extend(['path', 'page_intro'])
+        if 'question' in kind or 'question' in module_id:
+            candidates.extend(['question', 'questions'])
+        if 'boundary' in kind or 'boundary' in module_id:
+            candidates.append('boundary')
+        if 'goal' in kind or 'goal' in module_id:
+            candidates.append('goals')
+        if 'formula' in kind or 'formula' in module_id:
+            candidates.extend(['formula', 'integral-formula', 'transfer-function'])
+        if 'table' in kind or 'matrix' in module_id:
+            candidates.extend(['matrix-rows', 'meaning', 'role-note', 'boundary'])
+        if 'summary' in kind:
+            candidates.extend(['core-fact', 'summary', 'takeaways'])
+        if 'rule' in kind:
+            candidates.append('rules')
+        if 'evidence' in kind:
+            candidates.extend(['evidence', 'checklist'])
+        if 'template' in kind or 'task-card' in module_id:
+            candidates.extend(['fields', 'checklist'])
+        if 'example' in kind:
+            candidates.extend(['example', 'fields'])
+        if 'next' in kind:
+            candidates.extend(['next-step', 'next'])
+        candidates.extend(list(blocks.keys()))
+        for candidate in dict.fromkeys(candidates):
+            if candidate in blocks and candidate not in used:
+                return candidate
+        for candidate in dict.fromkeys(candidates):
+            if candidate in blocks:
+                return candidate
+        return None
+
+    def normalize_modules(value: Any, blocks: dict[str, Any]) -> list[Any]:
+        if not isinstance(value, list):
+            return []
+        used: set[str] = set()
+        normalized_modules: list[Any] = []
+        for item in value:
+            if not isinstance(item, dict):
+                normalized_modules.append(item)
+                continue
+            module = dict(item)
+            payload = module.get('payload') if isinstance(module.get('payload'), dict) else {}
+            payload = dict(payload)
+            kind = str(module.get('kind', ''))
+            if not payload and kind in {'graphic', 'interactive-figure'}:
+                payload = {'resolver': f'{lesson_id}:{module.get("id", "")}'}
+            if not payload:
+                block_key = pick_block_key(module, blocks, used)
+                if block_key:
+                    used.add(block_key)
+                    payload = block_to_payload(block_key, blocks[block_key])
+            if payload:
+                module['payload'] = payload
+            normalized_modules.append(module)
+        return normalized_modules
+
+    def synthesize_activity_cards(step_id: str, step: dict[str, Any]) -> list[dict[str, Any]]:
+        interaction_spec = step.get('interaction_spec')
+        if not isinstance(interaction_spec, dict):
+            return []
+        existing = interaction_spec.get('activity_cards')
+        if isinstance(existing, list) and existing:
+            return existing
+        interaction_kind = str(interaction_spec.get('interaction_kind', 'none'))
+        if interaction_kind == 'none':
+            return []
+        activity_modules = [
+            module for module in step.get('modules', [])
+            if isinstance(module, dict)
+            and str(module.get('kind', '')) in {
+                'single-choice-card',
+                'quiz-card',
+                'quiz-group',
+                'binary-choice',
+                'card-sort',
+                'triple-match',
+                'task-card-workspace',
+            }
+        ]
+        if not activity_modules:
+            activity_modules = [{'id': f'{step_id}-activity', 'kind': interaction_kind}]
+        student_task = str(interaction_spec.get('student_task') or '完成本页判断并提交。')
+        response_kind = 'text'
+        if interaction_kind in {'single_choice', 'binary_choice', 'quiz_group'}:
+            response_kind = 'single_choice'
+        if interaction_kind in {'card_sort', 'triple_match', 'task_card_workspace'}:
+            response_kind = interaction_kind
+        return [
+            {
+                'id': str(module.get('id') or f'{step_id}-activity-{index + 1}'),
+                'title': str(module.get('title') or student_task),
+                'prompt': student_task,
+                'reference_answer': '见课堂讨论与教师反馈。',
+                'response_kind': response_kind,
+                'submit_scope': 'card',
+                'layout_span': 'full',
+                'options': [],
+            }
+            for index, module in enumerate(activity_modules)
+        ]
+
+    runtime_steps: dict[str, Any] = {}
+    for step_id, step in steps.items():
+        if not isinstance(step, dict):
+            runtime_steps[step_id] = step
+            continue
+        runtime_step = dict(step)
+        runtime_step['content_blocks'] = normalize_content_blocks(runtime_step.get('content_blocks'))
+        runtime_step['modules'] = normalize_modules(runtime_step.get('modules'), runtime_step['content_blocks'])
+        if isinstance(runtime_step.get('interaction_spec'), dict):
+            runtime_step['interaction_spec'] = dict(runtime_step['interaction_spec'])
+            runtime_step['interaction_spec']['activity_cards'] = synthesize_activity_cards(step_id, runtime_step)
+        runtime_steps[step_id] = runtime_step
+
     return {
         'contract_version': contract.get('contract_version'),
         'lesson_id': contract.get('lesson_id', lesson_id),
@@ -517,7 +684,7 @@ def build_interactive_runtime_manifest(lesson_id: str) -> dict[str, Any] | None:
         'telemetry_strategy': contract.get('telemetry_strategy', ''),
         'teacher_insight_strategy': contract.get('teacher_insight_strategy', ''),
         'required_step_fields': contract.get('required_step_fields', []),
-        'steps': steps,
+        'steps': runtime_steps,
     }
 
 

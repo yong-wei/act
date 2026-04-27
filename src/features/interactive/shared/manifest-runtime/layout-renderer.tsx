@@ -38,9 +38,15 @@ type InteractiveTemplateRenderer = (props: {
 const ACTIVITY_RUNTIME_MODULE_KINDS = new Set([
   'activity-card',
   'activity-card-set',
+  'binary-choice',
+  'card-sort',
+  'multi-select-matrix',
+  'task-card-workspace',
+  'triple-match',
   'single-choice-card',
   'quiz-card',
   'quiz-group',
+  'teacher-reveal-only',
 ]);
 
 function buildOrderedRegions(
