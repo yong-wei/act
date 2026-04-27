@@ -396,7 +396,11 @@
           "id": "responsibility-summary",
           "region": "summary",
           "kind": "summary-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "职责总览",
+            "block_key": "summary_sentence"
+          }
         }
       ],
       "content_blocks": {
@@ -506,7 +510,14 @@
           "id": "pi-lead-formula",
           "region": "problem",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "对象与控制器表达式",
+            "formulas": [
+              "$P_1(s)=\\dfrac{1}{(s+1)(0.4s+1)}$",
+              "$C_1(s)=6\\left(1+\\dfrac{1}{1.8s}\\right)\\dfrac{0.9s+1}{0.18s+1}$"
+            ]
+          }
         },
         {
           "id": "pi-lead-summary",
@@ -518,7 +529,14 @@
           "id": "pi-lead-native-panel",
           "region": "media",
           "kind": "rust-analysis-panel",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "PI + 超前原生统一面板",
+            "panel_id": "pi_lead",
+            "items": [
+              "控件区、指标对比和实际控制器传函同页联动。"
+            ]
+          }
         },
         {
           "id": "pi-lead-task",
@@ -679,7 +697,14 @@
           "id": "lag-lead-formula",
           "region": "problem",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "对象与控制器表达式",
+            "formulas": [
+              "$P_2(s)=\\dfrac{1}{(s+1)(0.5s+1)(0.1s+1)}$",
+              "$C_2(s)=6\\dfrac{5s+1}{20s+1}\\dfrac{0.8s+1}{0.16s+1}$"
+            ]
+          }
         },
         {
           "id": "lag-lead-summary",
@@ -691,7 +716,14 @@
           "id": "lag-lead-native-panel",
           "region": "media",
           "kind": "rust-analysis-panel",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "滞后 + 超前原生统一面板",
+            "panel_id": "lag_lead",
+            "items": [
+              "控件区、指标对比和实际控制器传函同页联动。"
+            ]
+          }
         },
         {
           "id": "lag-lead-task",
@@ -853,7 +885,14 @@
           "id": "pid-filter-formula",
           "region": "problem",
           "kind": "formula-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "对象与控制器表达式",
+            "formulas": [
+              "$P_3(s)=\\dfrac{1}{(s+1)(s+2)}$",
+              "$C_3(s)=3.5\\left(1+\\dfrac{1}{1.5s}+\\dfrac{0.25s}{0.05s+1}\\right)$"
+            ]
+          }
         },
         {
           "id": "pid-filter-summary",
@@ -865,7 +904,14 @@
           "id": "pid-filter-native-panel",
           "region": "media",
           "kind": "rust-analysis-panel",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "带滤波 PID 原生统一面板",
+            "panel_id": "pid_filtered",
+            "items": [
+              "控件区、指标对比和实际控制器传函同页联动。"
+            ]
+          }
         },
         {
           "id": "pid-filter-task",
@@ -1139,7 +1185,11 @@
           "id": "heading-derivation",
           "region": "worked-example",
           "kind": "step-reveal-chain",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "五步显影链",
+            "block_key": "reveal_layers"
+          }
         }
       ],
       "content_blocks": {
@@ -1152,7 +1202,7 @@
             "控制峰值不超过 7"
           ]
         },
-        "reveal_chain": [
+        "reveal_layers": [
           {
             "title": "由超调量反推阻尼要求",
             "body": "二阶近似下，$M_p=e^{-\\frac{\\pi\\zeta}{\\sqrt{1-\\zeta^2}}}$。若要求 $M_p\\le20\\%$，可取 $\\zeta\\approx0.46$。"
@@ -1267,7 +1317,14 @@
           "id": "heading-validation-panel",
           "region": "validation",
           "kind": "rust-analysis-panel",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "客船原生统一面板",
+            "panel_id": "heading_case",
+            "items": [
+              "控件区、指标对比和实际控制器传函同页联动。"
+            ]
+          }
         },
         {
           "id": "issue-handover-cards",
@@ -1441,7 +1498,11 @@
           "id": "mini-reveal",
           "region": "worked-example",
           "kind": "step-reveal-chain",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "四步显影链",
+            "block_key": "reveal_layers"
+          }
         }
       ],
       "content_blocks": {
@@ -1455,7 +1516,7 @@
           ],
           "given_condition": "已知单纯提高增益会让相位储备明显下降。"
         },
-        "reveal_chain": [
+        "reveal_layers": [
           {
             "title": "对象要求",
             "body": "这一对象并不算极慢，但低频能力不足，同时又必须守住相角裕度。"
@@ -1555,19 +1616,34 @@
           "id": "analysis-template",
           "region": "template",
           "kind": "template-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "对象分析记录单",
+            "block_key": "template_cards",
+            "field": "analysis_card"
+          }
         },
         {
           "id": "scheme-template",
           "region": "template",
           "kind": "template-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "初始方案表达卡",
+            "block_key": "template_cards",
+            "field": "scheme_card"
+          }
         },
         {
           "id": "issue-template",
           "region": "template",
           "kind": "template-card",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "问题清单移交表",
+            "block_key": "template_cards",
+            "field": "issue_card"
+          }
         },
         {
           "id": "workspace-cards",
@@ -1707,19 +1783,37 @@
           "id": "roll-structure-note",
           "region": "problem",
           "kind": "figure-note",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "边界结论",
+            "block_key": "closing_sentence"
+          }
         },
         {
           "id": "roll-native-time-compare",
           "region": "media",
           "kind": "rust-time-compare-panel",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "时域响应对比",
+            "panel_id": "roll_boundary",
+            "items": [
+              "时间窗固定为 0-40 s，观察波浪正弦输入下的横摇响应。"
+            ]
+          }
         },
         {
           "id": "roll-native-bode-compare",
           "region": "media",
           "kind": "rust-bode-compare-panel",
-          "must_be_visible": true
+          "must_be_visible": true,
+          "payload": {
+            "title": "Bode 对比",
+            "panel_id": "roll_boundary",
+            "items": [
+              "频域对比用于确认共振峰值被压低，而不是移动共振点。"
+            ]
+          }
         },
         {
           "id": "roll-task",
@@ -1869,7 +1963,7 @@
         {
           "id": "post-quiz",
           "region": "assessment_region",
-          "kind": "quiz-stack",
+          "kind": "quiz-group",
           "must_be_visible": true
         },
         {
@@ -1889,11 +1983,6 @@
         "post_quiz_title": {
           "text": "请先完成后测，再回看本课形成的第一版方案判断链。"
         },
-        "post_quiz_items": [
-          "对象已有积分时，为什么不一定先补低频能力。",
-          "参数方向至少应包含哪三项内容。",
-          "首轮验证为何必须同时写收益、代价和下一轮优先项。"
-        ],
         "takeaways": [
           "第一版方案必须包含对象分析、结构分流、参数方向、首轮验证与问题清单。",
           "复合结构的意义在于职责分配，而不是公式长度。",

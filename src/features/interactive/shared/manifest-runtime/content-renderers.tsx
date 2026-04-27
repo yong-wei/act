@@ -318,7 +318,11 @@ function revealItems(step: InteractiveRuntimeStepManifest, module: InteractiveRu
   if (directItems.length) return directItems;
   const block = asRecord(blockFor(step, payload) ?? blockByModuleId(step, module));
   const items = asStringArray(block.items ?? block.steps ?? block.bullets);
-  return items.length ? items : asStringArray(step.contentBlocks.reveal_layers);
+  if (items.length) return items;
+  const revealLayers = step.contentBlocks.reveal_layers;
+  const layerItems = asStringArray(revealLayers);
+  if (layerItems.length) return layerItems;
+  return listFromRecordItems(revealLayers);
 }
 
 function summaryContent(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
@@ -580,7 +584,7 @@ function StepReveal({
   return (
     <div className="premium-lesson-panel">
       <div className="premium-lesson-kicker">{title}</div>
-      <div className="mt-3 space-y-3">
+      <div className="mt-3 space-y-3" data-progressive-reveal="step_click_reveal">
         {items.slice(0, visibleCount).map((item, index) => {
           const canExpand = allowInlineReveal && index === visibleCount - 1 && visibleCount < items.length;
           return (
@@ -663,6 +667,16 @@ export function createManifestContentModuleRegistry(extra: {
       if (!table) return null;
       return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} />;
     },
+    'template-card': ({ step, module }) => {
+      const block = blockFor(step, module.payload) ?? blockByModuleId(step, module);
+      const source = valueAtField(block, module.payload.field);
+      const items = asStringArray(module.payload.items).length
+        ? asStringArray(module.payload.items)
+        : asStringArray(source).length
+          ? asStringArray(source)
+          : listFromRecordItems(source);
+      return <CardGrid title={titleFromModule(module)} items={items} columns="grid-cols-1" />;
+    },
     'image-panel': ({ step, module }) => {
       const src = getImageSrc(step, module);
       if (!src) return null;
@@ -675,6 +689,31 @@ export function createManifestContentModuleRegistry(extra: {
       const source = typeof block.source === 'string' ? `图源：${block.source}` : undefined;
       return <SummaryCard title={caption} text={conclusion ?? source} bullets={conclusion && source ? [source] : []} />;
     },
+    'figure-note': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'rust-analysis-panel': ({ module }) => (
+      <SummaryCard
+        title={titleFromModule(module)}
+        text={typeof module.payload.text === 'string' ? module.payload.text : undefined}
+        bullets={asStringArray(module.payload.items)}
+      />
+    ),
+    'rust-time-compare-panel': ({ module }) => (
+      <SummaryCard
+        title={titleFromModule(module)}
+        text={typeof module.payload.text === 'string' ? module.payload.text : undefined}
+        bullets={asStringArray(module.payload.items)}
+      />
+    ),
+    'rust-bode-compare-panel': ({ module }) => (
+      <SummaryCard
+        title={titleFromModule(module)}
+        text={typeof module.payload.text === 'string' ? module.payload.text : undefined}
+        bullets={asStringArray(module.payload.items)}
+      />
+    ),
     'stat-panel': ({ step, module }) => {
       const block = asRecord(blockFor(step, module.payload) ?? blockByModuleId(step, module));
       const fields = asStringArray(block.fields);

@@ -26,7 +26,6 @@ import {
 } from '@/lib/unit-4-3-course';
 import { UNIT_4_3CourseHeader } from './course-header';
 import {
-  UNIT_4_3KnowledgeMapVisual,
   UNIT_4_3StepAiAssistant,
   UNIT_4_3StepContentPanel,
   UNIT_4_3StudentActivityForm,

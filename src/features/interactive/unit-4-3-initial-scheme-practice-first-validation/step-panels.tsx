@@ -1,11 +1,14 @@
 'use client';
 
-import { Fragment, useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useDeferredValue, useMemo, useState, type ReactNode } from 'react';
 import type { EChartsCoreOption } from 'echarts/core';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
 import type { InteractiveRuntimeManifest, InteractiveRuntimeStepManifest } from '@/lib/interactive-lesson-manifest';
+import {
+  createManifestContentModuleRegistry,
+} from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import {
   renderInteractiveManifestStep,
   type InteractiveModuleRegistry,
@@ -45,96 +48,14 @@ import type { WorkspaceParameterChange } from './workspace';
 
 type TeacherResponseItem = { studentName: string; response: UNIT_4_3StepResponse };
 type MetricRow = { label: string; baseline: string; current: string };
-type PromptContentBlock = Readonly<{ type: 'text' | 'math'; value: string }>;
-type PromptContent = readonly PromptContentBlock[];
 type ComparisonPoint = { x: number; baseline: number | null; current: number | null };
 
-const HEADING_PLANT_TEX = 'P_h(s)=\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}';
-const HEADING_CONTROLLER_TEX = 'C_h(s)=K\\dfrac{Ts+1}{\\alpha Ts+1},\\ 0<\\alpha<1';
-const MINI_EXAMPLE_PLANT_TEX = 'P_e(s)=\\dfrac{1}{(s+1)(0.4s+1)(0.1s+1)}';
 const STEP_05_DEFAULT_PARAMS = { gain: 6, piPoleFrequency: 1 / 1.8, leadZeroFrequency: 1 / 0.9, leadPoleFrequency: 1 / 0.18 } as const;
 const STEP_06_DEFAULT_PARAMS = { gain: 6, lagPoleFrequency: 1 / 20, lagZeroFrequency: 1 / 5, leadZeroFrequency: 1 / 0.8, leadPoleFrequency: 1 / 0.16 } as const;
 const STEP_07_DEFAULT_PARAMS = { kp: 3.5, ki: 3.5 / 1.5, kd: 0.25 } as const;
 const STEP_10_DEFAULT_PARAMS = { gain: 2.8, leadZeroFrequency: 0.1, leadPoleFrequency: 1 / 4.06 } as const;
 const BASELINE_SERIES_COLOR = '#f59e0b';
 const CURRENT_SERIES_COLOR = '#22d3ee';
-
-const REVEALS = {
-  'step-09': [
-    {
-      title: '由超调量反推阻尼要求',
-      blocks: [
-        { type: 'math', value: 'M_p=e^{-\\frac{\\pi\\zeta}{\\sqrt{1-\\zeta^2}}}' },
-        { type: 'text', value: '若超调量要求为 20% 以内，阻尼比可先取 0.46 左右。' },
-      ],
-    },
-    {
-      title: '由调节时间估计速度下界',
-      blocks: [
-        { type: 'math', value: 't_s\\approx\\dfrac{4}{\\zeta\\omega_n}' },
-        { type: 'math', value: '\\omega_c\\approx0.18\\ \\mathrm{rad/s}' },
-        { type: 'text', value: '当调节时间目标压到 40 s 左右时，可先把设计交越频率放在这个量级。' },
-      ],
-    },
-    {
-      title: '由相位缺额确定超前量',
-      blocks: [
-        { type: 'math', value: '\\phi_m=\\sin^{-1}\\!\\left(\\dfrac{1-\\alpha}{1+\\alpha}\\right)' },
-        { type: 'math', value: '\\alpha\\approx0.406' },
-        { type: 'text', value: '设计点处原对象相位约为 -155.7°，因此可把超前峰值先放在 25° 左右。' },
-      ],
-    },
-    {
-      title: '由设计频率换算零极点位置',
-      blocks: [
-        { type: 'math', value: '\\dfrac{Ts+1}{\\alpha Ts+1}\\approx\\dfrac{10s+1}{4.06s+1}' },
-        { type: 'text', value: '参数方向写法是：先补中频相位，希望提速，最可能先贴近超调量与控制峰值边界。' },
-      ],
-    },
-    {
-      title: '由幅值条件确定总增益',
-      blocks: [
-        { type: 'math', value: '|C_h(j\\omega_c)P_h(j\\omega_c)|=1' },
-        { type: 'math', value: 'C_h(s)\\approx2.80\\dfrac{10s+1}{4.06s+1}' },
-        { type: 'text', value: '这样就形成了可进入首轮验证的起步方案。' },
-      ],
-    },
-  ],
-  'step-11': [
-    {
-      title: '先写对象与要求',
-      blocks: [
-        { type: 'math', value: 'P_e(s)=\\dfrac{1}{(s+1)(0.4s+1)(0.1s+1)}' },
-        { type: 'math', value: 'e_{ss}\\le0.12,\\ M_p\\le15\\%,\\ t_s\\le12\\ \\mathrm{s},\\ \\phi_m\\ge55^\\circ' },
-      ],
-    },
-    {
-      title: '判断为何不能继续只拉增益',
-      blocks: [
-        { type: 'text', value: '已知单纯提高增益会让相位储备明显下降，因此不能继续把所有任务压在单一机制线上。' },
-      ],
-    },
-    {
-      title: '确定复合结构分工',
-      blocks: [
-        { type: 'math', value: 'C(s)=K\\dfrac{T_\\ell s+1}{\\beta T_\\ell s+1}\\dfrac{T_\\alpha s+1}{\\alpha T_\\alpha s+1}' },
-        { type: 'text', value: '更合理的起步口径是：滞后先抬低频增益，超前再把截止频率附近的相位拉回。' },
-      ],
-    },
-    {
-      title: '写清首轮验证重点',
-      blocks: [
-        { type: 'text', value: '首轮验证至少要同时检查稳态误差、超调量、调节时间和相角裕度，不能只看一张响应曲线。' },
-      ],
-    },
-  ],
-} as const;
-
-type RevealChainStepId = keyof typeof REVEALS;
-
-function isRevealChainStepId(stepId: string): stepId is RevealChainStepId {
-  return stepId in REVEALS;
-}
 
 const ANALYSIS_CONFIG = {
   'step-05': {
@@ -224,30 +145,8 @@ const CONTROL_METADATA: Record<Unit43PanelId, Record<string, { label: string; mi
   },
 };
 
-function cn(...values: Array<string | false | null | undefined>) {
-  return values.filter(Boolean).join(' ');
-}
-
 function fmt(value: number | null | undefined, suffix = '', digits = 2) {
   return typeof value === 'number' && Number.isFinite(value) ? `${value.toFixed(digits)}${suffix}` : '—';
-}
-
-function renderPromptContent(blocks: PromptContent) {
-  return (
-    <div className="space-y-2">
-      {blocks.map((block, index) =>
-        block.type === 'math' ? (
-          <div key={`${block.type}-${index}`}>
-            <BlockMath math={block.value} />
-          </div>
-        ) : (
-          <p key={`${block.type}-${index}`} className="premium-lesson-muted text-sm leading-6">
-            {block.value}
-          </p>
-        ),
-      )}
-    </div>
-  );
 }
 
 function SurfaceCard({ title, children }: { title?: string; children: ReactNode }) {
@@ -256,37 +155,6 @@ function SurfaceCard({ title, children }: { title?: string; children: ReactNode 
       {title ? <h3 className="premium-lesson-title text-lg font-semibold">{title}</h3> : null}
       <div className={title ? 'mt-3 space-y-3' : 'space-y-3'}>{children}</div>
     </section>
-  );
-}
-
-function TablePanel({ title, headers, rows }: { title: string; headers: string[]; rows: string[][] }) {
-  return (
-    <SurfaceCard title={title}>
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-white/10 text-slate-300">
-              {headers.map((header) => (
-                <th key={header} className="px-3 py-2 font-medium">
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, rowIndex) => (
-              <tr key={`${title}-${rowIndex}`} className="border-b border-white/5 align-top last:border-b-0">
-                {row.map((cell, cellIndex) => (
-                  <td key={`${title}-${rowIndex}-${cellIndex}`} className="px-3 py-3 text-slate-100">
-                    {cell.includes('\\') ? <BlockMath math={cell.replace(/^\$+|\$+$/g, '')} /> : cell}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </SurfaceCard>
   );
 }
 
@@ -336,52 +204,6 @@ function buildMetricRows(stepId: keyof typeof ANALYSIS_CONFIG, result: ReturnTyp
   });
 }
 
-function RevealChain({
-  stepId,
-  revealProgress,
-  allowInlineReveal,
-}: {
-  stepId: RevealChainStepId;
-  revealProgress: number;
-  allowInlineReveal: boolean;
-}) {
-  const steps = REVEALS[stepId];
-  const teacherVisibleCount = Math.max(1, Math.min(steps.length, revealProgress || 1));
-  const [localVisibleCount, setLocalVisibleCount] = useState(teacherVisibleCount);
-
-  useEffect(() => {
-    setLocalVisibleCount(teacherVisibleCount);
-  }, [stepId, teacherVisibleCount]);
-
-  const visibleCount = Math.max(teacherVisibleCount, allowInlineReveal ? localVisibleCount : teacherVisibleCount);
-  const canRevealMore = allowInlineReveal && visibleCount < steps.length;
-
-  return (
-    <div className="space-y-3" data-progressive-reveal="step_click_reveal">
-      {steps.slice(0, visibleCount).map((item, index) => (
-        <button
-          key={`${stepId}-${item.title}`}
-          type="button"
-          className={cn(
-            'block w-full rounded-[28px] border border-cyan-400/40 bg-cyan-500/10 px-4 py-4 text-left transition',
-            index === visibleCount - 1 && canRevealMore && 'ring-1 ring-cyan-400/40',
-          )}
-          onClick={() => {
-            if (index === visibleCount - 1 && canRevealMore) {
-              setLocalVisibleCount((current) => Math.min(current + 1, steps.length));
-            }
-          }}
-        >
-          <div className="premium-lesson-title text-sm font-medium">{item.title}</div>
-          <div className="mt-3">{renderPromptContent(item.blocks)}</div>
-          {index === visibleCount - 1 && canRevealMore ? (
-            <div className="premium-lesson-muted mt-3 text-xs">点击当前最下方已显影步骤可继续展开下一层。</div>
-          ) : null}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 function buildComparisonChartOption(
   series: ComparisonPoint[],
@@ -710,316 +532,81 @@ export function UNIT_4_3StepAiAssistant({
   return null;
 }
 
-function asRecord(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return {};
-  }
-  return value as Record<string, unknown>;
-}
-
-function asStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value.map((item) => String(item));
-}
-
-function pickFirstTableLikeBlock(stepManifest: InteractiveRuntimeStepManifest, moduleId: string) {
-  const contentBlocks = stepManifest.contentBlocks;
-
-  if (moduleId.includes('summary')) {
-    const resultSummary = asRecord(contentBlocks.result_summary);
-    if (Array.isArray(resultSummary.rows) && Array.isArray(resultSummary.columns)) {
-      return resultSummary;
-    }
-  }
-
-  for (const key of ['table_1', 'table_2', 'table_6', 'table_7', 'result_summary']) {
-    const candidate = asRecord(contentBlocks[key]);
-    if (Array.isArray(candidate.rows) && Array.isArray(candidate.columns)) {
-      return candidate;
-    }
-  }
-
-  for (const value of Object.values(contentBlocks)) {
-    const candidate = asRecord(value);
-    if (Array.isArray(candidate.rows) && Array.isArray(candidate.columns)) {
-      return candidate;
-    }
-  }
-
-  return null;
-}
-
-function pickProblemStatementBlock(stepManifest: InteractiveRuntimeStepManifest) {
-  for (const key of ['problem_statement', 'fixed_problem', 'formula_block']) {
-    const candidate = asRecord(stepManifest.contentBlocks[key]);
-    if (Object.keys(candidate).length) {
-      return candidate;
-    }
-  }
-  return null;
-}
-
-function renderSentenceList(items: string[], columns = 'md:grid-cols-2') {
-  return (
-    <div className={cn('grid gap-3', columns)}>
-      {items.map((item) => (
-        <div key={item} className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4 text-sm leading-6">
-          {item}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 type Unit43ModuleExtra = {
   revealProgress: number;
   allowInlineReveal: boolean;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 };
 
-const UNIT_4_3_MODULE_REGISTRY: InteractiveModuleRegistry<Unit43ModuleExtra> = {
-  'stage-map': ({ step }) => {
-    const intro = asRecord(step.contentBlocks.page_intro);
-    const items = asStringArray(intro.path_items);
-    return (
-      <SurfaceCard title={String(intro.title ?? '路径定位')}>
-        {items.length ? (
-          <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch">
-            {items.map((item, index) => (
-              <Fragment key={item}>
-                <div className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4 text-center text-sm font-semibold">
-                  {item}
-                </div>
-                {index < items.length - 1 ? <div className="hidden items-center text-slate-300 md:flex">→</div> : null}
-              </Fragment>
-            ))}
-          </div>
-        ) : null}
-        {intro.lead ? <div className="premium-lesson-muted text-sm leading-6">{String(intro.lead)}</div> : null}
+function createUNIT_4_3ModuleRegistry(
+  manifest: InteractiveRuntimeManifest,
+  extra: Unit43ModuleExtra,
+): InteractiveModuleRegistry<Unit43ModuleExtra> {
+  const sharedRegistry = createManifestContentModuleRegistry({
+    revealProgress: extra.revealProgress,
+    allowInlineReveal: extra.allowInlineReveal,
+  });
+
+  return {
+    ...sharedRegistry,
+    'stage-map': (props) => (
+      <>
+        {sharedRegistry['stage-map']?.({
+          manifest,
+          step: props.step,
+          module: props.module,
+          extra: {
+            revealProgress: extra.revealProgress,
+            allowInlineReveal: extra.allowInlineReveal,
+          },
+        })}
         <UNIT_4_3KnowledgeMapVisual />
-      </SurfaceCard>
-    );
-  },
-  'goal-card-row': ({ step }) => {
-    const items = asStringArray(step.contentBlocks.goal_cards);
-    return items.length ? <SurfaceCard title="课程目标">{renderSentenceList(items)}</SurfaceCard> : null;
-  },
-  'question-card-set': ({ step }) => {
-    const items = asStringArray(step.contentBlocks.question_cards);
-    return items.length ? <SurfaceCard title="对象分析四问">{renderSentenceList(items)}</SurfaceCard> : null;
-  },
-  'goal-card-set': ({ step }) => {
-    const items = asStringArray(step.contentBlocks.target_constraints);
-    return items.length ? <SurfaceCard title="目标约束">{renderSentenceList(items, 'md:grid-cols-3')}</SurfaceCard> : null;
-  },
-  'single-choice-card': ({ step }) => {
-    const cards = step.interactionSpec.activityCards ?? [];
-    return cards.length ? (
-      <SurfaceCard title="本页选择">
-        <div className="space-y-3">
-          {cards.map((card) => (
-            <div key={card.id} className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4">
-              <div className="premium-lesson-title text-sm font-medium">{card.prompt}</div>
-              {card.options.length ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {card.options.map((option) => (
-                    <span key={option.value} className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-300">
-                      {option.label}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          ))}
+      </>
+    ),
+    'rust-analysis-panel': ({ step, module }) =>
+      isAnalysisStepId(step.id) ? (
+        <UnifiedAnalysisPanel
+          stepId={step.id}
+          onWorkspaceParameterChange={extra.onWorkspaceParameterChange}
+        />
+      ) : (
+        sharedRegistry['rust-analysis-panel']?.({
+          manifest,
+          step,
+          module,
+          extra: {
+            revealProgress: extra.revealProgress,
+            allowInlineReveal: extra.allowInlineReveal,
+          },
+        }) ?? null
+      ),
+    'rust-time-compare-panel': ({ step, module }) =>
+      module.id === 'roll-native-time-compare' ? (
+        <RollBoundaryPanel onWorkspaceParameterChange={extra.onWorkspaceParameterChange} />
+      ) : (
+        sharedRegistry['rust-time-compare-panel']?.({
+          manifest,
+          step,
+          module,
+          extra: {
+            revealProgress: extra.revealProgress,
+            allowInlineReveal: extra.allowInlineReveal,
+          },
+        }) ?? null
+      ),
+    'rust-bode-compare-panel': ({ module }) => (
+      <SurfaceCard title={String(module.payload.title ?? 'Bode 对比')}>
+        <div className="premium-lesson-muted text-sm leading-6">
+          Bode 对比与时域响应共用同一组横摇减摇鳍参数，已在上方双栏联动面板中同步呈现。
         </div>
       </SurfaceCard>
-    ) : null;
-  },
-  'activity-card': ({ module }) => (
-    <div data-manifest-activity-anchor={module.id} className="hidden" aria-hidden="true" />
-  ),
-  'activity-card-set': ({ module }) => (
-    <div data-manifest-activity-anchor={module.id} className="hidden" aria-hidden="true" />
-  ),
-  'quiz-stack': ({ step }) => {
-    const items = asStringArray(step.contentBlocks.post_quiz_items);
-    return items.length ? <SurfaceCard title="后测题组">{renderSentenceList(items, 'grid-cols-1')}</SurfaceCard> : null;
-  },
-  'formula-card': ({ step }) => {
-    const block = asRecord(step.contentBlocks.formula_block);
-    const formulas = [block.object, block.controller]
-      .filter(Boolean)
-      .map((item) => String(item).replace(/^\$|\$$/g, ''));
-    const explanation = String(block.explanation ?? '').trim();
-    if (!formulas.length && !explanation) {
-      return null;
-    }
-    return (
-      <SurfaceCard title="对象与讲义基线">
-        {formulas.length ? (
-          <div className="grid gap-3 md:grid-cols-2">
-            {formulas.map((formula) => (
-              <BlockMath key={formula} math={formula} />
-            ))}
-          </div>
-        ) : null}
-        {explanation ? <div className="premium-lesson-muted text-sm leading-6">{explanation}</div> : null}
-      </SurfaceCard>
-    );
-  },
-  'native-table': ({ step, module }) => {
-    const table = pickFirstTableLikeBlock(step, module.id);
-    if (!table) return null;
-    return (
-      <TablePanel
-        title={module.id.includes('validation') ? '表 6 · 客船首轮验证' : module.id.includes('roll') ? '表 7 · 横摇减摇鳍结果' : '结构判断表'}
-        headers={asStringArray(table.columns)}
-        rows={(table.rows as Array<unknown[]>).map((row) => row.map((cell) => String(cell)))}
-      />
-    );
-  },
-  'native-formula-table': ({ step }) => {
-    const table = pickFirstTableLikeBlock(step, 'table_2');
-    if (!table) return null;
-    return (
-      <TablePanel
-        title="表 2 · 三类复合结构总览"
-        headers={asStringArray(table.columns)}
-        rows={(table.rows as Array<unknown[]>).map((row) => row.map((cell) => String(cell)))}
-      />
-    );
-  },
-  'table-card': ({ step, module }) => {
-    const table = pickFirstTableLikeBlock(step, module.id);
-    if (!table) return null;
-    return (
-      <TablePanel
-        title={module.id.includes('pi') ? '表 3 · PI + 超前结果摘要' : module.id.includes('lag') ? '表 4 · 滞后 + 超前结果摘要' : '表 5 · 带微分滤波 PID 结果摘要'}
-        headers={asStringArray(table.columns)}
-        rows={(table.rows as Array<unknown[]>).map((row) => row.map((cell) => String(cell)))}
-      />
-    );
-  },
-  'problem-statement': ({ step }) => {
-    const block = pickProblemStatementBlock(step);
-    if (!block) return null;
-    const formulas = [block.object, block.controller, block.controller_form]
-      .filter(Boolean)
-      .map((item) => String(item).replace(/^\$|\$$/g, ''));
-    const notes = [
-      block.note,
-      block.task,
-      block.given_condition,
-      asRecord(step.contentBlocks.why_lead_first).text,
-      asRecord(step.contentBlocks.final_sentence).text,
-      asRecord(step.contentBlocks.closing_sentence).text,
-    ]
-      .filter(Boolean)
-      .map((item) => String(item));
-    const requirementItems = [
-      ...asStringArray(block.requirements),
-      ...asStringArray(block.goals),
-    ];
-
-    return (
-      <SurfaceCard title={step.id === 'step-13' ? '边界案例：横摇减摇鳍首先是扰动通道重写' : step.id === 'step-11' ? '最小例题' : '题面与对象'}>
-        {formulas.length ? (
-          <div className="grid gap-3 md:grid-cols-2">
-            {formulas.map((formula) => (
-              <BlockMath key={formula} math={formula} />
-            ))}
-          </div>
-        ) : null}
-        {notes.map((note) => (
-          <div key={note} className="premium-lesson-muted text-sm leading-6">
-            {note}
-          </div>
-        ))}
-        {requirementItems.length ? renderSentenceList(requirementItems, 'md:grid-cols-2') : null}
-      </SurfaceCard>
-    );
-  },
-  'summary-card': ({ step }) => {
-    const takeaways = asStringArray(step.contentBlocks.takeaways);
-    if (takeaways.length) {
-      return <SurfaceCard title="收束与带走">{renderSentenceList(takeaways, 'grid-cols-1')}</SurfaceCard>;
-    }
-    const sentence = [
-      asRecord(step.contentBlocks.branch_summary).text,
-      asRecord(step.contentBlocks.summary_sentence).text,
-      asRecord(step.contentBlocks.closing_sentence).text,
-    ]
-      .find(Boolean);
-    return sentence ? (
-      <SurfaceCard title="要点总结">
-        <div className="premium-lesson-muted text-sm leading-6">{String(sentence)}</div>
-      </SurfaceCard>
-    ) : null;
-  },
-  'template-card': ({ step, module }) => {
-    const templateCards = asRecord(step.contentBlocks.template_cards);
-    const key = module.id.startsWith('analysis')
-      ? 'analysis_card'
-      : module.id.startsWith('scheme')
-        ? 'scheme_card'
-        : 'issue_card';
-    const items = asStringArray(templateCards[key]);
-    if (!items.length) return null;
-    const title = key === 'analysis_card' ? '对象分析记录单' : key === 'scheme_card' ? '初始方案表达卡' : '问题清单移交表';
-    return <SurfaceCard title={title}>{renderSentenceList(items, 'grid-cols-1')}</SurfaceCard>;
-  },
-  'step-reveal-chain': ({ step, extra }) => (
-    <SurfaceCard title="逐步显影链">
-      {isRevealChainStepId(step.id) ? (
-        <RevealChain
-          stepId={step.id}
-          revealProgress={extra.revealProgress}
-          allowInlineReveal={extra.allowInlineReveal}
-        />
-      ) : null}
-    </SurfaceCard>
-  ),
-  'rust-analysis-panel': ({ step, extra }) =>
-    isAnalysisStepId(step.id) ? (
-      <UnifiedAnalysisPanel
-        stepId={step.id}
-        onWorkspaceParameterChange={extra.onWorkspaceParameterChange}
-      />
-    ) : null,
-  'rust-time-compare-panel': ({ step, module, extra }) =>
-    module.id === 'roll-native-time-compare' ? (
-      <RollBoundaryPanel onWorkspaceParameterChange={extra.onWorkspaceParameterChange} />
-    ) : null,
-  'rust-bode-compare-panel': () => null,
-  'figure-note': ({ step }) => {
-    const sentence = String(asRecord(step.contentBlocks.closing_sentence).text ?? '').trim();
-    return sentence ? (
-      <SurfaceCard title="边界结论">
-        <div className="premium-lesson-muted text-sm leading-6">{sentence}</div>
-      </SurfaceCard>
-    ) : null;
-  },
-  'title-card': ({ step }) => {
-    const text = String(asRecord(step.contentBlocks.post_quiz_title).text ?? '').trim();
-    return text ? (
-      <SurfaceCard title="后测提示">
-        <div className="premium-lesson-muted text-sm leading-6">{text}</div>
-      </SurfaceCard>
-    ) : null;
-  },
-  'route-card': ({ step }) => {
-    const text = String(asRecord(step.contentBlocks.next_route).text ?? '').trim();
-    return text ? (
-      <SurfaceCard title="去向">
-        <div className="premium-lesson-muted text-sm leading-6">{text}</div>
-      </SurfaceCard>
-    ) : null;
-  },
-};
+    ),
+  };
+}
 
 export function UNIT_4_3StepContentPanel({
   manifest,
-  step,
+  step: _step,
   stepManifest,
   revealProgress,
   allowInlineReveal,
@@ -1032,17 +619,20 @@ export function UNIT_4_3StepContentPanel({
   allowInlineReveal: boolean;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
+  const moduleExtra = {
+    revealProgress,
+    allowInlineReveal,
+    onWorkspaceParameterChange,
+  };
+  const moduleRegistry = createUNIT_4_3ModuleRegistry(manifest, moduleExtra);
+
   return (
     <div>
       {renderInteractiveManifestStep({
         manifest,
         step: stepManifest,
-        moduleRegistry: UNIT_4_3_MODULE_REGISTRY,
-        extra: {
-          revealProgress,
-          allowInlineReveal,
-          onWorkspaceParameterChange,
-        },
+        moduleRegistry,
+        extra: moduleExtra,
       })}
     </div>
   );

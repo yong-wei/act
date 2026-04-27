@@ -513,10 +513,14 @@ describe('interactive runtime manifest', () => {
       'table-card',
       'problem-statement',
       'title-card',
-      'quiz-stack',
       'route-card',
+      'template-card',
+      'figure-note',
+      'rust-analysis-panel',
+      'rust-time-compare-panel',
+      'rust-bode-compare-panel',
     ];
-    const activityModuleKinds = ['activity-card', 'activity-card-set', 'single-choice-card'];
+    const activityModuleKinds = ['activity-card', 'activity-card-set', 'single-choice-card', 'quiz-group'];
 
     for (const kind of sharedKinds) {
       expect(moduleKinds.has(kind), kind).toBe(true);

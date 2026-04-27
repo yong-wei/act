@@ -145,10 +145,20 @@ describe('unit 4-3 interactive course', () => {
       join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx'),
       'utf8',
     );
+    const runtimeManifestSource = readFileSync(
+      join(repoRoot, 'course-content/runtime/lessons/4-3/interactive-manifest.json'),
+      'utf8',
+    );
+    const sharedContentRendererSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
 
     expect(stepPanelsSource).not.toContain('/course-content/authoring/lessons/4-3/media/processed/');
     expect(stepPanelsSource).not.toContain('/course-runtime/lessons/legacy/4-3');
     expect(stepPanelsSource).toContain('renderInteractiveManifestStep');
+    expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
+    expect(stepPanelsSource).toContain('createUNIT_4_3ModuleRegistry');
     expect(stepPanelsSource).not.toContain('switch (step.id)');
     expect(stepPanelsSource).toContain('useControlEngine');
     expect(stepPanelsSource).toContain('ControlFigureWorkspace');
@@ -159,15 +169,12 @@ describe('unit 4-3 interactive course', () => {
     expect(stepPanelsSource).toContain('当前性能指标');
     expect(stepPanelsSource).toContain('时域响应对比');
     expect(stepPanelsSource).toContain('Bode 对比');
-    expect(stepPanelsSource).toContain('M_p=e^{-\\\\frac{\\\\pi\\\\zeta}{\\\\sqrt{1-\\\\zeta^2}}}');
-    expect(stepPanelsSource).toContain('t_s\\\\approx\\\\dfrac{4}{\\\\zeta\\\\omega_n}');
-    expect(stepPanelsSource).toContain('data-progressive-reveal="step_click_reveal"');
-    expect(stepPanelsSource).toContain("type: 'math'");
-    expect(stepPanelsSource).toContain("type: 'text'");
-    expect(stepPanelsSource).toContain('对象分析记录单');
-    expect(stepPanelsSource).toContain('初始方案表达卡');
-    expect(stepPanelsSource).toContain('问题清单移交表');
-    expect(stepPanelsSource).toContain('renderPromptContent');
+    expect(runtimeManifestSource).toContain('M_p=e^{-\\\\frac{\\\\pi\\\\zeta}{\\\\sqrt{1-\\\\zeta^2}}}');
+    expect(runtimeManifestSource).toContain('t_s\\\\approx\\\\dfrac{4}{\\\\zeta\\\\omega_n}');
+    expect(sharedContentRendererSource).toContain('data-progressive-reveal="step_click_reveal"');
+    expect(runtimeManifestSource).toContain('对象分析记录单');
+    expect(runtimeManifestSource).toContain('初始方案表达卡');
+    expect(runtimeManifestSource).toContain('问题清单移交表');
     expect(stepPanelsSource).toContain('formatUnit43PlantFormula');
     expect(stepPanelsSource).toContain('ControlChartPanel');
     expect(stepPanelsSource).toContain('axisTooltipFormatter');
@@ -198,19 +205,26 @@ describe('unit 4-3 interactive course', () => {
     expect(runtimeManifestSource).toContain('G_{\\\\varphi M_f}(s)=\\\\dfrac{1}{2.052s^2+0.3929s+1}');
   });
 
-  it('aligns step-09 and step-11 reveal rendering with the 4-2 slice-based progressive reveal pattern', () => {
-    const stepPanelsSource = readFileSync(
-      join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx'),
+  it('aligns step-09 and step-11 reveal rendering with the shared slice-based progressive reveal pattern', async () => {
+    const sharedContentRendererSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
       'utf8',
     );
     const studentPageSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/student-page.tsx'),
       'utf8',
     );
+    const runtime = await loadLessonRuntimeEntry('4-3');
+    const revealLayerCounts = Object.fromEntries(
+      runtime.interactiveManifest!.steps
+        .filter((step) => step.id === 'step-09' || step.id === 'step-11')
+        .map((step) => [step.id, Array.isArray(step.contentBlocks.reveal_layers) ? step.contentBlocks.reveal_layers.length : 0]),
+    );
 
-    expect(stepPanelsSource).toContain('steps.slice(0, visibleCount)');
-    expect(stepPanelsSource).toContain('点击当前最下方已显影步骤可继续展开下一层');
-    expect(stepPanelsSource).not.toContain('const visible = index < visibleCount;');
+    expect(sharedContentRendererSource).toContain('items.slice(0, visibleCount)');
+    expect(sharedContentRendererSource).toContain('点击当前最下方步骤继续显示下一层');
+    expect(sharedContentRendererSource).not.toContain('const visible = index < visibleCount;');
+    expect(revealLayerCounts).toEqual({ 'step-09': 5, 'step-11': 4 });
     expect(studentPageSource).toContain("stepManifest.teacherControls.teacherStepReveal === 'not_applicable'");
     expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
     expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
