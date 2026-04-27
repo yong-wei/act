@@ -93,7 +93,7 @@
         ]
       },
       {
-        "group_name": "Pareto 与工程判断",
+        "group_name": "Pareto前沿与工程判断",
         "step_ids": [
           "step-10",
           "step-11"
@@ -155,5 +155,7 @@
     "interactive_page_check_path": "/course-runtime/lessons/4-4/review/interactive-page-check.json",
     "multimedia_check_path": "/course-runtime/lessons/4-4/review/multimedia-check.json",
     "source_manifest_path": "/course-runtime/lessons/4-4/review/source-manifest.json"
-  }
+  },
+  "interactive_manifest_path": "/course-runtime/lessons/4-4/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/4-4/interactive-manifest.json"
 }

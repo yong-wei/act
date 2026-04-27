@@ -82,7 +82,7 @@
       ]
     },
     {
-      "group_name": "Pareto 与工程判断",
+      "group_name": "Pareto前沿与工程判断",
       "step_ids": [
         "step-10",
         "step-11"
@@ -118,8 +118,8 @@
       "name": "三频段闭环性能回读",
       "nodeType": "THEORY",
       "description": "按低频、中频、高频三段分工，把开环图上读到的低频增益、截止频率、相角裕度、带宽和谐振峰值重新翻译成稳态精度、速度、超调、噪声与执行器负担等闭环后果。",
-      "positionX": 50.9,
-      "positionY": -50.9,
+      "positionX": 62.4,
+      "positionY": -36.0,
       "positionZ": 3,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -178,12 +178,70 @@
       ]
     },
     {
+      "id": "展示解与Pareto最小取舍_4_44006",
+      "name": "Pareto前沿与展示解取舍",
+      "nodeType": "THEORY",
+      "description": "Pareto前沿把一组互不支配的候选显性呈现出来；展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优。",
+      "positionX": -112.0,
+      "positionY": 30.0,
+      "positionZ": 4,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "Pareto前沿把一组互不支配的候选显性呈现出来；展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优。",
+        "examples": [
+          "动作代价最低的候选不一定适合作为展示解，因为它可能同时拖长过程。",
+          "更快的候选也不自动胜出，因为它可能只是更贴合当前偏好，而不是在所有目标上都最好。"
+        ],
+        "formulas": [
+          "\\mathcal{P}=\\{\\theta\\mid \\nexists\\theta'\\text{ 使所有目标不劣且至少一项目标更优}\\}",
+          "\\text{展示解}\\in\\mathcal{P},\\quad \\text{展示解}\\neq\\text{最终可交付方案}"
+        ],
+        "prerequisites": [
+          "权重偏好与无约束候选解_4_44005"
+        ],
+        "relatedConcepts": [
+          "任务通道变化下的自由目标改写_4_44007"
+        ],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "Pareto前沿",
+          "非支配候选",
+          "展示解",
+          "候选族",
+          "多目标取舍"
+        ],
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/展示解与Pareto最小取舍_4_44006.md"
+      ],
+      "tags": [
+        "Pareto前沿",
+        "非支配候选",
+        "展示解",
+        "候选族",
+        "多目标取舍",
+        "chapter-4"
+      ]
+    },
+    {
       "id": "任务通道变化下的自由目标改写_4_44007",
       "name": "任务通道变化下的自由目标改写",
       "nodeType": "THEORY",
       "description": "当任务从给定跟踪切换到扰动抑制或其他不同通道目标时，即使固定结构暂时不变，自由目标也必须按照新的任务语言整体改写。",
-      "positionX": -112.0,
-      "positionY": -30.0,
+      "positionX": -82.0,
+      "positionY": -82.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -236,8 +294,8 @@
       "name": "优化起点与归一化来源",
       "nodeType": "THEORY",
       "description": "固定结构优化中的参数向量、参数范围和归一化基准必须来自已有设计证据，其中起点来自上一轮可运行方案，归一化基准来自任务书或首轮仿真结果。",
-      "positionX": -82.0,
-      "positionY": -82.0,
+      "positionX": -30.0,
+      "positionY": -112.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -291,8 +349,8 @@
       "name": "单结构首轮起步卡",
       "nodeType": "THEORY",
       "description": "把当前任务、最紧矛盾、首选单结构、参数起步方向、预期改善、代价说明和留给下一课的未决项压成一张首轮设计输入卡，用来把 4-2 的选型理由固定下来。",
-      "positionX": 82.0,
-      "positionY": -82.0,
+      "positionX": 105.7,
+      "positionY": 61.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -349,8 +407,8 @@
       "name": "参数方向表达卡",
       "nodeType": "THEORY",
       "description": "把首轮方案写成“先改哪段行为、预期先改善什么、最可能先透支什么”的设计表达，用来替代只报参数大小的经验描述。",
-      "positionX": 100.5,
-      "positionY": -58.0,
+      "positionX": 86.3,
+      "positionY": 86.3,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -404,7 +462,7 @@
       "name": "固定结构自由目标项选择",
       "nodeType": "THEORY",
       "description": "在固定结构的无约束加权建模中，先选出本课要比较的自由目标项，例如时间、拖尾、误差强度和动作代价，再用它们承载偏好。",
-      "positionX": 86.3,
+      "positionX": -86.3,
       "positionY": 86.3,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
@@ -455,68 +513,12 @@
       ]
     },
     {
-      "id": "展示解与Pareto最小取舍_4_44006",
-      "name": "Pareto前沿与展示解取舍",
-      "nodeType": "THEORY",
-      "description": "Pareto前沿把一组互不支配的候选显性呈现出来；展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优。",
-      "positionX": -31.6,
-      "positionY": 117.8,
-      "positionZ": 4,
-      "bloomLevel": "ANALYZE",
-      "knowledgeDim": "CONCEPTUAL",
-      "chapter": 4,
-      "chapterName": "约束设计层",
-      "metadata": {
-        "chapter": 4,
-        "chapterName": "约束设计层",
-        "category": "概念性",
-        "bloom_level": "分析",
-        "definition": "Pareto前沿把一组互不支配的候选显性呈现出来；展示解只是给定偏好下暂时更值得继续推进的一版候选，而不是脱离偏好的唯一绝对最优。",
-        "examples": [
-          "动作代价最低的候选不一定适合作为展示解，因为它可能同时拖长过程。",
-          "更快的候选也不自动胜出，因为它可能只是更贴合当前偏好，而不是在所有目标上都最好。"
-        ],
-        "formulas": [
-          "\\mathcal{P}=\\{\\theta\\mid \\nexists\\theta'\\text{ 使所有目标不劣且至少一项目标更优}\\}",
-          "\\text{展示解}\\in\\mathcal{P},\\quad \\text{展示解}\\neq\\text{最终可交付方案}"
-        ],
-        "prerequisites": [
-          "权重偏好与无约束候选解_4_44005"
-        ],
-        "relatedConcepts": [
-          "任务通道变化下的自由目标改写_4_44007"
-        ],
-        "difficulty": 4,
-        "importance": 4,
-        "keywords": [
-          "Pareto前沿",
-          "非支配候选",
-          "展示解",
-          "候选族",
-          "多目标取舍"
-        ],
-        "createdAt": null,
-        "updatedAt": null,
-        "source": "course-content/runtime/knowledge/graph/nodes.json"
-      },
-      "content": {},
-      "resources": [
-        "course-content/runtime/knowledge/cards/nodes/展示解与Pareto最小取舍_4_44006.md"
-      ],
-      "tags": [
-        "展示解",
-        "Pareto",
-        "取舍",
-        "chapter-4"
-      ]
-    },
-    {
       "id": "无约束加权目标表达_4_44004",
       "name": "无约束加权目标表达",
       "nodeType": "THEORY",
       "description": "把多类自由目标项写成统一的无量纲加权目标函数，用来表达当前设计偏好，而不在本课提前引入输出侧硬约束。",
-      "positionX": -61.0,
-      "positionY": -105.7,
+      "positionX": 128.0,
+      "positionY": 0.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -569,8 +571,8 @@
       "name": "权重偏好与无约束候选解",
       "nodeType": "THEORY",
       "description": "不同权重偏好会把同一固定结构的搜索推向不同候选；一版典型无约束候选之所以有吸引力，是因为它在当前偏好下确实抓住了若干收益。",
-      "positionX": -0.0,
-      "positionY": -122.0,
+      "positionX": 110.9,
+      "positionY": 64.0,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
@@ -622,8 +624,8 @@
       "name": "经典试凑中的多目标拉扯",
       "nodeType": "THEORY",
       "description": "当固定结构下的人工试凑分别换来速度、拖尾、误差强度或动作代价上的局部收益，却无法用统一标准比较这些收益时，就会出现多目标拉扯。",
-      "positionX": -0.0,
-      "positionY": -128.0,
+      "positionX": 94.8,
+      "positionY": 94.8,
       "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
@@ -676,8 +678,8 @@
       "name": "设计任务表达卡",
       "nodeType": "THEORY",
       "description": "把控制对象、控制目标、硬约束、软目标、观察指标和证据来源写成同一张输入卡，用来把模块3的分析证据转换为模块4后续选型与起步的共同输入。",
-      "positionX": 123.6,
-      "positionY": -33.1,
+      "positionX": -129.4,
+      "positionY": 34.7,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -734,8 +736,8 @@
       "name": "问题清单移交表",
       "nodeType": "THEORY",
       "description": "把首轮验证结论压成“已满足目标、已暴露代价、下一轮优先调整项”三类句子，用来把首轮证据正式移交给后续权衡和优化阶段。",
-      "positionX": -129.4,
-      "positionY": -34.7,
+      "positionX": 99.0,
+      "positionY": 99.0,
       "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
@@ -787,8 +789,8 @@
       "name": "带宽频率",
       "nodeType": "THEORY",
       "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
-      "positionX": 39.9,
-      "positionY": -148.8,
+      "positionX": -154.5,
+      "positionY": 41.4,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",

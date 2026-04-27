@@ -1,0 +1,2362 @@
+{
+  "contract_version": "2.1",
+  "lesson_id": "4-4",
+  "course_title": "4-4：多目标权衡与控制器优化设计",
+  "course_route_segment": "unit-4-4-fixed-structure-optimization-modeling",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo",
+    "teacher_preview_panel_note": "教师预览默认对齐学生页。"
+  },
+  "media_policy": {
+    "runtime_only": true,
+    "runtime_export_required": true,
+    "runtime_media_base": "/course-runtime/lessons/4-4/media",
+    "note": "正式页面只能读取 runtime 媒体；作者态媒体只用于说明证据落点。"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "evidence_sequence",
+    "interaction_spec",
+    "teacher_controls",
+    "student_access",
+    "teacher_insight_spec",
+    "telemetry_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "客船航向保持对象与多目标拉扯：为什么经典试凑会停住",
+      "layout": {
+        "template": "map_goal_boundary_slide",
+        "regions": [
+          {
+            "id": "object",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "route",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "question",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "object-card",
+          "region": "object",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "tension-list",
+          "region": "object",
+          "kind": "bullet-list-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "route-map",
+          "region": "route",
+          "kind": "stage-map",
+          "must_be_visible": true
+        },
+        {
+          "id": "problem-focus",
+          "region": "question",
+          "kind": "summary-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "object_card": {
+          "title": "主案例对象",
+          "body": "P_h(s)=0.01715/[s(s+0.1)(s+2.14375)]",
+          "note": "对象自带积分特性，当前最紧的矛盾不是稳态误差，而是多目标拉扯。"
+        },
+        "tension_list": {
+          "title": "当前已经同时出现的四类愿望",
+          "bullets": [
+            "希望修航过程更快。",
+            "希望误差拖尾更短。",
+            "希望前中段误差强度不要被放大。",
+            "希望控制动作不要变得过于粗暴。"
+          ]
+        },
+        "route_map": {
+          "stages": [
+            "4-3 固定结构与问题清单",
+            "4-4 无约束优化建模与候选族",
+            "4-5 工程边界复核"
+          ]
+        },
+        "problem_focus": {
+          "title": "当前真正缺的不是更多试凑，而是统一的比较语言",
+          "text": "经典试凑已经告诉我们方向，却还没有告诉我们这些收益和代价该怎样放进同一套比较语言。"
+        }
+      },
+      "evidence_sequence": [
+        "对象卡",
+        "四类拉扯",
+        "路径图",
+        "问题聚焦句"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count",
+          "sync_status"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "先交代对象与拉扯，再固定本课只产出无约束候选族。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-01"
+      },
+      "acceptance_checks": [
+        "对象卡与四类拉扯必须先于路径图和问题聚焦句出现。",
+        "本页不得出现课程目标。",
+        "本页无作答区。"
+      ]
+    },
+    "step-02": {
+      "title": "本次课程目标：这一课要把哪些判断写实",
+      "layout": {
+        "template": "goal_statement_board",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "goals",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "goal-intro",
+          "region": "header",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "goal-cards",
+          "region": "goals",
+          "kind": "goal-card-row",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "goal_intro": {
+          "text": "完成本次课程后，学习者能够："
+        },
+        "goal_cards": [
+          "说明经典试凑为何停在多目标拉扯前。",
+          "写清参数化入口与参数范围的职责。",
+          "把四类自由目标写成同一套比较语言。",
+          "理解数值优化怎样把偏好变成迭代搜索。",
+          "比较三组无约束候选的时域与频域差异。",
+          "理解 Pareto front 为什么保留一族候选。",
+          "看懂横摇边界案例为什么必须改写目标语言。"
+        ]
+      },
+      "evidence_sequence": [
+        "目标引导句",
+        "七项目标"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "显式呈现本课课程目标，不提前放入证据表和图片。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-02"
+      },
+      "acceptance_checks": [
+        "本页必须只承载课程目标。",
+        "本页不得提前出现数据表、图片或前测。"
+      ]
+    },
+    "step-03": {
+      "title": "四组经典试凑结果：多目标拉扯先被证据看见",
+      "layout": {
+        "template": "evidence_table_plus_chart_with_quiz",
+        "regions": [
+          {
+            "id": "table",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "reading",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "quiz",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "trial-table",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "diagnosis-figure",
+          "region": "media",
+          "kind": "image-panel",
+          "must_be_visible": true
+        },
+        {
+          "id": "reading-order",
+          "region": "reading",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "reading-conclusion",
+          "region": "reading",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "pre-quiz",
+          "region": "quiz",
+          "kind": "quiz-group",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "trial_table": {
+          "columns": [
+            "方案",
+            "设计意图",
+            "超调 / %",
+            "调节时间 / s",
+            "控制峰值",
+            "相角裕度 / deg",
+            "读数结论"
+          ],
+          "rows": [
+            [
+              "比例基线",
+              "先给出最小可运行起点",
+              "31.9677",
+              "83.1",
+              "2.2500",
+              "37.4347",
+              "速度慢，动态品质不够"
+            ],
+            [
+              "仅补低频",
+              "继续改善低频行为",
+              "41.2759",
+              "176.1",
+              "1.1195",
+              "30.8006",
+              "低频改善后，动态矛盾更突出"
+            ],
+            [
+              "方向过激",
+              "直接把速度拉起来",
+              "20.2410",
+              "19.6",
+              "25.0000",
+              "47.8274",
+              "速度收益显著，但动作代价骤增"
+            ],
+            [
+              "最小修正",
+              "把动作强度收回一部分",
+              "24.8740",
+              "39.1",
+              "6.0000",
+              "43.4991",
+              "动作被收回后，动态品质又开始回退"
+            ]
+          ]
+        },
+        "diagnosis_figure": {
+          "runtime_media": "/course-runtime/lessons/4-4/media/4-4-ship-heading-diagnosis-compare.png",
+          "caption": "客船航向保持首轮验证对比"
+        },
+        "reading_order": {
+          "bullets": [
+            "先看哪一组更快。",
+            "再看哪一组拖尾更短。",
+            "随后看哪一组主要在收动作代价。",
+            "最后判断为什么这些变化还没进入同一套评价语言。"
+          ]
+        },
+        "reading_conclusion": {
+          "text": "固定结构没有失效，真正暴露出来的是多目标拉扯还缺一套统一评价语言。"
+        },
+        "pre_quiz": {
+          "questions": [
+            {
+              "id": "pre-quiz-1",
+              "prompt": "只要一组参数让时间更短、拖尾更小，是否就已经能当最终答案？",
+              "options": [
+                "否",
+                "是"
+              ]
+            },
+            {
+              "id": "pre-quiz-2",
+              "prompt": "参数范围和工程硬边界是不是同一种东西？",
+              "options": [
+                "不是",
+                "是"
+              ]
+            },
+            {
+              "id": "pre-quiz-3",
+              "prompt": "若任务从航向跟踪改成横摇抗扰，原目标函数能否直接照搬？",
+              "options": [
+                "不能",
+                "能"
+              ]
+            }
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "表 1",
+        "首轮对比图",
+        "读图口令",
+        "图后结论",
+        "三题前测"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三题前测。",
+        "activity_cards": [
+          {
+            "id": "pre-quiz-1",
+            "prompt": "只要一组参数让时间更短、拖尾更小，是否就已经能当最终答案？",
+            "response_kind": "single_choice",
+            "options": [
+              "否",
+              "是"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          },
+          {
+            "id": "pre-quiz-2",
+            "prompt": "参数范围和工程硬边界是不是同一种东西？",
+            "response_kind": "single_choice",
+            "options": [
+              "不是",
+              "是"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          },
+          {
+            "id": "pre-quiz-3",
+            "prompt": "若任务从航向跟踪改成横摇抗扰，原目标函数能否直接照搬？",
+            "response_kind": "single_choice",
+            "options": [
+              "不能",
+              "能"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "top_misconceptions",
+          "completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "cardSubmitted"
+        ],
+        "misconception_tags": [
+          "candidate_equals_delivery",
+          "range_equals_boundary",
+          "objective_reuse"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "先用四组证据固定多目标拉扯，再把前测放到页面最后。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-03"
+      },
+      "acceptance_checks": [
+        "表格和图片都必须通栏。",
+        "前测必须位于本页最后。",
+        "三题题干必须完整可见。"
+      ]
+    },
+    "step-04": {
+      "title": "参数化入口：起点、参数向量与参数范围从哪里来",
+      "layout": {
+        "template": "parameterization_board",
+        "regions": [
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "evidence",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "initial-controller",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "parameter-vector",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "prior-result-figure",
+          "region": "evidence",
+          "kind": "image-panel",
+          "must_be_visible": true
+        },
+        {
+          "id": "prior-result-metrics",
+          "region": "evidence",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "range-table",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "range-note",
+          "region": "table",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "start-task",
+          "region": "interaction",
+          "kind": "activity-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "initial_controller": {
+          "title": "4-3 起始方案",
+          "body": "C_{h,0}(s)=2.796(10s+1)/(4.06s+1)"
+        },
+        "parameter_vector": {
+          "title": "本课参数化入口",
+          "body": "θ=[K,T,α]^T,  C_h(s)=K(Ts+1)/(αTs+1),  0<α<1"
+        },
+        "prior_result_figure": {
+          "runtime_media": "/course-runtime/lessons/4-4/media/4-4-ship-heading-optimization-compare.png",
+          "caption": "上一轮设计结果回看"
+        },
+        "prior_result_metrics": {
+          "columns": [
+            "指标",
+            "数值",
+            "上一轮结果说明"
+          ],
+          "rows": [
+            [
+              "调节时间 t_s / s",
+              "36.0",
+              "主过程偏慢"
+            ],
+            [
+              "ITAE",
+              "63.692",
+              "拖尾仍偏大"
+            ],
+            [
+              "ITSE",
+              "16.528",
+              "前中段误差强度仍需继续压低"
+            ],
+            [
+              "控制能量 E_u",
+              "125.715",
+              "动作代价已不可忽视"
+            ],
+            [
+              "截止频率 ω_c / rad/s",
+              "0.180",
+              "带宽仍偏低"
+            ],
+            [
+              "相角裕度 / deg",
+              "49.046",
+              "仍有继续调整空间"
+            ],
+            [
+              "超调 / %",
+              "18.864",
+              "前段动态形状仍不理想"
+            ],
+            [
+              "控制峰值",
+              "6.887",
+              "动作峰值已开始抬高"
+            ]
+          ]
+        },
+        "range_table": {
+          "columns": [
+            "参数",
+            "取值范围",
+            "结构解释"
+          ],
+          "rows": [
+            [
+              "K",
+              "[1,6]",
+              "保持整体作用强度在当前结构可解释范围内"
+            ],
+            [
+              "T",
+              "[4,15]",
+              "让超前零点继续落在主工作频段附近"
+            ],
+            [
+              "α",
+              "[0.15,0.85]",
+              "保持在超前结构有效区间内"
+            ]
+          ]
+        },
+        "range_note": {
+          "text": "参数范围只负责保持当前固定结构可解释，并不等于输出过程的工程复核条件。"
+        },
+        "start_task": {
+          "title": "上一轮方案还能从哪些地方继续改进",
+          "prompt": "你认为上一课中的方案还有哪些可以改进的地方？"
+        }
+      },
+      "evidence_sequence": [
+        "起始方案",
+        "参数向量",
+        "上一轮设计结果图片",
+        "上一轮性能指标",
+        "参数范围表",
+        "范围说明",
+        "作答卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "student_task": "根据上一轮结果指出仍可继续改进的地方。",
+        "activity_cards": [
+          {
+            "id": "improvement-gap",
+            "prompt": "你认为上一课中的方案还有哪些可以改进的地方？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "card_completion_rate",
+          "error_bucket_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "errorBucket"
+        ],
+        "misconception_tags": [
+          "random_restart",
+          "range_equals_boundary"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "固定参数化入口与参数范围的职责边界。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-04"
+      },
+      "acceptance_checks": [
+        "参数范围说明必须有独立模块承载。",
+        "本页必须补入上一轮结果图片和性能指标。",
+        "作答题面必须改成“还有哪些可以改进的地方”。"
+      ]
+    },
+    "step-05": {
+      "title": "自由目标与归一化：怎样把偏好写成同一套比较语言",
+      "layout": {
+        "template": "formula_workspace_board",
+        "regions": [
+          {
+            "id": "targets",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "normalization",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "meaning",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "target-cards",
+          "region": "targets",
+          "kind": "equation-card-row",
+          "must_be_visible": true
+        },
+        {
+          "id": "jfree-card",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "normalization-meaning-table",
+          "region": "normalization",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "weight-note",
+          "region": "meaning",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "role-task",
+          "region": "interaction",
+          "kind": "activity-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "target_cards": [
+          {
+            "title": "调节时间 t_s",
+            "note": "代表收敛速度"
+          },
+          {
+            "title": "ITAE",
+            "note": "代表误差拖尾是否被压短"
+          },
+          {
+            "title": "ITSE",
+            "note": "代表前中段强误差是否真的被压下去"
+          },
+          {
+            "title": "控制能量 E_u",
+            "note": "代表控制动作整体是否过于激进"
+          }
+        ],
+        "normalization_meaning_table": {
+          "columns": [
+            "归一化项",
+            "数值",
+            "来源",
+            "这一项正在回答的问题"
+          ],
+          "rows": [
+            [
+              "t_s / 40",
+              "40",
+              "来自当前任务书中的速度期望",
+              "能否更快收住"
+            ],
+            [
+              "ITAE / ITAE_0",
+              "63.6924",
+              "4-3 起始方案的拖尾读数",
+              "拖尾是否更短"
+            ],
+            [
+              "ITSE / ITSE_0",
+              "16.5282",
+              "4-3 起始方案的误差强度读数",
+              "前中段误差强度是否被压下去"
+            ],
+            [
+              "E_u / E_{u,0}",
+              "125.7148",
+              "4-3 起始方案的控制能量读数",
+              "动作代价是否被明显抬高"
+            ]
+          ]
+        },
+        "jfree_card": {
+          "title": "无约束加权自由目标",
+          "body": "J_{free}(θ)=w_1·t_s(θ)/40+w_2·ITAE(θ)/ITAE_0+w_3·ITSE(θ)/ITSE_0+w_4·E_u(θ)/E_{u,0},  Σw_i=1"
+        },
+        "weight_note": {
+          "title": "讲义 5.3：权重代表的是偏好，而不是客观真理",
+          "text": "权重不是脱离任务的固定常数，而是偏好的数值化表达。只要偏好一变，数值搜索的推进方向也会跟着变。"
+        },
+        "role_task": {
+          "title": "收益项与代价项",
+          "prompt": "请写出哪两项更像收益，哪一项最明显是在记录动作代价。"
+        }
+      },
+      "evidence_sequence": [
+        "四类自由目标项",
+        "J_free 公式",
+        "归一化来源与项义合并表",
+        "权重说明",
+        "作答卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "student_task": "区分收益项与代价项。",
+        "activity_cards": [
+          {
+            "id": "term-role",
+            "prompt": "四项中哪两项更像收益，哪一项最明显在记录动作代价？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "card_completion_rate",
+          "error_bucket_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "errorBucket"
+        ],
+        "misconception_tags": [
+          "no_normalization",
+          "energy_as_gain"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "固定自由目标与归一化来源，不在本页引入罚项。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-05"
+      },
+      "acceptance_checks": [
+        "必须完整呈现四类自由目标和归一化来源。",
+        "J_free 必须独立通栏出现。",
+        "归一化来源与项义说明必须合并为一个通栏模块。",
+        "本页不得出现罚项。"
+      ]
+    },
+    "step-06": {
+      "title": "数值优化到底在这门课里做什么",
+      "layout": {
+        "template": "method_explanation_board",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "steps",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "closing",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "optimization-problem",
+          "region": "problem",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "iteration-chain",
+          "region": "steps",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "closing-note",
+          "region": "closing",
+          "kind": "summary-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "optimization_problem": {
+          "title": "当前交给数值方法的问题",
+          "body": "min_θ J_free(θ),  θ∈[1,6]×[4,15]×[0.15,0.85]"
+        },
+        "iteration_chain": {
+          "bullets": [
+            "取一组参数 θ=[K,T,α]^T。",
+            "计算闭环时域响应和频域响应。",
+            "回读 t_s、ITAE、ITSE、E_u。",
+            "代回 J_free(θ) 比较这组参数是否更符合当前偏好。",
+            "若更符合就继续沿该方向更新，否则换方向。"
+          ]
+        },
+        "closing_note": {
+          "text": "本课里的数值优化不是神秘黑箱，而是把偏好表达变成可重复的证据迭代链。"
+        }
+      },
+      "evidence_sequence": [
+        "优化问题",
+        "五步迭代链",
+        "收束说明"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "解释本课数值优化的真实职责，而不是罗列算法名词。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-06"
+      },
+      "acceptance_checks": [
+        "五步迭代链必须完整。",
+        "不得把本页写成算法列表。"
+      ]
+    },
+    "step-07": {
+      "title": "梯度下降最小例子：搜索为什么会沿代价面下滑",
+      "layout": {
+        "template": "worked_example_reveal_board",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "figure",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "reveal",
+            "width": "half",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "page-title",
+          "region": "problem",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "mini-problem",
+          "region": "problem",
+          "kind": "problem-statement",
+          "must_be_visible": true
+        },
+        {
+          "id": "gradient-figure",
+          "region": "figure",
+          "kind": "native-figure",
+          "must_be_visible": true
+        },
+        {
+          "id": "gradient-reveal",
+          "region": "reveal",
+          "kind": "step-reveal",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "page_title": {
+          "title": "为什么搜索会沿代价面下滑",
+          "text": "这一页只解决一件事：目标函数一旦写出，搜索为何会留下可读轨迹。"
+        },
+        "mini_problem": {
+          "prompt": "先看一维目标函数 f(x)=(x-3)^2+1。若从 x_0=0 出发，按当前位置的负梯度方向不断更新，会发生什么？"
+        },
+        "gradient_reveal": {
+          "steps": [
+            "当前位置与当前函数值。",
+            "局部梯度指向哪里。",
+            "更新后位置与新的代价函数值。"
+          ]
+        },
+        "gradient_figure": {
+          "source": "native_gradient_descent_figure",
+          "caption": "梯度下降原生示意图",
+          "conclusion": "这个例子不是替主案例求控制器参数，而是在给出“目标函数一旦写出，搜索就会在代价面上留下可读轨迹”的最小直观印象。"
+        }
+      },
+      "evidence_sequence": [
+        "页面标题",
+        "完整题面",
+        "梯度下降原生图",
+        "逐步显影链",
+        "图后解释"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "teacher_reveal_only",
+        "student_task": "只阅读，不提交。",
+        "step_reveal_policy": "steps_hidden_problem_visible",
+        "derivation_reveal_mode": "teacher_controlled"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "teacher_only",
+        "teacher_step_reveal": "teacher_toggle",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": true,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count",
+          "teacher_reveal_sync"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "teacherRevealCount"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "给出梯度下降的最小直观印象，不把它误写成主案例求解过程。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-07"
+      },
+      "acceptance_checks": [
+        "题面必须完整可见。",
+        "左侧必须为原生绘制图像。",
+        "右侧显影内容必须显示当前位置与代价值。",
+        "逐步显影只隐藏步骤，不隐藏题面。"
+      ]
+    },
+    "step-08": {
+      "title": "主案例总表：起始方案与三组无约束权重方案如何分化",
+      "layout": {
+        "template": "results_evidence_board",
+        "regions": [
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "weights",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "shared-structure",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "weight-table",
+          "region": "weights",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "time-domain-table",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "weight-choice",
+          "region": "interaction",
+          "kind": "single-choice-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "shared_structure": {
+          "title": "同一固定结构",
+          "body": "C_h(s)=K(Ts+1)/(αTs+1)"
+        },
+        "weight_table": {
+          "columns": [
+            "权重组",
+            "w1",
+            "w2",
+            "w3",
+            "w4",
+            "偏好说明"
+          ],
+          "rows": [
+            [
+              "A",
+              "0.40",
+              "0.30",
+              "0.20",
+              "0.10",
+              "更愿意把调节时间和拖尾一起压下去"
+            ],
+            [
+              "B",
+              "0.30",
+              "0.30",
+              "0.20",
+              "0.20",
+              "更希望在速度、拖尾和动作代价之间保持平衡"
+            ],
+            [
+              "C",
+              "0.20",
+              "0.25",
+              "0.25",
+              "0.30",
+              "更愿意多保留一些控制余量"
+            ]
+          ]
+        },
+        "time_domain_table": {
+          "columns": [
+            "方案",
+            "控制器",
+            "调节时间 / s",
+            "ITAE",
+            "ITSE",
+            "控制能量"
+          ],
+          "rows": [
+            [
+              "起始方案",
+              "2.796(10s+1)/(4.06s+1)",
+              "36.0",
+              "63.692",
+              "16.528",
+              "125.715"
+            ],
+            [
+              "速度优先 A",
+              "2.7566(9.9829s+1)/(1.4999s+1)",
+              "15.2",
+              "16.033",
+              "7.084",
+              "293.446"
+            ],
+            [
+              "平衡权重 B",
+              "2.0644(9.9804s+1)/(2.0809s+1)",
+              "13.5",
+              "28.266",
+              "12.405",
+              "122.904"
+            ],
+            [
+              "能量优先 C",
+              "1.9318(9.9472s+1)/(2.2531s+1)",
+              "20.9",
+              "32.652",
+              "14.210",
+              "100.267"
+            ]
+          ]
+        },
+        "weight_choice": {
+          "question": "若当前最担心动作代价继续抬高，更应优先保留哪一组偏好？",
+          "options": [
+            "A",
+            "B",
+            "C"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "同一结构说明",
+        "三组权重表",
+        "表 5",
+        "单选判断"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "student_task": "判断当前更应优先保留哪一组偏好。",
+        "activity_cards": [
+          {
+            "id": "weight-preference",
+            "prompt": "若更担心动作代价继续抬高，更应优先保留哪一组偏好？",
+            "response_kind": "single_choice",
+            "options": [
+              "A",
+              "B",
+              "C"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "top_misconceptions"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "errorBucket"
+        ],
+        "misconception_tags": [
+          "weights_as_constants",
+          "candidate_is_unique"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "固定三组权重、三类控制器与时域总表，不再退回单一旧候选。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-08"
+      },
+      "acceptance_checks": [
+        "C 组权重必须是 0.20/0.25/0.25/0.30。",
+        "表 5 必须包含三组控制器传函。"
+      ]
+    },
+    "step-09": {
+      "title": "时域与频域对比：三组候选到底换来了什么",
+      "layout": {
+        "template": "curve_evidence_board",
+        "regions": [
+          {
+            "id": "figure",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "reading",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "comparison-figure",
+          "region": "figure",
+          "kind": "image-panel",
+          "must_be_visible": true
+        },
+        {
+          "id": "time-reading",
+          "region": "reading",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "frequency-table",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "comparison-task",
+          "region": "interaction",
+          "kind": "activity-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "comparison_figure": {
+          "runtime_media": "/course-runtime/lessons/4-4/media/4-4-ship-heading-unconstrained-weight-compare.png",
+          "caption": "主案例：起始方案与三组无约束权重方案的时域、频域对比"
+        },
+        "time_reading": {
+          "bullets": [
+            "起始方案的主问题确实是过程偏慢。",
+            "方案 A 和方案 B 都把主过程明显压短，其中 B 更平衡。",
+            "方案 C 更保守，说明当权重开始照顾控制能量时，时域过程会回到更平缓的形态。"
+          ]
+        },
+        "frequency_table": {
+          "columns": [
+            "方案",
+            "截止频率 ω_c / rad/s",
+            "相角裕度 / deg",
+            "超调 / %",
+            "控制峰值"
+          ],
+          "rows": [
+            [
+              "起始方案",
+              "0.180",
+              "49.046",
+              "18.864",
+              "6.887"
+            ],
+            [
+              "速度优先 A",
+              "0.209",
+              "66.974",
+              "2.305",
+              "18.347"
+            ],
+            [
+              "平衡权重 B",
+              "0.156",
+              "67.748",
+              "1.996",
+              "9.901"
+            ],
+            [
+              "能量优先 C",
+              "0.146",
+              "67.762",
+              "2.054",
+              "8.528"
+            ]
+          ]
+        },
+        "comparison_task": {
+          "title": "为什么这些读数不会朝同一个方向同步变化",
+          "prompt": "请用一句话说明为什么同样是无约束优化，时域收益、频域读数和动作代价不会朝同一个方向同步变化。"
+        }
+      },
+      "evidence_sequence": [
+        "综合图",
+        "时域回读",
+        "表 6",
+        "作答卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_card_set",
+        "student_task": "用一句话说明为什么不同读数不会同步变化。",
+        "activity_cards": [
+          {
+            "id": "reading-why",
+            "prompt": "为什么同样是无约束优化，时域收益、频域读数和动作代价不会同步朝一个方向变化？",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "card_completion_rate",
+          "error_bucket_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardSubmitted",
+          "errorBucket"
+        ],
+        "misconception_tags": [
+          "single_direction_change",
+          "ignore_peak_cost"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把三组候选放回时域与频域证据重新阅读。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-09"
+      },
+      "acceptance_checks": [
+        "必须出现综合图和表 6。",
+        "本页不得回退为单个候选说明。"
+      ]
+    },
+    "step-10": {
+      "title": "Pareto front：为什么会出现一族同样值得保留的设计",
+      "layout": {
+        "template": "curve_evidence_board",
+        "regions": [
+          {
+            "id": "definition",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "figure",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "reading",
+            "width": "half",
+            "order": 3
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "pareto-definition",
+          "region": "definition",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "pareto-figure",
+          "region": "figure",
+          "kind": "native-figure",
+          "must_be_visible": true
+        },
+        {
+          "id": "pareto-reading",
+          "region": "reading",
+          "kind": "stat-panel",
+          "must_be_visible": true
+        },
+        {
+          "id": "pareto-task",
+          "region": "interaction",
+          "kind": "single-choice-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "pareto_definition": {
+          "title": "二目标设计对",
+          "body": "(ITAE(θ), E_u(θ))",
+          "note": "任何一个目标再改善一点，就一定会让另一个目标变差，这组非支配候选才会构成 Pareto front。"
+        },
+        "pareto_figure": {
+          "source": "native_pareto_front_figure",
+          "caption": "主案例的 Pareto front"
+        },
+        "pareto_reading": {
+          "title": "当前候选点统计",
+          "fields": [
+            "ITAE",
+            "E_u",
+            "调节时间 / s",
+            "控制峰值",
+            "K",
+            "T",
+            "αT"
+          ],
+          "note": "拖动曲线上的候选点后，右侧面板必须同步显示同一数据点的统计。",
+          "bullets": [
+            "越往左走，控制能量更小，但 ITAE 会明显变差。",
+            "越往上走，拖尾改善有限，但动作代价更容易被压低。",
+            "Pareto front 保留的是一组非支配候选，而不是一个绝对最优点。"
+          ]
+        },
+        "pareto_task": {
+          "question": "为什么 Pareto front 不是再选一个绝对最优？",
+          "options": [
+            "因为它保留的是一组非支配候选",
+            "因为图还没画完",
+            "因为权重没有填完"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "二目标定义",
+        "前沿原生图",
+        "当前点统计面板",
+        "单选判断"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "student_task": "判断 Pareto front 为什么不是再选一个绝对最优。",
+        "activity_cards": [
+          {
+            "id": "pareto-meaning",
+            "prompt": "为什么 Pareto front 不是再选一个绝对最优？",
+            "response_kind": "single_choice",
+            "options": [
+              "因为它保留的是一组非支配候选",
+              "因为图还没画完",
+              "因为权重没有填完"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "top_misconceptions"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "errorBucket"
+        ],
+        "misconception_tags": [
+          "pareto_equals_single_best",
+          "front_as_weight_table"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "固定 Pareto front 的可视化意义，而不是退回最小例题。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-10"
+      },
+      "acceptance_checks": [
+        "公式和解释必须通栏放在顶部。",
+        "左侧必须使用原生 Pareto 曲线。",
+        "拖点与右侧统计必须读取同一组前沿数据。",
+        "解释必须写出“一组非支配候选”。"
+      ]
+    },
+    "step-11": {
+      "title": "三个典型前沿点：它们为什么在 Pareto 意义下同样好",
+      "layout": {
+        "template": "comparison_decision_board",
+        "regions": [
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "figure",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "meaning",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "shared-structure",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "pareto-point-table",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "pareto-response-figure",
+          "region": "figure",
+          "kind": "image-panel",
+          "must_be_visible": true
+        },
+        {
+          "id": "pareto-response-reading",
+          "region": "meaning",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "engineering-meaning",
+          "region": "meaning",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "pareto-point-task",
+          "region": "interaction",
+          "kind": "single-choice-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "shared_structure": {
+          "title": "同一固定结构",
+          "body": "C_h(s)=K(Ts+1)/(αTs+1)"
+        },
+        "pareto_point_table": {
+          "columns": [
+            "前沿点",
+            "K",
+            "T",
+            "αT",
+            "ITAE",
+            "E_u",
+            "调节时间 / s",
+            "控制峰值"
+          ],
+          "rows": [
+            [
+              "快速端 P1",
+              "2.4277",
+              "10.0534",
+              "1.5889",
+              "19.117",
+              "218.322",
+              "11.6",
+              "15.361"
+            ],
+            [
+              "中间点 P2",
+              "1.5784",
+              "10.3392",
+              "2.7273",
+              "44.542",
+              "61.513",
+              "18.0",
+              "5.983"
+            ],
+            [
+              "节能端 P3",
+              "1.0099",
+              "11.0334",
+              "4.8821",
+              "106.750",
+              "19.194",
+              "28.2",
+              "2.282"
+            ]
+          ]
+        },
+        "pareto_response_figure": {
+          "runtime_media": "/course-runtime/lessons/4-4/media/4-4-pareto-response-compare.png",
+          "caption": "Pareto 前沿上的典型候选：时域与频域对比",
+          "conclusion": "图上保留下来的三点都没有把另外两点彻底压倒，因此必须回到收益与代价交换来读。"
+        },
+        "pareto_response_reading": {
+          "bullets": [
+            "从 P3 走向 P1，可以显著压低 ITAE，但必须接受更高控制能量。",
+            "从 P1 回到 P3，可以大幅节省动作代价，但必须接受更长拖尾。",
+            "P2 夹在中间，没有把另一边彻底碾压掉。"
+          ]
+        },
+        "engineering_meaning": {
+          "bullets": [
+            "这条前沿先筛掉同时输给别人的候选。",
+            "它把偏好从口头争论变成可视化对象。",
+            "后续工程复核是在这组可解释候选上继续做筛选。"
+          ]
+        },
+        "pareto_point_task": {
+          "question": "为什么 P1、P2、P3 能在 Pareto 意义下“同样好”？",
+          "options": [
+            "因为它们彼此之间都存在收益与代价交换",
+            "因为三个点的数值完全一样",
+            "因为只要在前沿上就自动可交付"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "同一结构说明",
+        "表 7",
+        "响应图",
+        "图后解释",
+        "工程意义卡",
+        "单选判断"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "student_task": "判断为什么三个典型点在 Pareto 意义下同样好。",
+        "activity_cards": [
+          {
+            "id": "pareto-point-why",
+            "prompt": "为什么 P1、P2、P3 能在 Pareto 意义下“同样好”？",
+            "response_kind": "single_choice",
+            "options": [
+              "因为它们彼此之间都存在收益与代价交换",
+              "因为三个点的数值完全一样",
+              "因为只要在前沿上就自动可交付"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "top_misconceptions"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "errorBucket"
+        ],
+        "misconception_tags": [
+          "front_equals_delivery",
+          "same_good_equals_same_value"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "用参数表、响应图和工程意义卡固定典型前沿点的判断价值。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-11"
+      },
+      "acceptance_checks": [
+        "表 7 必须先于图片出现。",
+        "图片必须在表格下通栏显示。",
+        "不得退化成单个选择题例子。"
+      ]
+    },
+    "step-12": {
+      "title": "横摇边界案例：目标语言一变，数值响应也必须跟着变",
+      "layout": {
+        "template": "boundary_case_board",
+        "regions": [
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "figure",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "interaction",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "roll-object-card",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "roll-objective-card",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "roll-table",
+          "region": "table",
+          "kind": "native-table",
+          "must_be_visible": true
+        },
+        {
+          "id": "roll-figure",
+          "region": "figure",
+          "kind": "image-panel",
+          "must_be_visible": true
+        },
+        {
+          "id": "roll-reading",
+          "region": "figure",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "roll-workspace",
+          "region": "interaction",
+          "kind": "activity-card-set",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "roll_object_card": {
+          "title": "横摇对象与固定结构",
+          "body": "P_r(s)=1/(2.052s^2+0.3929s+1),  C_r(s)=k(2.052s^2+0.3929s+1)/s,  0.5≤k≤3.5"
+        },
+        "roll_objective_card": {
+          "title": "横摇自由目标",
+          "body": "J_r(k)=0.60·RMS(φ)/RMS(φ)_0+0.25·max_ω|T_d(jω)|/max_ω|T_d(jω)|_0+0.15·RMS(u)/RMS(u)_0"
+        },
+        "roll_table": {
+          "columns": [
+            "方案",
+            "k",
+            "RMS(φ)",
+            "横摇峰值",
+            "谐振峰值",
+            "谐振峰值 / dB",
+            "RMS(u)"
+          ],
+          "rows": [
+            [
+              "起始方案",
+              "1.0",
+              "1.172",
+              "1.838",
+              "1.839",
+              "5.294",
+              "0.352"
+            ],
+            [
+              "无约束优化结果",
+              "3.5",
+              "0.521",
+              "0.817",
+              "0.818",
+              "-1.750",
+              "0.548"
+            ]
+          ]
+        },
+        "roll_figure": {
+          "runtime_media": "/course-runtime/lessons/4-4/media/4-4-roll-optimization-compare.png",
+          "caption": "横摇边界案例：扰动通道、横摇响应与减摇鳍动作对比"
+        },
+        "roll_reading": {
+          "bullets": [
+            "目标语言改写后，搜索开始主动压低横摇整体强度和谐振峰。",
+            "收益没有白拿，RMS(u) 的上升说明动作代价被重新分配。"
+          ]
+        },
+        "roll_workspace": {
+          "cards": [
+            "请写出横摇案例中，为什么原航向保持目标函数不能直接照搬。",
+            "请写出哪两项数值变化最能说明目标语言改了，搜索方向也改了。",
+            "请用一句话说明横摇案例里收益与代价是怎样重新分配的。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "对象与结构",
+        "横摇自由目标",
+        "表 8",
+        "验证图",
+        "两条回读结论",
+        "三卡提交"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "task_card_workspace",
+        "student_task": "分别提交三张最小判断卡。",
+        "activity_cards": [
+          {
+            "id": "language-shift-card",
+            "prompt": "请写出横摇案例中，为什么原航向保持目标函数不能直接照搬。",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          },
+          {
+            "id": "numeric-validation-card",
+            "prompt": "请写出哪两项数值变化最能说明目标语言改了，搜索方向也改了。",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          },
+          {
+            "id": "tradeoff-card",
+            "prompt": "请用一句话说明横摇案例里收益与代价是怎样重新分配的。",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "field_completion_rate",
+          "error_bucket_distribution"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "fieldCompletion",
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "reuse_tracking_language",
+          "ignore_numeric_validation"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "把横摇边界案例从目标语言改写推进到数值响应验证。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-12"
+      },
+      "acceptance_checks": [
+        "必须同时出现横摇自由目标、表 8、验证图和两条回读结论。",
+        "三张卡独立提交。"
+      ]
+    },
+    "step-13": {
+      "title": "后测：判断链是否已经形成",
+      "layout": {
+        "template": "quiz_group_board",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "quiz",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "closing",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "posttest-title",
+          "region": "header",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "post-quiz",
+          "region": "quiz",
+          "kind": "quiz-group",
+          "must_be_visible": true
+        },
+        {
+          "id": "posttest-note",
+          "region": "closing",
+          "kind": "summary-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "posttest_title": {
+          "title": "阶段判断后测",
+          "text": "这一页只检查判断链，不负责总结和移交。"
+        },
+        "post_quiz": {
+          "questions": [
+            {
+              "id": "post-quiz-1",
+              "prompt": "为什么本课保留下来的只能叫“候选族”，而不是最终可用解？",
+              "options": [
+                "因为还没有经过 4-5 的工程复核",
+                "因为参数还没有写成向量",
+                "因为调节时间没有下降"
+              ]
+            },
+            {
+              "id": "post-quiz-2",
+              "prompt": "为什么 Pareto front 不是再选一个绝对最优？",
+              "options": [
+                "因为它保留的是一组非支配候选",
+                "因为图还没画完",
+                "因为权重没有归一化"
+              ]
+            },
+            {
+              "id": "post-quiz-3",
+              "prompt": "为什么横摇案例不能继续沿用航向保持中的目标语言？",
+              "options": [
+                "因为任务通道变了，收益项和代价项必须跟着改写",
+                "因为横摇对象没有积分环节",
+                "因为参数范围必须改成负数"
+              ]
+            }
+          ]
+        },
+        "posttest_note": {
+          "text": "答题时必须同时回接本课中的证据页，而不是只重复名词定义。"
+        }
+      },
+      "evidence_sequence": [
+        "后测标题卡",
+        "三题后测"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成三题后测。",
+        "activity_cards": [
+          {
+            "id": "post-quiz-1",
+            "prompt": "为什么本课保留下来的只能叫“候选族”，而不是最终可用解？",
+            "response_kind": "single_choice",
+            "options": [
+              "因为还没有经过 4-5 的工程复核",
+              "因为参数还没有写成向量",
+              "因为调节时间没有下降"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          },
+          {
+            "id": "post-quiz-2",
+            "prompt": "为什么 Pareto front 不是再选一个绝对最优？",
+            "response_kind": "single_choice",
+            "options": [
+              "因为它保留的是一组非支配候选",
+              "因为图还没画完",
+              "因为权重没有归一化"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          },
+          {
+            "id": "post-quiz-3",
+            "prompt": "为什么横摇案例不能继续沿用航向保持中的目标语言？",
+            "response_kind": "single_choice",
+            "options": [
+              "因为任务通道变了，收益项和代价项必须跟着改写",
+              "因为横摇对象没有积分环节",
+              "因为参数范围必须改成负数"
+            ],
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "top_misconceptions",
+          "completion_rate"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "cardSubmitted",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "candidate_equals_delivery",
+          "pareto_equals_single_best"
+        ]
+      },
+      "ai_context_spec": {
+        "page_goal": "用后测固定本课核心判断链。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-13"
+      },
+      "acceptance_checks": [
+        "后测必须独立成页。",
+        "三题后测都必须是选择题。",
+        "三题题干必须完整可见。"
+      ]
+    },
+    "step-14": {
+      "title": "总结与移交：把候选族交给 4-5 做工程复核",
+      "layout": {
+        "template": "summary_handoff_board",
+        "regions": [
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "next",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "takeaways",
+          "region": "summary",
+          "kind": "summary-card",
+          "must_be_visible": true
+        },
+        {
+          "id": "next-step",
+          "region": "next",
+          "kind": "summary-card",
+          "must_be_visible": true
+        }
+      ],
+      "content_blocks": {
+        "takeaways": {
+          "bullets": [
+            "多目标拉扯先由首轮证据暴露。",
+            "参数化入口与归一化基准都来自已有证据。",
+            "数值优化把偏好表达变成可重复的迭代链。",
+            "三组无约束候选把收益与代价的分化显性呈现出来。",
+            "Pareto front 把真正值得讨论的一族候选显性呈现出来。",
+            "边界案例说明任务语言一变，目标函数和数值响应都必须跟着变。"
+          ]
+        },
+        "next_step": {
+          "text": "4-5 将接手这组无约束候选，对输出侧工程边界做系统复核，再决定哪些候选还能继续保留。"
+        }
+      },
+      "evidence_sequence": [
+        "六条带走结论",
+        "4-5 去向"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": false
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ]
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "完成总结与移交，不在本页提前展开罚函数细节。"
+      },
+      "preview_contract": {
+        "demo_path": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo?step=step-14"
+      },
+      "acceptance_checks": [
+        "总结与移交必须独立成页。",
+        "去向卡只负责移交 4-5，不提前展开罚函数细节。"
+      ]
+    }
+  }
+}

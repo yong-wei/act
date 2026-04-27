@@ -1,0 +1,78 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "4-7",
+  "status": "accepted",
+  "accepted_at": "2026-04-27T08:22:17+08:00",
+  "review_mode": "main_agent_code_review_with_subagent_attempt",
+  "implementation_contract_source": "course-content/runtime/lessons/4-7/interactive-manifest.json",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/4-7/interactive-manifest.json",
+    "course-content/runtime/lessons/4-7/review/review-report.md",
+    "course-content/runtime/lessons/4-7/review/interactive-page-check.json"
+  ],
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "src/features/interactive/unit-4-7-destroyer-hifi-design-closure/student-page.tsx updates the global hidden page context through updatePageContext",
+        "src/features/interactive/unit-4-7-destroyer-hifi-design-closure/student-page.tsx does not render an inline AI assistant entry",
+        "src/lib/unit-4-7-ai-contexts.ts builds per-step AI context from manifest-derived page goals"
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03",
+        "step-04",
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-12"
+      ],
+      "evidence": [
+        "notes/4-7.md maps all 12 design steps to runtime manifest modules and implementation locations",
+        "src/lib/unit-4-7-course.ts derives page contracts from course-content/runtime/lessons/4-7/interactive-manifest.json",
+        "src/features/interactive/unit-4-7-destroyer-hifi-design-closure/step-panels.tsx delegates content, student activity, and teacher activity rendering to shared manifest runtime registries",
+        "src/features/interactive/__tests__/unit-4-7-course.test.ts verifies 12-step flow, page contracts, route files, post-test and summary separation",
+        "src/features/interactive/__tests__/unit-4-7-wiring.test.ts verifies AI registry, learning catalog, classroom route resolver, and preset registration"
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [],
+      "evidence": [
+        "4-7 manifest uses shared image-panel, formula-card, native-table, step-reveal, activity-card, quiz-card, and summary-card modules without course-local step switches",
+        "src/features/interactive/shared/manifest-runtime/content-renderers.tsx resolves 4-7 image and table modules from manifest contentBlocks while keeping media under /course-runtime/lessons/4-7/media",
+        "No parameter-linked simulation is declared by the 4-7 contract, so the implementation preserves static evidence figures rather than replacing declared interactivity"
+      ]
+    }
+  },
+  "independent_review_rounds": [
+    {
+      "round": 1,
+      "scope": "interactive-design review",
+      "result": "pass",
+      "evidence": "Authoring source and runtime manifest review found no design blocker before implementation."
+    },
+    {
+      "round": 2,
+      "scope": "implementation subagent attempt",
+      "result": "no_text_result",
+      "evidence": "Subagent 019dcb49-ef06-74d2-80b3-10b2e8fc3bd5 completed without returning review text, so acceptance relies on main-agent code review, tests, and strict review."
+    },
+    {
+      "round": 3,
+      "scope": "targeted runtime tests",
+      "result": "pass",
+      "evidence": "./node_modules/.bin/vitest run src/features/interactive/__tests__/interactive-manifest-runtime.test.tsx src/features/interactive/__tests__/unit-4-7-course.test.ts src/features/interactive/__tests__/unit-4-7-wiring.test.ts"
+    }
+  ],
+  "issues": []
+}

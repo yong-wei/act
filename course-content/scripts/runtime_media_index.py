@@ -167,7 +167,15 @@ def sync_runtime_media_index_to_authoring_processed(
 
     processed_media_index_path = authoring_lesson_dir / 'media' / 'processed' / f'{lesson_id}-media.md'
     processed_media_index_path.parent.mkdir(parents=True, exist_ok=True)
-    processed_media_index_path.write_text(content, encoding='utf-8')
+    existing_content = (
+        processed_media_index_path.read_text(encoding='utf-8')
+        if processed_media_index_path.exists()
+        else None
+    )
+    processed_media_index_path.write_text(
+        merge_runtime_media_index_content(lesson_id, existing_content, content),
+        encoding='utf-8',
+    )
 
 
 def trim_blank_lines(lines: list[str]) -> list[str]:
@@ -269,6 +277,62 @@ def build_blank_runtime_media_index_content(lesson_id: str) -> str:
     return '\n'.join(lines)
 
 
+def merge_section_lines(
+    existing_section_lines: list[str],
+    supplement_section_lines: list[str],
+) -> list[str]:
+    existing_lines = trim_blank_lines(existing_section_lines)
+    supplement_lines = trim_blank_lines(supplement_section_lines)
+    if not existing_lines:
+        return supplement_lines
+
+    merged_lines = list(existing_lines)
+    existing_values = {line.strip() for line in existing_lines if line.strip()}
+    missing_lines = [
+        line.rstrip()
+        for line in supplement_lines
+        if line.strip() and line.strip() not in existing_values
+    ]
+    if missing_lines:
+        if merged_lines and merged_lines[-1].strip():
+            merged_lines.append('')
+        merged_lines.extend(missing_lines)
+    return merged_lines
+
+
+def merge_runtime_media_index_content(
+    lesson_id: str,
+    existing_markdown: str | None,
+    supplement_markdown: str | None,
+) -> str:
+    existing_sections = parse_runtime_media_sections(existing_markdown or '')
+    supplement_sections = parse_runtime_media_sections(supplement_markdown or '')
+    if not existing_sections and not supplement_sections:
+        return build_blank_runtime_media_index_content(lesson_id)
+
+    ordered_filenames: list[str] = []
+    for filename in [
+        *existing_sections.keys(),
+        *supplement_sections.keys(),
+        *build_required_media_filenames(lesson_id),
+    ]:
+        if filename not in ordered_filenames:
+            ordered_filenames.append(filename)
+
+    lines: list[str] = []
+    for filename in ordered_filenames:
+        section_lines = merge_section_lines(
+            existing_sections.get(filename, []),
+            supplement_sections.get(filename, []),
+        )
+        lines.append(f'# {filename}')
+        if section_lines:
+            lines.append('')
+            lines.extend(section_lines)
+        lines.append('')
+    return '\n'.join(lines)
+
+
 def compose_runtime_media_index_content(
     lesson_id: str,
     existing_markdown: str | None,
@@ -300,10 +364,26 @@ def ensure_runtime_media_index(
     lesson_id: str,
     existing_markdown: str | None = None,
 ) -> None:
+    authoring_lesson_dir = infer_authoring_lesson_dir(media_index_path, lesson_id)
+    processed_media_index_path = (
+        authoring_lesson_dir / 'media' / 'processed' / f'{lesson_id}-media.md'
+        if authoring_lesson_dir is not None
+        else None
+    )
+    authoring_existing_markdown = (
+        processed_media_index_path.read_text(encoding='utf-8')
+        if processed_media_index_path is not None and processed_media_index_path.exists()
+        else None
+    )
     if existing_markdown is None and media_index_path.exists():
         existing_markdown = media_index_path.read_text(encoding='utf-8')
 
     media_index_path.parent.mkdir(parents=True, exist_ok=True)
-    content = compose_runtime_media_index_content(lesson_id, existing_markdown)
+    source_markdown = merge_runtime_media_index_content(
+        lesson_id,
+        existing_markdown,
+        authoring_existing_markdown,
+    )
+    content = compose_runtime_media_index_content(lesson_id, source_markdown)
     media_index_path.write_text(content, encoding='utf-8')
     sync_runtime_media_index_to_authoring_processed(media_index_path, lesson_id, content)

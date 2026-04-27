@@ -428,6 +428,18 @@ IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
         'lesson_steps_const': 'UNIT_4_1_LESSON_STEPS',
         'source_path': 'src/lib/unit-4-1-course.ts',
     },
+    '4-3': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-4-3-course.ts',
+        'runtime_manifest_path': REPO_ROOT / 'course-content' / 'runtime' / 'lessons' / '4-3' / 'interactive-manifest.json',
+        'lesson_steps_const': 'UNIT_4_3_PRESET_STEPS',
+        'source_path': 'src/lib/unit-4-3-course.ts',
+    },
+    '4-4': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-4-4-course.ts',
+        'runtime_manifest_path': REPO_ROOT / 'course-content' / 'runtime' / 'lessons' / '4-4' / 'interactive-manifest.json',
+        'lesson_steps_const': 'UNIT_4_4_LESSON_STEPS',
+        'source_path': 'src/lib/unit-4-4-course.ts',
+    },
     '4-5': {
         'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-4-5-course.ts',
         'page_contracts_const': 'UNIT_4_5_PAGE_CONTRACTS_REVIEW',
@@ -436,9 +448,15 @@ IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
     },
     '4-6': {
         'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-4-6-course.ts',
-        'page_contracts_const': 'UNIT_4_6_PAGE_CONTRACTS_REVIEW',
+        'runtime_manifest_path': REPO_ROOT / 'course-content' / 'runtime' / 'lessons' / '4-6' / 'interactive-manifest.json',
         'lesson_steps_const': 'UNIT_4_6_LESSON_STEPS',
         'source_path': 'src/lib/unit-4-6-course.ts',
+    },
+    '4-7': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-4-7-course.ts',
+        'runtime_manifest_path': REPO_ROOT / 'course-content' / 'runtime' / 'lessons' / '4-7' / 'interactive-manifest.json',
+        'lesson_steps_const': 'UNIT_4_7_LESSON_STEPS',
+        'source_path': 'src/lib/unit-4-7-course.ts',
     },
     '3-6': {
         'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-3-6-course.ts',
@@ -623,6 +641,114 @@ def load_typescript_export_value(ts_path: Path, export_name: str) -> tuple[Any |
         return json.loads(completed.stdout), []
     except json.JSONDecodeError as exc:
         return None, [f'本地实现契约导出不是合法 JSON：{exc.msg}']
+
+
+def page_contracts_from_runtime_manifest(manifest_path: Path) -> tuple[Any | None, list[str]]:
+    if not manifest_path.exists():
+        return None, [f'runtime manifest 不存在：{format_repo_path(manifest_path)}']
+
+    try:
+        payload = read_json(manifest_path)
+    except json.JSONDecodeError as exc:
+        return None, [f'runtime manifest 不是合法 JSON：{exc.msg}']
+
+    steps = payload.get('steps') if isinstance(payload, dict) else None
+    if not isinstance(steps, dict):
+        return None, [f'runtime manifest 缺少 `steps` 对象：{format_repo_path(manifest_path)}']
+
+    contracts: dict[str, Any] = {}
+    for step_id, step_payload in steps.items():
+        if not isinstance(step_payload, dict):
+            continue
+        interaction_spec = step_payload.get('interaction_spec')
+        teacher_controls = step_payload.get('teacher_controls')
+        teacher_insight_spec = step_payload.get('teacher_insight_spec')
+        telemetry_spec = step_payload.get('telemetry_spec')
+        ai_context_spec = step_payload.get('ai_context_spec')
+        interactive_figure_spec = step_payload.get('interactive_figure_spec')
+        figure_controls = (
+            interactive_figure_spec.get('controls')
+            if isinstance(interactive_figure_spec, dict)
+            else None
+        )
+        preview_contract = step_payload.get('preview_contract')
+        contracts[step_id] = {
+            'layout': step_payload.get('layout') if isinstance(step_payload.get('layout'), dict) else {},
+            'interactionKind': (
+                interaction_spec.get('interaction_kind')
+                if isinstance(interaction_spec, dict)
+                else 'none'
+            ),
+            'teacherControls': {
+                'releaseActivity': (
+                    teacher_controls.get('release_activity')
+                    if isinstance(teacher_controls, dict)
+                    else 'not_applicable'
+                ),
+                'openBrowse': (
+                    teacher_controls.get('open_browse')
+                    if isinstance(teacher_controls, dict)
+                    else 'not_applicable'
+                ),
+                'teacherStepReveal': (
+                    teacher_controls.get('teacher_step_reveal')
+                    if isinstance(teacher_controls, dict)
+                    else 'not_applicable'
+                ),
+                'revealReferenceAnswer': (
+                    teacher_controls.get('reveal_reference_answer')
+                    if isinstance(teacher_controls, dict)
+                    else 'not_applicable'
+                ),
+            },
+            'teacherInsightWidgets': (
+                teacher_insight_spec.get('widgets', [])
+                if isinstance(teacher_insight_spec, dict)
+                else []
+            ),
+            'telemetrySummaryFields': (
+                telemetry_spec.get('summary_fields', [])
+                if isinstance(telemetry_spec, dict)
+                else []
+            ),
+            'misconceptionTags': (
+                telemetry_spec.get('misconception_tags', [])
+                if isinstance(telemetry_spec, dict)
+                else []
+            ),
+            'aiPageGoal': (
+                ai_context_spec.get('page_goal')
+                if isinstance(ai_context_spec, dict)
+                else ''
+            ),
+            'aiDeliveryMode': (
+                ai_context_spec.get('delivery_mode')
+                if isinstance(ai_context_spec, dict)
+                else None
+            ),
+            'figureLayoutMirror': (
+                interactive_figure_spec.get('layout_mirror')
+                if isinstance(interactive_figure_spec, dict)
+                else None
+            ),
+            'controlsPlacement': (
+                figure_controls.get('placement')
+                if isinstance(figure_controls, dict)
+                else None
+            ),
+            'controlsCollapsedByDefault': (
+                figure_controls.get('collapsed_by_default')
+                if isinstance(figure_controls, dict)
+                else None
+            ),
+            'previewDemoPath': (
+                preview_contract.get('demo_path')
+                if isinstance(preview_contract, dict)
+                else ''
+            ),
+        }
+
+    return contracts, []
 
 
 def compare_contract_field(
@@ -1013,10 +1139,15 @@ def build_implementation_contract_check(lesson_id: str, contract_path: Path) -> 
     if not isinstance(steps, dict):
         return config.get('source_path'), ['interactive-contract.yaml 缺少 `steps` 对象'], []
 
-    page_contracts, page_contract_load_issues = load_typescript_export_value(
-        Path(config['course_lib_path']),
-        str(config['page_contracts_const']),
-    )
+    if 'runtime_manifest_path' in config:
+        page_contracts, page_contract_load_issues = page_contracts_from_runtime_manifest(
+            Path(config['runtime_manifest_path']),
+        )
+    else:
+        page_contracts, page_contract_load_issues = load_typescript_export_value(
+            Path(config['course_lib_path']),
+            str(config['page_contracts_const']),
+        )
     lesson_steps, lesson_steps_load_issues = load_typescript_export_value(
         Path(config['course_lib_path']),
         str(config['lesson_steps_const']),

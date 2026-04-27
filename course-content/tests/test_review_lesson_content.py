@@ -1204,3 +1204,131 @@ def test_ensure_runtime_media_index_preserves_existing_links_and_order(tmp_path)
             '',
         ]
     )
+
+
+def test_ensure_runtime_media_index_restores_authoring_content_over_runtime_shell(tmp_path):
+    lesson_id = 'demo-4'
+    media_index_path = tmp_path / 'runtime' / 'lessons' / lesson_id / 'media' / f'{lesson_id}-media.md'
+    processed_media_index_path = (
+        tmp_path
+        / 'authoring'
+        / 'lessons'
+        / lesson_id
+        / 'media'
+        / 'processed'
+        / f'{lesson_id}-media.md'
+    )
+    media_index_path.parent.mkdir(parents=True)
+    processed_media_index_path.parent.mkdir(parents=True)
+    media_index_path.write_text(
+        '\n'.join(
+            [
+                '# demo-4-intro-video.mp4',
+                '',
+                '# demo-4-slides.pdf',
+                '',
+                '# demo-4-course.mp4',
+                '',
+                '# demo-4-audio.m4a',
+                '',
+                '# handout.md',
+                '',
+            ]
+        ),
+        encoding='utf-8',
+    )
+    processed_media_index_path.write_text(
+        '\n'.join(
+            [
+                '# demo-4-intro-video.mp4',
+                '',
+                '- 已写好的导入视频标题',
+                '',
+                '# demo-4-slides.pdf',
+                '',
+                '# demo-4-course.mp4',
+                '',
+                '# demo-4-audio.m4a',
+                '',
+                '# handout.md',
+                '',
+                '已写好的讲义摘要，不能被运行态空骨架覆盖。',
+                '',
+            ]
+        ),
+        encoding='utf-8',
+    )
+
+    review_lesson_content.ensure_runtime_media_index(media_index_path, lesson_id)
+
+    expected_content = '\n'.join(
+        [
+            '# demo-4-intro-video.mp4',
+            '',
+            '- 已写好的导入视频标题',
+            '',
+            '# demo-4-slides.pdf',
+            '',
+            '# demo-4-course.mp4',
+            '',
+            '# demo-4-audio.m4a',
+            '',
+            '# handout.md',
+            '',
+            '已写好的讲义摘要，不能被运行态空骨架覆盖。',
+            '',
+        ]
+    )
+    assert media_index_path.read_text(encoding='utf-8') == expected_content
+    assert processed_media_index_path.read_text(encoding='utf-8') == expected_content
+
+
+def test_ensure_runtime_media_index_completes_partial_authoring_index(tmp_path):
+    lesson_id = 'demo-5'
+    media_index_path = tmp_path / 'runtime' / 'lessons' / lesson_id / 'media' / f'{lesson_id}-media.md'
+    processed_media_index_path = (
+        tmp_path
+        / 'authoring'
+        / 'lessons'
+        / lesson_id
+        / 'media'
+        / 'processed'
+        / f'{lesson_id}-media.md'
+    )
+    processed_media_index_path.parent.mkdir(parents=True)
+    processed_media_index_path.write_text(
+        '\n'.join(
+            [
+                '# demo-5-intro-video.mp4',
+                '',
+                '- 保留已有导入标题',
+                '',
+                'https://example.com/intro',
+                '',
+            ]
+        ),
+        encoding='utf-8',
+    )
+
+    review_lesson_content.ensure_runtime_media_index(media_index_path, lesson_id)
+
+    expected_content = '\n'.join(
+        [
+            '# demo-5-intro-video.mp4',
+            '',
+            '- 保留已有导入标题',
+            '',
+            'https://example.com/intro',
+            '',
+            '# demo-5-slides.pdf',
+            '',
+            '# demo-5-course.mp4',
+            '',
+            '# demo-5-audio.m4a',
+            '',
+            '# handout.md',
+            '',
+        ]
+    )
+    assert media_index_path.read_text(encoding='utf-8') == expected_content
+    assert processed_media_index_path.read_text(encoding='utf-8') == expected_content

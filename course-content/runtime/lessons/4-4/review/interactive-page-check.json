@@ -4,7 +4,7 @@
   "contract_path": "course-content/authoring/lessons/4-4/design/interactive-contract.yaml",
   "design_acceptance_path": "course-content/authoring/lessons/4-4/design/interactive-design-acceptance.json",
   "implementation_acceptance_path": "course-content/authoring/lessons/4-4/notes/interactive-implementation-acceptance.json",
-  "implementation_contract_source": null,
+  "implementation_contract_source": "src/lib/unit-4-4-course.ts",
   "contract_required_fields": [
     "layout",
     "modules",
@@ -59,12 +59,15 @@
   "hard_gate_issues": [],
   "hard_gate_issue_codes": [],
   "blocking_issues": [],
-  "implementation_contract_summary": [],
+  "implementation_contract_summary": [
+    "已检测到 `4-4` 的本地实现契约与作者态互动契约一致。"
+  ],
   "implementation_contract_issues": [],
   "legacy_acceptance_notes": [],
   "summary": [
     "已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。",
     "已检测到 `4-4` 的 V2 互动契约，步骤字段完整。",
+    "已检测到 `4-4` 的本地实现契约与作者态互动契约一致。",
     "互动设计接受文件已通过校验。",
     "互动实现接受文件已通过校验。"
   ],
