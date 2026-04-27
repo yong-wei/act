@@ -7,12 +7,17 @@
   "implementation_contract_source": null,
   "contract_required_fields": [
     "layout",
+    "modules",
+    "content_blocks",
+    "evidence_sequence",
     "interaction_spec",
     "teacher_controls",
+    "student_access",
     "teacher_insight_spec",
     "telemetry_spec",
     "ai_context_spec",
-    "preview_contract"
+    "preview_contract",
+    "acceptance_checks"
   ],
   "included_in_primary_sources": true,
   "mapping_contract_mode": "core_items",
@@ -44,6 +49,9 @@
   "design_acceptance_issues": [],
   "implementation_acceptance_summary": [],
   "implementation_acceptance_issues": [],
+  "manifest_audit_summary": [],
+  "manifest_audit_issues": [],
+  "manifest_audit": null,
   "reviewed_runtime_artifacts": [],
   "runtime_review_stale_issues": [],
   "hard_gate_issues": [],
@@ -51,6 +59,7 @@
   "blocking_issues": [],
   "implementation_contract_summary": [],
   "implementation_contract_issues": [],
+  "legacy_acceptance_notes": [],
   "summary": [
     "已检测到 `4-2` 的 V2 互动契约，步骤字段完整。",
     "互动设计接受文件已通过校验。"

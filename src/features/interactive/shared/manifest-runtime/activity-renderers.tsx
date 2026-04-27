@@ -198,6 +198,10 @@ function isSingleChoiceCard(card: InteractiveRuntimeActivityCardManifest) {
   return card.responseKind === 'single_choice' || card.responseKind === 'binary_choice';
 }
 
+function isMultiSelectCard(card: InteractiveRuntimeActivityCardManifest) {
+  return card.responseKind === 'multi_select';
+}
+
 function StudentCardAnswerInput({
   card,
   value,
@@ -207,6 +211,52 @@ function StudentCardAnswerInput({
   value: string;
   onChange: (value: string) => void;
 }) {
+  if (isMultiSelectCard(card)) {
+    if (!card.options.length) {
+      return (
+        <div
+          className="premium-lesson-tone-block premium-tone-amber mt-3 text-sm leading-7"
+          data-manifest-missing-field={`${card.id}:options`}
+        >
+          manifest 未提供本多选题选项，请在 activity_cards[].options 中补齐。
+        </div>
+      );
+    }
+
+    const selectedValues = new Set(value.split('|').filter(Boolean));
+    return (
+      <fieldset className="mt-3 space-y-2">
+        <legend className="sr-only">{card.title ?? card.prompt}</legend>
+        {card.options.map((option) => {
+          const selected = selectedValues.has(option.value);
+          return (
+            <label
+              key={option.value}
+              className="premium-lesson-surface-elevated flex cursor-pointer items-start gap-3 px-4 py-3 text-sm leading-6"
+            >
+              <input
+                type="checkbox"
+                value={option.value}
+                checked={selected}
+                onChange={() => {
+                  const next = new Set(selectedValues);
+                  if (selected) {
+                    next.delete(option.value);
+                  } else {
+                    next.add(option.value);
+                  }
+                  onChange(Array.from(next).join('|'));
+                }}
+                className="mt-1"
+              />
+              <span>{renderActivityInlineContent(option.label)}</span>
+            </label>
+          );
+        })}
+      </fieldset>
+    );
+  }
+
   if (isSingleChoiceCard(card)) {
     if (!card.options.length) {
       return (
@@ -504,6 +554,8 @@ export function createManifestStudentActivityRegistry<TStep>(): StudentInteracti
     activity_card_set: (props) => <StudentCards {...props} />,
     task_card_workspace: (props) => <StudentCards {...props} />,
     quiz_group: (props) => <StudentCards {...props} />,
+    multi_select_matrix: (props) => <StudentCards {...props} />,
+    quiz_card_grid: (props) => <StudentCards {...props} />,
     teacher_reveal_only: (props) => <StudentCards {...props} />,
   };
 }
@@ -515,6 +567,8 @@ export function createManifestTeacherActivityRegistry<TStep>(): TeacherInteracti
     activity_card_set: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     task_card_workspace: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     quiz_group: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
+    multi_select_matrix: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
+    quiz_card_grid: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     teacher_reveal_only: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
   };
 }

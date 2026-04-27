@@ -89,6 +89,7 @@ export function UNIT_4_2StudentPage({
     });
 
   const step = UNIT_4_2_LESSON_STEPS[activeIndex];
+  const runtimeManifest = lessonRuntime.interactiveManifest;
   const pageContract = getUNIT_4_2PageContract(step.id);
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
@@ -278,6 +279,7 @@ export function UNIT_4_2StudentPage({
 
         <UNIT_4_2StepContentPanel
           step={step}
+          manifest={runtimeManifest}
           mediaSrc={getUNIT_4_2MediaSrc(step.id)}
           mediaAlt={step.title}
           revealProgress={revealProgress}
@@ -294,6 +296,7 @@ export function UNIT_4_2StudentPage({
         <div className="mt-4">
           <UNIT_4_2StudentActivityForm
             step={step}
+            manifest={runtimeManifest}
             savedResponse={savedResponse}
             released={released}
             browseEnabled={browseEnabled}

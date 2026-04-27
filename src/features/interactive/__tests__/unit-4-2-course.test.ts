@@ -118,6 +118,45 @@ describe('unit 4-2 interactive course', () => {
     }
   });
 
+  it('exports a module-level runtime manifest for every 4-2 step', () => {
+    const manifest = JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
+        'utf8',
+      ),
+    ) as {
+      steps: Record<string, {
+        modules?: Array<{ id: string; kind: string; must_be_visible?: boolean }>;
+        interaction_spec?: { activity_cards?: unknown[] };
+      }>;
+    };
+
+    const stepEntries = Object.entries(manifest.steps);
+
+    expect(stepEntries).toHaveLength(13);
+    expect(stepEntries.every(([, step]) => (step.modules ?? []).length > 0)).toBe(true);
+    expect(
+      stepEntries.flatMap(([, step]) => step.modules ?? []).filter((module) => module.must_be_visible).length,
+    ).toBeGreaterThanOrEqual(47);
+    expect(manifest.steps['step-04']?.interaction_spec?.activity_cards).toHaveLength(3);
+    expect(manifest.steps['step-12']?.interaction_spec?.activity_cards).toHaveLength(4);
+  });
+
+  it('renders 4-2 through the shared manifest runtime with only narrow Rust adapters', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
+    expect(stepPanelsSource).toContain('renderInteractiveManifestStep');
+    expect(stepPanelsSource).toContain('rust-analysis-panel');
+    expect(stepPanelsSource).not.toContain('switch (step.id)');
+    expect(stepPanelsSource).not.toContain('PRETEST_QUESTIONS');
+    expect(stepPanelsSource).not.toContain('CONTROLLER_TOOLBOX_ROWS');
+    expect(stepPanelsSource).not.toContain('ASSESSMENT_CARD_FIELDS');
+  });
+
   it('registers the course in the learning catalog and classroom route resolver', () => {
     expect(FEATURED_LESSONS.some((lesson) => lesson.id === 'unit-4-2-controller-selection-first-start')).toBe(true);
 
@@ -142,57 +181,62 @@ describe('unit 4-2 interactive course', () => {
     expect(entrySource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
   });
 
-  it('keeps step-07/09/10/12/14 content blocks visible in native panels', () => {
+  it('keeps the migrated 4-2 content blocks visible through the runtime manifest', () => {
     const stepPanelsSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
       'utf8',
     );
+    const manifest = JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
+        'utf8',
+      ),
+    ) as { steps: Record<string, unknown> };
+    const manifestText = JSON.stringify(manifest);
 
     expect(stepPanelsSource).not.toContain('String.raw`P_h(s)=');
     expect(stepPanelsSource).not.toContain('String.raw`P_p(s)=');
     expect(stepPanelsSource).not.toContain('/course-content/authoring/lessons/4-2/media/processed/');
-    expect(stepPanelsSource).toContain('/course-runtime/lessons/4-2/media/4-2-input-feedforward-vs-pd-structure.png');
-    expect(stepPanelsSource).toContain('/course-runtime/lessons/4-2/media/4-2-disturbance-feedforward-structure-compare.png');
+    expect(manifestText).toContain('/course-runtime/lessons/4-2/media/4-2-input-feedforward-vs-pd-structure.png');
+    expect(manifestText).toContain('/course-runtime/lessons/4-2/media/4-2-disturbance-feedforward-structure-compare.png');
     expect(stepPanelsSource).toContain('ControlFigureWorkspace');
-    expect(stepPanelsSource).toContain('表5');
-    expect(stepPanelsSource).toContain('结构工具箱总表');
-    expect(stepPanelsSource).toContain('当前任务');
-    expect(stepPanelsSource).toContain('主要代价');
-    expect(stepPanelsSource).toContain('data-progressive-reveal="step_click_reveal"');
-    expect(stepPanelsSource).toContain('md:grid-cols-2');
+    expect(manifestText).toContain('表 5 的频域比较');
+    expect(manifestText).toContain('工具箱总表');
+    expect(manifestText).toContain('当前任务');
+    expect(manifestText).toContain('主要代价');
+    expect(stepPanelsSource).toContain('renderInteractiveManifestStep');
+    expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
     expect(stepPanelsSource).not.toContain('本页无需提交');
   });
 
   it('keeps the simplified workspace to six core start-card fields', () => {
-    const stepPanelsSource = readFileSync(
-      join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
-      'utf8',
-    );
+    const manifest = JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
+        'utf8',
+      ),
+    ) as { steps: Record<string, { content_blocks?: { start_card_fields?: string[] } }> };
+    const fields = manifest.steps['step-11']?.content_blocks?.start_card_fields ?? [];
 
-    expect(stepPanelsSource).toContain('当前任务');
-    expect(stepPanelsSource).toContain('最紧矛盾');
-    expect(stepPanelsSource).toContain('首选单结构');
-    expect(stepPanelsSource).toContain('参数起步方向');
-    expect(stepPanelsSource).toContain('预期收益');
-    expect(stepPanelsSource).toContain('主要代价');
-    expect(stepPanelsSource).not.toContain('留给 4-3 的问题');
+    expect(fields).toEqual(['当前任务', '最紧矛盾', '首选单结构', '参数起步方向', '预期收益', '主要代价']);
+    expect(fields).not.toContain('留给 4-3 的问题');
   });
 
   it('renders full mathematical expressions for the step-04 controller toolbox instead of only semantic labels', () => {
-    const stepPanelsSource = readFileSync(
-      join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
+    const manifestText = readFileSync(
+      join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
       'utf8',
     );
 
-    expect(stepPanelsSource).toContain('C_{PI}(s)=K_p+\\\\dfrac{K_i}{s}');
-    expect(stepPanelsSource).toContain('C_{PD}(s)=K_p+K_d s');
-    expect(stepPanelsSource).toContain('C_{lead}(s)=K\\\\dfrac{Ts+1}{\\\\alpha Ts+1}');
-    expect(stepPanelsSource).toContain('C_{lag}(s)=K\\\\dfrac{Ts+1}{\\\\beta Ts+1}');
+    expect(manifestText).toContain('C_{PI}(s)=K_p+\\\\dfrac{K_i}{s}');
+    expect(manifestText).toContain('C_{PD}(s)=K_p+K_d s');
+    expect(manifestText).toContain('C_{lead}(s)=K\\\\dfrac{Ts+1}{\\\\alpha Ts+1}');
+    expect(manifestText).toContain('C_{lag}(s)=K\\\\dfrac{Ts+1}{\\\\beta Ts+1}');
   });
 
   it('keeps step-06 and step-08 frequency-domain evidence complete instead of collapsing them into one-line comparisons', () => {
-    const stepPanelsSource = readFileSync(
-      join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
+    const manifestText = readFileSync(
+      join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
       'utf8',
     );
     const interactivePageSource = readFileSync(
@@ -204,20 +248,22 @@ describe('unit 4-2 interactive course', () => {
     expect(interactivePageSource).toContain('截止频率附近的幅值、相位比较');
     expect(interactivePageSource).toContain('PD / 超前 与 PI 的频域公式比较');
 
-    expect(stepPanelsSource).toContain('C_{PI}(j\\\\omega_c)');
-    expect(stepPanelsSource).toContain('C_{PD}(j\\\\omega_c)');
-    expect(stepPanelsSource).toContain('\\\\sqrt{2}\\\\approx 1.414');
-    expect(stepPanelsSource).toContain('45^\\\\circ');
-    expect(stepPanelsSource).toContain('\\\\omega_i=5\\\\,\\\\text{rad/s}');
-    expect(stepPanelsSource).toContain('表 5 的频域比较');
-    expect(stepPanelsSource).toContain('表 7 的频域比较');
+    expect(manifestText).toContain('C_{PI}(j\\\\omega_c)');
+    expect(manifestText).toContain('C_{PD}(j\\\\omega_c)');
+    expect(manifestText).toContain('1.414');
+    expect(manifestText).toContain('45^\\\\circ');
+    expect(manifestText).toContain('\\\\omega_i=5\\\\,\\\\text{rad/s}');
+    expect(manifestText).toContain('表 5 的频域比较');
+    expect(manifestText).toContain('表 7 的频域比较');
   });
 
   it('keeps step-09 and step-10 in handout order: principle/formulas before structure figure and comparison figure after analysis', () => {
-    const stepPanelsSource = readFileSync(
-      join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
-      'utf8',
-    );
+    const manifest = JSON.parse(
+      readFileSync(
+        join(repoRoot, 'course-content/runtime/lessons/4-2/interactive-manifest.json'),
+        'utf8',
+      ),
+    ) as { steps: Record<string, { modules?: Array<{ id: string }> }> };
     const studentPageSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/student-page.tsx'),
       'utf8',
@@ -227,40 +273,35 @@ describe('unit 4-2 interactive course', () => {
     expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
     expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
 
-    const step09Start = stepPanelsSource.indexOf("step.id === 'step-09'");
-    const step10Start = stepPanelsSource.indexOf("step.id === 'step-10'");
-    const step11Start = stepPanelsSource.indexOf("step.id === 'step-11'");
-    const step09Slice = stepPanelsSource.slice(step09Start, step10Start);
-    const step10Slice = stepPanelsSource.slice(step10Start, step11Start);
-
-    expect(step09Slice.indexOf('stepId="step-09-principle"')).toBeLessThan(
-      step09Slice.indexOf('MediaPanel src={INPUT_FEEDFORWARD_STRUCTURE_SRC}'),
-    );
-    expect(step09Slice.indexOf('MediaPanel src={INPUT_FEEDFORWARD_STRUCTURE_SRC}')).toBeLessThan(
-      step09Slice.indexOf('stepId={step.id}'),
-    );
-    expect(step09Slice.indexOf('RevealChain stepId={step.id} revealProgress={revealProgress}')).toBeLessThan(
-      step09Slice.indexOf('{mediaSrc ? <MediaPanel src={mediaSrc}'),
-    );
-    expect(step10Slice.indexOf('FormulaCard title="扰动到输出传递"')).toBeLessThan(
-      step10Slice.indexOf('MediaPanel src={DISTURBANCE_FEEDFORWARD_STRUCTURE_SRC}'),
-    );
-    expect(step10Slice.indexOf('InfoCard title="边界结论"')).toBeLessThan(
-      step10Slice.indexOf('{mediaSrc ? <MediaPanel src={mediaSrc}'),
-    );
+    expect(manifest.steps['step-09']?.modules?.map((module) => module.id)).toEqual([
+      'input-ff-principle',
+      'input-ff-structure',
+      'input-ff-closed-loop-formulas',
+      'input-ff-analysis',
+      'input-ff-quad',
+      'input-ff-cards',
+    ]);
+    expect(manifest.steps['step-10']?.modules?.map((module) => module.id)).toEqual([
+      'disturbance-formulas',
+      'disturbance-structure',
+      'disturbance-analysis',
+      'disturbance-boundary',
+      'disturbance-quad',
+      'disturbance-cards',
+    ]);
   });
 
   it('lets worked-example reveal maintain local click-to-continue state instead of relying only on teacher progress', () => {
-    const stepPanelsSource = readFileSync(
-      join(repoRoot, 'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx'),
+    const sharedRendererSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
       'utf8',
     );
-    const revealChainStart = stepPanelsSource.indexOf('function RevealChain');
-    const revealChainEnd = stepPanelsSource.indexOf('export function UNIT_4_2KnowledgeMapVisual');
-    const revealChainSlice = stepPanelsSource.slice(revealChainStart, revealChainEnd);
+    const revealChainStart = sharedRendererSource.indexOf('function StepReveal');
+    const revealChainEnd = sharedRendererSource.indexOf('export function createManifestContentModuleRegistry');
+    const revealChainSlice = sharedRendererSource.slice(revealChainStart, revealChainEnd);
 
     expect(revealChainSlice).toContain('useState(');
-    expect(revealChainSlice).toContain('setLocalRevealCount');
+    expect(revealChainSlice).toContain('setLocalVisibleCount');
     expect(revealChainSlice).toContain('onClick={() => {');
   });
 

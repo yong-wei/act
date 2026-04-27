@@ -10,6 +10,8 @@ export type InteractiveInteractionKind =
   | 'display'
   | 'summary'
   | 'quiz_group'
+  | 'multi_select_matrix'
+  | 'quiz_card_grid'
   | 'activity_card_set'
   | 'teacher_reveal_only'
   | 'single_choice'

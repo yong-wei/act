@@ -135,15 +135,15 @@
       "name": "三频段闭环性能回读",
       "nodeType": "THEORY",
       "description": "按低频、中频、高频三段分工，把开环图上读到的低频增益、截止频率、相角裕度、带宽和谐振峰值重新翻译成稳态精度、速度、超调、噪声与执行器负担等闭环后果。",
-      "positionX": 31.1,
-      "positionY": -31.1,
-      "positionZ": 0,
+      "positionX": 62.4,
+      "positionY": -36.0,
+      "positionZ": 3,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
+      "chapter": 3,
       "chapterName": "结构机理层",
       "metadata": {
-        "chapter": null,
+        "chapter": 3,
         "chapterName": "结构机理层",
         "category": "概念性",
         "bloom_level": "分析",
@@ -191,7 +191,7 @@
         "稳态精度",
         "速度",
         "高频代价",
-        "chapter-0"
+        "chapter-3"
       ]
     },
     {
@@ -199,15 +199,15 @@
       "name": "低频补偿稳态改善路径",
       "nodeType": "THEORY",
       "description": "把 PI 与滞后都理解为低频补偿：前者通过积分提高型别，后者通过低频增益重分配压小有限误差，并且二者都会把动态速度与频域裕量代价转移到其他频段。",
-      "positionX": 0.0,
-      "positionY": 50.0,
-      "positionZ": 0,
+      "positionX": -20.2,
+      "positionY": 75.3,
+      "positionZ": 3,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
+      "chapter": 3,
       "chapterName": "结构机理层",
       "metadata": {
-        "chapter": null,
+        "chapter": 3,
         "chapterName": "结构机理层",
         "category": "概念性",
         "bloom_level": "分析",
@@ -256,7 +256,7 @@
         "型别提高",
         "低频增益",
         "代价",
-        "chapter-0"
+        "chapter-3"
       ]
     },
     {
@@ -264,15 +264,15 @@
       "name": "目标驱动PD校正",
       "nodeType": "THEORY",
       "description": "围绕给定的时域指标，先建立目标极点区域，再通过调整 PD 的零点位置和增益，使补偿后根轨迹能够穿过该区域，并最终用阶跃响应验收设计是否达标。",
-      "positionX": -53.7,
-      "positionY": 31.0,
-      "positionZ": 0,
+      "positionX": -86.9,
+      "positionY": 23.3,
+      "positionZ": 3,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 3,
       "chapterName": "结构机理层",
       "metadata": {
-        "chapter": null,
+        "chapter": 3,
         "chapterName": "结构机理层",
         "category": "程序性",
         "bloom_level": "应用",
@@ -313,7 +313,7 @@
         "目标区域",
         "根轨迹",
         "阶跃验收",
-        "chapter-0"
+        "chapter-3"
       ]
     },
     {
@@ -321,15 +321,15 @@
       "name": "目标驱动超前校正",
       "nodeType": "THEORY",
       "description": "围绕相角裕度和截止频率等频域目标，通过 Bode 图读取当前裕度和工作频段，计算所需补角并反推出超前网络参数 a、T，再回到闭环时域响应验收设计副作用。",
-      "positionX": -62.0,
-      "positionY": 0.0,
-      "positionZ": 0,
+      "positionX": -86.9,
+      "positionY": -23.3,
+      "positionZ": 3,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 3,
       "chapterName": "结构机理层",
       "metadata": {
-        "chapter": null,
+        "chapter": 3,
         "chapterName": "结构机理层",
         "category": "程序性",
         "bloom_level": "应用",
@@ -373,7 +373,7 @@
         "相角裕度",
         "截止频率",
         "Bode设计",
-        "chapter-0"
+        "chapter-3"
       ]
     },
     {
@@ -381,15 +381,15 @@
       "name": "积分与滞后的稳态改善分工",
       "nodeType": "THEORY",
       "description": "积分和滞后都服务于稳态改善，但积分更直接改变型别与误差阶次，滞后更偏向温和提高低频能力，因此二者在低频收益、中频代价和可达到的稳态改善程度上并不相同。",
-      "positionX": -59.9,
-      "positionY": -16.0,
-      "positionZ": 0,
+      "positionX": -77.9,
+      "positionY": -45.0,
+      "positionZ": 3,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
+      "chapter": 3,
       "chapterName": "结构机理层",
       "metadata": {
-        "chapter": null,
+        "chapter": 3,
         "chapterName": "结构机理层",
         "category": "概念性",
         "bloom_level": "分析",
@@ -434,7 +434,7 @@
         "稳态改善",
         "型别",
         "低频补偿",
-        "chapter-0"
+        "chapter-3"
       ]
     },
     {
@@ -442,15 +442,15 @@
       "name": "主矛盾到频段职责映射",
       "nodeType": "THEORY",
       "description": "按照“先识别主矛盾，再判断它主要落在低频、中频、高频还是给定/扰动通道”的顺序，把任务表达卡转成结构筛选的输入。",
-      "positionX": -74.0,
-      "positionY": 0.0,
-      "positionZ": 0,
+      "positionX": -100.5,
+      "positionY": -58.0,
+      "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "程序性",
         "bloom_level": "分析",
@@ -494,7 +494,7 @@
         "中频",
         "三频段",
         "任务映射",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -502,15 +502,15 @@
       "name": "单结构首轮起步卡",
       "nodeType": "THEORY",
       "description": "把当前任务、最紧矛盾、首选单结构、参数起步方向、预期改善、代价说明和留给下一课的未决项压成一张首轮设计输入卡，用来把 4-2 的选型理由固定下来。",
-      "positionX": -37.0,
-      "positionY": -64.1,
-      "positionZ": 0,
+      "positionX": 105.7,
+      "positionY": 61.0,
+      "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "程序性",
         "bloom_level": "应用",
@@ -552,7 +552,7 @@
         "单结构",
         "参数方向",
         "验证假设",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -560,15 +560,15 @@
       "name": "反馈保底与前馈补偿边界",
       "nodeType": "THEORY",
       "description": "当给定或扰动通道可测时，前馈可以作为定向补偿进入候选；但反馈仍负责稳定性、鲁棒性与模型偏差下的保底，二者不能互相替代。",
-      "positionX": -0.0,
-      "positionY": -74.0,
-      "positionZ": 0,
+      "positionX": 0.0,
+      "positionY": 122.0,
+      "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "概念性",
         "bloom_level": "分析",
@@ -608,7 +608,7 @@
         "反馈",
         "扰动补偿",
         "鲁棒性",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -616,15 +616,15 @@
       "name": "按扰动补偿前馈的对消条件",
       "nodeType": "THEORY",
       "description": "当扰动通道可测且模型可用时，可沿扰动入口附近构造前馈补偿，使扰动在目标频段内尽量被对消，再由反馈处理剩余部分。",
-      "positionX": 56.6,
-      "positionY": 56.6,
-      "positionZ": 0,
+      "positionX": 105.7,
+      "positionY": -61.0,
+      "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "概念性",
         "bloom_level": "分析",
@@ -665,7 +665,7 @@
         "通道对消",
         "抗扰",
         "残余扰动",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -673,15 +673,15 @@
       "name": "按输入补偿前馈的无差度提升",
       "nodeType": "THEORY",
       "description": "当给定变化趋势已知时，可沿输入通道提前施加控制量，以减小跟踪误差或提高等效无差度；工程上更常追求误差显著减小，而不是机械追求全补偿。",
-      "positionX": 40.0,
-      "positionY": 69.3,
-      "positionZ": 0,
+      "positionX": 117.8,
+      "positionY": -31.6,
+      "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "概念性",
         "bloom_level": "分析",
@@ -721,7 +721,7 @@
         "无差度",
         "跟踪",
         "过补偿",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -729,15 +729,15 @@
       "name": "结构作用点与代价来源对照",
       "nodeType": "THEORY",
       "description": "说明每一类单结构为什么会优先改善某一段行为，以及这种改善为什么必然在储备、速度、噪声或复杂度上暴露相应代价。",
-      "positionX": 43.0,
-      "positionY": 74.5,
-      "positionZ": 0,
+      "positionX": 67.0,
+      "positionY": 116.0,
+      "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "概念性",
         "bloom_level": "分析",
@@ -782,7 +782,7 @@
         "相角裕度",
         "噪声敏感性",
         "结构比较",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -790,15 +790,15 @@
       "name": "结构工具箱最小语义",
       "nodeType": "THEORY",
       "description": "把 `P/PI/PD/PID/超前/滞后/前馈/复合校正` 重新组织为“建立基本闭环、补低频能力、改中频动态品质、隔离给定/扰动通道”四类最小结构语义。",
-      "positionX": 22.3,
-      "positionY": 83.1,
-      "positionZ": 0,
+      "positionX": 0.0,
+      "positionY": 134.0,
+      "positionZ": 4,
       "bloomLevel": "ANALYZE",
       "knowledgeDim": "CONCEPTUAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "概念性",
         "bloom_level": "分析",
@@ -842,7 +842,7 @@
         "PD",
         "前馈",
         "复合校正",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -850,15 +850,15 @@
       "name": "设计任务表达卡",
       "nodeType": "THEORY",
       "description": "把控制对象、控制目标、硬约束、软目标、观察指标和证据来源写成同一张输入卡，用来把模块3的分析证据转换为模块4后续选型与起步的共同输入。",
-      "positionX": -22.3,
-      "positionY": 83.1,
-      "positionZ": 0,
+      "positionX": -129.4,
+      "positionY": 34.7,
+      "positionZ": 4,
       "bloomLevel": "APPLY",
       "knowledgeDim": "PROCEDURAL",
-      "chapter": null,
+      "chapter": 4,
       "chapterName": "约束设计层",
       "metadata": {
-        "chapter": null,
+        "chapter": 4,
         "chapterName": "约束设计层",
         "category": "程序性",
         "bloom_level": "应用",
@@ -900,7 +900,7 @@
         "目标-约束-优先级",
         "证据来源",
         "设计输入",
-        "chapter-0"
+        "chapter-4"
       ]
     },
     {
@@ -908,8 +908,8 @@
       "name": "带宽频率",
       "nodeType": "THEORY",
       "description": "闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。",
-      "positionX": 154.0,
-      "positionY": 0.0,
+      "positionX": -154.5,
+      "positionY": 41.4,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -962,8 +962,8 @@
       "name": "幅值裕度",
       "nodeType": "THEORY",
       "description": "在穿越频率处，使系统达到临界稳定所需开环幅频特性增大或减小的倍数，是稳定裕度的一种。",
-      "positionX": 148.8,
-      "positionY": 39.9,
+      "positionX": -160.0,
+      "positionY": 0.0,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
@@ -1011,8 +1011,8 @@
       "name": "相角裕度",
       "nodeType": "THEORY",
       "description": "开环频率特性曲线在截止频率处，相角与-180度之差，是衡量系统相对稳定性的重要指标。",
-      "positionX": 108.9,
-      "positionY": -108.9,
+      "positionX": -83.0,
+      "positionY": 143.8,
       "positionZ": 5,
       "bloomLevel": "APPLY",
       "knowledgeDim": "CONCEPTUAL",
