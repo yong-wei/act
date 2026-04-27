@@ -31,7 +31,10 @@
     "acceptance_note"
   ],
   "missing_mapping_columns": [],
-  "invalid_handout_anchors": [],
+  "invalid_handout_anchors": [
+    "已有固定结构设计链",
+    "基础知识回顾"
+  ],
   "missing_target_steps": [],
   "formula_mapping_issues": [],
   "step_static_blocks_missing": [],
@@ -50,14 +53,14 @@
   ],
   "implementation_acceptance_issues": [],
   "manifest_audit_summary": [
-    "manifest audit pass: 12 steps, 67 modules, 0 issues"
+    "manifest audit pass: 12 steps, 71 modules, 0 issues"
   ],
   "manifest_audit_issues": [],
   "manifest_audit": {
     "status": "pass",
     "summary": {
       "steps": 12,
-      "modules": 67,
+      "modules": 71,
       "issues": 0
     },
     "implementation_sources": {
@@ -97,6 +100,86 @@
     "entries": [
       {
         "step_id": "step-01",
+        "module_id": "bridge-question",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.bridge_question",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-01",
+        "module_id": "boundary-questions",
+        "kind": "question-card-set",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.question_cards",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-01",
+        "module_id": "bridge-conclusion",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.conclusion",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "pretest-header",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.header",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "time-constant-review",
+        "kind": "quiz-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "integration-review",
+        "kind": "quiz-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "bode-review",
+        "kind": "quiz-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "objective-constraint-review",
+        "kind": "quiz-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-03",
         "module_id": "route-task-table",
         "kind": "native-table",
         "renderer_owner": "content",
@@ -106,7 +189,7 @@
         "diagnostic": null
       },
       {
-        "step_id": "step-01",
+        "step_id": "step-03",
         "module_id": "speed-condition",
         "kind": "formula-card",
         "renderer_owner": "content",
@@ -116,7 +199,7 @@
         "diagnostic": null
       },
       {
-        "step_id": "step-01",
+        "step_id": "step-03",
         "module_id": "nominal-chain",
         "kind": "formula-card",
         "renderer_owner": "content",
@@ -126,118 +209,12 @@
         "diagnostic": null
       },
       {
-        "step_id": "step-01",
-        "module_id": "disturbance-entry",
-        "kind": "formula-card",
-        "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
-        "resolved_content_type": "formula",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-01",
-        "module_id": "task-conclusion",
-        "kind": "summary-card",
-        "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.conclusion",
-        "resolved_content_type": "summary",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-01",
-        "module_id": "segmented-block",
-        "kind": "image-panel",
-        "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
-        "resolved_content_type": "image",
-        "is_empty": false,
-        "diagnostic": null,
-        "consumed_note_sources": [
-          "figure_explanation"
-        ]
-      },
-      {
-        "step_id": "step-01",
-        "module_id": "setpoint-card",
-        "kind": "activity-card",
-        "renderer_owner": "activity",
-        "resolved_content_source": "interaction_spec.activity_cards",
-        "resolved_content_type": "activity",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-01",
-        "module_id": "disturbance-position-card",
-        "kind": "activity-card",
-        "renderer_owner": "activity",
-        "resolved_content_source": "interaction_spec.activity_cards",
-        "resolved_content_type": "activity",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-02",
+        "step_id": "step-03",
         "module_id": "rudder-model",
         "kind": "formula-card",
         "renderer_owner": "content",
         "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
         "resolved_content_type": "formula",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-02",
-        "module_id": "rudder-step-prompt",
-        "kind": "summary-card",
-        "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.prompt",
-        "resolved_content_type": "summary",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-02",
-        "module_id": "rudder-reading-prompt",
-        "kind": "summary-card",
-        "renderer_owner": "content",
-        "resolved_content_source": "content_blocks.reading_prompt",
-        "resolved_content_type": "summary",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-02",
-        "module_id": "rudder-identification-figure",
-        "kind": "image-panel",
-        "renderer_owner": "content",
-        "resolved_content_source": "implicit:media_by_image_panel_order",
-        "resolved_content_type": "image",
-        "is_empty": false,
-        "diagnostic": null,
-        "consumed_note_sources": [
-          "parameter_explanation"
-        ]
-      },
-      {
-        "step_id": "step-02",
-        "module_id": "time-constant-card",
-        "kind": "activity-card",
-        "renderer_owner": "activity",
-        "resolved_content_source": "interaction_spec.activity_cards",
-        "resolved_content_type": "activity",
-        "is_empty": false,
-        "diagnostic": null
-      },
-      {
-        "step_id": "step-02",
-        "module_id": "inertia-risk-card",
-        "kind": "activity-card",
-        "renderer_owner": "activity",
-        "resolved_content_source": "interaction_spec.activity_cards",
-        "resolved_content_type": "activity",
         "is_empty": false,
         "diagnostic": null
       },
@@ -258,6 +235,26 @@
         "renderer_owner": "content",
         "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
         "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-03",
+        "module_id": "segmented-block",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-03",
+        "module_id": "rudder-identification-figure",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
         "is_empty": false,
         "diagnostic": null
       },
@@ -316,7 +313,7 @@
         "module_id": "objective-formula",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "content_blocks.key_formulas",
         "resolved_content_type": "formula",
         "is_empty": false,
         "diagnostic": null
@@ -326,7 +323,7 @@
         "module_id": "penalty-formula",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "content_blocks.penalty_terms",
         "resolved_content_type": "formula",
         "is_empty": false,
         "diagnostic": null
@@ -386,7 +383,7 @@
         "module_id": "parameter-chain",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "content_blocks.calculation_chain",
         "resolved_content_type": "formula",
         "is_empty": false,
         "diagnostic": null
@@ -396,7 +393,7 @@
         "module_id": "controller-formula",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "module.payload",
         "resolved_content_type": "formula",
         "is_empty": false,
         "diagnostic": null
@@ -495,8 +492,18 @@
         "module_id": "discrete-law",
         "kind": "formula-card",
         "renderer_owner": "content",
-        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_source": "content_blocks.key_formulas",
         "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "optimization-controller-symbols",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.controller_symbol_notes",
+        "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
       },
@@ -578,11 +585,31 @@
       },
       {
         "step_id": "step-09",
+        "module_id": "disturbance-mechanism",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.disturbance_mechanism",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-09",
         "module_id": "disturbance-level-table",
         "kind": "native-table",
         "renderer_owner": "content",
         "resolved_content_source": "content_blocks.level_table",
         "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-09",
+        "module_id": "control-symbols",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.control_symbols",
+        "resolved_content_type": "summary",
         "is_empty": false,
         "diagnostic": null
       },
@@ -654,6 +681,16 @@
       },
       {
         "step_id": "step-10",
+        "module_id": "noise-controller-symbols",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.controller_symbol_notes",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-10",
         "module_id": "noise-controller-table",
         "kind": "native-table",
         "renderer_owner": "content",
@@ -672,8 +709,8 @@
         "is_empty": false,
         "diagnostic": null,
         "consumed_note_sources": [
-          "formula_explanation",
-          "figure_reading"
+          "figure_reading",
+          "formula_explanation"
         ]
       },
       {
@@ -686,8 +723,8 @@
         "is_empty": false,
         "diagnostic": null,
         "consumed_note_sources": [
-          "formula_explanation",
-          "figure_reading"
+          "figure_reading",
+          "formula_explanation"
         ]
       },
       {
@@ -825,14 +862,19 @@
   "implementation_contract_issues": [],
   "legacy_acceptance_notes": [],
   "summary": [
-    "已覆盖讲义中的核心公式与静态承载内容。",
     "已检测到 `4-7` 的 V2 互动契约，步骤字段完整。",
     "已检测到 `4-7` 的本地实现契约与作者态互动契约一致。",
-    "manifest audit pass: 12 steps, 67 modules, 0 issues",
+    "manifest audit pass: 12 steps, 71 modules, 0 issues",
     "互动设计接受文件已通过校验。",
     "互动实现接受文件已通过校验。"
   ],
-  "warnings": [],
-  "missing": [],
-  "issues": []
+  "warnings": [
+    "以下 handout_anchor 未在讲义标题中命中：已有固定结构设计链, 基础知识回顾"
+  ],
+  "missing": [
+    "以下 handout_anchor 未在讲义标题中命中：已有固定结构设计链, 基础知识回顾"
+  ],
+  "issues": [
+    "以下 handout_anchor 未在讲义标题中命中：已有固定结构设计链, 基础知识回顾"
+  ]
 }

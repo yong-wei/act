@@ -13,12 +13,12 @@
 - 已将 `design/boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
-- 已覆盖讲义中的核心公式与静态承载内容。
 - 已检测到 `4-7` 的 V2 互动契约，步骤字段完整。
 - 已检测到 `4-7` 的本地实现契约与作者态互动契约一致。
-- manifest audit pass: 12 steps, 67 modules, 0 issues
+- manifest audit pass: 12 steps, 71 modules, 0 issues
 - 互动设计接受文件已通过校验。
 - 互动实现接受文件已通过校验。
+- 以下 handout_anchor 未在讲义标题中命中：已有固定结构设计链, 基础知识回顾
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。

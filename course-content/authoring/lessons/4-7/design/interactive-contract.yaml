@@ -13,17 +13,116 @@ telemetry_strategy: 'lightweight_high_value'
 
 steps:
   step-01:
-    title: '真实航迹任务：为什么不能只看一条航向响应曲线'
-    layout: { template: 'hifi_task_structure_board', regions: [{ id: 'task', width: 'full', order: 1 }, { id: 'model', width: 'half', order: 2 }, { id: 'media', width: 'half', order: 3 }, { id: 'interaction', width: 'full', order: 4 }] }
+    title: '从固定结构设计到高保真任务边界'
+    layout: { template: 'bridge_question_board', regions: [{ id: 'intro', width: 'full', order: 1 }, { id: 'questions', width: 'full', order: 2 }, { id: 'summary', width: 'full', order: 3 }] }
     modules:
-      - { id: 'route-task-table', region: 'task', kind: 'native-table', must_be_visible: true }
-      - { id: 'speed-condition', region: 'task', kind: 'formula-card', must_be_visible: true }
-      - { id: 'nominal-chain', region: 'model', kind: 'formula-card', must_be_visible: true }
-      - { id: 'disturbance-entry', region: 'model', kind: 'formula-card', must_be_visible: true }
-      - { id: 'task-conclusion', region: 'model', kind: 'summary-card', must_be_visible: true }
-      - { id: 'segmented-block', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'setpoint-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
-      - { id: 'disturbance-position-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+      - { id: 'bridge-question', title: '已有知识能解释什么', region: 'intro', kind: 'summary-card', must_be_visible: true }
+      - { id: 'boundary-questions', title: '新的边界问题', region: 'questions', kind: 'question-card-set', must_be_visible: true }
+      - { id: 'bridge-conclusion', title: '本课扩展方向', region: 'summary', kind: 'summary-card', must_be_visible: true }
+    content_blocks:
+      bridge_question:
+        text: '已经学过的固定结构设计能把对象模型、性能指标和控制器参数接成一条可解释链；在真实船舶任务中，这条链还必须面对航迹、执行机构、扰动和传感器噪声。'
+      question_cards:
+        - '名义模型上的“效果更好”，是否能直接代表高保真任务可交付？'
+        - '只看航向响应曲线时，航迹偏离、舵角边界和扰动入口会不会被遮蔽？'
+        - '当结构仍采用经典控制器时，哪些内容需要由辨识、优化和跨模型验证补上？'
+      conclusion: '本课从已有的固定结构设计出发，扩展到高保真任务下的辨识、指标翻译、控制器设计验证和边界判断。'
+    evidence_sequence: ['已有设计链', '三类边界问题', '课程扩展方向']
+    interaction_spec:
+      interaction_kind: 'none'
+      student_task: '阅读导入问题，不提交。'
+    teacher_controls: { release_activity: 'not_applicable', open_browse: 'not_applicable', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'not_applicable' }
+    student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: false }
+    telemetry_spec: { summary_fields: ['viewed', 'timeOnStep'], misconception_tags: [] }
+    teacher_insight_spec: { widgets: ['view_count'] }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '从固定结构设计的已有知识提出高保真任务边界问题。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure/student/demo?step=step-01' }
+    acceptance_checks: ['导入页只提出边界问题，不提前给出航速、辨识参数、代价函数或控制器实质内容。']
+
+  step-02:
+    title: '前测'
+    layout: { template: 'pretest_quiz_board', regions: [{ id: 'header', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }] }
+    modules:
+      - { id: 'pretest-header', title: '基础知识回顾', region: 'header', kind: 'summary-card', must_be_visible: true }
+      - { id: 'time-constant-review', title: '一阶惯性时间常数', region: 'quiz', kind: 'quiz-card', must_be_visible: false }
+      - { id: 'integration-review', title: '积分关系', region: 'quiz', kind: 'quiz-card', must_be_visible: false }
+      - { id: 'bode-review', title: 'Bode 裕度', region: 'quiz', kind: 'quiz-card', must_be_visible: false }
+      - { id: 'objective-constraint-review', title: '目标、约束与罚项', region: 'quiz', kind: 'quiz-card', must_be_visible: false }
+    content_blocks:
+      header: '本页只回顾本单元需要调用的基础知识：一阶惯性、积分关系、频域裕度，以及目标、约束和罚项的区分。'
+    evidence_sequence: ['基础知识说明', '四个客观前测题']
+    interaction_spec:
+      interaction_kind: 'quiz_group'
+      student_task: '完成基础知识前测。'
+      activity_cards:
+        - id: 'time-constant-review'
+          title: '一阶惯性时间常数'
+          prompt: '一阶惯性环节 $G(s)=1/(Ts+1)$ 中，$T$ 变大通常意味着什么？'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+          options:
+            - { value: 'a', label: '响应更慢，接近新稳态所需时间更长。' }
+            - { value: 'b', label: '稳态增益一定变大。' }
+            - { value: 'c', label: '系统不再有动态过程。' }
+          reference_answer: '选 A。$T$ 表示一阶惯性的时间尺度，越大通常响应越慢。'
+        - id: 'integration-review'
+          title: '积分关系'
+          prompt: '若 $r(t)$ 表示艏摇角速度，航向角 $\\psi(t)$ 与它的基础关系是哪一项？'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+          options:
+            - { value: 'a', label: '$\\psi(t)=\\int r(t)\\,dt$。' }
+            - { value: 'b', label: '$r(t)=\\int \\psi(t)\\,dt$。' }
+            - { value: 'c', label: '$\\psi(t)$ 与 $r(t)$ 没有动态关系。' }
+          reference_answer: '选 A。航向角是艏摇角速度关于时间的积分。'
+        - id: 'bode-review'
+          title: 'Bode 裕度'
+          prompt: '在 Bode 图中，穿越频率附近的相位裕度主要用于判断什么？'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+          options:
+            - { value: 'a', label: '闭环对模型误差和扰动的稳定余量。' }
+            - { value: 'b', label: '执行器最大舵角的机械尺寸。' }
+            - { value: 'c', label: '传感器采样数据的文件格式。' }
+          reference_answer: '选 A。相位裕度反映闭环稳定余量。'
+        - id: 'objective-constraint-review'
+          title: '目标、约束与罚项'
+          prompt: '若舵角超过允许上限，最合适的建模归类是哪一项？'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+          options:
+            - { value: 'a', label: '硬约束，并在搜索中写成罚项或不可行判据。' }
+            - { value: 'b', label: '普通偏好，可以被更小航向误差任意抵消。' }
+            - { value: 'c', label: '与控制器设计无关。' }
+          reference_answer: '选 A。执行边界属于硬约束，罚项用于让搜索远离不可交付区域。'
+    teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
+    student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
+    telemetry_spec: { summary_fields: ['quizSubmitted', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['time_constant_gain_mix', 'rate_angle_mix', 'margin_missing', 'constraint_as_preference'] }
+    teacher_insight_spec: { widgets: ['quiz_completion_rate', 'choice_distribution'] }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '回顾一阶惯性、积分关系、频域裕度和约束罚项区分。' }
+    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure/student/demo?step=step-02' }
+    acceptance_checks: ['前测只保留一页，标题必须为“前测”，题目只回顾基础知识，不进入本课辨识参数和控制器内容。']
+
+  step-03:
+    title: '真实航迹任务与分段辨识模型结构'
+    layout: { template: 'segmented_model_board', regions: [{ id: 'task', width: 'full', order: 1 }, { id: 'formula', width: 'full', order: 2 }, { id: 'media', width: 'full', order: 3 }, { id: 'reveal', width: 'full', order: 4 }, { id: 'summary', width: 'full', order: 5 }] }
+    modules:
+      - { id: 'route-task-table', title: '真实航迹任务', region: 'task', kind: 'native-table', must_be_visible: true }
+      - { id: 'speed-condition', title: '航速条件', region: 'task', kind: 'formula-card', must_be_visible: true }
+      - { id: 'nominal-chain', title: '主通道结构', region: 'formula', kind: 'formula-card', must_be_visible: true }
+      - { id: 'rudder-model', title: '舵机惯性辨识', region: 'formula', kind: 'formula-card', must_be_visible: true }
+      - { id: 'hull-model', title: '船体艏摇辨识', region: 'formula', kind: 'formula-card', must_be_visible: true }
+      - { id: 'disturbance-model', title: '扰动等效入口', region: 'formula', kind: 'formula-card', must_be_visible: true }
+      - { id: 'segmented-block', title: '分段辨识结构图', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'rudder-identification-figure', title: '舵机阶跃辨识图', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'hull-figure', title: '船体阶跃辨识图', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'disturbance-figure', title: '扰动阶跃辨识图', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'model-boundary-reveal', title: '参数用途与边界', region: 'reveal', kind: 'step-reveal', must_be_visible: true }
+      - { id: 'final-model', title: '最终名义模型', region: 'summary', kind: 'formula-card', must_be_visible: true }
     content_blocks:
       route_task_table:
         columns: ['航线任务', '期望航向翻译', '控制含义', '图中观察量']
@@ -33,122 +132,89 @@ steps:
       key_formulas:
         - '$v=15.0\\,\\mathrm{m/s}\\approx29.2\\,\\mathrm{kn}$'
         - '$\\delta_c\\rightarrow \\frac{1}{T_rs+1}\\rightarrow\\delta\\rightarrow\\frac{K_h}{T_hs+1}\\rightarrow r\\rightarrow\\frac{1}{s}\\rightarrow\\psi$'
-        - '$d\\rightarrow\\frac{K_d}{T_ds+1}\\rightarrow d_e$'
-      figure_explanation: '结构图把舵令、舵机、船体艏摇、积分航向和反馈通道放在同一闭环内；低阶模型服务于设计解释，不替代高保真验证。'
-      conclusion: '只看航向响应会漏掉航迹偏离、舵机极限和扰动耦合；本课所有设计结果都必须回到方波与回转两类真实航迹任务。'
-      media: { runtime_media: '/course-runtime/lessons/4-7/media/4-7-segmented-identification-block.png' }
-    evidence_sequence: ['航线任务表', '航速条件', '低阶主通道', '扰动入口', '分段结构图', '两张判断卡']
-    interaction_spec:
-      interaction_kind: 'activity_card_set'
-      student_task: '解释为什么航向响应不能替代真实航迹任务。'
-      activity_cards:
-        - { id: 'setpoint-card', prompt: '为什么方波航向图必须同时显示给定航向和实际航向？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
-        - { id: 'disturbance-position-card', prompt: '扰动为什么要放在舵机之后、船体之前，而不是直接加到航向输出上？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
-    teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
-    student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
-    telemetry_spec: { summary_fields: ['viewed', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['heading_only_view', 'disturbance_output_injection'] }
-    teacher_insight_spec: { widgets: ['card_completion_rate', 'response_bucket_distribution'] }
-    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '固定真实航迹任务、统一航速、闭环结构和扰动入口。' }
-    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure/student/demo?step=step-01' }
-    acceptance_checks: ['任务、航速、闭环结构和扰动位置必须同页出现。']
-
-  step-02:
-    title: '舵机惯性辨识：舵令为什么不会立刻变成实际舵角'
-    layout: { template: 'identification_reading_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'interaction', width: 'full', order: 3 }] }
-    modules:
-      - { id: 'rudder-model', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'rudder-step-prompt', region: 'formula', kind: 'summary-card', must_be_visible: true }
-      - { id: 'rudder-reading-prompt', region: 'formula', kind: 'summary-card', must_be_visible: true }
-      - { id: 'rudder-identification-figure', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'time-constant-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
-      - { id: 'inertia-risk-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
-    content_blocks:
-      key_formulas: ['$G_r(s)=\\frac{\\delta(s)}{\\delta_c(s)}=\\frac{1}{T_rs+1}$', '$T_r=1.10\\,\\mathrm{s}$']
-      prompt: '阶跃输入为 $10^\\circ$ 舵令，阶跃输入、高保真响应和辨识响应共用左侧坐标轴。'
-      reading_prompt: '先看阶跃输入何时发生，再比较高保真响应与辨识响应的上升过程；两条响应越贴合，说明一阶惯性时间常数越能解释舵机迟滞。'
-      parameter_explanation: '$T_r$ 由一阶惯性时间常数的最小二乘拟合确定；它描述舵角接近新稳态所需的时间尺度，而不是舵角最终幅值。'
-      media: { runtime_media: '/course-runtime/lessons/4-7/media/4-7-rudder-actuator-step-identification.png' }
-    evidence_sequence: ['舵机模型', '阶跃题面', '辨识图', '参数含义', '两张判断卡']
-    interaction_spec:
-      interaction_kind: 'activity_card_set'
-      student_task: '解释舵机一阶惯性的参数含义。'
-      activity_cards:
-        - { id: 'time-constant-card', prompt: '$T_r$ 变大时，舵角到位速度会怎样变化？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
-        - { id: 'inertia-risk-card', prompt: '若把舵机误当成无惯性执行器，后面的控制器会高估哪一种能力？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
-    teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
-    student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
-    telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['instant_rudder_assumption'] }
-    teacher_insight_spec: { widgets: ['card_completion_rate'] }
-    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '用舵机阶跃图读出 $T_r$，说明舵令不是瞬时舵角。' }
-    preview_contract: { demo_path: '/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure/student/demo?step=step-02' }
-    acceptance_checks: ['模型、阶跃输入、辨识图和 $T_r$ 含义必须同时出现。']
-
-  step-03:
-    title: '船体与扰动辨识：哪些参数能设计，哪些参数只能标边界'
-    layout: { template: 'segmented_model_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'reveal', width: 'full', order: 3 }, { id: 'summary', width: 'full', order: 4 }] }
-    modules:
-      - { id: 'hull-model', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'disturbance-model', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'hull-figure', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'disturbance-figure', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'model-boundary-reveal', region: 'reveal', kind: 'step-reveal', must_be_visible: true }
-      - { id: 'final-model', region: 'summary', kind: 'formula-card', must_be_visible: true }
-    content_blocks:
-      key_formulas:
+        - '$G_r(s)=\\frac{\\delta(s)}{\\delta_c(s)}=\\frac{1}{T_rs+1}$，$T_r=1.10\\,\\mathrm{s}$'
         - '$G_h(s)=\\frac{r(s)}{\\delta(s)}=\\frac{K_h}{T_hs+1}$，$T_h=42.00\\,\\mathrm{s}$，$K_h=0.0700$'
         - '$G_d(s)=\\frac{d_e(s)}{d(s)}=\\frac{K_d}{T_ds+1}$，$T_d=54.00\\,\\mathrm{s}$，$K_d=0.0150\\,\\mathrm{rad}$'
         - '$P_{id}(s)=\\frac{K}{s(1.10s+1)(42.00s+1)},\\quad K=\\frac{0.0700}{1.10\\times42.00}$'
       media:
-        - { runtime_media: '/course-runtime/lessons/4-7/media/4-7-hull-yaw-step-identification.png' }
-        - { runtime_media: '/course-runtime/lessons/4-7/media/4-7-disturbance-step-identification.png' }
+        - { runtime_media: '/course-runtime/lessons/4-7/media/4-7-segmented-identification-block.png', explanation: '结构图把舵令、舵机、船体艏摇、积分航向和反馈通道放在同一闭环内；低阶模型服务于设计解释，不替代高保真验证。' }
+        - { runtime_media: '/course-runtime/lessons/4-7/media/4-7-rudder-actuator-step-identification.png', explanation: '阶跃输入为 $10^\\circ$ 舵令，$T_r$ 描述实际舵角接近新稳态所需的时间尺度。' }
+        - { runtime_media: '/course-runtime/lessons/4-7/media/4-7-hull-yaw-step-identification.png', explanation: '船体段从舵角到艏摇角速度辨识主通道，服务传统控制器名义设计。' }
+        - { runtime_media: '/course-runtime/lessons/4-7/media/4-7-disturbance-step-identification.png', explanation: '扰动等效通道只能作为边界入口，不证明现实风浪扰动已被充分建模。' }
       reveal_layers:
-        - '船体参数可服务传统设计，因为舵角到艏摇角速度的主通道稳定可解释。'
-        - '航向角是艏摇角速度的积分，船体参数必须同时关照 $r(t)$ 与积分后的 $\\psi(t)$。'
-        - '扰动等效通道只能作为边界入口，不能证明风浪扰动被充分建模。'
-    evidence_sequence: ['两个局部模型', '船体图', '扰动图', '三层显影', '最终模型']
+        - '舵机惯性、船体惯性和积分航向构成本课名义设计主通道。'
+        - '船体参数可服务传统设计，因为舵角到艏摇角速度的主通道稳定可解释；航向角是艏摇角速度的积分，必须同时关照 $r(t)$ 与 $\\psi(t)$。'
+        - '扰动等效通道只能作为边界入口，不能证明现实风浪扰动被充分建模。'
+    evidence_sequence: ['航迹任务表', '航速条件', '主通道结构', '舵机辨识', '船体辨识', '扰动辨识', '最终模型']
     interaction_spec: { interaction_kind: 'teacher_reveal_only', student_task: '区分可设计参数与边界参数。', step_reveal_policy: { min_layers: 3, local_click_to_continue: true } }
     teacher_controls: { release_activity: 'not_applicable', open_browse: 'not_applicable', teacher_step_reveal: 'teacher_only', reveal_reference_answer: 'not_applicable' }
     student_access: { default_visibility: 'visible', release_required: false, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: false, can_submit_without_browse: false }
-    telemetry_spec: { summary_fields: ['stepRevealCount', 'timeOnStep'], misconception_tags: ['disturbance_fit_as_truth'] }
+    telemetry_spec: { summary_fields: ['stepRevealCount', 'timeOnStep'], misconception_tags: ['heading_only_view', 'instant_rudder_assumption', 'disturbance_fit_as_truth'] }
     teacher_insight_spec: { widgets: ['step_reveal_progress'] }
-    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '组合船体与扰动辨识，并明确扰动模型边界。' }
+    ai_context_spec: { delivery_mode: 'hidden_page_context', page_goal: '把真实航迹任务、分段辨识、最终名义模型和扰动边界放在同一证据链。' }
     preview_contract: { demo_path: '/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure/student/demo?step=step-03' }
-    acceptance_checks: ['最终名义模型必须在本页出现；扰动等效模型不得写成可靠风浪模型。']
+    acceptance_checks: ['真实任务、航速、分段辨识图、舵机/船体/扰动辨识与最终名义模型必须后置到本页；扰动等效模型不得写成可靠风浪模型。']
 
   step-04:
     title: '指标到代价函数：航迹、舵角和裕度怎样进入同一个判断'
     layout: { template: 'metric_translation_workspace', regions: [{ id: 'table', width: 'full', order: 1 }, { id: 'formula', width: 'full', order: 2 }, { id: 'interaction', width: 'full', order: 3 }] }
     modules:
-      - { id: 'metric-table', region: 'table', kind: 'native-table', must_be_visible: true }
-      - { id: 'objective-formula', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'penalty-formula', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'trajectory-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
-      - { id: 'rudder-limit-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+      - { id: 'metric-table', title: '实际指标翻译表', region: 'table', kind: 'native-table', must_be_visible: true }
+      - { id: 'objective-formula', title: '综合代价函数', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'key_formulas', field: null } }
+      - { id: 'penalty-formula', title: '罚函数边界', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'penalty_terms', field: null } }
+      - { id: 'trajectory-card', title: '航迹偏离归类', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+      - { id: 'rudder-limit-card', title: '舵角越界归类', region: 'interaction', kind: 'activity-card', must_be_visible: false }
     content_blocks:
       metric_table:
         columns: ['实际指标', '课程指标表达', '角色', '判断含义']
         rows:
           - ['航向误差', '$e_\\psi(t)=\\psi_d(t)-\\psi(t)$，$J_e$', '主目标', '是否跟住期望航向']
           - ['航迹偏离', '$Y_{dev}$ 或轨迹 RMSE，$J_y$', '主目标 / 诊断指标', '航向误差是否积累成位置偏差']
-          - ['舵角', '$\\max\\delta(t)$，$J_u$', '硬约束 / 次目标', '执行机构是否可实现']
+          - ['舵角', '$\\max\\delta(t)$，$J_u$', '硬约束 / 次目标', '执行机构是否可实现，动作代价是否过高']
           - ['舵速', '$\\max\\dot{\\delta}(t)$，$J_{\\dot u}$', '硬约束 / 次目标', '舵机是否需要不可实现的快速动作']
           - ['稳定裕度', '相位裕度、增益裕度或 Nyquist 距离，$J_s$', '硬约束 / 诊断指标', '闭环是否保留模型误差和扰动余量']
+          - ['饱和占比', '$\\rho_s=T_s/T$，$J_{sat}$', '诊断指标 / 罚项', '控制器是否长期贴着执行边界工作']
+          - ['航向角速度', '$r(t)$ 峰值与振荡', '诊断指标', '是否出现过强艏摇或持续摆动']
+          - ['任务完成时间', '达到航向窗口或回转任务窗口的时间，$J_T$', '主目标 / 诊断指标', '机动是否在要求时间内完成']
       key_formulas:
         - '$J=w_eJ_e+w_yJ_y+w_uJ_u+w_{\\dot u}J_{\\dot u}+w_sJ_s+J_{penalty}$'
-        - '$J_e=\\int_0^T|e_\\psi(t)|dt,\\quad J_y=\\int_0^T|Y_{dev}(t)|dt$'
-        - '$J_u=\\int_0^T\\delta^2(t)dt,\\quad J_{\\dot u}=\\int_0^T\\dot{\\delta}^2(t)dt$'
-        - '$J_s$ 记录稳定裕度不足带来的风险。'
+        - '$J_e=\\int_0^T|e_\\psi(t)|dt$：航向误差主目标。'
+        - '$J_y=\\int_0^T|Y_{dev}(t)|dt$：航迹偏离主目标或诊断指标。'
+        - '$J_u=\\int_0^T\\delta^2(t)dt$：舵角动作代价，不能替代舵角硬边界。'
+        - '$J_{\\dot u}=\\int_0^T\\dot{\\delta}^2(t)dt$：舵速动作代价，不能替代舵速硬边界。'
+        - '$J_s$：稳定裕度不足风险，用于保留模型误差和扰动余量。'
       penalty_terms:
-        - '舵角越界：$\\max(0,|\\delta|-\\delta_{max})$ 进入罚项。'
-        - '舵速越界：$\\max(0,|\\dot\\delta|-\\dot\\delta_{max})$ 进入罚项。'
-        - '饱和时间过长、航迹偏离超限和稳定裕度不足分别作为不可交付风险写入 $J_{penalty}$。'
+        - '$J_{penalty}=\\lambda_\\delta P_\\delta+\\lambda_{\\dot\\delta}P_{\\dot\\delta}+\\lambda_{sat}P_{sat}+\\lambda_yP_y+\\lambda_mP_m$'
+        - '$P_\\delta=\\int_0^T\\max(0,|\\delta(t)|-\\delta_{max})^2dt$：舵角越界罚项。'
+        - '$P_{\\dot\\delta}=\\int_0^T\\max(0,|\\dot\\delta(t)|-\\dot\\delta_{max})^2dt$：舵速越界罚项。'
+        - '$P_{sat}=\\max(0,\\rho_s-\\rho_{max})^2$：饱和时间过长罚项。'
+        - '$P_y=\\max(0,Y_{dev,max}-Y_{allow})^2$：航迹偏离超限罚项。'
+        - '$P_m$ 记录相位裕度、增益裕度或 Nyquist 距离不足。罚项用于远离不可交付区域，不是把硬约束降为普通偏好。'
     evidence_sequence: ['指标表', '代价函数', '罚项公式', '两张判断卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
       student_task: '把真实指标翻译为目标、约束、罚项和诊断量。'
       activity_cards:
-        - { id: 'trajectory-card', prompt: '哪一项指标直接把航向误差积累成位置偏离？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
-        - { id: 'rudder-limit-card', prompt: '为什么舵角越界方案不能靠更小航向误差被接受？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
+        - id: 'trajectory-card'
+          prompt: '哪一项指标直接把航向误差积累成位置偏离？'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+          options:
+            - { value: 'a', label: '$J_y$ 或 $Y_{dev}$。' }
+            - { value: 'b', label: '$J_u$ 舵角动作代价。' }
+            - { value: 'c', label: '$J_s$ 稳定裕度风险。' }
+          reference_answer: '选 A。$J_y$ 或 $Y_{dev}$ 直接描述航迹偏离。'
+        - id: 'rudder-limit-card'
+          prompt: '舵角越界方案为什么不能靠更小航向误差被接受？'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+          options:
+            - { value: 'a', label: '舵角越界属于执行机构硬约束，应触发罚项或不可行判据。' }
+            - { value: 'b', label: '只要 $J_e$ 更小，舵角越界可以忽略。' }
+            - { value: 'c', label: '舵角只影响图像美观。' }
+          reference_answer: '选 A。执行机构边界决定可交付性，不能被航向误差收益任意抵消。'
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['all_metrics_same_weight', 'constraint_as_preference'] }
@@ -161,9 +227,9 @@ steps:
     title: '传统设计诊断四联图：为什么结构定型为 $PI+\text{超前}$'
     layout: { template: 'four_panel_diagnosis_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'reveal', width: 'full', order: 3 }] }
     modules:
-      - { id: 'plant-model', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'diagnosis-figure', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'structure-choice-reveal', region: 'reveal', kind: 'step-reveal', must_be_visible: true }
+      - { id: 'plant-model', title: '辨识模型对象', region: 'formula', kind: 'formula-card', must_be_visible: true }
+      - { id: 'diagnosis-figure', title: '传统设计诊断四联图', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'structure-choice-reveal', title: '结构选择显影链', region: 'reveal', kind: 'step-reveal', must_be_visible: true }
     content_blocks:
       key_formulas: ['$P_{id}(s)=\\frac{K}{s(T_rs+1)(T_hs+1)}$']
       reading_prompts:
@@ -189,12 +255,12 @@ steps:
     title: '传统控制器参数计算与名义验证：控制值怎样落成可复核公式'
     layout: { template: 'traditional_design_validation_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'reveal', width: 'full', order: 3 }] }
     modules:
-      - { id: 'parameter-chain', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'controller-formula', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'corrected-four-panel', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'traditional-zigzag', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'traditional-turning', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'parameter-reveal', region: 'reveal', kind: 'step-reveal', must_be_visible: true }
+      - { id: 'parameter-chain', title: '传统参数计算链', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'calculation_chain', field: null } }
+      - { id: 'controller-formula', title: '最终传统控制器', region: 'formula', kind: 'formula-card', must_be_visible: true, payload: { formula: '$C_{trad}(s)=23.11\left(\frac{42.00s+1}{42.00s}\right)\left(\frac{48.02s+1}{13.01s+1}\right)$' } }
+      - { id: 'corrected-four-panel', title: '校正后四联验证图', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'traditional-zigzag', title: '传统控制器方波验证', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'traditional-turning', title: '传统控制器回转验证', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'parameter-reveal', title: '传统设计过程显影链', region: 'reveal', kind: 'step-reveal', must_be_visible: true }
     content_blocks:
       key_formulas:
         - '$T_i=T_h=42.00\\,\\mathrm{s}$，$\\omega_c=0.040\\,\\mathrm{rad/s}$，$\\phi_m=35^\\circ$'
@@ -215,7 +281,7 @@ steps:
         - '校正四联图上方左侧为校正前/校正后阶跃响应，上方右侧为完整 MATLAB 式 Bode 图，必须同时保留幅频和相频。'
         - 'Bode 子图必须同时呈现原系统、校正装置和校正后开环结果，并标注穿越频率与相位裕度。'
         - '下方左右分别为校正前根轨迹和校正后根轨迹，不能降级为单一响应曲线。'
-      reveal_layers: ['积分零点放在船体慢极点附近。', '按目标穿越频率和相位补偿计算超前零极点。', '用穿越频率幅值条件确定总增益。', '跨模型验证检查名义设计能否承受高保真任务差异。']
+      reveal_layers: ['积分零点放在船体慢极点附近：$T_i=T_h=42.00\,\mathrm{s}$。', '按目标穿越频率和相位补偿计算超前零极点：$T_z=48.02\,\mathrm{s}$，$T_p=13.01\,\mathrm{s}$。', '用穿越频率幅值条件确定总增益：$K_c=23.11$。', '最终控制器形态为 $C_{trad}(s)=23.11((42.00s+1)/(42.00s))((48.02s+1)/(13.01s+1))$。', '跨模型验证检查名义设计能否承受高保真任务差异。']
     evidence_sequence: ['参数链', '控制器公式', '校正四联图', '方波验证', '回转验证', '结论']
     interaction_spec: { interaction_kind: 'teacher_reveal_only', student_task: '追踪传统控制器参数来源与跨模型验证。', step_reveal_policy: { min_layers: 4, local_click_to_continue: true } }
     interactive_figure_spec: { layout_mirror: 'corrected_four_panel_plus_validation', baseline_media: '/course-runtime/lessons/4-7/media/4-7-traditional-design-four-panel.png', controls: { placement: 'below_formula', feasible_region: 'not_applicable' }, reading_order: ['parameter_chain', 'controller_formula', 'corrected_four_panel', 'nominal_validation'] }
@@ -231,14 +297,15 @@ steps:
     title: '优化设计编码与解码：搜索结果怎样回到确定控制值'
     layout: { template: 'optimization_decode_workspace', regions: [{ id: 'encoding', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'table', width: 'full', order: 3 }, { id: 'interaction', width: 'full', order: 4 }] }
     modules:
-      - { id: 'structure-family', region: 'encoding', kind: 'summary-card', must_be_visible: true }
-      - { id: 'search-settings', region: 'encoding', kind: 'summary-card', must_be_visible: true }
-      - { id: 'identified-convergence', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'hifi-convergence', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'discrete-law', region: 'table', kind: 'formula-card', must_be_visible: true }
-      - { id: 'controller-table', region: 'table', kind: 'native-table', must_be_visible: true }
-      - { id: 'c3-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
-      - { id: 'c4-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+      - { id: 'structure-family', title: '可搜索结构集合', region: 'encoding', kind: 'summary-card', must_be_visible: true }
+      - { id: 'search-settings', title: '搜索设置', region: 'encoding', kind: 'summary-card', must_be_visible: true }
+      - { id: 'identified-convergence', title: '辨识模型优化收敛曲线', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'hifi-convergence', title: '高保真模型优化收敛曲线', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'discrete-law', title: '离散控制律', region: 'table', kind: 'formula-card', must_be_visible: true, payload: { block_key: 'key_formulas', field: null } }
+      - { id: 'optimization-controller-symbols', title: '控制器符号与参数含义', region: 'table', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'controller_symbol_notes', field: null } }
+      - { id: 'controller-table', title: '控制器参数表', region: 'table', kind: 'native-table', must_be_visible: true }
+      - { id: 'c3-card', title: '滞后强度判断', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+      - { id: 'c4-card', title: '微分滤波判断', region: 'interaction', kind: 'activity-card', must_be_visible: false }
     content_blocks:
       structures: ['PI', '超前', 'PI + 超前', '滞后 + 超前', '带微分滤波的 PID']
       structure_code_fields:
@@ -253,6 +320,13 @@ steps:
       media:
         - { runtime_media: '/course-runtime/lessons/4-7/media/4-7-optimization-convergence-identified.png' }
         - { runtime_media: '/course-runtime/lessons/4-7/media/4-7-optimization-convergence-hifi.png' }
+      controller_symbol_notes:
+        - '$C_0$：比例 + 微分基线，用作未增强参考。'
+        - '$C_1$：超前 + 微分滤波，改善相位和舵速噪声。'
+        - '$C_2$：传统 $PI+\text{超前}$ 结构，兼顾稳态误差和中频相位。'
+        - '$C_3$：滞后 + 超前结构，在高保真任务中增强低频修正并保留相位。'
+        - '$C_4$：抗噪优化的 PID 滤波结构，强化微分动作并加大测量滤波。'
+        - '$k_p,k_i,k_d$ 分别为比例、积分和微分滤波支路系数；$a_\ell$ 为超前强度，$a_g$ 为滞后强度；$\beta$ 为微分滤波系数，$\tau_m$ 为测量低通时间常数。'
       controller_table:
         columns: ['符号', '结构 / 解码职责', '$k_p$', '$k_i$', '$k_d$', '$a_\\ell$', '$a_g$', '$\\beta$', '$\\tau_m$']
         rows:
@@ -261,14 +335,14 @@ steps:
           - ['$C_2$', 'PI + 超前，兼顾稳态误差和中频相位', '1.18', '0.0030', '19.0', '0.34', '0', '0.78', '0.35']
           - ['$C_3$', '滞后 + 超前，在高保真任务中增强低频修正并保留相位', '0.95', '0.0015', '20.0', '0.28', '0.18', '0.80', '0.55']
           - ['$C_4$', '抗噪优化的 PID 滤波结构，强化微分动作并加大测量滤波', '1.35', '0.0040', '28.0', '0.15', '0', '0.62', '0.80']
-    evidence_sequence: ['结构集合', '搜索设置', '收敛曲线', '控制律', '参数表', '两张判断卡']
+    evidence_sequence: ['结构集合', '搜索设置', '收敛曲线', '控制律', '控制器符号含义', '参数表', '两张判断卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
       student_task: '把搜索结果解码为结构职责和控制值。'
       activity_cards:
         - { id: 'c3-card', prompt: '$C_3$ 比 $C_2$ 多出的滞后强度 $a_g$ 在结构职责上意味着什么？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
         - { id: 'c4-card', prompt: '$C_4$ 的 $k_d$ 和 $\\beta$ 如何影响高保真任务中的微分动作？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
-    interactive_figure_spec: { layout_mirror: 'two_convergence_curves_plus_decode_table', baseline_media: '/course-runtime/lessons/4-7/media/4-7-optimization-convergence-identified.png', controls: { placement: 'above_table', feasible_region: 'not_applicable' }, reading_order: ['search_settings', 'convergence_curves', 'control_law', 'decode_table'] }
+    interactive_figure_spec: { layout_mirror: 'two_convergence_curves_plus_decode_table', baseline_media: '/course-runtime/lessons/4-7/media/4-7-optimization-convergence-identified.png', controls: { placement: 'above_table', feasible_region: 'not_applicable' }, reading_order: ['search_settings', 'convergence_curves', 'control_law', 'controller_symbols', 'decode_table'] }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     telemetry_spec: { summary_fields: ['cardSubmitted', 'timeOnStep'], misconception_tags: ['algorithm_name_only', 'decode_missing'] }
@@ -281,10 +355,10 @@ steps:
     title: '跨模型验证：名义模型上最好是否能转成高保真可用'
     layout: { template: 'cross_model_compare_board', regions: [{ id: 'criteria', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'reveal', width: 'full', order: 3 }] }
     modules:
-      - { id: 'comparison-criteria', region: 'criteria', kind: 'summary-card', must_be_visible: true }
-      - { id: 'optimized-zigzag', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'optimized-turning', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'cross-model-reveal', region: 'reveal', kind: 'step-reveal', must_be_visible: true }
+      - { id: 'comparison-criteria', title: '跨模型比较口径', region: 'criteria', kind: 'summary-card', must_be_visible: true }
+      - { id: 'optimized-zigzag', title: '名义优化方波验证', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'optimized-turning', title: '名义优化回转验证', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'cross-model-reveal', title: '交付判断显影链', region: 'reveal', kind: 'step-reveal', must_be_visible: true }
     content_blocks:
       criteria: ['传统设计在辨识模型', '传统设计放到高保真模型', '辨识模型优化在辨识模型', '辨识模型优化放到高保真模型', '高保真模型优化放到高保真模型']
       visible_series:
@@ -313,12 +387,14 @@ steps:
     title: '扰动边界：为什么中等扰动需要重新搜索抗扰控制器'
     layout: { template: 'disturbance_boundary_board', regions: [{ id: 'table', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'interaction', width: 'full', order: 3 }] }
     modules:
-      - { id: 'disturbance-level-table', region: 'table', kind: 'native-table', must_be_visible: true }
-      - { id: 'disturbance-controller-table', region: 'table', kind: 'native-table', must_be_visible: true }
-      - { id: 'disturbed-zigzag', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'disturbed-turning', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'disturbance-failure-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
-      - { id: 'cd-target-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+      - { id: 'disturbance-mechanism', title: '扰动机理说明', region: 'table', kind: 'summary-card', must_be_visible: true }
+      - { id: 'disturbance-level-table', title: '扰动等级表', region: 'table', kind: 'native-table', must_be_visible: true }
+      - { id: 'control-symbols', title: '控制器符号含义', region: 'table', kind: 'summary-card', must_be_visible: true }
+      - { id: 'disturbance-controller-table', title: '扰动控制器参数表', region: 'table', kind: 'native-table', must_be_visible: true }
+      - { id: 'disturbed-zigzag', title: '扰动方波任务对比', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'disturbed-turning', title: '扰动回转任务对比', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'disturbance-failure-card', title: '扰动退化判断', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+      - { id: 'cd-target-card', title: '抗扰控制目标判断', region: 'interaction', kind: 'activity-card', must_be_visible: false }
     content_blocks:
       level_table:
         columns: ['扰动等级', '相对满舵艏摇力矩', '预期闭环表现', '设计用途']
@@ -332,7 +408,11 @@ steps:
           - ['$C_2$', '1.18', '0.0030', '19.0', '0.34', '0', '0.78', '0.35']
           - ['$C_3$', '0.95', '0.0015', '20.0', '0.28', '0.18', '0.80', '0.55']
           - ['$C_d$', '2.014', '0.0120', '31.8', '0.10', '0.12', '0.72', '0.90']
-      mechanism_text: '扰动在舵机之后、船体之前进入，相当于给艏摇主通道增加外部力矩；闭环反馈会修正误差，但修正需要舵角和舵速余量，所以中等扰动通常表现为误差和控制负担增大，而不是立即完全失效。'
+      disturbance_mechanism: '扰动在舵机之后、船体之前进入，相当于给艏摇主通道增加外部力矩；闭环反馈会修正误差，但修正需要舵角和舵速余量，所以中等扰动通常表现为误差和控制负担增大，而不是立即完全失效。'
+      control_symbols:
+        - '$C_2$：无扰动传统设计，结构为 $PI+\text{超前}$。'
+        - '$C_3$：无扰动高保真优化结果，结构为滞后 + 超前。'
+        - '$C_d$：把中等扰动场景纳入目标函数后重新搜索得到的抗扰控制器。'
       figure_reading:
         - '方波扰动图先比较 $C_2$、$C_3$、$C_d$ 的航向峰值和残留误差，再看航迹是否在两个周期内持续漂移。'
         - '回转扰动图先看单调回转是否能完成一个圆周，再看不同控制器的轨迹半径和舵角负担。'
@@ -345,8 +425,26 @@ steps:
       interaction_kind: 'activity_card_set'
       student_task: '按工程强度解释扰动影响和抗扰优化目标。'
       activity_cards:
-        - { id: 'disturbance-failure-card', prompt: '为什么中等扰动下传统设计通常是退化，而不是必然完全失效？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
-        - { id: 'cd-target-card', prompt: '$C_d$ 与 $C_3$ 的设计目标有什么不同？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
+        - id: 'disturbance-failure-card'
+          prompt: '为什么中等扰动下传统设计通常是退化，而不是必然完全失效？'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+          options:
+            - { value: 'a', label: '扰动仍在执行余量内，闭环可修正误差，但误差和控制负担会增大。' }
+            - { value: 'b', label: '任意扰动都会让闭环立刻完全失效。' }
+            - { value: 'c', label: '扰动只改变图表颜色，不改变任务。' }
+          reference_answer: '选 A。中等扰动通常暴露退化和余量消耗，不等同于执行能力完全耗尽。'
+        - id: 'cd-target-card'
+          prompt: '$C_d$ 与 $C_3$ 的设计目标有什么不同？'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+          options:
+            - { value: 'a', label: '$C_d$ 把扰动场景纳入目标函数后重新搜索，$C_3$ 是无扰动优化结果。' }
+            - { value: 'b', label: '$C_d$ 只是把 $C_3$ 改名。' }
+            - { value: 'c', label: '$C_d$ 不需要检查舵角和航迹。' }
+          reference_answer: '选 A。$C_d$ 的目标包含扰动任务下的误差、航迹和执行边界。'
     interactive_figure_spec: { layout_mirror: 'disturbed_two_task_compare', baseline_media: '/course-runtime/lessons/4-7/media/4-7-disturbance-controller-zigzag45.png', controls: { placement: 'below_tables', feasible_region: 'not_applicable' }, reading_order: ['disturbance_level', 'controller_values', 'zigzag_compare', 'turning_compare'] }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
@@ -360,15 +458,22 @@ steps:
     title: '航向传感器噪声：噪声只进入测量通道时怎样抗噪'
     layout: { template: 'noise_channel_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'table', width: 'full', order: 2 }, { id: 'media', width: 'full', order: 3 }, { id: 'interaction', width: 'full', order: 4 }] }
     modules:
-      - { id: 'noise-equation', region: 'formula', kind: 'formula-card', must_be_visible: true }
-      - { id: 'noise-controller-table', region: 'table', kind: 'native-table', must_be_visible: true }
-      - { id: 'noise-zigzag', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'noise-turning', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'bias-random-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
-      - { id: 'filter-need-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+      - { id: 'noise-equation', title: '航向测量方程', region: 'formula', kind: 'formula-card', must_be_visible: true }
+      - { id: 'noise-controller-symbols', title: '控制器符号与参数含义', region: 'table', kind: 'summary-card', must_be_visible: true, payload: { block_key: 'controller_symbol_notes', field: null } }
+      - { id: 'noise-controller-table', title: '噪声控制器参数表', region: 'table', kind: 'native-table', must_be_visible: true }
+      - { id: 'noise-zigzag', title: '噪声方波任务对比', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'noise-turning', title: '噪声回转任务对比', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'bias-random-card', title: '偏置与随机噪声判断', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+      - { id: 'filter-need-card', title: '滤波必要性判断', region: 'interaction', kind: 'activity-card', must_be_visible: false }
     content_blocks:
       key_formulas: ['$\\psi_m(t)=\\psi(t)+b_\\psi(t)+\\sigma_\\psi\\xi_k$']
       formula_explanation: '$\\psi(t)$ 是真实航向，$b_\\psi(t)$ 是慢变偏置，$\\sigma_\\psi$ 是噪声强度，$\\xi_k$ 是离散零均值随机量。'
+      controller_symbol_notes:
+        - '$C_1$：无抗噪传统设计，保留较强微分动作但缺少充分测量滤波。'
+        - '$C_2$：有抗噪传统设计，在传统结构中加入测量低通和微分滤波。'
+        - '$C_3$：无抗噪优化设计，用作高保真优化但未专门处理测量噪声的对照。'
+        - '$C_4$：有抗噪优化设计，通过较强微分动作和测量滤波降低噪声放大。'
+        - '$k_p,k_i,k_d$ 分别为比例、积分和微分滤波支路系数；$a_\ell$ 为超前强度，$a_g$ 为滞后强度；$\beta$ 为微分滤波系数，$\tau_m$ 为测量低通时间常数。'
       controller_table:
         columns: ['符号', '$k_p$', '$k_i$', '$k_d$', '$a_\\ell$', '$a_g$', '$\\beta$', '$\\tau_m$']
         rows:
@@ -383,13 +488,31 @@ steps:
       media:
         - { runtime_media: '/course-runtime/lessons/4-7/media/4-7-noise-controller-zigzag45.png' }
         - { runtime_media: '/course-runtime/lessons/4-7/media/4-7-noise-controller-turning_ramp.png' }
-    evidence_sequence: ['噪声方程', '参数表', '方波图', '回转图', '两张判断卡']
+    evidence_sequence: ['噪声方程', '控制器符号含义', '参数表', '方波图', '回转图', '两张判断卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
       student_task: '区分航向真实值、测量偏置和随机噪声。'
       activity_cards:
-        - { id: 'bias-random-card', prompt: '$\\psi_m(t)$ 中哪一项表示慢变偏置？哪一项表示随机测量噪声？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
-        - { id: 'filter-need-card', prompt: '为什么抗噪传统方案要加入测量低通和微分滤波？', response_kind: 'fill_text', submit_scope: 'per_card', layout_span: 'half' }
+        - id: 'bias-random-card'
+          prompt: '$\\psi_m(t)$ 中哪一项表示慢变偏置？哪一项表示随机测量噪声？'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+          options:
+            - { value: 'a', label: '$b_\\psi(t)$ 是慢变偏置，$\\sigma_\\psi\\xi_k$ 是随机测量噪声。' }
+            - { value: 'b', label: '$\\psi(t)$ 是慢变偏置，$b_\\psi(t)$ 是随机测量噪声。' }
+            - { value: 'c', label: '$\\xi_k$ 是真实航向。' }
+          reference_answer: '选 A。$b_\\psi(t)$ 表示慢变偏置，$\\sigma_\\psi\\xi_k$ 表示随机测量噪声。'
+        - id: 'filter-need-card'
+          prompt: '为什么抗噪传统方案要加入测量低通和微分滤波？'
+          response_kind: 'single_choice'
+          submit_scope: 'per_card'
+          layout_span: 'half'
+          options:
+            - { value: 'a', label: '避免微分环节直接放大测量噪声，并降低舵角抖动。' }
+            - { value: 'b', label: '让外部扰动变成零。' }
+            - { value: 'c', label: '取消航向反馈。' }
+          reference_answer: '选 A。测量低通和微分滤波用于抑制测量噪声放大。'
     interactive_figure_spec: { layout_mirror: 'noise_two_task_compare', baseline_media: '/course-runtime/lessons/4-7/media/4-7-noise-controller-zigzag45.png', controls: { placement: 'below_table', feasible_region: 'not_applicable' }, reading_order: ['noise_equation', 'controller_values', 'zigzag_compare', 'turning_compare'] }
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
@@ -403,11 +526,11 @@ steps:
     title: '后测：参数来源、结构选择和边界判断是否已经成链'
     layout: { template: 'posttest_board', regions: [{ id: 'header', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }] }
     modules:
-      - { id: 'posttest-header', region: 'header', kind: 'summary-card', must_be_visible: true }
-      - { id: 'rudder-question', region: 'quiz', kind: 'quiz-card', must_be_visible: false }
-      - { id: 'hull-question', region: 'quiz', kind: 'quiz-card', must_be_visible: false }
-      - { id: 'cross-model-question', region: 'quiz', kind: 'quiz-card', must_be_visible: false }
-      - { id: 'disturbance-question', region: 'quiz', kind: 'quiz-card', must_be_visible: false }
+      - { id: 'posttest-header', title: '后测说明', region: 'header', kind: 'summary-card', must_be_visible: true }
+      - { id: 'rudder-question', title: '舵机参数来源', region: 'quiz', kind: 'quiz-card', must_be_visible: false }
+      - { id: 'hull-question', title: '船体参数来源', region: 'quiz', kind: 'quiz-card', must_be_visible: false }
+      - { id: 'cross-model-question', title: '跨模型交付判断', region: 'quiz', kind: 'quiz-card', must_be_visible: false }
+      - { id: 'disturbance-question', title: '扰动边界判断', region: 'quiz', kind: 'quiz-card', must_be_visible: false }
     content_blocks:
       header: '本页检查参数来源、结构选择、跨模型验证和边界判断是否已经连成链。'
     evidence_sequence: ['后测说明', '四题独立提交', '参考答案']
@@ -416,33 +539,49 @@ steps:
       student_task: '完成四张后测题卡。'
       activity_cards:
         - id: 'rudder-question'
-          prompt: '根据舵机阶跃辨识图，说明 $T_r$ 的含义。为什么实际舵角响应不能被看作无惯性的立即到位？若 $T_r$ 被低估，控制器设计会怎样误判舵机能力？'
-          reference_answer: '$T_r$ 是舵机一阶惯性的时间尺度，表示实际舵角接近新稳态所需的滞后。若把它看成零，会高估舵机快速到位能力，使控制器给出过快舵令。'
-          response_kind: 'fill_text'
+          prompt: '关于舵机阶跃辨识中的 $T_r$，哪一项判断正确？'
+          reference_answer: '选 A。$T_r$ 是舵机一阶惯性的时间尺度，低估它会高估舵机快速执行能力。'
+          response_kind: 'single_choice'
           submit_scope: 'per_card'
           layout_span: 'half'
-          rubric: ['说清 $T_r$ 是时间常数。', '说明实际舵角存在迟滞。', '指出低估 $T_r$ 会高估快速执行能力。']
+          options:
+            - { value: 'a', label: '$T_r$ 是实际舵角接近新稳态所需的时间尺度，低估它会高估舵机快速执行能力。' }
+            - { value: 'b', label: '$T_r$ 是舵角最终稳态幅值，越小表示稳态增益越大。' }
+            - { value: 'c', label: '$T_r$ 与舵机动态无关，只用于图例命名。' }
+          rubric: ['选 A 得分。']
         - id: 'hull-question'
-          prompt: '用 $G_h(s)=K_h/(T_hs+1)$ 解释 $T_h$ 与 $K_h$ 的来源。为什么船体段辨识需要同时约束艏摇角速度和积分后的航向角？'
-          reference_answer: '$T_h$ 来自艏摇角速度响应的时间尺度，$K_h$ 来自稳态艏摇角速度与舵角的比值；航向角是艏摇角速度积分，因此只拟合 $r(t)$ 不足以保证 $\\psi(t)$ 任务可用。'
-          response_kind: 'fill_text'
+          prompt: '关于 $G_h(s)=K_h/(T_hs+1)$ 与航向任务，哪一项判断正确？'
+          reference_answer: '选 A。$T_h$ 来自响应时间尺度，$K_h$ 来自稳态比值；航向角是艏摇角速度积分，因此需要同时检查 $r(t)$ 与 $\\psi(t)$。'
+          response_kind: 'single_choice'
           submit_scope: 'per_card'
           layout_span: 'half'
-          rubric: ['说明 $T_h$ 来自响应时间尺度。', '说明 $K_h$ 来自稳态比值。', '指出航向角是艏摇角速度积分并需同时约束 $r(t)$ 与 $\\psi(t)$。']
+          options:
+            - { value: 'a', label: '$T_h$ 来自响应时间尺度，$K_h$ 来自稳态比值；只拟合 $r(t)$ 不足以保证积分后的 $\\psi(t)$ 任务可用。' }
+            - { value: 'b', label: '$T_h$ 与 $K_h$ 都来自噪声方程，和船体主通道无关。' }
+            - { value: 'c', label: '只要 $r(t)$ 曲线好看，就不需要检查 $\\psi(t)$。' }
+          rubric: ['选 A 得分。']
         - id: 'cross-model-question'
-          prompt: '若基于辨识模型的优化设计在辨识模型上代价更小，但在高保真 zig-zag 航线中航迹偏离更大，应怎样修改最终判断？'
-          reference_answer: '最终判断应降低该方案的交付等级，要求高保真模型上的航向、航迹和执行边界同时合格；辨识模型上的低代价只能说明名义入口成立。'
-          response_kind: 'fill_text'
+          prompt: '若基于辨识模型的优化设计在辨识模型上代价更小，但在高保真 zig-zag 航线中航迹偏离更大，最终判断应选哪一项？'
+          reference_answer: '选 A。辨识模型低代价只能说明名义入口成立，最终交付必须看高保真航向、航迹和执行边界。'
+          response_kind: 'single_choice'
           submit_scope: 'per_card'
           layout_span: 'half'
-          rubric: ['指出不能只按辨识模型代价交付。', '提到高保真航向证据。', '提到高保真航迹和执行边界。']
+          options:
+            - { value: 'a', label: '降低该方案交付等级，并要求高保真航向、航迹和执行边界同时合格。' }
+            - { value: 'b', label: '仍按辨识模型代价最小直接交付。' }
+            - { value: 'c', label: '删除航迹指标，只保留航向角曲线。' }
+          rubric: ['选 A 得分。']
         - id: 'disturbance-question'
-          prompt: '$T_d=54.00\\,\\mathrm{s}$、$K_d=0.0150\\,\\mathrm{rad}$ 为什么不能证明现实风浪扰动已经被充分建模？答案需要同时提到艏摇、横荡、局部流速和舵效。'
-          reference_answer: '该等效通道只描述某一类艏摇等效影响，不能覆盖横荡、局部流速改变和舵效变化；因此它是扰动边界入口，不是完整风浪模型。'
-          response_kind: 'fill_text'
+          prompt: '$T_d=54.00\\,\\mathrm{s}$、$K_d=0.0150\\,\\mathrm{rad}$ 为什么不能证明现实风浪扰动已经被充分建模？'
+          reference_answer: '选 A。该通道只描述一类艏摇等效影响，不能覆盖横荡、局部流速改变和舵效变化。'
+          response_kind: 'single_choice'
           submit_scope: 'per_card'
           layout_span: 'half'
-          rubric: ['指出等效扰动不是完整风浪模型。', '提到艏摇。', '在横荡、局部流速、舵效中至少提到两项。']
+          options:
+            - { value: 'a', label: '它只是艏摇等效扰动入口，不能覆盖横荡、局部流速改变和舵效变化。' }
+            - { value: 'b', label: '只要有 $T_d$ 和 $K_d$，现实风浪就已被完整建模。' }
+            - { value: 'c', label: '扰动模型只影响传感器读数，不影响船体通道。' }
+          rubric: ['选 A 得分。']
     teacher_controls: { release_activity: 'teacher_toggle', open_browse: 'page_load_open', teacher_step_reveal: 'not_applicable', reveal_reference_answer: 'teacher_toggle' }
     student_access: { default_visibility: 'visible', activity_visibility: 'hidden', release_required: true, browse_required: false, can_view_problem_statement: true, can_view_derivation_steps: true, can_submit_without_browse: true }
     telemetry_spec: { summary_fields: ['quizSubmitted', 'cardSubmitted', 'timeOnStep'], misconception_tags: ['parameter_source_missing', 'disturbance_noise_mix', 'heading_only_validation'] }
@@ -455,10 +594,10 @@ steps:
     title: '总结：传统控制结构的局限与前沿方法入口'
     layout: { template: 'summary_exit_board', regions: [{ id: 'summary', width: 'full', order: 1 }, { id: 'media', width: 'full', order: 2 }, { id: 'frontier', width: 'full', order: 3 }] }
     modules:
-      - { id: 'limitation-cards', region: 'summary', kind: 'summary-card', must_be_visible: true }
-      - { id: 'real-scenario-figure', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'info-figure', region: 'media', kind: 'image-panel', must_be_visible: true }
-      - { id: 'frontier-methods', region: 'frontier', kind: 'summary-card', must_be_visible: true }
+      - { id: 'limitation-cards', title: '传统结构局限', region: 'summary', kind: 'summary-card', must_be_visible: true }
+      - { id: 'real-scenario-figure', title: '真实场景解释图', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'info-figure', title: '课程收束信息图', region: 'media', kind: 'image-panel', must_be_visible: true }
+      - { id: 'frontier-methods', title: '前沿方法入口', region: 'frontier', kind: 'summary-card', must_be_visible: true }
     content_blocks:
       limitations:
         - { name: '固定低阶传递函数', explanation: '三阶名义模型能解释主要航向通道，但不能完整表达横荡、舵效变化和工况切换。' }
