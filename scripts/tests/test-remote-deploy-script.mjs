@@ -210,9 +210,9 @@ function main() {
   );
 
   assert.equal(
-    script.includes("data-governance-worker.ts"),
+    script.includes("/app-container-start-wrapper.sh worker"),
     true,
-    '远端部署脚本必须校验远端部署脚本已纳入 worker'
+    '远端部署脚本必须校验远端部署脚本通过容器启动包装脚本纳入 worker'
   );
 
   assert.match(

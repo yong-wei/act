@@ -331,7 +331,7 @@ remote "grep -q '/app/course-content/runtime:ro' '${REMOTE_APP_DEPLOY_SCRIPT}'"
 
 log "- 校验远端应用部署脚本已纳入 Redis 与 worker"
 remote "grep -q 'redis-server --appendonly yes' '${REMOTE_APP_DEPLOY_SCRIPT}'"
-remote "grep -q 'data-governance-worker.ts' '${REMOTE_APP_DEPLOY_SCRIPT}'"
+remote "grep -q '/app-container-start-wrapper.sh worker' '${REMOTE_APP_DEPLOY_SCRIPT}'"
 
 log "- 校验远端 systemd 配置脚本已更新数据库/Redis 等待逻辑"
 remote "grep -q 'pg_isready' '${REMOTE_SERVICE_SCRIPT}'"
