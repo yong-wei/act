@@ -1,6 +1,8 @@
 'use client';
 
-import { createElement, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createElement, Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { InlineMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 import {
   buildPerCardSubmissionAnswers,
@@ -145,6 +147,24 @@ type TeacherResponseItem = {
   response: ManifestStepResponse;
 };
 
+function normalizeMath(value: string) {
+  return value
+    .trim()
+    .replace(/^\$/, '')
+    .replace(/\$$/, '')
+    .replace(/\\\\/g, '\\');
+}
+
+function renderActivityInlineContent(text: string) {
+  const parts = text.split(/(\$[^$]+\$)/g).filter(Boolean);
+  return parts.map((part, index) => {
+    if (part.startsWith('$') && part.endsWith('$')) {
+      return <InlineMath key={`${part}-${index}`} math={normalizeMath(part)} />;
+    }
+    return <Fragment key={`${part}-${index}`}>{part}</Fragment>;
+  });
+}
+
 function cardsFor(stepManifest: InteractiveRuntimeStepManifest) {
   return stepManifest.interactionSpec.activityCards ?? [];
 }
@@ -162,7 +182,7 @@ function ReferenceAnswer({
     return (
       <span>
         <strong>参考解释：</strong>
-        {card.referenceAnswer}
+        {renderActivityInlineContent(card.referenceAnswer)}
       </span>
     );
   }
@@ -215,7 +235,7 @@ function StudentCardAnswerInput({
               onChange={() => onChange(option.value)}
               className="mt-1"
             />
-            <span>{option.label}</span>
+            <span>{renderActivityInlineContent(option.label)}</span>
           </label>
         ))}
       </fieldset>
@@ -289,7 +309,7 @@ function StudentCards({
         {cards.map((card, index) => (
           <div key={card.id} className="premium-lesson-panel">
             <div className="premium-lesson-kicker">{cardTitle(card, index)}</div>
-            <p className="premium-lesson-title mt-2 text-sm leading-7">{card.prompt}</p>
+            <p className="premium-lesson-title mt-2 text-sm leading-7">{renderActivityInlineContent(card.prompt)}</p>
             <StudentCardAnswerInput
               card={card}
               value={draftAnswers[card.id] ?? ''}

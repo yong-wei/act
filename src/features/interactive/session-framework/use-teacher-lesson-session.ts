@@ -7,6 +7,7 @@ import type {
   LessonStepLite,
   TeacherLessonSessionResult,
 } from './session-contract';
+import { getFetchFailureTelemetry } from './fetch-diagnostics';
 import { useSessionProgressChannel } from './use-session-progress-channel';
 import { useSessionStateChannel } from './use-session-state-channel';
 
@@ -37,6 +38,7 @@ export function useTeacherLessonSession<
     teacherIndex,
     loadingSession,
     error: progressError,
+    errorTelemetry: progressErrorTelemetry,
     patchCurrentStep: patchProgressCurrentStep,
     syncSession,
     finishSession,
@@ -55,13 +57,16 @@ export function useTeacherLessonSession<
     postState,
   } = useSessionStateChannel({ sessionId });
   const [error, setError] = useState<string | null>(null);
+  const [stateErrorTelemetry, setStateErrorTelemetry] = useState<Record<string, unknown> | null>(null);
 
   const syncStates = useCallback(async () => {
     try {
       await fetchTeacherViewStates();
       setError(null);
+      setStateErrorTelemetry(null);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '课堂状态同步失败');
+      setStateErrorTelemetry(getFetchFailureTelemetry(requestError));
     }
   }, [fetchTeacherViewStates]);
 
@@ -115,6 +120,7 @@ export function useTeacherLessonSession<
       isOutOfSync: false,
       loadingSession,
       error: error ?? progressError,
+      errorTelemetry: error ? stateErrorTelemetry : progressErrorTelemetry,
       teacherViewHydrated,
       patchCurrentStep,
       postTeacherSyncState,
@@ -132,7 +138,9 @@ export function useTeacherLessonSession<
       teacherIndex,
       loadingSession,
       error,
+      stateErrorTelemetry,
       progressError,
+      progressErrorTelemetry,
       teacherViewHydrated,
       patchCurrentStep,
       postTeacherSyncState,

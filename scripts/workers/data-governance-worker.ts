@@ -24,13 +24,8 @@ import {
 } from '@/lib/data-governance/competency-engine';
 import { fetchSecondaryEvents, markEventsProcessed } from '@/lib/data-governance/event-buffer';
 import {
-  deriveFactOutcome,
-  deriveFactScore,
-  deriveFactTimeSpent,
-  mapActionTypeToFactType,
-  resolveCompetencyContribution,
-} from '@/lib/data-governance/event-normalization';
-import { isCoreEvent } from '@/lib/data-governance/event-types';
+  eventToLearningFactInput,
+} from '@/lib/data-governance/learning-fact-materialization';
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
@@ -437,21 +432,24 @@ async function processEventIngestionJob(job: Job<EventIngestionJob>) {
     },
   });
 
-  const coreEvents = events.filter((event) => isCoreEvent(event.actionType));
-  const facts = coreEvents.map(eventToFact).filter(Boolean);
+  const facts = events
+    .map(eventToLearningFactInput)
+    .filter((fact): fact is Prisma.LearningFactCreateManyInput => Boolean(fact));
 
+  let factsCreated = 0;
   if (facts.length > 0) {
-    await db.learningFact.createMany({
+    const result = await db.learningFact.createMany({
       data: facts as Prisma.LearningFactCreateManyInput[],
       skipDuplicates: true,
     });
+    factsCreated = result.count;
   }
 
   await markEventsProcessed(events.length);
 
   return {
     processed: events.length,
-    factsCreated: facts.length,
+    factsCreated,
   };
 }
 
@@ -461,33 +459,6 @@ function resolveBatchDate(batchDate?: string, now = new Date()): string {
   }
 
   return now.toISOString().split('T')[0];
-}
-
-function eventToFact(event: LearningEvent) {
-  return {
-    userId: event.userId,
-    factType: mapActionTypeToFactType(event.actionType),
-    moduleId: event.moduleId,
-    sessionId: event.sessionId,
-    startedAt: new Date(event.occurredAt),
-    finishedAt: new Date(event.occurredAt),
-    outcome: deriveFactOutcome(event.actionType, event.payload),
-    score: deriveFactScore(event.payload),
-    timeSpent: deriveFactTimeSpent(event.payload),
-    competencyContribution: getCompetencyMappingForEvent(event),
-    sourceEventId: event.eventId,
-    sourceLogId: event.payload.sourceLogId as string | undefined,
-    courseId: event.courseId,
-    lessonId: event.lessonId,
-  };
-}
-
-function getCompetencyMappingForEvent(event: LearningEvent): Record<string, number> {
-  return resolveCompetencyContribution(
-    event.actionType,
-    event.payload,
-    event.derivedMetrics,
-  );
 }
 
 async function processStudentSnapshotJob(job: Job<StudentSnapshotJob>) {

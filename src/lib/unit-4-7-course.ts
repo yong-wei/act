@@ -110,7 +110,7 @@ export const UNIT_4_7_RUNTIME_MANIFEST = normalizeInteractiveRuntimeManifest(
 export const UNIT_4_7_STAGE_LABEL: Record<UNIT_4_7StageCode, string> = {
   B: 'B · 导入',
   O: 'O · 目标',
-  P1: 'P1 · 前测前证据',
+  P1: '前测',
   P2: 'P2 · 参与式学习',
   P3: 'P3 · 后测',
   S: 'S · 总结',
@@ -130,13 +130,13 @@ function preview(stepId: string) {
 }
 
 export const UNIT_4_7_LESSON_STEPS: readonly UNIT_4_7StepDefinition[] = [
-  { id: 'step-01', stage: 'B', title: '真实航迹任务：为什么不能只看一条航向响应曲线', hint: '固定方波与回转任务、航速、闭环结构和扰动入口。', duration: '7 min', pageType: 'activity_card_set' },
-  { id: 'step-02', stage: 'P1', title: '舵机惯性辨识：舵令为什么不会立刻变成实际舵角', hint: '用舵机阶跃图读出一阶惯性和时间常数含义。', duration: '7 min', pageType: 'activity_card_set' },
-  { id: 'step-03', stage: 'P1', title: '船体与扰动辨识：哪些参数能设计，哪些参数只能标边界', hint: '组合船体、扰动等效通道与最终名义模型。', duration: '8 min', pageType: 'teacher_reveal_only' },
+  { id: 'step-01', stage: 'B', title: '从固定结构设计到高保真任务边界', hint: '从已有固定结构设计链提出高保真任务边界问题。', duration: '5 min', pageType: 'display' },
+  { id: 'step-02', stage: 'P1', title: '前测', hint: '回顾一阶惯性、积分关系、频域裕度和目标约束罚项区分。', duration: '7 min', pageType: 'quiz_group' },
+  { id: 'step-03', stage: 'P2', title: '真实航迹任务与分段辨识模型结构', hint: '组合真实航迹任务、舵机/船体/扰动辨识与最终名义模型。', duration: '10 min', pageType: 'teacher_reveal_only' },
   { id: 'step-04', stage: 'P2', title: '指标到代价函数：航迹、舵角和裕度怎样进入同一个判断', hint: '把真实指标翻译成目标、约束、罚项和诊断量。', duration: '8 min', pageType: 'activity_card_set' },
   { id: 'step-05', stage: 'P2', title: '传统设计诊断四联图：为什么结构定型为 $PI+\\text{超前}$', hint: '用时域、根轨迹、Bode 与 Nyquist 证据完成结构选择。', duration: '8 min', pageType: 'teacher_reveal_only' },
   { id: 'step-06', stage: 'P2', title: '传统控制器参数计算与名义验证：控制值怎样落成可复核公式', hint: '给出传统控制器公式、校正四联图和跨模型验证。', duration: '9 min', pageType: 'teacher_reveal_only' },
-  { id: 'step-07', stage: 'P2', title: '优化设计编码与解码：搜索结果怎样回到确定控制值', hint: '展示结构编码、搜索参数、收敛曲线和控制器参数表。', duration: '8 min', pageType: 'activity_card_set' },
+  { id: 'step-07', stage: 'P2', title: '优化设计编码与解码：搜索结果怎样回到确定控制值', hint: '展示结构编码、搜索参数、收敛曲线、控制器符号含义和参数表。', duration: '8 min', pageType: 'activity_card_set' },
   { id: 'step-08', stage: 'P2', title: '跨模型验证：名义模型上最好是否能转成高保真可用', hint: '比较传统、辨识模型优化和高保真模型优化的任务结果。', duration: '8 min', pageType: 'teacher_reveal_only' },
   { id: 'step-09', stage: 'P2', title: '扰动边界：为什么中等扰动需要重新搜索抗扰控制器', hint: '分级扰动强度，比较名义、优化与抗扰控制器。', duration: '7 min', pageType: 'activity_card_set' },
   { id: 'step-10', stage: 'P2', title: '航向传感器噪声：噪声只进入测量通道时怎样抗噪', hint: '固定测量方程，比较无抗噪和有抗噪控制方案。', duration: '7 min', pageType: 'activity_card_set' },

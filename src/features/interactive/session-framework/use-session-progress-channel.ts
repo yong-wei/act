@@ -3,6 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { SessionInfo } from './session-contract';
+import {
+  buildFetchFailureTelemetry,
+  buildHttpFailureTelemetry,
+  getFetchFailureTelemetry,
+  toFetchTelemetryError,
+  type FetchFailureTelemetry,
+} from './fetch-diagnostics';
 
 interface UseSessionProgressChannelOptions {
   sessionId: string;
@@ -57,6 +64,7 @@ export function useSessionProgressChannel({
   const [activeIndex, setActiveIndex] = useState(0);
   const [teacherIndex, setTeacherIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [errorTelemetry, setErrorTelemetry] = useState<FetchFailureTelemetry | null>(null);
   const initialTeacherSyncRef = useRef(isDemo || !followTeacher);
   const initializedTeacherRef = useRef(isDemo || followTeacher);
   const pendingStepIdRef = useRef<string | null>(null);
@@ -100,12 +108,26 @@ export function useSessionProgressChannel({
       return;
     }
 
+    const url = `/api/session/${sessionId}`;
+    const startedAt = Date.now();
+
     try {
-      const response = await fetch(`/api/session/${sessionId}`);
-      const data = (await response.json()) as SessionInfo & { error?: string };
+      const response = await fetch(url);
+      const data = (await response.json().catch(() => ({}))) as SessionInfo & { error?: string };
 
       if (!response.ok) {
-        throw new Error(data.error || '课堂读取失败');
+        throw toFetchTelemetryError(
+          data.error || '课堂读取失败',
+          buildHttpFailureTelemetry({
+            source: 'session_progress_get',
+            url,
+            method: 'GET',
+            startedAt,
+            response,
+            retryCount: errorCountRef.current,
+            pollIntervalMs,
+          }),
+        );
       }
 
       const serverTimestamp = getTimestampFromSession(data);
@@ -161,6 +183,7 @@ export function useSessionProgressChannel({
       // 合并状态更新，避免抖动
       setLoadingSession(false);
       setError(null);
+      setErrorTelemetry(null);
     } catch (requestError) {
       const errorMessage = requestError instanceof Error ? requestError.message : '课堂同步失败';
 
@@ -174,6 +197,18 @@ export function useSessionProgressChannel({
 
       // 合并状态更新，避免抖动
       setError(errorMessage);
+      setErrorTelemetry(
+        getFetchFailureTelemetry(requestError) ??
+          buildFetchFailureTelemetry({
+            source: 'session_progress_get',
+            url,
+            method: 'GET',
+            startedAt,
+            error: requestError,
+            retryCount: errorCountRef.current,
+            pollIntervalMs,
+          }),
+      );
       setLoadingSession(false);
 
       // 连续错误超过5次，暂停轮询5秒
@@ -185,22 +220,50 @@ export function useSessionProgressChannel({
         }, 5000);
       }
     }
-  }, [followTeacher, isDemo, sessionId, stepIds, getTimestampFromSession]);
+  }, [followTeacher, getTimestampFromSession, isDemo, pollIntervalMs, sessionId, stepIds]);
 
   const patchSession = useCallback(
     async (patch: Record<string, unknown>) => {
-      const response = await fetch(`/api/session/${sessionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(patch),
-      });
+      const url = `/api/session/${sessionId}`;
+      const startedAt = Date.now();
+      try {
+        const response = await fetch(url, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(patch),
+        });
 
-      const data = (await response.json()) as { error?: string };
-      if (!response.ok) {
-        throw new Error(data.error || '课堂更新失败');
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        if (!response.ok) {
+          throw toFetchTelemetryError(
+            data.error || '课堂更新失败',
+            buildHttpFailureTelemetry({
+              source: 'session_progress_patch',
+              url,
+              method: 'PATCH',
+              startedAt,
+              response,
+            }),
+          );
+        }
+
+        return data;
+      } catch (requestError) {
+        if (getFetchFailureTelemetry(requestError)) {
+          throw requestError;
+        }
+
+        throw toFetchTelemetryError(
+          requestError instanceof Error ? requestError.message : '课堂更新失败',
+          buildFetchFailureTelemetry({
+            source: 'session_progress_patch',
+            url,
+            method: 'PATCH',
+            startedAt,
+            error: requestError,
+          }),
+        );
       }
-
-      return data;
     },
     [sessionId],
   );
@@ -219,17 +282,29 @@ export function useSessionProgressChannel({
       pendingStepIdRef.current = nextStepId ?? null;
       setError(null);
 
+      const url = `/api/session/${sessionId}`;
+      const startedAt = Date.now();
+
       try {
-        const response = await fetch(`/api/session/${sessionId}`, {
+        const response = await fetch(url, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(patch),
         });
 
-        const data = (await response.json()) as SessionInfo & { error?: string };
+        const data = (await response.json().catch(() => ({}))) as SessionInfo & { error?: string };
 
         if (!response.ok) {
-          throw new Error(data.error || '课堂更新失败');
+          throw toFetchTelemetryError(
+            data.error || '课堂更新失败',
+            buildHttpFailureTelemetry({
+              source: 'session_progress_patch',
+              url,
+              method: 'PATCH',
+              startedAt,
+              response,
+            }),
+          );
         }
 
         // PATCH成功后，更新已知时间戳并跳过接下来的2次轮询
@@ -245,6 +320,17 @@ export function useSessionProgressChannel({
         // 合并状态更新，避免抖动
         const errorMessage = requestError instanceof Error ? requestError.message : '课堂推进失败';
         setError(errorMessage);
+        setErrorTelemetry(
+          getFetchFailureTelemetry(requestError) ??
+            buildFetchFailureTelemetry({
+              source: 'session_progress_patch',
+              url,
+              method: 'PATCH',
+              startedAt,
+              error: requestError,
+              pollIntervalMs,
+            }),
+        );
         setActiveIndex(previousIndex);
         setTeacherIndex(previousIndex);
         throw requestError;
@@ -253,7 +339,7 @@ export function useSessionProgressChannel({
         isPatchingRef.current = false;
       }
     },
-    [activeIndex, sessionId, stepIds, getTimestampFromSession],
+    [activeIndex, getTimestampFromSession, pollIntervalMs, sessionId, stepIds],
   );
 
   const finishSession = useCallback(async () => {
@@ -261,6 +347,7 @@ export function useSessionProgressChannel({
       await patchSession({ status: 'FINISHED' });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '结束课堂失败');
+      setErrorTelemetry(getFetchFailureTelemetry(requestError));
       throw requestError;
     }
   }, [patchSession]);
@@ -317,6 +404,7 @@ export function useSessionProgressChannel({
       activeIndex,
       teacherIndex,
       error,
+      errorTelemetry,
       setActiveIndex,
       setTeacherIndex,
       syncSession,
@@ -329,6 +417,7 @@ export function useSessionProgressChannel({
       activeIndex,
       teacherIndex,
       error,
+      errorTelemetry,
       setActiveIndex,
       setTeacherIndex,
       syncSession,

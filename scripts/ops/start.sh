@@ -75,6 +75,21 @@ free_frontend_port() {
   echo -e "  ${GREEN}✓${NC} 端口 ${port} 已释放"
 }
 
+run_database_script() {
+  local label=$1
+  shift
+
+  echo -e "  ${BLUE}执行命令: $*${NC}"
+  if "$@" >> "$LOGS_DIR/database.log" 2>&1; then
+    echo -e "  ${GREEN}✓${NC} ${label}完成"
+  else
+    local status=$?
+    echo -e "  ${RED}✗${NC} ${label}失败 (退出码: $status)"
+    echo -e "  ${YELLOW}查看日志: tail -n 120 $LOGS_DIR/database.log${NC}"
+    exit "$status"
+  fi
+}
+
 ###############################################################################
 # 步骤 1: 清理日志文件内容
 ###############################################################################
@@ -200,13 +215,26 @@ fi
 
 echo -e "  ${GREEN}✓${NC} .env 文件存在"
 
-# 检查必要的环境变量
-if grep -q "DATABASE_URL" .env && grep -q "NEXTAUTH_SECRET" .env; then
-  echo -e "  ${GREEN}✓${NC} 必要的环境变量已配置"
-else
-  echo -e "  ${RED}✗${NC} 缺少必要的环境变量"
+set -a
+if ! source "$PROJECT_DIR/.env"; then
+  set +a
+  echo -e "  ${RED}✗${NC} .env 加载失败"
   exit 1
 fi
+set +a
+
+echo -e "  ${GREEN}✓${NC} .env 已加载到当前启动环境"
+
+missing_env=()
+[ -z "${DATABASE_URL:-}" ] && missing_env+=("DATABASE_URL")
+[ -z "${NEXTAUTH_SECRET:-}" ] && missing_env+=("NEXTAUTH_SECRET")
+
+if [ ${#missing_env[@]} -gt 0 ]; then
+  echo -e "  ${RED}✗${NC} 缺少必要的环境变量: ${missing_env[*]}"
+  exit 1
+fi
+
+echo -e "  ${GREEN}✓${NC} 必要的环境变量已配置"
 
 echo ""
 
@@ -229,8 +257,7 @@ echo ""
 ###############################################################################
 echo -e "${YELLOW}[6/10] 同步预置知识点...${NC}"
 
-npm run seed:knowledge >> "$LOGS_DIR/database.log" 2>&1
-echo -e "  ${GREEN}✓${NC} 知识点同步完成"
+run_database_script "知识点同步" npm run seed:knowledge
 
 echo ""
 
@@ -239,8 +266,7 @@ echo ""
 ###############################################################################
 echo -e "${YELLOW}[7/10] 同步固定测试账号口令...${NC}"
 
-npm run seed:fixed-passwords >> "$LOGS_DIR/database.log" 2>&1
-echo -e "  ${GREEN}✓${NC} 固定测试账号口令同步完成"
+run_database_script "固定测试账号口令同步" npm run seed:fixed-passwords
 
 echo ""
 

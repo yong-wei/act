@@ -88,6 +88,7 @@ export interface StudentLessonSessionResult<StudentState, TeacherSyncState> {
   isOutOfSync: boolean;
   loadingSession: boolean;
   error: string | null;
+  errorTelemetry?: Record<string, unknown> | null;
   courseState: StudentState;
   selfState: StudentState | null;
   teacherSyncState: TeacherSyncState | null;
@@ -117,6 +118,7 @@ export interface TeacherLessonSessionResult<
   isOutOfSync: boolean;
   loadingSession: boolean;
   error: string | null;
+  errorTelemetry?: Record<string, unknown> | null;
   teacherViewHydrated: boolean;
   patchCurrentStep: (nextIndex: number, patch: Record<string, unknown>) => Promise<void>;
   postTeacherSyncState: (payload: TeacherSyncState) => Promise<void>;

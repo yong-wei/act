@@ -1064,7 +1064,7 @@ model LearningFact {
   competencyContribution Json
 
   // Source references
-  sourceEventId   String?
+  sourceEventId   String?  @unique
   sourceLogId     String?
 
   // Context

@@ -8,6 +8,12 @@ import type {
   StudentViewStatePayload,
   TeacherViewStatePayload,
 } from './session-contract';
+import {
+  buildFetchFailureTelemetry,
+  buildHttpFailureTelemetry,
+  toFetchTelemetryError,
+  type FetchTelemetrySource,
+} from './fetch-diagnostics';
 
 interface UseSessionStateChannelOptions {
   sessionId: string;
@@ -33,6 +39,39 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
   const [summary, setSummary] = useState(emptyViewPayload().summary);
   const [teacherViewHydrated, setTeacherViewHydrated] = useState(isDemo);
 
+  const fetchJson = useCallback(
+    async <T,>(url: string, source: FetchTelemetrySource, init?: RequestInit): Promise<T> => {
+      const method = init?.method ?? 'GET';
+      const startedAt = Date.now();
+      try {
+        const response = await fetch(url, init);
+        if (!response.ok) {
+          let message = '课堂状态读取失败';
+          try {
+            const data = (await response.clone().json()) as { error?: string };
+            message = data.error || message;
+          } catch {
+            // Keep the generic message when the response is not JSON.
+          }
+          throw toFetchTelemetryError(
+            message,
+            buildHttpFailureTelemetry({ source, url, method, startedAt, response }),
+          );
+        }
+        return (await response.json()) as T;
+      } catch (error) {
+        if (error instanceof Error && 'telemetry' in error) {
+          throw error;
+        }
+        throw toFetchTelemetryError(
+          error instanceof Error ? error.message : '课堂状态读取失败',
+          buildFetchFailureTelemetry({ source, url, method, startedAt, error }),
+        );
+      }
+    },
+    [],
+  );
+
   const applyViewPayload = useCallback((payload: TeacherViewStatePayload | StudentViewStatePayload | SelfViewStatePayload) => {
     setStateRecords(payload.states ?? []);
     setCourseStates(payload.courseStates ?? []);
@@ -51,28 +90,24 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
       return emptyViewPayload();
     }
 
-    const response = await fetch(`/api/session/${sessionId}/state?scope=self`);
-    if (!response.ok) {
-      throw new Error('课堂状态读取失败');
-    }
-
-    const payload = (await response.json()) as SelfViewStatePayload;
+    const payload = await fetchJson<SelfViewStatePayload>(
+      `/api/session/${sessionId}/state?scope=self`,
+      'session_state_self_get',
+    );
     return applyViewPayload(payload);
-  }, [applyViewPayload, isDemo, sessionId]);
+  }, [applyViewPayload, fetchJson, isDemo, sessionId]);
 
   const fetchStudentViewStates = useCallback(async () => {
     if (isDemo) {
       return emptyViewPayload();
     }
 
-    const response = await fetch(`/api/session/${sessionId}/state?scope=student-view`);
-    if (!response.ok) {
-      throw new Error('课堂状态读取失败');
-    }
-
-    const payload = (await response.json()) as StudentViewStatePayload;
+    const payload = await fetchJson<StudentViewStatePayload>(
+      `/api/session/${sessionId}/state?scope=student-view`,
+      'student_state_get',
+    );
     return applyViewPayload(payload);
-  }, [applyViewPayload, isDemo, sessionId]);
+  }, [applyViewPayload, fetchJson, isDemo, sessionId]);
 
   const fetchTeacherViewStates = useCallback(async () => {
     if (isDemo) {
@@ -80,16 +115,14 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
       return emptyViewPayload();
     }
 
-    const response = await fetch(`/api/session/${sessionId}/state?scope=teacher-view`);
-    if (!response.ok) {
-      throw new Error('课堂状态读取失败');
-    }
-
-    const payload = (await response.json()) as TeacherViewStatePayload;
+    const payload = await fetchJson<TeacherViewStatePayload>(
+      `/api/session/${sessionId}/state?scope=teacher-view`,
+      'teacher_state_get',
+    );
     const appliedPayload = applyViewPayload(payload);
     setTeacherViewHydrated(true);
     return appliedPayload;
-  }, [applyViewPayload, isDemo, sessionId]);
+  }, [applyViewPayload, fetchJson, isDemo, sessionId]);
 
   const postState = useCallback(
     async (payload: {
@@ -103,20 +136,13 @@ export function useSessionStateChannel({ sessionId, isDemo = false }: UseSession
         return null;
       }
 
-      const response = await fetch(`/api/session/${sessionId}/state`, {
+      return fetchJson(`/api/session/${sessionId}/state`, 'session_state_post', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        throw new Error(data.error || '课堂状态写入失败');
-      }
-
-      return response.json();
     },
-    [isDemo, sessionId],
+    [fetchJson, isDemo, sessionId],
   );
 
   return useMemo(

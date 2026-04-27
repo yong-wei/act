@@ -66,6 +66,26 @@ describe('calculateCompetencyVector', () => {
     expect(vector.crossDomainTransfer.score).toBeGreaterThan(0);
   });
 
+  it('should count one fact as evidence for every contributed competency dimension', () => {
+    const facts: LearningFact[] = [
+      createMockFact({
+        factType: 'question',
+        outcome: 'success',
+        score: 80,
+        competencyContribution: {
+          controlModeling: 0.5,
+          selfDirectedLearning: 0.3,
+        },
+      }),
+    ];
+
+    const vector = calculateCompetencyVector(facts, '1m');
+
+    expect(vector.controlModeling.evidenceCount).toBe(1);
+    expect(vector.selfDirectedLearning.evidenceCount).toBe(1);
+    expect(vector.selfDirectedLearning.score).toBeGreaterThan(0);
+  });
+
   it('should filter facts by time window', () => {
     const oldDate = new Date();
     oldDate.setDate(oldDate.getDate() - 40); // 40 days ago

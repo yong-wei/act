@@ -189,10 +189,10 @@ describe('interactive runtime manifest', () => {
     expect(html).not.toContain('data-manifest-render-error');
   });
 
-  it('maps 4-7 step-01 manifest content without title-only shells or duplicate activity prompts', async () => {
+  it('maps 4-7 task and identification manifest content without title-only shells or duplicate activity prompts', async () => {
     const runtime = await loadLessonRuntimeEntry('4-7');
     const manifest = runtime.interactiveManifest!;
-    const step = manifest.steps.find((item) => item.id === 'step-01');
+    const step = manifest.steps.find((item) => item.id === 'step-03');
     expect(step).toBeDefined();
     const formulaModules = step!.modules.filter((module) => module.kind === 'formula-card');
     const formulaAt = (moduleId: string) => {
@@ -210,6 +210,7 @@ describe('interactive runtime manifest', () => {
           'formula-card': ({ module }) => createElement('div', null, module.id, formulaAt(module.id)),
           'summary-card': ({ step: currentStep }) => createElement('div', null, String(currentStep.contentBlocks.conclusion ?? '')),
           'image-panel': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.media), String(currentStep.contentBlocks.figure_explanation ?? '')),
+          'step-reveal': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.reveal_layers)),
         },
         extra: undefined,
       }),
@@ -222,6 +223,87 @@ describe('interactive runtime manifest', () => {
     expect(html).not.toContain('本页作答');
     expect(html).not.toContain('为什么方波航向图必须同时显示给定航向和实际航向？');
     expect(html).not.toContain('扰动为什么要放在舵机之后、船体之前');
+  });
+
+  it('renders 4-7 formula text in table headers, formula cards, and activity prompts through the shared rich text helpers', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-7');
+    const manifest = runtime.interactiveManifest!;
+    const step06 = manifest.steps.find((item) => item.id === 'step-06');
+    const step07 = manifest.steps.find((item) => item.id === 'step-07');
+    const step10 = manifest.steps.find((item) => item.id === 'step-10');
+    expect(step06?.contentBlocks.key_formulas).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('C_{trad}(s)'),
+      ]),
+    );
+    const step07ModuleIds = step07?.modules.map((module) => module.id) ?? [];
+    const step10ModuleIds = step10?.modules.map((module) => module.id) ?? [];
+    expect(step07ModuleIds.indexOf('optimization-controller-symbols')).toBeGreaterThan(-1);
+    expect(step07ModuleIds.indexOf('optimization-controller-symbols')).toBeLessThan(
+      step07ModuleIds.indexOf('controller-table'),
+    );
+    expect(step10ModuleIds.indexOf('noise-controller-symbols')).toBeGreaterThan(-1);
+    expect(step10ModuleIds.indexOf('noise-controller-symbols')).toBeLessThan(
+      step10ModuleIds.indexOf('noise-controller-table'),
+    );
+    expect(step07?.contentBlocks.controller_symbol_notes).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('$C_4$'),
+        expect.stringContaining('$k_p,k_i,k_d$'),
+      ]),
+    );
+    expect(step10?.contentBlocks.controller_symbol_notes).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('$C_4$'),
+        expect.stringContaining('$\\tau_m$'),
+      ]),
+    );
+    expect(step07?.contentBlocks.controller_table).toMatchObject({
+      columns: expect.arrayContaining([
+        '$k_p$',
+        expect.stringMatching(/beta/),
+      ]),
+    });
+    expect(step07?.interactionSpec.activityCards?.[0]?.prompt).toContain('$C_3$');
+
+    const contentSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
+    const activitySource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/activity-renderers.tsx'),
+      'utf8',
+    );
+
+    expect(contentSource).toContain('<th key={column} className="px-3 py-2 font-semibold">{renderInlineContent(column)}</th>');
+    expect(contentSource).toContain('renderFormulaContent');
+    expect(activitySource).toContain('renderActivityInlineContent(card.prompt)');
+    expect(activitySource).toContain('renderActivityInlineContent(option.label)');
+    expect(activitySource).toContain('renderActivityInlineContent(card.referenceAnswer)');
+  });
+
+  it('renders 4-7 summary limitation objects as concrete text instead of object strings', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-7');
+    const manifest = runtime.interactiveManifest!;
+    const step = manifest.steps.find((item) => item.id === 'step-12');
+    expect(step).toBeDefined();
+
+    expect(step?.contentBlocks.limitations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: '固定低阶传递函数',
+          explanation: expect.stringContaining('不能完整表达横荡'),
+        }),
+      ]),
+    );
+
+    const contentSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
+    expect(contentSource).toContain('record.name');
+    expect(contentSource).toContain('record.explanation');
+    expect(contentSource).not.toContain('asStringArray(rawBlock)');
   });
 
   it('keeps multiple modules in the same manifest region in module order', async () => {

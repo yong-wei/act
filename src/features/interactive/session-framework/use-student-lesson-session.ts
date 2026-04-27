@@ -10,6 +10,7 @@ import type {
 import { useSessionProgressChannel } from './use-session-progress-channel';
 import { useSessionStateChannel } from './use-session-state-channel';
 import { useSessionSSE } from './use-session-sse';
+import { getFetchFailureTelemetry } from './fetch-diagnostics';
 
 interface UseStudentLessonSessionOptions<StudentState, TeacherSyncState> {
   sessionId: string;
@@ -78,6 +79,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     activeIndex,
     teacherIndex,
     error: progressError,
+    errorTelemetry: progressErrorTelemetry,
     syncSession: syncProgressSession,
     setActiveIndex,
   } = useSessionProgressChannel({
@@ -97,10 +99,15 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
   } = useSessionStateChannel({ sessionId, isDemo });
   const [courseState, setCourseState] = useState<StudentState>(() => adapter.createEmptyStudentState(currentStudentName));
   const [error, setError] = useState<string | null>(null);
+  const [stateErrorTelemetry, setStateErrorTelemetry] = useState<Record<string, unknown> | null>(null);
   const initialPresenceSyncedRef = useRef(false);
 
   // 合并 SSE 和轮询的错误状态
   const combinedError = useMemo(() => error ?? progressError, [error, progressError]);
+  const combinedErrorTelemetry = useMemo(
+    () => (error ? stateErrorTelemetry : progressErrorTelemetry),
+    [error, progressErrorTelemetry, stateErrorTelemetry],
+  );
 
   // SSE 状态同步到 progress channel
   useEffect(() => {
@@ -116,8 +123,10 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
     try {
       await fetchStudentViewStates();
       setError(null);
+      setStateErrorTelemetry(null);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '课堂状态同步失败');
+      setStateErrorTelemetry(getFetchFailureTelemetry(requestError));
     }
   }, [fetchStudentViewStates]);
 
@@ -215,6 +224,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
       isOutOfSync: !isDemo && teacherIndex !== activeIndex,
       loadingSession,
       error: combinedError,
+      errorTelemetry: combinedErrorTelemetry,
       courseState,
       selfState,
       teacherSyncState,
@@ -239,6 +249,7 @@ export function useStudentLessonSession<StudentState, TeacherSyncState>({
       isDemo,
       loadingSession,
       combinedError,
+      combinedErrorTelemetry,
       courseState,
       selfState,
       teacherSyncState,

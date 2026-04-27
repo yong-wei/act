@@ -10,6 +10,7 @@ import { toLearningEvent } from '@/lib/data-governance/event-protocol';
 import { routeEvent } from '@/lib/data-governance/event-buffer';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
+import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
 import type { PageType } from '@/lib/data-governance/event-protocol';
 
 export const dynamic = 'force-dynamic';
@@ -184,7 +185,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Route events based on priority
-    const routingResults: Array<{ eventType: string; destination: string; reason?: string }> = [];
+    const routingResults: Array<{
+      eventType: string;
+      destination: 'postgresql' | 'redis' | 'dropped';
+      reason?: string;
+      factsCreated: number;
+      factActionType: string;
+    }> = [];
 
     for (const eventData of validEvents) {
       const payload =
@@ -211,7 +218,13 @@ export async function POST(request: NextRequest) {
       );
 
       const result = await routeEvent(learningEvent);
-      routingResults.push({ eventType: learningEvent.actionType, ...result });
+      const factResult = await persistCoreLearningFact(prisma, learningEvent);
+      routingResults.push({
+        eventType: learningEvent.actionType,
+        ...result,
+        factsCreated: factResult.created,
+        factActionType: factResult.actionType,
+      });
 
       // Core events still go through existing EventQueue for now
     }

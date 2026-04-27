@@ -94,4 +94,48 @@ describe('unit 4-7 interactive course', () => {
       pageType: 'summary',
     });
   });
+
+  it('keeps bridge-in light and limits pre-assessment to one Chinese-titled review page', async () => {
+    const manifest = readManifest();
+    const courseModule = await import('@/lib/unit-4-7-course');
+
+    const preAssessmentSteps = courseModule.UNIT_4_7_LESSON_STEPS.filter(
+      (step: { stage: string }) => step.stage === 'P1',
+    );
+    expect(preAssessmentSteps).toHaveLength(1);
+    expect(preAssessmentSteps[0]).toMatchObject({
+      id: 'step-02',
+      title: '前测',
+      pageType: 'quiz_group',
+    });
+    expect(courseModule.UNIT_4_7_STAGE_LABEL.P1).toBe('前测');
+
+    const bridgeStep = manifest.steps.find((step) => step.id === 'step-01');
+    const bridgeText = JSON.stringify(bridgeStep?.contentBlocks ?? {});
+    expect(bridgeStep?.interactionSpec.interactionKind).toBe('none');
+    expect(bridgeText).not.toContain('T_r=1.10');
+    expect(bridgeText).not.toContain('T_h=42.00');
+    expect(bridgeText).not.toContain('J=w_eJ_e');
+
+    const contentSteps = courseModule.UNIT_4_7_LESSON_STEPS.filter(
+      (step: { stage: string }) => step.stage === 'P2',
+    );
+    expect(contentSteps[0]).toMatchObject({
+      id: 'step-03',
+      title: '真实航迹任务与分段辨识模型结构',
+    });
+  });
+
+  it('gives every 4-7 manifest module a Chinese title instead of relying on id fallback labels', () => {
+    const manifest = readManifest();
+
+    const titledModules = manifest.steps.flatMap((step) =>
+      step.modules.map((module) => `${step.id}:${module.id}:${module.title ?? ''}`),
+    );
+
+    expect(titledModules).not.toContain('');
+    for (const entry of titledModules) {
+      expect(entry).toMatch(/[\u4e00-\u9fff]/);
+    }
+  });
 });

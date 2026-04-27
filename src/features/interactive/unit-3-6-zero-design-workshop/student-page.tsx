@@ -31,6 +31,7 @@ import {
   UNIT_3_6StudentSummaryPanel,
 } from './step-panels';
 import type { WorkspaceParameterChange } from './workspace';
+import { buildUNIT36SubmissionTelemetry } from './submission-telemetry';
 
 export function UNIT_3_6StudentPage({
   sessionId,
@@ -62,6 +63,7 @@ export function UNIT_3_6StudentPage({
     teacherIndex,
     loadingSession,
     error,
+    errorTelemetry,
     isOutOfSync,
     saveCourseState,
     setActiveIndex,
@@ -148,8 +150,8 @@ export function UNIT_3_6StudentPage({
 
   useEffect(() => {
     if (!error) return;
-    trackSyncError(step.id, { message: error, scope: 'student-page' });
-  }, [error, step.id, trackSyncError]);
+    trackSyncError(step.id, { message: error, scope: 'student-page', ...(errorTelemetry ?? {}) });
+  }, [error, errorTelemetry, step.id, trackSyncError]);
 
   const trackSubmission = useCallback(
     (input: { stepId: string; isResubmit: boolean; data?: Record<string, unknown> }) => {
@@ -176,7 +178,11 @@ export function UNIT_3_6StudentPage({
           [step.id]: response,
         },
       };
-      trackSubmission({ stepId: step.id, isResubmit, data: { stepId: step.id } });
+      trackSubmission({
+        stepId: step.id,
+        isResubmit,
+        data: buildUNIT36SubmissionTelemetry(response),
+      });
       return nextState;
     });
   };

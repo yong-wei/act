@@ -21,7 +21,9 @@ function asRecord(value: unknown): ContentRecord {
 
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value.map((item) => String(item));
+  return value
+    .filter((item) => typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean')
+    .map((item) => String(item));
 }
 
 function asTableRows(value: unknown): TableCell[][] {
@@ -73,6 +75,20 @@ function renderInlineContent(text: string) {
 function renderTableCell(cell: TableCell) {
   if (typeof cell === 'string') return renderInlineContent(cell);
   return <InlineMath math={normalizeMath(cell.value)} />;
+}
+
+function renderFormulaContent(formula: string) {
+  const value = formula.trim();
+  const inlineMatches = value.match(/\$[^$]+\$/g) ?? [];
+  const nonMathText = value.replace(/\$[^$]+\$/g, '').trim();
+  const isSingleMathExpression = inlineMatches.length === 1 && !nonMathText;
+  const isBareMathExpression = !inlineMatches.length && !/[\u4e00-\u9fff]/.test(value);
+
+  if (isSingleMathExpression || isBareMathExpression) {
+    return <BlockMath math={normalizeMath(value)} />;
+  }
+
+  return <p className="premium-lesson-title text-sm leading-7">{renderInlineContent(value)}</p>;
 }
 
 function titleFromModule(module: InteractiveRuntimeModuleManifest) {
@@ -154,10 +170,11 @@ function getFormulaItems(step: InteractiveRuntimeStepManifest, module: Interacti
   const moduleBlock = blockByModuleId(step, module);
   const keyFormulas = asStringArray(step.contentBlocks.key_formulas);
   const formulaModuleIndex = moduleIndexByKind(step, module, ['formula-card']);
+  const requestedField = Object.prototype.hasOwnProperty.call(payload, 'field') ? payload.field : 'latex';
   const source = direct
-    ?? valueAtField(blockFor(step, payload), payload.field ?? 'latex')
-    ?? valueAtField(moduleBlock, payload.field ?? 'latex')
-    ?? valueAtField(moduleBlock, payload.field ?? 'formulas')
+    ?? valueAtField(blockFor(step, payload), requestedField)
+    ?? valueAtField(moduleBlock, requestedField)
+    ?? valueAtField(moduleBlock, 'formulas')
     ?? (
       formulaModuleIndex >= 0 && keyFormulas[formulaModuleIndex] !== undefined
         ? keyFormulas[formulaModuleIndex]
@@ -323,14 +340,14 @@ function summaryContent(step: InteractiveRuntimeStepManifest, module: Interactiv
       : typeof block.text === 'string'
         ? block.text
         : undefined;
-  const rawArrayItems = asStringArray(rawBlock);
   const recordItems = listFromRecordItems(rawBlock);
+  const rawArrayItems = Array.isArray(rawBlock) ? asStringArray([...rawBlock]) : [];
   const bullets = asStringArray(payload.bullets).length
     ? asStringArray(payload.bullets)
-    : rawArrayItems.length
-      ? rawArrayItems
     : recordItems.length
       ? recordItems
+    : rawArrayItems.length
+      ? rawArrayItems
     : asStringArray(
       block[bulletsKey]
         ?? block.bullets
@@ -346,10 +363,20 @@ function listFromRecordItems(value: unknown) {
   return value
     .map((item) => {
       const record = asRecord(item);
+      if (typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean') return String(item);
       const title = typeof record.title === 'string' ? record.title : '';
+      const name = typeof record.name === 'string' ? record.name : '';
+      const label = typeof record.label === 'string' ? record.label : '';
+      const domain = typeof record.domain === 'string' ? record.domain : '';
+      const caption = typeof record.caption === 'string' ? record.caption : '';
+      const heading = title || name || label || domain || caption;
+      const explanation = typeof record.explanation === 'string' ? record.explanation : '';
       const note = typeof record.note === 'string' ? record.note : '';
       const body = typeof record.body === 'string' ? record.body : '';
-      return [title, note || body].filter(Boolean).join('：');
+      const prompt = typeof record.prompt === 'string' ? record.prompt : '';
+      const value = typeof record.value === 'string' ? record.value : '';
+      const detail = explanation || note || body || prompt || value;
+      return [heading, detail].filter(Boolean).join('：');
     })
     .filter(Boolean);
 }
@@ -382,7 +409,7 @@ function FormulaCard({ title, formulas }: { title: string; formulas: string[] })
       <div className="premium-lesson-kicker">{title}</div>
       <div className="mt-3 space-y-2 overflow-x-auto">
         {formulas.map((formula) => (
-          <BlockMath key={formula} math={normalizeMath(formula)} />
+          <Fragment key={formula}>{renderFormulaContent(formula)}</Fragment>
         ))}
       </div>
     </div>
@@ -491,7 +518,7 @@ function NativeTable({ title, columns, rows }: { title: string; columns: string[
           <thead>
             <tr className="border-b border-slate-200 text-slate-700">
               {columns.map((column) => (
-                <th key={column} className="px-3 py-2 font-semibold">{column}</th>
+                <th key={column} className="px-3 py-2 font-semibold">{renderInlineContent(column)}</th>
               ))}
             </tr>
           </thead>

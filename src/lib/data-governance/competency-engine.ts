@@ -67,22 +67,15 @@ function groupFactsByCompetency(
   for (const fact of facts) {
     const contribution = fact.competencyContribution as Record<string, number> || {};
 
-    // Find primary competency (highest contribution)
-    let primaryCompetency: string | null = null;
-    let maxContribution = 0;
-
     for (const [competency, value] of Object.entries(contribution)) {
-      if (Math.abs(value) > maxContribution) {
-        maxContribution = Math.abs(value);
-        primaryCompetency = competency;
+      if (!Number.isFinite(value) || value === 0) {
+        continue;
       }
-    }
 
-    if (primaryCompetency) {
-      if (!grouped[primaryCompetency]) {
-        grouped[primaryCompetency] = [];
+      if (!grouped[competency]) {
+        grouped[competency] = [];
       }
-      grouped[primaryCompetency].push(fact);
+      grouped[competency].push(fact);
     }
   }
 
