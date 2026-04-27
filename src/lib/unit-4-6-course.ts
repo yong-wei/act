@@ -2,12 +2,10 @@ import type { BopppsStage } from '@prisma/client';
 
 import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
 import {
-  normalizeInteractiveRuntimeManifest,
   type InteractiveRuntimeManifest,
   type InteractiveRuntimeStepManifest,
 } from '@/lib/interactive-lesson-manifest';
 import type { StepAIContext } from '@/types/ai-context';
-import rawInteractiveManifest from '../../course-content/runtime/lessons/4-6/interactive-manifest.json';
 
 export type UNIT_4_6StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
 export type UNIT_4_6TeacherControlMode =
@@ -100,10 +98,6 @@ export const UNIT_4_6_COURSE_SUBTITLE = 'Structural Encoding Boundary';
 export const UNIT_4_6_COURSE_DESCRIPTION =
   '围绕驱逐舰任务迁移、固定结构失配、专用代价函数、统一结构编码、四类方案比较和专项验证，把固定结构优化边界推进到结构编码入口。';
 
-export const UNIT_4_6_RUNTIME_MANIFEST = normalizeInteractiveRuntimeManifest(
-  rawInteractiveManifest,
-) as InteractiveRuntimeManifest;
-
 export const UNIT_4_6_STAGE_LABEL: Record<UNIT_4_6StageCode, string> = {
   B: 'B · 导入',
   O: 'O · 目标',
@@ -160,6 +154,69 @@ function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNI
   };
 }
 
+function fallbackManifestStep(step: UNIT_4_6StepDefinition): InteractiveRuntimeStepManifest {
+  return {
+    id: step.id,
+    title: step.title,
+    layout: {
+      template: 'stacked_regions',
+      regions: [{ id: 'main', width: 'full', order: 1 }],
+    },
+    modules: [],
+    contentBlocks: {},
+    evidenceSequence: [],
+    interactionSpec: {
+      interactionKind: step.pageType === 'display' || step.pageType === 'summary' ? 'none' : step.pageType,
+    },
+    teacherControls: {
+      releaseActivity: step.pageType === 'activity_card_set' || step.pageType === 'quiz_group'
+        ? 'teacher_toggle'
+        : 'not_applicable',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: step.pageType === 'teacher_reveal_only' ? 'teacher_direct' : 'not_applicable',
+      revealReferenceAnswer: step.pageType === 'quiz_group' ? 'teacher_toggle' : 'not_applicable',
+    },
+    studentAccess: {},
+    teacherInsightSpec: { widgets: [] },
+    telemetrySpec: { summaryFields: [], misconceptionTags: [] },
+    aiContextSpec: {
+      pageGoal: step.hint,
+      deliveryMode: 'hidden_page_context',
+    },
+    interactiveFigureSpec: {},
+    previewContract: { demoPath: preview(step.id) },
+    acceptanceChecks: [],
+  };
+}
+
+export const UNIT_4_6_RUNTIME_MANIFEST: InteractiveRuntimeManifest = {
+  lessonId: '4-6',
+  courseTitle: UNIT_4_6_COURSE_TITLE,
+  courseRouteSegment: UNIT_4_6_ROUTE_SEGMENT,
+  previewMode: {},
+  mediaPolicy: {},
+  telemetryStrategy: 'runtime_externalized',
+  teacherInsightStrategy: 'runtime_externalized',
+  requiredStepFields: [],
+  stepOrder: UNIT_4_6_LESSON_STEPS.map((step) => step.id),
+  steps: UNIT_4_6_LESSON_STEPS.map(fallbackManifestStep),
+};
+
+export function getUNIT_4_6ManifestStepFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  const activeManifest = manifest ?? UNIT_4_6_RUNTIME_MANIFEST;
+  return activeManifest.steps.find((step) => step.id === stepId) ?? activeManifest.steps[0];
+}
+
+export function getUNIT_4_6PageContractFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  return pageContractFromManifestStep(getUNIT_4_6ManifestStepFromManifest(manifest, stepId));
+}
+
 export const UNIT_4_6_PAGE_CONTRACTS = Object.fromEntries(
   UNIT_4_6_RUNTIME_MANIFEST.steps.map((step) => [step.id, pageContractFromManifestStep(step)]),
 ) as Record<string, UNIT_4_6PageContract>;
@@ -171,7 +228,7 @@ export function getUNIT_4_6Step(stepId: string) {
 }
 
 export function getUNIT_4_6ManifestStep(stepId: string) {
-  return UNIT_4_6_RUNTIME_MANIFEST.steps.find((step) => step.id === stepId) ?? UNIT_4_6_RUNTIME_MANIFEST.steps[0];
+  return getUNIT_4_6ManifestStepFromManifest(UNIT_4_6_RUNTIME_MANIFEST, stepId);
 }
 
 export function getUNIT_4_6PageContract(stepId: string) {

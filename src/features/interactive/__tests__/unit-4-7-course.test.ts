@@ -49,7 +49,7 @@ describe('unit 4-7 interactive course', () => {
       const localStep = courseModule.UNIT_4_7_LESSON_STEPS.find(
         (step: { id: string }) => step.id === manifestStep.id,
       ) as { title: string; pageType: string } | undefined;
-      const localContract = courseModule.UNIT_4_7_PAGE_CONTRACTS[manifestStep.id];
+      const localContract = courseModule.getUNIT_4_7PageContractFromManifest(manifest, manifestStep.id);
 
       expect(localStep?.title).toBe(manifestStep.title);
       expect(localStep?.pageType).toBe(pageTypeFromManifest(manifestStep.id, manifestStep.interactionSpec.interactionKind));
@@ -73,7 +73,8 @@ describe('unit 4-7 interactive course', () => {
     const studentPageSource = readFileSync(join(featureBase, 'student-page.tsx'), 'utf8');
     const courseSource = readFileSync(join(repoRoot, 'src/lib/unit-4-7-course.ts'), 'utf8');
 
-    expect(courseSource).toContain('course-content/runtime/lessons/4-7/interactive-manifest.json');
+    expect(courseSource).not.toContain('course-content/runtime/lessons/4-7/interactive-manifest.json');
+    expect(studentPageSource).toContain('lessonRuntime.interactiveManifest');
     expect(stepPanelsSource).toContain('renderInteractiveManifestStep');
     expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
     expect(stepPanelsSource).not.toContain('switch (step.id)');

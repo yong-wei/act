@@ -74,6 +74,7 @@ export function UNIT_4_6TeacherPage({
   });
 
   const step = UNIT_4_6_LESSON_STEPS[activeIndex];
+  const runtimeManifest = lessonRuntime.interactiveManifest;
 
   const teacherSyncState = useMemo(() => {
     const latestRecord = [...teacherStates].reverse().find((record) => isUNIT_4_6TeacherSyncState(record.data));
@@ -258,6 +259,7 @@ export function UNIT_4_6TeacherPage({
 
         <UNIT_4_6StepContentPanel
           step={step}
+          manifest={runtimeManifest}
           revealProgress={teacherRevealProgress[step.id] ?? 0}
           allowInlineReveal={false}
         />
@@ -265,6 +267,7 @@ export function UNIT_4_6TeacherPage({
         <div className="mt-4">
           <UNIT_4_6TeacherActivitySummary
             step={step}
+            manifest={runtimeManifest}
             responses={currentResponses}
             released={Boolean(releasedActivities[step.id])}
             browseEnabled={Boolean(browseEnabled[step.id])}

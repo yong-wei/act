@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { parse } from 'yaml';
 
+import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
+
 vi.mock('server-only', () => ({}));
 
 const repoRoot = process.cwd();
@@ -80,10 +82,12 @@ describe('unit 4-6 interactive course', () => {
     };
     const courseModule = await import('@/lib/unit-4-6-course');
     const localSteps = new Map(courseModule.UNIT_4_6_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
+    const runtimeManifest = normalizeInteractiveRuntimeManifest(contract);
+    expect(runtimeManifest).not.toBeNull();
 
     for (const [stepId, authoringStep] of Object.entries(contract.steps)) {
       const localStep = localSteps.get(stepId) as { title: string; pageType: string } | undefined;
-      const localContract = courseModule.UNIT_4_6_PAGE_CONTRACTS[stepId];
+      const localContract = courseModule.getUNIT_4_6PageContractFromManifest(runtimeManifest, stepId);
       const expectedPageType =
         authoringStep.interaction_spec.interaction_kind === 'none'
           ? stepId === 'step-11'
@@ -120,7 +124,8 @@ describe('unit 4-6 interactive course', () => {
     const courseSource = readFileSync(join(repoRoot, 'src/lib/unit-4-6-course.ts'), 'utf8');
 
     expect(stepPanelsSource).not.toContain('/course-content/authoring/lessons/4-6/media/processed/');
-    expect(courseSource).toContain('course-content/runtime/lessons/4-6/interactive-manifest.json');
+    expect(courseSource).not.toContain('course-content/runtime/lessons/4-6/interactive-manifest.json');
+    expect(studentPageSource).toContain('lessonRuntime.interactiveManifest');
     expect(studentPageSource).toContain('updatePageContext({');
     expect(studentPageSource).not.toContain('AI 助手');
     expect(stepPanelsSource).toContain('renderInteractiveManifestStep');

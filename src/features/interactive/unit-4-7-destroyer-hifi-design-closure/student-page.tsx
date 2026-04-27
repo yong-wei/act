@@ -14,8 +14,7 @@ import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit47StepAIContext } from '@/lib/unit-4-7-ai-contexts';
 import {
-  getUNIT_4_7PageContract,
-  isUNIT_4_7StepReleasedByDefault,
+  getUNIT_4_7PageContractFromManifest,
   UNIT_4_7_LESSON_KEY,
   UNIT_4_7_LESSON_STEPS,
   UNIT_4_7_RESOURCE_KEY,
@@ -79,7 +78,8 @@ export function UNIT_4_7StudentPage({
   });
 
   const step = UNIT_4_7_LESSON_STEPS[activeIndex];
-  const pageContract = getUNIT_4_7PageContract(step.id);
+  const runtimeManifest = lessonRuntime.interactiveManifest;
+  const pageContract = getUNIT_4_7PageContractFromManifest(runtimeManifest, step.id);
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
 
@@ -103,8 +103,11 @@ export function UNIT_4_7StudentPage({
 
   const answerVisible =
     teacherSyncState?.activeStepId === step.id ? Boolean(teacherSyncState?.revealedAnswers?.[step.id]) : false;
+  const releasedByDefault =
+    pageContract.teacherControls.releaseActivity === 'page_load_open' ||
+    pageContract.teacherControls.releaseActivity === 'not_applicable';
   const released =
-    isDemo || isUNIT_4_7StepReleasedByDefault(step.id)
+    isDemo || releasedByDefault
       ? true
       : teacherSyncState?.activeStepId === step.id
         ? Boolean(teacherSyncState?.releasedActivities?.[step.id])
@@ -227,6 +230,7 @@ export function UNIT_4_7StudentPage({
 
         <UNIT_4_7StepContentPanel
           step={step}
+          manifest={runtimeManifest}
           revealProgress={revealProgress}
           allowInlineReveal={allowInlineReveal}
         />
@@ -234,6 +238,7 @@ export function UNIT_4_7StudentPage({
         <div className="mt-4">
           <UNIT_4_7StudentActivityForm
             step={step}
+            manifest={runtimeManifest}
             savedResponse={savedResponse}
             released={released}
             browseEnabled={browseEnabled}

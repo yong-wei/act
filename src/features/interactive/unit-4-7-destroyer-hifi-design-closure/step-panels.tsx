@@ -14,23 +14,27 @@ import {
   renderInteractiveManifestStep,
 } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import {
-  getUNIT_4_7ManifestStep,
+  getUNIT_4_7ManifestStepFromManifest,
   UNIT_4_7_RUNTIME_MANIFEST,
   type UNIT_4_7StepDefinition,
 } from '@/lib/unit-4-7-course';
+import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 
 type TeacherResponseItem = { studentName: string; response: ManifestStepResponse };
 
 export function UNIT_4_7StepContentPanel({
   step,
+  manifest,
   revealProgress,
   allowInlineReveal,
 }: {
   step: UNIT_4_7StepDefinition;
+  manifest?: InteractiveRuntimeManifest | null;
   revealProgress: number;
   allowInlineReveal: boolean;
 }) {
-  const stepManifest = getUNIT_4_7ManifestStep(step.id);
+  const activeManifest = manifest ?? UNIT_4_7_RUNTIME_MANIFEST;
+  const stepManifest = getUNIT_4_7ManifestStepFromManifest(activeManifest, step.id);
   const moduleRegistry = createManifestContentModuleRegistry({
     revealProgress,
     allowInlineReveal,
@@ -39,7 +43,7 @@ export function UNIT_4_7StepContentPanel({
   return (
     <section className="space-y-4">
       {renderInteractiveManifestStep({
-        manifest: UNIT_4_7_RUNTIME_MANIFEST,
+        manifest: activeManifest,
         step: stepManifest,
         moduleRegistry,
         extra: { revealProgress, allowInlineReveal },
@@ -50,6 +54,7 @@ export function UNIT_4_7StepContentPanel({
 
 export function UNIT_4_7StudentActivityForm({
   step,
+  manifest,
   savedResponse,
   released,
   browseEnabled,
@@ -58,6 +63,7 @@ export function UNIT_4_7StudentActivityForm({
   onSubmit,
 }: {
   step: UNIT_4_7StepDefinition;
+  manifest?: InteractiveRuntimeManifest | null;
   savedResponse?: ManifestStepResponse;
   released: boolean;
   browseEnabled: boolean;
@@ -65,7 +71,7 @@ export function UNIT_4_7StudentActivityForm({
   revealProgress: number;
   onSubmit: (response: ManifestStepResponse) => void;
 }) {
-  const stepManifest = getUNIT_4_7ManifestStep(step.id);
+  const stepManifest = getUNIT_4_7ManifestStepFromManifest(manifest, step.id);
   return (
     <>
       {renderStudentInteractiveActivity({
@@ -85,6 +91,7 @@ export function UNIT_4_7StudentActivityForm({
 
 export function UNIT_4_7TeacherActivitySummary({
   step,
+  manifest,
   responses,
   released,
   browseEnabled,
@@ -97,6 +104,7 @@ export function UNIT_4_7TeacherActivitySummary({
   onResetReveal,
 }: {
   step: UNIT_4_7StepDefinition;
+  manifest?: InteractiveRuntimeManifest | null;
   responses: TeacherResponseItem[];
   released: boolean;
   browseEnabled: boolean;
@@ -108,7 +116,7 @@ export function UNIT_4_7TeacherActivitySummary({
   onAdvanceReveal: () => void;
   onResetReveal: () => void;
 }) {
-  const stepManifest = getUNIT_4_7ManifestStep(step.id);
+  const stepManifest = getUNIT_4_7ManifestStepFromManifest(manifest, step.id);
   return (
     <>
       {renderTeacherInteractiveActivity({

@@ -2,12 +2,10 @@ import type { BopppsStage } from '@prisma/client';
 
 import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
 import {
-  normalizeInteractiveRuntimeManifest,
   type InteractiveRuntimeManifest,
   type InteractiveRuntimeStepManifest,
 } from '@/lib/interactive-lesson-manifest';
 import type { StepAIContext } from '@/types/ai-context';
-import rawInteractiveManifest from '../../course-content/runtime/lessons/4-7/interactive-manifest.json';
 
 export type UNIT_4_7StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
 export type UNIT_4_7TeacherControlMode =
@@ -103,10 +101,6 @@ export const UNIT_4_7_COURSE_SUBTITLE = 'Destroyer Hifi Design Closure';
 export const UNIT_4_7_COURSE_DESCRIPTION =
   '围绕高保真航向任务、分段辨识、传统设计、优化解码、跨模型验证、扰动噪声边界和前沿方法入口，完成固定低阶结构的工程设计闭环。';
 
-export const UNIT_4_7_RUNTIME_MANIFEST = normalizeInteractiveRuntimeManifest(
-  rawInteractiveManifest,
-) as InteractiveRuntimeManifest;
-
 export const UNIT_4_7_STAGE_LABEL: Record<UNIT_4_7StageCode, string> = {
   B: 'B · 导入',
   O: 'O · 目标',
@@ -173,6 +167,69 @@ function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNI
   };
 }
 
+function fallbackManifestStep(step: UNIT_4_7StepDefinition): InteractiveRuntimeStepManifest {
+  return {
+    id: step.id,
+    title: step.title,
+    layout: {
+      template: 'stacked_regions',
+      regions: [{ id: 'main', width: 'full', order: 1 }],
+    },
+    modules: [],
+    contentBlocks: {},
+    evidenceSequence: [],
+    interactionSpec: {
+      interactionKind: step.pageType === 'display' || step.pageType === 'summary' ? 'none' : step.pageType,
+    },
+    teacherControls: {
+      releaseActivity: step.pageType === 'activity_card_set' || step.pageType === 'quiz_group'
+        ? 'teacher_toggle'
+        : 'not_applicable',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: step.pageType === 'teacher_reveal_only' ? 'teacher_toggle' : 'not_applicable',
+      revealReferenceAnswer: step.pageType === 'quiz_group' ? 'teacher_toggle' : 'not_applicable',
+    },
+    studentAccess: {},
+    teacherInsightSpec: { widgets: [] },
+    telemetrySpec: { summaryFields: [], misconceptionTags: [] },
+    aiContextSpec: {
+      pageGoal: step.hint,
+      deliveryMode: 'hidden_page_context',
+    },
+    interactiveFigureSpec: {},
+    previewContract: { demoPath: preview(step.id) },
+    acceptanceChecks: [],
+  };
+}
+
+export const UNIT_4_7_RUNTIME_MANIFEST: InteractiveRuntimeManifest = {
+  lessonId: '4-7',
+  courseTitle: UNIT_4_7_COURSE_TITLE,
+  courseRouteSegment: UNIT_4_7_ROUTE_SEGMENT,
+  previewMode: {},
+  mediaPolicy: {},
+  telemetryStrategy: 'runtime_externalized',
+  teacherInsightStrategy: 'runtime_externalized',
+  requiredStepFields: [],
+  stepOrder: UNIT_4_7_LESSON_STEPS.map((step) => step.id),
+  steps: UNIT_4_7_LESSON_STEPS.map(fallbackManifestStep),
+};
+
+export function getUNIT_4_7ManifestStepFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  const activeManifest = manifest ?? UNIT_4_7_RUNTIME_MANIFEST;
+  return activeManifest.steps.find((step) => step.id === stepId) ?? activeManifest.steps[0];
+}
+
+export function getUNIT_4_7PageContractFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  return pageContractFromManifestStep(getUNIT_4_7ManifestStepFromManifest(manifest, stepId));
+}
+
 export const UNIT_4_7_PAGE_CONTRACTS: Record<string, UNIT_4_7PageContract> = Object.fromEntries(
   UNIT_4_7_RUNTIME_MANIFEST.steps.map((step) => [step.id, pageContractFromManifestStep(step)]),
 ) as Record<string, UNIT_4_7PageContract>;
@@ -184,7 +241,7 @@ export function getUNIT_4_7Step(stepId: string) {
 }
 
 export function getUNIT_4_7ManifestStep(stepId: string) {
-  return UNIT_4_7_RUNTIME_MANIFEST.steps.find((step) => step.id === stepId) ?? UNIT_4_7_RUNTIME_MANIFEST.steps[0];
+  return getUNIT_4_7ManifestStepFromManifest(UNIT_4_7_RUNTIME_MANIFEST, stepId);
 }
 
 export function getUNIT_4_7PageContract(stepId: string) {
