@@ -29,6 +29,7 @@ import { UNIT_4_2_PREMIUM_LESSON_CARD } from '@/lib/unit-4-2-course';
 import { UNIT_4_3_PREMIUM_LESSON_CARD } from '@/lib/unit-4-3-course';
 import { UNIT_4_4_PREMIUM_LESSON_CARD } from '@/lib/unit-4-4-course';
 import { UNIT_4_6_PREMIUM_LESSON_CARD } from '@/lib/unit-4-6-course';
+import { UNIT_4_7_PREMIUM_LESSON_CARD } from '@/lib/unit-4-7-course';
 
 const UNIT_4_5_PREMIUM_LESSON_CARD = {
   id: 'unit-4-5-constraint-aware-parameter-optimization',
@@ -165,6 +166,7 @@ export const FEATURED_LESSONS = [
   UNIT_4_4_PREMIUM_LESSON_CARD,
   UNIT_4_5_PREMIUM_LESSON_CARD,
   UNIT_4_6_PREMIUM_LESSON_CARD,
+  UNIT_4_7_PREMIUM_LESSON_CARD,
   {
     id: 'cruise-comfort-boppps',
     title: '柔性之海：豪华邮轮舒适度控制课堂实录',
