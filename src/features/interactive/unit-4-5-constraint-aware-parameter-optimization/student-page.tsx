@@ -14,8 +14,7 @@ import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit45StepAIContext } from '@/lib/unit-4-5-ai-contexts';
 import {
-  getUNIT_4_5MediaSrc,
-  getUNIT_4_5PageContract,
+  getUNIT_4_5PageContractFromManifest,
   isUNIT_4_5AiPageType,
   isUNIT_4_5StepReleasedByDefault,
   UNIT_4_5_LESSON_KEY,
@@ -84,7 +83,8 @@ export function UNIT_4_5StudentPage({
   });
 
   const step = UNIT_4_5_LESSON_STEPS[activeIndex];
-  const pageContract = getUNIT_4_5PageContract(step.id);
+  const runtimeManifest = lessonRuntime.interactiveManifest;
+  const pageContract = getUNIT_4_5PageContractFromManifest(runtimeManifest, step.id);
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
 
@@ -112,7 +112,7 @@ export function UNIT_4_5StudentPage({
       : false;
   const released =
     isDemo ||
-    isUNIT_4_5StepReleasedByDefault(step.id)
+    isUNIT_4_5StepReleasedByDefault(step.id, runtimeManifest)
       ? true
       : teacherSyncState?.activeStepId === step.id
         ? Boolean(teacherSyncState?.releasedActivities?.[step.id])
@@ -252,8 +252,7 @@ export function UNIT_4_5StudentPage({
 
         <UNIT_4_5StepContentPanel
           step={step}
-          mediaSrc={getUNIT_4_5MediaSrc(step.id)}
-          mediaAlt={step.title}
+          manifest={runtimeManifest}
           revealProgress={revealProgress}
           allowInlineReveal={allowInlineReveal}
         />
@@ -263,6 +262,7 @@ export function UNIT_4_5StudentPage({
         <div className="mt-4">
           <UNIT_4_5StudentActivityForm
             step={step}
+            manifest={runtimeManifest}
             savedResponse={savedResponse}
             released={released}
             browseEnabled={browseEnabled}

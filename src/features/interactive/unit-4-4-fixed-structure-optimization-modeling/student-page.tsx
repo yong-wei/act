@@ -14,9 +14,7 @@ import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit44StepAIContext } from '@/lib/course-ai-contexts';
 import {
-  getUNIT_4_4PageContract,
-  getUNIT_4_4MediaSrc,
-  isUNIT_4_4AiPageType,
+  getUNIT_4_4PageContractFromManifest,
   isUNIT_4_4StepReleasedByDefault,
   UNIT_4_4_LESSON_KEY,
   UNIT_4_4_LESSON_STEPS,
@@ -27,13 +25,9 @@ import {
 } from '@/lib/unit-4-4-course';
 import { UNIT_4_4CourseHeader } from './course-header';
 import {
-  UNIT_4_4KnowledgeMapVisual,
-  UNIT_4_4StepAiAssistant,
   UNIT_4_4StepContentPanel,
   UNIT_4_4StudentActivityForm,
-  UNIT_4_4StudentSummaryPanel,
 } from './step-panels';
-import type { WorkspaceParameterChange } from './workspace';
 
 export function UNIT_4_4StudentPage({
   sessionId,
@@ -78,18 +72,18 @@ export function UNIT_4_4StudentPage({
     demoStepId,
   });
 
-  const { trackCourseEvent, trackStepLeave, trackStepView, trackSyncError, trackWorkspaceParamChange } =
-    useCourseEventTracking({
-      resourceKey: UNIT_4_4_RESOURCE_KEY,
-      resourceId: UNIT_4_4_RESOURCE_KEY,
-      sessionId: isDemo ? null : sessionId,
-      lessonKey: UNIT_4_4_LESSON_KEY,
-      actorRole: 'student',
-      emit: interactiveTracking.emit,
-    });
+  const { trackCourseEvent, trackStepLeave, trackStepView, trackSyncError } = useCourseEventTracking({
+    resourceKey: UNIT_4_4_RESOURCE_KEY,
+    resourceId: UNIT_4_4_RESOURCE_KEY,
+    sessionId: isDemo ? null : sessionId,
+    lessonKey: UNIT_4_4_LESSON_KEY,
+    actorRole: 'student',
+    emit: interactiveTracking.emit,
+  });
 
   const step = UNIT_4_4_LESSON_STEPS[activeIndex];
-  const pageContract = getUNIT_4_4PageContract(step.id);
+  const runtimeManifest = lessonRuntime.interactiveManifest;
+  const pageContract = getUNIT_4_4PageContractFromManifest(runtimeManifest, step.id);
   const savedResponse = courseState.responses[step.id];
   const { updatePageContext } = useGlobalAI();
 
@@ -114,7 +108,7 @@ export function UNIT_4_4StudentPage({
   const answerVisible = teacherSyncState?.activeStepId === step.id ? Boolean(teacherSyncState?.revealedAnswers?.[step.id]) : false;
   const released =
     isDemo ||
-    isUNIT_4_4StepReleasedByDefault(step.id)
+    isUNIT_4_4StepReleasedByDefault(step.id, runtimeManifest)
       ? true
       : teacherSyncState?.activeStepId === step.id
         ? Boolean(teacherSyncState?.releasedActivities?.[step.id])
@@ -176,30 +170,6 @@ export function UNIT_4_4StudentPage({
       return nextState;
     });
   };
-
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
-
-  const handleWorkspaceParameterChange = useCallback(
-    (change: WorkspaceParameterChange) => {
-      trackWorkspaceParamChange(step.id, {
-        key: change.key,
-        value: change.value,
-        source: change.source,
-      });
-    },
-    [step.id, trackWorkspaceParamChange],
-  );
 
   if (loadingSession) {
     return (
@@ -273,41 +243,25 @@ export function UNIT_4_4StudentPage({
           </div>
         </div>
 
-        {step.id === 'step-01' ? <UNIT_4_4KnowledgeMapVisual /> : null}
-
         <UNIT_4_4StepContentPanel
           step={step}
-          mediaSrc={getUNIT_4_4MediaSrc(step.id)}
-          mediaAlt={step.title}
+          manifest={runtimeManifest}
           revealProgress={revealProgress}
           allowInlineReveal={allowInlineReveal}
-          onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
-
-        {isUNIT_4_4AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_4_4StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
 
         <div className="mt-4">
           <UNIT_4_4StudentActivityForm
             step={step}
+            manifest={runtimeManifest}
             savedResponse={savedResponse}
             released={released}
             browseEnabled={browseEnabled}
             answerVisible={answerVisible}
             revealProgress={revealProgress}
             onSubmit={handleSubmitResponse}
-            onWorkspaceParameterChange={handleWorkspaceParameterChange}
           />
         </div>
-
-        {step.id === 'step-14' ? (
-          <div className="mt-4">
-            <UNIT_4_4StudentSummaryPanel responses={courseState.responses} />
-          </div>
-        ) : null}
       </main>
     </div>
   );

@@ -12,7 +12,6 @@ import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   finalizeUNIT_4_5TeacherSession,
-  getUNIT_4_5MediaSrc,
   isUNIT_4_5TeacherSyncState,
   resolveUNIT_4_5TeacherSyncDraft,
   shouldPostUNIT_4_5TeacherSync,
@@ -78,6 +77,7 @@ export function UNIT_4_5TeacherPage({
   });
 
   const step = UNIT_4_5_LESSON_STEPS[activeIndex];
+  const runtimeManifest = lessonRuntime.interactiveManifest;
 
   const teacherSyncState = useMemo(() => {
     const latestRecord = [...teacherStates].reverse().find((record) => isUNIT_4_5TeacherSyncState(record.data));
@@ -282,8 +282,7 @@ export function UNIT_4_5TeacherPage({
 
         <UNIT_4_5StepContentPanel
           step={step}
-          mediaSrc={getUNIT_4_5MediaSrc(step.id)}
-          mediaAlt={step.title}
+          manifest={runtimeManifest}
           revealProgress={teacherRevealProgress[step.id] ?? 0}
           allowInlineReveal={false}
         />
@@ -291,6 +290,7 @@ export function UNIT_4_5TeacherPage({
         <div className="mt-4">
           <UNIT_4_5TeacherActivitySummary
             step={step}
+            manifest={runtimeManifest}
             responses={currentResponses}
             released={Boolean(releasedActivities[step.id])}
             browseEnabled={Boolean(browseEnabled[step.id])}

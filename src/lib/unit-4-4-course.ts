@@ -1,6 +1,10 @@
 import type { BopppsStage } from '@prisma/client';
 
 import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
+import {
+  type InteractiveRuntimeManifest,
+  type InteractiveRuntimeStepManifest,
+} from '@/lib/interactive-lesson-manifest';
 import type { StepAIContext } from '@/types/ai-context';
 
 export type UNIT_4_4StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
@@ -137,6 +141,30 @@ export const UNIT_4_4_STAGE_MAP: Record<UNIT_4_4StageCode, BopppsStage> = {
   P3: 'POST_ASSESSMENT',
   S: 'SUMMARY',
 };
+
+function preview(stepId: string) {
+  return `/interactive-learning/courses/${UNIT_4_4_ROUTE_SEGMENT}/student/demo?step=${stepId}`;
+}
+
+function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNIT_4_4PageContract {
+  return {
+    layout: {
+      template: step.layout.template,
+      regions: step.layout.regions.map((region) => ({
+        id: region.id,
+        width: region.width,
+        order: region.order,
+      })),
+    },
+    interactionKind: step.interactionSpec.interactionKind as UNIT_4_4InteractionKind,
+    teacherControls: step.teacherControls,
+    teacherInsightWidgets: step.teacherInsightSpec.widgets,
+    telemetrySummaryFields: step.telemetrySpec.summaryFields,
+    misconceptionTags: step.telemetrySpec.misconceptionTags,
+    aiPageGoal: step.aiContextSpec.pageGoal,
+    previewDemoPath: step.previewContract.demoPath || preview(step.id),
+  };
+}
 
 export const UNIT_4_4_PAGE_CONTRACTS: Record<string, UNIT_4_4PageContract> = {
   'step-01': {
@@ -321,6 +349,63 @@ export const UNIT_4_4_LESSON_STEPS: readonly UNIT_4_4StepDefinition[] = [
   { id: 'step-14', stage: 'S', title: '总结与移交：把候选族交给 4-5 做工程复核', hint: '完成总结与移交，不在本页提前展开罚函数细节。', duration: '4 min', pageType: 'display' },
 ] as const;
 
+function fallbackManifestStep(step: UNIT_4_4StepDefinition): InteractiveRuntimeStepManifest {
+  const contract = UNIT_4_4_PAGE_CONTRACTS[step.id];
+  return {
+    id: step.id,
+    title: step.title,
+    layout: contract.layout,
+    modules: [],
+    contentBlocks: {},
+    evidenceSequence: [],
+    interactionSpec: {
+      interactionKind: contract.interactionKind,
+    },
+    teacherControls: contract.teacherControls,
+    studentAccess: {},
+    teacherInsightSpec: { widgets: contract.teacherInsightWidgets },
+    telemetrySpec: {
+      summaryFields: contract.telemetrySummaryFields,
+      misconceptionTags: contract.misconceptionTags ?? [],
+    },
+    aiContextSpec: {
+      pageGoal: contract.aiPageGoal,
+      deliveryMode: 'hidden_page_context',
+    },
+    interactiveFigureSpec: {},
+    previewContract: { demoPath: contract.previewDemoPath },
+    acceptanceChecks: [],
+  };
+}
+
+export const UNIT_4_4_RUNTIME_MANIFEST: InteractiveRuntimeManifest = {
+  lessonId: '4-4',
+  courseTitle: UNIT_4_4_COURSE_TITLE,
+  courseRouteSegment: UNIT_4_4_ROUTE_SEGMENT,
+  previewMode: {},
+  mediaPolicy: {},
+  telemetryStrategy: 'runtime_externalized',
+  teacherInsightStrategy: 'runtime_externalized',
+  requiredStepFields: [],
+  stepOrder: UNIT_4_4_LESSON_STEPS.map((step) => step.id),
+  steps: UNIT_4_4_LESSON_STEPS.map(fallbackManifestStep),
+};
+
+export function getUNIT_4_4ManifestStepFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  const activeManifest = manifest ?? UNIT_4_4_RUNTIME_MANIFEST;
+  return activeManifest.steps.find((step) => step.id === stepId) ?? activeManifest.steps[0];
+}
+
+export function getUNIT_4_4PageContractFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  return pageContractFromManifestStep(getUNIT_4_4ManifestStepFromManifest(manifest, stepId));
+}
+
 export function getUNIT_4_4Step(stepId: string) {
   return UNIT_4_4_LESSON_STEPS.find((step) => step.id === stepId) ?? UNIT_4_4_LESSON_STEPS[0];
 }
@@ -337,11 +422,14 @@ export function isUNIT_4_4AiPageType(_pageType: UNIT_4_4PageType) {
   return false;
 }
 
-export function isUNIT_4_4StepReleasedByDefault(stepId: string) {
-  const step = getUNIT_4_4Step(stepId);
-  const contract = getUNIT_4_4PageContract(stepId);
+export function isUNIT_4_4StepReleasedByDefault(
+  stepId: string,
+  manifest?: InteractiveRuntimeManifest | null,
+) {
+  const contract = manifest
+    ? getUNIT_4_4PageContractFromManifest(manifest, stepId)
+    : getUNIT_4_4PageContract(stepId);
   return (
-    !isUNIT_4_4InteractivePageType(step.pageType) ||
     contract.teacherControls.releaseActivity === 'page_load_open' ||
     contract.teacherControls.releaseActivity === 'not_applicable'
   );

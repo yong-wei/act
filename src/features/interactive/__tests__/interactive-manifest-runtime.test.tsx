@@ -638,6 +638,9 @@ describe('interactive runtime manifest', () => {
 
     expect(manifest.steps.find((step) => step.id === 'step-04')?.contentBlocks.constraint_formula).toBeDefined();
     expect(manifest.steps.find((step) => step.id === 'step-07')?.contentBlocks.solver_input_table).toBeDefined();
-    expect(manifest.steps.find((step) => step.id === 'step-12')?.contentBlocks.posttest_q3).toBeDefined();
+    const posttestStep = manifest.steps.find((step) => step.id === 'step-12');
+    expect(posttestStep?.contentBlocks.posttest_note).toBeDefined();
+    expect(posttestStep?.contentBlocks.posttest_q3).toBeUndefined();
+    expect(posttestStep?.interactionSpec.activityCards?.find((card) => card.id === 'posttest-q3')).toBeDefined();
   });
 });

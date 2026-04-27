@@ -1,6 +1,10 @@
 import type { BopppsStage } from '@prisma/client';
 
 import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
+import {
+  type InteractiveRuntimeManifest,
+  type InteractiveRuntimeStepManifest,
+} from '@/lib/interactive-lesson-manifest';
 import type { StepAIContext } from '@/types/ai-context';
 
 export type UNIT_4_5StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3' | 'S';
@@ -8,6 +12,7 @@ export type UNIT_4_5TeacherControlMode =
   | 'not_applicable'
   | 'page_load_open'
   | 'teacher_toggle'
+  | 'teacher_direct'
   | 'teacher_only';
 
 export type UNIT_4_5PageType =
@@ -130,6 +135,26 @@ export const UNIT_4_5_STAGE_MAP: Record<UNIT_4_5StageCode, BopppsStage> = {
 
 function preview(stepId: string) {
   return `/interactive-learning/courses/${UNIT_4_5_ROUTE_SEGMENT}/student/demo?step=${stepId}`;
+}
+
+function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNIT_4_5PageContract {
+  return {
+    layout: {
+      template: step.layout.template,
+      regions: step.layout.regions.map((region) => ({
+        id: region.id,
+        width: region.width,
+        order: region.order,
+      })),
+    },
+    interactionKind: step.interactionSpec.interactionKind as UNIT_4_5PageContract['interactionKind'],
+    teacherControls: step.teacherControls,
+    teacherInsightWidgets: step.teacherInsightSpec.widgets,
+    telemetrySummaryFields: step.telemetrySpec.summaryFields,
+    misconceptionTags: step.telemetrySpec.misconceptionTags,
+    aiPageGoal: step.aiContextSpec.pageGoal,
+    previewDemoPath: step.previewContract.demoPath || preview(step.id),
+  };
 }
 
 function contract(
@@ -737,6 +762,63 @@ export const UNIT_4_5_LESSON_STEPS: readonly UNIT_4_5StepDefinition[] = [
   { id: 'step-13', stage: 'S', title: '总结：把越界证据、约束翻译与结构边界连成一条链', hint: '用信息图与下一课去向收束本课。', duration: '6 min', pageType: 'summary' },
 ] as const;
 
+function fallbackManifestStep(step: UNIT_4_5StepDefinition): InteractiveRuntimeStepManifest {
+  const contract = UNIT_4_5_PAGE_CONTRACTS[step.id];
+  return {
+    id: step.id,
+    title: step.title,
+    layout: contract.layout,
+    modules: [],
+    contentBlocks: {},
+    evidenceSequence: [],
+    interactionSpec: {
+      interactionKind: contract.interactionKind,
+    },
+    teacherControls: contract.teacherControls,
+    studentAccess: {},
+    teacherInsightSpec: { widgets: contract.teacherInsightWidgets },
+    telemetrySpec: {
+      summaryFields: contract.telemetrySummaryFields,
+      misconceptionTags: contract.misconceptionTags ?? [],
+    },
+    aiContextSpec: {
+      pageGoal: contract.aiPageGoal,
+      deliveryMode: 'hidden_page_context',
+    },
+    interactiveFigureSpec: {},
+    previewContract: { demoPath: contract.previewDemoPath },
+    acceptanceChecks: [],
+  };
+}
+
+export const UNIT_4_5_RUNTIME_MANIFEST: InteractiveRuntimeManifest = {
+  lessonId: '4-5',
+  courseTitle: UNIT_4_5_COURSE_TITLE,
+  courseRouteSegment: UNIT_4_5_ROUTE_SEGMENT,
+  previewMode: {},
+  mediaPolicy: {},
+  telemetryStrategy: 'runtime_externalized',
+  teacherInsightStrategy: 'runtime_externalized',
+  requiredStepFields: [],
+  stepOrder: UNIT_4_5_LESSON_STEPS.map((step) => step.id),
+  steps: UNIT_4_5_LESSON_STEPS.map(fallbackManifestStep),
+};
+
+export function getUNIT_4_5ManifestStepFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  const activeManifest = manifest ?? UNIT_4_5_RUNTIME_MANIFEST;
+  return activeManifest.steps.find((step) => step.id === stepId) ?? activeManifest.steps[0];
+}
+
+export function getUNIT_4_5PageContractFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  return pageContractFromManifestStep(getUNIT_4_5ManifestStepFromManifest(manifest, stepId));
+}
+
 export function getUNIT_4_5Step(stepId: string) {
   return UNIT_4_5_LESSON_STEPS.find((step) => step.id === stepId) ?? UNIT_4_5_LESSON_STEPS[0];
 }
@@ -753,8 +835,13 @@ export function isUNIT_4_5AiPageType(_pageType: UNIT_4_5PageType) {
   return false;
 }
 
-export function isUNIT_4_5StepReleasedByDefault(stepId: string) {
-  const contract = getUNIT_4_5PageContract(stepId);
+export function isUNIT_4_5StepReleasedByDefault(
+  stepId: string,
+  manifest?: InteractiveRuntimeManifest | null,
+) {
+  const contract = manifest
+    ? getUNIT_4_5PageContractFromManifest(manifest, stepId)
+    : getUNIT_4_5PageContract(stepId);
   return (
     contract.teacherControls.releaseActivity === 'page_load_open' ||
     contract.teacherControls.releaseActivity === 'not_applicable'

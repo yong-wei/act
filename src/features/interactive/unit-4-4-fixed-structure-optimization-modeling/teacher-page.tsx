@@ -8,13 +8,10 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
-import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   finalizeUNIT_4_4TeacherSession,
-  getUNIT_4_4MediaSrc,
-  isUNIT_4_4AiPageType,
   isUNIT_4_4TeacherSyncState,
   resolveUNIT_4_4TeacherSyncDraft,
   shouldPostUNIT_4_4TeacherSync,
@@ -28,12 +25,9 @@ import {
 } from '@/lib/unit-4-4-course';
 import { UNIT_4_4CourseHeader } from './course-header';
 import {
-  UNIT_4_4KnowledgeMapVisual,
-  UNIT_4_4StepAiAssistant,
   UNIT_4_4StepContentPanel,
   UNIT_4_4TeacherActivitySummary,
 } from './step-panels';
-import type { WorkspaceParameterChange } from './workspace';
 
 export function UNIT_4_4TeacherPage({
   sessionId,
@@ -73,17 +67,17 @@ export function UNIT_4_4TeacherPage({
     adapter: UNIT_4_4_SESSION_ADAPTER,
   });
 
-  const { trackCourseEvent, trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError, trackWorkspaceParamChange } =
-    useCourseEventTracking({
-      resourceKey: UNIT_4_4_RESOURCE_KEY,
-      resourceId: UNIT_4_4_RESOURCE_KEY,
-      sessionId,
-      lessonKey: UNIT_4_4_LESSON_KEY,
-      actorRole: 'teacher',
-      emit: interactiveTracking.emit,
-    });
+  const { trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError } = useCourseEventTracking({
+    resourceKey: UNIT_4_4_RESOURCE_KEY,
+    resourceId: UNIT_4_4_RESOURCE_KEY,
+    sessionId,
+    lessonKey: UNIT_4_4_LESSON_KEY,
+    actorRole: 'teacher',
+    emit: interactiveTracking.emit,
+  });
 
   const step = UNIT_4_4_LESSON_STEPS[activeIndex];
+  const runtimeManifest = lessonRuntime.interactiveManifest;
 
   const teacherSyncState = useMemo(() => {
     const latestRecord = [...teacherStates].reverse().find((record) => isUNIT_4_4TeacherSyncState(record.data));
@@ -189,30 +183,6 @@ export function UNIT_4_4TeacherPage({
     }
   }, [finishSession, router, sessionInfo, step.id, trackSessionFinalize]);
 
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
-
-  const handleWorkspaceParameterChange = useCallback(
-    (change: WorkspaceParameterChange) => {
-      trackWorkspaceParamChange(step.id, {
-        key: change.key,
-        value: change.value,
-        source: change.source,
-      });
-    },
-    [step.id, trackWorkspaceParamChange],
-  );
-
   if (loadingSession) {
     return (
       <div className="premium-lesson-shell flex items-center justify-center">
@@ -289,26 +259,17 @@ export function UNIT_4_4TeacherPage({
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
-        {step.id === 'step-01' ? <UNIT_4_4KnowledgeMapVisual /> : null}
-
         <UNIT_4_4StepContentPanel
           step={step}
-          mediaSrc={getUNIT_4_4MediaSrc(step.id)}
-          mediaAlt={step.title}
+          manifest={runtimeManifest}
           revealProgress={teacherRevealProgress[step.id] ?? 0}
           allowInlineReveal={false}
-          onWorkspaceParameterChange={handleWorkspaceParameterChange}
         />
-
-        {isUNIT_4_4AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_4_4StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
 
         <div className="mt-4">
           <UNIT_4_4TeacherActivitySummary
             step={step}
+            manifest={runtimeManifest}
             responses={currentResponses}
             released={Boolean(releasedActivities[step.id])}
             browseEnabled={Boolean(browseEnabled[step.id])}

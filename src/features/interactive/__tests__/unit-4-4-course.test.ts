@@ -167,15 +167,38 @@ describe('unit 4-4 interactive course', () => {
       ),
       'utf8',
     );
+    const teacherPageSource = readFileSync(
+      join(
+        repoRoot,
+        'src/features/interactive/unit-4-4-fixed-structure-optimization-modeling/teacher-page.tsx',
+      ),
+      'utf8',
+    );
+    const courseSource = readFileSync(join(repoRoot, 'src/lib/unit-4-4-course.ts'), 'utf8');
+    const manifestSource = readFileSync(
+      join(repoRoot, 'course-content/runtime/lessons/4-4/interactive-manifest.json'),
+      'utf8',
+    );
+    const sharedContentRendererSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
+    const sharedActivityRendererSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/activity-renderers.tsx'),
+      'utf8',
+    );
 
     expect(stepPanelsSource).not.toContain('/course-content/authoring/lessons/4-4/media/processed/');
-    expect(stepPanelsSource).toContain('/course-runtime/lessons/4-4/media/');
-    expect(stepPanelsSource).toContain('data-progressive-reveal="step_click_reveal"');
-    expect(stepPanelsSource).toContain('点击当前最下方已显影步骤可继续展开下一层');
-    expect(stepPanelsSource).toContain('J_{\\\\mathrm{free}}(\\\\theta)');
-    expect(stepPanelsSource).toContain('P_h(s)=\\\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}');
-    expect(stepPanelsSource).toContain('Pareto front');
-    expect(stepPanelsSource).toContain('横摇边界案例');
+    expect(stepPanelsSource).toContain('renderInteractiveManifestStep');
+    expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
+    expect(stepPanelsSource).toContain('createManifestStudentActivityRegistry');
+    expect(stepPanelsSource).toContain('GradientDescentNativeFigure');
+    expect(stepPanelsSource).toContain('ParetoFrontNativeFigure');
+    expect(courseSource).toContain('/course-runtime/lessons/4-4/media/');
+    expect(manifestSource).toContain('J_{free}(θ)');
+    expect(manifestSource).toContain('P_h(s)=0.01715/[s(s+0.1)(s+2.14375)]');
+    expect(manifestSource).toContain('Pareto front');
+    expect(manifestSource).toContain('横摇边界案例');
     expect(courseModule.UNIT_4_4_PARETO_FRONT_READING_BULLETS).toEqual([
       '越往左走，控制能量更小，但 ITAE 会明显变差。',
       '越往上走，拖尾改善有限，但动作代价更容易被压低。',
@@ -186,15 +209,16 @@ describe('unit 4-4 interactive course', () => {
       '从 P_1 回到 P_3，可以大幅节省动作代价，但必须接受更长拖尾。',
       'P_2 夹在中间，没有把另一边彻底碾压掉。',
     ]);
-    expect(stepPanelsSource).toContain('越往左走，控制能量更省；越往上走，ITAE 更大，说明拖尾会更差。');
-    expect(stepPanelsSource).not.toContain('越往下，拖尾更短');
-    expect(stepPanelsSource).toContain('PerCardQuizForm');
-    expect(stepPanelsSource).toContain('isUNIT_4_4PerCardQuizStep(step.id)');
-    expect(stepPanelsSource).toContain("if (step.pageType === 'teacher_reveal_only')");
-    expect(studentPageSource).toContain('isUNIT_4_4StepReleasedByDefault(step.id)');
+    expect(manifestSource).toContain('Pareto front 保留的是一组非支配候选，而不是一个绝对最优点。');
+    expect(manifestSource).not.toContain('越往下，拖尾更短');
+    expect(sharedContentRendererSource).toContain('点击当前最下方步骤继续显示下一层。');
+    expect(sharedActivityRendererSource).toContain('buildPerCardSubmissionAnswers');
+    expect(studentPageSource).toContain('isUNIT_4_4StepReleasedByDefault(step.id, runtimeManifest)');
+    expect(studentPageSource).toContain('lessonRuntime.interactiveManifest');
     expect(studentPageSource).toContain("pageContract.teacherControls.teacherStepReveal === 'not_applicable'");
     expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
     expect(studentPageSource).not.toContain('allowInlineReveal={isDemo || browseEnabled}');
+    expect(teacherPageSource).toContain('UNIT_4_4TeacherActivitySummary');
     expect(stepPanelsSource).not.toContain('/ai');
   });
 
@@ -219,22 +243,30 @@ describe('unit 4-4 interactive course', () => {
       'src/features/interactive/unit-4-4-fixed-structure-optimization-modeling/step-panels.tsx',
     );
     const stepPanelsSource = readFileSync(stepPanelsPath, 'utf8');
+    const manifestSource = readFileSync(
+      join(repoRoot, 'course-content/runtime/lessons/4-4/interactive-manifest.json'),
+      'utf8',
+    );
+    const sharedContentRendererSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
 
     expect(stepPanelsSource).not.toContain('本课七项目标');
-    expect(stepPanelsSource).toContain('完成本次课程后，学习者能够：');
-    expect(stepPanelsSource).toContain('你认为上一课中的方案还有哪些可以改进的地方？');
-    expect(stepPanelsSource).toContain("import { BlockMath, InlineMath } from 'react-katex';");
+    expect(manifestSource).toContain('完成本次课程后，学习者能够：');
+    expect(manifestSource).toContain('你认为上一课中的方案还有哪些可以改进的地方？');
+    expect(sharedContentRendererSource).toContain("import { BlockMath, InlineMath } from 'react-katex';");
     expect(stepPanelsSource).toContain('GradientDescentNativeFigure');
     expect(stepPanelsSource).toContain('ParetoFrontNativeFigure');
-    expect(stepPanelsSource).toContain("mathCell('t_s / 40')");
-    expect(stepPanelsSource).toContain("mathCell('ITAE / ITAE_0')");
-    expect(stepPanelsSource).toContain("mathCell('2.796\\\\dfrac{10s+1}{4.06s+1}')");
-    expect(stepPanelsSource).toContain('STEP_06_METHOD_CARDS');
-    expect(stepPanelsSource).toContain("formula: 'J_{\\\\mathrm{free}}(\\\\theta)'");
-    expect(stepPanelsSource).toContain('拖动曲线上的候选点');
-    expect(stepPanelsSource).toContain('上一轮设计结果与性能指标');
-    expect(stepPanelsSource).toContain('阶段判断后测');
-    expect(stepPanelsSource).toContain('非支配候选');
+    expect(manifestSource).toContain('t_s / 40');
+    expect(manifestSource).toContain('ITAE / ITAE_0');
+    expect(sharedContentRendererSource).toContain('renderTableCell');
+    expect(manifestSource).toContain('2.796(10s+1)/(4.06s+1)');
+    expect(manifestSource).toContain('J_{free}(θ)');
+    expect(manifestSource).toContain('拖动曲线上的候选点');
+    expect(manifestSource).toContain('上一轮设计结果回看');
+    expect(manifestSource).toContain('阶段判断后测');
+    expect(manifestSource).toContain('非支配候选');
 
     expect(courseModule.isUNIT_4_4PerCardTextStep('step-13')).toBe(false);
     expect(courseModule.isUNIT_4_4PerCardQuizStep('step-13')).toBe(true);

@@ -134,14 +134,21 @@ describe('unit 4-5 interactive course', () => {
     const studentPageSource = readFileSync(join(featureBase, 'student-page.tsx'), 'utf8');
     const teacherPageSource = readFileSync(join(featureBase, 'teacher-page.tsx'), 'utf8');
     const courseSource = readFileSync(join(repoRoot, 'src/lib/unit-4-5-course.ts'), 'utf8');
+    const sharedContentRendererSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
 
     expect(stepPanelsSource).not.toContain('/course-content/authoring/lessons/4-5/media/processed/');
     expect(stepPanelsSource).not.toContain('/ai');
-    expect(stepPanelsSource).toContain('点击当前最下方步骤继续显示下一层。');
+    expect(stepPanelsSource).toContain('renderInteractiveManifestStep');
+    expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
+    expect(sharedContentRendererSource).toContain('点击当前最下方步骤继续显示下一层。');
     expect(courseSource).toContain('/course-runtime/lessons/4-5/media/');
     expect(courseSource).not.toContain('/course-runtime/lessons/4-4/media/');
 
     expect(studentPageSource).toContain('updatePageContext({');
+    expect(studentPageSource).toContain('lessonRuntime.interactiveManifest');
     expect(studentPageSource).not.toContain('AI 助手');
     expect(studentPageSource).toContain("pageContract.teacherControls.teacherStepReveal === 'not_applicable'");
     expect(studentPageSource).toContain('allowInlineReveal={allowInlineReveal}');
@@ -169,11 +176,25 @@ describe('unit 4-5 interactive course', () => {
 
   it('renders formula-bearing table cells and prompts through math-aware cells instead of raw text', () => {
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
+    const manifestSource = readFileSync(
+      join(repoRoot, 'course-content/runtime/lessons/4-5/interactive-manifest.json'),
+      'utf8',
+    );
+    const sharedContentRendererSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
+    const sharedActivityRendererSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/activity-renderers.tsx'),
+      'utf8',
+    );
 
-    expect(stepPanelsSource).toContain("['对象', { kind: 'math', value: 'P_h(s)=");
-    expect(stepPanelsSource).toContain("['结构', { kind: 'math', value: 'C_h(s)=");
-    expect(stepPanelsSource).toContain("['起点与范围', { kind: 'math', value: 'x_0=");
-    expect(stepPanelsSource).toContain("prompt: '$1\\\\le K\\\\le 6$ 与 $u_{\\\\max}\\\\le 7$ 分别在回答什么问题？'");
+    expect(stepPanelsSource).toContain('createManifestStudentActivityRegistry');
+    expect(manifestSource).toContain('"kind": "math"');
+    expect(manifestSource).toContain('"value": "P_h(s)=\\\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}"');
+    expect(manifestSource).toContain('"prompt": "$1\\\\\\\\le K\\\\\\\\le 6$ 与 $u_{\\\\\\\\max}\\\\\\\\le 7$ 分别在回答什么问题？"');
+    expect(sharedContentRendererSource).toContain("type TableCell = string | { kind: 'math'; value: string };");
+    expect(sharedActivityRendererSource).toContain('renderActivityInlineContent');
   });
 
   it('wires teacher reveal and per-card helpers to the intended steps', async () => {

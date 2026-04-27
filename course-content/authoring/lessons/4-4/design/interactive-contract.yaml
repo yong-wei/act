@@ -132,11 +132,6 @@ steps:
           - '最后判断为什么这些变化还没进入同一套评价语言。'
       reading_conclusion:
         text: '固定结构没有失效，真正暴露出来的是多目标拉扯还缺一套统一评价语言。'
-      pre_quiz:
-        questions:
-          - { id: 'pre-quiz-1', prompt: '只要一组参数让时间更短、拖尾更小，是否就已经能当最终答案？', options: ['否', '是'] }
-          - { id: 'pre-quiz-2', prompt: '参数范围和工程硬边界是不是同一种东西？', options: ['不是', '是'] }
-          - { id: 'pre-quiz-3', prompt: '若任务从航向跟踪改成横摇抗扰，原目标函数能否直接照搬？', options: ['不能', '能'] }
     evidence_sequence: ['表 1', '首轮对比图', '读图口令', '图后结论', '三题前测']
     interaction_spec:
       interaction_kind: 'quiz_group'
@@ -199,9 +194,6 @@ steps:
           - ['α', '[0.15,0.85]', '保持在超前结构有效区间内']
       range_note:
         text: '参数范围只负责保持当前固定结构可解释，并不等于输出过程的工程复核条件。'
-      start_task:
-        title: '上一轮方案还能从哪些地方继续改进'
-        prompt: '你认为上一课中的方案还有哪些可以改进的地方？'
     evidence_sequence: ['起始方案', '参数向量', '上一轮设计结果图片', '上一轮性能指标', '参数范围表', '范围说明', '作答卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
@@ -470,9 +462,6 @@ steps:
           - '越往左走，控制能量更小，但 ITAE 会明显变差。'
           - '越往上走，拖尾改善有限，但动作代价更容易被压低。'
           - 'Pareto front 保留的是一组非支配候选，而不是一个绝对最优点。'
-      pareto_task:
-        question: '为什么 Pareto front 不是再选一个绝对最优？'
-        options: ['因为它保留的是一组非支配候选', '因为图还没画完', '因为权重没有填完']
     evidence_sequence: ['二目标定义', '前沿原生图', '当前点统计面板', '单选判断']
     interaction_spec:
       interaction_kind: 'single_choice'
@@ -528,9 +517,6 @@ steps:
           - '这条前沿先筛掉同时输给别人的候选。'
           - '它把偏好从口头争论变成可视化对象。'
           - '后续工程复核是在这组可解释候选上继续做筛选。'
-      pareto_point_task:
-        question: '为什么 P1、P2、P3 能在 Pareto 意义下“同样好”？'
-        options: ['因为它们彼此之间都存在收益与代价交换', '因为三个点的数值完全一样', '因为只要在前沿上就自动可交付']
     evidence_sequence: ['同一结构说明', '表 7', '响应图', '图后解释', '工程意义卡', '单选判断']
     interaction_spec:
       interaction_kind: 'single_choice'
@@ -580,11 +566,6 @@ steps:
         bullets:
           - '目标语言改写后，搜索开始主动压低横摇整体强度和谐振峰。'
           - '收益没有白拿，RMS(u) 的上升说明动作代价被重新分配。'
-      roll_workspace:
-        cards:
-          - '请写出横摇案例中，为什么原航向保持目标函数不能直接照搬。'
-          - '请写出哪两项数值变化最能说明目标语言改了，搜索方向也改了。'
-          - '请用一句话说明横摇案例里收益与代价是怎样重新分配的。'
     evidence_sequence: ['对象与结构', '横摇自由目标', '表 8', '验证图', '两条回读结论', '三卡提交']
     interaction_spec:
       interaction_kind: 'task_card_workspace'
@@ -617,11 +598,6 @@ steps:
       posttest_title:
         title: '阶段判断后测'
         text: '这一页只检查判断链，不负责总结和移交。'
-      post_quiz:
-        questions:
-          - { id: 'post-quiz-1', prompt: '为什么本课保留下来的只能叫“候选族”，而不是最终可用解？', options: ['因为还没有经过 4-5 的工程复核', '因为参数还没有写成向量', '因为调节时间没有下降'] }
-          - { id: 'post-quiz-2', prompt: '为什么 Pareto front 不是再选一个绝对最优？', options: ['因为它保留的是一组非支配候选', '因为图还没画完', '因为权重没有归一化'] }
-          - { id: 'post-quiz-3', prompt: '为什么横摇案例不能继续沿用航向保持中的目标语言？', options: ['因为任务通道变了，收益项和代价项必须跟着改写', '因为横摇对象没有积分环节', '因为参数范围必须改成负数'] }
       posttest_note:
         text: '答题时必须同时回接本课中的证据页，而不是只重复名词定义。'
     evidence_sequence: ['后测标题卡', '三题后测']
