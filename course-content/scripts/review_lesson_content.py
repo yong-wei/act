@@ -442,7 +442,7 @@ IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
     },
     '4-5': {
         'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-4-5-course.ts',
-        'page_contracts_const': 'UNIT_4_5_PAGE_CONTRACTS_REVIEW',
+        'runtime_manifest_path': REPO_ROOT / 'course-content' / 'runtime' / 'lessons' / '4-5' / 'interactive-manifest.json',
         'lesson_steps_const': 'UNIT_4_5_LESSON_STEPS',
         'source_path': 'src/lib/unit-4-5-course.ts',
     },

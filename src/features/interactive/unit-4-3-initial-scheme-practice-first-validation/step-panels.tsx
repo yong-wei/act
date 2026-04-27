@@ -6,12 +6,12 @@ import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
 import type { InteractiveRuntimeManifest, InteractiveRuntimeStepManifest } from '@/lib/interactive-lesson-manifest';
-import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import {
   renderInteractiveManifestStep,
   type InteractiveModuleRegistry,
 } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import {
+  createManifestTeacherActivityRegistry,
   createManifestStudentActivityRegistry,
   renderStudentInteractiveActivity,
   renderTeacherInteractiveActivity,
@@ -47,7 +47,6 @@ type TeacherResponseItem = { studentName: string; response: UNIT_4_3StepResponse
 type MetricRow = { label: string; baseline: string; current: string };
 type PromptContentBlock = Readonly<{ type: 'text' | 'math'; value: string }>;
 type PromptContent = readonly PromptContentBlock[];
-type PromptField = { key: string; title: string; prompt: PromptContent; placeholder: string; half?: boolean };
 type ComparisonPoint = { x: number; baseline: number | null; current: number | null };
 
 const HEADING_PLANT_TEX = 'P_h(s)=\\dfrac{0.01715}{s(s+0.1)(s+2.14375)}';
@@ -59,149 +58,6 @@ const STEP_07_DEFAULT_PARAMS = { kp: 3.5, ki: 3.5 / 1.5, kd: 0.25 } as const;
 const STEP_10_DEFAULT_PARAMS = { gain: 2.8, leadZeroFrequency: 0.1, leadPoleFrequency: 1 / 4.06 } as const;
 const BASELINE_SERIES_COLOR = '#f59e0b';
 const CURRENT_SERIES_COLOR = '#22d3ee';
-
-const ACTIVITY_FIELDS: Record<string, PromptField[]> = {
-  'step-02': [
-    {
-      key: 'mainConflict',
-      title: '当前主矛盾',
-      prompt: [{ type: 'text', value: '当前最紧矛盾在哪里？' }],
-      placeholder: '写出对象最紧的矛盾。',
-      half: true,
-    },
-    {
-      key: 'hardConstraint',
-      title: '当前硬约束',
-      prompt: [{ type: 'text', value: '当前最不能越过的边界是什么？' }],
-      placeholder: '写出当前硬约束。',
-      half: true,
-    },
-    {
-      key: 'singleRisk',
-      title: '继续单结构最先失守处',
-      prompt: [{ type: 'text', value: '若继续强推单结构，最可能先透支哪里？' }],
-      placeholder: '写出最先失守的边界。',
-      half: true,
-    },
-    {
-      key: 'validationReadout',
-      title: '首轮验证重点读数',
-      prompt: [{ type: 'text', value: '第一轮最该盯哪组读数？' }],
-      placeholder: '写出最该先看的读数。',
-      half: true,
-    },
-  ],
-  'step-05': [
-    {
-      key: 'piRole',
-      title: 'PI 负责什么',
-      prompt: [{ type: 'text', value: 'PI 的职责是什么？' }],
-      placeholder: '说明 PI 如何托举低频。',
-      half: true,
-    },
-    {
-      key: 'leadRole',
-      title: '超前负责什么',
-      prompt: [{ type: 'text', value: '超前的职责是什么？' }],
-      placeholder: '说明超前如何整理中频。',
-      half: true,
-    },
-  ],
-  'step-06': [
-    {
-      key: 'lagBenefit',
-      title: '主要收益',
-      prompt: [{ type: 'text', value: '这一版为什么更稳健？' }],
-      placeholder: '写出主要收益。',
-      half: true,
-    },
-    {
-      key: 'lagCost',
-      title: '主要代价',
-      prompt: [{ type: 'text', value: '这一版最明显的代价是什么？' }],
-      placeholder: '写出主要代价。',
-      half: true,
-    },
-  ],
-  'step-07': [
-    {
-      key: 'integralRole',
-      title: '积分负责什么',
-      prompt: [{ type: 'text', value: '积分主要补哪一段行为？' }],
-      placeholder: '写出积分职责。',
-      half: true,
-    },
-    {
-      key: 'derivativeRole',
-      title: '微分与滤波负责什么',
-      prompt: [{ type: 'text', value: '微分与滤波分别负责什么？' }],
-      placeholder: '写出微分与滤波职责。',
-      half: true,
-    },
-  ],
-  'step-08': [
-    {
-      key: 'headingLeadChoice',
-      title: '为何先上超前',
-      prompt: [{ type: 'text', value: '为什么此时不先补低频能力？' }],
-      placeholder: '围绕积分特性与主矛盾作答。',
-      half: true,
-    },
-  ],
-  'step-10': [
-    {
-      key: 'satisfiedTargets',
-      title: '已满足的目标',
-      prompt: [{ type: 'text', value: '这一版已经接住了哪些目标？' }],
-      placeholder: '写出已满足目标。',
-      half: true,
-    },
-    {
-      key: 'nextIssue',
-      title: '已暴露代价与下一轮优先项',
-      prompt: [{ type: 'text', value: '这一版开始透支什么、下一轮先改什么？' }],
-      placeholder: '写出代价与下一轮优先项。',
-      half: true,
-    },
-  ],
-  'step-12': [
-    {
-      key: 'analysis-card',
-      title: '对象分析记录单',
-      prompt: [
-        { type: 'text', value: '请围绕下列对象写出当前主矛盾，并判断继续拉高增益最可能先碰到哪条边界。' },
-        { type: 'math', value: 'P_p(s)=\\dfrac{1}{(s+1)(0.4s+1)(0.1s+1)}' },
-      ],
-      placeholder: '写出主矛盾与边界。',
-    },
-    {
-      key: 'scheme-card',
-      title: '初始方案表达卡',
-      prompt: [
-        { type: 'text', value: '请写出你的初始控制器结构。' },
-        { type: 'text', value: '同时说明每一部分负责什么、参数起步方向是什么。' },
-      ],
-      placeholder: '写出结构、职责与参数方向。',
-    },
-    {
-      key: 'issue-card',
-      title: '问题清单移交表',
-      prompt: [
-        { type: 'text', value: '请写出这版方案已经满足了什么、开始透支什么、下一轮先改什么。' },
-      ],
-      placeholder: '写出收益、代价与下一轮优先项。',
-    },
-  ],
-  'step-13': [
-    {
-      key: 'rollBoundary',
-      title: '为何不能继续沿用频段分工口径',
-      prompt: [{ type: 'text', value: '为什么这里必须回到通道重写？' }],
-      placeholder: '说明扰动抑制通道为何不同于给定跟踪。',
-      half: true,
-    },
-  ],
-};
 
 const REVEALS = {
   'step-09': [
@@ -400,35 +256,6 @@ function SurfaceCard({ title, children }: { title?: string; children: ReactNode 
       {title ? <h3 className="premium-lesson-title text-lg font-semibold">{title}</h3> : null}
       <div className={title ? 'mt-3 space-y-3' : 'space-y-3'}>{children}</div>
     </section>
-  );
-}
-
-function TextareaCard({
-  title,
-  prompt,
-  value,
-  placeholder,
-  onChange,
-  half,
-}: {
-  title: string;
-  prompt: PromptContent;
-  value: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-  half?: boolean;
-}) {
-  return (
-    <div className={cn('premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4', half && 'md:col-span-1')}>
-      <div className="premium-lesson-title text-sm font-medium">{title}</div>
-      <div className="mt-2">{renderPromptContent(prompt)}</div>
-      <textarea
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        className="premium-lesson-input mt-3 min-h-[128px] resize-y text-sm"
-      />
-    </div>
   );
 }
 
@@ -1221,68 +1048,14 @@ export function UNIT_4_3StepContentPanel({
   );
 }
 
-function TextAreaActivityCards({
-  step,
-  savedResponse,
-  released,
-  browseEnabled,
-  revealProgress,
-  onSubmit,
-}: {
-  step: UNIT_4_3RuntimeStepDefinition;
-  savedResponse?: UNIT_4_3StepResponse;
-  released: boolean;
-  browseEnabled: boolean;
-  revealProgress: number;
-  onSubmit: (response: UNIT_4_3StepResponse) => void;
-}) {
-  const [answers, setAnswers] = useState<Record<string, string>>(savedResponse?.answers ?? {});
-
-  useEffect(() => {
-    setAnswers(savedResponse?.answers ?? {});
-  }, [savedResponse, step.id]);
-
-  const fields = ACTIVITY_FIELDS[step.id] ?? [];
-  const disabled = !released || (!browseEnabled && revealProgress === 0);
-
-  return (
-    <SurfaceCard title="学生作答区">
-      <SubmissionStatus
-        submitted={Boolean(savedResponse)}
-        submittedText="已提交当前页面作答。"
-        idleText={disabled ? '等待教师发放或开放浏览后再提交。' : '提交后会同步到教师端汇总。'}
-      />
-      <div className={step.id === 'step-12' ? 'grid gap-3' : 'grid gap-3 md:grid-cols-2'}>
-        {fields.map((field) => (
-          <div key={field.key}>
-            <TextareaCard
-              title={field.title}
-              prompt={field.prompt}
-              value={answers[field.key] ?? ''}
-              onChange={(value) => setAnswers((current) => ({ ...current, [field.key]: value }))}
-              placeholder={field.placeholder}
-              half={field.half}
-            />
-            <div className="mt-2 flex justify-end">
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={() => onSubmit({ stepId: step.id, submittedAt: Date.now(), answers })}
-                className="premium-lesson-action-primary"
-              >
-                提交答案
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </SurfaceCard>
-  );
-}
-
 const UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY = createManifestStudentActivityRegistry<UNIT_4_3RuntimeStepDefinition>() as unknown as StudentInteractiveActivityRegistry<
   UNIT_4_3RuntimeStepDefinition,
   UNIT_4_3StepResponse
+>;
+
+const UNIT_4_3_SHARED_TEACHER_ACTIVITY_REGISTRY = createManifestTeacherActivityRegistry<UNIT_4_3RuntimeStepDefinition>() as unknown as TeacherInteractiveActivityRegistry<
+  UNIT_4_3RuntimeStepDefinition,
+  TeacherResponseItem
 >;
 
 const UNIT_4_3_STUDENT_ACTIVITY_REGISTRY: StudentInteractiveActivityRegistry<
@@ -1295,26 +1068,8 @@ const UNIT_4_3_STUDENT_ACTIVITY_REGISTRY: StudentInteractiveActivityRegistry<
   worked_example_reveal: () => null,
   single_choice: UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY.single_choice,
   quiz_group: UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY.quiz_group,
-  activity_card_set: ({ step, savedResponse, released, browseEnabled, revealProgress, onSubmit }) => (
-    <TextAreaActivityCards
-      step={step}
-      savedResponse={savedResponse}
-      released={released}
-      browseEnabled={browseEnabled}
-      revealProgress={revealProgress}
-      onSubmit={onSubmit}
-    />
-  ),
-  task_card_workspace: ({ step, savedResponse, released, browseEnabled, revealProgress, onSubmit }) => (
-    <TextAreaActivityCards
-      step={step}
-      savedResponse={savedResponse}
-      released={released}
-      browseEnabled={browseEnabled}
-      revealProgress={revealProgress}
-      onSubmit={onSubmit}
-    />
-  ),
+  activity_card_set: UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY.activity_card_set,
+  task_card_workspace: UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY.task_card_workspace,
 };
 
 export function UNIT_4_3StudentActivityForm({
@@ -1445,11 +1200,11 @@ export function UNIT_4_3TeacherActivitySummary({
     none: renderSummary,
     display: renderSummary,
     summary: renderSummary,
-    activity_card_set: renderSummary,
-    single_choice: renderSummary,
+    activity_card_set: UNIT_4_3_SHARED_TEACHER_ACTIVITY_REGISTRY.activity_card_set,
+    single_choice: UNIT_4_3_SHARED_TEACHER_ACTIVITY_REGISTRY.single_choice,
     worked_example_reveal: renderSummary,
-    task_card_workspace: renderSummary,
-    quiz_group: renderSummary,
+    task_card_workspace: UNIT_4_3_SHARED_TEACHER_ACTIVITY_REGISTRY.task_card_workspace,
+    quiz_group: UNIT_4_3_SHARED_TEACHER_ACTIVITY_REGISTRY.quiz_group,
   };
 
   return (

@@ -80,6 +80,12 @@ export interface InteractiveRuntimeStepManifest {
   };
   aiContextSpec: {
     pageGoal: string;
+    deliveryMode: string;
+  };
+  interactiveFigureSpec: {
+    layoutMirror?: string;
+    controlsPlacement?: string;
+    controlsCollapsedByDefault?: boolean;
   };
   previewContract: {
     demoPath: string;
@@ -190,6 +196,8 @@ function normalizeStep(stepId: string, value: unknown): InteractiveRuntimeStepMa
   const teacherInsightSpec = asRecord(step.teacher_insight_spec);
   const telemetrySpec = asRecord(step.telemetry_spec);
   const aiContextSpec = asRecord(step.ai_context_spec);
+  const interactiveFigureSpec = asRecord(step.interactive_figure_spec);
+  const figureControls = asRecord(interactiveFigureSpec.controls);
   const previewContract = asRecord(step.preview_contract);
 
   return {
@@ -243,6 +251,22 @@ function normalizeStep(stepId: string, value: unknown): InteractiveRuntimeStepMa
     },
     aiContextSpec: {
       pageGoal: String(aiContextSpec.page_goal ?? aiContextSpec.pageGoal ?? ''),
+      deliveryMode: String(aiContextSpec.delivery_mode ?? aiContextSpec.deliveryMode ?? ''),
+    },
+    interactiveFigureSpec: {
+      layoutMirror: typeof interactiveFigureSpec.layout_mirror === 'string'
+        ? interactiveFigureSpec.layout_mirror
+        : typeof interactiveFigureSpec.layoutMirror === 'string'
+          ? interactiveFigureSpec.layoutMirror
+          : undefined,
+      controlsPlacement: typeof figureControls.placement === 'string'
+        ? figureControls.placement
+        : undefined,
+      controlsCollapsedByDefault: typeof figureControls.collapsed_by_default === 'boolean'
+        ? figureControls.collapsed_by_default
+        : typeof figureControls.collapsedByDefault === 'boolean'
+          ? figureControls.collapsedByDefault
+          : undefined,
     },
     previewContract: {
       demoPath: String(previewContract.demo_path ?? previewContract.demoPath ?? ''),

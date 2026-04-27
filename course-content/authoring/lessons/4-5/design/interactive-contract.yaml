@@ -111,6 +111,18 @@ steps:
       - { id: 'delivery-conclusion', region: 'summary', kind: 'summary-card', must_be_visible: true }
       - { id: 'constraint-role-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
       - { id: 'misread-card', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+    content_blocks:
+      constraint_formula:
+        latex:
+          - 'M_p\le 20\%,\quad \max|u(t)|\le 7,\quad \varphi_m\ge 45^\circ'
+      risk_table:
+        columns: ['硬约束', '挡住的风险', '若不显性写出会发生什么']
+        rows:
+          - [{ kind: 'math', value: 'M_p\le 20\%' }, '舒适性与修航平稳程度', '把越摆当作可无限接受的提速代价']
+          - [{ kind: 'math', value: 'u_{\max}\le 7' }, '执行机构物理能力', '候选解看似更快，实际已不可实现']
+          - [{ kind: 'math', value: '\varphi_m\ge 45^\circ' }, '闭环稳健性储备', '只看时域变快，不看模型偏差和扰动下的脆弱性']
+      delivery_conclusion:
+        text: '硬约束不是在表扬哪一组更优，而是在裁决结果能否交付。'
     evidence_sequence: ['三条硬约束', '风险表', '结论', '两张判断卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
@@ -139,6 +151,19 @@ steps:
       - { id: 'role-summary', region: 'top', kind: 'summary-card', must_be_visible: true }
       - { id: 'role-table', region: 'table', kind: 'native-table', must_be_visible: true }
       - { id: 'role-task', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+    content_blocks:
+      range_formula:
+        latex:
+          - '1\le K\le 6,\quad 4\le T\le 15,\quad 0.15\le \alpha\le 0.85'
+      role_summary:
+        text: '参数范围负责结构可解释，硬约束负责结果可交付。'
+      role_table:
+        columns: ['设计对象', '在模型中的角色', '具体职责']
+        rows:
+          - [{ kind: 'math', value: 'K,T,\alpha' }, '参数范围', '维持固定结构可解释区间，告诉搜索只能在这一结构语义内移动']
+          - ['超调、控制峰值、相角裕度', '硬约束', '结果越界时进入罚函数或直接判为不可行']
+          - ['调节时间、ITAE、控制能量', '软目标', '在守住边界后继续争取更好表现']
+          - ['ITSE、截止频率、幅值裕度', '复核项', '求解后解释为什么当前结果可信而不是偶然数值']
     evidence_sequence: ['参数范围式', '结论', '职责表', '判断卡']
     interaction_spec:
       interaction_kind: 'activity_card_set'
@@ -167,6 +192,23 @@ steps:
       - { id: 'penalty-card', region: 'formula', kind: 'formula-card', must_be_visible: true }
       - { id: 'explain-reveal', region: 'explain', kind: 'step-reveal', must_be_visible: true }
       - { id: 'rule-conclusion', region: 'summary', kind: 'summary-card', must_be_visible: true }
+    content_blocks:
+      jfree_card:
+        latex:
+          - 'J_{\mathrm{free}}(\theta)=w_1\dfrac{t_s(\theta)}{40}+w_2\dfrac{\mathrm{ITAE}(\theta)}{\mathrm{ITAE}_0}+w_3\dfrac{\mathrm{ITSE}(\theta)}{\mathrm{ITSE}_0}+w_4\dfrac{E_u(\theta)}{E_{u,0}}'
+      jcon_card:
+        latex:
+          - 'J_{\mathrm{con}}(\theta)=J_{\mathrm{free}}(\theta)+P(\theta)'
+      penalty_card:
+        latex:
+          - 'P(\theta)=50\max(0,M_p-20)^2+20\max(0,u_{\max}-7)^2+5\max(0,45-\varphi_m)^2'
+      explain_reveal:
+        items:
+          - '只要三条硬约束都未越界，$P(\theta)=0$，搜索仍按原有偏好推进。'
+          - '一旦某一项越界，罚项开始增大，总代价不再只奖励更快或更省。'
+          - '越界越严重，罚项增长越快，搜索会被推回可交付区域。'
+      rule_conclusion:
+        text: '偏好没变，规则变了。'
     evidence_sequence: ['J_free', 'J_con', 'P(theta)', '解释链', '结论']
     interaction_spec:
       interaction_kind: 'teacher_reveal_only'
@@ -194,6 +236,25 @@ steps:
       - { id: 'solver-chain', region: 'chain', kind: 'step-reveal', must_be_visible: true }
       - { id: 'solver-conclusion', region: 'summary', kind: 'summary-card', must_be_visible: true }
       - { id: 'solver-task', region: 'interaction', kind: 'activity-card', must_be_visible: false }
+    content_blocks:
+      solver_input_table:
+        columns: ['项目', '当前写法', '作用']
+        rows:
+          - ['对象', { kind: 'math', value: 'P_h(s)=\dfrac{0.01715}{s(s+0.1)(s+2.14375)}' }, '提供被控对象模型']
+          - ['结构', { kind: 'math', value: 'C_h(s)=K\dfrac{Ts+1}{\alpha Ts+1}' }, '固定参数化形式']
+          - ['起点与范围', { kind: 'math', value: 'x_0=[2.796,\ 10,\ 0.406]^\mathsf{T},\ lb=[1,\ 4,\ 0.15]^\mathsf{T},\ ub=[6,\ 15,\ 0.85]^\mathsf{T}' }, '告诉搜索从哪里出发、能走到哪里']
+          - ['目标函数', { kind: 'math', value: 'J_B(\theta)=0.30\dfrac{t_s(\theta)}{40}+0.30\dfrac{\mathrm{ITAE}(\theta)}{\mathrm{ITAE}_0}+0.20\dfrac{\mathrm{ITSE}(\theta)}{\mathrm{ITSE}_0}+0.20\dfrac{E_u(\theta)}{E_{u,0}}' }, '告诉求解器想把什么继续压低']
+          - ['约束函数', { kind: 'math', value: 'M_p\le 20\%,\quad u_{\max}\le 7,\quad \varphi_m\ge 45^\circ' }, '把交付边界写成可行性判定']
+      solver_chain:
+        items:
+          - '先给出 $x_0/lb/ub$，让搜索知道从哪里出发、能走到哪里。'
+          - '再写 $objective$，把上一课保留下来的偏好继续保留下来。'
+          - '再写 $nonlcon$，把三条硬约束显式交给求解器。'
+          - '随后调用 $fmincon$，让它在边界内重新搜索。'
+          - '求解结果先回读成 $x_\star$，不要直接跳到“优化成功”。'
+          - '最后把 $x_\star$ 翻译成 $C_\star(s)$，再回到控制器结构解释结果。'
+      solver_conclusion:
+        text: '求解器只是在消费已经写清的问题定义，不会替我们决定边界来自哪里。'
     evidence_sequence: ['表5', '六步链', '结论', '判断卡']
     interaction_spec:
       interaction_kind: 'teacher_reveal_only'
@@ -314,6 +375,32 @@ steps:
       - { id: 'margin-warning', region: 'criteria', kind: 'formula-card', must_be_visible: true }
       - { id: 'closure-summary', region: 'summary', kind: 'step-reveal', must_be_visible: true }
       - { id: 'forward-link', region: 'summary', kind: 'summary-card', must_be_visible: true }
+    content_blocks:
+      closure_table:
+        columns: ['指标', '4-3 起始方案', '越界无约束候选', '4-5 带约束可用解']
+        rows:
+          - ['超调 / %', '18.8636', '20.2410', '1.8194']
+          - ['调节时间 / s', '36.0', '19.6', '15.4']
+          - ['ITAE', '63.6924', '20.1632', '37.7835']
+          - ['ITSE', '16.5282', '5.3330', '16.4860']
+          - ['控制能量', '125.7148', '774.9575', '79.7669']
+          - ['控制峰值', '6.8867', '25.0000', '6.9960']
+          - ['相角裕度 / deg', '49.0462', '47.8274', '67.6942']
+      acceptance_criteria:
+        bullets:
+          - '参数仍能回到当前结构机理上解释。'
+          - '超调、控制峰值和相角裕度三条边界全部守住。'
+          - '改进收益能够在统一证据下被读出来。'
+      margin_warning:
+        latex:
+          - 'u_{\max}^\star=6.996\approx 7'
+      closure_summary:
+        items:
+          - '无约束候选把收益建立在越界代价上。'
+          - '带约束可用解把优化重新拉回可用设计空间。'
+          - '当前结果可接受，但固定结构边界并未解决。'
+      forward_link:
+        text: '结构差异已露头，4-6 才进入结构边界主线。'
     evidence_sequence: ['表9', '三条标准', '余量告警', '收束链', '去向句']
     interaction_spec:
       interaction_kind: 'teacher_reveal_only'
@@ -341,6 +428,20 @@ steps:
       - { id: 'posttest-q2', region: 'quiz', kind: 'quiz-card', must_be_visible: true }
       - { id: 'posttest-q3', region: 'quiz', kind: 'quiz-card', must_be_visible: true }
       - { id: 'posttest-note', region: 'review', kind: 'summary-card', must_be_visible: true }
+    content_blocks:
+      posttest_header:
+        text: '阶段判断后测：把边界、求解与解释重新连成一条链。'
+      posttest_q1:
+        questions:
+          - prompt: '同一权重下为何分出两组参数？'
+      posttest_q2:
+        questions:
+          - prompt: '参数范围和输出侧硬约束分别回答什么问题？'
+      posttest_q3:
+        questions:
+          - prompt: '为什么当前结果仍需继续被审视？'
+      posttest_note:
+        text: '本页只做后测，不再兼任总结页。'
     evidence_sequence: ['后测标题卡', '三道后测题', '收束说明']
     interaction_spec:
       interaction_kind: 'quiz_group'

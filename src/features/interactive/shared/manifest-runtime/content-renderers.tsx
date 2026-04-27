@@ -90,6 +90,22 @@ function blockByKey(step: InteractiveRuntimeStepManifest, key: string) {
   return step.contentBlocks[key];
 }
 
+function blockByModuleId(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
+  const normalizedId = module.id.replace(/-/g, '_');
+  const candidates = [
+    normalizedId,
+    normalizedId.replace(/_card$/, ''),
+    normalizedId.replace(/_list$/, '_list'),
+    normalizedId.replace(/_figure$/, '_figure'),
+    normalizedId.replace(/_reading$/, '_reading'),
+  ];
+  for (const key of candidates) {
+    const block = blockByKey(step, key);
+    if (block !== undefined) return block;
+  }
+  return undefined;
+}
+
 function firstBlockWithTable(step: InteractiveRuntimeStepManifest) {
   for (const value of Object.values(step.contentBlocks)) {
     const table = tableFromBlock(value);
@@ -107,8 +123,11 @@ function getFormulaItems(step: InteractiveRuntimeStepManifest, module: Interacti
   const payload = module.payload;
   const direct = payload.formula ?? payload.formulas;
   const fallbackBlock = asRecord(blockByKey(step, 'formula_block'));
+  const moduleBlock = blockByModuleId(step, module);
   const source = direct
     ?? valueAtField(blockFor(step, payload), payload.field ?? 'latex')
+    ?? valueAtField(moduleBlock, payload.field ?? 'latex')
+    ?? valueAtField(moduleBlock, payload.field ?? 'formulas')
     ?? [fallbackBlock.object, fallbackBlock.controller, fallbackBlock.controller_form].filter(Boolean);
   const items = asStringArray(source);
   if (typeof source === 'string') items.push(source);
@@ -129,26 +148,51 @@ function getImageSrc(step: InteractiveRuntimeStepManifest, module: InteractiveRu
   if (direct?.trim()) return direct;
   const field = payload.field ?? 'runtime_media';
   const value = valueAtField(blockFor(step, payload), field);
-  return typeof value === 'string' && value.trim() ? value : null;
+  if (typeof value === 'string' && value.trim()) return value;
+
+  const mediaItems = Object.values(step.contentBlocks).flatMap((block) => {
+    const record = asRecord(block);
+    if (typeof record.runtime_media === 'string') return [record.runtime_media];
+    if (Array.isArray(block)) {
+      return block
+        .map((item) => asRecord(item).runtime_media)
+        .filter((item): item is string => typeof item === 'string' && Boolean(item.trim()));
+    }
+    return [];
+  });
+  const imageModuleIndex = step.modules
+    .filter((item) => item.kind === 'image-panel')
+    .findIndex((item) => item.id === module.id);
+  return mediaItems[imageModuleIndex] ?? mediaItems[0] ?? null;
 }
 
 function tableFor(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest): NativeTableData | null {
   const payloadTable = tableFromBlock(module.payload);
   if (payloadTable) return payloadTable;
-  return tableFromBlock(blockFor(step, module.payload)) ?? firstBlockWithTable(step);
+  const keyedTable = tableFromBlock(blockFor(step, module.payload));
+  if (keyedTable) return keyedTable;
+
+  const tables = Object.values(step.contentBlocks)
+    .map(tableFromBlock)
+    .filter((table): table is NativeTableData => Boolean(table));
+  const tableModuleIndex = step.modules
+    .filter((item) => item.kind === 'native-table' || item.kind === 'native-formula-table' || item.kind === 'table-card')
+    .findIndex((item) => item.id === module.id);
+  return tables[tableModuleIndex] ?? firstBlockWithTable(step);
 }
 
 function revealItems(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
   const payload = module.payload;
   const directItems = asStringArray(payload.items);
   if (directItems.length) return directItems;
-  const block = asRecord(blockFor(step, payload));
-  return asStringArray(block.items ?? block.steps ?? block.bullets);
+  const block = asRecord(blockFor(step, payload) ?? blockByModuleId(step, module));
+  const items = asStringArray(block.items ?? block.steps ?? block.bullets);
+  return items.length ? items : asStringArray(step.contentBlocks.reveal_layers);
 }
 
 function summaryContent(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
   const payload = module.payload;
-  const block = asRecord(blockFor(step, payload));
+  const block = asRecord(blockFor(step, payload) ?? blockByModuleId(step, module));
   const field = typeof payload.field === 'string' ? payload.field : 'text';
   const bulletsKey = typeof payload.bullets_key === 'string'
     ? payload.bullets_key
@@ -172,6 +216,30 @@ function summaryContent(step: InteractiveRuntimeStepManifest, module: Interactiv
         ?? step.contentBlocks.target_constraints,
     );
   return { text, bullets };
+}
+
+function listFromRecordItems(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      const record = asRecord(item);
+      const title = typeof record.title === 'string' ? record.title : '';
+      const note = typeof record.note === 'string' ? record.note : '';
+      const body = typeof record.body === 'string' ? record.body : '';
+      return [title, note || body].filter(Boolean).join('：');
+    })
+    .filter(Boolean);
+}
+
+function questionItemsFromBlock(block: unknown) {
+  const record = asRecord(block);
+  const questions = Array.isArray(record.questions) ? record.questions : [];
+  return questions
+    .map((item) => {
+      const question = asRecord(item);
+      return typeof question.prompt === 'string' ? question.prompt : '';
+    })
+    .filter(Boolean);
 }
 
 function stringFromKnownBlocks(step: InteractiveRuntimeStepManifest, keys: string[]) {
@@ -448,9 +516,21 @@ export function createManifestContentModuleRegistry(extra: {
     'formula-card': ({ step, module }) => (
       <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} />
     ),
+    'formula-card-row': ({ step, module }) => (
+      <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} />
+    ),
     'summary-card': ({ step, module }) => {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'bullet-list-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'equation-card-row': ({ step, module }) => {
+      const block = blockFor(step, module.payload) ?? blockByModuleId(step, module) ?? step.contentBlocks.target_cards;
+      const items = listFromRecordItems(block);
+      return <CardGrid title={titleFromModule(module)} items={items} columns="md:grid-cols-4" />;
     },
     'native-table': ({ step, module }) => {
       const table = tableFor(step, module);
@@ -472,6 +552,20 @@ export function createManifestContentModuleRegistry(extra: {
       if (!src) return null;
       return <ImagePanel title={titleFromModule(module)} src={src} />;
     },
+    'native-figure': ({ step, module }) => {
+      const block = asRecord(blockFor(step, module.payload) ?? blockByModuleId(step, module));
+      const caption = typeof block.caption === 'string' ? block.caption : titleFromModule(module);
+      const conclusion = typeof block.conclusion === 'string' ? block.conclusion : undefined;
+      const source = typeof block.source === 'string' ? `图源：${block.source}` : undefined;
+      return <SummaryCard title={caption} text={conclusion ?? source} bullets={conclusion && source ? [source] : []} />;
+    },
+    'stat-panel': ({ step, module }) => {
+      const block = asRecord(blockFor(step, module.payload) ?? blockByModuleId(step, module));
+      const fields = asStringArray(block.fields);
+      const bullets = asStringArray(block.bullets);
+      const note = typeof block.note === 'string' ? block.note : undefined;
+      return <SummaryCard title={titleFromModule(module)} text={note} bullets={[...fields, ...bullets]} />;
+    },
     'problem-statement': ({ step, module }) => {
       const block = asRecord(
         blockByKey(step, 'problem_statement')
@@ -487,6 +581,14 @@ export function createManifestContentModuleRegistry(extra: {
     },
     'quiz-stack': ({ step, module }) => {
       const items = listFromKnownBlocks(step, ['post_quiz_items']);
+      return <CardGrid title={titleFromModule(module)} items={items} columns="grid-cols-1" />;
+    },
+    'quiz-group': ({ step, module }) => {
+      const items = questionItemsFromBlock(blockFor(step, module.payload) ?? blockByModuleId(step, module) ?? step.contentBlocks.post_quiz);
+      return <CardGrid title={titleFromModule(module)} items={items} columns="grid-cols-1" />;
+    },
+    'quiz-card': ({ step, module }) => {
+      const items = questionItemsFromBlock(blockFor(step, module.payload) ?? blockByModuleId(step, module) ?? step.contentBlocks.post_quiz);
       return <CardGrid title={titleFromModule(module)} items={items} columns="grid-cols-1" />;
     },
     'route-card': ({ step, module }) => {

@@ -4,6 +4,7 @@ import type { LessonSessionAdapter } from '@/features/interactive/session-framew
 import {
   normalizeInteractiveRuntimeManifest,
   type InteractiveRuntimeManifest,
+  type InteractiveRuntimeStepManifest,
 } from '@/lib/interactive-lesson-manifest';
 import type { StepAIContext } from '@/types/ai-context';
 import rawInteractiveManifest from '../../course-content/runtime/lessons/4-6/interactive-manifest.json';
@@ -13,6 +14,7 @@ export type UNIT_4_6TeacherControlMode =
   | 'not_applicable'
   | 'page_load_open'
   | 'teacher_toggle'
+  | 'teacher_direct'
   | 'teacher_only';
 export type UNIT_4_6PageType = 'display' | 'summary' | 'quiz_group' | 'activity_card_set' | 'teacher_reveal_only';
 
@@ -138,120 +140,31 @@ export const UNIT_4_6_LESSON_STEPS: readonly UNIT_4_6StepDefinition[] = [
   { id: 'step-11', stage: 'S', title: '总结：从任务重排到结构编码入口的完整判断链', hint: '收束本课并移交 4-7。', duration: '5 min', pageType: 'summary' },
 ] as const;
 
-export const UNIT_4_6_PAGE_CONTRACTS_REVIEW: Record<string, UNIT_4_6PageContract> = {
-  'step-01': {
-    layout: { template: 'migration_boundary_hero_board', regions: [{ id: 'evidence', width: 'full', order: 1 }, { id: 'comparison', width: 'full', order: 2 }, { id: 'figure', width: 'half', order: 3 }, { id: 'bridge', width: 'full', order: 4 }] },
-    interactionKind: 'none',
-    teacherControls: { releaseActivity: 'not_applicable', openBrowse: 'not_applicable', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'not_applicable' },
-    teacherInsightWidgets: ['view_count', 'sync_status'],
-    telemetrySummaryFields: ['viewed', 'timeOnStep'],
-    misconceptionTags: [],
-    aiPageGoal: '用表 1、旧解回收和新证据钉住“问题写法失效”的入口。',
-    previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-01',
-  },
-  'step-02': {
-    layout: { template: 'objective_chain_board', regions: [{ id: 'header', width: 'full', order: 1 }, { id: 'goals', width: 'full', order: 2 }, { id: 'bridge', width: 'full', order: 3 }] },
-    interactionKind: 'none',
-    teacherControls: { releaseActivity: 'not_applicable', openBrowse: 'not_applicable', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'not_applicable' },
-    teacherInsightWidgets: ['view_count'],
-    telemetrySummaryFields: ['viewed', 'timeOnStep'],
-    misconceptionTags: [],
-    aiPageGoal: '独立呈现本课布鲁姆能力目标。',
-    previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-02',
-  },
-  'step-03': {
-    layout: { template: 'scenario_reorder_compare_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'comparison', width: 'full', order: 2 }, { id: 'summary', width: 'full', order: 3 }, { id: 'interaction', width: 'full', order: 4 }] },
-    interactionKind: 'activity_card_set',
-    teacherControls: { releaseActivity: 'teacher_toggle', openBrowse: 'page_load_open', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'teacher_toggle' },
-    teacherInsightWidgets: ['card_completion_rate', 'error_bucket_distribution'],
-    telemetrySummaryFields: ['cardSubmitted', 'timeOnStep'],
-    misconceptionTags: ['migration_as_speedup_only'],
-    aiPageGoal: '把对象、任务和筛选线的重排写实。',
-    previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-03',
-  },
-  'step-04': {
-    layout: { template: 'mismatch_evidence_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'figure', width: 'half', order: 2 }, { id: 'reveal', width: 'half', order: 3 }, { id: 'summary', width: 'full', order: 4 }] },
-    interactionKind: 'teacher_reveal_only',
-    teacherControls: { releaseActivity: 'not_applicable', openBrowse: 'not_applicable', teacherStepReveal: 'teacher_only', revealReferenceAnswer: 'not_applicable' },
-    teacherInsightWidgets: ['step_reveal_progress'],
-    telemetrySummaryFields: ['stepRevealCount', 'timeOnStep'],
-    misconceptionTags: ['parameter_tuning_is_enough'],
-    aiPageGoal: '把三类失配信号落成可读可见的证据链。',
-    previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-04',
-  },
-  'step-05': {
-    layout: { template: 'objective_rewrite_board', regions: [{ id: 'formula', width: 'full', order: 1 }, { id: 'table', width: 'full', order: 2 }, { id: 'interaction', width: 'full', order: 3 }, { id: 'summary', width: 'full', order: 4 }] },
-    interactionKind: 'activity_card_set',
-    teacherControls: { releaseActivity: 'teacher_toggle', openBrowse: 'page_load_open', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'teacher_toggle' },
-    teacherInsightWidgets: ['card_completion_rate', 'response_bucket_distribution'],
-    telemetrySummaryFields: ['cardSubmitted', 'timeOnStep'],
-    misconceptionTags: ['metric_rename_only'],
-    aiPageGoal: '把五项比较对象写成清楚的职责表。',
-    previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-05',
-  },
-  'step-06': {
-    layout: { template: 'structure_entry_board', regions: [{ id: 'chain', width: 'full', order: 1 }, { id: 'reveal', width: 'full', order: 2 }, { id: 'structures', width: 'full', order: 3 }, { id: 'summary', width: 'full', order: 4 }] },
-    interactionKind: 'teacher_reveal_only',
-    teacherControls: { releaseActivity: 'not_applicable', openBrowse: 'not_applicable', teacherStepReveal: 'teacher_only', revealReferenceAnswer: 'not_applicable' },
-    teacherInsightWidgets: ['step_reveal_progress'],
-    telemetrySummaryFields: ['stepRevealCount', 'timeOnStep'],
-    misconceptionTags: ['structure_search_as_algorithm_upgrade'],
-    aiPageGoal: '把结构搜索引入条件钉成显性判断链。',
-    previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-06',
-  },
-  'step-07': {
-    layout: { template: 'structural_encoding_workspace', regions: [{ id: 'encoding', width: 'full', order: 1 }, { id: 'codebook', width: 'full', order: 2 }, { id: 'examples', width: 'full', order: 3 }, { id: 'interaction', width: 'full', order: 4 }] },
-    interactionKind: 'teacher_reveal_only',
-    teacherControls: { releaseActivity: 'teacher_toggle', openBrowse: 'not_applicable', teacherStepReveal: 'teacher_only', revealReferenceAnswer: 'teacher_toggle' },
-    teacherInsightWidgets: ['step_reveal_progress', 'card_completion_rate'],
-    telemetrySummaryFields: ['stepRevealCount', 'cardSubmitted', 'timeOnStep'],
-    misconceptionTags: ['all_slots_active', 'decode_order_confusion'],
-    aiPageGoal: '把统一编码稳定落成“结构优先”的解码链。',
-    previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-07',
-  },
-  'step-08': {
-    layout: { template: 'four_scheme_compare_board', regions: [{ id: 'matrix', width: 'full', order: 1 }, { id: 'figure', width: 'full', order: 2 }, { id: 'table', width: 'full', order: 3 }, { id: 'summary', width: 'full', order: 4 }] },
-    interactionKind: 'teacher_reveal_only',
-    teacherControls: { releaseActivity: 'not_applicable', openBrowse: 'not_applicable', teacherStepReveal: 'teacher_only', revealReferenceAnswer: 'not_applicable' },
-    teacherInsightWidgets: ['step_reveal_progress'],
-    telemetrySummaryFields: ['stepRevealCount', 'timeOnStep'],
-    misconceptionTags: ['just_pick_best_row'],
-    aiPageGoal: '把目标错位和结构边界拆成两道判断。',
-    previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-08',
-  },
-  'step-09': {
-    layout: { template: 'boundary_probe_board', regions: [{ id: 'convergence', width: 'full', order: 1 }, { id: 'probe', width: 'full', order: 2 }, { id: 'control', width: 'full', order: 3 }, { id: 'summary', width: 'full', order: 4 }, { id: 'interaction', width: 'full', order: 5 }] },
-    interactionKind: 'teacher_reveal_only',
-    teacherControls: { releaseActivity: 'teacher_toggle', openBrowse: 'not_applicable', teacherStepReveal: 'teacher_only', revealReferenceAnswer: 'teacher_toggle' },
-    teacherInsightWidgets: ['step_reveal_progress', 'card_completion_rate'],
-    telemetrySummaryFields: ['stepRevealCount', 'cardSubmitted', 'timeOnStep'],
-    misconceptionTags: ['lower_cost_equals_delivery'],
-    aiPageGoal: '把专项验证的真正结论固定为边界判断。',
-    previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-09',
-  },
-  'step-10': {
-    layout: { template: 'posttest_board', regions: [{ id: 'header', width: 'full', order: 1 }, { id: 'quiz', width: 'full', order: 2 }, { id: 'note', width: 'full', order: 3 }] },
-    interactionKind: 'quiz_group',
-    teacherControls: { releaseActivity: 'teacher_toggle', openBrowse: 'page_load_open', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'teacher_toggle' },
-    teacherInsightWidgets: ['card_completion_rate', 'response_bucket_distribution'],
-    telemetrySummaryFields: ['cardSubmitted', 'timeOnStep'],
-    misconceptionTags: ['algorithm_name_over_chain'],
-    aiPageGoal: '检查学生是否已把目标、结构与编码连成链。',
-    previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-10',
-  },
-  'step-11': {
-    layout: { template: 'summary_exit_board', regions: [{ id: 'summary', width: 'full', order: 1 }, { id: 'info', width: 'full', order: 2 }, { id: 'chain', width: 'full', order: 3 }, { id: 'next', width: 'full', order: 4 }] },
-    interactionKind: 'none',
-    teacherControls: { releaseActivity: 'not_applicable', openBrowse: 'not_applicable', teacherStepReveal: 'not_applicable', revealReferenceAnswer: 'not_applicable' },
-    teacherInsightWidgets: ['view_count'],
-    telemetrySummaryFields: ['viewed', 'timeOnStep'],
-    misconceptionTags: [],
-    aiPageGoal: '收束本课并移交 4-7。',
-    previewDemoPath: '/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo?step=step-11',
-  },
-};
+function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNIT_4_6PageContract {
+  return {
+    layout: {
+      template: step.layout.template,
+      regions: step.layout.regions.map((region) => ({
+        id: region.id,
+        width: region.width,
+        order: region.order,
+      })),
+    },
+    interactionKind: step.interactionSpec.interactionKind as UNIT_4_6PageContract['interactionKind'],
+    teacherControls: step.teacherControls,
+    teacherInsightWidgets: step.teacherInsightSpec.widgets,
+    telemetrySummaryFields: step.telemetrySpec.summaryFields,
+    misconceptionTags: step.telemetrySpec.misconceptionTags,
+    aiPageGoal: step.aiContextSpec.pageGoal,
+    previewDemoPath: step.previewContract.demoPath || preview(step.id),
+  };
+}
 
-export const UNIT_4_6_PAGE_CONTRACTS = UNIT_4_6_PAGE_CONTRACTS_REVIEW;
+export const UNIT_4_6_PAGE_CONTRACTS = Object.fromEntries(
+  UNIT_4_6_RUNTIME_MANIFEST.steps.map((step) => [step.id, pageContractFromManifestStep(step)]),
+) as Record<string, UNIT_4_6PageContract>;
+
+export const UNIT_4_6_PAGE_CONTRACTS_REVIEW = UNIT_4_6_PAGE_CONTRACTS;
 
 export function getUNIT_4_6Step(stepId: string) {
   return UNIT_4_6_LESSON_STEPS.find((step) => step.id === stepId) ?? UNIT_4_6_LESSON_STEPS[0];

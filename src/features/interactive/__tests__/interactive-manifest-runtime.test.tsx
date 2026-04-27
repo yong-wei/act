@@ -250,6 +250,7 @@ describe('interactive runtime manifest', () => {
     );
 
     expect(source).toContain('activity_card_set:');
+    expect(source).toContain('task_card_workspace:');
     expect(source).toContain('quiz_group:');
     expect(source).toContain('teacher_reveal_only:');
     expect(source).toContain('card.referenceAnswer');
@@ -353,5 +354,102 @@ describe('interactive runtime manifest', () => {
       expect(source, kind).toContain(`'${kind}':`);
     }
     expect(source).not.toContain('unit-4-3');
+  });
+
+  it('ships the reviewed 4-4 runtime manifest and covers its reusable module kinds in the shared content registry', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-4');
+    const manifest = runtime.interactiveManifest!;
+    const moduleKinds = new Set(manifest.steps.flatMap((step) => step.modules.map((module) => module.kind)));
+    const sharedKinds = [
+      'bullet-list-card',
+      'equation-card-row',
+      'formula-card',
+      'goal-card-row',
+      'image-panel',
+      'native-figure',
+      'native-table',
+      'problem-statement',
+      'quiz-group',
+      'single-choice-card',
+      'stage-map',
+      'stat-panel',
+      'step-reveal',
+      'summary-card',
+      'activity-card',
+      'activity-card-set',
+    ];
+
+    expect(runtime.lesson.interactive_manifest_path).toBe('/course-runtime/lessons/4-4/interactive-manifest.json');
+    for (const kind of sharedKinds) {
+      expect(moduleKinds.has(kind), kind).toBe(true);
+    }
+
+    const moduleRegistry = Object.fromEntries(
+      sharedKinds.map((kind) => [
+        kind,
+        ({ step, module }: { step: InteractiveRuntimeStepManifest; module: { id: string; kind: string } }) =>
+          createElement('div', null, module.kind, module.id, JSON.stringify(step.contentBlocks)),
+      ]),
+    );
+    const html = manifest.steps
+      .map((step) =>
+        renderToStaticMarkup(
+          renderInteractiveManifestStep({
+            manifest,
+            step,
+            moduleRegistry,
+            extra: undefined,
+          }),
+        ),
+      )
+      .join('\n');
+
+    const source = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
+
+    for (const kind of sharedKinds) {
+      expect(source, kind).toContain(`'${kind}':`);
+    }
+    expect(html).not.toContain('data-manifest-render-error');
+    expect(html).toContain('当前已经同时出现的四类愿望');
+    expect(html).toContain('主案例的 Pareto front');
+  });
+
+  it('ships the reviewed 4-5 runtime manifest with complete content payload for constrained optimization steps', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-5');
+    const manifest = runtime.interactiveManifest!;
+    const requiredSteps = ['step-04', 'step-05', 'step-06', 'step-07', 'step-11', 'step-12'];
+    const sharedKinds = [
+      'activity-card',
+      'formula-card',
+      'formula-card-row',
+      'image-panel',
+      'native-table',
+      'quiz-card',
+      'step-reveal',
+      'summary-card',
+    ];
+
+    expect(runtime.lesson.interactive_manifest_path).toBe('/course-runtime/lessons/4-5/interactive-manifest.json');
+
+    for (const stepId of requiredSteps) {
+      const step = manifest.steps.find((item) => item.id === stepId);
+      expect(step, stepId).toBeDefined();
+      expect(Object.keys(step?.contentBlocks ?? {}).length, stepId).toBeGreaterThan(0);
+    }
+
+    const source = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
+    for (const kind of sharedKinds) {
+      expect(source, kind).toContain(`'${kind}':`);
+    }
+
+    expect(manifest.steps.find((step) => step.id === 'step-04')?.contentBlocks.constraint_formula).toBeDefined();
+    expect(manifest.steps.find((step) => step.id === 'step-07')?.contentBlocks.solver_input_table).toBeDefined();
+    expect(manifest.steps.find((step) => step.id === 'step-12')?.contentBlocks.posttest_q3).toBeDefined();
   });
 });

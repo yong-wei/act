@@ -482,6 +482,7 @@ export function createManifestStudentActivityRegistry<TStep>(): StudentInteracti
     single_choice: (props) => <StudentCards {...props} />,
     binary_choice: (props) => <StudentCards {...props} />,
     activity_card_set: (props) => <StudentCards {...props} />,
+    task_card_workspace: (props) => <StudentCards {...props} />,
     quiz_group: (props) => <StudentCards {...props} />,
     teacher_reveal_only: (props) => <StudentCards {...props} />,
   };
@@ -492,6 +493,7 @@ export function createManifestTeacherActivityRegistry<TStep>(): TeacherInteracti
     single_choice: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     binary_choice: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     activity_card_set: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
+    task_card_workspace: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     quiz_group: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     teacher_reveal_only: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
   };
