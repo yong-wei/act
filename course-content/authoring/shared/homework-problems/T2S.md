@@ -92,7 +92,7 @@ $G_1(s)=\dfrac{K}{s+1}$、$G_2(s)=\dfrac{2}{s+2}$；
 
 取参数 $K=2$。
 
-![结构图](assets/T2/block_diagram.png)
+![双环负反馈控制系统结构图](assets/T2/T2-2-block-diagram.png)
 
 请完成下列问题：
 

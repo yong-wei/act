@@ -8,7 +8,7 @@ from pathlib import Path
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
-from docx.shared import Pt
+from docx.shared import Inches, Pt
 
 
 HEADING_SIZES = {
@@ -46,6 +46,19 @@ def add_paragraph(doc: Document, text: str, *, style: str | None = None, center:
     set_run_font(run, 10 if math else 11, bold=False, math=math)
 
 
+def add_image(doc: Document, image_path: Path, alt_text: str) -> None:
+    paragraph = doc.add_paragraph()
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = paragraph.add_run()
+    run.add_picture(str(image_path), width=Inches(6.0))
+    if alt_text:
+        caption = doc.add_paragraph()
+        caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        caption.paragraph_format.space_after = Pt(6)
+        caption_run = caption.add_run(alt_text)
+        set_run_font(caption_run, 9, bold=False)
+
+
 def flush_paragraph(doc: Document, buffer: list[str]) -> None:
     if not buffer:
         return
@@ -55,7 +68,7 @@ def flush_paragraph(doc: Document, buffer: list[str]) -> None:
     buffer.clear()
 
 
-def render_markdown(markdown: str, output_path: Path) -> None:
+def render_markdown(markdown: str, output_path: Path, base_dir: Path) -> None:
     doc = Document()
 
     paragraph_buffer: list[str] = []
@@ -102,7 +115,11 @@ def render_markdown(markdown: str, output_path: Path) -> None:
         if image_match:
             flush_paragraph(doc, paragraph_buffer)
             alt_text = image_match.group(1) or Path(image_match.group(2)).name
-            add_paragraph(doc, f'[图片] {alt_text}')
+            image_path = (base_dir / image_match.group(2)).resolve()
+            if image_path.is_file():
+                add_image(doc, image_path, alt_text)
+            else:
+                add_paragraph(doc, f'[图片缺失] {alt_text}: {image_match.group(2)}')
             continue
 
         bullet_match = re.match(r'^-\s+(.*)$', stripped)
@@ -132,7 +149,7 @@ def main() -> int:
 
     markdown_path = Path(args.markdown_path).resolve()
     output_path = Path(args.output_path).resolve() if args.output_path else markdown_path.with_suffix('.docx')
-    render_markdown(markdown_path.read_text(encoding='utf-8'), output_path)
+    render_markdown(markdown_path.read_text(encoding='utf-8'), output_path, markdown_path.parent)
     print(output_path)
     return 0
 

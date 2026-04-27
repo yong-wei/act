@@ -1,6 +1,6 @@
 ---
 name: homework-problem-authoring
-description: Use when the user asks to create homework or exam problems by question ID such as `T1-1` from `course-content/syllabus-refactor/homework-framework.md`, especially when another Codex instance must run a multi-agent draft-judge-solve workflow with anti-cheating file-access limits and produce the final stem, standard answer, scoring rubric, and consistency record.
+description: Use when the user asks to create homework or exam problems by question ID such as `T1-1` from `course-content/syllabus-refactor/homework-framework.md`, especially when a multi-agent draft-judge-solve workflow must produce the final stem, standard answer, scoring rubric, consistency record, and required figure assets for diagram or response-curve questions.
 ---
 
 # Homework Problem Authoring
@@ -16,6 +16,7 @@ description: Use when the user asks to create homework or exam problems by quest
 - 分步评分标准
 - 裁判结论与一致性记录
 - 明确题目分值与分值合理性检查
+- 若题面需要结构图、响应图、频域图、根轨迹图或其他图示，还必须包含真实图像文件、图像清单与可复现来源
 
 其中：
 - `inline_score_points` 用于把答案内部逐步标分显式结构化保存；其本质不是额外写一份摘要，而是要求在标准答案的关键步骤或关键公式后直接标出分值。
@@ -76,6 +77,7 @@ description: Use when the user asks to create homework or exam problems by quest
 - 允许解法范围
 - 评分锚点
 - 输出格式要求
+- 图像需求识别结果与图像生成/复用约束
 - 本技能规定的一致性标准
 - 行内得分点的正文嵌入格式
 
@@ -90,6 +92,16 @@ description: Use when the user asks to create homework or exam problems by quest
 - 主代理不得只用 `HW3` 这类内部代号替代最终作业名称；内部代号可以保留，但必须同时有可直接展示给学生或教师的正式作业名称。
 
 不要把整个项目目录、其他题号内容、已有答案、仓库源码路径一并塞给子代理。
+
+图像需求硬约束：
+- 主代理必须读取 `题面构成要求`、`题目边界`、`题目梗概`、`评分锚点` 和作业共性约束，识别正向题面要求中是否出现以下图像触发词：`结构图`、`信号流图`、`方框图`、`响应图`、`响应曲线`、`曲线`、`草图`、`图示`、`图表`、`极点分布图`、`Bode`、`Nyquist`、`根轨迹`、`频域图形`、`必要图表`、`结果图`。
+- `禁止使用知识` 只用于排除越界内容，不得作为图像需求触发来源；`source_excerpt` 只能在需要确认字段上下文时辅助阅读，不能因为其中的禁止项或反例词命中就设置 `figure_required = true`。
+- 带有 `不允许`、`不能`、`不得`、`禁止`、`不要求`、`不做`、`不是` 的否定句只用于约束边界，也不得触发 `figure_required`。例如“不能追加根轨迹趋势”不是要求生成根轨迹图。
+- 一旦题号规范要求“必须给出”或“优先采用”上述图像材料，任务包必须设置 `figure_policy.figure_required = true`；不能把图像需求降级成纯文字描述。
+- `figure_required = true` 时，主代理必须在任务包中列出 `required_figures`，说明每张图的 `role`、`kind`、推荐格式、是否必须出现在题面，以及是否允许用文字替代。默认 `text_only_substitution_allowed = false`。
+- 若需要复用 `course-content/questions/assets/AC-Q-*/*`，主代理必须先检查题源的 `figure_status`。只有 `figure_status = complete` 的图片可复制到当前临时目录 `assets/source/` 供子代理使用；其他状态只能作为重绘线索或排除，不能直接成为正式必答图。
+- 因为子代理禁止读取项目文件，任何可复用图像、题源摘录或重绘依据都必须由主代理复制或改写进当前题号临时目录；子代理不得自行访问项目路径。
+- 结构图、信号流图、方框图优先生成 `SVG` 或 `TikZ`；响应图、Bode/Nyquist 图、根轨迹图优先用 `python3 + matplotlib/control` 或 `Octave` 生成 `PNG/SVG`，并保留生成脚本或最小数据。不要用 ASCII 图替代正式题面图。
 
 ### 2. 创建临时目录并固定交接物
 
@@ -116,9 +128,11 @@ description: Use when the user asks to create homework or exam problems by quest
 - 分步评分标准
 - 关键易错点
 - 自检结论：题面是否自包含、是否可判分、是否满足题型、分值拆分是否与题目分值一致
+- 若 `figure_policy.figure_required = true`，还必须输出真实图像文件、`figures` 清单、可复现脚本或来源说明，并在题面 Markdown 中引用对应图片
 
 出题阶段要求：
 - 题面必须自包含，不能写“参考讲义”“见课程代码”“见项目文件”。
+- 需要给图读图、看图判断、由图反推或基于图解释时，图像必须出现在题面；不能把“图中可见”改成一段文字描述来规避作图。
 - 评分标准必须逐步、可执行、可判分；避免“酌情给分”。
 - 标准答案中的“行内得分点”必须直接嵌入答案正文，而不是只在答案外再列一份摘要。
 - 分值可以写在关键公式后，也可以写在关键步骤文字后；必须做到“看到标准答案正文就能直接知道这一步值多少分”。
@@ -126,6 +140,7 @@ description: Use when the user asks to create homework or exam problems by quest
 - 若是计算题，可以有不同推导路径，但数值结果必须可验证。
 - 若是跨域题，题干中列出的分析项目必须都能落到答案里。
 - 若是设计题，必须明确设计目标、允许的自由度和验收口径。
+- 若 `figure_required = true`，草稿自检必须覆盖：图片文件是否存在、题面是否引用图片、图片内容是否满足 `required_figures`、图像是否可由当前临时目录内的脚本/数据复现。
 
 行内得分点样式样本：
 
@@ -167,12 +182,20 @@ $$
 裁判职责：
 - 比较三题与题号规范是否一致
 - 淘汰越界、模糊、不可判分、答案不稳定的题
+- 若任务包要求图像，检查每份候选稿是否生成真实图片文件、是否在题面引用图片、是否提供图像清单与可复现来源；缺任一项直接判无效
 - 检查每份候选稿的题目分值是否明确，且 `inline_score_points`、答案正文行内分值与 `rubric` 总分是否一致
 - 检查该题分值是否与题型负担、题目长度、推导复杂度和所属作业的固定分值结构相称
 - 选择一个最适合要求的备选题
 - 解释为什么另外两题不选
 
 裁判不得直接重写题面；只能选择、退回或要求重开一轮出题。如果 3 题都不合格，重新启动 3 个出题智能体，而不是自己“缝合”一题。
+
+图像判废规则：
+- `figure_required = true` 但候选稿没有生成可打开的图片文件，判无效。
+- 题面需要“给图”但候选稿只用文字描述替代图，判无效。
+- 候选稿生成了图但题面没有 Markdown 图片引用，判无效。
+- 图像引用了项目路径、外部临时路径或其他题号目录，而不是当前题号临时目录内文件，判无效。
+- 图像内容与题号边界不一致，例如 T3-2 要读根轨迹却只给极点文字表，判无效。
 
 裁判关于分值的最低检查结论必须覆盖：
 - 该题分值是多少；
@@ -195,6 +218,7 @@ $$
 
 作答智能体允许：
 - 阅读 `selected-draft.json` 中的题面
+- 阅读 `selected-draft.json` 引用的当前临时目录内图片文件与图像清单
 - 编写脚本进行数值、符号或逻辑验证
 - 把分析过程与最终答案写回当前临时目录
 
@@ -231,6 +255,8 @@ $$
 你可以编写和运行脚本，但脚本输入只能来自当前临时目录。
 如果你发现题面信息不足，只能在当前任务包范围内做最小合理假设，并在输出中显式写出假设。
 若你在编写标准答案，必须把分值直接嵌入关键步骤或关键公式中，例如“$$ ... \tag{2分} $$”或“完成结构化简。（2分）”；不要只在答案外另写一份分值摘要。
+若 task-package 中 `figure_policy.figure_required = true`，你必须在当前临时目录内生成真实图片文件，写出 figures 清单，并在题面 Markdown 中引用图片；不得用纯文字描述替代题面所需图像。
+结构图、信号流图、方框图优先生成 SVG 或 TikZ；响应图、Bode/Nyquist 图、根轨迹图优先用 python3 + matplotlib/control 或 Octave 生成 PNG/SVG，并保留生成脚本或最小数据。
 ```
 
 如果子代理违反以上限制，丢弃输出并重试，不要“带着污染结果继续往下走”。
@@ -242,6 +268,7 @@ $$
 - 题号与题型
 - 题目分值
 - 最终题面
+- 图片清单与题面图片引用（仅当 `figure_required = true`）
 - 标准答案（答案正文内已嵌入行内得分点）
 - 分步评分标准
 - 裁判为何选择该题
@@ -260,6 +287,9 @@ $$
 | 用“措辞相近”判断一致 | 按 `C/X/D` 的规则判，不按文风判 |
 | 行内得分点只写在答案外的摘要区 | 必须在标准答案正文内直接标分，摘要结构只作为机器可读补充 |
 | 在已有标准答案后再重复输出“参考作答” | 最终交付不再单列参考作答，solver 结果只用于一致性判定与内部核查 |
+| 题号要求结构图/响应图/根轨迹图，但出题稿改成文字描述 | 设置 `figure_required = true`，要求真实图片文件、题面引用和图像清单；无图草稿判废 |
+| 子代理想复用题库图片却访问项目路径 | 主代理先把允许复用的图片复制到当前临时目录，子代理只读临时目录副本 |
+| 图片生成了但没有复现来源 | 至少保留生成脚本、关键参数或来源说明，裁判检查后才能入选 |
 
 ## Resources
 
