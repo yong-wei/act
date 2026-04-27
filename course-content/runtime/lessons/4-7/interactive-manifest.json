@@ -1880,57 +1880,7 @@
         }
       ],
       "content_blocks": {
-        "header": "本页检查参数来源、结构选择、跨模型验证和边界判断是否已经连成链。",
-        "quiz_cards": [
-          {
-            "id": "rudder-question",
-            "prompt": "根据舵机阶跃辨识图，说明 $T_r$ 的含义。为什么实际舵角响应不能被看作无惯性的立即到位？若 $T_r$ 被低估，控制器设计会怎样误判舵机能力？",
-            "response_kind": "fill_text"
-          },
-          {
-            "id": "hull-question",
-            "prompt": "用 $G_h(s)=K_h/(T_hs+1)$ 解释 $T_h$ 与 $K_h$ 的来源。为什么船体段辨识需要同时约束艏摇角速度和积分后的航向角？",
-            "response_kind": "fill_text"
-          },
-          {
-            "id": "cross-model-question",
-            "prompt": "若基于辨识模型的优化设计在辨识模型上代价更小，但在高保真 zig-zag 航线中航迹偏离更大，应怎样修改最终判断？",
-            "response_kind": "fill_text"
-          },
-          {
-            "id": "disturbance-question",
-            "prompt": "$T_d=54.00\\\\,\\\\mathrm{s}$、$K_d=0.0150\\\\,\\\\mathrm{rad}$ 为什么不能证明现实风浪扰动已经被充分建模？答案需要同时提到艏摇、横荡、局部流速和舵效。",
-            "response_kind": "fill_text"
-          }
-        ],
-        "reference_answers": {
-          "rudder-question": "$T_r$ 是舵机一阶惯性的时间尺度，表示实际舵角接近新稳态所需的滞后。若把它看成零，会高估舵机快速到位能力，使控制器给出过快舵令。",
-          "hull-question": "$T_h$ 来自艏摇角速度响应的时间尺度，$K_h$ 来自稳态艏摇角速度与舵角的比值；航向角是艏摇角速度积分，因此只拟合 $r(t)$ 不足以保证 $\\\\psi(t)$ 任务可用。",
-          "cross-model-question": "最终判断应降低该方案的交付等级，要求高保真模型上的航向、航迹和执行边界同时合格；辨识模型上的低代价只能说明名义入口成立。",
-          "disturbance-question": "该等效通道只描述某一类艏摇等效影响，不能覆盖横荡、局部流速改变和舵效变化；因此它是扰动边界入口，不是完整风浪模型。"
-        },
-        "rubric": {
-          "rudder-question": [
-            "说清 $T_r$ 是时间常数。",
-            "说明实际舵角存在迟滞。",
-            "指出低估 $T_r$ 会高估快速执行能力。"
-          ],
-          "hull-question": [
-            "说明 $T_h$ 来自响应时间尺度。",
-            "说明 $K_h$ 来自稳态比值。",
-            "指出航向角是艏摇角速度积分并需同时约束 $r(t)$ 与 $\\\\psi(t)$。"
-          ],
-          "cross-model-question": [
-            "指出不能只按辨识模型代价交付。",
-            "提到高保真航向证据。",
-            "提到高保真航迹和执行边界。"
-          ],
-          "disturbance-question": [
-            "指出等效扰动不是完整风浪模型。",
-            "提到艏摇。",
-            "在横荡、局部流速、舵效中至少提到两项。"
-          ]
-        }
+        "header": "本页检查参数来源、结构选择、跨模型验证和边界判断是否已经连成链。"
       },
       "evidence_sequence": [
         "后测说明",
@@ -1944,30 +1894,54 @@
           {
             "id": "rudder-question",
             "prompt": "根据舵机阶跃辨识图，说明 $T_r$ 的含义。为什么实际舵角响应不能被看作无惯性的立即到位？若 $T_r$ 被低估，控制器设计会怎样误判舵机能力？",
+            "reference_answer": "$T_r$ 是舵机一阶惯性的时间尺度，表示实际舵角接近新稳态所需的滞后。若把它看成零，会高估舵机快速到位能力，使控制器给出过快舵令。",
             "response_kind": "fill_text",
             "submit_scope": "per_card",
-            "layout_span": "half"
+            "layout_span": "half",
+            "rubric": [
+              "说清 $T_r$ 是时间常数。",
+              "说明实际舵角存在迟滞。",
+              "指出低估 $T_r$ 会高估快速执行能力。"
+            ]
           },
           {
             "id": "hull-question",
             "prompt": "用 $G_h(s)=K_h/(T_hs+1)$ 解释 $T_h$ 与 $K_h$ 的来源。为什么船体段辨识需要同时约束艏摇角速度和积分后的航向角？",
+            "reference_answer": "$T_h$ 来自艏摇角速度响应的时间尺度，$K_h$ 来自稳态艏摇角速度与舵角的比值；航向角是艏摇角速度积分，因此只拟合 $r(t)$ 不足以保证 $\\\\psi(t)$ 任务可用。",
             "response_kind": "fill_text",
             "submit_scope": "per_card",
-            "layout_span": "half"
+            "layout_span": "half",
+            "rubric": [
+              "说明 $T_h$ 来自响应时间尺度。",
+              "说明 $K_h$ 来自稳态比值。",
+              "指出航向角是艏摇角速度积分并需同时约束 $r(t)$ 与 $\\\\psi(t)$。"
+            ]
           },
           {
             "id": "cross-model-question",
             "prompt": "若基于辨识模型的优化设计在辨识模型上代价更小，但在高保真 zig-zag 航线中航迹偏离更大，应怎样修改最终判断？",
+            "reference_answer": "最终判断应降低该方案的交付等级，要求高保真模型上的航向、航迹和执行边界同时合格；辨识模型上的低代价只能说明名义入口成立。",
             "response_kind": "fill_text",
             "submit_scope": "per_card",
-            "layout_span": "half"
+            "layout_span": "half",
+            "rubric": [
+              "指出不能只按辨识模型代价交付。",
+              "提到高保真航向证据。",
+              "提到高保真航迹和执行边界。"
+            ]
           },
           {
             "id": "disturbance-question",
             "prompt": "$T_d=54.00\\\\,\\\\mathrm{s}$、$K_d=0.0150\\\\,\\\\mathrm{rad}$ 为什么不能证明现实风浪扰动已经被充分建模？答案需要同时提到艏摇、横荡、局部流速和舵效。",
+            "reference_answer": "该等效通道只描述某一类艏摇等效影响，不能覆盖横荡、局部流速改变和舵效变化；因此它是扰动边界入口，不是完整风浪模型。",
             "response_kind": "fill_text",
             "submit_scope": "per_card",
-            "layout_span": "half"
+            "layout_span": "half",
+            "rubric": [
+              "指出等效扰动不是完整风浪模型。",
+              "提到艏摇。",
+              "在横荡、局部流速、舵效中至少提到两项。"
+            ]
           }
         ]
       },
