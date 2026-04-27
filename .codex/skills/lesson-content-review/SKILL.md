@@ -18,6 +18,8 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
 - 互动页覆盖审查必须确认：讲义核心概念、公式、图表、例题、结论已经落到页面；静态页合法且必要；关键知识不能只藏在互动组件里。
 - 审查还必须确认：人读稿的页面蓝图、机读稿的结构化契约与本地实现契约逐步骤对齐，且默认预览口径固定为学生演示页。
 - 互动页面实现审核必须做到元件级：页面模板、区域布局、主阅读顺序、模块清单、互动原型、教师控件、埋点摘要、教师聚合、隐藏式 AI 上下文、预览路径、曲线图镜像布局与控件位置都要逐项核对。
+- 对 manifest-first 课程，审查必须做到模块消费级：每个模块都应能被脚本判断 `renderer_owner`、`resolved_content_source`、`resolved_content_type`、`is_empty` 与诊断信息；只看页面截图或只确认路由 200 不足以放行。
+- `activity-card`、`activity-card-set`、`single-choice-card`、`quiz-card`、`quiz-group` 等活动模块不得进入正文 content renderer；若页面正文额外出现“本页作答”题面列表，或 `activity_cards[].prompt` 出现多次，应判定为 manifest runtime 分层失败。
 - 审查结论分层输出，且每层都要给出 `通过 / 需修订 / 阻塞` 状态：**结构正确性**、**互动页覆盖**、**事实正确性**、**科学合理性**、**确定性结论验证**。
 - 代码直出媒体必须先落 `media/processed/` 审核，再进入 runtime。
 - `course-content/runtime/knowledge/cards/nodes/` 继续作为全局知识卡片运行时来源；lesson runtime 只保存审查索引与报告。
@@ -200,6 +202,16 @@ description: Use when reviewing a lesson under `course-content/authoring/lessons
     - `preview_contract`
     - `acceptance_checks`
   - 若课次采用新版证据单元合同，步骤内是否补齐 `evidence_units` 并与页面稿中的证据单元叙述一致
+  - manifest-first 课程导出后是否能通过模块消费审计：
+    - 审计入口为 `python3 .codex/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson <lesson> --write-review`
+    - review 技能负责调用、读取和报告审计结果，不重新实现一套平行规则
+    - `must_be_visible` content 模块有 renderer 且非空
+    - activity 模块只归 activity runtime，不在正文 layout 重复渲染
+    - `activity_cards[].prompt` 默认最终只出现一次
+    - `key_formulas` 与同页公式模块数量或显式索引匹配
+    - `media` 与同页图片模块数量或显式索引匹配
+    - `figure_explanation`、`figure_reading`、`figure_explanations`、`parameter_explanation` 等图后说明已被消费，或契约明确允许不消费
+    - 页面中不存在只有标题、没有正文/公式/表格/图片/说明/显影文本的空壳模块
   - 采用证据单元映射时，每一步是否写出 `主阅读顺序`，并与 `interactive-contract.yaml > steps.<step>.layout.reading_order` 一致
   - 曲线图证据单元是否在页面稿中写明“曲线互动镜像说明”，并在契约中提供 `interactive_figure_spec`
   - 曲线图互动是否满足本轮修订基线：
@@ -346,6 +358,7 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - 科学合理性：哪些逻辑链成立，哪些结论需要删改或补条件
 - 确定性验证：哪些公式、图像、例题、指标已由 `Octave` + `control` 内置函数复现
 - 实现闸门：接受文件、runtime 时效、`inline_ai_visibility`、`content_source_insufficient`、`static_media_downgrade` 是否全部清零
+- Manifest 审计：是否已运行 `interactive-design` 技能目录下的独立审计脚本，`must_be_visible`、content/activity 分层、空模块、重复题面、公式/媒体数量、图后说明消费是否全部通过（manifest-first 课程必列）
 
 ## Quick Checks
 
@@ -370,6 +383,7 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - [ ] 已确认不存在 `static_media_downgrade`
 - [ ] 已确认 `interactive-page.md` 与 `interactive-contract.yaml` 的步骤顺序、标题、互动类型、预览路径一致（如适用）
 - [ ] 已确认 `interactive-contract.yaml` 的步骤级字段完整（如适用）
+- [ ] 若为 manifest-first 课程，已运行 `.codex/skills/interactive-design/scripts/audit_interactive_manifest.py` 并完成模块消费审计：content 模块非空、activity 模块不进正文、活动题面不重复、公式/媒体/图后说明均被消费
 - [ ] 已确认 `ai_context_spec` 维持隐藏式页面上下文，不默认扩展为可见 AI 区块（如适用）
 - [ ] 已确认曲线图步骤都写有“曲线互动镜像说明”，且 `interactive-contract.yaml` 提供 `interactive_figure_spec`（如适用）
 - [ ] 已确认曲线图默认态与 handout 静态图一致，`2×2` 图组镜像为 `2x2`，控件栏位于图下折叠区（如适用）
@@ -410,6 +424,8 @@ runtime 契约见 `references/runtime-output-contract.md`。
 - 只在实践课审 `interactive-page.md`，默认理论课不需要做页面覆盖审查
 - 只审 `interactive-page.md`，跳过 `interactive-contract.yaml`，导致机读契约与人读蓝图失配
 - 只审作者态双轨文档，不检查本地实现契约，导致真实页面已经漂移仍被放行
+- 只看浏览器页面能打开，不做 manifest 模块消费审计，导致空模块、漏消费 `content_blocks` 或重复题面被放行
+- 把 activity 模块当作正文内容模块审查，允许正文区和作答区同时显示同一题面
 - 允许 `interactive-page.md` 没有“讲义核心内容映射”，导致讲义核心内容没有明确落点
 - 允许“讲义证据单元映射”缺列、`handout_anchor` 失效或 `target_step` 漏配，导致讲义主线无法追踪到页面
 - 把 `interactive-page.md` 写成教师口播脚本、动作脚本，而不是固定页面蓝图

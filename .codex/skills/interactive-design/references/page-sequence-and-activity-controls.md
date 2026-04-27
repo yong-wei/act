@@ -49,6 +49,26 @@
 - 选择题、题组、二元判断必须在 `interaction_spec.activity_cards[]` 写明 `prompt`、`options`、`reference_answer` 或等价揭示规则。
 - 不得把 `QUIZ_OPTIONS`、`SINGLE_CHOICE_OPTIONS`、课程 id 映射、module id 映射当作契约缺字段的补救方式。
 
+## 3.8 payload 解析必须可被脚本审计
+
+契约设计时要让导出的 `interactive-manifest.json` 可被脚本明确判断每个模块是否被正确消费，而不是依赖人工看页面。
+
+默认审计字段：
+
+- `renderer_owner`: `content` / `activity`
+- `resolved_content_source`: `module.payload` / `content_blocks.<key>` / `implicit:<resolver>`
+- `resolved_content_type`: `formula` / `table` / `image` / `summary` / `reveal` / `activity`
+- `is_empty`: `true` / `false`
+- `diagnostic`: 缺 renderer、空内容、重复题面、未消费说明等问题
+
+设计约束：
+
+- 静态内容模块如果没有 `block_key`、`formula_key`、`image_key`、`field`、`rows`、`items` 等显式 payload，就必须写出 `resolver`，例如 `implicit:key_formulas_by_formula_card_order` 或 `implicit:media_by_image_panel_order`。
+- `formula-card` 按 `content_blocks.key_formulas` 顺序隐式消费时，公式数量必须与对应公式模块数量一致；不一致时应回修契约，而不是让实现层猜。
+- `image-panel` 按 `content_blocks.media` 顺序隐式消费时，媒体数量必须与图片模块数量一致；`figure_explanation`、`figure_reading`、`figure_explanations` 等说明必须被消费，或显式标记允许不消费。
+- `activity-card`、`activity-card-set`、`single-choice-card`、`quiz-card`、`quiz-group` 只属于 activity runtime；正文内容模块不得再渲染“本页作答”问题列表。
+- 页面中每个 `activity_cards[].prompt` 的最终出现次数默认应为 `1`：只出现在作答区。若题面必须在正文区常显，应在契约里使用非活动内容模块承载完整题面，并让作答卡标题/提示避免重复同句。
+
 ## 4. 公式与表格必须拆开命名
 
 - 公式密集区必须按条目或成组关系拆开，并配名称或说明文案。
@@ -161,4 +181,7 @@
 - 一整页只给一个“学生作答区”标题和一个统一提交按钮
 - 例题题面、原理说明、作答区三者边界不清
 - 机读契约里没有教师控制与学生访问字段，只写互动类型
+- 静态内容模块写 `payload: {}`，也没有命名 resolver，导致导出后只能靠共享 renderer 猜 key
+- 图片模块只渲染图片标题，`figure_explanation` 或 `figure_reading` 留在 `content_blocks` 里没有被消费
+- 活动模块同时进入正文 renderer 与 activity renderer，造成正文区出现“本页作答”题面列表，作答区又重复显示题面
 - 页面只写“见讲义”“教师补充说明”“学生讨论后理解”，却没有把关键证据真正落在当前页

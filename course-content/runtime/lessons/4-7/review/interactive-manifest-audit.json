@@ -5,6 +5,40 @@
     "modules": 67,
     "issues": 0
   },
+  "implementation_sources": {
+    "content_renderer": "src/features/interactive/shared/manifest-runtime/content-renderers.tsx",
+    "layout_renderer": "src/features/interactive/shared/manifest-runtime/layout-renderer.tsx",
+    "content_renderer_kinds": [
+      "bullet-list-card",
+      "equation-card-row",
+      "formula-card",
+      "formula-card-row",
+      "goal-card-row",
+      "goal-card-set",
+      "image-panel",
+      "native-figure",
+      "native-formula-table",
+      "native-table",
+      "problem-statement",
+      "question-card-set",
+      "quiz-stack",
+      "route-card",
+      "stage-map",
+      "stat-panel",
+      "step-reveal",
+      "step-reveal-chain",
+      "summary-card",
+      "table-card",
+      "title-card"
+    ],
+    "activity_module_kinds": [
+      "activity-card",
+      "activity-card-set",
+      "quiz-card",
+      "quiz-group",
+      "single-choice-card"
+    ]
+  },
   "entries": [
     {
       "step_id": "step-01",

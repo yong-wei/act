@@ -51,6 +51,698 @@
     "互动实现接受文件已通过校验。"
   ],
   "implementation_acceptance_issues": [],
+  "manifest_audit_summary": [
+    "manifest audit fail: 14 steps, 43 modules, 19 issues"
+  ],
+  "manifest_audit_issues": [
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"summary-card\", \"module_id\": \"responsibility-summary\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-04\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"pi-lead-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-05\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"pi-lead-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-05\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"lag-lead-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"lag-lead-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"pid-filter-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-07\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"pid-filter-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-07\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"step-reveal-chain\", \"module_id\": \"heading-derivation\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"content_blocks.reveal_layers\", \"resolved_content_type\": \"reveal\", \"step_id\": \"step-09\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"heading-validation-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"step-reveal-chain\", \"module_id\": \"mini-reveal\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"content_blocks.reveal_layers\", \"resolved_content_type\": \"reveal\", \"step_id\": \"step-11\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"analysis-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"scheme-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"issue-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"figure-note\", \"module_id\": \"roll-structure-note\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"image\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-time-compare-panel\", \"module_id\": \"roll-native-time-compare\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-bode-compare-panel\", \"module_id\": \"roll-native-bode-compare\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"对象已有积分时，为什么不一定先补低频能力。\", \"step_id\": \"step-14\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"参数方向至少应包含哪三项内容。\", \"step_id\": \"step-14\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"首轮验证为何必须同时写收益、代价和下一轮优先项。\", \"step_id\": \"step-14\"}"
+  ],
+  "manifest_audit": {
+    "status": "fail",
+    "summary": {
+      "steps": 14,
+      "modules": 43,
+      "issues": 19
+    },
+    "implementation_sources": {
+      "content_renderer": "src/features/interactive/shared/manifest-runtime/content-renderers.tsx",
+      "layout_renderer": "src/features/interactive/shared/manifest-runtime/layout-renderer.tsx",
+      "content_renderer_kinds": [
+        "bullet-list-card",
+        "equation-card-row",
+        "formula-card",
+        "formula-card-row",
+        "goal-card-row",
+        "goal-card-set",
+        "image-panel",
+        "native-figure",
+        "native-formula-table",
+        "native-table",
+        "problem-statement",
+        "question-card-set",
+        "quiz-stack",
+        "route-card",
+        "stage-map",
+        "stat-panel",
+        "step-reveal",
+        "step-reveal-chain",
+        "summary-card",
+        "table-card",
+        "title-card"
+      ],
+      "activity_module_kinds": [
+        "activity-card",
+        "activity-card-set",
+        "quiz-card",
+        "quiz-group",
+        "single-choice-card"
+      ]
+    },
+    "entries": [
+      {
+        "step_id": "step-01",
+        "module_id": "stage-map",
+        "kind": "stage-map",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.page_intro",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-01",
+        "module_id": "goal-cards",
+        "kind": "goal-card-row",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.goal_cards",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "analysis-four-questions",
+        "kind": "question-card-set",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.question_cards",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "analysis-record-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-03",
+        "module_id": "branching-table",
+        "kind": "native-table",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:table_by_table_module_order:table_1",
+        "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-03",
+        "module_id": "branch-choice",
+        "kind": "single-choice-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-04",
+        "module_id": "compound-overview-table",
+        "kind": "native-formula-table",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:table_by_table_module_order:table_2",
+        "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-04",
+        "module_id": "responsibility-summary",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "empty_required_content_module"
+      },
+      {
+        "step_id": "step-05",
+        "module_id": "pi-lead-formula",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": true,
+        "diagnostic": "empty_required_content_module"
+      },
+      {
+        "step_id": "step-05",
+        "module_id": "pi-lead-summary",
+        "kind": "table-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:table_by_table_module_order:result_summary",
+        "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-05",
+        "module_id": "pi-lead-native-panel",
+        "kind": "rust-analysis-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-05",
+        "module_id": "pi-lead-task",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-06",
+        "module_id": "lag-lead-formula",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": true,
+        "diagnostic": "empty_required_content_module"
+      },
+      {
+        "step_id": "step-06",
+        "module_id": "lag-lead-summary",
+        "kind": "table-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:table_by_table_module_order:result_summary",
+        "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-06",
+        "module_id": "lag-lead-native-panel",
+        "kind": "rust-analysis-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-06",
+        "module_id": "lag-lead-task",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "pid-filter-formula",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": true,
+        "diagnostic": "empty_required_content_module"
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "pid-filter-summary",
+        "kind": "table-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:table_by_table_module_order:result_summary",
+        "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "pid-filter-native-panel",
+        "kind": "rust-analysis-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "pid-filter-task",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-08",
+        "module_id": "heading-problem",
+        "kind": "problem-statement",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.problem_statement",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-08",
+        "module_id": "heading-targets",
+        "kind": "goal-card-set",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.target_constraints",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-08",
+        "module_id": "heading-judge",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-09",
+        "module_id": "heading-problem-fixed",
+        "kind": "problem-statement",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.fixed_problem",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-09",
+        "module_id": "heading-derivation",
+        "kind": "step-reveal-chain",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.reveal_layers",
+        "resolved_content_type": "reveal",
+        "is_empty": true,
+        "diagnostic": "empty_required_content_module"
+      },
+      {
+        "step_id": "step-10",
+        "module_id": "heading-validation-table",
+        "kind": "native-table",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:table_by_table_module_order:table_6",
+        "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-10",
+        "module_id": "heading-validation-panel",
+        "kind": "rust-analysis-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-10",
+        "module_id": "issue-handover-cards",
+        "kind": "activity-card-set",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-11",
+        "module_id": "mini-problem",
+        "kind": "problem-statement",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.problem_statement",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-11",
+        "module_id": "mini-reveal",
+        "kind": "step-reveal-chain",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.reveal_layers",
+        "resolved_content_type": "reveal",
+        "is_empty": true,
+        "diagnostic": "empty_required_content_module"
+      },
+      {
+        "step_id": "step-12",
+        "module_id": "analysis-template",
+        "kind": "template-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-12",
+        "module_id": "scheme-template",
+        "kind": "template-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-12",
+        "module_id": "issue-template",
+        "kind": "template-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-12",
+        "module_id": "workspace-cards",
+        "kind": "activity-card-set",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-13",
+        "module_id": "roll-problem",
+        "kind": "problem-statement",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.problem_statement",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-13",
+        "module_id": "roll-structure-note",
+        "kind": "figure-note",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "image",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-13",
+        "module_id": "roll-native-time-compare",
+        "kind": "rust-time-compare-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-13",
+        "module_id": "roll-native-bode-compare",
+        "kind": "rust-bode-compare-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-13",
+        "module_id": "roll-task",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-14",
+        "module_id": "post-quiz-title",
+        "kind": "title-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.post_quiz_title",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-14",
+        "module_id": "post-quiz",
+        "kind": "quiz-stack",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.post_quiz_items",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-14",
+        "module_id": "takeaways",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.takeaways",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-14",
+        "module_id": "next-route",
+        "kind": "route-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.next_route",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      }
+    ],
+    "issues": [
+      {
+        "step_id": "step-04",
+        "module_id": "responsibility-summary",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "empty_required_content_module",
+        "issue": "empty_required_content_module"
+      },
+      {
+        "step_id": "step-05",
+        "module_id": "pi-lead-formula",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": true,
+        "diagnostic": "empty_required_content_module",
+        "issue": "empty_required_content_module"
+      },
+      {
+        "step_id": "step-05",
+        "module_id": "pi-lead-native-panel",
+        "kind": "rust-analysis-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer",
+        "issue": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-06",
+        "module_id": "lag-lead-formula",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": true,
+        "diagnostic": "empty_required_content_module",
+        "issue": "empty_required_content_module"
+      },
+      {
+        "step_id": "step-06",
+        "module_id": "lag-lead-native-panel",
+        "kind": "rust-analysis-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer",
+        "issue": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "pid-filter-formula",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": true,
+        "diagnostic": "empty_required_content_module",
+        "issue": "empty_required_content_module"
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "pid-filter-native-panel",
+        "kind": "rust-analysis-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer",
+        "issue": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-09",
+        "module_id": "heading-derivation",
+        "kind": "step-reveal-chain",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.reveal_layers",
+        "resolved_content_type": "reveal",
+        "is_empty": true,
+        "diagnostic": "empty_required_content_module",
+        "issue": "empty_required_content_module"
+      },
+      {
+        "step_id": "step-10",
+        "module_id": "heading-validation-panel",
+        "kind": "rust-analysis-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer",
+        "issue": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-11",
+        "module_id": "mini-reveal",
+        "kind": "step-reveal-chain",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.reveal_layers",
+        "resolved_content_type": "reveal",
+        "is_empty": true,
+        "diagnostic": "empty_required_content_module",
+        "issue": "empty_required_content_module"
+      },
+      {
+        "step_id": "step-12",
+        "module_id": "analysis-template",
+        "kind": "template-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer",
+        "issue": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-12",
+        "module_id": "scheme-template",
+        "kind": "template-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer",
+        "issue": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-12",
+        "module_id": "issue-template",
+        "kind": "template-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer",
+        "issue": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-13",
+        "module_id": "roll-structure-note",
+        "kind": "figure-note",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "image",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer",
+        "issue": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-13",
+        "module_id": "roll-native-time-compare",
+        "kind": "rust-time-compare-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer",
+        "issue": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-13",
+        "module_id": "roll-native-bode-compare",
+        "kind": "rust-bode-compare-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "unresolved",
+        "resolved_content_type": "summary",
+        "is_empty": true,
+        "diagnostic": "missing_shared_content_renderer",
+        "issue": "missing_shared_content_renderer"
+      },
+      {
+        "step_id": "step-14",
+        "issue": "activity_prompt_repeated_in_content_blocks",
+        "prompt": "对象已有积分时，为什么不一定先补低频能力。"
+      },
+      {
+        "step_id": "step-14",
+        "issue": "activity_prompt_repeated_in_content_blocks",
+        "prompt": "参数方向至少应包含哪三项内容。"
+      },
+      {
+        "step_id": "step-14",
+        "issue": "activity_prompt_repeated_in_content_blocks",
+        "prompt": "首轮验证为何必须同时写收益、代价和下一轮优先项。"
+      }
+    ],
+    "manifest_path": "course-content/runtime/lessons/4-3/interactive-manifest.json"
+  },
   "reviewed_runtime_artifacts": [
     "course-content/runtime/lessons/4-3/review/review-report.md",
     "course-content/runtime/lessons/4-3/review/interactive-page-check.json"
@@ -58,20 +750,100 @@
   "runtime_review_stale_issues": [],
   "hard_gate_issues": [],
   "hard_gate_issue_codes": [],
-  "blocking_issues": [],
+  "blocking_issues": [
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"summary-card\", \"module_id\": \"responsibility-summary\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-04\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"pi-lead-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-05\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"pi-lead-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-05\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"lag-lead-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"lag-lead-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"pid-filter-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-07\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"pid-filter-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-07\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"step-reveal-chain\", \"module_id\": \"heading-derivation\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"content_blocks.reveal_layers\", \"resolved_content_type\": \"reveal\", \"step_id\": \"step-09\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"heading-validation-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"step-reveal-chain\", \"module_id\": \"mini-reveal\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"content_blocks.reveal_layers\", \"resolved_content_type\": \"reveal\", \"step_id\": \"step-11\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"analysis-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"scheme-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"issue-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"figure-note\", \"module_id\": \"roll-structure-note\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"image\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-time-compare-panel\", \"module_id\": \"roll-native-time-compare\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-bode-compare-panel\", \"module_id\": \"roll-native-bode-compare\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"对象已有积分时，为什么不一定先补低频能力。\", \"step_id\": \"step-14\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"参数方向至少应包含哪三项内容。\", \"step_id\": \"step-14\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"首轮验证为何必须同时写收益、代价和下一轮优先项。\", \"step_id\": \"step-14\"}"
+  ],
   "implementation_contract_summary": [
     "已检测到 `4-3` 的本地实现契约与作者态互动契约一致。"
   ],
   "implementation_contract_issues": [],
   "legacy_acceptance_notes": [],
   "summary": [
-    "已识别证据单元升级决策表、混合证据顺序与曲线运行时合同。",
     "已检测到 `4-3` 的 V2 互动契约，步骤字段完整。",
     "已检测到 `4-3` 的本地实现契约与作者态互动契约一致。",
+    "manifest audit fail: 14 steps, 43 modules, 19 issues",
     "互动设计接受文件已通过校验。",
     "互动实现接受文件已通过校验。"
   ],
-  "warnings": [],
-  "missing": [],
-  "issues": []
+  "warnings": [
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"summary-card\", \"module_id\": \"responsibility-summary\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-04\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"pi-lead-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-05\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"pi-lead-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-05\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"lag-lead-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"lag-lead-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"pid-filter-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-07\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"pid-filter-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-07\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"step-reveal-chain\", \"module_id\": \"heading-derivation\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"content_blocks.reveal_layers\", \"resolved_content_type\": \"reveal\", \"step_id\": \"step-09\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"heading-validation-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"step-reveal-chain\", \"module_id\": \"mini-reveal\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"content_blocks.reveal_layers\", \"resolved_content_type\": \"reveal\", \"step_id\": \"step-11\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"analysis-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"scheme-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"issue-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"figure-note\", \"module_id\": \"roll-structure-note\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"image\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-time-compare-panel\", \"module_id\": \"roll-native-time-compare\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-bode-compare-panel\", \"module_id\": \"roll-native-bode-compare\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"对象已有积分时，为什么不一定先补低频能力。\", \"step_id\": \"step-14\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"参数方向至少应包含哪三项内容。\", \"step_id\": \"step-14\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"首轮验证为何必须同时写收益、代价和下一轮优先项。\", \"step_id\": \"step-14\"}"
+  ],
+  "missing": [
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"summary-card\", \"module_id\": \"responsibility-summary\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-04\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"pi-lead-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-05\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"pi-lead-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-05\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"lag-lead-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"lag-lead-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"pid-filter-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-07\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"pid-filter-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-07\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"step-reveal-chain\", \"module_id\": \"heading-derivation\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"content_blocks.reveal_layers\", \"resolved_content_type\": \"reveal\", \"step_id\": \"step-09\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"heading-validation-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"step-reveal-chain\", \"module_id\": \"mini-reveal\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"content_blocks.reveal_layers\", \"resolved_content_type\": \"reveal\", \"step_id\": \"step-11\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"analysis-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"scheme-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"issue-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"figure-note\", \"module_id\": \"roll-structure-note\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"image\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-time-compare-panel\", \"module_id\": \"roll-native-time-compare\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-bode-compare-panel\", \"module_id\": \"roll-native-bode-compare\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"对象已有积分时，为什么不一定先补低频能力。\", \"step_id\": \"step-14\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"参数方向至少应包含哪三项内容。\", \"step_id\": \"step-14\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"首轮验证为何必须同时写收益、代价和下一轮优先项。\", \"step_id\": \"step-14\"}"
+  ],
+  "issues": [
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"summary-card\", \"module_id\": \"responsibility-summary\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-04\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"pi-lead-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-05\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"pi-lead-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-05\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"lag-lead-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"lag-lead-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-06\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"formula-card\", \"module_id\": \"pid-filter-formula\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"implicit:key_formulas_by_formula_card_order\", \"resolved_content_type\": \"formula\", \"step_id\": \"step-07\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"pid-filter-native-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-07\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"step-reveal-chain\", \"module_id\": \"heading-derivation\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"content_blocks.reveal_layers\", \"resolved_content_type\": \"reveal\", \"step_id\": \"step-09\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-analysis-panel\", \"module_id\": \"heading-validation-panel\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-10\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"empty_required_content_module\", \"is_empty\": true, \"issue\": \"empty_required_content_module\", \"kind\": \"step-reveal-chain\", \"module_id\": \"mini-reveal\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"content_blocks.reveal_layers\", \"resolved_content_type\": \"reveal\", \"step_id\": \"step-11\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"analysis-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"scheme-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"template-card\", \"module_id\": \"issue-template\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-12\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"figure-note\", \"module_id\": \"roll-structure-note\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"image\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-time-compare-panel\", \"module_id\": \"roll-native-time-compare\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"diagnostic\": \"missing_shared_content_renderer\", \"is_empty\": true, \"issue\": \"missing_shared_content_renderer\", \"kind\": \"rust-bode-compare-panel\", \"module_id\": \"roll-native-bode-compare\", \"renderer_owner\": \"content\", \"resolved_content_source\": \"unresolved\", \"resolved_content_type\": \"summary\", \"step_id\": \"step-13\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"对象已有积分时，为什么不一定先补低频能力。\", \"step_id\": \"step-14\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"参数方向至少应包含哪三项内容。\", \"step_id\": \"step-14\"}",
+    "manifest 模块消费审计失败：{\"issue\": \"activity_prompt_repeated_in_content_blocks\", \"prompt\": \"首轮验证为何必须同时写收益、代价和下一轮优先项。\", \"step_id\": \"step-14\"}"
+  ]
 }

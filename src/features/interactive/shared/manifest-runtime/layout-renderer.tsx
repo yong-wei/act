@@ -35,6 +35,14 @@ type InteractiveTemplateRenderer = (props: {
   regionNodes: InteractiveLayoutRegionNode[];
 }) => ReactNode;
 
+const ACTIVITY_RUNTIME_MODULE_KINDS = new Set([
+  'activity-card',
+  'activity-card-set',
+  'single-choice-card',
+  'quiz-card',
+  'quiz-group',
+]);
+
 function buildOrderedRegions(
   step: InteractiveRuntimeStepManifest,
   regionNodes: InteractiveLayoutRegionNode[],
@@ -151,6 +159,9 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
 }) {
   const regionNodes: InteractiveLayoutRegionNode[] = step.modules
     .map((module) => {
+      if (ACTIVITY_RUNTIME_MODULE_KINDS.has(module.kind)) {
+        return null;
+      }
       const renderModule = moduleRegistry[module.kind];
       if (!renderModule) {
         if (module.mustBeVisible) {

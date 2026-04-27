@@ -339,7 +339,8 @@ export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
     lesson.id !== 'unit-4-3-initial-scheme-practice-first-validation' &&
     lesson.id !== 'unit-4-4-fixed-structure-optimization-modeling' &&
     lesson.id !== 'unit-4-5-constraint-aware-parameter-optimization' &&
-    lesson.id !== 'unit-4-6-fixed-structure-boundary-structural-encoding'
+    lesson.id !== 'unit-4-6-fixed-structure-boundary-structural-encoding' &&
+    lesson.id !== 'unit-4-7-destroyer-hifi-design-closure'
 );
 
 export const CHAPTER_LESSONS = LEGACY_LESSONS;
@@ -399,7 +400,7 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
     id: 'module-4',
     title: '模块4',
     description:
-      '模块4 当前开放 4-1、4-2、4-3、4-4、4-5、4-6 六个新主线单元，先把模块 3 的证据统一改写成任务表达卡，再推进到起步卡、第一版方案、多目标优化建模、约束化参数优化，最后在 4-6 显性处理固定结构优化边界与结构编码入口。',
+      '模块4 当前开放 4-1、4-2、4-3、4-4、4-5、4-6、4-7 七个新主线单元，先把模块 3 的证据统一改写成任务表达卡，再推进到起步卡、第一版方案、多目标优化建模、约束化参数优化、固定结构边界与结构编码入口，最后在 4-7 完成高保真辨识、设计验证与扰动边界闭环。',
     chipLabel: '设计入口主线',
     lessons: [
       createModuleLesson('unit-4-1-design-task-expression', '4-1'),
@@ -408,6 +409,7 @@ export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
       createModuleLesson('unit-4-4-fixed-structure-optimization-modeling', '4-4'),
       createModuleLesson('unit-4-5-constraint-aware-parameter-optimization', '4-5'),
       createModuleLesson('unit-4-6-fixed-structure-boundary-structural-encoding', '4-6'),
+      createModuleLesson('unit-4-7-destroyer-hifi-design-closure', '4-7'),
     ],
   },
 ] as const;

@@ -17,6 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 COURSE_ROOT = REPO_ROOT / 'course-content'
 AUTHORING_ROOT = COURSE_ROOT / 'authoring'
 RUNTIME_ROOT = COURSE_ROOT / 'runtime'
+MANIFEST_AUDIT_SCRIPT = REPO_ROOT / '.codex' / 'skills' / 'interactive-design' / 'scripts' / 'audit_interactive_manifest.py'
 
 ACCEPTANCE_PASS_STATUSES = {'accepted', 'pass', 'passed'}
 ACCEPTANCE_FAIL_STATUSES = {'blocked', 'fail', 'failed', 'needs_revision', 'rejected'}
@@ -1325,6 +1326,61 @@ def build_implementation_contract_check(lesson_id: str, contract_path: Path) -> 
     return config.get('source_path'), issues, summary
 
 
+def run_interactive_manifest_audit(
+    lesson_id: str,
+    manifest_path: Path,
+) -> tuple[dict[str, Any] | None, list[str], list[str]]:
+    if not manifest_path.exists():
+        return None, [f'缺少 runtime interactive manifest：`{format_repo_path(manifest_path)}`'], []
+    if not MANIFEST_AUDIT_SCRIPT.exists():
+        return None, [f'缺少 manifest 审计脚本：`{format_repo_path(MANIFEST_AUDIT_SCRIPT)}`'], []
+
+    completed = subprocess.run(
+        [
+            'python3',
+            str(MANIFEST_AUDIT_SCRIPT),
+            '--manifest',
+            str(manifest_path),
+            '--json',
+        ],
+        cwd=str(REPO_ROOT),
+        text=True,
+        capture_output=True,
+    )
+    try:
+        result = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        detail = (completed.stderr or completed.stdout or '无输出').strip()
+        return None, [f'manifest 审计脚本输出无法解析：{detail}'], []
+
+    summary = result.get('summary', {}) if isinstance(result, dict) else {}
+    status = result.get('status') if isinstance(result, dict) else None
+    manifest_summary = [
+        (
+            f'manifest audit {status}: '
+            f'{summary.get("steps", 0)} steps, {summary.get("modules", 0)} modules, {summary.get("issues", 0)} issues'
+        )
+    ]
+    if completed.returncode == 0 and status == 'pass':
+        return result, [], manifest_summary
+
+    audit_issues = []
+    raw_issues = result.get('issues', []) if isinstance(result, dict) else []
+    if isinstance(raw_issues, list) and raw_issues:
+        for issue in raw_issues[:20]:
+            audit_issues.append(
+                'manifest 模块消费审计失败：'
+                + json.dumps(issue, ensure_ascii=False, sort_keys=True)
+            )
+        if len(raw_issues) > 20:
+            audit_issues.append(f'manifest 模块消费审计还有 {len(raw_issues) - 20} 项问题未列出。')
+    else:
+        detail = (completed.stderr or completed.stdout or f'exit {completed.returncode}').strip()
+        audit_issues.append(f'manifest 模块消费审计失败：{detail}')
+
+    return result if isinstance(result, dict) else None, audit_issues, manifest_summary
+
+
 def parse_markdown_table(rows: list[str]) -> list[dict[str, str]]:
     if len(rows) < 3:
         return []
@@ -1402,6 +1458,9 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
             'design_acceptance_issues': [],
             'implementation_acceptance_summary': [],
             'implementation_acceptance_issues': [],
+            'manifest_audit_summary': [],
+            'manifest_audit_issues': [],
+            'manifest_audit': None,
             'runtime_review_stale_issues': [],
             'hard_gate_issues': [],
             'hard_gate_issue_codes': [],
@@ -1581,6 +1640,15 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         interactive_contract,
     )
     issues.extend(implementation_contract_issues)
+    manifest_audit_result = None
+    manifest_audit_issues: list[str] = []
+    manifest_audit_summary: list[str] = []
+    if implementation_config and implementation_config.get('runtime_manifest_path'):
+        manifest_audit_result, manifest_audit_issues, manifest_audit_summary = run_interactive_manifest_audit(
+            lesson_id,
+            Path(implementation_config['runtime_manifest_path']),
+        )
+        issues.extend(manifest_audit_issues)
 
     design_acceptance_path, _design_acceptance_payload, design_acceptance_issues, design_acceptance_summary = validate_design_acceptance(
         lesson_id,
@@ -1700,12 +1768,14 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         warnings.extend(issues)
     summary.extend(contract_summary)
     summary.extend(implementation_contract_summary)
+    summary.extend(manifest_audit_summary)
     summary.extend(design_acceptance_summary)
     summary.extend(implementation_acceptance_summary)
     warnings.extend(legacy_acceptance_notes)
     warnings.extend(contract_warnings)
     blocking_issues = (
         implementation_contract_issues
+        + manifest_audit_issues
         + design_acceptance_issues
         + implementation_acceptance_issues
         + hard_gate_messages
@@ -1738,6 +1808,9 @@ def build_interactive_page_check(lesson_id: str, primary_sources: list[Path]) ->
         'design_acceptance_issues': design_acceptance_issues,
         'implementation_acceptance_summary': implementation_acceptance_summary,
         'implementation_acceptance_issues': implementation_acceptance_issues,
+        'manifest_audit_summary': manifest_audit_summary,
+        'manifest_audit_issues': manifest_audit_issues,
+        'manifest_audit': manifest_audit_result,
         'reviewed_runtime_artifacts': reviewed_runtime_artifacts,
         'runtime_review_stale_issues': [
             issue for issue in hard_gate_issues
@@ -2058,6 +2131,8 @@ def main() -> None:
     write_json(review_dir / 'knowledge-card-check.json', knowledge_check)
     write_json(review_dir / 'multimedia-check.json', multimedia_check)
     write_json(review_dir / 'interactive-page-check.json', interactive_page_check)
+    if interactive_page_check.get('manifest_audit'):
+        write_json(review_dir / 'interactive-manifest-audit.json', interactive_page_check['manifest_audit'])
     write_json(
         review_dir / 'source-manifest.json',
         build_source_manifest(lesson_id, unit_type, primary_sources, expected_media),

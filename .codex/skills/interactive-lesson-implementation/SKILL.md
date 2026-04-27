@@ -50,10 +50,12 @@ description: Use when implementing or upgrading this repository's interactive le
 - 设计稿中若已明确拖拽、连线、排序、拖槽、路径高亮、热点标注等组件形态，实施阶段不得改成选择题、填空题、文本问答或“先放占位以后再补”。
 - 设计稿中若已固定页面模板、区域、模块、文本、公式、图片、表格、教师聚合、隐藏式 AI 上下文与学生页预览，实施阶段不得擅自删改、合并、改写或重排。
 - 对 manifest 驱动新课，`must_be_visible: true` 的模块必须真实落页；缺 renderer、renderer 返回 `null`、或被共享渲染器静默过滤，都属于实现失败，不得以“后续补模块”“先用占位壳层”或“课程私有分支兜底”视作已完成。
+- 对 manifest 驱动新课，不能只用人工浏览器检查判断“页面看起来有内容”。实现阶段必须让每个模块都可被脚本审计出 `renderer_owner`、`resolved_content_source`、`resolved_content_type`、`is_empty` 和诊断信息；浏览器验证只负责最终 DOM 与交互行为，不负责替代 manifest 静态审计。
 - 模板名不仅决定视觉顺序，也承载区域拓扑与保留规则。若步骤模板把两个模块放在同一区域，实施阶段必须保留它们的独立节点与阅读顺序，不得压成一个笼统面板或单个壳层摘要。
 - 共享模块注册表必须覆盖契约中实际出现的 `kind`；真正特殊的能力应落成窄适配器模块，而不是重新退回整门课私有 `switch (step.id)` 渲染器。
 - 共享 renderer 禁止写课程 id、step id 或 module id 特判，例如把 `4-6` 的活动标题、`4-3` 的选择题选项、某个卡片参考答案硬编码在共享层。标题、选项、参考答案、表格行列、图片路径和显影文本必须优先来自 manifest payload；缺字段时给可见诊断或回退设计补 payload。
 - 处理组件缺口的顺序固定为：先补作者态 contract / runtime manifest payload，再补共享 content/activity renderer；只有能力确实不通用时，才写课程窄适配器。不得回退到课程私有 `QUIZ_OPTIONS`、`SINGLE_CHOICE_OPTIONS`、页面级参考答案映射或 `switch (step.id)`。
+- `content-renderers.tsx` 与 `activity-renderers.tsx` 的职责必须分离：`activity-card`、`activity-card-set`、`single-choice-card`、`quiz-card`、`quiz-group` 等活动模块只能由 activity runtime 消费；正文 content registry 不得再渲染“本页作答”题面列表。
 - `rust-analysis-panel`、`rust-time-compare-panel`、`rust-bode-compare-panel` 这类 Rust/WASM 共享模块属于当前正式覆盖面。三域互动的 Rust 链条替换后若出现缺口，应修共享模块或其窄适配器，不得把新课技能默认回退到旧图表实现。
 - 设计稿若已固定证据单元顺序、主阅读顺序、曲线图镜像排布、基线参数或结构切换方式，实现阶段不得擅自改成“图先行”“卡片先行”“单选替代”或“另起一套互动图”。
 - 设计稿若已为某页写出本次课程目标或能力项，实现阶段必须保持布鲁姆动词与能力粒度，不得改写成课程编排说明、单元串联说明或泛化口号。
@@ -124,6 +126,8 @@ description: Use when implementing or upgrading this repository's interactive le
 
 - manifest 中的步骤顺序、模板名、区域顺序与作者态 contract 一致
 - `modules` 中所有 `must_be_visible: true` 项都能在共享模块注册表中找到落点
+- 每个静态内容模块都能解析到明确内容来源；若为隐式来源，manifest 或 contract 必须能说明 resolver 规则
+- 活动模块不会进入正文 content renderer，也不会在正文区重复渲染 `activity_cards[].prompt`
 - 若同一区域存在多个必显模块，当前模板不会把它们压成单节点或在过滤阶段静默丢弃
 
 若 manifest 已导出但共享渲染器无法兑现这些字段，说明问题在实现链，不得回退为课程级平行契约。
@@ -241,6 +245,7 @@ description: Use when implementing or upgrading this repository's interactive le
 - 步骤数量、标题、顺序、时长
 - 每一步的页面模板、主阅读顺序、区域、模块、静态承载内容是否已实现
 - 每一步的 runtime manifest 是否与作者态 contract 同步，且共享渲染器未吞掉任何 `must_be_visible` 模块
+- 每一步的 manifest 审计是否能证明静态模块非空、活动模块只归 activity registry、图片说明与公式/表格/显影文本没有留在 `content_blocks` 里未消费
 - 每一步的互动类型是否与机读契约一致
 - 每一步的证据单元是否已完整落页，而不是只剩摘要卡
 - 每一步的页面内容是否主要来自双轨真源，而不是实现阶段自由补写
@@ -657,6 +662,7 @@ python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --stri
 - 该命令必须通过，不能只生成 `interactive-page-check.json` 而忽略实现契约漂移
 - 重点检查作者态 `interactive-contract.yaml`、`design/interactive-design-acceptance.json`、`notes/interactive-implementation-acceptance.json` 与本地页面契约、步骤定义是否一致
 - 对 manifest 驱动新课，还必须检查 `interactive-manifest.json`、共享模板注册表与共享模块注册表是否兑现 contract-required modules，而不是只让页面“能渲染出来”
+- 对 manifest 驱动新课，还必须执行或补齐 manifest audit：优先运行 `python3 .codex/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson <lesson>`；检查 `must_be_visible` 模块 renderer 覆盖、content 模块非空、activity 模块不进入正文、`activity_cards[].prompt` 不重复、`key_formulas` 与公式模块数量匹配、`media` 与图片模块数量匹配、图后说明已被消费
 - 若作者态文件晚于 runtime 审查产物，脚本会判定 `runtime_review_stale`，必须先重新审查并重新接受实现
 - 若本地实现把隐藏式 AI 做成页内入口，脚本会判定 `inline_ai_visibility`
 - 若工作区 / 参数联动被静态媒体替代，脚本会判定 `static_media_downgrade`
@@ -688,6 +694,8 @@ python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_a
 推荐至少补一类守卫测试：
 - 检查隐藏式 AI 页面上下文与控灵助手接线
 - 若设计稿要求页内 AI 入口，再检查其以内嵌对话框或抽屉实现，而非跳转
+- 检查 manifest runtime 的 content/activity 分层：活动模块不会进入正文 layout，页面中每个活动题面默认只出现一次
+- 检查真实课程样本页没有 `data-manifest-render-error`、没有 `data-manifest-missing-field`，且图片说明、公式、表格、显影文本均有实际 DOM 内容
 - 检查提交反馈与教师汇聚存在
 - 检查曲线图步骤的基线参数、图组排布与控件布局未漂移
 - 检查统一事件链接线

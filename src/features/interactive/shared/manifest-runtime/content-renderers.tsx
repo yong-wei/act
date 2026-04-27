@@ -95,15 +95,43 @@ function blockByModuleId(step: InteractiveRuntimeStepManifest, module: Interacti
   const candidates = [
     normalizedId,
     normalizedId.replace(/_card$/, ''),
+    normalizedId.replace(/_cards$/, ''),
     normalizedId.replace(/_list$/, '_list'),
     normalizedId.replace(/_figure$/, '_figure'),
     normalizedId.replace(/_reading$/, '_reading'),
   ];
+  const parts = normalizedId.split('_').filter(Boolean);
+  if (parts.length > 1) {
+    candidates.push(parts.slice(-2).join('_'));
+    candidates.push(parts[parts.length - 1]);
+  }
+  if (normalizedId.includes('conclusion')) {
+    candidates.push('conclusion', 'structure_conclusion', 'delivery_judgment');
+  }
+  if (normalizedId.includes('reading') && normalizedId.includes('prompt')) candidates.push('reading_prompt');
+  if (normalizedId.includes('prompt')) candidates.push('prompt');
+  if (normalizedId.includes('criteria')) candidates.push('criteria');
+  if (normalizedId.includes('setting')) candidates.push('search_settings');
+  if (normalizedId.includes('family') || normalizedId.includes('structure')) candidates.push('structures', 'structure_code_fields');
+  if (normalizedId.includes('frontier') || normalizedId.includes('method')) candidates.push('frontier_methods');
+  if (normalizedId.includes('limitation')) candidates.push('limitations');
+  if (normalizedId.includes('header')) candidates.push('header');
+  if (normalizedId.includes('explanation')) candidates.push('figure_explanation', 'formula_explanation');
   for (const key of candidates) {
     const block = blockByKey(step, key);
     if (block !== undefined) return block;
   }
   return undefined;
+}
+
+function moduleIndexByKind(
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+  kinds: string[],
+) {
+  return step.modules
+    .filter((item) => kinds.includes(item.kind))
+    .findIndex((item) => item.id === module.id);
 }
 
 function firstBlockWithTable(step: InteractiveRuntimeStepManifest) {
@@ -124,10 +152,17 @@ function getFormulaItems(step: InteractiveRuntimeStepManifest, module: Interacti
   const direct = payload.formula ?? payload.formulas;
   const fallbackBlock = asRecord(blockByKey(step, 'formula_block'));
   const moduleBlock = blockByModuleId(step, module);
+  const keyFormulas = asStringArray(step.contentBlocks.key_formulas);
+  const formulaModuleIndex = moduleIndexByKind(step, module, ['formula-card']);
   const source = direct
     ?? valueAtField(blockFor(step, payload), payload.field ?? 'latex')
     ?? valueAtField(moduleBlock, payload.field ?? 'latex')
     ?? valueAtField(moduleBlock, payload.field ?? 'formulas')
+    ?? (
+      formulaModuleIndex >= 0 && keyFormulas[formulaModuleIndex] !== undefined
+        ? keyFormulas[formulaModuleIndex]
+        : undefined
+    )
     ?? [fallbackBlock.object, fallbackBlock.controller, fallbackBlock.controller_form].filter(Boolean);
   const items = asStringArray(source);
   if (typeof source === 'string') items.push(source);
@@ -166,6 +201,85 @@ function getImageSrc(step: InteractiveRuntimeStepManifest, module: InteractiveRu
   return mediaItems[imageModuleIndex] ?? mediaItems[0] ?? null;
 }
 
+function imageModulePosition(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
+  const modules = step.modules.filter((item) => item.kind === 'image-panel');
+  return {
+    index: modules.findIndex((item) => item.id === module.id),
+    count: modules.length,
+  };
+}
+
+function textFromRecord(value: unknown) {
+  const record = asRecord(value);
+  return [
+    record.caption,
+    record.explanation,
+    record.note,
+    record.conclusion,
+    record.source ? `图源：${record.source}` : undefined,
+  ]
+    .filter((item): item is string => typeof item === 'string' && Boolean(item.trim()));
+}
+
+function imageNotesFromValue(value: unknown, imageIndex: number, imageCount: number): string[] {
+  if (typeof value === 'string' && value.trim()) return [value];
+
+  if (Array.isArray(value)) {
+    const indexed = value[imageIndex];
+    if (value.length === imageCount && indexed !== undefined) {
+      if (typeof indexed === 'string') return indexed.trim() ? [indexed] : [];
+      const indexedRecordItems = listFromRecordItems([indexed]);
+      return indexedRecordItems.length ? indexedRecordItems : textFromRecord(indexed);
+    }
+    if (imageCount === 1) {
+      const arrayItems = asStringArray(value).filter(Boolean);
+      if (arrayItems.length) return arrayItems;
+      return listFromRecordItems(value);
+    }
+  }
+
+  return textFromRecord(value);
+}
+
+function imageNotes(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
+  const { index, count } = imageModulePosition(step, module);
+  const imageIndex = Math.max(0, index);
+  const notes: string[] = [];
+  const payloadNotes = imageNotesFromValue(
+    module.payload.caption ?? module.payload.explanation ?? module.payload.note,
+    imageIndex,
+    count,
+  );
+  notes.push(...payloadNotes);
+
+  const block = blockFor(step, module.payload) ?? blockByModuleId(step, module);
+  notes.push(...imageNotesFromValue(block, imageIndex, count));
+
+  const media = step.contentBlocks.media;
+  if (Array.isArray(media)) {
+    notes.push(...imageNotesFromValue(media[imageIndex], imageIndex, count));
+  } else {
+    notes.push(...textFromRecord(media));
+  }
+
+  for (const key of [
+    'figure_explanations',
+    'figure_explanation',
+    'figure_reading',
+    'figure_requirements',
+    'parameter_explanation',
+    'formula_explanation',
+  ]) {
+    notes.push(...imageNotesFromValue(step.contentBlocks[key], imageIndex, count));
+  }
+
+  const uniqueNotes: string[] = [];
+  for (const note of notes) {
+    if (note && !uniqueNotes.includes(note)) uniqueNotes.push(note);
+  }
+  return uniqueNotes;
+}
+
 function tableFor(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest): NativeTableData | null {
   const payloadTable = tableFromBlock(module.payload);
   if (payloadTable) return payloadTable;
@@ -192,7 +306,8 @@ function revealItems(step: InteractiveRuntimeStepManifest, module: InteractiveRu
 
 function summaryContent(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
   const payload = module.payload;
-  const block = asRecord(blockFor(step, payload) ?? blockByModuleId(step, module));
+  const rawBlock = blockFor(step, payload) ?? blockByModuleId(step, module);
+  const block = asRecord(rawBlock);
   const field = typeof payload.field === 'string' ? payload.field : 'text';
   const bulletsKey = typeof payload.bullets_key === 'string'
     ? payload.bullets_key
@@ -201,13 +316,21 @@ function summaryContent(step: InteractiveRuntimeStepManifest, module: Interactiv
       : 'bullets';
   const text = typeof payload.text === 'string'
     ? payload.text
+    : typeof rawBlock === 'string'
+      ? rawBlock
     : typeof block[field] === 'string'
       ? String(block[field])
       : typeof block.text === 'string'
         ? block.text
         : undefined;
+  const rawArrayItems = asStringArray(rawBlock);
+  const recordItems = listFromRecordItems(rawBlock);
   const bullets = asStringArray(payload.bullets).length
     ? asStringArray(payload.bullets)
+    : rawArrayItems.length
+      ? rawArrayItems
+    : recordItems.length
+      ? recordItems
     : asStringArray(
       block[bulletsKey]
         ?? block.bullets
@@ -227,17 +350,6 @@ function listFromRecordItems(value: unknown) {
       const note = typeof record.note === 'string' ? record.note : '';
       const body = typeof record.body === 'string' ? record.body : '';
       return [title, note || body].filter(Boolean).join('：');
-    })
-    .filter(Boolean);
-}
-
-function questionItemsFromBlock(block: unknown) {
-  const record = asRecord(block);
-  const questions = Array.isArray(record.questions) ? record.questions : [];
-  return questions
-    .map((item) => {
-      const question = asRecord(item);
-      return typeof question.prompt === 'string' ? question.prompt : '';
     })
     .filter(Boolean);
 }
@@ -264,6 +376,7 @@ function listFromKnownBlocks(step: InteractiveRuntimeStepManifest, keys: string[
 }
 
 function FormulaCard({ title, formulas }: { title: string; formulas: string[] }) {
+  if (!formulas.length) return null;
   return (
     <div className="premium-lesson-panel">
       <div className="premium-lesson-kicker">{title}</div>
@@ -277,6 +390,7 @@ function FormulaCard({ title, formulas }: { title: string; formulas: string[] })
 }
 
 function SummaryCard({ title, text, bullets }: { title: string; text?: string; bullets?: string[] }) {
+  if (!text && !bullets?.length) return null;
   return (
     <div className="premium-lesson-panel">
       <div className="premium-lesson-kicker">{title}</div>
@@ -368,38 +482,6 @@ function ProblemStatement({ title, block }: { title: string; block: ContentRecor
   );
 }
 
-function ActivityAnchor({
-  title,
-  cards,
-}: {
-  title: string;
-  cards: InteractiveRuntimeStepManifest['interactionSpec']['activityCards'];
-}) {
-  if (!cards?.length) return null;
-  return (
-    <div className="premium-lesson-panel">
-      <div className="premium-lesson-kicker">{title}</div>
-      <div className="mt-3 space-y-3">
-        {cards.map((card, index) => (
-          <div key={card.id} className="premium-lesson-surface-elevated rounded-2xl px-4 py-3">
-            <div className="text-sm font-semibold">{card.title?.trim() || `作答 ${index + 1}`}</div>
-            <p className="premium-lesson-muted mt-1 text-sm leading-7">{renderInlineContent(card.prompt)}</p>
-            {card.options.length ? (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {card.options.map((option) => (
-                  <span key={option.value} className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600">
-                    {option.label}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function NativeTable({ title, columns, rows }: { title: string; columns: string[]; rows: TableCell[][] }) {
   return (
     <div className="premium-lesson-panel overflow-hidden">
@@ -430,13 +512,20 @@ function NativeTable({ title, columns, rows }: { title: string; columns: string[
   );
 }
 
-function ImagePanel({ title, src }: { title: string; src: string }) {
+function ImagePanel({ title, src, notes }: { title: string; src: string; notes: string[] }) {
   return (
     <div className="premium-lesson-panel">
       <div className="premium-lesson-kicker">{title}</div>
       <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <Image src={src} alt={title} width={1600} height={960} className="h-auto w-full" />
       </div>
+      {notes.length ? (
+        <ul className="premium-lesson-muted mt-3 space-y-2 text-sm leading-7">
+          {notes.map((note) => (
+            <li key={note} className="ml-5 list-disc">{renderInlineContent(note)}</li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }
@@ -550,7 +639,7 @@ export function createManifestContentModuleRegistry(extra: {
     'image-panel': ({ step, module }) => {
       const src = getImageSrc(step, module);
       if (!src) return null;
-      return <ImagePanel title={titleFromModule(module)} src={src} />;
+      return <ImagePanel title={titleFromModule(module)} src={src} notes={imageNotes(step, module)} />;
     },
     'native-figure': ({ step, module }) => {
       const block = asRecord(blockFor(step, module.payload) ?? blockByModuleId(step, module));
@@ -583,27 +672,10 @@ export function createManifestContentModuleRegistry(extra: {
       const items = listFromKnownBlocks(step, ['post_quiz_items']);
       return <CardGrid title={titleFromModule(module)} items={items} columns="grid-cols-1" />;
     },
-    'quiz-group': ({ step, module }) => {
-      const items = questionItemsFromBlock(blockFor(step, module.payload) ?? blockByModuleId(step, module) ?? step.contentBlocks.post_quiz);
-      return <CardGrid title={titleFromModule(module)} items={items} columns="grid-cols-1" />;
-    },
-    'quiz-card': ({ step, module }) => {
-      const items = questionItemsFromBlock(blockFor(step, module.payload) ?? blockByModuleId(step, module) ?? step.contentBlocks.post_quiz);
-      return <CardGrid title={titleFromModule(module)} items={items} columns="grid-cols-1" />;
-    },
     'route-card': ({ step, module }) => {
       const text = stringFromKnownBlocks(step, ['next_route']);
       return text ? <SummaryCard title={titleFromModule(module)} text={text} /> : null;
     },
-    'activity-card': ({ step }) => (
-      <ActivityAnchor title="本页作答" cards={step.interactionSpec.activityCards} />
-    ),
-    'activity-card-set': ({ step }) => (
-      <ActivityAnchor title="本页作答" cards={step.interactionSpec.activityCards} />
-    ),
-    'single-choice-card': ({ step }) => (
-      <ActivityAnchor title="本页选择" cards={step.interactionSpec.activityCards} />
-    ),
     'step-reveal': ({ step, module, extra: renderExtra }) => {
       const items = revealItems(step, module);
       if (!items.length) return null;

@@ -127,6 +127,103 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('缺少模块 renderer');
   });
 
+  it('keeps activity runtime modules out of the static content layout even when a content registry contains a matching renderer', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-activity': {
+          title: '作答模块分层测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'summary-a',
+              title: '静态总结',
+              region: 'main',
+              kind: 'summary-card',
+              must_be_visible: true,
+              payload: { text: '正文只保留静态内容。' },
+            },
+            {
+              id: 'activity-a',
+              title: '作答卡',
+              region: 'main',
+              kind: 'activity-card',
+              must_be_visible: true,
+              payload: {},
+            },
+          ],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'activity_card_set',
+            activity_cards: [
+              {
+                id: 'activity-a',
+                prompt: '这个题面只能出现在活动作答区。',
+                response_kind: 'fill_text',
+                submit_scope: 'per_card',
+                layout_span: 'full',
+              },
+            ],
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: {
+          'summary-card': ({ module }) => createElement('div', null, module.payload.text),
+          'activity-card': () => createElement('div', null, '本页作答', '这个题面只能出现在活动作答区。'),
+        },
+        extra: undefined,
+      }),
+    );
+
+    expect(html).toContain('正文只保留静态内容。');
+    expect(html).not.toContain('本页作答');
+    expect(html).not.toContain('这个题面只能出现在活动作答区。');
+    expect(html).not.toContain('data-manifest-render-error');
+  });
+
+  it('maps 4-7 step-01 manifest content without title-only shells or duplicate activity prompts', async () => {
+    const runtime = await loadLessonRuntimeEntry('4-7');
+    const manifest = runtime.interactiveManifest!;
+    const step = manifest.steps.find((item) => item.id === 'step-01');
+    expect(step).toBeDefined();
+    const formulaModules = step!.modules.filter((module) => module.kind === 'formula-card');
+    const formulaAt = (moduleId: string) => {
+      const index = formulaModules.findIndex((module) => module.id === moduleId);
+      const formulas = step!.contentBlocks.key_formulas;
+      return Array.isArray(formulas) ? String(formulas[index] ?? '') : '';
+    };
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest,
+        step: step!,
+        moduleRegistry: {
+          'native-table': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.route_task_table)),
+          'formula-card': ({ module }) => createElement('div', null, module.id, formulaAt(module.id)),
+          'summary-card': ({ step: currentStep }) => createElement('div', null, String(currentStep.contentBlocks.conclusion ?? '')),
+          'image-panel': ({ step: currentStep }) => createElement('div', null, JSON.stringify(currentStep.contentBlocks.media), String(currentStep.contentBlocks.figure_explanation ?? '')),
+        },
+        extra: undefined,
+      }),
+    );
+
+    expect(html).not.toContain('data-manifest-render-error');
+    expect(html).toContain('15.0');
+    expect(html).toContain('29.2');
+    expect(html).toContain('结构图把舵令');
+    expect(html).not.toContain('本页作答');
+    expect(html).not.toContain('为什么方波航向图必须同时显示给定航向和实际航向？');
+    expect(html).not.toContain('扰动为什么要放在舵机之后、船体之前');
+  });
+
   it('keeps multiple modules in the same manifest region in module order', async () => {
     const runtime = await loadLessonRuntimeEntry('4-6');
     const step = runtime.interactiveManifest?.steps[0];
@@ -322,7 +419,7 @@ describe('interactive runtime manifest', () => {
     expect(source).not.toContain('SINGLE_CHOICE_OPTIONS');
   });
 
-  it('covers reusable 4-3 static, path, and activity-anchor module kinds in the shared content registry', async () => {
+  it('covers reusable 4-3 static and path module kinds while leaving activity kinds to the activity registry', async () => {
     const runtime = await loadLessonRuntimeEntry('4-3');
     const moduleKinds = new Set(runtime.interactiveManifest!.steps.flatMap((step) => step.modules.map((module) => module.kind)));
     const sharedKinds = [
@@ -336,12 +433,13 @@ describe('interactive runtime manifest', () => {
       'title-card',
       'quiz-stack',
       'route-card',
-      'activity-card',
-      'activity-card-set',
-      'single-choice-card',
     ];
+    const activityModuleKinds = ['activity-card', 'activity-card-set', 'single-choice-card'];
 
     for (const kind of sharedKinds) {
+      expect(moduleKinds.has(kind), kind).toBe(true);
+    }
+    for (const kind of activityModuleKinds) {
       expect(moduleKinds.has(kind), kind).toBe(true);
     }
 
@@ -352,6 +450,9 @@ describe('interactive runtime manifest', () => {
 
     for (const kind of sharedKinds) {
       expect(source, kind).toContain(`'${kind}':`);
+    }
+    for (const kind of activityModuleKinds) {
+      expect(source, kind).not.toContain(`'${kind}':`);
     }
     expect(source).not.toContain('unit-4-3');
   });
@@ -369,18 +470,18 @@ describe('interactive runtime manifest', () => {
       'native-figure',
       'native-table',
       'problem-statement',
-      'quiz-group',
-      'single-choice-card',
       'stage-map',
       'stat-panel',
       'step-reveal',
       'summary-card',
-      'activity-card',
-      'activity-card-set',
     ];
+    const activityModuleKinds = ['quiz-group', 'single-choice-card', 'activity-card', 'activity-card-set'];
 
     expect(runtime.lesson.interactive_manifest_path).toBe('/course-runtime/lessons/4-4/interactive-manifest.json');
     for (const kind of sharedKinds) {
+      expect(moduleKinds.has(kind), kind).toBe(true);
+    }
+    for (const kind of activityModuleKinds) {
       expect(moduleKinds.has(kind), kind).toBe(true);
     }
 
@@ -412,6 +513,9 @@ describe('interactive runtime manifest', () => {
     for (const kind of sharedKinds) {
       expect(source, kind).toContain(`'${kind}':`);
     }
+    for (const kind of activityModuleKinds) {
+      expect(source, kind).not.toContain(`'${kind}':`);
+    }
     expect(html).not.toContain('data-manifest-render-error');
     expect(html).toContain('当前已经同时出现的四类愿望');
     expect(html).toContain('主案例的 Pareto front');
@@ -422,15 +526,14 @@ describe('interactive runtime manifest', () => {
     const manifest = runtime.interactiveManifest!;
     const requiredSteps = ['step-04', 'step-05', 'step-06', 'step-07', 'step-11', 'step-12'];
     const sharedKinds = [
-      'activity-card',
       'formula-card',
       'formula-card-row',
       'image-panel',
       'native-table',
-      'quiz-card',
       'step-reveal',
       'summary-card',
     ];
+    const activityModuleKinds = ['activity-card', 'quiz-card'];
 
     expect(runtime.lesson.interactive_manifest_path).toBe('/course-runtime/lessons/4-5/interactive-manifest.json');
 
@@ -446,6 +549,9 @@ describe('interactive runtime manifest', () => {
     );
     for (const kind of sharedKinds) {
       expect(source, kind).toContain(`'${kind}':`);
+    }
+    for (const kind of activityModuleKinds) {
+      expect(source, kind).not.toContain(`'${kind}':`);
     }
 
     expect(manifest.steps.find((step) => step.id === 'step-04')?.contentBlocks.constraint_formula).toBeDefined();

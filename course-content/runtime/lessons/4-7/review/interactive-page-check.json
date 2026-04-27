@@ -49,6 +49,767 @@
     "互动实现接受文件已通过校验。"
   ],
   "implementation_acceptance_issues": [],
+  "manifest_audit_summary": [
+    "manifest audit pass: 12 steps, 67 modules, 0 issues"
+  ],
+  "manifest_audit_issues": [],
+  "manifest_audit": {
+    "status": "pass",
+    "summary": {
+      "steps": 12,
+      "modules": 67,
+      "issues": 0
+    },
+    "implementation_sources": {
+      "content_renderer": "src/features/interactive/shared/manifest-runtime/content-renderers.tsx",
+      "layout_renderer": "src/features/interactive/shared/manifest-runtime/layout-renderer.tsx",
+      "content_renderer_kinds": [
+        "bullet-list-card",
+        "equation-card-row",
+        "formula-card",
+        "formula-card-row",
+        "goal-card-row",
+        "goal-card-set",
+        "image-panel",
+        "native-figure",
+        "native-formula-table",
+        "native-table",
+        "problem-statement",
+        "question-card-set",
+        "quiz-stack",
+        "route-card",
+        "stage-map",
+        "stat-panel",
+        "step-reveal",
+        "step-reveal-chain",
+        "summary-card",
+        "table-card",
+        "title-card"
+      ],
+      "activity_module_kinds": [
+        "activity-card",
+        "activity-card-set",
+        "quiz-card",
+        "quiz-group",
+        "single-choice-card"
+      ]
+    },
+    "entries": [
+      {
+        "step_id": "step-01",
+        "module_id": "route-task-table",
+        "kind": "native-table",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.route_task_table",
+        "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-01",
+        "module_id": "speed-condition",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-01",
+        "module_id": "nominal-chain",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-01",
+        "module_id": "disturbance-entry",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-01",
+        "module_id": "task-conclusion",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.conclusion",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-01",
+        "module_id": "segmented-block",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "figure_explanation"
+        ]
+      },
+      {
+        "step_id": "step-01",
+        "module_id": "setpoint-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-01",
+        "module_id": "disturbance-position-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "rudder-model",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "rudder-step-prompt",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.prompt",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "rudder-reading-prompt",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.reading_prompt",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "rudder-identification-figure",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "parameter_explanation"
+        ]
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "time-constant-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-02",
+        "module_id": "inertia-risk-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-03",
+        "module_id": "hull-model",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-03",
+        "module_id": "disturbance-model",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-03",
+        "module_id": "hull-figure",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-03",
+        "module_id": "disturbance-figure",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-03",
+        "module_id": "model-boundary-reveal",
+        "kind": "step-reveal",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.reveal_layers",
+        "resolved_content_type": "reveal",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-03",
+        "module_id": "final-model",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-04",
+        "module_id": "metric-table",
+        "kind": "native-table",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.metric_table",
+        "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-04",
+        "module_id": "objective-formula",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-04",
+        "module_id": "penalty-formula",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-04",
+        "module_id": "trajectory-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-04",
+        "module_id": "rudder-limit-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-05",
+        "module_id": "plant-model",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-05",
+        "module_id": "diagnosis-figure",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-05",
+        "module_id": "structure-choice-reveal",
+        "kind": "step-reveal",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.reveal_layers",
+        "resolved_content_type": "reveal",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-06",
+        "module_id": "parameter-chain",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-06",
+        "module_id": "controller-formula",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-06",
+        "module_id": "corrected-four-panel",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "figure_requirements"
+        ]
+      },
+      {
+        "step_id": "step-06",
+        "module_id": "traditional-zigzag",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "figure_requirements"
+        ]
+      },
+      {
+        "step_id": "step-06",
+        "module_id": "traditional-turning",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "figure_requirements"
+        ]
+      },
+      {
+        "step_id": "step-06",
+        "module_id": "parameter-reveal",
+        "kind": "step-reveal",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.reveal_layers",
+        "resolved_content_type": "reveal",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "structure-family",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.structures",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "search-settings",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.search_settings",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "identified-convergence",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "hifi-convergence",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "discrete-law",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "controller-table",
+        "kind": "native-table",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.controller_table",
+        "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "c3-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-07",
+        "module_id": "c4-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-08",
+        "module_id": "comparison-criteria",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.criteria",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-08",
+        "module_id": "optimized-zigzag",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "figure_reading"
+        ]
+      },
+      {
+        "step_id": "step-08",
+        "module_id": "optimized-turning",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "figure_reading"
+        ]
+      },
+      {
+        "step_id": "step-08",
+        "module_id": "cross-model-reveal",
+        "kind": "step-reveal",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.reveal_layers",
+        "resolved_content_type": "reveal",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-09",
+        "module_id": "disturbance-level-table",
+        "kind": "native-table",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.level_table",
+        "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-09",
+        "module_id": "disturbance-controller-table",
+        "kind": "native-table",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.controller_table",
+        "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-09",
+        "module_id": "disturbed-zigzag",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "figure_reading"
+        ]
+      },
+      {
+        "step_id": "step-09",
+        "module_id": "disturbed-turning",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "figure_reading"
+        ]
+      },
+      {
+        "step_id": "step-09",
+        "module_id": "disturbance-failure-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-09",
+        "module_id": "cd-target-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-10",
+        "module_id": "noise-equation",
+        "kind": "formula-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:key_formulas_by_formula_card_order",
+        "resolved_content_type": "formula",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-10",
+        "module_id": "noise-controller-table",
+        "kind": "native-table",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.controller_table",
+        "resolved_content_type": "table",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-10",
+        "module_id": "noise-zigzag",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "formula_explanation",
+          "figure_reading"
+        ]
+      },
+      {
+        "step_id": "step-10",
+        "module_id": "noise-turning",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "formula_explanation",
+          "figure_reading"
+        ]
+      },
+      {
+        "step_id": "step-10",
+        "module_id": "bias-random-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-10",
+        "module_id": "filter-need-card",
+        "kind": "activity-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-11",
+        "module_id": "posttest-header",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.header",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-11",
+        "module_id": "rudder-question",
+        "kind": "quiz-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-11",
+        "module_id": "hull-question",
+        "kind": "quiz-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-11",
+        "module_id": "cross-model-question",
+        "kind": "quiz-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-11",
+        "module_id": "disturbance-question",
+        "kind": "quiz-card",
+        "renderer_owner": "activity",
+        "resolved_content_source": "interaction_spec.activity_cards",
+        "resolved_content_type": "activity",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-12",
+        "module_id": "limitation-cards",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.limitations",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      },
+      {
+        "step_id": "step-12",
+        "module_id": "real-scenario-figure",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "figure_explanations"
+        ]
+      },
+      {
+        "step_id": "step-12",
+        "module_id": "info-figure",
+        "kind": "image-panel",
+        "renderer_owner": "content",
+        "resolved_content_source": "implicit:media_by_image_panel_order",
+        "resolved_content_type": "image",
+        "is_empty": false,
+        "diagnostic": null,
+        "consumed_note_sources": [
+          "figure_explanations"
+        ]
+      },
+      {
+        "step_id": "step-12",
+        "module_id": "frontier-methods",
+        "kind": "summary-card",
+        "renderer_owner": "content",
+        "resolved_content_source": "content_blocks.frontier_methods",
+        "resolved_content_type": "summary",
+        "is_empty": false,
+        "diagnostic": null
+      }
+    ],
+    "issues": [],
+    "manifest_path": "course-content/runtime/lessons/4-7/interactive-manifest.json"
+  },
   "reviewed_runtime_artifacts": [
     "course-content/runtime/lessons/4-7/interactive-manifest.json",
     "course-content/runtime/lessons/4-7/review/review-report.md",
@@ -67,6 +828,7 @@
     "已覆盖讲义中的核心公式与静态承载内容。",
     "已检测到 `4-7` 的 V2 互动契约，步骤字段完整。",
     "已检测到 `4-7` 的本地实现契约与作者态互动契约一致。",
+    "manifest audit pass: 12 steps, 67 modules, 0 issues",
     "互动设计接受文件已通过校验。",
     "互动实现接受文件已通过校验。"
   ],

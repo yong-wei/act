@@ -30,6 +30,8 @@
 
 共享 renderer 中禁止写课程 id、step id 或 module id 特判。标题、选项、参考答案、图片路径、表格行列、显影文本、路径项等必须来自 manifest payload；缺字段时应显示可诊断问题或回退作者态补 payload，不能在共享层写 `4-6`、`4-3` 映射。
 
+活动模块归属 activity runtime，不归 content runtime。`activity-card`、`activity-card-set`、`single-choice-card`、`quiz-card`、`quiz-group` 等模块不得在 `content-renderers.tsx` 中渲染题面列表；它们只作为 layout 中的活动锚点和 `interaction_spec` 的结构提示，由 `activity-renderers.tsx` 渲染学生作答、教师控制与结果汇总。
+
 ## 二、必显模块规则
 
 - 只要模块标记为 `must_be_visible: true`，它就必须真实落页。
@@ -65,11 +67,14 @@
   - `title-card`
   - `quiz-stack`
   - `route-card`
+  - `step-reveal`
+  - `step-reveal-chain`
+- 下列模块属于活动锚点 / 活动运行时模块，不属于静态内容模块：
   - `activity-card`
   - `activity-card-set`
   - `single-choice-card`
-  - `step-reveal`
-  - `step-reveal-chain`
+  - `quiz-card`
+  - `quiz-group`
 - 当前通用活动类型至少包括：
   - `single_choice`
   - `binary_choice`
@@ -97,6 +102,29 @@
 - 把选择题、题组、路径图、表格、显影链的关键内容放在 JSX 常量里，而不是 manifest payload 里。
 - 为了复用旧课常量，把 manifest-first 课程重新接回本地平行页面契约。
 
+## 五点五、Manifest audit 规则
+
+manifest-first 课程必须让脚本可明确审计，而不是只靠人工浏览器检查。推荐生成或等价计算以下字段：
+
+- `step_id`
+- `module_id`
+- `kind`
+- `renderer_owner`: `content` / `activity`
+- `resolved_content_source`: `module.payload` / `content_blocks.<key>` / `implicit:<resolver>`
+- `resolved_content_type`: `formula` / `table` / `image` / `summary` / `reveal` / `activity`
+- `is_empty`
+- `diagnostic`
+
+最低审计规则：
+
+- `must_be_visible: true` 的 content 模块必须有 renderer，且 renderer 的输入内容非空。
+- `must_be_visible: true` 的 activity 模块不得因为 content registry 缺 renderer 而报错，也不得进入正文 layout。
+- `activity_cards[].prompt` 默认在最终页面只出现一次；重复出现通常说明 content/activity 双重消费。
+- `formula-card` 使用 `content_blocks.key_formulas` 隐式消费时，公式数应与同页公式模块数匹配，或由 payload 指定索引。
+- `image-panel` 使用 `content_blocks.media` 隐式消费时，媒体数应与同页图片模块数匹配，或由 payload 指定索引。
+- `figure_explanation`、`figure_reading`、`figure_explanations`、`parameter_explanation` 等图后说明不得留在 `content_blocks` 中未消费；若确实不展示，契约必须显式标记允许未消费。
+- 不允许只渲染模块标题而无正文、公式、表格、图片、图后说明或显影文本的壳层通过审计。
+
 ## 六、验证要求
 
 - 渲染层检查不能只看“页面能显示”。
@@ -105,6 +133,9 @@
   - 模板区域顺序与 manifest 一致
   - 同区域多模块的顺序与独立节点仍然保留
   - 标题、选项、参考答案、表格内容、图片路径、显影文本来自 manifest payload
+  - 图后说明来自 manifest payload 或 `content_blocks` 并已显示
+  - activity 模块只由 activity registry 消费，正文区没有额外“本页作答”题面列表
+  - 每个 `activity_cards[].prompt` 默认只出现一次
   - `?step=` 预览与正式课堂页都不丢模块
   - 教师控制、逐步显影、答案揭示仍绑定到 manifest 对应步骤
   - 页面不存在 `data-manifest-render-error` 或“互动页模块渲染缺失”
@@ -114,7 +145,8 @@
 - `src/features/interactive/__tests__/interactive-manifest-runtime.test.tsx`
 - 对应课程测试，例如 `src/features/interactive/__tests__/unit-4-6-course.test.ts`、`src/features/interactive/__tests__/unit-4-3-course.test.ts`
 - `python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --skip-export --strict-implementation-contract`
-- 浏览器至少验证 4-6 回归与被迁移课程关键页面，确认无 `data-manifest-render-error`、无“互动页模块渲染缺失”，教师控制和学生提交仍可用。
+- manifest-first 模块消费审计运行 `python3 .codex/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson <lesson>`；该脚本归属 `interactive-design` 技能目录，不能迁入全局 `scripts/tests/` 作为技能私有规则的存放点。
+- 浏览器至少验证 4-6 回归与被迁移课程关键页面，确认无 `data-manifest-render-error`、无 `data-manifest-missing-field`、无重复题面，教师控制和学生提交仍可用。
 
 ## 七、正反例
 

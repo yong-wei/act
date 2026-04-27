@@ -47,6 +47,12 @@ assert.equal(
 );
 
 assert.equal(
+  INTERACTIVE_COURSE_MODULES[2]?.lessons.some((lesson) => lesson.id === 'unit-4-7-destroyer-hifi-design-closure'),
+  true,
+  '模块4分组应展示 4-7 入口',
+);
+
+assert.equal(
   INTERACTIVE_COURSE_MODULES.some((module) =>
     module.lessons.some((lesson) => lesson.id === 'unit-1-3-time-domain-response')
   ),

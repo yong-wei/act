@@ -71,6 +71,9 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
    - `interactive-contract.yaml` 必须能被 review/export 转成 shared manifest runtime 可消费的 `interactive-manifest.json`，不能只写给人工阅读。
    - `modules[].kind` 优先选用共享 registry 已覆盖的 kind；确有缺口时，契约要写清新 kind 的输入 payload，而不是让实现层按课程编号猜。
    - `modules[].payload` 必须承载模块标题、内容键、公式键、图片键、表格列行、路径项、显影项等最小渲染数据；不得依赖实现层写 `4-6`、`4-3` 或具体 module id 的映射表。
+   - 静态内容模块不得无说明地写 `payload: {}`。若确需使用 `content_blocks` 的通用隐式规则，必须在契约中显式写出 `payload.resolver` 或等价说明，例如 `implicit:key_formulas_by_formula_card_order`、`implicit:media_by_image_panel_order`、`implicit:summary_by_module_key`；否则审查脚本应判定为不可审计。
+   - 每个静态内容模块在导出后必须能记录到明确的 `resolved_content_source`：来自 `module.payload`、`content_blocks.<key>`，或已命名的隐式 resolver。无法追踪来源的模块，即使页面人工可读，也视为设计契约不足。
+   - 活动类模块只声明作答/选择/题组活动的布局锚点与 `interaction_spec` 关系，不得同时承担正文内容承载；正文区不得再重复列出与 `activity_cards[].prompt` 完全相同的题面。
    - `interaction_spec.activity_cards[]` 必须写入题面、选项、提交粒度、参考答案或揭示规则；选择题、题组和二元判断不得依赖课程私有 `QUIZ_OPTIONS`、`SINGLE_CHOICE_OPTIONS` 等常量。
    - 路径图、目标卡、问题卡、公式卡、图片面板、原生表格、显影链、作答锚点、选择题组等，都要在 contract 中给出可渲染 payload；不要只写“这里使用组件”。
 
@@ -243,6 +246,10 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 每一步都已写出可直接呈现给学生的正文内容、题面、表格内容、图后解释或显影文本，而不是只留下摘要级标签
 - `interactive-contract.yaml` 的 `content_blocks` 不是标题索引或占位提示，而是最小可实现内容真源
 - `interactive-contract.yaml` 的 `modules[].payload`、`content_blocks` 与 `interaction_spec.activity_cards[]` 足以驱动共享 renderer；实现侧不需要按课程 id 或 module id 另写标题、选项、参考答案和表格行列
+- `interactive-contract.yaml` 中每个静态模块都能被脚本判断 `renderer_owner: content`、`resolved_content_source`、`resolved_content_type` 与 `is_empty: false`；每个活动模块都能被脚本判断 `renderer_owner: activity`
+- 若静态模块使用 `payload: {}`，契约中已写出可审计 resolver；否则必须补 `block_key`、`formula_key`、`image_key`、`field`、`rows`、`items` 或等价 payload
+- `activity_cards[].prompt` 不会在正文内容模块中重复出现；若正文需要引入同一判断点，应改写为背景说明或阅读提示，而不是复制题面
+- 对 manifest-first 课程，导出 runtime 后必须能运行独立审计脚本：`python3 .codex/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson <lesson>`；脚本应留在本技能目录下，不能放到全局 `scripts/tests/` 里作为技能规则的隐式副本
 - 实现者不需要靠 handout 或个人理解二次撰写大段课程正文，才能把当前步骤做成可读页面
 - `sequence.json` 若存在，必须与最终步骤数和卡片归属一致；若它来自 lesson 阶段草案，必须在本阶段修订后再进入接受记录
 

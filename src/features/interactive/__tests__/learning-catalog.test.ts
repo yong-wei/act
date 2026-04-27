@@ -121,7 +121,7 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
     expect(INTERACTIVE_COURSE_MODULES[0]?.lessons.every((lesson) => lesson.legacySourceLabel == null)).toBe(true);
   });
 
-  it('exposes unit 4-1 through unit 4-6 in module 4', () => {
+  it('exposes unit 4-1 through unit 4-7 in module 4', () => {
     expect(INTERACTIVE_COURSE_MODULES[2]?.lessons.map((lesson) => ({
       id: lesson.id,
       unitLabel: lesson.unitLabel,
@@ -155,6 +155,11 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
       {
         id: 'unit-4-6-fixed-structure-boundary-structural-encoding',
         unitLabel: '4-6',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-4-7-destroyer-hifi-design-closure',
+        unitLabel: '4-7',
         legacySourceLabel: null,
       },
     ]);
