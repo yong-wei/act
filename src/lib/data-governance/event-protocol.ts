@@ -93,9 +93,20 @@ export function toLearningEvent(
   }
 ): LearningEvent {
   const now = new Date().toISOString();
+  const clientEventId =
+    typeof clientEvent.eventId === 'string' && clientEvent.eventId.trim().length > 0
+      ? clientEvent.eventId
+      : typeof clientEvent.id === 'string' && clientEvent.id.trim().length > 0
+        ? clientEvent.id
+        : undefined;
+  const rawPayload = clientEvent.payload ?? clientEvent.data;
+  const payload =
+    rawPayload && typeof rawPayload === 'object' && !Array.isArray(rawPayload)
+      ? rawPayload as Record<string, unknown>
+      : {};
 
   return {
-    eventId: generateEventId(),
+    eventId: clientEventId ?? generateEventId(),
     occurredAt: now,
     userId: context.userId,
     role: context.role,
@@ -109,9 +120,9 @@ export function toLearningEvent(
     actionType: (clientEvent.actionType as string) || (clientEvent.type as string) || 'unknown',
     targetType: clientEvent.targetType as string | undefined,
     targetId: clientEvent.targetId as string | undefined,
-    payload: (clientEvent.payload as Record<string, unknown>) ||
-             (clientEvent.data as Record<string, unknown>) ||
-             {},
+    payload: clientEventId && typeof payload.clientEventId !== 'string'
+      ? { ...payload, clientEventId }
+      : payload,
     source: (clientEvent.source as EventSource) || 'web',
     priority: (clientEvent.priority as EventPriority) || 'secondary',
     clientTimestamp: clientEvent.timestamp as number | undefined,

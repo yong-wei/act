@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { resolveClassAttribution } from '@/lib/data-governance/class-attribution';
 import { Prisma, SessionStatus } from '@prisma/client';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
@@ -51,7 +52,22 @@ export async function GET(
     const search = searchParams.get('search');
 
     // 构建查询条件
-    const where: Prisma.ClassSessionWhereInput = { classId };
+    const where: Prisma.ClassSessionWhereInput = {
+      teacherId: classData.teacherId,
+      OR: [
+        { classId },
+        {
+          classId: null,
+          studentStates: {
+            some: {
+              user: {
+                profile: { classId },
+              },
+            },
+          },
+        },
+      ],
+    };
 
     if (status && Object.values(SessionStatus).includes(status as SessionStatus)) {
       where.status = status as SessionStatus;
@@ -92,6 +108,19 @@ export async function GET(
           select: {
             studentStates: true
           }
+        },
+        studentStates: {
+          select: {
+            user: {
+              select: {
+                profile: {
+                  select: {
+                    classId: true,
+                  },
+                },
+              },
+            },
+          },
         }
       },
       orderBy: {
@@ -100,20 +129,30 @@ export async function GET(
     });
 
     // 格式化返回数据
-    const formattedSessions = sessions.map(s => ({
-      id: s.id,
-      joinCode: s.joinCode,
-      status: s.status,
-      startTime: s.startTime,
-      endTime: s.endTime,
-      currentStage: s.currentStage,
-      plan: s.plan,
-      studentCount: s._count.studentStates,
-      // 计算时长（分钟）
-      durationMinutes: s.endTime
-        ? Math.round((s.endTime.getTime() - s.startTime.getTime()) / 60000)
-        : null
-    }));
+    const formattedSessions = sessions
+      .map((s) => {
+        const classAttribution = resolveClassAttribution({
+          sessionClassId: s.classId,
+          participantClassIds: s.studentStates.map((state) => state.user.profile?.classId),
+        });
+
+        return {
+          id: s.id,
+          joinCode: s.joinCode,
+          status: s.status,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          currentStage: s.currentStage,
+          plan: s.plan,
+          studentCount: s._count.studentStates,
+          classAttribution,
+          // 计算时长（分钟）
+          durationMinutes: s.endTime
+            ? Math.round((s.endTime.getTime() - s.startTime.getTime()) / 60000)
+            : null
+        };
+      })
+      .filter((s) => s.classAttribution.classId === classId);
 
     return NextResponse.json(formattedSessions);
   } catch (error) {

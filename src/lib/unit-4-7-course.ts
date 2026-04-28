@@ -1,4 +1,5 @@
 import type { BopppsStage } from '@prisma/client';
+import { buildSessionFinalizeTelemetry } from '@/lib/data-governance/session-finalize-telemetry';
 
 import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
 import {
@@ -345,5 +346,8 @@ export async function finalizeUNIT_4_7TeacherSession(input: {
   currentStepId: string;
 }) {
   await input.finishSession();
-  input.trackSessionFinalize({ currentStepId: input.currentStepId });
+  input.trackSessionFinalize(buildSessionFinalizeTelemetry({
+    currentStepId: input.currentStepId,
+    steps: UNIT_4_7_LESSON_STEPS,
+  }));
 }

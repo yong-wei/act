@@ -11,6 +11,7 @@ import { routeEvent } from '@/lib/data-governance/event-buffer';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
 import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
+import { attachAfterSessionEndFlags } from '@/lib/data-governance/interactive-event-ingestion';
 import type { PageType } from '@/lib/data-governance/event-protocol';
 
 export const dynamic = 'force-dynamic';
@@ -91,6 +92,41 @@ function resolvePageType(payload: Record<string, unknown>): PageType {
   return 'dashboard';
 }
 
+async function loadSessionEndMetadata(
+  events: Array<{ event: ClassroomInteractionEventInput; resourceId: string | null }>,
+) {
+  const sessionIds = Array.from(
+    new Set(
+      events
+        .map(({ event }) => event.sessionId)
+        .filter((value): value is string => typeof value === 'string' && value.trim().length > 0),
+    ),
+  );
+
+  if (sessionIds.length === 0) {
+    return new Map();
+  }
+
+  const sessions = await prisma.classSession.findMany({
+    where: { id: { in: sessionIds } },
+    select: {
+      id: true,
+      status: true,
+      endTime: true,
+    },
+  });
+
+  return new Map(
+    sessions.map((item) => [
+      item.id,
+      {
+        status: item.status,
+        endTime: item.endTime,
+      },
+    ]),
+  );
+}
+
 /**
  * POST /api/interactive/events
  *
@@ -166,8 +202,11 @@ export async function POST(request: NextRequest) {
       logDegradedEvent(session.user.id, event, reason);
     }
 
+    const sessionEndById = await loadSessionEndMetadata(validEvents);
+    const enrichedValidEvents = attachAfterSessionEndFlags(validEvents, sessionEndById);
+
     // Always persist valid events into InteractionLog for activity feed and behavior analytics.
-    const queueEvents = validEvents.map(({ event, resourceId }) => ({
+    const queueEvents = enrichedValidEvents.map(({ event, resourceId }) => ({
       userId: session.user.id,
       resourceId,
       resourceKey: event.resourceKey,
@@ -177,7 +216,10 @@ export async function POST(request: NextRequest) {
       actorRole: event.actorRole ?? null,
       attemptKey: event.attemptKey ?? null,
       eventType: event.type,
-      eventData: event.data ?? {},
+      eventData: {
+        ...(event.data ?? {}),
+        ...(typeof event.id === 'string' ? { clientEventId: event.id } : {}),
+      },
       clientEventAt: toDateTime(event.clientEventAt ?? event.timestamp),
     }));
     if (queueEvents.length > 0) {
@@ -193,7 +235,7 @@ export async function POST(request: NextRequest) {
       factActionType: string;
     }> = [];
 
-    for (const eventData of validEvents) {
+    for (const eventData of enrichedValidEvents) {
       const payload =
         eventData.event.data && typeof eventData.event.data === 'object'
           ? eventData.event.data
@@ -202,9 +244,11 @@ export async function POST(request: NextRequest) {
       const learningEvent = toLearningEvent(
         {
           ...eventData.event,
+          eventId: typeof eventData.event.id === 'string' ? eventData.event.id : undefined,
           actionType: canonicalEventType,
           payload: {
             ...payload,
+            ...(typeof eventData.event.id === 'string' ? { clientEventId: eventData.event.id } : {}),
             originalEventType: eventData.event.type,
           },
           priority: isCoreEvent(canonicalEventType) ? 'core' : 'secondary',

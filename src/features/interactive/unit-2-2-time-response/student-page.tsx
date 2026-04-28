@@ -66,6 +66,7 @@ export function UNIT_2_2StudentPage({
     teacherIndex,
     loadingSession,
     error,
+    errorTelemetry,
     isOutOfSync,
     saveCourseState,
     setActiveIndex,
@@ -139,8 +140,8 @@ export function UNIT_2_2StudentPage({
   // Error tracking
   useEffect(() => {
     if (!error) return;
-    trackSyncError(step.id, { message: error, scope: 'student-page' });
-  }, [error, step.id, trackSyncError]);
+    trackSyncError(step.id, { message: error, scope: 'student-page', ...(errorTelemetry ?? {}) });
+  }, [error, errorTelemetry, step.id, trackSyncError]);
 
   // Track submission helper
   const trackSubmission = useCallback(

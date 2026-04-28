@@ -34,6 +34,7 @@
     "test:cruise-class-code": "node ./scripts/tests/test-cruise-class-code-display.mjs",
     "test:account-passwords": "node ./scripts/tests/test-account-password-overrides.mjs",
     "test:server-ops-skill": "node ./scripts/tests/test-server-ops-skill.mjs",
+    "test:navigation": "node ./scripts/tests/test-no-hardcoded-localhost-navigation.mjs",
     "test:docker-migration-readiness": "node ./scripts/tests/test-docker-migration-readiness.mjs",
     "test:model-render-policy": "npx --yes tsx ./scripts/tests/test-model-render-policy.ts",
     "test:admin-states": "npx --yes tsx ./scripts/tests/test-admin-states-mock-data.ts",

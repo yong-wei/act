@@ -48,6 +48,10 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
       ? event.payload
       : {};
 
+  if (payload.afterSessionEnd === true && payload.countAfterSessionEnd !== true) {
+    return null;
+  }
+
   return {
     userId: event.userId,
     factType: mapActionTypeToFactType(actionType),

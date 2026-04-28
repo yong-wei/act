@@ -118,7 +118,7 @@ AI-OBE (Artificial Intelligence - Outcome Based Education) 船舶智控平台是
 🐘 **容器运行时兼容修复（2026-03-02）**：`prisma/schema.prisma` 增加 `binaryTargets = [\"native\", \"linux-musl\"]`，并将构建脚本调整为 `prisma generate && next build`，解决 Podman/Alpine 环境下 `linux-musl` Query Engine 缺失导致的课外展示页加载失败
 🧱 **容器自动迁移（2026-03-04）**：镜像新增 `docker-entrypoint.sh`，容器启动时默认执行 `prisma migrate deploy`（可通过 `RUN_MIGRATIONS_ON_START=0` 关闭），并将 `prisma/migrations`、`@prisma`、`prisma` CLI 一并打包进运行镜像，避免部署后出现 `PlatformSetting` 等缺表问题
 📊 **管理员统计页（2026-03-05）**：新增 ` /admin/states ` 静态统计面板（全量模拟数据），按教师 18 人、学生 1890 人规模展示互动类型拆分、7类仿真访问量、Control Odyssey 高访问量、月度访问趋势与完课率趋势图，支持管理后台直接跳转访问
-🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教室工作台”入口（`http://localhost:3001/teacher`）；首页与认证导航新增“评审入口”（`/review`），汇总 DevelopmentPlan 用户备注对应的分支页面
+🧭 **导航更新**：预置教案/教案新建与编辑/教学资源管理页面新增“返回教师工作台”入口（`/teacher`）；首页与认证导航新增“评审入口”（`/review`），汇总 DevelopmentPlan 用户备注对应的分支页面
 📺 **课外展示班级落地（2026-03-01）**：演示学生数据并入 `2023自动化启航班`（30 人，`demo` 脱班保留账号），班级描述更新为“AI-OBE平台教改班”；课堂历史重建为 17 次（2025-03 至 2025-06 每周一节 + 当前展示课《柔性之海——豪华邮轮的舒适度控制》）；课堂记录详情页改为按当前课程 `course_review` 数据展示“课前/课后能力追踪 + 课后个性化补强路径”，柔性之海固定重点学生 `20230010102608/20230010102605`，其余课程重点学生按课次随机化
 🛟 **仿真统一改造**：7 个船舶仿真统一为左侧监控、右侧“控制/评估/AI伴学”标签式面板，支持收起/展开与统一配色主题
 🎥 **视角统一**：主视角统一为左舷后方约 45° 且默认跟随，统一相机距离与目标中心构图，跨仿真保持一致

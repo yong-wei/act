@@ -25,8 +25,12 @@ type DemoStepSyncUpdate = {
   syncKey: string;
 };
 
-function getStepIdsSyncKey(stepIds: string[]) {
+export function getStepIdsSyncKey(stepIds: string[]) {
   return stepIds.join('::');
+}
+
+export function parseStepIdsSyncKey(syncKey: string): string[] {
+  return syncKey.length > 0 ? syncKey.split('::') : [];
 }
 
 export function resolveDemoStepSyncUpdate({
@@ -59,6 +63,8 @@ export function useSessionProgressChannel({
   followTeacher = false,
   pollIntervalMs = 5000,
 }: UseSessionProgressChannelOptions) {
+  const stepIdsSyncKey = getStepIdsSyncKey(stepIds);
+  const stableStepIds = useMemo(() => parseStepIdsSyncKey(stepIdsSyncKey), [stepIdsSyncKey]);
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
   const [loadingSession, setLoadingSession] = useState(!isDemo);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -149,7 +155,7 @@ export function useSessionProgressChannel({
       lastKnownTimestampRef.current = serverTimestamp;
 
       setSessionInfo(data);
-      const nextIndex = data.currentItemId ? stepIds.findIndex((stepId) => stepId === data.currentItemId) : -1;
+      const nextIndex = data.currentItemId ? stableStepIds.findIndex((stepId) => stepId === data.currentItemId) : -1;
 
       if (followTeacher) {
         if (nextIndex >= 0) {
@@ -170,7 +176,7 @@ export function useSessionProgressChannel({
         pendingStepIdRef.current = null;
       } else if (nextIndex >= 0) {
         setTeacherIndex(nextIndex);
-        if (pendingStepIdRef.current === stepIds[nextIndex]) {
+        if (pendingStepIdRef.current === stableStepIds[nextIndex]) {
           pendingStepIdRef.current = null;
         }
       }
@@ -220,7 +226,7 @@ export function useSessionProgressChannel({
         }, 5000);
       }
     }
-  }, [followTeacher, getTimestampFromSession, isDemo, pollIntervalMs, sessionId, stepIds]);
+  }, [followTeacher, getTimestampFromSession, isDemo, pollIntervalMs, sessionId, stableStepIds]);
 
   const patchSession = useCallback(
     async (patch: Record<string, unknown>) => {
@@ -271,7 +277,7 @@ export function useSessionProgressChannel({
   const patchCurrentStep = useCallback(
     async (nextIndex: number, patch: Record<string, unknown>) => {
       const previousIndex = activeIndex;
-      const nextStepId = stepIds[nextIndex];
+      const nextStepId = stableStepIds[nextIndex];
 
       // 设置PATCH进行中标志，暂停轮询
       isPatchingRef.current = true;
@@ -339,7 +345,7 @@ export function useSessionProgressChannel({
         isPatchingRef.current = false;
       }
     },
-    [activeIndex, getTimestampFromSession, pollIntervalMs, sessionId, stepIds],
+    [activeIndex, getTimestampFromSession, pollIntervalMs, sessionId, stableStepIds],
   );
 
   const finishSession = useCallback(async () => {
@@ -359,7 +365,7 @@ export function useSessionProgressChannel({
 
     setLoadingSession(false);
     const nextSync = resolveDemoStepSyncUpdate({
-      stepIds,
+      stepIds: stableStepIds,
       demoStepId,
       previousSyncKey: demoSyncKeyRef.current,
     });
@@ -371,7 +377,7 @@ export function useSessionProgressChannel({
     setTeacherIndex(nextSync.nextIndex);
     initialTeacherSyncRef.current = true;
     initializedTeacherRef.current = true;
-  }, [demoStepId, isDemo, stepIds]);
+  }, [demoStepId, isDemo, stableStepIds]);
 
   useEffect(() => {
     if (isDemo) {

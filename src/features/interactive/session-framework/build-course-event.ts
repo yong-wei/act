@@ -16,10 +16,15 @@ interface BuildCourseEventInput {
   data?: Record<string, unknown>;
 }
 
+function resolveResourceId(resourceId?: string | null): string | null {
+  if (!resourceId) return null;
+  return /^c[\w]{24}$/.test(resourceId) ? resourceId : null;
+}
+
 export function buildCourseEvent(input: BuildCourseEventInput): ClassroomInteractionEventInput {
   const clientEventAt = input.clientEventAt ?? Date.now();
   return {
-    resourceId: input.resourceId ?? null,
+    resourceId: resolveResourceId(input.resourceId),
     resourceKey: input.resourceKey,
     sessionId: input.sessionId ?? null,
     lessonKey: input.lessonKey ?? null,

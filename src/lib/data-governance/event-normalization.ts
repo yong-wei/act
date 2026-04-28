@@ -105,11 +105,26 @@ export function deriveFactOutcome(
     return 'failure';
   }
 
+  if (actionType === 'session_finalize') {
+    if (
+      payload.endedBeforeAssessment === true ||
+      payload.endedBeforeSummary === true ||
+      (
+        typeof payload.completionRatio === 'number' &&
+        Number.isFinite(payload.completionRatio) &&
+        payload.completionRatio < 1
+      )
+    ) {
+      return 'partial';
+    }
+
+    return 'success';
+  }
+
   if (
     actionType === 'ethical_resolved' ||
     actionType === 'lesson_submit' ||
     actionType === 'lesson_resubmit' ||
-    actionType === 'session_finalize' ||
     actionType === 'resource_complete'
   ) {
     return 'success';

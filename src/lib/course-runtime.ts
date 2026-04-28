@@ -17,7 +17,7 @@ type RuntimeNode = {
   knowledgeDim?: string;
   metadata?: Record<string, unknown>;
   content?: Record<string, unknown>;
-  resources?: string[];
+  resources?: unknown[];
   chapter?: number;
   chapterName?: string;
   positionX: number;
@@ -288,7 +288,9 @@ export function parseRuntimeLessonMediaDocument(markdown: string): RuntimeLesson
 }
 
 async function loadFrontContentForNode(node: RuntimeNode): Promise<string> {
-  const resourcePath = (node.resources ?? []).find((item) => item.endsWith('.md') || item.endsWith('.mdx'));
+  const resourcePath = (node.resources ?? []).find((item): item is string =>
+    typeof item === 'string' && (item.endsWith('.md') || item.endsWith('.mdx')),
+  );
   if (!resourcePath) {
     return node.description;
   }

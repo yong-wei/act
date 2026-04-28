@@ -1,4 +1,5 @@
 export interface ClassroomInteractionEventInput {
+  id?: string;
   resourceId?: string | null;
   resourceKey: string;
   sessionId?: string | null;

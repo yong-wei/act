@@ -504,7 +504,7 @@ export function OrchestratorBuilder({
                     className="inline-flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-cyan-400"
                   >
                     <ArrowLeft className="h-4 w-4" />
-                    返回教室工作台
+                    返回教师工作台
                   </Link>
                 )}
                 <h2 className="font-bold flex items-center gap-2">

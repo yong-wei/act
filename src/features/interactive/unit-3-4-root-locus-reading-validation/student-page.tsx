@@ -63,6 +63,7 @@ export function UNIT_3_4StudentPage({
     teacherIndex,
     loadingSession,
     error,
+    errorTelemetry,
     isOutOfSync,
     saveCourseState,
     setActiveIndex,
@@ -147,8 +148,8 @@ export function UNIT_3_4StudentPage({
 
   useEffect(() => {
     if (!error) return;
-    trackSyncError(step.id, { message: error, scope: 'student-page' });
-  }, [error, step.id, trackSyncError]);
+    trackSyncError(step.id, { message: error, scope: 'student-page', ...(errorTelemetry ?? {}) });
+  }, [error, errorTelemetry, step.id, trackSyncError]);
 
   const trackSubmission = useCallback(
     (input: { stepId: string; isResubmit: boolean; data?: Record<string, unknown> }) => {

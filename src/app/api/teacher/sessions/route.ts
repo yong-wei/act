@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { SessionStatus } from '@prisma/client';
 
 import { getServerAuthSession } from '@/lib/auth';
+import { resolveClassAttribution } from '@/lib/data-governance/class-attribution';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
@@ -31,7 +32,23 @@ export async function GET(request: Request) {
       where: {
         teacherId: session.user.id,
         status,
-        ...(classId ? { classId } : {}),
+        ...(classId
+          ? {
+              OR: [
+                { classId },
+                {
+                  classId: null,
+                  studentStates: {
+                    some: {
+                      user: {
+                        profile: { classId },
+                      },
+                    },
+                  },
+                },
+              ],
+            }
+          : {}),
         ...(search
           ? {
               plan: {
@@ -61,28 +78,83 @@ export async function GET(request: Request) {
             studentStates: true,
           },
         },
+        studentStates: {
+          select: {
+            user: {
+              select: {
+                profile: {
+                  select: {
+                    classId: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       orderBy: {
         startTime: 'desc',
       },
     });
 
+    const attributionsBySessionId = new Map(
+      sessions.map((item) => [
+        item.id,
+        resolveClassAttribution({
+          sessionClassId: item.classId,
+          participantClassIds: item.studentStates.map((state) => state.user.profile?.classId),
+        }),
+      ])
+    );
+    const inferredClassIds = Array.from(
+      new Set(
+        Array.from(attributionsBySessionId.values())
+          .map((attribution) => attribution.classId)
+          .filter((value): value is string => typeof value === 'string' && value.length > 0)
+      )
+    );
+    const classes = inferredClassIds.length
+      ? await prisma.class.findMany({
+          where: {
+            id: { in: inferredClassIds },
+            ...(session.user.role === 'ADMIN' ? {} : { teacherId: session.user.id }),
+          },
+          select: {
+            id: true,
+            name: true,
+          },
+        })
+      : [];
+    const classNameById = new Map(classes.map((item) => [item.id, item.name]));
+
     return NextResponse.json(
-      sessions.map((item) => ({
-        id: item.id,
-        joinCode: item.joinCode,
-        status: item.status,
-        startTime: item.startTime,
-        endTime: item.endTime,
-        currentStage: item.currentStage,
-        classId: item.classId,
-        className: item.class?.name ?? null,
-        plan: item.plan,
-        studentCount: item._count.studentStates,
-        durationMinutes: item.endTime
-          ? Math.max(Math.round((item.endTime.getTime() - item.startTime.getTime()) / 60000), 1)
-          : null,
-      }))
+      sessions
+        .map((item) => {
+          const classAttribution = attributionsBySessionId.get(item.id) ?? resolveClassAttribution({
+            sessionClassId: item.classId,
+            participantClassIds: [],
+          });
+
+          return {
+            id: item.id,
+            joinCode: item.joinCode,
+            status: item.status,
+            startTime: item.startTime,
+            endTime: item.endTime,
+            currentStage: item.currentStage,
+            classId: classAttribution.classId,
+            className: classAttribution.classId
+              ? item.class?.name ?? classNameById.get(classAttribution.classId) ?? null
+              : null,
+            classAttribution,
+            plan: item.plan,
+            studentCount: item._count.studentStates,
+            durationMinutes: item.endTime
+              ? Math.max(Math.round((item.endTime.getTime() - item.startTime.getTime()) / 60000), 1)
+              : null,
+          };
+        })
+        .filter((item) => !classId || item.classAttribution.classId === classId)
     );
   } catch (error) {
     rethrowIfNextDynamicError(error);

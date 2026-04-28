@@ -52,4 +52,59 @@ describe('eventToLearningFactInput', () => {
 
     expect(fact).toBeNull();
   });
+
+  it('marks unfinished session finalization as partial instead of success', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'client-event-finalize-001',
+      actionType: 'complete',
+      payload: {
+        eventType: 'session_finalize',
+        lessonKey: 'unit-3-7-steady-error-low-frequency-compensation-v1',
+        currentStepId: 'step-12',
+        finalStepId: 'step-12',
+        finalStepIndex: 11,
+        totalSteps: 17,
+        completionRatio: 0.7059,
+        endedBeforeAssessment: true,
+        endedBeforeSummary: true,
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      sourceEventId: 'client-event-finalize-001',
+      factType: 'question',
+      lessonId: 'unit-3-7-steady-error-low-frequency-compensation-v1',
+      outcome: 'partial',
+    });
+  });
+
+  it('preserves sourceLogId when materializing a fact from a persisted interaction log', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'interaction-log:log-001',
+      payload: {
+        eventType: 'lesson_submit',
+        lessonKey: 'unit-3-6-zero-design-workshop-v1',
+        sourceLogId: 'log-001',
+      },
+    }));
+
+    expect(fact).toMatchObject({
+      sourceEventId: 'interaction-log:log-001',
+      sourceLogId: 'log-001',
+    });
+  });
+
+  it('does not materialize classroom completion facts from after-session events by default', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      eventId: 'late-submit-001',
+      actionType: 'submit',
+      payload: {
+        eventType: 'lesson_submit',
+        lessonKey: 'unit-3-7-steady-error-low-frequency-compensation-v1',
+        afterSessionEnd: true,
+      },
+    }));
+
+    expect(fact).toBeNull();
+  });
 });

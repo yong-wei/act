@@ -50,6 +50,15 @@ export interface KnowledgeCardSource {
   resources?: unknown[];
 }
 
+export interface KnowledgeInfographResource {
+  type: 'infograph';
+  path?: string;
+  url?: string;
+  title?: string;
+  lessonId?: string;
+  nodeId?: string;
+}
+
 export function extractMdxPaths(resources?: unknown[]): string[] {
   if (!Array.isArray(resources)) return [];
   return resources
@@ -63,6 +72,27 @@ export function extractMdxPaths(resources?: unknown[]): string[] {
       return null;
     })
     .filter((path): path is string => !!path && (path.endsWith('.md') || path.endsWith('.mdx')));
+}
+
+export function extractInfographResource(resources?: unknown[]): KnowledgeInfographResource | null {
+  if (!Array.isArray(resources)) return null;
+  for (const item of resources) {
+    if (!item || typeof item !== 'object') continue;
+    const resource = item as Partial<KnowledgeInfographResource>;
+    if (resource.type !== 'infograph') continue;
+    const url = typeof resource.url === 'string' ? resource.url : null;
+    const path = typeof resource.path === 'string' ? resource.path : null;
+    if (!url && !path) continue;
+    return {
+      type: 'infograph',
+      url: url ?? undefined,
+      path: path ?? undefined,
+      title: typeof resource.title === 'string' ? resource.title : '知识点信息图',
+      lessonId: typeof resource.lessonId === 'string' ? resource.lessonId : undefined,
+      nodeId: typeof resource.nodeId === 'string' ? resource.nodeId : undefined,
+    };
+  }
+  return null;
 }
 
 export function normalizeKnowledgeMetadata({

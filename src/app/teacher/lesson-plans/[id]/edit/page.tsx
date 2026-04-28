@@ -34,7 +34,7 @@ export default async function TeacherEditLessonPlanPage({ params }: PageProps) {
   return (
     <OrchestratorBuilder
       initialData={plan as any}
-      workbenchReturnUrl="http://localhost:3001/teacher"
+      workbenchReturnUrl="/teacher"
     />
   );
 }

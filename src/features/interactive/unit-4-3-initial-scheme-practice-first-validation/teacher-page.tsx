@@ -67,6 +67,7 @@ export function UNIT_4_3TeacherPage({
     activeIndex,
     loadingSession,
     error,
+    errorTelemetry,
     teacherViewHydrated,
     patchCurrentStep,
     postTeacherSyncInput,
@@ -120,8 +121,8 @@ export function UNIT_4_3TeacherPage({
 
   useEffect(() => {
     if (!error) return;
-    trackSyncError(step.id, { message: error, scope: 'teacher-page' });
-  }, [error, step.id, trackSyncError]);
+    trackSyncError(step.id, { message: error, scope: 'teacher-page', ...(errorTelemetry ?? {}) });
+  }, [error, errorTelemetry, step.id, trackSyncError]);
 
   useEffect(() => {
     if (!shouldPostUNIT_4_3TeacherSync({ loadingSession, teacherViewHydrated })) return;

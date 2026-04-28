@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Download, PanelTopOpen, Sparkles } from 'lucide-react';
+import Image from 'next/image';
+import { BookOpen, Download, Image as ImageIcon, PanelTopOpen, Sparkles } from 'lucide-react';
 
 import 'katex/dist/katex.min.css';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MdxSlide } from '@/components/shared/mdx-slide';
 import { useResourceInteractionTracking } from '@/features/interactive/hooks/useResourceInteractionTracking';
-import { KnowledgeCard, normalizeKnowledgeMetadata } from '@/features/knowledge/knowledge-card';
+import { extractInfographResource, KnowledgeCard, normalizeKnowledgeMetadata } from '@/features/knowledge/knowledge-card';
 import { downloadLessonHandoutPdf } from '@/features/interactive/shared/download-handout-pdf';
 import { createLessonKnowledgeMapLayout } from '@/features/interactive/shared/lesson-entry-knowledge-map-layout';
 import {
@@ -38,6 +39,16 @@ function useIsLightTheme() {
   }, []);
 
   return isLightTheme;
+}
+
+function resolveInfographSrc(resource: ReturnType<typeof extractInfographResource>) {
+  if (!resource) return null;
+  if (resource.url) return resource.url;
+  if (!resource.path) return null;
+  if (resource.path.startsWith('course-content/runtime/knowledge/')) {
+    return resource.path.replace('course-content/runtime/knowledge/', '/course-runtime/knowledge/');
+  }
+  return resource.path.startsWith('/') ? resource.path : `/${resource.path}`;
 }
 
 export function LessonEntryRuntimeSections({
@@ -100,6 +111,11 @@ export function LessonEntryRuntimeSections({
   const [isExportingHandout, setIsExportingHandout] = useState(false);
 
   const selectedNode = selectedNodeId ? nodeById.get(selectedNodeId) ?? orderedNodes[0] ?? null : orderedNodes[0] ?? null;
+  const selectedInfograph = selectedNode ? extractInfographResource(selectedNode.resources) : null;
+  const selectedInfographSrc = resolveInfographSrc(selectedInfograph);
+  const selectedInfographAlt = selectedNode
+    ? (selectedInfograph?.title ?? `${selectedNode.name} 信息图`)
+    : '知识点信息图';
 
   useEffect(() => {
     setSelectedNodeId((currentNodeId) => {
@@ -177,6 +193,23 @@ export function LessonEntryRuntimeSections({
                 variant="compact"
                 className="border border-border bg-card text-card-foreground"
               />
+              {selectedInfographSrc ? (
+                <figure className="mt-3 overflow-hidden rounded-2xl border border-border bg-muted/30">
+                  <div className="flex items-center gap-2 border-b border-border/70 px-3 py-2 text-xs font-medium text-muted-foreground">
+                    <ImageIcon className="h-3.5 w-3.5" />
+                    知识点信息图
+                  </div>
+                  <Image
+                    src={selectedInfographSrc}
+                    alt={selectedInfographAlt}
+                    width={1600}
+                    height={900}
+                    unoptimized
+                    className="h-auto w-full bg-background object-contain"
+                    loading="lazy"
+                  />
+                </figure>
+              ) : null}
             </div>
           ) : (
             <p className="mt-4 text-sm text-muted-foreground">当前没有可展示的节点。</p>

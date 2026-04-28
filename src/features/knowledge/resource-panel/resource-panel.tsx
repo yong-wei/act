@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BookOpen, FileText, X, ArrowRight, Link2, ChevronDown, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
+import { BookOpen, FileText, X, ArrowRight, Link2, ChevronDown, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
 import type { KnowledgeNodeData } from '../knowledge-graph-system';
-import { extractMdxPaths, KnowledgeCardDialog } from '../knowledge-card';
+import { extractInfographResource, extractMdxPaths, KnowledgeCardDialog } from '../knowledge-card';
 import {
   getBloomLabel,
   getKnowledgeDimLabel,
@@ -49,6 +50,16 @@ const RELATION_GROUP_LABEL: Record<RelatedNode['category'], string> = {
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+}
+
+function resolveInfographSrc(resource: ReturnType<typeof extractInfographResource>) {
+  if (!resource) return null;
+  if (resource.url) return resource.url;
+  if (!resource.path) return null;
+  if (resource.path.startsWith('course-content/runtime/knowledge/')) {
+    return resource.path.replace('course-content/runtime/knowledge/', '/course-runtime/knowledge/');
+  }
+  return resource.path.startsWith('/') ? resource.path : `/${resource.path}`;
 }
 
 export function ResourcePanel({
@@ -125,6 +136,8 @@ export function ResourcePanel({
       (typeof metadata.chapterName === 'string' ? metadata.chapterName : null)
   );
   const mdxPaths = extractMdxPaths(displayNode.resources);
+  const infographResource = extractInfographResource(displayNode.resources);
+  const infographSrc = resolveInfographSrc(infographResource);
   const knowledgeCardPaths = mdxPaths.filter(
     (path) =>
       path.startsWith('content/concepts/')
@@ -221,6 +234,24 @@ export function ResourcePanel({
 
             <p className={`text-sm leading-relaxed ${panelTheme.text}`}>{displayNode.description}</p>
           </section>
+
+          {infographSrc && (
+            <section className={`overflow-hidden rounded-lg border ${panelTheme.block}`}>
+              <div className={`flex items-center gap-2 border-b px-3 py-2 text-sm font-medium ${panelTheme.blockTitle} ${isLightTheme ? 'border-slate-200' : 'border-blue-500/20'}`}>
+                <ImageIcon className="h-4 w-4 text-sky-500" />
+                知识点信息图
+              </div>
+              <Image
+                src={infographSrc}
+                alt={infographResource?.title ?? `${displayNode.name} 信息图`}
+                width={1600}
+                height={900}
+                unoptimized
+                className="h-auto w-full bg-white object-contain"
+                loading="lazy"
+              />
+            </section>
+          )}
 
           {examples.length > 0 && (
             <section className={`rounded-lg border p-3 ${panelTheme.block}`}>

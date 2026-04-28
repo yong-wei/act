@@ -68,11 +68,11 @@ export function TeacherResourceManager({
       {/* 页面标题 */}
       <div className="mb-8">
         <Link
-          href="http://localhost:3001/teacher"
+          href="/teacher"
           className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-cyan-400 transition-colors mb-3"
         >
           <ArrowLeft className="h-4 w-4" />
-          返回教室工作台
+          返回教师工作台
         </Link>
         <h1 className="text-3xl font-bold text-white">教学资源管理</h1>
         <p className="mt-2 text-slate-400">管理互动组件、课堂组件和知识卡片</p>

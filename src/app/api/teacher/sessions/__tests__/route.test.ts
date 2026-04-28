@@ -5,6 +5,8 @@ const mocks = vi.hoisted(() => {
   const findUnique = vi.fn();
   const update = vi.fn();
   const deleteFn = vi.fn();
+  const classFindMany = vi.fn();
+  const classFindUnique = vi.fn();
   const getServerAuthSession = vi.fn();
 
   return {
@@ -14,6 +16,10 @@ const mocks = vi.hoisted(() => {
         findUnique,
         update,
         delete: deleteFn,
+      },
+      class: {
+        findMany: classFindMany,
+        findUnique: classFindUnique,
       },
     },
     getServerAuthSession,
@@ -40,6 +46,7 @@ describe('GET /api/teacher/sessions', () => {
       user: { id: 'teacher-1', role: 'TEACHER' },
     });
     mocks.prisma.classSession.findMany.mockResolvedValue([]);
+    mocks.prisma.class.findMany.mockResolvedValue([]);
 
     const response = await GET(new Request('http://localhost/api/teacher/sessions'));
 
@@ -52,6 +59,49 @@ describe('GET /api/teacher/sessions', () => {
         }),
       })
     );
+  });
+
+  it('returns inferred class attribution for direct-start sessions without a session classId', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'teacher-1', role: 'TEACHER' },
+    });
+    mocks.prisma.classSession.findMany.mockResolvedValue([
+      {
+        id: 'session-1',
+        joinCode: '187470',
+        status: 'FINISHED',
+        startTime: new Date('2026-04-28T01:00:00.000Z'),
+        endTime: new Date('2026-04-28T02:03:00.000Z'),
+        currentStage: null,
+        classId: null,
+        class: null,
+        plan: { id: 'plan-1', title: '3-7' },
+        studentStates: [
+          { user: { profile: { classId: 'class-1' } } },
+          { user: { profile: { classId: 'class-1' } } },
+          { user: { profile: { classId: 'class-2' } } },
+        ],
+        _count: { studentStates: 3 },
+      },
+    ]);
+    mocks.prisma.class.findMany.mockResolvedValue([
+      { id: 'class-1', name: '启航班' },
+      { id: 'class-2', name: '旁听班' },
+    ]);
+
+    const response = await GET(new Request('http://localhost/api/teacher/sessions'));
+    const payload = await response.json();
+
+    expect(payload[0]).toMatchObject({
+      id: 'session-1',
+      classId: 'class-1',
+      className: '启航班',
+      classAttribution: {
+        classId: 'class-1',
+        mode: 'inferred',
+        confidence: 2 / 3,
+      },
+    });
   });
 });
 
@@ -68,6 +118,10 @@ describe('PATCH /api/teacher/sessions', () => {
       id: 'session-1',
       teacherId: 'teacher-1',
       status: 'FINISHED',
+    });
+    mocks.prisma.class.findUnique.mockResolvedValue({
+      id: 'class-2',
+      teacherId: 'teacher-1',
     });
     mocks.prisma.classSession.update.mockResolvedValue({
       id: 'session-1',
