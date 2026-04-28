@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T06:10:24.853351Z",
+  "lesson": {
+    "lesson_id": "3-8",
+    "title": "频域判别与跨域综合语言",
+    "groups": [
+      "Nyquist 与 Bode 统一判稳链"
+    ],
+    "card_order_index": 8
+  },
+  "node": {
+    "id": "穿越频率_5_c4c2b93c",
+    "name": "穿越频率",
+    "name_en": "Phase Crossover Frequency",
+    "category": "概念性",
+    "knowledge_type": "C",
+    "bloom_level": "应用",
+    "definition": "开环相频特性曲线穿越-180°线时的频率，记为ω_g，是计算幅值裕度的关键频率。",
+    "examples": [
+      "幅值裕度h在穿越频率ω_g处定义。"
+    ],
+    "formulas": [
+      "\\varphi(\\omega_g) = -180^\\circ"
+    ],
+    "keywords": [
+      "-180°穿越",
+      "开环相频特性"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/穿越频率_5_c4c2b93c.md",
+  "card_frontmatter": {
+    "node_id": "穿越频率_5_c4c2b93c",
+    "name": "穿越频率",
+    "name_en": "Phase Crossover Frequency",
+    "lesson_units": [
+      "2-4"
+    ],
+    "category": "概念性",
+    "knowledge_type": "C",
+    "chapter": "5",
+    "tags": [
+      "层1精化",
+      "频域分析",
+      "2-4"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/2-4/design/handout.md"
+    ],
+    "asset_refs": [
+      "2-4-fd-08-bode-nyquist-consistency-panel.svg"
+    ]
+  },
+  "card_overview": "# 穿越频率 | Phase Crossover Frequency\n\n**一句话定义**：开环相频曲线到达 $-180^\\circ$ 时对应的频率，记为 $\\omega_g$。\n\n**核心直觉**：它是“相位刚好拖到危险边界”的那一点，也是读幅值裕度的固定锚点。\n\n**关键公式**：\n$$\n\\angle G(j\\omega_g)=-180^\\circ\n$$\n\n**关联**：前置 → 伯德图、开环幅相特性曲线 · 后续 → 幅值裕度\n\n---",
+  "card_detail": "### 完整解释\n\n穿越频率的作用和截止频率互为镜像：截止频率先从幅值图出发去读相位；穿越频率则先从相位图出发去读幅值。到达 $\\omega_g$ 后，学生需要再问一句：\n\n> 此时开环幅值离 `0 dB` 还有多远？\n\n这个差距就是后续要读的幅值裕度。因此 `2-4` 的频域指标入口不是孤立记忆，而是一对“交替取点”的流程：\n\n- 用 $\\omega_c$ 读相角裕度；\n- 用 $\\omega_g$ 读幅值裕度。\n\n![双图对照里，穿越频率是读取幅值裕度的锚点](../../lessons/2-4/media/processed/2-4-fd-08-bode-nyquist-consistency-panel.svg)\n\n### 常见误区\n\n1. **误区**：穿越频率也是看 `0 dB` 交点得到的。\n   **纠正**：穿越频率来自相频曲线到达 $-180^\\circ$，不是从幅频图直接读出的。\n\n2. **误区**：穿越频率只是一种计算符号，没有图形意义。\n   **纠正**：它是相位接近边界的图上定位点，直接服务于幅值裕度读取。",
+  "card_plain_excerpt": "## 首页\n\n# 穿越频率 | Phase Crossover Frequency\n\n**一句话定义**：开环相频曲线到达 $-180^\\circ$ 时对应的频率，记为 $\\omega_g$。\n\n**核心直觉**：它是“相位刚好拖到危险边界”的那一点，也是读幅值裕度的固定锚点。\n\n**关键公式**：\n$$\n\\angle G(j\\omega_g)=-180^\\circ\n$$\n\n**关联**：前置 → 伯德图、开环幅相特性曲线 · 后续 → 幅值裕度\n\n---\n\n## 详情\n\n### 完整解释\n\n穿越频率的作用和截止频率互为镜像：截止频率先从幅值图出发去读相位；穿越频率则先从相位图出发去读幅值。到达 $\\omega_g$ 后，学生需要再问一句：\n\n> 此时开环幅值离 `0 dB` 还有多远？\n\n这个差距就是后续要读的幅值裕度。因此 `2-4` 的频域指标入口不是孤立记忆，而是一对“交替取点”的流程：\n\n- 用 $\\omega_c$ 读相角裕度；\n- 用 $\\omega_g$ 读幅值裕度。\n\n![双图对照里，穿越频率是读取幅值裕度的锚点](../../lessons/2-4/media/processed/2-4-fd-08-bode-nyquist-consistency-panel.svg)\n\n### 常见误区\n\n1. **误区**：穿越频率也是看 `0 dB` 交点得到的。\n   **纠正**：穿越频率来自相频曲线到达 $-180^\\circ$，不是从幅频图直接读出的。\n\n2. **误区**：穿越频率只是一种计算符号，没有图形意义。\n   **纠正**：它是相位接近边界的图上定位点，直接服务于幅值裕度读取。",
+  "core_intuition": "它是“相位刚好拖到危险边界”的那一点，也是读幅值裕度的固定锚点。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "频域分析法",
+      "target_id": null,
+      "target": "穿越频率",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频率特性",
+      "target_id": null,
+      "target": "穿越频率",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅频特性",
+      "target_id": null,
+      "target": "穿越频率",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相频特性",
+      "target_id": null,
+      "target": "穿越频率",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅相频率特性曲线",
+      "target_id": null,
+      "target": "穿越频率",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数频率特性曲线",
+      "target_id": null,
+      "target": "穿越频率",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数幅相曲线",
+      "target_id": null,
+      "target": "穿越频率",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "典型环节",
+      "target_id": null,
+      "target": "穿越频率",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "开环频率特性",
+      "target_id": null,
+      "target": "穿越频率",
+      "relation": "leads_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "最小相位典型环节",
+      "target_id": null,
+      "target": "穿越频率",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数幅频曲线",
+      "target_id": null,
+      "target": "穿越频率",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数相频曲线",
+      "target_id": null,
+      "target": "穿越频率",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

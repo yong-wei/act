@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T05:43:40.043795Z",
+  "lesson_id": "3-8",
+  "node_id": "左半平面零点的动态改善机理_3_35002",
+  "node_name": "左半平面零点的动态改善机理",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "3-8 首节点 Codex-native GPT Image 2 测试图；版式、中文说明、公式锚点和关系链可读，后续批量生成时可进一步把关系标签统一中文化。"
+}

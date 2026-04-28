@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T06:08:43.521792Z",
+  "lesson": {
+    "lesson_id": "3-8",
+    "title": "频域判别与跨域综合语言",
+    "groups": [
+      "Nyquist 与 Bode 统一判稳链"
+    ],
+    "card_order_index": 7
+  },
+  "node": {
+    "id": "截止频率_5_c7d09ff7",
+    "name": "截止频率",
+    "name_en": "Gain Crossover Frequency",
+    "category": "概念性",
+    "knowledge_type": "C",
+    "bloom_level": "应用",
+    "definition": "开环对数幅频特性曲线穿越0dB线时的频率，记为ω_c，是计算相角裕度的关键频率。",
+    "examples": [
+      "例5-13中，通过|G(jω_c)|=1求解典型二阶系统的截止频率。",
+      "例5-14中，从对数幅频渐近特性曲线确定截止频率。"
+    ],
+    "formulas": [
+      "L(\\omega_c) = 0 \\text{ dB}",
+      "|G(j\\omega_c)| = 1"
+    ],
+    "keywords": [
+      "0dB穿越",
+      "开环幅频特性"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/截止频率_5_c7d09ff7.md",
+  "card_frontmatter": {
+    "node_id": "截止频率_5_c7d09ff7",
+    "name": "截止频率",
+    "name_en": "Gain Crossover Frequency",
+    "lesson_units": [
+      "2-4"
+    ],
+    "category": "概念性",
+    "knowledge_type": "C",
+    "chapter": "5",
+    "tags": [
+      "层1精化",
+      "频域分析",
+      "2-4"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/2-4/design/handout.md"
+    ],
+    "asset_refs": [
+      "2-4-fd-08-bode-nyquist-consistency-panel.svg"
+    ]
+  },
+  "card_overview": "# 截止频率 | Gain Crossover Frequency\n\n**一句话定义**：开环对数幅频曲线穿过 `0 dB` 的频率，记为 $\\omega_c$。\n\n**核心直觉**：它是“开环增益刚好不再大于 1”的那一点，也是读相角裕度的固定锚点。\n\n**关键公式**：\n$$\n\\left|G(j\\omega_c)\\right|=1\n$$\n\n**关联**：前置 → 伯德图、开环幅相特性曲线 · 后续 → 相角裕度、带宽频率\n\n---",
+  "card_detail": "### 完整解释\n\n在 `2-4` 中，截止频率不再只是“Bode 图上的一个交点”，而是频域指标入口的第一锚点。因为一旦找到 $\\omega_c$，就可以继续在同一频率处去读相角，从而得到相角裕度。\n\n因此，本课要求学生建立的是一个固定动作链：\n\n1. 先在开环幅频图上找到 `0 dB` 交点；\n2. 记下对应频率 $\\omega_c$；\n3. 再回到相频图或 Nyquist 几何直觉中，问“此时离 $-180^\\circ$ 还差多少”。\n\n![Bode 图和 Nyquist 图对照中，截止频率是后续读取裕度的锚点](../../lessons/2-4/media/processed/2-4-fd-08-bode-nyquist-consistency-panel.svg)\n\n### 常见误区\n\n1. **误区**：截止频率和带宽频率是同一个量。\n   **纠正**：本课明确区分：截止频率来自开环 `0 dB` 交点，带宽频率来自闭环 `-3 dB` 位置。\n\n2. **误区**：一旦知道了截止频率，就已经能直接下完整闭环结论。\n   **纠正**：`2-4` 只把它当作读裕度和快慢直觉的入口，不在这里升级成判稳语言。",
+  "card_plain_excerpt": "## 首页\n\n# 截止频率 | Gain Crossover Frequency\n\n**一句话定义**：开环对数幅频曲线穿过 `0 dB` 的频率，记为 $\\omega_c$。\n\n**核心直觉**：它是“开环增益刚好不再大于 1”的那一点，也是读相角裕度的固定锚点。\n\n**关键公式**：\n$$\n\\left|G(j\\omega_c)\\right|=1\n$$\n\n**关联**：前置 → 伯德图、开环幅相特性曲线 · 后续 → 相角裕度、带宽频率\n\n---\n\n## 详情\n\n### 完整解释\n\n在 `2-4` 中，截止频率不再只是“Bode 图上的一个交点”，而是频域指标入口的第一锚点。因为一旦找到 $\\omega_c$，就可以继续在同一频率处去读相角，从而得到相角裕度。\n\n因此，本课要求学生建立的是一个固定动作链：\n\n1. 先在开环幅频图上找到 `0 dB` 交点；\n2. 记下对应频率 $\\omega_c$；\n3. 再回到相频图或 Nyquist 几何直觉中，问“此时离 $-180^\\circ$ 还差多少”。\n\n![Bode 图和 Nyquist 图对照中，截止频率是后续读取裕度的锚点](../../lessons/2-4/media/processed/2-4-fd-08-bode-nyquist-consistency-panel.svg)\n\n### 常见误区\n\n1. **误区**：截止频率和带宽频率是同一个量。\n   **纠正**：本课明确区分：截止频率来自开环 `0 dB` 交点，带宽频率来自闭环 `-3 dB` 位置。\n\n2. **误区**：一旦知道了截止频率，就已经能直接下完整闭环结论。\n   **纠正**：`2-4` 只把它当作读裕度和快慢直觉的入口，不在这里升级成判稳语言。",
+  "core_intuition": "它是“开环增益刚好不再大于 1”的那一点，也是读相角裕度的固定锚点。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "随动系统",
+      "target_id": null,
+      "target": "截止频率",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "快速性",
+      "target_id": null,
+      "target": "截止频率",
+      "relation": "related",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频域分析",
+      "target_id": null,
+      "target": "截止频率",
+      "relation": "contains",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "峰值时间",
+      "target_id": null,
+      "target": "截止频率",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频域分析法",
+      "target_id": null,
+      "target": "截止频率",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频率特性",
+      "target_id": null,
+      "target": "截止频率",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅频特性",
+      "target_id": null,
+      "target": "截止频率",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相频特性",
+      "target_id": null,
+      "target": "截止频率",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅相频率特性曲线",
+      "target_id": null,
+      "target": "截止频率",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数频率特性曲线",
+      "target_id": null,
+      "target": "截止频率",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数频率特性曲线",
+      "target_id": null,
+      "target": "截止频率",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "对数幅相曲线",
+      "target_id": null,
+      "target": "截止频率",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

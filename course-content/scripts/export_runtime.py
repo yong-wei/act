@@ -216,10 +216,17 @@ def build_runtime_relations(nodes_by_id: dict[str, dict[str, Any]], relation_rec
         key, relation = normalized
         existing_key = relation_id_to_key.get(relation['relation_id'])
         if existing_key is not None and existing_key != key:
-            raise ValueError(
-                f"duplicate relation_id {relation['relation_id']} maps to multiple relations: "
-                f'{existing_key} and {key}'
+            relation_id = build_generated_relation_id(
+                str(relation['source_id']),
+                str(relation['target_id']),
+                str(relation['relation_type']),
             )
+            suffix = 2
+            while relation_id in relation_id_to_key and relation_id_to_key[relation_id] != key:
+                relation_id = f"{build_generated_relation_id(str(relation['source_id']), str(relation['target_id']), str(relation['relation_type']))}-{suffix}"
+                suffix += 1
+            relation['id'] = relation_id
+            relation['relation_id'] = relation_id
         relation_id_to_key[relation['relation_id']] = key
 
         existing = deduped.get(key)
@@ -232,6 +239,7 @@ def build_runtime_relations(nodes_by_id: dict[str, dict[str, Any]], relation_rec
 def build_runtime_nodes(
     nodes_by_id: dict[str, dict[str, Any]],
     concept_resource_by_node_id: dict[str, str],
+    infograph_resource_by_node_id: dict[str, dict[str, str]],
 ) -> list[dict[str, Any]]:
     card_dir = RUNTIME_ROOT / 'knowledge' / 'cards' / 'nodes'
     runtime_nodes: list[dict[str, Any]] = []
@@ -250,12 +258,15 @@ def build_runtime_nodes(
         angle = (index % 24) * ((2 * math.pi) / 24)
         radius = ((chapter or 1) * 14) + (ring * 6)
         node_id = str(node['id'])
-        resources: list[str] = []
+        resources: list[Any] = []
         node_card_path = card_dir / f'{node_id}.md'
         if node_card_path.exists():
             resources.append(str(node_card_path.relative_to(REPO_ROOT)).replace('\\', '/'))
         elif node_id in concept_resource_by_node_id:
             resources.append(concept_resource_by_node_id[node_id])
+        infograph_resource = infograph_resource_by_node_id.get(node_id)
+        if infograph_resource:
+            resources.append(infograph_resource)
 
         runtime_nodes.append({
             'id': node_id,
@@ -282,6 +293,7 @@ def build_runtime_nodes(
                 'difficulty': node.get('difficulty'),
                 'importance': node.get('importance'),
                 'keywords': node.get('keywords') or [],
+                'infograph': infograph_resource,
                 'createdAt': node.get('created_at'),
                 'updatedAt': node.get('updated_at'),
                 'source': 'course-content/runtime/knowledge/graph/nodes.json',
@@ -788,6 +800,50 @@ def load_combined_authoring_graph() -> tuple[dict[str, dict[str, Any]], list[dic
                 normalized['chapter'] = int(stripped)
         return normalized
 
+    def parse_markdown_frontmatter(markdown: str) -> dict[str, Any]:
+        if not markdown.startswith('---\n'):
+            return {}
+        end = markdown.find('\n---\n', 4)
+        if end < 0:
+            return {}
+        payload = yaml.safe_load(markdown[4:end]) or {}
+        return payload if isinstance(payload, dict) else {}
+
+    def strip_frontmatter(markdown: str) -> str:
+        return re.sub(r'^---\n[\s\S]*?\n---\n', '', markdown).strip()
+
+    def extract_bold_field(markdown: str, label: str) -> str | None:
+        match = re.search(rf'\*\*{re.escape(label)}\*\*：\s*(.+)', markdown)
+        if not match:
+            return None
+        return match.group(1).strip()
+
+    def build_card_only_node(node_id: str) -> dict[str, Any] | None:
+        card_path = AUTHORING_ROOT / 'knowledge' / 'cards' / 'nodes' / f'{node_id}.md'
+        if not card_path.exists():
+            return None
+        markdown = card_path.read_text(encoding='utf-8')
+        frontmatter = parse_markdown_frontmatter(markdown)
+        body = strip_frontmatter(markdown)
+        heading = extract_primary_heading(body)
+        raw_name = frontmatter.get('name') or heading or node_id
+        name = str(raw_name).split('|', 1)[0].strip() or node_id
+        definition = frontmatter.get('definition') or extract_bold_field(body, '一句话定义')
+        return normalize_authoring_node({
+            'id': node_id,
+            'name': name,
+            'name_en': frontmatter.get('name_en'),
+            'category': frontmatter.get('category'),
+            'knowledge_type': frontmatter.get('knowledge_type'),
+            'bloom_level': frontmatter.get('bloom_level'),
+            'definition': definition,
+            'examples': frontmatter.get('examples') or [],
+            'formulas': frontmatter.get('formulas') or [],
+            'keywords': frontmatter.get('tags') or [],
+            'chapter': frontmatter.get('chapter'),
+            'source': str(card_path.relative_to(REPO_ROOT)).replace('\\', '/'),
+        })
+
     base_graph = read_json(AUTHORING_ROOT / 'knowledge' / 'base' / 'knowledge_graph.json')
     nodes_by_id = {
         node_id: normalize_authoring_node(node)
@@ -810,6 +866,18 @@ def load_combined_authoring_graph() -> tuple[dict[str, dict[str, Any]], list[dic
             node_id = str(node['id'])
             nodes_by_id[node_id] = normalize_authoring_node(node)
         relation_records.extend(read_jsonl(lesson_dir / 'graph' / 'relations.jsonl'))
+
+    sequence_root = AUTHORING_ROOT / 'knowledge' / 'cards' / 'lessons'
+    if sequence_root.exists():
+        for sequence_path in sorted(sequence_root.glob('*/sequence.json')):
+            sequence = read_json(sequence_path)
+            for node_id_value in sequence.get('card_order', []):
+                node_id = str(node_id_value)
+                if node_id in nodes_by_id:
+                    continue
+                card_only_node = build_card_only_node(node_id)
+                if card_only_node:
+                    nodes_by_id[node_id] = card_only_node
 
     return nodes_by_id, relation_records
 
@@ -858,6 +926,61 @@ def copy_concepts_cards(nodes_by_id: dict[str, dict[str, Any]]) -> dict[str, str
     return concept_resource_by_node_id
 
 
+def copy_reviewed_infographs() -> dict[str, dict[str, str]]:
+    authoring_root = AUTHORING_ROOT / 'knowledge' / 'infographs' / 'lessons'
+    runtime_root = RUNTIME_ROOT / 'knowledge' / 'infographs'
+    runtime_nodes_root = runtime_root / 'nodes'
+    resource_by_node_id: dict[str, dict[str, str]] = {}
+    manifest_items: list[dict[str, str]] = []
+
+    reset_directory(runtime_nodes_root)
+    runtime_root.mkdir(parents=True, exist_ok=True)
+
+    if not authoring_root.exists():
+        write_json(runtime_root / 'manifest.json', {'schema_version': 1, 'items': []})
+        return resource_by_node_id
+
+    for lesson_dir in sorted(authoring_root.iterdir()):
+        nodes_dir = lesson_dir / 'nodes'
+        if not nodes_dir.is_dir():
+            continue
+        for node_dir in sorted(nodes_dir.iterdir()):
+            if not node_dir.is_dir():
+                continue
+            node_id = node_dir.name
+            review_path = node_dir / 'review.json'
+            image_path = node_dir / 'infograph.png'
+            if not review_path.exists() or not image_path.exists():
+                continue
+            try:
+                review = read_json(review_path)
+            except Exception:
+                continue
+            if str(review.get('status') or '').strip().lower() != 'accepted':
+                continue
+
+            destination = runtime_nodes_root / f'{node_id}.png'
+            shutil.copy2(image_path, destination)
+            path_value = str(destination.relative_to(REPO_ROOT)).replace('\\', '/')
+            url_value = f'/course-runtime/knowledge/infographs/nodes/{node_id}.png'
+            resource = {
+                'type': 'infograph',
+                'path': path_value,
+                'url': url_value,
+                'title': f"{review.get('node_name') or node_id} 信息图",
+                'lessonId': lesson_dir.name,
+                'nodeId': node_id,
+            }
+            resource_by_node_id[node_id] = resource
+            manifest_items.append(resource)
+
+    write_json(runtime_root / 'manifest.json', {
+        'schema_version': 1,
+        'items': manifest_items,
+    })
+    return resource_by_node_id
+
+
 def export_global_knowledge() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     nodes_by_id, relation_records = load_combined_authoring_graph()
     runtime_cards_nodes = RUNTIME_ROOT / 'knowledge' / 'cards' / 'nodes'
@@ -867,8 +990,9 @@ def export_global_knowledge() -> tuple[list[dict[str, Any]], list[dict[str, Any]
     reset_directory(runtime_cards_concepts)
     copy_tree_contents(AUTHORING_ROOT / 'knowledge' / 'cards' / 'nodes', runtime_cards_nodes, ('.md', '.mdx'))
     concept_resource_by_node_id = copy_concepts_cards(nodes_by_id)
+    infograph_resource_by_node_id = copy_reviewed_infographs()
     runtime_relations = build_runtime_relations(nodes_by_id, relation_records)
-    runtime_nodes = build_runtime_nodes(nodes_by_id, concept_resource_by_node_id)
+    runtime_nodes = build_runtime_nodes(nodes_by_id, concept_resource_by_node_id, infograph_resource_by_node_id)
 
     write_json(RUNTIME_ROOT / 'knowledge' / 'graph' / 'nodes.json', runtime_nodes)
     write_jsonl(RUNTIME_ROOT / 'knowledge' / 'graph' / 'relations.jsonl', runtime_relations)

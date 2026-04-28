@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T06:14:35.261035Z",
+  "lesson": {
+    "lesson_id": "3-8",
+    "title": "频域判别与跨域综合语言",
+    "groups": [
+      "Nyquist 与 Bode 统一判稳链",
+      "后测与模块出口收束"
+    ],
+    "card_order_index": 10
+  },
+  "node": {
+    "id": "奈奎斯特与Bode统一判稳链_3_38002",
+    "name": "奈奎斯特与 Bode 统一判稳链",
+    "name_en": "Unified Stability-Judgment Chain of Nyquist and Bode",
+    "category": "程序性",
+    "knowledge_type": "C",
+    "bloom_level": "应用",
+    "definition": "从辅助函数 F(s)=1+L(s) 与幅角原理出发，把 Nyquist 的临界点包围关系与 Bode 的截止频率、相角裕度、增益裕度统一为同一个闭环稳定边界问题的两种表达。",
+    "examples": [
+      "开环含一个右半平面极点时，若 Nyquist 曲线对临界点包围一次，则可由 Z=P-N 得到闭环稳定。",
+      "若 Bode 图在截止频率处相角已低于 -180°，同时相位穿越频率处幅值仍高于 0 dB，则相角裕度和增益裕度都为负，可直接判断系统已越过稳定边界。"
+    ],
+    "formulas": [
+      "F(s)=1+L(s)",
+      "\\Delta \\arg F(s)=2\\pi(Z-P)",
+      "Z=P-N",
+      "\\gamma=180^\\circ+\\angle L(j\\omega_c)",
+      "G_m=\\frac{1}{|L(j\\omega_\\pi)|}"
+    ],
+    "keywords": [
+      "Nyquist",
+      "Bode 判稳",
+      "幅角原理",
+      "临界点",
+      "相角裕度",
+      "增益裕度"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/奈奎斯特与Bode统一判稳链_3_38002.md",
+  "card_frontmatter": {
+    "node_id": "奈奎斯特与Bode统一判稳链_3_38002",
+    "name": "奈奎斯特与Bode统一判稳链",
+    "name_en": "Unified Stability Reading with Nyquist and Bode",
+    "lesson_units": [
+      "3-8"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-8",
+      "Nyquist",
+      "Bode",
+      "判稳",
+      "裕度"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-8/design/handout.md"
+    ],
+    "asset_refs": [
+      "3-8-nyquist-example-check.png",
+      "3-8-bode-example.png"
+    ]
+  },
+  "card_overview": "# 奈奎斯特与Bode统一判稳链 | Unified Stability Reading with Nyquist and Bode\n\n**一句话定义**：Nyquist 曲线与 Bode 图不是两套独立规则，而是同一稳定边界问题在复平面和对数坐标下的两种读法。\n\n**核心直觉**：Nyquist 看的是“怎样对待 `(-1,0)`”，Bode 读的是“何时撞上 `0 dB` 与 `-180^\\circ` 这条临界边界”。\n\n**关键公式**：\n$$\n|L(j\\omega_c)|=1,\\qquad \\gamma=180^\\circ+\\angle L(j\\omega_c)\n$$\n$$\n\\angle L(j\\omega_\\pi)=-180^\\circ,\\qquad G_m=\\frac{1}{|L(j\\omega_\\pi)|}\n$$\n\n**关联**：前置 → 幅角原理、奈奎斯特稳定判据、截止频率、相角裕度、幅值裕度 · 后续 → 三频段闭环性能回读",
+  "card_detail": "### 完整解释\n\n`3-8` 把稳定判断固定成一条统一链：\n\n1. 用 Nyquist 图判断曲线是否包围临界点 `(-1,0)`；\n2. 用 Bode 图读取截止频率、相角裕度和增益裕度；\n3. 再把“离边界还有多远”翻译成闭环动态风险。\n\n两种图形的落点其实一致：\n\n- **Nyquist**：几何上看是否围住临界点；\n- **Bode**：数值上看在增益交叉点处，相位离 `-180^\\circ` 还有多少余量，在相位穿越点处，幅值离 `0 dB` 还有多少余量。\n\n因此，Bode 判稳不是另一套新定义，而是把同一临界边界拆成更容易读的频率线和裕度线。\n\n### 工程场景\n\n当需要快速回答“系统更快了，但是不是也更危险了”时，Nyquist 与 Bode 应联合使用：Nyquist 给出边界几何关系，Bode 给出可量化的余量读数。\n\n### 关联节点\n\n| 方向 | 节点 | 关系说明 |\n|------|------|---------|\n| 前置 | 奈奎斯特稳定判据 | 给出 `P/N/Z` 的闭环稳定结论 |\n| 前置 | 截止频率 | Bode 读图的关键频率锚点 |\n| 前置 | 相角裕度 / 幅值裕度 | 量化“离边界还有多远” |\n| 输出 | 三频段闭环性能回读 | 把余量与速度、超调和代价接起来 |\n\n### 常见误区\n\n1. **误区**：Nyquist 和 Bode 说的是两种不同的稳定性。\n   **纠正**：它们都在描述同一个临界边界问题，只是观察坐标不同。\n\n2. **误区**：截止频率右移就已经足够说明系统更好。\n   **纠正**：若相角裕度同步缩小，系统只是更快地逼近风险边界。",
+  "card_plain_excerpt": "## 首页\n\n# 奈奎斯特与Bode统一判稳链 | Unified Stability Reading with Nyquist and Bode\n\n**一句话定义**：Nyquist 曲线与 Bode 图不是两套独立规则，而是同一稳定边界问题在复平面和对数坐标下的两种读法。\n\n**核心直觉**：Nyquist 看的是“怎样对待 `(-1,0)`”，Bode 读的是“何时撞上 `0 dB` 与 `-180^\\circ` 这条临界边界”。\n\n**关键公式**：\n$$\n|L(j\\omega_c)|=1,\\qquad \\gamma=180^\\circ+\\angle L(j\\omega_c)\n$$\n$$\n\\angle L(j\\omega_\\pi)=-180^\\circ,\\qquad G_m=\\frac{1}{|L(j\\omega_\\pi)|}\n$$\n\n**关联**：前置 → 幅角原理、奈奎斯特稳定判据、截止频率、相角裕度、幅值裕度 · 后续 → 三频段闭环性能回读\n\n## 详情\n\n### 完整解释\n\n`3-8` 把稳定判断固定成一条统一链：\n\n1. 用 Nyquist 图判断曲线是否包围临界点 `(-1,0)`；\n2. 用 Bode 图读取截止频率、相角裕度和增益裕度；\n3. 再把“离边界还有多远”翻译成闭环动态风险。\n\n两种图形的落点其实一致：\n\n- **Nyquist**：几何上看是否围住临界点；\n- **Bode**：数值上看在增益交叉点处，相位离 `-180^\\circ` 还有多少余量，在相位穿越点处，幅值离 `0 dB` 还有多少余量。\n\n因此，Bode 判稳不是另一套新定义，而是把同一临界边界拆成更容易读的频率线和裕度线。\n\n### 工程场景\n\n当需要快速回答“系统更快了，但是不是也更危险了”时，Nyquist 与 Bode 应联合使用：Nyquist 给出边界几何关系，Bode 给出可量化的余量读数。\n\n### 关联节点\n\n| 方向 | 节点 | 关系说明 |\n|------|------|---------|\n| 前置 | 奈奎斯特稳定判据 | 给出 `P/N/Z` 的闭环稳定结论 |\n| 前置 | 截止频率 | Bode 读图的关键频率锚点 |\n| 前置 | 相角裕度 / 幅值裕度 | 量化“离边界还有多远” |\n| 输出 | 三频段闭环性能回读 | 把余量与速度、超调和代价接起来 |\n\n### 常见误区\n\n1. **误区**：Nyquist 和 Bode 说的是两种不同的稳定性。\n   **纠正**：它们都在描述同一个临界边界问题，只是观察坐标不同。\n\n2. **误区**：截止频率右移就已经足够说明系统更好。\n   **纠正**：若相角裕度同步缩小，系统只是更快地逼近风险边界。",
+  "core_intuition": "Nyquist 看的是“怎样对待 `(-1,0)`”，Bode 读的是“何时撞上 `0 dB` 与 `-180^\\circ` 这条临界边界”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "截止频率",
+      "target_id": null,
+      "target": "奈奎斯特与 Bode 统一判稳链",
+      "relation": "applies_to",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅角原理",
+      "target_id": null,
+      "target": "奈奎斯特与 Bode 统一判稳链",
+      "relation": "applies_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "结构变化的频域指纹",
+      "target_id": null,
+      "target": "奈奎斯特与 Bode 统一判稳链",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "奈奎斯特稳定判据",
+      "target_id": null,
+      "target": "奈奎斯特与 Bode 统一判稳链",
+      "relation": "contains",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "奈奎斯特与 Bode 统一判稳链",
+      "target_id": null,
+      "target": "三频段闭环性能回读",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅值裕度",
+      "target_id": null,
+      "target": "奈奎斯特与 Bode 统一判稳链",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "结构变化的频域指纹_3_38001",
+      "source": "结构变化的频域指纹",
+      "target_id": "奈奎斯特与Bode统一判稳链_3_38002",
+      "target": "奈奎斯特与Bode统一判稳链",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": "只有先看懂结构变化改写哪一段频率，后面的临界点、截止频率和裕度判断才不至于变成死记规则。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "幅角原理_5_f843970e",
+      "source": "幅角原理",
+      "target_id": "奈奎斯特与Bode统一判稳链_3_38002",
+      "target": "奈奎斯特与Bode统一判稳链",
+      "relation": "applies_to",
+      "strength": 0.97,
+      "description": "3-8 用幅角原理把 Nyquist 包围规则重新接回闭环零极点问题。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "奈奎斯特稳定判据_5_a1b34560",
+      "source": "奈奎斯特稳定判据",
+      "target_id": "奈奎斯特与Bode统一判稳链_3_38002",
+      "target": "奈奎斯特与Bode统一判稳链",
+      "relation": "contains",
+      "strength": 0.96,
+      "description": "Nyquist 判据提供“先数 P，再数 N，最后算 Z”的固定判稳程序。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "截止频率_5_c7d09ff7",
+      "source": "截止频率",
+      "target_id": "奈奎斯特与Bode统一判稳链_3_38002",
+      "target": "奈奎斯特与Bode统一判稳链",
+      "relation": "applies_to",
+      "strength": 0.92,
+      "description": "Bode 判稳要先锚定截止频率，才能在同一频点读取相角裕度。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "幅值裕度_5_73af26a5",
+      "source": "幅值裕度",
+      "target_id": "奈奎斯特与Bode统一判稳链_3_38002",
+      "target": "奈奎斯特与Bode统一判稳链",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "增益裕度让 Bode 图对临界边界的距离有了与 Nyquist 包围关系一致的读法。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "奈奎斯特与Bode统一判稳链_3_38002",
+      "source": "奈奎斯特与Bode统一判稳链",
+      "target_id": "三频段闭环性能回读_3_38003",
+      "target": "三频段闭环性能回读",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": "当学生会在图上判断临界边界后，课程继续推进到“这些频域量还能读回哪些闭环后果”。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

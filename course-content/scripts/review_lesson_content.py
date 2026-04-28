@@ -1989,6 +1989,70 @@ def check_knowledge_cards(lesson_id: str) -> dict[str, Any]:
     }
 
 
+def check_infographs(lesson_id: str) -> dict[str, Any]:
+    sequence_path = get_authoring_cards_dir(lesson_id) / 'sequence.json'
+    sequence = read_json(sequence_path)
+    infograph_root = AUTHORING_ROOT / 'knowledge' / 'infographs' / 'lessons' / lesson_id / 'nodes'
+    node_ids = list(dict.fromkeys(sequence.get('card_order', [])))
+
+    missing_infographs: list[str] = []
+    missing_source_files: dict[str, list[str]] = {}
+    pending_review: list[str] = []
+    accepted_infographs: list[str] = []
+    broken_review_files: dict[str, str] = {}
+
+    for node_id in node_ids:
+        node_id = str(node_id)
+        node_dir = infograph_root / node_id
+        image_path = node_dir / 'infograph.png'
+        source_path = node_dir / 'source.json'
+        prompt_path = node_dir / 'prompt.md'
+        generation_path = node_dir / 'generation.json'
+        review_path = node_dir / 'review.json'
+
+        if not image_path.exists():
+            missing_infographs.append(node_id)
+
+        missing_files = [
+            file_name
+            for file_name, path in (
+                ('source.json', source_path),
+                ('prompt.md', prompt_path),
+                ('generation.json', generation_path),
+                ('review.json', review_path),
+            )
+            if not path.exists()
+        ]
+        if missing_files:
+            missing_source_files[node_id] = missing_files
+            if image_path.exists() and 'review.json' in missing_files:
+                pending_review.append(node_id)
+            continue
+
+        try:
+            review = read_json(review_path)
+        except Exception as exc:  # noqa: BLE001
+            broken_review_files[node_id] = str(exc)
+            continue
+
+        if str(review.get('status') or '').strip().lower() == 'accepted':
+            accepted_infographs.append(node_id)
+        else:
+            pending_review.append(node_id)
+
+    return {
+        'lesson_id': lesson_id,
+        'sequence_path': str(sequence_path.relative_to(REPO_ROOT)).replace('\\', '/'),
+        'infograph_root': str(infograph_root.relative_to(REPO_ROOT)).replace('\\', '/'),
+        'card_order': node_ids,
+        'accepted_infographs': accepted_infographs,
+        'missing_infographs': missing_infographs,
+        'missing_source_files': missing_source_files,
+        'pending_review': list(dict.fromkeys(pending_review)),
+        'broken_review_files': broken_review_files,
+    }
+
+
 def build_text_review(lesson_id: str, primary_sources: list[Path], boppps_path: Path) -> dict[str, Any]:
     findings: list[dict[str, Any]] = []
     for path in primary_sources + ([boppps_path] if boppps_path.exists() else []):
@@ -2009,6 +2073,7 @@ def build_review_report(
     primary_sources: list[Path],
     text_review: dict[str, Any],
     knowledge_check: dict[str, Any],
+    infograph_check: dict[str, Any],
     multimedia_check: dict[str, Any],
     interactive_page_check: dict[str, Any],
 ) -> str:
@@ -2031,6 +2096,20 @@ def build_review_report(
         if not missing_cards and not knowledge_check['missing_frontmatter_keys'] and not knowledge_check['missing_sections']
         else '- 仍存在知识卡片缺失或结构异常，请先修复后再继续制作。'
     )
+    infograph_summary = (
+        f"- 已接受 {len(infograph_check['accepted_infographs'])} 张知识点信息图。"
+        if infograph_check['accepted_infographs']
+        else '- 当前尚无已接受的知识点信息图。'
+    )
+    if infograph_check['missing_infographs']:
+        infograph_summary += f"\n- 尚缺信息图：{', '.join(infograph_check['missing_infographs'])}"
+    if infograph_check['pending_review']:
+        infograph_summary += f"\n- 待审信息图：{', '.join(infograph_check['pending_review'])}"
+    if infograph_check['broken_review_files']:
+        infograph_summary += '\n' + '\n'.join(
+            f"- 信息图审查文件异常：{node_id}：{error}"
+            for node_id, error in infograph_check['broken_review_files'].items()
+        )
 
     multimedia_summary = (
         f"- 已识别并确认存在 {len(multimedia_check['generated_assets'])} 项正式媒体，未发现缺失。"
@@ -2071,6 +2150,9 @@ def build_review_report(
         '',
         '## knowledge-card-check',
         knowledge_summary,
+        '',
+        '## infograph-check',
+        infograph_summary,
         '',
         '## multimedia-check',
         multimedia_summary,
@@ -2138,11 +2220,13 @@ def main() -> None:
         if item.get('formula_mode', 'none') != 'none' or item.get('page_formula_sources')
     ]
     knowledge_check = check_knowledge_cards(lesson_id)
+    infograph_check = check_infographs(lesson_id)
     text_review = build_text_review(lesson_id, primary_sources, boppps_path)
     interactive_page_check = build_interactive_page_check(lesson_id, primary_sources)
 
     review_dir = ensure_runtime_review_dir(lesson_id)
     write_json(review_dir / 'knowledge-card-check.json', knowledge_check)
+    write_json(review_dir / 'infograph-check.json', infograph_check)
     write_json(review_dir / 'multimedia-check.json', multimedia_check)
     write_json(review_dir / 'interactive-page-check.json', interactive_page_check)
     if interactive_page_check.get('manifest_audit'):
@@ -2159,6 +2243,7 @@ def main() -> None:
             primary_sources,
             text_review,
             knowledge_check,
+            infograph_check,
             multimedia_check,
             interactive_page_check,
         ),

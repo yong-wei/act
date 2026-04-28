@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T06:18:35.599357Z",
+  "lesson_id": "3-8",
+  "node_id": "频率特性_5_404adfdd",
+  "node_name": "频率特性",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "人工目视检查通过：低/中/高频分工、幅频/相频构成和工程判断清楚；图面虽信息较多但可读。"
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T06:00:47.216337Z",
+  "lesson_id": "3-8",
+  "node_id": "非最小相与右半平面零点_3_35005",
+  "node_name": "非最小相与右半平面零点",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "人工目视检查通过：围绕右半平面零点、逆响应、相位代价和保守带宽；未见英文关系类型或提示词元数据。"
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T06:28:12.440933Z",
+  "lesson_id": "3-8",
+  "node_id": "三频段闭环性能回读_3_38003",
+  "node_name": "三频段闭环性能回读",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "人工目视检查通过：低频稳态、中频速度、高频代价与带宽/谐振峰值边界表达完整。"
+}

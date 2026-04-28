@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T06:32:03.823346Z",
+  "lesson_id": "3-8",
+  "node_id": "目标驱动超前校正_3_36004",
+  "node_name": "目标驱动超前校正",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "人工目视检查通过：五步设计链清楚，目标裕度/目标频带/补角/参数/时域验收完整；边界提醒合理。"
+}

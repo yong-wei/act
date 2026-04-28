@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T05:54:36.464401Z",
+  "lesson": {
+    "lesson_id": "3-8",
+    "title": "频域判别与跨域综合语言",
+    "groups": [
+      "从结构变化回到统一频域问题"
+    ],
+    "card_order_index": 2
+  },
+  "node": {
+    "id": "低频补偿稳态改善路径_3_37003",
+    "name": "低频补偿稳态改善路径",
+    "name_en": "Low-Frequency Compensation Paths for Steady-State Improvement",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "把 PI 与滞后都理解为低频补偿：前者通过积分提高型别，后者通过低频增益重分配压小有限误差，并且二者都会把动态速度与频域裕量代价转移到其他频段。",
+    "examples": [
+      "PI 通过在原点增加积分极点，使 I 型系统提升为 II 型，从结构上消除斜坡稳态误差。",
+      "滞后校正通过“零点在左、极点在右”的附加零极点对抬高低频增益，在型别不变时改善速度误差系数。"
+    ],
+    "formulas": [
+      "G_{PI}(s)=K\\frac{T_i s+1}{T_i s}",
+      "G_{lag}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1"
+    ],
+    "keywords": [
+      "低频补偿",
+      "PI",
+      "滞后校正",
+      "型别提高",
+      "低频增益",
+      "代价"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/低频补偿稳态改善路径_3_37003.md",
+  "card_frontmatter": {
+    "node_id": "低频补偿稳态改善路径_3_37003",
+    "name": "低频补偿稳态改善路径",
+    "name_en": "Low-Frequency Compensation Paths for Steady-State Improvement",
+    "lesson_units": [
+      "3-7"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-7",
+      "低频补偿",
+      "PI",
+      "滞后校正"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-7/design/handout.md"
+    ],
+    "asset_refs": [
+      "3-7-low-frequency-compensators.png",
+      "3-7-pi-pd-comparison.png"
+    ]
+  },
+  "card_overview": "# 低频补偿稳态改善路径 | Low-Frequency Compensation Paths for Steady-State Improvement\n\n**一句话定义**：把 `PI` 与滞后都理解为低频补偿，其中前者提高型别，后者重分配低频增益。\n\n**核心直觉**：两者都在回答“为什么更准”，但代价会被推向别的频段。\n\n**关键公式**：\n$$\nG_{PI}(s)=K\\frac{T_i s+1}{T_i s},\\qquad\nG_{lag}(s)=K\\frac{Ts+1}{\\beta Ts+1}\n$$\n\n**关联**：前置 → 稳态误差双路径判断、积分环节 · 后续 → 频率特性、相角裕度、带宽",
+  "card_detail": "### 完整解释\n\n`3-7` 把稳态改善线收束成两条常见路径：\n\n- `PI`：通过积分提高型别，让原本有限的误差可能结构性归零；\n- 滞后：在型别不变时抬高低频增益，让有限误差显著减小。\n\n![3-7 低频补偿对照图](../../lessons/3-7/media/processed/3-7-low-frequency-compensators.png)\n\n这也是为什么“PI 更准、PD 更快”并不是价值判断，而是频段分工不同：低频主要管精度，中频附近更容易暴露速度与裕量代价。\n\n### 常见误区\n\n1. **误区**：滞后就是更弱一点的积分。\n   **纠正**：滞后的关键不是“弱”，而是型别一般不变、低频增益被单独抬高。\n\n2. **误区**：只要用了 `PI`，精度改善就是免费收益。\n   **纠正**：`PI` 会带来额外相位滞后和速度代价，必须与带宽、裕量一起看。",
+  "card_plain_excerpt": "## 首页\n\n# 低频补偿稳态改善路径 | Low-Frequency Compensation Paths for Steady-State Improvement\n\n**一句话定义**：把 `PI` 与滞后都理解为低频补偿，其中前者提高型别，后者重分配低频增益。\n\n**核心直觉**：两者都在回答“为什么更准”，但代价会被推向别的频段。\n\n**关键公式**：\n$$\nG_{PI}(s)=K\\frac{T_i s+1}{T_i s},\\qquad\nG_{lag}(s)=K\\frac{Ts+1}{\\beta Ts+1}\n$$\n\n**关联**：前置 → 稳态误差双路径判断、积分环节 · 后续 → 频率特性、相角裕度、带宽\n\n## 详情\n\n### 完整解释\n\n`3-7` 把稳态改善线收束成两条常见路径：\n\n- `PI`：通过积分提高型别，让原本有限的误差可能结构性归零；\n- 滞后：在型别不变时抬高低频增益，让有限误差显著减小。\n\n![3-7 低频补偿对照图](../../lessons/3-7/media/processed/3-7-low-frequency-compensators.png)\n\n这也是为什么“PI 更准、PD 更快”并不是价值判断，而是频段分工不同：低频主要管精度，中频附近更容易暴露速度与裕量代价。\n\n### 常见误区\n\n1. **误区**：滞后就是更弱一点的积分。\n   **纠正**：滞后的关键不是“弱”，而是型别一般不变、低频增益被单独抬高。\n\n2. **误区**：只要用了 `PI`，精度改善就是免费收益。\n   **纠正**：`PI` 会带来额外相位滞后和速度代价，必须与带宽、裕量一起看。",
+  "core_intuition": "两者都在回答“为什么更准”，但代价会被推向别的频段。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "频率特性",
+      "target_id": null,
+      "target": "低频补偿稳态改善路径",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "稳态误差双路径判断",
+      "target_id": null,
+      "target": "低频补偿稳态改善路径",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "静态速度误差系数",
+      "target_id": null,
+      "target": "低频补偿稳态改善路径",
+      "relation": "applies_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "积分环节",
+      "target_id": null,
+      "target": "低频补偿稳态改善路径",
+      "relation": "prerequisite",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "低频补偿稳态改善路径",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "contains",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "低频补偿稳态改善路径",
+      "target_id": null,
+      "target": "比例-积分控制器",
+      "relation": "contains",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "减小或消除稳态误差的措施",
+      "target_id": null,
+      "target": "低频补偿稳态改善路径",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "低频补偿稳态改善路径",
+      "target_id": null,
+      "target": "结构变化的频域指纹",
+      "relation": "cross_domain",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "低频补偿稳态改善路径",
+      "target_id": null,
+      "target": "积分与滞后的稳态改善分工",
+      "relation": "contains",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "低频补偿稳态改善路径",
+      "target_id": null,
+      "target": "结构工具箱最小语义",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "低频补偿稳态改善路径",
+      "target_id": null,
+      "target": "参数方向表达卡",
+      "relation": "applies_to",
+      "strength": 0.88,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "低频补偿稳态改善路径_3_37003",
+      "source": "低频补偿稳态改善路径",
+      "target_id": "结构变化的频域指纹_3_38001",
+      "target": "结构变化的频域指纹",
+      "relation": "cross_domain",
+      "strength": 0.95,
+      "description": "3-7 的 PI 与滞后补偿线在 3-8 被统一改写为“低频收益 + 中频代价”的频域语言。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

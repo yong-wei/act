@@ -1,318 +1,304 @@
 \documentclass[a4paper]{article}
 \usepackage[a4paper,margin=0pt]{geometry}
 \usepackage{ctex}
-\usepackage{amsmath,amssymb}
-\usepackage{array,booktabs,graphicx}
-\usepackage{xcolor}
-\usepackage{tikz}
+\usepackage{amsmath,amssymb,array,graphicx,xcolor,tikz}
 \usetikzlibrary{arrows.meta,calc,positioning}
 \pagestyle{empty}
 \setlength{\parindent}{0pt}
-\setlength{\tabcolsep}{1.4pt}
-\renewcommand{\arraystretch}{0.88}
+\setlength{\tabcolsep}{1.2pt}
+\renewcommand{\arraystretch}{0.78}
 \graphicspath{{./assets/}{course-content/runtime/lessons/review/assets/}}
 
 \definecolor{sheetblue}{RGB}{0,82,168}
-\definecolor{ruleblue}{RGB}{40,102,180}
-\newcommand{\boxfont}{\fontsize{5.35pt}{5.95pt}\selectfont}
-\newcommand{\headfont}{\fontsize{8pt}{8.6pt}\selectfont\bfseries}
-\newcommand{\tinyformula}{\fontsize{5pt}{5.7pt}\selectfont}
-\setlength{\fboxsep}{.9mm}
-\setlength{\fboxrule}{.22pt}
+\definecolor{ruleblue}{RGB}{36,99,178}
+\newcommand{\boxfont}{\fontsize{4.75pt}{5.35pt}\selectfont}
+\newcommand{\microfont}{\fontsize{4.25pt}{4.85pt}\selectfont}
+\newcommand{\headfont}{\fontsize{7.6pt}{8.2pt}\selectfont\bfseries}
+\newcommand{\subh}[1]{{\color{sheetblue}\bfseries #1}\par\vspace{.15mm}}
 \newcommand{\drawbox}[5]{%
-  \draw[ruleblue,line width=.35pt] (#1,#2) rectangle ++(#3,#4);
-  \fill[sheetblue] (#1,#2) rectangle ++(#3,4.5);
-  \node[white,font=\headfont,anchor=center] at (#1+#3/2,#2+2.25) {#5};
+  \draw[ruleblue,line width=.33pt] (#1,#2) rectangle ++(#3,#4);
+  \fill[sheetblue] (#1,#2) rectangle ++(#3,4.6);
+  \node[white,font=\headfont,anchor=center] at (#1+#3/2,#2+2.3) {#5};
 }
 \newcommand{\contentnode}[4]{%
-  \node[anchor=north west,inner sep=.75mm,text width=#3,align=left] at (#1,#2) {\boxfont #4};
+  \node[anchor=north west,inner sep=.65mm,text width=#3,align=left] at (#1,#2) {\boxfont #4};
 }
-\newcommand{\subh}[1]{\noindent{\color{sheetblue}\bfseries #1}\par\vspace{.15mm}}
 \newcommand{\subbox}[2]{%
   \noindent\fcolorbox{ruleblue}{white}{%
     \begin{minipage}[t]{#1}
       \boxfont #2
     \end{minipage}}%
-  \par\vspace{.35mm}%
+  \par\vspace{.28mm}%
 }
 
 \begin{document}
 \begin{tikzpicture}[x=1mm,y=-1mm]
   \draw[black,line width=.45pt] (0.5,0.5) rectangle (209.5,296.5);
-
-  \node[anchor=north,font=\fontsize{15pt}{16pt}\selectfont\bfseries] at (105,1.2)
+  \node[anchor=north,font=\fontsize{16pt}{16.5pt}\selectfont\bfseries] at (105,1.0)
     {经典控制理论 CHEAT SHEET};
   \node[anchor=north,font=\fontsize{7.5pt}{8pt}\selectfont\bfseries,text=sheetblue] at (105,10.7)
     {建模 \quad | \quad 时域分析 \quad | \quad 根轨迹 \quad | \quad 频域分析 \quad | \quad 典型校正方法};
-
-  \draw[ruleblue,line width=.35pt] (1.5,17.2) rectangle (208.5,28.5);
-  \node[anchor=north west,font=\fontsize{5.2pt}{5.8pt}\selectfont\bfseries] at (3,18.1)
-    {常用符号：};
-  \node[anchor=north west,font=\fontsize{4.95pt}{5.45pt}\selectfont,text width=188mm,align=left,inner sep=0] at (18,18.1)
+  \draw[ruleblue,line width=.33pt] (1.5,17.2) rectangle (208.5,28.5);
+  \node[anchor=north west,font=\fontsize{5pt}{5.5pt}\selectfont\bfseries] at (3,18.2) {常用符号：};
+  \node[anchor=north west,font=\fontsize{4.65pt}{5.15pt}\selectfont,text width=188mm,align=left,inner sep=0] at (18,18.1)
     {$r(t)$ 输入 \quad $c(t)$ 输出 \quad $e(t)=r(t)-b(t)$ 误差 \quad
      $G(s)$ 前向通道 \quad $H(s)$ 反馈通道 \quad $L(s)=G(s)H(s)$ 开环传递函数 \quad
-     $T(s)=C(s)/R(s)$ 闭环传递函数\\[-.3mm]
+     $T(s)=C(s)/R(s)$ 闭环传递函数\\[-.35mm]
      $p$ 极点 \quad $z$ 零点 \quad $\omega$ 角频率(rad/s) \quad $\zeta$ 阻尼比
      \quad $\omega_n$ 自然频率 \quad $\omega_d$ 阻尼振荡频率 \quad $K$ 增益 \quad $\tau$ 时间常数/延迟};
 
   \drawbox{1.5}{30}{67.5}{146}{1. 建模基础}
   \drawbox{70.5}{30}{68}{146}{2. 时域分析}
   \drawbox{140}{30}{68.5}{88}{3. 根轨迹分析}
-  \drawbox{140}{119}{68.5}{77}{4. 频域分析}
+  \drawbox{140}{119}{68.5}{145}{4. 频域分析}
   \drawbox{1.5}{177}{67.5}{87}{5. 典型校正方法}
   \drawbox{70.5}{177}{68}{87}{6. 经典结论速查}
-  \drawbox{140}{197}{68.5}{67}{4.6-4.8 稳定裕度}
   \drawbox{1.5}{265}{207}{26}{7. 图形速览}
 
-  \contentnode{2.4}{35.2}{65mm}{
-    \subbox{61.6mm}{\subh{1.1 标准负反馈结构}
-    \begin{tikzpicture}[x=1mm,y=1mm,>=Stealth,line width=.45pt,baseline=(current bounding box.north)]
+  \contentnode{2.2}{35.2}{65mm}{
+    \subbox{61.7mm}{\subh{1.1 标准负反馈结构}
+    \begin{tikzpicture}[x=1mm,y=1mm,>=Stealth,line width=.42pt,baseline=(current bounding box.north)]
       \node (r) at (0,10) {$R(s)$};
-      \node[circle,draw,minimum size=5mm,inner sep=0] (sum) at (11,10) {};
-      \node[font=\tiny] at (9.3,12.4) {$+$};
-      \node[font=\tiny] at (11,6.9) {$-$};
-      \node[draw,minimum width=10mm,minimum height=5mm] (g) at (25,10) {$G(s)$};
-      \node (c) at (43,10) {$C(s)$};
-      \node[draw,minimum width=10mm,minimum height=5mm] (h) at (25,0) {$H(s)$};
+      \node[circle,draw,minimum size=4.8mm,inner sep=0] (sum) at (10,10) {};
+      \node[font=\microfont] at (8.4,7.4) {$+$};
+      \node[font=\microfont] at (10,13.1) {$-$};
+      \node[draw,minimum width=12mm,minimum height=5.4mm] (g) at (26,10) {$G(s)$};
+      \node (c) at (47,10) {$C(s)$};
+      \node[draw,minimum width=12mm,minimum height=5.4mm] (h) at (26,0) {$H(s)$};
       \draw[->] (r)--(sum); \draw[->] (sum)--(g); \draw[->] (g)--(c);
-      \draw[->] (39,10)|-(h); \draw[->] (h)-|(sum);
+      \draw[->] (41,10)|-(h); \draw[->] (h)-|(sum);
     \end{tikzpicture}
     \[
-      T(s)=\frac{C(s)}{R(s)}=\frac{G(s)}{1+G(s)H(s)},\quad
+      T(s)=\frac{C(s)}{R(s)}=\frac{G(s)}{1+G(s)H(s)},\qquad
       \frac{E(s)}{R(s)}=\frac{1}{1+G(s)H(s)}
-    \]}
-    \subbox{61.6mm}{\subh{微分方程与传递函数}
-    \[
-      \sum a_i y^{(i)}=\sum b_j u^{(j)},\qquad
-      G(s)=\frac{Y(s)}{U(s)}
-    \]}
-    \subbox{61.6mm}{\subh{1.2 基本环节模型}
+    \]
+    微分方程与传递函数：$\sum a_i y^{(i)}=\sum b_j u^{(j)}\Rightarrow G(s)=Y(s)/U(s)$。}
+    \subbox{61.7mm}{\subh{1.2 基本环节模型}
     \begin{tabular}{|c|c|c|c|c|c|}
-      \hline
-      比例 & 惯性 & 积分 & 微分 & 二阶 & 滞后\\ \hline
+      \hline 比例 & 惯性 & 积分 & 微分 & 二阶 & 纯滞后\\ \hline
       $K$ & $\frac{K}{Ts+1}$ & $\frac{K}{s}$ & $Ks$ &
       $\frac{\omega_n^2}{s^2+2\zeta\omega_ns+\omega_n^2}$ & $e^{-\tau s}$\\ \hline
-    \end{tabular}
-    }
-    \subbox{61.6mm}{\subh{1.3 物理系统建模}
+    \end{tabular}}
+    \subbox{61.7mm}{\subh{1.3 物理系统建模}
+    \begin{tabular}{|c|c|c|c|}
+      \hline 类型 & 元件 & 关系式 & 复频域\\ \hline
+      平移 & 质量$M$ & $f=M\ddot x$ & $X/F=1/(Ms^2)$\\
+      平移 & 阻尼$B$ & $f=B\dot x$ & $X/F=1/(Bs)$\\
+      平移 & 弹簧$K$ & $f=Kx$ & $X/F=1/K$\\
+      转动 & 惯量$J$ & $T=J\ddot\theta$ & $\Theta/T=1/(Js^2)$\\
+      转动 & 阻尼$B$ & $T=B\dot\theta$ & $\Theta/T=1/(Bs)$\\
+      转动 & 弹簧$K$ & $T=K\theta$ & $\Theta/T=1/K$\\ \hline
+    \end{tabular}\par\vspace{.2mm}
     \begin{tabular}{|c|c|c|}
-      \hline
-      元件 & 关系式 & 复频域\\ \hline
-      质量$M$ & $f=M\ddot x$ & $X/F=1/(Ms^2)$\\
-      阻尼$B$ & $f=B\dot x$ & $X/F=1/(Bs)$\\
-      弹簧$K$ & $f=Kx$ & $X/F=1/K$\\
+      \hline 电气元件 & 关系式 & 阻抗$Z(s)$\\ \hline
       电阻$R$ & $v=Ri$ & $R$\\
-      电感$L$ & $v=L\dot i$ & $Ls$\\
-      电容$C$ & $i=C\dot v$ & $1/(Cs)$\\ \hline
-    \end{tabular}
-    }
-    \subbox{61.6mm}{\subh{1.4 方框图代数与梅森公式}
+      电感$L$ & $v=L\,di/dt$ & $Ls$\\
+      电容$C$ & $i=C\,dv/dt$ & $1/(Cs)$\\ \hline
+    \end{tabular}}
+    \subbox{61.7mm}{\subh{1.4 方框图代数}
+    \begin{tikzpicture}[x=1mm,y=1mm,>=Stealth,line width=.36pt,baseline=(current bounding box.north)]
+      \node at (4,11) {1)串联}; \node[draw,minimum width=8mm,minimum height=4mm] (a) at (17,11) {$G_1$};
+      \node[draw,minimum width=8mm,minimum height=4mm] (b) at (31,11) {$G_2$}; \draw[->](7,11)--(a);\draw[->](a)--(b);\draw[->](b)--(40,11);
+      \node at (47,11) {$G=G_1G_2$};
+      \node at (4,4) {2)并联}; \node[draw,minimum width=8mm,minimum height=4mm] (c) at (18,6) {$G_1$};
+      \node[draw,minimum width=8mm,minimum height=4mm] (d) at (18,1) {$G_2$};
+      \draw[->](8,3.5)--(11,3.5)--(11,6)--(c); \draw[->](11,3.5)--(11,1)--(d);
+      \draw[->](c)--(29,6)--(29,3.5); \draw[->](d)--(29,1)--(29,3.5)--(35,3.5);
+      \node at (48,3.5) {$G=G_1+G_2$};
+    \end{tikzpicture}
+    3) 负反馈：$T=G/(1+GH)$；正反馈：$T=G/(1-GH)$。}
+    \subbox{61.7mm}{\subh{1.5 信号流图与梅森公式}
     \[
-      G=G_1G_2,\quad G=G_1+G_2,\quad T=\frac{G}{1\pm GH}
+      G=\frac{C(s)}{R(s)}=\frac{\sum_{k=1}^{N}P_k\Delta_k}{\Delta}
     \]
     \[
-      G=\frac{\sum_{k=1}^N P_k\Delta_k}{\Delta},\qquad
-      \Delta=1-\sum L_i+\sum L_iL_j-\cdots
+      \Delta=1-\sum L_i+\sum L_iL_j-\sum L_iL_jL_m+\cdots
     \]
-    $P_k$ 为第 $k$ 条前向通路增益；$\Delta_k$ 为去除与该通路接触回路后的特征式。
-    }
+    $P_k$：第$k$条前向通路增益；$\Delta_k$：去掉与$P_k$接触回路后的$\Delta$。}
   }
 
-  \contentnode{71.4}{35.2}{66mm}{
-    \subbox{62.1mm}{\subh{2.1 标准二阶系统}
+  \contentnode{71.2}{35.2}{66mm}{
+    \subbox{62.3mm}{\subh{2.1 标准二阶系统}
     \[
       \Phi(s)=\frac{\omega_n^2}{s^2+2\zeta\omega_ns+\omega_n^2},\quad
-      \omega_d=\omega_n\sqrt{1-\zeta^2},\quad
-      \sigma=\zeta\omega_n
+      \omega_d=\omega_n\sqrt{1-\zeta^2},\quad \sigma=\zeta\omega_n
     \]}
-    \subbox{62.1mm}{\subh{2.2 典型时域性能指标}
+    \subbox{62.3mm}{\subh{2.2 典型时域性能指标（单位阶跃）}
+    延迟时间$t_d$：响应首次达到稳态值50\%；上升时间$t_r$：$0\%\to100\%$；峰值时间$t_p$；超调量$M_p$：
     \[
-      t_r=\frac{\pi-\theta}{\omega_d},\quad
-      t_p=\frac{\pi}{\omega_d},\quad
+      t_r=\frac{\pi-\theta}{\omega_d},\quad t_p=\frac{\pi}{\omega_d},\quad
       M_p=e^{-\pi\zeta/\sqrt{1-\zeta^2}}\times100\%
     \]
     \[
       t_s\approx\frac{4}{\zeta\omega_n}(2\%\text{准则}),\qquad
       t_s\approx\frac{3}{\zeta\omega_n}(5\%\text{准则})
     \]
-    \centerline{\includegraphics[width=36mm,height=33mm,keepaspectratio]{step_response_crop.pdf}}
-    }
-    \subbox{62.1mm}{\subh{2.3 极点与稳定性}
+    \centerline{\includegraphics[width=34mm,height=13mm,keepaspectratio]{step_response.png}}}
+    \subbox{62.3mm}{\subh{2.3 极点与稳定性}
     \begin{tabular}{|c|c|}
-      \hline
-      极点位置 & 系统性质\\ \hline
-      全部左半平面 & 稳定\\
-      含右半平面极点 & 不稳定\\
-      虚轴单根 & 临界稳定\\ \hline
-    \end{tabular}
-    }
-    \subbox{62.1mm}{\subh{2.4 终值与初值定理}
+      \hline 根点位置 & 系统性质\\ \hline
+      全部在左半平面(LHP) & 稳定\\
+      有根点在右半平面(RHP) & 不稳定\\
+      有虚轴单根且其余在LHP & 临界稳定\\
+      有右半平面根或虚轴重根 & 不稳定\\ \hline
+    \end{tabular}}
+    \subbox{62.3mm}{\subh{2.4 终值与初值定理}
     \[
       f(0^+)=\lim_{s\to\infty}sF(s),\qquad
       f(\infty)=\lim_{s\to0}sF(s)
-    \]}
-    \subbox{62.1mm}{\subh{2.5 稳态误差}
+    \]
+    终值定理仅在$sF(s)$所有极点均在左半平面时直接使用。}
+    \subbox{62.3mm}{\subh{2.5 稳态误差与静态误差系数}
     \[
-      e_{ss}=\lim_{s\to0}sE(s),\quad
-      E(s)=\frac{R(s)}{1+L(s)}
+      e_{ss}=\lim_{s\to0}sE(s),\quad E(s)=\frac{R(s)}{1+L(s)}
     \]
     \[
-      K_p=\lim_{s\to0}L(s),\quad
-      K_v=\lim_{s\to0}sL(s),\quad
-      K_a=\lim_{s\to0}s^2L(s)
+      K_p=\lim_{s\to0}L,\,\quad K_v=\lim_{s\to0}sL,\quad K_a=\lim_{s\to0}s^2L
     \]
     \begin{tabular}{|c|c|c|c|}
-      \hline
-      型别 & 阶跃 & 斜坡 & 抛物线\\ \hline
+      \hline 系统型别 & 阶跃$1/s$ & 斜坡$1/s^2$ & 抛物线$1/s^3$\\ \hline
       0型 & $1/(1+K_p)$ & $\infty$ & $\infty$\\
       1型 & $0$ & $1/K_v$ & $\infty$\\
       2型 & $0$ & $0$ & $1/K_a$\\ \hline
-    \end{tabular}
-    }
+    \end{tabular}}
+    \subbox{62.3mm}{\subh{2.6 劳斯--赫尔维茨稳定判据}
+    {\microfont $a_ns^n+\cdots+a_1s+a_0=0$。必要条件：各系数同号且不缺项；充分条件：劳斯表第一列同号。三阶首列：
+    \[
+    \begin{array}{c|c}
+    s^3&a_3\\[-.4mm]
+    s^2&a_2\\[-.4mm]
+    s^1&(a_2a_1-a_3a_0)/a_2\\[-.4mm]
+    s^0&a_0
+    \end{array}
+    \]
+    第一列变号次数等于右半平面根数。}}
   }
 
-  \contentnode{140.9}{35.2}{66.5mm}{
-    \subbox{62.6mm}{\subh{3.1 定义}
-    闭环特征方程 $1+KG(s)H(s)=0$。当 $K\in[0,\infty)$ 变化时，闭环极点在 $s$ 平面上的轨迹称为根轨迹。
-    }
-    \subbox{62.6mm}{\subh{3.2 根轨迹条件}
-    \[
-      \angle G(s)H(s)=(2k+1)\pi,\qquad
-      K=\frac{1}{|G(s)H(s)|}
-    \]}
-    \subbox{62.6mm}{\subh{3.3 绘制规则}
-    分支数等于开环极点数；关于实轴对称；实轴上右侧零极点总数为奇数的区段在轨迹上。
-    \[
-      \sigma_a=\frac{\sum p_i-\sum z_i}{n-m},\quad
-      \theta_q=\frac{(2q+1)\pi}{n-m},\quad
-      \frac{dK}{ds}=0
-    \]}
-    \subbox{62.6mm}{\subh{3.4 典型根轨迹示意}
-    \centerline{\includegraphics[width=34mm,height=22mm,keepaspectratio]{root_locus_crop.pdf}}
-    }
-    \subbox{62.6mm}{\subh{3.5 主导极点}
-    主导极点靠近虚轴时，对瞬态响应影响更强；轨迹左移通常提高快速性。
-    }
+  \contentnode{140.8}{35.2}{66.6mm}{
+    \subbox{62.8mm}{\subh{3.1 定义}
+    闭环特征方程 $1+KG(s)H(s)=0$。当 $K\in[0,\infty)$ 变化时，闭环根点在$s$平面上的轨迹称为根轨迹。}
+    \subbox{62.8mm}{\subh{3.2 根轨迹条件（$s$在根轨迹上）}
+    角度条件：$\angle G(s)H(s)=(2k+1)\pi$；幅值条件：$K=1/|G(s)H(s)|$。}
+    \subbox{62.8mm}{\subh{3.3 根轨迹绘图规则}
+    1) 根轨迹分支数等于开环极点数。\\
+    2) 分支起于开环极点，终于开环零点；有限零点不足时趋于无穷远。\\
+    3) 根轨迹关于实轴对称。\\
+    4) 实轴上右侧零极点总数为奇数的区段在轨迹上。\\
+    5) 渐近线：$\sigma_a=\frac{\sum p_i-\sum z_i}{n-m}$，
+    $\theta_q=\frac{(2q+1)\pi}{n-m}$。\\
+    6) 分离点/汇合点由 $dK/ds=0$ 求得。\\
+    7) 与虚轴交点可由劳斯判据求临界$K$与$\omega$。}
+    \subbox{62.8mm}{\subh{3.4 典型根轨迹示意}
+    \centerline{\includegraphics[width=41mm,height=21mm,keepaspectratio]{root_locus.png}}}
+    \subbox{62.8mm}{\subh{3.5 主导极点与设计思维}
+    靠近虚轴的一对闭环极点决定主要瞬态；根轨迹整体左移通常加快响应，远离虚轴通常减弱振荡。}
   }
 
-  \contentnode{140.9}{124.2}{66.5mm}{
-    \subbox{62.6mm}{\subh{4.1 频率响应}
-    \[
-      G(j\omega)=|G(j\omega)|\angle G(j\omega),\qquad G(j\omega)=G(s)|_{s=j\omega}
-    \]}
-    \subbox{62.6mm}{\subh{4.2 Bode 基本要素}
+  \contentnode{140.8}{124.2}{66.6mm}{
+    \subbox{62.8mm}{\subh{4.1 频率响应}
+    令$s=j\omega$，$G(j\omega)=|G(j\omega)|\angle G(j\omega)$。Bode图由幅频 $20\log|G(j\omega)|$ 与相频 $\angle G(j\omega)$ 组成。}
+    \subbox{62.8mm}{\subh{4.2 Bode图基本要素（幅值dB，相位$^\circ$）}
     \begin{tabular}{|c|c|c|}
-      \hline
-      基本因子 & 幅值斜率 & 相位\\ \hline
-      $K$ & $20\log K$ & $0^\circ$\\
-      $1/s$ & $-20$dB/dec & $-90^\circ$\\
-      $s$ & $+20$dB/dec & $+90^\circ$\\
-      $Ts+1$ & $+20$dB/dec & $0^\circ\to90^\circ$\\
-      $1/(Ts+1)$ & $-20$dB/dec & $0^\circ\to-90^\circ$\\ \hline
-    \end{tabular}
-    }
-    \subbox{62.6mm}{\subh{4.3 Bode 图示意}
-    \centerline{\includegraphics[width=37mm,height=32mm,keepaspectratio]{bode_plot_crop.pdf}}
-    }
-    \subbox{62.6mm}{\subh{4.4 闭环谐振}
+      \hline 基本因子 & 幅值曲线斜率 & 相位变化\\ \hline
+      增益$K$ & $20\log K$ & $0^\circ$\\
+      积分环节$1/s$ & $-20$dB/dec & $-90^\circ$\\
+      微分环节$s$ & $+20$dB/dec & $+90^\circ$\\
+      一阶惯性$\frac1{Ts+1}$ & $-20$dB/dec$(\omega>T^{-1})$ & $0^\circ\to-90^\circ$\\
+      一阶微分$Ts+1$ & $+20$dB/dec$(\omega>T^{-1})$ & $0^\circ\to+90^\circ$\\
+      二阶振荡 & $-40$dB/dec（高频） & $0^\circ\to-180^\circ$\\ \hline
+    \end{tabular}}
+    \subbox{62.8mm}{\subh{4.3 Bode图示意}
+    \centerline{\includegraphics[width=45mm,height=27mm,keepaspectratio]{bode_plot.png}}}
+    \subbox{62.8mm}{\subh{4.4 二阶系统共振特性}
+    当$\zeta<1/\sqrt2$时存在共振峰：
     \[
-      M_r=\frac{1}{2\zeta\sqrt{1-\zeta^2}},\quad
+      M_r=\frac{1}{2\zeta\sqrt{1-\zeta^2}},\qquad
       \omega_r=\omega_n\sqrt{1-2\zeta^2}
     \]}
+    \subbox{62.8mm}{\subh{4.5 带宽}
+    带宽 $\omega_b$：$|G(j\omega_b)|=\frac1{\sqrt2}|G(0)|$（$-3$dB点）。带宽越大，一般响应越快，但对高频噪声更敏感。}
+    \subbox{62.8mm}{\subh{4.6 奈奎斯特判据}
+    对开环频率特性 $L(j\omega)$，闭环稳定要求围绕$(-1,j0)$的方向、次数与开环右半平面极点数一致。常用约定：$N=Z-P$，稳定时$Z=0$。
+    \centerline{\includegraphics[width=35mm,height=21mm,keepaspectratio]{nyquist_plot.png}}}
+    \subbox{62.8mm}{\subh{4.7 稳定裕度}
+    相位交叉频率：$\angle L(j\omega_\pi)=-180^\circ$；增益交叉频率：$|L(j\omega_c)|=1$。
+    \[
+      \gamma=180^\circ+\angle L(j\omega_c),\qquad
+      G_m(\mathrm{dB})=-20\log_{10}|L(j\omega_\pi)|
+    \]}
+    \subbox{62.8mm}{\subh{4.8 相位裕度经验}
+    $\gamma>60^\circ$：阻尼大、超调小、响应偏慢；$30^\circ\sim60^\circ$：常用范围；$0^\circ\sim30^\circ$：振荡敏感；$\gamma<0^\circ$：闭环不稳定。}
   }
 
-  \contentnode{2.4}{183.2}{65mm}{
-    \subbox{61.6mm}{\subh{5.1 常用校正网络}
-    \begin{tabular}{|c|c|c|}
-      \hline
-      类型 & 传递函数 & 作用\\ \hline
-      P & $K_p$ & 改变增益\\
-      PI & $K_p(1+\frac1{T_is})$ & 降低稳态误差\\
-      PD & $K_p(1+T_ds)$ & 改善阻尼\\
-      PID & $K_p(1+\frac1{T_is}+T_ds)$ & 综合校正\\
-      超前 & $K_c\frac{1+Ts}{1+\alpha Ts}$ & 增大相角裕度\\
-      滞后 & $K_c\frac{1+Ts}{1+\beta Ts}$ & 提高低频增益\\ \hline
-    \end{tabular}
-    }
-    \subbox{61.6mm}{\subh{5.2 超前/滞后零极点关系}
+  \contentnode{2.2}{182.2}{65mm}{
+    \subbox{61.7mm}{\subh{5.1 常用校正网络对比}
+    \begin{tabular}{|c|c|c|c|}
+      \hline 方法 & 传递函数$G_c(s)$ & 主要作用 & 代价/副作用\\ \hline
+      P & $K_p$ & 提高快速性 & 降低稳定裕度\\
+      PI & $K_p(1+\frac1{T_is})$ & 降低稳态误差 & 相位滞后、变慢\\
+      PD & $K_p(1+T_ds)$ & 增大阻尼 & 放大高频噪声\\
+      PID & $K_p(1+\frac1{T_is}+T_ds)$ & 综合校正 & 参数耦合\\
+      超前 & $K_c\frac{1+Ts}{1+\alpha Ts}$ & 增大相角裕度 & 高频增益上升\\
+      滞后 & $K_c\frac{1+Ts}{1+\beta Ts}$ & 提高低频增益 & 响应变慢\\ \hline
+    \end{tabular}}
+    \subbox{61.7mm}{\subh{5.2 校正网络零--极点位置示意}
+    超前：$0<\alpha<1$，$p=-1/(\alpha T)$，$z=-1/T$，故$|p|>|z|$。\\
+    滞后：$\beta>1$，$p=-1/(\beta T)$，$z=-1/T$，故$|p|<|z|$。
     \[
-      \text{超前: }0<\alpha<1,\ |p|>|z|;\qquad
-      \text{滞后: }\beta>1,\ |p|<|z|
+      \text{超前：}\quad \times p\ \ \circ z\ \ 0 \qquad
+      \text{滞后：}\quad \circ z\ \ \times p\ \ 0
     \]}
-    \subbox{61.6mm}{\subh{5.3 设计流程}
-    明确指标 $\rightarrow$ 选择校正类型 $\rightarrow$ 确定交越频率和相位补偿 $\rightarrow$ 校核 $e_{ss}$、$M_p$、$t_s$ 与稳定裕度。
-    }
-    \subbox{61.6mm}{\subh{5.4 调节经验}
-    增大 $K$ 可加快响应但降低稳定裕度；积分改善稳态精度但可能增加振荡；微分改善阻尼但对噪声敏感。
-    \[
-      K\uparrow \Rightarrow \omega_c\uparrow,\quad
-      \gamma\downarrow;\qquad
-      \text{滞后校正常用于提高低频精度}
-    \]}
+    \subbox{61.7mm}{\subh{5.3 设计流程}
+    时域/根轨迹法：给定$M_p,t_s,e_{ss}$ $\rightarrow$ 确定期望主导极点 $\rightarrow$ 由角度缺额设计零极点 $\rightarrow$ 幅值条件求$K$ $\rightarrow$ 校核响应。\\
+    频域设计法：给定$\gamma,\omega_c,e_{ss}$ $\rightarrow$ 调整低频增益 $\rightarrow$ 选择超前/滞后网络 $\rightarrow$ 校核Bode与Nyquist裕度。}
+    \subbox{61.7mm}{\subh{5.4 调节与经验法则}
+    增大$K$：响应加快、稳态误差减小，但相位裕度降低。\\
+    积分作用：提高低频增益、消除静差，但可能增加超调。\\
+    微分/超前：增加相位裕度、改善阻尼，但对噪声敏感。\\
+    滞后校正：提高低频精度，通常保持交越频率基本不变。}
   }
 
-  \contentnode{71.4}{183.2}{66mm}{
-    \subbox{62.1mm}{\subh{6.1 常用拉普拉斯变换}
+  \contentnode{71.2}{182.2}{66mm}{
+    \subbox{62.3mm}{\subh{6.1 常用拉普拉斯变换}
     \begin{tabular}{|c|c||c|c|}
-      \hline
-      $f(t)$ & $F(s)$ & $f(t)$ & $F(s)$\\ \hline
+      \hline $f(t)$ & $F(s)$ & $f(t)$ & $F(s)$\\ \hline
       $1$ & $1/s$ & $t$ & $1/s^2$\\
       $t^2/2$ & $1/s^3$ & $e^{-at}$ & $1/(s+a)$\\
-      $\sin\omega t$ & $\omega/(s^2+\omega^2)$ & $\cos\omega t$ & $s/(s^2+\omega^2)$\\ \hline
-    \end{tabular}
-    }
-    \subbox{62.1mm}{\subh{6.2 经典结论}
-    1) 型别由 $L(s)$ 在原点的极点数决定。\\
-    2) 低频增益主导稳态误差，高频衰减影响噪声抑制。\\
-    3) 主导共轭极点决定欠阻尼响应的速度与超调。\\
-    4) 非最小相位零点引入额外相位滞后，整定难度增加。\\
-    5) 根轨迹向左通常提高快速性，但仍需检查阻尼比。\\
-    6) 相位裕度过小会导致振荡敏感，过大则响应可能偏慢。
-    }
-    \subbox{62.1mm}{\subh{6.3 部分分式}
+      $\sin\omega t$ & $\omega/(s^2+\omega^2)$ & $\cos\omega t$ & $s/(s^2+\omega^2)$\\
+      $\delta(t)$ & $1$ & $e^{-at}\sin\omega t$ & $\omega/((s+a)^2+\omega^2)$\\ \hline
+    \end{tabular}}
+    \subbox{62.3mm}{\subh{6.2 常用结论速查}
+    1) 负反馈闭环传递函数 $T(s)=G/(1+GH)$。\\
+    2) 线性定常系统稳定性由闭环极点决定。\\
+    3) 型别由开环$L(s)$在原点的极点数决定。\\
+    4) 低频增益决定稳态误差，高频衰减影响噪声抑制。\\
+    5) 欠阻尼二阶系统的$\zeta,\omega_n$决定$M_p,t_p,t_s$。\\
+    6) 根轨迹左移通常提高快速性，但必须保留合适阻尼比。\\
+    7) 相位裕度过小导致振荡敏感，过大响应偏慢。\\
+    8) 非最小相位零点带来额外相位滞后，限制带宽。\\
+    9) 纯滞后$e^{-\tau s}$不改幅值但增加相位滞后$-\omega\tau$。\\
+    10) 综合校正应同时检查稳态误差、瞬态指标与稳定裕度。}
+    \subbox{62.3mm}{\subh{6.3 部分分式展开}
     \[
       \frac{N(s)}{D(s)}
       =\sum_i\frac{A_i}{(s-p_i)^r}
-      +\sum_j\frac{B_js+C_j}{s^2+2\zeta_j\omega_js+\omega_j^2}
+      +\sum_j\frac{B_js+C_j}{s^2+2\zeta_j\omega_js+\omega_j^2}+\cdots
     \]
-    常用判断：闭环极点决定自然响应，开环型别决定典型输入下的稳态误差，频率裕度衡量对建模误差的容忍度。
-    }
+    实根产生指数项，共轭复根产生衰减振荡项；离虚轴最近的极点通常主导响应。}
   }
 
-  \contentnode{140.9}{202.2}{66.5mm}{
-    \subbox{62.6mm}{\subh{4.6 奈奎斯特判据}
-    \[
-      N=Z-P,\qquad Z=0\Rightarrow N=-P
-    \]
-    \centerline{\includegraphics[width=28mm,height=21mm,keepaspectratio]{nyquist_plot_crop.pdf}}
-    }
-    \subbox{62.6mm}{\subh{4.7 稳定裕度}
-    \[
-      \omega_c:\ |L(j\omega_c)|=1,\quad
-      \omega_\pi:\angle L(j\omega_\pi)=-180^\circ
-    \]
-    \[
-      \gamma=180^\circ+\angle L(j\omega_c),\quad
-      G_m=-20\log_{10}|L(j\omega_\pi)|
-    \]}
-    \subbox{62.6mm}{\subh{4.8 经验判断}
-    $\gamma>60^\circ$ 阻尼较强；$30^\circ\sim60^\circ$ 常用；$0^\circ\sim30^\circ$ 振荡敏感。
-    }
-  }
-
-  \node[anchor=north west,inner sep=.8mm,text width=50mm] at (2.4,270)
-    {\boxfont\subh{7.1 阶跃响应}\includegraphics[width=30mm,height=17mm,keepaspectratio]{step_response_crop.pdf}};
-  \node[anchor=north west,inner sep=.8mm,text width=50mm] at (54,270)
-    {\boxfont\subh{7.2 根轨迹图}\includegraphics[width=30mm,height=17mm,keepaspectratio]{root_locus_crop.pdf}};
-  \node[anchor=north west,inner sep=.8mm,text width=50mm] at (105.5,270)
-    {\boxfont\subh{7.3 Bode 图}\includegraphics[width=30mm,height=17mm,keepaspectratio]{bode_plot_crop.pdf}};
-  \node[anchor=north west,inner sep=.8mm,text width=50mm] at (157,270)
-    {\boxfont\subh{7.4 Nyquist 图}\includegraphics[width=30mm,height=17mm,keepaspectratio]{nyquist_plot_crop.pdf}};
-  \draw[ruleblue,line width=.25pt] (53.2,269.5) -- (53.2,291);
+  \node[anchor=north west,inner sep=.8mm,text width=48mm] at (2.5,270)
+    {\boxfont\subh{7.1 阶跃响应（二阶欠阻尼）}\includegraphics[width=35mm,height=16.5mm,keepaspectratio]{step_response.png}};
+  \node[anchor=north west,inner sep=.8mm,text width=48mm] at (54.5,270)
+    {\boxfont\subh{7.2 根轨迹图}\includegraphics[width=35mm,height=16.5mm,keepaspectratio]{root_locus.png}};
+  \node[anchor=north west,inner sep=.8mm,text width=48mm] at (106,270)
+    {\boxfont\subh{7.3 Bode图（示意）}\includegraphics[width=35mm,height=16.5mm,keepaspectratio]{bode_plot.png}};
+  \node[anchor=north west,inner sep=.8mm,text width=48mm] at (157.5,270)
+    {\boxfont\subh{7.4 奈奎斯特图}\includegraphics[width=35mm,height=16.5mm,keepaspectratio]{nyquist_plot.png}};
+  \draw[ruleblue,line width=.25pt] (53.4,269.5) -- (53.4,291);
   \draw[ruleblue,line width=.25pt] (105,269.5) -- (105,291);
-  \draw[ruleblue,line width=.25pt] (156.5,269.5) -- (156.5,291);
-
-  \node[anchor=west,font=\fontsize{4.8pt}{5.2pt}\selectfont] at (2,294.2)
-    {注：本页为经典控制理论矢量电子版速查表，公式、表格、框图与曲线图可放大阅读；工程使用时需结合系统结构与指标约束校核。};
+  \draw[ruleblue,line width=.25pt] (156.6,269.5) -- (156.6,291);
+  \node[anchor=west,font=\fontsize{4.55pt}{5.05pt}\selectfont] at (2,294.2)
+    {注：本页为速查资料，公式与结论基于线性定常系统基本理论；使用时需结合具体系统结构、指标约束与参数范围分析。};
 \end{tikzpicture}
 \end{document}

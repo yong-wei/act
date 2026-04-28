@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T06:16:37.396020Z",
+  "lesson_id": "3-8",
+  "node_id": "奈奎斯特与Bode统一判稳链_3_38002",
+  "node_name": "奈奎斯特与 Bode 统一判稳链",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "人工目视检查通过：同时呈现 Nyquist -1 点与 Bode 0dB/-180° 两种读法，并连接到同一稳定边界。"
+}

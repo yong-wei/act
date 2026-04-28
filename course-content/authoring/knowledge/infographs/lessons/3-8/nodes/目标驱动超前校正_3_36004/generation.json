@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T06:32:03.822929Z",
+  "lesson_id": "3-8",
+  "node_id": "目标驱动超前校正_3_36004",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019dd276-c3f1-7491-b537-d300ea1364e0/ig_0ea8ea9d5435c6230169f0540a181c819883dd33a8cdb2a284.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/3-8/nodes/目标驱动超前校正_3_36004/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/3-8/nodes/目标驱动超前校正_3_36004/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/3-8/nodes/目标驱动超前校正_3_36004/source.json"
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T06:13:40.559845Z",
+  "lesson_id": "3-8",
+  "node_id": "幅值裕度_5_73af26a5",
+  "node_name": "幅值裕度",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "人工目视检查通过：幅值裕度绑定在穿越频率 ωg 和 -180° 相位处，h 与 h_dB 公式可读。"
+}

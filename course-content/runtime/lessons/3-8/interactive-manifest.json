@@ -1,0 +1,3748 @@
+{
+  "contract_version": "2.2",
+  "lesson_id": "3-8",
+  "course_title": "3-8：频域判别与跨域综合语言",
+  "course_route_segment": "unit-3-8-frequency-domain-translation-judgment",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo",
+    "teacher_preview_panel_note": "教师预览只检查课堂骨架；默认预览路径仍以学生演示页为准。"
+  },
+  "media_policy": {},
+  "telemetry_strategy": "step_level_learning_evidence",
+  "teacher_insight_strategy": "misconception_and_progress_dual_track",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "evidence_sequence",
+    "interaction_spec",
+    "teacher_controls",
+    "student_access",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "路径定位：`3-8` 为什么不是新章",
+      "layout": {
+        "template": "map_hero_slide",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "lead",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "stage-map",
+          "region": "lead",
+          "kind": "stage-map",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "path",
+            "title": "路径定位",
+            "text": "固定高亮 3-5 -> 3-7 -> 3-8 -> 3-9，并写清 3-8 负责把前述结构变化统一翻译到频域判断语言。"
+          }
+        },
+        {
+          "id": "core-question-card",
+          "region": "lead",
+          "kind": "question-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "question",
+            "title": "主问题",
+            "text": "为什么增益、零点、极点和积分补偿会在频域里留下不同指纹，这些指纹又如何接到稳定判断与工程决策。"
+          }
+        },
+        {
+          "id": "boundary-card",
+          "region": "summary",
+          "kind": "boundary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "boundary",
+            "title": "边界",
+            "items": [
+              "不重讲模块 2 的作图基础。",
+              "不提前进入模块 4 的完整整定。"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "path": {
+          "type": "plain_text",
+          "title": "路径定位",
+          "body": "固定高亮 3-5 -> 3-7 -> 3-8 -> 3-9，并写清 3-8 负责把前述结构变化统一翻译到频域判断语言。"
+        },
+        "question": {
+          "type": "plain_text",
+          "title": "主问题",
+          "body": "为什么增益、零点、极点和积分补偿会在频域里留下不同指纹，这些指纹又如何接到稳定判断与工程决策。"
+        },
+        "boundary": {
+          "type": "bullet_list",
+          "title": "边界",
+          "items": [
+            "不重讲模块 2 的作图基础。",
+            "不提前进入模块 4 的完整整定。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "路径图",
+        "主问题卡",
+        "边界卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable",
+        "instructor_demo_tools": [
+          "highlight_path_node"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep",
+          "teacherFollowSync"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count",
+          "sync_status"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "明确 3-8 在模块 3 中的路径位置和主问题。",
+        "allowed_scope": [
+          "3-5/3-7/3-8/3-9 的关系",
+          "课程边界"
+        ],
+        "forbidden_scope": [
+          "提前展开 Nyquist 与 Bode 公式细节"
+        ],
+        "canonical_facts": [
+          "3-8 不是新章孤岛。",
+          "本课的任务是建立统一判断语言。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-01",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "首屏必须同时看到路径图、主问题卡和边界卡。",
+        "不依赖教师口头补充，学生也能说出 3-8 在模块 3 中的位置。"
+      ]
+    },
+    "step-02": {
+      "title": "统一翻译器：结构变化如何接到稳定边界与闭环后果",
+      "layout": {
+        "template": "translation_chain_board",
+        "regions": [
+          {
+            "id": "chain",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "method",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "objective",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "translation-chain-card",
+          "region": "chain",
+          "kind": "formula-chain",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "chain",
+            "title": "统一翻译链",
+            "text": "结构变化 -> 开环频率特性改写 -> 稳定边界变化 -> 闭环性能后果。"
+          }
+        },
+        {
+          "id": "three-step-method-card",
+          "region": "method",
+          "kind": "process-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "method",
+            "title": "三步判断法",
+            "items": [
+              "先判断哪一段频带被改写。",
+              "再判断系统离稳定边界更近还是更远。",
+              "最后把频域量读回速度、超调、稳态精度和高频代价。"
+            ]
+          }
+        },
+        {
+          "id": "objective-list",
+          "region": "objective",
+          "kind": "objective-list",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "objective",
+            "title": "课程目标",
+            "items": [
+              "会把结构变化翻译成频域指纹。",
+              "会按 P -> N -> Z 的顺序做 Nyquist 基本判稳。",
+              "会用 Bode 图读出截止频率与稳定裕度。",
+              "会按三频段读回闭环性能。"
+            ]
+          }
+        },
+        {
+          "id": "boundary-note",
+          "region": "objective",
+          "kind": "boundary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "chain",
+            "title": "统一翻译链",
+            "text": "结构变化 -> 开环频率特性改写 -> 稳定边界变化 -> 闭环性能后果。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "chain": {
+          "type": "plain_text",
+          "title": "统一翻译链",
+          "body": "结构变化 -> 开环频率特性改写 -> 稳定边界变化 -> 闭环性能后果。"
+        },
+        "method": {
+          "type": "bullet_list",
+          "title": "三步判断法",
+          "items": [
+            "先判断哪一段频带被改写。",
+            "再判断系统离稳定边界更近还是更远。",
+            "最后把频域量读回速度、超调、稳态精度和高频代价。"
+          ]
+        },
+        "objective": {
+          "type": "bullet_list",
+          "title": "课程目标",
+          "items": [
+            "会把结构变化翻译成频域指纹。",
+            "会按 P -> N -> Z 的顺序做 Nyquist 基本判稳。",
+            "会用 Bode 图读出截止频率与稳定裕度。",
+            "会按三频段读回闭环性能。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "统一翻译链",
+        "三步判断法",
+        "课程目标与边界"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只建立判断框架，不提交。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable",
+        "instructor_demo_tools": [
+          "highlight_chain_node"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生在进入细节前先知道本课按什么逻辑推进。",
+        "allowed_scope": [
+          "翻译链",
+          "三步判断法",
+          "本课目标"
+        ],
+        "forbidden_scope": [
+          "代替学生完成后续例题"
+        ],
+        "canonical_facts": [
+          "频域术语不是散点，而是同一判断链上的节点。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-02",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "翻译链、三步判断法和课程目标必须同页可见。",
+        "学生不看讲稿也能知道本课的判断顺序。"
+      ]
+    },
+    "step-03": {
+      "title": "前测：四类典型误判先暴露出来",
+      "layout": {
+        "template": "question_stack",
+        "regions": [
+          {
+            "id": "prompt",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "questions",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "notes",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "misconception-list",
+          "region": "prompt",
+          "kind": "bullet-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "misconceptions",
+            "title": "四类误判",
+            "items": [
+              "只看幅值，不看频带与相位。",
+              "Nyquist 判稳跳过 P，直接看图形。",
+              "把截止频率更大直接等同于系统更好。",
+              "把非最小相对象理解成可以靠更大带宽硬压过去。"
+            ]
+          }
+        },
+        {
+          "id": "pretest-card-group",
+          "region": "questions",
+          "kind": "quiz-group",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "ai_note",
+            "title": "AI 锁定",
+            "text": "必须先完成首答，之后才允许进入 AI 对照。"
+          }
+        },
+        {
+          "id": "reason-record",
+          "region": "notes",
+          "kind": "reason-record",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "misconceptions",
+            "title": "四类误判",
+            "items": [
+              "只看幅值，不看频带与相位。",
+              "Nyquist 判稳跳过 P，直接看图形。",
+              "把截止频率更大直接等同于系统更好。",
+              "把非最小相对象理解成可以靠更大带宽硬压过去。"
+            ]
+          }
+        },
+        {
+          "id": "ai-lock-note",
+          "region": "notes",
+          "kind": "notice-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "misconceptions",
+            "title": "四类误判",
+            "items": [
+              "只看幅值，不看频带与相位。",
+              "Nyquist 判稳跳过 P，直接看图形。",
+              "把截止频率更大直接等同于系统更好。",
+              "把非最小相对象理解成可以靠更大带宽硬压过去。"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "misconceptions": {
+          "type": "bullet_list",
+          "title": "四类误判",
+          "items": [
+            "只看幅值，不看频带与相位。",
+            "Nyquist 判稳跳过 P，直接看图形。",
+            "把截止频率更大直接等同于系统更好。",
+            "把非最小相对象理解成可以靠更大带宽硬压过去。"
+          ]
+        },
+        "ai_note": {
+          "type": "plain_text",
+          "title": "AI 锁定",
+          "body": "必须先完成首答，之后才允许进入 AI 对照。"
+        }
+      },
+      "evidence_sequence": [
+        "误判清单",
+        "前测题组",
+        "理由记录与 AI 锁定提示"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成四道前测题，并为每题提交一句理由。",
+        "activity_card_rationale": "前测页属于题组页，四张卡分别对应四类典型误判，必须独立聚合错因，不能压成两道综合题。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": [
+          {
+            "id": "card-03-a",
+            "prompt": "频域判断是否只要看曲线有没有抬高。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-03-b",
+            "prompt": "Nyquist 判稳是否可以不先数开环右半平面极点。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-03-c",
+            "prompt": "截止频率更大是否自动意味着系统更优。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-03-d",
+            "prompt": "非最小相对象是否只要继续提带宽就能解决问题。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "show_misconception_distribution"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "attemptCount",
+          "resultState",
+          "errorBucket"
+        ],
+        "misconception_tags": [
+          "only_watch_magnitude",
+          "nyquist_skip_p",
+          "wc_equals_everything",
+          "nmp_push_bandwidth"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "question_distribution",
+          "top_misconceptions"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "先暴露本课最常见的误判，再进入正式内容。",
+        "allowed_scope": [
+          "误判纠偏",
+          "错因归类"
+        ],
+        "forbidden_scope": [
+          "代做后续例题"
+        ],
+        "canonical_facts": [
+          "必须先首答，再看 AI 对照。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-03",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "误判清单必须先于前测题组出现。",
+        "教师端必须能按四类误判聚合结果。"
+      ]
+    },
+    "step-04": {
+      "title": "四类结构变化总表：先看哪一段频带，再谈收益与代价",
+      "layout": {
+        "template": "table_explain_board",
+        "regions": [
+          {
+            "id": "table",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "notes",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "focus",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "fingerprint-table",
+          "region": "table",
+          "kind": "comparison-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "columns",
+            "title": "总表字段",
+            "items": [
+              "结构变化",
+              "主要改写频带",
+              "幅频与相频主变化",
+              "典型收益",
+              "典型代价"
+            ]
+          }
+        },
+        {
+          "id": "frequency-band-note",
+          "region": "notes",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "band_note",
+            "title": "阅读口令",
+            "text": "任何结构变化都先回答“哪一段频带先被改写”，再回答“换来什么、付出什么”。"
+          }
+        },
+        {
+          "id": "row-focus-toggle",
+          "region": "focus",
+          "kind": "row-focus-toggle",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "columns",
+            "title": "总表字段",
+            "items": [
+              "结构变化",
+              "主要改写频带",
+              "幅频与相频主变化",
+              "典型收益",
+              "典型代价"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "columns": {
+          "type": "bullet_list",
+          "title": "总表字段",
+          "items": [
+            "结构变化",
+            "主要改写频带",
+            "幅频与相频主变化",
+            "典型收益",
+            "典型代价"
+          ]
+        },
+        "band_note": {
+          "type": "plain_text",
+          "title": "阅读口令",
+          "body": "任何结构变化都先回答“哪一段频带先被改写”，再回答“换来什么、付出什么”。"
+        }
+      },
+      "evidence_sequence": [
+        "完整总表",
+        "频带职责提示",
+        "行聚焦控件"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "row_focus_toggle",
+        "student_task": "切换高亮四类变化中的任意一行，辅助阅读，不提交。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": [
+          {
+            "id": "step-04-activity",
+            "title": "切换高亮四类变化中的任意一行，辅助阅读，不提交。",
+            "prompt": "切换高亮四类变化中的任意一行，辅助阅读，不提交。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable",
+        "instructor_demo_tools": [
+          "highlight_selected_row"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "focusedRow"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "focus_row_heatmap"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "先用总表稳住四类变化的整体骨架。",
+        "allowed_scope": [
+          "结构变化总表",
+          "频带职责"
+        ],
+        "forbidden_scope": [
+          "从总表直接跳到控制器选型"
+        ],
+        "canonical_facts": [
+          "四类变化必须先以总表稳定呈现，再进入图像互动。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-04",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "总表在无交互状态下也必须完整可读。",
+        "学生不看讲稿也能说出四类变化对应的首要频带。"
+      ]
+    },
+    "step-05": {
+      "title": "曲线互动页：四类结构变化为什么留下不同频域指纹",
+      "layout": {
+        "template": "curve_compare_lab",
+        "regions": [
+          {
+            "id": "selector",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "figure",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "cards",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "change-selector",
+          "region": "selector",
+          "kind": "tab-selector",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "reading_prompt",
+            "title": "读图口令",
+            "items": [
+              "先看当前变化是哪一类。",
+              "再看低频 / 中频 / 高频哪一段先被改写。",
+              "最后看这会如何改写稳定边界和闭环后果。"
+            ]
+          }
+        },
+        {
+          "id": "fingerprint-2x2-panel",
+          "region": "figure",
+          "kind": "interactive-figure-panel",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "panel_note",
+            "title": "面板说明",
+            "text": "固定 2×2：左上幅频、右上相频、左下根轨迹、右下时域；默认状态必须复现讲义静态图义。"
+          }
+        },
+        {
+          "id": "band-overlay-strip",
+          "region": "figure",
+          "kind": "overlay-strip",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "reading_prompt",
+            "title": "读图口令",
+            "items": [
+              "先看当前变化是哪一类。",
+              "再看低频 / 中频 / 高频哪一段先被改写。",
+              "最后看这会如何改写稳定边界和闭环后果。"
+            ]
+          }
+        },
+        {
+          "id": "activity-card-row",
+          "region": "cards",
+          "kind": "activity-card-row",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "reading_prompt",
+            "title": "读图口令",
+            "items": [
+              "先看当前变化是哪一类。",
+              "再看低频 / 中频 / 高频哪一段先被改写。",
+              "最后看这会如何改写稳定边界和闭环后果。"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "reading_prompt": {
+          "type": "bullet_list",
+          "title": "读图口令",
+          "items": [
+            "先看当前变化是哪一类。",
+            "再看低频 / 中频 / 高频哪一段先被改写。",
+            "最后看这会如何改写稳定边界和闭环后果。"
+          ]
+        },
+        "panel_note": {
+          "type": "plain_text",
+          "title": "面板说明",
+          "body": "固定 2×2：左上幅频、右上相频、左下根轨迹、右下时域；默认状态必须复现讲义静态图义。"
+        }
+      },
+      "evidence_sequence": [
+        "读图口令",
+        "变化类型切换",
+        "2×2 面板",
+        "频带罩层",
+        "独立作答卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "curve_compare_panel",
+        "student_task": "切换四类结构变化，并完成频带、收益、代价三张独立作答卡。",
+        "activity_card_rationale": "三张卡分别承载频带定位、收益判断、代价判断三种不同动作；若合并，会把“先判频带”再次压扁成泛化结论。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": [
+          {
+            "id": "card-05-a",
+            "prompt": "当前变化优先改写哪一段频带。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "card-05-b",
+            "prompt": "这类变化首先换来什么收益。",
+            "response_kind": "multi_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "card-05-c",
+            "prompt": "这类变化最可能带来什么代价。",
+            "response_kind": "match",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          }
+        ]
+      },
+      "interactive_figure_spec": {
+        "baseline_media": [
+          "3-8-gain-effect.png",
+          "3-8-zero-effect.png",
+          "3-8-pole-effect.png",
+          "3-8-rhp-zero-effect.png"
+        ],
+        "default_variant": "gain",
+        "panel_layout": "2x2_fixed",
+        "overlays": [
+          "low_mid_high_band",
+          "margin_hint"
+        ],
+        "controls": [
+          "change_toggle",
+          "band_overlay_toggle",
+          "metric_hint_toggle"
+        ],
+        "question_prompt": "当前结构变化先改哪一段频带，它带来的主要收益和代价分别是什么。"
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "always_on",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "lock_change_variant",
+          "toggle_band_overlay"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedVariant",
+          "selectedBand",
+          "cardResultStates"
+        ],
+        "misconception_tags": [
+          "cannot_locate_frequency_band",
+          "ignore_phase_cost"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "variant_distribution",
+          "band_error_heatmap"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把静态四图升级为可比、可读、可提交证据的曲线面板。",
+        "allowed_scope": [
+          "四类结构变化",
+          "频带",
+          "收益与代价"
+        ],
+        "forbidden_scope": [
+          "从面板直接跳到控制器推荐"
+        ],
+        "canonical_facts": [
+          "曲线图不是装饰，而是用来回答“哪段频带先被改写”。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-05",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "默认面板必须复现讲义静态图义，而不是另起一套视觉逻辑。",
+        "学生不看讲稿，也能知道先看哪张子图、回答哪三个判断问题。"
+      ]
+    },
+    "step-06": {
+      "title": "例题 1：先从哪一段频带开始判断结构变化",
+      "layout": {
+        "template": "worked_example_lab",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "reveal",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "problem-statement-card",
+          "region": "problem",
+          "kind": "worked-example-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "分别对 4 倍增益、左半平面零点 1+s/0.8、原点积分极点三种变化，判断哪种先改写低频、哪种先改写中频，并说明各自收益与代价。"
+          }
+        },
+        {
+          "id": "given-change-list",
+          "region": "problem",
+          "kind": "condition-list",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "reveal_steps",
+            "title": "显影链",
+            "items": [
+              "先判哪一段频带先被改写。",
+              "再判断会带来什么收益。",
+              "最后指出主要代价与边界风险。"
+            ]
+          }
+        },
+        {
+          "id": "step-reveal-column",
+          "region": "reveal",
+          "kind": "step-reveal-column",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "分别对 4 倍增益、左半平面零点 1+s/0.8、原点积分极点三种变化，判断哪种先改写低频、哪种先改写中频，并说明各自收益与代价。"
+          }
+        },
+        {
+          "id": "activity-card-grid",
+          "region": "activity",
+          "kind": "activity-card-grid",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "分别对 4 倍增益、左半平面零点 1+s/0.8、原点积分极点三种变化，判断哪种先改写低频、哪种先改写中频，并说明各自收益与代价。"
+          }
+        },
+        {
+          "id": "reference-answer-card",
+          "region": "activity",
+          "kind": "reference-answer-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "分别对 4 倍增益、左半平面零点 1+s/0.8、原点积分极点三种变化，判断哪种先改写低频、哪种先改写中频，并说明各自收益与代价。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "problem": {
+          "type": "plain_text",
+          "title": "完整题面",
+          "body": "分别对 4 倍增益、左半平面零点 1+s/0.8、原点积分极点三种变化，判断哪种先改写低频、哪种先改写中频，并说明各自收益与代价。"
+        },
+        "reveal_steps": {
+          "type": "bullet_list",
+          "title": "显影链",
+          "items": [
+            "先判哪一段频带先被改写。",
+            "再判断会带来什么收益。",
+            "最后指出主要代价与边界风险。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "完整题面",
+        "已知变化列表",
+        "逐步显影链",
+        "独立作答卡",
+        "参考答案"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "完成三张独立作答卡，分别回答频带、收益与代价。",
+        "activity_card_rationale": "例题页需要保持“先判频带，再配对收益与代价”的解题顺序，因此拆成三张卡，避免一道综合题掩盖具体误判。",
+        "step_reveal_policy": {
+          "mode": "teacher_or_browse_release",
+          "problem_statement": "always_visible",
+          "derivation_steps": "teacher_step_reveal",
+          "reference_answer": "separate_teacher_toggle"
+        },
+        "activity_cards": [
+          {
+            "id": "card-06-a",
+            "prompt": "哪一种变化最先改写低频。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "card-06-b",
+            "prompt": "哪一种变化最先改写中频。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "card-06-c",
+            "prompt": "把三种变化与对应收益 / 代价做匹配。",
+            "response_kind": "match",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "separate_toggle",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "reveal_next_step",
+          "show_reference_answer"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": true,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardResultStates",
+          "stepRevealCount"
+        ],
+        "misconception_tags": [
+          "band_before_conclusion_missing",
+          "benefit_cost_mismatch"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "card_accuracy_distribution",
+          "step_reveal_usage"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生把“先判频带”真正用在一个完整例题上。",
+        "allowed_scope": [
+          "频带判断",
+          "收益与代价"
+        ],
+        "forbidden_scope": [
+          "把答案直接告诉学生而不经过逐步显影"
+        ],
+        "canonical_facts": [
+          "题面必须始终可见。",
+          "逐步披露只隐藏步骤，不隐藏问题。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-06",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "学生在未打开讲稿时，也能完整知道例题对象、任务和判断顺序。",
+        "作答卡必须按卡独立提交，不使用整页统一表单。"
+      ]
+    },
+    "step-07": {
+      "title": "幅角原理：总转角、`P` 与 `Z` 在说什么",
+      "layout": {
+        "template": "formula_story_board",
+        "regions": [
+          {
+            "id": "question",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "note",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "question-card",
+          "region": "question",
+          "kind": "question-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "question",
+            "title": "本页问题",
+            "text": "为什么只要知道总转角、P 和 Z，就能把闭环稳定问题转成一个可数的问题。"
+          }
+        },
+        {
+          "id": "argument-principle-formula",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "formula",
+            "title": "核心公式",
+            "items": [
+              "Δarg F(s)=2π(Z-P)"
+            ]
+          }
+        },
+        {
+          "id": "symbol-meaning-table",
+          "region": "formula",
+          "kind": "comparison-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "summary",
+            "title": "结论桥接",
+            "text": "总转角不是抽象符号，而是通向 Nyquist 判稳的逻辑起点。"
+          }
+        },
+        {
+          "id": "mini-summary-card",
+          "region": "note",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "summary",
+            "title": "结论桥接",
+            "text": "总转角不是抽象符号，而是通向 Nyquist 判稳的逻辑起点。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "question": {
+          "type": "plain_text",
+          "title": "本页问题",
+          "body": "为什么只要知道总转角、P 和 Z，就能把闭环稳定问题转成一个可数的问题。"
+        },
+        "formula": {
+          "type": "formula_list",
+          "title": "核心公式",
+          "items": [
+            "Δarg F(s)=2π(Z-P)"
+          ]
+        },
+        "summary": {
+          "type": "plain_text",
+          "title": "结论桥接",
+          "body": "总转角不是抽象符号，而是通向 Nyquist 判稳的逻辑起点。"
+        }
+      },
+      "evidence_sequence": [
+        "本页问题",
+        "总转角公式",
+        "P/Z 含义表",
+        "结论桥接"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "step_reveal",
+        "student_task": "按显影顺序阅读解释，不提交答案。",
+        "step_reveal_policy": {
+          "mode": "teacher_step_reveal",
+          "problem_statement": "always_visible",
+          "derivation_steps": "teacher_step_reveal",
+          "reference_answer": "not_applicable"
+        },
+        "activity_cards": [
+          {
+            "id": "step-07-activity",
+            "title": "按显影顺序阅读解释，不提交答案。",
+            "prompt": "按显影顺序阅读解释，不提交答案。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "separate_toggle",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "not_applicable",
+        "instructor_demo_tools": [
+          "reveal_symbol_meaning"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "locked",
+        "release_required": false,
+        "browse_required": true,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "revealProgress"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "reveal_completion_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "给 Nyquist 判据补上幅角原理的逻辑起点。",
+        "allowed_scope": [
+          "总转角",
+          "P/Z 含义"
+        ],
+        "forbidden_scope": [
+          "提前跳到具体判稳例题答案"
+        ],
+        "canonical_facts": [
+          "本页不求快算，只建立意义。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-07",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "总转角公式与 P/Z 含义表必须在同一页。",
+        "学生能说明这页是 Nyquist 判据的来路之一，而非孤立定义。"
+      ]
+    },
+    "step-08": {
+      "title": "为什么取 `F(s)=1+L(s)`，为什么盯住 `(-1,0)`",
+      "layout": {
+        "template": "derivation_compare_board",
+        "regions": [
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "geometry",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "chain",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "auxiliary-function-card",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "auxiliary",
+            "title": "辅助函数链",
+            "items": [
+              "F(s)=1+G(s)H(s)",
+              "F(s)=0 等价于闭环特征方程成立"
+            ]
+          }
+        },
+        {
+          "id": "closed-loop-root-card",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "critical",
+            "title": "临界点桥接",
+            "text": "在 F 平面看原点，等价于在 G(s)H(s) 平面看 (-1,0)。"
+          }
+        },
+        {
+          "id": "critical-point-graphic",
+          "region": "geometry",
+          "kind": "comparison-graphic",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "order",
+            "title": "固定顺序",
+            "items": [
+              "先数开环右半平面极点数 P。",
+              "再数对临界点的包围数 N。",
+              "最后算闭环右半平面极点数 Z。"
+            ]
+          }
+        },
+        {
+          "id": "reason-chain-sorter",
+          "region": "chain",
+          "kind": "reason-chain",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "auxiliary",
+            "title": "辅助函数链",
+            "items": [
+              "F(s)=1+G(s)H(s)",
+              "F(s)=0 等价于闭环特征方程成立"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "auxiliary": {
+          "type": "formula_list",
+          "title": "辅助函数链",
+          "items": [
+            "F(s)=1+G(s)H(s)",
+            "F(s)=0 等价于闭环特征方程成立"
+          ]
+        },
+        "critical": {
+          "type": "plain_text",
+          "title": "临界点桥接",
+          "body": "在 F 平面看原点，等价于在 G(s)H(s) 平面看 (-1,0)。"
+        },
+        "order": {
+          "type": "bullet_list",
+          "title": "固定顺序",
+          "items": [
+            "先数开环右半平面极点数 P。",
+            "再数对临界点的包围数 N。",
+            "最后算闭环右半平面极点数 Z。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "辅助函数链",
+        "临界点图示",
+        "固定顺序",
+        "因果排序区"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "reason_chain",
+        "student_task": "把辅助函数、临界点和判稳顺序排成正确的因果链。",
+        "step_reveal_policy": {
+          "mode": "teacher_or_browse_release",
+          "problem_statement": "always_visible",
+          "derivation_steps": "teacher_step_reveal",
+          "reference_answer": "separate_teacher_toggle"
+        },
+        "activity_cards": [
+          {
+            "id": "card-08-a",
+            "prompt": "把 F(s)、闭环特征方程、(-1,0)、P/N/Z 顺序排成因果链。",
+            "response_kind": "drag_sort",
+            "submit_scope": "per_card",
+            "layout_span": "full"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "separate_toggle",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "reveal_next_formula_link"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": true,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": false
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "sortResultState",
+          "revealProgress"
+        ],
+        "misconception_tags": [
+          "nyquist_memorize_without_reason",
+          "critical_point_origin_confusion"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "chain_breakpoint_distribution"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生真正知道为什么 Nyquist 最终盯的是 (-1,0)。",
+        "allowed_scope": [
+          "辅助函数",
+          "临界点",
+          "P/N/Z 顺序"
+        ],
+        "forbidden_scope": [
+          "绕开因果链直接背结论"
+        ],
+        "canonical_facts": [
+          "Nyquist 判据的关键不是口号，而是等价链。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-08",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "F(s)=1+L(s)、(-1,0) 和 P/N/Z 固定顺序必须同页可见。",
+        "学生不看讲稿，也能说出为什么会从原点等价到 (-1,0)。"
+      ]
+    },
+    "step-09": {
+      "title": "例题 2：第一组 Nyquist 快速判稳题",
+      "layout": {
+        "template": "worked_example_quadrant",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "quickcheck-image",
+          "region": "problem",
+          "kind": "comparison-graphic",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "image",
+            "title": "例题 2 图组"
+          }
+        },
+        {
+          "id": "pnz-table",
+          "region": "table",
+          "kind": "comparison-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "boundary",
+            "title": "边界提醒",
+            "text": "右半平面零点不等于右半平面极点；快判也不能跳过 P/N/Z。"
+          }
+        },
+        {
+          "id": "matrix-choice-cards",
+          "region": "activity",
+          "kind": "activity-card-grid",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "boundary",
+            "title": "边界提醒",
+            "text": "右半平面零点不等于右半平面极点；快判也不能跳过 P/N/Z。"
+          }
+        },
+        {
+          "id": "boundary-note",
+          "region": "activity",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "boundary",
+            "title": "边界提醒",
+            "text": "右半平面零点不等于右半平面极点；快判也不能跳过 P/N/Z。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "image": {
+          "type": "media",
+          "title": "例题 2 图组",
+          "path": "3-8-nyquist-quickcheck.png"
+        },
+        "boundary": {
+          "type": "plain_text",
+          "title": "边界提醒",
+          "body": "右半平面零点不等于右半平面极点；快判也不能跳过 P/N/Z。"
+        }
+      },
+      "evidence_sequence": [
+        "例题图组",
+        "P/N/Z 表",
+        "边界提醒",
+        "四张独立题卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "matrix_choice_cards",
+        "student_task": "对四个对象分别判断 P、N、Z 与闭环稳定性。",
+        "activity_card_rationale": "本页本质是四对象快判题组，必须保持一对象一判断卡，教师才能定位是哪一类图形或哪一步 P/N/Z 判断出错。",
+        "step_reveal_policy": {
+          "mode": "teacher_or_browse_release",
+          "problem_statement": "always_visible",
+          "derivation_steps": "teacher_step_reveal",
+          "reference_answer": "separate_teacher_toggle"
+        },
+        "activity_cards": [
+          {
+            "id": "card-09-a",
+            "prompt": "对象 A 的闭环是否稳定。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-09-b",
+            "prompt": "对象 B 的 P/N/Z 判断。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-09-c",
+            "prompt": "对象 C 的 P/N/Z 判断。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-09-d",
+            "prompt": "对象 D 是否因为右半平面零点而自动失稳。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "separate_toggle",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "show_pnz_table_row"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": true,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardResultStates",
+          "selectedStabilityLabels"
+        ],
+        "misconception_tags": [
+          "rhp_zero_equals_unstable",
+          "skip_pnz_sequence"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "object_accuracy_distribution",
+          "common_wrong_reasons"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把 Nyquist 快判真正固定成按对象逐一判断的动作。",
+        "allowed_scope": [
+          "P/N/Z 快判",
+          "右半平面零点与极点区分"
+        ],
+        "forbidden_scope": [
+          "凭图形直觉越过 P/N/Z 表"
+        ],
+        "canonical_facts": [
+          "快判不等于跳步。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-09",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "图组和 P/N/Z 表必须在题卡之前完整出现。",
+        "学生不看讲稿也能逐对象完成快判。"
+      ]
+    },
+    "step-10": {
+      "title": "例题 3：靠近边界与越过边界有什么本质不同",
+      "layout": {
+        "template": "boundary_compare_board",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "compare",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "design-example-card",
+          "region": "problem",
+          "kind": "worked-example-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "比较 K=80 与 K=110 两种增益下的 Nyquist 曲线，判断哪一个“逼近边界但未包围”，哪一个“已经发生包围”，以及设计上应保留哪个区间。"
+          }
+        },
+        {
+          "id": "boundary-figure",
+          "region": "compare",
+          "kind": "comparison-graphic",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "image",
+            "title": "边界对照图"
+          }
+        },
+        {
+          "id": "gain-interval-note",
+          "region": "compare",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "比较 K=80 与 K=110 两种增益下的 Nyquist 曲线，判断哪一个“逼近边界但未包围”，哪一个“已经发生包围”，以及设计上应保留哪个区间。"
+          }
+        },
+        {
+          "id": "card-sort-zone",
+          "region": "activity",
+          "kind": "card-sort",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "比较 K=80 与 K=110 两种增益下的 Nyquist 曲线，判断哪一个“逼近边界但未包围”，哪一个“已经发生包围”，以及设计上应保留哪个区间。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "problem": {
+          "type": "plain_text",
+          "title": "完整题面",
+          "body": "比较 K=80 与 K=110 两种增益下的 Nyquist 曲线，判断哪一个“逼近边界但未包围”，哪一个“已经发生包围”，以及设计上应保留哪个区间。"
+        },
+        "image": {
+          "type": "media",
+          "title": "边界对照图",
+          "path": "3-8-nyquist-example.png"
+        }
+      },
+      "evidence_sequence": [
+        "完整题面",
+        "边界对照图",
+        "增益区间说明",
+        "分类作答区"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "card_sort",
+        "student_task": "把两条曲线归到“逼近边界”或“已经越界”，并给出保留区间判断。",
+        "step_reveal_policy": {
+          "mode": "teacher_or_browse_release",
+          "problem_statement": "always_visible",
+          "derivation_steps": "teacher_step_reveal",
+          "reference_answer": "separate_teacher_toggle"
+        },
+        "activity_cards": [
+          {
+            "id": "card-10-a",
+            "prompt": "把 K=80 与 K=110 分到正确类别。",
+            "response_kind": "drag_sort",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-10-b",
+            "prompt": "若目标是既提速又保留余量，应保留哪一类增益区间。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "separate_toggle",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "highlight_boundary_region"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": true,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "sortResultState",
+          "selectedGainInterval"
+        ],
+        "misconception_tags": [
+          "borderline_equals_unstable",
+          "higher_gain_always_better"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "boundary_confusion_rate",
+          "gain_interval_distribution"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生把“逼近边界”和“越过边界”的差异读成设计判断。",
+        "allowed_scope": [
+          "边界感",
+          "增益区间"
+        ],
+        "forbidden_scope": [
+          "把边界问题重新化成只看图感"
+        ],
+        "canonical_facts": [
+          "逼近边界不等于已经失稳。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-10",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "题面必须完整出现，不能缩成一句“比较 K=80 与 K=110”。",
+        "学生不看讲稿，也能知道这页解决的是边界感而不是另一次快判。"
+      ]
+    },
+    "step-11": {
+      "title": "Bode 判稳：截止频率、相角裕度和增益裕度",
+      "layout": {
+        "template": "dual_graph_indicator_locator",
+        "regions": [
+          {
+            "id": "graph",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "formula",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "bode-image",
+          "region": "graph",
+          "kind": "comparison-graphic",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "image",
+            "title": "Bode 判稳图"
+          }
+        },
+        {
+          "id": "indicator-formula-list",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "equations",
+            "title": "指标定义",
+            "items": [
+              "|L(jωc)|=1",
+              "γ = 180° + ∠L(jωc)",
+              "Gm = 1 / |L(jωπ)|"
+            ]
+          }
+        },
+        {
+          "id": "three-language-table",
+          "region": "formula",
+          "kind": "comparison-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "slogan",
+            "title": "固定口令",
+            "text": "开环读余量，闭环看带宽。"
+          }
+        },
+        {
+          "id": "hotspot-labeling-zone",
+          "region": "activity",
+          "kind": "hotspot-labeling",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "image",
+            "title": "Bode 判稳图"
+          }
+        }
+      ],
+      "content_blocks": {
+        "image": {
+          "type": "media",
+          "title": "Bode 判稳图",
+          "path": "3-8-bode-example.png"
+        },
+        "equations": {
+          "type": "formula_list",
+          "title": "指标定义",
+          "items": [
+            "|L(jωc)|=1",
+            "γ = 180° + ∠L(jωc)",
+            "Gm = 1 / |L(jωπ)|"
+          ]
+        },
+        "slogan": {
+          "type": "plain_text",
+          "title": "固定口令",
+          "body": "开环读余量，闭环看带宽。"
+        }
+      },
+      "evidence_sequence": [
+        "Bode 图",
+        "指标定义",
+        "三语言对照",
+        "热点标注区"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "hotspot_labeling",
+        "student_task": "把 ωc、ωπ、PM 线和 GM 线标到正确位置。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": [
+          {
+            "id": "card-11-a",
+            "prompt": "标出截止频率线与相位穿越频率线。",
+            "response_kind": "hotspot",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-11-b",
+            "prompt": "标出 PM 线与 GM 线。",
+            "response_kind": "hotspot",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "interactive_figure_spec": {
+        "baseline_media": [
+          "3-8-bode-example.png"
+        ],
+        "default_variant": "static_bode",
+        "panel_layout": "single_annotated_figure",
+        "overlays": [
+          "wc_marker",
+          "wpi_marker",
+          "pm_line",
+          "gm_line"
+        ],
+        "controls": [
+          "indicator_toggle",
+          "line_highlight"
+        ],
+        "question_prompt": "图上的四条关键线分别在哪里，它们共同说明了什么稳定边界信息。"
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "always_on",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "show_correct_anchors"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "labelResultStates",
+          "selectedHotspots"
+        ],
+        "misconception_tags": [
+          "wc_equals_bandwidth",
+          "bode_as_another_rule"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "common_mislabels",
+          "anchor_error_heatmap"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把 Bode 判稳放回与 Nyquist 同一条稳定边界链。",
+        "allowed_scope": [
+          "ωc",
+          "ωπ",
+          "PM",
+          "GM",
+          "三语言对照"
+        ],
+        "forbidden_scope": [
+          "把截止频率直接等同于带宽"
+        ],
+        "canonical_facts": [
+          "Bode 判稳不是另一套无关规则。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-11",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "Bode 图、定义式与三语言对照表必须同页出现。",
+        "学生不看讲稿，也能知道这页要找的是哪四条关键线。"
+      ]
+    },
+    "step-12": {
+      "title": "例题 4：由 Bode 图直接判断系统在边界哪一侧",
+      "layout": {
+        "template": "worked_example_locator",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "reveal",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "problem-statement-card",
+          "region": "problem",
+          "kind": "worked-example-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "对给定 Bode 图，判断相角裕度和增益裕度的正负、系统位于边界哪一侧，以及若要回到稳定侧应优先怎样改动。"
+          }
+        },
+        {
+          "id": "reading-order-card",
+          "region": "reveal",
+          "kind": "process-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "order",
+            "title": "读图顺序",
+            "items": [
+              "先看 ωc 处相位离 -180° 多远。",
+              "再看 ωπ 处幅值离 0 dB 多远。",
+              "最后综合判断系统在边界哪一侧。"
+            ]
+          }
+        },
+        {
+          "id": "activity-card-grid",
+          "region": "activity",
+          "kind": "activity-card-grid",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "对给定 Bode 图，判断相角裕度和增益裕度的正负、系统位于边界哪一侧，以及若要回到稳定侧应优先怎样改动。"
+          }
+        },
+        {
+          "id": "reference-answer-card",
+          "region": "activity",
+          "kind": "reference-answer-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "对给定 Bode 图，判断相角裕度和增益裕度的正负、系统位于边界哪一侧，以及若要回到稳定侧应优先怎样改动。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "problem": {
+          "type": "plain_text",
+          "title": "完整题面",
+          "body": "对给定 Bode 图，判断相角裕度和增益裕度的正负、系统位于边界哪一侧，以及若要回到稳定侧应优先怎样改动。"
+        },
+        "order": {
+          "type": "bullet_list",
+          "title": "读图顺序",
+          "items": [
+            "先看 ωc 处相位离 -180° 多远。",
+            "再看 ωπ 处幅值离 0 dB 多远。",
+            "最后综合判断系统在边界哪一侧。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "完整题面",
+        "读图顺序",
+        "独立作答卡",
+        "参考答案"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "activity_cards",
+        "student_task": "完成三张独立作答卡，分别判断裕度正负、边界位置和回拉方向。",
+        "activity_card_rationale": "三张卡分别对应裕度正负、边界位置和回拉方向，三者不是同一动作；若合并，会削弱 Bode 读图链。",
+        "step_reveal_policy": {
+          "mode": "teacher_or_browse_release",
+          "problem_statement": "always_visible",
+          "derivation_steps": "teacher_step_reveal",
+          "reference_answer": "separate_teacher_toggle"
+        },
+        "activity_cards": [
+          {
+            "id": "card-12-a",
+            "prompt": "相角裕度和增益裕度是正还是负。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "card-12-b",
+            "prompt": "系统更接近稳定侧还是已经越过边界。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "card-12-c",
+            "prompt": "若要把系统拉回稳定侧，应优先左移还是右移截止频率。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "separate_toggle",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "reveal_reading_order"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": true,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardResultStates",
+          "selectedCorrectionDirection"
+        ],
+        "misconception_tags": [
+          "negative_margin_not_detected",
+          "continue_push_wc"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "margin_sign_distribution",
+          "correction_direction_distribution"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生能从 Bode 图完整走完一次边界判断。",
+        "allowed_scope": [
+          "裕度正负",
+          "边界判断",
+          "回拉方向"
+        ],
+        "forbidden_scope": [
+          "只报结论，不说明读图顺序"
+        ],
+        "canonical_facts": [
+          "Bode 例题也必须保留完整题面与读图链。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-12",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "题面必须写清三问，不能只剩“由 Bode 图判稳”。",
+        "学生不看讲稿，也能独立完成一次 Bode 边界判断。"
+      ]
+    },
+    "step-13": {
+      "title": "三频段分工：精度、速度与代价不能混读",
+      "layout": {
+        "template": "band_focus_board",
+        "regions": [
+          {
+            "id": "figure",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "focus",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "three-band-image",
+          "region": "figure",
+          "kind": "comparison-graphic",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "image",
+            "title": "三频段总图"
+          }
+        },
+        {
+          "id": "band-duty-table",
+          "region": "table",
+          "kind": "comparison-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "duty",
+            "title": "三频段职责",
+            "items": [
+              "低频看稳态精度与抗缓变扰动。",
+              "中频看速度、超调与稳定边界。",
+              "高频看噪声、执行器代价与鲁棒性。"
+            ]
+          }
+        },
+        {
+          "id": "metric-readback-table",
+          "region": "table",
+          "kind": "comparison-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "image",
+            "title": "三频段总图"
+          }
+        },
+        {
+          "id": "band-focus-panel",
+          "region": "focus",
+          "kind": "band-focus-panel",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "image",
+            "title": "三频段总图"
+          }
+        }
+      ],
+      "content_blocks": {
+        "image": {
+          "type": "media",
+          "title": "三频段总图",
+          "path": "3-8-three-band-overview.png"
+        },
+        "duty": {
+          "type": "bullet_list",
+          "title": "三频段职责",
+          "items": [
+            "低频看稳态精度与抗缓变扰动。",
+            "中频看速度、超调与稳定边界。",
+            "高频看噪声、执行器代价与鲁棒性。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "三频段总图",
+        "频带职责表",
+        "频域量读回表",
+        "频带聚焦区"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "band_focus_panel",
+        "student_task": "切换低 / 中 / 高频，查看每段对应的典型指标与工程含义，不提交。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": [
+          {
+            "id": "step-13-activity",
+            "title": "切换低 / 中 / 高频，查看每段对应的典型指标与工程含义，不提交。",
+            "prompt": "切换低 / 中 / 高频，查看每段对应的典型指标与工程含义，不提交。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "interactive_figure_spec": {
+        "baseline_media": [
+          "3-8-three-band-overview.png"
+        ],
+        "default_variant": "all_bands",
+        "panel_layout": "single_annotated_figure",
+        "overlays": [
+          "low_band_focus",
+          "mid_band_focus",
+          "high_band_focus"
+        ],
+        "controls": [
+          "band_focus_toggle"
+        ],
+        "question_prompt": "当目标变成精度、速度或代价时，应该优先读哪一段频带。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "always_on",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable",
+        "instructor_demo_tools": [
+          "lock_band_focus"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "focusedBand",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "band_focus_distribution"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把三频段分工变成可聚焦、可回读的稳定骨架。",
+        "allowed_scope": [
+          "低中高频职责",
+          "频域量读回"
+        ],
+        "forbidden_scope": [
+          "把三个频段重新混成单一“更快更好”判断"
+        ],
+        "canonical_facts": [
+          "三频段分工是工程读回的索引页。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-13",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "总图、职责表、读回表必须同页出现。",
+        "学生不看讲稿，也能说出低频 / 中频 / 高频分别负责什么。"
+      ]
+    },
+    "step-14": {
+      "title": "例题 5：目标切换时，先改哪一段频带",
+      "layout": {
+        "template": "goal_switch_workspace",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "cards",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "ai",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "goal-switch-card",
+          "region": "problem",
+          "kind": "worked-example-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”时，应优先希望哪一组频域量发生变化。"
+          }
+        },
+        {
+          "id": "activity-card-grid",
+          "region": "cards",
+          "kind": "activity-card-grid",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "ai_note",
+            "title": "使用顺序",
+            "text": "必须先独立作答，再进入 AI 对照区修订。"
+          }
+        },
+        {
+          "id": "ai-compare-zone",
+          "region": "ai",
+          "kind": "ai-compare-workspace",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”时，应优先希望哪一组频域量发生变化。"
+          }
+        },
+        {
+          "id": "revision-note",
+          "region": "ai",
+          "kind": "revision-note",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "完整题面",
+            "text": "任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”时，应优先希望哪一组频域量发生变化。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "problem": {
+          "type": "plain_text",
+          "title": "完整题面",
+          "body": "任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”时，应优先希望哪一组频域量发生变化。"
+        },
+        "ai_note": {
+          "type": "plain_text",
+          "title": "使用顺序",
+          "body": "必须先独立作答，再进入 AI 对照区修订。"
+        }
+      },
+      "evidence_sequence": [
+        "完整题面",
+        "独立作答卡",
+        "AI 对照区",
+        "修订记录"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "goal_cards_plus_ai",
+        "student_task": "先完成独立判断卡，再查看 AI 对照并决定是否修订。",
+        "activity_card_rationale": "本页需要依次完成首选频带、可动指标和操作顺序三种任务，再进入 AI 对照；三卡拆开才能保留“先自判、后修订”的顺序。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": [
+          {
+            "id": "card-14-a",
+            "prompt": "目标切换后，应优先改哪一段频带。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "card-14-b",
+            "prompt": "此时最该关注哪两个频域量。",
+            "response_kind": "multi_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "card-14-c",
+            "prompt": "把“精度 / 速度 / 代价”与低 / 中 / 高频做排序对齐。",
+            "response_kind": "drag_sort",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "open_ai_compare"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardResultStates",
+          "aiViewed",
+          "revisionState"
+        ],
+        "misconception_tags": [
+          "ask_ai_before_judging",
+          "goal_band_mapping_confusion"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "goal_choice_distribution",
+          "ai_revision_rate"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把“先独立判断，再 AI 对照”写成稳定动作。",
+        "allowed_scope": [
+          "目标切换",
+          "频带优先级",
+          "例题 5"
+        ],
+        "forbidden_scope": [
+          "代替学生直接完成首答"
+        ],
+        "canonical_facts": [
+          "AI 对照只能后置，不能替代首答。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-14",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "题面必须完整写出“目标切换”的条件与选项语境。",
+        "学生不看讲稿，也能知道本页先独立判断、后 AI 对照。"
+      ]
+    },
+    "step-15": {
+      "title": "航向控制案例：先把基线方案的问题读清楚",
+      "layout": {
+        "template": "case_baseline_board",
+        "regions": [
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "figure",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "case-context-card",
+          "region": "problem",
+          "kind": "case-context-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "context",
+            "title": "案例背景",
+            "text": "基线方案直接采用原始航向对象与单位负反馈，K=2.25，不加任何超前、滞后或积分补偿。"
+          }
+        },
+        {
+          "id": "baseline-2x2-figure",
+          "region": "figure",
+          "kind": "interactive-figure-panel",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "metrics",
+            "title": "基线指标",
+            "items": [
+              "相角裕度约 37.43°",
+              "截止频率约 0.1169 rad/s",
+              "超调量约 31.95%",
+              "调节时间约 83.10 s"
+            ]
+          }
+        },
+        {
+          "id": "metric-strip",
+          "region": "figure",
+          "kind": "metric-strip",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "context",
+            "title": "案例背景",
+            "text": "基线方案直接采用原始航向对象与单位负反馈，K=2.25，不加任何超前、滞后或积分补偿。"
+          }
+        },
+        {
+          "id": "evidence-mark-cards",
+          "region": "activity",
+          "kind": "activity-card-grid",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "context",
+            "title": "案例背景",
+            "text": "基线方案直接采用原始航向对象与单位负反馈，K=2.25，不加任何超前、滞后或积分补偿。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "context": {
+          "type": "plain_text",
+          "title": "案例背景",
+          "body": "基线方案直接采用原始航向对象与单位负反馈，K=2.25，不加任何超前、滞后或积分补偿。"
+        },
+        "metrics": {
+          "type": "bullet_list",
+          "title": "基线指标",
+          "items": [
+            "相角裕度约 37.43°",
+            "截止频率约 0.1169 rad/s",
+            "超调量约 31.95%",
+            "调节时间约 83.10 s"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "案例背景",
+        "基线 2×2 图",
+        "基线指标",
+        "证据标注卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "evidence_mark_cards",
+        "student_task": "圈出最能说明“主要问题在中频余量偏小”的证据，并提交一句依据。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": [
+          {
+            "id": "card-15-a",
+            "prompt": "哪一项证据最能说明基线方案的问题落在中频。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-15-b",
+            "prompt": "补一句依据：为什么这不是低频问题。",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "interactive_figure_spec": {
+        "baseline_media": [
+          "3-8-heading-baseline.png"
+        ],
+        "default_variant": "baseline_only",
+        "panel_layout": "2x2_fixed",
+        "overlays": [
+          "pm_marker",
+          "wc_marker",
+          "closed_loop_poles"
+        ],
+        "controls": [
+          "overlay_toggle"
+        ],
+        "question_prompt": "从基线 2×2 图里找出“速度偏慢且超调偏大”的根本证据。"
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "always_on",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "highlight_mid_frequency_evidence"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedEvidence",
+          "textResponseLength"
+        ],
+        "misconception_tags": [
+          "treat_as_low_frequency_problem",
+          "see_only_time_response"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "evidence_selection_distribution",
+          "reason_keyword_cloud"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生先把案例问题定位清楚，再进入校正。",
+        "allowed_scope": [
+          "基线问题定位",
+          "中频余量"
+        ],
+        "forbidden_scope": [
+          "跳过问题定位直接报校正结论"
+        ],
+        "canonical_facts": [
+          "案例页必须先能读懂“原系统哪里不足”。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-15",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "基线 2×2 图、基线指标与问题定位必须同页出现。",
+        "学生不看讲稿，也能知道案例先要解决“问题在哪一段频带”。"
+      ]
+    },
+    "step-16": {
+      "title": "航向控制案例：把时域指标翻译成频域目标，再看超前校正",
+      "layout": {
+        "template": "case_translation_compare",
+        "regions": [
+          {
+            "id": "translation",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "compare",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "translation-chain-card",
+          "region": "translation",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "translation_chain",
+            "title": "指标翻译链",
+            "items": [
+              "Mp≈15% -> ζd≈0.52 -> 目标相角裕度约 50° 到 55°",
+              "ts≈45s -> 目标自然频率约 0.17 rad/s -> 目标截止频率约 0.25 rad/s",
+              "要同时补角并抬升中频幅值，不能只靠继续加增益"
+            ]
+          }
+        },
+        {
+          "id": "lead-network-card",
+          "region": "translation",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "network",
+            "title": "超前网络",
+            "items": [
+              "Ch(s)=(1+s/0.05)/(1+s/0.3)"
+            ]
+          }
+        },
+        {
+          "id": "compare-2x2-figure",
+          "region": "compare",
+          "kind": "interactive-figure-panel",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "translation_chain",
+            "title": "指标翻译链",
+            "items": [
+              "Mp≈15% -> ζd≈0.52 -> 目标相角裕度约 50° 到 55°",
+              "ts≈45s -> 目标自然频率约 0.17 rad/s -> 目标截止频率约 0.25 rad/s",
+              "要同时补角并抬升中频幅值，不能只靠继续加增益"
+            ]
+          }
+        },
+        {
+          "id": "metrics-table",
+          "region": "compare",
+          "kind": "comparison-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "translation_chain",
+            "title": "指标翻译链",
+            "items": [
+              "Mp≈15% -> ζd≈0.52 -> 目标相角裕度约 50° 到 55°",
+              "ts≈45s -> 目标自然频率约 0.17 rad/s -> 目标截止频率约 0.25 rad/s",
+              "要同时补角并抬升中频幅值，不能只靠继续加增益"
+            ]
+          }
+        },
+        {
+          "id": "structured-compare-zone",
+          "region": "activity",
+          "kind": "structured-compare",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "translation_chain",
+            "title": "指标翻译链",
+            "items": [
+              "Mp≈15% -> ζd≈0.52 -> 目标相角裕度约 50° 到 55°",
+              "ts≈45s -> 目标自然频率约 0.17 rad/s -> 目标截止频率约 0.25 rad/s",
+              "要同时补角并抬升中频幅值，不能只靠继续加增益"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "translation_chain": {
+          "type": "bullet_list",
+          "title": "指标翻译链",
+          "items": [
+            "Mp≈15% -> ζd≈0.52 -> 目标相角裕度约 50° 到 55°",
+            "ts≈45s -> 目标自然频率约 0.17 rad/s -> 目标截止频率约 0.25 rad/s",
+            "要同时补角并抬升中频幅值，不能只靠继续加增益"
+          ]
+        },
+        "network": {
+          "type": "formula_list",
+          "title": "超前网络",
+          "items": [
+            "Ch(s)=(1+s/0.05)/(1+s/0.3)"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "指标翻译链",
+        "超前网络",
+        "前后对照 2×2 图",
+        "指标表",
+        "结构化比较卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "structured_compare",
+        "student_task": "指出主改频带、关键频域量变化，以及时域收益。",
+        "activity_card_rationale": "三张比较卡分别承载主改频带、关键频域量与时域收益读回，正对应“翻译链”的三个环节，不能压成一句口号。",
+        "step_reveal_policy": {
+          "mode": "teacher_or_browse_release",
+          "problem_statement": "always_visible",
+          "derivation_steps": "teacher_step_reveal",
+          "reference_answer": "separate_teacher_toggle"
+        },
+        "activity_cards": [
+          {
+            "id": "card-16-a",
+            "prompt": "校正主要改写哪一段频带。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "card-16-b",
+            "prompt": "相角裕度、截止频率、带宽、谐振峰值中，哪几项最关键。",
+            "response_kind": "multi_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "card-16-c",
+            "prompt": "用一句话把频域变化读回超调和调节时间的改善。",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          }
+        ]
+      },
+      "interactive_figure_spec": {
+        "baseline_media": [
+          "3-8-heading-baseline.png",
+          "3-8-heading-case.png"
+        ],
+        "default_variant": "baseline_vs_lead",
+        "panel_layout": "2x2_fixed",
+        "overlays": [
+          "pm_gm_markers",
+          "wc_wb_markers"
+        ],
+        "controls": [
+          "case_toggle",
+          "overlay_toggle",
+          "parameter_drawer_teacher_only"
+        ],
+        "question_prompt": "超前校正到底是通过哪一段频带的动作，把速度与平稳同时改好。"
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "separate_toggle",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "reveal_translation_chain",
+          "toggle_case_overlay"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": true,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedFocusBand",
+          "selectedMetrics",
+          "textResponseLength"
+        ],
+        "misconception_tags": [
+          "only_repeat_result",
+          "ignore_mid_frequency_reason"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "focus_band_distribution",
+          "metric_selection_heatmap"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把航向控制案例读成“中频超前改善”的完整证据链。",
+        "allowed_scope": [
+          "中频超前",
+          "相角裕度",
+          "截止频率",
+          "时域读回"
+        ],
+        "forbidden_scope": [
+          "生成页面之外的新整定方案"
+        ],
+        "canonical_facts": [
+          "案例必须先翻译目标，再看校正结果。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-16",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "Mp -> ζ -> PM 与 ts -> ωn -> ωc 两条链必须完整出现。",
+        "学生不看讲稿，也能解释为什么这是中频超前而不是单纯增益变化。"
+      ]
+    },
+    "step-17": {
+      "title": "稳定平台案例：为什么“只改增益”会左右为难",
+      "layout": {
+        "template": "scheme_problem_board",
+        "regions": [
+          {
+            "id": "structure",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "figure",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "platform-structure-graphic",
+          "region": "structure",
+          "kind": "comparison-graphic",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "structure",
+            "title": "控制框图"
+          }
+        },
+        {
+          "id": "aggressive-vs-slow-figure",
+          "region": "figure",
+          "kind": "interactive-figure-panel",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "contradiction",
+            "title": "核心矛盾",
+            "text": "只靠改比例增益，要么快但冒进，要么稳但太慢。"
+          }
+        },
+        {
+          "id": "contradiction-note",
+          "region": "figure",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "structure",
+            "title": "控制框图"
+          }
+        },
+        {
+          "id": "scheme-vote-cards",
+          "region": "activity",
+          "kind": "activity-card-grid",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "structure",
+            "title": "控制框图"
+          }
+        }
+      ],
+      "content_blocks": {
+        "structure": {
+          "type": "media",
+          "title": "控制框图",
+          "path": "3-8-platform-block-diagram.png"
+        },
+        "contradiction": {
+          "type": "plain_text",
+          "title": "核心矛盾",
+          "body": "只靠改比例增益，要么快但冒进，要么稳但太慢。"
+        }
+      },
+      "evidence_sequence": [
+        "控制框图",
+        "激进基线 / 仅降增益对照",
+        "矛盾说明",
+        "方案投票卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "scheme_vote_cards",
+        "student_task": "判断哪种方案只是退回保守，并指出它牺牲了什么。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": [
+          {
+            "id": "card-17-a",
+            "prompt": "哪种方案只是通过降增益换稳定。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-17-b",
+            "prompt": "它主要牺牲了什么。",
+            "response_kind": "multi_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "interactive_figure_spec": {
+        "baseline_media": [
+          "3-8-platform-baseline.png"
+        ],
+        "default_variant": "aggressive_vs_slow",
+        "panel_layout": "2x2_fixed",
+        "overlays": [
+          "scheme_colors",
+          "pm_wb_markers"
+        ],
+        "controls": [
+          "scheme_toggle",
+          "overlay_toggle"
+        ],
+        "question_prompt": "为什么只改增益无法同时守住速度和平稳。"
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "always_on",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "highlight_scheme_difference"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedScheme",
+          "selectedTradeoff"
+        ],
+        "misconception_tags": [
+          "gain_reduction_is_enough",
+          "only_watch_overshoot"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "scheme_choice_distribution",
+          "tradeoff_selection_heatmap"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生先看到“只改增益”的结构性矛盾。",
+        "allowed_scope": [
+          "三方案矛盾",
+          "速度与平稳权衡"
+        ],
+        "forbidden_scope": [
+          "直接跳到最终超前方案结论"
+        ],
+        "canonical_facts": [
+          "平台案例必须先讲矛盾，再讲解法。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-17",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "控制框图和“只改增益”的矛盾必须先于结论出现。",
+        "学生不看讲稿，也能知道这一页是在建立问题，不是在给最终答案。"
+      ]
+    },
+    "step-18": {
+      "title": "稳定平台案例：超前校正怎样兼顾速度和平稳",
+      "layout": {
+        "template": "scheme_compare_lab",
+        "regions": [
+          {
+            "id": "figure",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "activity",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "three-scheme-2x2-figure",
+          "region": "figure",
+          "kind": "interactive-figure-panel",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "images",
+            "title": "三方案对照",
+            "items": [
+              "3-8-platform-baseline.png",
+              "3-8-platform-case.png"
+            ]
+          }
+        },
+        {
+          "id": "metrics-table",
+          "region": "table",
+          "kind": "comparison-table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "conclusion",
+            "title": "固定结论",
+            "text": "更有效的办法是在中频补角，而不是单向把增益往下拧。"
+          }
+        },
+        {
+          "id": "fixed-conclusion-card",
+          "region": "table",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "images",
+            "title": "三方案对照",
+            "items": [
+              "3-8-platform-baseline.png",
+              "3-8-platform-case.png"
+            ]
+          }
+        },
+        {
+          "id": "structured-compare-zone",
+          "region": "activity",
+          "kind": "structured-compare",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "images",
+            "title": "三方案对照",
+            "items": [
+              "3-8-platform-baseline.png",
+              "3-8-platform-case.png"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "images": {
+          "type": "media_list",
+          "title": "三方案对照",
+          "items": [
+            "3-8-platform-baseline.png",
+            "3-8-platform-case.png"
+          ]
+        },
+        "conclusion": {
+          "type": "plain_text",
+          "title": "固定结论",
+          "body": "更有效的办法是在中频补角，而不是单向把增益往下拧。"
+        }
+      },
+      "evidence_sequence": [
+        "三方案 2×2 图",
+        "指标表",
+        "固定结论",
+        "结构化比较卡"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "structured_compare",
+        "student_task": "解释为什么只降增益不够，以及超前校正主改哪一段频带。",
+        "activity_card_rationale": "本页需要分别说明方案不足、主改频带和最终收益；三卡拆开可避免把工程比较压成一句“超前更好”的口号。",
+        "step_reveal_policy": {
+          "mode": "teacher_or_browse_release",
+          "problem_statement": "always_visible",
+          "derivation_steps": "teacher_step_reveal",
+          "reference_answer": "separate_teacher_toggle"
+        },
+        "activity_cards": [
+          {
+            "id": "card-18-a",
+            "prompt": "哪一种方案最能兼顾速度与平稳。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "card-18-b",
+            "prompt": "超前校正主改哪一段频带。",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          },
+          {
+            "id": "card-18-c",
+            "prompt": "用一句话说明“只降增益为什么不够”。",
+            "response_kind": "fill_text",
+            "submit_scope": "per_card",
+            "layout_span": "one_third"
+          }
+        ]
+      },
+      "interactive_figure_spec": {
+        "baseline_media": [
+          "3-8-platform-baseline.png",
+          "3-8-platform-case.png"
+        ],
+        "default_variant": "three_scheme_compare",
+        "panel_layout": "2x2_fixed",
+        "overlays": [
+          "scheme_colors",
+          "pm_gm_wb_wr_mr_markers"
+        ],
+        "controls": [
+          "scheme_toggle",
+          "overlay_toggle",
+          "parameter_drawer_teacher_only"
+        ],
+        "question_prompt": "为什么超前校正能在保持较高速度时，把超调与峰化一起压下去。"
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "separate_toggle",
+        "teacher_step_reveal": "teacher_only",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "toggle_three_scheme_overlay"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": true,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": false,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedScheme",
+          "selectedFocusBand",
+          "textResponseLength"
+        ],
+        "misconception_tags": [
+          "still_choose_gain_only",
+          "cannot_read_mid_frequency_correction"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "best_scheme_distribution",
+          "focus_band_distribution"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把平台案例收束为“三方案权衡中的中频定向校正”。",
+        "allowed_scope": [
+          "三方案比较",
+          "中频补角",
+          "速度和平稳兼顾"
+        ],
+        "forbidden_scope": [
+          "生成页面之外的新结构与参数"
+        ],
+        "canonical_facts": [
+          "最终方案之所以优，是因为它把动作集中在关键频带。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-18",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "学生不看讲稿，也能说清“只降增益为什么不够”。",
+        "结构化比较必须围绕频带、指标和读回结论，不得退化成空泛评价。"
+      ]
+    },
+    "step-19": {
+      "title": "后测：把完整判断链独立走一遍",
+      "layout": {
+        "template": "posttest_board",
+        "regions": [
+          {
+            "id": "questions",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "review",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "class",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "posttest-card-group",
+          "region": "questions",
+          "kind": "quiz-group",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "coverage",
+            "title": "后测覆盖",
+            "items": [
+              "P/N/Z 顺序",
+              "Bode 边界判断",
+              "频带优先级",
+              "非最小相边界直觉"
+            ]
+          }
+        },
+        {
+          "id": "remaining-confusion-note",
+          "region": "review",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "coverage",
+            "title": "后测覆盖",
+            "items": [
+              "P/N/Z 顺序",
+              "Bode 边界判断",
+              "频带优先级",
+              "非最小相边界直觉"
+            ]
+          }
+        },
+        {
+          "id": "teacher-aggregation-strip",
+          "region": "class",
+          "kind": "teacher-strip",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "coverage",
+            "title": "后测覆盖",
+            "items": [
+              "P/N/Z 顺序",
+              "Bode 边界判断",
+              "频带优先级",
+              "非最小相边界直觉"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "coverage": {
+          "type": "bullet_list",
+          "title": "后测覆盖",
+          "items": [
+            "P/N/Z 顺序",
+            "Bode 边界判断",
+            "频带优先级",
+            "非最小相边界直觉"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "后测题组",
+        "剩余错因回看",
+        "班级聚合条"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "student_task": "完成四张后测题卡，并提交一句出口自检。",
+        "activity_card_rationale": "后测页属于题组页，四张卡分别检查顺序、边界、频带和非最小相直觉，必须独立统计残余错因。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": [
+          {
+            "id": "card-19-a",
+            "prompt": "Nyquist 顺序题",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-19-b",
+            "prompt": "Bode 边界题",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-19-c",
+            "prompt": "频带优先级题",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          },
+          {
+            "id": "card-19-d",
+            "prompt": "非最小相边界直觉题",
+            "response_kind": "single_choice",
+            "submit_scope": "per_card",
+            "layout_span": "half"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "separate_toggle",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "separate_toggle",
+        "instructor_demo_tools": [
+          "show_remaining_confusions"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "cardResultStates",
+          "exitReflection"
+        ],
+        "misconception_tags": [
+          "remaining_order_confusion",
+          "remaining_band_confusion"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "posttest_distribution",
+          "top_remaining_confusions"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "检查学生是否已能独立走完整条判断链。",
+        "allowed_scope": [
+          "后测纠偏",
+          "剩余错因"
+        ],
+        "forbidden_scope": [
+          "把后测改成总结页"
+        ],
+        "canonical_facts": [
+          "后测页只做检测，不承担总结语义。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-19",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "后测必须与总结页分开。",
+        "学生不看讲稿，也能独立完成出口检测。"
+      ]
+    },
+    "step-20": {
+      "title": "总结与去向：`3-9` 和模块 4 从哪里接走本课",
+      "layout": {
+        "template": "summary_exit_board",
+        "regions": [
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "info",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "next",
+            "width": "full",
+            "order": 3
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "summary-card-row",
+          "region": "summary",
+          "kind": "summary-card-row",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "summary",
+            "title": "四条结论",
+            "items": [
+              "频域是统一翻译器，不是新章孤岛。",
+              "Nyquist 与 Bode 描述的是同一个稳定边界问题。",
+              "低频、中频、高频分别承担精度、速度与代价判断。",
+              "有效校正是定向改写关键频带，而不是盲目改增益。"
+            ]
+          }
+        },
+        {
+          "id": "info-graphic",
+          "region": "info",
+          "kind": "media-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "info_image",
+            "title": "信息图"
+          }
+        },
+        {
+          "id": "next-step-card",
+          "region": "next",
+          "kind": "next-step-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "next",
+            "title": "去向",
+            "text": "3-9 将把本课判断链带入同一对象的多版本映射；模块 4 将把这些判断推进到约束驱动的设计行动。"
+          }
+        },
+        {
+          "id": "reflection-card",
+          "region": "next",
+          "kind": "reflection-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "summary",
+            "title": "四条结论",
+            "items": [
+              "频域是统一翻译器，不是新章孤岛。",
+              "Nyquist 与 Bode 描述的是同一个稳定边界问题。",
+              "低频、中频、高频分别承担精度、速度与代价判断。",
+              "有效校正是定向改写关键频带，而不是盲目改增益。"
+            ]
+          }
+        }
+      ],
+      "content_blocks": {
+        "summary": {
+          "type": "bullet_list",
+          "title": "四条结论",
+          "items": [
+            "频域是统一翻译器，不是新章孤岛。",
+            "Nyquist 与 Bode 描述的是同一个稳定边界问题。",
+            "低频、中频、高频分别承担精度、速度与代价判断。",
+            "有效校正是定向改写关键频带，而不是盲目改增益。"
+          ]
+        },
+        "info_image": {
+          "type": "media",
+          "title": "信息图",
+          "path": "3-8-info.png"
+        },
+        "next": {
+          "type": "plain_text",
+          "title": "去向",
+          "body": "3-9 将把本课判断链带入同一对象的多版本映射；模块 4 将把这些判断推进到约束驱动的设计行动。"
+        }
+      },
+      "evidence_sequence": [
+        "四条结论",
+        "信息图",
+        "去向卡",
+        "一句反思"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "reflection_card",
+        "student_task": "选填一句反思，说明自己现在最稳的判断动作是什么。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": [
+          {
+            "id": "step-20-activity",
+            "title": "选填一句反思，说明自己现在最稳的判断动作是什么。",
+            "prompt": "选填一句反思，说明自己现在最稳的判断动作是什么。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "always_on",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable",
+        "instructor_demo_tools": [
+          "toggle_reflection_card"
+        ]
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "reflectionSubmitted"
+        ],
+        "result_policy": "optional_reflection"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "reflection_keyword_cloud"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "把本课主线稳定收束到后续单元。",
+        "allowed_scope": [
+          "四条结论",
+          "3-9 与模块 4 的衔接"
+        ],
+        "forbidden_scope": [
+          "在总结页继续引入新知识点"
+        ],
+        "canonical_facts": [
+          "总结页负责收束，不再承担后测。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-20",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "四条结论、信息图与去向卡必须同页。",
+        "学生离开本页时，不看讲稿也能复述本课主线和下一跳。"
+      ]
+    }
+  }
+}

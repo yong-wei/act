@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T06:06:06.529641Z",
+  "lesson": {
+    "lesson_id": "3-8",
+    "title": "频域判别与跨域综合语言",
+    "groups": [
+      "Nyquist 与 Bode 统一判稳链"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "奈奎斯特稳定判据_5_a1b34560",
+    "name": "奈奎斯特稳定判据",
+    "name_en": "Nyquist Stability Criterion",
+    "category": "程序性",
+    "knowledge_type": "C",
+    "bloom_level": "应用",
+    "definition": "根据开环幅相特性曲线（奈奎斯特图）环绕(-1, j0)点的情况，判断闭环系统稳定性的方法。",
+    "examples": [
+      "例5-8：根据开环幅相特性曲线确定系统闭环稳定时K值的范围。",
+      "题5-13、5-14、5-15：应用奈氏判据判定给定开环传递函数对应系统的闭环稳定性。"
+    ],
+    "formulas": [
+      "Z = P - R",
+      "R = 2(N^+ - N^-)"
+    ],
+    "keywords": [
+      "奈氏判据",
+      "稳定性",
+      "幅角原理",
+      "包围圈数",
+      "开环幅相特性",
+      "闭环极点"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/奈奎斯特稳定判据_5_a1b34560.md",
+  "card_frontmatter": {
+    "node_id": "奈奎斯特稳定判据_5_a1b34560",
+    "name": "奈奎斯特稳定判据",
+    "name_en": "Nyquist Stability Criterion",
+    "lesson_units": [
+      "3-8"
+    ],
+    "category": "概念性",
+    "knowledge_type": "C",
+    "chapter": "5",
+    "tags": [
+      "3-8",
+      "Nyquist",
+      "判稳",
+      "PNZ"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-8/design/handout.md"
+    ],
+    "asset_refs": [
+      "3-8-nyquist-quickcheck.png",
+      "3-8-nyquist-example.png"
+    ]
+  },
+  "card_overview": "# 奈奎斯特稳定判据 | Nyquist Stability Criterion\n\n**一句话定义**：Nyquist 曲线对临界点 `(-1,0)` 的包围关系，与开环右半平面极点数一起决定闭环右半平面极点数。\n\n**核心直觉**：不是先问“曲线像不像稳定”，而是固定按 `P -> N -> Z` 的顺序做判断。\n\n**关键公式**：\n$$\nN=P-Z,\\qquad Z=0 \\Longleftrightarrow N=P\n$$\n\n**关联**：前置 → 幅角原理、开环频率特性曲线 · 后续 → Bode 判稳、频域综合判断与工程读回",
+  "card_detail": "### 完整解释\n\n对负反馈系统取辅助函数\n$$\nF(s)=1+L(s)\n$$\n若采用“顺时针包围临界点记为正”的工程记号，Nyquist 判据写成\n$$\nN=P-Z\n$$\n其中：\n\n- `P`：开环右半平面极点数；\n- `N`：Nyquist 曲线对 `(-1,0)` 的顺时针包围数；\n- `Z`：闭环右半平面极点数。\n\n因此，判稳动作必须固定为：\n\n1. 先数开环右半平面极点数 `P`；\n2. 再数 Nyquist 曲线对临界点的包围数 `N`；\n3. 最后算出 `Z` 并判断闭环是否稳定。\n\n`3-8` 的四图快速判稳题正是用这条顺序训练“不开高阶特征方程，也能先完成稳定性判断”。\n\n### 工程场景\n\nNyquist 判据最适合回答“当前系统离稳定边界还有多远、继续推增益会不会越界”。它不仅能判断稳不稳，还能看出“靠近边界”与“已经越界”的差别。\n\n### 常见误区\n\n1. **误区**：含右半平面零点就一定闭环不稳。\n   **纠正**：判据关心的是开环右半平面极点数和对临界点的包围，不是零点位置本身直接决定闭环稳定性。\n\n2. **误区**：先看包围圈数，再回头想开环有没有不稳定极点。\n   **纠正**：不先数 `P`，就无法解释同样的包围关系为什么对应不同的闭环结论。",
+  "card_plain_excerpt": "## 首页\n\n# 奈奎斯特稳定判据 | Nyquist Stability Criterion\n\n**一句话定义**：Nyquist 曲线对临界点 `(-1,0)` 的包围关系，与开环右半平面极点数一起决定闭环右半平面极点数。\n\n**核心直觉**：不是先问“曲线像不像稳定”，而是固定按 `P -> N -> Z` 的顺序做判断。\n\n**关键公式**：\n$$\nN=P-Z,\\qquad Z=0 \\Longleftrightarrow N=P\n$$\n\n**关联**：前置 → 幅角原理、开环频率特性曲线 · 后续 → Bode 判稳、频域综合判断与工程读回\n\n## 详情\n\n### 完整解释\n\n对负反馈系统取辅助函数\n$$\nF(s)=1+L(s)\n$$\n若采用“顺时针包围临界点记为正”的工程记号，Nyquist 判据写成\n$$\nN=P-Z\n$$\n其中：\n\n- `P`：开环右半平面极点数；\n- `N`：Nyquist 曲线对 `(-1,0)` 的顺时针包围数；\n- `Z`：闭环右半平面极点数。\n\n因此，判稳动作必须固定为：\n\n1. 先数开环右半平面极点数 `P`；\n2. 再数 Nyquist 曲线对临界点的包围数 `N`；\n3. 最后算出 `Z` 并判断闭环是否稳定。\n\n`3-8` 的四图快速判稳题正是用这条顺序训练“不开高阶特征方程，也能先完成稳定性判断”。\n\n### 工程场景\n\nNyquist 判据最适合回答“当前系统离稳定边界还有多远、继续推增益会不会越界”。它不仅能判断稳不稳，还能看出“靠近边界”与“已经越界”的差别。\n\n### 常见误区\n\n1. **误区**：含右半平面零点就一定闭环不稳。\n   **纠正**：判据关心的是开环右半平面极点数和对临界点的包围，不是零点位置本身直接决定闭环稳定性。\n\n2. **误区**：先看包围圈数，再回头想开环有没有不稳定极点。\n   **纠正**：不先数 `P`，就无法解释同样的包围关系为什么对应不同的闭环结论。",
+  "core_intuition": "不是先问“曲线像不像稳定”，而是固定按 `P -> N -> Z` 的顺序做判断。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "极点配置",
+      "target_id": null,
+      "target": "奈奎斯特稳定判据",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "峰值时间",
+      "target_id": null,
+      "target": "奈奎斯特稳定判据",
+      "relation": "related",
+      "strength": 0.1,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "闭环极点",
+      "target_id": null,
+      "target": "奈奎斯特稳定判据",
+      "relation": "related",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "根轨迹法",
+      "target_id": null,
+      "target": "奈奎斯特稳定判据",
+      "relation": "related",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "根轨迹",
+      "target_id": null,
+      "target": "奈奎斯特稳定判据",
+      "relation": "related",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "闭环极点",
+      "target_id": null,
+      "target": "奈奎斯特稳定判据",
+      "relation": "related",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "闭环特征方程",
+      "target_id": null,
+      "target": "奈奎斯特稳定判据",
+      "relation": "related",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "参数根轨迹",
+      "target_id": null,
+      "target": "奈奎斯特稳定判据",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "稳定性",
+      "target_id": null,
+      "target": "奈奎斯特稳定判据",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "根轨迹图",
+      "target_id": null,
+      "target": "奈奎斯特稳定判据",
+      "relation": "related",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频域分析法",
+      "target_id": null,
+      "target": "奈奎斯特稳定判据",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频率特性",
+      "target_id": null,
+      "target": "奈奎斯特稳定判据",
+      "relation": "prerequisite",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

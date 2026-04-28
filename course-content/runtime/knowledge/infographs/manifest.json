@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
+      "title": "三频段闭环性能回读 信息图",
+      "lessonId": "3-8",
+      "nodeId": "三频段闭环性能回读_3_38003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
+      "title": "低频补偿稳态改善路径 信息图",
+      "lessonId": "3-8",
+      "nodeId": "低频补偿稳态改善路径_3_37003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/奈奎斯特与Bode统一判稳链_3_38002.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/奈奎斯特与Bode统一判稳链_3_38002.png",
+      "title": "奈奎斯特与 Bode 统一判稳链 信息图",
+      "lessonId": "3-8",
+      "nodeId": "奈奎斯特与Bode统一判稳链_3_38002"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/奈奎斯特稳定判据_5_a1b34560.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/奈奎斯特稳定判据_5_a1b34560.png",
+      "title": "奈奎斯特稳定判据 信息图",
+      "lessonId": "3-8",
+      "nodeId": "奈奎斯特稳定判据_5_a1b34560"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/左半平面零点的动态改善机理_3_35002.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/左半平面零点的动态改善机理_3_35002.png",
+      "title": "左半平面零点的动态改善机理 信息图",
+      "lessonId": "3-8",
+      "nodeId": "左半平面零点的动态改善机理_3_35002"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/带宽_5_6730fda4.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/带宽_5_6730fda4.png",
+      "title": "带宽 信息图",
+      "lessonId": "3-8",
+      "nodeId": "带宽_5_6730fda4"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/幅值裕度_5_73af26a5.png",
+      "title": "幅值裕度 信息图",
+      "lessonId": "3-8",
+      "nodeId": "幅值裕度_5_73af26a5"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/幅角原理_5_f843970e.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/幅角原理_5_f843970e.png",
+      "title": "幅角原理 信息图",
+      "lessonId": "3-8",
+      "nodeId": "幅角原理_5_f843970e"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/截止频率_5_c7d09ff7.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/截止频率_5_c7d09ff7.png",
+      "title": "截止频率 信息图",
+      "lessonId": "3-8",
+      "nodeId": "截止频率_5_c7d09ff7"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/目标驱动超前校正_3_36004.png",
+      "title": "目标驱动超前校正 信息图",
+      "lessonId": "3-8",
+      "nodeId": "目标驱动超前校正_3_36004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_0a9c6e90.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_0a9c6e90.png",
+      "title": "相角裕度 信息图",
+      "lessonId": "3-8",
+      "nodeId": "相角裕度_5_0a9c6e90"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/穿越频率_5_c4c2b93c.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/穿越频率_5_c4c2b93c.png",
+      "title": "穿越频率 信息图",
+      "lessonId": "3-8",
+      "nodeId": "穿越频率_5_c4c2b93c"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/结构变化的频域指纹_3_38001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/结构变化的频域指纹_3_38001.png",
+      "title": "结构变化的频域指纹 信息图",
+      "lessonId": "3-8",
+      "nodeId": "结构变化的频域指纹_3_38001"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/非最小相与右半平面零点_3_35005.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/非最小相与右半平面零点_3_35005.png",
+      "title": "非最小相与右半平面零点 信息图",
+      "lessonId": "3-8",
+      "nodeId": "非最小相与右半平面零点_3_35005"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/频域综合判断与工程读回_3_38004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/频域综合判断与工程读回_3_38004.png",
+      "title": "频域综合判断与工程读回 信息图",
+      "lessonId": "3-8",
+      "nodeId": "频域综合判断与工程读回_3_38004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/频率特性_5_404adfdd.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/频率特性_5_404adfdd.png",
+      "title": "频率特性 信息图",
+      "lessonId": "3-8",
+      "nodeId": "频率特性_5_404adfdd"
+    }
+  ]
+}

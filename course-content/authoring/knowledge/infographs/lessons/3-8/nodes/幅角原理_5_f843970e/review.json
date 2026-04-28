@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T06:05:47.868098Z",
+  "lesson_id": "3-8",
+  "node_id": "幅角原理_5_f843970e",
+  "node_name": "幅角原理",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "人工目视检查通过：中心为原点绕行、零极点计数与 N=Z-P；未误用 Nyquist -1 点。"
+}

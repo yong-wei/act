@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T05:58:36.901191Z",
+  "lesson": {
+    "lesson_id": "3-8",
+    "title": "频域判别与跨域综合语言",
+    "groups": [
+      "从结构变化回到统一频域问题"
+    ],
+    "card_order_index": 3
+  },
+  "node": {
+    "id": "非最小相与右半平面零点_3_35005",
+    "name": "非最小相与右半平面零点",
+    "name_en": "Nonminimum Phase and Right-Half-Plane Zeros",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "稳定对象只要含有右半平面零点，就属于非最小相系统。与对应的左半平面零点对象相比，它在相同幅频趋势下会带来额外相位滞后，时域上可能出现逆响应，因此动态改善存在更严格的速度上限。",
+    "examples": [
+      "镜像零点对象中，左半平面零点版本可沿目标方向起步，而右半平面零点版本会先向反方向运动。",
+      "非最小相对象若继续推高带宽，往往会更早触碰稳定裕量边界，因此第一反应通常是先保守交叉频率。"
+    ],
+    "formulas": [
+      "L_{mp}(s)=K\\frac{4(s+1)}{s(s+2)(s+5)}",
+      "L_{nmp}(s)=K\\frac{4(1-s)}{s(s+2)(s+5)}"
+    ],
+    "keywords": [
+      "非最小相",
+      "右半平面零点",
+      "逆响应",
+      "额外相位滞后",
+      "保守带宽"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/非最小相与右半平面零点_3_35005.md",
+  "card_frontmatter": {
+    "node_id": "非最小相与右半平面零点_3_35005",
+    "name": "非最小相与右半平面零点",
+    "name_en": "Nonminimum Phase and Right-Half-Plane Zeros",
+    "lesson_units": [
+      "3-5"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-5",
+      "非最小相",
+      "右半平面零点"
+    ],
+    "card_version": "2",
+    "source_docs": [
+      "authoring/lessons/3-5/design/handout.md"
+    ],
+    "asset_refs": [
+      "3-5-rl-05-nmp-compare.png"
+    ]
+  },
+  "card_overview": "# 非最小相与右半平面零点 | Nonminimum Phase and Right-Half-Plane Zeros\n\n**一句话定义**：稳定对象只要含有右半平面零点，就属于非最小相系统；它会带来额外相位滞后，时域上还可能出现逆响应。\n\n**核心直觉**：右半平面零点最先暴露出来的常不是“更慢”，而是“先朝反方向动一下，随后更早撞上相位与带宽边界”。\n\n**关键公式**：\n$$\nL_{\\text{mp}}(s)=K\\frac{4(s+1)}{s(s+2)(s+5)},\\qquad\nL_{\\text{nmp}}(s)=K\\frac{4(1-s)}{s(s+2)(s+5)}\n$$\n\n**关联**：前置 → 零点引入与根轨迹重排、相角裕度、带宽 · 后续 → 非最小相边界判断、保守带宽策略",
+  "card_detail": "### 完整解释\n\n`3-5` 用一对镜像零点对象把非最小相讲成可以直接观察的现象：\n\n- 左半平面零点版本可以单调跟踪；\n- 右半平面零点版本在相同增益下会先向反方向运动，出现逆响应；\n- 频域上则表现为额外相位滞后，使“继续推高带宽”更早触碰稳定裕量边界。\n\n所以，对非最小相对象最常见的第一反应不是“继续加快”，而是先保守交叉频率、接受速度上限。\n\n### 常见误区\n\n1. **误区**：右半平面零点只是把左半平面零点镜像过去，改善逻辑仍然成立。\n   **纠正**：镜像后会带来额外相位滞后和逆响应，改善逻辑必须改写。\n\n2. **误区**：非最小相只是一个名字，和控制策略无关。\n   **纠正**：它直接决定交叉频率、相位裕量和闭环速度的工程边界。",
+  "card_plain_excerpt": "## 首页\n\n# 非最小相与右半平面零点 | Nonminimum Phase and Right-Half-Plane Zeros\n\n**一句话定义**：稳定对象只要含有右半平面零点，就属于非最小相系统；它会带来额外相位滞后，时域上还可能出现逆响应。\n\n**核心直觉**：右半平面零点最先暴露出来的常不是“更慢”，而是“先朝反方向动一下，随后更早撞上相位与带宽边界”。\n\n**关键公式**：\n$$\nL_{\\text{mp}}(s)=K\\frac{4(s+1)}{s(s+2)(s+5)},\\qquad\nL_{\\text{nmp}}(s)=K\\frac{4(1-s)}{s(s+2)(s+5)}\n$$\n\n**关联**：前置 → 零点引入与根轨迹重排、相角裕度、带宽 · 后续 → 非最小相边界判断、保守带宽策略\n\n## 详情\n\n### 完整解释\n\n`3-5` 用一对镜像零点对象把非最小相讲成可以直接观察的现象：\n\n- 左半平面零点版本可以单调跟踪；\n- 右半平面零点版本在相同增益下会先向反方向运动，出现逆响应；\n- 频域上则表现为额外相位滞后，使“继续推高带宽”更早触碰稳定裕量边界。\n\n所以，对非最小相对象最常见的第一反应不是“继续加快”，而是先保守交叉频率、接受速度上限。\n\n### 常见误区\n\n1. **误区**：右半平面零点只是把左半平面零点镜像过去，改善逻辑仍然成立。\n   **纠正**：镜像后会带来额外相位滞后和逆响应，改善逻辑必须改写。\n\n2. **误区**：非最小相只是一个名字，和控制策略无关。\n   **纠正**：它直接决定交叉频率、相位裕量和闭环速度的工程边界。",
+  "core_intuition": "右半平面零点最先暴露出来的常不是“更慢”，而是“先朝反方向动一下，随后更早撞上相位与带宽边界”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "PD与超前的频域整形差异",
+      "target_id": null,
+      "target": "非最小相与右半平面零点",
+      "relation": "leads_to",
+      "strength": 0.86,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "左半平面零点的动态改善机理",
+      "target_id": null,
+      "target": "非最小相与右半平面零点",
+      "relation": "generalizes",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "非最小相与右半平面零点",
+      "target_id": null,
+      "target": "右半平面零点可行性边界",
+      "relation": "leads_to",
+      "strength": 0.97,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "非最小相与右半平面零点",
+      "target_id": null,
+      "target": "结构变化的频域指纹",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "非最小相与右半平面零点",
+      "target_id": null,
+      "target": "三频段闭环性能回读",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "非最小相与右半平面零点_3_35005",
+      "source": "非最小相与右半平面零点",
+      "target_id": "结构变化的频域指纹_3_38001",
+      "target": "结构变化的频域指纹",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": "右半平面零点作为特殊结构变化，提醒频域判断不能只看幅值，不看相位。",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "非最小相与右半平面零点_3_35005",
+      "source": "非最小相与右半平面零点",
+      "target_id": "三频段闭环性能回读_3_38003",
+      "target": "三频段闭环性能回读",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": "非最小相边界提醒“三频段分工”不能被简化成“更大带宽就更好”。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

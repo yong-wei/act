@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T06:36:39.758320Z",
+  "lesson": {
+    "lesson_id": "3-8",
+    "title": "频域判别与跨域综合语言",
+    "groups": [
+      "三频段分工与工程案例读回",
+      "后测与模块出口收束"
+    ],
+    "card_order_index": 16
+  },
+  "node": {
+    "id": "频域综合判断与工程读回_3_38004",
+    "name": "频域综合判断与工程读回",
+    "name_en": "Integrated Frequency-Domain Judgment and Engineering Readback",
+    "category": "方法性",
+    "knowledge_type": "D",
+    "bloom_level": "评价",
+    "definition": "在同一工程对象上，用“频域指纹 -> 判稳余量 -> 三频段任务 -> 闭环读回”的顺序比较基线方案与校正方案，判断应优先改写哪一段频率，哪些收益值得保留，哪些代价必须控制。",
+    "examples": [
+      "船舶航向控制中，超前校正主要改写中频，因此既提升相角裕度，又把截止频率推到更合适位置，最终得到更快且更稳的闭环表现。",
+      "稳定平台中，单纯降增益虽能增大余量，但会显著拖慢速度；中频超前校正更能兼顾快速收敛与较小超调。"
+    ],
+    "formulas": [
+      "\\Phi(s)=\\frac{L(s)}{1+L(s)}",
+      "t_s\\approx\\frac{4}{\\zeta\\omega_n}"
+    ],
+    "keywords": [
+      "工程读回",
+      "航向控制",
+      "稳定平台",
+      "超前校正",
+      "综合判断",
+      "频域设计入口"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/频域综合判断与工程读回_3_38004.md",
+  "card_frontmatter": {
+    "node_id": "频域综合判断与工程读回_3_38004",
+    "name": "频域综合判断与工程读回",
+    "name_en": "Integrated Frequency-Domain Judgment and Engineering Readback",
+    "lesson_units": [
+      "3-8"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-8",
+      "工程判断",
+      "频域综合",
+      "航向控制",
+      "稳定平台"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-8/design/handout.md"
+    ],
+    "asset_refs": [
+      "3-8-heading-case.png",
+      "3-8-platform-case.png",
+      "3-8-info.png"
+    ]
+  },
+  "card_overview": "# 频域综合判断与工程读回 | Integrated Frequency-Domain Judgment and Engineering Readback\n\n**一句话定义**：频域分析的最终目标不是“会画图”，而是把结构变化、稳定边界和闭环后果统一读回成工程判断。\n\n**核心直觉**：先定关键频带，再看离临界点多远，最后把这些变化翻译成速度、超调、稳态精度和高频代价。\n\n**关键公式**：\n$$\n\\text{结构变化} \\rightarrow \\text{频域指纹} \\rightarrow \\text{稳定边界} \\rightarrow \\text{闭环后果}\n$$\n\n**关联**：前置 → 结构变化的频域指纹、奈奎斯特与Bode统一判稳链、三频段闭环性能回读 · 后续 → 3-9 综合映射实验、4-1 设计起点",
+  "card_detail": "### 完整解释\n\n`3-8` 最终形成的是一条完整工程判断链，而不是一串零散术语：\n\n1. **先看结构变化改写哪一段频率**\n   判断是低频资源变化、中频相位重排，还是高频代价抬升。\n\n2. **再看稳定边界如何变化**\n   用 Nyquist 看临界点包围，用 Bode 读相角裕度、增益裕度和截止频率。\n\n3. **最后把频域变化读回闭环后果**\n   问它对应的是更快、更稳、更准，还是噪声更大、执行器更吃力。\n\n航向控制案例说明：中频超前可以同时把截止频率推高、把相角裕度抬上来，因此能做到“更快且更稳”。\n稳定平台案例说明：若只靠降增益，虽然余量会变大，但速度损失太多；把校正动作集中到中频，才更符合“速度与平稳兼顾”的目标。\n\n### 工程场景\n\n频域综合判断适合处理“同一对象、多个方案”的快速比较。它让工程决策从“哪条曲线更顺眼”升级为“哪条机制线更适合先承担哪类任务”。\n\n### 关联节点\n\n| 方向 | 节点 | 关系说明 |\n|------|------|---------|\n| 前置 | 结构变化的频域指纹 | 决定首先应该看哪一段频率 |\n| 前置 | 奈奎斯特与Bode统一判稳链 | 决定如何读取边界与余量 |\n| 前置 | 三频段闭环性能回读 | 决定如何把指标翻译成工程后果 |\n| 输出 | 3-9 综合映射实验 | 进入同一对象多版本比较 |\n| 输出 | 4-1 设计起点 | 进入任务表达与约束语言 |\n\n### 常见误区\n\n1. **误区**：频域课的终点是会判稳。\n   **纠正**：判稳只是中间环节，真正目标是形成完整工程判断链。\n\n2. **误区**：工程案例只是在证明某个控制器更强。\n   **纠正**：案例的重点是说明“把校正动作放在哪个频带”决定了收益和代价如何分布。",
+  "card_plain_excerpt": "## 首页\n\n# 频域综合判断与工程读回 | Integrated Frequency-Domain Judgment and Engineering Readback\n\n**一句话定义**：频域分析的最终目标不是“会画图”，而是把结构变化、稳定边界和闭环后果统一读回成工程判断。\n\n**核心直觉**：先定关键频带，再看离临界点多远，最后把这些变化翻译成速度、超调、稳态精度和高频代价。\n\n**关键公式**：\n$$\n\\text{结构变化} \\rightarrow \\text{频域指纹} \\rightarrow \\text{稳定边界} \\rightarrow \\text{闭环后果}\n$$\n\n**关联**：前置 → 结构变化的频域指纹、奈奎斯特与Bode统一判稳链、三频段闭环性能回读 · 后续 → 3-9 综合映射实验、4-1 设计起点\n\n## 详情\n\n### 完整解释\n\n`3-8` 最终形成的是一条完整工程判断链，而不是一串零散术语：\n\n1. **先看结构变化改写哪一段频率**\n   判断是低频资源变化、中频相位重排，还是高频代价抬升。\n\n2. **再看稳定边界如何变化**\n   用 Nyquist 看临界点包围，用 Bode 读相角裕度、增益裕度和截止频率。\n\n3. **最后把频域变化读回闭环后果**\n   问它对应的是更快、更稳、更准，还是噪声更大、执行器更吃力。\n\n航向控制案例说明：中频超前可以同时把截止频率推高、把相角裕度抬上来，因此能做到“更快且更稳”。\n稳定平台案例说明：若只靠降增益，虽然余量会变大，但速度损失太多；把校正动作集中到中频，才更符合“速度与平稳兼顾”的目标。\n\n### 工程场景\n\n频域综合判断适合处理“同一对象、多个方案”的快速比较。它让工程决策从“哪条曲线更顺眼”升级为“哪条机制线更适合先承担哪类任务”。\n\n### 关联节点\n\n| 方向 | 节点 | 关系说明 |\n|------|------|---------|\n| 前置 | 结构变化的频域指纹 | 决定首先应该看哪一段频率 |\n| 前置 | 奈奎斯特与Bode统一判稳链 | 决定如何读取边界与余量 |\n| 前置 | 三频段闭环性能回读 | 决定如何把指标翻译成工程后果 |\n| 输出 | 3-9 综合映射实验 | 进入同一对象多版本比较 |\n| 输出 | 4-1 设计起点 | 进入任务表达与约束语言 |\n\n### 常见误区\n\n1. **误区**：频域课的终点是会判稳。\n   **纠正**：判稳只是中间环节，真正目标是形成完整工程判断链。\n\n2. **误区**：工程案例只是在证明某个控制器更强。\n   **纠正**：案例的重点是说明“把校正动作放在哪个频带”决定了收益和代价如何分布。",
+  "core_intuition": "先定关键频带，再看离临界点多远，最后把这些变化翻译成速度、超调、稳态精度和高频代价。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "目标驱动超前校正",
+      "target_id": null,
+      "target": "频域综合判断与工程读回",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "三频段闭环性能回读",
+      "target_id": null,
+      "target": "频域综合判断与工程读回",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频域综合判断与工程读回",
+      "target_id": null,
+      "target": "统一对象多版本综合映射框架",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "三频段闭环性能回读_3_38003",
+      "source": "三频段闭环性能回读",
+      "target_id": "频域综合判断与工程读回_3_38004",
+      "target": "频域综合判断与工程读回",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": "当三频段任务分工明确后，学生才有能力把基线方案与校正方案放进同一条工程判断链里比较。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "目标驱动超前校正_3_36004",
+      "source": "目标驱动超前校正",
+      "target_id": "频域综合判断与工程读回_3_38004",
+      "target": "频域综合判断与工程读回",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "3-8 的两个工程案例都把超前校正作为中频定向改写的代表动作。",
+      "direction_for_node": "incoming"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

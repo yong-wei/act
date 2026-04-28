@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T06:11:55.527408Z",
+  "lesson_id": "3-8",
+  "node_id": "穿越频率_5_c4c2b93c",
+  "node_name": "穿越频率",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "人工目视检查通过：相频曲线 -180° 穿越与 ωg 锚点清楚，幅值裕度读取关系准确。"
+}

@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T06:04:15.587693Z",
+  "lesson": {
+    "lesson_id": "3-8",
+    "title": "频域判别与跨域综合语言",
+    "groups": [
+      "Nyquist 与 Bode 统一判稳链"
+    ],
+    "card_order_index": 5
+  },
+  "node": {
+    "id": "幅角原理_5_f843970e",
+    "name": "幅角原理",
+    "name_en": "Argument Principle",
+    "category": "概念性",
+    "knowledge_type": "C",
+    "bloom_level": "分析",
+    "definition": "复变函数理论中的一个原理，描述了闭合曲线映射前后包围原点圈数与曲线内函数零极点数的关系。",
+    "examples": [
+      "奈奎斯特稳定判据的数学基础，用于将稳定性问题转化为几何问题。"
+    ],
+    "formulas": [
+      "N = Z - P"
+    ],
+    "keywords": [
+      "幅角原理",
+      "零极点",
+      "闭合曲线"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/幅角原理_5_f843970e.md",
+  "card_frontmatter": {
+    "node_id": "幅角原理_5_f843970e",
+    "name": "幅角原理",
+    "name_en": "Argument Principle",
+    "lesson_units": [
+      "3-8"
+    ],
+    "category": "概念性",
+    "knowledge_type": "C",
+    "chapter": "5",
+    "tags": [
+      "3-8",
+      "幅角原理",
+      "Nyquist",
+      "判稳"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-8/design/handout.md"
+    ],
+    "asset_refs": [
+      "3-8-nyquist-example-check.png"
+    ]
+  },
+  "card_overview": "# 幅角原理 | Argument Principle\n\n**一句话定义**：复函数沿封闭路径映射后的总转角，由路径内部零点数与极点数之差决定。\n\n**核心直觉**：函数值绕原点转了多少圈，不是凭图形感觉，而是由“里面有几个零点、几个极点”严格决定。\n\n**关键公式**：\n$$\n\\Delta \\arg F(s)=2\\pi(Z-P)\n$$\n\n**关联**：前置 → 频率特性、复平面读图 · 后续 → 奈奎斯特稳定判据、奈奎斯特与Bode统一判稳链",
+  "card_detail": "### 完整解释\n\n在 `3-8` 中，幅角原理不是单独讲的复变函数结论，而是专门服务于闭环稳定分析。若复函数 `F(s)` 在所选封闭路径内部解析，且路径上没有零点和极点，则路径映射到 `F` 平面后的总转角满足\n$$\n\\Delta \\arg F(s)=2\\pi(Z-P)\n$$\n其中 `Z` 是路径内部零点数，`P` 是路径内部极点数。\n\n把它放到控制里时，关键不是背公式，而是理解下面这一步：\n$$\nF(s)=1+L(s)\n$$\n若 `F(s)` 在右半平面有零点，就等价于闭环特征方程有右半平面根，也就是闭环极点进入右半平面。于是，“闭环稳不稳”被改写成“`F(s)` 映射曲线怎样绕原点”。\n\n### 工程场景\n\n幅角原理让 Nyquist 判稳不再只是经验口诀，而变成一条可追溯的逻辑链：先写辅助函数，再数开环右半平面极点，再看对临界点的包围，最后推出闭环极点数。\n\n### 常见误区\n\n1. **误区**：幅角原理只是数学背景，和实际判稳无关。\n   **纠正**：Nyquist 判据正是把这个数学结论翻译成工程可读的临界点包围关系。\n\n2. **误区**：只要能数包围圈，就不用管零点和极点。\n   **纠正**：不先区分 `Z` 和 `P`，就无法知道包围结果对应的是开环问题还是闭环问题。",
+  "card_plain_excerpt": "## 首页\n\n# 幅角原理 | Argument Principle\n\n**一句话定义**：复函数沿封闭路径映射后的总转角，由路径内部零点数与极点数之差决定。\n\n**核心直觉**：函数值绕原点转了多少圈，不是凭图形感觉，而是由“里面有几个零点、几个极点”严格决定。\n\n**关键公式**：\n$$\n\\Delta \\arg F(s)=2\\pi(Z-P)\n$$\n\n**关联**：前置 → 频率特性、复平面读图 · 后续 → 奈奎斯特稳定判据、奈奎斯特与Bode统一判稳链\n\n## 详情\n\n### 完整解释\n\n在 `3-8` 中，幅角原理不是单独讲的复变函数结论，而是专门服务于闭环稳定分析。若复函数 `F(s)` 在所选封闭路径内部解析，且路径上没有零点和极点，则路径映射到 `F` 平面后的总转角满足\n$$\n\\Delta \\arg F(s)=2\\pi(Z-P)\n$$\n其中 `Z` 是路径内部零点数，`P` 是路径内部极点数。\n\n把它放到控制里时，关键不是背公式，而是理解下面这一步：\n$$\nF(s)=1+L(s)\n$$\n若 `F(s)` 在右半平面有零点，就等价于闭环特征方程有右半平面根，也就是闭环极点进入右半平面。于是，“闭环稳不稳”被改写成“`F(s)` 映射曲线怎样绕原点”。\n\n### 工程场景\n\n幅角原理让 Nyquist 判稳不再只是经验口诀，而变成一条可追溯的逻辑链：先写辅助函数，再数开环右半平面极点，再看对临界点的包围，最后推出闭环极点数。\n\n### 常见误区\n\n1. **误区**：幅角原理只是数学背景，和实际判稳无关。\n   **纠正**：Nyquist 判据正是把这个数学结论翻译成工程可读的临界点包围关系。\n\n2. **误区**：只要能数包围圈，就不用管零点和极点。\n   **纠正**：不先区分 `Z` 和 `P`，就无法知道包围结果对应的是开环问题还是闭环问题。",
+  "core_intuition": "函数值绕原点转了多少圈，不是凭图形感觉，而是由“里面有几个零点、几个极点”严格决定。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "传递函数",
+      "target_id": null,
+      "target": "幅角原理",
+      "relation": "related",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频域分析法",
+      "target_id": null,
+      "target": "幅角原理",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频率特性",
+      "target_id": null,
+      "target": "幅角原理",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅相频率特性曲线",
+      "target_id": null,
+      "target": "幅角原理",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "非最小相位环节",
+      "target_id": null,
+      "target": "幅角原理",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "开环频率特性",
+      "target_id": null,
+      "target": "幅角原理",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "最小相位典型环节",
+      "target_id": null,
+      "target": "幅角原理",
+      "relation": "related",
+      "strength": 0.2,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "开环幅相特性曲线",
+      "target_id": null,
+      "target": "幅角原理",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "非最小相位系统",
+      "target_id": null,
+      "target": "幅角原理",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "开环传递函数",
+      "target_id": null,
+      "target": "幅角原理",
+      "relation": "related",
+      "strength": 0.2,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "奈奎斯特稳定判据（奈氏判据）",
+      "target_id": null,
+      "target": "幅角原理",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "幅角原理",
+      "target_id": null,
+      "target": "辅助函数F(s)",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}
