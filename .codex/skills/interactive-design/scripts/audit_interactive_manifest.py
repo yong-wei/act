@@ -436,9 +436,10 @@ def audit_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
     for step_id, step in steps.items():
         step_modules = modules(step)
         blocks = content_blocks(step)
+        cards = interaction_cards(step)
         prompts = [
             str(card.get("prompt", "")).strip()
-            for card in interaction_cards(step)
+            for card in cards
             if str(card.get("prompt", "")).strip()
         ]
         content_payload_text = "\n".join(
@@ -448,6 +449,14 @@ def audit_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
             for text in strings_in(module_payload(module))
         )
         block_text = "\n".join([*strings_in(blocks), content_payload_text])
+
+        for index, card in enumerate(cards):
+            if not str(card.get("prompt", "")).strip():
+                issues.append({
+                    "step_id": step_id,
+                    "card_id": str(card.get("id") or f"activity-card-{index + 1}"),
+                    "issue": "activity_card_without_prompt",
+                })
 
         for prompt in prompts:
             if prompt and prompt in block_text:

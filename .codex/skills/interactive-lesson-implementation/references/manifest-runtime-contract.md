@@ -120,6 +120,7 @@ manifest-first 课程必须让脚本可明确审计，而不是只靠人工浏�
 - `must_be_visible: true` 的 content 模块必须有 renderer，且 renderer 的输入内容非空。
 - `must_be_visible: true` 的 activity 模块不得因为 content registry 缺 renderer 而报错，也不得进入正文 layout。
 - `activity_cards[].prompt` 默认在最终页面只出现一次；重复出现通常说明 content/activity 双重消费。
+- `activity_cards[].prompt` 必须非空；共享教师活动汇总必须显示完整题面，并在选择题、排序题、多选题等场景显示选项，不能只显示回收结果。
 - `formula-card` 使用 `content_blocks.key_formulas` 隐式消费时，公式数应与同页公式模块数匹配，或由 payload 指定索引。
 - `image-panel` 使用 `content_blocks.media` 隐式消费时，媒体数应与同页图片模块数匹配，或由 payload 指定索引。
 - `figure_explanation`、`figure_reading`、`figure_explanations`、`parameter_explanation` 等图后说明不得留在 `content_blocks` 中未消费；若确实不展示，契约必须显式标记允许未消费。
@@ -136,6 +137,7 @@ manifest-first 课程必须让脚本可明确审计，而不是只靠人工浏�
   - 图后说明来自 manifest payload 或 `content_blocks` 并已显示
   - activity 模块只由 activity registry 消费，正文区没有额外“本页作答”题面列表
   - 每个 `activity_cards[].prompt` 默认只出现一次
+  - 教师活动汇总在释放互动后仍显示题面和选项
   - `?step=` 预览与正式课堂页都不丢模块
   - 教师控制、逐步显影、答案揭示仍绑定到 manifest 对应步骤
   - 页面不存在 `data-manifest-render-error` 或“互动页模块渲染缺失”
