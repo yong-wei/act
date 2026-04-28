@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T14:31:02.512065Z",
+  "lesson_id": "3-9",
+  "node_id": "积分环节_2_11005",
+  "node_name": "积分环节",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已目视审查：采用水箱与船舶航向实物/工程隐喻，包含积分器框图、原点极点、累积曲线；G(s)=1/s 与积分公式渲染正确。"
+}

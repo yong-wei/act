@@ -105,15 +105,18 @@ Because the tool schema only accepts `prompt`, model selection and quality contr
 
 - use GPT Image 2 / latest Codex-native image generation
 - landscape infographic
+- treat the output as a visual teaching asset, not a flat electronic knowledge card
+- combine at least one concrete visual object with one abstract control diagram when the source supports it, for example ship heading, water tank, compass, dashboard, Bode plot, root locus, Nyquist curve, step response, or frequency-band panel
+- use layered composition: a main visual scene or metaphor, small technical insets, concise formula anchors, and a boundary or judgment panel
 - clean Chinese typography
-- avoid dense formulas
+- render concise formula anchors when they are central to the node; GPT Image 2 has been locally verified to render typical control formulas such as `G(s)=1/s`, `G_{PI}(s)=K\frac{T_i s+1}{T_i s}`, `G_{lag}(s)=K\frac{Ts+1}{\beta Ts+1}`, and `M_p=e^{-\frac{\zeta\pi}{\sqrt{1-\zeta^2}}}\times100\%` accurately enough for infographic use
 - do not render prompt metadata such as lesson id, group name, knowledge type, source-truth labels, or instruction labels into the image
-- do not render source labels such as `关键公式锚点` or `公式锚点`; if a formula risks visual corruption, omit it from the visible artwork
+- do not render source labels such as `关键公式锚点` or `公式锚点`; render only the formula itself and nearby short meaning labels
 - convert definitions into short labels instead of copying long source sentences into the artwork
 - keep visible text compact: no more than about 12 labels, each preferably under 10 Chinese characters, with no explanatory paragraphs
 - translate relation labels to Chinese before generation
 - no invented labels
-- no decorative text unrelated to the source
+- no decorative text or imagery unrelated to the source; visual richness must explain mechanism, evidence, or boundary
 - no hard-coded visual requirement from a previous node; the visual skeleton must match the current node name and lesson group
 
 ### 4. Register The Image
@@ -136,6 +139,8 @@ Use `--accept` only after visual review confirms that:
 - formulas are not malformed
 - arrows and relationships match `source.json`
 - no unsupported factual claim was added
+- the image contains concrete visual evidence or a meaningful visual metaphor, not only text boxes and arrows
+- technical insets such as plots, instruments, or physical examples help explain the mechanism rather than serving as decoration
 - the graphic is readable at lesson-entry card size
 
 ### 5. Review And Export
@@ -152,13 +157,16 @@ Runtime export copies accepted node infographics and mounts them into runtime kn
 
 ## Prompt Policy
 
-For concept nodes, prefer a three-part visual:
+For concept nodes, prefer a visual teaching-asset composition:
 
-1. core intuition
-2. mechanism path
-3. boundary or misconception
+1. main visual object or engineering scene
+2. mechanism inset or mathematical diagram
+3. formula or short symbolic anchor
+4. boundary, misconception, or design judgment panel
 
-For formula-heavy nodes, do not ask the image model to render long equations. Use only short symbolic anchors and leave exact formulas in the knowledge card.
+Avoid generating images that look like an electronic note card with icons. The advantage of image generation is the ability to combine scene, object, diagram, material, and art direction in one frame. Use that ability deliberately.
+
+For formula-heavy nodes, let GPT Image 2 render the exact key formula anchors when the formula is central to the concept. Keep the formula count small, usually one or two equations, and place formulas in uncluttered white space. Do not preemptively suppress formulas just because they contain fractions, subscripts, Greek letters, integrals, or exponentials; the local 2026-04-28 test showed these render acceptably. Still reject or regenerate any image whose formula is malformed, truncated, or semantically changed.
 
 For reused nodes from older lessons, explain the current lesson usage in `source.json`, but do not overwrite the node's original lesson truth.
 

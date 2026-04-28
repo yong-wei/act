@@ -105,6 +105,65 @@ def visual_focus_for_node(node_name: str, groups: list[str]) -> str:
     return '用概念核心、证据位置和判断边界三块表达该知识点，不添加源材料之外的对象。'
 
 
+def visual_asset_brief_for_node(node_name: str, groups: list[str]) -> str:
+    text = f'{node_name} {" ".join(groups)}'
+    if '积分环节' in text:
+        return (
+            '主视觉对象：透明水箱液位上升和船舶航向罗盘二选一或并置，表达“输入被持续累积”。\n'
+            '工程场景：流量进入水箱、角速度累积成航向角，不画人物讲课场景。\n'
+            '核心图示：小型框图 u(t) -> 1/s -> y(t)，旁边标出原点极点 s=0。\n'
+            '构图方式：左侧物理场景，中央积分器图标，右侧输出随时间累积曲线和公式锚点。'
+        )
+    if '根轨迹' in text:
+        return (
+            '主视觉对象：s 平面坐标网格上的根轨迹曲线，开环极点和零点清楚可辨。\n'
+            '工程场景：把增益旋钮或参数滑杆作为视觉隐喻，表示参数变化驱动极点移动。\n'
+            '核心图示：轨迹箭头、主导极点区域和简化阶跃响应小窗。\n'
+            '构图方式：大图为复平面，右侧为响应读回，不做纯文字关系卡。'
+        )
+    if '零点' in text:
+        return (
+            '主视觉对象：s 平面中的左半平面零点和弯曲后的根轨迹。\n'
+            '工程场景：用航向响应曲线或阻尼区域作为效果读回。\n'
+            '核心图示：阻尼改善、实部左移、超调变化三个小型技术嵌图。\n'
+            '构图方式：让零点改变路径成为视觉中心，文字只作为标注。'
+        )
+    if '低频' in text or '补偿' in text or '滞后' in text or '积分与滞后' in text:
+        return (
+            '主视觉对象：Bode 低频段被抬升的曲线和低频/中频/高频分区。\n'
+            '工程场景：用航向控制仪表或误差指针回零表达稳态改善。\n'
+            '核心图示：PI 与滞后两条路径并列，低频收益和相位/裕量代价分开标注。\n'
+            '构图方式：左侧频段图，中央路径对照，右侧代价复核面板。'
+        )
+    if '相角裕度' in text:
+        return (
+            '主视觉对象：Bode 相频曲线在穿越频率处到 -180° 的角度标尺。\n'
+            '工程场景：用安全余量仪表盘或临界边界指针表达“离失稳还有多远”。\n'
+            '核心图示：0 dB 穿越线、-180° 基准线、相角裕度弧形标尺。\n'
+            '构图方式：大图为 Bode 双图，右侧为稳定边界提醒。'
+        )
+    if '带宽' in text:
+        return (
+            '主视觉对象：闭环幅频曲线和 -3 dB / ω_b 边界。\n'
+            '工程场景：用跟踪速度仪表或信号通道宽窄隐喻响应快慢。\n'
+            '核心图示：低频平台、下降边界、带宽标尺。\n'
+            '构图方式：主图为曲线，辅图为“跟得多快”的工程读回。'
+        )
+    if '三频段' in text or '综合' in text or '映射' in text or '任务标签' in text or '模块4入口' in text:
+        return (
+            '主视觉对象：工程控制台或证据墙，把频域曲线、根轨迹、阶跃响应和任务标签放在同一工作面上。\n'
+            '工程场景：船舶航向控制对象作为背景线索，不把场景画成装饰海报。\n'
+            '核心图示：频域指纹、判稳余量、三频段任务、闭环读回四个技术嵌图。\n'
+            '构图方式：杂志式信息图或工程评审板，强调比较、证据和判断。'
+        )
+    return (
+        '主视觉对象：选取源材料中的具体对象或可观察现象作为画面中心。\n'
+        '工程场景：把概念放入控制系统读图、仪表、曲线或物理对象中。\n'
+        '核心图示：至少包含一个数学/工程小图，不只使用图标和文本框。\n'
+        '构图方式：主视觉占画面一半以上，文字作为标注而不是正文。'
+    )
+
+
 def build_prompt(source: dict[str, Any]) -> str:
     node = source['node']
     lesson = source['lesson']
@@ -123,17 +182,24 @@ def build_prompt(source: dict[str, Any]) -> str:
     relation_lines = []
     for item in relations:
         relation = str(item.get('relation') or '')
+        description = str(item.get('description') or '').strip()
+        description_suffix = f': {description}' if description else ''
         relation_lines.append(
             f"- {item.get('source') or item.get('source_id')} --{relation_label_map.get(relation, relation)}--> "
-            f"{item.get('target') or item.get('target_id')}: {item.get('description') or ''}"
+            f"{item.get('target') or item.get('target_id')}{description_suffix}"
         )
 
     formulas = node.get('formulas') or []
-    formula_line = '；'.join(str(item) for item in formulas[:2]) if formulas else '不在图中渲染长公式，只保留短符号锚点。'
-    short_symbol_line = formula_line if formulas else '只放与主题直接相关的短符号。'
+    formula_line = '；'.join(str(item) for item in formulas[:2]) if formulas else '无公式锚点，图中只放与主题直接相关的短符号。'
+    formula_instruction = (
+        f'请准确渲染这些关键公式锚点，放在留白充足的位置，不要艺术化变形：{formula_line}'
+        if formulas
+        else '本节点没有公式锚点，不要自行添加公式。'
+    )
     keywords = [str(item) for item in (node.get('keywords') or [])[:8]]
     text_allowlist = [node['name'], *keywords]
     visual_focus = visual_focus_for_node(str(node['name']), groups)
+    visual_asset_brief = visual_asset_brief_for_node(str(node['name']), groups)
 
     return f"""请使用 GPT Image 2 / Codex 最新图片生成能力，制作一张横版中文教学信息图。
 
@@ -159,8 +225,13 @@ def build_prompt(source: dict[str, Any]) -> str:
 建议视觉骨架：
 {visual_focus}
 
+视觉资产 brief：
+{visual_asset_brief}
+
 图像要求：
-- 横版信息图，适合放在互动课程入口的知识点详情中。
+- 横版信息图，适合放在互动课程入口的知识点详情中；画面应像一张教学视觉资产，而不是电子知识卡片截图。
+- 必须包含一个具体主视觉对象或工程场景，并包含一个数学/工程图示嵌图；不要只画卡片、图标和箭头。
+- 主视觉对象、示意图、公式和短标签要共同解释机制；不要用无关装饰填充画面。
 - 中文为主，不使用英文大标题；英文只允许作为小号副标题。
 - 不要把“课程单元、所属分组、知识类型、事实真源、关键公式锚点、公式锚点、图像要求”等元数据或提示词字段画进图面。
 - 不要整句复刻“一句话定义”；把定义压缩成 3-5 个短标签或短判断。
@@ -169,7 +240,7 @@ def build_prompt(source: dict[str, Any]) -> str:
 - 采用“核心直觉 -> 机理路径 -> 边界提醒”的三段式视觉结构。
 - 只使用少量短中文标签，优先使用这些词：{'、'.join(text_allowlist[:10]) if text_allowlist else node['name']}。
 - 右侧用简洁小面板表达判断结果或边界，不写长段落。
-- 不要绘制密集数学公式；不要让公式变形。若需要公式，只放关键公式锚点中的短符号：{short_symbol_line}
+- {formula_instruction}
 - 不要出现教师、课堂、流程说明、软件界面、二维码、水印。
 - 字体清晰，文字少而准确，避免密集段落。
 - 不要使用纯蓝或纯紫单色风格；使用白底、深墨色文字、青绿/橙色强调和少量红色边界提示。
@@ -249,7 +320,8 @@ def main() -> None:
         'relations': related_relations,
         'constraints': {
             'facts_must_come_from_source': True,
-            'no_long_formula_rendering': True,
+            'formula_rendering_policy': 'render_key_formula_anchors_when_present_then_review_visually',
+            'visual_asset_policy': 'combine_concrete_visual_scene_with_technical_insets_not_flat_note_card',
             'target_use': 'interactive lesson entry and global knowledge graph node detail',
         },
     }

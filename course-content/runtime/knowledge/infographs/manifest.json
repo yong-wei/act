@@ -131,11 +131,51 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/主导极点_3_4c4c6bbd.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/主导极点_3_4c4c6bbd.png",
+      "title": "主导极点 信息图",
+      "lessonId": "3-9",
+      "nodeId": "主导极点_3_4c4c6bbd"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
+      "title": "低频补偿稳态改善路径 信息图",
+      "lessonId": "3-9",
+      "nodeId": "低频补偿稳态改善路径_3_37003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/左半平面零点的动态改善机理_3_35002.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/左半平面零点的动态改善机理_3_35002.png",
+      "title": "左半平面零点的动态改善机理 信息图",
+      "lessonId": "3-9",
+      "nodeId": "左半平面零点的动态改善机理_3_35002"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/根轨迹_4_c19f8854.png",
       "url": "/course-runtime/knowledge/infographs/nodes/根轨迹_4_c19f8854.png",
       "title": "根轨迹 信息图",
       "lessonId": "3-9",
       "nodeId": "根轨迹_4_c19f8854"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/积分环节_2_11005.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/积分环节_2_11005.png",
+      "title": "积分环节 信息图",
+      "lessonId": "3-9",
+      "nodeId": "积分环节_2_11005"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/稳定_动态_稳态综合映射框架_3_39001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/稳定_动态_稳态综合映射框架_3_39001.png",
+      "title": "统一对象多版本综合映射框架 信息图",
+      "lessonId": "3-9",
+      "nodeId": "稳定_动态_稳态综合映射框架_3_39001"
     },
     {
       "type": "infograph",

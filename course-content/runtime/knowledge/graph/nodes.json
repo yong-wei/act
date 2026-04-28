@@ -5626,14 +5626,29 @@
         "原点极点",
         "累积效应"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/积分环节_2_11005.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/积分环节_2_11005.png",
+        "title": "积分环节 信息图",
+        "lessonId": "3-9",
+        "nodeId": "积分环节_2_11005"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/积分环节_2_11005.md"
+      "course-content/runtime/knowledge/cards/nodes/积分环节_2_11005.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/积分环节_2_11005.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/积分环节_2_11005.png",
+        "title": "积分环节 信息图",
+        "lessonId": "3-9",
+        "nodeId": "积分环节_2_11005"
+      }
     ],
     "tags": [
       "积分",
@@ -7319,14 +7334,29 @@
         "极点分析",
         "动态判断"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/主导极点_3_4c4c6bbd.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/主导极点_3_4c4c6bbd.png",
+        "title": "主导极点 信息图",
+        "lessonId": "3-9",
+        "nodeId": "主导极点_3_4c4c6bbd"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/主导极点_3_4c4c6bbd.md"
+      "course-content/runtime/knowledge/cards/nodes/主导极点_3_4c4c6bbd.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/主导极点_3_4c4c6bbd.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/主导极点_3_4c4c6bbd.png",
+        "title": "主导极点 信息图",
+        "lessonId": "3-9",
+        "nodeId": "主导极点_3_4c4c6bbd"
+      }
     ],
     "tags": [
       "3-5",
@@ -7601,7 +7631,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
         "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
         "title": "低频补偿稳态改善路径 信息图",
-        "lessonId": "3-8",
+        "lessonId": "3-9",
         "nodeId": "低频补偿稳态改善路径_3_37003"
       },
       "createdAt": null,
@@ -7616,7 +7646,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
         "url": "/course-runtime/knowledge/infographs/nodes/低频补偿稳态改善路径_3_37003.png",
         "title": "低频补偿稳态改善路径 信息图",
-        "lessonId": "3-8",
+        "lessonId": "3-9",
         "nodeId": "低频补偿稳态改善路径_3_37003"
       }
     ],
@@ -9135,7 +9165,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/左半平面零点的动态改善机理_3_35002.png",
         "url": "/course-runtime/knowledge/infographs/nodes/左半平面零点的动态改善机理_3_35002.png",
         "title": "左半平面零点的动态改善机理 信息图",
-        "lessonId": "3-8",
+        "lessonId": "3-9",
         "nodeId": "左半平面零点的动态改善机理_3_35002"
       },
       "createdAt": null,
@@ -9150,7 +9180,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/左半平面零点的动态改善机理_3_35002.png",
         "url": "/course-runtime/knowledge/infographs/nodes/左半平面零点的动态改善机理_3_35002.png",
         "title": "左半平面零点的动态改善机理 信息图",
-        "lessonId": "3-8",
+        "lessonId": "3-9",
         "nodeId": "左半平面零点的动态改善机理_3_35002"
       }
     ],
@@ -11620,14 +11650,29 @@
         "模块3出口",
         "综合映射"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/稳定_动态_稳态综合映射框架_3_39001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/稳定_动态_稳态综合映射框架_3_39001.png",
+        "title": "统一对象多版本综合映射框架 信息图",
+        "lessonId": "3-9",
+        "nodeId": "稳定_动态_稳态综合映射框架_3_39001"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/稳定_动态_稳态综合映射框架_3_39001.md"
+      "course-content/runtime/knowledge/cards/nodes/稳定_动态_稳态综合映射框架_3_39001.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/稳定_动态_稳态综合映射框架_3_39001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/稳定_动态_稳态综合映射框架_3_39001.png",
+        "title": "统一对象多版本综合映射框架 信息图",
+        "lessonId": "3-9",
+        "nodeId": "稳定_动态_稳态综合映射框架_3_39001"
+      }
     ],
     "tags": [
       "统一对象",
