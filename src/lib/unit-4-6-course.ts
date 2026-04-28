@@ -135,6 +135,20 @@ export const UNIT_4_6_LESSON_STEPS: readonly UNIT_4_6StepDefinition[] = [
   { id: 'step-11', stage: 'S', title: '总结：从任务重排到结构编码入口的完整判断链', hint: '收束本课并移交 4-7。', duration: '5 min', pageType: 'summary' },
 ] as const;
 
+export const UNIT_4_6_AI_PAGE_GOALS: Record<string, string> = {
+  'step-01': '用表 1、旧解回收和新证据钉住“问题写法失效”的入口。',
+  'step-02': '独立呈现本课布鲁姆能力目标。',
+  'step-03': '把对象、任务和筛选线的重排写实。',
+  'step-04': '把三类失配信号落成可读可见的证据链。',
+  'step-05': '把五项比较对象写成清楚的职责表。',
+  'step-06': '把结构搜索引入条件钉成显性判断链。',
+  'step-07': '把统一编码稳定落成“结构优先”的解码链。',
+  'step-08': '把目标错位和结构边界拆成两道判断。',
+  'step-09': '把专项验证的真正结论固定为边界判断。',
+  'step-10': '检查学生是否已把目标、结构与编码连成链。',
+  'step-11': '收束本课并移交 4-7。',
+};
+
 function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNIT_4_6PageContract {
   return {
     layout: {
@@ -181,7 +195,7 @@ function fallbackManifestStep(step: UNIT_4_6StepDefinition): InteractiveRuntimeS
     teacherInsightSpec: { widgets: [] },
     telemetrySpec: { summaryFields: [], misconceptionTags: [] },
     aiContextSpec: {
-      pageGoal: step.hint,
+      pageGoal: UNIT_4_6_AI_PAGE_GOALS[step.id] ?? step.hint,
       deliveryMode: 'hidden_page_context',
     },
     interactiveFigureSpec: {},

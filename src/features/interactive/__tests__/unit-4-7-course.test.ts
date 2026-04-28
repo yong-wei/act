@@ -50,6 +50,7 @@ describe('unit 4-7 interactive course', () => {
         (step: { id: string }) => step.id === manifestStep.id,
       ) as { title: string; pageType: string } | undefined;
       const localContract = courseModule.getUNIT_4_7PageContractFromManifest(manifest, manifestStep.id);
+      const fallbackContract = courseModule.UNIT_4_7_PAGE_CONTRACTS[manifestStep.id];
 
       expect(localStep?.title).toBe(manifestStep.title);
       expect(localStep?.pageType).toBe(pageTypeFromManifest(manifestStep.id, manifestStep.interactionSpec.interactionKind));
@@ -61,6 +62,7 @@ describe('unit 4-7 interactive course', () => {
       expect(localContract?.misconceptionTags ?? []).toEqual(manifestStep.telemetrySpec.misconceptionTags);
       expect(localContract?.previewDemoPath).toBe(manifestStep.previewContract.demoPath);
       expect(localContract?.aiPageGoal).toBe(manifestStep.aiContextSpec.pageGoal);
+      expect(fallbackContract?.aiPageGoal).toBe(manifestStep.aiContextSpec.pageGoal);
     }
   });
 

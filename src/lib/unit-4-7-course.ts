@@ -139,6 +139,21 @@ export const UNIT_4_7_LESSON_STEPS: readonly UNIT_4_7StepDefinition[] = [
   { id: 'step-12', stage: 'S', title: '总结：传统控制结构的局限与前沿方法入口', hint: '收束固定低阶结构边界，连接鲁棒控制、扰动观测、增益调度、MPC 与学习型策略。', duration: '7 min', pageType: 'summary' },
 ] as const;
 
+export const UNIT_4_7_AI_PAGE_GOALS: Record<string, string> = {
+  'step-01': '从固定结构设计的已有知识提出高保真任务边界问题。',
+  'step-02': '回顾一阶惯性、积分关系、频域裕度和约束罚项区分。',
+  'step-03': '把真实航迹任务、分段辨识、最终名义模型和扰动边界放在同一证据链。',
+  'step-04': '把真实任务指标翻译为可计算目标与硬边界。',
+  'step-05': '从诊断四联图推导传统控制结构选择。',
+  'step-06': '让传统控制器从参数计算落成可复核公式并接受跨模型验证。',
+  'step-07': '把优化搜索落回可解释结构和确定控制值。',
+  'step-08': '用航向和航迹两类证据审查跨模型可交付性。',
+  'step-09': '分级讨论扰动，并说明为什么抗扰优化需要重新搜索。',
+  'step-10': '把航向传感器噪声限定在测量通道，并解释抗噪控制。',
+  'step-11': '检查参数来源、结构选择、跨模型验证和边界判断。',
+  'step-12': '收束传统控制结构局限，并给出前沿方法入口。',
+};
+
 function normalizeUNIT_4_7InteractionKind(kind: string): UNIT_4_7PageContract['interactionKind'] {
   if (kind === 'quiz_group' || kind === 'activity_card_set' || kind === 'teacher_reveal_only') {
     return kind;
@@ -194,7 +209,7 @@ function fallbackManifestStep(step: UNIT_4_7StepDefinition): InteractiveRuntimeS
     teacherInsightSpec: { widgets: [] },
     telemetrySpec: { summaryFields: [], misconceptionTags: [] },
     aiContextSpec: {
-      pageGoal: step.hint,
+      pageGoal: UNIT_4_7_AI_PAGE_GOALS[step.id] ?? step.hint,
       deliveryMode: 'hidden_page_context',
     },
     interactiveFigureSpec: {},

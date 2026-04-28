@@ -1,9 +1,20 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
 import { ALL_PRESETS } from '@/features/teacher/preset-lessons/presets';
+import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
+
+const repoRoot = process.cwd();
+const manifest = normalizeInteractiveRuntimeManifest(
+  JSON.parse(readFileSync(join(repoRoot, 'course-content/runtime/lessons/4-6/interactive-manifest.json'), 'utf8')),
+);
+
+if (!manifest) throw new Error('4-6 interactive manifest is invalid');
 
 const UNIT_4_6_ROUTE_SEGMENT = 'unit-4-6-fixed-structure-boundary-structural-encoding';
 const UNIT_4_6_PRESET_KEY = 'unit-4-6-fixed-structure-boundary-structural-encoding-v1';
@@ -20,7 +31,7 @@ describe('unit 4-6 platform wiring', () => {
     const quickQuestions = getStepQuickQuestions(UNIT_4_6_PRESET_KEY, 'step-07');
 
     expect(quickQuestions).toHaveLength(2);
-    expect(quickQuestions[0]?.question).toContain('统一编码');
+    expect(quickQuestions[0]?.question).toBe(manifest.steps[6]?.aiContextSpec.pageGoal);
   });
 
   it('registers the course in the learning catalog and classroom route resolver', () => {

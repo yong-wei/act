@@ -88,6 +88,7 @@ describe('unit 4-6 interactive course', () => {
     for (const [stepId, authoringStep] of Object.entries(contract.steps)) {
       const localStep = localSteps.get(stepId) as { title: string; pageType: string } | undefined;
       const localContract = courseModule.getUNIT_4_6PageContractFromManifest(runtimeManifest, stepId);
+      const fallbackContract = courseModule.UNIT_4_6_PAGE_CONTRACTS[stepId];
       const expectedPageType =
         authoringStep.interaction_spec.interaction_kind === 'none'
           ? stepId === 'step-11'
@@ -111,6 +112,7 @@ describe('unit 4-6 interactive course', () => {
       expect(localContract?.misconceptionTags ?? []).toEqual(authoringStep.telemetry_spec.misconception_tags ?? []);
       expect(localContract?.previewDemoPath).toBe(authoringStep.preview_contract.demo_path);
       expect(localContract?.aiPageGoal).toBe(authoringStep.ai_context_spec.page_goal);
+      expect(fallbackContract?.aiPageGoal).toBe(authoringStep.ai_context_spec.page_goal);
     }
   });
 
