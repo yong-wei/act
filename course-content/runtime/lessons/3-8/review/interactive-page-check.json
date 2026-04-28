@@ -51,10 +51,10 @@
   "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
   "step_contract_issues": [],
-  "design_acceptance_summary": [],
-  "design_acceptance_issues": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/3-8/design/interactive-design-acceptance.json"
+  "design_acceptance_summary": [
+    "互动设计接受文件已通过校验。"
   ],
+  "design_acceptance_issues": [],
   "implementation_acceptance_summary": [],
   "implementation_acceptance_issues": [],
   "manifest_audit_summary": [],
@@ -64,25 +64,21 @@
   "runtime_review_stale_issues": [],
   "hard_gate_issues": [],
   "hard_gate_issue_codes": [],
-  "blocking_issues": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/3-8/design/interactive-design-acceptance.json"
-  ],
+  "blocking_issues": [],
   "implementation_contract_summary": [],
   "implementation_contract_issues": [],
   "legacy_acceptance_notes": [],
   "summary": [
-    "已检测到 `3-8` 的 V2 互动契约，步骤字段完整。"
+    "已检测到 `3-8` 的 V2 互动契约，步骤字段完整。",
+    "互动设计接受文件已通过校验。"
   ],
   "warnings": [
-    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks",
-    "缺少 互动设计接受文件：course-content/authoring/lessons/3-8/design/interactive-design-acceptance.json"
+    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks"
   ],
   "missing": [
-    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks",
-    "缺少 互动设计接受文件：course-content/authoring/lessons/3-8/design/interactive-design-acceptance.json"
+    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks"
   ],
   "issues": [
-    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks",
-    "缺少 互动设计接受文件：course-content/authoring/lessons/3-8/design/interactive-design-acceptance.json"
+    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks"
   ]
 }

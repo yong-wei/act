@@ -202,6 +202,35 @@ describe('unit 3-8 interactive course', () => {
     expect(workspaceSource).toContain('REFLECTION_PROMPTS');
   });
 
+  it('renders classroom content and activities through the shared manifest runtime', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-8-frequency-domain-translation-judgment/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).toContain('renderInteractiveManifestStep');
+    expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
+    expect(stepPanelsSource).toContain('renderStudentInteractiveActivity');
+    expect(stepPanelsSource).toContain('renderTeacherInteractiveActivity');
+    expect(stepPanelsSource).not.toContain('placeholder=\"写出判断依据。\"');
+  });
+
+  it('keeps 3-8 runtime activity cards objective and option-backed', () => {
+    const manifest = JSON.parse(
+      readFileSync(join(repoRoot, 'course-content/runtime/lessons/3-8/interactive-manifest.json'), 'utf8'),
+    ) as {
+      steps: Record<string, { interaction_spec?: { activity_cards?: Array<{ response_kind: string; options?: unknown[] }> } }>;
+    };
+
+    const cards = Object.values(manifest.steps).flatMap((step) => step.interaction_spec?.activity_cards ?? []);
+
+    expect(cards.length).toBeGreaterThan(0);
+    expect(cards.every((card) => card.options?.length)).toBe(true);
+    expect(cards.some((card) => card.response_kind === 'drag_sort')).toBe(true);
+    expect(cards.map((card) => card.response_kind)).not.toContain('text');
+    expect(cards.map((card) => card.response_kind)).not.toContain('fill_text');
+  });
+
   it('uses the 3-8 step AI context inside the student page', () => {
     const studentPageSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-3-8-frequency-domain-translation-judgment/student-page.tsx'),

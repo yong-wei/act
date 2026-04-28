@@ -13,6 +13,11 @@ import {
   type InteractiveLayoutRegionNode,
   type InteractiveRuntimeStepManifest,
 } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
+import {
+  createManifestTeacherActivityRegistry,
+  renderTeacherInteractiveActivity,
+  type ManifestStepResponse,
+} from '@/features/interactive/shared/manifest-runtime/activity-renderers';
 
 vi.mock('server-only', () => ({}));
 
@@ -420,6 +425,84 @@ describe('interactive runtime manifest', () => {
 
     expect(activitySource).toContain('card.options');
     expect(activitySource).toContain('type="radio"');
+  });
+
+  it('renders activity prompts and options in the shared teacher summary before collected responses', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-teacher-summary': {
+          title: '教师汇总题面测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'quiz_group',
+            activity_cards: [
+              {
+                id: 'choice-a',
+                title: '判断主导矛盾',
+                prompt: '哪一项最能解释当前失配？',
+                response_kind: 'single_choice',
+                options: [
+                  { value: 'plant_mismatch', label: '对象模型变化' },
+                  { value: 'actuator_limit', label: '执行器限幅' },
+                ],
+                reference_answer: '对象模型变化。',
+                submit_scope: 'per_card',
+                layout_span: 'full',
+              },
+            ],
+          },
+          teacher_controls: {
+            release_activity: 'teacher_toggle',
+            open_browse: 'page_load_open',
+            teacher_step_reveal: 'not_applicable',
+            reveal_reference_answer: 'teacher_toggle',
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderTeacherInteractiveActivity({
+          registry: createManifestTeacherActivityRegistry(),
+          step: { id: step!.id },
+          stepManifest: step!,
+          responses: [
+            {
+              studentName: '学生甲',
+              response: {
+                stepId: step!.id,
+                submittedAt: 1,
+                answers: { 'choice-a': 'plant_mismatch' },
+              } satisfies ManifestStepResponse,
+            },
+          ],
+          released: true,
+          browseEnabled: true,
+          answerVisible: true,
+          revealProgress: 0,
+          onToggleRelease: () => undefined,
+          onToggleBrowse: () => undefined,
+          onToggleAnswerVisible: () => undefined,
+          onAdvanceReveal: () => undefined,
+          onResetReveal: () => undefined,
+        }),
+      ),
+    );
+
+    expect(html).toContain('哪一项最能解释当前失配？');
+    expect(html).toContain('对象模型变化');
+    expect(html).toContain('执行器限幅');
+    expect(html.indexOf('哪一项最能解释当前失配？')).toBeLessThan(html.indexOf('已提交 1 人'));
+    expect(html).toContain('学生甲');
+    expect(html).toContain('参考解释');
   });
 
   it('keeps manifest activity registries for the three shared activity kinds without course-id answer maps', () => {

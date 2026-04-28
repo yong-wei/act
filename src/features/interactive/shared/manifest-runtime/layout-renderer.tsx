@@ -37,9 +37,13 @@ type InteractiveTemplateRenderer = (props: {
 
 const ACTIVITY_RUNTIME_MODULE_KINDS = new Set([
   'activity-card',
+  'activity-card-grid',
+  'activity-card-row',
   'activity-card-set',
   'binary-choice',
   'card-sort',
+  'hotspot-labeling',
+  'reason-chain',
   'multi-select-matrix',
   'task-card-workspace',
   'triple-match',

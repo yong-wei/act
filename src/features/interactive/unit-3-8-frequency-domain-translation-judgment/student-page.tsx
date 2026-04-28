@@ -14,8 +14,7 @@ import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit38StepAIContext } from '@/lib/course-ai-contexts';
 import {
-  getUNIT_3_8MediaSrc,
-  getUNIT_3_8PageContract,
+  getUNIT_3_8PageContractFromManifest,
   isUNIT_3_8AiPageType,
   isUNIT_3_8InteractivePageType,
   UNIT_3_8_LESSON_KEY,
@@ -33,7 +32,6 @@ import {
   UNIT_3_8StudentActivityForm,
   UNIT_3_8StudentSummaryPanel,
 } from './step-panels';
-import type { WorkspaceParameterChange } from './workspace';
 
 export function UNIT_3_8StudentPage({
   sessionId,
@@ -79,7 +77,7 @@ export function UNIT_3_8StudentPage({
     demoStepId,
   });
 
-  const { trackCourseEvent, trackStepLeave, trackStepView, trackSyncError, trackWorkspaceParamChange } =
+  const { trackCourseEvent, trackStepLeave, trackStepView, trackSyncError } =
     useCourseEventTracking({
       resourceKey: UNIT_3_8_RESOURCE_KEY,
       resourceId: UNIT_3_8_RESOURCE_KEY,
@@ -90,8 +88,9 @@ export function UNIT_3_8StudentPage({
     });
 
   const step = UNIT_3_8_LESSON_STEPS[activeIndex];
+  const runtimeManifest = lessonRuntime.interactiveManifest;
   const savedResponse = courseState.responses[step.id];
-  const pageContract = getUNIT_3_8PageContract(step.id);
+  const pageContract = getUNIT_3_8PageContractFromManifest(runtimeManifest, step.id);
   const { updatePageContext } = useGlobalAI();
 
   useEffect(() => {
@@ -194,17 +193,6 @@ export function UNIT_3_8StudentPage({
     [step.id, trackCourseEvent],
   );
 
-  const handleWorkspaceParameterChange = useCallback(
-    (change: WorkspaceParameterChange) => {
-      trackWorkspaceParamChange(step.id, {
-        key: change.key,
-        value: change.value,
-        source: change.source,
-      });
-    },
-    [step.id, trackWorkspaceParamChange],
-  );
-
   if (loadingSession) {
     return (
       <div className="premium-lesson-shell flex items-center justify-center">
@@ -281,10 +269,9 @@ export function UNIT_3_8StudentPage({
 
         <UNIT_3_8StepContentPanel
           step={step}
-          mediaSrc={getUNIT_3_8MediaSrc(step.id)}
-          mediaAlt={step.title}
-          onWorkspaceParameterChange={handleWorkspaceParameterChange}
+          manifest={runtimeManifest}
           revealProgress={revealProgress}
+          allowInlineReveal={isDemo || browseEnabled}
         />
 
         {isUNIT_3_8AiPageType(step.pageType) ? (
@@ -297,12 +284,13 @@ export function UNIT_3_8StudentPage({
           <div className="mt-4">
             <UNIT_3_8StudentActivityForm
               step={step}
+              manifest={runtimeManifest}
               savedResponse={savedResponse}
               released={released}
               browseEnabled={browseEnabled}
               answerVisible={answerVisible}
+              revealProgress={revealProgress}
               onSubmit={handleSubmitResponse}
-              onWorkspaceParameterChange={handleWorkspaceParameterChange}
             />
           </div>
         ) : null}

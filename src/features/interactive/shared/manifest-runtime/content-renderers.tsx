@@ -7,6 +7,7 @@ import 'katex/dist/katex.min.css';
 
 import type {
   InteractiveModuleRegistry,
+  InteractiveRuntimeManifest,
   InteractiveRuntimeModuleManifest,
   InteractiveRuntimeStepManifest,
 } from './layout-renderer';
@@ -194,17 +195,47 @@ function getFormulaItems(step: InteractiveRuntimeStepManifest, module: Interacti
   return items.filter(Boolean);
 }
 
-function getImageSrc(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
+function runtimeMediaPath(manifest: InteractiveRuntimeManifest, path: string) {
+  if (path.startsWith('/')) return path;
+  return `/course-runtime/lessons/${manifest.lessonId}/media/${path}`;
+}
+
+function mediaPathFromBlock(value: unknown, imageIndex: number, imageCount: number) {
+  const record = asRecord(value);
+  const direct = record.runtime_media ?? record.runtimeMedia ?? record.path ?? record.src;
+  if (typeof direct === 'string' && direct.trim()) return direct;
+
+  const items = Array.isArray(record.items) ? record.items : Array.isArray(value) ? value : [];
+  if (items.length) {
+    const selected = items.length === imageCount ? items[imageIndex] : items[0];
+    if (typeof selected === 'string' && selected.trim()) return selected;
+    const selectedRecord = asRecord(selected);
+    const selectedPath = selectedRecord.runtime_media ?? selectedRecord.runtimeMedia ?? selectedRecord.path ?? selectedRecord.src;
+    if (typeof selectedPath === 'string' && selectedPath.trim()) return selectedPath;
+  }
+  return null;
+}
+
+function getImageSrc(
+  manifest: InteractiveRuntimeManifest,
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+) {
   const payload = module.payload;
   const direct = typeof payload.src === 'string' ? payload.src : undefined;
   if (direct?.trim()) return direct;
+  const { index, count } = imageModulePosition(step, module);
+  const imageIndex = Math.max(0, index);
   const field = payload.field ?? 'runtime_media';
   const value = valueAtField(blockFor(step, payload), field);
   if (typeof value === 'string' && value.trim()) return value;
+  const blockMediaPath = mediaPathFromBlock(blockFor(step, payload) ?? blockByModuleId(step, module), imageIndex, count);
+  if (blockMediaPath) return runtimeMediaPath(manifest, blockMediaPath);
 
   const mediaItems = Object.values(step.contentBlocks).flatMap((block) => {
     const record = asRecord(block);
     if (typeof record.runtime_media === 'string') return [record.runtime_media];
+    if (typeof record.path === 'string') return [runtimeMediaPath(manifest, record.path)];
     if (Array.isArray(block)) {
       return block
         .map((item) => asRecord(item).runtime_media)
@@ -639,6 +670,10 @@ export function createManifestContentModuleRegistry(extra: {
     'formula-card-row': ({ step, module }) => (
       <FormulaCard title={titleFromModule(module)} formulas={getFormulaItems(step, module)} />
     ),
+    'formula-chain': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
     'summary-card': ({ step, module }) => {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
@@ -659,6 +694,26 @@ export function createManifestContentModuleRegistry(extra: {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
+    'process-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'objective-list': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} />;
+    },
+    'bullet-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'reason-record': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'notice-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
     'comparison-table': ({ step, module }) => {
       const table = tableFor(step, module);
       if (table) return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} />;
@@ -669,11 +724,27 @@ export function createManifestContentModuleRegistry(extra: {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
+    'row-focus-toggle': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'tab-selector': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'overlay-strip': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
     'graphic': ({ step, module }) => {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
     'interactive-figure': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'interactive-figure-panel': ({ step, module }) => {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
@@ -690,6 +761,56 @@ export function createManifestContentModuleRegistry(extra: {
       return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} columns="grid-cols-1" />;
     },
     'example-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'worked-example-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'condition-list': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'reference-answer-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'comparison-graphic': ({ manifest, step, module }) => {
+      const src = getImageSrc(manifest, step, module);
+      if (src) return <ImagePanel title={titleFromModule(module)} src={src} notes={imageNotes(step, module)} />;
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'band-focus-panel': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'ai-compare-workspace': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'revision-note': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'case-context-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'metric-strip': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} columns="md:grid-cols-4" />;
+    },
+    'teacher-strip': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'next-step-card': ({ step, module }) => {
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+    },
+    'reflection-card': ({ step, module }) => {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
@@ -735,10 +856,16 @@ export function createManifestContentModuleRegistry(extra: {
           : listFromRecordItems(source);
       return <CardGrid title={titleFromModule(module)} items={items} columns="grid-cols-1" />;
     },
-    'image-panel': ({ step, module }) => {
-      const src = getImageSrc(step, module);
+    'image-panel': ({ manifest, step, module }) => {
+      const src = getImageSrc(manifest, step, module);
       if (!src) return null;
       return <ImagePanel title={titleFromModule(module)} src={src} notes={imageNotes(step, module)} />;
+    },
+    'media-card': ({ manifest, step, module }) => {
+      const src = getImageSrc(manifest, step, module);
+      if (src) return <ImagePanel title={titleFromModule(module)} src={src} notes={imageNotes(step, module)} />;
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
     'native-figure': ({ step, module }) => {
       const block = asRecord(blockFor(step, module.payload) ?? blockByModuleId(step, module));
@@ -823,6 +950,21 @@ export function createManifestContentModuleRegistry(extra: {
           allowInlineReveal={renderExtra.allowInlineReveal}
         />
       );
+    },
+    'step-reveal-column': ({ step, module, extra: renderExtra }) => {
+      const items = revealItems(step, module);
+      if (items.length) {
+        return (
+          <StepReveal
+            title={titleFromModule(module)}
+            items={items}
+            revealProgress={renderExtra.revealProgress}
+            allowInlineReveal={renderExtra.allowInlineReveal}
+          />
+        );
+      }
+      const content = summaryContent(step, module);
+      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
   };
 }

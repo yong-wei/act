@@ -1,0 +1,19 @@
+{
+  "acceptance_version": "1.0",
+  "lesson_id": "3-8",
+  "status": "accepted",
+  "accepted_at": "2026-04-28T20:01:20+08:00",
+  "review_mode": "main_agent_runtime_alignment",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/3-8/design/interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/3-8/design/interactive-contract.yaml"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "objective_activity_preferred": "pass",
+    "no_prose_pollution": "pass"
+  },
+  "issues": []
+}

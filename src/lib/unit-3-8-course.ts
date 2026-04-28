@@ -2,6 +2,7 @@ import type { BopppsStage } from '@prisma/client';
 import { buildSessionFinalizeTelemetry } from '@/lib/data-governance/session-finalize-telemetry';
 
 import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
+import type { InteractiveRuntimeManifest, InteractiveRuntimeStepManifest } from '@/lib/interactive-lesson-manifest';
 import type { StepAIContext } from '@/types/ai-context';
 
 export type UNIT_3_8StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3';
@@ -758,6 +759,97 @@ export const UNIT_3_8_LESSON_STEPS: UNIT_3_8StepDefinition[] = [
 
 export function getUNIT_3_8Step(stepId: string) {
   return UNIT_3_8_LESSON_STEPS.find((step) => step.id === stepId) ?? UNIT_3_8_LESSON_STEPS[0];
+}
+
+function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNIT_3_8PageContract {
+  return {
+    layout: {
+      template: step.layout.template,
+      regions: step.layout.regions.map((region) => ({
+        id: region.id,
+        width: region.width,
+        order: region.order,
+      })),
+    },
+    interactionKind: step.interactionSpec.interactionKind as UNIT_3_8PageType,
+    teacherInsightWidgets: step.teacherInsightSpec.widgets,
+    telemetrySummaryFields: step.telemetrySpec.summaryFields,
+    misconceptionTags: step.telemetrySpec.misconceptionTags,
+    teacherControls: {
+      releaseActivity: step.teacherControls.releaseActivity as UNIT_3_8TeacherControlMode,
+      openBrowse: step.teacherControls.openBrowse as UNIT_3_8TeacherControlMode,
+      teacherStepReveal: step.teacherControls.teacherStepReveal as UNIT_3_8TeacherControlMode,
+      revealReferenceAnswer: step.teacherControls.revealReferenceAnswer as UNIT_3_8TeacherControlMode,
+      instructorDemoTools: [],
+    },
+    previewDemoPath: step.previewContract.demoPath || `/interactive-learning/courses/${UNIT_3_8_ROUTE_SEGMENT}/student/demo?step=${step.id}`,
+  };
+}
+
+function fallbackManifestStep(step: UNIT_3_8StepDefinition): InteractiveRuntimeStepManifest {
+  return {
+    id: step.id,
+    title: step.title,
+    layout: {
+      template: UNIT_3_8_PAGE_CONTRACTS[step.id]?.layout.template ?? 'stacked_regions',
+      regions: UNIT_3_8_PAGE_CONTRACTS[step.id]?.layout.regions ?? [{ id: 'main', width: 'full', order: 1 }],
+    },
+    modules: [],
+    contentBlocks: {},
+    evidenceSequence: [],
+    interactionSpec: {
+      interactionKind: step.pageType === 'none' ? 'none' : step.pageType,
+    },
+    teacherControls: {
+      releaseActivity: (UNIT_3_8_PAGE_CONTRACTS[step.id]?.teacherControls.releaseActivity ?? 'not_applicable') as InteractiveRuntimeStepManifest['teacherControls']['releaseActivity'],
+      openBrowse: (UNIT_3_8_PAGE_CONTRACTS[step.id]?.teacherControls.openBrowse ?? 'not_applicable') as InteractiveRuntimeStepManifest['teacherControls']['openBrowse'],
+      teacherStepReveal: (UNIT_3_8_PAGE_CONTRACTS[step.id]?.teacherControls.teacherStepReveal ?? 'not_applicable') as InteractiveRuntimeStepManifest['teacherControls']['teacherStepReveal'],
+      revealReferenceAnswer: (UNIT_3_8_PAGE_CONTRACTS[step.id]?.teacherControls.revealReferenceAnswer ?? 'not_applicable') as InteractiveRuntimeStepManifest['teacherControls']['revealReferenceAnswer'],
+    },
+    studentAccess: {},
+    teacherInsightSpec: { widgets: UNIT_3_8_PAGE_CONTRACTS[step.id]?.teacherInsightWidgets ?? [] },
+    telemetrySpec: {
+      summaryFields: UNIT_3_8_PAGE_CONTRACTS[step.id]?.telemetrySummaryFields ?? [],
+      misconceptionTags: UNIT_3_8_PAGE_CONTRACTS[step.id]?.misconceptionTags ?? [],
+    },
+    aiContextSpec: {
+      pageGoal: step.hint,
+      deliveryMode: isUNIT_3_8AiPageType(step.pageType) ? 'visible_ai_panel' : 'hidden_page_context',
+    },
+    interactiveFigureSpec: {},
+    previewContract: {
+      demoPath: UNIT_3_8_PAGE_CONTRACTS[step.id]?.previewDemoPath ?? `/interactive-learning/courses/${UNIT_3_8_ROUTE_SEGMENT}/student/demo?step=${step.id}`,
+    },
+    acceptanceChecks: [],
+  };
+}
+
+export const UNIT_3_8_RUNTIME_MANIFEST: InteractiveRuntimeManifest = {
+  lessonId: '3-8',
+  courseTitle: UNIT_3_8_COURSE_TITLE,
+  courseRouteSegment: UNIT_3_8_ROUTE_SEGMENT,
+  previewMode: {},
+  mediaPolicy: {},
+  telemetryStrategy: 'runtime_externalized',
+  teacherInsightStrategy: 'runtime_externalized',
+  requiredStepFields: [],
+  stepOrder: UNIT_3_8_LESSON_STEPS.map((step) => step.id),
+  steps: UNIT_3_8_LESSON_STEPS.map(fallbackManifestStep),
+};
+
+export function getUNIT_3_8ManifestStepFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  const activeManifest = manifest ?? UNIT_3_8_RUNTIME_MANIFEST;
+  return activeManifest.steps.find((step) => step.id === stepId) ?? activeManifest.steps[0];
+}
+
+export function getUNIT_3_8PageContractFromManifest(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+  stepId: string,
+) {
+  return pageContractFromManifestStep(getUNIT_3_8ManifestStepFromManifest(manifest, stepId));
 }
 
 export function getUNIT_3_8PageContract(stepId: string) {

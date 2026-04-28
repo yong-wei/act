@@ -12,10 +12,25 @@ import 'katex/dist/katex.min.css';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
 import { useInteractiveAI } from '@/features/interactive/hooks/useInteractiveAI';
+import {
+  createManifestContentModuleRegistry,
+} from '@/features/interactive/shared/manifest-runtime/content-renderers';
+import {
+  createManifestStudentActivityRegistry,
+  createManifestTeacherActivityRegistry,
+  renderStudentInteractiveActivity,
+  renderTeacherInteractiveActivity,
+} from '@/features/interactive/shared/manifest-runtime/activity-renderers';
+import {
+  renderInteractiveManifestStep,
+} from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import type { InteractiveConfig } from '@/features/interactive/types';
+import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import {
+  getUNIT_3_8ManifestStepFromManifest,
   getUNIT_3_8PageContract,
+  UNIT_3_8_RUNTIME_MANIFEST,
   UNIT_3_8_COURSE_TITLE,
   type UNIT_3_8StepDefinition,
   type UNIT_3_8StepResponse,
@@ -751,354 +766,73 @@ export function UNIT_3_8KnowledgeMapVisual() {
 
 export function UNIT_3_8StepContentPanel({
   step,
-  mediaSrc,
-  onWorkspaceParameterChange,
+  manifest,
   revealProgress = 0,
+  allowInlineReveal = false,
 }: {
   step: UNIT_3_8StepDefinition;
-  mediaSrc?: string | null;
-  mediaAlt?: string;
-  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+  manifest?: InteractiveRuntimeManifest | null;
   revealProgress?: number;
+  allowInlineReveal?: boolean;
 }) {
-  const blueprint = getStepBlueprint(step);
-  const gallery = GALLERY_BY_STEP[step.id] ?? [];
-
+  const activeManifest = manifest ?? UNIT_3_8_RUNTIME_MANIFEST;
+  const stepManifest = getUNIT_3_8ManifestStepFromManifest(activeManifest, step.id);
+  const moduleRegistry = createManifestContentModuleRegistry({
+    revealProgress,
+    allowInlineReveal,
+  });
   return (
-    <section className="premium-lesson-panel px-5 py-5">
-      <div className="premium-lesson-kicker">{blueprint.kicker}</div>
-      <h2 className="premium-lesson-title mt-2 text-2xl font-semibold">{step.title}</h2>
-      <p className="premium-lesson-muted mt-3 text-sm leading-7 sm:text-base">{blueprint.intro}</p>
-
-      {mediaSrc ? (
-        <div className="mt-4">
-          <MediaCard src={mediaSrc} alt={step.title} contain={step.id === 'step-11' || step.id === 'step-20'} />
-        </div>
-      ) : null}
-
-      {gallery.length ? (
-        <div className={`mt-4 grid gap-4 ${gallery.length === 4 ? 'md:grid-cols-2 xl:grid-cols-4' : 'md:grid-cols-2'}`}>
-          {gallery.map((item) => (
-            <MediaCard key={item.src} src={item.src} alt={item.alt} contain />
-          ))}
-        </div>
-      ) : null}
-
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        {blueprint.sections.map((section) => (
-          <InfoSection key={`${step.id}-${section.title}`} section={section} />
-        ))}
-      </div>
-
-      {step.pageType === 'curve_compare_panel' ? <CurveComparePanel onWorkspaceParameterChange={onWorkspaceParameterChange} /> : null}
-      {step.pageType === 'step_reveal' ? <RevealTrack title="教师逐步显影" items={STEP_REVEAL_SEGMENTS} revealProgress={revealProgress} /> : null}
-      {step.pageType === 'reason_chain' ? <RevealTrack title="推导链显影" items={REASON_CHAIN_FIELDS} revealProgress={revealProgress} /> : null}
-
-      {step.id === 'step-11' ? (
-        <div className="premium-lesson-tone-block premium-tone-cyan mt-4">
-          <div className="premium-lesson-title text-sm font-semibold">指标表</div>
-          <div className="mt-3">{renderMarkdown('| 指标 | 读图位置 |\n| --- | --- |\n| 截止频率 $\\omega_c$ | 幅值穿越 0 dB 处 |\n| 相位穿越频率 $\\omega_\\pi$ | 相位穿越 -180° 处 |\n| 相角裕度 $\\gamma$ | 截止频率处读相位余量 |\n| 增益裕度 $G_m$ | 相位穿越频率处读幅值余量 |')}</div>
-        </div>
-      ) : null}
-
-      {step.id === 'step-18' ? (
-        <div className="premium-lesson-tone-block premium-tone-amber mt-4">
-          <div className="premium-lesson-title text-sm font-semibold">三方案对照</div>
-          <div className="mt-3">{renderMarkdown('| 方案 | 速度 | 超调 | 余量 | 高频代价 |\n| --- | --- | --- | --- | --- |\n| 激进基线 | 快 | 偏大 | 紧张 | 易被放大 |\n| 仅降增益 | 慢 | 下降 | 增大 | 速度牺牲明显 |\n| 超前校正 | 更快且更稳 | 更受控 | 更合理 | 代价可控 |')}</div>
-        </div>
-      ) : null}
-
-      {blueprint.note ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">{blueprint.note}</div> : null}
+    <section className="space-y-4">
+      {renderInteractiveManifestStep({
+        manifest: activeManifest,
+        step: stepManifest,
+        moduleRegistry,
+        extra: { revealProgress, allowInlineReveal },
+      })}
     </section>
   );
 }
 
 export function UNIT_3_8StudentActivityForm({
   step,
+  manifest,
   savedResponse,
   released,
   browseEnabled = true,
   answerVisible,
+  revealProgress = 0,
   onSubmit,
-  onWorkspaceParameterChange,
 }: {
   step: UNIT_3_8StepDefinition;
+  manifest?: InteractiveRuntimeManifest | null;
   savedResponse?: UNIT_3_8StepResponse;
   released: boolean;
   browseEnabled?: boolean;
   answerVisible: boolean;
+  revealProgress?: number;
   onSubmit: (response: UNIT_3_8StepResponse) => void;
-  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
-  const [draft, setDraft] = useState<Record<string, string>>(() => getDefaultDraft(step, savedResponse));
-
-  useEffect(() => {
-    setDraft(getDefaultDraft(step, savedResponse));
-  }, [savedResponse, step]);
-
-  const contract = getUNIT_3_8PageContract(step.id);
-  const submitted = Boolean(savedResponse);
-  const requiresRelease = contract.teacherControls.releaseActivity === 'separate_toggle';
-  const requiresBrowse = contract.teacherControls.openBrowse === 'separate_toggle';
-  const locked = (requiresRelease && !released && !submitted) || (requiresBrowse && !browseEnabled);
-  const revealMarkdown = REVEAL_ANSWER_BY_STEP[step.id];
-
-  const updateDraft = (key: string, value: string, source = 'student') => {
-    setDraft((prev) => ({ ...prev, [key]: value }));
-    onWorkspaceParameterChange?.({ key, value, source });
-  };
-
-  const submit = (answers: Record<string, string> = draft) => {
-    onSubmit({
-      stepId: step.id,
-      submittedAt: Date.now(),
-      answers,
-    });
-  };
-
-  if (step.pageType === 'none') {
-    return (
-      <section className="premium-lesson-panel-soft px-4 py-4">
-        <div className="premium-lesson-title text-sm font-medium">本页无需提交</div>
-        <SubmissionStatus submitted={false} idleText="本页以阅读、观察和教师推进为主，不需要学生提交作答。" />
-      </section>
-    );
-  }
-
+  const stepManifest = getUNIT_3_8ManifestStepFromManifest(manifest, step.id);
   return (
-    <section className="premium-lesson-panel-soft px-4 py-4">
-      <div className="premium-lesson-title text-sm font-medium">学生作答区</div>
-      <p className="premium-lesson-muted mt-2 text-sm">
-        {locked ? '当前互动尚未开放，请先阅读上方静态内容。' : '先完成自己的判断，再提交到教师端汇总。'}
-      </p>
-
-      {locked ? (
-        <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">当前互动尚未开放。</div>
-      ) : (
-        <div className="mt-4 grid gap-4">
-          {step.pageType === 'quiz_group'
-            ? (step.id === 'step-03' ? PRETEST_QUESTIONS : POSTTEST_QUESTIONS).map((question) => (
-                <div key={question.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                  <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
-                  <div className="mt-3">
-                    <ChoiceGroup options={question.options} value={draft[question.key] ?? ''} onChange={(value) => updateDraft(question.key, value)} />
-                  </div>
-                </div>
-              ))
-            : null}
-
-          {step.pageType === 'row_focus_toggle' ? (
-            <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">请选择本轮最该聚焦的一行</div>
-              <div className="mt-3">
-                <ChoiceGroup
-                  options={ROW_FOCUS_TOGGLE_ROWS.map((row, index) => ({ value: row.key, label: `${index + 1}. ${row.label} -> ${row.band}` }))}
-                  value={draft.row ?? ''}
-                  onChange={(value) => updateDraft('row', value)}
-                />
-              </div>
-            </div>
-          ) : null}
-
-          {step.pageType === 'curve_compare_panel' ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                <div className="premium-lesson-title text-sm font-medium">变体判断</div>
-                <div className="mt-3">
-                  <ChoiceGroup
-                    options={CURVE_COMPARE_VARIANTS.map((item) => ({ value: item.key, label: item.label }))}
-                    value={draft.variant ?? ''}
-                    onChange={(value) => updateDraft('variant', value)}
-                  />
-                </div>
-              </div>
-              <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                <div className="premium-lesson-title text-sm font-medium">频带与代价</div>
-                <div className="mt-3 grid gap-3">
-                  <TextInput value={draft.band ?? ''} onChange={(value) => updateDraft('band', value)} placeholder="主要被改写的频带" multiline={false} />
-                  <TextInput value={draft.tradeoff ?? ''} onChange={(value) => updateDraft('tradeoff', value)} placeholder="典型收益 / 代价" />
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {step.pageType === 'activity_cards'
-            ? (ACTIVITY_CARD_FIELDS[step.id as 'step-06' | 'step-12'] ?? []).map((field) => (
-                <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                  <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                  <div className="mt-3">
-                    <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={field.label} />
-                  </div>
-                </div>
-              ))
-            : null}
-
-          {step.pageType === 'step_reveal' ? (
-            <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">本页关键理解</div>
-              <div className="mt-3">
-                <TextInput value={draft.summary ?? ''} onChange={(value) => updateDraft('summary', value)} placeholder="用一句话写出总转角、P 与 Z 的关系" />
-              </div>
-            </div>
-          ) : null}
-
-          {step.pageType === 'reason_chain' ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {REASON_CHAIN_FIELDS.map((field) => (
-                <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                  <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                  <div className="mt-3">
-                    <SelectField
-                      value={draft[field.key] ?? ''}
-                      onChange={(value) => updateDraft(field.key, value)}
-                      options={[
-                        { value: '1', label: '第 1 步' },
-                        { value: '2', label: '第 2 步' },
-                        { value: '3', label: '第 3 步' },
-                        { value: '4', label: '第 4 步' },
-                      ]}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {step.pageType === 'matrix_choice_cards' ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {MATRIX_CHOICE_CARDS.map((item) => (
-                <div key={item.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                  <div className="premium-lesson-title text-sm font-medium">{item.label}</div>
-                  <div className="mt-3">
-                    <SelectField value={draft[item.key] ?? ''} onChange={(value) => updateDraft(item.key, value)} options={STABILITY_LABELS} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {step.pageType === 'card_sort' ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {CARD_SORT_SCENARIOS.map((item) => (
-                <div key={item.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                  <div className="premium-lesson-title text-sm font-medium">{item.label}</div>
-                  <div className="mt-3">
-                    <TextInput value={draft[item.key] ?? ''} onChange={(value) => updateDraft(item.key, value)} placeholder="写出风险判断" multiline={false} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {step.pageType === 'hotspot_labeling' ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {HOTSPOT_FIELDS.map((item) => (
-                <div key={item.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                  <div className="premium-lesson-title text-sm font-medium">{item.label}</div>
-                  <div className="mt-3">
-                    <TextInput value={draft[item.key] ?? ''} onChange={(value) => updateDraft(item.key, value)} placeholder={`写出 ${item.label} 的读图位置`} multiline={false} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {step.pageType === 'band_focus_panel' ? (
-            <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-              <div className="premium-lesson-title text-sm font-medium">当前任务最该聚焦的频段</div>
-              <div className="mt-3">
-                <ChoiceGroup options={BAND_FOCUS_ITEMS.map((item) => ({ value: item.key, label: `${item.label}：${item.role}` }))} value={draft.band ?? ''} onChange={(value) => updateDraft('band', value)} />
-              </div>
-            </div>
-          ) : null}
-
-          {step.pageType === 'goal_cards_plus_ai'
-            ? GOAL_SWITCH_FIELDS.map((field) => (
-                <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                  <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                  <div className="mt-3">
-                    <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={field.label} />
-                  </div>
-                </div>
-              ))
-            : null}
-
-          {step.pageType === 'evidence_mark_cards'
-            ? EVIDENCE_MARK_FIELDS.map((field) => (
-                <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                  <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                  <div className="mt-3">
-                    <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={field.label} />
-                  </div>
-                </div>
-              ))
-            : null}
-
-          {step.pageType === 'structured_compare'
-            ? (STRUCTURED_COMPARE_FIELDS[step.id as 'step-16' | 'step-18'] ?? []).map((field) => (
-                <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                  <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                  <div className="mt-3">
-                    <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={field.label} />
-                  </div>
-                </div>
-              ))
-            : null}
-
-          {step.pageType === 'scheme_vote_cards' ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                <div className="premium-lesson-title text-sm font-medium">请选择当前更合理的方案</div>
-                <div className="mt-3">
-                  <ChoiceGroup options={SCHEME_VOTE_OPTIONS} value={draft.selectedScheme ?? ''} onChange={(value) => updateDraft('selectedScheme', value)} />
-                </div>
-              </div>
-              <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                <div className="premium-lesson-title text-sm font-medium">写出主要代价</div>
-                <div className="mt-3">
-                  <TextInput value={draft.selectedTradeoff ?? ''} onChange={(value) => updateDraft('selectedTradeoff', value)} placeholder="更稳但更慢、或代价可控等" />
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {step.pageType === 'reflection_card'
-            ? REFLECTION_PROMPTS.map((item) => (
-                <div key={item.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
-                  <div className="premium-lesson-title text-sm font-medium">{item.label}</div>
-                  <div className="mt-3">
-                    <TextInput value={draft[item.key] ?? ''} onChange={(value) => updateDraft(item.key, value)} placeholder={item.label} />
-                  </div>
-                </div>
-              ))
-            : null}
-
-          <button type="button" onClick={() => submit()} className="premium-lesson-action-primary">
-            {submitted ? '重新提交本页作答' : '提交答案'}
-          </button>
-        </div>
-      )}
-
-      <div className="mt-4">
-        <SubmissionStatus
-          submitted={submitted}
-          submittedText="已提交本页作答，教师端将看到你的当前答案。"
-          idleText="尚未提交本页作答。"
-        />
-      </div>
-
-      {answerVisible && revealMarkdown ? (
-        <div className="premium-lesson-tone-block premium-tone-cyan mt-4">
-          <div className="premium-lesson-title text-sm font-semibold">参考答案</div>
-          <div className="mt-2">{renderMarkdown(revealMarkdown)}</div>
-        </div>
-      ) : null}
-    </section>
+    <>
+      {renderStudentInteractiveActivity({
+        registry: createManifestStudentActivityRegistry<UNIT_3_8StepDefinition>(),
+        step,
+        stepManifest,
+        savedResponse,
+        released,
+        browseEnabled,
+        answerVisible,
+        revealProgress,
+        onSubmit,
+      })}
+    </>
   );
 }
 
 export function UNIT_3_8TeacherActivitySummary({
   step,
+  manifest,
   responses,
   released,
   browseEnabled = true,
@@ -1111,6 +845,7 @@ export function UNIT_3_8TeacherActivitySummary({
   onResetReveal,
 }: {
   step: UNIT_3_8StepDefinition;
+  manifest?: InteractiveRuntimeManifest | null;
   responses: UNIT_3_8TeacherResponseItem[];
   released: boolean;
   browseEnabled?: boolean;
@@ -1122,62 +857,25 @@ export function UNIT_3_8TeacherActivitySummary({
   onAdvanceReveal: () => void;
   onResetReveal: () => void;
 }) {
-  const summary = useMemo(() => summarizeResponses(step, responses), [responses, step]);
-  const controls = getUNIT_3_8PageContract(step.id).teacherControls;
-
+  const stepManifest = getUNIT_3_8ManifestStepFromManifest(manifest, step.id);
   return (
-    <section className="premium-lesson-panel-soft px-4 py-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="premium-lesson-title text-sm font-medium">教师汇总</div>
-          <div className="premium-lesson-muted mt-1 text-sm">当前收到 {responses.length} 份本页作答。</div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {controls.releaseActivity === 'separate_toggle' ? (
-            <button type="button" onClick={onToggleRelease} className="premium-lesson-action-secondary">
-              {released ? '撤回互动' : '发放作答'}
-            </button>
-          ) : null}
-          {controls.openBrowse === 'separate_toggle' ? (
-            <button type="button" onClick={onToggleBrowse} className="premium-lesson-action-secondary">
-              {browseEnabled ? '关闭浏览' : '开放浏览'}
-            </button>
-          ) : null}
-          {controls.teacherStepReveal === 'teacher_only' ? (
-            <>
-              <button type="button" onClick={onAdvanceReveal} className="premium-lesson-action-secondary">
-                教师逐步显影
-              </button>
-              <button type="button" onClick={onResetReveal} className="premium-lesson-action-secondary">
-                重置显影
-              </button>
-            </>
-          ) : null}
-          {controls.revealReferenceAnswer === 'separate_toggle' ? (
-            <button type="button" onClick={onToggleAnswerVisible} className="premium-lesson-action-primary">
-              {answerVisible ? '隐藏参考答案' : '显示参考答案'}
-            </button>
-          ) : null}
-        </div>
-      </div>
-
-      {controls.teacherStepReveal === 'teacher_only' ? (
-        <div className="premium-lesson-muted mt-3 text-sm">当前显影层级：{revealProgress}</div>
-      ) : null}
-
-      <div className="mt-4 grid gap-2">
-        {summary.length ? (
-          summary.map(([label, value]) => (
-            <div key={`${label}-${value}`} className="premium-lesson-surface-elevated flex items-center justify-between gap-3 rounded-2xl px-3 py-2 text-sm">
-              <span>{label}</span>
-              <span className="premium-lesson-caption">{value} 人</span>
-            </div>
-          ))
-        ) : (
-          <div className="premium-lesson-muted text-sm">本页暂无学生提交。</div>
-        )}
-      </div>
-    </section>
+    <>
+      {renderTeacherInteractiveActivity({
+        registry: createManifestTeacherActivityRegistry<UNIT_3_8StepDefinition>(),
+        step,
+        stepManifest,
+        responses,
+        released,
+        browseEnabled,
+        answerVisible,
+        revealProgress,
+        onToggleRelease,
+        onToggleBrowse,
+        onToggleAnswerVisible,
+        onAdvanceReveal,
+        onResetReveal,
+      })}
+    </>
   );
 }
 

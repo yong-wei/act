@@ -21,7 +21,21 @@ export type InteractiveInteractionKind =
   | 'teacher_reveal_only'
   | 'single_choice'
   | 'worked_example_reveal'
-  | 'task_card_workspace';
+  | 'task_card_workspace'
+  | 'row_focus_toggle'
+  | 'curve_compare_panel'
+  | 'activity_cards'
+  | 'step_reveal'
+  | 'reason_chain'
+  | 'matrix_choice_cards'
+  | 'card_sort'
+  | 'hotspot_labeling'
+  | 'band_focus_panel'
+  | 'goal_cards_plus_ai'
+  | 'evidence_mark_cards'
+  | 'structured_compare'
+  | 'scheme_vote_cards'
+  | 'reflection_card';
 
 export interface InteractiveRuntimeLayoutRegion {
   id: string;

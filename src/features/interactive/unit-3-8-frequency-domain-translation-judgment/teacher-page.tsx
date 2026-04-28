@@ -13,7 +13,6 @@ import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   finalizeUNIT_3_8TeacherSession,
-  getUNIT_3_8MediaSrc,
   isUNIT_3_8AiPageType,
   isUNIT_3_8InteractivePageType,
   isUNIT_3_8TeacherSyncState,
@@ -34,7 +33,6 @@ import {
   UNIT_3_8StepContentPanel,
   UNIT_3_8TeacherActivitySummary,
 } from './step-panels';
-import type { WorkspaceParameterChange } from './workspace';
 
 export function UNIT_3_8TeacherPage({
   sessionId,
@@ -75,7 +73,7 @@ export function UNIT_3_8TeacherPage({
     adapter: UNIT_3_8_SESSION_ADAPTER,
   });
 
-  const { trackCourseEvent, trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError, trackWorkspaceParamChange } =
+  const { trackCourseEvent, trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError } =
     useCourseEventTracking({
       resourceKey: UNIT_3_8_RESOURCE_KEY,
       resourceId: UNIT_3_8_RESOURCE_KEY,
@@ -86,6 +84,7 @@ export function UNIT_3_8TeacherPage({
     });
 
   const step = UNIT_3_8_LESSON_STEPS[activeIndex];
+  const runtimeManifest = lessonRuntime.interactiveManifest;
 
   const teacherSyncState = useMemo(() => {
     const latestRecord = [...teacherStates].reverse().find((record) => isUNIT_3_8TeacherSyncState(record.data));
@@ -204,17 +203,6 @@ export function UNIT_3_8TeacherPage({
     [step.id, trackCourseEvent],
   );
 
-  const handleWorkspaceParameterChange = useCallback(
-    (change: WorkspaceParameterChange) => {
-      trackWorkspaceParamChange(step.id, {
-        key: change.key,
-        value: change.value,
-        source: change.source,
-      });
-    },
-    [step.id, trackWorkspaceParamChange],
-  );
-
   if (loadingSession) {
     return (
       <div className="premium-lesson-shell flex items-center justify-center">
@@ -293,10 +281,9 @@ export function UNIT_3_8TeacherPage({
 
         <UNIT_3_8StepContentPanel
           step={step}
-          mediaSrc={getUNIT_3_8MediaSrc(step.id)}
-          mediaAlt={step.title}
-          onWorkspaceParameterChange={handleWorkspaceParameterChange}
+          manifest={runtimeManifest}
           revealProgress={teacherRevealProgress[step.id] ?? 0}
+          allowInlineReveal={false}
         />
 
         {isUNIT_3_8AiPageType(step.pageType) ? (
@@ -309,6 +296,7 @@ export function UNIT_3_8TeacherPage({
           <div className="mt-4">
             <UNIT_3_8TeacherActivitySummary
               step={step}
+              manifest={runtimeManifest}
               responses={currentResponses}
               released={Boolean(releasedActivities[step.id])}
               browseEnabled={Boolean(browseEnabled[step.id])}
