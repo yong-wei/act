@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T11:43:18.905520Z",
+  "lesson": {
+    "lesson_id": "3-9",
+    "title": "稳定—动态—稳态综合映射实验",
+    "groups": [
+      "动态改善线与稳态改善线对照"
+    ],
+    "card_order_index": 8
+  },
+  "node": {
+    "id": "积分环节_2_11005",
+    "name": "积分环节",
+    "name_en": "Integral Element",
+    "category": "典型环节",
+    "knowledge_type": "C",
+    "bloom_level": "理解",
+    "definition": "传递函数为G(s)=1/s的环节，输出是输入的时间积累。极点在原点s=0。物理原型包括水箱液位（流量→液位）、船舶航向（角速度→角度）。",
+    "examples": [
+      "水箱：流量输入→液位输出",
+      "船舶：角速度→航向角"
+    ],
+    "formulas": [
+      "G(s) = 1/s",
+      "y(t) = ∫₀ᵗ u(τ)dτ"
+    ],
+    "keywords": [
+      "积分",
+      "原点极点",
+      "累积效应"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/积分环节_2_11005.md",
+  "card_frontmatter": {
+    "node_id": "积分环节_2_11005",
+    "name": "积分环节",
+    "name_en": "Integral Element",
+    "lesson_units": [
+      "2-1",
+      "3-7"
+    ],
+    "category": "概念性",
+    "knowledge_type": "C",
+    "chapter": "2",
+    "tags": [
+      "层1建模",
+      "典型环节",
+      "2-1"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/2-1/design/handout.md",
+      "authoring/lessons/3-7/design/handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 积分环节 | Integral Element\n\n**一句话定义**：积分环节的传递函数为 $G(s)=1/s$，输出体现输入随时间的累积。\n\n**核心直觉**：它的关键词不是“快”，而是“记忆”和“累积”。\n\n**关键公式**：\n$$\nG(s)=\\frac{1}{s}\n$$\n\n**关联**：上位 → 典型环节对象库\n\n---",
+  "card_detail": "### 完整解释\n\n积分环节最突出的特征是：只要输入持续存在，输出就会不断累积，而不会自动停在某个固定值上。因此它是课程里“带记忆”对象的最基本代表。\n\n在后续课程中，积分对象会和稳态误差、系统型别等概念继续发生联系，所以在 `2-1` 这里只先抓住一个稳定直觉：看到 $1/s$，就要意识到系统里出现了累积效应。\n\n### 常见误区\n\n1. **误区**：积分环节只是“变化慢”。\n   **纠正**：它真正关键的是累积历史输入，而不是单纯快慢。\n\n2. **误区**：积分环节一定让系统更稳定。\n   **纠正**：它会改变系统结构与动态特性，不能仅凭“积分”二字就下稳定结论。",
+  "card_plain_excerpt": "## 首页\n\n# 积分环节 | Integral Element\n\n**一句话定义**：积分环节的传递函数为 $G(s)=1/s$，输出体现输入随时间的累积。\n\n**核心直觉**：它的关键词不是“快”，而是“记忆”和“累积”。\n\n**关键公式**：\n$$\nG(s)=\\frac{1}{s}\n$$\n\n**关联**：上位 → 典型环节对象库\n\n---\n\n## 详情\n\n### 完整解释\n\n积分环节最突出的特征是：只要输入持续存在，输出就会不断累积，而不会自动停在某个固定值上。因此它是课程里“带记忆”对象的最基本代表。\n\n在后续课程中，积分对象会和稳态误差、系统型别等概念继续发生联系，所以在 `2-1` 这里只先抓住一个稳定直觉：看到 $1/s$，就要意识到系统里出现了累积效应。\n\n### 常见误区\n\n1. **误区**：积分环节只是“变化慢”。\n   **纠正**：它真正关键的是累积历史输入，而不是单纯快慢。\n\n2. **误区**：积分环节一定让系统更稳定。\n   **纠正**：它会改变系统结构与动态特性，不能仅凭“积分”二字就下稳定结论。",
+  "core_intuition": "它的关键词不是“快”，而是“记忆”和“累积”。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "传递函数",
+      "target_id": null,
+      "target": "积分环节",
+      "relation": "related",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "积分环节",
+      "target_id": null,
+      "target": "系统结构图",
+      "relation": "related",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "积分环节",
+      "target_id": null,
+      "target": "系统结构图",
+      "relation": "instance_of",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "典型环节对象库",
+      "target_id": null,
+      "target": "积分环节",
+      "relation": "contains",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "传递函数",
+      "target_id": null,
+      "target": "积分环节",
+      "relation": "contains",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "积分环节",
+      "target_id": null,
+      "target": "低频补偿稳态改善路径",
+      "relation": "prerequisite",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "积分环节",
+      "target_id": null,
+      "target": "积分与滞后的稳态改善分工",
+      "relation": "prerequisite",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "积分环节_2_11005",
+      "source": "积分环节",
+      "target_id": "积分与滞后的稳态改善分工_3_39003",
+      "target": "积分与滞后的稳态改善分工",
+      "relation": "prerequisite",
+      "strength": 0.9,
+      "description": "要看懂积分线为什么能继续压低斜坡误差，必须先回到积分对象会改型别这一前提。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

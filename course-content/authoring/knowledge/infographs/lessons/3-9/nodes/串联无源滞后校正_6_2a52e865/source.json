@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T11:43:18.991081Z",
+  "lesson": {
+    "lesson_id": "3-9",
+    "title": "稳定—动态—稳态综合映射实验",
+    "groups": [
+      "动态改善线与稳态改善线对照"
+    ],
+    "card_order_index": 9
+  },
+  "node": {
+    "id": "串联无源滞后校正_6_2a52e865",
+    "name": "串联无源滞后校正",
+    "name_en": "Series Passive Lag Compensation",
+    "category": "程序性",
+    "knowledge_type": "X",
+    "bloom_level": "应用",
+    "definition": "一种通过串联滞后网络来改善系统稳态精度和动态性能的校正方法。",
+    "examples": [
+      "例6-4中，为满足静态速度误差系数、相角裕度、幅值裕度和截止频率要求，设计串联滞后校正装置。"
+    ],
+    "formulas": [
+      "\\phi_m = \\gamma'' - \\gamma' + \\Delta",
+      "L'(\\omega_c'') = 20\\lg b",
+      "bT = \\frac{1}{\\omega_c''}"
+    ],
+    "keywords": [
+      "滞后网络",
+      "相角裕度",
+      "截止频率",
+      "稳态误差"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/串联无源滞后校正_6_2a52e865.md",
+  "card_frontmatter": {
+    "node_id": "串联无源滞后校正_6_2a52e865",
+    "name": "串联无源滞后校正",
+    "name_en": "Series Passive Lag Compensation",
+    "lesson_units": [
+      "3-7"
+    ],
+    "category": "程序性",
+    "knowledge_type": "X",
+    "chapter": "6",
+    "tags": [
+      "3-7",
+      "滞后校正",
+      "低频补偿"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-7/design/handout.md"
+    ],
+    "asset_refs": [
+      "3-7-lag-time-domain-design.png"
+    ]
+  },
+  "card_overview": "# 串联无源滞后校正 | Series Passive Lag Compensation\n\n**一句话定义**：通过附加“零点在左、极点在右”的滞后网络，提高低频增益而尽量少动中频工作点的校正路径。\n\n**核心直觉**：它不是提高型别，而是把低频精度和中频动态尽量拆开安排。\n\n**关键公式**：\n$$\nG_{lag}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\qquad \\beta>1\n$$\n\n**关联**：前置 → 低频补偿稳态改善路径 · 后续 → 模块 4 频域校正设计",
+  "card_detail": "### 完整解释\n\n在 `3-7`，滞后校正的课堂角色不是完整整定，而是回答一个判断问题：如果型别不想变，还能不能把低频精度显著改善？\n\n答案是可以，但方式不是加积分，而是通过低频增益重分配来抬高 `K_v` 或其他低频精度指标。\n\n![3-7 滞后时域设计图](../../lessons/3-7/media/processed/3-7-lag-time-domain-design.png)\n\n### 常见误区\n\n1. **误区**：滞后就是更弱一点的 `PI`。\n   **纠正**：滞后一般不改型别，逻辑和 `PI` 不同。\n\n2. **误区**：滞后只改善精度，不影响速度。\n   **纠正**：它常通过降低截止频率来换取精度改善。",
+  "card_plain_excerpt": "## 首页\n\n# 串联无源滞后校正 | Series Passive Lag Compensation\n\n**一句话定义**：通过附加“零点在左、极点在右”的滞后网络，提高低频增益而尽量少动中频工作点的校正路径。\n\n**核心直觉**：它不是提高型别，而是把低频精度和中频动态尽量拆开安排。\n\n**关键公式**：\n$$\nG_{lag}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\qquad \\beta>1\n$$\n\n**关联**：前置 → 低频补偿稳态改善路径 · 后续 → 模块 4 频域校正设计\n\n## 详情\n\n### 完整解释\n\n在 `3-7`，滞后校正的课堂角色不是完整整定，而是回答一个判断问题：如果型别不想变，还能不能把低频精度显著改善？\n\n答案是可以，但方式不是加积分，而是通过低频增益重分配来抬高 `K_v` 或其他低频精度指标。\n\n![3-7 滞后时域设计图](../../lessons/3-7/media/processed/3-7-lag-time-domain-design.png)\n\n### 常见误区\n\n1. **误区**：滞后就是更弱一点的 `PI`。\n   **纠正**：滞后一般不改型别，逻辑和 `PI` 不同。\n\n2. **误区**：滞后只改善精度，不影响速度。\n   **纠正**：它常通过降低截止频率来换取精度改善。",
+  "core_intuition": "它不是提高型别，而是把低频精度和中频动态尽量拆开安排。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "稳定裕度",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "related",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "截止频率",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "带宽频率",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "related",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "相角裕度γ",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "非线性控制系统设计",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "applies_to",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "校正",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "contains",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "串联校正",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "contains",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "前馈校正",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "opposite",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "复合校正",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "related",
+      "strength": 0.5,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "反馈校正",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "性能指标",
+      "target_id": null,
+      "target": "串联无源滞后校正",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T12:29:50.383864Z",
+  "lesson_id": "3-9",
+  "node_id": "主导极点_3_4c4c6bbd",
+  "node_name": "主导极点",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已目视审查：旧版公式变形问题已规避；可见标签语义正确，主导极点与响应读回一致。"
+}

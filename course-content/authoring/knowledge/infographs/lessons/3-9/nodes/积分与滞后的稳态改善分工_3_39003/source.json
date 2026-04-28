@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T11:43:19.074879Z",
+  "lesson": {
+    "lesson_id": "3-9",
+    "title": "稳定—动态—稳态综合映射实验",
+    "groups": [
+      "动态改善线与稳态改善线对照"
+    ],
+    "card_order_index": 10
+  },
+  "node": {
+    "id": "积分与滞后的稳态改善分工_3_39003",
+    "name": "积分与滞后的稳态改善分工",
+    "name_en": "Division of Steady-State Improvement Between Integral and Lag Compensation",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "积分和滞后都服务于稳态改善，但积分更直接改变型别与误差阶次，滞后更偏向温和提高低频能力，因此二者在低频收益、中频代价和可达到的稳态改善程度上并不相同。",
+    "examples": [
+      "积分可把单位斜坡误差继续压向零，但常常更早把相位余量和超调推向紧张区。",
+      "滞后能把误差压小而不改型别，代价通常比强积分温和，但改善程度也有限。"
+    ],
+    "formulas": [
+      "C_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right)",
+      "C_{\\mathrm{lag}}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1"
+    ],
+    "keywords": [
+      "积分",
+      "滞后",
+      "稳态改善",
+      "型别",
+      "低频补偿"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/积分与滞后的稳态改善分工_3_39003.md",
+  "card_frontmatter": {
+    "node_id": "积分与滞后的稳态改善分工_3_39003",
+    "name": "积分与滞后的稳态改善分工",
+    "name_en": "Division of Steady-State Improvement Between Integral and Lag Compensation",
+    "lesson_units": [
+      "3-9"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-9",
+      "积分",
+      "滞后",
+      "稳态改善"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-9/design/handout.md"
+    ],
+    "asset_refs": [
+      "3-9-integral-weak-quad.png",
+      "3-9-integral-strong-quad.png",
+      "3-9-integral-corrected-quad.png",
+      "3-9-lag-quad.png"
+    ]
+  },
+  "card_overview": "# 积分与滞后的稳态改善分工 | Division of Steady-State Improvement Between Integral and Lag Compensation\n\n**一句话定义**：积分和滞后都能改善稳态，但积分更擅长改型别、压低误差阶次，滞后更擅长温和抬高低频能力而不直接改型别。\n\n**核心直觉**：它们都回答“更准”，但回答到什么程度、代价先落在哪一域，并不一样。\n\n**关键公式**：\n$$\nC_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right),\\qquad\nC_{\\mathrm{lag}}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1\n$$\n\n**关联**：前置 → 积分环节、低频补偿稳态改善路径、串联无源滞后校正 · 后续 → 任务标签与机制标签匹配、模块4入口的首轮任务判断",
+  "card_detail": "### 完整解释\n\n`3-9` 把 `3-7` 的低频补偿线进一步拆成两类问题：\n\n1. **是不是必须改型别，才能把误差继续压到目标水平？**\n2. **若不想把动态代价推得太狠，能否只做温和的低频重分配？**\n\n积分线和滞后线的分工正好对应这两个问题：\n\n- **积分**：通过增加积分作用，把单位斜坡误差继续压低，甚至压向零；但慢极点、超调和相角余量的代价会更早暴露。\n- **滞后**：通过低频增益重分配把误差压小，但通常不改变型别，因此改善有上限，代价也相对温和。\n\n这也是为什么 handout 里要同时放弱积分、强积分、积分校正和滞后对照。它们不是四个孤立版本，而是在回答同一个稳态任务下，改善程度和代价分布如何分层展开。\n\n### 比较要点\n\n- **弱积分**：先看见收益，也先看见慢极点。\n- **强积分**：收益更彻底，代价也被彻底放大。\n- **积分校正**：保留积分收益，再用中频整理把动态拉回可用区。\n- **滞后对照**：提醒“稳态改善”不只有积分一路，但滞后做不到同等程度的型别改变。\n\n### 常见误区\n\n1. **误区**：滞后只是“弱一点的积分”。\n   **纠正**：滞后通常不改型别，机制逻辑与积分不同。\n\n2. **误区**：只要误差继续下降，方案就一定更好。\n   **纠正**：还要同步检查慢极点、超调、相角裕度和带宽代价。",
+  "card_plain_excerpt": "## 首页\n\n# 积分与滞后的稳态改善分工 | Division of Steady-State Improvement Between Integral and Lag Compensation\n\n**一句话定义**：积分和滞后都能改善稳态，但积分更擅长改型别、压低误差阶次，滞后更擅长温和抬高低频能力而不直接改型别。\n\n**核心直觉**：它们都回答“更准”，但回答到什么程度、代价先落在哪一域，并不一样。\n\n**关键公式**：\n$$\nC_{PI}(s)=K\\left(1+\\frac{1}{T_i s}\\right),\\qquad\nC_{\\mathrm{lag}}(s)=K\\frac{Ts+1}{\\beta Ts+1},\\ \\beta>1\n$$\n\n**关联**：前置 → 积分环节、低频补偿稳态改善路径、串联无源滞后校正 · 后续 → 任务标签与机制标签匹配、模块4入口的首轮任务判断\n\n## 详情\n\n### 完整解释\n\n`3-9` 把 `3-7` 的低频补偿线进一步拆成两类问题：\n\n1. **是不是必须改型别，才能把误差继续压到目标水平？**\n2. **若不想把动态代价推得太狠，能否只做温和的低频重分配？**\n\n积分线和滞后线的分工正好对应这两个问题：\n\n- **积分**：通过增加积分作用，把单位斜坡误差继续压低，甚至压向零；但慢极点、超调和相角余量的代价会更早暴露。\n- **滞后**：通过低频增益重分配把误差压小，但通常不改变型别，因此改善有上限，代价也相对温和。\n\n这也是为什么 handout 里要同时放弱积分、强积分、积分校正和滞后对照。它们不是四个孤立版本，而是在回答同一个稳态任务下，改善程度和代价分布如何分层展开。\n\n### 比较要点\n\n- **弱积分**：先看见收益，也先看见慢极点。\n- **强积分**：收益更彻底，代价也被彻底放大。\n- **积分校正**：保留积分收益，再用中频整理把动态拉回可用区。\n- **滞后对照**：提醒“稳态改善”不只有积分一路，但滞后做不到同等程度的型别改变。\n\n### 常见误区\n\n1. **误区**：滞后只是“弱一点的积分”。\n   **纠正**：滞后通常不改型别，机制逻辑与积分不同。\n\n2. **误区**：只要误差继续下降，方案就一定更好。\n   **纠正**：还要同步检查慢极点、超调、相角裕度和带宽代价。",
+  "core_intuition": "它们都回答“更准”，但回答到什么程度、代价先落在哪一域，并不一样。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "积分环节",
+      "target_id": null,
+      "target": "积分与滞后的稳态改善分工",
+      "relation": "prerequisite",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "低频补偿稳态改善路径",
+      "target_id": null,
+      "target": "积分与滞后的稳态改善分工",
+      "relation": "contains",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "积分与滞后的稳态改善分工",
+      "target_id": null,
+      "target": "任务标签与机制标签匹配",
+      "relation": "supports",
+      "strength": 0.91,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "串联无源滞后校正",
+      "target_id": null,
+      "target": "积分与滞后的稳态改善分工",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "低频补偿稳态改善路径_3_37003",
+      "source": "低频补偿稳态改善路径",
+      "target_id": "积分与滞后的稳态改善分工_3_39003",
+      "target": "积分与滞后的稳态改善分工",
+      "relation": "contains",
+      "strength": 0.95,
+      "description": "3-9 把 3-7 中的低频补偿线拆成积分与滞后两类稳态改善路径对照。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "积分环节_2_11005",
+      "source": "积分环节",
+      "target_id": "积分与滞后的稳态改善分工_3_39003",
+      "target": "积分与滞后的稳态改善分工",
+      "relation": "prerequisite",
+      "strength": 0.9,
+      "description": "要看懂积分线为什么能继续压低斜坡误差，必须先回到积分对象会改型别这一前提。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "串联无源滞后校正_6_2a52e865",
+      "source": "串联无源滞后校正",
+      "target_id": "积分与滞后的稳态改善分工_3_39003",
+      "target": "积分与滞后的稳态改善分工",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "滞后线在 3-9 被用作教师演示版本，帮助学生看清稳态改善不只一条路。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "积分与滞后的稳态改善分工_3_39003",
+      "source": "积分与滞后的稳态改善分工",
+      "target_id": "任务标签与机制标签匹配_3_39002",
+      "target": "任务标签与机制标签匹配",
+      "relation": "supports",
+      "strength": 0.91,
+      "description": "积分与滞后路线的分工差异，为“更准”这一任务标签提供更细的机制判断。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T11:43:19.507957Z",
+  "lesson": {
+    "lesson_id": "3-9",
+    "title": "稳定—动态—稳态综合映射实验",
+    "groups": [
+      "综合映射与模块4入口"
+    ],
+    "card_order_index": 15
+  },
+  "node": {
+    "id": "模块4入口的首轮任务判断_3_39004",
+    "name": "模块4入口的首轮任务判断",
+    "name_en": "First-Round Task Judgment at the Entrance of Module 4",
+    "category": "方法性",
+    "knowledge_type": "D",
+    "bloom_level": "评价",
+    "definition": "在进入模块4之前，先把“更快”“更准”“兼顾稳与快”等口头需求翻译成需要优先回看的机制线与风险边界，明确当前只能做首轮任务判断，不能越级给出完整选型与整定结论。",
+    "examples": [
+      "若目标先是更快，应优先回看零点线或其他中频整理动作，以及相角裕度是否还够。",
+      "若目标先是更准，应先问是否必须改型别，以及愿不愿意承担更长尾部和更紧余量。"
+    ],
+    "formulas": [
+      "\\text{口头需求} \\rightarrow \\text{首轮任务判断} \\rightarrow \\text{后续设计问题}"
+    ],
+    "keywords": [
+      "模块4入口",
+      "任务判断",
+      "约束表达",
+      "设计起点"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/模块4入口的首轮任务判断_3_39004.md",
+  "card_frontmatter": {
+    "node_id": "模块4入口的首轮任务判断_3_39004",
+    "name": "模块4入口的首轮任务判断",
+    "name_en": "First-Round Task Judgment at the Entrance of Module 4",
+    "lesson_units": [
+      "3-9"
+    ],
+    "category": "方法性",
+    "knowledge_type": "D",
+    "chapter": "3",
+    "tags": [
+      "3-9",
+      "模块4入口",
+      "任务判断",
+      "设计前问题"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-9/design/handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 模块4入口的首轮任务判断 | First-Round Task Judgment at the Entrance of Module 4\n\n**一句话定义**：进入模块 4 之前，先把口头需求翻译成需要优先回看的机制线和风险边界，明确当前只做首轮判断，不直接给整定答案。\n\n**核心直觉**：模块 3 负责把问题问对，模块 4 才负责把参数和设计流程做出来。\n\n**关键公式**：\n$$\n\\text{口头需求}\n\\rightarrow\n\\text{首轮任务判断}\n\\rightarrow\n\\text{后续设计问题}\n$$\n\n**关联**：前置 → 任务标签与机制标签匹配、相角裕度、带宽 · 后续 → 模块4性能指标体系",
+  "card_detail": "### 完整解释\n\n`3-9` 的终点不是“选出唯一最好版本”，而是形成进入 `4-1` 前必须带着走的首轮问题。典型问法有三类：\n\n- **我希望它更快**：先问主导极点是否还有左移空间，中频相位余量会不会先不够。\n- **我希望它更准**：先问是否必须改型别，还是只需提高低频增益。\n- **我希望别太慢，也别太冒进**：先问当前版本的主要短板在哪一域，哪一域已经不能再透支。\n\n这一步必须故意克制，因为它还不该回答：\n\n- 控制器参数到底取多少；\n- 哪个版本绝对最优；\n- 是否已经完成最终设计。\n\n模块 3 到这里的职责，只是把模块 4 的设计问题问准。问题一旦问错，后面的参数整定再精细也可能是在优化错误目标。\n\n### 首轮判断清单\n\n1. 当前目标更偏动态、稳态，还是综合折中。\n2. 当前最该回看的机制线是哪一条。\n3. 代价最先暴露的是相角裕度、带宽，还是慢极点与超调。\n4. 哪些结论只能进入模块 4 后再做定量设计。\n\n### 常见误区\n\n1. **误区**：模块 3 已经比较了多个版本，所以可以直接给出最终控制器。\n   **纠正**：`3-9` 只收束机制地图，不越级替代模块 4 的设计流程。\n\n2. **误区**：首轮任务判断只是口头总结。\n   **纠正**：它决定模块 4 从哪条机制线起步，属于设计前最重要的输入。",
+  "card_plain_excerpt": "## 首页\n\n# 模块4入口的首轮任务判断 | First-Round Task Judgment at the Entrance of Module 4\n\n**一句话定义**：进入模块 4 之前，先把口头需求翻译成需要优先回看的机制线和风险边界，明确当前只做首轮判断，不直接给整定答案。\n\n**核心直觉**：模块 3 负责把问题问对，模块 4 才负责把参数和设计流程做出来。\n\n**关键公式**：\n$$\n\\text{口头需求}\n\\rightarrow\n\\text{首轮任务判断}\n\\rightarrow\n\\text{后续设计问题}\n$$\n\n**关联**：前置 → 任务标签与机制标签匹配、相角裕度、带宽 · 后续 → 模块4性能指标体系\n\n## 详情\n\n### 完整解释\n\n`3-9` 的终点不是“选出唯一最好版本”，而是形成进入 `4-1` 前必须带着走的首轮问题。典型问法有三类：\n\n- **我希望它更快**：先问主导极点是否还有左移空间，中频相位余量会不会先不够。\n- **我希望它更准**：先问是否必须改型别，还是只需提高低频增益。\n- **我希望别太慢，也别太冒进**：先问当前版本的主要短板在哪一域，哪一域已经不能再透支。\n\n这一步必须故意克制，因为它还不该回答：\n\n- 控制器参数到底取多少；\n- 哪个版本绝对最优；\n- 是否已经完成最终设计。\n\n模块 3 到这里的职责，只是把模块 4 的设计问题问准。问题一旦问错，后面的参数整定再精细也可能是在优化错误目标。\n\n### 首轮判断清单\n\n1. 当前目标更偏动态、稳态，还是综合折中。\n2. 当前最该回看的机制线是哪一条。\n3. 代价最先暴露的是相角裕度、带宽，还是慢极点与超调。\n4. 哪些结论只能进入模块 4 后再做定量设计。\n\n### 常见误区\n\n1. **误区**：模块 3 已经比较了多个版本，所以可以直接给出最终控制器。\n   **纠正**：`3-9` 只收束机制地图，不越级替代模块 4 的设计流程。\n\n2. **误区**：首轮任务判断只是口头总结。\n   **纠正**：它决定模块 4 从哪条机制线起步，属于设计前最重要的输入。",
+  "core_intuition": "模块 3 负责把问题问对，模块 4 才负责把参数和设计流程做出来。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "任务标签与机制标签匹配",
+      "target_id": null,
+      "target": "模块4入口的首轮任务判断",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "任务标签与机制标签匹配_3_39002",
+      "source": "任务标签与机制标签匹配",
+      "target_id": "模块4入口的首轮任务判断_3_39004",
+      "target": "模块4入口的首轮任务判断",
+      "relation": "leads_to",
+      "strength": 0.96,
+      "description": "当任务标签与机制标签对齐后，学生才能带着正确问题进入模块4，而不是直接越级给参数答案。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "相角裕度_5_0a9c6e90",
+      "source": "相角裕度",
+      "target_id": "模块4入口的首轮任务判断_3_39004",
+      "target": "模块4入口的首轮任务判断",
+      "relation": "cross_domain",
+      "strength": 0.88,
+      "description": "模块4入口判断要先问动态改善是否会过早吃掉中频余量。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "带宽_5_6730fda4",
+      "source": "带宽",
+      "target_id": "模块4入口的首轮任务判断_3_39004",
+      "target": "模块4入口的首轮任务判断",
+      "relation": "cross_domain",
+      "strength": 0.88,
+      "description": "模块4入口判断不能把带宽右移简单等同于“更优”，必须连同代价一起看。",
+      "direction_for_node": "incoming"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

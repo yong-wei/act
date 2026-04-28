@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T11:43:18.732571Z",
+  "lesson": {
+    "lesson_id": "3-9",
+    "title": "稳定—动态—稳态综合映射实验",
+    "groups": [
+      "动态改善线与稳态改善线对照"
+    ],
+    "card_order_index": 6
+  },
+  "node": {
+    "id": "左半平面零点的动态改善机理_3_35002",
+    "name": "左半平面零点的动态改善机理",
+    "name_en": "Dynamic-Improvement Mechanism of Left-Half-Plane Zeros",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "左半平面零点通过改变相角平衡与根轨迹骨架，使闭环极点更有机会进入阻尼更合适、实部更靠左的区域，因此常带来更快、更稳的动态趋势；这种改善必须同时通过根轨迹、时域、频域和结构判断读回。",
+    "examples": [
+      "在同一纯极点对象上加入左半平面零点后，阶跃响应常表现为超调下降、调节时间缩短，但这不等价于单纯增益增大。",
+      "PD 与超前都利用左半平面零点改善动态，只是频域整形方式与高频代价不同。"
+    ],
+    "formulas": [
+      "M_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times100\\%",
+      "t_s\\approx\\frac{4}{\\zeta\\omega_n}"
+    ],
+    "keywords": [
+      "左半平面零点",
+      "动态改善",
+      "阻尼",
+      "超调",
+      "高频代价"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/左半平面零点的动态改善机理_3_35002.md",
+  "card_frontmatter": {
+    "node_id": "左半平面零点的动态改善机理_3_35002",
+    "name": "左半平面零点的动态改善机理",
+    "name_en": "Dynamic-Improvement Mechanism of Left-Half-Plane Zeros",
+    "lesson_units": [
+      "3-5"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-5",
+      "左半平面零点",
+      "动态改善"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-5/design/handout.md"
+    ],
+    "asset_refs": [
+      "3-5-rl-01-low-order-zero-compare.png",
+      "3-5-rl-04-pd-lead-compare.png"
+    ]
+  },
+  "card_overview": "# 左半平面零点的动态改善机理 | Dynamic-Improvement Mechanism of Left-Half-Plane Zeros\n\n**一句话定义**：左半平面零点通过改变相角平衡和根轨迹骨架，使主导极点更有机会进入阻尼更合适、实部更靠左的区域，因此常常带来更快、更稳的动态趋势。\n\n**核心直觉**：左半平面零点的价值，不是把增益放大，而是给主导极点换一条更有利的路。\n\n**关键公式**：\n$$\nM_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times 100\\%,\\qquad\nt_s\\approx\\frac{4}{\\zeta\\omega_n}\n$$\n\n**关联**：前置 → 零点引入与根轨迹重排、阻尼比、自然频率 · 后续 → PD 与测速反馈的等效阻尼对比、PD 与超前的频域整形差异",
+  "card_detail": "### 完整解释\n\n左半平面零点之所以常和“动态改善”联系在一起，是因为它往往同时改变三件事：\n\n- 主导分支更容易朝阻尼更合适的区域移动；\n- 对应的超调和调节时间趋势可能一起改善；\n- 频域上也会出现更积极的整形效果。\n\n但 `3-5` 同时强调，这种改善并不是免费的。`PD` 和超前都借助左半平面零点改善动态，但它们处理高频代价的方式并不一样。\n\n### 常见误区\n\n1. **误区**：左半平面零点改善动态，等价于“增益再调大一点”。\n   **纠正**：真正变的是根轨迹骨架和主导极点候选区，不只是参数点位。\n\n2. **误区**：左半平面零点越靠右越好。\n   **纠正**：零点位置还会改变高频代价和结构副作用，必须连同边界一起判断。",
+  "card_plain_excerpt": "## 首页\n\n# 左半平面零点的动态改善机理 | Dynamic-Improvement Mechanism of Left-Half-Plane Zeros\n\n**一句话定义**：左半平面零点通过改变相角平衡和根轨迹骨架，使主导极点更有机会进入阻尼更合适、实部更靠左的区域，因此常常带来更快、更稳的动态趋势。\n\n**核心直觉**：左半平面零点的价值，不是把增益放大，而是给主导极点换一条更有利的路。\n\n**关键公式**：\n$$\nM_p=e^{-\\frac{\\zeta\\pi}{\\sqrt{1-\\zeta^2}}}\\times 100\\%,\\qquad\nt_s\\approx\\frac{4}{\\zeta\\omega_n}\n$$\n\n**关联**：前置 → 零点引入与根轨迹重排、阻尼比、自然频率 · 后续 → PD 与测速反馈的等效阻尼对比、PD 与超前的频域整形差异\n\n## 详情\n\n### 完整解释\n\n左半平面零点之所以常和“动态改善”联系在一起，是因为它往往同时改变三件事：\n\n- 主导分支更容易朝阻尼更合适的区域移动；\n- 对应的超调和调节时间趋势可能一起改善；\n- 频域上也会出现更积极的整形效果。\n\n但 `3-5` 同时强调，这种改善并不是免费的。`PD` 和超前都借助左半平面零点改善动态，但它们处理高频代价的方式并不一样。\n\n### 常见误区\n\n1. **误区**：左半平面零点改善动态，等价于“增益再调大一点”。\n   **纠正**：真正变的是根轨迹骨架和主导极点候选区，不只是参数点位。\n\n2. **误区**：左半平面零点越靠右越好。\n   **纠正**：零点位置还会改变高频代价和结构副作用，必须连同边界一起判断。",
+  "core_intuition": "左半平面零点的价值，不是把增益放大，而是给主导极点换一条更有利的路。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "左半平面零点的动态改善机理",
+      "target_id": null,
+      "target": "PD与测速反馈的等效阻尼对比",
+      "relation": "contains",
+      "strength": 0.92,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "零点引入与根轨迹重排",
+      "target_id": null,
+      "target": "左半平面零点的动态改善机理",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "左半平面零点的动态改善机理",
+      "target_id": null,
+      "target": "非最小相与右半平面零点",
+      "relation": "generalizes",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "左半平面零点的动态改善机理",
+      "target_id": null,
+      "target": "结构变化的频域指纹",
+      "relation": "cross_domain",
+      "strength": 0.93,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "左半平面零点的动态改善机理",
+      "target_id": null,
+      "target": "任务标签与机制标签匹配",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "左半平面零点的动态改善机理_3_35002",
+      "source": "左半平面零点的动态改善机理",
+      "target_id": "任务标签与机制标签匹配_3_39002",
+      "target": "任务标签与机制标签匹配",
+      "relation": "cross_domain",
+      "strength": 0.9,
+      "description": "零点线是 3-9 中“更偏动态改善”任务标签的代表机制线。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

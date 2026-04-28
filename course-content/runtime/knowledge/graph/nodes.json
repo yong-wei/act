@@ -11485,7 +11485,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/结构变化的频域指纹_3_38001.png",
         "url": "/course-runtime/knowledge/infographs/nodes/结构变化的频域指纹_3_38001.png",
         "title": "结构变化的频域指纹 信息图",
-        "lessonId": "3-8",
+        "lessonId": "3-9",
         "nodeId": "结构变化的频域指纹_3_38001"
       },
       "createdAt": null,
@@ -11500,7 +11500,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/结构变化的频域指纹_3_38001.png",
         "url": "/course-runtime/knowledge/infographs/nodes/结构变化的频域指纹_3_38001.png",
         "title": "结构变化的频域指纹 信息图",
-        "lessonId": "3-8",
+        "lessonId": "3-9",
         "nodeId": "结构变化的频域指纹_3_38001"
       }
     ],
@@ -12952,7 +12952,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/频域综合判断与工程读回_3_38004.png",
         "url": "/course-runtime/knowledge/infographs/nodes/频域综合判断与工程读回_3_38004.png",
         "title": "频域综合判断与工程读回 信息图",
-        "lessonId": "3-8",
+        "lessonId": "3-9",
         "nodeId": "频域综合判断与工程读回_3_38004"
       },
       "createdAt": null,
@@ -12967,7 +12967,7 @@
         "path": "course-content/runtime/knowledge/infographs/nodes/频域综合判断与工程读回_3_38004.png",
         "url": "/course-runtime/knowledge/infographs/nodes/频域综合判断与工程读回_3_38004.png",
         "title": "频域综合判断与工程读回 信息图",
-        "lessonId": "3-8",
+        "lessonId": "3-9",
         "nodeId": "频域综合判断与工程读回_3_38004"
       }
     ],
@@ -15431,14 +15431,29 @@
         "开环增益",
         "复平面"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/根轨迹_4_c19f8854.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/根轨迹_4_c19f8854.png",
+        "title": "根轨迹 信息图",
+        "lessonId": "3-9",
+        "nodeId": "根轨迹_4_c19f8854"
+      },
       "createdAt": "2026-02-04T17:54:16.628098",
       "updatedAt": "2026-02-04T17:54:16.628099",
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/根轨迹_4_c19f8854.md"
+      "course-content/runtime/knowledge/cards/nodes/根轨迹_4_c19f8854.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/根轨迹_4_c19f8854.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/根轨迹_4_c19f8854.png",
+        "title": "根轨迹 信息图",
+        "lessonId": "3-9",
+        "nodeId": "根轨迹_4_c19f8854"
+      }
     ],
     "tags": [
       "闭环极点",

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T12:33:08.400206Z",
+  "lesson_id": "3-9",
+  "node_id": "稳定_动态_稳态综合映射框架_3_39001",
+  "node_name": "统一对象多版本综合映射框架",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已目视审查：多版本表、根轨迹/时域/频域/任务标签链条清晰，未见明显文字错误。"
+}

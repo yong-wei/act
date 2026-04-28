@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T12:06:10.797287Z",
+  "lesson_id": "3-9",
+  "node_id": "根轨迹_4_c19f8854",
+  "node_name": "根轨迹",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已目视审查：根轨迹、零极点、稳定性/快慢/振荡读回清晰，公式未明显变形。"
+}

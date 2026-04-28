@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T11:43:18.646728Z",
+  "lesson": {
+    "lesson_id": "3-9",
+    "title": "稳定—动态—稳态综合映射实验",
+    "groups": [
+      "统一对象与多版本映射入口"
+    ],
+    "card_order_index": 5
+  },
+  "node": {
+    "id": "稳定_动态_稳态综合映射框架_3_39001",
+    "name": "统一对象多版本综合映射框架",
+    "name_en": "Unified Multi-Variant Mapping Framework",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "围绕同一船舶航向控制对象，把基准、积分和自选补强等多个版本放进同一张比较表，统一记录结构变化、根轨迹第一信号、时域后果、频域后果与任务标签，形成模块3出口的跨域机制地图。",
+    "examples": [
+      "基准版本作为统一锚点，只说明系统当前处在怎样的折中位置。",
+      "零点线补强、积分校正和滞后对照不再各看各的图，而是回到同一对象的多版本映射上比较收益与代价。"
+    ],
+    "formulas": [
+      "\\text{统一对象} + \\text{多版本} \\rightarrow \\text{可比映射}",
+      "\\text{结构变化} \\rightarrow \\text{根轨迹第一信号} \\rightarrow \\text{时域结果} \\rightarrow \\text{频域解释} \\rightarrow \\text{任务标签}"
+    ],
+    "keywords": [
+      "统一对象",
+      "多版本映射",
+      "跨域比较",
+      "模块3出口",
+      "综合映射"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/稳定_动态_稳态综合映射框架_3_39001.md",
+  "card_frontmatter": {
+    "node_id": "稳定_动态_稳态综合映射框架_3_39001",
+    "name": "统一对象多版本综合映射框架",
+    "name_en": "Unified Multi-Variant Mapping Framework",
+    "lesson_units": [
+      "3-9"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "3-9",
+      "统一对象",
+      "多版本映射",
+      "综合映射"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-9/design/handout.md"
+    ],
+    "asset_refs": [
+      "3-9-baseline-quad.png",
+      "3-9-zero-line-quad.png",
+      "3-9-integral-corrected-quad.png"
+    ]
+  },
+  "card_overview": "# 统一对象多版本综合映射框架 | Unified Multi-Variant Mapping Framework\n\n**一句话定义**：围绕同一个对象，把基准、积分和自选补强版本放进同一张映射表，统一比较结构变化、根轨迹信号、时域结果与频域后果。\n\n**核心直觉**：模块 3 的出口不是再学一个新控制器，而是先学会在同一对象上横向比较不同机制线。\n\n**关键公式**：\n$$\n\\text{结构变化}\n\\rightarrow\n\\text{根轨迹第一信号}\n\\rightarrow\n\\text{时域结果}\n\\rightarrow\n\\text{频域解释}\n\\rightarrow\n\\text{任务标签}\n$$\n\n**关联**：前置 → 结构变化的频域指纹、频域综合判断与工程读回、根轨迹、主导极点 · 后续 → 任务标签与机制标签匹配、模块4入口的首轮任务判断",
+  "card_detail": "### 完整解释\n\n`3-9` 的关键动作，是把前面几课分散学过的语言压回同一个船舶航向控制对象上比较，而不是换一个新对象重新讲一遍。这样做有两个直接收益：\n\n1. 基准版给出统一锚点，告诉我们系统当前处在怎样的折中位置。\n2. 零点线补强、积分家族和滞后对照都能在同一口径下读出“收益先出现在哪一域、代价先暴露在哪一域”。\n\n因此，这张卡强调的不是“版本越多越好”，而是“版本之间必须可比”。一旦换对象、换读图口径或换评价指标，任务标签就会漂移，模块 4 入口判断也会失真。\n\n### 本课中的版本角色\n\n- **基准版**：只负责提供统一锚点。\n- **零点线补强**：代表更偏动态改善的机制线。\n- **积分家族**：代表更偏稳态改善的机制线，并暴露低频收益与中频代价。\n- **积分校正 / 滞后对照**：提醒“稳态改善”内部也有不同路径和不同代价分布。\n\n### 常见误区\n\n1. **误区**：只要每个版本都画了图，就自然能比较。\n   **纠正**：必须固定同一对象、同一读图口径和同一任务问题，版本比较才有意义。\n\n2. **误区**：综合映射就是把所有结论抄成一张表。\n   **纠正**：真正重要的是因果链，尤其是结构变化先在根轨迹和频域哪里露出第一信号。",
+  "card_plain_excerpt": "## 首页\n\n# 统一对象多版本综合映射框架 | Unified Multi-Variant Mapping Framework\n\n**一句话定义**：围绕同一个对象，把基准、积分和自选补强版本放进同一张映射表，统一比较结构变化、根轨迹信号、时域结果与频域后果。\n\n**核心直觉**：模块 3 的出口不是再学一个新控制器，而是先学会在同一对象上横向比较不同机制线。\n\n**关键公式**：\n$$\n\\text{结构变化}\n\\rightarrow\n\\text{根轨迹第一信号}\n\\rightarrow\n\\text{时域结果}\n\\rightarrow\n\\text{频域解释}\n\\rightarrow\n\\text{任务标签}\n$$\n\n**关联**：前置 → 结构变化的频域指纹、频域综合判断与工程读回、根轨迹、主导极点 · 后续 → 任务标签与机制标签匹配、模块4入口的首轮任务判断\n\n## 详情\n\n### 完整解释\n\n`3-9` 的关键动作，是把前面几课分散学过的语言压回同一个船舶航向控制对象上比较，而不是换一个新对象重新讲一遍。这样做有两个直接收益：\n\n1. 基准版给出统一锚点，告诉我们系统当前处在怎样的折中位置。\n2. 零点线补强、积分家族和滞后对照都能在同一口径下读出“收益先出现在哪一域、代价先暴露在哪一域”。\n\n因此，这张卡强调的不是“版本越多越好”，而是“版本之间必须可比”。一旦换对象、换读图口径或换评价指标，任务标签就会漂移，模块 4 入口判断也会失真。\n\n### 本课中的版本角色\n\n- **基准版**：只负责提供统一锚点。\n- **零点线补强**：代表更偏动态改善的机制线。\n- **积分家族**：代表更偏稳态改善的机制线，并暴露低频收益与中频代价。\n- **积分校正 / 滞后对照**：提醒“稳态改善”内部也有不同路径和不同代价分布。\n\n### 常见误区\n\n1. **误区**：只要每个版本都画了图，就自然能比较。\n   **纠正**：必须固定同一对象、同一读图口径和同一任务问题，版本比较才有意义。\n\n2. **误区**：综合映射就是把所有结论抄成一张表。\n   **纠正**：真正重要的是因果链，尤其是结构变化先在根轨迹和频域哪里露出第一信号。",
+  "core_intuition": "模块 3 的出口不是再学一个新控制器，而是先学会在同一对象上横向比较不同机制线。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "统一对象多版本综合映射框架",
+      "target_id": null,
+      "target": "任务标签与机制标签匹配",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "根轨迹",
+      "target_id": null,
+      "target": "统一对象多版本综合映射框架",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "频域综合判断与工程读回",
+      "target_id": null,
+      "target": "统一对象多版本综合映射框架",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": "频域综合判断与工程读回_3_38004",
+      "source": "频域综合判断与工程读回",
+      "target_id": "稳定_动态_稳态综合映射框架_3_39001",
+      "target": "统一对象多版本综合映射框架",
+      "relation": "leads_to",
+      "strength": 0.95,
+      "description": "3-8 建立的统一频域判断链在 3-9 被放到同一对象的多版本比较里，形成模块3出口的综合映射框架。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "根轨迹_4_c19f8854",
+      "source": "根轨迹",
+      "target_id": "稳定_动态_稳态综合映射框架_3_39001",
+      "target": "统一对象多版本综合映射框架",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": "3-9 固定要求先看根轨迹第一信号，再看时域和频域复核。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "主导极点_3_4c4c6bbd",
+      "source": "主导极点",
+      "target_id": "稳定_动态_稳态综合映射框架_3_39001",
+      "target": "统一对象多版本综合映射框架",
+      "relation": "applies_to",
+      "strength": 0.89,
+      "description": "多版本比较必须回到同一对象下主导模态是否左移、阻尼是否改善的共同读图口径。",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "稳定_动态_稳态综合映射框架_3_39001",
+      "source": "统一对象多版本综合映射框架",
+      "target_id": "任务标签与机制标签匹配_3_39002",
+      "target": "任务标签与机制标签匹配",
+      "relation": "leads_to",
+      "strength": 0.94,
+      "description": "只有先把跨域比较压成统一框架，学生才能稳定地先贴任务标签，再回到机制线。",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

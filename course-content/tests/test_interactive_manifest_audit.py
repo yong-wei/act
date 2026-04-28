@@ -81,6 +81,31 @@ def test_manifest_audit_catches_activity_prompt_repeated_in_content_blocks():
     assert any(issue['issue'] == 'activity_prompt_repeated_in_content_blocks' for issue in result['issues'])
 
 
+def test_manifest_audit_catches_activity_card_without_prompt():
+    manifest = {
+        'lesson_id': 'demo',
+        'steps': {
+            'step-01': {
+                'title': 'demo',
+                'layout': {'template': 'stacked_regions', 'regions': [{'id': 'main', 'width': 'full', 'order': 1}]},
+                'modules': [
+                    {'id': 'card-a', 'region': 'main', 'kind': 'activity-card', 'must_be_visible': True, 'payload': {}},
+                ],
+                'content_blocks': {},
+                'interaction_spec': {
+                    'interaction_kind': 'activity_card_set',
+                    'activity_cards': [{'id': 'card-a', 'prompt': '   ', 'response_kind': 'fill_text'}],
+                },
+            }
+        },
+    }
+
+    result = audit_interactive_manifest.audit_manifest(manifest)
+
+    assert result['status'] == 'fail'
+    assert any(issue['issue'] == 'activity_card_without_prompt' for issue in result['issues'])
+
+
 def test_manifest_audit_treats_title_only_payload_as_empty_content():
     manifest = {
         'lesson_id': 'demo',

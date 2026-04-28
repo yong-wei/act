@@ -128,6 +128,30 @@
       "title": "频率特性 信息图",
       "lessonId": "3-8",
       "nodeId": "频率特性_5_404adfdd"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/根轨迹_4_c19f8854.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/根轨迹_4_c19f8854.png",
+      "title": "根轨迹 信息图",
+      "lessonId": "3-9",
+      "nodeId": "根轨迹_4_c19f8854"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/结构变化的频域指纹_3_38001.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/结构变化的频域指纹_3_38001.png",
+      "title": "结构变化的频域指纹 信息图",
+      "lessonId": "3-9",
+      "nodeId": "结构变化的频域指纹_3_38001"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/频域综合判断与工程读回_3_38004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/频域综合判断与工程读回_3_38004.png",
+      "title": "频域综合判断与工程读回 信息图",
+      "lessonId": "3-9",
+      "nodeId": "频域综合判断与工程读回_3_38004"
     }
   ]
 }

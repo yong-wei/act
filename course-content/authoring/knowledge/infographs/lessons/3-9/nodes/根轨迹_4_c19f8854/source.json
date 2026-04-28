@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-28T11:43:18.471347Z",
+  "lesson": {
+    "lesson_id": "3-9",
+    "title": "稳定—动态—稳态综合映射实验",
+    "groups": [
+      "统一对象与多版本映射入口"
+    ],
+    "card_order_index": 3
+  },
+  "node": {
+    "id": "根轨迹_4_c19f8854",
+    "name": "根轨迹",
+    "name_en": "Root Locus",
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "理解",
+    "definition": "根轨迹是当系统开环增益从零变化到无穷大时，闭环系统特征根在复平面上移动的轨迹。",
+    "examples": [
+      "图4-2所示，开环增益K变化时，二阶系统闭环极点在s平面上沿实轴和复平面变化的轨迹。",
+      "用于分析开环增益变化对闭环系统稳定性和动态性能的影响。"
+    ],
+    "formulas": [
+      "1 + G(s)H(s) = 0",
+      "\\prod_{j=1}^{n}(s - p_j) + K^* \\prod_{i=1}^{m}(s - z_i) = 0",
+      "1+KG(s)H(s)=0",
+      "\\sum_{i=1}^{m}\\angle(s-z_i)-\\sum_{j=1}^{n}\\angle(s-p_j)=(2k+1)\\pi"
+    ],
+    "keywords": [
+      "闭环极点",
+      "s平面",
+      "轨迹",
+      "特征方程",
+      "闭环特征根",
+      "开环增益",
+      "复平面"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/根轨迹_4_c19f8854.md",
+  "card_frontmatter": {
+    "node_id": "根轨迹_4_c19f8854",
+    "name": "根轨迹",
+    "name_en": "Root Locus",
+    "lesson_units": [
+      "3-3"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "3",
+    "tags": [
+      "层2深化",
+      "3-3",
+      "根轨迹分析"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/3-3/design/handout.md"
+    ],
+    "asset_refs": [
+      "3-3-info.png"
+    ]
+  },
+  "card_overview": "# 根轨迹 | Root Locus\n\n**一句话定义**：当某一参数连续变化时，闭环特征根在复平面上描出的轨迹。\n\n**核心直觉**：根轨迹把“参数怎么调”翻译成“极点往哪里走”，再把极点迁移翻译成稳定性、快慢和振荡性的变化。\n\n**关键公式**：\n$$\n1+G(s)H(s)=0\n$$\n\n**关联**：前置 → 闭环特征方程、闭环极点 · 后续 → 相角条件、幅值条件、广义根轨迹",
+  "card_detail": "### 完整解释\n\n根轨迹关心的不是某一个参数值下的单个闭环根，而是参数连续变化时全部闭环根的整体迁移路径。\n\n![3-3 核心主线信息图](../../lessons/3-3/media/processed/3-3-info.png)\n\n这意味着根轨迹天然适合回答三类问题：\n\n- 参数继续增大时，极点先向哪里移动；\n- 系统会在哪一段参数附近接近虚轴边界；\n- 主导极点怎样迁移，响应会更快还是更振荡。\n\n因此，根轨迹是一张“趋势图”。\n它把 `3-2` 中的稳定区间语言继续推进成连续的复平面运动语言。\n\n### 公式与推导路径\n\n对单位负反馈系统，\n\n$$\n1+G(s)H(s)=0\n$$\n\n若把可调参数记为 $K$，闭环根就成为\n\n$$\ns=s(K)\n$$\n\n于是“求闭环根”自然扩展成“研究参数变化下的闭环根集合”。\n完整推导与判别入口见单元 `3-3`。\n\n### 工程实例\n\n对\n\n$$\nG(s)=\\frac{K^\\ast}{s(s+2)}\n$$\n\n闭环特征方程为\n\n$$\ns^2+2s+K^\\ast=0\n$$\n\n当 $K^\\ast$ 从 $0$ 增大时，两条分支从 $0$ 和 $-2$ 出发，在 $-1$ 附近汇合，随后进入复平面。\n这条轨迹直接对应“先变快，再出现振荡”的动态变化。\n\n### 关联节点\n\n| 方向 | 节点 | 关系说明 |\n|------|------|---------|\n| 前置 | 闭环特征方程 | 根轨迹的研究对象来自闭环特征方程的根 |\n| 前置 | 闭环极点 | 根轨迹描绘的是闭环极点的连续迁移 |\n| 后续 | 相角条件 | 用于判断某点是否属于根轨迹 |\n| 后续 | 幅值条件 | 用于回算该点对应的参数值 |\n| 后续 | 广义根轨迹 | 把“增益变化”推广到“一般参数变化” |\n\n### 常见误区\n\n1. **误区**：根轨迹只是作图方法。**纠正**：根轨迹的真正用途是解释参数变化带来的极点迁移和性能趋势。\n2. **误区**：根轨迹只适用于开环增益变化。**纠正**：开环增益根轨迹只是广义根轨迹的一个特例。",
+  "card_plain_excerpt": "## 首页\n\n# 根轨迹 | Root Locus\n\n**一句话定义**：当某一参数连续变化时，闭环特征根在复平面上描出的轨迹。\n\n**核心直觉**：根轨迹把“参数怎么调”翻译成“极点往哪里走”，再把极点迁移翻译成稳定性、快慢和振荡性的变化。\n\n**关键公式**：\n$$\n1+G(s)H(s)=0\n$$\n\n**关联**：前置 → 闭环特征方程、闭环极点 · 后续 → 相角条件、幅值条件、广义根轨迹\n\n## 详情\n\n### 完整解释\n\n根轨迹关心的不是某一个参数值下的单个闭环根，而是参数连续变化时全部闭环根的整体迁移路径。\n\n![3-3 核心主线信息图](../../lessons/3-3/media/processed/3-3-info.png)\n\n这意味着根轨迹天然适合回答三类问题：\n\n- 参数继续增大时，极点先向哪里移动；\n- 系统会在哪一段参数附近接近虚轴边界；\n- 主导极点怎样迁移，响应会更快还是更振荡。\n\n因此，根轨迹是一张“趋势图”。\n它把 `3-2` 中的稳定区间语言继续推进成连续的复平面运动语言。\n\n### 公式与推导路径\n\n对单位负反馈系统，\n\n$$\n1+G(s)H(s)=0\n$$\n\n若把可调参数记为 $K$，闭环根就成为\n\n$$\ns=s(K)\n$$\n\n于是“求闭环根”自然扩展成“研究参数变化下的闭环根集合”。\n完整推导与判别入口见单元 `3-3`。\n\n### 工程实例\n\n对\n\n$$\nG(s)=\\frac{K^\\ast}{s(s+2)}\n$$\n\n闭环特征方程为\n\n$$\ns^2+2s+K^\\ast=0\n$$\n\n当 $K^\\ast$ 从 $0$ 增大时，两条分支从 $0$ 和 $-2$ 出发，在 $-1$ 附近汇合，随后进入复平面。\n这条轨迹直接对应“先变快，再出现振荡”的动态变化。\n\n### 关联节点\n\n| 方向 | 节点 | 关系说明 |\n|------|------|---------|\n| 前置 | 闭环特征方程 | 根轨迹的研究对象来自闭环特征方程的根 |\n| 前置 | 闭环极点 | 根轨迹描绘的是闭环极点的连续迁移 |\n| 后续 | 相角条件 | 用于判断某点是否属于根轨迹 |\n| 后续 | 幅值条件 | 用于回算该点对应的参数值 |\n| 后续 | 广义根轨迹 | 把“增益变化”推广到“一般参数变化” |\n\n### 常见误区\n\n1. **误区**：根轨迹只是作图方法。**纠正**：根轨迹的真正用途是解释参数变化带来的极点迁移和性能趋势。\n2. **误区**：根轨迹只适用于开环增益变化。**纠正**：开环增益根轨迹只是广义根轨迹的一个特例。",
+  "core_intuition": "根轨迹把“参数怎么调”翻译成“极点往哪里走”，再把极点迁移翻译成稳定性、快慢和振荡性的变化。",
+  "relations": [
+    {
+      "source_id": null,
+      "source": "传递函数的零点和极点",
+      "target_id": null,
+      "target": "根轨迹",
+      "relation": "prerequisite",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "零极点分布图",
+      "target_id": null,
+      "target": "根轨迹",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "极点配置",
+      "target_id": null,
+      "target": "根轨迹",
+      "relation": "applies_to",
+      "strength": 0.7,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "峰值时间",
+      "target_id": null,
+      "target": "根轨迹",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "阻尼角",
+      "target_id": null,
+      "target": "根轨迹",
+      "relation": "related",
+      "strength": 0.4,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "测速反馈控制",
+      "target_id": null,
+      "target": "根轨迹",
+      "relation": "applies_to",
+      "strength": 0.3,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "开环增益",
+      "target_id": null,
+      "target": "根轨迹",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "闭环极点",
+      "target_id": null,
+      "target": "根轨迹",
+      "relation": "applies_to",
+      "strength": 0.9,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "劳斯稳定判据",
+      "target_id": null,
+      "target": "根轨迹",
+      "relation": "related",
+      "strength": 0.6,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "系统型别",
+      "target_id": null,
+      "target": "根轨迹",
+      "relation": "related",
+      "strength": 0.2,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "闭环特征方程",
+      "target_id": null,
+      "target": "根轨迹",
+      "relation": "applies_to",
+      "strength": 0.8,
+      "description": null,
+      "direction_for_node": "by_name"
+    },
+    {
+      "source_id": null,
+      "source": "模型预测控制",
+      "target_id": null,
+      "target": "根轨迹",
+      "relation": "related",
+      "strength": 0.2,
+      "description": null,
+      "direction_for_node": "by_name"
+    }
+  ],
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "no_long_formula_rendering": true,
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

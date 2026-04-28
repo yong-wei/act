@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T11:56:56.521836Z",
+  "lesson_id": "3-9",
+  "node_id": "结构变化的频域指纹_3_38001",
+  "node_name": "结构变化的频域指纹",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已目视审查：中文标签可读，公式锚点未明显变形，关系表达与source一致。"
+}
