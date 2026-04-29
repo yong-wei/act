@@ -30,6 +30,7 @@ description: Use when this repository needs server-side operations, online fault
 ## References
 
 - 远端调查与故障排查: `references/remote-investigation.md`
+- 课堂同步错误与 `Failed to fetch` 根因分流: `references/classroom-sync-errors.md`
 - 部署与验收: `references/deploy-and-verify.md`
 - 数据库导出/下载/本地恢复: `references/database-sync.md`
 - 测试账号核对与修复: `references/test-accounts.md`
@@ -38,6 +39,7 @@ description: Use when this repository needs server-side operations, online fault
 
 - 先确认当前环境：本地开发、远端生产，还是两边联动
 - 先做只读检查，再执行变更
+- 若问题表现为课堂中 `同步错误`、`fail to fetch`、学生端不跟随教师进度、教师端无法推进步骤或 reveal/release 状态不同步，先读 `references/classroom-sync-errors.md`
 - 涉及部署时，先确认本次操作是否符合“本机构建、远端仅装载镜像”的固定模式；若不符合，立即停止
 - 远端目录若需要整理，只保留 `scripts/`、`deploy/podman/`、`.env*`、`data/runtime/act-obe.env` 与 `course-content/runtime/`
 - 涉及数据库覆盖导入时，先做本地备份
