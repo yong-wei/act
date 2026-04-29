@@ -13,9 +13,10 @@ vi.mock('server-only', () => ({}));
 const repoRoot = process.cwd();
 let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaDocument;
 let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaIndex;
+let loadLessonRuntimeEntry: typeof import('@/lib/course-runtime').loadLessonRuntimeEntry;
 
 beforeAll(async () => {
-  ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-runtime'));
+  ({ loadLessonRuntimeEntry, parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-runtime'));
 });
 
 describe('unit 3-8 interactive course', () => {
@@ -91,13 +92,16 @@ describe('unit 3-8 interactive course', () => {
     };
 
     const courseModule = await import('@/lib/unit-3-8-course');
-    const interactiveSteps = new Map(courseModule.UNIT_3_8_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
+    const runtime = await loadLessonRuntimeEntry('3-8');
+    const manifest = runtime.interactiveManifest;
+    expect(manifest).toBeTruthy();
+    const interactiveSteps = new Map(courseModule.buildUNIT_3_8RuntimeSteps(manifest).map((step: { id: string }) => [step.id, step]));
     const expectedStepIds = Object.keys(contract.steps);
 
     for (const stepId of expectedStepIds) {
       const authoringStep = contract.steps[stepId];
       const localStep = interactiveSteps.get(stepId);
-      const localPageContract = courseModule.UNIT_3_8_PAGE_CONTRACTS[stepId];
+      const localPageContract = courseModule.getUNIT_3_8PageContractFromManifest(manifest, stepId);
 
       expect(localStep?.title).toBe(authoringStep.title);
       expect(localStep?.pageType).toBe(authoringStep.interaction_spec.interaction_kind);

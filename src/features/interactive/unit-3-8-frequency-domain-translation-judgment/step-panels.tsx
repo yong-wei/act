@@ -28,7 +28,6 @@ import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manife
 import {
   getUNIT_3_8ManifestStepFromManifest,
   getUNIT_3_8PageContract,
-  UNIT_3_8_RUNTIME_MANIFEST,
   type UNIT_3_8StepDefinition,
   type UNIT_3_8StepResponse,
 } from '@/lib/unit-3-8-course';
@@ -1072,8 +1071,15 @@ export function UNIT_3_8StepContentPanel({
   revealProgress?: number;
   allowInlineReveal?: boolean;
 }) {
-  const activeManifest = manifest ?? UNIT_3_8_RUNTIME_MANIFEST;
-  const stepManifest = getUNIT_3_8ManifestStepFromManifest(activeManifest, step.id);
+  const stepManifest = getUNIT_3_8ManifestStepFromManifest(manifest, step.id);
+  if (!manifest || !stepManifest) {
+    return (
+      <section className="premium-lesson-panel">
+        <div className="premium-lesson-title text-base font-semibold">{step.title}</div>
+        <p className="premium-lesson-muted mt-2 text-sm">本页运行时内容正在加载。</p>
+      </section>
+    );
+  }
   const moduleRegistry = createUNIT_3_8ModuleRegistry({
     revealProgress,
     allowInlineReveal,
@@ -1081,7 +1087,7 @@ export function UNIT_3_8StepContentPanel({
   return (
     <section className="space-y-4">
       {renderInteractiveManifestStep({
-        manifest: activeManifest,
+        manifest,
         step: stepManifest,
         moduleRegistry,
         extra: { revealProgress, allowInlineReveal },
@@ -1110,6 +1116,7 @@ export function UNIT_3_8StudentActivityForm({
   onSubmit: (response: UNIT_3_8StepResponse) => void;
 }) {
   const stepManifest = getUNIT_3_8ManifestStepFromManifest(manifest, step.id);
+  if (!stepManifest) return null;
   return (
     <>
       {renderStudentInteractiveActivity({
@@ -1155,6 +1162,7 @@ export function UNIT_3_8TeacherActivitySummary({
   onResetReveal: () => void;
 }) {
   const stepManifest = getUNIT_3_8ManifestStepFromManifest(manifest, step.id);
+  if (!stepManifest) return null;
   return (
     <>
       {renderTeacherInteractiveActivity({

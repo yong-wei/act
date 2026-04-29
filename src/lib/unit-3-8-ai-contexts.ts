@@ -1,5 +1,5 @@
 import type { AIContextConfig } from '@/types/ai-context';
-import { UNIT_3_8_RUNTIME_MANIFEST } from '@/lib/unit-3-8-course';
+import { UNIT_3_8_LESSON_STEPS, type UNIT_3_8StepDefinition } from '@/lib/unit-3-8-course';
 
 export const UNIT_3_8_COURSE_META = {
   courseId: 'unit-3-8-frequency-domain-translation-judgment-v1',
@@ -22,13 +22,13 @@ function buildQuickQuestions(title: string) {
   ];
 }
 
-function contextFromStep(step: (typeof UNIT_3_8_RUNTIME_MANIFEST.steps)[number]): AIContextConfig {
-  const pageGoal = step.aiContextSpec.pageGoal || step.title;
+function contextFromStep(step: UNIT_3_8StepDefinition): AIContextConfig {
+  const pageGoal = step.hint || step.title;
   return {
     enabled: true,
     courseId: UNIT_3_8_COURSE_META.courseId,
     courseTitle: UNIT_3_8_COURSE_META.courseTitle,
-    pageType: resolvePageType(step.interactionSpec.interactionKind),
+    pageType: resolvePageType(step.pageType),
     stepId: step.id,
     topic: step.title,
     learningObjectives: [pageGoal],
@@ -40,7 +40,7 @@ function contextFromStep(step: (typeof UNIT_3_8_RUNTIME_MANIFEST.steps)[number])
 }
 
 export const UNIT_3_8_STEP_AI_CONTEXTS: Record<string, AIContextConfig> = Object.fromEntries(
-  UNIT_3_8_RUNTIME_MANIFEST.steps.map((step) => [step.id, contextFromStep(step)]),
+  UNIT_3_8_LESSON_STEPS.map((step) => [step.id, contextFromStep(step)]),
 );
 
 export function getUnit38StepAIContext(stepId: string): AIContextConfig | null {

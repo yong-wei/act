@@ -11,13 +11,13 @@ import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledg
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
+  buildUNIT_3_8RuntimeSteps,
   finalizeUNIT_3_8TeacherSession,
   isUNIT_3_8InteractivePageType,
   isUNIT_3_8TeacherSyncState,
   resolveUNIT_3_8TeacherSyncDraft,
   shouldPostUNIT_3_8TeacherSync,
   UNIT_3_8_LESSON_KEY,
-  UNIT_3_8_LESSON_STEPS,
   UNIT_3_8_RESOURCE_KEY,
   UNIT_3_8_SESSION_ADAPTER,
   UNIT_3_8_STAGE_MAP,
@@ -44,6 +44,8 @@ export function UNIT_3_8TeacherPage({
   const [localReleasedActivities, setLocalReleasedActivities] = useState<Record<string, boolean> | null>(null);
   const [localBrowseEnabled, setLocalBrowseEnabled] = useState<Record<string, boolean> | null>(null);
   const [localTeacherRevealProgress, setLocalTeacherRevealProgress] = useState<Record<string, number> | null>(null);
+  const runtimeManifest = lessonRuntime.interactiveManifest;
+  const runtimeSteps = buildUNIT_3_8RuntimeSteps(runtimeManifest);
 
   const interactiveTracking = useInteractiveTracking({
     resourceId: UNIT_3_8_RESOURCE_KEY,
@@ -65,7 +67,7 @@ export function UNIT_3_8TeacherPage({
     finishSession,
   } = useTeacherLessonSession({
     sessionId,
-    steps: UNIT_3_8_LESSON_STEPS,
+    steps: runtimeSteps,
     adapter: UNIT_3_8_SESSION_ADAPTER,
   });
 
@@ -79,8 +81,7 @@ export function UNIT_3_8TeacherPage({
       emit: interactiveTracking.emit,
     });
 
-  const step = UNIT_3_8_LESSON_STEPS[activeIndex];
-  const runtimeManifest = lessonRuntime.interactiveManifest;
+  const step = runtimeSteps[activeIndex];
 
   const teacherSyncState = useMemo(() => {
     const latestRecord = [...teacherStates].reverse().find((record) => isUNIT_3_8TeacherSyncState(record.data));
@@ -153,7 +154,7 @@ export function UNIT_3_8TeacherPage({
 
   const handlePatchCurrentStep = useCallback(
     async (nextIndex: number) => {
-      const nextStep = UNIT_3_8_LESSON_STEPS[nextIndex];
+      const nextStep = runtimeSteps[nextIndex];
       trackStepLeave(step.id, { nextStepId: nextStep.id });
       await patchCurrentStep(nextIndex, {
         currentItemId: nextStep.id,
@@ -161,7 +162,7 @@ export function UNIT_3_8TeacherPage({
       });
       trackStepView(nextStep.id, { pageType: nextStep.pageType, stepIndex: nextIndex });
     },
-    [patchCurrentStep, step.id, trackStepLeave, trackStepView],
+    [patchCurrentStep, runtimeSteps, step.id, trackStepLeave, trackStepView],
   );
 
   const handleEndSession = useCallback(async () => {
@@ -197,7 +198,7 @@ export function UNIT_3_8TeacherPage({
   return (
     <div className="premium-lesson-shell">
       <UNIT_3_8CourseHeader
-        steps={UNIT_3_8_LESSON_STEPS}
+        steps={runtimeSteps}
         activeIndex={activeIndex}
         onIndexChange={(index) => void handlePatchCurrentStep(index)}
         middleNotice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
@@ -205,7 +206,7 @@ export function UNIT_3_8TeacherPage({
           <StepKnowledgeDrawer
             lessonRuntime={lessonRuntime}
             currentStepId={step.id}
-            orderedStepIds={UNIT_3_8_LESSON_STEPS.map((item) => item.id)}
+            orderedStepIds={runtimeSteps.map((item) => item.id)}
             title="页面知识卡片"
           />
         }

@@ -14,10 +14,10 @@ import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit38StepAIContext } from '@/lib/course-ai-contexts';
 import {
+  buildUNIT_3_8RuntimeSteps,
   getUNIT_3_8PageContractFromManifest,
   isUNIT_3_8InteractivePageType,
   UNIT_3_8_LESSON_KEY,
-  UNIT_3_8_LESSON_STEPS,
   UNIT_3_8_RESOURCE_KEY,
   UNIT_3_8_SESSION_ADAPTER,
   type UNIT_3_8StudentCourseState,
@@ -44,6 +44,8 @@ export function UNIT_3_8StudentPage({
 
   const currentStudentName = authSession?.user?.name?.trim() || '学生';
   const currentUserId = authSession?.user?.id;
+  const runtimeManifest = lessonRuntime.interactiveManifest;
+  const runtimeSteps = buildUNIT_3_8RuntimeSteps(runtimeManifest);
 
   const interactiveTracking = useInteractiveTracking({
     resourceId: UNIT_3_8_RESOURCE_KEY,
@@ -66,7 +68,7 @@ export function UNIT_3_8StudentPage({
     setActiveIndex,
   } = useStudentLessonSession({
     sessionId,
-    steps: UNIT_3_8_LESSON_STEPS,
+    steps: runtimeSteps,
     adapter: UNIT_3_8_SESSION_ADAPTER,
     currentStudentName,
     currentUserId,
@@ -84,8 +86,7 @@ export function UNIT_3_8StudentPage({
       emit: interactiveTracking.emit,
     });
 
-  const step = UNIT_3_8_LESSON_STEPS[activeIndex];
-  const runtimeManifest = lessonRuntime.interactiveManifest;
+  const step = runtimeSteps[activeIndex];
   const savedResponse = courseState.responses[step.id];
   const pageContract = getUNIT_3_8PageContractFromManifest(runtimeManifest, step.id);
   const { updatePageContext } = useGlobalAI();
@@ -199,10 +200,10 @@ export function UNIT_3_8StudentPage({
   return (
     <div className="premium-lesson-shell">
       <UNIT_3_8CourseHeader
-        steps={UNIT_3_8_LESSON_STEPS}
+        steps={runtimeSteps}
         activeIndex={activeIndex}
         onIndexChange={(index) => {
-          trackStepLeave(step.id, { nextStepId: UNIT_3_8_LESSON_STEPS[index]?.id });
+          trackStepLeave(step.id, { nextStepId: runtimeSteps[index]?.id });
           setActiveIndex(index);
         }}
         middleNotice={isOutOfSync ? `当前页面与教师不同步，教师正在第 ${teacherIndex + 1} 页` : step.hint}
@@ -210,7 +211,7 @@ export function UNIT_3_8StudentPage({
           <StepKnowledgeDrawer
             lessonRuntime={lessonRuntime}
             currentStepId={step.id}
-            orderedStepIds={UNIT_3_8_LESSON_STEPS.map((item) => item.id)}
+            orderedStepIds={runtimeSteps.map((item) => item.id)}
             title="页面知识卡片"
           />
         }
@@ -223,8 +224,8 @@ export function UNIT_3_8StudentPage({
             <button
               type="button"
               onClick={() => {
-                trackStepView(UNIT_3_8_LESSON_STEPS[teacherIndex]?.id, {
-                  pageType: UNIT_3_8_LESSON_STEPS[teacherIndex]?.pageType,
+                trackStepView(runtimeSteps[teacherIndex]?.id, {
+                  pageType: runtimeSteps[teacherIndex]?.pageType,
                   stepIndex: teacherIndex,
                   source: 'sync-to-teacher',
                 });

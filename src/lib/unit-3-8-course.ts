@@ -2,8 +2,11 @@ import type { BopppsStage } from '@prisma/client';
 import { buildSessionFinalizeTelemetry } from '@/lib/data-governance/session-finalize-telemetry';
 
 import type { LessonSessionAdapter } from '@/features/interactive/session-framework/session-contract';
-import unit38RuntimeManifestRaw from '../../course-content/runtime/lessons/3-8/interactive-manifest.json';
-import { normalizeInteractiveRuntimeManifest, type InteractiveRuntimeManifest, type InteractiveRuntimeStepManifest } from '@/lib/interactive-lesson-manifest';
+import {
+  getInteractiveRuntimeStep,
+  type InteractiveRuntimeManifest,
+  type InteractiveRuntimeStepManifest,
+} from '@/lib/interactive-lesson-manifest';
 import type { StepAIContext } from '@/types/ai-context';
 
 export type UNIT_3_8StageCode = 'B' | 'O' | 'P1' | 'P2' | 'P3';
@@ -141,14 +144,6 @@ export const UNIT_3_8_STAGE_MAP: Record<UNIT_3_8StageCode, BopppsStage> = {
   P3: 'POST_ASSESSMENT',
 };
 
-const NORMALIZED_UNIT_3_8_RUNTIME_MANIFEST = normalizeInteractiveRuntimeManifest(unit38RuntimeManifestRaw);
-
-if (!NORMALIZED_UNIT_3_8_RUNTIME_MANIFEST) {
-  throw new Error('Failed to normalize 3-8 interactive runtime manifest.');
-}
-
-export const UNIT_3_8_RUNTIME_MANIFEST: InteractiveRuntimeManifest = NORMALIZED_UNIT_3_8_RUNTIME_MANIFEST;
-
 function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNIT_3_8PageContract {
   return {
     layout: {
@@ -173,10 +168,6 @@ function pageContractFromManifestStep(step: InteractiveRuntimeStepManifest): UNI
     previewDemoPath: step.previewContract.demoPath || `/interactive-learning/courses/${UNIT_3_8_ROUTE_SEGMENT}/student/demo?step=${step.id}`,
   };
 }
-
-export const UNIT_3_8_PAGE_CONTRACTS: Record<string, UNIT_3_8PageContract> = Object.fromEntries(
-  UNIT_3_8_RUNTIME_MANIFEST.steps.map((step) => [step.id, pageContractFromManifestStep(step)]),
-);
 
 export const UNIT_3_8_INTERACTIVE_PAGE_TYPES = new Set<UNIT_3_8PageType>([
   'quiz_group',
@@ -212,32 +203,99 @@ function inferUNIT_3_8Duration(stepId: string): string {
   return '5 min';
 }
 
-export const UNIT_3_8_LESSON_STEPS: UNIT_3_8StepDefinition[] = UNIT_3_8_RUNTIME_MANIFEST.steps.map((step) => ({
-  id: step.id,
-  stage: inferUNIT_3_8Stage(step.id),
-  title: step.title,
-  hint: step.aiContextSpec.pageGoal || step.title,
-  duration: inferUNIT_3_8Duration(step.id),
-  pageType: step.interactionSpec.interactionKind as UNIT_3_8PageType,
+export const UNIT_3_8_LESSON_STEPS: UNIT_3_8StepDefinition[] = [
+  ['step-01', '导入：三类结构变化为什么需要统一频域语言', 'none'],
+  ['step-02', '课程目标：用频域语言解释结构变化与稳定边界', 'none'],
+  ['step-03', '前测：四类典型误判先暴露出来', 'quiz_group'],
+  ['step-04', '四类结构变化总表：先给开环传函与频率响应，再看频域指纹', 'none'],
+  ['step-05', '2.2.1 增益提升：整条曲线一起被抬高', 'none'],
+  ['step-06', '2.2.2 左半平面零点：重点改写中频', 'none'],
+  ['step-07', '2.2.3 极点增加与积分环节：先给精度，再收紧余量', 'none'],
+  ['step-08', '2.2.4 右半平面零点：为什么“看起来更强”却可能更难控制', 'none'],
+  ['step-09', '例题 1：先从哪一段频带开始判断结构变化', 'activity_cards'],
+  ['step-10', '从幅角原理到 Nyquist 判据：为什么要研究 F(s)=1+G(s)H(s)', 'teacher_reveal_only'],
+  ['step-11', '例题 2：第一组 Nyquist 快速判稳题', 'none'],
+  ['step-12', '例题 3：靠近边界与越过边界有什么本质不同', 'card_sort'],
+  ['step-13', 'Bode 判稳：截止频率、相角裕度和增益裕度', 'hotspot_labeling'],
+  ['step-14', '例题 4：由 Bode 图直接判断系统在边界哪一侧', 'activity_cards'],
+  ['step-15', '三频段分工：精度、速度与代价不能混读', 'band_focus_panel'],
+  ['step-16', '例题 5：目标切换时，先改哪一段频带', 'goal_cards'],
+  ['step-17', '航向控制案例：先把基线方案的问题读清楚', 'evidence_mark_cards'],
+  ['step-18', '航向控制案例：把时域指标翻译成频域目标，再看超前校正', 'structured_compare'],
+  ['step-19', '稳定平台案例：为什么“只改增益”会左右为难', 'scheme_vote_cards'],
+  ['step-20', '稳定平台案例：超前校正怎样兼顾速度和平稳', 'structured_compare'],
+  ['step-21', '后测：把完整判断链独立走一遍', 'quiz_group'],
+  ['step-22', '总结与去向：`3-9` 和模块 4 从哪里接走本课', 'reflection_card'],
+].map(([id, title, pageType]) => ({
+  id,
+  stage: inferUNIT_3_8Stage(id),
+  title,
+  hint: title,
+  duration: inferUNIT_3_8Duration(id),
+  pageType: pageType as UNIT_3_8PageType,
 }));
+
+export function buildUNIT_3_8RuntimeSteps(
+  manifest: InteractiveRuntimeManifest | null | undefined,
+): UNIT_3_8StepDefinition[] {
+  if (!manifest) {
+    return UNIT_3_8_LESSON_STEPS;
+  }
+
+  return manifest.steps.map((step) => ({
+    id: step.id,
+    stage: inferUNIT_3_8Stage(step.id),
+    title: step.title,
+    hint: step.aiContextSpec.pageGoal || step.interactionSpec.studentTask || step.title,
+    duration: inferUNIT_3_8Duration(step.id),
+    pageType: step.interactionSpec.interactionKind as UNIT_3_8PageType,
+  }));
+}
 
 export function getUNIT_3_8Step(stepId: string) {
   return UNIT_3_8_LESSON_STEPS.find((step) => step.id === stepId) ?? UNIT_3_8_LESSON_STEPS[0];
 }
 
+function fallbackPageContract(stepId: string): UNIT_3_8PageContract {
+  const step = getUNIT_3_8Step(stepId);
+  return {
+    layout: {
+      template: 'single_column',
+      regions: [{ id: 'main', width: 'full', order: 1 }],
+    },
+    interactionKind: step.pageType,
+    teacherInsightWidgets: [],
+    telemetrySummaryFields: ['viewed'],
+    misconceptionTags: [],
+    teacherControls: {
+      releaseActivity: 'not_applicable',
+      openBrowse: 'not_applicable',
+      teacherStepReveal: 'not_applicable',
+      revealReferenceAnswer: 'not_applicable',
+      instructorDemoTools: [],
+    },
+    previewDemoPath: `/interactive-learning/courses/${UNIT_3_8_ROUTE_SEGMENT}/student/demo?step=${step.id}`,
+  };
+}
+
+export const UNIT_3_8_PAGE_CONTRACTS: Record<string, UNIT_3_8PageContract> = Object.fromEntries(
+  UNIT_3_8_LESSON_STEPS.map((step) => [step.id, fallbackPageContract(step.id)]),
+);
+
 export function getUNIT_3_8ManifestStepFromManifest(
   manifest: InteractiveRuntimeManifest | null | undefined,
   stepId: string,
 ) {
-  const activeManifest = manifest ?? UNIT_3_8_RUNTIME_MANIFEST;
-  return activeManifest.steps.find((step) => step.id === stepId) ?? activeManifest.steps[0];
+  if (!manifest) return null;
+  return getInteractiveRuntimeStep(manifest, stepId) ?? manifest.steps[0] ?? null;
 }
 
 export function getUNIT_3_8PageContractFromManifest(
   manifest: InteractiveRuntimeManifest | null | undefined,
   stepId: string,
 ) {
-  return pageContractFromManifestStep(getUNIT_3_8ManifestStepFromManifest(manifest, stepId));
+  const step = getUNIT_3_8ManifestStepFromManifest(manifest, stepId);
+  return step ? pageContractFromManifestStep(step) : fallbackPageContract(stepId);
 }
 
 export function getUNIT_3_8PageContract(stepId: string) {
