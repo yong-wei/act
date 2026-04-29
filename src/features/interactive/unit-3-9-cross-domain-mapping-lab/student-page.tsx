@@ -253,7 +253,7 @@ export function UNIT_3_9StudentPage({
           />
         </div>
 
-        {step.id === 'step-10' ? (
+        {step.id === 'step-11' ? (
           <div className="mt-4">
             <UNIT_3_9StudentSummaryPanel responses={courseState.responses} />
           </div>

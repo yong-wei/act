@@ -103,15 +103,16 @@ export const UNIT_3_9_STAGE_MAP: Record<UNIT_3_9StageCode, BopppsStage> = {
 
 export const UNIT_3_9_STEP_RUNTIME_META: Record<string, UNIT_3_9StepRuntimeMeta> = {
   'step-01': { stage: 'B', duration: '5 min' },
-  'step-02': { stage: 'P1', duration: '8 min' },
-  'step-03': { stage: 'P2', duration: '7 min' },
-  'step-04': { stage: 'P2', duration: '12 min' },
+  'step-02': { stage: 'B', duration: '4 min' },
+  'step-03': { stage: 'P1', duration: '8 min' },
+  'step-04': { stage: 'P2', duration: '7 min' },
   'step-05': { stage: 'P2', duration: '12 min' },
   'step-06': { stage: 'P2', duration: '12 min' },
-  'step-07': { stage: 'P2', duration: '10 min' },
+  'step-07': { stage: 'P2', duration: '12 min' },
   'step-08': { stage: 'P2', duration: '10 min' },
-  'step-09': { stage: 'P3', duration: '10 min' },
-  'step-10': { stage: 'S', duration: '4 min' },
+  'step-09': { stage: 'P2', duration: '10 min' },
+  'step-10': { stage: 'P3', duration: '10 min' },
+  'step-11': { stage: 'S', duration: '4 min' },
 };
 
 export const UNIT_3_9_LESSON_STEPS: UNIT_3_9StepDefinition[] = [
@@ -125,6 +126,14 @@ export const UNIT_3_9_LESSON_STEPS: UNIT_3_9StepDefinition[] = [
   },
   {
     id: 'step-02',
+    stage: 'B',
+    title: '本次课程目标：用跨域证据表达设计任务',
+    hint: '阅读本次课程目标。',
+    duration: '4 min',
+    pageType: 'display',
+  },
+  {
+    id: 'step-03',
     stage: 'P1',
     title: '前测：先贴任务标签，不先报控制器名称',
     hint: '检查是否先写任务标签再写机制线。',
@@ -132,7 +141,7 @@ export const UNIT_3_9_LESSON_STEPS: UNIT_3_9StepDefinition[] = [
     pageType: 'quiz_group',
   },
   {
-    id: 'step-03',
+    id: 'step-04',
     stage: 'P2',
     title: '控制对象：本次课比较的同一艘船',
     hint: '明确本次课的控制对象和主要任务。',
@@ -140,7 +149,7 @@ export const UNIT_3_9_LESSON_STEPS: UNIT_3_9StepDefinition[] = [
     pageType: 'display',
   },
   {
-    id: 'step-04',
+    id: 'step-05',
     stage: 'P2',
     title: '基准版本：从四联图读出性能指标',
     hint: '从四联图读出基准版本指标。',
@@ -148,7 +157,7 @@ export const UNIT_3_9_LESSON_STEPS: UNIT_3_9StepDefinition[] = [
     pageType: 'structured_compare',
   },
   {
-    id: 'step-05',
+    id: 'step-06',
     stage: 'P2',
     title: '超前校正：调节增益、零点与极点',
     hint: '提交一个超前校正设计。',
@@ -156,7 +165,7 @@ export const UNIT_3_9_LESSON_STEPS: UNIT_3_9StepDefinition[] = [
     pageType: 'parameter_slider',
   },
   {
-    id: 'step-06',
+    id: 'step-07',
     stage: 'P2',
     title: '积分校正：调节增益与积分零点',
     hint: '提交一个积分校正设计。',
@@ -164,7 +173,7 @@ export const UNIT_3_9_LESSON_STEPS: UNIT_3_9StepDefinition[] = [
     pageType: 'parameter_slider',
   },
   {
-    id: 'step-07',
+    id: 'step-08',
     stage: 'P2',
     title: '积分校正例子：调节校正零点与极点',
     hint: '保留积分任务，只调节中频校正零点和极点。',
@@ -172,7 +181,7 @@ export const UNIT_3_9_LESSON_STEPS: UNIT_3_9StepDefinition[] = [
     pageType: 'parameter_slider',
   },
   {
-    id: 'step-08',
+    id: 'step-09',
     stage: 'P2',
     title: '滞后对照：调节增益、零点与极点',
     hint: '提交一个滞后对照设计。',
@@ -180,7 +189,7 @@ export const UNIT_3_9_LESSON_STEPS: UNIT_3_9StepDefinition[] = [
     pageType: 'parameter_slider',
   },
   {
-    id: 'step-09',
+    id: 'step-10',
     stage: 'P3',
     title: '后测：填写四个版本的综合映射表',
     hint: '用表格填空完成综合映射。',
@@ -188,7 +197,7 @@ export const UNIT_3_9_LESSON_STEPS: UNIT_3_9StepDefinition[] = [
     pageType: 'table_builder',
   },
   {
-    id: 'step-10',
+    id: 'step-11',
     stage: 'S',
     title: '总结：从读图比较走向设计任务表达',
     hint: '总结跨域比较语言。',

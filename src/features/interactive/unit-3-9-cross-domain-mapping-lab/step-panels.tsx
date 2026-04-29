@@ -487,7 +487,7 @@ function ParameterSliderSubmission({
 }) {
   const panelModule = stepManifest.modules.find((item) => item.payload.panel_id);
   const panelId = (panelModule?.payload.panel_id as Unit39PanelId | undefined)
-    ?? (stepManifest.id === 'step-05' ? 'lead' : stepManifest.id === 'step-06' ? 'integral' : stepManifest.id === 'step-07' ? 'integral_example' : 'lag');
+    ?? (stepManifest.id === 'step-06' ? 'lead' : stepManifest.id === 'step-07' ? 'integral' : stepManifest.id === 'step-08' ? 'integral_example' : 'lag');
   const initial = savedResponse?.answers ?? (PANEL_CONFIG[panelId].defaultParams as Record<string, string | number>);
   const [params, setParams] = useState<Record<string, string | number>>(initial);
   const [submittedAt, setSubmittedAt] = useState<number | null>(null);

@@ -125,6 +125,86 @@
       ]
     },
     "step-02": {
+      "title": "本次课程目标：用跨域证据表达设计任务",
+      "layout": {
+        "template": "objective_slide",
+        "regions": [
+          {
+            "id": "objectives",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "lesson-objectives",
+          "region": "objectives",
+          "kind": "objective-list",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "objectives"
+          },
+          "title": "本次课程目标"
+        }
+      ],
+      "content_blocks": {
+        "objectives": {
+          "text": "完成本次互动后，学习者能够：",
+          "bullets": [
+            "识别同一航向控制对象下动态、稳态、稳定裕度三类证据分别来自哪张图。",
+            "解释超前、积分、滞后控制器改变低频收益和中频相位的主要机制。",
+            "比较基准、超前、积分、滞后四个版本在单位斜坡误差、相角裕度、超调和调节时间上的收益与代价。",
+            "判断给定改进诉求应先写成哪类任务标签，并匹配相应的机制线。"
+          ]
+        }
+      },
+      "evidence_sequence": [
+        "先读本次课程目标，再进入前测题组。"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读本次课程目标",
+        "answer_reveal": "none",
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed"
+        ],
+        "misconception_tags": []
+      },
+      "teacher_insight_spec": {
+        "widgets": []
+      },
+      "ai_context_spec": {
+        "page_goal": "呈现本次课程的布鲁姆动词能力目标。",
+        "delivery_mode": "in_page"
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-02",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "课程目标单独成页，位于前测之前。",
+        "只呈现本次课程目标，不设置题目或提交。"
+      ]
+    },
+    "step-03": {
       "title": "前测：先贴任务标签，不先报控制器名称",
       "layout": {
         "template": "question_stack",
@@ -137,16 +217,6 @@
         ]
       },
       "modules": [
-        {
-          "id": "lesson-objectives",
-          "region": "quiz",
-          "kind": "objective-list",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "objectives"
-          },
-          "title": "本次课程目标"
-        },
         {
           "id": "pretest-anchor",
           "region": "quiz",
@@ -168,15 +238,6 @@
         }
       ],
       "content_blocks": {
-        "objectives": {
-          "text": "完成本次互动后，学习者能够：",
-          "bullets": [
-            "识别同一航向控制对象下动态、稳态、稳定裕度三类证据分别来自哪张图。",
-            "解释超前、积分、滞后控制器改变低频收益和中频相位的主要机制。",
-            "比较基准、超前、积分、滞后四个版本在单位斜坡误差、相角裕度、超调和调节时间上的收益与代价。",
-            "判断给定改进诉求应先写成哪类任务标签，并匹配相应的机制线。"
-          ]
-        },
         "prompt": {
           "text": "前测只检查一件事：面对“更快”“更准”“兼顾稳与快”这些说法时，先写任务标签，再判断可能的机制线。"
         }
@@ -291,16 +352,15 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-02",
+        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-03",
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "前测题组前必须先呈现布鲁姆动词驱动的本次课程目标。",
         "只保留前测题目和提交。",
         "不渲染额外辅助面板。"
       ]
     },
-    "step-03": {
+    "step-04": {
       "title": "控制对象：本次课比较的同一艘船",
       "layout": {
         "template": "object_task_slide",
@@ -390,7 +450,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-03",
+        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-04",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -398,7 +458,7 @@
         "对象公式和任务文案必须可见。"
       ]
     },
-    "step-04": {
+    "step-05": {
       "title": "基准版本：从四联图读出性能指标",
       "layout": {
         "template": "rust_metric_reading_board",
@@ -545,7 +605,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-04",
+        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-05",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -555,7 +615,7 @@
         "3.2 读图结论由教师显影控制。"
       ]
     },
-    "step-05": {
+    "step-06": {
       "title": "超前校正：调节增益、零点与极点",
       "layout": {
         "template": "rust_tuning_workspace",
@@ -596,7 +656,7 @@
         "answer_reveal": "none",
         "activity_cards": [
           {
-            "id": "step-05-activity",
+            "id": "step-06-activity",
             "title": "超前校正：调节增益、零点与极点",
             "prompt": "超前校正：调节增益、零点与极点",
             "reference_answer": "见课堂讨论与教师反馈。",
@@ -641,7 +701,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-05",
+        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-06",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -649,7 +709,7 @@
         "提交后根据校正效果给出评价。"
       ]
     },
-    "step-06": {
+    "step-07": {
       "title": "积分校正：调节增益与积分零点",
       "layout": {
         "template": "rust_tuning_workspace",
@@ -690,7 +750,7 @@
         "answer_reveal": "none",
         "activity_cards": [
           {
-            "id": "step-06-activity",
+            "id": "step-07-activity",
             "title": "积分校正：调节增益与积分零点",
             "prompt": "积分校正：调节增益与积分零点",
             "reference_answer": "见课堂讨论与教师反馈。",
@@ -734,14 +794,14 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-06",
+        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-07",
         "must_match_student_page": true
       },
       "acceptance_checks": [
         "只提供增益和积分零点控件。"
       ]
     },
-    "step-07": {
+    "step-08": {
       "title": "积分校正例子：调节校正零点与极点",
       "layout": {
         "template": "rust_tuning_workspace",
@@ -768,11 +828,23 @@
             "block_key": "task"
           },
           "title": "设计任务"
+        },
+        {
+          "id": "integral-example-controller",
+          "region": "intro",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "formulas": [
+              "C_{ic}(s)=2.25\\left(1+\\dfrac{1}{40s}\\right)\\dfrac{20s+1}{2s+1}"
+            ]
+          },
+          "title": "固定积分控制器"
         }
       ],
       "content_blocks": {
         "task": {
-          "text": "设计任务：已固定积分控制器 C_{ic}(s)=2.25(1+1/(40s))(20s+1)/(2s+1)。强积分几乎消除单位斜坡误差，但相角裕度偏紧；现在只调节中频校正零点和极点，在保留低频积分任务的同时把相位裕度和动态品质拉回可用区。幅频和相频中的控制器曲线采用完整控制器曲线，根轨迹采用完整控制器对应的校正后根轨迹，时域证据读取校正前后的单位斜坡误差。"
+          "text": "设计任务：已固定下方积分控制器。强积分几乎消除单位斜坡误差，但相角裕度偏紧；现在只调节中频校正零点和极点，在保留低频积分任务的同时把相位裕度和动态品质拉回可用区。幅频和相频中的控制器曲线采用完整控制器曲线，根轨迹采用完整控制器对应的校正后根轨迹，时域证据读取校正前后的单位斜坡误差。"
         }
       },
       "evidence_sequence": [],
@@ -782,7 +854,7 @@
         "answer_reveal": "none",
         "activity_cards": [
           {
-            "id": "step-07-activity",
+            "id": "step-08-activity",
             "title": "积分校正例子：调节校正零点与极点",
             "prompt": "积分校正例子：调节校正零点与极点",
             "reference_answer": "见课堂讨论与教师反馈。",
@@ -826,14 +898,14 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-07",
+        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-08",
         "must_match_student_page": true
       },
       "acceptance_checks": [
         "控件区只能调节中频校正零点和极点。"
       ]
     },
-    "step-08": {
+    "step-09": {
       "title": "滞后对照：调节增益、零点与极点",
       "layout": {
         "template": "rust_tuning_workspace",
@@ -874,7 +946,7 @@
         "answer_reveal": "none",
         "activity_cards": [
           {
-            "id": "step-08-activity",
+            "id": "step-09-activity",
             "title": "滞后对照：调节增益、零点与极点",
             "prompt": "滞后对照：调节增益、零点与极点",
             "reference_answer": "见课堂讨论与教师反馈。",
@@ -919,14 +991,14 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-08",
+        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-09",
         "must_match_student_page": true
       },
       "acceptance_checks": [
         "采用与超前页相同的 Rust 四联互动面板样式。"
       ]
     },
-    "step-09": {
+    "step-10": {
       "title": "后测：填写四个版本的综合映射表",
       "layout": {
         "template": "mapping_workspace",
@@ -1012,7 +1084,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-09",
+        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-10",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -1021,7 +1093,7 @@
         "允许空白提交。"
       ]
     },
-    "step-10": {
+    "step-11": {
       "title": "总结：从读图比较走向设计任务表达",
       "layout": {
         "template": "summary_only",
@@ -1075,7 +1147,7 @@
         "answer_reveal": "none",
         "activity_cards": [
           {
-            "id": "step-10-activity",
+            "id": "step-11-activity",
             "title": "总结：从读图比较走向设计任务表达",
             "prompt": "总结：从读图比较走向设计任务表达",
             "reference_answer": "见课堂讨论与教师反馈。",
@@ -1114,7 +1186,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-10",
+        "demo_path": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-11",
         "must_match_student_page": true
       },
       "acceptance_checks": [
