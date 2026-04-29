@@ -4,6 +4,8 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+import { formatLessonStepMenuLabel } from '@/features/interactive/shared/course-step-labels';
+
 import {
   UNIT_3_4_COURSE_SUBTITLE,
   UNIT_3_4_COURSE_TITLE,
@@ -73,9 +75,9 @@ export function UNIT_3_4CourseHeader({
                 }}
                 className="premium-lesson-select"
               >
-                {steps.map((step) => (
+                {steps.map((step, index) => (
                   <option key={step.id} value={step.id}>
-                    {step.title}
+                    {formatLessonStepMenuLabel(index, steps.length, step.title)}
                   </option>
                 ))}
               </select>

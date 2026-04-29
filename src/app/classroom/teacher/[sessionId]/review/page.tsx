@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, BookOpen, Brain } from 'lucide-react'
 import { getServerAuthSession } from '@/lib/auth'
+import { resolveSessionClassContext } from '@/lib/data-governance/class-session-attribution'
 import { getClassExtracurricularAnalytics } from '@/lib/extracurricular-analytics'
 import { prisma } from '@/lib/prisma'
 
@@ -437,6 +438,7 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
               name: true,
               profile: {
                 select: {
+                  classId: true,
                   studentNumber: true,
                 },
               },
@@ -456,7 +458,36 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
     redirect('/teacher/classes')
   }
 
-  if (!session.classId || !session.class) {
+  const directClassContext = resolveSessionClassContext({
+    sessionClassId: session.classId,
+    sessionClass: session.class,
+    participantClassIds: session.studentStates.map((state) => state.user.profile?.classId),
+  })
+  const inferredClass = directClassContext.classId && !directClassContext.class
+    ? await prisma.class.findUnique({
+      where: { id: directClassContext.classId },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        teacherId: true,
+      },
+    })
+    : null
+  const effectiveClass = inferredClass
+    && (auth.user.role === 'ADMIN' || inferredClass.teacherId === session.teacherId)
+    ? inferredClass
+    : directClassContext.class
+  const classContext = resolveSessionClassContext({
+    sessionClassId: session.classId,
+    sessionClass: session.class,
+    participantClassIds: session.studentStates.map((state) => state.user.profile?.classId),
+    classesById: effectiveClass
+      ? new Map([[effectiveClass.id, effectiveClass]])
+      : undefined,
+  })
+
+  if (!classContext.classId || !classContext.class) {
     return (
       <main className="mx-auto max-w-[1100px] px-6 py-8">
         <h1 className="text-2xl font-semibold text-white">课堂记录详情</h1>
@@ -472,7 +503,7 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
   let reviewRecords = originalReviewRecords
 
   if (session.plan.title.includes('柔性之海')) {
-    const analytics = await getClassExtracurricularAnalytics(session.classId)
+    const analytics = await getClassExtracurricularAnalytics(classContext.class.id)
     const focusMap = new Map(analytics.focusStudents.map((student) => [student.studentNumber, student]))
     reviewRecords = originalReviewRecords.map((record) => {
       const focus = focusMap.get(record.studentNumber)
@@ -515,7 +546,7 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
   return (
     <main className="surface-page mx-auto max-w-[1300px] px-6 py-8">
       <Link
-        href={`/teacher/classes/${session.class.id}`}
+        href={`/teacher/classes/${classContext.class.id}`}
         className="mb-6 inline-flex items-center gap-2 text-sm text-subtle transition hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -525,7 +556,7 @@ export default async function TeacherSessionReviewPage({ params }: PageProps) {
       <section className="surface-card mb-6 bg-gradient-to-br from-card via-card to-accent/35 p-6">
         <h1 className="text-2xl font-semibold text-foreground">《{session.plan.title}》课堂复盘</h1>
         <p className="mt-2 text-sm text-slate-300">
-          {session.class.name}（{session.class.code}） · {new Date(session.startTime).toLocaleString('zh-CN')}
+          {classContext.class.name}（{classContext.class.code}） · {new Date(session.startTime).toLocaleString('zh-CN')}
         </p>
         <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-300">
           <span className="rounded-full border border-border/70 bg-background/60 px-3 py-1">状态：{session.status}</span>

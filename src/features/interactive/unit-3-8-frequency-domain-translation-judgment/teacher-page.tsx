@@ -8,12 +8,10 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
-import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   finalizeUNIT_3_8TeacherSession,
-  isUNIT_3_8AiPageType,
   isUNIT_3_8InteractivePageType,
   isUNIT_3_8TeacherSyncState,
   resolveUNIT_3_8TeacherSyncDraft,
@@ -28,8 +26,6 @@ import {
 } from '@/lib/unit-3-8-course';
 import { UNIT_3_8CourseHeader } from './course-header';
 import {
-  UNIT_3_8KnowledgeMapVisual,
-  UNIT_3_8StepAiAssistant,
   UNIT_3_8StepContentPanel,
   UNIT_3_8TeacherActivitySummary,
 } from './step-panels';
@@ -73,7 +69,7 @@ export function UNIT_3_8TeacherPage({
     adapter: UNIT_3_8_SESSION_ADAPTER,
   });
 
-  const { trackCourseEvent, trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError } =
+  const { trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError } =
     useCourseEventTracking({
       resourceKey: UNIT_3_8_RESOURCE_KEY,
       resourceId: UNIT_3_8_RESOURCE_KEY,
@@ -190,19 +186,6 @@ export function UNIT_3_8TeacherPage({
     }
   }, [finishSession, router, sessionInfo, step.id, trackSessionFinalize]);
 
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
-
   if (loadingSession) {
     return (
       <div className="premium-lesson-shell flex items-center justify-center">
@@ -277,20 +260,12 @@ export function UNIT_3_8TeacherPage({
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
-        {step.id === 'step-01' ? <UNIT_3_8KnowledgeMapVisual /> : null}
-
         <UNIT_3_8StepContentPanel
           step={step}
           manifest={runtimeManifest}
           revealProgress={teacherRevealProgress[step.id] ?? 0}
           allowInlineReveal={false}
         />
-
-        {isUNIT_3_8AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_8StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
 
         {isUNIT_3_8InteractivePageType(step.pageType) ? (
           <div className="mt-4">

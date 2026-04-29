@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useEffect } from 'react';
 import type { InteractiveEvent, InteractiveEventType, InteractiveTrackingContextValue } from '../types';
+import { resolveTrackingResourceIdentity } from './resource-identity';
 
 const STORAGE_KEY_PREFIX = 'interactive_events_';
 const SYNC_INTERVAL = 30000; // 30 秒同步一次
@@ -47,7 +48,11 @@ export function useInteractiveTracking(
   const eventsRef = useRef<TrackingEvent[]>([]);
   const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const resolvedResourceKey = resourceKey ?? resourceId ?? '';
+  const configuredResourceIdentity = resolveTrackingResourceIdentity({
+    configuredResourceId: resourceId,
+    configuredResourceKey: resourceKey,
+  });
+  const resolvedResourceKey = configuredResourceIdentity.resourceKey;
   const storageKey = `${STORAGE_KEY_PREFIX}${resolvedResourceKey}:${sessionId ?? 'no-session'}:${userId ?? 'no-user'}`;
 
   // 从 localStorage 恢复事件
@@ -135,20 +140,18 @@ export function useInteractiveTracking(
     type: InteractiveEventType,
     data: Record<string, unknown> = {}
   ) => {
-    const resolvedEventResourceId =
-      typeof data.resourceId === 'string' && data.resourceId.trim().length > 0
-        ? data.resourceId
-        : resourceId;
-    const resolvedEventResourceKey =
-      typeof data.resourceKey === 'string' && data.resourceKey.trim().length > 0
-        ? data.resourceKey
-        : resolvedResourceKey;
+    const resourceIdentity = resolveTrackingResourceIdentity({
+      configuredResourceId: resourceId,
+      configuredResourceKey: resourceKey,
+      eventResourceId: data.resourceId,
+      eventResourceKey: data.resourceKey,
+    });
 
     const event: TrackingEvent = {
       id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type,
-      resourceId: resolvedEventResourceId,
-      resourceKey: resolvedEventResourceKey,
+      resourceId: resourceIdentity.resourceId,
+      resourceKey: resourceIdentity.resourceKey,
       userId,
       sessionId,
       timestamp: Date.now(),
@@ -175,7 +178,7 @@ export function useInteractiveTracking(
     if (type === 'complete' || type === 'submit' || type === 'error') {
       syncEvents();
     }
-  }, [resourceId, resolvedResourceKey, userId, sessionId, saveToStorage, syncEvents]);
+  }, [resourceId, resourceKey, userId, sessionId, saveToStorage, syncEvents]);
 
   // 获取历史事件
   const getHistory = useCallback((): InteractiveEvent[] => {

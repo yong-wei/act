@@ -23,14 +23,14 @@
 
   \node (R) at (0,0) {$r(t)=0$};
   \node[sum] (sum) at (1.55,0) {};
-  \node[block] (N) at (3.15,0) {$N(A)$};
-  \node[block] (G) at (5.25,0) {$G(s)$};
-  \node[tap] (tap) at (6.75,0) {};
-  \node (C) at (8.1,0) {$c(t)$};
+  \node[block] (N) at (3.20,0) {$N(A)$};
+  \node[block] (G) at (6.05,0) {$G(s)$};
+  \node[tap] (tap) at (7.65,0) {};
+  \node (C) at (9.05,0) {$c(t)$};
 
   \draw[signal] (R) -- (sum);
   \draw[signal] (sum) -- node[above] {$e(t)$} (N);
-  \draw[signal] (N) -- node[above] {$x(t)$} (G);
+  \draw[signal] (N) -- node[above, pos=0.52] {$x(t)$} (G);
   \draw[signal] (G) -- (tap) -- (C);
   \draw[signal] (tap) |- ++(0,-1.45) -| node[neg sign, left] {$-$} (sum.south);
 \end{tikzpicture}

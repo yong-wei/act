@@ -11,6 +11,7 @@ function read(file) {
 function main() {
   const dockerfile = read('Dockerfile');
   const dockerignore = read('.dockerignore');
+  const wasmBuildScript = read('scripts/wasm/build-control-engine.mjs');
   const packageJson = JSON.parse(read('package.json'));
   const migrationSql = fs
     .readdirSync(path.join(root, 'prisma', 'migrations'), { withFileTypes: true })
@@ -50,32 +51,25 @@ function main() {
 
   assert.match(
     dockerfile,
-    /rustup target add wasm32-unknown-unknown/,
-    'Dockerfile 必须在容器内安装 Rust 的 wasm32 构建目标'
+    /ENV SKIP_WASM_BUILD=1/,
+    'Dockerfile 必须复用 scripts/build.sh 已预生成的控制分析 Wasm 产物，避免容器内重复访问 crates.io'
+  );
+
+  assert.ok(
+    !/cargo install wasm-pack/.test(dockerfile),
+    'Dockerfile 不得在容器内 cargo install wasm-pack，避免部署构建依赖 crates.io 网络'
   );
 
   assert.match(
-    dockerfile,
-    /cargo install wasm-pack/,
-    'Dockerfile 必须在容器内安装 wasm-pack，避免镜像依赖宿主机预生成 Wasm 产物'
+    wasmBuildScript,
+    /SKIP_WASM_BUILD === '1'/,
+    'Wasm 构建脚本必须支持 Docker 构建阶段跳过重复编译'
   );
 
   assert.match(
-    dockerfile,
-    /ARG RUSTUP_DIST_SERVER=/,
-    'Dockerfile 必须允许配置 Rust toolchain 下载源，避免构建卡死在默认站点'
-  );
-
-  assert.match(
-    dockerfile,
-    /ARG RUSTUP_UPDATE_ROOT=/,
-    'Dockerfile 必须允许配置 Rust update 根地址，保证 rustup 可切换到可达镜像'
-  );
-
-  assert.match(
-    dockerfile,
-    /apk add --no-cache build-base rustup cargo/,
-    'Dockerfile 必须直接从 Alpine 仓库安装 rustup 与 cargo，避免依赖 sh.rustup.rs'
+    wasmBuildScript,
+    /index_bg\.wasm/,
+    'Wasm 构建脚本跳过编译时必须校验已生成的 wasm 文件存在'
   );
 
   assert.ok(
@@ -131,28 +125,10 @@ function main() {
     'Podman 部署脚本必须启动 Redis 容器'
   );
 
-  assert.match(
+  assert.doesNotMatch(
     buildScript,
-    /RUSTUP_DIST_SERVER="\$\{RUSTUP_DIST_SERVER:-/,
-    '构建脚本必须暴露 RUSTUP_DIST_SERVER，便于远端原生构建切换镜像源'
-  );
-
-  assert.match(
-    buildScript,
-    /RUSTUP_UPDATE_ROOT="\$\{RUSTUP_UPDATE_ROOT:-/,
-    '构建脚本必须暴露 RUSTUP_UPDATE_ROOT，便于远端原生构建切换镜像源'
-  );
-
-  assert.match(
-    buildScript,
-    /--build-arg "RUSTUP_DIST_SERVER=\$\{RUSTUP_DIST_SERVER\}"/,
-    '构建脚本必须把 RUSTUP_DIST_SERVER 传入 Dockerfile'
-  );
-
-  assert.match(
-    buildScript,
-    /--build-arg "RUSTUP_UPDATE_ROOT=\$\{RUSTUP_UPDATE_ROOT\}"/,
-    '构建脚本必须把 RUSTUP_UPDATE_ROOT 传入 Dockerfile'
+    /RUSTUP_DIST_SERVER|RUSTUP_UPDATE_ROOT/,
+    '构建脚本不应再向 Docker 构建传入 Rust 下载源；Docker 阶段不负责重复编译 Wasm'
   );
 
   for (const tableName of [

@@ -4,6 +4,8 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+import { formatLessonStepMenuLabel } from '@/features/interactive/shared/course-step-labels';
+
 import {
   CRUISE_COURSE_TITLE,
   CRUISE_STAGE_COLOR,
@@ -69,9 +71,9 @@ export function CruiseCourseHeader({ steps, activeIndex, onIndexChange, middleNo
                 }}
                 className="rounded border border-white/15 bg-slate-950 px-2 py-1 text-xs text-white outline-none"
               >
-                {steps.map((step) => (
+                {steps.map((step, index) => (
                   <option key={step.id} value={step.id}>
-                    {step.title}
+                    {formatLessonStepMenuLabel(index, steps.length, step.title)}
                   </option>
                 ))}
               </select>

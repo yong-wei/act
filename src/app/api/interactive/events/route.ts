@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { eventQueue } from '@/lib/event-queue';
 import { eventRateLimiter } from '@/lib/rate-limiter';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import type { ClassroomInteractionEventInput } from '@/lib/classroom-analytics/types';
@@ -11,7 +11,7 @@ import { routeEvent } from '@/lib/data-governance/event-buffer';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
 import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
-import { attachAfterSessionEndFlags } from '@/lib/data-governance/interactive-event-ingestion';
+import { attachAfterSessionEndFlags, attachSourceLogIds } from '@/lib/data-governance/interactive-event-ingestion';
 import type { PageType } from '@/lib/data-governance/event-protocol';
 
 export const dynamic = 'force-dynamic';
@@ -90,6 +90,15 @@ function resolvePageType(payload: Record<string, unknown>): PageType {
     return pageType;
   }
   return 'dashboard';
+}
+
+function readJsonString(payload: Prisma.JsonValue, key: string): string | null {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return null;
+  }
+
+  const value = payload[key];
+  return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
 
 async function loadSessionEndMetadata(
@@ -205,8 +214,9 @@ export async function POST(request: NextRequest) {
     const sessionEndById = await loadSessionEndMetadata(validEvents);
     const enrichedValidEvents = attachAfterSessionEndFlags(validEvents, sessionEndById);
 
-    // Always persist valid events into InteractionLog for activity feed and behavior analytics.
-    const queueEvents = enrichedValidEvents.map(({ event, resourceId }) => ({
+    // Persist valid events before materializing facts so governance facts can
+    // retain a direct InteractionLog sourceLogId.
+    const interactionLogEvents = enrichedValidEvents.map(({ event, resourceId }) => ({
       userId: session.user.id,
       resourceId,
       resourceKey: event.resourceKey,
@@ -222,9 +232,36 @@ export async function POST(request: NextRequest) {
       },
       clientEventAt: toDateTime(event.clientEventAt ?? event.timestamp),
     }));
-    if (queueEvents.length > 0) {
-      eventQueue.enqueueBatch(queueEvents);
-    }
+
+    const persistedLogs = interactionLogEvents.length > 0
+      ? await prisma.interactionLog.createManyAndReturn({
+        data: interactionLogEvents.map((event) => ({
+          userId: event.userId,
+          resourceId: event.resourceId,
+          resourceKey: event.resourceKey,
+          sessionId: event.sessionId,
+          lessonKey: event.lessonKey,
+          stepId: event.stepId,
+          actorRole: event.actorRole,
+          attemptKey: event.attemptKey,
+          eventType: event.eventType,
+          eventData: event.eventData as Prisma.InputJsonValue,
+          clientEventAt: event.clientEventAt,
+        })),
+        select: {
+          id: true,
+          eventData: true,
+        },
+      })
+      : [];
+
+    const sourceLinkedEvents = attachSourceLogIds(
+      enrichedValidEvents,
+      persistedLogs.map((log) => ({
+        id: log.id,
+        clientEventId: readJsonString(log.eventData, 'clientEventId'),
+      })),
+    );
 
     // Route events based on priority
     const routingResults: Array<{
@@ -235,7 +272,7 @@ export async function POST(request: NextRequest) {
       factActionType: string;
     }> = [];
 
-    for (const eventData of enrichedValidEvents) {
+    for (const eventData of sourceLinkedEvents) {
       const payload =
         eventData.event.data && typeof eventData.event.data === 'object'
           ? eventData.event.data
@@ -270,7 +307,7 @@ export async function POST(request: NextRequest) {
         factActionType: factResult.actionType,
       });
 
-      // Core events still go through existing EventQueue for now
+      // Core facts now keep the persisted InteractionLog id through sourceLogId.
     }
     // Update response
     return NextResponse.json({
@@ -281,7 +318,7 @@ export async function POST(request: NextRequest) {
         acc[r.destination] = (acc[r.destination] || 0) + 1;
         return acc;
       }, {} as Record<string, number>),
-      pending: eventQueue.getStats().pending,
+      pending: 0,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);

@@ -253,6 +253,102 @@ function TeacherCardOptions({ card }: { card: InteractiveRuntimeActivityCardMani
   );
 }
 
+function aggregateCardAnswers(
+  card: InteractiveRuntimeActivityCardManifest,
+  cardResponses: TeacherResponseItem[],
+) {
+  const counts = new Map<string, number>();
+
+  for (const item of cardResponses) {
+    const formatted = formatAnswerValue(card, item.response.answers[card.id] ?? '');
+    counts.set(formatted, (counts.get(formatted) ?? 0) + 1);
+  }
+
+  return Array.from(counts.entries())
+    .map(([answer, count]) => ({
+      answer,
+      count,
+      ratio: cardResponses.length ? count / cardResponses.length : 0,
+    }))
+    .sort((left, right) => right.count - left.count || left.answer.localeCompare(right.answer, 'zh-Hans-CN'));
+}
+
+function TeacherCardAnswerSummary({
+  card,
+  index,
+  responses,
+  answerVisible,
+}: {
+  card: InteractiveRuntimeActivityCardManifest;
+  index: number;
+  responses: TeacherResponseItem[];
+  answerVisible: boolean;
+}) {
+  const [detailsVisible, setDetailsVisible] = useState(false);
+  const cardResponses = responses.filter((item) => item.response.answers?.[card.id]);
+  const aggregateRows = aggregateCardAnswers(card, cardResponses);
+
+  return (
+    <div className="premium-lesson-surface-elevated px-4 py-3">
+      <div className="premium-lesson-title text-sm font-semibold">{cardTitle(card, index)}</div>
+      <CardPrompt card={card} />
+      <TeacherCardOptions card={card} />
+      {answerVisible ? (
+        <div className="premium-lesson-tone-block premium-tone-cyan mt-3 text-sm leading-7">
+          <ReferenceAnswer card={card} />
+        </div>
+      ) : null}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="premium-lesson-muted text-xs">已提交 {cardResponses.length} 人</div>
+        {cardResponses.length ? (
+          <button
+            type="button"
+            onClick={() => setDetailsVisible((value) => !value)}
+            aria-expanded={detailsVisible}
+            className="premium-lesson-action-tone premium-tone-slate text-xs"
+          >
+            {detailsVisible ? '收起细节' : '查看细节'}
+          </button>
+        ) : null}
+      </div>
+      <div className="mt-3 space-y-2" aria-label="答案统计">
+        {aggregateRows.length ? (
+          aggregateRows.map((row) => (
+            <div key={`${card.id}-${row.answer}`} className="rounded-2xl border border-border/50 bg-background/60 px-3 py-2">
+              <div className="flex items-start justify-between gap-3 text-sm leading-6">
+                <span className="premium-lesson-title">{renderActivityInlineContent(row.answer)}</span>
+                <span className="premium-lesson-caption shrink-0 text-xs">
+                  {row.count} 人 · {Math.round(row.ratio * 100)}%
+                </span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border/60">
+                <div className="h-full rounded-full bg-cyan-500" style={{ width: `${Math.round(row.ratio * 100)}%` }} />
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="premium-lesson-muted rounded-2xl border border-dashed border-border/60 px-3 py-2 text-sm">
+            暂无提交，答案统计将在学生提交后显示。
+          </div>
+        )}
+      </div>
+      {detailsVisible ? (
+        <div className="premium-lesson-tone-block premium-tone-slate mt-3 text-sm leading-7">
+          <div className="premium-lesson-kicker">提交细节</div>
+          <div className="mt-2 space-y-2">
+            {cardResponses.map((item) => (
+              <p key={`${card.id}-${item.studentName}-${item.response.submittedAt}`} className="premium-lesson-muted leading-6">
+                <strong>{item.studentName}：</strong>
+                {renderActivityInlineContent(formatAnswerValue(card, item.response.answers[card.id] ?? ''))}
+              </p>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function DragSortAnswerInput({
   card,
   value,
@@ -671,28 +767,15 @@ function TeacherSummary({
         <div className="premium-lesson-panel">
           <div className="premium-lesson-kicker">学生提交汇总</div>
           <div className="mt-3 space-y-3">
-            {cards.map((card, index) => {
-              const cardResponses = responses.filter((item) => item.response.answers?.[card.id]);
-              return (
-                <div key={card.id} className="premium-lesson-surface-elevated px-4 py-3">
-                  <div className="premium-lesson-title text-sm font-semibold">{cardTitle(card, index)}</div>
-                  <CardPrompt card={card} />
-                  <TeacherCardOptions card={card} />
-                  {answerVisible ? (
-                    <div className="premium-lesson-tone-block premium-tone-cyan mt-3 text-sm leading-7">
-                      <ReferenceAnswer card={card} />
-                    </div>
-                  ) : null}
-                  <div className="premium-lesson-muted mt-1 text-xs">已提交 {cardResponses.length} 人</div>
-                  {cardResponses.slice(0, 4).map((item) => (
-                    <p key={`${card.id}-${item.studentName}`} className="premium-lesson-muted mt-2 text-sm leading-6">
-                      <strong>{item.studentName}：</strong>
-                      {renderActivityInlineContent(formatAnswerValue(card, item.response.answers[card.id] ?? ''))}
-                    </p>
-                  ))}
-                </div>
-              );
-            })}
+            {cards.map((card, index) => (
+              <TeacherCardAnswerSummary
+                key={card.id}
+                card={card}
+                index={index}
+                responses={responses}
+                answerVisible={answerVisible}
+              />
+            ))}
           </div>
         </div>
       ) : null}

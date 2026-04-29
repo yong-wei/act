@@ -205,14 +205,12 @@ export function UNIT_3_9TeacherPage({
         activeIndex={activeIndex}
         onIndexChange={(index) => void handlePatchCurrentStep(index)}
         middleNotice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
-        rightSlot={
-          <StepKnowledgeDrawer
-            lessonRuntime={lessonRuntime}
-            currentStepId={step.id}
-            orderedStepIds={runtimeSteps.map((item) => item.id)}
-            title="页面知识卡片"
-          />
-        }
+      />
+      <StepKnowledgeDrawer
+        lessonRuntime={lessonRuntime}
+        currentStepId={step.id}
+        orderedStepIds={runtimeSteps.map((item) => item.id)}
+        title="页面知识卡片"
       />
 
       <main className="premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-6">

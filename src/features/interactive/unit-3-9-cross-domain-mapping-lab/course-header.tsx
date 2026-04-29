@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import type { ReactNode } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+import { formatLessonStepMenuLabel } from '@/features/interactive/shared/course-step-labels';
 
 import {
   UNIT_3_9_COURSE_SUBTITLE,
@@ -17,13 +18,11 @@ export function UNIT_3_9CourseHeader({
   activeIndex,
   onIndexChange,
   middleNotice,
-  rightSlot,
 }: {
   steps: readonly UNIT_3_9StepDefinition[];
   activeIndex: number;
   onIndexChange: (index: number) => void;
   middleNotice?: string;
-  rightSlot?: ReactNode;
 }) {
   const currentStep = steps[activeIndex];
 
@@ -56,8 +55,6 @@ export function UNIT_3_9CourseHeader({
           </div>
 
           <div className="ml-auto flex shrink-0 flex-col items-end gap-1">
-            {rightSlot ? <div className="flex items-center gap-2">{rightSlot}</div> : null}
-
             <label className="premium-lesson-control inline-flex items-center gap-2">
               <span>环节</span>
               <select
@@ -73,9 +70,9 @@ export function UNIT_3_9CourseHeader({
                 }}
                 className="premium-lesson-select"
               >
-                {steps.map((step) => (
+                {steps.map((step, index) => (
                   <option key={step.id} value={step.id}>
-                    {step.title}
+                    {formatLessonStepMenuLabel(index, steps.length, step.title)}
                   </option>
                 ))}
               </select>

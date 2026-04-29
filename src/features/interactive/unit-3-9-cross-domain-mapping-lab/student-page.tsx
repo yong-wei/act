@@ -198,14 +198,12 @@ export function UNIT_3_9StudentPage({
           setActiveIndex(index);
         }}
         middleNotice={isOutOfSync ? `当前页面与教师不同步，教师正在第 ${teacherIndex + 1} 页` : step.hint}
-        rightSlot={
-          <StepKnowledgeDrawer
-            lessonRuntime={lessonRuntime}
-            currentStepId={step.id}
-            orderedStepIds={runtimeSteps.map((item) => item.id)}
-            title="页面知识卡片"
-          />
-        }
+      />
+      <StepKnowledgeDrawer
+        lessonRuntime={lessonRuntime}
+        currentStepId={step.id}
+        orderedStepIds={runtimeSteps.map((item) => item.id)}
+        title="页面知识卡片"
       />
 
       <main className="premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-6">

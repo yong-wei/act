@@ -32,6 +32,8 @@
 
 活动模块归属 activity runtime，不归 content runtime。`activity-card`、`activity-card-set`、`single-choice-card`、`quiz-card`、`quiz-group` 等模块不得在 `content-renderers.tsx` 中渲染题面列表；它们只作为 layout 中的活动锚点和 `interaction_spec` 的结构提示，由 `activity-renderers.tsx` 渲染学生作答、教师控制与结果汇总。
 
+manifest 课堂页必须在区域内容前渲染独立页面标题模块，显示页序、步骤标题和本页主要内容描述；描述优先取 `ai_context_spec.page_goal`，其次取 `interaction_spec.student_task` 或页面介绍内容。课堂页下拉页面菜单必须显示页序与标题，默认格式为`第 03 页 · 标题`。
+
 ## 二、必显模块规则
 
 - 只要模块标记为 `must_be_visible: true`，它就必须真实落页。
@@ -121,6 +123,7 @@ manifest-first 课程必须让脚本可明确审计，而不是只靠人工浏�
 - `must_be_visible: true` 的 activity 模块不得因为 content registry 缺 renderer 而报错，也不得进入正文 layout。
 - `activity_cards[].prompt` 默认在最终页面只出现一次；重复出现通常说明 content/activity 双重消费。
 - `activity_cards[].prompt` 必须非空；共享教师活动汇总必须显示完整题面，并在选择题、排序题、多选题等场景显示选项，不能只显示回收结果。
+- 共享教师活动汇总默认只显示答案聚合统计与提交人数，不显示提交人姓名；提交人姓名与逐条答案只能在教师点击该互动模块的`查看细节`后展示。
 - `formula-card` 使用 `content_blocks.key_formulas` 隐式消费时，公式数应与同页公式模块数匹配，或由 payload 指定索引。
 - `image-panel` 使用 `content_blocks.media` 隐式消费时，媒体数应与同页图片模块数匹配，或由 payload 指定索引。
 - `figure_explanation`、`figure_reading`、`figure_explanations`、`parameter_explanation` 等图后说明不得留在 `content_blocks` 中未消费；若确实不展示，契约必须显式标记允许未消费。
@@ -138,6 +141,8 @@ manifest-first 课程必须让脚本可明确审计，而不是只靠人工浏�
   - activity 模块只由 activity registry 消费，正文区没有额外“本页作答”题面列表
   - 每个 `activity_cards[].prompt` 默认只出现一次
   - 教师活动汇总在释放互动后仍显示题面和选项
+  - 教师活动汇总默认只显示聚合统计，未点击`查看细节`时不出现提交人姓名
+  - 页面顶部存在独立标题模块，且下拉菜单选项含页序
   - `?step=` 预览与正式课堂页都不丢模块
   - 教师控制、逐步显影、答案揭示仍绑定到 manifest 对应步骤
   - 页面不存在 `data-manifest-render-error` 或“互动页模块渲染缺失”

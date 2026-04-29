@@ -44,6 +44,7 @@
     "test:memory-framework": "node ./scripts/tests/test-memory-framework-contract.mjs",
     "db:sync-remote": "bash ./scripts/db/sync-remote-db-to-local.sh",
     "db:backfill-facts": "npx tsx ./scripts/db/backfill-learning-facts-from-event-batches.ts",
+    "db:backfill-class-attribution": "tsx ./scripts/db/backfill-class-session-attribution.ts",
     "migrate:events": "npx tsx scripts/migrations/001-seed-event-dictionary.ts",
     "migrate:facts": "npx tsx scripts/migrations/002-migrate-to-learning-facts.ts",
     "migrate:snapshots": "npx tsx scripts/migrations/003-backfill-snapshots.ts",

@@ -213,7 +213,8 @@ describe('unit 3-9 interactive course', () => {
     expect(JSON.stringify(steps.get('step-01'))).toContain('3-9-cover-comic.png');
     expect(JSON.stringify(steps.get('step-01'))).not.toContain('边界提醒');
     expect(steps.get('step-02')?.interactionSpec.interactionKind).toBe('none');
-    expect(JSON.stringify(steps.get('step-02'))).toContain('本次课程目标');
+    expect(JSON.stringify(steps.get('step-02'))).toContain('完成本单元后，学习者能够：');
+    expect(JSON.stringify(steps.get('step-02'))).not.toContain('本次课程目标');
     expect(JSON.stringify(steps.get('step-02'))).toContain('识别');
     expect(JSON.stringify(steps.get('step-02'))).toContain('解释');
     expect(JSON.stringify(steps.get('step-02'))).toContain('比较');
@@ -228,7 +229,8 @@ describe('unit 3-9 interactive course', () => {
     expect(steps.get('step-07')?.interactionSpec.interactionKind).toBe('parameter_slider');
     expect(JSON.stringify(steps.get('step-07'))).toContain('单位斜坡误差');
     expect(steps.get('step-08')?.interactionSpec.interactionKind).toBe('parameter_slider');
-    expect(JSON.stringify(steps.get('step-08'))).toContain('设计任务');
+    expect(JSON.stringify(steps.get('step-08'))).toContain('参数调节目标');
+    expect(JSON.stringify(steps.get('step-08'))).not.toContain('设计任务');
     expect(steps.get('step-08')?.modules.some((module) => module.kind === 'formula-card')).toBe(true);
     expect(JSON.stringify(steps.get('step-08'))).toContain('C_{ic}(s)');
     expect(JSON.stringify(steps.get('step-08'))).not.toContain('讲义 5.4');

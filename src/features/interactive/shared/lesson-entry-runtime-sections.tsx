@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { BookOpen, Download, Image as ImageIcon, PanelTopOpen, Sparkles } from 'lucide-react';
+import { BookOpen, Download, Image as ImageIcon, Maximize2, PanelTopOpen, Sparkles } from 'lucide-react';
 
 import 'katex/dist/katex.min.css';
 
@@ -109,6 +109,7 @@ export function LessonEntryRuntimeSections({
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(defaultNodeId);
   const [isHandoutOpen, setIsHandoutOpen] = useState(false);
   const [isExportingHandout, setIsExportingHandout] = useState(false);
+  const [isInfographPreviewOpen, setIsInfographPreviewOpen] = useState(false);
 
   const selectedNode = selectedNodeId ? nodeById.get(selectedNodeId) ?? orderedNodes[0] ?? null : orderedNodes[0] ?? null;
   const selectedInfograph = selectedNode ? extractInfographResource(selectedNode.resources) : null;
@@ -123,6 +124,10 @@ export function LessonEntryRuntimeSections({
       return defaultNodeId;
     });
   }, [defaultNodeId, nodeById]);
+
+  useEffect(() => {
+    setIsInfographPreviewOpen(false);
+  }, [selectedNodeId, selectedInfographSrc]);
 
   const handleHandoutExport = async () => {
     if (isExportingHandout) {
@@ -199,15 +204,35 @@ export function LessonEntryRuntimeSections({
                     <ImageIcon className="h-3.5 w-3.5" />
                     知识点信息图
                   </div>
-                  <Image
-                    src={selectedInfographSrc}
-                    alt={selectedInfographAlt}
-                    width={1600}
-                    height={900}
-                    unoptimized
-                    className="h-auto w-full bg-background object-contain"
-                    loading="lazy"
-                  />
+                  <button
+                    type="button"
+                    aria-label={`放大查看${selectedInfographAlt}`}
+                    onClick={() => {
+                      tracker.trackResourceOpen({
+                        resourceKey: `lesson-entry:${lessonId}:infograph:${selectedNode.id}`,
+                        targetType: 'infograph',
+                        targetId: selectedInfograph?.nodeId ?? selectedNode.id,
+                        targetLabel: selectedInfographAlt,
+                        openMode: 'dialog',
+                      });
+                      setIsInfographPreviewOpen(true);
+                    }}
+                    className="group relative block w-full bg-background text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    <Image
+                      src={selectedInfographSrc}
+                      alt={selectedInfographAlt}
+                      width={1600}
+                      height={900}
+                      unoptimized
+                      className="h-auto w-full object-contain transition duration-200 group-hover:brightness-95"
+                      loading="lazy"
+                    />
+                    <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-md bg-background/90 px-2.5 py-1.5 text-xs font-medium text-foreground shadow-sm ring-1 ring-border backdrop-blur">
+                      <Maximize2 className="h-3.5 w-3.5" />
+                      查看大图
+                    </span>
+                  </button>
                 </figure>
               ) : null}
             </div>
@@ -312,7 +337,54 @@ export function LessonEntryRuntimeSections({
           onHandoutExport={() => void handleHandoutExport()}
         />
       )}
+      {selectedInfographSrc ? (
+        <LessonEntryInfographDialog
+          open={isInfographPreviewOpen}
+          onOpenChange={setIsInfographPreviewOpen}
+          src={selectedInfographSrc}
+          alt={selectedInfographAlt}
+          title={selectedNode ? `${selectedNode.name} 信息图` : '知识点信息图'}
+        />
+      ) : null}
     </>
+  );
+}
+
+export function LessonEntryInfographDialog({
+  open,
+  onOpenChange,
+  src,
+  alt,
+  title,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  src: string;
+  alt: string;
+  title: string;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[min(96vw,1400px)] border-border bg-background p-0 text-foreground">
+        <DialogHeader className="border-b border-border px-6 py-4">
+          <DialogTitle className="text-foreground">{title}</DialogTitle>
+          <DialogDescription className="sr-only">
+            放大查看课程入口知识点信息图。
+          </DialogDescription>
+        </DialogHeader>
+        <div className="max-h-[82vh] overflow-auto bg-white p-3">
+          <Image
+            src={src}
+            alt={alt}
+            width={1600}
+            height={900}
+            unoptimized
+            className="mx-auto h-auto w-full max-w-none object-contain"
+            priority
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

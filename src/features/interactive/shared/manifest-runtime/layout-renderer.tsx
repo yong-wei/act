@@ -129,6 +129,68 @@ function renderManifestModuleError({
   );
 }
 
+function stringFromContentBlock(value: unknown): string {
+  if (typeof value === 'string') return value.trim();
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return '';
+
+  const record = value as Record<string, unknown>;
+  const candidates = [
+    record.text,
+    record.summary,
+    record.description,
+    record.intro,
+    record.body,
+    record.content,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+
+  return '';
+}
+
+function getStepDescription(step: InteractiveRuntimeStepManifest) {
+  const candidates = [
+    step.aiContextSpec.pageGoal,
+    step.interactionSpec.studentTask,
+    stringFromContentBlock(step.contentBlocks.page_intro),
+    stringFromContentBlock(step.contentBlocks.title_card),
+    stringFromContentBlock(step.contentBlocks.summary),
+  ];
+
+  return candidates.find((candidate) => candidate?.trim())?.trim() ?? '本页围绕当前主题组织对象、证据和判断任务。';
+}
+
+function renderStepTitleModule({
+  manifest,
+  step,
+}: {
+  manifest: InteractiveRuntimeManifest;
+  step: InteractiveRuntimeStepManifest;
+}) {
+  const stepIndex = manifest.stepOrder.indexOf(step.id);
+  const pageNumber = stepIndex >= 0 ? stepIndex + 1 : manifest.steps.findIndex((item) => item.id === step.id) + 1;
+  const total = manifest.stepOrder.length || manifest.steps.length;
+  const width = Math.max(2, String(total).length);
+  const pageLabel = pageNumber > 0 ? `第 ${String(pageNumber).padStart(width, '0')} 页` : '课程页面';
+
+  return createElement(
+    'section',
+    {
+      'data-manifest-step-title': step.id,
+      className: 'premium-lesson-panel',
+    },
+    [
+      createElement('div', { key: 'kicker', className: 'premium-lesson-kicker' }, pageLabel),
+      createElement('h2', { key: 'title', className: 'premium-lesson-title mt-2 text-2xl font-semibold' }, step.title),
+      createElement('p', { key: 'description', className: 'premium-lesson-muted mt-2 text-sm leading-7' }, getStepDescription(step)),
+    ],
+  );
+}
+
 export const INTERACTIVE_TEMPLATE_REGISTRY: Record<string, InteractiveTemplateRenderer> = {
   stacked_regions: renderStackedTemplate,
   map_goal_boundary_slide: renderStackedTemplate,
@@ -216,5 +278,8 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
     })
     .filter(Boolean) as InteractiveLayoutRegionNode[];
 
-  return renderInteractiveLessonLayout({ step, regionNodes });
+  return createElement(Fragment, null, [
+    createElement(Fragment, { key: 'step-title' }, renderStepTitleModule({ manifest, step })),
+    createElement(Fragment, { key: 'step-layout' }, renderInteractiveLessonLayout({ step, regionNodes })),
+  ]);
 }

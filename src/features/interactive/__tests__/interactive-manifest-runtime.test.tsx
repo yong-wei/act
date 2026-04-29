@@ -132,6 +132,54 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('缺少模块 renderer');
   });
 
+  it('renders a separate manifest page title module before page content', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-title': {
+          title: '页面标题测试',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'body',
+              region: 'main',
+              kind: 'summary-card',
+              must_be_visible: true,
+              payload: { text: '正文证据' },
+            },
+          ],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'display',
+            student_task: '本页说明主要任务。',
+            activity_cards: [],
+          },
+          ai_context_spec: {
+            page_goal: '本页描述主内容。',
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: {
+          'summary-card': () => createElement('div', null, '正文证据'),
+        },
+        extra: undefined,
+      }),
+    );
+
+    expect(html).toContain('data-manifest-step-title="step-title"');
+    expect(html.indexOf('第 01 页')).toBeLessThan(html.indexOf('正文证据'));
+    expect(html).toContain('页面标题测试');
+    expect(html).toContain('本页描述主内容。');
+  });
+
   it('keeps activity runtime modules out of the static content layout even when a content registry contains a matching renderer', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'test-lesson',
@@ -427,7 +475,7 @@ describe('interactive runtime manifest', () => {
     expect(activitySource).toContain('type="radio"');
   });
 
-  it('renders activity prompts and options in the shared teacher summary before collected responses', () => {
+  it('renders teacher activity aggregation by default and hides submitter names until details are opened', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'test-lesson',
       steps: {
@@ -501,8 +549,62 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('对象模型变化');
     expect(html).toContain('执行器限幅');
     expect(html.indexOf('哪一项最能解释当前失配？')).toBeLessThan(html.indexOf('已提交 1 人'));
-    expect(html).toContain('学生甲');
+    expect(html).toContain('查看细节');
+    expect(html).toContain('1 人 · 100%');
+    expect(html).not.toContain('学生甲');
     expect(html).toContain('参考解释');
+  });
+
+  it('renders teacher-direct reveal controls through the shared teacher activity registry', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-reveal': {
+          title: '教师显影测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'worked_example_reveal',
+            activity_cards: [],
+          },
+          teacher_controls: {
+            release_activity: 'not_applicable',
+            open_browse: 'not_applicable',
+            teacher_step_reveal: 'teacher_direct',
+            reveal_reference_answer: 'not_applicable',
+          },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        renderTeacherInteractiveActivity({
+          registry: createManifestTeacherActivityRegistry(),
+          step: { id: step!.id },
+          stepManifest: step!,
+          responses: [],
+          released: true,
+          browseEnabled: true,
+          answerVisible: false,
+          revealProgress: 1,
+          onToggleRelease: () => undefined,
+          onToggleBrowse: () => undefined,
+          onToggleAnswerVisible: () => undefined,
+          onAdvanceReveal: () => undefined,
+          onResetReveal: () => undefined,
+        }),
+      ),
+    );
+
+    expect(html).toContain('推进显影');
+    expect(html).toContain('重置显影');
+    expect(html).toContain('当前教师显影层级：2');
   });
 
   it('keeps manifest activity registries for the three shared activity kinds without course-id answer maps', () => {
@@ -515,6 +617,7 @@ describe('interactive runtime manifest', () => {
     expect(source).toContain('task_card_workspace:');
     expect(source).toContain('quiz_group:');
     expect(source).toContain('teacher_reveal_only:');
+    expect(source).toContain('worked_example_reveal:');
     expect(source).toContain('card.referenceAnswer');
     expect(source).toContain('data-manifest-missing-field');
     expect(source).not.toContain('REFERENCE_ANSWERS');

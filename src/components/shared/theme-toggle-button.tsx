@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -7,8 +8,24 @@ import { useTheme } from '@/components/providers/theme-provider';
 
 export function ThemeToggleButton() {
   const { mounted, theme, toggleTheme } = useTheme();
+  const [hasLessonFloatingTools, setHasLessonFloatingTools] = useState(false);
 
-  if (!mounted) {
+  useEffect(() => {
+    const update = () => {
+      setHasLessonFloatingTools(Boolean(document.querySelector('[data-lesson-floating-tools="true"]')));
+    };
+    update();
+
+    const observer = new MutationObserver(update);
+    observer.observe(document.body, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  if (!mounted || hasLessonFloatingTools) {
     return null;
   }
 

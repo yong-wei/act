@@ -31,22 +31,12 @@ RUN --mount=type=cache,target=/root/.npm \
 # Builder stage
 FROM base AS builder
 WORKDIR /app
-RUN apk add --no-cache build-base rustup cargo
-ARG RUSTUP_DIST_SERVER=https://rsproxy.cn
-ARG RUSTUP_UPDATE_ROOT=https://rsproxy.cn/rustup
-ENV PATH="/root/.cargo/bin:${PATH}"
-RUN if [ -n "${RUSTUP_DIST_SERVER}" ]; then export RUSTUP_DIST_SERVER=${RUSTUP_DIST_SERVER}; fi \
-  && if [ -n "${RUSTUP_UPDATE_ROOT}" ]; then export RUSTUP_UPDATE_ROOT=${RUSTUP_UPDATE_ROOT}; fi \
-  && echo "RUSTUP_DIST_SERVER=${RUSTUP_DIST_SERVER}" \
-  && echo "RUSTUP_UPDATE_ROOT=${RUSTUP_UPDATE_ROOT}" \
-  && rustup-init -y --no-modify-path --profile minimal --default-toolchain stable \
-  && rustup target add wasm32-unknown-unknown \
-  && cargo install wasm-pack --locked --version 0.13.1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV SKIP_WASM_BUILD=1
 
 # Build the application
 RUN npm run build

@@ -1,0 +1,55 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{amsmath}
+\usepackage{CJKutf8}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\begin{document}
+\begin{CJK}{UTF8}{gbsn}
+\begin{tikzpicture}[auto, >=Stealth]
+  \tikzset{
+    block/.style={rectangle, draw={rgb,255:red,74;green,144;blue,217}, fill=none,
+      minimum width=1.85cm, minimum height=0.82cm, line width=1.2pt,
+      font=\footnotesize\bfseries, align=center},
+    wideblock/.style={rectangle, draw={rgb,255:red,74;green,144;blue,217}, fill=none,
+      minimum width=2.15cm, minimum height=0.90cm, line width=1.2pt,
+      font=\footnotesize\bfseries, align=center},
+    sum/.style={circle, draw={rgb,255:red,92;green,184;blue,92}, fill=none,
+      minimum size=0.45cm, line width=1.2pt,
+      path picture={
+        \draw[line width=0.9pt] (path picture bounding box.south west) --
+          (path picture bounding box.north east);
+        \draw[line width=0.9pt] (path picture bounding box.north west) --
+          (path picture bounding box.south east);
+      }},
+    tap/.style={circle, draw={rgb,255:red,240;green,173;blue,78}, fill=none,
+      minimum size=4.5pt, inner sep=0pt, line width=1.2pt},
+    signal/.style={->, line width=1.2pt, draw={rgb,255:red,51;green,51;blue,51}},
+    note/.style={font=\scriptsize, align=center},
+    neg sign/.style={font=\footnotesize, inner sep=1pt}
+  }
+
+  \node (R) at (0,0) {$\psi_r$};
+  \node[sum] (sum) at (1.05,0) {};
+  \node[block] (pi) at (2.65,0) {PI 控制器\\$G_c(s)$};
+  \node[wideblock] (amp) at (5.05,0) {放大器\\饱和 $\pm 10\mathrm{V}$};
+  \node[wideblock] (valve) at (7.85,0) {电液伺服阀\\死区 $\Delta$};
+  \node[block] (hyd) at (10.25,0) {液压舵机\\舵角 $\delta$};
+  \node[block] (ship) at (12.65,0) {船体航向\\$\psi$};
+  \node[tap] (tap) at (14.05,0) {};
+  \node (Y) at (15.10,0) {$\psi(t)$};
+
+  \draw[signal] (R) -- (sum);
+  \draw[signal] (sum) -- node[above] {$e_\psi$} (pi);
+  \draw[signal] (pi) -- node[above] {$u_c$} (amp);
+  \draw[signal] (amp) -- node[above] {$v$} (valve);
+  \draw[signal] (valve) -- node[above] {$q$} (hyd);
+  \draw[signal] (hyd) -- (ship);
+  \draw[signal] (ship) -- (tap) -- (Y);
+
+  \draw[signal] (tap) |- ++(0,-1.75) -| node[neg sign, left] {$-$} (sum.south);
+
+  \node[note] at (5.05,-1.05) {大幅命令被削平};
+  \node[note] at (7.85,-1.05) {小幅修正被吞掉};
+  \node[note] at (10.25,-1.05) {液压惯性与舵角限制};
+\end{tikzpicture}
+\end{CJK}
+\end{document}

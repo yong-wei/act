@@ -15,7 +15,6 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit38StepAIContext } from '@/lib/course-ai-contexts';
 import {
   getUNIT_3_8PageContractFromManifest,
-  isUNIT_3_8AiPageType,
   isUNIT_3_8InteractivePageType,
   UNIT_3_8_LESSON_KEY,
   UNIT_3_8_LESSON_STEPS,
@@ -26,8 +25,6 @@ import {
 } from '@/lib/unit-3-8-course';
 import { UNIT_3_8CourseHeader } from './course-header';
 import {
-  UNIT_3_8KnowledgeMapVisual,
-  UNIT_3_8StepAiAssistant,
   UNIT_3_8StepContentPanel,
   UNIT_3_8StudentActivityForm,
   UNIT_3_8StudentSummaryPanel,
@@ -180,19 +177,6 @@ export function UNIT_3_8StudentPage({
     });
   };
 
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
-
   if (loadingSession) {
     return (
       <div className="premium-lesson-shell flex items-center justify-center">
@@ -265,20 +249,12 @@ export function UNIT_3_8StudentPage({
           </div>
         </div>
 
-        {step.id === 'step-01' ? <UNIT_3_8KnowledgeMapVisual /> : null}
-
         <UNIT_3_8StepContentPanel
           step={step}
           manifest={runtimeManifest}
           revealProgress={revealProgress}
           allowInlineReveal={isDemo || browseEnabled}
         />
-
-        {isUNIT_3_8AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_8StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
 
         {isUNIT_3_8InteractivePageType(step.pageType) ? (
           <div className="mt-4">
@@ -295,7 +271,7 @@ export function UNIT_3_8StudentPage({
           </div>
         ) : null}
 
-        {step.id === 'step-20' ? (
+        {step.id === 'step-22' ? (
           <div className="mt-4">
             <UNIT_3_8StudentSummaryPanel responses={courseState.responses} />
           </div>

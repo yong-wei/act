@@ -9,8 +9,6 @@ OUTPUT_TAR="${OUTPUT_TAR:-deploy/images/act-obe.tar}"
 PLATFORM="${PLATFORM:-linux/amd64}"
 NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"
 PRISMA_ENGINES_MIRROR="${PRISMA_ENGINES_MIRROR:-https://registry.npmmirror.com/-/binary/prisma}"
-RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-https://rsproxy.cn}"
-RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-https://rsproxy.cn/rustup}"
 CACHE_MODE="${CACHE_MODE:-min}"
 
 CACHE_ROOT="${CACHE_ROOT:-.cache/buildx}"
@@ -46,8 +44,6 @@ docker buildx build \
   --progress=plain \
   --build-arg "NPM_REGISTRY=${NPM_REGISTRY}" \
   --build-arg "PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}" \
-  --build-arg "RUSTUP_DIST_SERVER=${RUSTUP_DIST_SERVER}" \
-  --build-arg "RUSTUP_UPDATE_ROOT=${RUSTUP_UPDATE_ROOT}" \
   "${CACHE_ARGS[@]}" \
   -t "${IMAGE_TAG}" \
   --output="type=docker,dest=${OUTPUT_TAR}" \

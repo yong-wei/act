@@ -496,7 +496,7 @@ function ParameterSliderSubmission({
   const current = useControlEngine(buildUnit39AnalysisRequest(panelId, normalized));
 
   if (!released) {
-    return <div className="premium-lesson-panel">教师尚未发放本页调节任务，请先观察页面信息。</div>;
+    return <div className="premium-lesson-panel">教师尚未开放本页参数调节，请先观察页面信息。</div>;
   }
 
   const updateParam = (key: string, value: number) => {

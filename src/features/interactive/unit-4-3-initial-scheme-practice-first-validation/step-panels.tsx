@@ -387,8 +387,10 @@ function UnifiedAnalysisPanel({
 }
 
 function RollBoundaryPanel({
+  mode,
   onWorkspaceParameterChange,
 }: {
+  mode: 'time' | 'bode';
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
   const [params, setParams] = useState({ kp: 0.7858, ki: 2, kd: 4.104 });
@@ -432,9 +434,11 @@ function RollBoundaryPanel({
     yAxisName: '幅值 / dB',
     dynamicYAxis: true,
   });
+  const chartTitle = mode === 'time' ? '时域响应对比' : 'Bode 对比';
+  const chartOption = mode === 'time' ? timeOption : bodeOption;
 
   return (
-    <SurfaceCard title="横摇减摇鳍双栏联动面板">
+    <SurfaceCard title={chartTitle}>
       <div className="grid gap-3 md:grid-cols-2">
         <div className="premium-lesson-tone-block premium-tone-cyan">
           <div className="premium-lesson-title text-sm font-medium">对象传函</div>
@@ -449,10 +453,7 @@ function RollBoundaryPanel({
           </div>
         </div>
       </div>
-      <div className="grid gap-4 xl:grid-cols-2">
-        <ControlChartPanel title="时域响应对比" option={timeOption} />
-        <ControlChartPanel title="Bode 对比" option={bodeOption} />
-      </div>
+      <ControlChartPanel title={chartTitle} option={chartOption} />
       <details className="mt-4 rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3">
         <summary className="cursor-pointer text-sm font-medium">控件区</summary>
         <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -582,7 +583,7 @@ function createUNIT_4_3ModuleRegistry(
       ),
     'rust-time-compare-panel': ({ step, module }) =>
       module.id === 'roll-native-time-compare' ? (
-        <RollBoundaryPanel onWorkspaceParameterChange={extra.onWorkspaceParameterChange} />
+        <RollBoundaryPanel mode="time" onWorkspaceParameterChange={extra.onWorkspaceParameterChange} />
       ) : (
         sharedRegistry['rust-time-compare-panel']?.({
           manifest,
@@ -594,13 +595,20 @@ function createUNIT_4_3ModuleRegistry(
           },
         }) ?? null
       ),
-    'rust-bode-compare-panel': ({ module }) => (
-      <SurfaceCard title={String(module.payload.title ?? 'Bode 对比')}>
-        <div className="premium-lesson-muted text-sm leading-6">
-          Bode 对比与时域响应共用同一组横摇减摇鳍参数，已在上方双栏联动面板中同步呈现。
-        </div>
-      </SurfaceCard>
-    ),
+    'rust-bode-compare-panel': ({ step, module }) =>
+      module.id === 'roll-native-bode-compare' ? (
+        <RollBoundaryPanel mode="bode" onWorkspaceParameterChange={extra.onWorkspaceParameterChange} />
+      ) : (
+        sharedRegistry['rust-bode-compare-panel']?.({
+          manifest,
+          step,
+          module,
+          extra: {
+            revealProgress: extra.revealProgress,
+            allowInlineReveal: extra.allowInlineReveal,
+          },
+        }) ?? null
+      ),
   };
 }
 
@@ -643,11 +651,6 @@ const UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY = createManifestStudentActivityR
   UNIT_4_3StepResponse
 >;
 
-const UNIT_4_3_SHARED_TEACHER_ACTIVITY_REGISTRY = createManifestTeacherActivityRegistry<UNIT_4_3RuntimeStepDefinition>() as unknown as TeacherInteractiveActivityRegistry<
-  UNIT_4_3RuntimeStepDefinition,
-  TeacherResponseItem
->;
-
 const UNIT_4_3_STUDENT_ACTIVITY_REGISTRY: StudentInteractiveActivityRegistry<
   UNIT_4_3RuntimeStepDefinition,
   UNIT_4_3StepResponse
@@ -655,12 +658,17 @@ const UNIT_4_3_STUDENT_ACTIVITY_REGISTRY: StudentInteractiveActivityRegistry<
   none: () => null,
   display: () => null,
   summary: () => null,
-  worked_example_reveal: () => null,
   single_choice: UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY.single_choice,
   quiz_group: UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY.quiz_group,
   activity_card_set: UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY.activity_card_set,
   task_card_workspace: UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY.task_card_workspace,
+  worked_example_reveal: UNIT_4_3_SHARED_STUDENT_ACTIVITY_REGISTRY.worked_example_reveal,
 };
+
+const UNIT_4_3_TEACHER_ACTIVITY_REGISTRY = createManifestTeacherActivityRegistry<UNIT_4_3RuntimeStepDefinition>() as unknown as TeacherInteractiveActivityRegistry<
+  UNIT_4_3RuntimeStepDefinition,
+  TeacherResponseItem
+>;
 
 export function UNIT_4_3StudentActivityForm({
   stepManifest,
@@ -741,66 +749,10 @@ export function UNIT_4_3TeacherActivitySummary({
   onAdvanceReveal: () => void;
   onResetReveal: () => void;
 }) {
-  const renderSummary = () => (
-    <SurfaceCard title="教师汇总与控制">
-      <div className="grid gap-3 md:grid-cols-2">
-        <button type="button" onClick={onToggleRelease} className="premium-lesson-action-secondary">
-          {released ? '收起作答' : '发放作答'}
-        </button>
-        <button type="button" onClick={onToggleBrowse} className="premium-lesson-action-secondary">
-          {browseEnabled ? '关闭浏览' : '开放浏览'}
-        </button>
-        <button type="button" onClick={onToggleAnswerVisible} className="premium-lesson-action-secondary">
-          {answerVisible ? '隐藏参考答案' : '显示参考答案'}
-        </button>
-        {step.pageType === 'worked_example_reveal' ? (
-          <div className="flex gap-2">
-            <button type="button" onClick={onAdvanceReveal} className="premium-lesson-action-secondary flex-1">
-              教师逐步显影 +1
-            </button>
-            <button type="button" onClick={onResetReveal} className="premium-lesson-action-secondary flex-1">
-              重置显影
-            </button>
-          </div>
-        ) : null}
-      </div>
-      <div className="premium-lesson-muted text-sm">当前显影层级：{revealProgress}</div>
-      <div className="premium-lesson-surface-elevated rounded-3xl border border-white/10 p-4">
-        <div className="premium-lesson-title text-sm font-medium">学生提交概览</div>
-        <div className="premium-lesson-muted mt-2 text-sm">当前页已收到 {responses.length} 份提交。</div>
-        <div className="mt-3 space-y-2">
-          {responses.length ? (
-            responses.map((item) => (
-              <div key={`${step.id}-${item.studentName}`} className="rounded-2xl border border-white/10 px-3 py-2 text-sm">
-                <div className="font-medium">{item.studentName}</div>
-                <div className="mt-1 text-slate-300">
-                  {Object.values(item.response.answers).filter(Boolean).join(' / ') || '已提交空白内容'}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-sm text-slate-300">当前尚无学生提交。</div>
-          )}
-        </div>
-      </div>
-    </SurfaceCard>
-  );
-
-  const registry: TeacherInteractiveActivityRegistry<UNIT_4_3RuntimeStepDefinition, TeacherResponseItem> = {
-    none: renderSummary,
-    display: renderSummary,
-    summary: renderSummary,
-    activity_card_set: UNIT_4_3_SHARED_TEACHER_ACTIVITY_REGISTRY.activity_card_set,
-    single_choice: UNIT_4_3_SHARED_TEACHER_ACTIVITY_REGISTRY.single_choice,
-    worked_example_reveal: renderSummary,
-    task_card_workspace: UNIT_4_3_SHARED_TEACHER_ACTIVITY_REGISTRY.task_card_workspace,
-    quiz_group: UNIT_4_3_SHARED_TEACHER_ACTIVITY_REGISTRY.quiz_group,
-  };
-
   return (
     <>
       {renderTeacherInteractiveActivity({
-        registry,
+        registry: UNIT_4_3_TEACHER_ACTIVITY_REGISTRY,
         step,
         stepManifest,
         responses,

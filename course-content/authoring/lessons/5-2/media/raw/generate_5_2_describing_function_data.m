@@ -84,6 +84,91 @@ function write_complex_curve(path, A, N)
   csvwrite(path, [A(valid), real(Z), imag(Z), real(N(valid)), imag(N(valid))]);
 endfunction
 
+function y = pulse_input(t, amp, width)
+  y = amp .* (t <= width);
+endfunction
+
+function xnext = rk4_step(fun, t, x, dt)
+  k1 = fun(t, x);
+  k2 = fun(t + dt / 2, x + dt * k1 / 2);
+  k3 = fun(t + dt / 2, x + dt * k2 / 2);
+  k4 = fun(t + dt, x + dt * k3);
+  xnext = x + dt * (k1 + 2 * k2 + 2 * k3 + k4) / 6;
+endfunction
+
+function u = relay_scalar(e, M)
+  if e >= 0
+    u = M;
+  else
+    u = -M;
+  endif
+endfunction
+
+function u = sat_scalar(e, limit)
+  u = min(max(e, -limit), limit);
+endfunction
+
+function u = dzsat_scalar(e, d, a, k)
+  if e > d
+    u = k * min(e - d, a - d);
+  elseif e < -d
+    u = k * max(e + d, -a + d);
+  else
+    u = 0;
+  endif
+endfunction
+
+function sim = simulate_relay_pulse(Tend, dt, amp, width, M)
+  n = floor(Tend / dt) + 1;
+  sim = zeros(n, 5);
+  x = [0; 0; 0];
+  for ii = 1:n
+    t = (ii - 1) * dt;
+    r = pulse_input(t, amp, width);
+    e = r - x(1);
+    u = relay_scalar(e, M);
+    sim(ii, :) = [t, r, e, u, x(1)];
+    if ii < n
+      f = @(tau, z) [z(2); z(3); 10 * relay_scalar(pulse_input(tau, amp, width) - z(1), M) - 4 * z(3) - 4 * z(2)];
+      x = rk4_step(f, t, x, dt);
+    endif
+  endfor
+endfunction
+
+function sim = simulate_sat_pulse(K, Tend, dt, amp, width)
+  n = floor(Tend / dt) + 1;
+  sim = zeros(n, 5);
+  x = [0; 0; 0];
+  for ii = 1:n
+    t = (ii - 1) * dt;
+    r = pulse_input(t, amp, width);
+    e = r - x(1);
+    u = sat_scalar(e, 1);
+    sim(ii, :) = [t, r, e, u, x(1)];
+    if ii < n
+      f = @(tau, z) [z(2); z(3); 5 * K * sat_scalar(pulse_input(tau, amp, width) - z(1), 1) - 6 * z(3) - 5 * z(2)];
+      x = rk4_step(f, t, x, dt);
+    endif
+  endfor
+endfunction
+
+function sim = simulate_dzsat_pulse(K, d, a, Tend, dt, amp, width)
+  n = floor(Tend / dt) + 1;
+  sim = zeros(n, 5);
+  x = [0; 0; 0];
+  for ii = 1:n
+    t = (ii - 1) * dt;
+    r = pulse_input(t, amp, width);
+    e = r - x(1);
+    u = dzsat_scalar(e, d, a, 1);
+    sim(ii, :) = [t, r, e, u, x(1)];
+    if ii < n
+      f = @(tau, z) [z(2); z(3); 5 * K * dzsat_scalar(pulse_input(tau, amp, width) - z(1), d, a, 1) - 6 * z(3) - 5 * z(2)];
+      x = rk4_step(f, t, x, dt);
+    endif
+  endfor
+endfunction
+
 % Static input-output relationships.
 x = linspace(-2.2, 2.2, 801)';
 static = [x, satnl(x, 1, 1), deadzone(x, 1, 0.55), relaynl(x, 1), dzrelay(x, 1, 0.55), dzsat(x, 1, 0.35, 1.35)];
@@ -122,6 +207,12 @@ for bb = [0.25, 0.55, 0.9]
   write_complex_curve(fullfile(outdir, sprintf("family_backlash_b_%.2f.csv", bb)), A, N_backlash(A, 1, bb));
 endfor
 
+% Small-perturbation figure: I-type third-order Nyquist curve.
+w_sp = logspace(-3, 3, 4000)';
+s_sp = 1i .* w_sp;
+G_sp = 2 ./ (s_sp .* (s_sp + 1) .* (0.15 .* s_sp + 1));
+csvwrite(fullfile(outdir, "small_perturbation_nyquist.csv"), [w_sp, real(G_sp), imag(G_sp)]);
+
 % Example 1: ideal relay with G(s)=10/[s(s+2)^2].
 w = logspace(-2, 2, 1000)';
 s = 1i .* w;
@@ -129,19 +220,9 @@ G1 = 10 ./ (s .* (s + 2) .^ 2);
 csvwrite(fullfile(outdir, "example_relay_nyquist.csv"), [w, real(G1), imag(G1)]);
 A1 = linspace(0.05, 3.0, 600)';
 write_complex_curve(fullfile(outdir, "example_relay_inv.csv"), A1, N_relay(A1, 1));
-relay_point = [2, -0.625, 0, 4 / (1.6 * pi)];
+relay_point = [2, -0.625, 0, 2.5 / pi];
 csvwrite(fullfile(outdir, "example_relay_point.csv"), relay_point);
-
-function dx = relay_ode(t, x)
-  u = -sign(x(1));
-  if u == 0
-    u = -1;
-  endif
-  dx = [x(2); x(3); 10 * u - 4 * x(3) - 4 * x(2)];
-endfunction
-[t1, z1] = ode45(@relay_ode, linspace(0, 35, 3501)', [0.45; 0; 0]);
-u1 = -sign(z1(:, 1)); u1(u1 == 0) = -1;
-csvwrite(fullfile(outdir, "example_relay_sim.csv"), [t1, z1, u1]);
+csvwrite(fullfile(outdir, "example_relay_sim.csv"), simulate_relay_pulse(35, 0.002, 0.8, 0.08, 1));
 
 % Example 2: saturation with G(s)=K/[s(s+1)(0.2s+1)].
 G4 = 4 ./ (s .* (s + 1) .* (0.2 .* s + 1));
@@ -152,22 +233,22 @@ write_complex_curve(fullfile(outdir, "example_saturation_inv.csv"), A2, N_sat(A2
 sat_point = [sqrt(5), -1.5, 0, 1.8073615968];
 csvwrite(fullfile(outdir, "example_saturation_point.csv"), sat_point);
 
-function y = unit_sat(x)
-  y = min(max(x, -1), 1);
-endfunction
+csvwrite(fullfile(outdir, "example_saturation_sim_k4.csv"), simulate_sat_pulse(4, 45, 0.002, 2.0, 0.5));
+csvwrite(fullfile(outdir, "example_saturation_sim_k9.csv"), simulate_sat_pulse(9, 45, 0.002, 2.0, 0.5));
 
-function dx = sat_ode_k4(t, x)
-  u = unit_sat(-x(1));
-  dx = [x(2); x(3); 5 * 4 * u - 6 * x(3) - 5 * x(2)];
-endfunction
-
-function dx = sat_ode_k9(t, x)
-  u = unit_sat(-x(1));
-  dx = [x(2); x(3); 5 * 9 * u - 6 * x(3) - 5 * x(2)];
-endfunction
-[t4, z4] = ode45(@sat_ode_k4, linspace(0, 45, 4501)', [1.6; 0; 0]);
-[t9, z9] = ode45(@sat_ode_k9, linspace(0, 45, 4501)', [1.6; 0; 0]);
-u4 = arrayfun(@unit_sat, -z4(:, 1));
-u9 = arrayfun(@unit_sat, -z9(:, 1));
-csvwrite(fullfile(outdir, "example_saturation_sim_k4.csv"), [t4, z4, u4]);
-csvwrite(fullfile(outdir, "example_saturation_sim_k9.csv"), [t9, z9, u9]);
+% Case: normalized ship rudder actuator with dead-zone saturation.
+case_d = 0.30;
+case_a = 1.00;
+case_K_bad = 10;
+case_K_ok = 5;
+G_case_bad = case_K_bad ./ (s .* (s + 1) .* (0.2 .* s + 1));
+G_case_ok = case_K_ok ./ (s .* (s + 1) .* (0.2 .* s + 1));
+csvwrite(fullfile(outdir, "case_ship_nyquist.csv"), [w, real(G_case_ok), imag(G_case_ok), real(G_case_bad), imag(G_case_bad)]);
+A_case = linspace(case_d + 0.001, 5.0, 1000)';
+N_case = N_dzsat(A_case, 1, case_d, case_a);
+write_complex_curve(fullfile(outdir, "case_ship_dzsat_inv.csv"), A_case, N_case);
+[~, idx_case] = min(abs(N_case - 6 / case_K_bad));
+case_point = [sqrt(5), -case_K_bad / 6, 0, A_case(idx_case), N_case(idx_case)];
+csvwrite(fullfile(outdir, "case_ship_point.csv"), case_point);
+csvwrite(fullfile(outdir, "case_ship_sim_k5.csv"), simulate_dzsat_pulse(case_K_ok, case_d, case_a, 55, 0.002, 2.0, 0.5));
+csvwrite(fullfile(outdir, "case_ship_sim_k10.csv"), simulate_dzsat_pulse(case_K_bad, case_d, case_a, 55, 0.002, 2.0, 0.5));

@@ -503,6 +503,23 @@ function CardGrid({ title, items, columns = 'md:grid-cols-2' }: { title: string;
   );
 }
 
+function CourseObjectiveList({ items }: { items: string[] }) {
+  if (!items.length) return null;
+  return (
+    <div className="premium-lesson-panel">
+      <div className="premium-lesson-kicker">完成本单元后，学习者能够：</div>
+      <ol className="premium-lesson-muted mt-3 space-y-3">
+        {items.map((item, index) => (
+          <li key={item} className="flex gap-3">
+            <span className="premium-lesson-caption shrink-0 font-semibold">{index + 1}.</span>
+            <span>{renderInlineContent(item)}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function PathStageMap({ title, lead, items }: { title: string; lead?: string; items: string[] }) {
   return (
     <div className="premium-lesson-panel">
@@ -694,7 +711,7 @@ export function createManifestContentModuleRegistry(extra: {
     },
     'goal-card-row': ({ step }) => {
       const items = listFromKnownBlocks(step, ['goal_cards']);
-      return <CardGrid title="课程目标" items={items} />;
+      return <CourseObjectiveList items={items} />;
     },
     'goal-card-set': ({ step }) => {
       const items = listFromKnownBlocks(step, ['target_constraints', 'goal_cards']);
@@ -740,7 +757,10 @@ export function createManifestContentModuleRegistry(extra: {
     },
     'objective-list': ({ step, module }) => {
       const content = summaryContent(step, module);
-      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} />;
+      const items = content.bullets.length
+        ? content.bullets
+        : [content.text].filter((item): item is string => Boolean(item));
+      return <CourseObjectiveList items={items} />;
     },
     'bullet-card': ({ step, module }) => {
       const content = summaryContent(step, module);

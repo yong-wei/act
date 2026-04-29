@@ -209,7 +209,7 @@ export const GOAL_SWITCH_FIELDS = [
   { key: 'goalA', label: '目标 A：先判断优先频带' },
   { key: 'goalB', label: '目标 B：再判断优先频带' },
   { key: 'evidence', label: '你的频带证据' },
-  { key: 'revision', label: 'AI 对照后的修订' },
+  { key: 'revision', label: '核对后的修订' },
 ] as const;
 
 export const EVIDENCE_MARK_FIELDS = [

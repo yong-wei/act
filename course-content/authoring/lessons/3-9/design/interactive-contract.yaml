@@ -125,7 +125,7 @@
       ]
     },
     "step-02": {
-      "title": "本次课程目标：用跨域证据表达设计任务",
+      "title": "课程目标：跨域证据与任务标签",
       "layout": {
         "template": "objective_slide",
         "regions": [
@@ -145,12 +145,12 @@
           "payload": {
             "block_key": "objectives"
           },
-          "title": "本次课程目标"
+          "title": "完成本单元后，学习者能够："
         }
       ],
       "content_blocks": {
         "objectives": {
-          "text": "完成本次互动后，学习者能够：",
+          "text": "完成本单元后，学习者能够：",
           "bullets": [
             "识别同一航向控制对象下动态、稳态、稳定裕度三类证据分别来自哪张图。",
             "解释超前、积分、滞后控制器改变低频收益和中频相位的主要机制。",
@@ -160,11 +160,11 @@
         }
       },
       "evidence_sequence": [
-        "先读本次课程目标，再进入前测题组。"
+        "先阅读能力目标，再进入前测题组。"
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "阅读本次课程目标",
+        "student_task": "阅读本单元课程目标",
         "answer_reveal": "none",
         "activity_cards": []
       },
@@ -191,7 +191,7 @@
         "widgets": []
       },
       "ai_context_spec": {
-        "page_goal": "呈现本次课程的布鲁姆动词能力目标。",
+        "page_goal": "课程目标聚焦同一对象的跨域证据读取、校正机制比较与任务标签判断。",
         "delivery_mode": "in_page"
       },
       "preview_contract": {
@@ -201,11 +201,11 @@
       },
       "acceptance_checks": [
         "课程目标单独成页，位于前测之前。",
-        "只呈现本次课程目标，不设置题目或提交。"
+        "只呈现能力目标，不设置题目或提交。"
       ]
     },
     "step-03": {
-      "title": "前测：先贴任务标签，不先报控制器名称",
+      "title": "前测：任务标签与机制线判断",
       "layout": {
         "template": "question_stack",
         "regions": [
@@ -245,7 +245,7 @@
       "evidence_sequence": [],
       "interaction_spec": {
         "interaction_kind": "quiz_group",
-        "student_task": "前测：先贴任务标签，不先报控制器名称",
+        "student_task": "前测：任务标签与机制线判断",
         "answer_reveal": "teacher_toggle",
         "activity_cards": [
           {
@@ -347,7 +347,7 @@
         ]
       },
       "ai_context_spec": {
-        "page_goal": "检查学生是否先写任务标签再写机制线。",
+        "page_goal": "前测围绕“更快”“更准”“兼顾稳与快”的起点判断，要求先选出任务标签，再判断可能的机制线。",
         "delivery_mode": "in_page"
       },
       "preview_contract": {
@@ -445,7 +445,7 @@
         "widgets": []
       },
       "ai_context_spec": {
-        "page_goal": "给出讲义第二章对应的控制对象与本课主要任务。",
+        "page_goal": "同一艘船作为共同比较对象，基准控制器保持不变，后续比较不同校正动作带来的极点、响应、频域和误差变化。",
         "delivery_mode": "in_page"
       },
       "preview_contract": {
@@ -600,7 +600,7 @@
         ]
       },
       "ai_context_spec": {
-        "page_goal": "把讲义 3.1 的静态图改为 Rust 四联图，并让学生读图填写关键性能指标。",
+        "page_goal": "基准版本提供共同读图锚点，需要从四联图读取超调、调节时间、频域裕度和单位斜坡误差。",
         "delivery_mode": "in_page"
       },
       "preview_contract": {
@@ -616,7 +616,7 @@
       ]
     },
     "step-06": {
-      "title": "超前校正：调节增益、零点与极点",
+      "title": "超前校正的动态改善调节",
       "layout": {
         "template": "rust_tuning_workspace",
         "regions": [
@@ -641,7 +641,7 @@
           "payload": {
             "block_key": "task"
           },
-          "title": "调节任务"
+          "title": "参数调节目标"
         }
       ],
       "content_blocks": {
@@ -652,7 +652,7 @@
       "evidence_sequence": [],
       "interaction_spec": {
         "interaction_kind": "parameter_slider",
-        "student_task": "超前校正：调节增益、零点与极点",
+        "student_task": "超前校正的动态改善调节",
         "answer_reveal": "none",
         "activity_cards": []
       },
@@ -685,7 +685,7 @@
         ]
       },
       "ai_context_spec": {
-        "page_goal": "让学生通过参数面板提交一个超前校正设计。",
+        "page_goal": "本页任务是调节超前校正的增益、零点和极点，观察动态响应改善与相位裕度变化，并提交当前参数判断。",
         "delivery_mode": "in_page"
       },
       "preview_contract": {
@@ -699,7 +699,7 @@
       ]
     },
     "step-07": {
-      "title": "积分校正：调节增益与积分零点",
+      "title": "积分校正的稳态误差调节",
       "layout": {
         "template": "rust_tuning_workspace",
         "regions": [
@@ -724,7 +724,7 @@
           "payload": {
             "block_key": "task"
           },
-          "title": "调节任务"
+          "title": "参数调节目标"
         }
       ],
       "content_blocks": {
@@ -735,7 +735,7 @@
       "evidence_sequence": [],
       "interaction_spec": {
         "interaction_kind": "parameter_slider",
-        "student_task": "积分校正：调节增益与积分零点",
+        "student_task": "积分校正的稳态误差调节",
         "answer_reveal": "none",
         "activity_cards": []
       },
@@ -767,7 +767,7 @@
         ]
       },
       "ai_context_spec": {
-        "page_goal": "让学生提交一个积分校正设计并获得效果评价。",
+        "page_goal": "本页任务是调节增益和积分零点，观察单位斜坡误差下降，同时检查频域相角代价。",
         "delivery_mode": "in_page"
       },
       "preview_contract": {
@@ -780,7 +780,7 @@
       ]
     },
     "step-08": {
-      "title": "积分校正例子：调节校正零点与极点",
+      "title": "积分补偿后的中频相位整理",
       "layout": {
         "template": "rust_tuning_workspace",
         "regions": [
@@ -805,7 +805,7 @@
           "payload": {
             "block_key": "task"
           },
-          "title": "设计任务"
+          "title": "参数调节目标"
         },
         {
           "id": "integral-example-controller",
@@ -822,13 +822,13 @@
       ],
       "content_blocks": {
         "task": {
-          "text": "设计任务：已固定下方积分控制器。强积分几乎消除单位斜坡误差，但相角裕度偏紧；现在只调节中频校正零点和极点，在保留低频积分任务的同时把相位裕度和动态品质拉回可用区。幅频和相频中的控制器曲线采用完整控制器曲线，根轨迹采用完整控制器对应的校正后根轨迹，时域证据读取校正前后的单位斜坡误差。"
+          "text": "强积分几乎消除单位斜坡误差，但相角裕度偏紧；现在调节中频校正零点和极点，在保留低频积分收益的同时，把相位裕度和动态品质拉回可用区。"
         }
       },
       "evidence_sequence": [],
       "interaction_spec": {
         "interaction_kind": "parameter_slider",
-        "student_task": "积分校正例子：调节校正零点与极点",
+        "student_task": "积分补偿后的中频相位整理",
         "answer_reveal": "none",
         "activity_cards": []
       },
@@ -860,7 +860,7 @@
         ]
       },
       "ai_context_spec": {
-        "page_goal": "用固定积分校正设计让学生调节中频校正零点和极点。",
+        "page_goal": "本页任务是在保留低频积分收益的前提下，调节中频校正零点和极点，把相位裕度和动态品质拉回可用区。",
         "delivery_mode": "in_page"
       },
       "preview_contract": {
@@ -873,7 +873,7 @@
       ]
     },
     "step-09": {
-      "title": "滞后对照：调节增益、零点与极点",
+      "title": "滞后校正的低频收益调节",
       "layout": {
         "template": "rust_tuning_workspace",
         "regions": [
@@ -898,7 +898,7 @@
           "payload": {
             "block_key": "task"
           },
-          "title": "调节任务"
+          "title": "参数调节目标"
         }
       ],
       "content_blocks": {
@@ -909,7 +909,7 @@
       "evidence_sequence": [],
       "interaction_spec": {
         "interaction_kind": "parameter_slider",
-        "student_task": "滞后对照：调节增益、零点与极点",
+        "student_task": "滞后校正的低频收益调节",
         "answer_reveal": "none",
         "activity_cards": []
       },
@@ -942,7 +942,7 @@
         ]
       },
       "ai_context_spec": {
-        "page_goal": "让学生提交一个滞后对照设计。",
+        "page_goal": "本页任务是在不改变型别的前提下提高低频增益，观察单位斜坡误差下降、响应速度变化和相角余量之间的关系。",
         "delivery_mode": "in_page"
       },
       "preview_contract": {
@@ -1086,7 +1086,7 @@
       ],
       "content_blocks": {
         "summary": {
-          "text": "本课的收束不是再做一组后测题，而是把比较语言带走：先固定对象，再读不同校正动作对根轨迹、时域、频域和稳态误差的影响，最后把需求翻译成后续设计可以继续使用的任务表达。",
+          "text": "本课形成了一条跨域比较链：先固定同一控制对象，再读不同校正动作对根轨迹、时域、频域和稳态误差的影响，最后把需求翻译成后续设计可以继续使用的任务表达。",
           "bullets": [
             "基准版本提供共同锚点。",
             "超前更偏动态改善。",
@@ -1126,7 +1126,7 @@
         "widgets": []
       },
       "ai_context_spec": {
-        "page_goal": "作为总结页，不再设置后测题。",
+        "page_goal": "本页汇总四类版本的证据分工，回收动态改善、稳态改善和频域余量之间的主要判断。",
         "delivery_mode": "in_page"
       },
       "preview_contract": {
@@ -1135,7 +1135,7 @@
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "本页无后测内容。"
+        "总结页只回收本单元的主要证据、局限与拓展思考。"
       ]
     }
   }

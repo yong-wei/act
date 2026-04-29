@@ -932,7 +932,7 @@
   }
 
   .premium-lesson-muted {
-    @apply text-sm leading-6;
+    @apply text-lg leading-8;
     color: hsl(var(--premium-lesson-muted));
   }
 
@@ -941,6 +941,7 @@
   }
 
   .premium-lesson-body {
+    @apply text-lg leading-8;
     color: hsl(var(--premium-lesson-foreground));
   }
 
@@ -986,12 +987,21 @@
     box-shadow: var(--premium-lesson-highlight-shadow);
   }
 
+  .premium-lesson-main p,
+  .premium-lesson-main li,
+  .premium-lesson-main td,
+  .premium-lesson-main th,
+  .premium-lesson-main figcaption,
+  .premium-lesson-main pre {
+    @apply text-lg leading-8;
+  }
+
   .premium-lesson-tone-block {
-    @apply rounded-2xl border px-4 py-3 text-sm;
+    @apply rounded-2xl border px-4 py-3 text-lg leading-8;
   }
 
   .premium-lesson-tone-card {
-    @apply rounded-[24px] border px-4 py-4 text-sm;
+    @apply rounded-[24px] border px-4 py-4 text-lg leading-8;
   }
 
   .premium-lesson-tone-pill {

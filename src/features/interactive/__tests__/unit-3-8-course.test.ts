@@ -26,25 +26,30 @@ describe('unit 3-8 interactive course', () => {
     expect(registry?.courseMeta.courseTitle).toContain('频域判别与跨域综合语言');
   });
 
-  it('defines the full 20-step lesson flow', async () => {
+  it('defines the full 22-step lesson flow', async () => {
     const courseModule = await import('@/lib/unit-3-8-course');
 
-    expect(courseModule.UNIT_3_8_LESSON_STEPS).toHaveLength(20);
+    expect(courseModule.UNIT_3_8_LESSON_STEPS).toHaveLength(22);
     expect(courseModule.UNIT_3_8_LESSON_STEPS[0]?.id).toBe('step-01');
-    expect(courseModule.UNIT_3_8_LESSON_STEPS[19]?.id).toBe('step-20');
-    expect(courseModule.UNIT_3_8_LESSON_STEPS[4]?.pageType).toBe('curve_compare_panel');
-    expect(courseModule.UNIT_3_8_LESSON_STEPS[13]?.pageType).toBe('goal_cards_plus_ai');
-    expect(courseModule.UNIT_3_8_LESSON_STEPS[19]?.pageType).toBe('reflection_card');
+    expect(courseModule.UNIT_3_8_LESSON_STEPS[21]?.id).toBe('step-22');
+    expect(courseModule.UNIT_3_8_LESSON_STEPS.slice(4, 8).map((step: { pageType: string }) => step.pageType)).toEqual([
+      'none',
+      'none',
+      'none',
+      'none',
+    ]);
+    expect(courseModule.UNIT_3_8_LESSON_STEPS[9]?.pageType).toBe('teacher_reveal_only');
+    expect(courseModule.UNIT_3_8_LESSON_STEPS[21]?.pageType).toBe('reflection_card');
   });
 
-  it('exposes AI quick questions for the goal-switch page and keeps only that page as visible AI step', async () => {
-    const quickQuestions = getStepQuickQuestions('unit-3-8-frequency-domain-translation-judgment-v1', 'step-14');
+  it('keeps hidden AI context available without exposing a visible AI step', async () => {
+    const quickQuestions = getStepQuickQuestions('unit-3-8-frequency-domain-translation-judgment-v1', 'step-16');
     const courseModule = await import('@/lib/unit-3-8-course');
 
     expect(quickQuestions).toHaveLength(2);
-    expect(quickQuestions[0]?.question).toContain('目标');
-    expect(courseModule.isUNIT_3_8AiPageType('goal_cards_plus_ai')).toBe(true);
-    expect(courseModule.isUNIT_3_8AiPageType('curve_compare_panel')).toBe(false);
+    expect(quickQuestions[0]?.question).toContain('例题 5');
+    expect(courseModule.isUNIT_3_8AiPageType('goal_cards')).toBe(false);
+    expect(courseModule.isUNIT_3_8AiPageType('teacher_reveal_only')).toBe(false);
     expect(courseModule.isUNIT_3_8AiPageType('structured_compare')).toBe(false);
   });
 
@@ -52,19 +57,18 @@ describe('unit 3-8 interactive course', () => {
     const courseModule = await import('@/lib/unit-3-8-course');
 
     expect(courseModule.getUNIT_3_8MediaSrc('step-01')).toContain('3-8-cover-comic');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-05')).toContain('3-8-zero-effect');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-09')).toContain('3-8-nyquist-quickcheck');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-10')).toContain('3-8-nyquist-example');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-11')).toContain('3-8-bode-example');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-13')).toContain('3-8-three-band-overview');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-15')).toContain('3-8-heading-baseline');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-16')).toContain('3-8-heading-case');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-17')).toContain('3-8-platform-block-diagram');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-18')).toContain('3-8-platform-case');
-    expect(courseModule.getUNIT_3_8MediaSrc('step-20')).toContain('3-8-info');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-11')).toContain('3-8-nyquist-quickcheck');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-12')).toContain('3-8-nyquist-example');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-13')).toContain('3-8-bode-example');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-15')).toContain('3-8-three-band-overview');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-17')).toContain('3-8-heading-baseline');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-18')).toContain('3-8-heading-case');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-19')).toContain('3-8-platform-block-diagram');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-20')).toContain('3-8-platform-case');
+    expect(courseModule.getUNIT_3_8MediaSrc('step-22')).toContain('3-8-info');
   });
 
-  it('keeps the local page contracts aligned with the authoring interactive contract for all 20 steps', async () => {
+  it('keeps the local page contracts aligned with the authoring interactive contract for all 22 steps', async () => {
     const contract = parse(
       readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-8/design/interactive-contract.yaml'), 'utf8'),
     ) as {
@@ -129,6 +133,34 @@ describe('unit 3-8 interactive course', () => {
     });
   });
 
+  it('keeps the revised 3-8 front-half requirements in the runtime manifest', () => {
+    const manifest = JSON.parse(
+      readFileSync(join(repoRoot, 'course-content/runtime/lessons/3-8/interactive-manifest.json'), 'utf8'),
+    ) as {
+      steps: Record<string, {
+        modules?: Array<{ kind: string; payload?: Record<string, unknown> }>;
+        interaction_spec?: { interaction_kind?: string; activity_cards?: unknown[] };
+      }>;
+    };
+
+    expect(JSON.stringify(manifest.steps['step-01']?.modules ?? [])).toContain('3-8-cover-comic.png');
+    expect(JSON.stringify(manifest.steps['step-02']?.modules ?? [])).toContain('完成本单元后，学习者能够');
+    expect(JSON.stringify(manifest.steps['step-04']?.modules ?? [])).toContain('L(s)=G(s)H(s)');
+    expect(JSON.stringify(manifest.steps['step-04']?.modules ?? [])).toContain('L(j\\\\omega)=G(j\\\\omega)H(j\\\\omega)');
+    expect(manifest.steps['step-04']?.interaction_spec?.activity_cards ?? []).toHaveLength(0);
+
+    for (const stepId of ['step-05', 'step-06', 'step-07', 'step-08']) {
+      expect(manifest.steps[stepId]?.modules?.some((module) => module.kind === 'rust-analysis-panel')).toBe(true);
+      expect(manifest.steps[stepId]?.interaction_spec?.activity_cards ?? []).toHaveLength(0);
+    }
+
+    const step11Modules = manifest.steps['step-11']?.modules ?? [];
+    expect(step11Modules[0]?.kind).toBe('worked-example-card');
+    expect(step11Modules[1]?.kind).toBe('comparison-graphic');
+    expect(JSON.stringify(manifest.steps['step-12']?.modules ?? [])).toContain('L(s)=K/[(s+1)(s+2)(s+4)]');
+    expect(JSON.stringify(manifest.steps['step-13']?.modules ?? [])).toContain('G_m');
+  });
+
   it('registers the course in the learning catalog and classroom route resolver', () => {
     expect(FEATURED_LESSONS.some((lesson) => lesson.id === 'unit-3-8-frequency-domain-translation-judgment')).toBe(true);
 
@@ -189,7 +221,8 @@ describe('unit 3-8 interactive course', () => {
       'utf8',
     );
 
-    expect(stepPanelsSource).toContain('为什么“只改增益”会左右为难');
+    expect(stepPanelsSource).toContain('Bode 图：幅频 / 相频合并');
+    expect(stepPanelsSource).toContain('根轨迹：变参数影响闭环极点');
     expect(stepPanelsSource).toContain('目标切换时，先改哪一段频带');
     expect(stepPanelsSource).toContain('把完整判断链独立走一遍');
     expect(stepPanelsSource).not.toContain('PI 与滞后都站在低频补偿线上');
@@ -225,10 +258,102 @@ describe('unit 3-8 interactive course', () => {
     const cards = Object.values(manifest.steps).flatMap((step) => step.interaction_spec?.activity_cards ?? []);
 
     expect(cards.length).toBeGreaterThan(0);
-    expect(cards.every((card) => card.options?.length)).toBe(true);
+    expect(cards.filter((card) => card.response_kind !== 'text').every((card) => card.options?.length)).toBe(true);
     expect(cards.some((card) => card.response_kind === 'drag_sort')).toBe(true);
-    expect(cards.map((card) => card.response_kind)).not.toContain('text');
     expect(cards.map((card) => card.response_kind)).not.toContain('fill_text');
+  });
+
+  it('keeps 3-8 pretest focused on prerequisite knowledge instead of Nyquist theorem content', () => {
+    const manifest = JSON.parse(
+      readFileSync(join(repoRoot, 'course-content/runtime/lessons/3-8/interactive-manifest.json'), 'utf8'),
+    ) as {
+      steps: Record<string, { interaction_spec?: { activity_cards?: Array<{ prompt: string; options?: Array<{ label?: string }> }> } }>;
+    };
+
+    const pretestText = JSON.stringify(manifest.steps['step-03']?.interaction_spec?.activity_cards ?? []);
+
+    expect(pretestText).not.toContain('Nyquist');
+    expect(pretestText).not.toContain('包围');
+    expect(pretestText).not.toContain('临界点');
+    expect(pretestText).toContain('频率响应');
+    expect(pretestText).toContain('Bode');
+  });
+
+  it('limits non-assessment 3-8 activity pages to at most two answer cards', () => {
+    const manifest = JSON.parse(
+      readFileSync(join(repoRoot, 'course-content/runtime/lessons/3-8/interactive-manifest.json'), 'utf8'),
+    ) as {
+      steps: Record<string, { title: string; interaction_spec?: { interaction_kind?: string; activity_cards?: unknown[] } }>;
+    };
+
+    const nonAssessmentOverloads = Object.entries(manifest.steps).filter(([stepId, step]) => {
+      if (stepId === 'step-03' || stepId === 'step-21') return false;
+      return (step.interaction_spec?.activity_cards ?? []).length > 2;
+    });
+
+    expect(nonAssessmentOverloads).toEqual([]);
+  });
+
+  it('does not repeat worked-example problem statements across content modules', () => {
+    const manifest = JSON.parse(
+      readFileSync(join(repoRoot, 'course-content/runtime/lessons/3-8/interactive-manifest.json'), 'utf8'),
+    ) as {
+      steps: Record<string, { modules?: Array<{ payload?: { text?: string; title?: string } }> }>;
+    };
+
+    for (const stepId of ['step-09', 'step-12', 'step-14', 'step-16']) {
+      const textCounts = new Map<string, number>();
+      for (const manifestModule of manifest.steps[stepId]?.modules ?? []) {
+        const text = manifestModule.payload?.text?.trim();
+        if (text) textCounts.set(text, (textCounts.get(text) ?? 0) + 1);
+      }
+      expect([...textCounts.entries()].filter(([, count]) => count > 1)).toEqual([]);
+    }
+  });
+
+  it('binds every 3-8 image-bearing page to concrete runtime media paths', () => {
+    const manifest = JSON.parse(
+      readFileSync(join(repoRoot, 'course-content/runtime/lessons/3-8/interactive-manifest.json'), 'utf8'),
+    ) as {
+      steps: Record<string, { modules?: Array<{ kind: string; payload?: Record<string, unknown> }> }>;
+    };
+
+    for (const stepId of ['step-01', 'step-11', 'step-12', 'step-13', 'step-15', 'step-17', 'step-18', 'step-19', 'step-20', 'step-22']) {
+      const modules = manifest.steps[stepId]?.modules ?? [];
+      const imageModules = modules.filter((manifestModule) => ['comparison-graphic', 'interactive-figure-panel', 'media-card'].includes(manifestModule.kind));
+      expect(imageModules.length, `${stepId} should contain image modules`).toBeGreaterThan(0);
+      expect(
+        imageModules.some((manifestModule) => JSON.stringify(manifestModule.payload ?? {}).includes('.png')),
+        `${stepId} should bind a concrete runtime image path`,
+      ).toBe(true);
+    }
+  });
+
+  it('keeps visible AI out of the 3-8 lesson page shell', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-3-8-frequency-domain-translation-judgment/step-panels.tsx'),
+      'utf8',
+    );
+
+    expect(stepPanelsSource).not.toContain('InteractiveAIPanel');
+    expect(stepPanelsSource).not.toContain('useInteractiveAI');
+    expect(stepPanelsSource).not.toContain('页内 AI 助手');
+  });
+
+  it('uses substantial 3-8 posttest prompts that exercise the full judgment chain', () => {
+    const manifest = JSON.parse(
+      readFileSync(join(repoRoot, 'course-content/runtime/lessons/3-8/interactive-manifest.json'), 'utf8'),
+    ) as {
+      steps: Record<string, { interaction_spec?: { activity_cards?: Array<{ prompt: string }> } }>;
+    };
+
+    const posttestPrompts = manifest.steps['step-21']?.interaction_spec?.activity_cards?.map((card) => card.prompt) ?? [];
+
+    expect(posttestPrompts).toHaveLength(4);
+    expect(posttestPrompts.every((prompt) => prompt.length >= 24)).toBe(true);
+    expect(posttestPrompts.join('\n')).toContain('频带');
+    expect(posttestPrompts.join('\n')).toContain('边界');
+    expect(posttestPrompts.join('\n')).toContain('闭环');
   });
 
   it('uses the 3-8 step AI context inside the student page', () => {

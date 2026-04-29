@@ -2,16 +2,13 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Copy, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
+import type { EChartsCoreOption } from 'echarts/core';
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { InteractiveAIPanel } from '@/features/interactive/InteractiveAIPanel';
-import { useInteractiveAI } from '@/features/interactive/hooks/useInteractiveAI';
 import {
   createManifestContentModuleRegistry,
 } from '@/features/interactive/shared/manifest-runtime/content-renderers';
@@ -23,20 +20,22 @@ import {
 } from '@/features/interactive/shared/manifest-runtime/activity-renderers';
 import {
   renderInteractiveManifestStep,
+  type InteractiveModuleRegistry,
+  type InteractiveRuntimeModuleManifest,
 } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
-import type { InteractiveConfig } from '@/features/interactive/types';
 import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import {
   getUNIT_3_8ManifestStepFromManifest,
   getUNIT_3_8PageContract,
   UNIT_3_8_RUNTIME_MANIFEST,
-  UNIT_3_8_COURSE_TITLE,
   type UNIT_3_8StepDefinition,
   type UNIT_3_8StepResponse,
 } from '@/lib/unit-3-8-course';
+import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
+import type { ComplexPoint, ControlAnalysisRequest, ControlAnalysisResult, CurvePoint, StructureSpec } from '@/resources/control-system/analysis/types';
+import { ControlChartPanel } from '@/resources/control-system/charts/control-chart-panel';
 import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
-import type { ControlAnalysisRequest, StructureSpec } from '@/resources/control-system/analysis/types';
 import {
   ACTIVITY_CARD_FIELDS,
   BAND_FOCUS_ITEMS,
@@ -277,12 +276,12 @@ const STEP_BLUEPRINTS: Record<string, StepBlueprint> = {
   },
   'step-14': {
     kicker: 'Goal Switch',
-    intro: '目标切换时，先改哪一段频带。这是本课唯一允许“先独立判断，再用页内 AI 对照”的页面。',
+    intro: '目标切换时，先改哪一段频带。学生先独立判断目标对应的频段，再用三频段分工核对收益与代价。',
     sections: [
       {
-        title: '先人后 AI',
+        title: '先判断再核对',
         tone: 'amber',
-        body: '学生必须先写出目标到频带的判断，再进入页内 AI 对照，不允许反过来。',
+        body: '学生必须先写出目标到频带的判断，再回看低频、中频、高频的分工，不允许跳过频段重判。',
       },
     ],
     prompts: [
@@ -388,20 +387,6 @@ const REVEAL_ANSWER_BY_STEP: Partial<Record<string, string>> = {
 
 function getStepBlueprint(step: UNIT_3_8StepDefinition) {
   return STEP_BLUEPRINTS[step.id] ?? STEP_BLUEPRINTS['step-01'];
-}
-
-function buildInteractiveAiConfig(step: UNIT_3_8StepDefinition): InteractiveConfig {
-  return {
-    resourceId: `unit38:${step.id}`,
-    registryId: 'unit38-inline-ai',
-    title: `${step.title} · 页内 AI 助手`,
-    description: '当前课程页的就地 AI 对照助手',
-    aiHints: `围绕 ${step.title} 回答，只核对当前页的判断链。`,
-    config: {
-      ai: { enabled: true, persona: 'tutor' },
-      layout: { showAIPanel: true },
-    },
-  };
 }
 
 function renderMarkdown(markdown: string) {
@@ -661,6 +646,303 @@ function CurveComparePanel({
   );
 }
 
+type Unit38RustVariant = 'gain' | 'lhp-zero' | 'added-pole' | 'rhp-zero';
+
+function convolve(left: number[], right: number[]) {
+  const result = Array.from({ length: left.length + right.length - 1 }, () => 0);
+  left.forEach((leftValue, leftIndex) => {
+    right.forEach((rightValue, rightIndex) => {
+      result[leftIndex + rightIndex] += leftValue * rightValue;
+    });
+  });
+  return result;
+}
+
+const UNIT38_BASE_DENOMINATOR = [1, 1.6, 0.64];
+
+function normalizeRustVariant(value: unknown): Unit38RustVariant {
+  if (value === 'lhp-zero' || value === 'added-pole' || value === 'rhp-zero') return value;
+  return 'gain';
+}
+
+function buildUnit38RustRequest(input: {
+  variant: Unit38RustVariant;
+  value: number;
+  enabled: boolean;
+  baseline: boolean;
+}): ControlAnalysisRequest {
+  const gain = input.baseline || input.variant !== 'gain' ? 1 : input.value;
+  const zeroPosition = Math.max(0.2, input.value);
+  const denominator =
+    !input.baseline && input.variant === 'added-pole' && input.enabled
+      ? convolve(UNIT38_BASE_DENOMINATOR, [1, 0])
+      : UNIT38_BASE_DENOMINATOR;
+  const numerator =
+    !input.baseline && input.variant === 'lhp-zero'
+      ? [1 / zeroPosition, 1]
+      : !input.baseline && input.variant === 'rhp-zero'
+        ? [-1 / zeroPosition, 1]
+        : [1];
+
+  return {
+    runtimeMode: 'analysis',
+    caseId: `unit38-${input.variant}${input.baseline ? '-baseline' : '-variant'}`,
+    plant: {
+      numerator,
+      denominator,
+      coefficientOrder: 'descending',
+      label: input.baseline ? '基准对象' : '变参数对象',
+    },
+    structures: [{ kind: 'gain', enabled: true, params: { k: gain }, label: input.baseline ? '基准增益' : '当前增益' }],
+    outputs: ['step_response', 'root_locus', 'magnitude', 'phase', 'bode'],
+    timeRange: { start: 0, end: 18, samples: 420 },
+    frequencyRange: { min: 1e-2, max: 1e2, samples: 320 },
+    rootLocus: {
+      minGain: 0,
+      maxGain: input.variant === 'added-pole' ? 8 : 12,
+      samples: 96,
+      currentGain: input.variant === 'gain' ? Math.max(0.2, input.value) : 1,
+    },
+  };
+}
+
+function pointsToSeries(points: CurvePoint[]) {
+  return points.map((point) => [point.x, point.y]);
+}
+
+function complexToSeries(points: ComplexPoint[]) {
+  return points.map((point) => [point.re, point.im]);
+}
+
+function formatMetric(value: number | null | undefined, suffix = '') {
+  return value == null || !Number.isFinite(value) ? '--' : `${value.toFixed(2)}${suffix}`;
+}
+
+function buildUnit38TimeCompareOption(baseline: ControlAnalysisResult, variant: ControlAnalysisResult): EChartsCoreOption {
+  return {
+    animation: false,
+    legend: { top: 0 },
+    grid: { top: 42, right: 18, bottom: 42, left: 58 },
+    tooltip: { trigger: 'axis' },
+    xAxis: { type: 'value', name: '时间 / s' },
+    yAxis: { type: 'value', name: '响应' },
+    series: [
+      {
+        name: '基准',
+        type: 'line',
+        showSymbol: false,
+        data: pointsToSeries(baseline.stepResponse.points),
+        lineStyle: { color: '#64748b', width: 2, type: 'dashed' },
+      },
+      {
+        name: '变参数',
+        type: 'line',
+        showSymbol: false,
+        data: pointsToSeries(variant.stepResponse.points),
+        lineStyle: { color: '#22d3ee', width: 2.4 },
+      },
+    ],
+  };
+}
+
+function buildUnit38BodeCompareOption(baseline: ControlAnalysisResult, variant: ControlAnalysisResult): EChartsCoreOption {
+  return {
+    animation: false,
+    legend: { top: 0 },
+    grid: { top: 42, right: 58, bottom: 42, left: 58 },
+    tooltip: { trigger: 'axis' },
+    xAxis: { type: 'log', name: 'ω / rad/s' },
+    yAxis: [
+      { type: 'value', name: '幅值 / dB' },
+      { type: 'value', name: '相位 / deg' },
+    ],
+    series: [
+      {
+        name: '基准幅频',
+        type: 'line',
+        showSymbol: false,
+        data: pointsToSeries(baseline.magnitude.points),
+        lineStyle: { color: '#64748b', width: 1.8, type: 'dashed' },
+      },
+      {
+        name: '变参数幅频',
+        type: 'line',
+        showSymbol: false,
+        data: pointsToSeries(variant.magnitude.points),
+        lineStyle: { color: '#22d3ee', width: 2.2 },
+      },
+      {
+        name: '基准相频',
+        type: 'line',
+        yAxisIndex: 1,
+        showSymbol: false,
+        data: pointsToSeries(baseline.phase.points),
+        lineStyle: { color: '#94a3b8', width: 1.6, type: 'dotted' },
+      },
+      {
+        name: '变参数相频',
+        type: 'line',
+        yAxisIndex: 1,
+        showSymbol: false,
+        data: pointsToSeries(variant.phase.points),
+        lineStyle: { color: '#fb7185', width: 2 },
+      },
+    ],
+  };
+}
+
+function rootLocusLineSeries(result: ControlAnalysisResult, name: string, color: string, dashed = false) {
+  return result.rootLocus.branches.map((branch, index) => ({
+    name: `${name}${index + 1}`,
+    type: 'line' as const,
+    showSymbol: false,
+    data: complexToSeries(branch),
+    lineStyle: { color, width: dashed ? 1.2 : 1.8, type: dashed ? 'dashed' : 'solid' },
+  }));
+}
+
+function buildUnit38RootCompareOption(baseline: ControlAnalysisResult, variant: ControlAnalysisResult): EChartsCoreOption {
+  return {
+    animation: false,
+    legend: { show: false },
+    grid: { top: 22, right: 18, bottom: 42, left: 58 },
+    tooltip: { trigger: 'item' },
+    xAxis: { type: 'value', name: 'Re(s)' },
+    yAxis: { type: 'value', name: 'Im(s)' },
+    series: [
+      ...rootLocusLineSeries(baseline, '基准根轨迹', '#64748b', true),
+      ...rootLocusLineSeries(variant, '变参数根轨迹', '#22d3ee'),
+      {
+        name: '当前闭环极点',
+        type: 'scatter',
+        symbolSize: 9,
+        data: complexToSeries(variant.rootLocus.currentPoles),
+        itemStyle: { color: '#f97316' },
+      },
+    ],
+  };
+}
+
+function Unit38RustControlPanel({
+  variant,
+  value,
+  enabled,
+  onValueChange,
+  onEnabledChange,
+}: {
+  variant: Unit38RustVariant;
+  value: number;
+  enabled: boolean;
+  onValueChange: (value: number) => void;
+  onEnabledChange: (value: boolean) => void;
+}) {
+  const config =
+    variant === 'gain'
+      ? { title: '增益 K', min: 0.6, max: 2.4, step: 0.05, unit: '' }
+      : variant === 'lhp-zero'
+        ? { title: '左半平面零点位置 z', min: 0.3, max: 3, step: 0.05, unit: '零点位于 -z' }
+        : variant === 'rhp-zero'
+          ? { title: '右半平面零点位置 z', min: 0.3, max: 3, step: 0.05, unit: '零点位于 +z' }
+          : { title: '加入极点', min: 0, max: 1, step: 1, unit: '原点极点' };
+
+  return (
+    <div className="premium-lesson-tone-block premium-tone-amber h-full">
+      <div className="premium-lesson-title text-sm font-semibold">参数控件</div>
+      {variant === 'added-pole' ? (
+        <label className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-border/50 bg-background/55 px-4 py-3 text-sm">
+          <span>开启加入极点</span>
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(event) => onEnabledChange(event.target.checked)}
+            className="h-4 w-4 accent-cyan-500"
+          />
+        </label>
+      ) : (
+        <>
+          <div className="mt-4 flex items-center justify-between gap-3 text-sm">
+            <span>{config.title}</span>
+            <span className="premium-lesson-caption">{value.toFixed(2)}</span>
+          </div>
+          <input
+            type="range"
+            min={config.min}
+            max={config.max}
+            step={config.step}
+            value={value}
+            onChange={(event) => onValueChange(Number(event.target.value))}
+            className="mt-3 w-full"
+          />
+          <div className="premium-lesson-muted mt-3 text-xs">{config.unit}</div>
+        </>
+      )}
+      <div className="premium-lesson-muted mt-4 text-xs leading-6">
+        左上比较时域响应，右上把幅频和相频放在同一个 Bode 面板中，左下显示变参数对闭环极点轨迹的影响。
+      </div>
+    </div>
+  );
+}
+
+function Unit38RustAnalysisPanel({
+  module,
+}: {
+  module: InteractiveRuntimeModuleManifest;
+}) {
+  const variant = normalizeRustVariant(module.payload.variant);
+  const defaultValue = variant === 'gain' ? 1.45 : variant === 'lhp-zero' ? 1.1 : variant === 'rhp-zero' ? 0.8 : 1;
+  const [value, setValue] = useState(defaultValue);
+  const [enabled, setEnabled] = useState(true);
+  const baselineRequest = useMemo(
+    () => buildUnit38RustRequest({ variant, value, enabled, baseline: true }),
+    [enabled, value, variant],
+  );
+  const variantRequest = useMemo(
+    () => buildUnit38RustRequest({ variant, value, enabled, baseline: false }),
+    [enabled, value, variant],
+  );
+  const baselineState = useControlEngine(baselineRequest);
+  const variantState = useControlEngine(variantRequest);
+  const baselineResult = baselineState.result;
+  const variantResult = variantState.result;
+
+  if (!baselineResult || !variantResult) {
+    return <div className="premium-lesson-tone-block premium-tone-rose text-sm">控制分析图暂时不可用。</div>;
+  }
+
+  const error = baselineState.error || variantState.error;
+  const marginText = `PM ${formatMetric(variantResult.metrics.phaseMarginDeg, '°')} | GM ${formatMetric(variantResult.metrics.gainMarginDb, ' dB')}`;
+
+  return (
+    <div className="mt-4 space-y-4">
+      {error ? <div className="premium-lesson-tone-block premium-tone-amber text-sm">{error}</div> : null}
+      <div className="grid gap-4 xl:grid-cols-2">
+        <ControlChartPanel
+          title="时域曲线：基准 / 变参数"
+          meta={`Mp ${formatMetric(variantResult.metrics.overshootPct, '%')} | ts ${formatMetric(variantResult.metrics.settlingTimeSec, ' s')}`}
+          option={buildUnit38TimeCompareOption(baselineResult, variantResult)}
+        />
+        <ControlChartPanel
+          title="Bode 图：幅频 / 相频合并"
+          meta={marginText}
+          option={buildUnit38BodeCompareOption(baselineResult, variantResult)}
+        />
+        <ControlChartPanel
+          title="根轨迹：变参数影响闭环极点"
+          meta={`当前极点 ${variantResult.rootLocus.currentPoles.length} 个`}
+          option={buildUnit38RootCompareOption(baselineResult, variantResult)}
+        />
+        <Unit38RustControlPanel
+          variant={variant}
+          value={value}
+          enabled={enabled}
+          onValueChange={setValue}
+          onEnabledChange={setEnabled}
+        />
+      </div>
+    </div>
+  );
+}
+
 function RevealTrack({
   title,
   items,
@@ -713,7 +995,7 @@ function getDefaultDraft(step: UNIT_3_8StepDefinition, savedResponse?: UNIT_3_8S
       return Object.fromEntries(HOTSPOT_FIELDS.map((item) => [item.key, '']));
     case 'band_focus_panel':
       return { band: '' };
-    case 'goal_cards_plus_ai':
+    case 'goal_cards':
       return Object.fromEntries(GOAL_SWITCH_FIELDS.map((item) => [item.key, '']));
     case 'evidence_mark_cards':
       return Object.fromEntries(EVIDENCE_MARK_FIELDS.map((item) => [item.key, '']));
@@ -764,6 +1046,21 @@ export function UNIT_3_8KnowledgeMapVisual() {
   );
 }
 
+function createUNIT_3_8ModuleRegistry(input: {
+  revealProgress: number;
+  allowInlineReveal: boolean;
+}): InteractiveModuleRegistry<{ revealProgress: number; allowInlineReveal: boolean }> {
+  const sharedRegistry = createManifestContentModuleRegistry({
+    revealProgress: input.revealProgress,
+    allowInlineReveal: input.allowInlineReveal,
+  });
+
+  return {
+    ...sharedRegistry,
+    'rust-analysis-panel': ({ module }) => <Unit38RustAnalysisPanel module={module} />,
+  };
+}
+
 export function UNIT_3_8StepContentPanel({
   step,
   manifest,
@@ -777,7 +1074,7 @@ export function UNIT_3_8StepContentPanel({
 }) {
   const activeManifest = manifest ?? UNIT_3_8_RUNTIME_MANIFEST;
   const stepManifest = getUNIT_3_8ManifestStepFromManifest(activeManifest, step.id);
-  const moduleRegistry = createManifestContentModuleRegistry({
+  const moduleRegistry = createUNIT_3_8ModuleRegistry({
     revealProgress,
     allowInlineReveal,
   });
@@ -891,83 +1188,6 @@ export function UNIT_3_8StudentSummaryPanel({
       <div className="premium-lesson-muted mt-2 text-sm">
         你已经提交了 {completed} 个环节的作答。本课真正要带走的是一张统一判断地图：先把结构变化翻成频域指纹，再用 Nyquist 或 Bode 读同一临界边界，最后按三频段拆开收益、速度和代价。
       </div>
-    </section>
-  );
-}
-
-export function UNIT_3_8StepAiAssistant({
-  step,
-  onAiEvent,
-}: {
-  step: UNIT_3_8StepDefinition;
-  onAiEvent?: (eventType: string, data?: Record<string, unknown>) => void;
-}) {
-  const prompts = getStepBlueprint(step).prompts ?? [];
-  const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
-  const ai = useInteractiveAI({
-    config: buildInteractiveAiConfig(step),
-    contextData: {
-      lessonId: '3-8',
-      stepId: step.id,
-      prompts,
-    },
-    onEvent: onAiEvent,
-  });
-
-  useEffect(() => {
-    if (!copiedPrompt) return undefined;
-    const timer = window.setTimeout(() => setCopiedPrompt(null), 1200);
-    return () => window.clearTimeout(timer);
-  }, [copiedPrompt]);
-
-  if (!prompts.length) {
-    return null;
-  }
-
-  return (
-    <section className="premium-lesson-panel-soft px-4 py-4">
-      <div className="premium-lesson-title flex items-center gap-2 text-sm font-medium">
-        <Sparkles className="h-4 w-4" />
-        页内 AI 助手
-      </div>
-      <p className="premium-lesson-muted mt-2 text-sm">先完成自己的目标到频带判断，再使用下面的提示词与页内 AI 对照。AI 只核对推理链，不替你跳过第一步。</p>
-
-      <div className="mt-4 grid gap-3">
-        {prompts.map((prompt) => (
-          <div key={prompt} className="premium-lesson-surface-elevated flex flex-wrap items-start justify-between gap-3 px-4 py-4">
-            <pre className="whitespace-pre-wrap text-sm leading-7 text-foreground">{prompt}</pre>
-            <button
-              type="button"
-              onClick={async () => {
-                await navigator.clipboard.writeText(prompt);
-                setCopiedPrompt(prompt);
-              }}
-              className="premium-lesson-action-secondary"
-            >
-              <Copy className="h-4 w-4" />
-              {copiedPrompt === prompt ? '已复制' : '复制提示词'}
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <button type="button" onClick={ai.togglePanel} className="premium-lesson-action-primary mt-4">
-        向 AI 核对推理链
-      </button>
-
-      <Dialog open={ai.isPanelOpen} onOpenChange={ai.togglePanel}>
-        <DialogContent className="max-w-5xl border-border bg-background p-0 text-foreground">
-          <DialogHeader className="border-b border-border px-6 py-4">
-            <DialogTitle>{UNIT_3_8_COURSE_TITLE} · 页内 AI 助手</DialogTitle>
-            <DialogDescription>
-              当前只围绕 {step.title} 回答问题，帮助你核对“目标 {'->'} 频带 {'->'} 边界 {'->'} 工程读回”的推理链。
-            </DialogDescription>
-          </DialogHeader>
-          <div className="h-[75vh]">
-            <InteractiveAIPanel ai={ai} title={`${step.title} · AI 对照`} position="right" />
-          </div>
-        </DialogContent>
-      </Dialog>
     </section>
   );
 }
