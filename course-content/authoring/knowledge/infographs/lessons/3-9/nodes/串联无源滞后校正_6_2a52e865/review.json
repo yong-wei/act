@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-04-29T00:44:15.011695Z",
+  "updated_at": "2026-04-28T16:34:14.002586Z",
   "lesson_id": "3-9",
-  "node_id": "主导极点_3_4c4c6bbd",
-  "node_name": "主导极点",
+  "node_id": "串联无源滞后校正_6_2a52e865",
+  "node_name": "串联无源滞后校正",
   "status": "accepted",
   "checks": {
     "source_json_exists": true,
@@ -13,5 +13,5 @@
     "no_unsupported_fact_observed": true,
     "readable_at_entry_card_size": true
   },
-  "note": "已按稳定闭环前提重生成：所有闭环极点均位于左半平面，右半平面无极点；靠近虚轴且衰减较慢的一组高亮为主导极点。"
+  "note": "已目视审查：包含Bode低频抬升、滞后网络框图、航向仪表和裕量复核；公式锚点可读。"
 }

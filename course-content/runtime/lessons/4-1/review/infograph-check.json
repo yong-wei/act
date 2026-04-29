@@ -1,0 +1,118 @@
+{
+  "lesson_id": "4-1",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/4-1/sequence.json",
+  "infograph_root": "course-content/authoring/knowledge/infographs/lessons/4-1/nodes",
+  "card_order": [
+    "超调量_5_3d015714",
+    "调节时间_4_d3f3314b",
+    "相角裕度_5_5a74b451",
+    "带宽频率_5_6996a44a",
+    "谐振峰值Mr_5_b3a87785",
+    "稳定可行域_3_7eed0929",
+    "复平面可行域_4_Lsum001",
+    "设计可行域_4_Lsum004",
+    "指标角色重组_4_41002",
+    "硬约束-软目标-观察指标分类_4_41003",
+    "可行域-满意域-最优域分层_4_41004",
+    "跨域联读任务重排_4_41005",
+    "设计任务表达卡_4_41001"
+  ],
+  "accepted_infographs": [],
+  "missing_infographs": [
+    "超调量_5_3d015714",
+    "调节时间_4_d3f3314b",
+    "相角裕度_5_5a74b451",
+    "带宽频率_5_6996a44a",
+    "谐振峰值Mr_5_b3a87785",
+    "稳定可行域_3_7eed0929",
+    "复平面可行域_4_Lsum001",
+    "设计可行域_4_Lsum004",
+    "指标角色重组_4_41002",
+    "硬约束-软目标-观察指标分类_4_41003",
+    "可行域-满意域-最优域分层_4_41004",
+    "跨域联读任务重排_4_41005",
+    "设计任务表达卡_4_41001"
+  ],
+  "missing_source_files": {
+    "超调量_5_3d015714": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "调节时间_4_d3f3314b": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "相角裕度_5_5a74b451": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "带宽频率_5_6996a44a": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "谐振峰值Mr_5_b3a87785": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "稳定可行域_3_7eed0929": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "复平面可行域_4_Lsum001": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "设计可行域_4_Lsum004": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "指标角色重组_4_41002": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "硬约束-软目标-观察指标分类_4_41003": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "可行域-满意域-最优域分层_4_41004": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "跨域联读任务重排_4_41005": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "设计任务表达卡_4_41001": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ]
+  },
+  "pending_review": [],
+  "broken_review_files": {}
+}

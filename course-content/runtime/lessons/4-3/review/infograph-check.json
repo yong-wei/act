@@ -1,0 +1,142 @@
+{
+  "lesson_id": "4-3",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/4-3/sequence.json",
+  "infograph_root": "course-content/authoring/knowledge/infographs/lessons/4-3/nodes",
+  "card_order": [
+    "设计任务表达卡_4_41001",
+    "单结构首轮起步卡_4_42001",
+    "主矛盾到频段职责映射_4_42003",
+    "结构作用点与代价来源对照_4_42004",
+    "反馈保底与前馈补偿边界_4_42005",
+    "目标驱动超前校正_3_36004",
+    "低频补偿稳态改善路径_3_37003",
+    "三频段闭环性能回读_3_38003",
+    "相角裕度_5_5a74b451",
+    "带宽频率_5_6996a44a",
+    "对象分析回收到设计入口_4_43001",
+    "单结构与复合结构分流条件_4_43002",
+    "参数方向表达卡_4_43003",
+    "首轮验证最小读数逻辑_4_43004",
+    "问题清单移交表_4_43005",
+    "扰动抑制中的通道重写边界_4_43006"
+  ],
+  "accepted_infographs": [],
+  "missing_infographs": [
+    "设计任务表达卡_4_41001",
+    "单结构首轮起步卡_4_42001",
+    "主矛盾到频段职责映射_4_42003",
+    "结构作用点与代价来源对照_4_42004",
+    "反馈保底与前馈补偿边界_4_42005",
+    "目标驱动超前校正_3_36004",
+    "低频补偿稳态改善路径_3_37003",
+    "三频段闭环性能回读_3_38003",
+    "相角裕度_5_5a74b451",
+    "带宽频率_5_6996a44a",
+    "对象分析回收到设计入口_4_43001",
+    "单结构与复合结构分流条件_4_43002",
+    "参数方向表达卡_4_43003",
+    "首轮验证最小读数逻辑_4_43004",
+    "问题清单移交表_4_43005",
+    "扰动抑制中的通道重写边界_4_43006"
+  ],
+  "missing_source_files": {
+    "设计任务表达卡_4_41001": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "单结构首轮起步卡_4_42001": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "主矛盾到频段职责映射_4_42003": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "结构作用点与代价来源对照_4_42004": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "反馈保底与前馈补偿边界_4_42005": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "目标驱动超前校正_3_36004": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "低频补偿稳态改善路径_3_37003": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "三频段闭环性能回读_3_38003": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "相角裕度_5_5a74b451": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "带宽频率_5_6996a44a": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "对象分析回收到设计入口_4_43001": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "单结构与复合结构分流条件_4_43002": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "参数方向表达卡_4_43003": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "首轮验证最小读数逻辑_4_43004": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "问题清单移交表_4_43005": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "扰动抑制中的通道重写边界_4_43006": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ]
+  },
+  "pending_review": [],
+  "broken_review_files": {}
+}

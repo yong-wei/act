@@ -1,91 +1,94 @@
-contract_version: '2.2'
-lesson_id: '3-8'
-course_title: '3-8：频域判别与跨域综合语言'
-course_route_segment: 'unit-3-8-frequency-domain-translation-judgment'
+contract_version: "2.2"
+lesson_id: 3-8
+course_title: 3-8：频域判别与跨域综合语言
+course_route_segment: unit-3-8-frequency-domain-translation-judgment
 design_acceptance_focus:
-  - '学生脱离讲稿后，仍能基于当前页面理解知识对象、判断动作和主线位置。'
-  - '逐步披露只隐藏步骤，不隐藏题面、对象、目标指标与结论桥接。'
-  - '曲线图默认升级为可复现讲义基线态、且带读图口令的互动面板。'
+  - 学生脱离讲稿后，仍能基于当前页面理解知识对象、判断动作和主线位置。
+  - 逐步披露只隐藏步骤，不隐藏题面、对象、目标指标与结论桥接。
+  - 曲线图默认升级为可复现讲义基线态、且带读图口令的互动面板。
 preview_mode:
-  default_entry: 'student_demo'
-  student_demo_base_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo'
-  teacher_preview_panel_note: '教师预览只检查课堂骨架；默认预览路径仍以学生演示页为准。'
-telemetry_strategy: 'step_level_learning_evidence'
-teacher_insight_strategy: 'misconception_and_progress_dual_track'
+  default_entry: student_demo
+  student_demo_base_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo
+  teacher_preview_panel_note: 教师预览只检查课堂骨架；默认预览路径仍以学生演示页为准。
+telemetry_strategy: step_level_learning_evidence
+teacher_insight_strategy: misconception_and_progress_dual_track
 required_step_fields:
-  - 'layout'
-  - 'modules'
-  - 'content_blocks'
-  - 'evidence_sequence'
-  - 'interaction_spec'
-  - 'teacher_controls'
-  - 'student_access'
-  - 'telemetry_spec'
-  - 'teacher_insight_spec'
-  - 'ai_context_spec'
-  - 'preview_contract'
-  - 'acceptance_checks'
+  - layout
+  - modules
+  - content_blocks
+  - evidence_sequence
+  - interaction_spec
+  - teacher_controls
+  - student_access
+  - telemetry_spec
+  - teacher_insight_spec
+  - ai_context_spec
+  - preview_contract
+  - acceptance_checks
 steps:
   step-01:
-    title: '路径定位：`3-8` 为什么不是新章'
+    title: 导入：三类结构变化为什么需要统一频域语言
     layout:
-      template: 'map_hero_slide'
+      template: map_hero_slide
       regions:
-        - id: 'header'
-          width: 'full'
+        - id: header
+          width: full
           order: 1
-        - id: 'lead'
-          width: 'full'
+        - id: lead
+          width: full
           order: 2
-        - id: 'summary'
-          width: 'full'
+        - id: summary
+          width: full
           order: 3
     modules:
-      - id: 'stage-map'
-        region: 'lead'
-        kind: 'stage-map'
+      - id: known-change-card
+        region: lead
+        kind: question-card
         must_be_visible: true
-      - id: 'core-question-card'
-        region: 'lead'
-        kind: 'question-card'
+      - id: engineering-question-card
+        region: lead
+        kind: process-card
         must_be_visible: true
-      - id: 'boundary-card'
-        region: 'summary'
-        kind: 'boundary-card'
+      - id: core-question-card
+        region: summary
+        kind: question-card
         must_be_visible: true
     content_blocks:
-      - id: 'path'
-        type: 'plain_text'
-        title: '路径定位'
-        body: '固定高亮 3-5 -> 3-7 -> 3-8 -> 3-9，并写清 3-8 负责把前述结构变化统一翻译到频域判断语言。'
-      - id: 'question'
-        type: 'plain_text'
-        title: '主问题'
-        body: '为什么增益、零点、极点和积分补偿会在频域里留下不同指纹，这些指纹又如何接到稳定判断与工程决策。'
-      - id: 'boundary'
-        type: 'bullet_list'
-        title: '边界'
+      - id: known_changes
+        type: bullet_list
+        title: 已经见过的三类变化
         items:
-          - '不重讲模块 2 的作图基础。'
-          - '不提前进入模块 4 的完整整定。'
+          - 调大增益后，系统往往更快，但更容易靠近稳定边界。
+          - 引入零点后，动态更积极，高频代价也可能抬升。
+          - 加入积分或滞后后，稳态精度提高，中频相位余量会变紧。
+      - id: engineering_questions
+        type: bullet_list
+        title: 导入问题
+        items:
+          - 结构变化首先改写低频、中频还是高频。
+          - 这种改写最终落到速度、超调、稳态精度还是噪声代价上。
+      - id: question
+        type: plain_text
+        title: 本课核心问题
+        body: 为什么增益、零点、极点和积分补偿会在频域里留下不同指纹，这些指纹又怎样被翻译成稳定判断、性能读回与工程决策。
     evidence_sequence:
-      - '路径图'
-      - '主问题卡'
-      - '边界卡'
+      - 已有三类结构变化
+      - 两个工程问题
+      - 本课核心问题
     interaction_spec:
-      interaction_kind: 'none'
-      student_task: '只阅读，不提交。'
+      interaction_kind: none
+      student_task: 只阅读，不提交。
       step_reveal_policy:
-        mode: 'none'
+        mode: none
     teacher_controls:
-      release_activity: 'not_applicable'
-      open_browse: 'not_applicable'
-      teacher_step_reveal: 'not_applicable'
-      reveal_reference_answer: 'not_applicable'
+      release_activity: not_applicable
+      open_browse: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
       instructor_demo_tools:
-        - 'highlight_path_node'
+        - highlight_path_node
     student_access:
-      default_visibility: 'visible'
+      default_visibility: visible
       release_required: false
       browse_required: false
       can_view_problem_statement: true
@@ -93,102 +96,97 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'viewed'
-        - 'timeOnStep'
-        - 'teacherFollowSync'
-      result_policy: 'no_submission'
+        - viewed
+        - timeOnStep
+        - teacherFollowSync
+      result_policy: no_submission
     teacher_insight_spec:
       widgets:
-        - 'view_count'
-        - 'sync_status'
-      aggregation: 'step_level'
+        - view_count
+        - sync_status
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '明确 3-8 在模块 3 中的路径位置和主问题。'
+      page_goal: 基于前述增益、零点、积分和滞后知识提出新的频域判断问题。
       allowed_scope:
-        - '3-5/3-7/3-8/3-9 的关系'
-        - '课程边界'
+        - 3-5/3-7/3-8/3-9 的关系
+        - 课程边界
       forbidden_scope:
-        - '提前展开 Nyquist 与 Bode 公式细节'
+        - 提前展开 Nyquist 与 Bode 公式细节
       canonical_facts:
-        - '3-8 不是新章孤岛。'
-        - '本课的任务是建立统一判断语言。'
+        - 3-8 不是新章孤岛。
+        - 本课的任务是建立统一判断语言。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-01'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-01
       must_match_student_page: true
     acceptance_checks:
-      - '首屏必须同时看到路径图、主问题卡和边界卡。'
-      - '不依赖教师口头补充，学生也能说出 3-8 在模块 3 中的位置。'
-
+      - 首屏必须呈现已学变化、工程问题和本课核心问题。
+      - 不得出现空的路径定位模块。
   step-02:
-    title: '统一翻译器：结构变化如何接到稳定边界与闭环后果'
+    title: 统一翻译器：结构变化如何接到稳定边界与闭环后果
     layout:
-      template: 'translation_chain_board'
+      template: translation_chain_board
       regions:
-        - id: 'chain'
-          width: 'full'
+        - id: chain
+          width: full
           order: 1
-        - id: 'method'
-          width: 'full'
+        - id: method
+          width: full
           order: 2
-        - id: 'objective'
-          width: 'full'
+        - id: objective
+          width: full
           order: 3
     modules:
-      - id: 'translation-chain-card'
-        region: 'chain'
-        kind: 'formula-chain'
+      - id: translation-chain-card
+        region: chain
+        kind: formula-chain
         must_be_visible: true
-      - id: 'three-step-method-card'
-        region: 'method'
-        kind: 'process-card'
+      - id: three-step-method-card
+        region: method
+        kind: process-card
         must_be_visible: true
-      - id: 'objective-list'
-        region: 'objective'
-        kind: 'objective-list'
-        must_be_visible: true
-      - id: 'boundary-note'
-        region: 'objective'
-        kind: 'boundary-card'
+      - id: objective-list
+        region: objective
+        kind: objective-list
         must_be_visible: true
     content_blocks:
-      - id: 'chain'
-        type: 'plain_text'
-        title: '统一翻译链'
-        body: '结构变化 -> 开环频率特性改写 -> 稳定边界变化 -> 闭环性能后果。'
-      - id: 'method'
-        type: 'bullet_list'
-        title: '三步判断法'
+      - id: chain
+        type: plain_text
+        title: 统一翻译链
+        body: 结构变化 -> 开环频率特性改写 -> 稳定边界变化 -> 闭环性能后果。
+      - id: method
+        type: bullet_list
+        title: 三步判断法
         items:
-          - '先判断哪一段频带被改写。'
-          - '再判断系统离稳定边界更近还是更远。'
-          - '最后把频域量读回速度、超调、稳态精度和高频代价。'
-      - id: 'objective'
-        type: 'bullet_list'
-        title: '课程目标'
+          - 识别变化主要改写的频带。
+          - 判定系统离稳定边界更近还是更远。
+          - 解释频域量如何读回速度、超调、稳态精度和噪声代价。
+      - id: objective
+        type: bullet_list
+        title: 完成本次课程后，学习者能够
         items:
-          - '会把结构变化翻译成频域指纹。'
-          - '会按 P -> N -> Z 的顺序做 Nyquist 基本判稳。'
-          - '会用 Bode 图读出截止频率与稳定裕度。'
-          - '会按三频段读回闭环性能。'
+          - 区分增益、零点、极点和积分补偿在频域中的典型指纹。
+          - 依据 P、N、Z 的关系判定 Nyquist 图对应的闭环稳定性。
+          - 使用 Bode 图读出截止频率、相角裕度和增益裕度，并判断系统处于边界哪一侧。
+          - 评价频带改写对闭环速度、超调、稳态精度和噪声代价的影响。
     evidence_sequence:
-      - '统一翻译链'
-      - '三步判断法'
-      - '课程目标与边界'
+      - 统一翻译链
+      - 三步判断法
+      - 布鲁姆动词学习成果
     interaction_spec:
-      interaction_kind: 'none'
-      student_task: '只建立判断框架，不提交。'
+      interaction_kind: none
+      student_task: 只建立判断框架，不提交。
       step_reveal_policy:
-        mode: 'none'
+        mode: none
     teacher_controls:
-      release_activity: 'not_applicable'
-      open_browse: 'not_applicable'
-      teacher_step_reveal: 'not_applicable'
-      reveal_reference_answer: 'not_applicable'
+      release_activity: not_applicable
+      open_browse: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
       instructor_demo_tools:
-        - 'highlight_chain_node'
+        - highlight_chain_node
     student_access:
-      default_visibility: 'visible'
+      default_visibility: visible
       release_required: false
       browse_required: false
       can_view_problem_statement: true
@@ -196,147 +194,146 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'viewed'
-        - 'timeOnStep'
-      result_policy: 'no_submission'
+        - viewed
+        - timeOnStep
+      result_policy: no_submission
     teacher_insight_spec:
       widgets:
-        - 'view_count'
-      aggregation: 'step_level'
+        - view_count
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '让学生在进入细节前先知道本课按什么逻辑推进。'
+      page_goal: 让学生在进入细节前先知道本课按什么逻辑推进。
       allowed_scope:
-        - '翻译链'
-        - '三步判断法'
-        - '本课目标'
+        - 翻译链
+        - 三步判断法
+        - 本课目标
       forbidden_scope:
-        - '代替学生完成后续例题'
+        - 代替学生完成后续例题
       canonical_facts:
-        - '频域术语不是散点，而是同一判断链上的节点。'
+        - 频域术语不是散点，而是同一判断链上的节点。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-02'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-02
       must_match_student_page: true
     acceptance_checks:
-      - '翻译链、三步判断法和课程目标必须同页可见。'
-      - '学生不看讲稿也能知道本课的判断顺序。'
-
+      - 翻译链、三步判断法和课程目标必须同页可见。
+      - 学生不看讲稿也能知道本课的判断顺序。
   step-03:
-    title: '前测：四类典型误判先暴露出来'
+    title: 前测：四类典型误判先暴露出来
     layout:
-      template: 'question_stack'
+      template: question_stack
       regions:
-        - id: 'prompt'
-          width: 'full'
+        - id: prompt
+          width: full
           order: 1
-        - id: 'questions'
-          width: 'full'
+        - id: questions
+          width: full
           order: 2
-        - id: 'notes'
-          width: 'full'
+        - id: notes
+          width: full
           order: 3
     modules:
-      - id: 'misconception-list'
-        region: 'prompt'
-        kind: 'bullet-card'
+      - id: misconception-list
+        region: prompt
+        kind: bullet-card
         must_be_visible: true
-      - id: 'pretest-card-group'
-        region: 'questions'
-        kind: 'quiz-group'
+      - id: pretest-card-group
+        region: questions
+        kind: quiz-group
         must_be_visible: true
-      - id: 'reason-record'
-        region: 'notes'
-        kind: 'reason-record'
+      - id: reason-record
+        region: notes
+        kind: reason-record
         must_be_visible: true
-      - id: 'ai-lock-note'
-        region: 'notes'
-        kind: 'notice-card'
+      - id: ai-lock-note
+        region: notes
+        kind: notice-card
         must_be_visible: true
     content_blocks:
-      - id: 'misconceptions'
-        type: 'bullet_list'
-        title: '四类误判'
+      - id: misconceptions
+        type: bullet_list
+        title: 前测只检查进入本课所需的读图基础
         items:
-          - '只看幅值，不看频带与相位。'
-          - 'Nyquist 判稳跳过 P，直接看图形。'
-          - '把截止频率更大直接等同于系统更好。'
-          - '把非最小相对象理解成可以靠更大带宽硬压过去。'
-      - id: 'ai_note'
-        type: 'plain_text'
-        title: 'AI 锁定'
-        body: '必须先完成首答，之后才允许进入 AI 对照。'
+          - 能否把频率响应读成幅值、相位和频带共同作用，而不是只看曲线高低。
+          - 能否在 Bode 图上区分截止频率、相位穿越频率、相角裕度和增益裕度。
+          - 能否把根轨迹中的“靠近虚轴”理解成稳定余量变小。
+          - 能否说明积分补偿改善低频精度时，可能压缩中频相位余量。
+      - id: reason_note
+        type: plain_text
+        title: 作答要求
+        body: 每题先选判断，再写一句理由。前测不考本单元尚未展开的 Nyquist 判据细节。
     evidence_sequence:
-      - '误判清单'
-      - '前测题组'
-      - '理由记录与 AI 锁定提示'
+      - 前置基础说明
+      - 前测题组
+      - 理由记录
     interaction_spec:
-      interaction_kind: 'quiz_group'
-      student_task: '完成四道前测题，并为每题提交一句理由。'
-      activity_card_rationale: '前测页属于题组页，四张卡分别对应四类典型误判，必须独立聚合错因，不能压成两道综合题。'
+      interaction_kind: quiz_group
+      student_task: 完成四道前置基础题，检查频率响应、Bode 读图、稳定余量和积分补偿代价。
+      activity_card_rationale: 前测页属于题组页，四张卡分别测试本课需要的前置基础，不提前考本单元尚未讲解的判据。
       step_reveal_policy:
-        mode: 'none'
+        mode: none
       activity_cards:
-        - id: 'card-03-a'
-          prompt: '频域判断是否只要看曲线有没有抬高。'
-          response_kind: 'single_choice'
+        - id: card-03-a
+          prompt: 频率响应读图时，是否需要同时看幅值、相位和所在频带。
+          response_kind: single_choice
           options:
-            - value: 'no'
-              label: '不是'
-            - value: 'yes'
-              label: '是'
-            - value: 'only-low'
-              label: '只在低频成立'
-          reference_answer: '不是。频域判断必须同时看频带、幅值与相位代价。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-03-b'
-          prompt: 'Nyquist 判稳是否可以不先数开环右半平面极点。'
-          response_kind: 'single_choice'
+            - value: yes
+              label: 需要同时看
+            - value: magnitude-only
+              label: 只看幅值
+            - value: phase-only
+              label: 只看相位
+          reference_answer: 需要。频率响应的判断至少同时包含幅值、相位和频带位置。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-03-b
+          prompt: Bode 图中，截止频率右移是否只能说明速度倾向，不能单独说明综合性能更优。
+          response_kind: single_choice
           options:
-            - value: 'no'
-              label: '不可以'
-            - value: 'yes'
-              label: '可以'
-            - value: 'only-stable-open'
-              label: '只有开环稳定时可以'
-          reference_answer: '不可以。Nyquist 判稳必须先数开环右半平面极点 P。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-03-c'
-          prompt: '截止频率更大是否自动意味着系统更优。'
-          response_kind: 'single_choice'
+            - value: yes
+              label: 是
+            - value: no
+              label: 不是
+            - value: only-stability
+              label: 只说明稳定性更强
+          reference_answer: 是。截止频率右移通常提示速度变化，但还要结合裕度和高频代价。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-03-c
+          prompt: 根轨迹或闭环极点更靠近虚轴时，稳定余量通常如何变化。
+          response_kind: single_choice
           options:
-            - value: 'no'
-              label: '不是'
-            - value: 'yes'
-              label: '是'
-            - value: 'only-noise'
-              label: '只表示噪声更小'
-          reference_answer: '不是。截止频率提高常意味着速度变化，但不自动等于综合性能更优。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-03-d'
-          prompt: '非最小相对象是否只要继续提带宽就能解决问题。'
-          response_kind: 'single_choice'
+            - value: smaller
+              label: 余量变小
+            - value: larger
+              label: 余量变大
+            - value: unrelated
+              label: 无法形成任何提示
+          reference_answer: 通常表示稳定余量变小，动态也更容易出现较大超调或振荡。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-03-d
+          prompt: 积分补偿改善低频稳态精度时，最需要警惕哪类频域代价。
+          response_kind: single_choice
           options:
-            - value: 'no'
-              label: '不能这样处理'
-            - value: 'yes'
-              label: '可以继续提带宽'
-            - value: 'same-as-rhp-pole'
-              label: '右半平面零点等同右半平面极点'
-          reference_answer: '不能这样处理。非最小相对象要先看相位代价与带宽边界。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
+            - value: mid-phase
+              label: 中频相位余量被压缩
+            - value: low-loss
+              label: 低频增益必然降低
+            - value: no-cost
+              label: 没有代价
+          reference_answer: 最需要警惕中频相位余量被压缩。
+          submit_scope: per_card
+          layout_span: half
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'not_applicable'
-      teacher_step_reveal: 'not_applicable'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'show_misconception_distribution'
+        - show_misconception_distribution
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: false
       can_view_problem_statement: true
@@ -344,111 +341,139 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'attemptCount'
-        - 'resultState'
-        - 'errorBucket'
+        - attemptCount
+        - resultState
+        - errorBucket
       misconception_tags:
-        - 'only_watch_magnitude'
-        - 'nyquist_skip_p'
-        - 'wc_equals_everything'
-        - 'nmp_push_bandwidth'
+        - frequency_response_one_dimensional
+        - bode_margin_confusion
+        - root_locus_margin_weak
+        - integral_phase_cost_missing
     teacher_insight_spec:
       widgets:
-        - 'question_distribution'
-        - 'top_misconceptions'
-      aggregation: 'step_level'
+        - question_distribution
+        - top_misconceptions
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '先暴露本课最常见的误判，再进入正式内容。'
+      page_goal: 先暴露本课最常见的误判，再进入正式内容。
       allowed_scope:
-        - '误判纠偏'
-        - '错因归类'
+        - 误判纠偏
+        - 错因归类
       forbidden_scope:
-        - '代做后续例题'
+        - 代做后续例题
       canonical_facts:
-        - '必须先首答，再看 AI 对照。'
+        - 前测只检查进入本课所需的基础读图能力。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-03'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-03
       must_match_student_page: true
     acceptance_checks:
-      - '误判清单必须先于前测题组出现。'
-      - '教师端必须能按四类误判聚合结果。'
-
+      - 误判清单必须先于前测题组出现。
+      - 教师端必须能按四类误判聚合结果。
   step-04:
-    title: '四类结构变化总表：先看哪一段频带，再谈收益与代价'
+    title: 四类结构变化总表：先看哪一段频带，再谈收益与代价
     layout:
-      template: 'table_explain_board'
+      template: table_explain_board
       regions:
-        - id: 'table'
-          width: 'full'
+        - id: table
+          width: full
           order: 1
-        - id: 'notes'
-          width: 'full'
+        - id: notes
+          width: full
           order: 2
-        - id: 'focus'
-          width: 'full'
+        - id: focus
+          width: full
           order: 3
     modules:
-      - id: 'fingerprint-table'
-        region: 'table'
-        kind: 'comparison-table'
+      - id: fingerprint-table
+        region: table
+        kind: comparison-table
         must_be_visible: true
-      - id: 'frequency-band-note'
-        region: 'notes'
-        kind: 'summary-card'
+        payload:
+          title: 四类结构变化的频域指纹总表
+          columns:
+            - 结构变化
+            - 幅频主变化
+            - 相频主变化
+            - 第一观察重点
+            - 常见闭环后果
+          rows:
+            - - 增益提升
+              - 整体上移
+              - 相位基本不变
+              - 截止频率是否右移
+              - 速度提高，稳定余量常减小
+            - - 左半平面零点
+              - 中高频抬升
+              - 中频相位提前
+              - 中频是否获得更多提前
+              - 动态更积极，高频代价上升
+            - - 极点增加 / 积分环节
+              - 低频到中频抬升或转折变早
+              - 相位更早下降
+              - 中频余量是否被压缩
+              - 精度提高，相位余量更紧
+            - - 右半平面零点
+              - 幅值可能抬升
+              - 相位朝不利方向变化
+              - 截止频率上升是否伴随更大相位代价
+              - 直觉容易失真，超调风险增大
+      - id: frequency-band-note
+        region: notes
+        kind: summary-card
         must_be_visible: true
-      - id: 'row-focus-toggle'
-        region: 'focus'
-        kind: 'row-focus-toggle'
+      - id: row-focus-toggle
+        region: focus
+        kind: row-focus-toggle
         must_be_visible: true
     content_blocks:
-      - id: 'columns'
-        type: 'bullet_list'
-        title: '总表字段'
+      - id: columns
+        type: bullet_list
+        title: 总表字段
         items:
-          - '结构变化'
-          - '主要改写频带'
-          - '幅频与相频主变化'
-          - '典型收益'
-          - '典型代价'
-      - id: 'band_note'
-        type: 'plain_text'
-        title: '阅读口令'
-        body: '任何结构变化都先回答“哪一段频带先被改写”，再回答“换来什么、付出什么”。'
+          - 结构变化
+          - 主要改写频带
+          - 幅频与相频主变化
+          - 典型收益
+          - 典型代价
+      - id: band_note
+        type: plain_text
+        title: 阅读口令
+        body: 任何结构变化都先回答“哪一段频带先被改写”，再回答“换来什么、付出什么”。
     evidence_sequence:
-      - '完整总表'
-      - '频带职责提示'
-      - '行聚焦控件'
+      - 完整总表
+      - 频带职责提示
+      - 行聚焦控件
     interaction_spec:
-      interaction_kind: 'row_focus_toggle'
-      student_task: '切换高亮四类变化中的任意一行，辅助阅读，不提交。'
+      interaction_kind: row_focus_toggle
+      student_task: 切换高亮四类变化中的任意一行，辅助阅读，不提交。
       step_reveal_policy:
-        mode: 'none'
+        mode: none
       activity_cards:
-        - id: 'step-04-activity'
-          prompt: '切换高亮四类变化中的任意一行，辅助阅读，不提交。'
-          response_kind: 'single_choice'
+        - id: step-04-activity
+          prompt: 切换高亮四类变化中的任意一行，辅助阅读，不提交。
+          response_kind: single_choice
           options:
-            - value: 'gain'
-              label: '增益提升'
-            - value: 'lhp-zero'
-              label: '左半平面零点'
-            - value: 'integral-lag'
-              label: '积分 / 滞后'
-            - value: 'nmp'
-              label: '非最小相'
-          reference_answer: '聚焦任一行都可以，但判断必须先说明对应频带。'
-          submit_scope: 'per_card'
-          layout_span: 'full'
+            - value: gain
+              label: 增益提升
+            - value: lhp-zero
+              label: 左半平面零点
+            - value: integral-lag
+              label: 积分 / 滞后
+            - value: nmp
+              label: 非最小相
+          reference_answer: 聚焦任一行都可以，但判断必须先说明对应频带。
+          submit_scope: per_card
+          layout_span: full
     teacher_controls:
-      release_activity: 'not_applicable'
-      open_browse: 'not_applicable'
-      teacher_step_reveal: 'not_applicable'
-      reveal_reference_answer: 'not_applicable'
+      release_activity: not_applicable
+      open_browse: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
       instructor_demo_tools:
-        - 'highlight_selected_row'
+        - highlight_selected_row
     student_access:
-      default_visibility: 'visible'
+      default_visibility: visible
       release_required: false
       browse_required: false
       can_view_problem_statement: true
@@ -456,157 +481,156 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'viewed'
-        - 'focusedRow'
-      result_policy: 'no_submission'
+        - viewed
+        - focusedRow
+      result_policy: no_submission
     teacher_insight_spec:
       widgets:
-        - 'focus_row_heatmap'
-      aggregation: 'step_level'
+        - focus_row_heatmap
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '先用总表稳住四类变化的整体骨架。'
+      page_goal: 先用总表稳住四类变化的整体骨架。
       allowed_scope:
-        - '结构变化总表'
-        - '频带职责'
+        - 结构变化总表
+        - 频带职责
       forbidden_scope:
-        - '从总表直接跳到控制器选型'
+        - 从总表直接跳到控制器选型
       canonical_facts:
-        - '四类变化必须先以总表稳定呈现，再进入图像互动。'
+        - 四类变化必须先以总表稳定呈现，再进入图像互动。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-04'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-04
       must_match_student_page: true
     acceptance_checks:
-      - '总表在无交互状态下也必须完整可读。'
-      - '学生不看讲稿也能说出四类变化对应的首要频带。'
-
+      - 总表在无交互状态下也必须完整可读。
+      - 学生不看讲稿也能说出四类变化对应的首要频带。
   step-05:
-    title: '曲线互动页：四类结构变化为什么留下不同频域指纹'
+    title: 曲线互动页：四类结构变化为什么留下不同频域指纹
     layout:
-      template: 'curve_compare_lab'
+      template: curve_compare_lab
       regions:
-        - id: 'selector'
-          width: 'full'
+        - id: selector
+          width: full
           order: 1
-        - id: 'figure'
-          width: 'full'
+        - id: figure
+          width: full
           order: 2
-        - id: 'cards'
-          width: 'full'
+        - id: cards
+          width: full
           order: 3
     modules:
-      - id: 'change-selector'
-        region: 'selector'
-        kind: 'tab-selector'
+      - id: change-selector
+        region: selector
+        kind: tab-selector
         must_be_visible: true
-      - id: 'fingerprint-2x2-panel'
-        region: 'figure'
-        kind: 'interactive-figure-panel'
+      - id: fingerprint-2x2-panel
+        region: figure
+        kind: interactive-figure-panel
         must_be_visible: true
-      - id: 'band-overlay-strip'
-        region: 'figure'
-        kind: 'overlay-strip'
+        payload:
+          title: 四类结构变化的讲义图组
+          items:
+            - path: 3-8-gain-effect.png
+              caption: 增益提升：幅频整体上移，相位基本不变，截止频率可能右移。
+              src: 3-8-gain-effect.png
+            - path: 3-8-zero-effect.png
+              caption: 左半平面零点：中频相位提前，同时带来高频抬升。
+              src: 3-8-zero-effect.png
+            - path: 3-8-pole-effect.png
+              caption: 极点或积分补偿：低频精度增强，中频相位余量更紧。
+              src: 3-8-pole-effect.png
+            - path: 3-8-rhp-zero-effect.png
+              caption: 右半平面零点：幅值看似更强，但相位代价不利。
+              src: 3-8-rhp-zero-effect.png
+      - id: band-overlay-strip
+        region: figure
+        kind: overlay-strip
         must_be_visible: true
-      - id: 'activity-card-row'
-        region: 'cards'
-        kind: 'activity-card-row'
+      - id: activity-card-row
+        region: cards
+        kind: activity-card-row
         must_be_visible: true
     content_blocks:
-      - id: 'reading_prompt'
-        type: 'bullet_list'
-        title: '读图口令'
+      - id: reading_prompt
+        type: bullet_list
+        title: 读图口令
         items:
-          - '先看当前变化是哪一类。'
-          - '再看低频 / 中频 / 高频哪一段先被改写。'
-          - '最后看这会如何改写稳定边界和闭环后果。'
-      - id: 'panel_note'
-        type: 'plain_text'
-        title: '面板说明'
-        body: '固定 2×2：左上幅频、右上相频、左下根轨迹、右下时域；默认状态必须复现讲义静态图义。'
+          - 先看当前变化是哪一类。
+          - 再看低频 / 中频 / 高频哪一段先被改写。
+          - 最后看这会如何改写稳定边界和闭环后果。
+      - id: panel_note
+        type: plain_text
+        title: 面板说明
+        body: 固定 2×2：左上幅频、右上相频、左下根轨迹、右下时域；默认状态必须复现讲义静态图义。
     evidence_sequence:
-      - '读图口令'
-      - '变化类型切换'
-      - '2×2 面板'
-      - '频带罩层'
-      - '独立作答卡'
+      - 读图口令
+      - 变化类型切换
+      - 2×2 面板
+      - 频带罩层
+      - 独立作答卡
     interaction_spec:
-      interaction_kind: 'curve_compare_panel'
-      student_task: '切换四类结构变化，并完成频带、收益、代价三张独立作答卡。'
-      activity_card_rationale: '三张卡分别承载频带定位、收益判断、代价判断三种不同动作；若合并，会把“先判频带”再次压扁成泛化结论。'
+      interaction_kind: curve_compare_panel
+      student_task: 切换四类结构变化，并完成频带定位、收益代价配对两张作答卡。
+      activity_card_rationale: 两张卡分别承载频带定位与收益代价配对，保证作答区不超过两卡且仍保留“先判频带”的动作。
       step_reveal_policy:
-        mode: 'none'
+        mode: none
       activity_cards:
-        - id: 'card-05-a'
-          prompt: '当前变化优先改写哪一段频带。'
-          response_kind: 'single_choice'
+        - id: card-05-a
+          prompt: 当前结构变化优先改写哪一段频带。
+          response_kind: single_choice
           options:
-            - value: 'low'
-              label: '低频'
-            - value: 'mid'
-              label: '中频'
-            - value: 'high'
-              label: '高频'
-            - value: 'phase-boundary'
-              label: '相位边界先暴露'
-          reference_answer: '先判断主要被改写的频带，再解释收益和代价。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
-        - id: 'card-05-b'
-          prompt: '这类变化首先换来什么收益。'
-          response_kind: 'multi_choice'
+            - value: low
+              label: 低频
+            - value: mid
+              label: 中频
+            - value: high
+              label: 高频
+            - value: all-lift
+              label: 整体上移
+          reference_answer: 先判主要被改写的频带，再解释收益和代价。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-05-b
+          prompt: 把当前变化的主要收益和主要代价配成一组。
+          response_kind: multi_choice
           options:
-            - value: 'accuracy'
-              label: '改善稳态精度'
-            - value: 'speed-margin'
-              label: '改善速度或相角裕度'
-            - value: 'stability-warning'
-              label: '识别稳定边界风险'
-            - value: 'noise-cost'
-              label: '主要增加高频代价'
-          reference_answer: '收益通常落在稳态精度、速度/相角裕度或边界识别，不应只看幅值抬高。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
-        - id: 'card-05-c'
-          prompt: '这类变化最可能带来什么代价。'
-          response_kind: 'single_choice'
-          options:
-            - value: 'margin-compress'
-              label: '稳定裕量被压缩'
-            - value: 'noise-rise'
-              label: '高频噪声或执行器代价上升'
-            - value: 'mid-cost'
-              label: '中频附近带来相位或速度代价'
-            - value: 'band-limited'
-              label: '带宽推进受相位边界限制'
-          reference_answer: '代价要按结构变化读回裕量、高频噪声、中频相位或带宽限制。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
+            - value: accuracy-phase
+              label: 低频精度提高 / 中频相位余量变紧
+            - value: speed-margin
+              label: 速度提高 / 稳定余量可能减小
+            - value: phase-noise
+              label: 中频相位提前 / 高频代价上升
+            - value: nmp-risk
+              label: 速度直觉增强 / 相位边界更危险
+          reference_answer: 收益与代价必须同时写出，不能只说更快或更稳。
+          submit_scope: per_card
+          layout_span: half
     interactive_figure_spec:
       baseline_media:
-        - '3-8-gain-effect.png'
-        - '3-8-zero-effect.png'
-        - '3-8-pole-effect.png'
-        - '3-8-rhp-zero-effect.png'
-      default_variant: 'gain'
-      panel_layout: '2x2_fixed'
+        - 3-8-gain-effect.png
+        - 3-8-zero-effect.png
+        - 3-8-pole-effect.png
+        - 3-8-rhp-zero-effect.png
+      default_variant: gain
+      panel_layout: 2x2_fixed
       overlays:
-        - 'low_mid_high_band'
-        - 'margin_hint'
+        - low_mid_high_band
+        - margin_hint
       controls:
-        - 'change_toggle'
-        - 'band_overlay_toggle'
-        - 'metric_hint_toggle'
-      question_prompt: '当前结构变化先改哪一段频带，它带来的主要收益和代价分别是什么。'
+        - change_toggle
+        - band_overlay_toggle
+        - metric_hint_toggle
+      question_prompt: 当前结构变化先改哪一段频带，它带来的主要收益和代价分别是什么。
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'always_on'
-      teacher_step_reveal: 'not_applicable'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: always_on
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'lock_change_variant'
-        - 'toggle_band_overlay'
+        - lock_change_variant
+        - toggle_band_overlay
     student_access:
-      default_visibility: 'visible'
+      default_visibility: visible
       release_required: true
       browse_required: false
       can_view_problem_statement: true
@@ -614,153 +638,154 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'selectedVariant'
-        - 'selectedBand'
-        - 'cardResultStates'
+        - selectedVariant
+        - selectedBand
+        - cardResultStates
       misconception_tags:
-        - 'cannot_locate_frequency_band'
-        - 'ignore_phase_cost'
+        - cannot_locate_frequency_band
+        - ignore_phase_cost
     teacher_insight_spec:
       widgets:
-        - 'variant_distribution'
-        - 'band_error_heatmap'
-      aggregation: 'step_level'
+        - variant_distribution
+        - band_error_heatmap
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '把静态四图升级为可比、可读、可提交证据的曲线面板。'
+      page_goal: 把静态四图升级为可比、可读、可提交证据的曲线面板。
       allowed_scope:
-        - '四类结构变化'
-        - '频带'
-        - '收益与代价'
+        - 四类结构变化
+        - 频带
+        - 收益与代价
       forbidden_scope:
-        - '从面板直接跳到控制器推荐'
+        - 从面板直接跳到控制器推荐
       canonical_facts:
-        - '曲线图不是装饰，而是用来回答“哪段频带先被改写”。'
+        - 曲线图不是装饰，而是用来回答“哪段频带先被改写”。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-05'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-05
       must_match_student_page: true
     acceptance_checks:
-      - '默认面板必须复现讲义静态图义，而不是另起一套视觉逻辑。'
-      - '学生不看讲稿，也能知道先看哪张子图、回答哪三个判断问题。'
-
+      - 默认面板必须复现讲义静态图义，而不是另起一套视觉逻辑。
+      - 学生不看讲稿，也能知道先看哪张子图、回答哪三个判断问题。
   step-06:
-    title: '例题 1：先从哪一段频带开始判断结构变化'
+    title: 例题 1：先从哪一段频带开始判断结构变化
     layout:
-      template: 'worked_example_lab'
+      template: worked_example_lab
       regions:
-        - id: 'problem'
-          width: 'full'
+        - id: problem
+          width: full
           order: 1
-        - id: 'reveal'
-          width: 'full'
+        - id: reveal
+          width: full
           order: 2
-        - id: 'activity'
-          width: 'full'
+        - id: activity
+          width: full
           order: 3
     modules:
-      - id: 'problem-statement-card'
-        region: 'problem'
-        kind: 'worked-example-card'
+      - id: problem-statement-card
+        region: problem
+        kind: worked-example-card
         must_be_visible: true
-      - id: 'given-change-list'
-        region: 'problem'
-        kind: 'condition-list'
+        payload:
+          title: 完整题面
+          text: 设某单位负反馈系统原始开环频率特性已知，现在分别施加：增益扩大为 4 倍；引入左半平面零点 1+s/0.8；在原点增加一个积分极点。分别判断哪种变化最先改写低频，哪种最先改写中频，并说明每种变化的主要收益和代价。
+      - id: given-change-list
+        region: problem
+        kind: condition-list
         must_be_visible: true
-      - id: 'step-reveal-column'
-        region: 'reveal'
-        kind: 'step-reveal-column'
+        payload:
+          title: 三种结构变化
+          items:
+            - 增益扩大为 4 倍。
+            - 引入左半平面零点 1+s/0.8。
+            - 在原点增加一个积分极点。
+      - id: step-reveal-column
+        region: reveal
+        kind: step-reveal-column
         must_be_visible: true
-      - id: 'activity-card-grid'
-        region: 'activity'
-        kind: 'activity-card-grid'
+        payload:
+          title: 显影链
+          items: &a1
+            - 4 倍增益使幅频曲线整体上移，第一观察重点是截止频率是否右移，收益是速度提高，代价常是稳定余量减小。
+            - 左半平面零点主要改写中频，相位提前和高频抬升同时出现，收益是动态更积极，代价是高频负担上升。
+            - 积分极点首先增强低频，改善稳态精度，再把中频相位余量压紧。
+            - 结论：最先改写低频的是积分极点，最先改写中频的是左半平面零点，改写最均匀的是增益提升。
+      - id: activity-card-grid
+        region: activity
+        kind: activity-card-grid
         must_be_visible: true
-      - id: 'reference-answer-card'
-        region: 'activity'
-        kind: 'reference-answer-card'
+        payload:
+          title: 作答区
+      - id: reference-answer-card
+        region: activity
+        kind: reference-answer-card
         must_be_visible: true
+        payload:
+          title: 参考答案
+          items:
+            - 最先改写低频的是积分极点。
+            - 最先改写中频的是左半平面零点。
+            - 改写最均匀的是增益提升。
     content_blocks:
-      - id: 'problem'
-        type: 'plain_text'
-        title: '完整题面'
-        body: '分别对 4 倍增益、左半平面零点 1+s/0.8、原点积分极点三种变化，判断哪种先改写低频、哪种先改写中频，并说明各自收益与代价。'
-      - id: 'reveal_steps'
-        type: 'bullet_list'
-        title: '显影链'
-        items:
-          - '先判哪一段频带先被改写。'
-          - '再判断会带来什么收益。'
-          - '最后指出主要代价与边界风险。'
+      - id: problem
+        type: plain_text
+        title: 完整题面
+        body: 设某单位负反馈系统原始开环频率特性已知，现在分别施加：增益扩大为 4 倍；引入左半平面零点 1+s/0.8；在原点增加一个积分极点。分别判断哪种变化最先改写低频，哪种最先改写中频，并说明每种变化的主要收益和代价。
+      - id: reveal_steps
+        type: bullet_list
+        title: 显影链
+        items: *a1
     evidence_sequence:
-      - '完整题面'
-      - '已知变化列表'
-      - '逐步显影链'
-      - '独立作答卡'
-      - '参考答案'
+      - 完整题面
+      - 已知变化列表
+      - 逐步显影链
+      - 独立作答卡
+      - 参考答案
     interaction_spec:
-      interaction_kind: 'activity_cards'
-      student_task: '完成三张独立作答卡，分别回答频带、收益与代价。'
-      activity_card_rationale: '例题页需要保持“先判频带，再配对收益与代价”的解题顺序，因此拆成三张卡，避免一道综合题掩盖具体误判。'
+      interaction_kind: activity_cards
+      student_task: 完成两张独立作答卡：低频归因与中频/收益代价归因。
+      activity_card_rationale: 例题页需要保持“先判频带，再配对收益与代价”的解题顺序，因此拆成两张并排卡，避免题面在页内重复出现。
       step_reveal_policy:
-        mode: 'teacher_or_browse_release'
-        problem_statement: 'always_visible'
-        derivation_steps: 'teacher_step_reveal'
-        reference_answer: 'separate_teacher_toggle'
+        mode: teacher_or_browse_release
+        problem_statement: always_visible
+        derivation_steps: teacher_step_reveal
+        reference_answer: separate_teacher_toggle
       activity_cards:
-        - id: 'card-06-a'
-          prompt: '哪一种变化最先改写低频。'
-          response_kind: 'single_choice'
+        - id: card-06-a
+          prompt: 哪一种变化最先改写低频。
+          response_kind: single_choice
           options:
-            - value: 'gain'
-              label: '增益提升'
-            - value: 'lhp-zero'
-              label: '左半平面零点'
-            - value: 'integral-lag'
-              label: '积分 / 滞后'
-            - value: 'nmp'
-              label: '非最小相'
-          reference_answer: '积分 / 滞后最先指向低频补偿。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
-        - id: 'card-06-b'
-          prompt: '哪一种变化最先改写中频。'
-          response_kind: 'single_choice'
+            - value: gain
+              label: 增益提升
+            - value: lhp-zero
+              label: 左半平面零点
+            - value: integral
+              label: 原点积分极点
+          reference_answer: 原点积分极点最先指向低频补偿。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-06-b
+          prompt: 哪一种变化最先改写中频，并带来“动态更积极但高频代价上升”的组合。
+          response_kind: single_choice
           options:
-            - value: 'gain'
-              label: '增益提升'
-            - value: 'lhp-zero'
-              label: '左半平面零点'
-            - value: 'integral-lag'
-              label: '积分 / 滞后'
-            - value: 'nmp'
-              label: '非最小相'
-          reference_answer: '左半平面零点更直接改写中频速度与相角裕度。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
-        - id: 'card-06-c'
-          prompt: '把三种变化与对应收益 / 代价做匹配。'
-          response_kind: 'single_choice'
-          options:
-            - value: 'margin-compress'
-              label: '稳定裕量被压缩'
-            - value: 'noise-rise'
-              label: '高频噪声或执行器代价上升'
-            - value: 'mid-cost'
-              label: '中频附近带来相位或速度代价'
-            - value: 'band-limited'
-              label: '带宽推进受相位边界限制'
-          reference_answer: '三类变化分别带来裕量压缩、高频代价或中频附近代价。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
+            - value: gain
+              label: 增益提升
+            - value: lhp-zero
+              label: 左半平面零点
+            - value: integral
+              label: 原点积分极点
+          reference_answer: 左半平面零点主要改写中频，同时可能抬升高频代价。
+          submit_scope: per_card
+          layout_span: half
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'separate_toggle'
-      teacher_step_reveal: 'teacher_only'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: separate_toggle
+      teacher_step_reveal: teacher_only
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'reveal_next_step'
-        - 'show_reference_answer'
+        - reveal_next_step
+        - show_reference_answer
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: true
       can_view_problem_statement: true
@@ -768,115 +793,130 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'cardResultStates'
-        - 'stepRevealCount'
+        - cardResultStates
+        - stepRevealCount
       misconception_tags:
-        - 'band_before_conclusion_missing'
-        - 'benefit_cost_mismatch'
+        - band_before_conclusion_missing
+        - benefit_cost_mismatch
     teacher_insight_spec:
       widgets:
-        - 'card_accuracy_distribution'
-        - 'step_reveal_usage'
-      aggregation: 'step_level'
+        - card_accuracy_distribution
+        - step_reveal_usage
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '让学生把“先判频带”真正用在一个完整例题上。'
+      page_goal: 让学生把“先判频带”真正用在一个完整例题上。
       allowed_scope:
-        - '频带判断'
-        - '收益与代价'
+        - 频带判断
+        - 收益与代价
       forbidden_scope:
-        - '把答案直接告诉学生而不经过逐步显影'
+        - 把答案直接告诉学生而不经过逐步显影
       canonical_facts:
-        - '题面必须始终可见。'
-        - '逐步披露只隐藏步骤，不隐藏问题。'
+        - 题面必须始终可见。
+        - 逐步披露只隐藏步骤，不隐藏问题。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-06'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-06
       must_match_student_page: true
     acceptance_checks:
-      - '学生在未打开讲稿时，也能完整知道例题对象、任务和判断顺序。'
-      - '作答卡必须按卡独立提交，不使用整页统一表单。'
-
+      - 学生在未打开讲稿时，也能完整知道例题对象、任务和判断顺序。
+      - 作答卡必须按卡独立提交，不使用整页统一表单。
   step-07:
-    title: '幅角原理：总转角、`P` 与 `Z` 在说什么'
+    title: 幅角原理：总转角、`P` 与 `Z` 在说什么
     layout:
-      template: 'formula_story_board'
+      template: formula_story_board
       regions:
-        - id: 'question'
-          width: 'full'
+        - id: question
+          width: full
           order: 1
-        - id: 'formula'
-          width: 'full'
+        - id: formula
+          width: full
           order: 2
-        - id: 'note'
-          width: 'full'
+        - id: note
+          width: full
           order: 3
     modules:
-      - id: 'question-card'
-        region: 'question'
-        kind: 'question-card'
+      - id: question-card
+        region: question
+        kind: question-card
         must_be_visible: true
-      - id: 'argument-principle-formula'
-        region: 'formula'
-        kind: 'formula-card'
+      - id: argument-principle-formula
+        region: formula
+        kind: formula-card
         must_be_visible: true
-      - id: 'symbol-meaning-table'
-        region: 'formula'
-        kind: 'comparison-table'
+      - id: symbol-meaning-table
+        region: formula
+        kind: comparison-table
         must_be_visible: true
-      - id: 'mini-summary-card'
-        region: 'note'
-        kind: 'summary-card'
+        payload:
+          title: 幅角原理符号表
+          columns:
+            - 记号
+            - 含义
+            - 在闭环稳定分析中的作用
+          rows:
+            - - $P$
+              - 路径内部极点数
+              - 反映开环右半平面极点数
+            - - $Z$
+              - 路径内部零点数
+              - 对应闭环右半平面极点数
+            - - $\Delta \arg F(s)$
+              - 映射曲线总转角
+              - 反映函数值对原点的环绕
+      - id: mini-summary-card
+        region: note
+        kind: summary-card
         must_be_visible: true
     content_blocks:
-      - id: 'question'
-        type: 'plain_text'
-        title: '本页问题'
-        body: '为什么只要知道总转角、P 和 Z，就能把闭环稳定问题转成一个可数的问题。'
-      - id: 'formula'
-        type: 'formula_list'
-        title: '核心公式'
+      - id: question
+        type: plain_text
+        title: 本页问题
+        body: 为什么只要知道总转角、P 和 Z，就能把闭环稳定问题转成一个可数的问题。
+      - id: formula
+        type: formula_list
+        title: 核心公式
         items:
-          - 'Δarg F(s)=2π(Z-P)'
-      - id: 'summary'
-        type: 'plain_text'
-        title: '结论桥接'
-        body: '总转角不是抽象符号，而是通向 Nyquist 判稳的逻辑起点。'
+          - Δarg F(s)=2π(Z-P)
+      - id: summary
+        type: plain_text
+        title: 结论桥接
+        body: 总转角不是抽象符号，而是通向 Nyquist 判稳的逻辑起点。
     evidence_sequence:
-      - '本页问题'
-      - '总转角公式'
-      - 'P/Z 含义表'
-      - '结论桥接'
+      - 本页问题
+      - 总转角公式
+      - P/Z 含义表
+      - 结论桥接
     interaction_spec:
-      interaction_kind: 'step_reveal'
-      student_task: '按显影顺序阅读解释，不提交答案。'
+      interaction_kind: step_reveal
+      student_task: 按显影顺序阅读解释，不提交答案。
       step_reveal_policy:
-        mode: 'teacher_step_reveal'
-        problem_statement: 'always_visible'
-        derivation_steps: 'teacher_step_reveal'
-        reference_answer: 'not_applicable'
+        mode: teacher_step_reveal
+        problem_statement: always_visible
+        derivation_steps: teacher_step_reveal
+        reference_answer: not_applicable
       activity_cards:
-        - id: 'step-07-activity'
-          prompt: '按显影顺序阅读解释，不提交答案。'
-          response_kind: 'single_choice'
+        - id: step-07-activity
+          prompt: 按显影顺序阅读解释，不提交答案。
+          response_kind: single_choice
           options:
-            - value: 'turning'
-              label: '总转角连接 P 与 Z'
-            - value: 'amplitude'
-              label: '幅值大小直接决定 Z'
-            - value: 'bandwidth'
-              label: '带宽直接等于 Z'
-          reference_answer: '总转角把 P 与 Z 连接起来，是 Nyquist 判稳的逻辑起点。'
-          submit_scope: 'per_card'
-          layout_span: 'full'
+            - value: turning
+              label: 总转角连接 P 与 Z
+            - value: amplitude
+              label: 幅值大小直接决定 Z
+            - value: bandwidth
+              label: 带宽直接等于 Z
+          reference_answer: 总转角把 P 与 Z 连接起来，是 Nyquist 判稳的逻辑起点。
+          submit_scope: per_card
+          layout_span: full
     teacher_controls:
-      release_activity: 'not_applicable'
-      open_browse: 'separate_toggle'
-      teacher_step_reveal: 'teacher_only'
-      reveal_reference_answer: 'not_applicable'
+      release_activity: not_applicable
+      open_browse: separate_toggle
+      teacher_step_reveal: teacher_only
+      reveal_reference_answer: not_applicable
       instructor_demo_tools:
-        - 'reveal_symbol_meaning'
+        - reveal_symbol_meaning
     student_access:
-      default_visibility: 'locked'
+      default_visibility: locked
       release_required: false
       browse_required: true
       can_view_problem_statement: true
@@ -884,117 +924,120 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'viewed'
-        - 'revealProgress'
-      result_policy: 'no_submission'
+        - viewed
+        - revealProgress
+      result_policy: no_submission
     teacher_insight_spec:
       widgets:
-        - 'reveal_completion_rate'
-      aggregation: 'step_level'
+        - reveal_completion_rate
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '给 Nyquist 判据补上幅角原理的逻辑起点。'
+      page_goal: 给 Nyquist 判据补上幅角原理的逻辑起点。
       allowed_scope:
-        - '总转角'
-        - 'P/Z 含义'
+        - 总转角
+        - P/Z 含义
       forbidden_scope:
-        - '提前跳到具体判稳例题答案'
+        - 提前跳到具体判稳例题答案
       canonical_facts:
-        - '本页不求快算，只建立意义。'
+        - 本页不求快算，只建立意义。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-07'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-07
       must_match_student_page: true
     acceptance_checks:
-      - '总转角公式与 P/Z 含义表必须在同一页。'
-      - '学生能说明这页是 Nyquist 判据的来路之一，而非孤立定义。'
-
+      - 总转角公式与 P/Z 含义表必须在同一页。
+      - 学生能说明这页是 Nyquist 判据的来路之一，而非孤立定义。
   step-08:
-    title: '为什么取 `F(s)=1+L(s)`，为什么盯住 `(-1,0)`'
+    title: 为什么取 `F(s)=1+L(s)`，为什么盯住 `(-1,0)`
     layout:
-      template: 'derivation_compare_board'
+      template: derivation_compare_board
       regions:
-        - id: 'formula'
-          width: 'full'
+        - id: formula
+          width: full
           order: 1
-        - id: 'geometry'
-          width: 'full'
+        - id: geometry
+          width: full
           order: 2
-        - id: 'chain'
-          width: 'full'
+        - id: chain
+          width: full
           order: 3
     modules:
-      - id: 'auxiliary-function-card'
-        region: 'formula'
-        kind: 'formula-card'
+      - id: auxiliary-function-card
+        region: formula
+        kind: formula-card
         must_be_visible: true
-      - id: 'closed-loop-root-card'
-        region: 'formula'
-        kind: 'formula-card'
+      - id: closed-loop-root-card
+        region: formula
+        kind: formula-card
         must_be_visible: true
-      - id: 'critical-point-graphic'
-        region: 'geometry'
-        kind: 'comparison-graphic'
+      - id: critical-point-graphic
+        region: geometry
+        kind: comparison-graphic
         must_be_visible: true
-      - id: 'reason-chain-sorter'
-        region: 'chain'
-        kind: 'reason-chain'
+        payload:
+          path: 3-8-nyquist-quickcheck.png
+          caption: 临界点 (-1,0) 是把 F 平面绕原点问题转写到 L 平面的等价观察点。
+          src: 3-8-nyquist-quickcheck.png
+      - id: reason-chain-sorter
+        region: chain
+        kind: reason-chain
         must_be_visible: true
     content_blocks:
-      - id: 'auxiliary'
-        type: 'formula_list'
-        title: '辅助函数链'
+      - id: auxiliary
+        type: formula_list
+        title: 辅助函数链
         items:
-          - 'F(s)=1+G(s)H(s)'
-          - 'F(s)=0 等价于闭环特征方程成立'
-      - id: 'critical'
-        type: 'plain_text'
-        title: '临界点桥接'
-        body: '在 F 平面看原点，等价于在 G(s)H(s) 平面看 (-1,0)。'
-      - id: 'order'
-        type: 'bullet_list'
-        title: '固定顺序'
+          - F(s)=1+G(s)H(s)
+          - F(s)=0 等价于闭环特征方程成立
+      - id: critical
+        type: plain_text
+        title: 临界点桥接
+        body: 在 F 平面看原点，等价于在 G(s)H(s) 平面看 (-1,0)。
+      - id: order
+        type: bullet_list
+        title: 固定顺序
         items:
-          - '先数开环右半平面极点数 P。'
-          - '再数对临界点的包围数 N。'
-          - '最后算闭环右半平面极点数 Z。'
+          - 先数开环右半平面极点数 P。
+          - 再数对临界点的包围数 N。
+          - 最后算闭环右半平面极点数 Z。
     evidence_sequence:
-      - '辅助函数链'
-      - '临界点图示'
-      - '固定顺序'
-      - '因果排序区'
+      - 辅助函数链
+      - 临界点图示
+      - 固定顺序
+      - 因果排序区
     interaction_spec:
-      interaction_kind: 'reason_chain'
-      student_task: '把辅助函数、临界点和判稳顺序排成正确的因果链。'
+      interaction_kind: reason_chain
+      student_task: 把辅助函数、临界点和判稳顺序排成正确的因果链。
       step_reveal_policy:
-        mode: 'teacher_or_browse_release'
-        problem_statement: 'always_visible'
-        derivation_steps: 'teacher_step_reveal'
-        reference_answer: 'separate_teacher_toggle'
+        mode: teacher_or_browse_release
+        problem_statement: always_visible
+        derivation_steps: teacher_step_reveal
+        reference_answer: separate_teacher_toggle
       activity_cards:
-        - id: 'card-08-a'
-          prompt: '把 F(s)、闭环特征方程、(-1,0)、P/N/Z 顺序排成因果链。'
-          response_kind: 'drag_sort'
+        - id: card-08-a
+          prompt: 把 F(s)、闭环特征方程、(-1,0)、P/N/Z 顺序排成因果链。
+          response_kind: drag_sort
           options:
-            - value: 'auxiliary'
-              label: '写出 F(s)=1+L(s)'
-            - value: 'equation'
-              label: '把闭环特征方程写成 F(s)=0'
-            - value: 'geometry'
-              label: '转到 L(s) 平面观察 (-1,0)'
-            - value: 'counting'
-              label: '用 P/N/Z 得出稳定结论'
-          reference_answer: '顺序为辅助函数 -> 闭环特征方程 -> (-1,0) 几何点 -> P/N/Z 结论。'
-          submit_scope: 'per_card'
-          layout_span: 'full'
+            - value: auxiliary
+              label: 写出 F(s)=1+L(s)
+            - value: equation
+              label: 把闭环特征方程写成 F(s)=0
+            - value: geometry
+              label: 转到 L(s) 平面观察 (-1,0)
+            - value: counting
+              label: 用 P/N/Z 得出稳定结论
+          reference_answer: 顺序为辅助函数 -> 闭环特征方程 -> (-1,0) 几何点 -> P/N/Z 结论。
+          submit_scope: per_card
+          layout_span: full
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'separate_toggle'
-      teacher_step_reveal: 'teacher_only'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: separate_toggle
+      teacher_step_reveal: teacher_only
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'reveal_next_formula_link'
+        - reveal_next_formula_link
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: true
       can_view_problem_statement: true
@@ -1002,155 +1045,166 @@ steps:
       can_submit_without_browse: false
     telemetry_spec:
       summary_fields:
-        - 'sortResultState'
-        - 'revealProgress'
+        - sortResultState
+        - revealProgress
       misconception_tags:
-        - 'nyquist_memorize_without_reason'
-        - 'critical_point_origin_confusion'
+        - nyquist_memorize_without_reason
+        - critical_point_origin_confusion
     teacher_insight_spec:
       widgets:
-        - 'chain_breakpoint_distribution'
-      aggregation: 'step_level'
+        - chain_breakpoint_distribution
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '让学生真正知道为什么 Nyquist 最终盯的是 (-1,0)。'
+      page_goal: 让学生真正知道为什么 Nyquist 最终盯的是 (-1,0)。
       allowed_scope:
-        - '辅助函数'
-        - '临界点'
-        - 'P/N/Z 顺序'
+        - 辅助函数
+        - 临界点
+        - P/N/Z 顺序
       forbidden_scope:
-        - '绕开因果链直接背结论'
+        - 绕开因果链直接背结论
       canonical_facts:
-        - 'Nyquist 判据的关键不是口号，而是等价链。'
+        - Nyquist 判据的关键不是口号，而是等价链。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-08'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-08
       must_match_student_page: true
     acceptance_checks:
-      - 'F(s)=1+L(s)、(-1,0) 和 P/N/Z 固定顺序必须同页可见。'
-      - '学生不看讲稿，也能说出为什么会从原点等价到 (-1,0)。'
-
+      - F(s)=1+L(s)、(-1,0) 和 P/N/Z 固定顺序必须同页可见。
+      - 学生不看讲稿，也能说出为什么会从原点等价到 (-1,0)。
   step-09:
-    title: '例题 2：第一组 Nyquist 快速判稳题'
+    title: 例题 2：第一组 Nyquist 快速判稳题
     layout:
-      template: 'worked_example_quadrant'
+      template: worked_example_quadrant
       regions:
-        - id: 'problem'
-          width: 'full'
+        - id: problem
+          width: full
           order: 1
-        - id: 'table'
-          width: 'full'
+        - id: table
+          width: full
           order: 2
-        - id: 'activity'
-          width: 'full'
+        - id: activity
+          width: full
           order: 3
     modules:
-      - id: 'quickcheck-image'
-        region: 'problem'
-        kind: 'comparison-graphic'
+      - id: quickcheck-image
+        region: problem
+        kind: comparison-graphic
         must_be_visible: true
-      - id: 'pnz-table'
-        region: 'table'
-        kind: 'comparison-table'
+        payload:
+          path: 3-8-nyquist-quickcheck.png
+          caption: 四条 Nyquist 曲线需要逐一配对 P、N、Z 与稳定结论。
+          src: 3-8-nyquist-quickcheck.png
+      - id: pnz-table
+        region: table
+        kind: comparison-table
         must_be_visible: true
-      - id: 'matrix-choice-cards'
-        region: 'activity'
-        kind: 'activity-card-grid'
+        payload:
+          title: Nyquist 快速判稳 P/N/Z 表
+          columns:
+            - 图形
+            - 对象 $L(s)$
+            - $P$
+            - $N$
+            - $Z=P-N$
+            - 结论
+          rows:
+            - - A
+              - $6/[(s+1)(s+2)(s+4)]$
+              - "0"
+              - "0"
+              - "0"
+              - 开环稳定，闭环稳定
+            - - B
+              - $0.5(s+0.5)/[(s-1)(s+1)(s+3)]$
+              - "1"
+              - "0"
+              - "1"
+              - 开环不稳定，闭环仍不稳定
+            - - C
+              - $8(s+0.5)/[(s-1)(s+1)(s+3)]$
+              - "1"
+              - "1"
+              - "0"
+              - 开环不稳定，但闭环稳定
+            - - D
+              - $10(s-0.5)/[(s+1)(s+2)(s+8)]$
+              - "0"
+              - "0"
+              - "0"
+              - 含右半平面零点，但闭环仍稳定
+      - id: matrix-choice-cards
+        region: activity
+        kind: activity-card-grid
         must_be_visible: true
-      - id: 'boundary-note'
-        region: 'activity'
-        kind: 'summary-card'
+        payload:
+          title: 分组对照作答区
+      - id: boundary-note
+        region: activity
+        kind: summary-card
         must_be_visible: true
+        payload:
+          block_key: boundary
+          title: 边界提醒
+          text: 右半平面零点不等于右半平面极点；快判也不能跳过 P/N/Z。
     content_blocks:
-      - id: 'image'
-        type: 'media'
-        title: '例题 2 图组'
-        path: '3-8-nyquist-quickcheck.png'
-      - id: 'boundary'
-        type: 'plain_text'
-        title: '边界提醒'
-        body: '右半平面零点不等于右半平面极点；快判也不能跳过 P/N/Z。'
+      - id: image
+        type: media
+        title: 例题 2 图组
+        path: 3-8-nyquist-quickcheck.png
+      - id: boundary
+        type: plain_text
+        title: 边界提醒
+        body: 右半平面零点不等于右半平面极点；快判也不能跳过 P/N/Z。
     evidence_sequence:
-      - '例题图组'
-      - 'P/N/Z 表'
-      - '边界提醒'
-      - '四张独立题卡'
+      - Nyquist 四图题面
+      - P/N/Z 判稳表
+      - 边界提醒
+      - 两张分组对照卡（A/B、C/D）
     interaction_spec:
-      interaction_kind: 'matrix_choice_cards'
-      student_task: '对四个对象分别判断 P、N、Z 与闭环稳定性。'
-      activity_card_rationale: '本页本质是四对象快判题组，必须保持一对象一判断卡，教师才能定位是哪一类图形或哪一步 P/N/Z 判断出错。'
+      interaction_kind: matrix_choice_cards
+      student_task: 通过两张分组对照卡完成 A/B 与 C/D 四个对象的 P/N/Z 判断。
+      activity_card_rationale: 本页用两张分组对照卡覆盖 A/B 与 C/D 四个对象，既保留 P/N/Z 定位信息，也满足非测验页不超过两张作答卡。
       step_reveal_policy:
-        mode: 'teacher_or_browse_release'
-        problem_statement: 'always_visible'
-        derivation_steps: 'teacher_step_reveal'
-        reference_answer: 'separate_teacher_toggle'
+        mode: teacher_or_browse_release
+        problem_statement: always_visible
+        derivation_steps: teacher_step_reveal
+        reference_answer: separate_teacher_toggle
       activity_cards:
-        - id: 'card-09-a'
-          prompt: '对象 A 的闭环是否稳定。'
-          response_kind: 'single_choice'
+        - id: card-09-a
+          prompt: 对象 A 与 B 的 P、N、Z 关系分别说明闭环是否稳定。
+          response_kind: single_choice
           options:
-            - value: 'stable'
-              label: '闭环稳定'
-            - value: 'unstable'
-              label: '闭环不稳定'
-            - value: 'open-unstable-but-closed-stable'
-              label: '开环不稳定但闭环稳定'
-            - value: 'cannot-skip-p'
-              label: '不能跳过 P/N/Z 判断'
-          reference_answer: '对象 A 要按 P/N/Z 映射到闭环稳定性，不能只看曲线形状。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-09-b'
-          prompt: '对象 B 的 P/N/Z 判断。'
-          response_kind: 'single_choice'
+            - value: A-stable-B-unstable
+              label: A 稳定，B 不稳定
+            - value: A-unstable-B-stable
+              label: A 不稳定，B 稳定
+            - value: both-stable
+              label: 二者都稳定
+          reference_answer: "A: P=0,N=0,Z=0，闭环稳定；B: P=1,N=0,Z=1，闭环不稳定。"
+          submit_scope: per_card
+          layout_span: half
+        - id: card-09-b
+          prompt: 对象 C 与 D 的判断中，哪一句正确。
+          response_kind: single_choice
           options:
-            - value: 'stable'
-              label: '闭环稳定'
-            - value: 'unstable'
-              label: '闭环不稳定'
-            - value: 'open-unstable-but-closed-stable'
-              label: '开环不稳定但闭环稳定'
-            - value: 'cannot-skip-p'
-              label: '不能跳过 P/N/Z 判断'
-          reference_answer: '对象 B 的判断必须同时给出 P、N、Z。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-09-c'
-          prompt: '对象 C 的 P/N/Z 判断。'
-          response_kind: 'single_choice'
-          options:
-            - value: 'stable'
-              label: '闭环稳定'
-            - value: 'unstable'
-              label: '闭环不稳定'
-            - value: 'open-unstable-but-closed-stable'
-              label: '开环不稳定但闭环稳定'
-            - value: 'cannot-skip-p'
-              label: '不能跳过 P/N/Z 判断'
-          reference_answer: '对象 C 同样不能跳过 P/N/Z。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-09-d'
-          prompt: '对象 D 是否因为右半平面零点而自动失稳。'
-          response_kind: 'single_choice'
-          options:
-            - value: 'no'
-              label: '不会自动失稳'
-            - value: 'yes'
-              label: '会自动失稳'
-            - value: 'same-as-pole'
-              label: '右半平面零点等同右半平面极点'
-          reference_answer: '右半平面零点不等于右半平面极点，不会因此自动闭环失稳。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
+            - value: C-stabilized-D-stable
+              label: C 开环不稳定但闭环稳定；D 含右半平面零点但不自动失稳
+            - value: D-auto-unstable
+              label: D 因右半平面零点自动失稳
+            - value: C-unstable-D-unstable
+              label: C 与 D 都闭环不稳定
+          reference_answer: C 通过正确包围使 Z=0；D 的右半平面零点不等同右半平面极点，不能自动判失稳。
+          submit_scope: per_card
+          layout_span: half
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'separate_toggle'
-      teacher_step_reveal: 'teacher_only'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: separate_toggle
+      teacher_step_reveal: teacher_only
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'show_pnz_table_row'
+        - show_pnz_table_row
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: true
       can_view_problem_statement: true
@@ -1158,122 +1212,127 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'cardResultStates'
-        - 'selectedStabilityLabels'
+        - cardResultStates
+        - selectedStabilityLabels
       misconception_tags:
-        - 'rhp_zero_equals_unstable'
-        - 'skip_pnz_sequence'
+        - rhp_zero_equals_unstable
+        - skip_pnz_sequence
     teacher_insight_spec:
       widgets:
-        - 'object_accuracy_distribution'
-        - 'common_wrong_reasons'
-      aggregation: 'step_level'
+        - object_accuracy_distribution
+        - common_wrong_reasons
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '把 Nyquist 快判真正固定成按对象逐一判断的动作。'
+      page_goal: 把 Nyquist 快判真正固定成按对象逐一判断的动作。
       allowed_scope:
-        - 'P/N/Z 快判'
-        - '右半平面零点与极点区分'
+        - P/N/Z 快判
+        - 右半平面零点与极点区分
       forbidden_scope:
-        - '凭图形直觉越过 P/N/Z 表'
+        - 凭图形直觉越过 P/N/Z 表
       canonical_facts:
-        - '快判不等于跳步。'
+        - 快判不等于跳步。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-09'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-09
       must_match_student_page: true
     acceptance_checks:
-      - '图组和 P/N/Z 表必须在题卡之前完整出现。'
-      - '学生不看讲稿也能逐对象完成快判。'
-
+      - P/N/Z 表必须完整列出 A-D 四个对象、P、N、Z 与结论。
+      - 作答区采用两张分组对照卡，契约和 runtime 必须保持同一口径。
   step-10:
-    title: '例题 3：靠近边界与越过边界有什么本质不同'
+    title: 例题 3：靠近边界与越过边界有什么本质不同
     layout:
-      template: 'boundary_compare_board'
+      template: boundary_compare_board
       regions:
-        - id: 'problem'
-          width: 'full'
+        - id: problem
+          width: full
           order: 1
-        - id: 'compare'
-          width: 'full'
+        - id: compare
+          width: full
           order: 2
-        - id: 'activity'
-          width: 'full'
+        - id: activity
+          width: full
           order: 3
     modules:
-      - id: 'design-example-card'
-        region: 'problem'
-        kind: 'worked-example-card'
+      - id: design-example-card
+        region: problem
+        kind: worked-example-card
         must_be_visible: true
-      - id: 'boundary-figure'
-        region: 'compare'
-        kind: 'comparison-graphic'
+      - id: boundary-figure
+        region: compare
+        kind: comparison-graphic
         must_be_visible: true
-      - id: 'gain-interval-note'
-        region: 'compare'
-        kind: 'summary-card'
+        payload:
+          path: 3-8-nyquist-example.png
+          caption: K=80 靠近临界点但未包围，K=110 已经越过稳定边界。
+          src: 3-8-nyquist-example.png
+      - id: gain-interval-note
+        region: compare
+        kind: summary-card
         must_be_visible: true
-      - id: 'card-sort-zone'
-        region: 'activity'
-        kind: 'card-sort'
+      - id: card-sort-zone
+        region: activity
+        kind: card-sort
         must_be_visible: true
+        payload:
+          title: 增益区间分类作答
     content_blocks:
-      - id: 'problem'
-        type: 'plain_text'
-        title: '完整题面'
-        body: '比较 K=80 与 K=110 两种增益下的 Nyquist 曲线，判断哪一个“逼近边界但未包围”，哪一个“已经发生包围”，以及设计上应保留哪个区间。'
-      - id: 'image'
-        type: 'media'
-        title: '边界对照图'
-        path: '3-8-nyquist-example.png'
+      - id: problem
+        type: plain_text
+        title: 完整题面
+        body: 比较 K=80 与 K=110 两种增益下的 Nyquist 曲线，判断哪一个“逼近边界但未包围”，哪一个“已经发生包围”，以及设计上应保留哪个区间。
+      - id: image
+        type: media
+        title: 边界对照图
+        path: 3-8-nyquist-example.png
     evidence_sequence:
-      - '完整题面'
-      - '边界对照图'
-      - '增益区间说明'
-      - '分类作答区'
+      - 完整题面
+      - 边界对照图
+      - 增益区间说明
+      - 分类作答区
     interaction_spec:
-      interaction_kind: 'card_sort'
-      student_task: '把两条曲线归到“逼近边界”或“已经越界”，并给出保留区间判断。'
+      interaction_kind: card_sort
+      student_task: 把两条曲线归到“逼近边界”或“已经越界”，并给出保留区间判断。
       step_reveal_policy:
-        mode: 'teacher_or_browse_release'
-        problem_statement: 'always_visible'
-        derivation_steps: 'teacher_step_reveal'
-        reference_answer: 'separate_teacher_toggle'
+        mode: teacher_or_browse_release
+        problem_statement: always_visible
+        derivation_steps: teacher_step_reveal
+        reference_answer: separate_teacher_toggle
       activity_cards:
-        - id: 'card-10-a'
-          prompt: '把 K=80 与 K=110 分到正确类别。'
-          response_kind: 'drag_sort'
+        - id: card-10-a
+          prompt: 把 K=80 与 K=110 分到正确类别。
+          response_kind: drag_sort
           options:
-            - value: 'k80'
-              label: 'K=80：逼近边界但未包围'
-            - value: 'k110'
-              label: 'K=110：已经发生包围'
-          reference_answer: 'K=80 属于靠近边界，K=110 属于越过边界。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-10-b'
-          prompt: '若目标是既提速又保留余量，应保留哪一类增益区间。'
-          response_kind: 'single_choice'
+            - value: k80
+              label: K=80：逼近边界但未包围
+            - value: k110
+              label: K=110：已经发生包围
+          reference_answer: K=80 属于靠近边界，K=110 属于越过边界。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-10-b
+          prompt: 若目标是既提速又保留余量，应保留哪一类增益区间。
+          response_kind: single_choice
           options:
-            - value: 'stable-side'
-              label: '仍在稳定侧'
-            - value: 'critical-near'
-              label: '靠近临界边界但未越过'
-            - value: 'crossed'
-              label: '已经越过边界'
-            - value: 'need-more-evidence'
-              label: '需要先补 P/N/Z 或裕度证据'
-          reference_answer: '应保留仍在稳定侧且有裕量的增益区间。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
+            - value: stable-side
+              label: 仍在稳定侧
+            - value: critical-near
+              label: 靠近临界边界但未越过
+            - value: crossed
+              label: 已经越过边界
+            - value: need-more-evidence
+              label: 需要先补 P/N/Z 或裕度证据
+          reference_answer: 应保留仍在稳定侧且有裕量的增益区间。
+          submit_scope: per_card
+          layout_span: half
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'separate_toggle'
-      teacher_step_reveal: 'teacher_only'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: separate_toggle
+      teacher_step_reveal: teacher_only
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'highlight_boundary_region'
+        - highlight_boundary_region
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: true
       can_view_problem_statement: true
@@ -1281,144 +1340,167 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'sortResultState'
-        - 'selectedGainInterval'
+        - sortResultState
+        - selectedGainInterval
       misconception_tags:
-        - 'borderline_equals_unstable'
-        - 'higher_gain_always_better'
+        - borderline_equals_unstable
+        - higher_gain_always_better
     teacher_insight_spec:
       widgets:
-        - 'boundary_confusion_rate'
-        - 'gain_interval_distribution'
-      aggregation: 'step_level'
+        - boundary_confusion_rate
+        - gain_interval_distribution
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '让学生把“逼近边界”和“越过边界”的差异读成设计判断。'
+      page_goal: 让学生把“逼近边界”和“越过边界”的差异读成设计判断。
       allowed_scope:
-        - '边界感'
-        - '增益区间'
+        - 边界感
+        - 增益区间
       forbidden_scope:
-        - '把边界问题重新化成只看图感'
+        - 把边界问题重新化成只看图感
       canonical_facts:
-        - '逼近边界不等于已经失稳。'
+        - 逼近边界不等于已经失稳。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-10'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-10
       must_match_student_page: true
     acceptance_checks:
-      - '题面必须完整出现，不能缩成一句“比较 K=80 与 K=110”。'
-      - '学生不看讲稿，也能知道这页解决的是边界感而不是另一次快判。'
-
+      - 题面必须完整出现，不能缩成一句“比较 K=80 与 K=110”。
+      - 学生不看讲稿，也能知道这页解决的是边界感而不是另一次快判。
   step-11:
-    title: 'Bode 判稳：截止频率、相角裕度和增益裕度'
+    title: Bode 判稳：截止频率、相角裕度和增益裕度
     layout:
-      template: 'dual_graph_indicator_locator'
+      template: dual_graph_indicator_locator
       regions:
-        - id: 'graph'
-          width: 'full'
+        - id: graph
+          width: full
           order: 1
-        - id: 'formula'
-          width: 'full'
+        - id: formula
+          width: full
           order: 2
-        - id: 'activity'
-          width: 'full'
+        - id: activity
+          width: full
           order: 3
     modules:
-      - id: 'bode-image'
-        region: 'graph'
-        kind: 'comparison-graphic'
+      - id: bode-image
+        region: graph
+        kind: comparison-graphic
         must_be_visible: true
-      - id: 'indicator-formula-list'
-        region: 'formula'
-        kind: 'formula-card'
+        payload:
+          path: 3-8-bode-example.png
+          caption: Bode 判稳同时读截止频率、相位穿越频率、PM 线和 GM 线。
+          src: 3-8-bode-example.png
+      - id: indicator-formula-list
+        region: formula
+        kind: formula-card
         must_be_visible: true
-      - id: 'three-language-table'
-        region: 'formula'
-        kind: 'comparison-table'
+      - id: three-language-table
+        region: formula
+        kind: comparison-table
         must_be_visible: true
-      - id: 'hotspot-labeling-zone'
-        region: 'activity'
-        kind: 'hotspot-labeling'
+        payload:
+          title: 同一稳定问题的三种语言
+          columns:
+            - 想回答的问题
+            - 极点 / 根轨迹语言
+            - Nyquist 语言
+            - Bode 语言
+          rows:
+            - - 闭环是否稳定
+              - 闭环极点是否落在左半平面
+              - 是否按要求包围或不包围临界点 $(-1,0)$
+              - 相角裕度、增益裕度是否为正
+            - - 离临界状态还有多远
+              - 极点离虚轴多近，根轨迹是否逼近虚轴
+              - 曲线离临界点多近，包围趋势是否出现
+              - 截止频率处离 $-180^\circ$ 多远；相位穿越处离 $0$ dB 多远
+            - - 为什么结构变化会改写稳定性
+              - 极点迁移方向变了
+              - 对临界点的相对位置变了
+              - 穿越频率和裕度一起变了
+      - id: hotspot-labeling-zone
+        region: activity
+        kind: hotspot-labeling
         must_be_visible: true
     content_blocks:
-      - id: 'image'
-        type: 'media'
-        title: 'Bode 判稳图'
-        path: '3-8-bode-example.png'
-      - id: 'equations'
-        type: 'formula_list'
-        title: '指标定义'
+      - id: image
+        type: media
+        title: Bode 判稳图
+        path: 3-8-bode-example.png
+      - id: equations
+        type: formula_list
+        title: 指标定义
         items:
-          - '|L(jωc)|=1'
-          - 'γ = 180° + ∠L(jωc)'
-          - 'Gm = 1 / |L(jωπ)|'
-      - id: 'slogan'
-        type: 'plain_text'
-        title: '固定口令'
-        body: '开环读余量，闭环看带宽。'
+          - "|L(jωc)|=1"
+          - γ = 180° + ∠L(jωc)
+          - Gm = 1 / |L(jωπ)|
+      - id: slogan
+        type: plain_text
+        title: 固定口令
+        body: 开环读余量，闭环看带宽。
     evidence_sequence:
-      - 'Bode 图'
-      - '指标定义'
-      - '三语言对照'
-      - '热点标注区'
+      - Bode 图
+      - 指标定义
+      - 三语言对照
+      - 热点标注区
     interaction_spec:
-      interaction_kind: 'hotspot_labeling'
-      student_task: '把 ωc、ωπ、PM 线和 GM 线标到正确位置。'
+      interaction_kind: hotspot_labeling
+      student_task: 把 ωc、ωπ、PM 线和 GM 线标到正确位置。
       step_reveal_policy:
-        mode: 'none'
+        mode: none
       activity_cards:
-        - id: 'card-11-a'
-          prompt: '标出截止频率线与相位穿越频率线。'
-          response_kind: 'single_choice'
+        - id: card-11-a
+          prompt: 标出截止频率线与相位穿越频率线。
+          response_kind: single_choice
           options:
-            - value: 'wc-line'
-              label: '幅值穿越 0 dB 的截止频率线'
-            - value: 'wpi-line'
-              label: '相位穿越 -180° 的频率线'
-            - value: 'pm-gap'
-              label: '截止频率处到 -180° 的相角间隔'
-            - value: 'gm-gap'
-              label: '相位穿越处到 0 dB 的幅值间隔'
-          reference_answer: '截止频率线是幅值穿越 0 dB；相位穿越频率线是相位穿越 -180°。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-11-b'
-          prompt: '标出 PM 线与 GM 线。'
-          response_kind: 'single_choice'
+            - value: wc-line
+              label: 幅值穿越 0 dB 的截止频率线
+            - value: wpi-line
+              label: 相位穿越 -180° 的频率线
+            - value: pm-gap
+              label: 截止频率处到 -180° 的相角间隔
+            - value: gm-gap
+              label: 相位穿越处到 0 dB 的幅值间隔
+          reference_answer: 截止频率线是幅值穿越 0 dB；相位穿越频率线是相位穿越 -180°。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-11-b
+          prompt: 标出 PM 线与 GM 线。
+          response_kind: single_choice
           options:
-            - value: 'wc-line'
-              label: '幅值穿越 0 dB 的截止频率线'
-            - value: 'wpi-line'
-              label: '相位穿越 -180° 的频率线'
-            - value: 'pm-gap'
-              label: '截止频率处到 -180° 的相角间隔'
-            - value: 'gm-gap'
-              label: '相位穿越处到 0 dB 的幅值间隔'
-          reference_answer: 'PM 是截止频率处相角余量；GM 是相位穿越频率处幅值余量。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
+            - value: wc-line
+              label: 幅值穿越 0 dB 的截止频率线
+            - value: wpi-line
+              label: 相位穿越 -180° 的频率线
+            - value: pm-gap
+              label: 截止频率处到 -180° 的相角间隔
+            - value: gm-gap
+              label: 相位穿越处到 0 dB 的幅值间隔
+          reference_answer: PM 是截止频率处相角余量；GM 是相位穿越频率处幅值余量。
+          submit_scope: per_card
+          layout_span: half
     interactive_figure_spec:
       baseline_media:
-        - '3-8-bode-example.png'
-      default_variant: 'static_bode'
-      panel_layout: 'single_annotated_figure'
+        - 3-8-bode-example.png
+      default_variant: static_bode
+      panel_layout: single_annotated_figure
       overlays:
-        - 'wc_marker'
-        - 'wpi_marker'
-        - 'pm_line'
-        - 'gm_line'
+        - wc_marker
+        - wpi_marker
+        - pm_line
+        - gm_line
       controls:
-        - 'indicator_toggle'
-        - 'line_highlight'
-      question_prompt: '图上的四条关键线分别在哪里，它们共同说明了什么稳定边界信息。'
+        - indicator_toggle
+        - line_highlight
+      question_prompt: 图上的四条关键线分别在哪里，它们共同说明了什么稳定边界信息。
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'always_on'
-      teacher_step_reveal: 'not_applicable'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: always_on
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'show_correct_anchors'
+        - show_correct_anchors
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: false
       can_view_problem_statement: true
@@ -1426,146 +1508,143 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'labelResultStates'
-        - 'selectedHotspots'
+        - labelResultStates
+        - selectedHotspots
       misconception_tags:
-        - 'wc_equals_bandwidth'
-        - 'bode_as_another_rule'
+        - wc_equals_bandwidth
+        - bode_as_another_rule
     teacher_insight_spec:
       widgets:
-        - 'common_mislabels'
-        - 'anchor_error_heatmap'
-      aggregation: 'step_level'
+        - common_mislabels
+        - anchor_error_heatmap
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '把 Bode 判稳放回与 Nyquist 同一条稳定边界链。'
+      page_goal: 把 Bode 判稳放回与 Nyquist 同一条稳定边界链。
       allowed_scope:
-        - 'ωc'
-        - 'ωπ'
-        - 'PM'
-        - 'GM'
-        - '三语言对照'
+        - ωc
+        - ωπ
+        - PM
+        - GM
+        - 三语言对照
       forbidden_scope:
-        - '把截止频率直接等同于带宽'
+        - 把截止频率直接等同于带宽
       canonical_facts:
-        - 'Bode 判稳不是另一套无关规则。'
+        - Bode 判稳不是另一套无关规则。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-11'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-11
       must_match_student_page: true
     acceptance_checks:
-      - 'Bode 图、定义式与三语言对照表必须同页出现。'
-      - '学生不看讲稿，也能知道这页要找的是哪四条关键线。'
-
+      - Bode 图、定义式与三语言对照表必须同页出现。
+      - 学生不看讲稿，也能知道这页要找的是哪四条关键线。
   step-12:
-    title: '例题 4：由 Bode 图直接判断系统在边界哪一侧'
+    title: 例题 4：由 Bode 图直接判断系统在边界哪一侧
     layout:
-      template: 'worked_example_locator'
+      template: worked_example_locator
       regions:
-        - id: 'problem'
-          width: 'full'
+        - id: problem
+          width: full
           order: 1
-        - id: 'reveal'
-          width: 'full'
+        - id: reveal
+          width: full
           order: 2
-        - id: 'activity'
-          width: 'full'
+        - id: activity
+          width: full
           order: 3
     modules:
-      - id: 'problem-statement-card'
-        region: 'problem'
-        kind: 'worked-example-card'
+      - id: problem-statement-card
+        region: problem
+        kind: worked-example-card
         must_be_visible: true
-      - id: 'reading-order-card'
-        region: 'reveal'
-        kind: 'process-card'
+      - id: bode-example-image
+        region: problem
+        kind: comparison-graphic
         must_be_visible: true
-      - id: 'activity-card-grid'
-        region: 'activity'
-        kind: 'activity-card-grid'
+        payload:
+          path: 3-8-bode-example.png
+          caption: 例题 4 的判稳证据来自图中的截止频率线、相位穿越频率线、PM 线和 GM 线。
+          src: 3-8-bode-example.png
+      - id: reading-order-card
+        region: reveal
+        kind: process-card
         must_be_visible: true
-      - id: 'reference-answer-card'
-        region: 'activity'
-        kind: 'reference-answer-card'
+      - id: activity-card-grid
+        region: activity
+        kind: activity-card-grid
         must_be_visible: true
+        payload:
+          title: 作答区
+      - id: reference-answer-card
+        region: activity
+        kind: reference-answer-card
+        must_be_visible: true
+        payload:
+          title: 参考答案
+          items:
+            - PM 与 GM 均为负，系统已越过稳定边界。
+            - 回到稳定侧应左移截止频率或增加中频相位。
     content_blocks:
-      - id: 'problem'
-        type: 'plain_text'
-        title: '完整题面'
-        body: '对给定 Bode 图，判断相角裕度和增益裕度的正负、系统位于边界哪一侧，以及若要回到稳定侧应优先怎样改动。'
-      - id: 'order'
-        type: 'bullet_list'
-        title: '读图顺序'
+      - id: problem
+        type: plain_text
+        title: 完整题面
+        body: 对给定 Bode 图，判断相角裕度和增益裕度的正负、系统位于边界哪一侧，以及若要回到稳定侧应优先怎样改动。
+      - id: order
+        type: bullet_list
+        title: 读图顺序
         items:
-          - '先看 ωc 处相位离 -180° 多远。'
-          - '再看 ωπ 处幅值离 0 dB 多远。'
-          - '最后综合判断系统在边界哪一侧。'
+          - 先看 ωc 处相位离 -180° 多远。
+          - 再看 ωπ 处幅值离 0 dB 多远。
+          - 最后综合判断系统在边界哪一侧。
     evidence_sequence:
-      - '完整题面'
-      - '读图顺序'
-      - '独立作答卡'
-      - '参考答案'
+      - 完整题面
+      - 读图顺序
+      - 独立作答卡
+      - 参考答案
     interaction_spec:
-      interaction_kind: 'activity_cards'
-      student_task: '完成三张独立作答卡，分别判断裕度正负、边界位置和回拉方向。'
-      activity_card_rationale: '三张卡分别对应裕度正负、边界位置和回拉方向，三者不是同一动作；若合并，会削弱 Bode 读图链。'
+      interaction_kind: activity_cards
+      student_task: 完成两张独立作答卡：裕度/边界判断与回拉方向。
+      activity_card_rationale: 本页两张卡分别对应裕度与边界判断、回拉方向，题面只在题面区完整出现一次，卡片标题只保留判断动作。
       step_reveal_policy:
-        mode: 'teacher_or_browse_release'
-        problem_statement: 'always_visible'
-        derivation_steps: 'teacher_step_reveal'
-        reference_answer: 'separate_teacher_toggle'
+        mode: teacher_or_browse_release
+        problem_statement: always_visible
+        derivation_steps: teacher_step_reveal
+        reference_answer: separate_teacher_toggle
       activity_cards:
-        - id: 'card-12-a'
-          prompt: '相角裕度和增益裕度是正还是负。'
-          response_kind: 'single_choice'
+        - id: card-12-a
+          prompt: 相角裕度、增益裕度的正负共同说明系统位于稳定侧还是已经越过边界。
+          response_kind: single_choice
           options:
-            - value: 'both-positive'
-              label: '相角裕度和增益裕度为正'
-            - value: 'one-negative'
-              label: '至少一个裕度为负'
-            - value: 'cannot-read'
-              label: '不能由当前图直接判断'
-          reference_answer: '先读 PM 与 GM 的正负，再判断边界位置。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
-        - id: 'card-12-b'
-          prompt: '系统更接近稳定侧还是已经越过边界。'
-          response_kind: 'single_choice'
+            - value: stable-positive
+              label: 两个裕度为正，仍在稳定侧
+            - value: crossed-negative
+              label: 两个裕度为负，已经越过边界
+            - value: unknown
+              label: 当前图无法判断
+          reference_answer: 图中 PM 与 GM 均为负，系统已越过稳定边界。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-12-b
+          prompt: 若要把系统拉回稳定侧，优先怎样处理截止频率或相位。
+          response_kind: single_choice
           options:
-            - value: 'stable-side'
-              label: '仍在稳定侧'
-            - value: 'critical-near'
-              label: '靠近临界边界但未越过'
-            - value: 'crossed'
-              label: '已经越过边界'
-            - value: 'need-more-evidence'
-              label: '需要先补 P/N/Z 或裕度证据'
-          reference_answer: '由裕度正负判断系统处于稳定侧、临界附近还是越界。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
-        - id: 'card-12-c'
-          prompt: '若要把系统拉回稳定侧，应优先左移还是右移截止频率。'
-          response_kind: 'single_choice'
-          options:
-            - value: 'left-wc'
-              label: '优先左移截止频率'
-            - value: 'right-wc'
-              label: '优先右移截止频率'
-            - value: 'add-phase'
-              label: '优先补相角裕度'
-            - value: 'raise-low'
-              label: '优先抬低频增益'
-          reference_answer: '若越界，通常优先降低穿越频率或补相角裕度，而不是继续右移。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
+            - value: left-or-phase
+              label: 左移截止频率，或补充中频相位
+            - value: right
+              label: 继续右移截止频率
+            - value: low
+              label: 只抬低频增益
+          reference_answer: 应优先左移截止频率或增加中频相位，而不是继续右推截止频率。
+          submit_scope: per_card
+          layout_span: half
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'separate_toggle'
-      teacher_step_reveal: 'teacher_only'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: separate_toggle
+      teacher_step_reveal: teacher_only
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'reveal_reading_order'
+        - reveal_reading_order
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: true
       can_view_problem_statement: true
@@ -1573,124 +1652,162 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'cardResultStates'
-        - 'selectedCorrectionDirection'
+        - cardResultStates
+        - selectedCorrectionDirection
       misconception_tags:
-        - 'negative_margin_not_detected'
-        - 'continue_push_wc'
+        - negative_margin_not_detected
+        - continue_push_wc
     teacher_insight_spec:
       widgets:
-        - 'margin_sign_distribution'
-        - 'correction_direction_distribution'
-      aggregation: 'step_level'
+        - margin_sign_distribution
+        - correction_direction_distribution
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '让学生能从 Bode 图完整走完一次边界判断。'
+      page_goal: 让学生能从 Bode 图完整走完一次边界判断。
       allowed_scope:
-        - '裕度正负'
-        - '边界判断'
-        - '回拉方向'
+        - 裕度正负
+        - 边界判断
+        - 回拉方向
       forbidden_scope:
-        - '只报结论，不说明读图顺序'
+        - 只报结论，不说明读图顺序
       canonical_facts:
-        - 'Bode 例题也必须保留完整题面与读图链。'
+        - Bode 例题也必须保留完整题面与读图链。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-12'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-12
       must_match_student_page: true
     acceptance_checks:
-      - '题面必须写清三问，不能只剩“由 Bode 图判稳”。'
-      - '学生不看讲稿，也能独立完成一次 Bode 边界判断。'
-
+      - 题面必须写清三问，不能只剩“由 Bode 图判稳”。
+      - 学生不看讲稿，也能独立完成一次 Bode 边界判断。
   step-13:
-    title: '三频段分工：精度、速度与代价不能混读'
+    title: 三频段分工：精度、速度与代价不能混读
     layout:
-      template: 'band_focus_board'
+      template: band_focus_board
       regions:
-        - id: 'figure'
-          width: 'full'
+        - id: figure
+          width: full
           order: 1
-        - id: 'table'
-          width: 'full'
+        - id: table
+          width: full
           order: 2
-        - id: 'focus'
-          width: 'full'
+        - id: focus
+          width: full
           order: 3
     modules:
-      - id: 'three-band-image'
-        region: 'figure'
-        kind: 'comparison-graphic'
+      - id: three-band-image
+        region: figure
+        kind: comparison-graphic
         must_be_visible: true
-      - id: 'band-duty-table'
-        region: 'table'
-        kind: 'comparison-table'
+        payload:
+          path: 3-8-three-band-overview.png
+          caption: 低频看精度，中频看速度与稳定边界，高频看噪声和执行器代价。
+          src: 3-8-three-band-overview.png
+      - id: band-duty-table
+        region: table
+        kind: comparison-table
         must_be_visible: true
-      - id: 'metric-readback-table'
-        region: 'table'
-        kind: 'comparison-table'
+        payload:
+          title: 三频段职责表
+          columns:
+            - 频段
+            - 主要关注量
+            - 常见工程含义
+          rows:
+            - - 低频段
+              - 低频增益、误差衰减能力
+              - 稳态精度、抗缓变扰动
+            - - 中频段
+              - 截止频率、相角裕度、增益裕度
+              - 速度、超调、稳定边界
+            - - 高频段
+              - 衰减斜率、峰值放大
+              - 噪声敏感性、执行器负担、鲁棒性
+      - id: metric-readback-table
+        region: table
+        kind: comparison-table
         must_be_visible: true
-      - id: 'band-focus-panel'
-        region: 'focus'
-        kind: 'band-focus-panel'
+        payload:
+          title: 频域量读回闭环表现
+          columns:
+            - 频域量
+            - 通常关心什么
+            - 对闭环的典型提示
+          rows:
+            - - 带宽 $\omega_b$
+              - 系统能有效跟踪多快的变化
+              - 越大通常越快
+            - - 相角裕度 $\gamma$
+              - 离临界状态还有多远
+              - 越大通常越稳
+            - - 谐振峰值 $M_r$
+              - 闭环峰化是否明显
+              - 越大越容易超调、共振
+            - - 谐振频率 $\omega_r$
+              - 峰值出现在什么频带
+              - 帮助判断共振集中哪一段
+      - id: band-focus-panel
+        region: focus
+        kind: band-focus-panel
         must_be_visible: true
     content_blocks:
-      - id: 'image'
-        type: 'media'
-        title: '三频段总图'
-        path: '3-8-three-band-overview.png'
-      - id: 'duty'
-        type: 'bullet_list'
-        title: '三频段职责'
+      - id: image
+        type: media
+        title: 三频段总图
+        path: 3-8-three-band-overview.png
+      - id: duty
+        type: bullet_list
+        title: 三频段职责
         items:
-          - '低频看稳态精度与抗缓变扰动。'
-          - '中频看速度、超调与稳定边界。'
-          - '高频看噪声、执行器代价与鲁棒性。'
+          - 低频看稳态精度与抗缓变扰动。
+          - 中频看速度、超调与稳定边界。
+          - 高频看噪声、执行器代价与鲁棒性。
     evidence_sequence:
-      - '三频段总图'
-      - '频带职责表'
-      - '频域量读回表'
-      - '频带聚焦区'
+      - 三频段总图
+      - 频带职责表
+      - 频域量读回表
+      - 频带聚焦区
     interaction_spec:
-      interaction_kind: 'band_focus_panel'
-      student_task: '切换低 / 中 / 高频，查看每段对应的典型指标与工程含义，不提交。'
+      interaction_kind: band_focus_panel
+      student_task: 切换低 / 中 / 高频，查看每段对应的典型指标与工程含义，不提交。
       step_reveal_policy:
-        mode: 'none'
+        mode: none
       activity_cards:
-        - id: 'step-13-activity'
-          prompt: '切换低 / 中 / 高频，查看每段对应的典型指标与工程含义，不提交。'
-          response_kind: 'single_choice'
+        - id: step-13-activity
+          prompt: 切换低 / 中 / 高频，查看每段对应的典型指标与工程含义，不提交。
+          response_kind: single_choice
           options:
-            - value: 'low'
-              label: '低频'
-            - value: 'mid'
-              label: '中频'
-            - value: 'high'
-              label: '高频'
-            - value: 'phase-boundary'
-              label: '相位边界先暴露'
-          reference_answer: '三频段分别对应稳态精度、速度/裕度和噪声/执行器代价。'
-          submit_scope: 'per_card'
-          layout_span: 'full'
+            - value: low
+              label: 低频
+            - value: mid
+              label: 中频
+            - value: high
+              label: 高频
+            - value: phase-boundary
+              label: 相位边界先暴露
+          reference_answer: 三频段分别对应稳态精度、速度/裕度和噪声/执行器代价。
+          submit_scope: per_card
+          layout_span: full
     interactive_figure_spec:
       baseline_media:
-        - '3-8-three-band-overview.png'
-      default_variant: 'all_bands'
-      panel_layout: 'single_annotated_figure'
+        - 3-8-three-band-overview.png
+      default_variant: all_bands
+      panel_layout: single_annotated_figure
       overlays:
-        - 'low_band_focus'
-        - 'mid_band_focus'
-        - 'high_band_focus'
+        - low_band_focus
+        - mid_band_focus
+        - high_band_focus
       controls:
-        - 'band_focus_toggle'
-      question_prompt: '当目标变成精度、速度或代价时，应该优先读哪一段频带。'
+        - band_focus_toggle
+      question_prompt: 当目标变成精度、速度或代价时，应该优先读哪一段频带。
     teacher_controls:
-      release_activity: 'not_applicable'
-      open_browse: 'always_on'
-      teacher_step_reveal: 'not_applicable'
-      reveal_reference_answer: 'not_applicable'
+      release_activity: not_applicable
+      open_browse: always_on
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
       instructor_demo_tools:
-        - 'lock_band_focus'
+        - lock_band_focus
     student_access:
-      default_visibility: 'visible'
+      default_visibility: visible
       release_required: false
       browse_required: false
       can_view_problem_statement: true
@@ -1698,136 +1815,116 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'focusedBand'
-        - 'timeOnStep'
-      result_policy: 'no_submission'
+        - focusedBand
+        - timeOnStep
+      result_policy: no_submission
     teacher_insight_spec:
       widgets:
-        - 'band_focus_distribution'
-      aggregation: 'step_level'
+        - band_focus_distribution
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '把三频段分工变成可聚焦、可回读的稳定骨架。'
+      page_goal: 把三频段分工变成可聚焦、可回读的稳定骨架。
       allowed_scope:
-        - '低中高频职责'
-        - '频域量读回'
+        - 低中高频职责
+        - 频域量读回
       forbidden_scope:
-        - '把三个频段重新混成单一“更快更好”判断'
+        - 把三个频段重新混成单一“更快更好”判断
       canonical_facts:
-        - '三频段分工是工程读回的索引页。'
+        - 三频段分工是工程读回的索引页。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-13'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-13
       must_match_student_page: true
     acceptance_checks:
-      - '总图、职责表、读回表必须同页出现。'
-      - '学生不看讲稿，也能说出低频 / 中频 / 高频分别负责什么。'
-
+      - 总图、职责表、读回表必须同页出现。
+      - 学生不看讲稿，也能说出低频 / 中频 / 高频分别负责什么。
   step-14:
-    title: '例题 5：目标切换时，先改哪一段频带'
+    title: 例题 5：目标切换时，先改哪一段频带
     layout:
-      template: 'goal_switch_workspace'
+      template: goal_switch_workspace
       regions:
-        - id: 'problem'
-          width: 'full'
+        - id: problem
+          width: full
           order: 1
-        - id: 'cards'
-          width: 'full'
+        - id: cards
+          width: full
           order: 2
-        - id: 'ai'
-          width: 'full'
+        - id: review
+          width: full
           order: 3
     modules:
-      - id: 'goal-switch-card'
-        region: 'problem'
-        kind: 'worked-example-card'
+      - id: goal-switch-card
+        region: problem
+        kind: worked-example-card
         must_be_visible: true
-      - id: 'activity-card-grid'
-        region: 'cards'
-        kind: 'activity-card-grid'
+      - id: activity-card-grid
+        region: cards
+        kind: activity-card-grid
         must_be_visible: true
-      - id: 'ai-compare-zone'
-        region: 'ai'
-        kind: 'ai-compare-workspace'
+        payload:
+          title: 作答区
+      - id: frequency-band-review
+        region: review
+        kind: summary-card
         must_be_visible: true
-      - id: 'revision-note'
-        region: 'ai'
-        kind: 'revision-note'
-        must_be_visible: true
+        payload:
+          title: 三频段回看
+          text: 低频看稳态精度，中频看速度、裕度和超调，高频看噪声与执行器代价。本题任务从快转向稳，应重点看中频余量和峰化。
     content_blocks:
-      - id: 'problem'
-        type: 'plain_text'
-        title: '完整题面'
-        body: '任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”时，应优先希望哪一组频域量发生变化。'
-      - id: 'ai_note'
-        type: 'plain_text'
-        title: '使用顺序'
-        body: '必须先独立作答，再进入 AI 对照区修订。'
+      - id: problem
+        type: plain_text
+        title: 完整题面
+        body: 若某系统任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”，在“截止频率继续右移”“相角裕度增大且谐振峰值减小”“高频段增益继续抬高”三组变化中，应优先选择哪一组，并说明它对应的频段分工。
+      - id: summary
+        type: plain_text
+        title: 本页结论
+        body: 更合适的是相角裕度增大、谐振峰值减小。任务从快转向稳，重点转到中频余量和闭环峰化，而不是继续推高截止频率或高频增益。
     evidence_sequence:
-      - '完整题面'
-      - '独立作答卡'
-      - 'AI 对照区'
-      - '修订记录'
+      - 完整题面
+      - 独立作答卡
+      - 频段分工回看
     interaction_spec:
-      interaction_kind: 'goal_cards_plus_ai'
-      student_task: '先完成独立判断卡，再查看 AI 对照并决定是否修订。'
-      activity_card_rationale: '本页需要依次完成首选频带、可动指标和操作顺序三种任务，再进入 AI 对照；三卡拆开才能保留“先自判、后修订”的顺序。'
+      interaction_kind: goal_cards
+      student_task: 完成两张独立判断卡，确认目标切换对应的频段和频域量。
+      activity_card_rationale: 本页用两张卡完成目标到频带、频域量到闭环后果的判断，并排摆放，避免重复题面。
       step_reveal_policy:
-        mode: 'none'
+        mode: none
       activity_cards:
-        - id: 'card-14-a'
-          prompt: '目标切换后，应优先改哪一段频带。'
-          response_kind: 'single_choice'
+        - id: card-14-a
+          prompt: 目标切换为“减小超调并减轻执行器波动”后，优先希望哪组频域量变化。
+          response_kind: single_choice
           options:
-            - value: 'low'
-              label: '低频'
-            - value: 'mid'
-              label: '中频'
-            - value: 'high'
-              label: '高频'
-            - value: 'phase-boundary'
-              label: '相位边界先暴露'
-          reference_answer: '目标切换后先重判优先频带。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
-        - id: 'card-14-b'
-          prompt: '此时最该关注哪两个频域量。'
-          response_kind: 'multi_choice'
+            - value: wc-right
+              label: 截止频率继续右移
+            - value: pm-mr
+              label: 相角裕度增大，谐振峰值减小
+            - value: high-up
+              label: 高频段增益继续抬高
+          reference_answer: 优先希望相角裕度增大、谐振峰值减小。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-14-b
+          prompt: 把本题目标与频段分工对应起来。
+          response_kind: drag_sort
           options:
-            - value: 'pm'
-              label: '相角裕度'
-            - value: 'wc'
-              label: '截止频率'
-            - value: 'bandwidth'
-              label: '闭环带宽'
-            - value: 'resonance'
-              label: '谐振峰值'
-            - value: 'gm'
-              label: '增益裕度'
-          reference_answer: '此时重点关注相角裕度、截止频率、带宽或谐振峰值等与目标直接相关的量。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
-        - id: 'card-14-c'
-          prompt: '把“精度 / 速度 / 代价”与低 / 中 / 高频做排序对齐。'
-          response_kind: 'drag_sort'
-          options:
-            - value: 'accuracy-low'
-              label: '精度 -> 低频'
-            - value: 'speed-mid'
-              label: '速度/裕度 -> 中频'
-            - value: 'cost-high'
-              label: '代价 -> 高频'
-          reference_answer: '精度对应低频，速度与裕度对应中频，噪声和执行器代价对应高频。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
+            - value: accuracy-low
+              label: 精度 -> 低频
+            - value: speed-margin-mid
+              label: 速度/裕度/超调 -> 中频
+            - value: noise-high
+              label: 噪声与执行器代价 -> 高频
+          reference_answer: 低频管精度，中频管速度、裕度和超调，高频管噪声与执行器代价。
+          submit_scope: per_card
+          layout_span: half
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'not_applicable'
-      teacher_step_reveal: 'not_applicable'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'open_ai_compare'
+        - show_frequency_band_review
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: false
       can_view_problem_statement: true
@@ -1835,139 +1932,142 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'cardResultStates'
-        - 'aiViewed'
-        - 'revisionState'
+        - cardResultStates
+        - goalBandMapping
       misconception_tags:
-        - 'ask_ai_before_judging'
-        - 'goal_band_mapping_confusion'
+        - goal_band_mapping_confusion
+        - continue_push_wc
     teacher_insight_spec:
       widgets:
-        - 'goal_choice_distribution'
-        - 'ai_revision_rate'
-      aggregation: 'step_level'
+        - goal_choice_distribution
+        - band_mapping_distribution
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '把“先独立判断，再 AI 对照”写成稳定动作。'
+      page_goal: 把“先独立判断，再用三频段分工核对”写成稳定动作。
       allowed_scope:
-        - '目标切换'
-        - '频带优先级'
-        - '例题 5'
+        - 目标切换
+        - 频带优先级
+        - 例题 5
       forbidden_scope:
-        - '代替学生直接完成首答'
+        - 代替学生直接完成首答
       canonical_facts:
-        - 'AI 对照只能后置，不能替代首答。'
+        - 本页核心任务是目标到频段的独立判断，页面不显示额外助手面板。
+      delivery_mode: hidden_page_context
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-14'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-14
       must_match_student_page: true
     acceptance_checks:
-      - '题面必须完整写出“目标切换”的条件与选项语境。'
-      - '学生不看讲稿，也能知道本页先独立判断、后 AI 对照。'
-
+      - 题面必须完整写出“目标切换”的条件与选项语境。
+      - 学生不看讲稿，也能知道本页先独立判断，再核对频段分工。
   step-15:
-    title: '航向控制案例：先把基线方案的问题读清楚'
+    title: 航向控制案例：先把基线方案的问题读清楚
     layout:
-      template: 'case_baseline_board'
+      template: case_baseline_board
       regions:
-        - id: 'problem'
-          width: 'full'
+        - id: problem
+          width: full
           order: 1
-        - id: 'figure'
-          width: 'full'
+        - id: figure
+          width: full
           order: 2
-        - id: 'activity'
-          width: 'full'
+        - id: activity
+          width: full
           order: 3
     modules:
-      - id: 'case-context-card'
-        region: 'problem'
-        kind: 'case-context-card'
+      - id: case-context-card
+        region: problem
+        kind: case-context-card
         must_be_visible: true
-      - id: 'baseline-2x2-figure'
-        region: 'figure'
-        kind: 'interactive-figure-panel'
+      - id: baseline-2x2-figure
+        region: figure
+        kind: interactive-figure-panel
         must_be_visible: true
-      - id: 'metric-strip'
-        region: 'figure'
-        kind: 'metric-strip'
+        payload:
+          path: 3-8-heading-baseline.png
+          caption: 航向控制基线：相角裕度约 37.43°，截止频率约 0.1169 rad/s，超调约 31.95%，调节时间约 83.10 s。
+          src: 3-8-heading-baseline.png
+      - id: metric-strip
+        region: figure
+        kind: metric-strip
         must_be_visible: true
-      - id: 'evidence-mark-cards'
-        region: 'activity'
-        kind: 'activity-card-grid'
+      - id: evidence-mark-cards
+        region: activity
+        kind: activity-card-grid
         must_be_visible: true
     content_blocks:
-      - id: 'context'
-        type: 'plain_text'
-        title: '案例背景'
-        body: '基线方案直接采用原始航向对象与单位负反馈，K=2.25，不加任何超前、滞后或积分补偿。'
-      - id: 'metrics'
-        type: 'bullet_list'
-        title: '基线指标'
+      - id: context
+        type: plain_text
+        title: 案例背景
+        body: 基线方案直接采用原始航向对象与单位负反馈，K=2.25，不加任何超前、滞后或积分补偿。
+      - id: metrics
+        type: bullet_list
+        title: 基线指标
         items:
-          - '相角裕度约 37.43°'
-          - '截止频率约 0.1169 rad/s'
-          - '超调量约 31.95%'
-          - '调节时间约 83.10 s'
+          - 相角裕度约 37.43°
+          - 截止频率约 0.1169 rad/s
+          - 超调量约 31.95%
+          - 调节时间约 83.10 s
     evidence_sequence:
-      - '案例背景'
-      - '基线 2×2 图'
-      - '基线指标'
-      - '证据标注卡'
+      - 案例背景
+      - 基线 2×2 图
+      - 基线指标
+      - 证据标注卡
     interaction_spec:
-      interaction_kind: 'evidence_mark_cards'
-      student_task: '圈出最能说明“主要问题在中频余量偏小”的证据，并提交一句依据。'
+      interaction_kind: evidence_mark_cards
+      student_task: 圈出最能说明“主要问题在中频余量偏小”的证据，并提交一句依据。
       step_reveal_policy:
-        mode: 'none'
+        mode: none
       activity_cards:
-        - id: 'card-15-a'
-          prompt: '哪一项证据最能说明基线方案的问题落在中频。'
-          response_kind: 'single_choice'
+        - id: card-15-a
+          prompt: 哪一项证据最能说明基线方案的问题落在中频。
+          response_kind: single_choice
           options:
-            - value: 'phase-margin-low'
-              label: '相角裕度偏低'
-            - value: 'wc-mid'
-              label: '截止频率落在中频目标附近'
-            - value: 'overshoot-high'
-              label: '超调量偏高'
-            - value: 'settling-long'
-              label: '调节时间偏长'
-          reference_answer: '相角裕度偏低与超调偏高共同指向中频附近的问题。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-15-b'
-          prompt: '补一句依据：为什么这不是低频问题。'
-          response_kind: 'single_choice'
+            - value: phase-margin-low
+              label: 相角裕度偏低
+            - value: wc-mid
+              label: 截止频率落在中频目标附近
+            - value: overshoot-high
+              label: 超调量偏高
+            - value: settling-long
+              label: 调节时间偏长
+          reference_answer: 相角裕度偏低与超调偏高共同指向中频附近的问题。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-15-b
+          prompt: 补一句依据：为什么这不是低频问题。
+          response_kind: single_choice
           options:
-            - value: 'mid-evidence'
-              label: '核心证据落在中频裕度与超调'
-            - value: 'low-only'
-              label: '只是不满足稳态精度'
-            - value: 'high-only'
-              label: '只是高频噪声问题'
-          reference_answer: '这不是低频问题，因为主要证据来自相角裕度、截止频率和超调。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
+            - value: mid-evidence
+              label: 核心证据落在中频裕度与超调
+            - value: low-only
+              label: 只是不满足稳态精度
+            - value: high-only
+              label: 只是高频噪声问题
+          reference_answer: 这不是低频问题，因为主要证据来自相角裕度、截止频率和超调。
+          submit_scope: per_card
+          layout_span: half
     interactive_figure_spec:
       baseline_media:
-        - '3-8-heading-baseline.png'
-      default_variant: 'baseline_only'
-      panel_layout: '2x2_fixed'
+        - 3-8-heading-baseline.png
+      default_variant: baseline_only
+      panel_layout: 2x2_fixed
       overlays:
-        - 'pm_marker'
-        - 'wc_marker'
-        - 'closed_loop_poles'
+        - pm_marker
+        - wc_marker
+        - closed_loop_poles
       controls:
-        - 'overlay_toggle'
-      question_prompt: '从基线 2×2 图里找出“速度偏慢且超调偏大”的根本证据。'
+        - overlay_toggle
+      question_prompt: 从基线 2×2 图里找出“速度偏慢且超调偏大”的根本证据。
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'always_on'
-      teacher_step_reveal: 'not_applicable'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: always_on
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'highlight_mid_frequency_evidence'
+        - highlight_mid_frequency_evidence
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: false
       can_view_problem_statement: true
@@ -1975,166 +2075,182 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'selectedEvidence'
-        - 'textResponseLength'
+        - selectedEvidence
+        - textResponseLength
       misconception_tags:
-        - 'treat_as_low_frequency_problem'
-        - 'see_only_time_response'
+        - treat_as_low_frequency_problem
+        - see_only_time_response
     teacher_insight_spec:
       widgets:
-        - 'evidence_selection_distribution'
-        - 'reason_keyword_cloud'
-      aggregation: 'step_level'
+        - evidence_selection_distribution
+        - reason_keyword_cloud
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '让学生先把案例问题定位清楚，再进入校正。'
+      page_goal: 让学生先把案例问题定位清楚，再进入校正。
       allowed_scope:
-        - '基线问题定位'
-        - '中频余量'
+        - 基线问题定位
+        - 中频余量
       forbidden_scope:
-        - '跳过问题定位直接报校正结论'
+        - 跳过问题定位直接报校正结论
       canonical_facts:
-        - '案例页必须先能读懂“原系统哪里不足”。'
+        - 案例页必须先能读懂“原系统哪里不足”。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-15'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-15
       must_match_student_page: true
     acceptance_checks:
-      - '基线 2×2 图、基线指标与问题定位必须同页出现。'
-      - '学生不看讲稿，也能知道案例先要解决“问题在哪一段频带”。'
-
+      - 基线 2×2 图、基线指标与问题定位必须同页出现。
+      - 学生不看讲稿，也能知道案例先要解决“问题在哪一段频带”。
   step-16:
-    title: '航向控制案例：把时域指标翻译成频域目标，再看超前校正'
+    title: 航向控制案例：把时域指标翻译成频域目标，再看超前校正
     layout:
-      template: 'case_translation_compare'
+      template: case_translation_compare
       regions:
-        - id: 'translation'
-          width: 'full'
+        - id: translation
+          width: full
           order: 1
-        - id: 'compare'
-          width: 'full'
+        - id: compare
+          width: full
           order: 2
-        - id: 'activity'
-          width: 'full'
+        - id: activity
+          width: full
           order: 3
     modules:
-      - id: 'translation-chain-card'
-        region: 'translation'
-        kind: 'formula-card'
+      - id: translation-chain-card
+        region: translation
+        kind: formula-card
         must_be_visible: true
-      - id: 'lead-network-card'
-        region: 'translation'
-        kind: 'formula-card'
+      - id: lead-network-card
+        region: translation
+        kind: formula-card
         must_be_visible: true
-      - id: 'compare-2x2-figure'
-        region: 'compare'
-        kind: 'interactive-figure-panel'
+      - id: compare-2x2-figure
+        region: compare
+        kind: interactive-figure-panel
         must_be_visible: true
-      - id: 'metrics-table'
-        region: 'compare'
-        kind: 'comparison-table'
+        payload:
+          path: 3-8-heading-case.png
+          caption: 超前校正后，相角裕度、截止频率、带宽和时域指标同时改善，关键在中频定向补角。
+          src: 3-8-heading-case.png
+      - id: metrics-table
+        region: compare
+        kind: comparison-table
         must_be_visible: true
-      - id: 'structured-compare-zone'
-        region: 'activity'
-        kind: 'structured-compare'
+        payload:
+          title: 航向控制基线与超前校正指标表
+          columns:
+            - 指标
+            - 基线方案
+            - 超前校正后
+            - 读回结论
+          rows:
+            - - 相角裕度
+              - $37.43^\circ$
+              - $52.74^\circ$
+              - 中频余量明显增加
+            - - 截止频率
+              - $0.1169$ rad/s
+              - $0.2575$ rad/s
+              - 响应速度明显提高
+            - - 带宽
+              - $0.1904$ rad/s
+              - $0.4330$ rad/s
+              - 闭环跟踪能力增强
+            - - 谐振峰值 $M_r$
+              - $1.5582$
+              - $1.1284$
+              - 峰化显著减轻
+            - - 超调量
+              - $31.95\%$
+              - $10.98\%$
+              - 超调明显降低
+            - - 调节时间
+              - $83.10$ s
+              - $43.80$ s
+              - 收敛时间约减半
+      - id: structured-compare-zone
+        region: activity
+        kind: structured-compare
         must_be_visible: true
     content_blocks:
-      - id: 'translation_chain'
-        type: 'bullet_list'
-        title: '指标翻译链'
+      - id: translation_chain
+        type: bullet_list
+        title: 指标翻译链
         items:
-          - 'Mp≈15% -> ζd≈0.52 -> 目标相角裕度约 50° 到 55°'
-          - 'ts≈45s -> 目标自然频率约 0.17 rad/s -> 目标截止频率约 0.25 rad/s'
-          - '要同时补角并抬升中频幅值，不能只靠继续加增益'
-      - id: 'network'
-        type: 'formula_list'
-        title: '超前网络'
+          - Mp≈15% -> ζd≈0.52 -> 目标相角裕度约 50° 到 55°
+          - ts≈45s -> 目标自然频率约 0.17 rad/s -> 目标截止频率约 0.25 rad/s
+          - 要同时补角并抬升中频幅值，不能只靠继续加增益
+      - id: network
+        type: formula_list
+        title: 超前网络
         items:
-          - 'Ch(s)=(1+s/0.05)/(1+s/0.3)'
+          - Ch(s)=(1+s/0.05)/(1+s/0.3)
     evidence_sequence:
-      - '指标翻译链'
-      - '超前网络'
-      - '前后对照 2×2 图'
-      - '指标表'
-      - '结构化比较卡'
+      - 指标翻译链
+      - 超前网络
+      - 前后对照 2×2 图
+      - 指标表
+      - 结构化比较卡
     interaction_spec:
-      interaction_kind: 'structured_compare'
-      student_task: '指出主改频带、关键频域量变化，以及时域收益。'
-      activity_card_rationale: '三张比较卡分别承载主改频带、关键频域量与时域收益读回，正对应“翻译链”的三个环节，不能压成一句口号。'
+      interaction_kind: structured_compare
+      student_task: 指出主改频带、关键频域量变化，以及时域收益。
+      activity_card_rationale: 两张比较卡分别承载主改频带与闭环收益读回，正对应“翻译链”的关键环节，不能压成一句口号。
       step_reveal_policy:
-        mode: 'teacher_or_browse_release'
-        problem_statement: 'always_visible'
-        derivation_steps: 'teacher_step_reveal'
-        reference_answer: 'separate_teacher_toggle'
+        mode: teacher_or_browse_release
+        problem_statement: always_visible
+        derivation_steps: teacher_step_reveal
+        reference_answer: separate_teacher_toggle
       activity_cards:
-        - id: 'card-16-a'
-          prompt: '校正主要改写哪一段频带。'
-          response_kind: 'single_choice'
+        - id: card-16-a
+          prompt: 航向控制校正主要改写哪一段频带，为什么不是单纯抬低频。
+          response_kind: single_choice
           options:
-            - value: 'low'
-              label: '低频'
-            - value: 'mid'
-              label: '中频'
-            - value: 'high'
-              label: '高频'
-            - value: 'phase-boundary'
-              label: '相位边界先暴露'
-          reference_answer: '超前校正主要改写中频。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
-        - id: 'card-16-b'
-          prompt: '相角裕度、截止频率、带宽、谐振峰值中，哪几项最关键。'
-          response_kind: 'multi_choice'
+            - value: mid
+              label: 中频：补相角并推截止频率
+            - value: low
+              label: 低频：只改善稳态精度
+            - value: high
+              label: 高频：主要抑制噪声
+          reference_answer: 主要改写中频，因为目标是同时提高截止频率并增加相角裕度。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-16-b
+          prompt: 把频域变化读回闭环结果，哪一组说法最完整。
+          response_kind: single_choice
           options:
-            - value: 'pm'
-              label: '相角裕度'
-            - value: 'wc'
-              label: '截止频率'
-            - value: 'bandwidth'
-              label: '闭环带宽'
-            - value: 'resonance'
-              label: '谐振峰值'
-            - value: 'gm'
-              label: '增益裕度'
-          reference_answer: '相角裕度、截止频率、带宽和谐振峰值是关键读回量。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
-        - id: 'card-16-c'
-          prompt: '用一句话把频域变化读回超调和调节时间的改善。'
-          response_kind: 'single_choice'
-          options:
-            - value: 'less-overshoot-shorter-ts'
-              label: '超调下降且调节时间缩短'
-            - value: 'only-accuracy'
-              label: '只改善稳态精度'
-            - value: 'only-noise'
-              label: '只降低高频噪声'
-          reference_answer: '中频补角和穿越频率调整会读回为超调下降、调节时间缩短。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
+            - value: faster-less-overshoot
+              label: PM 从约 37° 到约 53°，截止频率和带宽提高，超调和调节时间下降
+            - value: only-faster
+              label: 只有速度提高
+            - value: only-accuracy
+              label: 只有稳态精度改善
+          reference_answer: 应同时读出更快、更小超调和更短调节时间。
+          submit_scope: per_card
+          layout_span: half
     interactive_figure_spec:
       baseline_media:
-        - '3-8-heading-baseline.png'
-        - '3-8-heading-case.png'
-      default_variant: 'baseline_vs_lead'
-      panel_layout: '2x2_fixed'
+        - 3-8-heading-baseline.png
+        - 3-8-heading-case.png
+      default_variant: baseline_vs_lead
+      panel_layout: 2x2_fixed
       overlays:
-        - 'pm_gm_markers'
-        - 'wc_wb_markers'
+        - pm_gm_markers
+        - wc_wb_markers
       controls:
-        - 'case_toggle'
-        - 'overlay_toggle'
-        - 'parameter_drawer_teacher_only'
-      question_prompt: '超前校正到底是通过哪一段频带的动作，把速度与平稳同时改好。'
+        - case_toggle
+        - overlay_toggle
+        - parameter_drawer_teacher_only
+      question_prompt: 超前校正到底是通过哪一段频带的动作，把速度与平稳同时改好。
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'separate_toggle'
-      teacher_step_reveal: 'teacher_only'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: separate_toggle
+      teacher_step_reveal: teacher_only
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'reveal_translation_chain'
-        - 'toggle_case_overlay'
+        - reveal_translation_chain
+        - toggle_case_overlay
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: true
       can_view_problem_statement: true
@@ -2142,136 +2258,143 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'selectedFocusBand'
-        - 'selectedMetrics'
-        - 'textResponseLength'
+        - selectedFocusBand
+        - selectedMetrics
+        - textResponseLength
       misconception_tags:
-        - 'only_repeat_result'
-        - 'ignore_mid_frequency_reason'
+        - only_repeat_result
+        - ignore_mid_frequency_reason
     teacher_insight_spec:
       widgets:
-        - 'focus_band_distribution'
-        - 'metric_selection_heatmap'
-      aggregation: 'step_level'
+        - focus_band_distribution
+        - metric_selection_heatmap
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '把航向控制案例读成“中频超前改善”的完整证据链。'
+      page_goal: 把航向控制案例读成“中频超前改善”的完整证据链。
       allowed_scope:
-        - '中频超前'
-        - '相角裕度'
-        - '截止频率'
-        - '时域读回'
+        - 中频超前
+        - 相角裕度
+        - 截止频率
+        - 时域读回
       forbidden_scope:
-        - '生成页面之外的新整定方案'
+        - 生成页面之外的新整定方案
       canonical_facts:
-        - '案例必须先翻译目标，再看校正结果。'
+        - 案例必须先翻译目标，再看校正结果。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-16'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-16
       must_match_student_page: true
     acceptance_checks:
-      - 'Mp -> ζ -> PM 与 ts -> ωn -> ωc 两条链必须完整出现。'
-      - '学生不看讲稿，也能解释为什么这是中频超前而不是单纯增益变化。'
-
+      - Mp -> ζ -> PM 与 ts -> ωn -> ωc 两条链必须完整出现。
+      - 学生不看讲稿，也能解释为什么这是中频超前而不是单纯增益变化。
   step-17:
-    title: '稳定平台案例：为什么“只改增益”会左右为难'
+    title: 稳定平台案例：为什么“只改增益”会左右为难
     layout:
-      template: 'scheme_problem_board'
+      template: scheme_problem_board
       regions:
-        - id: 'structure'
-          width: 'full'
+        - id: structure
+          width: full
           order: 1
-        - id: 'figure'
-          width: 'full'
+        - id: figure
+          width: full
           order: 2
-        - id: 'activity'
-          width: 'full'
+        - id: activity
+          width: full
           order: 3
     modules:
-      - id: 'platform-structure-graphic'
-        region: 'structure'
-        kind: 'comparison-graphic'
+      - id: platform-structure-graphic
+        region: structure
+        kind: comparison-graphic
         must_be_visible: true
-      - id: 'aggressive-vs-slow-figure'
-        region: 'figure'
-        kind: 'interactive-figure-panel'
+        payload:
+          path: 3-8-platform-block-diagram.png
+          caption: 平台结构由比例增益、执行机构、平台动力学和单位反馈组成。
+          src: 3-8-platform-block-diagram.png
+      - id: aggressive-vs-slow-figure
+        region: figure
+        kind: interactive-figure-panel
         must_be_visible: true
-      - id: 'contradiction-note'
-        region: 'figure'
-        kind: 'summary-card'
+        payload:
+          path: 3-8-platform-baseline.png
+          caption: 激进基线更快但超调和峰化明显，只降增益更稳但速度损失过大。
+          src: 3-8-platform-baseline.png
+      - id: contradiction-note
+        region: figure
+        kind: summary-card
         must_be_visible: true
-      - id: 'scheme-vote-cards'
-        region: 'activity'
-        kind: 'activity-card-grid'
+      - id: scheme-vote-cards
+        region: activity
+        kind: activity-card-grid
         must_be_visible: true
     content_blocks:
-      - id: 'structure'
-        type: 'media'
-        title: '控制框图'
-        path: '3-8-platform-block-diagram.png'
-      - id: 'contradiction'
-        type: 'plain_text'
-        title: '核心矛盾'
-        body: '只靠改比例增益，要么快但冒进，要么稳但太慢。'
+      - id: structure
+        type: media
+        title: 控制框图
+        path: 3-8-platform-block-diagram.png
+      - id: contradiction
+        type: plain_text
+        title: 核心矛盾
+        body: 只靠改比例增益，要么快但冒进，要么稳但太慢。
     evidence_sequence:
-      - '控制框图'
-      - '激进基线 / 仅降增益对照'
-      - '矛盾说明'
-      - '方案投票卡'
+      - 控制框图
+      - 激进基线 / 仅降增益对照
+      - 矛盾说明
+      - 方案投票卡
     interaction_spec:
-      interaction_kind: 'scheme_vote_cards'
-      student_task: '判断哪种方案只是退回保守，并指出它牺牲了什么。'
+      interaction_kind: scheme_vote_cards
+      student_task: 判断哪种方案只是退回保守，并指出它牺牲了什么。
       step_reveal_policy:
-        mode: 'none'
+        mode: none
       activity_cards:
-        - id: 'card-17-a'
-          prompt: '哪种方案只是通过降增益换稳定。'
-          response_kind: 'single_choice'
+        - id: card-17-a
+          prompt: 哪种方案只是通过降增益换稳定。
+          response_kind: single_choice
           options:
-            - value: 'baseline'
-              label: '激进基线'
-            - value: 'lowerGain'
-              label: '仅降增益'
-            - value: 'lead'
-              label: '超前校正'
-          reference_answer: '仅降增益只是通过牺牲速度换稳定。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-17-b'
-          prompt: '它主要牺牲了什么。'
-          response_kind: 'multi_choice'
+            - value: baseline
+              label: 激进基线
+            - value: lowerGain
+              label: 仅降增益
+            - value: lead
+              label: 超前校正
+          reference_answer: 仅降增益只是通过牺牲速度换稳定。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-17-b
+          prompt: 它主要牺牲了什么。
+          response_kind: multi_choice
           options:
-            - value: 'speed-loss'
-              label: '速度明显牺牲'
-            - value: 'overshoot-risk'
-              label: '超调或振荡风险偏大'
-            - value: 'noise-cost'
-              label: '高频或执行器代价上升'
-            - value: 'margin-risk'
-              label: '稳定裕量紧张'
-          reference_answer: '主要牺牲速度，也可能改变响应品质。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
+            - value: speed-loss
+              label: 速度明显牺牲
+            - value: overshoot-risk
+              label: 超调或振荡风险偏大
+            - value: noise-cost
+              label: 高频或执行器代价上升
+            - value: margin-risk
+              label: 稳定裕量紧张
+          reference_answer: 主要牺牲速度，也可能改变响应品质。
+          submit_scope: per_card
+          layout_span: half
     interactive_figure_spec:
       baseline_media:
-        - '3-8-platform-baseline.png'
-      default_variant: 'aggressive_vs_slow'
-      panel_layout: '2x2_fixed'
+        - 3-8-platform-baseline.png
+      default_variant: aggressive_vs_slow
+      panel_layout: 2x2_fixed
       overlays:
-        - 'scheme_colors'
-        - 'pm_wb_markers'
+        - scheme_colors
+        - pm_wb_markers
       controls:
-        - 'scheme_toggle'
-        - 'overlay_toggle'
-      question_prompt: '为什么只改增益无法同时守住速度和平稳。'
+        - scheme_toggle
+        - overlay_toggle
+      question_prompt: 为什么只改增益无法同时守住速度和平稳。
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'always_on'
-      teacher_step_reveal: 'not_applicable'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: always_on
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'highlight_scheme_difference'
+        - highlight_scheme_difference
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: false
       can_view_problem_statement: true
@@ -2279,154 +2402,181 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'selectedScheme'
-        - 'selectedTradeoff'
+        - selectedScheme
+        - selectedTradeoff
       misconception_tags:
-        - 'gain_reduction_is_enough'
-        - 'only_watch_overshoot'
+        - gain_reduction_is_enough
+        - only_watch_overshoot
     teacher_insight_spec:
       widgets:
-        - 'scheme_choice_distribution'
-        - 'tradeoff_selection_heatmap'
-      aggregation: 'step_level'
+        - scheme_choice_distribution
+        - tradeoff_selection_heatmap
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '让学生先看到“只改增益”的结构性矛盾。'
+      page_goal: 让学生先看到“只改增益”的结构性矛盾。
       allowed_scope:
-        - '三方案矛盾'
-        - '速度与平稳权衡'
+        - 三方案矛盾
+        - 速度与平稳权衡
       forbidden_scope:
-        - '直接跳到最终超前方案结论'
+        - 直接跳到最终超前方案结论
       canonical_facts:
-        - '平台案例必须先讲矛盾，再讲解法。'
+        - 平台案例必须先讲矛盾，再讲解法。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-17'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-17
       must_match_student_page: true
     acceptance_checks:
-      - '控制框图和“只改增益”的矛盾必须先于结论出现。'
-      - '学生不看讲稿，也能知道这一页是在建立问题，不是在给最终答案。'
-
+      - 控制框图和“只改增益”的矛盾必须先于结论出现。
+      - 学生不看讲稿，也能知道这一页是在建立问题，不是在给最终答案。
   step-18:
-    title: '稳定平台案例：超前校正怎样兼顾速度和平稳'
+    title: 稳定平台案例：超前校正怎样兼顾速度和平稳
     layout:
-      template: 'scheme_compare_lab'
+      template: scheme_compare_lab
       regions:
-        - id: 'figure'
-          width: 'full'
+        - id: figure
+          width: full
           order: 1
-        - id: 'table'
-          width: 'full'
+        - id: table
+          width: full
           order: 2
-        - id: 'activity'
-          width: 'full'
+        - id: activity
+          width: full
           order: 3
     modules:
-      - id: 'three-scheme-2x2-figure'
-        region: 'figure'
-        kind: 'interactive-figure-panel'
+      - id: three-scheme-2x2-figure
+        region: figure
+        kind: interactive-figure-panel
         must_be_visible: true
-      - id: 'metrics-table'
-        region: 'table'
-        kind: 'comparison-table'
+        payload:
+          path: 3-8-platform-case.png
+          caption: 三方案对照显示，超前校正能在保持较高截止频率的同时显著增大相角裕度并降低峰化。
+          src: 3-8-platform-case.png
+      - id: metrics-table
+        region: table
+        kind: comparison-table
         must_be_visible: true
-      - id: 'fixed-conclusion-card'
-        region: 'table'
-        kind: 'summary-card'
+        payload:
+          title: 稳定平台三方案指标表
+          columns:
+            - 指标
+            - 激进基线 $K=5$
+            - 仅降增益 $K=0.2$
+            - 超前校正 $K=1$
+            - 读回结论
+          rows:
+            - - 相角裕度
+              - $39.69^\circ$
+              - $49.00^\circ$
+              - $61.23^\circ$
+              - 校正方案余量最大
+            - - 截止频率
+              - $31.07$ rad/s
+              - $3.764$ rad/s
+              - $24.11$ rad/s
+              - 仅降增益大幅拖慢速度
+            - - 带宽
+              - $58.93$ rad/s
+              - $5.731$ rad/s
+              - $42.54$ rad/s
+              - 校正方案保留较高速度
+            - - 谐振峰值 $M_r$
+              - $1.5079$
+              - $1.2403$
+              - $1.0404$
+              - 校正方案峰化最轻
+            - - 超调量
+              - $37.55\%$
+              - $20.03\%$
+              - $7.06\%$
+              - 校正方案超调最小
+            - - 调节时间
+              - $0.174$ s
+              - $1.914$ s
+              - $0.196$ s
+              - 校正方案几乎保持快速收敛
+      - id: fixed-conclusion-card
+        region: table
+        kind: summary-card
         must_be_visible: true
-      - id: 'structured-compare-zone'
-        region: 'activity'
-        kind: 'structured-compare'
+      - id: structured-compare-zone
+        region: activity
+        kind: structured-compare
         must_be_visible: true
     content_blocks:
-      - id: 'images'
-        type: 'media_list'
-        title: '三方案对照'
+      - id: images
+        type: media_list
+        title: 三方案对照
         items:
-          - '3-8-platform-baseline.png'
-          - '3-8-platform-case.png'
-      - id: 'conclusion'
-        type: 'plain_text'
-        title: '固定结论'
-        body: '更有效的办法是在中频补角，而不是单向把增益往下拧。'
+          - 3-8-platform-baseline.png
+          - 3-8-platform-case.png
+      - id: conclusion
+        type: plain_text
+        title: 固定结论
+        body: 更有效的办法是在中频补角，而不是单向把增益往下拧。
     evidence_sequence:
-      - '三方案 2×2 图'
-      - '指标表'
-      - '固定结论'
-      - '结构化比较卡'
+      - 三方案 2×2 图
+      - 指标表
+      - 固定结论
+      - 结构化比较卡
     interaction_spec:
-      interaction_kind: 'structured_compare'
-      student_task: '解释为什么只降增益不够，以及超前校正主改哪一段频带。'
-      activity_card_rationale: '本页需要分别说明方案不足、主改频带和最终收益；三卡拆开可避免把工程比较压成一句“超前更好”的口号。'
+      interaction_kind: structured_compare
+      student_task: 解释为什么只降增益不够，以及超前校正主改哪一段频带。
+      activity_card_rationale: 本页需要分别说明方案不足、主改频带和最终收益；三卡拆开可避免把工程比较压成一句“超前更好”的口号。
       step_reveal_policy:
-        mode: 'teacher_or_browse_release'
-        problem_statement: 'always_visible'
-        derivation_steps: 'teacher_step_reveal'
-        reference_answer: 'separate_teacher_toggle'
+        mode: teacher_or_browse_release
+        problem_statement: always_visible
+        derivation_steps: teacher_step_reveal
+        reference_answer: separate_teacher_toggle
       activity_cards:
-        - id: 'card-18-a'
-          prompt: '哪一种方案最能兼顾速度与平稳。'
-          response_kind: 'single_choice'
+        - id: card-18-a
+          prompt: 三种稳定平台方案中，哪一种最能兼顾速度与平稳。
+          response_kind: single_choice
           options:
-            - value: 'baseline'
-              label: '激进基线'
-            - value: 'lowerGain'
-              label: '仅降增益'
-            - value: 'lead'
-              label: '超前校正'
-          reference_answer: '超前校正最能兼顾速度与平稳。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
-        - id: 'card-18-b'
-          prompt: '超前校正主改哪一段频带。'
-          response_kind: 'single_choice'
+            - value: fast
+              label: 激进基线 K=5
+            - value: slow
+              label: 仅降增益 K=0.2
+            - value: lead
+              label: 超前校正方案
+          reference_answer: 超前校正方案最能兼顾速度与平稳。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-18-b
+          prompt: 为什么“只降增益”不是最合适的方案。
+          response_kind: single_choice
           options:
-            - value: 'low'
-              label: '低频'
-            - value: 'mid'
-              label: '中频'
-            - value: 'high'
-              label: '高频'
-            - value: 'phase-boundary'
-              label: '相位边界先暴露'
-          reference_answer: '超前校正主改中频。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
-        - id: 'card-18-c'
-          prompt: '用一句话说明“只降增益为什么不够”。'
-          response_kind: 'single_choice'
-          options:
-            - value: 'speed-sacrifice'
-              label: '只降增益会明显牺牲速度'
-            - value: 'best-solution'
-              label: '只降增益总是最优'
-            - value: 'raises-bandwidth'
-              label: '只降增益会提高带宽'
-          reference_answer: '只降增益不够，因为它往往用速度牺牲换稳定，不能定向补中频相角。'
-          submit_scope: 'per_card'
-          layout_span: 'one_third'
+            - value: too-slow
+              label: 余量有所增加，但截止频率和带宽被压得过低
+            - value: unstable
+              label: 它一定失稳
+            - value: too-noisy
+              label: 它主要增加高频噪声
+          reference_answer: 只降增益牺牲速度过大，不能满足快速收敛目标。
+          submit_scope: per_card
+          layout_span: half
     interactive_figure_spec:
       baseline_media:
-        - '3-8-platform-baseline.png'
-        - '3-8-platform-case.png'
-      default_variant: 'three_scheme_compare'
-      panel_layout: '2x2_fixed'
+        - 3-8-platform-baseline.png
+        - 3-8-platform-case.png
+      default_variant: three_scheme_compare
+      panel_layout: 2x2_fixed
       overlays:
-        - 'scheme_colors'
-        - 'pm_gm_wb_wr_mr_markers'
+        - scheme_colors
+        - pm_gm_wb_wr_mr_markers
       controls:
-        - 'scheme_toggle'
-        - 'overlay_toggle'
-        - 'parameter_drawer_teacher_only'
-      question_prompt: '为什么超前校正能在保持较高速度时，把超调与峰化一起压下去。'
+        - scheme_toggle
+        - overlay_toggle
+        - parameter_drawer_teacher_only
+      question_prompt: 为什么超前校正能在保持较高速度时，把超调与峰化一起压下去。
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'separate_toggle'
-      teacher_step_reveal: 'teacher_only'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: separate_toggle
+      teacher_step_reveal: teacher_only
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'toggle_three_scheme_overlay'
+        - toggle_three_scheme_overlay
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: true
       can_view_problem_statement: true
@@ -2434,147 +2584,142 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'selectedScheme'
-        - 'selectedFocusBand'
-        - 'textResponseLength'
+        - selectedScheme
+        - selectedFocusBand
+        - textResponseLength
       misconception_tags:
-        - 'still_choose_gain_only'
-        - 'cannot_read_mid_frequency_correction'
+        - still_choose_gain_only
+        - cannot_read_mid_frequency_correction
     teacher_insight_spec:
       widgets:
-        - 'best_scheme_distribution'
-        - 'focus_band_distribution'
-      aggregation: 'step_level'
+        - best_scheme_distribution
+        - focus_band_distribution
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '把平台案例收束为“三方案权衡中的中频定向校正”。'
+      page_goal: 把平台案例收束为“三方案权衡中的中频定向校正”。
       allowed_scope:
-        - '三方案比较'
-        - '中频补角'
-        - '速度和平稳兼顾'
+        - 三方案比较
+        - 中频补角
+        - 速度和平稳兼顾
       forbidden_scope:
-        - '生成页面之外的新结构与参数'
+        - 生成页面之外的新结构与参数
       canonical_facts:
-        - '最终方案之所以优，是因为它把动作集中在关键频带。'
+        - 最终方案之所以优，是因为它把动作集中在关键频带。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-18'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-18
       must_match_student_page: true
     acceptance_checks:
-      - '学生不看讲稿，也能说清“只降增益为什么不够”。'
-      - '结构化比较必须围绕频带、指标和读回结论，不得退化成空泛评价。'
-
+      - 学生不看讲稿，也能说清“只降增益为什么不够”。
+      - 结构化比较必须围绕频带、指标和读回结论，不得退化成空泛评价。
   step-19:
-    title: '后测：把完整判断链独立走一遍'
+    title: 后测：把完整判断链独立走一遍
     layout:
-      template: 'posttest_board'
+      template: posttest_board
       regions:
-        - id: 'questions'
-          width: 'full'
+        - id: questions
+          width: full
           order: 1
-        - id: 'review'
-          width: 'full'
+        - id: review
+          width: full
           order: 2
-        - id: 'class'
-          width: 'full'
+        - id: class
+          width: full
           order: 3
     modules:
-      - id: 'posttest-card-group'
-        region: 'questions'
-        kind: 'quiz-group'
+      - id: posttest-card-group
+        region: questions
+        kind: quiz-group
         must_be_visible: true
-      - id: 'remaining-confusion-note'
-        region: 'review'
-        kind: 'summary-card'
+      - id: remaining-confusion-note
+        region: review
+        kind: summary-card
         must_be_visible: true
-      - id: 'teacher-aggregation-strip'
-        region: 'class'
-        kind: 'teacher-strip'
+      - id: teacher-aggregation-strip
+        region: class
+        kind: teacher-strip
         must_be_visible: true
     content_blocks:
-      - id: 'coverage'
-        type: 'bullet_list'
-        title: '后测覆盖'
+      - id: coverage
+        type: bullet_list
+        title: 后测覆盖
         items:
-          - 'P/N/Z 顺序'
-          - 'Bode 边界判断'
-          - '频带优先级'
-          - '非最小相边界直觉'
+          - P/N/Z 顺序
+          - Bode 边界判断
+          - 频带优先级
+          - 非最小相边界直觉
     evidence_sequence:
-      - '后测题组'
-      - '剩余错因回看'
-      - '班级聚合条'
+      - 后测题组
+      - 剩余错因回看
+      - 班级聚合条
     interaction_spec:
-      interaction_kind: 'quiz_group'
-      student_task: '完成四张后测题卡，并提交一句出口自检。'
-      activity_card_rationale: '后测页属于题组页，四张卡分别检查顺序、边界、频带和非最小相直觉，必须独立统计残余错因。'
+      interaction_kind: quiz_group
+      student_task: 完成四张后测题卡，并提交一句出口自检。
+      activity_card_rationale: 后测页属于题组页，四张卡分别检查顺序、边界、频带和非最小相直觉，必须独立统计残余错因。
       step_reveal_policy:
-        mode: 'none'
+        mode: none
       activity_cards:
-        - id: 'card-19-a'
-          prompt: 'Nyquist 顺序题'
-          response_kind: 'single_choice'
+        - id: card-19-a
+          prompt: 面对未知结构变化，先判定它主要改写低频、中频还是高频这一频带问题，再说明对应的闭环收益和代价。
+          response_kind: single_choice
           options:
-            - value: 'p-n-z'
-              label: 'P -> N -> Z'
-            - value: 'n-p-z'
-              label: 'N -> P -> Z'
-            - value: 'z-p-n'
-              label: 'Z -> P -> N'
-          reference_answer: 'Nyquist 判稳顺序是 P -> N -> Z。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-19-b'
-          prompt: 'Bode 边界题'
-          response_kind: 'single_choice'
+            - value: band-first
+              label: 先判频带
+            - value: conclusion-first
+              label: 先给好坏结论
+            - value: gain-first
+              label: 先调增益
+          reference_answer: 完整链条从频带定位开始。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-19-b
+          prompt: 使用 Nyquist 或 Bode 判断稳定边界时，应先保留哪类边界证据，再决定是否越过稳定侧。
+          response_kind: single_choice
           options:
-            - value: 'stable-side'
-              label: '仍在稳定侧'
-            - value: 'critical-near'
-              label: '靠近临界边界但未越过'
-            - value: 'crossed'
-              label: '已经越过边界'
-            - value: 'need-more-evidence'
-              label: '需要先补 P/N/Z 或裕度证据'
-          reference_answer: 'Bode 边界题先读裕度正负和临界距离。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-19-c'
-          prompt: '频带优先级题'
-          response_kind: 'single_choice'
+            - value: margin-or-pnz
+              label: P/N/Z 或裕度正负
+            - value: time-only
+              label: 只看时域快慢
+            - value: dc-only
+              label: 只看低频增益
+          reference_answer: 边界判断必须保留 P/N/Z 或裕度证据。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-19-c
+          prompt: 当频域量显示系统更快但裕度变小时，如何把结果读回闭环表现。
+          response_kind: single_choice
           options:
-            - value: 'low'
-              label: '低频'
-            - value: 'mid'
-              label: '中频'
-            - value: 'high'
-              label: '高频'
-            - value: 'phase-boundary'
-              label: '相位边界先暴露'
-          reference_answer: '目标切换先重判低 / 中 / 高频优先级。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
-        - id: 'card-19-d'
-          prompt: '非最小相边界直觉题'
-          response_kind: 'single_choice'
+            - value: faster-risk
+              label: 速度可能提高，但超调、振荡或鲁棒性风险上升
+            - value: always-better
+              label: 闭环一定更优
+            - value: accuracy-only
+              label: 只影响稳态精度
+          reference_answer: 速度和裕度要共同读回闭环后果。
+          submit_scope: per_card
+          layout_span: half
+        - id: card-19-d
+          prompt: 工程目标从“尽快跟踪”改为“减小超调和执行器波动”时，完整判断链应如何重排。
+          response_kind: single_choice
           options:
-            - value: 'phase-boundary'
-              label: '先看相位代价和带宽边界'
-            - value: 'push-bandwidth'
-              label: '继续无边界推带宽'
-            - value: 'auto-unstable'
-              label: '右半平面零点自动闭环不稳定'
-          reference_answer: '非最小相问题先看相位代价和带宽边界。'
-          submit_scope: 'per_card'
-          layout_span: 'half'
+            - value: goal-band-boundary-closed
+              label: 目标 -> 频带 -> 边界 -> 闭环读回
+            - value: ai-first
+              label: 先问 AI 再选方案
+            - value: gain-only
+              label: 只降低增益
+          reference_answer: 目标切换后应重新走目标、频带、边界、闭环读回链。
+          submit_scope: per_card
+          layout_span: half
     teacher_controls:
-      release_activity: 'separate_toggle'
-      open_browse: 'not_applicable'
-      teacher_step_reveal: 'not_applicable'
-      reveal_reference_answer: 'separate_toggle'
+      release_activity: separate_toggle
+      open_browse: not_applicable
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: separate_toggle
       instructor_demo_tools:
-        - 'show_remaining_confusions'
+        - show_remaining_confusions
     student_access:
-      default_visibility: 'hidden'
+      default_visibility: hidden
       release_required: true
       browse_required: false
       can_view_problem_statement: true
@@ -2582,116 +2727,119 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'cardResultStates'
-        - 'exitReflection'
+        - cardResultStates
+        - exitReflection
       misconception_tags:
-        - 'remaining_order_confusion'
-        - 'remaining_band_confusion'
+        - remaining_order_confusion
+        - remaining_band_confusion
     teacher_insight_spec:
       widgets:
-        - 'posttest_distribution'
-        - 'top_remaining_confusions'
-      aggregation: 'step_level'
+        - posttest_distribution
+        - top_remaining_confusions
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '检查学生是否已能独立走完整条判断链。'
+      page_goal: 检查学生是否已能独立走完整条判断链。
       allowed_scope:
-        - '后测纠偏'
-        - '剩余错因'
+        - 后测纠偏
+        - 剩余错因
       forbidden_scope:
-        - '把后测改成总结页'
+        - 把后测改成总结页
       canonical_facts:
-        - '后测页只做检测，不承担总结语义。'
+        - 后测页只做检测，不承担总结语义。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-19'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-19
       must_match_student_page: true
     acceptance_checks:
-      - '后测必须与总结页分开。'
-      - '学生不看讲稿，也能独立完成出口检测。'
-
+      - 后测必须与总结页分开。
+      - 学生不看讲稿，也能独立完成出口检测。
   step-20:
-    title: '总结与去向：`3-9` 和模块 4 从哪里接走本课'
+    title: 总结与去向：`3-9` 和模块 4 从哪里接走本课
     layout:
-      template: 'summary_exit_board'
+      template: summary_exit_board
       regions:
-        - id: 'summary'
-          width: 'full'
+        - id: summary
+          width: full
           order: 1
-        - id: 'info'
-          width: 'full'
+        - id: info
+          width: full
           order: 2
-        - id: 'next'
-          width: 'full'
+        - id: next
+          width: full
           order: 3
     modules:
-      - id: 'summary-card-row'
-        region: 'summary'
-        kind: 'summary-card-row'
+      - id: summary-card-row
+        region: summary
+        kind: summary-card-row
         must_be_visible: true
-      - id: 'info-graphic'
-        region: 'info'
-        kind: 'media-card'
+      - id: info-graphic
+        region: info
+        kind: media-card
         must_be_visible: true
-      - id: 'next-step-card'
-        region: 'next'
-        kind: 'next-step-card'
+        payload:
+          path: 3-8-info.png
+          caption: 本课把结构变化、稳定边界、三频段读回和工程校正收束成统一判断地图。
+          src: 3-8-info.png
+      - id: next-step-card
+        region: next
+        kind: next-step-card
         must_be_visible: true
-      - id: 'reflection-card'
-        region: 'next'
-        kind: 'reflection-card'
+      - id: reflection-card
+        region: next
+        kind: reflection-card
         must_be_visible: true
     content_blocks:
-      - id: 'summary'
-        type: 'bullet_list'
-        title: '四条结论'
+      - id: summary
+        type: bullet_list
+        title: 四条结论
         items:
-          - '频域是统一翻译器，不是新章孤岛。'
-          - 'Nyquist 与 Bode 描述的是同一个稳定边界问题。'
-          - '低频、中频、高频分别承担精度、速度与代价判断。'
-          - '有效校正是定向改写关键频带，而不是盲目改增益。'
-      - id: 'info_image'
-        type: 'media'
-        title: '信息图'
-        path: '3-8-info.png'
-      - id: 'next'
-        type: 'plain_text'
-        title: '去向'
-        body: '3-9 将把本课判断链带入同一对象的多版本映射；模块 4 将把这些判断推进到约束驱动的设计行动。'
+          - 频域是统一翻译器，不是新章孤岛。
+          - Nyquist 与 Bode 描述的是同一个稳定边界问题。
+          - 低频、中频、高频分别承担精度、速度与代价判断。
+          - 有效校正是定向改写关键频带，而不是盲目改增益。
+      - id: info_image
+        type: media
+        title: 信息图
+        path: 3-8-info.png
+      - id: next
+        type: plain_text
+        title: 去向
+        body: 3-9 将把本课判断链带入同一对象的多版本映射；模块 4 将把这些判断推进到约束驱动的设计行动。
     evidence_sequence:
-      - '四条结论'
-      - '信息图'
-      - '去向卡'
-      - '一句反思'
+      - 四条结论
+      - 信息图
+      - 去向卡
+      - 一句反思
     interaction_spec:
-      interaction_kind: 'reflection_card'
-      student_task: '选填一句反思，说明自己现在最稳的判断动作是什么。'
+      interaction_kind: reflection_card
+      student_task: 选填一句反思，说明自己现在最稳的判断动作是什么。
       step_reveal_policy:
-        mode: 'none'
+        mode: none
       activity_cards:
-        - id: 'step-20-activity'
-          prompt: '选填一句反思，说明自己现在最稳的判断动作是什么。'
-          response_kind: 'single_choice'
+        - id: step-20-activity
+          prompt: 选填一句反思，说明自己现在最稳的判断动作是什么。
+          response_kind: single_choice
           options:
-            - value: 'translate-first'
-              label: '先把结构变化翻译成频域指纹'
-            - value: 'pnz-first'
-              label: '先按 P -> N -> Z 判稳'
-            - value: 'band-first'
-              label: '先按低 / 中 / 高频拆目标'
-            - value: 'boundary-first'
-              label: '先识别稳定边界再谈性能'
-          reference_answer: '四个动作都可作为本课出口，但必须能接回完整判断链。'
-          submit_scope: 'per_card'
-          layout_span: 'full'
+            - value: translate-first
+              label: 先把结构变化翻译成频域指纹
+            - value: pnz-first
+              label: 先按 P -> N -> Z 判稳
+            - value: band-first
+              label: 先按低 / 中 / 高频拆目标
+            - value: boundary-first
+              label: 先识别稳定边界再谈性能
+          reference_answer: 四个动作都可作为本课出口，但必须能接回完整判断链。
+          submit_scope: per_card
+          layout_span: full
     teacher_controls:
-      release_activity: 'not_applicable'
-      open_browse: 'always_on'
-      teacher_step_reveal: 'not_applicable'
-      reveal_reference_answer: 'not_applicable'
+      release_activity: not_applicable
+      open_browse: always_on
+      teacher_step_reveal: not_applicable
+      reveal_reference_answer: not_applicable
       instructor_demo_tools:
-        - 'toggle_reflection_card'
+        - toggle_reflection_card
     student_access:
-      default_visibility: 'visible'
+      default_visibility: visible
       release_required: false
       browse_required: false
       can_view_problem_statement: true
@@ -2699,25 +2847,25 @@ steps:
       can_submit_without_browse: true
     telemetry_spec:
       summary_fields:
-        - 'reflectionSubmitted'
-      result_policy: 'optional_reflection'
+        - reflectionSubmitted
+      result_policy: optional_reflection
     teacher_insight_spec:
       widgets:
-        - 'reflection_keyword_cloud'
-      aggregation: 'step_level'
+        - reflection_keyword_cloud
+      aggregation: step_level
     ai_context_spec:
-      page_goal: '把本课主线稳定收束到后续单元。'
+      page_goal: 把本课主线稳定收束到后续单元。
       allowed_scope:
-        - '四条结论'
-        - '3-9 与模块 4 的衔接'
+        - 四条结论
+        - 3-9 与模块 4 的衔接
       forbidden_scope:
-        - '在总结页继续引入新知识点'
+        - 在总结页继续引入新知识点
       canonical_facts:
-        - '总结页负责收束，不再承担后测。'
+        - 总结页负责收束，不再承担后测。
     preview_contract:
-      route_kind: 'student_demo'
-      demo_path: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-20'
+      route_kind: student_demo
+      demo_path: /interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-20
       must_match_student_page: true
     acceptance_checks:
-      - '四条结论、信息图与去向卡必须同页。'
-      - '学生离开本页时，不看讲稿也能复述本课主线和下一跳。'
+      - 四条结论、信息图与去向卡必须同页。
+      - 学生离开本页时，不看讲稿也能复述本课主线和下一跳。

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-28T17:04:56.242853Z",
+  "lesson_id": "3-9",
+  "node_id": "三频段闭环性能回读_3_38003",
+  "node_name": "三频段闭环性能回读",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已目视审查：重生成后中文标签正确，包含船舶航向仪表、Bode三频段、阶跃响应、执行器/航向/反馈图块；公式锚点可读。"
+}

@@ -27,7 +27,7 @@
   ],
   "steps": {
     "step-01": {
-      "title": "路径定位：`3-8` 为什么不是新章",
+      "title": "导入：三类结构变化为什么需要统一频域语言",
       "layout": {
         "template": "map_hero_slide",
         "regions": [
@@ -50,66 +50,74 @@
       },
       "modules": [
         {
-          "id": "stage-map",
-          "region": "lead",
-          "kind": "stage-map",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "path",
-            "title": "路径定位",
-            "text": "固定高亮 3-5 -> 3-7 -> 3-8 -> 3-9，并写清 3-8 负责把前述结构变化统一翻译到频域判断语言。"
-          }
-        },
-        {
-          "id": "core-question-card",
+          "id": "known-change-card",
           "region": "lead",
           "kind": "question-card",
           "must_be_visible": true,
           "payload": {
             "block_key": "question",
-            "title": "主问题",
-            "text": "为什么增益、零点、极点和积分补偿会在频域里留下不同指纹，这些指纹又如何接到稳定判断与工程决策。"
+            "title": "本课核心问题",
+            "text": "为什么增益、零点、极点和积分补偿会在频域里留下不同指纹，这些指纹又怎样被翻译成稳定判断、性能读回与工程决策。"
           }
         },
         {
-          "id": "boundary-card",
-          "region": "summary",
-          "kind": "boundary-card",
+          "id": "engineering-question-card",
+          "region": "lead",
+          "kind": "process-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "boundary",
-            "title": "边界",
+            "block_key": "known_changes",
+            "title": "已经见过的三类变化",
             "items": [
-              "不重讲模块 2 的作图基础。",
-              "不提前进入模块 4 的完整整定。"
+              "调大增益后，系统往往更快，但更容易靠近稳定边界。",
+              "引入零点后，动态更积极，高频代价也可能抬升。",
+              "加入积分或滞后后，稳态精度提高，中频相位余量会变紧。"
+            ]
+          }
+        },
+        {
+          "id": "core-question-card",
+          "region": "summary",
+          "kind": "question-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "engineering_questions",
+            "title": "导入问题",
+            "items": [
+              "结构变化首先改写低频、中频还是高频。",
+              "这种改写最终落到速度、超调、稳态精度还是噪声代价上。"
             ]
           }
         }
       ],
       "content_blocks": {
-        "path": {
-          "type": "plain_text",
-          "title": "路径定位",
-          "body": "固定高亮 3-5 -> 3-7 -> 3-8 -> 3-9，并写清 3-8 负责把前述结构变化统一翻译到频域判断语言。"
+        "known_changes": {
+          "type": "bullet_list",
+          "title": "已经见过的三类变化",
+          "items": [
+            "调大增益后，系统往往更快，但更容易靠近稳定边界。",
+            "引入零点后，动态更积极，高频代价也可能抬升。",
+            "加入积分或滞后后，稳态精度提高，中频相位余量会变紧。"
+          ]
+        },
+        "engineering_questions": {
+          "type": "bullet_list",
+          "title": "导入问题",
+          "items": [
+            "结构变化首先改写低频、中频还是高频。",
+            "这种改写最终落到速度、超调、稳态精度还是噪声代价上。"
+          ]
         },
         "question": {
           "type": "plain_text",
-          "title": "主问题",
-          "body": "为什么增益、零点、极点和积分补偿会在频域里留下不同指纹，这些指纹又如何接到稳定判断与工程决策。"
-        },
-        "boundary": {
-          "type": "bullet_list",
-          "title": "边界",
-          "items": [
-            "不重讲模块 2 的作图基础。",
-            "不提前进入模块 4 的完整整定。"
-          ]
+          "title": "本课核心问题",
+          "body": "为什么增益、零点、极点和积分补偿会在频域里留下不同指纹，这些指纹又怎样被翻译成稳定判断、性能读回与工程决策。"
         }
       },
       "evidence_sequence": [
-        "路径图",
-        "主问题卡",
-        "边界卡"
+        "已有三类结构变化",
+        "两个工程问题",
+        "本课核心问题"
       ],
       "interaction_spec": {
         "interaction_kind": "none",
@@ -152,7 +160,7 @@
         "aggregation": "step_level"
       },
       "ai_context_spec": {
-        "page_goal": "明确 3-8 在模块 3 中的路径位置和主问题。",
+        "page_goal": "基于前述增益、零点、积分和滞后知识提出新的频域判断问题。",
         "allowed_scope": [
           "3-5/3-7/3-8/3-9 的关系",
           "课程边界"
@@ -171,8 +179,8 @@
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "首屏必须同时看到路径图、主问题卡和边界卡。",
-        "不依赖教师口头补充，学生也能说出 3-8 在模块 3 中的位置。"
+        "首屏必须呈现已学变化、工程问题和本课核心问题。",
+        "不得出现空的路径定位模块。"
       ]
     },
     "step-02": {
@@ -218,9 +226,9 @@
             "block_key": "method",
             "title": "三步判断法",
             "items": [
-              "先判断哪一段频带被改写。",
-              "再判断系统离稳定边界更近还是更远。",
-              "最后把频域量读回速度、超调、稳态精度和高频代价。"
+              "识别变化主要改写的频带。",
+              "判定系统离稳定边界更近还是更远。",
+              "解释频域量如何读回速度、超调、稳态精度和噪声代价。"
             ]
           }
         },
@@ -231,24 +239,13 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "objective",
-            "title": "课程目标",
+            "title": "完成本次课程后，学习者能够",
             "items": [
-              "会把结构变化翻译成频域指纹。",
-              "会按 P -> N -> Z 的顺序做 Nyquist 基本判稳。",
-              "会用 Bode 图读出截止频率与稳定裕度。",
-              "会按三频段读回闭环性能。"
+              "区分增益、零点、极点和积分补偿在频域中的典型指纹。",
+              "依据 P、N、Z 的关系判定 Nyquist 图对应的闭环稳定性。",
+              "使用 Bode 图读出截止频率、相角裕度和增益裕度，并判断系统处于边界哪一侧。",
+              "评价频带改写对闭环速度、超调、稳态精度和噪声代价的影响。"
             ]
-          }
-        },
-        {
-          "id": "boundary-note",
-          "region": "objective",
-          "kind": "boundary-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "chain",
-            "title": "统一翻译链",
-            "text": "结构变化 -> 开环频率特性改写 -> 稳定边界变化 -> 闭环性能后果。"
           }
         }
       ],
@@ -262,26 +259,26 @@
           "type": "bullet_list",
           "title": "三步判断法",
           "items": [
-            "先判断哪一段频带被改写。",
-            "再判断系统离稳定边界更近还是更远。",
-            "最后把频域量读回速度、超调、稳态精度和高频代价。"
+            "识别变化主要改写的频带。",
+            "判定系统离稳定边界更近还是更远。",
+            "解释频域量如何读回速度、超调、稳态精度和噪声代价。"
           ]
         },
         "objective": {
           "type": "bullet_list",
-          "title": "课程目标",
+          "title": "完成本次课程后，学习者能够",
           "items": [
-            "会把结构变化翻译成频域指纹。",
-            "会按 P -> N -> Z 的顺序做 Nyquist 基本判稳。",
-            "会用 Bode 图读出截止频率与稳定裕度。",
-            "会按三频段读回闭环性能。"
+            "区分增益、零点、极点和积分补偿在频域中的典型指纹。",
+            "依据 P、N、Z 的关系判定 Nyquist 图对应的闭环稳定性。",
+            "使用 Bode 图读出截止频率、相角裕度和增益裕度，并判断系统处于边界哪一侧。",
+            "评价频带改写对闭环速度、超调、稳态精度和噪声代价的影响。"
           ]
         }
       },
       "evidence_sequence": [
         "统一翻译链",
         "三步判断法",
-        "课程目标与边界"
+        "布鲁姆动词学习成果"
       ],
       "interaction_spec": {
         "interaction_kind": "none",
@@ -375,12 +372,12 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "misconceptions",
-            "title": "四类误判",
+            "title": "前测只检查进入本课所需的读图基础",
             "items": [
-              "只看幅值，不看频带与相位。",
-              "Nyquist 判稳跳过 P，直接看图形。",
-              "把截止频率更大直接等同于系统更好。",
-              "把非最小相对象理解成可以靠更大带宽硬压过去。"
+              "能否把频率响应读成幅值、相位和频带共同作用，而不是只看曲线高低。",
+              "能否在 Bode 图上区分截止频率、相位穿越频率、相角裕度和增益裕度。",
+              "能否把根轨迹中的“靠近虚轴”理解成稳定余量变小。",
+              "能否说明积分补偿改善低频精度时，可能压缩中频相位余量。"
             ]
           }
         },
@@ -390,9 +387,9 @@
           "kind": "quiz-group",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ai_note",
-            "title": "AI 锁定",
-            "text": "必须先完成首答，之后才允许进入 AI 对照。"
+            "block_key": "reason_note",
+            "title": "作答要求",
+            "text": "每题先选判断，再写一句理由。前测不考本单元尚未展开的 Nyquist 判据细节。"
           }
         },
         {
@@ -402,12 +399,12 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "misconceptions",
-            "title": "四类误判",
+            "title": "前测只检查进入本课所需的读图基础",
             "items": [
-              "只看幅值，不看频带与相位。",
-              "Nyquist 判稳跳过 P，直接看图形。",
-              "把截止频率更大直接等同于系统更好。",
-              "把非最小相对象理解成可以靠更大带宽硬压过去。"
+              "能否把频率响应读成幅值、相位和频带共同作用，而不是只看曲线高低。",
+              "能否在 Bode 图上区分截止频率、相位穿越频率、相角裕度和增益裕度。",
+              "能否把根轨迹中的“靠近虚轴”理解成稳定余量变小。",
+              "能否说明积分补偿改善低频精度时，可能压缩中频相位余量。"
             ]
           }
         },
@@ -418,12 +415,12 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "misconceptions",
-            "title": "四类误判",
+            "title": "前测只检查进入本课所需的读图基础",
             "items": [
-              "只看幅值，不看频带与相位。",
-              "Nyquist 判稳跳过 P，直接看图形。",
-              "把截止频率更大直接等同于系统更好。",
-              "把非最小相对象理解成可以靠更大带宽硬压过去。"
+              "能否把频率响应读成幅值、相位和频带共同作用，而不是只看曲线高低。",
+              "能否在 Bode 图上区分截止频率、相位穿越频率、相角裕度和增益裕度。",
+              "能否把根轨迹中的“靠近虚轴”理解成稳定余量变小。",
+              "能否说明积分补偿改善低频精度时，可能压缩中频相位余量。"
             ]
           }
         }
@@ -431,118 +428,118 @@
       "content_blocks": {
         "misconceptions": {
           "type": "bullet_list",
-          "title": "四类误判",
+          "title": "前测只检查进入本课所需的读图基础",
           "items": [
-            "只看幅值，不看频带与相位。",
-            "Nyquist 判稳跳过 P，直接看图形。",
-            "把截止频率更大直接等同于系统更好。",
-            "把非最小相对象理解成可以靠更大带宽硬压过去。"
+            "能否把频率响应读成幅值、相位和频带共同作用，而不是只看曲线高低。",
+            "能否在 Bode 图上区分截止频率、相位穿越频率、相角裕度和增益裕度。",
+            "能否把根轨迹中的“靠近虚轴”理解成稳定余量变小。",
+            "能否说明积分补偿改善低频精度时，可能压缩中频相位余量。"
           ]
         },
-        "ai_note": {
+        "reason_note": {
           "type": "plain_text",
-          "title": "AI 锁定",
-          "body": "必须先完成首答，之后才允许进入 AI 对照。"
+          "title": "作答要求",
+          "body": "每题先选判断，再写一句理由。前测不考本单元尚未展开的 Nyquist 判据细节。"
         }
       },
       "evidence_sequence": [
-        "误判清单",
+        "前置基础说明",
         "前测题组",
-        "理由记录与 AI 锁定提示"
+        "理由记录"
       ],
       "interaction_spec": {
         "interaction_kind": "quiz_group",
-        "student_task": "完成四道前测题，并为每题提交一句理由。",
-        "activity_card_rationale": "前测页属于题组页，四张卡分别对应四类典型误判，必须独立聚合错因，不能压成两道综合题。",
+        "student_task": "完成四道前置基础题，检查频率响应、Bode 读图、稳定余量和积分补偿代价。",
+        "activity_card_rationale": "前测页属于题组页，四张卡分别测试本课需要的前置基础，不提前考本单元尚未讲解的判据。",
         "step_reveal_policy": {
           "mode": "none"
         },
         "activity_cards": [
           {
             "id": "card-03-a",
-            "prompt": "频域判断是否只要看曲线有没有抬高。",
+            "prompt": "频率响应读图时，是否需要同时看幅值、相位和所在频带。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "no",
-                "label": "不是"
+                "value": true,
+                "label": "需要同时看"
               },
               {
-                "value": "yes",
-                "label": "是"
+                "value": "magnitude-only",
+                "label": "只看幅值"
               },
               {
-                "value": "only-low",
-                "label": "只在低频成立"
+                "value": "phase-only",
+                "label": "只看相位"
               }
             ],
-            "reference_answer": "不是。频域判断必须同时看频带、幅值与相位代价。",
+            "reference_answer": "需要。频率响应的判断至少同时包含幅值、相位和频带位置。",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "card-03-b",
-            "prompt": "Nyquist 判稳是否可以不先数开环右半平面极点。",
+            "prompt": "Bode 图中，截止频率右移是否只能说明速度倾向，不能单独说明综合性能更优。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "no",
-                "label": "不可以"
+                "value": true,
+                "label": "是"
               },
               {
-                "value": "yes",
-                "label": "可以"
+                "value": false,
+                "label": "不是"
               },
               {
-                "value": "only-stable-open",
-                "label": "只有开环稳定时可以"
+                "value": "only-stability",
+                "label": "只说明稳定性更强"
               }
             ],
-            "reference_answer": "不可以。Nyquist 判稳必须先数开环右半平面极点 P。",
+            "reference_answer": "是。截止频率右移通常提示速度变化，但还要结合裕度和高频代价。",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "card-03-c",
-            "prompt": "截止频率更大是否自动意味着系统更优。",
+            "prompt": "根轨迹或闭环极点更靠近虚轴时，稳定余量通常如何变化。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "no",
-                "label": "不是"
+                "value": "smaller",
+                "label": "余量变小"
               },
               {
-                "value": "yes",
-                "label": "是"
+                "value": "larger",
+                "label": "余量变大"
               },
               {
-                "value": "only-noise",
-                "label": "只表示噪声更小"
+                "value": "unrelated",
+                "label": "无法形成任何提示"
               }
             ],
-            "reference_answer": "不是。截止频率提高常意味着速度变化，但不自动等于综合性能更优。",
+            "reference_answer": "通常表示稳定余量变小，动态也更容易出现较大超调或振荡。",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "card-03-d",
-            "prompt": "非最小相对象是否只要继续提带宽就能解决问题。",
+            "prompt": "积分补偿改善低频稳态精度时，最需要警惕哪类频域代价。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "no",
-                "label": "不能这样处理"
+                "value": "mid-phase",
+                "label": "中频相位余量被压缩"
               },
               {
-                "value": "yes",
-                "label": "可以继续提带宽"
+                "value": "low-loss",
+                "label": "低频增益必然降低"
               },
               {
-                "value": "same-as-rhp-pole",
-                "label": "右半平面零点等同右半平面极点"
+                "value": "no-cost",
+                "label": "没有代价"
               }
             ],
-            "reference_answer": "不能这样处理。非最小相对象要先看相位代价与带宽边界。",
+            "reference_answer": "最需要警惕中频相位余量被压缩。",
             "submit_scope": "per_card",
             "layout_span": "half"
           }
@@ -572,10 +569,10 @@
           "errorBucket"
         ],
         "misconception_tags": [
-          "only_watch_magnitude",
-          "nyquist_skip_p",
-          "wc_equals_everything",
-          "nmp_push_bandwidth"
+          "frequency_response_one_dimensional",
+          "bode_margin_confusion",
+          "root_locus_margin_weak",
+          "integral_phase_cost_missing"
         ]
       },
       "teacher_insight_spec": {
@@ -595,7 +592,7 @@
           "代做后续例题"
         ],
         "canonical_facts": [
-          "必须先首答，再看 AI 对照。"
+          "前测只检查进入本课所需的基础读图能力。"
         ]
       },
       "preview_contract": {
@@ -637,14 +634,43 @@
           "kind": "comparison-table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "columns",
-            "title": "总表字段",
-            "items": [
+            "title": "四类结构变化的频域指纹总表",
+            "columns": [
               "结构变化",
-              "主要改写频带",
-              "幅频与相频主变化",
-              "典型收益",
-              "典型代价"
+              "幅频主变化",
+              "相频主变化",
+              "第一观察重点",
+              "常见闭环后果"
+            ],
+            "rows": [
+              [
+                "增益提升",
+                "整体上移",
+                "相位基本不变",
+                "截止频率是否右移",
+                "速度提高，稳定余量常减小"
+              ],
+              [
+                "左半平面零点",
+                "中高频抬升",
+                "中频相位提前",
+                "中频是否获得更多提前",
+                "动态更积极，高频代价上升"
+              ],
+              [
+                "极点增加 / 积分环节",
+                "低频到中频抬升或转折变早",
+                "相位更早下降",
+                "中频余量是否被压缩",
+                "精度提高，相位余量更紧"
+              ],
+              [
+                "右半平面零点",
+                "幅值可能抬升",
+                "相位朝不利方向变化",
+                "截止频率上升是否伴随更大相位代价",
+                "直觉容易失真，超调风险增大"
+              ]
             ]
           }
         },
@@ -654,17 +680,6 @@
           "kind": "summary-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "band_note",
-            "title": "阅读口令",
-            "text": "任何结构变化都先回答“哪一段频带先被改写”，再回答“换来什么、付出什么”。"
-          }
-        },
-        {
-          "id": "row-focus-toggle",
-          "region": "focus",
-          "kind": "row-focus-toggle",
-          "must_be_visible": true,
-          "payload": {
             "block_key": "columns",
             "title": "总表字段",
             "items": [
@@ -674,6 +689,17 @@
               "典型收益",
               "典型代价"
             ]
+          }
+        },
+        {
+          "id": "row-focus-toggle",
+          "region": "focus",
+          "kind": "row-focus-toggle",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "band_note",
+            "title": "阅读口令",
+            "text": "任何结构变化都先回答“哪一段频带先被改写”，再回答“换来什么、付出什么”。"
           }
         }
       ],
@@ -832,9 +858,29 @@
           "kind": "interactive-figure-panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "panel_note",
-            "title": "面板说明",
-            "text": "固定 2×2：左上幅频、右上相频、左下根轨迹、右下时域；默认状态必须复现讲义静态图义。"
+            "title": "四类结构变化的讲义图组",
+            "items": [
+              {
+                "path": "3-8-gain-effect.png",
+                "caption": "增益提升：幅频整体上移，相位基本不变，截止频率可能右移。",
+                "src": "3-8-gain-effect.png"
+              },
+              {
+                "path": "3-8-zero-effect.png",
+                "caption": "左半平面零点：中频相位提前，同时带来高频抬升。",
+                "src": "3-8-zero-effect.png"
+              },
+              {
+                "path": "3-8-pole-effect.png",
+                "caption": "极点或积分补偿：低频精度增强，中频相位余量更紧。",
+                "src": "3-8-pole-effect.png"
+              },
+              {
+                "path": "3-8-rhp-zero-effect.png",
+                "caption": "右半平面零点：幅值看似更强，但相位代价不利。",
+                "src": "3-8-rhp-zero-effect.png"
+              }
+            ]
           }
         },
         {
@@ -843,13 +889,9 @@
           "kind": "overlay-strip",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reading_prompt",
-            "title": "读图口令",
-            "items": [
-              "先看当前变化是哪一类。",
-              "再看低频 / 中频 / 高频哪一段先被改写。",
-              "最后看这会如何改写稳定边界和闭环后果。"
-            ]
+            "block_key": "panel_note",
+            "title": "面板说明",
+            "text": "固定 2×2：左上幅频、右上相频、左下根轨迹、右下时域；默认状态必须复现讲义静态图义。"
           }
         },
         {
@@ -893,15 +935,15 @@
       ],
       "interaction_spec": {
         "interaction_kind": "curve_compare_panel",
-        "student_task": "切换四类结构变化，并完成频带、收益、代价三张独立作答卡。",
-        "activity_card_rationale": "三张卡分别承载频带定位、收益判断、代价判断三种不同动作；若合并，会把“先判频带”再次压扁成泛化结论。",
+        "student_task": "切换四类结构变化，并完成频带定位、收益代价配对两张作答卡。",
+        "activity_card_rationale": "两张卡分别承载频带定位与收益代价配对，保证作答区不超过两卡且仍保留“先判频带”的动作。",
         "step_reveal_policy": {
           "mode": "none"
         },
         "activity_cards": [
           {
             "id": "card-05-a",
-            "prompt": "当前变化优先改写哪一段频带。",
+            "prompt": "当前结构变化优先改写哪一段频带。",
             "response_kind": "single_choice",
             "options": [
               {
@@ -917,65 +959,39 @@
                 "label": "高频"
               },
               {
-                "value": "phase-boundary",
-                "label": "相位边界先暴露"
+                "value": "all-lift",
+                "label": "整体上移"
               }
             ],
-            "reference_answer": "先判断主要被改写的频带，再解释收益和代价。",
+            "reference_answer": "先判主要被改写的频带，再解释收益和代价。",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "half"
           },
           {
             "id": "card-05-b",
-            "prompt": "这类变化首先换来什么收益。",
+            "prompt": "把当前变化的主要收益和主要代价配成一组。",
             "response_kind": "multi_choice",
             "options": [
               {
-                "value": "accuracy",
-                "label": "改善稳态精度"
+                "value": "accuracy-phase",
+                "label": "低频精度提高 / 中频相位余量变紧"
               },
               {
                 "value": "speed-margin",
-                "label": "改善速度或相角裕度"
+                "label": "速度提高 / 稳定余量可能减小"
               },
               {
-                "value": "stability-warning",
-                "label": "识别稳定边界风险"
+                "value": "phase-noise",
+                "label": "中频相位提前 / 高频代价上升"
               },
               {
-                "value": "noise-cost",
-                "label": "主要增加高频代价"
+                "value": "nmp-risk",
+                "label": "速度直觉增强 / 相位边界更危险"
               }
             ],
-            "reference_answer": "收益通常落在稳态精度、速度/相角裕度或边界识别，不应只看幅值抬高。",
+            "reference_answer": "收益与代价必须同时写出，不能只说更快或更稳。",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
-          },
-          {
-            "id": "card-05-c",
-            "prompt": "这类变化最可能带来什么代价。",
-            "response_kind": "single_choice",
-            "options": [
-              {
-                "value": "margin-compress",
-                "label": "稳定裕量被压缩"
-              },
-              {
-                "value": "noise-rise",
-                "label": "高频噪声或执行器代价上升"
-              },
-              {
-                "value": "mid-cost",
-                "label": "中频附近带来相位或速度代价"
-              },
-              {
-                "value": "band-limited",
-                "label": "带宽推进受相位边界限制"
-              }
-            ],
-            "reference_answer": "代价要按结构变化读回裕量、高频噪声、中频相位或带宽限制。",
-            "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "half"
           }
         ]
       },
@@ -1088,9 +1104,8 @@
           "kind": "worked-example-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem",
             "title": "完整题面",
-            "text": "分别对 4 倍增益、左半平面零点 1+s/0.8、原点积分极点三种变化，判断哪种先改写低频、哪种先改写中频，并说明各自收益与代价。"
+            "text": "设某单位负反馈系统原始开环频率特性已知，现在分别施加：增益扩大为 4 倍；引入左半平面零点 1+s/0.8；在原点增加一个积分极点。分别判断哪种变化最先改写低频，哪种最先改写中频，并说明每种变化的主要收益和代价。"
           }
         },
         {
@@ -1099,12 +1114,11 @@
           "kind": "condition-list",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reveal_steps",
-            "title": "显影链",
+            "title": "三种结构变化",
             "items": [
-              "先判哪一段频带先被改写。",
-              "再判断会带来什么收益。",
-              "最后指出主要代价与边界风险。"
+              "增益扩大为 4 倍。",
+              "引入左半平面零点 1+s/0.8。",
+              "在原点增加一个积分极点。"
             ]
           }
         },
@@ -1114,9 +1128,13 @@
           "kind": "step-reveal-column",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem",
-            "title": "完整题面",
-            "text": "分别对 4 倍增益、左半平面零点 1+s/0.8、原点积分极点三种变化，判断哪种先改写低频、哪种先改写中频，并说明各自收益与代价。"
+            "title": "显影链",
+            "items": [
+              "4 倍增益使幅频曲线整体上移，第一观察重点是截止频率是否右移，收益是速度提高，代价常是稳定余量减小。",
+              "左半平面零点主要改写中频，相位提前和高频抬升同时出现，收益是动态更积极，代价是高频负担上升。",
+              "积分极点首先增强低频，改善稳态精度，再把中频相位余量压紧。",
+              "结论：最先改写低频的是积分极点，最先改写中频的是左半平面零点，改写最均匀的是增益提升。"
+            ]
           }
         },
         {
@@ -1125,9 +1143,7 @@
           "kind": "activity-card-grid",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem",
-            "title": "完整题面",
-            "text": "分别对 4 倍增益、左半平面零点 1+s/0.8、原点积分极点三种变化，判断哪种先改写低频、哪种先改写中频，并说明各自收益与代价。"
+            "title": "作答区"
           }
         },
         {
@@ -1136,9 +1152,12 @@
           "kind": "reference-answer-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem",
-            "title": "完整题面",
-            "text": "分别对 4 倍增益、左半平面零点 1+s/0.8、原点积分极点三种变化，判断哪种先改写低频、哪种先改写中频，并说明各自收益与代价。"
+            "title": "参考答案",
+            "items": [
+              "最先改写低频的是积分极点。",
+              "最先改写中频的是左半平面零点。",
+              "改写最均匀的是增益提升。"
+            ]
           }
         }
       ],
@@ -1146,15 +1165,16 @@
         "problem": {
           "type": "plain_text",
           "title": "完整题面",
-          "body": "分别对 4 倍增益、左半平面零点 1+s/0.8、原点积分极点三种变化，判断哪种先改写低频、哪种先改写中频，并说明各自收益与代价。"
+          "body": "设某单位负反馈系统原始开环频率特性已知，现在分别施加：增益扩大为 4 倍；引入左半平面零点 1+s/0.8；在原点增加一个积分极点。分别判断哪种变化最先改写低频，哪种最先改写中频，并说明每种变化的主要收益和代价。"
         },
         "reveal_steps": {
           "type": "bullet_list",
           "title": "显影链",
           "items": [
-            "先判哪一段频带先被改写。",
-            "再判断会带来什么收益。",
-            "最后指出主要代价与边界风险。"
+            "4 倍增益使幅频曲线整体上移，第一观察重点是截止频率是否右移，收益是速度提高，代价常是稳定余量减小。",
+            "左半平面零点主要改写中频，相位提前和高频抬升同时出现，收益是动态更积极，代价是高频负担上升。",
+            "积分极点首先增强低频，改善稳态精度，再把中频相位余量压紧。",
+            "结论：最先改写低频的是积分极点，最先改写中频的是左半平面零点，改写最均匀的是增益提升。"
           ]
         }
       },
@@ -1167,8 +1187,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "activity_cards",
-        "student_task": "完成三张独立作答卡，分别回答频带、收益与代价。",
-        "activity_card_rationale": "例题页需要保持“先判频带，再配对收益与代价”的解题顺序，因此拆成三张卡，避免一道综合题掩盖具体误判。",
+        "student_task": "完成两张独立作答卡：低频归因与中频/收益代价归因。",
+        "activity_card_rationale": "例题页需要保持“先判频带，再配对收益与代价”的解题顺序，因此拆成两张并排卡，避免题面在页内重复出现。",
         "step_reveal_policy": {
           "mode": "teacher_or_browse_release",
           "problem_statement": "always_visible",
@@ -1190,21 +1210,17 @@
                 "label": "左半平面零点"
               },
               {
-                "value": "integral-lag",
-                "label": "积分 / 滞后"
-              },
-              {
-                "value": "nmp",
-                "label": "非最小相"
+                "value": "integral",
+                "label": "原点积分极点"
               }
             ],
-            "reference_answer": "积分 / 滞后最先指向低频补偿。",
+            "reference_answer": "原点积分极点最先指向低频补偿。",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "half"
           },
           {
             "id": "card-06-b",
-            "prompt": "哪一种变化最先改写中频。",
+            "prompt": "哪一种变化最先改写中频，并带来“动态更积极但高频代价上升”的组合。",
             "response_kind": "single_choice",
             "options": [
               {
@@ -1216,43 +1232,13 @@
                 "label": "左半平面零点"
               },
               {
-                "value": "integral-lag",
-                "label": "积分 / 滞后"
-              },
-              {
-                "value": "nmp",
-                "label": "非最小相"
+                "value": "integral",
+                "label": "原点积分极点"
               }
             ],
-            "reference_answer": "左半平面零点更直接改写中频速度与相角裕度。",
+            "reference_answer": "左半平面零点主要改写中频，同时可能抬升高频代价。",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
-          },
-          {
-            "id": "card-06-c",
-            "prompt": "把三种变化与对应收益 / 代价做匹配。",
-            "response_kind": "single_choice",
-            "options": [
-              {
-                "value": "margin-compress",
-                "label": "稳定裕量被压缩"
-              },
-              {
-                "value": "noise-rise",
-                "label": "高频噪声或执行器代价上升"
-              },
-              {
-                "value": "mid-cost",
-                "label": "中频附近带来相位或速度代价"
-              },
-              {
-                "value": "band-limited",
-                "label": "带宽推进受相位边界限制"
-              }
-            ],
-            "reference_answer": "三类变化分别带来裕量压缩、高频代价或中频附近代价。",
-            "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "half"
           }
         ]
       },
@@ -1368,9 +1354,29 @@
           "kind": "comparison-table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary",
-            "title": "结论桥接",
-            "text": "总转角不是抽象符号，而是通向 Nyquist 判稳的逻辑起点。"
+            "title": "幅角原理符号表",
+            "columns": [
+              "记号",
+              "含义",
+              "在闭环稳定分析中的作用"
+            ],
+            "rows": [
+              [
+                "$P$",
+                "路径内部极点数",
+                "反映开环右半平面极点数"
+              ],
+              [
+                "$Z$",
+                "路径内部零点数",
+                "对应闭环右半平面极点数"
+              ],
+              [
+                "$\\Delta \\arg F(s)$",
+                "映射曲线总转角",
+                "反映函数值对原点的环绕"
+              ]
+            ]
           }
         },
         {
@@ -1551,13 +1557,9 @@
           "kind": "comparison-graphic",
           "must_be_visible": true,
           "payload": {
-            "block_key": "order",
-            "title": "固定顺序",
-            "items": [
-              "先数开环右半平面极点数 P。",
-              "再数对临界点的包围数 N。",
-              "最后算闭环右半平面极点数 Z。"
-            ]
+            "path": "3-8-nyquist-quickcheck.png",
+            "caption": "临界点 (-1,0) 是把 F 平面绕原点问题转写到 L 平面的等价观察点。",
+            "src": "3-8-nyquist-quickcheck.png"
           }
         },
         {
@@ -1566,11 +1568,12 @@
           "kind": "reason-chain",
           "must_be_visible": true,
           "payload": {
-            "block_key": "auxiliary",
-            "title": "辅助函数链",
+            "block_key": "order",
+            "title": "固定顺序",
             "items": [
-              "F(s)=1+G(s)H(s)",
-              "F(s)=0 等价于闭环特征方程成立"
+              "先数开环右半平面极点数 P。",
+              "再数对临界点的包围数 N。",
+              "最后算闭环右半平面极点数 Z。"
             ]
           }
         }
@@ -1729,8 +1732,9 @@
           "kind": "comparison-graphic",
           "must_be_visible": true,
           "payload": {
-            "block_key": "image",
-            "title": "例题 2 图组"
+            "path": "3-8-nyquist-quickcheck.png",
+            "caption": "四条 Nyquist 曲线需要逐一配对 P、N、Z 与稳定结论。",
+            "src": "3-8-nyquist-quickcheck.png"
           }
         },
         {
@@ -1739,9 +1743,49 @@
           "kind": "comparison-table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "boundary",
-            "title": "边界提醒",
-            "text": "右半平面零点不等于右半平面极点；快判也不能跳过 P/N/Z。"
+            "title": "Nyquist 快速判稳 P/N/Z 表",
+            "columns": [
+              "图形",
+              "对象 $L(s)$",
+              "$P$",
+              "$N$",
+              "$Z=P-N$",
+              "结论"
+            ],
+            "rows": [
+              [
+                "A",
+                "$6/[(s+1)(s+2)(s+4)]$",
+                "0",
+                "0",
+                "0",
+                "开环稳定，闭环稳定"
+              ],
+              [
+                "B",
+                "$0.5(s+0.5)/[(s-1)(s+1)(s+3)]$",
+                "1",
+                "0",
+                "1",
+                "开环不稳定，闭环仍不稳定"
+              ],
+              [
+                "C",
+                "$8(s+0.5)/[(s-1)(s+1)(s+3)]$",
+                "1",
+                "1",
+                "0",
+                "开环不稳定，但闭环稳定"
+              ],
+              [
+                "D",
+                "$10(s-0.5)/[(s+1)(s+2)(s+8)]$",
+                "0",
+                "0",
+                "0",
+                "含右半平面零点，但闭环仍稳定"
+              ]
+            ]
           }
         },
         {
@@ -1750,9 +1794,7 @@
           "kind": "activity-card-grid",
           "must_be_visible": true,
           "payload": {
-            "block_key": "boundary",
-            "title": "边界提醒",
-            "text": "右半平面零点不等于右半平面极点；快判也不能跳过 P/N/Z。"
+            "title": "分组对照作答区"
           }
         },
         {
@@ -1780,15 +1822,15 @@
         }
       },
       "evidence_sequence": [
-        "例题图组",
-        "P/N/Z 表",
+        "Nyquist 四图题面",
+        "P/N/Z 判稳表",
         "边界提醒",
-        "四张独立题卡"
+        "两张分组对照卡（A/B、C/D）"
       ],
       "interaction_spec": {
         "interaction_kind": "matrix_choice_cards",
-        "student_task": "对四个对象分别判断 P、N、Z 与闭环稳定性。",
-        "activity_card_rationale": "本页本质是四对象快判题组，必须保持一对象一判断卡，教师才能定位是哪一类图形或哪一步 P/N/Z 判断出错。",
+        "student_task": "通过两张分组对照卡完成 A/B 与 C/D 四个对象的 P/N/Z 判断。",
+        "activity_card_rationale": "本页用两张分组对照卡覆盖 A/B 与 C/D 四个对象，既保留 P/N/Z 定位信息，也满足非测验页不超过两张作答卡。",
         "step_reveal_policy": {
           "mode": "teacher_or_browse_release",
           "problem_statement": "always_visible",
@@ -1798,101 +1840,45 @@
         "activity_cards": [
           {
             "id": "card-09-a",
-            "prompt": "对象 A 的闭环是否稳定。",
+            "prompt": "对象 A 与 B 的 P、N、Z 关系分别说明闭环是否稳定。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "stable",
-                "label": "闭环稳定"
+                "value": "A-stable-B-unstable",
+                "label": "A 稳定，B 不稳定"
               },
               {
-                "value": "unstable",
-                "label": "闭环不稳定"
+                "value": "A-unstable-B-stable",
+                "label": "A 不稳定，B 稳定"
               },
               {
-                "value": "open-unstable-but-closed-stable",
-                "label": "开环不稳定但闭环稳定"
-              },
-              {
-                "value": "cannot-skip-p",
-                "label": "不能跳过 P/N/Z 判断"
+                "value": "both-stable",
+                "label": "二者都稳定"
               }
             ],
-            "reference_answer": "对象 A 要按 P/N/Z 映射到闭环稳定性，不能只看曲线形状。",
+            "reference_answer": "A: P=0,N=0,Z=0，闭环稳定；B: P=1,N=0,Z=1，闭环不稳定。",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "card-09-b",
-            "prompt": "对象 B 的 P/N/Z 判断。",
+            "prompt": "对象 C 与 D 的判断中，哪一句正确。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "stable",
-                "label": "闭环稳定"
+                "value": "C-stabilized-D-stable",
+                "label": "C 开环不稳定但闭环稳定；D 含右半平面零点但不自动失稳"
               },
               {
-                "value": "unstable",
-                "label": "闭环不稳定"
+                "value": "D-auto-unstable",
+                "label": "D 因右半平面零点自动失稳"
               },
               {
-                "value": "open-unstable-but-closed-stable",
-                "label": "开环不稳定但闭环稳定"
-              },
-              {
-                "value": "cannot-skip-p",
-                "label": "不能跳过 P/N/Z 判断"
+                "value": "C-unstable-D-unstable",
+                "label": "C 与 D 都闭环不稳定"
               }
             ],
-            "reference_answer": "对象 B 的判断必须同时给出 P、N、Z。",
-            "submit_scope": "per_card",
-            "layout_span": "half"
-          },
-          {
-            "id": "card-09-c",
-            "prompt": "对象 C 的 P/N/Z 判断。",
-            "response_kind": "single_choice",
-            "options": [
-              {
-                "value": "stable",
-                "label": "闭环稳定"
-              },
-              {
-                "value": "unstable",
-                "label": "闭环不稳定"
-              },
-              {
-                "value": "open-unstable-but-closed-stable",
-                "label": "开环不稳定但闭环稳定"
-              },
-              {
-                "value": "cannot-skip-p",
-                "label": "不能跳过 P/N/Z 判断"
-              }
-            ],
-            "reference_answer": "对象 C 同样不能跳过 P/N/Z。",
-            "submit_scope": "per_card",
-            "layout_span": "half"
-          },
-          {
-            "id": "card-09-d",
-            "prompt": "对象 D 是否因为右半平面零点而自动失稳。",
-            "response_kind": "single_choice",
-            "options": [
-              {
-                "value": "no",
-                "label": "不会自动失稳"
-              },
-              {
-                "value": "yes",
-                "label": "会自动失稳"
-              },
-              {
-                "value": "same-as-pole",
-                "label": "右半平面零点等同右半平面极点"
-              }
-            ],
-            "reference_answer": "右半平面零点不等于右半平面极点，不会因此自动闭环失稳。",
+            "reference_answer": "C 通过正确包围使 Z=0；D 的右半平面零点不等同右半平面极点，不能自动判失稳。",
             "submit_scope": "per_card",
             "layout_span": "half"
           }
@@ -1951,8 +1937,8 @@
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "图组和 P/N/Z 表必须在题卡之前完整出现。",
-        "学生不看讲稿也能逐对象完成快判。"
+        "P/N/Z 表必须完整列出 A-D 四个对象、P、N、Z 与结论。",
+        "作答区采用两张分组对照卡，契约和 runtime 必须保持同一口径。"
       ]
     },
     "step-10": {
@@ -1995,8 +1981,9 @@
           "kind": "comparison-graphic",
           "must_be_visible": true,
           "payload": {
-            "block_key": "image",
-            "title": "边界对照图"
+            "path": "3-8-nyquist-example.png",
+            "caption": "K=80 靠近临界点但未包围，K=110 已经越过稳定边界。",
+            "src": "3-8-nyquist-example.png"
           }
         },
         {
@@ -2005,9 +1992,8 @@
           "kind": "summary-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem",
-            "title": "完整题面",
-            "text": "比较 K=80 与 K=110 两种增益下的 Nyquist 曲线，判断哪一个“逼近边界但未包围”，哪一个“已经发生包围”，以及设计上应保留哪个区间。"
+            "block_key": "image",
+            "title": "边界对照图"
           }
         },
         {
@@ -2016,9 +2002,7 @@
           "kind": "card-sort",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem",
-            "title": "完整题面",
-            "text": "比较 K=80 与 K=110 两种增益下的 Nyquist 曲线，判断哪一个“逼近边界但未包围”，哪一个“已经发生包围”，以及设计上应保留哪个区间。"
+            "title": "增益区间分类作答"
           }
         }
       ],
@@ -2182,14 +2166,60 @@
           "kind": "comparison-graphic",
           "must_be_visible": true,
           "payload": {
-            "block_key": "image",
-            "title": "Bode 判稳图"
+            "path": "3-8-bode-example.png",
+            "caption": "Bode 判稳同时读截止频率、相位穿越频率、PM 线和 GM 线。",
+            "src": "3-8-bode-example.png"
           }
         },
         {
           "id": "indicator-formula-list",
           "region": "formula",
           "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "image",
+            "title": "Bode 判稳图"
+          }
+        },
+        {
+          "id": "three-language-table",
+          "region": "formula",
+          "kind": "comparison-table",
+          "must_be_visible": true,
+          "payload": {
+            "title": "同一稳定问题的三种语言",
+            "columns": [
+              "想回答的问题",
+              "极点 / 根轨迹语言",
+              "Nyquist 语言",
+              "Bode 语言"
+            ],
+            "rows": [
+              [
+                "闭环是否稳定",
+                "闭环极点是否落在左半平面",
+                "是否按要求包围或不包围临界点 $(-1,0)$",
+                "相角裕度、增益裕度是否为正"
+              ],
+              [
+                "离临界状态还有多远",
+                "极点离虚轴多近，根轨迹是否逼近虚轴",
+                "曲线离临界点多近，包围趋势是否出现",
+                "截止频率处离 $-180^\\circ$ 多远；相位穿越处离 $0$ dB 多远"
+              ],
+              [
+                "为什么结构变化会改写稳定性",
+                "极点迁移方向变了",
+                "对临界点的相对位置变了",
+                "穿越频率和裕度一起变了"
+              ]
+            ]
+          }
+        },
+        {
+          "id": "hotspot-labeling-zone",
+          "region": "activity",
+          "kind": "hotspot-labeling",
           "must_be_visible": true,
           "payload": {
             "block_key": "equations",
@@ -2199,27 +2229,6 @@
               "γ = 180° + ∠L(jωc)",
               "Gm = 1 / |L(jωπ)|"
             ]
-          }
-        },
-        {
-          "id": "three-language-table",
-          "region": "formula",
-          "kind": "comparison-table",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "slogan",
-            "title": "固定口令",
-            "text": "开环读余量，闭环看带宽。"
-          }
-        },
-        {
-          "id": "hotspot-labeling-zone",
-          "region": "activity",
-          "kind": "hotspot-labeling",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "image",
-            "title": "Bode 判稳图"
           }
         }
       ],
@@ -2424,6 +2433,17 @@
           }
         },
         {
+          "id": "bode-example-image",
+          "region": "problem",
+          "kind": "comparison-graphic",
+          "must_be_visible": true,
+          "payload": {
+            "path": "3-8-bode-example.png",
+            "caption": "例题 4 的判稳证据来自图中的截止频率线、相位穿越频率线、PM 线和 GM 线。",
+            "src": "3-8-bode-example.png"
+          }
+        },
+        {
           "id": "reading-order-card",
           "region": "reveal",
           "kind": "process-card",
@@ -2444,9 +2464,7 @@
           "kind": "activity-card-grid",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem",
-            "title": "完整题面",
-            "text": "对给定 Bode 图，判断相角裕度和增益裕度的正负、系统位于边界哪一侧，以及若要回到稳定侧应优先怎样改动。"
+            "title": "作答区"
           }
         },
         {
@@ -2455,9 +2473,11 @@
           "kind": "reference-answer-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem",
-            "title": "完整题面",
-            "text": "对给定 Bode 图，判断相角裕度和增益裕度的正负、系统位于边界哪一侧，以及若要回到稳定侧应优先怎样改动。"
+            "title": "参考答案",
+            "items": [
+              "PM 与 GM 均为负，系统已越过稳定边界。",
+              "回到稳定侧应左移截止频率或增加中频相位。"
+            ]
           }
         }
       ],
@@ -2485,8 +2505,8 @@
       ],
       "interaction_spec": {
         "interaction_kind": "activity_cards",
-        "student_task": "完成三张独立作答卡，分别判断裕度正负、边界位置和回拉方向。",
-        "activity_card_rationale": "三张卡分别对应裕度正负、边界位置和回拉方向，三者不是同一动作；若合并，会削弱 Bode 读图链。",
+        "student_task": "完成两张独立作答卡：裕度/边界判断与回拉方向。",
+        "activity_card_rationale": "本页两张卡分别对应裕度与边界判断、回拉方向，题面只在题面区完整出现一次，卡片标题只保留判断动作。",
         "step_reveal_policy": {
           "mode": "teacher_or_browse_release",
           "problem_statement": "always_visible",
@@ -2496,77 +2516,47 @@
         "activity_cards": [
           {
             "id": "card-12-a",
-            "prompt": "相角裕度和增益裕度是正还是负。",
+            "prompt": "相角裕度、增益裕度的正负共同说明系统位于稳定侧还是已经越过边界。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "both-positive",
-                "label": "相角裕度和增益裕度为正"
+                "value": "stable-positive",
+                "label": "两个裕度为正，仍在稳定侧"
               },
               {
-                "value": "one-negative",
-                "label": "至少一个裕度为负"
+                "value": "crossed-negative",
+                "label": "两个裕度为负，已经越过边界"
               },
               {
-                "value": "cannot-read",
-                "label": "不能由当前图直接判断"
+                "value": "unknown",
+                "label": "当前图无法判断"
               }
             ],
-            "reference_answer": "先读 PM 与 GM 的正负，再判断边界位置。",
+            "reference_answer": "图中 PM 与 GM 均为负，系统已越过稳定边界。",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "half"
           },
           {
             "id": "card-12-b",
-            "prompt": "系统更接近稳定侧还是已经越过边界。",
+            "prompt": "若要把系统拉回稳定侧，优先怎样处理截止频率或相位。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "stable-side",
-                "label": "仍在稳定侧"
+                "value": "left-or-phase",
+                "label": "左移截止频率，或补充中频相位"
               },
               {
-                "value": "critical-near",
-                "label": "靠近临界边界但未越过"
+                "value": "right",
+                "label": "继续右移截止频率"
               },
               {
-                "value": "crossed",
-                "label": "已经越过边界"
-              },
-              {
-                "value": "need-more-evidence",
-                "label": "需要先补 P/N/Z 或裕度证据"
+                "value": "low",
+                "label": "只抬低频增益"
               }
             ],
-            "reference_answer": "由裕度正负判断系统处于稳定侧、临界附近还是越界。",
+            "reference_answer": "应优先左移截止频率或增加中频相位，而不是继续右推截止频率。",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
-          },
-          {
-            "id": "card-12-c",
-            "prompt": "若要把系统拉回稳定侧，应优先左移还是右移截止频率。",
-            "response_kind": "single_choice",
-            "options": [
-              {
-                "value": "left-wc",
-                "label": "优先左移截止频率"
-              },
-              {
-                "value": "right-wc",
-                "label": "优先右移截止频率"
-              },
-              {
-                "value": "add-phase",
-                "label": "优先补相角裕度"
-              },
-              {
-                "value": "raise-low",
-                "label": "优先抬低频增益"
-              }
-            ],
-            "reference_answer": "若越界，通常优先降低穿越频率或补相角裕度，而不是继续右移。",
-            "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "half"
           }
         ]
       },
@@ -2657,8 +2647,9 @@
           "kind": "comparison-graphic",
           "must_be_visible": true,
           "payload": {
-            "block_key": "image",
-            "title": "三频段总图"
+            "path": "3-8-three-band-overview.png",
+            "caption": "低频看精度，中频看速度与稳定边界，高频看噪声和执行器代价。",
+            "src": "3-8-three-band-overview.png"
           }
         },
         {
@@ -2667,12 +2658,28 @@
           "kind": "comparison-table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "duty",
-            "title": "三频段职责",
-            "items": [
-              "低频看稳态精度与抗缓变扰动。",
-              "中频看速度、超调与稳定边界。",
-              "高频看噪声、执行器代价与鲁棒性。"
+            "title": "三频段职责表",
+            "columns": [
+              "频段",
+              "主要关注量",
+              "常见工程含义"
+            ],
+            "rows": [
+              [
+                "低频段",
+                "低频增益、误差衰减能力",
+                "稳态精度、抗缓变扰动"
+              ],
+              [
+                "中频段",
+                "截止频率、相角裕度、增益裕度",
+                "速度、超调、稳定边界"
+              ],
+              [
+                "高频段",
+                "衰减斜率、峰值放大",
+                "噪声敏感性、执行器负担、鲁棒性"
+              ]
             ]
           }
         },
@@ -2682,8 +2689,34 @@
           "kind": "comparison-table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "image",
-            "title": "三频段总图"
+            "title": "频域量读回闭环表现",
+            "columns": [
+              "频域量",
+              "通常关心什么",
+              "对闭环的典型提示"
+            ],
+            "rows": [
+              [
+                "带宽 $\\omega_b$",
+                "系统能有效跟踪多快的变化",
+                "越大通常越快"
+              ],
+              [
+                "相角裕度 $\\gamma$",
+                "离临界状态还有多远",
+                "越大通常越稳"
+              ],
+              [
+                "谐振峰值 $M_r$",
+                "闭环峰化是否明显",
+                "越大越容易超调、共振"
+              ],
+              [
+                "谐振频率 $\\omega_r$",
+                "峰值出现在什么频带",
+                "帮助判断共振集中哪一段"
+              ]
+            ]
           }
         },
         {
@@ -2839,7 +2872,7 @@
             "order": 2
           },
           {
-            "id": "ai",
+            "id": "review",
             "width": "full",
             "order": 3
           }
@@ -2854,7 +2887,7 @@
           "payload": {
             "block_key": "problem",
             "title": "完整题面",
-            "text": "任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”时，应优先希望哪一组频域量发生变化。"
+            "text": "若某系统任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”，在“截止频率继续右移”“相角裕度增大且谐振峰值减小”“高频段增益继续抬高”三组变化中，应优先选择哪一组，并说明它对应的频段分工。"
           }
         },
         {
@@ -2863,31 +2896,17 @@
           "kind": "activity-card-grid",
           "must_be_visible": true,
           "payload": {
-            "block_key": "ai_note",
-            "title": "使用顺序",
-            "text": "必须先独立作答，再进入 AI 对照区修订。"
+            "title": "作答区"
           }
         },
         {
-          "id": "ai-compare-zone",
-          "region": "ai",
-          "kind": "ai-compare-workspace",
+          "id": "frequency-band-review",
+          "region": "review",
+          "kind": "summary-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem",
-            "title": "完整题面",
-            "text": "任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”时，应优先希望哪一组频域量发生变化。"
-          }
-        },
-        {
-          "id": "revision-note",
-          "region": "ai",
-          "kind": "revision-note",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "problem",
-            "title": "完整题面",
-            "text": "任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”时，应优先希望哪一组频域量发生变化。"
+            "title": "三频段回看",
+            "text": "低频看稳态精度，中频看速度、裕度和超调，高频看噪声与执行器代价。本题任务从快转向稳，应重点看中频余量和峰化。"
           }
         }
       ],
@@ -2895,87 +2914,52 @@
         "problem": {
           "type": "plain_text",
           "title": "完整题面",
-          "body": "任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”时，应优先希望哪一组频域量发生变化。"
+          "body": "若某系统任务从“尽快跟踪”切换为“优先减小超调并减轻执行器波动”，在“截止频率继续右移”“相角裕度增大且谐振峰值减小”“高频段增益继续抬高”三组变化中，应优先选择哪一组，并说明它对应的频段分工。"
         },
-        "ai_note": {
+        "summary": {
           "type": "plain_text",
-          "title": "使用顺序",
-          "body": "必须先独立作答，再进入 AI 对照区修订。"
+          "title": "本页结论",
+          "body": "更合适的是相角裕度增大、谐振峰值减小。任务从快转向稳，重点转到中频余量和闭环峰化，而不是继续推高截止频率或高频增益。"
         }
       },
       "evidence_sequence": [
         "完整题面",
         "独立作答卡",
-        "AI 对照区",
-        "修订记录"
+        "频段分工回看"
       ],
       "interaction_spec": {
-        "interaction_kind": "goal_cards_plus_ai",
-        "student_task": "先完成独立判断卡，再查看 AI 对照并决定是否修订。",
-        "activity_card_rationale": "本页需要依次完成首选频带、可动指标和操作顺序三种任务，再进入 AI 对照；三卡拆开才能保留“先自判、后修订”的顺序。",
+        "interaction_kind": "goal_cards",
+        "student_task": "完成两张独立判断卡，确认目标切换对应的频段和频域量。",
+        "activity_card_rationale": "本页用两张卡完成目标到频带、频域量到闭环后果的判断，并排摆放，避免重复题面。",
         "step_reveal_policy": {
           "mode": "none"
         },
         "activity_cards": [
           {
             "id": "card-14-a",
-            "prompt": "目标切换后，应优先改哪一段频带。",
+            "prompt": "目标切换为“减小超调并减轻执行器波动”后，优先希望哪组频域量变化。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "low",
-                "label": "低频"
+                "value": "wc-right",
+                "label": "截止频率继续右移"
               },
               {
-                "value": "mid",
-                "label": "中频"
+                "value": "pm-mr",
+                "label": "相角裕度增大，谐振峰值减小"
               },
               {
-                "value": "high",
-                "label": "高频"
-              },
-              {
-                "value": "phase-boundary",
-                "label": "相位边界先暴露"
+                "value": "high-up",
+                "label": "高频段增益继续抬高"
               }
             ],
-            "reference_answer": "目标切换后先重判优先频带。",
+            "reference_answer": "优先希望相角裕度增大、谐振峰值减小。",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "half"
           },
           {
             "id": "card-14-b",
-            "prompt": "此时最该关注哪两个频域量。",
-            "response_kind": "multi_choice",
-            "options": [
-              {
-                "value": "pm",
-                "label": "相角裕度"
-              },
-              {
-                "value": "wc",
-                "label": "截止频率"
-              },
-              {
-                "value": "bandwidth",
-                "label": "闭环带宽"
-              },
-              {
-                "value": "resonance",
-                "label": "谐振峰值"
-              },
-              {
-                "value": "gm",
-                "label": "增益裕度"
-              }
-            ],
-            "reference_answer": "此时重点关注相角裕度、截止频率、带宽或谐振峰值等与目标直接相关的量。",
-            "submit_scope": "per_card",
-            "layout_span": "one_third"
-          },
-          {
-            "id": "card-14-c",
-            "prompt": "把“精度 / 速度 / 代价”与低 / 中 / 高频做排序对齐。",
+            "prompt": "把本题目标与频段分工对应起来。",
             "response_kind": "drag_sort",
             "options": [
               {
@@ -2983,17 +2967,17 @@
                 "label": "精度 -> 低频"
               },
               {
-                "value": "speed-mid",
-                "label": "速度/裕度 -> 中频"
+                "value": "speed-margin-mid",
+                "label": "速度/裕度/超调 -> 中频"
               },
               {
-                "value": "cost-high",
-                "label": "代价 -> 高频"
+                "value": "noise-high",
+                "label": "噪声与执行器代价 -> 高频"
               }
             ],
-            "reference_answer": "精度对应低频，速度与裕度对应中频，噪声和执行器代价对应高频。",
+            "reference_answer": "低频管精度，中频管速度、裕度和超调，高频管噪声与执行器代价。",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "half"
           }
         ]
       },
@@ -3003,7 +2987,7 @@
         "teacher_step_reveal": "not_applicable",
         "reveal_reference_answer": "separate_toggle",
         "instructor_demo_tools": [
-          "open_ai_compare"
+          "show_frequency_band_review"
         ]
       },
       "student_access": {
@@ -3017,23 +3001,22 @@
       "telemetry_spec": {
         "summary_fields": [
           "cardResultStates",
-          "aiViewed",
-          "revisionState"
+          "goalBandMapping"
         ],
         "misconception_tags": [
-          "ask_ai_before_judging",
-          "goal_band_mapping_confusion"
+          "goal_band_mapping_confusion",
+          "continue_push_wc"
         ]
       },
       "teacher_insight_spec": {
         "widgets": [
           "goal_choice_distribution",
-          "ai_revision_rate"
+          "band_mapping_distribution"
         ],
         "aggregation": "step_level"
       },
       "ai_context_spec": {
-        "page_goal": "把“先独立判断，再 AI 对照”写成稳定动作。",
+        "page_goal": "把“先独立判断，再用三频段分工核对”写成稳定动作。",
         "allowed_scope": [
           "目标切换",
           "频带优先级",
@@ -3043,8 +3026,9 @@
           "代替学生直接完成首答"
         ],
         "canonical_facts": [
-          "AI 对照只能后置，不能替代首答。"
-        ]
+          "本页核心任务是目标到频段的独立判断，页面不显示额外助手面板。"
+        ],
+        "delivery_mode": "hidden_page_context"
       },
       "preview_contract": {
         "route_kind": "student_demo",
@@ -3053,7 +3037,7 @@
       },
       "acceptance_checks": [
         "题面必须完整写出“目标切换”的条件与选项语境。",
-        "学生不看讲稿，也能知道本页先独立判断、后 AI 对照。"
+        "学生不看讲稿，也能知道本页先独立判断，再核对频段分工。"
       ]
     },
     "step-15": {
@@ -3096,14 +3080,9 @@
           "kind": "interactive-figure-panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "metrics",
-            "title": "基线指标",
-            "items": [
-              "相角裕度约 37.43°",
-              "截止频率约 0.1169 rad/s",
-              "超调量约 31.95%",
-              "调节时间约 83.10 s"
-            ]
+            "path": "3-8-heading-baseline.png",
+            "caption": "航向控制基线：相角裕度约 37.43°，截止频率约 0.1169 rad/s，超调约 31.95%，调节时间约 83.10 s。",
+            "src": "3-8-heading-baseline.png"
           }
         },
         {
@@ -3112,9 +3091,14 @@
           "kind": "metric-strip",
           "must_be_visible": true,
           "payload": {
-            "block_key": "context",
-            "title": "案例背景",
-            "text": "基线方案直接采用原始航向对象与单位负反馈，K=2.25，不加任何超前、滞后或积分补偿。"
+            "block_key": "metrics",
+            "title": "基线指标",
+            "items": [
+              "相角裕度约 37.43°",
+              "截止频率约 0.1169 rad/s",
+              "超调量约 31.95%",
+              "调节时间约 83.10 s"
+            ]
           }
         },
         {
@@ -3339,13 +3323,9 @@
           "kind": "interactive-figure-panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "translation_chain",
-            "title": "指标翻译链",
-            "items": [
-              "Mp≈15% -> ζd≈0.52 -> 目标相角裕度约 50° 到 55°",
-              "ts≈45s -> 目标自然频率约 0.17 rad/s -> 目标截止频率约 0.25 rad/s",
-              "要同时补角并抬升中频幅值，不能只靠继续加增益"
-            ]
+            "path": "3-8-heading-case.png",
+            "caption": "超前校正后，相角裕度、截止频率、带宽和时域指标同时改善，关键在中频定向补角。",
+            "src": "3-8-heading-case.png"
           }
         },
         {
@@ -3354,12 +3334,50 @@
           "kind": "comparison-table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "translation_chain",
-            "title": "指标翻译链",
-            "items": [
-              "Mp≈15% -> ζd≈0.52 -> 目标相角裕度约 50° 到 55°",
-              "ts≈45s -> 目标自然频率约 0.17 rad/s -> 目标截止频率约 0.25 rad/s",
-              "要同时补角并抬升中频幅值，不能只靠继续加增益"
+            "title": "航向控制基线与超前校正指标表",
+            "columns": [
+              "指标",
+              "基线方案",
+              "超前校正后",
+              "读回结论"
+            ],
+            "rows": [
+              [
+                "相角裕度",
+                "$37.43^\\circ$",
+                "$52.74^\\circ$",
+                "中频余量明显增加"
+              ],
+              [
+                "截止频率",
+                "$0.1169$ rad/s",
+                "$0.2575$ rad/s",
+                "响应速度明显提高"
+              ],
+              [
+                "带宽",
+                "$0.1904$ rad/s",
+                "$0.4330$ rad/s",
+                "闭环跟踪能力增强"
+              ],
+              [
+                "谐振峰值 $M_r$",
+                "$1.5582$",
+                "$1.1284$",
+                "峰化显著减轻"
+              ],
+              [
+                "超调量",
+                "$31.95\\%$",
+                "$10.98\\%$",
+                "超调明显降低"
+              ],
+              [
+                "调节时间",
+                "$83.10$ s",
+                "$43.80$ s",
+                "收敛时间约减半"
+              ]
             ]
           }
         },
@@ -3407,7 +3425,7 @@
       "interaction_spec": {
         "interaction_kind": "structured_compare",
         "student_task": "指出主改频带、关键频域量变化，以及时域收益。",
-        "activity_card_rationale": "三张比较卡分别承载主改频带、关键频域量与时域收益读回，正对应“翻译链”的三个环节，不能压成一句口号。",
+        "activity_card_rationale": "两张比较卡分别承载主改频带与闭环收益读回，正对应“翻译链”的关键环节，不能压成一句口号。",
         "step_reveal_policy": {
           "mode": "teacher_or_browse_release",
           "problem_statement": "always_visible",
@@ -3417,81 +3435,47 @@
         "activity_cards": [
           {
             "id": "card-16-a",
-            "prompt": "校正主要改写哪一段频带。",
+            "prompt": "航向控制校正主要改写哪一段频带，为什么不是单纯抬低频。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "low",
-                "label": "低频"
+                "value": "mid",
+                "label": "中频：补相角并推截止频率"
               },
               {
-                "value": "mid",
-                "label": "中频"
+                "value": "low",
+                "label": "低频：只改善稳态精度"
               },
               {
                 "value": "high",
-                "label": "高频"
-              },
-              {
-                "value": "phase-boundary",
-                "label": "相位边界先暴露"
+                "label": "高频：主要抑制噪声"
               }
             ],
-            "reference_answer": "超前校正主要改写中频。",
+            "reference_answer": "主要改写中频，因为目标是同时提高截止频率并增加相角裕度。",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "half"
           },
           {
             "id": "card-16-b",
-            "prompt": "相角裕度、截止频率、带宽、谐振峰值中，哪几项最关键。",
-            "response_kind": "multi_choice",
-            "options": [
-              {
-                "value": "pm",
-                "label": "相角裕度"
-              },
-              {
-                "value": "wc",
-                "label": "截止频率"
-              },
-              {
-                "value": "bandwidth",
-                "label": "闭环带宽"
-              },
-              {
-                "value": "resonance",
-                "label": "谐振峰值"
-              },
-              {
-                "value": "gm",
-                "label": "增益裕度"
-              }
-            ],
-            "reference_answer": "相角裕度、截止频率、带宽和谐振峰值是关键读回量。",
-            "submit_scope": "per_card",
-            "layout_span": "one_third"
-          },
-          {
-            "id": "card-16-c",
-            "prompt": "用一句话把频域变化读回超调和调节时间的改善。",
+            "prompt": "把频域变化读回闭环结果，哪一组说法最完整。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "less-overshoot-shorter-ts",
-                "label": "超调下降且调节时间缩短"
+                "value": "faster-less-overshoot",
+                "label": "PM 从约 37° 到约 53°，截止频率和带宽提高，超调和调节时间下降"
+              },
+              {
+                "value": "only-faster",
+                "label": "只有速度提高"
               },
               {
                 "value": "only-accuracy",
-                "label": "只改善稳态精度"
-              },
-              {
-                "value": "only-noise",
-                "label": "只降低高频噪声"
+                "label": "只有稳态精度改善"
               }
             ],
-            "reference_answer": "中频补角和穿越频率调整会读回为超调下降、调节时间缩短。",
+            "reference_answer": "应同时读出更快、更小超调和更短调节时间。",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "half"
           }
         ]
       },
@@ -3603,8 +3587,9 @@
           "kind": "comparison-graphic",
           "must_be_visible": true,
           "payload": {
-            "block_key": "structure",
-            "title": "控制框图"
+            "path": "3-8-platform-block-diagram.png",
+            "caption": "平台结构由比例增益、执行机构、平台动力学和单位反馈组成。",
+            "src": "3-8-platform-block-diagram.png"
           }
         },
         {
@@ -3613,9 +3598,9 @@
           "kind": "interactive-figure-panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "contradiction",
-            "title": "核心矛盾",
-            "text": "只靠改比例增益，要么快但冒进，要么稳但太慢。"
+            "path": "3-8-platform-baseline.png",
+            "caption": "激进基线更快但超调和峰化明显，只降增益更稳但速度损失过大。",
+            "src": "3-8-platform-baseline.png"
           }
         },
         {
@@ -3634,8 +3619,9 @@
           "kind": "activity-card-grid",
           "must_be_visible": true,
           "payload": {
-            "block_key": "structure",
-            "title": "控制框图"
+            "block_key": "contradiction",
+            "title": "核心矛盾",
+            "text": "只靠改比例增益，要么快但冒进，要么稳但太慢。"
           }
         }
       ],
@@ -3816,12 +3802,9 @@
           "kind": "interactive-figure-panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "images",
-            "title": "三方案对照",
-            "items": [
-              "3-8-platform-baseline.png",
-              "3-8-platform-case.png"
-            ]
+            "path": "3-8-platform-case.png",
+            "caption": "三方案对照显示，超前校正能在保持较高截止频率的同时显著增大相角裕度并降低峰化。",
+            "src": "3-8-platform-case.png"
           }
         },
         {
@@ -3830,9 +3813,58 @@
           "kind": "comparison-table",
           "must_be_visible": true,
           "payload": {
-            "block_key": "conclusion",
-            "title": "固定结论",
-            "text": "更有效的办法是在中频补角，而不是单向把增益往下拧。"
+            "title": "稳定平台三方案指标表",
+            "columns": [
+              "指标",
+              "激进基线 $K=5$",
+              "仅降增益 $K=0.2$",
+              "超前校正 $K=1$",
+              "读回结论"
+            ],
+            "rows": [
+              [
+                "相角裕度",
+                "$39.69^\\circ$",
+                "$49.00^\\circ$",
+                "$61.23^\\circ$",
+                "校正方案余量最大"
+              ],
+              [
+                "截止频率",
+                "$31.07$ rad/s",
+                "$3.764$ rad/s",
+                "$24.11$ rad/s",
+                "仅降增益大幅拖慢速度"
+              ],
+              [
+                "带宽",
+                "$58.93$ rad/s",
+                "$5.731$ rad/s",
+                "$42.54$ rad/s",
+                "校正方案保留较高速度"
+              ],
+              [
+                "谐振峰值 $M_r$",
+                "$1.5079$",
+                "$1.2403$",
+                "$1.0404$",
+                "校正方案峰化最轻"
+              ],
+              [
+                "超调量",
+                "$37.55\\%$",
+                "$20.03\\%$",
+                "$7.06\\%$",
+                "校正方案超调最小"
+              ],
+              [
+                "调节时间",
+                "$0.174$ s",
+                "$1.914$ s",
+                "$0.196$ s",
+                "校正方案几乎保持快速收敛"
+              ]
+            ]
           }
         },
         {
@@ -3855,12 +3887,9 @@
           "kind": "structured-compare",
           "must_be_visible": true,
           "payload": {
-            "block_key": "images",
-            "title": "三方案对照",
-            "items": [
-              "3-8-platform-baseline.png",
-              "3-8-platform-case.png"
-            ]
+            "block_key": "conclusion",
+            "title": "固定结论",
+            "text": "更有效的办法是在中频补角，而不是单向把增益往下拧。"
           }
         }
       ],
@@ -3898,73 +3927,47 @@
         "activity_cards": [
           {
             "id": "card-18-a",
-            "prompt": "哪一种方案最能兼顾速度与平稳。",
+            "prompt": "三种稳定平台方案中，哪一种最能兼顾速度与平稳。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "baseline",
-                "label": "激进基线"
+                "value": "fast",
+                "label": "激进基线 K=5"
               },
               {
-                "value": "lowerGain",
-                "label": "仅降增益"
+                "value": "slow",
+                "label": "仅降增益 K=0.2"
               },
               {
                 "value": "lead",
-                "label": "超前校正"
+                "label": "超前校正方案"
               }
             ],
-            "reference_answer": "超前校正最能兼顾速度与平稳。",
+            "reference_answer": "超前校正方案最能兼顾速度与平稳。",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "half"
           },
           {
             "id": "card-18-b",
-            "prompt": "超前校正主改哪一段频带。",
+            "prompt": "为什么“只降增益”不是最合适的方案。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "low",
-                "label": "低频"
+                "value": "too-slow",
+                "label": "余量有所增加，但截止频率和带宽被压得过低"
               },
               {
-                "value": "mid",
-                "label": "中频"
+                "value": "unstable",
+                "label": "它一定失稳"
               },
               {
-                "value": "high",
-                "label": "高频"
-              },
-              {
-                "value": "phase-boundary",
-                "label": "相位边界先暴露"
+                "value": "too-noisy",
+                "label": "它主要增加高频噪声"
               }
             ],
-            "reference_answer": "超前校正主改中频。",
+            "reference_answer": "只降增益牺牲速度过大，不能满足快速收敛目标。",
             "submit_scope": "per_card",
-            "layout_span": "one_third"
-          },
-          {
-            "id": "card-18-c",
-            "prompt": "用一句话说明“只降增益为什么不够”。",
-            "response_kind": "single_choice",
-            "options": [
-              {
-                "value": "speed-sacrifice",
-                "label": "只降增益会明显牺牲速度"
-              },
-              {
-                "value": "best-solution",
-                "label": "只降增益总是最优"
-              },
-              {
-                "value": "raises-bandwidth",
-                "label": "只降增益会提高带宽"
-              }
-            ],
-            "reference_answer": "只降增益不够，因为它往往用速度牺牲换稳定，不能定向补中频相角。",
-            "submit_scope": "per_card",
-            "layout_span": "one_third"
+            "layout_span": "half"
           }
         ]
       },
@@ -4144,97 +4147,89 @@
         "activity_cards": [
           {
             "id": "card-19-a",
-            "prompt": "Nyquist 顺序题",
+            "prompt": "面对未知结构变化，先判定它主要改写低频、中频还是高频这一频带问题，再说明对应的闭环收益和代价。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "p-n-z",
-                "label": "P -> N -> Z"
+                "value": "band-first",
+                "label": "先判频带"
               },
               {
-                "value": "n-p-z",
-                "label": "N -> P -> Z"
+                "value": "conclusion-first",
+                "label": "先给好坏结论"
               },
               {
-                "value": "z-p-n",
-                "label": "Z -> P -> N"
+                "value": "gain-first",
+                "label": "先调增益"
               }
             ],
-            "reference_answer": "Nyquist 判稳顺序是 P -> N -> Z。",
+            "reference_answer": "完整链条从频带定位开始。",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "card-19-b",
-            "prompt": "Bode 边界题",
+            "prompt": "使用 Nyquist 或 Bode 判断稳定边界时，应先保留哪类边界证据，再决定是否越过稳定侧。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "stable-side",
-                "label": "仍在稳定侧"
+                "value": "margin-or-pnz",
+                "label": "P/N/Z 或裕度正负"
               },
               {
-                "value": "critical-near",
-                "label": "靠近临界边界但未越过"
+                "value": "time-only",
+                "label": "只看时域快慢"
               },
               {
-                "value": "crossed",
-                "label": "已经越过边界"
-              },
-              {
-                "value": "need-more-evidence",
-                "label": "需要先补 P/N/Z 或裕度证据"
+                "value": "dc-only",
+                "label": "只看低频增益"
               }
             ],
-            "reference_answer": "Bode 边界题先读裕度正负和临界距离。",
+            "reference_answer": "边界判断必须保留 P/N/Z 或裕度证据。",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "card-19-c",
-            "prompt": "频带优先级题",
+            "prompt": "当频域量显示系统更快但裕度变小时，如何把结果读回闭环表现。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "low",
-                "label": "低频"
+                "value": "faster-risk",
+                "label": "速度可能提高，但超调、振荡或鲁棒性风险上升"
               },
               {
-                "value": "mid",
-                "label": "中频"
+                "value": "always-better",
+                "label": "闭环一定更优"
               },
               {
-                "value": "high",
-                "label": "高频"
-              },
-              {
-                "value": "phase-boundary",
-                "label": "相位边界先暴露"
+                "value": "accuracy-only",
+                "label": "只影响稳态精度"
               }
             ],
-            "reference_answer": "目标切换先重判低 / 中 / 高频优先级。",
+            "reference_answer": "速度和裕度要共同读回闭环后果。",
             "submit_scope": "per_card",
             "layout_span": "half"
           },
           {
             "id": "card-19-d",
-            "prompt": "非最小相边界直觉题",
+            "prompt": "工程目标从“尽快跟踪”改为“减小超调和执行器波动”时，完整判断链应如何重排。",
             "response_kind": "single_choice",
             "options": [
               {
-                "value": "phase-boundary",
-                "label": "先看相位代价和带宽边界"
+                "value": "goal-band-boundary-closed",
+                "label": "目标 -> 频带 -> 边界 -> 闭环读回"
               },
               {
-                "value": "push-bandwidth",
-                "label": "继续无边界推带宽"
+                "value": "ai-first",
+                "label": "先问 AI 再选方案"
               },
               {
-                "value": "auto-unstable",
-                "label": "右半平面零点自动闭环不稳定"
+                "value": "gain-only",
+                "label": "只降低增益"
               }
             ],
-            "reference_answer": "非最小相问题先看相位代价和带宽边界。",
+            "reference_answer": "目标切换后应重新走目标、频带、边界、闭环读回链。",
             "submit_scope": "per_card",
             "layout_span": "half"
           }
@@ -4342,8 +4337,9 @@
           "kind": "media-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "info_image",
-            "title": "信息图"
+            "path": "3-8-info.png",
+            "caption": "本课把结构变化、稳定边界、三频段读回和工程校正收束成统一判断地图。",
+            "src": "3-8-info.png"
           }
         },
         {
@@ -4363,14 +4359,8 @@
           "kind": "reflection-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary",
-            "title": "四条结论",
-            "items": [
-              "频域是统一翻译器，不是新章孤岛。",
-              "Nyquist 与 Bode 描述的是同一个稳定边界问题。",
-              "低频、中频、高频分别承担精度、速度与代价判断。",
-              "有效校正是定向改写关键频带，而不是盲目改增益。"
-            ]
+            "block_key": "info_image",
+            "title": "信息图"
           }
         }
       ],

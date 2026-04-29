@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "created_at": "2026-04-28T12:29:50.383468Z",
+  "created_at": "2026-04-29T00:44:15.010776Z",
   "lesson_id": "3-9",
   "node_id": "主导极点_3_4c4c6bbd",
   "generation_path": "codex-native-image-generation",
@@ -14,7 +14,7 @@
     "reasoning_effort": false,
     "output_format": false
   },
-  "source_image": "/Users/YW/.codex/generated_images/019dd3de-7c9c-7420-a317-341ec28e2abb/ig_0c199c4eb07220890169f0a7d6d7a88198ac2ef9b12da1112a.png",
+  "source_image": "/Users/YW/.codex/generated_images/019dd3de-7c9c-7420-a317-341ec28e2abb/ig_0c199c4eb07220890169f154211e548198a275abfc2f8f02b5.png",
   "output_image": "course-content/authoring/knowledge/infographs/lessons/3-9/nodes/主导极点_3_4c4c6bbd/infograph.png",
   "prompt_path": "course-content/authoring/knowledge/infographs/lessons/3-9/nodes/主导极点_3_4c4c6bbd/prompt.md",
   "source_path": "course-content/authoring/knowledge/infographs/lessons/3-9/nodes/主导极点_3_4c4c6bbd/source.json"
