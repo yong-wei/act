@@ -20640,12 +20640,122 @@
       ],
       "created_at": null,
       "updated_at": null
+    },
+    "主导极点_3_4c4c6bbd": {
+      "id": "主导极点_3_4c4c6bbd",
+      "name": "主导极点",
+      "category": "概念性",
+      "bloom_level": "理解",
+      "chapter": 3,
+      "chapter_name": "时域分析",
+      "definition": "在闭环极点中，对主要时域和频域表现影响最持续、最显著的那一组极点。",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 3,
+      "keywords": [
+        "3-5",
+        "极点分析",
+        "动态判断"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "带宽_5_6730fda4": {
+      "id": "带宽_5_6730fda4",
+      "name": "带宽",
+      "category": "概念性",
+      "bloom_level": "理解",
+      "chapter": 5,
+      "chapter_name": "频域分析",
+      "definition": "闭环幅频特性下降到低频值的 $\\dfrac{1}{\\sqrt{2}}$，也就是 `-3 dB` 时对应的频率范围入口。",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 3,
+      "keywords": [
+        "3-5",
+        "频域分析",
+        "带宽"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "根轨迹法_2_e3f6c0c1": {
+      "id": "根轨迹法_2_e3f6c0c1",
+      "name": "根轨迹法",
+      "category": "方法性",
+      "bloom_level": "理解",
+      "chapter": 3,
+      "chapter_name": "时域分析",
+      "definition": "让开环增益变化时，闭环极点在复平面上的轨迹显形，从而把“参数怎么调、动态会怎么变”放到同一张图里判断。",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 3,
+      "keywords": [
+        "3-5",
+        "根轨迹",
+        "动态分析"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "根轨迹绘制规则_3_2f9e8cb3": {
+      "id": "根轨迹绘制规则_3_2f9e8cb3",
+      "name": "根轨迹绘制规则",
+      "category": "方法性",
+      "bloom_level": "理解",
+      "chapter": 3,
+      "chapter_name": "时域分析",
+      "definition": "用起点终点、实轴区段、渐近线、分离点和虚轴交点等规则，把闭环极点随增益变化的整张轨迹画出来。",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 3,
+      "keywords": [
+        "3-5",
+        "根轨迹",
+        "读图规则"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "相角裕度_5_0a9c6e90": {
+      "id": "相角裕度_5_0a9c6e90",
+      "name": "相角裕度",
+      "category": "概念性",
+      "bloom_level": "理解",
+      "chapter": 5,
+      "chapter_name": "频域分析",
+      "definition": "在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 3,
+      "keywords": [
+        "3-5",
+        "频域分析",
+        "相角裕度"
+      ],
+      "created_at": null,
+      "updated_at": null
     }
   },
   "relations": [],
   "metadata": {
-    "merged_at": "2026-04-26T08:12:54.238453+00:00",
-    "total_nodes": 731,
-    "total_relations": 16510
+    "merged_at": "2026-04-29T08:59:09.927289+00:00",
+    "total_nodes": 736,
+    "total_relations": 16541
   }
 }

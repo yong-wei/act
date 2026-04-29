@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-29T05:58:27.569724Z",
+  "lesson_id": "4-1",
+  "node_id": "超调量_5_3d015714",
+  "node_name": "超调量",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已修正单位阶跃参考信号与输出稳态值的区分；响应尾段与 y_infty 稳态线对齐，超出量从 y_infty 到 y_max。"
+}

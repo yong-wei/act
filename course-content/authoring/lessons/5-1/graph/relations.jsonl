@@ -1,0 +1,7 @@
+{"source_id":"传统控制结构局限_4_47008","source_name":"传统控制结构局限","target_id":"线性主干边界识别_5_51001","target_name":"线性主干边界识别","relation":"prerequisite","strength":0.88,"description":"4-7 已暴露固定低阶线性反馈在高保真任务中的局限，5-1 将这种局限整理为线性主干边界识别。","run_id":"5-1"}
+{"source_id":"线性主干边界识别_5_51001","source_name":"线性主干边界识别","target_id":"典型非线性边界环节_5_51002","target_name":"典型非线性边界环节","relation":"leads_to","strength":0.96,"description":"先判断线性主干在哪里失效，再识别饱和、死区、继电器、滞回等具体边界环节。","run_id":"5-1"}
+{"source_id":"典型非线性边界环节_5_51002","source_name":"典型非线性边界环节","target_id":"局部线性化边界判断_5_51003","target_name":"局部线性化边界判断","relation":"leads_to","strength":0.9,"description":"不同非线性环节决定能否在工作点附近做合理局部线性化。","run_id":"5-1"}
+{"source_id":"典型非线性边界环节_5_51002","source_name":"典型非线性边界环节","target_id":"线性预测失真对比_5_51004","target_name":"线性预测失真对比","relation":"applies_to","strength":0.95,"description":"饱和、死区、继电器和速率限制分别给出忽略边界与实际响应之间的差异证据。","run_id":"5-1"}
+{"source_id":"局部线性化边界判断_5_51003","source_name":"局部线性化边界判断","target_id":"线性预测失真对比_5_51004","target_name":"线性预测失真对比","relation":"supports","strength":0.88,"description":"合理与不合理线性化的对比说明线性预测何时仍可用、何时会掩盖关键现象。","run_id":"5-1"}
+{"source_id":"线性预测失真对比_5_51004","source_name":"线性预测失真对比","target_id":"方法迁移前边界说明_5_51005","target_name":"方法迁移前边界说明","relation":"leads_to","strength":0.96,"description":"只有把预测失真说清楚，后续进入边界工具、复杂系统链路或数据驱动才有工程理由。","run_id":"5-1"}
+{"source_id":"工程指标代价函数翻译_4_47003","source_name":"工程指标代价函数翻译","target_id":"线性预测失真对比_5_51004","target_name":"线性预测失真对比","relation":"cross_domain","strength":0.82,"description":"4-7 中舵角、舵速和饱和占比的代价语言，在 5-1 中转化为边界响应失真的观察证据。","run_id":"5-1"}

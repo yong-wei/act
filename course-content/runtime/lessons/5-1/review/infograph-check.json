@@ -1,0 +1,70 @@
+{
+  "lesson_id": "5-1",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/5-1/sequence.json",
+  "infograph_root": "course-content/authoring/knowledge/infographs/lessons/5-1/nodes",
+  "card_order": [
+    "线性主干边界识别_5_51001",
+    "典型非线性边界环节_5_51002",
+    "局部线性化边界判断_5_51003",
+    "线性预测失真对比_5_51004",
+    "方法迁移前边界说明_5_51005",
+    "工程指标代价函数翻译_4_47003",
+    "传统控制结构局限_4_47008"
+  ],
+  "accepted_infographs": [],
+  "missing_infographs": [
+    "线性主干边界识别_5_51001",
+    "典型非线性边界环节_5_51002",
+    "局部线性化边界判断_5_51003",
+    "线性预测失真对比_5_51004",
+    "方法迁移前边界说明_5_51005",
+    "工程指标代价函数翻译_4_47003",
+    "传统控制结构局限_4_47008"
+  ],
+  "missing_source_files": {
+    "线性主干边界识别_5_51001": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "典型非线性边界环节_5_51002": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "局部线性化边界判断_5_51003": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "线性预测失真对比_5_51004": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "方法迁移前边界说明_5_51005": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "工程指标代价函数翻译_4_47003": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "传统控制结构局限_4_47008": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ]
+  },
+  "pending_review": [],
+  "broken_review_files": {}
+}

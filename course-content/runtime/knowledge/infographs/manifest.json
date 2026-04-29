@@ -248,6 +248,14 @@
       "title": "频域综合判断与工程读回 信息图",
       "lessonId": "3-9",
       "nodeId": "频域综合判断与工程读回_3_38004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/超调量_5_3d015714.png",
+      "title": "超调量 信息图",
+      "lessonId": "4-1",
+      "nodeId": "超调量_5_3d015714"
     }
   ]
 }

@@ -15,7 +15,8 @@
 ## 互动页覆盖审查
 - 已检测到 `3-8` 的 V2 互动契约，步骤字段完整。
 - 互动设计接受文件已通过校验。
-- 讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks
+- 讲义核心内容映射存在，但缺少表头或数据行
+- 讲义映射合同缺少列：handout_anchor, core_item_type, must_appear_content, target_step, page_mode, interaction_upgrade, media_or_table_ref, acceptance_note
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。

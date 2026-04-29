@@ -1,0 +1,85 @@
+{
+  "lesson_id": "5-1",
+  "unit_type": "理论",
+  "generated_at": "2026-04-29T10:55:15.728344+00:00",
+  "primary_sources": [
+    "course-content/authoring/lessons/5-1/design/handout.md"
+  ],
+  "interactive_page_source": null,
+  "interactive_contract_source": "course-content/authoring/lessons/5-1/design/interactive-contract.yaml",
+  "handout_pdf_source": "course-content/authoring/lessons/5-1/design/handout.pdf",
+  "boppps_source": "course-content/authoring/lessons/5-1/design/boppps.md",
+  "sequence_source": "course-content/authoring/knowledge/cards/lessons/5-1/sequence.json",
+  "expected_code_media": [
+    {
+      "output": "5-1-cover-comic.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-1-info.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-1-boundary-static-characteristics.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-1-local-linearization-smooth-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-1-local-linearization-relay-bad-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-1-saturation-response-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-1-deadzone-feedback-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-1-relay-hysteresis-feedback-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-1-rate-limit-feedback-compare.png",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "slides.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "course.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "audio.m4a",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-1-slides.pdf",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    },
+    {
+      "output": "5-1-course.mp4",
+      "formula_mode": "none",
+      "page_formula_sources": []
+    }
+  ]
+}

@@ -32,96 +32,78 @@
         "template": "map_hero_slide",
         "regions": [
           {
-            "id": "header",
+            "id": "question",
             "width": "full",
             "order": 1
           },
           {
-            "id": "lead",
+            "id": "media",
             "width": "full",
             "order": 2
-          },
-          {
-            "id": "summary",
-            "width": "full",
-            "order": 3
           }
         ]
       },
       "modules": [
         {
-          "id": "known-change-card",
-          "region": "lead",
+          "id": "intro-question",
+          "region": "question",
           "kind": "question-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "question",
-            "title": "本课核心问题",
-            "text": "为什么增益、零点、极点和积分补偿会在频域里留下不同指纹，这些指纹又怎样被翻译成稳定判断、性能读回与工程决策。"
-          }
-        },
-        {
-          "id": "engineering-question-card",
-          "region": "lead",
-          "kind": "process-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "known_changes",
-            "title": "已经见过的三类变化",
-            "items": [
-              "调大增益后，系统往往更快，但更容易靠近稳定边界。",
-              "引入零点后，动态更积极，高频代价也可能抬升。",
-              "加入积分或滞后后，稳态精度提高，中频相位余量会变紧。"
-            ]
-          }
-        },
-        {
-          "id": "core-question-card",
-          "region": "summary",
-          "kind": "question-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "engineering_questions",
+            "block_key": "intro_question",
             "title": "导入问题",
-            "items": [
-              "结构变化首先改写低频、中频还是高频。",
-              "这种改写最终落到速度、超调、稳态精度还是噪声代价上。"
-            ]
+            "text": "同样是结构变了，为什么有的变化让系统更快，有的变化让稳定余量变紧，有的变化看起来更强却更危险？"
+          }
+        },
+        {
+          "id": "cover-comic",
+          "region": "media",
+          "kind": "media-card",
+          "must_be_visible": true,
+          "payload": {
+            "title": "结构变化的频域入口",
+            "src": "3-8-cover-comic.png",
+            "path": "3-8-cover-comic.png",
+            "caption": "封面漫画只作为问题情境，核心阅读对象仍是频域判断链。"
+          }
+        },
+        {
+          "id": "core-question",
+          "region": "question",
+          "kind": "question-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "core_question",
+            "title": "本页核心问题",
+            "text": "频域语言能否把结构变化、稳定边界和闭环后果放进同一条判断链？"
           }
         }
       ],
       "content_blocks": {
-        "known_changes": {
-          "type": "bullet_list",
-          "title": "已经见过的三类变化",
-          "items": [
-            "调大增益后，系统往往更快，但更容易靠近稳定边界。",
-            "引入零点后，动态更积极，高频代价也可能抬升。",
-            "加入积分或滞后后，稳态精度提高，中频相位余量会变紧。"
-          ]
-        },
-        "engineering_questions": {
-          "type": "bullet_list",
-          "title": "导入问题",
-          "items": [
-            "结构变化首先改写低频、中频还是高频。",
-            "这种改写最终落到速度、超调、稳态精度还是噪声代价上。"
-          ]
-        },
-        "question": {
+        "intro_question": {
           "type": "plain_text",
-          "title": "本课核心问题",
-          "body": "为什么增益、零点、极点和积分补偿会在频域里留下不同指纹，这些指纹又怎样被翻译成稳定判断、性能读回与工程决策。"
+          "title": "导入问题",
+          "body": "同样是结构变了，为什么有的变化让系统更快，有的变化让稳定余量变紧，有的变化看起来更强却更危险？"
+        },
+        "core_question": {
+          "type": "plain_text",
+          "title": "本页核心问题",
+          "body": "频域语言能否把结构变化、稳定边界和闭环后果放进同一条判断链？"
+        },
+        "cover": {
+          "type": "media",
+          "title": "结构变化的频域入口",
+          "path": "3-8-cover-comic.png"
         }
       },
       "evidence_sequence": [
-        "已有三类结构变化",
-        "两个工程问题",
+        "导入问题",
+        "封面漫画",
         "本课核心问题"
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只阅读，不提交。",
+        "student_task": "阅读本页证据，不提交答案。",
         "step_reveal_policy": {
           "mode": "none"
         },
@@ -131,10 +113,7 @@
         "release_activity": "not_applicable",
         "open_browse": "not_applicable",
         "teacher_step_reveal": "not_applicable",
-        "reveal_reference_answer": "not_applicable",
-        "instructor_demo_tools": [
-          "highlight_path_node"
-        ]
+        "reveal_reference_answer": "not_applicable"
       },
       "student_access": {
         "default_visibility": "visible",
@@ -146,31 +125,25 @@
       },
       "telemetry_spec": {
         "summary_fields": [
-          "viewed",
-          "timeOnStep",
-          "teacherFollowSync"
+          "viewed"
         ],
         "result_policy": "no_submission"
       },
       "teacher_insight_spec": {
-        "widgets": [
-          "view_count",
-          "sync_status"
-        ],
-        "aggregation": "step_level"
+        "widgets": [],
+        "aggregation": "none"
       },
       "ai_context_spec": {
-        "page_goal": "基于前述增益、零点、积分和滞后知识提出新的频域判断问题。",
+        "page_goal": "建立 3-8 的问题入口。",
+        "delivery_mode": "hidden_page_context",
         "allowed_scope": [
-          "3-5/3-7/3-8/3-9 的关系",
-          "课程边界"
+          "结构变化",
+          "频域判断",
+          "稳定边界"
         ],
-        "forbidden_scope": [
-          "提前展开 Nyquist 与 Bode 公式细节"
-        ],
+        "forbidden_scope": [],
         "canonical_facts": [
-          "3-8 不是新章孤岛。",
-          "本课的任务是建立统一判断语言。"
+          "导入图不能替代核心问题。"
         ]
       },
       "preview_contract": {
@@ -179,110 +152,59 @@
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "首屏必须呈现已学变化、工程问题和本课核心问题。",
-        "不得出现空的路径定位模块。"
+        "导入问题必须先出现，封面漫画只能附在问题之后。"
       ]
     },
     "step-02": {
-      "title": "统一翻译器：结构变化如何接到稳定边界与闭环后果",
+      "title": "课程目标：用频域语言解释结构变化与稳定边界",
       "layout": {
-        "template": "translation_chain_board",
+        "template": "objective_board",
         "regions": [
           {
-            "id": "chain",
+            "id": "main",
             "width": "full",
             "order": 1
-          },
-          {
-            "id": "method",
-            "width": "full",
-            "order": 2
-          },
-          {
-            "id": "objective",
-            "width": "full",
-            "order": 3
           }
         ]
       },
       "modules": [
         {
-          "id": "translation-chain-card",
-          "region": "chain",
-          "kind": "formula-chain",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "chain",
-            "title": "统一翻译链",
-            "text": "结构变化 -> 开环频率特性改写 -> 稳定边界变化 -> 闭环性能后果。"
-          }
-        },
-        {
-          "id": "three-step-method-card",
-          "region": "method",
-          "kind": "process-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "method",
-            "title": "三步判断法",
-            "items": [
-              "识别变化主要改写的频带。",
-              "判定系统离稳定边界更近还是更远。",
-              "解释频域量如何读回速度、超调、稳态精度和噪声代价。"
-            ]
-          }
-        },
-        {
-          "id": "objective-list",
-          "region": "objective",
+          "id": "bloom-objectives",
+          "region": "main",
           "kind": "objective-list",
           "must_be_visible": true,
           "payload": {
-            "block_key": "objective",
-            "title": "完成本次课程后，学习者能够",
+            "block_key": "objectives",
+            "title": "完成本单元后，学习者能够",
             "items": [
-              "区分增益、零点、极点和积分补偿在频域中的典型指纹。",
-              "依据 P、N、Z 的关系判定 Nyquist 图对应的闭环稳定性。",
-              "使用 Bode 图读出截止频率、相角裕度和增益裕度，并判断系统处于边界哪一侧。",
-              "评价频带改写对闭环速度、超调、稳态精度和噪声代价的影响。"
+              "识别增益、左半平面零点、极点 / 积分环节、右半平面零点在开环频率响应中的主要指纹。",
+              "解释结构变化如何通过频带、相位和稳定边界影响闭环速度、超调、稳态精度与代价。",
+              "运用幅角原理和 Nyquist 判据判断闭环稳定性，并说明 P、N、Z 的含义。",
+              "利用 Bode 图中的截止频率、相角裕度和增益裕度判断系统距离临界状态的远近。",
+              "比较工程案例中的结构调整方案，论证哪一段频带应被优先修改以及相应风险。"
             ]
           }
         }
       ],
       "content_blocks": {
-        "chain": {
-          "type": "plain_text",
-          "title": "统一翻译链",
-          "body": "结构变化 -> 开环频率特性改写 -> 稳定边界变化 -> 闭环性能后果。"
-        },
-        "method": {
+        "objectives": {
           "type": "bullet_list",
-          "title": "三步判断法",
+          "title": "完成本单元后，学习者能够",
           "items": [
-            "识别变化主要改写的频带。",
-            "判定系统离稳定边界更近还是更远。",
-            "解释频域量如何读回速度、超调、稳态精度和噪声代价。"
-          ]
-        },
-        "objective": {
-          "type": "bullet_list",
-          "title": "完成本次课程后，学习者能够",
-          "items": [
-            "区分增益、零点、极点和积分补偿在频域中的典型指纹。",
-            "依据 P、N、Z 的关系判定 Nyquist 图对应的闭环稳定性。",
-            "使用 Bode 图读出截止频率、相角裕度和增益裕度，并判断系统处于边界哪一侧。",
-            "评价频带改写对闭环速度、超调、稳态精度和噪声代价的影响。"
+            "识别增益、左半平面零点、极点 / 积分环节、右半平面零点在开环频率响应中的主要指纹。",
+            "解释结构变化如何通过频带、相位和稳定边界影响闭环速度、超调、稳态精度与代价。",
+            "运用幅角原理和 Nyquist 判据判断闭环稳定性，并说明 P、N、Z 的含义。",
+            "利用 Bode 图中的截止频率、相角裕度和增益裕度判断系统距离临界状态的远近。",
+            "比较工程案例中的结构调整方案，论证哪一段频带应被优先修改以及相应风险。"
           ]
         }
       },
       "evidence_sequence": [
-        "统一翻译链",
-        "三步判断法",
-        "布鲁姆动词学习成果"
+        "布鲁姆能力目标单列表"
       ],
       "interaction_spec": {
         "interaction_kind": "none",
-        "student_task": "只建立判断框架，不提交。",
+        "student_task": "阅读本页证据，不提交答案。",
         "step_reveal_policy": {
           "mode": "none"
         },
@@ -292,10 +214,7 @@
         "release_activity": "not_applicable",
         "open_browse": "not_applicable",
         "teacher_step_reveal": "not_applicable",
-        "reveal_reference_answer": "not_applicable",
-        "instructor_demo_tools": [
-          "highlight_chain_node"
-        ]
+        "reveal_reference_answer": "not_applicable"
       },
       "student_access": {
         "default_visibility": "visible",
@@ -307,29 +226,28 @@
       },
       "telemetry_spec": {
         "summary_fields": [
-          "viewed",
-          "timeOnStep"
+          "viewed"
         ],
         "result_policy": "no_submission"
       },
       "teacher_insight_spec": {
-        "widgets": [
-          "view_count"
-        ],
-        "aggregation": "step_level"
+        "widgets": [],
+        "aggregation": "none"
       },
       "ai_context_spec": {
-        "page_goal": "让学生在进入细节前先知道本课按什么逻辑推进。",
+        "page_goal": "呈现本单元能力目标。",
+        "delivery_mode": "hidden_page_context",
         "allowed_scope": [
-          "翻译链",
-          "三步判断法",
-          "本课目标"
+          "课程目标",
+          "频域语言",
+          "稳定判断"
         ],
         "forbidden_scope": [
-          "代替学生完成后续例题"
+          "单元边界说明",
+          "课程接口说明"
         ],
         "canonical_facts": [
-          "频域术语不是散点，而是同一判断链上的节点。"
+          "目标只使用学习者能够完成的能力表述。"
         ]
       },
       "preview_contract": {
@@ -338,8 +256,7 @@
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "翻译链、三步判断法和课程目标必须同页可见。",
-        "学生不看讲稿也能知道本课的判断顺序。"
+        "只显式列出本次课程目标，不写单元接口或流程说明。"
       ]
     },
     "step-03": {
@@ -606,28 +523,50 @@
       ]
     },
     "step-04": {
-      "title": "四类结构变化总表：先看哪一段频带，再谈收益与代价",
+      "title": "四类结构变化总表：先给开环传函与频率响应，再看频域指纹",
       "layout": {
-        "template": "table_explain_board",
+        "template": "formula_table_board",
         "regions": [
           {
-            "id": "table",
+            "id": "formula",
             "width": "full",
             "order": 1
           },
           {
-            "id": "notes",
+            "id": "table",
             "width": "full",
             "order": 2
-          },
-          {
-            "id": "focus",
-            "width": "full",
-            "order": 3
           }
         ]
       },
       "modules": [
+        {
+          "id": "open-loop-transfer",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "open_loop",
+            "title": "开环传递函数",
+            "items": [
+              "L(s)=G(s)H(s)"
+            ]
+          }
+        },
+        {
+          "id": "frequency-response",
+          "region": "formula",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "frequency_response",
+            "title": "开环频率响应",
+            "items": [
+              "L(j\\omega)=G(j\\omega)H(j\\omega)"
+            ],
+            "text": "增益、零点、极点、积分环节之所以带来不同闭环后果，是因为它们改写 L(jω) 的方式不同。"
+          }
+        },
         {
           "id": "fingerprint-table",
           "region": "table",
@@ -673,102 +612,43 @@
               ]
             ]
           }
-        },
-        {
-          "id": "frequency-band-note",
-          "region": "notes",
-          "kind": "summary-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "columns",
-            "title": "总表字段",
-            "items": [
-              "结构变化",
-              "主要改写频带",
-              "幅频与相频主变化",
-              "典型收益",
-              "典型代价"
-            ]
-          }
-        },
-        {
-          "id": "row-focus-toggle",
-          "region": "focus",
-          "kind": "row-focus-toggle",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "band_note",
-            "title": "阅读口令",
-            "text": "任何结构变化都先回答“哪一段频带先被改写”，再回答“换来什么、付出什么”。"
-          }
         }
       ],
       "content_blocks": {
-        "columns": {
-          "type": "bullet_list",
-          "title": "总表字段",
+        "open_loop": {
+          "type": "formula_list",
+          "title": "开环传递函数",
           "items": [
-            "结构变化",
-            "主要改写频带",
-            "幅频与相频主变化",
-            "典型收益",
-            "典型代价"
+            "L(s)=G(s)H(s)"
           ]
         },
-        "band_note": {
-          "type": "plain_text",
-          "title": "阅读口令",
-          "body": "任何结构变化都先回答“哪一段频带先被改写”，再回答“换来什么、付出什么”。"
+        "frequency_response": {
+          "type": "formula_list",
+          "title": "开环频率响应",
+          "items": [
+            "L(j\\omega)=G(j\\omega)H(j\\omega)"
+          ],
+          "body": "增益、零点、极点、积分环节之所以带来不同闭环后果，是因为它们改写 L(jω) 的方式不同。"
         }
       },
       "evidence_sequence": [
-        "完整总表",
-        "频带职责提示",
-        "行聚焦控件"
+        "开环传递函数",
+        "频率响应",
+        "四类结构变化总表"
       ],
       "interaction_spec": {
-        "interaction_kind": "row_focus_toggle",
-        "student_task": "切换高亮四类变化中的任意一行，辅助阅读，不提交。",
+        "interaction_kind": "none",
+        "student_task": "阅读本页证据，不提交答案。",
         "step_reveal_policy": {
           "mode": "none"
         },
-        "activity_cards": [
-          {
-            "id": "step-04-activity",
-            "prompt": "切换高亮四类变化中的任意一行，辅助阅读，不提交。",
-            "response_kind": "single_choice",
-            "options": [
-              {
-                "value": "gain",
-                "label": "增益提升"
-              },
-              {
-                "value": "lhp-zero",
-                "label": "左半平面零点"
-              },
-              {
-                "value": "integral-lag",
-                "label": "积分 / 滞后"
-              },
-              {
-                "value": "nmp",
-                "label": "非最小相"
-              }
-            ],
-            "reference_answer": "聚焦任一行都可以，但判断必须先说明对应频带。",
-            "submit_scope": "per_card",
-            "layout_span": "full"
-          }
-        ]
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
         "open_browse": "not_applicable",
         "teacher_step_reveal": "not_applicable",
-        "reveal_reference_answer": "not_applicable",
-        "instructor_demo_tools": [
-          "highlight_selected_row"
-        ]
+        "reveal_reference_answer": "not_applicable"
       },
       "student_access": {
         "default_visibility": "visible",
@@ -780,28 +660,25 @@
       },
       "telemetry_spec": {
         "summary_fields": [
-          "viewed",
-          "focusedRow"
+          "viewed"
         ],
         "result_policy": "no_submission"
       },
       "teacher_insight_spec": {
-        "widgets": [
-          "focus_row_heatmap"
-        ],
-        "aggregation": "step_level"
+        "widgets": [],
+        "aggregation": "none"
       },
       "ai_context_spec": {
-        "page_goal": "先用总表稳住四类变化的整体骨架。",
+        "page_goal": "先建立 2.2 的对象，再读总表。",
+        "delivery_mode": "hidden_page_context",
         "allowed_scope": [
-          "结构变化总表",
-          "频带职责"
+          "开环传递函数",
+          "频率响应",
+          "四类结构变化"
         ],
-        "forbidden_scope": [
-          "从总表直接跳到控制器选型"
-        ],
+        "forbidden_scope": [],
         "canonical_facts": [
-          "四类变化必须先以总表稳定呈现，再进入图像互动。"
+          "本页没有阅读口令、教师控制和学生作答。"
         ]
       },
       "preview_contract": {
@@ -810,224 +687,105 @@
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "总表在无交互状态下也必须完整可读。",
-        "学生不看讲稿也能说出四类变化对应的首要频带。"
+        "L(s) 与 L(jω) 必须先于表格出现。",
+        "本页不得渲染作答区或教师控制区。"
       ]
     },
     "step-05": {
-      "title": "曲线互动页：四类结构变化为什么留下不同频域指纹",
+      "title": "2.2.1 增益提升：整条曲线一起被抬高",
       "layout": {
-        "template": "curve_compare_lab",
+        "template": "rust_fingerprint_lab",
         "regions": [
           {
-            "id": "selector",
+            "id": "content",
             "width": "full",
             "order": 1
           },
           {
-            "id": "figure",
+            "id": "panel",
             "width": "full",
             "order": 2
-          },
-          {
-            "id": "cards",
-            "width": "full",
-            "order": 3
           }
         ]
       },
       "modules": [
         {
-          "id": "change-selector",
-          "region": "selector",
-          "kind": "tab-selector",
+          "id": "step-05-formula",
+          "region": "content",
+          "kind": "formula-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "reading_prompt",
-            "title": "读图口令",
+            "block_key": "formula",
+            "title": "讲义 2.2.1 公式",
             "items": [
-              "先看当前变化是哪一类。",
-              "再看低频 / 中频 / 高频哪一段先被改写。",
-              "最后看这会如何改写稳定边界和闭环后果。"
+              "L_{\\text{new}}(j\\omega)=\\alpha L(j\\omega)",
+              "20\\log_{10}\\alpha\\ \\text{dB}"
             ]
           }
         },
         {
-          "id": "fingerprint-2x2-panel",
-          "region": "figure",
-          "kind": "interactive-figure-panel",
+          "id": "step-05-explain",
+          "region": "content",
+          "kind": "summary-card",
           "must_be_visible": true,
           "payload": {
-            "title": "四类结构变化的讲义图组",
-            "items": [
-              {
-                "path": "3-8-gain-effect.png",
-                "caption": "增益提升：幅频整体上移，相位基本不变，截止频率可能右移。",
-                "src": "3-8-gain-effect.png"
-              },
-              {
-                "path": "3-8-zero-effect.png",
-                "caption": "左半平面零点：中频相位提前，同时带来高频抬升。",
-                "src": "3-8-zero-effect.png"
-              },
-              {
-                "path": "3-8-pole-effect.png",
-                "caption": "极点或积分补偿：低频精度增强，中频相位余量更紧。",
-                "src": "3-8-pole-effect.png"
-              },
-              {
-                "path": "3-8-rhp-zero-effect.png",
-                "caption": "右半平面零点：幅值看似更强，但相位代价不利。",
-                "src": "3-8-rhp-zero-effect.png"
-              }
-            ]
+            "block_key": "explain",
+            "title": "对应文案",
+            "text": "若开环增益从 K 增大为 αK，其中 α>1，幅频曲线整体上移，相位曲线基本保持原状。截止频率通常右移，系统速度提高；穿越点更靠近相位不足区，相角裕度常减小。"
           }
         },
         {
-          "id": "band-overlay-strip",
-          "region": "figure",
-          "kind": "overlay-strip",
+          "id": "step-05-rust-panel",
+          "region": "panel",
+          "kind": "rust-analysis-panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "panel_note",
-            "title": "面板说明",
-            "text": "固定 2×2：左上幅频、右上相频、左下根轨迹、右下时域；默认状态必须复现讲义静态图义。"
-          }
-        },
-        {
-          "id": "activity-card-row",
-          "region": "cards",
-          "kind": "activity-card-row",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "reading_prompt",
-            "title": "读图口令",
-            "items": [
-              "先看当前变化是哪一类。",
-              "再看低频 / 中频 / 高频哪一段先被改写。",
-              "最后看这会如何改写稳定边界和闭环后果。"
-            ]
+            "title": "Rust 驱动四联互动面板",
+            "case_id": "unit-3-8-gain",
+            "variant": "gain",
+            "control": "gain",
+            "layout": "2x2_time_bode_root_control",
+            "text": "左上为时域曲线，右上为 Bode 幅频 / 相频合并图，左下为根轨迹，右下为控件。基准与变参数曲线同时绘制。"
           }
         }
       ],
       "content_blocks": {
-        "reading_prompt": {
-          "type": "bullet_list",
-          "title": "读图口令",
+        "formula": {
+          "type": "formula_list",
+          "title": "讲义 2.2.1 公式",
           "items": [
-            "先看当前变化是哪一类。",
-            "再看低频 / 中频 / 高频哪一段先被改写。",
-            "最后看这会如何改写稳定边界和闭环后果。"
+            "L_{\\text{new}}(j\\omega)=\\alpha L(j\\omega)",
+            "20\\log_{10}\\alpha\\ \\text{dB}"
           ]
         },
-        "panel_note": {
+        "explain": {
           "type": "plain_text",
-          "title": "面板说明",
-          "body": "固定 2×2：左上幅频、右上相频、左下根轨迹、右下时域；默认状态必须复现讲义静态图义。"
+          "title": "对应文案",
+          "body": "若开环增益从 K 增大为 αK，其中 α>1，幅频曲线整体上移，相位曲线基本保持原状。截止频率通常右移，系统速度提高；穿越点更靠近相位不足区，相角裕度常减小。"
         }
       },
       "evidence_sequence": [
-        "读图口令",
-        "变化类型切换",
-        "2×2 面板",
-        "频带罩层",
-        "独立作答卡"
+        "公式",
+        "对应文案",
+        "Rust 四联互动面板"
       ],
       "interaction_spec": {
-        "interaction_kind": "curve_compare_panel",
-        "student_task": "切换四类结构变化，并完成频带定位、收益代价配对两张作答卡。",
-        "activity_card_rationale": "两张卡分别承载频带定位与收益代价配对，保证作答区不超过两卡且仍保留“先判频带”的动作。",
+        "interaction_kind": "none",
+        "student_task": "阅读本页证据，不提交答案。",
         "step_reveal_policy": {
           "mode": "none"
         },
-        "activity_cards": [
-          {
-            "id": "card-05-a",
-            "prompt": "当前结构变化优先改写哪一段频带。",
-            "response_kind": "single_choice",
-            "options": [
-              {
-                "value": "low",
-                "label": "低频"
-              },
-              {
-                "value": "mid",
-                "label": "中频"
-              },
-              {
-                "value": "high",
-                "label": "高频"
-              },
-              {
-                "value": "all-lift",
-                "label": "整体上移"
-              }
-            ],
-            "reference_answer": "先判主要被改写的频带，再解释收益和代价。",
-            "submit_scope": "per_card",
-            "layout_span": "half"
-          },
-          {
-            "id": "card-05-b",
-            "prompt": "把当前变化的主要收益和主要代价配成一组。",
-            "response_kind": "multi_choice",
-            "options": [
-              {
-                "value": "accuracy-phase",
-                "label": "低频精度提高 / 中频相位余量变紧"
-              },
-              {
-                "value": "speed-margin",
-                "label": "速度提高 / 稳定余量可能减小"
-              },
-              {
-                "value": "phase-noise",
-                "label": "中频相位提前 / 高频代价上升"
-              },
-              {
-                "value": "nmp-risk",
-                "label": "速度直觉增强 / 相位边界更危险"
-              }
-            ],
-            "reference_answer": "收益与代价必须同时写出，不能只说更快或更稳。",
-            "submit_scope": "per_card",
-            "layout_span": "half"
-          }
-        ]
-      },
-      "interactive_figure_spec": {
-        "baseline_media": [
-          "3-8-gain-effect.png",
-          "3-8-zero-effect.png",
-          "3-8-pole-effect.png",
-          "3-8-rhp-zero-effect.png"
-        ],
-        "default_variant": "gain",
-        "panel_layout": "2x2_fixed",
-        "overlays": [
-          "low_mid_high_band",
-          "margin_hint"
-        ],
-        "controls": [
-          "change_toggle",
-          "band_overlay_toggle",
-          "metric_hint_toggle"
-        ],
-        "question_prompt": "当前结构变化先改哪一段频带，它带来的主要收益和代价分别是什么。"
+        "activity_cards": []
       },
       "teacher_controls": {
-        "release_activity": "separate_toggle",
-        "open_browse": "always_on",
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
         "teacher_step_reveal": "not_applicable",
-        "reveal_reference_answer": "separate_toggle",
-        "instructor_demo_tools": [
-          "lock_change_variant",
-          "toggle_band_overlay"
-        ]
+        "reveal_reference_answer": "not_applicable"
       },
       "student_access": {
         "default_visibility": "visible",
-        "release_required": true,
+        "release_required": false,
         "browse_required": false,
         "can_view_problem_statement": true,
         "can_view_derivation_steps": true,
@@ -1035,34 +793,28 @@
       },
       "telemetry_spec": {
         "summary_fields": [
-          "selectedVariant",
-          "selectedBand",
-          "cardResultStates"
+          "viewed"
         ],
-        "misconception_tags": [
-          "cannot_locate_frequency_band",
-          "ignore_phase_cost"
-        ]
+        "result_policy": "no_submission"
       },
       "teacher_insight_spec": {
-        "widgets": [
-          "variant_distribution",
-          "band_error_heatmap"
-        ],
-        "aggregation": "step_level"
+        "widgets": [],
+        "aggregation": "none"
       },
       "ai_context_spec": {
-        "page_goal": "把静态四图升级为可比、可读、可提交证据的曲线面板。",
+        "page_goal": "用互动曲线解释 2.2.1 的结构变化。",
+        "delivery_mode": "hidden_page_context",
         "allowed_scope": [
-          "四类结构变化",
-          "频带",
-          "收益与代价"
+          "时域响应",
+          "Bode 图",
+          "根轨迹",
+          "结构变化"
         ],
         "forbidden_scope": [
-          "从面板直接跳到控制器推荐"
+          "学生作答区"
         ],
         "canonical_facts": [
-          "曲线图不是装饰，而是用来回答“哪段频带先被改写”。"
+          "2.2.1 到 2.2.4 每页先给公式和文案，再给互动面板。"
         ]
       },
       "preview_contract": {
@@ -1071,11 +823,445 @@
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "默认面板必须复现讲义静态图义，而不是另起一套视觉逻辑。",
-        "学生不看讲稿，也能知道先看哪张子图、回答哪三个判断问题。"
-      ]
+        "本页不得渲染作答卡。",
+        "四联面板必须同时包含时域、Bode、根轨迹和控件。"
+      ],
+      "interactive_figure_spec": {
+        "runtime": "rust_control_engine",
+        "panel_layout": "2x2_time_bode_root_control",
+        "variant": "gain",
+        "control": "gain",
+        "baseline_overlay": true,
+        "feasible_region": "not_applicable"
+      }
     },
     "step-06": {
+      "title": "2.2.2 左半平面零点：重点改写中频",
+      "layout": {
+        "template": "rust_fingerprint_lab",
+        "regions": [
+          {
+            "id": "content",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "panel",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "step-06-formula",
+          "region": "content",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "formula",
+            "title": "讲义 2.2.2 公式",
+            "items": [
+              "G_z(s)=1+\\frac{s}{z},\\quad z>0"
+            ]
+          }
+        },
+        {
+          "id": "step-06-explain",
+          "region": "content",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "explain",
+            "title": "对应文案",
+            "text": "左半平面零点在零点附近频带同时改写幅值和相位：幅值在较高频率开始上升，相位在中频段出现提前，中频段更容易获得动态积极性。"
+          }
+        },
+        {
+          "id": "step-06-rust-panel",
+          "region": "panel",
+          "kind": "rust-analysis-panel",
+          "must_be_visible": true,
+          "payload": {
+            "title": "Rust 驱动四联互动面板",
+            "case_id": "unit-3-8-lhp-zero",
+            "variant": "lhp-zero",
+            "control": "lhp_zero",
+            "layout": "2x2_time_bode_root_control",
+            "text": "左上为时域曲线，右上为 Bode 幅频 / 相频合并图，左下为根轨迹，右下为控件。基准与变参数曲线同时绘制。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "formula": {
+          "type": "formula_list",
+          "title": "讲义 2.2.2 公式",
+          "items": [
+            "G_z(s)=1+\\frac{s}{z},\\quad z>0"
+          ]
+        },
+        "explain": {
+          "type": "plain_text",
+          "title": "对应文案",
+          "body": "左半平面零点在零点附近频带同时改写幅值和相位：幅值在较高频率开始上升，相位在中频段出现提前，中频段更容易获得动态积极性。"
+        }
+      },
+      "evidence_sequence": [
+        "公式",
+        "对应文案",
+        "Rust 四联互动面板"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读本页证据，不提交答案。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [],
+        "aggregation": "none"
+      },
+      "ai_context_spec": {
+        "page_goal": "用互动曲线解释 2.2.2 的结构变化。",
+        "delivery_mode": "hidden_page_context",
+        "allowed_scope": [
+          "时域响应",
+          "Bode 图",
+          "根轨迹",
+          "结构变化"
+        ],
+        "forbidden_scope": [
+          "学生作答区"
+        ],
+        "canonical_facts": [
+          "2.2.1 到 2.2.4 每页先给公式和文案，再给互动面板。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-06",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "本页不得渲染作答卡。",
+        "四联面板必须同时包含时域、Bode、根轨迹和控件。"
+      ],
+      "interactive_figure_spec": {
+        "runtime": "rust_control_engine",
+        "panel_layout": "2x2_time_bode_root_control",
+        "variant": "lhp-zero",
+        "control": "lhp_zero",
+        "baseline_overlay": true,
+        "feasible_region": "not_applicable"
+      }
+    },
+    "step-07": {
+      "title": "2.2.3 极点增加与积分环节：先给精度，再收紧余量",
+      "layout": {
+        "template": "rust_fingerprint_lab",
+        "regions": [
+          {
+            "id": "content",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "panel",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "step-07-formula",
+          "region": "content",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "formula",
+            "title": "讲义 2.2.3 公式",
+            "items": [
+              "G_i(s)=\\frac{1}{s}"
+            ]
+          }
+        },
+        {
+          "id": "step-07-explain",
+          "region": "content",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "explain",
+            "title": "对应文案",
+            "text": "积分环节本质上是在原点增加一个极点。低频增益增强会改善稳态精度与抗缓变扰动能力，同时相位下降得更早，中频相位余量变紧。"
+          }
+        },
+        {
+          "id": "step-07-rust-panel",
+          "region": "panel",
+          "kind": "rust-analysis-panel",
+          "must_be_visible": true,
+          "payload": {
+            "title": "Rust 驱动四联互动面板",
+            "case_id": "unit-3-8-added-pole",
+            "variant": "added-pole",
+            "control": "pole_toggle",
+            "layout": "2x2_time_bode_root_control",
+            "text": "左上为时域曲线，右上为 Bode 幅频 / 相频合并图，左下为根轨迹，右下为控件。基准与变参数曲线同时绘制。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "formula": {
+          "type": "formula_list",
+          "title": "讲义 2.2.3 公式",
+          "items": [
+            "G_i(s)=\\frac{1}{s}"
+          ]
+        },
+        "explain": {
+          "type": "plain_text",
+          "title": "对应文案",
+          "body": "积分环节本质上是在原点增加一个极点。低频增益增强会改善稳态精度与抗缓变扰动能力，同时相位下降得更早，中频相位余量变紧。"
+        }
+      },
+      "evidence_sequence": [
+        "公式",
+        "对应文案",
+        "Rust 四联互动面板"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读本页证据，不提交答案。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [],
+        "aggregation": "none"
+      },
+      "ai_context_spec": {
+        "page_goal": "用互动曲线解释 2.2.3 的结构变化。",
+        "delivery_mode": "hidden_page_context",
+        "allowed_scope": [
+          "时域响应",
+          "Bode 图",
+          "根轨迹",
+          "结构变化"
+        ],
+        "forbidden_scope": [
+          "学生作答区"
+        ],
+        "canonical_facts": [
+          "2.2.1 到 2.2.4 每页先给公式和文案，再给互动面板。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-07",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "本页不得渲染作答卡。",
+        "四联面板必须同时包含时域、Bode、根轨迹和控件。"
+      ],
+      "interactive_figure_spec": {
+        "runtime": "rust_control_engine",
+        "panel_layout": "2x2_time_bode_root_control",
+        "variant": "added-pole",
+        "control": "pole_toggle",
+        "baseline_overlay": true,
+        "feasible_region": "not_applicable"
+      }
+    },
+    "step-08": {
+      "title": "2.2.4 右半平面零点：为什么“看起来更强”却可能更难控制",
+      "layout": {
+        "template": "rust_fingerprint_lab",
+        "regions": [
+          {
+            "id": "content",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "panel",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "step-08-formula",
+          "region": "content",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "formula",
+            "title": "讲义 2.2.4 公式",
+            "items": [
+              "G_{\\text{nmp}}(s)=1-\\frac{s}{z},\\quad z>0"
+            ]
+          }
+        },
+        {
+          "id": "step-08-explain",
+          "region": "content",
+          "kind": "summary-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "explain",
+            "title": "对应文案",
+            "text": "右半平面零点可能让幅值看起来更强，但相位朝不利方向变化。只看截止频率上升会造成误判，相位代价过大时会提高超调风险，甚至把系统推向临界状态。"
+          }
+        },
+        {
+          "id": "step-08-rust-panel",
+          "region": "panel",
+          "kind": "rust-analysis-panel",
+          "must_be_visible": true,
+          "payload": {
+            "title": "Rust 驱动四联互动面板",
+            "case_id": "unit-3-8-rhp-zero",
+            "variant": "rhp-zero",
+            "control": "rhp_zero",
+            "layout": "2x2_time_bode_root_control",
+            "text": "左上为时域曲线，右上为 Bode 幅频 / 相频合并图，左下为根轨迹，右下为控件。基准与变参数曲线同时绘制。"
+          }
+        }
+      ],
+      "content_blocks": {
+        "formula": {
+          "type": "formula_list",
+          "title": "讲义 2.2.4 公式",
+          "items": [
+            "G_{\\text{nmp}}(s)=1-\\frac{s}{z},\\quad z>0"
+          ]
+        },
+        "explain": {
+          "type": "plain_text",
+          "title": "对应文案",
+          "body": "右半平面零点可能让幅值看起来更强，但相位朝不利方向变化。只看截止频率上升会造成误判，相位代价过大时会提高超调风险，甚至把系统推向临界状态。"
+        }
+      },
+      "evidence_sequence": [
+        "公式",
+        "对应文案",
+        "Rust 四联互动面板"
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "阅读本页证据，不提交答案。",
+        "step_reveal_policy": {
+          "mode": "none"
+        },
+        "activity_cards": []
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
+        "can_view_problem_statement": true,
+        "can_view_derivation_steps": true,
+        "can_submit_without_browse": true
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [],
+        "aggregation": "none"
+      },
+      "ai_context_spec": {
+        "page_goal": "用互动曲线解释 2.2.4 的结构变化。",
+        "delivery_mode": "hidden_page_context",
+        "allowed_scope": [
+          "时域响应",
+          "Bode 图",
+          "根轨迹",
+          "结构变化"
+        ],
+        "forbidden_scope": [
+          "学生作答区"
+        ],
+        "canonical_facts": [
+          "2.2.1 到 2.2.4 每页先给公式和文案，再给互动面板。"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-08",
+        "must_match_student_page": true
+      },
+      "acceptance_checks": [
+        "本页不得渲染作答卡。",
+        "四联面板必须同时包含时域、Bode、根轨迹和控件。"
+      ],
+      "interactive_figure_spec": {
+        "runtime": "rust_control_engine",
+        "panel_layout": "2x2_time_bode_root_control",
+        "variant": "rhp-zero",
+        "control": "rhp_zero",
+        "baseline_overlay": true,
+        "feasible_region": "not_applicable"
+      }
+    },
+    "step-09": {
       "title": "例题 1：先从哪一段频带开始判断结构变化",
       "layout": {
         "template": "worked_example_lab",
@@ -1293,7 +1479,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-06",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-09",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -1301,152 +1487,159 @@
         "作答卡必须按卡独立提交，不使用整页统一表单。"
       ]
     },
-    "step-07": {
-      "title": "幅角原理：总转角、`P` 与 `Z` 在说什么",
+    "step-10": {
+      "title": "从幅角原理到 Nyquist 判据：为什么要研究 F(s)=1+G(s)H(s)",
       "layout": {
-        "template": "formula_story_board",
+        "template": "argument_derivation_reveal_board",
         "regions": [
           {
-            "id": "question",
+            "id": "static",
             "width": "full",
             "order": 1
           },
           {
-            "id": "formula",
+            "id": "reveal",
             "width": "full",
             "order": 2
-          },
-          {
-            "id": "note",
-            "width": "full",
-            "order": 3
           }
         ]
       },
       "modules": [
         {
-          "id": "question-card",
-          "region": "question",
-          "kind": "question-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "question",
-            "title": "本页问题",
-            "text": "为什么只要知道总转角、P 和 Z，就能把闭环稳定问题转成一个可数的问题。"
-          }
-        },
-        {
           "id": "argument-principle-formula",
-          "region": "formula",
+          "region": "static",
           "kind": "formula-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "formula",
-            "title": "核心公式",
+            "block_key": "argument_formula",
+            "title": "幅角原理",
             "items": [
-              "Δarg F(s)=2π(Z-P)"
+              "\\Delta \\arg F(s)=2\\pi(Z-P)"
+            ]
+          }
+        },
+        {
+          "id": "closed-loop-formulas",
+          "region": "static",
+          "kind": "formula-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "closed_loop",
+            "title": "闭环与辅助函数",
+            "items": [
+              "\\Phi(s)=\\frac{G(s)}{1+G(s)H(s)}",
+              "1+G(s)H(s)=0",
+              "F(s)=1+G(s)H(s)"
             ]
           }
         },
         {
           "id": "symbol-meaning-table",
-          "region": "formula",
+          "region": "static",
           "kind": "comparison-table",
           "must_be_visible": true,
           "payload": {
-            "title": "幅角原理符号表",
+            "title": "P、N、Z 的含义",
             "columns": [
               "记号",
               "含义",
-              "在闭环稳定分析中的作用"
+              "稳定判断中的作用"
             ],
             "rows": [
               [
-                "$P$",
-                "路径内部极点数",
-                "反映开环右半平面极点数"
+                "P",
+                "开环右半平面极点数",
+                "由开环对象决定"
               ],
               [
-                "$Z$",
-                "路径内部零点数",
-                "对应闭环右半平面极点数"
+                "N",
+                "Nyquist 曲线对 (-1,0) 的顺时针包围数",
+                "由频率响应曲线决定"
               ],
               [
-                "$\\Delta \\arg F(s)$",
-                "映射曲线总转角",
-                "反映函数值对原点的环绕"
+                "Z",
+                "闭环右半平面极点数",
+                "Z=0 才闭环稳定"
               ]
             ]
           }
         },
         {
-          "id": "mini-summary-card",
-          "region": "note",
-          "kind": "summary-card",
+          "id": "argument-reveal-chain",
+          "region": "reveal",
+          "kind": "step-reveal-chain",
           "must_be_visible": true,
           "payload": {
-            "block_key": "summary",
-            "title": "结论桥接",
-            "text": "总转角不是抽象符号，而是通向 Nyquist 判稳的逻辑起点。"
+            "block_key": "reveal_layers",
+            "title": "推导逻辑显影",
+            "items": [
+              "幅角原理先说明：封闭路径映射到 F 平面后，函数值绕原点的总转角满足 Δarg F(s)=2π(Z-P)。这里的 P 是路径内部极点数，Z 是路径内部零点数。",
+              "在负反馈系统中，闭环传递函数 Φ(s)=G(s)/(1+G(s)H(s))，闭环特征方程来自 1+G(s)H(s)=0。",
+              "把 G(s)=N_G(s)/D_G(s)、H(s)=N_H(s)/D_H(s) 代入，可得闭环特征多项式 D_G(s)D_H(s)+N_G(s)N_H(s)=0。",
+              "定义 F(s)=1+G(s)H(s)=[D_G(s)D_H(s)+N_G(s)N_H(s)]/[D_G(s)D_H(s)]，于是 F(s) 的零点就是闭环特征方程的根，也就是闭环极点。",
+              "因此，“闭环极点是否进入右半平面”被改写成“F(s) 在右半平面有没有零点”。这一步把求根问题变成计数问题。",
+              "在虚轴映射时 F(jω)=1+G(jω)H(jω)。若 F(jω)=0，则 G(jω)H(jω)=-1+j0，所以 F 平面绕原点等价于 L 平面绕临界点 (-1,0)。",
+              "采用顺时针包围临界点记为正的工程习惯，Nyquist 判据写成 N=P-Z。闭环稳定要求 Z=0，因此需要 N=P。",
+              "固定判断顺序是：先数开环右半平面极点数 P，再数 Nyquist 曲线对 (-1,0) 的顺时针包围数 N，最后用 Z=P-N 判断闭环右半平面极点数。"
+            ]
           }
         }
       ],
       "content_blocks": {
-        "question": {
-          "type": "plain_text",
-          "title": "本页问题",
-          "body": "为什么只要知道总转角、P 和 Z，就能把闭环稳定问题转成一个可数的问题。"
-        },
-        "formula": {
+        "argument_formula": {
           "type": "formula_list",
-          "title": "核心公式",
+          "title": "幅角原理",
           "items": [
-            "Δarg F(s)=2π(Z-P)"
+            "\\Delta \\arg F(s)=2\\pi(Z-P)"
           ]
         },
-        "summary": {
-          "type": "plain_text",
-          "title": "结论桥接",
-          "body": "总转角不是抽象符号，而是通向 Nyquist 判稳的逻辑起点。"
+        "closed_loop": {
+          "type": "formula_list",
+          "title": "闭环与辅助函数",
+          "items": [
+            "\\Phi(s)=\\frac{G(s)}{1+G(s)H(s)}",
+            "1+G(s)H(s)=0",
+            "F(s)=1+G(s)H(s)"
+          ]
+        },
+        "reveal_layers": {
+          "type": "bullet_list",
+          "title": "推导逻辑显影",
+          "items": [
+            "幅角原理先说明：封闭路径映射到 F 平面后，函数值绕原点的总转角满足 Δarg F(s)=2π(Z-P)。这里的 P 是路径内部极点数，Z 是路径内部零点数。",
+            "在负反馈系统中，闭环传递函数 Φ(s)=G(s)/(1+G(s)H(s))，闭环特征方程来自 1+G(s)H(s)=0。",
+            "把 G(s)=N_G(s)/D_G(s)、H(s)=N_H(s)/D_H(s) 代入，可得闭环特征多项式 D_G(s)D_H(s)+N_G(s)N_H(s)=0。",
+            "定义 F(s)=1+G(s)H(s)=[D_G(s)D_H(s)+N_G(s)N_H(s)]/[D_G(s)D_H(s)]，于是 F(s) 的零点就是闭环特征方程的根，也就是闭环极点。",
+            "因此，“闭环极点是否进入右半平面”被改写成“F(s) 在右半平面有没有零点”。这一步把求根问题变成计数问题。",
+            "在虚轴映射时 F(jω)=1+G(jω)H(jω)。若 F(jω)=0，则 G(jω)H(jω)=-1+j0，所以 F 平面绕原点等价于 L 平面绕临界点 (-1,0)。",
+            "采用顺时针包围临界点记为正的工程习惯，Nyquist 判据写成 N=P-Z。闭环稳定要求 Z=0，因此需要 N=P。",
+            "固定判断顺序是：先数开环右半平面极点数 P，再数 Nyquist 曲线对 (-1,0) 的顺时针包围数 N，最后用 Z=P-N 判断闭环右半平面极点数。"
+          ]
         }
       },
       "evidence_sequence": [
-        "本页问题",
-        "总转角公式",
-        "P/Z 含义表",
-        "结论桥接"
+        "幅角原理公式",
+        "闭环特征方程",
+        "F(s) 零点与闭环极点",
+        "(-1,0) 临界点",
+        "P/N/Z 判稳顺序"
       ],
       "interaction_spec": {
-        "interaction_kind": "step_reveal",
-        "student_task": "按显影顺序阅读解释，不提交答案。",
+        "interaction_kind": "teacher_reveal_only",
+        "student_task": "按显影链阅读 2.3.1 与 2.3.2 的推导，不提交答案。",
         "step_reveal_policy": {
-          "mode": "teacher_step_reveal",
-          "problem_statement": "always_visible",
-          "derivation_steps": "teacher_step_reveal",
-          "reference_answer": "not_applicable"
+          "mode": "teacher_or_browse_release"
         },
         "activity_cards": [
           {
-            "id": "step-07-activity",
-            "prompt": "按显影顺序阅读解释，不提交答案。",
-            "response_kind": "single_choice",
-            "options": [
-              {
-                "value": "turning",
-                "label": "总转角连接 P 与 Z"
-              },
-              {
-                "value": "amplitude",
-                "label": "幅值大小直接决定 Z"
-              },
-              {
-                "value": "bandwidth",
-                "label": "带宽直接等于 Z"
-              }
-            ],
-            "reference_answer": "总转角把 P 与 Z 连接起来，是 Nyquist 判稳的逻辑起点。",
-            "submit_scope": "per_card",
-            "layout_span": "full"
+            "id": "step-10-activity",
+            "title": "按显影链阅读 2.3.1 与 2.3.2 的推导，不提交答案。",
+            "prompt": "按显影链阅读 2.3.1 与 2.3.2 的推导，不提交答案。",
+            "reference_answer": "见课堂讨论与教师反馈。",
+            "response_kind": "text",
+            "submit_scope": "card",
+            "layout_span": "full",
+            "options": []
           }
         ]
       },
@@ -1456,7 +1649,7 @@
         "teacher_step_reveal": "teacher_only",
         "reveal_reference_answer": "not_applicable",
         "instructor_demo_tools": [
-          "reveal_symbol_meaning"
+          "reveal_next_derivation_layer"
         ]
       },
       "student_access": {
@@ -1472,7 +1665,11 @@
           "viewed",
           "revealProgress"
         ],
-        "result_policy": "no_submission"
+        "result_policy": "no_submission",
+        "misconception_tags": [
+          "nyquist_memorize_without_reason",
+          "critical_point_origin_confusion"
+        ]
       },
       "teacher_insight_spec": {
         "widgets": [
@@ -1481,232 +1678,33 @@
         "aggregation": "step_level"
       },
       "ai_context_spec": {
-        "page_goal": "给 Nyquist 判据补上幅角原理的逻辑起点。",
+        "page_goal": "把幅角原理、辅助函数和临界点桥接成自洽推导。",
+        "delivery_mode": "hidden_page_context",
         "allowed_scope": [
-          "总转角",
-          "P/Z 含义"
-        ],
-        "forbidden_scope": [
-          "提前跳到具体判稳例题答案"
-        ],
-        "canonical_facts": [
-          "本页不求快算，只建立意义。"
-        ]
-      },
-      "preview_contract": {
-        "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-07",
-        "must_match_student_page": true
-      },
-      "acceptance_checks": [
-        "总转角公式与 P/Z 含义表必须在同一页。",
-        "学生能说明这页是 Nyquist 判据的来路之一，而非孤立定义。"
-      ]
-    },
-    "step-08": {
-      "title": "为什么取 `F(s)=1+L(s)`，为什么盯住 `(-1,0)`",
-      "layout": {
-        "template": "derivation_compare_board",
-        "regions": [
-          {
-            "id": "formula",
-            "width": "full",
-            "order": 1
-          },
-          {
-            "id": "geometry",
-            "width": "full",
-            "order": 2
-          },
-          {
-            "id": "chain",
-            "width": "full",
-            "order": 3
-          }
-        ]
-      },
-      "modules": [
-        {
-          "id": "auxiliary-function-card",
-          "region": "formula",
-          "kind": "formula-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "auxiliary",
-            "title": "辅助函数链",
-            "items": [
-              "F(s)=1+G(s)H(s)",
-              "F(s)=0 等价于闭环特征方程成立"
-            ]
-          }
-        },
-        {
-          "id": "closed-loop-root-card",
-          "region": "formula",
-          "kind": "formula-card",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "critical",
-            "title": "临界点桥接",
-            "text": "在 F 平面看原点，等价于在 G(s)H(s) 平面看 (-1,0)。"
-          }
-        },
-        {
-          "id": "critical-point-graphic",
-          "region": "geometry",
-          "kind": "comparison-graphic",
-          "must_be_visible": true,
-          "payload": {
-            "path": "3-8-nyquist-quickcheck.png",
-            "caption": "临界点 (-1,0) 是把 F 平面绕原点问题转写到 L 平面的等价观察点。",
-            "src": "3-8-nyquist-quickcheck.png"
-          }
-        },
-        {
-          "id": "reason-chain-sorter",
-          "region": "chain",
-          "kind": "reason-chain",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "order",
-            "title": "固定顺序",
-            "items": [
-              "先数开环右半平面极点数 P。",
-              "再数对临界点的包围数 N。",
-              "最后算闭环右半平面极点数 Z。"
-            ]
-          }
-        }
-      ],
-      "content_blocks": {
-        "auxiliary": {
-          "type": "formula_list",
-          "title": "辅助函数链",
-          "items": [
-            "F(s)=1+G(s)H(s)",
-            "F(s)=0 等价于闭环特征方程成立"
-          ]
-        },
-        "critical": {
-          "type": "plain_text",
-          "title": "临界点桥接",
-          "body": "在 F 平面看原点，等价于在 G(s)H(s) 平面看 (-1,0)。"
-        },
-        "order": {
-          "type": "bullet_list",
-          "title": "固定顺序",
-          "items": [
-            "先数开环右半平面极点数 P。",
-            "再数对临界点的包围数 N。",
-            "最后算闭环右半平面极点数 Z。"
-          ]
-        }
-      },
-      "evidence_sequence": [
-        "辅助函数链",
-        "临界点图示",
-        "固定顺序",
-        "因果排序区"
-      ],
-      "interaction_spec": {
-        "interaction_kind": "reason_chain",
-        "student_task": "把辅助函数、临界点和判稳顺序排成正确的因果链。",
-        "step_reveal_policy": {
-          "mode": "teacher_or_browse_release",
-          "problem_statement": "always_visible",
-          "derivation_steps": "teacher_step_reveal",
-          "reference_answer": "separate_teacher_toggle"
-        },
-        "activity_cards": [
-          {
-            "id": "card-08-a",
-            "prompt": "把 F(s)、闭环特征方程、(-1,0)、P/N/Z 顺序排成因果链。",
-            "response_kind": "drag_sort",
-            "options": [
-              {
-                "value": "auxiliary",
-                "label": "写出 F(s)=1+L(s)"
-              },
-              {
-                "value": "equation",
-                "label": "把闭环特征方程写成 F(s)=0"
-              },
-              {
-                "value": "geometry",
-                "label": "转到 L(s) 平面观察 (-1,0)"
-              },
-              {
-                "value": "counting",
-                "label": "用 P/N/Z 得出稳定结论"
-              }
-            ],
-            "reference_answer": "顺序为辅助函数 -> 闭环特征方程 -> (-1,0) 几何点 -> P/N/Z 结论。",
-            "submit_scope": "per_card",
-            "layout_span": "full"
-          }
-        ]
-      },
-      "teacher_controls": {
-        "release_activity": "separate_toggle",
-        "open_browse": "separate_toggle",
-        "teacher_step_reveal": "teacher_only",
-        "reveal_reference_answer": "separate_toggle",
-        "instructor_demo_tools": [
-          "reveal_next_formula_link"
-        ]
-      },
-      "student_access": {
-        "default_visibility": "hidden",
-        "release_required": true,
-        "browse_required": true,
-        "can_view_problem_statement": true,
-        "can_view_derivation_steps": false,
-        "can_submit_without_browse": false
-      },
-      "telemetry_spec": {
-        "summary_fields": [
-          "sortResultState",
-          "revealProgress"
-        ],
-        "misconception_tags": [
-          "nyquist_memorize_without_reason",
-          "critical_point_origin_confusion"
-        ]
-      },
-      "teacher_insight_spec": {
-        "widgets": [
-          "chain_breakpoint_distribution"
-        ],
-        "aggregation": "step_level"
-      },
-      "ai_context_spec": {
-        "page_goal": "让学生真正知道为什么 Nyquist 最终盯的是 (-1,0)。",
-        "allowed_scope": [
-          "辅助函数",
+          "幅角原理",
+          "F(s)=1+G(s)H(s)",
           "临界点",
-          "P/N/Z 顺序"
+          "P/N/Z"
         ],
-        "forbidden_scope": [
-          "绕开因果链直接背结论"
-        ],
+        "forbidden_scope": [],
         "canonical_facts": [
-          "Nyquist 判据的关键不是口号，而是等价链。"
+          "本页承载讲义 2.3.1 与 2.3.2 的主要内容。"
         ]
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-08",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-10",
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "F(s)=1+L(s)、(-1,0) 和 P/N/Z 固定顺序必须同页可见。",
-        "学生不看讲稿，也能说出为什么会从原点等价到 (-1,0)。"
+        "必须同时出现 2.3.1 的幅角原理和 2.3.2 的辅助函数推导。",
+        "显影链不得只有符号结论，必须说明 F(s) 零点与闭环极点的等价关系。"
       ]
     },
-    "step-09": {
+    "step-11": {
       "title": "例题 2：第一组 Nyquist 快速判稳题",
       "layout": {
-        "template": "worked_example_quadrant",
+        "template": "static_example_graph_board",
         "regions": [
           {
             "id": "problem",
@@ -1714,12 +1712,12 @@
             "order": 1
           },
           {
-            "id": "table",
+            "id": "figure",
             "width": "full",
             "order": 2
           },
           {
-            "id": "activity",
+            "id": "table",
             "width": "full",
             "order": 3
           }
@@ -1727,14 +1725,25 @@
       },
       "modules": [
         {
-          "id": "quickcheck-image",
+          "id": "example-2-problem",
           "region": "problem",
+          "kind": "worked-example-card",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem",
+            "title": "例题 2 题面",
+            "text": "观察四条典型 Nyquist 曲线，判断：哪一条属于开环稳定且闭环稳定；哪一条属于开环含一个右半平面极点，闭环仍稳定；哪一条属于开环含一个右半平面极点，闭环不稳定；哪一条虽然含右半平面零点，但并不自动失稳。"
+          }
+        },
+        {
+          "id": "quickcheck-image",
+          "region": "figure",
           "kind": "comparison-graphic",
           "must_be_visible": true,
           "payload": {
             "path": "3-8-nyquist-quickcheck.png",
-            "caption": "四条 Nyquist 曲线需要逐一配对 P、N、Z 与稳定结论。",
-            "src": "3-8-nyquist-quickcheck.png"
+            "src": "3-8-nyquist-quickcheck.png",
+            "caption": "四条 Nyquist 曲线用于快速判稳，先看题面，再看图形。"
           }
         },
         {
@@ -1789,134 +1798,65 @@
           }
         },
         {
-          "id": "matrix-choice-cards",
-          "region": "activity",
-          "kind": "activity-card-grid",
-          "must_be_visible": true,
-          "payload": {
-            "title": "分组对照作答区"
-          }
-        },
-        {
           "id": "boundary-note",
-          "region": "activity",
+          "region": "table",
           "kind": "summary-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "boundary",
-            "title": "边界提醒",
-            "text": "右半平面零点不等于右半平面极点；快判也不能跳过 P/N/Z。"
+            "title": "判稳顺序",
+            "text": "按“先数 P，再数 N，最后算 Z=P-N”的顺序判断；右半平面零点不等于右半平面极点。"
           }
         }
       ],
       "content_blocks": {
+        "problem": {
+          "type": "plain_text",
+          "title": "例题 2 题面",
+          "body": "观察四条典型 Nyquist 曲线，判断：哪一条属于开环稳定且闭环稳定；哪一条属于开环含一个右半平面极点，闭环仍稳定；哪一条属于开环含一个右半平面极点，闭环不稳定；哪一条虽然含右半平面零点，但并不自动失稳。"
+        },
         "image": {
           "type": "media",
           "title": "例题 2 图组",
           "path": "3-8-nyquist-quickcheck.png"
-        },
-        "boundary": {
-          "type": "plain_text",
-          "title": "边界提醒",
-          "body": "右半平面零点不等于右半平面极点；快判也不能跳过 P/N/Z。"
         }
       },
       "evidence_sequence": [
-        "Nyquist 四图题面",
+        "例题 2 题面",
+        "Nyquist 图形",
         "P/N/Z 判稳表",
-        "边界提醒",
-        "两张分组对照卡（A/B、C/D）"
+        "边界提醒"
       ],
       "interaction_spec": {
-        "interaction_kind": "matrix_choice_cards",
-        "student_task": "通过两张分组对照卡完成 A/B 与 C/D 四个对象的 P/N/Z 判断。",
-        "activity_card_rationale": "本页用两张分组对照卡覆盖 A/B 与 C/D 四个对象，既保留 P/N/Z 定位信息，也满足非测验页不超过两张作答卡。",
+        "interaction_kind": "none",
+        "student_task": "阅读本页证据，不提交答案。",
         "step_reveal_policy": {
-          "mode": "teacher_or_browse_release",
-          "problem_statement": "always_visible",
-          "derivation_steps": "teacher_step_reveal",
-          "reference_answer": "separate_teacher_toggle"
+          "mode": "none"
         },
-        "activity_cards": [
-          {
-            "id": "card-09-a",
-            "prompt": "对象 A 与 B 的 P、N、Z 关系分别说明闭环是否稳定。",
-            "response_kind": "single_choice",
-            "options": [
-              {
-                "value": "A-stable-B-unstable",
-                "label": "A 稳定，B 不稳定"
-              },
-              {
-                "value": "A-unstable-B-stable",
-                "label": "A 不稳定，B 稳定"
-              },
-              {
-                "value": "both-stable",
-                "label": "二者都稳定"
-              }
-            ],
-            "reference_answer": "A: P=0,N=0,Z=0，闭环稳定；B: P=1,N=0,Z=1，闭环不稳定。",
-            "submit_scope": "per_card",
-            "layout_span": "half"
-          },
-          {
-            "id": "card-09-b",
-            "prompt": "对象 C 与 D 的判断中，哪一句正确。",
-            "response_kind": "single_choice",
-            "options": [
-              {
-                "value": "C-stabilized-D-stable",
-                "label": "C 开环不稳定但闭环稳定；D 含右半平面零点但不自动失稳"
-              },
-              {
-                "value": "D-auto-unstable",
-                "label": "D 因右半平面零点自动失稳"
-              },
-              {
-                "value": "C-unstable-D-unstable",
-                "label": "C 与 D 都闭环不稳定"
-              }
-            ],
-            "reference_answer": "C 通过正确包围使 Z=0；D 的右半平面零点不等同右半平面极点，不能自动判失稳。",
-            "submit_scope": "per_card",
-            "layout_span": "half"
-          }
-        ]
+        "activity_cards": []
       },
       "teacher_controls": {
-        "release_activity": "separate_toggle",
-        "open_browse": "separate_toggle",
-        "teacher_step_reveal": "teacher_only",
-        "reveal_reference_answer": "separate_toggle",
-        "instructor_demo_tools": [
-          "show_pnz_table_row"
-        ]
+        "release_activity": "not_applicable",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
       },
       "student_access": {
-        "default_visibility": "hidden",
-        "release_required": true,
-        "browse_required": true,
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false,
         "can_view_problem_statement": true,
-        "can_view_derivation_steps": false,
+        "can_view_derivation_steps": true,
         "can_submit_without_browse": true
       },
       "telemetry_spec": {
         "summary_fields": [
-          "cardResultStates",
-          "selectedStabilityLabels"
+          "viewed"
         ],
-        "misconception_tags": [
-          "rhp_zero_equals_unstable",
-          "skip_pnz_sequence"
-        ]
+        "result_policy": "no_submission"
       },
       "teacher_insight_spec": {
-        "widgets": [
-          "object_accuracy_distribution",
-          "common_wrong_reasons"
-        ],
-        "aggregation": "step_level"
+        "widgets": [],
+        "aggregation": "none"
       },
       "ai_context_spec": {
         "page_goal": "把 Nyquist 快判真正固定成按对象逐一判断的动作。",
@@ -1933,15 +1873,16 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-09",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-11",
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "P/N/Z 表必须完整列出 A-D 四个对象、P、N、Z 与结论。",
-        "作答区采用两张分组对照卡，契约和 runtime 必须保持同一口径。"
+        "例题 2 题面必须位于页面最上方。",
+        "图形必须紧跟题面出现。",
+        "本页不得渲染学生作答区。"
       ]
     },
-    "step-10": {
+    "step-12": {
       "title": "例题 3：靠近边界与越过边界有什么本质不同",
       "layout": {
         "template": "boundary_compare_board",
@@ -1970,9 +1911,9 @@
           "kind": "worked-example-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "problem",
+            "text": "考虑开环系统 L(s)=K/[(s+1)(s+2)(s+4)]。图中给出 K=80 与 K=110 两种增益对应的 Nyquist 曲线。问：哪一条没有包围临界点但已明显逼近稳定边界，哪一条已经发生包围，以及工程上应保留哪个增益区间。",
             "title": "完整题面",
-            "text": "比较 K=80 与 K=110 两种增益下的 Nyquist 曲线，判断哪一个“逼近边界但未包围”，哪一个“已经发生包围”，以及设计上应保留哪个区间。"
+            "block_key": "problem"
           }
         },
         {
@@ -1992,8 +1933,8 @@
           "kind": "summary-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "image",
-            "title": "边界对照图"
+            "title": "边界读图结论",
+            "text": "K=80 表示系统已经接近临界点但尚未越过边界，K=110 表示曲线已经越过稳定侧。工程上不能把“继续增大增益”直接等同于更快更好，必须先保留稳定余量。"
           }
         },
         {
@@ -2010,7 +1951,7 @@
         "problem": {
           "type": "plain_text",
           "title": "完整题面",
-          "body": "比较 K=80 与 K=110 两种增益下的 Nyquist 曲线，判断哪一个“逼近边界但未包围”，哪一个“已经发生包围”，以及设计上应保留哪个区间。"
+          "body": "考虑开环系统 L(s)=K/[(s+1)(s+2)(s+4)]。图中给出 K=80 与 K=110 两种增益对应的 Nyquist 曲线。问：哪一条没有包围临界点但已明显逼近稳定边界，哪一条已经发生包围，以及工程上应保留哪个增益区间。"
         },
         "image": {
           "type": "media",
@@ -2129,15 +2070,15 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-10",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-12",
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "题面必须完整出现，不能缩成一句“比较 K=80 与 K=110”。",
-        "学生不看讲稿，也能知道这页解决的是边界感而不是另一次快判。"
+        "题面必须包含公式 L(s)=K/[(s+1)(s+2)(s+4)]。",
+        "边界图必须位于题面之后。"
       ]
     },
-    "step-11": {
+    "step-13": {
       "title": "Bode 判稳：截止频率、相角裕度和增益裕度",
       "layout": {
         "template": "dual_graph_indicator_locator",
@@ -2177,8 +2118,15 @@
           "kind": "formula-card",
           "must_be_visible": true,
           "payload": {
-            "block_key": "image",
-            "title": "Bode 判稳图"
+            "block_key": "equations",
+            "title": "2.4.1 指标定义",
+            "items": [
+              "|L(j\\omega_c)|=1",
+              "\\gamma=180^\\circ+\\angle L(j\\omega_c)",
+              "\\angle L(j\\omega_\\pi)=-180^\\circ",
+              "G_m=\\frac{1}{|L(j\\omega_\\pi)|}",
+              "G_{m,\\text{dB}}=-20\\log_{10}|L(j\\omega_\\pi)|"
+            ]
           }
         },
         {
@@ -2222,13 +2170,8 @@
           "kind": "hotspot-labeling",
           "must_be_visible": true,
           "payload": {
-            "block_key": "equations",
-            "title": "指标定义",
-            "items": [
-              "|L(jωc)|=1",
-              "γ = 180° + ∠L(jωc)",
-              "Gm = 1 / |L(jωπ)|"
-            ]
+            "block_key": "image",
+            "title": "Bode 判稳图"
           }
         }
       ],
@@ -2240,11 +2183,13 @@
         },
         "equations": {
           "type": "formula_list",
-          "title": "指标定义",
+          "title": "2.4.1 指标定义",
           "items": [
-            "|L(jωc)|=1",
-            "γ = 180° + ∠L(jωc)",
-            "Gm = 1 / |L(jωπ)|"
+            "|L(j\\omega_c)|=1",
+            "\\gamma=180^\\circ+\\angle L(j\\omega_c)",
+            "\\angle L(j\\omega_\\pi)=-180^\\circ",
+            "G_m=\\frac{1}{|L(j\\omega_\\pi)|}",
+            "G_{m,\\text{dB}}=-20\\log_{10}|L(j\\omega_\\pi)|"
           ]
         },
         "slogan": {
@@ -2390,15 +2335,14 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-11",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-13",
         "must_match_student_page": true
       },
       "acceptance_checks": [
-        "Bode 图、定义式与三语言对照表必须同页出现。",
-        "学生不看讲稿，也能知道这页要找的是哪四条关键线。"
+        "必须完整显示讲义 2.4.1 的截止频率、相角裕度、相位穿越频率、增益裕度与 dB 公式。"
       ]
     },
-    "step-12": {
+    "step-14": {
       "title": "例题 4：由 Bode 图直接判断系统在边界哪一侧",
       "layout": {
         "template": "worked_example_locator",
@@ -2610,7 +2554,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-12",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-14",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -2618,7 +2562,7 @@
         "学生不看讲稿，也能独立完成一次 Bode 边界判断。"
       ]
     },
-    "step-13": {
+    "step-15": {
       "title": "三频段分工：精度、速度与代价不能混读",
       "layout": {
         "template": "band_focus_board",
@@ -2760,7 +2704,7 @@
         },
         "activity_cards": [
           {
-            "id": "step-13-activity",
+            "id": "step-15-activity",
             "prompt": "切换低 / 中 / 高频，查看每段对应的典型指标与工程含义，不提交。",
             "response_kind": "single_choice",
             "options": [
@@ -2848,7 +2792,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-13",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-15",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -2856,7 +2800,7 @@
         "学生不看讲稿，也能说出低频 / 中频 / 高频分别负责什么。"
       ]
     },
-    "step-14": {
+    "step-16": {
       "title": "例题 5：目标切换时，先改哪一段频带",
       "layout": {
         "template": "goal_switch_workspace",
@@ -3032,7 +2976,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-14",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-16",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -3040,7 +2984,7 @@
         "学生不看讲稿，也能知道本页先独立判断，再核对频段分工。"
       ]
     },
-    "step-15": {
+    "step-17": {
       "title": "航向控制案例：先把基线方案的问题读清楚",
       "layout": {
         "template": "case_baseline_board",
@@ -3258,7 +3202,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-15",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-17",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -3266,7 +3210,7 @@
         "学生不看讲稿，也能知道案例先要解决“问题在哪一段频带”。"
       ]
     },
-    "step-16": {
+    "step-18": {
       "title": "航向控制案例：把时域指标翻译成频域目标，再看超前校正",
       "layout": {
         "template": "case_translation_compare",
@@ -3550,7 +3494,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-16",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-18",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -3558,7 +3502,7 @@
         "学生不看讲稿，也能解释为什么这是中频超前而不是单纯增益变化。"
       ]
     },
-    "step-17": {
+    "step-19": {
       "title": "稳定平台案例：为什么“只改增益”会左右为难",
       "layout": {
         "template": "scheme_problem_board",
@@ -3765,7 +3709,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-17",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-19",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -3773,7 +3717,7 @@
         "学生不看讲稿，也能知道这一页是在建立问题，不是在给最终答案。"
       ]
     },
-    "step-18": {
+    "step-20": {
       "title": "稳定平台案例：超前校正怎样兼顾速度和平稳",
       "layout": {
         "template": "scheme_compare_lab",
@@ -4040,7 +3984,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-18",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-20",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -4048,7 +3992,7 @@
         "结构化比较必须围绕频带、指标和读回结论，不得退化成空泛评价。"
       ]
     },
-    "step-19": {
+    "step-21": {
       "title": "后测：把完整判断链独立走一遍",
       "layout": {
         "template": "posttest_board",
@@ -4284,7 +4228,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-19",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-21",
         "must_match_student_page": true
       },
       "acceptance_checks": [
@@ -4292,7 +4236,7 @@
         "学生不看讲稿，也能独立完成出口检测。"
       ]
     },
-    "step-20": {
+    "step-22": {
       "title": "总结与去向：`3-9` 和模块 4 从哪里接走本课",
       "layout": {
         "template": "summary_exit_board",
@@ -4400,7 +4344,7 @@
         },
         "activity_cards": [
           {
-            "id": "step-20-activity",
+            "id": "step-22-activity",
             "prompt": "选填一句反思，说明自己现在最稳的判断动作是什么。",
             "response_kind": "single_choice",
             "options": [
@@ -4471,7 +4415,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-20",
+        "demo_path": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo?step=step-22",
         "must_match_student_page": true
       },
       "acceptance_checks": [
