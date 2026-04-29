@@ -20,27 +20,19 @@
     "acceptance_checks"
   ],
   "included_in_primary_sources": true,
-  "mapping_contract_mode": "upgrade_table",
+  "mapping_contract_mode": "core_items",
   "has_core_mapping_section": true,
   "mapping_columns_present": [
-    "证据类型",
-    "来源锚点",
-    "目标步骤",
-    "升级方式",
-    "保留元素",
-    "不得删减内容",
-    "验收点"
-  ],
-  "missing_mapping_columns": [
-    "evidence_unit_id",
     "handout_anchor",
-    "evidence_kind",
-    "target_steps",
-    "upgrade_mode",
-    "keep_elements",
-    "non_reducible",
-    "acceptance_checks"
+    "core_item_type",
+    "must_appear_content",
+    "target_step",
+    "page_mode",
+    "interaction_upgrade",
+    "media_or_table_ref",
+    "acceptance_note"
   ],
+  "missing_mapping_columns": [],
   "invalid_handout_anchors": [],
   "missing_target_steps": [],
   "formula_mapping_issues": [],
@@ -51,10 +43,10 @@
   "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
   "step_contract_issues": [],
-  "design_acceptance_summary": [],
-  "design_acceptance_issues": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/3-9/design/interactive-design-acceptance.json"
+  "design_acceptance_summary": [
+    "互动设计接受文件已通过校验。"
   ],
+  "design_acceptance_issues": [],
   "implementation_acceptance_summary": [],
   "implementation_acceptance_issues": [],
   "manifest_audit_summary": [],
@@ -64,25 +56,16 @@
   "runtime_review_stale_issues": [],
   "hard_gate_issues": [],
   "hard_gate_issue_codes": [],
-  "blocking_issues": [
-    "缺少 互动设计接受文件：course-content/authoring/lessons/3-9/design/interactive-design-acceptance.json"
-  ],
+  "blocking_issues": [],
   "implementation_contract_summary": [],
   "implementation_contract_issues": [],
   "legacy_acceptance_notes": [],
   "summary": [
-    "已检测到 `3-9` 的 V2 互动契约，步骤字段完整。"
+    "已覆盖讲义中的核心公式与静态承载内容。",
+    "已检测到 `3-9` 的 V2 互动契约，步骤字段完整。",
+    "互动设计接受文件已通过校验。"
   ],
-  "warnings": [
-    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks",
-    "缺少 互动设计接受文件：course-content/authoring/lessons/3-9/design/interactive-design-acceptance.json"
-  ],
-  "missing": [
-    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks",
-    "缺少 互动设计接受文件：course-content/authoring/lessons/3-9/design/interactive-design-acceptance.json"
-  ],
-  "issues": [
-    "讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks",
-    "缺少 互动设计接受文件：course-content/authoring/lessons/3-9/design/interactive-design-acceptance.json"
-  ]
+  "warnings": [],
+  "missing": [],
+  "issues": []
 }

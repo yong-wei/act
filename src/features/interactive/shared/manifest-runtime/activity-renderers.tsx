@@ -354,7 +354,7 @@ function StudentCardAnswerInput({
     const selectedValues = new Set(value.split('|').filter(Boolean));
     return (
       <fieldset className="mt-3 space-y-2">
-        <legend className="sr-only">{card.title ?? card.prompt}</legend>
+        <legend className="sr-only">选择答案</legend>
         {card.options.map((option) => {
           const selected = selectedValues.has(option.value);
           return (
@@ -399,7 +399,7 @@ function StudentCardAnswerInput({
 
     return (
       <fieldset className="mt-3 space-y-2">
-        <legend className="sr-only">{card.title ?? card.prompt}</legend>
+        <legend className="sr-only">选择答案</legend>
         {card.options.map((option) => (
           <label
             key={option.value}
@@ -536,6 +536,11 @@ function StudentCards({
   );
 }
 
+function hasTeacherRevealControl(stepManifest: InteractiveRuntimeStepManifest) {
+  return stepManifest.teacherControls.teacherStepReveal === 'teacher_only'
+    || stepManifest.teacherControls.teacherStepReveal === 'teacher_direct';
+}
+
 function TeacherControls({
   stepManifest,
   released,
@@ -591,7 +596,7 @@ function TeacherControls({
             {answerVisible ? '隐藏参考答案' : '显示参考答案'}
           </button>
         ) : null}
-        {controls.teacherStepReveal === 'teacher_only' ? (
+        {hasTeacherRevealControl(stepManifest) ? (
           <>
             <button type="button" onClick={onAdvanceReveal} className="premium-lesson-action-tone premium-tone-cyan">
               推进显影
@@ -602,7 +607,7 @@ function TeacherControls({
           </>
         ) : null}
       </div>
-      {controls.teacherStepReveal === 'teacher_only' ? (
+      {hasTeacherRevealControl(stepManifest) ? (
         <p className="premium-lesson-muted mt-3 text-sm">当前教师显影层级：{revealProgress + 1}</p>
       ) : null}
     </div>
@@ -682,6 +687,45 @@ function TeacherSummary({
   );
 }
 
+function TeacherRevealOnlySummary({
+  stepManifest,
+  released,
+  browseEnabled,
+  answerVisible,
+  revealProgress,
+  onToggleRelease,
+  onToggleBrowse,
+  onToggleAnswerVisible,
+  onAdvanceReveal,
+  onResetReveal,
+}: {
+  stepManifest: InteractiveRuntimeStepManifest;
+  released: boolean;
+  browseEnabled: boolean;
+  answerVisible: boolean;
+  revealProgress: number;
+  onToggleRelease: () => void;
+  onToggleBrowse: () => void;
+  onToggleAnswerVisible: () => void;
+  onAdvanceReveal: () => void;
+  onResetReveal: () => void;
+}) {
+  return (
+    <TeacherControls
+      stepManifest={stepManifest}
+      released={released}
+      browseEnabled={browseEnabled}
+      answerVisible={answerVisible}
+      revealProgress={revealProgress}
+      onToggleRelease={onToggleRelease}
+      onToggleBrowse={onToggleBrowse}
+      onToggleAnswerVisible={onToggleAnswerVisible}
+      onAdvanceReveal={onAdvanceReveal}
+      onResetReveal={onResetReveal}
+    />
+  );
+}
+
 export function createManifestStudentActivityRegistry<TStep>(): StudentInteractiveActivityRegistry<TStep, ManifestStepResponse> {
   return {
     row_focus_toggle: (props) => <StudentCards {...props} />,
@@ -692,6 +736,7 @@ export function createManifestStudentActivityRegistry<TStep>(): StudentInteracti
     matrix_choice_cards: (props) => <StudentCards {...props} />,
     hotspot_labeling: (props) => <StudentCards {...props} />,
     band_focus_panel: (props) => <StudentCards {...props} />,
+    goal_cards: (props) => <StudentCards {...props} />,
     goal_cards_plus_ai: (props) => <StudentCards {...props} />,
     evidence_mark_cards: (props) => <StudentCards {...props} />,
     scheme_vote_cards: (props) => <StudentCards {...props} />,
@@ -706,7 +751,8 @@ export function createManifestStudentActivityRegistry<TStep>(): StudentInteracti
     quiz_group: (props) => <StudentCards {...props} />,
     multi_select_matrix: (props) => <StudentCards {...props} />,
     quiz_card_grid: (props) => <StudentCards {...props} />,
-    teacher_reveal_only: (props) => <StudentCards {...props} />,
+    teacher_reveal_only: () => null,
+    worked_example_reveal: (props) => <StudentCards {...props} />,
   };
 }
 
@@ -720,6 +766,7 @@ export function createManifestTeacherActivityRegistry<TStep>(): TeacherInteracti
     matrix_choice_cards: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     hotspot_labeling: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     band_focus_panel: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
+    goal_cards: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     goal_cards_plus_ai: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     evidence_mark_cards: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     scheme_vote_cards: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
@@ -734,6 +781,7 @@ export function createManifestTeacherActivityRegistry<TStep>(): TeacherInteracti
     quiz_group: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     multi_select_matrix: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
     quiz_card_grid: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
-    teacher_reveal_only: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
+    teacher_reveal_only: (props) => <TeacherRevealOnlySummary {...props} />,
+    worked_example_reveal: (props) => <TeacherSummary {...props} responses={props.responses as TeacherResponseItem[]} />,
   };
 }

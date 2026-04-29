@@ -222,8 +222,9 @@ function getImageSrc(
   module: InteractiveRuntimeModuleManifest,
 ) {
   const payload = module.payload;
-  const direct = typeof payload.src === 'string' ? payload.src : undefined;
-  if (direct?.trim()) return direct;
+  const direct = [payload.src, payload.path, payload.runtime_media, payload.runtimeMedia]
+    .find((item): item is string => typeof item === 'string' && Boolean(item.trim()));
+  if (direct?.trim()) return runtimeMediaPath(manifest, direct);
   const { index, count } = imageModulePosition(step, module);
   const imageIndex = Math.max(0, index);
   const field = payload.field ?? 'runtime_media';
@@ -250,11 +251,29 @@ function getImageSrc(
 }
 
 function imageModulePosition(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
-  const modules = step.modules.filter((item) => item.kind === 'image-panel');
+  const modules = step.modules.filter((item) => ['image-panel', 'comparison-graphic', 'interactive-figure-panel', 'media-card'].includes(item.kind));
   return {
     index: modules.findIndex((item) => item.id === module.id),
     count: modules.length,
   };
+}
+
+function imageItemsFromPayload(manifest: InteractiveRuntimeManifest, payload: ContentRecord) {
+  const items = Array.isArray(payload.items) ? payload.items : [];
+  return items
+    .map((item) => {
+      if (typeof item === 'string') {
+        return { src: runtimeMediaPath(manifest, item), caption: '' };
+      }
+      const record = asRecord(item);
+      const path = [record.path, record.src, record.runtime_media, record.runtimeMedia]
+        .find((value): value is string => typeof value === 'string' && Boolean(value.trim()));
+      if (!path) return null;
+      const caption = [record.caption, record.explanation, record.note]
+        .find((value): value is string => typeof value === 'string' && Boolean(value.trim())) ?? '';
+      return { src: runtimeMediaPath(manifest, path), caption };
+    })
+    .filter((item): item is { src: string; caption: string } => Boolean(item));
 }
 
 function textFromRecord(value: unknown) {
@@ -592,6 +611,27 @@ function ImagePanel({ title, src, notes }: { title: string; src: string; notes: 
   );
 }
 
+function ImageGallery({ title, items }: { title: string; items: Array<{ src: string; caption: string }> }) {
+  if (!items.length) return null;
+  return (
+    <div className="premium-lesson-panel">
+      <div className="premium-lesson-kicker">{title}</div>
+      <div className="mt-3 grid gap-4 md:grid-cols-2">
+        {items.map((item) => (
+          <div key={item.src} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <Image src={item.src} alt={item.caption || title} width={1600} height={960} className="h-auto w-full" />
+            {item.caption ? (
+              <p className="premium-lesson-muted border-t border-slate-100 px-3 py-2 text-sm leading-6">
+                {renderInlineContent(item.caption)}
+              </p>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StepReveal({
   title,
   items,
@@ -744,7 +784,11 @@ export function createManifestContentModuleRegistry(extra: {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
-    'interactive-figure-panel': ({ step, module }) => {
+    'interactive-figure-panel': ({ manifest, step, module }) => {
+      const galleryItems = imageItemsFromPayload(manifest, module.payload);
+      if (galleryItems.length > 1) return <ImageGallery title={titleFromModule(module)} items={galleryItems} />;
+      const src = getImageSrc(manifest, step, module);
+      if (src) return <ImagePanel title={titleFromModule(module)} src={src} notes={imageNotes(step, module)} />;
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
@@ -857,6 +901,11 @@ export function createManifestContentModuleRegistry(extra: {
       return <CardGrid title={titleFromModule(module)} items={items} columns="grid-cols-1" />;
     },
     'image-panel': ({ manifest, step, module }) => {
+      const src = getImageSrc(manifest, step, module);
+      if (!src) return null;
+      return <ImagePanel title={titleFromModule(module)} src={src} notes={imageNotes(step, module)} />;
+    },
+    'figure': ({ manifest, step, module }) => {
       const src = getImageSrc(manifest, step, module);
       if (!src) return null;
       return <ImagePanel title={titleFromModule(module)} src={src} notes={imageNotes(step, module)} />;

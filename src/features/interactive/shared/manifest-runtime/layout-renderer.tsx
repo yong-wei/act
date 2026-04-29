@@ -51,6 +51,7 @@ const ACTIVITY_RUNTIME_MODULE_KINDS = new Set([
   'quiz-card',
   'quiz-group',
   'teacher-reveal-only',
+  'table-builder',
 ]);
 
 function buildOrderedRegions(

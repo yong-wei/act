@@ -8,18 +8,16 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
-import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
+  buildUNIT_3_9RuntimeSteps,
   finalizeUNIT_3_9TeacherSession,
-  getUNIT_3_9MediaSrc,
-  isUNIT_3_9AiPageType,
+  getUNIT_3_9StepManifest,
   isUNIT_3_9TeacherSyncState,
   resolveUNIT_3_9TeacherSyncDraft,
   shouldPostUNIT_3_9TeacherSync,
   UNIT_3_9_LESSON_KEY,
-  UNIT_3_9_LESSON_STEPS,
   UNIT_3_9_RESOURCE_KEY,
   UNIT_3_9_SESSION_ADAPTER,
   UNIT_3_9_STAGE_MAP,
@@ -28,12 +26,9 @@ import {
 } from '@/lib/unit-3-9-course';
 import { UNIT_3_9CourseHeader } from './course-header';
 import {
-  UNIT_3_9KnowledgeMapVisual,
-  UNIT_3_9StepAiAssistant,
   UNIT_3_9StepContentPanel,
   UNIT_3_9TeacherActivitySummary,
 } from './step-panels';
-import type { WorkspaceParameterChange } from './workspace';
 
 export function UNIT_3_9TeacherPage({
   sessionId,
@@ -47,6 +42,13 @@ export function UNIT_3_9TeacherPage({
   const [showStudentList, setShowStudentList] = useState(false);
   const [localRevealedAnswers, setLocalRevealedAnswers] = useState<Record<string, boolean> | null>(null);
   const [localReleasedActivities, setLocalReleasedActivities] = useState<Record<string, boolean> | null>(null);
+  const [localBrowseEnabled, setLocalBrowseEnabled] = useState<Record<string, boolean> | null>(null);
+  const [localTeacherRevealProgress, setLocalTeacherRevealProgress] = useState<Record<string, number> | null>(null);
+  const interactiveManifest = lessonRuntime.interactiveManifest;
+  if (!interactiveManifest) {
+    throw new Error('3-9 runtime manifest is missing');
+  }
+  const runtimeSteps = buildUNIT_3_9RuntimeSteps(interactiveManifest);
 
   const interactiveTracking = useInteractiveTracking({
     resourceId: UNIT_3_9_RESOURCE_KEY,
@@ -68,11 +70,11 @@ export function UNIT_3_9TeacherPage({
     finishSession,
   } = useTeacherLessonSession({
     sessionId,
-    steps: UNIT_3_9_LESSON_STEPS,
+    steps: runtimeSteps,
     adapter: UNIT_3_9_SESSION_ADAPTER,
   });
 
-  const { trackCourseEvent, trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError, trackWorkspaceParamChange } =
+  const { trackSessionFinalize, trackStepLeave, trackStepView, trackSyncError } =
     useCourseEventTracking({
       resourceKey: UNIT_3_9_RESOURCE_KEY,
       resourceId: UNIT_3_9_RESOURCE_KEY,
@@ -82,21 +84,24 @@ export function UNIT_3_9TeacherPage({
       emit: interactiveTracking.emit,
     });
 
-  const step = UNIT_3_9_LESSON_STEPS[activeIndex];
+  const step = runtimeSteps[activeIndex];
+  const stepManifest = getUNIT_3_9StepManifest(interactiveManifest, step.id);
 
   const teacherSyncState = useMemo(() => {
     const latestRecord = [...teacherStates].reverse().find((record) => isUNIT_3_9TeacherSyncState(record.data));
     return (latestRecord?.data as UNIT_3_9TeacherCourseSyncState | null) ?? null;
   }, [teacherStates]);
 
-  const { revealedAnswers, releasedActivities } = useMemo(
+  const { revealedAnswers, releasedActivities, browseEnabled, teacherRevealProgress } = useMemo(
     () =>
       resolveUNIT_3_9TeacherSyncDraft({
         localRevealedAnswers,
         localReleasedActivities,
+        localBrowseEnabled,
+        localTeacherRevealProgress,
         teacherSyncState,
       }),
-    [localRevealedAnswers, localReleasedActivities, teacherSyncState],
+    [localBrowseEnabled, localRevealedAnswers, localReleasedActivities, localTeacherRevealProgress, teacherSyncState],
   );
 
   const previousStepIdRef = useRef<string | null>(null);
@@ -121,8 +126,10 @@ export function UNIT_3_9TeacherPage({
       activeStepId: step.id,
       revealedAnswers,
       releasedActivities,
+      browseEnabled,
+      teacherRevealProgress,
     });
-  }, [loadingSession, postTeacherSyncInput, revealedAnswers, releasedActivities, step.id, teacherViewHydrated]);
+  }, [browseEnabled, loadingSession, postTeacherSyncInput, releasedActivities, revealedAnswers, step.id, teacherRevealProgress, teacherViewHydrated]);
 
   const studentStates = useMemo(() => {
     return courseStates
@@ -139,7 +146,6 @@ export function UNIT_3_9TeacherPage({
   }, [courseStates]);
 
   const joinedStudents = useMemo(() => Array.from(new Set(studentStates.map((item) => item.studentName))), [studentStates]);
-
   const currentResponses = useMemo(() => {
     return studentStates
       .map((item) => {
@@ -151,7 +157,7 @@ export function UNIT_3_9TeacherPage({
 
   const handlePatchCurrentStep = useCallback(
     async (nextIndex: number) => {
-      const nextStep = UNIT_3_9_LESSON_STEPS[nextIndex];
+      const nextStep = runtimeSteps[nextIndex];
       trackStepLeave(step.id, { nextStepId: nextStep.id });
       await patchCurrentStep(nextIndex, {
         currentItemId: nextStep.id,
@@ -159,7 +165,7 @@ export function UNIT_3_9TeacherPage({
       });
       trackStepView(nextStep.id, { pageType: nextStep.pageType, stepIndex: nextIndex });
     },
-    [patchCurrentStep, step.id, trackStepLeave, trackStepView],
+    [patchCurrentStep, runtimeSteps, step.id, trackStepLeave, trackStepView],
   );
 
   const handleEndSession = useCallback(async () => {
@@ -184,30 +190,6 @@ export function UNIT_3_9TeacherPage({
     }
   }, [finishSession, router, sessionInfo, step.id, trackSessionFinalize]);
 
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
-
-  const handleWorkspaceParameterChange = useCallback(
-    (change: WorkspaceParameterChange) => {
-      trackWorkspaceParamChange(step.id, {
-        key: change.key,
-        value: change.value,
-        source: change.source,
-      });
-    },
-    [step.id, trackWorkspaceParamChange],
-  );
-
   if (loadingSession) {
     return (
       <div className="premium-lesson-shell flex items-center justify-center">
@@ -219,7 +201,7 @@ export function UNIT_3_9TeacherPage({
   return (
     <div className="premium-lesson-shell">
       <UNIT_3_9CourseHeader
-        steps={UNIT_3_9_LESSON_STEPS}
+        steps={runtimeSteps}
         activeIndex={activeIndex}
         onIndexChange={(index) => void handlePatchCurrentStep(index)}
         middleNotice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
@@ -227,7 +209,7 @@ export function UNIT_3_9TeacherPage({
           <StepKnowledgeDrawer
             lessonRuntime={lessonRuntime}
             currentStepId={step.id}
-            orderedStepIds={UNIT_3_9_LESSON_STEPS.map((item) => item.id)}
+            orderedStepIds={runtimeSteps.map((item) => item.id)}
             title="页面知识卡片"
           />
         }
@@ -239,7 +221,7 @@ export function UNIT_3_9TeacherPage({
             <div>
               <div className="premium-lesson-kicker">教师课堂台</div>
               <div className="premium-lesson-title mt-2 text-lg font-semibold">课堂码：{sessionInfo?.joinCode ?? '------'}</div>
-              <div className="premium-lesson-muted mt-1 text-sm">教师可推进步骤、查看学生提交统计，并在需要时释放题目、显示答案。</div>
+              <div className="premium-lesson-muted mt-1 text-sm">教师可推进步骤、查看学生提交统计，并按页释放作答、显示答案或推进显影。</div>
             </div>
             <button
               type="button"
@@ -259,17 +241,19 @@ export function UNIT_3_9TeacherPage({
             >
               <span className="inline-flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                已加入学生
+                当前在线学生
               </span>
-              {showStudentList ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              <span className="premium-lesson-caption inline-flex items-center gap-1 text-xs">
+                {joinedStudents.length} 人
+                {showStudentList ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </span>
             </button>
-            <div className="premium-lesson-muted mt-1 text-sm">共 {joinedStudents.length} 名学生已进入本课堂。</div>
             {showStudentList ? (
-              <div className="mt-3 grid gap-2">
+              <div className="mt-3 space-y-2">
                 {joinedStudents.length ? (
-                  joinedStudents.map((name) => (
-                    <div key={name} className="premium-lesson-surface-elevated rounded-2xl px-3 py-2 text-sm">
-                      {name}
+                  joinedStudents.map((studentName) => (
+                    <div key={studentName} className="premium-lesson-surface-elevated px-3 py-2 text-sm">
+                      {studentName}
                     </div>
                   ))
                 ) : (
@@ -282,37 +266,51 @@ export function UNIT_3_9TeacherPage({
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
-        {step.id === 'step-01' ? <UNIT_3_9KnowledgeMapVisual /> : null}
-
         <UNIT_3_9StepContentPanel
+          manifest={interactiveManifest}
           step={step}
-          mediaSrc={getUNIT_3_9MediaSrc(step.id)}
-          mediaAlt={step.title}
-          onWorkspaceParameterChange={handleWorkspaceParameterChange}
+          stepManifest={stepManifest}
+          revealProgress={teacherRevealProgress[step.id] ?? 0}
+          allowInlineReveal
         />
-
-        {isUNIT_3_9AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_9StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
 
         <div className="mt-4">
           <UNIT_3_9TeacherActivitySummary
+            stepManifest={stepManifest}
             step={step}
             responses={currentResponses}
             released={Boolean(releasedActivities[step.id])}
+            browseEnabled={Boolean(browseEnabled[step.id])}
             answerVisible={Boolean(revealedAnswers[step.id])}
+            revealProgress={teacherRevealProgress[step.id] ?? 0}
             onToggleRelease={() =>
               setLocalReleasedActivities((prev) => ({
-                ...(prev ?? (teacherSyncState as UNIT_3_9TeacherCourseSyncState | null)?.releasedActivities ?? {}),
-                [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_9TeacherCourseSyncState | null)?.releasedActivities?.[step.id]),
+                ...(prev ?? teacherSyncState?.releasedActivities ?? {}),
+                [step.id]: !(prev?.[step.id] ?? teacherSyncState?.releasedActivities?.[step.id]),
+              }))
+            }
+            onToggleBrowse={() =>
+              setLocalBrowseEnabled((prev) => ({
+                ...(prev ?? teacherSyncState?.browseEnabled ?? {}),
+                [step.id]: !(prev?.[step.id] ?? teacherSyncState?.browseEnabled?.[step.id]),
               }))
             }
             onToggleAnswerVisible={() =>
               setLocalRevealedAnswers((prev) => ({
-                ...(prev ?? (teacherSyncState as UNIT_3_9TeacherCourseSyncState | null)?.revealedAnswers ?? {}),
-                [step.id]: !(prev?.[step.id] ?? (teacherSyncState as UNIT_3_9TeacherCourseSyncState | null)?.revealedAnswers?.[step.id]),
+                ...(prev ?? teacherSyncState?.revealedAnswers ?? {}),
+                [step.id]: !(prev?.[step.id] ?? teacherSyncState?.revealedAnswers?.[step.id]),
+              }))
+            }
+            onAdvanceReveal={() =>
+              setLocalTeacherRevealProgress((prev) => ({
+                ...(prev ?? teacherSyncState?.teacherRevealProgress ?? {}),
+                [step.id]: (prev?.[step.id] ?? teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0) + 1,
+              }))
+            }
+            onResetReveal={() =>
+              setLocalTeacherRevealProgress((prev) => ({
+                ...(prev ?? teacherSyncState?.teacherRevealProgress ?? {}),
+                [step.id]: 0,
               }))
             }
           />

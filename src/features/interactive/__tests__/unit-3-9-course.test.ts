@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { parse } from 'yaml';
 
 vi.mock('server-only', () => ({}));
 
@@ -31,9 +32,10 @@ const workspaceFile = join(
 
 let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaDocument;
 let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaIndex;
+let loadLessonRuntimeEntry: typeof import('@/lib/course-runtime').loadLessonRuntimeEntry;
 
 beforeAll(async () => {
-  ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-runtime'));
+  ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex, loadLessonRuntimeEntry } = await import('@/lib/course-runtime'));
 });
 
 describe('unit 3-9 interactive course', () => {
@@ -68,28 +70,47 @@ describe('unit 3-9 interactive course', () => {
     expect(registry?.courseMeta.courseTitle).toContain('稳定—动态—稳态综合映射实验');
   });
 
-  it('defines the full 8-step lesson flow and real 3-9 media mapping', async () => {
+  it('builds the full 10-step lesson flow from the runtime manifest', async () => {
     expect(existsSync(courseFile)).toBe(true);
     if (!existsSync(courseFile)) return;
 
+    const runtime = await loadLessonRuntimeEntry('3-9');
     const courseModule = await import('@/lib/unit-3-9-course');
+    const steps = courseModule.buildUNIT_3_9RuntimeSteps(runtime.interactiveManifest);
 
-    expect(courseModule.UNIT_3_9_LESSON_STEPS).toHaveLength(8);
-    expect(courseModule.UNIT_3_9_LESSON_STEPS[0]?.id).toBe('step-01');
-    expect(courseModule.UNIT_3_9_LESSON_STEPS[7]?.id).toBe('step-08');
-    expect(courseModule.getUNIT_3_9MediaSrc('step-01')).toContain('3-9-cover-comic');
-    expect(courseModule.getUNIT_3_9MediaSrc('step-03')).toContain('3-9-baseline-quad');
-    expect(courseModule.getUNIT_3_9MediaSrc('step-04')).toContain('3-9-zero-line-quad');
-    expect(courseModule.getUNIT_3_9MediaSrc('step-05')).toContain('3-9-integral-weak-quad');
-    expect(courseModule.getUNIT_3_9MediaSrc('step-06')).toContain('3-9-lag-quad');
-    expect(courseModule.getUNIT_3_9MediaSrc('step-08')).toContain('3-9-info');
+    expect(steps).toHaveLength(10);
+    expect(steps.map((step: { id: string }) => step.id)).toEqual([
+      'step-01',
+      'step-02',
+      'step-03',
+      'step-04',
+      'step-05',
+      'step-06',
+      'step-07',
+      'step-08',
+      'step-09',
+      'step-10',
+    ]);
+    expect(steps.map((step: { pageType: string }) => step.pageType)).toEqual([
+      'display',
+      'quiz_group',
+      'display',
+      'structured_compare',
+      'parameter_slider',
+      'parameter_slider',
+      'parameter_slider',
+      'parameter_slider',
+      'table_builder',
+      'summary',
+    ]);
   });
 
   it('keeps the local page contracts aligned with the authoring interactive contract', async () => {
     expect(existsSync(courseFile)).toBe(true);
     if (!existsSync(courseFile)) return;
 
-    const contract = JSON.parse(
+    const runtime = await loadLessonRuntimeEntry('3-9');
+    const contract = parse(
       readFileSync(join(repoRoot, 'course-content/authoring/lessons/3-9/design/interactive-contract.yaml'), 'utf8'),
     ) as {
       steps: Record<
@@ -106,12 +127,15 @@ describe('unit 3-9 interactive course', () => {
     };
 
     const courseModule = await import('@/lib/unit-3-9-course');
-    const interactiveSteps = new Map(courseModule.UNIT_3_9_LESSON_STEPS.map((step: { id: string }) => [step.id, step]));
+    const interactiveSteps = new Map(
+      courseModule.buildUNIT_3_9RuntimeSteps(runtime.interactiveManifest).map((step: { id: string }) => [step.id, step]),
+    );
+    const manifestSteps = new Map(runtime.interactiveManifest?.steps.map((step) => [step.id, step]) ?? []);
 
     for (const stepId of Object.keys(contract.steps)) {
       const authoringStep = contract.steps[stepId];
       const localStep = interactiveSteps.get(stepId);
-      const localPageContract = courseModule.UNIT_3_9_PAGE_CONTRACTS[stepId];
+      const manifestStep = manifestSteps.get(stepId);
       const expectedPageType =
         authoringStep.interaction_spec.interaction_kind === 'none'
           ? 'display'
@@ -119,13 +143,13 @@ describe('unit 3-9 interactive course', () => {
 
       expect(localStep?.title).toBe(authoringStep.title);
       expect(localStep?.pageType).toBe(expectedPageType);
-      expect(localPageContract?.layout.template).toBe(authoringStep.layout.template);
-      expect(localPageContract?.layout.regions).toEqual(authoringStep.layout.regions);
-      expect(localPageContract?.interactionKind).toBe(authoringStep.interaction_spec.interaction_kind);
-      expect(localPageContract?.teacherInsightWidgets).toEqual(authoringStep.teacher_insight_spec.widgets);
-      expect(localPageContract?.telemetrySummaryFields).toEqual(authoringStep.telemetry_spec.summary_fields);
-      expect(localPageContract?.misconceptionTags ?? []).toEqual(authoringStep.telemetry_spec.misconception_tags ?? []);
-      expect(localPageContract?.previewDemoPath).toBe(authoringStep.preview_contract.demo_path);
+      expect(manifestStep?.layout.template).toBe(authoringStep.layout.template);
+      expect(manifestStep?.layout.regions).toEqual(authoringStep.layout.regions);
+      expect(manifestStep?.interactionSpec.interactionKind).toBe(authoringStep.interaction_spec.interaction_kind);
+      expect(manifestStep?.teacherInsightSpec.widgets).toEqual(authoringStep.teacher_insight_spec.widgets);
+      expect(manifestStep?.telemetrySpec.summaryFields).toEqual(authoringStep.telemetry_spec.summary_fields);
+      expect(manifestStep?.telemetrySpec.misconceptionTags ?? []).toEqual(authoringStep.telemetry_spec.misconception_tags ?? []);
+      expect(manifestStep?.previewContract.demoPath).toBe(authoringStep.preview_contract.demo_path);
     }
   });
 
@@ -155,7 +179,7 @@ describe('unit 3-9 interactive course', () => {
     expect(parsed.mediaResources.some((resource) => resource.filename === 'handout.md')).toBe(false);
   });
 
-  it('uses 3-9 step AI context inside the student page and covers matrix/table workspaces', () => {
+  it('uses shared manifest rendering and removes page-local AI and display-page placeholders', () => {
     expect(existsSync(studentFile)).toBe(true);
     expect(existsSync(stepPanelsFile)).toBe(true);
     expect(existsSync(workspaceFile)).toBe(true);
@@ -165,10 +189,62 @@ describe('unit 3-9 interactive course', () => {
     const stepPanelsSource = readFileSync(stepPanelsFile, 'utf8');
     const workspaceSource = readFileSync(workspaceFile, 'utf8');
 
-    expect(studentSource).toContain('getUnit39StepAIContext');
-    expect(stepPanelsSource).toContain('综合映射工作区');
-    expect(stepPanelsSource).toContain('滞后能压小误差');
+    expect(studentSource).toContain('buildUNIT_3_9RuntimeSteps');
+    expect(studentSource).toContain('lessonRuntime.interactiveManifest');
+    expect(stepPanelsSource).toContain('renderInteractiveManifestStep');
+    expect(stepPanelsSource).toContain('createManifestContentModuleRegistry');
+    expect(stepPanelsSource).toContain('ControlFigureWorkspace');
+    expect(stepPanelsSource).toContain('buildUnit39AnalysisRequest');
+    expect(stepPanelsSource).not.toContain('STEP_BLUEPRINTS');
+    expect(stepPanelsSource).not.toContain('unit39-inline-ai');
+    expect(stepPanelsSource).not.toContain('本页无需提交');
+    expect(stepPanelsSource).not.toContain('复制提示词');
     expect(workspaceSource).toContain('MATRIX_WORKSPACE_FIELDS');
     expect(workspaceSource).toContain('TABLE_BUILDER_FIELDS');
+  });
+
+  it('keeps the redesigned page requirements in the 3-9 runtime manifest', async () => {
+    const runtime = await loadLessonRuntimeEntry('3-9');
+    const steps = new Map(runtime.interactiveManifest?.steps.map((step) => [step.id, step]) ?? []);
+
+    expect(steps.get('step-01')?.modules.some((module) => module.kind === 'figure')).toBe(true);
+    expect(JSON.stringify(steps.get('step-01'))).toContain('3-9-cover-comic.png');
+    expect(JSON.stringify(steps.get('step-01'))).not.toContain('边界提醒');
+    expect(JSON.stringify(steps.get('step-02'))).not.toContain('AI');
+    expect(JSON.stringify(steps.get('step-03'))).toContain('控制对象');
+    expect(steps.get('step-04')?.modules.some((module) => module.kind === 'rust-analysis-panel')).toBe(true);
+    expect(JSON.stringify(steps.get('step-04'))).toContain('超调量');
+    expect(steps.get('step-05')?.interactionSpec.interactionKind).toBe('parameter_slider');
+    expect(steps.get('step-06')?.interactionSpec.interactionKind).toBe('parameter_slider');
+    expect(steps.get('step-07')?.interactionSpec.interactionKind).toBe('parameter_slider');
+    expect(steps.get('step-08')?.interactionSpec.interactionKind).toBe('parameter_slider');
+    expect(steps.get('step-09')?.interactionSpec.interactionKind).toBe('table_builder');
+    expect(steps.get('step-10')?.interactionSpec.interactionKind).toBe('summary');
+  });
+
+  it('builds 3-9 Rust analysis requests for baseline, lead, integral and lag panels', async () => {
+    const { buildUnit39AnalysisRequest, formatUnit39ControllerFormula } = await import(
+      '@/resources/control-system/analysis/unit-3-9-request-builder'
+    );
+
+    expect(buildUnit39AnalysisRequest('baseline', {}).structures.map((item) => item.kind)).toEqual(['gain']);
+    expect(buildUnit39AnalysisRequest('lead', { gain: 2.25, zeroFrequency: 0.5, poleFrequency: 2 }).structures.map((item) => item.kind)).toEqual([
+      'gain',
+      'lead',
+    ]);
+    expect(buildUnit39AnalysisRequest('integral', { gain: 2.25, integralZeroFrequency: 0.025 }).structures.map((item) => item.kind)).toEqual([
+      'gain',
+      'pi',
+    ]);
+    expect(buildUnit39AnalysisRequest('integral_example', { zeroFrequency: 0.05, poleFrequency: 0.5 }).structures.map((item) => item.kind)).toEqual([
+      'gain',
+      'pi',
+      'lead',
+    ]);
+    expect(buildUnit39AnalysisRequest('lag', { gain: 4.5, zeroFrequency: 0.025, poleFrequency: 0.0125 }).structures.map((item) => item.kind)).toEqual([
+      'gain',
+      'lag',
+    ]);
+    expect(formatUnit39ControllerFormula('lead', { gain: 2.25, zeroFrequency: 0.5, poleFrequency: 2 })).toContain('C(s)=');
   });
 });

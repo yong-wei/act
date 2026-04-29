@@ -5,20 +5,17 @@ import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 
-import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import { useStudentLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
-import { getUnit39StepAIContext } from '@/lib/course-ai-contexts';
 import {
-  getUNIT_3_9MediaSrc,
-  isUNIT_3_9AiPageType,
+  buildUNIT_3_9RuntimeSteps,
+  getUNIT_3_9StepManifest,
   isUNIT_3_9InteractivePageType,
   UNIT_3_9_LESSON_KEY,
-  UNIT_3_9_LESSON_STEPS,
   UNIT_3_9_RESOURCE_KEY,
   UNIT_3_9_SESSION_ADAPTER,
   type UNIT_3_9StudentCourseState,
@@ -26,8 +23,6 @@ import {
 } from '@/lib/unit-3-9-course';
 import { UNIT_3_9CourseHeader } from './course-header';
 import {
-  UNIT_3_9KnowledgeMapVisual,
-  UNIT_3_9StepAiAssistant,
   UNIT_3_9StepContentPanel,
   UNIT_3_9StudentActivityForm,
   UNIT_3_9StudentSummaryPanel,
@@ -45,9 +40,13 @@ export function UNIT_3_9StudentPage({
   const searchParams = useSearchParams();
   const demoStepId = searchParams.get('step');
   const { data: authSession } = useSession();
-
   const currentStudentName = authSession?.user?.name?.trim() || '学生';
   const currentUserId = authSession?.user?.id;
+  const interactiveManifest = lessonRuntime.interactiveManifest;
+  if (!interactiveManifest) {
+    throw new Error('3-9 runtime manifest is missing');
+  }
+  const runtimeSteps = buildUNIT_3_9RuntimeSteps(interactiveManifest);
 
   const interactiveTracking = useInteractiveTracking({
     resourceId: UNIT_3_9_RESOURCE_KEY,
@@ -70,7 +69,7 @@ export function UNIT_3_9StudentPage({
     setActiveIndex,
   } = useStudentLessonSession({
     sessionId,
-    steps: UNIT_3_9_LESSON_STEPS,
+    steps: runtimeSteps,
     adapter: UNIT_3_9_SESSION_ADAPTER,
     currentStudentName,
     currentUserId,
@@ -88,38 +87,30 @@ export function UNIT_3_9StudentPage({
       emit: interactiveTracking.emit,
     });
 
-  const step = UNIT_3_9_LESSON_STEPS[activeIndex];
+  const step = runtimeSteps[activeIndex];
+  const stepManifest = getUNIT_3_9StepManifest(interactiveManifest, step.id);
   const savedResponse = courseState.responses[step.id];
-  const { updatePageContext } = useGlobalAI();
 
-  useEffect(() => {
-    const stepContext = getUnit39StepAIContext(step.id);
-    if (stepContext) {
-      updatePageContext({
-        courseId: stepContext.courseId,
-        courseTitle: stepContext.courseTitle,
-        pageType: stepContext.pageType,
-        stepId: stepContext.stepId,
-        topic: stepContext.topic,
-        learningObjectives: stepContext.learningObjectives,
-        knowledgeType: stepContext.knowledgeType,
-        tools: stepContext.tools,
-        quickQuestions: stepContext.quickQuestions,
-        systemPromptExtension: stepContext.systemPromptExtension,
-      });
-    }
-  }, [step.id, updatePageContext]);
-
-  const answerVisible =
-    teacherSyncState?.activeStepId === step.id
-      ? Boolean((teacherSyncState as { revealedAnswers?: Record<string, boolean> })?.revealedAnswers?.[step.id])
-      : false;
+  const answerVisible = teacherSyncState?.activeStepId === step.id ? Boolean(teacherSyncState?.revealedAnswers?.[step.id]) : false;
   const released =
-    isDemo || !isUNIT_3_9InteractivePageType(step.pageType)
+    isDemo ||
+    !isUNIT_3_9InteractivePageType(step.pageType) ||
+    stepManifest.teacherControls.releaseActivity === 'page_load_open'
       ? true
       : teacherSyncState?.activeStepId === step.id
-        ? Boolean((teacherSyncState as { releasedActivities?: Record<string, boolean> })?.releasedActivities?.[step.id])
+        ? Boolean(teacherSyncState?.releasedActivities?.[step.id])
         : false;
+  const browseEnabled =
+    isDemo ||
+    stepManifest.teacherControls.openBrowse === 'not_applicable' ||
+    stepManifest.teacherControls.openBrowse === 'page_load_open'
+      ? true
+      : teacherSyncState?.activeStepId === step.id
+        ? Boolean(teacherSyncState?.browseEnabled?.[step.id])
+        : false;
+  const revealProgress = teacherSyncState?.activeStepId === step.id ? teacherSyncState?.teacherRevealProgress?.[step.id] ?? 0 : 0;
+  const allowInlineReveal =
+    isDemo || (browseEnabled && stepManifest.teacherControls.teacherStepReveal === 'not_applicable');
 
   const previousStepIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -167,19 +158,6 @@ export function UNIT_3_9StudentPage({
     });
   };
 
-  const handleAiEvent = useCallback(
-    (eventType: string, data?: Record<string, unknown>) => {
-      trackCourseEvent(
-        eventType === 'ai_panel_open' ? COURSE_EVENT_TYPES.AI_PANEL_OPEN : COURSE_EVENT_TYPES.AI_QUERY_SUBMIT,
-        {
-          stepId: step.id,
-          data: { eventType, ...data },
-        },
-      );
-    },
-    [step.id, trackCourseEvent],
-  );
-
   const handleWorkspaceParameterChange = useCallback(
     (change: WorkspaceParameterChange) => {
       trackWorkspaceParamChange(step.id, {
@@ -213,10 +191,10 @@ export function UNIT_3_9StudentPage({
   return (
     <div className="premium-lesson-shell">
       <UNIT_3_9CourseHeader
-        steps={UNIT_3_9_LESSON_STEPS}
+        steps={runtimeSteps}
         activeIndex={activeIndex}
         onIndexChange={(index) => {
-          trackStepLeave(step.id, { nextStepId: UNIT_3_9_LESSON_STEPS[index]?.id });
+          trackStepLeave(step.id, { nextStepId: runtimeSteps[index]?.id });
           setActiveIndex(index);
         }}
         middleNotice={isOutOfSync ? `当前页面与教师不同步，教师正在第 ${teacherIndex + 1} 页` : step.hint}
@@ -224,7 +202,7 @@ export function UNIT_3_9StudentPage({
           <StepKnowledgeDrawer
             lessonRuntime={lessonRuntime}
             currentStepId={step.id}
-            orderedStepIds={UNIT_3_9_LESSON_STEPS.map((item) => item.id)}
+            orderedStepIds={runtimeSteps.map((item) => item.id)}
             title="页面知识卡片"
           />
         }
@@ -237,8 +215,8 @@ export function UNIT_3_9StudentPage({
             <button
               type="button"
               onClick={() => {
-                trackStepView(UNIT_3_9_LESSON_STEPS[teacherIndex]?.id, {
-                  pageType: UNIT_3_9_LESSON_STEPS[teacherIndex]?.pageType,
+                trackStepView(runtimeSteps[teacherIndex]?.id, {
+                  pageType: runtimeSteps[teacherIndex]?.pageType,
                   stepIndex: teacherIndex,
                   source: 'sync-to-teacher',
                 });
@@ -253,43 +231,29 @@ export function UNIT_3_9StudentPage({
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
-        <div className="premium-lesson-panel-soft mb-4 px-4 py-4">
-          <div className="premium-lesson-kicker">学生课堂台</div>
-          <div className="premium-lesson-title mt-2 text-lg font-semibold">
-            {isDemo ? '演示模式已开启' : `已加入课堂 ${sessionId}`}
-          </div>
-          <div className="premium-lesson-muted mt-1 text-sm">
-            {isDemo ? '演示模式不会写入课堂状态。' : '学生端会随课堂同步步骤，并把个人作答持久化到课堂状态。'}
-          </div>
-        </div>
-
-        {step.id === 'step-01' ? <UNIT_3_9KnowledgeMapVisual /> : null}
-
         <UNIT_3_9StepContentPanel
+          manifest={interactiveManifest}
           step={step}
-          mediaSrc={getUNIT_3_9MediaSrc(step.id)}
-          mediaAlt={step.title}
-          onWorkspaceParameterChange={handleWorkspaceParameterChange}
+          stepManifest={stepManifest}
+          revealProgress={revealProgress}
+          allowInlineReveal={allowInlineReveal}
         />
-
-        {isUNIT_3_9AiPageType(step.pageType) ? (
-          <div className="mt-4">
-            <UNIT_3_9StepAiAssistant step={step} onAiEvent={handleAiEvent} />
-          </div>
-        ) : null}
 
         <div className="mt-4">
           <UNIT_3_9StudentActivityForm
+            stepManifest={stepManifest}
             step={step}
             savedResponse={savedResponse}
             released={released}
+            browseEnabled={browseEnabled}
             answerVisible={answerVisible}
+            revealProgress={revealProgress}
             onSubmit={handleSubmitResponse}
             onWorkspaceParameterChange={handleWorkspaceParameterChange}
           />
         </div>
 
-        {step.id === 'step-08' ? (
+        {step.id === 'step-10' ? (
           <div className="mt-4">
             <UNIT_3_9StudentSummaryPanel responses={courseState.responses} />
           </div>
