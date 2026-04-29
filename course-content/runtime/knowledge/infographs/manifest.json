@@ -131,11 +131,35 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/三频段闭环性能回读_3_38003.png",
+      "title": "三频段闭环性能回读 信息图",
+      "lessonId": "3-9",
+      "nodeId": "三频段闭环性能回读_3_38003"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/串联无源滞后校正_6_2a52e865.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/串联无源滞后校正_6_2a52e865.png",
+      "title": "串联无源滞后校正 信息图",
+      "lessonId": "3-9",
+      "nodeId": "串联无源滞后校正_6_2a52e865"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/主导极点_3_4c4c6bbd.png",
       "url": "/course-runtime/knowledge/infographs/nodes/主导极点_3_4c4c6bbd.png",
       "title": "主导极点 信息图",
       "lessonId": "3-9",
       "nodeId": "主导极点_3_4c4c6bbd"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/任务标签与机制标签匹配_3_39002.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/任务标签与机制标签匹配_3_39002.png",
+      "title": "任务标签与机制标签匹配 信息图",
+      "lessonId": "3-9",
+      "nodeId": "任务标签与机制标签匹配_3_39002"
     },
     {
       "type": "infograph",
@@ -155,11 +179,43 @@
     },
     {
       "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/带宽_5_6730fda4.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/带宽_5_6730fda4.png",
+      "title": "带宽 信息图",
+      "lessonId": "3-9",
+      "nodeId": "带宽_5_6730fda4"
+    },
+    {
+      "type": "infograph",
       "path": "course-content/runtime/knowledge/infographs/nodes/根轨迹_4_c19f8854.png",
       "url": "/course-runtime/knowledge/infographs/nodes/根轨迹_4_c19f8854.png",
       "title": "根轨迹 信息图",
       "lessonId": "3-9",
       "nodeId": "根轨迹_4_c19f8854"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/模块4入口的首轮任务判断_3_39004.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/模块4入口的首轮任务判断_3_39004.png",
+      "title": "模块4入口的首轮任务判断 信息图",
+      "lessonId": "3-9",
+      "nodeId": "模块4入口的首轮任务判断_3_39004"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_0a9c6e90.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_0a9c6e90.png",
+      "title": "相角裕度 信息图",
+      "lessonId": "3-9",
+      "nodeId": "相角裕度_5_0a9c6e90"
+    },
+    {
+      "type": "infograph",
+      "path": "course-content/runtime/knowledge/infographs/nodes/积分与滞后的稳态改善分工_3_39003.png",
+      "url": "/course-runtime/knowledge/infographs/nodes/积分与滞后的稳态改善分工_3_39003.png",
+      "title": "积分与滞后的稳态改善分工 信息图",
+      "lessonId": "3-9",
+      "nodeId": "积分与滞后的稳态改善分工_3_39003"
     },
     {
       "type": "infograph",

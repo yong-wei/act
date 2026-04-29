@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-04-29T01:10:03.508745Z",
+  "lesson_id": "3-9",
+  "node_id": "模块4入口的首轮任务判断_3_39004",
+  "generation_path": "codex-native-image-generation",
+  "model": "gpt-image-2",
+  "tool_contract": "Codex built-in image_gen prompt-only tool",
+  "formal_parameters_available": {
+    "prompt": true,
+    "model": false,
+    "quality": false,
+    "size": false,
+    "reasoning_effort": false,
+    "output_format": false
+  },
+  "source_image": "/Users/YW/.codex/generated_images/019dd3de-7c9c-7420-a317-341ec28e2abb/ig_0c199c4eb07220890169f15a2ad4e48198b3d4682b20e8677b.png",
+  "output_image": "course-content/authoring/knowledge/infographs/lessons/3-9/nodes/模块4入口的首轮任务判断_3_39004/infograph.png",
+  "prompt_path": "course-content/authoring/knowledge/infographs/lessons/3-9/nodes/模块4入口的首轮任务判断_3_39004/prompt.md",
+  "source_path": "course-content/authoring/knowledge/infographs/lessons/3-9/nodes/模块4入口的首轮任务判断_3_39004/source.json"
+}

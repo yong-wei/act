@@ -180,3 +180,4 @@ For `带宽`, center the visual on the closed-loop magnitude curve and the `-3 d
 For `奈奎斯特与 Bode 统一判稳链`, show both views: Nyquist `-1` critical point and Bode `0dB / -180°` markers connected to the same stability boundary.
 For `目标驱动超前校正`, use the design chain `目标裕度/目标频带 -> 补角 -> 参数 -> 时域验收`; do not draw only a generic three-band chart.
 For comprehensive/readback nodes, prefer the chain `频域指纹 -> 判稳余量 -> 三频段任务 -> 闭环读回`; do not stop at a generic low/mid/high frequency split.
+For `主导极点`, draw only a stable closed-loop pole map: all poles must be in the left half-plane. The concept is not meaningfully discussed as a design heuristic for an unstable closed-loop case, so do not place any closed-loop pole in the right half-plane. Highlight the pole pair or group closest to the imaginary axis, with slower decay and dominant response contribution; de-emphasize farther-left poles.

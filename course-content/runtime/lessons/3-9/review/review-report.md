@@ -13,11 +13,15 @@
 - 已将 `design/boppps.md` 作为 runtime/review 产物导出，供课程制作技能直接读取。
 
 ## 互动页覆盖审查
-- 已覆盖讲义中的核心公式与静态承载内容。
 - 已检测到 `3-9` 的 V2 互动契约，步骤字段完整。
+- 讲义映射合同缺少列：evidence_unit_id, handout_anchor, evidence_kind, target_steps, upgrade_mode, keep_elements, non_reducible, acceptance_checks
+- 缺少 互动设计接受文件：course-content/authoring/lessons/3-9/design/interactive-design-acceptance.json
 
 ## knowledge-card-check
 - 知识卡片已全部存在，且均包含 `## 首页` / `## 详情` 基本结构。
+
+## infograph-check
+- 已接受 15 张知识点信息图。
 
 ## multimedia-check
 - 已识别并确认存在 2 项正式媒体，未发现缺失。

@@ -93,7 +93,8 @@
         "group_name": "综合映射与模块4入口",
         "step_ids": [
           "step-08",
-          "step-09"
+          "step-09",
+          "step-10"
         ],
         "node_ids": [
           "三频段闭环性能回读_3_38003",
@@ -138,5 +139,7 @@
     "interactive_page_check_path": "/course-runtime/lessons/3-9/review/interactive-page-check.json",
     "multimedia_check_path": "/course-runtime/lessons/3-9/review/multimedia-check.json",
     "source_manifest_path": "/course-runtime/lessons/3-9/review/source-manifest.json"
-  }
+  },
+  "interactive_manifest_path": "/course-runtime/lessons/3-9/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/3-9/interactive-manifest.json"
 }

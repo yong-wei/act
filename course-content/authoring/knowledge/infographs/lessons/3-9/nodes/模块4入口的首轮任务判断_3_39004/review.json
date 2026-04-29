@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-29T01:10:03.509119Z",
+  "lesson_id": "3-9",
+  "node_id": "模块4入口的首轮任务判断_3_39004",
+  "node_name": "模块4入口的首轮任务判断",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已目视审查：船舶航向对象、根轨迹/Bode/阶跃响应证据墙、后续设计问题与不能越级边界清晰。"
+}

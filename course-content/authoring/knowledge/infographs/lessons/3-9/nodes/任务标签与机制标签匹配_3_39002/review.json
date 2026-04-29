@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-04-29T01:01:39.328346Z",
+  "lesson_id": "3-9",
+  "node_id": "任务标签与机制标签匹配_3_39002",
+  "node_name": "任务标签与机制标签匹配",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "已目视审查：船舶航向对象、任务标签分流、机制线选择和禁止直接跳到控制器名称的关系清晰；可见中文正确。"
+}
