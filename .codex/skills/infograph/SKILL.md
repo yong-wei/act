@@ -154,8 +154,33 @@ python3 course-content/scripts/export_runtime.py <lesson>
 
 The review writes `runtime/lessons/<lesson>/review/infograph-check.json`.
 Runtime export copies accepted node infographics and mounts them into runtime knowledge node resources.
+Lesson-entry runtime display must keep infograph thumbnails clickable and open a larger preview dialog; do not rely on the card-sized image as the only readable view.
 
 ## Prompt Policy
+
+### Prompt Architecture
+
+Every generated `prompt.md` must describe the image as an executable visual specification, not as a prose request. Include these fields in the prompt body:
+
+- `visual_archetype`: choose one of `科普百科图鉴`, `机制剖面图`, `流程板`, `对比板`, `频域仪表盘`, `s 平面机理板`, or `工程评审板`.
+- `layout_contract`: specify canvas ratio, panel count, main visual position, technical inset positions, and reading order.
+- `text_contract`: list the exact short labels and formula anchors that may appear; keep visible labels to about 8-12 and prohibit body paragraphs.
+- `technical_insets_contract`: require 1-3 insets, each serving mechanism explanation, readback, or boundary judgment rather than decoration.
+- `negative_constraints`: prohibit electronic handout screenshots, generic icon-card layouts, long copied definitions, prompt metadata, and unrelated decoration.
+
+Use the prompt pattern learned from strong GPT Image 2 examples: make the image model decide less about layout and more about rendering. State the object, view, panel geometry, label count, material/lighting style, and allowed text explicitly.
+
+### Visual Archetypes
+
+Select the archetype by node semantics:
+
+- `科普百科图鉴`: concept overview nodes with a main object plus modular feature/boundary blocks.
+- `机制剖面图`: nodes explaining an internal mechanism, such as integral accumulation, lag compensation, or low-frequency gain shaping.
+- `流程板`: design path, procedure, or judgment-chain nodes.
+- `对比板`: nodes centered on misconception, trade-off, or two-strategy comparison.
+- `频域仪表盘`: Bode, margin, bandwidth, Nyquist/Bode, and frequency-band readback nodes.
+- `s 平面机理板`: pole, zero, root-locus, dominant-pole, and stability-plane nodes.
+- `工程评审板`: comprehensive synthesis nodes that compare root locus, Bode, step response, and task labels.
 
 For concept nodes, prefer a visual teaching-asset composition:
 
@@ -169,8 +194,11 @@ Avoid generating images that look like an electronic note card with icons. The a
 For formula-heavy nodes, let GPT Image 2 render the exact key formula anchors when the formula is central to the concept. Keep the formula count small, usually one or two equations, and place formulas in uncluttered white space. Do not preemptively suppress formulas just because they contain fractions, subscripts, Greek letters, integrals, or exponentials; the local 2026-04-28 test showed these render acceptably. Still reject or regenerate any image whose formula is malformed, truncated, or semantically changed.
 
 For reused nodes from older lessons, explain the current lesson usage in `source.json`, but do not overwrite the node's original lesson truth.
+When a lesson card supplies its own display formula, use that formula as the primary visible formula in the infographic prompt. Do not add secondary global formulas unless they are needed for the current lesson-specific visual explanation.
 
 Do not reuse a node-specific phrase such as “左半平面零点改变主导极点路径” for unrelated nodes. If several generated images show the same wrong phrase, fix `prepare_infograph_source.py` before regenerating more images.
+
+For `超调量`, the step-response visual must distinguish the reference input from the output steady value. Draw the unit-step reference signal `r(t)=1` as a separate line or inset, draw the actual output steady value as `y_\infty`, and make the final horizontal tail of the response coincide with the `y_\infty` line. Place the `y_\infty` label on that steady-state line, not on a separate curve height. The overshoot bracket must measure `y_{max}-y_\infty`, not `y_{max}` minus the reference input.
 
 For `幅角原理`, center the visual on origin winding and zero-pole counting (`N=Z-P`), not on the Nyquist `-1` point. The `-1` point belongs to the Nyquist stability criterion.
 

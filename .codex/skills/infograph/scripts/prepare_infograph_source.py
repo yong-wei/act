@@ -50,6 +50,26 @@ def extract_first_display_formula(markdown: str) -> str:
     return re.sub(r'\s+', ' ', match.group(1).strip())
 
 
+def unique_strings(items: list[Any]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for item in items:
+        value = str(item).strip()
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        result.append(value)
+    return result
+
+
+def formula_anchors(card_formula: str, node_formulas: list[Any]) -> list[str]:
+    # Lesson cards can refine a reused node for the current design context.
+    # Put the card formula first so the image tests the lesson-specific truth.
+    if card_formula:
+        return [card_formula]
+    return unique_strings(list(node_formulas or []))
+
+
 def relation_mentions_node(relation: dict[str, Any], node_id: str, node_name: str) -> bool:
     return (
         relation.get('source_id') == node_id
@@ -80,6 +100,12 @@ def relation_summary(relation: dict[str, Any], node_id: str) -> dict[str, Any]:
 
 def visual_focus_for_node(node_name: str, groups: list[str]) -> str:
     text = f'{node_name} {" ".join(groups)}'
+    if '超调量' in text:
+        return (
+            '用阶跃响应曲线的峰值、实际稳态值和超出部分表达过程接受度；'
+            '同时画出单位阶跃参考信号 r(t)=1，用不同线型区分给定值和输出稳态值；'
+            '绿色虚线 y_infty 必须穿过响应曲线最终水平尾段，y_infty 标注只能贴在这条稳态线上。'
+        )
     if '幅角原理' in text:
         return '用复平面闭合曲线、原点绕行圈数、曲线内部零点和极点表达 N=Z-P 的计数关系。'
     if '统一判稳链' in text or ('奈奎斯特' in text and 'Bode' in text):
@@ -109,6 +135,14 @@ def visual_focus_for_node(node_name: str, groups: list[str]) -> str:
 
 def visual_asset_brief_for_node(node_name: str, groups: list[str]) -> str:
     text = f'{node_name} {" ".join(groups)}'
+    if '超调量' in text:
+        return (
+            '主视觉对象：一张放大的阶跃响应曲线，实际稳态线 y_infty、单位阶跃参考线 r(t)=1、输出峰值 y_max 和超出区域清楚可辨。\n'
+            '工程场景：用客船航向控制或稳定平台的小型实物剪影作为应用线索，表达“过程能否接受”，不要画成泛用仪表海报。\n'
+            '核心图示：标出 y_max、y_infty、r(t)=1 和 M_p 对应的超出比例；超出量只能画成从绿色 y_infty 稳态线到峰值线的 y_max - y_infty，不能画成 y_max 减参考给定值。\n'
+            '读图一致性：输出曲线最终尾段必须与绿色 y_infty 稳态线重合；红色 r(t)=1 参考线可以高于 y_infty，用来显示给定值与稳态输出不是同一条线。\n'
+            '构图方式：左侧为响应曲线主图，右侧为公式、过程接受度边界和一个小型工程场景读回。'
+        )
     if '积分环节' in text:
         return (
             '主视觉对象：透明水箱液位上升和船舶航向罗盘二选一或并置，表达“输入被持续累积”。\n'
@@ -173,6 +207,102 @@ def visual_asset_brief_for_node(node_name: str, groups: list[str]) -> str:
     )
 
 
+def visual_archetype_for_node(node_name: str, groups: list[str]) -> dict[str, str]:
+    text = f'{node_name} {" ".join(groups)}'
+    if '流程' in text or '路径' in text or '步骤' in text or '任务判断' in text:
+        return {
+            'id': 'process_board',
+            'name': '流程板',
+            'description': '用 4-6 个连续步骤表达从证据到判断或从目标到参数的过程。',
+        }
+    if '零点' in text or '极点' in text or '根轨迹' in text:
+        return {
+            'id': 's_plane_mechanism_board',
+            'name': 's 平面机理板',
+            'description': '以 s 平面主图为核心，辅以响应曲线或阻尼区域小窗解释动态机理。',
+        }
+    if 'Bode' in text or '裕度' in text or '带宽' in text or '频域' in text or '三频段' in text:
+        return {
+            'id': 'frequency_dashboard',
+            'name': '频域仪表盘',
+            'description': '以 Bode/闭环幅频/三频段读图为主图，配合裕度、边界和工程读回小窗。',
+        }
+    if '积分' in text or '滞后' in text or '补偿' in text or '低频' in text:
+        return {
+            'id': 'mechanism_cutaway',
+            'name': '机制剖面图',
+            'description': '用物理对象或信号通道的分层剖面解释结构如何改变稳态或动态表现。',
+        }
+    if '综合' in text or '映射' in text or '统一' in text or '标签' in text or '读回' in text:
+        return {
+            'id': 'engineering_review_board',
+            'name': '工程评审板',
+            'description': '把多个证据窗口组织成评审台，强调证据对照、任务匹配和结论读回。',
+        }
+    return {
+        'id': 'science_encyclopedia_panel',
+        'name': '科普百科图鉴',
+        'description': '用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。',
+    }
+
+
+def layout_contract_for_archetype(archetype_id: str) -> str:
+    contracts = {
+        'process_board': (
+            '16:9 横版；上方一个短标题；中间 4-6 个编号步骤横向或 2x3 排列；'
+            '每步只放一个图像动作或技术小窗；底部一条结论/边界条。'
+        ),
+        's_plane_mechanism_board': (
+            '16:9 横版；左侧 55%-65% 为 s 平面或根轨迹主图；右侧上方为响应曲线小窗；'
+            '右侧下方为判断边界或公式；极点/零点标签贴近图形。'
+        ),
+        'frequency_dashboard': (
+            '16:9 横版；左侧或上方为 Bode/闭环幅频主图；2-3 个仪表式小窗显示裕度、带宽或三频段读回；'
+            '用细线连接读图位置和判断面板。'
+        ),
+        'mechanism_cutaway': (
+            '16:9 横版；一个真实质感的物理对象或信号通道剖面占主画面；'
+            '旁边用 2-3 个放大局部解释低频收益、相位代价或累积机制。'
+        ),
+        'engineering_review_board': (
+            '16:9 横版；采用工程评审台或证据墙布局；'
+            '四个窗口按“频域指纹、判稳余量、三频段任务、闭环读回”组织；右下角给结论。'
+        ),
+        'science_encyclopedia_panel': (
+            '16:9 横版；一个清晰主视觉占画面约一半；'
+            '其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。'
+        ),
+    }
+    return contracts.get(archetype_id, contracts['science_encyclopedia_panel'])
+
+
+def text_contract_for_node(node_name: str, keywords: list[str], formulas: list[str]) -> dict[str, Any]:
+    allowed_labels = [node_name, *keywords[:8]]
+    return {
+        'allowed_labels': allowed_labels[:10],
+        'max_visible_labels': 12,
+        'max_label_length': 'prefer_under_10_chinese_chars',
+        'formula_anchors': formulas[:2],
+        'body_text_policy': 'no_paragraphs_no_full_definition_copy',
+    }
+
+
+def visual_architecture_for_node(node_name: str, groups: list[str], keywords: list[str], formulas: list[str]) -> dict[str, Any]:
+    archetype = visual_archetype_for_node(node_name, groups)
+    return {
+        'visual_archetype': archetype,
+        'layout_contract': layout_contract_for_archetype(archetype['id']),
+        'text_contract': text_contract_for_node(node_name, keywords, formulas),
+        'technical_insets_contract': '1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。',
+        'negative_constraints': [
+            '不要生成电子讲义截图或白底多卡片堆叠。',
+            '不要把长定义、长例题或整段说明塞进图面。',
+            '不要用无关装饰替代工程对象、技术曲线或物理隐喻。',
+            '不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。',
+        ],
+    }
+
+
 def build_prompt(source: dict[str, Any]) -> str:
     node = source['node']
     lesson = source['lesson']
@@ -199,16 +329,23 @@ def build_prompt(source: dict[str, Any]) -> str:
         )
 
     formulas = node.get('formulas') or []
-    formula_line = '；'.join(str(item) for item in formulas[:2]) if formulas else '无公式锚点，图中只放与主题直接相关的短符号。'
+    formula_line = '；'.join(str(item) for item in formulas[:2]) if formulas else '无公式，图中只放与主题直接相关的短符号。'
     formula_instruction = (
-        f'请准确渲染这些关键公式锚点，放在留白充足的位置，不要艺术化变形：{formula_line}'
+        f'请准确渲染这些公式本身，放在留白充足的位置；公式区标题只能写“公式”：{formula_line}'
         if formulas
-        else '本节点没有公式锚点，不要自行添加公式。'
+        else '本节点没有公式，不要自行添加公式。'
     )
     keywords = [str(item) for item in (node.get('keywords') or [])[:8]]
     text_allowlist = [node['name'], *keywords]
     visual_focus = visual_focus_for_node(str(node['name']), groups)
     visual_asset_brief = visual_asset_brief_for_node(str(node['name']), groups)
+    visual_architecture = source.get('visual_architecture') or visual_architecture_for_node(
+        str(node['name']),
+        groups,
+        keywords,
+        [str(item) for item in formulas],
+    )
+    text_contract = visual_architecture['text_contract']
 
     return f"""请使用 GPT Image 2 / Codex 最新图片生成能力，制作一张横版中文教学信息图。
 
@@ -225,7 +362,7 @@ def build_prompt(source: dict[str, Any]) -> str:
 核心直觉：
 {source.get('core_intuition', '')}
 
-关键公式锚点：
+可用公式（内部依据，图面公式区标题只能写“公式”）：
 {formula_line}
 
 本课关系：
@@ -237,12 +374,20 @@ def build_prompt(source: dict[str, Any]) -> str:
 视觉资产 brief：
 {visual_asset_brief}
 
+结构化视觉架构：
+visual_archetype: {visual_architecture['visual_archetype']['name']}（{visual_architecture['visual_archetype']['description']}）
+layout_contract: {visual_architecture['layout_contract']}
+text_contract: 只允许围绕这些标签组织图面文字：{'、'.join(text_contract['allowed_labels']) if text_contract['allowed_labels'] else node['name']}；全图最多 {text_contract['max_visible_labels']} 个可见标签；不放正文段落。
+technical_insets_contract: {visual_architecture['technical_insets_contract']}
+negative_constraints:
+{chr(10).join(f"- {item}" for item in visual_architecture['negative_constraints'])}
+
 图像要求：
 - 横版信息图，适合放在互动课程入口的知识点详情中；画面应像一张教学视觉资产，而不是电子知识卡片截图。
 - 必须包含一个具体主视觉对象或工程场景，并包含一个数学/工程图示嵌图；不要只画卡片、图标和箭头。
 - 主视觉对象、示意图、公式和短标签要共同解释机制；不要用无关装饰填充画面。
 - 中文为主，不使用英文大标题；英文只允许作为小号副标题。
-- 不要把“课程单元、所属分组、知识类型、事实真源、关键公式锚点、公式锚点、图像要求”等元数据或提示词字段画进图面。
+- 不要把“课程单元、所属分组、知识类型、事实真源、可用公式、图像要求、visual_archetype、layout_contract、text_contract”等元数据或提示词字段画进图面；公式区域如需标题，只能写“公式”。
 - 不要整句复刻“一句话定义”；把定义压缩成 3-5 个短标签或短判断。
 - 全图可见中文标签控制在 12 个以内；单个标签尽量不超过 10 个汉字，不放解释段落。
 - 图中的关系标签统一使用中文，不要显示 contains、leads_to、cross_domain 等英文关系类型。
@@ -293,6 +438,15 @@ def main() -> None:
     card_formula = extract_first_display_formula(overview)
 
     node_name = str(node.get('name') or frontmatter.get('name') or args.node)
+    node_formulas = formula_anchors(card_formula, node.get('formulas') or frontmatter.get('formulas') or [])
+    node_keywords = unique_strings(
+        list(node.get('keywords') or [])
+        + [
+            item
+            for item in list(frontmatter.get('tags') or [])
+            if str(item).strip() != args.lesson
+        ]
+    )
     related_relations = [
         relation_summary(relation, args.node)
         for relation in load_authoring_relations(args.lesson)
@@ -315,10 +469,10 @@ def main() -> None:
             'category': node.get('category') or frontmatter.get('category'),
             'knowledge_type': node.get('knowledge_type') or frontmatter.get('knowledge_type'),
             'bloom_level': node.get('bloom_level') or frontmatter.get('bloom_level'),
-            'definition': node.get('definition') or card_definition,
+            'definition': card_definition or node.get('definition'),
             'examples': node.get('examples') or [],
-            'formulas': node.get('formulas') or ([card_formula] if card_formula else []),
-            'keywords': node.get('keywords') or [],
+            'formulas': node_formulas,
+            'keywords': node_keywords,
         },
         'card_path': repo_path(card_path) if card_path.exists() else None,
         'card_frontmatter': frontmatter,
@@ -327,6 +481,12 @@ def main() -> None:
         'card_plain_excerpt': compact_markdown(strip_frontmatter(card_markdown), 2200),
         'core_intuition': core_intuition,
         'relations': related_relations,
+        'visual_architecture': visual_architecture_for_node(
+            node_name,
+            groups,
+            node_keywords,
+            node_formulas,
+        ),
         'constraints': {
             'facts_must_come_from_source': True,
             'formula_rendering_policy': 'render_key_formula_anchors_when_present_then_review_visually',
