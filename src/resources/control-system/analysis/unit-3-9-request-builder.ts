@@ -36,6 +36,8 @@ const CASE_CONFIG: CaseConfig = {
   disturbanceProfile: undefined,
 };
 
+const RAMP_TIME_RANGE = { start: 0, end: 400, samples: 560 };
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
@@ -198,6 +200,16 @@ export function buildUnit39AnalysisRequest(panelId: Unit39PanelId, params: Unit3
     stateSpaceSpec: CASE_CONFIG.stateSpaceSpec,
     referenceProfile: CASE_CONFIG.referenceProfile,
     disturbanceProfile: CASE_CONFIG.disturbanceProfile,
+  };
+}
+
+export function buildUnit39RampAnalysisRequest(panelId: Unit39PanelId, params: Unit39PanelParams): ControlAnalysisRequest {
+  const request = buildUnit39AnalysisRequest(panelId, params);
+  return {
+    ...request,
+    caseId: `${request.caseId}_ramp`,
+    responseType: 'ramp',
+    timeRange: RAMP_TIME_RANGE,
   };
 }
 

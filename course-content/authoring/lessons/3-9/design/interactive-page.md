@@ -13,15 +13,15 @@
 | 步骤 | 标题 | 页面模板 | 主体模块 | 互动类型 | 学生页预览 |
 |---|---|---|---|---|---|
 | step-01 | 导入：同一艘船的三种改进诉求 | `intro_comic_scene` | 导入漫画 + 场景回顾 | `none` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-01` |
-| step-02 | 前测：先贴任务标签，不先报控制器名称 | `question_stack` | 前测题组 | `quiz_group` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-02` |
+| step-02 | 前测：先贴任务标签，不先报控制器名称 | `question_stack` | 本次课程目标 + 前测题组 | `quiz_group` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-02` |
 | step-03 | 控制对象：本次课比较的同一艘船 | `object_task_slide` | 控制对象 + 本次课主要任务 | `none` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-03` |
 | step-04 | 基准版本：从四联图读出性能指标 | `rust_metric_reading_board` | Rust 四联图 + 指标填空 + 教师显影结论 | `structured_compare` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-04` |
 | step-05 | 超前校正：调节增益、零点与极点 | `rust_tuning_workspace` | Rust 参数面板 + 设计提交评价 | `parameter_slider` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-05` |
 | step-06 | 积分校正：调节增益与积分零点 | `rust_tuning_workspace` | Rust 参数面板 + 设计提交评价 | `parameter_slider` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-06` |
-| step-07 | 积分校正例子：调节校正零点与极点 | `rust_tuning_workspace` | 讲义 5.4 例子 + Rust 参数面板 + 提交评价 | `parameter_slider` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-07` |
+| step-07 | 积分校正例子：调节校正零点与极点 | `rust_tuning_workspace` | 设计任务 + Rust 参数面板 + 提交评价 | `parameter_slider` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-07` |
 | step-08 | 滞后对照：调节增益、零点与极点 | `rust_tuning_workspace` | Rust 参数面板 + 设计提交评价 | `parameter_slider` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-08` |
 | step-09 | 后测：填写四个版本的综合映射表 | `mapping_workspace` | 四版本映射填空表 + 暂存 + 提交 | `table_builder` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-09` |
-| step-10 | 总结：从读图比较走向设计任务表达 | `summary_only` | 总结卡 | `summary` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-10` |
+| step-10 | 总结：从读图比较走向设计任务表达 | `summary_only` | 总结卡 + 课程信息图 | `summary` | `/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo?step=step-10` |
 
 ## 共享组件化要求
 | 能力 | 运行态实现口径 | 验收点 |
@@ -36,15 +36,15 @@
 | handout_anchor | core_item_type | must_appear_content | target_step | page_mode | interaction_upgrade | media_or_table_ref | acceptance_note |
 |---|---|---|---|---|---|---|---|
 | `## 一、为什么模块 3 结束前要整合三种语言` | scene | 同一航向控制对象的三类改进诉求 | step-01 | static | 导入漫画 + 场景问题 | `3-9-cover-comic.png` | 首屏不出现作答占位 |
-| `## 一、为什么模块 3 结束前要整合三种语言` | quiz | 更快、更准、兼顾稳与快三类任务标签 | step-02 | quiz | 前测题组 | 前测题目 | 页面内无 AI 助手 |
+| `## 一、为什么模块 3 结束前要整合三种语言` | quiz | 布鲁姆动词驱动目标与更快、更准、兼顾稳与快三类任务标签 | step-02 | quiz | 课程目标 + 前测题组 | 前测题目 | 页面内无 AI 助手 |
 | `## 二、统一对象与统一读图口径` | formula | `P(s)`、`C_0(s)` 与本次课主要任务 | step-03 | static | 无 | 控制对象公式 | 不作答 |
 | `## 三、任务一：基准版本给出哪一类基线` | curve+metric | 基准四联图、性能指标、读图基本结论 | step-04 | rust+fill | Rust 四联图 + 指标填空 + 教师显影 | 基准指标表 | 教师释放答案后显示正确指标 |
 | `## 四、任务二：零点线补强如何优先改善动态` | parametric_panel | 超前增益、零点、极点对四域证据的影响 | step-05 | rust+submit | 参数调节与设计提交 | Rust 控制分析面板 | 校正前后与装置曲线同屏 |
 | `## 五、任务三：积分家族如何把低频收益和中频代价同时暴露出来` | parametric_panel | 增益与积分零点对稳态收益和中频代价的影响 | step-06 | rust+submit | 参数调节与设计提交 | Rust 控制分析面板 | 与 step-05 同交互逻辑 |
-| `### 5.4 积分校正：保留积分任务，同时把动态和裕度拉回可用区` | worked_example | 积分校正零点、极点例子 | step-07 | rust+submit | 只调校正零点和极点 | Rust 控制分析面板 | 控制器曲线采用完整控制器 |
-| `### 5.5 滞后对照：稳态改善还有另一条路径` | parametric_panel | 增益、滞后零点、滞后极点综合调节 | step-08 | rust+submit | 参数调节与设计提交 | Rust 控制分析面板 | 根轨迹采用校正后完整控制器 |
+| `### 5.4 积分校正：保留积分任务，同时把动态和裕度拉回可用区` | worked_example | 固定积分校正设计任务与零点、极点调节 | step-07 | rust+submit | 只调校正零点和极点 | Rust 控制分析面板 | 控制器曲线采用完整控制器，时域读取单位斜坡误差 |
+| `### 5.5 滞后对照：稳态改善还有另一条路径` | parametric_panel | 不改变型别，把低频增益提高一倍 | step-08 | rust+submit | 参数调节与设计提交 | Rust 控制分析面板 | 时域读取单位斜坡误差，根轨迹采用校正后完整控制器 |
 | `## 六、综合映射：同一对象上的三条典型路线怎样分工` | table | 四个版本的收益、代价、观察域与任务标签 | step-09 | table | 表格填空、暂存、提交 | 综合映射表 | 允许空白提交 |
-| `## 本讲小结` | summary | 从读图比较走向设计任务表达 | step-10 | static | 无 | 总结卡 | 不设置后测 |
+| `## 本讲小结` | summary | 从读图比较走向设计任务表达 | step-10 | static | 无 | 总结卡与 `3-9-info.png` | 不设置后测 |
 
 ## 步骤 01｜导入：同一艘船的三种改进诉求
 
@@ -72,9 +72,14 @@
 ### 页面骨架
 - 模板：`question_stack`
 - 区域：`quiz`
-- 模块：`summary-card:pretest-anchor`、`activity-card-set:pretest-questions`
+- 模块：`objective-list:lesson-objectives`、`summary-card:pretest-anchor`、`activity-card-set:pretest-questions`
 
 ### 静态承载内容
+- 先给出本次课程目标：
+  - 识别同一航向控制对象下动态、稳态、稳定裕度三类证据分别来自哪张图。
+  - 解释超前、积分、滞后控制器改变低频收益和中频相位的主要机制。
+  - 比较基准、超前、积分、滞后四个版本在单位斜坡误差、相角裕度、超调和调节时间上的收益与代价。
+  - 判断给定改进诉求应先写成哪类任务标签，并匹配相应的机制线。
 - 前测只检查面对“更快”“更准”“兼顾稳与快”时，是否先写任务标签，再判断可能的机制线。
 - 页面内只保留题目与必要题组说明。
 
@@ -184,7 +189,7 @@ $$
 ### 静态承载内容
 - 控件区允许学生调节增益和积分零点。
 - 控件区动态显示当前控制器传递函数。
-- 时域图显示校正前后曲线。
+- 时域图显示校正前后的单位斜坡误差。
 - 幅频和相频图显示校正前、校正后和完整积分控制器曲线。
 - 根轨迹只绘制校正之后的根轨迹，并随控件调整变化。
 
@@ -205,10 +210,14 @@ $$
 - 模块：`summary-card:integral-example-task` + 3-9 专属 Rust 参数面板
 
 ### 静态承载内容
-- 使用讲义 5.4 中的例子。
-- 保留积分任务，控件区只能调节中频校正零点和极点。
+- 设计任务：已固定积分控制器
+$$
+C_{ic}(s)=2.25\left(1+\frac{1}{40s}\right)\frac{20s+1}{2s+1}
+$$
+- 强积分几乎消除单位斜坡误差，但相角裕度偏紧；现在只调节中频校正零点和极点，在保留低频积分任务的同时把相位裕度和动态品质拉回可用区。
 - 幅频和相频中的控制器曲线采用完整控制器曲线。
 - 根轨迹采用完整控制器对应的校正后根轨迹。
+- 时域图显示校正前后的单位斜坡误差。
 
 ### 互动升级点
 - 组件类型：`parameter_slider`
@@ -227,11 +236,12 @@ $$
 - 模块：`summary-card:lag-task` + 3-9 专属 Rust 参数面板
 
 ### 静态承载内容
-- 控件区允许学生调节增益、零点和极点。
+- 调节任务：在不改变型别的前提下，把低频增益提高一倍。
+- 控件区允许学生调节增益、滞后零点和滞后极点，使单位斜坡误差约从 5.56 降到 2.78。
 - 控件区动态显示当前控制器传递函数。
-- 时域图显示校正前后曲线。
+- 时域图显示校正前后的单位斜坡误差。
 - 幅频和相频图显示校正前、校正后和完整滞后控制器曲线。
-- 根轨迹只绘制完整控制器对应的校正后根轨迹。
+- 根轨迹只绘制完整控制器对应的校正后根轨迹，并保持关于实轴的共轭对称。
 
 ### 互动升级点
 - 组件类型：`parameter_slider`
@@ -275,11 +285,12 @@ $$
 ### 页面骨架
 - 模板：`summary_only`
 - 区域：`summary`
-- 模块：`summary-card:summary-card`
+- 模块：`summary-card:summary-card`、`figure:course-info-graphic`
 
 ### 静态承载内容
 - 汇总本课形成的判断：同一控制对象下，不同校正动作会在时域、频域、根轨迹和稳态误差中暴露不同收益与代价。
 - 收束到后续设计任务表达：先写任务标签，再依据跨域证据选择候选机制。
+- 同页给出课程信息图 `3-9-info.png`，帮助学生把三种校正路线的证据分工带走。
 
 ### 互动升级点
 - 组件类型：`summary`

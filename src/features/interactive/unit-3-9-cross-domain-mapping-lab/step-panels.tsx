@@ -25,12 +25,14 @@ import type { InteractiveRuntimeManifest, InteractiveRuntimeStepManifest } from 
 import {
   buildUnit39AnalysisRequest,
   buildUnit39ControllerCurveRequest,
+  buildUnit39RampAnalysisRequest,
   formatUnit39ControllerFormula,
   formatUnit39PlantFormula,
   normalizeUnit39PanelParams,
   type Unit39PanelId,
   type Unit39PanelParams,
 } from '@/resources/control-system/analysis/unit-3-9-request-builder';
+import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
 import type { ControlAnalysisResult, CurvePoint } from '@/resources/control-system/analysis/types';
 import { axisTooltipFormatter, formatAxisValue, getControlAxisPreset } from '@/resources/control-system/charts/control-bode-options';
@@ -96,7 +98,7 @@ const PANEL_CONFIG: Record<
     controllerLegend: '积分控制器',
   },
   integral_example: {
-    title: '讲义 5.4 积分校正例子互动面板',
+    title: '积分校正例子互动面板',
     defaultParams: { zeroFrequency: 0.05, poleFrequency: 0.5 },
     controls: [
       { key: 'zeroFrequency', label: '校正零点频率', min: 0.005, max: 1, step: 0.001 },
@@ -147,6 +149,14 @@ function zipSeries(
     });
   }
   return points;
+}
+
+function toRampErrorSeries(points: CurvePoint[] | undefined) {
+  return points?.map((point) => ({ ...point, y: point.x - point.y }));
+}
+
+function usesRampErrorPanel(panelId: Unit39PanelId) {
+  return panelId === 'integral' || panelId === 'integral_example' || panelId === 'lag';
 }
 
 function buildLineOption(input: {
@@ -246,16 +256,23 @@ function Unit39RustPanel({
   const normalized = useMemo(() => normalizeUnit39PanelParams(panelId, deferred), [panelId, deferred]);
   const baselineRequest = useMemo(() => buildUnit39AnalysisRequest('baseline', {}), []);
   const currentRequest = useMemo(() => buildUnit39AnalysisRequest(panelId, normalized), [panelId, normalized]);
+  const baselineRampRequest = useMemo(() => buildUnit39RampAnalysisRequest('baseline', {}), []);
+  const currentRampRequest = useMemo(() => buildUnit39RampAnalysisRequest(panelId, normalized), [panelId, normalized]);
   const controllerRequest = useMemo(() => buildUnit39ControllerCurveRequest(panelId, normalized), [panelId, normalized]);
   const baseline = useControlEngine(baselineRequest);
   const current = useControlEngine(currentRequest);
+  const baselineRamp = useControlEngine(baselineRampRequest);
+  const currentRamp = useControlEngine(currentRampRequest);
   const controller = useControlEngine(controllerRequest);
+  const showRampError = usesRampErrorPanel(panelId);
 
   const timeOption = buildLineOption({
-    points: zipSeries(baseline.result?.stepResponse.points, current.result?.stepResponse.points, undefined),
-    title: '时域响应',
+    points: showRampError
+      ? zipSeries(toRampErrorSeries(baselineRamp.result?.stepResponse.points), toRampErrorSeries(currentRamp.result?.stepResponse.points), undefined)
+      : zipSeries(baseline.result?.stepResponse.points, current.result?.stepResponse.points, undefined),
+    title: showRampError ? '单位斜坡误差' : '时域响应',
     xAxisName: 't / s',
-    yAxisName: '输出',
+    yAxisName: showRampError ? 'e(t)' : '输出',
     controllerLegend: config.controllerLegend,
   });
   const magnitudeOption = buildLineOption({
@@ -293,7 +310,7 @@ function Unit39RustPanel({
       ) : (
         <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.18fr)_minmax(0,1fr)]">
           <div className="grid gap-4">
-            <ControlChartPanel title="时域响应：校正前 / 校正后" option={timeOption} />
+            <ControlChartPanel title={showRampError ? '单位斜坡误差：校正前 / 校正后' : '时域响应：校正前 / 校正后'} option={timeOption} />
             {current.result ? (
               <RootLocusPanel result={current.result} caseId={currentRequest.caseId} axisPresetOverride={getControlAxisPreset(currentRequest.caseId, 'rootLocus')} />
             ) : (
@@ -396,6 +413,7 @@ function BaselineMetricForm({
   onSubmit: (response: UNIT_3_9StepResponse) => void;
 }) {
   const [draft, setDraft] = useState<Record<string, string>>(savedResponse?.answers ?? {});
+  const [submittedAt, setSubmittedAt] = useState<number | null>(null);
 
   useEffect(() => {
     setDraft(savedResponse?.answers ?? {});
@@ -437,10 +455,19 @@ function BaselineMetricForm({
       <button
         type="button"
         className="premium-lesson-action-primary"
-        onClick={() => onSubmit({ stepId: stepManifest.id, submittedAt: Date.now(), answers: draft })}
+        onClick={() => {
+          const timestamp = Date.now();
+          setSubmittedAt(timestamp);
+          onSubmit({ stepId: stepManifest.id, submittedAt: timestamp, answers: draft });
+        }}
       >
         提交答案
       </button>
+      <SubmissionStatus
+        submitted={Boolean(submittedAt || savedResponse)}
+        submittedText="指标填空已提交，修改后可以再次提交。"
+        showLock={false}
+      />
     </SurfaceCard>
   );
 }
@@ -463,6 +490,7 @@ function ParameterSliderSubmission({
     ?? (stepManifest.id === 'step-05' ? 'lead' : stepManifest.id === 'step-06' ? 'integral' : stepManifest.id === 'step-07' ? 'integral_example' : 'lag');
   const initial = savedResponse?.answers ?? (PANEL_CONFIG[panelId].defaultParams as Record<string, string | number>);
   const [params, setParams] = useState<Record<string, string | number>>(initial);
+  const [submittedAt, setSubmittedAt] = useState<number | null>(null);
   const normalized = normalizeUnit39PanelParams(panelId, params as Unit39PanelParams);
   const baseline = useControlEngine(buildUnit39AnalysisRequest('baseline', {}));
   const current = useControlEngine(buildUnit39AnalysisRequest(panelId, normalized));
@@ -485,19 +513,26 @@ function ParameterSliderSubmission({
         <button
           type="button"
           className="premium-lesson-action-primary"
-          onClick={() =>
+          onClick={() => {
+            const timestamp = Date.now();
+            setSubmittedAt(timestamp);
             onSubmit({
               stepId: stepManifest.id,
-              submittedAt: Date.now(),
+              submittedAt: timestamp,
               answers: {
                 ...Object.fromEntries(Object.entries(normalized).map(([key, value]) => [key, String(value)])),
                 evaluation,
               },
-            })
-          }
+            });
+          }}
         >
           提交设计
         </button>
+        <SubmissionStatus
+          submitted={Boolean(submittedAt || savedResponse)}
+          submittedText="当前设计已提交，继续调节后可以再次提交。"
+          showLock={false}
+        />
       </SurfaceCard>
     </div>
   );
@@ -515,14 +550,21 @@ function MappingTableForm({
   onSubmit: (response: UNIT_3_9StepResponse) => void;
 }) {
   const [draft, setDraft] = useState<Record<string, string>>(savedResponse?.answers ?? {});
+  const [statusText, setStatusText] = useState<string | null>(savedResponse ? '表格记录已恢复，可以继续修改后提交。' : null);
   useEffect(() => setDraft(savedResponse?.answers ?? {}), [savedResponse]);
 
   if (!released) {
     return <div className="premium-lesson-panel">教师尚未发放综合映射表。</div>;
   }
 
-  const save = () => onSubmit({ stepId: stepManifest.id, submittedAt: Date.now(), answers: { ...draft, __draft: 'true' } });
-  const submit = () => onSubmit({ stepId: stepManifest.id, submittedAt: Date.now(), answers: { ...draft, __submitted: 'true' } });
+  const save = () => {
+    setStatusText('已暂存当前表格，切换页面后可以回来继续填写。');
+    onSubmit({ stepId: stepManifest.id, submittedAt: Date.now(), answers: { ...draft, __draft: 'true' } });
+  };
+  const submit = () => {
+    setStatusText('表格已提交，留空项也已按当前状态记录。');
+    onSubmit({ stepId: stepManifest.id, submittedAt: Date.now(), answers: { ...draft, __submitted: 'true' } });
+  };
 
   return (
     <SurfaceCard title="综合映射表填空">
@@ -561,6 +603,12 @@ function MappingTableForm({
         <button type="button" className="premium-lesson-action-secondary" onClick={save}>暂存</button>
         <button type="button" className="premium-lesson-action-primary" onClick={submit}>提交</button>
       </div>
+      <SubmissionStatus
+        submitted={Boolean(statusText)}
+        submittedText={statusText ?? '表格已记录。'}
+        idleText="可以先暂存，也可以直接提交。"
+        showLock={false}
+      />
     </SurfaceCard>
   );
 }

@@ -211,19 +211,34 @@ describe('unit 3-9 interactive course', () => {
     expect(JSON.stringify(steps.get('step-01'))).toContain('3-9-cover-comic.png');
     expect(JSON.stringify(steps.get('step-01'))).not.toContain('边界提醒');
     expect(JSON.stringify(steps.get('step-02'))).not.toContain('AI');
+    expect(JSON.stringify(steps.get('step-02'))).toContain('本次课程目标');
+    expect(JSON.stringify(steps.get('step-02'))).toContain('识别');
+    expect(JSON.stringify(steps.get('step-02'))).toContain('解释');
+    expect(JSON.stringify(steps.get('step-02'))).toContain('比较');
+    expect(JSON.stringify(steps.get('step-02'))).toContain('判断');
     expect(JSON.stringify(steps.get('step-03'))).toContain('控制对象');
     expect(steps.get('step-04')?.modules.some((module) => module.kind === 'rust-analysis-panel')).toBe(true);
     expect(JSON.stringify(steps.get('step-04'))).toContain('超调量');
     expect(steps.get('step-05')?.interactionSpec.interactionKind).toBe('parameter_slider');
     expect(steps.get('step-06')?.interactionSpec.interactionKind).toBe('parameter_slider');
+    expect(JSON.stringify(steps.get('step-06'))).toContain('单位斜坡误差');
     expect(steps.get('step-07')?.interactionSpec.interactionKind).toBe('parameter_slider');
+    expect(JSON.stringify(steps.get('step-07'))).toContain('设计任务');
+    expect(JSON.stringify(steps.get('step-07'))).toContain('C_{ic}(s)');
+    expect(JSON.stringify(steps.get('step-07'))).not.toContain('讲义 5.4');
+    expect(JSON.stringify(steps.get('step-07'))).toContain('单位斜坡误差');
     expect(steps.get('step-08')?.interactionSpec.interactionKind).toBe('parameter_slider');
+    expect(JSON.stringify(steps.get('step-08'))).toContain('不改变型别');
+    expect(JSON.stringify(steps.get('step-08'))).toContain('低频增益提高一倍');
+    expect(JSON.stringify(steps.get('step-08'))).toContain('单位斜坡误差');
     expect(steps.get('step-09')?.interactionSpec.interactionKind).toBe('table_builder');
     expect(steps.get('step-10')?.interactionSpec.interactionKind).toBe('summary');
+    expect(steps.get('step-10')?.modules.some((module) => module.kind === 'figure')).toBe(true);
+    expect(JSON.stringify(steps.get('step-10'))).toContain('3-9-info.png');
   });
 
   it('builds 3-9 Rust analysis requests for baseline, lead, integral and lag panels', async () => {
-    const { buildUnit39AnalysisRequest, formatUnit39ControllerFormula } = await import(
+    const { buildUnit39AnalysisRequest, buildUnit39RampAnalysisRequest, formatUnit39ControllerFormula } = await import(
       '@/resources/control-system/analysis/unit-3-9-request-builder'
     );
 
@@ -245,6 +260,8 @@ describe('unit 3-9 interactive course', () => {
       'gain',
       'lag',
     ]);
+    expect(buildUnit39RampAnalysisRequest('integral', { gain: 2.25, integralZeroFrequency: 0.025 }).responseType).toBe('ramp');
+    expect(buildUnit39RampAnalysisRequest('lag', { gain: 4.5, zeroFrequency: 0.025, poleFrequency: 0.0125 }).caseId).toContain('_ramp');
     expect(formatUnit39ControllerFormula('lead', { gain: 2.25, zeroFrequency: 0.5, poleFrequency: 2 })).toContain('C(s)=');
   });
 });

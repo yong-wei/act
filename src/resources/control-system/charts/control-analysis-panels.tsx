@@ -10,6 +10,7 @@ import type {
   ControlMetrics,
   CurvePoint,
   RootLocusData,
+  RootLocusSamplePoint,
 } from '../analysis/types';
 import {
   axisTooltipFormatter,
@@ -221,6 +222,57 @@ function buildFeasibleRegionSeries(
   ];
 }
 
+function snapRootPoint<T extends ComplexPoint>(point: T): T {
+  const scale = Math.max(1, Math.abs(point.re), Math.abs(point.im));
+  return Math.abs(point.im) <= 1e-8 * scale ? { ...point, im: 0 } : point;
+}
+
+function hasConjugatePoint<T extends ComplexPoint>(points: T[], point: T) {
+  const scale = Math.max(1, Math.abs(point.re), Math.abs(point.im));
+  const tolerance = 1e-5 * scale;
+  return points.some((candidate) =>
+    Math.abs(candidate.re - point.re) <= tolerance && Math.abs(candidate.im + point.im) <= tolerance
+  );
+}
+
+function normalizeConjugatePointSet<T extends ComplexPoint>(points: T[]): T[] {
+  const normalized = points.map(snapRootPoint);
+  const additions: T[] = [];
+  for (const point of normalized) {
+    if (point.im === 0 || hasConjugatePoint(normalized, point) || hasConjugatePoint(additions, point)) {
+      continue;
+    }
+    additions.push({ ...point, im: -point.im });
+  }
+  return [...normalized, ...additions];
+}
+
+function branchHasMirror(branches: RootLocusSamplePoint[][], branch: RootLocusSamplePoint[]) {
+  const firstComplex = branch.find((point) => Math.abs(point.im) > 1e-8);
+  if (!firstComplex) return true;
+  const lastComplex = [...branch].reverse().find((point) => Math.abs(point.im) > 1e-8) ?? firstComplex;
+  return branches.some((candidate) => {
+    if (candidate === branch) return false;
+    const candidateFirst = candidate.find((point) => Math.abs(point.im) > 1e-8);
+    const candidateLast = [...candidate].reverse().find((point) => Math.abs(point.im) > 1e-8) ?? candidateFirst;
+    if (!candidateFirst || !candidateLast) return false;
+    return hasConjugatePoint([candidateFirst], firstComplex) && hasConjugatePoint([candidateLast], lastComplex);
+  });
+}
+
+function normalizeConjugateBranches(branches: RootLocusSamplePoint[][]) {
+  const normalized = branches.map((branch) => branch.map(snapRootPoint));
+  const additions: RootLocusSamplePoint[][] = [];
+  for (const branch of normalized) {
+    const hasComplexPoint = branch.some((point) => point.im !== 0);
+    if (!hasComplexPoint || branchHasMirror(normalized, branch) || branchHasMirror(additions, branch)) {
+      continue;
+    }
+    additions.push(branch.map((point) => ({ ...point, im: -point.im })));
+  }
+  return [...normalized, ...additions];
+}
+
 function buildRootLocusOption(
   rootLocus: RootLocusData,
   caseId?: string,
@@ -229,7 +281,10 @@ function buildRootLocusOption(
 ): EChartsCoreOption {
   const axisPreset = axisPresetOverride ?? getControlAxisPreset(caseId, getRootLocusAxisKey(mode));
   const showFeasible = mode !== 'full';
-  const locusBranches = mode === 'full' && rootLocus.fullBranches ? rootLocus.fullBranches : rootLocus.branches;
+  const locusBranches = normalizeConjugateBranches(mode === 'full' && rootLocus.fullBranches ? rootLocus.fullBranches : rootLocus.branches);
+  const currentPoles = normalizeConjugatePointSet(rootLocus.currentPoles);
+  const openLoopPoles = normalizeConjugatePointSet(rootLocus.openLoopPoles);
+  const openLoopZeros = normalizeConjugatePointSet(rootLocus.openLoopZeros);
   const series: ChartSeriesArray = [
     ...(showFeasible ? buildFeasibleRegionSeries(rootLocus, axisPreset) : []),
     ...locusBranches.map((branch, index) => ({
@@ -245,7 +300,7 @@ function buildRootLocusOption(
       symbol: 'circle',
       symbolSize: 9,
       itemStyle: { color: '#1f4e79', borderColor: '#ffffff', borderWidth: 1.2 },
-      data: rootLocus.currentPoles.map((pole) => [pole.re, pole.im]),
+      data: currentPoles.map((pole) => [pole.re, pole.im]),
     },
     {
       name: '开环极点',
@@ -254,7 +309,7 @@ function buildRootLocusOption(
       symbolSize: 18,
       lineStyle: { color: '#c81d25', width: 2.2 },
       itemStyle: { color: '#c81d25' },
-      data: rootLocus.openLoopPoles.map((pole) => [pole.re, pole.im]),
+      data: openLoopPoles.map((pole) => [pole.re, pole.im]),
     },
     {
       name: '开环零点',
@@ -262,7 +317,7 @@ function buildRootLocusOption(
       symbol: 'circle',
       symbolSize: 12,
       itemStyle: { color: '#ffffff', borderColor: '#d97706', borderWidth: 2.2 },
-      data: rootLocus.openLoopZeros.map((zero) => [zero.re, zero.im]),
+      data: openLoopZeros.map((zero) => [zero.re, zero.im]),
     },
   ];
 

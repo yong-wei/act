@@ -882,8 +882,70 @@ fn durand_kerner(coeffs: &[f64]) -> Vec<Complex64> {
             break;
         }
     }
+    symmetrize_real_polynomial_roots(&mut roots);
     sort_complex_points(&mut roots);
     roots
+}
+
+fn symmetrize_real_polynomial_roots(roots: &mut Vec<Complex64>) {
+    let len = roots.len();
+    if len <= 1 {
+        return;
+    }
+
+    let scale = roots.iter().map(|root| root.norm()).fold(1.0_f64, f64::max);
+    let real_eps = 1e-8 * scale;
+    let pair_eps = 1e-4 * scale;
+    let mut used = vec![false; len];
+    let mut normalized = Vec::with_capacity(len);
+
+    for index in 0..len {
+        if used[index] {
+            continue;
+        }
+
+        let root = roots[index];
+        if root.im.abs() <= real_eps {
+            used[index] = true;
+            normalized.push(Complex64::new(root.re, 0.0));
+            continue;
+        }
+
+        let conjugate = root.conj();
+        let mut best_index = None;
+        let mut best_distance = f64::INFINITY;
+        for candidate_index in 0..len {
+            if candidate_index == index || used[candidate_index] {
+                continue;
+            }
+            let distance = (roots[candidate_index] - conjugate).norm();
+            if distance < best_distance {
+                best_distance = distance;
+                best_index = Some(candidate_index);
+            }
+        }
+
+        if let Some(candidate_index) = best_index {
+            if best_distance <= pair_eps || roots[candidate_index].im.signum() != root.im.signum() {
+                used[index] = true;
+                used[candidate_index] = true;
+                let paired = roots[candidate_index];
+                let re = 0.5 * (root.re + paired.re);
+                let im = 0.5 * (root.im.abs() + paired.im.abs());
+                let signed_im = im.copysign(root.im);
+                normalized.push(Complex64::new(re, signed_im));
+                normalized.push(Complex64::new(re, -signed_im));
+                continue;
+            }
+        }
+
+        used[index] = true;
+        normalized.push(root);
+    }
+
+    if normalized.len() == len {
+        *roots = normalized;
+    }
 }
 
 fn best_root_assignment(previous: &[Complex64], current: &[Complex64]) -> Vec<Complex64> {
@@ -1407,6 +1469,33 @@ mod tests {
         assert!(!first_branch.is_empty());
         assert!(first_branch.iter().all(|point| point.gain.is_finite()));
         assert_eq!(first_branch.first().map(|point| point.gain), Some(0.0));
+    }
+
+    #[test]
+    fn root_locus_samples_remain_conjugate_symmetric() {
+        let result = compute_analysis_inner(&ship_heading_request(1.0));
+
+        for sample_index in 0..result.root_locus.branches[0].len() {
+            let mut roots = Vec::new();
+            for branch in &result.root_locus.branches {
+                roots.push(branch[sample_index].clone());
+            }
+
+            for root in &roots {
+                if root.im.abs() < 1e-7 {
+                    continue;
+                }
+                assert!(
+                    roots.iter().any(|candidate| {
+                        (candidate.re - root.re).abs() < 1e-6 && (candidate.im + root.im).abs() < 1e-6
+                    }),
+                    "missing conjugate for root ({}, {}) at sample {}",
+                    root.re,
+                    root.im,
+                    sample_index
+                );
+            }
+        }
     }
 
     #[test]

@@ -448,6 +448,7 @@ function StudentCards({
   const cards = useMemo(() => cardsFor(stepManifest), [stepManifest]);
   const cardKeys = useMemo(() => cards.map((card) => card.id), [cards]);
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>(savedResponse?.answers ?? {});
+  const [localSubmittedKeys, setLocalSubmittedKeys] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     setDraftAnswers((currentDraft) =>
@@ -458,6 +459,10 @@ function StudentCards({
       }),
     );
   }, [cardKeys, savedResponse]);
+
+  useEffect(() => {
+    setLocalSubmittedKeys(new Set());
+  }, [stepManifest.id]);
 
   if (!cards.length) return null;
 
@@ -479,7 +484,7 @@ function StudentCards({
     );
   }
 
-  const submittedKeys = new Set(Object.keys(savedResponse?.answers ?? {}));
+  const submittedKeys = new Set([...Object.keys(savedResponse?.answers ?? {}), ...Array.from(localSubmittedKeys)]);
 
   return (
     <div className="space-y-4">
@@ -496,7 +501,8 @@ function StudentCards({
             <div className="mt-3 flex items-center justify-between gap-3">
               <button
                 type="button"
-                onClick={() =>
+                onClick={() => {
+                  setLocalSubmittedKeys((previous) => new Set(previous).add(card.id));
                   onSubmit({
                     stepId: stepManifest.id,
                     submittedAt: Date.now(),
@@ -505,8 +511,8 @@ function StudentCards({
                       currentDraft: draftAnswers,
                       targetKey: card.id,
                     }),
-                  })
-                }
+                  });
+                }}
                 disabled={!draftAnswers[card.id]?.trim()}
                 className="premium-lesson-action-primary disabled:opacity-40"
               >
@@ -516,6 +522,12 @@ function StudentCards({
                 {submittedKeys.has(card.id) ? '已提交，可修改后重提。' : '独立提交本卡。'}
               </span>
             </div>
+            <SubmissionStatus
+              submitted={submittedKeys.has(card.id)}
+              submittedText="本卡已提交，修改后可以再次提交。"
+              idleText="提交后会同步到教师端汇总。"
+              showLock={false}
+            />
             {answerVisible ? (
               <div className="premium-lesson-tone-block premium-tone-cyan mt-4 text-sm leading-7">
                 <ReferenceAnswer card={card} />
@@ -530,6 +542,7 @@ function StudentCards({
           submitted={cards.every((card) => submittedKeys.has(card.id))}
           submittedText="本页作答卡已至少提交一次，可继续修改并逐卡重提。"
           idleText="各作答卡独立提交，教师端会按卡汇总。"
+          showLock={false}
         />
       </div>
     </div>
