@@ -1,0 +1,55 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usetikzlibrary{arrows.meta,positioning,calc,fit}
+\begin{document}
+\begin{tikzpicture}[auto, >=Stealth]
+  \tikzset{
+    block/.style={rectangle, draw={rgb,255:red,74;green,144;blue,217}, fill=none,
+      minimum width=2.15cm, minimum height=0.86cm, line width=1.2pt,
+      font=\footnotesize\bfseries, align=center},
+    smallblock/.style={rectangle, draw={rgb,255:red,74;green,144;blue,217}, fill=none,
+      minimum width=1.65cm, minimum height=0.75cm, line width=1.2pt,
+      font=\footnotesize\bfseries, align=center},
+    source/.style={rectangle, draw={rgb,255:red,92;green,184;blue,92}, fill=none,
+      minimum width=1.85cm, minimum height=0.78cm, line width=1.2pt,
+      font=\footnotesize\bfseries, align=center},
+    sum/.style={circle, draw={rgb,255:red,92;green,184;blue,92}, fill=none,
+      minimum size=0.45cm, line width=1.2pt,
+      path picture={
+        \draw[line width=0.9pt] (path picture bounding box.south west) --
+          (path picture bounding box.north east);
+        \draw[line width=0.9pt] (path picture bounding box.north west) --
+          (path picture bounding box.south east);
+      }},
+    tap/.style={circle, draw={rgb,255:red,240;green,173;blue,78}, fill=none,
+      minimum size=4.5pt, inner sep=0pt, line width=1.2pt},
+    signal/.style={->, line width=1.2pt, draw={rgb,255:red,51;green,51;blue,51}},
+    dashedsignal/.style={->, line width=1.2pt, draw={rgb,255:red,51;green,51;blue,51}, dashed},
+    labeltext/.style={font=\scriptsize, align=center}
+  }
+
+  \node[source] (goal) at (0,0) {任务目标\\到达/避碰/节能};
+  \node[block] (perception) at (2.55,0) {感知与估计\\我在何处};
+  \node[block] (planner) at (5.25,0) {规划\\我要去哪里};
+  \node[sum] (sum) at (7.25,0) {};
+  \node[smallblock] (controller) at (8.75,0) {$C(s)$\\跟踪控制};
+  \node[smallblock] (allocator) at (10.85,0) {分配/限幅\\执行约束};
+  \node[source] (ship) at (13.05,0) {船舶运动\\位置、航向、速度};
+  \node[tap] (tap) at (14.35,0) {};
+  \node (out) at (15.35,0) {状态更新};
+
+  \draw[signal] (goal) -- (perception);
+  \draw[signal] (perception) -- (planner);
+  \draw[signal] (planner) -- node[above, font=\scriptsize] {$r(t)$} (sum);
+  \draw[signal] (sum) -- node[above, font=\scriptsize] {$e(t)$} (controller);
+  \draw[signal] (controller) -- node[above, font=\scriptsize] {$u^\ast(t)$} (allocator);
+  \draw[signal] (allocator) -- node[above, font=\scriptsize] {$u(t)$} (ship);
+  \draw[signal] (ship) -- (tap) -- (out);
+  \draw[dashedsignal] (tap) |- ++(0,-1.25) -| node[labeltext, left] {量测反馈} (perception.south);
+  \draw[dashedsignal] (tap) |- ++(0,-2.05) -| node[labeltext, left] {$-$} (sum.south);
+
+  \node[labeltext] at (8.75,-1.15) {经典控制主要负责这一段};
+  \draw[-{Stealth[length=2.2mm]}, line width=1.0pt, draw={rgb,255:red,51;green,51;blue,51}] (8.75,-0.92) -- (8.75,-0.45);
+\end{tikzpicture}
+\end{document}

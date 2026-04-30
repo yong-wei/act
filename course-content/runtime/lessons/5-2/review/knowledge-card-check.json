@@ -1,0 +1,18 @@
+{
+  "lesson_id": "5-2",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/5-2/sequence.json",
+  "card_order": [
+    "非线性边界工具选择_5_52001",
+    "局部线性化工作点_5_52002",
+    "非线性微分方程的线性化_2_caa86ba6",
+    "相平面图_8_bd606f51",
+    "描述函数法_8_849fa8a1",
+    "描述函数适用条件_5_52003",
+    "负倒描述函数_8_159ff256",
+    "自振微小扰动判断_5_52004",
+    "舵机死区饱和自振风险_5_52005"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

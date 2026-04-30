@@ -1,0 +1,18 @@
+{
+  "lesson_id": "5-2",
+  "expected_assets": [
+    "handout.pdf",
+    "5-2-media.md"
+  ],
+  "generated_assets": [
+    "handout.pdf",
+    "5-2-media.md"
+  ],
+  "missing_assets": [],
+  "executed_scripts": [],
+  "processed_dir": "course-content/authoring/lessons/5-2/media/processed",
+  "media_index_path": "course-content/runtime/lessons/5-2/media/5-2-media.md",
+  "handout_pdf_source": "course-content/authoring/lessons/5-2/design/handout.pdf",
+  "formula_contract_issues": [],
+  "formula_media": []
+}

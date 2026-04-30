@@ -20750,12 +20750,346 @@
       ],
       "created_at": null,
       "updated_at": null
+    },
+    "典型非线性边界环节_5_51002": {
+      "id": "典型非线性边界环节_5_51002",
+      "name": "典型非线性边界环节",
+      "category": "概念性",
+      "bloom_level": "理解",
+      "chapter": 5,
+      "chapter_name": "前沿拓展",
+      "definition": "饱和、死区、继电器、滞回、间隙、摩擦、速率限制、量化、分段增益、模式切换和模型失配等会破坏比例、叠加、单值连续、参数稳定或结构固定假设的工程环节。",
+      "examples": [
+        "饱和让大指令不能继续放大输出。",
+        "死区让小修正指令无法进入对象。",
+        "滞回和间隙让上行与下行路径不同。"
+      ],
+      "formulas": [
+        "u=\\operatorname{sat}(v)",
+        "u=0,\\quad |v|\\le \\Delta",
+        "u(t)=u(t^-),\\quad |r-y(t)|\\le h"
+      ],
+      "prerequisites": [
+        "线性主干边界识别_5_51001"
+      ],
+      "related_concepts": [
+        "线性预测失真对比_5_51004"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "饱和",
+        "死区",
+        "继电器",
+        "滞回",
+        "速率限制",
+        "量化"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "局部线性化工作点_5_52002": {
+      "id": "局部线性化工作点_5_52002",
+      "name": "局部线性化工作点",
+      "category": "概念性",
+      "bloom_level": "应用",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "局部线性化必须围绕指定工作点建立增量模型，所得小信号增益只解释该工作点附近的小扰动。",
+      "examples": [
+        "同一条 y=tanh x 曲线在 x0=0 和 x0=1 附近得到不同斜率。"
+      ],
+      "formulas": [
+        "\\Delta y\\approx f'(x_0)\\Delta x"
+      ],
+      "prerequisites": [
+        "泰勒展开",
+        "平衡点"
+      ],
+      "related_concepts": [
+        "非线性微分方程的线性化"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "工作点",
+        "增量变量",
+        "小信号增益",
+        "泰勒展开"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "局部线性化边界判断_5_51003": {
+      "id": "局部线性化边界判断_5_51003",
+      "name": "局部线性化边界判断",
+      "category": "程序性",
+      "bloom_level": "分析",
+      "chapter": 5,
+      "chapter_name": "前沿拓展",
+      "definition": "在工作点附近用切线斜率近似平滑非线性，并同时说明该近似只对小扰动和邻域信号有效；对继电器等不连续环节，不能强行写成单一传递函数。",
+      "examples": [
+        "执行环节 $u=\\tanh v$ 在 $v_0=0$ 附近可近似为 $u\\approx v$。",
+        "继电器 $u=\\operatorname{sgn}v$ 在零点没有有限斜率，强行线性化会掩盖切换和周期运动。"
+      ],
+      "formulas": [
+        "u=f(v)\\approx f(v_0)+f'(v_0)(v-v_0)",
+        "2\\dot y=-y+u\\Rightarrow \\frac{Y(s)}{V(s)}\\approx \\frac{f'(v_0)}{2s+1}"
+      ],
+      "prerequisites": [
+        "典型非线性边界环节_5_51002"
+      ],
+      "related_concepts": [
+        "线性预测失真对比_5_51004"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "局部线性化",
+        "工作点",
+        "传递函数",
+        "不连续环节"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "描述函数适用条件_5_52003": {
+      "id": "描述函数适用条件_5_52003",
+      "name": "描述函数适用条件",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "描述函数法要求主要非线性可集中为一个环节，非线性输出的基波能代表主要成分，且线性部分具有较好的低通滤波特性。",
+      "examples": [
+        "继电、饱和、死区等非线性与惯性型或含积分型线性部分串联时，可用描述函数估计自振边界。"
+      ],
+      "formulas": [
+        "N(A)=\\frac{\\text{输出基波复幅值}}{\\text{输入正弦幅值}}"
+      ],
+      "prerequisites": [
+        "描述函数法"
+      ],
+      "related_concepts": [
+        "负倒描述函数",
+        "自振微小扰动判断"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "基波近似",
+        "低通滤波",
+        "高次谐波",
+        "描述函数"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "方法迁移前边界说明_5_51005": {
+      "id": "方法迁移前边界说明_5_51005",
+      "name": "方法迁移前边界说明",
+      "category": "程序性",
+      "bloom_level": "应用",
+      "chapter": 5,
+      "chapter_name": "前沿拓展",
+      "definition": "在考虑非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清观察到的边界证据、被破坏的线性假设、仍可在线性主干内尝试的处理和需要迁移方法的理由。",
+      "examples": [
+        "舵机触碰限位时，可以先限制参考输入或重设控制器参数；若大范围动作长期由限幅主导，则需要显式考虑执行器边界。",
+        "海试中载荷和扰动导致模型长期失配时，应先说明名义模型哪些条件不再成立，再判断是否需要更换系统视角。"
+      ],
+      "formulas": [
+        "\\text{边界说明}=\\text{证据}+\\text{假设破坏}+\\text{线性内处理}+\\text{迁移理由}"
+      ],
+      "prerequisites": [
+        "线性预测失真对比_5_51004"
+      ],
+      "related_concepts": [
+        "局部线性化边界判断_5_51003"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "方法迁移",
+        "边界说明",
+        "工程证据",
+        "风险说明"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "线性主干边界识别_5_51001": {
+      "id": "线性主干边界识别_5_51001",
+      "name": "线性主干边界识别",
+      "category": "程序性",
+      "bloom_level": "分析",
+      "chapter": 5,
+      "chapter_name": "前沿拓展",
+      "definition": "判断线性定常单回路模型在当前对象、工作点、输入幅值和环境条件下是否仍然有效，并说明哪条线性默认条件已经被破坏。",
+      "examples": [
+        "舵角小幅修正时线性预测与实际响应一致，参考角放大后舵机触碰限位，输出前段变慢。",
+        "海况变化和载荷变化使名义模型无法解释拖尾和控制量频繁限幅。"
+      ],
+      "formulas": [
+        "\\text{边界证据}=\\text{输出异常}+\\text{控制量异常}+\\text{对象条件变化}+\\text{被破坏的线性假设}"
+      ],
+      "prerequisites": [
+        "传统控制结构局限_4_47008"
+      ],
+      "related_concepts": [
+        "典型非线性边界环节_5_51002",
+        "方法迁移前边界说明_5_51005"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "线性主干",
+        "边界识别",
+        "局部有效",
+        "全局失真"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "线性预测失真对比_5_51004": {
+      "id": "线性预测失真对比_5_51004",
+      "name": "线性预测失真对比",
+      "category": "程序性",
+      "bloom_level": "分析",
+      "chapter": 5,
+      "chapter_name": "前沿拓展",
+      "definition": "用同一对象下忽略非线性的预测响应与含非线性实际响应对比，识别线性模型会高估执行能力、低估误差、掩盖振荡或误判初段动作。",
+      "examples": [
+        "大阶跃触发饱和后，实际输出前段慢于线性预测。",
+        "死区吞掉小修正后，线性模型高估稳态附近修正能力。",
+        "滞环继电器会产生周期摆动，而比例近似只给出平滑收敛曲线。"
+      ],
+      "formulas": [
+        "2\\dot y=-y+u,\\quad u_{\\mathrm{lin}}=v,\\quad u_{\\mathrm{actual}}=\\phi(v)"
+      ],
+      "prerequisites": [
+        "线性主干边界识别_5_51001",
+        "典型非线性边界环节_5_51002"
+      ],
+      "related_concepts": [
+        "方法迁移前边界说明_5_51005"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "线性预测",
+        "实际响应",
+        "响应失真",
+        "控制量对比"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "自振微小扰动判断_5_52004": {
+      "id": "自振微小扰动判断_5_52004",
+      "name": "自振微小扰动判断",
+      "category": "程序性",
+      "bloom_level": "评价",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "在负倒描述函数与线性频率曲线相交后，通过交点两侧微小振幅变化的包围关系判断候选周期运动是否能恢复到交点。",
+      "examples": [
+        "负倒描述函数穿出包围边界时，两侧扰动回到交点，可作为稳定自振点判断。"
+      ],
+      "formulas": [
+        "G(j\\omega)=-\\frac{1}{N(A)}"
+      ],
+      "prerequisites": [
+        "负倒描述函数",
+        "奈奎斯特曲线"
+      ],
+      "related_concepts": [
+        "描述函数法",
+        "自振"
+      ],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "微小扰动法",
+        "自振",
+        "稳定交点",
+        "包围关系"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "舵机死区饱和自振风险_5_52005": {
+      "id": "舵机死区饱和自振风险_5_52005",
+      "name": "舵机死区饱和自振风险",
+      "category": "事实性",
+      "bloom_level": "评价",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "船舶航向舵机中的阀口死区、驱动限幅和机械间隙可能与线性航向回路共同形成自持振荡，带来能耗、磨损和航向安全裕度问题。",
+      "examples": [
+        "低速进港时，高 PI 增益叠加舵机死区和饱和，可能让航向误差和舵角形成周期振荡。"
+      ],
+      "formulas": [
+        "G(s)=\\frac{K}{s(s+1)(0.2s+1)}"
+      ],
+      "prerequisites": [
+        "死区饱和非线性",
+        "负倒描述函数"
+      ],
+      "related_concepts": [
+        "自振微小扰动判断",
+        "描述函数适用条件"
+      ],
+      "difficulty": 4,
+      "importance": 4,
+      "keywords": [
+        "舵机",
+        "死区",
+        "饱和",
+        "自振风险",
+        "抗积分饱和"
+      ],
+      "created_at": null,
+      "updated_at": null
+    },
+    "非线性边界工具选择_5_52001": {
+      "id": "非线性边界工具选择_5_52001",
+      "name": "非线性边界工具选择",
+      "category": "概念性",
+      "bloom_level": "分析",
+      "chapter": 5,
+      "chapter_name": "知识边界与方法迁移层",
+      "definition": "当线性主干无法完整解释现象时，需要根据证据对象选择局部线性化、相平面或描述函数，而不是把一种工具当成非线性万能方法。",
+      "examples": [
+        "小扰动行为优先用局部线性化观察，二阶轨迹优先用相平面观察，自振边界优先用描述函数观察。"
+      ],
+      "formulas": [
+        "\\text{工具选择}=\\text{工作点证据}+\\text{轨迹证据}+\\text{频域交点证据}"
+      ],
+      "prerequisites": [
+        "5-1 的非线性失效现象"
+      ],
+      "related_concepts": [
+        "局部线性化工作点",
+        "相平面图",
+        "描述函数法"
+      ],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "工具选择",
+        "非线性边界",
+        "局部证据",
+        "轨迹证据",
+        "频域证据"
+      ],
+      "created_at": null,
+      "updated_at": null
     }
   },
   "relations": [],
   "metadata": {
-    "merged_at": "2026-04-29T08:59:09.927289+00:00",
-    "total_nodes": 736,
-    "total_relations": 16541
+    "merged_at": "2026-04-30T07:07:08.737446+00:00",
+    "total_nodes": 746,
+    "total_relations": 16579
   }
 }

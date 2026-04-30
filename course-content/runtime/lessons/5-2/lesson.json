@@ -1,0 +1,152 @@
+{
+  "lesson_id": "5-2",
+  "title": "非线性系统的最小分析入口：局部线性化、相平面与描述函数的边界角色",
+  "layer": "模块5",
+  "unit_type": "理论",
+  "hours": 2,
+  "knowledge_type": "X",
+  "graph_version": "5-2-v1",
+  "focus_node_ids": [
+    "非线性边界工具选择_5_52001",
+    "非线性微分方程的线性化_2_caa86ba6",
+    "局部线性化工作点_5_52002",
+    "相平面图_8_bd606f51",
+    "描述函数法_8_849fa8a1",
+    "描述函数适用条件_5_52003",
+    "负倒描述函数_8_159ff256",
+    "自振微小扰动判断_5_52004",
+    "舵机死区饱和自振风险_5_52005"
+  ],
+  "reuse_node_ids": [
+    "非线性控制系统_1_1345e52b",
+    "饱和非线性_8_deec42d7",
+    "死区饱和非线性_8_e04bd4bd",
+    "自振_8_3ed83301"
+  ],
+  "entry_nodes": [
+    "非线性边界工具选择_5_52001",
+    "非线性微分方程的线性化_2_caa86ba6"
+  ],
+  "summary_nodes": [
+    "描述函数适用条件_5_52003",
+    "自振微小扰动判断_5_52004",
+    "舵机死区饱和自振风险_5_52005"
+  ],
+  "card_order": [
+    "非线性边界工具选择_5_52001",
+    "非线性微分方程的线性化_2_caa86ba6",
+    "局部线性化工作点_5_52002",
+    "相平面图_8_bd606f51",
+    "描述函数法_8_849fa8a1",
+    "描述函数适用条件_5_52003",
+    "负倒描述函数_8_159ff256",
+    "自振微小扰动判断_5_52004",
+    "舵机死区饱和自振风险_5_52005"
+  ],
+  "preceding_lesson": "5-1",
+  "following_lesson": "5-3",
+  "refinement_units": [],
+  "ideological_point": "线性主干仍是重要基础，但工程判断必须识别其适用边界。面对非线性现象时，应先选择能提供证据的观察工具，再结合仿真、实验和执行器约束给出负责任的判断。",
+  "sequence": {
+    "lesson_id": "5-2",
+    "status": "interactive_design_finalized",
+    "note": "本顺序已按 5-2 人读版互动设计、机读契约与子代理接受流程校准。",
+    "card_order": [
+      "非线性边界工具选择_5_52001",
+      "局部线性化工作点_5_52002",
+      "非线性微分方程的线性化_2_caa86ba6",
+      "相平面图_8_bd606f51",
+      "描述函数法_8_849fa8a1",
+      "描述函数适用条件_5_52003",
+      "负倒描述函数_8_159ff256",
+      "自振微小扰动判断_5_52004",
+      "舵机死区饱和自振风险_5_52005"
+    ],
+    "groups": [
+      {
+        "title": "非线性边界入口",
+        "step_ids": [
+          "step-01",
+          "step-02",
+          "step-03"
+        ],
+        "node_ids": [
+          "非线性边界工具选择_5_52001"
+        ]
+      },
+      {
+        "title": "局部线性化与相平面",
+        "step_ids": [
+          "step-04",
+          "step-05",
+          "step-06"
+        ],
+        "node_ids": [
+          "局部线性化工作点_5_52002",
+          "非线性微分方程的线性化_2_caa86ba6",
+          "相平面图_8_bd606f51"
+        ]
+      },
+      {
+        "title": "描述函数与非线性特性",
+        "step_ids": [
+          "step-07",
+          "step-08",
+          "step-09"
+        ],
+        "node_ids": [
+          "描述函数法_8_849fa8a1",
+          "描述函数适用条件_5_52003"
+        ]
+      },
+      {
+        "title": "负倒描述函数与自振判断",
+        "step_ids": [
+          "step-10",
+          "step-11",
+          "step-12",
+          "step-13",
+          "step-14"
+        ],
+        "node_ids": [
+          "负倒描述函数_8_159ff256",
+          "自振微小扰动判断_5_52004"
+        ]
+      },
+      {
+        "title": "舵机案例与课程收束",
+        "step_ids": [
+          "step-15",
+          "step-16",
+          "step-17",
+          "step-18"
+        ],
+        "node_ids": [
+          "舵机死区饱和自振风险_5_52005",
+          "非线性边界工具选择_5_52001",
+          "描述函数适用条件_5_52003",
+          "自振微小扰动判断_5_52004"
+        ]
+      }
+    ]
+  },
+  "handout_path": "/course-runtime/lessons/5-2/handout.md",
+  "handout_source_path": "course-content/runtime/lessons/5-2/handout.md",
+  "handout_pdf_path": "/course-runtime/lessons/5-2/handout.pdf",
+  "handout_pdf_source_path": "course-content/runtime/lessons/5-2/handout.pdf",
+  "graph_overlay_path": "/course-runtime/lessons/5-2/graph-overlay.json",
+  "media_base_path": "/course-runtime/lessons/5-2/media",
+  "media_index_path": "/course-runtime/lessons/5-2/media/5-2-media.md",
+  "media_index_source_path": "course-content/runtime/lessons/5-2/media/5-2-media.md",
+  "review": {
+    "status": "reviewed",
+    "boppps_path": "/course-runtime/lessons/5-2/review/boppps.md",
+    "report_path": "/course-runtime/lessons/5-2/review/review-report.md",
+    "knowledge_card_check_path": "/course-runtime/lessons/5-2/review/knowledge-card-check.json",
+    "interactive_page_check_path": "/course-runtime/lessons/5-2/review/interactive-page-check.json",
+    "multimedia_check_path": "/course-runtime/lessons/5-2/review/multimedia-check.json",
+    "source_manifest_path": "/course-runtime/lessons/5-2/review/source-manifest.json"
+  },
+  "interactive_manifest_path": "/course-runtime/lessons/5-2/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/5-2/interactive-manifest.json"
+}

@@ -1,0 +1,56 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "5-2",
+  "status": "accepted",
+  "accepted_at": "2026-04-30T15:29:16+08:00",
+  "review_mode": "subagent",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/5-2/design/interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/5-2/design/interactive-contract.yaml",
+    "boppps": "course-content/authoring/lessons/5-2/design/boppps.md",
+    "sequence": "course-content/authoring/knowledge/cards/lessons/5-2/sequence.json"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass",
+    "sequence_finalized": "pass",
+    "mandatory_rust_panels": "pass",
+    "negative_inverse_curve_families": "pass"
+  },
+  "sequence_source": "interactive_design_finalized",
+  "subagent_review": {
+    "review_mode": "grouped_page_and_contract_review",
+    "review_records": [
+      {
+        "reviewer_agent_id": "019ddd42-96e3-76b1-82f3-8ac407da0958",
+        "scope": "step-01_to_step-09_self_contained_review",
+        "initial_result": "needs_revision",
+        "final_result": "pass_after_revision",
+        "resolved_findings": [
+          "boppps_preassessment_removed_new_lesson_content"
+        ]
+      },
+      {
+        "reviewer_agent_id": "019ddd42-98bc-7313-b1f1-e90884779b9c",
+        "scope": "step-10_to_step-18_self_contained_review",
+        "initial_result": "pass",
+        "final_result": "pass"
+      },
+      {
+        "reviewer_agent_id": "019ddd42-9cd4-70b3-ab2f-00e2fbecaef3",
+        "scope": "interactive_contract_manifest_consumability_review",
+        "initial_result": "needs_revision",
+        "final_result": "pass_after_revision",
+        "resolved_findings": [
+          "step-08_deadzone_saturation_formula_completed",
+          "step-08_09_controls_structured",
+          "step-12_curve_families_and_parameter_effects_structured"
+        ]
+      }
+    ],
+    "final_result": "pass"
+  },
+  "issues": []
+}

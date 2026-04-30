@@ -1,0 +1,1071 @@
+{
+  "lesson_id": "5-2",
+  "title": "非线性系统的最小分析入口：局部线性化、相平面与描述函数的边界角色",
+  "focus_node_ids": [
+    "非线性边界工具选择_5_52001",
+    "非线性微分方程的线性化_2_caa86ba6",
+    "局部线性化工作点_5_52002",
+    "相平面图_8_bd606f51",
+    "描述函数法_8_849fa8a1",
+    "描述函数适用条件_5_52003",
+    "负倒描述函数_8_159ff256",
+    "自振微小扰动判断_5_52004",
+    "舵机死区饱和自振风险_5_52005"
+  ],
+  "reuse_node_ids": [
+    "非线性控制系统_1_1345e52b",
+    "饱和非线性_8_deec42d7",
+    "死区饱和非线性_8_e04bd4bd",
+    "自振_8_3ed83301"
+  ],
+  "entry_nodes": [
+    "非线性边界工具选择_5_52001",
+    "非线性微分方程的线性化_2_caa86ba6"
+  ],
+  "summary_nodes": [
+    "描述函数适用条件_5_52003",
+    "自振微小扰动判断_5_52004",
+    "舵机死区饱和自振风险_5_52005"
+  ],
+  "card_order": [
+    "非线性边界工具选择_5_52001",
+    "非线性微分方程的线性化_2_caa86ba6",
+    "局部线性化工作点_5_52002",
+    "相平面图_8_bd606f51",
+    "描述函数法_8_849fa8a1",
+    "描述函数适用条件_5_52003",
+    "负倒描述函数_8_159ff256",
+    "自振微小扰动判断_5_52004",
+    "舵机死区饱和自振风险_5_52005"
+  ],
+  "groups": [
+    {
+      "title": "非线性边界入口",
+      "step_ids": [
+        "step-01",
+        "step-02",
+        "step-03"
+      ],
+      "node_ids": [
+        "非线性边界工具选择_5_52001"
+      ]
+    },
+    {
+      "title": "局部线性化与相平面",
+      "step_ids": [
+        "step-04",
+        "step-05",
+        "step-06"
+      ],
+      "node_ids": [
+        "局部线性化工作点_5_52002",
+        "非线性微分方程的线性化_2_caa86ba6",
+        "相平面图_8_bd606f51"
+      ]
+    },
+    {
+      "title": "描述函数与非线性特性",
+      "step_ids": [
+        "step-07",
+        "step-08",
+        "step-09"
+      ],
+      "node_ids": [
+        "描述函数法_8_849fa8a1",
+        "描述函数适用条件_5_52003"
+      ]
+    },
+    {
+      "title": "负倒描述函数与自振判断",
+      "step_ids": [
+        "step-10",
+        "step-11",
+        "step-12",
+        "step-13",
+        "step-14"
+      ],
+      "node_ids": [
+        "负倒描述函数_8_159ff256",
+        "自振微小扰动判断_5_52004"
+      ]
+    },
+    {
+      "title": "舵机案例与课程收束",
+      "step_ids": [
+        "step-15",
+        "step-16",
+        "step-17",
+        "step-18"
+      ],
+      "node_ids": [
+        "舵机死区饱和自振风险_5_52005",
+        "非线性边界工具选择_5_52001",
+        "描述函数适用条件_5_52003",
+        "自振微小扰动判断_5_52004"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "非线性控制系统_1_1345e52b",
+      "name": "非线性控制系统",
+      "nodeType": "THEORY",
+      "description": "系统中至少有一个元部件的输入-输出特性是非线性的控制系统，需用非线性微分或差分方程描述。",
+      "positionX": -25.1,
+      "positionY": 6.7,
+      "positionZ": 1,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 1,
+      "chapterName": "基本概念",
+      "metadata": {
+        "chapter": 1,
+        "chapterName": "基本概念",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "系统中至少有一个元部件的输入-输出特性是非线性的控制系统，需用非线性微分或差分方程描述。",
+        "examples": [
+          "放大器饱和特性、运动部件死区、间隙和摩擦特性导致的非线性。",
+          "炉温微机控制系统"
+        ],
+        "formulas": [
+          "\\ddot{y} + (1+y^2)\\dot{y} + y + y^3 = 0",
+          "\\ddot{y} + \\dot{y} + y + y^2 = 0"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 5,
+        "importance": 4,
+        "keywords": [
+          "非线性",
+          "微分方程",
+          "饱和",
+          "死区",
+          "间隙",
+          "摩擦",
+          "差分方程",
+          "线性化"
+        ],
+        "infograph": null,
+        "createdAt": "2026-02-04T17:54:16.626942",
+        "updatedAt": "2026-02-04T17:54:16.626942",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "非线性",
+        "微分方程",
+        "饱和",
+        "死区",
+        "间隙",
+        "摩擦",
+        "差分方程",
+        "线性化",
+        "chapter-1"
+      ]
+    },
+    {
+      "id": "非线性微分方程的线性化_2_caa86ba6",
+      "name": "非线性微分方程的线性化",
+      "nodeType": "THEORY",
+      "description": "在平衡点附近，用泰勒级数展开并忽略高次项，将非线性方程近似为线性方程的方法。",
+      "positionX": -41.0,
+      "positionY": -41.0,
+      "positionZ": 2,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 2,
+      "chapterName": "系统模型",
+      "metadata": {
+        "chapter": 2,
+        "chapterName": "系统模型",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "在平衡点附近，用泰勒级数展开并忽略高次项，将非线性方程近似为线性方程的方法。",
+        "examples": [
+          "例2-7中铁心线圈电路非线性方程的线性化处理。"
+        ],
+        "formulas": [
+          "y = f(x_0) + \\left.\\frac{df}{dx}\\right|_{x=x_0} (x - x_0)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "小偏差法",
+          "泰勒展开",
+          "平衡点"
+        ],
+        "infograph": null,
+        "createdAt": "2026-02-04T17:54:16.627496",
+        "updatedAt": "2026-02-04T17:54:16.627496",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/非线性微分方程的线性化_2_caa86ba6.md"
+      ],
+      "tags": [
+        "小偏差法",
+        "泰勒展开",
+        "平衡点",
+        "chapter-2"
+      ]
+    },
+    {
+      "id": "局部线性化工作点_5_52002",
+      "name": "局部线性化工作点",
+      "nodeType": "THEORY",
+      "description": "局部线性化必须围绕指定工作点建立增量模型，所得小信号增益只解释该工作点附近的小扰动。",
+      "positionX": -138.6,
+      "positionY": -80.0,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "局部线性化必须围绕指定工作点建立增量模型，所得小信号增益只解释该工作点附近的小扰动。",
+        "examples": [
+          "同一条 y=tanh x 曲线在 x0=0 和 x0=1 附近得到不同斜率。"
+        ],
+        "formulas": [
+          "\\Delta y\\approx f'(x_0)\\Delta x"
+        ],
+        "prerequisites": [
+          "泰勒展开",
+          "平衡点"
+        ],
+        "relatedConcepts": [
+          "非线性微分方程的线性化"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "工作点",
+          "增量变量",
+          "小信号增益",
+          "泰勒展开"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/局部线性化工作点_5_52002.md"
+      ],
+      "tags": [
+        "工作点",
+        "增量变量",
+        "小信号增益",
+        "泰勒展开",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "描述函数适用条件_5_52003",
+      "name": "描述函数适用条件",
+      "nodeType": "THEORY",
+      "description": "描述函数法要求主要非线性可集中为一个环节，非线性输出的基波能代表主要成分，且线性部分具有较好的低通滤波特性。",
+      "positionX": -83.0,
+      "positionY": 143.8,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "描述函数法要求主要非线性可集中为一个环节，非线性输出的基波能代表主要成分，且线性部分具有较好的低通滤波特性。",
+        "examples": [
+          "继电、饱和、死区等非线性与惯性型或含积分型线性部分串联时，可用描述函数估计自振边界。"
+        ],
+        "formulas": [
+          "N(A)=\\frac{\\text{输出基波复幅值}}{\\text{输入正弦幅值}}"
+        ],
+        "prerequisites": [
+          "描述函数法"
+        ],
+        "relatedConcepts": [
+          "负倒描述函数",
+          "自振微小扰动判断"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "基波近似",
+          "低通滤波",
+          "高次谐波",
+          "描述函数"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/描述函数适用条件_5_52003.md"
+      ],
+      "tags": [
+        "基波近似",
+        "低通滤波",
+        "高次谐波",
+        "描述函数",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "自振微小扰动判断_5_52004",
+      "name": "自振微小扰动判断",
+      "nodeType": "THEORY",
+      "description": "在负倒描述函数与线性频率曲线相交后，通过交点两侧微小振幅变化的包围关系判断候选周期运动是否能恢复到交点。",
+      "positionX": 44.5,
+      "positionY": 166.1,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "程序性",
+        "bloom_level": "评价",
+        "definition": "在负倒描述函数与线性频率曲线相交后，通过交点两侧微小振幅变化的包围关系判断候选周期运动是否能恢复到交点。",
+        "examples": [
+          "负倒描述函数穿出包围边界时，两侧扰动回到交点，可作为稳定自振点判断。"
+        ],
+        "formulas": [
+          "G(j\\omega)=-\\frac{1}{N(A)}"
+        ],
+        "prerequisites": [
+          "负倒描述函数",
+          "奈奎斯特曲线"
+        ],
+        "relatedConcepts": [
+          "描述函数法",
+          "自振"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "微小扰动法",
+          "自振",
+          "稳定交点",
+          "包围关系"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/自振微小扰动判断_5_52004.md"
+      ],
+      "tags": [
+        "微小扰动法",
+        "自振",
+        "稳定交点",
+        "包围关系",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "舵机死区饱和自振风险_5_52005",
+      "name": "舵机死区饱和自振风险",
+      "nodeType": "THEORY",
+      "description": "船舶航向舵机中的阀口死区、驱动限幅和机械间隙可能与线性航向回路共同形成自持振荡，带来能耗、磨损和航向安全裕度问题。",
+      "positionX": 0.0,
+      "positionY": 172.0,
+      "positionZ": 5,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "FACTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "事实性",
+        "bloom_level": "评价",
+        "definition": "船舶航向舵机中的阀口死区、驱动限幅和机械间隙可能与线性航向回路共同形成自持振荡，带来能耗、磨损和航向安全裕度问题。",
+        "examples": [
+          "低速进港时，高 PI 增益叠加舵机死区和饱和，可能让航向误差和舵角形成周期振荡。"
+        ],
+        "formulas": [
+          "G(s)=\\frac{K}{s(s+1)(0.2s+1)}"
+        ],
+        "prerequisites": [
+          "死区饱和非线性",
+          "负倒描述函数"
+        ],
+        "relatedConcepts": [
+          "自振微小扰动判断",
+          "描述函数适用条件"
+        ],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "舵机",
+          "死区",
+          "饱和",
+          "自振风险",
+          "抗积分饱和"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/舵机死区饱和自振风险_5_52005.md"
+      ],
+      "tags": [
+        "舵机",
+        "死区",
+        "饱和",
+        "自振风险",
+        "抗积分饱和",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "非线性边界工具选择_5_52001",
+      "name": "非线性边界工具选择",
+      "nodeType": "THEORY",
+      "description": "当线性主干无法完整解释现象时，需要根据证据对象选择局部线性化、相平面或描述函数，而不是把一种工具当成非线性万能方法。",
+      "positionX": -86.0,
+      "positionY": -149.0,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "知识边界与方法迁移层",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "知识边界与方法迁移层",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "当线性主干无法完整解释现象时，需要根据证据对象选择局部线性化、相平面或描述函数，而不是把一种工具当成非线性万能方法。",
+        "examples": [
+          "小扰动行为优先用局部线性化观察，二阶轨迹优先用相平面观察，自振边界优先用描述函数观察。"
+        ],
+        "formulas": [
+          "\\text{工具选择}=\\text{工作点证据}+\\text{轨迹证据}+\\text{频域交点证据}"
+        ],
+        "prerequisites": [
+          "5-1 的非线性失效现象"
+        ],
+        "relatedConcepts": [
+          "局部线性化工作点",
+          "相平面图",
+          "描述函数法"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "工具选择",
+          "非线性边界",
+          "局部证据",
+          "轨迹证据",
+          "频域证据"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/非线性边界工具选择_5_52001.md"
+      ],
+      "tags": [
+        "工具选择",
+        "非线性边界",
+        "局部证据",
+        "轨迹证据",
+        "频域证据",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "描述函数法_8_849fa8a1",
+      "name": "描述函数法",
+      "nodeType": "THEORY",
+      "description": "一种分析非线性系统的频域近似方法，用非线性环节在正弦输入下输出的一次谐波分量来定义其等效频率特性。",
+      "positionX": -176.8,
+      "positionY": -176.8,
+      "positionZ": 8,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 8,
+      "chapterName": "非线性系统",
+      "metadata": {
+        "chapter": 8,
+        "chapterName": "非线性系统",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "一种分析非线性系统的频域近似方法，用非线性环节在正弦输入下输出的一次谐波分量来定义其等效频率特性。",
+        "examples": [
+          "用于分析无外作用下非线性系统的稳定性和自振荡问题。",
+          "例 8-3 和例 8-4 计算了继电特性和特定非线性元件的描述函数。",
+          "用于分析具有饱和非线性、死区非线性等典型非线性特性的控制系统稳定性。",
+          "例8-5和例8-6中，通过绘制负倒描述函数曲线和线性部分奈奎斯特曲线，判断系统稳定性。",
+          "分析死区继电特性非线性系统的自振荡存在性与稳定性。",
+          "通过绘制负倒描述函数曲线与线性部分奈奎斯特曲线判断系统稳定性。",
+          "通过绘制G(jω)曲线和-1/N(A)曲线，根据交点判断自振的存在与稳定性。",
+          "用于分析具有死区、饱和、继电器等非线性特性的系统稳定性"
+        ],
+        "formulas": [
+          "N(A) = \\frac{Y_1}{A} e^{j\\varphi_1}",
+          "1 + N(A)G(j\\omega) = 0",
+          "-\\frac{1}{N(A)} = G(j\\omega)",
+          "N(A)=\\frac{1}{\\pi A}\\int_{0}^{2\\pi} f(A\\sin\\psi)\\sin\\psi d\\psi",
+          "G(j\\omega)N(A) = -1",
+          "-1/N(A) = G(j\\omega)",
+          "N(A) = \\frac{Y_1}{A} e^{j\\phi_1}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 3,
+        "keywords": [
+          "谐波线性化",
+          "频率法",
+          "稳定性分析",
+          "频率特性",
+          "一次谐波",
+          "近似分析",
+          "自振荡",
+          "负倒描述函数",
+          "稳定性判据",
+          "周期运动",
+          "非线性系统",
+          "奈奎斯特曲线",
+          "非线性分析",
+          "频率响应",
+          "自振",
+          "等效线性化"
+        ],
+        "infograph": null,
+        "createdAt": "2026-02-04T17:54:16.629345",
+        "updatedAt": "2026-02-04T17:54:16.629345",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/描述函数法_8_849fa8a1.md"
+      ],
+      "tags": [
+        "谐波线性化",
+        "频率法",
+        "稳定性分析",
+        "频率特性",
+        "一次谐波",
+        "近似分析",
+        "自振荡",
+        "负倒描述函数",
+        "稳定性判据",
+        "周期运动",
+        "非线性系统",
+        "奈奎斯特曲线",
+        "非线性分析",
+        "频率响应",
+        "自振",
+        "等效线性化",
+        "chapter-8"
+      ]
+    },
+    {
+      "id": "死区饱和非线性_8_e04bd4bd",
+      "name": "死区饱和非线性",
+      "nodeType": "THEORY",
+      "description": "一种分段线性非线性特性，包含输入信号低于某阈值无输出（死区）和高于某阈值输出饱和的区域。",
+      "positionX": 176.8,
+      "positionY": -176.8,
+      "positionZ": 8,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 8,
+      "chapterName": "非线性系统",
+      "metadata": {
+        "chapter": 8,
+        "chapterName": "非线性系统",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "一种分段线性非线性特性，包含输入信号低于某阈值无输出（死区）和高于某阈值输出饱和的区域。",
+        "examples": [
+          "图 8-37 展示了死区饱和特性及其正弦响应。",
+          "当 Δ=0 时，退化为饱和特性；当 a→∞ 时，退化为死区特性。"
+        ],
+        "formulas": [
+          "y = \\begin{cases} 0, & |x| \\le \\Delta \\\\ k(x - \\Delta \\text{sgn}(x)), & \\Delta < |x| < a \\\\ M \\text{sgn}(x), & |x| \\ge a \\end{cases}",
+          "N(A) = \\frac{2k}{\\pi}\\left[ \\arcsin\\frac{a}{A} - \\arcsin\\frac{\\Delta}{A} + \\frac{a}{A}\\sqrt{1-(\\frac{a}{A})^2} - \\frac{\\Delta}{A}\\sqrt{1-(\\frac{\\Delta}{A})^2} \\right], \\, A \\ge a"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "分段线性",
+          "死区",
+          "饱和",
+          "描述函数"
+        ],
+        "infograph": null,
+        "createdAt": "2026-02-04T17:54:16.629509",
+        "updatedAt": "2026-02-04T17:54:16.629509",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "分段线性",
+        "死区",
+        "饱和",
+        "描述函数",
+        "chapter-8"
+      ]
+    },
+    {
+      "id": "相平面图_8_bd606f51",
+      "name": "相平面图",
+      "nodeType": "THEORY",
+      "description": "用于分析非线性系统动态特性的图形工具，在相平面上绘制系统状态变量及其导数的轨迹。",
+      "positionX": 247.3,
+      "positionY": 66.3,
+      "positionZ": 8,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 8,
+      "chapterName": "非线性系统",
+      "metadata": {
+        "chapter": 8,
+        "chapterName": "非线性系统",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "用于分析非线性系统动态特性的图形工具，在相平面上绘制系统状态变量及其导数的轨迹。",
+        "examples": [
+          "图 8-32(b) 展示了系统起始于任何初始点的相轨迹最终收敛于奇点。",
+          "图 8-32(c) 展示了系统存在稳态误差时的相平面图。"
+        ],
+        "formulas": [],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "相轨迹",
+          "奇点",
+          "开关线",
+          "稳态误差"
+        ],
+        "infograph": null,
+        "createdAt": "2026-02-04T17:54:16.629493",
+        "updatedAt": "2026-02-04T17:54:16.629493",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/相平面图_8_bd606f51.md"
+      ],
+      "tags": [
+        "相轨迹",
+        "奇点",
+        "开关线",
+        "稳态误差",
+        "chapter-8"
+      ]
+    },
+    {
+      "id": "自振_8_3ed83301",
+      "name": "自振",
+      "nodeType": "THEORY",
+      "description": "非线性系统在没有外部周期输入时，自身产生并维持的稳定周期振荡。",
+      "positionX": -247.3,
+      "positionY": -66.3,
+      "positionZ": 8,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 8,
+      "chapterName": "非线性系统",
+      "metadata": {
+        "chapter": 8,
+        "chapterName": "非线性系统",
+        "category": "概念性",
+        "bloom_level": "分析",
+        "definition": "非线性系统在没有外部周期输入时，自身产生并维持的稳定周期振荡。",
+        "examples": [
+          "仪表伺服系统中，当取G1时，存在不稳定自振，振幅A=1.8，频率ω=0.21rad/s。",
+          "用描述函数法分析系统是否存在自振，并确定其振幅和频率"
+        ],
+        "formulas": [
+          "A = \\text{交点处} \\ G(j\\omega) \\ \\text{上振幅确定}",
+          "\\omega = \\text{交点处} \\ -1/N(A) \\ \\text{上频率确定}",
+          "-\\frac{1}{N(A)} = G(j\\omega)"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 4,
+        "keywords": [
+          "非线性系统",
+          "等幅振荡",
+          "描述函数法",
+          "自持振荡",
+          "极限环",
+          "非线性"
+        ],
+        "infograph": null,
+        "createdAt": "2026-02-04T17:54:16.629603",
+        "updatedAt": "2026-02-04T17:54:16.629603",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "非线性系统",
+        "等幅振荡",
+        "描述函数法",
+        "自持振荡",
+        "极限环",
+        "非线性",
+        "chapter-8"
+      ]
+    },
+    {
+      "id": "负倒描述函数_8_159ff256",
+      "name": "负倒描述函数",
+      "nodeType": "THEORY",
+      "description": "描述函数的负倒数，在复平面上绘制其曲线，用于与线性部分频率特性曲线比较以分析稳定性。",
+      "positionX": -0.0,
+      "positionY": -256.0,
+      "positionZ": 8,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 8,
+      "chapterName": "非线性系统",
+      "metadata": {
+        "chapter": 8,
+        "chapterName": "非线性系统",
+        "category": "概念性",
+        "bloom_level": "应用",
+        "definition": "描述函数的负倒数，在复平面上绘制其曲线，用于与线性部分频率特性曲线比较以分析稳定性。",
+        "examples": [
+          "图8-44至图8-47中，绘制负倒描述函数曲线与G(jω)曲线，根据相对位置判断系统稳定性及周期运动稳定性。",
+          "绘制死区继电特性的负倒描述函数曲线，并与G(jω)曲线相交以判断自振。"
+        ],
+        "formulas": [
+          "-\\frac{1}{N(A)}"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "负倒数",
+          "复平面曲线",
+          "稳定性分析",
+          "描述函数",
+          "复平面",
+          "曲线"
+        ],
+        "infograph": null,
+        "createdAt": "2026-02-04T17:54:16.629536",
+        "updatedAt": "2026-02-04T17:54:16.629537",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/负倒描述函数_8_159ff256.md"
+      ],
+      "tags": [
+        "负倒数",
+        "复平面曲线",
+        "稳定性分析",
+        "描述函数",
+        "复平面",
+        "曲线",
+        "chapter-8"
+      ]
+    },
+    {
+      "id": "饱和非线性_8_deec42d7",
+      "name": "饱和非线性",
+      "nodeType": "THEORY",
+      "description": "一种常见的非线性特性，当输入超过一定范围后，输出保持为常值。",
+      "positionX": -131.0,
+      "positionY": 226.9,
+      "positionZ": 8,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 8,
+      "chapterName": "非线性系统",
+      "metadata": {
+        "chapter": 8,
+        "chapterName": "非线性系统",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "一种常见的非线性特性，当输入超过一定范围后，输出保持为常值。",
+        "examples": [
+          "例8-6中，系统包含饱和非线性环节，通过描述函数法分析其运动及自振荡条件。"
+        ],
+        "formulas": [
+          "N(A) = \\frac{2k}{\\pi}\\left[ \\arcsin\\left(\\frac{a}{A}\\right) + \\frac{a}{A}\\sqrt{1 - \\left(\\frac{a}{A}\\right)^2} \\right], \\quad A \\ge a"
+        ],
+        "prerequisites": [],
+        "relatedConcepts": [],
+        "difficulty": 3,
+        "importance": 4,
+        "keywords": [
+          "饱和特性",
+          "描述函数",
+          "非线性环节"
+        ],
+        "infograph": null,
+        "createdAt": "2026-02-04T17:54:16.629559",
+        "updatedAt": "2026-02-04T17:54:16.629559",
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [],
+      "tags": [
+        "饱和特性",
+        "描述函数",
+        "非线性环节",
+        "chapter-8"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "非线性控制系统|死区饱和非线性|1-8",
+      "sourceId": "非线性控制系统_1_1345e52b",
+      "targetId": "死区饱和非线性_8_e04bd4bd",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "非线性控制系统|自振|1-8",
+      "sourceId": "非线性控制系统_1_1345e52b",
+      "targetId": "自振_8_3ed83301",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "描述函数法|相平面图|8",
+      "sourceId": "描述函数法_8_849fa8a1",
+      "targetId": "相平面图_8_bd606f51",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.4
+    },
+    {
+      "id": "描述函数法|死区饱和非线性|8",
+      "sourceId": "描述函数法_8_849fa8a1",
+      "targetId": "死区饱和非线性_8_e04bd4bd",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "描述函数法|负倒描述函数|8",
+      "sourceId": "描述函数法_8_849fa8a1",
+      "targetId": "负倒描述函数_8_159ff256",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "描述函数法|饱和非线性|8",
+      "sourceId": "描述函数法_8_849fa8a1",
+      "targetId": "饱和非线性_8_deec42d7",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "描述函数法|自振|8",
+      "sourceId": "描述函数法_8_849fa8a1",
+      "targetId": "自振_8_3ed83301",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 1.0
+    },
+    {
+      "id": "相平面图|死区饱和非线性|8",
+      "sourceId": "相平面图_8_bd606f51",
+      "targetId": "死区饱和非线性_8_e04bd4bd",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "相平面图|负倒描述函数|8",
+      "sourceId": "相平面图_8_bd606f51",
+      "targetId": "负倒描述函数_8_159ff256",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.3
+    },
+    {
+      "id": "相平面图|饱和非线性|8",
+      "sourceId": "相平面图_8_bd606f51",
+      "targetId": "饱和非线性_8_deec42d7",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.7
+    },
+    {
+      "id": "相平面图|自振|8",
+      "sourceId": "相平面图_8_bd606f51",
+      "targetId": "自振_8_3ed83301",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.8
+    },
+    {
+      "id": "死区饱和非线性|负倒描述函数|8",
+      "sourceId": "死区饱和非线性_8_e04bd4bd",
+      "targetId": "负倒描述函数_8_159ff256",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.7
+    },
+    {
+      "id": "死区饱和非线性|饱和非线性|8",
+      "sourceId": "死区饱和非线性_8_e04bd4bd",
+      "targetId": "饱和非线性_8_deec42d7",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "死区饱和非线性|自振|8",
+      "sourceId": "死区饱和非线性_8_e04bd4bd",
+      "targetId": "自振_8_3ed83301",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.8
+    },
+    {
+      "id": "负倒描述函数|饱和非线性|8",
+      "sourceId": "负倒描述函数_8_159ff256",
+      "targetId": "饱和非线性_8_deec42d7",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.6
+    },
+    {
+      "id": "负倒描述函数|自振|8",
+      "sourceId": "负倒描述函数_8_159ff256",
+      "targetId": "自振_8_3ed83301",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.9
+    },
+    {
+      "id": "饱和非线性|自振|8",
+      "sourceId": "饱和非线性_8_deec42d7",
+      "targetId": "自振_8_3ed83301",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.8
+    },
+    {
+      "id": "rel-1e094a63786f5918",
+      "sourceId": "非线性边界工具选择_5_52001",
+      "targetId": "相平面图_8_bd606f51",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-3557c54eb8e70cbe",
+      "sourceId": "负倒描述函数_8_159ff256",
+      "targetId": "自振微小扰动判断_5_52004",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-6094f91303762b82",
+      "sourceId": "非线性边界工具选择_5_52001",
+      "targetId": "局部线性化工作点_5_52002",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-6221cad195399ddf",
+      "sourceId": "描述函数适用条件_5_52003",
+      "targetId": "负倒描述函数_8_159ff256",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-713988acbc95de8b",
+      "sourceId": "舵机死区饱和自振风险_5_52005",
+      "targetId": "自振微小扰动判断_5_52004",
+      "relation": "related",
+      "relationType": "related",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-89fc95454012bf5a",
+      "sourceId": "舵机死区饱和自振风险_5_52005",
+      "targetId": "描述函数适用条件_5_52003",
+      "relation": "instance_of",
+      "relationType": "instance_of",
+      "strength": 0.8
+    },
+    {
+      "id": "rel-9b451d4a30ebc62c",
+      "sourceId": "描述函数法_8_849fa8a1",
+      "targetId": "描述函数适用条件_5_52003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-b62b0c2a81e9faba",
+      "sourceId": "相平面图_8_bd606f51",
+      "targetId": "自振微小扰动判断_5_52004",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.7
+    },
+    {
+      "id": "rel-b876d6bb9c8f6c60",
+      "sourceId": "非线性边界工具选择_5_52001",
+      "targetId": "描述函数法_8_849fa8a1",
+      "relation": "contains",
+      "relationType": "contains",
+      "strength": 0.85
+    },
+    {
+      "id": "rel-bbfd4e908ae2de00",
+      "sourceId": "非线性微分方程的线性化_2_caa86ba6",
+      "targetId": "局部线性化工作点_5_52002",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.9
+    }
+  ]
+}

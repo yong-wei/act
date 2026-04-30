@@ -317,6 +317,36 @@
       "notes": "5-1 为模块5当前主线课次，对应线性主干的边界：饱和、死区、滞回、切换与模型失配。"
     },
     {
+      "request_ids": ["5-2"],
+      "canonical_id": "5-2",
+      "display_id": "5-2",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "5-2",
+      "source_group": null,
+      "authoring_lesson_dir": "5-2",
+      "authoring_cards_dir": "5-2",
+      "authoring_overlays_dir": "5-2",
+      "runtime_lesson_dir": "5-2",
+      "legacy_source_ids": [],
+      "notes": "5-2 为模块5当前主线课次，对应非线性系统的最小分析入口：局部线性化、相平面与描述函数的边界角色。"
+    },
+    {
+      "request_ids": ["5-3"],
+      "canonical_id": "5-3",
+      "display_id": "5-3",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "5-3",
+      "source_group": null,
+      "authoring_lesson_dir": "5-3",
+      "authoring_cards_dir": "5-3",
+      "authoring_overlays_dir": "5-3",
+      "runtime_lesson_dir": "5-3",
+      "legacy_source_ids": [],
+      "notes": "5-3 为模块5当前主线课次，对应从单回路控制到复杂自主系统链路：MASS 的感知—估计—规划—控制协同。"
+    },
+    {
       "request_ids": ["legacy/1-1", "1-1"],
       "canonical_id": "legacy/1-1",
       "display_id": "1-1",
