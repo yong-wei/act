@@ -1,39 +1,36 @@
 \documentclass[tikz,border=5pt]{standalone}
 \usepackage{amsmath}
-\usepackage{CJKutf8}
-\usetikzlibrary{arrows.meta,calc,positioning}
+\usepackage{xeCJK}
+\setCJKmainfont{Songti SC}
+\usetikzlibrary{arrows.meta,calc,intersections,positioning}
 \begin{document}
-\begin{CJK}{UTF8}{gbsn}
-\begin{tikzpicture}[x=1.05cm,y=1.05cm,>=Stealth]
+\begin{tikzpicture}[x=0.62cm,y=0.62cm,>=Stealth]
   \tikzset{
     axis/.style={->, line width=1.1pt, draw=black},
-    gridline/.style={draw=black!22, line width=0.45pt},
-    gcurve/.style={draw=blue!75!black, line width=1.25pt},
-    invcurve/.style={draw=red!75!black, line width=1.25pt},
-    pointA/.style={circle, fill=red!80!black, inner sep=2.2pt},
-    pointB/.style={circle, fill=green!55!black, inner sep=2.2pt},
-    hollow/.style={circle, draw=red!75!black, fill=white, line width=0.9pt, minimum size=5.2pt, inner sep=0pt},
-    labelbox/.style={font=\scriptsize, fill=white, fill opacity=0.86, text opacity=1, inner sep=1.3pt},
-    region/.style={font=\large\bfseries, fill=white, fill opacity=0.70, text opacity=1, inner sep=1.5pt}
+    gridline/.style={draw=black!18, line width=0.38pt},
+    gcurve/.style={draw=blue!72!black, line width=1.35pt},
+    invcurve/.style={draw=red!72!black, line width=1.35pt},
+    pointA/.style={circle, fill=black, inner sep=2.0pt},
+    inside/.style={circle, fill=green!55!black, inner sep=1.9pt},
+    outside/.style={circle, draw=orange!85!black, fill=white, line width=0.9pt, minimum size=4.7pt, inner sep=0pt},
+    labelbox/.style={font=\scriptsize, fill=white, fill opacity=0.88, text opacity=1, inner sep=1.4pt},
+    region/.style={font=\normalsize\bfseries, fill=white, fill opacity=0.72, text opacity=1, inner sep=1.8pt}
   }
 
-  \def\xmin{-6.2}
-  \def\xmax{0.42}
-  \def\ymin{-4.05}
-  \def\ymax{2.03}
+  \def\xmin{-15.2}
+  \def\xmax{1.1}
+  \def\ymin{-8.2}
+  \def\ymax{4.2}
 
-  \path[fill=blue!10] (\xmin,\ymin) rectangle (0,\ymax);
-  \path[fill=white]
-    (-2.95,-0.05)
-    .. controls (-2.55,-0.58) and (-1.95,-1.08) .. (-1.60,-1.42)
-    .. controls (-2.55,-1.52) and (-3.45,-1.97) .. (-4.18,-2.63)
-    .. controls (-4.55,-2.98) and (-4.82,-3.45) .. (-5.03,\ymin)
-    -- (0,\ymin) -- (0,-0.05) -- cycle;
+  \path[fill=orange!9] (\xmin,\ymin) rectangle (0,\ymax);
+  \path[fill=blue!14]
+    (0,0) |- (\xmin,\ymax) |- (-12,\ymin)
+    .. controls ++(70:7) and ++(120:8) .. (0,0) -- cycle;
 
-  \foreach \x in {-6,-5,...,0} {
+  \foreach \x in {-15,-14,...,0} {
     \draw[gridline] (\x,\ymin) -- (\x,\ymax);
   }
-  \foreach \y in {-4,-3,...,2} {
+  \foreach \y in {-8,-7,...,4} {
     \draw[gridline] (\xmin,\y) -- (0,\y);
   }
 
@@ -41,40 +38,45 @@
   \draw[axis] (0,\ymin) -- (0,\ymax) node[left=2pt] {$\Im$};
   \node[labelbox, below left=2pt] at (0,0) {$0$};
 
-  \draw[gcurve]
-    (-5.05,\ymin)
-    .. controls (-4.64,-3.05) and (-4.36,-2.72) .. (-4.18,-2.63)
-    .. controls (-3.55,-1.53) and (-3.18,-0.55) .. (-2.96,-0.05)
-    .. controls (-2.36,1.00) and (-1.50,1.38) .. (-0.78,1.36)
-    .. controls (-0.34,1.34) and (-0.05,0.70) .. (0,0);
-  \node[labelbox, text=blue!75!black] at (-4.20,-1.88) {$G(j\omega)$};
-  \draw[->, gcurve] (-4.83,-3.62) -- (-4.70,-3.25);
-  \node[labelbox] at (-4.55,-3.70) {$\omega \uparrow$};
+  \path[save path=\gpath, name path=gcurve]
+    (-12,\ymin) .. controls ++(70:7) and ++(120:8) .. (0,0);
+  \draw[gcurve, use path=\gpath];
+  \draw[->, gcurve] (-11.72,-7.35) -- (-11.22,-6.05);
+  \node[labelbox, text=blue!72!black] at (-8.95,-3.20) {$G(j\omega)$};
+  \node[labelbox] at (-10.55,-6.92) {$\omega \uparrow$};
 
+  \path[name path=invcurve]
+    (-11.55,-6.60)
+    .. controls ++(61:8.6) and ++(-2:19.5) .. (-15.05,-0.10);
   \draw[invcurve]
-    (\xmin,-0.08) -- (-2.96,-0.05)
-    .. controls (-2.45,-0.05) and (-2.02,-0.07) .. (-1.60,-0.11)
-    .. controls (-1.62,-0.32) and (-2.25,-0.70) .. (-2.95,-1.06)
-    .. controls (-3.55,-1.38) and (-3.92,-2.04) .. (-4.18,-2.63)
-    .. controls (-4.48,-3.10) and (-4.84,-3.46) .. (-5.20,-3.88);
-  \draw[->, invcurve] (-5.18,-3.82) -- (-4.88,-3.47);
-  \draw[->, invcurve] (-2.08,-0.08) -- (-2.52,-0.06);
-  \node[labelbox, text=red!75!black, anchor=east] at (-5.28,-0.36) {$-\dfrac{1}{N(A)}$};
+    (-11.55,-6.60)
+    .. controls ++(61:8.6) and ++(-2:19.5) .. (-15.05,-0.10);
+  \draw[->, invcurve] (-11.30,-6.02) -- (-10.62,-4.64);
+  \draw[->, invcurve] (-13.10,-0.72) -- (-14.02,-0.34);
+  \node[labelbox, text=red!72!black, anchor=west] at (-8.30,-3.05) {$-\dfrac{1}{N(A)}$};
+  \node[labelbox] at (-12.20,-4.72) {$A \uparrow$};
 
-  \node[pointA] (a) at (-2.96,-0.05) {};
-  \node[pointB] (b) at (-4.18,-2.63) {};
-  \node[hollow] at (-3.37,-0.06) {};
-  \node[hollow] at (-2.55,-0.06) {};
-  \node[hollow] at (-4.50,-3.05) {};
-  \node[hollow] at (-3.88,-2.08) {};
+  \path[name intersections={of=gcurve and invcurve, by={Aone,Atwo}}];
 
-  \node[labelbox, above=2pt of a] {$a$};
-  \node[labelbox, right=2pt of a] {$(A_a,\omega_a)$};
-  \node[labelbox, below right=2pt of b] {$b(A_b,\omega_b)$};
+  \node[pointA] at (Aone) {};
+  \node[labelbox, anchor=north west] at ($(Aone)+(0.20,-0.30)$) {$A_1$：进入边界，非稳定};
+  \node[pointA, label={[labelbox]above:$A_2$}] at (Atwo) {};
+  \node[labelbox, anchor=south] at ($(Atwo)+(0.10,0.48)$) {穿出边界，稳定};
 
-  \node[region] at (-4.70,1.15) {稳定区域};
-  \node[region] at (-1.92,-1.60) {不稳定区域};
-  \node[labelbox, left=0pt] at (-5.82,0.55) {$A \uparrow$};
+  \coordinate (Cone) at ($(Aone)+(16:0.95)$);
+  \coordinate (Bone) at ($(Aone)+(198:0.95)$);
+  \coordinate (Btwo) at ($(Atwo)+(180:1.00)$);
+  \coordinate (Ctwo) at ($(Atwo)+(-4:1.00)$);
+
+  \node[outside, label={[labelbox]below right:$C_1$}] at (Cone) {};
+  \node[inside, label={[labelbox]below left:$B_1$}] at (Bone) {};
+  \node[inside, label={[labelbox]above left:$B_2$}] at (Btwo) {};
+  \node[outside, label={[labelbox]below right:$C_2$}] at (Ctwo) {};
+
+  \node[region, text=blue!72!black] at (-11.2,2.85) {稳定区域};
+  \node[region, text=orange!85!black] at (-4.85,-5.55) {不稳定区域};
+
+  \node[labelbox, anchor=west] at (-14.70,-7.60)
+    {绿色实点：包围区域内；橙色空心点：包围区域外};
 \end{tikzpicture}
-\end{CJK}
 \end{document}

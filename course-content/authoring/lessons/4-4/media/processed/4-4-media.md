@@ -2,6 +2,8 @@
 
 - 多目标拉扯下的优化方向评审
 
+https://pan-yz.cldisk.com/v2/external/resourceDetail.html?appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=392704558&timestamp=1777514519611&showAppBar=true&puid=26652392&autoPreview=true&objectId=d3eeb6e9cb3a911e3455636f90376fc3&signature=956baf54e3f81cdf3f98b66bb5de35c4
+
 # 4-4-slides.pdf
 
 - 控制系统优化：硬核玩家的通关秘籍

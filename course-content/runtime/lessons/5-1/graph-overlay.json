@@ -1,0 +1,564 @@
+{
+  "lesson_id": "5-1",
+  "title": "线性主干的边界：饱和、死区、滞回、切换与模型失配",
+  "focus_node_ids": [
+    "线性主干边界识别_5_51001",
+    "典型非线性边界环节_5_51002",
+    "局部线性化边界判断_5_51003",
+    "线性预测失真对比_5_51004",
+    "方法迁移前边界说明_5_51005"
+  ],
+  "reuse_node_ids": [
+    "工程指标代价函数翻译_4_47003",
+    "传统控制结构局限_4_47008"
+  ],
+  "entry_nodes": [
+    "线性主干边界识别_5_51001",
+    "典型非线性边界环节_5_51002"
+  ],
+  "summary_nodes": [
+    "线性预测失真对比_5_51004",
+    "方法迁移前边界说明_5_51005"
+  ],
+  "card_order": [
+    "线性主干边界识别_5_51001",
+    "典型非线性边界环节_5_51002",
+    "局部线性化边界判断_5_51003",
+    "线性预测失真对比_5_51004",
+    "方法迁移前边界说明_5_51005",
+    "工程指标代价函数翻译_4_47003",
+    "传统控制结构局限_4_47008"
+  ],
+  "groups": [
+    {
+      "group_name": "入口现象",
+      "step_ids": [
+        "step-01"
+      ],
+      "node_ids": [
+        "线性主干边界识别_5_51001",
+        "传统控制结构局限_4_47008"
+      ]
+    },
+    {
+      "group_name": "目标与前测",
+      "step_ids": [
+        "step-02",
+        "step-03"
+      ],
+      "node_ids": []
+    },
+    {
+      "group_name": "线性默认条件",
+      "step_ids": [
+        "step-04"
+      ],
+      "node_ids": [
+        "线性主干边界识别_5_51001"
+      ]
+    },
+    {
+      "group_name": "典型非线性环节",
+      "step_ids": [
+        "step-05"
+      ],
+      "node_ids": [
+        "典型非线性边界环节_5_51002"
+      ]
+    },
+    {
+      "group_name": "局部线性化与预测对比",
+      "step_ids": [
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11"
+      ],
+      "node_ids": [
+        "局部线性化边界判断_5_51003",
+        "线性预测失真对比_5_51004"
+      ]
+    },
+    {
+      "group_name": "边界判断与方法迁移",
+      "step_ids": [
+        "step-12",
+        "step-13",
+        "step-14"
+      ],
+      "node_ids": [
+        "线性主干边界识别_5_51001",
+        "线性预测失真对比_5_51004",
+        "方法迁移前边界说明_5_51005",
+        "工程指标代价函数翻译_4_47003",
+        "传统控制结构局限_4_47008"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "传统控制结构局限_4_47008",
+      "name": "传统控制结构局限",
+      "nodeType": "THEORY",
+      "description": "固定低阶传递函数、固定结构、线性反馈和单传感器反馈在高保真任务中都有表达边界，越过这些边界后需要鲁棒控制、扰动观测器、增益调度、MPC 或学习型策略。",
+      "positionX": 82.0,
+      "positionY": -82.0,
+      "positionZ": 4,
+      "bloomLevel": "EVALUATE",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "概念性",
+        "bloom_level": "评价",
+        "definition": "固定低阶传递函数、固定结构、线性反馈和单传感器反馈在高保真任务中都有表达边界，越过这些边界后需要鲁棒控制、扰动观测器、增益调度、MPC 或学习型策略。",
+        "examples": [
+          "当横荡、舵效变化、传感器噪声和大角度回转同时出现时，单一低阶航向反馈无法完整表达任务。"
+        ],
+        "formulas": [
+          "\\text{传统结构边界}=\\text{模型固定}+\\text{结构固定}+\\text{线性反馈}+\\text{单传感器}"
+        ],
+        "prerequisites": [
+          "扰动噪声设计边界_4_47007",
+          "组合结构专项验证边界判断_4_46007"
+        ],
+        "relatedConcepts": [
+          "剩余风险说明_4_45006"
+        ],
+        "difficulty": 5,
+        "importance": 4,
+        "keywords": [
+          "传统控制局限",
+          "鲁棒控制",
+          "扰动观测器",
+          "MPC"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/传统控制结构局限_4_47008.md"
+      ],
+      "tags": [
+        "传统控制局限",
+        "鲁棒控制",
+        "扰动观测器",
+        "MPC",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "工程指标代价函数翻译_4_47003",
+      "name": "工程指标代价函数翻译",
+      "nodeType": "THEORY",
+      "description": "把航向误差、航迹偏离、舵角、舵速、饱和占比、控制能量和稳定裕度写成主目标、次目标、硬约束和罚项。",
+      "positionX": -31.6,
+      "positionY": -117.8,
+      "positionZ": 4,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 4,
+      "chapterName": "约束设计层",
+      "metadata": {
+        "chapter": 4,
+        "chapterName": "约束设计层",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "把航向误差、航迹偏离、舵角、舵速、饱和占比、控制能量和稳定裕度写成主目标、次目标、硬约束和罚项。",
+        "examples": [
+          "同一任务中，航向误差回答是否跟住给定，航迹偏离回答船是否真正走到位，舵角与舵速回答执行机构是否可交付。"
+        ],
+        "formulas": [
+          "J=w_eJ_e+w_yJ_y+w_uJ_u+w_{\\dot u}J_{\\dot u}+w_sJ_s+J_{penalty}"
+        ],
+        "prerequisites": [
+          "分段辨识模型组合_4_47002",
+          "参数约束翻译表_4_45002"
+        ],
+        "relatedConcepts": [
+          "传统设计四联图校正_4_47004",
+          "结构参数联合搜索解码_4_47005"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "代价函数",
+          "硬约束",
+          "航迹偏离",
+          "舵速"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/工程指标代价函数翻译_4_47003.md"
+      ],
+      "tags": [
+        "代价函数",
+        "硬约束",
+        "航迹偏离",
+        "舵速",
+        "chapter-4"
+      ]
+    },
+    {
+      "id": "典型非线性边界环节_5_51002",
+      "name": "典型非线性边界环节",
+      "nodeType": "THEORY",
+      "description": "饱和、死区、继电器、滞回、间隙、摩擦、速率限制、量化、分段增益、模式切换和模型失配等会破坏比例、叠加、单值连续、参数稳定或结构固定假设的工程环节。",
+      "positionX": 154.5,
+      "positionY": 41.4,
+      "positionZ": 5,
+      "bloomLevel": "UNDERSTAND",
+      "knowledgeDim": "CONCEPTUAL",
+      "chapter": 5,
+      "chapterName": "前沿拓展",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "前沿拓展",
+        "category": "概念性",
+        "bloom_level": "理解",
+        "definition": "饱和、死区、继电器、滞回、间隙、摩擦、速率限制、量化、分段增益、模式切换和模型失配等会破坏比例、叠加、单值连续、参数稳定或结构固定假设的工程环节。",
+        "examples": [
+          "饱和让大指令不能继续放大输出。",
+          "死区让小修正指令无法进入对象。",
+          "滞回和间隙让上行与下行路径不同。"
+        ],
+        "formulas": [
+          "u=\\operatorname{sat}(v)",
+          "u=0,\\quad |v|\\le \\Delta",
+          "u(t)=u(t^-),\\quad |r-y(t)|\\le h"
+        ],
+        "prerequisites": [
+          "线性主干边界识别_5_51001"
+        ],
+        "relatedConcepts": [
+          "线性预测失真对比_5_51004"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "饱和",
+          "死区",
+          "继电器",
+          "滞回",
+          "速率限制",
+          "量化"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/典型非线性边界环节_5_51002.md"
+      ],
+      "tags": [
+        "饱和",
+        "死区",
+        "继电器",
+        "滞回",
+        "速率限制",
+        "量化",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "局部线性化边界判断_5_51003",
+      "name": "局部线性化边界判断",
+      "nodeType": "THEORY",
+      "description": "在工作点附近用切线斜率近似平滑非线性，并同时说明该近似只对小扰动和邻域信号有效；对继电器等不连续环节，不能强行写成单一传递函数。",
+      "positionX": -138.6,
+      "positionY": -80.0,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "前沿拓展",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "前沿拓展",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "在工作点附近用切线斜率近似平滑非线性，并同时说明该近似只对小扰动和邻域信号有效；对继电器等不连续环节，不能强行写成单一传递函数。",
+        "examples": [
+          "执行环节 $u=\\tanh v$ 在 $v_0=0$ 附近可近似为 $u\\approx v$。",
+          "继电器 $u=\\operatorname{sgn}v$ 在零点没有有限斜率，强行线性化会掩盖切换和周期运动。"
+        ],
+        "formulas": [
+          "u=f(v)\\approx f(v_0)+f'(v_0)(v-v_0)",
+          "2\\dot y=-y+u\\Rightarrow \\frac{Y(s)}{V(s)}\\approx \\frac{f'(v_0)}{2s+1}"
+        ],
+        "prerequisites": [
+          "典型非线性边界环节_5_51002"
+        ],
+        "relatedConcepts": [
+          "线性预测失真对比_5_51004"
+        ],
+        "difficulty": 4,
+        "importance": 5,
+        "keywords": [
+          "局部线性化",
+          "工作点",
+          "传递函数",
+          "不连续环节"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/局部线性化边界判断_5_51003.md"
+      ],
+      "tags": [
+        "局部线性化",
+        "工作点",
+        "传递函数",
+        "不连续环节",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "方法迁移前边界说明_5_51005",
+      "name": "方法迁移前边界说明",
+      "nodeType": "THEORY",
+      "description": "在考虑非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清观察到的边界证据、被破坏的线性假设、仍可在线性主干内尝试的处理和需要迁移方法的理由。",
+      "positionX": -43.0,
+      "positionY": 160.3,
+      "positionZ": 5,
+      "bloomLevel": "APPLY",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "前沿拓展",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "前沿拓展",
+        "category": "程序性",
+        "bloom_level": "应用",
+        "definition": "在考虑非线性工具、复杂系统链路、数据驱动或策略学习之前，先写清观察到的边界证据、被破坏的线性假设、仍可在线性主干内尝试的处理和需要迁移方法的理由。",
+        "examples": [
+          "舵机触碰限位时，可以先限制参考输入或重设控制器参数；若大范围动作长期由限幅主导，则需要显式考虑执行器边界。",
+          "海试中载荷和扰动导致模型长期失配时，应先说明名义模型哪些条件不再成立，再判断是否需要更换系统视角。"
+        ],
+        "formulas": [
+          "\\text{边界说明}=\\text{证据}+\\text{假设破坏}+\\text{线性内处理}+\\text{迁移理由}"
+        ],
+        "prerequisites": [
+          "线性预测失真对比_5_51004"
+        ],
+        "relatedConcepts": [
+          "局部线性化边界判断_5_51003"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "方法迁移",
+          "边界说明",
+          "工程证据",
+          "风险说明"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/方法迁移前边界说明_5_51005.md"
+      ],
+      "tags": [
+        "方法迁移",
+        "边界说明",
+        "工程证据",
+        "风险说明",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "线性主干边界识别_5_51001",
+      "name": "线性主干边界识别",
+      "nodeType": "THEORY",
+      "description": "判断线性定常单回路模型在当前对象、工作点、输入幅值和环境条件下是否仍然有效，并说明哪条线性默认条件已经被破坏。",
+      "positionX": 172.0,
+      "positionY": 0.0,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "前沿拓展",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "前沿拓展",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "判断线性定常单回路模型在当前对象、工作点、输入幅值和环境条件下是否仍然有效，并说明哪条线性默认条件已经被破坏。",
+        "examples": [
+          "舵角小幅修正时线性预测与实际响应一致，参考角放大后舵机触碰限位，输出前段变慢。",
+          "海况变化和载荷变化使名义模型无法解释拖尾和控制量频繁限幅。"
+        ],
+        "formulas": [
+          "\\text{边界证据}=\\text{输出异常}+\\text{控制量异常}+\\text{对象条件变化}+\\text{被破坏的线性假设}"
+        ],
+        "prerequisites": [
+          "传统控制结构局限_4_47008"
+        ],
+        "relatedConcepts": [
+          "典型非线性边界环节_5_51002",
+          "方法迁移前边界说明_5_51005"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "线性主干",
+          "边界识别",
+          "局部有效",
+          "全局失真"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/线性主干边界识别_5_51001.md"
+      ],
+      "tags": [
+        "线性主干",
+        "边界识别",
+        "局部有效",
+        "全局失真",
+        "chapter-5"
+      ]
+    },
+    {
+      "id": "线性预测失真对比_5_51004",
+      "name": "线性预测失真对比",
+      "nodeType": "THEORY",
+      "description": "用同一对象下忽略非线性的预测响应与含非线性实际响应对比，识别线性模型会高估执行能力、低估误差、掩盖振荡或误判初段动作。",
+      "positionX": 166.1,
+      "positionY": 44.5,
+      "positionZ": 5,
+      "bloomLevel": "ANALYZE",
+      "knowledgeDim": "PROCEDURAL",
+      "chapter": 5,
+      "chapterName": "前沿拓展",
+      "metadata": {
+        "chapter": 5,
+        "chapterName": "前沿拓展",
+        "category": "程序性",
+        "bloom_level": "分析",
+        "definition": "用同一对象下忽略非线性的预测响应与含非线性实际响应对比，识别线性模型会高估执行能力、低估误差、掩盖振荡或误判初段动作。",
+        "examples": [
+          "大阶跃触发饱和后，实际输出前段慢于线性预测。",
+          "死区吞掉小修正后，线性模型高估稳态附近修正能力。",
+          "滞环继电器会产生周期摆动，而比例近似只给出平滑收敛曲线。"
+        ],
+        "formulas": [
+          "2\\dot y=-y+u,\\quad u_{\\mathrm{lin}}=v,\\quad u_{\\mathrm{actual}}=\\phi(v)"
+        ],
+        "prerequisites": [
+          "线性主干边界识别_5_51001",
+          "典型非线性边界环节_5_51002"
+        ],
+        "relatedConcepts": [
+          "方法迁移前边界说明_5_51005"
+        ],
+        "difficulty": 3,
+        "importance": 5,
+        "keywords": [
+          "线性预测",
+          "实际响应",
+          "响应失真",
+          "控制量对比"
+        ],
+        "infograph": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "source": "course-content/runtime/knowledge/graph/nodes.json"
+      },
+      "content": {},
+      "resources": [
+        "course-content/runtime/knowledge/cards/nodes/线性预测失真对比_5_51004.md"
+      ],
+      "tags": [
+        "线性预测",
+        "实际响应",
+        "响应失真",
+        "控制量对比",
+        "chapter-5"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "id": "rel-9df1e0a35b89ecc0",
+      "sourceId": "传统控制结构局限_4_47008",
+      "targetId": "线性主干边界识别_5_51001",
+      "relation": "prerequisite",
+      "relationType": "prerequisite",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-182be2c03d4628b1",
+      "sourceId": "线性主干边界识别_5_51001",
+      "targetId": "典型非线性边界环节_5_51002",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-936856e575d25716",
+      "sourceId": "典型非线性边界环节_5_51002",
+      "targetId": "局部线性化边界判断_5_51003",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.9
+    },
+    {
+      "id": "rel-aef5200fb57e659a",
+      "sourceId": "典型非线性边界环节_5_51002",
+      "targetId": "线性预测失真对比_5_51004",
+      "relation": "applies_to",
+      "relationType": "applies_to",
+      "strength": 0.95
+    },
+    {
+      "id": "rel-bae5f7a6273973b7",
+      "sourceId": "局部线性化边界判断_5_51003",
+      "targetId": "线性预测失真对比_5_51004",
+      "relation": "supports",
+      "relationType": "supports",
+      "strength": 0.88
+    },
+    {
+      "id": "rel-9df43ec10c7c9d85",
+      "sourceId": "线性预测失真对比_5_51004",
+      "targetId": "方法迁移前边界说明_5_51005",
+      "relation": "leads_to",
+      "relationType": "leads_to",
+      "strength": 0.96
+    },
+    {
+      "id": "rel-6784e5c227e2658e",
+      "sourceId": "工程指标代价函数翻译_4_47003",
+      "targetId": "线性预测失真对比_5_51004",
+      "relation": "cross_domain",
+      "relationType": "cross_domain",
+      "strength": 0.82
+    }
+  ]
+}

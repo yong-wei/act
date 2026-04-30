@@ -75,6 +75,7 @@
         "equation-card-row",
         "evidence-bank",
         "example-card",
+        "figure",
         "figure-note",
         "formula-card",
         "formula-card-row",
@@ -140,6 +141,7 @@
         "quiz-group",
         "reason-chain",
         "single-choice-card",
+        "table-builder",
         "task-card-workspace",
         "teacher-reveal-only",
         "triple-match"

@@ -10853,14 +10853,29 @@
         "临界边界",
         "可行域"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/稳定可行域_3_7eed0929.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/稳定可行域_3_7eed0929.png",
+        "title": "稳定可行域 信息图",
+        "lessonId": "4-1",
+        "nodeId": "稳定可行域_3_7eed0929"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/稳定可行域_3_7eed0929.md"
+      "course-content/runtime/knowledge/cards/nodes/稳定可行域_3_7eed0929.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/稳定可行域_3_7eed0929.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/稳定可行域_3_7eed0929.png",
+        "title": "稳定可行域 信息图",
+        "lessonId": "4-1",
+        "nodeId": "稳定可行域_3_7eed0929"
+      }
     ],
     "tags": [
       "稳定区间",
@@ -14385,14 +14400,29 @@
         "最优域",
         "分层筛选"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/可行域-满意域-最优域分层_4_41004.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/可行域-满意域-最优域分层_4_41004.png",
+        "title": "可行域-满意域-最优域分层 信息图",
+        "lessonId": "4-1",
+        "nodeId": "可行域-满意域-最优域分层_4_41004"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/可行域-满意域-最优域分层_4_41004.md"
+      "course-content/runtime/knowledge/cards/nodes/可行域-满意域-最优域分层_4_41004.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/可行域-满意域-最优域分层_4_41004.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/可行域-满意域-最优域分层_4_41004.png",
+        "title": "可行域-满意域-最优域分层 信息图",
+        "lessonId": "4-1",
+        "nodeId": "可行域-满意域-最优域分层_4_41004"
+      }
     ],
     "tags": [
       "可行域",
@@ -14612,14 +14642,29 @@
         "实部垂线",
         "极点约束"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/复平面可行域_4_Lsum001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/复平面可行域_4_Lsum001.png",
+        "title": "复平面可行域 信息图",
+        "lessonId": "4-1",
+        "nodeId": "复平面可行域_4_Lsum001"
+      },
       "createdAt": "2026-03-14T00:44:08.244152+00:00",
       "updatedAt": "2026-03-14T00:44:08.244152+00:00",
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/复平面可行域_4_Lsum001.md"
+      "course-content/runtime/knowledge/cards/nodes/复平面可行域_4_Lsum001.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/复平面可行域_4_Lsum001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/复平面可行域_4_Lsum001.png",
+        "title": "复平面可行域 信息图",
+        "lessonId": "4-1",
+        "nodeId": "复平面可行域_4_Lsum001"
+      }
     ],
     "tags": [
       "可行域",
@@ -15133,14 +15178,29 @@
         "积分误差",
         "指标分工"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/指标角色重组_4_41002.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/指标角色重组_4_41002.png",
+        "title": "指标角色重组 信息图",
+        "lessonId": "4-1",
+        "nodeId": "指标角色重组_4_41002"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/指标角色重组_4_41002.md"
+      "course-content/runtime/knowledge/cards/nodes/指标角色重组_4_41002.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/指标角色重组_4_41002.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/指标角色重组_4_41002.png",
+        "title": "指标角色重组 信息图",
+        "lessonId": "4-1",
+        "nodeId": "指标角色重组_4_41002"
+      }
     ],
     "tags": [
       "时域指标",
@@ -16488,14 +16548,29 @@
         "观察指标",
         "优先级"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/硬约束-软目标-观察指标分类_4_41003.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/硬约束-软目标-观察指标分类_4_41003.png",
+        "title": "硬约束-软目标-观察指标分类 信息图",
+        "lessonId": "4-1",
+        "nodeId": "硬约束-软目标-观察指标分类_4_41003"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/硬约束-软目标-观察指标分类_4_41003.md"
+      "course-content/runtime/knowledge/cards/nodes/硬约束-软目标-观察指标分类_4_41003.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/硬约束-软目标-观察指标分类_4_41003.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/硬约束-软目标-观察指标分类_4_41003.png",
+        "title": "硬约束-软目标-观察指标分类 信息图",
+        "lessonId": "4-1",
+        "nodeId": "硬约束-软目标-观察指标分类_4_41003"
+      }
     ],
     "tags": [
       "硬约束",
@@ -17144,14 +17219,29 @@
         "证据来源",
         "设计输入"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+        "title": "设计任务表达卡 信息图",
+        "lessonId": "4-1",
+        "nodeId": "设计任务表达卡_4_41001"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/设计任务表达卡_4_41001.md"
+      "course-content/runtime/knowledge/cards/nodes/设计任务表达卡_4_41001.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/设计任务表达卡_4_41001.png",
+        "title": "设计任务表达卡 信息图",
+        "lessonId": "4-1",
+        "nodeId": "设计任务表达卡_4_41001"
+      }
     ],
     "tags": [
       "任务表达卡",
@@ -17203,14 +17293,29 @@
         "三域投影",
         "设计决策"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/设计可行域_4_Lsum004.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/设计可行域_4_Lsum004.png",
+        "title": "设计可行域 信息图",
+        "lessonId": "4-1",
+        "nodeId": "设计可行域_4_Lsum004"
+      },
       "createdAt": "2026-03-14T00:44:08.253171+00:00",
       "updatedAt": "2026-03-14T00:44:08.253171+00:00",
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/设计可行域_4_Lsum004.md"
+      "course-content/runtime/knowledge/cards/nodes/设计可行域_4_Lsum004.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/设计可行域_4_Lsum004.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/设计可行域_4_Lsum004.png",
+        "title": "设计可行域 信息图",
+        "lessonId": "4-1",
+        "nodeId": "设计可行域_4_Lsum004"
+      }
     ],
     "tags": [
       "可行域",
@@ -17262,14 +17367,29 @@
         "调节时间",
         "瞬态性能"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
+        "title": "调节时间 信息图",
+        "lessonId": "4-1",
+        "nodeId": "调节时间_4_d3f3314b"
+      },
       "createdAt": "2026-02-04T17:54:16.628302",
       "updatedAt": "2026-02-04T17:54:16.628302",
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/调节时间_4_d3f3314b.md"
+      "course-content/runtime/knowledge/cards/nodes/调节时间_4_d3f3314b.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/调节时间_4_d3f3314b.png",
+        "title": "调节时间 信息图",
+        "lessonId": "4-1",
+        "nodeId": "调节时间_4_d3f3314b"
+      }
     ],
     "tags": [
       "稳态误差带",
@@ -17534,14 +17654,29 @@
         "任务排序",
         "案例对照"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/跨域联读任务重排_4_41005.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/跨域联读任务重排_4_41005.png",
+        "title": "跨域联读任务重排 信息图",
+        "lessonId": "4-1",
+        "nodeId": "跨域联读任务重排_4_41005"
+      },
       "createdAt": null,
       "updatedAt": null,
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/跨域联读任务重排_4_41005.md"
+      "course-content/runtime/knowledge/cards/nodes/跨域联读任务重排_4_41005.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/跨域联读任务重排_4_41005.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/跨域联读任务重排_4_41005.png",
+        "title": "跨域联读任务重排 信息图",
+        "lessonId": "4-1",
+        "nodeId": "跨域联读任务重排_4_41005"
+      }
     ],
     "tags": [
       "跨域联读",
@@ -19828,14 +19963,29 @@
         "响应速度",
         "截止频率"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+        "title": "带宽频率 信息图",
+        "lessonId": "4-1",
+        "nodeId": "带宽频率_5_6996a44a"
+      },
       "createdAt": "2026-02-04T17:54:16.628615",
       "updatedAt": "2026-02-04T17:54:16.628615",
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/带宽频率_5_6996a44a.md"
+      "course-content/runtime/knowledge/cards/nodes/带宽频率_5_6996a44a.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/带宽频率_5_6996a44a.png",
+        "title": "带宽频率 信息图",
+        "lessonId": "4-1",
+        "nodeId": "带宽频率_5_6996a44a"
+      }
     ],
     "tags": [
       "3dB点",
@@ -20988,14 +21138,29 @@
         "稳定性",
         "开环频率特性"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
+        "title": "相角裕度 信息图",
+        "lessonId": "4-1",
+        "nodeId": "相角裕度_5_5a74b451"
+      },
       "createdAt": "2026-02-04T17:54:16.628585",
       "updatedAt": "2026-02-04T17:54:16.628586",
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md"
+      "course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/相角裕度_5_5a74b451.png",
+        "title": "相角裕度 信息图",
+        "lessonId": "4-1",
+        "nodeId": "相角裕度_5_5a74b451"
+      }
     ],
     "tags": [
       "截止频率",
@@ -21706,14 +21871,29 @@
         "相角裕度",
         "幅频特性"
       ],
-      "infograph": null,
+      "infograph": {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/谐振峰值Mr_5_b3a87785.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/谐振峰值Mr_5_b3a87785.png",
+        "title": "谐振峰值Mr 信息图",
+        "lessonId": "4-1",
+        "nodeId": "谐振峰值Mr_5_b3a87785"
+      },
       "createdAt": "2026-02-04T17:54:16.628642",
       "updatedAt": "2026-02-04T17:54:16.628642",
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/nodes/谐振峰值Mr_5_b3a87785.md"
+      "course-content/runtime/knowledge/cards/nodes/谐振峰值Mr_5_b3a87785.md",
+      {
+        "type": "infograph",
+        "path": "course-content/runtime/knowledge/infographs/nodes/谐振峰值Mr_5_b3a87785.png",
+        "url": "/course-runtime/knowledge/infographs/nodes/谐振峰值Mr_5_b3a87785.png",
+        "title": "谐振峰值Mr 信息图",
+        "lessonId": "4-1",
+        "nodeId": "谐振峰值Mr_5_b3a87785"
+      }
     ],
     "tags": [
       "相对稳定性",
