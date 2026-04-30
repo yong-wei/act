@@ -209,6 +209,18 @@ function main() {
     '远端部署脚本必须能在 PlatformSetting 已存在时补记最新迁移'
   );
 
+  assert.match(
+    script,
+    /\[ -f \\"\$\{REMOTE_PROJECT_DIR\}\/\.env\.server\\" \] && \. \\"\$\{REMOTE_PROJECT_DIR\}\/\.env\.server\\"/,
+    '远端部署脚本读取 .env.server 前必须先判断文件存在，避免当前远端只保留 runtime env 时验收失败'
+  );
+
+  assert.match(
+    script,
+    /\[ -f \\"\$\{REMOTE_PROJECT_DIR\}\/\.env\\" \] && \. \\"\$\{REMOTE_PROJECT_DIR\}\/\.env\\"/,
+    '远端部署脚本必须在 .env.server 不存在时允许读取远端 .env 作为基础部署环境'
+  );
+
   assert.equal(
     script.includes("/app-container-start-wrapper.sh worker"),
     true,

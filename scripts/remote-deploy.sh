@@ -155,7 +155,8 @@ recover_prisma_migration_state() {
   remote "bash -lc '
 set -euo pipefail
 set -a
-. \"${REMOTE_PROJECT_DIR}/.env.server\"
+[ -f \"${REMOTE_PROJECT_DIR}/.env.server\" ] && . \"${REMOTE_PROJECT_DIR}/.env.server\"
+[ -f \"${REMOTE_PROJECT_DIR}/.env\" ] && . \"${REMOTE_PROJECT_DIR}/.env\"
 . \"${REMOTE_PROJECT_DIR}/data/runtime/act-obe.env\"
 set +a
 
@@ -352,7 +353,8 @@ log "- 校验数据库连通性"
 remote "bash -lc '
 set -euo pipefail
 set -a
-. \"${REMOTE_PROJECT_DIR}/.env.server\"
+[ -f \"${REMOTE_PROJECT_DIR}/.env.server\" ] && . \"${REMOTE_PROJECT_DIR}/.env.server\"
+[ -f \"${REMOTE_PROJECT_DIR}/.env\" ] && . \"${REMOTE_PROJECT_DIR}/.env\"
 . \"${REMOTE_PROJECT_DIR}/data/runtime/act-obe.env\"
 set +a
 DB_CONTAINER_REAL=\${DB_CONTAINER:-${DB_NAME_HINT}}
